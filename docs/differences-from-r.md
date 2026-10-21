@@ -1,5 +1,7 @@
 # Differences from R
 
+English | [日本語](ja/differences-from-r.md)
+
 rStats.js aims to return the same results as R. This page lists the cases where it does not,
 either because R itself is inaccurate or fails there, or because rStats.js deliberately behaves
 differently. In the tests these cases are marked `knownDifference` with a reason (see

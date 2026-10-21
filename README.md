@@ -1,5 +1,7 @@
 # rStats.js
 
+English | [日本語](README.ja.md)
+
 R-compatible statistical functions for JavaScript and the browser, written in TypeScript.
 
 - **Same numbers as R.** Function names, defaults and results follow R. Every function is
