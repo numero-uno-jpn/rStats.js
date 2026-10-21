@@ -13,9 +13,9 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.2 KB gzipped).
 
-Status: **0.5.0, not yet published to npm.** The goal is to cover the scope of SciPy
-(`scipy.stats`, `scipy.special`, `scipy.linalg`) with R-compatible results; see
-[ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
+Status: **0.5.0, not yet published to npm.** The goal is to cover the numerical core of R's
+`stats` package (distributions, hypothesis tests, special functions and the basics of linear
+algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Install
 
