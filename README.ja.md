@@ -15,7 +15,7 @@ JavaScript とブラウザで使える、R と互換の統計関数のライブ�
 - **どこでも動きます。** ESM のみで、依存パッケージはなく、Node 専用の API も使っていません。
   tree-shaking が効きます (`pnorm` だけなら gzip で 1.2 KB)。
 
-状態: **0.5.0。npm にはまだ公開していません。** R の stats パッケージの数値計算の中心
+状態: **0.5.0。** R の stats パッケージの数値計算の中心
 (分布・検定・特殊関数・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
 [ROADMAP.md](ROADMAP.md) (英語)、変更履歴は [CHANGELOG.md](CHANGELOG.md) (英語) にあります。
 
@@ -147,8 +147,8 @@ ES モジュール、gzip で 72 KB) を jsDelivr から読み込めます。jsD
 </script>
 ```
 
-ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm に公開した後は、
-npm を元にした CDN も使えます。たとえば
+ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm を元にした CDN も
+使えます。たとえば
 `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.5.0/dist/rstats.js` や
 `https://esm.sh/@numero-uno-jpn/rstats` です。
 

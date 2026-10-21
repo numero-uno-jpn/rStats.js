@@ -24,7 +24,6 @@
   },
   "license": "MIT",
   "author": "numero-uno-jpn",
-  "private": true,
   "type": "module",
   "sideEffects": false,
   "exports": {

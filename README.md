@@ -13,7 +13,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.2 KB gzipped).
 
-Status: **0.5.0, not yet published to npm.** The goal is to cover the numerical core of R's
+Status: **0.5.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, hypothesis tests, special functions and the basics of linear
 algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -140,8 +140,8 @@ function, 72 KB gzipped) from jsDelivr, which serves each release tag of this re
 </script>
 ```
 
-Release tags contain the build output (`dist/`), which is not on the main branch. Once the package
-is published to npm, npm-based CDNs work as well, for example
+Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
+work as well, for example
 `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.5.0/dist/rstats.js` or
 `https://esm.sh/@numero-uno-jpn/rstats`.
 
