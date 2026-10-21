@@ -5,6 +5,7 @@
 > この文書は [英語版](README.md) の訳です。内容が食い違うときは英語版が正です。
 
 JavaScript とブラウザで使える、R と互換の統計関数のライブラリです。TypeScript で書いています。
+[ブラウザで試す](https://numero-uno-jpn.github.io/rStats.js/demo/) (すべての関数を、R が出す値と並べて試せます)。
 
 - **R と同じ数値を返します。** 関数名・既定値・結果は R に合わせています。すべての関数を R 4.5.2 と
   比べてテストしています (分布関数は相対誤差 1e-14)。R 自身が不正確なところでは、高精度の参照値と
@@ -155,7 +156,7 @@ ES モジュール、gzip で 72 KB) を jsDelivr から読み込めます。jsD
 ブラウザ向けのビルドは、headless Chromium でテストしています。バンドラでまとめた場合と、
 `dist/rstats.js` を ES モジュールとして読み込んだ場合の両方です (`npm run test:browser`)。
 
-**デモ。** [`demo/`](demo) は、`dist/rstats.js` を jsDelivr から読み込んで、すべての関数を試せる
+**デモ:** <https://numero-uno-jpn.github.io/rStats.js/demo/>。[`demo/`](demo) は、`dist/rstats.js` を jsDelivr から読み込んで、すべての関数を試せる
 静的なページです。確率分布 (グラフ付き)・特殊関数・乱数・検定・線形代数を扱います。各フォームには、
 入力に対応する R と JavaScript のコードが表示されます。「R との比較」のタブでは、例題の値を R が
 出力した値と照らし合わせます (`source("examples.R")` で、すべての例題を R で実行できます)。CDN の

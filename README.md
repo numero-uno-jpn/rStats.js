@@ -3,6 +3,7 @@
 English | [日本語](README.ja.md)
 
 R-compatible statistical functions for JavaScript and the browser, written in TypeScript.
+[Try it in the browser](https://numero-uno-jpn.github.io/rStats.js/demo/) (every function, with the values R gives).
 
 - **Same numbers as R.** Function names, defaults and results follow R. Every function is
   tested against R 4.5.2 (relative error 1e-14 for distributions), and where R itself is
@@ -148,7 +149,7 @@ work as well, for example
 The browser build is tested in headless Chromium, both bundled and as `dist/rstats.js` loaded as
 an ES module (`npm run test:browser`).
 
-**Demo.** [`demo/`](demo) is a static page that loads `dist/rstats.js` from jsDelivr and exercises
+**Demo:** <https://numero-uno-jpn.github.io/rStats.js/demo/>. [`demo/`](demo) is a static page that loads `dist/rstats.js` from jsDelivr and exercises
 every function: distributions with plots, special functions, random numbers, hypothesis tests and
 linear algebra. Each form shows the equivalent R and JavaScript code for its inputs, and a "Compare
 with R" tab checks curated examples against values printed by R (`source("examples.R")` runs them
