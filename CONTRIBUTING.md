@@ -59,6 +59,13 @@ rStats.js is MIT licensed. To keep it that way:
   public-domain code (LINPACK, EISPACK, Cephes as distributed with xsf), or published papers.
 - Name the source at the top of each ported file and add it to `THIRD_PARTY_NOTICES.md`.
 
+## Demo
+
+`demo/` is a static page that loads `dist/rstats.js` from jsDelivr (or the local build with
+`?src=local`). Its examples are defined in `demo/examples.json`; after changing them, run
+`npm run demo:r` to regenerate `demo/examples.R` and the R values in `demo/r-results.json`.
+`test/demo.test.ts` checks every example against R, and `test/browser/demo.mjs` drives the page.
+
 ## Style
 
 - TypeScript, ESM, one function family per file. Optional arguments go in an options object
@@ -70,7 +77,8 @@ rStats.js is MIT licensed. To keep it that way:
 
 ## Releasing
 
-1. Update `version` in `package.json` and the date in `CHANGELOG.md`, commit, then tag and push:
+1. Update `version` in `package.json`, the date in `CHANGELOG.md` and `VERSION` in `demo/app.js`
+   (the tag the demo loads from jsDelivr), commit, then tag and push:
    `git tag v0.5.0 && git push origin v0.5.0`.
 2. `.github/workflows/release.yml` runs the tests, builds, and moves the tag to a commit that also
    contains `dist/`, so that jsDelivr serves

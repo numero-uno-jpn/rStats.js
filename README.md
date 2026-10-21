@@ -148,6 +148,13 @@ is published to npm, npm-based CDNs work as well, for example
 The browser build is tested in headless Chromium, both bundled and as `dist/rstats.js` loaded as
 an ES module (`npm run test:browser`).
 
+**Demo.** [`demo/`](demo) is a static page that loads `dist/rstats.js` from jsDelivr and exercises
+every function: distributions with plots, special functions, random numbers, hypothesis tests and
+linear algebra. Each form shows the equivalent R and JavaScript code for its inputs, and a "Compare
+with R" tab checks curated examples against values printed by R (`source("examples.R")` runs them
+all in R). To use your own build instead of the CDN, run `npm run build`, serve the repository root
+with a static server (for example `npx serve .`) and open `/demo/?src=local`.
+
 ## Versioning
 
 While the version is 0.x, a minor release may contain breaking changes; they are listed in the

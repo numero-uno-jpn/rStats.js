@@ -44,6 +44,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "oracle": "sh scripts/oracle.sh",
+    "demo:r": "node scripts/demo-examples.mjs && sh scripts/oracle.sh demo",
     "reference": "sh scripts/reference.sh",
     "refresh-references": "sh scripts/refresh-references.sh",
     "precision-report": "sh scripts/precision.sh",
@@ -51,7 +52,7 @@
     "docs": "npx --yes typedoc@0.28.20",
     "prepack": "npm run build",
     "size": "npm run build && node scripts/size.mjs",
-    "test:browser": "npm run build && node test/browser/run.mjs"
+    "test:browser": "npm run build && node test/browser/run.mjs && node test/browser/demo.mjs"
   },
   "engines": {
     "node": ">=22"

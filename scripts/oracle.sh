@@ -7,7 +7,8 @@
 # R runs in a throwaway container from the image rstats-oracle (R 4.5.2 with the
 # packages jsonlite, Rmpfr, gmp and MASS); override with RSTATS_ORACLE_IMAGE.
 # The random-number oracles use x86_64 rocker/r-ver instead (see below).
-# --network none keeps the container offline.
+# --network none keeps the container offline. demo/ is mounted read-write as /demo because
+# oracle/demo.R reads demo/examples.R and writes demo/r-results.json there.
 set -eu
 
 cd "$(dirname "$0")/.."
@@ -32,12 +33,14 @@ for name in "$@"; do
       -e LANGUAGE=en -e LC_ALL=C.UTF-8 \
       -v "$PWD/oracle:/oracle:ro" \
       -v "$PWD/test/fixtures:/out" \
+      -v "$PWD/demo:/demo" \
       "$AMD64_IMAGE" --vanilla "/oracle/$name.R"
   else
     docker run --rm --network none --entrypoint Rscript \
       -e LANGUAGE=en -e LC_ALL=C.UTF-8 \
       -v "$PWD/oracle:/oracle:ro" \
       -v "$PWD/test/fixtures:/out" \
+      -v "$PWD/demo:/demo" \
       "$IMAGE" --vanilla "/oracle/$name.R"
   fi
 done

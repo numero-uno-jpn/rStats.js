@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="Interactive demo of rStats.js, R-compatible statistical functions for JavaScript: distributions, random numbers, hypothesis tests and linear algebra, compared with R." />
+    <title>rStats.js demo</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232456c8'/%3E%3Cpath d='M6 24 Q11 6 16 15 T26 8' stroke='white' stroke-width='3' fill='none'/%3E%3C/svg%3E" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main" data-i18n="app.skip">Skip to content</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="brand">
+          <h1><span class="brand-name">rStats.js</span> <span class="brand-sub" data-i18n="app.subtitle">demo</span></h1>
+          <p class="tagline" data-i18n="app.tagline">R-compatible statistical functions for JavaScript, checked against R.</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" id="theme-toggle" class="btn" data-testid="theme-toggle">Theme</button>
+          <button type="button" id="lang-toggle" class="btn" data-testid="lang-toggle">日本語</button>
+          <a class="btn" href="https://github.com/numero-uno-jpn/rStats.js">GitHub</a>
+        </div>
+      </div>
+      <p id="status" class="status" data-testid="status" data-state="loading" role="status" aria-live="polite">Loading…</p>
+    </header>
+    <div class="tabs-bar">
+      <nav id="tabs" class="tabs" role="tablist" data-i18n-attr="aria-label:tabs.label" aria-label="Sections"></nav>
+    </div>
+    <main id="main" tabindex="-1">
+      <noscript><p class="card">This demo needs JavaScript (ES modules).</p></noscript>
+    </main>
+    <footer class="site-footer">
+      <p>
+        <span data-i18n="footer.text">rStats.js is MIT licensed. Values are computed in your browser; R values come from demo/r-results.json.</span>
+        <a href="https://github.com/numero-uno-jpn/rStats.js#readme">README</a> ·
+        <a href="https://github.com/numero-uno-jpn/rStats.js/blob/main/docs/differences-from-r.md" data-i18n="footer.differences">Differences from R</a>
+      </p>
+    </footer>
+  </body>
+</html>
