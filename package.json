@@ -1,0 +1,70 @@
+{
+  "name": "@numero-uno-jpn/rstats",
+  "version": "0.5.0",
+  "description": "R-compatible statistical functions for the browser: distributions, random numbers that match set.seed(), hypothesis tests and linear algebra, tested against R.",
+  "keywords": [
+    "statistics",
+    "r",
+    "r-compatible",
+    "distributions",
+    "random",
+    "hypothesis-testing",
+    "linear-algebra",
+    "scipy",
+    "browser",
+    "typescript"
+  ],
+  "homepage": "https://github.com/numero-uno-jpn/rStats.js#readme",
+  "bugs": {
+    "url": "https://github.com/numero-uno-jpn/rStats.js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/numero-uno-jpn/rStats.js.git"
+  },
+  "license": "MIT",
+  "author": "numero-uno-jpn",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "THIRD_PARTY_NOTICES.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "oracle": "sh scripts/oracle.sh",
+    "reference": "sh scripts/reference.sh",
+    "refresh-references": "sh scripts/refresh-references.sh",
+    "precision-report": "sh scripts/precision.sh",
+    "bench": "npm run build && node scripts/bench.mjs",
+    "docs": "npx --yes typedoc@0.28.20",
+    "prepack": "npm run build",
+    "size": "npm run build && node scripts/size.mjs",
+    "test:browser": "npm run build && node test/browser/run.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "esbuild": "^0.28.2",
+    "playwright": "^1.64.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

@@ -1,0 +1,6 @@
+[
+  {"args":{"x":"-40","location":"3","scale":"0.10000000000000001","log":false},"reference":"1.792143500743578e-186"},
+  {"args":{"x":"40","location":"3","scale":"0.10000000000000001","log":false},"reference":"2.0466411214593096e-160"},
+  {"args":{"x":"-20","location":"3","scale":"0.10000000000000001","log":false},"reference":"1.2949981925090001e-99"},
+  {"args":{"x":"-1000","location":"-2","scale":"7","log":false},"reference":"1.7255091013205452e-63"}
+]

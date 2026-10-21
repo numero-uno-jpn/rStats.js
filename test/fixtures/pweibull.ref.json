@@ -1,0 +1,4 @@
+[
+  {"args":{"q":"10000000000","shape":"0.5","scale":"100000","lowerTail":false,"logP":false},"reference":"4.6134539958094022e-138"},
+  {"args":{"q":"10000000000","shape":"0.5","scale":"100000","lowerTail":true,"logP":true},"reference":"-4.6134539958094022e-138"}
+]

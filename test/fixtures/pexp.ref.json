@@ -1,0 +1,8 @@
+[
+  {"args":{"q":"745","rate":"0.33333333333333331","lowerTail":false,"logP":false},"reference":"1.4132001038995436e-108"},
+  {"args":{"q":"745","rate":"0.33333333333333331","lowerTail":true,"logP":true},"reference":"-1.4132001038995436e-108"},
+  {"args":{"q":"700","rate":"0.33333333333333331","lowerTail":false,"logP":false},"reference":"4.6197756904269956e-102"},
+  {"args":{"q":"700","rate":"0.33333333333333331","lowerTail":true,"logP":true},"reference":"-4.6197756904269956e-102"},
+  {"args":{"q":"750","rate":"0.33333333333333331","lowerTail":false,"logP":false},"reference":"2.6691902155413133e-109"},
+  {"args":{"q":"750","rate":"0.33333333333333331","lowerTail":true,"logP":true},"reference":"-2.6691902155413133e-109"}
+]

@@ -1,0 +1,13 @@
+[
+  {"args":{"q":"-1.0000000000000001e+300","location":"0","scale":"1e-300","lowerTail":true,"logP":true},"reference":"-1382.6957856822769"},
+  {"args":{"q":"-9.9999999999999997e+199","location":"0","scale":"1e-300","lowerTail":true,"logP":true},"reference":"-1152.4372763828721"},
+  {"args":{"q":"-1e+154","location":"0","scale":"1e-300","lowerTail":true,"logP":true},"reference":"-1046.5183621051463"},
+  {"args":{"q":"-1e+20","location":"0","scale":"1e-300","lowerTail":true,"logP":false},"reference":"3.1817827592176277e-321"},
+  {"args":{"q":"-1e+20","location":"0","scale":"1e-300","lowerTail":true,"logP":true},"reference":"-737.97195964394405"},
+  {"args":{"q":"-1e+20","location":"0","scale":"1e-300","lowerTail":false,"logP":true},"reference":"-3.1817827592176277e-321"},
+  {"args":{"q":"1e+20","location":"0","scale":"1e-300","lowerTail":false,"logP":false},"reference":"3.1817827592176277e-321"},
+  {"args":{"q":"1e+20","location":"0","scale":"1e-300","lowerTail":true,"logP":true},"reference":"-3.1817827592176277e-321"},
+  {"args":{"q":"1e+20","location":"0","scale":"1e-300","lowerTail":false,"logP":true},"reference":"-737.97195964394405"},
+  {"args":{"q":"1e+154","location":"0","scale":"1e-300","lowerTail":false,"logP":true},"reference":"-1046.5183621051463"},
+  {"args":{"q":"1.0000000000000001e+300","location":"0","scale":"1e-300","lowerTail":false,"logP":true},"reference":"-1382.6957856822769"}
+]
