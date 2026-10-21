@@ -128,11 +128,25 @@ removed. Approximate sizes after minification and gzip:
 | `qbeta` / `pt` and `qt` | 17.3 / 25.0 KB |
 | everything | 72.2 KB |
 
-(`npm run size` measures these.) Without a bundler, once the package is published, it can be
-loaded from a CDN that serves ESM, for example
-`import { pnorm } from "https://esm.sh/@numero-uno-jpn/rstats"`.
+(`npm run size` measures these.)
 
-The browser build is tested in headless Chromium (`npm run test:browser`).
+Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
+function, 72 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+
+```html
+<script type="module">
+  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.5.0/dist/rstats.js";
+  console.log(pnorm(1.96)); // 0.9750021048517795
+</script>
+```
+
+Release tags contain the build output (`dist/`), which is not on the main branch. Once the package
+is published to npm, npm-based CDNs work as well, for example
+`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.5.0/dist/rstats.js` or
+`https://esm.sh/@numero-uno-jpn/rstats`.
+
+The browser build is tested in headless Chromium, both bundled and as `dist/rstats.js` loaded as
+an ES module (`npm run test:browser`).
 
 ## Versioning
 

@@ -134,11 +134,26 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `qbeta` / `pt` と `qt` | 17.3 / 25.0 KB |
 | すべて | 72.2 KB |
 
-(`npm run size` で測れます。) バンドラを使わない場合は、パッケージを公開した後なら、ESM を配信する
-CDN から読み込めます。たとえば
-`import { pnorm } from "https://esm.sh/@numero-uno-jpn/rstats"` です。
+(`npm run size` で測れます。)
 
-ブラウザ向けのビルドは、headless Chromium でテストしています (`npm run test:browser`)。
+バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (すべての関数を含む minify 済みの
+ES モジュール、gzip で 72 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
+タグをそのまま配信します。
+
+```html
+<script type="module">
+  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.5.0/dist/rstats.js";
+  console.log(pnorm(1.96)); // 0.9750021048517795
+</script>
+```
+
+ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm に公開した後は、
+npm を元にした CDN も使えます。たとえば
+`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.5.0/dist/rstats.js` や
+`https://esm.sh/@numero-uno-jpn/rstats` です。
+
+ブラウザ向けのビルドは、headless Chromium でテストしています。バンドラでまとめた場合と、
+`dist/rstats.js` を ES モジュールとして読み込んだ場合の両方です (`npm run test:browser`)。
 
 ## 版の番号
 

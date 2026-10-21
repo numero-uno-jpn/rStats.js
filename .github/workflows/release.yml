@@ -1,18 +1,20 @@
 name: Release
 
-# Pushing a tag v* runs the tests and then publishes to npm.
-# Until publishing is decided, "private": true in package.json stops npm publish.
-# For the release steps see "Releasing" in CONTRIBUTING.md (registering NPM_TOKEN and removing private).
+# Pushing a tag v* runs the tests, builds, and moves the tag to a commit that also contains the
+# build output (dist/, which is not on main), so that jsDelivr can serve the tag from GitHub:
+#   https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.5.0/dist/rstats.js
+# It then publishes to npm, unless package.json still has "private": true.
+# For the release steps see "Releasing" in CONTRIBUTING.md.
 on:
   push:
     tags: ["v*"]
 
 permissions:
-  contents: read
+  contents: write # to push the tag with the build output
   id-token: write # required for npm provenance
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -26,6 +28,22 @@ jobs:
       - run: npm test
       - name: Check that the tag matches package.json
         run: test "v$(node -p 'require("./package.json").version')" = "$GITHUB_REF_NAME"
-      - run: npm publish
+      - run: npm run build
+      - name: Move the tag to a commit with the build output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist
+          # On a re-run the tag already contains this build
+          git diff --cached --quiet || git commit -q -m "Build output for $GITHUB_REF_NAME"
+          git tag -f "$GITHUB_REF_NAME"
+          git push -f origin "refs/tags/$GITHUB_REF_NAME"
+      - name: Publish to npm
+        run: |
+          if [ "$(node -p 'require("./package.json").private === true')" = true ]; then
+            echo '"private": true in package.json: skipping npm publish'
+          else
+            npm publish
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

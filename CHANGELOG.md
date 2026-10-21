@@ -37,5 +37,7 @@ First public version.
 - Errors are thrown with English messages, and the class tells the kind of problem: `TypeError`
   for wrong types or shapes, `RangeError` for values out of range, and `Error` for numerical
   failures (singular matrix, not positive definite, no convergence, data essentially constant).
+- A single-file minified ES module, `dist/rstats.js`, for loading from a CDN; release tags contain
+  the build output so that jsDelivr can serve it from GitHub.
 - ESM only, no dependencies, tree-shakable. Requires Node.js 22 or later (or another ES2022
   environment).

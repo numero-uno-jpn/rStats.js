@@ -70,11 +70,16 @@ rStats.js is MIT licensed. To keep it that way:
 
 ## Releasing
 
-Publishing has not started yet. When it does:
-
-1. Create the npm account or organization `numero-uno-jpn` (the package scope), and add an
-   automation token as the repository secret `NPM_TOKEN`.
-2. Remove `"private": true` from `package.json`.
-3. Update `version` in `package.json` and the date in `CHANGELOG.md`, commit, then tag and push:
+1. Update `version` in `package.json` and the date in `CHANGELOG.md`, commit, then tag and push:
    `git tag v0.5.0 && git push origin v0.5.0`.
-4. `.github/workflows/release.yml` runs the tests and publishes with npm provenance.
+2. `.github/workflows/release.yml` runs the tests, builds, and moves the tag to a commit that also
+   contains `dist/`, so that jsDelivr serves
+   `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.5.0/dist/rstats.js`. (After the
+   workflow has run, `git fetch --tags --force` updates your local tag.) The main branch never
+   contains `dist/`.
+3. It then publishes to npm with provenance, unless `package.json` has `"private": true`.
+
+Publishing to npm has not started yet. Before the first npm release, create the npm account or
+organization `numero-uno-jpn` (the package scope), add an automation token as the repository
+secret `NPM_TOKEN`, and remove `"private": true` from `package.json`. The repository must be
+public for jsDelivr to serve it.
