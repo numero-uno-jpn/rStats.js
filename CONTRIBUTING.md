@@ -85,9 +85,9 @@ rStats.js is MIT licensed. To keep it that way:
    `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.5.0/dist/rstats.js`. (After the
    workflow has run, `git fetch --tags --force` updates your local tag.) The main branch never
    contains `dist/`.
-3. It then publishes to npm with provenance, unless `package.json` has `"private": true`.
+3. It then publishes to npm with provenance. No token is involved: the package's settings on
+   npmjs.com name this repository and `release.yml` as its trusted publisher.
 
-Publishing to npm has not started yet. Before the first npm release, create the npm account or
-organization `numero-uno-jpn` (the package scope), add an automation token as the repository
-secret `NPM_TOKEN`, and remove `"private": true` from `package.json`. The repository must be
-public for jsDelivr to serve it.
+Version 0.5.0 was published by hand (`npm publish --provenance=false`, since provenance needs CI);
+later versions are published by the workflow. Publishing from a local machine requires the npm
+account's two-factor authentication. The repository must stay public for jsDelivr to serve it.

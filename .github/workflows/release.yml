@@ -3,7 +3,8 @@ name: Release
 # Pushing a tag v* runs the tests, builds, and moves the tag to a commit that also contains the
 # build output (dist/, which is not on main), so that jsDelivr can serve the tag from GitHub:
 #   https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.5.0/dist/rstats.js
-# It then publishes to npm, unless package.json still has "private": true.
+# It then publishes to npm through npm's trusted publishing (OIDC, no token): the package's settings on
+# npmjs.com name this repository and this workflow file as its trusted publisher.
 # For the release steps see "Releasing" in CONTRIBUTING.md.
 on:
   push:
@@ -11,7 +12,7 @@ on:
 
 permissions:
   contents: write # to push the tag with the build output
-  id-token: write # required for npm provenance
+  id-token: write # for npm trusted publishing and provenance
 
 jobs:
   release:
@@ -39,11 +40,4 @@ jobs:
           git tag -f "$GITHUB_REF_NAME"
           git push -f origin "refs/tags/$GITHUB_REF_NAME"
       - name: Publish to npm
-        run: |
-          if [ "$(node -p 'require("./package.json").private === true')" = true ]; then
-            echo '"private": true in package.json: skipping npm publish'
-          else
-            npm publish
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
