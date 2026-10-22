@@ -1,5 +1,7 @@
 # Performance
 
+English | [日本語](ja/performance.md)
+
 rStats.js puts accuracy first: distribution functions are kept within 1e-14 of the true value
 even in the far tails (see [accuracy.md](accuracy.md)). That costs speed. This page explains
 where the time goes, what has been done about it, and the current measurements.
