@@ -171,7 +171,7 @@ ES モジュール、gzip で 72 KB) を jsDelivr から読み込めます。jsD
 ## 貢献
 
 R との答え合わせの仕組みと、ライセンスの決まり (R や GPL のパッケージのコードは使わない) は
-[CONTRIBUTING.md](CONTRIBUTING.md) (英語) にあります。速さと double-double 演算については
+[CONTRIBUTING.ja.md](CONTRIBUTING.ja.md) にあります。速さと double-double 演算については
 [docs/ja/performance.md](docs/ja/performance.md) にあります。
 
 ## ライセンス

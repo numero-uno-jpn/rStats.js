@@ -1,5 +1,7 @@
 # Contributing
 
+English | [日本語](CONTRIBUTING.ja.md)
+
 Thank you for your interest in rStats.js. This document explains how the project is
 checked against R and what is needed to add or change a function.
 
