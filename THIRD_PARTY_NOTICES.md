@@ -8,7 +8,7 @@ listed below. Each ported file names its source at the top.
 ## xsf
 
 - Source: https://github.com/scipy/xsf (commit c6a3afe)
-- Used in: `src/special/beta.ts`, `src/special/constants.ts`, `src/special/erf.ts`, `src/special/gamma.ts`, `src/special/igam.ts`, `src/special/igamAsympCoeff.ts`, `src/special/igami.ts`, `src/special/incbet.ts`, `src/special/log1pmx.ts`, `src/special/ndtri.ts`, `src/special/polevl.ts`
+- Used in: `src/special/beta.ts`, `src/special/constants.ts`, `src/special/erf.ts`, `src/special/gamma.ts`, `src/special/igam.ts`, `src/special/igamAsympCoeff.ts`, `src/special/igami.ts`, `src/special/incbet.ts`, `src/special/log1pmx.ts`, `src/special/ndtri.ts`, `src/special/polevl.ts`, `src/special/psigamma.ts`
 - License: BSD-3-Clause
 - `include/xsf/ndtri_exp.h` (used in `src/special/ndtri.ts`): Copyright Albert Steppi,
   distributed under the same license as SciPy (BSD-3-Clause)
@@ -100,6 +100,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   algorithms — Poisson-mixture summation starting near the mode, and the integral
   P[T <= t] = E[Φ(tS - δ)] for the non-central t; the TypeScript code was written independently)
 - License: Boost Software License 1.0
+- Also: the rational approximation of digamma on [1, 2] in `src/special/psigamma.ts`, which xsf's
+  `include/xsf/cephes/psi.h` takes from Boost ((C) Copyright John Maddock 2006)
 
 ```
 Boost Software License - Version 1.0 - August 17th, 2003

@@ -13,6 +13,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 - `choose`, `lchoose`, `factorial` and `lfactorial`, for any real `n` (and `x`). Checked against
   mpmath so far; `oracle/choose.R` is ready for the comparison with R.
+- `digamma`, `trigamma` and `psigamma` (derivatives up to 100, negative arguments by
+  reflection). Checked against mpmath so far; `oracle/psigamma.R` is ready.
 
 ### Fixed
 
