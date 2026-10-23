@@ -7,6 +7,9 @@ binomTest: scipy.stats.binomtest (p-value with the same 1e-7 relative slack; Clo
 poissonTest: one sample from the definition (sum of the Poisson probabilities no larger than the observed one, at 50
 digits with mpmath) and gamma quantiles; two samples through scipy's binomtest.
 varTest, bartlettTest, mcnemarTest: the formulas with scipy.stats distributions (bartlett: scipy.stats.bartlett).
+kruskalTest, friedmanTest, flignerTest, moodTest, onewayTest, shapiroTest: scipy.stats kruskal, friedmanchisquare,
+fligner (center="median"), mood (ties per Mielke), f_oneway (equal_var True and False) and shapiro.
+quadeTest: Conover's formulas computed directly (SciPy has no Quade test).
 """
 import json, math, os, random, sys
 import mpmath as mp
@@ -168,7 +171,143 @@ def mcnemar(rng):
     return cases
 
 
+def tied_sample(rng, n, kind):
+    if kind == 0:
+        return [round(rng.gauss(0, 1), 6) for _ in range(n)]
+    if kind == 1:
+        return [float(rng.randint(0, 6)) for _ in range(n)]  # many ties
+    return [round(rng.expovariate(1) * 10 ** rng.uniform(-3, 3), 4) for _ in range(n)]
+
+
+def groups_cases(rng, count, kmin=2, kmax=6, nmin=2, nmax=30):
+    out = []
+    for _ in range(count):
+        k = rng.randint(kmin, kmax)
+        kind = rng.randint(0, 2)
+        out.append([[v + j * rng.uniform(0, 0.5) for v in tied_sample(rng, rng.randint(nmin, nmax), kind)]
+                    for j in range(k)])
+    return out
+
+
+def g_args(groups):
+    return {"groups": [[s(v) for v in g] for g in groups]}
+
+
+def kruskal(rng):
+    cases = []
+    for gs in groups_cases(rng, 150):
+        if len(set(v for g in gs for v in g)) < 2:
+            continue
+        st, pv = stats.kruskal(*gs)
+        cases.append({"args": g_args(gs), "expected": {"statistic": s(st), "parameter": s(len(gs) - 1), "pValue": s(pv)}})
+    return cases
+
+
+def blocks(rng, count):
+    out = []
+    for _ in range(count):
+        b, k = rng.randint(2, 25), rng.randint(2, 6)
+        kind = rng.randint(0, 2)
+        out.append([[v + j * rng.uniform(0, 0.8) for j, v in enumerate(tied_sample(rng, k, kind))] for _ in range(b)])
+    return out
+
+
+def friedman(rng):
+    cases = []
+    for y in blocks(rng, 150):
+        k = len(y[0])
+        if k < 3:
+            continue  # scipy.stats.friedmanchisquare needs at least 3 treatments
+        if all(len(set(r)) == 1 for r in y):
+            continue
+        st, pv = stats.friedmanchisquare(*[[r[j] for r in y] for j in range(k)])
+        cases.append({"args": {"y": [[s(v) for v in r] for r in y]},
+                      "expected": {"statistic": s(st), "parameter": s(k - 1), "pValue": s(pv)}})
+    return cases
+
+
+def quade(rng):
+    cases = []
+    for y in blocks(rng, 150):
+        b, k = len(y), len(y[0])
+        q = stats.rankdata([max(r) - min(r) for r in y])
+        S = [[q[i] * (rr - (k + 1) / 2) for rr in stats.rankdata(y[i])] for i in range(b)]
+        with mp.workdps(40):
+            A = mp.fsum(mp.mpf(v) ** 2 for row in S for v in row)
+            B = mp.fsum(mp.fsum(mp.mpf(S[i][j]) for i in range(b)) ** 2 for j in range(k)) / b
+            if A == B:
+                continue
+            F = (b - 1) * B / (A - B)
+        d1, d2 = k - 1, (b - 1) * (k - 1)
+        cases.append({"args": {"y": [[s(v) for v in r] for r in y]},
+                      "expected": {"statistic": s(F), "parameter": [s(d1), s(d2)], "pValue": s(stats.f.sf(float(F), d1, d2))}})
+    return cases
+
+
+def fligner(rng):
+    cases = []
+    for gs in groups_cases(rng, 150):
+        st, pv = stats.fligner(*gs, center="median")
+        if not math.isfinite(st):
+            continue
+        cases.append({"args": g_args(gs), "expected": {"statistic": s(st), "parameter": s(len(gs) - 1), "pValue": s(pv)}})
+    return cases
+
+
+def mood(rng):
+    cases = []
+    for _ in range(150):
+        kind = rng.randint(0, 2)
+        x = tied_sample(rng, rng.randint(2, 40), kind)
+        y = [v * rng.uniform(0.3, 3) for v in tied_sample(rng, rng.randint(2, 40), kind)]
+        alt = rng.choice(ALTS)
+        z, pv = stats.mood(x, y, alternative=SCIPY_ALT[alt])
+        if not math.isfinite(z):
+            continue
+        cases.append({"args": {"x": [s(v) for v in x], "y": [s(v) for v in y], "alternative": alt},
+                      "expected": {"statistic": s(z), "pValue": s(pv)}})
+    return cases
+
+
+def oneway(rng):
+    cases = []
+    for gs in groups_cases(rng, 150):
+        gs = [[v * 10 ** rng.uniform(-1, 1) for v in g] for g in gs]
+        if any(np.var(g) == 0 for g in gs):
+            continue
+        ve = rng.random() < 0.5
+        r = stats.f_oneway(*gs, equal_var=ve)
+        n, k = sum(len(g) for g in gs), len(gs)
+        if ve:
+            df2 = n - k
+        else:
+            w = [len(g) / np.var(g, ddof=1) for g in gs]
+            sw = sum(w)
+            c = sum((1 - wi / sw) ** 2 / (len(g) - 1) for wi, g in zip(w, gs)) / (k * k - 1)
+            df2 = 1 / (3 * c)
+        cases.append({"args": dict(g_args(gs), varEqual=ve),
+                      "expected": {"statistic": s(r.statistic), "parameter": [s(k - 1), s(df2)], "pValue": s(r.pvalue)}})
+    return cases
+
+
+def shapiro(rng):
+    cases = []
+    for _ in range(150):
+        n = int(10 ** rng.uniform(math.log10(3), math.log10(5000)))
+        kind = rng.randint(0, 2)
+        x = tied_sample(rng, n, kind) if kind != 1 else [rng.gauss(0, 1) + rng.randint(0, 3) for _ in range(n)]
+        if max(x) - min(x) < 1e-10:
+            continue
+        w, pv = stats.shapiro(x)
+        cases.append({"args": {"x": [s(v) for v in x]}, "expected": {"statistic": s(w), "pValue": s(pv)}})
+    return cases
+
+
 if __name__ == "__main__":
     for i, (name, f) in enumerate([("binomTest", binom), ("poissonTest", poisson), ("varTest", var),
-                                   ("bartlettTest", bartlett), ("mcnemarTest", mcnemar)]):
+                                   ("bartlettTest", bartlett), ("mcnemarTest", mcnemar), ("kruskalTest", kruskal),
+                                   ("friedmanTest", friedman), ("quadeTest", quade), ("flignerTest", fligner),
+                                   ("moodTest", mood), ("onewayTest", oneway), ("shapiroTest", shapiro)]):
+        if len(sys.argv) > 1 and name not in sys.argv[1:]:
+            continue
         write(name, f(random.Random(20261023 + i)))

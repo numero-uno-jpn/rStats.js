@@ -9,6 +9,8 @@ import { binomTest } from "../src/htest/binomTest.js";
 import { mcnemarTest } from "../src/htest/mcnemarTest.js";
 import { poissonTest } from "../src/htest/poissonTest.js";
 import { varTest } from "../src/htest/varTest.js";
+import { onewayTest, shapiroTest } from "../src/htest/onewayTest.js";
+import { flignerTest, friedmanTest, kruskalTest, moodTest, quadeTest } from "../src/htest/rankTests.js";
 import type { Alternative } from "../src/htest/types.js";
 import { hasFixture, num, relativeError } from "./helpers/fixture.js";
 import { arg, defined, htestSuite, type HTestArg } from "./helpers/htest.js";
@@ -31,6 +33,14 @@ const calls: Record<string, [number, (a: Args) => Record<string, unknown>]> = {
   varTest: [1e-12, (a) => ({ ...varTest(nums(a.x), nums(a.y), { ratio: num(a.ratio as string), ...opt(a) }) })],
   bartlettTest: [1e-12, (a) => ({ ...bartlettTest((a.groups as string[][]).map(nums)) })],
   mcnemarTest: [1e-13, (a) => ({ ...mcnemarTest((a.x as string[][]).map(nums), { correct: a.correct as boolean }) })],
+  kruskalTest: [1e-12, (a) => ({ ...kruskalTest((a.groups as string[][]).map(nums)) })],
+  friedmanTest: [1e-12, (a) => ({ ...friedmanTest((a.y as string[][]).map(nums)) })],
+  quadeTest: [1e-12, (a) => ({ ...quadeTest((a.y as string[][]).map(nums)) })],
+  flignerTest: [1e-12, (a) => ({ ...flignerTest((a.groups as string[][]).map(nums)) })],
+  moodTest: [1e-12, (a) => ({ ...moodTest(nums(a.x), nums(a.y), { alternative: a.alternative as Alternative }) })],
+  onewayTest: [1e-12, (a) => ({ ...onewayTest((a.groups as string[][]).map(nums), { varEqual: a.varEqual as boolean }) })],
+  // SciPy evaluates the Shapiro-Wilk p-value less precisely (agreement about 1e-11), hence the wider tolerance
+  shapiroTest: [1e-9, (a) => ({ ...shapiroTest(nums(a.x)) })],
 };
 
 for (const [name, [tolerance, call]] of Object.entries(calls)) {
@@ -123,3 +133,16 @@ if (hasFixture("mcnemarTest"))
     call: (a) => mcnemarTest(arg.mat(a.x)!, defined({ correct: arg.bool(a.correct) })),
     tolerance: 1e-13,
   });
+
+const rGroups = (a: Record<string, HTestArg>): number[][] =>
+  (a.groups as unknown as (string | string[])[]).map((g) => (Array.isArray(g) ? g : [g]).map(num));
+const rSuites: [string, (a: Record<string, HTestArg>) => object, number][] = [
+  ["kruskalTest", (a) => kruskalTest(rGroups(a)), 1e-12],
+  ["flignerTest", (a) => flignerTest(rGroups(a)), 1e-12],
+  ["onewayTest", (a) => onewayTest(rGroups(a), defined({ varEqual: arg.bool(a.varEqual) })), 1e-12],
+  ["friedmanTest", (a) => friedmanTest(arg.mat(a.y)!), 1e-12],
+  ["quadeTest", (a) => quadeTest(arg.mat(a.y)!), 1e-12],
+  ["moodTest", (a) => moodTest(arg.vec(a.x)!, arg.vec(a.y)!, defined({ alternative: arg.str<Alternative>(a.alternative) })), 1e-12],
+  ["shapiroTest", (a) => shapiroTest(arg.vec(a.x)!), 1e-12],
+];
+for (const [name, call, tolerance] of rSuites) if (hasFixture(name)) htestSuite({ name, call, tolerance });
