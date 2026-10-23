@@ -11,6 +11,7 @@ import { poissonTest } from "../src/htest/poissonTest.js";
 import { varTest } from "../src/htest/varTest.js";
 import { onewayTest, shapiroTest } from "../src/htest/onewayTest.js";
 import { propTest } from "../src/htest/propTest.js";
+import { mantelhaenTest } from "../src/htest/mantelhaenTest.js";
 import { flignerTest, friedmanTest, kruskalTest, moodTest, quadeTest } from "../src/htest/rankTests.js";
 import type { Alternative } from "../src/htest/types.js";
 import { hasFixture, num, relativeError } from "./helpers/fixture.js";
@@ -47,6 +48,16 @@ const calls: Record<string, [number, (a: Args) => Record<string, unknown>]> = {
         ...(a.p === undefined ? {} : { p: nums(a.p) }),
         correct: a.correct as boolean,
         ...opt(a),
+      }),
+    }),
+  ],
+  mantelhaenTest: [
+    1e-12,
+    (a) => ({
+      ...mantelhaenTest((a.x as string[][][]).map((t) => t.map(nums)), {
+        ...(a.alternative === undefined ? {} : opt(a)),
+        ...(a.exact === undefined ? {} : { exact: a.exact as boolean }),
+        ...(a.correct === undefined ? {} : { correct: a.correct as boolean }),
       }),
     }),
   ],
@@ -165,4 +176,16 @@ if (hasFixture("propTest"))
     tolerance: 1e-12,
     // a continuity correction reduced to |O - E| gives exactly 0 here and rounding residue in R
     floor: { statistic: 1e-3 },
+  });
+if (hasFixture("mantelhaenTest"))
+  htestSuite({
+    name: "mantelhaenTest",
+    call: (a) =>
+      mantelhaenTest(
+        (a.x as unknown as string[][][]).map((t) => t.map((r) => (Array.isArray(r) ? r : [r]).map(num))),
+        defined({ correct: arg.bool(a.correct), exact: arg.bool(a.exact), ...rAlt(a) }),
+      ),
+    tolerance: 1e-12,
+    // the exact test's estimate and limits are roots found by uniroot, in R as here
+    fieldTolerance: { estimate: 1e-4, confInt: 1e-4 },
   });

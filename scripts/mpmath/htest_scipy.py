@@ -13,6 +13,9 @@ quadeTest: Conover's formulas computed directly (SciPy has no Quade test).
 propTest: equality of k proportions through scipy.stats.chi2_contingency (with its Yates correction for 2 x 2, which
 reduces each |O - E| by at most 1/2); one proportion and the intervals (Wilson with continuity correction, Wald for a
 difference) from the formulas.
+mantelhaenTest: 2 x 2 x K asymptotic test, pooled odds ratio and its Robins-Breslow-Greenland interval from statsmodels
+(StratifiedTable; cases whose |sum a - sum E| < 1/2 with the correction are left out, as statsmodels then still
+subtracts 1/2); the exact conditional p-values with exact rational arithmetic; I x J x K from the formula at 40 digits.
 """
 import json, math, os, random, sys
 import mpmath as mp
@@ -365,12 +368,99 @@ def prop(rng):
     return cases
 
 
+def mantelhaen(rng):
+    from fractions import Fraction
+    from math import comb
+    from statsmodels.stats.contingency_tables import StratifiedTable
+    cases = []
+    for _ in range(150):
+        K = rng.randint(2, 6)
+        tabs = [[[rng.randint(0, 25) for _ in range(2)] for _ in range(2)] for _ in range(K)]
+        if any(sum(map(sum, t)) < 2 for t in tabs):
+            continue
+        alt = rng.choice(ALTS)
+        conf = rng.choice([0.95, 0.9, 0.99])
+        exact = rng.random() < 0.4
+        args = {"x": [[[s(v) for v in r] for r in t] for t in tabs], "alternative": alt, "confLevel": s(conf), "exact": exact}
+        if exact:
+            dist = {0: Fraction(1)}
+            for (a, b), (c, d) in tabs:
+                m, n, k = a + c, b + d, a + b
+                tot = comb(m + n, k)
+                new = {}
+                for sv, pv in dist.items():
+                    for x in range(max(0, k - n), min(k, m) + 1):
+                        new[sv + x] = new.get(sv + x, 0) + pv * Fraction(comb(m, x) * comb(n, k - x), tot)
+                dist = new
+            sobs = sum(t[0][0] for t in tabs)
+            if alt == "less":
+                pv = sum(v for kk, v in dist.items() if kk <= sobs)
+            elif alt == "greater":
+                pv = sum(v for kk, v in dist.items() if kk >= sobs)
+            else:
+                thr = dist[sobs] * Fraction(10 ** 7 + 1, 10 ** 7)
+                pv = min(Fraction(1), sum(v for v in dist.values() if v <= thr))
+            cases.append({"args": args, "expected": {"statistic": s(sobs), "pValue": s(float(pv))}})
+            continue
+        correct = rng.random() < 0.6
+        args["correct"] = correct
+        st = StratifiedTable([np.array(t, dtype=float) for t in tabs])
+        delta = sum(t[0][0] - (t[0][0] + t[0][1]) * (t[0][0] + t[1][0]) / sum(map(sum, t)) for t in tabs)
+        if correct and abs(delta) < 0.5:
+            continue
+        r = st.test_null_odds(correction=correct)
+        if alt == "two.sided":
+            # chi-squared on 1 df as erfc at 40 digits (statsmodels' p-value is only good to about 1e-10)
+            with mp.workdps(40):
+                pv = mp.erfc(mp.sqrt(mp.mpf(r.statistic) / 2))
+        else:
+            zz = math.copysign(math.sqrt(r.statistic), delta)
+            pv = stats.norm.cdf(zz) if alt == "less" else stats.norm.sf(zz)
+        exp = {"statistic": s(r.statistic), "pValue": s(pv)}
+        est = st.oddsratio_pooled
+        if math.isfinite(est) and est > 0:
+            exp["estimate"] = s(est)
+            if alt == "two.sided":
+                lo, hi = st.oddsratio_pooled_confint(alpha=1 - conf)
+                exp["confInt"] = [s(lo), s(hi)]
+        cases.append({"args": args, "expected": exp})
+    for _ in range(60):
+        K, I, J = rng.randint(2, 5), rng.randint(2, 4), rng.randint(2, 4)
+        if I == 2 and J == 2:
+            J = 3
+        tabs = [[[rng.randint(0, 30) for _ in range(J)] for _ in range(I)] for _ in range(K)]
+        with mp.workdps(40):
+            p = (I - 1) * (J - 1)
+            diff = mp.zeros(p, 1)
+            V = mp.zeros(p, p)
+            for t in tabs:
+                tot = mp.mpf(sum(map(sum, t)))
+                rr = [mp.mpf(sum(row)) for row in t]
+                cc = [mp.mpf(sum(t[i][j] for i in range(I))) for j in range(J)]
+                for j in range(J - 1):
+                    for i in range(I - 1):
+                        u = i + (I - 1) * j
+                        diff[u] += t[i][j] - rr[i] * cc[j] / tot
+                        for jj in range(J - 1):
+                            for ii in range(I - 1):
+                                vr = (tot * rr[i] if i == ii else 0) - rr[i] * rr[ii]
+                                vc = (tot * cc[j] if j == jj else 0) - cc[j] * cc[jj]
+                                V[u, ii + (I - 1) * jj] += vr * vc / (tot ** 2 * (tot - 1))
+            try:
+                stat = (diff.T * mp.lu_solve(V, diff))[0]
+            except ZeroDivisionError:
+                continue
+        cases.append({"args": {"x": [[[s(v) for v in r] for r in t] for t in tabs]},
+                      "expected": {"statistic": s(stat), "parameter": s(p), "pValue": s(stats.chi2.sf(float(stat), p))}})
+    return cases
+
+
 if __name__ == "__main__":
     for i, (name, f) in enumerate([("binomTest", binom), ("poissonTest", poisson), ("varTest", var),
                                    ("bartlettTest", bartlett), ("mcnemarTest", mcnemar), ("kruskalTest", kruskal),
                                    ("friedmanTest", friedman), ("quadeTest", quade), ("flignerTest", fligner),
                                    ("moodTest", mood), ("onewayTest", oneway), ("shapiroTest", shapiro),
-                                   ("propTest", prop)]):
+                                   ("propTest", prop), ("mantelhaenTest", mantelhaen)]):
         if len(sys.argv) > 1 and name not in sys.argv[1:]:
             continue
         write(name, f(random.Random(20261023 + i)))
