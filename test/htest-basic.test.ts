@@ -14,6 +14,7 @@ import { propTest } from "../src/htest/propTest.js";
 import { mantelhaenTest } from "../src/htest/mantelhaenTest.js";
 import { ansariTest } from "../src/htest/ansariTest.js";
 import { ksTest } from "../src/htest/ksTest.js";
+import { pairwisePropTest, pairwiseTTest, pairwiseWilcoxTest } from "../src/htest/pairwise.js";
 import { pexp, pnorm, punif } from "../src/index.js";
 import { flignerTest, friedmanTest, kruskalTest, moodTest, quadeTest } from "../src/htest/rankTests.js";
 import type { Alternative } from "../src/htest/types.js";
@@ -79,6 +80,22 @@ const calls: Record<string, [number, (a: Args) => Record<string, unknown>]> = {
         { alternative: a.alternative as Alternative },
       ),
     }),
+  ],
+  pairwise: [
+    1e-12,
+    (a) => {
+      const method = a.pAdjustMethod as string;
+      const r =
+        a.kind === "prop"
+          ? pairwisePropTest(nums(a.x), nums(a.n), { pAdjustMethod: method })
+          : pairwiseTTest(nums(a.x), a.g as string[], {
+              pAdjustMethod: method,
+              alternative: a.alternative as Alternative,
+              paired: a.kind === "paired",
+              poolSd: a.kind === "pooled",
+            });
+      return { pValue: r.pValue.flat() };
+    },
   ],
   // SciPy evaluates the Shapiro-Wilk p-value less precisely (agreement about 1e-11), hence the wider tolerance
   shapiroTest: [1e-9, (a) => ({ ...shapiroTest(nums(a.x)) })],
@@ -250,4 +267,18 @@ if (hasFixture("ksTest"))
     tolerance: 1e-12,
     // 1 - P(D < d), in R as here: absolute accuracy only
     floor: { pValue: 1e-2 },
+  });
+if (hasFixture("pairwise"))
+  htestSuite({
+    name: "pairwise",
+    call: (a) => {
+      const kind = arg.str(a.kind);
+      const o = defined({ pAdjustMethod: arg.str(a.pAdjustMethod), alternative: arg.str<Alternative>(a.alternative) });
+      if (kind === "prop") return pairwisePropTest(arg.vec(a.x)!, arg.vec(a.n)!, defined({ pAdjustMethod: o.pAdjustMethod }));
+      const x = arg.vec(a.x)!;
+      const g = a.g as string[];
+      if (kind === "wilcox" || kind === "wilcoxPaired") return pairwiseWilcoxTest(x, g, { ...o, paired: kind === "wilcoxPaired" });
+      return pairwiseTTest(x, g, { ...o, paired: kind === "paired", poolSd: kind === "pooled" });
+    },
+    tolerance: 1e-12,
   });

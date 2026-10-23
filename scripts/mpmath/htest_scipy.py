@@ -23,6 +23,8 @@ p-values from scipy.stats.kstwo (two-sided) and scipy.special.smirnov (one-sided
 scipy.special.kolmogorov and exp(-2 n D^2). Two samples without ties: scipy.stats.ks_2samp (method "exact") and the
 limits as above with m n / (m + n); with ties only the statistic (the exact p-value with ties is checked against brute
 force in test/htest-core).
+pairwise: pooled-SD t tests from scipy.stats.t, Welch and paired t tests from scipy.stats.ttest_ind / ttest_rel,
+two-group proportion tests from scipy.stats.chi2_contingency, adjusted with statsmodels' multipletests.
 """
 import json, math, os, random, sys
 import mpmath as mp
@@ -549,13 +551,72 @@ def ks(rng):
     return cases
 
 
+def pairwise(rng):
+    from statsmodels.stats.multitest import multipletests
+    sm_method = {"holm": "holm", "bonferroni": "bonferroni", "BH": "fdr_bh", "BY": "fdr_by", "hochberg": "simes-hochberg",
+                 "hommel": "hommel", "none": None}
+    cases = []
+    for _ in range(120):
+        k = rng.randint(2, 6)
+        kind = rng.choice(["pooled", "welch", "paired", "prop"])
+        adjust = rng.choice(list(sm_method))
+        alt = rng.choice(ALTS) if kind != "prop" else "two.sided"
+        raw = []
+        if kind == "prop":
+            n = [rng.randint(5, 200) for _ in range(k)]
+            x = [rng.randint(0, m) for m in n]
+            for j in range(k - 1):
+                for i in range(j + 1, k):
+                    t = np.array([[x[i], n[i] - x[i]], [x[j], n[j] - x[j]]], dtype=float)
+                    if t[:, 0].sum() == 0 or t[:, 1].sum() == 0:
+                        raw = None
+                        break
+                    raw.append(stats.chi2_contingency(t, correction=True).pvalue)
+                if raw is None:
+                    break
+            if raw is None:
+                continue
+            args = {"kind": kind, "x": [s(v) for v in x], "n": [s(v) for v in n], "pAdjustMethod": adjust}
+        else:
+            size = rng.randint(3, 25)
+            groups = [[round(rng.gauss(j * 0.3, rng.uniform(0.5, 2)), 6) for _ in range(size if kind == "paired" else rng.randint(2, 25))]
+                      for j in range(k)]
+            means = [np.mean(g) for g in groups]
+            df = sum(len(g) - 1 for g in groups)
+            sd = math.sqrt(sum(np.var(g, ddof=1) * (len(g) - 1) for g in groups) / df)
+            for j in range(k - 1):
+                for i in range(j + 1, k):
+                    if kind == "pooled":
+                        t = (means[i] - means[j]) / (sd * math.sqrt(1 / len(groups[i]) + 1 / len(groups[j])))
+                        pv = {"two.sided": 2 * stats.t.sf(abs(t), df), "less": stats.t.cdf(t, df), "greater": stats.t.sf(t, df)}[alt]
+                    elif kind == "welch":
+                        pv = stats.ttest_ind(groups[i], groups[j], equal_var=False, alternative=SCIPY_ALT[alt]).pvalue
+                    else:
+                        pv = stats.ttest_rel(groups[i], groups[j], alternative=SCIPY_ALT[alt]).pvalue
+                    raw.append(pv)
+            labels = [lab for j, g in enumerate(groups) for lab in ["g%d" % j] * len(g)]
+            args = {"kind": kind, "x": [s(v) for g in groups for v in g], "g": labels, "pAdjustMethod": adjust,
+                    "alternative": alt}
+        adj = raw if sm_method[adjust] is None or len(raw) <= 1 else multipletests(raw, method=sm_method[adjust])[1]
+        # lower triangle, column by column: (i, j) for j = 0.., i = j + 1..
+        tab = [["NaN"] * (k - 1) for _ in range(k - 1)]
+        idx = 0
+        for j in range(k - 1):
+            for i in range(j + 1, k):
+                tab[i - 1][j] = s(min(1.0, adj[idx]))
+                idx += 1
+        cases.append({"args": args, "expected": {"pValue": [v for row in tab for v in row]}})
+    return cases
+
+
 if __name__ == "__main__":
     for i, (name, f) in enumerate([("binomTest", binom), ("poissonTest", poisson), ("varTest", var),
                                    ("bartlettTest", bartlett), ("mcnemarTest", mcnemar), ("kruskalTest", kruskal),
                                    ("friedmanTest", friedman), ("quadeTest", quade), ("flignerTest", fligner),
                                    ("moodTest", mood), ("onewayTest", oneway), ("shapiroTest", shapiro),
                                    ("propTest", prop), ("mantelhaenTest", mantelhaen),
-                                   ("ansariTest", ansari), ("ksTest", ks)]):
+                                   ("ansariTest", ansari), ("ksTest", ks),
+                                   ("pairwise", pairwise)]):
         if len(sys.argv) > 1 and name not in sys.argv[1:]:
             continue
         write(name, f(random.Random(20261023 + i)))
