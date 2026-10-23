@@ -443,7 +443,7 @@ function besselJYPos(v: number, x: number, needY: boolean): { j: number; y: Pow2
  * @example
  * ```ts
  * besselJ(1, 0);     // 0.7651976865579666
- * besselJ(10, 2.5);  // -0.0771562...
+ * besselJ(10, 2.5);  // 0.1966584835818184
  * ```
  */
 export function besselJ(x: number, nu: number): number {
@@ -475,7 +475,7 @@ export function besselJ(x: number, nu: number): number {
  *
  * @example
  * ```ts
- * besselY(1, 0);  // 0.08825696421567697
+ * besselY(1, 0);  // 0.08825696421567694
  * ```
  */
 export function besselY(x: number, nu: number): number {

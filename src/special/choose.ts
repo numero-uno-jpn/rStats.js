@@ -113,7 +113,7 @@ export function choose(n: number, k: number): number {
  *
  * @example
  * ```ts
- * lchoose(1000, 500);  // 689.4672...
+ * lchoose(1000, 500);  // 689.4672615678512
  * ```
  */
 export function lchoose(n: number, k: number): number {
@@ -155,7 +155,7 @@ export function lchoose(n: number, k: number): number {
  * @example
  * ```ts
  * factorial(5);    // 120
- * factorial(0.5);  // 0.886226925452758
+ * factorial(0.5);  // 0.8862269254527579
  * ```
  */
 export function factorial(x: number): number {

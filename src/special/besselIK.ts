@@ -278,8 +278,8 @@ export interface BesselOptions {
  *
  * @example
  * ```ts
- * besselI(1, 0);                             // 1.2660658777520082
- * besselI(1000, 2, { exponScaled: true });   // 0.012608...
+ * besselI(1, 0);                             // 1.2660658777520086
+ * besselI(1000, 2, { exponScaled: true });   // 0.012592018595377398
  * ```
  */
 export function besselI(x: number, nu: number, options: BesselOptions = {}): number {
@@ -311,8 +311,8 @@ export function besselI(x: number, nu: number, options: BesselOptions = {}): num
  *
  * @example
  * ```ts
- * besselK(1, 0);                              // 0.42102443824070834
- * besselK(1000, 2, { exponScaled: true });    // 0.03965...
+ * besselK(1, 0);                              // 0.4210244382407083
+ * besselK(1000, 2, { exponScaled: true });    // 0.03970761786238014
  * ```
  */
 export function besselK(x: number, nu: number, options: BesselOptions = {}): number {

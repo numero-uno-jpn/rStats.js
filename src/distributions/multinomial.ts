@@ -31,7 +31,7 @@ export interface MultinomialOptions {
  *
  * @example
  * ```ts
- * dmultinom([1, 2, 1], [0.2, 0.5, 0.3]);  // 0.18
+ * dmultinom([1, 2, 1], [0.2, 0.5, 0.3]);  // 0.18000000000000002
  * ```
  */
 export function dmultinom(x: readonly number[], prob: readonly number[], options: MultinomialOptions = {}): number {

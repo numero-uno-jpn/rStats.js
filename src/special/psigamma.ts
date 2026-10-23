@@ -290,7 +290,7 @@ export function trigamma(x: number): number {
  *
  * @example
  * ```ts
- * psigamma(2, 2);  // -0.4041138063191886 (-2 (zeta(3) - 1))
+ * psigamma(2, 2);  // -0.40411380631918853 (-2 (zeta(3) - 1))
  * ```
  */
 export function psigamma(x: number, deriv = 0): number {
