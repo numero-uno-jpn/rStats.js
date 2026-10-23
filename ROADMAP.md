@@ -1,5 +1,7 @@
 # Roadmap
 
+English | [日本語](ROADMAP.ja.md)
+
 ## Goal
 
 Cover the numerical core of R's `stats` package (and the related parts of `base`) in plain

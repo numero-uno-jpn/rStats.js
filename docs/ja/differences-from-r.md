@@ -267,4 +267,4 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   形 (`chisq.test(x, y)`)、Fisher の `hybrid` と `workspace`、Wilcoxon の `digits.rank`、`cor` の行列
   形式と `use` 引数。Kendall の一致ペアの数え上げは O(n²) です。
 - `kappa` の `inv_z`、複素行列、`EISPACK = TRUE` / `LINPACK = TRUE`。
-- 線形モデル (`lm`、`glm`)。[ROADMAP.md](../../ROADMAP.md) を参照してください。
+- 線形モデル (`lm`、`glm`)。[ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください。
