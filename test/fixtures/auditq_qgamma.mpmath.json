@@ -75,6 +75,7 @@
     {"args":{"p":"-7.3685497149357146e-05","shape":"190.76499999999999","lowerTail":true,"logP":true},"expected":"247.70778511734812"},
     {"args":{"p":"-7.3685497149357146e-05","shape":"190.76499999999999","lowerTail":false,"logP":true},"expected":"142.75010024692079"},
     {"args":{"p":"5.9049069957457142e-248","shape":"6202.9499999999998","lowerTail":true,"logP":false},"expected":"3917.9626094781538"},
+    {"args":{"p":"5.9049069957457142e-248","shape":"6202.9499999999998","lowerTail":false,"logP":false},"expected":"9238.8555958866455"},
     {"args":{"p":"8.8371649679438939e-267","shape":"271.55700000000002","lowerTail":true,"logP":false},"expected":"11.05072314223426"},
     {"args":{"p":"8.8371649679438939e-267","shape":"271.55700000000002","lowerTail":false,"logP":false},"expected":"1305.4990067872591"},
     {"args":{"p":"5.1358710234433118e-234","shape":"0.020929199999999998","lowerTail":false,"logP":false},"expected":"527.17556520840003"},
