@@ -1,0 +1,7 @@
+[
+  {"args":{"x":"1000","nu":"1000","exponScaled":false},"reference":"1.2981802514667009e-233"},
+  {"args":{"x":"1e-300","nu":"0.5","exponScaled":false},"reference":"1.2533141373155002e+150"},
+  {"args":{"x":"1e-300","nu":"-0.5","exponScaled":false},"reference":"1.2533141373155002e+150"},
+  {"args":{"x":"1e-300","nu":"0.5","exponScaled":true},"reference":"1.2533141373155002e+150"},
+  {"args":{"x":"1e-300","nu":"-0.5","exponScaled":true},"reference":"1.2533141373155002e+150"}
+]

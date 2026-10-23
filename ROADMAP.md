@@ -44,11 +44,9 @@ In order of priority.
    `quade.test`, `var.test`, `bartlett.test`, `fligner.test`, `ansari.test`, `mood.test`,
    `oneway.test` and the `pairwise.*` helpers. Also `simulate.p.value` for `chisqTest` and
    `fisherTest`, and passing two factor vectors to `chisqTest`.
-2. **Special functions:** R fixtures for the special functions added without R (`choose`,
-   `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma` and the Bessel
-   functions, checked against mpmath so far; the oracles are written). `erf` and `erfc` are
-   exported as extras; the log1p-type functions that rStats.js implements internally may follow.
-3. **Distributions:** recycling of distribution parameters as vectors; R fixture for `dmultinom`.
+2. **Special functions:** `erf` and `erfc` are exported as extras; the log1p-type functions that
+   rStats.js implements internally may follow.
+3. **Distributions:** recycling of distribution parameters as vectors.
 4. **Speed:** a fast double-precision path that switches to double-double only where needed, and
    an asymptotic expansion for the incomplete beta function with large parameters (see
    [docs/performance.md](docs/performance.md)).

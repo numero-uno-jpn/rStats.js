@@ -44,9 +44,9 @@ oracle には `# oracle-platform: amd64` と印を付ける) で生成します�
 バージョンを `info` ブロックに記録します (現在のフィクスチャは OpenBLAS 0.3.26 と
 LAPACK 3.12.0 で作成)。BLAS が違うと最後の数ビットが変わることがあるためです。
 
-R のフィクスチャがまだ生成されていない関数 (R のない環境で作業したもの) は、mpmath による高精度の
-値と照合します。`scripts/mpmath/<name>.py` が `test/fixtures/<name>.mpmath.json` を書き出し
-(`python3 -I scripts/mpmath/<name>.py`。`pip install mpmath` が必要)、`oracle/<name>.R` を実行すると
+mpmath による高精度の値とも照合できます。`scripts/mpmath/<name>.py` が
+`test/fixtures/<name>.mpmath.json` を書き出します (`python3 -I scripts/mpmath/<name>.py`。
+`pip install mpmath` が必要)。R のない環境での作業はこれから始め、`oracle/<name>.R` を実行すると
 テストは自動的に R との照合も行います。
 
 R がいつも正しいとは限りません。一致しないケースがあると、テストはそのケースを高精度の参照値

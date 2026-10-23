@@ -9,7 +9,8 @@ const vec = (v: unknown) => (Array.isArray(v) ? (v as string[]) : [v as string])
 const call = (a: Record<string, unknown>) =>
   dmultinom(vec(a.x as string[]), vec(a.prob as string[]), { log: bool(a.log as boolean) });
 
-// R fixture from oracle/multinom.R (npm run oracle -- multinom); until it is generated only the mpmath values are used
+// R fixture from oracle/multinom.R (npm run oracle -- multinom). R sums lgamma values, which loses digits for
+// large counts; those cases pass by the mpmath values in dmultinom.ref.json
 if (hasFixture("dmultinom")) fixtureSuite({ name: "dmultinom", tolerance: 1e-14, density: true, call });
 
 referenceSuite({ name: "dmultinom", tolerance: 1e-14, call });

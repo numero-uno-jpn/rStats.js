@@ -53,6 +53,20 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | `df(1e10, 5, Inf, ncp = 0, log = TRUE)` | -1.25e11 | -2.5e10 | 真値と同じ |
 | `qchisq(-1e10, 5, ncp = 1, lower.tail = FALSE, log.p = TRUE)` | 2.29e10 | 2.00e10 (分布関数で確認) | 真値と同じ |
 
+### 特殊関数
+
+これらの比較に使う値は Rmpfr ではなく mpmath (100〜800 桁) で計算しています。
+
+- **`choose` と `lchoose`**: n が整数でなく k が大きいとき、R は最大 2.6e-10 ずれます
+  (`choose(10.3, 1e5)`)。
+- **`factorial`**: オーバーフローの近くで、R の `factorial(170)` は 1.2e-13 ずれます。
+- **`dmultinom`**: 度数が大きいと、R は `lgamma` の値を足し合わせるので桁を失います (度数 1e9 で
+  相対 2.8e-6。rStats.js は二項確率を掛け合わせます)。
+- **`digamma`、`trigamma`、`psigamma`**: 絶対値の大きい負の x (`trigamma(-100000.25)` は 1.2e-11
+  ずれる)、digamma の正の零点の近く、非常に大きい x (`trigamma(1e300)` は 2.4e-14 ずれる)。
+- **ベッセル関数**: x や次数が大きいと、R は多くの点で 1e-13〜1e-11 ずれ、大きく外れる点もあります
+  (次の節)。
+
 ### p が 1 に極めて近い離散分布の分位点
 
 `qpois(0.999999999999999, 1e5)` のように 1 − p が 1e-12 より小さい呼び出しでは、R は 1 に近い
@@ -95,6 +109,12 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | `qhyper(1 - 1e-15, 1e4, 1e5, 5000)` | 5000 | 617 (定義どおり) |
 | n = 179 の 3 × 5 表に対する `fisher.test` | 既定の workspace で FEXACT error 7 | 0.2023726720757 (0.65 秒) |
 | 非常に大きな n (たとえば 3000) での `wilcox.test(exact = TRUE)` | `psignrank` が NaN を返す | 計算できる |
+| x < 0 で deriv ≥ 6 の `psigamma(x, deriv)` | NaN (R では未実装) | 計算できる (`psigamma(-1.5, 10)` = -156.229596593233) |
+| `trigamma(1e-300)`、`psigamma(1e-100, 3)` など結果がオーバーフローするもの | NaN | ±Inf |
+| `besselI(1000, 1000)` | Inf | 2.7234536469108428e229 |
+| `besselK(1000, 1000)`、`lfactorial(1e-300)`、`besselI(1e-300, 1)` | 0 | 1.2981802514667e-233、-5.77e-301、5e-301 |
+| `besselJ(1e6, 0)` | 0 | 3.3104301373987376e-4 |
+| `besselY(1e6, -2.75)` | -4.1e-4 | -2.8030753997749413e-5 |
 
 ## 意図的な違い
 
@@ -180,7 +200,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 
 ## R に合わせた動作
 
-これらは R のドキュメントと観察した出力から決めました (R のソースは読んでいません)。間違えやすい
+これらは R のドキュメントと観察した出力から決めました (特殊関数は R のソースも参照)。間違えやすい
 ので載せています。
 
 ### 分布
@@ -258,6 +278,24 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`eigen`:** sum|A − Aᵀ| / sum|A| ≤ 100ε のとき行列を対称とみなし (`isSymmetric` と同じ)、その場合は
   下三角だけを使います。一般行列では固有値を絶対値の大きい順に返し、同じ値は元の順序を保ちます
   (共役のうち虚部が正のものが先)。
+
+### 特殊関数
+
+既定では R と同じ値を返し、`{ rCompatible: false }` を渡すと
+数学的な値を返します。
+
+- **`choose` と `lchoose` で整数に近い n:** R は整数から 1e-9 max(1, |n|) 以内の n をその整数と
+  みなします。そのため `choose(1e-10, 2)` は 0 (数学的には -4.9999999995e-11)、
+  `choose(5 + 1e-9, 2)` は 10 です。k < 30 の `choose` は積には元の n を使い、結果を丸めます。
+  k ≥ 30 の `choose` と k ≥ 2 の `lchoose` は n そのものを丸め、n < 0 では k − 1 − n で判定します
+  (許容幅はそれに対する相対値)。`lchoose(n, 1)` は丸めずに log|n| を返します。
+- **無限大の引数:** `choose(±Inf, k)` は k ≥ 30 で NaN (それ未満は ±Inf)、`lchoose(±Inf, k)` は
+  k ≥ 2 で NaN です。`choose(n, Inf)` は有限の n ≥ 0 で 0、`lchoose(n, Inf)` は -Inf、それ以外は
+  NaN です。`rCompatible: false` では、`choose(±Inf, k)` はどの k でも ±Inf、`choose(n, Inf)` は
+  NaN です。
+- **`trigamma(-Inf)` と `psigamma(-Inf, deriv)`:** R は -Inf を極と同じに扱い、deriv が奇数なら
+  Inf、偶数なら NaN を返します (`rCompatible: false` では常に NaN)。
+- `choose` の k と `psigamma` の deriv は偶数への丸めです (`psigamma(x, 2.5)` は `psigamma(x, 2)`)。
 
 ## 未対応
 
