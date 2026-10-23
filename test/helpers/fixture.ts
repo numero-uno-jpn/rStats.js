@@ -38,6 +38,11 @@ export function loadFixture(name: string): Fixture {
   return fixture;
 }
 
+/** Whether the R fixture test/fixtures/<name>.json exists (functions checked against mpmath until it is generated) */
+export function hasFixture(name: string): boolean {
+  return existsSync(fixturePath(`${name}.json`));
+}
+
 /** Writes the args of mismatching cases to <name>.mismatch.json (for computing reference values) */
 export function writeMismatches(name: string, args: FixtureCase["args"][]): void {
   writeFileSync(fixturePath(`${name}.mismatch.json`), JSON.stringify(args));

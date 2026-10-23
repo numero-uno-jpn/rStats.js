@@ -25,7 +25,7 @@ against R and are not a priority.
 
 | Area | Status |
 |---|---|
-| Special functions | `gamma`, `lgamma`, `beta`, `lbeta` exported; the incomplete gamma and beta functions, erf/erfc and log1p-type functions are implemented internally |
+| Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial` exported; the incomplete gamma and beta functions, erf/erfc and log1p-type functions are implemented internally |
 | Distributions | d/p/q with `lowerTail` and `logP` for all 20 distributions in R's `stats` (including the studentized range), plus the non-central chi-squared, t, F and beta |
 | Random numbers | R's default Mersenne-Twister with `set.seed()`-compatible streams, 20 `r*` functions, `rmultinom`, `sample`, `sampleInt` |
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest` (including r × c), `wilcoxTest` (exact and approximate, with intervals), `cor`, `corTest`, `pAdjust`, returning all of R's `htest` fields |
@@ -44,9 +44,9 @@ In order of priority.
    `quade.test`, `var.test`, `bartlett.test`, `fligner.test`, `ansari.test`, `mood.test`,
    `oneway.test` and the `pairwise.*` helpers. Also `simulate.p.value` for `chisqTest` and
    `fisherTest`, and passing two factor vectors to `chisqTest`.
-2. **Special functions:** the rest of what R's `base` has: `digamma`, `trigamma`, `psigamma`,
-   `choose`, `lchoose`, `factorial`, `lfactorial`, and the Bessel functions (`besselI`,
-   `besselJ`, `besselK`, `besselY`). Functions that R lacks but rStats.js already implements
+2. **Special functions:** the rest of what R's `base` has: `digamma`, `trigamma`, `psigamma`
+   and the Bessel functions (`besselI`, `besselJ`, `besselK`, `besselY`); R fixtures for
+   `choose`, `lchoose`, `factorial` and `lfactorial` (checked against mpmath so far). Functions that R lacks but rStats.js already implements
    internally (erf/erfc, log1p-type functions) may be exported as extras.
 3. **Distributions:** recycling of distribution parameters as vectors; `dmultinom`.
 4. **Speed:** a fast double-precision path that switches to double-double only where needed, and

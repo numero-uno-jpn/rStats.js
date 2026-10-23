@@ -25,7 +25,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 | 分野 | 状況 |
 |---|---|
-| 特殊関数 | `gamma`、`lgamma`、`beta`、`lbeta` を export。不完全ガンマ関数・不完全ベータ関数、erf/erfc、log1p 系の関数は内部で実装済み |
+| 特殊関数 | `gamma`、`lgamma`、`beta`、`lbeta`、`choose`、`lchoose`、`factorial`、`lfactorial` を export。不完全ガンマ関数・不完全ベータ関数、erf/erfc、log1p 系の関数は内部で実装済み |
 | 分布 | R の `stats` にある 20 の分布すべて (スチューデント化された範囲を含む) と、非心カイ二乗・t・F・ベータ分布の d/p/q (`lowerTail` と `logP` 付き) |
 | 乱数 | R の既定の Mersenne-Twister と `set.seed()` 互換の乱数列、20 の `r*` 関数、`rmultinom`、`sample`、`sampleInt` |
 | 仮説検定 | `tTest`、`chisqTest`、`fisherTest` (r × c を含む)、`wilcoxTest` (正確法と近似法、信頼区間付き)、`cor`、`corTest`、`pAdjust`。R の `htest` のフィールドをすべて返す |
@@ -44,9 +44,9 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    `fligner.test`、`ansari.test`、`mood.test`、`oneway.test` と `pairwise.*` の補助関数。
    `chisqTest` と `fisherTest` の `simulate.p.value`、`chisqTest` に 2 つの因子ベクトルを渡す
    使い方も。
-2. **特殊関数:** R の `base` にある残り: `digamma`、`trigamma`、`psigamma`、`choose`、
-   `lchoose`、`factorial`、`lfactorial`、ベッセル関数 (`besselI`、`besselJ`、`besselK`、
-   `besselY`)。R にはないが rStats.js が内部で実装済みの関数 (erf/erfc、log1p 系の関数) は、
+2. **特殊関数:** R の `base` にある残り: `digamma`、`trigamma`、`psigamma`、ベッセル関数
+   (`besselI`、`besselJ`、`besselK`、`besselY`)。`choose`、`lchoose`、`factorial`、
+   `lfactorial` の R のフィクスチャ (今は mpmath でのみ照合)。R にはないが rStats.js が内部で実装済みの関数 (erf/erfc、log1p 系の関数) は、
    おまけとして export してもよい。
 3. **分布:** 分布のパラメータをベクトルとして与えたときのリサイクル。`dmultinom`。
 4. **速度:** 必要な箇所だけ double-double に切り替える高速な倍精度の経路と、パラメータが大きい

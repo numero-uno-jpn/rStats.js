@@ -41,6 +41,11 @@ differs in the last bit of some functions. Linear-algebra fixtures
 record the LAPACK and BLAS versions R used in an `info` block (the current fixtures were made with
 OpenBLAS 0.3.26 and LAPACK 3.12.0), since a different BLAS can change the last bits.
 
+Functions whose R fixtures have not been generated yet (because the work was done without R)
+are checked against high-precision values from mpmath: `scripts/mpmath/<name>.py` writes
+`test/fixtures/<name>.mpmath.json` (`python3 -I scripts/mpmath/<name>.py`, needs `pip install
+mpmath`), and the tests switch on the R comparison as soon as `oracle/<name>.R` has been run.
+
 R is not always right. When a case does not match, the test compares it with a high-precision
 reference value (Rmpfr or gmp) and accepts it if rStats.js is closer to the truth than R. Cases
 where rStats.js deliberately differs from R are excluded with a written reason
@@ -79,7 +84,9 @@ rStats.js is MIT licensed. To keep it that way:
 
 ## Releasing
 
-1. Update `version` in `package.json`, the date in `CHANGELOG.md` and `VERSION` in `demo/app.js`
+1. Add demo examples for the exports listed in `NOT_IN_DEMO_YET` (`test/demo.test.ts`) and empty
+   the list (this needs `npm run demo:r`). Update `version` in `package.json`, the date in
+   `CHANGELOG.md` and `VERSION` in `demo/app.js`
    (the tag the demo loads from jsDelivr), commit, then tag and push:
    `git tag v0.5.0 && git push origin v0.5.0`.
 2. `.github/workflows/release.yml` runs the tests, builds, and moves the tag to a commit that also

@@ -44,6 +44,11 @@ oracle には `# oracle-platform: amd64` と印を付ける) で生成します�
 バージョンを `info` ブロックに記録します (現在のフィクスチャは OpenBLAS 0.3.26 と
 LAPACK 3.12.0 で作成)。BLAS が違うと最後の数ビットが変わることがあるためです。
 
+R のフィクスチャがまだ生成されていない関数 (R のない環境で作業したもの) は、mpmath による高精度の
+値と照合します。`scripts/mpmath/<name>.py` が `test/fixtures/<name>.mpmath.json` を書き出し
+(`python3 -I scripts/mpmath/<name>.py`。`pip install mpmath` が必要)、`oracle/<name>.R` を実行すると
+テストは自動的に R との照合も行います。
+
 R がいつも正しいとは限りません。一致しないケースがあると、テストはそのケースを高精度の参照値
 (Rmpfr または gmp) と比べ、rStats.js のほうが R より真の値に近ければ合格とします。rStats.js が
 意図して R と異なるケースは、理由を書いたうえで除外し (`knownDifference`)、ドキュメントに
@@ -84,7 +89,8 @@ rStats.js は MIT ライセンスです。それを保つために、次のこ�
 
 ## リリース
 
-1. `package.json` の `version`、`CHANGELOG.md` の日付、`demo/app.js` の `VERSION` (デモが
+1. `NOT_IN_DEMO_YET` (`test/demo.test.ts`) に挙げた export のデモ例を追加して、このリストを空に
+   します (`npm run demo:r` が必要)。`package.json` の `version`、`CHANGELOG.md` の日付、`demo/app.js` の `VERSION` (デモが
    jsDelivr から読み込むタグ) を更新してコミットし、タグを付けて push します:
    `git tag v0.5.0 && git push origin v0.5.0`。
 2. `.github/workflows/release.yml` がテストを実行してビルドし、`dist/` も含むコミットへタグを

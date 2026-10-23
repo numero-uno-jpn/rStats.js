@@ -1,6 +1,7 @@
 // Special functions
 export { gamma, lgamma } from "./special/gamma.js";
 export { beta, lbeta } from "./special/beta.js";
+export { choose, lchoose, factorial, lfactorial } from "./special/choose.js";
 
 // Distributions
 export { dnorm, pnorm, qnorm, type NormalOptions } from "./distributions/normal.js";

@@ -38,6 +38,7 @@ export function beta(a: number, b: number): number {
     const hi = Math.max(a, b);
     // Smaller one below 1: B = Gamma(lo) Gamma(hi)/Gamma(lo + hi) = Gamma(lo) exp(-[lgamma(hi+lo) - lgamma(hi)])
     if (lo < 1) return gamma(lo) * Math.exp(-lgammaDiff(lo, hi));
+    if (hi >= HUGE) return Math.exp(lbetaHuge(hi, lo));
     const e = lbetaDD(a, b);
     return Math.exp(e[0]) * (1 + e[1]);
   }
@@ -97,6 +98,7 @@ export function lbeta(a: number, b: number): number {
     const hi = Math.max(a, b);
     // If the smaller one is below 1, lgamma(lo) is small and the difference form is accurate enough
     if (lo < 1) return lgamma(lo) - lgammaDiff(lo, hi);
+    if (hi >= HUGE) return lbetaHuge(hi, lo);
     const e = lbetaDD(a, b);
     return e[0] + e[1];
   }
@@ -122,6 +124,22 @@ function lbetaNegint(a: number, b: number): number {
 }
 
 const LS2PI_DD: DD = [0.91893853320467278, -3.8782941580672414e-17];
+
+/** From here on lbetaDD is not used: it rounds a - 1/2 (off by 20 in log B(1e17, 31)) and its terms of size a log a lose all digits */
+const HUGE = 2 ** 52;
+
+/**
+ * log B(a, b) for a >= 2^52, a >= b >= 1. Writing log(a + b) = log a + log1p(b/a) in the Stirling form of lbetaDD gives
+ *   log B = b log(b/a) - log(b)/2 - (a + b - 1/2) log1p(b/a) + log sqrt(2 pi) + stirlerr(a) + stirlerr(b) - stirlerr(a + b)
+ * whose terms are all of the size of b log(a/b), so there is no cancellation to fear in double precision
+ */
+function lbetaHuge(a: number, b: number): number {
+  const r = b / a;
+  return (
+    b * Math.log(r) - 0.5 * Math.log(b) - (a + b - 0.5) * Math.log1p(r) + LS2PI_DD[0] +
+    (stirlerr(a) + stirlerr(b) - stirlerr(a + b))
+  );
+}
 
 /**
  * log B(a, b) in double-double (a, b > 0).

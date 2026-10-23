@@ -9,7 +9,15 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ## Unreleased
 
+### Added
+
+- `choose`, `lchoose`, `factorial` and `lfactorial`, for any real `n` (and `x`). Checked against
+  mpmath so far; `oracle/choose.R` is ready for the comparison with R.
+
 ### Fixed
+
+- `lbeta` and `beta` with an argument of 2^52 or more: `lbeta(1e17, 31)` was off by 20 and
+  `lbeta(1e100, 31)` returned 0.92 instead of -7063.
 
 - Accuracy of the incomplete beta function behind `pbeta`, `pt`, `pf`, `pbinom` and `pnbinom`
   (checked against mpmath). The 15 `pnbinom` cases that were excluded as known accuracy

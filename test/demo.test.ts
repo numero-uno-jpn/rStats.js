@@ -24,6 +24,12 @@ const rResults = (JSON.parse(readFileSync(path("demo/r-results.json"), "utf8")) 
 }).results;
 
 const names = Object.keys(lib);
+
+/**
+ * Exports added since the last release. The public demo loads the released build from jsDelivr, so their examples
+ * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
+ */
+const NOT_IN_DEMO_YET = ["choose", "lchoose", "factorial", "lfactorial"];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 
 /** Evaluates an example's js with every export in scope and flattens the result to numbers */
@@ -54,7 +60,7 @@ describe("demo examples", () => {
       .filter((s) => s && !s.startsWith("type "));
     expect(exported.sort()).toEqual([...names].sort());
     const used = new Set(examples.flatMap((e) => e.js.match(/[A-Za-z_$][\w$]*/g) ?? []));
-    expect(exported.filter((n) => !used.has(n))).toEqual([]);
+    expect(exported.filter((n) => !used.has(n) && !NOT_IN_DEMO_YET.includes(n))).toEqual([]);
   });
 
   for (const e of examples) {
