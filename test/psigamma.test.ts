@@ -31,6 +31,10 @@ describe("digamma, trigamma and psigamma special values", () => {
     expect(digamma(-Infinity)).toBeNaN();
     expect(trigamma(Infinity)).toBe(0);
     expect(digamma(NaN)).toBeNaN();
+    // near a pole the reflection term overflows to the infinity of the right sign
+    expect(trigamma(-3.5e-242)).toBe(Infinity);
+    expect(psigamma(-1e-200, 2)).toBe(Infinity);
+    expect(psigamma(1e-200, 2)).toBe(-Infinity);
   });
   it("deriv is an integer from 0 to 100", () => {
     expect(psigamma(2.5)).toBe(digamma(2.5));

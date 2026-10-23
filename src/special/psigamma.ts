@@ -222,8 +222,9 @@ function cotDerivPoly(n: number): number[] {
 function cotDeriv(n: number, t: number): number {
   const c = cotDerivPoly(n);
   const t2 = t * t;
-  let s = 0;
-  for (let j = c.length - 1; j >= 0; j--) s = s * t2 + c[j]!;
+  // Horner from the leading coefficient (starting from 0 would give 0 * Infinity = NaN when t^2 overflows)
+  let s = c[c.length - 1]!;
+  for (let j = c.length - 2; j >= 0; j--) s = s * t2 + c[j]!;
   return (n + 1) % 2 === 1 ? s * t : s;
 }
 
