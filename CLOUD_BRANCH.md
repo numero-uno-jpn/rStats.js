@@ -15,12 +15,38 @@ on `claude/laughing-einstein-ejtcoz`). Shared files are left untouched until the
 | `src/integrate/quadpack.ts` | QUADPACK dqagse / dqagie (R's integrate) | SciPy QUADPACK (counts exact) |
 | `src/optim/localmin.ts` | Brent's localmin (R's optimize) | SciPy's bounded minimiser with R's sqrt(eps) (iterates exact) |
 
+## Hypothesis tests (not exported yet; R fixtures to generate on the Mac)
+
+R's remaining tests, each checked against SciPy / statsmodels / exact arithmetic in `test/htest-basic.test.ts`
+(references from `scripts/mpmath/htest_scipy.py`), which also compares with the R fixtures once they exist.
+Run `npm run oracle -- binomtest vartest ranktests proptest mantelhaen ansari kstest pairwise` to write them.
+
+| File | Functions (R) | R fixture(s) |
+|---|---|---|
+| `src/htest/binomTest.ts` | binomTest (binom.test) | binomTest |
+| `src/htest/poissonTest.ts` | poissonTest (poisson.test) | poissonTest |
+| `src/htest/mcnemarTest.ts` | mcnemarTest (mcnemar.test) | mcnemarTest |
+| `src/htest/varTest.ts` | varTest, bartlettTest (var.test, bartlett.test) | varTest, bartlettTest |
+| `src/htest/rankTests.ts` | kruskalTest, friedmanTest, quadeTest, flignerTest, moodTest | kruskalTest, friedmanTest, quadeTest, flignerTest, moodTest |
+| `src/htest/onewayTest.ts` | onewayTest, shapiroTest (oneway.test, shapiro.test) | onewayTest, shapiroTest |
+| `src/htest/propTest.ts` | propTest (prop.test) | propTest |
+| `src/htest/mantelhaenTest.ts` | mantelhaenTest (mantelhaen.test: 2 x 2 x K, exact, I x J x K) | mantelhaenTest |
+| `src/htest/ansariTest.ts` | ansariTest (ansari.test without conf.int) | ansariTest |
+| `src/htest/ksTest.ts` | ksTest (ks.test, distribution given as a function) | ksTest |
+| `src/htest/pairwise.ts` | pairwiseTTest, pairwiseWilcoxTest, pairwisePropTest | pairwise |
+
+Points where R's behaviour was inferred and the R fixtures will settle it: error messages and which inputs R rejects;
+varTest computes both tails directly (R may form 1 - P); flignerTest uses the non-cancelling form of the statistic;
+propTest gives exactly 0 when the continuity correction is reduced to |O - E|; mcnemarTest's correction when
+|n12 - n21| < 1; the ansari normal approximation with ties straddling the middle; ks.test's exact one-sided one-sample
+p-value (Birnbaum-Tingey). Not yet done: ansari.test's conf.int, simulate.p.value for chisqTest / fisherTest.
+
 ## To do at the merge (shared files)
 
 - `THIRD_PARTY_NOTICES.md`: add SciPy's C translation of QUADPACK (`scipy/integrate/__quadpack.c`, SciPy commit
   5ccd743, BSD-3-Clause; QUADPACK itself public domain) for `src/integrate/quadpack.ts`.
-- `src/index.ts`, `README*.md`, `ROADMAP*.md`, `CHANGELOG.md`: only once the R-facing functions (ks.test, integrate, ...)
-  are built on these cores and checked against R.
+- `src/index.ts`, `README*.md`, `ROADMAP*.md`, `CHANGELOG.md`: export and document the hypothesis tests above once
+  their R fixtures pass (and integrate / optimize once built on the cores and checked against R).
 
 ## Fixes to existing files (approved; separate commits)
 
