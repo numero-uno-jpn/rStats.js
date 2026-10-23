@@ -24,8 +24,11 @@ num_or_vec <- function(v) {
 
 # Convert an htest result to a list of fields (same names as the JS HTest)
 htest_fields <- function(res) {
-  out <- list(method = res$method, alternative = res$alternative,
-              statistic = num2str(unname(res$statistic)), statisticName = names(res$statistic))
+  out <- list(method = res$method)
+  # Tests without an alternative (chisq.test, kruskal.test, ...) leave the field out instead of writing {}
+  if (!is.null(res$alternative)) out$alternative <- res$alternative
+  out$statistic <- num2str(unname(res$statistic))
+  out$statisticName <- names(res$statistic)
   if (!is.null(res$parameter)) {
     out$parameter <- num2str(unname(res$parameter))
     out$parameterName <- names(res$parameter)
