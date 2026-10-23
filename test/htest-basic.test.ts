@@ -13,6 +13,8 @@ import { onewayTest, shapiroTest } from "../src/htest/onewayTest.js";
 import { propTest } from "../src/htest/propTest.js";
 import { mantelhaenTest } from "../src/htest/mantelhaenTest.js";
 import { ansariTest } from "../src/htest/ansariTest.js";
+import { ksTest } from "../src/htest/ksTest.js";
+import { pexp, pnorm, punif } from "../src/index.js";
 import { flignerTest, friedmanTest, kruskalTest, moodTest, quadeTest } from "../src/htest/rankTests.js";
 import type { Alternative } from "../src/htest/types.js";
 import { hasFixture, num, relativeError } from "./helpers/fixture.js";
@@ -68,8 +70,25 @@ const calls: Record<string, [number, (a: Args) => Record<string, unknown>]> = {
       ...ansariTest(nums(a.x), nums(a.y), { alternative: a.alternative as Alternative, exact: a.exact as boolean }),
     }),
   ],
+  ksTest: [
+    1e-12,
+    (a) => ({
+      ...ksTest(
+        nums(a.x),
+        a.y !== undefined ? nums(a.y) : a.cdf === "norm" ? (q: number) => pnorm(q) : (q: number) => pexp(q),
+        { alternative: a.alternative as Alternative },
+      ),
+    }),
+  ],
   // SciPy evaluates the Shapiro-Wilk p-value less precisely (agreement about 1e-11), hence the wider tolerance
   shapiroTest: [1e-9, (a) => ({ ...shapiroTest(nums(a.x)) })],
+};
+
+// Absolute floors per field: the error is measured relative to max(|expected|, floor)
+const floors: Record<string, Record<string, number>> = {
+  // the exact two-sided one-sample p-value is 1 - P(D < d), as in R, so it has absolute accuracy only (SciPy's kstwo
+  // computes the upper tail directly); its sensitivity to the last bit of D also reaches 1e-14 absolute at n near 100
+  ksTest: { pValue: 1e-2 },
 };
 
 for (const [name, [tolerance, call]] of Object.entries(calls)) {
@@ -87,7 +106,13 @@ for (const [name, [tolerance, call]] of Object.entries(calls)) {
           const av = Array.isArray(v) ? (v as number[]) : [v as number];
           e.forEach((ev, i) => {
             // probabilities near the underflow threshold are compared absolutely
-            const err = Math.abs(ev) < 1e-300 ? Math.abs(av[i]! - ev) / 1e-300 : relativeError(av[i]!, ev);
+            const fl = floors[name]?.[field] ?? 0;
+            const err =
+              Math.abs(ev) < 1e-300
+                ? Math.abs(av[i]! - ev) / 1e-300
+                : fl > 0
+                  ? Math.abs(av[i]! - ev) / Math.max(Math.abs(ev), fl)
+                  : relativeError(av[i]!, ev);
             if (Number.isFinite(err)) worst = Math.max(worst, err);
             if (!(err <= tolerance)) bad.push(`${JSON.stringify(c.args)} ${field}[${i}]: expected ${ev} actual ${av[i]}`);
           });
@@ -206,4 +231,23 @@ if (hasFixture("ansariTest"))
         defined({ alternative: arg.str<Alternative>(a.alternative), exact: arg.bool(a.exact) }),
       ),
     tolerance: 1e-12,
+  });
+if (hasFixture("ksTest"))
+  htestSuite({
+    name: "ksTest",
+    call: (a) => {
+      const cdf = arg.str(a.cdf);
+      const y =
+        cdf === undefined
+          ? (arg.vec(a.y) ?? [])
+          : cdf === "pnorm"
+            ? (q: number) => pnorm(q)
+            : cdf === "pexp"
+              ? (q: number) => pexp(q)
+              : (q: number) => punif(q);
+      return ksTest(arg.vec(a.x) ?? [], y, defined({ alternative: arg.str<Alternative>(a.alternative), exact: arg.bool(a.exact) }));
+    },
+    tolerance: 1e-12,
+    // 1 - P(D < d), in R as here: absolute accuracy only
+    floor: { pValue: 1e-2 },
   });

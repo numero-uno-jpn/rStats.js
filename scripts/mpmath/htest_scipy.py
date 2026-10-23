@@ -18,6 +18,11 @@ mantelhaenTest: 2 x 2 x K asymptotic test, pooled odds ratio and its Robins-Bres
 subtracts 1/2); the exact conditional p-values with exact rational arithmetic; I x J x K from the formula at 40 digits.
 ansariTest: exact cases (below 55 values per sample, no ties) by counting subsets in exact integers (scipy's exact
 p-values are good to about 1e-8 only); the normal approximation from scipy.stats.ansari.
+ksTest: one sample against the standard normal or exponential: the statistic from scipy.stats.ks_1samp, exact
+p-values from scipy.stats.kstwo (two-sided) and scipy.special.smirnov (one-sided), asymptotic ones from
+scipy.special.kolmogorov and exp(-2 n D^2). Two samples without ties: scipy.stats.ks_2samp (method "exact") and the
+limits as above with m n / (m + n); with ties only the statistic (the exact p-value with ties is checked against brute
+force in test/htest-core).
 """
 import json, math, os, random, sys
 import mpmath as mp
@@ -503,13 +508,54 @@ def ansari(rng):
     return cases
 
 
+def ks(rng):
+    from scipy import special
+    cases = []
+    for _ in range(200):
+        n = rng.randint(1, 150)
+        dist = rng.choice(["norm", "exp"])
+        shift = rng.choice([0, rng.uniform(-0.5, 0.5)])
+        x = [round(rng.gauss(shift, 1) if dist == "norm" else rng.expovariate(1) + shift, 8) for _ in range(n)]
+        if dist == "exp":
+            x = [abs(v) for v in x]
+        alt = rng.choice(ALTS)
+        ties = len(set(x)) < n
+        exact = n < 100 and not ties
+        cdf = stats.norm.cdf if dist == "norm" else stats.expon.cdf
+        r = stats.ks_1samp(x, cdf, alternative=SCIPY_ALT[alt], method="exact" if exact else "asymp")
+        D = r.statistic
+        if alt == "two.sided":
+            pv = stats.kstwo.sf(D, n) if exact else special.kolmogorov(math.sqrt(n) * D)
+        else:
+            pv = special.smirnov(n, D) if exact else math.exp(-2 * n * D * D)
+        cases.append({"args": {"x": [s(v) for v in x], "cdf": dist, "alternative": alt},
+                      "expected": {"statistic": s(D), "pValue": s(pv)}})
+    for _ in range(200):
+        m, n = rng.randint(1, 120), rng.randint(1, 120)
+        tied = rng.random() < 0.3
+        x = [float(rng.randint(0, 8)) if tied else round(rng.gauss(0, 1), 8) for _ in range(m)]
+        y = [float(rng.randint(0, 8)) if tied else round(rng.gauss(rng.uniform(-0.5, 0.5), 1), 8) for _ in range(n)]
+        alt = rng.choice(ALTS)
+        r = stats.ks_2samp(x, y, alternative=SCIPY_ALT[alt], method="exact" if m * n < 10000 else "asymp")
+        exp = {"statistic": s(r.statistic)}
+        if not tied and len(set(x + y)) == m + n:
+            if m * n < 10000:
+                exp["pValue"] = s(r.pvalue)
+            else:
+                en = m * n / (m + n)
+                D = r.statistic
+                exp["pValue"] = s(special.kolmogorov(math.sqrt(en) * D) if alt == "two.sided" else math.exp(-2 * en * D * D))
+        cases.append({"args": {"x": [s(v) for v in x], "y": [s(v) for v in y], "alternative": alt}, "expected": exp})
+    return cases
+
+
 if __name__ == "__main__":
     for i, (name, f) in enumerate([("binomTest", binom), ("poissonTest", poisson), ("varTest", var),
                                    ("bartlettTest", bartlett), ("mcnemarTest", mcnemar), ("kruskalTest", kruskal),
                                    ("friedmanTest", friedman), ("quadeTest", quade), ("flignerTest", fligner),
                                    ("moodTest", mood), ("onewayTest", oneway), ("shapiroTest", shapiro),
                                    ("propTest", prop), ("mantelhaenTest", mantelhaen),
-                                   ("ansariTest", ansari)]):
+                                   ("ansariTest", ansari), ("ksTest", ks)]):
         if len(sys.argv) > 1 and name not in sys.argv[1:]:
             continue
         write(name, f(random.Random(20261023 + i)))
