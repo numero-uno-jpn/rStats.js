@@ -4,7 +4,8 @@ import { bool, hasFixture, num } from "./helpers/fixture.js";
 import { referenceSuite } from "./helpers/mpmath.js";
 import { fixtureSuite } from "./helpers/suite.js";
 
-const vec = (v: string | boolean | string[] | undefined) => (v as unknown as string[]).map((s) => num(s));
+// R's jsonlite writes a vector of length 1 as a scalar
+const vec = (v: unknown) => (Array.isArray(v) ? (v as string[]) : [v as string]).map((s) => num(s));
 const call = (a: Record<string, unknown>) =>
   dmultinom(vec(a.x as string[]), vec(a.prob as string[]), { log: bool(a.log as boolean) });
 
