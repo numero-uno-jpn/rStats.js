@@ -44,11 +44,9 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    `fligner.test`、`ansari.test`、`mood.test`、`oneway.test` と `pairwise.*` の補助関数。
    `chisqTest` と `fisherTest` の `simulate.p.value`、`chisqTest` に 2 つの因子ベクトルを渡す
    使い方も。
-2. **特殊関数:** R のない環境で追加した特殊関数 (`choose`、`lchoose`、`factorial`、
-   `lfactorial`、`digamma`、`trigamma`、`psigamma`、ベッセル関数) の R のフィクスチャ (今は
-   mpmath でのみ照合。oracle は作成済み)。`erf` と `erfc` はおまけとして export 済み。内部で
-   実装済みの log1p 系の関数も、おまけとして export してよい。
-3. **分布:** 分布のパラメータをベクトルとして与えたときのリサイクル。`dmultinom` の R のフィクスチャ。
+2. **特殊関数:** `erf` と `erfc` はおまけとして export 済み。内部で実装済みの log1p 系の関数も、
+   おまけとして export してよい。
+3. **分布:** 分布のパラメータをベクトルとして与えたときのリサイクル。
 4. **速度:** 必要な箇所だけ double-double に切り替える高速な倍精度の経路と、パラメータが大きい
    ときの不完全ベータ関数の漸近展開 ([docs/ja/performance.md](docs/ja/performance.md) を参照)。
 5. **乱数:** R の既定以外の RNG の種類。

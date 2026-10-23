@@ -14,8 +14,10 @@
 // is used, where d^n/dx^n cot(pi x) = pi^n P_n(cot(pi x)), P_0(t) = t, P_(k+1)(t) = -(1 + t^2) P_k'(t)
 // (P_n has terms of one parity only, all of the same sign, so it is evaluated without cancellation).
 
+import { roundHalfEven } from "../internal/integer.js";
 import { EULER, MACHEP } from "./constants.js";
 import { polevl } from "./polevl.js";
+import type { RCompatibleOptions } from "./rCompatible.js";
 
 const PSI_A = [
   8.33333333333333333333e-2, -2.10927960927960927961e-2, 7.57575757575757575758e-3, -4.16666666666666666667e-3,
@@ -240,9 +242,10 @@ function cotpi(x: number): number {
   return c / Math.sin(Math.PI * r);
 }
 
-function polygamma(n: number, x: number): number {
+function polygamma(n: number, x: number, rCompatible: boolean): number {
   if (Number.isNaN(x)) return NaN;
-  if (x === -Infinity) return NaN;
+  // R treats -Infinity like the poles (it equals its own rounding)
+  if (x === -Infinity) return rCompatible && n % 2 === 1 ? Infinity : NaN;
   if (x <= 0 && x === Math.floor(x)) return n % 2 === 1 ? Infinity : NaN;
   if (x > 0) return polygammaPositive(n, x);
   const refl = polygammaPositive(n, 1 - x);
@@ -268,7 +271,10 @@ export function digamma(x: number): number {
 /**
  * Trigamma function, the second derivative of `lgamma`. Equivalent to R's `trigamma(x)` for a single number.
  *
+ * `trigamma(-Infinity)` is `Infinity` as in R (`NaN` with `rCompatible: false`).
+ *
  * @param x - Argument.
+ * @param options - `rCompatible` (default `true`).
  * @returns psi'(x) (`Infinity` at zero and the negative integers).
  *
  * @example
@@ -276,16 +282,21 @@ export function digamma(x: number): number {
  * trigamma(1);  // 1.6449340668482264 (pi^2 / 6)
  * ```
  */
-export function trigamma(x: number): number {
-  return polygamma(1, x);
+export function trigamma(x: number, options?: RCompatibleOptions): number {
+  return polygamma(1, x, options?.rCompatible ?? true);
 }
 
 /**
  * Polygamma function, the derivative of order `deriv` of `digamma`. Equivalent to R's
  * `psigamma(x, deriv)` for a single number.
  *
+ * `psigamma(-Infinity, deriv)` is `Infinity` for odd `deriv` as in R, which treats it like the poles
+ * (`NaN` with `rCompatible: false`). Unlike R, which returns `NaN` for `x < 0` with `deriv >= 6` and
+ * where the result overflows, the value is computed there.
+ *
  * @param x - Argument.
- * @param deriv - Order of the derivative, an integer from 0 to 100 (rounded to an integer; default 0, digamma).
+ * @param deriv - Order of the derivative, an integer from 0 to 100 (rounded half to even; default 0, digamma).
+ * @param options - `rCompatible` (default `true`).
  * @returns psi^(deriv)(x). At zero and the negative integers, `Infinity` for odd `deriv` and `NaN` for even.
  *   `NaN` if `deriv` is outside 0 to 100.
  *
@@ -294,9 +305,9 @@ export function trigamma(x: number): number {
  * psigamma(2, 2);  // -0.40411380631918853 (-2 (zeta(3) - 1))
  * ```
  */
-export function psigamma(x: number, deriv = 0): number {
-  const n = Math.round(deriv);
+export function psigamma(x: number, deriv = 0, options?: RCompatibleOptions): number {
+  const n = roundHalfEven(deriv);
   if (Number.isNaN(n) || n < 0 || n > 100) return NaN;
   if (n === 0) return digamma(x);
-  return polygamma(n, x);
+  return polygamma(n, x, options?.rCompatible ?? true);
 }

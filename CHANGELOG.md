@@ -11,16 +11,19 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ### Added
 
-- `choose`, `lchoose`, `factorial` and `lfactorial`, for any real `n` (and `x`). Checked against
-  mpmath so far; `oracle/choose.R` is ready for the comparison with R.
+- `choose`, `lchoose`, `factorial` and `lfactorial`, for any real `n` (and `x`).
 - `digamma`, `trigamma` and `psigamma` (derivatives up to 100, negative arguments by
-  reflection). Checked against mpmath so far; `oracle/psigamma.R` is ready.
+  reflection; unlike R, also for x < 0 with deriv ≥ 6).
 - `besselI`, `besselK` (with `exponScaled`, R's `expon.scaled`), `besselJ` and `besselY` for any
-  real order, ported from Boost.Math. Checked against mpmath so far; `oracle/bessel.R` is ready.
+  real order, ported from Boost.Math.
+- The option `rCompatible` of `choose`, `lchoose`, `trigamma` and `psigamma` (type
+  `RCompatibleOptions`): by default they follow R at its edge cases (n near an integer in
+  `choose`, infinite arguments); `rCompatible: false` returns the mathematical values there.
 - `erf` and `erfc`, which R lacks (checked against mpmath). `erfc` is now accurate in the far tail:
   it forms exp(-x^2) from an exact x^2 and no longer flushes subnormal results to 0.
-- `dmultinom`, as a product of binomial probabilities (accurate for large counts). Checked against
-  mpmath so far; `oracle/multinom.R` is ready.
+- `dmultinom`, as a product of binomial probabilities (accurate for large counts).
+- The new functions are checked against R 4.5.2, and against mpmath (100 to 800 digits) where R
+  is inaccurate or fails (docs/differences-from-r.md).
 
 ### Fixed
 

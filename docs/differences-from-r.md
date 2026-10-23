@@ -60,6 +60,20 @@ reference, the case passes as "more accurate than R".
 | `df(1e10, 5, Inf, ncp = 0, log = TRUE)` | -1.25e11 | -2.5e10 | same as truth |
 | `qchisq(-1e10, 5, ncp = 1, lower.tail = FALSE, log.p = TRUE)` | 2.29e10 | 2.00e10 (checked with the distribution function) | same as truth |
 
+### Special functions
+
+The comparison values for these come from mpmath (100 to 800 digits) rather than Rmpfr.
+
+- **`choose` and `lchoose`** with a non-integer n and large k: R is off by up to 2.6e-10
+  (`choose(10.3, 1e5)`).
+- **`factorial`** near overflow: `factorial(170)` is off by 1.2e-13 in R.
+- **`dmultinom`** with large counts: R sums `lgamma` values and loses digits (2.8e-6 relative for
+  a count of 1e9; rStats.js multiplies binomial probabilities).
+- **`digamma`, `trigamma`, `psigamma`** for large negative x (`trigamma(-100000.25)` is off by
+  1.2e-11), near the positive zero of digamma and for very large x (`trigamma(1e300)` by 2.4e-14).
+- **Bessel functions** for large x or order: R is off by 1e-13 to 1e-11 at many points and far off
+  at some (see the next section).
+
 ### Discrete quantiles with p extremely close to 1
 
 For calls such as `qpois(0.999999999999999, 1e5)`, where 1 − p is below 1e-12, R compares
@@ -103,6 +117,12 @@ affected.
 | `qhyper(1 - 1e-15, 1e4, 1e5, 5000)` | 5000 | 617 (by definition) |
 | `fisher.test` on a 3 × 5 table with n = 179 | FEXACT error 7 with the default workspace | 0.2023726720757 (0.65 s) |
 | `wilcox.test(exact = TRUE)` with very large n (e.g. 3000) | `psignrank` gives NaN | computed |
+| `psigamma(x, deriv)` for x < 0 and deriv ≥ 6 | NaN (not implemented in R) | computed (`psigamma(-1.5, 10)` = -156.229596593233) |
+| `trigamma(1e-300)`, `psigamma(1e-100, 3)` and other results that overflow | NaN | ±Inf |
+| `besselI(1000, 1000)` | Inf | 2.7234536469108428e229 |
+| `besselK(1000, 1000)`, `lfactorial(1e-300)`, `besselI(1e-300, 1)` | 0 | 1.2981802514667e-233, -5.77e-301, 5e-301 |
+| `besselJ(1e6, 0)` | 0 | 3.3104301373987376e-4 |
+| `besselY(1e6, -2.75)` | -4.1e-4 | -2.8030753997749413e-5 |
 
 ## Deliberate differences
 
@@ -190,8 +210,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 
 ## Behaviour matched to R
 
-These were determined from R's documentation and observed output (R's source was not read). They
-are listed because they are easy to get wrong.
+These were determined from R's documentation and observed output, and for the special functions
+also from R's source. They are listed because they are easy to get wrong.
 
 ### Distributions
 
@@ -278,6 +298,25 @@ are listed because they are easy to get wrong.
   `isSymmetric`), and then only the lower triangle is used. General matrices return eigenvalues
   in decreasing modulus, ties in their original order (the conjugate with positive imaginary part
   first).
+
+### Special functions
+
+By default rStats.js returns what R returns;
+`{ rCompatible: false }` returns the mathematical value instead.
+
+- **n near an integer in `choose` and `lchoose`:** R treats n within 1e-9 max(1, |n|) of an
+  integer as that integer, so `choose(1e-10, 2)` is 0 (mathematically -4.9999999995e-11) and
+  `choose(5 + 1e-9, 2)` is 10. For k < 30 `choose` keeps n in the product and rounds the result;
+  for k ≥ 30, and in `lchoose` for k ≥ 2, n itself is rounded, and for n < 0 the test is made on
+  k − 1 − n (so the tolerance is relative to it). `lchoose(n, 1)` is log|n| without rounding.
+- **Infinite arguments:** `choose(±Inf, k)` is NaN for k ≥ 30 (±Inf below) and `lchoose(±Inf, k)`
+  is NaN for k ≥ 2; `choose(n, Inf)` is 0 and `lchoose(n, Inf)` is -Inf for finite n ≥ 0, NaN
+  otherwise. With `rCompatible: false`, `choose(±Inf, k)` is ±Inf for every k and
+  `choose(n, Inf)` is NaN.
+- **`trigamma(-Inf)` and `psigamma(-Inf, deriv)`:** R treats -Inf like the poles, giving Inf for
+  odd deriv and NaN for even (always NaN with `rCompatible: false`).
+- k in `choose` and deriv in `psigamma` are rounded half to even (`psigamma(x, 2.5)` is
+  `psigamma(x, 2)`).
 
 ## Not supported
 
