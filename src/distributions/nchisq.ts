@@ -14,7 +14,8 @@ import { invertContinuous } from "../internal/invert.js";
 import { dpoisLogDD, mixtureCdf, mixtureCdfBoth, mixtureDensity, type MixtureKernel } from "../internal/poissonMixture.js";
 import { gammaInc } from "../special/igam.js";
 import { dpoisRaw } from "../special/loader.js";
-import { ddDiv, twoSum } from "../special/dd.js";
+import { ddAdd, ddDiv, twoSum } from "../special/dd.js";
+import { digamma } from "../special/psigamma.js";
 import { dgamma1, qgamma1 } from "./gamma.js";
 
 function gammaKernel(a: number, y: number): MixtureKernel {
@@ -24,11 +25,28 @@ function gammaKernel(a: number, y: number): MixtureKernel {
   return {
     ratioK: tiny ? -1 : 0,
     cdf: (j, lower, log) => gammaInc(a + j, y, lower, log),
-    inc: (j, log) => dpoisRaw(a + j, y, log),
+    inc: (j, log) => {
+      const [s, corr] = incCorrection(a, j, y);
+      return log ? dpoisRaw(s, y, true) + corr : dpoisRaw(s, y, false) * (1 + corr);
+    },
     // d_j / d_{j-1} = y / (a + j)
     ratio: (j) => ddDiv([ys, 0], twoSum(a, j)),
-    incLogDD: (j) => dpoisLogDD(a + j, y),
+    incLogDD: (j) => {
+      const [s, corr] = incCorrection(a, j, y);
+      return ddAdd(dpoisLogDD(s, y), [corr, 0]);
+    },
   };
+}
+
+/**
+ * The shape a + j rounded to double, s, and the first-order change in log d_j from s to the exact a + j:
+ * δ ∂log d/∂s with δ the rounding and ∂log dpois(s; y)/∂s = log y - ψ(s + 1). Far in a tail |log y - ψ(s + 1)| is
+ * large (above 1 at s = 1130, y = 331), and since the recurrences carry d_j to every other term, the rounding of
+ * s (1e-13 there) would otherwise reach the result in full
+ */
+function incCorrection(a: number, j: number, y: number): [number, number] {
+  const [s, delta] = twoSum(a, j);
+  return [s, delta === 0 ? 0 : delta * (Math.log(y) - digamma(s + 1))];
 }
 
 /** Whether the parameters are valid for the noncentral χ² (R gives NaN for df = Inf or ncp = Inf) */

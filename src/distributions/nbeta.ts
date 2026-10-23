@@ -18,6 +18,7 @@ import { invertContinuous } from "../internal/invert.js";
 import { mixtureCdf, mixtureDensity, type MixtureKernel } from "../internal/poissonMixture.js";
 import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddNeg, twoProd, twoSum, type DD } from "../special/dd.js";
 import { lbeta, lbetaDD } from "../special/beta.js";
+import { digamma } from "../special/psigamma.js";
 import { betaIncDD } from "../special/incbet.js";
 import { dbinomExponent, dbinomRawDD } from "../special/loader.js";
 import { dbeta1, pbeta1, qbeta1 } from "./beta.js";
@@ -33,28 +34,46 @@ function betaKernel(a: number, b: number, xd: DD, xcd: DD): MixtureKernel {
     ratioK: tiny ? -1 : 0,
     cdf: (j, lower, log) => betaIncDD(a + j, b, xd, xcd, lower, log),
     inc: (j, log) => {
-      const c = b / (a + b + j);
-      return log ? dbinomRawDD(a + j, b, xd, xcd, true) + Math.log(c) : dbinomRawDD(a + j, b, xd, xcd, false) * c;
+      const [s, corr] = incCorrection(a, b, j, xd);
+      const c = b / (s + b);
+      return log
+        ? dbinomRawDD(s, b, xd, xcd, true) + Math.log(c) + corr
+        : dbinomRawDD(s, b, xd, xcd, false) * c * (1 + corr);
     },
     // e_j / e_{j-1} = x (a + b + j - 1) / (a + j)
     ratio: (j) => ddDiv(ddMul(xs, ddAdd(ab, [j - 1, 0])), twoSum(a, j)),
     incLogDD: (j) => {
       // log e_j = log dbinom(a + j; a + b + j, x) + log(b / (a + b + j))
       // Near subnormal x the binomial-probability helpers break down, so build it from the log of the beta function
-      if (!(xd[0] > 1e-305 && xcd[0] > 1e-305)) return betaKernelIncLog(a, b, xd, xcd, j);
-      const { e, logDenom } = dbinomExponent(a + j, b, xd, xcd);
-      return ddAdd([-e[0], -e[1]], [-0.5 * logDenom + Math.log(b / (a + b + j)), 0]);
+      const [s, corr] = incCorrection(a, b, j, xd);
+      if (!(xd[0] > 1e-305 && xcd[0] > 1e-305)) {
+        const l = betaKernelIncLog(s, b, xd, xcd);
+        return typeof l === "number" ? l + corr : ddAdd(l, [corr, 0]);
+      }
+      const { e, logDenom } = dbinomExponent(s, b, xd, xcd);
+      return ddAdd([-e[0], -e[1]], [-0.5 * logDenom + Math.log(b / (s + b)) + corr, 0]);
     },
   };
 }
 
 /**
- * log e_j in double-double when x (or 1 - x) is near subnormal:
- * log e_j = -log B(a + j, b) - log(a + j) + (a + j) log x + b log(1 - x)
+ * The shape a + j rounded to double, s, and the first-order change in log e_j from s to the exact a + j:
+ * δ ∂log e/∂s with δ the rounding and ∂log e_j/∂s = log x + ψ(s + b) - ψ(s + 1) (e_j = x^s (1 - x)^b / (s B(s, b))).
+ * Far in a tail this derivative is large, and the recurrences carry e_j to every other term, so the rounding of s
+ * would otherwise reach the result in full (as in nchisq.ts)
  */
-function betaKernelIncLog(a: number, b: number, xd: DD, xcd: DD, j: number): DD | number {
+function incCorrection(a: number, b: number, j: number, xd: DD): [number, number] {
+  const [s, delta] = twoSum(a, j);
+  if (delta === 0) return [s, 0];
+  return [s, delta * (Math.log(xd[0]) + xd[1] / xd[0] + digamma(s + b) - digamma(s + 1))];
+}
+
+/**
+ * log e_j in double-double when x (or 1 - x) is near subnormal, for the shape s = a + j:
+ * log e_j = -log B(s, b) - log(s) + s log x + b log(1 - x)
+ */
+function betaKernelIncLog(s: number, b: number, xd: DD, xcd: DD): DD | number {
   if (!(xd[0] > 0 && xcd[0] > 0)) return -Infinity;
-  const s = a + j;
   const l = ddAdd(ddMulNum(ddLog(xd), s), ddMulNum(ddLog(xcd), b));
   return ddAdd(ddAdd(l, ddNeg(lbetaDD(s, b))), [-Math.log(s), 0]);
 }

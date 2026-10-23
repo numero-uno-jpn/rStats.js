@@ -30,21 +30,18 @@ on `claude/laughing-einstein-ejtcoz`). Shared files are left untouched until the
   c (a + n) / (a + n - x). Now summed in double-double for a > 1000 and x > 0.97 a: worst error 2.7e-15.
   `npm run bench` unchanged; inside that region the series costs about 9 times more (pgamma at a = 7e6, 11 standard
   deviations below the mean: 11 µs to 100 µs per call).
-
-## Waiting for a decision
-
-- `src/distributions/nchisq.ts`, `src/distributions/nbeta.ts` (existing files): pchisq / pbeta with ncp are off by up
-  to 1.4e-13 at ncp around 1000 (audit). Cause: the kernels form the component shape `a + j` in double, so a
-  starting component such as P(96.2595 + 1034, 331) is evaluated at a shape rounded by 1e-13, which the far tail
-  amplifies by |log(y / (a + j))|. The recurrences themselves already use the exact `twoSum(a, j)`. Proposed fix: correct
-  the starting values (and refreshes) to the exact shape with a first-order factor exp(δ · ∂log F/∂a), δ the low part
-  of twoSum(a, j). Confirmed for the χ² case; the beta case has the same construction.
+- `src/distributions/nchisq.ts`, `src/distributions/nbeta.ts`: pchisq / pbeta with ncp were off by up to 1.4e-13 at ncp
+  around 1000 (audit). The kernels formed the component shape `a + j` in double, so a starting increment such as
+  dpois(96.2595 + 1034; 331) was evaluated at a shape rounded by 1e-13, which the far tail amplifies by
+  |log(y / (a + j))| and the recurrences carry to every term. The increments are now corrected to the exact shape
+  with the first-order factor δ ∂log d/∂s (δ the low part of twoSum(a, j); the derivative from digamma): worst
+  error 4.9e-15 (pnchisq) and 3.9e-15 (pnbeta). The starting P_J / Q_J are left as they are: their share of the sum
+  falls off geometrically away from J. No measurable speed change. Still to be checked against R on the Mac mini.
 
 ## Audit of the distribution functions (`scripts/mpmath/audit.py`, `test/audit.test.ts`)
 
 Random parameters beyond the R fixture grids, both tails and the log scale, against mpmath (references kept only where
-40 and 90 digits agree). Results so far are recorded in the commit messages. `test/audit.test.ts` holds pgamma,
-ppois, pnchisq and pnbeta at their current accuracy (`pending`) until the two fixes above are decided.
+40 and 90 digits agree). All pass at 1e-14 after the two fixes above.
 
 Quantiles (`scripts/mpmath/audit_q.py`, `test/audit_q.test.ts`) are measured relative to max(|x|, P / f(x)), the
 change in x that the rounding of the probability argument alone causes, so that ill-conditioned quantiles (qgamma
