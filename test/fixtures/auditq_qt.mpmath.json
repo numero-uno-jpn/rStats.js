@@ -1,0 +1,16 @@
+{
+  "function": "auditq_qt",
+  "generator": "mpmath 1.4.1",
+  "cases": [
+    {"args":{"p":"-0.00017403810918156345","df":"1116.1600000000001","lowerTail":true,"logP":true},"expected":"3.5877145641843673"},
+    {"args":{"p":"-0.00017403810918156345","df":"1116.1600000000001","lowerTail":false,"logP":true},"expected":"-3.5877145641843673"},
+    {"args":{"p":"-5.5229004235690652e-05","df":"0.985572","lowerTail":true,"logP":true},"expected":"6524.5682041057753"},
+    {"args":{"p":"-5.5229004235690652e-05","df":"0.985572","lowerTail":false,"logP":true},"expected":"-6524.5682041057753"},
+    {"args":{"p":"1.8249736177224373e-68","df":"4.2894199999999998","lowerTail":true,"logP":false},"expected":"-8622714159620598"},
+    {"args":{"p":"1.8249736177224373e-68","df":"4.2894199999999998","lowerTail":false,"logP":false},"expected":"8622714159620598"},
+    {"args":{"p":"-4.1361716903875001","df":"26733.200000000001","lowerTail":true,"logP":true},"expected":"-2.1449247012031663"},
+    {"args":{"p":"-4.1361716903875001","df":"26733.200000000001","lowerTail":false,"logP":true},"expected":"2.1449247012031663"},
+    {"args":{"p":"1.0606452236157501e-239","df":"3.0914899999999998","lowerTail":true,"logP":false},"expected":"-2.1196339721260948e+77"},
+    {"args":{"p":"1.0606452236157501e-239","df":"3.0914899999999998","lowerTail":false,"logP":false},"expected":"2.1196339721260948e+77"}
+  ]
+}
