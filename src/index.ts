@@ -13,6 +13,7 @@ export { dchisq, pchisq, qchisq } from "./distributions/chisq.js";
 export { dpois, ppois, qpois } from "./distributions/poisson.js";
 export { dbeta, pbeta, qbeta } from "./distributions/beta.js";
 export { dbinom, pbinom, qbinom } from "./distributions/binomial.js";
+export { dmultinom, type MultinomialOptions } from "./distributions/multinomial.js";
 export { dt, pt, qt } from "./distributions/t.js";
 export { df, pf, qf } from "./distributions/f.js";
 export { dunif, punif, qunif, type UniformParams } from "./distributions/uniform.js";

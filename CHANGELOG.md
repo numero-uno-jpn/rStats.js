@@ -17,6 +17,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   reflection). Checked against mpmath so far; `oracle/psigamma.R` is ready.
 - `besselI`, `besselK` (with `exponScaled`, R's `expon.scaled`), `besselJ` and `besselY` for any
   real order, ported from Boost.Math. Checked against mpmath so far; `oracle/bessel.R` is ready.
+- `dmultinom`, as a product of binomial probabilities (accurate for large counts). Checked against
+  mpmath so far; `oracle/multinom.R` is ready.
 
 ### Fixed
 

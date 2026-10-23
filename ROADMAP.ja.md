@@ -48,7 +48,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    `lfactorial`、`digamma`、`trigamma`、`psigamma`、ベッセル関数) の R のフィクスチャ (今は
    mpmath でのみ照合。oracle は作成済み)。R にはないが rStats.js が内部で実装済みの関数 (erf/erfc、log1p 系の関数) は、
    おまけとして export してもよい。
-3. **分布:** 分布のパラメータをベクトルとして与えたときのリサイクル。`dmultinom`。
+3. **分布:** 分布のパラメータをベクトルとして与えたときのリサイクル。`dmultinom` の R のフィクスチャ。
 4. **速度:** 必要な箇所だけ double-double に切り替える高速な倍精度の経路と、パラメータが大きい
    ときの不完全ベータ関数の漸近展開 ([docs/ja/performance.md](docs/ja/performance.md) を参照)。
 5. **乱数:** R の既定以外の RNG の種類。

@@ -48,7 +48,7 @@ In order of priority.
    `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma` and the Bessel
    functions, checked against mpmath so far; the oracles are written). Functions that R lacks but rStats.js already implements
    internally (erf/erfc, log1p-type functions) may be exported as extras.
-3. **Distributions:** recycling of distribution parameters as vectors; `dmultinom`.
+3. **Distributions:** recycling of distribution parameters as vectors; R fixture for `dmultinom`.
 4. **Speed:** a fast double-precision path that switches to double-double only where needed, and
    an asymptotic expansion for the incomplete beta function with large parameters (see
    [docs/performance.md](docs/performance.md)).
