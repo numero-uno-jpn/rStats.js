@@ -18,6 +18,8 @@ FIXTURES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", 
 def num2str(v):
     if isinstance(v, bool):
         return v
+    if isinstance(v, str):
+        return v
     if isinstance(v, (list, tuple)):
         return [num2str(e) for e in v]
     v = mp.mpf(v) if not isinstance(v, (int, float)) else v
