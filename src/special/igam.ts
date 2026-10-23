@@ -10,6 +10,7 @@
 //   to avoid cancellation in the log for large a and x
 
 import { erfc } from "./erf.js";
+import { SPLITTER } from "./dd.js";
 import { MACHEP } from "./constants.js";
 import { lgamma, lgamma1p } from "./gamma.js";
 import { IGAM_ASYMP_COEFF_D, IGAM_ASYMP_COEFF_K, IGAM_ASYMP_COEFF_N } from "./igamAsympCoeff.js";
@@ -40,6 +41,7 @@ function igamSeriesBoth(a: number, x: number): [number, number] {
 }
 
 function igamSeriesSum(a: number, x: number): number {
+  if (a > 1000 && x > 0.97 * a) return igamSeriesSumDD(a, x);
   let r = a;
   let c = 1;
   let ans = 1;
@@ -50,6 +52,57 @@ function igamSeriesSum(a: number, x: number): number {
     if (c <= MACHEP * ans) break;
   }
   return ans;
+}
+
+/**
+ * igamSeriesSum in double-double, for large a with x above 0.97 a (the mpmath audit needs it from about there; below,
+ * the series is short enough for double). The terms then shrink slowly (ratio x / (a + n) close to 1, thousands
+ * of terms), and in double precision the roundings of the ratios, correlated between neighbouring terms, add up to
+ * 2e-14 relative; stopping at c <= eps ans also leaves out a tail of up to c (a + n) / (a + n - x). Written out on
+ * scalars (no arrays), as the loop is long
+ */
+const TAIL = 2 ** -64;
+
+function igamSeriesSumDD(a: number, x: number): number {
+  let ch = 1;
+  let cl = 0;
+  let ah = 1;
+  let al = 0;
+  for (let i = 1; i < MAXITER; i++) {
+    // d = a + i exactly (dh + dl)
+    const dh = a + i;
+    const bb = dh - a;
+    const dl = a - (dh - bb) + (i - bb);
+    // q = x / d: q1 + q2
+    const q1 = x / dh;
+    let t = SPLITTER * q1;
+    const q1h = t - (t - q1);
+    const q1l = q1 - q1h;
+    t = SPLITTER * dh;
+    const dhh = t - (t - dh);
+    const dhl = dh - dhh;
+    const p = q1 * dh;
+    const pe = q1h * dhh - p + q1h * dhl + q1l * dhh + q1l * dhl;
+    const q2 = (x - p - pe - q1 * dl) / dh;
+    // c = c q
+    t = SPLITTER * ch;
+    const chh = t - (t - ch);
+    const chl = ch - chh;
+    const m = ch * q1;
+    const me = chh * q1h - m + chh * q1l + chl * q1h + chl * q1l + (ch * q2 + cl * q1);
+    ch = m + me;
+    cl = me - (ch - m);
+    // ans += c
+    const s = ah + ch;
+    const sb = s - ah;
+    const e = ah - (s - sb) + (ch - sb) + (al + cl);
+    ah = s + e;
+    al = e - (ah - s);
+    // the rest is at most c q / (1 - q) (q decreasing); stop once that is below 2^-64 ans, well under the
+    // rounding of the double result
+    if (ch * q1 <= TAIL * ah * (1 - q1)) break;
+  }
+  return ah + al;
 }
 
 /** Continued fraction for Q(a, x) (DLMF 8.9.2) */

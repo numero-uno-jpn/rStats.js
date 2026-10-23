@@ -33,10 +33,9 @@ const audits: Record<string, (a: Args) => number> = {
   pnbeta: (a) => pbeta(num(a.q), num(a.shape1), num(a.shape2), { ncp: num(a.ncp), ...tail(a) }),
 };
 
-// Known shortfalls, held at the accuracy reached now until the fixes in CLOUD_BRANCH.md land (then back to 1e-14):
-// pgamma and ppois reach 2e-14 where igam's series sums thousands of rounded ratios (shape > 1000); the noncentral
-// χ² and beta reach 1.4e-13 at large ncp, where the shape a + j of a far-tail component is rounded to double
-const pending: Record<string, number> = { pgamma: 3e-14, ppois: 3e-14, pnchisq: 2e-13, pnbeta: 2e-13 };
+// Known shortfalls, held at the accuracy reached now until the fix in CLOUD_BRANCH.md lands (then back to 1e-14): the
+// noncentral χ² and beta reach 1.4e-13 at large ncp, where the shape a + j of a far-tail component is rounded to double
+const pending: Record<string, number> = { pnchisq: 2e-13, pnbeta: 2e-13 };
 
 for (const [name, call] of Object.entries(audits)) {
   const path = fileURLToPath(new URL(`./fixtures/audit_${name}.mpmath.json`, import.meta.url));

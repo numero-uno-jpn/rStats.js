@@ -22,14 +22,17 @@ on `claude/laughing-einstein-ejtcoz`). Shared files are left untouched until the
 - `src/index.ts`, `README*.md`, `ROADMAP*.md`, `CHANGELOG.md`: only once the R-facing functions (ks.test, integrate, ...)
   are built on these cores and checked against R.
 
+## Fixes to existing files (approved; separate commits)
+
+- `src/special/igam.ts`: pgamma's lower tail for shape above about 1e6, 5 to 40 standard deviations below the mean,
+  and ppois's upper tail for lambda around 6e6 were off by up to 2e-14 (audit). The series ratios x / (a + n) were
+  rounded with correlated errors over thousands of terms, and the stopping rule left out a tail of up to
+  c (a + n) / (a + n - x). Now summed in double-double for a > 1000 and x > 0.97 a: worst error 2.7e-15.
+  `npm run bench` unchanged; inside that region the series costs about 9 times more (pgamma at a = 7e6, 11 standard
+  deviations below the mean: 11 µs to 100 µs per call).
+
 ## Waiting for a decision
 
-- `src/special/igam.ts` (existing file): pgamma's lower tail for shape above about 1e6, 5 to 40 standard deviations
-  below the mean, is off by up to 2e-14, and so is ppois's upper tail for lambda around 6e6 above the mean (found by
-  the mpmath audit, outside the R fixture grid). Cause: the series
-  ratios x / (a + n) are rounded with correlated errors over about a / (a - x) terms. A fix (the series in double-double
-  for a > 1000, a + n exact) brings it to 2.7e-15 with all tests passing and no speed change on the benchmark; it is
-  ready but not applied, since the file is shared.
 - `src/distributions/nchisq.ts`, `src/distributions/nbeta.ts` (existing files): pchisq / pbeta with ncp are off by up
   to 1.4e-13 at ncp around 1000 (audit). Cause: the kernels form the component shape `a + j` in double, so a
   starting component such as P(96.2595 + 1034, 331) is evaluated at a shape rounded by 1e-13, which the far tail
