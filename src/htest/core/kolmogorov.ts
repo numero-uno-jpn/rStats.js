@@ -44,13 +44,13 @@ function matPow(H: Float64Array, m: number, n: number): [Float64Array, number] {
   };
   let result: Float64Array | undefined;
   let re = 0;
-  let base = H.slice();
+  let base: Float64Array = H.slice();
   let be = 0;
   let p = n;
   while (p > 0) {
     if (p & 1) {
       result = result === undefined ? base.slice() : mul(result, base);
-      re += result === undefined ? 0 : be;
+      re += be;
       re += normalise(result);
     }
     p >>= 1;
