@@ -10,6 +10,9 @@ varTest, bartlettTest, mcnemarTest: the formulas with scipy.stats distributions 
 kruskalTest, friedmanTest, flignerTest, moodTest, onewayTest, shapiroTest: scipy.stats kruskal, friedmanchisquare,
 fligner (center="median"), mood (ties per Mielke), f_oneway (equal_var True and False) and shapiro.
 quadeTest: Conover's formulas computed directly (SciPy has no Quade test).
+propTest: equality of k proportions through scipy.stats.chi2_contingency (with its Yates correction for 2 x 2, which
+reduces each |O - E| by at most 1/2); one proportion and the intervals (Wilson with continuity correction, Wald for a
+difference) from the formulas.
 """
 import json, math, os, random, sys
 import mpmath as mp
@@ -303,11 +306,71 @@ def shapiro(rng):
     return cases
 
 
+def prop(rng):
+    cases = []
+    for _ in range(200):
+        k = rng.choice([1, 1, 2, 2, 3, 4])
+        n = [rng.randint(1, 400) for _ in range(k)]
+        base = rng.uniform(0.02, 0.98)
+        x = [min(m, max(0, int(round(m * min(max(base + rng.uniform(-0.1, 0.1), 0), 1))))) for m in n]
+        alt = rng.choice(ALTS) if k <= 2 else "two.sided"
+        conf = rng.choice([0.95, 0.9, 0.99])
+        correct = rng.random() < 0.7
+        args = {"x": [s(v) for v in x], "n": [s(v) for v in n], "alternative": alt, "confLevel": s(conf), "correct": correct}
+        exp = {}
+        if k == 1:
+            p0 = rng.choice([0.5, round(rng.uniform(0.05, 0.95), 3)])
+            args["p"] = [s(p0)]
+            est = x[0] / n[0]
+            y = min(0.5 if correct else 0, abs(x[0] - n[0] * p0))
+            E1, E2 = n[0] * p0, n[0] * (1 - p0)
+            st = (abs(x[0] - E1) - y) ** 2 / E1 + (abs(n[0] - x[0] - E2) - y) ** 2 / E2
+            if alt == "two.sided":
+                pv = stats.chi2.sf(st, 1)
+            else:
+                zz = math.copysign(math.sqrt(st), est - p0) if est != p0 else 0.0
+                pv = stats.norm.cdf(zz) if alt == "less" else stats.norm.sf(zz)
+            z = stats.norm.ppf((1 + conf) / 2 if alt == "two.sided" else conf)
+            z22n = z * z / (2 * n[0])
+            def w(pc, sg):
+                return (pc + z22n + sg * z * math.sqrt(pc * (1 - pc) / n[0] + z22n / (2 * n[0]))) / (1 + 2 * z22n)
+            pu = 1 if est + y / n[0] >= 1 else w(est + y / n[0], 1)
+            pl = 0 if est - y / n[0] <= 0 else w(est - y / n[0], -1)
+            ci = {"two.sided": [max(pl, 0), min(pu, 1)], "less": [0, min(pu, 1)], "greater": [max(pl, 0), 1]}[alt]
+            exp = {"statistic": s(st), "pValue": s(pv), "confInt": [s(c) for c in ci]}
+        else:
+            if sum(x) == 0 or sum(x) == sum(n):
+                continue
+            table = np.array([[xi, ni - xi] for xi, ni in zip(x, n)], dtype=float)
+            chi = stats.chi2_contingency(table, correction=correct and k == 2)
+            st = chi.statistic
+            if alt == "two.sided":
+                pv = chi.pvalue
+            else:
+                d = x[0] / n[0] - x[1] / n[1]
+                zz = math.copysign(math.sqrt(st), d) if d != 0 else 0.0
+                pv = stats.norm.cdf(zz) if alt == "less" else stats.norm.sf(zz)
+            exp = {"statistic": s(st), "parameter": s(k - 1), "pValue": s(pv)}
+            if k == 2:
+                e = [x[0] / n[0], x[1] / n[1]]
+                d = e[0] - e[1]
+                si = 1 / n[0] + 1 / n[1]
+                y = min(0.5 if correct else 0, abs(d) / si)
+                z = stats.norm.ppf((1 + conf) / 2 if alt == "two.sided" else conf)
+                wd = z * math.sqrt(e[0] * (1 - e[0]) / n[0] + e[1] * (1 - e[1]) / n[1]) + y * si
+                ci = {"two.sided": [max(d - wd, -1), min(d + wd, 1)], "less": [-1, min(d + wd, 1)],
+                      "greater": [max(d - wd, -1), 1]}[alt]
+                exp["confInt"] = [s(c) for c in ci]
+        cases.append({"args": args, "expected": exp})
+    return cases
+
+
 if __name__ == "__main__":
     for i, (name, f) in enumerate([("binomTest", binom), ("poissonTest", poisson), ("varTest", var),
                                    ("bartlettTest", bartlett), ("mcnemarTest", mcnemar), ("kruskalTest", kruskal),
                                    ("friedmanTest", friedman), ("quadeTest", quade), ("flignerTest", fligner),
-                                   ("moodTest", mood), ("onewayTest", oneway), ("shapiroTest", shapiro)]):
+                                   ("moodTest", mood), ("onewayTest", oneway), ("shapiroTest", shapiro),
+                                   ("propTest", prop)]):
         if len(sys.argv) > 1 and name not in sys.argv[1:]:
             continue
         write(name, f(random.Random(20261023 + i)))

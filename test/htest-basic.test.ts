@@ -10,6 +10,7 @@ import { mcnemarTest } from "../src/htest/mcnemarTest.js";
 import { poissonTest } from "../src/htest/poissonTest.js";
 import { varTest } from "../src/htest/varTest.js";
 import { onewayTest, shapiroTest } from "../src/htest/onewayTest.js";
+import { propTest } from "../src/htest/propTest.js";
 import { flignerTest, friedmanTest, kruskalTest, moodTest, quadeTest } from "../src/htest/rankTests.js";
 import type { Alternative } from "../src/htest/types.js";
 import { hasFixture, num, relativeError } from "./helpers/fixture.js";
@@ -39,6 +40,16 @@ const calls: Record<string, [number, (a: Args) => Record<string, unknown>]> = {
   flignerTest: [1e-12, (a) => ({ ...flignerTest((a.groups as string[][]).map(nums)) })],
   moodTest: [1e-12, (a) => ({ ...moodTest(nums(a.x), nums(a.y), { alternative: a.alternative as Alternative }) })],
   onewayTest: [1e-12, (a) => ({ ...onewayTest((a.groups as string[][]).map(nums), { varEqual: a.varEqual as boolean }) })],
+  propTest: [
+    1e-12,
+    (a) => ({
+      ...propTest(nums(a.x), nums(a.n), {
+        ...(a.p === undefined ? {} : { p: nums(a.p) }),
+        correct: a.correct as boolean,
+        ...opt(a),
+      }),
+    }),
+  ],
   // SciPy evaluates the Shapiro-Wilk p-value less precisely (agreement about 1e-11), hence the wider tolerance
   shapiroTest: [1e-9, (a) => ({ ...shapiroTest(nums(a.x)) })],
 };
@@ -146,3 +157,12 @@ const rSuites: [string, (a: Record<string, HTestArg>) => object, number][] = [
   ["shapiroTest", (a) => shapiroTest(arg.vec(a.x)!), 1e-12],
 ];
 for (const [name, call, tolerance] of rSuites) if (hasFixture(name)) htestSuite({ name, call, tolerance });
+if (hasFixture("propTest"))
+  htestSuite({
+    name: "propTest",
+    call: (a) =>
+      propTest(arg.vec(a.x)!, arg.vec(a.n)!, defined({ p: arg.vec(a.p), correct: arg.bool(a.correct), ...rAlt(a) })),
+    tolerance: 1e-12,
+    // a continuity correction reduced to |O - E| gives exactly 0 here and rounding residue in R
+    floor: { statistic: 1e-3 },
+  });
