@@ -76,7 +76,7 @@ def solve_continuous(cdf_lower, cdf_upper, p, logp, lower, lo, hi, sinh=False):
                 a = m
             else:
                 b = m
-            if b - a <= mp.mpf(10) ** -35 * max(abs(b), abs(a)) or b - a <= mp.mpf(10) ** -300:
+            if b - a <= mp.mpf(10) ** -35 * max(abs(b), abs(a)) or b - a <= mp.mpf(10) ** -360:
                 break
         return (a + b) / 2
 
