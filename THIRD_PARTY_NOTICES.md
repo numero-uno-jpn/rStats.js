@@ -102,6 +102,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 - License: Boost Software License 1.0
 - Also: the rational approximation of digamma on [1, 2] in `src/special/psigamma.ts`, which xsf's
   `include/xsf/cephes/psi.h` takes from Boost ((C) Copyright John Maddock 2006)
+- Ported (Boost.Math commit 0a0fb4e): `include/boost/math/special_functions/detail/bessel_ik.hpp`,
+  `detail/bessel_jy.hpp`, `detail/bessel_jy_series.hpp`, `detail/bessel_jy_asym.hpp` and the
+  dispatch in `bessel.hpp`, in `src/special/besselIK.ts` and `src/special/besselJY.ts`
+  (Copyright (c) 2006 Xiaogang Zhang, (c) 2007 John Maddock, (c) 2024 Matt Borland)
 
 ```
 Boost Software License - Version 1.0 - August 17th, 2003

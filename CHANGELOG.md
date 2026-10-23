@@ -15,6 +15,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   mpmath so far; `oracle/choose.R` is ready for the comparison with R.
 - `digamma`, `trigamma` and `psigamma` (derivatives up to 100, negative arguments by
   reflection). Checked against mpmath so far; `oracle/psigamma.R` is ready.
+- `besselI`, `besselK` (with `exponScaled`, R's `expon.scaled`), `besselJ` and `besselY` for any
+  real order, ported from Boost.Math. Checked against mpmath so far; `oracle/bessel.R` is ready.
 
 ### Fixed
 
