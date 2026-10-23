@@ -5,6 +5,7 @@ export { choose, lchoose, factorial, lfactorial } from "./special/choose.js";
 export { digamma, trigamma, psigamma } from "./special/psigamma.js";
 export { besselI, besselK, type BesselOptions } from "./special/besselIK.js";
 export { besselJ, besselY } from "./special/besselJY.js";
+export { erf, erfc } from "./special/erf.js";
 
 // Distributions
 export { dnorm, pnorm, qnorm, type NormalOptions } from "./distributions/normal.js";

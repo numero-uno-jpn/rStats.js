@@ -25,7 +25,7 @@ against R and are not a priority.
 
 | Area | Status |
 |---|---|
-| Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY` exported; the incomplete gamma and beta functions, erf/erfc and log1p-type functions are implemented internally |
+| Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`, and `erf`, `erfc` (not in R) exported; the incomplete gamma and beta functions and log1p-type functions are implemented internally |
 | Distributions | d/p/q with `lowerTail` and `logP` for all 20 distributions in R's `stats` (including the studentized range), plus the non-central chi-squared, t, F and beta |
 | Random numbers | R's default Mersenne-Twister with `set.seed()`-compatible streams, 20 `r*` functions, `rmultinom`, `sample`, `sampleInt` |
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest` (including r × c), `wilcoxTest` (exact and approximate, with intervals), `cor`, `corTest`, `pAdjust`, returning all of R's `htest` fields |
@@ -46,8 +46,8 @@ In order of priority.
    `fisherTest`, and passing two factor vectors to `chisqTest`.
 2. **Special functions:** R fixtures for the special functions added without R (`choose`,
    `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma` and the Bessel
-   functions, checked against mpmath so far; the oracles are written). Functions that R lacks but rStats.js already implements
-   internally (erf/erfc, log1p-type functions) may be exported as extras.
+   functions, checked against mpmath so far; the oracles are written). `erf` and `erfc` are
+   exported as extras; the log1p-type functions that rStats.js implements internally may follow.
 3. **Distributions:** recycling of distribution parameters as vectors; R fixture for `dmultinom`.
 4. **Speed:** a fast double-precision path that switches to double-double only where needed, and
    an asymptotic expansion for the incomplete beta function with large parameters (see

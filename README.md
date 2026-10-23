@@ -86,7 +86,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 
 | Area | Functions (R names in parentheses where they differ) |
 |---|---|
-| Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY` |
+| Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`; also `erf` and `erfc`, which R lacks |
 | Distributions (d/p/q) | normal, t, chi-squared, F, beta, gamma, binomial, Poisson, uniform, exponential, log-normal, logistic, Cauchy, Weibull, geometric, negative binomial, hypergeometric, Wilcoxon signed rank and rank sum, studentized range (`ptukey`, `qtukey`), non-central chi-squared, t, F and beta (`ncp`); the multinomial probability (`dmultinom`) |
 | Random numbers | `setSeed` (`set.seed`), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), 20 `r*` functions, `sample`, `sampleInt` (`sample.int`) |
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `cor`, `corTest`, `pAdjust` (`p.adjust`) |

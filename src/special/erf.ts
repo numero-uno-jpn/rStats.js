@@ -8,6 +8,7 @@
 // that take the log (logP in pnorm) or that recompute exp(-x^2) accurately.
 
 import { p1evl, polevl } from "./polevl.js";
+import { twoProd } from "./dd.js";
 
 const P = [
   2.46196981473530512524e-10, 5.64189564831068821977e-1, 7.46321056442269912687e0,
@@ -41,7 +42,19 @@ const MAXLOG = 7.097827128933839730962063185871e2;
 /** 1/sqrt(pi) */
 const INV_SQRT_PI = 0.5641895835477562869;
 
-/** Error function erf(x). */
+/**
+ * Error function, erf(x) = 2 / sqrt(pi) * integral from 0 to x of exp(-t^2) dt. Not part of R (where it is written
+ * `2 * pnorm(x * sqrt(2)) - 1`, which loses the relative accuracy of small x).
+ *
+ * @param x - Argument.
+ * @returns erf(x).
+ *
+ * @example
+ * ```ts
+ * erf(0.5);    // 0.5204998778130465
+ * erf(1e-10);  // 1.1283791670955126e-10
+ * ```
+ */
 export function erf(x: number): number {
   if (Number.isNaN(x)) return NaN;
   if (x < 0) return -erf(-x);
@@ -50,17 +63,31 @@ export function erf(x: number): number {
   return (x * polevl(z, T)) / p1evl(z, U);
 }
 
-/** Complementary error function erfc(x) = 1 - erf(x). */
+/**
+ * Complementary error function, erfc(x) = 1 - erf(x), accurate in the upper tail (down to the subnormal range near
+ * x = 27). Not part of R (where it is written `2 * pnorm(x * sqrt(2), lower.tail = FALSE)`).
+ *
+ * @param a - Argument.
+ * @returns erfc(a).
+ *
+ * @example
+ * ```ts
+ * erfc(5);  // 1.537459794428035e-12
+ * ```
+ *
+ * Changes from xsf: exp(-x^2) is formed from x^2 = hi + lo exact (the rounding of x^2 is 33 ε relative at x = 5.7),
+ * and below the normal range exp(-700) is applied last so that subnormal results (x up to 27.2) are not flushed to 0.
+ */
 export function erfc(a: number): number {
   if (Number.isNaN(a)) return NaN;
   const x = Math.abs(a);
   if (x < 1) return 1 - erf(a);
-  const z = -a * a;
-  if (z < -MAXLOG) return a < 0 ? 2 : 0;
-  let y = Math.exp(z) * erfcxRational(x);
-  if (a < 0) y = 2 - y;
-  if (y === 0) return a < 0 ? 2 : 0;
-  return y;
+  if (a < 0) return 2 - erfc(x);
+  const [hi, lo] = twoProd(x, x);
+  if (hi > MAXLOG + 40) return 0;
+  const r = erfcxRational(x) * (1 - lo);
+  if (hi < 700) return Math.exp(-hi) * r;
+  return Math.exp(700 - hi) * r * Math.exp(-700);
 }
 
 /**
