@@ -16,6 +16,8 @@ difference) from the formulas.
 mantelhaenTest: 2 x 2 x K asymptotic test, pooled odds ratio and its Robins-Breslow-Greenland interval from statsmodels
 (StratifiedTable; cases whose |sum a - sum E| < 1/2 with the correction are left out, as statsmodels then still
 subtracts 1/2); the exact conditional p-values with exact rational arithmetic; I x J x K from the formula at 40 digits.
+ansariTest: exact cases (below 55 values per sample, no ties) by counting subsets in exact integers (scipy's exact
+p-values are good to about 1e-8 only); the normal approximation from scipy.stats.ansari.
 """
 import json, math, os, random, sys
 import mpmath as mp
@@ -455,12 +457,59 @@ def mantelhaen(rng):
     return cases
 
 
+def ansari_exact(x, y, alt):
+    """exact p-value of the Ansari-Bradley statistic without ties, counting the m-subsets of positions by score sum"""
+    from fractions import Fraction
+    m, n = len(x), len(y)
+    N = m + n
+    pos = {v: i + 1 for i, v in enumerate(sorted(x + y))}
+    ab = sum(min(pos[v], N - pos[v] + 1) for v in x)
+    cnt = [dict() for _ in range(m + 1)]
+    cnt[0][0] = 1
+    for i in range(1, N + 1):
+        sc = min(i, N + 1 - i)
+        for k in range(min(i, m) - 1, -1, -1):
+            for t, c in list(cnt[k].items()):
+                cnt[k + 1][t + sc] = cnt[k + 1].get(t + sc, 0) + c
+    tot = sum(cnt[m].values())
+    lo = Fraction(sum(c for t, c in cnt[m].items() if t <= ab), tot)
+    hi = Fraction(sum(c for t, c in cnt[m].items() if t >= ab), tot)
+    if alt == "less":
+        return float(hi)
+    if alt == "greater":
+        return float(lo)
+    centre = (m + 1) ** 2 // 4 + ((m * n) // 2) / 2
+    return float(min(1, 2 * (hi if ab > centre else lo)))
+
+
+def ansari(rng):
+    cases = []
+    for _ in range(200):
+        kind = rng.choice([0, 0, 1, 2])
+        m, n = rng.randint(1, 70), rng.randint(1, 70)
+        x = tied_sample(rng, m, kind)
+        y = [v * rng.uniform(0.3, 3) for v in tied_sample(rng, n, kind)]
+        if kind == 1:
+            y = [round(v) for v in y]
+        alt = rng.choice(ALTS)
+        ties = len(set(x + y)) < m + n
+        exact = m < 55 and n < 55 and not ties
+        r = stats.ansari(x, y, alternative=SCIPY_ALT[alt])
+        if not math.isfinite(r.pvalue):
+            continue
+        pv = ansari_exact(x, y, alt) if exact else r.pvalue
+        cases.append({"args": {"x": [s(v) for v in x], "y": [s(v) for v in y], "alternative": alt, "exact": exact},
+                      "expected": {"statistic": s(r.statistic), "pValue": s(pv)}})
+    return cases
+
+
 if __name__ == "__main__":
     for i, (name, f) in enumerate([("binomTest", binom), ("poissonTest", poisson), ("varTest", var),
                                    ("bartlettTest", bartlett), ("mcnemarTest", mcnemar), ("kruskalTest", kruskal),
                                    ("friedmanTest", friedman), ("quadeTest", quade), ("flignerTest", fligner),
                                    ("moodTest", mood), ("onewayTest", oneway), ("shapiroTest", shapiro),
-                                   ("propTest", prop), ("mantelhaenTest", mantelhaen)]):
+                                   ("propTest", prop), ("mantelhaenTest", mantelhaen),
+                                   ("ansariTest", ansari)]):
         if len(sys.argv) > 1 and name not in sys.argv[1:]:
             continue
         write(name, f(random.Random(20261023 + i)))

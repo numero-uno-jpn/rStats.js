@@ -12,6 +12,7 @@ import { varTest } from "../src/htest/varTest.js";
 import { onewayTest, shapiroTest } from "../src/htest/onewayTest.js";
 import { propTest } from "../src/htest/propTest.js";
 import { mantelhaenTest } from "../src/htest/mantelhaenTest.js";
+import { ansariTest } from "../src/htest/ansariTest.js";
 import { flignerTest, friedmanTest, kruskalTest, moodTest, quadeTest } from "../src/htest/rankTests.js";
 import type { Alternative } from "../src/htest/types.js";
 import { hasFixture, num, relativeError } from "./helpers/fixture.js";
@@ -59,6 +60,12 @@ const calls: Record<string, [number, (a: Args) => Record<string, unknown>]> = {
         ...(a.exact === undefined ? {} : { exact: a.exact as boolean }),
         ...(a.correct === undefined ? {} : { correct: a.correct as boolean }),
       }),
+    }),
+  ],
+  ansariTest: [
+    1e-12,
+    (a) => ({
+      ...ansariTest(nums(a.x), nums(a.y), { alternative: a.alternative as Alternative, exact: a.exact as boolean }),
     }),
   ],
   // SciPy evaluates the Shapiro-Wilk p-value less precisely (agreement about 1e-11), hence the wider tolerance
@@ -188,4 +195,15 @@ if (hasFixture("mantelhaenTest"))
     tolerance: 1e-12,
     // the exact test's estimate and limits are roots found by uniroot, in R as here
     fieldTolerance: { estimate: 1e-4, confInt: 1e-4 },
+  });
+if (hasFixture("ansariTest"))
+  htestSuite({
+    name: "ansariTest",
+    call: (a) =>
+      ansariTest(
+        arg.vec(a.x) ?? [],
+        arg.vec(a.y)!,
+        defined({ alternative: arg.str<Alternative>(a.alternative), exact: arg.bool(a.exact) }),
+      ),
+    tolerance: 1e-12,
   });
