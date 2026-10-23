@@ -49,11 +49,9 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    `besselY`)。R にはないが rStats.js が内部で実装済みの関数 (erf/erfc、log1p 系の関数) は、
    おまけとして export してもよい。
 3. **分布:** 分布のパラメータをベクトルとして与えたときのリサイクル。`dmultinom`。
-4. **精度:** 共通の不完全ベータ関数が R に届かない `pnbinom` の 15 ケース
-   ([docs/ja/accuracy.md](docs/ja/accuracy.md#既知の精度の問題) を参照)。
-5. **速度:** 必要な箇所だけ double-double に切り替える高速な倍精度の経路と、パラメータが大きい
+4. **速度:** 必要な箇所だけ double-double に切り替える高速な倍精度の経路と、パラメータが大きい
    ときの不完全ベータ関数の漸近展開 ([docs/ja/performance.md](docs/ja/performance.md) を参照)。
-6. **乱数:** R の既定以外の RNG の種類。
+5. **乱数:** R の既定以外の RNG の種類。
 
 いずれ取り組むかもしれないもの (どれもそれ自体が大きなプロジェクト):
 

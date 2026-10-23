@@ -13,8 +13,8 @@
 // - The log is formed directly from the result of each computation
 
 import { MACHEP } from "./constants.js";
-import { dbinomRawDD } from "./loader.js";
-import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, twoProd, twoSum, type DD } from "./dd.js";
+import { dbinomExponent, dbinomRawDD } from "./loader.js";
+import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddSub, twoProd, twoSum, type DD } from "./dd.js";
 import { lgamma1p } from "./gamma.js";
 import { lgammaDiff } from "./lgammaDiff.js";
 
@@ -38,6 +38,21 @@ function prefactor(a: number, b: number, x: DD, xc: DD): number {
 
 /** Lower limit of normal numbers. If the prefactor is larger, multiply on the linear scale */
 const NORMAL_MIN = 2.2250738585072014e-308 * 1e3;
+
+/**
+ * m x^a (1-x)^b / B(a, b) for a prefactor below NORMAL_MIN (m a moderate factor such as the series sum).
+ * Going through the log would round an exponent near -708 to 0.5 ulp, which is 1e-13 relative after exp,
+ * so the exponent of dbinom(a; a+b, x) is kept in double-double and exp is taken once at the end.
+ * (multiplying by exp(-700) last rounds once, so a subnormal result is still correctly rounded).
+ * Returns undefined when the result underflows to 0 (the caller then works on the log scale)
+ */
+function smallPrefactorTimes(a: number, b: number, x: DD, xc: DD, m: number): number | undefined {
+  const { e } = dbinomExponent(a, b, x, xc);
+  const c = (m * ((a * b) / (a + b))) / Math.sqrt(2 * Math.PI * a * (b / (a + b)));
+  if (!(e[0] < 1400) || !Number.isFinite(c) || c === 0) return undefined;
+  const v = Math.exp(700 - e[0]) * (1 - e[1]) * c * Math.exp(-700);
+  return v > 0 ? v : undefined;
+}
 
 /**
  * Series sum S = Σ_{n>=1} (1-b)_n / n! x^n / (a + n) (the core of xsf's pseries).
@@ -104,6 +119,8 @@ function pseries(a: number, b: number, xd: DD, xcd: DD, log: boolean): number {
   if (!log) {
     const pf = prefactor(a, b, xd, xcd);
     if (pf > NORMAL_MIN) return (s * pf) / Math.exp(b * l1m);
+    const v = smallPrefactorTimes(a, b, xd, xcd, s / Math.exp(b * l1m));
+    if (v !== undefined) return v;
   }
   const lv = Math.log(s) + logPrefactor(a, b, xd, xcd) - b * l1m;
   return log ? lv : Math.exp(lv);
@@ -117,32 +134,47 @@ function pseries(a: number, b: number, xd: DD, xcd: DD, log: boolean): number {
  * the rounding of x = 0.999 (1e-19) alone shifts the result by 6e-13 relative (measured at a = 1e5, b = 100;
  * reference values checked with Rmpfr). So x is kept as an exact double-double and the recurrence also runs in
  * double-double.
+ *
+ * For the same reason a + b and b - 1 are kept in double-double: with a ≫ b, rounding a + b loses digits of b
+ * (5e-11 relative at a = 1e8, b = 0.01, x = 1 - 1e-6; checked against mpmath). From 2^52 on, the steps k += 1 of
+ * the other coefficients would be lost as well, so there every coefficient is a double-double (huge)
  */
 function continuedFractionCore(a: number, b: number, xd: DD, xcd: DD, second: boolean): number {
   // #1: coefficients use x; #2: coefficients use z = x/(1-x)
   const z: DD = second ? ddDiv(xd, xcd) : xd;
+  const huge = Math.max(a, b) >= 2 ** 52;
+  // Partial numerators k1 x k2 / (k3 k4) and k5 x k6 / (k7 k8). k1, k3, k4, k7, k8 are doubles, with
+  // double-double copies (h1, ...) that are used and advanced only when huge
   let k1 = a;
-  let k2 = second ? b - 1 : a + b;
+  let k2: DD = second ? twoSum(b, -1) : twoSum(a, b);
   let k3 = a;
   let k4 = a + 1;
   let k5 = 1;
-  let k6 = second ? a + b : b - 1;
+  let k6: DD = second ? twoSum(a, b) : twoSum(b, -1);
   let k7 = a + 1;
   let k8 = a + 2;
+  let h1: DD = [a, 0];
+  let h3: DD = [a, 0];
+  let h4: DD = twoSum(a, 1);
+  let h7: DD = twoSum(a, 1);
+  let h8: DD = twoSum(a, 2);
+  const d1 = second ? -1 : 1;
   let pkm2: DD = [0, 0];
   let qkm2: DD = [1, 0];
   let pkm1: DD = [1, 0];
   let qkm1: DD = [1, 0];
   let ans: DD = [1, 0];
   for (let n = 0; n < 100000; n++) {
-    let xk = ddDiv(ddMulNum(ddMulNum(z, -k1), k2), twoProd(k3, k4));
-    let pk = ddAdd(pkm1, ddMul(pkm2, xk));
-    let qk = ddAdd(qkm1, ddMul(qkm2, xk));
+    let xk = huge
+      ? ddDiv(ddMul(ddMul(z, h1), k2), ddMul(h3, h4))
+      : ddDiv(ddMul(ddMulNum(z, k1), k2), twoProd(k3, k4));
+    let pk = ddSub(pkm1, ddMul(pkm2, xk));
+    let qk = ddSub(qkm1, ddMul(qkm2, xk));
     pkm2 = pkm1;
     pkm1 = pk;
     qkm2 = qkm1;
     qkm1 = qk;
-    xk = ddDiv(ddMulNum(ddMulNum(z, k5), k6), twoProd(k7, k8));
+    xk = ddDiv(ddMul(ddMulNum(z, k5), k6), huge ? ddMul(h7, h8) : twoProd(k7, k8));
     pk = ddAdd(pkm1, ddMul(pkm2, xk));
     qk = ddAdd(qkm1, ddMul(qkm2, xk));
     pkm2 = pkm1;
@@ -155,20 +187,22 @@ function continuedFractionCore(a: number, b: number, xd: DD, xcd: DD, second: bo
       ans = r;
       if (t < MACHEP && n > 1) break;
     }
-    if (second) {
-      k1 += 1;
-      k2 -= 1;
-      k6 += 1;
+    k2 = ddAdd(k2, [d1, 0]);
+    k6 = ddAdd(k6, [-d1, 0]);
+    k5 += 1;
+    if (huge) {
+      h1 = ddAdd(h1, [1, 0]);
+      h3 = ddAdd(h3, [2, 0]);
+      h4 = ddAdd(h4, [2, 0]);
+      h7 = ddAdd(h7, [2, 0]);
+      h8 = ddAdd(h8, [2, 0]);
     } else {
       k1 += 1;
-      k2 += 1;
-      k6 -= 1;
+      k3 += 2;
+      k4 += 2;
+      k7 += 2;
+      k8 += 2;
     }
-    k3 += 2;
-    k4 += 2;
-    k5 += 1;
-    k7 += 2;
-    k8 += 2;
     const mag = Math.abs(qk[0]) + Math.abs(pk[0]);
     if (mag > BIG) {
       pkm2 = ddMulNum(pkm2, BIGINV);
@@ -206,7 +240,10 @@ function continuedFraction(a: number, b: number, xd: DD, xcd: DD, log: boolean):
   // I = x^a (1-x)^b / (a B(a, b)) * w
   if (!log) {
     const pf = prefactor(a, b, xd, xcd);
-    if (pf > NORMAL_MIN) return (pf / a) * w;
+    // w / a first: pf / a can fall into the subnormal range for huge a (1e-316 at a = 7e18) and lose digits
+    if (pf > NORMAL_MIN) return pf * (w / a);
+    const v = smallPrefactorTimes(a, b, xd, xcd, w / a);
+    if (v !== undefined) return v;
   }
   const lv = logPrefactor(a, b, xd, xcd) - Math.log(a) + Math.log(w);
   return log ? lv : Math.exp(lv);
@@ -297,7 +334,12 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
   // The other tail, if it can be computed without subtraction
   const otherDirect = (): number | undefined => {
     if (pseriesOk(oa, ob, ox[0])) return pseries(oa, ob, ox, oxc, false);
-    if (pseriesOk(pa, pb, px[0])) return pseriesComplement(pa, pb, px, false);
+    if (pseriesOk(pa, pb, px[0])) {
+      const v = pseriesComplement(pa, pb, px, false);
+      // Cancellation check as for the requested tail (see below)
+      if (pa * Math.abs(Math.log(px[0])) > 32 * v && cfOk(oa, ob, ox[0])) return continuedFraction(oa, ob, ox, oxc, false);
+      return v;
+    }
     if (cfOk(oa, ob, ox[0])) return continuedFraction(oa, ob, ox, oxc, false);
     return undefined;
   };
@@ -311,6 +353,16 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
   }
   if (pseriesOk(oa, ob, ox[0])) {
     const v = pseriesComplement(oa, ob, ox, false);
+    // The exponent L of pseriesComplement is a sum of terms of size a |log x| that can cancel, and their rounding
+    // (absolute, about ε a |log x|) is then large relative to a small result (1e-14 at a = 0.01, b = 1e4, x = 1e-4).
+    // When a |log x| exceeds the result 32 times and the continued fraction applies in this tail's frame, use it
+    // instead (a lower threshold would also send cases where the series is accurate, e.g. most of pt near 0, to the
+    // slower continued fraction)
+    if (oa * Math.abs(Math.log(ox[0])) > 32 * v && cfOk(pa, pb, px[0])) {
+      const w = continuedFraction(pa, pb, px, pxc, false);
+      if (wantLog && w < TINY) return [continuedFraction(pa, pb, px, pxc, true), w];
+      return finish(w, otherDirect);
+    }
     return finish(v, () => pseries(oa, ob, ox, oxc, false));
   }
   if (cfOk(pa, pb, px[0])) {

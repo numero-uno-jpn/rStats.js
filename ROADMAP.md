@@ -49,12 +49,10 @@ In order of priority.
    `besselJ`, `besselK`, `besselY`). Functions that R lacks but rStats.js already implements
    internally (erf/erfc, log1p-type functions) may be exported as extras.
 3. **Distributions:** recycling of distribution parameters as vectors; `dmultinom`.
-4. **Accuracy:** 15 `pnbinom` cases where the shared incomplete beta function falls short of R
-   (see [docs/accuracy.md](docs/accuracy.md#known-accuracy-problems)).
-5. **Speed:** a fast double-precision path that switches to double-double only where needed, and
+4. **Speed:** a fast double-precision path that switches to double-double only where needed, and
    an asymptotic expansion for the incomplete beta function with large parameters (see
    [docs/performance.md](docs/performance.md)).
-6. **Random numbers:** RNG kinds other than R's default.
+5. **Random numbers:** RNG kinds other than R's default.
 
 Possible later, each a sizeable project of its own:
 

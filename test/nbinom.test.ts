@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { dgeom, pgeom, qgeom } from "../src/distributions/geometric.js";
 import { dnbinom, pnbinom, qnbinom } from "../src/distributions/negbinomial.js";
 import { bool, num } from "./helpers/fixture.js";
@@ -44,23 +45,6 @@ const nbQuantileDifference = (
   return undefined;
 };
 
-/**
- * Unresolved (our accuracy falls short; R agrees with the Rmpfr reference values). Both are accuracy issues in
- * the incomplete beta function (src/special/incbet.ts)
- * - Probabilities near 1e-308 (the smallest normal number): up to 1.2e-13 relative
- * - Non-integer size with p = size / (size + mu) below 1e-4 (q extremely close to 1): up to 6e-11 relative
- */
-const unresolvedBeta = (a: Args, e: number, x: number): string | undefined => {
-  const rel = Math.abs(x - e) / Math.abs(e);
-  if (Math.abs(e) < 1e-307 && rel <= 2e-13) return "unresolved: incomplete beta loses accuracy for probabilities near 1e-308";
-  if (a.mu !== undefined) {
-    const n = num(a.size);
-    if (n !== Math.round(n) && n / (n + num(a.mu)) < 1e-4 && rel <= 1e-10)
-      return "unresolved: incomplete beta continued fraction loses accuracy for non-integer size and p below 1e-4";
-  }
-  return undefined;
-};
-
 fixtureSuite({
   name: "dgeom",
   tolerance: 1e-14,
@@ -97,7 +81,6 @@ fixtureSuite({
 fixtureSuite({
   name: "pnbinom",
   tolerance: 1e-14,
-  knownDifference: unresolvedBeta,
   call: (a) => pnbinom(num(a.q), num(a.size), { prob: num(a.prob), ...tail(a) }),
 });
 fixtureSuite({
@@ -121,7 +104,6 @@ fixtureSuite({
 fixtureSuite({
   name: "pnbinom_mu",
   tolerance: 1e-14,
-  knownDifference: unresolvedBeta,
   call: (a) => pnbinom(num(a.q), num(a.size), { mu: num(a.mu), ...tail(a) }),
 });
 fixtureSuite({
@@ -132,4 +114,24 @@ fixtureSuite({
   knownDifference: (a, e, x) =>
     nbQuantileDifference(a, e, x, (y, l) => pnbinom(y, num(a.size), { mu: num(a.mu), lowerTail: l, logP: bool(a.logP) })),
   call: (a) => qnbinom(num(a.p), num(a.size), { mu: num(a.mu), ...tail(a) }),
+});
+
+/**
+ * q beyond 2^53, outside the fixture grid (qnbinom reaches it). The continued fraction used to stop advancing
+ * its coefficients there, and a subnormal intermediate cost digits. Reference values from mpmath (40-800 digits:
+ * quadrature of the beta density around its mode, and the hypergeometric form of I_p(size, q + 1))
+ */
+describe("pnbinom with q beyond 2^53", () => {
+  const cases: [number, number, { prob?: number; mu?: number }, boolean, number][] = [
+    [100010668931481120, 1e7, { prob: 1e-10 }, true, -1.0000000000051135],
+    [100020289663207340, 1e7, { prob: 1e-10 }, true, -1.3449942879141902],
+    [6612540300287293000, 1e-10, { mu: 1e6 }, true, -690.77552789821303],
+    [6612540300287293000, 1e-10, { mu: 1e6 }, false, 1.0000000000006706e-300],
+  ];
+  it("matches the reference values", () => {
+    for (const [q, size, par, logP, ref] of cases) {
+      const x = pnbinom(q, size, { ...par, lowerTail: false, logP });
+      expect(Math.abs(x - ref) / Math.abs(ref), `pnbinom(${q}, ${size}, ${JSON.stringify(par)})`).toBeLessThan(1e-13);
+    }
+  });
 });

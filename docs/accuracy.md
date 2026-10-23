@@ -38,6 +38,12 @@ Details of the comparison:
   Only the cases that fail against R are written out and computed, and the results are stored
   in `test/fixtures/<name>.ref.json` (`npm run refresh-references`). Each oracle registers its
   reference function with `write_fixture(..., ref = function(row) ...)`.
+  Four `pnbinom` references were computed with mpmath instead (60 digits, `betainc`), because
+  the Rmpfr reference is wrong or missing there: `pnbinom(1e8, 2.5, mu = 1e6)` in both tails
+  (Rmpfr forms p = size/(size + mu) with 256 bits and then takes 1 − (other tail), which leaves
+  noise for a result of 8e-106), `pnbinom(300, 50, 0.3, lower.tail = FALSE)` and
+  `pnbinom(30, 3, 1 - 1e-10, log.p = TRUE)`. Rerunning `npm run refresh-references` for
+  `nbinom` would bring back the wrong Rmpfr value for the first one.
   Non-central distributions use Rmpfr sums of the Poisson mixture series or numerical integrals
   (`oracle/_noncentral.R`); regions where no reference can be computed in practical time
   (non-central t with df = 1000 or 1e5, non-central F with df2 = 1e9 and x > 30) are left out of
@@ -124,18 +130,7 @@ case: a single different accept/reject decision would show up there.
 
 ## Known accuracy problems
 
-`pnbinom` has 15 cases where R agrees with the reference and rStats.js does not. They are
-excluded with an error bound (`unresolvedBeta` in the test). The cause is the shared incomplete
-beta function (`src/special/incbet.ts`), which may affect other distributions too:
-
-- 3 cases with probabilities near 1e-308 (relative error up to 1.2e-13), e.g.
-  `pnbinom(30, 2.5, 1 - 1e-10, lower.tail = FALSE)`;
-- 12 cases with non-integer `size` and p = size/(size + mu) < 1e-4 (relative error up to 6e-11),
-  e.g. `pnbinom(1e8, 0.01, mu = 1e4)`.
-
-Tightening the continued-fraction cut-off to 1e-20 does not help. For size ≤ 1 and q ≥ 0.95
-the upper tail is computed directly from a positive hypergeometric series in double-double
-arithmetic, which avoids the problem there.
+None are known: every case matches R or a high-precision reference within the tolerance.
 
 R's `qnbinom` does not terminate for 13 inputs (e.g. `qnbinom(-1, 0.5, 1e-10, log.p = TRUE)`).
 `oracle/nbinom.R` limits each case to 2 seconds and drops those rows from the fixture.
@@ -158,7 +153,9 @@ the LAPACK reference implementation (modified BSD), LINPACK and EISPACK (public 
   quantities in double-double.
 - **Continued fractions in double-double** (`src/special/incbet.ts`): with large parameters and
   x near the mean, the continued fraction is extremely sensitive to the rounding of x (6e-13 at
-  a = 1e5, x = 0.999).
+  a = 1e5, x = 0.999). The coefficients a + b and b − 1 are double-double too, since rounding
+  a + b loses the digits of a small b (5e-11 at a = 1e8, b = 0.01), and from 2^52 on all of them
+  are, since steps of 1 would be lost.
 - **Both tails computed directly**, never as 1 − (other tail). The complement of the series,
   1 − I_x(a, b), uses a subtraction-free formula.
 - **lgamma(b + a) − lgamma(b) without subtraction** (`src/special/lgammaDiff.ts`) for a ≪ b, used

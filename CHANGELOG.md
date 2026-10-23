@@ -7,6 +7,20 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Fixed
+
+- Accuracy of the incomplete beta function behind `pbeta`, `pt`, `pf`, `pbinom` and `pnbinom`
+  (checked against mpmath). The 15 `pnbinom` cases that were excluded as known accuracy
+  problems now pass:
+  - results near 1e-308 kept their exponent only to double precision (up to 1.2e-13 relative);
+  - the continued fraction rounded a + b, losing the digits of a small b (up to 6e-11 relative,
+    e.g. `pnbinom(1e8, 0.01, mu = 1e4)`).
+- With parameters of 2^52 or more the continued fraction stopped advancing its coefficients, and
+  a result could pass through a subnormal intermediate: `pnbinom` with q around 1e17 was off by
+  up to 1e-3 relative, and returned NaN in some cases.
+
 ## 0.5.0 - 2026-10-21
 
 First public version.
