@@ -108,7 +108,7 @@ rStats.js は分布・特殊関数・t 検定・行列分解なら置き換え�
 
 ### Phase 3: jStat と重なる検定 (`src/htest/`)
 - 作るもの: `aov` の一元配置の表、`TukeyHSD`、`zTest` (BSDA::z.test)
-- クラウド側が作成済みの検定は、R の fixture との照合で残った不一致を片づける (jstat-r-reference.md の「作成済みの検定」)。そのあと export して文書に載せる (CLOUD_BRANCH.md の手順)。
+- クラウド側が作成済みの検定は、R の fixture との照合で残った不一致を片づける (jstat-r-reference.md の「作成済みの検定」)。そのあと export して文書に載せる。
 
 ### Phase 4: 回帰 (`src/models/lm.ts`)
 - `lm(x, y, { intercept, weights })` を作る。x は行列で、式は使わない。
