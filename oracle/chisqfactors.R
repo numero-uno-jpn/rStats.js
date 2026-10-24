@@ -1,7 +1,8 @@
 source("/oracle/_htest.R")
 
 # chisq.test(x, y) with two factor vectors (fixture chisqTestFactors). R builds table(x, y) and tests independence;
-# the levels are the sorted distinct values (C locale), and pairs where either value is NA are dropped.
+# the levels are the sorted distinct values, and pairs where either value is NA are dropped. Although the container sets
+# LC_ALL=C.UTF-8, R sorts them by collation ("a", "A", "b", "B"), not by code point.
 # x and y are written as arrays of strings.
 
 set.seed(20261102)
