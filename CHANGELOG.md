@@ -7,7 +7,10 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## 0.6.0 - 2026-10-24
+## 0.6.1 - 2026-10-24
+
+The first release of the 0.6 series on npm. A `v0.6.0` tag was pushed to GitHub earlier the same
+day but never published to npm and has been withdrawn; use 0.6.1.
 
 ### Added
 
@@ -82,7 +85,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   The series is summed in double-double there, which makes those calls about 9 times slower.
 - `pchisq` and `pbeta` with `ncp` around 1000 in the far tails: off by up to 1.4e-13 relative, now
   below 5e-15 (the terms of the Poisson mixture are corrected to the exact shape a + j).
-- Fixed before the final `v0.6.0` tag (the first one pushed to GitHub had these problems):
+- Fixed since the withdrawn `v0.6.0` tag:
   - `propTest` with missing groups and with `p`; `pairwisePropTest` with missing groups (dropped and
     the rest renumbered, as in R);
   - `uniroot` when `f` returns a non-finite value;

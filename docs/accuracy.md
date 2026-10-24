@@ -56,7 +56,7 @@ Details of the comparison:
   of the rounded means reported in `estimate`; the p-value and quantiles then come from R's
   `pt`/`qt`. Fisher's r × c test enumerates all tables and sums them exactly with gmp. Kendall's
   exact test counts inversions with Rmpfr (1024 bits).
-- **Special functions added in 0.6.0** (`choose`, `lchoose`, `factorial`, `lfactorial`,
+- **Special functions added in 0.6.1** (`choose`, `lchoose`, `factorial`, `lfactorial`,
   `digamma`, `trigamma`, `psigamma`, the Bessel functions, `dmultinom`, and `gammainc`,
   `erfinv`, `erfcinv` and `perm`, which R lacks and whose R fixtures are computed from
   `pgamma` × `gamma`, pracma's definitions and Rmpfr): besides the R
