@@ -323,14 +323,14 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 | `jStat.QR` | `qr(a)` | Householder QR with R's column pivoting (`qrQ`, `qrR`). |
 | `jStat.lstsq` | `qrSolve(a, b)` |  |
 | `jStat.jacobi` | `eigen(a, { symmetric: true })` | jStat stops at a tolerance of 0.001 and skips row and column 0 in its convergence test. |
-| `jStat.rungekutta` | `ode(y, times, func, { method: "rk4" })` *(planned)* | Fixed-step `euler`, `rk2` and `rk4` as in `deSolve::ode`; returns the whole trajectory. |
-| `jStat.romberg` | `integrate(f, a, b)` *(planned)* | Adaptive Gauss-Kronrod (QUADPACK, as R's `integrate`), with an error estimate. |
-| `jStat.richardson` | `hessian(f, x)` *(planned)* | jStat extrapolates a second derivative from tabulated values; `grad` and `hessian` use Richardson extrapolation on a function (`numDeriv`). |
-| `jStat.simpson` | `integrate(f, a, b)` *(planned)* |  |
-| `jStat.hermite` | `hermiteInterp(x, y, dy, xout)` *(planned)* | The global polynomial through values and derivatives, as jStat's; for piecewise cubic Hermite use `splinefunH`. |
-| `jStat.lagrange` | `barylag(x, y, xout)` *(planned)* | Barycentric Lagrange interpolation, as `pracma::barylag`. |
-| `jStat.cubic_spline` | `spline(x, y, { xout })` *(planned)* | jStat's `cubic_spline` throws (it calls a missing `jStat.sq`). `splinefun` returns a function. |
-| `jStat.gauss_quadrature` | `integrate(f, a, b)` *(planned)* | jStat's throws "not yet implemented". |
+| `jStat.rungekutta` | `ode(y, times, func, { method: "rk4" })` | Fixed-step `euler`, `rk2` and `rk4` as in `deSolve::ode`; returns the whole trajectory. |
+| `jStat.romberg` | `integrate(f, a, b)` | Adaptive Gauss-Kronrod (QUADPACK, as R's `integrate`), with an error estimate. |
+| `jStat.richardson` | `hessian(f, x)` | jStat extrapolates a second derivative from tabulated values; `grad` and `hessian` use Richardson extrapolation on a function (`numDeriv`). |
+| `jStat.simpson` | `integrate(f, a, b)` |  |
+| `jStat.hermite` | `hermiteInterp(x, y, dy, xout)` | The global polynomial through values and derivatives, as jStat's; for piecewise cubic Hermite use `splinefunH`. |
+| `jStat.lagrange` | `barylag(x, y, xout)` | Barycentric Lagrange interpolation, as `pracma::barylag`. |
+| `jStat.cubic_spline` | `spline(x, y, { xout })` | jStat's `cubic_spline` throws (it calls a missing `jStat.sq`). `splinefun` returns a function. |
+| `jStat.gauss_quadrature` | `integrate(f, a, b)` | jStat's throws "not yet implemented". |
 | `jStat.PCA` | `prcomp(x)` | Observations are the rows of `x` (jStat: the columns). Signs of components may differ. |
 
 ## Hypothesis tests

@@ -330,12 +330,30 @@ By default rStats.js returns what R returns;
 - k in `choose` and deriv in `psigamma` are rounded half to even (`psigamma(x, 2.5)` is
   `psigamma(x, 2)`).
 
+### Numerical methods
+
+- **Functions are plain JS functions of a number** (`integrate`, `optimize`, `uniroot`) or of an
+  array (`grad`, `jacobian`, `hessian`); extra arguments (R's `...`) are passed through a closure.
+  `ode`'s `func(t, y, parms)` returns the derivatives as an array (deSolve's `list(dy)`) and the
+  result is an array of rows `[t, y1, y2, ...]`.
+- **Results agree with R to the last bits where the functions do.** Where R and JS evaluate a
+  function differently in the last bit (R's `sum` accumulates in long double; `exp`, `log`, `sin`
+  and `cos` come from different libraries), the error estimate of `integrate` moves by up to a few
+  percent, a flat optimum by about 1e-14, and numerical derivatives by up to 1e-9 relative (a
+  difference quotient magnifies the function's rounding by |f| / h).
+- **`uniroot`** returns `initIt` as NaN when the interval was not extended (R's NA) and does not
+  warn when `maxiter` is reached (`iter` is then `maxiter`, as in R).
+
 ## Not supported
 
 - Recycling of distribution parameters (`rnorm(3, mean = c(0, 10, 100))`).
 - RNG kinds other than R's default.
 - `simulate.p.value` (`chisqTest`, `fisherTest`), formula interfaces, passing two factor vectors
-  (`chisq.test(x, y)`), Fisher's `hybrid` and `workspace`, Wilcoxon's `digits.rank`, and the
-  matrix form and `use` argument of `cor`. Kendall's concordance count is O(n²).
+  (`chisq.test(x, y)`), Fisher's `hybrid` and `workspace`, and Wilcoxon's `digits.rank`.
+  Kendall's concordance count is O(n²).
 - `kappa`'s `inv_z`, complex matrices, and `EISPACK = TRUE` / `LINPACK = TRUE`.
-- Linear models (`lm`, `glm`); see [ROADMAP.md](../ROADMAP.md).
+- Generalized linear models (`glm`) and formulas for `lm`; see [ROADMAP.md](../ROADMAP.md).
+- numDeriv's complex-step method (`method = "complex"`), which needs a function of a complex
+  argument, and the `side` argument of `grad` and `jacobian`.
+- deSolve's adaptive solvers (`lsoda`, `ode45`, ...); `ode` has the fixed-step `euler`, `rk2`
+  and `rk4`.

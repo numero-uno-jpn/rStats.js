@@ -323,14 +323,14 @@ import できます。
 | `jStat.QR` | `qr(a)` | R の列ピボット付きの Householder QR です (`qrQ`、`qrR`)。 |
 | `jStat.lstsq` | `qrSolve(a, b)` |  |
 | `jStat.jacobi` | `eigen(a, { symmetric: true })` | jStat は許容値 0.001 で止まり、収束の判定で行と列 0 を飛ばします。 |
-| `jStat.rungekutta` | `ode(y, times, func, { method: "rk4" })` *(予定)* | `deSolve::ode` と同じ固定刻みの `euler`・`rk2`・`rk4` です。軌跡全体を返します。 |
-| `jStat.romberg` | `integrate(f, a, b)` *(予定)* | 適応 Gauss-Kronrod 法 (QUADPACK、R の `integrate` と同じ) で、誤差の見積もりも返します。 |
-| `jStat.richardson` | `hessian(f, x)` *(予定)* | jStat は表の値から 2 階微分を外挿します。`grad` と `hessian` は関数に対して Richardson の外挿を使います (`numDeriv`)。 |
-| `jStat.simpson` | `integrate(f, a, b)` *(予定)* |  |
-| `jStat.hermite` | `hermiteInterp(x, y, dy, xout)` *(予定)* | jStat と同じく値と導関数を通る大域の多項式です。区分的な 3 次の Hermite 補間は `splinefunH` です。 |
-| `jStat.lagrange` | `barylag(x, y, xout)` *(予定)* | 重心型の Lagrange 補間で、`pracma::barylag` と同じです。 |
-| `jStat.cubic_spline` | `spline(x, y, { xout })` *(予定)* | jStat の `cubic_spline` は例外になります (存在しない `jStat.sq` を呼ぶ)。`splinefun` は関数を返します。 |
-| `jStat.gauss_quadrature` | `integrate(f, a, b)` *(予定)* | jStat のものは "not yet implemented" で例外になります。 |
+| `jStat.rungekutta` | `ode(y, times, func, { method: "rk4" })` | `deSolve::ode` と同じ固定刻みの `euler`・`rk2`・`rk4` です。軌跡全体を返します。 |
+| `jStat.romberg` | `integrate(f, a, b)` | 適応 Gauss-Kronrod 法 (QUADPACK、R の `integrate` と同じ) で、誤差の見積もりも返します。 |
+| `jStat.richardson` | `hessian(f, x)` | jStat は表の値から 2 階微分を外挿します。`grad` と `hessian` は関数に対して Richardson の外挿を使います (`numDeriv`)。 |
+| `jStat.simpson` | `integrate(f, a, b)` |  |
+| `jStat.hermite` | `hermiteInterp(x, y, dy, xout)` | jStat と同じく値と導関数を通る大域の多項式です。区分的な 3 次の Hermite 補間は `splinefunH` です。 |
+| `jStat.lagrange` | `barylag(x, y, xout)` | 重心型の Lagrange 補間で、`pracma::barylag` と同じです。 |
+| `jStat.cubic_spline` | `spline(x, y, { xout })` | jStat の `cubic_spline` は例外になります (存在しない `jStat.sq` を呼ぶ)。`splinefun` は関数を返します。 |
+| `jStat.gauss_quadrature` | `integrate(f, a, b)` | jStat のものは "not yet implemented" で例外になります。 |
 | `jStat.PCA` | `prcomp(x)` | 観測は `x` の行です (jStat は列)。主成分の符号は違うことがあります。 |
 
 ## 仮説検定

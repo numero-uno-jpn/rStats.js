@@ -309,12 +309,28 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   Inf、偶数なら NaN を返します (`rCompatible: false` では常に NaN)。
 - `choose` の k と `psigamma` の deriv は偶数への丸めです (`psigamma(x, 2.5)` は `psigamma(x, 2)`)。
 
+### 数値計算
+
+- **関数は数を受け取る普通の JS の関数** (`integrate`・`optimize`・`uniroot`)、または配列を受け取る
+  関数 (`grad`・`jacobian`・`hessian`) です。R の `...` にあたる追加の引数はクロージャで渡します。
+  `ode` の `func(t, y, parms)` は導関数を配列で返し (deSolve の `list(dy)`)、結果は行 `[t, y1, y2, ...]`
+  の配列です。
+- **関数の値が R と同じなら、結果も末尾のビットまで R と一致します。** R と JS で関数の値が末尾の
+  ビットで違うとき (R の `sum` は long double で足す。`exp`・`log`・`sin`・`cos` は別のライブラリ)、
+  `integrate` の誤差の見積もりは数 % まで、平らな最適点は 1e-14 程度、数値微分は相対 1e-9 まで
+  動きます (差分商は関数の丸めを |f| / h 倍にする)。
+- **`uniroot`** は区間を広げなかったとき `initIt` を NaN (R の NA) で返し、`maxiter` に達しても
+  警告しません (そのとき `iter` は R と同じく `maxiter`)。
+
 ## 未対応
 
 - 分布パラメータのリサイクル (`rnorm(3, mean = c(0, 10, 100))`)。
 - R の既定以外の RNG の種類。
 - `simulate.p.value` (`chisqTest`、`fisherTest`)、formula インターフェース、2 つの因子ベクトルを渡す
-  形 (`chisq.test(x, y)`)、Fisher の `hybrid` と `workspace`、Wilcoxon の `digits.rank`、`cor` の行列
-  形式と `use` 引数。Kendall の一致ペアの数え上げは O(n²) です。
+  形 (`chisq.test(x, y)`)、Fisher の `hybrid` と `workspace`、Wilcoxon の `digits.rank`。Kendall の
+  一致ペアの数え上げは O(n²) です。
 - `kappa` の `inv_z`、複素行列、`EISPACK = TRUE` / `LINPACK = TRUE`。
-- 線形モデル (`lm`、`glm`)。[ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください。
+- 一般化線形モデル (`glm`) と `lm` の formula。[ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください。
+- numDeriv の複素数ステップ法 (`method = "complex"`。複素数の引数を受け取る関数が要る) と、`grad`・
+  `jacobian` の `side` 引数。
+- deSolve の適応刻みの解法 (`lsoda`、`ode45` など)。`ode` は固定刻みの `euler`・`rk2`・`rk4` です。
