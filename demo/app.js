@@ -12,7 +12,7 @@ import { createNumericsTab } from "./numerics.js";
 import { createCompareTab } from "./examples.js";
 
 /** The release whose build is loaded from jsDelivr. */
-const VERSION = "v0.5.0";
+const VERSION = "v0.6.0";
 const CDN_URL = `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@${VERSION}/dist/rstats.js`;
 const LOCAL_URL = "../dist/rstats.js";
 

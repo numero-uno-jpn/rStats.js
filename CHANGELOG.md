@@ -7,7 +7,7 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 0.6.0 - 2026-10-24
 
 ### Added
 
@@ -65,6 +65,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - With parameters of 2^52 or more the continued fraction stopped advancing its coefficients, and
   a result could pass through a subnormal intermediate: `pnbinom` with q around 1e17 was off by
   up to 1e-3 relative, and returned NaN in some cases.
+- `pgamma` and `ppois` with a shape (or lambda) above about 1e6, 5 to 40 standard deviations below
+  the mean (lower tail of `pgamma`, upper tail of `ppois`): off by up to 2e-14 relative, now 2.7e-15.
+  The series is summed in double-double there, which makes those calls about 9 times slower.
+- `pchisq` and `pbeta` with `ncp` around 1000 in the far tails: off by up to 1.4e-13 relative, now
+  below 5e-15 (the terms of the Poisson mixture are corrected to the exact shape a + j).
 
 ## 0.5.0 - 2026-10-21
 
