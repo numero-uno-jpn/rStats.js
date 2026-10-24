@@ -58,10 +58,10 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 | `jStat.map` | JS: `a.map((r) => r.map(f))` |  |
 | `jStat.cumreduce` | JS: `a.map((r) => { let s = 0; return r.map((v) => (s += v)); })` | For running sums use `cumsum(x)`. |
 | `jStat.alter` | JS: `a.forEach((r) => r.forEach((v, j) => (r[j] = f(v))))` |  |
-| `jStat.create` | `matrix(data, nrow, ncol)` | Or build the array of rows in JavaScript. |
-| `jStat.zeros` | `matrix(0, nrow, ncol)` |  |
-| `jStat.ones` | `matrix(1, nrow, ncol)` |  |
-| `jStat.rand` | `matrix(runif(nrow * ncol), nrow, ncol)` | Reproducible with `setSeed`. |
+| `jStat.create` | `matrix(data, { nrow, ncol })` | Or build the array of rows in JavaScript. |
+| `jStat.zeros` | `matrix(0, { nrow, ncol })` |  |
+| `jStat.ones` | `matrix(1, { nrow, ncol })` |  |
+| `jStat.rand` | `matrix(runif(nrow * ncol), { nrow, ncol })` | Reproducible with `setSeed`. |
 | `jStat.identity` | `diag(n)` |  |
 | `jStat.symmetric` | JS: `a.every((r, i) => r.every((v, j) => v === a[j][i]))` |  |
 | `jStat.clear` | JS: `a.forEach((r) => r.fill(0))` |  |
@@ -136,7 +136,7 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 | `jStat.erf` | `erf(x)` |  |
 | `jStat.erfc` | `erfc(x)` | jStat computes 1 − erf(x), which loses the tail; `erfc` keeps full relative accuracy. |
 | `jStat.erfcinv` | `erfcinv(p)` |  |
-| `jStat.randn` | `rnorm(n)` | For a matrix: `matrix(rnorm(n * m), n, m)`. |
+| `jStat.randn` | `rnorm(n)` | For a matrix: `matrix(rnorm(n * m), { nrow: n, ncol: m })`. |
 | `jStat.randg` | `rgamma(n, shape)` | jStat's matrix form throws a TypeError. |
 
 ## Distributions

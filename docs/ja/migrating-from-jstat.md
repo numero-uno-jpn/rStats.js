@@ -58,10 +58,10 @@ import できます。
 | `jStat.map` | JS: `a.map((r) => r.map(f))` |  |
 | `jStat.cumreduce` | JS: `a.map((r) => { let s = 0; return r.map((v) => (s += v)); })` | 累積和なら `cumsum(x)` を使います。 |
 | `jStat.alter` | JS: `a.forEach((r) => r.forEach((v, j) => (r[j] = f(v))))` |  |
-| `jStat.create` | `matrix(data, nrow, ncol)` | JavaScript で行の配列を作ってもかまいません。 |
-| `jStat.zeros` | `matrix(0, nrow, ncol)` |  |
-| `jStat.ones` | `matrix(1, nrow, ncol)` |  |
-| `jStat.rand` | `matrix(runif(nrow * ncol), nrow, ncol)` | `setSeed` で再現できます。 |
+| `jStat.create` | `matrix(data, { nrow, ncol })` | JavaScript で行の配列を作ってもかまいません。 |
+| `jStat.zeros` | `matrix(0, { nrow, ncol })` |  |
+| `jStat.ones` | `matrix(1, { nrow, ncol })` |  |
+| `jStat.rand` | `matrix(runif(nrow * ncol), { nrow, ncol })` | `setSeed` で再現できます。 |
 | `jStat.identity` | `diag(n)` |  |
 | `jStat.symmetric` | JS: `a.every((r, i) => r.every((v, j) => v === a[j][i]))` |  |
 | `jStat.clear` | JS: `a.forEach((r) => r.fill(0))` |  |
@@ -136,7 +136,7 @@ import できます。
 | `jStat.erf` | `erf(x)` |  |
 | `jStat.erfc` | `erfc(x)` | jStat は 1 − erf(x) で計算するので裾が失われます。`erfc` は相対精度を保ちます。 |
 | `jStat.erfcinv` | `erfcinv(p)` |  |
-| `jStat.randn` | `rnorm(n)` | 行列なら `matrix(rnorm(n * m), n, m)` です。 |
+| `jStat.randn` | `rnorm(n)` | 行列なら `matrix(rnorm(n * m), { nrow: n, ncol: m })` です。 |
 | `jStat.randg` | `rgamma(n, shape)` | jStat の行列の形は TypeError になります。 |
 
 ## 分布
