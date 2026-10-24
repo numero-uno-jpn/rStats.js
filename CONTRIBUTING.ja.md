@@ -118,10 +118,15 @@ rStats.js は MIT ライセンスです。それを保つために、次のこ�
    `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@vX.Y.Z/dist/rstats.js` を配信できる
    ようになります (ワークフローが終わったら、`git fetch --tags --force` でローカルのタグを
    更新してください)。main ブランチには `dist/` を一切含めません。
-3. 続いて、provenance 付きで npm に公開します。トークンは使いません。npmjs.com のパッケージ設定で、
-   このリポジトリと `release.yml` を trusted publisher として指定しているためです。
+3. 続いて、provenance 付きでその版を npm の公開待ちに入れます (`npm stage publish`)。トークンは
+   使いません。npmjs.com のパッケージ設定で、このリポジトリと `release.yml` を trusted publisher
+   として指定しているためです。この trusted publisher には公開待ちに入れることだけを許し、直接の
+   公開は許していません。
+4. メンテナーが公開待ちの版を確かめて承認すると、公開されます。npmjs.com のパッケージの
+   Staged Packages タブで Approve を押すか、`npm stage approve <id>` を実行します。どちらも npm
+   アカウントの二要素認証が必要です。
 
 バージョン 0.5.0 は手作業で公開しました (provenance には CI が必要なので
-`npm publish --provenance=false`)。以降のバージョンはワークフローが公開します。ローカルの
-マシンから公開するには、npm アカウントの二要素認証が必要です。jsDelivr が配信できるように、
+`npm publish --provenance=false`)。以降のバージョンは、ワークフローと上の承認を経て公開します。
+ローカルのマシンから公開するときも、npm アカウントの二要素認証が必要です。jsDelivr が配信できるように、
 リポジトリは公開のままにしておく必要があります。

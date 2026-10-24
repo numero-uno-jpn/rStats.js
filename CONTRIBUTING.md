@@ -115,9 +115,13 @@ rStats.js is MIT licensed. To keep it that way:
    `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@vX.Y.Z/dist/rstats.js`. (After the
    workflow has run, `git fetch --tags --force` updates your local tag.) The main branch never
    contains `dist/`.
-3. It then publishes to npm with provenance. No token is involved: the package's settings on
-   npmjs.com name this repository and `release.yml` as its trusted publisher.
+3. It then stages the version on npm with provenance (`npm stage publish`). No token is involved:
+   the package's settings on npmjs.com name this repository and `release.yml` as its trusted
+   publisher, which may only stage, not publish directly.
+4. A maintainer reviews the staged version and approves it, which publishes it: on npmjs.com (the
+   package's Staged Packages tab, Approve) or with `npm stage approve <id>`. Both require the npm
+   account's two-factor authentication.
 
 Version 0.5.0 was published by hand (`npm publish --provenance=false`, since provenance needs CI);
-later versions are published by the workflow. Publishing from a local machine requires the npm
-account's two-factor authentication. The repository must stay public for jsDelivr to serve it.
+later versions go through the workflow and the approval above. Publishing from a local machine also
+requires the npm account's two-factor authentication. The repository must stay public for jsDelivr to serve it.
