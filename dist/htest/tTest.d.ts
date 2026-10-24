@@ -1,0 +1,57 @@
+import { type Alternative, type HTest, type Sample } from "./types.js";
+/** Options for {@link tTest}. */
+export interface TTestOptions {
+    /**
+     * Alternative hypothesis: `"two.sided"`, `"less"` or `"greater"`. Default `"two.sided"`.
+     * Unambiguous abbreviations such as `"two"`, `"l"` and `"g"` are accepted, as in R.
+     */
+    alternative?: Alternative | "two" | "l" | "g";
+    /** True mean under the null hypothesis (difference in means for two samples). Default `0`. */
+    mu?: number;
+    /** Paired t-test on `x - y` (pairs with `NaN` are dropped). Requires `y`. Default `false`. */
+    paired?: boolean;
+    /** Assume equal variances and use the pooled variance. Default `false` (Welch's test). */
+    varEqual?: boolean;
+    /** Confidence level of the interval. Default `0.95`. */
+    confLevel?: number;
+}
+/** Result of {@link tTest}. */
+export interface TTestResult extends HTest {
+    /** Degrees of freedom of the t distribution (`parameterName` is `"df"`). */
+    parameter: number;
+    /** Confidence interval for the mean (or difference in means). */
+    confInt: [number, number];
+    /** Confidence level of `confInt`. */
+    confLevel: number;
+    /** Mean of `x` (or of the differences), or `[mean of x, mean of y]` for two samples. */
+    estimate: number | number[];
+    /** `mu`. */
+    nullValue: number;
+    /** Standard error of the mean (or difference), R's `stderr`. */
+    stdErr: number;
+}
+/**
+ * Student's t-test. Equivalent to R's `t.test()`.
+ *
+ * Performs a one-sample, two-sample (Welch's by default, or pooled-variance with
+ * `varEqual: true`) or paired t-test. `NaN` values are dropped. As in R, an error is
+ * thrown if the data are essentially constant.
+ *
+ * @param x Sample.
+ * @param y Second sample for a two-sample or paired test. May be omitted, and the options
+ *   passed in its place: `tTest(x, { mu: 1 })`.
+ * @param options See {@link TTestOptions}.
+ * @returns The test result, with `statisticName` `"t"`; see {@link TTestResult}.
+ *
+ * @example
+ * ```ts
+ * const r = tTest([5.1, 4.9, 5.6, 5.8, 6.0, 5.4], { mu: 5 });
+ * r.statistic; // 2.7351263280759737
+ * r.parameter; // 5
+ * r.pValue;    // 0.04102919855187924
+ * r.confInt;   // [5.028074545960439, 5.905258787372895]
+ *
+ * tTest([1, 2, 3, 4, 5], [3, 4, 5, 6, 8]).pValue; // 0.0849560662972433 (Welch)
+ * ```
+ */
+export declare function tTest(x: Sample, y?: Sample | TTestOptions, options?: TTestOptions): TTestResult;
