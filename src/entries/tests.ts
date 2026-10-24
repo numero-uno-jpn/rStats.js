@@ -26,3 +26,4 @@ export {
 } from "../htest/pairwise.js";
 export { aov, TukeyHSD, zTest, type AovResult, type TukeyHSDOptions, type TukeyHSDResult, type ZTestOptions } from "../htest/aov.js";
 export type { GroupLabel } from "../htest/groups.js";
+export { lm, confint, predict, type LmOptions, type LmResult, type ConfintOptions, type PredictOptions } from "../models/lm.js";

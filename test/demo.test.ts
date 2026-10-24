@@ -42,6 +42,7 @@ const NOT_IN_DEMO_YET = [
   "binomTest", "poissonTest", "propTest", "mcnemarTest", "varTest", "bartlettTest", "kruskalTest", "friedmanTest",
   "quadeTest", "flignerTest", "moodTest", "onewayTest", "shapiroTest", "mantelhaenTest", "ansariTest", "ksTest",
   "pairwiseTTest", "pairwiseWilcoxTest", "pairwisePropTest", "aov", "TukeyHSD", "zTest",
+  "lm", "confint", "predict",
 ];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 

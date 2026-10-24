@@ -358,26 +358,26 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 
 | jStat | rStats.js | Notes |
 |---|---|---|
-| `jStat.models.ols` | `lm(x, y)` *(planned)* | `lm` adds the intercept itself (jStat expects a column of ones). jStat's `SSE` is the explained sum of squares and `SSR` the residual one, the reverse of the usual names. |
+| `jStat.models.ols` | `lm(x, y)` | `lm` adds the intercept itself (jStat expects a column of ones). jStat's `SSE` is the explained sum of squares and `SSR` the residual one, the reverse of the usual names. |
 
 ## Regression
 
 | jStat | rStats.js | Notes |
 |---|---|---|
-| `jStat.buildxmatrix` | `lm(x, y)` *(planned)* | Not needed: `lm` takes the predictors as a matrix and adds the intercept. |
-| `jStat.builddxmatrix` | `lm(x, y)` *(planned)* |  |
-| `jStat.buildjxmatrix` | `lm(x, y)` *(planned)* |  |
-| `jStat.buildymatrix` | `lm(x, y)` *(planned)* |  |
-| `jStat.buildjymatrix` | `lm(x, y)` *(planned)* |  |
+| `jStat.buildxmatrix` | `lm(x, y)` | Not needed: `lm` takes the predictors as a matrix and adds the intercept. |
+| `jStat.builddxmatrix` | `lm(x, y)` |  |
+| `jStat.buildjxmatrix` | `lm(x, y)` |  |
+| `jStat.buildymatrix` | `lm(x, y)` |  |
+| `jStat.buildjymatrix` | `lm(x, y)` |  |
 | `jStat.matrixmult` | `matMul(a, b)` |  |
-| `jStat.regress` | `lm(x, y).coefficients` *(planned)* |  |
-| `jStat.regresst` | `lm(x, y)` *(planned)* | The coefficient table (estimates, standard errors, t and p) and the ANOVA quantities. jStat's t tests appear to use n − p − 1 degrees of freedom. |
+| `jStat.regress` | `lm(x, y).coefficients` |  |
+| `jStat.regresst` | `lm(x, y)` | The coefficient table (estimates, standard errors, t and p) and the ANOVA quantities. jStat's t tests appear to use n − p − 1 degrees of freedom. |
 | `jStat.xtranspx` | `crossprod(x)` |  |
 | `jStat.xtranspxinv` | `solve(crossprod(x))` |  |
 | `jStat.jMatYBar` | `mean(y)` |  |
-| `jStat.residuals` | `lm(x, y).residuals` *(planned)* |  |
-| `jStat.ssr` | `lm(x, y)` *(planned)* | The regression sum of squares: `sum(fitted.map((v) => (v - mean(y)) ** 2))`. |
-| `jStat.sse` | `lm(x, y)` *(planned)* | The residual sum of squares: `sum(residuals.map((v) => v * v))`. |
+| `jStat.residuals` | `lm(x, y).residuals` |  |
+| `jStat.ssr` | `lm(x, y)` | The regression sum of squares: `sum(fitted.map((v) => (v - mean(y)) ** 2))`. |
+| `jStat.sse` | `lm(x, y)` | The residual sum of squares: `sum(residuals.map((v) => v * v))`. |
 | `jStat.sst` | `variance(y) * (y.length - 1)` |  |
 | `jStat.matrixsubtract` | `subtract(a, b)` |  |
 

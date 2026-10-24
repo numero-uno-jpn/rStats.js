@@ -102,6 +102,7 @@ affected.
 | `skewness`, `kurtosis` and `cv` of data with a large mean and small spread | e1071 subtracts a mean rounded to double: skewness off by 8e-5, kurtosis by 2e-6 relative (1e8 + noise of 1e-3) | deviations from the double-double mean; agree with 60-digit values |
 | `aov` (one way) with a large mean and small spread, or all values equal | R fits through a QR decomposition: sums of squares off by 6e-8 (1e6 + noise of 1e-3); F = 1 from rounding residue when all values are equal, 5.9e30 when the groups are constant | sums of squares in double-double (F = NaN, Inf) |
 | `TukeyHSD` | R's `ptukey` and `qtukey` (see above); the p-value is off by 3e-6 with df = 5 (two groups, where it follows from the t distribution) | agrees with high-precision values |
+| `lm` with nearly collinear columns (1e6 + noise, with an intercept) | coefficients off by 1.7e-9 from 60-digit values | 3.6e-11 (both within eps times the condition number) |
 
 ## Where R fails and rStats.js returns a value
 

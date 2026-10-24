@@ -358,26 +358,26 @@ import できます。
 
 | jStat | rStats.js | 備考 |
 |---|---|---|
-| `jStat.models.ols` | `lm(x, y)` *(予定)* | `lm` は切片を自分で足します (jStat は 1 の列を含めて渡します)。jStat の `SSE` は説明された平方和、`SSR` は残差平方和で、普通の名前と逆です。 |
+| `jStat.models.ols` | `lm(x, y)` | `lm` は切片を自分で足します (jStat は 1 の列を含めて渡します)。jStat の `SSE` は説明された平方和、`SSR` は残差平方和で、普通の名前と逆です。 |
 
 ## 回帰
 
 | jStat | rStats.js | 備考 |
 |---|---|---|
-| `jStat.buildxmatrix` | `lm(x, y)` *(予定)* | 不要です: `lm` は説明変数を行列で受け取り、切片を足します。 |
-| `jStat.builddxmatrix` | `lm(x, y)` *(予定)* |  |
-| `jStat.buildjxmatrix` | `lm(x, y)` *(予定)* |  |
-| `jStat.buildymatrix` | `lm(x, y)` *(予定)* |  |
-| `jStat.buildjymatrix` | `lm(x, y)` *(予定)* |  |
+| `jStat.buildxmatrix` | `lm(x, y)` | 不要です: `lm` は説明変数を行列で受け取り、切片を足します。 |
+| `jStat.builddxmatrix` | `lm(x, y)` |  |
+| `jStat.buildjxmatrix` | `lm(x, y)` |  |
+| `jStat.buildymatrix` | `lm(x, y)` |  |
+| `jStat.buildjymatrix` | `lm(x, y)` |  |
 | `jStat.matrixmult` | `matMul(a, b)` |  |
-| `jStat.regress` | `lm(x, y).coefficients` *(予定)* |  |
-| `jStat.regresst` | `lm(x, y)` *(予定)* | 係数の表 (推定値・標準誤差・t・p) と分散分析の量です。jStat の t 検定は自由度を n − p − 1 にしているように見えます。 |
+| `jStat.regress` | `lm(x, y).coefficients` |  |
+| `jStat.regresst` | `lm(x, y)` | 係数の表 (推定値・標準誤差・t・p) と分散分析の量です。jStat の t 検定は自由度を n − p − 1 にしているように見えます。 |
 | `jStat.xtranspx` | `crossprod(x)` |  |
 | `jStat.xtranspxinv` | `solve(crossprod(x))` |  |
 | `jStat.jMatYBar` | `mean(y)` |  |
-| `jStat.residuals` | `lm(x, y).residuals` *(予定)* |  |
-| `jStat.ssr` | `lm(x, y)` *(予定)* | 回帰の平方和です: `sum(fitted.map((v) => (v - mean(y)) ** 2))`。 |
-| `jStat.sse` | `lm(x, y)` *(予定)* | 残差平方和です: `sum(residuals.map((v) => v * v))`。 |
+| `jStat.residuals` | `lm(x, y).residuals` |  |
+| `jStat.ssr` | `lm(x, y)` | 回帰の平方和です: `sum(fitted.map((v) => (v - mean(y)) ** 2))`。 |
+| `jStat.sse` | `lm(x, y)` | 残差平方和です: `sum(residuals.map((v) => v * v))`。 |
 | `jStat.sst` | `variance(y) * (y.length - 1)` |  |
 | `jStat.matrixsubtract` | `subtract(a, b)` |  |
 
