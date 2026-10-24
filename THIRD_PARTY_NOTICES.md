@@ -315,3 +315,15 @@ they are listed so that readers can find the originals.
 - QUADPACK (Piessens, de Doncker-Kapenga, Überhuber, Kahaner 1983): `dqagse` and `dqagie` (adaptive
   Gauss–Kronrod quadrature with extrapolation), behind `integrate` — `src/integrate/quadpack.ts`,
   ported from SciPy's C translation (see SciPy above)
+
+---
+
+## Published methods (implemented from the papers, no code copied)
+
+Listed for attribution; no license terms apply to the methods themselves.
+
+- N. M. Temme, "Incomplete Laplace integrals: uniform asymptotic expansion with application to the
+  incomplete beta function", SIAM J. Math. Anal. 18 (1987) 1638–1663, and Temme, "Special Functions: An
+  Introduction to the Classical Functions of Mathematical Physics" (Wiley, 1996), §11.3.3: the uniform
+  asymptotic expansion of the incomplete beta function for large a and b, with coefficients generated at run
+  time — `src/special/incbetTemme.ts`
