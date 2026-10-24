@@ -1,7 +1,7 @@
 {
   "function": "log1pexp",
   "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T10:22:21+0000",
+  "generated": "2026-10-24T11:21:18+0000",
   "cases": [
     {"args":{"x":"-Inf"},"expected":"0"},
     {"args":{"x":"-1.0000000000000001e+300"},"expected":"0"},
@@ -30,7 +30,7 @@
     {"args":{"x":"709"},"expected":"709"},
     {"args":{"x":"710"},"expected":"710"},
     {"args":{"x":"1000"},"expected":"1000"},
-    {"args":{"x":"1.0000000000000001e+300"},"expected":"Inf"},
+    {"args":{"x":"1.0000000000000001e+300"},"expected":"1.0000000000000001e+300"},
     {"args":{"x":"Inf"},"expected":"Inf"},
     {"args":{"x":"NaN"},"expected":"NaN"},
     {"args":{"x":"-9.564237529411912"},"expected":"7.019225183511962e-05"},

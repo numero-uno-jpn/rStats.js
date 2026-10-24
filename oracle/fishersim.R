@@ -3,7 +3,7 @@ source("/oracle/_htest.R")
 
 # fisher.test(simulate.p.value = TRUE) (fixture fisherTestSim). Each case calls set.seed(seed) right before
 # fisher.test. For tables larger than 2 x 2, B tables are drawn with r2dtable's algorithm and the p-value is
-# (1 + #{simulated tables at most as probable as the observed one, with relative tolerance 1e-7}) / (B + 1).
+# (1 + #{simulated tables at most as probable as the observed one, with relative tolerance 64 eps}) / (B + 1).
 # For 2 x 2 tables simulate.p.value is ignored (the exact test is used and no random numbers are drawn).
 # next: runif(1) drawn after the test, to check how many uniforms were consumed.
 

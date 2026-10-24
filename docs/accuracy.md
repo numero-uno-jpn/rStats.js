@@ -74,12 +74,9 @@ Details of the comparison:
   smaller than the cancelling terms passes if it is within 1e-14 of the mpmath value relative to
   `scale` (`knownDifference`); R is closer in relative terms there.
 - **log1p-type functions** (`log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp`, which R has only in its C
-  API): the fixtures hold correctly rounded values computed with 512-bit Rmpfr, not R's output, and
-  are compared with a tolerance of 1e-14 (the largest observed error is 1.7e-15, for `lgamma1p`).
-  Six cases are beyond what the oracle can compute at 512 bits, and their fixture values are wrong:
-  `lgamma1p(±1e-300)` (fixture 0; 1 + x rounds to 1), `log1mexp(x)` for x = 700, 708 and 745
-  (fixture 0; 1 − exp(−x) rounds to 1) and `log1pexp(1e300)` (fixture Inf; exp(1e300) overflows
-  MPFR). They are checked against the leading term instead: −γx, −exp(−x) and x.
+  API): the fixtures hold correctly rounded values computed with Rmpfr (512 bits, more for
+  `lgamma1p` at tiny x so that 1 + x is exact), not R's output, and are compared with a tolerance
+  of 1e-14 (the largest observed error is 1.7e-15, for `lgamma1p`).
 - **Linear algebra:** `solve` and determinants have exact references computed with gmp rationals
   (every double is exactly representable as a rational). Decompositions are instead checked by
   backward error and orthogonality (see below).
