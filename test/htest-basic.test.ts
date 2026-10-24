@@ -303,6 +303,53 @@ if (hasFixture("ansariTest"))
       ),
     tolerance: 1e-12,
   });
+/** Arguments without the empty lists that R's NULL becomes in the repeated cases of oracle/ansariconf.R */
+const present = (args: Record<string, HTestArg>): Record<string, HTestArg> =>
+  Object.fromEntries(Object.entries(args).filter(([, v]) => !(Array.isArray(v) && v.length === 0)));
+if (hasFixture("ansariTestConfInt"))
+  htestSuite({
+    name: "ansariTestConfInt",
+    call: (args) => {
+      const a = present(args);
+      return ansariTest(
+        arg.vec(a.x) ?? [],
+        arg.vec(a.y)!,
+        defined({
+          alternative: arg.str<Alternative>(a.alternative),
+          exact: arg.bool(a.exact),
+          confInt: arg.bool(a.confInt),
+          confLevel: arg.num(a.confLevel),
+        }),
+      );
+    },
+    tolerance: 1e-12,
+    // the normal-approximation limits and estimate are roots found by uniroot (tolerance 1e-4), in R as here
+    fieldTolerance: { estimate: 1e-4, confInt: 1e-4 },
+    knownDifference: (a, field, expected, actual) => {
+      const r = oneMinusP(a, field, expected, actual);
+      if (r !== undefined || field !== "pValue") return r;
+      const x = arg.vec(a.x) ?? [];
+      const y = arg.vec(a.y)!;
+      const z = [...x, ...y].filter((v) => !Number.isNaN(v));
+      const exact = (arg.bool(a.exact) ?? (x.length < 50 && y.length < 50)) && new Set(z).size === z.length;
+      // up to 8.8e-9 for m = 60, n = 70 with exact = TRUE (exact count: 1.7603147168435401e-6; R 1.7603147013e-6)
+      return exact && Math.abs(actual - expected) <= 1e-8 * expected
+        ? "R's exact Ansari-Bradley probabilities carry rounding (the values here agree with exact counts)"
+        : undefined;
+    },
+    // R fails with "object 'cint' not found" when exact is left at its default and there are ties (it falls back to
+    // the normal approximation but skips its interval); the oracle repeats each such case with exact = FALSE
+    substitute: (c, cases) => {
+      if (c.expected.error !== "object 'cint' not found") return undefined;
+      const key = (args: Record<string, HTestArg>): string => {
+        const a = present(args);
+        return JSON.stringify(Object.keys(a).filter((k) => k !== "exact").sort().map((k) => [k, a[k]]));
+      };
+      const twin = cases.find((d) => d.args.exact === false && key(d.args) === key(c.args));
+      if (twin === undefined) throw new Error("no exact = FALSE case for an R 'cint' error");
+      return { expected: twin.expected, reason: "R's 'cint' error with ties: compared with exact = FALSE (docs/differences-from-r.md)" };
+    },
+  });
 const ksCall = (a: Record<string, HTestArg>) => {
   const cdf = arg.str(a.cdf);
   const y =

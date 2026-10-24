@@ -90,6 +90,11 @@ export interface HTestSpec {
   floor?: Record<string, number | ((c: HTestCase) => number)>;
   /** Cases that intentionally differ from R. Those for which this returns a reason are excluded, and counts and reasons are printed (also documented in docs/differences-from-r.md). */
   knownDifference?: (args: HTestCase["args"], field: string, expected: number, actual: number) => string | undefined;
+  /**
+   * Replaces the expected values of cases on which rStats.js deliberately does not reproduce R's result (e.g. an R
+   * error caused by a bug): returns the case to compare with instead, and a reason that is printed with the count.
+   */
+  substitute?: (c: HTestCase, cases: HTestCase[]) => { expected: HTestCase["expected"]; reason: string } | undefined;
 }
 
 function flatten(v: unknown): unknown[] {
@@ -117,7 +122,13 @@ export function htestSuite(spec: HTestSpec): void {
       // Per-value error of numeric fields against the closer of R and the reference value (for precision comparison)
       const allErrors: number[] = [];
       const t0 = performance.now();
-      fixture.cases.forEach((c, index) => {
+      fixture.cases.forEach((c0, index) => {
+        let c = c0;
+        const sub = spec.substitute?.(c0, fixture.cases);
+        if (sub !== undefined) {
+          c = { args: c0.args, expected: sub.expected };
+          reasons.set(sub.reason, (reasons.get(sub.reason) ?? 0) + 1);
+        }
         let actual: Record<string, unknown>;
         try {
           actual = spec.call(c.args) as Record<string, unknown>;

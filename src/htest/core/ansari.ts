@@ -7,6 +7,8 @@
 // N - t + 1 positions, the position is picked with probability r / (N - t + 1). The probabilities are kept directly
 // (counts overflow: C(100, 50) = 1e29), and tail probabilities are sums of positive terms.
 
+import { choose } from "../../special/choose.js";
+
 /** Probability function of the statistic, indexed by value - min (cached per (m, n)) */
 interface AnsariDist {
   min: number;
@@ -112,4 +114,60 @@ export function qansariExact(p: number, m: number, n: number): number {
     if (s >= target) return min + i;
   }
   return min + probs.length - 1;
+}
+
+const countCache = new Map<string, { min: number; counts: Float64Array }>();
+
+/** Number of m-subsets of the N = m + n positions with each score sum (in double: exact up to 2^53), from min */
+function ansariCounts(m: number, n: number): { min: number; counts: Float64Array } {
+  const key = `${m},${n}`;
+  const hit = countCache.get(key);
+  if (hit !== undefined) return hit;
+  const N = m + n;
+  let maxSum = 0;
+  for (let i = 1; i <= N; i++) maxSum += Math.min(i, N + 1 - i);
+  let P: Float64Array[] = Array.from({ length: m + 1 }, () => new Float64Array(maxSum + 1));
+  P[0]![0] = 1;
+  for (let t = 0; t < N; t++) {
+    const a = Math.min(t + 1, N - t);
+    const Q: Float64Array[] = Array.from({ length: m + 1 }, () => new Float64Array(maxSum + 1));
+    for (let r = 0; r <= m; r++) {
+      if (m - r > N - t) continue;
+      const row = P[r]!;
+      for (let s = 0; s <= maxSum; s++) {
+        const v = row[s]!;
+        if (v === 0) continue;
+        if (r < m) Q[r + 1]![s + a]! += v;
+        if (m - r < N - t) Q[r]![s]! += v;
+      }
+    }
+    P = Q;
+  }
+  const full = P[m]!;
+  let lo = 0;
+  while (full[lo] === 0) lo++;
+  let hi = full.length - 1;
+  while (full[hi] === 0) hi--;
+  const out = { min: lo, counts: full.slice(lo, hi + 1) };
+  countCache.set(key, out);
+  return out;
+}
+
+/**
+ * R's qansari, used by ansari.test's exact interval and estimate: the smallest q at which the running sum of
+ * count(k) / C(N, m) over k = min, ..., q, accumulated in double, reaches p (p = 0 gives the minimum, p = 1 the
+ * maximum). Unlike {@link qansariExact} there is no slack, so a cumulative probability that equals p mathematically
+ * (such as 1/2) may be missed by rounding, as in R.
+ */
+export function qansariR(p: number, m: number, n: number): number {
+  const { min, counts } = ansariCounts(m, n);
+  if (p <= 0) return min;
+  if (p >= 1) return min + counts.length - 1;
+  const c = choose(m + n, m);
+  let s = 0;
+  for (let i = 0; i < counts.length; i++) {
+    s += counts[i]! / c;
+    if (s >= p) return min + i;
+  }
+  return min + counts.length - 1;
 }
