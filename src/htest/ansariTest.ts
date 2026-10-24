@@ -48,7 +48,9 @@ export interface AnsariTestOptions {
  *
  * @example
  * ```ts
- * ansariTest([111, 107, 100, 99, 102], [107, 108, 106, 98, 105, 103], { confInt: true }).estimate;
+ * const r = ansariTest([-2, -1, 1, 2], [-4, -3, 3, 4], { confInt: true });
+ * r.confInt;  // [0.25, 0.6666666666666666]
+ * r.estimate; // 0.41666666666666663
  * ```
  */
 export function ansariTest(x: Sample, y: Sample, options: AnsariTestOptions = {}): HTest {

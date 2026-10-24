@@ -121,7 +121,7 @@ function ddSum(x: readonly number[]): number {
  * chisqTest([20, 30, 50]).pValue; // 0.0009118819655545154 (goodness of fit, equal p)
  *
  * setSeed(1);
- * chisqTest([20, 15, 25], { simulatePValue: true }).pValue; // 0.29635182408795602 (R: set.seed(1); chisq.test(...))
+ * chisqTest([20, 15, 25], { simulatePValue: true }).pValue; // 0.296351824087956 (R: set.seed(1); chisq.test(...))
  *
  * chisqTest(["a", "b", "a", "b"], ["u", "u", "v", "v"]).rowLevels; // ["a", "b"]
  * ```
