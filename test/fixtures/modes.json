@@ -1,0 +1,16 @@
+{
+  "function": "modes",
+  "r_version": "R version 4.5.2 (2025-10-31)",
+  "generated": "2026-10-24T00:02:08+0000",
+  "cases": [
+    {"args":{"x":["2.5","1","4","3.5","2"]},"expected":{"value":["NA"],"frequency":"NA"}},
+    {"args":{"x":["3","1","2","2","3","3","5","1"]},"expected":{"value":["3"],"frequency":"3"}},
+    {"args":{"x":["7","7","7","7"]},"expected":{"value":["7"],"frequency":"4"}},
+    {"args":{"x":["4.2000000000000002"]},"expected":{"value":["NA"],"frequency":"NA"}},
+    {"args":{"x":["6","10","5","12","7","16","4","15","15","17","9","15","13","8","5","1","12","8","7","10","6","5","16","6","13","8","12","6","8","7"]},"expected":{"value":["6","8"],"frequency":"4"}},
+    {"args":{"x":["-3","0","0","2","8","-1","0","5"]},"expected":{"value":["0"],"frequency":"3"}},
+    {"args":{"x":["1","2","2","3","3"]},"expected":{"value":["2","3"],"frequency":"2"}},
+    {"args":{"x":["1","NA","NA","2"]},"expected":{"value":["NA"],"frequency":"NA"}},
+    {"args":{"x":["5","4","3"]},"expected":{"value":["NA"],"frequency":"NA"}}
+  ]
+}

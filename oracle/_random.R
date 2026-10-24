@@ -1,9 +1,9 @@
 # Shared code for writing random-number fixtures (sourced by oracle/random*.R).
 #
-# Random-number fixtures are generated with x86_64 R (scripts/oracle.sh runs rocker/r-ver with
+# Random-number fixtures are generated with x86_64 R (scripts/oracle.sh runs rstats-oracle-amd64 with
 # --platform linux/amd64). In arm64 builds of R the compiler fuses multiply-adds into FMA,
 # so the last digits of qnorm and others differ from x86_64 builds, and that shows up in the random numbers.
-# This image has no jsonlite, so the JSON is written by hand.
+# The JSON is written by hand (the x86_64 image used to have no jsonlite).
 #
 # One case = the value (numeric vector) of evaluating expr right after set.seed(seed), plus
 # a following runif(1) (to check how many random numbers were consumed).

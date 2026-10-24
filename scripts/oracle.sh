@@ -5,8 +5,10 @@
 #   npm run oracle                  every oracle/*.R
 #
 # R runs in a throwaway container from the image rstats-oracle (R 4.5.2 with the
-# packages jsonlite, Rmpfr, gmp and MASS); override with RSTATS_ORACLE_IMAGE.
-# The random-number oracles use x86_64 rocker/r-ver instead (see below).
+# packages listed in oracle/Dockerfile); override with RSTATS_ORACLE_IMAGE.
+# The random-number oracles use the x86_64 build of the same image instead (see below):
+#   docker build -t rstats-oracle oracle
+#   docker build --platform linux/amd64 -t rstats-oracle-amd64 oracle
 # --network none keeps the container offline. demo/ is mounted read-write as /demo because
 # oracle/demo.R reads demo/examples.R and writes demo/r-results.json there.
 set -eu
@@ -14,7 +16,7 @@ set -eu
 cd "$(dirname "$0")/.."
 IMAGE="${RSTATS_ORACLE_IMAGE:-rstats-oracle}"
 # x86_64 R (for the random-number fixtures); runs under emulation on arm64 hosts
-AMD64_IMAGE="${RSTATS_ORACLE_AMD64_IMAGE:-rocker/r-ver:4.5.2}"
+AMD64_IMAGE="${RSTATS_ORACLE_AMD64_IMAGE:-rstats-oracle-amd64}"
 
 if [ "$#" -eq 0 ]; then
   set -- $(ls oracle/*.R | xargs -n1 basename | sed 's/\.R$//' | grep -v '^_')
