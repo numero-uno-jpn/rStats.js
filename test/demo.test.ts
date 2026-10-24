@@ -3,7 +3,7 @@
 // by oracle/demo.R; regenerate with `npm run demo:r`).
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import * as lib from "../src/index.js";
@@ -52,8 +52,11 @@ describe("demo examples", () => {
   });
 
   it("every export of src/index.ts appears in some example", () => {
-    // Value exports only: skip `export type { ... }` and `type X` entries
-    const source = readFileSync(path("src/index.ts"), "utf8");
+    // Value exports only: skip `export type { ... }` and `type X` entries. src/index.ts re-exports the area
+    // modules of src/entries/
+    const source = readdirSync(path("src/entries"))
+      .map((f) => readFileSync(path(`src/entries/${f}`), "utf8"))
+      .join("\n");
     const exported = [...source.matchAll(/^export \{([^}]*)\}/gm)]
       .flatMap((m) => m[1]!.split(","))
       .map((s) => s.trim())

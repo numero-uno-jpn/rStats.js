@@ -30,6 +30,30 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./distributions": {
+      "types": "./dist/entries/distributions.d.ts",
+      "import": "./dist/entries/distributions.js"
+    },
+    "./tests": {
+      "types": "./dist/entries/tests.d.ts",
+      "import": "./dist/entries/tests.js"
+    },
+    "./linalg": {
+      "types": "./dist/entries/linalg.d.ts",
+      "import": "./dist/entries/linalg.js"
+    },
+    "./descriptive": {
+      "types": "./dist/entries/descriptive.d.ts",
+      "import": "./dist/entries/descriptive.js"
+    },
+    "./numerics": {
+      "types": "./dist/entries/numerics.d.ts",
+      "import": "./dist/entries/numerics.js"
+    },
+    "./special": {
+      "types": "./dist/entries/special.d.ts",
+      "import": "./dist/entries/special.js"
     }
   },
   "types": "./dist/index.d.ts",

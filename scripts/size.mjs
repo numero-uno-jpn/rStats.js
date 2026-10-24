@@ -1,5 +1,5 @@
-// Measures the bundled size (minified and gzipped) for a set of representative imports,
-// to check that tree-shaking works (only the functions used are included).
+// Measures the bundled size (minified and gzipped) for a set of representative imports, to check that tree-shaking
+// works (only the functions used are included), and the size of each area (subpath export) on its own.
 //
 //   npm run build && node scripts/size.mjs
 
@@ -22,9 +22,12 @@ const cases = [
   ["everything", "*"],
 ];
 
+const areas = ["distributions", "tests", "linalg", "descriptive", "numerics", "special"];
+for (const a of areas) cases.push([`rStats.js/${a} (all of it)`, "*", fileURLToPath(new URL(`../dist/entries/${a}.js`, import.meta.url))]);
+
 const rows = [];
-for (const [label, names] of cases) {
-  const contents = names === "*" ? `export * from ${JSON.stringify(dist)};` : `export { ${names} } from ${JSON.stringify(dist)};`;
+for (const [label, names, from = dist] of cases) {
+  const contents = names === "*" ? `export * from ${JSON.stringify(from)};` : `export { ${names} } from ${JSON.stringify(from)};`;
   const result = await build({
     stdin: { contents, resolveDir: process.cwd(), loader: "js" },
     bundle: true,
