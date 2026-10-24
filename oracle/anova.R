@@ -37,13 +37,23 @@ write_htest_fixture("aovOneway", cases, function(a) {
 
 cases <- list()
 for (g in groups_cases[c(1:6, 9, 11)]) for (cl in c(0.95, 0.99)) add(groups = g, confLevel = cl)
+# a group without data (its level is dropped), and samples with group labels (y, g): numeric labels are ordered
+# numerically, so 10 comes after 2
+yl <- c(1.1, 2.3, 1.9, 3.4, 2.8, 3.9, 5.1, 4.4, 6.0)
+add(groups = list(c(1.1, 2.3, 1.9), c(NA, NA), c(5.1, 4.4, 6.0), c(2, 3, 2.5)))
+add(y = yl, g = c(1, 1, 1, 2, 2, 2, 10, 10, 10))
+add(y = c(1.1, 2.3, 1.9, NA, NA, NA, 5.1, 4.4, 6.0, 2, 3, 2.5), g = c(1, 1, 1, 2, 2, 2, 10, 10, 10, 3, 3, 3))
+add(y = yl, g = c("b", "b", "b", "a", "a", "a", "c", "c", "c"), confLevel = 0.9)
 write_htest_fixture("TukeyHSD", cases, function(a) {
-  d <- as_long(a$groups)
-  r <- TukeyHSD(aov(y ~ g, data = d), conf.level = a$confLevel)$g
-  # One row per pair, in R's order (2-1, 3-1, ..., k-1, 3-2, ...): group indices i > j, then diff, lwr, upr, p adj
+  d <- if (is.null(a$groups)) data.frame(y = a$y, g = factor(a$g)) else as_long(a$groups)
+  r <- TukeyHSD(aov(y ~ g, data = d), conf.level = if (is.null(a$confLevel)) 0.95 else a$confLevel)$g
+  # One row per pair, in R's order (2-1, 3-1, ..., k-1, 3-2, ...): names "a-b", positions i > j of the groups
+  # compared (levels without data left out), then diff, lwr, upr, p adj
   pairs <- do.call(rbind, strsplit(rownames(r), "-"))
-  list(i = vec_out(as.numeric(pairs[, 1])), j = vec_out(as.numeric(pairs[, 2])), diff = vec_out(r[, "diff"]),
-       lwr = vec_out(r[, "lwr"]), upr = vec_out(r[, "upr"]), pAdj = vec_out(r[, "p adj"]))
+  k <- (1 + sqrt(1 + 8 * nrow(r))) / 2
+  lv <- c(pairs[1, 2], pairs[seq_len(k - 1), 1])
+  list(names = I(rownames(r)), i = vec_out(match(pairs[, 1], lv)), j = vec_out(match(pairs[, 2], lv)),
+       diff = vec_out(r[, "diff"]), lwr = vec_out(r[, "lwr"]), upr = vec_out(r[, "upr"]), pAdj = vec_out(r[, "p adj"]))
 })
 arg_json <- arg_json_vector
 

@@ -19,6 +19,8 @@ referenceSuite({ name: "choose", tolerance: 1e-14, call: (a) => choose(num(a.n),
 referenceSuite({ name: "lchoose", tolerance: 1e-14, call: (a) => lchoose(num(a.n), num(a.k), exact) });
 referenceSuite({ name: "factorial", tolerance: 1e-14, call: (a) => factorial(num(a.x)) });
 referenceSuite({ name: "lfactorial", tolerance: 1e-14, call: (a) => lfactorial(num(a.x)) });
+// k - n not exact in double precision (scripts/mpmath/regions.py)
+referenceSuite({ name: "choose_regions", tolerance: 1e-14, call: (a) => choose(num(a.n), num(a.k), exact) });
 
 // Special values, checked against R 4.5.2
 describe("choose and factorial special values", () => {

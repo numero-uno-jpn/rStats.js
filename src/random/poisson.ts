@@ -4,7 +4,6 @@
 // distributions" (ACM TOMS 8(2)): algorithm PD. For mu < 10, table-based inversion (Case B in the paper);
 // for mu >= 10, normal approximation with rejection (Case A). These are the algorithms cited in R's ?rpois,
 // with the constants from the paper. The order in which uniforms are consumed and the parameter handling follow observed R output.
-// R's source was not consulted.
 
 import { expRand, normRand, unifRand } from "./rng.js";
 import { generate } from "./common.js";

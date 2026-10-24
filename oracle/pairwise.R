@@ -1,7 +1,7 @@
 source("/oracle/_htest.R")
 
-# pairwise.t.test, pairwise.wilcox.test and pairwise.prop.test (fixture pairwise). Expected fields: method and the
-# p-value table (rows of the lower triangle, NA above the diagonal).
+# pairwise.t.test, pairwise.wilcox.test and pairwise.prop.test (fixture pairwise). Expected fields: method, the
+# p-value table (rows of the lower triangle, NA above the diagonal) and its row and column names.
 
 set.seed(20261030)
 alts <- c("two.sided", "less", "greater")
@@ -28,6 +28,12 @@ for (i in 1:120) {
 oz <- airquality$Ozone; mo <- paste0("m", airquality$Month)
 for (kind in c("pooled", "welch", "wilcox")) add(kind = kind, x = oz, g = mo, pAdjustMethod = "holm")
 add(kind = "prop", x = c(83, 90, 129, 70), n = c(86, 93, 136, 82), pAdjustMethod = "holm")
+# groups with a missing count are dropped and the rest renumbered; fewer than two left is an error
+add(kind = "prop", x = c(10, NaN, 30), n = c(50, 50, 50), pAdjustMethod = "holm")
+add(kind = "prop", x = c(10, 20, 30, 25), n = c(50, NA, 50, 60), pAdjustMethod = "holm")
+add(kind = "prop", x = c(10, NA), n = c(50, 50), pAdjustMethod = "holm")
+add(kind = "prop", x = c(10, NA, 20), n = c(50, 50, NA), pAdjustMethod = "holm")
+add(kind = "prop", x = 10, n = 50, pAdjustMethod = "holm")
 pw_fun <- function(a) {
   args <- list(p.adjust.method = a$pAdjustMethod, alternative = a$alternative)
   r <- switch(a$kind,
@@ -37,6 +43,7 @@ pw_fun <- function(a) {
     wilcox = call_with(pairwise.wilcox.test, c(list(x = a$x, g = a$g), args)),
     wilcoxPaired = call_with(pairwise.wilcox.test, c(list(x = a$x, g = a$g, paired = TRUE), args)),
     prop = pairwise.prop.test(a$x, a$n, p.adjust.method = a$pAdjustMethod))
-  list(method = r$method, pValue = num_or_vec(r$p.value))
+  list(method = r$method, pValue = num_or_vec(r$p.value), rowNames = I(rownames(r$p.value)),
+       colNames = I(colnames(r$p.value)))
 }
 write_htest_fixture("pairwise", cases, pw_fun)

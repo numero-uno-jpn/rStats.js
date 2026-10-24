@@ -4,7 +4,7 @@
 // technique" (Comm. ACM 25(1)); for shape < 1, algorithm GS from Ahrens & Dieter (1974)
 // "Computer methods for sampling from gamma, beta, Poisson and binomial distributions"
 // (Computing 12). These are the algorithms cited in R's ?rgamma, with the constants from the paper.
-// The order in which uniforms are consumed and the parameter handling follow observed R output. R's source was not consulted.
+// The order in which uniforms are consumed and the parameter handling follow observed R output.
 
 import { expRand, normRand, unifRand } from "./rng.js";
 import { gammaScale } from "../distributions/gamma.js";

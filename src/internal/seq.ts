@@ -1,8 +1,12 @@
-/** n equally spaced values from `from` to `to`, both ends exact (R's seq(from, to, length.out = n)) */
+/**
+ * Equally spaced values from `from` to `to`, both ends exact (R's seq(from, to, length.out = n)). A fractional `n` is
+ * rounded up, as R's seq does.
+ */
 export function seqLength(from: number, to: number, n: number): number[] {
-  if (n === 1) return [from];
-  const by = (to - from) / (n - 1);
-  const out = Array.from({ length: n }, (_, i) => from + i * by);
-  if (n > 0) out[n - 1] = to;
+  const len = Math.ceil(n);
+  if (len === 1) return [from];
+  const by = (to - from) / (len - 1);
+  const out = Array.from({ length: len }, (_, i) => from + i * by);
+  if (len > 0) out[len - 1] = to;
   return out;
 }

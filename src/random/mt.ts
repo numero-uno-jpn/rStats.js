@@ -4,7 +4,6 @@
 // equidistributed uniform pseudo-random number generator" (ACM TOMACS 8(1)).
 // How set.seed() expands the seed and maps to [0, 1) was verified against R's ?RNG documentation and
 // observations of R's .Random.seed and runif() output (test/fixtures/random*.json).
-// R's source was not consulted.
 
 const N = 624;
 const M = 397;

@@ -8,7 +8,7 @@
 
 import { pf1, qf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
-import { dropNaN, variance } from "../internal/summary.js";
+import { variance } from "../internal/summary.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /** Options for {@link varTest}. */
@@ -97,9 +97,9 @@ export interface BartlettTestResult extends Omit<HTest, "alternative"> {
 
 /**
  * Bartlett's test that the variances of several normal samples are equal. Equivalent to R's `bartlett.test()` with
- * a list of samples. `NaN` values are dropped.
+ * a list of samples. `NaN` and infinite values are dropped, as in R.
  *
- * @param groups The samples, each with at least two values.
+ * @param groups The samples (at least two), each with at least two finite values.
  *
  * @example
  * ```ts
@@ -108,11 +108,12 @@ export interface BartlettTestResult extends Omit<HTest, "alternative"> {
  */
 export function bartlettTest(groups: readonly Sample[]): BartlettTestResult {
   const k = groups.length;
-  if (k < 2) throw new RangeError("all observations are in the same group");
+  if (k < 2) throw new RangeError("'x' must be a list with at least 2 elements");
   const n: number[] = [];
   const v: number[] = [];
   for (const g of groups) {
-    const s = dropNaN(Array.from(g));
+    // as in R, infinite values are dropped along with NaN
+    const s = Array.from(g).filter(Number.isFinite);
     if (s.length < 2) throw new RangeError("there must be at least 2 observations in each group");
     n.push(s.length - 1);
     v.push(variance(s));

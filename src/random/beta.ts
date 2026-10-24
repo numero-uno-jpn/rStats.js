@@ -3,7 +3,7 @@
 // Cheng (1978) "Generating beta variates with nonintegral shape parameters"
 // (Comm. ACM 21(4)): algorithm BB (min(a, b) > 1) and BC (min(a, b) <= 1).
 // These are the algorithms cited in R's ?rbeta, with the constants from the paper. The order in which uniforms
-// are consumed and the parameter handling follow observed R output. R's source was not consulted.
+// are consumed and the parameter handling follow observed R output.
 
 import { unifRand } from "./rng.js";
 import { generate } from "./common.js";

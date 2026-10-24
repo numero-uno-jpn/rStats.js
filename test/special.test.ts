@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { beta, dnorm, gamma, lbeta, lgamma } from "../src/index.js";
 import { bool, num } from "./helpers/fixture.js";
+import { referenceSuite } from "./helpers/mpmath.js";
 import { fixtureSuite } from "./helpers/suite.js";
 
 fixtureSuite({
@@ -13,6 +14,8 @@ fixtureSuite({ name: "gamma", tolerance: 1e-14, call: (a) => gamma(num(a.x)) });
 fixtureSuite({ name: "lgamma", tolerance: 1e-14, call: (a) => lgamma(num(a.x)) });
 fixtureSuite({ name: "beta", tolerance: 1e-14, call: (a) => beta(num(a.a), num(a.b)) });
 fixtureSuite({ name: "lbeta", tolerance: 1e-14, call: (a) => lbeta(num(a.a), num(a.b)) });
+// The larger argument at or above 2^52 (scripts/mpmath/regions.py), where log B is in the hundreds
+referenceSuite({ name: "beta_regions", tolerance: 1e-14, call: (a) => beta(num(a.a), num(a.b)) });
 
 // Arguments beyond 2^52, outside the R fixture grid. lbeta used to be off by 20 at a = 1e17 (lbetaDD rounds a - 1/2).
 // Reference values from mpmath (700 digits)

@@ -4,7 +4,7 @@
 // Weighted sampling sorts the weights in decreasing order and selects by cumulative probability (with replacement,
 // when more than 200 candidates have large weights, Walker's (1977) alias method). The sort is a heapsort,
 // and the order of equal weights also matches R.
-// All of this was verified against observed R output. R's source was not consulted.
+// All of this was verified against observed R output.
 
 import { unifIndex, unifRand } from "./rng.js";
 

@@ -49,11 +49,12 @@ function sumTies(x: readonly number[]): number {
 /**
  * Kruskal-Wallis rank sum test. Equivalent to R's `kruskal.test()`.
  *
- * @param x An array of samples, or one sample with group labels `g`.
+ * @param x An array of samples (each with at least one non-missing value, as R requires), or one sample with group
+ *   labels `g`.
  * @param g Group labels, parallel to `x`.
  */
 export function kruskalTest(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): ChisqStatTestResult {
-  const groups = toGroups(x, g);
+  const groups = toGroups(x, g, "error");
   const k = groups.length;
   if (k < 2) throw new RangeError("all observations are in the same group");
   const all = groups.flat();
@@ -157,11 +158,12 @@ export function quadeTest(y: readonly (readonly number[])[]): QuadeTestResult {
 /**
  * Fligner-Killeen (median) test of homogeneity of variances. Equivalent to R's `fligner.test()`.
  *
- * @param x An array of samples, or one sample with group labels `g`.
+ * @param x An array of samples (each with at least one non-missing value, as R requires), or one sample with group
+ *   labels `g`.
  * @param g Group labels, parallel to `x`.
  */
 export function flignerTest(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): ChisqStatTestResult {
-  const groups = toGroups(x, g);
+  const groups = toGroups(x, g, "error");
   const k = groups.length;
   if (k < 2) throw new RangeError("all observations are in the same group");
   const centred = groups.flatMap((grp) => {

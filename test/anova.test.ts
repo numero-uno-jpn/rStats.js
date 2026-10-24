@@ -6,6 +6,11 @@ import { arg, defined, htestSuite, type HTestArg } from "./helpers/htest.js";
 
 type A = Record<string, HTestArg>;
 const groups = (a: A): number[][] => (a.groups as unknown as (string | string[])[]).map((g) => (Array.isArray(g) ? g : [g]).map(num));
+/** Group labels of the (y, g) form: numbers when they all parse as numbers (R's numeric factor), strings otherwise */
+const labels = (a: A): (number | string)[] => {
+  const g = a.g as string[];
+  return g.every((v) => !Number.isNaN(Number(v))) ? g.map(num) : g;
+};
 
 /**
  * R fits aov through a QR decomposition of the model matrix, which loses digits on data with a large mean and a
@@ -13,7 +18,7 @@ const groups = (a: A): number[][] => (a.groups as unknown as (string | string[])
  * rounding residue when all values are equal (F = 1 from 1e-30 / 1e-30; here 0 / 0 = NaN)
  */
 function qrRounding(a: A): string | undefined {
-  const all = groups(a).flat();
+  const all = a.groups === undefined ? arg.vec(a.y)!.filter((v) => !Number.isNaN(v)) : groups(a).flat();
   const m = all.reduce((s, v) => s + v, 0) / all.length;
   const sd = Math.sqrt(all.reduce((s, v) => s + (v - m) ** 2, 0) / (all.length - 1));
   if (sd === 0) return "all values equal: R's QR leaves rounding residue (F = 1), the exact F is 0/0";
@@ -34,7 +39,10 @@ htestSuite({
 
 htestSuite({
   name: "TukeyHSD",
-  call: (a) => TukeyHSD(groups(a), defined({ confLevel: arg.num(a.confLevel) })),
+  call: (a) =>
+    a.groups === undefined
+      ? TukeyHSD(arg.vec(a.y)!, labels(a), defined({ confLevel: arg.num(a.confLevel) }))
+      : TukeyHSD(groups(a), defined({ confLevel: arg.num(a.confLevel) })),
   tolerance: 1e-12,
   // R's ptukey is accurate to about 8 digits and qtukey to about 4 (docs/differences-from-r.md); the values here
   // agree with high-precision references in test/tukey.test.ts

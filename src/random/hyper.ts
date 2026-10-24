@@ -3,7 +3,7 @@
 // Kachitvichyanukul & Schmeiser (1985) "Computer generation of hypergeometric random
 // variates" (J. Statist. Comput. Simul. 22): algorithm HIN (inversion when the mode is near the lower end) and
 // H2PE (rejection over three regions). These are the algorithms cited in R's ?rhyper, with the constants from the paper.
-// The order in which uniforms are consumed and the parameter handling follow observed R output. R's source was not consulted.
+// The order in which uniforms are consumed and the parameter handling follow observed R output.
 
 import { unifRand } from "./rng.js";
 import { generate } from "./common.js";

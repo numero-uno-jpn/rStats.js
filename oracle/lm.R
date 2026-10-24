@@ -28,6 +28,16 @@ add(x = X3[1:4, ], y = I(y3[1:4]), intercept = TRUE)                 # zero resi
 add(x = X3, y = I(drop(1 + X3 %*% c(2, -1, 0.5))), intercept = TRUE)   # perfect fit
 add(x = X3, y = I(c(y3[1:5], NA, y3[7:n])), intercept = TRUE)          # NA in y: the row is dropped (na.omit)
 add(x = X3, y = I(y3[1:10]), intercept = TRUE)                         # lengths differ
+# rows of weight 0 are left out of the fit (and of n), but get fitted values and residuals
+x6 <- matrix(1:6, 6, 1); y6 <- c(1.1, 2.3, 2.8, 4.2, 5.1, 5.8)
+add(x = x6, y = I(y6), intercept = TRUE, weights = I(c(1, 1, 0, 1, 1, 1)), newdata = matrix(c(0, 3.5), 2, 1))
+add(x = x6, y = I(y6), intercept = FALSE, weights = I(c(0, 1, 1, 1, 1, 0)))
+w0 <- runif(n, 0.5, 2); w0[c(3, 11, 12, 25)] <- 0
+add(x = X3, y = I(y3), intercept = TRUE, weights = I(w0), newdata = newX3)
+add(x = X3[1:5, ], y = I(y3[1:5]), intercept = TRUE, weights = I(c(1, 1, 0, 1, 1)))  # zero residual df after the drop
+# nothing beyond the intercept (the only column is constant, hence aliased): R^2 = 0 and no F statistic
+add(x = matrix(2, 6, 1), y = I(y6), intercept = TRUE)
+add(x = matrix(2, 6, 1), y = I(y6), intercept = TRUE, weights = I(c(1, 0, 1, 2, 1, 1)))
 for (lv in c(0.9, 0.99)) add(x = X3, y = I(y3), intercept = TRUE, newdata = newX3, level = lv)
 
 write_linalg_fixture("lm", cases, function(a) {

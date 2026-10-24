@@ -221,7 +221,10 @@ if (hasFixture("bartlettTest"))
 if (hasFixture("mcnemarTest"))
   htestSuite({
     name: "mcnemarTest",
-    call: (a) => mcnemarTest(arg.mat(a.x)!, defined({ correct: arg.bool(a.correct) })),
+    call: (a) =>
+      a.y === undefined
+        ? mcnemarTest(arg.mat(a.x)!, defined({ correct: arg.bool(a.correct) }))
+        : mcnemarTest(arg.vec(a.x)!, arg.vec(a.y)!, defined({ correct: arg.bool(a.correct) })),
     tolerance: 1e-13,
   });
 
@@ -300,30 +303,43 @@ if (hasFixture("ansariTest"))
       ),
     tolerance: 1e-12,
   });
+const ksCall = (a: Record<string, HTestArg>) => {
+  const cdf = arg.str(a.cdf);
+  const y =
+    cdf === undefined
+      ? (arg.vec(a.y) ?? [])
+      : cdf === "pnorm"
+        ? (q: number) => pnorm(q)
+        : cdf === "pexp"
+          ? (q: number) => pexp(q)
+          : (q: number) => punif(q);
+  return ksTest(arg.vec(a.x) ?? [], y, defined({ alternative: arg.str<Alternative>(a.alternative), exact: arg.bool(a.exact) }));
+};
 if (hasFixture("ksTest"))
   htestSuite({
     name: "ksTest",
-    call: (a) => {
-      const cdf = arg.str(a.cdf);
-      const y =
-        cdf === undefined
-          ? (arg.vec(a.y) ?? [])
-          : cdf === "pnorm"
-            ? (q: number) => pnorm(q)
-            : cdf === "pexp"
-              ? (q: number) => pexp(q)
-              : (q: number) => punif(q);
-      return ksTest(arg.vec(a.x) ?? [], y, defined({ alternative: arg.str<Alternative>(a.alternative), exact: arg.bool(a.exact) }));
-    },
+    call: ksCall,
     tolerance: 1e-12,
-    // 1 - P(D < d), in R as here: absolute accuracy only. Statistics near 0 are rounding residue of R's cumulative
-    // sums of 1/m and -1/n (here the differences of the empirical distribution functions are formed directly)
-    floor: { pValue: 1e-2, statistic: 1e-3 },
+    // p-values formed as 1 - P(D < d), in R as here, have absolute accuracy only: the asymptotic ones and the exact
+    // two-sided one-sample ones (off by 1e-15 absolute at n = 80 and 90). The other exact p-values are compared
+    // relatively. Statistics near 0 are rounding residue of R's cumulative sums of 1/m and -1/n (here the
+    // differences of the empirical distribution functions are formed directly)
+    floor: {
+      pValue: (c) => {
+        const method = String(c.expected.method ?? "");
+        const oneSampleTwoSided = method === "Exact one-sample Kolmogorov-Smirnov test" && c.expected.alternative === "two-sided";
+        return method.startsWith("Asymptotic") || oneSampleTwoSided ? 1e-2 : 0;
+      },
+      statistic: 1e-3,
+    },
     knownDifference: (a, field, expected, actual) => {
       // R sums Kolmogorov's limiting series to a tolerance of 1e-6 (the values here agree with
-      // scipy.special.kolmogorov, htest_ksTest.scipy.json)
+      // scipy.special.kolmogorov, htest_ksTest.scipy.json); the exact p-values are not exempted
       const two = (arg.str(a.alternative) ?? "two.sided") === "two.sided";
-      return field === "pValue" && two && Math.abs(actual - expected) <= 1e-4
+      return field === "pValue" &&
+        two &&
+        Math.abs(actual - expected) <= 1e-4 &&
+        ksCall(a).method.startsWith("Asymptotic")
         ? "R sums the limiting Kolmogorov series only to a tolerance of 1e-6"
         : undefined;
     },
@@ -354,3 +370,86 @@ if (hasFixture("moodTest"))
       return new Set(z).size < z.length ? "R 4.5.2's tie correction of the variance is wrong (fixed in R-devel)" : undefined;
     },
   });
+
+// With ties the R fixture cannot be the reference (above), so the statistic is checked against its definition: the
+// sum of the averaged scores over the first sample, standardised with the mean and variance of that sum over all
+// C(N, m) ways of choosing the first sample from the pooled values (enumerated here)
+describe("moodTest with ties", () => {
+  /** Scores (i - (N + 1) / 2)^2 by sorted position i, averaged over the positions of each tied value */
+  const scores = (z: number[]): number[] => {
+    const N = z.length;
+    const sorted = [...z].sort((a, b) => a - b);
+    return z.map((v) => {
+      let s = 0;
+      let c = 0;
+      sorted.forEach((w, i) => {
+        if (w === v) {
+          s += (i + 1 - (N + 1) / 2) ** 2;
+          c++;
+        }
+      });
+      return s / c;
+    });
+  };
+  const permutationZ = (x: number[], y: number[]): number => {
+    const z = [...x, ...y];
+    const a = scores(z);
+    const N = z.length;
+    const m = x.length;
+    const sums: number[] = [];
+    const choose = (start: number, left: number, acc: number): void => {
+      if (left === 0) {
+        sums.push(acc);
+        return;
+      }
+      for (let i = start; i <= N - left; i++) choose(i + 1, left - 1, acc + a[i]!);
+    };
+    choose(0, m, 0);
+    const E = sums.reduce((s, v) => s + v, 0) / sums.length;
+    const V = sums.reduce((s, v) => s + (v - E) ** 2, 0) / sums.length;
+    let T = 0;
+    for (let i = 0; i < m; i++) T += a[i]!;
+    return (T - E) / Math.sqrt(V);
+  };
+  // small samples of small integers (many ties) from a fixed linear congruential sequence
+  let seed = 20261024;
+  const next = (k: number): number => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return Math.floor((seed / 2147483648) * k);
+  };
+  const cases: [number[], number[]][] = [
+    [[1, 2, 2, 3], [2, 3, 3, 4, 5]],
+    [[0, 0, 1, 1, 1], [1, 2, 2]],
+    [[5, 5, 5, 1], [5, 2, 2, 9, 9, 9]],
+    [[1, 1, 1], [1, 1, 2, 2]],
+  ];
+  for (let i = 0; i < 30; i++) {
+    const m = 2 + next(5);
+    const n = 2 + next(6);
+    const k = 2 + next(5);
+    cases.push([Array.from({ length: m }, () => next(k)), Array.from({ length: n }, () => next(k))]);
+  }
+  it("agrees with the exact permutation mean and variance of the averaged scores", () => {
+    let checked = 0;
+    for (const [x, y] of cases) {
+      const z = [...x, ...y];
+      // ties needed; with all scores equal (e.g. two values in mirrored positions) the variance is 0
+      if (new Set(z).size === z.length || new Set(scores(z)).size === 1) continue;
+      const expected = permutationZ(x, y);
+      for (const alternative of ["two.sided", "less", "greater"] as const) {
+        const r = moodTest(x, y, { alternative });
+        // (relative to max(|z|, 1): a z of exactly 0 here is rounding residue in the enumeration)
+        expect(Math.abs(r.statistic - expected) / Math.max(Math.abs(expected), 1), `${JSON.stringify([x, y])}`).toBeLessThanOrEqual(1e-12);
+        const p =
+          alternative === "less"
+            ? pnorm(expected)
+            : alternative === "greater"
+              ? pnorm(expected, { lowerTail: false })
+              : 2 * pnorm(-Math.abs(expected));
+        expect(relativeError(r.pValue, p), `${JSON.stringify([x, y])} ${alternative}`).toBeLessThanOrEqual(1e-12);
+      }
+      checked++;
+    }
+    expect(checked).toBeGreaterThanOrEqual(25);
+  });
+});

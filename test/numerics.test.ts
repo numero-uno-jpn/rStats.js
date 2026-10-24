@@ -94,6 +94,38 @@ htestSuite({
   tolerance: 1e-13,
 });
 
+/**
+ * Third derivative of the cubic Hermite spline with values y and slopes m at x (sorted), at each query: on
+ * [x_i, x_{i+1}] (the interval of the last knot <= u) the constant (6 m_i + 6 m_{i+1} - 12 delta) / h^2, with
+ * h = x_{i+1} - x_i and delta = (y_{i+1} - y_i) / h; 0 outside the data. `h` is that interval's length (1 outside).
+ */
+function hermiteThird(x: number[], y: number[], m: number[], xq: number[]): { exact: number; h: number }[] {
+  return xq.map((u) => {
+    const i = x.filter((v) => v <= u).length - 1;
+    if (i < 0 || i >= x.length - 1) return { exact: 0, h: 1 };
+    const h = x[i + 1]! - x[i]!;
+    const delta = (y[i + 1]! - y[i]!) / h;
+    return { exact: (6 * m[i]! + 6 * m[i + 1]! - 12 * delta) / (h * h), h };
+  });
+}
+
+/**
+ * R's third derivative of a cubic Hermite spline (splinefunH, splinefun "monoH.FC") is divided by h once instead of
+ * h^2; rStats.js returns the exact value. Such a value is accepted when it is the closed form above at some query
+ * where R's value is h times the closed form.
+ */
+const hermiteThirdDifference =
+  (slopes: (a: A) => number[] | undefined) =>
+  (a: A, _field: string, expected: number, actual: number): string | undefined => {
+    const m = slopes(a);
+    if (m === undefined || Math.trunc(arg.num(a.deriv)!) !== 3) return undefined;
+    const close = (u: number, v: number) => Math.abs(u - v) <= 1e-13 * Math.max(Math.abs(v), 1e-1);
+    const ok = hermiteThird(arg.vec(a.x)!, arg.vec(a.y)!, m, arg.vec(a.xq)!).some(
+      ({ exact, h }) => close(actual, exact) && close(expected, exact * h),
+    );
+    return ok ? "third derivative of a Hermite spline: exact value, where R divides by h instead of h^2" : undefined;
+  };
+
 htestSuite({
   name: "splinefun",
   call: (a) => ({
@@ -101,6 +133,8 @@ htestSuite({
   }),
   tolerance: 1e-13,
   floor: { value: 1e-14 },
+  // monoH.FC: the closed form from R's own slopes (its first derivative at the knots, args.slopes)
+  knownDifference: hermiteThirdDifference((a) => (a.method === "monoH.FC" ? arg.vec(a.slopes) : undefined)),
 });
 
 htestSuite({
@@ -108,6 +142,7 @@ htestSuite({
   call: (a) => ({ value: splinefunH(arg.vec(a.x)!, arg.vec(a.y)!, arg.vec(a.m)!)(arg.vec(a.xq)!, arg.num(a.deriv)) }),
   tolerance: 1e-13,
   floor: { value: 1e-14 },
+  knownDifference: hermiteThirdDifference((a) => arg.vec(a.m)),
 });
 
 htestSuite({

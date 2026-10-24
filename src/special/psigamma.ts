@@ -119,12 +119,13 @@ const ZETA_A = [
  * so that the Bernoulli corrections, whose ratio is about ((s + 2i) / (2 pi a))^2, converge
  */
 function hurwitzZetaScaled(s: number, q: number): number {
-  if (q > 1e8) return q / (s - 1) + 0.5;
   let sum = 1;
   let a = q;
-  let b = 0;
+  let b = 1;
   let i = 0;
-  while (i < 9 || a <= 9 || a < s) {
+  // Above 1e8 no direct terms: the expansion at a = q itself, q / (s - 1) + 1/2 + s / (12 q) - ... (cutting it after
+  // the 1/2 left out s / (12 q), 1e-14 relative at q = 1e8, s = 39)
+  while (q <= 1e8 && (i < 9 || a <= 9 || a < s)) {
     i += 1;
     a += 1;
     b = Math.exp(-s * Math.log1p(i / q)); // (q / a)^s

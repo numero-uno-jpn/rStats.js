@@ -118,6 +118,12 @@ for (const [name, d, p, back] of suites) {
   referenceSuite({ name: `p${name}`, tolerance: 1e-14, call: p });
 }
 
+// x near the ends of (a, b) with a != 0, where (x - a) / (b - a) used to be rounded before 1 minus it was taken
+// (scripts/mpmath/regions.py)
+referenceSuite({ name: "darcsine_regions", tolerance: 1e-14, call: (a) => darcsine(num(a.x), { ...ab(a), log: bool(a.log) }) });
+referenceSuite({ name: "parcsine_regions", tolerance: 1e-14, call: (a) => parcsine(num(a.q), { ...ab(a), ...tail(a) }) });
+referenceSuite({ name: "qarcsine_regions", tolerance: 1e-14, call: (a) => qarcsine(num(a.p), { ...ab(a), ...tail(a) }) });
+
 // rarcsine has no R reference (extraDistr has no arcsine): check the draws against the distribution function
 describe("rarcsine", () => {
   it("follows the arcsine distribution (Kolmogorov-Smirnov)", () => {
@@ -152,4 +158,12 @@ htestSuite({
     const r = summaryRef.get(JSON.stringify(a))?.[field];
     return r !== undefined && Math.abs(actual - num(r)) <= 3e-14 * Math.abs(num(r)) ? "R's raw-moment formulas cancel (agrees with mpmath)" : undefined;
   },
+});
+
+// Variance, skewness and kurtosis of the log-normal distribution down to small sdlog, where w^4 + 2 w^3 + 3 w^2 - 6
+// (w = exp(sdlog^2)) cancels (scripts/mpmath/regions.py)
+referenceSuite({
+  name: "distSummary_lnorm",
+  tolerance: 1e-14,
+  call: (a) => distSummary("lnorm", { meanlog: num(a.meanlog), sdlog: num(a.sdlog) })[a.field as "variance" | "skewness" | "kurtosis"],
 });

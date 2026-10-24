@@ -2,7 +2,7 @@
 //
 // As in R, there is a single state (set by setSeed), corresponding to R's default
 // RNGkind("Mersenne-Twister", "Inversion", "Rejection").
-// The procedures were verified against R's ?RNG and ?Random documentation and observed output. R's source was not consulted.
+// The procedures were verified against R's ?RNG and ?Random documentation and observed output.
 
 import { MersenneTwister } from "./mt.js";
 import { ppnd16 } from "./as241.js";

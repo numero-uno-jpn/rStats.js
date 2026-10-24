@@ -22,6 +22,8 @@ referenceSuite({
   tolerance: 2e-14,
   call: (a) => psigamma(num(a.x), num(a.deriv), { rCompatible: false }),
 });
+// x above 1e8, where the Hurwitz zeta function is summed from its asymptotic expansion alone (scripts/mpmath/regions.py)
+referenceSuite({ name: "psigamma_large", tolerance: 1e-14, call: (a) => psigamma(num(a.x), num(a.deriv)) });
 
 // Special values. Poles: psi^(n) tends to +Infinity from both sides for odd n and changes sign for even n.
 // Checked against R 4.5.2

@@ -126,7 +126,8 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         Math.exp(meanlog),
         Math.exp(meanlog - s2),
         (w + 2) * Math.sqrt(em1),
-        w ** 4 + 2 * w ** 3 + 3 * w * w - 6,
+        // w^4 + 2 w^3 + 3 w^2 - 6 with w = 1 + em1, expanded in em1 (the w form cancels for small sdlog)
+        em1 * (16 + em1 * (15 + em1 * (6 + em1))),
       );
     }
     case "unif": {

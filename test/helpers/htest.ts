@@ -30,6 +30,10 @@ const STRING_FIELDS = new Set([
   "parameterName",
   "estimateNames",
   "nullValueName",
+  // labels (TukeyHSD comparisons, rows and columns of the pairwise tables)
+  "names",
+  "rowNames",
+  "colNames",
 ]);
 
 export function loadHTestFixture(name: string): HTestFixture {

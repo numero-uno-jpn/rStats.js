@@ -3,7 +3,7 @@
 // Kachitvichyanukul & Schmeiser (1988) "Binomial random variate generation"
 // (Comm. ACM 31(2)): algorithm BTPE. When n min(p, 1-p) < 30, inversion (BINV in the paper) is used.
 // These are the algorithms cited in R's ?rbinom, with the constants from the paper. The order in which uniforms
-// are consumed and the parameter handling follow observed R output. R's source was not consulted.
+// are consumed and the parameter handling follow observed R output.
 
 import { unifRand } from "./rng.js";
 import { generate, powInt } from "./common.js";

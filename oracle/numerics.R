@@ -84,6 +84,9 @@ opts <- list(list("quad13", 0, 1), list("sin", 0, 2 * pi), list("absm2", 0, 5), 
              list("xexp", 0, 10), list("cos", 0, 10), list("flat", 0, 1), list("exp", -3, 2))
 for (o in opts) for (mx in c(FALSE, TRUE)) for (tol in list(NULL, 1e-10))
   add(fn = o[[1]], js = fns[[o[[1]]]]$js, lower = o[[2]], upper = o[[3]], maximum = mx, tol = tol)
+# lower must be less than upper (R does not swap them)
+add(fn = "quad13", js = fns$quad13$js, lower = 1, upper = 0, maximum = FALSE)
+add(fn = "quad13", js = fns$quad13$js, lower = 0.5, upper = 0.5, maximum = FALSE)
 write_htest_fixture("optimize", cases, function(a) {
   r <- call_with(optimize, list(f = F(a$fn), lower = a$lower, upper = a$upper, maximum = a$maximum, tol = a$tol))
   list(optimum = s(if (a$maximum) r$maximum else r$minimum), objective = s(r$objective))
@@ -119,6 +122,8 @@ add(x = I(ax), y = I(ay), xout = I(xq), yleft = -10, yright = 10, ties = "mean")
 add(x = I(ax), y = I(ay), n = 7, ties = "mean")
 add(x = I(c(1, 2, NA, 4)), y = I(c(1, NA, 3, 4)), xout = I(c(1.5, 3.5)))
 add(x = I(c(1)), y = I(c(2)), xout = I(c(1)))
+# a fractional n is rounded up (seq's length.out)
+for (nn in c(3.5, 2.2, 0.5)) add(x = I(ax), y = I(ay), n = nn, ties = "mean")
 write_htest_fixture("approx", cases, function(a) {
   r <- call_with(approx, list(x = a$x, y = a$y, xout = a$xout, method = a$method, n = a$n, yleft = a$yleft,
                               yright = a$yright, rule = unclass(a$rule), f = a$f,
@@ -141,6 +146,8 @@ add(x = I(c(1, 2, NA, 4, 5)), y = I(c(1, 4, 2, 6, 3)), method = "fmm")
 add(x = I(c(1, 2, 3, 4, 5)), y = I(c(1, NA, 2, 6, 3)), method = "natural")
 add(x = I(c(1, 2, 2, 3, 4)), y = I(c(1, 3, 5, 2, 4)), method = "fmm")
 add(x = I(c(4, 2, 1, 2, 3)), y = I(c(4, 5, 1, 3, 2)), method = "natural")
+# a fractional n is rounded up (seq's length.out)
+for (nn in c(3.5, 2.2)) add(x = I(sx), y = I(sy), method = "fmm", n = nn)
 write_htest_fixture("spline", cases, function(a) {
   r <- call_with(spline, list(x = a$x, y = a$y, n = a$n, method = a$method, xout = a$xout, xmin = a$xmin,
                               xmax = a$xmax))
@@ -149,13 +156,24 @@ write_htest_fixture("spline", cases, function(a) {
 cases <- list()
 for (m in c("fmm", "natural", "periodic", "monoH.FC", "hyman")) for (d in 0:3) {
   y <- if (m == "periodic") c(sy[-6], sy[1]) else if (m %in% c("hyman", "monoH.FC")) cumsum(abs(sy)) else sy
-  if (m %in% c("monoH.FC", "hyman") && d == 3) next
-  add(x = I(sx), y = I(y), method = m, xq = I(sq), deriv = d)
+  if (m == "hyman" && d == 3) next
+  # monoH.FC: R's third derivative is (6 m_i + 6 m_{i+1} - 12 delta) / h instead of the exact ... / h^2; rStats.js
+  # returns the exact value, which the test computes from R's slopes at the knots (slopes, the first derivative there)
+  slopes <- if (m == "monoH.FC" && d == 3) I(splinefun(sx, y, method = m)(sx, deriv = 1))
+  add(x = I(sx), y = I(y), method = m, xq = I(sq), deriv = d, slopes = slopes)
 }
+# a fractional deriv is truncated (as.integer); outside 0..3 after that is an error
+for (d in c(1.7, 3.9, -0.5, 4, -1)) add(x = I(sx), y = I(sy), method = "fmm", xq = I(sq), deriv = d)
+add(x = I(sx), y = I(cumsum(abs(sy))), method = "monoH.FC", xq = I(sq), deriv = 2.5)
 write_htest_fixture("splinefun", cases, function(a)
   list(value = vo(splinefun(a$x, a$y, method = a$method)(a$xq, deriv = a$deriv))))
 cases <- list()
+# deriv 3 with h != 1: R divides by h once instead of h^2; the test checks the exact value (see splinefun above)
 for (d in 0:3) add(x = I(sx), y = I(sy), m = I(cos(sx)), xq = I(sq), deriv = d)
+add(x = I(c(0, 2)), y = I(c(0, 0)), m = I(c(1, 1)), xq = I(c(-1, 0, 1, 2, 3)), deriv = 3)
+add(x = I(c(0, 2)), y = I(c(0, 1)), m = I(c(0, 0)), xq = I(c(1)), deriv = 3)
+add(x = I(c(0, 0.5, 1.5, 4)), y = I(c(1, -1, 2, 0)), m = I(c(0, 2, -1, 1)), xq = I(c(0.2, 0.5, 1, 3, 4)), deriv = 3)
+for (d in c(2.9, 3.5, -0.5, 4, -1)) add(x = I(sx), y = I(sy), m = I(cos(sx)), xq = I(sq), deriv = d)
 write_htest_fixture("splinefunH", cases, function(a)
   list(value = vo(splinefunH(a$x, a$y, a$m)(a$xq, deriv = a$deriv))))
 
@@ -166,6 +184,9 @@ lx <- c(-1, -0.3, 0.4, 1, 2); lq <- c(-1, -0.5, 0, 0.4, 0.7, 1.9, 2)
 for (f in list(function(x) exp(x), function(x) 1 / (1 + 25 * x^2), function(x) x^3 - x))
   add(xi = I(lx), yi = I(f(lx)), x = I(lq))
 add(xi = I(lx), yi = I(exp(lx)), x = I(c(2.5)))
+# repeated nodes: at the node, the value of the last of them
+add(xi = I(c(0, 1, 1, 2)), yi = I(c(5, 6, 7, 8)), x = I(c(0, 1, 2)))
+add(xi = I(c(0, 1, 2, 1)), yi = I(c(5, 6, 8, 7)), x = I(c(1, 0.5)))
 write_htest_fixture("barylag", cases, function(a) list(value = vo(pracma::barylag(unclass(a$xi), unclass(a$yi), unclass(a$x)))))
 
 # Hermite: the polynomial of degree 2n - 1 with p(x_i) = y_i and p'(x_i) = d_i (Newton form with doubled nodes,

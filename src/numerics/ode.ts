@@ -1,4 +1,5 @@
-// Fixed-step solvers of ordinary differential equations: R's deSolve::ode with method "euler", "rk2" or "rk4".
+// Fixed-step solvers of ordinary differential equations: deSolve's ode with method "euler" or "rk4", and its
+// rkMethod("rk2") (deSolve's ode() itself does not accept method = "rk2").
 //
 // Written for rStats.js from the textbook formulas (no ported code). The step is the spacing of `times` (one step
 // per interval), as in deSolve's fixed-step methods. rk2 is Heun's method (deSolve's rkMethod("rk2")): the slopes at
@@ -15,7 +16,9 @@ export interface OdeOptions {
 
 /**
  * Solve the initial value problem y' = func(t, y, parms), y(times[0]) = y, with one fixed step per interval of
- * `times`. Equivalent to `deSolve::ode(y, times, func, parms, method)` for the fixed-step methods.
+ * `times`. Equivalent to `deSolve::ode(y, times, func, parms, method)` for `"euler"` and `"rk4"`; for `"rk2"`, to
+ * `deSolve::ode(..., method = rkMethod("rk2"))` (or `deSolve::rk(..., method = "rk2")`), since deSolve's `ode()`
+ * does not accept `method = "rk2"`.
  *
  * @returns One row per time: `[t, y1, y2, ...]`.
  *

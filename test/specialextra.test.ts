@@ -31,6 +31,12 @@ htestSuite({
     agrees(actual, gammaincRef.get(JSON.stringify(a))?.[Number(field)]) ? "pgamma * gamma rounds twice in R (agrees with mpmath)" : undefined,
 });
 
+const gammaincRegions = new Map(
+  (JSON.parse(readFileSync(fileURLToPath(new URL("./fixtures/gammainc_regions.mpmath.json", import.meta.url)), "utf8")) as {
+    cases: { args: Record<string, string>; expected: string[] }[];
+  }).cases.map((c) => [JSON.stringify(c.args), c.expected.map((v) => num(v))]),
+);
+
 describe("gammainc", () => {
   it("matches the high-precision values (mpmath)", () => {
     const bad: string[] = [];
@@ -38,6 +44,17 @@ describe("gammainc", () => {
       const act = gammaincOf(JSON.parse(k) as Record<string, unknown>);
       ref.forEach((r, i) => {
         if (!agrees(act[i]!, r)) bad.push(`${k}[${i}]: ${r} / ${act[i]}`);
+      });
+    }
+    expect(bad).toEqual([]);
+  });
+  // a above 171.6, where Gamma(a) overflows (scripts/mpmath/regions.py)
+  it("matches the high-precision values for large a (mpmath)", () => {
+    const bad: string[] = [];
+    for (const [k, ref] of gammaincRegions) {
+      const act = gammaincOf(JSON.parse(k) as Record<string, unknown>);
+      ref.forEach((r, i) => {
+        if (!agrees(act[i]!, r)) bad.push(`${k}[${i}]: ${r} / ${act[i]} (${relativeError(act[i]!, r).toExponential(2)})`);
       });
     }
     expect(bad).toEqual([]);
@@ -55,3 +72,5 @@ fixtureSuite({ name: "erfcinv", tolerance: 1e-14, call: (a) => erfcinv(num(a.y))
 referenceSuite({ name: "erfinv", tolerance: 1e-15, call: (a) => erfinv(num(a.y)) });
 referenceSuite({ name: "erfcinv", tolerance: 1e-15, call: (a) => erfcinv(num(a.y)) });
 fixtureSuite({ name: "perm", tolerance: 1e-15, call: (a) => perm(num(a.n), num(a.k)) });
+// Overflow, non-integer k and k above 1000 (scripts/mpmath/regions.py)
+referenceSuite({ name: "perm_regions", tolerance: 1e-14, call: (a) => perm(num(a.n), num(a.k)) });

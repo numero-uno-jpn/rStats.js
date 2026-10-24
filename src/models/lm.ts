@@ -6,6 +6,8 @@
 // coefficients ("aliased"), as in R. The summary follows summary.lm: residual variance rss / (n - rank),
 // covariance of the estimates sigma^2 (R'R)^-1 from the triangular factor, t tests on n - rank degrees of freedom,
 // R^2 from the (weighted) mean-corrected model sum of squares when there is an intercept, and the overall F test.
+// Rows of weight 0 are left out of the fit and of the counts of observations, but get fitted values (and residuals)
+// from the coefficients, as in R.
 
 import { pf1 } from "../distributions/f.js";
 import { pt1, qt1 } from "../distributions/t.js";
@@ -18,7 +20,7 @@ import type { Sample } from "../htest/types.js";
 export interface LmOptions {
   /** Include an intercept (a column of ones before the columns of `x`). Default `true`. */
   intercept?: boolean;
-  /** Weights for weighted least squares (positive). */
+  /** Weights for weighted least squares (non-negative; rows of weight 0 are left out of the fit). */
   weights?: Sample;
 }
 
@@ -26,23 +28,28 @@ export interface LmOptions {
 export interface LmResult {
   /** Coefficients (intercept first); NaN for aliased columns. */
   coefficients: number[];
-  /** Residuals y - fitted (rows with a missing value dropped). */
+  /** Residuals y - fitted (rows with a missing value dropped; rows of weight 0 included). */
   residuals: number[];
   fittedValues: number[];
   /** Numerical rank of the model matrix. */
   rank: number;
-  /** Residual degrees of freedom, n - rank. */
+  /** Residual degrees of freedom, n - rank (n counts the rows of non-zero weight). */
   dfResidual: number;
   /** The coefficient table of the columns that are not aliased, in their order. */
   coefTable: { estimate: number[]; stdError: number[]; tValue: number[]; pValue: number[] };
   /** Residual standard error. */
   sigma: number;
+  /** R^2; 0 for a model with nothing beyond the intercept, as in R. */
   rSquared: number;
+  /** Adjusted R^2; 0 for a model with nothing beyond the intercept, as in R. */
   adjRSquared: number;
-  /** Overall F statistic with its degrees of freedom. */
-  fStatistic: { value: number; numdf: number; dendf: number };
-  /** p-value of the overall F test. */
-  fPValue: number;
+  /**
+   * Overall F statistic with its degrees of freedom. Absent (as is `fPValue`) when the model has nothing beyond the
+   * intercept, where R's `summary(lm)` has no `fstatistic`.
+   */
+  fStatistic?: { value: number; numdf: number; dendf: number };
+  /** p-value of the overall F test; absent with `fStatistic`. */
+  fPValue?: number;
   /** Whether the model has an intercept. */
   intercept: boolean;
   /** The QR decomposition of the (weighted) model matrix. */
@@ -74,12 +81,18 @@ export function lm(x: MatrixInput | Sample, y: Sample, options: LmOptions = {}):
   if (wsAll !== undefined && wsAll.length !== ys.length) throw new RangeError("variable lengths differ (found for '(weights)')");
   if (wsAll?.some((w) => w < 0)) throw new RangeError("missing or negative weights not allowed");
   const keep = ys.map((v, i) => !Number.isNaN(v) && xr[i]!.every((t) => !Number.isNaN(t)) && (wsAll === undefined || !Number.isNaN(wsAll[i]!)));
-  const X = xr.filter((_, i) => keep[i]).map((r) => (intercept ? [1, ...r] : r));
-  const Y = ys.filter((_, i) => keep[i]);
-  const W = wsAll?.filter((_, i) => keep[i]);
+  const Xall = xr.filter((_, i) => keep[i]).map((r) => (intercept ? [1, ...r] : r));
+  const Yall = ys.filter((_, i) => keep[i]);
+  const Wall = wsAll?.filter((_, i) => keep[i]);
+  if (Yall.length === 0) throw new RangeError("0 (non-NA) cases");
+  // the fit uses the rows of non-zero weight only
+  const fitRow = Yall.map((_, i) => Wall === undefined || Wall[i]! !== 0);
+  const X = Xall.filter((_, i) => fitRow[i]);
+  const Y = Yall.filter((_, i) => fitRow[i]);
+  const W = Wall?.filter((_, i) => fitRow[i]);
   const n = Y.length;
+  if (n === 0) throw new RangeError("all weights are zero");
 
-  if (n === 0) throw new RangeError("0 (non-NA) cases");
   const sw = W?.map(Math.sqrt);
   const Xw = sw === undefined ? X : X.map((r, i) => r.map((v) => v * sw[i]!));
   const Yw = sw === undefined ? Y : Y.map((v, i) => v * sw[i]!);
@@ -88,12 +101,27 @@ export function lm(x: MatrixInput | Sample, y: Sample, options: LmOptions = {}):
   const coefficients = qrCoef(q, Yw);
   // residuals from Q (the part of Q'y beyond the rank), so a saturated model has residuals of exactly 0, as in R
   const rw = qrResid(q, Yw);
-  const residuals = sw === undefined ? rw : rw.map((v, i) => v / sw[i]!);
-  const fittedValues = Y.map((v, i) => v - residuals[i]!);
+  const fitResiduals = sw === undefined ? rw : rw.map((v, i) => v / sw[i]!);
+  // rows of weight 0: fitted values x'b (aliased coefficients count as 0), residuals y - fitted
+  const residuals: number[] = [];
+  const fittedValues: number[] = [];
+  let k = 0;
+  Yall.forEach((v, i) => {
+    if (fitRow[i]) {
+      residuals.push(fitResiduals[k]!);
+      fittedValues.push(v - fitResiduals[k]!);
+      k++;
+    } else {
+      const fv = Xall[i]!.reduce((s, t, j) => (Number.isNaN(coefficients[j]!) ? s : s + t * coefficients[j]!), 0);
+      fittedValues.push(fv);
+      residuals.push(v - fv);
+    }
+  });
+  const fitted = fittedValues.filter((_, i) => fitRow[i]);
   const dfResidual = n - rank;
   const w = W ?? new Array<number>(n).fill(1);
   let rss = 0;
-  for (let i = 0; i < n; i++) rss += w[i]! * residuals[i]! ** 2;
+  for (let i = 0; i < n; i++) rss += w[i]! * fitResiduals[i]! ** 2;
   const resvar = rss / dfResidual;
   const sigma = Math.sqrt(resvar);
 
@@ -107,19 +135,7 @@ export function lm(x: MatrixInput | Sample, y: Sample, options: LmOptions = {}):
   const tValue = estimate.map((e, i) => e / stdError[i]!);
   const pValue = tValue.map((t) => 2 * pt1(-Math.abs(t), dfResidual, true, false));
 
-  let mss = 0;
-  if (intercept) {
-    const sumw = w.reduce((a, b) => a + b, 0);
-    let m = 0;
-    for (let i = 0; i < n; i++) m += (w[i]! * fittedValues[i]!) / sumw;
-    for (let i = 0; i < n; i++) mss += w[i]! * (fittedValues[i]! - m) ** 2;
-  } else for (let i = 0; i < n; i++) mss += w[i]! * fittedValues[i]! ** 2;
-  const dfInt = intercept ? 1 : 0;
-  const rSquared = mss / (mss + rss);
-  const adjRSquared = 1 - (1 - rSquared) * ((n - dfInt) / dfResidual);
-  const numdf = rank - dfInt;
-  const fValue = mss / numdf / resvar;
-  return {
+  const result: LmResult = {
     coefficients,
     residuals,
     fittedValues,
@@ -127,13 +143,28 @@ export function lm(x: MatrixInput | Sample, y: Sample, options: LmOptions = {}):
     dfResidual,
     coefTable: { estimate, stdError, tValue, pValue },
     sigma,
-    rSquared,
-    adjRSquared,
-    fStatistic: { value: fValue, numdf, dendf: dfResidual },
-    fPValue: pf1(fValue, numdf, dfResidual, false, false),
+    rSquared: 0,
+    adjRSquared: 0,
     intercept,
     qr: q,
   };
+  const dfInt = intercept ? 1 : 0;
+  const numdf = rank - dfInt;
+  // nothing beyond the intercept: R^2 = 0 and no F test, as in summary.lm
+  if (numdf === 0) return result;
+  let mss = 0;
+  if (intercept) {
+    const sumw = w.reduce((a, b) => a + b, 0);
+    let m = 0;
+    for (let i = 0; i < n; i++) m += (w[i]! * fitted[i]!) / sumw;
+    for (let i = 0; i < n; i++) mss += w[i]! * (fitted[i]! - m) ** 2;
+  } else for (let i = 0; i < n; i++) mss += w[i]! * fitted[i]! ** 2;
+  result.rSquared = mss / (mss + rss);
+  result.adjRSquared = 1 - (1 - result.rSquared) * ((n - dfInt) / dfResidual);
+  const fValue = mss / numdf / resvar;
+  result.fStatistic = { value: fValue, numdf, dendf: dfResidual };
+  result.fPValue = pf1(fValue, numdf, dfResidual, false, false);
+  return result;
 }
 
 /** Options for {@link confint}. */

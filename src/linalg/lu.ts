@@ -2,14 +2,18 @@
 //
 // Written for rStats.js (no ported code). lu: Gaussian elimination by columns; the pivot of each column is the first
 // entry of largest absolute value at or below the diagonal (LAPACK's idamax rule), so the row exchanges are the same
-// as dgetrf's; rectangular matrices are allowed (L is m x min(m, n), U is min(m, n) x n), and a zero pivot leaves a 0
-// on the diagonal of U. prcomp: centre and scale the columns as R's scale, then the singular value decomposition:
+// as dgetrf's, and the multipliers are formed as LAPACK does, a_ij * (1 / pivot); rectangular matrices are allowed
+// (L is m x min(m, n), U is min(m, n) x n), and a zero pivot leaves a 0 on the diagonal of U. prcomp: centre and scale
+// the columns as R's scale, then the singular value decomposition:
 // sdev = d / sqrt(max(1, n - 1)), rotation = V, scores = X V.
 
 import { scale as scaleColumns } from "../descriptive/moments.js";
 import { svd } from "./svd.js";
 import type { MatrixInput } from "./matrix.js";
 import { matMul } from "./ops.js";
+
+/** Smallest normal double (LAPACK's dlamch("S")): below it, 1 / pivot would overflow. */
+const SFMIN = 2.2250738585072014e-308;
 
 /** Result of {@link lu}: `x = P L U`. */
 export interface LuResult {
@@ -55,8 +59,10 @@ export function lu(x: MatrixInput): LuResult {
     }
     const piv = a[j]![j]!;
     if (piv === 0) continue;
+    // the multipliers as LAPACK forms them: times the reciprocal of the pivot, unless that would overflow
+    const inv = Math.abs(piv) >= SFMIN ? 1 / piv : NaN;
     for (let i = j + 1; i < m; i++) {
-      const f = a[i]![j]! / piv;
+      const f = Number.isNaN(inv) ? a[i]![j]! / piv : a[i]![j]! * inv;
       a[i]![j] = f;
       for (let c = j + 1; c < n; c++) a[i]![c] = a[i]![c]! - f * a[j]![c]!;
     }

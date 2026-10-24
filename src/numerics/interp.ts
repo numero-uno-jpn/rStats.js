@@ -337,16 +337,19 @@ function checkMonotone(y: readonly number[]): void {
   if (!up && !down) throw new RangeError("'y' must be increasing or decreasing");
 }
 
-function checkDeriv(deriv: number): void {
-  if (!(Number.isInteger(deriv) && deriv >= 0 && deriv <= 3)) throw new RangeError("'deriv' must be between 0 and 3");
+/** The order of derivative as R takes it: truncated towards zero (as.integer), then checked to be 0 to 3. */
+function checkDeriv(deriv: number): number {
+  const d = Math.trunc(deriv);
+  if (!(d >= 0 && d <= 3)) throw new RangeError("'deriv' must be between 0 and 3");
+  return d;
 }
 
 /**
  * Evaluates a b/c/d spline (or a derivative). The interval is carried over from the previous query while it still
  * holds the point, and found again by bisection otherwise, so a query exactly at a knot can take either side, as in R.
  */
-function evalCubic(sp: Cubic, xq: Sample, deriv: number): number[] {
-  checkDeriv(deriv);
+function evalCubic(sp: Cubic, xq: Sample, deriv0: number): number[] {
+  const deriv = checkDeriv(deriv0);
   const { x, y, b, c, d, method } = sp;
   const n = x.length;
   const natural = method === "natural";
@@ -428,8 +431,9 @@ export interface SplinefunOptions {
 }
 
 /**
- * The cubic spline through the points, as a function of `x` and the order of derivative (0 to 3). Equivalent to R's
- * `splinefun()`.
+ * The cubic spline through the points, as a function of `x` and the order of derivative (0 to 3; a fraction is
+ * truncated, as R does). Equivalent to R's `splinefun()`, except that the third derivative of `"monoH.FC"` is the
+ * exact one (see {@link splinefunH}).
  *
  * @example
  * ```ts
@@ -480,8 +484,8 @@ function fritschCarlsonSlopes(x: readonly number[], y: readonly number[]): numbe
 }
 
 /** Evaluates the cubic Hermite spline (or a derivative) with values y and slopes m at x; linear outside the data. */
-function evalHermite(x: readonly number[], y: readonly number[], m: readonly number[], xq: Sample, deriv: number): number[] {
-  checkDeriv(deriv);
+function evalHermite(x: readonly number[], y: readonly number[], m: readonly number[], xq: Sample, deriv0: number): number[] {
+  const deriv = checkDeriv(deriv0);
   const n = x.length;
   return Array.from(xq, (u) => {
     if (Number.isNaN(u)) return NaN;
@@ -514,16 +518,21 @@ function evalHermite(x: readonly number[], y: readonly number[], m: readonly num
       }
       case 1: return delta * (-6 * t * t1) + m0 * (t1 * (3 * t - 1)) + m1 * (t * (3 * t - 2));
       case 2: return (delta * (6 - 12 * t) + m0 * (6 * t - 4) + m1 * (6 * t - 2)) / h;
-      // R's third derivative is divided by h once less than the exact one, (6 m0 + 6 m1 - 12 delta) / h^2
-      // (observed from its output; the exact value is recovered only on intervals of length 1). Kept for agreement.
-      default: return (-12 * delta + 6 * m0 + 6 * m1) / h;
+      default: return (-12 * delta + 6 * m0 + 6 * m1) / (h * h);
     }
   });
 }
 
 /**
  * The cubic Hermite spline with values `y` and slopes `m` at the points `x`, as a function of `x` and the order of
- * derivative (0 to 3); linear outside the data. Equivalent to R's `splinefunH()`.
+ * derivative (0 to 3; a fraction is truncated, as R does); linear outside the data. Equivalent to R's `splinefunH()`,
+ * except for the third derivative: on [x_i, x_{i+1}] it is the exact (6 m_i + 6 m_{i+1} - 12 delta) / h^2, with
+ * h = x_{i+1} - x_i and delta = (y_{i+1} - y_i) / h, where R divides by h only once (the two agree when h = 1).
+ *
+ * @example
+ * ```ts
+ * splinefunH([0, 2], [0, 0], [1, 1])([1], 3); // [3] (R: 6)
+ * ```
  */
 export function splinefunH(x: Sample, y: Sample, m: Sample): (xq: Sample, deriv?: number) => number[] {
   const n = x.length;
@@ -558,9 +567,11 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
   return xs.map((v) => {
     let num = 0;
     let den = 0;
+    // at a node, its value; with repeated nodes, that of the last one (as pracma)
+    const at = X.lastIndexOf(v);
+    if (at >= 0) return Y[at]!;
     for (let j = 0; j < n; j++) {
       const diff = v - X[j]!;
-      if (diff === 0) return Y[j]!;
       const t = w[j]! / diff;
       num += t * Y[j]!;
       den += t;

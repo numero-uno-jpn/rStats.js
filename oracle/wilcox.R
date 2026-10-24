@@ -108,6 +108,12 @@ for (tol in c(1e-8, 1e-2, 0.5)) {
   add(x = one[[6]], exact = FALSE, confInt = TRUE, tolRoot = tol)
   add(x = two[[5]]$x, y = two[[5]]$y, exact = FALSE, confInt = TRUE, tolRoot = tol)
 }
+# Heavy ties in the normal approximation: estimates and limits near the ends of the range of the differences
+for (s in list(list(x = c(1, 1, 1, 1, 2), y = c(1, 1, 1, 1, 1, 0)), list(x = c(0, 0, 0, 1), y = c(0, 0, 0, 0)),
+               list(x = c(5, 5, 5, 6), y = c(5, 5, 5, 5, 5, 5, 5, 4)), list(x = c(1, 1, 2), y = c(1, 1, 1)),
+               list(x = c(rep(1, 9), 2), y = 1), list(x = 2, y = c(rep(1, 9), 2)), list(x = c(1, 1), y = c(1, 2)))) {
+  for (alt in alts) for (cr in c(TRUE, FALSE)) add(x = s$x, y = s$y, alternative = alt, exact = FALSE, correct = cr, confInt = TRUE)
+}
 # The confidence level is not checked when no interval is computed
 add(x = 1:4, confLevel = 0)
 # Extreme values and inputs that raise errors

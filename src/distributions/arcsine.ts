@@ -3,10 +3,14 @@
 // Written for rStats.js (no ported code). With z = (x - a) / (b - a): f(x) = dbeta(z, 1/2, 1/2) / (b - a)
 // = 1 / (pi sqrt((x - a)(b - x))), P[X <= x] = pbeta(z, 1/2, 1/2) = (2/pi) asin(sqrt(z)), and
 // q(p) = a + (b - a) qbeta(p, 1/2, 1/2).
+// Near b, 1 - z would cancel once z is rounded, so the density takes x - a and b - x directly, and in the upper half
+// the distribution function and the quantile use the mirrored variable (b - x) / (b - a) with the tails swapped
+// (the beta(1/2, 1/2) distribution is symmetric).
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { dbeta1, pbeta1, qbeta1 } from "./beta.js";
+import { ddAdd, ddLog, twoSum, type DD } from "../special/dd.js";
+import { pbeta1, qbeta1 } from "./beta.js";
 
 /** Limits of the arcsine distribution. */
 export interface ArcsineParams {
@@ -21,23 +25,33 @@ const valid = (a: number, b: number): boolean => Number.isFinite(a) && Number.is
 export function darcsine1(x: number, a: number, b: number, log: boolean): number {
   if (Number.isNaN(x) || !valid(a, b)) return NaN;
   if (x < a || x > b) return d0(log);
-  const w = b - a;
-  const d = dbeta1((x - a) / w, 0.5, 0.5, log);
-  return log ? d - Math.log(w) : d / w;
+  if (x === a || x === b) return Infinity;
+  if (!log) return 1 / (Math.PI * Math.sqrt(x - a) * Math.sqrt(b - x)); // sqrt of each: the product can over- or underflow
+  // -log(pi) - (log(x - a) + log(b - x)) / 2 in double-double from the exact differences (the log of a density near 1
+  // would turn its rounding into a large relative error)
+  const l = ddAdd(ddLog(twoSum(x, -a)), ddLog(twoSum(b, -x)));
+  return -LOGPI_DD[0] - 0.5 * l[0] - (LOGPI_DD[1] + 0.5 * l[1]);
 }
+
+const LOGPI_DD: DD = [1.1447298858494002, 1.0265951162707826e-17];
 
 export function parcsine1(q: number, a: number, b: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(q) || !valid(a, b)) return NaN;
   if (q <= a) return dt0(lowerTail, logP);
   if (q >= b) return dt1(lowerTail, logP);
-  return pbeta1((q - a) / (b - a), 0.5, 0.5, lowerTail, logP);
+  const w = b - a;
+  if (q - a <= b - q) return pbeta1((q - a) / w, 0.5, 0.5, lowerTail, logP);
+  return pbeta1((b - q) / w, 0.5, 0.5, !lowerTail, logP);
 }
 
 export function qarcsine1(p: number, a: number, b: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(p) || !valid(a, b)) return NaN;
   const bd = quantileBoundaries(p, a, b, lowerTail, logP);
   if (bd !== undefined) return bd;
-  return a + (b - a) * qbeta1(p, 0.5, 0.5, lowerTail, logP);
+  const z = qbeta1(p, 0.5, 0.5, lowerTail, logP);
+  if (z <= 0.5) return a + (b - a) * z;
+  // upper half: from b, with the mirrored probability (z near 1 has lost the digits of 1 - z)
+  return b - (b - a) * qbeta1(p, 0.5, 0.5, !lowerTail, logP);
 }
 
 /**

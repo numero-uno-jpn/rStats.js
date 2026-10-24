@@ -14,7 +14,6 @@ import { lgamma1p, sinpi } from "./gamma.js";
 import { seriesTimesPrefix } from "./besselSeries.js";
 
 const EPS = Number.EPSILON;
-const FORTH_ROOT_EPS = 1.220703125e-4;
 const MAX_ITER = 1_000_000;
 
 /** Gamma(1 + v) - 1 for |v| <= 1/2 */
@@ -248,12 +247,18 @@ function iPos(v: number, x: number): Scaled {
 
 /** K_v(x) for v >= 0, x > 0, as K_v = m 2^e2 e^(ex x) */
 function kPos(v: number, x: number): Scaled {
-  if (Math.abs(4 * v * v - 25) / (8 * x) < FORTH_ROOT_EPS) {
-    // A&S 9.7.2
-    const mu = 4 * v * v;
-    const ez = 8 * x;
-    const s =
-      1 + (mu - 1) / ez + ((mu - 1) * (mu - 9)) / (2 * ez * ez) + ((mu - 1) * (mu - 9) * (mu - 25)) / (6 * ez * ez * ez);
+  // A&S 9.7.2, four terms, where the first omitted term is below eps times the sum (as Boost limits the expansion
+  // of I, but measured on the term itself). For v <= 4.5 the remainder is bounded by the first omitted term
+  // (DLMF 10.40(ii), l >= v - 1/2); beyond, a small t4 needs x well above v^2, where the terms fall off fast.
+  // Testing only mu - 25 used to enter the expansion for v near 2.5 at any x
+  const mu = 4 * v * v;
+  const ez = 8 * x;
+  const t1 = (mu - 1) / ez;
+  const t2 = (t1 * (mu - 9)) / (2 * ez);
+  const t3 = (t2 * (mu - 25)) / (3 * ez);
+  const t4 = (t3 * (mu - 49)) / (4 * ez);
+  const s = 1 + t1 + t2 + t3;
+  if (Math.abs(t4) < EPS * Math.abs(s)) {
     return { m: (s * Math.sqrt(Math.PI)) / Math.sqrt(2 * x), e2: 0, ex: -1 };
   }
   const { k, exp2 } = kScaled(v, x);

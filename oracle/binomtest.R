@@ -25,6 +25,7 @@ for (alt in alts) {
   add(x = 1, n = 1, alternative = alt)
   add(x = 3, n = 1e6, p = 1e-6, alternative = alt)
   add(x = 5e5, n = 1e6, p = 0.4999, alternative = alt)
+  add(x = c(0, 0), p = 0.3, alternative = alt)
 }
 for (cl in c(0, 0.5, 0.999999, 1)) add(x = 7, n = 20, confLevel = cl)
 # errors
@@ -33,6 +34,7 @@ add(x = 2.5, n = 10)
 add(x = -1, n = 10)
 add(x = 3, n = 10, p = 1.5)
 add(x = c(1, 2, 3))
+add(x = 0, n = 0)
 binom_fun <- function(a) {
   args <- list(x = a$x, n = a$n, p = a$p, alternative = a$alternative, conf.level = a$confLevel)
   htest_fields(call_with(binom.test, args))
@@ -67,8 +69,25 @@ add(x = 2.5)
 add(x = c(1, 2, 3))
 add(x = c(1, 2), T = 1:3)
 add(x = 3, r = -1)
+# totals, time bases and rates of 0 (R's p-value is then TRUE or FALSE, written as 1 or 0)
+for (alt in alts) {
+  add(x = c(0, 0), alternative = alt)
+  add(x = c(0, 0), T = c(2, 3), r = 1.5, alternative = alt)
+  add(x = 0, T = 0, alternative = alt)
+  add(x = 3, T = 0, alternative = alt)
+  add(x = 0, r = 0, alternative = alt)
+  add(x = 3, r = 0, alternative = alt)
+  add(x = c(3, 4), r = 0, alternative = alt)
+  add(x = c(0, 4), r = 0, alternative = alt)
+  add(x = c(3, 4), T = c(0, 1), alternative = alt)
+  add(x = c(3, 4), T = c(1, 0), alternative = alt)
+}
+add(x = c(3, 4), T = c(0, 0))
+add(x = 0, T = -1)
 pois_fun <- function(a) {
   args <- list(x = a$x, T = a$T, r = a$r, alternative = a$alternative, conf.level = a$confLevel)
-  htest_fields(call_with(poisson.test, args))
+  r <- call_with(poisson.test, args)
+  r$p.value <- as.numeric(r$p.value)
+  htest_fields(r)
 }
 write_htest_fixture("poissonTest", cases, pois_fun)

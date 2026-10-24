@@ -95,7 +95,7 @@ export interface OptimizeOptions {
 /**
  * Minimum (or maximum) of a function of one variable on an interval, by Brent's golden-section and parabolic
  * search. Equivalent to R's `optimize()`: `optimum` is the location (R's `minimum`/`maximum`) and `objective` the
- * function there.
+ * function there. `lower` must be less than `upper`, as in R.
  *
  * @example
  * ```ts
@@ -105,9 +105,8 @@ export interface OptimizeOptions {
 export function optimize(f: (x: number) => number, lower: number, upper: number, options: OptimizeOptions = {}): { optimum: number; objective: number } {
   const maximum = options.maximum ?? false;
   const tol = options.tol ?? TOL;
-  const lo = Math.min(lower, upper);
-  const hi = Math.max(lower, upper);
-  const r = localMin(maximum ? (x) => -f(x) : f, lo, hi, tol);
+  if (!(lower < upper)) throw new RangeError("'xmin' not less than 'xmax'");
+  const r = localMin(maximum ? (x) => -f(x) : f, lower, upper, tol);
   return { optimum: r.x, objective: f(r.x) };
 }
 

@@ -80,8 +80,10 @@ export function mcnemarTest(
 }
 
 /**
- * Cross-tabulation of two paired samples of category codes (pairs with a missing value dropped), over the union of
- * the levels of both, sorted (numbers numerically, strings as R sorts factor levels in the C locale)
+ * Cross-tabulation of two paired samples of category codes (pairs with a missing value dropped), as R tabulates two
+ * factors: the rows are the levels of x and the columns those of y, each sorted (numbers numerically, strings as R
+ * sorts factor levels in the C locale). As in R, both must have the same number of levels, at least 2; the levels
+ * are matched by position, not by value.
  */
 function crossTable(x: readonly (number | string)[], y: readonly (number | string)[]): number[][] {
   if (x.length !== y.length) throw new RangeError("'x' and 'y' must have the same length");
@@ -93,12 +95,18 @@ function crossTable(x: readonly (number | string)[], y: readonly (number | strin
     if (typeof b === "number" && Number.isNaN(b)) continue;
     keep.push([a, b]);
   }
-  const levels = Array.from(new Set(keep.flat())).sort((a, b) =>
-    typeof a === "number" && typeof b === "number" ? a - b : String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
-  );
-  if (levels.length < 2) throw new RangeError("'x' and 'y' must have at least 2 levels");
-  const index = new Map(levels.map((v, i) => [v, i]));
-  const t = levels.map(() => new Array<number>(levels.length).fill(0));
-  for (const [a, b] of keep) t[index.get(a)!]![index.get(b)!]!++;
+  const levelsOf = (v: (number | string)[]): (number | string)[] =>
+    Array.from(new Set(v)).sort((a, b) =>
+      typeof a === "number" && typeof b === "number" ? a - b : String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+    );
+  const lx = levelsOf(keep.map((p) => p[0]));
+  const ly = levelsOf(keep.map((p) => p[1]));
+  if (lx.length < 2 || lx.length !== ly.length) {
+    throw new RangeError("'x' and 'y' must have the same number of levels (minimum 2)");
+  }
+  const ix = new Map(lx.map((v, i) => [v, i]));
+  const iy = new Map(ly.map((v, i) => [v, i]));
+  const t = lx.map(() => new Array<number>(lx.length).fill(0));
+  for (const [a, b] of keep) t[ix.get(a)!]![iy.get(b)!]!++;
   return t;
 }

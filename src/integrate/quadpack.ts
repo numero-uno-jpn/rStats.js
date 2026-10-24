@@ -318,7 +318,6 @@ function adaptive(
   epsrel: number,
   limit: number,
   smallStart: number,
-  ksgnStrict: boolean,
   neval: (last: number) => number,
 ): QuadResult {
   const alist = new Float64Array(limit + 1);
@@ -371,7 +370,8 @@ function adaptive(
   let erlarg = 0;
   let ertest = 0;
   let correc = 0;
-  const ksgn = (ksgnStrict ? dres > (1 - 50 * EPMACH) * defabs : dres >= (1 - 50 * EPMACH) * defabs) ? 1 : -1;
+  // >= in both routines, as in QUADPACK's dqagse.f and dqagie.f and R's integrate.c (SciPy's dqagie has >)
+  const ksgn = dres >= (1 - 50 * EPMACH) * defabs ? 1 : -1;
   let sumAll = false; // goto LINE115
   let L = 1;
   for (L = 1; L < limit; L++) {
@@ -529,7 +529,7 @@ function adaptive(
  * @param limit - Maximum number of subintervals (R's `subdivisions`).
  */
 export function dqagse(f: Integrand, a: number, b: number, epsabs: number, epsrel: number, limit: number): QuadResult {
-  return adaptive((x, y) => dqk21(f, x, y), a, b, epsabs, epsrel, limit, Math.abs(b - a) * 0.375, false, (last) => 42 * last - 21);
+  return adaptive((x, y) => dqk21(f, x, y), a, b, epsabs, epsrel, limit, Math.abs(b - a) * 0.375, (last) => 42 * last - 21);
 }
 
 /**
@@ -547,7 +547,7 @@ export function dqagie(
   limit: number,
 ): QuadResult {
   const boun = inf === 2 ? 0 : bound;
-  return adaptive((x, y) => dqk15i(f, boun, inf, x, y), 0, 1, epsabs, epsrel, limit, 0.375, true, (last) =>
+  return adaptive((x, y) => dqk15i(f, boun, inf, x, y), 0, 1, epsabs, epsrel, limit, 0.375, (last) =>
     (30 * last - 15) * (inf === 2 ? 2 : 1),
   );
 }

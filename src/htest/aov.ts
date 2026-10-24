@@ -14,7 +14,7 @@ import { pnorm, qnorm } from "../distributions/normal.js";
 import { ptukey, qtukey } from "../distributions/tukey.js";
 import { meanDD } from "../internal/summary.js";
 import { ddAdd, ddMul, ddSub, type DD } from "../special/dd.js";
-import { toGroups, type GroupLabel } from "./groups.js";
+import { labelledGroups, toGroups, type GroupLabel } from "./groups.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /** Result of {@link aov}: the one-way ANOVA table, rows "between groups" and "residuals". */
@@ -91,9 +91,12 @@ export interface TukeyHSDOptions {
 
 /** Result of {@link TukeyHSD}: one entry per pair of groups, in R's order (2-1, 3-1, ..., k-1, 3-2, ...). */
 export interface TukeyHSDResult {
-  /** Labels of the comparisons, `"i-j"` (group numbers from 1, or the labels when given). */
+  /**
+   * Labels of the comparisons, `"a-b"`: the group labels when given, otherwise the positions of the samples in the
+   * list (from 1). Groups without data are left out, as in R.
+   */
   names: string[];
-  /** The group compared (1-based index, i > j). */
+  /** The group compared (1-based position among the groups compared, i > j). */
   i: number[];
   /** The group it is compared with (1-based index). */
   j: number[];
@@ -121,11 +124,12 @@ export function TukeyHSD(
   let labels: readonly GroupLabel[] | undefined;
   if (g !== undefined && !Array.isArray(g)) options = g as TukeyHSDOptions;
   else labels = g as readonly GroupLabel[] | undefined;
-  const groups = toGroups(x, labels);
+  // names follow the groups: a label (or list position) whose values are all missing has no group, as R drops the
+  // unused factor level
+  const { labels: names, groups } = labelledGroups(x, labels);
   const k = groups.length;
   if (k < 2) throw new RangeError("contrasts can be applied only to factors with 2 or more levels");
   const confLevel = options.confLevel ?? 0.95;
-  const names = labels === undefined ? groups.map((_, i) => String(i + 1)) : [...new Set(labels)].sort().map(String);
   const N = groups.reduce((a, s) => a + s.length, 0);
   const df = N - k;
   const { ssw, means } = sums(groups);

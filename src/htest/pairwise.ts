@@ -178,7 +178,8 @@ export interface PairwisePropTestOptions {
  * Pairwise two-group tests of equal proportions, with adjusted p-values. Equivalent to R's `pairwise.prop.test()`.
  *
  * @param x Numbers of successes per group.
- * @param n Numbers of trials per group.
+ * @param n Numbers of trials per group. Groups with `NaN` in `x` or `n` are dropped (the rows and columns are then
+ *   numbered over the groups kept, as in R).
  */
 export function pairwisePropTest(
   x: readonly number[],
@@ -186,11 +187,19 @@ export function pairwisePropTest(
   options: PairwisePropTestOptions = {},
 ): PairwiseResult {
   if (x.length !== n.length) throw new RangeError("'x' and 'n' must have the same length");
-  const k = x.length;
-  if (k < 2) throw new RangeError("there must be at least two groups");
+  // as in R, groups with a missing count are dropped and the rest numbered 1, 2, ... in their order
+  const xs: number[] = [];
+  const ns: number[] = [];
+  x.forEach((v, i) => {
+    if (Number.isNaN(v) || Number.isNaN(n[i]!)) return;
+    xs.push(v);
+    ns.push(n[i]!);
+  });
+  const k = xs.length;
+  if (k < 2) throw new RangeError("too few groups");
   const adjust = options.pAdjustMethod ?? "holm";
   const correct = options.correct ?? true;
-  const pv = table(k, (i, j) => propTest([x[i]!, x[j]!], [n[i]!, n[j]!], { correct }).pValue, adjust);
+  const pv = table(k, (i, j) => propTest([xs[i]!, xs[j]!], [ns[i]!, ns[j]!], { correct }).pValue, adjust);
   const levels = Array.from({ length: k }, (_, i) => i + 1);
   return result("Pairwise comparison of proportions", levels, pv, adjust);
 }

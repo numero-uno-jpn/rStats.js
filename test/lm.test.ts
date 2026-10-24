@@ -1,5 +1,6 @@
 // lm with summary, confint and predict against R (oracle/lm.R)
 import { confint, lm, predict, svd } from "../src/index.js";
+import { describe, expect, it } from "vitest";
 import { arg, defined, htestSuite } from "./helpers/htest.js";
 
 htestSuite({
@@ -18,7 +19,8 @@ htestSuite({
       sigma: fit.sigma,
       rSquared: fit.rSquared,
       adjRSquared: fit.adjRSquared,
-      fStatistic: [fit.fStatistic.value, fit.fStatistic.numdf, fit.fStatistic.dendf],
+      // absent when R has no F statistic (nothing beyond the intercept); then R's fixture has no fStatistic either
+      fStatistic: fit.fStatistic && [fit.fStatistic.value, fit.fStatistic.numdf, fit.fStatistic.dendf],
       fPValue: fit.fPValue,
       confLower: ci.lower,
       confUpper: ci.upper,
@@ -48,4 +50,14 @@ htestSuite({
       ? "ill-conditioned model matrix: agreement to eps times its condition number"
       : undefined;
   },
+});
+
+describe("lm without terms beyond the intercept", () => {
+  it("has R^2 = 0 and no F statistic, as R's summary.lm", () => {
+    const y = [1.1, 2.3, 2.8, 4.2, 5.1, 5.8];
+    const fit = lm([[], [], [], [], [], []], y);
+    expect(fit.fStatistic).toBeUndefined();
+    expect(fit.fPValue).toBeUndefined();
+    expect([fit.rSquared, fit.adjRSquared]).toEqual([0, 0]);
+  });
 });

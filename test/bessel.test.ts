@@ -51,6 +51,10 @@ for (const f of ["besselI", "besselK"] as const) {
   referenceSuite({ name: `${f}_random`, tolerance: 1e-14, call: (a) => fn(num(a.x), num(a.nu), opt(a)) });
 }
 referenceSuite({ name: "besselJ_random", tolerance: 1e-14, call: (a) => besselJ(num(a.x), num(a.nu)) });
+// Orders near the half-integers 0.5 ... 4.5 with small x (scripts/mpmath/regions.py): the asymptotic expansion of K
+// was entered there because only its third term vanishes; besselI with a negative order goes through K
+referenceSuite({ name: "besselK_regions", tolerance: 1e-14, call: (a) => besselK(num(a.x), num(a.nu), opt(a)) });
+referenceSuite({ name: "besselI_regions", tolerance: 1e-14, call: (a) => besselI(num(a.x), num(a.nu), opt(a)) });
 referenceSuite({ name: "besselY_random", tolerance: 1e-14, call: (a) => besselY(num(a.x), num(a.nu)) });
 
 // Special values and identities. x = 0 and infinite x follow the limits (checked against R 4.5.2 by the R fixtures)

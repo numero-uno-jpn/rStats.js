@@ -14,9 +14,9 @@ import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } fr
 
 /** Options for {@link poissonTest}. */
 export interface PoissonTestOptions {
-  /** Time base(s): one per count. Default `1` (or `[1, 1]`). */
+  /** Time base(s): one per count, nonnegative. Default `1` (or `[1, 1]`). */
   T?: number | readonly number[];
-  /** Hypothesized rate, or rate ratio for two samples. Default `1`. */
+  /** Hypothesized rate, or rate ratio for two samples (nonnegative). Default `1`. */
   r?: number;
   /** Alternative hypothesis (unambiguous abbreviations accepted). Default `"two.sided"`. */
   alternative?: Alternative | "two" | "l" | "g";
@@ -114,9 +114,10 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
   const Traw = options.T ?? 1;
   const T = typeof Traw === "number" ? new Array<number>(k).fill(Traw) : Array.from(Traw);
   if (T.length !== k) throw new RangeError("'x' and 'T' have incompatible length");
-  if (!T.every((t) => Number.isFinite(t) && t > 0)) throw new RangeError("'T' must be nonnegative");
+  // as in R, a time base or rate of 0 is accepted (the counts then have mean 0 under the null hypothesis)
+  if (!T.every((t) => Number.isFinite(t) && t >= 0)) throw new RangeError("'T' must be nonnegative");
   const r = options.r ?? 1;
-  if (!(Number.isFinite(r) && r > 0)) throw new RangeError("'r' must be a single positive number");
+  if (!(Number.isFinite(r) && r >= 0)) throw new RangeError("'r' must be a single positive number");
   const alternative = matchAlternative(options.alternative);
   const confLevel = options.confLevel ?? 0.95;
   checkConfLevelOpen(confLevel);
@@ -125,8 +126,10 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
     const [x1, x2] = counts as [number, number];
     const [T1, T2] = T as [number, number];
     const n = x1 + x2;
+    // NaN (rejected by binomTest, as in R) when both r T1 and T2 are 0. The [successes, failures] form also takes
+    // a total of 0 (p-value 1, interval [0, 1]), where binomTest(0, 0) is an error as in R
     const p0 = (r * T1) / (r * T1 + T2);
-    const b = binomTest(x1, n, { p: p0, alternative, confLevel });
+    const b = binomTest([x1, x2], { p: p0, alternative, confLevel });
     const toRatio = (p: number): number => (p / (1 - p)) * (T2 / T1);
     return {
       method: "Comparison of Poisson rates",

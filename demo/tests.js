@@ -560,7 +560,7 @@ const MORE = [
       "div",
       {},
       table(["", "Estimate", "Std. Error", "t value", "Pr(>|t|)"], r.coefTable.estimate.map((e, i) => [i === 0 ? "(Intercept)" : "x", fmt(e), fmt(r.coefTable.stdError[i]), fmt(r.coefTable.tValue[i]), fmt(r.coefTable.pValue[i])]), { testid: "more-lm", className: "data-table compact" }),
-      h("p", { class: "mono", text: `sigma = ${fmt(r.sigma)}, R² = ${fmt(r.rSquared)}, adj. R² = ${fmt(r.adjRSquared)}, F = ${fmt(r.fStatistic.value)}, p = ${fmt(r.fPValue)}` }),
+      h("p", { class: "mono", text: `sigma = ${fmt(r.sigma)}, R² = ${fmt(r.rSquared)}, adj. R² = ${fmt(r.adjRSquared)}, F = ${r.fStatistic ? fmt(r.fStatistic.value) : "—"}, p = ${r.fPValue === undefined ? "—" : fmt(r.fPValue)}` }),
     ) },
 ];
 const same2 = (js, r) => ({ js, r });

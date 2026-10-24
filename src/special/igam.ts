@@ -40,7 +40,8 @@ function igamSeriesBoth(a: number, x: number): [number, number] {
   return [d[0] + Math.log(ans), d[1] * ans];
 }
 
-function igamSeriesSum(a: number, x: number): number {
+/** sum_n x^n / ((a + 1) ... (a + n)): P(a, x) = x^a e^-x / Gamma(a + 1) times this */
+export function igamSeriesSum(a: number, x: number): number {
   if (a > 1000 && x > 0.97 * a) return igamSeriesSumDD(a, x);
   let r = a;
   let c = 1;
@@ -121,7 +122,8 @@ function igamcContinuedFractionBoth(a: number, x: number): [number, number] {
   return [Math.log(a) + d[0] + Math.log(ans), a * d[1] * ans];
 }
 
-function igamcContinuedFractionValue(a: number, x: number): number {
+/** The continued fraction of DLMF 8.9.2: Q(a, x) = x^a e^-x / Gamma(a) times this */
+export function igamcContinuedFractionValue(a: number, x: number): number {
   let y = 1 - a;
   let z = x + y + 1;
   let c = 0;

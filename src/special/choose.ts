@@ -14,6 +14,7 @@ import { nonInt, roundHalfEven } from "../internal/integer.js";
 import { lbeta, lbetaDD } from "./beta.js";
 import { ddAdd, ddDiv, ddLog, ddMul, twoSum, type DD } from "./dd.js";
 import { gamma, lgamma, lgamma1p, sinpi } from "./gamma.js";
+import { digamma } from "./psigamma.js";
 import type { RCompatibleOptions } from "./rCompatible.js";
 
 /** Below this k, choose is the product n (n-1) ... (n-k+1) / k! */
@@ -64,9 +65,15 @@ function logChooseLarge(n: number, k: number): { log: DD; sign: number } | undef
     const l = ddAdd(ddLog(twoSum(n, 1)), logBeta(n - k + 1, k + 1));
     return { log: [-l[0], -l[1]], sign: 1 };
   }
-  // 0 <= n < k - 1, n not an integer: (-1)^(k+1) sin(pi n) / pi * B(n + 1, k - n)
+  // 0 <= n < k - 1, n not an integer: (-1)^(k+1) sin(pi n) / pi * B(n + 1, k - n). n + 1 and k - n round when they
+  // lie in a higher binade than n (1.4e-14 at n = 191.38, k = 503; 3.9e-14 at n = 255.9, k = 1001): put the roundings
+  // back to first order, d/da log B(a, b) = psi(a) - psi(a + b)
   const s = sinpi(n);
-  const l = ddAdd(logBeta(n + 1, k - n), [Math.log(Math.abs(s) / Math.PI), 0]);
+  const [ah, al] = twoSum(n, 1);
+  const [bh, bl] = twoSum(k, -n);
+  const dab = al === 0 && bl === 0 ? 0 : digamma(ah + bh);
+  const corr = (al === 0 ? 0 : al * (digamma(ah) - dab)) + (bl === 0 ? 0 : bl * (digamma(bh) - dab));
+  const l = ddAdd(logBeta(ah, bh), [Math.log(Math.abs(s) / Math.PI) + corr, 0]);
   return { log: l, sign: (k % 2 === 0 ? -1 : 1) * Math.sign(s) };
 }
 
