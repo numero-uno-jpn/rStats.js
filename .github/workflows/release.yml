@@ -2,7 +2,7 @@ name: Release
 
 # Pushing a tag v* runs the tests, builds, and moves the tag to a commit that also contains the
 # build output (dist/, which is not on main), so that jsDelivr can serve the tag from GitHub:
-#   https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.5.0/dist/rstats.js
+#   https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@vX.Y.Z/dist/rstats.js
 # It then publishes to npm through npm's trusted publishing (OIDC, no token): the package's settings on
 # npmjs.com name this repository and this workflow file as its trusted publisher.
 # For the release steps see "Releasing" in CONTRIBUTING.md.

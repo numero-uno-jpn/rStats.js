@@ -136,14 +136,18 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `pnorm` | 1.2 KB |
 | `setSeed`, `rnorm` | 1.7 KB |
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 7.9 / 13.2 / 16.3 KB |
-| `qbeta` / `pt` と `qt` | 17.3 / 25.0 KB |
-| すべて | 72.2 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 13.8 / 16.7 KB |
+| `qbeta` / `pt` と `qt` | 18.5 / 25.5 KB |
+| すべて | 112.4 KB |
 
 (`npm run size` で測れます。)
 
+分野ごとにサブパスからも export しているので、1 つの分野だけを import することもできます。
+`@numero-uno-jpn/rstats/distributions`、`/tests` (検定と、`lm`・`confint`・`predict`)、`/linalg`、
+`/descriptive`、`/numerics`、`/special` です。
+
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (すべての関数を含む minify 済みの
-ES モジュール、gzip で 72 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
+ES モジュール、gzip で 112 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
 タグをそのまま配信します。
 
 ```html
@@ -152,6 +156,12 @@ ES モジュール、gzip で 72 KB) を jsDelivr から読み込めます。jsD
   console.log(pnorm(1.96)); // 0.9750021048517795
 </script>
 ```
+
+一部の分野だけを使うページでは、代わりに分野ごとのバンドルを読み込めます。`dist/distributions.js`、
+`dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js` は
+上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、2 つの分野を
+読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で 18 KB
+(`numerics`) から 80 KB (`tests`) です。
 
 ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm を元にした CDN も
 使えます。たとえば
@@ -181,7 +191,7 @@ R との答え合わせの仕組みと、ライセンスの決まり (R や GPL 
 
 ## ライセンス
 
-MIT です。数値計算の部品は、SciPy の xsf と scipy.stats (BSD-3)、Boost.Math (BSL-1.0)、
-statsmodels (BSD-3)、LAPACK の参照実装 (修正 BSD) から移植しています。パブリックドメインの
-LINPACK・EISPACK・Cephes のコードも使っています。詳しくは
+MIT です。数値計算の部品は、SciPy の xsf・scipy.stats・QUADPACK の C 訳 (BSD-3)、Boost.Math
+(BSL-1.0)、statsmodels (BSD-3)、LAPACK の参照実装 (修正 BSD) から移植しています。パブリックドメインの
+LINPACK・EISPACK・Cephes・QUADPACK・netlib のコードも使っています。詳しくは
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) (英語) を見てください。

@@ -137,7 +137,7 @@ Boost.Math: Copyright John Maddock 2008, Matt Borland 2024 (and other contributo
 
 ---
 
-## SciPy (scipy.stats)
+## SciPy (scipy.stats, scipy.integrate)
 
 - Source: https://github.com/scipy/scipy (commit a087e61)
   - `scipy/stats/_stats_py.py` (ttest_1samp / ttest_ind / ttest_rel, chisquare, pearsonr)
@@ -146,6 +146,9 @@ Boost.Math: Copyright John Maddock 2008, Matt Borland 2024 (and other contributo
   - `scipy/stats/_mstats_basic.py` (kendalltau, `_kendall_p_exact`)
 - Used in: `src/htest/tTest.ts`, `src/htest/chisqTest.ts`, `src/htest/wilcoxTest.ts`, `src/htest/cor.ts`
 - License: BSD-3-Clause
+- Ported (SciPy commit 5ccd743): `scipy/integrate/__quadpack.c`, SciPy's C translation of QUADPACK
+  (`dqagse`, `dqagie` and their rules), in `src/integrate/quadpack.ts` (Copyright (C) 2024 SciPy
+  developers, BSD-3-Clause; QUADPACK itself is in the public domain, see below)
 
 ```
 Copyright (c) 2001-2002 Enthought, Inc. 2003, SciPy Developers.
@@ -306,3 +309,9 @@ they are listed so that readers can find the originals.
 - netlib go (https://netlib.org/go/zeroin.f; Brent, "Algorithms for Minimization without Derivatives",
   1973, chapter 4): `zeroin` (Brent's root finder by bisection, secant and inverse quadratic
   interpolation), the zero finder of `uniroot` — `src/numerics/integrate.ts`
+- netlib fmm (https://netlib.org/fmm/fmin.f; Brent, "Algorithms for Minimization without Derivatives",
+  1973, chapter 5): `fmin` (Brent's localmin, golden-section search with parabolic interpolation),
+  the minimiser of `optimize` — `src/optim/localmin.ts`
+- QUADPACK (Piessens, de Doncker-Kapenga, Überhuber, Kahaner 1983): `dqagse` and `dqagie` (adaptive
+  Gauss–Kronrod quadrature with extrapolation), behind `integrate` — `src/integrate/quadpack.ts`,
+  ported from SciPy's C translation (see SciPy above)

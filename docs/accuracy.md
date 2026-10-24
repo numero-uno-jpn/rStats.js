@@ -56,10 +56,13 @@ Details of the comparison:
   of the rounded means reported in `estimate`; the p-value and quantiles then come from R's
   `pt`/`qt`. Fisher's r × c test enumerates all tables and sums them exactly with gmp. Kendall's
   exact test counts inversions with Rmpfr (1024 bits).
-- **Special functions added after 0.5.0** (`choose`, `lchoose`, `factorial`, `lfactorial`,
-  `digamma`, `trigamma`, `psigamma`, the Bessel functions and `dmultinom`): besides the R
+- **Special functions added in 0.6.0** (`choose`, `lchoose`, `factorial`, `lfactorial`,
+  `digamma`, `trigamma`, `psigamma`, the Bessel functions, `dmultinom`, and `gammainc`,
+  `erfinv`, `erfcinv` and `perm`, which R lacks and whose R fixtures are computed from
+  `pgamma` × `gamma`, pracma's definitions and Rmpfr): besides the R
   fixtures, they are checked against mpmath (`scripts/mpmath/*.py`, 60 to 800 digits,
-  `test/fixtures/<name>.mpmath.json`), with the same tolerance of 1e-14; that comparison uses
+  `test/fixtures/<name>.mpmath.json`), with the same tolerance of 1e-14 (1e-15 for `erfinv`,
+  `erfcinv` and `perm`); that comparison uses
   `rCompatible: false`, since the mpmath values are the mathematical function. Where R is
   inaccurate or fails, the references in `<name>.ref.json` were computed with mpmath (100 to 800
   digits, from the double values of the arguments) rather than Rmpfr. Where terms cancel
@@ -79,10 +82,14 @@ Details of the comparison:
 | Area | Relative tolerance |
 |---|---|
 | Special functions, densities, distribution functions | 1e-14 (non-central t: 1e-13; `ptukey`: 2e-14) |
+| Distributions outside base R (inverse gamma, Kumaraswamy, Pareto, triangular, Laplace, arcsine) | 1e-14 for d/p/q, against extraDistr (arcsine: R's beta(1/2, 1/2) moved to (a, b)) and mpmath |
 | Quantile functions | 1e-14, or backward error no larger than R's; discrete quantiles exactly equal or verified by definition |
 | Random numbers | discrete values and `sample` exactly equal; continuous values within 1e-12; the number of uniform draws consumed is checked exactly |
+| Descriptive statistics | 1e-14 (skewness and kurtosis near 0, which come from cancellation, measured absolutely) |
 | Hypothesis tests | 1e-12 for every numeric field (`cor`: 1e-15, `pAdjust`: exact); text fields exactly equal |
-| Linear algebra | 1e-14 (`crossprod`, `norm`, `backsolve`, `chol`, `qr`, the 2-norm from `svd`) or 1e-13 (`solve`, `determinant`, `rcond`, `svd`, `kappa`, `ginv`, `eigen`), measured relative to the norm of the result; pivots, ranks and signs of determinants exactly equal |
+| Linear models (`lm`, `confint`, `predict`) | 1e-12 for every numeric field |
+| Linear algebra | 1e-14 (`crossprod`, `norm`, `backsolve`, `chol`, `qr`, the 2-norm from `svd`, matrix arithmetic, `seq`, `lu`) or 1e-13 (`solve`, `determinant`, `rcond`, `svd`, `kappa`, `ginv`, `eigen`), measured relative to the norm of the result; `prcomp` 1e-12; pivots, ranks and signs of determinants exactly equal |
+| Numerical methods | 1e-15 (`approx`), 1e-14 (`integrate`, `optimize`, `uniroot`, `barylag`, `hermiteInterp`, `ode`, and `grad`, `jacobian`, `hessian` with an absolute floor of 1e-12) or 1e-13 (`spline`, `splinefun`, `splinefunH`) |
 
 The tolerances were chosen per area from measurement: the largest observed errors against R or
 the reference are just below them.
@@ -145,7 +152,13 @@ case: a single different accept/reject decision would show up there.
 
 ## Known accuracy problems
 
-None are known: every case matches R or a high-precision reference within the tolerance.
+None are known in the tested ranges: every case matches R or a high-precision reference within
+the tolerance.
+
+Outside them, `besselJ` and `besselY` with orders in the thousands and x < ν have relative errors
+of about 1.0–1.5e-14 (for example 1.04e-14 for `besselY(3000, 3949)` and 9.9e-15 for
+`besselJ(1000, 1500)`), from rounding that accumulates over the many steps of the recurrence and
+the continued fractions.
 
 R's `qnbinom` does not terminate for 13 inputs (e.g. `qnbinom(-1, 0.5, 1e-10, log.p = TRUE)`).
 `oracle/nbinom.R` limits each case to 2 seconds and drops those rows from the fixture.

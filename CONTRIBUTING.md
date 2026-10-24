@@ -21,7 +21,8 @@ Every function is compared with R output. Adding a function means adding three f
 1. `oracle/<name>.R` — builds a grid of inputs (typical values, tails such as p = 1e-300,
    boundaries, NaN/Inf, huge parameters) and writes R's results to `test/fixtures/<name>.json`,
    one case per line, with numbers printed as `%.17g` strings.
-2. The implementation in `src/`, exported from `src/index.ts`.
+2. The implementation in `src/`, exported from its area's `src/entries/<area>.ts` (the subpath
+   export; `src/index.ts` re-exports every area).
 3. `test/<name>.test.ts` — runs the implementation on the fixture and checks the relative error.
 
 Regenerating fixtures requires R in Docker:
@@ -95,8 +96,10 @@ rStats.js is MIT licensed. To keep it that way:
 
 - TypeScript, ESM, one function family per file. Optional arguments go in an options object
   with camelCase keys; names and numerical results follow R.
-- Public API documentation (TSDoc on exported symbols), internal comments and the documents in
-  `docs/` are written in English.
+- Public API documentation (TSDoc on exported symbols), internal comments and the documents
+  (`*.md` and `docs/`) are written in English. `docs/ja/` and the `*.ja.md` files are Japanese
+  translations; the English documents are authoritative, and a change to one should be made in
+  its translation too.
 - Errors: `TypeError` for wrong types or shapes, `RangeError` for values out of range, `Error`
   for numerical failures. Messages are in English.
 
@@ -106,10 +109,10 @@ rStats.js is MIT licensed. To keep it that way:
    the list (this needs `npm run demo:r`). Update `version` in `package.json`, the date in
    `CHANGELOG.md` and `VERSION` in `demo/app.js`
    (the tag the demo loads from jsDelivr), commit, then tag and push:
-   `git tag v0.5.0 && git push origin v0.5.0`.
+   `git tag vX.Y.Z && git push origin vX.Y.Z`.
 2. `.github/workflows/release.yml` runs the tests, builds, and moves the tag to a commit that also
    contains `dist/`, so that jsDelivr serves
-   `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.5.0/dist/rstats.js`. (After the
+   `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@vX.Y.Z/dist/rstats.js`. (After the
    workflow has run, `git fetch --tags --force` updates your local tag.) The main branch never
    contains `dist/`.
 3. It then publishes to npm with provenance. No token is involved: the package's settings on

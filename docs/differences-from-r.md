@@ -222,6 +222,16 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   reports 0.88 for the two-sided interval with n = 4).
 - **`pAdjust`** with the Hommel method throws when `n` is not an integer (R returns a value), and
   returns an empty array for an empty `p` with n > 0 (R returns 1).
+- **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
+  are in the same group" (R: "'x' must be a list with at least 2 elements").
+- **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)
+  are sorted in C-locale order, by code point; R sorts factor levels with the locale's collation,
+  so the order of groups, and of the results listed by group, can differ (`"a"`, `"b"`, `"B"`
+  sorts as `"B"`, `"a"`, `"b"` here and as `"a"`, `"b"`, `"B"` in an en_US locale).
+
+### Linear models
+
+- **`lm` with every weight 0** throws "all weights are zero"; R returns NA coefficients.
 
 ### Linear algebra
 
@@ -243,6 +253,14 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   point.
 - **`solve`** with NaN or Inf in the matrix solves without the condition check (LAPACK 3.12's
   `dgecon` returns an error that R ignores); `rcond` of the same matrix throws.
+
+### Numerical methods
+
+- **Third derivative of a cubic Hermite spline** (`splinefunH`, and `splinefun` with
+  `method: "monoH.FC"`, `deriv = 3`): rStats.js returns the mathematically correct value,
+  (6 m_i + 6 m_{i+1} − 12 δ) / h² on an interval of width h. R (4.5.2 and R-devel) returns h times
+  that, dividing by h only once, which looks like a bug in R; the two agree on intervals of width 1.
+  For example `splinefunH(c(0, 2), c(0, 0), c(1, 1))(1, deriv = 3)` is 6 in R and 3 here.
 
 ## Behaviour matched to R
 
@@ -268,8 +286,9 @@ also from R's source. They are listed because they are easy to get wrong.
 
 ### Hypothesis tests
 
-- **Missing values:** only NaN is removed; Inf is kept (`wilcoxTest`, `cor`). Paired tests remove
-  pairs.
+- **Missing values:** tests remove only NaN and keep Inf (`wilcoxTest`, `corTest`). Paired tests
+  remove pairs. `cor` with the default `use: "everything"` returns NaN when the data contain NaN,
+  as in R.
 - **Confidence level checks:** `tTest` accepts exactly 0 and 1 (1 gives ±Inf);
   `wilcoxTest` (only when `confInt` is true) and `fisherTest` (always) require an open interval;
   `corTest` checks it only for Pearson.
@@ -373,8 +392,11 @@ By default rStats.js returns what R returns;
 - Recycling of distribution parameters (`rnorm(3, mean = c(0, 10, 100))`).
 - RNG kinds other than R's default.
 - `simulate.p.value` (`chisqTest`, `fisherTest`), formula interfaces, passing two factor vectors
-  (`chisq.test(x, y)`), Fisher's `hybrid` and `workspace`, and Wilcoxon's `digits.rank`.
+  (`chisq.test(x, y)`), Fisher's `hybrid` and `workspace`, Wilcoxon's `digits.rank`, and
+  `ansari.test`'s `conf.int` (`ansariTest` has no confidence interval or estimate).
   Kendall's concordance count is O(n²).
+- `aov` beyond one way: multi-way designs and the formula interface (`aov` takes one sample with
+  group labels, or a list of samples).
 - `kappa`'s `inv_z`, complex matrices, and `EISPACK = TRUE` / `LINPACK = TRUE`.
 - Generalized linear models (`glm`) and formulas for `lm`; see [ROADMAP.md](../ROADMAP.md).
 - numDeriv's complex-step method (`method = "complex"`), which needs a function of a complex

@@ -4,7 +4,7 @@
 
 rStats.js は [jStat](https://github.com/jstat/jstat) 1.9.6 のすべての関数をカバーします。名前と既定値は jStat
 ではなく R のものなので、多くの呼び出しは形が変わります。このページには、jStat の全関数とその置き換え、既定値の
-違い、置き換えでは再現しない jStat のバグを載せます。*(予定)* の行は、まだ rStats.js にありません。
+違い、置き換えでは再現しない jStat のバグを載せます。
 
 rStats.js は素の配列 (行列は行の配列) を扱い、素のオブジェクトを返します。`jStat(...)` のラッパー、メソッドの
 チェーン、コールバックはありません。どの関数も、パッケージのルートからでも分野ごとのサブパス
@@ -91,7 +91,7 @@ import できます。
 | `jStat.cumprod` | `cumprod(x)` |  |
 | `jStat.diff` | `diff(x)` | R と同じく `lag` と `differences` も指定できます。 |
 | `jStat.rank` | `rank(x)` | 同順位の既定は平均順位です (`tiesMethod` は R と同じ)。 |
-| `jStat.mode` | `modes(x)` | `DescTools::Mode` と同じで、最多の値すべてを昇順で返し、どの値も 1 回なら NaN です (jStat は並べた配列全体を返します)。 |
+| `jStat.mode` | `modes(x).value` | `DescTools::Mode` と同じで、最多の値すべてを昇順で返し、どの値も 1 回なら NaN です (jStat は並べた配列全体を返します)。 |
 | `jStat.range` | `range(x)` | R の `range` は `[min, max]` を返します。jStat は `max - min` を返します (`diff(range(x))`)。 |
 | `jStat.variance` | `variance(x)` | **既定が違います:** `variance` (R の `var`) は標本分散 (n − 1)、jStat の既定は母分散です。`jStat.variance(x, true)` が `variance(x)` です。 |
 | `jStat.stdev` | `sd(x)` | **既定が違います:** 標本標準偏差 (n − 1) です。 |
@@ -141,7 +141,7 @@ import できます。
 
 ## 分布
 
-どの分布にも R の名前の d/p/q/r 関数 (`dnorm`、`pnorm`、`qnorm`、`rnorm` など) があり、`log`・`lowerTail`・`logP` を指定できます。`distSummary(distribution, params)` はどの分布でも平均・分散・標準偏差・中央値・最頻値・歪度・(超過) 尖度を返します。
+分布には R の名前の d/p/q/r 関数 (`dnorm`、`pnorm`、`qnorm`、`rnorm` など) があり、`log`・`lowerTail`・`logP` を指定できます。ただしスチューデント化された範囲の分布は、R と同じく `ptukey` と `qtukey` だけです。`distSummary(distribution, params)` は、そのうち 23 の分布について平均・分散・標準偏差・中央値・最頻値・歪度・(超過) 尖度を返します。ウィルコクソンの符号付き順位と順位和の分布、スチューデント化された範囲の分布は対象外で、`ncp` も扱いません。
 
 | jStat | rStats.js | 備考 |
 |---|---|---|
@@ -323,7 +323,7 @@ import できます。
 | `jStat.QR` | `qr(a)` | R の列ピボット付きの Householder QR です (`qrQ`、`qrR`)。 |
 | `jStat.lstsq` | `qrSolve(a, b)` |  |
 | `jStat.jacobi` | `eigen(a, { symmetric: true })` | jStat は許容値 0.001 で止まり、収束の判定で行と列 0 を飛ばします。 |
-| `jStat.rungekutta` | `ode(y, times, func, { method: "rk4" })` | `deSolve::ode` と同じ固定刻みの `euler`・`rk2`・`rk4` です。軌跡全体を返します。 |
+| `jStat.rungekutta` | `ode(y, times, func, [], { method: "rk4" })` | `deSolve::ode` と同じ固定刻みの `euler`・`rk4` と、deSolve の `rkMethod("rk2")` と同じ `rk2` です。4 つ目の引数は `func` に渡す `parms` です。軌跡全体を返します。 |
 | `jStat.romberg` | `integrate(f, a, b)` | 適応 Gauss-Kronrod 法 (QUADPACK、R の `integrate` と同じ) で、誤差の見積もりも返します。 |
 | `jStat.richardson` | `hessian(f, x)` | jStat は表の値から 2 階微分を外挿します。`grad` と `hessian` は関数に対して Richardson の外挿を使います (`numDeriv`)。 |
 | `jStat.simpson` | `integrate(f, a, b)` | 適応的で誤差の見積もりも返します (jStat の n 分割の複合公式は、刻みの和が b にぴったりならないと最後の節点を落とします)。 |

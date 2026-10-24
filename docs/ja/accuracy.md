@@ -1,5 +1,7 @@
 # 精度
 
+[English](../accuracy.md) | 日本語
+
 > この文書は [英語版](../accuracy.md) の訳です。内容が食い違うときは英語版が正です。
 
 公開しているすべての関数を R 4.5.2 と照合してテストしています (R にない `erf` と `erfc` は mpmath と照合)。期待値は [`oracle/`](../../oracle) の R スクリプトで生成し、[`test/fixtures/`](../../test/fixtures) に保存しています (1 ケースにつき JSON 1 行)。そのため、テストの実行に R は要りません。テストの入力には必ず、典型的な値、遠い裾 (p = 1e-300)、境界 (0, 1, df → ∞)、NaN と Infinity、負の値、巨大なパラメータを含めています。
@@ -21,7 +23,7 @@ rStats.js が意図して R と異なるケースは、テストファイルで�
 
 - **分布:** 参照値はすべてのケースについて計算するわけではありません (時間がかかりすぎるため)。R との比較で不合格になったケースだけを書き出して計算し、結果を `test/fixtures/<name>.ref.json` に保存します (`npm run refresh-references`)。各 oracle は `write_fixture(..., ref = function(row) ...)` で参照値の関数を登録します。`pnbinom` の 4 件は、Rmpfr の参照値が誤っているか得られないため、代わりに mpmath (60 桁、`betainc`) で計算しました: 両側の `pnbinom(1e8, 2.5, mu = 1e6)` (Rmpfr は p = size/(size + mu) を 256 ビットで作ってから 1 − (反対側の裾) を取るため、8e-106 という結果には雑音しか残りません)、`pnbinom(300, 50, 0.3, lower.tail = FALSE)`、`pnbinom(30, 3, 1 - 1e-10, log.p = TRUE)`。`nbinom` について `npm run refresh-references` をやり直すと、最初のものは誤った Rmpfr の値に戻ってしまいます。非心分布では、ポアソン混合級数の和または数値積分を Rmpfr で計算します (`oracle/_noncentral.R`)。実用的な時間で参照値を計算できない領域 (df = 1000 または 1e5 の非心 t、df2 = 1e9 かつ x > 30 の非心 F) はグリッドから外しています。
 - **仮説検定:** oracle はすべてのケースについて参照値をフィクスチャの `reference` フィールドに保存します。高精度が必要なのは平均、分散、相関係数だけなので、これは速く済みます。t 検定では、分散と標準誤差を Rmpfr (256 ビット) で計算しますが、平均は先に double へ丸めます。R も rStats.js も、`estimate` に出力する丸めた平均の差を使うためです。そのうえで p 値と分位点は R の `pt`/`qt` から求めます。Fisher の r × c 検定はすべての表を列挙し、gmp で厳密に合計します。Kendall の正確検定は Rmpfr (1024 ビット) で反転数を数えます。
-- **0.5.0 より後に追加した特殊関数** (`choose`、`lchoose`、`factorial`、`lfactorial`、`digamma`、`trigamma`、`psigamma`、ベッセル関数、`dmultinom`): R のフィクスチャに加えて mpmath とも照合します (`scripts/mpmath/*.py`、60〜800 桁、`test/fixtures/<name>.mpmath.json`)。許容誤差は同じ 1e-14 です。mpmath の値は数学的な関数なので、この照合では `rCompatible: false` を使います。R が不正確な点や失敗する点の参照値 (`<name>.ref.json`) は、Rmpfr ではなく mpmath (100〜800 桁、引数は倍精度の値) で計算しました。項が打ち消し合う箇所 (x < 0 の digamma と psigamma、振動する領域の J と Y、負の非整数次数の I) では、打ち消し合う項の大きさ (フィクスチャの `scale`) に対する相対誤差で測ります。x < 0 の `psigamma` は 2e-14 まで許します。反射項が cot(pi x) の deriv + 1 次の多項式で、cot の誤差を最大 101 倍にするためです (R との照合でも同じ)。`besselJ` と `besselY` の R との照合では、答えが打ち消し合う項よりはるかに小さいケースは、mpmath の値との差が `scale` に対して 1e-14 以内なら合格とします (`knownDifference`)。そこでは相対誤差で見ると R のほうが近いためです。
+- **0.6.0 で追加した特殊関数** (`choose`、`lchoose`、`factorial`、`lfactorial`、`digamma`、`trigamma`、`psigamma`、ベッセル関数、`dmultinom`、および R にない `gammainc`、`erfinv`、`erfcinv`、`perm`。これら 4 つの R のフィクスチャは `pgamma` × `gamma`、pracma の定義、Rmpfr で計算します): R のフィクスチャに加えて mpmath とも照合します (`scripts/mpmath/*.py`、60〜800 桁、`test/fixtures/<name>.mpmath.json`)。許容誤差は同じ 1e-14 です (`erfinv`、`erfcinv`、`perm` は 1e-15)。mpmath の値は数学的な関数なので、この照合では `rCompatible: false` を使います。R が不正確な点や失敗する点の参照値 (`<name>.ref.json`) は、Rmpfr ではなく mpmath (100〜800 桁、引数は倍精度の値) で計算しました。項が打ち消し合う箇所 (x < 0 の digamma と psigamma、振動する領域の J と Y、負の非整数次数の I) では、打ち消し合う項の大きさ (フィクスチャの `scale`) に対する相対誤差で測ります。x < 0 の `psigamma` は 2e-14 まで許します。反射項が cot(pi x) の deriv + 1 次の多項式で、cot の誤差を最大 101 倍にするためです (R との照合でも同じ)。`besselJ` と `besselY` の R との照合では、答えが打ち消し合う項よりはるかに小さいケースは、mpmath の値との差が `scale` に対して 1e-14 以内なら合格とします (`knownDifference`)。そこでは相対誤差で見ると R のほうが近いためです。
 - **線形代数:** `solve` と行列式には、gmp の有理数で計算した厳密な参照値があります (どの double も有理数で正確に表せます)。分解はそうではなく、後退誤差と直交性で確かめます (下記参照)。
 
 ## 許容誤差
@@ -29,10 +31,14 @@ rStats.js が意図して R と異なるケースは、テストファイルで�
 | 分野 | 相対許容誤差 |
 |---|---|
 | 特殊関数、密度関数、分布関数 | 1e-14 (非心 t: 1e-13、`ptukey`: 2e-14) |
+| base R にない分布 (逆ガンマ、Kumaraswamy、Pareto、三角、Laplace、逆正弦) | d/p/q は 1e-14。extraDistr (逆正弦は R の beta(1/2, 1/2) を (a, b) に移したもの) と mpmath に対して |
 | 分位点関数 | 1e-14、または後退誤差が R 以下。離散分布の分位点は完全一致か定義による検証 |
 | 乱数 | 離散値と `sample` は完全一致。連続値は 1e-12 以内。消費した一様乱数の個数を厳密に確かめる |
+| 記述統計 | 1e-14 (打ち消し合いから決まる 0 に近い歪度と尖度は絶対誤差で測る) |
 | 仮説検定 | すべての数値フィールドで 1e-12 (`cor`: 1e-15、`pAdjust`: 完全一致)。テキストフィールドは完全一致 |
-| 線形代数 | 1e-14 (`crossprod`、`norm`、`backsolve`、`chol`、`qr`、`svd` による 2-ノルム) または 1e-13 (`solve`、`determinant`、`rcond`、`svd`、`kappa`、`ginv`、`eigen`)。結果のノルムに対する相対値で測る。ピボット、ランク、行列式の符号は完全一致 |
+| 線形モデル (`lm`、`confint`、`predict`) | すべての数値フィールドで 1e-12 |
+| 線形代数 | 1e-14 (`crossprod`、`norm`、`backsolve`、`chol`、`qr`、`svd` による 2-ノルム、行列演算、`seq`、`lu`) または 1e-13 (`solve`、`determinant`、`rcond`、`svd`、`kappa`、`ginv`、`eigen`)。結果のノルムに対する相対値で測る。`prcomp` は 1e-12。ピボット、ランク、行列式の符号は完全一致 |
+| 数値計算 | 1e-15 (`approx`)、1e-14 (`integrate`、`optimize`、`uniroot`、`barylag`、`hermiteInterp`、`ode`、および絶対誤差の下限 1e-12 付きの `grad`、`jacobian`、`hessian`)、1e-13 (`spline`、`splinefun`、`splinefunH`) |
 
 許容誤差は分野ごとに実測をもとに決めました。R または参照値に対して観測された最大の誤差は、許容誤差をわずかに下回っています。
 
@@ -63,7 +69,9 @@ rStats.js が意図して R と異なるケースは、テストファイルで�
 
 ## 既知の精度の問題
 
-既知の問題はありません。すべてのケースが、許容誤差の範囲で R または高精度の参照値と一致します。
+テストしている範囲では、既知の問題はありません。すべてのケースが、許容誤差の範囲で R または高精度の参照値と一致します。
+
+その範囲の外では、次数が数千で x < ν の `besselJ` と `besselY` の相対誤差が 1.0〜1.5e-14 ほどになります (たとえば `besselY(3000, 3949)` で 1.04e-14、`besselJ(1000, 1500)` で 9.9e-15)。漸化式と連分数の多数のステップで丸め誤差が積み重なるためです。
 
 R の `qnbinom` は 13 個の入力で終了しません (例: `qnbinom(-1, 0.5, 1e-10, log.p = TRUE)`)。`oracle/nbinom.R` は各ケースを 2 秒に制限し、それらの行をフィクスチャから外します。
 

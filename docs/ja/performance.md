@@ -1,5 +1,7 @@
 # 性能
 
+[English](../performance.md) | 日本語
+
 > この文書は [英語版](../performance.md) の訳です。内容が食い違うときは英語版が正です。
 
 rStats.js は精度を最優先にしています。分布関数は遠い裾でも真の値との差を 1e-14 以内に保っています ([accuracy.md](accuracy.md) を参照)。その代わりに速度を犠牲にしています。この文書では、時間がどこにかかっているか、それに対して何をしてきたか、現時点での測定結果を説明します。
@@ -120,15 +122,23 @@ rStats.js は R より 3〜28 倍遅くなっています。R はブロック化
 
 | import | minify 後 | gzip |
 |---|---|---|
-| `pnorm` | 2.1 KB | 1.2 KB |
+| `pnorm` | 2.3 KB | 1.2 KB |
 | `setSeed`、`rnorm` | 3.4 KB | 1.7 KB |
 | `solve` / `svd` / `eigen` | 3.8 / 4.5 / 9.6 KB | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` | 18.2 KB | 7.9 KB |
-| `fisherTest` | 26.6 KB | 13.2 KB |
-| `tTest` | 34.5 KB | 16.3 KB |
-| `qbeta` | 37.2 KB | 17.3 KB |
-| `pt`、`qt` | 53.4 KB | 25.0 KB |
-| すべて | 190.4 KB | 72.2 KB |
+| `wilcoxTest` | 19.4 KB | 8.6 KB |
+| `fisherTest` | 28.1 KB | 13.8 KB |
+| `tTest` | 35.6 KB | 16.7 KB |
+| `qbeta` | 40.1 KB | 18.5 KB |
+| `pt`、`qt` | 54.9 KB | 25.5 KB |
+| すべて | 299.8 KB | 112.4 KB |
+| `@numero-uno-jpn/rstats/distributions` (全体) | 155.0 KB | 60.0 KB |
+| `@numero-uno-jpn/rstats/tests` (全体) | 147.4 KB | 59.4 KB |
+| `@numero-uno-jpn/rstats/linalg` (全体) | 39.9 KB | 14.5 KB |
+| `@numero-uno-jpn/rstats/descriptive` (全体) | 21.5 KB | 8.4 KB |
+| `@numero-uno-jpn/rstats/numerics` (全体) | 22.8 KB | 10.3 KB |
+| `@numero-uno-jpn/rstats/special` (全体) | 57.0 KB | 26.4 KB |
+
+サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 18 KB (`numerics`) から 80 KB (`tests`) です。
 
 `pt` が大きいのは、非心 t の経路 (`src/distributions/nt.ts`) と double-double の部品が一緒に入るためです。中心分布だけの関数を分ければ小さくなります。
 

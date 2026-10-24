@@ -130,14 +130,18 @@ removed. Approximate sizes after minification and gzip:
 | `pnorm` | 1.2 KB |
 | `setSeed`, `rnorm` | 1.7 KB |
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 7.9 / 13.2 / 16.3 KB |
-| `qbeta` / `pt` and `qt` | 17.3 / 25.0 KB |
-| everything | 72.2 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 13.8 / 16.7 KB |
+| `qbeta` / `pt` and `qt` | 18.5 / 25.5 KB |
+| everything | 112.4 KB |
 
 (`npm run size` measures these.)
 
+Each area is also a subpath export, for importing one area without the rest:
+`@numero-uno-jpn/rstats/distributions`, `/tests` (hypothesis tests, and `lm`, `confint` and
+`predict`), `/linalg`, `/descriptive`, `/numerics` and `/special`.
+
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function, 72 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+function, 112 KB gzipped) from jsDelivr, which serves each release tag of this repository:
 
 ```html
 <script type="module">
@@ -145,6 +149,12 @@ function, 72 KB gzipped) from jsDelivr, which serves each release tag of this re
   console.log(pnorm(1.96)); // 0.9750021048517795
 </script>
 ```
+
+A page that needs only some areas can load the per-area bundles instead: `dist/distributions.js`,
+`dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js` and `dist/special.js`
+export the same functions as the subpaths above, and share their common code through
+`dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
+transfers 18 KB (`numerics`) to 80 KB (`tests`) gzipped.
 
 Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
 work as well, for example
@@ -174,6 +184,6 @@ rules (no code from R or GPL packages). Notes on speed and the double-double ari
 
 ## License
 
-MIT. Numerical kernels are ported from SciPy's xsf and scipy.stats (BSD-3), Boost.Math
-(BSL-1.0), statsmodels (BSD-3) and the LAPACK reference implementation (modified BSD), plus
-public-domain LINPACK, EISPACK and Cephes code. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+MIT. Numerical kernels are ported from SciPy's xsf, scipy.stats and C translation of QUADPACK
+(BSD-3), Boost.Math (BSL-1.0), statsmodels (BSD-3) and the LAPACK reference implementation
+(modified BSD), plus public-domain LINPACK, EISPACK, Cephes, QUADPACK and netlib code. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

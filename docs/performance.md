@@ -190,15 +190,25 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 
 | Import | Minified | gzip |
 |---|---|---|
-| `pnorm` | 2.1 KB | 1.2 KB |
+| `pnorm` | 2.3 KB | 1.2 KB |
 | `setSeed`, `rnorm` | 3.4 KB | 1.7 KB |
 | `solve` / `svd` / `eigen` | 3.8 / 4.5 / 9.6 KB | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` | 18.2 KB | 7.9 KB |
-| `fisherTest` | 26.6 KB | 13.2 KB |
-| `tTest` | 34.5 KB | 16.3 KB |
-| `qbeta` | 37.2 KB | 17.3 KB |
-| `pt`, `qt` | 53.4 KB | 25.0 KB |
-| everything | 190.4 KB | 72.2 KB |
+| `wilcoxTest` | 19.4 KB | 8.6 KB |
+| `fisherTest` | 28.1 KB | 13.8 KB |
+| `tTest` | 35.6 KB | 16.7 KB |
+| `qbeta` | 40.1 KB | 18.5 KB |
+| `pt`, `qt` | 54.9 KB | 25.5 KB |
+| everything | 299.8 KB | 112.4 KB |
+| `@numero-uno-jpn/rstats/distributions` (all of it) | 155.0 KB | 60.0 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 147.4 KB | 59.4 KB |
+| `@numero-uno-jpn/rstats/linalg` (all of it) | 39.9 KB | 14.5 KB |
+| `@numero-uno-jpn/rstats/descriptive` (all of it) | 21.5 KB | 8.4 KB |
+| `@numero-uno-jpn/rstats/numerics` (all of it) | 22.8 KB | 10.3 KB |
+| `@numero-uno-jpn/rstats/special` (all of it) | 57.0 KB | 26.4 KB |
+
+The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share
+code between areas through `dist/chunks/`, so one area loaded from them transfers more: 18 KB
+(`numerics`) to 80 KB (`tests`) gzipped, chunks included.
 
 `pt` is large because the non-central t path (`src/distributions/nt.ts`) and the double-double
 building blocks come with it; splitting out a central-only function would make it smaller.

@@ -1,5 +1,7 @@
 # R との違い
 
+[English](../differences-from-r.md) | 日本語
+
 > この文書は [英語版](../differences-from-r.md) の訳です。内容が食い違うときは英語版が正です。
 
 rStats.js は R と同じ結果を返すことを目指しています。このページには、そうならない場合をまとめます。
@@ -213,6 +215,17 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   (R 自身も n = 4 の両側区間では 0.88 と報告します)。
 - **`pAdjust`** の Hommel 法は、`n` が整数でないと例外を投げます (R は値を返します)。また、空の `p`
   で n > 0 のときは空の配列を返します (R は 1 を返します)。
+- **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
+  "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
+  2 elements")。
+- **文字列のグループラベル** (`kruskalTest`、`aov`、`TukeyHSD`、`pairwise*` の検定などの `g`) は、
+  C ロケールの順 (コードポイント順) に並べます。R は因子の水準をロケールの照合順序で並べるので、
+  グループの順序と、グループごとに並ぶ結果の順序が異なることがあります (`"a"`、`"b"`、`"B"` は、
+  rStats.js では `"B"`、`"a"`、`"b"`、en_US ロケールの R では `"a"`、`"b"`、`"B"` の順になります)。
+
+### 線形モデル
+
+- **重みがすべて 0 の `lm`** は "all weights are zero" で例外を投げます。R は NA の係数を返します。
 
 ### 線形代数
 
@@ -232,6 +245,14 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   停止位置の対角にはその時点の残りの値が入ります。
 - **`solve`** は行列に NaN や Inf があると条件数のチェックなしで解きます (LAPACK 3.12 の `dgecon` は
   エラーを返しますが、R は無視します)。同じ行列の `rcond` は例外を投げます。
+
+### 数値計算
+
+- **3 次 Hermite スプラインの 3 階微分** (`splinefunH` と、`method: "monoH.FC"` の `splinefun` で
+  `deriv = 3`): rStats.js は数学的に正しい値、幅 h の区間で (6 m_i + 6 m_{i+1} − 12 δ) / h² を返します。
+  R (4.5.2 と R-devel) は h で 1 回しか割らず、その h 倍を返します。R のバグと思われます。幅 1 の
+  区間では両者は一致します。たとえば `splinefunH(c(0, 2), c(0, 0), c(1, 1))(1, deriv = 3)` は、R では
+  6、rStats.js では 3 です。
 
 ## R に合わせた動作
 
@@ -256,8 +277,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 
 ### 仮説検定
 
-- **欠損値:** 除くのは NaN だけで、Inf は残します (`wilcoxTest`、`cor`)。対応のある検定ではペアごと
-  除きます。
+- **欠損値:** 検定が除くのは NaN だけで、Inf は残します (`wilcoxTest`、`corTest`)。対応のある検定では
+  ペアごと除きます。既定の `use: "everything"` の `cor` は、R と同じく、データに NaN があると NaN を
+  返します。
 - **信頼水準のチェック:** `tTest` はちょうど 0 と 1 を受け付けます (1 なら ±Inf)。
   `wilcoxTest` (`confInt` が true のときだけ) と `fisherTest` (常に) は開区間を要求します。
   `corTest` は Pearson のときだけチェックします。
@@ -350,8 +372,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - 分布パラメータのリサイクル (`rnorm(3, mean = c(0, 10, 100))`)。
 - R の既定以外の RNG の種類。
 - `simulate.p.value` (`chisqTest`、`fisherTest`)、formula インターフェース、2 つの因子ベクトルを渡す
-  形 (`chisq.test(x, y)`)、Fisher の `hybrid` と `workspace`、Wilcoxon の `digits.rank`。Kendall の
-  一致ペアの数え上げは O(n²) です。
+  形 (`chisq.test(x, y)`)、Fisher の `hybrid` と `workspace`、Wilcoxon の `digits.rank`、`ansari.test`
+  の `conf.int` (`ansariTest` は信頼区間も推定値も返しません)。Kendall の一致ペアの数え上げは O(n²)
+  です。
+- 一元配置を超える `aov`: 多元配置と formula インターフェース (`aov` は、グループラベル付きの 1 つの
+  標本か、標本のリストを受け取ります)。
 - `kappa` の `inv_z`、複素行列、`EISPACK = TRUE` / `LINPACK = TRUE`。
 - 一般化線形モデル (`glm`) と `lm` の formula。[ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください。
 - numDeriv の複素数ステップ法 (`method = "complex"`。複素数の引数を受け取る関数が要る) と、`grad`・

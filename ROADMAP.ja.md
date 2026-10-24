@@ -27,12 +27,12 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 | 分野 | 状況 |
 |---|---|
 | 特殊関数 | `gamma`、`lgamma`、`beta`、`lbeta`、`choose`、`lchoose`、`factorial`、`lfactorial`、`digamma`、`trigamma`、`psigamma`、`besselI`、`besselK`、`besselJ`、`besselY` と、R にはない `erf`、`erfc`、`erfinv`、`erfcinv`、`gammainc`、`perm` を export。log1p 系の関数は内部で実装済み |
-| 分布 | R の `stats` にある 20 の分布すべて (スチューデント化された範囲を含む)、非心カイ二乗・t・F・ベータ分布、逆ガンマ・Kumaraswamy・Pareto・三角・Laplace (extraDistr)・逆正弦の d/p/q (`lowerTail` と `logP` 付き)。すべての分布の `distSummary` |
-| 乱数 | R の既定の Mersenne-Twister と `set.seed()` 互換の乱数列、26 の `r*` 関数 (R にない分布は extraDistr と同じ乱数列)、`rmultinom`、`sample`、`sampleInt` |
+| 分布 | R の `stats` にある 20 の分布すべて (スチューデント化された範囲を含む)、非心カイ二乗・t・F・ベータ分布、逆ガンマ・Kumaraswamy・Pareto・三角・Laplace (extraDistr)・逆正弦の d/p/q (`lowerTail` と `logP` 付き)。23 の分布の `distSummary` (ウィルコクソンの符号付き順位と順位和の分布、スチューデント化された範囲の分布を除く) |
+| 乱数 | R の既定の Mersenne-Twister と `set.seed()` 互換の乱数列、`rmultinom` を含む 26 の `r*` 関数 (R にない分布は extraDistr と同じ乱数列)、`sample`、`sampleInt` |
 | 記述統計 | R の要約 (`mean`、`variance`、9 種類の `quantile`、`rank`、行列の `cov`/`cor`、`table`、`cut`、`hist`、`ecdf`、`scale` など) と e1071・DescTools のもの (`skewness`、`kurtosis`、`geometricMean`、`modes`、`meanAD`、`cv`) |
 | 仮説検定 | R の `htest` の関数: `tTest`、`chisqTest`、`fisherTest` (r × c を含む)、`wilcoxTest`、`corTest`、`binomTest`、`poissonTest`、`propTest`、`mcnemarTest`、`varTest`、`bartlettTest`、`kruskalTest`、`friedmanTest`、`quadeTest`、`flignerTest`、`moodTest`、`onewayTest`、`shapiroTest`、`mantelhaenTest`、`ansariTest`、`ksTest`、`pairwise*`、`pAdjust`。一元配置の `aov`、`TukeyHSD`、`zTest` (BSDA) |
 | 線形モデル | 行列で渡す `lm` と `summary.lm` の値、`confint`、`predict` |
-| 線形代数 | R の `base` の行列関数と `MASS::ginv`: 行列演算、`crossprod`、`norm`、`backsolve`、`chol`、`qr` (R のピボット選択と LAPACK)、`solve`、`det`、`rcond`、`kappa`、`svd`、`eigen` (対称と一般)、`lu`、`prcomp`、`ginv` |
+| 線形代数 | R の `base` の行列関数と、`Matrix::lu`、`prcomp` (`stats`)、`MASS::ginv`: 行列演算、`crossprod`、`norm`、`backsolve`、`chol`、`qr` (R のピボット選択と LAPACK)、`solve`、`det`、`rcond`、`kappa`、`svd`、`eigen` (対称と一般)、`lu`、`prcomp`、`ginv` |
 | 数値計算 | `integrate`、`optimize`、`uniroot`、`approx`、`spline`/`splinefun`/`splinefunH`、Lagrange (pracma) と Hermite の補間、固定刻みの `ode` (deSolve)、`grad`/`jacobian`/`hessian` (numDeriv) |
 | jStat | jStat の全関数に置き換えがある ([docs/ja/migrating-from-jstat.md](docs/ja/migrating-from-jstat.md))。jStat と照合済み |
 

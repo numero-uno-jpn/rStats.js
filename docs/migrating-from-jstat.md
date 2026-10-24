@@ -4,8 +4,7 @@ English | [日本語](ja/migrating-from-jstat.md)
 
 rStats.js covers every function of [jStat](https://github.com/jstat/jstat) 1.9.6. The names and defaults are
 R's, not jStat's, so most calls change shape. This page lists every jStat function with its replacement, the
-defaults that differ, and the bugs in jStat that the replacement does not reproduce. Rows marked *(planned)* are not
-in rStats.js yet.
+defaults that differ, and the bugs in jStat that the replacement does not reproduce.
 
 rStats.js works on plain arrays (a matrix is an array of rows) and returns plain objects; there is no `jStat(...)`
 wrapper, method chaining or callback. Everything can be imported from the package root or from one area
@@ -91,7 +90,7 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 | `jStat.cumprod` | `cumprod(x)` |  |
 | `jStat.diff` | `diff(x)` | Also `lag` and `differences`, as in R. |
 | `jStat.rank` | `rank(x)` | Ties get the average rank by default (`tiesMethod` as in R). |
-| `jStat.mode` | `modes(x)` | As `DescTools::Mode`: all most frequent values in increasing order, and NaN when every value occurs once (jStat then returns the whole sorted array). |
+| `jStat.mode` | `modes(x).value` | As `DescTools::Mode`: all most frequent values in increasing order, and NaN when every value occurs once (jStat then returns the whole sorted array). |
 | `jStat.range` | `range(x)` | R's `range` returns `[min, max]`; jStat returns `max - min` (`diff(range(x))`). |
 | `jStat.variance` | `variance(x)` | **Default differs:** `variance` (R's `var`) is the sample variance (n − 1), jStat's default is the population variance. `jStat.variance(x, true)` is `variance(x)`. |
 | `jStat.stdev` | `sd(x)` | **Default differs:** sample standard deviation (n − 1). |
@@ -141,7 +140,7 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 
 ## Distributions
 
-Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnorm`, `rnorm`, ...), with `log`, `lowerTail` and `logP` options. `distSummary(distribution, params)` returns the mean, variance, sd, median, mode, skewness and (excess) kurtosis of any of them.
+The distributions have d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnorm`, `rnorm`, ...), with `log`, `lowerTail` and `logP` options; the studentized range has only `ptukey` and `qtukey`, as in R. `distSummary(distribution, params)` returns the mean, variance, sd, median, mode, skewness and (excess) kurtosis of 23 of them: all but the Wilcoxon signed rank and rank sum distributions and the studentized range, and without `ncp`.
 
 | jStat | rStats.js | Notes |
 |---|---|---|
@@ -323,7 +322,7 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 | `jStat.QR` | `qr(a)` | Householder QR with R's column pivoting (`qrQ`, `qrR`). |
 | `jStat.lstsq` | `qrSolve(a, b)` |  |
 | `jStat.jacobi` | `eigen(a, { symmetric: true })` | jStat stops at a tolerance of 0.001 and skips row and column 0 in its convergence test. |
-| `jStat.rungekutta` | `ode(y, times, func, { method: "rk4" })` | Fixed-step `euler`, `rk2` and `rk4` as in `deSolve::ode`; returns the whole trajectory. |
+| `jStat.rungekutta` | `ode(y, times, func, [], { method: "rk4" })` | Fixed-step `euler` and `rk4` as in `deSolve::ode`, and `rk2` as deSolve's `rkMethod("rk2")`; the fourth argument is `parms`, passed to `func`. Returns the whole trajectory. |
 | `jStat.romberg` | `integrate(f, a, b)` | Adaptive Gauss-Kronrod (QUADPACK, as R's `integrate`), with an error estimate. |
 | `jStat.richardson` | `hessian(f, x)` | jStat extrapolates a second derivative from tabulated values; `grad` and `hessian` use Richardson extrapolation on a function (`numDeriv`). |
 | `jStat.simpson` | `integrate(f, a, b)` | Adaptive, with an error estimate (jStat's composite rule with n steps drops the last node when the steps do not add up to b exactly). |

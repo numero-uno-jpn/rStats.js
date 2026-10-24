@@ -14,7 +14,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - Everything jStat offers, with R's names and defaults, and a migration guide
   ([docs/migrating-from-jstat.md](docs/migrating-from-jstat.md)) whose replacements are checked
   against jStat itself (`test/jstat-replacement.test.ts`):
-  - descriptive statistics (`rStats.js/descriptive`): `sum`, `prod`, `mean` (with `trim`),
+  - descriptive statistics (`@numero-uno-jpn/rstats/descriptive`): `sum`, `prod`, `mean` (with `trim`),
     `weightedMean`, `variance` (R's `var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`,
     `cummin`, `diff`, `quantile` (all nine types), `IQR`, `fivenum`, `mad`, `rank`, `cov` and `cor`
     for vectors and matrices (Pearson, Kendall, Spearman, with `use`), `tabulate`, `table`, `unique`,
@@ -28,14 +28,14 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
     `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (one way), `TukeyHSD` and `zTest` (BSDA);
   - linear models: `lm` with a matrix interface and the quantities of `summary.lm`, `confint`,
     `predict`;
-  - numerical methods (`rStats.js/numerics`): `integrate`, `optimize`, `uniroot` (with
+  - numerical methods (`@numero-uno-jpn/rstats/numerics`): `integrate`, `optimize`, `uniroot` (with
     `extendInt`), `approx`, `spline`, `splinefun`, `splinefunH`, `barylag` (pracma),
     `hermiteInterp`, `ode` (fixed-step, deSolve), `grad`, `jacobian`, `hessian` (numDeriv);
   - distributions outside base R with extraDistr's names: `invgamma`, `kumar`, `pareto`, `triang`,
     `laplace`, and `arcsine` (d/p/q/r), and `distSummary` (mean, variance, sd, median, mode,
-    skewness, kurtosis) for all 23 distributions;
+    skewness, kurtosis) for 23 distributions (all but signrank, wilcox and tukey);
   - special functions: `gammainc`, `erfinv`, `erfcinv`, `perm`.
-- Subpath exports and per-area CDN files: `rStats.js/distributions`, `/tests`, `/linalg`,
+- Subpath exports and per-area CDN files: `@numero-uno-jpn/rstats/distributions`, `/tests`, `/linalg`,
   `/descriptive`, `/numerics`, `/special` (`dist/<area>.js`, with shared code split out).
 - `choose`, `lchoose`, `factorial` and `lfactorial`, for any real `n` (and `x`).
 - `digamma`, `trigamma` and `psigamma` (derivatives up to 100, negative arguments by
@@ -50,6 +50,18 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - `dmultinom`, as a product of binomial probabilities (accurate for large counts).
 - The new functions are checked against R 4.5.2, and against mpmath (100 to 800 digits) where R
   is inaccurate or fails (docs/differences-from-r.md).
+
+### Changed
+
+- Code that followed the GPL sources of R (and of BSDA, for `zTest`) too closely was re-implemented independently, so that the
+  package stays MIT licensed: `propTest`, the two-sided p-values of `poissonTest` and `binomTest`,
+  the exact 2 × 2 parts of `mantelhaenTest` and `fisherTest`, the intervals of `wilcoxTest`,
+  `zTest`, `approx`, `spline`, `splinefun`, `splinefunH`, `uniroot`, `seq`, `pretty`, `hist` and
+  `quantile`.
+- `uniroot`'s zero finder is now a port of netlib's `zeroin.f` (public domain).
+- **Type change:** `fStatistic` and `fPValue` of `lm`'s result are optional; they are absent for a
+  model with nothing beyond the intercept, as `summary.lm` has no `fstatistic` there.
+- The error messages of `grad`, `jacobian`, `hessian` and `zTest` are worded differently.
 
 ### Fixed
 
@@ -70,6 +82,28 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   The series is summed in double-double there, which makes those calls about 9 times slower.
 - `pchisq` and `pbeta` with `ncp` around 1000 in the far tails: off by up to 1.4e-13 relative, now
   below 5e-15 (the terms of the Poisson mixture are corrected to the exact shape a + j).
+- Fixed before the final `v0.6.0` tag (the first one pushed to GitHub had these problems):
+  - `propTest` with missing groups and with `p`; `pairwisePropTest` with missing groups (dropped and
+    the rest renumbered, as in R);
+  - `uniroot` when `f` returns a non-finite value;
+  - default number of points and range of `spline`, now taken from the regularized x;
+  - the third derivative of `splinefunH` and of `splinefun` with `method: "monoH.FC"` is now the
+    exact one; R returns h times it on an interval of width h (see docs/differences-from-r.md);
+  - `lm` with weights of 0 (those rows are left out of the fit, all zero is an error) and with an
+    intercept-only model (R² = 0 and no F test, as in R);
+  - `optimize` with `lower >= upper` is now an error, as in R;
+  - a non-integer `deriv` (`splinefun`, `splinefunH`) is truncated and non-integer lengths (`n`)
+    are rounded up, as in R;
+  - `barylag` with duplicate nodes; `lu` forms its multipliers as LAPACK does;
+  - `TukeyHSD` comparison names (labels, or positions in the list; groups without data left out);
+  - `kruskalTest` and `flignerTest` with an empty group, `mcnemarTest` with different numbers of
+    levels in x and y, `bartlettTest` with infinite values, `poissonTest` with zero counts and
+    zero `T` or `r`, all now as in R;
+  - accuracy of `besselK` and `besselI` for orders near 2.5, the arcsine distribution near its
+    upper end, `gammainc` for large a, `perm` (overflow and non-integer k), the `distSummary` kurtosis of
+    `lnorm` for small sdlog, `psigamma` for large x, `beta` for huge a, and `choose` for
+    non-integer n;
+  - `pretty` no longer overflows for huge ranges.
 
 ## 0.5.0 - 2026-10-21
 

@@ -23,7 +23,8 @@ rStats.js に関心を持っていただきありがとうございます。こ�
 1. `oracle/<name>.R`: 入力のグリッド (典型的な値、p = 1e-300 のような裾、境界、NaN/Inf、
    巨大なパラメータ) を作り、R の結果を `test/fixtures/<name>.json` に書き出す。1 ケースにつき
    1 行で、数値は `%.17g` で書式化した文字列にする。
-2. `src/` に置く実装。`src/index.ts` から export する。
+2. `src/` に置く実装。その分野の `src/entries/<area>.ts` (サブパスの export) から export する
+   (`src/index.ts` はすべての分野を再 export します)。
 3. `test/<name>.test.ts`: フィクスチャに対して実装を実行し、相対誤差を確かめる。
 
 フィクスチャを生成し直すには、Docker 上の R が必要です。
@@ -100,8 +101,9 @@ rStats.js は MIT ライセンスです。それを保つために、次のこ�
 
 - TypeScript、ESM で、1 ファイルに 1 つの関数ファミリーを置きます。省略可能な引数は、camelCase
   のキーを持つオプションオブジェクトで渡します。名前と数値の結果は R に合わせます。
-- 公開 API のドキュメント (export するシンボルの TSDoc)、内部のコメント、`docs/` の文書は英語で
-  書きます。
+- 公開 API のドキュメント (export するシンボルの TSDoc)、内部のコメント、文書 (`*.md` と `docs/`) は
+  英語で書きます。`docs/ja/` と `*.ja.md` のファイルは日本語訳で、英語版が正です。一方を変えたら、
+  その訳も同じように変えてください。
 - エラーは、型や形が誤っているときは `TypeError`、値が範囲外のときは `RangeError`、数値計算が
   失敗したときは `Error` にします。メッセージは英語です。
 
@@ -110,10 +112,10 @@ rStats.js は MIT ライセンスです。それを保つために、次のこ�
 1. `NOT_IN_DEMO_YET` (`test/demo.test.ts`) に挙げた export のデモ例を追加して、このリストを空に
    します (`npm run demo:r` が必要)。`package.json` の `version`、`CHANGELOG.md` の日付、`demo/app.js` の `VERSION` (デモが
    jsDelivr から読み込むタグ) を更新してコミットし、タグを付けて push します:
-   `git tag v0.5.0 && git push origin v0.5.0`。
+   `git tag vX.Y.Z && git push origin vX.Y.Z`。
 2. `.github/workflows/release.yml` がテストを実行してビルドし、`dist/` も含むコミットへタグを
    移します。これで jsDelivr が
-   `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.5.0/dist/rstats.js` を配信できる
+   `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@vX.Y.Z/dist/rstats.js` を配信できる
    ようになります (ワークフローが終わったら、`git fetch --tags --force` でローカルのタグを
    更新してください)。main ブランチには `dist/` を一切含めません。
 3. 続いて、provenance 付きで npm に公開します。トークンは使いません。npmjs.com のパッケージ設定で、

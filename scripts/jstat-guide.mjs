@@ -67,7 +67,7 @@ const rows = {
     ["jStat.cumprod", "`cumprod(x)`", "", ""],
     ["jStat.diff", "`diff(x)`", "Also `lag` and `differences`, as in R.", "R と同じく `lag` と `differences` も指定できます。"],
     ["jStat.rank", "`rank(x)`", "Ties get the average rank by default (`tiesMethod` as in R).", "同順位の既定は平均順位です (`tiesMethod` は R と同じ)。"],
-    ["jStat.mode", "`modes(x)`", "As `DescTools::Mode`: all most frequent values in increasing order, and NaN when every value occurs once (jStat then returns the whole sorted array).", "`DescTools::Mode` と同じで、最多の値すべてを昇順で返し、どの値も 1 回なら NaN です (jStat は並べた配列全体を返します)。"],
+    ["jStat.mode", "`modes(x).value`", "As `DescTools::Mode`: all most frequent values in increasing order, and NaN when every value occurs once (jStat then returns the whole sorted array).", "`DescTools::Mode` と同じで、最多の値すべてを昇順で返し、どの値も 1 回なら NaN です (jStat は並べた配列全体を返します)。"],
     ["jStat.range", "`range(x)`", "R's `range` returns `[min, max]`; jStat returns `max - min` (`diff(range(x))`).", "R の `range` は `[min, max]` を返します。jStat は `max - min` を返します (`diff(range(x))`)。"],
     ["jStat.variance", "`variance(x)`", "**Default differs:** `variance` (R's `var`) is the sample variance (n − 1), jStat's default is the population variance. `jStat.variance(x, true)` is `variance(x)`.", "**既定が違います:** `variance` (R の `var`) は標本分散 (n − 1)、jStat の既定は母分散です。`jStat.variance(x, true)` が `variance(x)` です。"],
     ["jStat.stdev", "`sd(x)`", "**Default differs:** sample standard deviation (n − 1).", "**既定が違います:** 標本標準偏差 (n − 1) です。"],
@@ -142,7 +142,7 @@ const rows = {
     ["jStat.QR", "`qr(a)`", "Householder QR with R's column pivoting (`qrQ`, `qrR`).", "R の列ピボット付きの Householder QR です (`qrQ`、`qrR`)。"],
     ["jStat.lstsq", "`qrSolve(a, b)`", "", ""],
     ["jStat.jacobi", "`eigen(a, { symmetric: true })`", "jStat stops at a tolerance of 0.001 and skips row and column 0 in its convergence test.", "jStat は許容値 0.001 で止まり、収束の判定で行と列 0 を飛ばします。"],
-    ["jStat.rungekutta", "`ode(y, times, func, { method: \"rk4\" })`", "Fixed-step `euler`, `rk2` and `rk4` as in `deSolve::ode`; returns the whole trajectory.", "`deSolve::ode` と同じ固定刻みの `euler`・`rk2`・`rk4` です。軌跡全体を返します。"],
+    ["jStat.rungekutta", "`ode(y, times, func, [], { method: \"rk4\" })`", "Fixed-step `euler` and `rk4` as in `deSolve::ode`, and `rk2` as deSolve's `rkMethod(\"rk2\")`; the fourth argument is `parms`, passed to `func`. Returns the whole trajectory.", "`deSolve::ode` と同じ固定刻みの `euler`・`rk4` と、deSolve の `rkMethod(\"rk2\")` と同じ `rk2` です。4 つ目の引数は `func` に渡す `parms` です。軌跡全体を返します。"],
     ["jStat.romberg", "`integrate(f, a, b)`", "Adaptive Gauss-Kronrod (QUADPACK, as R's `integrate`), with an error estimate.", "適応 Gauss-Kronrod 法 (QUADPACK、R の `integrate` と同じ) で、誤差の見積もりも返します。"],
     ["jStat.richardson", "`hessian(f, x)`", "jStat extrapolates a second derivative from tabulated values; `grad` and `hessian` use Richardson extrapolation on a function (`numDeriv`).", "jStat は表の値から 2 階微分を外挿します。`grad` と `hessian` は関数に対して Richardson の外挿を使います (`numDeriv`)。"],
     ["jStat.simpson", "`integrate(f, a, b)`", "Adaptive, with an error estimate (jStat's composite rule with n steps drops the last node when the steps do not add up to b exactly).", "適応的で誤差の見積もりも返します (jStat の n 分割の複合公式は、刻みの和が b にぴったりならないと最後の節点を落とします)。"],
@@ -274,8 +274,7 @@ const text = {
     lang: "English | [日本語](ja/migrating-from-jstat.md)",
     intro: `rStats.js covers every function of [jStat](https://github.com/jstat/jstat) 1.9.6. The names and defaults are
 R's, not jStat's, so most calls change shape. This page lists every jStat function with its replacement, the
-defaults that differ, and the bugs in jStat that the replacement does not reproduce. Rows marked *(planned)* are not
-in rStats.js yet.
+defaults that differ, and the bugs in jStat that the replacement does not reproduce.
 
 rStats.js works on plain arrays (a matrix is an array of rows) and returns plain objects; there is no \`jStat(...)\`
 wrapper, method chaining or callback. Everything can be imported from the package root or from one area
@@ -330,7 +329,8 @@ The replacements give the correct values in these cases (the examples in \`test/
       regression: "Regression",
     },
     distNote:
-      "Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnorm`, `rnorm`, ...), with `log`, `lowerTail` and `logP` options. `distSummary(distribution, params)` returns the mean, variance, sd, median, mode, skewness and (excess) kurtosis of any of them.",
+      "The distributions have d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnorm`, `rnorm`, ...), with `log`, `lowerTail` and `logP` options; the studentized range has only `ptukey` and `qtukey`, as in R. `distSummary(distribution, params)` returns the mean, variance, sd, median, mode, skewness and (excess) kurtosis of 23 of them: all but the Wilcoxon signed rank and rank sum distributions and the studentized range, and without `ncp`.",
+    plannedNote: "Rows marked *(planned)* are not in rStats.js yet.",
     head: "| jStat | rStats.js | Notes |",
     planned: "*(planned)*",
   },
@@ -339,7 +339,7 @@ The replacements give the correct values in these cases (the examples in \`test/
     lang: "[English](../migrating-from-jstat.md) | 日本語",
     intro: `rStats.js は [jStat](https://github.com/jstat/jstat) 1.9.6 のすべての関数をカバーします。名前と既定値は jStat
 ではなく R のものなので、多くの呼び出しは形が変わります。このページには、jStat の全関数とその置き換え、既定値の
-違い、置き換えでは再現しない jStat のバグを載せます。*(予定)* の行は、まだ rStats.js にありません。
+違い、置き換えでは再現しない jStat のバグを載せます。
 
 rStats.js は素の配列 (行列は行の配列) を扱い、素のオブジェクトを返します。\`jStat(...)\` のラッパー、メソッドの
 チェーン、コールバックはありません。どの関数も、パッケージのルートからでも分野ごとのサブパス
@@ -394,7 +394,8 @@ import できます。`,
       regression: "回帰",
     },
     distNote:
-      "どの分布にも R の名前の d/p/q/r 関数 (`dnorm`、`pnorm`、`qnorm`、`rnorm` など) があり、`log`・`lowerTail`・`logP` を指定できます。`distSummary(distribution, params)` はどの分布でも平均・分散・標準偏差・中央値・最頻値・歪度・(超過) 尖度を返します。",
+      "分布には R の名前の d/p/q/r 関数 (`dnorm`、`pnorm`、`qnorm`、`rnorm` など) があり、`log`・`lowerTail`・`logP` を指定できます。ただしスチューデント化された範囲の分布は、R と同じく `ptukey` と `qtukey` だけです。`distSummary(distribution, params)` は、そのうち 23 の分布について平均・分散・標準偏差・中央値・最頻値・歪度・(超過) 尖度を返します。ウィルコクソンの符号付き順位と順位和の分布、スチューデント化された範囲の分布は対象外で、`ncp` も扱いません。",
+    plannedNote: "*(予定)* の行は、まだ rStats.js にありません。",
     head: "| jStat | rStats.js | 備考 |",
     planned: "*(予定)*",
   },
@@ -403,7 +404,7 @@ import できます。`,
 export function render(lang) {
   const t = text[lang];
   const have = exported();
-  const out = [t.title, "", t.lang, "", t.intro, "", t.defaults, ""];
+  const out = [];
   let planned = 0;
   for (const [group, list] of Object.entries(rows)) {
     out.push(`## ${t.groups[group]}`, "");
@@ -418,6 +419,9 @@ export function render(lang) {
     out.push("");
   }
   out.push(t.bugs, "");
+  // the sentence on planned rows only while there are any
+  const intro = planned > 0 ? t.intro.replace(/\n\n/, ` ${t.plannedNote}\n\n`) : t.intro;
+  out.unshift(t.title, "", t.lang, "", intro, "", t.defaults, "");
   return { md: out.join("\n"), planned };
 }
 
