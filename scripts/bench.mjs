@@ -76,6 +76,9 @@ const cases = [
   ["qgamma", N, (i) => lib.qgamma(u[i], shape[i])],
   ["pnbinom", N, (i) => lib.pnbinom(nq[i], size[i], { prob: prob[i] })],
   ["tTest (Welch, 30 and 25)", samples.length, (i) => lib.tTest(samples[i][0], samples[i][1])],
+  // Large parameters (docs/performance.md, "Large parameters"): the centre of the incomplete beta function
+  ...[10, 1e3, 1e5, 1e6].map((s) => [`pbeta(0.5, a, a), a = ${s}`, 200, () => lib.pbeta(0.5, s, s)]),
+  ...[1e3, 1e4, 1e5, 1e6].map((n) => [`pbinom(n/2, n, 0.5), n = ${n}`, 200, () => lib.pbinom(n / 2, n, 0.5)]),
 ];
 
 function time(n, f) {

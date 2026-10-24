@@ -17,6 +17,7 @@ import { dbinomExponent, dbinomRawDD } from "./loader.js";
 import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddSub, twoProd, twoSum, type DD } from "./dd.js";
 import { lgamma1p } from "./gamma.js";
 import { lgammaDiff } from "./lgammaDiff.js";
+import { betaIncTemme, TEMME_MIN_M } from "./incbetTemme.js";
 
 const BIG = 4.503599627370496e15;
 const BIGINV = 2.22044604925031308085e-16;
@@ -317,6 +318,13 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
     const own = small === lower;
     if (own) return [lt, Math.exp(e[0]) * (1 + e[1])];
     return [wantLog ? Math.log1p(-Math.exp(lt)) : NaN, -Math.expm1(lt)];
+  }
+
+  // Both parameters large and x near the mean: the uniform asymptotic expansion, whose cost does not grow with
+  // the parameters (the continued fraction needs about sqrt(a + b) steps there)
+  if (a >= TEMME_MIN_M && b >= TEMME_MIN_M) {
+    const t = betaIncTemme(a, b, xd, xcd, lower, wantLog);
+    if (t !== undefined) return t;
   }
 
   const [pa, pb, px, pxc] = lower ? [a, b, xd, xcd] : [b, a, xcd, xd];
