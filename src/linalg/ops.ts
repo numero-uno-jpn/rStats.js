@@ -284,50 +284,47 @@ export interface SeqOptions {
  */
 export function seq(from?: number, to?: number, options: SeqOptions = {}): number[] {
   const { by, lengthOut } = options;
-  if (from !== undefined && to === undefined && by === undefined && lengthOut === undefined) {
+  if (to === undefined && by === undefined && lengthOut === undefined && from !== undefined) {
     if (!Number.isFinite(from)) throw new RangeError("'from' must be a finite number");
     return colon(1, from);
   }
-  if ((from !== undefined && !Number.isFinite(from)) || (to !== undefined && !Number.isFinite(to))) {
-    throw new RangeError(`'${from !== undefined && !Number.isFinite(from) ? "from" : "to"}' must be a finite number`);
-  }
+  if (from !== undefined && !Number.isFinite(from)) throw new RangeError("'from' must be a finite number");
+  if (to !== undefined && !Number.isFinite(to)) throw new RangeError("'to' must be a finite number");
+
   if (lengthOut === undefined) {
-    const f = from ?? 1;
-    const tt = to ?? 1;
-    if (by === undefined) return colon(f, tt);
-    const del = tt - f;
-    if (del === 0 && tt === 0) return [tt];
+    if (by === undefined) return colon(from ?? 1, to ?? 1);
+    const a = from ?? 1;
+    const b = to ?? 1;
+    const del = b - a;
+    if (del === 0 && b === 0) return [b];
     const n = del / by;
     if (!Number.isFinite(n)) {
-      if (by === 0 && del === 0) return [f];
+      if (by === 0 && del === 0) return [a];
       throw new RangeError("invalid '(to - from)/by'");
     }
     if (n < 0) throw new RangeError("wrong sign in 'by' argument");
-    if (Math.abs(del) / Math.max(Math.abs(tt), Math.abs(f)) < 100 * Number.EPSILON) return [f];
+    if (Math.abs(del) / Math.max(Math.abs(b), Math.abs(a)) < 100 * Number.EPSILON) return [a];
     const k = Math.trunc(n + 1e-10);
-    return Array.from({ length: k + 1 }, (_, i) => {
-      const v = f + i * by;
-      return by > 0 ? Math.min(v, tt) : Math.max(v, tt);
-    });
+    // the last value may overshoot `to` by rounding: hold it at `to`
+    return Array.from({ length: k + 1 }, (_, i) => (by > 0 ? Math.min(a + i * by, b) : Math.max(a + i * by, b)));
   }
+
   if (!Number.isFinite(lengthOut) || lengthOut < 0) throw new RangeError("'length.out' must be a non-negative number");
-  const L = Math.ceil(lengthOut);
-  if (L === 0) return [];
+  const len = Math.ceil(lengthOut);
+  if (len === 0) return [];
   if (by === undefined) {
-    let f = from;
-    let tt = to;
-    if (tt === undefined) tt = (f ?? 1) + (L - 1);
-    if (f === undefined) f = tt - (L - 1);
-    if (L > 2) {
-      if (f === tt) return new Array<number>(L).fill(f);
-      const n1 = L - 1;
-      const del = tt - f;
-      return [f, ...Array.from({ length: L - 2 }, (_, i) => f! + (i + 1) * (del / n1)), tt];
-    }
-    return [f, tt].slice(0, L);
+    const b = to ?? (from ?? 1) + (len - 1);
+    const a = from ?? b - (len - 1);
+    if (len <= 2) return [a, b].slice(0, len);
+    if (a === b) return new Array<number>(len).fill(a);
+    const step = (b - a) / (len - 1);
+    return Array.from({ length: len }, (_, i) => (i === 0 ? a : i === len - 1 ? b : a + i * step));
   }
-  if (to === undefined) return Array.from({ length: L }, (_, i) => (from ?? 1) + i * by);
-  if (from === undefined) return Array.from({ length: L }, (_, i) => to - (L - 1 - i) * by);
+  if (to === undefined) {
+    const a = from ?? 1;
+    return Array.from({ length: len }, (_, i) => a + i * by);
+  }
+  if (from === undefined) return Array.from({ length: len }, (_, i) => to - (len - 1 - i) * by);
   throw new RangeError("too many arguments");
 }
 

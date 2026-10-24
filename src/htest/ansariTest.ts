@@ -3,7 +3,8 @@
 // Written for rStats.js from the published test (Ansari and Bradley, Ann. Math. Stat. 31, 1960; no ported code).
 // Scores min(r, N + 1 - r) of the pooled ranks r (average ranks for ties); the statistic is the sum over the first
 // sample. Small samples without ties use the exact null distribution (src/htest/core/ansari.ts); the two-sided
-// p-value doubles the smaller tail. Otherwise the statistic is standardised and compared with the normal, with Ansari
+// p-value doubles the tail on the statistic's side of the centre floor((m+1)^2/4) + floor(m n / 2)/2 (the centre
+// follows R's ansari.test behaviour). Otherwise the statistic is standardised and compared with the normal, with Ansari
 // and Bradley's mean and the variance of a linear rank statistic from the observed sum of squared scores (the form
 // scipy.stats.ansari also uses).
 
@@ -45,7 +46,8 @@ export function ansariTest(x: Sample, y: Sample, options: AnsariTestOptions = {}
     const upperFrom = (q: number): number => pansariExact(q - 1, m, n, false); // P(AB >= q)
     const lowerTo = (q: number): number => pansariExact(q, m, n, true); // P(AB <= q)
     if (alternative === "two.sided") {
-      // the smaller tail, judged by the position of the statistic against the centre of the distribution
+      // the smaller tail, judged by the position of the statistic against the centre of the distribution (the centre
+      // follows R's ansari.test behaviour)
       const centre = Math.floor((m + 1) ** 2 / 4) + Math.floor((m * n) / 2) / 2;
       pValue = Math.min(1, 2 * (statistic > centre ? upperFrom(statistic) : lowerTo(statistic)));
     } else if (alternative === "less") pValue = upperFrom(statistic);

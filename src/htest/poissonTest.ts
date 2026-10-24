@@ -1,10 +1,11 @@
 // Exact Poisson tests (R's poisson.test): a rate against a hypothesized value, or the ratio of two rates.
 //
-// Written for rStats.js from the textbook construction (no ported code). One sample: the two-sided p-value adds the
-// probabilities of all counts no more likely than the observed one (relative slack 1e-7, as in binomTest), and the
-// interval is the exact (Garwood 1936) one from gamma quantiles. Two samples: conditionally on the total, the first
-// count is binomial with probability r T1 / (r T1 + T2), so the test is binomTest's and its interval for p maps to
-// the rate ratio through p / (1 - p) T2 / T1.
+// Written for rStats.js from the textbook construction and R's documented behaviour. One sample: the two-sided p-value
+// adds the probabilities of all counts no more likely than the observed one (relative slack 1e-7, as in binomTest), the
+// tail on the far side of the mode being located by a search over integers, and the interval is the exact (Garwood
+// 1936) one from gamma quantiles. Two samples: conditionally on the total, the first count is binomial with
+// probability r T1 / (r T1 + T2), so the test is binomTest's and its interval for p maps to the rate ratio through
+// p / (1 - p) T2 / T1.
 
 import { dpois1, ppois1 } from "../distributions/poisson.js";
 import { qgamma1 } from "../distributions/gamma.js";
@@ -40,24 +41,56 @@ function isCount(v: number): boolean {
   return Number.isFinite(v) && v >= 0 && Math.abs(v - Math.round(v)) <= 1e-7 * Math.max(1, Math.abs(v));
 }
 
+
+/**
+ * Two-sided p-value of the count x under Poisson(m): the total probability of the counts whose probability is at most
+ * (1 + 1e-7) times that of x. The density is unimodal (increasing up to floor(m), decreasing after), so the observed
+ * side contributes the tail through x and the other side the tail beyond the first qualifying count j past the mode,
+ * located by doubling the step away from the mode (right side) and bisecting on integers.
+ */
 function twoSidedP(x: number, m: number): number {
-  if (m === 0) return Number(x === 0);
-  const d = dpois1(x, m, false);
+  if (m === 0) return x === 0 ? 1 : 0;
   if (x === m) return 1;
-  let pv: number;
+  const cut = dpois1(x, m, false) * REL_ERR;
+  const qualifies = (i: number): boolean => dpois1(i, m, false) <= cut;
+  const mode = Math.floor(m);
   if (x < m) {
-    // the upper tail of counts no more likely than x ends before N
-    let N = Math.ceil(2 * m - x);
-    while (dpois1(N, m, false) > d) N *= 2;
-    let y = 0;
-    for (let i = Math.ceil(m); i <= N; i++) if (dpois1(i, m, false) <= d * REL_ERR) y++;
-    pv = ppois1(x, m, true, false) + ppois1(N - y, m, false, false);
-  } else {
-    let y = 0;
-    for (let i = 0; i <= Math.floor(m); i++) if (dpois1(i, m, false) <= d * REL_ERR) y++;
-    pv = ppois1(y - 1, m, true, false) + ppois1(x - 1, m, false, false);
+    // smallest j >= start with dpois(j) <= cut; densities decrease from the mode onwards (with m an integer, m - 1
+    // and m are equally likely, so starting at x + 1 picks up m when x = m - 1)
+    const start = Math.max(x + 1, mode);
+    let j = start;
+    if (!qualifies(start)) {
+      let fails = start; // largest count known not to qualify
+      let step = 1;
+      j = start + 1;
+      while (!qualifies(j)) {
+        fails = j;
+        step *= 2;
+        j = start + step;
+      }
+      while (j - fails > 1) {
+        const mid = fails + Math.floor((j - fails) / 2);
+        if (qualifies(mid)) j = mid;
+        else fails = mid;
+      }
+    }
+    return Math.min(1, ppois1(x, m, true, false) + ppois1(j - 1, m, false, false));
   }
-  return Math.min(1, pv);
+  // x > m: largest j <= end with dpois(j) <= cut; densities increase from 0 up to the mode (j = -1 when none does)
+  const end = Math.min(x - 1, mode);
+  let j: number;
+  if (!qualifies(0)) j = -1;
+  else if (qualifies(end)) j = end;
+  else {
+    j = 0;
+    let fails = end; // smallest count known not to qualify
+    while (fails - j > 1) {
+      const mid = j + Math.floor((fails - j) / 2);
+      if (qualifies(mid)) j = mid;
+      else fails = mid;
+    }
+  }
+  return Math.min(1, ppois1(j, m, true, false) + ppois1(x - 1, m, false, false));
 }
 
 /**

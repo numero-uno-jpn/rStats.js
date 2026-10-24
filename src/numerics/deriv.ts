@@ -55,7 +55,7 @@ function shifted(x: readonly number[], i: number, h: number): number[] {
 
 function method(options: DerivOptions): "Richardson" | "simple" {
   const m = options.method ?? "Richardson";
-  if (m !== "Richardson" && m !== "simple") throw new RangeError(`indicated method ${String(m)} not supported.`);
+  if (m !== "Richardson" && m !== "simple") throw new RangeError(`unknown method "${String(m)}" (expected "Richardson" or "simple")`);
   return m;
 }
 
@@ -84,7 +84,7 @@ export function grad(func: (x: number[]) => number, x: readonly number[], option
       // a central difference below 1e-20 is taken as 0 at the smaller steps (functions unstable near 0), as numDeriv does
       if (k > 0 && Math.abs(a[k - 1]!) < 1e-20) a.push(0);
       else a.push((func(shifted(xs, i, h)) - func(shifted(xs, i, -h))) / (2 * h));
-      if (Number.isNaN(a[k]!)) throw new RangeError(`function returns NA at ${h} distance from x.`);
+      if (Number.isNaN(a[k]!)) throw new RangeError(`func returned NaN at step ${h} from x`);
       h /= 2;
     }
     out.push(extrapolate(a));
@@ -134,7 +134,7 @@ export function jacobian(func: (x: number[]) => readonly number[], x: readonly n
  * ```
  */
 export function hessian(func: (x: number[]) => number, x: readonly number[], options: DerivOptions = {}): number[][] {
-  if ((options.method ?? "Richardson") !== "Richardson") throw new RangeError("method not implemented.");
+  if ((options.method ?? "Richardson") !== "Richardson") throw new RangeError('hessian supports only method "Richardson"');
   const xs = [...x];
   const n = xs.length;
   const { r, h0 } = steps(xs, options, 0.1);

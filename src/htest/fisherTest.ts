@@ -1,15 +1,19 @@
 // Fisher's exact test (R's fisher.test).
 //
-// 2x2 tables: with the margins fixed, the (1, 1) cell follows a noncentral hypergeometric distribution
-// (noncentrality = odds ratio; Fisher 1935). The conditional MLE is the noncentrality whose mean equals the
-// cell value; the confidence limits are the noncentralities at which a one-sided probability equals α. This construction
-// is the same as scipy.stats.contingency.odds_ratio (scipy/stats/_odds_ratio.py; SciPy commit a087e61,
-// BSD-3-Clause, see THIRD_PARTY_NOTICES.md). The root finding and defaults follow observed R output.
-// - Roots are found with uniroot (Brent, tolerance eps^0.25): if the noncentrality ψ is below 1, search
-//   ψ ∈ [0, 1]; if above 1, search 1/ψ ∈ [ε, 1] (R's estimate and interval endpoints are 1e-6 to 1e-2 away
-//   from the true roots, but this procedure reproduces them to the last few digits)
-// - The two-sided p-value is the sum of probabilities of tables whose probability is at most (1 + 1e-7) times the observed one
+// 2x2 tables, written for rStats.js from the textbook construction and R's documented behaviour: with the margins
+// fixed, the (1, 1) cell follows Fisher's noncentral hypergeometric distribution, the central hypergeometric density
+// tilted by psi^x (noncentrality psi = odds ratio; Fisher 1935, Cornfield 1956). The conditional MLE is the psi whose
+// mean equals the observed cell; the confidence limits are the psi at which a one-sided tail probability equals α.
+// - Densities are formed in logs from the accurate log dhyper (evaluated every 16 points, exact ratios in
+//   between) and normalised with double-double sums, so the root
+//   search sees accurate function values; at psi = 1 the tails are the central hypergeometric distribution function
+// - Roots are found with R's uniroot conventions (Brent, tolerance eps^0.25; src/internal/uniroot.ts): if the root
+//   lies below 1, on psi in [0, 1]; otherwise on s = 1/psi in [eps, 1]. R's estimate and limits are where this
+//   iteration stops (1e-6 to 1e-2 from the true roots), so the brackets and tolerance are part of the result
+// - The two-sided p-value is the sum of probabilities of tables whose probability is at most (1 + 1e-7) times the
+//   observed one (R's convention); for or = 0 or Inf the distribution is a point mass at the end of the support
 // - Counts are made integer by rounding half to even (R rounds with a warning)
+// The same distribution and root conventions are used for the exact Mantel-Haenszel test (src/htest/core/mantelhaen.ts).
 //
 // rxc tables: the probabilities of tables with fixed margins (multivariate hypergeometric) are
 // traversed via a network that fixes one column at a time (Mehta & Patel 1983, JASA 78, 427-434),
@@ -51,10 +55,6 @@ export interface FisherTestOptions {
  * for larger tables only `method`, `alternative` and `pValue` are set.
  */
 export interface FisherTestResult extends Omit<HTest, "statistic" | "statisticName"> {}
-
-/** Relative tolerance for treating a table as "equally probable as the observed table" in the two-sided p-value */
-const REL_ERR = 1 + 1e-7;
-
 
 /**
  * Fisher's exact test for count data. Equivalent to R's `fisher.test()`.
@@ -103,11 +103,28 @@ export function fisherTest(x: readonly Counts[], options: FisherTestOptions = {}
 
 // ---- 2×2 ----
 
-/** Noncentral hypergeometric distribution (the (1, 1) cell of a 2x2 table) */
-class NoncentralHyper {
+/** Relative slack for counting a table as "no more likely than the observed one" in the two-sided p-value */
+const SLACK = 1 + 1e-7;
+
+/** Spacing of the points at which the central log density is evaluated directly */
+const ANCHOR = 16;
+
+/** Double-double sum of v[from..to] (inclusive, clipped to the array) */
+function accurateSum(v: Float64Array, from: number, to: number): number {
+  let acc: DD = [0, 0];
+  for (let i = Math.max(0, from); i <= Math.min(to, v.length - 1); i++) if (v[i] !== 0) acc = ddAdd(acc, [v[i]!, 0]);
+  return acc[0];
+}
+
+/**
+ * Fisher's noncentral hypergeometric distribution of the (1, 1) cell of a 2 x 2 table with margins fixed:
+ * P(X = i; psi) proportional to dhyper(i; m, n, k) psi^i on lo..hi
+ */
+class OddsRatioDistribution {
   readonly lo: number;
   readonly hi: number;
-  private readonly logdc: Float64Array;
+  /** log dhyper(i; m, n, k) for i = lo..hi */
+  private readonly logCentral: Float64Array;
 
   constructor(
     private readonly m: number,
@@ -116,74 +133,74 @@ class NoncentralHyper {
   ) {
     this.lo = Math.max(0, k - n);
     this.hi = Math.min(k, m);
-    // log P(X = x). Computed with dhyper every 64 points, linked in between by the ratio of neighbours
-    // P(x + 1) / P(x) = (m - x)(k - x) / ((x + 1)(n - k + x + 1)) (the log-ratio error is about
-    // 1 ulp, so 63 chained steps stay within 1e-14; calling dhyper at every point is slow for large tables)
-    const len = this.hi - this.lo + 1;
-    this.logdc = new Float64Array(len);
-    for (let i = 0; i < len; i++) {
-      const x = this.lo + i;
-      if (i % 64 === 0) this.logdc[i] = dhyper1(x, m, n, k, true);
-      else {
-        const y = x - 1;
-        this.logdc[i] = this.logdc[i - 1]! + Math.log(((m - y) * (k - y)) / ((y + 1) * (n - k + y + 1)));
-      }
+    this.logCentral = new Float64Array(this.hi - this.lo + 1);
+    // dhyper1 at every ANCHOR-th point; in between, multiply by the exact ratio
+    // c(i+1)/c(i) = (m - i)(k - i) / ((i + 1)(n - k + i + 1)) (the product stays within a few ulps)
+    let anchor = 0;
+    let prod = 1;
+    for (let i = this.lo; i <= this.hi; i++) {
+      const j = i - this.lo;
+      if (j % ANCHOR === 0 || !(prod > 0 && prod < Infinity)) {
+        anchor = dhyper1(i, m, n, k, true);
+        prod = 1;
+        this.logCentral[j] = anchor;
+      } else this.logCentral[j] = anchor + Math.log(prod);
+      prod *= ((m - i) * (k - i)) / ((i + 1) * (n - k + i + 1));
     }
   }
 
-  /** Probabilities (in support order). The noncentrality ncp satisfies 0 < ncp < ∞ */
-  density(ncp: number): Float64Array {
-    const lc = Math.log(ncp);
-    const d = new Float64Array(this.logdc.length);
-    let max = -Infinity;
-    for (let i = 0; i < d.length; i++) {
-      d[i] = this.logdc[i]! + lc * (this.lo + i);
-      if (d[i]! > max) max = d[i]!;
+  /** Normalised density on lo..hi for 0 < psi < Infinity */
+  density(psi: number): Float64Array {
+    const len = this.logCentral.length;
+    const lp = Math.log(psi);
+    const out = new Float64Array(len);
+    let top = -Infinity;
+    for (let j = 0; j < len; j++) {
+      const v = this.logCentral[j]! + (this.lo + j) * lp;
+      out[j] = v;
+      if (v > top) top = v;
     }
-    // Skip exp where exp(d - max) underflows to 0 (R also gives 0 there)
-    for (let i = 0; i < d.length; i++) d[i] = d[i]! - max < -760 ? 0 : Math.exp(d[i]! - max);
-    const s = sumDD(d, 0, d.length);
-    for (let i = 0; i < d.length; i++) d[i] = d[i]! / s;
-    return d;
+    // exp underflows to exactly 0 below -746; skipping those terms leaves every sum unchanged
+    for (let j = 0; j < len; j++) {
+      const e = out[j]! - top;
+      out[j] = e < -746 ? 0 : Math.exp(e);
+    }
+    const total = accurateSum(out, 0, len - 1);
+    for (let j = 0; j < len; j++) if (out[j] !== 0) out[j] = out[j]! / total;
+    return out;
   }
 
-  mean(ncp: number): number {
-    if (ncp === 0) return this.lo;
-    if (ncp === Infinity) return this.hi;
-    const d = this.density(ncp);
-    let s: DD = [0, 0];
-    for (let i = 0; i < d.length; i++) s = ddAdd(s, [(this.lo + i) * d[i]!, 0]);
-    return s[0];
+  /** E[X; psi] */
+  mean(psi: number): number {
+    if (psi === 0) return this.lo;
+    if (psi === Infinity) return this.hi;
+    const d = this.density(psi);
+    let acc: DD = [0, 0];
+    for (let j = 0; j < d.length; j++) if (d[j] !== 0) acc = ddAdd(acc, [(this.lo + j) * d[j]!, 0]);
+    return acc[0];
   }
 
-  /** P(X <= q) (P(X >= q) if upper) */
-  cdf(q: number, ncp: number, upper: boolean): number {
-    if (ncp === 1) {
+  /** P(X <= q; psi), or P(X >= q; psi) when upper */
+  tail(q: number, psi: number, upper: boolean): number {
+    if (psi === 1) {
       return upper ? phyper1(q - 1, this.m, this.n, this.k, false, false) : phyper1(q, this.m, this.n, this.k, true, false);
     }
-    if (ncp === 0) return Number(upper ? q <= this.lo : q >= this.lo);
-    if (ncp === Infinity) return Number(upper ? q <= this.hi : q >= this.hi);
-    const d = this.density(ncp);
-    const i = q - this.lo;
-    return upper ? sumDD(d, i, d.length) : sumDD(d, 0, i + 1);
+    if (psi === 0 || psi === Infinity) {
+      const at = psi === 0 ? this.lo : this.hi;
+      return (upper ? q <= at : q >= at) ? 1 : 0;
+    }
+    const d = this.density(psi);
+    const j = q - this.lo;
+    return upper ? accurateSum(d, j, d.length - 1) : accurateSum(d, 0, j);
   }
-}
-
-function sumDD(d: Float64Array, from: number, to: number): number {
-  let s: DD = [0, 0];
-  for (let i = Math.max(0, from); i < Math.min(to, d.length); i++) s = ddAdd(s, [d[i]!, 0]);
-  return s[0];
 }
 
 /**
- * Root of the increasing function f(ψ) = 0. If f(1) < 0 there is no root in ψ ∈ [0, 1], so search 1/ψ ∈ [ε, 1]
- * (the caller chooses the interval from the sign of f(1))
+ * Root of f, monotone in the odds ratio psi: searched for as psi in [0, 1] when it lies below 1, otherwise as
+ * s = 1/psi in [eps, 1] (uniroot with its default tolerance in both cases)
  */
-function rootBelowOne(f: (psi: number) => number): number {
-  return uniroot(f, 0, 1);
-}
-function rootAboveOne(f: (psi: number) => number): number {
-  return 1 / uniroot((t) => f(1 / t), Number.EPSILON, 1);
+function oddsRatioRoot(f: (psi: number) => number, belowOne: boolean): number {
+  return belowOne ? uniroot(f, 0, 1) : 1 / uniroot((s) => f(1 / s), Number.EPSILON, 1);
 }
 
 function fisher2x2(t: number[][], options: FisherTestOptions, method: string): FisherTestResult {
@@ -192,33 +209,30 @@ function fisher2x2(t: number[][], options: FisherTestOptions, method: string): F
   if (!(or >= 0)) throw new RangeError("'or' must be a single number between 0 and Inf");
   const confLevel = options.confLevel ?? 0.95;
   if (!(confLevel > 0 && confLevel < 1)) throw new RangeError("confLevel must be a single number between 0 and 1");
-  const x = t[0]![0]!;
-  const m = x + t[1]![0]!;
-  const n = t[0]![1]! + t[1]![1]!;
-  const k = x + t[0]![1]!;
-  const h = new NoncentralHyper(m, n, k);
+  const [[a, b], [c, d]] = t as [[number, number], [number, number]];
+  const x = a;
+  const dist = new OddsRatioDistribution(a + c, b + d, a + b);
+  const { lo, hi } = dist;
 
   let pValue: number;
-  if (alternative === "less") pValue = h.cdf(x, or, false);
-  else if (alternative === "greater") pValue = h.cdf(x, or, true);
-  else if (or === 0) pValue = Number(x === h.lo);
-  else if (or === Infinity) pValue = Number(x === h.hi);
+  if (alternative === "less") pValue = dist.tail(x, or, false);
+  else if (alternative === "greater") pValue = dist.tail(x, or, true);
+  else if (or === 0) pValue = x === lo ? 1 : 0;
+  else if (or === Infinity) pValue = x === hi ? 1 : 0;
   else {
-    const d = h.density(or);
-    const limit = d[x - h.lo]! * REL_ERR;
-    let s: DD = [0, 0];
-    for (const v of d) if (v <= limit) s = ddAdd(s, [v, 0]);
-    pValue = s[0];
+    const dens = dist.density(or);
+    const cut = dens[x - lo]! * SLACK;
+    let acc: DD = [0, 0];
+    for (const v of dens) if (v <= cut) acc = ddAdd(acc, [v, 0]);
+    pValue = acc[0];
   }
 
-  // Conditional MLE: the noncentrality whose mean is x
   let estimate: number;
-  if (x === h.lo) estimate = 0;
-  else if (x === h.hi) estimate = Infinity;
+  if (x === lo) estimate = 0;
+  else if (x === hi) estimate = Infinity;
   else {
-    const mu = h.mean(1);
-    const f = (psi: number): number => h.mean(psi) - x;
-    estimate = mu > x ? rootBelowOne(f) : mu < x ? rootAboveOne(f) : 1;
+    const mu1 = dist.mean(1);
+    estimate = mu1 === x ? 1 : oddsRatioRoot((psi) => dist.mean(psi) - x, mu1 > x);
   }
 
   const result: FisherTestResult = {
@@ -230,30 +244,27 @@ function fisher2x2(t: number[][], options: FisherTestOptions, method: string): F
     nullValue: or,
     nullValueName: "odds ratio",
   };
-  if (options.confInt ?? true) {
-    // Upper limit: P(X <= x; ψ) = α (P is decreasing in ψ)
-    const upper = (alpha: number): number => {
-      if (x === h.hi) return Infinity;
-      const p = h.cdf(x, 1, false);
-      const f = (psi: number): number => alpha - h.cdf(x, psi, false);
-      return p < alpha ? rootBelowOne(f) : p > alpha ? rootAboveOne(f) : 1;
-    };
-    // Lower limit: P(X >= x; ψ) = α (P is increasing in ψ)
-    const lower = (alpha: number): number => {
-      if (x === h.lo) return 0;
-      const p = h.cdf(x, 1, true);
-      const f = (psi: number): number => h.cdf(x, psi, true) - alpha;
-      return p > alpha ? rootBelowOne(f) : p < alpha ? rootAboveOne(f) : 1;
-    };
-    result.confInt =
-      alternative === "less"
-        ? [0, upper(1 - confLevel)]
-        : alternative === "greater"
-          ? [lower(1 - confLevel), Infinity]
-          : [lower((1 - confLevel) / 2), upper((1 - confLevel) / 2)];
-    result.confLevel = confLevel;
+  if (!(options.confInt ?? true)) return result;
+
+  // P(X <= x; psi) decreases and P(X >= x; psi) increases in psi
+  const upperLimit = (level: number): number => {
+    if (x === hi) return Infinity;
+    const p1 = dist.tail(x, 1, false);
+    return p1 === level ? 1 : oddsRatioRoot((psi) => dist.tail(x, psi, false) - level, p1 < level);
+  };
+  const lowerLimit = (level: number): number => {
+    if (x === lo) return 0;
+    const p1 = dist.tail(x, 1, true);
+    return p1 === level ? 1 : oddsRatioRoot((psi) => dist.tail(x, psi, true) - level, p1 > level);
+  };
+  let confInt: [number, number];
+  if (alternative === "less") confInt = [0, upperLimit(1 - confLevel)];
+  else if (alternative === "greater") confInt = [lowerLimit(1 - confLevel), Infinity];
+  else {
+    const alpha = (1 - confLevel) / 2;
+    confInt = [lowerLimit(alpha), upperLimit(alpha)];
   }
-  return result;
+  return { ...result, confInt, confLevel };
 }
 
 // ---- r×c ----

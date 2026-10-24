@@ -44,7 +44,10 @@ fns <- list(
   atan1      = list(r = function(x) atan(x) - 1,              js = "Math.atan(x) - 1"),
   expBig     = list(r = function(x) exp(x) - 1e6,             js = "Math.exp(x) - 1e6"),
   lin5       = list(r = function(x) x - 5,                    js = "x - 5"),
-  pos        = list(r = function(x) x^2 + 1,                  js = "x * x + 1")
+  pos        = list(r = function(x) x^2 + 1,                  js = "x * x + 1"),
+  nanMid     = list(r = function(x) if (x < 0) -1 else if (x < 1) NaN else 1,  js = "x < 0 ? -1 : x < 1 ? NaN : 1"),
+  infHi      = list(r = function(x) if (x < 0.5) -1 else Inf,                  js = "x < 0.5 ? -1 : Infinity"),
+  nanLeft    = list(r = function(x) if (x < -1e-4) NaN else x - 10,            js = "x < -1e-4 ? NaN : x - 10")
 )
 F <- function(id) fns[[id]]$r
 
@@ -93,6 +96,12 @@ roots <- list(list("sq2", 0, 2), list("cosx", 0, 1), list("cub", 1, 2), list("at
 for (r in roots) for (tol in list(NULL, 1e-12)) for (ext in c("no", "yes"))
   add(fn = r[[1]], js = fns[[r[[1]]]]$js, lower = r[[2]], upper = r[[3]], tol = tol, extendInt = ext)
 add(fn = "sq2", js = fns$sq2$js, lower = 0, upper = 2, maxiter = 3)
+# non-finite values of f are replaced by the largest finite numbers (R warns); a NaN met while extending the
+# interval undoes that step; extension in one direction
+add(fn = "nanMid", js = fns$nanMid$js, lower = -1, upper = 3)
+add(fn = "infHi", js = fns$infHi$js, lower = 0, upper = 3)
+add(fn = "nanLeft", js = fns$nanLeft$js, lower = 0, upper = 1, extendInt = "yes")
+add(fn = "lin5", js = fns$lin5$js, lower = 0, upper = 1, extendInt = "upX")
 write_htest_fixture("uniroot", cases, function(a) {
   r <- call_with(uniroot, list(f = F(a$fn), lower = a$lower, upper = a$upper, tol = a$tol, maxiter = a$maxiter,
                                extendInt = a$extendInt))
@@ -127,6 +136,11 @@ for (m in c("fmm", "natural", "periodic", "hyman")) {
   add(x = I(sx), y = I(y), method = m, xout = I(sq))
 }
 add(x = I(c(1, 2, 3)), y = I(c(1, 4, 9)), method = "fmm", xmin = 0, xmax = 4, n = 5)
+# without xout, n, xmin and xmax come from the regularized x (NA pairs dropped, ties merged)
+add(x = I(c(1, 2, NA, 4, 5)), y = I(c(1, 4, 2, 6, 3)), method = "fmm")
+add(x = I(c(1, 2, 3, 4, 5)), y = I(c(1, NA, 2, 6, 3)), method = "natural")
+add(x = I(c(1, 2, 2, 3, 4)), y = I(c(1, 3, 5, 2, 4)), method = "fmm")
+add(x = I(c(4, 2, 1, 2, 3)), y = I(c(4, 5, 1, 3, 2)), method = "natural")
 write_htest_fixture("spline", cases, function(a) {
   r <- call_with(spline, list(x = a$x, y = a$y, n = a$n, method = a$method, xout = a$xout, xmin = a$xmin,
                               xmax = a$xmax))

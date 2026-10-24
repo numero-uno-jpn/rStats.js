@@ -1,14 +1,15 @@
 // Cochran-Mantel-Haenszel tests for stratified contingency tables (R's mantelhaen.test).
 //
-// Written for rStats.js from the published methods (no ported code):
+// Written for rStats.js from the published methods and R's behaviour:
 // - 2 x 2 x K: the Mantel-Haenszel statistic (|sum a - sum E(a)| - c)^2 / sum Var(a) with E(a) = r1 c1 / t and
 //   Var(a) = r1 r2 c1 c2 / (t^2 (t - 1)) per stratum (Mantel and Haenszel, JNCI 22, 1959), continuity correction
 //   c = 1/2 unless |sum a - sum E(a)| < 1/2; the Mantel-Haenszel common odds ratio sum(a d / t) / sum(b c / t), with
 //   the interval from the variance of its log by Robins, Breslow and Greenland (Biometrics 42, 1986).
-// - 2 x 2 x K exact (exact = TRUE): the conditional distribution of sum a given all margins
-//   (src/htest/core/mantelhaen.ts); the two-sided p-value adds the probabilities no larger than the observed one
-//   (relative slack 1e-7), and the estimate and limits are the conditional MLE and the noncentralities at which a
-//   one-sided probability equals alpha.
+// - 2 x 2 x K exact (exact = TRUE): the conditional distribution of S = sum a given all margins, a convolution of
+//   noncentral hypergeometric distributions with the common odds ratio as noncentrality (src/htest/core/mantelhaen.ts;
+//   Birch, JRSS B 26, 1964). One-sided p-values are tail probabilities under psi = 1; the two-sided p-value adds the
+//   null probabilities no larger than the observed one (relative slack 1e-7), and the estimate and limits are the
+//   conditional MLE and the noncentralities at which a one-sided probability equals alpha.
 // - I x J x K: the generalized statistic (n - m)' V^-1 (n - m) on the first (I - 1)(J - 1) cells summed over strata,
 //   with the hypergeometric covariance V = (t^2 (t - 1))^-1 (t diag(r) - r r') (x) (t diag(c) - c c') per stratum
 //   (Landis, Heyman and Koch, Int. Stat. Review 46, 1978); chi-squared with (I - 1)(J - 1) degrees of freedom.
@@ -16,6 +17,7 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { solve } from "../linalg/solve.js";
+import { ddAdd, type DD } from "../special/dd.js";
 import { ConvolvedNoncentralHyper, conditionalMLE, lowerLimit, upperLimit, type Stratum } from "./core/mantelhaen.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
@@ -141,20 +143,20 @@ function asymptotic2x2xK(
   };
 }
 
+
+/** Exact conditional test on 2 x 2 x K tables: S = sum of the (1, 1) cells given all margins */
 function exact2x2xK(tables: readonly Stratum[], alternative: Alternative, confLevel: number): MantelhaenTestResult {
   const h = new ConvolvedNoncentralHyper(tables);
-  let s = 0;
-  for (const [[a]] of tables) s += a;
+  const s = tables.reduce((acc, t) => acc + t[0][0], 0);
   let pValue: number;
-  if (alternative === "less") pValue = h.cdf(s, 1, false);
-  else if (alternative === "greater") pValue = h.cdf(s, 1, true);
-  else {
-    const d = h.density(1);
-    const ds = d[s - h.lo]! * (1 + 1e-7);
-    let p = 0;
-    for (const v of d) if (v <= ds) p += v;
-    pValue = Math.min(1, p);
-  }
+  if (alternative === "two.sided") {
+    // add the null probabilities of the sums no more likely than the observed one (relative slack 1e-7)
+    const d0 = h.density(1);
+    const cut = d0[s - h.lo]! * (1 + 1e-7);
+    let acc: DD = [0, 0];
+    for (const v of d0) if (v <= cut) acc = ddAdd(acc, [v, 0]);
+    pValue = Math.min(1, acc[0]);
+  } else pValue = h.cdf(s, 1, alternative === "greater");
   let confInt: [number, number];
   if (alternative === "less") confInt = [0, upperLimit(h, s, 1 - confLevel)];
   else if (alternative === "greater") confInt = [lowerLimit(h, s, 1 - confLevel), Infinity];

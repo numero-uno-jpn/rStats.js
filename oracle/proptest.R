@@ -32,6 +32,13 @@ for (alt in alts) {
 }
 for (cl in c(0.5, 0.999999)) add(x = 15, n = 20, confLevel = cl)
 add(x = c(1, NA, 3), n = c(10, 10, 10))
+# a missing group together with p: p has the length before dropping and is reduced to the kept groups
+add(x = c(10, NA, 30), n = c(50, 50, 50), p = c(0.2, 0.5, 0.6))
+add(x = c(10, 20, 30), n = c(50, NA, 50), p = c(0.2, 0.5, 0.6))
+add(x = c(10, NA, 30), n = c(50, 50, 50), p = c(0.2, 0.6))
+add(x = c(NA, 12), n = c(20, 20), p = c(0.3, 0.5), alternative = "less")
+add(x = c(7, NA), n = c(20, 20), p = c(0.3, 0.5), alternative = "greater")
+add(x = c(7, NA), n = c(20, 20), p = c(0.3, 1.5))
 add(x = 11, n = 10)
 add(x = -1, n = 10)
 add(x = 3, n = 10, p = 0)

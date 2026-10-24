@@ -13,7 +13,8 @@
 // - Pairs containing NaN are dropped (Inf is kept). Pearson needs at least 3 pairs, Kendall and Spearman at least 2
 // - Kendall's exact method is the default when n < 50 and there are no ties. Even with exact = true, ties force the normal approximation
 // - Spearman's exact method (AS 89) is the default when n <= 1290 and there are no ties (off by one from "n < 1290" in R's help).
-//   Within AS 89, n <= 9 is enumerated exactly and n >= 10 uses the Edgeworth series. With ties, the t approximation is used
+//   Within AS 89, n <= 9 is enumerated exactly and n >= 10 uses the Edgeworth series (this n <= 9 switch follows
+//   R's behaviour). With ties, the t approximation is used
 // - continuity only affects the approximations. For Kendall it moves S one step towards 0. For Spearman it
 //   replaces rho with (rho + 6 / (n^3 - n)) / (1 + 6 / (n^3 - n)) (regardless of sign or alternative; R's behaviour)
 // - When the correlation is undefined (constant data), the statistic, p-value, estimate and interval are NaN. Kendall's

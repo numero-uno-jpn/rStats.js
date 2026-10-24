@@ -1,7 +1,7 @@
 // One-dimensional minimisation without derivatives (localmin from Brent 1973, "Algorithms for Minimization without
 // Derivatives", chapter 5), the algorithm behind R's optimize(). Golden-section search combined with successive
 // parabolic interpolation. The procedure follows the ALGOL 60 procedure in Brent's book (the same as netlib's
-// fmin.f, public domain), written for rStats.js like src/internal/uniroot.ts.
+// fmin.f, public domain), written for rStats.js.
 
 /** Default tolerance .Machine$double.eps^0.25, as in R's optimize */
 export const LOCALMIN_TOL = Math.pow(Number.EPSILON, 0.25);

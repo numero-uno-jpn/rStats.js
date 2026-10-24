@@ -1,10 +1,13 @@
 // One-way analysis of variance (the table of R's summary(aov(y ~ g))), Tukey's honest significant differences (R's
-// TukeyHSD) and the z test with known standard deviations (BSDA's z.test).
+// TukeyHSD) and the z test with known standard deviations (as BSDA's z.test).
 //
-// Written for rStats.js from the textbook formulas (no ported code). The sums of squares are accumulated in
+// Written for rStats.js from the textbook formulas. The sums of squares are accumulated in
 // double-double: between groups sum n_i (m_i - m)^2, within groups sum (x - m_i)^2, so a within sum that is exactly
 // 0 stays 0 (F = Inf; R's QR leaves rounding residue there). TukeyHSD uses the Tukey-Kramer standard error
 // sqrt(MSE / 2 (1/n_i + 1/n_j)) with the studentized range distribution for the interval and the adjusted p-value.
+// zTest is the textbook z test (standard error sigma / sqrt(n), or sqrt(sigma_x^2/n_x + sigma_y^2/n_y) for two
+// samples, normal quantiles for the interval around the estimate); its input checks (at least 3 observations,
+// confLevel allowed in the closed [0, 1]) follow BSDA's documented/observed behaviour, with messages of our own.
 
 import { pf1 } from "../distributions/f.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
@@ -170,63 +173,56 @@ export interface ZTestOptions {
  * ```
  */
 export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOptions = {}): HTest {
-  let ys: number[] | undefined;
-  if (y !== undefined && !Array.isArray(y) && !ArrayBuffer.isView(y)) options = y as ZTestOptions;
-  else if (y !== undefined) ys = Array.from(y as Sample).filter((v) => !Number.isNaN(v));
+  let ys: Sample | undefined;
+  if (y !== undefined && !ArrayBuffer.isView(y) && !Array.isArray(y)) options = y as ZTestOptions;
+  else ys = y as Sample | undefined;
   const { sigmaX, sigmaY } = options;
-  if (sigmaX === undefined && ys === undefined) throw new RangeError("You must enter the value for sigma.x");
-  if (sigmaX === undefined || (ys !== undefined && sigmaY === undefined)) {
-    throw new RangeError("You must enter values for both sigma.x and sigma.y");
-  }
   const mu = options.mu ?? 0;
-  if (Number.isNaN(mu)) throw new RangeError("mu must be a single number");
+  if (sigmaX === undefined && ys === undefined) throw new RangeError("sigmaX (the known standard deviation of x) is required");
+  if (sigmaX === undefined || (ys !== undefined && sigmaY === undefined)) {
+    throw new RangeError("sigmaX and sigmaY are both required for two samples");
+  }
+  if (Number.isNaN(mu)) throw new RangeError("mu must be a number");
   const alternative = matchAlternative(options.alternative);
   const confLevel = options.confLevel ?? 0.95;
-  if (!(confLevel >= 0 && confLevel <= 1)) throw new RangeError("conf.level must be a number between 0 and 1");
+  if (!(confLevel >= 0 && confLevel <= 1)) throw new RangeError("confLevel must be between 0 and 1");
   const xs = Array.from(x).filter((v) => !Number.isNaN(v));
-  if (xs.length <= 2) throw new RangeError("not enough x observations");
-  const mx = meanDD(xs)[0];
-  let stderr: number;
-  let z: number;
-  let estimate: number | number[];
-  let estimateNames: string | string[];
-  if (ys === undefined) {
-    stderr = sigmaX / Math.sqrt(xs.length);
-    z = (mx - mu) / stderr;
-    estimate = mx;
-    estimateNames = "mean of x";
-  } else {
-    if (ys.length <= 2) throw new RangeError("not enough y observations");
-    const my = meanDD(ys)[0];
-    stderr = Math.sqrt(sigmaX ** 2 / xs.length + sigmaY! ** 2 / ys.length);
-    z = (mx - my - mu) / stderr;
-    estimate = [mx, my];
-    estimateNames = ["mean of x", "mean of y"];
-  }
+  const yv = ys === undefined ? undefined : Array.from(ys).filter((v) => !Number.isNaN(v));
+  if (xs.length < 3) throw new RangeError("x needs at least 3 non-missing values");
+  if (yv !== undefined && yv.length < 3) throw new RangeError("y needs at least 3 non-missing values");
+
+  const meanX = meanDD(xs)[0];
+  const meanY = yv === undefined ? NaN : meanDD(yv)[0];
+  const se =
+    yv === undefined ? sigmaX / Math.sqrt(xs.length) : Math.sqrt(sigmaX ** 2 / xs.length + sigmaY! ** 2 / yv.length);
+  const target = yv === undefined ? meanX : meanX - meanY;
+  const z = (target - mu) / se;
+
   let pValue: number;
   let confInt: [number, number];
   if (alternative === "less") {
     pValue = pnorm(z);
-    confInt = [-Infinity, z * stderr + qnorm(confLevel) * stderr + mu];
+    confInt = [-Infinity, target + qnorm(confLevel) * se];
   } else if (alternative === "greater") {
     pValue = pnorm(z, { lowerTail: false });
-    confInt = [z * stderr - qnorm(confLevel) * stderr + mu, Infinity];
+    confInt = [target - qnorm(confLevel) * se, Infinity];
   } else {
     pValue = 2 * pnorm(-Math.abs(z));
-    const c = qnorm(1 - (1 - confLevel) / 2);
-    confInt = [z * stderr - c * stderr + mu, z * stderr + c * stderr + mu];
+    const half = qnorm(1 - (1 - confLevel) / 2) * se;
+    confInt = [target - half, target + half];
   }
+  const twoSample = yv !== undefined;
   return {
-    method: ys === undefined ? "One-sample z-Test" : "Two-sample z-Test",
+    method: twoSample ? "Two-sample z-Test" : "One-sample z-Test",
     alternative,
     statistic: z,
     statisticName: "z",
     pValue,
     confInt,
     confLevel,
-    estimate,
-    estimateNames,
+    estimate: twoSample ? [meanX, meanY] : meanX,
+    estimateNames: twoSample ? ["mean of x", "mean of y"] : "mean of x",
     nullValue: mu,
-    nullValueName: ys === undefined ? "mean" : "difference in means",
+    nullValueName: twoSample ? "difference in means" : "mean",
   };
 }

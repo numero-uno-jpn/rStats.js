@@ -8,6 +8,8 @@
 // largest coefficients; the others are m_i / sqrt(phi) so that sum a_i^2 = 1.
 // p-value: n = 3 exactly; 4 <= n <= 11: -log(gamma - log(1 - W)) is normal; n >= 12: log(1 - W) is normal, with
 // means and standard deviations given as polynomials in n or log(n).
+// Beyond the range of Royston's approximation for 4 <= n <= 11 the p-value is 1e-99: 1e-99 is the value R reports
+// here (observed behaviour).
 
 import { pnorm, qnorm } from "../../distributions/normal.js";
 
@@ -130,7 +132,7 @@ export function swilkPValueFromOneMinusW(w1: number, n: number): number {
   const y = Math.log(w1);
   if (n <= 11) {
     const gamma = poly(G, n);
-    if (y >= gamma) return 1e-99; // beyond the range of the approximation
+    if (y >= gamma) return 1e-99; // beyond the range of the approximation; 1e-99 is the value R reports here
     const mu = poly(C3, n);
     const sigma = Math.exp(poly(C4, n));
     return pnorm(-Math.log(gamma - y), { mean: mu, sd: sigma, lowerTail: false });

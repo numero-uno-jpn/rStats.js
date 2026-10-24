@@ -1,7 +1,8 @@
 // Counting and binning: R's tabulate, table (for one vector), unique, cut (codes) and findInterval.
 //
-// Written for rStats.js (no ported code). NaN stands for R's NA: unique keeps one NaN; table counts it according to
-// `useNA`; cut and findInterval return NaN for it.
+// Written for rStats.js. cut's generation of breaks from a number of intervals follows R's behaviour: equal spacing
+// over the range, ends widened by 1/1000 of the range, and a special case for a zero range. NaN stands for R's NA:
+// unique keeps one NaN; table counts it according to `useNA`; cut and findInterval return NaN for it.
 
 import { seqLength } from "../internal/seq.js";
 import type { Sample } from "../htest/types.js";

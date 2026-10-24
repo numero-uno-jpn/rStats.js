@@ -1,7 +1,7 @@
 {
   "function": "uniroot",
   "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T00:06:06+0000",
+  "generated": "2026-10-24T02:53:24+0000",
   "cases": [
     {"args":{"fn":"sq2","js":"x * x - 2","lower":"0","upper":"2","extendInt":"no"},"expected":{"root":"1.4142133199955025","fRoot":"-6.8554729848457896e-07","iter":"6","initIt":"NA","estimPrec":"6.1035156250666134e-05"}},
     {"args":{"fn":"sq2","js":"x * x - 2","lower":"0","upper":"2","extendInt":"yes"},"expected":{"root":"1.4142133199955025","fRoot":"-6.8554729848457896e-07","iter":"6","initIt":"NA","estimPrec":"6.1035156250666134e-05"}},
@@ -35,6 +35,10 @@
     {"args":{"fn":"sin","js":"Math.sin(x)","lower":"3","upper":"4","extendInt":"yes"},"expected":{"root":"3.1416072907454011","fRoot":"-1.4637155607365364e-05","iter":"3","initIt":"NA","estimPrec":"6.1035156251332268e-05"}},
     {"args":{"fn":"sin","js":"Math.sin(x)","lower":"3","upper":"4","tol":"9.9999999999999998e-13","extendInt":"no"},"expected":{"root":"3.1415926535897931","fRoot":"1.2246467991473532e-16","iter":"5","initIt":"NA","estimPrec":"5.0137671792072069e-13"}},
     {"args":{"fn":"sin","js":"Math.sin(x)","lower":"3","upper":"4","tol":"9.9999999999999998e-13","extendInt":"yes"},"expected":{"root":"3.1415926535897931","fRoot":"1.2246467991473532e-16","iter":"5","initIt":"NA","estimPrec":"5.0137671792072069e-13"}},
-    {"args":{"fn":"sq2","js":"x * x - 2","lower":"0","upper":"2","maxiter":"3"},"expected":{"root":"1.4140715109573241","fRoot":"-0.00040176189887053404","iter":"3","initIt":"NA","estimPrec":"0.0049761080902948063"}}
+    {"args":{"fn":"sq2","js":"x * x - 2","lower":"0","upper":"2","maxiter":"3"},"expected":{"root":"1.4140715109573241","fRoot":"-0.00040176189887053404","iter":"3","initIt":"NA","estimPrec":"0.0049761080902948063"}},
+    {"args":{"fn":"nanMid","js":"x < 0 ? -1 : x < 1 ? NaN : 1","lower":"-1","upper":"3"},"expected":{"root":"-0.00012206286191940302","fRoot":"-1","iter":"16","initIt":"NA","estimPrec":"0.00012206286191940302"}},
+    {"args":{"fn":"infHi","js":"x < 0.5 ? -1 : Infinity","lower":"0","upper":"3"},"expected":{"root":"0.49997288361191811","fRoot":"-1","iter":"24","initIt":"NA","estimPrec":"6.6118314862195771e-05"}},
+    {"args":{"fn":"nanLeft","js":"x < -1e-4 ? NaN : x - 10","lower":"0","upper":"1","extendInt":"yes"},"expected":{"root":"10","fRoot":"0","iter":"11","initIt":"10","estimPrec":"10.000095"}},
+    {"args":{"fn":"lin5","js":"x - 5","lower":"0","upper":"1","extendInt":"upX"},"expected":{"root":"5","fRoot":"0","iter":"10","initIt":"9","estimPrec":"5"}}
   ]
 }

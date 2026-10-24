@@ -3,10 +3,15 @@
 //
 // The statistics and normal approximation (mean, tie-corrected variance, direction of the continuity correction) use
 // the same formulas as scipy.stats wilcoxon (zero_method = "wilcox") and mannwhitneyu (scipy/stats/_wilcoxon.py, _mannwhitneyu.py;
-// SciPy commit a087e61, BSD-3-Clause, see THIRD_PARTY_NOTICES.md). Intervals and estimates follow Hodges & Lehmann (1963)
-// and Bauer (1972): the exact method uses order statistics of the Walsh averages (differences for two samples); the normal
-// approximation finds where the standardised statistic crosses the quantile by root finding (src/internal/uniroot.ts).
-// The switch between exact and normal approximation, handling of intervals that cannot be formed, and names follow observed R output.
+// SciPy commit a087e61, BSD-3-Clause, see THIRD_PARTY_NOTICES.md).
+// Intervals and estimates were written for rStats.js from Hodges & Lehmann (Ann. Math. Stat. 34, 1963) and Bauer
+// (JASA 67, 1972) and R's documented behaviour: the exact interval takes order statistics of the Walsh averages
+// (of the differences x_i - y_j for two samples) at ranks from the signed rank (rank sum) quantile, and the estimate is
+// their median; the normal-approximation interval is where the standardised statistic of the shifted data, a step
+// function of the shift, crosses the normal quantiles, found with R's uniroot conventions (src/internal/uniroot.ts,
+// tolerance tolRoot), and the estimate is where it crosses 0 without continuity correction. The switch between exact
+// and normal approximation, the reported confidence level when the requested one is not attainable, intervals that
+// cannot be formed, and names follow R's documented and observed behaviour.
 // - The exact method is used when exact = null and n < 50 (both < 50 for two samples). With ties or zero differences,
 //   the normal approximation is used even when exact = true
 // - Only NaN is removed (R's documentation says non-finite values are removed, but in fact Inf is kept and ranked)
@@ -264,135 +269,113 @@ function signedRank(
   return { ...result, ...ci };
 }
 
+/** The interval part of the result */
 interface CIPart {
   confInt: [number, number];
   confLevel: number;
-  estimate: number;
+  estimate?: number;
   estimateNames?: string;
 }
 
-/** Interval from order statistics of the Walsh averages (x_i + x_j) / 2 (i <= j) (Bauer 1972) and the Hodges-Lehmann estimate */
+/** Interval with the given finite ends, the other end(s) open according to the alternative */
+function shape(alternative: Alternative, lower: number, upper: number): [number, number] {
+  if (alternative === "less") return [-Infinity, upper];
+  if (alternative === "greater") return [lower, Infinity];
+  return [lower, upper];
+}
+
+/** Interval when no interval can be formed: the bounded end(s) are NaN and the confidence level 0 */
+function noInterval(alternative: Alternative, estimate: number, estimateNames?: string): CIPart {
+  const out: CIPart = { confInt: shape(alternative, NaN, NaN), confLevel: 0, estimate };
+  if (estimateNames !== undefined) out.estimateNames = estimateNames;
+  return out;
+}
+
+/** Order-statistic ranks of an exact distribution-free interval: q from the lower-tail quantile (0 replaced by 1) */
+function exactRank(quantile: (p: number) => number, alternative: Alternative, a: number): number {
+  const q = quantile(alternative === "two.sided" ? a / 2 : a);
+  return q === 0 ? 1 : q;
+}
+
+function checkTolRoot(tol: number): void {
+  if (!(tol > 0)) throw new RangeError("tolRoot must be positive");
+}
+
+/**
+ * Exact interval from the order statistics of the Walsh averages (Bauer 1972) and the Hodges-Lehmann estimate, their
+ * median
+ */
 function signedRankExactCI(x: readonly number[], ctx: Context): CIPart {
+  const { alternative, confLevel } = ctx;
   const n = x.length;
   const walsh: number[] = [];
-  for (let i = 0; i < n; i++)
-    for (let j = i; j < n; j++) walsh.push((x[i]! + x[j]!) / 2);
+  for (let i = 0; i < n; i++) for (let j = i; j < n; j++) walsh.push((x[i]! + x[j]!) / 2);
   walsh.sort(ascending);
-  const total = walsh.length;
-  const alpha = 1 - ctx.confLevel;
-  let confInt: [number, number];
-  let achieved: number;
-  if (ctx.alternative === "two.sided") {
-    const qu = Math.max(1, qsignrank1(alpha / 2, n, true, false));
-    achieved = 2 * psignrank1(qu - 1, n, true, false);
-    confInt = [walsh[qu - 1]!, walsh[total - qu]!];
-  } else {
-    const qu = Math.max(1, qsignrank1(alpha, n, true, false));
-    achieved = psignrank1(qu - 1, n, true, false);
-    confInt =
-      ctx.alternative === "greater"
-        ? [walsh[qu - 1]!, Infinity]
-        : [-Infinity, walsh[total - qu]!];
-  }
-  // An unreachable confidence level is replaced by the achieved level (2 significant digits)
-  const confLevel =
-    achieved - alpha > alpha / 2 ? 1 - signif2(achieved) : ctx.confLevel;
+  const N = walsh.length;
+  const a = 1 - confLevel;
+  const q = exactRank((p) => qsignrank1(p, n, true, false), alternative, a);
+  const tail = psignrank1(q - 1, n, true, false);
+  const achieved = alternative === "two.sided" ? 2 * tail : tail;
   return {
-    confInt,
-    confLevel,
+    confInt: shape(alternative, walsh[q - 1]!, walsh[N - q]!),
+    confLevel: achieved - a > a / 2 ? 1 - signif2(achieved) : confLevel,
     estimate: sortedMedian(walsh),
     estimateNames: "(pseudo)median",
   };
 }
 
-/** When the interval cannot be formed (NaN endpoints, confidence level 0) */
-function emptyInterval(alternative: Alternative): [number, number] {
-  if (alternative === "less") return [-Infinity, NaN];
-  if (alternative === "greater") return [NaN, Infinity];
-  return [NaN, NaN];
-}
-
-/** Normal-approximation interval and estimate: root finding for where the standardised statistic crosses the quantile */
+/**
+ * Normal-approximation interval: the shifts d at which the standardised signed rank statistic of x - d crosses the
+ * normal quantiles, and the estimate where it crosses 0 (found with uniroot, tolerance tolRoot)
+ */
 function signedRankNormalCI(x: readonly number[], ctx: Context): CIPart {
-  const { alternative, tolRoot } = ctx;
+  const { alternative, correct, confLevel, tolRoot } = ctx;
   const n = x.length;
-  if (n === 0)
-    return { confInt: emptyInterval(alternative), confLevel: 0, estimate: NaN };
-  let mumin = Infinity;
-  let mumax = -Infinity;
-  for (const v of x) {
-    mumin = Math.min(mumin, v);
-    mumax = Math.max(mumax, v);
+  if (n === 0) return noInterval(alternative, NaN);
+  const lo = Math.min(...x);
+  const hi = Math.max(...x);
+  if (!Number.isFinite(lo) || !Number.isFinite(hi) || n === 1 || lo === hi) {
+    return noInterval(alternative, (lo + hi) / 2, "midrange");
   }
-  // With infinite endpoints, or a single point / all values equal, no interval can be formed (the estimate is the midrange)
-  if (
-    !Number.isFinite(mumin) ||
-    !Number.isFinite(mumax) ||
-    n === 1 ||
-    mumin === mumax
-  ) {
-    return {
-      confInt: emptyInterval(alternative),
-      confLevel: 0,
-      estimate: (mumin + mumax) / 2,
-      estimateNames: "midrange",
-    };
-  }
-  // Standardised statistic of x - d minus zq (a decreasing step function of d)
-  const wdiff = (d: number, zq: number, correct: boolean): number => {
-    const xd = x.map((v) => v - d).filter((v) => v !== 0);
-    const [, dz, sigma] = signedRankStat(xd);
-    return (dz - correction(dz, alternative, correct)) / sigma - zq;
+  const stat = (d: number, corr: boolean): number => {
+    const [, centre, sigma] = signedRankStat(x.map((v) => v - d).filter((v) => v !== 0));
+    return (centre - correction(centre, alternative, corr)) / sigma;
   };
-  const root = (zq: number, correct: boolean): number => {
-    const f = (d: number): number => wdiff(d, zq, correct);
-    if (!(tolRoot > 0)) throw new RangeError("tolRoot must be positive");
-    return uniroot(f, mumin, mumax, { tol: tolRoot });
+  const sLo = stat(lo, correct);
+  const sHi = stat(hi, correct);
+  const zUpper = (p: number): number => -qnorm(p);
+  const reachable = (a: number): boolean => {
+    if (alternative === "greater") return !(sLo < zUpper(a));
+    if (alternative === "less") return !(sHi > qnorm(a / 2));
+    return !(sLo < zUpper(a / 2)) && !(sHi > qnorm(a / 2));
   };
-
-  let alpha = 1 - ctx.confLevel;
-  let raised = false;
-  // If an interval endpoint falls outside the range, double α
-  for (;;) {
-    let ok: boolean;
-    if (alternative === "two.sided") {
-      ok =
-        !(
-          wdiff(mumin, qnorm(alpha / 2, { lowerTail: false }), ctx.correct) < 0
-        ) && !(wdiff(mumax, qnorm(alpha / 2), ctx.correct) > 0);
-    } else if (alternative === "greater") {
-      ok = !(wdiff(mumin, qnorm(alpha, { lowerTail: false }), ctx.correct) < 0);
-    } else {
-      // R uses the α/2 quantile for the "less" check as well
-      ok = !(wdiff(mumax, qnorm(alpha / 2), ctx.correct) > 0);
-    }
-    if (ok || alpha >= 1) break;
-    alpha *= 2;
-    raised = true;
+  let a = 1 - confLevel;
+  let enlarged = false;
+  while (!reachable(a) && a < 1) {
+    a *= 2;
+    enlarged = true;
   }
-  const confLevel = raised ? 1 - Math.min(1, alpha) : ctx.confLevel;
+  checkTolRoot(tolRoot);
+  const crossing = (z: number): number =>
+    uniroot((d) => stat(d, correct) - z, lo, hi, { tol: tolRoot, fLower: sLo - z, fUpper: sHi - z });
   let confInt: [number, number];
-  if (alpha >= 1) {
-    const m = sortedMedian([...x].sort(ascending));
-    confInt =
-      alternative === "less"
-        ? [-Infinity, m]
-        : alternative === "greater"
-          ? [m, Infinity]
-          : [m, m];
-  } else if (alternative === "two.sided") {
-    confInt = [
-      root(qnorm(alpha / 2, { lowerTail: false }), ctx.correct),
-      root(qnorm(alpha / 2), ctx.correct),
-    ];
-  } else if (alternative === "greater") {
-    confInt = [root(qnorm(alpha, { lowerTail: false }), ctx.correct), Infinity];
-  } else {
-    confInt = [-Infinity, root(qnorm(alpha), ctx.correct)];
-  }
-  // The estimate has no continuity correction (its direction depends on alternative)
-  const estimate = root(0, false);
-  return { confInt, confLevel, estimate, estimateNames: "(pseudo)median" };
+  if (a >= 1) {
+    const med = sortedMedian([...x].sort(ascending));
+    confInt = shape(alternative, med, med);
+  } else if (alternative === "greater") confInt = [crossing(zUpper(a)), Infinity];
+  else if (alternative === "less") confInt = [-Infinity, crossing(qnorm(a))];
+  else confInt = [crossing(zUpper(a / 2)), crossing(qnorm(a / 2))];
+  const estimate = uniroot((d) => stat(d, false), lo, hi, {
+    tol: tolRoot,
+    fLower: stat(lo, false),
+    fUpper: stat(hi, false),
+  });
+  return {
+    confInt,
+    confLevel: enlarged ? 1 - Math.min(1, a) : confLevel,
+    estimate,
+    estimateNames: "(pseudo)median",
+  };
 }
 
 // ---- Two-sample (rank sum test) ----
@@ -466,96 +449,65 @@ function rankSum(
   return { ...result, ...ci };
 }
 
-/** Interval from order statistics of the differences x_i - y_j, and the Hodges-Lehmann estimate */
-function rankSumExactCI(
-  x: readonly number[],
-  y: readonly number[],
-  ctx: Context,
-): CIPart {
+/** Exact interval from the order statistics of the differences x_i - y_j and their median as the estimate */
+function rankSumExactCI(x: readonly number[], y: readonly number[], ctx: Context): CIPart {
+  const { alternative, confLevel } = ctx;
   const nx = x.length;
   const ny = y.length;
   const diffs: number[] = [];
-  for (const a of x) for (const b of y) diffs.push(a - b);
+  for (const xi of x) for (const yj of y) diffs.push(xi - yj);
   diffs.sort(ascending);
-  const total = diffs.length;
-  const alpha = 1 - ctx.confLevel;
-  let confInt: [number, number];
-  let achieved: number;
-  if (ctx.alternative === "two.sided") {
-    const qu = Math.max(1, qwilcox1(alpha / 2, nx, ny, true, false));
-    achieved = 2 * pwilcox1(qu - 1, nx, ny, true, false);
-    confInt = [diffs[qu - 1]!, diffs[total - qu]!];
-  } else {
-    const qu = Math.max(1, qwilcox1(alpha, nx, ny, true, false));
-    achieved = pwilcox1(qu - 1, nx, ny, true, false);
-    confInt =
-      ctx.alternative === "greater"
-        ? [diffs[qu - 1]!, Infinity]
-        : [-Infinity, diffs[total - qu]!];
-  }
-  // An unreachable confidence level is replaced by the achieved level (unlike the signed rank case, not rounded)
-  const confLevel = achieved - alpha > alpha / 2 ? 1 - achieved : ctx.confLevel;
+  const M = diffs.length;
+  const a = 1 - confLevel;
+  const q = exactRank((p) => qwilcox1(p, nx, ny, true, false), alternative, a);
+  const tail = pwilcox1(q - 1, nx, ny, true, false);
+  const achieved = alternative === "two.sided" ? 2 * tail : tail;
   return {
-    confInt,
-    confLevel,
+    confInt: shape(alternative, diffs[q - 1]!, diffs[M - q]!),
+    confLevel: achieved - a > a / 2 ? 1 - achieved : confLevel,
     estimate: sortedMedian(diffs),
     estimateNames: "difference in location",
   };
 }
 
-function rankSumNormalCI(
-  x: readonly number[],
-  y: readonly number[],
-  ctx: Context,
-): CIPart {
-  const { alternative, tolRoot } = ctx;
-  let mumin = Infinity;
-  let mumax = -Infinity;
-  for (const a of x) {
-    for (const b of y) {
-      mumin = Math.min(mumin, a - b);
-      mumax = Math.max(mumax, a - b);
-    }
-  }
-  if (!Number.isFinite(mumin) || !Number.isFinite(mumax)) {
+/**
+ * Normal-approximation interval: the shifts d at which the standardised rank sum statistic of (x - d, y) crosses the
+ * normal quantiles (clamped to the range of the differences), and the estimate where it crosses 0
+ */
+function rankSumNormalCI(x: readonly number[], y: readonly number[], ctx: Context): CIPart {
+  const { alternative, correct, confLevel, tolRoot } = ctx;
+  const lo = Math.min(...x) - Math.max(...y);
+  const hi = Math.max(...x) - Math.min(...y);
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) {
     throw new Error("cannot compute the confidence interval because the differences are not finite");
   }
-  const wdiff = (d: number, zq: number, correct: boolean): number => {
-    const [, dz, sigma] = rankSumStat(
+  const stat = (d: number, corr: boolean): number => {
+    const [, centre, sigma] = rankSumStat(
       x.map((v) => v - d),
       y,
     );
-    return (dz - correction(dz, alternative, correct)) / sigma - zq;
+    return (centre - correction(centre, alternative, corr)) / sigma;
   };
-  // If the quantile is not reached at the ends, return the ends
-  const root = (zq: number, correct: boolean): number => {
-    const f = (d: number): number => wdiff(d, zq, correct);
-    const fLower = f(mumin);
-    const fUpper = f(mumax);
-    if (Number.isNaN(fLower) || Number.isNaN(fUpper)) {
+  const crossing = (z: number, corr: boolean): number => {
+    const fLo = stat(lo, corr) - z;
+    const fHi = stat(hi, corr) - z;
+    if (Number.isNaN(fLo) || Number.isNaN(fHi)) {
       throw new Error("cannot compute the confidence interval because all observations are tied");
     }
-    if (fLower <= 0) return mumin;
-    if (fUpper >= 0) return mumax;
-    if (!(tolRoot > 0)) throw new RangeError("tolRoot must be positive");
-    return uniroot(f, mumin, mumax, { tol: tolRoot, fLower, fUpper });
+    if (fLo <= 0) return lo;
+    if (fHi >= 0) return hi;
+    checkTolRoot(tolRoot);
+    return uniroot((d) => stat(d, corr) - z, lo, hi, { tol: tolRoot, fLower: fLo, fUpper: fHi });
   };
-  const alpha = 1 - ctx.confLevel;
+  const a = 1 - confLevel;
   let confInt: [number, number];
-  if (alternative === "two.sided") {
-    confInt = [
-      root(qnorm(alpha / 2, { lowerTail: false }), ctx.correct),
-      root(qnorm(alpha / 2), ctx.correct),
-    ];
-  } else if (alternative === "greater") {
-    confInt = [root(qnorm(alpha, { lowerTail: false }), ctx.correct), Infinity];
-  } else {
-    confInt = [-Infinity, root(qnorm(alpha), ctx.correct)];
-  }
+  if (alternative === "greater") confInt = [crossing(-qnorm(a), correct), Infinity];
+  else if (alternative === "less") confInt = [-Infinity, crossing(qnorm(a), correct)];
+  else confInt = [crossing(-qnorm(a / 2), correct), crossing(qnorm(a / 2), correct)];
   return {
     confInt,
-    confLevel: ctx.confLevel,
-    estimate: root(0, false),
+    confLevel,
+    estimate: crossing(0, false),
     estimateNames: "difference in location",
   };
 }

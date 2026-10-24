@@ -1,10 +1,12 @@
 // Sample quantiles and robust summaries: R's quantile (types 1 to 9), IQR, fivenum and mad.
 //
-// Written for rStats.js from Hyndman and Fan, "Sample quantiles in statistical packages", The American Statistician
-// 50, 1996 (the nine definitions R implements; no ported code), with R's conventions where it fixes details: type 7
-// is 1 + (n - 1) p, interpolated only when the neighbouring order statistics differ (so that Inf does not become
-// NaN); the other types index with floor(np (1 + 4 eps)), so that p = k/n is not missed by rounding, and treat
-// |h| < 4 eps as 0. fivenum is Tukey's (the hinges of R's fivenum); mad scales by 1.4826 by default.
+// Written for rStats.js. The nine quantile definitions are those of Hyndman and Fan, "Sample quantiles in
+// statistical packages", The American Statistician 50, 1996, numbered as in that paper and in R's ?quantile. Details
+// that the paper leaves open follow R's documented behaviour and observed output: type 7 interpolates at
+// 1 + (n - 1) p only between order statistics that differ (so that equal infinite neighbours are not turned into
+// NaN); the other types take the integer part of the position after enlarging it by a relative 4 eps, so that a
+// position meant to be an integer is not lost to rounding, and treat a fractional part below 4 eps as 0. fivenum is
+// Tukey's five-number summary; mad scales by 1.4826 by default.
 
 import { median, values, type NaRmOptions } from "./basic.js";
 import type { Sample } from "../htest/types.js";
@@ -15,75 +17,54 @@ export interface QuantileOptions extends NaRmOptions {
   type?: number;
 }
 
-const EPS = Number.EPSILON;
+/** Relative fuzz for the positions of types 1 to 6, 8 and 9 */
+const FUZZ = 4 * Number.EPSILON;
 
-/** Quantiles of an ascending array without NaN, for probabilities in [0, 1] (NaN for NaN) */
-function quantileSorted(s: readonly number[], probs: readonly number[], type: number): number[] {
+/** (a, b) of the continuous types 4 to 6, 8 and 9 (Hyndman and Fan's p(k) = (k - a) / (n + 1 - a - b)) */
+const CONTINUOUS: Record<number, [number, number]> = {
+  4: [0, 1],
+  5: [0.5, 0.5],
+  6: [0, 0],
+  8: [1 / 3, 1 / 3],
+  9: [3 / 8, 3 / 8],
+};
+
+/** Quantile of type `type` at probability `p` (in [0, 1]) of the ascending values `s` (non-empty) */
+function quantileOfSorted(s: readonly number[], p: number, type: number): number {
   const n = s.length;
-  if (n === 0) return probs.map(() => NaN);
-  const fuzz = type === 7 ? 0 : 4 * EPS;
-  const floorF = (v: number): number => Math.floor(v * (1 + fuzz));
-  // order statistic j (1-based), extended by x_0 = x_1 and x_(n+1) = x_n
+  // order statistic j (1-based), extended by the end values outside 1..n
   const at = (j: number): number => s[Math.min(Math.max(j, 1), n) - 1]!;
-  return probs.map((p) => {
-    if (Number.isNaN(p)) return p;
-    if (type === 7) {
-      const index = 1 + (n - 1) * p;
-      const lo = Math.floor(index);
-      const hi = Math.ceil(index);
-      const q = s[lo - 1]!;
-      if (index > lo && s[hi - 1] !== q) {
-        const h = index - lo;
-        return (1 - h) * q + h * s[hi - 1]!;
-      }
-      return q;
+  if (type === 7) {
+    const m = 1 + (n - 1) * p;
+    const j = Math.floor(m);
+    const lower = at(j);
+    const upper = at(Math.ceil(m));
+    if (m > j && upper !== lower) {
+      const g = m - j;
+      return (1 - g) * lower + g * upper;
     }
-    let j: number;
-    let h: number;
-    if (type <= 3) {
-      const nppm = type === 3 ? n * p - 0.5 : n * p;
-      j = floorF(nppm);
-      if (type === 1) h = nppm > j ? 1 : 0;
-      else if (type === 2) h = ((nppm > j ? 1 : 0) + 1) / 2;
-      else h = nppm !== j || ((j % 2) + 2) % 2 === 1 ? 1 : 0; // j odd (j may be negative)
-    } else {
-      const [a, b] = [
-        [0, 1],
-        [0.5, 0.5],
-        [0, 0],
-        [1, 1],
-        [1 / 3, 1 / 3],
-        [3 / 8, 3 / 8],
-      ][type - 4]!;
-      const nppm = a! + p * (n + 1 - a! - b!);
-      j = floorF(nppm);
-      h = nppm - j;
-      if (Math.abs(h) < fuzz) h = 0;
-    }
-    const lo = at(j);
-    const hi = at(j + 1);
-    if (h === 1) return hi;
-    if (h > 0 && h < 1 && lo !== hi) return (1 - h) * lo + h * hi;
-    return lo;
-  });
-}
-
-/** Validate and clamp probabilities as R does (allowing an overshoot of 100 eps) */
-function checkProbs(probs: readonly number[]): number[] {
-  const eps = 100 * EPS;
-  if (probs.some((p) => !Number.isNaN(p) && (p < -eps || p > 1 + eps))) throw new RangeError("'probs' outside [0,1]");
-  return probs.map((p) => (Number.isNaN(p) ? p : Math.max(0, Math.min(1, p))));
-}
-
-function checkType(type: number): void {
-  if (!(Number.isInteger(type) && type >= 1 && type <= 9)) throw new RangeError("'type' must be an integer in 1..9");
-}
-
-/** The values sorted, NaN dropped when naRm (an error when a NaN remains, as in R's quantile) */
-function sortedValues(x: Sample, naRm: boolean | undefined): number[] {
-  const xs = values(x, naRm);
-  if (xs === undefined) throw new RangeError("missing values and NaN's not allowed if 'na.rm' is FALSE");
-  return xs.sort((a, b) => a - b);
+    return lower;
+  }
+  let j: number;
+  let g: number;
+  if (type <= 3) {
+    const m = type === 3 ? n * p - 0.5 : n * p;
+    j = Math.floor(m * (1 + FUZZ));
+    if (type === 1) g = m > j ? 1 : 0;
+    else if (type === 2) g = m > j ? 1 : 0.5;
+    else g = m !== j || Math.abs(j % 2) === 1 ? 1 : 0;
+  } else {
+    const [a, b] = CONTINUOUS[type]!;
+    const m = a + p * (n + 1 - a - b);
+    j = Math.floor(m * (1 + FUZZ));
+    g = m - j;
+    if (Math.abs(g) < FUZZ) g = 0;
+  }
+  const lower = at(j);
+  const upper = at(j + 1);
+  if (g === 1) return upper;
+  if (g > 0 && g < 1 && lower !== upper) return (1 - g) * lower + g * upper;
+  return lower;
 }
 
 /**
@@ -107,11 +88,18 @@ export function quantile(
   options: QuantileOptions = {},
 ): number | number[] {
   const type = options.type ?? 7;
-  checkType(type);
-  const s = sortedValues(x, options.naRm);
-  const ps = checkProbs(typeof probs === "number" ? [probs] : Array.from(probs));
-  const q = quantileSorted(s, ps, type);
-  return typeof probs === "number" ? q[0]! : q;
+  if (!(Number.isInteger(type) && type >= 1 && type <= 9)) throw new RangeError("'type' must be an integer in 1..9");
+  const xs = values(x, options.naRm);
+  if (xs === undefined) throw new RangeError("missing values and NaN's not allowed if 'na.rm' is FALSE");
+  const sorted = xs.sort((a, b) => a - b);
+  const ps = typeof probs === "number" ? [probs] : Array.from(probs);
+  const tol = 100 * Number.EPSILON;
+  if (ps.some((p) => p < -tol || p > 1 + tol)) throw new RangeError("'probs' outside [0,1]");
+  const out = ps.map((p) => {
+    if (Number.isNaN(p) || sorted.length === 0) return NaN;
+    return quantileOfSorted(sorted, Math.min(Math.max(p, 0), 1), type);
+  });
+  return typeof probs === "number" ? out[0]! : out;
 }
 
 /** Interquartile range, the difference of the 0.75 and 0.25 quantiles. Equivalent to R's `IQR()`. */

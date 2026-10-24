@@ -140,12 +140,11 @@ Boost.Math: Copyright John Maddock 2008, Matt Borland 2024 (and other contributo
 ## SciPy (scipy.stats)
 
 - Source: https://github.com/scipy/scipy (commit a087e61)
-  - `scipy/stats/_stats_py.py` (ttest_1samp / ttest_ind / ttest_rel, chisquare, fisher_exact, pearsonr)
+  - `scipy/stats/_stats_py.py` (ttest_1samp / ttest_ind / ttest_rel, chisquare, pearsonr)
   - `scipy/stats/contingency.py` (chi2_contingency, expected_freq)
-  - `scipy/stats/_odds_ratio.py` (conditional odds ratio and its confidence interval)
   - `scipy/stats/_wilcoxon.py`, `scipy/stats/_mannwhitneyu.py`
   - `scipy/stats/_mstats_basic.py` (kendalltau, `_kendall_p_exact`)
-- Used in: `src/htest/tTest.ts`, `src/htest/chisqTest.ts`, `src/htest/fisherTest.ts`, `src/htest/wilcoxTest.ts`, `src/htest/cor.ts`
+- Used in: `src/htest/tTest.ts`, `src/htest/chisqTest.ts`, `src/htest/wilcoxTest.ts`, `src/htest/cor.ts`
 - License: BSD-3-Clause
 
 ```
@@ -301,3 +300,9 @@ they are listed so that readers can find the originals.
   `src/linalg/qr.ts`, `src/linalg/kappa.ts`
 - EISPACK / JAMA (NIST and The MathWorks): `svd` (Golub–Reinsch), `tred2`, `tql2`, `orthes`, `hqr2` —
   `src/linalg/svd.ts`, `src/linalg/eigen.ts`
+- FMM (Forsythe, Malcolm, Moler, "Computer Methods for Mathematical Computations", 1977; netlib
+  https://netlib.org/fmm/spline.f): `spline` (cubic spline coefficients with end third derivatives from
+  divided differences), the "fmm" method — `src/numerics/interp.ts`
+- netlib go (https://netlib.org/go/zeroin.f; Brent, "Algorithms for Minimization without Derivatives",
+  1973, chapter 4): `zeroin` (Brent's root finder by bisection, secant and inverse quadratic
+  interpolation), the zero finder of `uniroot` — `src/numerics/integrate.ts`

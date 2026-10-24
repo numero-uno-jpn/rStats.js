@@ -1,10 +1,11 @@
 // Exact binomial test (R's binom.test).
 //
-// Written for rStats.js from the textbook construction (no ported code). The two-sided p-value adds the
+// Written for rStats.js from the textbook construction and R's documented behaviour. The two-sided p-value adds the
 // probabilities of all outcomes no more likely than the observed one, with a relative slack of 1e-7 on that
-// comparison so that outcomes of equal probability are not split by rounding (the same rule as scipy.stats.binomtest,
-// whose results it is checked against). The confidence interval is Clopper and Pearson's (Biometrika 26, 1934),
-// from beta quantiles.
+// comparison so that outcomes of equal probability are not split by rounding (R's convention). The observed side is
+// taken as a tail of the distribution function and the opposite side as the tail made of the outcomes that pass the
+// comparison (counted one by one). The confidence interval is Clopper and Pearson's (Biometrika 26, 1934), from beta
+// quantiles.
 
 import { dbinom1, pbinom1 } from "../distributions/binomial.js";
 import { qbeta1 } from "../distributions/beta.js";
@@ -33,31 +34,32 @@ export interface BinomTestResult extends HTest {
 }
 
 /** Relative slack when comparing outcome probabilities with the observed one */
-const REL_ERR = 1 + 1e-7;
+const SLACK = 1 + 1e-7;
 
 function isCount(v: number): boolean {
   return Number.isFinite(v) && v >= 0 && Math.abs(v - Math.round(v)) <= 1e-7 * Math.max(1, Math.abs(v));
 }
 
-/** Two-sided p-value: total probability of the outcomes no more likely than x */
+/**
+ * Two-sided p-value: the total probability of the outcomes no more likely than x (within the relative slack). The
+ * observed side is one tail of the distribution function; on the opposite side the qualifying outcomes are counted,
+ * and as they are the most extreme ones there, their mass is again a tail probability.
+ */
 function twoSidedP(x: number, n: number, p: number): number {
-  if (p === 0) return Number(x === 0);
-  if (p === 1) return Number(x === n);
-  const d = dbinom1(x, n, p, false);
-  const m = n * p;
-  if (x === m) return 1;
-  let pv: number;
-  if (x < m) {
-    // outcomes above the mean with probability <= d: count them from ceiling(m) to n
-    let y = 0;
-    for (let i = Math.ceil(m); i <= n; i++) if (dbinom1(i, n, p, false) <= d * REL_ERR) y++;
-    pv = pbinom1(x, n, p, true, false) + pbinom1(n - y, n, p, false, false);
-  } else {
-    let y = 0;
-    for (let i = 0; i <= Math.floor(m); i++) if (dbinom1(i, n, p, false) <= d * REL_ERR) y++;
-    pv = pbinom1(y - 1, n, p, true, false) + pbinom1(x - 1, n, p, false, false);
+  if (p === 0) return x === 0 ? 1 : 0;
+  if (p === 1) return x === n ? 1 : 0;
+  const mean = n * p;
+  if (x === mean) return 1;
+  const cut = dbinom1(x, n, p, false) * SLACK;
+  let count = 0;
+  if (x < mean) {
+    for (let i = Math.ceil(mean); i <= n; i++) if (dbinom1(i, n, p, false) <= cut) count++;
+    const other = count === 0 ? 0 : pbinom1(n - count, n, p, false, false);
+    return Math.min(1, pbinom1(x, n, p, true, false) + other);
   }
-  return Math.min(1, pv);
+  for (let i = 0; i <= Math.floor(mean); i++) if (dbinom1(i, n, p, false) <= cut) count++;
+  const other = count === 0 ? 0 : pbinom1(count - 1, n, p, true, false);
+  return Math.min(1, pbinom1(x - 1, n, p, false, false) + other);
 }
 
 /**

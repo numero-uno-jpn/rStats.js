@@ -1,12 +1,13 @@
 // Exact conditional distribution for the Mantel-Haenszel test on 2 x 2 x K tables (mantelhaen.test with
 // exact = TRUE).
 //
-// Written for rStats.js from the textbook construction (no ported code). With all margins fixed, the (1, 1) cell of
-// stratum k follows a noncentral hypergeometric distribution with noncentrality psi, the common odds ratio, so their
-// sum S follows the convolution of the K central hypergeometric distributions reweighted by psi^s and renormalised.
-// The conditional MLE of psi is the noncentrality whose mean equals the observed S, and the confidence limits are the
-// noncentralities at which a one-sided probability equals alpha, found with uniroot as for fisher.test's 2 x 2 tables
-// (src/htest/fisherTest.ts).
+// Written for rStats.js from the textbook construction and R's behaviour. With all margins fixed, the
+// (1, 1) cell of stratum k follows Fisher's noncentral hypergeometric distribution with noncentrality psi, the common
+// odds ratio (Mantel and Haenszel, JNCI 22, 1959; Birch, JRSS B 26, 1964), so their sum S has the density
+// d0(s) psi^s / sum_t d0(t) psi^t, where d0 is the convolution of the K central hypergeometric densities. The
+// conditional MLE of psi is the noncentrality whose mean equals the observed S, and the confidence limits are the
+// noncentralities at which a one-sided probability equals alpha; the roots are found with uniroot on psi in [0, 1] or
+// on 1/psi in [eps, 1], as for fisher.test's 2 x 2 tables (src/htest/fisherTest.ts).
 
 import { dhyper1 } from "../../distributions/hypergeometric.js";
 import { uniroot } from "../../internal/uniroot.js";
@@ -15,10 +16,34 @@ import { ddAdd, type DD } from "../../special/dd.js";
 /** One 2 x 2 stratum as [[a, b], [c, d]] counts */
 export type Stratum = readonly [readonly [number, number], readonly [number, number]];
 
-function sumDD(d: Float64Array, from: number, to: number): number {
-  let s: DD = [0, 0];
-  for (let i = Math.max(0, from); i < Math.min(to, d.length); i++) s = ddAdd(s, [d[i]!, 0]);
-  return s[0];
+/** Compensated (double-double) sum of v[from..to) */
+function sumRange(v: Float64Array, from: number, to: number): number {
+  let acc: DD = [0, 0];
+  for (let i = Math.max(0, from); i < Math.min(to, v.length); i++) acc = ddAdd(acc, [v[i]!, 0]);
+  return acc[0];
+}
+
+/** Central hypergeometric density of the (1, 1) cell of one stratum, with its support start */
+function stratumDensity([[a, b], [c, d]]: Stratum): { lo: number; d: Float64Array } {
+  const m = a + c; // first column
+  const n = b + d; // second column
+  const k = a + b; // first row
+  const lo = Math.max(0, k - n);
+  const hi = Math.min(k, m);
+  const dens = new Float64Array(hi - lo + 1);
+  for (let x = lo; x <= hi; x++) dens[x - lo] = dhyper1(x, m, n, k, false);
+  return { lo, d: dens };
+}
+
+/** Discrete convolution of two densities on consecutive integers */
+function convolve(p: Float64Array, q: Float64Array): Float64Array {
+  const out = new Float64Array(p.length + q.length - 1);
+  for (let i = 0; i < p.length; i++) {
+    const pi = p[i]!;
+    if (pi === 0) continue;
+    for (let j = 0; j < q.length; j++) out[i + j]! += pi * q[j]!;
+  }
+  return out;
 }
 
 /**
@@ -26,100 +51,94 @@ function sumDD(d: Float64Array, from: number, to: number): number {
  * odds ratio (noncentrality).
  */
 export class ConvolvedNoncentralHyper {
-  /** Smallest and largest value of S */
+  /** Smallest and largest attainable S */
   readonly lo: number;
   readonly hi: number;
-  /** log P(S = lo + i) under psi = 1 */
-  private readonly logd0: Float64Array;
+  /** log d0(s) for s = lo..hi (d0: the null, psi = 1, density) */
+  private readonly logNull: Float64Array;
 
   constructor(strata: readonly Stratum[]) {
-    let probs = new Float64Array([1]);
     let lo = 0;
-    for (const [[a, b], [c, d]] of strata) {
-      const m = a + c; // first column
-      const n = b + d; // second column
-      const k = a + b; // first row
-      const slo = Math.max(0, k - n);
-      const shi = Math.min(k, m);
-      const p = new Float64Array(shi - slo + 1);
-      for (let x = slo; x <= shi; x++) p[x - slo] = dhyper1(x, m, n, k, false);
-      // convolution (all terms positive)
-      const q = new Float64Array(probs.length + p.length - 1);
-      for (let i = 0; i < probs.length; i++) {
-        const v = probs[i]!;
-        if (v === 0) continue;
-        for (let j = 0; j < p.length; j++) q[i + j]! += v * p[j]!;
-      }
-      probs = q;
-      lo += slo;
+    let d0: Float64Array = new Float64Array([1]);
+    for (const t of strata) {
+      const s = stratumDensity(t);
+      lo += s.lo;
+      d0 = convolve(d0, s.d);
     }
     this.lo = lo;
-    this.hi = lo + probs.length - 1;
-    this.logd0 = probs.map((v) => Math.log(v));
+    this.hi = lo + d0.length - 1;
+    this.logNull = d0.map(Math.log);
   }
 
-  /** P(S = lo + i) for psi (0 < psi < infinity), in support order */
+  /** P(S = s; psi) for s = lo..hi, for 0 < psi < Infinity (psi = 0 and Infinity give the point masses at lo and hi) */
   density(psi: number): Float64Array {
-    const lc = Math.log(psi);
-    const d = new Float64Array(this.logd0.length);
-    let max = -Infinity;
-    for (let i = 0; i < d.length; i++) {
-      d[i] = this.logd0[i]! + lc * (this.lo + i);
-      if (d[i]! > max) max = d[i]!;
+    const len = this.logNull.length;
+    const out = new Float64Array(len);
+    if (psi === 0 || psi === Infinity) {
+      out[psi === 0 ? 0 : len - 1] = 1;
+      return out;
     }
-    for (let i = 0; i < d.length; i++) d[i] = d[i]! - max < -760 ? 0 : Math.exp(d[i]! - max);
-    const s = sumDD(d, 0, d.length);
-    for (let i = 0; i < d.length; i++) d[i] = d[i]! / s;
-    return d;
+    const lp = Math.log(psi);
+    let top = -Infinity;
+    for (let i = 0; i < len; i++) {
+      // exp(s log psi): the exponent is formed from the support value itself (lo + i)
+      const v = this.logNull[i]! + (this.lo + i) * lp;
+      out[i] = v;
+      if (v > top) top = v;
+    }
+    for (let i = 0; i < len; i++) out[i] = Math.exp(out[i]! - top);
+    const total = sumRange(out, 0, len);
+    for (let i = 0; i < len; i++) out[i] = out[i]! / total;
+    return out;
   }
 
+  /** E[S; psi] */
   mean(psi: number): number {
     if (psi === 0) return this.lo;
     if (psi === Infinity) return this.hi;
     const d = this.density(psi);
-    let s: DD = [0, 0];
-    for (let i = 0; i < d.length; i++) s = ddAdd(s, [(this.lo + i) * d[i]!, 0]);
-    return s[0];
+    let acc: DD = [0, 0];
+    for (let i = 0; i < d.length; i++) acc = ddAdd(acc, [(this.lo + i) * d[i]!, 0]);
+    return acc[0];
   }
 
-  /** P(S <= q), or P(S >= q) if upper */
+  /** P(S <= q; psi), or P(S >= q; psi) when upper */
   cdf(q: number, psi: number, upper: boolean): number {
-    if (psi === 0) return Number(upper ? q <= this.lo : q >= this.lo);
-    if (psi === Infinity) return Number(upper ? q <= this.hi : q >= this.hi);
     const d = this.density(psi);
     const i = q - this.lo;
-    return upper ? sumDD(d, i, d.length) : sumDD(d, 0, i + 1);
+    return upper ? sumRange(d, i, d.length) : sumRange(d, 0, i + 1);
   }
 }
 
-function rootBelowOne(f: (psi: number) => number): number {
-  return uniroot(f, 0, 1);
-}
-function rootAboveOne(f: (psi: number) => number): number {
-  return 1 / uniroot((t) => f(1 / t), Number.EPSILON, 1);
+/**
+ * Root in psi of a function that is monotone in psi, given whether the root lies below 1: search psi in [0, 1], or
+ * t = 1/psi in [eps, 1]
+ */
+function oddsRoot(f: (psi: number) => number, belowOne: boolean): number {
+  return belowOne ? uniroot(f, 0, 1) : 1 / uniroot((t) => f(1 / t), Number.EPSILON, 1);
 }
 
 /** The conditional maximum likelihood estimate of the common odds ratio given the observed sum s */
 export function conditionalMLE(h: ConvolvedNoncentralHyper, s: number): number {
   if (s === h.lo) return 0;
   if (s === h.hi) return Infinity;
-  const mu = h.mean(1);
-  const f = (psi: number): number => h.mean(psi) - s;
-  return mu > s ? rootBelowOne(f) : mu < s ? rootAboveOne(f) : 1;
+  const atOne = h.mean(1);
+  if (atOne === s) return 1;
+  return oddsRoot((psi) => h.mean(psi) - s, atOne > s);
 }
 
 /** Upper confidence limit: the psi with P(S <= s; psi) = alpha */
 export function upperLimit(h: ConvolvedNoncentralHyper, s: number, alpha: number): number {
   if (s === h.hi) return Infinity;
-  const p = h.cdf(s, 1, false);
-  const f = (psi: number): number => alpha - h.cdf(s, psi, false);
-  return p < alpha ? rootBelowOne(f) : p > alpha ? rootAboveOne(f) : 1;
+  const atOne = h.cdf(s, 1, false);
+  if (atOne === alpha) return 1;
+  return oddsRoot((psi) => alpha - h.cdf(s, psi, false), atOne < alpha);
 }
 
 /** Lower confidence limit: the psi with P(S >= s; psi) = alpha */
 export function lowerLimit(h: ConvolvedNoncentralHyper, s: number, alpha: number): number {
   if (s === h.lo) return 0;
-  const p = h.cdf(s, 1, true);
-  const f = (psi: number): number => h.cdf(s, psi, true) - alpha;
-  return p > alpha ? rootBelowOne(f) : p < alpha ? rootAboveOne(f) : 1;
+  const atOne = h.cdf(s, 1, true);
+  if (atOne === alpha) return 1;
+  return oddsRoot((psi) => h.cdf(s, psi, true) - alpha, atOne > alpha);
 }
