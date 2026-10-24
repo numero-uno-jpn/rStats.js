@@ -8,7 +8,7 @@
 
 import { pf1 } from "../distributions/f.js";
 import { mean, variance } from "../internal/summary.js";
-import { swilkPValue, swilkW } from "./core/shapiro.js";
+import { swilkOneMinusW, swilkPValueFromOneMinusW } from "./core/shapiro.js";
 import { toGroups, type GroupLabel } from "./groups.js";
 import type { HTest, Sample } from "./types.js";
 
@@ -98,9 +98,12 @@ export function shapiroTest(x: Sample): Omit<HTest, "alternative"> {
   const n = xs.length;
   if (n < 3 || n > 5000) throw new RangeError("sample size must be between 3 and 5000");
   if (!Number.isFinite(xs[0]!) || !Number.isFinite(xs[n - 1]!)) throw new RangeError("'x' must be finite");
-  const range = xs[n - 1]! - xs[0]!;
-  if (range < 1e-10) throw new RangeError("all 'x' values are identical");
-  // scale by the range, so that very large or small data do not overflow the sums of squares
-  const w = swilkW(xs.map((v) => v / range));
-  return { method: "Shapiro-Wilk normality test", statistic: w, statisticName: "W", pValue: swilkPValue(w, n) };
+  if (xs[n - 1]! === xs[0]!) throw new RangeError("all 'x' values are identical");
+  const w1 = swilkOneMinusW(xs);
+  return {
+    method: "Shapiro-Wilk normality test",
+    statistic: 1 - w1,
+    statisticName: "W",
+    pValue: swilkPValueFromOneMinusW(w1, n),
+  };
 }

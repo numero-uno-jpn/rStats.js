@@ -80,8 +80,9 @@ export function kruskalTest(x: Sample | readonly Sample[], g?: readonly GroupLab
 export function friedmanTest(y: readonly (readonly number[])[]): ChisqStatTestResult {
   const rows = completeRows(y);
   const n = rows.length;
-  const k = rows[0]?.length ?? 0;
-  if (n < 1 || k < 2) throw new RangeError("'y' must have at least one complete row and two columns");
+  const k = y[0]?.length ?? 0;
+  // R needs two complete blocks (with one, its matrix of ranks collapses to a vector)
+  if (n < 2 || k < 2) throw new RangeError("'y' must have at least two complete rows and two columns");
   const colSums = new Array<number>(k).fill(0);
   let ties = 0;
   for (const row of rows) {
@@ -109,9 +110,10 @@ export interface QuadeTestResult extends Omit<HTest, "alternative" | "parameter"
  */
 export function quadeTest(y: readonly (readonly number[])[]): QuadeTestResult {
   const rows = completeRows(y);
-  const b = rows.length;
-  const k = rows[0]?.length ?? 0;
-  if (b < 1 || k < 2) throw new RangeError("'y' must have at least one complete row and two columns");
+  // as in R, b counts all blocks, including those dropped for a missing value
+  const b = y.length;
+  const k = y[0]?.length ?? 0;
+  if (rows.length < 2 || k < 2) throw new RangeError("'y' must have at least two complete rows and two columns");
   const q = rank(rows.map((r) => Math.max(...r) - Math.min(...r)));
   const colS = new Array<number>(k).fill(0);
   let A = 0;
@@ -130,8 +132,10 @@ export function quadeTest(y: readonly (readonly number[])[]): QuadeTestResult {
   const df2 = (b - 1) * (k - 1);
   let statistic: number;
   let pValue: number;
+  let parameter: [number, number] = [df1, df2];
   if (A === B) {
     statistic = NaN;
+    parameter = [NaN, NaN];
     // log-gamma form of (k!)^(1 - b), which overflows directly for large b
     let lf = 0;
     for (let i = 2; i <= k; i++) lf += Math.log(i);
@@ -144,7 +148,7 @@ export function quadeTest(y: readonly (readonly number[])[]): QuadeTestResult {
     method: "Quade test",
     statistic,
     statisticName: "Quade F",
-    parameter: [df1, df2],
+    parameter,
     parameterName: ["num df", "denom df"],
     pValue,
   };
@@ -194,8 +198,9 @@ export interface MoodTestOptions {
  * of the scores of their positions.
  */
 export function moodTest(x: Sample, y: Sample, options: MoodTestOptions = {}): HTest {
-  const xs = Array.from(x).filter((v) => !Number.isNaN(v));
-  const ys = Array.from(y).filter((v) => !Number.isNaN(v));
+  // as in R, infinite values are dropped along with NaN
+  const xs = Array.from(x).filter(Number.isFinite);
+  const ys = Array.from(y).filter(Number.isFinite);
   const alternative = matchAlternative(options.alternative);
   const m = xs.length;
   const n = ys.length;

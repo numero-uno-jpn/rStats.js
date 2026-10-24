@@ -67,3 +67,10 @@ export function checkConfLevel(level: number): void {
     throw new RangeError("confLevel must be a number between 0 and 1");
   }
 }
+
+/** Validate the confidence level strictly inside (0, 1), as most of R's tests require */
+export function checkConfLevelOpen(level: number): void {
+  if (!(Number.isFinite(level) && level > 0 && level < 1)) {
+    throw new RangeError("'conf.level' must be a single number between 0 and 1");
+  }
+}

@@ -74,47 +74,69 @@ export function swilkCoefficients(n: number): Float64Array {
 }
 
 /**
+ * 1 - W for a sample sorted in increasing order, formed as (r + c)(r - c) / r^2 from c = sum a_i (x_i - mean) and
+ * r^2 = sum a_i^2 sum (x_i - mean)^2, so that it keeps its relative accuracy when W is close to 1 (the p-value
+ * depends on log(1 - W)). The data are scaled by their range first.
+ */
+export function swilkOneMinusW(sorted: readonly number[]): number {
+  const n = sorted.length;
+  const a = swilkCoefficients(n);
+  const range = sorted[n - 1]! - sorted[0]!;
+  let mean = 0;
+  for (const v of sorted) mean += v / range;
+  mean /= n;
+  let ssa = 0;
+  let ssx = 0;
+  let sax = 0;
+  for (let i = 0; i < n; i++) {
+    const d = sorted[i]! / range - mean;
+    ssa += a[i]! * a[i]!;
+    ssx += d * d;
+    sax += a[i]! * d;
+  }
+  const r = Math.sqrt(ssa * ssx);
+  return ((r - sax) * (r + sax)) / (ssa * ssx);
+}
+
+/**
  * The W statistic of a sample sorted in increasing order:
  * W = (sum a_i x_(i))^2 / sum (x_i - mean)^2.
  */
 export function swilkW(sorted: readonly number[]): number {
-  const n = sorted.length;
-  const a = swilkCoefficients(n);
-  let mean = 0;
-  for (const v of sorted) mean += v;
-  mean /= n;
-  let ss = 0;
-  let num = 0;
-  for (let i = 0; i < n; i++) {
-    const d = sorted[i]! - mean;
-    ss += d * d;
-    num += a[i]! * d;
-  }
-  return Math.min((num * num) / ss, 1);
+  return 1 - swilkOneMinusW(sorted);
 }
 
 /**
- * The p-value P(W' <= W) of the Shapiro-Wilk test for a sample of size n (Royston's approximations).
+ * The p-value P(W' <= W) of the Shapiro-Wilk test for a sample of size n (Royston's approximations), from W.
  */
 export function swilkPValue(w: number, n: number): number {
-  if (Number.isNaN(w) || !(n >= 3)) return NaN;
-  if (w >= 1) return 1;
+  return swilkPValueFromOneMinusW(1 - w, n);
+}
+
+/** 6/pi and asin(sqrt(3/4)) to 15 digits, the values R's swilk uses for n = 3 */
+const PI6 = 1.90985931710274;
+const STQR = 1.0471975511966;
+
+/**
+ * The p-value P(W' <= W) of the Shapiro-Wilk test for a sample of size n, from w1 = 1 - W (see swilkOneMinusW).
+ */
+export function swilkPValueFromOneMinusW(w1: number, n: number): number {
+  if (Number.isNaN(w1) || !(n >= 3)) return NaN;
   if (n === 3) {
     // exact: 6/pi (asin(sqrt(W)) - asin(sqrt(3/4))), W >= 3/4
-    const p = (6 / Math.PI) * (Math.asin(Math.sqrt(w)) - Math.asin(Math.sqrt(0.75)));
+    const p = PI6 * (Math.asin(Math.sqrt(1 - w1)) - STQR);
     return Math.max(p, 0);
   }
-  const w1 = Math.log1p(-w);
+  const y = Math.log(w1);
   if (n <= 11) {
     const gamma = poly(G, n);
-    if (w1 >= gamma) return 1e-99; // beyond the range of the approximation
-    const y = -Math.log(gamma - w1);
+    if (y >= gamma) return 1e-99; // beyond the range of the approximation
     const mu = poly(C3, n);
     const sigma = Math.exp(poly(C4, n));
-    return pnorm(y, { mean: mu, sd: sigma, lowerTail: false });
+    return pnorm(-Math.log(gamma - y), { mean: mu, sd: sigma, lowerTail: false });
   }
   const xx = Math.log(n);
   const mu = poly(C5, xx);
   const sigma = Math.exp(poly(C6, xx));
-  return pnorm(w1, { mean: mu, sd: sigma, lowerTail: false });
+  return pnorm(y, { mean: mu, sd: sigma, lowerTail: false });
 }

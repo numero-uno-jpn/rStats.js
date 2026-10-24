@@ -8,7 +8,7 @@
 
 import { dbinom1, pbinom1 } from "../distributions/binomial.js";
 import { qbeta1 } from "../distributions/beta.js";
-import { checkConfLevel, matchAlternative, type Alternative, type HTest } from "./types.js";
+import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /** Options for {@link binomTest}. */
 export interface BinomTestOptions {
@@ -98,7 +98,7 @@ export function binomTest(
   if (!(p >= 0 && p <= 1)) throw new RangeError("'p' must be a single number between 0 and 1");
   const alternative = matchAlternative(options.alternative);
   const confLevel = options.confLevel ?? 0.95;
-  checkConfLevel(confLevel);
+  checkConfLevelOpen(confLevel);
 
   let pValue: number;
   if (alternative === "less") pValue = pbinom1(xs, ns, p, true, false);

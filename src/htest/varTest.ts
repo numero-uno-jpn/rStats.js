@@ -9,7 +9,7 @@
 import { pf1, qf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
 import { dropNaN, variance } from "../internal/summary.js";
-import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
+import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /** Options for {@link varTest}. */
 export interface VarTestOptions {
@@ -43,13 +43,14 @@ export interface VarTestResult extends Omit<HTest, "parameter" | "parameterName"
  * ```
  */
 export function varTest(x: Sample, y: Sample, options: VarTestOptions = {}): VarTestResult {
-  const xs = dropNaN(Array.from(x));
-  const ys = dropNaN(Array.from(y));
+  // as in R, infinite values are dropped along with NaN
+  const xs = Array.from(x).filter(Number.isFinite);
+  const ys = Array.from(y).filter(Number.isFinite);
   const ratio = options.ratio ?? 1;
   if (!(Number.isFinite(ratio) && ratio > 0)) throw new RangeError("'ratio' must be a single positive number");
   const alternative = matchAlternative(options.alternative);
   const confLevel = options.confLevel ?? 0.95;
-  checkConfLevel(confLevel);
+  checkConfLevelOpen(confLevel);
   const dfx = xs.length - 1;
   const dfy = ys.length - 1;
   if (dfx < 1) throw new Error("not enough 'x' observations");

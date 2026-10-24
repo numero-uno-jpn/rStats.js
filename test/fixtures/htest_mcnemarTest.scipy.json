@@ -2755,9 +2755,9 @@
     "correct": true
    },
    "expected": {
-    "statistic": "0.25",
+    "statistic": "0",
     "parameter": "1",
-    "pValue": "0.61707507745197387"
+    "pValue": "1"
    }
   },
   {

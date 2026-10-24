@@ -26,6 +26,21 @@ export interface KsTestOptions {
 }
 
 /**
+ * Result of {@link ksTest}. As in R, `alternative` describes the hypothesis in words ("two-sided", "the CDF of x lies
+ * above the null hypothesis", ...), and `exact` tells whether the p-value is exact.
+ */
+export interface KsTestResult extends Omit<HTest, "alternative"> {
+  alternative: string;
+  exact: boolean;
+}
+
+function describe(alternative: Alternative, oneSample: boolean): string {
+  if (alternative === "two.sided") return "two-sided";
+  const where = alternative === "less" ? "below" : "above";
+  return `the CDF of x lies ${where} ${oneSample ? "the null hypothesis" : "that of y"}`;
+}
+
+/**
  * Kolmogorov-Smirnov test. Equivalent to R's `ks.test()`, with a distribution function given as a function (for
  * example `(q) => pnorm(q)`) or a second sample. `NaN` values are dropped.
  *
@@ -33,7 +48,7 @@ export interface KsTestOptions {
  * @param y A continuous distribution function, or a second sample.
  * @param options See {@link KsTestOptions}.
  */
-export function ksTest(x: Sample, y: Sample | ((q: number) => number), options: KsTestOptions = {}): HTest {
+export function ksTest(x: Sample, y: Sample | ((q: number) => number), options: KsTestOptions = {}): KsTestResult {
   const xs = Array.from(x)
     .filter((v) => !Number.isNaN(v))
     .sort((a, b) => a - b);
@@ -61,7 +76,8 @@ export function ksTest(x: Sample, y: Sample | ((q: number) => number), options: 
     }
     return {
       method: `${exact ? "Exact" : "Asymptotic"} one-sample Kolmogorov-Smirnov test`,
-      alternative,
+      alternative: describe(alternative, true),
+      exact,
       statistic,
       statisticName,
       pValue: Math.min(1, Math.max(0, pValue)),
@@ -101,7 +117,8 @@ export function ksTest(x: Sample, y: Sample | ((q: number) => number), options: 
   }
   return {
     method: `${exact ? "Exact" : "Asymptotic"} two-sample Kolmogorov-Smirnov test`,
-    alternative,
+    alternative: describe(alternative, false),
+    exact,
     statistic,
     statisticName,
     pValue: Math.min(1, Math.max(0, pValue)),

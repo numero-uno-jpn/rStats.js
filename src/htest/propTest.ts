@@ -10,7 +10,7 @@
 
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
-import { checkConfLevel, matchAlternative, type Alternative, type HTest } from "./types.js";
+import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /** Options for {@link propTest}. */
 export interface PropTestOptions {
@@ -71,6 +71,8 @@ export function propTest(
   // pairs with a missing value are dropped
   const keep = xs.map((v, i) => !Number.isNaN(v) && !Number.isNaN(ns[i]!));
   if (xs.length !== ns.length) throw new RangeError("'x' and 'n' must have the same length");
+  // R names the groups by their positions before the missing ones were dropped
+  const positions = keep.flatMap((k, i) => (k ? [i + 1] : []));
   xs = xs.filter((_, i) => keep[i]);
   ns = ns.filter((_, i) => keep[i]);
   const k = xs.length;
@@ -88,7 +90,7 @@ export function propTest(
   let alternative = matchAlternative(options.alternative);
   if (k > 2 || (k === 2 && pNull !== undefined)) alternative = "two.sided";
   const confLevel = options.confLevel ?? 0.95;
-  checkConfLevel(confLevel);
+  checkConfLevelOpen(confLevel);
   const correct = options.correct ?? true;
 
   const est = xs.map((v, i) => v / ns[i]!);
@@ -164,7 +166,7 @@ export function propTest(
     (k === 1 ? "1-sample proportions test" : `${k}-sample test for ${pNull === undefined ? "equality of" : "given"} proportions`) +
     (yates !== 0 ? " with" : " without") +
     " continuity correction";
-  const names = k === 1 ? "p" : xs.map((_, i) => `prop ${i + 1}`);
+  const names = k === 1 ? "p" : positions.map((i) => `prop ${i}`);
   const result: PropTestResult = {
     method,
     alternative,

@@ -17,7 +17,7 @@ import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { solve } from "../linalg/solve.js";
 import { ConvolvedNoncentralHyper, conditionalMLE, lowerLimit, upperLimit, type Stratum } from "./core/mantelhaen.js";
-import { checkConfLevel, matchAlternative, type Alternative, type HTest } from "./types.js";
+import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /** Options for {@link mantelhaenTest}. */
 export interface MantelhaenTestOptions {
@@ -53,7 +53,7 @@ export function mantelhaenTest(
   if (K < 1) throw new RangeError("'x' must have at least one stratum");
   const I = strata[0]!.length;
   const J = strata[0]![0]?.length ?? 0;
-  if (I < 2 || J < 2) throw new RangeError("each dimension in table must be >= 2");
+  if (I < 2 || J < 2 || K < 2) throw new RangeError("each dimension in table must be >= 2");
   for (const t of strata) {
     if (t.length !== I || t.some((r) => r.length !== J)) throw new RangeError("all strata must have the same dimensions");
     if (t.some((r) => r.some((v) => !Number.isFinite(v) || v < 0))) throw new RangeError("all entries of 'x' must be nonnegative and finite");
@@ -64,13 +64,13 @@ export function mantelhaenTest(
   const correct = options.correct ?? true;
   const exact = options.exact ?? false;
   const confLevel = options.confLevel ?? 0.95;
-  checkConfLevel(confLevel);
+  checkConfLevelOpen(confLevel);
 
   if (I === 2 && J === 2) {
     const tables = strata.map((t) => [[t[0]![0]!, t[0]![1]!], [t[1]![0]!, t[1]![1]!]] as const);
     return exact ? exact2x2xK(tables, alternative, confLevel) : asymptotic2x2xK(tables, totals, alternative, correct, confLevel);
   }
-  if (exact) throw new RangeError("exact computation only available for 2 x 2 x K tables");
+  // as in R, exact applies to 2 x 2 x K tables only and is ignored otherwise
   return general(strata, totals, I, J);
 }
 

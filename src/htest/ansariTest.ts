@@ -69,5 +69,13 @@ export function ansariTest(x: Sample, y: Sample, options: AnsariTestOptions = {}
           ? pnorm(z, { lowerTail: false })
           : pnorm(z);
   }
-  return { method: "Ansari-Bradley test", alternative, statistic, statisticName: "AB", pValue };
+  return {
+    method: "Ansari-Bradley test",
+    alternative,
+    statistic,
+    statisticName: "AB",
+    pValue,
+    nullValue: 1,
+    nullValueName: "ratio of scales",
+  };
 }

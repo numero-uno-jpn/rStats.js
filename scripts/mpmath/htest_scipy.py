@@ -116,7 +116,7 @@ def poisson(rng):
         ci = b.proportion_ci(confidence_level=conf, method="exact")
         ratio = lambda p: p / (1 - p) * T2 / T1 if p < 1 else math.inf
         cases.append({"args": {"x": [x1, x2], "T": [s(T1), s(T2)], "r": s(r), "alternative": alt, "confLevel": s(conf)},
-                      "expected": {"pValue": s(b.pvalue), "parameter": s((x1 + x2) * p0),
+                      "expected": {"pValue": s(b.pvalue), "parameter": s((x1 + x2) * r * T1 / (T1 + r * T2)),
                                    "confInt": [s(ratio(ci.low)), "Inf" if ci.high == 1 else s(ratio(ci.high))]}})
     return cases
 
@@ -175,7 +175,7 @@ def mcnemar(rng):
         if any(t[i][j] + t[j][i] == 0 for i in range(r) for j in range(i + 1, r)):
             continue
         correct = rng.random() < 0.6
-        if correct and r == 2:
+        if correct and r == 2 and t[0][1] != t[1][0]:  # R leaves a symmetric table uncorrected
             b, c = t[0][1], t[1][0]
             st = (abs(b - c) - 1) ** 2 / (b + c)
         else:

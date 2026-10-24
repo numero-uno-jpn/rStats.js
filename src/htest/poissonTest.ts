@@ -9,7 +9,7 @@
 import { dpois1, ppois1 } from "../distributions/poisson.js";
 import { qgamma1 } from "../distributions/gamma.js";
 import { binomTest } from "./binomTest.js";
-import { checkConfLevel, matchAlternative, type Alternative, type HTest } from "./types.js";
+import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /** Options for {@link poissonTest}. */
 export interface PoissonTestOptions {
@@ -86,7 +86,7 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
   if (!(Number.isFinite(r) && r > 0)) throw new RangeError("'r' must be a single positive number");
   const alternative = matchAlternative(options.alternative);
   const confLevel = options.confLevel ?? 0.95;
-  checkConfLevel(confLevel);
+  checkConfLevelOpen(confLevel);
 
   if (k === 2) {
     const [x1, x2] = counts as [number, number];
@@ -100,7 +100,8 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
       alternative,
       statistic: x1,
       statisticName: "count1",
-      parameter: n * p0,
+      // R reports sum(x) r T1 / (T1 + r T2) here (r on the other time base than in the binomial probability)
+      parameter: (n * r * T1) / (T1 + r * T2),
       parameterName: "expected count1",
       pValue: b.pValue,
       confInt: [toRatio(b.confInt[0]), toRatio(b.confInt[1])],

@@ -52,7 +52,8 @@ export function mcnemarTest(
   const correct = options.correct ?? true;
   const r = table.length;
   let statistic: number;
-  const useCorrection = correct && r === 2;
+  // as in R, a symmetric 2 x 2 table gets no correction (it would make the statistic positive)
+  const useCorrection = correct && r === 2 && table[0]![1] !== table[1]![0];
   if (useCorrection) {
     const b = table[0]![1]!;
     const c = table[1]![0]!;

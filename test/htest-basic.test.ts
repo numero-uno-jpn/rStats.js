@@ -15,7 +15,8 @@ import { mantelhaenTest } from "../src/htest/mantelhaenTest.js";
 import { ansariTest } from "../src/htest/ansariTest.js";
 import { ksTest } from "../src/htest/ksTest.js";
 import { pairwisePropTest, pairwiseTTest, pairwiseWilcoxTest } from "../src/htest/pairwise.js";
-import { pexp, pnorm, punif } from "../src/index.js";
+import { pexp, pf, pnorm, punif } from "../src/index.js";
+import { mean, variance } from "../src/internal/summary.js";
 import { flignerTest, friedmanTest, kruskalTest, moodTest, quadeTest } from "../src/htest/rankTests.js";
 import type { Alternative } from "../src/htest/types.js";
 import { hasFixture, num, relativeError } from "./helpers/fixture.js";
@@ -191,6 +192,25 @@ if (hasFixture("varTest"))
     name: "varTest",
     call: (a) => varTest(arg.vec(a.x)!, arg.vec(a.y)!, defined({ ratio: arg.num(a.ratio), ...rAlt(a) })),
     tolerance: 1e-12,
+    knownDifference: (a, field, expected, actual) => {
+      // data with a large mean and a small spread (1e8 + 1e-3 noise): R's var is off by about 1e-11 there, where
+      // the variances here agree with 50-digit values
+      const x = arg.vec(a.x)!.filter(Number.isFinite);
+      const cv = Math.sqrt(variance(x)) / Math.abs(mean(x));
+      if (cv < 1e-6 && Math.abs(actual - expected) <= 1e-9 * Math.abs(expected))
+        return "R's variance of data with a large mean and a small spread is off by about 1e-11";
+      if (field !== "pValue") return undefined;
+      // R forms the upper tail as 1 - pf(F): reproduce that and accept R's value when it is what R computed
+      const r = varTest(arg.vec(a.x)!, arg.vec(a.y)!, defined({ ratio: arg.num(a.ratio), ...rAlt(a) }));
+      const [d1, d2] = r.parameter;
+      const lower = pf(r.statistic, d1, d2);
+      const alt = r.alternative;
+      const rway = alt === "less" ? lower : alt === "greater" ? 1 - lower : 2 * Math.min(lower, 1 - lower);
+      // 1 - P with P near 1 has an absolute error of about 1e-16 in R as in the reproduction
+      return Math.abs(rway - expected) <= 1e-15
+        ? "R takes the upper tail as 1 - P, losing small p-values"
+        : undefined;
+    },
   });
 if (hasFixture("bartlettTest"))
   htestSuite({
@@ -209,14 +229,28 @@ const rGroups = (a: Record<string, HTestArg>): number[][] =>
   (a.groups as unknown as (string | string[])[]).map((g) => (Array.isArray(g) ? g : [g]).map(num));
 const rSuites: [string, (a: Record<string, HTestArg>) => object, number][] = [
   ["kruskalTest", (a) => kruskalTest(rGroups(a)), 1e-12],
-  ["flignerTest", (a) => flignerTest(rGroups(a)), 1e-12],
   ["onewayTest", (a) => onewayTest(rGroups(a), defined({ varEqual: arg.bool(a.varEqual) })), 1e-12],
   ["friedmanTest", (a) => friedmanTest(arg.mat(a.y)!), 1e-12],
   ["quadeTest", (a) => quadeTest(arg.mat(a.y)!), 1e-12],
-  ["moodTest", (a) => moodTest(arg.vec(a.x)!, arg.vec(a.y)!, defined({ alternative: arg.str<Alternative>(a.alternative) })), 1e-12],
-  ["shapiroTest", (a) => shapiroTest(arg.vec(a.x)!), 1e-12],
 ];
 for (const [name, call, tolerance] of rSuites) if (hasFixture(name)) htestSuite({ name, call, tolerance });
+if (hasFixture("shapiroTest"))
+  htestSuite({
+    name: "shapiroTest",
+    call: (a) => shapiroTest(arg.vec(a.x)!),
+    tolerance: 1e-12,
+    // at n = 5000 the p-value follows log(1 - W) with 1 - W near 3e-4, which the rounding of the sums of 5000 terms
+    // leaves good to about 1e-12 (in R as here)
+    fieldTolerance: { pValue: 3e-12 },
+  });
+if (hasFixture("flignerTest"))
+  htestSuite({
+    name: "flignerTest",
+    call: (a) => flignerTest(rGroups(a)),
+    tolerance: 1e-12,
+    // a statistic that is exactly 0 here is rounding residue (1e-31) in R, which subtracts sum S^2 / n - n mean(a)^2
+    floor: { statistic: 1e-10 },
+  });
 if (hasFixture("propTest"))
   htestSuite({
     name: "propTest",
@@ -238,8 +272,25 @@ if (hasFixture("mantelhaenTest"))
     // the exact test's estimate and limits are roots found by uniroot, in R as here
     fieldTolerance: { estimate: 1e-4, confInt: 1e-4 },
   });
+/** A p-value R forms as 1 - P (P near 1) is good to about 1e-16 absolutely; within 1e-15 the difference is R's */
+const oneMinusP = (_a: unknown, field: string, expected: number, actual: number): string | undefined =>
+  field === "pValue" && Math.abs(actual - expected) <= 1e-15 ? "R forms the p-value as 1 - P, losing small values" : undefined;
+
 if (hasFixture("ansariTest"))
   htestSuite({
+    knownDifference: (a, field, expected, actual) => {
+      const r = oneMinusP(a, field, expected, actual);
+      if (r !== undefined || field !== "pValue") return r;
+      // the exact distribution here agrees with exact subset counts (htest_ansariTest.scipy.json); R's sums of
+      // probabilities carry rounding of up to about 1e-9 relative in small p-values
+      const x = arg.vec(a.x) ?? [];
+      const y = arg.vec(a.y)!;
+      const z = [...x, ...y];
+      const exact = (arg.bool(a.exact) ?? (x.length < 50 && y.length < 50)) && new Set(z).size === z.length;
+      return exact && Math.abs(actual - expected) <= 1e-9 * expected
+        ? "R's exact Ansari-Bradley probabilities carry rounding (the values here agree with exact counts)"
+        : undefined;
+    },
     name: "ansariTest",
     call: (a) =>
       ansariTest(
@@ -265,8 +316,17 @@ if (hasFixture("ksTest"))
       return ksTest(arg.vec(a.x) ?? [], y, defined({ alternative: arg.str<Alternative>(a.alternative), exact: arg.bool(a.exact) }));
     },
     tolerance: 1e-12,
-    // 1 - P(D < d), in R as here: absolute accuracy only
-    floor: { pValue: 1e-2 },
+    // 1 - P(D < d), in R as here: absolute accuracy only. Statistics near 0 are rounding residue of R's cumulative
+    // sums of 1/m and -1/n (here the differences of the empirical distribution functions are formed directly)
+    floor: { pValue: 1e-2, statistic: 1e-3 },
+    knownDifference: (a, field, expected, actual) => {
+      // R sums Kolmogorov's limiting series to a tolerance of 1e-6 (the values here agree with
+      // scipy.special.kolmogorov, htest_ksTest.scipy.json)
+      const two = (arg.str(a.alternative) ?? "two.sided") === "two.sided";
+      return field === "pValue" && two && Math.abs(actual - expected) <= 1e-4
+        ? "R sums the limiting Kolmogorov series only to a tolerance of 1e-6"
+        : undefined;
+    },
   });
 if (hasFixture("pairwise"))
   htestSuite({
@@ -281,4 +341,16 @@ if (hasFixture("pairwise"))
       return pairwiseTTest(x, g, { ...o, paired: kind === "paired", poolSd: kind === "pooled" });
     },
     tolerance: 1e-12,
+  });
+if (hasFixture("moodTest"))
+  htestSuite({
+    name: "moodTest",
+    call: (a) => moodTest(arg.vec(a.x)!, arg.vec(a.y)!, defined({ alternative: arg.str<Alternative>(a.alternative) })),
+    tolerance: 1e-12,
+    // R 4.5.2's variance correction for ties has (N - t)^2 where Mielke's formula has (N - 2 cumsum(t) + t)^2
+    // (corrected in R-devel); the variance here is the exact permutation variance of the averaged scores
+    knownDifference: (a) => {
+      const z = [...arg.vec(a.x)!, ...arg.vec(a.y)!].filter(Number.isFinite);
+      return new Set(z).size < z.length ? "R 4.5.2's tie correction of the variance is wrong (fixed in R-devel)" : undefined;
+    },
   });

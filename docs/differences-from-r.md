@@ -93,6 +93,12 @@ affected.
 | Spearman, perfect correlation with n = 2 | S = 2.2e-16 (should be 0) | 0 |
 | Spearman's t approximation with rho ≈ ±1 | p = 1e-62 for perfect correlation with n = 10 (should be 0) | 0 |
 | Fisher's exact test for r × c tables | FEXACT rounding errors around 1e-11 relative (changing `workspace` changes the value by 2e-13) | matches exact enumeration |
+| `var.test`, `ansari.test` and `mood.test`: upper tails | formed as 1 − P, so small p-values lose their relative accuracy (`var.test` returns 0 for p = 4e-58) | tails computed directly |
+| Exact `ansari.test` p-values | R's sums of probabilities carry rounding of up to 1e-9 relative in small p-values | agree with exact subset counts |
+| `mood.test` with ties | R 4.5.2's tie correction of the variance has (N − t)² where Mielke's formula has (N − 2 cumsum(t) + t)² (corrected in R-devel); the statistic is off by up to 6% | the exact permutation variance of the averaged scores |
+| `ks.test`, asymptotic two-sided p-value | Kolmogorov's limiting series summed to a tolerance of 1e-6 (off by up to 1e-5) | agrees with `scipy.special.kolmogorov` |
+| `ks.test` two-sample statistic that is 0 | rounding residue of cumulative sums of 1/m and −1/n (±1e-16, sometimes negative) | 0 |
+| `fligner.test` and `prop.test` statistics that are 0 | rounding residue (1e-31) | 0 |
 
 ## Where R fails and rStats.js returns a value
 
