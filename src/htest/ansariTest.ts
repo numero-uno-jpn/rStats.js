@@ -13,10 +13,9 @@
 // candidate ratios x_i / y_j >= 0 (and beyond the largest), and the limits are the candidate ratios where it crosses
 // the exact quantiles; the estimate is the midpoint of the crossing of the median. Normal approximation: the limits and
 // the estimate are where the standardised AB(s) (standardised as for the test: R 4.5.2's ansari.test) crosses the normal
-// quantiles (and 0), found with R's uniroot
-// conventions (tolerance 1e-4) in the range of the ratios of the positive values and of the negative values. The
-// candidate sets, evaluation points, search range, tolerance and the cases returned as NaN (R's NA) follow R's
-// documented and observed behaviour.
+// quantiles (and 0), found with R's uniroot conventions (tolerance 1e-4) in the range of the ratios of the positive
+// values and of the negative values. The candidate sets, evaluation points, search range, tolerance and the cases
+// returned as NaN (R's NA) follow R's documented and observed behaviour.
 
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { rank } from "../internal/summary.js";
