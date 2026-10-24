@@ -96,6 +96,19 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | `TukeyHSD` | R の `ptukey`・`qtukey` (上記)。df = 5 で p 値が 3e-6 ずれる (2 群なら t 分布から決まる) | 高精度の値と一致 |
 | ほぼ共線な列の `lm` (1e6 + ノイズと切片) | 係数が 60 桁の値から 1.7e-9 ずれる | 3.6e-11 (どちらも eps と条件数の積の範囲) |
 
+### R にない分布
+
+R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R のベータ分布の関数 (arcsine)、R で書いた
+閉じた形 (`distSummary`) です。rStats.js の値は mpmath の 50 桁の値と一致します (`scripts/mpmath/extradist.py`、
+`scripts/mpmath/distsummary.py`)。
+
+| ケース | R | rStats.js |
+|---|---|---|
+| `pinvgamma`・`pkumar`・`ppareto`・`plaplace`・`ptriang` の裾 | extraDistr は教科書の式をそのまま計算するので、1 − x^a や 1 − p が桁落ちし、確率がアンダーフローしてから対数を取る (`pkumar(1e-10, 1, 1)` が 8e-8 ずれ、`pinvgamma(1e-300, 1, 1, log.p = TRUE)` が −1e300 でなく −Inf) | 裾を直接計算 |
+| 遠い裾の分位点 (`qlaplace`・`qkumar`・`qtriang` など) | 1 − p が丸まる: `qlaplace(1e-300, lower.tail = FALSE)` が Inf | 正しく丸めた値 (p に戻る) |
+| 母数に対して急な密度 (alpha = 100 の `dinvgamma`、端に近い `dtriang`) | beta / x や b − x の丸めが拡大される (9e-14 まで) | 割り算を double-double で |
+| `weibull` と `kumar` の `distSummary` の歪度・尖度 | 生のモーメントからの式が桁落ちする (shape 20 で尖度の 9 桁を失う) | 中心モーメントを直接積分 (3e-14) |
+
 ## R が失敗し、rStats.js が値を返す場合
 
 | ケース | R | rStats.js |
@@ -166,6 +179,14 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 R の `dgeom` と `dnbinom` は、|x − round(x)| > 1e-9 max(1, |x|) のとき x を整数でないとみなします。
 rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整数の近くで R と異なる可能性があります
 (未検証)。
+
+- **R にない分布**は extraDistr の名前と母数を使います。`darcsine`・`parcsine`・`qarcsine`・`rarcsine`
+  (extraDistr に無い) はベータ(1/2, 1/2) を (a, b) に移したものです。無限大の形や位置の母数は極限として
+  扱います。extraDistr の式はその端で NaN や外れた値を返します (`qkumar(0, Inf, 1)` は extraDistr で 1、
+  ここでは 0)。`qinvgamma` は `dinvgamma`・`pinvgamma` と同じく alpha <= 0 で NaN を返します (extraDistr の
+  `qinvgamma` は alpha を確かめません)。
+- **`distSummary`** の決まり: 存在しないモーメントは NaN、無限のモーメントは Infinity。離散分布で等しい
+  最大が 2 つあれば大きい方を最頻値とし、密度の最大が一意でなければ NaN です。
 
 ### 乱数
 

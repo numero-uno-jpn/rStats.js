@@ -148,131 +148,131 @@ import できます。
 | `jStat.normal.pdf` | `dnorm(x, { mean, sd })` | jStat と同じく標準偏差を取ります。 |
 | `jStat.normal.cdf` | `pnorm(q, { mean, sd })` |  |
 | `jStat.normal.inv` | `qnorm(p, { mean, sd })` |  |
-| `jStat.normal.mean` | `distSummary("norm", { mean, sd }).mean` *(予定)* |  |
-| `jStat.normal.median` | `distSummary("norm", { mean, sd }).median` *(予定)* |  |
-| `jStat.normal.mode` | `distSummary("norm", { mean, sd }).mode` *(予定)* |  |
+| `jStat.normal.mean` | `distSummary("norm", { mean, sd }).mean` |  |
+| `jStat.normal.median` | `distSummary("norm", { mean, sd }).median` |  |
+| `jStat.normal.mode` | `distSummary("norm", { mean, sd }).mode` |  |
 | `jStat.normal.sample` | `rnorm(n, { mean, sd })` |  |
-| `jStat.normal.variance` | `distSummary("norm", { mean, sd }).variance` *(予定)* |  |
+| `jStat.normal.variance` | `distSummary("norm", { mean, sd }).variance` |  |
 | `jStat.studentt.pdf` | `dt(x, df)` |  |
 | `jStat.studentt.cdf` | `pt(q, df)` |  |
 | `jStat.studentt.inv` | `qt(p, df)` |  |
-| `jStat.studentt.mean` | `distSummary("t", { df }).mean` *(予定)* |  |
-| `jStat.studentt.median` | `distSummary("t", { df }).median` *(予定)* |  |
-| `jStat.studentt.mode` | `distSummary("t", { df }).mode` *(予定)* |  |
+| `jStat.studentt.mean` | `distSummary("t", { df }).mean` |  |
+| `jStat.studentt.median` | `distSummary("t", { df }).median` |  |
+| `jStat.studentt.mode` | `distSummary("t", { df }).mode` |  |
 | `jStat.studentt.sample` | `rt(n, df)` |  |
-| `jStat.studentt.variance` | `distSummary("t", { df }).variance` *(予定)* |  |
+| `jStat.studentt.variance` | `distSummary("t", { df }).variance` |  |
 | `jStat.centralF.pdf` | `df(x, df1, df2)` |  |
 | `jStat.centralF.cdf` | `pf(q, df1, df2)` |  |
 | `jStat.centralF.inv` | `qf(p, df1, df2)` |  |
-| `jStat.centralF.mean` | `distSummary("f", { df1, df2 }).mean` *(予定)* |  |
-| `jStat.centralF.mode` | `distSummary("f", { df1, df2 }).mode` *(予定)* |  |
+| `jStat.centralF.mean` | `distSummary("f", { df1, df2 }).mean` |  |
+| `jStat.centralF.mode` | `distSummary("f", { df1, df2 }).mode` |  |
 | `jStat.centralF.sample` | `rf(n, df1, df2)` |  |
-| `jStat.centralF.variance` | `distSummary("f", { df1, df2 }).variance` *(予定)* |  |
+| `jStat.centralF.variance` | `distSummary("f", { df1, df2 }).variance` |  |
 | `jStat.chisquare.pdf` | `dchisq(x, df)` | jStat の median は Wilson-Hilferty の近似です。`distSummary` は `qchisq(0.5, df)` を返します。 |
 | `jStat.chisquare.cdf` | `pchisq(q, df)` |  |
 | `jStat.chisquare.inv` | `qchisq(p, df)` |  |
-| `jStat.chisquare.mean` | `distSummary("chisq", { df }).mean` *(予定)* |  |
-| `jStat.chisquare.median` | `distSummary("chisq", { df }).median` *(予定)* |  |
-| `jStat.chisquare.mode` | `distSummary("chisq", { df }).mode` *(予定)* |  |
+| `jStat.chisquare.mean` | `distSummary("chisq", { df }).mean` |  |
+| `jStat.chisquare.median` | `distSummary("chisq", { df }).median` |  |
+| `jStat.chisquare.mode` | `distSummary("chisq", { df }).mode` |  |
 | `jStat.chisquare.sample` | `rchisq(n, df)` |  |
-| `jStat.chisquare.variance` | `distSummary("chisq", { df }).variance` *(予定)* |  |
+| `jStat.chisquare.variance` | `distSummary("chisq", { df }).variance` |  |
 | `jStat.beta.pdf` | `dbeta(x, a, b)` |  |
 | `jStat.beta.cdf` | `pbeta(q, a, b)` |  |
 | `jStat.beta.inv` | `qbeta(p, a, b)` |  |
-| `jStat.beta.mean` | `distSummary("beta", { shape1: a, shape2: b }).mean` *(予定)* |  |
-| `jStat.beta.median` | `distSummary("beta", { shape1: a, shape2: b }).median` *(予定)* |  |
-| `jStat.beta.mode` | `distSummary("beta", { shape1: a, shape2: b }).mode` *(予定)* |  |
+| `jStat.beta.mean` | `distSummary("beta", { shape1: a, shape2: b }).mean` |  |
+| `jStat.beta.median` | `distSummary("beta", { shape1: a, shape2: b }).median` |  |
+| `jStat.beta.mode` | `distSummary("beta", { shape1: a, shape2: b }).mode` |  |
 | `jStat.beta.sample` | `rbeta(n, a, b)` |  |
-| `jStat.beta.variance` | `distSummary("beta", { shape1: a, shape2: b }).variance` *(予定)* |  |
+| `jStat.beta.variance` | `distSummary("beta", { shape1: a, shape2: b }).variance` |  |
 | `jStat.gamma.pdf` | `dgamma(x, shape, { scale })` | **母数:** jStat の 2 つ目の母数は尺度です。R の既定は rate なので `{ scale }` で渡します。 |
 | `jStat.gamma.cdf` | `pgamma(q, shape, { scale })` |  |
 | `jStat.gamma.inv` | `qgamma(p, shape, { scale })` |  |
-| `jStat.gamma.mean` | `distSummary("gamma", { shape, scale }).mean` *(予定)* |  |
-| `jStat.gamma.mode` | `distSummary("gamma", { shape, scale }).mode` *(予定)* |  |
+| `jStat.gamma.mean` | `distSummary("gamma", { shape, scale }).mean` |  |
+| `jStat.gamma.mode` | `distSummary("gamma", { shape, scale }).mode` |  |
 | `jStat.gamma.sample` | `rgamma(n, shape, { scale })` |  |
-| `jStat.gamma.variance` | `distSummary("gamma", { shape, scale }).variance` *(予定)* |  |
-| `jStat.invgamma.pdf` | `dinvgamma(x, alpha, { beta })` *(予定)* | extraDistr の名前です: `beta` が尺度です。 |
-| `jStat.invgamma.cdf` | `pinvgamma(q, alpha, { beta })` *(予定)* |  |
-| `jStat.invgamma.inv` | `qinvgamma(p, alpha, { beta })` *(予定)* |  |
-| `jStat.invgamma.mean` | `distSummary("invgamma", { alpha, beta }).mean` *(予定)* |  |
-| `jStat.invgamma.mode` | `distSummary("invgamma", { alpha, beta }).mode` *(予定)* |  |
-| `jStat.invgamma.sample` | `rinvgamma(n, alpha, { beta })` *(予定)* |  |
-| `jStat.invgamma.variance` | `distSummary("invgamma", { alpha, beta }).variance` *(予定)* |  |
+| `jStat.gamma.variance` | `distSummary("gamma", { shape, scale }).variance` |  |
+| `jStat.invgamma.pdf` | `dinvgamma(x, alpha, { beta })` | extraDistr の名前です: `beta` が尺度です。 |
+| `jStat.invgamma.cdf` | `pinvgamma(q, alpha, { beta })` |  |
+| `jStat.invgamma.inv` | `qinvgamma(p, alpha, { beta })` |  |
+| `jStat.invgamma.mean` | `distSummary("invgamma", { alpha, beta }).mean` |  |
+| `jStat.invgamma.mode` | `distSummary("invgamma", { alpha, beta }).mode` |  |
+| `jStat.invgamma.sample` | `rinvgamma(n, alpha, { beta })` |  |
+| `jStat.invgamma.variance` | `distSummary("invgamma", { alpha, beta }).variance` |  |
 | `jStat.lognormal.pdf` | `dlnorm(x, { meanlog, sdlog })` |  |
 | `jStat.lognormal.cdf` | `plnorm(q, { meanlog, sdlog })` |  |
 | `jStat.lognormal.inv` | `qlnorm(p, { meanlog, sdlog })` |  |
-| `jStat.lognormal.mean` | `distSummary("lnorm", { meanlog, sdlog }).mean` *(予定)* |  |
-| `jStat.lognormal.median` | `distSummary("lnorm", { meanlog, sdlog }).median` *(予定)* |  |
-| `jStat.lognormal.mode` | `distSummary("lnorm", { meanlog, sdlog }).mode` *(予定)* |  |
+| `jStat.lognormal.mean` | `distSummary("lnorm", { meanlog, sdlog }).mean` |  |
+| `jStat.lognormal.median` | `distSummary("lnorm", { meanlog, sdlog }).median` |  |
+| `jStat.lognormal.mode` | `distSummary("lnorm", { meanlog, sdlog }).mode` |  |
 | `jStat.lognormal.sample` | `rlnorm(n, { meanlog, sdlog })` |  |
-| `jStat.lognormal.variance` | `distSummary("lnorm", { meanlog, sdlog }).variance` *(予定)* |  |
+| `jStat.lognormal.variance` | `distSummary("lnorm", { meanlog, sdlog }).variance` |  |
 | `jStat.exponential.pdf` | `dexp(x, { rate })` |  |
 | `jStat.exponential.cdf` | `pexp(q, { rate })` |  |
 | `jStat.exponential.inv` | `qexp(p, { rate })` |  |
-| `jStat.exponential.mean` | `distSummary("exp", { rate }).mean` *(予定)* |  |
-| `jStat.exponential.median` | `distSummary("exp", { rate }).median` *(予定)* |  |
-| `jStat.exponential.mode` | `distSummary("exp", { rate }).mode` *(予定)* |  |
+| `jStat.exponential.mean` | `distSummary("exp", { rate }).mean` |  |
+| `jStat.exponential.median` | `distSummary("exp", { rate }).median` |  |
+| `jStat.exponential.mode` | `distSummary("exp", { rate }).mode` |  |
 | `jStat.exponential.sample` | `rexp(n, { rate })` |  |
-| `jStat.exponential.variance` | `distSummary("exp", { rate }).variance` *(予定)* |  |
+| `jStat.exponential.variance` | `distSummary("exp", { rate }).variance` |  |
 | `jStat.uniform.pdf` | `dunif(x, { min, max })` | jStat の median は NaN を返し、mode は例外になります。 |
 | `jStat.uniform.cdf` | `punif(q, { min, max })` |  |
 | `jStat.uniform.inv` | `qunif(p, { min, max })` |  |
-| `jStat.uniform.mean` | `distSummary("unif", { min, max }).mean` *(予定)* |  |
-| `jStat.uniform.median` | `distSummary("unif", { min, max }).median` *(予定)* |  |
-| `jStat.uniform.mode` | `distSummary("unif", { min, max }).mode` *(予定)* |  |
+| `jStat.uniform.mean` | `distSummary("unif", { min, max }).mean` |  |
+| `jStat.uniform.median` | `distSummary("unif", { min, max }).median` |  |
+| `jStat.uniform.mode` | `distSummary("unif", { min, max }).mode` |  |
 | `jStat.uniform.sample` | `runif(n, { min, max })` |  |
-| `jStat.uniform.variance` | `distSummary("unif", { min, max }).variance` *(予定)* |  |
+| `jStat.uniform.variance` | `distSummary("unif", { min, max }).variance` |  |
 | `jStat.cauchy.pdf` | `dcauchy(x, { location, scale })` |  |
 | `jStat.cauchy.cdf` | `pcauchy(q, { location, scale })` |  |
 | `jStat.cauchy.inv` | `qcauchy(p, { location, scale })` |  |
-| `jStat.cauchy.median` | `distSummary("cauchy", { location, scale }).median` *(予定)* |  |
-| `jStat.cauchy.mode` | `distSummary("cauchy", { location, scale }).mode` *(予定)* |  |
+| `jStat.cauchy.median` | `distSummary("cauchy", { location, scale }).median` |  |
+| `jStat.cauchy.mode` | `distSummary("cauchy", { location, scale }).mode` |  |
 | `jStat.cauchy.sample` | `rcauchy(n, { location, scale })` |  |
 | `jStat.weibull.pdf` | `dweibull(x, shape, { scale })` | **順序:** jStat は (scale, shape)、R は (shape, scale) です。 |
 | `jStat.weibull.cdf` | `pweibull(q, shape, { scale })` |  |
 | `jStat.weibull.inv` | `qweibull(p, shape, { scale })` |  |
-| `jStat.weibull.mean` | `distSummary("weibull", { shape, scale }).mean` *(予定)* |  |
-| `jStat.weibull.median` | `distSummary("weibull", { shape, scale }).median` *(予定)* |  |
-| `jStat.weibull.mode` | `distSummary("weibull", { shape, scale }).mode` *(予定)* |  |
+| `jStat.weibull.mean` | `distSummary("weibull", { shape, scale }).mean` |  |
+| `jStat.weibull.median` | `distSummary("weibull", { shape, scale }).median` |  |
+| `jStat.weibull.mode` | `distSummary("weibull", { shape, scale }).mode` |  |
 | `jStat.weibull.sample` | `rweibull(n, shape, { scale })` |  |
-| `jStat.weibull.variance` | `distSummary("weibull", { shape, scale }).variance` *(予定)* |  |
-| `jStat.kumaraswamy.pdf` | `dkumar(x, a, b)` *(予定)* | jStat の variance は例外になります。 |
-| `jStat.kumaraswamy.cdf` | `pkumar(q, a, b)` *(予定)* |  |
-| `jStat.kumaraswamy.inv` | `qkumar(p, a, b)` *(予定)* |  |
-| `jStat.kumaraswamy.mean` | `distSummary("kumar", { a, b }).mean` *(予定)* |  |
-| `jStat.kumaraswamy.median` | `distSummary("kumar", { a, b }).median` *(予定)* |  |
-| `jStat.kumaraswamy.mode` | `distSummary("kumar", { a, b }).mode` *(予定)* |  |
-| `jStat.kumaraswamy.variance` | `distSummary("kumar", { a, b }).variance` *(予定)* |  |
-| `jStat.laplace.pdf` | `dlaplace(x, { mu, sigma })` *(予定)* | jStat には逆関数がありません。`qlaplace` があります。 |
-| `jStat.laplace.cdf` | `plaplace(q, { mu, sigma })` *(予定)* |  |
-| `jStat.laplace.mean` | `distSummary("laplace", { mu, sigma }).mean` *(予定)* |  |
-| `jStat.laplace.median` | `distSummary("laplace", { mu, sigma }).median` *(予定)* |  |
-| `jStat.laplace.mode` | `distSummary("laplace", { mu, sigma }).mode` *(予定)* |  |
-| `jStat.laplace.variance` | `distSummary("laplace", { mu, sigma }).variance` *(予定)* |  |
-| `jStat.laplace.sample` | `rlaplace(n, { mu, sigma })` *(予定)* |  |
-| `jStat.pareto.pdf` | `dpareto(x, { a, b })` *(予定)* | extraDistr の名前です: `a` が形、`b` が尺度です (jStat は (scale, shape))。jStat の mean と median は誤りです。 |
-| `jStat.pareto.cdf` | `ppareto(q, { a, b })` *(予定)* |  |
-| `jStat.pareto.inv` | `qpareto(p, { a, b })` *(予定)* |  |
-| `jStat.pareto.mean` | `distSummary("pareto", { a, b }).mean` *(予定)* |  |
-| `jStat.pareto.median` | `distSummary("pareto", { a, b }).median` *(予定)* |  |
-| `jStat.pareto.mode` | `distSummary("pareto", { a, b }).mode` *(予定)* |  |
-| `jStat.pareto.variance` | `distSummary("pareto", { a, b }).variance` *(予定)* |  |
-| `jStat.triangular.pdf` | `dtriang(x, { a, b, c })` *(予定)* | jStat と同じく最小・最大・最頻値です。 |
-| `jStat.triangular.cdf` | `ptriang(q, { a, b, c })` *(予定)* |  |
-| `jStat.triangular.inv` | `qtriang(p, { a, b, c })` *(予定)* |  |
-| `jStat.triangular.mean` | `distSummary("triang", { a, b, c }).mean` *(予定)* |  |
-| `jStat.triangular.median` | `distSummary("triang", { a, b, c }).median` *(予定)* |  |
-| `jStat.triangular.mode` | `distSummary("triang", { a, b, c }).mode` *(予定)* |  |
-| `jStat.triangular.sample` | `rtriang(n, { a, b, c })` *(予定)* |  |
-| `jStat.triangular.variance` | `distSummary("triang", { a, b, c }).variance` *(予定)* |  |
-| `jStat.arcsine.pdf` | `darcsine(x, { a, b })` *(予定)* | jStat の mode は例外になります。最頻値は 2 つ (a と b) なので `distSummary` は NaN を返します。 |
-| `jStat.arcsine.cdf` | `parcsine(q, { a, b })` *(予定)* |  |
-| `jStat.arcsine.inv` | `qarcsine(p, { a, b })` *(予定)* |  |
-| `jStat.arcsine.mean` | `distSummary("arcsine", { a, b }).mean` *(予定)* |  |
-| `jStat.arcsine.median` | `distSummary("arcsine", { a, b }).median` *(予定)* |  |
-| `jStat.arcsine.mode` | `distSummary("arcsine", { a, b }).mode` *(予定)* |  |
-| `jStat.arcsine.sample` | `rarcsine(n, { a, b })` *(予定)* |  |
-| `jStat.arcsine.variance` | `distSummary("arcsine", { a, b }).variance` *(予定)* |  |
+| `jStat.weibull.variance` | `distSummary("weibull", { shape, scale }).variance` |  |
+| `jStat.kumaraswamy.pdf` | `dkumar(x, a, b)` | jStat の variance は例外になります。 |
+| `jStat.kumaraswamy.cdf` | `pkumar(q, a, b)` |  |
+| `jStat.kumaraswamy.inv` | `qkumar(p, a, b)` |  |
+| `jStat.kumaraswamy.mean` | `distSummary("kumar", { a, b }).mean` |  |
+| `jStat.kumaraswamy.median` | `distSummary("kumar", { a, b }).median` |  |
+| `jStat.kumaraswamy.mode` | `distSummary("kumar", { a, b }).mode` |  |
+| `jStat.kumaraswamy.variance` | `distSummary("kumar", { a, b }).variance` |  |
+| `jStat.laplace.pdf` | `dlaplace(x, { mu, sigma })` | jStat には逆関数がありません。`qlaplace` があります。 |
+| `jStat.laplace.cdf` | `plaplace(q, { mu, sigma })` |  |
+| `jStat.laplace.mean` | `distSummary("laplace", { mu, sigma }).mean` |  |
+| `jStat.laplace.median` | `distSummary("laplace", { mu, sigma }).median` |  |
+| `jStat.laplace.mode` | `distSummary("laplace", { mu, sigma }).mode` |  |
+| `jStat.laplace.variance` | `distSummary("laplace", { mu, sigma }).variance` |  |
+| `jStat.laplace.sample` | `rlaplace(n, { mu, sigma })` |  |
+| `jStat.pareto.pdf` | `dpareto(x, { a, b })` | extraDistr の名前です: `a` が形、`b` が尺度です (jStat は (scale, shape))。jStat の mean と median は誤りです。 |
+| `jStat.pareto.cdf` | `ppareto(q, { a, b })` |  |
+| `jStat.pareto.inv` | `qpareto(p, { a, b })` |  |
+| `jStat.pareto.mean` | `distSummary("pareto", { a, b }).mean` |  |
+| `jStat.pareto.median` | `distSummary("pareto", { a, b }).median` |  |
+| `jStat.pareto.mode` | `distSummary("pareto", { a, b }).mode` |  |
+| `jStat.pareto.variance` | `distSummary("pareto", { a, b }).variance` |  |
+| `jStat.triangular.pdf` | `dtriang(x, { a, b, c })` | jStat と同じく最小・最大・最頻値です。 |
+| `jStat.triangular.cdf` | `ptriang(q, { a, b, c })` |  |
+| `jStat.triangular.inv` | `qtriang(p, { a, b, c })` |  |
+| `jStat.triangular.mean` | `distSummary("triang", { a, b, c }).mean` |  |
+| `jStat.triangular.median` | `distSummary("triang", { a, b, c }).median` |  |
+| `jStat.triangular.mode` | `distSummary("triang", { a, b, c }).mode` |  |
+| `jStat.triangular.sample` | `rtriang(n, { a, b, c })` |  |
+| `jStat.triangular.variance` | `distSummary("triang", { a, b, c }).variance` |  |
+| `jStat.arcsine.pdf` | `darcsine(x, { a, b })` | jStat の mode は例外になります。最頻値は 2 つ (a と b) なので `distSummary` は NaN を返します。 |
+| `jStat.arcsine.cdf` | `parcsine(q, { a, b })` |  |
+| `jStat.arcsine.inv` | `qarcsine(p, { a, b })` |  |
+| `jStat.arcsine.mean` | `distSummary("arcsine", { a, b }).mean` |  |
+| `jStat.arcsine.median` | `distSummary("arcsine", { a, b }).median` |  |
+| `jStat.arcsine.mode` | `distSummary("arcsine", { a, b }).mode` |  |
+| `jStat.arcsine.sample` | `rarcsine(n, { a, b })` |  |
+| `jStat.arcsine.variance` | `distSummary("arcsine", { a, b }).variance` |  |
 | `jStat.binomial.pdf` | `dbinom(x, size, prob)` | jStat は cdf を 1e-10 に丸めます。 |
 | `jStat.binomial.cdf` | `pbinom(q, size, prob)` |  |
 | `jStat.negbin.pdf` | `dnbinom(x, size, { prob })` | どちらも `size` 回目の成功までの失敗の数です。 |
@@ -281,8 +281,8 @@ import できます。
 | `jStat.hypgeom.cdf` | `phyper(q, m, n, k)` |  |
 | `jStat.poisson.pdf` | `dpois(x, lambda)` |  |
 | `jStat.poisson.cdf` | `ppois(q, lambda)` |  |
-| `jStat.poisson.mean` | `distSummary("pois", { lambda }).mean` *(予定)* |  |
-| `jStat.poisson.variance` | `distSummary("pois", { lambda }).variance` *(予定)* |  |
+| `jStat.poisson.mean` | `distSummary("pois", { lambda }).mean` |  |
+| `jStat.poisson.variance` | `distSummary("pois", { lambda }).variance` |  |
 | `jStat.poisson.sample` | `rpois(n, lambda)` |  |
 | `jStat.poisson.sampleSmall` | `rpois(n, lambda)` |  |
 | `jStat.poisson.sampleLarge` | `rpois(n, lambda)` |  |

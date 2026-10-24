@@ -3,6 +3,7 @@ import {
   getRandomSeed, rbeta, rbinom, rcauchy, rchisq, rexp, rf, rgamma, rgeom, rlnorm, rlogis,
   rhyper, rmultinom, rnbinom, rnorm, rpois, rsignrank, rt, runif, rweibull, rwilcox, sampleInt, setRandomSeed, setSeed,
 } from "../src/index.js";
+import { rinvgamma, rkumar, rlaplace, rpareto, rtriang } from "../src/random/extra.js";
 import { num } from "./helpers/fixture.js";
 import { nums, randomSuite, summary, type RandomCase } from "./helpers/random.js";
 
@@ -49,6 +50,12 @@ function call(a: Args): number[] {
       // In long-sequence cases n is the number of draws and the number of black balls is nb
       return a.nb !== undefined ? rhyper(n, v(a, "m"), v(a, "nb"), v(a, "k")) : rhyper(v(a, "nn"), v(a, "m"), v(a, "n"), v(a, "k"));
     case "rmultinom": return rmultinom(n, v(a, "size"), nums(a.prob)).flat();
+    // extraDistr (rextradist)
+    case "rinvgamma": return rinvgamma(n, v(a, "alpha"), opt(a, "beta"));
+    case "rkumar": return rkumar(n, v(a, "a"), v(a, "b"));
+    case "rpareto": return rpareto(n, opt(a, "a", "b"));
+    case "rtriang": return rtriang(n, opt(a, "a", "b", "c"));
+    case "rlaplace": return rlaplace(n, opt(a, "mu", "sigma"));
   }
   if (a.script === "mixed") {
     return [
@@ -74,6 +81,7 @@ randomSuite([
   ...["rbasic", "rgamma", "rchisq", "rbeta", "rother"].map((name) => ({ name, call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS })),
   ...["rpois", "rbinom", "rnbinom", "rrank", "rsample", "rmultinom", "rhyper"].map((name) => ({ name, call: callOrSummary, isSummary: isLong })),
   // Mixes binomial and Poisson (integer) with gamma and beta (continuous)
+  { name: "rextradist", call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS },
   { name: "rlong", call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS },
   { name: "rstate", call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS },
 ]);

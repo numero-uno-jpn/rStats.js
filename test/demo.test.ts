@@ -46,6 +46,10 @@ const NOT_IN_DEMO_YET = [
   // numerical methods (demo to come)
   "integrate", "optimize", "uniroot", "approx", "spline", "splinefun", "splinefunH", "barylag", "hermiteInterp", "ode",
   "grad", "jacobian", "hessian",
+  // distributions outside base R and distribution summaries (demo to come)
+  "dinvgamma", "pinvgamma", "qinvgamma", "dkumar", "pkumar", "qkumar", "dpareto", "ppareto", "qpareto", "dtriang", "ptriang",
+  "qtriang", "dlaplace", "plaplace", "qlaplace", "darcsine", "parcsine", "qarcsine", "distSummary",
+  "rinvgamma", "rkumar", "rpareto", "rtriang", "rlaplace", "rarcsine",
 ];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 

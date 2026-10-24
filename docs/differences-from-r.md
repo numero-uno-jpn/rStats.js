@@ -104,6 +104,19 @@ affected.
 | `TukeyHSD` | R's `ptukey` and `qtukey` (see above); the p-value is off by 3e-6 with df = 5 (two groups, where it follows from the t distribution) | agrees with high-precision values |
 | `lm` with nearly collinear columns (1e6 + noise, with an intercept) | coefficients off by 1.7e-9 from 60-digit values | 3.6e-11 (both within eps times the condition number) |
 
+### Distributions outside base R
+
+The R references are extraDistr (invgamma, kumar, pareto, triang, laplace), R's beta functions (arcsine) and
+closed forms written in R (`distSummary`). The values here agree with 50-digit mpmath values
+(`scripts/mpmath/extradist.py`, `scripts/mpmath/distsummary.py`).
+
+| Case | R | rStats.js |
+|---|---|---|
+| Tails of `pinvgamma`, `pkumar`, `ppareto`, `plaplace`, `ptriang` | extraDistr evaluates the textbook formulas: 1 − x^a and 1 − p cancel and log probabilities are taken after the probability underflowed (`pkumar(1e-10, 1, 1)` is off by 8e-8, `pinvgamma(1e-300, 1, 1, log.p = TRUE)` is −Inf instead of −1e300) | tails computed directly |
+| Quantiles in the far tails (`qlaplace`, `qkumar`, `qtriang`, ...) | 1 − p rounds: `qlaplace(1e-300, lower.tail = FALSE)` is Inf | correctly rounded (maps back to p) |
+| Densities steep in a parameter (`dinvgamma` with alpha = 100, `dtriang` near the ends) | the rounding of beta / x or b − x is magnified (to 9e-14) | the division in double-double |
+| `distSummary` skewness and kurtosis of `weibull` and `kumar` | the raw-moment formulas cancel: 9 digits of the kurtosis lost for shape 20 | central moments integrated directly (3e-14) |
+
 ## Where R fails and rStats.js returns a value
 
 | Case | R | rStats.js |
@@ -174,6 +187,15 @@ to have a distribution function within 16ε of p.
 R's `dgeom` and `dnbinom` treat x as non-integer when |x − round(x)| > 1e-9 max(1, |x|).
 rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from R near integers
 (not verified).
+
+- **Distributions outside base R** take extraDistr's names and parameters; `darcsine`, `parcsine`,
+  `qarcsine` and `rarcsine` (not in extraDistr) are beta(1/2, 1/2) moved to (a, b). An infinite
+  shape or location is taken as the limit, where extraDistr's formulas give NaN or a stray value at
+  the edges (`qkumar(0, Inf, 1)` is 1 there, 0 here). `qinvgamma` returns NaN for alpha <= 0, as
+  `dinvgamma` and `pinvgamma` do (extraDistr's `qinvgamma` does not check alpha).
+- **`distSummary`** follows these conventions: a moment that does not exist is NaN, an infinite
+  one Infinity; the mode of a discrete distribution with two equal maxima is the larger, and NaN
+  when the density has no unique maximum.
 
 ### Random numbers
 

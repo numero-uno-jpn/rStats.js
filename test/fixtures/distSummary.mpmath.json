@@ -1,0 +1,132 @@
+{
+ "function": "distSummary",
+ "generator": "mpmath 1.4.1",
+ "cases": [
+  {
+   "args": {
+    "distribution": "weibull",
+    "shape": "1",
+    "scale": "1"
+   },
+   "expected": {
+    "mean": "1",
+    "variance": "1",
+    "sd": "1",
+    "skewness": "2",
+    "kurtosis": "6"
+   }
+  },
+  {
+   "args": {
+    "distribution": "weibull",
+    "shape": "2",
+    "scale": "3"
+   },
+   "expected": {
+    "mean": "2.658680776358274",
+    "variance": "1.9314165294229653",
+    "sd": "1.3897541255283128",
+    "skewness": "0.63111065781893716",
+    "kurtosis": "0.24508930068763807"
+   }
+  },
+  {
+   "args": {
+    "distribution": "weibull",
+    "shape": "0.5",
+    "scale": "2"
+   },
+   "expected": {
+    "mean": "4",
+    "variance": "80",
+    "sd": "8.9442719099991592",
+    "skewness": "6.6187612133993774",
+    "kurtosis": "84.719999999999999"
+   }
+  },
+  {
+   "args": {
+    "distribution": "weibull",
+    "shape": "20",
+    "scale": "1"
+   },
+   "expected": {
+    "mean": "0.97350426556277569",
+    "variance": "0.0036402147979539804",
+    "sd": "0.060334192610442552",
+    "skewness": "-0.86796509517451093",
+    "kurtosis": "1.2672007592554009"
+   }
+  },
+  {
+   "args": {
+    "distribution": "kumar",
+    "a": "2",
+    "b": "3"
+   },
+   "expected": {
+    "mean": "0.45714285714285713",
+    "variance": "0.041020408163265305",
+    "sd": "0.20253495541082608",
+    "skewness": "0.071119425280601611",
+    "kurtosis": "-0.73424750212453482"
+   }
+  },
+  {
+   "args": {
+    "distribution": "kumar",
+    "a": "0.5",
+    "b": "2"
+   },
+   "expected": {
+    "mean": "0.16666666666666666",
+    "variance": "0.03888888888888889",
+    "sd": "0.19720265943665385",
+    "skewness": "1.5178280493083562",
+    "kurtosis": "1.7667638483965014"
+   }
+  },
+  {
+   "args": {
+    "distribution": "kumar",
+    "a": "3",
+    "b": "0.5"
+   },
+   "expected": {
+    "mean": "0.84130926319527255",
+    "variance": "0.031372883441767765",
+    "sd": "0.17712392114496495",
+    "skewness": "-1.4389341273489145",
+    "kurtosis": "1.6252676325584423"
+   }
+  },
+  {
+   "args": {
+    "distribution": "kumar",
+    "a": "1",
+    "b": "1"
+   },
+   "expected": {
+    "mean": "0.5",
+    "variance": "0.083333333333333329",
+    "sd": "0.28867513459481287",
+    "skewness": "0",
+    "kurtosis": "-1.2"
+   }
+  },
+  {
+   "args": {
+    "distribution": "kumar",
+    "a": "5",
+    "b": "50"
+   },
+   "expected": {
+    "mean": "0.41888136833568734",
+    "variance": "0.0090600038161442378",
+    "sd": "0.095184052320460899",
+    "skewness": "-0.28031542104750717",
+    "kurtosis": "-0.1206624026935235"
+   }
+  }
+ ]
+}

@@ -148,131 +148,131 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 | `jStat.normal.pdf` | `dnorm(x, { mean, sd })` | Takes the standard deviation, as jStat. |
 | `jStat.normal.cdf` | `pnorm(q, { mean, sd })` |  |
 | `jStat.normal.inv` | `qnorm(p, { mean, sd })` |  |
-| `jStat.normal.mean` | `distSummary("norm", { mean, sd }).mean` *(planned)* |  |
-| `jStat.normal.median` | `distSummary("norm", { mean, sd }).median` *(planned)* |  |
-| `jStat.normal.mode` | `distSummary("norm", { mean, sd }).mode` *(planned)* |  |
+| `jStat.normal.mean` | `distSummary("norm", { mean, sd }).mean` |  |
+| `jStat.normal.median` | `distSummary("norm", { mean, sd }).median` |  |
+| `jStat.normal.mode` | `distSummary("norm", { mean, sd }).mode` |  |
 | `jStat.normal.sample` | `rnorm(n, { mean, sd })` |  |
-| `jStat.normal.variance` | `distSummary("norm", { mean, sd }).variance` *(planned)* |  |
+| `jStat.normal.variance` | `distSummary("norm", { mean, sd }).variance` |  |
 | `jStat.studentt.pdf` | `dt(x, df)` |  |
 | `jStat.studentt.cdf` | `pt(q, df)` |  |
 | `jStat.studentt.inv` | `qt(p, df)` |  |
-| `jStat.studentt.mean` | `distSummary("t", { df }).mean` *(planned)* |  |
-| `jStat.studentt.median` | `distSummary("t", { df }).median` *(planned)* |  |
-| `jStat.studentt.mode` | `distSummary("t", { df }).mode` *(planned)* |  |
+| `jStat.studentt.mean` | `distSummary("t", { df }).mean` |  |
+| `jStat.studentt.median` | `distSummary("t", { df }).median` |  |
+| `jStat.studentt.mode` | `distSummary("t", { df }).mode` |  |
 | `jStat.studentt.sample` | `rt(n, df)` |  |
-| `jStat.studentt.variance` | `distSummary("t", { df }).variance` *(planned)* |  |
+| `jStat.studentt.variance` | `distSummary("t", { df }).variance` |  |
 | `jStat.centralF.pdf` | `df(x, df1, df2)` |  |
 | `jStat.centralF.cdf` | `pf(q, df1, df2)` |  |
 | `jStat.centralF.inv` | `qf(p, df1, df2)` |  |
-| `jStat.centralF.mean` | `distSummary("f", { df1, df2 }).mean` *(planned)* |  |
-| `jStat.centralF.mode` | `distSummary("f", { df1, df2 }).mode` *(planned)* |  |
+| `jStat.centralF.mean` | `distSummary("f", { df1, df2 }).mean` |  |
+| `jStat.centralF.mode` | `distSummary("f", { df1, df2 }).mode` |  |
 | `jStat.centralF.sample` | `rf(n, df1, df2)` |  |
-| `jStat.centralF.variance` | `distSummary("f", { df1, df2 }).variance` *(planned)* |  |
+| `jStat.centralF.variance` | `distSummary("f", { df1, df2 }).variance` |  |
 | `jStat.chisquare.pdf` | `dchisq(x, df)` | jStat's median is the Wilson-Hilferty approximation; `distSummary` gives `qchisq(0.5, df)`. |
 | `jStat.chisquare.cdf` | `pchisq(q, df)` |  |
 | `jStat.chisquare.inv` | `qchisq(p, df)` |  |
-| `jStat.chisquare.mean` | `distSummary("chisq", { df }).mean` *(planned)* |  |
-| `jStat.chisquare.median` | `distSummary("chisq", { df }).median` *(planned)* |  |
-| `jStat.chisquare.mode` | `distSummary("chisq", { df }).mode` *(planned)* |  |
+| `jStat.chisquare.mean` | `distSummary("chisq", { df }).mean` |  |
+| `jStat.chisquare.median` | `distSummary("chisq", { df }).median` |  |
+| `jStat.chisquare.mode` | `distSummary("chisq", { df }).mode` |  |
 | `jStat.chisquare.sample` | `rchisq(n, df)` |  |
-| `jStat.chisquare.variance` | `distSummary("chisq", { df }).variance` *(planned)* |  |
+| `jStat.chisquare.variance` | `distSummary("chisq", { df }).variance` |  |
 | `jStat.beta.pdf` | `dbeta(x, a, b)` |  |
 | `jStat.beta.cdf` | `pbeta(q, a, b)` |  |
 | `jStat.beta.inv` | `qbeta(p, a, b)` |  |
-| `jStat.beta.mean` | `distSummary("beta", { shape1: a, shape2: b }).mean` *(planned)* |  |
-| `jStat.beta.median` | `distSummary("beta", { shape1: a, shape2: b }).median` *(planned)* |  |
-| `jStat.beta.mode` | `distSummary("beta", { shape1: a, shape2: b }).mode` *(planned)* |  |
+| `jStat.beta.mean` | `distSummary("beta", { shape1: a, shape2: b }).mean` |  |
+| `jStat.beta.median` | `distSummary("beta", { shape1: a, shape2: b }).median` |  |
+| `jStat.beta.mode` | `distSummary("beta", { shape1: a, shape2: b }).mode` |  |
 | `jStat.beta.sample` | `rbeta(n, a, b)` |  |
-| `jStat.beta.variance` | `distSummary("beta", { shape1: a, shape2: b }).variance` *(planned)* |  |
+| `jStat.beta.variance` | `distSummary("beta", { shape1: a, shape2: b }).variance` |  |
 | `jStat.gamma.pdf` | `dgamma(x, shape, { scale })` | **Parameter:** jStat's second parameter is the scale; R's default is the rate, so pass `{ scale }`. |
 | `jStat.gamma.cdf` | `pgamma(q, shape, { scale })` |  |
 | `jStat.gamma.inv` | `qgamma(p, shape, { scale })` |  |
-| `jStat.gamma.mean` | `distSummary("gamma", { shape, scale }).mean` *(planned)* |  |
-| `jStat.gamma.mode` | `distSummary("gamma", { shape, scale }).mode` *(planned)* |  |
+| `jStat.gamma.mean` | `distSummary("gamma", { shape, scale }).mean` |  |
+| `jStat.gamma.mode` | `distSummary("gamma", { shape, scale }).mode` |  |
 | `jStat.gamma.sample` | `rgamma(n, shape, { scale })` |  |
-| `jStat.gamma.variance` | `distSummary("gamma", { shape, scale }).variance` *(planned)* |  |
-| `jStat.invgamma.pdf` | `dinvgamma(x, alpha, { beta })` *(planned)* | extraDistr's names: `beta` is the scale. |
-| `jStat.invgamma.cdf` | `pinvgamma(q, alpha, { beta })` *(planned)* |  |
-| `jStat.invgamma.inv` | `qinvgamma(p, alpha, { beta })` *(planned)* |  |
-| `jStat.invgamma.mean` | `distSummary("invgamma", { alpha, beta }).mean` *(planned)* |  |
-| `jStat.invgamma.mode` | `distSummary("invgamma", { alpha, beta }).mode` *(planned)* |  |
-| `jStat.invgamma.sample` | `rinvgamma(n, alpha, { beta })` *(planned)* |  |
-| `jStat.invgamma.variance` | `distSummary("invgamma", { alpha, beta }).variance` *(planned)* |  |
+| `jStat.gamma.variance` | `distSummary("gamma", { shape, scale }).variance` |  |
+| `jStat.invgamma.pdf` | `dinvgamma(x, alpha, { beta })` | extraDistr's names: `beta` is the scale. |
+| `jStat.invgamma.cdf` | `pinvgamma(q, alpha, { beta })` |  |
+| `jStat.invgamma.inv` | `qinvgamma(p, alpha, { beta })` |  |
+| `jStat.invgamma.mean` | `distSummary("invgamma", { alpha, beta }).mean` |  |
+| `jStat.invgamma.mode` | `distSummary("invgamma", { alpha, beta }).mode` |  |
+| `jStat.invgamma.sample` | `rinvgamma(n, alpha, { beta })` |  |
+| `jStat.invgamma.variance` | `distSummary("invgamma", { alpha, beta }).variance` |  |
 | `jStat.lognormal.pdf` | `dlnorm(x, { meanlog, sdlog })` |  |
 | `jStat.lognormal.cdf` | `plnorm(q, { meanlog, sdlog })` |  |
 | `jStat.lognormal.inv` | `qlnorm(p, { meanlog, sdlog })` |  |
-| `jStat.lognormal.mean` | `distSummary("lnorm", { meanlog, sdlog }).mean` *(planned)* |  |
-| `jStat.lognormal.median` | `distSummary("lnorm", { meanlog, sdlog }).median` *(planned)* |  |
-| `jStat.lognormal.mode` | `distSummary("lnorm", { meanlog, sdlog }).mode` *(planned)* |  |
+| `jStat.lognormal.mean` | `distSummary("lnorm", { meanlog, sdlog }).mean` |  |
+| `jStat.lognormal.median` | `distSummary("lnorm", { meanlog, sdlog }).median` |  |
+| `jStat.lognormal.mode` | `distSummary("lnorm", { meanlog, sdlog }).mode` |  |
 | `jStat.lognormal.sample` | `rlnorm(n, { meanlog, sdlog })` |  |
-| `jStat.lognormal.variance` | `distSummary("lnorm", { meanlog, sdlog }).variance` *(planned)* |  |
+| `jStat.lognormal.variance` | `distSummary("lnorm", { meanlog, sdlog }).variance` |  |
 | `jStat.exponential.pdf` | `dexp(x, { rate })` |  |
 | `jStat.exponential.cdf` | `pexp(q, { rate })` |  |
 | `jStat.exponential.inv` | `qexp(p, { rate })` |  |
-| `jStat.exponential.mean` | `distSummary("exp", { rate }).mean` *(planned)* |  |
-| `jStat.exponential.median` | `distSummary("exp", { rate }).median` *(planned)* |  |
-| `jStat.exponential.mode` | `distSummary("exp", { rate }).mode` *(planned)* |  |
+| `jStat.exponential.mean` | `distSummary("exp", { rate }).mean` |  |
+| `jStat.exponential.median` | `distSummary("exp", { rate }).median` |  |
+| `jStat.exponential.mode` | `distSummary("exp", { rate }).mode` |  |
 | `jStat.exponential.sample` | `rexp(n, { rate })` |  |
-| `jStat.exponential.variance` | `distSummary("exp", { rate }).variance` *(planned)* |  |
+| `jStat.exponential.variance` | `distSummary("exp", { rate }).variance` |  |
 | `jStat.uniform.pdf` | `dunif(x, { min, max })` | jStat's median returns NaN and its mode throws. |
 | `jStat.uniform.cdf` | `punif(q, { min, max })` |  |
 | `jStat.uniform.inv` | `qunif(p, { min, max })` |  |
-| `jStat.uniform.mean` | `distSummary("unif", { min, max }).mean` *(planned)* |  |
-| `jStat.uniform.median` | `distSummary("unif", { min, max }).median` *(planned)* |  |
-| `jStat.uniform.mode` | `distSummary("unif", { min, max }).mode` *(planned)* |  |
+| `jStat.uniform.mean` | `distSummary("unif", { min, max }).mean` |  |
+| `jStat.uniform.median` | `distSummary("unif", { min, max }).median` |  |
+| `jStat.uniform.mode` | `distSummary("unif", { min, max }).mode` |  |
 | `jStat.uniform.sample` | `runif(n, { min, max })` |  |
-| `jStat.uniform.variance` | `distSummary("unif", { min, max }).variance` *(planned)* |  |
+| `jStat.uniform.variance` | `distSummary("unif", { min, max }).variance` |  |
 | `jStat.cauchy.pdf` | `dcauchy(x, { location, scale })` |  |
 | `jStat.cauchy.cdf` | `pcauchy(q, { location, scale })` |  |
 | `jStat.cauchy.inv` | `qcauchy(p, { location, scale })` |  |
-| `jStat.cauchy.median` | `distSummary("cauchy", { location, scale }).median` *(planned)* |  |
-| `jStat.cauchy.mode` | `distSummary("cauchy", { location, scale }).mode` *(planned)* |  |
+| `jStat.cauchy.median` | `distSummary("cauchy", { location, scale }).median` |  |
+| `jStat.cauchy.mode` | `distSummary("cauchy", { location, scale }).mode` |  |
 | `jStat.cauchy.sample` | `rcauchy(n, { location, scale })` |  |
 | `jStat.weibull.pdf` | `dweibull(x, shape, { scale })` | **Order:** jStat takes (scale, shape), R takes (shape, scale). |
 | `jStat.weibull.cdf` | `pweibull(q, shape, { scale })` |  |
 | `jStat.weibull.inv` | `qweibull(p, shape, { scale })` |  |
-| `jStat.weibull.mean` | `distSummary("weibull", { shape, scale }).mean` *(planned)* |  |
-| `jStat.weibull.median` | `distSummary("weibull", { shape, scale }).median` *(planned)* |  |
-| `jStat.weibull.mode` | `distSummary("weibull", { shape, scale }).mode` *(planned)* |  |
+| `jStat.weibull.mean` | `distSummary("weibull", { shape, scale }).mean` |  |
+| `jStat.weibull.median` | `distSummary("weibull", { shape, scale }).median` |  |
+| `jStat.weibull.mode` | `distSummary("weibull", { shape, scale }).mode` |  |
 | `jStat.weibull.sample` | `rweibull(n, shape, { scale })` |  |
-| `jStat.weibull.variance` | `distSummary("weibull", { shape, scale }).variance` *(planned)* |  |
-| `jStat.kumaraswamy.pdf` | `dkumar(x, a, b)` *(planned)* | jStat's variance throws. |
-| `jStat.kumaraswamy.cdf` | `pkumar(q, a, b)` *(planned)* |  |
-| `jStat.kumaraswamy.inv` | `qkumar(p, a, b)` *(planned)* |  |
-| `jStat.kumaraswamy.mean` | `distSummary("kumar", { a, b }).mean` *(planned)* |  |
-| `jStat.kumaraswamy.median` | `distSummary("kumar", { a, b }).median` *(planned)* |  |
-| `jStat.kumaraswamy.mode` | `distSummary("kumar", { a, b }).mode` *(planned)* |  |
-| `jStat.kumaraswamy.variance` | `distSummary("kumar", { a, b }).variance` *(planned)* |  |
-| `jStat.laplace.pdf` | `dlaplace(x, { mu, sigma })` *(planned)* | jStat has no inverse; `qlaplace` is available. |
-| `jStat.laplace.cdf` | `plaplace(q, { mu, sigma })` *(planned)* |  |
-| `jStat.laplace.mean` | `distSummary("laplace", { mu, sigma }).mean` *(planned)* |  |
-| `jStat.laplace.median` | `distSummary("laplace", { mu, sigma }).median` *(planned)* |  |
-| `jStat.laplace.mode` | `distSummary("laplace", { mu, sigma }).mode` *(planned)* |  |
-| `jStat.laplace.variance` | `distSummary("laplace", { mu, sigma }).variance` *(planned)* |  |
-| `jStat.laplace.sample` | `rlaplace(n, { mu, sigma })` *(planned)* |  |
-| `jStat.pareto.pdf` | `dpareto(x, { a, b })` *(planned)* | extraDistr's names: `a` is the shape and `b` the scale (jStat: (scale, shape)). jStat's mean and median are wrong. |
-| `jStat.pareto.cdf` | `ppareto(q, { a, b })` *(planned)* |  |
-| `jStat.pareto.inv` | `qpareto(p, { a, b })` *(planned)* |  |
-| `jStat.pareto.mean` | `distSummary("pareto", { a, b }).mean` *(planned)* |  |
-| `jStat.pareto.median` | `distSummary("pareto", { a, b }).median` *(planned)* |  |
-| `jStat.pareto.mode` | `distSummary("pareto", { a, b }).mode` *(planned)* |  |
-| `jStat.pareto.variance` | `distSummary("pareto", { a, b }).variance` *(planned)* |  |
-| `jStat.triangular.pdf` | `dtriang(x, { a, b, c })` *(planned)* | Minimum, maximum and mode, as jStat. |
-| `jStat.triangular.cdf` | `ptriang(q, { a, b, c })` *(planned)* |  |
-| `jStat.triangular.inv` | `qtriang(p, { a, b, c })` *(planned)* |  |
-| `jStat.triangular.mean` | `distSummary("triang", { a, b, c }).mean` *(planned)* |  |
-| `jStat.triangular.median` | `distSummary("triang", { a, b, c }).median` *(planned)* |  |
-| `jStat.triangular.mode` | `distSummary("triang", { a, b, c }).mode` *(planned)* |  |
-| `jStat.triangular.sample` | `rtriang(n, { a, b, c })` *(planned)* |  |
-| `jStat.triangular.variance` | `distSummary("triang", { a, b, c }).variance` *(planned)* |  |
-| `jStat.arcsine.pdf` | `darcsine(x, { a, b })` *(planned)* | jStat's mode throws; there are two modes (at a and b), so `distSummary` returns NaN. |
-| `jStat.arcsine.cdf` | `parcsine(q, { a, b })` *(planned)* |  |
-| `jStat.arcsine.inv` | `qarcsine(p, { a, b })` *(planned)* |  |
-| `jStat.arcsine.mean` | `distSummary("arcsine", { a, b }).mean` *(planned)* |  |
-| `jStat.arcsine.median` | `distSummary("arcsine", { a, b }).median` *(planned)* |  |
-| `jStat.arcsine.mode` | `distSummary("arcsine", { a, b }).mode` *(planned)* |  |
-| `jStat.arcsine.sample` | `rarcsine(n, { a, b })` *(planned)* |  |
-| `jStat.arcsine.variance` | `distSummary("arcsine", { a, b }).variance` *(planned)* |  |
+| `jStat.weibull.variance` | `distSummary("weibull", { shape, scale }).variance` |  |
+| `jStat.kumaraswamy.pdf` | `dkumar(x, a, b)` | jStat's variance throws. |
+| `jStat.kumaraswamy.cdf` | `pkumar(q, a, b)` |  |
+| `jStat.kumaraswamy.inv` | `qkumar(p, a, b)` |  |
+| `jStat.kumaraswamy.mean` | `distSummary("kumar", { a, b }).mean` |  |
+| `jStat.kumaraswamy.median` | `distSummary("kumar", { a, b }).median` |  |
+| `jStat.kumaraswamy.mode` | `distSummary("kumar", { a, b }).mode` |  |
+| `jStat.kumaraswamy.variance` | `distSummary("kumar", { a, b }).variance` |  |
+| `jStat.laplace.pdf` | `dlaplace(x, { mu, sigma })` | jStat has no inverse; `qlaplace` is available. |
+| `jStat.laplace.cdf` | `plaplace(q, { mu, sigma })` |  |
+| `jStat.laplace.mean` | `distSummary("laplace", { mu, sigma }).mean` |  |
+| `jStat.laplace.median` | `distSummary("laplace", { mu, sigma }).median` |  |
+| `jStat.laplace.mode` | `distSummary("laplace", { mu, sigma }).mode` |  |
+| `jStat.laplace.variance` | `distSummary("laplace", { mu, sigma }).variance` |  |
+| `jStat.laplace.sample` | `rlaplace(n, { mu, sigma })` |  |
+| `jStat.pareto.pdf` | `dpareto(x, { a, b })` | extraDistr's names: `a` is the shape and `b` the scale (jStat: (scale, shape)). jStat's mean and median are wrong. |
+| `jStat.pareto.cdf` | `ppareto(q, { a, b })` |  |
+| `jStat.pareto.inv` | `qpareto(p, { a, b })` |  |
+| `jStat.pareto.mean` | `distSummary("pareto", { a, b }).mean` |  |
+| `jStat.pareto.median` | `distSummary("pareto", { a, b }).median` |  |
+| `jStat.pareto.mode` | `distSummary("pareto", { a, b }).mode` |  |
+| `jStat.pareto.variance` | `distSummary("pareto", { a, b }).variance` |  |
+| `jStat.triangular.pdf` | `dtriang(x, { a, b, c })` | Minimum, maximum and mode, as jStat. |
+| `jStat.triangular.cdf` | `ptriang(q, { a, b, c })` |  |
+| `jStat.triangular.inv` | `qtriang(p, { a, b, c })` |  |
+| `jStat.triangular.mean` | `distSummary("triang", { a, b, c }).mean` |  |
+| `jStat.triangular.median` | `distSummary("triang", { a, b, c }).median` |  |
+| `jStat.triangular.mode` | `distSummary("triang", { a, b, c }).mode` |  |
+| `jStat.triangular.sample` | `rtriang(n, { a, b, c })` |  |
+| `jStat.triangular.variance` | `distSummary("triang", { a, b, c }).variance` |  |
+| `jStat.arcsine.pdf` | `darcsine(x, { a, b })` | jStat's mode throws; there are two modes (at a and b), so `distSummary` returns NaN. |
+| `jStat.arcsine.cdf` | `parcsine(q, { a, b })` |  |
+| `jStat.arcsine.inv` | `qarcsine(p, { a, b })` |  |
+| `jStat.arcsine.mean` | `distSummary("arcsine", { a, b }).mean` |  |
+| `jStat.arcsine.median` | `distSummary("arcsine", { a, b }).median` |  |
+| `jStat.arcsine.mode` | `distSummary("arcsine", { a, b }).mode` |  |
+| `jStat.arcsine.sample` | `rarcsine(n, { a, b })` |  |
+| `jStat.arcsine.variance` | `distSummary("arcsine", { a, b }).variance` |  |
 | `jStat.binomial.pdf` | `dbinom(x, size, prob)` | jStat rounds the cdf to 1e-10. |
 | `jStat.binomial.cdf` | `pbinom(q, size, prob)` |  |
 | `jStat.negbin.pdf` | `dnbinom(x, size, { prob })` | Both count the failures before the `size`-th success. |
@@ -281,8 +281,8 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 | `jStat.hypgeom.cdf` | `phyper(q, m, n, k)` |  |
 | `jStat.poisson.pdf` | `dpois(x, lambda)` |  |
 | `jStat.poisson.cdf` | `ppois(q, lambda)` |  |
-| `jStat.poisson.mean` | `distSummary("pois", { lambda }).mean` *(planned)* |  |
-| `jStat.poisson.variance` | `distSummary("pois", { lambda }).variance` *(planned)* |  |
+| `jStat.poisson.mean` | `distSummary("pois", { lambda }).mean` |  |
+| `jStat.poisson.variance` | `distSummary("pois", { lambda }).variance` |  |
 | `jStat.poisson.sample` | `rpois(n, lambda)` |  |
 | `jStat.poisson.sampleSmall` | `rpois(n, lambda)` |  |
 | `jStat.poisson.sampleLarge` | `rpois(n, lambda)` |  |
