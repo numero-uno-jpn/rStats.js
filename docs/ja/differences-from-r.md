@@ -152,7 +152,15 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   `sample.int()` から 1 を引いたもの)。`qr()` と `chol(x, { pivot: true })` の `pivot` も 0 始まりです。
   `sample(array, ...)` は R と同じく要素を返します。
 - **分布のパラメータはスカラーです。** ベクトルとしてリサイクルはしません。第 1 引数には数値、配列、
-  `Float64Array` を渡せます。
+  `Float64Array` を渡せます。ベクトルのパラメータには `map` を使います。`setSeed` の後に 1 つずつ引く
+  乱数は、R のリサイクルと同じ順で乱数列を消費するので、結果は R と同じです:
+
+  ```ts
+  [0, 1, 2].map((m) => pnorm(1.96, { mean: m }));         // R: pnorm(1.96, mean = c(0, 1, 2))
+  setSeed(1);
+  [0, 10, 100].map((m) => rnorm(1, { mean: m })[0]);      // R: set.seed(1); rnorm(3, mean = c(0, 10, 100))
+  // [-0.6264538107423324, 10.183643324222082, 99.16437138758995]
+  ```
 - **NA は NaN で表します。** R は `NA` と `NaN` を区別します (たとえば `table` と `unique` は別々に数える)
   が、rStats.js には `NaN` が 1 つしかありません。
 - **`var` は `variance` という名前です。** JavaScript では `var` を名前に使えないためです。

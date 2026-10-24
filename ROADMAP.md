@@ -42,16 +42,10 @@ The full list is in the [README](README.md#what-is-included); known differences 
 
 In order of priority.
 
-1. **Distributions:** recycling of distribution parameters as vectors. To decide first: which
-   arguments are vectorised (R recycles every numeric argument), whether lengths that do not divide
-   are recycled silently as in R or rejected with a RangeError, the return type (`number[]` as soon
-   as one argument is an array? and `Float64Array`), and for the r* functions (`rnorm(n, mean =
-   vector)`) the order in which the random stream is consumed, which must match R. Proposal:
-   recycle to the longest length, as R does.
-2. **Speed:** a fast double-precision path that switches to double-double only where needed, and
+1. **Speed:** a fast double-precision path that switches to double-double only where needed, and
    an asymptotic expansion for the incomplete beta function with large parameters (see
    [docs/performance.md](docs/performance.md)).
-3. **Random numbers:** RNG kinds other than R's default.
+2. **Random numbers:** RNG kinds other than R's default.
 
 Possible later, each a sizeable project of its own:
 
@@ -62,7 +56,9 @@ Possible later, each a sizeable project of its own:
 - **Optimisation:** `optim`.
 
 Out of scope: the parts of SciPy with no counterpart in R (most of `scipy.special` and the
-distributions that only `scipy.stats` has).
+distributions that only `scipy.stats` has). Also out of scope: recycling distribution parameters as
+vectors (`rnorm(3, mean = c(0, 10, 100))`), since `map` does the same with R's results and random
+stream (see [docs/differences-from-r.md](docs/differences-from-r.md#general)).
 
 ## Size
 

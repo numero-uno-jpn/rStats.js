@@ -43,14 +43,9 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 優先度の高い順です。
 
-1. **分布:** 分布のパラメータをベクトルとして与えたときのリサイクル。先に決めること: どの引数を
-   ベクトル化するか (R は数値の引数をすべてリサイクルする)、長さが割り切れないとき R のように黙って
-   リサイクルするか RangeError にするか、戻り値の型 (配列の引数が 1 つでもあれば `number[]` か、
-   `Float64Array` はどうするか)、r* 関数 (`rnorm(n, mean = ベクトル)`) で乱数列を消費する順 (R と
-   一致させる必要がある)。提案: R どおり最長の長さへリサイクルする。
-2. **速度:** 必要な箇所だけ double-double に切り替える高速な倍精度の経路と、パラメータが大きい
+1. **速度:** 必要な箇所だけ double-double に切り替える高速な倍精度の経路と、パラメータが大きい
    ときの不完全ベータ関数の漸近展開 ([docs/ja/performance.md](docs/ja/performance.md) を参照)。
-3. **乱数:** R の既定以外の RNG の種類。
+2. **乱数:** R の既定以外の RNG の種類。
 
 いずれ取り組むかもしれないもの (どれもそれ自体が大きなプロジェクト):
 
@@ -61,7 +56,9 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 - **最適化:** `optim`。
 
 対象外: SciPy のうち R に対応するもののない部分 (`scipy.special` の大部分と、`scipy.stats` にしか
-ない分布)。
+ない分布)。分布のパラメータのベクトルとしてのリサイクル
+(`rnorm(3, mean = c(0, 10, 100))`) も対象外です。`map` で R と同じ結果と乱数列が得られるためです
+([docs/ja/differences-from-r.md](docs/ja/differences-from-r.md#全般) を参照)。
 
 ## サイズ
 

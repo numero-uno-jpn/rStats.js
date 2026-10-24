@@ -158,7 +158,16 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   from the same random stream), and the `pivot` of `qr()` and `chol(x, { pivot: true })` is
   0-based. `sample(array, ...)` returns elements, as in R.
 - **Distribution parameters are scalars**; they are not recycled as vectors. The first argument
-  may be a number, an array or a `Float64Array`.
+  may be a number, an array or a `Float64Array`. Use `map` for vector parameters; random draws made
+  one at a time after `setSeed` consume R's stream in the same order as R's recycling, so the
+  results are R's:
+
+  ```ts
+  [0, 1, 2].map((m) => pnorm(1.96, { mean: m }));         // R: pnorm(1.96, mean = c(0, 1, 2))
+  setSeed(1);
+  [0, 10, 100].map((m) => rnorm(1, { mean: m })[0]);      // R: set.seed(1); rnorm(3, mean = c(0, 10, 100))
+  // [-0.6264538107423324, 10.183643324222082, 99.16437138758995]
+  ```
 - **NA is represented by NaN.** R tells `NA` from `NaN` (for example `table` and `unique` count them
   apart); rStats.js has one `NaN`.
 - **`var` is called `variance`**, because `var` cannot be a name in JavaScript.
