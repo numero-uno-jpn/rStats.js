@@ -26,11 +26,11 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 | 分野 | 状況 |
 |---|---|
-| 特殊関数 | `gamma`、`lgamma`、`beta`、`lbeta`、`choose`、`lchoose`、`factorial`、`lfactorial`、`digamma`、`trigamma`、`psigamma`、`besselI`、`besselK`、`besselJ`、`besselY` と、R にはない `erf`、`erfc`、`erfinv`、`erfcinv`、`gammainc`、`perm` を export。log1p 系の関数は内部で実装済み |
+| 特殊関数 | `gamma`、`lgamma`、`beta`、`lbeta`、`choose`、`lchoose`、`factorial`、`lfactorial`、`digamma`、`trigamma`、`psigamma`、`besselI`、`besselK`、`besselJ`、`besselY` と、R にはない `erf`、`erfc`、`erfinv`、`erfcinv`、`gammainc`、`perm`、R の C API の log1p 系の関数 `log1pmx`、`lgamma1p`、`log1mexp`、`log1pexp` を export |
 | 分布 | R の `stats` にある 20 の分布すべて (スチューデント化された範囲を含む)、非心カイ二乗・t・F・ベータ分布、逆ガンマ・Kumaraswamy・Pareto・三角・Laplace (extraDistr)・逆正弦の d/p/q (`lowerTail` と `logP` 付き)。23 の分布の `distSummary` (ウィルコクソンの符号付き順位と順位和の分布、スチューデント化された範囲の分布を除く) |
-| 乱数 | R の既定の Mersenne-Twister と `set.seed()` 互換の乱数列、`rmultinom` を含む 26 の `r*` 関数 (R にない分布は extraDistr と同じ乱数列)、`sample`、`sampleInt` |
+| 乱数 | R の既定の Mersenne-Twister と `set.seed()` 互換の乱数列、`rmultinom` を含む 26 の `r*` 関数 (R にない分布は extraDistr と同じ乱数列)、`sample`、`sampleInt`、`r2dtable` |
 | 記述統計 | R の要約 (`mean`、`variance`、9 種類の `quantile`、`rank`、行列の `cov`/`cor`、`table`、`cut`、`hist`、`ecdf`、`scale` など) と e1071・DescTools のもの (`skewness`、`kurtosis`、`geometricMean`、`modes`、`meanAD`、`cv`) |
-| 仮説検定 | R の `htest` の関数: `tTest`、`chisqTest`、`fisherTest` (r × c を含む)、`wilcoxTest`、`corTest`、`binomTest`、`poissonTest`、`propTest`、`mcnemarTest`、`varTest`、`bartlettTest`、`kruskalTest`、`friedmanTest`、`quadeTest`、`flignerTest`、`moodTest`、`onewayTest`、`shapiroTest`、`mantelhaenTest`、`ansariTest`、`ksTest`、`pairwise*`、`pAdjust`。一元配置の `aov`、`TukeyHSD`、`zTest` (BSDA) |
+| 仮説検定 | R の `htest` の関数: `tTest`、`chisqTest` (シミュレーションによる p 値と 2 つの因子ベクトルを含む)、`fisherTest` (r × c とシミュレーションによる p 値を含む)、`wilcoxTest`、`corTest`、`binomTest`、`poissonTest`、`propTest`、`mcnemarTest`、`varTest`、`bartlettTest`、`kruskalTest`、`friedmanTest`、`quadeTest`、`flignerTest`、`moodTest`、`onewayTest`、`shapiroTest`、`mantelhaenTest`、`ansariTest` (信頼区間を含む)、`ksTest`、`pairwise*`、`pAdjust`。一元配置の `aov`、`TukeyHSD`、`zTest` (BSDA) |
 | 線形モデル | 行列で渡す `lm` と `summary.lm` の値、`confint`、`predict` |
 | 線形代数 | R の `base` の行列関数と、`Matrix::lu`、`prcomp` (`stats`)、`MASS::ginv`: 行列演算、`crossprod`、`norm`、`backsolve`、`chol`、`qr` (R のピボット選択と LAPACK)、`solve`、`det`、`rcond`、`kappa`、`svd`、`eigen` (対称と一般)、`lu`、`prcomp`、`ginv` |
 | 数値計算 | `integrate`、`optimize`、`uniroot`、`approx`、`spline`/`splinefun`/`splinefunH`、Lagrange (pracma) と Hermite の補間、固定刻みの `ode` (deSolve)、`grad`/`jacobian`/`hessian` (numDeriv) |
@@ -43,17 +43,14 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 優先度の高い順です。
 
-1. **仮説検定:** `ansari.test` の信頼区間、`chisqTest` と `fisherTest` の `simulate.p.value`、
-   `chisqTest` に 2 つの因子ベクトルを渡す使い方。
-2. **特殊関数:** 内部で実装済みの log1p 系の関数も、おまけとして export してよい。
-3. **分布:** 分布のパラメータをベクトルとして与えたときのリサイクル。先に決めること: どの引数を
+1. **分布:** 分布のパラメータをベクトルとして与えたときのリサイクル。先に決めること: どの引数を
    ベクトル化するか (R は数値の引数をすべてリサイクルする)、長さが割り切れないとき R のように黙って
    リサイクルするか RangeError にするか、戻り値の型 (配列の引数が 1 つでもあれば `number[]` か、
    `Float64Array` はどうするか)、r* 関数 (`rnorm(n, mean = ベクトル)`) で乱数列を消費する順 (R と
    一致させる必要がある)。提案: R どおり最長の長さへリサイクルする。
-4. **速度:** 必要な箇所だけ double-double に切り替える高速な倍精度の経路と、パラメータが大きい
+2. **速度:** 必要な箇所だけ double-double に切り替える高速な倍精度の経路と、パラメータが大きい
    ときの不完全ベータ関数の漸近展開 ([docs/ja/performance.md](docs/ja/performance.md) を参照)。
-5. **乱数:** R の既定以外の RNG の種類。
+3. **乱数:** R の既定以外の RNG の種類。
 
 いずれ取り組むかもしれないもの (どれもそれ自体が大きなプロジェクト):
 

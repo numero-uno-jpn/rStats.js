@@ -9,3 +9,4 @@ export { besselI, besselK, type BesselOptions } from "../special/besselIK.js";
 export { besselJ, besselY } from "../special/besselJY.js";
 export { erf, erfc } from "../special/erf.js";
 export { gammainc, erfinv, erfcinv, perm, type GammaincResult } from "../special/extra.js";
+export { log1pmx, lgamma1p, log1mexp, log1pexp } from "../special/log1p.js";

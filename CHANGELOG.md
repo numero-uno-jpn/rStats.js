@@ -7,6 +7,30 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `ansariTest`: `confInt` and `confLevel` (R's `conf.int = TRUE`), the confidence interval for the
+  ratio of scales and its estimate, exact and by the normal approximation.
+- `chisqTest` and `fisherTest`: `simulatePValue` and `B` (R's `simulate.p.value`, default 2000),
+  with Monte Carlo p-values from the random stream of `setSeed`, the same as R's after `set.seed()`.
+- `chisqTest(x, y, options)` with two factor vectors (arrays of labels; `null` for missing values):
+  the test of independence in their table, with the levels in `rowLevels` and `colLevels`.
+- `r2dtable` (random two-way tables with given margins, Patefield's algorithm), with R's random
+  stream.
+- `log1pmx`, `lgamma1p`, `log1mexp` and `log1pexp`, the log1p-type functions of R's C API
+  (Rmath.h), checked against correctly rounded values.
+
+### Changed
+
+- With ties and `exact` unset, R's `ansari.test(conf.int = TRUE)` fails ("object 'cint' not
+  found"); `ansariTest` returns the normal-approximation interval there (see
+  [docs/differences-from-r.md](docs/differences-from-r.md)).
+- Bundle size: `chisqTest` now includes the random number generator, `sample` and `r2dtable`;
+  the `tests` entry grows from 59.4 KB to 65.2 KB gzipped, `fisherTest` alone from 13.8 KB to
+  15.4 KB, and everything from 112.4 KB to 115.4 KB.
+
 ## 0.6.1 - 2026-10-24
 
 The first release of the 0.6 series on npm. A `v0.6.0` tag was pushed to GitHub earlier the same

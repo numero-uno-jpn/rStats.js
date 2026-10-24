@@ -91,9 +91,9 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 
 | 分野 | 関数 (R と名前が違うものは括弧内が R の名前) |
 |---|---|
-| 特殊関数 | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`。R にはない `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc`, `perm` も |
+| 特殊関数 | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`。R にはない `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc`, `perm` と、R の C API (Rmath.h) の `log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp` も |
 | 分布 (d/p/q) | 正規、t、カイ二乗、F、ベータ、ガンマ、二項、ポアソン、一様、指数、対数正規、ロジスティック、コーシー、ワイブル、幾何、負の二項、超幾何、Wilcoxon の符号付き順位と順位和、スチューデント化された範囲 (`ptukey`, `qtukey`)、非心カイ二乗・t・F・ベータ (`ncp`)。多項分布の確率 (`dmultinom`)。逆ガンマ、Kumaraswamy、Pareto、三角、Laplace (extraDistr) と逆正弦。`distSummary` (平均・分散・標準偏差・中央値・最頻値・歪度・尖度) |
-| 乱数 | `setSeed` (`set.seed`), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), 26 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`) |
+| 乱数 | `setSeed` (`set.seed`), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), 26 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
 | 記述統計 | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov`, `TukeyHSD`, `zTest`, `pAdjust` (`p.adjust`) |
 | 線形モデル | `lm` (行列で渡す形。`summary` の値も返す), `confint`, `predict` |

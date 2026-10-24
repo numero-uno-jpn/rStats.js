@@ -94,7 +94,7 @@ affected.
 | Spearman's t approximation with rho ≈ ±1 | p = 1e-62 for perfect correlation with n = 10 (should be 0) | 0 |
 | Fisher's exact test for r × c tables | FEXACT rounding errors around 1e-11 relative (changing `workspace` changes the value by 2e-13) | matches exact enumeration |
 | `var.test`, `ansari.test` and `mood.test`: upper tails | formed as 1 − P, so small p-values lose their relative accuracy (`var.test` returns 0 for p = 4e-58) | tails computed directly |
-| Exact `ansari.test` p-values | R's sums of probabilities carry rounding of up to 1e-9 relative in small p-values | agree with exact subset counts |
+| Exact `ansari.test` p-values | R's sums of probabilities carry rounding of up to 1e-8 relative in small p-values (8.8e-9 for m = 60, n = 70) | agree with exact subset counts |
 | `mood.test` with ties | R 4.5.2's tie correction of the variance has (N − t)² where Mielke's formula has (N − 2 cumsum(t) + t)² (corrected in R-devel); the statistic is off by up to 6% | the exact permutation variance of the averaged scores |
 | `ks.test`, asymptotic two-sided p-value | Kolmogorov's limiting series summed to a tolerance of 1e-6 (off by up to 1e-5) | agrees with `scipy.special.kolmogorov` |
 | `ks.test` two-sample statistic that is 0 | rounding residue of cumulative sums of 1/m and −1/n (±1e-16, sometimes negative) | 0 |
@@ -148,6 +148,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `besselK(1000, 1000)`, `lfactorial(1e-300)`, `besselI(1e-300, 1)` | 0 | 1.2981802514667e-233, -5.77e-301, 5e-301 |
 | `besselJ(1e6, 0)` | 0 | 3.3104301373987376e-4 |
 | `besselY(1e6, -2.75)` | -4.1e-4 | -2.8030753997749413e-5 |
+| `ansari.test(conf.int = TRUE)` with ties and `exact` unset (or `TRUE`) | error "object 'cint' not found" (with both samples below 50 values R takes the exact branch, which skips the interval with ties) | the normal-approximation interval and estimate, the same as with `exact: false` |
 
 ## Deliberate differences
 
@@ -212,6 +213,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - Only R's default `RNGkind("Mersenne-Twister", "Inversion", "Rejection")` is supported.
   `getRandomSeed()`/`setRandomSeed()` use the same 626 integers as R's `.Random.seed`.
 - `rmultinom` returns an array of n arrays of length K instead of R's K × n matrix.
+- `r2dtable` returns an array of tables, each an array of rows, instead of R's list of matrices.
 
 ### Hypothesis tests
 
@@ -227,7 +229,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)
   are sorted in C-locale order, by code point; R sorts factor levels with the locale's collation,
   so the order of groups, and of the results listed by group, can differ (`"a"`, `"b"`, `"B"`
-  sorts as `"B"`, `"a"`, `"b"` here and as `"a"`, `"b"`, `"B"` in an en_US locale).
+  sorts as `"B"`, `"a"`, `"b"` here and as `"a"`, `"b"`, `"B"` in an en_US locale). The same holds
+  for the levels of the two factors of `chisqTest(x, y)` (the rows and columns of the table), which
+  must be strings (`null` for missing values).
 
 ### Linear models
 
@@ -324,6 +328,24 @@ also from R's source. They are listed because they are easy to get wrong.
   n ≥ 50; `continuity` replaces S with sign(S)(|S| − 1). Pearson needs at least 3 pairs, Kendall
   and Spearman at least 2; intervals need at least 4. Constant data give NaN statistic, p-value
   and estimate.
+- **`ansariTest` interval (`confInt: true`):** computed as R 4.5.2 does, with the locations taken as
+  0. Exact: the candidate ratios are the x_i / y_j ≥ 0, the statistic of x / s against y is
+  evaluated between consecutive candidates (and at 2.01 times the largest), the limits are the
+  candidates where it crosses R's `qansari` quantiles (whose cumulative sums have no slack, so a
+  probability that is exactly 1/2 can be missed by rounding, as in R), and limits that cannot be
+  formed are NaN (R's NA). Normal approximation: the standardised statistic (R 4.5.2's tie-corrected
+  variance with the no-ties mean; R-devel changed it) crosses the normal quantiles; the roots are
+  found with `uniroot` (tolerance 1e-4) between the smallest and largest ratio of the positive values
+  and of the non-positive x to the negative y; 0 / 0 at s = 0 is ranked last, as R's `rank` puts NA
+  last.
+- **Simulated p-values** (`chisqTest`, `fisherTest`): (1 + number of simulated statistics at least
+  (1 − 64ε) times the observed one) / (B + 1); for `fisherTest`, simulated tables whose
+  −Σ log(x_ij!) is at most the observed one / (1 + 64ε). The method gets R's suffix
+  `" with simulated p-value\n\t (based on B replicates)"` and the parameter is NaN (R's NA).
+  `chisqTest` uses the uncorrected statistic, does not simulate when a margin is 0 (the ordinary
+  test), and for goodness of fit draws B n categories at once and counts them n at a time (with a
+  non-integer total n, R's matrix of floor(n) rows, recycled, is reproduced). `fisherTest` drops
+  empty rows and columns first and ignores `simulatePValue` for 2 × 2 tables. `B: 0` gives p = 1.
 - **`pAdjust`:** `n` defaults to the number of non-NaN values, and a smaller `n` is an error.
   p-values outside [0, 1] are processed, with only the upper end capped at 1. Abbreviated method
   names are case-sensitive.
@@ -391,9 +413,7 @@ By default rStats.js returns what R returns;
 
 - Recycling of distribution parameters (`rnorm(3, mean = c(0, 10, 100))`).
 - RNG kinds other than R's default.
-- `simulate.p.value` (`chisqTest`, `fisherTest`), formula interfaces, passing two factor vectors
-  (`chisq.test(x, y)`), Fisher's `hybrid` and `workspace`, Wilcoxon's `digits.rank`, and
-  `ansari.test`'s `conf.int` (`ansariTest` has no confidence interval or estimate).
+- Formula interfaces, Fisher's `hybrid` and `workspace`, and Wilcoxon's `digits.rank`.
   Kendall's concordance count is O(n²).
 - `aov` beyond one way: multi-way designs and the formula interface (`aov` takes one sample with
   group labels, or a list of samples).

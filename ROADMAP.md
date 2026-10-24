@@ -25,11 +25,11 @@ against R and are not a priority.
 
 | Area | Status |
 |---|---|
-| Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`, and `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc`, `perm` (not in R) exported; log1p-type functions are implemented internally |
+| Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`, and `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc`, `perm` (not in R), and the log1p-type functions of R's C API `log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp` |
 | Distributions | d/p/q with `lowerTail` and `logP` for all 20 distributions in R's `stats` (including the studentized range), the non-central chi-squared, t, F and beta, and inverse gamma, Kumaraswamy, Pareto, triangular, Laplace (extraDistr) and arcsine; `distSummary` for 23 of them (all but the Wilcoxon signed rank and rank sum distributions and the studentized range) |
-| Random numbers | R's default Mersenne-Twister with `set.seed()`-compatible streams, 26 `r*` functions including `rmultinom` (extraDistr's streams for the extra distributions), `sample`, `sampleInt` |
+| Random numbers | R's default Mersenne-Twister with `set.seed()`-compatible streams, 26 `r*` functions including `rmultinom` (extraDistr's streams for the extra distributions), `sample`, `sampleInt`, `r2dtable` |
 | Descriptive statistics | R's summaries (`mean`, `variance`, `quantile` with all nine types, `rank`, `cov`/`cor` matrices, `table`, `cut`, `hist`, `ecdf`, `scale`, ...) and e1071's and DescTools' (`skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv`) |
-| Hypothesis tests | R's `htest` functions: `tTest`, `chisqTest`, `fisherTest` (including r × c), `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, the `pairwise*` helpers, `pAdjust`; `aov` (one way), `TukeyHSD`, `zTest` (BSDA) |
+| Hypothesis tests | R's `htest` functions: `tTest`, `chisqTest` (including simulated p-values and two factor vectors), `fisherTest` (including r × c and simulated p-values), `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest` (with its confidence interval), `ksTest`, the `pairwise*` helpers, `pAdjust`; `aov` (one way), `TukeyHSD`, `zTest` (BSDA) |
 | Linear models | `lm` with a matrix interface and `summary.lm`'s quantities, `confint`, `predict` |
 | Linear algebra | the matrix functions of R's `base`, with `Matrix::lu`, `prcomp` (`stats`) and `MASS::ginv`: matrix arithmetic, `crossprod`, `norm`, `backsolve`, `chol`, `qr` (R's pivoting and LAPACK), `solve`, `det`, `rcond`, `kappa`, `svd`, `eigen` (symmetric and general), `lu`, `prcomp`, `ginv` |
 | Numerical methods | `integrate`, `optimize`, `uniroot`, `approx`, `spline`/`splinefun`/`splinefunH`, Lagrange (pracma) and Hermite interpolation, fixed-step `ode` (deSolve), `grad`/`jacobian`/`hessian` (numDeriv) |
@@ -42,20 +42,16 @@ The full list is in the [README](README.md#what-is-included); known differences 
 
 In order of priority.
 
-1. **Hypothesis tests:** `ansari.test`'s confidence interval, `simulate.p.value` for `chisqTest`
-   and `fisherTest`, and passing two factor vectors to `chisqTest`.
-2. **Special functions:** the log1p-type functions that rStats.js implements internally may follow
-   as extras.
-3. **Distributions:** recycling of distribution parameters as vectors. To decide first: which
+1. **Distributions:** recycling of distribution parameters as vectors. To decide first: which
    arguments are vectorised (R recycles every numeric argument), whether lengths that do not divide
    are recycled silently as in R or rejected with a RangeError, the return type (`number[]` as soon
    as one argument is an array? and `Float64Array`), and for the r* functions (`rnorm(n, mean =
    vector)`) the order in which the random stream is consumed, which must match R. Proposal:
    recycle to the longest length, as R does.
-4. **Speed:** a fast double-precision path that switches to double-double only where needed, and
+2. **Speed:** a fast double-precision path that switches to double-double only where needed, and
    an asymptotic expansion for the incomplete beta function with large parameters (see
    [docs/performance.md](docs/performance.md)).
-5. **Random numbers:** RNG kinds other than R's default.
+3. **Random numbers:** RNG kinds other than R's default.
 
 Possible later, each a sizeable project of its own:
 

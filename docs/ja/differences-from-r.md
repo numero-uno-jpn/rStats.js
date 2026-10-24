@@ -88,7 +88,7 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | rho ≈ ±1 での Spearman の t 近似 | n = 10 の完全相関で p = 1e-62 (0 であるべき) | 0 |
 | r × c 表の Fisher の正確検定 | FEXACT の丸め誤差が相対で 1e-11 程度 (`workspace` を変えると値が 2e-13 変わる) | 厳密な全列挙と一致 |
 | `var.test`・`ansari.test`・`mood.test` の上側の裾 | 1 − P の形で求めるので、小さな p 値は相対精度を失う (`var.test` は p = 4e-58 で 0 を返す) | 裾を直接計算 |
-| `ansari.test` の正確な p 値 | 確率の和に丸め誤差が残り、小さな p 値で相対 1e-9 程度ずれる | 部分集合の厳密な数え上げと一致 |
+| `ansari.test` の正確な p 値 | 確率の和に丸め誤差が残り、小さな p 値で相対 1e-8 程度までずれる (m = 60、n = 70 で 8.8e-9) | 部分集合の厳密な数え上げと一致 |
 | 同順位のある `mood.test` | R 4.5.2 は分散の同順位の補正で Mielke の式の (N − 2 cumsum(t) + t)² を (N − t)² としている (R-devel で修正済み)。統計量が最大 6% ずれる | 平均した得点の正確な置換分散 |
 | `ks.test` の漸近的な両側 p 値 | Kolmogorov の極限分布の級数を許容値 1e-6 で打ち切る (最大 1e-5 ずれる) | `scipy.special.kolmogorov` と一致 |
 | 2 標本の `ks.test` で 0 になる統計量 | 1/m と −1/n の累積和の丸めの残り (±1e-16、負のこともある) | 0 |
@@ -142,6 +142,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `besselK(1000, 1000)`、`lfactorial(1e-300)`、`besselI(1e-300, 1)` | 0 | 1.2981802514667e-233、-5.77e-301、5e-301 |
 | `besselJ(1e6, 0)` | 0 | 3.3104301373987376e-4 |
 | `besselY(1e6, -2.75)` | -4.1e-4 | -2.8030753997749413e-5 |
+| タイがあり `exact` を指定しない (または `TRUE`) `ansari.test(conf.int = TRUE)` | エラー "object 'cint' not found" (両方の標本が 50 未満だと R は正確な方法の分岐に入り、タイがあると区間を飛ばす) | 正規近似の区間と推定値 (`exact: false` と同じ) |
 
 ## 意図的な違い
 
@@ -205,6 +206,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - 対応しているのは R の既定の `RNGkind("Mersenne-Twister", "Inversion", "Rejection")` だけです。
   `getRandomSeed()`/`setRandomSeed()` は R の `.Random.seed` と同じ 626 個の整数を使います。
 - `rmultinom` は R の K × n 行列ではなく、長さ K の配列 n 個からなる配列を返します。
+- `r2dtable` は R の行列のリストではなく、表 (行の配列) の配列を返します。
 
 ### 仮説検定
 
@@ -222,6 +224,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   C ロケールの順 (コードポイント順) に並べます。R は因子の水準をロケールの照合順序で並べるので、
   グループの順序と、グループごとに並ぶ結果の順序が異なることがあります (`"a"`、`"b"`、`"B"` は、
   rStats.js では `"B"`、`"a"`、`"b"`、en_US ロケールの R では `"a"`、`"b"`、`"B"` の順になります)。
+  `chisqTest(x, y)` の 2 つの因子の水準 (表の行と列) も同じです。因子の値は文字列 (欠測値は `null`)
+  でなければなりません。
 
 ### 線形モデル
 
@@ -310,6 +314,22 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   なり、`exact: true` で n ≥ 50 でも強制できます。`continuity` は S を sign(S)(|S| − 1) に置き換え
   ます。Pearson は 3 ペア以上、Kendall と Spearman は 2 ペア以上が必要で、区間には 4 ペア以上が必要
   です。定数のデータでは統計量、p 値、推定値が NaN になります。
+- **`ansariTest` の区間 (`confInt: true`):** R 4.5.2 と同じく位置を 0 として計算します。正確な方法:
+  候補の比は x_i / y_j ≥ 0 で、x / s と y の統計量を隣り合う候補の間 (と最大の候補の 2.01 倍) で
+  評価し、R の `qansari` の分位点を横切る候補を限界とします (`qansari` の累積和には余裕がないので、
+  ちょうど 1/2 の確率が丸めで見逃されることがあり、R と同じです)。限界を作れないときは NaN (R の NA)
+  です。正規近似: 標準化した統計量 (R 4.5.2 のタイ補正した分散と、タイがないときの平均。R-devel では
+  変更されています) が正規分位点を横切る点を、正の値どうしの比と、0 以下の x と負の y の比の最小から
+  最大の範囲で `uniroot` (許容誤差 1e-4) により求めます。s = 0 での 0 / 0 は、R の `rank` が NA を
+  最後に置くのと同じく最後の順位にします。
+- **シミュレーションによる p 値** (`chisqTest`、`fisherTest`): (1 + 観測値の (1 − 64ε) 倍以上の
+  シミュレーション統計量の数) / (B + 1)。`fisherTest` では −Σ log(x_ij!) が観測値 / (1 + 64ε) 以下の
+  表を数えます。手法名には R と同じ `" with simulated p-value\n\t (based on B replicates)"` が付き、
+  パラメータは NaN (R の NA) です。`chisqTest` は補正しない統計量を使い、周辺和に 0 があるときは
+  シミュレーションせず通常の検定をします。適合度検定では B n 個のカテゴリをまとめて引き、n 個ずつ
+  数えます (総数 n が整数でないときの、R の floor(n) 行の行列とその再利用も再現します)。
+  `fisherTest` は先に空の行と列を除き、2 × 2 の表では `simulatePValue` を無視します。`B: 0` では
+  p = 1 です。
 - **`pAdjust`:** `n` の既定値は NaN でない値の個数で、それより小さい `n` はエラーです。[0, 1] の外の
   p 値も処理し、上端だけを 1 で抑えます。省略した手法名は大文字と小文字を区別します。
 
@@ -371,10 +391,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 
 - 分布パラメータのリサイクル (`rnorm(3, mean = c(0, 10, 100))`)。
 - R の既定以外の RNG の種類。
-- `simulate.p.value` (`chisqTest`、`fisherTest`)、formula インターフェース、2 つの因子ベクトルを渡す
-  形 (`chisq.test(x, y)`)、Fisher の `hybrid` と `workspace`、Wilcoxon の `digits.rank`、`ansari.test`
-  の `conf.int` (`ansariTest` は信頼区間も推定値も返しません)。Kendall の一致ペアの数え上げは O(n²)
-  です。
+- formula インターフェース、Fisher の `hybrid` と `workspace`、Wilcoxon の `digits.rank`。Kendall の
+  一致ペアの数え上げは O(n²) です。
 - 一元配置を超える `aov`: 多元配置と formula インターフェース (`aov` は、グループラベル付きの 1 つの
   標本か、標本のリストを受け取ります)。
 - `kappa` の `inv_z`、複素行列、`EISPACK = TRUE` / `LINPACK = TRUE`。

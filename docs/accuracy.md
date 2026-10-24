@@ -73,6 +73,13 @@ Details of the comparison:
   comparison). In the R comparison of `besselJ` and `besselY`, a case whose result is much
   smaller than the cancelling terms passes if it is within 1e-14 of the mpmath value relative to
   `scale` (`knownDifference`); R is closer in relative terms there.
+- **log1p-type functions** (`log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp`, which R has only in its C
+  API): the fixtures hold correctly rounded values computed with 512-bit Rmpfr, not R's output, and
+  are compared with a tolerance of 1e-14 (the largest observed error is 1.7e-15, for `lgamma1p`).
+  Six cases are beyond what the oracle can compute at 512 bits, and their fixture values are wrong:
+  `lgamma1p(±1e-300)` (fixture 0; 1 + x rounds to 1), `log1mexp(x)` for x = 700, 708 and 745
+  (fixture 0; 1 − exp(−x) rounds to 1) and `log1pexp(1e300)` (fixture Inf; exp(1e300) overflows
+  MPFR). They are checked against the leading term instead: −γx, −exp(−x) and x.
 - **Linear algebra:** `solve` and determinants have exact references computed with gmp rationals
   (every double is exactly representable as a rational). Decompositions are instead checked by
   backward error and orthogonality (see below).
@@ -84,9 +91,9 @@ Details of the comparison:
 | Special functions, densities, distribution functions | 1e-14 (non-central t: 1e-13; `ptukey`: 2e-14) |
 | Distributions outside base R (inverse gamma, Kumaraswamy, Pareto, triangular, Laplace, arcsine) | 1e-14 for d/p/q, against extraDistr (arcsine: R's beta(1/2, 1/2) moved to (a, b)) and mpmath |
 | Quantile functions | 1e-14, or backward error no larger than R's; discrete quantiles exactly equal or verified by definition |
-| Random numbers | discrete values and `sample` exactly equal; continuous values within 1e-12; the number of uniform draws consumed is checked exactly |
+| Random numbers | discrete values, `sample` and `r2dtable` exactly equal; continuous values within 1e-12; the number of uniform draws consumed is checked exactly |
 | Descriptive statistics | 1e-14 (skewness and kurtosis near 0, which come from cancellation, measured absolutely) |
-| Hypothesis tests | 1e-12 for every numeric field (`cor`: 1e-15, `pAdjust`: exact); text fields exactly equal |
+| Hypothesis tests | 1e-12 for every numeric field (`cor`: 1e-15, `pAdjust`: exact; roots found by `uniroot` with tolerance 1e-4, such as the normal-approximation interval of `ansariTest`: 1e-4); text fields exactly equal |
 | Linear models (`lm`, `confint`, `predict`) | 1e-12 for every numeric field |
 | Linear algebra | 1e-14 (`crossprod`, `norm`, `backsolve`, `chol`, `qr`, the 2-norm from `svd`, matrix arithmetic, `seq`, `lu`) or 1e-13 (`solve`, `determinant`, `rcond`, `svd`, `kappa`, `ginv`, `eigen`), measured relative to the norm of the result; `prcomp` 1e-12; pivots, ranks and signs of determinants exactly equal |
 | Numerical methods | 1e-15 (`approx`), 1e-14 (`integrate`, `optimize`, `uniroot`, `barylag`, `hermiteInterp`, `ode`, and `grad`, `jacobian`, `hessian` with an absolute floor of 1e-12) or 1e-13 (`spline`, `splinefun`, `splinefunH`) |
@@ -122,6 +129,16 @@ case: a single different accept/reject decision would show up there.
   estimate use the largest absolute data value and |mu| (when the true root is 0).
 - Fisher's test for tables of 3 × 3 or larger cannot be given a reference in reasonable time, so
   a relative difference up to 1e-10 there is recorded as a known difference.
+- The normal-approximation limits and estimate of `ansariTest` are roots found by `uniroot` with
+  tolerance 1e-4, in R as here, so they are compared with a tolerance of 1e-4. Since the same root
+  finder is evaluated on the same step function, they agree with R to 3e-15. Where R fails with
+  "object 'cint' not found" (24 cases, see [differences-from-r.md](differences-from-r.md)), the
+  result is compared with the oracle's repetition of the case with `exact = FALSE`.
+- Simulated p-values (`chisqTestSim`, `fisherTestSim`) must match exactly: each case calls
+  `setSeed(seed)` before the test, and the `runif(1)` drawn afterwards must equal R's, which checks
+  the number of uniforms consumed.
+- `chisqTest(x, y)` sorts the levels by code point where R used the locale's collation; in the one
+  fixture case where the orders differ, R's rows and columns are reordered before comparing.
 
 ### Linear algebra
 
