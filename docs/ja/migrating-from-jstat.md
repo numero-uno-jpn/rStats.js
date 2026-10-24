@@ -120,14 +120,14 @@ import できます。
 | `jStat.gammaln` | `lgamma(x)` |  |
 | `jStat.loggam` | `lgamma(x)` |  |
 | `jStat.gammafn` | `gamma(x)` |  |
-| `jStat.gammap` | `gammainc(x, a).lower` *(予定)* | 正規化しない下側不完全ガンマ関数です。 |
+| `jStat.gammap` | `gammainc(x, a).lower` | 正規化しない下側不完全ガンマ関数です。 |
 | `jStat.lowRegGamma` | `pgamma(x, a)` | 引数の順に注意: R の `pgamma(q, shape)` です。 |
 | `jStat.gammapinv` | `qgamma(p, a)` |  |
 | `jStat.factorialln` | `lfactorial(n)` |  |
 | `jStat.factorial` | `factorial(n)` |  |
 | `jStat.combination` | `choose(n, k)` | R の `choose` は整数の引数では整数に丸めます。 |
 | `jStat.combinationln` | `lchoose(n, k)` |  |
-| `jStat.permutation` | `perm(n, k)` *(予定)* |  |
+| `jStat.permutation` | `perm(n, k)` |  |
 | `jStat.betafn` | `beta(a, b)` |  |
 | `jStat.betaln` | `lbeta(a, b)` |  |
 | `jStat.betacf` | `pbeta(x, a, b)` | jStat の連分数は相対変化 3e-7 で止まるので、不完全ベータ関数の精度は 7 桁ほどです。 |
@@ -135,7 +135,7 @@ import できます。
 | `jStat.ibetainv` | `qbeta(p, a, b)` |  |
 | `jStat.erf` | `erf(x)` |  |
 | `jStat.erfc` | `erfc(x)` | jStat は 1 − erf(x) で計算するので裾が失われます。`erfc` は相対精度を保ちます。 |
-| `jStat.erfcinv` | `erfcinv(p)` *(予定)* |  |
+| `jStat.erfcinv` | `erfcinv(p)` |  |
 | `jStat.randn` | `rnorm(n)` | 行列なら `matrix(rnorm(n * m), n, m)` です。 |
 | `jStat.randg` | `rgamma(n, shape)` | jStat の行列の形は TypeError になります。 |
 

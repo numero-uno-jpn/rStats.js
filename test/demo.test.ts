@@ -50,6 +50,8 @@ const NOT_IN_DEMO_YET = [
   "dinvgamma", "pinvgamma", "qinvgamma", "dkumar", "pkumar", "qkumar", "dpareto", "ppareto", "qpareto", "dtriang", "ptriang",
   "qtriang", "dlaplace", "plaplace", "qlaplace", "darcsine", "parcsine", "qarcsine", "distSummary",
   "rinvgamma", "rkumar", "rpareto", "rtriang", "rlaplace", "rarcsine",
+  // special functions added for jStat coverage (demo to come)
+  "gammainc", "erfinv", "erfcinv", "perm",
 ];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 

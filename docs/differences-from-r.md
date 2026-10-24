@@ -116,6 +116,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | Quantiles in the far tails (`qlaplace`, `qkumar`, `qtriang`, ...) | 1 − p rounds: `qlaplace(1e-300, lower.tail = FALSE)` is Inf | correctly rounded (maps back to p) |
 | Densities steep in a parameter (`dinvgamma` with alpha = 100, `dtriang` near the ends) | the rounding of beta / x or b − x is magnified (to 9e-14) | the division in double-double |
 | `distSummary` skewness and kurtosis of `weibull` and `kumar` | the raw-moment formulas cancel: 9 digits of the kurtosis lost for shape 20 | central moments integrated directly (3e-14) |
+| `erfinv` of a small argument (pracma's definition through `qnorm((1 - |y|) / 2)`) | the relative accuracy of y is lost: `erfinv(1e-10)` off by 8e-8, `erfinv(1e-300)` is −0 | Newton steps on `erf` |
+| `gammainc` (R's `pgamma(x, a) * gamma(a)`) | two roundings, and exp of a large log where the product overflows (1e-13 for a = 200) | the series for x < a with `pow` |
 
 ## Where R fails and rStats.js returns a value
 

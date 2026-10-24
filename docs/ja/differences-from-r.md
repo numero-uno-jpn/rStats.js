@@ -108,6 +108,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 遠い裾の分位点 (`qlaplace`・`qkumar`・`qtriang` など) | 1 − p が丸まる: `qlaplace(1e-300, lower.tail = FALSE)` が Inf | 正しく丸めた値 (p に戻る) |
 | 母数に対して急な密度 (alpha = 100 の `dinvgamma`、端に近い `dtriang`) | beta / x や b − x の丸めが拡大される (9e-14 まで) | 割り算を double-double で |
 | `weibull` と `kumar` の `distSummary` の歪度・尖度 | 生のモーメントからの式が桁落ちする (shape 20 で尖度の 9 桁を失う) | 中心モーメントを直接積分 (3e-14) |
+| 小さい引数の `erfinv` (pracma の定義 `qnorm((1 - |y|) / 2)` を通す形) | y の相対精度が失われる: `erfinv(1e-10)` が 8e-8 ずれ、`erfinv(1e-300)` が −0 | `erf` のニュートン法 |
+| `gammainc` (R の `pgamma(x, a) * gamma(a)`) | 丸めが 2 回入り、積がオーバーフローすると大きな対数の exp になる (a = 200 で 1e-13) | x < a では `pow` を使った級数 |
 
 ## R が失敗し、rStats.js が値を返す場合
 

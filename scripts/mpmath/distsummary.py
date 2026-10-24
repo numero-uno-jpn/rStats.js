@@ -16,10 +16,10 @@ cases = []
 for c in fx["cases"]:
     a = c["args"]
     if a["distribution"] == "weibull":
-        k, lam = mp.mpf(a["shape"]), mp.mpf(a["scale"])
+        k, lam = mp.mpf(float(a["shape"])), mp.mpf(float(a["scale"]))
         m = [lam ** i * mp.gamma(1 + i / k) for i in range(1, 5)]
     elif a["distribution"] == "kumar":
-        A, B = mp.mpf(a["a"]), mp.mpf(a["b"])
+        A, B = mp.mpf(float(a["a"])), mp.mpf(float(a["b"]))
         m = [B * mp.beta(1 + i / A, B) for i in range(1, 5)]
     else:
         continue

@@ -120,14 +120,14 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 | `jStat.gammaln` | `lgamma(x)` |  |
 | `jStat.loggam` | `lgamma(x)` |  |
 | `jStat.gammafn` | `gamma(x)` |  |
-| `jStat.gammap` | `gammainc(x, a).lower` *(planned)* | The non-regularized lower incomplete gamma function. |
+| `jStat.gammap` | `gammainc(x, a).lower` | The non-regularized lower incomplete gamma function. |
 | `jStat.lowRegGamma` | `pgamma(x, a)` | Note the argument order: R's `pgamma(q, shape)`. |
 | `jStat.gammapinv` | `qgamma(p, a)` |  |
 | `jStat.factorialln` | `lfactorial(n)` |  |
 | `jStat.factorial` | `factorial(n)` |  |
 | `jStat.combination` | `choose(n, k)` | R's `choose` rounds to an integer for integer arguments. |
 | `jStat.combinationln` | `lchoose(n, k)` |  |
-| `jStat.permutation` | `perm(n, k)` *(planned)* |  |
+| `jStat.permutation` | `perm(n, k)` |  |
 | `jStat.betafn` | `beta(a, b)` |  |
 | `jStat.betaln` | `lbeta(a, b)` |  |
 | `jStat.betacf` | `pbeta(x, a, b)` | jStat's continued fraction stops at a relative change of 3e-7, which limits its incomplete beta function to about 7 digits. |
@@ -135,7 +135,7 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 | `jStat.ibetainv` | `qbeta(p, a, b)` |  |
 | `jStat.erf` | `erf(x)` |  |
 | `jStat.erfc` | `erfc(x)` | jStat computes 1 − erf(x), which loses the tail; `erfc` keeps full relative accuracy. |
-| `jStat.erfcinv` | `erfcinv(p)` *(planned)* |  |
+| `jStat.erfcinv` | `erfcinv(p)` |  |
 | `jStat.randn` | `rnorm(n)` | For a matrix: `matrix(rnorm(n * m), n, m)`. |
 | `jStat.randg` | `rgamma(n, shape)` | jStat's matrix form throws a TypeError. |
 
