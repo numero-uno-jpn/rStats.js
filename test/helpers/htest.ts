@@ -138,7 +138,10 @@ export function htestSuite(spec: HTestSpec): void {
           const refRaw = c.reference?.[field];
           const ref = refRaw === undefined ? undefined : flatten(refRaw).map((v) => num(v as string));
           if (e.length !== a.length) {
-            mismatches.push({ index, field, expected: exp, actual: act });
+            // a known difference may also change the length (e.g. R's NA and NaN counted apart)
+            const r = spec.knownDifference?.(c.args, field, NaN, NaN);
+            if (r !== undefined) reasons.set(r, (reasons.get(r) ?? 0) + 1);
+            else mismatches.push({ index, field, expected: exp, actual: act });
             continue;
           }
           const tol = spec.fieldTolerance?.[field] ?? spec.tolerance;

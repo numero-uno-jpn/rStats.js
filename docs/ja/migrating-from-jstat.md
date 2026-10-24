@@ -15,7 +15,7 @@ import できます。
 
 | | jStat | rStats.js (R) |
 |---|---|---|
-| `variance`、`stdev` | `flag` が真でなければ母分散 (n) | 標本 (n − 1): `var`、`sd` |
+| `variance`、`stdev` | `flag` が真でなければ母分散 (n) | 標本 (n − 1): `variance`、`sd` |
 | `quantiles` | (α, β) = (3/8, 3/8)、R の type 9 | `quantile` は type 7 (`{ type: 9 }` を渡す) |
 | `percentile` | type 7 (exclusive は type 6) | `quantile` は type 7 |
 | `range` | max − min | `[min, max]` |
@@ -75,43 +75,43 @@ import できます。
 
 | jStat | rStats.js | 備考 |
 |---|---|---|
-| `jStat.sum` | `sum(x)` *(予定)* | R が long double で足すのと同じく、double-double で足します。 |
-| `jStat.sumsqrd` | `sum(x.map((v) => v * v))` *(予定)* |  |
-| `jStat.sumsqerr` | `var(x) * (x.length - 1)` *(予定)* |  |
-| `jStat.sumrow` | `sum(x)` *(予定)* |  |
-| `jStat.product` | `prod(x)` *(予定)* |  |
-| `jStat.min` | `range(x)[0]` *(予定)* | 短い配列なら `Math.min(...x)` でもかまいません。 |
-| `jStat.max` | `range(x)[1]` *(予定)* | 短い配列なら `Math.max(...x)` でもかまいません。 |
-| `jStat.unique` | `unique(x)` *(予定)* | jStat はオブジェクトのキーで比べるので、`1` と `"1"` が衝突します。 |
-| `jStat.mean` | `mean(x)` *(予定)* | 最後のビットまで正確です (double-double の和と R の補正)。`trim` は R と同じです。 |
-| `jStat.meansqerr` | `var(x) * (x.length - 1) / x.length` *(予定)* |  |
-| `jStat.geomean` | `geometricMean(x)` *(予定)* | `DescTools::Gmean` と同じで、負の値があれば NaN、0 があれば 0 です。 |
-| `jStat.median` | `median(x)` *(予定)* |  |
-| `jStat.cumsum` | `cumsum(x)` *(予定)* |  |
-| `jStat.cumprod` | `cumprod(x)` *(予定)* |  |
-| `jStat.diff` | `diff(x)` *(予定)* | R と同じく `lag` と `differences` も指定できます。 |
-| `jStat.rank` | `rank(x)` *(予定)* | 同順位の既定は平均順位です (`tiesMethod` は R と同じ)。 |
-| `jStat.mode` | `modes(x)` *(予定)* | `DescTools::Mode` と同じで、最多の値すべてを昇順で返し、どの値も 1 回なら NaN です (jStat は並べた配列全体を返します)。 |
-| `jStat.range` | `range(x)` *(予定)* | R の `range` は `[min, max]` を返します。jStat は `max - min` を返します (`diff(range(x))`)。 |
-| `jStat.variance` | `var(x)` *(予定)* | **既定が違います:** `var` は標本分散 (n − 1)、jStat の既定は母分散です。`jStat.variance(x, true)` が `var(x)` です。 |
-| `jStat.stdev` | `sd(x)` *(予定)* | **既定が違います:** 標本標準偏差 (n − 1) です。 |
+| `jStat.sum` | `sum(x)` | R が long double で足すのと同じく、double-double で足します。 |
+| `jStat.sumsqrd` | `sum(x.map((v) => v * v))` |  |
+| `jStat.sumsqerr` | `variance(x) * (x.length - 1)` |  |
+| `jStat.sumrow` | `sum(x)` |  |
+| `jStat.product` | `prod(x)` |  |
+| `jStat.min` | `range(x)[0]` | 短い配列なら `Math.min(...x)` でもかまいません。 |
+| `jStat.max` | `range(x)[1]` | 短い配列なら `Math.max(...x)` でもかまいません。 |
+| `jStat.unique` | `unique(x)` | jStat はオブジェクトのキーで比べるので、`1` と `"1"` が衝突します。 |
+| `jStat.mean` | `mean(x)` | 最後のビットまで正確です (double-double の和と R の補正)。`trim` は R と同じです。 |
+| `jStat.meansqerr` | `variance(x) * (x.length - 1) / x.length` |  |
+| `jStat.geomean` | `geometricMean(x)` | `DescTools::Gmean` と同じで、負の値があれば NaN、0 があれば 0 です。 |
+| `jStat.median` | `median(x)` |  |
+| `jStat.cumsum` | `cumsum(x)` |  |
+| `jStat.cumprod` | `cumprod(x)` |  |
+| `jStat.diff` | `diff(x)` | R と同じく `lag` と `differences` も指定できます。 |
+| `jStat.rank` | `rank(x)` | 同順位の既定は平均順位です (`tiesMethod` は R と同じ)。 |
+| `jStat.mode` | `modes(x)` | `DescTools::Mode` と同じで、最多の値すべてを昇順で返し、どの値も 1 回なら NaN です (jStat は並べた配列全体を返します)。 |
+| `jStat.range` | `range(x)` | R の `range` は `[min, max]` を返します。jStat は `max - min` を返します (`diff(range(x))`)。 |
+| `jStat.variance` | `variance(x)` | **既定が違います:** `variance` (R の `var`) は標本分散 (n − 1)、jStat の既定は母分散です。`jStat.variance(x, true)` が `variance(x)` です。 |
+| `jStat.stdev` | `sd(x)` | **既定が違います:** 標本標準偏差 (n − 1) です。 |
 | `jStat.pooledvariance` | `aov(groups).meanSq[1]` *(予定)* | 一元配置分散分析の残差平均平方です。 |
 | `jStat.pooledstdev` | `Math.sqrt(aov(groups).meanSq[1])` *(予定)* |  |
 | `jStat.deviation` | JS: `x.map((v) => v - m)` with `m = mean(x)` |  |
-| `jStat.meandev` | `meanAD(x)` *(予定)* | `DescTools::MeanAD` と同じです。 |
-| `jStat.meddev` | `mad(x, { constant: 1 })` *(予定)* | R の `mad` は既定で 1.4826 倍します。jStat はしません。 |
-| `jStat.coeffvar` | `cv(x)` *(予定)* | **違います:** `cv` (`DescTools::CoefVar`) は標本標準偏差、jStat は母標準偏差を使います。 |
-| `jStat.quartiles` | `quantile(x, [0.25, 0.5, 0.75])` *(予定)* | jStat は補間せずに順序統計量を選びます (n が偶数だと中央の値が中央値になりません)。別の定義は `type` で選びます。 |
-| `jStat.quantiles` | `quantile(x, p, { type: 9 })` *(予定)* | jStat の既定 (α, β) = (3/8, 3/8) は R の type 9 です。R の既定は type 7 です。 |
-| `jStat.percentile` | `quantile(x, p)` *(予定)* | inclusive は R の type 7、`exclusive = true` は type 6 (`{ type: 6 }`) です。jStat は p が 1 に近いと誤り (`[1, 2, 3, 4]` の 0.9 が 3.7 でなく 3)、exclusive で p が小さいと NaN を返します。 |
-| `jStat.percentileOfScore` | `ecdf(x)(score)` *(予定)* | score 以下の値の割合です (jStat の既定 `'weak'`)。`'strict'` なら `x.filter((v) => v < score).length / x.length` です。 |
-| `jStat.histogram` | `hist(x, { breaks })` *(予定)* | R は `pretty` で区切りを選び (既定は Sturges)、右閉区間で数えます。jStat の等幅の区間は `hist(x, { breaks: seq(min, max, { lengthOut: bins + 1 }) }).counts` で得られます。 |
-| `jStat.covariance` | `cov(x, y)` *(予定)* |  |
+| `jStat.meandev` | `meanAD(x)` | `DescTools::MeanAD` と同じです。 |
+| `jStat.meddev` | `mad(x, { constant: 1 })` | R の `mad` は既定で 1.4826 倍します。jStat はしません。 |
+| `jStat.coeffvar` | `cv(x)` | **違います:** `cv` (`DescTools::CoefVar`) は標本標準偏差、jStat は母標準偏差を使います。 |
+| `jStat.quartiles` | `quantile(x, [0.25, 0.5, 0.75])` | jStat は補間せずに順序統計量を選びます (n が偶数だと中央の値が中央値になりません)。別の定義は `type` で選びます。 |
+| `jStat.quantiles` | `quantile(x, p, { type: 9 })` | jStat の既定 (α, β) = (3/8, 3/8) は R の type 9 です。R の既定は type 7 です。 |
+| `jStat.percentile` | `quantile(x, p)` | inclusive は R の type 7、`exclusive = true` は type 6 (`{ type: 6 }`) です。jStat は p が 1 に近いと誤り (`[1, 2, 3, 4]` の 0.9 が 3.7 でなく 3)、exclusive で p が小さいと NaN を返します。 |
+| `jStat.percentileOfScore` | `ecdf(x)(score)` | score 以下の値の割合です (jStat の既定 `'weak'`)。`'strict'` なら `x.filter((v) => v < score).length / x.length` です。 |
+| `jStat.histogram` | `hist(x, { breaks })` | R は `pretty` で区切りを選び (既定は Sturges)、右閉区間で数えます。jStat の等幅の区間は `hist(x, { breaks: seq(min, max, { lengthOut: bins + 1 }) }).counts` で得られます。 |
+| `jStat.covariance` | `cov(x, y)` |  |
 | `jStat.corrcoeff` | `cor(x, y)` |  |
 | `jStat.spearmancoeff` | `cor(x, y, { method: "spearman" })` |  |
-| `jStat.stanMoment` | `skewness(x)` / `kurtosis(x)` *(予定)* | jStat の標準化モーメント (母標準偏差) です。ほかの次数は `mean(x.map((v) => ((v - m) / s) ** k))` で計算します。 |
-| `jStat.skewness` | `skewness(x, { type: 1 })` *(予定)* | jStat の歪度は e1071 の type 1 です。e1071 の既定は type 3 です。 |
-| `jStat.kurtosis` | `kurtosis(x, { type: 1 })` *(予定)* | 超過尖度で、e1071 の type 1 です (e1071 の既定は type 3)。 |
+| `jStat.stanMoment` | `skewness(x)` / `kurtosis(x)` | jStat の標準化モーメント (母標準偏差) です。ほかの次数は `mean(x.map((v) => ((v - m) / s) ** k))` で計算します。 |
+| `jStat.skewness` | `skewness(x, { type: 1 })` | jStat の歪度は e1071 の type 1 です。e1071 の既定は type 3 です。 |
+| `jStat.kurtosis` | `kurtosis(x, { type: 1 })` | 超過尖度で、e1071 の type 1 です (e1071 の既定は type 3)。 |
 
 ## 特殊関数と乱数
 
@@ -374,11 +374,11 @@ import できます。
 | `jStat.regresst` | `lm(x, y)` *(予定)* | 係数の表 (推定値・標準誤差・t・p) と分散分析の量です。jStat の t 検定は自由度を n − p − 1 にしているように見えます。 |
 | `jStat.xtranspx` | `crossprod(x)` |  |
 | `jStat.xtranspxinv` | `solve(crossprod(x))` |  |
-| `jStat.jMatYBar` | `mean(y)` *(予定)* |  |
+| `jStat.jMatYBar` | `mean(y)` |  |
 | `jStat.residuals` | `lm(x, y).residuals` *(予定)* |  |
 | `jStat.ssr` | `lm(x, y)` *(予定)* | 回帰の平方和です: `sum(fitted.map((v) => (v - mean(y)) ** 2))`。 |
 | `jStat.sse` | `lm(x, y)` *(予定)* | 残差平方和です: `sum(residuals.map((v) => v * v))`。 |
-| `jStat.sst` | `var(y) * (y.length - 1)` *(予定)* |  |
+| `jStat.sst` | `variance(y) * (y.length - 1)` |  |
 | `jStat.matrixsubtract` | `subtract(a, b)` *(予定)* |  |
 
 ## jStat のバグ

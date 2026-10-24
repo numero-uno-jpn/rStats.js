@@ -1,3 +1,15 @@
-// Descriptive statistics (rStats.js/descriptive)
+// Descriptive statistics (rStats.js/descriptive): R's summaries of vectors and matrices, with naRm for missing values
 
-export {};
+export {
+  sum, prod, mean, weightedMean, variance, sd, median, range, cumsum, cumprod, cummax, cummin, diff,
+  type NaRmOptions, type MeanOptions, type DiffOptions,
+} from "../descriptive/basic.js";
+export { quantile, IQR, fivenum, mad, type QuantileOptions, type MadOptions } from "../descriptive/quantile.js";
+export { rank, type RankOptions, type TiesMethod } from "../descriptive/rank.js";
+export { cov, cor, type CovOptions, type CorUse } from "../descriptive/cov.js";
+export { tabulate, table, unique, cut, findInterval, type TableOptions, type CutOptions, type FindIntervalOptions } from "../descriptive/table.js";
+export { hist, pretty, ecdf, type HistOptions, type HistResult, type PrettyOptions } from "../descriptive/hist.js";
+export {
+  skewness, kurtosis, geometricMean, modes, meanAD, cv, scale,
+  type MomentOptions, type MeanADOptions, type CvOptions, type ScaleOptions,
+} from "../descriptive/moments.js";

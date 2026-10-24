@@ -29,7 +29,13 @@ const names = Object.keys(lib);
  * Exports added since the last release. The public demo loads the released build from jsDelivr, so their examples
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
-const NOT_IN_DEMO_YET = ["choose", "lchoose", "factorial", "lfactorial", "digamma", "trigamma", "psigamma", "besselI", "besselK", "besselJ", "besselY", "dmultinom", "erf", "erfc"];
+const NOT_IN_DEMO_YET = [
+  "choose", "lchoose", "factorial", "lfactorial", "digamma", "trigamma", "psigamma", "besselI", "besselK", "besselJ", "besselY", "dmultinom", "erf", "erfc",
+  // descriptive statistics (demo tab to come)
+  "sum", "prod", "mean", "weightedMean", "variance", "sd", "median", "range", "cumsum", "cumprod", "cummax", "cummin", "diff",
+  "quantile", "IQR", "fivenum", "mad", "rank", "cov", "tabulate", "table", "unique", "cut", "findInterval", "hist", "pretty",
+  "ecdf", "skewness", "kurtosis", "geometricMean", "modes", "meanAD", "cv", "scale",
+];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 
 /** Evaluates an example's js with every export in scope and flattens the result to numbers */

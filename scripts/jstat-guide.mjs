@@ -53,14 +53,14 @@ const rows = {
   vector: [
     ["jStat.sum", "`sum(x)`", "Summed in double-double, as R sums in long double.", "R が long double で足すのと同じく、double-double で足します。"],
     ["jStat.sumsqrd", "`sum(x.map((v) => v * v))`", "", ""],
-    ["jStat.sumsqerr", "`var(x) * (x.length - 1)`", "", ""],
+    ["jStat.sumsqerr", "`variance(x) * (x.length - 1)`", "", ""],
     ["jStat.sumrow", "`sum(x)`", "", ""],
     ["jStat.product", "`prod(x)`", "", ""],
     ["jStat.min", "`range(x)[0]`", "Or `Math.min(...x)` for short arrays.", "短い配列なら `Math.min(...x)` でもかまいません。"],
     ["jStat.max", "`range(x)[1]`", "Or `Math.max(...x)` for short arrays.", "短い配列なら `Math.max(...x)` でもかまいません。"],
     ["jStat.unique", "`unique(x)`", "jStat compares object keys, so `1` and `\"1\"` collide.", "jStat はオブジェクトのキーで比べるので、`1` と `\"1\"` が衝突します。"],
     ["jStat.mean", "`mean(x)`", "Accurate to the last bit (double-double sum and R's correction step); `trim` as in R.", "最後のビットまで正確です (double-double の和と R の補正)。`trim` は R と同じです。"],
-    ["jStat.meansqerr", "`var(x) * (x.length - 1) / x.length`", "", ""],
+    ["jStat.meansqerr", "`variance(x) * (x.length - 1) / x.length`", "", ""],
     ["jStat.geomean", "`geometricMean(x)`", "As `DescTools::Gmean`: NaN with a negative value, 0 with a zero.", "`DescTools::Gmean` と同じで、負の値があれば NaN、0 があれば 0 です。"],
     ["jStat.median", "`median(x)`", "", ""],
     ["jStat.cumsum", "`cumsum(x)`", "", ""],
@@ -69,7 +69,7 @@ const rows = {
     ["jStat.rank", "`rank(x)`", "Ties get the average rank by default (`tiesMethod` as in R).", "同順位の既定は平均順位です (`tiesMethod` は R と同じ)。"],
     ["jStat.mode", "`modes(x)`", "As `DescTools::Mode`: all most frequent values in increasing order, and NaN when every value occurs once (jStat then returns the whole sorted array).", "`DescTools::Mode` と同じで、最多の値すべてを昇順で返し、どの値も 1 回なら NaN です (jStat は並べた配列全体を返します)。"],
     ["jStat.range", "`range(x)`", "R's `range` returns `[min, max]`; jStat returns `max - min` (`diff(range(x))`).", "R の `range` は `[min, max]` を返します。jStat は `max - min` を返します (`diff(range(x))`)。"],
-    ["jStat.variance", "`var(x)`", "**Default differs:** `var` is the sample variance (n − 1), jStat's default is the population variance. `jStat.variance(x, true)` is `var(x)`.", "**既定が違います:** `var` は標本分散 (n − 1)、jStat の既定は母分散です。`jStat.variance(x, true)` が `var(x)` です。"],
+    ["jStat.variance", "`variance(x)`", "**Default differs:** `variance` (R's `var`) is the sample variance (n − 1), jStat's default is the population variance. `jStat.variance(x, true)` is `variance(x)`.", "**既定が違います:** `variance` (R の `var`) は標本分散 (n − 1)、jStat の既定は母分散です。`jStat.variance(x, true)` が `variance(x)` です。"],
     ["jStat.stdev", "`sd(x)`", "**Default differs:** sample standard deviation (n − 1).", "**既定が違います:** 標本標準偏差 (n − 1) です。"],
     ["jStat.pooledvariance", "`aov(groups).meanSq[1]`", "The residual mean square of a one-way ANOVA.", "一元配置分散分析の残差平均平方です。"],
     ["jStat.pooledstdev", "`Math.sqrt(aov(groups).meanSq[1])`", "", ""],
@@ -188,7 +188,7 @@ const rows = {
     ["jStat.residuals", "`lm(x, y).residuals`", "", ""],
     ["jStat.ssr", "`lm(x, y)`", "The regression sum of squares: `sum(fitted.map((v) => (v - mean(y)) ** 2))`.", "回帰の平方和です: `sum(fitted.map((v) => (v - mean(y)) ** 2))`。"],
     ["jStat.sse", "`lm(x, y)`", "The residual sum of squares: `sum(residuals.map((v) => v * v))`.", "残差平方和です: `sum(residuals.map((v) => v * v))`。"],
-    ["jStat.sst", "`var(y) * (y.length - 1)`", "", ""],
+    ["jStat.sst", "`variance(y) * (y.length - 1)`", "", ""],
     ["jStat.matrixsubtract", "`subtract(a, b)`", "", ""],
   ],
 };
@@ -284,7 +284,7 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 
 | | jStat | rStats.js (R) |
 |---|---|---|
-| \`variance\`, \`stdev\` | population (n) unless \`flag\` is true | sample (n − 1): \`var\`, \`sd\` |
+| \`variance\`, \`stdev\` | population (n) unless \`flag\` is true | sample (n − 1): \`variance\`, \`sd\` |
 | \`quantiles\` | (α, β) = (3/8, 3/8), R's type 9 | \`quantile\` type 7 (pass \`{ type: 9 }\`) |
 | \`percentile\` | type 7 (exclusive: type 6) | \`quantile\` type 7 |
 | \`range\` | max − min | \`[min, max]\` |
@@ -349,7 +349,7 @@ import できます。`,
 
 | | jStat | rStats.js (R) |
 |---|---|---|
-| \`variance\`、\`stdev\` | \`flag\` が真でなければ母分散 (n) | 標本 (n − 1): \`var\`、\`sd\` |
+| \`variance\`、\`stdev\` | \`flag\` が真でなければ母分散 (n) | 標本 (n − 1): \`variance\`、\`sd\` |
 | \`quantiles\` | (α, β) = (3/8, 3/8)、R の type 9 | \`quantile\` は type 7 (\`{ type: 9 }\` を渡す) |
 | \`percentile\` | type 7 (exclusive は type 6) | \`quantile\` は type 7 |
 | \`range\` | max − min | \`[min, max]\` |

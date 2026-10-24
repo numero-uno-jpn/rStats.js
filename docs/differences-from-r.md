@@ -99,6 +99,7 @@ affected.
 | `ks.test`, asymptotic two-sided p-value | Kolmogorov's limiting series summed to a tolerance of 1e-6 (off by up to 1e-5) | agrees with `scipy.special.kolmogorov` |
 | `ks.test` two-sample statistic that is 0 | rounding residue of cumulative sums of 1/m and −1/n (±1e-16, sometimes negative) | 0 |
 | `fligner.test` and `prop.test` statistics that are 0 | rounding residue (1e-31) | 0 |
+| `skewness`, `kurtosis` and `cv` of data with a large mean and small spread | e1071 subtracts a mean rounded to double: skewness off by 8e-5, kurtosis by 2e-6 relative (1e8 + noise of 1e-3) | deviations from the double-double mean; agree with 60-digit values |
 
 ## Where R fails and rStats.js returns a value
 
@@ -139,7 +140,9 @@ affected.
   0-based. `sample(array, ...)` returns elements, as in R.
 - **Distribution parameters are scalars**; they are not recycled as vectors. The first argument
   may be a number, an array or a `Float64Array`.
-- **NA is represented by NaN.**
+- **NA is represented by NaN.** R tells `NA` from `NaN` (for example `table` and `unique` count them
+  apart); rStats.js has one `NaN`.
+- **`var` is called `variance`**, because `var` cannot be a name in JavaScript.
 
 ### Distributions
 

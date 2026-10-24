@@ -15,7 +15,7 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 
 | | jStat | rStats.js (R) |
 |---|---|---|
-| `variance`, `stdev` | population (n) unless `flag` is true | sample (n − 1): `var`, `sd` |
+| `variance`, `stdev` | population (n) unless `flag` is true | sample (n − 1): `variance`, `sd` |
 | `quantiles` | (α, β) = (3/8, 3/8), R's type 9 | `quantile` type 7 (pass `{ type: 9 }`) |
 | `percentile` | type 7 (exclusive: type 6) | `quantile` type 7 |
 | `range` | max − min | `[min, max]` |
@@ -75,43 +75,43 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 
 | jStat | rStats.js | Notes |
 |---|---|---|
-| `jStat.sum` | `sum(x)` *(planned)* | Summed in double-double, as R sums in long double. |
-| `jStat.sumsqrd` | `sum(x.map((v) => v * v))` *(planned)* |  |
-| `jStat.sumsqerr` | `var(x) * (x.length - 1)` *(planned)* |  |
-| `jStat.sumrow` | `sum(x)` *(planned)* |  |
-| `jStat.product` | `prod(x)` *(planned)* |  |
-| `jStat.min` | `range(x)[0]` *(planned)* | Or `Math.min(...x)` for short arrays. |
-| `jStat.max` | `range(x)[1]` *(planned)* | Or `Math.max(...x)` for short arrays. |
-| `jStat.unique` | `unique(x)` *(planned)* | jStat compares object keys, so `1` and `"1"` collide. |
-| `jStat.mean` | `mean(x)` *(planned)* | Accurate to the last bit (double-double sum and R's correction step); `trim` as in R. |
-| `jStat.meansqerr` | `var(x) * (x.length - 1) / x.length` *(planned)* |  |
-| `jStat.geomean` | `geometricMean(x)` *(planned)* | As `DescTools::Gmean`: NaN with a negative value, 0 with a zero. |
-| `jStat.median` | `median(x)` *(planned)* |  |
-| `jStat.cumsum` | `cumsum(x)` *(planned)* |  |
-| `jStat.cumprod` | `cumprod(x)` *(planned)* |  |
-| `jStat.diff` | `diff(x)` *(planned)* | Also `lag` and `differences`, as in R. |
-| `jStat.rank` | `rank(x)` *(planned)* | Ties get the average rank by default (`tiesMethod` as in R). |
-| `jStat.mode` | `modes(x)` *(planned)* | As `DescTools::Mode`: all most frequent values in increasing order, and NaN when every value occurs once (jStat then returns the whole sorted array). |
-| `jStat.range` | `range(x)` *(planned)* | R's `range` returns `[min, max]`; jStat returns `max - min` (`diff(range(x))`). |
-| `jStat.variance` | `var(x)` *(planned)* | **Default differs:** `var` is the sample variance (n − 1), jStat's default is the population variance. `jStat.variance(x, true)` is `var(x)`. |
-| `jStat.stdev` | `sd(x)` *(planned)* | **Default differs:** sample standard deviation (n − 1). |
+| `jStat.sum` | `sum(x)` | Summed in double-double, as R sums in long double. |
+| `jStat.sumsqrd` | `sum(x.map((v) => v * v))` |  |
+| `jStat.sumsqerr` | `variance(x) * (x.length - 1)` |  |
+| `jStat.sumrow` | `sum(x)` |  |
+| `jStat.product` | `prod(x)` |  |
+| `jStat.min` | `range(x)[0]` | Or `Math.min(...x)` for short arrays. |
+| `jStat.max` | `range(x)[1]` | Or `Math.max(...x)` for short arrays. |
+| `jStat.unique` | `unique(x)` | jStat compares object keys, so `1` and `"1"` collide. |
+| `jStat.mean` | `mean(x)` | Accurate to the last bit (double-double sum and R's correction step); `trim` as in R. |
+| `jStat.meansqerr` | `variance(x) * (x.length - 1) / x.length` |  |
+| `jStat.geomean` | `geometricMean(x)` | As `DescTools::Gmean`: NaN with a negative value, 0 with a zero. |
+| `jStat.median` | `median(x)` |  |
+| `jStat.cumsum` | `cumsum(x)` |  |
+| `jStat.cumprod` | `cumprod(x)` |  |
+| `jStat.diff` | `diff(x)` | Also `lag` and `differences`, as in R. |
+| `jStat.rank` | `rank(x)` | Ties get the average rank by default (`tiesMethod` as in R). |
+| `jStat.mode` | `modes(x)` | As `DescTools::Mode`: all most frequent values in increasing order, and NaN when every value occurs once (jStat then returns the whole sorted array). |
+| `jStat.range` | `range(x)` | R's `range` returns `[min, max]`; jStat returns `max - min` (`diff(range(x))`). |
+| `jStat.variance` | `variance(x)` | **Default differs:** `variance` (R's `var`) is the sample variance (n − 1), jStat's default is the population variance. `jStat.variance(x, true)` is `variance(x)`. |
+| `jStat.stdev` | `sd(x)` | **Default differs:** sample standard deviation (n − 1). |
 | `jStat.pooledvariance` | `aov(groups).meanSq[1]` *(planned)* | The residual mean square of a one-way ANOVA. |
 | `jStat.pooledstdev` | `Math.sqrt(aov(groups).meanSq[1])` *(planned)* |  |
 | `jStat.deviation` | JS: `x.map((v) => v - m)` with `m = mean(x)` |  |
-| `jStat.meandev` | `meanAD(x)` *(planned)* | As `DescTools::MeanAD`. |
-| `jStat.meddev` | `mad(x, { constant: 1 })` *(planned)* | R's `mad` multiplies by 1.4826 by default; jStat does not. |
-| `jStat.coeffvar` | `cv(x)` *(planned)* | **Differs:** `cv` (`DescTools::CoefVar`) uses the sample standard deviation; jStat uses the population one. |
-| `jStat.quartiles` | `quantile(x, [0.25, 0.5, 0.75])` *(planned)* | jStat picks order statistics without interpolation (and its middle value is not the median for even n). Pass `type` for other definitions. |
-| `jStat.quantiles` | `quantile(x, p, { type: 9 })` *(planned)* | jStat's default (α, β) = (3/8, 3/8) is R's type 9; R's default is type 7. |
-| `jStat.percentile` | `quantile(x, p)` *(planned)* | Inclusive is R's type 7, `exclusive = true` is type 6 (`{ type: 6 }`). jStat is wrong for p close to 1 (`[1, 2, 3, 4]`, 0.9 gives 3 instead of 3.7) and returns NaN for small p when exclusive. |
-| `jStat.percentileOfScore` | `ecdf(x)(score)` *(planned)* | The fraction of values ≤ score (jStat's default `'weak'`); for `'strict'` use `x.filter((v) => v < score).length / x.length`. |
-| `jStat.histogram` | `hist(x, { breaks })` *(planned)* | R chooses breaks with `pretty` (Sturges by default) and counts right-closed intervals; `hist(x, { breaks: seq(min, max, { lengthOut: bins + 1 }) }).counts` gives jStat's equal-width bins. |
-| `jStat.covariance` | `cov(x, y)` *(planned)* |  |
+| `jStat.meandev` | `meanAD(x)` | As `DescTools::MeanAD`. |
+| `jStat.meddev` | `mad(x, { constant: 1 })` | R's `mad` multiplies by 1.4826 by default; jStat does not. |
+| `jStat.coeffvar` | `cv(x)` | **Differs:** `cv` (`DescTools::CoefVar`) uses the sample standard deviation; jStat uses the population one. |
+| `jStat.quartiles` | `quantile(x, [0.25, 0.5, 0.75])` | jStat picks order statistics without interpolation (and its middle value is not the median for even n). Pass `type` for other definitions. |
+| `jStat.quantiles` | `quantile(x, p, { type: 9 })` | jStat's default (α, β) = (3/8, 3/8) is R's type 9; R's default is type 7. |
+| `jStat.percentile` | `quantile(x, p)` | Inclusive is R's type 7, `exclusive = true` is type 6 (`{ type: 6 }`). jStat is wrong for p close to 1 (`[1, 2, 3, 4]`, 0.9 gives 3 instead of 3.7) and returns NaN for small p when exclusive. |
+| `jStat.percentileOfScore` | `ecdf(x)(score)` | The fraction of values ≤ score (jStat's default `'weak'`); for `'strict'` use `x.filter((v) => v < score).length / x.length`. |
+| `jStat.histogram` | `hist(x, { breaks })` | R chooses breaks with `pretty` (Sturges by default) and counts right-closed intervals; `hist(x, { breaks: seq(min, max, { lengthOut: bins + 1 }) }).counts` gives jStat's equal-width bins. |
+| `jStat.covariance` | `cov(x, y)` |  |
 | `jStat.corrcoeff` | `cor(x, y)` |  |
 | `jStat.spearmancoeff` | `cor(x, y, { method: "spearman" })` |  |
-| `jStat.stanMoment` | `skewness(x)` / `kurtosis(x)` *(planned)* | jStat's standardized moments with the population standard deviation; for other orders compute `mean(x.map((v) => ((v - m) / s) ** k))`. |
-| `jStat.skewness` | `skewness(x, { type: 1 })` *(planned)* | jStat's skewness is e1071's type 1; e1071's default is type 3. |
-| `jStat.kurtosis` | `kurtosis(x, { type: 1 })` *(planned)* | Excess kurtosis, e1071's type 1 (e1071's default is type 3). |
+| `jStat.stanMoment` | `skewness(x)` / `kurtosis(x)` | jStat's standardized moments with the population standard deviation; for other orders compute `mean(x.map((v) => ((v - m) / s) ** k))`. |
+| `jStat.skewness` | `skewness(x, { type: 1 })` | jStat's skewness is e1071's type 1; e1071's default is type 3. |
+| `jStat.kurtosis` | `kurtosis(x, { type: 1 })` | Excess kurtosis, e1071's type 1 (e1071's default is type 3). |
 
 ## Special functions and random numbers
 
@@ -374,11 +374,11 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 | `jStat.regresst` | `lm(x, y)` *(planned)* | The coefficient table (estimates, standard errors, t and p) and the ANOVA quantities. jStat's t tests appear to use n − p − 1 degrees of freedom. |
 | `jStat.xtranspx` | `crossprod(x)` |  |
 | `jStat.xtranspxinv` | `solve(crossprod(x))` |  |
-| `jStat.jMatYBar` | `mean(y)` *(planned)* |  |
+| `jStat.jMatYBar` | `mean(y)` |  |
 | `jStat.residuals` | `lm(x, y).residuals` *(planned)* |  |
 | `jStat.ssr` | `lm(x, y)` *(planned)* | The regression sum of squares: `sum(fitted.map((v) => (v - mean(y)) ** 2))`. |
 | `jStat.sse` | `lm(x, y)` *(planned)* | The residual sum of squares: `sum(residuals.map((v) => v * v))`. |
-| `jStat.sst` | `var(y) * (y.length - 1)` *(planned)* |  |
+| `jStat.sst` | `variance(y) * (y.length - 1)` |  |
 | `jStat.matrixsubtract` | `subtract(a, b)` *(planned)* |  |
 
 ## Bugs in jStat

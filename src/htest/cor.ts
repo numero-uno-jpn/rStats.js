@@ -128,7 +128,7 @@ function scaledDeviations(x: readonly number[]): DD[] | undefined {
 }
 
 /** Pearson's correlation coefficient in double-double (so 1 - r is computed without cancellation near perfect correlation) */
-function pearsonDD(x: readonly number[], y: readonly number[]): DD {
+export function pearsonDD(x: readonly number[], y: readonly number[]): DD {
   const n = x.length;
   if (n < 2) return [NaN, 0];
   const dx = scaledDeviations(x);
@@ -185,7 +185,7 @@ interface KendallStats {
 }
 
 /** Count concordant and discordant pairs (O(n^2)). Two Infs are tied */
-function kendall(x: readonly number[], y: readonly number[]): KendallStats {
+export function kendall(x: readonly number[], y: readonly number[]): KendallStats {
   const n = x.length;
   let s = 0;
   for (let i = 0; i < n; i++) {
