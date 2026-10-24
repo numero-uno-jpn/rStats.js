@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { render } from "../scripts/jstat-guide.mjs";
 
 /** Rows still marked planned; lower this as functions are added, down to 0 */
-const PLANNED_AT_MOST = 119;
+const PLANNED_AT_MOST = 108;
 
 const path = (p: string): string => fileURLToPath(new URL(`../${p}`, import.meta.url));
 const api = JSON.parse(readFileSync(path("test/fixtures/jstat-api.json"), "utf8")) as { groups: Record<string, string[]> };

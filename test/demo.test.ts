@@ -38,6 +38,10 @@ const NOT_IN_DEMO_YET = [
   // matrix arithmetic (demo to come)
   "matMul", "add", "subtract", "multiply", "divide", "outer", "t", "diag", "cbind", "rbind", "matrix", "kronecker", "seq",
   "lu", "prcomp",
+  // hypothesis tests added for jStat coverage (demo to come)
+  "binomTest", "poissonTest", "propTest", "mcnemarTest", "varTest", "bartlettTest", "kruskalTest", "friedmanTest",
+  "quadeTest", "flignerTest", "moodTest", "onewayTest", "shapiroTest", "mantelhaenTest", "ansariTest", "ksTest",
+  "pairwiseTTest", "pairwiseWilcoxTest", "pairwisePropTest", "aov", "TukeyHSD", "zTest",
 ];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 

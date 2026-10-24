@@ -95,8 +95,8 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 | `jStat.range` | `range(x)` | R's `range` returns `[min, max]`; jStat returns `max - min` (`diff(range(x))`). |
 | `jStat.variance` | `variance(x)` | **Default differs:** `variance` (R's `var`) is the sample variance (n − 1), jStat's default is the population variance. `jStat.variance(x, true)` is `variance(x)`. |
 | `jStat.stdev` | `sd(x)` | **Default differs:** sample standard deviation (n − 1). |
-| `jStat.pooledvariance` | `aov(groups).meanSq[1]` *(planned)* | The residual mean square of a one-way ANOVA. |
-| `jStat.pooledstdev` | `Math.sqrt(aov(groups).meanSq[1])` *(planned)* |  |
+| `jStat.pooledvariance` | `aov(groups).meanSq[1]` | The residual mean square of a one-way ANOVA. |
+| `jStat.pooledstdev` | `Math.sqrt(aov(groups).meanSq[1])` |  |
 | `jStat.deviation` | JS: `x.map((v) => v - m)` with `m = mean(x)` |  |
 | `jStat.meandev` | `meanAD(x)` | As `DescTools::MeanAD`. |
 | `jStat.meddev` | `mad(x, { constant: 1 })` | R's `mad` multiplies by 1.4826 by default; jStat does not. |
@@ -338,21 +338,21 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 | jStat | rStats.js | Notes |
 |---|---|---|
 | `jStat.zscore` | JS: `(value - mean(x)) / sd(x)` |  |
-| `jStat.ztest` | `zTest(x, { mu, sigmaX })` *(planned)* | As `BSDA::z.test`. jStat's one-sided p-value ignores the direction of the effect. |
+| `jStat.ztest` | `zTest(x, { mu, sigmaX })` | As `BSDA::z.test`. jStat's one-sided p-value ignores the direction of the effect. |
 | `jStat.tscore` | `tTest(x, { mu }).statistic` |  |
 | `jStat.ttest` | `tTest(x, { mu }).pValue` | jStat's four-argument form is misread as `(t, n, sides)`. |
-| `jStat.anovafscore` | `aov(groups).fValue` *(planned)* |  |
-| `jStat.anovaftest` | `aov(groups).pValue` *(planned)* | Or `onewayTest(groups, { varEqual: true })`. |
+| `jStat.anovafscore` | `aov(groups).fValue` |  |
+| `jStat.anovaftest` | `aov(groups).pValue` | Or `onewayTest(groups, { varEqual: true })`. |
 | `jStat.ftest` | `pf(f, df1, df2, { lowerTail: false })` |  |
-| `jStat.qscore` | `TukeyHSD(groups)` *(planned)* |  |
+| `jStat.qscore` | `TukeyHSD(groups)` |  |
 | `jStat.qtest` | `ptukey(q, k, df, { lowerTail: false })` |  |
-| `jStat.tukeyhsd` | `TukeyHSD(groups)` *(planned)* | Also returns the differences and intervals, as R's `TukeyHSD`. |
-| `jStat.normalci` | `zTest(x, { sigmaX }).confInt` *(planned)* | jStat's array form uses the population standard deviation. |
+| `jStat.tukeyhsd` | `TukeyHSD(groups)` | Also returns the differences and intervals, as R's `TukeyHSD`. |
+| `jStat.normalci` | `zTest(x, { sigmaX }).confInt` | jStat's array form uses the population standard deviation. |
 | `jStat.tci` | `tTest(x).confInt` |  |
 | `jStat.significant` | JS: `p < alpha` |  |
-| `jStat.fn.anovaftes` | `aov(groups).pValue` *(planned)* | Spelled `anovaftes` in jStat (the documented `anovaftest()` instance method does not exist). |
-| `jStat.fn.oneSidedDifferenceOfProportions` | `propTest([x1, x2], [n1, n2], { alternative: "greater", correct: false })` *(planned)* | The pooled z test is the chi-squared test without continuity correction; choose the side with `alternative`. |
-| `jStat.fn.twoSidedDifferenceOfProportions` | `propTest([x1, x2], [n1, n2], { correct: false })` *(planned)* |  |
+| `jStat.fn.anovaftes` | `aov(groups).pValue` | Spelled `anovaftes` in jStat (the documented `anovaftest()` instance method does not exist). |
+| `jStat.fn.oneSidedDifferenceOfProportions` | `propTest([x1, x2], [n1, n2], { alternative: "greater", correct: false })` | The pooled z test is the chi-squared test without continuity correction; choose the side with `alternative`. |
+| `jStat.fn.twoSidedDifferenceOfProportions` | `propTest([x1, x2], [n1, n2], { correct: false })` |  |
 
 ## Models
 
