@@ -59,8 +59,11 @@ buys in accuracy (`npm run precision-report`).
 
 rStats.js is MIT licensed. To keep it that way:
 
-- **Do not copy or translate code from R or from GPL packages.** R is used only as an oracle
-  (to observe outputs). This includes R's `src/nmath`, recommended packages and TOMS 708.
+- **Do not copy or translate code from R or from GPL packages.** R is the oracle: its outputs are
+  what rStats.js is checked against. Reading R's source to find out exactly how R behaves (which
+  inputs it rejects, which formula or convention it uses, where it rounds) is fine, and often the
+  quickest way to settle a mismatch; writing the implementation from it is not. This includes R's
+  `src/nmath`, `src/appl`, recommended packages and TOMS 708.
 - Port only from permissively licensed sources: SciPy and xsf (BSD-3), Boost.Math (BSL-1.0),
   statsmodels (BSD-3), lifelines (MIT), the LAPACK reference implementation (modified BSD),
   public-domain code (LINPACK, EISPACK, Cephes as distributed with xsf), or published papers.
