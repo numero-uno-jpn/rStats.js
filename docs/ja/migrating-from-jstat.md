@@ -51,22 +51,22 @@ import できます。
 | `jStat.rowa` | JS: `a[i]` |  |
 | `jStat.col` | JS: `a.map((r) => [r[j]])` | jStat は n × 1 の行列を返します。 |
 | `jStat.cola` | JS: `a.map((r) => r[j])` |  |
-| `jStat.diag` | `diag(a)` *(予定)* | 行列の `diag` は対角要素を平らな配列で返します (jStat は n × 1 の行列)。 |
+| `jStat.diag` | `diag(a)` | 行列の `diag` は対角要素を平らな配列で返します (jStat は n × 1 の行列)。 |
 | `jStat.antidiag` | JS: `a.map((r, i) => r[r.length - 1 - i])` |  |
-| `jStat.diagonal` | `diag(v)` *(予定)* | 長さ 2 以上のベクトルの `diag` は、R と同じく対角行列を作ります。 |
-| `jStat.transpose` | `t(a)` *(予定)* | `t` は常に行列を返します (jStat は 1 行の結果を平らにします)。 |
+| `jStat.diagonal` | `diag(v)` | 長さ 2 以上のベクトルの `diag` は、R と同じく対角行列を作ります。 |
+| `jStat.transpose` | `t(a)` | `t` は常に行列を返します (jStat は 1 行の結果を平らにします)。 |
 | `jStat.map` | JS: `a.map((r) => r.map(f))` |  |
 | `jStat.cumreduce` | JS: `a.map((r) => { let s = 0; return r.map((v) => (s += v)); })` | 累積和なら `cumsum(x)` を使います。 |
 | `jStat.alter` | JS: `a.forEach((r) => r.forEach((v, j) => (r[j] = f(v))))` |  |
-| `jStat.create` | `matrix(data, nrow, ncol)` *(予定)* | JavaScript で行の配列を作ってもかまいません。 |
-| `jStat.zeros` | `matrix(0, nrow, ncol)` *(予定)* |  |
-| `jStat.ones` | `matrix(1, nrow, ncol)` *(予定)* |  |
-| `jStat.rand` | `matrix(runif(nrow * ncol), nrow, ncol)` *(予定)* | `setSeed` で再現できます。 |
-| `jStat.identity` | `diag(n)` *(予定)* |  |
+| `jStat.create` | `matrix(data, nrow, ncol)` | JavaScript で行の配列を作ってもかまいません。 |
+| `jStat.zeros` | `matrix(0, nrow, ncol)` |  |
+| `jStat.ones` | `matrix(1, nrow, ncol)` |  |
+| `jStat.rand` | `matrix(runif(nrow * ncol), nrow, ncol)` | `setSeed` で再現できます。 |
+| `jStat.identity` | `diag(n)` |  |
 | `jStat.symmetric` | JS: `a.every((r, i) => r.every((v, j) => v === a[j][i]))` |  |
 | `jStat.clear` | JS: `a.forEach((r) => r.fill(0))` |  |
-| `jStat.seq` | `seq(from, to, { lengthOut })` *(予定)* | R の `seq(length.out = n)` は両端をちょうどにします。 |
-| `jStat.arange` | `seq(from, to, { by })` *(予定)* | R の `seq` は `to` に届けば含めます。`arange` は `end` の手前で止まります。 |
+| `jStat.seq` | `seq(from, to, { lengthOut })` | R の `seq(length.out = n)` は両端をちょうどにします。 |
+| `jStat.arange` | `seq(from, to, { by })` | R の `seq` は `to` に届けば含めます。`arange` は `end` の手前で止まります。 |
 | `jStat.slice` | JS: `a.slice(r0, r1).map((r) => r.slice(c0, c1))` |  |
 | `jStat.sliceAssign` | JS: assign to `a[i][j]` in a loop | jStat の実装は行が整数のときにバグがあります (列の上限に行数を使う)。 |
 | `jStat.copy` | JS: `a.map((r) => [...r])` |  |
@@ -295,27 +295,27 @@ import できます。
 
 | jStat | rStats.js | 備考 |
 |---|---|---|
-| `jStat.add` | `add(a, b)` *(予定)* | R の再利用規則による要素ごとの演算です (スカラー、ベクトル、同じ形の行列)。 |
-| `jStat.subtract` | `subtract(a, b)` *(予定)* | jStat は NaN の結果を 0 にします (`value - arg || 0`)。 |
-| `jStat.divide` | `divide(a, b)` *(予定)* | 要素ごとです。jStat の行列による `divide` は逆行列を掛けます: `matMul(a, solve(b))`。 |
-| `jStat.multiply` | `matMul(a, b)` *(予定)* | jStat の `multiply` は行列どうしなら行列の積、スカラーなら要素ごとです。rStats.js では `matMul` (R の `%*%`) と要素ごとの `multiply` に分かれます。 |
-| `jStat.outer` | `outer(x, y)` *(予定)* |  |
-| `jStat.dot` | `matMul(a, b)` *(予定)* | jStat の `dot` は行ごとの内積です。2 つのベクトルなら `sum(multiply(x, y))` です。 |
+| `jStat.add` | `add(a, b)` | R の再利用規則による要素ごとの演算です (スカラー、ベクトル、同じ形の行列)。 |
+| `jStat.subtract` | `subtract(a, b)` | jStat は NaN の結果を 0 にします (`value - arg || 0`)。 |
+| `jStat.divide` | `divide(a, b)` | 要素ごとです。jStat の行列による `divide` は逆行列を掛けます: `matMul(a, solve(b))`。 |
+| `jStat.multiply` | `matMul(a, b)` | jStat の `multiply` は行列どうしなら行列の積、スカラーなら要素ごとです。rStats.js では `matMul` (R の `%*%`) と要素ごとの `multiply` に分かれます。 |
+| `jStat.outer` | `outer(x, y)` |  |
+| `jStat.dot` | `matMul(a, b)` | jStat の `dot` は行ごとの内積です。2 つのベクトルなら `sum(multiply(x, y))` です。 |
 | `jStat.pow` | JS: `a.map((r) => r.map((v) => v ** p))` |  |
 | `jStat.exp` | JS: `a.map((r) => r.map(Math.exp))` |  |
 | `jStat.log` | JS: `a.map((r) => r.map(Math.log))` |  |
 | `jStat.abs` | JS: `a.map((r) => r.map(Math.abs))` |  |
 | `jStat.norm` | `norm(a, { type: "F" })` | R の `norm` は行列のノルムです。jStat のベクトルの p ノルムは `sum(x.map((v) => Math.abs(v) ** p)) ** (1 / p)` です。 |
 | `jStat.angle` | JS: `Math.acos(sum(multiply(x, y)) / Math.sqrt(sum(multiply(x, x)) * sum(multiply(y, y))))` |  |
-| `jStat.aug` | `cbind(a, b)` *(予定)* |  |
+| `jStat.aug` | `cbind(a, b)` |  |
 | `jStat.inv` | `solve(a)` |  |
 | `jStat.det` | `det(a)` | LU 分解で計算します (jStat は余因子展開を再帰的に行い、1 × 1 で失敗します)。 |
 | `jStat.gauss_elimination` | `solve(a, b)` | jStat のピボット探しは符号付きの値で比べます。 |
 | `jStat.gauss_jordan` | `solve(a, b)` |  |
 | `jStat.triaUpSolve` | `backsolve(r, b)` |  |
 | `jStat.triaLowSolve` | `forwardsolve(l, b)` |  |
-| `jStat.lu` | `lu(a)` *(予定)* | 部分ピボット付きです (LAPACK の dgetrf、`Matrix::lu` と同じ): `a = P L U`。jStat のものはピボットしません。 |
-| `jStat.cholesky` | `t(chol(a))` *(予定)* | R の `chol` は上三角 R (a = RᵀR) を返します。jStat は下三角を返します。 |
+| `jStat.lu` | `lu(a)` | 部分ピボット付きです (LAPACK の dgetrf、`Matrix::lu` と同じ): `a = P L U`。jStat のものはピボットしません。 |
+| `jStat.cholesky` | `t(chol(a))` | R の `chol` は上三角 R (a = RᵀR) を返します。jStat は下三角を返します。 |
 | `jStat.gauss_jacobi` | `solve(a, b)` | 反復解法の代わりに直接解きます。 |
 | `jStat.gauss_seidel` | `solve(a, b)` |  |
 | `jStat.SOR` | `solve(a, b)` |  |
@@ -331,7 +331,7 @@ import できます。
 | `jStat.lagrange` | `barylag(x, y, xout)` *(予定)* | 重心型の Lagrange 補間で、`pracma::barylag` と同じです。 |
 | `jStat.cubic_spline` | `spline(x, y, { xout })` *(予定)* | jStat の `cubic_spline` は例外になります (存在しない `jStat.sq` を呼ぶ)。`splinefun` は関数を返します。 |
 | `jStat.gauss_quadrature` | `integrate(f, a, b)` *(予定)* | jStat のものは "not yet implemented" で例外になります。 |
-| `jStat.PCA` | `prcomp(x)` *(予定)* | 観測は `x` の行です (jStat は列)。主成分の符号は違うことがあります。 |
+| `jStat.PCA` | `prcomp(x)` | 観測は `x` の行です (jStat は列)。主成分の符号は違うことがあります。 |
 
 ## 仮説検定
 
@@ -369,7 +369,7 @@ import できます。
 | `jStat.buildjxmatrix` | `lm(x, y)` *(予定)* |  |
 | `jStat.buildymatrix` | `lm(x, y)` *(予定)* |  |
 | `jStat.buildjymatrix` | `lm(x, y)` *(予定)* |  |
-| `jStat.matrixmult` | `matMul(a, b)` *(予定)* |  |
+| `jStat.matrixmult` | `matMul(a, b)` |  |
 | `jStat.regress` | `lm(x, y).coefficients` *(予定)* |  |
 | `jStat.regresst` | `lm(x, y)` *(予定)* | 係数の表 (推定値・標準誤差・t・p) と分散分析の量です。jStat の t 検定は自由度を n − p − 1 にしているように見えます。 |
 | `jStat.xtranspx` | `crossprod(x)` |  |
@@ -379,7 +379,7 @@ import できます。
 | `jStat.ssr` | `lm(x, y)` *(予定)* | 回帰の平方和です: `sum(fitted.map((v) => (v - mean(y)) ** 2))`。 |
 | `jStat.sse` | `lm(x, y)` *(予定)* | 残差平方和です: `sum(residuals.map((v) => v * v))`。 |
 | `jStat.sst` | `variance(y) * (y.length - 1)` |  |
-| `jStat.matrixsubtract` | `subtract(a, b)` *(予定)* |  |
+| `jStat.matrixsubtract` | `subtract(a, b)` |  |
 
 ## jStat のバグ
 

@@ -9,3 +9,8 @@ export { svd, type SvdOptions, type SvdResult } from "../linalg/svd.js";
 export { kappa, ginv, type KappaOptions } from "../linalg/kappa.js";
 export { eigen, type EigenOptions, type EigenResult } from "../linalg/eigen.js";
 export type { MatrixInput, VectorOrMatrix } from "../linalg/matrix.js";
+export {
+  matMul, add, subtract, multiply, divide, outer, t, diag, cbind, rbind, matrix, kronecker, seq,
+  type Operand, type DiagOptions, type MatrixOptions, type SeqOptions,
+} from "../linalg/ops.js";
+export { lu, prcomp, type LuResult, type PrcompOptions, type PrcompResult } from "../linalg/lu.js";

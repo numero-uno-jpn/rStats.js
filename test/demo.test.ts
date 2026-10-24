@@ -35,6 +35,9 @@ const NOT_IN_DEMO_YET = [
   "sum", "prod", "mean", "weightedMean", "variance", "sd", "median", "range", "cumsum", "cumprod", "cummax", "cummin", "diff",
   "quantile", "IQR", "fivenum", "mad", "rank", "cov", "tabulate", "table", "unique", "cut", "findInterval", "hist", "pretty",
   "ecdf", "skewness", "kurtosis", "geometricMean", "modes", "meanAD", "cv", "scale",
+  // matrix arithmetic (demo to come)
+  "matMul", "add", "subtract", "multiply", "divide", "outer", "t", "diag", "cbind", "rbind", "matrix", "kronecker", "seq",
+  "lu", "prcomp",
 ];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 

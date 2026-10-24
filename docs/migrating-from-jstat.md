@@ -51,22 +51,22 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 | `jStat.rowa` | JS: `a[i]` |  |
 | `jStat.col` | JS: `a.map((r) => [r[j]])` | jStat returns an n × 1 matrix. |
 | `jStat.cola` | JS: `a.map((r) => r[j])` |  |
-| `jStat.diag` | `diag(a)` *(planned)* | R's `diag` of a matrix returns its diagonal as a flat array (jStat: an n × 1 matrix). |
+| `jStat.diag` | `diag(a)` | R's `diag` of a matrix returns its diagonal as a flat array (jStat: an n × 1 matrix). |
 | `jStat.antidiag` | JS: `a.map((r, i) => r[r.length - 1 - i])` |  |
-| `jStat.diagonal` | `diag(v)` *(planned)* | `diag` of a vector of length ≥ 2 builds the diagonal matrix, as in R. |
-| `jStat.transpose` | `t(a)` *(planned)* | `t` always returns a matrix (jStat flattens a 1-row result). |
+| `jStat.diagonal` | `diag(v)` | `diag` of a vector of length ≥ 2 builds the diagonal matrix, as in R. |
+| `jStat.transpose` | `t(a)` | `t` always returns a matrix (jStat flattens a 1-row result). |
 | `jStat.map` | JS: `a.map((r) => r.map(f))` |  |
 | `jStat.cumreduce` | JS: `a.map((r) => { let s = 0; return r.map((v) => (s += v)); })` | For running sums use `cumsum(x)`. |
 | `jStat.alter` | JS: `a.forEach((r) => r.forEach((v, j) => (r[j] = f(v))))` |  |
-| `jStat.create` | `matrix(data, nrow, ncol)` *(planned)* | Or build the array of rows in JavaScript. |
-| `jStat.zeros` | `matrix(0, nrow, ncol)` *(planned)* |  |
-| `jStat.ones` | `matrix(1, nrow, ncol)` *(planned)* |  |
-| `jStat.rand` | `matrix(runif(nrow * ncol), nrow, ncol)` *(planned)* | Reproducible with `setSeed`. |
-| `jStat.identity` | `diag(n)` *(planned)* |  |
+| `jStat.create` | `matrix(data, nrow, ncol)` | Or build the array of rows in JavaScript. |
+| `jStat.zeros` | `matrix(0, nrow, ncol)` |  |
+| `jStat.ones` | `matrix(1, nrow, ncol)` |  |
+| `jStat.rand` | `matrix(runif(nrow * ncol), nrow, ncol)` | Reproducible with `setSeed`. |
+| `jStat.identity` | `diag(n)` |  |
 | `jStat.symmetric` | JS: `a.every((r, i) => r.every((v, j) => v === a[j][i]))` |  |
 | `jStat.clear` | JS: `a.forEach((r) => r.fill(0))` |  |
-| `jStat.seq` | `seq(from, to, { lengthOut })` *(planned)* | R's `seq(length.out = n)` hits both ends exactly. |
-| `jStat.arange` | `seq(from, to, { by })` *(planned)* | R's `seq` includes `to` when it is reached; `arange` stops before `end`. |
+| `jStat.seq` | `seq(from, to, { lengthOut })` | R's `seq(length.out = n)` hits both ends exactly. |
+| `jStat.arange` | `seq(from, to, { by })` | R's `seq` includes `to` when it is reached; `arange` stops before `end`. |
 | `jStat.slice` | JS: `a.slice(r0, r1).map((r) => r.slice(c0, c1))` |  |
 | `jStat.sliceAssign` | JS: assign to `a[i][j]` in a loop | jStat's version has a bug when the row is an integer (it bounds the columns by the number of rows). |
 | `jStat.copy` | JS: `a.map((r) => [...r])` |  |
@@ -295,27 +295,27 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 
 | jStat | rStats.js | Notes |
 |---|---|---|
-| `jStat.add` | `add(a, b)` *(planned)* | Element-wise with R's recycling (a scalar, a vector or a matrix of the same shape). |
-| `jStat.subtract` | `subtract(a, b)` *(planned)* | jStat turns NaN results into 0 (`value - arg || 0`). |
-| `jStat.divide` | `divide(a, b)` *(planned)* | Element-wise. jStat's `divide` by a matrix multiplies by its inverse: `matMul(a, solve(b))`. |
-| `jStat.multiply` | `matMul(a, b)` *(planned)* | jStat's `multiply` is the matrix product for two matrices and element-wise for a scalar; rStats.js has `matMul` (R's `%*%`) and element-wise `multiply`. |
-| `jStat.outer` | `outer(x, y)` *(planned)* |  |
-| `jStat.dot` | `matMul(a, b)` *(planned)* | jStat's `dot` is the row-wise inner product; for two vectors it is `sum(multiply(x, y))`. |
+| `jStat.add` | `add(a, b)` | Element-wise with R's recycling (a scalar, a vector or a matrix of the same shape). |
+| `jStat.subtract` | `subtract(a, b)` | jStat turns NaN results into 0 (`value - arg || 0`). |
+| `jStat.divide` | `divide(a, b)` | Element-wise. jStat's `divide` by a matrix multiplies by its inverse: `matMul(a, solve(b))`. |
+| `jStat.multiply` | `matMul(a, b)` | jStat's `multiply` is the matrix product for two matrices and element-wise for a scalar; rStats.js has `matMul` (R's `%*%`) and element-wise `multiply`. |
+| `jStat.outer` | `outer(x, y)` |  |
+| `jStat.dot` | `matMul(a, b)` | jStat's `dot` is the row-wise inner product; for two vectors it is `sum(multiply(x, y))`. |
 | `jStat.pow` | JS: `a.map((r) => r.map((v) => v ** p))` |  |
 | `jStat.exp` | JS: `a.map((r) => r.map(Math.exp))` |  |
 | `jStat.log` | JS: `a.map((r) => r.map(Math.log))` |  |
 | `jStat.abs` | JS: `a.map((r) => r.map(Math.abs))` |  |
 | `jStat.norm` | `norm(a, { type: "F" })` | R's `norm` is a matrix norm; for jStat's p-norm of a vector use `sum(x.map((v) => Math.abs(v) ** p)) ** (1 / p)`. |
 | `jStat.angle` | JS: `Math.acos(sum(multiply(x, y)) / Math.sqrt(sum(multiply(x, x)) * sum(multiply(y, y))))` |  |
-| `jStat.aug` | `cbind(a, b)` *(planned)* |  |
+| `jStat.aug` | `cbind(a, b)` |  |
 | `jStat.inv` | `solve(a)` |  |
 | `jStat.det` | `det(a)` | LU decomposition (jStat expands cofactors recursively and fails on 1 × 1). |
 | `jStat.gauss_elimination` | `solve(a, b)` | jStat's pivot search compares signed values. |
 | `jStat.gauss_jordan` | `solve(a, b)` |  |
 | `jStat.triaUpSolve` | `backsolve(r, b)` |  |
 | `jStat.triaLowSolve` | `forwardsolve(l, b)` |  |
-| `jStat.lu` | `lu(a)` *(planned)* | With partial pivoting (LAPACK's dgetrf, as `Matrix::lu`): `a = P L U`. jStat's has no pivoting. |
-| `jStat.cholesky` | `t(chol(a))` *(planned)* | R's `chol` returns the upper triangle R (a = RᵀR); jStat returns the lower one. |
+| `jStat.lu` | `lu(a)` | With partial pivoting (LAPACK's dgetrf, as `Matrix::lu`): `a = P L U`. jStat's has no pivoting. |
+| `jStat.cholesky` | `t(chol(a))` | R's `chol` returns the upper triangle R (a = RᵀR); jStat returns the lower one. |
 | `jStat.gauss_jacobi` | `solve(a, b)` | A direct solve replaces the iterative methods. |
 | `jStat.gauss_seidel` | `solve(a, b)` |  |
 | `jStat.SOR` | `solve(a, b)` |  |
@@ -331,7 +331,7 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 | `jStat.lagrange` | `barylag(x, y, xout)` *(planned)* | Barycentric Lagrange interpolation, as `pracma::barylag`. |
 | `jStat.cubic_spline` | `spline(x, y, { xout })` *(planned)* | jStat's `cubic_spline` throws (it calls a missing `jStat.sq`). `splinefun` returns a function. |
 | `jStat.gauss_quadrature` | `integrate(f, a, b)` *(planned)* | jStat's throws "not yet implemented". |
-| `jStat.PCA` | `prcomp(x)` *(planned)* | Observations are the rows of `x` (jStat: the columns). Signs of components may differ. |
+| `jStat.PCA` | `prcomp(x)` | Observations are the rows of `x` (jStat: the columns). Signs of components may differ. |
 
 ## Hypothesis tests
 
@@ -369,7 +369,7 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 | `jStat.buildjxmatrix` | `lm(x, y)` *(planned)* |  |
 | `jStat.buildymatrix` | `lm(x, y)` *(planned)* |  |
 | `jStat.buildjymatrix` | `lm(x, y)` *(planned)* |  |
-| `jStat.matrixmult` | `matMul(a, b)` *(planned)* |  |
+| `jStat.matrixmult` | `matMul(a, b)` |  |
 | `jStat.regress` | `lm(x, y).coefficients` *(planned)* |  |
 | `jStat.regresst` | `lm(x, y)` *(planned)* | The coefficient table (estimates, standard errors, t and p) and the ANOVA quantities. jStat's t tests appear to use n − p − 1 degrees of freedom. |
 | `jStat.xtranspx` | `crossprod(x)` |  |
@@ -379,7 +379,7 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 | `jStat.ssr` | `lm(x, y)` *(planned)* | The regression sum of squares: `sum(fitted.map((v) => (v - mean(y)) ** 2))`. |
 | `jStat.sse` | `lm(x, y)` *(planned)* | The residual sum of squares: `sum(residuals.map((v) => v * v))`. |
 | `jStat.sst` | `variance(y) * (y.length - 1)` |  |
-| `jStat.matrixsubtract` | `subtract(a, b)` *(planned)* |  |
+| `jStat.matrixsubtract` | `subtract(a, b)` |  |
 
 ## Bugs in jStat
 
