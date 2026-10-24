@@ -34,11 +34,23 @@ npm run oracle -- <oracle name>     # 例: npm run oracle -- gamma
 
 `scripts/oracle.sh` は、使い捨てのコンテナ (`docker run --rm --network none`) で `Rscript` を
 実行します。イメージは既定で `rstats-oracle` です (`RSTATS_ORACLE_IMAGE` で変更できます)。
-このイメージには、R 4.5.2 とパッケージ `jsonlite`、`Rmpfr`、`gmp`、`MASS` が必要です。R の
-メッセージは `LANGUAGE=en` で英語に固定しているので、フィクスチャに記録されるエラーメッセージは
-ロケールに左右されません。
+このイメージは `oracle/Dockerfile` から作ります。R 4.5.2 と、oracle が読み込むパッケージ
+(`jsonlite`、`Rmpfr`、`gmp`、`MASS`、`Matrix`、R にない関数のための `extraDistr`、`e1071`、
+`DescTools`、`pracma`、`deSolve`、`numDeriv`、`BSDA`) が入ります。パッケージは日付で固定した
+スナップショットから取るので、作り直しても同じ版になります。作るときだけネットワークが要り、
+oracle の実行には要りません。
 
-乱数のフィクスチャは、x86_64 版の R (`--platform linux/amd64` の `rocker/r-ver:4.5.2`。
+```sh
+docker build -t rstats-oracle oracle
+docker build --platform linux/amd64 -t rstats-oracle-amd64 oracle
+```
+
+R のメッセージは `LANGUAGE=en` で英語に固定しているので、フィクスチャに記録されるエラー
+メッセージはロケールに左右されません。新しい oracle には、既存のフィクスチャと同じ名前を
+使わないでください (`write_fixture` は黙って上書きします)。実行したら `git status` で
+確かめてください。
+
+乱数のフィクスチャは、x86_64 版のイメージ (`--platform linux/amd64` の `rstats-oracle-amd64`。
 oracle には `# oracle-platform: amd64` と印を付ける) で生成します。arm64 版では一部の関数で
 最後のビットが異なるためです。線形代数のフィクスチャには、R が使った LAPACK と BLAS の
 バージョンを `info` ブロックに記録します (現在のフィクスチャは OpenBLAS 0.3.26 と
@@ -47,7 +59,11 @@ LAPACK 3.12.0 で作成)。BLAS が違うと最後の数ビットが変わるこ
 mpmath による高精度の値とも照合できます。`scripts/mpmath/<name>.py` が
 `test/fixtures/<name>.mpmath.json` を書き出します (`python3 -I scripts/mpmath/<name>.py`。
 `pip install mpmath` が必要)。R のない環境での作業はこれから始め、`oracle/<name>.R` を実行すると
-テストは自動的に R との照合も行います。
+テストは自動的に R との照合も行います。フィクスチャの数値は、先に倍精度に直して読みます
+(`mp.mpf(float(s))`)。`mp.mpf(s)` は十進の文字列をそのまま取るので、関数が受け取った入力とは
+違う値になります。R のフィクスチャに Rmpfr の参照関数が無い特殊関数では、
+`scripts/mpmath/mismatch_ref.py` が R と合わないケース (`RSTATS_WRITE_MISMATCH=1` で書き出す) の
+mpmath の参照値を計算し、`<name>.ref.json` に統合します。
 
 R がいつも正しいとは限りません。一致しないケースがあると、テストはそのケースを高精度の参照値
 (Rmpfr または gmp) と比べ、rStats.js のほうが R より真の値に近ければ合格とします。rStats.js が

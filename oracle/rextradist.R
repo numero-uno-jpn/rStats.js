@@ -2,7 +2,7 @@
 source("/oracle/_random.R")
 
 # Random numbers of the distributions from extraDistr (fixture rextradist). How extraDistr generates them, which
-# determines how many uniforms each draw consumes (checked against R's output; see docs/plans/jstat-r-reference.md):
+# determines how many uniforms each draw consumes (from extraDistr's source, checked against R's output):
 #   rinvgamma(n, alpha, beta) = 1 / rgamma(n, alpha, rate = beta)
 #   rkumar(n, a, b)           = qkumar(1 - u, a, b), u = runif
 #   rpareto(n, a, b)          = qpareto(1 - u, a, b)

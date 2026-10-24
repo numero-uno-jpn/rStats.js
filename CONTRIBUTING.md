@@ -31,12 +31,23 @@ npm run oracle -- <oracle name>     # e.g. npm run oracle -- gamma
 ```
 
 `scripts/oracle.sh` runs `Rscript` in a throw-away container (`docker run --rm --network none`).
-The image is `rstats-oracle` by default (override with `RSTATS_ORACLE_IMAGE`); it needs R 4.5.2
-with the packages `jsonlite`, `Rmpfr`, `gmp` and `MASS`. R's messages are forced to English with
-`LANGUAGE=en`, so error messages recorded in fixtures do not depend on the locale.
+The image is `rstats-oracle` by default (override with `RSTATS_ORACLE_IMAGE`), built from
+`oracle/Dockerfile`: R 4.5.2 with the packages the oracles load (`jsonlite`, `Rmpfr`, `gmp`, `MASS`,
+`Matrix`, and for functions that R lacks `extraDistr`, `e1071`, `DescTools`, `pracma`, `deSolve`,
+`numDeriv`, `BSDA`), pinned to a dated package snapshot so that a rebuild gives the same versions.
+Building needs network access; running the oracles does not.
 
-Fixtures for random numbers are generated with the x86_64 build of R (`rocker/r-ver:4.5.2` under
-`--platform linux/amd64`, oracles marked `# oracle-platform: amd64`), because the arm64 build
+```sh
+docker build -t rstats-oracle oracle
+docker build --platform linux/amd64 -t rstats-oracle-amd64 oracle
+```
+
+R's messages are forced to English with `LANGUAGE=en`, so error messages recorded in fixtures do
+not depend on the locale. A new oracle must not reuse the name of an existing fixture
+(`write_fixture` overwrites it silently); check `git status` after running one.
+
+Fixtures for random numbers are generated with the x86_64 build of the image (`rstats-oracle-amd64`
+under `--platform linux/amd64`, oracles marked `# oracle-platform: amd64`), because the arm64 build
 differs in the last bit of some functions. Linear-algebra fixtures
 record the LAPACK and BLAS versions R used in an `info` block (the current fixtures were made with
 OpenBLAS 0.3.26 and LAPACK 3.12.0), since a different BLAS can change the last bits.
@@ -44,7 +55,11 @@ OpenBLAS 0.3.26 and LAPACK 3.12.0), since a different BLAS can change the last b
 Functions can also be checked against high-precision values from mpmath: `scripts/mpmath/<name>.py`
 writes `test/fixtures/<name>.mpmath.json` (`python3 -I scripts/mpmath/<name>.py`, needs `pip
 install mpmath`). Work done without R starts with these; the tests switch on the R comparison as
-soon as `oracle/<name>.R` has been run.
+soon as `oracle/<name>.R` has been run. Read the numbers of a fixture as doubles first
+(`mp.mpf(float(s))`): `mp.mpf(s)` takes the decimal string exactly, which is not the input the
+functions saw. For special functions whose R fixtures have no Rmpfr reference functions,
+`scripts/mpmath/mismatch_ref.py` computes mpmath references for the cases that disagree with R
+(written by `RSTATS_WRITE_MISMATCH=1`) and merges them into `<name>.ref.json`.
 
 R is not always right. When a case does not match, the test compares it with a high-precision
 reference value (Rmpfr or gmp) and accepts it if rStats.js is closer to the truth than R. Cases

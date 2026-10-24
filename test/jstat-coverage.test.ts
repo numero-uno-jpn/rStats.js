@@ -1,4 +1,4 @@
-// Coverage of jStat: every public jStat function (test/fixtures/jstat-api.json, from docs/plans/jstat-inventory.md)
+// Coverage of jStat: every public jStat function (test/fixtures/jstat-api.json, listed from the jStat 1.9.6 source)
 // has a row in the migration guide, and the guide is up to date with the exports (scripts/jstat-guide.mjs marks a row
 // "planned" while a function it names is not exported). Covering jStat is complete when no row is planned.
 import { readFileSync } from "node:fs";

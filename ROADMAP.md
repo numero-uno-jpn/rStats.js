@@ -46,7 +46,12 @@ In order of priority.
    and `fisherTest`, and passing two factor vectors to `chisqTest`.
 2. **Special functions:** the log1p-type functions that rStats.js implements internally may follow
    as extras.
-3. **Distributions:** recycling of distribution parameters as vectors.
+3. **Distributions:** recycling of distribution parameters as vectors. To decide first: which
+   arguments are vectorised (R recycles every numeric argument), whether lengths that do not divide
+   are recycled silently as in R or rejected with a RangeError, the return type (`number[]` as soon
+   as one argument is an array? and `Float64Array`), and for the r* functions (`rnorm(n, mean =
+   vector)`) the order in which the random stream is consumed, which must match R. Proposal:
+   recycle to the longest length, as R does.
 4. **Speed:** a fast double-precision path that switches to double-double only where needed, and
    an asymptotic expansion for the incomplete beta function with large parameters (see
    [docs/performance.md](docs/performance.md)).
