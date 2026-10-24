@@ -17,7 +17,7 @@ JavaScript とブラウザで使える、R と互換の統計関数のライブ�
   tree-shaking が効きます (`pnorm` だけなら gzip で 1.2 KB)。
 
 状態: **0.5.0。** R の stats パッケージの数値計算の中心
-(分布・検定・特殊関数・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
+(分布・記述統計・検定・線形モデル・特殊関数・数値計算・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
 [ROADMAP.ja.md](ROADMAP.ja.md)、変更履歴は [CHANGELOG.md](CHANGELOG.md) (英語) にあります。
 
 ## インストール
@@ -91,11 +91,16 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 
 | 分野 | 関数 (R と名前が違うものは括弧内が R の名前) |
 |---|---|
-| 特殊関数 | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`。R にはない `erf` と `erfc` も |
-| 分布 (d/p/q) | 正規、t、カイ二乗、F、ベータ、ガンマ、二項、ポアソン、一様、指数、対数正規、ロジスティック、コーシー、ワイブル、幾何、負の二項、超幾何、Wilcoxon の符号付き順位と順位和、スチューデント化された範囲 (`ptukey`, `qtukey`)、非心カイ二乗・t・F・ベータ (`ncp`)。多項分布の確率 (`dmultinom`) |
-| 乱数 | `setSeed` (`set.seed`), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), 20 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`) |
-| 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `cor`, `corTest`, `pAdjust` (`p.adjust`) |
-| 線形代数 | `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `ginv` (MASS) |
+| 特殊関数 | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`。R にはない `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc`, `perm` も |
+| 分布 (d/p/q) | 正規、t、カイ二乗、F、ベータ、ガンマ、二項、ポアソン、一様、指数、対数正規、ロジスティック、コーシー、ワイブル、幾何、負の二項、超幾何、Wilcoxon の符号付き順位と順位和、スチューデント化された範囲 (`ptukey`, `qtukey`)、非心カイ二乗・t・F・ベータ (`ncp`)。多項分布の確率 (`dmultinom`)。逆ガンマ、Kumaraswamy、Pareto、三角、Laplace (extraDistr) と逆正弦。`distSummary` (平均・分散・標準偏差・中央値・最頻値・歪度・尖度) |
+| 乱数 | `setSeed` (`set.seed`), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), 26 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`) |
+| 記述統計 | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
+| 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov`, `TukeyHSD`, `zTest`, `pAdjust` (`p.adjust`) |
+| 線形モデル | `lm` (行列で渡す形。`summary` の値も返す), `confint`, `predict` |
+| 線形代数 | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS) |
+| 数値計算 | `integrate`, `optimize`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
+
+jStat から移るときは [docs/ja/migrating-from-jstat.md](docs/ja/migrating-from-jstat.md) に jStat の全関数の置き換えがあります。
 
 API リファレンスは `npm run docs` (TypeDoc) で作れます (英語)。
 

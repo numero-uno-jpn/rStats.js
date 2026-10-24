@@ -11,6 +11,32 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ### Added
 
+- Everything jStat offers, with R's names and defaults, and a migration guide
+  ([docs/migrating-from-jstat.md](docs/migrating-from-jstat.md)) whose replacements are checked
+  against jStat itself (`test/jstat-replacement.test.ts`):
+  - descriptive statistics (`rStats.js/descriptive`): `sum`, `prod`, `mean` (with `trim`),
+    `weightedMean`, `variance` (R's `var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`,
+    `cummin`, `diff`, `quantile` (all nine types), `IQR`, `fivenum`, `mad`, `rank`, `cov` and `cor`
+    for vectors and matrices (Pearson, Kendall, Spearman, with `use`), `tabulate`, `table`, `unique`,
+    `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, and `skewness`, `kurtosis` (e1071),
+    `geometricMean`, `modes`, `meanAD`, `cv` (DescTools); sums in double-double;
+  - matrix arithmetic: `matMul`, `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`,
+    `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, and `lu` (`Matrix::lu`) and `prcomp`;
+  - hypothesis tests: `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`,
+    `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`,
+    `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`,
+    `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (one way), `TukeyHSD` and `zTest` (BSDA);
+  - linear models: `lm` with a matrix interface and the quantities of `summary.lm`, `confint`,
+    `predict`;
+  - numerical methods (`rStats.js/numerics`): `integrate`, `optimize`, `uniroot` (with
+    `extendInt`), `approx`, `spline`, `splinefun`, `splinefunH`, `barylag` (pracma),
+    `hermiteInterp`, `ode` (fixed-step, deSolve), `grad`, `jacobian`, `hessian` (numDeriv);
+  - distributions outside base R with extraDistr's names: `invgamma`, `kumar`, `pareto`, `triang`,
+    `laplace`, and `arcsine` (d/p/q/r), and `distSummary` (mean, variance, sd, median, mode,
+    skewness, kurtosis) for all 23 distributions;
+  - special functions: `gammainc`, `erfinv`, `erfcinv`, `perm`.
+- Subpath exports and per-area CDN files: `rStats.js/distributions`, `/tests`, `/linalg`,
+  `/descriptive`, `/numerics`, `/special` (`dist/<area>.js`, with shared code split out).
 - `choose`, `lchoose`, `factorial` and `lfactorial`, for any real `n` (and `x`).
 - `digamma`, `trigamma` and `psigamma` (derivatives up to 100, negative arguments by
   reflection; unlike R, also for x < 0 with deriv ≥ 6).

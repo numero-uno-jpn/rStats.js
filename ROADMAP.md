@@ -5,10 +5,10 @@ English | [日本語](ROADMAP.ja.md)
 ## Goal
 
 Cover the numerical core of R's `stats` package (and the related parts of `base`) in plain
-TypeScript, with R's function names, defaults and numerical results: distributions, hypothesis
-tests, special functions and the basics of linear algebra. R is the oracle: every function is
-tested against R's output, and against high-precision reference values where R itself is
-inaccurate (see [docs/accuracy.md](docs/accuracy.md)).
+TypeScript, with R's function names, defaults and numerical results: distributions, descriptive
+statistics, hypothesis tests, linear models, special functions, numerical methods and the basics
+of linear algebra. R is the oracle: every function is tested against R's output, and against
+high-precision reference values where R itself is inaccurate (see [docs/accuracy.md](docs/accuracy.md)).
 
 The point is to fill a gap. JavaScript has libraries for distributions and special functions
 (such as [stdlib-js](https://github.com/stdlib-js/stdlib), which is accurate and broad) and for
@@ -25,11 +25,15 @@ against R and are not a priority.
 
 | Area | Status |
 |---|---|
-| Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`, and `erf`, `erfc` (not in R) exported; the incomplete gamma and beta functions and log1p-type functions are implemented internally |
-| Distributions | d/p/q with `lowerTail` and `logP` for all 20 distributions in R's `stats` (including the studentized range), plus the non-central chi-squared, t, F and beta |
-| Random numbers | R's default Mersenne-Twister with `set.seed()`-compatible streams, 20 `r*` functions, `rmultinom`, `sample`, `sampleInt` |
-| Hypothesis tests | `tTest`, `chisqTest`, `fisherTest` (including r × c), `wilcoxTest` (exact and approximate, with intervals), `cor`, `corTest`, `pAdjust`, returning all of R's `htest` fields |
-| Linear algebra | the matrix functions of R's `base` and `MASS::ginv`: `crossprod`, `norm`, `backsolve`, `chol`, `qr` (R's pivoting and LAPACK), `solve`, `det`, `rcond`, `kappa`, `svd`, `eigen` (symmetric and general), `ginv` |
+| Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`, and `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc`, `perm` (not in R) exported; log1p-type functions are implemented internally |
+| Distributions | d/p/q with `lowerTail` and `logP` for all 20 distributions in R's `stats` (including the studentized range), the non-central chi-squared, t, F and beta, and inverse gamma, Kumaraswamy, Pareto, triangular, Laplace (extraDistr) and arcsine; `distSummary` for all of them |
+| Random numbers | R's default Mersenne-Twister with `set.seed()`-compatible streams, 26 `r*` functions (extraDistr's streams for the extra distributions), `rmultinom`, `sample`, `sampleInt` |
+| Descriptive statistics | R's summaries (`mean`, `variance`, `quantile` with all nine types, `rank`, `cov`/`cor` matrices, `table`, `cut`, `hist`, `ecdf`, `scale`, ...) and e1071's and DescTools' (`skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv`) |
+| Hypothesis tests | R's `htest` functions: `tTest`, `chisqTest`, `fisherTest` (including r × c), `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, the `pairwise*` helpers, `pAdjust`; `aov` (one way), `TukeyHSD`, `zTest` (BSDA) |
+| Linear models | `lm` with a matrix interface and `summary.lm`'s quantities, `confint`, `predict` |
+| Linear algebra | the matrix functions of R's `base` and `MASS::ginv`: matrix arithmetic, `crossprod`, `norm`, `backsolve`, `chol`, `qr` (R's pivoting and LAPACK), `solve`, `det`, `rcond`, `kappa`, `svd`, `eigen` (symmetric and general), `lu`, `prcomp`, `ginv` |
+| Numerical methods | `integrate`, `optimize`, `uniroot`, `approx`, `spline`/`splinefun`/`splinefunH`, Lagrange (pracma) and Hermite interpolation, fixed-step `ode` (deSolve), `grad`/`jacobian`/`hessian` (numDeriv) |
+| jStat | every jStat function has a replacement ([docs/migrating-from-jstat.md](docs/migrating-from-jstat.md)), checked against jStat |
 
 The full list is in the [README](README.md#what-is-included); known differences from R are in
 [docs/differences-from-r.md](docs/differences-from-r.md).
@@ -38,31 +42,15 @@ The full list is in the [README](README.md#what-is-included); known differences 
 
 In order of priority.
 
-1. **Cover everything jStat offers** (decided 2026-10-24), so that a project using jStat can switch
-   with one migration guide ([docs/migrating-from-jstat.md](docs/migrating-from-jstat.md)). Names
-   and defaults follow R, not jStat. In order: descriptive statistics (`mean`, `var`, `quantile`
-   with R's nine types, `rank`, `cov`/`cor` matrices, `hist`, `ecdf`, skewness and kurtosis, ...);
-   matrix arithmetic (`matMul`, element-wise operations, `outer`, `diag`, `lu`, `prcomp`); `aov`
-   (one way), `TukeyHSD` and `zTest`; `lm` with a matrix interface; numerical methods
-   (`integrate`, `optimize`, `uniroot`, `approx`/`spline`, Lagrange and Hermite interpolation,
-   fixed-step `ode`, `grad`/`hessian`/`jacobian`); the distributions jStat has and R does not
-   (inverse gamma, Kumaraswamy, Pareto, triangular, Laplace, arcsine), with mean, variance, median,
-   mode, skewness and kurtosis for every distribution; and `gammainc`, `erfinv`, `erfcinv`, `perm`.
-   Functions R lacks are checked against R packages (extraDistr, e1071, DescTools, pracma,
-   deSolve, numDeriv, BSDA).
-2. **Hypothesis tests:** `binom.test`, `prop.test`, `poisson.test`, `mcnemar.test`,
-   `mantelhaen.test`, `ks.test`, `shapiro.test`, `kruskal.test`, `friedman.test`, `quade.test`,
-   `var.test`, `bartlett.test`, `fligner.test`, `ansari.test`, `mood.test`, `oneway.test` and the
-   `pairwise.*` helpers are written and match R (to be exported with item 1); still to do:
-   `ansari.test`'s confidence interval, `simulate.p.value` for `chisqTest` and `fisherTest`, and
-   passing two factor vectors to `chisqTest`.
-3. **Special functions:** `erf` and `erfc` are exported as extras; the log1p-type functions that
-   rStats.js implements internally may follow.
-4. **Distributions:** recycling of distribution parameters as vectors.
-5. **Speed:** a fast double-precision path that switches to double-double only where needed, and
+1. **Hypothesis tests:** `ansari.test`'s confidence interval, `simulate.p.value` for `chisqTest`
+   and `fisherTest`, and passing two factor vectors to `chisqTest`.
+2. **Special functions:** the log1p-type functions that rStats.js implements internally may follow
+   as extras.
+3. **Distributions:** recycling of distribution parameters as vectors.
+4. **Speed:** a fast double-precision path that switches to double-double only where needed, and
    an asymptotic expansion for the incomplete beta function with large parameters (see
    [docs/performance.md](docs/performance.md)).
-6. **Random numbers:** RNG kinds other than R's default.
+5. **Random numbers:** RNG kinds other than R's default.
 
 Possible later, each a sizeable project of its own:
 
