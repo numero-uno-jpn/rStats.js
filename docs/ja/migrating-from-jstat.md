@@ -120,7 +120,7 @@ import できます。
 | `jStat.gammaln` | `lgamma(x)` |  |
 | `jStat.loggam` | `lgamma(x)` |  |
 | `jStat.gammafn` | `gamma(x)` |  |
-| `jStat.gammap` | `gammainc(x, a).lower` | 正規化しない下側不完全ガンマ関数です。 |
+| `jStat.gammap` | `gammainc(x, a).lower` | 正規化しない下側不完全ガンマ関数です。引数の順に注意: jStat は `gammap(a, x)` です。 |
 | `jStat.lowRegGamma` | `pgamma(x, a)` | 引数の順に注意: R の `pgamma(q, shape)` です。 |
 | `jStat.gammapinv` | `qgamma(p, a)` |  |
 | `jStat.factorialln` | `lfactorial(n)` |  |
@@ -326,7 +326,7 @@ import できます。
 | `jStat.rungekutta` | `ode(y, times, func, { method: "rk4" })` | `deSolve::ode` と同じ固定刻みの `euler`・`rk2`・`rk4` です。軌跡全体を返します。 |
 | `jStat.romberg` | `integrate(f, a, b)` | 適応 Gauss-Kronrod 法 (QUADPACK、R の `integrate` と同じ) で、誤差の見積もりも返します。 |
 | `jStat.richardson` | `hessian(f, x)` | jStat は表の値から 2 階微分を外挿します。`grad` と `hessian` は関数に対して Richardson の外挿を使います (`numDeriv`)。 |
-| `jStat.simpson` | `integrate(f, a, b)` |  |
+| `jStat.simpson` | `integrate(f, a, b)` | 適応的で誤差の見積もりも返します (jStat の n 分割の複合公式は、刻みの和が b にぴったりならないと最後の節点を落とします)。 |
 | `jStat.hermite` | `hermiteInterp(x, y, dy, xout)` | jStat と同じく値と導関数を通る大域の多項式です。区分的な 3 次の Hermite 補間は `splinefunH` です。 |
 | `jStat.lagrange` | `barylag(x, y, xout)` | 重心型の Lagrange 補間で、`pracma::barylag` と同じです。 |
 | `jStat.cubic_spline` | `spline(x, y, { xout })` | jStat の `cubic_spline` は例外になります (存在しない `jStat.sq` を呼ぶ)。`splinefun` は関数を返します。 |
@@ -339,7 +339,7 @@ import できます。
 |---|---|---|
 | `jStat.zscore` | JS: `(value - mean(x)) / sd(x)` |  |
 | `jStat.ztest` | `zTest(x, { mu, sigmaX })` | `BSDA::z.test` と同じです。jStat の片側 p 値は効果の向きを無視します。 |
-| `jStat.tscore` | `tTest(x, { mu }).statistic` |  |
+| `jStat.tscore` | `tTest(x, { mu }).statistic` | 符号が逆です: jStat の `tscore(value, x)` は (value − mean) / se です。 |
 | `jStat.ttest` | `tTest(x, { mu }).pValue` | jStat の 4 引数の形は `(t, n, sides)` と解釈されてしまいます。 |
 | `jStat.anovafscore` | `aov(groups).fValue` |  |
 | `jStat.anovaftest` | `aov(groups).pValue` | `onewayTest(groups, { varEqual: true })` でも得られます。 |

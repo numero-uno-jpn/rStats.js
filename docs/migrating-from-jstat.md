@@ -120,7 +120,7 @@ wrapper, method chaining or callback. Everything can be imported from the packag
 | `jStat.gammaln` | `lgamma(x)` |  |
 | `jStat.loggam` | `lgamma(x)` |  |
 | `jStat.gammafn` | `gamma(x)` |  |
-| `jStat.gammap` | `gammainc(x, a).lower` | The non-regularized lower incomplete gamma function. |
+| `jStat.gammap` | `gammainc(x, a).lower` | The non-regularized lower incomplete gamma function. Note the argument order: jStat's `gammap(a, x)`. |
 | `jStat.lowRegGamma` | `pgamma(x, a)` | Note the argument order: R's `pgamma(q, shape)`. |
 | `jStat.gammapinv` | `qgamma(p, a)` |  |
 | `jStat.factorialln` | `lfactorial(n)` |  |
@@ -326,7 +326,7 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 | `jStat.rungekutta` | `ode(y, times, func, { method: "rk4" })` | Fixed-step `euler`, `rk2` and `rk4` as in `deSolve::ode`; returns the whole trajectory. |
 | `jStat.romberg` | `integrate(f, a, b)` | Adaptive Gauss-Kronrod (QUADPACK, as R's `integrate`), with an error estimate. |
 | `jStat.richardson` | `hessian(f, x)` | jStat extrapolates a second derivative from tabulated values; `grad` and `hessian` use Richardson extrapolation on a function (`numDeriv`). |
-| `jStat.simpson` | `integrate(f, a, b)` |  |
+| `jStat.simpson` | `integrate(f, a, b)` | Adaptive, with an error estimate (jStat's composite rule with n steps drops the last node when the steps do not add up to b exactly). |
 | `jStat.hermite` | `hermiteInterp(x, y, dy, xout)` | The global polynomial through values and derivatives, as jStat's; for piecewise cubic Hermite use `splinefunH`. |
 | `jStat.lagrange` | `barylag(x, y, xout)` | Barycentric Lagrange interpolation, as `pracma::barylag`. |
 | `jStat.cubic_spline` | `spline(x, y, { xout })` | jStat's `cubic_spline` throws (it calls a missing `jStat.sq`). `splinefun` returns a function. |
@@ -339,7 +339,7 @@ Every distribution has d/p/q/r functions with R's names (`dnorm`, `pnorm`, `qnor
 |---|---|---|
 | `jStat.zscore` | JS: `(value - mean(x)) / sd(x)` |  |
 | `jStat.ztest` | `zTest(x, { mu, sigmaX })` | As `BSDA::z.test`. jStat's one-sided p-value ignores the direction of the effect. |
-| `jStat.tscore` | `tTest(x, { mu }).statistic` |  |
+| `jStat.tscore` | `tTest(x, { mu }).statistic` | The opposite sign: jStat's `tscore(value, x)` is (value − mean) / se. |
 | `jStat.ttest` | `tTest(x, { mu }).pValue` | jStat's four-argument form is misread as `(t, n, sides)`. |
 | `jStat.anovafscore` | `aov(groups).fValue` |  |
 | `jStat.anovaftest` | `aov(groups).pValue` | Or `onewayTest(groups, { varEqual: true })`. |
