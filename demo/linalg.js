@@ -21,6 +21,18 @@ const PRESETS = [
  * right-hand side (b or B) or null.
  */
 const OPS = [
+  { id: "t", run: (l, A) => l.t(A), code: () => same("t(A)") },
+  { id: "diag", run: (l, A) => l.diag(A), code: () => same("diag(A)") },
+  { id: "matMul", b: "required", run: (l, A, B) => l.matMul(A, B), code: (B) => ({ js: `matMul(A, ${B})`, r: `A %*% ${B}` }) },
+  ...[
+    ["add", "+"],
+    ["subtract", "-"],
+    ["multiply", "*"],
+    ["divide", "/"],
+  ].map(([id, op]) => ({ id, b: "required", run: (l, A, B) => l[id](A, B), code: (B) => ({ js: `${id}(A, ${B})`, r: `A ${op} ${B}` }) })),
+  { id: "kronecker", b: "required", run: (l, A, B) => l.kronecker(A, B), code: (B) => same(`kronecker(A, ${B})`) },
+  { id: "cbind", b: "required", run: (l, A, B) => l.cbind(A, B), code: (B) => same(`cbind(A, ${B})`) },
+  { id: "rbind", b: "required", run: (l, A, B) => l.rbind(A, B), code: (B) => same(`rbind(A, ${B})`) },
   { id: "crossprod", b: "optional", run: (l, A, B) => (B ? l.crossprod(A, B) : l.crossprod(A)), code: (B) => same(`crossprod(${args("A", B)})`) },
   // a one-line right-hand side is taken as a 1-row matrix, so that A %*% t(B) is defined
   { id: "tcrossprod", b: "optional", rowB: true, run: (l, A, B) => (B ? l.tcrossprod(A, B) : l.tcrossprod(A)), code: (B) => same(`tcrossprod(${args("A", B)})`) },
@@ -109,6 +121,8 @@ const OPS = [
     },
   },
   { id: "ginv", run: (l, A) => l.ginv(A), code: () => ({ js: "ginv(A)", r: "MASS::ginv(A)" }) },
+  { id: "lu", run: (l, A) => l.lu(A), code: () => ({ js: "lu(A)", r: "Matrix::expand(Matrix::lu(A))  # P, L, U with A = P L U" }) },
+  { id: "prcomp", run: (l, A) => l.prcomp(A), code: () => same("prcomp(A)") },
 ];
 
 function same(code) {
@@ -151,7 +165,7 @@ export function createLinalgTab(ctx) {
   const aInput = textArea({ value: PRESETS[0].a, rows: 4, testid: "linalg-a", onInput: run });
   const bInput = textArea({ value: PRESETS[0].b, rows: 2, testid: "linalg-b", onInput: run });
   const opSelect = select(
-    OPS.map((o) => ({ value: o.id, text: o.id === "rank" || o.id === "pivot" ? `qr(A).${o.id}` : o.id })),
+    OPS.filter((o) => lib[o.id === "rank" || o.id === "pivot" ? "qr" : o.id]).map((o) => ({ value: o.id, text: o.id === "rank" || o.id === "pivot" ? `qr(A).${o.id}` : o.id })),
     { testid: "linalg-op", value: "solve", onChange: () => update() },
   );
   const controls = {

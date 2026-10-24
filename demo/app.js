@@ -7,6 +7,8 @@ import { createSpecialTab } from "./special.js";
 import { createRandomTab } from "./random.js";
 import { createTestsTab } from "./tests.js";
 import { createLinalgTab } from "./linalg.js";
+import { createDescriptiveTab } from "./descriptive.js";
+import { createNumericsTab } from "./numerics.js";
 import { createCompareTab } from "./examples.js";
 
 /** The release whose build is loaded from jsDelivr. */
@@ -19,7 +21,10 @@ const source = params.get("src") === "local" ? "local" : "cdn";
 const libUrl = source === "local" ? LOCAL_URL : CDN_URL;
 const absUrl = new URL(libUrl, location.href).href;
 
-const TAB_IDS = ["distributions", "special", "random", "tests", "linalg", "compare"];
+const ALL_TABS = ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"];
+/** Tabs that need functions newer than some builds: shown only when the loaded build has them */
+const NEEDS = { descriptive: "quantile", numerics: "integrate" };
+let TAB_IDS = ALL_TABS;
 
 const statusEl = document.getElementById("status");
 const main = document.getElementById("main");
@@ -119,8 +124,11 @@ async function fetchJSON(name) {
 // ---------- tabs ----------
 
 function buildTabs(ctx) {
+  TAB_IDS = ALL_TABS.filter((id) => !NEEDS[id] || ctx.lib[NEEDS[id]]);
   const factories = {
     distributions: createDistributionsTab,
+    descriptive: createDescriptiveTab,
+    numerics: createNumericsTab,
     special: createSpecialTab,
     random: createRandomTab,
     tests: createTestsTab,

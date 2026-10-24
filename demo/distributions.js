@@ -13,8 +13,9 @@ const P = (name, def, pos = false) => ({ name, def: String(def), pos });
 const NCP = P("ncp", "");
 
 /**
- * The 20 distributions. x: default x values for d/p; lower/upper: bounds of the support used to choose the plot
- * range; kinds: which of d/p/q exist; random: whether an r* function exists.
+ * The 20 distributions of R and the 6 that R lacks. x: default x values for d/p; lower/upper: bounds of the support used
+ * to choose the plot range; kinds: which of d/p/q exist; random: whether an r* function exists; rPkg: the R package
+ * of the functions (extraDistr); rCode: the R code where no R function exists (arcsine).
  */
 export const DISTS = [
   { id: "norm", params: [P("mean", 0), P("sd", 1)], x: "-1.96, 0, 1.96" },
@@ -36,11 +37,35 @@ export const DISTS = [
   { id: "hyper", params: [P("m", 10, true), P("n", 7, true), P("k", 8, true)], x: "3, 5, 7", discrete: true },
   { id: "signrank", params: [P("n", 10, true)], x: "10, 27, 45", discrete: true },
   { id: "wilcox", params: [P("m", 4, true), P("n", 6, true)], x: "5, 12, 20", discrete: true },
-  { id: "tukey", params: [P("nmeans", 3, true), P("df", 10, true), P("nranges", 1)], x: "1, 3.5, 5", lower: 0, kinds: ["p", "q"], random: false },
+  { id: "tukey", params: [P("nmeans", 3, true), P("df", 10, true), P("nranges", 1)], x: "1, 3.5, 5", lower: 0, kinds: ["p", "q"], random: false, summary: false },
+  { id: "invgamma", params: [P("alpha", 3, true), P("beta", 2)], x: "0.3, 1, 2", lower: 0, rPkg: "extraDistr::" },
+  { id: "kumar", params: [P("a", 2, true), P("b", 3, true)], x: "0.2, 0.5, 0.8", lower: 0, upper: 1, rPkg: "extraDistr::" },
+  { id: "pareto", params: [P("a", 3), P("b", 1)], x: "1.2, 2, 4", rPkg: "extraDistr::", tail: 0.01 },
+  { id: "triang", params: [P("a", -1), P("b", 1), P("c", 0)], x: "-0.5, 0, 0.5", rPkg: "extraDistr::" },
+  { id: "laplace", params: [P("mu", 0), P("sigma", 1)], x: "-2, 0, 1.5", rPkg: "extraDistr::" },
+  { id: "arcsine", params: [P("a", 0), P("b", 1)], x: "0.1, 0.5, 0.9", rCode: arcsineR },
 ];
 for (const d of DISTS) {
   d.kinds ??= ["d", "p", "q"];
   d.random ??= true;
+  d.summary ??= !["signrank", "wilcox"].includes(d.id);
+}
+
+/** R code for the arcsine distribution, which R lacks: beta(1/2, 1/2) moved to (a, b) */
+function arcsineR(kind, first, params, flags) {
+  const get = (k, def) => {
+    const v = params.find(([n]) => n === k);
+    return v ? rNum(v[1]) : def;
+  };
+  const a = get("a", "0");
+  const b = get("b", "1");
+  const w = `(${b} - ${a})`;
+  const f = flags.map(([, k, v]) => `, ${k} = ${rBool(v)}`).join("");
+  const z = `(${first} - ${a}) / ${w}`;
+  if (kind === "d") return flags.some(([k, , v]) => k === "log" && v) ? `dbeta(${z}, 0.5, 0.5, log = TRUE) - log${w}` : `dbeta(${z}, 0.5, 0.5) / ${w}`;
+  if (kind === "p") return `pbeta(${z}, 0.5, 0.5${f})`;
+  if (kind === "q") return `${a} + ${w} * qbeta(${first}, 0.5, 0.5${f})`;
+  return `${a} + ${w} * qbeta(runif(${first}), 0.5, 0.5)`;
 }
 
 export const distById = (id) => DISTS.find((d) => d.id === id);
@@ -97,7 +122,9 @@ export function callCode(dist, kind, first, { pos, opts }, flags = []) {
   const name = `${kind}${dist.id}`;
   const jsOpts = jsObj([...opts.map(([k, v]) => [k, jsNum(v)]), ...flags.map(([k, , v]) => [k, String(v)])]);
   const js = `${name}(${args(first.js, ...pos.map(([, v]) => jsNum(v)), jsOpts)})`;
-  const r = `${name}(${args(first.r, ...[...pos, ...opts].map(([k, v]) => `${k} = ${rNum(v)}`), ...flags.map(([, k, v]) => `${k} = ${rBool(v)}`))})`;
+  const r = dist.rCode
+    ? dist.rCode(kind, first.r, [...pos, ...opts], flags)
+    : `${dist.rPkg ?? ""}${name}(${args(first.r, ...[...pos, ...opts].map(([k, v]) => `${k} = ${rNum(v)}`), ...flags.map(([, k, v]) => `${k} = ${rBool(v)}`))})`;
   return { js, r, name };
 }
 
@@ -213,12 +240,13 @@ export function createDistributionsTab(ctx) {
   const { lib } = ctx;
   const err = errorBox("dist-error");
   const output = h("div", { class: "output", "data-testid": "dist-output" });
+  const summaryHost = h("div", { class: "output", "data-testid": "dist-summary" });
   const plots = h("div", { class: "plots", "data-testid": "dist-plots" });
   const code = codePanel("dist-code");
   const run = debounce(update, 120);
 
   const distSelect = select(
-    DISTS.map((d) => ({ value: d.id, i18n: `dist.${d.id}` })),
+    DISTS.filter((d) => lib[`${d.kinds[0]}${d.id}`]).map((d) => ({ value: d.id, i18n: `dist.${d.id}` })),
     { testid: "dist-select", onChange: () => changeDist() },
   );
   const kindSelect = select([], { testid: "dist-kind", onChange: () => changeKind() });
@@ -282,14 +310,29 @@ export function createDistributionsTab(ctx) {
         ),
       );
       code.set(`print(${c.r}, digits = 17)`, `${ctx.importLine([c.name])}\n${c.js};`);
+      setChildren(summaryHost, summaryTable(prm));
       // Plot markers in linear scale: the x values for d/p, the computed quantiles for q
       const markers = kind === "q" ? res : values;
       setChildren(plots, distPlots(lib, dist, prm, markers.filter(Number.isFinite)));
     } catch (e) {
       err.show(e);
       setChildren(output);
+      setChildren(summaryHost);
       setChildren(plots);
     }
+  }
+
+  /** distSummary of the distribution (where the loaded build has it) */
+  function summaryTable(prm) {
+    if (!lib.distSummary || !dist.summary) return null;
+    const s = lib.distSummary(dist.id, Object.fromEntries([...prm.pos, ...prm.opts]));
+    const keys = ["mean", "variance", "sd", "median", "mode", "skewness", "kurtosis"];
+    return h(
+      "div",
+      {},
+      h("h4", { class: "sub-heading", i18n: "dist.summary" }),
+      table([t("desc.statistic"), t("desc.value")], keys.map((k) => [k, fmt(s[k])]), { testid: "dist-summary-table", className: "data-table kv" }),
+    );
   }
 
   const form = h(
@@ -312,7 +355,7 @@ export function createDistributionsTab(ctx) {
       "div",
       { class: "workbench" },
       form,
-      h("div", { class: "card result-card" }, h("h3", { class: "sub-heading", i18n: "results" }), output, plots, code.el),
+      h("div", { class: "card result-card" }, h("h3", { class: "sub-heading", i18n: "results" }), output, summaryHost, plots, code.el),
     ),
     exampleSection(ctx, "distributions"),
   );

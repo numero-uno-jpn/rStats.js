@@ -56,7 +56,7 @@ function rfunSection(ctx) {
   const run = debounce(update, 150);
   const seed = seedField("random-seed", run);
   const fnSelect = select(
-    RDISTS.map((d) => ({ value: d.id, text: `r${d.id}` })),
+    RDISTS.filter((d) => lib[`r${d.id}`]).map((d) => ({ value: d.id, text: `r${d.id}` })),
     { testid: "random-fn", onChange: () => changeDist() },
   );
   const nInput = textInput({ value: "500", testid: "random-n", inputmode: "numeric", onInput: run });

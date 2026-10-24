@@ -488,6 +488,158 @@ function padjustSection(ctx) {
   });
 }
 
+
+// ---------- the other tests (one section, with the test chosen from a list) ----------
+
+const GROUPS = "2.9 3.0 2.5 2.6 3.2\n3.8 2.7 4.0 2.4\n2.8 3.4 3.7 2.2 2.0";
+const BLOCKS = "31 27 24\n31 28 31\n45 29 46\n21 18 48\n42 36 46\n32 17 40";
+const STRATA = "0 0\n6 5\n\n3 0\n3 6\n\n6 2\n0 4\n\n5 6\n1 0\n\n2 5\n0 0";
+
+/** Groups: one sample per line */
+const parseGroups = (text) => parseMatrixRagged(text);
+function parseMatrixRagged(text) {
+  const rows = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((l) => parseNumbers(l));
+  if (rows.length === 0) throw new Error(t("err.emptyMatrix"));
+  return rows;
+}
+/** 2 x 2 (or I x J) tables separated by blank lines */
+function parseStrata(text) {
+  return text.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean).map((b) => parseMatrix(b));
+}
+const groupsDecl = (g) => ({ js: `const groups = [${g.map(jsArr).join(", ")}];`, r: `groups <- list(${g.map(rVec).join(", ")})` });
+const longDecl = (g) => ({
+  js: `${groupsDecl(g).js}\nconst x = groups.flat();\nconst g = groups.flatMap((s, i) => s.map(() => i + 1));`,
+  r: `${groupsDecl(g).r}\nx <- unlist(groups)\ng <- factor(rep(seq_along(groups), lengths(groups)))`,
+});
+const rStrata = (k) => `array(${rVec(k.flatMap((m) => m[0].map((_, j) => m.map((row) => row[j])).flat()))}, dim = c(${k[0].length}, ${k[0][0].length}, ${k.length}))`;
+
+function pairwiseTable(r) {
+  return table(["", ...r.colNames], r.rowNames.map((name, i) => [name, ...r.pValue[i].map((v) => (Number.isNaN(v) ? "-" : fmt(v)))]), {
+    testid: "more-pairwise",
+    className: "data-table compact",
+  });
+}
+
+/**
+ * The tests. inputs: which inputs are shown (x, y, groups, matrix, strata, counts); run(lib, d) gives the result;
+ * code(d) gives { js, r } after the data declarations; view(result) an extra table (non-htest results).
+ */
+const MORE = [
+  { id: "binomTest", inputs: ["counts"], counts: [["x", "7"], ["n", "20"], ["p", "0.3"]],
+    run: (l, d) => l.binomTest(d.x, d.n, { p: d.p }), code: (d) => ({ js: `binomTest(${d.x}, ${d.n}, { p: ${jsNum(d.p)} })`, r: `binom.test(${d.x}, ${d.n}, p = ${rNum(d.p)})` }) },
+  { id: "poissonTest", inputs: ["counts"], counts: [["x", "10"], ["T", "2"], ["r", "3"]],
+    run: (l, d) => l.poissonTest(d.x, { T: d.T, r: d.r }), code: (d) => ({ js: `poissonTest(${d.x}, { T: ${jsNum(d.T)}, r: ${jsNum(d.r)} })`, r: `poisson.test(${d.x}, ${rNum(d.T)}, r = ${rNum(d.r)})` }) },
+  { id: "propTest", inputs: ["x", "y"], labels: ["x", "n"], x: "83, 90, 129, 70", y: "86, 93, 136, 82",
+    run: (l, d) => l.propTest(d.x, d.y), code: () => ({ js: "propTest(x, n)", r: "prop.test(x, n)" }), names: ["x", "n"] },
+  { id: "mcnemarTest", inputs: ["matrix"], matrix: "794 86\n150 570", run: (l, d) => l.mcnemarTest(d.m), code: () => ({ js: "mcnemarTest(m)", r: "mcnemar.test(m)" }) },
+  { id: "varTest", inputs: ["x", "y"], run: (l, d) => l.varTest(d.x, d.y), code: () => same2("varTest(x, y)", "var.test(x, y)") },
+  { id: "moodTest", inputs: ["x", "y"], run: (l, d) => l.moodTest(d.x, d.y), code: () => same2("moodTest(x, y)", "mood.test(x, y)") },
+  { id: "ansariTest", inputs: ["x", "y"], run: (l, d) => l.ansariTest(d.x, d.y), code: () => same2("ansariTest(x, y)", "ansari.test(x, y)") },
+  { id: "ksTest", inputs: ["x", "y"], run: (l, d) => l.ksTest(d.x, d.y), code: () => same2("ksTest(x, y)", "ks.test(x, y)") },
+  { id: "shapiroTest", inputs: ["x"], run: (l, d) => l.shapiroTest(d.x), code: () => same2("shapiroTest(x)", "shapiro.test(x)") },
+  { id: "zTest", inputs: ["x", "counts"], counts: [["mu", "1.5"], ["sigmaX", "0.6"]],
+    run: (l, d) => l.zTest(d.x, { mu: d.mu, sigmaX: d.sigmaX }), code: (d) => ({ js: `zTest(x, { mu: ${jsNum(d.mu)}, sigmaX: ${jsNum(d.sigmaX)} })`, r: `BSDA::z.test(x, mu = ${rNum(d.mu)}, sigma.x = ${rNum(d.sigmaX)})` }) },
+  { id: "bartlettTest", inputs: ["groups"], run: (l, d) => l.bartlettTest(d.g), code: () => same2("bartlettTest(groups)", "bartlett.test(groups)") },
+  { id: "kruskalTest", inputs: ["groups"], run: (l, d) => l.kruskalTest(d.g), code: () => same2("kruskalTest(groups)", "kruskal.test(groups)") },
+  { id: "flignerTest", inputs: ["groups"], run: (l, d) => l.flignerTest(d.g), code: () => same2("flignerTest(groups)", "fligner.test(groups)") },
+  { id: "onewayTest", inputs: ["groups"], long: true, run: (l, d) => l.onewayTest(d.g), code: () => same2("onewayTest(groups)", "oneway.test(x ~ g)") },
+  { id: "friedmanTest", inputs: ["blocks"], run: (l, d) => l.friedmanTest(d.m), code: () => same2("friedmanTest(m)", "friedman.test(m)") },
+  { id: "quadeTest", inputs: ["blocks"], run: (l, d) => l.quadeTest(d.m), code: () => same2("quadeTest(m)", "quade.test(m)") },
+  { id: "mantelhaenTest", inputs: ["strata"], run: (l, d) => l.mantelhaenTest(d.k), code: (d) => ({ js: "mantelhaenTest(strata)", r: `mantelhaen.test(${rStrata(d.k)})` }) },
+  { id: "pairwiseTTest", inputs: ["groups"], long: true, noPrint: true, run: (l, d) => l.pairwiseTTest(d.g.flat(), labelsOf(d.g)), code: () => same2("pairwiseTTest(x, g)", "pairwise.t.test(x, g)"), view: pairwiseTable },
+  { id: "pairwiseWilcoxTest", inputs: ["groups"], long: true, noPrint: true, run: (l, d) => l.pairwiseWilcoxTest(d.g.flat(), labelsOf(d.g)), code: () => same2("pairwiseWilcoxTest(x, g)", "pairwise.wilcox.test(x, g)"), view: pairwiseTable },
+  { id: "pairwisePropTest", inputs: ["x", "y"], labels: ["x", "n"], x: "83, 90, 129, 70", y: "86, 93, 136, 82", noPrint: true,
+    run: (l, d) => l.pairwisePropTest(d.x, d.y), code: () => ({ js: "pairwisePropTest(x, n)", r: "pairwise.prop.test(x, n)" }), view: pairwiseTable, names: ["x", "n"] },
+  { id: "aov", inputs: ["groups"], long: true, noPrint: true, run: (l, d) => l.aov(d.g), code: () => same2("aov(groups)", "summary(aov(x ~ g))"),
+    view: (r) => table(["", "Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)"], [["g", r.df[0], fmt(r.sumSq[0]), fmt(r.meanSq[0]), fmt(r.fValue), fmt(r.pValue)], ["Residuals", r.df[1], fmt(r.sumSq[1]), fmt(r.meanSq[1]), "", ""]], { testid: "more-aov", className: "data-table compact" }) },
+  { id: "TukeyHSD", inputs: ["groups"], long: true, noPrint: true, run: (l, d) => l.TukeyHSD(d.g), code: () => same2("TukeyHSD(groups)", "TukeyHSD(aov(x ~ g))"),
+    view: (r) => table(["", "diff", "lwr", "upr", "p adj"], r.names.map((n, i) => [n, fmt(r.diff[i]), fmt(r.lwr[i]), fmt(r.upr[i]), fmt(r.pAdj[i])]), { testid: "more-tukey", className: "data-table compact" }) },
+  { id: "lm", inputs: ["x", "y"], noPrint: true, x: "1, 2, 3, 4, 5, 6, 7, 8", y: "2.1, 3.9, 6.2, 7.8, 10.1, 12.2, 13.8, 16.1",
+    run: (l, d) => l.lm(d.x, d.y), code: () => same2("lm(x, y)", "summary(lm(y ~ x))"),
+    view: (r) => h(
+      "div",
+      {},
+      table(["", "Estimate", "Std. Error", "t value", "Pr(>|t|)"], r.coefTable.estimate.map((e, i) => [i === 0 ? "(Intercept)" : "x", fmt(e), fmt(r.coefTable.stdError[i]), fmt(r.coefTable.tValue[i]), fmt(r.coefTable.pValue[i])]), { testid: "more-lm", className: "data-table compact" }),
+      h("p", { class: "mono", text: `sigma = ${fmt(r.sigma)}, R² = ${fmt(r.rSquared)}, adj. R² = ${fmt(r.adjRSquared)}, F = ${fmt(r.fStatistic.value)}, p = ${fmt(r.fPValue)}` }),
+    ) },
+];
+const same2 = (js, r) => ({ js, r });
+const labelsOf = (g) => g.flatMap((s, i) => s.map(() => i + 1));
+
+function moreSection(ctx) {
+  const tests = MORE.filter((m) => ctx.lib[m.id]);
+  return testSection(ctx, "more", t("tests.more"), (run, now) => {
+    const which = select(tests.map((m) => ({ value: m.id, text: m.id })), { testid: "more-test", onChange: () => change() });
+    const x = textInput({ value: DEP_X, testid: "more-x", inputmode: "decimal", onInput: run });
+    const y = textInput({ value: DEP_Y, testid: "more-y", inputmode: "decimal", onInput: run });
+    const groups = textArea({ value: GROUPS, rows: 4, testid: "more-groups", onInput: run });
+    const matrix = textArea({ value: "794 86\n150 570", rows: 3, testid: "more-matrix", onInput: run });
+    const blocks = textArea({ value: BLOCKS, rows: 6, testid: "more-blocks", onInput: run });
+    const strata = textArea({ value: STRATA, rows: 8, testid: "more-strata", onInput: run });
+    const countInputs = [0, 1, 2].map((i) => textInput({ value: "", testid: `more-count-${i}`, inputmode: "decimal", onInput: run }));
+    const xField = field(null, x, { labelText: "x" });
+    const yField = field(null, y, { labelText: "y" });
+    const fields = {
+      x: xField,
+      y: yField,
+      groups: field("tests.groups", groups),
+      matrix: field("tests.matrix", matrix),
+      blocks: field("tests.blocks", blocks),
+      strata: field("tests.strata", strata),
+    };
+    const countFields = countInputs.map((input) => field(null, input, { labelText: "" }));
+    let spec = tests[0];
+    function setDefaults() {
+      spec = tests.find((m) => m.id === which.value);
+      x.value = spec.x ?? DEP_X;
+      y.value = spec.y ?? DEP_Y;
+      if (spec.matrix) matrix.value = spec.matrix;
+      (spec.counts ?? []).forEach(([, def], i) => (countInputs[i].value = def));
+    }
+    function change() {
+      setDefaults();
+      now();
+    }
+    setDefaults();
+    return {
+      fields: [field("label.test", which), ...Object.values(fields), h("div", { class: "field-row" }, ...countFields)],
+      sync() {
+        for (const [k, f] of Object.entries(fields)) f.hidden = !spec.inputs.includes(k);
+        const [lx, ly] = spec.labels ?? ["x", "y"];
+        xField.querySelector("label").textContent = lx;
+        yField.querySelector("label").textContent = ly;
+        countFields.forEach((f, i) => {
+          const c = spec.counts?.[i];
+          f.hidden = !c;
+          if (c) f.querySelector("label").textContent = c[0];
+        });
+      },
+      compute() {
+        const d = {};
+        const decl = [];
+        const [nx, ny] = spec.names ?? ["x", "y"];
+        if (spec.inputs.includes("x")) d.x = parseNumbers(x.value), decl.push(vecDecl(nx, d.x));
+        if (spec.inputs.includes("y")) d.y = parseNumbers(y.value), decl.push(vecDecl(ny, d.y));
+        if (spec.inputs.includes("groups")) d.g = parseGroups(groups.value), decl.push(spec.long ? longDecl(d.g) : groupsDecl(d.g));
+        if (spec.inputs.includes("matrix")) d.m = parseMatrix(matrix.value), decl.push({ js: `const m = ${jsMat(d.m)};`, r: `m <- ${rMat(d.m)}` });
+        if (spec.inputs.includes("blocks")) d.m = parseMatrix(blocks.value), decl.push({ js: `const m = ${jsMat(d.m)};`, r: `m <- ${rMat(d.m)}` });
+        if (spec.inputs.includes("strata")) d.k = parseStrata(strata.value), decl.push({ js: `const strata = [${d.k.map(jsMat).join(", ")}];`, r: "" });
+        (spec.counts ?? []).forEach(([name], i) => (d[name] = parseNumber(countInputs[i].value)));
+        const result = spec.run(ctx.lib, d);
+        const c = spec.code(d);
+        return {
+          result,
+          dataName: [nx, ny].filter((n, i) => spec.inputs.includes(i ? "y" : "x")).join(" and ") || "data",
+          noPrint: spec.noPrint,
+          extraEl: spec.view?.(result),
+          js: `${ctx.importLine([spec.id])}\n${decl.map((v) => v.js).filter(Boolean).join("\n")}${decl.length ? "\n" : ""}${c.js};`,
+          r: `${decl.map((v) => v.r).filter(Boolean).join("\n")}${decl.some((v) => v.r) ? "\n" : ""}${c.r}`,
+        };
+      },
+    };
+  });
+}
+
 export function createTestsTab(ctx) {
   const sections = {
     ttest: tTestSection(ctx),
@@ -496,6 +648,7 @@ export function createTestsTab(ctx) {
     wilcox: wilcoxSection(ctx),
     cor: corSection(ctx),
     padjust: padjustSection(ctx),
+    more: moreSection(ctx),
   };
   const nav = segmented(
     [
@@ -505,6 +658,7 @@ export function createTestsTab(ctx) {
       { value: "wilcox", text: "wilcoxTest" },
       { value: "cor", text: "cor / corTest" },
       { value: "padjust", text: "pAdjust" },
+      ...(ctx.lib.binomTest ? [{ value: "more", i18n: "tests.more" }] : []),
     ],
     { labelKey: "tests.sections", testid: "tests-nav", onChange: show },
   );

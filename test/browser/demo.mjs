@@ -103,7 +103,7 @@ async function setCheck(page, id, on) {
 async function testDistributions(page) {
   await page.click(tid("tab-distributions"));
   const dists = await page.$$eval(`${tid("dist-select")} option`, (os) => os.map((o) => o.value));
-  check("20 distributions", dists.length === 20, String(dists.length));
+  check("26 distributions", dists.length === 26, String(dists.length));
   for (const d of dists) {
     await page.selectOption(tid("dist-select"), d);
     const kinds = await page.$$eval(`${tid("dist-kind")} option`, (os) => os.map((o) => o.value));
@@ -119,7 +119,12 @@ async function testDistributions(page) {
       check(`${name}: plots`, plots.length >= 1 && plots.every((n) => n > 0), JSON.stringify(plots));
       const r = await page.textContent(`${tid("dist-code-r")} code`);
       const js = await page.textContent(`${tid("dist-code-js")} code`);
-      check(`${name}: code`, r.includes(`${name}(`) && js.includes(`${name}(`), `${r} / ${js}`);
+      // R lacks the arcsine distribution: its R code goes through the beta functions
+      check(`${name}: code`, r.includes(d === "arcsine" ? "beta(" : `${name}(`) && js.includes(`${name}(`), `${r} / ${js}`);
+      if (k === "d") {
+        const summary = await page.$$eval(`${tid("dist-summary-table")} tbody tr`, (rows) => rows.length);
+        check(`${d}: distSummary`, summary === (["signrank", "wilcox", "tukey"].includes(d) ? 0 : 7), String(summary));
+      }
       // flags
       if (k === "d") {
         await setCheck(page, "dist-log", true);
@@ -160,12 +165,14 @@ async function testDistributions(page) {
 
 async function testSpecial(page) {
   await page.click(tid("tab-special"));
-  for (const f of ["gamma", "lgamma", "beta", "lbeta"]) {
+  const fns = await page.$$eval(`${tid("special-fn")} option`, (os) => os.map((o) => o.value));
+  check("21 special functions", fns.length === 21, String(fns.length));
+  for (const f of fns) {
     await page.selectOption(tid("special-fn"), f);
     await settle(page);
     await noErrors(page, f, tid("panel-special"));
     const cells = await page.$$eval(`${tid("special-table")} tbody td`, (tds) => tds.map((td) => td.textContent));
-    check(`${f}: results`, cells.length === 5 && cells.some((c) => Number.isFinite(Number(c))), cells.join());
+    check(`${f}: results`, cells.length >= 3 && cells.some((c) => Number.isFinite(Number(c))), cells.join());
     check(`${f}: plot`, (await page.$$(`${tid("special-plot")} path.curve`)).length > 0);
   }
 }
@@ -174,7 +181,7 @@ async function testRandom(page) {
   await page.click(tid("tab-random"));
   await page.click(tid("random-nav-rfun"));
   const fns = await page.$$eval(`${tid("random-fn")} option`, (os) => os.map((o) => o.value));
-  check("19 r* distributions", fns.length === 19, String(fns.length));
+  check("25 r* distributions", fns.length === 25, String(fns.length));
   for (const d of fns) {
     await page.selectOption(tid("random-fn"), d);
     await settle(page);
@@ -302,11 +309,57 @@ async function testTests(page) {
   await page.fill(tid("padjust-n"), "10");
   await settle(page);
   await noErrors(page, "pAdjust n", tid("panel-tests"));
+  // the other tests and models, chosen from a list
+  await page.click(tid("tests-nav-more"));
+  const more = await page.$$eval(`${tid("more-test")} option`, (os) => os.map((o) => o.value));
+  check("23 other tests and models", more.length === 23, String(more.length));
+  for (const m of more) {
+    await page.selectOption(tid("more-test"), m);
+    await settle(page);
+    await noErrors(page, m, tid("panel-tests"));
+    const printed = (await page.textContent(tid("more-print"))) ?? "";
+    const tables = await page.$$(`${tid("panel-tests")} [data-testid^="more-"] tbody tr`);
+    check(`${m}: result`, printed.includes("data:") || tables.length > 0, printed.slice(0, 60));
+    check(`${m}: code`, ((await page.textContent(`${tid("more-code-js")} code`)) ?? "").includes(`${m}(`));
+  }
+}
+
+async function testDescriptive(page) {
+  await page.click(tid("tab-descriptive"));
+  await settle(page);
+  await noErrors(page, "descriptive", tid("panel-descriptive"));
+  const rows = await page.$$eval(`${tid("desc-table")} tbody tr`, (r) => r.map((x) => x.textContent));
+  check("descriptive: summaries", rows.length === 26 && rows.every((r) => /\d/.test(r)), String(rows.length));
+  check("descriptive: 9 quantile types", (await page.$$(`${tid("desc-quantiles")} tbody tr`)).length === 9);
+  check("descriptive: histogram", (await page.$$(`${tid("desc-hist")} rect.bar`)).length > 0);
+  check("descriptive: ecdf", (await page.$$(`${tid("desc-ecdf")} path.curve`)).length > 0);
+  await page.fill(tid("desc-y"), "");
+  await settle(page);
+  await noErrors(page, "descriptive without y", tid("panel-descriptive"));
+  check("descriptive without y: no pair rows", (await page.$$(`${tid("desc-table")} tbody tr`)).length === 21);
+}
+
+async function testNumerics(page) {
+  await page.click(tid("tab-numerics"));
+  const presets = await page.$$eval(`${tid("num-preset")} option`, (os) => os.map((o) => o.value));
+  for (const v of presets) {
+    await page.selectOption(tid("num-preset"), v);
+    await settle(page);
+    await noErrors(page, `numerics preset ${v}`, tid("panel-numerics"));
+    check(`numerics preset ${v}: 6 results`, (await page.$$(`${tid("num-table")} tbody tr`)).length === 6);
+    check(`numerics preset ${v}: plot`, (await page.$$(`${tid("num-plot")} path.curve`)).length > 0);
+  }
+  await page.click(tid("num-nav-interp"));
+  await settle(page);
+  await noErrors(page, "interpolation", tid("panel-numerics"));
+  check("interpolation: 6 methods", (await page.$$(`${tid("interp-table")} tbody tr`)).length === 6);
+  await page.click(tid("num-nav-functions"));
 }
 
 const LINALG_SQUARE_OPS = [
+  "t", "diag", "matMul", "add", "subtract", "multiply", "divide", "kronecker", "cbind", "rbind",
   "crossprod", "tcrossprod", "norm", "backsolve", "forwardsolve", "chol", "chol2inv", "qr", "qrQ", "qrR", "qrX", "qrCoef", "qrQy", "qrQty",
-  "qrResid", "qrFitted", "qrSolve", "rank", "pivot", "solve", "det", "determinant", "rcond", "kappa", "svd", "eigen", "ginv",
+  "qrResid", "qrFitted", "qrSolve", "rank", "pivot", "solve", "det", "determinant", "rcond", "kappa", "svd", "eigen", "ginv", "lu", "prcomp",
 ];
 const LINALG_TALL_OPS = ["crossprod", "norm", "qr", "qrQ", "qrR", "qrX", "qrCoef", "qrQy", "qrQty", "qrResid", "qrFitted", "qrSolve", "rank", "pivot", "kappa", "svd", "ginv"];
 
@@ -408,7 +461,7 @@ async function testCompare(page) {
   await page.selectOption(tid("compare-filter"), "all");
   // example cards on the other tabs
   const cards = await page.$$eval('[data-testid="example-card"]', (cs) => cs.length);
-  check("example cards on tabs 1-5", cards === exampleCount, String(cards));
+  check("example cards on the other tabs", cards === exampleCount, String(cards));
 }
 
 async function testLanguage(page) {
@@ -428,7 +481,7 @@ async function testLanguage(page) {
 async function testNoHorizontalScroll(browser) {
   const { context, page, errors } = await openDemo(browser, { contextOptions: { viewport: { width: 360, height: 780 } } });
   await page.waitForSelector(`${tid("status")}[data-state="ready"]`);
-  for (const tab of ["distributions", "special", "random", "tests", "linalg", "compare"]) {
+  for (const tab of ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"]) {
     await page.click(tid(`tab-${tab}`));
     await settle(page);
     const w = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -448,7 +501,7 @@ async function screenshots(browser) {
   for (const { name, contextOptions } of configs) {
     const { context, page } = await openDemo(browser, { contextOptions });
     await page.waitForSelector(`${tid("status")}[data-state="ready"]`);
-    for (const tab of ["distributions", "special", "random", "tests", "linalg", "compare"]) {
+    for (const tab of ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"]) {
       await page.click(tid(`tab-${tab}`));
       await settle(page);
       await page.screenshot({ path: join(shotsDir, `${name}-${tab}.png`), fullPage: true });
@@ -466,13 +519,16 @@ try {
     const { context, page, errors } = await openDemo(browser);
     await page.waitForSelector(`${tid("status")}[data-state="ready"]`, { timeout: 20000 });
     check("status shows the CDN source", (await page.getAttribute(tid("status"), "data-source")) === "cdn");
-    check("status mentions 120 functions", (await page.textContent(tid("status"))).includes("120"));
+    const exportCount = Object.keys(await import(new URL("../../dist/rstats.js", import.meta.url).href)).length;
+    check(`status mentions ${exportCount} functions`, (await page.textContent(tid("status"))).includes(String(exportCount)));
     for (const [name, fn] of [
       ["distributions", testDistributions],
       ["special functions", testSpecial],
       ["random numbers", testRandom],
+      ["descriptive statistics", testDescriptive],
       ["hypothesis tests", testTests],
       ["linear algebra", testLinalg],
+      ["numerical methods", testNumerics],
       ["compare with R", testCompare],
       ["language", testLanguage],
     ]) {

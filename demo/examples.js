@@ -4,7 +4,7 @@
 import { getLang, t } from "./i18n.js";
 import { codeBlock, fmt, fmtRelErr, fmtValue, h, select, setChildren, checkbox } from "./util.js";
 
-export const TABS = ["distributions", "special", "random", "tests", "linalg"];
+export const TABS = ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics"];
 
 /** Parses one of R's "%.17g" strings. */
 export function parseR(s) {

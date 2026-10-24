@@ -10,7 +10,7 @@ import * as lib from "../src/index.js";
 
 interface Example {
   id: string;
-  tab: "distributions" | "special" | "random" | "tests" | "linalg";
+  tab: "distributions" | "descriptive" | "special" | "random" | "tests" | "linalg" | "numerics";
   title: { en: string; ja: string };
   js: string;
   r: string;
@@ -29,30 +29,7 @@ const names = Object.keys(lib);
  * Exports added since the last release. The public demo loads the released build from jsDelivr, so their examples
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
-const NOT_IN_DEMO_YET = [
-  "choose", "lchoose", "factorial", "lfactorial", "digamma", "trigamma", "psigamma", "besselI", "besselK", "besselJ", "besselY", "dmultinom", "erf", "erfc",
-  // descriptive statistics (demo tab to come)
-  "sum", "prod", "mean", "weightedMean", "variance", "sd", "median", "range", "cumsum", "cumprod", "cummax", "cummin", "diff",
-  "quantile", "IQR", "fivenum", "mad", "rank", "cov", "tabulate", "table", "unique", "cut", "findInterval", "hist", "pretty",
-  "ecdf", "skewness", "kurtosis", "geometricMean", "modes", "meanAD", "cv", "scale",
-  // matrix arithmetic (demo to come)
-  "matMul", "add", "subtract", "multiply", "divide", "outer", "t", "diag", "cbind", "rbind", "matrix", "kronecker", "seq",
-  "lu", "prcomp",
-  // hypothesis tests added for jStat coverage (demo to come)
-  "binomTest", "poissonTest", "propTest", "mcnemarTest", "varTest", "bartlettTest", "kruskalTest", "friedmanTest",
-  "quadeTest", "flignerTest", "moodTest", "onewayTest", "shapiroTest", "mantelhaenTest", "ansariTest", "ksTest",
-  "pairwiseTTest", "pairwiseWilcoxTest", "pairwisePropTest", "aov", "TukeyHSD", "zTest",
-  "lm", "confint", "predict",
-  // numerical methods (demo to come)
-  "integrate", "optimize", "uniroot", "approx", "spline", "splinefun", "splinefunH", "barylag", "hermiteInterp", "ode",
-  "grad", "jacobian", "hessian",
-  // distributions outside base R and distribution summaries (demo to come)
-  "dinvgamma", "pinvgamma", "qinvgamma", "dkumar", "pkumar", "qkumar", "dpareto", "ppareto", "qpareto", "dtriang", "ptriang",
-  "qtriang", "dlaplace", "plaplace", "qlaplace", "darcsine", "parcsine", "qarcsine", "distSummary",
-  "rinvgamma", "rkumar", "rpareto", "rtriang", "rlaplace", "rarcsine",
-  // special functions added for jStat coverage (demo to come)
-  "gammainc", "erfinv", "erfcinv", "perm",
-];
+const NOT_IN_DEMO_YET: string[] = [];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 
 /** Evaluates an example's js with every export in scope and flattens the result to numbers */

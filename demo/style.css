@@ -536,6 +536,19 @@ thead th {
   padding: 5px 9px;
   white-space: nowrap;
 }
+/* name / value tables whose values are long (lists of numbers, sentences) */
+.data-table.kv th,
+.data-table.kv td {
+  text-align: left;
+}
+.data-table.kv tbody th {
+  white-space: nowrap;
+  width: 1%;
+}
+.data-table.kv td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .matrix-wrap {
   width: fit-content;
 }
