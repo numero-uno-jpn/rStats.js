@@ -25,12 +25,20 @@
 // same probability are merged. For nodes with two columns left, a cumulative sum over the sorted
 // values of the remaining tables is prepared and each path is added via binary search.
 // Probabilities are held as double-double logarithms.
-// R's hybrid and simulate.p.value are not implemented.
+//
+// Simulated p-values (r x c only; R's documented behaviour): rows and columns that are all zero are dropped, B random
+// tables with the observed margins are drawn with Patefield's algorithm (src/random/r2dtable.ts), and the p-value is
+// (1 + #{simulated tables with -sum log(x_ij!) <= the observed one / (1 + 64 eps)}) / (B + 1). A 2 x 2 table is always
+// tested exactly.
+// R's hybrid is not implemented.
 
 import { dhyper1, phyper1 } from "../distributions/hypergeometric.js";
 import { roundHalfEven } from "../internal/integer.js";
+import { logFactorialTable, rcont2 } from "../random/r2dtable.js";
+import { lfactorial } from "../special/choose.js";
 import { uniroot } from "../internal/uniroot.js";
 import { ddAdd, ddLog, ddNeg, ddSub, type DD } from "../special/dd.js";
+import { simulatedMethod } from "./core/simulate.js";
 import { matchAlternative, type Alternative, type HTest, type Counts } from "./types.js";
 
 /** Options for {@link fisherTest}. */
@@ -46,6 +54,14 @@ export interface FisherTestOptions {
   confLevel?: number;
   /** Odds ratio under the null hypothesis (2 x 2 tables only). Default `1`. */
   or?: number;
+  /**
+   * Compute the p-value of an r x c table (larger than 2 x 2) by Monte Carlo simulation with `B` replicates (R's
+   * `simulate.p.value`), using the random stream of {@link setSeed} as R does. Ignored for 2 x 2 tables. Default
+   * `false`.
+   */
+  simulatePValue?: boolean;
+  /** Number of replicates for `simulatePValue`. Default `2000`. */
+  B?: number;
 }
 
 /**
@@ -66,7 +82,10 @@ export interface FisherTestResult extends Omit<HTest, "statistic" | "statisticNa
  * tolerance `1e-7`, as in R). Non-integer counts are rounded to the nearest integer
  * (ties to even), where R warns and rounds.
  *
- * Not implemented: R's `hybrid` and `simulate.p.value` options.
+ * With `simulatePValue: true`, the p-value of a table larger than 2 x 2 is computed from `B` random tables with the
+ * observed margins, drawn from the random stream of {@link setSeed} exactly as in R.
+ *
+ * Not implemented: R's `hybrid` option.
  *
  * @param x Contingency table as an array of rows (at least 2 x 2).
  * @param options See {@link FisherTestOptions}.
@@ -94,11 +113,41 @@ export function fisherTest(x: readonly Counts[], options: FisherTestOptions = {}
   const method = "Fisher's Exact Test for Count Data";
   if (nr === 2 && nc === 2) return fisher2x2(t, options, method);
   // For rxc, alternative etc. are not validated and are returned as given (as in R)
-  return {
-    method,
-    alternative: (options.alternative ?? "two.sided") as Alternative,
-    pValue: fisherRxC(t),
-  };
+  const alternative = (options.alternative ?? "two.sided") as Alternative;
+  if (options.simulatePValue ?? false) {
+    const B = options.B ?? 2000;
+    if (!(B >= 0 && B < 2 ** 31)) throw new RangeError("'B' must be a non-negative number");
+    return { method: method + simulatedMethod(B), alternative, pValue: fisherSimulated(t, B) };
+  }
+  return { method, alternative, pValue: fisherRxC(t) };
+}
+
+/** Monte Carlo p-value of an r x c table: tables with fixed margins drawn by Patefield's algorithm */
+function fisherSimulated(t: number[][], B: number): number {
+  const keepRows = t.filter((r) => r.some((v) => v > 0));
+  const keepCols = t[0]!.map((_, j) => j).filter((j) => t.some((r) => r[j]! > 0));
+  if (keepRows.length <= 1) throw new RangeError("need 2 or more non-zero row marginals");
+  if (keepCols.length <= 1) throw new RangeError("need 2 or more non-zero column marginals");
+  const x = keepRows.map((r) => keepCols.map((j) => r[j]!));
+  const sr = x.map((r) => r.reduce((a, b) => a + b, 0));
+  const sc = x[0]!.map((_, j) => x.reduce((a, r) => a + r[j]!, 0));
+  const nr = sr.length;
+  const nc = sc.length;
+  // the observed -sum log(x_ij!), summed in double-double
+  let acc: DD = [0, 0];
+  for (const v of x.flat()) acc = ddAdd(acc, [-lfactorial(v), 0]);
+  const threshold = acc[0] / (1 + 64 * Number.EPSILON);
+  const fact = logFactorialTable(sr.reduce((a, b) => a + b, 0));
+  const table = new Int32Array(nr * nc);
+  let count = 0;
+  const reps = Math.trunc(B);
+  for (let b = 0; b < reps; b++) {
+    rcont2(sr, sc, fact, table);
+    let s = 0;
+    for (let k = 0; k < table.length; k++) s -= fact[table[k]!]!;
+    if (s <= threshold) count++;
+  }
+  return Math.max(0, Math.min(1, (1 + count) / (B + 1)));
 }
 
 // ---- 2×2 ----

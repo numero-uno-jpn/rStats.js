@@ -1,4 +1,4 @@
-import { fisherTest } from "../src/index.js";
+import { fisherTest, runif, setSeed } from "../src/index.js";
 import { describe, expect, it } from "vitest";
 import { arg, defined, htestSuite } from "./helpers/htest.js";
 
@@ -24,6 +24,25 @@ htestSuite({
     if (field !== "pValue" || x.length < 3 || x[0]!.length < 3) return undefined;
     return Math.abs(actual - expected) <= 1e-10 * expected ? "rounding error of R's FEXACT for 3x3 or larger tables (within relative 1e-10)" : undefined;
   },
+});
+
+// Simulated p-values: set.seed(seed) right before the test; next is the runif(1) drawn afterwards (2 x 2 tables
+// ignore simulatePValue and draw nothing)
+htestSuite({
+  name: "fisherTestSim",
+  call: (a) => {
+    setSeed(arg.num(a.seed)!);
+    const r = fisherTest(
+      arg.mat(a.x)!,
+      defined({
+        alternative: arg.str<"two.sided" | "less" | "greater">(a.alternative),
+        simulatePValue: arg.bool(a.simulatePValue),
+        B: arg.num(a.B),
+      }),
+    );
+    return { ...r, next: runif(1)[0] };
+  },
+  tolerance: 1e-12,
 });
 
 /** Computes the p-value by enumerating all tables with fixed margins (checks the network pruning; small tables only) */

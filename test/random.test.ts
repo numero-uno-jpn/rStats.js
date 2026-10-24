@@ -4,6 +4,7 @@ import {
   rhyper, rmultinom, rnbinom, rnorm, rpois, rsignrank, rt, runif, rweibull, rwilcox, sampleInt, setRandomSeed, setSeed,
 } from "../src/index.js";
 import { rinvgamma, rkumar, rlaplace, rpareto, rtriang } from "../src/random/extra.js";
+import { r2dtable } from "../src/random/r2dtable.js";
 import { num } from "./helpers/fixture.js";
 import { nums, randomSuite, summary, type RandomCase } from "./helpers/random.js";
 
@@ -84,6 +85,12 @@ randomSuite([
   { name: "rextradist", call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS },
   { name: "rlong", call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS },
   { name: "rstate", call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS },
+  // each table flattened column by column, as R's as.vector of the matrix
+  {
+    name: "r2dtable",
+    call: (a: Args) =>
+      r2dtable(v(a, "n"), nums(a.r), nums(a.c)).flatMap((t) => t[0]!.flatMap((_, j) => t.map((row) => row[j]!))),
+  },
 ]);
 
 describe("RNG state", () => {

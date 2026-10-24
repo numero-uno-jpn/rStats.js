@@ -1,7 +1,13 @@
 // Hypothesis tests (rStats.js/tests): R's htest results as plain objects
 
 export { tTest, type TTestOptions, type TTestResult } from "../htest/tTest.js";
-export { chisqTest, type ChisqTestOptions, type ChisqTestResult } from "../htest/chisqTest.js";
+export {
+  chisqTest,
+  type ChisqTestOptions,
+  type ChisqTestResult,
+  type ChisqTestFactorsResult,
+  type Factor,
+} from "../htest/chisqTest.js";
 export { fisherTest, type FisherTestOptions, type FisherTestResult } from "../htest/fisherTest.js";
 export { wilcoxTest, type WilcoxTestOptions, type WilcoxTestResult } from "../htest/wilcoxTest.js";
 export { corTest, type CorMethod, type CorOptions, type CorTestOptions, type CorTestResult } from "../htest/cor.js";

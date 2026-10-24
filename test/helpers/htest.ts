@@ -34,6 +34,9 @@ const STRING_FIELDS = new Set([
   "names",
   "rowNames",
   "colNames",
+  // levels of chisqTest's factors
+  "rowLevels",
+  "colLevels",
 ]);
 
 export function loadHTestFixture(name: string): HTestFixture {

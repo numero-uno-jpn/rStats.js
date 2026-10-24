@@ -43,4 +43,5 @@ export { rbinom, rmultinom } from "../random/binomial.js";
 export { rsignrank, rwilcox } from "../random/rank.js";
 export { sample, sampleInt, type SampleOptions } from "../random/sample.js";
 export { rhyper } from "../random/hyper.js";
+export { r2dtable } from "../random/r2dtable.js";
 export { rinvgamma, rkumar, rpareto, rtriang, rlaplace, rarcsine } from "../random/extra.js";
