@@ -1,4 +1,5 @@
-// One-way analysis of variance (the table of R's summary(aov(y ~ g))), Tukey's honest significant differences (R's
+// One-way analysis of variance (the table of R's summary(aov(y ~ g))), aov from a model formula (the fit of
+// src/models/lm.ts; its table is aovSummary in src/models/anovaSequential.ts), Tukey's honest significant differences (R's
 // TukeyHSD) and the z test with known standard deviations (as BSDA's z.test).
 //
 // Written for rStats.js from the textbook formulas. The sums of squares are accumulated in
@@ -14,6 +15,10 @@ import { pnorm, qnorm } from "../distributions/normal.js";
 import { ptukey, qtukey } from "../distributions/tukey.js";
 import { meanDD } from "../internal/summary.js";
 import { ddAdd, ddMul, ddSub, type DD } from "../special/dd.js";
+import { parseFormula, splitErrorTerms } from "../models/formula.js";
+import { lmFormulaFit, type LmFormulaOptions, type LmFormulaResult } from "../models/lm.js";
+import type { DataFrame } from "../models/modelFrame.js";
+import { design } from "../models/modelMatrix.js";
 import { labelledGroups, toGroups, type GroupLabel } from "./groups.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
@@ -63,7 +68,41 @@ function sums(groups: readonly number[][]): { ssb: number; ssw: number; means: n
  * r.pValue; // 0.586632991041738
  * ```
  */
-export function aov(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): AovResult {
+export function aov(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): AovResult;
+/**
+ * Analysis of variance from a model formula. Equivalent to R's `aov(formula, data)` (with `weights` and
+ * `contrasts`): the same fit as {@link lm} with a formula; {@link aovSummary} gives the table of R's
+ * `summary(aov(...))`. `Error()` strata are not implemented yet.
+ *
+ * @param formula A formula such as `"y ~ A * B"`.
+ * @param data The data frame: an object of columns.
+ *
+ * @example
+ * ```ts
+ * const fit = aov("y ~ g", { y: [4.2, 5.1, 6.3, 5.8, 7.9, 8.4], g: ["a", "a", "b", "b", "c", "c"] });
+ * aovSummary(fit).rowNames; // ["g", "Residuals"]
+ * ```
+ */
+export function aov(formula: string, data: DataFrame, options?: LmFormulaOptions): LmFormulaResult;
+export function aov(
+  x: string | Sample | readonly Sample[],
+  g?: readonly GroupLabel[] | DataFrame,
+  options: LmFormulaOptions = {},
+): AovResult | LmFormulaResult {
+  if (typeof x === "string") return aovFormula(x, g as DataFrame, options);
+  return aovOneway(x, g as readonly GroupLabel[] | undefined);
+}
+
+/** aov from a formula (without Error() strata) */
+function aovFormula(formula: string, data: DataFrame, options: LmFormulaOptions): LmFormulaResult {
+  const parsed = parseFormula(formula, true);
+  const { treatment, errors } = splitErrorTerms(parsed.rhs);
+  if (errors.length > 1) throw new Error(`there are ${errors.length} Error terms: only 1 is allowed`);
+  if (errors.length === 1) throw new Error("aov() with Error() strata is not implemented yet");
+  return lmFormulaFit(formula, design(parsed, data, { ...options, dropUnusedLevels: true }, treatment), true);
+}
+
+function aovOneway(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): AovResult {
   const groups = toGroups(x, g);
   const k = groups.length;
   if (k < 2) throw new RangeError("contrasts can be applied only to factors with 2 or more levels");

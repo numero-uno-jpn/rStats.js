@@ -57,3 +57,13 @@ export {
 } from "../models/glm.js";
 export { glmConfint, type GlmConfintOptions } from "../models/glmConfint.js";
 export { glmAnova, type GlmAnovaOptions, type GlmAnovaResult, type GlmAnovaTest } from "../models/glmAnova.js";
+export {
+  modelMatrix,
+  type ModelMatrixOptions,
+  type ModelMatrixResult,
+  type ContrastName,
+} from "../models/modelMatrix.js";
+export type { DataFrame } from "../models/modelFrame.js";
+export type { LmFormulaOptions, LmFormulaResult } from "../models/lm.js";
+export { anova, aovSummary, type AnovaTable } from "../models/anovaSequential.js";
+export { Anova, type AnovaOptions } from "../models/carAnova.js";
