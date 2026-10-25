@@ -357,7 +357,7 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share
 code between areas through `dist/chunks/`, so one area loaded from them transfers more: 18 KB
-(`numerics`) to 91 KB (`tests`) gzipped, chunks included.
+(`numerics`) to 93 KB (`tests`) gzipped, chunks included.
 
 The incomplete beta function's uniform asymptotic expansion adds 1.3 KB gzipped to everything
 that uses `pbeta` (`qbeta`, `pt`, `tTest`, ...), and the allocation-free loop of its continued

@@ -147,7 +147,7 @@ Each area is also a subpath export, for importing one area without the rest:
 `predict`), `/linalg`, `/descriptive`, `/numerics` and `/special`.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function, 119 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+function, 122 KB gzipped) from jsDelivr, which serves each release tag of this repository:
 
 ```html
 <script type="module">
@@ -156,11 +156,18 @@ function, 119 KB gzipped) from jsDelivr, which serves each release tag of this r
 </script>
 ```
 
+The functions are named exports with R's names, without a prefix such as `jStat.` or `_.`. To
+keep them apart from other names, import the module as a namespace (`import * as rs from` the
+URL above) and call `rs.pnorm(1.96)`, `rs.tTest(x, y)`. With a bundler, unused functions are
+still removed (`import * as rs from "@numero-uno-jpn/rstats"`); from a CDN the whole file is
+loaded either way. Nothing is added to `window`: to use the functions from other scripts or the
+browser console, assign `window.rs = rs` yourself.
+
 A page that needs only some areas can load the per-area bundles instead: `dist/distributions.js`,
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js` and `dist/special.js`
 export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 18 KB (`numerics`) to 91 KB (`tests`) gzipped.
+transfers 18 KB (`numerics`) to 93 KB (`tests`) gzipped.
 
 Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
 work as well, for example

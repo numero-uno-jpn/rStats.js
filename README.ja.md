@@ -153,7 +153,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 `/descriptive`、`/numerics`、`/special` です。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (すべての関数を含む minify 済みの
-ES モジュール、gzip で 119 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
+ES モジュール、gzip で 122 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
 タグをそのまま配信します。
 
 ```html
@@ -163,11 +163,18 @@ ES モジュール、gzip で 119 KB) を jsDelivr から読み込めます。js
 </script>
 ```
 
+関数は R と同じ名前の named export で、`jStat.` や `_.` のような接頭辞はありません。他の名前と区別
+したいときは、名前空間として import してください (上の URL から `import * as rs from` で読み込む)。
+`rs.pnorm(1.96)`、`rs.tTest(x, y)` のように呼べます。バンドラを使う場合
+(`import * as rs from "@numero-uno-jpn/rstats"`) も、使わない関数は取り除かれます。CDN から読み込む
+場合は、どちらの書き方でもファイル全体が読み込まれます。`window` には何も追加しません。他のスクリプトや
+ブラウザのコンソールから使うときは、自分で `window.rs = rs` としてください。
+
 一部の分野だけを使うページでは、代わりに分野ごとのバンドルを読み込めます。`dist/distributions.js`、
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js` は
 上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、2 つの分野を
 読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で 18 KB
-(`numerics`) から 91 KB (`tests`) です。
+(`numerics`) から 93 KB (`tests`) です。
 
 ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm を元にした CDN も
 使えます。たとえば
