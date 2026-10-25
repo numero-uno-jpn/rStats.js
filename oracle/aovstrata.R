@@ -40,7 +40,7 @@ add("y ~ W + Error(id + G)", mix)          # G is constant within id: the Error(
 add("y ~ W + Error(id) + Error(W)", w1)
 cases[[length(cases) + 1]] <- list(formula = "y ~ W + Error(id/W)", data = wb, weights = "wt")
 
-write_htest_fixture("aovStrata", cases, function(a) {
+write_anova_fixture("aovStrata", cases, function(a) {
   r <- with_warnings(function() {
     ctr <- if (is.null(a$contrasts)) NULL else lapply(a$contrasts, identity)
     dat <- a$data

@@ -57,7 +57,7 @@ fit <- function(formula, a) {
   else { dat$.w <- dat[[a$weights]]; lm(as.formula(formula), dat, weights = .w, contrasts = ctr) }
 }
 
-write_htest_fixture("carAnova", cases, function(a) {
+write_anova_fixture("carAnova", cases, function(a) {
   r <- with_warnings(function() tab_out(Anova(fit(a$formula, a), type = a$type)))
   c(r$value, list(warnings = r$warnings))
 }, ref = function(a) {

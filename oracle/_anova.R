@@ -6,7 +6,8 @@ suppressPackageStartupMessages(library(gmp))
 #
 # Arguments. A data frame is written as an object with one array per column: numeric columns as strings (num2str,
 # "NA" for a missing value), character columns as strings (null for a missing value), logical columns as booleans
-# (null for a missing value). A formula is written as the string R deparses it to. Other arguments as in
+# (null for a missing value). Next to each data frame argument `x`, `xTypes` gives the type of each column
+# ("numeric", "character" or "logical"). A formula is written as the string R deparses it to. Other arguments as in
 # write_htest_fixture.
 #
 # Expected values. An anova table is written as {colNames, rowNames, table}: R's column and row names (row names
@@ -36,6 +37,17 @@ arg_json <- function(v) {
   if (inherits(v, "formula")) return(deparse1(v))
   if (is.list(v) && !inherits(v, "AsIs")) return(lapply(v, arg_json))
   arg_json_plain(v)
+}
+
+# The type of each column of a data frame ("numeric", "character" or "logical"), written next to it as <name>Types
+# (a character column of numbers, such as ToothGrowth's dose, looks numeric in the JSON otherwise)
+col_types <- function(d) lapply(d, function(v) if (is.numeric(v)) "numeric" else if (is.logical(v)) "logical" else "character")
+write_anova_fixture <- function(name, cases, fun, ref = NULL) {
+  cases <- lapply(cases, function(a) {
+    for (nm in names(a)) if (is.data.frame(a[[nm]])) a[[paste0(nm, "Types")]] <- col_types(a[[nm]])
+    a
+  })
+  write_htest_fixture(name, cases, fun, ref)
 }
 
 tab_out <- function(tab) {

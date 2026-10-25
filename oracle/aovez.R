@@ -166,7 +166,7 @@ exact_mlm <- function(fit, type) {
   out
 }
 
-write_htest_fixture("aovEz", cases, function(a) {
+write_anova_fixture("aovEz", cases, function(a) {
   r <- with_warnings(function() {
     fit <- run_afex(a)
     out <- list(anova = tab_out(fit$anova_table))

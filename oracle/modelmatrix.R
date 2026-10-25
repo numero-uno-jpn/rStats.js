@@ -61,7 +61,7 @@ add("y ~ A^0.5")
 add("y ~")
 add("~ A")                                                    # no response: allowed
 
-write_htest_fixture("modelMatrix", cases, function(a) {
+write_anova_fixture("modelMatrix", cases, function(a) {
   r <- with_warnings(function() {
     dat <- a$data
     for (nm in names(a$levels)) dat[[nm]] <- factor(dat[[nm]], levels = a$levels[[nm]])
