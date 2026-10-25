@@ -8,6 +8,8 @@
 // (src/internal/poissonMixture.ts). The density components can be written dpois(a + j; y) (a + j) / y.
 // Quantiles use Newton's method starting from Patnaik's (1949) approximation (c χ²_ν, c = (k + 2λ)/(k + λ),
 // ν = (k + λ)^2/(k + 2λ)).
+// With a huge λ the mixture is slow and inaccurate far from the centre; there a Chernoff bound decides first whether
+// the far tail is below the double range (then it is 0 and the near tail 1).
 
 import { dt0, dt1, quantileBoundaries, smallerTail } from "../internal/dpq.js";
 import { invertContinuous } from "../internal/invert.js";
@@ -177,7 +179,56 @@ export function pnchisq1(q: number, df: number, ncp: number, lowerTail: boolean,
     return q === Infinity ? dt1(lowerTail, logP) : gammaInc(df / 2, Math.max(q / 2, Number.MIN_VALUE), lowerTail, logP);
   }
   if (q === Infinity) return dt1(lowerTail, logP);
+  const neg = negligibleTail(chisqTailBound(q, df, ncp), lowerTail, logP);
+  if (neg !== undefined) return neg;
   return pnchisqRaw(q, df, ncp, lowerTail, logP);
+}
+
+/**
+ * Below this log a probability rounds to 0 in double precision (half the smallest subnormal is e^-745.13; the margin
+ * covers the rounding of the bound itself)
+ */
+const LOG_NEGLIGIBLE = -746;
+
+/**
+ * A tail that a rigorous bound places below the smallest positive double: `far` is "lower" when P[X <= q] is
+ * negligible, "upper" when P[X > q] is, undefined when neither bound decides it
+ */
+export type FarTail = "lower" | "upper" | undefined;
+
+/**
+ * The value of the requested tail when the far tail is negligible: the far tail is exactly 0, the near tail exactly 1
+ * (log 0). The log of the far tail is left to the full computation (undefined).
+ */
+export function negligibleTail(far: FarTail, lowerTail: boolean, logP: boolean): number | undefined {
+  if (far === undefined) return undefined;
+  const wantFar = (far === "lower") === lowerTail;
+  if (wantFar) return logP ? undefined : 0;
+  return logP ? 0 : 1;
+}
+
+/**
+ * Chernoff bounds of the noncentral χ²(k, λ), whose moment generating function is (1 - 2s)^(-k/2) e^(λs/(1 - 2s)):
+ *   P[X <= q] <= e^(sq) (1 + 2s)^(-k/2) e^(-λs/(1 + 2s))   (s > 0),
+ *   P[X >= q] <= e^(-sq) (1 - 2s)^(-k/2) e^(λs/(1 - 2s))   (0 < s < 1/2).
+ * Both exponents are convex in s and are smallest at u = 1 ± 2s = (k + sqrt(k² + 4qλ)) / (2q), the positive root of
+ * q u² - k u - λ = 0: u > 1 (q below the mean k + λ) for the lower tail, u < 1 for the upper. Returns the tail whose
+ * bound is below the double range.
+ */
+function chisqTailBound(q: number, df: number, ncp: number): FarTail {
+  const u = (df + Math.sqrt(df * df + 4 * q * ncp)) / (2 * q);
+  if (!Number.isFinite(u)) return undefined;
+  if (u > 1) {
+    const s = (u - 1) / 2;
+    const lb = s * q - (df / 2) * Math.log(u) - (ncp * s) / u;
+    return lb < LOG_NEGLIGIBLE ? "lower" : undefined;
+  }
+  if (u < 1 && u > 0) {
+    const s = (1 - u) / 2;
+    const lb = -s * q - (df / 2) * Math.log(u) + (ncp * s) / u;
+    return lb < LOG_NEGLIGIBLE ? "upper" : undefined;
+  }
+  return undefined;
 }
 
 export function qnchisq1(p: number, df: number, ncp: number, lowerTail: boolean, logP: boolean): number {

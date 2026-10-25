@@ -5,7 +5,21 @@ import { Comparison, loadAnovaFixture, type KnownDifference } from "./helpers/an
 import { comparePowerCase, optionsOf } from "./helpers/power.js";
 
 /** Values that differ from R by more than 1e-12 but are within 1e-12 of the reference */
-const KNOWN: KnownDifference[] = [];
+const PNT = "R's noncentral pt is accurate to only about 1e-12";
+const PNT_ROOT = `${PNT}; uniroot's iterates follow the function values, so R's root moves with it`;
+const PNF = "R's noncentral pf (pnbeta) is accurate to only about 1e-9";
+const PNF_ROOT = `${PNF}; uniroot's iterates follow the function values, so R's root moves with it`;
+const KNOWN: KnownDifference[] = [
+  ...[9, 14, 19, 24, 29].map((c) => ({ case: c, table: "sigLevel", row: "0", col: "", reason: PNT_ROOT })),
+  { case: 30, table: "power", row: "0", col: "", reason: `${PNT} (strict two-sided power)` },
+  { case: 37, table: "power", row: "0", col: "", reason: PNT },
+  { case: 54, table: "power", row: "0", col: "", reason: PNF },
+  { case: 55, table: "n", row: "0", col: "", reason: PNF_ROOT },
+  { case: 56, table: "groups", row: "0", col: "", reason: PNF_ROOT },
+  { case: 57, table: "betweenVar", row: "0", col: "", reason: PNF_ROOT },
+  { case: 58, table: "withinVar", row: "0", col: "", reason: PNF_ROOT },
+  { case: 59, table: "sigLevel", row: "0", col: "", reason: PNF_ROOT },
+];
 
 const fixture = loadAnovaFixture("powerStats");
 const FUNCTIONS: Record<string, (o: never) => object> = {

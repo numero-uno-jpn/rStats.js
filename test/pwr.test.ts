@@ -21,7 +21,20 @@ import { Comparison, loadAnovaFixture, type KnownDifference } from "./helpers/an
 import { comparePowerCase, optionsOf } from "./helpers/power.js";
 
 /** Values that differ from R by more than 1e-12 but are within 1e-12 of the reference */
-const KNOWN: KnownDifference[] = [];
+const PNF = "R's noncentral pf (pnbeta) is accurate to only about 1e-9";
+const PNF_ROOT = `${PNF}; uniroot's iterates follow the function values, so R's root moves with it`;
+const KNOWN: KnownDifference[] = [
+  { case: 110, table: "power", row: "0", col: "", reason: "R's noncentral pt is accurate to only about 1e-12 (19 998 degrees of freedom)" },
+  { case: 129, table: "power", row: "0", col: "", reason: PNF },
+  { case: 130, table: "n", row: "0", col: "", reason: PNF_ROOT },
+  { case: 131, table: "k", row: "0", col: "", reason: PNF_ROOT },
+  { case: 132, table: "f", row: "0", col: "", reason: PNF_ROOT },
+  { case: 133, table: "sigLevel", row: "0", col: "", reason: PNF_ROOT },
+  { case: 136, table: "power", row: "0", col: "", reason: PNF },
+  { case: 137, table: "v", row: "0", col: "", reason: PNF_ROOT },
+  { case: 139, table: "f2", row: "0", col: "", reason: PNF_ROOT },
+  { case: 140, table: "sigLevel", row: "0", col: "", reason: PNF_ROOT },
+];
 
 const fixture = loadAnovaFixture("pwr");
 const nums = (v: unknown): number[] => (v as string[]).map(num);

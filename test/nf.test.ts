@@ -26,6 +26,12 @@ fixtureSuite({
   tolerance: 1e-14,
   call: (a) => pf(num(a.q), num(a.df1), num(a.df2), opts(a)),
 });
+// A huge noncentrality far from q: the far tail is below the double range (0), the near tail 1
+fixtureSuite({
+  name: "pnfHuge",
+  tolerance: 1e-14,
+  call: (a) => pf(num(a.q), num(a.df1), num(a.df2), opts(a)),
+});
 // Rows with df2 = Inf are excluded from the suite's boundary checks (which cover only rows with all-finite parameters), so check them here
 const infDf2 = (a: Record<string, string | boolean>, e: number, x: number): string | undefined => {
   if (num(a.df2) !== Infinity || !a.logP || !a.lowerTail) return undefined;
