@@ -12,8 +12,9 @@ source("/oracle/_glm.R")
 #   predict on the data: seLink (type = "link") and seResponse (type = "response"); with newdata (and newoffset
 #     for a model with an offset): predictLink, predictResponse, newSeLink, newSeResponse
 #   warnings: R's warning messages (an empty array when there are none)
-# Cases with epsilon = 1e-14 iterate until the deviance stops changing, so that their coefficients are the
-# maximum likelihood estimate to rounding, independently of the iteration path.
+# Cases with epsilon = 1e-14 iterate until the relative change of the deviance is below 1e-14. They are NOT the maximum
+# likelihood estimate to rounding: the deviance is stationary at the estimate, so the coefficients can still be about
+# sqrt(1e-14) = 1e-7 (relative) away from it when R's rule stops (for example with the cauchit and log-binomial links).
 
 set.seed(20261101)
 cases <- list()

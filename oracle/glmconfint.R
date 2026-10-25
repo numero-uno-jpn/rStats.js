@@ -13,8 +13,11 @@ source("/oracle/_glm.R")
 #
 # Written for each case: confLower, confUpper (R; NA where the profile does not reach the cutoff), and the same
 # fields under reference: the exact solutions of z(b_j) = qnorm((1 -/+ level)/2), found with uniroot on refits that are
-# converged to rounding (epsilon = 1e-14) and starting from the converged full fit. NA where z(b_j) does not
-# reach the cutoff (within 2^30 standard errors). glm.fit detects aliased columns with the tolerance
+# converged to rounding and start from the full fit, also converged to rounding. R's convergence rule (relative change
+# of the deviance below epsilon) stops while the coefficients can still move by about sqrt(epsilon), which leaves the
+# Pearson dispersion and the score statistic unconverged; so these fits run a fixed 100 iterations with an epsilon
+# that is never reached (1e-300), and the dispersion and the score come from the converged weights. NA where z(b_j)
+# does not reach the cutoff (within 2^30 standard errors). glm.fit detects aliased columns with the tolerance
 # min(1e-7, epsilon / 1000), so these fits leave out the columns that the fit with the default epsilon finds aliased.
 
 set.seed(20261102)
@@ -73,7 +76,7 @@ write_linalg_fixture("glmConfint", cases, function(a) {
   list(confLower = vec_out(ci[, 1]), confUpper = vec_out(ci[, 2]))
 }, ref = function(a) {
   full <- coef(glm_fit(a))
-  b <- a; b$epsilon <- 1e-14; b$maxit <- 200
+  b <- a; b$epsilon <- 1e-300; b$maxit <- 100
   cols <- which(!is.na(full[paste0("x", seq_len(ncol(as.matrix(a$x))))]))
   fit <- glm_fit(b, cols)
   B0 <- coef(fit)[names(full)]; names(B0) <- names(full)
@@ -86,7 +89,7 @@ write_linalg_fixture("glmConfint", cases, function(a) {
   X[, colnames(Xr)] <- Xr
   mf <- model.frame(fit); Y <- model.response(mf)
   O <- model.offset(mf) %||% rep(0, NROW(Y)); W <- model.weights(mf) %||% rep(1, NROW(Y))
-  fam <- family(fit); ctrl <- glm.control(epsilon = 1e-14, maxit = 200)
+  fam <- family(fit); ctrl <- glm.control(epsilon = 1e-300, maxit = 100)
   LP <- drop(X[, nonA, drop = FALSE] %*% B0[nonA]) + O
   test <- a$test %||% "LRT"
   zstat <- function(i, bi) {

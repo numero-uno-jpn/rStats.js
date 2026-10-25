@@ -47,6 +47,8 @@ glm_formula <- function(a, cols = seq_len(ncol(as.matrix(a$x)))) {
 glm_fit <- function(a, cols = seq_len(ncol(as.matrix(a$x)))) {
   d <- glm_frame(a$x, a$offset)
   y <- if (is.matrix(a$y)) a$y else unclass(a$y)
+  # a data frame would recycle a shorter y; R's glm with separate vectors fails, with this message
+  if (NROW(y) != nrow(d)) stop("variable lengths differ (found for 'x1')")
   d$y <- if (is.matrix(y)) I(y) else y
   cl <- list(formula = glm_formula(a, cols), family = glm_family(a), data = d,
              control = glm.control(epsilon = a$epsilon %||% 1e-8, maxit = a$maxit %||% 25))
