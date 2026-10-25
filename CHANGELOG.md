@@ -7,6 +7,28 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- Model formulas: `lm(formula, data)` and `aov(formula, data)` take an R formula string and a data frame (an
+  object of columns; strings and booleans are factors), besides the existing matrix and group forms. Formulas
+  support `+`, `-`, `*`, `/`, `:`, `%in%`, `^`, `.`, `0`/`1` and parentheses, with R's term order, labels and
+  coding (contrasts or indicators by R's rule, the first factor coded by indicators without an intercept), the
+  contrasts `contr.treatment`, `contr.sum` and `contr.helmert`, a `levels` option and weights. `modelMatrix`
+  returns R's `model.matrix` with the attributes of `terms()`.
+- `anova` (`anova.lm`): the sequential table of a fit and the comparison of several fits; `aovSummary`
+  (`summary(aov(...))`).
+- `aov` with an `Error()` term: the error strata and their tables, as R's multistratum `aov`.
+- `Anova` (`car::Anova` for linear models): type II and type III tests.
+- `aovEz` (`afex::aov_ez`): repeated-measures, between-subjects and mixed designs from long data, with car's
+  univariate tests, the Greenhouse-Geisser and Huynh-Feldt corrections, Mauchly's tests, generalized and partial
+  eta squared (`es`, `observed`), types II and III, and afex's aggregation and checks.
+- `mauchlyTest` (`mauchly.test`) for the responses of several measurements per subject, with `group`, `M`, `X`
+  and `idata`.
+- The fits are computed in double-double where R's QR decomposition loses digits (a mean of 1e6: R's
+  coefficients are off by up to 1.5e-11); every table agrees with R to 1e-12 or with exact rational values.
+
 ## 0.9.0 - 2026-10-25
 
 ### Added

@@ -36,6 +36,7 @@ against R and are not a priority.
 | Descriptive statistics | R's summaries (`mean`, `variance`, `quantile` with all nine types, `rank`, `cov`/`cor` matrices, `table`, `cut`, `hist`, `ecdf`, `scale`, ...) and e1071's and DescTools' (`skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv`) |
 | Hypothesis tests | R's `htest` functions: `tTest`, `chisqTest` (including simulated p-values and two factor vectors), `fisherTest` (including r × c and simulated p-values), `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest` (with its confidence interval), `ksTest`, the `pairwise*` helpers, `pAdjust`; `aov` (one way), `TukeyHSD`, `zTest` (BSDA), `brunnerMunzelTest` (lawstat) |
 | Linear models | `lm` with a matrix interface and `summary.lm`'s quantities, `confint`, `predict`; `glm` with a matrix interface (every family and link of R's `stats`), `summary.glm`, the four kinds of residuals, `hatvalues`, `rstandard`, `cooks.distance`, `predict` with standard errors, profile likelihood `confint` (exact limits) and `anova` |
+| Analysis of variance | `aov`, `lm` and `modelMatrix` from formulas (several factors, interactions, covariates, `Error()` strata), `anova` (sequential and model comparison), car's `Anova` (types II and III), afex's `aov_ez` as `aovEz` (repeated measures, Greenhouse-Geisser and Huynh-Feldt, generalized eta squared), `mauchly.test` |
 | Linear algebra | the matrix functions of R's `base`, with `Matrix::lu`, `prcomp` (`stats`) and `MASS::ginv`: matrix arithmetic, `crossprod`, `norm`, `backsolve`, `chol`, `qr` (R's pivoting and LAPACK), `solve`, `det`, `rcond`, `kappa`, `svd`, `eigen` (symmetric and general), `lu`, `prcomp`, `ginv` |
 | Numerical methods | `integrate`, `optimize`, `uniroot`, `approx`, `spline`/`splinefun`/`splinefunH`, Lagrange (pracma) and Hermite interpolation, fixed-step `ode` (deSolve), `grad`/`jacobian`/`hessian` (numDeriv) |
 | jStat | every jStat function has a replacement ([docs/migrating-from-jstat.md](docs/migrating-from-jstat.md)), checked against jStat |
@@ -48,27 +49,24 @@ The full list is in the [README](README.md#what-is-included); known differences 
 In order of priority. The R function or package that each item is checked against is given in
 brackets.
 
-1. **Analysis of variance:** more than one factor and interactions, `anova` for `lm`, type II and
-   III sums of squares (`car::Anova`), repeated measures and mixed designs with `mauchly.test` and
-   the Greenhouse-Geisser and Huynh-Feldt corrections (`afex`).
-2. **Effect sizes and power:** Cohen's d, Hedges' g, η², partial η² and ω² with their confidence
+1. **Effect sizes and power:** Cohen's d, Hedges' g, η², partial η² and ω² with their confidence
    intervals (`effectsize`); `power.t.test`, `power.prop.test`, `power.anova.test` (`stats`) and
    the effect-size forms of `pwr`.
-3. **Multiple comparisons:** Steel-Dwass (`PMCMRplus`), Dunn (`dunn.test`), Dunnett and Steel
+2. **Multiple comparisons:** Steel-Dwass (`PMCMRplus`), Dunn (`dunn.test`), Dunnett and Steel
    (`multcomp`, `PMCMRplus`). `multcomp` computes Dunnett's p-values with `mvtnorm`'s randomised
    integration, which reproduces only about five digits; the correlation of Dunnett's statistics
    has a product form that reduces the probability to a one-dimensional integral, so these are
    computed to full precision and checked against high-precision references instead.
-4. **More tests:** Levene (`car::leveneTest`), `prop.trend.test` (`stats`), Jonckheere-Terpstra
+3. **More tests:** Levene (`car::leveneTest`), `prop.trend.test` (`stats`), Jonckheere-Terpstra
    (`clinfun`), Cochran's Q (`DescTools`), and the Anderson-Darling and Lilliefors tests of
    normality (`nortest`).
-5. **Survival analysis:** the log-rank test (`survival::survdiff`) and the Kaplan-Meier estimate
+4. **Survival analysis:** the log-rank test (`survival::survdiff`) and the Kaplan-Meier estimate
    with its confidence intervals (`survival::survfit`). Cox regression later.
-6. **Optimisation and factor analysis:** `optim`, then `factanal` (`stats`), then McDonald's ω
+5. **Optimisation and factor analysis:** `optim`, then `factanal` (`stats`), then McDonald's ω
    (`psych`).
-7. **Agreement, reliability and correlation:** Cohen's κ and the ICC (`irr`), Cronbach's α
+6. **Agreement, reliability and correlation:** Cohen's κ and the ICC (`irr`), Cronbach's α
    (`psych`), partial correlation, and polychoric and tetrachoric correlation (`polycor`).
-8. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
+7. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
    uniform asymptotic expansion (constant time instead of a continued fraction of length √(a + b)),
    with one parameter large and the other small DiDonato and Morris's expansion (`pt` and `pf` with
    large degrees of freedom, `pbeta(x, 1e6, 10)`, `pbinom` with x near 0 or n: about the time of a

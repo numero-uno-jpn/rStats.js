@@ -103,6 +103,8 @@ affected.
 | `aov` (one way) with a large mean and small spread, or all values equal | R fits through a QR decomposition: sums of squares off by 6e-8 (1e6 + noise of 1e-3); F = 1 from rounding residue when all values are equal, 5.9e30 when the groups are constant | sums of squares in double-double (F = NaN, Inf) |
 | `TukeyHSD` | R's `ptukey` and `qtukey` (see above); the p-value is off by 3e-6 with df = 5 (two groups, where it follows from the t distribution) | agrees with high-precision values |
 | `lm` with nearly collinear columns (1e6 + noise, with an intercept) | coefficients off by 1.7e-9 from 60-digit values | 3.6e-11 (both within eps times the condition number) |
+| `lm` and `anova` from a formula with a large mean (1e6 + noise) | coefficients off by up to 1.5e-11 and R² by 2.8e-12 from exact rational values; sums of squares near 0 off by 1.6e-10 relative | fit in double-double; within 7e-15 of the exact values |
+| `mauchly.test` on contrasts given by `M` and `X` | W off by up to 4e-12 from the exact value, and the p-value near W = 1 by 1.3e-12 | W in double-double; within 1e-15 of the exact value |
 
 ### Distributions outside base R
 
@@ -257,6 +259,16 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   sorts as `"B"`, `"a"`, `"b"` here and as `"a"`, `"b"`, `"B"` in an en_US locale). The same holds
   for the levels of the two factors of `chisqTest(x, y)` (the rows and columns of the table), which
   must be strings (`null` for missing values).
+  It also holds for the factors of formulas (`modelMatrix`, `lm`, `aov`; `levels` fixes the order)
+  and for the between-subject factors of `aovEz`. The within-subject factors of `aovEz` keep afex's
+  order of first appearance in the data.
+- **Formulas** are strings and support variable names, `.`, `+`, `-`, `*`, `/`, `:`, `%in%`, `^`,
+  parentheses, `0` and `1`, and one `Error()` term in `aov`. Function calls (`log(x)`, `I(x^2)`,
+  `poly(x, 2)`, `offset()`), backquoted names and transformed responses are not supported: compute
+  the column first. Contrasts are `contr.treatment` (default), `contr.sum` and `contr.helmert`. A
+  formula that cannot be parsed throws "invalid formula: ..." instead of R's parse error.
+- **`aovEz` messages that R completes with a printout of the data** (ids removed for missing
+  values, empty within-subject cells, empty between-subject cells) stop where the printout starts.
 
 ### Linear models
 

@@ -97,6 +97,31 @@ glmAnova(fit).table[1];                            // ≈ [1, 62.978, 4, 0.5196,
 fit.warnings;                                      // [] (R's warnings, such as non-convergence)
 ```
 
+### formula による分散分析
+
+`lm` と `aov` は、R の formula とデータフレーム (列のオブジェクト。文字列の列は因子) でも呼べます。`anova` は R の
+逐次の表、`Anova` は car の Type II と III の検定、`aovEz` は afex の反復測定の分散分析 (Greenhouse-Geisser の補正と
+一般化 η² つき) です。
+
+```ts
+import { lm, anova, Anova, aovEz } from "@numero-uno-jpn/rstats";
+
+const d = { y: [12.1, 14.3, 13.8, 17.2, 19.5, 22.4, 11.6, 13.9, 15.7, 18.8, 21.1, 25.3],
+            A: ["a", "a", "b", "b", "c", "c", "a", "a", "b", "b", "c", "c"],
+            B: ["p", "q", "p", "q", "p", "q", "p", "q", "p", "q", "p", "q"] };
+const fit = lm("y ~ A * B", d, { contrasts: { A: "contr.sum", B: "contr.sum" } });
+anova(fit).rowNames;                   // ["A", "B", "A:B", "Residuals"]
+anova(fit).table[0];                   // ≈ [2, 169.147, 84.573, 57.828, 0.00011997] (Df, Sum Sq, Mean Sq, F, p)
+Anova(fit, { type: 3 }).table[1];      // ≈ [169.147, 2, 57.828, 0.00011997] (car::Anova(fit, type = 3))
+
+// 反復測定 (R: afex::aov_ez("id", "y", long, within = "W"))
+const long = { id: ["s1", "s1", "s1", "s2", "s2", "s2", "s3", "s3", "s3", "s4", "s4", "s4", "s5", "s5", "s5"],
+               W: ["pre", "mid", "post", "pre", "mid", "post", "pre", "mid", "post", "pre", "mid", "post", "pre", "mid", "post"],
+               y: [5.1, 6.3, 7.2, 4.8, 5.9, 7.5, 6.0, 6.1, 8.3, 5.5, 6.8, 7.1, 4.9, 6.6, 7.8] };
+aovEz(long, { id: "id", dv: "y", within: "W" }).anova.table[0];
+// ≈ [1.735, 6.940, 0.21653, 35.876, 0.84607, 0.00026363] (num Df, den Df, MSE, F, ges, p。GG で補正)
+```
+
 ### 線形代数
 
 行列は行の配列で表します。
@@ -119,8 +144,9 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | 分布 (d/p/q) | 正規、t、カイ二乗、F、ベータ、ガンマ、二項、ポアソン、一様、指数、対数正規、ロジスティック、コーシー、ワイブル、幾何、負の二項、超幾何、Wilcoxon の符号付き順位と順位和、スチューデント化された範囲 (`ptukey`, `qtukey`)、非心カイ二乗・t・F・ベータ (`ncp`)。多項分布の確率 (`dmultinom`)。逆ガンマ、Kumaraswamy、Pareto、三角、Laplace (extraDistr) と逆正弦。`distSummary` (平均・分散・標準偏差・中央値・最頻値・歪度・尖度) |
 | 乱数 | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister と L'Ecuyer-CMRG、`sample.kind` の Rejection と Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
 | 記述統計 | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
-| 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov`, `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
-| 線形モデル | `lm` (行列で渡す形。`summary` の値も返す), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
+| 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (一元配置), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
+| 分散分析 | formula で呼ぶ `aov` と `aovSummary` (多元、交互作用、共変量、`Error()` の層), `anova` (`anova.lm`。逐次の表とモデルの比較), `Anova` (car の Type II と III), `aovEz` (afex。反復測定と混合計画、Greenhouse-Geisser と Huynh-Feldt の補正、一般化 η² と偏 η²), `mauchlyTest` (`mauchly.test`) |
+| 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
 | 線形代数 | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS) |
 | 数値計算 | `integrate`, `optimize`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
 
@@ -168,7 +194,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 21.4 KB |
 | `qbeta` / `pt` と `qt` | 23.2 / 30.3 KB |
 | `glm` と `glmSummary` / `glm` とそのすべての関数 | 27.2 / 39.2 KB |
-| すべて | 130.0 KB |
+| すべて | 141.5 KB |
 
 (`npm run size` で測れます。)
 
@@ -177,7 +203,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 `/descriptive`、`/numerics`、`/special` です。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (すべての関数を含む minify 済みの
-ES モジュール、gzip で 130 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
+ES モジュール、gzip で 141 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
 タグをそのまま配信します。
 
 ```html
@@ -198,7 +224,7 @@ ES モジュール、gzip で 130 KB) を jsDelivr から読み込めます。js
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js` は
 上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、2 つの分野を
 読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で 18 KB
-(`numerics`) から 102 KB (`tests`) です。
+(`numerics`) から 116 KB (`tests`) です。
 
 ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm を元にした CDN も
 使えます。たとえば

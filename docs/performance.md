@@ -348,9 +348,9 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 | `qbeta` | 49.7 KB | 23.2 KB |
 | `pt`, `qt` | 63.8 KB | 30.3 KB |
 | `glm`, `glmSummary` / `glm` with all its methods | 62.7 / 88.7 KB | 27.2 / 39.2 KB |
-| everything | 343.5 KB | 130.0 KB |
+| everything | 373.3 KB | 141.5 KB |
 | `@numero-uno-jpn/rstats/distributions` (all of it) | 168.9 KB | 66.7 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 197.1 KB | 78.8 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 235.9 KB | 93.6 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 39.9 KB | 14.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 21.5 KB | 8.4 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 22.8 KB | 10.3 KB |
@@ -358,7 +358,7 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share
 code between areas through `dist/chunks/`, so one area loaded from them transfers more: 18 KB
-(`numerics`) to 102 KB (`tests`) gzipped, chunks included.
+(`numerics`) to 116 KB (`tests`) gzipped, chunks included.
 
 The incomplete beta function's uniform asymptotic expansion adds 1.3 KB gzipped to everything
 that uses `pbeta` (`qbeta`, `pt`, `tTest`, ...), and the allocation-free loop of its continued

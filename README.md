@@ -93,6 +93,31 @@ glmAnova(fit).table[1];                            // ≈ [1, 62.978, 4, 0.5196,
 fit.warnings;                                      // [] (R's warnings, such as non-convergence)
 ```
 
+### Analysis of variance with formulas
+
+`lm` and `aov` also take an R formula and a data frame (an object of columns; strings are factors). `anova` gives
+R's sequential table, `Anova` car's type II and III tests, `aovEz` afex's repeated-measures ANOVA with the
+Greenhouse-Geisser correction and generalized eta squared.
+
+```ts
+import { lm, anova, Anova, aovEz } from "@numero-uno-jpn/rstats";
+
+const d = { y: [12.1, 14.3, 13.8, 17.2, 19.5, 22.4, 11.6, 13.9, 15.7, 18.8, 21.1, 25.3],
+            A: ["a", "a", "b", "b", "c", "c", "a", "a", "b", "b", "c", "c"],
+            B: ["p", "q", "p", "q", "p", "q", "p", "q", "p", "q", "p", "q"] };
+const fit = lm("y ~ A * B", d, { contrasts: { A: "contr.sum", B: "contr.sum" } });
+anova(fit).rowNames;                   // ["A", "B", "A:B", "Residuals"]
+anova(fit).table[0];                   // ≈ [2, 169.147, 84.573, 57.828, 0.00011997] (Df, Sum Sq, Mean Sq, F, p)
+Anova(fit, { type: 3 }).table[1];      // ≈ [169.147, 2, 57.828, 0.00011997] (car::Anova(fit, type = 3))
+
+// repeated measures (R: afex::aov_ez("id", "y", long, within = "W"))
+const long = { id: ["s1", "s1", "s1", "s2", "s2", "s2", "s3", "s3", "s3", "s4", "s4", "s4", "s5", "s5", "s5"],
+               W: ["pre", "mid", "post", "pre", "mid", "post", "pre", "mid", "post", "pre", "mid", "post", "pre", "mid", "post"],
+               y: [5.1, 6.3, 7.2, 4.8, 5.9, 7.5, 6.0, 6.1, 8.3, 5.5, 6.8, 7.1, 4.9, 6.6, 7.8] };
+aovEz(long, { id: "id", dv: "y", within: "W" }).anova.table[0];
+// ≈ [1.735, 6.940, 0.21653, 35.876, 0.84607, 0.00026363] (num Df, den Df, MSE, F, ges, p; GG-corrected)
+```
+
 ### Linear algebra
 
 Matrices are arrays of rows.
@@ -115,8 +140,9 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | Distributions (d/p/q) | normal, t, chi-squared, F, beta, gamma, binomial, Poisson, uniform, exponential, log-normal, logistic, Cauchy, Weibull, geometric, negative binomial, hypergeometric, Wilcoxon signed rank and rank sum, studentized range (`ptukey`, `qtukey`), non-central chi-squared, t, F and beta (`ncp`); the multinomial probability (`dmultinom`); inverse gamma, Kumaraswamy, Pareto, triangular, Laplace (extraDistr) and arcsine; `distSummary` (mean, variance, sd, median, mode, skewness, kurtosis) |
 | Random numbers | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister and L'Ecuyer-CMRG, `sample.kind` Rejection and Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 `r*` functions, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
 | Descriptive statistics | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
-| Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov`, `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
-| Linear models | `lm` (matrix interface, with the `summary` quantities), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`) |
+| Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (one way), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
+| Analysis of variance | `aov` and `aovSummary` with a formula (several factors, interactions, covariates, `Error()` strata), `anova` (`anova.lm`, sequential and model comparison), `Anova` (car: types II and III), `aovEz` (afex: repeated-measures and mixed designs, Greenhouse-Geisser and Huynh-Feldt corrections, generalized and partial eta squared), `mauchlyTest` (`mauchly.test`) |
+| Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`) |
 | Linear algebra | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` with `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS) |
 | Numerical methods | `integrate`, `optimize`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
 
@@ -162,7 +188,7 @@ removed. Approximate sizes after minification and gzip:
 | `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 21.4 KB |
 | `qbeta` / `pt` and `qt` | 23.2 / 30.3 KB |
 | `glm` and `glmSummary` / `glm` with all its methods | 27.2 / 39.2 KB |
-| everything | 130.0 KB |
+| everything | 141.5 KB |
 
 (`npm run size` measures these.)
 
@@ -171,7 +197,7 @@ Each area is also a subpath export, for importing one area without the rest:
 `predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics` and `/special`.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function, 130 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+function, 141 KB gzipped) from jsDelivr, which serves each release tag of this repository:
 
 ```html
 <script type="module">
@@ -191,7 +217,7 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js` and `dist/special.js`
 export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 18 KB (`numerics`) to 102 KB (`tests`) gzipped.
+transfers 18 KB (`numerics`) to 116 KB (`tests`) gzipped.
 
 Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
 work as well, for example

@@ -39,9 +39,16 @@ CDN without a bundler, see the README section "Using it in the browser".
   values with a parallel array of group labels (`kruskalTest(x, g)`). The first argument of the
   d/p/q functions may be a number or an array (the result has the same shape); distribution
   parameters are scalars and are not recycled as vectors.
-- Models: `lm(x, y)` and `glm(x, y, { family })` take a matrix (array of rows) or a vector of
-  predictors instead of a formula; the intercept is added unless `intercept: false`. A binomial
-  response can be rows of `[successes, failures]`, like `cbind(s, f)` in R.
+- Models: `lm` and `aov` take an R formula string and a data frame given as an object of columns:
+  `lm("y ~ A * B + x", { y, A, B, x })`, `aov("y ~ W + Error(id/W)", data)`; string columns are
+  factors (levels sorted by code point unless `levels: { A: [...] }`), `contrasts: { A: "contr.sum" }`
+  sets the coding. Formula functions such as `log(x)` or `I(x^2)` are not supported: compute the
+  column first. Tables (`anova(fit)`, `Anova(fit, { type: 3 })` for car's `Anova`, `aovSummary(fit)`)
+  are `{ colNames, rowNames, table }` with R's names. afex's `aov_ez(id, dv, data, between, within)`
+  is `aovEz(data, { id, dv, between, within })`. `lm(x, y)` also takes a matrix, and `glm(x, y, {
+  family })` takes a matrix (array of rows) or a vector of predictors (no formula); the intercept
+  is added unless `intercept: false`. A binomial response can be rows of `[successes, failures]`,
+  like `cbind(s, f)` in R.
 - Indices are 0-based where R returns indices: `sampleInt(n)` returns `0..n-1` (R's
   `sample.int(n) - 1` from the same random stream), and the pivots of `qr` and `chol`.
 - Hypothesis tests do not emit R's warnings. `glm` returns R's warnings in its result

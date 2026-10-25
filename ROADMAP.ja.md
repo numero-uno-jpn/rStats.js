@@ -36,6 +36,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 | 記述統計 | R の要約 (`mean`、`variance`、9 種類の `quantile`、`rank`、行列の `cov`/`cor`、`table`、`cut`、`hist`、`ecdf`、`scale` など) と e1071・DescTools のもの (`skewness`、`kurtosis`、`geometricMean`、`modes`、`meanAD`、`cv`) |
 | 仮説検定 | R の `htest` の関数: `tTest`、`chisqTest` (シミュレーションによる p 値と 2 つの因子ベクトルを含む)、`fisherTest` (r × c とシミュレーションによる p 値を含む)、`wilcoxTest`、`corTest`、`binomTest`、`poissonTest`、`propTest`、`mcnemarTest`、`varTest`、`bartlettTest`、`kruskalTest`、`friedmanTest`、`quadeTest`、`flignerTest`、`moodTest`、`onewayTest`、`shapiroTest`、`mantelhaenTest`、`ansariTest` (信頼区間を含む)、`ksTest`、`pairwise*`、`pAdjust`。一元配置の `aov`、`TukeyHSD`、`zTest` (BSDA)、`brunnerMunzelTest` (lawstat) |
 | 線形モデル | 行列で渡す `lm` と `summary.lm` の値、`confint`、`predict`。行列で渡す `glm` (R の `stats` のすべての族とリンク)、`summary.glm`、4 種類の残差、`hatvalues`、`rstandard`、`cooks.distance`、標準誤差つきの `predict`、プロファイル尤度の `confint` (厳密な限界)、`anova` |
+| 分散分析 | formula で呼ぶ `aov`、`lm`、`modelMatrix` (多元、交互作用、共変量、`Error()` の層)、`anova` (逐次の表とモデルの比較)、car の `Anova` (Type II と III)、afex の `aov_ez` に当たる `aovEz` (反復測定、Greenhouse-Geisser と Huynh-Feldt、一般化 η²)、`mauchly.test` |
 | 線形代数 | R の `base` の行列関数と、`Matrix::lu`、`prcomp` (`stats`)、`MASS::ginv`: 行列演算、`crossprod`、`norm`、`backsolve`、`chol`、`qr` (R のピボット選択と LAPACK)、`solve`、`det`、`rcond`、`kappa`、`svd`、`eigen` (対称と一般)、`lu`、`prcomp`、`ginv` |
 | 数値計算 | `integrate`、`optimize`、`uniroot`、`approx`、`spline`/`splinefun`/`splinefunH`、Lagrange (pracma) と Hermite の補間、固定刻みの `ode` (deSolve)、`grad`/`jacobian`/`hessian` (numDeriv) |
 | jStat | jStat の全関数に置き換えがある ([docs/ja/migrating-from-jstat.md](docs/ja/migrating-from-jstat.md))。jStat と照合済み |
@@ -47,24 +48,21 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-1. **分散分析:** 2 つ以上の因子と交互作用、`lm` に対する `anova`、Type II と Type III の平方和
-   (`car::Anova`)、反復測定と混合計画、`mauchly.test`、Greenhouse-Geisser と Huynh-Feldt の補正
-   (`afex`)。
-2. **効果量と検出力:** Cohen の d、Hedges の g、η²、偏 η²、ω² とその信頼区間 (`effectsize`)。
+1. **効果量と検出力:** Cohen の d、Hedges の g、η²、偏 η²、ω² とその信頼区間 (`effectsize`)。
    `power.t.test`、`power.prop.test`、`power.anova.test` (`stats`) と、効果量で指定する `pwr` の関数。
-3. **多重比較:** Steel-Dwass (`PMCMRplus`)、Dunn (`dunn.test`)、Dunnett と Steel (`multcomp`、
+2. **多重比較:** Steel-Dwass (`PMCMRplus`)、Dunn (`dunn.test`)、Dunnett と Steel (`multcomp`、
    `PMCMRplus`)。`multcomp` は Dunnett の p 値を `mvtnorm` の乱数を使う積分で求めるので、再現するのは
    5 桁程度です。Dunnett の統計量の相関は積の形をしていて、確率が 1 次元の積分に帰着するので、
    これらは完全な精度で計算し、代わりに高精度の参照値と照合します。
-4. **ほかの検定:** Levene (`car::leveneTest`)、`prop.trend.test` (`stats`)、Jonckheere-Terpstra
+3. **ほかの検定:** Levene (`car::leveneTest`)、`prop.trend.test` (`stats`)、Jonckheere-Terpstra
    (`clinfun`)、Cochran の Q (`DescTools`)、正規性の Anderson-Darling 検定と Lilliefors 検定
    (`nortest`)。
-5. **生存時間解析:** log-rank 検定 (`survival::survdiff`) と、Kaplan-Meier 推定とその信頼区間
+4. **生存時間解析:** log-rank 検定 (`survival::survdiff`) と、Kaplan-Meier 推定とその信頼区間
    (`survival::survfit`)。Cox 回帰は後で。
-6. **最適化と因子分析:** `optim`、次に `factanal` (`stats`)、次に McDonald の ω (`psych`)。
-7. **一致度・信頼性・相関:** Cohen の κ と ICC (`irr`)、Cronbach の α (`psych`)、偏相関、
+5. **最適化と因子分析:** `optim`、次に `factanal` (`stats`)、次に McDonald の ω (`psych`)。
+6. **一致度・信頼性・相関:** Cohen の κ と ICC (`irr`)、Cronbach の α (`psych`)、偏相関、
    ポリコリック相関とテトラコリック相関 (`polycor`)。
-8. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
+7. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
    使い (長さ √(a + b) の連分数の代わりに定数時間)、一方のパラメータが大きく他方が小さいときは
    DiDonato と Morris の展開を使う (自由度が大きい `pt` と `pf`、`pbeta(x, 1e6, 10)`、x が 0 または n
    に近い `pbinom`。最大 30 倍かかっていたのが、典型的な `pbeta` 程度の時間になった)。主要な d/p 関数は、
