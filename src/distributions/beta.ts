@@ -11,7 +11,7 @@ import { invertContinuous } from "../internal/invert.js";
 import { lbeta } from "../special/beta.js";
 import { betaInc, betaIncBoth } from "../special/incbet.js";
 import { dbinomExponent } from "../special/loader.js";
-import { ddAdd, ddLog, ddNeg, twoSum, type DD } from "../special/dd.js";
+import { ddAdd, ddLog, ddMul, ddNeg, twoSum, type DD } from "../special/dd.js";
 import type { NoncentralOption } from "../internal/noncentral.js";
 import { dnbeta1, pnbeta1, qnbeta1 } from "./nbeta.js";
 import { qnorm } from "./normal.js";
@@ -29,10 +29,27 @@ function pair(x: number): [DD, DD] {
  */
 function dbetaCore(x: number, a: number, b: number, log: boolean): number {
   const [xd, xcd] = pair(x);
-  // log f = -E - log(denom)/2 + log(a b / (a + b)) - log x - log(1 - x), assembled entirely in double-double
-  const { e, logDenom } = dbinomExponent(a, b, xd, xcd);
-  const rest = ddAdd(ddNeg(ddAdd(ddLog(xd), ddLog(xcd))), [Math.log((a * b) / (a + b)) - 0.5 * logDenom, 0]);
-  const t = ddAdd(ddNeg(e), rest);
+  const { e } = dbinomExponent(a, b, xd, xcd);
+  // With m = ab/(a+b), log(denom)/2 = log(2 pi m)/2 and log(ab/(a+b)) - log(denom)/2 = log(m/(2 pi))/2
+  const m = (a * b) / (a + b);
+  if (!log && e[0] < 700 && x > 1e-290 && xcd[0] > 1e-290) {
+    // f = exp(-E) sqrt(m/(2 pi)) / (x (1 - x)) on the linear scale: no logarithms are needed, and the factors after
+    // exp(-E) cost a few roundings whatever the size of log x (in the log form, log x near -700 alone would carry
+    // an absolute error of 0.5 ulp = 6e-14 in double precision)
+    const v = Math.exp(-e[0]) * (1 - e[1]) * Math.sqrt(m / (2 * Math.PI));
+    if (v > 1e-290 && v < 1e290) {
+      const xx = ddMul(xd, xcd);
+      return (v / xx[0]) * (1 - xx[1] / xx[0]);
+    }
+  }
+  // log f = -E + log(m/(2 pi))/2 - log(x (1 - x)), with log(x (1 - x)) in double-double (from the double-double
+  // product, one logarithm instead of two, unless x or 1 - x is so small that the product would lose its low part)
+  const lxx = x > 1e-290 && xcd[0] > 1e-290 ? ddLog(ddMul(xd, xcd)) : ddAdd(ddLog(xd), ddLog(xcd));
+  const lc =
+    m > 1e-290 && m < 1e290
+      ? 0.5 * Math.log(m / (2 * Math.PI))
+      : 0.5 * (Math.log(a) + Math.log(b) - Math.log(a + b) - Math.log(2 * Math.PI));
+  const t = ddAdd(ddNeg(ddAdd(e, lxx)), [lc, 0]);
   return log ? t[0] + t[1] : Math.exp(t[0]) * (1 + t[1]);
 }
 

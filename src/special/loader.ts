@@ -63,6 +63,9 @@ export function stirlerr(n: number): number {
   return acc + stirlerrSeries(m);
 }
 
+/** Bound on |x v^3| below which the series tail of bd0dd is summed in double precision (see scripts/ddgen.py) */
+const TAIL_IN_DOUBLE = 0.12;
+
 /**
  * Deviance bd0(x, M) = x log(x/M) + M - x (>= 0) in double-double.
  * M is also taken in double-double (so as not to bring in the rounding of a product such as n p).
@@ -71,7 +74,10 @@ export function stirlerr(n: number): number {
 export function bd0dd(x: number, M: DD): DD {
   if (!isDoubleDouble()) return bd0ddOps(x, M);
   // d = x - M and the series expand the same operations as bd0ddOps below, in the same order, without allocating arrays
-  // (the result is bit-identical; see docs/performance.md). Generated with python3 scripts/ddgen.py bd0dd
+  // (see docs/performance.md). Generated with python3 scripts/ddgen.py bd0dd. One difference: when the series tail
+  // 2x (v^3/3 + v^5/5 + ...) is small (|x v^3| <= TAIL_IN_DOUBLE, so |tail| <= 1/12), it is summed in double
+  // precision. Its rounding, at most 3 eps |tail| (the low part of v is dropped: 1.5 eps through v^3), is then below
+  // eps/4 in absolute terms, i.e. below eps/4 relative in exp(-bd0); the double-double sum needs up to 16 steps more
   const n1 = -M[0];
   const n2 = -M[1];
   const s3 = x + n1;
@@ -183,136 +189,162 @@ export function bd0dd(x: number, M: DD): DD {
     const e104 = u102 - (s103 - p94);
     let sh = s103;
     let sl = e104;
+    if (Math.abs(x * vh * vh * vh) <= TAIL_IN_DOUBLE) {
+      const vv = vh * vh;
+      let ej = 2 * x * vh * vv;
+      let tail = ej / 3;
+      for (let j = 2; j < 1000; j++) {
+        ej *= vv;
+        const t = ej / (2 * j + 1);
+        tail += t;
+        if (Math.abs(t) <= 2 ** -60 * sh) break;
+      }
+      const s105 = sh + tail;
+      const bb106 = s105 - sh;
+      const e107 = sh - (s105 - bb106) + (tail - bb106);
+      const s108 = sl + 0;
+      const bb109 = s108 - sl;
+      const e110 = sl - (s108 - bb109) + (0 - bb109);
+      const u111 = e107 + s108;
+      const s112 = s105 + u111;
+      const e113 = u111 - (s112 - s105);
+      const w114 = e113 + e110;
+      const s115 = s112 + w114;
+      const e116 = w114 - (s115 - s112);
+      return [s115, e116];
+    }
     const x2 = 2 * x;
-    const p105 = vh * x2;
-    const t106 = SPLITTER * vh;
-    const ah107 = t106 - (t106 - vh);
-    const al108 = vh - ah107;
-    const t109 = SPLITTER * x2;
-    const bh110 = t109 - (t109 - x2);
-    const bl111 = x2 - bh110;
-    const e112 = ah107 * bh110 - p105 + ah107 * bl111 + al108 * bh110 + al108 * bl111;
-    const u113 = e112 + vl * x2;
-    const s114 = p105 + u113;
-    const e115 = u113 - (s114 - p105);
-    let ejh = s114;
-    let ejl = e115;
-    const p116 = vh * vh;
-    const t117 = SPLITTER * vh;
-    const ah118 = t117 - (t117 - vh);
-    const al119 = vh - ah118;
-    const t120 = SPLITTER * vh;
-    const bh121 = t120 - (t120 - vh);
-    const bl122 = vh - bh121;
-    const e123 = ah118 * bh121 - p116 + ah118 * bl122 + al119 * bh121 + al119 * bl122;
-    const u124 = e123 + (vh * vl + vl * vh);
-    const s125 = p116 + u124;
-    const e126 = u124 - (s125 - p116);
-    const v2h = s125;
-    const v2l = e126;
+    const p117 = vh * x2;
+    const t118 = SPLITTER * vh;
+    const ah119 = t118 - (t118 - vh);
+    const al120 = vh - ah119;
+    const t121 = SPLITTER * x2;
+    const bh122 = t121 - (t121 - x2);
+    const bl123 = x2 - bh122;
+    const e124 = ah119 * bh122 - p117 + ah119 * bl123 + al120 * bh122 + al120 * bl123;
+    const u125 = e124 + vl * x2;
+    const s126 = p117 + u125;
+    const e127 = u125 - (s126 - p117);
+    let ejh = s126;
+    let ejl = e127;
+    const p128 = vh * vh;
+    const t129 = SPLITTER * vh;
+    const ah130 = t129 - (t129 - vh);
+    const al131 = vh - ah130;
+    const t132 = SPLITTER * vh;
+    const bh133 = t132 - (t132 - vh);
+    const bl134 = vh - bh133;
+    const e135 = ah130 * bh133 - p128 + ah130 * bl134 + al131 * bh133 + al131 * bl134;
+    const u136 = e135 + (vh * vl + vl * vh);
+    const s137 = p128 + u136;
+    const e138 = u136 - (s137 - p128);
+    const v2h = s137;
+    const v2l = e138;
     for (let j = 1; j < 1000; j++) {
-      const p127 = ejh * v2h;
-      const t128 = SPLITTER * ejh;
-      const ah129 = t128 - (t128 - ejh);
-      const al130 = ejh - ah129;
-      const t131 = SPLITTER * v2h;
-      const bh132 = t131 - (t131 - v2h);
-      const bl133 = v2h - bh132;
-      const e134 = ah129 * bh132 - p127 + ah129 * bl133 + al130 * bh132 + al130 * bl133;
-      const u135 = e134 + (ejh * v2l + ejl * v2h);
-      const s136 = p127 + u135;
-      const e137 = u135 - (s136 - p127);
-      ejh = s136;
-      ejl = e137;
-      const dv = 2 * j + 1;
-      const q138 = ejh / dv;
-      const p139 = dv * q138;
-      const t140 = SPLITTER * dv;
-      const ah141 = t140 - (t140 - dv);
-      const al142 = dv - ah141;
-      const t143 = SPLITTER * q138;
-      const bh144 = t143 - (t143 - q138);
-      const bl145 = q138 - bh144;
+      const p139 = ejh * v2h;
+      const t140 = SPLITTER * ejh;
+      const ah141 = t140 - (t140 - ejh);
+      const al142 = ejh - ah141;
+      const t143 = SPLITTER * v2h;
+      const bh144 = t143 - (t143 - v2h);
+      const bl145 = v2h - bh144;
       const e146 = ah141 * bh144 - p139 + ah141 * bl145 + al142 * bh144 + al142 * bl145;
-      const u147 = e146 + 0 * q138;
+      const u147 = e146 + (ejh * v2l + ejl * v2h);
       const s148 = p139 + u147;
       const e149 = u147 - (s148 - p139);
-      const n150 = -s148;
-      const n151 = -e149;
-      const s152 = ejh + n150;
-      const bb153 = s152 - ejh;
-      const e154 = ejh - (s152 - bb153) + (n150 - bb153);
-      const s155 = ejl + n151;
-      const bb156 = s155 - ejl;
-      const e157 = ejl - (s155 - bb156) + (n151 - bb156);
-      const u158 = e154 + s155;
-      const s159 = s152 + u158;
-      const e160 = u158 - (s159 - s152);
-      const w161 = e160 + e157;
-      const s162 = s159 + w161;
-      const e163 = w161 - (s162 - s159);
-      const q164 = s162 / dv;
-      const p165 = dv * q164;
-      const t166 = SPLITTER * dv;
-      const ah167 = t166 - (t166 - dv);
-      const al168 = dv - ah167;
-      const t169 = SPLITTER * q164;
-      const bh170 = t169 - (t169 - q164);
-      const bl171 = q164 - bh170;
-      const e172 = ah167 * bh170 - p165 + ah167 * bl171 + al168 * bh170 + al168 * bl171;
-      const u173 = e172 + 0 * q164;
-      const s174 = p165 + u173;
-      const e175 = u173 - (s174 - p165);
-      const n176 = -s174;
-      const n177 = -e175;
-      const s178 = s162 + n176;
-      const bb179 = s178 - s162;
-      const e180 = s162 - (s178 - bb179) + (n176 - bb179);
-      const s181 = e163 + n177;
-      const bb182 = s181 - e163;
-      const e183 = e163 - (s181 - bb182) + (n177 - bb182);
-      const u184 = e180 + s181;
-      const s185 = s178 + u184;
-      const e186 = u184 - (s185 - s178);
-      const w187 = e186 + e183;
-      const s188 = s185 + w187;
-      const e189 = w187 - (s188 - s185);
-      const q190 = s188 / dv;
-      const s191 = q138 + q164;
-      const e192 = q164 - (s191 - q138);
-      const s193 = s191 + q190;
-      const bb194 = s193 - s191;
-      const e195 = s191 - (s193 - bb194) + (q190 - bb194);
-      const s196 = e192 + 0;
-      const bb197 = s196 - e192;
-      const e198 = e192 - (s196 - bb197) + (0 - bb197);
-      const u199 = e195 + s196;
-      const s200 = s193 + u199;
-      const e201 = u199 - (s200 - s193);
-      const w202 = e201 + e198;
-      const s203 = s200 + w202;
-      const e204 = w202 - (s203 - s200);
-      const s205 = sh + s203;
-      const bb206 = s205 - sh;
-      const e207 = sh - (s205 - bb206) + (s203 - bb206);
-      const s208 = sl + e204;
-      const bb209 = s208 - sl;
-      const e210 = sl - (s208 - bb209) + (e204 - bb209);
+      ejh = s148;
+      ejl = e149;
+      const dv = 2 * j + 1;
+      const q150 = ejh / dv;
+      const p151 = dv * q150;
+      const t152 = SPLITTER * dv;
+      const ah153 = t152 - (t152 - dv);
+      const al154 = dv - ah153;
+      const t155 = SPLITTER * q150;
+      const bh156 = t155 - (t155 - q150);
+      const bl157 = q150 - bh156;
+      const e158 = ah153 * bh156 - p151 + ah153 * bl157 + al154 * bh156 + al154 * bl157;
+      const u159 = e158 + 0 * q150;
+      const s160 = p151 + u159;
+      const e161 = u159 - (s160 - p151);
+      const n162 = -s160;
+      const n163 = -e161;
+      const s164 = ejh + n162;
+      const bb165 = s164 - ejh;
+      const e166 = ejh - (s164 - bb165) + (n162 - bb165);
+      const s167 = ejl + n163;
+      const bb168 = s167 - ejl;
+      const e169 = ejl - (s167 - bb168) + (n163 - bb168);
+      const u170 = e166 + s167;
+      const s171 = s164 + u170;
+      const e172 = u170 - (s171 - s164);
+      const w173 = e172 + e169;
+      const s174 = s171 + w173;
+      const e175 = w173 - (s174 - s171);
+      const q176 = s174 / dv;
+      const p177 = dv * q176;
+      const t178 = SPLITTER * dv;
+      const ah179 = t178 - (t178 - dv);
+      const al180 = dv - ah179;
+      const t181 = SPLITTER * q176;
+      const bh182 = t181 - (t181 - q176);
+      const bl183 = q176 - bh182;
+      const e184 = ah179 * bh182 - p177 + ah179 * bl183 + al180 * bh182 + al180 * bl183;
+      const u185 = e184 + 0 * q176;
+      const s186 = p177 + u185;
+      const e187 = u185 - (s186 - p177);
+      const n188 = -s186;
+      const n189 = -e187;
+      const s190 = s174 + n188;
+      const bb191 = s190 - s174;
+      const e192 = s174 - (s190 - bb191) + (n188 - bb191);
+      const s193 = e175 + n189;
+      const bb194 = s193 - e175;
+      const e195 = e175 - (s193 - bb194) + (n189 - bb194);
+      const u196 = e192 + s193;
+      const s197 = s190 + u196;
+      const e198 = u196 - (s197 - s190);
+      const w199 = e198 + e195;
+      const s200 = s197 + w199;
+      const e201 = w199 - (s200 - s197);
+      const q202 = s200 / dv;
+      const s203 = q150 + q176;
+      const e204 = q176 - (s203 - q150);
+      const s205 = s203 + q202;
+      const bb206 = s205 - s203;
+      const e207 = s203 - (s205 - bb206) + (q202 - bb206);
+      const s208 = e204 + 0;
+      const bb209 = s208 - e204;
+      const e210 = e204 - (s208 - bb209) + (0 - bb209);
       const u211 = e207 + s208;
       const s212 = s205 + u211;
       const e213 = u211 - (s212 - s205);
       const w214 = e213 + e210;
       const s215 = s212 + w214;
       const e216 = w214 - (s215 - s212);
-      if (Math.abs(s203) <= 1e-33 * Math.abs(s215) || (s215 === sh && e216 === sl)) return [s215, e216];
-      sh = s215;
-      sl = e216;
+      const s217 = sh + s215;
+      const bb218 = s217 - sh;
+      const e219 = sh - (s217 - bb218) + (s215 - bb218);
+      const s220 = sl + e216;
+      const bb221 = s220 - sl;
+      const e222 = sl - (s220 - bb221) + (e216 - bb221);
+      const u223 = e219 + s220;
+      const s224 = s217 + u223;
+      const e225 = u223 - (s224 - s217);
+      const w226 = e225 + e222;
+      const s227 = s224 + w226;
+      const e228 = w226 - (s227 - s224);
+      if (Math.abs(s215) <= 1e-33 * Math.abs(s227) || (s227 === sh && e228 === sl)) return [s227, e228];
+      sh = s227;
+      sl = e228;
     }
     return [sh, sl];
   }
 
-  // x log(x/M) + (M - x)
-  const lr = ddSub(ddLog([x, 0]), ddLog(M));
+  // x log(x/M) + (M - x), with log(x/M) from the double-double quotient (one logarithm instead of two) unless the
+  // quotient leaves the normal range, where its low part would be lost
+  const ratio = x / M[0];
+  const lr = ratio > 1e-290 && ratio < 1e290 ? ddLog(ddDiv([x, 0], M)) : ddSub(ddLog([x, 0]), ddLog(M));
   return ddAdd(ddMulNum(lr, x), [-dh, -dl]);
 }
 
@@ -334,7 +366,8 @@ function bd0ddOps(x: number, M: DD): DD {
     return s;
   }
   // x log(x/M) + (M - x)
-  const lr = ddSub(ddLog([x, 0]), ddLog(M));
+  const ratio = x / M[0];
+  const lr = ratio > 1e-290 && ratio < 1e290 ? ddLog(ddDiv([x, 0], M)) : ddSub(ddLog([x, 0]), ddLog(M));
   return ddAdd(ddMulNum(lr, x), ddNeg(d));
 }
 

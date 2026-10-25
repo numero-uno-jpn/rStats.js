@@ -9,8 +9,11 @@ identical to calling the building blocks. To change an expression, change it her
 paste the output into the corresponding place.
 
   python3 scripts/ddgen.py ops     ddAdd, ddNeg, ddSub, ddMul, ddMulNum, ddDiv, ddDivNum in dd.ts
-  python3 scripts/ddgen.py bd0dd   bd0dd in loader.ts: d = x - M and the series part
+  python3 scripts/ddgen.py bd0dd   bd0dd in loader.ts: d = x - M and the series part (with the tail in double
+                                   precision where its rounding is negligible)
   python3 scripts/ddgen.py ddlog   ddLog in dd.ts: the part after the table lookup (from after const lc = ...)
+  python3 scripts/ddgen.py scalar  sDiv in incbet.ts (ddDiv with the result in R[0], R[1])
+  python3 scripts/ddgen.py cf      the double-double loop of continuedFractionCore in incbet.ts
 
 Variable names: s, e are the sum and error of twoSum / quickTwoSum; p, e are the product and error
 of twoProd; q is a quotient; n is a negated value. Numbers are sequential in order of appearance.
@@ -146,6 +149,25 @@ def gen_bd0dd():
     s = h.mul(("dh", "dl"), ("vh", "vl"))
     h.emit(f"let sh = {s[0]};")
     h.emit(f"let sl = {s[1]};")
+    # The tail 2x (v^3/3 + v^5/5 + ...) in double precision when its rounding (at most 3 eps |tail|, including
+    # the dropped low part of v) stays below eps/4 in absolute terms: |tail| <= 2|x v^3|/(3 (1 - v^2)) <= 1/12
+    h.emit("if (Math.abs(x * vh * vh * vh) <= TAIL_IN_DOUBLE) {")
+    h.emit("  const vv = vh * vh;")
+    h.emit("  let ej = 2 * x * vh * vv;")
+    h.emit("  let tail = ej / 3;")
+    h.emit("  for (let j = 2; j < 1000; j++) {")
+    h.emit("    ej *= vv;")
+    h.emit("    const t = ej / (2 * j + 1);")
+    h.emit("    tail += t;")
+    h.emit("    if (Math.abs(t) <= 2 ** -60 * sh) break;")
+    h.emit("  }")
+    tl = G("      ")
+    tl.n = h.n
+    r = tl.add(("sh", "sl"), ("tail", "0"))
+    h.lines += tl.lines
+    h.n = tl.n
+    h.emit(f"  return [{r[0]}, {r[1]}];")
+    h.emit("}")
     h.emit("const x2 = 2 * x;")
     ej = h.mul_num(("vh", "vl"), "x2")
     h.emit(f"let ejh = {ej[0]};")
@@ -193,9 +215,122 @@ def gen_ddlog(n=128, J=5):
     return "\n".join(g.lines)
 
 
+def gen_scalar():
+    """sDiv for incbet.ts: ddDiv with the same operations as in dd.ts, taking hi and lo as separate arguments and
+    leaving the result in R[0], R[1] (a Float64Array) instead of allocating an array (used by the loop of the
+    continued fraction)"""
+    out = []
+
+    def fn(name, sig, build):
+        g = G()
+        r = build(g)
+        out.append(f"function {name}({sig}): void {{")
+        out.extend(g.lines)
+        out.append(f"  R[0] = {r[0]};")
+        out.append(f"  R[1] = {r[1]};")
+        out.append("}\n")
+
+    A = ("ah", "al")
+    B = ("bh", "bl")
+    fn("sDiv", "ah: number, al: number, bh: number, bl: number", lambda g: g.div(A, B))
+    return "\n".join(out)
+
+
+def div_call(g, a, b):
+    """Division through the scalar helper sDiv (result in R): the same operations as div, without repeating them"""
+    qh, ql = g.v("qh"), g.v("ql")
+    g.emit(f"sDiv({a[0]}, {a[1]}, {b[0]}, {b[1]});")
+    g.emit(f"const {qh} = R[0]!;")
+    g.emit(f"const {ql} = R[1]!;")
+    return qh, ql
+
+
+def gen_cf():
+    """The double-double loop of continuedFractionCore in incbet.ts: the same operations as
+    continuedFractionCoreOps, in the same order, on local variables. Additions and products are written out;
+    divisions call sDiv (python3 scripts/ddgen.py scalar), which keeps the code about half as long"""
+    g = G("  ")
+    g.emit("let zh = xd[0];")
+    g.emit("let zl = xd[1];")
+    g.emit("if (second) {")
+    g.emit("  sDiv(xd[0], xd[1], xcd[0], xcd[1]);")
+    g.emit("  zh = R[0]!;")
+    g.emit("  zl = R[1]!;")
+    g.emit("}")
+    k2a = g.two_sum("b", "-1")
+    k2b = g.two_sum("a", "b")
+    g.emit(f"let k2h = second ? {k2a[0]} : {k2b[0]};")
+    g.emit(f"let k2l = second ? {k2a[1]} : {k2b[1]};")
+    g.emit(f"let k6h = second ? {k2b[0]} : {k2a[0]};")
+    g.emit(f"let k6l = second ? {k2b[1]} : {k2a[1]};")
+    for line in ("let k1 = a;", "let k3 = a;", "let k4 = a + 1;", "let k5 = 1;", "let k7 = a + 1;", "let k8 = a + 2;",
+                 "const d1 = second ? -1 : 1;", "const nd1 = -d1;"):
+        g.emit(line)
+    for v, (hi, lo) in (("pkm2", ("0", "0")), ("qkm2", ("1", "0")), ("pkm1", ("1", "0")), ("qkm1", ("1", "0")), ("ans", ("1", "0"))):
+        g.emit(f"let {v}h = {hi};")
+        g.emit(f"let {v}l = {lo};")
+    g.emit("for (let n = 0; n < 100000; n++) {")
+    L = G("    ")
+    L.n = g.n
+    Z = ("zh", "zl")
+    pkm2, qkm2, pkm1, qkm1 = ("pkm2h", "pkm2l"), ("qkm2h", "qkm2l"), ("pkm1h", "pkm1l"), ("qkm1h", "qkm1l")
+
+    def shift(pk, qk):
+        for line in ("pkm2h = pkm1h;", "pkm2l = pkm1l;", f"pkm1h = {pk[0]};", f"pkm1l = {pk[1]};",
+                     "qkm2h = qkm1h;", "qkm2l = qkm1l;", f"qkm1h = {qk[0]};", f"qkm1l = {qk[1]};"):
+            L.emit(line)
+
+    L.emit("// xk = z k1 k2 / (k3 k4); pk = pkm1 - pkm2 xk, qk = qkm1 - qkm2 xk")
+    xk = div_call(L, L.mul(L.mul_num(Z, "k1"), ("k2h", "k2l")), L.two_prod("k3", "k4"))
+    pk = L.sub(pkm1, L.mul(pkm2, xk))
+    qk = L.sub(qkm1, L.mul(qkm2, xk))
+    shift(pk, qk)
+    L.emit("// xk = z k5 k6 / (k7 k8); pk = pkm1 + pkm2 xk, qk = qkm1 + qkm2 xk")
+    xk = div_call(L, L.mul(L.mul_num(Z, "k5"), ("k6h", "k6l")), L.two_prod("k7", "k8"))
+    pk = L.add(pkm1, L.mul(pkm2, xk))
+    qk = L.add(qkm1, L.mul(qkm2, xk))
+    shift(pk, qk)
+    L.emit(f"if ({qk[0]} !== 0) {{")
+    C = G("      ")
+    C.n = L.n
+    r = div_call(C, pk, qk)
+    C.emit(f"const t = {r[0]} !== 0 ? Math.abs((ansh - {r[0]}) / {r[0]}) : 1;")
+    C.emit(f"ansh = {r[0]};")
+    C.emit(f"ansl = {r[1]};")
+    C.emit("if (t < MACHEP && n > 1) break;")
+    L.lines += C.lines
+    L.n = C.n
+    L.emit("}")
+    k2 = L.add(("k2h", "k2l"), ("d1", "0"))
+    L.emit(f"k2h = {k2[0]};")
+    L.emit(f"k2l = {k2[1]};")
+    k6 = L.add(("k6h", "k6l"), ("nd1", "0"))
+    L.emit(f"k6h = {k6[0]};")
+    L.emit(f"k6l = {k6[1]};")
+    for line in ("k5 += 1;", "k1 += 1;", "k3 += 2;", "k4 += 2;", "k7 += 2;", "k8 += 2;"):
+        L.emit(line)
+    L.emit("// Rescaling (both conditions are tested on this step's pk, qk)")
+    for cond, f in ((f"Math.abs({qk[0]}) + Math.abs({pk[0]}) > BIG", "BIGINV"),
+                    (f"Math.abs({qk[0]}) < BIGINV || Math.abs({pk[0]}) < BIGINV", "BIG")):
+        L.emit(f"if ({cond}) {{")
+        Rg = G("      ")
+        Rg.n = L.n
+        for v in ("pkm2", "pkm1", "qkm2", "qkm1"):
+            m = Rg.mul_num((v + "h", v + "l"), f)
+            Rg.emit(f"{v}h = {m[0]};")
+            Rg.emit(f"{v}l = {m[1]};")
+        L.lines += Rg.lines
+        L.n = Rg.n
+        L.emit("}")
+    g.lines += L.lines
+    g.emit("}")
+    g.emit("return ansh + ansl;")
+    return "\n".join(g.lines)
+
+
 if __name__ == "__main__":
     what = sys.argv[1] if len(sys.argv) > 1 else ""
-    gens = {"ops": gen_ops, "bd0dd": gen_bd0dd, "ddlog": gen_ddlog}
+    gens = {"ops": gen_ops, "bd0dd": gen_bd0dd, "ddlog": gen_ddlog, "scalar": gen_scalar, "cf": gen_cf}
     if what not in gens:
         sys.exit(__doc__)
     print(gens[what]())
