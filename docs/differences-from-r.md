@@ -93,7 +93,7 @@ affected.
 | Spearman, perfect correlation with n = 2 | S = 2.2e-16 (should be 0) | 0 |
 | Spearman's t approximation with rho ≈ ±1 | p = 1e-62 for perfect correlation with n = 10 (should be 0) | 0 |
 | Fisher's exact test for r × c tables | FEXACT rounding errors around 1e-11 relative (changing `workspace` changes the value by 2e-13) | matches exact enumeration |
-| `var.test`, `ansari.test` and `mood.test`: upper tails | formed as 1 − P, so small p-values lose their relative accuracy (`var.test` returns 0 for p = 4e-58) | tails computed directly |
+| `var.test`, `ansari.test`, `mood.test` and lawstat's `brunner.munzel.test`: upper tails | formed as 1 − P, so small p-values lose their relative accuracy (`var.test` returns 0 for p = 4e-58) | tails computed directly |
 | Exact `ansari.test` p-values | R's sums of probabilities carry rounding of up to 1e-8 relative in small p-values (8.8e-9 for m = 60, n = 70) | agree with exact subset counts |
 | `mood.test` with ties | R 4.5.2's tie correction of the variance has (N − t)² where Mielke's formula has (N − 2 cumsum(t) + t)² (corrected in R-devel); the statistic is off by up to 6% | the exact permutation variance of the averaged scores |
 | `ks.test`, asymptotic two-sided p-value | Kolmogorov's limiting series summed to a tolerance of 1e-6 (off by up to 1e-5) | agrees with `scipy.special.kolmogorov` |
@@ -243,6 +243,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`wilcoxTest`** with n = 3, one-sided exact interval: the achieved confidence level is 0.88.
   R reports 0.87 because its `psignrank(0, 3)` is 0.12500000000000003, 1 ulp above 1/8 (R itself
   reports 0.88 for the two-sided interval with n = 4).
+- **`brunnerMunzelTest`** takes `confLevel` where lawstat takes `alpha` (`confLevel = 1 - alpha`),
+  and returns an `alternative` field, which lawstat's result lacks. An empty sample throws "not
+  enough 'x' observations" (or 'y'); lawstat returns meaningless numbers, because it indexes the
+  ranks with `n1 + 1:n2` and `1:0` is `c(1, 0)`.
 - **`pAdjust`** with the Hommel method throws when `n` is not an integer (R returns a value), and
   returns an empty array for an empty `p` with n > 0 (R returns 1).
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations

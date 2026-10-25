@@ -347,9 +347,9 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 | `tTest` | 45.0 KB | 21.4 KB |
 | `qbeta` | 49.7 KB | 23.2 KB |
 | `pt`, `qt` | 63.8 KB | 30.3 KB |
-| everything | 320.2 KB | 121.8 KB |
+| everything | 321.2 KB | 122.2 KB |
 | `@numero-uno-jpn/rstats/distributions` (all of it) | 168.9 KB | 66.7 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 171.4 KB | 70.1 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 172.4 KB | 70.4 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 39.9 KB | 14.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 21.5 KB | 8.4 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 22.8 KB | 10.3 KB |

@@ -87,7 +87,7 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | Spearman、n = 2 の完全相関 | S = 2.2e-16 (0 であるべき) | 0 |
 | rho ≈ ±1 での Spearman の t 近似 | n = 10 の完全相関で p = 1e-62 (0 であるべき) | 0 |
 | r × c 表の Fisher の正確検定 | FEXACT の丸め誤差が相対で 1e-11 程度 (`workspace` を変えると値が 2e-13 変わる) | 厳密な全列挙と一致 |
-| `var.test`・`ansari.test`・`mood.test` の上側の裾 | 1 − P の形で求めるので、小さな p 値は相対精度を失う (`var.test` は p = 4e-58 で 0 を返す) | 裾を直接計算 |
+| `var.test`・`ansari.test`・`mood.test`・lawstat の `brunner.munzel.test` の上側の裾 | 1 − P の形で求めるので、小さな p 値は相対精度を失う (`var.test` は p = 4e-58 で 0 を返す) | 裾を直接計算 |
 | `ansari.test` の正確な p 値 | 確率の和に丸め誤差が残り、小さな p 値で相対 1e-8 程度までずれる (m = 60、n = 70 で 8.8e-9) | 部分集合の厳密な数え上げと一致 |
 | 同順位のある `mood.test` | R 4.5.2 は分散の同順位の補正で Mielke の式の (N − 2 cumsum(t) + t)² を (N − t)² としている (R-devel で修正済み)。統計量が最大 6% ずれる | 平均した得点の正確な置換分散 |
 | `ks.test` の漸近的な両側 p 値 | Kolmogorov の極限分布の級数を許容値 1e-6 で打ち切る (最大 1e-5 ずれる) | `scipy.special.kolmogorov` と一致 |
@@ -234,6 +234,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`wilcoxTest`** で n = 3、片側の正確な区間の場合、達成された信頼水準は 0.88 です。R は 0.87 と
   報告します。R の `psignrank(0, 3)` が 0.12500000000000003 で、1/8 より 1 ulp 大きいためです
   (R 自身も n = 4 の両側区間では 0.88 と報告します)。
+- **`brunnerMunzelTest`** は、lawstat の `alpha` の代わりに `confLevel` を受け取ります
+  (`confLevel = 1 - alpha`)。また、lawstat の結果にはない `alternative` のフィールドを返します。空の標本は
+  "not enough 'x' observations" (または 'y') で例外を投げます。lawstat は意味のない数値を返します。順位を
+  `n1 + 1:n2` で取り出しており、`1:0` が `c(1, 0)` になるためです。
 - **`pAdjust`** の Hommel 法は、`n` が整数でないと例外を投げます (R は値を返します)。また、空の `p`
   で n > 0 のときは空の配列を返します (R は 1 を返します)。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ

@@ -13,6 +13,7 @@ import { onewayTest, shapiroTest } from "../src/htest/onewayTest.js";
 import { propTest } from "../src/htest/propTest.js";
 import { mantelhaenTest } from "../src/htest/mantelhaenTest.js";
 import { ansariTest } from "../src/htest/ansariTest.js";
+import { brunnerMunzelTest } from "../src/htest/brunnerMunzelTest.js";
 import { ksTest } from "../src/htest/ksTest.js";
 import { pairwisePropTest, pairwiseTTest, pairwiseWilcoxTest } from "../src/htest/pairwise.js";
 import { pexp, pf, pnorm, punif } from "../src/index.js";
@@ -300,6 +301,19 @@ if (hasFixture("ansariTest"))
         arg.vec(a.x) ?? [],
         arg.vec(a.y)!,
         defined({ alternative: arg.str<Alternative>(a.alternative), exact: arg.bool(a.exact) }),
+      ),
+    tolerance: 1e-12,
+  });
+// against lawstat::brunner.munzel.test (oracle/brunnermunzel.R); small p-values, which lawstat forms as 1 - pt,
+// are compared with the upper tail computed directly (the reference)
+if (hasFixture("brunnerMunzelTest"))
+  htestSuite({
+    name: "brunnerMunzelTest",
+    call: (a) =>
+      brunnerMunzelTest(
+        arg.vec(a.x)!,
+        arg.vec(a.y)!,
+        defined({ alternative: arg.str<Alternative>(a.alternative), confLevel: arg.num(a.confLevel) }),
       ),
     tolerance: 1e-12,
   });

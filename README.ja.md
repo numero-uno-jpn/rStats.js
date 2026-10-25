@@ -101,7 +101,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | 分布 (d/p/q) | 正規、t、カイ二乗、F、ベータ、ガンマ、二項、ポアソン、一様、指数、対数正規、ロジスティック、コーシー、ワイブル、幾何、負の二項、超幾何、Wilcoxon の符号付き順位と順位和、スチューデント化された範囲 (`ptukey`, `qtukey`)、非心カイ二乗・t・F・ベータ (`ncp`)。多項分布の確率 (`dmultinom`)。逆ガンマ、Kumaraswamy、Pareto、三角、Laplace (extraDistr) と逆正弦。`distSummary` (平均・分散・標準偏差・中央値・最頻値・歪度・尖度) |
 | 乱数 | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister と L'Ecuyer-CMRG、`sample.kind` の Rejection と Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
 | 記述統計 | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
-| 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov`, `TukeyHSD`, `zTest`, `pAdjust` (`p.adjust`) |
+| 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov`, `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
 | 線形モデル | `lm` (行列で渡す形。`summary` の値も返す), `confint`, `predict` |
 | 線形代数 | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS) |
 | 数値計算 | `integrate`, `optimize`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
@@ -142,9 +142,9 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `pnorm` | 1.2 KB |
 | `setSeed`, `rnorm` | 1.7 KB |
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 20.3 KB |
-| `qbeta` / `pt` と `qt` | 22.1 / 29.4 KB |
-| すべて | 120.9 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 21.4 KB |
+| `qbeta` / `pt` と `qt` | 23.2 / 30.3 KB |
+| すべて | 122.2 KB |
 
 (`npm run size` で測れます。)
 

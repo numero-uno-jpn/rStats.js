@@ -22,6 +22,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   streams in parallel work.
 - `getRandomSeed` and `setRandomSeed` handle every supported combination in R's `.Random.seed`
   format (kind code `10403`, `403` with Rounding, `10407` for L'Ecuyer-CMRG with 6 seeds).
+- `brunnerMunzelTest` (`lawstat::brunner.munzel.test()`): the Brunner-Munzel test for the relative
+  effect P(X < Y) + P(X = Y)/2 of two samples, with its interval. The interval is set with
+  `confLevel` (lawstat's `alpha = 1 - confLevel`); small p-values are computed from the upper tail
+  directly, where lawstat's 1 − P loses them. It adds 0.4 KB gzipped to everything (121.8 → 122.2
+  KB with the speed-up below).
 
 ### Changed
 

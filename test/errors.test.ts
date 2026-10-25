@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
-  chisqTest, chol, crossprod, dgamma, dnbinom, eigen, fisherTest, norm, pAdjust, qr, qrResid, rnorm, sampleInt, setSeed,
+  brunnerMunzelTest, chisqTest, chol, crossprod, dgamma, dnbinom, eigen, fisherTest, norm, pAdjust, qr, qrResid, rnorm, sampleInt, setSeed,
   solve, svd, tTest,
 } from "../src/index.js";
 
@@ -38,6 +38,8 @@ describe("error types", () => {
     expectError(() => tTest([1, 2, 3], { alternative: "bigger" as never }), RangeError);
     expectError(() => tTest([1, 2, 3], { confLevel: 2 }), RangeError);
     expectError(() => pAdjust([0.1, 0.2], { method: "nope" as never }), RangeError);
+    expectError(() => brunnerMunzelTest([], [1, 2]), RangeError);
+    expectError(() => brunnerMunzelTest([1, 2], [NaN]), RangeError);
     expectError(() => chisqTest([-1, 2, 3]), RangeError);
     expectError(() => fisherTest([[1, 2], [3, -1]]), RangeError);
     expectError(() => norm([[1]], { type: "X" }), RangeError);

@@ -332,6 +332,9 @@ Listed for attribution; no license terms apply to the methods themselves.
 - P. L'Ecuyer, R. Simard, E. J. Chen and W. D. Kelton, "An object-oriented random-number package with
   many long streams and substreams", Operations Research 50 (2002) 1073–1075: the jump-ahead matrices for
   streams (2^127 steps) and substreams (2^76 steps) — `src/random/streams.ts`
+- E. Brunner and U. Munzel, "The nonparametric Behrens-Fisher problem: asymptotic theory and a small-sample
+  approximation", Biometrical Journal 42 (2000) 17–25: the Brunner-Munzel test (lawstat's
+  `brunner.munzel.test`) — `src/htest/brunnerMunzelTest.ts`
 
 - N. M. Temme, "Incomplete Laplace integrals: uniform asymptotic expansion with application to the
   incomplete beta function", SIAM J. Math. Anal. 18 (1987) 1638–1663, and Temme, "Special Functions: An

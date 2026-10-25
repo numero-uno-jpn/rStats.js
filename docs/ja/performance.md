@@ -189,9 +189,9 @@ rStats.js は R より 3〜28 倍遅くなっています。R はブロック化
 | `tTest` | 45.0 KB | 21.4 KB |
 | `qbeta` | 49.7 KB | 23.2 KB |
 | `pt`、`qt` | 63.8 KB | 30.3 KB |
-| すべて | 320.2 KB | 121.8 KB |
+| すべて | 321.2 KB | 122.2 KB |
 | `@numero-uno-jpn/rstats/distributions` (全体) | 168.9 KB | 66.7 KB |
-| `@numero-uno-jpn/rstats/tests` (全体) | 171.4 KB | 70.1 KB |
+| `@numero-uno-jpn/rstats/tests` (全体) | 172.4 KB | 70.4 KB |
 | `@numero-uno-jpn/rstats/linalg` (全体) | 39.9 KB | 14.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (全体) | 21.5 KB | 8.4 KB |
 | `@numero-uno-jpn/rstats/numerics` (全体) | 22.8 KB | 10.3 KB |

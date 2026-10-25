@@ -25,6 +25,7 @@ export {
 export { onewayTest, shapiroTest, type OnewayTestOptions, type OnewayTestResult } from "../htest/onewayTest.js";
 export { mantelhaenTest, type MantelhaenTestOptions, type MantelhaenTestResult } from "../htest/mantelhaenTest.js";
 export { ansariTest, type AnsariTestOptions } from "../htest/ansariTest.js";
+export { brunnerMunzelTest, type BrunnerMunzelTestOptions } from "../htest/brunnerMunzelTest.js";
 export { ksTest, type KsTestOptions, type KsTestResult } from "../htest/ksTest.js";
 export {
   pairwiseTTest, pairwiseWilcoxTest, pairwisePropTest,
