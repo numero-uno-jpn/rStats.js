@@ -93,3 +93,25 @@ fixtureSuite({
   call: (a) => qf(num(a.p), num(a.df1), num(a.df2), tail(a)),
   backward: (a, x) => pf(x, num(a.df1), num(a.df2), tail(a)),
 });
+
+// One large and one small parameter (oracle/largea.R; every case has a reference value)
+fixtureSuite({
+  name: "pbetaLargeA",
+  tolerance: 1e-14,
+  call: (a) => pbeta(num(a.q), num(a.shape1), num(a.shape2), tail(a)),
+});
+fixtureSuite({
+  name: "ptLargeDf",
+  tolerance: 1e-14,
+  call: (a) => pt(num(a.q), num(a.df), tail(a)),
+});
+fixtureSuite({
+  name: "pfLargeDf",
+  tolerance: 1e-14,
+  call: (a) => pf(num(a.q), num(a.df1), num(a.df2), tail(a)),
+});
+fixtureSuite({
+  name: "pbinomLargeN",
+  tolerance: 1e-14,
+  call: (a) => pbinom(num(a.q), num(a.size), num(a.prob), tail(a)),
+});

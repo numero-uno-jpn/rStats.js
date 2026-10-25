@@ -23,6 +23,7 @@ refresh() {
 }
 refresh gamma dgamma pgamma pchisq ppois
 refresh beta dbeta pbeta dbinom pbinom dt pt df pf
+refresh largea pbetaLargeA ptLargeDf pfLargeDf
 refresh special dnorm gamma lgamma beta lbeta
 refresh simple dunif punif dexp pexp dlnorm plnorm dlogis plogis dcauchy pcauchy dweibull pweibull
 refresh nchisq dnchisq pnchisq
