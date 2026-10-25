@@ -1,4 +1,5 @@
 source("/oracle/_anova.R")
+source("/oracle/_power.R")
 suppressPackageStartupMessages({library(effectsize); library(car)})
 
 # Standardized differences and effect sizes of ANOVA tables as effectsize computes them (fixtures cohensD and
@@ -19,7 +20,8 @@ suppressPackageStartupMessages({library(effectsize); library(car)})
 # about 1e-9 accurate. For a t statistic t on df degrees of freedom and a two-sided level L, the noncentrality limits
 # are the ncp with pt(t, df, ncp) = (1 + L)/2 and = (1 - L)/2; for F the ncp with pf(F, df1, df2, ncp) = (1 + L)/2 and
 # (1 - L)/2, replaced by 0 as effectsize does when F is at most the central quantile; roots found with uniroot at
-# tol 1e-14 relative.
+# tol 1e-14 relative, with pt and pf computed accurately as in oracle/_power.R (R's noncentral t and F are accurate
+# to only about 1e-12 and 1e-9).
 
 set.seed(20261110)
 x1 <- round(rnorm(18, 10, 2), 2); x2 <- round(rnorm(22, 8.8, 2.5), 2)
@@ -49,7 +51,7 @@ for (fn in c("cohens_d", "hedges_g")) {
 addd(fn = "cohens_d", x = I(x1), y = I(x2), adjust = TRUE)
 
 ref_ncp_t <- function(t, df, level) {
-  f <- function(p) { g <- function(ncp) pt(t, df, ncp) - p
+  f <- function(p) { g <- function(ncp) acc_pnt(t, df, ncp, TRUE) - p
     uniroot(g, t + c(-1, 1), extendInt = "downX", tol = 1e-14 * max(1, abs(t)), maxiter = 5000)$root }
   sort(c(f((1 + level) / 2), f((1 - level) / 2)))
 }
@@ -137,7 +139,7 @@ es_args <- function(a) {
 
 ref_ncp_f <- function(f, df1, df2, level) {
   probs <- c((1 - level) / 2, (1 + level) / 2)
-  r <- function(p) { g <- function(ncp) pf(f, df1, df2, ncp) - p
+  r <- function(p) { g <- function(ncp) (if (ncp == 0) pf(f, df1, df2) else acc_pnf(f, df1, df2, ncp, TRUE)) - p
     if (g(0) < 0) return(0)
     uniroot(g, c(0, max(10, f * df1 * 4)), extendInt = "downX", tol = 1e-14 * max(1, f * df1), maxiter = 5000)$root }
   lim <- sort(c(r(probs[2]), r(probs[1])))

@@ -1,11 +1,12 @@
 source("/oracle/_anova.R")
+source("/oracle/_power.R")
 
 # Power calculations of R's stats: power.t.test, power.prop.test, power.anova.test (fixture powerStats). Each case
 # has fn ("power.t.test", "power.prop.test" or "power.anova.test") and the arguments by R's names; an argument
 # written as the string "NULL" is the quantity solved for (R: name = NULL); arguments left out take R's defaults.
 # Written: every field of the result (numbers, and method, note, alternative as strings), warnings, or
-# {"error": message}. "reference" holds the solved quantity as the root found to full precision (uniroot with
-# tol = 1e-15 times its scale on the same function), to show how far R's tolerance eps^0.25 leaves it.
+# {"error": message}. "reference" (oracle/_power.R): for the cases with a noncentral distribution, the power computed
+# accurately, or the solved quantity found by R's procedure (same uniroot call) on the accurate power.
 
 nul <- "NULL"
 cases <- list()
@@ -60,17 +61,4 @@ write_anova_fixture("powerStats", cases, function(a) {
   out <- lapply(v, function(x) if (is.numeric(x)) num2str(x) else x)
   out$note <- if (is.null(v$note)) NULL else v$note
   c(out, list(warnings = r$warnings))
-}, ref = function(a) {
-  solved <- names(a)[vapply(a, function(v) identical(v, nul), NA)]
-  if (length(solved) != 1 || solved == "power") return(NULL)
-  cl <- call_of(a)
-  r <- tryCatch(suppressWarnings(do.call(cl$fn, cl$args)), error = function(e) NULL)
-  if (is.null(r)) return(NULL)
-  x0 <- r[[solved]]
-  target <- cl$args$power
-  g <- function(x) { args <- cl$args; args[[solved]] <- x; args$power <- NULL; do.call(cl$fn, args)$power - target }
-  h <- max(abs(x0), 1e-300) * 1e-3
-  root <- tryCatch(uniroot(g, c(x0 - h, x0 + h), tol = abs(x0) * 1e-15, extendInt = "yes", maxiter = 5000)$root,
-                   error = function(e) NA)
-  setNames(list(num2str(root)), solved)
-})
+}, ref = function(a) power_ref(a$fn, a[setdiff(names(a), "fn")]))
