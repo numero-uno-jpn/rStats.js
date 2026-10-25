@@ -130,9 +130,9 @@ removed. Approximate sizes after minification and gzip:
 | `pnorm` | 1.2 KB |
 | `setSeed`, `rnorm` | 1.7 KB |
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.4 / 16.7 KB |
-| `qbeta` / `pt` and `qt` | 18.5 / 25.5 KB |
-| everything | 115.4 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 20.3 KB |
+| `qbeta` / `pt` and `qt` | 22.1 / 29.4 KB |
+| everything | 119.6 KB |
 
 (`npm run size` measures these.)
 
@@ -141,7 +141,7 @@ Each area is also a subpath export, for importing one area without the rest:
 `predict`), `/linalg`, `/descriptive`, `/numerics` and `/special`.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function, 115 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+function, 119 KB gzipped) from jsDelivr, which serves each release tag of this repository:
 
 ```html
 <script type="module">
@@ -154,7 +154,7 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js` and `dist/special.js`
 export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 18 KB (`numerics`) to 87 KB (`tests`) gzipped.
+transfers 18 KB (`numerics`) to 91 KB (`tests`) gzipped.
 
 Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
 work as well, for example

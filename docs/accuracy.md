@@ -45,6 +45,12 @@ Details of the comparison:
   noise for a result of 8e-106), `pnbinom(300, 50, 0.3, lower.tail = FALSE)` and
   `pnbinom(30, 3, 1 - 1e-10, log.p = TRUE)`. Rerunning `npm run refresh-references` for
   `nbinom` would bring back the wrong Rmpfr value for the first one.
+  The incomplete beta function with both parameters large (`pbeta` and `pbinom` with a and b from
+  15 to 1e10, around the region of the uniform asymptotic expansion, both tails and the log scale)
+  is also checked against mpmath (`scripts/mpmath/largebeta.py`, `audit_pbeta_large` and
+  `audit_pbinom_large`, tolerance 1e-14; largest errors 9.7e-16 and 3.1e-15). mpmath's `betainc`
+  takes minutes there, so the references are the continued fraction DLMF 8.17.22 at 50 and 80
+  digits (kept only where the two agree to 1e-28), cross-checked against numerical integration.
   Non-central distributions use Rmpfr sums of the Poisson mixture series or numerical integrals
   (`oracle/_noncentral.R`); regions where no reference can be computed in practical time
   (non-central t with df = 1000 or 1e5, non-central F with df2 = 1e9 and x > 30) are left out of
@@ -198,6 +204,11 @@ the LAPACK reference implementation (modified BSD), LINPACK and EISPACK (public 
   a = 1e5, x = 0.999). The coefficients a + b and b − 1 are double-double too, since rounding
   a + b loses the digits of a small b (5e-11 at a = 1e8, b = 0.01), and from 2^52 on all of them
   are, since steps of 1 would be lost.
+- **Uniform asymptotic expansion for large parameters** (`src/special/incbetTemme.ts`): with
+  ab/(a + b) >= 25 and x within the region where the expansion converges, the incomplete beta
+  function uses Temme's expansion, whose exponent is the same double-double deviance as Loader's
+  binomial density; in the tails a rearranged form avoids the cancellation between the erfc term
+  and the correction (see [performance.md](performance.md)).
 - **Both tails computed directly**, never as 1 − (other tail). The complement of the series,
   1 − I_x(a, b), uses a subtraction-free formula.
 - **lgamma(b + a) − lgamma(b) without subtraction** (`src/special/lgammaDiff.ts`) for a ≪ b, used

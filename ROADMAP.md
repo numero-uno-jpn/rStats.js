@@ -42,9 +42,12 @@ The full list is in the [README](README.md#what-is-included); known differences 
 
 In order of priority.
 
-1. **Speed:** a fast double-precision path that switches to double-double only where needed, and
-   an asymptotic expansion for the incomplete beta function with large parameters (see
-   [docs/performance.md](docs/performance.md)).
+1. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
+   uniform asymptotic expansion (constant time instead of a continued fraction of length √(a + b)),
+   and the main d/p functions leave out the double-double steps that an error bound shows to be
+   unnecessary (see [docs/performance.md](docs/performance.md)). Remaining: an expansion for one
+   large and one small parameter (`pt` and `pf` with large degrees of freedom, `pbeta(x, 1e6, 10)`),
+   and the continued fraction, which stays in double-double.
 2. **Random numbers:** RNG kinds other than R's default.
 
 Possible later, each a sizeable project of its own:
