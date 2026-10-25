@@ -8,6 +8,8 @@
 //   table are not compared;
 // - a cell that fails may be listed as a known difference (case, table, row, column, reason) only if it passes the
 //   same rules against the exact reference of the fixture. Listed differences that are not needed fail the test too.
+// Values outside the tables (coefficients, sigma, R^2) follow the same rules without the column scale; their known
+// differences have the field as `table`, the value's name as `row` and an empty `col`.
 
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -25,19 +27,18 @@ export function loadAnovaFixture(name: string): { r_version: string; cases: Anov
   return JSON.parse(readFileSync(path, "utf8")) as { r_version: string; cases: AnovaCase[] };
 }
 
-const NUMERIC = /^(?:NA|NaN|-?Inf|[-+]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][-+]?[0-9]+)?)$/;
-
 /**
- * The data frame of a fixture's arguments. The fixtures write numeric columns as strings of numbers ("NA" missing)
- * and character columns as strings (null missing), so a character column whose values all look like numbers cannot
- * be told from a numeric one: those are named in `character` (from the oracle's source).
+ * The data frame of a fixture's arguments. The fixtures write numeric columns as strings of numbers ("NA" missing),
+ * character columns as strings (null missing) and logical columns as booleans; `types` (the argument `xTypes` next
+ * to a data frame argument `x`) gives the type of each column.
  */
-export function dataFrameOf(raw: unknown, character: readonly string[] = []): DataFrame {
+export function dataFrameOf(raw: unknown, types: unknown): DataFrame {
+  const ty = types as Record<string, "numeric" | "character" | "logical">;
   const out: DataFrame = {};
   for (const [k, col] of Object.entries(raw as Record<string, (string | boolean | null)[]>)) {
-    const strings = col.filter((v) => typeof v === "string") as string[];
-    const numeric = !character.includes(k) && col.every((v) => v === null || typeof v === "string") && strings.every((v) => NUMERIC.test(v));
-    out[k] = numeric ? col.map((v) => (v === null ? null : num(v as string))) : col;
+    const t = ty[k];
+    if (t === undefined) throw new Error(`no type for column ${k}`);
+    out[k] = t === "numeric" ? col.map((v) => (v === null ? null : num(v as string))) : col;
   }
   return out;
 }
@@ -66,18 +67,6 @@ export interface KnownDifference {
   reason: string;
 }
 
-/**
- * A value outside the tables (coefficients, sigma, R^2) that differs from R by more than 1e-12 where the fixture has
- * no exact reference to settle it, so that the rules allow neither a pass nor a known difference. Such values are
- * listed (and reported) instead of compared, until the fixture carries references for them.
- */
-export interface Unresolved {
-  case: number;
-  /** The field and the index of the value in it, e.g. "coefficients[4]" */
-  value: string;
-  reason: string;
-}
-
 /** Columns in which a cell also passes within 1e-12 times the column's largest absolute value */
 const SCALED = new Set(["Sum Sq", "Mean Sq", "RSS", "Sum of Sq", "Error SS", "MSE", "F value", "F"]);
 const TOL = 1e-12;
@@ -85,7 +74,6 @@ const TOL = 1e-12;
 export class Comparison {
   readonly failures: string[] = [];
   readonly used = new Set<KnownDifference>();
-  readonly usedUnresolved = new Set<Unresolved>();
   /** Largest relative error against R over the cells compared, and against the reference over the cells that have one */
   maxRelR = 0;
   maxRelRef = 0;
@@ -94,10 +82,7 @@ export class Comparison {
   maxRuleRef = 0;
   cells = 0;
 
-  constructor(
-    private readonly known: readonly KnownDifference[],
-    private readonly unresolvedList: readonly Unresolved[] = [],
-  ) {}
+  constructor(private readonly known: readonly KnownDifference[]) {}
 
   fail(index: number, what: string, expected: unknown, actual: unknown): void {
     this.failures.push(`#${index} ${what}: R ${JSON.stringify(expected)} / TS ${JSON.stringify(actual)}`);
@@ -107,19 +92,42 @@ export class Comparison {
     if (JSON.stringify(expected) !== JSON.stringify(actual)) this.fail(index, what, expected, actual);
   }
 
-  /** Numbers compared by relative error 1e-12 (no reference) */
-  numbers(index: number, what: string, expected: unknown, actual: unknown): void {
-    const e = ([] as unknown[]).concat(expected).flat(2).map((v) => num(v as string));
-    const a = ([] as unknown[]).concat(actual).flat(2) as number[];
+  /**
+   * Numbers compared by relative error 1e-12. A value that fails may be a known difference (table = `what`, row = its
+   * name in `names` or its index, col "") if it is within a relative 1e-12 of `reference`.
+   */
+  numbers(index: number, what: string, expected: unknown, actual: unknown, reference?: unknown, names?: readonly string[]): void {
+    const flat = (v: unknown): unknown[] => ([] as unknown[]).concat(v).flat(2);
+    const e = flat(expected).map((v) => num(v as string));
+    const a = flat(actual) as number[];
+    const ref = reference === undefined ? undefined : flat(reference).map((v) => num(v as string));
     if (e.length !== a.length) return this.fail(index, what, expected, actual);
+    const refOk = ref !== undefined && ref.length === e.length;
     e.forEach((ev, k) => {
       const err = relativeError(a[k]!, ev);
       this.cells++;
       if (Number.isFinite(err)) this.maxRelR = Math.max(this.maxRelR, err);
+      let errRef = Infinity;
+      if (refOk) {
+        errRef = relativeError(a[k]!, ref[k]!);
+        if (Number.isFinite(errRef)) {
+          this.maxRelRef = Math.max(this.maxRelRef, errRef);
+          this.maxRuleRef = Math.max(this.maxRuleRef, errRef);
+        }
+      }
+      if (Number.isFinite(err)) this.maxRuleR = Math.max(this.maxRuleR, err);
       if (err <= TOL) return;
-      const u = this.unresolvedList.find((x) => x.case === index && x.value === `${what}[${k}]`);
-      if (u !== undefined) this.usedUnresolved.add(u);
-      else this.fail(index, `${what}[${k}]`, ev, a[k]);
+      const row = names?.[k] ?? String(k);
+      const listed = this.known.find((x) => x.case === index && x.table === what && x.row === row && x.col === "");
+      if (listed !== undefined && errRef <= TOL) {
+        this.used.add(listed);
+        return;
+      }
+      const refNote = refOk ? `, reference ${ref[k]} (error ${errRef.toExponential(2)})` : ", no reference";
+      this.failures.push(
+        `#${index} ${what}[${row}]: R ${ev} / TS ${a[k]} (error ${err.toExponential(2)}${refNote})` +
+          (listed !== undefined ? " [listed as a known difference, but not within 1e-12 of the reference]" : ""),
+      );
     });
   }
 
@@ -177,9 +185,9 @@ export class Comparison {
     });
   }
 
-  /** Known differences and unresolved values that were not needed */
-  unused(): (KnownDifference | Unresolved)[] {
-    return [...this.known.filter((k) => !this.used.has(k)), ...this.unresolvedList.filter((u) => !this.usedUnresolved.has(u))];
+  /** Known differences that were not needed */
+  unused(): KnownDifference[] {
+    return this.known.filter((k) => !this.used.has(k));
   }
 
   summary(name: string, nCases: number, nErrors: number): string {
@@ -188,9 +196,7 @@ export class Comparison {
       `  max relative error vs R ${this.maxRelR.toExponential(2)} (by the rules ${this.maxRuleR.toExponential(2)}), ` +
         `vs the reference ${this.maxRelRef.toExponential(2)} (by the rules ${this.maxRuleRef.toExponential(2)})`,
       `  ${this.used.size} known differences`,
-      ...[...this.used].map((k) => `    #${k.case} ${k.table}[${k.row}, ${k.col}]: ${k.reason}`),
-      ...(this.usedUnresolved.size > 0 ? [`  ${this.usedUnresolved.size} values not compared (no reference in the fixture)`] : []),
-      ...[...this.usedUnresolved].map((u) => `    #${u.case} ${u.value}: ${u.reason}`),
+      ...[...this.used].map((k) => `    #${k.case} ${k.table}[${k.row}${k.col === "" ? "" : `, ${k.col}`}]: ${k.reason}`),
     ].join("\n");
   }
 }

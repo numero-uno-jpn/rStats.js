@@ -22,7 +22,7 @@ describe("carAnova", () => {
       let fit;
       let tab;
       try {
-        fit = lm(a.formula as string, dataFrameOf(a.data), options);
+        fit = lm(a.formula as string, dataFrameOf(a.data, a.dataTypes), options);
         tab = Anova(fit, { type: Number(a.type) as 2 | 3 });
       } catch (err) {
         const msg = (err as Error).message;

@@ -3,9 +3,6 @@ import { describe, expect, it } from "vitest";
 import { modelMatrix, type ContrastName } from "../src/index.js";
 import { Comparison, dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
 
-// character columns whose values look like numbers (dnum$G in oracle/modelmatrix.R)
-const CHARACTER = ["G"];
-
 const fixture = loadAnovaFixture("modelMatrix");
 
 describe("modelMatrix", () => {
@@ -20,7 +17,7 @@ describe("modelMatrix", () => {
       };
       let m;
       try {
-        m = modelMatrix(a.formula as string, dataFrameOf(a.data, CHARACTER), options);
+        m = modelMatrix(a.formula as string, dataFrameOf(a.data, a.dataTypes), options);
       } catch (e) {
         const msg = (e as Error).message;
         const want = c.expected.error as string | undefined;

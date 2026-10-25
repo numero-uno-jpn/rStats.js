@@ -1,46 +1,28 @@
 // lm and aov from a formula, anova(fit), summary(aov(...)) and anova(fit1, fit2, ...) against R (oracle/anovalm.R)
 import { describe, expect, it } from "vitest";
 import { anova, aov, aovSummary, lm, type ContrastName, type LmFormulaOptions } from "../src/index.js";
-import { collectWarnings, Comparison, dataFrameOf, loadAnovaFixture, type FixtureTable, type KnownDifference, type Unresolved } from "./helpers/anova.js";
-
-// character columns whose values look like numbers (tg$dose in oracle/anovalm.R)
-const CHARACTER = ["dose"];
+import { collectWarnings, Comparison, dataFrameOf, loadAnovaFixture, type FixtureTable, type KnownDifference } from "./helpers/anova.js";
 
 const PERFECT = "ANOVA F-tests on an essentially perfect fit are unreliable";
 
 /** Cells that differ from R by more than 1e-12 but are within 1e-12 of the exact reference */
-const KNOWN: KnownDifference[] = [];
-
-/**
- * Values outside the tables that differ from R by more than 1e-12 and have no reference in the fixture (see
- * Unresolved in test/helpers/anova.ts). In each, R's value carries R's rounding error and rStats.js's is the exact
- * least squares value (checked by hand with exact rational arithmetic on the fixture's data, outside this test).
- */
-const PERFECT_FIT = "perfect fit (y exactly additive): the exact value is 0, R's is rounding residue (about 1e-15)";
-const BIG_MEAN = (r: string) => `y has a mean of 1e6: R's value has a relative error of ${r}, rStats.js's is exact to 1e-15`;
-const UNRESOLVED: Unresolved[] = [
-  { case: 38, value: "coefficients[4]", reason: PERFECT_FIT },
-  { case: 38, value: "coefficients[5]", reason: PERFECT_FIT },
-  { case: 38, value: "sigma[0]", reason: PERFECT_FIT },
-  { case: 39, value: "coefficients[4]", reason: PERFECT_FIT },
-  { case: 39, value: "coefficients[5]", reason: PERFECT_FIT },
-  { case: 39, value: "sigma[0]", reason: PERFECT_FIT },
-  { case: 40, value: "sigma[0]", reason: PERFECT_FIT },
-  { case: 45, value: "coefficients[4]", reason: BIG_MEAN("3.3e-12") },
-  { case: 45, value: "coefficients[5]", reason: BIG_MEAN("1.5e-11") },
-  { case: 45, value: "rSquared[0]", reason: BIG_MEAN("2.8e-12") },
-  { case: 45, value: "adjRSquared[0]", reason: BIG_MEAN("4.0e-12") },
+const BIG_MEAN = "y has a mean of 1e6: R's QR loses digits to the intercept; rStats.js computes in double-double";
+const KNOWN: KnownDifference[] = [
+  { case: 45, table: "coefficients", row: "Ab:Bq", col: "", reason: `${BIG_MEAN} (R 3.3e-12 from the reference)` },
+  { case: 45, table: "coefficients", row: "Ac:Bq", col: "", reason: `${BIG_MEAN} (R 1.5e-11 from the reference)` },
+  { case: 45, table: "rSquared", row: "rSquared", col: "", reason: `${BIG_MEAN} (R 2.8e-12 from the reference)` },
+  { case: 45, table: "adjRSquared", row: "adjRSquared", col: "", reason: `${BIG_MEAN} (R 4.0e-12 from the reference)` },
 ];
 
 const fixture = loadAnovaFixture("anovaLm");
 
 describe("anovaLm", () => {
   it(`matches R (${fixture.r_version})`, () => {
-    const cmp = new Comparison(KNOWN, UNRESOLVED);
+    const cmp = new Comparison(KNOWN);
     let errors = 0;
     fixture.cases.forEach((c, index) => {
       const a = c.args;
-      const data = dataFrameOf(a.data, CHARACTER);
+      const data = dataFrameOf(a.data, a.dataTypes);
       const options: LmFormulaOptions = {
         ...(a.contrasts === undefined ? {} : { contrasts: a.contrasts as Record<string, ContrastName> }),
         ...(a.weights === undefined ? {} : { weights: a.weights as string }),
@@ -67,14 +49,15 @@ describe("anovaLm", () => {
       const { fit, tab, av, avs, others, cmpTab } = out;
       const perfect = (e.warnings as string[]).includes(PERFECT);
       cmp.strings(index, "coefNames", e.coefNames, fit.coefNames);
-      cmp.numbers(index, "coefficients", e.coefficients, fit.coefficients);
+      const ref = c.reference as (Record<string, FixtureTable> & Record<string, unknown>) | undefined;
+      cmp.numbers(index, "coefficients", e.coefficients, fit.coefficients, ref?.coefficients, fit.coefNames);
       cmp.numbers(index, "dfResidual", e.dfResidual, fit.dfResidual);
-      cmp.numbers(index, "sigma", e.sigma, fit.sigma);
-      cmp.numbers(index, "rSquared", e.rSquared, fit.rSquared);
-      cmp.numbers(index, "adjRSquared", e.adjRSquared, fit.adjRSquared);
-      const ref = c.reference as Record<string, FixtureTable> | undefined;
+      cmp.numbers(index, "sigma", e.sigma, fit.sigma, ref?.sigma, ["sigma"]);
+      cmp.numbers(index, "rSquared", e.rSquared, fit.rSquared, ref?.rSquared, ["rSquared"]);
+      cmp.numbers(index, "adjRSquared", e.adjRSquared, fit.adjRSquared, ref?.adjRSquared, ["adjRSquared"]);
       cmp.table(index, "anova", e.anova as FixtureTable, tab, ref?.anova, perfect);
-      // summary(aov) has the cells of the anova table (without the Residuals row and the tests when its df is 0)
+      // summary(aov) has the cells of the anova table (without the Residuals row and the tests when its df is 0), so it
+      // is checked against the anova reference, and the perfect-fit exception of the anova table applies to it too
       const refAov =
         ref?.anova === undefined || fit.dfResidual > 0 ? ref?.anova : { table: ref.anova.table.slice(0, -1).map((r) => r.slice(0, 3)) };
       cmp.table(index, "aov", e.aov as FixtureTable, avs, refAov, perfect);
