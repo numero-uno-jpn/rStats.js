@@ -58,3 +58,12 @@ RUN install2.r --error --skipinstalled effectsize pwr \
     && Rscript -e 'pk <- c("effectsize", "pwr", "insight", "bayestestR", "parameters", "datawizard"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Packages for the later items of the roadmap, in a layer of their own: multiple comparisons (PMCMRplus, dunn.test,
+# multcomp), more tests (clinfun, nortest), agreement and reliability (irr, psych, GPArotation, polycor) and the
+# matrix exponential (expm). survival is one of R's recommended packages and already present.
+RUN install2.r --error --skipinstalled PMCMRplus dunn.test multcomp clinfun nortest irr psych GPArotation polycor expm \
+    && Rscript -e 'pk <- c("PMCMRplus", "dunn.test", "multcomp", "mvtnorm", "clinfun", "nortest", "irr", "psych", \
+                         "GPArotation", "polycor", "expm", "survival"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'

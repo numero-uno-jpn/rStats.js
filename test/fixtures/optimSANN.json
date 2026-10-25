@@ -1,0 +1,16 @@
+{
+  "function": "optimSANN",
+  "r_version": "R version 4.5.2 (2025-10-31)",
+  "generated": "2026-10-25T15:30:57+0000",
+  "cases": [
+    {"args":{"fn":"rosenbrock","par":["-1.2","1"],"seed":"1","control":{"maxit":"200"}},"expected":{"par":["-0.9413784711422708","0.9035224206637037"],"value":"3.7989797740622224","counts":["200","NA"],"convergence":"0","message":"NULL","hessian":{}}},
+    {"args":{"fn":"rosenbrock","par":["-1.2","1"],"seed":"1","control":{"maxit":"3000"}},"expected":{"par":["0.97943723217409906","0.9585587211021217"],"value":"0.00047737608363853631","counts":["3000","NA"],"convergence":"0","message":"NULL","hessian":{}}},
+    {"args":{"fn":"quadratic","par":["0","0"],"seed":"1","control":{"maxit":"200"}},"expected":{"par":["0.93322517197396493","1.9802366407291387"],"value":"0.0052400583972448348","counts":["200","NA"],"convergence":"0","message":"NULL","hessian":{}}},
+    {"args":{"fn":"quadratic","par":["0","0"],"seed":"1","control":{"maxit":"3000"}},"expected":{"par":["0.96258207763192294","2.0293751579678347"],"value":"0.0031259007256139318","counts":["3000","NA"],"convergence":"0","message":"NULL","hessian":{}}},
+    {"args":{"fn":"rosenbrock","par":["-1.2","1"],"seed":"42","control":{"maxit":"200"}},"expected":{"par":["0.93886108229222343","0.91686170326702066"],"value":"0.12906509318801179","counts":["200","NA"],"convergence":"0","message":"NULL","hessian":{}}},
+    {"args":{"fn":"rosenbrock","par":["-1.2","1"],"seed":"42","control":{"maxit":"3000"}},"expected":{"par":["1.0409757216738829","1.0804373666601312"],"value":"0.0026985898771780346","counts":["3000","NA"],"convergence":"0","message":"NULL","hessian":{}}},
+    {"args":{"fn":"quadratic","par":["0","0"],"seed":"42","control":{"maxit":"200"}},"expected":{"par":["0.94931122281130687","1.9868522778958382"],"value":"0.002915077325941508","counts":["200","NA"],"convergence":"0","message":"NULL","hessian":{}}},
+    {"args":{"fn":"quadratic","par":["0","0"],"seed":"42","control":{"maxit":"3000"}},"expected":{"par":["0.98107552022549027","2.0036331437188823"],"value":"0.00038453540129993629","counts":["3000","NA"],"convergence":"0","message":"NULL","hessian":{}}},
+    {"args":{"fn":"rosenbrock","par":["-1.2","1"],"seed":"7","control":{"maxit":"1000","temp":"20","tmax":"5"}},"expected":{"par":["1.1046587750680612","1.2284241475824547"],"value":"0.017600825527170752","counts":["1000","NA"],"convergence":"0","message":"NULL","hessian":{}}}
+  ]
+}

@@ -1,3 +1,5 @@
+# oracle-memory: 3584m
+# (the gmp references need more than 3 GB, nearly all of the 4 GB Docker VM: run it only when nothing else runs)
 source("/oracle/_htest.R")
 
 # fisher.test (2×2: p-value, conditional MLE of the odds ratio, confidence interval; r×c: exact p-value).
