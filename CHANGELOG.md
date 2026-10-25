@@ -13,12 +13,12 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 - Speed: the incomplete beta function with both parameters large (ab/(a + b) >= 25, x near the
   mean) uses Temme's uniform asymptotic expansion, in constant time (about 1 µs):
-  `pbeta(0.5, 1e6, 1e6)` becomes about 270 times faster and `pbinom(n/2, n, 0.5)` with n = 1e6
-  about 200 times. The continued fraction of the incomplete beta function runs without array
+  `pbeta(0.5, 1e6, 1e6)` becomes about 245 times faster and `pbinom(n/2, n, 0.5)` with n = 1e6
+  about 170 times. The continued fraction of the incomplete beta function runs without array
   allocations (bit-identical results, about twice as fast), and Loader's deviance, `dbeta` and the
   prefactors leave out double-double steps whose rounding an error bound shows to be negligible.
-  On typical inputs (`npm run bench`, x64): `pbeta` 1.3, `dbeta` 1.8, `pt` 1.6, `dbinom` 1.8,
-  `pf` 1.9, `qbeta` 1.7 and `qgamma` 1.4 times faster (see [docs/performance.md](docs/performance.md)).
+  On typical inputs (`npm run bench`, Apple M1): `pbeta` 1.6, `dbeta` 2.0, `pt` 1.7, `dbinom` 2.1,
+  `pf` 1.7, `qbeta` 1.8 and `qgamma` 1.3 times faster (see [docs/performance.md](docs/performance.md)).
   Accuracy is unchanged: all tests pass with the same tolerances, and new mpmath fixtures cover
   the large-parameter region.
 - Bundle size: the expansion and the allocation-free loop add about 3.6 KB gzipped to everything

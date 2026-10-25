@@ -77,6 +77,11 @@ const cases = [
   ["pt", N, (i) => lib.pt(tq[i], df[i])],
   ["pgamma", N, (i) => lib.pgamma(gq[i], shape[i])],
   ["qgamma", N, (i) => lib.qgamma(u[i], shape[i])],
+  ["qgamma (tail)", N, (i) => lib.qgamma(tp[i], ta[i])],
+  ["qchisq", N, (i) => lib.qchisq(u[i], 2 * a[i])],
+  ["qt (typical)", N, (i) => lib.qt(u[i], a[i])],
+  ["qt (tail)", N, (i) => lib.qt(tp[i], ta[i])],
+  ["qf", N, (i) => lib.qf(u[i], 2 * a[i], 2 * b[i])],
   ["pnbinom", N, (i) => lib.pnbinom(nq[i], size[i], { prob: prob[i] })],
   ["dbinom", N, (i) => lib.dbinom(bx[i], bn[i], prob[i])],
   ["pbinom", N, (i) => lib.pbinom(bx[i], bn[i], prob[i])],
@@ -88,6 +93,8 @@ const cases = [
   // Large parameters (docs/performance.md, "Large parameters"): the centre of the incomplete beta function
   ...[10, 1e3, 1e5, 1e6].map((s) => [`pbeta(0.5, a, a), a = ${s}`, 200, () => lib.pbeta(0.5, s, s)]),
   ...[1e3, 1e4, 1e5, 1e6].map((n) => [`pbinom(n/2, n, 0.5), n = ${n}`, 200, () => lib.pbinom(n / 2, n, 0.5)]),
+  // One large and one small parameter (not covered by the expansion): pt with large degrees of freedom
+  ["pt, df = 1e6", N, (i) => lib.pt(tq[i], 1e6)],
 ];
 
 function time(n, f) {
