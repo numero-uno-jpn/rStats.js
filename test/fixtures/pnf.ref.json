@@ -2896,5 +2896,7 @@
   {"args":{"q":"1e-300","df1":"1","df2":"10","ncp":"0.5","lowerTail":true,"logP":false},"reference":"6.0607582826478775e-151"},
   {"args":{"q":"1e-300","df1":"1","df2":"10","ncp":"0.5","lowerTail":false,"logP":true},"reference":"-6.0607582826478775e-151"},
   {"args":{"q":"1e-300","df1":"1","df2":"10","ncp":"1","lowerTail":true,"logP":false},"reference":"4.7201232965326696e-151"},
-  {"args":{"q":"1e-300","df1":"1","df2":"10","ncp":"1","lowerTail":false,"logP":true},"reference":"-4.7201232965326696e-151"}
+  {"args":{"q":"1e-300","df1":"1","df2":"10","ncp":"1","lowerTail":false,"logP":true},"reference":"-4.7201232965326696e-151"},
+  {"args":{"q":"3","df1":"10","df2":"100","ncp":"0","lowerTail":false,"logP":false},"reference":"0.0023748304819535037"},
+  {"args":{"q":"3","df1":"10","df2":"100","ncp":"0","lowerTail":true,"logP":true},"reference":"-0.0023776548643682132"}
 ]

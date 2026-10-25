@@ -44,10 +44,13 @@ In order of priority.
 
 1. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
    uniform asymptotic expansion (constant time instead of a continued fraction of length √(a + b)),
-   and the main d/p functions leave out the double-double steps that an error bound shows to be
-   unnecessary (see [docs/performance.md](docs/performance.md)). Remaining: an expansion for one
-   large and one small parameter (`pt` and `pf` with large degrees of freedom, `pbeta(x, 1e6, 10)`),
-   and the continued fraction, which stays in double-double.
+   with one parameter large and the other small DiDonato and Morris's expansion (`pt` and `pf` with
+   large degrees of freedom, `pbeta(x, 1e6, 10)`, `pbinom` with x near 0 or n: about the time of a
+   typical `pbeta` instead of up to 30 times more), and the main d/p functions leave out the
+   double-double steps that an error bound shows to be unnecessary (see
+   [docs/performance.md](docs/performance.md)). Remaining: the continued fraction, which stays in
+   double-double and is still used where neither expansion applies (moderate parameters, such as
+   a = 30 and b = 20, where it is short, and the far tails).
 
 Possible later, each a sizeable project of its own:
 

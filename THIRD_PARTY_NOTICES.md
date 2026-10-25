@@ -106,6 +106,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   `detail/bessel_jy.hpp`, `detail/bessel_jy_series.hpp`, `detail/bessel_jy_asym.hpp` and the
   dispatch in `bessel.hpp`, in `src/special/besselIK.ts` and `src/special/besselJY.ts`
   (Copyright (c) 2006 Xiaogang Zhang, (c) 2007 John Maddock, (c) 2024 Matt Borland)
+- Ported (Boost.Math commit 775c9e0): `beta_small_b_large_a_series` in
+  `include/boost/math/special_functions/beta.hpp` (DiDonato and Morris's asymptotic expansion for
+  large a and small b: the coefficients p_n and the upward recursion of J_n), in
+  `src/special/incbetLargeA.ts` ((C) Copyright John Maddock 2006)
 
 ```
 Boost Software License - Version 1.0 - August 17th, 2003
@@ -334,3 +338,7 @@ Listed for attribution; no license terms apply to the methods themselves.
   Introduction to the Classical Functions of Mathematical Physics" (Wiley, 1996), §11.3.3: the uniform
   asymptotic expansion of the incomplete beta function for large a and b, with coefficients generated at run
   time — `src/special/incbetTemme.ts`
+- A. R. DiDonato and A. H. Morris, "Algorithm 708: Significant digit computation of the incomplete beta
+  function ratios", ACM Trans. Math. Software 18 (1992) 360–373, eq. 9 to 9.6 (the formulas only; the
+  TOMS 708 code is not used): the asymptotic expansion of the incomplete beta function for large a and
+  small b, with the complementary tail from the same expansion summed downwards — `src/special/incbetLargeA.ts`

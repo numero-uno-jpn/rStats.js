@@ -130,7 +130,7 @@ const ERFC1 = 0.15729920705028513;
  * for 0.5 <= y < 1 use erfc(y) = erfc(1) + (2/sqrt(pi)) ∫_y^1 e^(-t²) dt (both terms positive), with the integral
  * by 8-point Gauss-Legendre quadrature (3e-16 relative on this interval)
  */
-function halfErfc(y: number): number {
+export function halfErfc(y: number): number {
   if (y < 0.5 || y >= 1) return 0.5 * erfc(y);
   const c = (1 + y) / 2;
   const h = (1 - y) / 2;

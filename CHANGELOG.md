@@ -47,6 +47,19 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - Bundle size: the expansion and the allocation-free loop add about 3.6 KB gzipped to everything
   that uses the incomplete beta function (`qbeta` 18.5 → 22.1 KB, `pt` and `qt` 25.5 → 29.4 KB,
   `tTest` 16.7 → 20.3 KB, everything 115.4 → 119.6 KB).
+- Speed: the incomplete beta function with one parameter large and the other small (a >= 15,
+  b <= 40, x in the bulk) uses DiDonato and Morris's asymptotic expansion (TOMS 708, eq. 9, in the
+  form of Boost.Math's `beta_small_b_large_a_series`) where it used the continued fraction, whose
+  length stops growing with a but which took 30 to 170 double-double steps there. This covers `pt`
+  and `pf` with large degrees of freedom, `pbeta(x, 1e6, 10)` and `pbinom` with x near 0 or n:
+  `pt(1.5, 1e6)` becomes 12 times faster, `pbeta(1 - b/(a + b), 1e10, 0.5)` 31 times,
+  `pf(3, 1, 1e5)` 14 times, `pbeta(1 - b/(a + b), 1e6, 10)` 1.4 times, and `pt` over t ~ N(0, 3²)
+  takes about the same time for every df from 1e5 to 1e15 (5 to 9 times faster); `qt`, `qbeta`,
+  `qf` and `qbinom` there become about 2 times faster (see [docs/performance.md](docs/performance.md)).
+  Its cases are within 1.2e-15 of mpmath and Rmpfr references, as the continued fraction was; new
+  mpmath fixtures cover a from 15 to 1e10 and b from 0.1 to 40.
+- Bundle size: the expansion adds 0.8 to 1.1 KB gzipped (`pt` and `qt` 29.4 → 30.3 KB, `qbeta`
+  22.1 → 23.2 KB, `tTest` 20.3 → 21.4 KB, everything 120.9 → 121.8 KB).
 
 ### Fixed
 
@@ -56,6 +69,12 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - The log of the larger tail of the incomplete beta function for x (or 1 − x) in the subnormal
   range: `pbeta(1e-308, 1, 1e8, lowerTail: false, logP: true)` was off by 4.7e-14, as R's value
   still is (now 1.8e-15).
+- `pt` and `pf` with degrees of freedom above about 1e21 (the continued fraction in the frame of the
+  large parameter, now replaced by the expansion for large a): `pt(0.001, 1e22, lowerTail: false)`
+  was 1.19 and `pt(0.01, 1e25)` off by 2.6e-4; with degrees of freedom from about 1e153 on, `pt` and
+  `pf` returned NaN (`pt(1, 1e160)`, `pf(2, 3, 1e160)`). `pt` now agrees with its normal limit to
+  5e-16 for |t| up to 31.6 (beyond, where the tail is below 1e-218, the NaN remains for df from
+  1e153 on).
 
 ## 0.7.0 - 2026-10-25
 

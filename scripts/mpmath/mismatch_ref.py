@@ -2,7 +2,8 @@
 
 The R fixtures of choose, lchoose, factorial, lfactorial, digamma, trigamma, psigamma, the Bessel functions and
 dmultinom have no Rmpfr reference functions (oracle/_reference.R), so the cases where the tests disagree with R are
-given mpmath references instead. Each value is computed at two precisions and kept only if they agree.
+given mpmath references instead. pbeta, pnbinom_mu and pnf (with ncp = 0) are supported too, for cases where R
+is off by about 1e-14 and a change makes rStats.js more accurate (without R at hand to rerun the Rmpfr references). Each value is computed at two precisions and kept only if they agree.
 New references are merged into an existing .ref.json (cases that already pass by their reference are not in the
 mismatch file, so their references are kept).
 
@@ -55,6 +56,22 @@ def f(name, a):
         s = mp.fsum(ps); N = mp.fsum(xs)
         l = mp.loggamma(N + 1) + mp.fsum((x * mp.log(p / s) if x > 0 else 0) - mp.loggamma(x + 1) for x, p in zip(xs, ps))
         return l if a["log"] is True else mp.exp(l)
+    if name in ("pbeta", "pnbinom_mu", "pnf"):
+        # (the incomplete beta function: pbeta, and pnbinom with mu and pf (ncp = 0) where they are
+        # more accurate than R near the tolerance)
+        if name == "pbeta":
+            A, B, X, lower = P(a["shape1"]), P(a["shape2"]), P(a["q"]), a["lowerTail"]
+        elif name == "pnbinom_mu":
+            # P[X <= k] = I_p(size, k + 1) with p = size / (size + mu)
+            n, mu = P(a["size"]), P(a["mu"])
+            A, B, X, lower = n, mp.floor(P(a["q"])) + 1, n / (n + mu), a["lowerTail"]
+        else:
+            if P(a["ncp"]) != 0: raise ValueError(name)
+            m, n, q = P(a["df1"]), P(a["df2"]), P(a["q"])
+            A, B, X, lower = m / 2, n / 2, m * q / (m * q + n), a["lowerTail"]
+        lo = mp.betainc(A, B, 0, X, regularized=True)
+        v = lo if lower else 1 - lo
+        return mp.log(v) if a["logP"] is True else v
     raise ValueError(name)
 
 def ev(name, a, dps):

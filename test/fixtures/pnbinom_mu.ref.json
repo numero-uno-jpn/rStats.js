@@ -593,5 +593,6 @@
   {"args":{"q":"11","size":"10","mu":"1e-10","lowerTail":false,"logP":false},"reference":"2.9392999994030974e-127"},
   {"args":{"q":"30","size":"1000","mu":"0.01","lowerTail":true,"logP":true},"reference":"-1.9079420031650397e-96"},
   {"args":{"q":"100000000","size":"2.5","mu":"1000000","lowerTail":false,"logP":false},"reference":"7.9871070520129169e-106"},
-  {"args":{"q":"100000000","size":"2.5","mu":"1000000","lowerTail":true,"logP":true},"reference":"-7.9871070520129169e-106"}
+  {"args":{"q":"100000000","size":"2.5","mu":"1000000","lowerTail":true,"logP":true},"reference":"-7.9871070520129169e-106"},
+  {"args":{"q":"30","size":"1000","mu":"2","lowerTail":true,"logP":true},"reference":"-5.6366295869280484e-26"}
 ]

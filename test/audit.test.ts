@@ -1,6 +1,6 @@
 // Audit of the distribution functions beyond the R fixture grids: random parameters over wide ranges, checked
 // against mpmath (scripts/mpmath/audit.py writes test/fixtures/audit_<name>.mpmath.json; the *_large fixtures are
-// written by scripts/mpmath/largebeta.py)
+// written by scripts/mpmath/largebeta.py and the *_smallb fixtures by scripts/mpmath/smallb.py)
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
@@ -22,6 +22,9 @@ const audits: Record<string, (a: Args) => number> = {
   // Both parameters large (scripts/mpmath/largebeta.py): the uniform asymptotic expansion and around it
   pbeta_large: (a) => pbeta(num(a.q), num(a.shape1), num(a.shape2), tail(a)),
   pbinom_large: (a) => pbinom(num(a.q), num(a.size), num(a.prob), tail(a)),
+  // One parameter large and one small (scripts/mpmath/smallb.py): the expansion for large a and around it
+  pbeta_smallb: (a) => pbeta(num(a.q), num(a.shape1), num(a.shape2), tail(a)),
+  pt_smallb: (a) => pt(num(a.q), num(a.df), tail(a)),
   ppois: (a) => ppois(num(a.q), num(a.lambda), tail(a)),
   pnbinom: (a) => pnbinom(num(a.q), num(a.size), { mu: num(a.mu), ...tail(a) }),
   dgamma: (a) => dgamma(num(a.x), num(a.shape), lg(a)),

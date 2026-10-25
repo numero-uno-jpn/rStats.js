@@ -18,6 +18,7 @@ import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddSub, isDoubleDouble, SPLITTER, 
 import { lgamma1p } from "./gamma.js";
 import { lgammaDiff } from "./lgammaDiff.js";
 import { betaIncTemme, TEMME_MIN_M } from "./incbetTemme.js";
+import { betaIncLargeA, LARGE_A_MIN, SMALL_B_MAX } from "./incbetLargeA.js";
 
 const BIG = 4.503599627370496e15;
 const BIGINV = 2.22044604925031308085e-16;
@@ -786,6 +787,16 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
   const [pa, pb, px, pxc] = lower ? [a, b, xd, xcd] : [b, a, xcd, xd];
   const [oa, ob, ox, oxc] = lower ? [b, a, xcd, xd] : [a, b, xd, xcd];
 
+  // One parameter large and the other small: where the continued fraction would be used below, the expansion for
+  // large a (incbetLargeA.ts) instead, in the frame of the large parameter. The length of the continued fraction
+  // stops growing with the large parameter, but in the bulk it takes 30 to 170 double-double steps; the expansion
+  // takes a few terms
+  const largeA = Math.max(a, b) >= LARGE_A_MIN && Math.min(a, b) <= SMALL_B_MAX;
+  const viaLargeA = (low: boolean, log: boolean): [number, number] | undefined => {
+    if (!largeA) return undefined;
+    return a >= b ? betaIncLargeA(a, b, xd, xcd, low, log) : betaIncLargeA(b, a, xcd, xd, !low, log);
+  };
+
   // The log of a value near 1 is built with log1p from a direct computation of the other side
   const finish = (v: number, other: () => number | undefined): [number, number] => {
     if (!wantLog) return [NaN, v];
@@ -801,10 +812,12 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
     if (pseriesOk(pa, pb, px[0])) {
       const v = pseriesComplement(pa, pb, px, false);
       // Cancellation check as for the requested tail (see below)
-      if (pa * Math.abs(Math.log(px[0])) > 32 * v && cfOk(oa, ob, ox[0])) return continuedFraction(oa, ob, ox, oxc, false);
+      if (pa * Math.abs(Math.log(px[0])) > 32 * v && cfOk(oa, ob, ox[0])) {
+        return viaLargeA(!lower, false)?.[1] ?? continuedFraction(oa, ob, ox, oxc, false);
+      }
       return v;
     }
-    if (cfOk(oa, ob, ox[0])) return continuedFraction(oa, ob, ox, oxc, false);
+    if (cfOk(oa, ob, ox[0])) return viaLargeA(!lower, false)?.[1] ?? continuedFraction(oa, ob, ox, oxc, false);
     return undefined;
   };
 
@@ -823,12 +836,16 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
     // instead (a lower threshold would also send cases where the series is accurate, e.g. most of pt near 0, to the
     // slower continued fraction)
     if (oa * Math.abs(Math.log(ox[0])) > 32 * v && cfOk(pa, pb, px[0])) {
+      const e = viaLargeA(lower, wantLog);
+      if (e !== undefined) return e;
       const w = continuedFraction(pa, pb, px, pxc, false);
       if (wantLog && w < TINY) return [continuedFraction(pa, pb, px, pxc, true), w];
       return finish(w, otherDirect);
     }
     return finish(v, () => pseries(oa, ob, ox, oxc, false));
   }
+  const e = viaLargeA(lower, wantLog);
+  if (e !== undefined) return e;
   if (cfOk(pa, pb, px[0])) {
     const v = continuedFraction(pa, pb, px, pxc, false);
     if (wantLog && v < TINY) return [continuedFraction(pa, pb, px, pxc, true), v];

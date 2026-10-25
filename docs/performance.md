@@ -83,6 +83,56 @@ expansion is within 9e-16 from ab/(a + b) = 20 on, as accurate as the continued 
 The threshold 25 leaves a margin. Beyond |τ| = 1 the Taylor series in τ would need more terms,
 and there the continued fraction converges in a few dozen steps.
 
+### Incomplete beta function with one large and one small parameter
+
+With a large and b small (`pt` and `pf` with large degrees of freedom, `pbeta(x, 1e6, 10)`, `pbinom`
+with x near 0 or n), the length of the continued fraction stops growing at about a = 1000: it is
+then governed by an incomplete gamma function of u = −T log x, T = a + (b − 1)/2 (u is
+approximately Gamma(b, 1) distributed). It is long where x is in the bulk of the distribution and b
+is small: 30 to 80 double-double steps (about 0.2 µs each on the M1), up to 170 where the
+cancellation check of the series complement sends the call to the continued fraction (`pbeta(1 −
+b/(a + b), 1e10, 0.5)`, 32 µs).
+
+`src/special/incbetLargeA.ts` uses DiDonato and Morris's expansion instead (TOMS 708, eq. 9; the
+form of Temme's large-a expansion that R's `bgrat` and Boost's `beta_small_b_large_a_series` use).
+Substituting t = e^(−v) in the integral turns x^a (1 − x)^b / B(a, b) into a gamma-type integrand
+times (sinh(v/2)/(v/2))^(b − 1) = Σ p_n (v/2)^(2n), so that
+
+- I_x(a, b) = M Σ p_n J_n, J_n = Γ(b + 2n, u) / (u^b e^(−u) (2T)^(2n)), a series in 1/T² whose
+  first term is Q(b, u), and
+- 1 − I_x(a, b) = M Σ p_n H_n with γ(b + 2n, u) in place of Γ (convergent; first term P(b, u)),
+
+with M = l^b x^T / B(a, b), l = −log x. Only the smaller tail is computed from the expansion (the
+J side above the median of Gamma(b, 1), the H side below), the other as 1 − (that one), which is
+at least 1/2. Both J_n and H_n follow from Γ(s + 2, u) = s (s + 1) Γ(s, u) + u^s e^(−u) (u + s + 1),
+J_n upwards and H_n downwards, so every term is positive. What keeps it within a few ulp:
+
+- M is not formed as Γ(a + b) / (Γ(a) T^b) times u^b e^(−u)/Γ(b), whose parts cancel for large a,
+  but as x^a (1 − x)^b / B(a, b) = e^(−E) √(m/(2π)) from the double-double exponent E of Loader's
+  binomial density, times x^((b−1)/2) (l/y)^b = exp(b log(l/y) − (b − 1) l/2), whose exponent is
+  of order y; the small factors are applied last.
+- l and u are formed in double-double from x in double-double (the result is as sensitive to the
+  absolute error of u as to a relative one, and u is of order b).
+- J_0 = e^u u^(−b) Γ(b, u) comes from the continued fraction DLMF 8.9.2 evaluated backwards with
+  100/u + b/2 + 10 terms. It depends on u only through u − b, which is formed first with the low
+  part of u, and its last two steps and the division are in double-double, which leaves J_0 about
+  correctly rounded for u >= 0.3. The forward evaluation in `igam.ts`, which stops when two
+  approximants agree, is too early where they approach the value slowly (2e-14 at u = 0.3, 4e-15
+  at u = 3). For b = 1/2 (`pt`), J_0 = √(π/u) erfcx(√u).
+- H_N comes from the series of the lower incomplete gamma function in double-double (in double
+  precision the products of rounded ratios cost up to 3 ulp).
+
+It is used, in the frame of the large parameter, wherever the continued fraction would be used
+otherwise: a >= 15, b <= 40, 1 − x <= 0.3, u <= 500 and on the J side u >= 0.1 (below, J_0 would
+need more than 1000 terms; this happens only for b < 0.3, where the series complement or the
+continued fraction stays). The series and the series complement are kept where they apply, and the
+uniform expansion for both parameters large is tried first. Against mpmath
+(`scripts/mpmath/smallb.py`: a from 15 to 1e10, b from 0.1 to 40, points at gamma quantiles of u
+from 1e-12 to 1 − 1e-12) and the Rmpfr references of the R fixtures (`oracle/largea.R`), the cases
+that take the expansion are within 1.2e-15 (mean below 1e-16), as the continued fraction was. A call
+takes about as long as a typical `pbeta`, whatever a is: 1.4 to 14 times faster at the points above,
+31 times at the rejected series complement (see "One large and one small parameter" below).
+
 ### Expanded expressions (`scripts/ddgen.py`)
 
 Building blocks that return a `[hi, lo]` array allocate on every operation, and the hot spots
@@ -225,9 +275,43 @@ iterations roughly proportional to the square root of the parameters near the ce
 for a = 1e6, and `pbinom(n/2, n, 0.5)` 18.4, 39.7, 79.7 and 169 µs for n = 1e3, 1e4, 1e5 and 1e6.
 With the expansion (ab/(a + b) >= 25) these calls take constant time, 0.9 to 1.1 µs from
 a = 1000 and n = 1000 on (17 to 245 times faster; a = 10 is below the threshold and only gains
-from the faster continued fraction, 4.4 → 2.3 µs). `pt` and `pf` with large degrees of freedom
-are not covered (one parameter is 1/2 or small): `pt` with df = 1e6 takes 5.4 µs (10.5 µs in
-0.7.0).
+from the faster continued fraction, 4.4 → 2.3 µs). For `pt` and `pf` with large degrees of freedom
+(one parameter 1/2 or small) see the next paragraph; before the expansion for large a, `pt` with
+df = 1e6 took 5.4 µs on the M1 (10.5 µs in 0.7.0).
+
+**One large and one small parameter.** Measured with `npm run bench` (and `node scripts/bench.mjs
+<build of main>`) on an x64 Linux machine (Xeon at 2.8 GHz, Node.js 22, a shared virtual machine,
+minimum of two runs of the benchmark), where the rows above are about 1.8 times slower than on the
+M1 (typical `pbeta` 3.1 µs, `pt` 2.1 µs): before and after the expansion for large a.
+
+| Call | Before (µs) | After (µs) |
+|---|---|---|
+| `pt`, df = 1e6, t ~ N(0, 3²) | 10.8 | 2.7 |
+| `pt(1.5, 1e6)` | 29.8 | 2.5 |
+| `pt(2.5, 1e6)` | 13.9 | 2.0 |
+| `pt(4, 1e6)` | 8.1 | 1.9 |
+| `pbeta(1 − 3b/(a + b), 1e6, 0.5)` | 24.3 | 1.7 |
+| `pbeta(1 − b/(a + b), 1e6, 2.5)` | 14.1 | 4.4 |
+| `pbeta(1 − b/(a + b), 1e6, 10)` | 4.5 | 3.2 |
+| `pbeta(1 − b/(a + b), 1e10, 0.5)` | 65.1 | 2.1 |
+| `pf(1.5, 5, 1e5)` | 10.8 | 2.6 |
+| `pf(3, 1, 1e5)` | 24.1 | 1.7 |
+| `pbinom(x, 1e6, 1e-5)`, x within 3 sd of the mean | 4.7 | 2.5 |
+| `qt(p, 1e6)` | 16.0 | 7.8 |
+| `qbeta(p, 1e6, 2.5)` | 56.6 | 30.8 |
+| `qf(p, 5, 1e5)` | 28.1 | 13.5 |
+| `qbinom(p, 1e6, 1e-5)` | 10.6 | 5.0 |
+
+The typical `pt` row (df from 0.5 to 1000) went from 3.5 to 2.1 µs on the same machine; the other
+rows of the tables above did not change beyond the noise of that machine (up to 15% between runs;
+`qbeta` on tail inputs, which read 27.6 and 32.0 µs, takes 25.7 and 25.4 µs per call when the two
+builds are timed call by call, interleaved). The quantile functions gain about a factor of 2: they
+spend the rest in the density and the solver. `pt` over t ~ N(0, 3²) now takes 1.7 to 2.6 µs for
+every df from 1e5 to 1e15 (9.5 to 15 µs before): the series complement's cancellation check, whose
+left side b |log y| grows with log df, sent more points to the continued fraction the larger df was
+(31 iterations on average at df = 1e10 against 12 at 1e5 to 1e8), and all of them now take the
+expansion. For `pbeta(1 − b/(a + b), 1e6, 2.5)` J_0 needs about
+50 terms of its continued fraction, the main remaining cost.
 
 ### Linear algebra
 
@@ -260,12 +344,12 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 | `solve` / `svd` / `eigen` | 3.8 / 4.5 / 9.6 KB | 1.7 / 2.0 / 3.7 KB |
 | `wilcoxTest` | 19.4 KB | 8.6 KB |
 | `fisherTest` | 32.2 KB | 15.6 KB |
-| `tTest` | 42.8 KB | 20.3 KB |
-| `qbeta` | 47.5 KB | 22.1 KB |
-| `pt`, `qt` | 62.0 KB | 29.4 KB |
-| everything | 318.4 KB | 120.9 KB |
-| `@numero-uno-jpn/rstats/distributions` (all of it) | 167.1 KB | 65.9 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 169.6 KB | 69.3 KB |
+| `tTest` | 45.0 KB | 21.4 KB |
+| `qbeta` | 49.7 KB | 23.2 KB |
+| `pt`, `qt` | 63.8 KB | 30.3 KB |
+| everything | 320.2 KB | 121.8 KB |
+| `@numero-uno-jpn/rstats/distributions` (all of it) | 168.9 KB | 66.7 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 171.4 KB | 70.1 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 39.9 KB | 14.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 21.5 KB | 8.4 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 22.8 KB | 10.3 KB |
@@ -278,7 +362,9 @@ code between areas through `dist/chunks/`, so one area loaded from them transfer
 The incomplete beta function's uniform asymptotic expansion adds 1.3 KB gzipped to everything
 that uses `pbeta` (`qbeta`, `pt`, `tTest`, ...), and the allocation-free loop of its continued
 fraction 2.6 KB (writing all of its double-double operations out, divisions included, was 1.3
-KB larger again for a loop about 1.3 times faster still).
+KB larger again for a loop about 1.3 times faster still). The expansion for one large and one small
+parameter adds 0.8 to 1.1 KB gzipped (`pt` with `qt` 29.4 → 30.3 KB, `qbeta` 22.1 → 23.2 KB,
+`tTest` 20.3 → 21.4 KB, everything 120.9 → 121.8 KB).
 
 `pt` is large because the non-central t path (`src/distributions/nt.ts`) and the double-double
 building blocks come with it; splitting out a central-only function would make it smaller.
