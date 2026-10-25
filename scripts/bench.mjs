@@ -65,6 +65,9 @@ const size = logUnif(N, 0.1, 1e3);
 const prob = runif(N);
 const nq = size.map((s, i) => Math.floor(((s * (1 - prob[i])) / prob[i]) * 2 * u[i]));
 const samples = Array.from({ length: 200 }, () => [rnorm(30), rnorm(25, { mean: 0.3 })]);
+// Binomial: size log-uniform on 1 to 1e4, x around the mean (within 3 standard deviations)
+const bn = logUnif(N, 1, 1e4).map(Math.round);
+const bx = bn.map((n, i) => Math.max(0, Math.min(n, Math.round(n * prob[i] + 3 * (2 * u[i] - 1) * Math.sqrt(n * prob[i] * (1 - prob[i]))))));
 
 const cases = [
   ["qbeta (typical)", N, (i) => lib.qbeta(u[i], a[i], b[i])],
@@ -75,6 +78,12 @@ const cases = [
   ["pgamma", N, (i) => lib.pgamma(gq[i], shape[i])],
   ["qgamma", N, (i) => lib.qgamma(u[i], shape[i])],
   ["pnbinom", N, (i) => lib.pnbinom(nq[i], size[i], { prob: prob[i] })],
+  ["dbinom", N, (i) => lib.dbinom(bx[i], bn[i], prob[i])],
+  ["pbinom", N, (i) => lib.pbinom(bx[i], bn[i], prob[i])],
+  ["dgamma", N, (i) => lib.dgamma(gq[i], shape[i])],
+  ["dt", N, (i) => lib.dt(tq[i], df[i])],
+  ["pf", N, (i) => lib.pf(u[i] * 3, a[i], b[i])],
+  ["pchisq", N, (i) => lib.pchisq(gq[i] * 2, shape[i] * 2)],
   ["tTest (Welch, 30 and 25)", samples.length, (i) => lib.tTest(samples[i][0], samples[i][1])],
   // Large parameters (docs/performance.md, "Large parameters"): the centre of the incomplete beta function
   ...[10, 1e3, 1e5, 1e6].map((s) => [`pbeta(0.5, a, a), a = ${s}`, 200, () => lib.pbeta(0.5, s, s)]),
