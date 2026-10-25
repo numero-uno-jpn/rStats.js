@@ -1,0 +1,21 @@
+// Hypothesis tests (rStats.js/tests): R's htest results as plain objects
+export { tTest } from "../htest/tTest.js";
+export { chisqTest, } from "../htest/chisqTest.js";
+export { fisherTest } from "../htest/fisherTest.js";
+export { wilcoxTest } from "../htest/wilcoxTest.js";
+export { corTest } from "../htest/cor.js";
+export { pAdjust } from "../htest/pAdjust.js";
+export { binomTest } from "../htest/binomTest.js";
+export { poissonTest } from "../htest/poissonTest.js";
+export { propTest } from "../htest/propTest.js";
+export { mcnemarTest } from "../htest/mcnemarTest.js";
+export { varTest, bartlettTest } from "../htest/varTest.js";
+export { kruskalTest, friedmanTest, quadeTest, flignerTest, moodTest, } from "../htest/rankTests.js";
+export { onewayTest, shapiroTest } from "../htest/onewayTest.js";
+export { mantelhaenTest } from "../htest/mantelhaenTest.js";
+export { ansariTest } from "../htest/ansariTest.js";
+export { brunnerMunzelTest } from "../htest/brunnerMunzelTest.js";
+export { ksTest } from "../htest/ksTest.js";
+export { pairwiseTTest, pairwiseWilcoxTest, pairwisePropTest, } from "../htest/pairwise.js";
+export { aov, TukeyHSD, zTest } from "../htest/aov.js";
+export { lm, confint, predict } from "../models/lm.js";

@@ -1,0 +1,43 @@
+// Probability distributions and random numbers (rStats.js/distributions): d/p/q/r functions with R's names
+export { dnorm, pnorm, qnorm } from "../distributions/normal.js";
+export { dgamma, pgamma, qgamma } from "../distributions/gamma.js";
+export { dchisq, pchisq, qchisq } from "../distributions/chisq.js";
+export { dpois, ppois, qpois } from "../distributions/poisson.js";
+export { dbeta, pbeta, qbeta } from "../distributions/beta.js";
+export { dbinom, pbinom, qbinom } from "../distributions/binomial.js";
+export { dmultinom } from "../distributions/multinomial.js";
+export { dt, pt, qt } from "../distributions/t.js";
+export { df, pf, qf } from "../distributions/f.js";
+export { dunif, punif, qunif } from "../distributions/uniform.js";
+export { dexp, pexp, qexp } from "../distributions/exponential.js";
+export { dlnorm, plnorm, qlnorm } from "../distributions/lognormal.js";
+export { dlogis, plogis, qlogis } from "../distributions/logistic.js";
+export { dcauchy, pcauchy, qcauchy } from "../distributions/cauchy.js";
+export { dweibull, pweibull, qweibull } from "../distributions/weibull.js";
+export { dgeom, pgeom, qgeom } from "../distributions/geometric.js";
+export { dnbinom, pnbinom, qnbinom } from "../distributions/negbinomial.js";
+export { dhyper, phyper, qhyper } from "../distributions/hypergeometric.js";
+export { dsignrank, psignrank, qsignrank } from "../distributions/signrank.js";
+export { dwilcox, pwilcox, qwilcox } from "../distributions/wilcox.js";
+export { ptukey, qtukey } from "../distributions/tukey.js";
+// Distributions outside base R (extraDistr's names and parameters; arcsine as beta(1/2, 1/2) on (a, b))
+export { dinvgamma, pinvgamma, qinvgamma } from "../distributions/invgamma.js";
+export { dkumar, pkumar, qkumar } from "../distributions/kumaraswamy.js";
+export { dpareto, ppareto, qpareto } from "../distributions/pareto.js";
+export { dtriang, ptriang, qtriang } from "../distributions/triangular.js";
+export { dlaplace, plaplace, qlaplace } from "../distributions/laplace.js";
+export { darcsine, parcsine, qarcsine } from "../distributions/arcsine.js";
+export { distSummary } from "../distributions/summary.js";
+// Random numbers (same streams as R's set.seed)
+export { setSeed, getRandomSeed, setRandomSeed, RNGkind, } from "../random/rng.js";
+export { nextRNGStream, nextRNGSubStream } from "../random/streams.js";
+export { runif, rnorm, rexp, rlnorm, rlogis, rcauchy, rweibull } from "../random/continuous.js";
+export { rgamma, rchisq, rt, rf } from "../random/gamma.js";
+export { rbeta } from "../random/beta.js";
+export { rpois, rgeom, rnbinom } from "../random/poisson.js";
+export { rbinom, rmultinom } from "../random/binomial.js";
+export { rsignrank, rwilcox } from "../random/rank.js";
+export { sample, sampleInt } from "../random/sample.js";
+export { rhyper } from "../random/hyper.js";
+export { r2dtable } from "../random/r2dtable.js";
+export { rinvgamma, rkumar, rpareto, rtriang, rlaplace, rarcsine } from "../random/extra.js";
