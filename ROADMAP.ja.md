@@ -48,7 +48,9 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    double-double の処理を省く ([docs/ja/performance.md](docs/ja/performance.md) を参照)。残り: 一方の
    パラメータが大きく他方が小さいときの展開 (自由度が大きい `pt` と `pf`、`pbeta(x, 1e6, 10)`) と、
    double-double のままの連分数。
-2. **乱数:** R の既定以外の RNG の種類。
+2. **乱数:** R の既定以外の 2 つの設定: `sample.kind = "Rounding"` (R 3.6.0 より前の `sample`。古い
+   スクリプトの再現用) と、`"L'Ecuyer-CMRG"` の生成器と `parallel::nextRNGStream()`・`nextRNGSubStream()`
+   (並列計算用の独立した乱数列)。
 
 いずれ取り組むかもしれないもの (どれもそれ自体が大きなプロジェクト):
 
@@ -61,7 +63,9 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 対象外: SciPy のうち R に対応するもののない部分 (`scipy.special` の大部分と、`scipy.stats` にしか
 ない分布)。分布のパラメータのベクトルとしてのリサイクル
 (`rnorm(3, mean = c(0, 10, 100))`) も対象外です。`map` で R と同じ結果と乱数列が得られるためです
-([docs/ja/differences-from-r.md](docs/ja/differences-from-r.md#全般) を参照)。
+([docs/ja/differences-from-r.md](docs/ja/differences-from-r.md#全般) を参照)。ほかの RNG の種類
+(Wichmann-Hill、Marsaglia-Multicarry、Super-Duper、Knuth-TAOCP) と正規乱数の種類 (Kinderman-Ramberg、
+Ahrens-Dieter、Box-Muller) も対象外です。古いコードの再現にしか使わないためです。
 
 ## サイズ
 

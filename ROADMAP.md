@@ -48,7 +48,9 @@ In order of priority.
    unnecessary (see [docs/performance.md](docs/performance.md)). Remaining: an expansion for one
    large and one small parameter (`pt` and `pf` with large degrees of freedom, `pbeta(x, 1e6, 10)`),
    and the continued fraction, which stays in double-double.
-2. **Random numbers:** RNG kinds other than R's default.
+2. **Random numbers:** two RNG settings besides R's default: `sample.kind = "Rounding"` (the `sample`
+   of R before 3.6.0, to reproduce older scripts) and the `"L'Ecuyer-CMRG"` generator with
+   `parallel::nextRNGStream()` and `nextRNGSubStream()` (independent streams for parallel work).
 
 Possible later, each a sizeable project of its own:
 
@@ -61,7 +63,10 @@ Possible later, each a sizeable project of its own:
 Out of scope: the parts of SciPy with no counterpart in R (most of `scipy.special` and the
 distributions that only `scipy.stats` has). Also out of scope: recycling distribution parameters as
 vectors (`rnorm(3, mean = c(0, 10, 100))`), since `map` does the same with R's results and random
-stream (see [docs/differences-from-r.md](docs/differences-from-r.md#general)).
+stream (see [docs/differences-from-r.md](docs/differences-from-r.md#general)). The other RNG kinds
+(Wichmann-Hill, Marsaglia-Multicarry, Super-Duper, Knuth-TAOCP) and normal kinds
+(Kinderman-Ramberg, Ahrens-Dieter, Box-Muller) are out of scope too: they serve only to reproduce
+old code.
 
 ## Size
 
