@@ -122,6 +122,20 @@ aovEz(long, { id: "id", dv: "y", within: "W" }).anova.table[0];
 // ≈ [1.735, 6.940, 0.21653, 35.876, 0.84607, 0.00026363] (num Df, den Df, MSE, F, ges, p。GG で補正)
 ```
 
+### 効果量と検出力
+
+```ts
+import { cohensD, etaSquared, Anova, powerTTest, pwrAnovaTest } from "@numero-uno-jpn/rstats";
+
+cohensD([5.1, 4.9, 6.2, 5.8, 6.0, 5.5], [4.1, 4.5, 5.0, 4.8, 4.3]);
+// ≈ { name: "Cohens_d", value: 2.30726, ci: 0.95, ciLow: 0.68824, ciHigh: 3.85666 } (effectsize::cohens_d)
+etaSquared(Anova(fit, { type: 3 })).table[0];   // ≈ [0.95068, 0.95, 0.82023, 1] (fit は上の例のもの。偏 η²、片側の信頼区間)
+powerTTest({ delta: 0.5, power: 0.8 }).n;       // ≈ 63.766 (1 群あたり、power.t.test)
+pwrAnovaTest({ k: 3, f: 0.25, power: 0.8 }).n;  // ≈ 52.397 (pwr::pwr.anova.test)
+```
+
+信頼区間の限界は厳密な解です。effectsize は最適化で求めるので、1e-9 程度 (ときに 3e-3) ずれます。
+
 ### 線形代数
 
 行列は行の配列で表します。
@@ -146,6 +160,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | 記述統計 | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (一元配置), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
 | 分散分析 | formula で呼ぶ `aov` と `aovSummary` (多元、交互作用、共変量、`Error()` の層), `anova` (`anova.lm`。逐次の表とモデルの比較), `Anova` (car の Type II と III), `aovEz` (afex。反復測定と混合計画、Greenhouse-Geisser と Huynh-Feldt の補正、一般化 η² と偏 η²), `mauchlyTest` (`mauchly.test`) |
+| 効果量と検出力 | `cohensD`, `hedgesG` (effectsize。信頼区間は厳密な限界), `etaSquared`, `omegaSquared`, `epsilonSquared` (偏・一般化。`anova` と `Anova` の表から), `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`), `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
 | 線形代数 | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS) |
 | 数値計算 | `integrate`, `optimize`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
@@ -194,7 +209,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 21.4 KB |
 | `qbeta` / `pt` と `qt` | 23.2 / 30.3 KB |
 | `glm` と `glmSummary` / `glm` とそのすべての関数 | 27.2 / 39.2 KB |
-| すべて | 141.5 KB |
+| すべて | 146.7 KB |
 
 (`npm run size` で測れます。)
 
@@ -203,7 +218,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 `/descriptive`、`/numerics`、`/special` です。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (すべての関数を含む minify 済みの
-ES モジュール、gzip で 141 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
+ES モジュール、gzip で 147 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
 タグをそのまま配信します。
 
 ```html
@@ -224,7 +239,7 @@ ES モジュール、gzip で 141 KB) を jsDelivr から読み込めます。js
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js` は
 上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、2 つの分野を
 読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で 18 KB
-(`numerics`) から 116 KB (`tests`) です。
+(`numerics`) から 122 KB (`tests`) です。
 
 ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm を元にした CDN も
 使えます。たとえば

@@ -37,6 +37,7 @@ against R and are not a priority.
 | Hypothesis tests | R's `htest` functions: `tTest`, `chisqTest` (including simulated p-values and two factor vectors), `fisherTest` (including r × c and simulated p-values), `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest` (with its confidence interval), `ksTest`, the `pairwise*` helpers, `pAdjust`; `aov` (one way), `TukeyHSD`, `zTest` (BSDA), `brunnerMunzelTest` (lawstat) |
 | Linear models | `lm` with a matrix interface and `summary.lm`'s quantities, `confint`, `predict`; `glm` with a matrix interface (every family and link of R's `stats`), `summary.glm`, the four kinds of residuals, `hatvalues`, `rstandard`, `cooks.distance`, `predict` with standard errors, profile likelihood `confint` (exact limits) and `anova` |
 | Analysis of variance | `aov`, `lm` and `modelMatrix` from formulas (several factors, interactions, covariates, `Error()` strata), `anova` (sequential and model comparison), car's `Anova` (types II and III), afex's `aov_ez` as `aovEz` (repeated measures, Greenhouse-Geisser and Huynh-Feldt, generalized eta squared), `mauchly.test` |
+| Effect sizes and power | effectsize's `cohens_d`, `hedges_g`, `eta_squared`, `omega_squared`, `epsilon_squared` (from `anova` and `Anova` tables, exact confidence limits); `power.t.test`, `power.prop.test`, `power.anova.test` and the power functions of `pwr` |
 | Linear algebra | the matrix functions of R's `base`, with `Matrix::lu`, `prcomp` (`stats`) and `MASS::ginv`: matrix arithmetic, `crossprod`, `norm`, `backsolve`, `chol`, `qr` (R's pivoting and LAPACK), `solve`, `det`, `rcond`, `kappa`, `svd`, `eigen` (symmetric and general), `lu`, `prcomp`, `ginv` |
 | Numerical methods | `integrate`, `optimize`, `uniroot`, `approx`, `spline`/`splinefun`/`splinefunH`, Lagrange (pracma) and Hermite interpolation, fixed-step `ode` (deSolve), `grad`/`jacobian`/`hessian` (numDeriv) |
 | jStat | every jStat function has a replacement ([docs/migrating-from-jstat.md](docs/migrating-from-jstat.md)), checked against jStat |
@@ -49,9 +50,8 @@ The full list is in the [README](README.md#what-is-included); known differences 
 In order of priority. The R function or package that each item is checked against is given in
 brackets.
 
-1. **Effect sizes and power:** Cohen's d, Hedges' g, η², partial η² and ω² with their confidence
-   intervals (`effectsize`); `power.t.test`, `power.prop.test`, `power.anova.test` (`stats`) and
-   the effect-size forms of `pwr`.
+1. **Effect sizes for repeated measures:** eta, omega and epsilon squared of `Error()` strata and of
+   `aovEz` fits (effectsize's methods for `aovlist` and `afex_aov`).
 2. **Multiple comparisons:** Steel-Dwass (`PMCMRplus`), Dunn (`dunn.test`), Dunnett and Steel
    (`multcomp`, `PMCMRplus`). `multcomp` computes Dunnett's p-values with `mvtnorm`'s randomised
    integration, which reproduces only about five digits; the correlation of Dunnett's statistics

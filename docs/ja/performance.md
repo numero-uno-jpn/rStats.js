@@ -190,15 +190,15 @@ rStats.js は R より 3〜28 倍遅くなっています。R はブロック化
 | `qbeta` | 49.7 KB | 23.2 KB |
 | `pt`、`qt` | 63.8 KB | 30.3 KB |
 | `glm`、`glmSummary` / `glm` とすべてのメソッド | 62.7 / 88.7 KB | 27.2 / 39.2 KB |
-| すべて | 373.3 KB | 141.5 KB |
-| `@numero-uno-jpn/rstats/distributions` (全体) | 168.9 KB | 66.7 KB |
-| `@numero-uno-jpn/rstats/tests` (全体) | 235.9 KB | 93.6 KB |
+| すべて | 390.3 KB | 146.7 KB |
+| `@numero-uno-jpn/rstats/distributions` (全体) | 169.7 KB | 67.0 KB |
+| `@numero-uno-jpn/rstats/tests` (全体) | 269.4 KB | 105.0 KB |
 | `@numero-uno-jpn/rstats/linalg` (全体) | 39.9 KB | 14.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (全体) | 21.5 KB | 8.4 KB |
 | `@numero-uno-jpn/rstats/numerics` (全体) | 22.8 KB | 10.3 KB |
 | `@numero-uno-jpn/rstats/special` (全体) | 57.9 KB | 26.8 KB |
 
-サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 18 KB (`numerics`) から 116 KB (`tests`) です。
+サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 18 KB (`numerics`) から 122 KB (`tests`) です。
 
 不完全ベータ関数の一様漸近展開は、`pbeta` を使うもの (`qbeta`、`pt`、`tTest` など) に gzip で 1.3 KB、連分数の配列を確保しないループは 2.6 KB を加えます (割り算も含めてすべての double-double 演算を書き出すと、さらに 1.3 KB 大きくなり、ループはさらに約 1.3 倍速くなるだけでした)。一方のパラメータが大きく他方が小さいときの展開は gzip で 0.8〜1.1 KB を加えます (`pt` と `qt` 29.4 → 30.3 KB、`qbeta` 22.1 → 23.2 KB、`tTest` 20.3 → 21.4 KB、すべて 120.9 → 121.8 KB)。
 

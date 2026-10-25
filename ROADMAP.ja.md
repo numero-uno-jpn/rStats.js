@@ -37,6 +37,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 | 仮説検定 | R の `htest` の関数: `tTest`、`chisqTest` (シミュレーションによる p 値と 2 つの因子ベクトルを含む)、`fisherTest` (r × c とシミュレーションによる p 値を含む)、`wilcoxTest`、`corTest`、`binomTest`、`poissonTest`、`propTest`、`mcnemarTest`、`varTest`、`bartlettTest`、`kruskalTest`、`friedmanTest`、`quadeTest`、`flignerTest`、`moodTest`、`onewayTest`、`shapiroTest`、`mantelhaenTest`、`ansariTest` (信頼区間を含む)、`ksTest`、`pairwise*`、`pAdjust`。一元配置の `aov`、`TukeyHSD`、`zTest` (BSDA)、`brunnerMunzelTest` (lawstat) |
 | 線形モデル | 行列で渡す `lm` と `summary.lm` の値、`confint`、`predict`。行列で渡す `glm` (R の `stats` のすべての族とリンク)、`summary.glm`、4 種類の残差、`hatvalues`、`rstandard`、`cooks.distance`、標準誤差つきの `predict`、プロファイル尤度の `confint` (厳密な限界)、`anova` |
 | 分散分析 | formula で呼ぶ `aov`、`lm`、`modelMatrix` (多元、交互作用、共変量、`Error()` の層)、`anova` (逐次の表とモデルの比較)、car の `Anova` (Type II と III)、afex の `aov_ez` に当たる `aovEz` (反復測定、Greenhouse-Geisser と Huynh-Feldt、一般化 η²)、`mauchly.test` |
+| 効果量と検出力 | effectsize の `cohens_d`、`hedges_g`、`eta_squared`、`omega_squared`、`epsilon_squared` (`anova` と `Anova` の表から。信頼区間は厳密な限界)、`power.t.test`、`power.prop.test`、`power.anova.test` と `pwr` の検出力の関数 |
 | 線形代数 | R の `base` の行列関数と、`Matrix::lu`、`prcomp` (`stats`)、`MASS::ginv`: 行列演算、`crossprod`、`norm`、`backsolve`、`chol`、`qr` (R のピボット選択と LAPACK)、`solve`、`det`、`rcond`、`kappa`、`svd`、`eigen` (対称と一般)、`lu`、`prcomp`、`ginv` |
 | 数値計算 | `integrate`、`optimize`、`uniroot`、`approx`、`spline`/`splinefun`/`splinefunH`、Lagrange (pracma) と Hermite の補間、固定刻みの `ode` (deSolve)、`grad`/`jacobian`/`hessian` (numDeriv) |
 | jStat | jStat の全関数に置き換えがある ([docs/ja/migrating-from-jstat.md](docs/ja/migrating-from-jstat.md))。jStat と照合済み |
@@ -48,8 +49,8 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-1. **効果量と検出力:** Cohen の d、Hedges の g、η²、偏 η²、ω² とその信頼区間 (`effectsize`)。
-   `power.t.test`、`power.prop.test`、`power.anova.test` (`stats`) と、効果量で指定する `pwr` の関数。
+1. **反復測定の効果量:** `Error()` の層と `aovEz` の結果に対する η²・ω²・ε² (effectsize の `aovlist` と
+   `afex_aov` の方法)。
 2. **多重比較:** Steel-Dwass (`PMCMRplus`)、Dunn (`dunn.test`)、Dunnett と Steel (`multcomp`、
    `PMCMRplus`)。`multcomp` は Dunnett の p 値を `mvtnorm` の乱数を使う積分で求めるので、再現するのは
    5 桁程度です。Dunnett の統計量の相関は積の形をしていて、確率が 1 次元の積分に帰着するので、

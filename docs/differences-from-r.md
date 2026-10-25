@@ -97,6 +97,7 @@ affected.
 | Exact `ansari.test` p-values | R's sums of probabilities carry rounding of up to 1e-8 relative in small p-values (8.8e-9 for m = 60, n = 70) | agree with exact subset counts |
 | `mood.test` with ties | R 4.5.2's tie correction of the variance has (N − t)² where Mielke's formula has (N − 2 cumsum(t) + t)² (corrected in R-devel); the statistic is off by up to 6% | the exact permutation variance of the averaged scores |
 | `ks.test`, asymptotic two-sided p-value | Kolmogorov's limiting series summed to a tolerance of 1e-6 (off by up to 1e-5) | agrees with `scipy.special.kolmogorov` |
+| `pchisq` and `pf` with a huge noncentrality (1e13 and more) far from the quantile | 0 and 1, correct (but R does not converge near the centre of such a distribution) | 0 and 1 (a Chernoff bound decides); near the centre not supported |
 | `ks.test` two-sample statistic that is 0 | rounding residue of cumulative sums of 1/m and −1/n (±1e-16, sometimes negative) | 0 |
 | `fligner.test` and `prop.test` statistics that are 0 | rounding residue (1e-31) | 0 |
 | `skewness`, `kurtosis` and `cv` of data with a large mean and small spread | e1071 subtracts a mean rounded to double: skewness off by 8e-5, kurtosis by 2e-6 relative (1e8 + noise of 1e-3) | deviations from the double-double mean; agree with 60-digit values |
@@ -105,6 +106,8 @@ affected.
 | `lm` with nearly collinear columns (1e6 + noise, with an intercept) | coefficients off by 1.7e-9 from 60-digit values | 3.6e-11 (both within eps times the condition number) |
 | `lm` and `anova` from a formula with a large mean (1e6 + noise) | coefficients off by up to 1.5e-11 and R² by 2.8e-12 from exact rational values; sums of squares near 0 off by 1.6e-10 relative | fit in double-double; within 7e-15 of the exact values |
 | `mauchly.test` on contrasts given by `M` and `X` | W off by up to 4e-12 from the exact value, and the p-value near W = 1 by 1.3e-12 | W in double-double; within 1e-15 of the exact value |
+| Power calculations with noncentral distributions (`power.t.test`, `power.anova.test`, `pwr.*`) | R's noncentral t is accurate to about 1e-12 and its noncentral F to about 1e-9 (and t with more than 4e5 degrees of freedom uses an approximation), so computed powers and the sample sizes solved from them are off by up to 3e-8 | accurate noncentral distributions; the solved quantities follow R's `uniroot` calls (same interval and tolerance), so they keep R's tolerance |
+| effectsize's confidence intervals (`cohens_d`, `hedges_g`, `eta_squared`, ...) | the noncentrality parameters are found with Nelder-Mead (`optim`): limits off by about 1e-9, up to 3e-3 relative (a partial eta² upper limit of 0.25181 instead of 0.25111) | the exact limits |
 
 ### Distributions outside base R
 

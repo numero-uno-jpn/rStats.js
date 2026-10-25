@@ -28,6 +28,21 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   and `idata`.
 - The fits are computed in double-double where R's QR decomposition loses digits (a mean of 1e6: R's
   coefficients are off by up to 1.5e-11); every table agrees with R to 1e-12 or with exact rational values.
+- Effect sizes (effectsize): `cohensD` and `hedgesG` (one sample, two samples pooled or not, paired), and
+  `etaSquared` (partial, non-partial, generalized), `omegaSquared` and `epsilonSquared` of `anova` and `Anova`
+  tables, with confidence intervals. The limits are the exact solutions; effectsize's optimiser leaves them about
+  1e-9 (up to 3e-3) off.
+- Power calculations: `powerTTest`, `powerPropTest`, `powerAnovaTest` (R's `power.*.test`) and pwr's `pwrTTest`,
+  `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`,
+  `pwrF2Test` with `esH`, `esW1`, `esW2` and `cohenES`. Give the quantity to solve for as `null`; it is found with R's
+  own `uniroot` calls, with accurate noncentral distributions (R's noncentral t and F are not: computed powers
+  differ from R's by up to 3e-8).
+
+### Fixed
+
+- `pchisq` and `pf` with a huge noncentrality (above about 1e12) far from the quantile returned wrong values or NaN;
+  a Chernoff bound now returns 0 and 1 there.
+
 
 ## 0.9.0 - 2026-10-25
 

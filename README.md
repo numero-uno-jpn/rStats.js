@@ -118,6 +118,21 @@ aovEz(long, { id: "id", dv: "y", within: "W" }).anova.table[0];
 // ≈ [1.735, 6.940, 0.21653, 35.876, 0.84607, 0.00026363] (num Df, den Df, MSE, F, ges, p; GG-corrected)
 ```
 
+### Effect sizes and power
+
+```ts
+import { cohensD, etaSquared, Anova, powerTTest, pwrAnovaTest } from "@numero-uno-jpn/rstats";
+
+cohensD([5.1, 4.9, 6.2, 5.8, 6.0, 5.5], [4.1, 4.5, 5.0, 4.8, 4.3]);
+// ≈ { name: "Cohens_d", value: 2.30726, ci: 0.95, ciLow: 0.68824, ciHigh: 3.85666 } (effectsize::cohens_d)
+etaSquared(Anova(fit, { type: 3 })).table[0];   // ≈ [0.95068, 0.95, 0.82023, 1] (fit from the example above; partial eta², one-sided CI)
+powerTTest({ delta: 0.5, power: 0.8 }).n;       // ≈ 63.766 per group (power.t.test)
+pwrAnovaTest({ k: 3, f: 0.25, power: 0.8 }).n;  // ≈ 52.397 (pwr::pwr.anova.test)
+```
+
+The confidence limits are the exact solutions; effectsize finds them with an optimiser and is up to
+about 1e-9 (sometimes 3e-3) off.
+
 ### Linear algebra
 
 Matrices are arrays of rows.
@@ -142,6 +157,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | Descriptive statistics | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (one way), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
 | Analysis of variance | `aov` and `aovSummary` with a formula (several factors, interactions, covariates, `Error()` strata), `anova` (`anova.lm`, sequential and model comparison), `Anova` (car: types II and III), `aovEz` (afex: repeated-measures and mixed designs, Greenhouse-Geisser and Huynh-Feldt corrections, generalized and partial eta squared), `mauchlyTest` (`mauchly.test`) |
+| Effect sizes and power | `cohensD`, `hedgesG` (effectsize, with exact confidence limits), `etaSquared`, `omegaSquared`, `epsilonSquared` (partial, generalized, from `anova` and `Anova` tables); `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`); `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`) |
 | Linear algebra | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` with `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS) |
 | Numerical methods | `integrate`, `optimize`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
@@ -188,7 +204,7 @@ removed. Approximate sizes after minification and gzip:
 | `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 21.4 KB |
 | `qbeta` / `pt` and `qt` | 23.2 / 30.3 KB |
 | `glm` and `glmSummary` / `glm` with all its methods | 27.2 / 39.2 KB |
-| everything | 141.5 KB |
+| everything | 146.7 KB |
 
 (`npm run size` measures these.)
 
@@ -197,7 +213,7 @@ Each area is also a subpath export, for importing one area without the rest:
 `predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics` and `/special`.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function, 141 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+function, 147 KB gzipped) from jsDelivr, which serves each release tag of this repository:
 
 ```html
 <script type="module">
@@ -217,7 +233,7 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js` and `dist/special.js`
 export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 18 KB (`numerics`) to 116 KB (`tests`) gzipped.
+transfers 18 KB (`numerics`) to 122 KB (`tests`) gzipped.
 
 Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
 work as well, for example
