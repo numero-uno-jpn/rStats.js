@@ -50,6 +50,11 @@ for (s in c(1, 42, 2024, -7)) {
 }
 kcase(3, NULL, "Rounding", list(fn = "sample.int", n = 2^31 - 1, size = 3), function() sample.int(2^31 - 1, 3))
 kcase(3, NULL, "Rounding", list(fn = "sample.int", n = 1e10, size = 3), function() sample.int(1e10, 3))
+# The default "Rejection" with n >= 2^31 (31 to 52 random bits, drawn 16 at a time)
+kcase(3, NULL, NULL, list(fn = "sample.int", n = 2^31, size = 5, replace = TRUE), function() sample.int(2^31, 5, replace = TRUE))
+kcase(3, NULL, NULL, list(fn = "sample.int", n = 1e10, size = 3), function() sample.int(1e10, 3))
+kcase(3, NULL, NULL, list(fn = "sample.int", n = 2^48 + 1, size = 5, replace = TRUE), function() sample.int(2^48 + 1, 5, replace = TRUE))
+kcase(3, NULL, NULL, list(fn = "sample.int", n = 4.5e15, size = 5, replace = TRUE), function() sample.int(4.5e15, 5, replace = TRUE))
 kcase(3, NULL, "Rounding", list(fn = "sample.int", n = 1, size = 3, replace = TRUE), function() sample.int(1, 3, replace = TRUE))
 # Not affected by sample.kind: weighted sampling, rsignrank, runif, rnorm
 pr <- c(0.1, 0.2, 0.3, 0.2, 0.2)
