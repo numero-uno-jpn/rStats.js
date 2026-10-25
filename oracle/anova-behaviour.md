@@ -306,9 +306,11 @@ Data preparation, in order:
 5. More than one row for an id and a combination of within levels: warning `More than one observation per design
    cell, aggregating data using `fun_aggregate = mean`.\nTo turn off this warning, pass `fun_aggregate = mean`
    explicitly.` and the cell's value is the mean of its rows.
-6. An id missing a combination of within levels (after the above) is removed, with a warning starting `Missing
-   values for 1 ID(s), which were removed before analysis:` (compare only up to and excluding `\nBelow the first
-   few rows`).
+6. Ids missing a combination of within levels (after the above) are removed, with a warning `Missing values for k
+   ID(s), which were removed before analysis:\n` followed by the removed ids joined by `, ` (if there are 10 or
+   more, the first 10 followed by `, ... [showing first 10 only]`), then `\nBelow the first few rows` and a printout
+   of the data (compare only up to and excluding `\nBelow the first few rows`). The ids are listed sorted (the
+   id's levels, code point order).
 
 The **wide** data has one row per id (the order of the rows does not affect the results) and one column per
 combination of within levels, **the first within factor varying slowest**.

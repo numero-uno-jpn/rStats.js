@@ -34,6 +34,7 @@ betw <- data.frame(id = sprintf("b%02d", 1:14), G = rep(c("g1", "g2"), times = 7
 betw$y <- round(rnorm(14, 5) + 0.7 * (betw$G == "g2"), 2)
 betw_bad <- betw; betw_bad$H <- ifelse(betw_bad$G == "g1", "h1", rep(c("h2", "h3"), 7))  # empty between cells
 w3 <- long(12, list(W = c("w1", "w2", "w3", "w4", "w5")), sd_sub = 0.2, sd = 1)  # close to spherical: HF eps > 1
+missing1 <- long(8, list(W = c("w1", "w2", "w3")), drop = 5)       # s02 misses w2: removed, with a warning
 bad_between <- mix; bad_between$G[1] <- "g2"                        # s01 in both groups
 bad_within <- w2[!(w2$W1 == "b" & w2$W2 == "z"), ]                  # an empty within-subject cell
 one_level <- w1; one_level$W <- "w1"
@@ -68,6 +69,7 @@ cases[[length(cases) + 1]] <- list(data = obk, id = "id", dv = "value", between 
 cases[[length(cases) + 1]] <- list(data = obk, id = "id", dv = "value", between = "treatment", within = "phase")
 cases[[length(cases) + 1]] <- list(data = obk, id = "id", dv = "value", between = "treatment", within = "phase",
                                    type = 2)
+add(missing1, within = "W")
 add(bad_between, between = "G", within = "W")
 add(bad_within, within = I(c("W1", "W2")))
 add(one_level, within = "W")
@@ -173,7 +175,9 @@ write_anova_fixture("aovEz", cases, function(a) {
     if (inherits(fit$Anova, "Anova.mlm")) {
       s <- suppressWarnings(summary(fit$Anova, multivariate = FALSE))  # afex itself does not show these
       out$univariate <- tab_out(unclass(s$univariate.tests))
-      if (nrow(s$pval.adjustments) > 0) out$corrections <- tab_out(s$pval.adjustments)
+      # car keeps rows without epsilons (NA) when no term has them; afex uses only the rows with an epsilon
+      adj <- s$pval.adjustments[!is.na(s$pval.adjustments[, "GG eps"]), , drop = FALSE]
+      if (nrow(adj) > 0) out$corrections <- tab_out(adj)
       if (nrow(s$sphericity.tests) > 0) out$sphericity <- tab_out(unclass(s$sphericity.tests))
     } else out$univariate <- tab_out(fit$Anova)
     out
