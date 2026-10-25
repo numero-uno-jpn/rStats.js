@@ -136,9 +136,9 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `pnorm` | 1.2 KB |
 | `setSeed`, `rnorm` | 1.7 KB |
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 13.8 / 16.7 KB |
-| `qbeta` / `pt` と `qt` | 18.5 / 25.5 KB |
-| すべて | 112.4 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 20.3 KB |
+| `qbeta` / `pt` と `qt` | 22.1 / 29.4 KB |
+| すべて | 119.6 KB |
 
 (`npm run size` で測れます。)
 
@@ -147,7 +147,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 `/descriptive`、`/numerics`、`/special` です。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (すべての関数を含む minify 済みの
-ES モジュール、gzip で 112 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
+ES モジュール、gzip で 119 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
 タグをそのまま配信します。
 
 ```html
@@ -161,7 +161,7 @@ ES モジュール、gzip で 112 KB) を jsDelivr から読み込めます。js
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js` は
 上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、2 つの分野を
 読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で 18 KB
-(`numerics`) から 80 KB (`tests`) です。
+(`numerics`) から 91 KB (`tests`) です。
 
 ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm を元にした CDN も
 使えます。たとえば

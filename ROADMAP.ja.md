@@ -48,8 +48,11 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    リサイクルするか RangeError にするか、戻り値の型 (配列の引数が 1 つでもあれば `number[]` か、
    `Float64Array` はどうするか)、r* 関数 (`rnorm(n, mean = ベクトル)`) で乱数列を消費する順 (R と
    一致させる必要がある)。提案: R どおり最長の長さへリサイクルする。
-2. **速度:** 必要な箇所だけ double-double に切り替える高速な倍精度の経路と、パラメータが大きい
-   ときの不完全ベータ関数の漸近展開 ([docs/ja/performance.md](docs/ja/performance.md) を参照)。
+2. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
+   使い (長さ √(a + b) の連分数の代わりに定数時間)、主要な d/p 関数は、誤差の上界から不要と分かる
+   double-double の処理を省く ([docs/ja/performance.md](docs/ja/performance.md) を参照)。残り: 一方の
+   パラメータが大きく他方が小さいときの展開 (自由度が大きい `pt` と `pf`、`pbeta(x, 1e6, 10)`) と、
+   double-double のままの連分数。
 3. **乱数:** R の既定以外の RNG の種類。
 
 いずれ取り組むかもしれないもの (どれもそれ自体が大きなプロジェクト):
