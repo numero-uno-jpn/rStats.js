@@ -51,3 +51,10 @@ RUN install2.r --error --skipinstalled car afex \
     && Rscript -e 'pk <- c("car", "afex", "lme4"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# effectsize (Cohen's d, Hedges' g, eta and omega squared with their intervals) and pwr (power calculations), added
+# for the effect sizes in a layer of their own
+RUN install2.r --error --skipinstalled effectsize pwr \
+    && Rscript -e 'pk <- c("effectsize", "pwr", "insight", "bayestestR", "parameters", "datawizard"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
