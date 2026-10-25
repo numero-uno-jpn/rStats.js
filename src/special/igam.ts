@@ -64,7 +64,7 @@ export function igamSeriesSum(a: number, x: number): number {
  */
 const TAIL = 2 ** -64;
 
-function igamSeriesSumDD(a: number, x: number): number {
+export function igamSeriesSumDD(a: number, x: number): number {
   let ch = 1;
   let cl = 0;
   let ah = 1;

@@ -69,6 +69,9 @@ const samples = Array.from({ length: 200 }, () => [rnorm(30), rnorm(25, { mean: 
 const bn = logUnif(N, 1, 1e4).map(Math.round);
 const bx = bn.map((n, i) => Math.max(0, Math.min(n, Math.round(n * prob[i] + 3 * (2 * u[i] - 1) * Math.sqrt(n * prob[i] * (1 - prob[i]))))));
 
+// Binomial with x near 0: mean 10, x within 3 standard deviations
+const bx1 = u.map((v) => Math.max(0, Math.round(10 + 3 * Math.sqrt(10) * (2 * v - 1))));
+
 const cases = [
   ["qbeta (typical)", N, (i) => lib.qbeta(u[i], a[i], b[i])],
   ["qbeta (tail)", N, (i) => lib.qbeta(tp[i], ta[i], tb[i])],
@@ -93,8 +96,24 @@ const cases = [
   // Large parameters (docs/performance.md, "Large parameters"): the centre of the incomplete beta function
   ...[10, 1e3, 1e5, 1e6].map((s) => [`pbeta(0.5, a, a), a = ${s}`, 200, () => lib.pbeta(0.5, s, s)]),
   ...[1e3, 1e4, 1e5, 1e6].map((n) => [`pbinom(n/2, n, 0.5), n = ${n}`, 200, () => lib.pbinom(n / 2, n, 0.5)]),
-  // One large and one small parameter (not covered by the expansion): pt with large degrees of freedom
+  // One large and one small parameter: pt with large degrees of freedom (t ~ N(0, 3^2))
   ["pt, df = 1e6", N, (i) => lib.pt(tq[i], 1e6)],
+  // ... and single points in the bulk (docs/performance.md, "Large parameters"), where the continued fraction was
+  // slowest, and the quantile functions over p uniform on 0 to 1
+  ["pt(1.5, 1e6)", 200, () => lib.pt(1.5, 1e6)],
+  ["pt(2.5, 1e6)", 200, () => lib.pt(2.5, 1e6)],
+  ["pt(4, 1e6)", 200, () => lib.pt(4, 1e6)],
+  ["pbeta(1 - 3b/(a+b), 1e6, 0.5)", 200, () => lib.pbeta(1 - 1.5 / (1e6 + 0.5), 1e6, 0.5)],
+  ["pbeta(1 - b/(a+b), 1e6, 2.5)", 200, () => lib.pbeta(1 - 2.5 / (1e6 + 2.5), 1e6, 2.5)],
+  ["pbeta(1 - b/(a+b), 1e6, 10)", 200, () => lib.pbeta(1 - 10 / (1e6 + 10), 1e6, 10)],
+  ["pbeta(1 - b/(a+b), 1e10, 0.5)", 200, () => lib.pbeta(1 - 0.5 / (1e10 + 0.5), 1e10, 0.5)],
+  ["pf(1.5, 5, 1e5)", 200, () => lib.pf(1.5, 5, 1e5)],
+  ["pf(3, 1, 1e5)", 200, () => lib.pf(3, 1, 1e5)],
+  ["pbinom(x, 1e6, 1e-5), x ~ mean", N, (i) => lib.pbinom(bx1[i], 1e6, 1e-5)],
+  ["qt, df = 1e6", N, (i) => lib.qt(u[i], 1e6)],
+  ["qbeta(p, 1e6, 2.5)", N, (i) => lib.qbeta(u[i], 1e6, 2.5)],
+  ["qf(p, 5, 1e5)", N, (i) => lib.qf(u[i], 5, 1e5)],
+  ["qbinom(p, 1e6, 1e-5)", N, (i) => lib.qbinom(u[i], 1e6, 1e-5)],
 ];
 
 function time(n, f) {

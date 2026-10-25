@@ -51,6 +51,18 @@ Details of the comparison:
   `audit_pbinom_large`, tolerance 1e-14; largest errors 9.7e-16 and 3.1e-15). mpmath's `betainc`
   takes minutes there, so the references are the continued fraction DLMF 8.17.22 at 50 and 80
   digits (kept only where the two agree to 1e-28), cross-checked against numerical integration.
+  With one parameter large and the other small (`pbeta` with a from 15 to 1e10 and b from 0.1 to 40,
+  and the mirror image; `pt` with df from 30 to 1e12, around the region of the expansion for large a)
+  the references are the positive-term series in the frame of the small parameter at 60 and 90 digits
+  (`scripts/mpmath/smallb.py`, `audit_pbeta_smallb` and `audit_pt_smallb`, tolerance 1e-14; largest
+  errors 5.4e-15 and 1.2e-15, from the series of the incomplete beta function; the cases that take
+  the expansion are within 1.2e-15). The R fixtures of that region (`oracle/largea.R`) have an
+  Rmpfr reference for every case.
+  Five cases where R is off by about 1.0e-14 and the expansion for large a made rStats.js more
+  accurate (within 4e-16) have mpmath references (100 and 200 digits, `betainc`, from the double values
+  of the arguments; `scripts/mpmath/mismatch_ref.py`), since R was not at hand to compute Rmpfr ones:
+  `pbeta(0.1, 2.5, 1000)` (upper tail, and the log of the lower), `pnbinom(30, 1000, mu = 2, log.p =
+  TRUE)` and `pf(3, 10, 100, ncp = 0)` (upper tail, and the log of the lower).
   Non-central distributions use Rmpfr sums of the Poisson mixture series or numerical integrals
   (`oracle/_noncentral.R`); regions where no reference can be computed in practical time
   (non-central t with df = 1000 or 1e5, non-central F with df2 = 1e9 and x > 30) are left out of
@@ -215,6 +227,13 @@ the LAPACK reference implementation (modified BSD), LINPACK and EISPACK (public 
   function uses Temme's expansion, whose exponent is the same double-double deviance as Loader's
   binomial density; in the tails a rearranged form avoids the cancellation between the erfc term
   and the correction (see [performance.md](performance.md)).
+- **Asymptotic expansion for one large and one small parameter** (`src/special/incbetLargeA.ts`):
+  with a >= 15, b <= 40 and x in the bulk, DiDonato and Morris's expansion in incomplete gamma
+  functions of u = −(a + (b − 1)/2) log x replaces the continued fraction. Its prefactor comes from
+  the same double-double deviance as Loader's binomial density, u is formed in double-double, and
+  the leading incomplete gamma function comes from a continued fraction evaluated backwards, finished
+  in double-double (the forward evaluation in `igam.ts` stops too early for small u), so the cases
+  that take it are within 1.2e-15 (see [performance.md](performance.md)).
 - **Both tails computed directly**, never as 1 − (other tail). The complement of the series,
   1 − I_x(a, b), uses a subtraction-free formula.
 - **lgamma(b + a) − lgamma(b) without subtraction** (`src/special/lgammaDiff.ts`) for a ≪ b, used
