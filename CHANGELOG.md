@@ -53,6 +53,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - Weighted sampling with replacement by Walker's alias method (more than 200 likely candidates)
   compares in the same way as R (t + u against q[t] + t), so that rounding cannot pick a different
   candidate in rare cases.
+- The log of the larger tail of the incomplete beta function for x (or 1 − x) in the subnormal
+  range: `pbeta(1e-308, 1, 1e8, lowerTail: false, logP: true)` was off by 4.7e-14, as R's value
+  still is (now 1.8e-15).
 
 ## 0.7.0 - 2026-10-25
 

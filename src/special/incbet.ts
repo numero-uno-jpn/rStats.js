@@ -769,8 +769,11 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
     const e = ddAdd(ddMulNum(ddLog(sx), sa), [lgammaDiff(sa, sb) - lgamma1p(sa), 0]);
     const lt = e[0] + e[1]; // log of the smaller tail (the lower tail if small)
     const own = small === lower;
-    if (own) return [lt, Math.exp(e[0]) * (1 + e[1])];
-    return [wantLog ? Math.log1p(-Math.exp(lt)) : NaN, -Math.expm1(lt)];
+    const v = Math.exp(e[0]) * (1 + e[1]);
+    if (own) return [lt, v];
+    // The log of the other tail from v, not from exp(lt): lt rounded to a double is off by up to ε |lt| (|lt| > 700),
+    // which would become the relative error of the result
+    return [wantLog ? Math.log1p(-v) : NaN, -Math.expm1(lt)];
   }
 
   // Both parameters large and x near the mean: the uniform asymptotic expansion, whose cost does not grow with
