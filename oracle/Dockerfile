@@ -44,3 +44,10 @@ RUN install2.r --error --skipinstalled \
 # ones the earlier fixtures were generated with
 RUN install2.r --error --skipinstalled lawstat \
     && Rscript -e 'suppressPackageStartupMessages(library(lawstat)); cat("lawstat", as.character(packageVersion("lawstat")), "\n")'
+
+# car (Anova, types II and III) and afex (aov_ez: repeated measures with the Greenhouse-Geisser and Huynh-Feldt
+# corrections), added for the analysis of variance in a layer of their own, so that the layers above stay cached
+RUN install2.r --error --skipinstalled car afex \
+    && Rscript -e 'pk <- c("car", "afex", "lme4"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'

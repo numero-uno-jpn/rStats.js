@@ -35,7 +35,7 @@ npm run oracle -- <oracle name>     # e.g. npm run oracle -- gamma
 The image is `rstats-oracle` by default (override with `RSTATS_ORACLE_IMAGE`), built from
 `oracle/Dockerfile`: R 4.5.2 with the packages the oracles load (`jsonlite`, `Rmpfr`, `gmp`, `MASS`,
 `Matrix`, and for functions that R lacks `extraDistr`, `e1071`, `DescTools`, `pracma`, `deSolve`,
-`numDeriv`, `BSDA`), pinned to a dated package snapshot so that a rebuild gives the same versions.
+`numDeriv`, `BSDA`, `lawstat`, `car`, `afex`), pinned to a dated package snapshot so that a rebuild gives the same versions.
 Building needs network access; running the oracles does not.
 
 ```sh

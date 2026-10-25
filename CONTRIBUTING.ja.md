@@ -37,7 +37,7 @@ npm run oracle -- <oracle name>     # 例: npm run oracle -- gamma
 実行します。イメージは既定で `rstats-oracle` です (`RSTATS_ORACLE_IMAGE` で変更できます)。
 このイメージは `oracle/Dockerfile` から作ります。R 4.5.2 と、oracle が読み込むパッケージ
 (`jsonlite`、`Rmpfr`、`gmp`、`MASS`、`Matrix`、R にない関数のための `extraDistr`、`e1071`、
-`DescTools`、`pracma`、`deSolve`、`numDeriv`、`BSDA`) が入ります。パッケージは日付で固定した
+`DescTools`、`pracma`、`deSolve`、`numDeriv`、`BSDA`、`lawstat`、`car`、`afex`) が入ります。パッケージは日付で固定した
 スナップショットから取るので、作り直しても同じ版になります。作るときだけネットワークが要り、
 oracle の実行には要りません。
 
