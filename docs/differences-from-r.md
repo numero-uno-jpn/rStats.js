@@ -275,11 +275,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   errors from the exact ones in the test fixture. rStats.js solves z(b) = qnorm((1 ∓ level)/2) by
   Brent's method, with the fit and every profile refit iterated until the coefficients stop changing
   (R's rule on the relative change of the deviance stops while they can still move by about
-  sqrt(epsilon)), and the dispersion from the converged fit. The limits agree with exact references
-  to 5.2e-11 standard errors. For the gaussian family with the log link, Gamma with the inverse link
-  and inverse.gaussian with the log link (families whose working weights depend on the mean) the
-  fixture's references used a dispersion from fits stopped by R's rule, a relative 3.4e-10 to 5.3e-9
-  from the converged one; with that dispersion the limits agree to 7e-15 standard errors.
+  sqrt(epsilon)), and the dispersion from the converged fit. The limits agree with the exact references
+  of the test fixture (computed in R from fits converged in the same way) to 1e-14 standard errors.
 - **Warnings** are returned, not emitted: `glm`'s result has R's warnings in `warnings` (each message
   once, in order of first appearance), including those of R's `dpois` in the Poisson AIC
   (`"non-integer x = 0.500000"`) and of `sqrt` in the `1/mu^2` link (`"NaNs produced"`).
