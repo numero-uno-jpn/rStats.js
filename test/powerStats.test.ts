@@ -12,6 +12,8 @@ const PNF_ROOT = `${PNF}; uniroot's iterates follow the function values, so R's 
 const KNOWN: KnownDifference[] = [
   ...[9, 14, 19, 24, 29].map((c) => ({ case: c, table: "sigLevel", row: "0", col: "", reason: PNT_ROOT })),
   { case: 30, table: "power", row: "0", col: "", reason: `${PNT} (strict two-sided power)` },
+  { case: 33, table: "power", row: "0", col: "", reason: `${PNT} (a small upper tail, 1e-6, with a negative ncp)` },
+  { case: 35, table: "power", row: "0", col: "", reason: `${PNT} (199 998 degrees of freedom)` },
   { case: 37, table: "power", row: "0", col: "", reason: PNT },
   { case: 54, table: "power", row: "0", col: "", reason: PNF },
   { case: 55, table: "n", row: "0", col: "", reason: PNF_ROOT },

@@ -30,6 +30,7 @@ const KNOWN: KnownDifference[] = [
   { case: 131, table: "k", row: "0", col: "", reason: PNF_ROOT },
   { case: 132, table: "f", row: "0", col: "", reason: PNF_ROOT },
   { case: 133, table: "sigLevel", row: "0", col: "", reason: PNF_ROOT },
+  { case: 134, table: "power", row: "0", col: "", reason: PNF },
   { case: 136, table: "power", row: "0", col: "", reason: PNF },
   { case: 137, table: "v", row: "0", col: "", reason: PNF_ROOT },
   { case: 139, table: "f2", row: "0", col: "", reason: PNF_ROOT },
