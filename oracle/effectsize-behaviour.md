@@ -11,7 +11,7 @@ disagree, report it: the fixture may be wrong.
 1. **Solving a power equation reproduces R's call of `uniroot`**: the same function, interval, tolerance and
    `extendInt` as listed below, with this library's `uniroot` (`src/numerics/integrate.ts`, which follows R's rules).
    The answer is R's approximation (to about `tol` = eps^0.25 ≈ 1.2e-4), not the exact root, and must match R's
-   value; the fixtures' `reference` (the root to full precision) only shows the size of R's tolerance.
+   value (or, where R's noncentral distributions are inaccurate, the `reference`: see "Accuracy").
 2. stats `power.t.test` uses `nu = max(1e-7, n - 1) × (2 for two samples, 1 otherwise)` and, two-sided without
    `strict`, only the upper rejection region (at `sig.level/2`). pwr's `pwr.t.test` uses `nu = (n - 1) × ...`
    without the floor and always both regions for two-sided.
@@ -192,12 +192,32 @@ exists; then the upper limit is 0 if `F` is at most the central F's (1 − L)/2 
 `F` is at most its (1 + L)/2 quantile. The limits of the effect size are `ncp/(ncp + dfe)`; `less` sets the lower to
 0, `greater` the upper to 1.
 
+## Noncentral chi-squared and F with a huge noncentrality (an existing function to fix)
+
+pwr evaluates the power at the far ends of its intervals (`pwr.chisq.test`: `w` up to 1e9, so a noncentrality of
+1e20; `pwr.anova.test`: `f` up to 1e7, 4e15). There this library's noncentral chi-squared (and the noncentral F
+through it) gives wrong values or NaN, and is slow from about 1e10. Required: when the far tail is below the
+smallest positive double (decide it with a rigorous bound, such as a Chernoff bound of the Poisson mixture), the
+far tail is exactly 0 and the near tail exactly 1 (log scale: the near tail's log is 0); otherwise the present
+computation is unchanged. Fixtures `pnchisqHuge` and `pnfHuge` (`oracle/nchisqhuge.R`) hold such points (R's values
+are right there); the existing fixtures of these distributions must still pass unchanged. Points near the centre of
+a distribution with a huge noncentrality are not required (R itself does not converge there).
+
 ## Accuracy required, and how to test
 
 As in `oracle/anova-behaviour.md`: a number passes within a relative 1e-12 of R's value; otherwise it may be listed
-as a known difference only if it is within a relative 1e-12 of the fixture's `reference`. **The interval limits of
-`cohensD`, `hedgesG` and the ANOVA effect sizes are compared with the reference** (R's are ~1e-9 accurate): a limit
-passes within a relative 1e-12 of the reference, or within 1e-12 absolute when the reference is 0; they need not be
-listed as known differences. The solved quantities of the power functions are compared with R's value (rule 1), not
-with the reference. Strings (names, notes, methods, warnings, errors) must be equal. Relative errors are taken value
-by value; no tolerance relative to the largest value of a case, and no loosening.
+as a known difference only if it is within a relative 1e-12 of the fixture's `reference`.
+
+R's noncentral t and F are accurate to only about 1e-12 and 1e-9, so the references are computed with
+high-precision sums (Rmpfr):
+
+- **Power functions**: a computed power's reference is the power computed accurately; a solved quantity's reference
+  is the result of R's own procedure (the same `uniroot` call, rule 1) applied to the accurate power. Both are
+  compared as above (R first, then the reference for a known difference). Cases without a noncentral distribution
+  (normal-based) have no reference: R is accurate there and they must match R.
+- **Interval limits of `cohensD`, `hedgesG` and the ANOVA effect sizes** are compared with the reference only (R's
+  are about 1e-9 accurate, sometimes worse): a limit passes within a relative 1e-12 of the reference, or within 1e-12
+  absolute when the reference is 0; they need not be listed as known differences.
+
+Strings (names, notes, methods, warnings, errors) must be equal. Relative errors are taken value by value; no
+tolerance relative to the largest value of a case, and no loosening.

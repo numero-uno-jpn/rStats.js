@@ -1,10 +1,11 @@
 source("/oracle/_anova.R")
+source("/oracle/_power.R")
 suppressPackageStartupMessages(library(pwr))
 
 # Power calculations of the pwr package (fixture pwr), and its effect-size helpers ES.h, ES.w1, ES.w2, cohen.ES.
 # Same format as oracle/power.R: fn, the arguments by pwr's names, "NULL" for the quantity solved for. For ES.w1 the
 # arguments are P0 and P1 (vectors), for ES.w2 P (a matrix of probabilities), for cohen.ES test and size. A string
-# effect size (d = "medium") is passed as is (pwr looks it up with cohen.ES).
+# effect size (d = "medium") is passed as is (pwr looks it up with cohen.ES). "reference" as in oracle/power.R.
 
 nul <- "NULL"
 cases <- list()
@@ -85,17 +86,4 @@ write_anova_fixture("pwr", cases, function(a) {
   v <- r$value
   out <- if (is.list(v)) lapply(unclass(v), function(x) if (is.numeric(x)) num2str(x) else x) else list(value = num2str(v))
   c(out, list(warnings = r$warnings))
-}, ref = function(a) {
-  solved <- names(a)[vapply(a, function(v) identical(v, nul), NA)]
-  if (length(solved) != 1 || solved == "power") return(NULL)
-  cl <- call_of(a)
-  r <- tryCatch(suppressWarnings(do.call(cl$fn, cl$args)), error = function(e) NULL)
-  if (is.null(r)) return(NULL)
-  x0 <- r[[solved]]
-  target <- cl$args$power
-  g <- function(x) { args <- cl$args; args[[solved]] <- x; args$power <- NULL; do.call(cl$fn, args)$power - target }
-  h <- max(abs(x0), 1e-300) * 1e-3
-  root <- tryCatch(uniroot(g, c(x0 - h, x0 + h), tol = abs(x0) * 1e-15, extendInt = "yes", maxiter = 5000)$root,
-                   error = function(e) NA)
-  setNames(list(num2str(root)), solved)
-})
+}, ref = function(a) power_ref(a$fn, a[setdiff(names(a), "fn")]))
