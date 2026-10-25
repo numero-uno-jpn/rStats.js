@@ -335,6 +335,11 @@ Listed for attribution; no license terms apply to the methods themselves.
 - E. Brunner and U. Munzel, "The nonparametric Behrens-Fisher problem: asymptotic theory and a small-sample
   approximation", Biometrical Journal 42 (2000) 17–25: the Brunner-Munzel test (lawstat's
   `brunner.munzel.test`) — `src/htest/brunnerMunzelTest.ts`
+- P. McCullagh and J. A. Nelder, "Generalized Linear Models", 2nd ed. (Chapman and Hall, 1989): the
+  variance functions and deviances of the families (table 2.1), iteratively reweighted least squares
+  (section 2.5), the likelihood ratio and score statistics of the intervals and analysis of deviance, with
+  R's behaviour taken from oracle/glm-behaviour.md and R's help pages (no R code was read or used) —
+  `src/models/glmFamily.ts`, `src/models/glm.ts`, `src/models/glmConfint.ts`, `src/models/glmAnova.ts`
 
 - N. M. Temme, "Incomplete Laplace integrals: uniform asymptotic expansion with application to the
   incomplete beta function", SIAM J. Math. Anal. 18 (1987) 1638–1663, and Temme, "Special Functions: An

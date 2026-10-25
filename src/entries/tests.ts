@@ -34,3 +34,26 @@ export {
 export { aov, TukeyHSD, zTest, type AovResult, type TukeyHSDOptions, type TukeyHSDResult, type ZTestOptions } from "../htest/aov.js";
 export type { GroupLabel } from "../htest/groups.js";
 export { lm, confint, predict, type LmOptions, type LmResult, type ConfintOptions, type PredictOptions } from "../models/lm.js";
+export {
+  glm,
+  glmSummary,
+  glmResiduals,
+  glmHatvalues,
+  glmRstandard,
+  glmCooksDistance,
+  glmPredict,
+  type GlmOptions,
+  type GlmResult,
+  type GlmModel,
+  type GlmSummary,
+  type GlmSummaryOptions,
+  type GlmResidualType,
+  type GlmPredictOptions,
+  type GlmFamilyName,
+  type GlmFamilySpec,
+  type GlmLink,
+  type GlmLinkName,
+  type QuasiVariance,
+} from "../models/glm.js";
+export { glmConfint, type GlmConfintOptions } from "../models/glmConfint.js";
+export { glmAnova, type GlmAnovaOptions, type GlmAnovaResult, type GlmAnovaTest } from "../models/glmAnova.js";

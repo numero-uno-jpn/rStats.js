@@ -262,6 +262,46 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 
 - **`lm` with every weight 0** throws "all weights are zero"; R returns NA coefficients.
 
+### Generalized linear models
+
+- **No formulas:** `glm` takes the predictors as a matrix (or a vector), with a column of ones added
+  unless `intercept` is false, and the response as a vector or, for the binomial families, rows of
+  (successes, failures). Each column is one term: `glmAnova` adds the columns one by one (rows
+  `"x1"`, `"x2"`, ...), so a factor coded as several columns is several rows of the table. Coefficient
+  indices (`parm` of `glmConfint`) are 0-based, intercept first.
+- **`glmConfint` computes the exact profile likelihood limits.** R's `confint` for a glm moves each
+  coefficient on a grid of steps of about 1/5 of its standard error and interpolates a spline through
+  the signed roots of the likelihood ratio (or score) statistic; its limits are up to 4.5e-4 standard
+  errors from the exact ones in the test fixture. rStats.js solves z(b) = qnorm((1 ∓ level)/2) by
+  Brent's method, with the fit and every profile refit iterated until the coefficients stop changing
+  (R's rule on the relative change of the deviance stops while they can still move by about
+  sqrt(epsilon)), and the dispersion from the converged fit. The limits agree with exact references
+  to 5.2e-11 standard errors. For the gaussian family with the log link, Gamma with the inverse link
+  and inverse.gaussian with the log link (families whose working weights depend on the mean) the
+  fixture's references used a dispersion from fits stopped by R's rule, a relative 3.4e-10 to 5.3e-9
+  from the converged one; with that dispersion the limits agree to 7e-15 standard errors.
+- **Warnings** are returned, not emitted: `glm`'s result has R's warnings in `warnings` (each message
+  once, in order of first appearance), including those of R's `dpois` in the Poisson AIC
+  (`"non-integer x = 0.500000"`) and of `sqrt` in the `1/mu^2` link (`"NaNs produced"`).
+  `glmSummary` and `glmAnova` return their own (`"observations with zero weight not used for
+  calculating dispersion"`, `"using F test with a 'binomial' family is inappropriate"`, and those of
+  the refits of `glmAnova`); `glmResiduals`, the influence measures and `glmPredict` return none.
+  The intercept-only refit for the null deviance of a model with an offset reports the warnings of
+  its iterations too (R's `glm.fit` gives them as well).
+- **Not available:** `etastart` and `mustart` (use `start`), `method`, `singular.ok = FALSE`, and the
+  `x`, `y` and `model` flags (the model matrix and response are always kept, in `model`).
+- **Comparisons with R in the tests:** residuals of a well-fitting model cancel in y − mu and are
+  compared relative to max(|y|, |mu|) (scaled as each kind of residual is), deviance residuals and
+  deviances relative to the rounding of the logarithms of y/mu, and linear predictors near 0 relative
+  to the sum of |x_j b_j|. Beyond these, three kinds of cases differ from R by more than 1e-12:
+  complete or quasi-complete separation, where the estimate is at infinity and the coefficients are
+  where the iterations stopped (they agree to 4e-11; the weights exp(−|eta|) and what depends on them,
+  such as the hat values, to 1.5e-9); fits stopped at the boundary with a mean within 1e-8 of the end
+  of its range (log-binomial with mu near 1, identity-Poisson with mu near 0), which is the result of a
+  cancellation and known only to eps times its condition number (up to 7.3e-4 for a standard error
+  that depends on a mean of 3.9e-14); and the AIC of a gaussian perfect fit, n log of a deviance that
+  is rounding residue.
+
 ### Linear algebra
 
 - **Matrices** are passed as arrays of rows; a 0-row matrix is treated as 0 × 0.
@@ -375,6 +415,24 @@ also from R's source. They are listed because they are easy to get wrong.
   p-values outside [0, 1] are processed, with only the upper end capped at 1. Abbreviated method
   names are case-sensitive.
 
+### Generalized linear models
+
+- **Links:** a power link with lambda <= 0 is the log link (named `"log"`) and with lambda = 1 the
+  identity; other power links are named `"mu^"` with lambda rounded to 3 decimals. The inverse links
+  and their derivatives have R's clamps (eps = 2^-52 for logit beyond |eta| > 30, the log link,
+  probit and cauchit at the eps quantile, cloglog).
+- **Iterations:** step halving after a non-finite deviance and after an invalid mean or linear
+  predictor sets the boundary flag, which reports the last iteration; "no observations informative at
+  iteration k" is a warning that ends the iterations without convergence. The working weights reported
+  (and used by the dispersion, the influence measures and the standard errors) are those of the last
+  least squares step, computed from the means before the last update; the QR tolerance is
+  min(1e-7, epsilon/1000), so with `epsilon: 1e-14` an exactly collinear column is no longer aliased.
+- **AIC:** the gaussian AIC sums log w over all rows, so a prior weight of 0 makes it infinite; the
+  binomial AIC rounds m y half to even, as R's `round`.
+- **`glmAnova`:** the refits of the sequential table use the same `start` as the fit, which has the
+  wrong length for the smaller models (an error, as in R); the default test is `"Chisq"` when the
+  dispersion is known and `"F"` otherwise (R 4.4.0 and later).
+
 ### Linear algebra
 
 - **`qr` default pivoting:** columns are processed left to right; a column whose remaining norm
@@ -443,7 +501,7 @@ By default rStats.js returns what R returns;
 - `aov` beyond one way: multi-way designs and the formula interface (`aov` takes one sample with
   group labels, or a list of samples).
 - `kappa`'s `inv_z`, complex matrices, and `EISPACK = TRUE` / `LINPACK = TRUE`.
-- Generalized linear models (`glm`) and formulas for `lm`; see [ROADMAP.md](../ROADMAP.md).
+- Formulas for `lm` and `glm` (the predictors are a matrix; see [ROADMAP.md](../ROADMAP.md)).
 - numDeriv's complex-step method (`method = "complex"`), which needs a function of a complex
   argument, and the `side` argument of `grad` and `jacobian`.
 - deSolve's adaptive solvers (`lsoda`, `ode45`, ...); `ode` has the fixed-step `euler`, `rk2`

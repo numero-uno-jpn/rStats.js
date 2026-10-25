@@ -7,6 +7,31 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `glm` (R's `glm` with a matrix interface): generalized linear models fitted by iteratively
+  reweighted least squares, with every family of R's `stats` (`gaussian`, `binomial`,
+  `quasibinomial`, `poisson`, `quasipoisson`, `Gamma`, `inverse.gaussian`, `quasi` with its five
+  variance functions) and every link each accepts, power links (`{ power: lambda }`), prior weights,
+  an offset, starting values, `epsilon`, `maxit` and a model without intercept. A binomial response
+  can be rows of (successes, failures). The result has the coefficients (NaN for aliased columns),
+  fitted values, deviance, null deviance, AIC, degrees of freedom, iterations, `converged`,
+  `boundary`, and R's warnings as strings in `warnings`.
+- `glmSummary` (`summary.glm`): dispersion, coefficient table with z or t tests, unscaled and scaled
+  covariance; `glmResiduals` (deviance, Pearson, working, response); `glmHatvalues`,
+  `glmRstandard`, `glmCooksDistance`; `glmPredict` on the link or response scale with standard
+  errors, for the data or new rows (with their offset).
+- `glmConfint`: profile likelihood confidence intervals (likelihood ratio or Rao score), with the
+  exact limits where R's `confint` interpolates a spline (R is up to 4.5e-4 standard errors from
+  them); see [docs/differences-from-r.md](docs/differences-from-r.md#generalized-linear-models).
+- `glmAnova` (`anova.glm`): the sequential analysis of deviance of one fit (each column of `x` a
+  term) and the comparison of several fits, with the `"Chisq"`/`"LRT"`, `"Rao"`, `"F"` and `"Cp"`
+  tests and R 4.4's default test.
+- Together they add 7.8 KB gzipped to everything (122.2 → 130.0 KB); `glm` with `glmSummary` alone
+  is 27.2 KB, with all its methods 39.2 KB.
+
 ## 0.8.0 - 2026-10-25
 
 ### Added

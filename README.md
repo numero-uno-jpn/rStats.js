@@ -74,6 +74,25 @@ fisherTest([[3, 1], [1, 3]]).pValue;                     // 0.4857142857142857
 pAdjust([0.01, 0.02, 0.03, 0.04], { method: "BH" });    // ≈ [0.04, 0.04, 0.04, 0.04]
 ```
 
+### Generalized linear models
+
+The predictors are a matrix (array of rows) or a vector, as for `lm`; a binomial response can be
+rows of (successes, failures).
+
+```ts
+import { glm, glmSummary, glmPredict, glmConfint, glmAnova } from "@numero-uno-jpn/rstats";
+
+const dose = [1, 2, 3, 4, 5, 6];
+const counts = [[1, 19], [4, 16], [9, 11], [13, 7], [18, 2], [19, 1]];
+const fit = glm(dose, counts, { family: "binomial" });   // R: glm(cbind(s, f) ~ dose, binomial)
+fit.coefficients;                                  // ≈ [-3.77413, 1.14807]
+glmSummary(fit).pValue;                            // ≈ [5.357e-8, 3.579e-9] (z tests)
+glmPredict(fit, { newdata: [3.5], type: "response" }); // { fit: ≈ [0.56073], seFit: ≈ [0.06140] }
+glmConfint(fit).lower;                             // ≈ [-5.27166, 0.80033] (profile likelihood)
+glmAnova(fit).table[1];                            // ≈ [1, 62.978, 4, 0.5196, 2.09e-15]
+fit.warnings;                                      // [] (R's warnings, such as non-convergence)
+```
+
 ### Linear algebra
 
 Matrices are arrays of rows.
@@ -97,7 +116,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | Random numbers | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister and L'Ecuyer-CMRG, `sample.kind` Rejection and Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 `r*` functions, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
 | Descriptive statistics | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov`, `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
-| Linear models | `lm` (matrix interface, with the `summary` quantities), `confint`, `predict` |
+| Linear models | `lm` (matrix interface, with the `summary` quantities), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`) |
 | Linear algebra | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` with `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS) |
 | Numerical methods | `integrate`, `optimize`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
 
@@ -121,7 +140,8 @@ everyday use:
 - Indices are 0-based: `sampleInt(n)` returns `0..n-1` (R's `sample.int()` minus 1, from the
   same random stream), and pivots of `qr` and `chol` are 0-based.
 - Signs of eigenvectors and singular vectors may differ from R (both are correct).
-- Hypothesis tests do not emit R's warnings; all numeric fields and method names match.
+- Hypothesis tests do not emit R's warnings; all numeric fields and method names match. `glm` returns
+  R's warnings in its result (`warnings`).
 - Distribution parameters are not recycled as vectors.
 
 Full list: [docs/differences-from-r.md](docs/differences-from-r.md).
@@ -138,13 +158,14 @@ removed. Approximate sizes after minification and gzip:
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
 | `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 21.4 KB |
 | `qbeta` / `pt` and `qt` | 23.2 / 30.3 KB |
-| everything | 122.2 KB |
+| `glm` and `glmSummary` / `glm` with all its methods | 27.2 / 39.2 KB |
+| everything | 130.0 KB |
 
 (`npm run size` measures these.)
 
 Each area is also a subpath export, for importing one area without the rest:
-`@numero-uno-jpn/rstats/distributions`, `/tests` (hypothesis tests, and `lm`, `confint` and
-`predict`), `/linalg`, `/descriptive`, `/numerics` and `/special`.
+`@numero-uno-jpn/rstats/distributions`, `/tests` (hypothesis tests, `lm`, `confint` and
+`predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics` and `/special`.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
 function, 122 KB gzipped) from jsDelivr, which serves each release tag of this repository:
