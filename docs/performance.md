@@ -177,18 +177,18 @@ With everything in double precision:
 These figures describe the code before the changes in "Where double precision is enough". Since
 then the double-precision mode is no longer a useful bound on the speed: it keeps the array
 allocations and calls of the building blocks, which the generated loop of the continued fraction
-avoids, so on the x64 machine of the measurements below `pbeta`, `pt` and `qbeta` are now faster in the default mode than in
-the double-precision mode.
+avoids, so the gap has narrowed: on the M1 of the measurements below the default mode is now only
+1.0 to 1.3 times slower than the double-precision mode for `pbeta`, `pt`, `pf`, `qbeta` and `qf`
+(on an x64 Linux machine `pbeta`, `pt` and `qbeta` were even faster in the default mode).
 
 ## Measurements
 
 Apple M1 (Mac mini), Node.js 24, the `tsc` build, one call at a time, minimum of 5 runs.
-Rows marked † were measured before the asymptotic expansion and the reduced double-double steps
-(see "Where double precision is enough") and will change; they are to be re-measured. On an x64
-Linux machine with Node.js 22, `npm run bench` gave these ratios between the two versions:
-`pbeta` 1.3, `dbeta` 1.8, `pt` 1.6, `pgamma` 1.1, `dbinom` 1.8, `pbinom` 5.1 (sizes up to 1e4,
-where the expansion applies), `dgamma` 1.5, `dt` 1.4, `pf` 1.9, `pchisq` 1.4, `pnbinom` 1.2,
-`qbeta` 1.7 (typical) and 1.4 (tail), `qgamma` 1.4, `tTest` 1.2.
+All rows are from `npm run bench`. Compared with 0.7.0 (before the asymptotic expansion and the
+reduced double-double steps), the default mode became faster by these factors: `pbeta` 1.6,
+`dbeta` 2.0, `pt` 1.7, `pgamma` 1.2, `pnbinom` 1.2, `dbinom` 2.1, `pbinom` 5.2 (sizes up to 1e4,
+mostly where the expansion applies), `dgamma` 1.4, `dt` 1.8, `pf` 1.7, `pchisq` 1.3, `qbeta` 1.8
+(typical) and 1.5 (tail), `qgamma` 1.3, `qchisq` 1.4, `qt` 1.4 and 1.3, `qf` 1.7, `tTest` 1.2.
 "Typical" inputs: shape parameters log-uniform in 0.5–50 and p uniform in 0–1. "Tail" inputs:
 shapes in 0.1–1e4 and p in 1e-5–1e-300.
 
@@ -196,39 +196,38 @@ shapes in 0.1–1e4 and p in 1e-5–1e-300.
 
 | Function | rStats.js | Double-precision mode |
 |---|---|---|
-| `pbeta` † | 2.6 | 0.98 |
-| `dbeta` † | 2.0 | 0.51 |
-| `pt` † | 2.9 | 1.1 |
-| `pgamma` † | 0.79 | 0.43 |
-| `pnbinom` † | 15.3 | 6.9 |
+| `pbeta` | 1.7 | 1.3 |
+| `dbeta` | 0.93 | 0.41 |
+| `pt` | 1.9 | 1.6 |
+| `pgamma` | 0.66 | 0.43 |
+| `pnbinom` | 12.2 | 6.6 |
 
 | Quantile function | Typical | Tail |
 |---|---|---|
-| `qbeta` † | 27.1 | 19.8 |
-| `qgamma` † | 6.4 | 4.4 |
-| `qchisq` † | 5.7 | |
-| `qt` † | 11.6 | 11.3 |
-| `qf` † | 22.2 | |
+| `qbeta` | 16.8 | 14.8 |
+| `qgamma` | 4.9 | 3.9 |
+| `qchisq` | 4.3 | |
+| `qt` | 8.7 | 9.8 |
+| `qf` | 12.6 | |
 
-`tTest` (Welch, 30 and 25 observations) took 45.8 µs †, measured before the last quantile-solver
-changes (it calls `qt`).
+`tTest` (Welch, 30 and 25 observations) takes 17.0 µs (it calls `qt`).
 
 **Compared with R and SciPy.** For `qbeta` on the same inputs, R 4.5.2 (arm64, one vectorised
 call) takes about 1 µs per value for typical inputs and 2.9 µs for tail inputs; SciPy 1.13's
-`betaincinv` takes 1.7 and 4.3 µs. rStats.js is therefore about 27 times slower than R on
+`betaincinv` takes 1.7 and 4.3 µs. rStats.js is therefore about 17 times slower than R on
 typical inputs. R's `pbeta` and `dbeta` take about 0.2 and 0.1 µs. The answers agree (typical
 inputs: median relative difference between rStats.js and R 1.5e-16, maximum 1.0e-14); the gap
 is the price of the double-double arithmetic, not of a different result.
 
-**Large parameters.** † The continued fraction of the incomplete beta function needs a number of
-iterations roughly proportional to the square root of the parameters near the centre, so before
-the asymptotic expansion `pbeta(0.5, a, a)` took 4.1 µs for a = 10, 17.7 µs for a = 1000, 77.8 µs
-for a = 1e5 and 173 µs for a = 1e6, and `pbinom(n/2, n, 0.5)` 14, 30, 62 and 133 µs for n = 1e3,
-1e4, 1e5 and 1e6. With the expansion (ab/(a + b) >= 25) these calls take constant time: on the
-x64 machine above about 1 µs from a = 1000 and n = 1000 on, against 25 to 262 µs before (26 to
-270 times faster; a = 10 is below the threshold and only gains from the faster continued
-fraction, 1.8 times). `pt` and `pf` with large degrees of freedom are not covered (one parameter
-is 1/2 or small), and stay around 15 µs †.
+**Large parameters.** The continued fraction of the incomplete beta function needs a number of
+iterations roughly proportional to the square root of the parameters near the centre, so in 0.7.0
+`pbeta(0.5, a, a)` took 4.4 µs for a = 10, 21.9 µs for a = 1000, 98.9 µs for a = 1e5 and 221 µs
+for a = 1e6, and `pbinom(n/2, n, 0.5)` 18.4, 39.7, 79.7 and 169 µs for n = 1e3, 1e4, 1e5 and 1e6.
+With the expansion (ab/(a + b) >= 25) these calls take constant time, 0.9 to 1.1 µs from
+a = 1000 and n = 1000 on (17 to 245 times faster; a = 10 is below the threshold and only gains
+from the faster continued fraction, 4.4 → 2.3 µs). `pt` and `pf` with large degrees of freedom
+are not covered (one parameter is 1/2 or small): `pt` with df = 1e6 takes 5.4 µs (10.5 µs in
+0.7.0).
 
 ### Linear algebra
 
