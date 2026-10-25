@@ -128,6 +128,10 @@ jStat から移るときは [docs/ja/migrating-from-jstat.md](docs/ja/migrating-
 
 API リファレンスは `npm run docs` (TypeDoc) で作れます (英語)。
 
+AI のコーディング支援向けに、R のコードを rStats.js の呼び出しに書き換える方法を [llms.txt](llms.txt)
+にまとめています (英語。npm のパッケージにも入っていて、<https://numero-uno-jpn.github.io/rStats.js/llms.txt>
+でも読めます)。
+
 ## 精度
 
 正解の値は [`oracle/`](oracle) の R のスクリプトで作り、[`test/fixtures/`](test/fixtures) に

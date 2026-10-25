@@ -1,0 +1,86 @@
+# rStats.js
+
+> R-compatible statistics for JavaScript and TypeScript: distributions, random numbers that match
+> R's `set.seed()`, descriptive statistics, hypothesis tests, `lm` and `glm`, special functions,
+> numerical methods and linear algebra, with R's function names, defaults and numerical results.
+> Every function is tested against R 4.5.2. ESM only, no dependencies, runs in browsers, Node.js,
+> Deno and Bun.
+
+Install with `npm install @numero-uno-jpn/rstats`. All functions are named exports:
+`import { pnorm, tTest } from "@numero-uno-jpn/rstats"`, or `import * as rs from
+"@numero-uno-jpn/rstats"` and call `rs.tTest(x, y)`. Each area is also a subpath export
+(`/distributions`, `/tests`, `/linalg`, `/descriptive`, `/numerics`, `/special`). For use from a
+CDN without a bundler, see the README section "Using it in the browser".
+
+## Translating R code
+
+- Function names are R's names. A dot in R's name becomes camelCase: `t.test` → `tTest`,
+  `chisq.test` → `chisqTest`, `p.adjust` → `pAdjust`, `set.seed` → `setSeed`,
+  `sample.int` → `sampleInt`, `weighted.mean` → `weightedMean`, `pairwise.t.test` →
+  `pairwiseTTest`. Methods of `glm` carry a prefix: `summary(fit)` → `glmSummary(fit)`,
+  `predict` → `glmPredict`, `confint` → `glmConfint`, `anova` → `glmAnova`, `residuals` →
+  `glmResiduals`. Other renamed functions: `var` → `variance`, `%*%` → `matMul`,
+  `.Random.seed` → `getRandomSeed()` / `setRandomSeed(seed)`, `qr.Q` → `qrQ` (likewise `qrR`,
+  `qrCoef`, `qrResid`, ...). Functions from other packages keep their own names (`zTest` from
+  BSDA, `brunnerMunzelTest` from lawstat, `ginv` from MASS, `grad` and `hessian` from numDeriv).
+- Required arguments are positional; optional ones go in one options object with camelCase keys:
+  `pt(q, df, lower.tail = FALSE, log.p = TRUE)` → `pt(q, df, { lowerTail: false, logP: true })`,
+  `t.test(x, y, var.equal = TRUE, conf.level = 0.99)` →
+  `tTest(x, y, { varEqual: true, confLevel: 0.99 })`. When an optional second sample is
+  omitted, the options take its place: `tTest(x, { mu: 1 })`.
+- Option values are R's strings: `alternative: "less"` (unambiguous abbreviations such as `"l"`
+  are accepted, as with R's `match.arg`), `method: "kendall"`, `family: "binomial"`.
+- Results are plain objects with camelCase fields. Hypothesis tests return R's `htest` fields:
+  `statistic`, `parameter`, `pValue` (R's `p.value`), `confInt` (`conf.int`) with `confLevel`,
+  `estimate`, `nullValue`, `method`, `alternative`. R's names of these values are separate
+  fields: `statisticName`, `parameterName`, `estimateNames`, `nullValueName`.
+- Data shapes: a sample is an array of numbers or a `Float64Array`. A matrix or contingency table
+  is an array of rows. Grouped data is either an array of samples (`kruskalTest([a, b, c])`) or
+  values with a parallel array of group labels (`kruskalTest(x, g)`). The first argument of the
+  d/p/q functions may be a number or an array (the result has the same shape); distribution
+  parameters are scalars and are not recycled as vectors.
+- Models: `lm(x, y)` and `glm(x, y, { family })` take a matrix (array of rows) or a vector of
+  predictors instead of a formula; the intercept is added unless `intercept: false`. A binomial
+  response can be rows of `[successes, failures]`, like `cbind(s, f)` in R.
+- Indices are 0-based where R returns indices: `sampleInt(n)` returns `0..n-1` (R's
+  `sample.int(n) - 1` from the same random stream), and the pivots of `qr` and `chol`.
+- Hypothesis tests do not emit R's warnings. `glm` returns R's warnings in its result
+  (`warnings`).
+- Random numbers: after `setSeed(42)`, `rnorm`, `runif`, `sample` and the other `r*` functions
+  give the same numbers as R after `set.seed(42)`. `RNGkind` supports Mersenne-Twister (R's
+  default) and L'Ecuyer-CMRG.
+
+## Examples
+
+```ts
+import { pnorm, pt, setSeed, rnorm, tTest, glm, glmSummary } from "@numero-uno-jpn/rstats";
+
+pnorm(1.96);                                  // 0.9750021048517795
+pt(2, 10, { lowerTail: false, logP: true });  // -3.3051415512324533
+
+setSeed(42);
+rnorm(3);  // [1.3709584471466685, -0.5646981713960887, 0.3631284113373392], as in R
+
+const r = tTest([5.1, 4.9, 6.2, 5.8, 6.0, 5.5], [4.1, 4.5, 5.0, 4.8, 4.3]);
+r.pValue;  // 0.0035365308877675647 (Welch, R's default)
+r.confInt; // [0.4423253334608047, 1.6443413332058612]
+
+// R: glm(cbind(s, f) ~ dose, family = binomial)
+const fit = glm([1, 2, 3, 4, 5, 6], [[1, 19], [4, 16], [9, 11], [13, 7], [18, 2], [19, 1]], { family: "binomial" });
+fit.coefficients;        // ≈ [-3.77413, 1.14807]
+glmSummary(fit).pValue;  // ≈ [5.357e-8, 3.579e-9]
+```
+
+## Docs
+
+- [README](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/README.md): install, examples, the full list of functions by area
+- [Differences from R](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/differences-from-r.md): every known difference from R, function by function
+- [Accuracy](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/accuracy.md): how results are checked against R and high-precision references
+- [Migrating from jStat](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/migrating-from-jstat.md): the replacement for every jStat function
+
+## Optional
+
+- [Performance](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/performance.md): speed and bundle sizes
+- [Roadmap](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/ROADMAP.md): what is planned
+- [Changelog](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/CHANGELOG.md)
+- [Demo](https://numero-uno-jpn.github.io/rStats.js/demo/): every function in the browser, compared with R

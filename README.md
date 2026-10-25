@@ -124,6 +124,9 @@ Coming from jStat? [docs/migrating-from-jstat.md](docs/migrating-from-jstat.md) 
 
 An API reference can be generated with `npm run docs` (TypeDoc).
 
+For AI coding assistants, [llms.txt](llms.txt) summarises how R code translates to rStats.js
+calls (also in the npm package and at <https://numero-uno-jpn.github.io/rStats.js/llms.txt>).
+
 ## Accuracy
 
 Expected values are produced by R scripts in [`oracle/`](oracle) and stored in
