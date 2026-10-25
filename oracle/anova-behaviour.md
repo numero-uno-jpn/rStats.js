@@ -405,7 +405,7 @@ The fixtures hold R's values and, for most cases, exact references (`reference`;
 A numeric cell passes if it is within a **relative 1e-12** of R's value. A cell that is not may be listed as a
 known difference only if it is within a relative 1e-12 of the reference (R is the less accurate one there).
 
-Two exceptions, and no others:
+Three exceptions, and no others:
 
 - In the columns of sums of squares, mean squares and F values (`Sum Sq`, `Mean Sq`, `RSS`, `Sum of Sq`, `Error
   SS`, `MSE`, `F value`, `F`), a cell also passes if it is within 1e-12 times the largest absolute value of that
@@ -413,6 +413,9 @@ Two exceptions, and no others:
   is nearly 0 (an effect absent by design) is known only to the rounding of the larger ones.
 - When R warns `ANOVA F-tests on an essentially perfect fit are unreliable` (the residual sum of squares is rounding
   residue), the `F value` and `Pr(>F)` cells of that table are not compared; the other cells are.
+- A coefficient whose exact reference is 0 passes if its absolute value is at most 1e-12 times the largest absolute
+  reference coefficient of the case; `sigma` whose exact reference is 0 passes if it is at most 1e-12 times the
+  root mean square of the response (the rows used). Both happen only for exact fits.
 
 Relative errors are taken cell by cell; tolerances relative to the largest value of a whole case are not allowed,
 and the tolerance must not be loosened. Strings (names, warnings, errors) must be equal, except where this file
