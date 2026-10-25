@@ -1,6 +1,6 @@
 // lm and aov from a formula, anova(fit), summary(aov(...)) and anova(fit1, fit2, ...) against R (oracle/anovalm.R)
 import { describe, expect, it } from "vitest";
-import { anova, aov, aovSummary, lm, type ContrastName, type LmFormulaOptions } from "../src/index.js";
+import { anova, aov, aovSummary, lm, type ContrastName, type LmFormulaOptions, type LmFormulaResult } from "../src/index.js";
 import { num } from "./helpers/fixture.js";
 import { collectWarnings, Comparison, dataFrameOf, loadAnovaFixture, type FixtureTable, type KnownDifference } from "./helpers/anova.js";
 
@@ -33,7 +33,7 @@ describe("anovaLm", () => {
       try {
         const fit = lm(a.formula as string, data, options);
         const tab = anova(fit);
-        const av = aov(a.formula as string, data, options);
+        const av = aov(a.formula as string, data, options) as LmFormulaResult;
         const avs = aovSummary(av);
         const compare = a.compare === undefined ? undefined : ([] as string[]).concat(a.compare as string | string[]);
         const others = compare?.map((f) => lm(f, data, options));
@@ -90,12 +90,12 @@ describe("formula interface", () => {
   });
   it("gives the same table for aov(formula) as the one-way aov", () => {
     const one = aov(data.y, data.g);
-    const t = aovSummary(aov("y ~ g", data));
+    const t = aovSummary(aov("y ~ g", data) as LmFormulaResult);
     expect(t.rowNames).toEqual(["g", "Residuals"]);
     expect(t.table[0]![3]).toBeCloseTo(one.fValue, 12);
   });
-  it("rejects Error() terms for now, and more than one of them", () => {
-    expect(() => aov("y ~ g + Error(id)", data)).toThrow("not implemented yet");
+  it("accepts one Error() term in aov only", () => {
+    expect((aov("y ~ g + Error(id)", data) as { multistratum?: boolean }).multistratum).toBe(true);
     expect(() => aov("y ~ g + Error(id) + Error(g)", data)).toThrow("there are 2 Error terms: only 1 is allowed");
     expect(() => lm("y ~ g + Error(id)", data)).toThrow(/^invalid formula/);
   });

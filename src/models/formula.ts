@@ -156,6 +156,12 @@ export function splitErrorTerms(rhs: FormulaNode): { treatment: FormulaNode | un
       if (r === undefined) return l;
       return { ...n, left: l, right: r };
     }
+    if (n.type === "binary" && n.op === "-") {
+      // y ~ W + Error(id) - 1: the Error() term is a summand of the left operand
+      const l = strip(n.left);
+      if (l === undefined) return { type: "unary", op: "-", arg: n.right };
+      return { ...n, left: l };
+    }
     return n;
   };
   const treatment = strip(rhs);

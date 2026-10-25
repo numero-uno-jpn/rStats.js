@@ -97,6 +97,10 @@ export interface DesignOptions extends ModelMatrixOptions {
   dropUnusedLevels?: boolean;
   /** Contrast used for every factor instead of `contrasts` (the error model of aov) */
   allContrasts?: ContrastName;
+  /** The intercept flag to use instead of the formula's (the error model of aov) */
+  intercept?: boolean;
+  /** More variables whose missing values drop rows (the rest of the formula, for the error model of aov) */
+  extraVariables?: readonly string[];
 }
 
 /**
@@ -107,11 +111,13 @@ export interface DesignOptions extends ModelMatrixOptions {
 export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOptions = {}, rhs: FormulaNode | undefined = parsed.rhs): Design {
   if (typeof data !== "object" || data === null) throw new TypeError("data must be an object of columns");
   const terms = termsOf(parsed, Object.keys(data), rhs);
+  if (options.intercept !== undefined) terms.intercept = options.intercept;
+  const frameNames = [...terms.variables, ...(options.extraVariables ?? []).filter((v) => !terms.variables.includes(v))];
   const frameOptions: Parameters<typeof modelFrame>[2] = {};
   if (options.levels !== undefined) frameOptions.levels = options.levels;
   if (options.weights !== undefined) frameOptions.weights = options.weights;
   if (options.dropUnusedLevels !== undefined) frameOptions.dropUnusedLevels = options.dropUnusedLevels;
-  const frame = modelFrame(data, terms.variables, frameOptions);
+  const frame = modelFrame(data, frameNames, frameOptions);
   const vars = frame.variables;
   const nr = frame.rows.length;
   // the terms that get columns, and the code of each variable in them

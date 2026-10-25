@@ -16,6 +16,7 @@ import { ptukey, qtukey } from "../distributions/tukey.js";
 import { meanDD } from "../internal/summary.js";
 import { ddAdd, ddMul, ddSub, type DD } from "../special/dd.js";
 import { parseFormula, splitErrorTerms } from "../models/formula.js";
+import { aovStrataFit, type AovStrataFit } from "../models/aovStrata.js";
 import { lmFormulaFit, type LmFormulaOptions, type LmFormulaResult } from "../models/lm.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { design } from "../models/modelMatrix.js";
@@ -72,7 +73,8 @@ export function aov(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): A
 /**
  * Analysis of variance from a model formula. Equivalent to R's `aov(formula, data)` (with `weights` and
  * `contrasts`): the same fit as {@link lm} with a formula; {@link aovSummary} gives the table of R's
- * `summary(aov(...))`. `Error()` strata are not implemented yet.
+ * `summary(aov(...))`. With one `Error()` term (`y ~ W + Error(id/W)`) the fit has error strata: the result is an
+ * {@link AovStrataFit} whose tables {@link aovSummary} returns, one per stratum.
  *
  * @param formula A formula such as `"y ~ A * B"`.
  * @param data The data frame: an object of columns.
@@ -83,22 +85,22 @@ export function aov(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): A
  * aovSummary(fit).rowNames; // ["g", "Residuals"]
  * ```
  */
-export function aov(formula: string, data: DataFrame, options?: LmFormulaOptions): LmFormulaResult;
+export function aov(formula: string, data: DataFrame, options?: LmFormulaOptions): LmFormulaResult | AovStrataFit;
 export function aov(
   x: string | Sample | readonly Sample[],
   g?: readonly GroupLabel[] | DataFrame,
   options: LmFormulaOptions = {},
-): AovResult | LmFormulaResult {
+): AovResult | LmFormulaResult | AovStrataFit {
   if (typeof x === "string") return aovFormula(x, g as DataFrame, options);
   return aovOneway(x, g as readonly GroupLabel[] | undefined);
 }
 
 /** aov from a formula (without Error() strata) */
-function aovFormula(formula: string, data: DataFrame, options: LmFormulaOptions): LmFormulaResult {
+function aovFormula(formula: string, data: DataFrame, options: LmFormulaOptions): LmFormulaResult | AovStrataFit {
   const parsed = parseFormula(formula, true);
   const { treatment, errors } = splitErrorTerms(parsed.rhs);
   if (errors.length > 1) throw new Error(`there are ${errors.length} Error terms: only 1 is allowed`);
-  if (errors.length === 1) throw new Error("aov() with Error() strata is not implemented yet");
+  if (errors.length === 1) return aovStrataFit(formula, parsed, treatment, errors[0]!, data, options);
   return lmFormulaFit(formula, design(parsed, data, { ...options, dropUnusedLevels: true }, treatment), true);
 }
 

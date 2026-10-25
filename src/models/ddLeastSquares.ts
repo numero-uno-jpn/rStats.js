@@ -40,10 +40,24 @@ export interface DDLeastSquares {
  * @param y The response.
  */
 export function ddLeastSquares(cols: readonly (readonly DD[])[], y: readonly DD[]): DDLeastSquares {
+  return ddLeastSquaresMulti(cols, y, []).fit;
+}
+
+/**
+ * {@link ddLeastSquares}, and Q'v for more vectors (with the same decomposition of the columns).
+ *
+ * @param vectors More vectors (each with one entry per row) to transform by Q'.
+ */
+export function ddLeastSquaresMulti(
+  cols: readonly (readonly DD[])[],
+  y: readonly DD[],
+  vectors: readonly (readonly DD[])[],
+): { fit: DDLeastSquares; qtv: DD[][] } {
   const n = y.length;
   const p = Math.min(cols.length, n);
   const a = cols.map((c) => c.slice());
   const b = y.slice();
+  const extra = vectors.map((v) => v.slice());
   const diag: DD[] = [];
   for (let k = 0; k < p; k++) {
     const v = a[k]!;
@@ -66,6 +80,7 @@ export function ddLeastSquares(cols: readonly (readonly DD[])[], y: readonly DD[
     };
     for (let j = k + 1; j < cols.length; j++) reflect(a[j]!);
     reflect(b);
+    for (const c of extra) reflect(c);
     diag.push([-alpha[0], -alpha[1]]);
   }
   // back substitution with R (diagonal in diag, above it the transformed columns)
@@ -75,7 +90,7 @@ export function ddLeastSquares(cols: readonly (readonly DD[])[], y: readonly DD[
     for (let k = j + 1; k < p; k++) s = ddSub(s, ddMul(a[k]![j]!, coef[k]!));
     coef[j] = ddDiv(s, diag[j]!);
   }
-  return { qty: b, coef };
+  return { fit: { qty: b, coef }, qtv: extra };
 }
 
 /** Sum of squares of the elements from..to-1 */

@@ -6,6 +6,7 @@
 // terms appear in the order of their first column among the columns kept.
 
 import { pf1 } from "../distributions/f.js";
+import type { AovStrataFit, AovStratum } from "./aovStrata.js";
 import type { LmFormulaResult } from "./lm.js";
 
 /** An analysis of variance table, in the form of R's printed table. */
@@ -134,19 +135,34 @@ export function anova(fit: LmFormulaResult, ...fits: LmFormulaResult[]): AnovaTa
   return tab;
 }
 
+/** Result of {@link aovSummary} for a fit with error strata. */
+export interface AovStrataSummary {
+  /** The table of each stratum, in order, without the intercept stratum. */
+  strata: AovStratum[];
+  warnings: string[];
+}
+
 /**
  * The table of R's `summary(aov(formula, data))` for a fit without `Error()`: the rows of {@link anova}'s
  * sequential table, except that without residual degrees of freedom there is no `Residuals` row and no `F value` and
- * `Pr(>F)` columns.
+ * `Pr(>F)` columns. For a fit with an `Error()` term, the tables of the strata (`{ strata: [{ stratum: "Error: id",
+ * colNames, rowNames, table }, ...] }`), without the intercept stratum.
  *
  * @param fit A fit from {@link aov} (or {@link lm}) with a formula.
  */
-export function aovSummary(fit: LmFormulaResult): AnovaTable {
+export function aovSummary(fit: AovStrataFit): AovStrataSummary;
+export function aovSummary(fit: LmFormulaResult): AnovaTable;
+export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | AovStrataSummary;
+export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | AovStrataSummary {
+  if (typeof fit === "object" && fit !== null && (fit as AovStrataFit).multistratum === true) {
+    const f = fit as AovStrataFit;
+    return { strata: f.strata.filter((s) => s.stratum !== "Error: (Intercept)").map((s) => ({ ...s })), warnings: [] };
+  }
   if (typeof fit !== "object" || fit === null || !Array.isArray((fit as Partial<LmFormulaResult>).effects)) {
     throw new TypeError("aovSummary() needs a fit from aov() with a formula");
   }
-  const t = sequentialTable(fit);
-  if (fit.dfResidual > 0) return { ...t, warnings: [] };
+  const t = sequentialTable(fit as LmFormulaResult);
+  if ((fit as LmFormulaResult).dfResidual > 0) return { ...t, warnings: [] };
   return {
     colNames: t.colNames.slice(0, 3),
     rowNames: t.rowNames.slice(0, -1),

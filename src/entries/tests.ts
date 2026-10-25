@@ -65,5 +65,8 @@ export {
 } from "../models/modelMatrix.js";
 export type { DataFrame } from "../models/modelFrame.js";
 export type { LmFormulaOptions, LmFormulaResult } from "../models/lm.js";
-export { anova, aovSummary, type AnovaTable } from "../models/anovaSequential.js";
+export { anova, aovSummary, type AnovaTable, type AovStrataSummary } from "../models/anovaSequential.js";
+export type { AovStrataFit, AovStratum } from "../models/aovStrata.js";
 export { Anova, type AnovaOptions } from "../models/carAnova.js";
+export { mauchlyTest, type MauchlyTestOptions, type MauchlyTestResult } from "../models/mauchly.js";
+export { aovEz, type AovEzOptions, type AovEzResult, type AovEzTable, type AovEzEffectSize } from "../models/aovEz.js";
