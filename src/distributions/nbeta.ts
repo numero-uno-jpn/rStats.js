@@ -23,7 +23,7 @@ import { betaIncDD } from "../special/incbet.js";
 import { dbinomExponent, dbinomRawDD } from "../special/loader.js";
 import { dbeta1, pbeta1, qbeta1 } from "./beta.js";
 import { dfDensity1, pf1, qf1 } from "./f.js";
-import { dnchisq1, pnchisq1, qnchisq1 } from "./nchisq.js";
+import { dnchisq1, negligibleTail, pnchisq1, qnchisq1, type FarTail } from "./nchisq.js";
 
 function betaKernel(a: number, b: number, xd: DD, xcd: DD): MixtureKernel {
   const ab = twoSum(a, b);
@@ -259,7 +259,37 @@ export function pnf1(q: number, m: number, n: number, ncp: number, lowerTail: bo
   if (n === Infinity) return pnchisq1(q * m, m, ncp, lowerTail, logP);
   if ((m / n) * q < 1e-306) return pnfTiny(q, m, n, ncp, lowerTail, logP);
   if (ncp === 0) return pf1(q, m, n, lowerTail, logP);
+  const neg = negligibleTail(fTailBound(q, m, n, ncp), lowerTail, logP);
+  if (neg !== undefined) return neg;
   return pnfRaw(q, m, n, ncp, lowerTail, logP);
+}
+
+/** Below this log a probability rounds to 0 in double precision (as in src/distributions/nchisq.ts) */
+const LOG_NEGLIGIBLE = -746;
+
+/**
+ * Chernoff bounds of the noncentral F = (X/m)/(V/n), X ~ χ²(m, λ), V ~ χ²(n) independent. With c = q m/n,
+ * F <= q is X - cV <= 0, and E[e^(-s(X - cV))] = (1 + 2s)^(-m/2) e^(-λs/(1 + 2s)) (1 - 2cs)^(-n/2) for 0 < s < 1/(2c)
+ * bounds P[F <= q]; E[e^(s(X - cV))] = (1 - 2s)^(-m/2) e^(λs/(1 - 2s)) (1 + 2cs)^(-n/2) for 0 < s < 1/2 bounds
+ * P[F >= q]. Every s in range gives a valid bound; the smallest over a grid of s is taken. Returns the tail whose
+ * bound is below the double range.
+ */
+function fTailBound(q: number, m: number, n: number, ncp: number): FarTail {
+  const c = (q * m) / n;
+  if (!(c > 0 && Number.isFinite(c))) return undefined;
+  const lower = (s: number): number => -(m / 2) * Math.log1p(2 * s) - (ncp * s) / (1 + 2 * s) - (n / 2) * Math.log1p(-2 * c * s);
+  const upper = (s: number): number => -(m / 2) * Math.log1p(-2 * s) + (ncp * s) / (1 - 2 * s) - (n / 2) * Math.log1p(2 * c * s);
+  const best = (f: (s: number) => number, sMax: number): number => {
+    let b = Infinity;
+    for (let i = 1; i <= 60; i++) {
+      const v = Math.min(f(sMax * 2 ** -i), f(sMax * (1 - 2 ** -i)));
+      if (v < b) b = v;
+    }
+    return b;
+  };
+  if (best(lower, 1 / (2 * c)) < LOG_NEGLIGIBLE) return "lower";
+  if (best(upper, 0.5) < LOG_NEGLIGIBLE) return "upper";
+  return undefined;
 }
 
 export function qnf1(p: number, m: number, n: number, ncp: number, lowerTail: boolean, logP: boolean): number {

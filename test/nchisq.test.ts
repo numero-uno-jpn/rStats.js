@@ -20,6 +20,12 @@ fixtureSuite({
   tolerance: 1e-14,
   call: (a) => pchisq(num(a.q), num(a.df), opts(a)),
 });
+// A huge noncentrality far from q: the far tail is below the double range (0), the near tail 1
+fixtureSuite({
+  name: "pnchisqHuge",
+  tolerance: 1e-14,
+  call: (a) => pchisq(num(a.q), num(a.df), opts(a)),
+});
 fixtureSuite({
   name: "qnchisq",
   tolerance: 1e-14,
