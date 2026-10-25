@@ -16,7 +16,7 @@ JavaScript とブラウザで使える、R と互換の統計関数のライブ�
 - **どこでも動きます。** ESM のみで、依存パッケージはなく、Node 専用の API も使っていません。
   tree-shaking が効きます (`pnorm` だけなら gzip で 1.2 KB)。
 
-状態: **0.8.0。** R の stats パッケージの数値計算の中心
+状態: **0.9.0。** R の stats パッケージの数値計算の中心
 (分布・記述統計・検定・線形モデル・特殊関数・数値計算・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
 [ROADMAP.ja.md](ROADMAP.ja.md)、変更履歴は [CHANGELOG.md](CHANGELOG.md) (英語) にあります。
 
@@ -173,12 +173,12 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 `/descriptive`、`/numerics`、`/special` です。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (すべての関数を含む minify 済みの
-ES モジュール、gzip で 122 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
+ES モジュール、gzip で 130 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
 タグをそのまま配信します。
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.8.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.9.0/dist/rstats.js";
   console.log(pnorm(1.96)); // 0.9750021048517795
 </script>
 ```
@@ -194,11 +194,11 @@ ES モジュール、gzip で 122 KB) を jsDelivr から読み込めます。js
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js` は
 上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、2 つの分野を
 読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で 18 KB
-(`numerics`) から 93 KB (`tests`) です。
+(`numerics`) から 102 KB (`tests`) です。
 
 ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm を元にした CDN も
 使えます。たとえば
-`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.8.0/dist/rstats.js` や
+`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.9.0/dist/rstats.js` や
 `https://esm.sh/@numero-uno-jpn/rstats` です。
 
 ブラウザ向けのビルドは、headless Chromium でテストしています。バンドラでまとめた場合と、

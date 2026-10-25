@@ -14,7 +14,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.2 KB gzipped).
 
-Status: **0.8.0.** The goal is to cover the numerical core of R's
+Status: **0.9.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
 functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -168,11 +168,11 @@ Each area is also a subpath export, for importing one area without the rest:
 `predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics` and `/special`.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function, 122 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+function, 130 KB gzipped) from jsDelivr, which serves each release tag of this repository:
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.8.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.9.0/dist/rstats.js";
   console.log(pnorm(1.96)); // 0.9750021048517795
 </script>
 ```
@@ -188,11 +188,11 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js` and `dist/special.js`
 export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 18 KB (`numerics`) to 93 KB (`tests`) gzipped.
+transfers 18 KB (`numerics`) to 102 KB (`tests`) gzipped.
 
 Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
 work as well, for example
-`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.8.0/dist/rstats.js` or
+`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.9.0/dist/rstats.js` or
 `https://esm.sh/@numero-uno-jpn/rstats`.
 
 The browser build is tested in headless Chromium, both bundled and as `dist/rstats.js` loaded as
