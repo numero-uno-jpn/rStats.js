@@ -1,6 +1,7 @@
 // lm and aov from a formula, anova(fit), summary(aov(...)) and anova(fit1, fit2, ...) against R (oracle/anovalm.R)
 import { describe, expect, it } from "vitest";
 import { anova, aov, aovSummary, lm, type ContrastName, type LmFormulaOptions } from "../src/index.js";
+import { num } from "./helpers/fixture.js";
 import { collectWarnings, Comparison, dataFrameOf, loadAnovaFixture, type FixtureTable, type KnownDifference } from "./helpers/anova.js";
 
 const PERFECT = "ANOVA F-tests on an essentially perfect fit are unreliable";
@@ -50,9 +51,12 @@ describe("anovaLm", () => {
       const perfect = (e.warnings as string[]).includes(PERFECT);
       cmp.strings(index, "coefNames", e.coefNames, fit.coefNames);
       const ref = c.reference as (Record<string, FixtureTable> & Record<string, unknown>) | undefined;
-      cmp.numbers(index, "coefficients", e.coefficients, fit.coefficients, ref?.coefficients, fit.coefNames);
+      const refCoef = ref?.coefficients === undefined ? undefined : ([] as string[]).concat(ref.coefficients as unknown as string[]).map(num);
+      const maxCoef = refCoef?.reduce((m, v) => (Number.isFinite(v) ? Math.max(m, Math.abs(v)) : m), 0);
+      const rmsY = Math.sqrt(fit.y.reduce((s, v) => s + v * v, 0) / fit.y.length);
+      cmp.numbers(index, "coefficients", e.coefficients, fit.coefficients, ref?.coefficients, fit.coefNames, maxCoef);
       cmp.numbers(index, "dfResidual", e.dfResidual, fit.dfResidual);
-      cmp.numbers(index, "sigma", e.sigma, fit.sigma, ref?.sigma, ["sigma"]);
+      cmp.numbers(index, "sigma", e.sigma, fit.sigma, ref?.sigma, ["sigma"], rmsY);
       cmp.numbers(index, "rSquared", e.rSquared, fit.rSquared, ref?.rSquared, ["rSquared"]);
       cmp.numbers(index, "adjRSquared", e.adjRSquared, fit.adjRSquared, ref?.adjRSquared, ["adjRSquared"]);
       cmp.table(index, "anova", e.anova as FixtureTable, tab, ref?.anova, perfect);

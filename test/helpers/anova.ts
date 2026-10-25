@@ -9,7 +9,9 @@
 // - a cell that fails may be listed as a known difference (case, table, row, column, reason) only if it passes the
 //   same rules against the exact reference of the fixture. Listed differences that are not needed fail the test too.
 // Values outside the tables (coefficients, sigma, R^2) follow the same rules without the column scale; their known
-// differences have the field as `table`, the value's name as `row` and an empty `col`.
+// differences have the field as `table`, the value's name as `row` and an empty `col`. A coefficient whose exact
+// reference is 0 passes within 1e-12 times the largest absolute reference coefficient of the case, sigma whose exact
+// reference is 0 within 1e-12 times the root mean square of the response (the rows used).
 
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -94,9 +96,19 @@ export class Comparison {
 
   /**
    * Numbers compared by relative error 1e-12. A value that fails may be a known difference (table = `what`, row = its
-   * name in `names` or its index, col "") if it is within a relative 1e-12 of `reference`.
+   * name in `names` or its index, col "") if it is within a relative 1e-12 of `reference`. With `zeroScale`, a value
+   * whose reference is exactly 0 passes if its absolute value is at most 1e-12 times `zeroScale` (the specification's
+   * rule for coefficients and sigma of exact fits).
    */
-  numbers(index: number, what: string, expected: unknown, actual: unknown, reference?: unknown, names?: readonly string[]): void {
+  numbers(
+    index: number,
+    what: string,
+    expected: unknown,
+    actual: unknown,
+    reference?: unknown,
+    names?: readonly string[],
+    zeroScale?: number,
+  ): void {
     const flat = (v: unknown): unknown[] => ([] as unknown[]).concat(v).flat(2);
     const e = flat(expected).map((v) => num(v as string));
     const a = flat(actual) as number[];
@@ -115,8 +127,10 @@ export class Comparison {
           this.maxRuleRef = Math.max(this.maxRuleRef, errRef);
         }
       }
-      if (Number.isFinite(err)) this.maxRuleR = Math.max(this.maxRuleR, err);
-      if (err <= TOL) return;
+      const zeroErr = refOk && ref[k] === 0 && zeroScale !== undefined && zeroScale > 0 ? Math.abs(a[k]!) / zeroScale : Infinity;
+      if (Number.isFinite(Math.min(err, zeroErr))) this.maxRuleR = Math.max(this.maxRuleR, Math.min(err, zeroErr));
+      if (Number.isFinite(zeroErr)) this.maxRuleRef = Math.max(this.maxRuleRef, zeroErr);
+      if (err <= TOL || zeroErr <= TOL) return;
       const row = names?.[k] ?? String(k);
       const listed = this.known.find((x) => x.case === index && x.table === what && x.row === row && x.col === "");
       if (listed !== undefined && errRef <= TOL) {
