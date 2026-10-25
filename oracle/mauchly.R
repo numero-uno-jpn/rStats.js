@@ -24,7 +24,7 @@ cases <- list(
   list(y = y4[, 1:2], X = "~1")
 )
 
-write_htest_fixture("mauchlyTest", cases, function(a) {
+write_anova_fixture("mauchlyTest", cases, function(a) {
   Y <- a$y
   m <- if (is.null(a$group)) lm(Y ~ 1) else { G <- factor(unclass(a$group)); lm(Y ~ G) }
   args <- list(m)

@@ -132,9 +132,10 @@ A right-hand side expands to an ordered list of **terms**, each a set of variabl
 
 Then:
 
-1. A term consisting of the response alone is dropped, with the warnings `the response appeared on the right-hand
+1. A term consisting of the response alone stays in the list of terms (in `termLabels`, `order` and `factors`) but
+   gets no columns in the model matrix, with the warnings `the response appeared on the right-hand
    side and was dropped` and `problem with term 1 in model.matrix: no columns are assigned` (with the term's 1-based
-   position among the terms). Interactions with the response are kept.
+   position among the sorted terms). Interactions with the response are kept.
 2. The terms are sorted by degree (number of variables), stably.
 3. The **variables** of the formula are numbered in order of first appearance (response first, then left to right
    through the right-hand side as written, before expansion); within a term they are listed in that order. A

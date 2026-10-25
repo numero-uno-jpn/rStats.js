@@ -9,7 +9,8 @@ source("/oracle/_anova.R")
 #   compare    (optional) more formulas: the table is then anova(lm(formula), lm(compare[1]), ...)
 # Written: coefNames and coefficients (NA for aliased columns), dfResidual, sigma, rSquared, adjRSquared, anova
 # (anova.lm's table), aov (summary(aov(...))[[1]], the same table as summary.aov prints it), compare (when given)
-# and warnings. "reference" holds the anova and compare tables computed exactly (oracle/_anova.R).
+# and warnings. "reference" holds the anova and compare tables, the coefficients, sigma, rSquared and adjRSquared
+# computed exactly (oracle/_anova.R).
 
 set.seed(20261102)
 mk2 <- function(sizes, effA = c(0, 1.5, -1), effB = c(0, 0.8), effAB = 0.7, sd = 1) {
@@ -78,7 +79,7 @@ fit <- function(formula, a) {
   else { dat$.w <- dat[[a$weights]]; lm(as.formula(formula), dat, weights = .w, contrasts = ctr) }
 }
 
-write_htest_fixture("anovaLm", cases, function(a) {
+write_anova_fixture("anovaLm", cases, function(a) {
   r <- with_warnings(function() {
     m <- fit(a$formula, a)
     s <- summary(m)
@@ -120,6 +121,32 @@ write_htest_fixture("anovaLm", cases, function(a) {
   })
   rows[[length(rows) + 1]] <- c(e$rdf, qn(e$rss), if (e$rdf > 0) qn(e$rss / e$rdf) else NaN, NA, NA)
   out <- list(anova = list(table = lapply(rows, function(r) I(num2str(r)))))
+  # coefficients (NA for the aliased columns), sigma, R^2 and adjusted R^2, exactly (sigma: the square root of the
+  # exact residual variance, rounded once more)
+  X <- model.matrix(m); y <- model.response(model.frame(m)); w <- m$weights
+  qw <- if (is.null(w)) NULL else q_of(w)
+  kept <- q_gs(q_cols(X), qw)$kept
+  Xk <- as.bigq(X[, kept, drop = FALSE]); qy <- matrix(q_of(y), ncol = 1)
+  WXk <- Xk
+  if (!is.null(w)) for (j in seq_len(ncol(Xk))) WXk[, j] <- Xk[, j] * qw   # rows scaled by the weights
+  XtX <- t(WXk) %*% Xk
+  Xty <- t(WXk) %*% qy
+  b <- if (sum(kept)) solve(XtX, Xty) else NULL
+  coefs <- rep(NA_real_, ncol(X)); if (sum(kept)) coefs[kept] <- vapply(seq_len(sum(kept)), function(k) qn(b[k, 1]), 0)
+  out$coefficients <- I(num2str(coefs))
+  if (e$rdf > 0) out$sigma <- num2str(sqrt(qn(e$rss / e$rdf)))
+  intercept <- attr(terms(m), "intercept") == 1
+  n_eff <- if (is.null(w)) length(y) else sum(w != 0)
+  if (sum(kept) > intercept && e$rdf > 0) {
+    qy1 <- q_of(y)
+    tss <- if (intercept) {
+      ybar <- if (is.null(qw)) sum(qy1) / length(y) else sum(qw * qy1) / sum(qw)
+      q_dot(qy1 - ybar, qy1 - ybar, qw)
+    } else q_dot(qy1, qy1, qw)
+    r2 <- 1 - e$rss / tss
+    out$rSquared <- num2str(qn(r2))
+    out$adjRSquared <- num2str(qn(1 - (1 - r2) * ((n_eff - intercept) / e$rdf)))
+  }
   if (!is.null(a$compare)) {
     es <- c(list(e), lapply(unclass(a$compare), exact_fit))
     if (length(unique(vapply(es, function(x) x$rdf + sum(x$df), 0))) == 1) {
