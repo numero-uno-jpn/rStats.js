@@ -97,6 +97,7 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | 平均が大きくばらつきの小さいデータや、値がすべて等しいデータの一元配置 `aov` | R は QR 分解で当てはめるので、平方和が 6e-8 ずれる (1e6 + 1e-3 のノイズ)。値がすべて等しいと丸めの残りから F = 1、群ごとに一定なら 5.9e30 | double-double の平方和 (F = NaN、Inf) |
 | `TukeyHSD` | R の `ptukey`・`qtukey` (上記)。df = 5 で p 値が 3e-6 ずれる (2 群なら t 分布から決まる) | 高精度の値と一致 |
 | ほぼ共線な列の `lm` (1e6 + ノイズと切片) | 係数が 60 桁の値から 1.7e-9 ずれる | 3.6e-11 (どちらも eps と条件数の積の範囲) |
+| `glm` の `confint` (プロファイル尤度) | `profile.glm` が標準誤差の約 1/5 間隔の格子でプロファイルを求め、`confint` がスプラインで補間する。限界が厳密な値から最大で標準誤差の 4.9e-4 倍ずれる | 厳密な解 (厳密な参照値と 1e-10 で一致。[accuracy.md](accuracy.md#一般化線形モデル) を参照) |
 
 ### R にない分布
 
@@ -253,6 +254,35 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 ### 線形モデル
 
 - **重みがすべて 0 の `lm`** は "all weights are zero" で例外を投げます。R は NA の係数を返します。
+- **`glm` は formula とデータフレームではなく行列を受け取ります。** `x` の各列が 1 つの項です
+  (`intercept: false` でなければ 1 の列を加えます)。因子は指示変数の列として渡し、`glmAnova` の
+  `terms` で複数の列を 1 つの項にまとめられます。二項分布の 2 列の応答 (成功数、失敗数) は行の配列
+  で渡します。欠測値のある行は除きます (R の既定の `na.omit`)。`x` と `y` の行数は同じでなければ
+  なりません (データフレームは短いベクトルをリサイクルします)。
+- **`glm` は R の警告を表示せず、結果に入れて返します:** `warnings` に、その当てはめで R が出す
+  メッセージを R と同じ文面で入れます ("glm.fit: algorithm did not converge"、"glm.fit: algorithm
+  stopped at boundary value"、"glm.fit: fitted probabilities numerically 0 or 1 occurred"、"glm.fit:
+  fitted rates numerically 0 occurred"、"step size truncated due to divergence"、"step size
+  truncated: out of bounds"、"non-integer #successes in a binomial glm!"、Poisson の AIC からの
+  "non-integer x = …"、"NaNs produced" など)。`converged` と `boundary` も返します。`glmSummary` と
+  `glmAnova` もそれぞれの警告を返します ("observations with zero weight not used for calculating
+  dispersion"、"using F test with a 'poisson' family is inappropriate")。
+- **`glmConfint` はプロファイル尤度の方程式を厳密に解きます:** 尤度比 (`test: "Rao"` ならスコア)
+  統計量の符号付き平方根 z について z(b) = qnorm((1 ∓ level) / 2) を解きます。再当てはめはすべて
+  丸めの水準まで反復し、分散パラメータは推定値での Pearson 統計量を使います。R の `confint` は標準
+  誤差の約 1/5 間隔の格子をスプラインで補間するので、限界が最大で標準誤差の約 5e-4 倍 (テストでは
+  4.9e-4) ずれます。R と同じく、分散パラメータを推定する分布族でも切断点は正規分布の分位点です。
+  `parm` は 0 から始まる添字です。
+- **`glm` は推定値だけでなく R の反復を再現します。** R の規則
+  |dev − dev_old| / (|dev| + 0.1) < epsilon が最大点の手前で止まる場合、係数は R のものです。既定の
+  epsilon = 1e-8 では最尤推定値から相対で最大 2.5e-4 (対数リンクの二項分布)、epsilon = 1e-14 でも
+  正準でないリンク (cauchit、対数リンクの二項分布、恒等リンクの逆ガウス分布) では最大 1e-7 程度
+  ずれます。逸脱度が係数より先に変化しなくなるためです (そのときのスコアは 0 ではなく 1e-7 程度)。
+  `glmConfint` は丸めの水準まで再当てはめします。
+- **`newdata` を渡す `glmPredict`** は、オフセットのあるモデルでは `offset` が必要です (R はデータ
+  フレームから取ります)。ランク落ちした当てはめからの予測でも警告しません。
+- **`glmAnova` の再当てはめ**は、小さいモデルを各分布族の初期値から当てはめます。R は当てはめの
+  `start` を渡すので、大きいモデルの長さの `start` では失敗します。
 
 ### 線形代数
 
@@ -410,6 +440,27 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`uniroot`** は区間を広げなかったとき `initIt` を NaN (R の NA) で返し、`maxiter` に達しても
   警告しません (そのとき `iter` は R と同じく `maxiter`)。
 
+### 線形モデル
+
+- **`glmSummary` の分散パラメータ**は、R と同じ計算の Pearson 統計量です。最後の反復の作業重み
+  (その反復のステップの前の平均で評価したもの) と、最終的な平均での作業残差の 2 乗の積を足し、
+  残差自由度で割ります。二項分布と Poisson 分布では 1 です。分散パラメータが既知なら統計量は
+  "z value" で p 値は正規分布から、推定するなら "t value" で残差自由度の t 分布から (自由度が 0 なら
+  NaN) 求めます。
+- **オフセットがあるときの null deviance:** 切片があれば、切片だけのモデルを (当てはめ値から始めて)
+  当てはめた逸脱度です (R と同じ)。切片がなければオフセットだけの逸脱度です。
+- **エイリアスされた列**は、glm.fit と同じく QR の許容誤差 min(1e-7, epsilon / 1000) で判定します
+  (lm の 1e-7 ではありません)。epsilon = 1e-14 では、完全に共線な列がエイリアスと判定されないことが
+  あります。
+- **`glmInfluence`** は、R の `hatvalues`、`rstandard`、`cooks.distance` と同じく、事前の重みが 0 で
+  ない行についてだけ値を返します。1 − 10ε 以上のてこ比は 1 にし、無限大になった標準化残差と Cook の
+  距離は NaN にします。
+- **AIC:** 正規分布族は重みの対数の和を引きます (重みに 0 があれば R と同じく Inf)。Poisson の AIC は
+  整数でない度数があると Inf です。quasi 族には AIC がありません (NaN)。
+- **リンク関数:** `{ power: lambda }` は、R の `power()` と同じく lambda <= 0 なら対数リンク、
+  lambda = 1 なら恒等リンクです。logit、probit、cauchit、cloglog、log、べき乗リンクは、R と同じく
+  平均を値域の端から DBL_EPSILON だけ離します。
+
 ## 未対応
 
 - 分布パラメータのリサイクル (`rnorm(3, mean = c(0, 10, 100))`)。
@@ -419,7 +470,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - 一元配置を超える `aov`: 多元配置と formula インターフェース (`aov` は、グループラベル付きの 1 つの
   標本か、標本のリストを受け取ります)。
 - `kappa` の `inv_z`、複素行列、`EISPACK = TRUE` / `LINPACK = TRUE`。
-- 一般化線形モデル (`glm`) と `lm` の formula。[ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください。
+- `lm` と `glm` の formula。`glm` の `etastart`、`mustart`、`method` と因子の応答。
+  `predict(type = "terms")` と R の `profile` オブジェクト。
 - numDeriv の複素数ステップ法 (`method = "complex"`。複素数の引数を受け取る関数が要る) と、`grad`・
   `jacobian` の `side` 引数。
 - deSolve の適応刻みの解法 (`lsoda`、`ode45` など)。`ode` は固定刻みの `euler`・`rk2`・`rk4` です。

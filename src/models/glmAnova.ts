@@ -3,12 +3,12 @@
 //
 // Written for rStats.js (no ported code). The table follows P. McCullagh and J. A. Nelder, Generalized Linear Models
 // (2nd ed., 1989), §2.3 and §4.4 (analysis of deviance; the F statistic for an estimated dispersion), with R's layout,
-// column names and conventions taken from R's documentation (?anova.glm, ?stat.anova) and output
-// (test/fixtures/glmAnova.json): the dispersion of the largest model (or the one given), the chi-squared tests "Chisq"
-// and "LRT" of deviance / dispersion, R's default test ("Chisq" when the dispersion is known, else "F"), the score test
-// "Rao" (the reduction in the weighted sum of squares of the working residuals of the smaller model when they are
-// regressed on the columns of the larger one), the F test on the residual degrees of freedom of the largest model,
-// Mallows' Cp, and the warnings for an F test with a known dispersion.
+// column names and conventions established from R's documentation (?anova.glm, ?stat.anova), its source (read, not
+// copied) and its output (test/fixtures/glmAnova.json): the dispersion of the largest model (or the one given), the
+// chi-squared tests "Chisq" and "LRT" of deviance / dispersion, R's default test ("Chisq" when the dispersion is known,
+// else "F"), the score test "Rao" (the reduction in the weighted sum of squares of the working residuals of the smaller
+// model when they are regressed on the columns of the larger one), the F test on the residual degrees of freedom of the
+// largest model, Mallows' Cp, and the warnings for an F test with a known dispersion.
 
 import { pf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
@@ -55,7 +55,13 @@ interface Columns {
 }
 
 /** R's stat.anova: the test columns from the deviances (or score statistics), the dispersion and its degrees of freedom */
-function testColumns(test: Exclude<GlmAnovaTest, false>, c: Columns, scale: number, dfScale: number, n: number): { names: string[]; cols: number[][] } {
+function testColumns(
+  test: Exclude<GlmAnovaTest, false>,
+  c: Columns,
+  scale: number,
+  dfScale: number,
+  n: number,
+): { names: string[]; cols: number[][] } {
   const pos = (v: number): number => (Number.isNaN(v) || v < 0 ? NaN : v);
   switch (test) {
     case "Rao":
@@ -122,7 +128,9 @@ function finish(
   if (test !== false && !Number.isNaN(dispersion)) {
     if (test === "F" && dfDispersion === Infinity) {
       const f = big.family.family;
-      warnings.add(f === "binomial" || f === "poisson" ? `using F test with a '${f}' family is inappropriate` : "using F test with a fixed dispersion is inappropriate");
+      warnings.add(
+        f === "binomial" || f === "poisson" ? `using F test with a '${f}' family is inappropriate` : "using F test with a fixed dispersion is inappropriate",
+      );
     }
     const t = testColumns(test, c, dispersion, dfDispersion, n);
     colNames.push(...t.names);

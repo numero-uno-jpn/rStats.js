@@ -1,12 +1,12 @@
 // Families and links of generalized linear models, as in R's stats (family objects: gaussian, binomial, poisson,
 // Gamma, inverse.gaussian, quasi, quasibinomial, quasipoisson; links of make.link and power).
 //
-// Written for rStats.js (no ported code). The variance functions, links, deviance residuals and log-likelihoods
-// (for the AIC) are the textbook ones: P. McCullagh and J. A. Nelder, Generalized Linear Models (2nd ed., 1989),
-// §2.2-2.3 and tables 2.1 (links) and 2.2 (unit deviances). What R adds to them was taken from R's documentation and
-// checked against R's output (test/fixtures/glm.json): the links are kept away from the ends of their range by
-// DBL_EPSILON (logit, probit, cauchit, cloglog, log, power), the families' starting values (mustart) and the checks of
-// the response, the valid ranges of mu and eta, and the AIC conventions (?family, ?glm).
+// Written for rStats.js (no ported code). The variance functions, links, deviance residuals and log-likelihoods (for
+// the AIC) are the textbook ones: P. McCullagh and J. A. Nelder, Generalized Linear Models (2nd ed., 1989), §2.2-2.3
+// and tables 2.1 (links) and 2.2 (unit deviances). What R adds to them was established from R's documentation and
+// source (read, not copied) and checked against R's output (test/fixtures/glm.json): the links are kept away from the
+// ends of their range by DBL_EPSILON (logit, probit, cauchit, cloglog, log, power), the families' starting values
+// (mustart) and the checks of the response, the valid ranges of mu and eta, and the AIC conventions (?family, ?glm).
 
 import { dbinom1 } from "../distributions/binomial.js";
 import { dcauchy1, pcauchy1, qcauchy1 } from "../distributions/cauchy.js";
@@ -397,7 +397,11 @@ export function initialize(
     case "quasi": {
       const v = fam.varianceName;
       const mustart =
-        v === "mu(1-mu)" ? yv.map((t) => Math.max(0.001, Math.min(0.999, t))) : v === "constant" ? yv.slice() : yv.map((t) => t + 0.1 * (t === 0 ? 1 : 0));
+        v === "mu(1-mu)"
+          ? yv.map((t) => Math.max(0.001, Math.min(0.999, t)))
+          : v === "constant"
+            ? yv.slice()
+            : yv.map((t) => t + 0.1 * (t === 0 ? 1 : 0));
       return { y: yv, weights: Array.from(weights), mustart, n: ones };
     }
   }

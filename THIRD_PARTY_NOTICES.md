@@ -345,3 +345,10 @@ Listed for attribution; no license terms apply to the methods themselves.
   function ratios", ACM Trans. Math. Software 18 (1992) 360–373, eq. 9 to 9.6 (the formulas only; the
   TOMS 708 code is not used): the asymptotic expansion of the incomplete beta function for large a and
   small b, with the complementary tail from the same expansion summed downwards — `src/special/incbetLargeA.ts`
+- P. McCullagh and J. A. Nelder, "Generalized Linear Models", 2nd ed. (Chapman and Hall, 1989): iteratively
+  reweighted least squares (§2.5), the variance functions, links, unit deviances and likelihoods of the
+  families (§2.2–2.3, tables 2.1 and 2.2), the analysis of deviance (§2.3, §4.4) and the likelihood ratio
+  and score statistics behind the profile likelihood intervals (§7.2) — `src/models/glm.ts`,
+  `src/models/glmFamily.ts`, `src/models/glmConfint.ts`, `src/models/glmAnova.ts`. R's glm code (GPL) was
+  not copied or translated; what R does around the method was established from its documentation, its
+  output and reading its source.

@@ -74,6 +74,25 @@ fisherTest([[3, 1], [1, 3]]).pValue;                     // 0.4857142857142857
 pAdjust([0.01, 0.02, 0.03, 0.04], { method: "BH" });    // ≈ [0.04, 0.04, 0.04, 0.04]
 ```
 
+### Generalized linear models
+
+The predictors are a matrix (array of rows, one column per term) instead of a formula.
+
+```ts
+import { glm, glmSummary, glmPredict, glmConfint, glmAnova } from "@numero-uno-jpn/rstats";
+
+const x = [[1], [2], [3], [4], [5], [6], [7], [8]];
+const y = [0, 1, 0, 2, 3, 2, 6, 9];
+const fit = glm(x, y, { family: "poisson" });  // R: glm(y ~ x, family = poisson)
+fit.coefficients;                              // ≈ [-1.6768, 0.4845] (intercept, slope; log scale)
+glmSummary(fit).coefTable;                     // estimates, standard errors, z values, p-values
+glmPredict(fit, [[9]], { type: "response" });  // { fit, seFit } for a new x
+glmConfint(fit);                               // ≈ { lower: [-3.566, 0.2588], upper: [-0.2141, 0.7533] }
+                                               // (profile likelihood, R's confint)
+glmAnova(fit).table;                           // analysis of deviance (R's anova)
+fit.warnings;                                  // R's warnings, e.g. "glm.fit: algorithm did not converge"
+```
+
 ### Linear algebra
 
 Matrices are arrays of rows.
@@ -97,7 +116,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | Random numbers | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister and L'Ecuyer-CMRG, `sample.kind` Rejection and Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 `r*` functions, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
 | Descriptive statistics | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov`, `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
-| Linear models | `lm` (matrix interface, with the `summary` quantities), `confint`, `predict` |
+| Linear models | `lm` (matrix interface, with the `summary` quantities), `confint`, `predict`; `glm` (matrix interface; every family and link of R's stats, including `quasi` with its variance functions and power links) with `glmSummary` (`summary.glm`), `glmResiduals` (`residuals.glm`), `glmInfluence` (`hatvalues`, `rstandard`, `cooks.distance`), `glmPredict` (`predict.glm`), `glmConfint` (profile likelihood `confint`), `glmAnova` (`anova.glm`) |
 | Linear algebra | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` with `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS) |
 | Numerical methods | `integrate`, `optimize`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
 
@@ -121,7 +140,9 @@ everyday use:
 - Indices are 0-based: `sampleInt(n)` returns `0..n-1` (R's `sample.int()` minus 1, from the
   same random stream), and pivots of `qr` and `chol` are 0-based.
 - Signs of eigenvectors and singular vectors may differ from R (both are correct).
-- Hypothesis tests do not emit R's warnings; all numeric fields and method names match.
+- Hypothesis tests do not emit R's warnings; all numeric fields and method names match. `glm`
+  returns R's warnings (non-convergence, the boundary, fitted probabilities of 0 or 1) in its
+  result.
 - Distribution parameters are not recycled as vectors.
 
 Full list: [docs/differences-from-r.md](docs/differences-from-r.md).
@@ -138,16 +159,17 @@ removed. Approximate sizes after minification and gzip:
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
 | `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 21.4 KB |
 | `qbeta` / `pt` and `qt` | 23.2 / 30.3 KB |
-| everything | 122.2 KB |
+| `glm` / with all `glm*` functions | 19.4 / 39.5 KB |
+| everything | 130.5 KB |
 
 (`npm run size` measures these.)
 
 Each area is also a subpath export, for importing one area without the rest:
-`@numero-uno-jpn/rstats/distributions`, `/tests` (hypothesis tests, and `lm`, `confint` and
-`predict`), `/linalg`, `/descriptive`, `/numerics` and `/special`.
+`@numero-uno-jpn/rstats/distributions`, `/tests` (hypothesis tests, and `lm`, `confint`,
+`predict`, `glm` and the `glm*` functions), `/linalg`, `/descriptive`, `/numerics` and `/special`.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function, 119 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+function, 131 KB gzipped) from jsDelivr, which serves each release tag of this repository:
 
 ```html
 <script type="module">
@@ -160,7 +182,7 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js` and `dist/special.js`
 export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 18 KB (`numerics`) to 91 KB (`tests`) gzipped.
+transfers 18 KB (`numerics`) to 103 KB (`tests`) gzipped.
 
 Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
 work as well, for example

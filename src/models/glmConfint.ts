@@ -7,7 +7,8 @@
 // test = "Rao" the score statistic of that restricted fit instead of D(b) - D(hat b)) is solved for z(b) = qnorm((1 -/+
 // level) / 2), as in R (also for the families with an estimated dispersion, which R does not refer to the t
 // distribution here). The definition follows P. McCullagh and J. A. Nelder, Generalized Linear Models (2nd ed., 1989),
-// §7.2 (likelihood ratio and score statistics), and R's documentation of confint.glm and profile.glm. R moves b on a
+// §7.2 (likelihood ratio and score statistics), and R's documentation of confint.glm and profile.glm (R's code, GPL,
+// was not copied). R moves b on a
 // grid of about 1/5 of a standard error and interpolates b as a function of z by a spline, which is accurate to about
 // 1e-4; here every refit is iterated to rounding and the root is found by Brent's method (R's uniroot), so the limits
 // are the exact solutions (see docs/differences-from-r.md). The fit and its dispersion are those of the maximum

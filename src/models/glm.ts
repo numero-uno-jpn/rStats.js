@@ -5,9 +5,10 @@
 // P. McCullagh and J. A. Nelder, Generalized Linear Models (2nd ed., 1989), §2.5: from the working response
 // z = eta - offset + (y - mu) / (d mu / d eta) and the working weights w = prior weight (d mu / d eta)^2 / V(mu), each
 // step is a weighted least squares fit, solved with the QR decomposition of lm (src/linalg/qr.ts: R's LINPACK
-// pivoting, here with the tolerance min(1e-7, epsilon / 1000), as in R). What R does around it was taken from R's
-// documentation (?glm, ?glm.control, ?family, ?summary.glm, ?predict.glm, ?influence.measures) and from R's output
-// (test/fixtures/glm.json), and is reproduced so that fits stopped by R's convergence rule agree with R: the starting
+// pivoting, here with the tolerance min(1e-7, epsilon / 1000), as in R). What R does around it was established from
+// R's documentation (?glm, ?glm.control, ?family, ?summary.glm, ?predict.glm, ?influence.measures), its output
+// (test/fixtures/glm.json) and reading its source (GPL; not copied or translated), and is reproduced so that fits
+// stopped by R's convergence rule agree with R: the starting
 // values (each family's mustart, or `start`), the rule |dev - dev_old| / (|dev| + 0.1) < epsilon, at most maxit
 // iterations, halving the step towards the previous coefficients while the deviance is not finite ("step size
 // truncated due to divergence") and then while eta or mu is outside the valid range ("step size truncated: out of
@@ -208,7 +209,8 @@ export function glmFitCore(inp: FitInput): FitOutput {
     if (inp.etastart !== undefined) eta = inp.etastart.slice();
     else if (inp.start !== undefined) {
       if (inp.start.length !== nvars) {
-        const names = [...(inp.intercept ? ["(Intercept)"] : []), ...Array.from({ length: nvars - (inp.intercept ? 1 : 0) }, (_, j) => `x${j + 1}`)];
+        const nx = nvars - (inp.intercept ? 1 : 0);
+        const names = [...(inp.intercept ? ["(Intercept)"] : []), ...Array.from({ length: nx }, (_, j) => `x${j + 1}`)];
         throw new RangeError(
           `length of 'start' should equal ${nvars} and correspond to initial coefs for c(${names.map((s) => JSON.stringify(s)).join(", ")})`,
         );
@@ -313,10 +315,14 @@ export function glmFitCore(inp: FitInput): FitOutput {
       coef = coefold = start;
     }
     if (iter > maxit) iter = maxit;
+    // stopped in the first iteration (no informative observations, non-finite coefficients): no coefficients yet
+    if (coef.length !== nvars) coef = new Array<number>(nvars).fill(NaN);
     if (!conv) inp.warn("glm.fit: algorithm did not converge");
     if (boundary) inp.warn("glm.fit: algorithm stopped at boundary value");
     const eps10 = 10 * Number.EPSILON;
-    if (fam.family === "binomial" && mu.some((m) => m > 1 - eps10 || m < eps10)) inp.warn("glm.fit: fitted probabilities numerically 0 or 1 occurred");
+    if (fam.family === "binomial" && mu.some((m) => m > 1 - eps10 || m < eps10)) {
+      inp.warn("glm.fit: fitted probabilities numerically 0 or 1 occurred");
+    }
     if (fam.family === "poisson" && mu.some((m) => m < eps10)) inp.warn("glm.fit: fitted rates numerically 0 occurred");
   }
   const rank = nvars === 0 ? 0 : q.rank;
@@ -492,7 +498,11 @@ function estimateDispersion(fit: GlmResult, warn: (m: string) => void): number {
 }
 
 /** The dispersion used by summary.glm: given, fixed at 1, or the Pearson estimate. */
-export function dispersionOf(fit: GlmResult, dispersion: number | undefined, warn: (m: string) => void = () => {}): { dispersion: number; estimated: boolean } {
+export function dispersionOf(
+  fit: GlmResult,
+  dispersion: number | undefined,
+  warn: (m: string) => void = () => {},
+): { dispersion: number; estimated: boolean } {
   if (dispersion !== undefined) return { dispersion, estimated: false };
   const f = fit.family.family;
   if (f === "binomial" || f === "poisson") return { dispersion: 1, estimated: false };

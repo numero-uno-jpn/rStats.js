@@ -103,6 +103,7 @@ affected.
 | `aov` (one way) with a large mean and small spread, or all values equal | R fits through a QR decomposition: sums of squares off by 6e-8 (1e6 + noise of 1e-3); F = 1 from rounding residue when all values are equal, 5.9e30 when the groups are constant | sums of squares in double-double (F = NaN, Inf) |
 | `TukeyHSD` | R's `ptukey` and `qtukey` (see above); the p-value is off by 3e-6 with df = 5 (two groups, where it follows from the t distribution) | agrees with high-precision values |
 | `lm` with nearly collinear columns (1e6 + noise, with an intercept) | coefficients off by 1.7e-9 from 60-digit values | 3.6e-11 (both within eps times the condition number) |
+| `confint` of a `glm` (profile likelihood) | `profile.glm` evaluates the profile on a grid of about 1/5 standard error and `confint` interpolates a spline: limits off by up to 4.9e-4 standard errors from the exact ones | the exact solutions (agree with exact references to 1e-10; see [accuracy.md](accuracy.md#generalized-linear-models)) |
 
 ### Distributions outside base R
 
@@ -261,6 +262,36 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 ### Linear models
 
 - **`lm` with every weight 0** throws "all weights are zero"; R returns NA coefficients.
+- **`glm` takes a matrix** instead of a formula and a data frame: each column of `x` is one term
+  (a column of ones is added unless `intercept: false`). A factor is passed as its indicator
+  columns, and `glmAnova`'s `terms` groups columns into one term. A two-column binomial response
+  (successes, failures) is a matrix of rows. Rows with a missing value are dropped (R's default
+  `na.omit`); `x` and `y` must have the same number of rows (a data frame recycles a shorter vector).
+- **`glm` returns R's warnings instead of printing them:** `warnings` holds R's messages for the
+  fit, with R's text ("glm.fit: algorithm did not converge", "glm.fit: algorithm stopped at
+  boundary value", "glm.fit: fitted probabilities numerically 0 or 1 occurred", "glm.fit: fitted
+  rates numerically 0 occurred", "step size truncated due to divergence", "step size truncated: out
+  of bounds", "non-integer #successes in a binomial glm!", "non-integer x = …" from the Poisson AIC,
+  "NaNs produced", ...), next to `converged` and `boundary`; `glmSummary` and `glmAnova` return
+  theirs ("observations with zero weight not used for calculating dispersion", "using F test with a
+  'poisson' family is inappropriate").
+- **`glmConfint` solves the profile likelihood equation exactly:** the limits solve
+  z(b) = qnorm((1 ∓ level) / 2) for the signed root z of the likelihood ratio (or, with `test:
+  "Rao"`, score) statistic, with every refit iterated to rounding and the dispersion the Pearson
+  statistic at the estimate. R's `confint` interpolates a spline through a grid of about 1/5
+  standard error, and its limits differ by up to about 5e-4 standard errors (4.9e-4 in the tests).
+  As in R, the cutoff is the normal quantile also for the families with an estimated dispersion.
+  `parm` takes 0-based indices.
+- **`glm` reproduces R's iterations, not only the estimate.** Where R's rule
+  |dev − dev_old| / (|dev| + 0.1) < epsilon stops short of the maximum, the coefficients are R's: with
+  the default epsilon = 1e-8 up to 2.5e-4 (relative) from the maximum likelihood estimate (binomial
+  with the log link), and with epsilon = 1e-14 still up to about 1e-7 for non-canonical links
+  (cauchit, log-binomial, inverse.gaussian with the identity link), where the deviance stops changing
+  before the coefficients do (their score is then about 1e-7, not 0). `glmConfint` refits to rounding.
+- **`glmPredict` with `newdata`** needs `offset` for a model with an offset (R takes it from the
+  data frame). Predictions from a rank-deficient fit do not warn.
+- **`glmAnova` refits** the smaller models from each family's starting values; R passes the fit's
+  `start`, which fails for a `start` of the larger model's length.
 
 ### Linear algebra
 
@@ -434,6 +465,26 @@ By default rStats.js returns what R returns;
 - **`uniroot`** returns `initIt` as NaN when the interval was not extended (R's NA) and does not
   warn when `maxiter` is reached (`iter` is then `maxiter`, as in R).
 
+### Linear models
+
+- **`glmSummary`'s dispersion** is the Pearson statistic as R computes it: the working weights of
+  the last iteration (evaluated at the means before its step) times the squared working residuals at
+  the final means, over the residual degrees of freedom; 1 for binomial and poisson. The statistic
+  is "z value" with normal p-values when the dispersion is known, else "t value" on the residual
+  degrees of freedom (NaN with none).
+- **Null deviance with an offset:** with an intercept it is the deviance of a fitted intercept-only
+  model (started from the fitted values), as in R; without one, that of the offset alone.
+- **Aliased columns** are detected with the QR tolerance min(1e-7, epsilon / 1000), as glm.fit
+  does (not lm's 1e-7): with epsilon = 1e-14 an exactly collinear column may not be found aliased.
+- **`glmInfluence`** returns values for the rows of non-zero prior weight only, as R's `hatvalues`,
+  `rstandard` and `cooks.distance`; leverages of at least 1 − 10ε are set to 1, and infinite
+  standardized residuals and Cook's distances become NaN.
+- **AIC:** the gaussian family subtracts the sum of the log weights (Inf with a zero weight, as in
+  R); the Poisson AIC is Inf for non-integer counts; the quasi families have none (NaN).
+- **Links:** `{ power: lambda }` with lambda <= 0 is the log link and lambda = 1 the identity, as R's
+  `power()`. The logit, probit, cauchit, cloglog, log and power links keep the means away from the
+  ends of their range by DBL_EPSILON, as R's.
+
 ## Not supported
 
 - Recycling of distribution parameters (`rnorm(3, mean = c(0, 10, 100))`).
@@ -443,7 +494,8 @@ By default rStats.js returns what R returns;
 - `aov` beyond one way: multi-way designs and the formula interface (`aov` takes one sample with
   group labels, or a list of samples).
 - `kappa`'s `inv_z`, complex matrices, and `EISPACK = TRUE` / `LINPACK = TRUE`.
-- Generalized linear models (`glm`) and formulas for `lm`; see [ROADMAP.md](../ROADMAP.md).
+- Formulas for `lm` and `glm`; `glm`'s `etastart`, `mustart` and `method`, and factor responses;
+  `predict(type = "terms")` and R's `profile` objects.
 - numDeriv's complex-step method (`method = "complex"`), which needs a function of a complex
   argument, and the `side` argument of `grad` and `jacobian`.
 - deSolve's adaptive solvers (`lsoda`, `ode45`, ...); `ode` has the fixed-step `euler`, `rk2`

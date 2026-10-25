@@ -347,9 +347,9 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 | `tTest` | 45.0 KB | 21.4 KB |
 | `qbeta` | 49.7 KB | 23.2 KB |
 | `pt`, `qt` | 63.8 KB | 30.3 KB |
-| everything | 321.2 KB | 122.2 KB |
+| everything | 344.7 KB | 130.5 KB |
 | `@numero-uno-jpn/rstats/distributions` (all of it) | 168.9 KB | 66.7 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 172.4 KB | 70.4 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 198.2 KB | 79.3 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 39.9 KB | 14.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 21.5 KB | 8.4 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 22.8 KB | 10.3 KB |
@@ -357,7 +357,7 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share
 code between areas through `dist/chunks/`, so one area loaded from them transfers more: 18 KB
-(`numerics`) to 91 KB (`tests`) gzipped, chunks included.
+(`numerics`) to 103 KB (`tests`) gzipped, chunks included.
 
 The incomplete beta function's uniform asymptotic expansion adds 1.3 KB gzipped to everything
 that uses `pbeta` (`qbeta`, `pt`, `tTest`, ...), and the allocation-free loop of its continued
@@ -365,6 +365,12 @@ fraction 2.6 KB (writing all of its double-double operations out, divisions incl
 KB larger again for a loop about 1.3 times faster still). The expansion for one large and one small
 parameter adds 0.8 to 1.1 KB gzipped (`pt` with `qt` 29.4 → 30.3 KB, `qbeta` 22.1 → 23.2 KB,
 `tTest` 20.3 → 21.4 KB, everything 120.9 → 121.8 KB).
+
+`glm` alone is 44.2 KB minified, 19.4 KB gzipped (the family functions bring the normal, Cauchy,
+binomial, Poisson and gamma distributions); with `glmSummary`, `glmResiduals`, `glmInfluence` and
+`glmPredict` 28.0 KB, `glmConfint` alone 20.7 KB, `glmAnova` alone 34.0 KB and all seven 39.5 KB
+gzipped. They leave the other imports unchanged and add 8.3 KB gzipped to everything (122.2 → 130.5
+KB) and 8.9 KB to the `tests` subpath (70.4 → 79.3 KB).
 
 `pt` is large because the non-central t path (`src/distributions/nt.ts`) and the double-double
 building blocks come with it; splitting out a central-only function would make it smaller.

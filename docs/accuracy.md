@@ -110,6 +110,8 @@ Details of the comparison:
 | Descriptive statistics | 1e-14 (skewness and kurtosis near 0, which come from cancellation, measured absolutely) |
 | Hypothesis tests | 1e-12 for every numeric field (`cor`: 1e-15, `pAdjust`: exact; roots found by `uniroot` with tolerance 1e-4, such as the normal-approximation interval of `ansariTest`: 1e-4); text fields exactly equal |
 | Linear models (`lm`, `confint`, `predict`) | 1e-12 for every numeric field |
+| Generalized linear models (`glm`, `glmSummary`, `glmResiduals`, `glmInfluence`, `glmPredict`, `glmAnova`) | 1e-12 for every numeric field (quantities that cancel compared as described below); iteration counts, ranks, `converged`, `boundary`, warnings and column names exactly equal |
+| `glmConfint` | 1e-10 against exact profile likelihood limits, relative to the larger of the limit and the standard error |
 | Linear algebra | 1e-14 (`crossprod`, `norm`, `backsolve`, `chol`, `qr`, the 2-norm from `svd`, matrix arithmetic, `seq`, `lu`) or 1e-13 (`solve`, `determinant`, `rcond`, `svd`, `kappa`, `ginv`, `eigen`), measured relative to the norm of the result; `prcomp` 1e-12; pivots, ranks and signs of determinants exactly equal |
 | Numerical methods | 1e-15 (`approx`), 1e-14 (`integrate`, `optimize`, `uniroot`, `barylag`, `hermiteInterp`, `ode`, and `grad`, `jacobian`, `hessian` with an absolute floor of 1e-12) or 1e-13 (`spline`, `splinefun`, `splinefunH`) |
 
@@ -187,6 +189,48 @@ arithmetic in doubles, so `runif` and everything discrete match R exactly; conti
 - Pivots and ranks of `qr` and `chol` match R exactly, including R's limited column pivoting.
 - Linear-algebra fixtures record the LAPACK and BLAS versions R used in their `info` block,
   because a different OpenBLAS version can change the last bits.
+
+### Generalized linear models
+
+The fixtures (`oracle/glm.R`, `oracle/glmconfint.R`, `oracle/glmanova.R`) cover every family of R's
+stats with every link it accepts (quasi with its variance functions and power links), two-column
+binomial responses, weights (with zeros), offsets, no intercept, aliased columns, missing values,
+starting values, step halving at the boundary, separation, non-convergence and the inputs R rejects.
+
+- **`glm`** (131 cases, 11 of them errors): with R's default epsilon = 1e-8 the fits stop where R's
+  stop, up to 2.5e-4 away from the maximum, so they can only agree if the iterations are R's (see
+  [differences-from-r.md](differences-from-r.md#linear-models)). They agree to 1e-12 in every field;
+  the largest errors are 2.3e-13 (coefficients), 4.3e-13 (linear predictors), 1.3e-13 (deviance),
+  6.0e-13 (p-values), 3.9e-13 (leverages) and 9.5e-13 (residuals). The 37 cases with epsilon =
+  1e-14 agree to 6.7e-15 (coefficients). Those are not the maximum likelihood estimate to rounding
+  for non-canonical links: there R's rule stops when the deviance stops changing, up to 1e-7 from the
+  estimate (cauchit, log-binomial; the score is about 1e-7 there, 1e-15 after iterating further).
+  Quantities that are determined by cancellation are compared on a scale that reflects it:
+  - deviance residuals, `rstandard` and the standard errors of predictions are square roots of sums
+    that cancel near 0 (deviance contributions, variances of predictions at a point of huge weight);
+    they are compared as squares, to 1e-12 of the largest square in the field (85 values), and Cook's
+    distances, proportional to a squared residual, as square roots (12 values);
+  - linear predictors near 0, relative to the size of their terms |x_ij b_j| (3 values);
+  - perfect fits (deviance below 1e-20 times the null deviance): the residuals, the deviance and the
+    AIC are rounding residue, in R as here (11 values);
+  - a fit that R stops at the boundary of the valid range: quantities that depend on a mean within d
+    of the end of its range are determined to eps / d (9 values, largest 1.1e-7 at d = 5.8e-9);
+  - separation (R warns "fitted probabilities numerically 0 or 1"): the estimates go to infinity and
+    R's are where its iterations stop; tolerance 1e-8 (2 cases; largest 3.8e-9, for the weights,
+    which depend on exp(−|eta|)).
+- **`glmAnova`** (57 cases): 2.1e-13; the deviance of a term is a difference of residual deviances
+  (exactly 0 for an aliased term) and a saturated model has a residual deviance of rounding residue,
+  so the deviance columns, and the F statistics computed from them, are compared relative to the
+  largest residual deviance of the table (4 values).
+- **`glmConfint`** (30 cases): R's limits come from a spline through a grid and are up to 4.9e-4
+  standard errors away from the exact limits; the fixture holds exact references (`uniroot` on refits
+  with epsilon = 1e-14). 20 cases agree with them to 1e-12 (relative to the larger of the limit and
+  the standard error). In the other 10, the references' refits stop by R's rule before the quantities
+  that are not stationary at the estimate have converged: the Pearson dispersion of the estimated
+  families (R computes it with the working weights of the iteration before the last) and the score
+  statistic of `test: "Rao"`. There glmConfint, which iterates to rounding, differs from the
+  references by 3.1e-10 to 7.1e-8 standard errors, and following R's rule instead reproduces them to
+  8.3e-15 (one Rao case to 2.1e-10).
 
 ## Known accuracy problems
 

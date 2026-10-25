@@ -119,7 +119,8 @@ htestSuite({
     }
     // separation: the estimates go to infinity and R's are where its iterations stop; the coefficients agree to 1e-10
     // and the weights, which depend on exp(-|eta|), to |eta| times that
-    if (fit.warnings.includes("glm.fit: fitted probabilities numerically 0 or 1 occurred") && Math.abs(actual - expected) <= 1e-8 * Math.abs(expected)) {
+    const separation = fit.warnings.includes("glm.fit: fitted probabilities numerically 0 or 1 occurred");
+    if (separation && Math.abs(actual - expected) <= 1e-8 * Math.abs(expected)) {
       return "separation (fitted probabilities 0 or 1): estimates at infinity, agreement to 1e-8";
     }
     return undefined;
@@ -128,7 +129,10 @@ htestSuite({
   // different lengths fails in R ("variable lengths differ"), as it does here
   substitute: (c) =>
     Array.isArray(c.args.y) && Array.isArray(c.args.x) && c.args.y.length !== c.args.x.length
-      ? { expected: { error: "variable lengths differ" }, reason: "the oracle's data frame recycled y; glm with vectors of different lengths fails in R" }
+      ? {
+          expected: { error: "variable lengths differ" },
+          reason: "the oracle's data frame recycled y; glm with vectors of different lengths fails in R",
+        }
       : undefined,
 });
 

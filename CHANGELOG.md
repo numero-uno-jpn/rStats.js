@@ -7,6 +7,24 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `glm` (R's `glm()` with a matrix interface: the predictors as a matrix, each column one term) for
+  every family of R's stats: `gaussian`, `binomial`, `poisson`, `Gamma`, `inverse.gaussian`, `quasi`
+  (with its variance functions and power links), `quasibinomial` and `quasipoisson`, with every link
+  each accepts, and `weights`, `offset`, `start`, `epsilon`, `maxit` and `intercept`. The iterations
+  follow R's (starting values, convergence rule, step halving, boundary), so the fits agree with R's
+  to 1e-12 also where R stops short of the maximum; R's warnings are returned in `warnings`. With
+  `glmSummary` (`summary.glm`), `glmResiduals` (deviance, Pearson, working and response residuals),
+  `glmInfluence` (`hatvalues`, `rstandard`, `cooks.distance`), `glmPredict` (`predict.glm` with
+  standard errors), `glmConfint` (profile likelihood intervals, solved exactly; R interpolates and
+  differs by up to 5e-4 standard errors) and `glmAnova` (`anova.glm` for one fit or a list of fits,
+  with the tests `"Chisq"`, `"LRT"`, `"Rao"`, `"F"` and `"Cp"`). Bundle size: `glm` alone is 19.4 KB
+  gzipped, all seven functions 39.5 KB; other imports are unchanged, and everything grows from 122.2
+  to 130.5 KB.
+
 ## 0.8.0 - 2026-10-25
 
 ### Added
