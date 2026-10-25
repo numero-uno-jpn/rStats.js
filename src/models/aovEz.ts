@@ -209,7 +209,10 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
   // 6. ids that miss a cell are removed
   const missing = idOrder.filter((id) => sums.get(id)!.n.some((v) => v === 0));
   if (missing.length > 0) {
-    warnings.push(`Missing values for ${missing.length} ID(s), which were removed before analysis:\n${missing.join(", ")}`);
+    // the ids sorted as the levels of a factor; afex goes on with a printout of the data, which is not reproduced
+    const sorted = [...missing].sort(compareCodePoints);
+    const shown = sorted.length >= 10 ? `${sorted.slice(0, 10).join(", ")}, ... [showing first 10 only]` : sorted.join(", ");
+    warnings.push(`Missing values for ${missing.length} ID(s), which were removed before analysis:\n${shown}`);
   }
   const subjects = idOrder.filter((id) => !missing.includes(id));
   const firstRow = new Map<string, number>();
