@@ -31,7 +31,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 | 乱数 | R の既定の Mersenne-Twister と `set.seed()` 互換の乱数列、`RNGkind` による `"L'Ecuyer-CMRG"` (`parallel` の `nextRNGStream`・`nextRNGSubStream` 付き) と `sample.kind = "Rounding"`、`rmultinom` を含む 26 の `r*` 関数 (R にない分布は extraDistr と同じ乱数列)、`sample`、`sampleInt`、`r2dtable` |
 | 記述統計 | R の要約 (`mean`、`variance`、9 種類の `quantile`、`rank`、行列の `cov`/`cor`、`table`、`cut`、`hist`、`ecdf`、`scale` など) と e1071・DescTools のもの (`skewness`、`kurtosis`、`geometricMean`、`modes`、`meanAD`、`cv`) |
 | 仮説検定 | R の `htest` の関数: `tTest`、`chisqTest` (シミュレーションによる p 値と 2 つの因子ベクトルを含む)、`fisherTest` (r × c とシミュレーションによる p 値を含む)、`wilcoxTest`、`corTest`、`binomTest`、`poissonTest`、`propTest`、`mcnemarTest`、`varTest`、`bartlettTest`、`kruskalTest`、`friedmanTest`、`quadeTest`、`flignerTest`、`moodTest`、`onewayTest`、`shapiroTest`、`mantelhaenTest`、`ansariTest` (信頼区間を含む)、`ksTest`、`pairwise*`、`pAdjust`。一元配置の `aov`、`TukeyHSD`、`zTest` (BSDA)、`brunnerMunzelTest` (lawstat) |
-| 線形モデル | 行列で渡す `lm` と `summary.lm` の値、`confint`、`predict` |
+| 線形モデル | 行列で渡す `lm` と `summary.lm` の値、`confint`、`predict`。行列で渡す `glm` (R の `stats` のすべての族とリンク)、`summary.glm`、4 種類の残差、`hatvalues`、`rstandard`、`cooks.distance`、標準誤差つきの `predict`、プロファイル尤度の `confint` (厳密な限界)、`anova` |
 | 線形代数 | R の `base` の行列関数と、`Matrix::lu`、`prcomp` (`stats`)、`MASS::ginv`: 行列演算、`crossprod`、`norm`、`backsolve`、`chol`、`qr` (R のピボット選択と LAPACK)、`solve`、`det`、`rcond`、`kappa`、`svd`、`eigen` (対称と一般)、`lu`、`prcomp`、`ginv` |
 | 数値計算 | `integrate`、`optimize`、`uniroot`、`approx`、`spline`/`splinefun`/`splinefunH`、Lagrange (pracma) と Hermite の補間、固定刻みの `ode` (deSolve)、`grad`/`jacobian`/`hessian` (numDeriv) |
 | jStat | jStat の全関数に置き換えがある ([docs/ja/migrating-from-jstat.md](docs/ja/migrating-from-jstat.md))。jStat と照合済み |
@@ -53,8 +53,6 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 いずれ取り組むかもしれないもの (どれもそれ自体が大きなプロジェクト):
 
-- **`lm` を超える線形モデル:** 行列インターフェースの `glm` (JavaScript には式もデータフレームも
-  ないため)。
 - **`base` を超える線形代数:** Schur 分解、行列指数関数。推奨パッケージ `Matrix` と `expm`
   パッケージで照合する。
 - **最適化:** `optim`。

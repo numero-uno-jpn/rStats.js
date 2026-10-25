@@ -19,6 +19,8 @@ const cases = [
   ["solve", "solve"],
   ["svd", "svd"],
   ["eigen", "eigen"],
+  ["glm, glmSummary", "glm, glmSummary"],
+  ["glm with all its methods", "glm, glmSummary, glmResiduals, glmHatvalues, glmRstandard, glmCooksDistance, glmPredict, glmConfint, glmAnova"],
   ["everything", "*"],
 ];
 

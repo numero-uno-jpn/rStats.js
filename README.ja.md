@@ -79,6 +79,24 @@ pAdjust([0.01, 0.02, 0.03, 0.04], { method: "BH" });    // ≈ [0.04, 0.04, 0.04
 
 `tTest` の既定は、R と同じ Welch の検定です。
 
+### 一般化線形モデル
+
+説明変数は `lm` と同じく行列 (行の配列) かベクトルで渡します。二項分布の応答は (成功数, 失敗数) の行でも渡せます。
+
+```ts
+import { glm, glmSummary, glmPredict, glmConfint, glmAnova } from "@numero-uno-jpn/rstats";
+
+const dose = [1, 2, 3, 4, 5, 6];
+const counts = [[1, 19], [4, 16], [9, 11], [13, 7], [18, 2], [19, 1]];
+const fit = glm(dose, counts, { family: "binomial" });   // R: glm(cbind(s, f) ~ dose, binomial)
+fit.coefficients;                                  // ≈ [-3.77413, 1.14807]
+glmSummary(fit).pValue;                            // ≈ [5.357e-8, 3.579e-9] (z tests)
+glmPredict(fit, { newdata: [3.5], type: "response" }); // { fit: ≈ [0.56073], seFit: ≈ [0.06140] }
+glmConfint(fit).lower;                             // ≈ [-5.27166, 0.80033] (profile likelihood)
+glmAnova(fit).table[1];                            // ≈ [1, 62.978, 4, 0.5196, 2.09e-15]
+fit.warnings;                                      // [] (R's warnings, such as non-convergence)
+```
+
 ### 線形代数
 
 行列は行の配列で表します。
@@ -102,7 +120,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | 乱数 | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister と L'Ecuyer-CMRG、`sample.kind` の Rejection と Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 個の `r*` 関数, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
 | 記述統計 | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov`, `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
-| 線形モデル | `lm` (行列で渡す形。`summary` の値も返す), `confint`, `predict` |
+| 線形モデル | `lm` (行列で渡す形。`summary` の値も返す), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
 | 線形代数 | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS) |
 | 数値計算 | `integrate`, `optimize`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
 
@@ -127,7 +145,8 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 - 添字は 0 から始まります。`sampleInt(n)` は `0..n-1` を返します (R の `sample.int()` から 1 を
   引いた値で、乱数の列は同じ)。`qr` と `chol` のピボットも 0 から始まります。
 - 固有ベクトルと特異ベクトルの符号が R と違うことがあります (どちらも正しい答えです)。
-- 検定は R の警告を出しません。数値の欄と手法の名前はすべて一致します。
+- 検定は R の警告を出しません。数値の欄と手法の名前はすべて一致します。`glm` は R の警告を結果の
+  `warnings` で返します。
 - 分布の母数は、ベクトルとして使い回されません (リサイクルしない)。
 
 すべての違いは [docs/ja/differences-from-r.md](docs/ja/differences-from-r.md) にあります。
@@ -144,12 +163,13 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
 | `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 21.4 KB |
 | `qbeta` / `pt` と `qt` | 23.2 / 30.3 KB |
-| すべて | 122.2 KB |
+| `glm` と `glmSummary` / `glm` とそのすべての関数 | 27.2 / 39.2 KB |
+| すべて | 130.0 KB |
 
 (`npm run size` で測れます。)
 
 分野ごとにサブパスからも export しているので、1 つの分野だけを import することもできます。
-`@numero-uno-jpn/rstats/distributions`、`/tests` (検定と、`lm`・`confint`・`predict`)、`/linalg`、
+`@numero-uno-jpn/rstats/distributions`、`/tests` (検定、`lm`・`confint`・`predict`、`glm` とその関数)、`/linalg`、
 `/descriptive`、`/numerics`、`/special` です。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (すべての関数を含む minify 済みの

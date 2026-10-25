@@ -37,6 +37,8 @@ const STRING_FIELDS = new Set([
   // levels of chisqTest's factors
   "rowLevels",
   "colLevels",
+  // R's warning messages (glm)
+  "warnings",
 ]);
 
 export function loadHTestFixture(name: string): HTestFixture {
@@ -88,9 +90,15 @@ export interface HTestSpec {
   /**
    * Per-field absolute error floor. The error is measured as |diff| / max(|expected|, floor).
    * Used for fields whose near-zero values come from cancellation (e.g. interval endpoints that cancel
-   * against the null value). Pass a function to choose it per case.
+   * against the null value). Pass a function to choose it per case, or per value (an array, one floor per value of
+   * the flattened field).
    */
-  floor?: Record<string, number | ((c: HTestCase) => number)>;
+  floor?: Record<string, number | ((c: HTestCase) => number | number[])>;
+  /**
+   * Per-field scale of the error, one per value of the flattened field: the error is |diff| / scale instead of the
+   * relative error (e.g. confidence limits compared relative to the standard error). NaN matches NaN only.
+   */
+  scale?: Record<string, (c: HTestCase) => number[]>;
   /** Cases that intentionally differ from R. Those for which this returns a reason are excluded, and counts and reasons are printed (also documented in docs/differences-from-r.md). */
   knownDifference?: (args: HTestCase["args"], field: string, expected: number, actual: number) => string | undefined;
   /**
@@ -146,7 +154,8 @@ export function htestSuite(spec: HTestSpec): void {
         }
         for (const [field, exp] of Object.entries(c.expected)) {
           const act = actual[field];
-          if (STRING_FIELDS.has(field)) {
+          // logicals (glm's converged and boundary) are compared exactly too
+          if (STRING_FIELDS.has(field) || typeof exp === "boolean") {
             if (JSON.stringify(exp) !== JSON.stringify(act)) mismatches.push({ index, field, expected: exp, actual: act });
             continue;
           }
@@ -164,9 +173,15 @@ export function htestSuite(spec: HTestSpec): void {
           }
           const tol = spec.fieldTolerance?.[field] ?? spec.tolerance;
           const fl = spec.floor?.[field] ?? 0;
-          const floor = typeof fl === "function" ? fl(c) : fl;
-          const errorOf = (av: number, ev: number): number => {
+          const floorOf = typeof fl === "function" ? fl(c) : fl;
+          const scaleOf = spec.scale?.[field]?.(c);
+          const errorOf = (av: number, ev: number, k: number): number => {
+            if (scaleOf !== undefined) {
+              if (Number.isNaN(av) || Number.isNaN(ev)) return Number.isNaN(av) && Number.isNaN(ev) ? 0 : Infinity;
+              return av === ev ? 0 : Math.abs(av - ev) / scaleOf[k]!;
+            }
             const err = relativeError(av, ev);
+            const floor = typeof floorOf === "number" ? floorOf : (floorOf[k] ?? 0);
             if (floor > 0 && Number.isFinite(av) && Number.isFinite(ev)) {
               return Math.min(err, Math.abs(av - ev) / Math.max(Math.abs(ev), floor));
             }
@@ -174,17 +189,17 @@ export function htestSuite(spec: HTestSpec): void {
           };
           e.forEach((ev, k) => {
             const av = a[k] as number;
-            const err = errorOf(av, ev);
+            const err = errorOf(av, ev, k);
             const rv0 = ref?.[k];
-            allErrors.push(rv0 === undefined ? err : Math.min(err, errorOf(av, rv0)));
+            allErrors.push(rv0 === undefined ? err : Math.min(err, errorOf(av, rv0, k)));
             if (err <= tol) {
               worst.set(field, Math.max(worst.get(field) ?? 0, err));
               return;
             }
             const rv = ref?.[k];
-            if (rv !== undefined && errorOf(av, rv) <= tol) {
+            if (rv !== undefined && errorOf(av, rv, k) <= tol) {
               moreAccurate.add(index);
-              worstRef.set(field, Math.max(worstRef.get(field) ?? 0, errorOf(av, rv)));
+              worstRef.set(field, Math.max(worstRef.get(field) ?? 0, errorOf(av, rv, k)));
               return;
             }
             const r = spec.knownDifference?.(c.args, field, ev, av);
