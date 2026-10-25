@@ -37,6 +37,10 @@ const STRING_FIELDS = new Set([
   // levels of chisqTest's factors
   "rowLevels",
   "colLevels",
+  // glm: R's warning messages and the logical fields of the fit
+  "warnings",
+  "converged",
+  "boundary",
 ]);
 
 export function loadHTestFixture(name: string): HTestFixture {
@@ -92,7 +96,7 @@ export interface HTestSpec {
    */
   floor?: Record<string, number | ((c: HTestCase) => number)>;
   /** Cases that intentionally differ from R. Those for which this returns a reason are excluded, and counts and reasons are printed (also documented in docs/differences-from-r.md). */
-  knownDifference?: (args: HTestCase["args"], field: string, expected: number, actual: number) => string | undefined;
+  knownDifference?: (args: HTestCase["args"], field: string, expected: number, actual: number, index: number) => string | undefined;
   /**
    * Replaces the expected values of cases on which rStats.js deliberately does not reproduce R's result (e.g. an R
    * error caused by a bug): returns the case to compare with instead, and a reason that is printed with the count.
@@ -157,7 +161,7 @@ export function htestSuite(spec: HTestSpec): void {
           const ref = refRaw === undefined ? undefined : flatten(refRaw).map((v) => num(v as string));
           if (e.length !== a.length) {
             // a known difference may also change the length (e.g. R's NA and NaN counted apart)
-            const r = spec.knownDifference?.(c.args, field, NaN, NaN);
+            const r = spec.knownDifference?.(c.args, field, NaN, NaN, -1);
             if (r !== undefined) reasons.set(r, (reasons.get(r) ?? 0) + 1);
             else mismatches.push({ index, field, expected: exp, actual: act });
             continue;
@@ -187,7 +191,7 @@ export function htestSuite(spec: HTestSpec): void {
               worstRef.set(field, Math.max(worstRef.get(field) ?? 0, errorOf(av, rv)));
               return;
             }
-            const r = spec.knownDifference?.(c.args, field, ev, av);
+            const r = spec.knownDifference?.(c.args, field, ev, av, k);
             if (r !== undefined) {
               reasons.set(r, (reasons.get(r) ?? 0) + 1);
               return;

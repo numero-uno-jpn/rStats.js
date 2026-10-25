@@ -30,6 +30,8 @@ const names = Object.keys(lib);
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
 const NOT_IN_DEMO_YET: string[] = [];
+// generalized linear models
+NOT_IN_DEMO_YET.push("glm", "glmSummary", "glmResiduals", "glmInfluence", "glmPredict", "glmConfint", "glmAnova");
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 
 /** Evaluates an example's js with every export in scope and flattens the result to numbers */

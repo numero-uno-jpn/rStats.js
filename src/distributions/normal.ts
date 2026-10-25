@@ -54,7 +54,7 @@ function pnormStd(t: number, logP: boolean): number {
   return Math.log(0.5 * erfcxNonNegative(a * SQRT1_2)) - (a * a) / 2;
 }
 
-function pnorm1(q: number, mean: number, sd: number, lowerTail: boolean, logP: boolean): number {
+export function pnorm1(q: number, mean: number, sd: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(q) || Number.isNaN(mean) || Number.isNaN(sd)) return NaN;
   if (!Number.isFinite(q) && mean === q) return NaN; // Inf - Inf
   const p0 = lowerTail ? (logP ? -Infinity : 0) : logP ? 0 : 1;
@@ -66,7 +66,7 @@ function pnorm1(q: number, mean: number, sd: number, lowerTail: boolean, logP: b
   return pnormStd(lowerTail ? x : -x, logP);
 }
 
-function qnorm1(p: number, mean: number, sd: number, lowerTail: boolean, logP: boolean): number {
+export function qnorm1(p: number, mean: number, sd: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(p) || Number.isNaN(mean) || Number.isNaN(sd)) return NaN;
   // Endpoints corresponding to probabilities 0 and 1
   const left = lowerTail ? -Infinity : Infinity;
@@ -107,7 +107,7 @@ function ndtriLogRefined(y: number): number {
 const LN_SQRT_2PI = 0.918938533204672741780329736406;
 const INV_SQRT_2PI = 0.398942280401432677939946059934;
 
-function dnorm1(x: number, mean: number, sd: number, log: boolean): number {
+export function dnorm1(x: number, mean: number, sd: number, log: boolean): number {
   if (Number.isNaN(x) || Number.isNaN(mean) || Number.isNaN(sd)) return NaN;
   if (sd < 0) return NaN;
   if (!Number.isFinite(sd)) return log ? -Infinity : 0;
