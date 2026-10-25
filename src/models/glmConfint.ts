@@ -66,11 +66,6 @@ export function scoreStatistic(x: number[][], r: number[], v: number[], intercep
  * is up to about 5e-4 standard errors from them).
  */
 export function glmConfint(fit: GlmResult, options: GlmConfintOptions = {}): { lower: number[]; upper: number[] } {
-  return profileConfint(fit, options, 1);
-}
-
-/** glmConfint with the dispersion multiplied by `dispersionFactor` (for the tests) */
-export function profileConfint(fit: GlmResult, options: GlmConfintOptions, dispersionFactor: number): { lower: number[]; upper: number[] } {
   const level = options.level ?? 0.95;
   const test = options.test ?? "LRT";
   if (!(level > 0 && level < 1)) throw new RangeError("'level' must be in (0, 1)");
@@ -96,7 +91,7 @@ export function profileConfint(fit: GlmResult, options: GlmConfintOptions, dispe
     rank: full.fit.rank,
   };
   const summary = glmSummary(convergedFit);
-  const dispersion = summary.dispersion * dispersionFactor;
+  const dispersion = summary.dispersion;
   const se = new Array<number>(p).fill(NaN);
   const piv = full.fit.qr === undefined ? [] : full.fit.qr.pivot.slice(0, full.fit.rank);
   piv.forEach((k, m) => (se[cols[k]!] = summary.stdError[m]!));
