@@ -39,3 +39,8 @@ RUN install2.r --error --skipinstalled \
                          "pracma", "deSolve", "numDeriv", "BSDA"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# lawstat (brunner.munzel.test), added for 0.8.0 in a layer of its own, so that the packages above stay the cached
+# ones the earlier fixtures were generated with
+RUN install2.r --error --skipinstalled lawstat \
+    && Rscript -e 'suppressPackageStartupMessages(library(lawstat)); cat("lawstat", as.character(packageVersion("lawstat")), "\n")'

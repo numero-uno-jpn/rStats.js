@@ -1,9 +1,6 @@
 source("/oracle/_htest.R")
 
-# lawstat::brunner.munzel.test (fixture brunnerMunzelTest). lawstat is not in the rstats-oracle image; the fixture
-# was written with the image of the Reactive stat server, which has it (R 4.5.2, lawstat 3.6):
-#
-#   RSTATS_ORACLE_IMAGE=cloud-r:poc npm run oracle -- brunnermunzel
+# lawstat::brunner.munzel.test (fixture brunnerMunzelTest; lawstat 3.6).
 #
 # Arguments: x, y, alternative, confLevel (lawstat's alpha = 1 - confLevel). lawstat's result has no alternative
 # field; its "greater" means that x tends to be larger than y (p = pt(statistic, df), the statistic being positive
