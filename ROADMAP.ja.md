@@ -18,6 +18,10 @@ WebAssembly (webR) でブラウザ上で動きますが、その代わりに数�
 欠けているのは、分布から仮説検定まで、R の `set.seed()` の乱数列も含めて、結果が R と一致すると
 信頼できる軽いライブラリです。
 
+優先するのは、医学・生物学・心理学の研究で使われる解析です。R の `stats` にその関数がないときは、
+広く使われている CRAN のパッケージ (`car`、`multcomp`、`survival` など) を照合先にし、ほかの
+パッケージと同じ日付のスナップショットから oracle のイメージに入れます。
+
 SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコードであり、何が役に立つかの
 手がかりでもありますが、目標ではありません。R に対応するもののない関数は R と照合できないので、
 優先しません。
@@ -41,9 +45,26 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 ## 残っていること
 
-優先度の高い順です。
+優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-1. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
+1. **分散分析:** 2 つ以上の因子と交互作用、`lm` に対する `anova`、Type II と Type III の平方和
+   (`car::Anova`)、反復測定と混合計画、`mauchly.test`、Greenhouse-Geisser と Huynh-Feldt の補正
+   (`afex`)。
+2. **効果量と検出力:** Cohen の d、Hedges の g、η²、偏 η²、ω² とその信頼区間 (`effectsize`)。
+   `power.t.test`、`power.prop.test`、`power.anova.test` (`stats`) と、効果量で指定する `pwr` の関数。
+3. **多重比較:** Steel-Dwass (`PMCMRplus`)、Dunn (`dunn.test`)、Dunnett と Steel (`multcomp`、
+   `PMCMRplus`)。`multcomp` は Dunnett の p 値を `mvtnorm` の乱数を使う積分で求めるので、再現するのは
+   5 桁程度です。Dunnett の統計量の相関は積の形をしていて、確率が 1 次元の積分に帰着するので、
+   これらは完全な精度で計算し、代わりに高精度の参照値と照合します。
+4. **ほかの検定:** Levene (`car::leveneTest`)、`prop.trend.test` (`stats`)、Jonckheere-Terpstra
+   (`clinfun`)、Cochran の Q (`DescTools`)、正規性の Anderson-Darling 検定と Lilliefors 検定
+   (`nortest`)。
+5. **生存時間解析:** log-rank 検定 (`survival::survdiff`) と、Kaplan-Meier 推定とその信頼区間
+   (`survival::survfit`)。Cox 回帰は後で。
+6. **最適化と因子分析:** `optim`、次に `factanal` (`stats`)、次に McDonald の ω (`psych`)。
+7. **一致度・信頼性・相関:** Cohen の κ と ICC (`irr`)、Cronbach の α (`psych`)、偏相関、
+   ポリコリック相関とテトラコリック相関 (`polycor`)。
+8. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
    使い (長さ √(a + b) の連分数の代わりに定数時間)、一方のパラメータが大きく他方が小さいときは
    DiDonato と Morris の展開を使う (自由度が大きい `pt` と `pf`、`pbeta(x, 1e6, 10)`、x が 0 または n
    に近い `pbinom`。最大 30 倍かかっていたのが、典型的な `pbeta` 程度の時間になった)。主要な d/p 関数は、
@@ -51,14 +72,12 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    を参照)。残り: double-double のままの連分数。どちらの展開も当てはまらないところ (a = 30、b = 20
    のような中程度のパラメータ。そこでは連分数は短い。および遠い裾) では、今も連分数を使う。
 
-いずれ取り組むかもしれないもの (どれもそれ自体が大きなプロジェクト):
-
-- **`base` を超える線形代数:** Schur 分解、行列指数関数。推奨パッケージ `Matrix` と `expm`
-  パッケージで照合する。
-- **最適化:** `optim`。
+いずれ取り組むかもしれないもの (それ自体が大きなプロジェクト): **`base` を超える線形代数**。
+Schur 分解と行列指数関数で、推奨パッケージ `Matrix` と `expm` パッケージで照合する。
 
 対象外: SciPy のうち R に対応するもののない部分 (`scipy.special` の大部分と、`scipy.stats` にしか
-ない分布)。分布のパラメータのベクトルとしてのリサイクル
+ない分布)。構造方程式モデル (`lavaan`) と混合モデル (`lme4`) も対象外です。どちらもそれだけで
+1 つのライブラリの規模があるためです。分布のパラメータのベクトルとしてのリサイクル
 (`rnorm(3, mean = c(0, 10, 100))`) も対象外です。`map` で R と同じ結果と乱数列が得られるためです
 ([docs/ja/differences-from-r.md](docs/ja/differences-from-r.md#全般) を参照)。ほかの RNG の種類
 (Wichmann-Hill、Marsaglia-Multicarry、Super-Duper、Knuth-TAOCP) と正規乱数の種類 (Kinderman-Ramberg、

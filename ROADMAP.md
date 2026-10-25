@@ -17,6 +17,11 @@ cost of a download of tens of megabytes. What is missing is a light library whos
 be trusted to match R, from the distributions up to the hypothesis tests, including R's
 `set.seed()` random streams.
 
+The priority is the analyses used in medical, biological and psychological research. Where R's
+`stats` has no function for one of them, the reference is a widely used CRAN package (such as
+`car`, `multcomp` or `survival`), installed in the oracle image from the same dated snapshot as
+the other packages.
+
 SciPy (`scipy.stats`, `scipy.special`, `scipy.linalg`) is a source of ported code and a guide
 to what is useful, but not a target: functions that have no counterpart in R cannot be checked
 against R and are not a priority.
@@ -40,9 +45,30 @@ The full list is in the [README](README.md#what-is-included); known differences 
 
 ## Remaining
 
-In order of priority.
+In order of priority. The R function or package that each item is checked against is given in
+brackets.
 
-1. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
+1. **Analysis of variance:** more than one factor and interactions, `anova` for `lm`, type II and
+   III sums of squares (`car::Anova`), repeated measures and mixed designs with `mauchly.test` and
+   the Greenhouse-Geisser and Huynh-Feldt corrections (`afex`).
+2. **Effect sizes and power:** Cohen's d, Hedges' g, η², partial η² and ω² with their confidence
+   intervals (`effectsize`); `power.t.test`, `power.prop.test`, `power.anova.test` (`stats`) and
+   the effect-size forms of `pwr`.
+3. **Multiple comparisons:** Steel-Dwass (`PMCMRplus`), Dunn (`dunn.test`), Dunnett and Steel
+   (`multcomp`, `PMCMRplus`). `multcomp` computes Dunnett's p-values with `mvtnorm`'s randomised
+   integration, which reproduces only about five digits; the correlation of Dunnett's statistics
+   has a product form that reduces the probability to a one-dimensional integral, so these are
+   computed to full precision and checked against high-precision references instead.
+4. **More tests:** Levene (`car::leveneTest`), `prop.trend.test` (`stats`), Jonckheere-Terpstra
+   (`clinfun`), Cochran's Q (`DescTools`), and the Anderson-Darling and Lilliefors tests of
+   normality (`nortest`).
+5. **Survival analysis:** the log-rank test (`survival::survdiff`) and the Kaplan-Meier estimate
+   with its confidence intervals (`survival::survfit`). Cox regression later.
+6. **Optimisation and factor analysis:** `optim`, then `factanal` (`stats`), then McDonald's ω
+   (`psych`).
+7. **Agreement, reliability and correlation:** Cohen's κ and the ICC (`irr`), Cronbach's α
+   (`psych`), partial correlation, and polychoric and tetrachoric correlation (`polycor`).
+8. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
    uniform asymptotic expansion (constant time instead of a continued fraction of length √(a + b)),
    with one parameter large and the other small DiDonato and Morris's expansion (`pt` and `pf` with
    large degrees of freedom, `pbeta(x, 1e6, 10)`, `pbinom` with x near 0 or n: about the time of a
@@ -52,17 +78,15 @@ In order of priority.
    double-double and is still used where neither expansion applies (moderate parameters, such as
    a = 30 and b = 20, where it is short, and the far tails).
 
-Possible later, each a sizeable project of its own:
-
-- **Linear algebra beyond `base`:** Schur and the matrix exponential, checked against the
-  recommended package `Matrix` and the `expm` package.
-- **Optimisation:** `optim`.
+Possible later, a sizeable project of its own: **linear algebra beyond `base`**, Schur and the
+matrix exponential, checked against the recommended package `Matrix` and the `expm` package.
 
 Out of scope: the parts of SciPy with no counterpart in R (most of `scipy.special` and the
-distributions that only `scipy.stats` has). Also out of scope: recycling distribution parameters as
-vectors (`rnorm(3, mean = c(0, 10, 100))`), since `map` does the same with R's results and random
-stream (see [docs/differences-from-r.md](docs/differences-from-r.md#general)). The other RNG kinds
-(Wichmann-Hill, Marsaglia-Multicarry, Super-Duper, Knuth-TAOCP) and normal kinds
+distributions that only `scipy.stats` has). Structural equation models (`lavaan`) and mixed models
+(`lme4`) are out of scope too: each is the size of a library of its own. Also out of scope:
+recycling distribution parameters as vectors (`rnorm(3, mean = c(0, 10, 100))`), since `map` does
+the same with R's results and random stream (see
+[docs/differences-from-r.md](docs/differences-from-r.md#general)). The other RNG kinds (Wichmann-Hill, Marsaglia-Multicarry, Super-Duper, Knuth-TAOCP) and normal kinds
 (Kinderman-Ramberg, Ahrens-Dieter, Box-Muller) are out of scope too: they serve only to reproduce
 old code.
 
