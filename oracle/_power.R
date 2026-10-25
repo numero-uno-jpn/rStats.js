@@ -4,8 +4,8 @@ suppressPackageStartupMessages(library(Rmpfr))
 # only about 1e-12 and 1e-9, so the power is recomputed accurately (acc_pnt, acc_pnf, acc_pnchisq below); the central
 # quantiles, pnorm and qnorm are R's (accurate). A solved quantity's reference is the result
 # of R's own procedure (uniroot with R's interval, tolerance and extendInt) applied to the accurate power, which is
-# what an implementation with accurate distribution functions gets. Where the noncentrality is beyond 200 or a
-# degree of freedom beyond 1e5 (only near the ends of the intervals) R's value is used.
+# what an implementation with accurate distribution functions gets. Where the noncentrality is beyond 1e3 or a
+# degree of freedom beyond 1e8 (only near the ends of the intervals) R's value is used.
 
 # Accurate noncentral distributions as Poisson mixtures of R's central ones (dpois, pbeta, pchisq and pnorm are
 # accurate to a few units in the last place; the terms are positive, so their sum, taken in Rmpfr, is accurate too):
@@ -31,12 +31,21 @@ acc_pnt <- function(q, nu, delta, lower) {
   x <- q^2 / (q^2 + nu); l <- delta^2 / 2; j <- pois_range(l)
   rj <- if (delta == 0) 0 * j else sign(delta) * exp(log(abs(delta) / sqrt(2)) - l + j * log(l) - lgamma(j + 1.5))
   lo <- msum(c(2 * stats::pnorm(-delta), stats::dpois(j, l) * stats::pbeta(x, j + 0.5, nu / 2), rj * stats::pbeta(x, j + 1, nu / 2))) / 2
-  if (lower) lo else 1 - lo
+  v <- if (lower) lo else 1 - lo
+  # A small tail obtained with cancellation (negative delta, or 1 minus the series) is integrated directly instead:
+  # P = E[Phi(q S - delta)] over S = sqrt(chi^2_nu / nu), a positive integrand
+  if (v < 1e-3 && (delta < 0 || !lower)) {
+    f <- function(s) stats::pnorm(q * s - delta, lower.tail = lower) * stats::dchisq(s^2 * nu, nu) * 2 * s * nu
+    w <- tryCatch(stats::integrate(f, 0, Inf, rel.tol = 1e-13, subdivisions = 2000)$value, error = function(e) NULL)
+    if (is.null(w)) w <- tryCatch(stats::integrate(f, 0, Inf, rel.tol = 1e-12, subdivisions = 2000)$value, error = function(e) v)
+    v <- w
+  }
+  v
 }
 
 # Extreme points (only reached at the ends of R's intervals, where the power is 0 or 1 to double precision and R is
 # accurate) use R's value: the Rmpfr sums would need too many terms
-extreme <- function(ncp, ...) abs(ncp) > 200 || any(c(...) > 1e5)
+extreme <- function(ncp, ...) abs(ncp) > 1e3 || any(c(...) > 1e8)
 # Accurate value unless R's is within 1e-8 of 0 or 1 (deep tails, which need many bits and move the root by nothing
 # that matters)
 hp <- function(r, f) {
@@ -62,7 +71,16 @@ hp_chisq_upper <- function(q, df, ncp) {
 }
 
 # Accurate power for the arguments a (all given, power absent); fn as in the fixtures
+# pwr's conventional effect sizes (cohen.ES), for arguments given as "small", "medium" or "large"
+cohen_value <- function(v, test) {
+  if (!is.character(v)) return(v)
+  tab <- list(p = c(0.2, 0.5, 0.8), t = c(0.2, 0.5, 0.8), r = c(0.1, 0.3, 0.5), anov = c(0.1, 0.25, 0.4),
+              chisq = c(0.1, 0.3, 0.5), f2 = c(0.02, 0.15, 0.35))
+  tab[[test]][match(v, c("small", "medium", "large"))]
+}
 hp_power <- function(fn, a) {
+  a$d <- cohen_value(a$d, "t"); a$f <- cohen_value(a$f, "anov"); a$w <- cohen_value(a$w, "chisq")
+  a$f2 <- cohen_value(a$f2, "f2")
   sl <- if (is.null(a$sig.level)) 0.05 else a$sig.level
   alt <- a$alternative
   ts <- function(type) switch(if (is.null(type)) "two.sample" else type, two.sample = 2, one.sample = 1, paired = 1)
