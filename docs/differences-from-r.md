@@ -219,8 +219,20 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   changes the last bit of `qnorm` and therefore of normal variates: `set.seed(42); rnorm(3)[2]`
   is -0.56469817139608869 on x86_64 and -0.5646981713960888 on arm64. JavaScript has no FMA, so
   rStats.js matches x86_64 R.
-- Only R's default `RNGkind("Mersenne-Twister", "Inversion", "Rejection")` is supported.
-  `getRandomSeed()`/`setRandomSeed()` use the same 626 integers as R's `.Random.seed`.
+- Of R's RNG kinds, the uniform generators `"Mersenne-Twister"` (the default) and
+  `"L'Ecuyer-CMRG"`, the normal kind `"Inversion"` and both sample kinds (`"Rejection"`, the
+  default, and `"Rounding"`) are supported, through `RNGkind({ kind, sampleKind })`. R's
+  `set.seed(seed, kind, sample.kind = ...)` is `RNGkind({ kind, sampleKind })` followed by
+  `setSeed(seed)`, which gives the same state (R does the same internally); `setSeed` itself only
+  takes the seed, so that the L'Ecuyer-CMRG generator is left out of bundles that do not use it.
+  `RNGkind` returns an object (`{ kind, normalKind, sampleKind }`) instead of R's character vector,
+  and choosing `"Rounding"` gives no warning.
+- `getRandomSeed()`/`setRandomSeed()` use the same integers as R's `.Random.seed`: the kind code
+  (`10403`, `403` with Rounding, `10407` for L'Ecuyer-CMRG), then 625 integers for
+  Mersenne-Twister or 6 for L'Ecuyer-CMRG. Where R silently reseeds from the clock (an
+  unsupported kind code, or an L'Ecuyer-CMRG state with seeds out of range or the first three
+  all zero), `setRandomSeed` throws a RangeError, and so do `nextRNGStream` and `nextRNGSubStream`
+  (R computes a meaningless state without checking).
 - `rmultinom` returns an array of n arrays of length K instead of R's K × n matrix.
 - `r2dtable` returns an array of tables, each an array of rows, instead of R's list of matrices.
 

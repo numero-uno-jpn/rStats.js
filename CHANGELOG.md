@@ -9,7 +9,30 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ## Unreleased
 
+### Added
+
+- `RNGkind({ kind, sampleKind })` (R's `RNGkind()`): the `"L'Ecuyer-CMRG"` generator (L'Ecuyer's
+  MRG32k3a) besides R's default Mersenne-Twister, and `sampleKind: "Rounding"`, the `sample` of R
+  before 3.6.0 (affects `sample`, `sampleInt` and `rwilcox`), with R's streams after the same seed.
+  As in R, changing the kind in the middle of a stream seeds the new generator from the next
+  uniform, and the call returns the previous kinds. R's `set.seed(seed, kind, sample.kind)` is
+  `RNGkind({ kind, sampleKind })` followed by `setSeed(seed)`.
+- `nextRNGStream` and `nextRNGSubStream` (R's `parallel::nextRNGStream()` and
+  `nextRNGSubStream()`): the L'Ecuyer-CMRG state advanced by 2^127 or 2^76 steps, for independent
+  streams in parallel work.
+- `getRandomSeed` and `setRandomSeed` handle every supported combination in R's `.Random.seed`
+  format (kind code `10403`, `403` with Rounding, `10407` for L'Ecuyer-CMRG with 6 seeds).
+
 ### Changed
+
+- `sampleInt` accepts n up to 4.5e15, as R (before: less than 2^31), when sampling with
+  replacement or with a size of at most n / 2 (`sampleInt(1e10, { size: 3 })`); weighted sampling and
+  sampling more than half without replacement still need n < 2^31. Uniform integers above 2^47 are
+  built from random bits without rounding.
+- Bundle size: `setSeed` with `rnorm` is unchanged (1.7 KB gzipped); `sampleInt` grows from 1.9 to
+  2.1 KB and `getRandomSeed` with `setRandomSeed` from 1.0 to 1.5 KB (they read L'Ecuyer-CMRG
+  states). The new generator is only included with `RNGkind`, `setRandomSeed` or the stream
+  functions. Everything together grows from 119.6 to 120.9 KB.
 
 - Speed: the incomplete beta function with both parameters large (ab/(a + b) >= 25, x near the
   mean) uses Temme's uniform asymptotic expansion, in constant time (about 1 µs):
@@ -24,6 +47,12 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - Bundle size: the expansion and the allocation-free loop add about 3.6 KB gzipped to everything
   that uses the incomplete beta function (`qbeta` 18.5 → 22.1 KB, `pt` and `qt` 25.5 → 29.4 KB,
   `tTest` 16.7 → 20.3 KB, everything 115.4 → 119.6 KB).
+
+### Fixed
+
+- Weighted sampling with replacement by Walker's alias method (more than 200 likely candidates)
+  compares in the same way as R (t + u against q[t] + t), so that rounding cannot pick a different
+  candidate in rare cases.
 
 ## 0.7.0 - 2026-10-25
 

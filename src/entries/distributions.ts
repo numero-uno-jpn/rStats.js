@@ -34,7 +34,10 @@ export type { NoncentralOption } from "../internal/noncentral.js";
 export type { Vectorizable, VectorResult } from "../internal/vectorize.js";
 
 // Random numbers (same streams as R's set.seed)
-export { setSeed, getRandomSeed, setRandomSeed } from "../random/rng.js";
+export {
+  setSeed, getRandomSeed, setRandomSeed, RNGkind, type RNGKindName, type SampleKindName, type RNGKindOptions, type RNGKinds,
+} from "../random/rng.js";
+export { nextRNGStream, nextRNGSubStream } from "../random/streams.js";
 export { runif, rnorm, rexp, rlnorm, rlogis, rcauchy, rweibull } from "../random/continuous.js";
 export { rgamma, rchisq, rt, rf } from "../random/gamma.js";
 export { rbeta } from "../random/beta.js";

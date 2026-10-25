@@ -263,9 +263,9 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 | `tTest` | 42.8 KB | 20.3 KB |
 | `qbeta` | 47.5 KB | 22.1 KB |
 | `pt`, `qt` | 62.0 KB | 29.4 KB |
-| everything | 315.4 KB | 119.6 KB |
-| `@numero-uno-jpn/rstats/distributions` (all of it) | 164.0 KB | 64.6 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 169.2 KB | 69.1 KB |
+| everything | 318.4 KB | 120.9 KB |
+| `@numero-uno-jpn/rstats/distributions` (all of it) | 167.1 KB | 65.9 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 169.6 KB | 69.3 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 39.9 KB | 14.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 21.5 KB | 8.4 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 22.8 KB | 10.3 KB |

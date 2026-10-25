@@ -94,7 +94,7 @@ Details of the comparison:
 | Special functions, densities, distribution functions | 1e-14 (non-central t: 1e-13; `ptukey`: 2e-14) |
 | Distributions outside base R (inverse gamma, Kumaraswamy, Pareto, triangular, Laplace, arcsine) | 1e-14 for d/p/q, against extraDistr (arcsine: R's beta(1/2, 1/2) moved to (a, b)) and mpmath |
 | Quantile functions | 1e-14, or backward error no larger than R's; discrete quantiles exactly equal or verified by definition |
-| Random numbers | discrete values, `sample` and `r2dtable` exactly equal; continuous values within 1e-12; the number of uniform draws consumed is checked exactly |
+| Random numbers | discrete values, `sample` and `r2dtable` exactly equal, and with L'Ecuyer-CMRG `runif` and the state after each case (`.Random.seed`); continuous values within 1e-12; the number of uniform draws consumed is checked exactly |
 | Descriptive statistics | 1e-14 (skewness and kurtosis near 0, which come from cancellation, measured absolutely) |
 | Hypothesis tests | 1e-12 for every numeric field (`cor`: 1e-15, `pAdjust`: exact; roots found by `uniroot` with tolerance 1e-4, such as the normal-approximation interval of `ansariTest`: 1e-4); text fields exactly equal |
 | Linear models (`lm`, `confint`, `predict`) | 1e-12 for every numeric field |
@@ -122,6 +122,12 @@ The continuous values cannot match exactly because the last bits of `Math.log`, 
 1.2e-13, for gamma variates with very small shape (e.g. 0.001), where exp(log(u)/shape) magnifies
 the error by 1/shape. The number of uniform draws is checked by drawing `runif(1)` after each
 case: a single different accept/reject decision would show up there.
+
+The other RNG kinds (`rngRounding`, `rngLecuyer`, `rngStreams`) are checked the same way, and also
+compare the state afterwards (`getRandomSeed()` against R's `.Random.seed`: the kind code, and all
+seven integers for L'Ecuyer-CMRG). L'Ecuyer-CMRG's uniforms are computed with exact integer
+arithmetic in doubles, so `runif` and everything discrete match R exactly; continuous variates
+(`rnorm`, `rexp`, `rgamma`) are compared within 1e-12 as above.
 
 ### Hypothesis tests
 

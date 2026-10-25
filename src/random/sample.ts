@@ -1,12 +1,13 @@
 // Random sampling: sample and sampleInt.
 //
-// Uses uniforms the same way as R's default (sample.kind = "Rejection") and returns the same results as R.
+// Uses uniforms the same way as R (with sample.kind "Rejection", the default, or "Rounding") and returns the same
+// results as R.
 // Weighted sampling sorts the weights in decreasing order and selects by cumulative probability (with replacement,
 // when more than 200 candidates have large weights, Walker's (1977) alias method). The sort is a heapsort,
 // and the order of equal weights also matches R.
 // All of this was verified against observed R output.
 
-import { unifIndex, unifRand } from "./rng.js";
+import { isRounding, unifIndex, unifRand } from "./rng.js";
 
 /** Options for {@link sample} and {@link sampleInt}. */
 export interface SampleOptions {
@@ -40,7 +41,7 @@ export function sampleInt(n: number, options: SampleOptions = {}): number[] {
 
 /** Sample from 1..n (1-based values as in R; internal) */
 function sampleInt1(n: number, options: SampleOptions): number[] {
-  if (!Number.isFinite(n) || n < 0 || n >= 2 ** 31) throw new RangeError("n must be a non-negative number less than 2^31");
+  if (!Number.isFinite(n) || n < 0 || n > 4.5e15) throw new RangeError("n must be a non-negative number up to 4.5e15");
   n = Math.trunc(n);
   const { replace = false, prob } = options;
   const sizeGiven = options.size !== undefined;
@@ -49,6 +50,7 @@ function sampleInt1(n: number, options: SampleOptions): number[] {
   const k = Math.trunc(size);
 
   if (prob !== undefined) {
+    if (n >= 2 ** 31) throw new RangeError("n must be less than 2^31 with prob");
     if (prob.length !== n) throw new TypeError("prob must have length n");
     const p = fixupProb(prob, k, replace);
     if (replace) {
@@ -78,6 +80,7 @@ function sampleInt1(n: number, options: SampleOptions): number[] {
     for (let i = 0; i < k; i++) out[i] = unifIndex(n) + 1;
     return out;
   }
+  if (n >= 2 ** 31) throw new RangeError("n must be less than 2^31 to sample without replacement with size above n / 2");
   const x = new Int32Array(n);
   for (let i = 0; i < n; i++) x[i] = i;
   let m = n;
@@ -241,11 +244,22 @@ function walkerSample(p: Float64Array, k: number): number[] {
       if (L >= n) break;
     }
   }
-  // Pick candidate t by uniform integer sampling, then use another uniform to choose t or its alias a[t]
+  // Pick candidate t, then use the fraction of t + u to choose t or its alias a[t]. With sample.kind "Rounding", t + u
+  // is n times one uniform; otherwise t is a uniform integer and u another uniform. The comparison is made on t + u
+  // and q[t] + t, as R does (in doubles)
+  const rounding = isRounding();
   const out = new Array<number>(k);
   for (let i = 0; i < k; i++) {
-    const t = unifIndex(n);
-    out[i] = unifRand() < q[t]! ? t + 1 : a[t]! + 1;
+    let t: number;
+    let rU: number;
+    if (rounding) {
+      rU = unifRand() * n;
+      t = Math.trunc(rU);
+    } else {
+      t = unifIndex(n);
+      rU = t + unifRand();
+    }
+    out[i] = rU < q[t]! + t ? t + 1 : a[t]! + 1;
   }
   return out;
 }
