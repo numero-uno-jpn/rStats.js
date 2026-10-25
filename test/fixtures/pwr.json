@@ -1,7 +1,7 @@
 {
   "function": "pwr",
   "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-25T15:09:04+0000",
+  "generated": "2026-10-25T15:13:15+0000",
   "cases": [
     {"args":{"fn":"pwr.t.test","n":"20","d":"0.5","type":"two.sample","alternative":"two.sided","power":"NULL"},"expected":{"n":"20","d":"0.5","sig.level":"0.050000000000000003","power":"0.33793902892509031","alternative":"two.sided","note":"n is number in *each* group","method":"Two-sample t test power calculation","warnings":[]},"reference":{"power":"0.33793902892504085"}},
     {"args":{"fn":"pwr.t.test","n":"NULL","d":"0.5","power":"0.80000000000000004","type":"two.sample","alternative":"two.sided"},"expected":{"n":"63.765610444141167","d":"0.5","sig.level":"0.050000000000000003","power":"0.80000000000000004","alternative":"two.sided","note":"n is number in *each* group","method":"Two-sample t test power calculation","warnings":[]},"reference":{"n":"63.765610444150084"}},
@@ -114,7 +114,7 @@
     {"args":{"fn":"pwr.t.test","n":"20","d":"medium","power":"NULL"},"expected":{"n":"20","d":"0.5","sig.level":"0.050000000000000003","power":"0.33793902892509031","alternative":"two.sided","note":"n is number in *each* group","method":"Two-sample t test power calculation","warnings":[]},"reference":{"power":"0.33793902892504085"}},
     {"args":{"fn":"pwr.t.test","n":"20","d":"-0.5","power":"NULL"},"expected":{"n":"20","d":"0.5","sig.level":"0.050000000000000003","power":"0.33793902892509031","alternative":"two.sided","note":"n is number in *each* group","method":"Two-sample t test power calculation","warnings":[]},"reference":{"power":"0.33793902892504085"}},
     {"args":{"fn":"pwr.t.test","n":"10000","d":"0.01","power":"NULL"},"expected":{"n":"10000","d":"0.01","sig.level":"0.050000000000000003","power":"0.10894882419147622","alternative":"two.sided","note":"n is number in *each* group","method":"Two-sample t test power calculation","warnings":[]},"reference":{"power":"0.10894882419092422"}},
-    {"args":{"fn":"pwr.t.test","n":"NULL","d":"0.001","power":"0.80000000000000004"},"expected":{"n":"15697721.979017159","d":"0.001","sig.level":"0.050000000000000003","power":"0.80000000000000004","alternative":"two.sided","note":"n is number in *each* group","method":"Two-sample t test power calculation","warnings":[]},"reference":{"n":"15697760.429062951"}},
+    {"args":{"fn":"pwr.t.test","n":"NULL","d":"0.001","power":"0.80000000000000004"},"expected":{"n":"15697721.979017159","d":"0.001","sig.level":"0.050000000000000003","power":"0.80000000000000004","alternative":"two.sided","note":"n is number in *each* group","method":"Two-sample t test power calculation","warnings":[]},"reference":{"n":"15697721.979017153"}},
     {"args":{"fn":"pwr.t.test","n":"20","d":"0.5","power":"NULL","sig.level":"2"},"expected":{"error":"‘sig.level’ must be numeric in [0, 1]"}},
     {"args":{"fn":"pwr.t2n.test","n1":"1","n2":"25","d":"0.5","power":"NULL"},"expected":{"error":"number of observations in the first group must be at least 2"}},
     {"args":{"fn":"pwr.r.test","n":"3","r":"0.29999999999999999","power":"NULL"},"expected":{"error":"number of observations must be at least 4"}},

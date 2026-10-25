@@ -1,7 +1,7 @@
 {
   "function": "powerStats",
   "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-25T15:09:02+0000",
+  "generated": "2026-10-25T15:13:13+0000",
   "cases": [
     {"args":{"fn":"power.t.test","n":"20","delta":"1","type":"two.sample","alternative":"two.sided","power":"NULL"},"expected":{"n":"20","delta":"1","sd":"1","sig.level":"0.050000000000000003","power":"0.86895280169249778","alternative":"two.sided","note":"n is number in *each* group","method":"Two-sample t test power calculation","warnings":[]},"reference":{"power":"0.86895280169212696"}},
     {"args":{"fn":"power.t.test","n":"NULL","delta":"0.5","power":"0.80000000000000004","type":"two.sample","alternative":"two.sided"},"expected":{"n":"63.765763714273483","delta":"0.5","sd":"1","sig.level":"0.050000000000000003","power":"0.80000000000000004","alternative":"two.sided","note":"n is number in *each* group","method":"Two-sample t test power calculation","warnings":[]},"reference":{"n":"63.765763714279885"}},

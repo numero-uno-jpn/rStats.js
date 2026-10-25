@@ -36,8 +36,12 @@ acc_pnt <- function(q, nu, delta, lower) {
   # P = E[Phi(q S - delta)] over S = sqrt(chi^2_nu / nu), a positive integrand
   if (v < 1e-3 && (delta < 0 || !lower)) {
     f <- function(s) stats::pnorm(q * s - delta, lower.tail = lower) * stats::dchisq(s^2 * nu, nu) * 2 * s * nu
-    w <- tryCatch(stats::integrate(f, 0, Inf, rel.tol = 1e-13, subdivisions = 2000)$value, error = function(e) NULL)
-    if (is.null(w)) w <- tryCatch(stats::integrate(f, 0, Inf, rel.tol = 1e-12, subdivisions = 2000)$value, error = function(e) v)
+    # S is concentrated around 1 with standard deviation about 1/sqrt(2 nu): integrate over that window when it is
+    # narrow (integrate over [0, Inf) misses a narrow peak)
+    sdS <- 1 / sqrt(2 * nu)
+    lims <- if (nu > 50) c(max(0, 1 - 60 * sdS), 1 + 60 * sdS) else c(0, Inf)
+    w <- tryCatch(stats::integrate(f, lims[1], lims[2], rel.tol = 1e-13, subdivisions = 2000)$value, error = function(e) NULL)
+    if (is.null(w)) w <- tryCatch(stats::integrate(f, lims[1], lims[2], rel.tol = 1e-12, subdivisions = 2000)$value, error = function(e) v)
     v <- w
   }
   v
