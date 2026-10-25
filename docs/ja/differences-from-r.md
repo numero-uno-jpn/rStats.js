@@ -211,8 +211,19 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   ひいては正規乱数の値が変わります。`set.seed(42); rnorm(3)[2]` は x86_64 で -0.56469817139608869、
   arm64 で -0.5646981713960888 です。JavaScript には FMA がないので、rStats.js は x86_64 の R と
   一致します。
-- 対応しているのは R の既定の `RNGkind("Mersenne-Twister", "Inversion", "Rejection")` だけです。
-  `getRandomSeed()`/`setRandomSeed()` は R の `.Random.seed` と同じ 626 個の整数を使います。
+- R の RNG の種類のうち、一様乱数の生成器 `"Mersenne-Twister"` (既定) と `"L'Ecuyer-CMRG"`、
+  正規乱数の種類 `"Inversion"`、sample の両方の種類 (既定の `"Rejection"` と `"Rounding"`) に
+  `RNGkind({ kind, sampleKind })` で対応しています。R の `set.seed(seed, kind, sample.kind = ...)` は
+  `RNGkind({ kind, sampleKind })` のあとに `setSeed(seed)` を呼ぶのと同じで、同じ状態になります
+  (R も内部で同じことをしています)。`setSeed` 自体は seed だけを受け取ります。L'Ecuyer-CMRG の
+  生成器を、使わないバンドルに含めないためです。`RNGkind` は R の文字列ベクトルではなくオブジェクト
+  (`{ kind, normalKind, sampleKind }`) を返し、`"Rounding"` を選んでも警告は出ません。
+- `getRandomSeed()`/`setRandomSeed()` は R の `.Random.seed` と同じ整数を使います。種類のコード
+  (`10403`、Rounding では `403`、L'Ecuyer-CMRG では `10407`) に続いて、Mersenne-Twister では 625 個、
+  L'Ecuyer-CMRG では 6 個の整数です。R が黙って時計から seed を取り直す場合 (対応していない種類の
+  コード、seed が範囲外か最初の 3 つがすべて 0 の L'Ecuyer-CMRG の状態)、`setRandomSeed` は
+  RangeError を投げます。`nextRNGStream` と `nextRNGSubStream` も同様です (R は確認せずに無意味な
+  状態を計算します)。
 - `rmultinom` は R の K × n 行列ではなく、長さ K の配列 n 個からなる配列を返します。
 - `r2dtable` は R の行列のリストではなく、表 (行の配列) の配列を返します。
 

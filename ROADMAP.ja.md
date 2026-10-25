@@ -28,7 +28,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 |---|---|
 | 特殊関数 | `gamma`、`lgamma`、`beta`、`lbeta`、`choose`、`lchoose`、`factorial`、`lfactorial`、`digamma`、`trigamma`、`psigamma`、`besselI`、`besselK`、`besselJ`、`besselY` と、R にはない `erf`、`erfc`、`erfinv`、`erfcinv`、`gammainc`、`perm`、R の C API の log1p 系の関数 `log1pmx`、`lgamma1p`、`log1mexp`、`log1pexp` を export |
 | 分布 | R の `stats` にある 20 の分布すべて (スチューデント化された範囲を含む)、非心カイ二乗・t・F・ベータ分布、逆ガンマ・Kumaraswamy・Pareto・三角・Laplace (extraDistr)・逆正弦の d/p/q (`lowerTail` と `logP` 付き)。23 の分布の `distSummary` (ウィルコクソンの符号付き順位と順位和の分布、スチューデント化された範囲の分布を除く) |
-| 乱数 | R の既定の Mersenne-Twister と `set.seed()` 互換の乱数列、`rmultinom` を含む 26 の `r*` 関数 (R にない分布は extraDistr と同じ乱数列)、`sample`、`sampleInt`、`r2dtable` |
+| 乱数 | R の既定の Mersenne-Twister と `set.seed()` 互換の乱数列、`RNGkind` による `"L'Ecuyer-CMRG"` (`parallel` の `nextRNGStream`・`nextRNGSubStream` 付き) と `sample.kind = "Rounding"`、`rmultinom` を含む 26 の `r*` 関数 (R にない分布は extraDistr と同じ乱数列)、`sample`、`sampleInt`、`r2dtable` |
 | 記述統計 | R の要約 (`mean`、`variance`、9 種類の `quantile`、`rank`、行列の `cov`/`cor`、`table`、`cut`、`hist`、`ecdf`、`scale` など) と e1071・DescTools のもの (`skewness`、`kurtosis`、`geometricMean`、`modes`、`meanAD`、`cv`) |
 | 仮説検定 | R の `htest` の関数: `tTest`、`chisqTest` (シミュレーションによる p 値と 2 つの因子ベクトルを含む)、`fisherTest` (r × c とシミュレーションによる p 値を含む)、`wilcoxTest`、`corTest`、`binomTest`、`poissonTest`、`propTest`、`mcnemarTest`、`varTest`、`bartlettTest`、`kruskalTest`、`friedmanTest`、`quadeTest`、`flignerTest`、`moodTest`、`onewayTest`、`shapiroTest`、`mantelhaenTest`、`ansariTest` (信頼区間を含む)、`ksTest`、`pairwise*`、`pAdjust`。一元配置の `aov`、`TukeyHSD`、`zTest` (BSDA) |
 | 線形モデル | 行列で渡す `lm` と `summary.lm` の値、`confint`、`predict` |
@@ -48,9 +48,6 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    double-double の処理を省く ([docs/ja/performance.md](docs/ja/performance.md) を参照)。残り: 一方の
    パラメータが大きく他方が小さいときの展開 (自由度が大きい `pt` と `pf`、`pbeta(x, 1e6, 10)`) と、
    double-double のままの連分数。
-2. **乱数:** R の既定以外の 2 つの設定: `sample.kind = "Rounding"` (R 3.6.0 より前の `sample`。古い
-   スクリプトの再現用) と、`"L'Ecuyer-CMRG"` の生成器と `parallel::nextRNGStream()`・`nextRNGSubStream()`
-   (並列計算用の独立した乱数列)。
 
 いずれ取り組むかもしれないもの (どれもそれ自体が大きなプロジェクト):
 

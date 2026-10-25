@@ -322,6 +322,13 @@ they are listed so that readers can find the originals.
 
 Listed for attribution; no license terms apply to the methods themselves.
 
+- P. L'Ecuyer, "Good parameters and implementations for combined multiple recursive random number
+  generators", Operations Research 47 (1999) 159–164: the MRG32k3a generator and its constants (R's
+  `RNGkind("L'Ecuyer-CMRG")`) — `src/random/lecuyer.ts`
+- P. L'Ecuyer, R. Simard, E. J. Chen and W. D. Kelton, "An object-oriented random-number package with
+  many long streams and substreams", Operations Research 50 (2002) 1073–1075: the jump-ahead matrices for
+  streams (2^127 steps) and substreams (2^76 steps) — `src/random/streams.ts`
+
 - N. M. Temme, "Incomplete Laplace integrals: uniform asymptotic expansion with application to the
   incomplete beta function", SIAM J. Math. Anal. 18 (1987) 1638–1663, and Temme, "Special Functions: An
   Introduction to the Classical Functions of Mathematical Physics" (Wiley, 1996), §11.3.3: the uniform

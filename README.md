@@ -47,11 +47,17 @@ Distribution parameters are scalars.
 ### Random numbers that match `set.seed()`
 
 ```ts
-import { setSeed, rnorm, sample } from "@numero-uno-jpn/rstats";
+import { setSeed, rnorm, RNGkind, getRandomSeed, setRandomSeed, nextRNGStream, runif } from "@numero-uno-jpn/rstats";
 
 setSeed(42);
 rnorm(3);  // [1.3709584471466685, -0.5646981713960887, 0.3631284113373392]
            // R: set.seed(42); rnorm(3) gives the same numbers (up to the last bit)
+
+// R's other settings: RNGkind("L'Ecuyer-CMRG") with parallel::nextRNGStream, sample.kind = "Rounding"
+RNGkind({ kind: "L'Ecuyer-CMRG" });
+setSeed(1);                                   // R: set.seed(1, kind = "L'Ecuyer-CMRG")
+setRandomSeed(nextRNGStream(getRandomSeed())); // R: .Random.seed <- nextRNGStream(.Random.seed)
+runif(2);  // [0.31369782407981056, 0.9280126525616814]
 ```
 
 ### Hypothesis tests
@@ -88,7 +94,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 |---|---|
 | Special functions | `gamma`, `lgamma`, `beta`, `lbeta`, `choose`, `lchoose`, `factorial`, `lfactorial`, `digamma`, `trigamma`, `psigamma`, `besselI`, `besselK`, `besselJ`, `besselY`; also `erf`, `erfc`, `erfinv`, `erfcinv`, `gammainc` and `perm`, which R lacks, and `log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp` from R's C API (Rmath.h) |
 | Distributions (d/p/q) | normal, t, chi-squared, F, beta, gamma, binomial, Poisson, uniform, exponential, log-normal, logistic, Cauchy, Weibull, geometric, negative binomial, hypergeometric, Wilcoxon signed rank and rank sum, studentized range (`ptukey`, `qtukey`), non-central chi-squared, t, F and beta (`ncp`); the multinomial probability (`dmultinom`); inverse gamma, Kumaraswamy, Pareto, triangular, Laplace (extraDistr) and arcsine; `distSummary` (mean, variance, sd, median, mode, skewness, kurtosis) |
-| Random numbers | `setSeed` (`set.seed`), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), 26 `r*` functions, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
+| Random numbers | `setSeed` (`set.seed`), `RNGkind` (Mersenne-Twister and L'Ecuyer-CMRG, `sample.kind` Rejection and Rounding), `getRandomSeed`/`setRandomSeed` (`.Random.seed`), `nextRNGStream`/`nextRNGSubStream` (`parallel`), 26 `r*` functions, `sample`, `sampleInt` (`sample.int`), `r2dtable` |
 | Descriptive statistics | `sum`, `prod`, `mean`, `weightedMean` (`weighted.mean`), `variance` (`var`), `sd`, `median`, `range`, `cumsum`, `cumprod`, `cummax`, `cummin`, `diff`, `quantile`, `IQR`, `fivenum`, `mad`, `rank`, `cov`, `cor`, `tabulate`, `table`, `unique`, `cut`, `findInterval`, `pretty`, `hist`, `ecdf`, `scale`, `skewness`, `kurtosis`, `geometricMean`, `modes`, `meanAD`, `cv` |
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov`, `TukeyHSD`, `zTest`, `pAdjust` (`p.adjust`) |
 | Linear models | `lm` (matrix interface, with the `summary` quantities), `confint`, `predict` |
@@ -132,7 +138,7 @@ removed. Approximate sizes after minification and gzip:
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
 | `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 20.3 KB |
 | `qbeta` / `pt` and `qt` | 22.1 / 29.4 KB |
-| everything | 119.6 KB |
+| everything | 120.9 KB |
 
 (`npm run size` measures these.)
 
