@@ -1,3 +1,4 @@
+# oracle-platform: amd64
 source("/oracle/_anova.R")
 suppressPackageStartupMessages(library(survival))
 
@@ -45,16 +46,22 @@ add(lung1); add(lung1, ties = "breslow")
 add(list(time = lung$time, status = lung$status - 1L, x = lungx[, c(1, 3)]), strata = I(ifelse(lung$sex == 1, "m", "f")))
 # fewer iterations than needed (warning), and a looser eps
 add(s4, iter.max = 2); add(s4, eps = 1e-4)
-# monotone likelihood: x separates the events (an infinite coefficient)
-add(list(time = 1:10, status = c(1, 1, 1, 1, 1, 0, 0, 0, 0, 1), x = cbind(c(3, 2.5, 2, 1.8, 1.5, 0, 0.2, 0.1, 0.3, 1))))
+# monotone likelihood (an infinite coefficient), stopped after 4 iterations: the information falls exponentially
+# along the path, so a longer run amplifies the rounding of every step (R's own results differ between x86_64 and
+# arm64 by 1e-7 after 20 iterations; after 4 they agree to 1e-14)
+add(list(time = 1:10, status = c(1, 1, 1, 1, 1, 0, 0, 0, 0, 1), x = cbind(c(3, 2.5, 2, 1.8, 1.5, 0, 0.2, 0.1, 0.3, 1))), iter.max = 4)
 add(list(time = 1:12, status = c(1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1),
-         x = cbind(c(5, 4, 4, 3, 3, 3, 0, 0.5, 0.2, 0.1, 1, -2), round(seq(-1, 1, length = 12), 4))))
-# an indicator of the k earliest (events): for k = 8 the loglik converges with a large coefficient (warning); for
-# k = 2 the information of that column falls below the Cholesky tolerance (an NA coefficient)
-for (k in c(8, 2)) {
-  o <- order(s4$time); ind <- numeric(80); ind[o[1:k]] <- 1; ind[s4$status == 0] <- 0
-  add(list(time = s4$time, status = s4$status, x = cbind(s4$x[, 1], ind)))
-}
+         x = cbind(c(5, 4, 4, 3, 3, 3, 0, 0.5, 0.2, 0.1, 1, -2), round(seq(-1, 1, length = 12), 4))), iter.max = 4)
+# the "coefficient may be infinite" warning with a loose eps (the loglik converges at the first step while the
+# remaining step is still large); with a separating covariate the warning only comes with ill-conditioned results
+loose <- function(seed) { set.seed(seed); n <- 40; x <- cbind(rnorm(n), rnorm(n)); t <- rexp(n, 0.1 * exp(0.05 * x[, 1]))
+  c <- rexp(n, 0.03); list(time = round(pmin(t, c), 2) + 0.01, status = as.integer(t <= c), x = x) }
+add(loose(40), eps = 0.01); add(loose(135), eps = 0.001)
+set.seed(20261130)
+# an indicator of the 2 earliest (events): the information of that column falls below the Cholesky tolerance (an NA
+# coefficient)
+o <- order(s4$time); ind <- numeric(80); ind[o[1:2]] <- 1; ind[s4$status == 0] <- 0
+add(list(time = s4$time, status = s4$status, x = cbind(s4$x[, 1], ind)))
 # an aliased column (the third is the sum of the first two)
 s5 <- sim(70, c(0.4, 0.2)); s5$x <- cbind(s5$x, s5$x[, 1] + s5$x[, 2]); add(s5)
 # a single event, and errors

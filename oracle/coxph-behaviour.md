@@ -14,8 +14,9 @@ yet). Where this file and the fixture seem to disagree, report it.
 3. Convergence is tested on the log-likelihood, `|1 − best/new| ≤ eps`, not on the coefficients; a worse step is
    **halved towards the last accepted point** with a growing weight (step 5).
 4. When the iterations run out (more than one allowed), R recomputes the score and information at the last
-   accepted point and then inverts the information **without factorising it first**, so the variance it reports is
-   `diag(1/I_ii)` (off-diagonal entries −0). Reproduce this. The iteration count is then `iter.max + 1`.
+   accepted point and then applies the inverse step of step 4 **without factorising first**; the inverse step reads
+   the triangle that the accumulation of step 3 leaves at zero (the factorisation would have filled it), so the
+   variance R reports is `diag(1/I_ii)` (0 where `I_ii ≤ 0`; off-diagonal entries −0). Reproduce this. The iteration count is then `iter.max + 1`.
 5. A coefficient is NA when its pivot in the generalised Cholesky factorisation is below the tolerance, whether the
    column is aliased or its information has merely become tiny; the linear predictor still uses the internal value
    of that coefficient.
@@ -82,17 +83,17 @@ weights (robust variance) are not supported yet`.
      is not finite;
    - if finite and `|1 − best/ℓ_new| ≤ eps`: converged; `loglik[1] = ℓ_new`, invert I, `β = β_new`, finish;
    - else if not finite or `ℓ_new < best`: `h += 1`, `β_new = (β_new + h β)/(h + 1)` (each coordinate);
-   - else `h = 0`, `best = ℓ_new`, `δ = I^-1 u` (solve with the factor just made), `β = β_new`, `β_new = β_new + δ`.
+   - else `h = 0`, `best = loglik[1] = ℓ_new` (best is loglik[1]), `δ = I^-1 u` (solve with the factor just made), `β = β_new`, `β_new = β_new + δ`.
    If the loop ends without converging (`iter = iterMax + 1`): when `iterMax > 1`, recompute ℓ, u, I at β and set
-   `loglik[1] = ℓ`; apply the inverse step to I **as it stands** (rule 4: unfactorised after that
-   recomputation; with `iterMax = 1`, the factor of the last iteration); mark "ran out".
+   `loglik[1] = ℓ` (with `iterMax = 1`, loglik[1] stays the best accepted value); the variance as in rule 4 after that
+   recomputation (with `iterMax = 1`, the inverse of the factor of the last iteration); mark "ran out".
    Finish: `β_j × s_j`, `u_j / s_j`, `var_ij = (I^-1)_ij s_i s_j` (with the u and I of the last evaluation).
 6. **Output.** `coefficients` = β, NaN where `var_jj = 0` (only checked when the last rank is below p; never with
    `iterMax = 0`). `linearPredictors_k = Σ_j x_kj β_j − Σ_j β_j m_j` (original x, input order, the internal β
    including NaN-marked ones). Warnings (only when `iterMax > 1`): ran out → `Ran out of iterations and did not
    converge`, and then also `one or more coefficients may be infinite` if `max(linearPredictors) > 500` or some
    `|Σ_i u_i var_ij|` is not finite; converged → with `f_j = |Σ_i u_i var_ij|`, the columns j where `u_j` is not
-   finite or (`f_j > eps` and `f_j > tolerInf |β_j|`): `Loglik converged before variable  <j, comma-separated, 1-based>
+   finite or (`f_j > eps` and `f_j > tolerInf |β_j|`, β the internal value even where it is reported as NaN): `Loglik converged before variable  <j, 1-based, joined by "," without spaces>
    ; coefficient may be infinite. `.
 7. **Tests.** With the k non-NA coefficients b (minus `init` when given) and their variance V: the Wald statistic
    `b'V^-1b`: for k = 1 `b²/V`; otherwise factorise V (step 4, `tolerChol`), solve, `Σ b_i y_i`. Summary: `se =
@@ -105,5 +106,6 @@ weights (robust variance) are not supported yet`.
 
 Within a relative 1e-12 of R value by value (the iterations must be R's: the same `iter`); zero entries of R exactly
 (the −0 of rule 4 may be +0). No loosening; known differences only within 1e-12 of an exact reference (none here).
-The monotone-likelihood cases (coefficients near 80 to 100, variances near 1e8) are the most sensitive: if one
-differs by more, report it with the case instead of adjusting.
+The fixture comes from x86_64 R (arm64 R fuses multiply-adds, which changes the last bits of the iterations). Long
+runs towards an infinite coefficient are left out: the information falls exponentially along such a path, and R's
+own results then differ between platforms by 1e-7; the monotone cases stop after 4 iterations.
