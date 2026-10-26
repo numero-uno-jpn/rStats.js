@@ -16,6 +16,8 @@ import type { Sample } from "../htest/types.js";
  * tabulate([1, 2, 2, 5]);    // [1, 2, 0, 0, 1]
  * tabulate([1, 2, 2, 5], 3); // [1, 2, 0]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function tabulate(bin: Sample, nbins?: number): number[] {
   const b = Array.from(bin).map((v) => Math.trunc(v));
@@ -25,7 +27,11 @@ export function tabulate(bin: Sample, nbins?: number): number[] {
   return out;
 }
 
-/** Options for {@link table}. */
+/**
+ * Options for {@link table}.
+ *
+ * @category Descriptive statistics
+ */
 export interface TableOptions {
   /** Count missing values: `"no"` (default), `"ifany"` (when there are some) or `"always"`. */
   useNA?: "no" | "ifany" | "always";
@@ -39,6 +45,8 @@ export interface TableOptions {
  * ```ts
  * table([3, 1, 3, 2, 3]); // { values: [1, 2, 3], counts: [1, 1, 3] }
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function table(
   x: Sample,
@@ -73,6 +81,8 @@ export function table(
  * ```ts
  * unique([3, 1, 3, 2, 1]); // [3, 1, 2]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function unique(x: Sample): number[] {
   const seen = new Set<number>();
@@ -87,7 +97,11 @@ export function unique(x: Sample): number[] {
   return out;
 }
 
-/** Options for {@link cut}. */
+/**
+ * Options for {@link cut}.
+ *
+ * @category Descriptive statistics
+ */
 export interface CutOptions {
   /** Intervals closed on the right, (a, b] (default `true`); otherwise [a, b). */
   right?: boolean;
@@ -106,6 +120,8 @@ export interface CutOptions {
  * cut([1, 2.5, 4, 6], [0, 2, 4, 6]);                  // [1, 2, 2, 3]
  * cut([1, 2.5, 4, 6], [0, 2, 4, 6], { right: false }); // [1, 2, 3, NaN]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function cut(x: Sample, breaks: number | readonly number[], options: CutOptions = {}): number[] {
   const right = options.right ?? true;
@@ -155,7 +171,11 @@ function binCode(xs: readonly number[], br: readonly number[], right: boolean, i
   });
 }
 
-/** Options for {@link findInterval}. */
+/**
+ * Options for {@link findInterval}.
+ *
+ * @category Descriptive statistics
+ */
 export interface FindIntervalOptions {
   /** Treat the last interval as closed on the right (with `leftOpen`, the first as closed on the left). */
   rightmostClosed?: boolean;
@@ -173,6 +193,8 @@ export interface FindIntervalOptions {
  * ```ts
  * findInterval([0, 1.5, 3, 5], [1, 2, 3]); // [0, 1, 3, 3]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function findInterval(x: Sample, vec: readonly number[], options: FindIntervalOptions = {}): number[] {
   const n = vec.length;

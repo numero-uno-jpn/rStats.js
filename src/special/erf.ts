@@ -54,6 +54,8 @@ const INV_SQRT_PI = 0.5641895835477562869;
  * erf(0.5);    // 0.5204998778130465
  * erf(1e-10);  // 1.1283791670955126e-10
  * ```
+ *
+ * @category Special functions
  */
 export function erf(x: number): number {
   if (Number.isNaN(x)) return NaN;
@@ -78,6 +80,8 @@ export function erf(x: number): number {
  *
  * Changes from xsf: exp(-x^2) is formed from x^2 = hi + lo exact (the rounding of x^2 is 33 ε relative at x = 5.7),
  * and below the normal range exp(-700) is applied last so that subnormal results (x up to 27.2) are not flushed to 0.
+ *
+ * @category Special functions
  */
 export function erfc(a: number): number {
   if (Number.isNaN(a)) return NaN;

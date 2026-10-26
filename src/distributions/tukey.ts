@@ -26,7 +26,11 @@ import { dpoisRaw, stirlerr } from "../special/loader.js";
 import { lgamma } from "../special/gamma.js";
 import { pnorm } from "./normal.js";
 
-/** Options for {@link ptukey} and {@link qtukey}. */
+/**
+ * Options for {@link ptukey} and {@link qtukey}.
+ *
+ * @category Distributions
+ */
 export interface TukeyOptions extends TailOptions {
   /** Number of groups whose ranges are compared; the statistic is the maximum of that many ranges. Default `1`. */
   nranges?: number;
@@ -978,6 +982,8 @@ function brent(f: (y: number) => number, a: number, b: number, fa: number, fb: n
  * ptukey(3.5, 3, 12);                       // 0.9300045147248135
  * ptukey(3.5, 3, 12, { lowerTail: false }); // 0.06999548527518648
  * ```
+ *
+ * @category Distributions
  */
 export function ptukey<T extends Vectorizable>(
   q: T,
@@ -1005,6 +1011,8 @@ export function ptukey<T extends Vectorizable>(
  * qtukey(0.95, 3, 12); // 3.7729289657270084
  * qtukey(0.95, 4, 20); // 3.958293560945357
  * ```
+ *
+ * @category Distributions
  */
 export function qtukey<T extends Vectorizable>(
   p: T,

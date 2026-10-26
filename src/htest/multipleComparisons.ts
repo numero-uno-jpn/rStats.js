@@ -24,7 +24,11 @@ import { pAdjust, type PAdjustMethod } from "./pAdjust.js";
 import { kruskalTest } from "./rankTests.js";
 import { matchAlternative, type Alternative, type Sample } from "./types.js";
 
-/** Result of the PMCMRplus tests (R's `PMCMR` objects). */
+/**
+ * Result of the PMCMRplus tests (R's `PMCMR` objects).
+ *
+ * @category Multiple comparisons
+ */
 export interface PMCMRResult {
   /** Description of the test (R's `method`). */
   method: string;
@@ -46,25 +50,41 @@ export interface PMCMRResult {
   warnings: string[];
 }
 
-/** Options of the all-pairs Dunn test. */
+/**
+ * Options of the all-pairs Dunn test.
+ *
+ * @category Multiple comparisons
+ */
 export interface KwAllPairsDunnTestOptions {
   /** p-value adjustment (see `pAdjust`). Default `"holm"`. */
   pAdjustMethod?: PAdjustMethod | (string & {});
 }
 
-/** Options of the many-to-one tests. */
+/**
+ * Options of the many-to-one tests.
+ *
+ * @category Multiple comparisons
+ */
 export interface ManyOneTestOptions {
   /** Alternative hypothesis for each group against the control. Default `"two.sided"`. */
   alternative?: Alternative | "two" | "l" | "g";
 }
 
-/** Options of the many-to-one Dunn test. */
+/**
+ * Options of the many-to-one Dunn test.
+ *
+ * @category Multiple comparisons
+ */
 export interface KwManyOneDunnTestOptions extends ManyOneTestOptions {
   /** `"single-step"` (simultaneous normal probabilities, the default) or a `pAdjust` method. */
   pAdjustMethod?: "single-step" | PAdjustMethod | (string & {});
 }
 
-/** Options of Steel's many-to-one rank test (`manyOneUTest`). */
+/**
+ * Options of Steel's many-to-one rank test (`manyOneUTest`).
+ *
+ * @category Multiple comparisons
+ */
 export type ManyOneUTestOptions = KwManyOneDunnTestOptions;
 
 const TIES_WARNING = "Ties are present. z-quantiles were corrected for ties.";
@@ -172,6 +192,8 @@ function pooled(d: Layout): { m: number[]; s2: number; df: number } {
  * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
  * kwAllPairsDunnTest(x, g).pValue; // [[0.3594249897579995, NaN], [0.02187107427460692, 0.3594249897579995]]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function kwAllPairsDunnTest(x: Sample, g: readonly GroupLabel[], options: KwAllPairsDunnTestOptions = {}): PMCMRResult {
   const adjust = options.pAdjustMethod ?? "holm";
@@ -194,6 +216,8 @@ export function kwAllPairsDunnTest(x: Sample, g: readonly GroupLabel[], options:
  * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
  * kwManyOneDunnTest(x, g).pValue; // [[0.30272579742071715], [0.013938744281312318]]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function kwManyOneDunnTest(x: Sample, g: readonly GroupLabel[], options: KwManyOneDunnTestOptions = {}): PMCMRResult {
   const alternative = matchAlternative(options.alternative);
@@ -238,6 +262,8 @@ function manyOneNormalP(z: readonly number[], lambda: readonly number[], alterna
  * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
  * dunnettTest(x, g).pValue; // [[0.026103399464872296], [0.0011111316275120736]]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function dunnettTest(x: Sample, g: readonly GroupLabel[], options: ManyOneTestOptions = {}): PMCMRResult {
   const alternative = matchAlternative(options.alternative);
@@ -271,6 +297,8 @@ export function dunnettTest(x: Sample, g: readonly GroupLabel[], options: ManyOn
  * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
  * manyOneUTest(x, g).pValue; // [[0.08993551204759488], [0.08993551204759488]]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function manyOneUTest(x: Sample, g: readonly GroupLabel[], options: ManyOneUTestOptions = {}): PMCMRResult {
   const alternative = matchAlternative(options.alternative);
@@ -313,6 +341,8 @@ export function manyOneUTest(x: Sample, g: readonly GroupLabel[], options: ManyO
  * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
  * dscfAllPairsTest(x, g).pValue; // [[0.12122941216677251, NaN], [0.12122941216677251, 0.12122941216677251]]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function dscfAllPairsTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
   const d = layout(x, g);
@@ -345,6 +375,8 @@ export function dscfAllPairsTest(x: Sample, g: readonly GroupLabel[]): PMCMRResu
  * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
  * gamesHowellTest(x, g).pValue; // [[0.05271565998164183, NaN], [0.009781818487986175, 0.08494498877912128]]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function gamesHowellTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
   const d = layout(x, g);
@@ -367,6 +399,8 @@ export function gamesHowellTest(x: Sample, g: readonly GroupLabel[]): PMCMRResul
  * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
  * tukeyTest(x, g).pValue; // [[0.03403130149294014, NaN], [0.001492661804896774, 0.04527523376597547]]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function tukeyTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
   const d = layout(x, g);
@@ -397,6 +431,8 @@ export function tukeyTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
  * })();
  * message; // "'data' must be of a vector type, was 'NULL'"
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function steelTest(x: Sample, g: readonly GroupLabel[], options: ManyOneTestOptions = {}): never {
   const alternative = options.alternative === undefined ? "greater" : matchAlternative(options.alternative);
@@ -406,10 +442,18 @@ export function steelTest(x: Sample, g: readonly GroupLabel[], options: ManyOneT
   throw new Error("'data' must be of a vector type, was 'NULL'");
 }
 
-/** Adjustment method of {@link dunnTest} (dunn.test's `method`). */
+/**
+ * Adjustment method of {@link dunnTest} (dunn.test's `method`).
+ *
+ * @category Multiple comparisons
+ */
 export type DunnTestMethod = "none" | "bonferroni" | "sidak" | "holm" | "hs" | "hochberg" | "bh" | "by";
 
-/** Options of {@link dunnTest}. */
+/**
+ * Options of {@link dunnTest}.
+ *
+ * @category Multiple comparisons
+ */
 export interface DunnTestOptions {
   /** Adjustment of the p-values. Default `"none"`. */
   method?: DunnTestMethod;
@@ -417,7 +461,11 @@ export interface DunnTestOptions {
   altp?: boolean;
 }
 
-/** Result of {@link dunnTest} (dunn.test's list). */
+/**
+ * Result of {@link dunnTest} (dunn.test's list).
+ *
+ * @category Multiple comparisons
+ */
 export interface DunnTestResult {
   /** Kruskal-Wallis chi-squared statistic (with the tie correction). */
   chi2: number;
@@ -444,6 +492,8 @@ export interface DunnTestResult {
  * r.comparisons; // ["a - b", "a - c", "b - c"]
  * r.PAdjusted;   // [0.26956874231849964, 0.01093553713730346, 0.26956874231849964]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function dunnTest(x: Sample, g: readonly GroupLabel[], options: DunnTestOptions = {}): DunnTestResult {
   const method = options.method ?? "none";
@@ -509,13 +559,21 @@ function dunnAdjust(P: readonly number[], method: DunnTestMethod): number[] {
   }
 }
 
-/** Options of {@link glhtDunnett}. */
+/**
+ * Options of {@link glhtDunnett}.
+ *
+ * @category Multiple comparisons
+ */
 export interface GlhtDunnettOptions {
   /** Alternative hypothesis for each group against the control. Default `"two.sided"`. */
   alternative?: Alternative | "two" | "l" | "g";
 }
 
-/** Result of {@link glhtDunnett}. */
+/**
+ * Result of {@link glhtDunnett}.
+ *
+ * @category Multiple comparisons
+ */
 export interface GlhtDunnettResult {
   /** Labels of the contrasts, `"<level> - <level 1>"`. */
   names: string[];
@@ -545,6 +603,8 @@ export interface GlhtDunnettResult {
  * r.names; // ["b - a", "c - a"]
  * r.p;     // [0.02601829573165104, 0.0011091043143827048]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function glhtDunnett(x: Sample, g: readonly GroupLabel[], options: GlhtDunnettOptions = {}): GlhtDunnettResult {
   const alternative = matchAlternative(options.alternative);

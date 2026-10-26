@@ -20,6 +20,8 @@ import { generate } from "./common.js";
  * runif(3); // [0.2655087, 0.3721239, 0.5728534]
  * runif(2, { min: -1, max: 1 });
  * ```
+ *
+ * @category Random numbers
  */
 export function runif(n: number, options: { min?: number; max?: number } = {}): number[] {
   const { min = 0, max = 1 } = options;
@@ -53,6 +55,8 @@ export function rnorm1(mean: number, sd: number): number {
  * rnorm(3); // [-0.6264538107423324, 0.18364332422208224, -0.8356286124100472]
  * rnorm(2, { mean: 10, sd: 2 });
  * ```
+ *
+ * @category Random numbers
  */
 export function rnorm(n: number, options: { mean?: number; sd?: number } = {}): number[] {
   const { mean = 0, sd = 1 } = options;
@@ -71,6 +75,8 @@ export function rnorm(n: number, options: { mean?: number; sd?: number } = {}): 
  * setSeed(1);
  * rexp(2, { rate: 2 }); // [0.3775909, 0.5908214]
  * ```
+ *
+ * @category Random numbers
  */
 export function rexp(n: number, options: { rate?: number } = {}): number[] {
   const scale = 1 / (options.rate ?? 1);
@@ -93,6 +99,8 @@ export function rexp(n: number, options: { rate?: number } = {}): number[] {
  * setSeed(1);
  * rlnorm(2, { meanlog: 0, sdlog: 1 }); // [0.5344838, 1.201587]
  * ```
+ *
+ * @category Random numbers
  */
 export function rlnorm(n: number, options: { meanlog?: number; sdlog?: number } = {}): number[] {
   const { meanlog = 0, sdlog = 1 } = options;
@@ -115,6 +123,8 @@ export function rlnorm(n: number, options: { meanlog?: number; sdlog?: number } 
  * setSeed(1);
  * rlogis(2, { location: 0, scale: 1 }); // [-1.017531, -0.523116]
  * ```
+ *
+ * @category Random numbers
  */
 export function rlogis(n: number, options: { location?: number; scale?: number } = {}): number[] {
   const { location = 0, scale = 1 } = options;
@@ -139,6 +149,8 @@ export function rlogis(n: number, options: { location?: number; scale?: number }
  * setSeed(1);
  * rcauchy(2, { location: 0, scale: 1 }); // [1.10252, 2.353831]
  * ```
+ *
+ * @category Random numbers
  */
 export function rcauchy(n: number, options: { location?: number; scale?: number } = {}): number[] {
   const { location = 0, scale = 1 } = options;
@@ -162,6 +174,8 @@ export function rcauchy(n: number, options: { location?: number; scale?: number 
  * setSeed(1);
  * rweibull(2, 2, { scale: 1 }); // [1.151568, 0.9942477]
  * ```
+ *
+ * @category Random numbers
  */
 export function rweibull(n: number, shape: number, options: { scale?: number } = {}): number[] {
   const { scale = 1 } = options;

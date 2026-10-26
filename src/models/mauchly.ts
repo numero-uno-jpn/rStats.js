@@ -16,7 +16,11 @@ import { ddDet, ddTrace, type DDMatrix } from "./ddMatrix.js";
 import { compareCodePoints, type DataFrame } from "./modelFrame.js";
 import { modelMatrix } from "./modelMatrix.js";
 
-/** Options for {@link mauchlyTest}. */
+/**
+ * Options for {@link mauchlyTest}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface MauchlyTestOptions {
   /** Between-subjects group labels, parallel to the rows of `y` (the residuals are taken from the group means). */
   group?: readonly (string | number)[];
@@ -28,7 +32,11 @@ export interface MauchlyTestOptions {
   X?: string;
 }
 
-/** Result of {@link mauchlyTest}. */
+/**
+ * Result of {@link mauchlyTest}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface MauchlyTestResult {
   /** Mauchly's W. */
   statistic: number;
@@ -107,6 +115,8 @@ export function contrastCrossprod(S: DDMatrix, mcols: number[][], xcols: number[
  * r.statistic; // 0.64938
  * r.pValue;    // 0.5233
  * ```
+ *
+ * @category Linear models and ANOVA
  */
 export function mauchlyTest(y: MatrixInput, options: MauchlyTestOptions = {}): MauchlyTestResult {
   const rows = y.map((r) => Array.from(r));

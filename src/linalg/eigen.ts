@@ -17,7 +17,11 @@
 
 import { fromMat, newMat, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
 
-/** Options for {@link eigen}. */
+/**
+ * Options for {@link eigen}.
+ *
+ * @category Linear algebra
+ */
 export interface EigenOptions {
   /**
    * Treat the matrix as symmetric (only its lower triangle is then used). Default: detected automatically,
@@ -28,7 +32,11 @@ export interface EigenOptions {
   onlyValues?: boolean;
 }
 
-/** Result of {@link eigen}. */
+/**
+ * Result of {@link eigen}.
+ *
+ * @category Linear algebra
+ */
 export interface EigenResult {
   /**
    * The eigenvalues (their real parts if complex). Sorted in decreasing order for a symmetric matrix, and by
@@ -65,6 +73,8 @@ export interface EigenResult {
  *
  * eigen([[0, -1], [1, 0]]); // { values: [0, 0], valuesIm: [1, -1] }
  * ```
+ *
+ * @category Linear algebra
  */
 export function eigen(x: MatrixInput, options: EigenOptions = {}): EigenResult {
   const a = toMat(x);

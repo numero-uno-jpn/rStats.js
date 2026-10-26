@@ -9,7 +9,11 @@ import { vectorize, type Vectorizable, type VectorResult } from "../internal/vec
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { log1mExp, standardizeDD } from "../internal/ddexp.js";
 
-/** Shape and scale of the Pareto distribution. */
+/**
+ * Shape and scale of the Pareto distribution.
+ *
+ * @category Distributions
+ */
 export interface ParetoParams {
   /** Shape. Default `1`. */
   a?: number;
@@ -67,6 +71,8 @@ export function qpareto1(p: number, a: number, b: number, lowerTail: boolean, lo
  * dpareto(2);                    // 0.25
  * dpareto(3, { a: 2, b: 1.5 });  // 0.16666666666666666
  * ```
+ *
+ * @category Distributions
  */
 export function dpareto<T extends Vectorizable>(x: T, options: ParetoParams & DensityOptions = {}): VectorResult<T> {
   const { a = 1, b = 1, log = false } = options;
@@ -81,6 +87,8 @@ export function dpareto<T extends Vectorizable>(x: T, options: ParetoParams & De
  * ppareto(2);                    // 0.5
  * ppareto(3, { a: 2, b: 1.5 });  // 0.75
  * ```
+ *
+ * @category Distributions
  */
 export function ppareto<T extends Vectorizable>(q: T, options: ParetoParams & TailOptions = {}): VectorResult<T> {
   const { a = 1, b = 1, lowerTail = true, logP = false } = options;
@@ -95,6 +103,8 @@ export function ppareto<T extends Vectorizable>(q: T, options: ParetoParams & Ta
  * qpareto(0.5);                  // 2
  * qpareto(0.9, { a: 2, b: 1.5 }); // 4.74341649025257
  * ```
+ *
+ * @category Distributions
  */
 export function qpareto<T extends Vectorizable>(p: T, options: ParetoParams & TailOptions = {}): VectorResult<T> {
   const { a = 1, b = 1, lowerTail = true, logP = false } = options;

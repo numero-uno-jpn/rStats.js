@@ -13,10 +13,18 @@ import { compareCodePoints, type DataFrame } from "../models/modelFrame.js";
 /** A group label: a number, string or boolean; `null` (and `NaN`) is a missing label */
 type Label = number | string | boolean | null;
 
-/** A level of a grouping factor (a label that is not missing). */
+/**
+ * A level of a grouping factor (a label that is not missing).
+ *
+ * @category Data frames
+ */
 export type GroupingLevel = number | string | boolean;
 
-/** The group labels of the rows: one per row. */
+/**
+ * The group labels of the rows: one per row.
+ *
+ * @category Data frames
+ */
 export type GroupingLabels = readonly (number | string | boolean | null)[] | Float64Array;
 
 /** The values of a vector to group: an array of any cells, or a Float64Array. */
@@ -117,7 +125,11 @@ const factorNames = (count: number, what: string): string[] =>
 
 // ---- tapply ----
 
-/** Result of {@link tapply}. */
+/**
+ * Result of {@link tapply}.
+ *
+ * @category Data frames
+ */
 export interface TapplyResult<R> {
   /** The number of levels of each factor. */
   dim: number[];
@@ -141,6 +153,8 @@ export interface TapplyResult<R> {
  * ```ts
  * tapply([1, 2, 3, 4], ["b", "a", "b", "a"], (v) => v.length); // { dim: [2], dimnames: [["a", "b"]], values: [2, 2] }
  * ```
+ *
+ * @category Data frames
  */
 export function tapply<T, R>(x: readonly T[] | Float64Array, index: GroupingLabels | readonly GroupingLabels[], fun: (values: T[]) => R): TapplyResult<R> {
   const xs = Array.from(x as ArrayLike<T>);
@@ -158,7 +172,11 @@ export function tapply<T, R>(x: readonly T[] | Float64Array, index: GroupingLabe
 
 // ---- split ----
 
-/** Options for {@link split}. */
+/**
+ * Options for {@link split}.
+ *
+ * @category Data frames
+ */
 export interface SplitOptions {
   /** With several factors, leave out the combinations without a row. Default `false`. */
   drop?: boolean;
@@ -197,6 +215,8 @@ function rowCount(data: DataFrame): number {
  * ```ts
  * split([1, 2, 3], ["b", "a", "b"]); // Map { "a" => [2], "b" => [1, 3] }
  * ```
+ *
+ * @category Data frames
  */
 export function split(x: DataFrame, f: GroupingLabels | readonly GroupingLabels[], options?: SplitOptions): Map<string, DataFrame>;
 export function split(x: Float64Array, f: GroupingLabels | readonly GroupingLabels[], options?: SplitOptions): Map<string, number[]>;
@@ -224,7 +244,11 @@ export function split<T>(
 
 // ---- aggregate ----
 
-/** What the function of {@link aggregate} returns for a group: a number, an array of numbers, or named numbers. */
+/**
+ * What the function of {@link aggregate} returns for a group: a number, an array of numbers, or named numbers.
+ *
+ * @category Data frames
+ */
 export type AggregateValue = number | readonly number[] | Readonly<Record<string, number>>;
 
 /** A summarised column as numbers (null is NaN) */
@@ -334,6 +358,8 @@ function aggregateRows(
  * ```ts
  * aggregate("y ~ g", { y: [1, 2, 3, 4], g: ["b", "a", "b", "a"] }, mean); // { g: ["a", "b"], y: [3, 2] }
  * ```
+ *
+ * @category Data frames
  */
 export function aggregate(formula: string, data: DataFrame, fun: (values: number[]) => AggregateValue): DataFrame;
 export function aggregate(x: DataFrame, by: Readonly<Record<string, GroupingLabels>>, fun: (values: number[]) => AggregateValue): DataFrame;

@@ -84,6 +84,8 @@ export function qgeom1(p: number, prob: number, lowerTail: boolean, logP: boolea
  * dgeom(2, 0.3);         // 0.147
  * dgeom([0, 1, 2], 0.5); // [0.5, 0.25, 0.125]
  * ```
+ *
+ * @category Distributions
  */
 export function dgeom<T extends Vectorizable>(x: T, prob: number, options: DensityOptions = {}): VectorResult<T> {
   const log = options.log ?? false;
@@ -103,6 +105,8 @@ export function dgeom<T extends Vectorizable>(x: T, prob: number, options: Densi
  * pgeom(2, 0.3);                       // 0.657
  * pgeom(2, 0.3, { lowerTail: false }); // 0.343
  * ```
+ *
+ * @category Distributions
  */
 export function pgeom<T extends Vectorizable>(q: T, prob: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;
@@ -122,6 +126,8 @@ export function pgeom<T extends Vectorizable>(q: T, prob: number, options: TailO
  * qgeom(0.5, 0.3);          // 1
  * qgeom([0.1, 0.9], 0.3);   // [0, 6]
  * ```
+ *
+ * @category Distributions
  */
 export function qgeom<T extends Vectorizable>(p: T, prob: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;

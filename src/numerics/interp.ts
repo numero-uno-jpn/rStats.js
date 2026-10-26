@@ -22,6 +22,8 @@ import { findInterval } from "../descriptive/table.js";
 /**
  * How equal `x` values are merged before interpolating (R's `ties`): `"mean"`, `"min"` or `"max"` of their `y`, or a
  * function of their `y` values.
+ *
+ * @category Numerical methods
  */
 export type Ties = "mean" | "min" | "max" | ((v: number[]) => number);
 
@@ -64,7 +66,11 @@ function stepAt(Y: readonly number[], i: number, f: number): number {
   return term(1 - f, Y[i]!) + term(f, Y[i + 1]!);
 }
 
-/** Options for {@link approx}. */
+/**
+ * Options for {@link approx}.
+ *
+ * @category Numerical methods
+ */
 export interface ApproxOptions {
   /** Points to interpolate at. Default: `n` equally spaced points over the range of `x`. */
   xout?: Sample;
@@ -91,6 +97,8 @@ export interface ApproxOptions {
  * ```ts
  * approx([1, 2, 3], [10, 20, 40], { xout: [1.5, 2.5] }).y; // [15, 30]
  * ```
+ *
+ * @category Numerical methods
  */
 export function approx(
   x: Sample,
@@ -133,7 +141,11 @@ export function approx(
   return { x: xout, y: yout };
 }
 
-/** Cubic spline method. */
+/**
+ * Cubic spline method.
+ *
+ * @category Numerical methods
+ */
 export type SplineMethod = "fmm" | "natural" | "periodic" | "hyman";
 
 /** A piecewise cubic: on [x_i, x_{i+1}], y_i + b_i h + c_i h^2 + d_i h^3 with h = u - x_i. */
@@ -398,7 +410,11 @@ function evalCubic(sp: Cubic, xq: Sample, deriv0: number): number[] {
   });
 }
 
-/** Options for {@link spline}. */
+/**
+ * Options for {@link spline}.
+ *
+ * @category Numerical methods
+ */
 export interface SplineOptions {
   /** Number of equally spaced points from `xmin` to `xmax`. Default `3 * x.length`. */
   n?: number;
@@ -421,6 +437,8 @@ export interface SplineOptions {
  * ```ts
  * spline([1, 2, 3, 4], [1, 4, 9, 16], { xout: [2.5] }).y; // [6.25]
  * ```
+ *
+ * @category Numerical methods
  */
 export function spline(
   x: Sample,
@@ -446,7 +464,11 @@ export function spline(
   return { x: xout, y: evalCubic(sp, xout, 0) };
 }
 
-/** Options for {@link splinefun}. */
+/**
+ * Options for {@link splinefun}.
+ *
+ * @category Numerical methods
+ */
 export interface SplinefunOptions {
   /** `"fmm"` (default), `"natural"`, `"periodic"`, `"monoH.FC"` or `"hyman"`. */
   method?: SplineMethod | "monoH.FC";
@@ -465,6 +487,8 @@ export interface SplinefunOptions {
  * s([2.5]);    // [6.25]
  * s([2.5], 1); // [5]
  * ```
+ *
+ * @category Numerical methods
  */
 export function splinefun(x: Sample, y: Sample, options: SplinefunOptions = {}): (xq: Sample, deriv?: number) => number[] {
   const { method = "fmm", ties = "mean" } = options;
@@ -557,6 +581,8 @@ function evalHermite(x: readonly number[], y: readonly number[], m: readonly num
  * ```ts
  * splinefunH([0, 2], [0, 0], [1, 1])([1], 3); // [3] (R: 6)
  * ```
+ *
+ * @category Numerical methods
  */
 export function splinefunH(x: Sample, y: Sample, m: Sample): (xq: Sample, deriv?: number) => number[] {
   const n = x.length;
@@ -578,6 +604,8 @@ export function splinefunH(x: Sample, y: Sample, m: Sample): (xq: Sample, deriv?
  * ```ts
  * barylag([0, 1, 2], [1, 3, 7], [0.5, 1.5]); // [1.75, 4.75]
  * ```
+ *
+ * @category Numerical methods
  */
 export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
   const X = Array.from(xi);
@@ -619,6 +647,8 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
  * ```ts
  * hermiteInterp([0, 1], [0, 1], [0, 0], [0.25, 0.5]); // [0.15625, 0.5]
  * ```
+ *
+ * @category Numerical methods
  */
 export function hermiteInterp(xi: Sample, yi: Sample, di: Sample, x: Sample): number[] {
   const X = Array.from(xi);

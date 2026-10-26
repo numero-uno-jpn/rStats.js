@@ -10,7 +10,11 @@ import type { Sample } from "../htest/types.js";
 import { cbindFrames, rbindFrames } from "../descriptive/dataFrames.js";
 import type { DataFrame } from "../models/modelFrame.js";
 
-/** A vector (plain array) or a matrix (array of rows). */
+/**
+ * A vector (plain array) or a matrix (array of rows).
+ *
+ * @category Linear algebra
+ */
 export type Operand = number | Sample | readonly (readonly number[])[];
 
 type Matrix = number[][];
@@ -38,6 +42,8 @@ function checkRows(x: readonly (readonly number[])[]): number {
  * matMul([[1, 2], [3, 4]], [[5], [6]]); // [[17], [39]]
  * matMul([1, 2, 3], [4, 5, 6]);         // [[32]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function matMul(x: Operand, y: Operand): number[][] {
   let a: Matrix;
@@ -118,6 +124,8 @@ function elementwise(x: Operand, y: Operand, f: (a: number, b: number) => number
  * add([[1, 2], [3, 4]], [10, 20]); // [[11, 12], [23, 24]]
  * add([1, 2, 3], 2);             // [3, 4, 5]
  * ```
+ *
+ * @category Linear algebra
  */
 export function add(x: Operand, y: Operand): number[] | number[][] {
   return elementwise(x, y, (a, b) => a + b);
@@ -132,6 +140,8 @@ export function add(x: Operand, y: Operand): number[] | number[][] {
  * subtract([[1, 2], [3, 4]], [10, 20]); // [[-9, -8], [-17, -16]]
  * subtract([1, 2, 3], 2);             // [-1, 0, 1]
  * ```
+ *
+ * @category Linear algebra
  */
 export function subtract(x: Operand, y: Operand): number[] | number[][] {
   return elementwise(x, y, (a, b) => a - b);
@@ -146,6 +156,8 @@ export function subtract(x: Operand, y: Operand): number[] | number[][] {
  * multiply([[1, 2], [3, 4]], [10, 20]); // [[10, 20], [60, 80]]
  * multiply([1, 2, 3], 2);             // [2, 4, 6]
  * ```
+ *
+ * @category Linear algebra
  */
 export function multiply(x: Operand, y: Operand): number[] | number[][] {
   return elementwise(x, y, (a, b) => a * b);
@@ -160,6 +172,8 @@ export function multiply(x: Operand, y: Operand): number[] | number[][] {
  * divide([[1, 2], [3, 4]], [10, 20]); // [[0.1, 0.2], [0.15, 0.2]]
  * divide([1, 2, 3], 2);             // [0.5, 1, 1.5]
  * ```
+ *
+ * @category Linear algebra
  */
 export function divide(x: Operand, y: Operand): number[] | number[][] {
   return elementwise(x, y, (a, b) => a / b);
@@ -182,6 +196,8 @@ const OUTER_OPS: Record<string, (a: number, b: number) => number> = {
  * outer([1, 2], [1, 2, 3]);      // [[1, 2, 3], [2, 4, 6]]
  * outer([1, 2], [1, 2, 3], "+"); // [[2, 3, 4], [3, 4, 5]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function outer(x: Sample, y: Sample, fun: "*" | "+" | "-" | "/" | "^" | ((a: number, b: number) => number) = "*"): number[][] {
   const f = typeof fun === "function" ? fun : OUTER_OPS[fun];
@@ -199,6 +215,8 @@ export function outer(x: Sample, y: Sample, fun: "*" | "+" | "-" | "/" | "^" | (
  * t([[1, 2, 3], [4, 5, 6]]); // [[1, 4], [2, 5], [3, 6]]
  * t([1, 2]);                 // [[1, 2]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function t(x: Operand): number[][] {
   if (!isMatrix(x)) return [asVector(x)];
@@ -206,7 +224,11 @@ export function t(x: Operand): number[][] {
   return Array.from({ length: nc }, (_, j) => x.map((r) => r[j]!));
 }
 
-/** Options for {@link diag}. */
+/**
+ * Options for {@link diag}.
+ *
+ * @category Linear algebra
+ */
 export interface DiagOptions {
   /** Number of rows of the matrix built from a vector or a number (R's `nrow`). Default: the length of the vector. */
   nrow?: number;
@@ -225,6 +247,8 @@ export interface DiagOptions {
  * diag([2, 3]);           // [[2, 0], [0, 3]]
  * diag(3);                // [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function diag(x: Operand, options: DiagOptions = {}): number[] | number[][] {
   if (isMatrix(x)) {
@@ -286,6 +310,8 @@ function framesOf(args: readonly (Operand | DataFrame)[]): DataFrame[] | undefin
  * cbind([1, 2], [3, 4]);      // [[1, 3], [2, 4]]
  * cbind([[1, 2], [3, 4]], 0); // [[1, 2, 0], [3, 4, 0]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function cbind(...args: Operand[]): number[][];
 export function cbind(...frames: DataFrame[]): DataFrame;
@@ -304,6 +330,8 @@ export function cbind(...args: (Operand | DataFrame)[]): number[][] | DataFrame 
  * rbind([1, 2], [3, 4]);           // [[1, 2], [3, 4]]
  * rbind([[1, 2], [3, 4]], [5, 6]); // [[1, 2], [3, 4], [5, 6]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function rbind(...args: Operand[]): number[][];
 export function rbind(...frames: DataFrame[]): DataFrame;
@@ -312,7 +340,11 @@ export function rbind(...args: (Operand | DataFrame)[]): number[][] | DataFrame 
   return frames === undefined ? bindParts(args as Operand[], false) : rbindFrames(frames);
 }
 
-/** Options for {@link matrix}. */
+/**
+ * Options for {@link matrix}.
+ *
+ * @category Linear algebra
+ */
 export interface MatrixOptions {
   /**
    * Number of rows (R's `nrow`). Default: the length of the data divided by `ncol` (rounded up), or the length of
@@ -336,6 +368,8 @@ export interface MatrixOptions {
  * matrix([1, 2, 3, 4, 5, 6], { nrow: 2 }); // [[1, 3, 5], [2, 4, 6]]
  * matrix(0, { nrow: 2, ncol: 3 });         // [[0, 0, 0], [0, 0, 0]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function matrix(data: number | Sample, options: MatrixOptions = {}): number[][] {
   const v = asVector(data);
@@ -360,6 +394,8 @@ export function matrix(data: number | Sample, options: MatrixOptions = {}): numb
  * kronecker([[1, 2], [3, 4]], [[1, 1]]); // [[1, 1, 2, 2], [3, 3, 4, 4]]
  * kronecker([1, 2], [1, 10]);           // [1, 10, 2, 20]
  * ```
+ *
+ * @category Linear algebra
  */
 export function kronecker(x: Operand, y: Operand): number[] | number[][] {
   if (!isMatrix(x) && !isMatrix(y)) {
@@ -374,7 +410,11 @@ export function kronecker(x: Operand, y: Operand): number[] | number[][] {
   return out;
 }
 
-/** Options for {@link seq}. */
+/**
+ * Options for {@link seq}.
+ *
+ * @category Linear algebra
+ */
 export interface SeqOptions {
   /** Increment. */
   by?: number;
@@ -392,6 +432,8 @@ export interface SeqOptions {
  * seq(0, 1, { by: 0.25 });     // [0, 0.25, 0.5, 0.75, 1]
  * seq(0, 1, { lengthOut: 3 }); // [0, 0.5, 1]
  * ```
+ *
+ * @category Linear algebra
  */
 export function seq(from?: number, to?: number, options: SeqOptions = {}): number[] {
   const { by, lengthOut } = options;

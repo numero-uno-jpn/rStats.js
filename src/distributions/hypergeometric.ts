@@ -205,6 +205,8 @@ export function qhyper1(p: number, m: number, n: number, k: number, lowerTail: b
  * dhyper(2, 10, 7, 8);          // 0.012957630604689432
  * dhyper([0, 1], 10, 7, 8);     // [0, 0.00041135335252982303]
  * ```
+ *
+ * @category Distributions
  */
 export function dhyper<T extends Vectorizable>(
   x: T,
@@ -232,6 +234,8 @@ export function dhyper<T extends Vectorizable>(
  * phyper(2, 10, 7, 8);                       // 0.013368983957219256
  * phyper(5, 10, 7, 8, { lowerTail: false }); // 0.21781160016454126
  * ```
+ *
+ * @category Distributions
  */
 export function phyper<T extends Vectorizable>(
   q: T,
@@ -259,6 +263,8 @@ export function phyper<T extends Vectorizable>(
  * qhyper(0.5, 10, 7, 8);          // 5
  * qhyper([0.05, 0.95], 10, 7, 8); // [3, 6]
  * ```
+ *
+ * @category Distributions
  */
 export function qhyper<T extends Vectorizable>(
   p: T,

@@ -12,7 +12,11 @@ import { ddAdd, ddDiv, ddLog, ddMul, ddSub, twoSum, type DD } from "../special/d
 import { erfcxNonNegative } from "../special/erf.js";
 import { pnorm, qnorm } from "./normal.js";
 
-/** Parameters of the log-normal distribution (mean and standard deviation on the log scale). */
+/**
+ * Parameters of the log-normal distribution (mean and standard deviation on the log scale).
+ *
+ * @category Distributions
+ */
 export interface LognormalParams {
   /** Mean of the distribution on the log scale. Default `0`. */
   meanlog?: number;
@@ -139,6 +143,8 @@ export function qlnorm1(p: number, meanlog: number, sdlog: number, lowerTail: bo
  * dlnorm(1);                             // 0.3989422804014327
  * dlnorm(2, { meanlog: 0.5, sdlog: 0.8 }); // 0.24217677488483338
  * ```
+ *
+ * @category Distributions
  */
 export function dlnorm<T extends Vectorizable>(x: T, options: LognormalParams & DensityOptions = {}): VectorResult<T> {
   const { meanlog = 0, sdlog = 1, log = false } = options;
@@ -157,6 +163,8 @@ export function dlnorm<T extends Vectorizable>(x: T, options: LognormalParams & 
  * plnorm(2);                             // 0.7558914042144173
  * plnorm(2, { meanlog: 0.5, sdlog: 0.8 }); // 0.595390608679215
  * ```
+ *
+ * @category Distributions
  */
 export function plnorm<T extends Vectorizable>(q: T, options: LognormalParams & TailOptions = {}): VectorResult<T> {
   const { meanlog = 0, sdlog = 1, lowerTail = true, logP = false } = options;
@@ -175,6 +183,8 @@ export function plnorm<T extends Vectorizable>(q: T, options: LognormalParams & 
  * qlnorm(0.5, { meanlog: 1 });  // 2.718281828459045
  * qlnorm([0.05, 0.95]);         // [0.19304081669873657, 5.180251602233015]
  * ```
+ *
+ * @category Distributions
  */
 export function qlnorm<T extends Vectorizable>(p: T, options: LognormalParams & TailOptions = {}): VectorResult<T> {
   const { meanlog = 0, sdlog = 1, lowerTail = true, logP = false } = options;

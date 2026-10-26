@@ -129,6 +129,8 @@ function margins(v: readonly number[], name: string): number[] {
  * setSeed(1);
  * r2dtable(1, [3, 2], [2, 3]); // [[[1, 2], [1, 1]]]  (R: set.seed(1); r2dtable(1, c(3, 2), c(2, 3)))
  * ```
+ *
+ * @category Random numbers
  */
 export function r2dtable(n: number, r: readonly number[], c: readonly number[]): number[][][] {
   const count = Math.trunc(n);

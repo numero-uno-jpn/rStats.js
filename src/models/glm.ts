@@ -29,7 +29,11 @@ export type { GlmFamilyName, GlmFamilySpec, GlmLink, GlmLinkName, QuasiVariance 
 
 const EPS = 2 ** -52;
 
-/** Options for {@link glm}. */
+/**
+ * Options for {@link glm}.
+ *
+ * @category Generalized linear models
+ */
 export interface GlmOptions {
   /**
    * The family: a name (`"gaussian"`, the default, `"binomial"`, `"quasibinomial"`, `"poisson"`, `"quasipoisson"`,
@@ -53,7 +57,11 @@ export interface GlmOptions {
   intercept?: boolean;
 }
 
-/** The data and settings of a fit, kept for the refits of {@link glmConfint} and {@link glmAnova}. */
+/**
+ * The data and settings of a fit, kept for the refits of {@link glmConfint} and {@link glmAnova}.
+ *
+ * @category Generalized linear models
+ */
 export interface GlmModel {
   /** Model matrix (with the column of ones), rows with a missing value dropped. */
   x: number[][];
@@ -79,7 +87,11 @@ export interface GlmModel {
   start: number[] | undefined;
 }
 
-/** Result of {@link glm}: R's `glm` object. */
+/**
+ * Result of {@link glm}: R's `glm` object.
+ *
+ * @category Generalized linear models
+ */
 export interface GlmResult {
   /** Coefficients (intercept first); NaN for aliased columns. */
   coefficients: number[];
@@ -412,6 +424,8 @@ export function refit(
  * fit.coefficients; // [-4.2491, 1.214]
  * glmSummary(fit).pValue; // [0.20976, 0.18341]
  * ```
+ *
+ * @category Generalized linear models
  */
 export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: GlmOptions = {}): GlmResult {
   const intercept = options.intercept ?? true;
@@ -528,13 +542,21 @@ export function glmDispersion(fit: GlmResult, warnings?: Warnings): number {
   return s / fit.dfResidual;
 }
 
-/** Options for {@link glmSummary}. */
+/**
+ * Options for {@link glmSummary}.
+ *
+ * @category Generalized linear models
+ */
 export interface GlmSummaryOptions {
   /** Dispersion to use instead of the estimate (or 1 for binomial and poisson). */
   dispersion?: number;
 }
 
-/** Result of {@link glmSummary}: the quantities of R's `summary(glm)`. */
+/**
+ * Result of {@link glmSummary}: the quantities of R's `summary(glm)`.
+ *
+ * @category Generalized linear models
+ */
 export interface GlmSummary {
   /** The dispersion used (estimated, given, or 1 for binomial and poisson). */
   dispersion: number;
@@ -577,6 +599,8 @@ function unscaledCovariance(fit: GlmResult): number[][] {
  * s.stdError; // [3.3878, 0.91258]
  * s.statisticName; // "z value"
  * ```
+ *
+ * @category Generalized linear models
  */
 export function glmSummary(fit: GlmResult, options: GlmSummaryOptions = {}): GlmSummary {
   const warnings = new Warnings();
@@ -610,7 +634,11 @@ export function glmSummary(fit: GlmResult, options: GlmSummaryOptions = {}): Glm
   };
 }
 
-/** Kinds of residuals of {@link glmResiduals}. */
+/**
+ * Kinds of residuals of {@link glmResiduals}.
+ *
+ * @category Generalized linear models
+ */
 export type GlmResidualType = "deviance" | "pearson" | "working" | "response";
 
 /**
@@ -623,6 +651,8 @@ export type GlmResidualType = "deviance" | "pearson" | "working" | "response";
  * glmResiduals(fit); // [-0.30644, -0.54776, 1.4436, -1.4436, 0.54776, 0.30644]
  * glmResiduals(fit, "pearson"); // [-0.21925, -0.40231, 1.3546, -1.3546, 0.40231, 0.21925]
  * ```
+ *
+ * @category Generalized linear models
  */
 export function glmResiduals(fit: GlmResult, type: GlmResidualType = "deviance"): number[] {
   const fam = familyOf(fit);
@@ -651,6 +681,8 @@ export function glmResiduals(fit: GlmResult, type: GlmResidualType = "deviance")
  * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
  * glmHatvalues(fit); // [0.28361, 0.37762, 0.33877, 0.33877, 0.37762, 0.28361]
  * ```
+ *
+ * @category Generalized linear models
  */
 export function glmHatvalues(fit: GlmResult): number[] {
   const out: number[] = [];
@@ -687,6 +719,8 @@ function median(v: number[]): number {
  * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
  * glmRstandard(fit); // [-0.36205, -0.69432, 1.7753, -1.7753, 0.69432, 0.36205]
  * ```
+ *
+ * @category Generalized linear models
  */
 export function glmRstandard(fit: GlmResult, options: GlmSummaryOptions = {}): number[] {
   const h = glmHatvalues(fit);
@@ -707,6 +741,8 @@ export function glmRstandard(fit: GlmResult, options: GlmSummaryOptions = {}): n
  * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
  * glmCooksDistance(fit); // [0.013283, 0.078894, 0.71087, 0.71087, 0.078894, 0.013283]
  * ```
+ *
+ * @category Generalized linear models
  */
 export function glmCooksDistance(fit: GlmResult, options: GlmSummaryOptions = {}): number[] {
   const h = glmHatvalues(fit);
@@ -718,7 +754,11 @@ export function glmCooksDistance(fit: GlmResult, options: GlmSummaryOptions = {}
   });
 }
 
-/** Options for {@link glmPredict}. */
+/**
+ * Options for {@link glmPredict}.
+ *
+ * @category Generalized linear models
+ */
 export interface GlmPredictOptions {
   /** New predictor values, with the columns of `x` (no column of ones). Default: the data of the fit. */
   newdata?: MatrixInput | Sample;
@@ -740,6 +780,8 @@ export interface GlmPredictOptions {
  * glmPredict(fit, { newdata: [7] }); // { fit: [4.2491], seFit: [3.3878] }
  * glmPredict(fit, { newdata: [7], type: "response" }).fit; // [0.98592]
  * ```
+ *
+ * @category Generalized linear models
  */
 export function glmPredict(
   fit: GlmResult,

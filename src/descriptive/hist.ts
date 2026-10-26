@@ -14,7 +14,11 @@ import { IQR, quantile } from "./quantile.js";
 import { seqLength } from "../internal/seq.js";
 import type { Sample } from "../htest/types.js";
 
-/** Options for {@link pretty}. */
+/**
+ * Options for {@link pretty}.
+ *
+ * @category Descriptive statistics
+ */
 export interface PrettyOptions {
   /** Desired number of intervals. Default `5`. */
   n?: number;
@@ -36,6 +40,8 @@ export interface PrettyOptions {
  * ```ts
  * pretty([0.3, 9.6]); // [0, 2, 4, 6, 8, 10]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function pretty(x: Sample, options: PrettyOptions = {}): number[] {
   const finite = Array.from(x).filter(Number.isFinite);
@@ -135,7 +141,11 @@ export function pretty(x: Sample, options: PrettyOptions = {}): number[] {
   return out.map((v) => (Math.abs(v) < 1e-14 * delta ? 0 : v));
 }
 
-/** Options for {@link hist}. */
+/**
+ * Options for {@link hist}.
+ *
+ * @category Descriptive statistics
+ */
 export interface HistOptions {
   /**
    * Break points, a number of cells (a suggestion for pretty), or a rule: `"Sturges"` (default), `"Scott"` or
@@ -148,7 +158,11 @@ export interface HistOptions {
   includeLowest?: boolean;
 }
 
-/** Result of {@link hist}. */
+/**
+ * Result of {@link hist}.
+ *
+ * @category Descriptive statistics
+ */
 export interface HistResult {
   /** The cell boundaries, one more than the cells. */
   breaks: number[];
@@ -212,6 +226,8 @@ function fuzzScale(br: readonly number[], dataRange: number): number {
  * ```ts
  * hist([1, 2, 2, 3, 3, 3, 4]).counts; // [3, 3, 1] (for breaks [1, 2, 3, 4])
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function hist(x: Sample, options: HistOptions = {}): HistResult {
   const xs = Array.from(x).filter(Number.isFinite);
@@ -298,6 +314,8 @@ function cellOf(v: number, f: readonly number[], right: boolean, includeLowest: 
  * ```ts
  * ecdf([3, 1, 2])(2); // 0.6666666666666666
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function ecdf(x: Sample): (q: number) => number {
   const s = Array.from(x)

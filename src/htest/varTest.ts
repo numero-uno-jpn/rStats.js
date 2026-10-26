@@ -13,7 +13,11 @@ import type { DataFrame } from "../models/modelFrame.js";
 import { kSampleData, samplesByLevel, twoGroupData } from "./testFormula.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
-/** Options for {@link varTest}. */
+/**
+ * Options for {@link varTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface VarTestOptions {
   /** Hypothesized ratio of the variances of `x` and `y`. Default `1`. */
   ratio?: number;
@@ -23,7 +27,11 @@ export interface VarTestOptions {
   confLevel?: number;
 }
 
-/** Result of {@link varTest}. The F distribution has two degrees of freedom, so `parameter` is a pair. */
+/**
+ * Result of {@link varTest}. The F distribution has two degrees of freedom, so `parameter` is a pair.
+ *
+ * @category Hypothesis tests
+ */
 export interface VarTestResult extends Omit<HTest, "parameter" | "parameterName"> {
   /** `[num df, denom df]`. */
   parameter: [number, number];
@@ -46,6 +54,8 @@ export interface VarTestResult extends Omit<HTest, "parameter" | "parameterName"
  * ```
  *
  * There is also a formula form, `varTest("y ~ g", data, options)` (next overload).
+ *
+ * @category Hypothesis tests
  */
 export function varTest(x: Sample, y: Sample, options?: VarTestOptions): VarTestResult;
 /**
@@ -108,7 +118,11 @@ export function varTest(x: Sample | string, y: Sample | DataFrame, options: VarT
   };
 }
 
-/** Result of {@link bartlettTest}. Has no `alternative`, as R's `bartlett.test()` returns none. */
+/**
+ * Result of {@link bartlettTest}. Has no `alternative`, as R's `bartlett.test()` returns none.
+ *
+ * @category Hypothesis tests
+ */
 export interface BartlettTestResult extends Omit<HTest, "alternative"> {
   /** Degrees of freedom (`parameterName` is `"df"`). */
   parameter: number;
@@ -126,6 +140,8 @@ export interface BartlettTestResult extends Omit<HTest, "alternative"> {
  * ```
  *
  * There is also a formula form, `bartlettTest("y ~ g", data)` (next overload).
+ *
+ * @category Hypothesis tests
  */
 export function bartlettTest(groups: readonly Sample[]): BartlettTestResult;
 /**

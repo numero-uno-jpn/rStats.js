@@ -14,13 +14,21 @@ import { toGroups, type GroupLabel } from "./groups.js";
 import { onewayData } from "./testFormula.js";
 import type { HTest, Sample } from "./types.js";
 
-/** Options for {@link onewayTest}. */
+/**
+ * Options for {@link onewayTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface OnewayTestOptions {
   /** Assume equal variances (the classical F test). Default `false` (Welch's test). */
   varEqual?: boolean;
 }
 
-/** Result of {@link onewayTest}: an F statistic with two degrees of freedom. */
+/**
+ * Result of {@link onewayTest}: an F statistic with two degrees of freedom.
+ *
+ * @category Hypothesis tests
+ */
 export interface OnewayTestResult extends Omit<HTest, "alternative" | "parameter" | "parameterName"> {
   /** `[num df, denom df]`. */
   parameter: [number, number];
@@ -44,6 +52,8 @@ export interface OnewayTestResult extends Omit<HTest, "alternative" | "parameter
  * r.parameter; // [2, 5.518701575163452]
  * r.pValue;    // 0.693185476837351
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function onewayTest(
   x: Sample | readonly Sample[],
@@ -131,6 +141,8 @@ export function onewayTest(
  * r.statistic; // 0.9586525103840963
  * r.pValue;    // 0.7704047318146288
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function shapiroTest(x: Sample): Omit<HTest, "alternative"> {
   const xs = Array.from(x)

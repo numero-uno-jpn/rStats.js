@@ -108,6 +108,8 @@ export function rbeta1(aa: number, bb: number): number {
  * setSeed(1);
  * rbeta(2, 2, 3); // [0.2550998, 0.4468707]
  * ```
+ *
+ * @category Random numbers
  */
 export function rbeta(n: number, shape1: number, shape2: number, options: { ncp?: number } = {}): number[] {
   const { ncp } = options;

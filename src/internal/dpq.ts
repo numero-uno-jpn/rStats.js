@@ -3,6 +3,8 @@
 /**
  * Options shared by the distribution (`p*`) and quantile (`q*`) functions.
  * Correspond to R's `lower.tail` and `log.p` arguments.
+ *
+ * @category Distributions
  */
 export interface TailOptions {
   /** If `true`, probabilities are P[X <= x]; if `false`, P[X > x]. Default `true`. */
@@ -14,6 +16,8 @@ export interface TailOptions {
 /**
  * Options shared by the density / probability mass (`d*`) functions.
  * Corresponds to R's `log` argument.
+ *
+ * @category Distributions
  */
 export interface DensityOptions {
   /** If `true`, return the log of the density (or probability). Default `false`. */

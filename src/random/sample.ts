@@ -9,7 +9,11 @@
 
 import { isRounding, unifIndex, unifRand } from "./rng.js";
 
-/** Options for {@link sample} and {@link sampleInt}. */
+/**
+ * Options for {@link sample} and {@link sampleInt}.
+ *
+ * @category Random numbers
+ */
 export interface SampleOptions {
   /** Number of items to draw. Default: the number of candidates (a random permutation). */
   size?: number;
@@ -34,6 +38,8 @@ export interface SampleOptions {
  * setSeed(42);
  * sampleInt(10, { size: 3 }); // [0, 4, 9]  (R: set.seed(42); sample.int(10, 3) - 1)
  * ```
+ *
+ * @category Random numbers
  */
 export function sampleInt(n: number, options: SampleOptions = {}): number[] {
   return sampleInt1(n, options).map((v) => v - 1);
@@ -109,6 +115,8 @@ function sampleInt1(n: number, options: SampleOptions): number[] {
  * sample(["a", "b", "c", "d", "e"]); // ["a", "e", "d", "c", "b"]
  * sample([1, 2, 3], { size: 5, replace: true, prob: [0.5, 0.3, 0.2] });
  * ```
+ *
+ * @category Random numbers
  */
 export function sample<T>(x: readonly T[], options: SampleOptions = {}): T[] {
   return sampleInt1(x.length, options).map((i) => x[i - 1]!);

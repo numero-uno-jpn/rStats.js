@@ -12,7 +12,11 @@ import { meanDD, mean as meanOf, variance } from "../internal/summary.js";
 import { median } from "./basic.js";
 import type { Sample } from "../htest/types.js";
 
-/** Options for {@link skewness} and {@link kurtosis}. */
+/**
+ * Options for {@link skewness} and {@link kurtosis}.
+ *
+ * @category Descriptive statistics
+ */
 export interface MomentOptions {
   /** e1071's type: 1, 2 or 3. Default `3`. */
   type?: 1 | 2 | 3;
@@ -47,6 +51,8 @@ function checkType(type: number): void {
  * skewness([1, 2, 3, 10]);              // 0.6614
  * skewness([1, 2, 3, 10], { type: 2 }); // 1.7636
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function skewness(x: Sample, options: MomentOptions = {}): number {
   const type = options.type ?? 3;
@@ -72,6 +78,8 @@ export function skewness(x: Sample, options: MomentOptions = {}): number {
  * kurtosis([1, 2, 3, 10]);              // -1.7454
  * kurtosis([1, 2, 3, 10], { type: 1 }); // -0.7696
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function kurtosis(x: Sample, options: MomentOptions = {}): number {
   const type = options.type ?? 3;
@@ -96,6 +104,8 @@ export function kurtosis(x: Sample, options: MomentOptions = {}): number {
  * ```ts
  * geometricMean([1, 2, 4, 8]); // 2.82842712474619
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function geometricMean(x: Sample, options: NaRmOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -114,6 +124,8 @@ export function geometricMean(x: Sample, options: NaRmOptions = {}): number {
  * ```ts
  * modes([1, 2, 2, 3, 3, 4]); // { value: [2, 3], frequency: 2 }
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function modes(x: Sample): {
   /** The most frequent values, in increasing order (`[NaN]` when every value occurs once). */
@@ -131,7 +143,11 @@ export function modes(x: Sample): {
   return { value: value.sort((a, b) => a - b), frequency: best };
 }
 
-/** Options for {@link meanAD}. */
+/**
+ * Options for {@link meanAD}.
+ *
+ * @category Descriptive statistics
+ */
 export interface MeanADOptions {
   /** Centre: the mean (default) or `"median"`, or a number. */
   center?: "mean" | "median" | number;
@@ -145,6 +161,8 @@ export interface MeanADOptions {
  * meanAD([1, 2, 3, 10]);                       // 3
  * meanAD([1, 2, 3, 10], { center: "median" }); // 2.5
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function meanAD(x: Sample, options: MeanADOptions = {}): number {
   const xs = values(x, true)!;
@@ -153,7 +171,11 @@ export function meanAD(x: Sample, options: MeanADOptions = {}): number {
   return meanOf(xs.map((v) => Math.abs(v - center)));
 }
 
-/** Options for {@link cv}. */
+/**
+ * Options for {@link cv}.
+ *
+ * @category Descriptive statistics
+ */
 export interface CvOptions extends NaRmOptions {
   /** Small-sample correction. Default `false`. */
   unbiased?: boolean;
@@ -166,6 +188,8 @@ export interface CvOptions extends NaRmOptions {
  * ```ts
  * cv([2, 4, 4, 4, 5, 5, 7, 9]); // 0.4276
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function cv(x: Sample, options: CvOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -176,7 +200,11 @@ export function cv(x: Sample, options: CvOptions = {}): number {
   return res;
 }
 
-/** Options for {@link scale}. */
+/**
+ * Options for {@link scale}.
+ *
+ * @category Descriptive statistics
+ */
 export interface ScaleOptions {
   /** Subtract the column means (`true`, default), nothing (`false`) or the given values. */
   center?: boolean | readonly number[];
@@ -195,6 +223,8 @@ export interface ScaleOptions {
  * ```ts
  * scale([1, 2, 3]); // { scaled: [[-1], [0], [1]], center: [2], scale: [1] }
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function scale(
   x: Sample | readonly (readonly number[])[],

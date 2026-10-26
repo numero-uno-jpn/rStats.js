@@ -9,7 +9,11 @@ import { pf1 } from "../distributions/f.js";
 import type { AovStrataFit, AovStratum } from "./aovStrata.js";
 import type { LmFormulaResult } from "./lm.js";
 
-/** An analysis of variance table, in the form of R's printed table. */
+/**
+ * An analysis of variance table, in the form of R's printed table.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface AnovaTable {
   /** R's column names, such as `"Df"`, `"Sum Sq"`, `"Mean Sq"`, `"F value"`, `"Pr(>F)"`. */
   colNames: string[];
@@ -114,6 +118,8 @@ function comparisonTable(fits: readonly LmFormulaResult[]): AnovaTable {
  * const t = anova(lm("y ~ g", data));
  * t.rowNames; // ["g", "Residuals"]
  * ```
+ *
+ * @category Linear models and ANOVA
  */
 export function anova(fit: LmFormulaResult, ...fits: LmFormulaResult[]): AnovaTable {
   const all = [fit, ...fits];
@@ -135,7 +141,11 @@ export function anova(fit: LmFormulaResult, ...fits: LmFormulaResult[]): AnovaTa
   return tab;
 }
 
-/** Result of {@link aovSummary} for a fit with error strata. */
+/**
+ * Result of {@link aovSummary} for a fit with error strata.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface AovStrataSummary {
   /** The table of each stratum, in order, without the intercept stratum. */
   strata: AovStratum[];
@@ -159,6 +169,8 @@ export interface AovStrataSummary {
  * t.colNames; // ["Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)"]
  * t.table[0]; // [2, 12.413, 6.2067, 28.427, 0.011221]
  * ```
+ *
+ * @category Linear models and ANOVA
  */
 export function aovSummary(fit: AovStrataFit): AovStrataSummary;
 export function aovSummary(fit: LmFormulaResult): AnovaTable;

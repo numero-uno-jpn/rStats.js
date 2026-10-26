@@ -12,10 +12,18 @@ import { pnorm, qnorm } from "../distributions/normal.js";
 import { covariance, dropNaN, mean, variance } from "../internal/summary.js";
 import type { HTest, Sample } from "./types.js";
 
-/** Result of a normality test: no `alternative`, as nortest returns none. */
+/**
+ * Result of a normality test: no `alternative`, as nortest returns none.
+ *
+ * @category Hypothesis tests
+ */
 export type NormalityTestResult = Omit<HTest, "alternative">;
 
-/** Result of {@link cvmTest}, with nortest's warning for a p-value below the approximation's range. */
+/**
+ * Result of {@link cvmTest}, with nortest's warning for a p-value below the approximation's range.
+ *
+ * @category Hypothesis tests
+ */
 export interface CvmTestResult extends NormalityTestResult {
   /** Warnings, as nortest gives them (empty when there are none). */
   warnings: string[];
@@ -41,6 +49,8 @@ function standardized(xs: readonly number[]): number[] {
  * ```ts
  * adTest([2.1, 3.4, 1.9, 5.6, 4.4, 3.8, 2.9, 4.1, 3.3, 2.6]).statistic; // 0.15414195923525043
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function adTest(x: Sample): NormalityTestResult {
   const xs = sorted(x);
@@ -71,6 +81,8 @@ export function adTest(x: Sample): NormalityTestResult {
  * const x = [2.1, 3.4, 1.9, 5.6, 4.4, 3.3, 2.8, 4.1, 3.9, 6.2];
  * cvmTest(x).pValue; // 0.8725514730213816
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function cvmTest(x: Sample): CvmTestResult {
   const xs = sorted(x);
@@ -104,6 +116,8 @@ export function cvmTest(x: Sample): CvmTestResult {
  * const x = [2.1, 3.4, 1.9, 5.6, 4.4, 3.3, 2.8, 4.1, 3.9, 6.2];
  * lillieTest(x).pValue; // 0.9287268902599117
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function lillieTest(x: Sample): NormalityTestResult {
   const xs = sorted(x);
@@ -142,6 +156,8 @@ export function lillieTest(x: Sample): NormalityTestResult {
  * const x = [2.1, 3.4, 1.9, 5.6, 4.4, 3.3, 2.8, 4.1, 3.9, 6.2];
  * sfTest(x).pValue; // 0.8583583366365347
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function sfTest(x: Sample): NormalityTestResult {
   const xs = sorted(x);
@@ -157,7 +173,11 @@ export function sfTest(x: Sample): NormalityTestResult {
   return { method: "Shapiro-Francia normality test", statistic: w, statisticName: "W", pValue };
 }
 
-/** Options for {@link pearsonTest}. */
+/**
+ * Options for {@link pearsonTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface PearsonTestOptions {
   /** Number of classes. Default `ceil(2 n^(2/5))`. */
   nClasses?: number;
@@ -174,6 +194,8 @@ export interface PearsonTestOptions {
  * const x = [2.1, 3.4, 1.9, 5.6, 4.4, 3.3, 2.8, 4.1, 3.9, 6.2];
  * pearsonTest(x).pValue; // 0.8494670333918255
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function pearsonTest(x: Sample, options: PearsonTestOptions = {}): NormalityTestResult {
   const xs = sorted(x);

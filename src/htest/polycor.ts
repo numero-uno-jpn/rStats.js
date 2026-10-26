@@ -22,7 +22,11 @@ import { optimize } from "../numerics/integrate.js";
 import { solve } from "../linalg/solve.js";
 import { formatR } from "./core/simulate.js";
 
-/** Result of {@link polychor} and {@link polyserial}. */
+/**
+ * Result of {@link polychor} and {@link polyserial}.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface PolycorResult {
   /** The correlation (`NaN` where polycor returns NA). */
   rho: number;
@@ -30,7 +34,11 @@ export interface PolycorResult {
   warnings: string[];
 }
 
-/** Options of {@link polychor} and {@link polyserial}. */
+/**
+ * Options of {@link polychor} and {@link polyserial}.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface PolycorOptions {
   /**
    * Estimate the correlation and the thresholds together by maximum likelihood (polycor's `ML = TRUE`), instead of
@@ -45,7 +53,11 @@ export interface PolycorOptions {
   stdErr?: boolean;
 }
 
-/** Result of {@link polychor} with `stdErr`. */
+/**
+ * Result of {@link polychor} with `stdErr`.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface PolychorStdErrResult extends PolycorResult {
   /**
    * Variances and covariances of the estimates (the inverse of the negative Hessian of the log-likelihood at the
@@ -64,7 +76,11 @@ export interface PolychorStdErrResult extends PolycorResult {
   colCuts: number[];
 }
 
-/** Result of {@link polyserial} with `stdErr`. */
+/**
+ * Result of {@link polyserial} with `stdErr`.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface PolyserialStdErrResult extends PolycorResult {
   /** Variances and covariances of the estimates, in the order rho, the thresholds; 1 × 1 (rho alone) without `ML`. */
   var: number[][];
@@ -404,6 +420,8 @@ const inadmissibleWarning = (rho: number): string => `inadmissible correlation s
  * polychor([[20, 8, 1], [5, 30, 9], [2, 6, 25]]).rho; // 0.785882312445335
  * polychor([[20, 8, 1], [5, 30, 9], [2, 6, 25]], { ML: true }).rho; // 0.7911463316235798
  * ```
+ *
+ * @category Agreement, reliability and factor analysis
  */
 export function polychor(table: readonly (readonly number[])[], options: PolycorOptions & { stdErr: true }): PolychorStdErrResult;
 export function polychor(table: readonly (readonly number[])[], options?: PolycorOptions): PolycorResult;
@@ -562,6 +580,8 @@ function polyserialChisq(codes: readonly number[], z: readonly number[], cuts: r
  * ```ts
  * polyserial([0.2, -1.1, 0.8, 1.5, -0.3, 0.1, -0.9, 2.0], [1, 1, 2, 3, 2, 2, 1, 2]).rho; // 0.8085111526489707
  * ```
+ *
+ * @category Agreement, reliability and factor analysis
  */
 export function polyserial(x: readonly number[], y: readonly number[], options: PolycorOptions & { stdErr: true }): PolyserialStdErrResult;
 export function polyserial(x: readonly number[], y: readonly number[], options?: PolycorOptions): PolycorResult;

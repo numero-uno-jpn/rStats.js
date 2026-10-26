@@ -15,7 +15,11 @@ import { ddLeastSquares, ddSqrtWeights } from "./ddLeastSquares.js";
 import type { AnovaTable } from "./anovaSequential.js";
 import type { LmFormulaResult } from "./lm.js";
 
-/** Options for {@link Anova}. */
+/**
+ * Options for {@link Anova}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface AnovaOptions {
   /** The type of the tests: 2 (default, as car) or 3; `"II"` and `"III"` are accepted too. */
   type?: 2 | 3 | "II" | "III";
@@ -71,6 +75,8 @@ function addedSS(fit: LmFormulaResult, base: number[], added: number[]): { ss: n
  * const t = Anova(lm("y ~ A * B", data, { contrasts: { A: "contr.sum", B: "contr.sum" } }), { type: 3 });
  * t.rowNames; // ["(Intercept)", "A", "B", "A:B", "Residuals"]
  * ```
+ *
+ * @category Linear models and ANOVA
  */
 export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTable {
   if (typeof fit !== "object" || fit === null || !Array.isArray((fit as Partial<LmFormulaResult>).effects)) {

@@ -9,10 +9,18 @@ import { parseFormula, termsOf, type FormulaNode, type ParsedFormula, type Terms
 import { modelFrame, type DataFrame, type FrameVariable, type ModelFrame } from "./modelFrame.js";
 import type { Sample } from "../htest/types.js";
 
-/** A contrast of a factor: R's `contr.treatment`, `contr.sum` or `contr.helmert`. */
+/**
+ * A contrast of a factor: R's `contr.treatment`, `contr.sum` or `contr.helmert`.
+ *
+ * @category Linear models and ANOVA
+ */
 export type ContrastName = "contr.treatment" | "contr.sum" | "contr.helmert";
 
-/** Options for {@link modelMatrix}. */
+/**
+ * Options for {@link modelMatrix}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface ModelMatrixOptions {
   /** A contrast per factor (default `"contr.treatment"`). */
   contrasts?: Record<string, ContrastName>;
@@ -20,7 +28,11 @@ export interface ModelMatrixOptions {
   levels?: Record<string, readonly string[]>;
 }
 
-/** Result of {@link modelMatrix}. */
+/**
+ * Result of {@link modelMatrix}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface ModelMatrixResult {
   /** Column names, such as `"(Intercept)"`, `"Ab"`, `"Ab:Bq"`, `"x"`. */
   colNames: string[];
@@ -201,6 +213,8 @@ export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOp
  * m.colNames; // ["(Intercept)", "Ab"]
  * m.x;        // [[1, 0], [1, 1], [1, 0], [1, 1]]
  * ```
+ *
+ * @category Linear models and ANOVA
  */
 export function modelMatrix(formula: string, data: DataFrame, options: ModelMatrixOptions = {}): ModelMatrixResult {
   const d = design(parseFormula(formula), data, options);

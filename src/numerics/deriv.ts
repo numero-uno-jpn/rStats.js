@@ -8,7 +8,11 @@
 // diagonal terms, each extrapolated the same way (with d = 0.1). "simple" is the forward difference with step eps.
 // numDeriv's "complex" (complex-step) method needs a function of a complex argument and is not offered.
 
-/** Options for {@link grad}, {@link jacobian} and {@link hessian}. */
+/**
+ * Options for {@link grad}, {@link jacobian} and {@link hessian}.
+ *
+ * @category Numerical methods
+ */
 export interface DerivOptions {
   /** `"Richardson"` (default) or `"simple"` (forward difference; not for `hessian`). */
   method?: "Richardson" | "simple";
@@ -66,6 +70,8 @@ function method(options: DerivOptions): "Richardson" | "simple" {
  * ```ts
  * grad((x) => x[0]! ** 2 + Math.sin(x[1]!), [1, 0]); // [2, 1]
  * ```
+ *
+ * @category Numerical methods
  */
 export function grad(func: (x: number[]) => number, x: readonly number[], options: DerivOptions = {}): number[] {
   const xs = [...x];
@@ -100,6 +106,8 @@ export function grad(func: (x: number[]) => number, x: readonly number[], option
  * ```ts
  * jacobian((x) => [x[0]! * x[1]!, x[0]! + 2 * x[1]!], [2, 3]); // [[3, 2], [1, 2]]
  * ```
+ *
+ * @category Numerical methods
  */
 export function jacobian(func: (x: number[]) => readonly number[], x: readonly number[], options: DerivOptions = {}): number[][] {
   const xs = [...x];
@@ -137,6 +145,8 @@ export function jacobian(func: (x: number[]) => readonly number[], x: readonly n
  * ```ts
  * hessian((x) => x[0]! ** 2 * x[1]! ** 2, [1, 2]); // [[8, 8], [8, 2]]
  * ```
+ *
+ * @category Numerical methods
  */
 export function hessian(func: (x: number[]) => number, x: readonly number[], options: DerivOptions = {}): number[][] {
   if ((options.method ?? "Richardson") !== "Richardson") throw new RangeError('hessian supports only method "Richardson"');

@@ -12,7 +12,11 @@
 import { dqagie, dqagse } from "../integrate/quadpack.js";
 import { localMin } from "../optim/localmin.js";
 
-/** Options for {@link integrate}. */
+/**
+ * Options for {@link integrate}.
+ *
+ * @category Numerical methods
+ */
 export interface IntegrateOptions {
   /** Maximum number of subintervals. Default `100`. */
   subdivisions?: number;
@@ -24,7 +28,11 @@ export interface IntegrateOptions {
   stopOnError?: boolean;
 }
 
-/** Result of {@link integrate}. */
+/**
+ * Result of {@link integrate}.
+ *
+ * @category Numerical methods
+ */
 export interface IntegrateResult {
   /** The estimate of the integral. */
   value: number;
@@ -58,6 +66,8 @@ const TOL = Number.EPSILON ** 0.25;
  * ```ts
  * integrate((x) => Math.exp(-x * x / 2), -Infinity, Infinity).value; // 2.506628274115034 (sqrt(2 pi) = 2.5066282746310002)
  * ```
+ *
+ * @category Numerical methods
  */
 export function integrate(f: (x: number) => number, lower: number, upper: number, options: IntegrateOptions = {}): IntegrateResult {
   const limit = options.subdivisions ?? 100;
@@ -85,7 +95,11 @@ export function integrate(f: (x: number) => number, lower: number, upper: number
   return { value: r.result, absError: r.abserr, subdivisions: r.last, ier: r.ier, message };
 }
 
-/** Options for {@link optimize}. */
+/**
+ * Options for {@link optimize}.
+ *
+ * @category Numerical methods
+ */
 export interface OptimizeOptions {
   /** Maximise instead of minimise. Default `false`. */
   maximum?: boolean;
@@ -102,6 +116,8 @@ export interface OptimizeOptions {
  * ```ts
  * optimize((x) => (x - 1 / 3) ** 2, 0, 1).optimum; // 0.3333333333333333
  * ```
+ *
+ * @category Numerical methods
  */
 export function optimize(
   f: (x: number) => number,
@@ -121,7 +137,11 @@ export function optimize(
   return { optimum: r.x, objective: f(r.x) };
 }
 
-/** Options for {@link uniroot}. */
+/**
+ * Options for {@link uniroot}.
+ *
+ * @category Numerical methods
+ */
 export interface UnirootOptions {
   /** Accuracy. Default `eps^0.25`. */
   tol?: number;
@@ -138,7 +158,11 @@ export interface UnirootOptions {
   fUpper?: number;
 }
 
-/** Result of {@link uniroot}. */
+/**
+ * Result of {@link uniroot}.
+ *
+ * @category Numerical methods
+ */
 export interface UnirootResult {
   /** The root found. */
   root: number;
@@ -159,6 +183,8 @@ export interface UnirootResult {
  * ```ts
  * uniroot((x) => x * x - 2, 0, 2, { tol: 1e-12 }).root; // 1.4142135623731364
  * ```
+ *
+ * @category Numerical methods
  */
 export function uniroot(f: (x: number) => number, lower: number, upper: number, options: UnirootOptions = {}): UnirootResult {
   const tol = options.tol ?? TOL;

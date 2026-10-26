@@ -130,6 +130,8 @@ export function rgamma1(a: number, scale: number): number {
  * setSeed(1);
  * rgamma(2, 2, { rate: 1 }); // [0.830865, 3.570756]
  * ```
+ *
+ * @category Random numbers
  */
 export function rgamma(n: number, shape: number, options: { rate?: number; scale?: number } = {}): number[] {
   const scale = gammaScale(options);
@@ -165,6 +167,8 @@ export function rnchisq1(df: number, ncp: number): number {
  * rchisq(2, 3); // [0.9433146, 5.543782]
  * rchisq(2, 3, { ncp: 1 });
  * ```
+ *
+ * @category Random numbers
  */
 export function rchisq(n: number, df: number, options: { ncp?: number } = {}): number[] {
   const { ncp } = options;
@@ -185,6 +189,8 @@ export function rchisq(n: number, df: number, options: { ncp?: number } = {}): n
  * setSeed(1);
  * rt(2, 5); // [-0.6576941, -0.5973472]
  * ```
+ *
+ * @category Random numbers
  */
 export function rt(n: number, df: number, options: { ncp?: number } = {}): number[] {
   const { ncp } = options;
@@ -217,6 +223,8 @@ export function rt(n: number, df: number, options: { ncp?: number } = {}): numbe
  * setSeed(1);
  * rf(2, 3, 10); // [0.2025231, 1.645713]
  * ```
+ *
+ * @category Random numbers
  */
 export function rf(n: number, df1: number, df2: number, options: { ncp?: number } = {}): number[] {
   const { ncp } = options;

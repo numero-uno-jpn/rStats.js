@@ -12,10 +12,16 @@ import { svdValues } from "./svd.js";
 /**
  * Matrix norm type for {@link norm}: `"O"`/`"1"` (one norm), `"I"` (infinity norm), `"F"`/`"E"` (Frobenius),
  * `"M"` (maximum modulus) or `"2"` (spectral norm). Case-insensitive, as in R.
+ *
+ * @category Linear algebra
  */
 export type NormType = "O" | "o" | "1" | "I" | "i" | "F" | "f" | "E" | "e" | "M" | "m" | "2";
 
-/** Options for {@link norm}. */
+/**
+ * Options for {@link norm}.
+ *
+ * @category Linear algebra
+ */
 export interface NormOptions {
   /**
    * Which norm to compute (a single character, case-insensitive). Default: `"O"`.
@@ -43,6 +49,8 @@ export interface NormOptions {
  * norm([[1, -2], [3, 4]], { type: "I" }); // 7
  * norm([[1, -2], [3, 4]], { type: "F" }); // 5.477225575051661
  * ```
+ *
+ * @category Linear algebra
  */
 export function norm(x: MatrixInput, options: NormOptions = {}): number {
   const m = toMat(x);

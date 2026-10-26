@@ -23,12 +23,20 @@ import { fromMat, newMat, requireSquare, toMat, type Mat, type MatrixInput } fro
 import { infNorm, oneNorm } from "./norm.js";
 import { solve } from "./solve.js";
 
-/** Methods of {@link expm}. */
+/**
+ * Methods of {@link expm}.
+ *
+ * @category Linear algebra
+ */
 export type ExpmMethod = "Higham08.b" | "Higham08" | "Pade" | "Taylor" | "PadeO" | "TaylorO";
 
 const METHODS: readonly string[] = ["Higham08.b", "Higham08", "Pade", "Taylor", "PadeO", "TaylorO"];
 
-/** Options for {@link expm}. */
+/**
+ * Options for {@link expm}.
+ *
+ * @category Linear algebra
+ */
 export interface ExpmOptions {
   /**
    * `"Higham08.b"` (default): Higham's scaling and squaring with Padé approximants after balancing (LAPACK's
@@ -62,6 +70,8 @@ export interface ExpmOptions {
  * expm([[0, 1], [0, 0]]); // [[1, 1], [0, 1]]
  * expm([[0, -1], [1, 0]]); // [[0.5403023059, -0.8414709848], [0.8414709848, 0.5403023059]] (cos 1 and sin 1)
  * ```
+ *
+ * @category Linear algebra
  */
 export function expm(x: MatrixInput, options: ExpmOptions = {}): number[][] {
   const method = options.method ?? "Higham08.b";

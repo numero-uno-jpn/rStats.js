@@ -9,10 +9,18 @@
 
 import { compareCodePoints, type DataFrame } from "../models/modelFrame.js";
 
-/** One value of a data frame column (`null`: missing). */
+/**
+ * One value of a data frame column (`null`: missing).
+ *
+ * @category Data frames
+ */
 export type DataValue = number | string | boolean | null;
 
-/** A row of a data frame, as passed to the condition of {@link subset}: column name to value. */
+/**
+ * A row of a data frame, as passed to the condition of {@link subset}: column name to value.
+ *
+ * @category Data frames
+ */
 export type DataRow = Record<string, DataValue>;
 
 /** One column of a data frame. */
@@ -148,7 +156,11 @@ function groupSorted(values: readonly number[]): { alone: number[]; groups: Map<
   return { alone, groups };
 }
 
-/** Options for {@link merge}. */
+/**
+ * Options for {@link merge}.
+ *
+ * @category Data frames
+ */
 export interface MergeOptions {
   /** The key columns, in both frames. Default: the column names common to both, in x's order. */
   by?: string | readonly string[];
@@ -192,6 +204,8 @@ function keyColumns(frame: DataFrame, names: readonly string[]): Column[] {
  * merge(x, y);                  // { id: [1, 2, 2], v: [20, 30, 30], w: [0.5, 1.5, 2.5] }
  * merge(x, y, { all: true });   // also id 3 (w missing) and id 4 (v missing)
  * ```
+ *
+ * @category Data frames
  */
 export function merge(x: DataFrame, y: DataFrame, options: MergeOptions = {}): DataFrame {
   const xNames = Object.keys(x);
@@ -286,7 +300,11 @@ export function merge(x: DataFrame, y: DataFrame, options: MergeOptions = {}): D
   return out;
 }
 
-/** Options for {@link subset}. */
+/**
+ * Options for {@link subset}.
+ *
+ * @category Data frames
+ */
 export interface SubsetOptions {
   /** The columns to keep, in this order. Default: all, in their order. */
   select?: readonly string[];
@@ -303,6 +321,8 @@ export interface SubsetOptions {
  * subset(d, (row) => (row.y as number) > 4);         // { y: [5, 7], g: ["a", "a"] }
  * subset(d, [true, true, false, false], { select: ["g"] }); // { g: ["a", "b"] }
  * ```
+ *
+ * @category Data frames
  */
 export function subset(
   data: DataFrame,
@@ -364,7 +384,11 @@ export function cbindFrames(frames: readonly DataFrame[]): DataFrame {
   return out;
 }
 
-/** Options of {@link fromRows}. */
+/**
+ * Options of {@link fromRows}.
+ *
+ * @category Data frames
+ */
 export interface FromRowsOptions {
   /**
    * The columns to take, in this order. Default: every key that occurs in some row, in the order of first
@@ -383,6 +407,8 @@ export interface FromRowsOptions {
  * ```ts
  * fromRows([{ id: "a", score: 5 }, { id: "b" }]);   // { id: ["a", "b"], score: [5, null] }
  * ```
+ *
+ * @category Data frames
  */
 export function fromRows(rows: readonly Readonly<Record<string, unknown>>[], options: FromRowsOptions = {}): DataFrame {
   let names = options.columns;
@@ -418,6 +444,8 @@ export function fromRows(rows: readonly Readonly<Record<string, unknown>>[], opt
  * ```ts
  * toRows({ id: ["a", "b"], score: [5, null] });   // [{ id: "a", score: 5 }, { id: "b", score: null }]
  * ```
+ *
+ * @category Data frames
  */
 export function toRows(data: DataFrame): DataRow[] {
   const names = Object.keys(data);

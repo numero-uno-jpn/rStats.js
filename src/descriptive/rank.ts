@@ -7,10 +7,18 @@
 import { runif } from "../random/continuous.js";
 import type { Sample } from "../htest/types.js";
 
-/** How ties are ranked, as R's `ties.method`. */
+/**
+ * How ties are ranked, as R's `ties.method`.
+ *
+ * @category Descriptive statistics
+ */
 export type TiesMethod = "average" | "first" | "last" | "random" | "max" | "min";
 
-/** Options for {@link rank}. */
+/**
+ * Options for {@link rank}.
+ *
+ * @category Descriptive statistics
+ */
 export interface RankOptions {
   /** Ranks of tied values. Default `"average"`. */
   tiesMethod?: TiesMethod;
@@ -58,6 +66,8 @@ function rankValues(x: readonly number[], method: TiesMethod): number[] {
  * rank([10, 20, 20, 30]);                         // [1, 2.5, 2.5, 4]
  * rank([10, 20, 20, 30], { tiesMethod: "min" });  // [1, 2, 2, 4]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function rank(x: Sample, options: RankOptions = {}): number[] {
   const method = options.tiesMethod ?? "average";

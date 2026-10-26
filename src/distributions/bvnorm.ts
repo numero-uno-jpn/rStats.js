@@ -111,6 +111,8 @@ function orthant(h: number, k: number, r: number): number {
  * ```ts
  * pbvnorm([-Infinity, -Infinity], [0, 0], 0.5); // 0.3333333333333333
  * ```
+ *
+ * @category Distributions
  */
 export function pbvnorm(lower: readonly [number, number] | readonly number[], upper: readonly [number, number] | readonly number[], rho: number): number {
   if (lower.length !== 2 || upper.length !== 2) throw new TypeError("'lower' and 'upper' must have length 2");

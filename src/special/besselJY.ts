@@ -445,6 +445,8 @@ function besselJYPos(v: number, x: number, needY: boolean): { j: number; y: Pow2
  * besselJ(1, 0);     // 0.7651976865579666
  * besselJ(10, 2.5);  // 0.1966584835818184
  * ```
+ *
+ * @category Special functions
  */
 export function besselJ(x: number, nu: number): number {
   if (Number.isNaN(x) || Number.isNaN(nu) || x < 0 || !Number.isFinite(nu)) return NaN;
@@ -477,6 +479,8 @@ export function besselJ(x: number, nu: number): number {
  * ```ts
  * besselY(1, 0);  // 0.08825696421567694
  * ```
+ *
+ * @category Special functions
  */
 export function besselY(x: number, nu: number): number {
   if (Number.isNaN(x) || Number.isNaN(nu) || x < 0 || !Number.isFinite(nu)) return NaN;

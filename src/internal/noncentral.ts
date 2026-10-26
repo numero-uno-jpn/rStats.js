@@ -2,6 +2,8 @@
 
 /**
  * Noncentrality option accepted by the chi-squared, t, F and beta distribution functions.
+ *
+ * @category Distributions
  */
 export interface NoncentralOption {
   /**

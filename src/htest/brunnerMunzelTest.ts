@@ -16,7 +16,11 @@ import { pt1, qt1 } from "../distributions/t.js";
 import { rank } from "../internal/summary.js";
 import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
-/** Options for {@link brunnerMunzelTest}. */
+/**
+ * Options for {@link brunnerMunzelTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface BrunnerMunzelTestOptions {
   /**
    * Alternative hypothesis (unambiguous abbreviations accepted). Default `"two.sided"`. As in lawstat, `"greater"`
@@ -42,6 +46,8 @@ export interface BrunnerMunzelTestOptions {
  * r.pValue;    // 0.0057862086661514605
  * r.estimate;  // 0.78896103896103909
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function brunnerMunzelTest(x: Sample, y: Sample, options: BrunnerMunzelTestOptions = {}): HTest {
   const xs = Array.from(x).filter((v) => !Number.isNaN(v));

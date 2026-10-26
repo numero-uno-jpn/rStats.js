@@ -15,7 +15,11 @@ import { tTest } from "./tTest.js";
 import { matchAlternative, type Alternative, type Sample } from "./types.js";
 import { wilcoxTest, type WilcoxTestOptions } from "./wilcoxTest.js";
 
-/** Result of the pairwise comparisons (R's `pairwise.htest`). */
+/**
+ * Result of the pairwise comparisons (R's `pairwise.htest`).
+ *
+ * @category Multiple comparisons
+ */
 export interface PairwiseResult {
   /** Description of the tests (R's `method`). */
   method: string;
@@ -32,7 +36,11 @@ export interface PairwiseResult {
   pAdjustMethod: PAdjustMethod | string;
 }
 
-/** Common options of the pairwise comparisons. */
+/**
+ * Common options of the pairwise comparisons.
+ *
+ * @category Multiple comparisons
+ */
 export interface PairwiseOptions {
   /** p-value adjustment (see `pAdjust`). Default `"holm"`. */
   pAdjustMethod?: PAdjustMethod | (string & {});
@@ -85,7 +93,11 @@ function result(method: string, levels: GroupLabel[], pValue: number[][], adjust
   };
 }
 
-/** Options for {@link pairwiseTTest}. */
+/**
+ * Options for {@link pairwiseTTest}.
+ *
+ * @category Multiple comparisons
+ */
 export interface PairwiseTTestOptions extends PairwiseOptions {
   /** Pool the standard deviation over all groups. Default `!paired`. */
   poolSd?: boolean;
@@ -105,6 +117,8 @@ export interface PairwiseTTestOptions extends PairwiseOptions {
  * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
  * pairwiseTTest(x, g).pValue; // [[0.029519264601117815, NaN], [0.0018407330776394456, 0.029519264601117815]]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function pairwiseTTest(x: Sample, g: readonly GroupLabel[], options: PairwiseTTestOptions = {}): PairwiseResult {
   const paired = options.paired ?? false;
@@ -143,7 +157,11 @@ export function pairwiseTTest(x: Sample, g: readonly GroupLabel[], options: Pair
   return result(method, levels, table(k, compare, adjust), adjust);
 }
 
-/** Options for {@link pairwiseWilcoxTest}: those of the comparisons themselves, as for `wilcoxTest`. */
+/**
+ * Options for {@link pairwiseWilcoxTest}: those of the comparisons themselves, as for `wilcoxTest`.
+ *
+ * @category Multiple comparisons
+ */
 export interface PairwiseWilcoxTestOptions extends PairwiseOptions, Omit<WilcoxTestOptions, "alternative" | "confInt"> {}
 
 /**
@@ -156,6 +174,8 @@ export interface PairwiseWilcoxTestOptions extends PairwiseOptions, Omit<WilcoxT
  * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
  * pairwiseWilcoxTest(x, g).pValue; // [[0.3, NaN], [0.3, 0.3]]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function pairwiseWilcoxTest(
   x: Sample,
@@ -180,7 +200,11 @@ export function pairwiseWilcoxTest(
   return result(method, levels, pv, adjust);
 }
 
-/** Options for {@link pairwisePropTest}. */
+/**
+ * Options for {@link pairwisePropTest}.
+ *
+ * @category Multiple comparisons
+ */
 export interface PairwisePropTestOptions {
   /** p-value adjustment (see `pAdjust`). Default `"holm"`. */
   pAdjustMethod?: PAdjustMethod | (string & {});
@@ -199,6 +223,8 @@ export interface PairwisePropTestOptions {
  * ```ts
  * pairwisePropTest([15, 25, 40], [50, 50, 50]).pValue; // [[0.06619257972219345, NaN], [0.000004217380554293543, 0.006666708050273146]]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function pairwisePropTest(
   x: readonly number[],

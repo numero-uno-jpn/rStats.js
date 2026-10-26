@@ -157,6 +157,8 @@ export function qf1(p: number, m: number, n: number, lowerTail: boolean, logP: b
  * df(1, 3, 10); // 0.40412281148856277
  * df(1, 3, 10, { log: true }); // -0.9060364583831545
  * ```
+ *
+ * @category Distributions
  */
 export function df<T extends Vectorizable>(
   x: T,
@@ -184,6 +186,8 @@ export function df<T extends Vectorizable>(
  * ```ts
  * pf(4.1, 2, 20, { lowerTail: false }); // 0.03219651558603902
  * ```
+ *
+ * @category Distributions
  */
 export function pf<T extends Vectorizable>(
   q: T,
@@ -212,6 +216,8 @@ export function pf<T extends Vectorizable>(
  * qf(0.95, 3, 10); // 3.708264819046843
  * qf(0.05, 2, 20, { lowerTail: false }); // 3.4928284767356335
  * ```
+ *
+ * @category Distributions
  */
 export function qf<T extends Vectorizable>(
   p: T,

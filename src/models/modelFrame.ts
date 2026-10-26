@@ -8,7 +8,11 @@
 
 import type { Sample } from "../htest/types.js";
 
-/** A data frame: an object of columns of equal length. `null` (and `NaN` in a numeric column) is a missing value. */
+/**
+ * A data frame: an object of columns of equal length. `null` (and `NaN` in a numeric column) is a missing value.
+ *
+ * @category Data frames
+ */
 export type DataFrame = Record<string, readonly (number | string | boolean | null)[] | Float64Array>;
 
 /** A variable of a model frame: numeric values, or a factor (level index per row). */

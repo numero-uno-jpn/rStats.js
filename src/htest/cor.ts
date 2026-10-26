@@ -32,17 +32,29 @@ import type { DataFrame } from "../models/modelFrame.js";
 import { correlationData } from "./testFormula.js";
 import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
-/** Correlation coefficient: Pearson's r, Kendall's tau or Spearman's rho. */
+/**
+ * Correlation coefficient: Pearson's r, Kendall's tau or Spearman's rho.
+ *
+ * @category Descriptive statistics
+ */
 export type CorMethod = "pearson" | "kendall" | "spearman";
 
 
-/** Options for {@link cor}. */
+/**
+ * Options for {@link cor}.
+ *
+ * @category Hypothesis tests
+ */
 export interface CorOptions {
   /** Correlation coefficient to compute. Default `"pearson"`. Unambiguous abbreviations are accepted. */
   method?: CorMethod | (string & {});
 }
 
-/** Options for {@link corTest}. */
+/**
+ * Options for {@link corTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface CorTestOptions extends CorOptions {
   /**
    * Alternative hypothesis: `"two.sided"`, `"less"` or `"greater"`. Default `"two.sided"`.
@@ -64,6 +76,8 @@ export interface CorTestOptions extends CorOptions {
 /**
  * Result of {@link corTest}. For Pearson, `statisticName` is `"t"` with `parameter` (df)
  * and `confInt`; for Kendall `"T"` (exact) or `"z"`; for Spearman `"S"`.
+ *
+ * @category Hypothesis tests
  */
 export interface CorTestResult extends HTest {
   /** Sample correlation coefficient. */
@@ -350,6 +364,8 @@ function spearmanTail(n: number, q: number, lower: boolean): number {
  * ```
  *
  * There is also a formula form, `corTest("~ x + y", data, options)` (next overload).
+ *
+ * @category Hypothesis tests
  */
 export function corTest(x: Sample, y: Sample, options?: CorTestOptions): CorTestResult;
 /**

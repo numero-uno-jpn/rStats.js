@@ -104,6 +104,8 @@ export function qcauchy1(p: number, location: number, scale: number, lowerTail: 
  * dcauchy(0);                             // 0.3183098861837907
  * dcauchy(1, { location: 1, scale: 2 });  // 0.15915494309189535
  * ```
+ *
+ * @category Distributions
  */
 export function dcauchy<T extends Vectorizable>(x: T, options: LocationScaleParams & DensityOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, log = false } = options;
@@ -122,6 +124,8 @@ export function dcauchy<T extends Vectorizable>(x: T, options: LocationScalePara
  * pcauchy(1);                             // 0.75
  * pcauchy(3, { location: 1, scale: 2 });  // 0.75
  * ```
+ *
+ * @category Distributions
  */
 export function pcauchy<T extends Vectorizable>(q: T, options: LocationScaleParams & TailOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, lowerTail = true, logP = false } = options;
@@ -140,6 +144,8 @@ export function pcauchy<T extends Vectorizable>(q: T, options: LocationScalePara
  * qcauchy(0.75);                          // 1.0000000000000002
  * qcauchy(0.975, { scale: 2 });           // 25.41240947234939
  * ```
+ *
+ * @category Distributions
  */
 export function qcauchy<T extends Vectorizable>(p: T, options: LocationScaleParams & TailOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, lowerTail = true, logP = false } = options;

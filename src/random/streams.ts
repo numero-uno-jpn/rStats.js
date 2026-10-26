@@ -61,6 +61,8 @@ function jump(state: ArrayLike<number>, a1: number[], a2: number[]): Int32Array 
  * setRandomSeed(s2);
  * runif(2); // [0.31369782407981056, 0.9280126525616814]
  * ```
+ *
+ * @category Random numbers
  */
 export function nextRNGStream(state: ArrayLike<number>): Int32Array {
   return jump(state, A1P127, A2P127);
@@ -82,6 +84,8 @@ export function nextRNGStream(state: ArrayLike<number>): Int32Array {
  * // R: .Random.seed <- parallel::nextRNGSubStream(.Random.seed)
  * runif(2); // [0.9158314, 0.1484848]
  * ```
+ *
+ * @category Random numbers
  */
 export function nextRNGSubStream(state: ArrayLike<number>): Int32Array {
   return jump(state, A1P76, A2P76);

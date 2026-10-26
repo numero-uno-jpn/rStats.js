@@ -9,7 +9,11 @@ import { vectorize, type Vectorizable, type VectorResult } from "../internal/vec
 import { quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { expNeg, locationScale, log1mExp, standardizeDD } from "../internal/ddexp.js";
 
-/** Location and scale parameters, used by the logistic and Cauchy distributions. */
+/**
+ * Location and scale parameters, used by the logistic and Cauchy distributions.
+ *
+ * @category Distributions
+ */
 export interface LocationScaleParams {
   /** Location. Default `0`. */
   location?: number;
@@ -71,6 +75,8 @@ export function qlogis1(p: number, location: number, scale: number, lowerTail: b
  * dlogis(0);                               // 0.25
  * dlogis(1, { location: 1, scale: 2 });    // 0.125
  * ```
+ *
+ * @category Distributions
  */
 export function dlogis<T extends Vectorizable>(x: T, options: LocationScaleParams & DensityOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, log = false } = options;
@@ -89,6 +95,8 @@ export function dlogis<T extends Vectorizable>(x: T, options: LocationScaleParam
  * plogis(1);                               // 0.7310585786300049
  * plogis([-2, 0, 2], { scale: 2 });        // [0.2689414213699951, 0.5, 0.7310585786300049]
  * ```
+ *
+ * @category Distributions
  */
 export function plogis<T extends Vectorizable>(q: T, options: LocationScaleParams & TailOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, lowerTail = true, logP = false } = options;
@@ -107,6 +115,8 @@ export function plogis<T extends Vectorizable>(q: T, options: LocationScaleParam
  * qlogis(0.75);                            // 1.0986122886681096
  * qlogis(0.9, { location: 1, scale: 2 });  // 5.394449154672439
  * ```
+ *
+ * @category Distributions
  */
 export function qlogis<T extends Vectorizable>(p: T, options: LocationScaleParams & TailOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, lowerTail = true, logP = false } = options;

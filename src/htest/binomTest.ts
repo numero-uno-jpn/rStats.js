@@ -11,7 +11,11 @@ import { dbinom1, pbinom1 } from "../distributions/binomial.js";
 import { qbeta1 } from "../distributions/beta.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
-/** Options for {@link binomTest}. */
+/**
+ * Options for {@link binomTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface BinomTestOptions {
   /** Hypothesized probability of success. Default `0.5`. */
   p?: number;
@@ -21,7 +25,11 @@ export interface BinomTestOptions {
   confLevel?: number;
 }
 
-/** Result of {@link binomTest}. */
+/**
+ * Result of {@link binomTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface BinomTestResult extends HTest {
   /** Number of trials (`parameterName` is `"number of trials"`). */
   parameter: number;
@@ -75,6 +83,8 @@ function twoSidedP(x: number, n: number, p: number): number {
  * ```ts
  * binomTest(682, 925, { p: 0.75 }).pValue; // 0.3824916
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function binomTest(
   x: number | readonly [number, number],

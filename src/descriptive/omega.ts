@@ -12,7 +12,11 @@ import { optim } from "../optim/optim.js";
 import { cor } from "./cov.js";
 import { sumOnce, varimax } from "./factanal.js";
 
-/** Options of {@link omega} */
+/**
+ * Options of {@link omega}
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface OmegaOptions {
   /** The number of first-order (group) factors. Default 3. */
   nfactors?: number;
@@ -20,7 +24,11 @@ export interface OmegaOptions {
   covmat?: readonly (readonly number[])[];
 }
 
-/** Result of {@link omega} */
+/**
+ * Result of {@link omega}
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface OmegaResult {
   /** Omega hierarchical: the share of the total variance due to the general factor */
   omegaH: number;
@@ -255,6 +263,8 @@ function oblimin(A: Matrix): { loadings: Matrix; phi: Matrix; converged: boolean
  * om.omegaH;   // 0.7297
  * om.omegaTot; // 0.8378378378378378
  * ```
+ *
+ * @category Agreement, reliability and factor analysis
  */
 export function omega(x: readonly (readonly number[])[] | null, options: OmegaOptions = {}): OmegaResult {
   const q = options.nfactors ?? 3;

@@ -19,7 +19,11 @@ import { qr, qrR } from "./qr.js";
 import { rcond, solve } from "./solve.js";
 import { svd } from "./svd.js";
 
-/** Options for {@link kappa}. */
+/**
+ * Options for {@link kappa}.
+ *
+ * @category Linear algebra
+ */
 export interface KappaOptions {
   /** Compute the condition number exactly instead of estimating it. Default: `false`. */
   exact?: boolean;
@@ -55,6 +59,8 @@ export interface KappaOptions {
  * kappa([[1, 2], [3, 4]]);                  // 17.85 (LINPACK estimate)
  * kappa([[1, 2], [3, 4]], { exact: true }); // 14.933034373659272
  * ```
+ *
+ * @category Linear algebra
  */
 export function kappa(z: MatrixInput, options: KappaOptions = {}): number {
   // The default norm is "2" if exact, "1" if estimated
@@ -198,6 +204,8 @@ function asum(z: Float64Array): number {
  * ginv([[1, 2], [3, 4]]); // [[-2, 1], [1.5, -0.5]]
  * ginv([[1, 1], [1, 1]]); // [[0.25, 0.25], [0.25, 0.25]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function ginv(x: MatrixInput, options: { tol?: number } = {}): number[][] {
   const tol = options.tol ?? Math.sqrt(Number.EPSILON);

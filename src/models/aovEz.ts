@@ -22,10 +22,18 @@ import { mauchlyPValue, sphericityW } from "./mauchly.js";
 import { compareCodePoints, type DataFrame } from "./modelFrame.js";
 import { modelMatrix, type ContrastName } from "./modelMatrix.js";
 
-/** An effect size of {@link aovEz}: generalized (`"ges"`) or partial (`"pes"`) eta squared. */
+/**
+ * An effect size of {@link aovEz}: generalized (`"ges"`) or partial (`"pes"`) eta squared.
+ *
+ * @category Linear models and ANOVA
+ */
 export type AovEzEffectSize = "ges" | "pes";
 
-/** Options for {@link aovEz}. */
+/**
+ * Options for {@link aovEz}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface AovEzOptions {
   /** Column of the subject identifiers. */
   id: string;
@@ -45,7 +53,11 @@ export interface AovEzOptions {
   observed?: readonly string[] | string;
 }
 
-/** A table of {@link aovEz}. */
+/**
+ * A table of {@link aovEz}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface AovEzTable {
   /** Column names, such as afex's `"num Df"`, `"den Df"`, `"MSE"`, `"F"`, `"ges"`, `"Pr(>F)"`. */
   colNames: string[];
@@ -55,7 +67,11 @@ export interface AovEzTable {
   table: number[][];
 }
 
-/** Result of {@link aovEz}. */
+/**
+ * Result of {@link aovEz}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface AovEzResult {
   /** afex's anova table (without the intercept). */
   anova: AovEzTable;
@@ -148,6 +164,8 @@ function anovaTable(rows: Row[], errorSS: number[], es: AovEzEffectSize[], obser
  * };
  * aovEz(data, { id: "id", dv: "y", within: "W" }).anova.rowNames; // ["W"]
  * ```
+ *
+ * @category Linear models and ANOVA
  */
 export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
   const between = list(options.between);

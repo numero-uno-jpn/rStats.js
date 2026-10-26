@@ -19,6 +19,8 @@ import { log1pmx as log1pmxKernel } from "./log1pmx.js";
  * ```ts
  * log1pmx(1e-5); // -4.9999666669166655e-11
  * ```
+ *
+ * @category Special functions
  */
 export function log1pmx(x: number): number {
   if (Number.isNaN(x) || x < -1) return NaN;
@@ -38,6 +40,8 @@ export function log1pmx(x: number): number {
  * ```ts
  * lgamma1p(1e-10); // -5.7721566481928616e-11 (lgamma(1 + 1e-10) keeps only about 6 digits)
  * ```
+ *
+ * @category Special functions
  */
 export function lgamma1p(x: number): number {
   if (Number.isNaN(x) || x === -Infinity) return NaN;
@@ -57,6 +61,8 @@ export function lgamma1p(x: number): number {
  * ```ts
  * log1mexp(1e-10); // -23.025850929990458
  * ```
+ *
+ * @category Special functions
  */
 export function log1mexp(x: number): number {
   if (Number.isNaN(x) || x < 0) return NaN;
@@ -77,6 +83,8 @@ export function log1mexp(x: number): number {
  * log1pexp(800); // 800
  * log1pexp(-40); // 4.248354255291589e-18
  * ```
+ *
+ * @category Special functions
  */
 export function log1pexp(x: number): number {
   if (Number.isNaN(x)) return NaN;

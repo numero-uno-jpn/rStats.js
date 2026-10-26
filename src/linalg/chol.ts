@@ -14,7 +14,11 @@
 
 import { fromMat, newMat, requireSquare, toMat, toMatOrColumn, type Mat, type MatrixInput } from "./matrix.js";
 
-/** Options for {@link chol}. */
+/**
+ * Options for {@link chol}.
+ *
+ * @category Linear algebra
+ */
 export interface CholOptions {
   /** Use diagonal pivoting (largest remaining diagonal first), which also works for positive semi-definite matrices. Default: `false`. */
   pivot?: boolean;
@@ -22,7 +26,11 @@ export interface CholOptions {
   tol?: number;
 }
 
-/** Result of {@link chol} with `pivot: true`. */
+/**
+ * Result of {@link chol} with `pivot: true`.
+ *
+ * @category Linear algebra
+ */
 export interface CholPivotResult {
   /** The upper triangular factor `R`, such that `x[pivot, pivot] = t(R) R` (within the first `rank` rows). */
   r: number[][];
@@ -47,6 +55,8 @@ export interface CholPivotResult {
  * chol([[4, 2], [2, 3]]);
  * // [[2, 1], [0, 1.4142135623730951]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function chol(x: MatrixInput, options?: CholOptions & { pivot?: false }): number[][];
 /**
@@ -171,7 +181,11 @@ function pstf2(A: Mat, tol: number): { pivot: number[]; rank: number } {
   return { pivot: piv, rank: n };
 }
 
-/** Options for {@link chol2inv}. */
+/**
+ * Options for {@link chol2inv}.
+ *
+ * @category Linear algebra
+ */
 export interface Chol2InvOptions {
   /** Number of rows and columns of `x` to use (its top-left `size` x `size` upper triangle). Default: the number of columns of `x`. */
   size?: number;
@@ -190,6 +204,8 @@ export interface Chol2InvOptions {
  * ```ts
  * chol2inv([[2, 1], [0, 1]]); // [[0.5, -0.5], [-0.5, 1]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function chol2inv(x: MatrixInput | readonly number[] | Float64Array, options: Chol2InvOptions = {}): number[][] {
   const m = toMatOrColumn(x);

@@ -18,7 +18,11 @@
 
 import { fromMat, isMatrixInput, newMat, toMat, toMatOrColumn, type Mat, type MatrixInput, type VectorOrMatrix } from "./matrix.js";
 
-/** Options for {@link qr}. */
+/**
+ * Options for {@link qr}.
+ *
+ * @category Linear algebra
+ */
 export interface QROptions {
   /**
    * Tolerance for detecting linear dependence: a column whose remaining norm falls below `tol` times its
@@ -35,6 +39,8 @@ export interface QROptions {
 /**
  * A QR decomposition returned by {@link qr}, in R's compact form. Pass it to {@link qrQ}, {@link qrR},
  * {@link qrCoef} and the other `qr*` functions.
+ *
+ * @category Linear algebra
  */
 export interface QR {
   /** Compact form: the upper triangle holds `R`; the part below the diagonal holds the Householder vectors that represent `Q`. */
@@ -70,6 +76,8 @@ export interface QR {
  * q.rank; // 2
  * qrCoef(q, [2.1, 3.9, 6.2, 7.8]); // [0.15, 1.94] (up to rounding)
  * ```
+ *
+ * @category Linear algebra
  */
 export function qr(x: MatrixInput, options: QROptions = {}): QR {
   const a = toMat(x);
@@ -350,6 +358,8 @@ function range(from: number, to: number): number[] {
  * const q = qr([[3, 0], [4, 5]]);
  * qrQty(q, [3, 4]); // [-5, 0]
  * ```
+ *
+ * @category Linear algebra
  */
 export function qrQty(q: QR, y: readonly number[] | Float64Array): number[];
 /**
@@ -387,6 +397,8 @@ export function qrQty(q: QR, y: VectorOrMatrix): number[] | number[][] {
  * const q = qr([[3, 0], [4, 5]]);
  * qrQy(q, [-5, 0]); // [3, 4]
  * ```
+ *
+ * @category Linear algebra
  */
 export function qrQy(q: QR, y: readonly number[] | Float64Array): number[];
 /**
@@ -428,6 +440,8 @@ export function qrQy(q: QR, y: VectorOrMatrix): number[] | number[][] {
  * const q = qr([[1, 1], [1, 2], [1, 3], [1, 4]]);
  * qrCoef(q, [2.1, 3.9, 6.2, 7.8]); // [0.15, 1.94] (up to rounding)
  * ```
+ *
+ * @category Linear algebra
  */
 export function qrCoef(q: QR, y: readonly number[] | Float64Array): number[];
 /**
@@ -510,6 +524,8 @@ function residOrFitted(q: QR, y: VectorOrMatrix, fitted: boolean, k?: number): n
  * const q = qr([[1, 1], [1, 2], [1, 3], [1, 4]]);
  * qrResid(q, [2.1, 3.9, 6.2, 7.8]); // [0.01, -0.13, 0.23, -0.11]
  * ```
+ *
+ * @category Linear algebra
  */
 export function qrResid(q: QR, y: readonly number[] | Float64Array): number[];
 /**
@@ -548,6 +564,8 @@ export function qrResid(q: QR, y: VectorOrMatrix): number[] | number[][] {
  * const q = qr([[1, 1], [1, 2], [1, 3], [1, 4]]);
  * qrFitted(q, [2.1, 3.9, 6.2, 7.8]); // [2.09, 4.03, 5.97, 7.91]
  * ```
+ *
+ * @category Linear algebra
  */
 export function qrFitted(q: QR, y: readonly number[] | Float64Array, options?: { k?: number }): number[];
 /**
@@ -572,7 +590,11 @@ export function qrFitted(q: QR, y: VectorOrMatrix, options: { k?: number } = {})
   return residOrFitted(q, y, true, options.k);
 }
 
-/** Options for {@link qrQ}. */
+/**
+ * Options for {@link qrQ}.
+ *
+ * @category Linear algebra
+ */
 export interface QRQOptions {
   /** Return the full `n` x `n` matrix `Q`. Default: `false`, which returns the first `min(n, p)` columns (`n` x `min(n, p)`). */
   complete?: boolean;
@@ -591,6 +613,8 @@ export interface QRQOptions {
  * ```ts
  * qrQ(qr([[3, 0], [4, 5]])); // [[-0.6, -0.8], [-0.8, 0.6]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function qrQ(q: QR, options: QRQOptions = {}): number[][] {
   const d = decomp(q);
@@ -617,6 +641,8 @@ export function qrQ(q: QR, options: QRQOptions = {}): number[][] {
  * ```ts
  * qrR(qr([[3, 0], [4, 5]])); // [[-5, -4], [0, 3]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function qrR(q: QR, options: { complete?: boolean } = {}): number[][] {
   const a = toMat(q.qr);
@@ -641,6 +667,8 @@ export function qrR(q: QR, options: { complete?: boolean } = {}): number[][] {
  * ```ts
  * qrX(qr([[3, 0], [4, 5]])); // [[3, 0], [4, 5]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function qrX(q: QR, options: { complete?: boolean; ncol?: number } = {}): number[][] {
   const d = decomp(q);
@@ -685,6 +713,8 @@ export function qrX(q: QR, options: { complete?: boolean; ncol?: number } = {}):
  * qrSolve([[2, 1], [1, 3]], [3, 5]); // [0.8, 1.4]
  * qrSolve([[1, 1], [1, 2], [1, 3]], [1, 2, 4]); // [-0.6667, 1.5]
  * ```
+ *
+ * @category Linear algebra
  */
 export function qrSolve(a: MatrixInput | QR, b?: VectorOrMatrix, options: { tol?: number } = {}): number[] | number[][] {
   const q = Array.isArray(a) ? qr(a as MatrixInput, { tol: options.tol ?? 1e-7 }) : (a as QR);

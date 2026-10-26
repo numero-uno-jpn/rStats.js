@@ -5,7 +5,11 @@
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 
-/** Parameters of the uniform distribution. */
+/**
+ * Parameters of the uniform distribution.
+ *
+ * @category Distributions
+ */
 export interface UniformParams {
   /** Lower limit. Default `0`. */
   min?: number;
@@ -66,6 +70,8 @@ export function qunif1(p: number, min: number, max: number, lowerTail: boolean, 
  * dunif(0.5);                        // 1
  * dunif([1, 3], { min: 0, max: 2 }); // [0.5, 0]
  * ```
+ *
+ * @category Distributions
  */
 export function dunif<T extends Vectorizable>(x: T, options: UniformParams & DensityOptions = {}): VectorResult<T> {
   const { min = 0, max = 1, log = false } = options;
@@ -84,6 +90,8 @@ export function dunif<T extends Vectorizable>(x: T, options: UniformParams & Den
  * punif(0.3);                        // 0.3
  * punif(1.5, { min: 1, max: 3 });    // 0.25
  * ```
+ *
+ * @category Distributions
  */
 export function punif<T extends Vectorizable>(q: T, options: UniformParams & TailOptions = {}): VectorResult<T> {
   const { min = 0, max = 1, lowerTail = true, logP = false } = options;
@@ -102,6 +110,8 @@ export function punif<T extends Vectorizable>(q: T, options: UniformParams & Tai
  * qunif(0.25);                       // 0.25
  * qunif([0.1, 0.9], { min: -1, max: 1 }); // [-0.8, 0.8]
  * ```
+ *
+ * @category Distributions
  */
 export function qunif<T extends Vectorizable>(p: T, options: UniformParams & TailOptions = {}): VectorResult<T> {
   const { min = 0, max = 1, lowerTail = true, logP = false } = options;

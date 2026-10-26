@@ -41,7 +41,11 @@ import { ddAdd, ddLog, ddNeg, ddSub, type DD } from "../special/dd.js";
 import { simulatedMethod } from "./core/simulate.js";
 import { matchAlternative, type Alternative, type HTest, type Counts } from "./types.js";
 
-/** Options for {@link fisherTest}. */
+/**
+ * Options for {@link fisherTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface FisherTestOptions {
   /**
    * Alternative hypothesis: `"two.sided"`, `"less"` or `"greater"`. Default `"two.sided"`.
@@ -69,6 +73,8 @@ export interface FisherTestOptions {
  * `fisher.test()` does not return a statistic. For 2 x 2 tables, `estimate` is the
  * conditional maximum likelihood estimate of the odds ratio and `confInt` its interval;
  * for larger tables only `method`, `alternative` and `pValue` are set.
+ *
+ * @category Hypothesis tests
  */
 export interface FisherTestResult extends Omit<HTest, "statistic" | "statisticName"> {}
 
@@ -98,6 +104,8 @@ export interface FisherTestResult extends Omit<HTest, "statistic" | "statisticNa
  * r.estimate; // 6.408308867005792 (conditional MLE of the odds ratio)
  * r.confInt;  // [0.2117329153055031, 621.9337505454175]
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function fisherTest(x: readonly Counts[], options: FisherTestOptions = {}): FisherTestResult {
   const nr = x.length;

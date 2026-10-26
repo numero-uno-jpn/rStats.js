@@ -5,7 +5,11 @@
 
 import type { DataFrame } from "../models/modelFrame.js";
 
-/** A vector: numbers (`NaN` missing), or strings, booleans or numbers with `null` for a missing value. */
+/**
+ * A vector: numbers (`NaN` missing), or strings, booleans or numbers with `null` for a missing value.
+ *
+ * @category Data frames
+ */
 export type MissingVector = readonly (number | string | boolean | null)[] | Float64Array;
 
 const isMissing = (v: number | string | boolean | null): boolean => v === null || (typeof v === "number" && Number.isNaN(v));
@@ -32,6 +36,8 @@ function columnsOf(x: MissingVector | DataFrame): { columns: MissingVector[]; ro
  * ```ts
  * completeCases({ a: [1, NaN, 3], s: ["u", "v", null] }); // [true, false, false]
  * ```
+ *
+ * @category Data frames
  */
 export function completeCases(...args: (MissingVector | DataFrame)[]): boolean[] {
   if (args.length === 0) throw new RangeError("no input has determined the number of cases");
@@ -49,6 +55,8 @@ export function completeCases(...args: (MissingVector | DataFrame)[]): boolean[]
  * ```ts
  * naOmit([1, NaN, 3]); // [1, 3]
  * ```
+ *
+ * @category Data frames
  */
 export function naOmit(x: readonly number[] | Float64Array): number[];
 export function naOmit<T extends string | boolean | number>(x: readonly (T | null)[]): T[];

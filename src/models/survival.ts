@@ -12,13 +12,21 @@ import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
 import { solve } from "../linalg/solve.js";
 
-/** Options for {@link survdiff}. */
+/**
+ * Options for {@link survdiff}.
+ *
+ * @category Survival analysis
+ */
 export interface SurvdiffOptions {
   /** Exponent of the weights S(t-)^rho (pooled Kaplan-Meier estimate just before each event time). Default 0. */
   rho?: number;
 }
 
-/** Result of {@link survdiff}. */
+/**
+ * Result of {@link survdiff}.
+ *
+ * @category Survival analysis
+ */
 export interface SurvdiffResult {
   /** Number of observations per group */
   n: number[];
@@ -36,10 +44,18 @@ export interface SurvdiffResult {
   pvalue: number;
 }
 
-/** Confidence interval type of {@link survfit}. */
+/**
+ * Confidence interval type of {@link survfit}.
+ *
+ * @category Survival analysis
+ */
 export type SurvfitConfType = "log" | "plain" | "log-log";
 
-/** Options for {@link survfit}. */
+/**
+ * Options for {@link survfit}.
+ *
+ * @category Survival analysis
+ */
 export interface SurvfitOptions {
   /** Group labels, one per observation: one curve per group. Omitted: a single curve. */
   group?: readonly GroupLabel[];
@@ -49,7 +65,11 @@ export interface SurvfitOptions {
   confInt?: number;
 }
 
-/** Result of {@link survfit}: the rows of R's `summary(fit, censored = TRUE)` and the medians. */
+/**
+ * Result of {@link survfit}: the rows of R's `summary(fit, censored = TRUE)` and the medians.
+ *
+ * @category Survival analysis
+ */
 export interface SurvfitResult {
   /** Stratum of each row (`"group=<label>"`, or `"all"` for a single curve) */
   strata: string[];
@@ -134,6 +154,8 @@ function prepare(
  * r.chisq;  // 0.073903
  * r.pvalue; // 0.78574
  * ```
+ *
+ * @category Survival analysis
  */
 export function survdiff(
   time: readonly number[],
@@ -236,6 +258,8 @@ function curveMedian(time: readonly number[], nEvent: readonly number[], curve: 
  * ```ts
  * survfit([1, 2, 2, 3, 4], [1, 1, 0, 1, 0]).surv; // [0.8, 0.6, 0.3, 0.3]
  * ```
+ *
+ * @category Survival analysis
  */
 export function survfit(time: readonly number[], status: readonly number[], options: SurvfitOptions = {}): SurvfitResult {
   const { group, confType = "log", confInt = 0.95 } = options;

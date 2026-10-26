@@ -13,7 +13,11 @@ import { psmirnovUpper } from "./core/smirnov.js";
 import { twoGroupData } from "./testFormula.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
-/** Options for {@link ksTest}. */
+/**
+ * Options for {@link ksTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface KsTestOptions {
   /**
    * Alternative hypothesis (unambiguous abbreviations accepted). `"greater"`: the distribution function of `x` lies
@@ -30,6 +34,8 @@ export interface KsTestOptions {
 /**
  * Result of {@link ksTest}. As in R, `alternative` describes the hypothesis in words ("two-sided", "the CDF of x lies
  * above the null hypothesis", ...), and `exact` tells whether the p-value is exact.
+ *
+ * @category Hypothesis tests
  */
 export interface KsTestResult extends Omit<HTest, "alternative"> {
   /** Description of the alternative hypothesis, as R prints it (e.g. `"two-sided"`). */
@@ -60,6 +66,8 @@ function describe(alternative: Alternative, oneSample: boolean): string {
  * ksTest(x, (q) => pnorm(q)).pValue; // 0.9716870044206776
  * ksTest(x, [0.9, 2.1, 1.4, 2.8, 1.7, 0.4]).statistic; // 0.625
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function ksTest(x: Sample, y: Sample | ((q: number) => number), options?: KsTestOptions): KsTestResult;
 /**

@@ -102,6 +102,8 @@ function logChooseLarge(n: number, k: number): { log: DD; sign: number } | undef
  * choose(0.5, 3);  // 0.0625
  * choose(-2, 3);   // -4
  * ```
+ *
+ * @category Special functions
  */
 export function choose(n: number, k: number, options?: RCompatibleOptions): number {
   if (Number.isNaN(n) || Number.isNaN(k)) return NaN;
@@ -153,6 +155,8 @@ export function choose(n: number, k: number, options?: RCompatibleOptions): numb
  * ```ts
  * lchoose(1000, 500);  // 689.4672615678512
  * ```
+ *
+ * @category Special functions
  */
 export function lchoose(n: number, k: number, options?: RCompatibleOptions): number {
   if (Number.isNaN(n) || Number.isNaN(k)) return NaN;
@@ -197,6 +201,8 @@ export function lchoose(n: number, k: number, options?: RCompatibleOptions): num
  * factorial(5);    // 120
  * factorial(0.5);  // 0.8862269254527579
  * ```
+ *
+ * @category Special functions
  */
 export function factorial(x: number): number {
   return gamma(x + 1);
@@ -213,6 +219,8 @@ export function factorial(x: number): number {
  * ```ts
  * lfactorial(100);  // 363.73937555556347
  * ```
+ *
+ * @category Special functions
  */
 export function lfactorial(x: number): number {
   if (Math.abs(x) <= 0.2) return lgamma1p(x);

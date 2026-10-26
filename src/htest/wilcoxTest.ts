@@ -34,7 +34,11 @@ import type { DataFrame } from "../models/modelFrame.js";
 import { twoSampleData } from "./testFormula.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
-/** Options for {@link wilcoxTest}. */
+/**
+ * Options for {@link wilcoxTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface WilcoxTestOptions {
   /**
    * Alternative hypothesis: `"two.sided"`, `"less"` or `"greater"`. Default `"two.sided"`.
@@ -65,6 +69,8 @@ export interface WilcoxTestOptions {
  * Result of {@link wilcoxTest}. `statisticName` is `"V"` for the signed rank test and `"W"`
  * for the rank sum test; `parameter` is not set. `estimate` and `confInt` are set only
  * with `confInt: true`.
+ *
+ * @category Hypothesis tests
  */
 export interface WilcoxTestResult extends HTest {
   /** `mu`. */
@@ -97,6 +103,8 @@ export interface WilcoxTestResult extends HTest {
  * ```
  *
  * There is also a formula form, `wilcoxTest("y ~ g", data, options)` (next overload).
+ *
+ * @category Hypothesis tests
  */
 export function wilcoxTest(x: Sample, y?: Sample | WilcoxTestOptions, options?: WilcoxTestOptions): WilcoxTestResult;
 /**

@@ -23,6 +23,8 @@ import { fromMat, isMatrixInput, newMat, toMat, toMatOrColumn, type Mat, type Ma
  * crossprod([[1, 2], [3, 4]]);         // [[10, 14], [14, 20]]
  * crossprod([[1, 2], [3, 4]], [1, 1]); // [[4], [6]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function crossprod(x: VectorOrMatrix, y?: VectorOrMatrix): number[][] {
   const a = toMatOrColumn(x);
@@ -56,6 +58,8 @@ export function crossprod(x: VectorOrMatrix, y?: VectorOrMatrix): number[][] {
  * ```ts
  * tcrossprod([[1, 2], [3, 4]]); // [[5, 11], [11, 25]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function tcrossprod(x: VectorOrMatrix, y?: VectorOrMatrix): number[][] {
   const a = toMatOrColumn(x);
@@ -81,7 +85,11 @@ function mirrorUpper(m: Mat): void {
   for (let j = 0; j < n; j++) for (let i = j + 1; i < n; i++) m.data[i + j * n] = m.data[j + i * n]!;
 }
 
-/** Options for {@link backsolve} and {@link forwardsolve}. */
+/**
+ * Options for {@link backsolve} and {@link forwardsolve}.
+ *
+ * @category Linear algebra
+ */
 export interface BacksolveOptions {
   /** Number of rows and columns of the triangular matrix to use (its top-left `k` x `k` block). Default: the number of columns of the matrix. */
   k?: number;
@@ -107,6 +115,8 @@ export interface BacksolveOptions {
  * backsolve([[2, 1], [0, 4]], [4, 8]);              // [1, 2]
  * backsolve([[2, 1], [0, 4]], [[4, 2], [8, 4]]);    // [[1, 0.5], [2, 1]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function backsolve(r: MatrixInput, x: readonly number[] | Float64Array, options?: BacksolveOptions): number[];
 /**
@@ -146,6 +156,8 @@ export function backsolve(r: MatrixInput, x: VectorOrMatrix, options: BacksolveO
  * ```ts
  * forwardsolve([[2, 0], [1, 4]], [4, 10]); // [2, 2]
  * ```
+ *
+ * @category Linear algebra
  */
 export function forwardsolve(l: MatrixInput, x: readonly number[] | Float64Array, options?: BacksolveOptions): number[];
 /**
