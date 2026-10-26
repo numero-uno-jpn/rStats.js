@@ -14,3 +14,7 @@ export {
   skewness, kurtosis, geometricMean, modes, meanAD, cv, scale,
   type MomentOptions, type MeanADOptions, type CvOptions, type ScaleOptions,
 } from "../descriptive/moments.js";
+export {
+  tapply, split, aggregate,
+  type TapplyResult, type SplitOptions, type AggregateValue, type GroupingLabels, type GroupingLevel,
+} from "../data/grouping.js";
