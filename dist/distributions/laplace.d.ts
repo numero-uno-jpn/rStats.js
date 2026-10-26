@@ -1,0 +1,23 @@
+import { type Vectorizable, type VectorResult } from "../internal/vectorize.js";
+import { type DensityOptions, type TailOptions } from "../internal/dpq.js";
+/** Location and scale of the Laplace distribution. */
+export interface LaplaceParams {
+    /** Location. Default `0`. */
+    mu?: number;
+    /** Scale. Default `1`. */
+    sigma?: number;
+}
+export declare function dlaplace1(x: number, mu: number, sigma: number, log: boolean): number;
+export declare function plaplace1(q: number, mu: number, sigma: number, lowerTail: boolean, logP: boolean): number;
+export declare function qlaplace1(p: number, mu: number, sigma: number, lowerTail: boolean, logP: boolean): number;
+/**
+ * Density of the Laplace distribution. Equivalent to `extraDistr::dlaplace(x, mu = 0, sigma = 1, log = FALSE)`.
+ *
+ * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
+ * @param options - `mu` and `sigma` (see {@link LaplaceParams}) and `log` (see {@link DensityOptions}).
+ */
+export declare function dlaplace<T extends Vectorizable>(x: T, options?: LaplaceParams & DensityOptions): VectorResult<T>;
+/** Distribution function of the Laplace distribution. Equivalent to `extraDistr::plaplace(q, mu = 0, sigma = 1, lower.tail, log.p)`. */
+export declare function plaplace<T extends Vectorizable>(q: T, options?: LaplaceParams & TailOptions): VectorResult<T>;
+/** Quantile function of the Laplace distribution. Equivalent to `extraDistr::qlaplace(p, mu = 0, sigma = 1, lower.tail, log.p)`. */
+export declare function qlaplace<T extends Vectorizable>(p: T, options?: LaplaceParams & TailOptions): VectorResult<T>;
