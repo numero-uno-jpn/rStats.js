@@ -19,7 +19,7 @@ export { propTest, type PropTestOptions, type PropTestResult } from "../htest/pr
 export { mcnemarTest, type McnemarTestOptions, type McnemarTestResult } from "../htest/mcnemarTest.js";
 export { varTest, bartlettTest, type VarTestOptions, type VarTestResult, type BartlettTestResult } from "../htest/varTest.js";
 export {
-  kruskalTest, friedmanTest, quadeTest, flignerTest, moodTest,
+  kruskalTest, friedmanTest, cochranQTest, quadeTest, flignerTest, moodTest,
   type ChisqStatTestResult, type QuadeTestResult, type MoodTestOptions,
 } from "../htest/rankTests.js";
 export { onewayTest, shapiroTest, type OnewayTestOptions, type OnewayTestResult } from "../htest/onewayTest.js";
@@ -128,6 +128,7 @@ export {
   type AnovaEffectSizeOptions,
   type EtaSquaredOptions,
   type AnovaEffectSizeTable,
+  type AnovaEffectSizeModel,
 } from "../htest/effectSize.js";
 export { aovEz, type AovEzOptions, type AovEzResult, type AovEzTable, type AovEzEffectSize } from "../models/aovEz.js";
 export {
@@ -150,3 +151,45 @@ export {
   type GlhtDunnettOptions,
   type GlhtDunnettResult,
 } from "../htest/multipleComparisons.js";
+export {
+  survdiff,
+  survfit,
+  type SurvdiffOptions,
+  type SurvdiffResult,
+  type SurvfitOptions,
+  type SurvfitResult,
+  type SurvfitConfType,
+} from "../models/survival.js";
+export { leveneTest, type LeveneTestOptions, type LeveneTestResult } from "../htest/leveneTest.js";
+export {
+  propTrendTest,
+  jonckheereTest,
+  type PropTrendTestResult,
+  type JonckheereAlternative,
+  type JonckheereTestOptions,
+  type JonckheereTestResult,
+} from "../htest/trendTests.js";
+export {
+  adTest,
+  cvmTest,
+  lillieTest,
+  sfTest,
+  pearsonTest,
+  type NormalityTestResult,
+  type CvmTestResult,
+  type PearsonTestOptions,
+} from "../htest/normalityTests.js";
+export {
+  kappa2,
+  kappamFleiss,
+  icc,
+  cronbachAlpha,
+  partialR,
+  type Kappa2Weight,
+  type Kappa2Options,
+  type KappaResult,
+  type KappamFleissOptions,
+  type IccOptions,
+  type IccResult,
+  type CronbachAlphaResult,
+} from "../htest/agreement.js";

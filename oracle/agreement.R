@@ -12,7 +12,7 @@ suppressPackageStartupMessages({library(irr); library(psych); library(polycor); 
 #   partial.r      psych::partial.r(x, xy = c(i, j), z = the others): the partial correlation matrix of i and j
 #   polychor       polycor::polychor(table or x, y, ML, std.err): rho, and var and the thresholds with ML / std.err
 #   polyserial     polycor::polyserial(x numeric, y ordinal, ML, std.err): rho
-# Written: the listed values; warnings.
+# Written: the listed values; warnings. "reference": the kappa p-values computed without cancellation.
 
 set.seed(20261124)
 n <- 60
@@ -61,4 +61,10 @@ write_anova_fixture("agreement", cases, function(a) {
     polyserial = { v <- polyserial(unclass(a$x), unclass(a$y), ML = a$ML, std.err = a$std.err)
       if (is.numeric(v)) list(rho = num2str(v)) else list(rho = num2str(v$rho), var = I(num2str(as.vector(v$var))), cuts = I(num2str(v$cuts))) }))
   c(r$value, list(warnings = r$warnings))
+}, ref = function(a) {
+  # irr forms the p-values as 2 (1 - pnorm(|z|)), which loses the small ones; the reference is 2 pnorm(-|z|)
+  if (!(a$fn %in% c("kappa2", "kappam.fleiss"))) return(NULL)
+  v <- if (a$fn == "kappa2") kappa2(a$ratings, weight = a$weight) else kappam.fleiss(a$ratings, exact = isTRUE(a$exact))
+  if (is.null(v$statistic)) return(NULL)
+  list(p.value = num2str(2 * pnorm(-abs(v$statistic))))
 })

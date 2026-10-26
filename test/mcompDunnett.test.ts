@@ -18,7 +18,7 @@ describe("mcompDunnett", () => {
       cmp.numbers(i, "se", e.se, r.se);
       cmp.numbers(i, "t", e.t, r.t);
       cmp.numbers(i, "df", e.df, r.df);
-      cmp.numbers(i, "p", e.p, r.p, c.reference?.p);
+      cmp.numbers(i, "p", e.p, r.p, c.reference?.p, true);
     });
     cmp.check("mcompDunnett", fixture.cases.length);
   });

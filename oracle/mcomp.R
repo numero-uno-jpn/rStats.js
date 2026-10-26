@@ -2,12 +2,14 @@ source("/oracle/_anova.R")
 suppressPackageStartupMessages({library(PMCMRplus); library(dunn.test); library(multcomp)})
 
 # Multiple comparisons (ROADMAP: Steel-Dwass, Dunn, Dunnett, Steel). Fixtures, one case per row of `cases`:
-#   mcompPMCMR  (reference: the exact p-values of dunnettTest and of the single-step kwManyOneDunnTest)
+#   mcompPMCMR  (reference: the exact p-values of dunnettTest and of the single-step kwManyOneDunnTest, and the
+#               studentized-range p-values of dscfAllPairsTest, gamesHowellTest and tukeyTest to full precision)
 #               PMCMRplus: fn one of dscfAllPairsTest (Steel-Dwass-Critchlow-Fligner), steelTest (Steel's many-one),
 #               kwAllPairsDunnTest, kwManyOneDunnTest, dunnettTest, gamesHowellTest, tukeyTest; args x (values), g
 #               (group labels), and p.adjust.method / alternative where given. Written: method, statistic and
 #               p.value (matrices as arrays of rows, NA for the empty cells), rowNames, colNames, p.adjust.method.
-#   mcompDunn   dunn.test::dunn.test(x, g, method, kw = FALSE, table = FALSE, altp): chi2 (Kruskal-Wallis), Z, P,
+#   mcompDunn   dunn.test::dunn.test(x, factor(g), method, kw = FALSE, table = FALSE, altp): chi2 (Kruskal-Wallis), Z, P,
+#               (g as a factor: with a character g, dunn.test 1.4.2 ranks the values as text),
 #               P.adjusted, comparisons.
 #   mcompDunnett multcomp: summary(glht(aov(y ~ g), linfct = mcp(g = "Dunnett"))), with set.seed(1) before the call
 #               (mvtnorm's integration is randomised): estimate, se, t, p (R's p-values are only about 1e-5 accurate:
@@ -51,6 +53,23 @@ dunnett_p <- function(c, lambda, df, alternative) {
   1 - integrate(function(u) inner(u) * dens(u), 0, Inf, rel.tol = 1e-12, subdivisions = 2000)$value
 }
 
+
+# The studentized range upper tail to full precision (R's ptukey is accurate to about 8 digits):
+#   P(Q > q) = E_S[ k ∫ phi(z) (Phi(z)^(k-1) - (Phi(z) - Phi(z - q S))^(k-1)) dz ],  S = sqrt(chi^2_df / df) (S = 1 for
+# df = Inf); the difference of powers is formed as a^m (-expm1(m log1p(-c/a))) without cancellation.
+tk_upper <- function(q, k, df) {
+  inner <- function(w) {
+    f <- function(z) { a <- pnorm(z); c <- pnorm(z - w); m <- k - 1
+      v <- ifelse(a > 0, exp(m * log(a)) * (-expm1(m * log1p(-pmin(1, c / a)))), 0); k * dnorm(z) * v }
+    integrate(f, -Inf, Inf, rel.tol = 1e-13, subdivisions = 2000)$value
+  }
+  if (is.infinite(df)) return(inner(q))
+  dens <- function(u) exp(log(2) + (df / 2) * log(df / 2) - lgamma(df / 2) + (df - 1) * log(u) - df * u^2 / 2)
+  sd <- 1 / sqrt(2 * df)
+  lims <- if (df > 50) c(max(0, 1 - 60 * sd), 1 + 60 * sd) else c(0, Inf)
+  integrate(function(u) vapply(u, function(uu) inner(q * uu), 0) * dens(u), lims[1], lims[2], rel.tol = 1e-12,
+            subdivisions = 2000)$value
+}
 pcases <- list()
 addp <- function(...) pcases[[length(pcases) + 1]] <<- list(...)
 for (d in datasets) {
@@ -75,6 +94,21 @@ write_anova_fixture("mcompPMCMR", pcases, function(a) {
   # sqrt(lambda_i lambda_j), lambda_i = n_i / (n_i + n_0)), with PMCMRplus's definitions: two-sided p = min(1, 2
   # P(max t_i >= |t|)) for dunnettTest and P(max |z_i| >= |z|) for kwManyOneDunnTest; greater P(max >= t); less
   # P(min <= t) = P(max >= -t) by symmetry
+  if (a$fn %in% c("dscfAllPairsTest", "gamesHowellTest", "tukeyTest")) {
+    x <- unclass(a$x); g <- factor(unclass(a$g)); k <- nlevels(g)
+    v <- tryCatch(suppressWarnings(do.call(get(a$fn, envir = asNamespace("PMCMRplus")), list(x = x, g = g))), error = function(e) NULL)
+    if (is.null(v)) return(NULL)
+    st <- as.matrix(v$statistic); n <- table(g); s2 <- tapply(x, g, var); N <- length(x)
+    P <- st * NA
+    for (i in seq_len(nrow(st))) for (j in seq_len(ncol(st))) if (!is.na(st[i, j])) {
+      gi <- i + 1; gj <- j
+      df <- switch(a$fn, dscfAllPairsTest = Inf, tukeyTest = N - k,
+                   gamesHowellTest = { A <- s2[gi] / n[gi] + s2[gj] / n[gj]
+                     A^2 / (s2[gi]^2 / (n[gi]^2 * (n[gi] - 1)) + s2[gj]^2 / (n[gj]^2 * (n[gj] - 1))) })
+      P[i, j] <- tk_upper(abs(st[i, j]), k, as.numeric(df))
+    }
+    return(list(p.value = lapply(seq_len(nrow(P)), function(i) I(num2str(P[i, ])))))
+  }
   single <- a$fn == "kwManyOneDunnTest" && (is.null(a$p.adjust.method) || a$p.adjust.method == "single-step")
   if (!(a$fn == "dunnettTest" || single)) return(NULL)
   args <- list(x = unclass(a$x), g = factor(unclass(a$g)))
@@ -97,7 +131,7 @@ for (d in datasets) for (method in c("none", "bonferroni", "sidak", "holm", "hs"
 
 write_anova_fixture("mcompDunn", dcases, function(a) {
   r <- with_warnings(function() {
-    out <- utils::capture.output(v <- dunn.test(unclass(a$x), unclass(a$g), method = a$method, kw = FALSE,
+    out <- utils::capture.output(v <- dunn.test(unclass(a$x), factor(unclass(a$g)), method = a$method, kw = FALSE,
                                                 table = FALSE, altp = a$altp))
     v
   })

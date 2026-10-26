@@ -1,4 +1,5 @@
-// Rank-based k-sample and two-sample tests: R's kruskal.test, friedman.test, quade.test, fligner.test and mood.test.
+// Rank-based k-sample and two-sample tests: R's kruskal.test, friedman.test, quade.test, fligner.test and mood.test,
+// and DescTools' CochranQTest (the Friedman test of a 0/1 matrix, from oracle/rm-tests-behaviour.md).
 //
 // Written for rStats.js from the published statistics (no ported code), with ties handled by average ranks:
 // - Kruskal and Wallis (JASA 47, 1952): H = (12 / (N (N + 1)) sum R_i^2 / n_i - 3 (N + 1)) / (1 - sum (t^3 - t) /
@@ -95,6 +96,16 @@ export function friedmanTest(y: readonly (readonly number[])[]): ChisqStatTestRe
   for (const s of colSums) ss += (s - (n * (k + 1)) / 2) ** 2;
   const stat = (12 * ss) / (n * k * (k + 1) - ties / (k - 1));
   return chisqResult("Friedman rank sum test", "Friedman chi-squared", stat, k - 1);
+}
+
+/**
+ * Cochran's Q test for binary responses in an unreplicated complete block design. Equivalent to DescTools'
+ * `CochranQTest()` with a matrix: the Friedman test of the 0/1 matrix (with ties), reported as Q.
+ *
+ * @param y Blocks as rows, treatments as columns, values 0 or 1. Rows with a missing value are dropped.
+ */
+export function cochranQTest(y: readonly (readonly number[])[]): ChisqStatTestResult {
+  return { ...friedmanTest(y), method: "Cochran's Q test", statisticName: "Q" };
 }
 
 /** Result of {@link quadeTest}: an F statistic with two degrees of freedom. */

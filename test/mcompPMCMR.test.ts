@@ -12,16 +12,14 @@ import {
   type PMCMRResult,
 } from "../src/index.js";
 import { num } from "./helpers/fixture.js";
-import { loadMcompFixture, McompComparison, type McompUnverified } from "./helpers/mcomp.js";
+import { loadMcompFixture, McompComparison, type McompKnownDifference } from "./helpers/mcomp.js";
 
 const fixture = loadMcompFixture("mcompPMCMR");
 
 /**
- * Studentized-range p-values (dscfAllPairsTest, gamesHowellTest, tukeyTest) on which R's ptukey, accurate to about 8
- * digits (?ptukey; docs/differences-from-r.md), is more than 1e-12 off. rStats.js's ptukey is checked against
- * high-precision references in test/tukey.test.ts, and three of these values (cases 34 and 51) agree to 1e-15 with an
- * independent quadrature of the range distribution, but the fixture has no references for them, so the specification's
- * rule for known differences cannot be applied: case -> positions in the flattened p-value table (NaN cells included).
+ * Studentized-range p-values (dscfAllPairsTest, gamesHowellTest, tukeyTest) that differ from R by more than 1e-12 and
+ * are within 1e-12 of the fixture's full-precision reference: case -> positions in the flattened p-value table (NaN
+ * cells included).
  */
 const RANGE_P: Record<number, number[]> = {
   0: [2],
@@ -37,8 +35,8 @@ const RANGE_P: Record<number, number[]> = {
   53: [0, 2, 3],
   54: [0, 2, 3],
 };
-const UNVERIFIED: McompUnverified[] = Object.entries(RANGE_P).flatMap(([c, idx]) =>
-  idx.map((index) => ({ case: Number(c), field: "pValue", index, reason: "R's ptukey is accurate to about 8 digits" })),
+const KNOWN: McompKnownDifference[] = Object.entries(RANGE_P).flatMap(([c, idx]) =>
+  idx.map((index) => ({ case: Number(c), field: "pValue", index, reason: "R's ptukey is accurate to only about 8 digits" })),
 );
 
 function run(a: Record<string, unknown>): PMCMRResult {
@@ -68,7 +66,7 @@ function run(a: Record<string, unknown>): PMCMRResult {
 
 describe("mcompPMCMR", () => {
   it(`matches R (${fixture.r_version})`, () => {
-    const cmp = new McompComparison(UNVERIFIED);
+    const cmp = new McompComparison(KNOWN);
     fixture.cases.forEach((c, i) => {
       const e = c.expected;
       if (e.error !== undefined) return cmp.error(i, e.error as string, () => run(c.args));
@@ -79,7 +77,10 @@ describe("mcompPMCMR", () => {
       cmp.strings(i, "pAdjustMethod", e["p.adjust.method"], r.pAdjustMethod);
       cmp.strings(i, "warnings", e.warnings, r.warnings);
       cmp.numbers(i, "statistic", e.statistic, r.statistic);
-      cmp.numbers(i, "pValue", e["p.value"], r.pValue, c.reference?.["p.value"]);
+      // the Dunnett-type p-values (rule 1) against the reference only
+      const dunnett =
+        c.args.fn === "dunnettTest" || (c.args.fn === "kwManyOneDunnTest" && (c.args["p.adjust.method"] ?? "single-step") === "single-step");
+      cmp.numbers(i, "pValue", e["p.value"], r.pValue, c.reference?.["p.value"], dunnett);
     });
     cmp.check("mcompPMCMR", fixture.cases.length);
   });

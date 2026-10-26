@@ -20,10 +20,12 @@ three <- list(time = c(a$time, b$time, cc$time), status = c(a$status, b$status, 
               group = rep(c("a", "b", "c"), c(25, 30, 20)))
 tied <- list(time = c(1, 2, 2, 3, 3, 3, 4, 5, 5, 6, 2, 2, 3, 4, 4, 5, 6, 6, 7, 8),
              status = c(1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1), group = rep(c("x", "y"), each = 10))
+half <- list(time = c(1, 2, 3, 4, 1, 2, 2, 5, 6, 6), status = c(1, 1, 1, 1, 1, 1, 0, 1, 1, 1),  # S reaches exactly 0.5
+             group = rep(c("p", "q"), c(4, 6)))
 lung1 <- list(time = lung$time, status = lung$status - 1L, group = ifelse(lung$sex == 1, "male", "female"))
 
 cases <- list()
-for (d in list(two, three, tied, lung1)) {
+for (d in list(two, three, tied, lung1, half)) {
   for (rho in c(0, 1, 0.5)) cases[[length(cases) + 1]] <- list(fn = "survdiff", time = I(d$time), status = I(d$status), group = I(d$group), rho = rho)
   for (ct in c("log", "plain", "log-log")) {
     cases[[length(cases) + 1]] <- list(fn = "survfit", time = I(d$time), status = I(d$status), group = I(d$group), conf.type = ct)

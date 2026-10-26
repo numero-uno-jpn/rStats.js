@@ -337,8 +337,8 @@ export function dunnTest(x: Sample, g: readonly GroupLabel[], options: DunnTestO
   return { chi2, Z, P, PAdjusted: dunnAdjust(P, method), comparisons };
 }
 
-/** dunn.test's adjustments: each value by the factor of its rank, capped at 1 (exported for the tests) */
-export function dunnAdjust(P: readonly number[], method: DunnTestMethod): number[] {
+/** dunn.test's adjustments: each value by the factor of its rank, capped at 1 */
+function dunnAdjust(P: readonly number[], method: DunnTestMethod): number[] {
   const m = P.length;
   const sidakLike = (p: number, e: number): number => Math.min(1, -Math.expm1(e * Math.log1p(-p)));
   // i = 1..m: rank among the increasing (or decreasing) values, ties in the order of the comparisons

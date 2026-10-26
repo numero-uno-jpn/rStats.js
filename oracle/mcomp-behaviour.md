@@ -17,6 +17,10 @@ read their source. Fixtures `mcompPMCMR`, `mcompDunn`, `mcompDunnett` (`oracle/m
 4. dunn.test's unadjusted p-value is **one-sided** (upper tail of |Z|) unless `altp`.
 5. The Steel-Dwass statistic uses the smaller Mann-Whitney U, so it is never positive.
 6. Groups are the sorted labels (code point order); the first is the control of the many-one tests.
+7. R's `ptukey` (used for Steel-Dwass, Games-Howell and Tukey) is accurate to only about 8 digits; the fixture has
+   references for these p-values (`reference`, full precision), which this library's `ptukey` should meet.
+8. dunn.test 1.4.2 given a character `g` ranks the values as text; the fixture calls it with a factor (the numeric
+   ranks), which is what `dunnTest` does.
 
 ## API
 
@@ -92,6 +96,7 @@ tolerance 1e-13 and 1e-12 for the outer integral).
 
 ## Accuracy
 
-Everything not listed in rule 1 within a relative 1e-12 of R. The Dunnett-type p-values within a relative 1e-10 of the
+Everything not listed in rule 1 within a relative 1e-12 of R; the studentized-range p-values of rule 7 may instead
+be known differences within a relative 1e-12 of their reference, listed with the reason. The Dunnett-type p-values within a relative 1e-10 of the
 `reference` (the reference's own integration tolerance), and they need not be listed as known differences. Other
 known differences only within 1e-12 of a reference, listed with reasons. No loosening.
