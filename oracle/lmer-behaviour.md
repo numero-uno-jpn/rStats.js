@@ -14,7 +14,8 @@ parameters, `X` the fixed-effects model matrix.
 The work is done in stages; each stage has its own section and fixture. **Stage 1a**: the structure of the model
 (formula, `X`, `Z`, `Λ_θ`, the initial `θ` and its bounds), with nothing fitted and nothing exported. **Stage 1b**:
 the profiled deviance and the penalised least-squares solution at a given `θ` (section "The profiled deviance"),
-still internal. A later stage (the fit and its results) will be added to this file.
+still internal. **Stage 1c**: the fit and its results, exported as `lmer` from the new area `mixed` (section "The
+fit and its results").
 
 ## Easy to get wrong
 
@@ -192,14 +193,105 @@ Accuracy required: each value must be within the tolerance of **R's value or of 
 `beta`, `u`, `b`: each element within `1e-12 ×` the largest absolute element of the reference vector. No known
 differences are expected.
 
-## Planned API (stage 1c; not to be implemented in stage 1a)
+## The fit and its results (stage 1c)
 
-For orientation only:
+### API
 
 ```ts
-lmer(formula: string, data: DataFrame, options?: { REML?: boolean; contrasts?: ...; levels?: ... }): LmerResult
+lmer(formula: string, data: DataFrame, options?: LmerOptions): LmerResult
 ```
 
-with the fixed effects, their covariance matrix, the variance components, the log-likelihood and the random
-effects in the result. It will be exported from a new subpath `@numero-uno-jpn/rstats/mixed`, not from the main
-entry. In stage 1a nothing new is exported: the structure is an internal function, tested directly.
+`LmerOptions`: `REML` (boolean, default `true`), and `contrasts` and `levels` as in `lm` (stage 1a). `LmerResult`
+(names of the fields as given here; each documented):
+
+| Field | Meaning (R) |
+|---|---|
+| `formula`, `REML` | the formula; whether the REML criterion was optimised |
+| `nObs`, `rows` | the number of rows used; their 0-based indices in `data` |
+| `theta` | the estimate of θ (`getME(fit, "theta")`) |
+| `fixefNames`, `fixef` | the columns of X and the fixed effects β̂ (`fixef(fit)`) |
+| `coefTable` | `{ estimate, stdError, tValue }` (`coef(summary(fit))`; p-values come in a later stage) |
+| `vcov` | the covariance matrix of β̂ (`vcov(fit)`), array of rows |
+| `sigma` | the residual standard deviation (`sigma(fit)`) |
+| `varCorr` | one entry per random-effects term, in the structure's order: `{ group, columns, sd, corr }` (`VarCorr(fit)`) |
+| `ranef` | one entry per grouping factor, in the structure's order: `{ group, levels, columns, values }`, `values` one array per level (`ranef(fit)`) |
+| `fitted`, `residuals` | `fitted(fit)`, `residuals(fit)` (one per row used) |
+| `logLik`, `df`, `AIC`, `BIC` | `logLik(fit)` and its `df`, `AIC(fit)`, `BIC(fit)` |
+| `deviance`, `REMLcrit` | `deviance(fit, REML = FALSE)` and `REMLcrit(fit)` (both are defined for either kind of fit) |
+| `singular` | `isSingular(fit)` |
+| `messages`, `warnings` | as in stage 1a, plus the message below |
+
+### The fit
+
+The criterion `d(θ)` is the REML criterion (`REML = true`) or the ML deviance of stage 1b. The estimate of θ
+minimises it subject to the lower bounds (0 for the diagonal elements of each `T_k`, none for the others).
+
+**The fixture's reference is the exact minimiser**, not lme4's value: lme4's optimiser stops when its own
+tolerances are met, typically 1e-9 to 1e-5 (relative) from the minimiser in θ. The implementation must converge to
+the minimiser to nearly full precision: at the solution the gradient of `d` with respect to the free elements of θ
+must vanish to rounding error, which needs an accurate gradient (for example the analytic derivative of the profiled
+criterion; finite differences of `d` in double precision only locate the minimiser to about 1e-6). **An element
+whose minimiser is on its bound is exactly 0** (it is on the boundary when the derivative of `d` with respect to it
+at 0 is positive). Start from the structure's initial θ; the minimiser in the fixture is the one lme4 converges to
+from there. How to optimise is not prescribed (a bound-constrained quasi-Newton method followed by Newton steps on
+the free elements is one way). If the optimisation fails, throw an error.
+
+### The results at θ̂
+
+With `n`, `p`, the penalised least-squares solution `(β̂, û)`, `b = Λ_θ̂ û`, `prss`, `R_X` of stage 1b at θ̂:
+
+- `sigma = sqrt(prss / (n − p))` for REML fits and `sqrt(prss / n)` for ML fits.
+- `vcov = sigma² (R_X'R_X)⁻¹`; `stdError` the square roots of its diagonal; `tValue = fixef / stdError`.
+- `varCorr`: for term `k`, `Σ_k = sigma² T_k T_k'` (`T_k` filled from θ̂ as in stage 1a); `sd` the square roots of
+  its diagonal, `corr[i][j] = Σ_k[i][j] / (sd_i sd_j)` (1 on the diagonal; a 1 × 1 term has `corr` `[[1]]`). `group`
+  is the grouping factor's name, `columns` the term's columns. Terms are listed separately even when they share a
+  grouping factor (`(1 | g) + (0 + x | g)` has two entries, both with group `g`).
+- `ranef`: for each grouping factor (in the order of the structure's groups), the rows are its levels and the
+  columns are the columns of all the terms that use it, in term order (`(1 | g) + (0 + x | g)` gives the columns
+  `(Intercept)`, `x`); the values are the elements of `b` for that level and column.
+- `fitted = Xβ̂ + Zb`, `residuals = y − fitted`.
+- `deviance` = `logDetL + n (1 + log(2π prss / n))` and `REMLcrit` = `logDetL + logDetRX + (n − p)(1 + log(2π prss
+  / (n − p)))`, both at θ̂ whichever criterion was optimised. `logLik = −REMLcrit / 2` for REML fits and
+  `−deviance / 2` for ML fits; `df = p + (length of θ) + 1`; `AIC = −2 logLik + 2 df`; `BIC = −2 logLik + log(n) df`.
+- `singular`: true if a diagonal element of some `T_k` is below 1e-4. Then the message `boundary (singular) fit: see
+  help('isSingular')` is added to `messages` (after the messages of the structure).
+- lme4's convergence warnings ("Model failed to converge ...") concern its optimiser stopping early and are **not**
+  reproduced.
+
+### The fixture lmer (`oracle/lmer.R`)
+
+The comment at the top of the oracle describes the fields. `expected` holds lme4's values, `reference` the values
+at the exact minimiser (with `newtonSteps`, for information).
+
+Accuracy required, against `reference`: `logLik`, `AIC`, `BIC`, `deviance`, `REMLcrit`: relative 1e-12 (they are
+insensitive to small errors in θ̂). `theta`, `fixef`, `stdError`, `tValue`, `vcov`, `sigma`, `varCorr` (`sd`, and
+`corr` absolute), `ranef` values, `fitted`, `residuals`: within 1e-9 × the largest absolute value of the reference
+vector or matrix (`sigma` relative). Elements of θ that are 0 in the reference must be exactly 0. `df`,
+`singular`, the names and levels, `messages` and `warnings`: equal to the reference / lme4.
+
+Against `expected` (lme4): the criterion of the fit must not be worse than lme4's (`d(θ̂) ≤ d(θ_lme4) + 1e-10
+|d(θ_lme4)|`, with `d(θ_lme4)` lme4's `REMLcrit` or `deviance`), and the test log should print the largest
+relative difference from lme4 of each field (they show how far lme4 stops from the minimiser; they are not checked).
+
+### Exporting: the new area `mixed`
+
+`lmer` and its option and result types are exported from a new area, **not** from `src/index.ts` (the single-file
+bundle stays as it is):
+
+- `src/entries/mixed.ts` (first line: a comment naming the area, as in the other entry files).
+- `package.json` `exports`: `"./mixed"` like the other subpaths; `scripts/bundle.mjs` `AREAS`: add `"mixed"`.
+- Every export has a doc comment with `@category Mixed models` (a new, 15th category: add it to the list in
+  `test/categories.test.ts` and to `categoryOrder` in `typedoc.json`, after "Generalized linear models"), an
+  `@example` whose `// value` comments are checked by `test/docExamples.test.ts`, and the sentence
+  `` Equivalent to `lme4::lmer()` in R. `` (see `test/rNames.test.ts` for the exact form).
+- Tests and scripts that collect the exports of the areas must include `mixed`, and those that assume everything is
+  in `src/index.ts` must be adapted: `test/docExamples.test.ts` (examples run with the exports in scope),
+  `test/demo.test.ts` (list `lmer` in `NOT_IN_DEMO_YET`), `scripts/r-index.mjs` and the pages it generates
+  (`docs/r-functions.md`, `docs/ja/r-functions.md`, with a Japanese description in `docs/ja/r-functions.json`;
+  `test/rIndexDoc.test.ts` checks they are current), `scripts/size.mjs`. TypeDoc's configuration and the other
+  documents are updated separately (not part of this stage).
+
+### Measure and report
+
+The time of the fits of the fixture's cases, and of the three sizes of stage 1b (dense implementation; the sparse
+factorisation comes in a later stage).
