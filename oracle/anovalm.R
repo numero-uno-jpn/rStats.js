@@ -51,6 +51,16 @@ add("y ~ A * B", add_exact(bal))
 add("y ~ A * B", add_exact(unb))
 add("y ~ A", add_exact(bal)[add_exact(bal)$B == "p", ])   # the residuals are exactly 0: perfect fit
 add("y ~ A * B", na)
+# a logical column with one value in the rows used: aliased, not an error (R codes logicals as FALSE/TRUE)
+dlog <- data.frame(y = c(1.2, 2.3, 3.1, 4.1, 5.5, 3.3, 2.8, 4.4), x = c(1, 2, 3, 4, 5, 6, 7, 8), M = TRUE,
+                   A = rep(c("a", "b"), 4), stringsAsFactors = FALSE)
+add("y ~ x + M", dlog)
+add("y ~ x:M", dlog)
+add("y ~ A + M", dlog)
+dlog2 <- dlog; dlog2$M[3] <- FALSE; dlog2$y[3] <- NA
+add("y ~ x + M", dlog2)                                         # FALSE only in a dropped row
+dlev <- dlog; dlev$A[3] <- "c"; dlev$y[3] <- NA
+add("y ~ A + x", dlev)                                          # a level only in a dropped row
 add("y ~ x + A", na)
 add("y ~ A * B", unb, weights = "w")
 add("y ~ x * A", unb, weights = "w")

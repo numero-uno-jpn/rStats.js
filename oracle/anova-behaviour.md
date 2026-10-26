@@ -75,19 +75,27 @@ Results must be plain objects (no classes, no functions) so that they serialise 
 
 ## Data and missing values
 
-- A column of strings is a factor. Its levels are the distinct values **sorted by code point** (this library
-  already sorts factor levels this way; R sorts by the locale's collation, and the difference is documented in
-  `docs/differences-from-r.md`), unless `levels` gives the order.
-- A column of booleans is a factor with levels `FALSE` and `TRUE` (in that order; the column names use
-  `FALSE`/`TRUE`, e.g. `LTRUE`).
-- A column of numbers is numeric (a number that should be a factor has to be given as strings).
 - Missing values: `null`, and `NaN` in a numeric column. A row with a missing value in any variable of the formula
   (response included) or in the weights is dropped before anything else. The results report which rows were used
   (`rows`, 0-based indices into `data`; the fixtures hold R's 1-based row numbers).
-- `lm` and `aov` drop levels that have no row left (R's `drop.unused.levels = TRUE`); `modelMatrix` keeps them (their
+- A column of strings is a factor **formed from the rows kept** (R converts character columns with `factor()` after
+  the rows with missing values are dropped): its levels are the distinct values of the rows kept, **sorted by code
+  point** (this library already sorts factor levels this way; R sorts by the locale's collation, and the difference
+  is documented in `docs/differences-from-r.md`). A value that occurs only in dropped rows is not a level, in
+  `modelMatrix` as in `lm` and `aov`.
+- A column with `levels` given is a factor with those levels (R: `factor(x, levels = ...)` before the call). `lm`
+  and `aov` drop the levels that have no row left (R's `drop.unused.levels = TRUE`); `modelMatrix` keeps them (their
   indicator or contrast columns are then all zero).
-- A factor used in a term with fewer than two levels is an error: `contrasts can be applied only to factors with 2
-  or more levels`.
+- A column of booleans is coded, in a model matrix, as a factor with **always the two levels** `FALSE` and `TRUE`
+  (in that order; the column names use `FALSE`/`TRUE`, e.g. `LTRUE`), even when only one of the values occurs in the
+  rows kept: R keeps logical columns logical (`drop.unused.levels` does not apply to them) and `model.matrix` codes a
+  logical as these two levels. A boolean column with one value is therefore not an error in `lm` or `aov`: its
+  contrast column is constant, so it is aliased (coefficient `NaN`, as R's `NA`), or with indicators one column is
+  all zero. (This rule is about model matrices; where a function groups the rows by a boolean column, such as the
+  formula versions of the tests, the groups are the values present.)
+- A column of numbers is numeric (a number that should be a factor has to be given as strings).
+- A factor (strings, or `levels` given) used in a term with fewer than two levels is an error: `contrasts can be
+  applied only to factors with 2 or more levels`.
 - A variable that is not a column of `data` is an error: `object 'Q' not found`.
 - Columns of different lengths are an error: `variable lengths differ (found for 'x')` with the name of the first
   variable whose length differs from the first variable's.

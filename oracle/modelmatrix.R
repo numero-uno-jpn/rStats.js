@@ -43,6 +43,15 @@ for (f in c("y ~ A", "y ~ A + B", "y ~ A * B", "y ~ B * A", "y ~ A:B + A", "y ~ 
 add("y ~ A * B", data = dna)
 add("y ~ x + A", data = dna)
 add("y ~ G", data = dnum)
+# a value only in rows dropped for a missing value: not a level of a character column (it is of a factor, below)
+dlev <- data.frame(y = c(1.2, 2.3, NA, 4.1, 5.5, 3.3), A = c("a", "b", "c", "a", "b", "a"), B = c("p", "q", "r", "q", "p", "q"),
+                   x = c(1, 2, 3, 4, 5, 6), L = c(TRUE, TRUE, FALSE, TRUE, TRUE, TRUE), stringsAsFactors = FALSE)
+add("y ~ A", data = dlev)
+add("y ~ A:x", data = dlev)
+add("y ~ A * B", data = dlev)
+add("y ~ A", data = dlev, levels = list(A = c("a", "b", "c")))
+add("y ~ x + L", data = dlev)                                   # logical: both levels although FALSE is dropped
+add("y ~ x:L", data = dlev)
 add("y ~ A", contrasts = list(A = "contr.sum"))
 add("y ~ A * B", contrasts = list(A = "contr.sum", B = "contr.sum"))
 add("y ~ A * B", contrasts = list(A = "contr.helmert"))

@@ -80,8 +80,11 @@ unary minus and plus without a space, parentheses kept as written. The labels ap
 The variables of the whole formula (response, fixed part, the left-hand sides and the grouping expressions of all
 bars) are taken from the data. **A row with a missing value in any of them is dropped**, as in `lm`. If no row is
 left: error `0 (non-NA) cases`. An unknown variable: the same error as `lm` (`object 'Q' not found`). Factors are
-formed as in `lm` (strings and booleans become factors; the `levels` option sets the order; levels without a row left
-are dropped). A grouping variable that is numeric is also turned into a factor (rule 6 above); a numeric variable is
+formed as in `lm` (see `oracle/anova-behaviour.md`, "Data and missing values": strings become factors of the
+values in the rows kept; the `levels` option sets the order and levels without a row left are dropped; a boolean
+column in `X` or in the left-hand side of a bar is coded with **both** levels `FALSE` and `TRUE` even if one of them
+has no row left, so `y ~ x + L + (1 | g)` with `L` always `TRUE` has a constant `LTRUE` column, aliased with the
+intercept and dropped with the message of check 5). A grouping variable that is numeric is also turned into a factor (rule 6 above); a numeric variable is
 still numeric where it is used outside a grouping expression (`y ~ g + (1 | g)` has a numeric column `g` in `X`).
 
 **A grouping factor's levels** are those present in the rows kept, in level order (sorted strings by code point,

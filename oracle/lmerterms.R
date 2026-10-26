@@ -84,6 +84,13 @@ add("y ~ f + (f | a)", levels = list(f = c("mid", "lo", "hi")))
 add("y ~ x + x2 + (1 | a)", data = dcol)
 add("y ~ x + big + (1 | a)", data = dsc)
 add("y ~ x + (1 | G)", data = dnum)
+dlg <- d; dlg$L <- TRUE
+add("y ~ x + L + (1 | a)", data = dlg)                          # a logical column with one value: LTRUE aliased
+add("y ~ x + (L | a)", data = dlg)                              # ... in the left-hand side of a bar
+dl2 <- d; dl2$y[!dl2$L] <- NA
+add("y ~ L + (1 | a)", data = dl2)                              # FALSE only in dropped rows
+dl3 <- d; dl3$y[dl3$a == "r"] <- NA
+add("y ~ a + (1 | g)", data = dl3)                              # a level only in dropped rows
 add("Reaction ~ Days + (Days | Subject)", data = sleep)
 add("Reaction ~ Days + (Days || Subject)", data = sleep)
 add("Reaction ~ Days + (1 | Subject) + (0 + Days | Subject)", data = sleep)
@@ -97,6 +104,7 @@ add("y ~ (1 | a)", data = d[1:8, ])                              # one level
 add("y ~ (1 | x)", data = d[1:4, ])                              # as many levels as observations
 add("y ~ (x | g)", data = d[1:8, ])                              # as many random effects as observations
 add("y ~ (x | a) + (1 | g)", data = d[1:8, ])
+add("y ~ (1 | L)", data = dl2)                                 # a logical grouping factor with one level left
 add("y ~ (1 | Q)")                                               # unknown variable
 d0 <- d; d0$y <- NA_real_
 add("y ~ (1 | a)", data = d0)                                    # no rows left
