@@ -49,8 +49,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   precision (R's `ptukey` has about 8 digits).
 - Survival analysis: `survdiff` (log-rank, G-rho family) and `survfit` (Kaplan-Meier with its intervals and median).
 - Agreement and reliability: `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych).
-- `schur` (real Schur decomposition, `Matrix::Schur`) and `expm` (the matrix exponential, expm's `Higham08.b` and
-  `Higham08`).
+- `schur` (real Schur decomposition, `Matrix::Schur`) and `expm` (the matrix exponential, expm's `Higham08.b`,
+  `Higham08`, `Pade`, `Taylor`, `PadeO` and `TaylorO` with `order`).
 - `factanal` (maximum-likelihood factor analysis with varimax and promax rotations), on `optim`'s L-BFGS-B.
 - `polychor` and `polyserial` (polycor's two-step estimates) and `pbvnorm` (bivariate normal rectangle
   probabilities, Genz's method).

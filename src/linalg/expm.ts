@@ -1,4 +1,5 @@
-// Matrix exponential (the expm package's expm, methods "Higham08.b" and "Higham08"). Written for rStats.js.
+// Matrix exponential (the expm package's expm, methods "Higham08.b", "Higham08", "Pade", "Taylor", "PadeO" and
+// "TaylorO"). Written for rStats.js.
 //
 // Sources: the specification oracle/matfn-behaviour.md; the scaling and squaring method with Padé approximants of
 // N. J. Higham, "The scaling and squaring method for the matrix exponential revisited", SIAM J. Matrix Anal. Appl.
@@ -11,30 +12,46 @@
 //   singular), then squared s times, and the balancing is undone
 // - dgebal's DNRM2 is computed with the classic scaled sum of squares rather than reference BLAS 3.12's algorithm
 //   (it only decides between powers of 2 in the scaling; the results may differ in rare borderline cases)
+// - "Pade", "Taylor", "PadeO", "TaylorO" (Shapira and Firth's methods, as the specification describes them): scaling
+//   by N = 2^p with p from sqrt(1-norm x infinity-norm), a Taylor polynomial or a diagonal Padé approximant of degree
+//   order (default 8) by Horner's rule, the Padé quotient by the conjugate gradient squared method column by column,
+//   then squaring p times. In R the "O" variants differ only in using plain loops instead of BLAS; here all four use
+//   plain loops in index order
 // - A 1 x 1 matrix gives exp of its entry, a 0 x 0 matrix gives a 0 x 0 matrix
 
 import { fromMat, newMat, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
-import { oneNorm } from "./norm.js";
+import { infNorm, oneNorm } from "./norm.js";
 import { solve } from "./solve.js";
 
 /** Methods of {@link expm}. */
-export type ExpmMethod = "Higham08.b" | "Higham08";
+export type ExpmMethod = "Higham08.b" | "Higham08" | "Pade" | "Taylor" | "PadeO" | "TaylorO";
+
+const METHODS: readonly string[] = ["Higham08.b", "Higham08", "Pade", "Taylor", "PadeO", "TaylorO"];
 
 /** Options for {@link expm}. */
 export interface ExpmOptions {
   /**
    * `"Higham08.b"` (default): Higham's scaling and squaring with Padé approximants after balancing (LAPACK's
-   * `dgebal`, permutation then scaling). `"Higham08"`: the same without balancing.
+   * `dgebal`, permutation then scaling). `"Higham08"`: the same without balancing. `"Pade"` and `"Taylor"` (and
+   * `"PadeO"`, `"TaylorO"`, which compute the same): scaling and squaring with a diagonal Padé approximant or a
+   * Taylor polynomial of degree `order` (Shapira and Firth's code in the expm package).
    */
   method?: ExpmMethod;
+  /**
+   * Degree of the Padé approximant or the Taylor polynomial (a positive integer), used only by `"Pade"`, `"Taylor"`,
+   * `"PadeO"` and `"TaylorO"`. Default: 8.
+   */
+  order?: number;
 }
 
 /**
- * Matrix exponential. Equivalent to R's `expm::expm(x, method)` with methods `"Higham08.b"` (the default) and
- * `"Higham08"`.
+ * Matrix exponential. Equivalent to R's `expm::expm(x, method, order)` with methods `"Higham08.b"` (the default),
+ * `"Higham08"`, `"Pade"`, `"Taylor"`, `"PadeO"` and `"TaylorO"`.
  *
- * Uses the scaling and squaring method with Padé approximants of degree 3, 5, 7, 9 or 13 (Higham 2005), with or
- * without balancing first. Throws if a linear system of the method is computationally singular.
+ * `"Higham08.b"` and `"Higham08"` use the scaling and squaring method with Padé approximants of degree 3, 5, 7, 9 or
+ * 13 (Higham 2005), with or without balancing first, and throw if a linear system of the method is computationally
+ * singular. The other methods use scaling and squaring with a Taylor polynomial or a diagonal Padé approximant of
+ * degree `order` (the Padé quotient by the conjugate gradient squared method, as expm does).
  *
  * @param x A square matrix (array of rows).
  * @param options See {@link ExpmOptions}.
@@ -48,12 +65,16 @@ export interface ExpmOptions {
  */
 export function expm(x: MatrixInput, options: ExpmOptions = {}): number[][] {
   const method = options.method ?? "Higham08.b";
-  if (method !== "Higham08.b" && method !== "Higham08") throw new RangeError(`unknown method: ${String(method)}`);
+  if (!METHODS.includes(method)) throw new RangeError(`unknown method: ${String(method)}`);
+  const order = options.order ?? 8;
+  if (!Number.isInteger(order) || order < 1) throw new RangeError("order must be a positive integer");
   const A = toMat(x);
   requireSquare(A);
   const n = A.nrow;
   if (n === 0) return [];
   if (n === 1) return [[Math.exp(A.data[0]!)]];
+  if (method === "Taylor" || method === "TaylorO") return fromMat(taylorScaled(A, order));
+  if (method === "Pade" || method === "PadeO") return fromMat(padeScaled(A, order));
   let perm: ReturnType<typeof gebal> | undefined;
   let scaling: ReturnType<typeof gebal> | undefined;
   if (method === "Higham08.b") {
@@ -140,6 +161,123 @@ function pade(A: Mat): Mat {
   let X = toMat(solve(fromMat(vmu), fromMat(vpu)));
   for (let k = 0; k < s; k++) X = mul(X, X);
   return X;
+}
+
+/**
+ * Exponent p of the scaling by N = 2^p (Shapira and Firth): with nu = sqrt(|A|_1 |A|_inf), L >= 1 the smallest with
+ * 2^L >= nu, p = L + 4
+ */
+function scalingExponent(A: Mat): number {
+  const nu = Math.sqrt(oneNorm(A) * infNorm(A));
+  let L = 1;
+  while (2 ** L < nu) L++;
+  return L + 4;
+}
+
+/** R <- R R, p times */
+function squareRepeatedly(R: Mat, p: number): Mat {
+  for (let k = 0; k < p; k++) R = mul(R, R);
+  return R;
+}
+
+/** M_ii <- M_ii + 1 */
+function addIdentity(M: Mat): void {
+  const n = M.nrow;
+  for (let i = 0; i < n; i++) M.data[i + i * n] = M.data[i + i * n]! + 1;
+}
+
+/** "Taylor": S = I, then S <- (S A) (1 / (j N)) + I for j = order ... 1, then squared p times */
+function taylorScaled(A: Mat, order: number): Mat {
+  const p = scalingExponent(A);
+  const N = 2 ** p;
+  let S = identity(A.nrow);
+  for (let j = order; j >= 1; j--) {
+    S = scale(mul(S, A), 1 / (j * N));
+    addIdentity(S);
+  }
+  return squareRepeatedly(S, p);
+}
+
+/** Padé numerator (sign 1) or denominator (sign -1) by Horner's rule: P = I, then P <- (P (sign A)) c_j + I */
+function padeHorner(A: Mat, order: number, N: number, sign: 1 | -1): Mat {
+  const signedA = sign === 1 ? A : scale(A, -1);
+  let P = identity(A.nrow);
+  for (let j = order; j >= 1; j--) {
+    const c = (order - j + 1) / (j * (2 * order - j + 1) * N);
+    P = scale(mul(P, signedA), c);
+    addIdentity(P);
+  }
+  return P;
+}
+
+/** "Pade": the diagonal Padé approximant of degree order, Q^-1 P column by column by CGS, then squared p times */
+function padeScaled(A: Mat, order: number): Mat {
+  const n = A.nrow;
+  const p = scalingExponent(A);
+  const N = 2 ** p;
+  const numer = padeHorner(A, order, N, 1);
+  const denom = padeHorner(A, order, N, -1);
+  const R = newMat(n, n);
+  for (let i = 0; i < n; i++) {
+    R.data.set(conjugateGradientSquared(denom, numer.data.subarray(i * n, (i + 1) * n)), i * n);
+  }
+  return squareRepeatedly(R, p);
+}
+
+/** Conjugate gradient squared for M x = f, at most n iterations (as Shapira and Firth's code) */
+function conjugateGradientSquared(M: Mat, f: Float64Array): Float64Array {
+  const n = M.nrow;
+  const TINY = 1e-100;
+  const matVec = (v: Float64Array) => {
+    const y = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      let s = 0;
+      for (let l = 0; l < n; l++) s += M.data[i + l * n]! * v[l]!;
+      y[i] = s;
+    }
+    return y;
+  };
+  const dot = (u: Float64Array, v: Float64Array): number => {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += u[i]! * v[i]!;
+    return s;
+  };
+  /** u + a v */
+  const plus = (u: Float64Array, a: number, v: Float64Array) => {
+    const y = new Float64Array(n);
+    for (let i = 0; i < n; i++) y[i] = u[i]! + a * v[i]!;
+    return y;
+  };
+  let x = new Float64Array(n);
+  let rc = Float64Array.from(f);
+  let dir = Float64Array.from(f);
+  let u = Float64Array.from(f);
+  const rbar = Float64Array.from(f);
+  const omegaInit = Math.sqrt(dot(rc, rc));
+  let rho0 = dot(rbar, f);
+  if (Math.abs(rho0) <= TINY) return x;
+  for (let iter = 0; iter < n; iter++) {
+    let v = matVec(dir);
+    const sigma = dot(rbar, v);
+    if (Math.abs(sigma) <= TINY) return x;
+    const alpha = rho0 / sigma;
+    if (Math.abs(alpha) <= TINY) return x;
+    const q = plus(u, -alpha, v);
+    v = plus(u, 1, q);
+    let s = matVec(v);
+    rc = plus(rc, -alpha, s);
+    const omega1 = Math.sqrt(dot(rc, rc));
+    x = plus(x, alpha, v);
+    if (Math.abs(omega1 / omegaInit) <= 1e-30) return x;
+    const rho1 = dot(rbar, rc);
+    if (Math.abs(rho1) <= TINY) return x;
+    const beta = rho1 / rho0;
+    rho0 = rho1;
+    u = plus(rc, beta, q);
+    s = plus(q, beta, dir);
+    dir = plus(u, beta, s);
+  }
+  return x;
 }
 
 function identity(n: number): Mat {
