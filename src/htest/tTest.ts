@@ -58,8 +58,9 @@ export interface TTestResult extends HTest {
  * Student's t-test. Equivalent to R's `t.test()`.
  *
  * Performs a one-sample, two-sample (Welch's by default, or pooled-variance with
- * `varEqual: true`) or paired t-test. `NaN` values are dropped. As in R, an error is
- * thrown if the data are essentially constant.
+ * `varEqual: true`) or paired t-test. `NaN` values are dropped. As in R, each sample needs 2
+ * observations, except that with `varEqual: true` a two-sample test needs 1 in each and 3 in all; an
+ * error is also thrown if the data are essentially constant.
  *
  * @param x Sample.
  * @param y Second sample for a two-sample or paired test. May be omitted, and the options
@@ -135,9 +136,11 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
   let nullValueName: string;
 
   const nx = xs.length;
-  if (nx < 2) throw new Error("not enough 'x' observations");
+  // With equal variances a two-sample test needs only 1 observation per sample (3 in all); otherwise 2 in each
+  const pooled = yv !== undefined && varEqual;
+  if (nx < 1 || (!pooled && nx < 2)) throw new Error("not enough 'x' observations");
   const mx = mean(xs);
-  const vx = variance(xs);
+  const vx = nx > 1 ? variance(xs) : NaN;
   if (yv === undefined) {
     df = nx - 1;
     stdErr = Math.sqrt(vx / nx);
@@ -152,13 +155,14 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
     if (ny < 1 || (!varEqual && ny < 2)) throw new Error("not enough 'y' observations");
     if (varEqual && nx + ny < 3) throw new Error("not enough observations");
     const my = mean(yv);
-    const vy = variance(yv);
+    const vy = ny > 1 ? variance(yv) : NaN;
     method = `${varEqual ? "" : "Welch"} Two Sample t-test`;
     estimate = [mx, my];
     estimateNames = ["mean of x", "mean of y"];
     nullValueName = "difference in means";
     if (varEqual) {
       df = nx + ny - 2;
+      // A sample of size 1 contributes nothing to the pooled sum of squares
       let v = 0;
       if (nx > 1) v += (nx - 1) * vx;
       if (ny > 1) v += (ny - 1) * vy;
