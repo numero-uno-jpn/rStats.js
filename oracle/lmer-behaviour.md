@@ -302,3 +302,50 @@ bundle stays as it is):
 
 The time of the fits of the fixture's cases, and of the three sizes of stage 1b (dense implementation; the sparse
 factorisation comes in a later stage).
+
+## Sparse computation (stages S1 and S2)
+
+The dense implementation of stages 1b and 1c takes time of order q³ and memory of order q² (a fit with 1000
+subjects of `(x | s)`, q = 2000, takes about 100 s; lme4 takes 0.07 s; with 5000 subjects the q × q arrays alone need
+800 MB). These stages make the computation sparse **without changing the results**: every existing fixture
+(lmerDeviance, lmer, lmerMore, lmerBoundary) must still pass with its current tolerances.
+
+**What is sparse.** `A = Λ_θ'Z'ZΛ_θ + I` is sparse: two columns of `Z` overlap only where their levels share rows.
+The block of the first term is block diagonal (one `nc × nc` block per level, as the paper notes), so models with one
+grouping factor, or nested factors, have no fill-in at all with a suitable ordering; crossed factors fill in only
+the blocks of the later terms. The paper's method: a sparse Cholesky factorisation `L L' = P A P'` with a
+fill-reducing permutation `P` (the values do not depend on `P`, only the rounding does). Nothing of size q × q or
+n × q is stored densely; the memory is of the order of the nonzeros of `Z`, `A` and `L`.
+
+**The gradient.** The analytic gradient of stage 1c needs the entries of `A⁻¹` only where `A` (or its factor) has
+nonzeros: the *selected inverse*, computable from the sparse factor by Takahashi's recurrences, without forming
+`A⁻¹`.
+
+**Clean room for this part.** Do not read CHOLMOD, CSparse (LGPL), Matrix (GPL) or lme4 code. Published papers and
+textbook descriptions may be used (elimination trees, supernodes, Takahashi, Erisman and Tinney (1973), the minimum
+degree and AMD papers). The AMD ordering of SuiteSparse is BSD-licensed and may be ported (the project allows BSD
+sources), with its licence noted in the file header as for other ported code.
+
+**Checks of the sparse implementation.**
+
+- The current dense implementation (`profiledDeviance` and its gradient as of commit ab36471) is moved to
+  `test/helpers/` as a **reference implementation**: it agrees with the 128- and 200-bit references to about 1e-15.
+  A regression test compares the sparse implementation with it on larger data than the fixtures, built in the test
+  with a seeded generator (for example crossed `(1 | s) + (1 | i)` with 60 × 30, `(x | s)` with 300 subjects × 8,
+  a three-level nesting `(1 | a/b/c)`, `(x | s) + (1 | i)` crossed, and a `||` model), at several θ, REML and ML:
+  deviance within a relative 1e-13, `beta`, `u`, `b`, the gradient within 1e-11 × the largest absolute value of the
+  dense result; and full `lmer` fits within 1e-9 (θ and the other fields, as the fixture tolerances) of a fit that
+  uses the dense reference.
+- Speed (one fit on the Mac mini; the data built by a script in `scripts/`, not part of the test suite):
+
+  | Model | n | q | lme4 | Target |
+  |---|---|---|---|---|
+  | `y ~ x + (1 \| s) + (1 \| i)`, 200 × 100 crossed | 20000 | 300 | 0.17 s | ≤ 0.5 s |
+  | the same, 500 × 200 | 100000 | 700 | 1.8 s | ≤ 6 s |
+  | `y ~ x + (x \| s)`, 1000 subjects × 10 | 10000 | 2000 | 0.07 s | ≤ 0.5 s |
+  | the same, 5000 subjects × 10 | 50000 | 10000 | 0.34 s | ≤ 3 s |
+
+Stage **S1**: the profiled deviance (`profiledDeviance` without the gradient) sparse, with its regression test and the
+time of one evaluation at these sizes. Stage **S2**: the gradient (selected inverse) and the fit; speeding up the
+optimisation itself (for example reusing the Hessian across accepted Newton steps) is allowed if lmerMore and
+lmerBoundary still pass.
