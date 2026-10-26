@@ -74,6 +74,10 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 小さいモデル (fixture の例: 数百行まで) は 0.1〜7 ミリ秒です。`node scripts/lmer-timing.mjs` で、当てはめと基準の
 1 回の評価の時間を測れます。
 
+`lmerSummary` (Satterthwaite の自由度。逸脱度の解析的なヘッセ行列と、固定効果の共分散のヤコビアン) は、当てはめの
+後に 0.04 秒 (交差 200 × 100)、0.25 秒 (500 × 200)、0.01 秒 (被験者 1000 人)、0.05 秒 (被験者 5000 人) を要します
+(Node 24、arm64)。
+
 ## バンドルサイズ
 
 `npm run size` (`scripts/size.mjs`) は、ビルドした `dist/` からの各 import を esbuild でバンドルし、minify して gzip で

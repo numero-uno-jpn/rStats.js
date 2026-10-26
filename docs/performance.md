@@ -76,6 +76,10 @@ use a sparse Cholesky factorisation; rStats.js's criterion at its estimate was n
 Small models (the fixtures: up to a few hundred rows) take 0.1 to 7 ms. `node scripts/lmer-timing.mjs` measures the
 fits and single evaluations of the criterion.
 
+`lmerSummary` (Satterthwaite's degrees of freedom: the analytic Hessian of the deviance and the Jacobians of the
+covariance of the fixed effects) adds, after the fit: 0.04 s (crossed 200 × 100), 0.25 s (500 × 200), 0.01 s
+(1000 subjects) and 0.05 s (5000 subjects), Node 24 on arm64.
+
 ## Bundle size
 
 `npm run size` (`scripts/size.mjs`) bundles each import from the built `dist/` with esbuild, then minifies and gzips
