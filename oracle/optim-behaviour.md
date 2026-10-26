@@ -79,7 +79,7 @@ previous gradient c and direction t: type 1 (Fletcher-Reeves) `G1 = Σ g²`, `G2
 g(g − c)`, `G2 = Σ c²`; type 3 (Beale-Sorenson) `G1 = Σ g(g − c)`, `G2 = Σ t(g − c)`; then c ← g. If G1 > tol: `G3 =
 G1/G2` (1 if G2 ≤ 0), `t ← G3 t − g`, `gradproj = t·g`; line search from `s = oldstep` as in BFGS (acceptance updates
 f_min to the accepted f); then if some coordinate changed: `newstep = 2 (f − f_min − gradproj s)` (rule 4: f_min
-already equals f, so this is `−2 gradproj s`), and if it is positive, `newstep = −gradproj s² / newstep`, try `x +
+already equals f, so this is `−2 gradproj s`), and if it is positive, `newstep = −((gradproj × s) × s) / newstep` (left to right), try `x +
 newstep t`: keep it if lower, else go back to `x + s t`. `oldstep = min(1, 1.7 s)` (s the last step tried; when G1 ≤ tol there was no line search and s is the previous
 one). There is no check that t is a descent direction. In the gradient loop, for each i in order, the type's terms
 use the previous `c_i` (and `t_i`) before `c_i ← g_i`, and `x_i` is set to the current point in the same loop. The
