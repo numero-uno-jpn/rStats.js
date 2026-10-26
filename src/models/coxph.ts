@@ -440,7 +440,7 @@ export function coxph(
   } else {
     let best = ev.loglik;
     let next = beta.map((b, i) => b + step[i]!);
-    let halving = 0;
+    let halvings = 0;
     let converged = false;
     for (iter = 1; iter <= iterMax; iter++) {
       ev = evaluate(data, next, efron);
@@ -455,10 +455,10 @@ export function coxph(
         break;
       }
       if (!finite || ev.loglik < best) {
-        halving++;
-        next = next.map((b, i) => (b + halving * beta[i]!) / (halving + 1));
+        halvings++;
+        next = next.map((b, i) => (b + halvings * beta[i]!) / (halvings + 1));
       } else {
-        halving = 0;
+        halvings = 0;
         best = ev.loglik;
         loglik[1] = best;
         step = cholSolve(factor, ev.score);
