@@ -5,7 +5,8 @@
 // esbuild). A statement followed by a value comment (`expr; // 0.0052`, or the comment alone on the next line) is
 // checked against it:
 // - a number equals the actual value rounded to the significant digits written (`0.0052` for 0.00520162..., `10`
-//   has two significant digits); `0` must be exactly 0; `NaN`, `Infinity` and `-Infinity` are exact;
+//   has two significant digits), or, written to 13 or more digits, is within a relative 1e-12 of it (the last bits
+//   may differ between platforms); `0` must be exactly 0; `NaN`, `Infinity` and `-Infinity` are exact;
 // - strings, booleans, `null` and `undefined` must be equal;
 // - arrays (`[...]`, or `Float64Array [...]` for a typed array) element by element, with the same length;
 // - objects (`{ a: 1, b: [2, 3] }`) key by key for the keys shown (others may be left out, or marked `...`);
@@ -211,6 +212,9 @@ export function compare(e: Expected, a: unknown, path = ""): string[] {
       if (Number.isNaN(e.value)) return Number.isNaN(a) ? [] : bad(`expected NaN`);
       if (!Number.isFinite(e.value) || e.value === 0) return a === e.value ? [] : bad(`expected ${e.text}`);
       const digits = significantDigits(e.text);
+      // A value written to 13 or more digits is compared within a relative 1e-12 (the library's accuracy against R):
+      // the last bits may differ between platforms (x64 and arm64 builds of V8)
+      if (digits >= 13) return Math.abs(a - e.value) <= 1e-12 * Math.abs(e.value) ? [] : bad(`expected ${e.text}`);
       return Number(a.toPrecision(Math.min(digits, 100))) === e.value ? [] : bad(`expected ${e.text}`);
     }
     case "str":
