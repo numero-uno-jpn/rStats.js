@@ -19,6 +19,8 @@ function badParams(size: number, prob: number): boolean {
 
 export function dbinom1(x: number, size: number, prob: number, log: boolean): number {
   if (Number.isNaN(x) || Number.isNaN(size) || Number.isNaN(prob)) return NaN;
+  // size Inf (as in R 4.5; pbinom and qbinom take it as invalid): no mass at any x, except at 0 when prob = 0
+  if (size === Infinity && prob >= 0 && prob <= 1) return prob === 0 && x === 0 ? (log ? 0 : 1) : d0(log);
   if (badParams(size, prob)) return NaN;
   if (nonInteger(x) || x < 0 || !Number.isFinite(x)) return d0(log);
   // q = 1 - prob is formed exactly in double-double (rounding in q would be amplified n - x times)
