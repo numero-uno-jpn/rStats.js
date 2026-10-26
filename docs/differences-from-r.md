@@ -512,7 +512,9 @@ also from R's source. They are listed because they are easy to get wrong.
 - **`kappa`:** the default (`exact: false`) applies LINPACK's `dtrco` estimate to R from a QR
   decomposition (after transposing wide matrices). With `norm: "I"` it uses the same triangle of
   the transposed matrix, as R does. `triangular` has an effect only with `method: "direct"`, and
-  then also uses `dtrco`. Exact `kappa` of a singular matrix is Inf.
+  then also uses `dtrco`. As in R, these estimates through a triangular factor use the infinity norm only
+  for `norm: "I"` (not `"i"`) and the 1-norm for any other norm; R's warnings about the replaced norm are not
+  reported. Exact `kappa` of a singular matrix is Inf.
 - **`norm`:** `type` must be a single letter ("One" is an error). `type: "2"` returns NaN if the
   matrix contains NaN and throws if it contains Inf.
 - **`eigen`:** a matrix is treated as symmetric when sum|A − Aᵀ| / sum|A| ≤ 100ε (as
