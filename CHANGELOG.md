@@ -58,7 +58,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - `omega` (McDonald's ω, psych's `omega`): minres factor analysis, varimax and oblimin rotations, the
   Schmid-Leiman transformation, ω_h, ω_t, ω_lim, α, G6, ECV and the group omegas.
 - `polychor` and `polyserial` (polycor's two-step estimates) and `pbvnorm` (bivariate normal rectangle
-  probabilities, Genz's method).
+  probabilities, Genz's method). With `{ ML, stdErr }`, the maximum-likelihood estimates (correlation and
+  thresholds) and the standard errors with polycor's chi-squared statistics, at the exact maximum of the likelihood
+  (R's optimisers stop up to 1e-3 short of it, and fail on some strongly associated tables).
 - `optim` with Nelder-Mead, BFGS, CG, L-BFGS-B (a port of the Netlib code), SANN and Brent, following R's iterations
   (the same evaluation counts), and `optimHess`.
 
