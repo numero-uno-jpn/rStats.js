@@ -11,7 +11,7 @@ import type { Sample } from "../htest/types.js";
 
 /**
  * Counts of the integers 1..nbins in `bin` (values truncated towards 0; others and NaN are not counted).
- * Equivalent to R's `tabulate()`. `nbins` defaults to max(1, bin).
+ * Equivalent to R's `tabulate()`. `nbins` defaults to max(1, bin) and is truncated towards 0, as R does.
  *
  * @example
  * ```ts
@@ -23,7 +23,12 @@ import type { Sample } from "../htest/types.js";
  */
 export function tabulate(bin: Sample, nbins?: number): number[] {
   const b = Array.from(bin).map((v) => Math.trunc(v));
-  const nb = nbins ?? Math.max(1, ...b.filter((v) => !Number.isNaN(v)));
+  if (nbins !== undefined) {
+    if (Number.isNaN(nbins)) throw new RangeError("missing value where TRUE/FALSE needed");
+    if (Math.trunc(nbins) < 0) throw new RangeError("invalid 'nbin' argument");
+    if (Math.trunc(nbins) >= 2 ** 31) throw new RangeError("attempt to make a table with >= 2^31 elements");
+  }
+  const nb = nbins === undefined ? Math.max(1, ...b.filter((v) => !Number.isNaN(v))) : Math.trunc(nbins);
   const out = new Array<number>(Math.max(0, nb)).fill(0);
   for (const v of b) if (v >= 1 && v <= nb) out[v - 1]!++;
   return out;
@@ -115,8 +120,9 @@ export interface CutOptions {
 /**
  * Interval numbers (1-based) of the values, or NaN outside the breaks. Equivalent to R's `cut(..., labels = FALSE)`.
  *
- * @param breaks The break points, or a number of intervals (at least 2): then equal intervals over the range of `x`,
- *   widened by 1/1000 of the range at each end, as R does.
+ * @param breaks The break points (NaN among them is dropped, as R does; fewer than 2 left give NaN codes), or a
+ *   number of intervals (at least 2): then equal intervals over the range of `x`, widened by 1/1000 of the range at
+ *   each end, as R does. That range must be finite.
  *
  * @example
  * ```ts
@@ -135,9 +141,13 @@ export function cut(x: Sample, breaks: number | readonly number[], options: CutO
     const k = typeof breaks === "number" ? breaks : breaks[0]!;
     if (!(k >= 2)) throw new RangeError("invalid number of intervals");
     const nb = Math.trunc(k + 1);
-    const finite = xs.filter((v) => !Number.isNaN(v));
-    const lo = Math.min(...finite);
-    const hi = Math.max(...finite);
+    const present = xs.filter((v) => !Number.isNaN(v));
+    const lo = Math.min(...present);
+    const hi = Math.max(...present);
+    // R's errors for a range that is not finite: the same infinity everywhere fails before the checks of the ends
+    if (present.length > 0 && lo === hi && !Number.isFinite(lo)) throw new RangeError("missing value where TRUE/FALSE needed");
+    if (present.length === 0 || lo === -Infinity) throw new RangeError("'from' must be a finite number");
+    if (hi === Infinity) throw new RangeError("'to' must be a finite number");
     let dx = hi - lo;
     if (dx === 0) {
       dx = lo !== 0 ? Math.abs(lo) : 1;
@@ -147,7 +157,7 @@ export function cut(x: Sample, breaks: number | readonly number[], options: CutO
       br[0] = lo - dx / 1000;
       br[nb - 1] = hi + dx / 1000;
     }
-  } else br = [...breaks].sort((a, b) => a - b);
+  } else br = breaks.filter((v) => !Number.isNaN(v)).sort((a, b) => a - b);
   if (new Set(br).size < br.length) throw new RangeError("'breaks' are not unique");
   return binCode(xs, br, right, includeLowest);
 }
@@ -182,7 +192,7 @@ function binCode(xs: readonly number[], br: readonly number[], right: boolean, i
 export interface FindIntervalOptions {
   /** Treat the last interval as closed on the right (with `leftOpen`, the first as closed on the left). */
   rightmostClosed?: boolean;
-  /** Map results below 1 to 1 and above N - 1 to N - 1. */
+  /** Give 1 instead of 0 left of the first point and N - 1 instead of N at or right of the last (N = `vec.length`). */
   allInside?: boolean;
   /** Intervals (v_i, v_(i+1)] instead of [v_i, v_(i+1)). */
   leftOpen?: boolean;
@@ -208,6 +218,10 @@ export function findInterval(x: Sample, vec: readonly number[], options: FindInt
   const { rightmostClosed = false, allInside = false, leftOpen = false } = options;
   return Array.from(x).map((v) => {
     if (Number.isNaN(v)) return NaN;
+    if (n === 0) return 0;
+    // The two ends are separate rules, as in R (with n = 1 the second can give 0 and the first 1)
+    if (leftOpen ? v <= vec[0]! : v < vec[0]!) return allInside || (rightmostClosed && leftOpen && v === vec[0]) ? 1 : 0;
+    if (leftOpen ? v > vec[n - 1]! : v >= vec[n - 1]!) return allInside || (rightmostClosed && !leftOpen && v === vec[n - 1]) ? n - 1 : n;
     // count of vec <= v (or < v when left-open)
     let lo = 0;
     let hi = n;
@@ -216,12 +230,6 @@ export function findInterval(x: Sample, vec: readonly number[], options: FindInt
       if (leftOpen ? vec[mid]! < v : vec[mid]! <= v) lo = mid + 1;
       else hi = mid;
     }
-    let i = lo;
-    if (rightmostClosed && n > 0) {
-      if (!leftOpen && i === n && v === vec[n - 1]) i = n - 1;
-      if (leftOpen && i === 0 && v === vec[0]) i = 1;
-    }
-    if (allInside) i = Math.min(Math.max(i, 1), n - 1);
-    return i;
+    return lo;
   });
 }
