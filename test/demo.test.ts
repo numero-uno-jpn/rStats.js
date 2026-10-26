@@ -35,6 +35,8 @@ const NOT_IN_DEMO_YET: string[] = [
   "pwrTTest", "pwrT2nTest", "pwr2pTest", "pwr2p2nTest", "pwrPTest", "pwrNormTest", "pwrRTest", "pwrChisqTest", "pwrAnovaTest", "pwrF2Test",
   "esH", "esW1", "esW2", "cohenES",
   "cohensD", "hedgesG", "etaSquared", "omegaSquared", "epsilonSquared",
+  "dscfAllPairsTest", "kwAllPairsDunnTest", "kwManyOneDunnTest", "dunnettTest", "gamesHowellTest", "tukeyTest", "steelTest",
+  "dunnTest", "glhtDunnett",
   "survdiff", "survfit",
   "leveneTest", "propTrendTest", "jonckheereTest", "cochranQTest", "adTest", "lillieTest", "cvmTest", "sfTest", "pearsonTest",
   "kappa2", "kappamFleiss", "icc", "cronbachAlpha", "partialR",
