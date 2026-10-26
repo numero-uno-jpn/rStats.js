@@ -40,6 +40,7 @@ const NOT_IN_DEMO_YET: string[] = [
   "survdiff", "survfit",
   "leveneTest", "propTrendTest", "jonckheereTest", "cochranQTest", "adTest", "lillieTest", "cvmTest", "sfTest", "pearsonTest",
   "kappa2", "kappamFleiss", "icc", "cronbachAlpha", "partialR",
+  "pbvnorm", "polychor", "polyserial",
   "schur", "expm",
   "optim", "optimHess",
   "factanal",

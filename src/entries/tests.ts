@@ -194,3 +194,4 @@ export {
   type CronbachAlphaResult,
 } from "../htest/agreement.js";
 export { factanal, type FactanalOptions, type FactanalResult, type FactanalRotation } from "../descriptive/factanal.js";
+export { polychor, polyserial, type PolycorResult } from "../htest/polycor.js";

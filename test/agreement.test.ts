@@ -27,7 +27,9 @@ describe("agreement", () => {
       const a = c.args;
       const e = c.expected as Record<string, unknown>;
       const ref = c.reference;
-      // omega, polychor and polyserial come later (after optim)
+      // Skipped: omega comes later. The polychor and polyserial cases stay skipped here: the ML ones (ML = TRUE,
+      // std.err) will come against exact maximum-likelihood references, and the two-step estimates are tested on
+      // their own fixture (test/polycor.test.ts)
       if (!IN_SCOPE.includes(a.fn as string)) return;
       cmp.strings(index, "warnings", e.warnings, []);
       const check = (field: string, actual: unknown): void => cmp.numbers(index, field, e[field], actual, ref?.[field]);
