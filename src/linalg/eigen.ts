@@ -356,7 +356,7 @@ function normalizeVectors(re: Mat, im: Mat): void {
 }
 
 /** Reduce to Hessenberg form by Householder transformations (orthes). V becomes the product of the transformations */
-function orthes(H: Mat, V: Mat): void {
+export function orthes(H: Mat, V: Mat): void {
   const n = H.nrow;
   const h = H.data;
   const v = V.data;
@@ -422,9 +422,10 @@ function cdiv(xr: number, xi: number, yr: number, yi: number): [number, number] 
 
 /**
  * Reduce a Hessenberg matrix to real Schur form by the double-shift QR method and compute eigenvalues (d + i e) and eigenvectors (columns of V) (hqr2).
- * For a complex pair, the eigenvector of d[j] + i e[j] (e[j] > 0) is V[:, j] + i V[:, j+1]
+ * For a complex pair, the eigenvector of d[j] + i e[j] (e[j] > 0) is V[:, j] + i V[:, j+1].
+ * With schurOnly, stops at the real Schur form (H = V' A V up to the negligible subdiagonal elements, V orthogonal; used by schur)
  */
-function hqr2(Hm: Mat, Vm: Mat, d: Float64Array, e: Float64Array): void {
+export function hqr2(Hm: Mat, Vm: Mat, d: Float64Array, e: Float64Array, schurOnly = false): void {
   const nn = Hm.nrow;
   const H = Hm.data;
   const V = Vm.data;
@@ -625,7 +626,7 @@ function hqr2(Hm: Mat, Vm: Mat, d: Float64Array, e: Float64Array): void {
     }
   }
   // Eigenvectors of the upper triangular (real Schur) form by back substitution
-  if (norm === 0) return;
+  if (norm === 0 || schurOnly) return;
   for (n = nn - 1; n >= 0; n--) {
     p = d[n]!;
     q = e[n]!;

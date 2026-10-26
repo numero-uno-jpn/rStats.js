@@ -8,6 +8,8 @@ export { solve, det, determinant, rcond, type SolveOptions, type Determinant, ty
 export { svd, type SvdOptions, type SvdResult } from "../linalg/svd.js";
 export { kappa, ginv, type KappaOptions } from "../linalg/kappa.js";
 export { eigen, type EigenOptions, type EigenResult } from "../linalg/eigen.js";
+export { schur, type SchurResult } from "../linalg/schur.js";
+export { expm, type ExpmMethod, type ExpmOptions } from "../linalg/expm.js";
 export type { MatrixInput, VectorOrMatrix } from "../linalg/matrix.js";
 export {
   matMul, add, subtract, multiply, divide, outer, t, diag, cbind, rbind, matrix, kronecker, seq,

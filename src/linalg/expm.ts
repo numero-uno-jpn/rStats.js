@@ -1,0 +1,322 @@
+// Matrix exponential (the expm package's expm, methods "Higham08.b" and "Higham08"). Written for rStats.js.
+//
+// Sources: the specification oracle/matfn-behaviour.md; the scaling and squaring method with Padé approximants of
+// N. J. Higham, "The scaling and squaring method for the matrix exponential revisited", SIAM J. Matrix Anal. Appl.
+// 26 (2005) 1179-1193 (degrees 3, 5, 7, 9 and 13, the bounds on the 1-norm and the Padé coefficients);
+// the balancing is a port of LAPACK 3.12.0's SRC/dgebal.f (modified BSD; see THIRD_PARTY_NOTICES.md).
+// - "Higham08.b" (default) balances first: dgebal with job "P" (permutation), then dgebal with job "S" (scaling) on
+//   the result, as two separate calls; "Higham08" does not balance
+// - The Padé degree is chosen from the 1-norm of the (balanced) matrix; above 2.1, degree 13 with scaling by 2^-s
+// - X = (V - U)^-1 (V + U) is solved by LU decomposition as solve (which throws if V - U is computationally
+//   singular), then squared s times, and the balancing is undone
+// - dgebal's DNRM2 is computed with the classic scaled sum of squares rather than reference BLAS 3.12's algorithm
+//   (it only decides between powers of 2 in the scaling; the results may differ in rare borderline cases)
+// - A 1 x 1 matrix gives exp of its entry, a 0 x 0 matrix gives a 0 x 0 matrix
+
+import { fromMat, newMat, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
+import { oneNorm } from "./norm.js";
+import { solve } from "./solve.js";
+
+/** Methods of {@link expm}. */
+export type ExpmMethod = "Higham08.b" | "Higham08";
+
+/** Options for {@link expm}. */
+export interface ExpmOptions {
+  /**
+   * `"Higham08.b"` (default): Higham's scaling and squaring with Padé approximants after balancing (LAPACK's
+   * `dgebal`, permutation then scaling). `"Higham08"`: the same without balancing.
+   */
+  method?: ExpmMethod;
+}
+
+/**
+ * Matrix exponential. Equivalent to R's `expm::expm(x, method)` with methods `"Higham08.b"` (the default) and
+ * `"Higham08"`.
+ *
+ * Uses the scaling and squaring method with Padé approximants of degree 3, 5, 7, 9 or 13 (Higham 2005), with or
+ * without balancing first. Throws if a linear system of the method is computationally singular.
+ *
+ * @param x A square matrix (array of rows).
+ * @param options See {@link ExpmOptions}.
+ * @returns `exp(x)` as an array of rows.
+ *
+ * @example
+ * ```ts
+ * expm([[0, 1], [0, 0]]); // [[1, 1], [0, 1]]
+ * expm([[0, -1], [1, 0]]); // [[cos 1, -sin 1], [sin 1, cos 1]] (up to rounding)
+ * ```
+ */
+export function expm(x: MatrixInput, options: ExpmOptions = {}): number[][] {
+  const method = options.method ?? "Higham08.b";
+  if (method !== "Higham08.b" && method !== "Higham08") throw new RangeError(`unknown method: ${String(method)}`);
+  const A = toMat(x);
+  requireSquare(A);
+  const n = A.nrow;
+  if (n === 0) return [];
+  if (n === 1) return [[Math.exp(A.data[0]!)]];
+  let perm: ReturnType<typeof gebal> | undefined;
+  let scaling: ReturnType<typeof gebal> | undefined;
+  if (method === "Higham08.b") {
+    perm = gebal("P", A);
+    scaling = gebal("S", A);
+  }
+  const X = pade(A);
+  const x_ = X.data;
+  const at = (i: number, j: number) => i + j * n;
+  if (scaling) {
+    const d = scaling.scale;
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) x_[at(i, j)] = (x_[at(i, j)]! * d[i]!) / d[j]!;
+  }
+  if (perm) {
+    const p = perm.scale;
+    const swap = (i: number) => {
+      const k = p[i]!;
+      if (k === i) return;
+      for (let r = 0; r < n; r++) [x_[at(r, i)], x_[at(r, k)]] = [x_[at(r, k)]!, x_[at(r, i)]!];
+      for (let c = 0; c < n; c++) [x_[at(i, c)], x_[at(k, c)]] = [x_[at(k, c)]!, x_[at(i, c)]!];
+    };
+    for (let i = perm.ilo - 1; i >= 0; i--) swap(i);
+    for (let i = perm.ihi + 1; i < n; i++) swap(i);
+  }
+  return fromMat(X);
+}
+
+/** Padé coefficients b_0 ... b_m (Higham 2005, Table 10.4) */
+const PADE: Record<3 | 5 | 7 | 9, readonly number[]> = {
+  3: [120, 60, 12, 1],
+  5: [30240, 15120, 3360, 420, 30, 1],
+  7: [17297280, 8648640, 1995840, 277200, 25200, 1512, 56, 1],
+  9: [17643225600, 8821612800, 2075673600, 302702400, 30270240, 2162160, 110880, 3960, 90, 1],
+};
+const PADE13 = [
+  64764752532480000, 32382376266240000, 7771770303897600, 1187353796428800, 129060195264000, 10559470521600,
+  670442572800, 33522128640, 1323241920, 40840800, 960960, 16380, 182, 1,
+];
+
+/** Scaling and squaring with a Padé approximant: exp(A) for the (balanced) matrix A */
+function pade(A: Mat): Mat {
+  const n = A.nrow;
+  const nu = oneNorm(A);
+  const I = identity(n);
+  let U: Mat;
+  let V: Mat;
+  let s = 0;
+  if (nu <= 2.1) {
+    const m = nu <= 0.015 ? 3 : nu <= 0.25 ? 5 : nu <= 0.95 ? 7 : 9;
+    const b = PADE[m];
+    const A2 = mul(A, A);
+    // P_k = A2^k for k = 1 ... (m - 1) / 2, accumulated in increasing order
+    const u = comb([[b[1]!, I]]);
+    const v = comb([[b[0]!, I]]);
+    let P = A2;
+    for (let k = 1; k <= (m - 1) / 2; k++) {
+      if (k > 1) P = mul(P, A2);
+      axpy(u, b[2 * k + 1]!, P);
+      axpy(v, b[2 * k]!, P);
+    }
+    U = mul(A, u);
+    V = v;
+  } else {
+    s = Math.max(0, Math.ceil(Math.log2(nu / 5.4)));
+    const B = scale(A, 1 / 2 ** s);
+    const B2 = mul(B, B);
+    const B4 = mul(B2, B2);
+    const B6 = mul(B2, B4);
+    const c = PADE13;
+    const u1 = comb([[c[13]!, B6], [c[11]!, B4], [c[9]!, B2]]);
+    const u2 = mul(B6, u1);
+    for (const [k, M] of [[7, B6], [5, B4], [3, B2], [1, I]] as const) axpy(u2, c[k]!, M);
+    U = mul(B, u2);
+    const v1 = comb([[c[12]!, B6], [c[10]!, B4], [c[8]!, B2]]);
+    V = mul(B6, v1);
+    for (const [k, M] of [[6, B6], [4, B4], [2, B2], [0, I]] as const) axpy(V, c[k]!, M);
+  }
+  const vmu = newMat(n, n);
+  const vpu = newMat(n, n);
+  for (let i = 0; i < n * n; i++) {
+    vmu.data[i] = V.data[i]! - U.data[i]!;
+    vpu.data[i] = V.data[i]! + U.data[i]!;
+  }
+  let X = toMat(solve(fromMat(vmu), fromMat(vpu)));
+  for (let k = 0; k < s; k++) X = mul(X, X);
+  return X;
+}
+
+function identity(n: number): Mat {
+  const I = newMat(n, n);
+  for (let i = 0; i < n; i++) I.data[i + i * n] = 1;
+  return I;
+}
+
+/** Matrix product (inner products in increasing order of the summation index) */
+function mul(A: Mat, B: Mat): Mat {
+  const n = A.nrow;
+  const p = A.ncol;
+  const q = B.ncol;
+  const C = newMat(n, q);
+  for (let j = 0; j < q; j++) {
+    for (let i = 0; i < n; i++) {
+      let s = 0;
+      for (let k = 0; k < p; k++) s += A.data[i + k * n]! * B.data[k + j * p]!;
+      C.data[i + j * n] = s;
+    }
+  }
+  return C;
+}
+
+function scale(A: Mat, f: number): Mat {
+  return { nrow: A.nrow, ncol: A.ncol, data: A.data.map((v) => v * f) };
+}
+
+/** Y <- Y + a M */
+function axpy(Y: Mat, a: number, M: Mat): void {
+  for (let i = 0; i < Y.data.length; i++) Y.data[i] = Y.data[i]! + a * M.data[i]!;
+}
+
+/** a_1 M_1 + a_2 M_2 + ..., summed from left to right */
+function comb(terms: readonly (readonly [number, Mat])[]): Mat {
+  const [a0, M0] = terms[0]!;
+  const Y = scale(M0, a0);
+  for (let t = 1; t < terms.length; t++) axpy(Y, terms[t]![0], terms[t]![1]);
+  return Y;
+}
+
+/** 2-norm of n values a[o], a[o + stride], ... (scaled sum of squares) */
+function nrm2(a: Float64Array, o: number, count: number, stride: number): number {
+  let sc = 0;
+  let ssq = 1;
+  for (let k = 0; k < count; k++) {
+    const v = a[o + k * stride]!;
+    if (v === 0) continue;
+    const av = Math.abs(v);
+    if (sc < av) {
+      ssq = 1 + ssq * (sc / av) ** 2;
+      sc = av;
+    } else ssq += (av / sc) ** 2;
+  }
+  return sc * Math.sqrt(ssq);
+}
+
+/**
+ * Balancing (dgebal) with job "P" (permute only) or "S" (scale only); A is overwritten. Indices are 0-based:
+ * scale[i] holds the index of the row and column interchanged with i for i < ilo and i > ihi, and the scaling factor
+ * for ilo <= i <= ihi
+ */
+export function gebal(job: "P" | "S", A: Mat): { ilo: number; ihi: number; scale: Float64Array } {
+  const n = A.nrow;
+  const a = A.data;
+  const at = (i: number, j: number) => i + j * n;
+  const scale = new Float64Array(n);
+  const swapCols = (i: number, j: number, rows: number) => {
+    for (let r = 0; r < rows; r++) [a[at(r, i)], a[at(r, j)]] = [a[at(r, j)]!, a[at(r, i)]!];
+  };
+  const swapRows = (i: number, j: number, from: number) => {
+    for (let c = from; c < n; c++) [a[at(i, c)], a[at(j, c)]] = [a[at(j, c)]!, a[at(i, c)]!];
+  };
+  // Permutation to isolate eigenvalues if possible
+  let k = 0;
+  let l = n - 1;
+  if (job === "P") {
+    // Search for rows isolating an eigenvalue and push them down (the loop bounds are fixed at entry, as in Fortran)
+    let noconv = true;
+    while (noconv) {
+      noconv = false;
+      for (let i = l; i >= 0; i--) {
+        let canswap = true;
+        for (let j = 0; j <= l; j++) {
+          if (i !== j && a[at(i, j)] !== 0) {
+            canswap = false;
+            break;
+          }
+        }
+        if (canswap) {
+          scale[l] = i;
+          if (i !== l) {
+            swapCols(i, l, l + 1);
+            swapRows(i, l, k);
+          }
+          noconv = true;
+          if (l === 0) return { ilo: 0, ihi: 0, scale };
+          l--;
+        }
+      }
+    }
+    // Search for columns isolating an eigenvalue and push them left
+    noconv = true;
+    while (noconv) {
+      noconv = false;
+      for (let j = k, last = l; j <= last; j++) {
+        let canswap = true;
+        for (let i = k; i <= l; i++) {
+          if (i !== j && a[at(i, j)] !== 0) {
+            canswap = false;
+            break;
+          }
+        }
+        if (canswap) {
+          scale[k] = j;
+          if (j !== k) {
+            swapCols(j, k, l + 1);
+            swapRows(j, k, k);
+          }
+          noconv = true;
+          k++;
+        }
+      }
+    }
+  }
+  for (let i = k; i <= l; i++) scale[i] = 1;
+  if (job === "P") return { ilo: k, ihi: l, scale };
+  // Balance the submatrix in rows k to l by powers of 2 (iterative loop for norm reduction)
+  const SCLFAC = 2;
+  const FACTOR = 0.95;
+  const sfmin1 = 2 ** -1022 / Number.EPSILON;
+  const sfmax1 = 1 / sfmin1;
+  const sfmin2 = sfmin1 * SCLFAC;
+  const sfmax2 = 1 / sfmin2;
+  let noconv = true;
+  while (noconv) {
+    noconv = false;
+    for (let i = k; i <= l; i++) {
+      let c = nrm2(a, at(k, i), l - k + 1, 1);
+      let r = nrm2(a, at(i, k), l - k + 1, n);
+      let ca = 0;
+      for (let q = 0; q <= l; q++) ca = Math.max(ca, Math.abs(a[at(q, i)]!));
+      let ra = 0;
+      for (let q = k; q < n; q++) ra = Math.max(ra, Math.abs(a[at(i, q)]!));
+      // Guard against zero c or r due to underflow
+      if (c === 0 || r === 0) continue;
+      if (Number.isNaN(c + ca + r + ra)) throw new RangeError("the matrix contains NaN or infinite values");
+      let g = r / SCLFAC;
+      let f = 1;
+      const s = c + r;
+      while (c < g && Math.max(f, c, ca) < sfmax2 && Math.min(r, g, ra) > sfmin2) {
+        f *= SCLFAC;
+        c *= SCLFAC;
+        ca *= SCLFAC;
+        r /= SCLFAC;
+        g /= SCLFAC;
+        ra /= SCLFAC;
+      }
+      g = c / SCLFAC;
+      while (g >= r && Math.max(r, ra) < sfmax2 && Math.min(f, c, g, ca) > sfmin2) {
+        f /= SCLFAC;
+        c /= SCLFAC;
+        g /= SCLFAC;
+        ca /= SCLFAC;
+        r *= SCLFAC;
+        ra *= SCLFAC;
+      }
+      // Now balance
+      if (c + r >= FACTOR * s) continue;
+      if (f < 1 && scale[i]! < 1 && f * scale[i]! <= sfmin1) continue;
+      if (f > 1 && scale[i]! > 1 && scale[i]! >= sfmax1 / f) continue;
+      g = 1 / f;
+      scale[i] = scale[i]! * f;
+      noconv = true;
+      for (let q = k; q < n; q++) a[at(i, q)] = a[at(i, q)]! * g;
+      for (let q = 0; q <= l; q++) a[at(q, i)] = a[at(q, i)]! * f;
+    }
+  }
+  return { ilo: k, ihi: l, scale };
+}
