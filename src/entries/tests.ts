@@ -1,4 +1,4 @@
-// Hypothesis tests (rStats.js/tests): R's htest results as plain objects
+// Hypothesis tests and models (rStats.js/tests): R's htest results as plain objects
 
 export { tTest, type TTestOptions, type TTestResult } from "../htest/tTest.js";
 export {

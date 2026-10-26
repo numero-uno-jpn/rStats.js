@@ -6,357 +6,373 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 
 ## Special functions (`rStats.js/special`)
 
-| R | rStats.js |
-| --- | --- |
-| `besselI()` | `besselI` |
-| `besselJ()` | `besselJ` |
-| `besselK()` | `besselK` |
-| `besselY()` | `besselY` |
-| `beta()` | `beta` |
-| `choose()` | `choose` |
-| `digamma()` | `digamma` |
-| `pracma::erfcinv()` | `erfcinv` |
-| `pracma::erfinv()` | `erfinv` |
-| `factorial()` | `factorial` |
-| `gamma()` | `gamma` |
-| `pracma::gammainc()` | `gammainc` |
-| `lbeta()` | `lbeta` |
-| `lchoose()` | `lchoose` |
-| `lfactorial()` | `lfactorial` |
-| `lgamma()` | `lgamma` |
-| `psigamma()` | `psigamma` |
-| `trigamma()` | `trigamma` |
-| (not in R) | `erf`, `erfc`, `perm`, `log1pmx`, `lgamma1p`, `log1mexp`, `log1pexp` |
+| R | rStats.js | Description |
+| --- | --- | --- |
+| `besselI()` | `besselI` | Modified Bessel function of the first kind. |
+| `besselJ()` | `besselJ` | Bessel function of the first kind. |
+| `besselK()` | `besselK` | Modified Bessel function of the second kind. |
+| `besselY()` | `besselY` | Bessel function of the second kind. |
+| `beta()` | `beta` | Beta function B(a, b). |
+| `choose()` | `choose` | Binomial coefficient. |
+| `digamma()` | `digamma` | Digamma function, the derivative of `lgamma`. |
+| `pracma::erfcinv()` | `erfcinv` | Inverse of the complementary error function: the x with erfc(x) = z, for 0 <= z <= 2. |
+| `pracma::erfinv()` | `erfinv` | Inverse of the error function: the x with erf(x) = y, for -1 <= y <= 1. |
+| `factorial()` | `factorial` | Factorial. |
+| `gamma()` | `gamma` | Gamma function. |
+| `pracma::gammainc()` | `gammainc` | The non-regularized incomplete gamma functions gamma(a, x) and Gamma(a, x) and their logs. |
+| `lbeta()` | `lbeta` | Natural logarithm of the absolute value of the beta function, log\|B(a, b)\|. |
+| `lchoose()` | `lchoose` | Logarithm of the absolute value of the binomial coefficient. |
+| `lfactorial()` | `lfactorial` | Logarithm of the factorial. |
+| `lgamma()` | `lgamma` | Natural logarithm of the absolute value of the gamma function, log\|Gamma(x)\|. |
+| `psigamma()` | `psigamma` | Polygamma function, the derivative of order `deriv` of `digamma`. |
+| `trigamma()` | `trigamma` | Trigamma function, the second derivative of `lgamma`. |
+| (not in R) | `erf` | Error function, erf(x) = 2 / sqrt(pi) * integral from 0 to x of exp(-t^2) dt. |
+| (not in R) | `erfc` | Complementary error function, erfc(x) = 1 - erf(x), accurate in the upper tail. |
+| (not in R) | `lgamma1p` | lgamma(1 + x) = log\|Gamma(1 + x)\|, accurate near x = 0 and x = 1, where it is near 0. |
+| (not in R) | `log1mexp` | log(1 - exp(-x)) for x >= 0, accurate for both small and large x; note the sign of the argument. |
+| (not in R) | `log1pexp` | log(1 + exp(x)), without overflow for large x and accurate for very negative x. |
+| (not in R) | `log1pmx` | log(1 + x) - x, accurate for small \|x\| (where log1p(x) - x would cancel). |
+| (not in R) | `perm` | Number of ordered selections of k items from n: n! / (n - k)!, defined for real n >= 0 as Gamma(n + 1) / Gamma(n - k + 1). |
 
 ## Probability distributions and random numbers (`rStats.js/distributions`)
 
-| R | rStats.js |
-| --- | --- |
-| `dbeta()` | `dbeta` |
-| `dbinom()` | `dbinom` |
-| `dcauchy()` | `dcauchy` |
-| `dchisq()` | `dchisq` |
-| `dexp()` | `dexp` |
-| `df()` | `df` |
-| `dgamma()` | `dgamma` |
-| `dgeom()` | `dgeom` |
-| `dhyper()` | `dhyper` |
-| `extraDistr::dinvgamma()` | `dinvgamma` |
-| `extraDistr::dkumar()` | `dkumar` |
-| `extraDistr::dlaplace()` | `dlaplace` |
-| `dlnorm()` | `dlnorm` |
-| `dlogis()` | `dlogis` |
-| `dmultinom()` | `dmultinom` |
-| `dnbinom()` | `dnbinom` |
-| `dnorm()` | `dnorm` |
-| `extraDistr::dpareto()` | `dpareto` |
-| `dpois()` | `dpois` |
-| `dsignrank()` | `dsignrank` |
-| `dt()` | `dt` |
-| `extraDistr::dtriang()` | `dtriang` |
-| `dunif()` | `dunif` |
-| `dweibull()` | `dweibull` |
-| `dwilcox()` | `dwilcox` |
-| `parallel::nextRNGStream()` | `nextRNGStream` |
-| `parallel::nextRNGSubStream()` | `nextRNGSubStream` |
-| `pbeta()` | `pbeta` |
-| `pbinom()` | `pbinom` |
-| `pcauchy()` | `pcauchy` |
-| `pchisq()` | `pchisq` |
-| `pexp()` | `pexp` |
-| `pf()` | `pf` |
-| `pgamma()` | `pgamma` |
-| `pgeom()` | `pgeom` |
-| `phyper()` | `phyper` |
-| `extraDistr::pinvgamma()` | `pinvgamma` |
-| `extraDistr::pkumar()` | `pkumar` |
-| `extraDistr::plaplace()` | `plaplace` |
-| `plnorm()` | `plnorm` |
-| `plogis()` | `plogis` |
-| `mvtnorm::pmvnorm()` | `pbvnorm` |
-| `pnbinom()` | `pnbinom` |
-| `pnorm()` | `pnorm` |
-| `extraDistr::ppareto()` | `ppareto` |
-| `ppois()` | `ppois` |
-| `psignrank()` | `psignrank` |
-| `pt()` | `pt` |
-| `extraDistr::ptriang()` | `ptriang` |
-| `ptukey()` | `ptukey` |
-| `punif()` | `punif` |
-| `pweibull()` | `pweibull` |
-| `pwilcox()` | `pwilcox` |
-| `qbeta()` | `qbeta` |
-| `qbinom()` | `qbinom` |
-| `qcauchy()` | `qcauchy` |
-| `qchisq()` | `qchisq` |
-| `qexp()` | `qexp` |
-| `qf()` | `qf` |
-| `qgamma()` | `qgamma` |
-| `qgeom()` | `qgeom` |
-| `qhyper()` | `qhyper` |
-| `extraDistr::qinvgamma()` | `qinvgamma` |
-| `extraDistr::qkumar()` | `qkumar` |
-| `extraDistr::qlaplace()` | `qlaplace` |
-| `qlnorm()` | `qlnorm` |
-| `qlogis()` | `qlogis` |
-| `qnbinom()` | `qnbinom` |
-| `qnorm()` | `qnorm` |
-| `extraDistr::qpareto()` | `qpareto` |
-| `qpois()` | `qpois` |
-| `qsignrank()` | `qsignrank` |
-| `qt()` | `qt` |
-| `extraDistr::qtriang()` | `qtriang` |
-| `qtukey()` | `qtukey` |
-| `qunif()` | `qunif` |
-| `qweibull()` | `qweibull` |
-| `qwilcox()` | `qwilcox` |
-| `r2dtable()` | `r2dtable` |
-| `.Random.seed` | `getRandomSeed`, `setRandomSeed` |
-| `rbeta()` | `rbeta` |
-| `rbinom()` | `rbinom` |
-| `rcauchy()` | `rcauchy` |
-| `rchisq()` | `rchisq` |
-| `rexp()` | `rexp` |
-| `rf()` | `rf` |
-| `rgamma()` | `rgamma` |
-| `rgeom()` | `rgeom` |
-| `rhyper()` | `rhyper` |
-| `extraDistr::rinvgamma()` | `rinvgamma` |
-| `extraDistr::rkumar()` | `rkumar` |
-| `extraDistr::rlaplace()` | `rlaplace` |
-| `rlnorm()` | `rlnorm` |
-| `rlogis()` | `rlogis` |
-| `rmultinom()` | `rmultinom` |
-| `rnbinom()` | `rnbinom` |
-| `RNGkind()` | `RNGkind` |
-| `rnorm()` | `rnorm` |
-| `extraDistr::rpareto()` | `rpareto` |
-| `rpois()` | `rpois` |
-| `rsignrank()` | `rsignrank` |
-| `rt()` | `rt` |
-| `extraDistr::rtriang()` | `rtriang` |
-| `runif()` | `runif` |
-| `rweibull()` | `rweibull` |
-| `rwilcox()` | `rwilcox` |
-| `sample.int()` | `sampleInt` |
-| `sample()` | `sample` |
-| `set.seed()` | `setSeed` |
-| (not in R) | `darcsine`, `parcsine`, `qarcsine`, `distSummary`, `rarcsine` |
+| R | rStats.js | Description |
+| --- | --- | --- |
+| `dbeta()` | `dbeta` | Density of the beta distribution. |
+| `dbinom()` | `dbinom` | Probability mass function of the binomial distribution. |
+| `dcauchy()` | `dcauchy` | Density of the Cauchy distribution. |
+| `dchisq()` | `dchisq` | Density of the chi-squared distribution. |
+| `dexp()` | `dexp` | Density of the exponential distribution. |
+| `df()` | `df` | Density of the F distribution. |
+| `dgamma()` | `dgamma` | Density of the gamma distribution. |
+| `dgeom()` | `dgeom` | Probability mass function of the geometric distribution. |
+| `dhyper()` | `dhyper` | Probability mass function of the hypergeometric distribution. |
+| `extraDistr::dinvgamma()` | `dinvgamma` | Density of the inverse gamma distribution. |
+| `extraDistr::dkumar()` | `dkumar` | Density of the Kumaraswamy distribution. |
+| `extraDistr::dlaplace()` | `dlaplace` | Density of the Laplace distribution. |
+| `dlnorm()` | `dlnorm` | Density of the log-normal distribution. |
+| `dlogis()` | `dlogis` | Density of the logistic distribution. |
+| `dmultinom()` | `dmultinom` | Probability function of the multinomial distribution. |
+| `dnbinom()` | `dnbinom` | Probability mass function of the negative binomial distribution. |
+| `dnorm()` | `dnorm` | Density of the normal distribution. |
+| `extraDistr::dpareto()` | `dpareto` | Density of the Pareto distribution. |
+| `dpois()` | `dpois` | Probability mass function of the Poisson distribution. |
+| `dsignrank()` | `dsignrank` | Probability mass function of the distribution of the Wilcoxon signed rank statistic. |
+| `dt()` | `dt` | Density of the t distribution. |
+| `extraDistr::dtriang()` | `dtriang` | Density of the triangular distribution. |
+| `dunif()` | `dunif` | Density of the uniform distribution. |
+| `dweibull()` | `dweibull` | Density of the Weibull distribution. |
+| `dwilcox()` | `dwilcox` | Probability mass function of the distribution of the Wilcoxon rank sum statistic. |
+| `parallel::nextRNGStream()` | `nextRNGStream` | The start of the next stream of L'Ecuyer-CMRG: the state advanced by 2^127 steps. |
+| `parallel::nextRNGSubStream()` | `nextRNGSubStream` | The start of the next substream of L'Ecuyer-CMRG: the state advanced by 2^76 steps. |
+| `pbeta()` | `pbeta` | Distribution function of the beta distribution. |
+| `pbinom()` | `pbinom` | Distribution function of the binomial distribution. |
+| `pcauchy()` | `pcauchy` | Distribution function of the Cauchy distribution. |
+| `pchisq()` | `pchisq` | Distribution function of the chi-squared distribution. |
+| `pexp()` | `pexp` | Distribution function of the exponential distribution. |
+| `pf()` | `pf` | Distribution function of the F distribution. |
+| `pgamma()` | `pgamma` | Distribution function of the gamma distribution. |
+| `pgeom()` | `pgeom` | Distribution function of the geometric distribution. |
+| `phyper()` | `phyper` | Distribution function of the hypergeometric distribution. |
+| `extraDistr::pinvgamma()` | `pinvgamma` | Distribution function of the inverse gamma distribution. |
+| `extraDistr::pkumar()` | `pkumar` | Distribution function of the Kumaraswamy distribution. |
+| `extraDistr::plaplace()` | `plaplace` | Distribution function of the Laplace distribution. |
+| `plnorm()` | `plnorm` | Distribution function of the log-normal distribution. |
+| `plogis()` | `plogis` | Distribution function of the logistic distribution. |
+| `mvtnorm::pmvnorm()` | `pbvnorm` | Probability that a standard bivariate normal pair (X, Y) with correlation `rho` lies in the rectangle `lower ≤ (X, Y) ≤ upper`. |
+| `pnbinom()` | `pnbinom` | Distribution function of the negative binomial distribution. |
+| `pnorm()` | `pnorm` | Distribution function of the normal distribution. |
+| `extraDistr::ppareto()` | `ppareto` | Distribution function of the Pareto distribution. |
+| `ppois()` | `ppois` | Distribution function of the Poisson distribution. |
+| `psignrank()` | `psignrank` | Distribution function of the distribution of the Wilcoxon signed rank statistic. |
+| `pt()` | `pt` | Distribution function of the t distribution. |
+| `extraDistr::ptriang()` | `ptriang` | Distribution function of the triangular distribution. |
+| `ptukey()` | `ptukey` | Distribution function of the studentized range distribution. |
+| `punif()` | `punif` | Distribution function of the uniform distribution. |
+| `pweibull()` | `pweibull` | Distribution function of the Weibull distribution. |
+| `pwilcox()` | `pwilcox` | Distribution function of the distribution of the Wilcoxon rank sum statistic. |
+| `qbeta()` | `qbeta` | Quantile function of the beta distribution. |
+| `qbinom()` | `qbinom` | Quantile function of the binomial distribution. |
+| `qcauchy()` | `qcauchy` | Quantile function of the Cauchy distribution. |
+| `qchisq()` | `qchisq` | Quantile function of the chi-squared distribution. |
+| `qexp()` | `qexp` | Quantile function of the exponential distribution. |
+| `qf()` | `qf` | Quantile function of the F distribution. |
+| `qgamma()` | `qgamma` | Quantile function of the gamma distribution. |
+| `qgeom()` | `qgeom` | Quantile function of the geometric distribution. |
+| `qhyper()` | `qhyper` | Quantile function of the hypergeometric distribution. |
+| `extraDistr::qinvgamma()` | `qinvgamma` | Quantile function of the inverse gamma distribution. |
+| `extraDistr::qkumar()` | `qkumar` | Quantile function of the Kumaraswamy distribution. |
+| `extraDistr::qlaplace()` | `qlaplace` | Quantile function of the Laplace distribution. |
+| `qlnorm()` | `qlnorm` | Quantile function of the log-normal distribution. |
+| `qlogis()` | `qlogis` | Quantile function of the logistic distribution. |
+| `qnbinom()` | `qnbinom` | Quantile function of the negative binomial distribution. |
+| `qnorm()` | `qnorm` | Quantile function of the normal distribution. |
+| `extraDistr::qpareto()` | `qpareto` | Quantile function of the Pareto distribution. |
+| `qpois()` | `qpois` | Quantile function of the Poisson distribution. |
+| `qsignrank()` | `qsignrank` | Quantile function of the distribution of the Wilcoxon signed rank statistic. |
+| `qt()` | `qt` | Quantile function of the t distribution. |
+| `extraDistr::qtriang()` | `qtriang` | Quantile function of the triangular distribution. |
+| `qtukey()` | `qtukey` | Quantile function of the studentized range distribution. |
+| `qunif()` | `qunif` | Quantile function of the uniform distribution. |
+| `qweibull()` | `qweibull` | Quantile function of the Weibull distribution. |
+| `qwilcox()` | `qwilcox` | Quantile function of the distribution of the Wilcoxon rank sum statistic. |
+| `r2dtable()` | `r2dtable` | Random two-way tables with given row and column totals. |
+| `.Random.seed` | `getRandomSeed` | Returns a copy of the current generator state, as reading R's `.Random.seed` does. |
+| `.Random.seed` | `setRandomSeed` | Restores a generator state, including its kinds, as assigning R's `.Random.seed` does. |
+| `rbeta()` | `rbeta` | Random numbers from the beta distribution. |
+| `rbinom()` | `rbinom` | Random numbers from the binomial distribution. |
+| `rcauchy()` | `rcauchy` | Random numbers from the Cauchy distribution. |
+| `rchisq()` | `rchisq` | Random numbers from the chi-squared distribution. |
+| `rexp()` | `rexp` | Random numbers from the exponential distribution. |
+| `rf()` | `rf` | Random numbers from the F distribution. |
+| `rgamma()` | `rgamma` | Random numbers from the gamma distribution. |
+| `rgeom()` | `rgeom` | Random numbers from the geometric distribution. |
+| `rhyper()` | `rhyper` | Random numbers from the hypergeometric distribution. |
+| `extraDistr::rinvgamma()` | `rinvgamma` | Random numbers from the inverse gamma distribution. |
+| `extraDistr::rkumar()` | `rkumar` | Random numbers from the Kumaraswamy distribution. |
+| `extraDistr::rlaplace()` | `rlaplace` | Random numbers from the Laplace distribution. |
+| `rlnorm()` | `rlnorm` | Random numbers from the log-normal distribution. |
+| `rlogis()` | `rlogis` | Random numbers from the logistic distribution. |
+| `rmultinom()` | `rmultinom` | Random vectors from the multinomial distribution. |
+| `rnbinom()` | `rnbinom` | Random numbers from the negative binomial distribution. |
+| `RNGkind()` | `RNGkind` | Reads or changes the kinds of random number generation. |
+| `rnorm()` | `rnorm` | Random numbers from the normal distribution. |
+| `extraDistr::rpareto()` | `rpareto` | Random numbers from the Pareto distribution. |
+| `rpois()` | `rpois` | Random numbers from the Poisson distribution. |
+| `rsignrank()` | `rsignrank` | Random numbers from the distribution of the Wilcoxon signed rank statistic. |
+| `rt()` | `rt` | Random numbers from Student's t distribution. |
+| `extraDistr::rtriang()` | `rtriang` | Random numbers from the triangular distribution. |
+| `runif()` | `runif` | Random numbers from the uniform distribution. |
+| `rweibull()` | `rweibull` | Random numbers from the Weibull distribution. |
+| `rwilcox()` | `rwilcox` | Random numbers from the distribution of the Wilcoxon rank sum statistic. |
+| `sample.int()` | `sampleInt` | Random sample of integers from `0..n-1`. |
+| `sample()` | `sample` | Random sample of the elements of an array. |
+| `set.seed()` | `setSeed` | Seeds the random number generator. |
+| (not in R) | `darcsine` | Density of the arcsine distribution on (a, b), f(x) = 1 / (pi sqrt((x - a)(b - x))). |
+| (not in R) | `distSummary` | Mean, variance, standard deviation, median, mode, skewness and excess kurtosis of a distribution, given by the name of its d/p/q/r functions and their parameters. |
+| (not in R) | `parcsine` | Distribution function of the arcsine distribution on (a, b). |
+| (not in R) | `qarcsine` | Quantile function of the arcsine distribution on (a, b). |
+| (not in R) | `rarcsine` | Random numbers from the arcsine distribution on (a, b), by inversion. |
 
-## Hypothesis tests (`rStats.js/tests`)
+## Hypothesis tests and models (`rStats.js/tests`)
 
-| R | rStats.js |
-| --- | --- |
-| `nortest::ad.test()` | `adTest` |
-| `psych::alpha()` | `cronbachAlpha` |
-| `anova()` | `glmAnova`, `anova` |
-| `car::Anova()` | `Anova` |
-| `ansari.test()` | `ansariTest` |
-| `afex::aov_ez()` | `aovEz` |
-| `aov()` | `aov` |
-| `bartlett.test()` | `bartlettTest` |
-| `binom.test()` | `binomTest` |
-| `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` |
-| `chisq.test()` | `chisqTest` |
-| `DescTools::CochranQTest()` | `cochranQTest` |
-| `pwr::cohen.ES()` | `cohenES` |
-| `effectsize::cohens_d()` | `cohensD` |
-| `confint()` | `confint`, `glmConfint` |
-| `cooks.distance()` | `glmCooksDistance` |
-| `cor.test()` | `corTest` |
-| `survival::coxph()` | `coxph` |
-| `nortest::cvm.test()` | `cvmTest` |
-| `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` |
-| `dunn.test::dunn.test()` | `dunnTest` |
-| `PMCMRplus::dunnettTest()` | `dunnettTest` |
-| `effectsize::epsilon_squared()` | `epsilonSquared` |
-| `pwr::ES.h()` | `esH` |
-| `pwr::ES.w1()` | `esW1` |
-| `pwr::ES.w2()` | `esW2` |
-| `effectsize::eta_squared()` | `etaSquared` |
-| `factanal()` | `factanal` |
-| `fisher.test()` | `fisherTest` |
-| `fligner.test()` | `flignerTest` |
-| `friedman.test()` | `friedmanTest` |
-| `PMCMRplus::gamesHowellTest()` | `gamesHowellTest` |
-| `multcomp::glht()` | `glhtDunnett` |
-| `glm()` | `glm` |
-| `hatvalues()` | `glmHatvalues` |
-| `effectsize::hedges_g()` | `hedgesG` |
-| `irr::icc()` | `icc` |
-| `DescTools::JonckheereTerpstraTest()` | `jonckheereTest` |
-| `irr::kappa2()` | `kappa2` |
-| `irr::kappam.fleiss()` | `kappamFleiss` |
-| `kruskal.test()` | `kruskalTest` |
-| `ks.test()` | `ksTest` |
-| `PMCMRplus::kwAllPairsDunnTest()` | `kwAllPairsDunnTest` |
-| `PMCMRplus::kwManyOneDunnTest()` | `kwManyOneDunnTest` |
-| `car::leveneTest()` | `leveneTest` |
-| `nortest::lillie.test()` | `lillieTest` |
-| `lm()` | `lm` |
-| `mantelhaen.test()` | `mantelhaenTest` |
-| `PMCMRplus::manyOneUTest()` | `manyOneUTest` |
-| `mauchly.test()` | `mauchlyTest` |
-| `mcnemar.test()` | `mcnemarTest` |
-| `model.matrix()` | `modelMatrix` |
-| `mood.test()` | `moodTest` |
-| `effectsize::omega_squared()` | `omegaSquared` |
-| `psych::omega()` | `omega` |
-| `oneway.test()` | `onewayTest` |
-| `p.adjust()` | `pAdjust` |
-| `pairwise.prop.test()` | `pairwisePropTest` |
-| `pairwise.t.test()` | `pairwiseTTest` |
-| `pairwise.wilcox.test()` | `pairwiseWilcoxTest` |
-| `psych::partial.r()` | `partialR` |
-| `nortest::pearson.test()` | `pearsonTest` |
-| `poisson.test()` | `poissonTest` |
-| `polycor::polychor()` | `polychor` |
-| `polycor::polyserial()` | `polyserial` |
-| `power.anova.test()` | `powerAnovaTest` |
-| `power.prop.test()` | `powerPropTest` |
-| `power.t.test()` | `powerTTest` |
-| `predict()` | `predict`, `glmPredict` |
-| `prop.test()` | `propTest` |
-| `prop.trend.test()` | `propTrendTest` |
-| `pwr::pwr.2p.test()` | `pwr2pTest` |
-| `pwr::pwr.2p2n.test()` | `pwr2p2nTest` |
-| `pwr::pwr.anova.test()` | `pwrAnovaTest` |
-| `pwr::pwr.chisq.test()` | `pwrChisqTest` |
-| `pwr::pwr.f2.test()` | `pwrF2Test` |
-| `pwr::pwr.norm.test()` | `pwrNormTest` |
-| `pwr::pwr.p.test()` | `pwrPTest` |
-| `pwr::pwr.r.test()` | `pwrRTest` |
-| `pwr::pwr.t.test()` | `pwrTTest` |
-| `pwr::pwr.t2n.test()` | `pwrT2nTest` |
-| `quade.test()` | `quadeTest` |
-| `residuals()` | `glmResiduals` |
-| `rstandard()` | `glmRstandard` |
-| `nortest::sf.test()` | `sfTest` |
-| `shapiro.test()` | `shapiroTest` |
-| `PMCMRplus::steelTest()` | `steelTest` |
-| `summary()` | `glmSummary`, `aovSummary` |
-| `survival::survdiff()` | `survdiff` |
-| `survival::survfit()` | `survfit` |
-| `t.test()` | `tTest` |
-| `TukeyHSD()` | `TukeyHSD` |
-| `PMCMRplus::tukeyTest()` | `tukeyTest` |
-| `var.test()` | `varTest` |
-| `wilcox.test()` | `wilcoxTest` |
-| `BSDA::z.test()` | `zTest` |
+| R | rStats.js | Description |
+| --- | --- | --- |
+| `nortest::ad.test()` | `adTest` | Anderson-Darling test for normality. |
+| `psych::alpha()` | `cronbachAlpha` | Cronbach's alpha of a set of items, standardized alpha, Guttman's lambda 6 and the mean inter-item correlation, and alpha with each item dropped. |
+| `anova()` | `anova` | Analysis of variance of linear models fitted from a formula. |
+| `car::Anova()` | `Anova` | Type II or type III tests of the terms of a linear model. |
+| `anova()` | `glmAnova` | Analysis of deviance, for one `glm` fit or for several fits of the same data (`anova(fit1, fit2, ...)`). |
+| `ansari.test()` | `ansariTest` | Ansari-Bradley test that two samples differ in scale. |
+| `afex::aov_ez()` | `aovEz` | Repeated-measures, between-subjects and mixed analysis of variance from long data. |
+| `aov()` | `aov` | One-way analysis of variance. |
+| `bartlett.test()` | `bartlettTest` | Bartlett's test that the variances of several normal samples are equal. |
+| `binom.test()` | `binomTest` | Exact test of a simple null hypothesis about the probability of success in Bernoulli trials. |
+| `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal variances or shapes. |
+| `chisq.test()` | `chisqTest` | Pearson's chi-squared test. |
+| `DescTools::CochranQTest()` | `cochranQTest` | Cochran's Q test for binary responses in an unreplicated complete block design. |
+| `pwr::cohen.ES()` | `cohenES` | Cohen's conventional effect sizes. |
+| `effectsize::cohens_d()` | `cohensD` | Cohen's d: the standardized difference of means of two samples, of paired samples, or of one sample against `mu`, with a confidence interval from the noncentral t distribution. |
+| `confint()` | `confint` | Confidence intervals for the coefficients of a linear model, for an `lm` fit. |
+| `confint()` | `glmConfint` | Profile likelihood confidence intervals for the coefficients of a generalized linear model, for a `glm` fit. |
+| `cooks.distance()` | `glmCooksDistance` | Cook's distances, for the rows of non-zero prior weight, for a `glm` fit. |
+| `cor.test()` | `corTest` | Test for correlation between paired samples. |
+| `survival::coxph()` | `coxph` | Cox proportional hazards regression. |
+| `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises test for normality. |
+| `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. |
+| `dunn.test::dunn.test()` | `dunnTest` | Dunn's test of all pairs of mean ranks. |
+| `PMCMRplus::dunnettTest()` | `dunnettTest` | Dunnett's many-to-one test of means against the control, with the pooled variance. |
+| `effectsize::epsilon_squared()` | `epsilonSquared` | Epsilon squared of the terms of an analysis-of-variance table, also of repeated-measures designs. |
+| `pwr::ES.h()` | `esH` | Effect size h of two proportions. |
+| `pwr::ES.w1()` | `esW1` | Effect size w of a goodness-of-fit test, `sqrt(sum((p1 - p0)^2 / p0))`. |
+| `pwr::ES.w2()` | `esW2` | Effect size w of a test of association, for a matrix of cell probabilities: with the row sums r and column sums c, `p0 = r c'` and `sqrt(sum((p - p0)^2 / p0))`. |
+| `effectsize::eta_squared()` | `etaSquared` | Eta squared of the terms of an analysis-of-variance table, with confidence intervals from the noncentral F distribution. |
+| `factanal()` | `factanal` | Maximum-likelihood factor analysis of a data matrix or, with `options.covmat`, of a covariance matrix. |
+| `fisher.test()` | `fisherTest` | Fisher's exact test for count data. |
+| `fligner.test()` | `flignerTest` | Fligner-Killeen test of homogeneity of variances. |
+| `friedman.test()` | `friedmanTest` | Friedman rank sum test for an unreplicated complete block design. |
+| `PMCMRplus::gamesHowellTest()` | `gamesHowellTest` | Games-Howell all-pairs test of means with Welch's standard errors and degrees of freedom. |
+| `multcomp::glht()` | `glhtDunnett` | Dunnett's many-to-one comparisons of a one-way ANOVA with simultaneous p-values. |
+| `glm()` | `glm` | Fit a generalized linear model by iteratively reweighted least squares. |
+| `hatvalues()` | `glmHatvalues` | Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight, for a `glm` fit. |
+| `effectsize::hedges_g()` | `hedgesG` | Hedges' g. |
+| `irr::icc()` | `icc` | Intraclass correlation coefficient with its F test and confidence interval. |
+| `DescTools::JonckheereTerpstraTest()` | `jonckheereTest` | Jonckheere-Terpstra test of equal distributions against ordered alternatives. |
+| `irr::kappa2()` | `kappa2` | Cohen's kappa for two raters, unweighted or weighted, with the z test of kappa = 0. |
+| `irr::kappam.fleiss()` | `kappamFleiss` | Fleiss' kappa for several raters, with the z test of kappa = 0 for Fleiss' kappa. |
+| `kruskal.test()` | `kruskalTest` | Kruskal-Wallis rank sum test. |
+| `ks.test()` | `ksTest` | Kolmogorov-Smirnov test. |
+| `PMCMRplus::kwAllPairsDunnTest()` | `kwAllPairsDunnTest` | Dunn's all-pairs test of mean ranks with adjusted p-values. |
+| `PMCMRplus::kwManyOneDunnTest()` | `kwManyOneDunnTest` | Dunn's many-to-one test of mean ranks against the control. |
+| `car::leveneTest()` | `leveneTest` | Levene's test for homogeneity of variance across groups. |
+| `nortest::lillie.test()` | `lillieTest` | Lilliefors test for normality. |
+| `lm()` | `lm` | Fit a linear model from a formula. |
+| `mantelhaen.test()` | `mantelhaenTest` | Cochran-Mantel-Haenszel chi-squared test of conditional independence in a set of contingency tables, one per stratum. |
+| `PMCMRplus::manyOneUTest()` | `manyOneUTest` | Steel's many-to-one rank test in its normal approximation: the Mann-Whitney statistic of each group against the control, each pair ranked on its own, standardised with the tie-corrected variance. |
+| `mauchly.test()` | `mauchlyTest` | Mauchly's test of sphericity of the measurements of each subject, on the contrasts spanned by `M` and orthogonal to `X`. |
+| `mcnemar.test()` | `mcnemarTest` | McNemar's chi-squared test for symmetry of rows and columns in a square table of counts. |
+| `model.matrix()` | `modelMatrix` | The model matrix of a formula on a data frame, with the attributes of R's `terms()`. |
+| `mood.test()` | `moodTest` | Mood's two-sample test of scale. |
+| `effectsize::omega_squared()` | `omegaSquared` | Omega squared of the terms of an analysis-of-variance table, also of repeated-measures designs. |
+| `psych::omega()` | `omega` | McDonald's omega from a Schmid-Leiman transformation of an oblique minres factor solution. |
+| `oneway.test()` | `onewayTest` | Test that several normal samples have equal means, without or with the assumption of equal variances. |
+| `p.adjust()` | `pAdjust` | Adjusts p-values for multiple comparisons. |
+| `pairwise.prop.test()` | `pairwisePropTest` | Pairwise two-group tests of equal proportions, with adjusted p-values. |
+| `pairwise.t.test()` | `pairwiseTTest` | Pairwise t tests between groups, with adjusted p-values. |
+| `pairwise.wilcox.test()` | `pairwiseWilcoxTest` | Pairwise Wilcoxon rank sum tests between groups, with adjusted p-values. |
+| `psych::partial.r()` | `partialR` | Partial correlation of columns `i` and `j` of `x` given all its other columns. |
+| `nortest::pearson.test()` | `pearsonTest` | Pearson chi-square test for normality, with classes of equal probability under the fitted normal distribution. |
+| `poisson.test()` | `poissonTest` | Exact test of a Poisson rate, or comparison of two Poisson rates. |
+| `polycor::polychor()` | `polychor` | Polychoric correlation of two ordinal variables. |
+| `polycor::polyserial()` | `polyserial` | Polyserial correlation of a numeric variable and an ordinal one. |
+| `power.anova.test()` | `powerAnovaTest` | Power of the F test of a balanced one-way analysis of variance, or one of the other quantities for a given power. |
+| `power.prop.test()` | `powerPropTest` | Power of the test of two proportions, or the sample size, a probability or the significance level for a given power. |
+| `power.t.test()` | `powerTTest` | Power of a one- or two-sample t test, or the sample size, difference, standard deviation or significance level for a given power. |
+| `predict()` | `glmPredict` | Predictions of a generalized linear model with their standard errors, for a `glm` fit. |
+| `predict()` | `predict` | Predictions of a linear model at new values of the predictors, with standard errors and optionally intervals, for an `lm` fit. |
+| `prop.test()` | `propTest` | Test of equal or given proportions. |
+| `prop.trend.test()` | `propTrendTest` | Chi-squared test for trend in proportions. |
+| `pwr::pwr.2p.test()` | `pwr2pTest` | Power of the test of two proportions with equal sample sizes, or the effect size, sample size or significance level for a given power. |
+| `pwr::pwr.2p2n.test()` | `pwr2p2nTest` | Power of the test of two proportions with unequal sample sizes, or the effect size, a sample size or the significance level for a given power. |
+| `pwr::pwr.anova.test()` | `pwrAnovaTest` | Power of the F test of a balanced one-way analysis of variance, or the number of groups, sample size, effect size or significance level for a given power. |
+| `pwr::pwr.chisq.test()` | `pwrChisqTest` | Power of a chi-squared test, or the effect size, number of observations or significance level for a given power. |
+| `pwr::pwr.f2.test()` | `pwrF2Test` | Power of the F test of a general linear model, or the degrees of freedom, effect size or significance level for a given power. |
+| `pwr::pwr.norm.test()` | `pwrNormTest` | Power of the test of a mean of a normal distribution with known variance, or the effect size, sample size or significance level for a given power. |
+| `pwr::pwr.p.test()` | `pwrPTest` | Power of the test of one proportion, or the effect size, sample size or significance level for a given power. |
+| `pwr::pwr.r.test()` | `pwrRTest` | Power of the test of a correlation, or the sample size, correlation or significance level for a given power. |
+| `pwr::pwr.t.test()` | `pwrTTest` | Power of a t test of means, or the sample size, effect size or significance level for a given power. |
+| `pwr::pwr.t2n.test()` | `pwrT2nTest` | Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance level for a given power. |
+| `quade.test()` | `quadeTest` | Quade test for an unreplicated complete block design. |
+| `residuals()` | `glmResiduals` | Residuals of a generalized linear model, one per row, for a `glm` fit. |
+| `rstandard()` | `glmRstandard` | Standardized deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
+| `nortest::sf.test()` | `sfTest` | Shapiro-Francia test for normality. |
+| `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
+| `PMCMRplus::steelTest()` | `steelTest` | Steel's many-to-one rank test. |
+| `summary()` | `aovSummary` | The table of an analysis of variance fitted by `aov`. |
+| `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |
+| `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |
+| `survival::survfit()` | `survfit` | Kaplan-Meier estimate of the survival function with Greenwood's standard error and pointwise confidence intervals. |
+| `t.test()` | `tTest` | Student's t-test. |
+| `TukeyHSD()` | `TukeyHSD` | Tukey's honest significant differences between the group means of a one-way ANOVA. |
+| `PMCMRplus::tukeyTest()` | `tukeyTest` | Tukey's all-pairs test of means. |
+| `var.test()` | `varTest` | F test that the variances of two normal samples have a given ratio. |
+| `wilcox.test()` | `wilcoxTest` | Wilcoxon signed rank and rank sum tests. |
+| `BSDA::z.test()` | `zTest` | z test for the mean of one sample, or the difference of the means of two, with known standard deviations. |
 
 ## Linear algebra (`rStats.js/linalg`)
 
-| R | rStats.js |
-| --- | --- |
-| `-` | `subtract` |
-| `*` | `multiply` |
-| `%*%` | `matMul` |
-| `/` | `divide` |
-| `+` | `add` |
-| `backsolve()` | `backsolve` |
-| `cbind()` | `cbind` |
-| `chol()` | `chol` |
-| `chol2inv()` | `chol2inv` |
-| `crossprod()` | `crossprod` |
-| `det()` | `det` |
-| `determinant()` | `determinant` |
-| `diag()` | `diag` |
-| `eigen()` | `eigen` |
-| `expm::expm()` | `expm` |
-| `forwardsolve()` | `forwardsolve` |
-| `MASS::ginv()` | `ginv` |
-| `kappa()` | `kappa` |
-| `kronecker()` | `kronecker` |
-| `Matrix::lu()` | `lu` |
-| `matrix()` | `matrix` |
-| `norm()` | `norm` |
-| `outer()` | `outer` |
-| `prcomp()` | `prcomp` |
-| `qr.coef()` | `qrCoef` |
-| `qr.fitted()` | `qrFitted` |
-| `qr.Q()` | `qrQ` |
-| `qr.qty()` | `qrQty` |
-| `qr.qy()` | `qrQy` |
-| `qr.R()` | `qrR` |
-| `qr.resid()` | `qrResid` |
-| `qr.solve()` | `qrSolve` |
-| `qr.X()` | `qrX` |
-| `qr()` | `qr` |
-| `rbind()` | `rbind` |
-| `rcond()` | `rcond` |
-| `Matrix::Schur()` | `schur` |
-| `seq()` | `seq` |
-| `solve()` | `solve` |
-| `svd()` | `svd` |
-| `t()` | `t` |
-| `tcrossprod()` | `tcrossprod` |
+| R | rStats.js | Description |
+| --- | --- | --- |
+| `-` | `subtract` | Element-wise difference with R's recycling. |
+| `*` | `multiply` | Element-wise product with R's recycling. |
+| `%*%` | `matMul` | Matrix product. |
+| `/` | `divide` | Element-wise quotient with R's recycling. |
+| `+` | `add` | Element-wise sum with R's recycling. |
+| `backsolve()` | `backsolve` | Solves the triangular system `r y = x` with a vector right-hand side. |
+| `cbind()` | `cbind` | Combine vectors and matrices as columns. |
+| `chol()` | `chol` | Cholesky decomposition. |
+| `chol2inv()` | `chol2inv` | Inverse of a matrix from its Cholesky factor: computes `(t(R) R)^-1`. |
+| `crossprod()` | `crossprod` | Matrix cross-product `t(x) %*% y`, or `t(x) %*% x` when `y` is omitted. |
+| `det()` | `det` | Determinant of a square matrix. |
+| `determinant()` | `determinant` | Determinant as modulus and sign. |
+| `diag()` | `diag` | Matrix diagonals, diagonal matrices and identity matrices. |
+| `eigen()` | `eigen` | Eigenvalues and eigenvectors of a square matrix. |
+| `expm::expm()` | `expm` | Matrix exponential. |
+| `forwardsolve()` | `forwardsolve` | Solves the triangular system `l y = x` with a vector right-hand side. |
+| `MASS::ginv()` | `ginv` | Moore-Penrose generalized inverse. |
+| `kappa()` | `kappa` | Condition number of a matrix, estimated or exact. |
+| `kronecker()` | `kronecker` | Kronecker product. |
+| `Matrix::lu()` | `lu` | LU decomposition with partial pivoting, `x = P L U`. |
+| `matrix()` | `matrix` | Build a matrix from data, recycled to fill it. |
+| `norm()` | `norm` | Matrix norm. |
+| `outer()` | `outer` | Outer product of two vectors: the matrix of `fun(x[i], y[j])`. |
+| `prcomp()` | `prcomp` | Principal components of the columns of `x`. |
+| `qr.coef()` | `qrCoef` | Least-squares coefficients for a vector response. |
+| `qr.fitted()` | `qrFitted` | Least-squares fitted values for a vector response: the projection of `y` onto the space spanned by the first `k` pivoted columns. |
+| `qr.Q()` | `qrQ` | Recovers the orthogonal matrix `Q` from a QR decomposition. |
+| `qr.qty()` | `qrQty` | Computes `t(Q) %*% y` for a vector `y`. |
+| `qr.qy()` | `qrQy` | Computes `Q %*% y` for a vector `y`. |
+| `qr.R()` | `qrR` | Recovers the upper triangular matrix `R` from a QR decomposition. |
+| `qr.resid()` | `qrResid` | Least-squares residuals for a vector response. |
+| `qr.solve()` | `qrSolve` | Solves `a x = b` in the least-squares sense using a QR decomposition. |
+| `qr.X()` | `qrX` | Reconstructs the original matrix from a QR decomposition, with columns back in their original order. |
+| `qr()` | `qr` | QR decomposition. |
+| `rbind()` | `rbind` | Combine vectors and matrices as rows. |
+| `rcond()` | `rcond` | Estimate of the reciprocal condition number of a matrix. |
+| `Matrix::Schur()` | `schur` | Real Schur decomposition of a square matrix. |
+| `seq()` | `seq` | Regular sequences. |
+| `solve()` | `solve` | Inverse of a square matrix. |
+| `svd()` | `svd` | Singular value decomposition. |
+| `t()` | `t` | Transpose. |
+| `tcrossprod()` | `tcrossprod` | Matrix cross-product `x %*% t(y)`, or `x %*% t(x)` when `y` is omitted. |
 
 ## Descriptive statistics (`rStats.js/descriptive`)
 
-| R | rStats.js |
-| --- | --- |
-| `aggregate()` | `aggregate` |
-| `DescTools::CoefVar()` | `cv` |
-| `complete.cases()` | `completeCases` |
-| `cor()` | `cor` |
-| `cov()` | `cov` |
-| `cummax()` | `cummax` |
-| `cummin()` | `cummin` |
-| `cumprod()` | `cumprod` |
-| `cumsum()` | `cumsum` |
-| `cut()` | `cut` |
-| `diff()` | `diff` |
-| `ecdf()` | `ecdf` |
-| `findInterval()` | `findInterval` |
-| `fivenum()` | `fivenum` |
-| `DescTools::Gmean()` | `geometricMean` |
-| `hist()` | `hist` |
-| `IQR()` | `IQR` |
-| `e1071::kurtosis()` | `kurtosis` |
-| `mad()` | `mad` |
-| `mean()` | `mean` |
-| `DescTools::MeanAD()` | `meanAD` |
-| `median()` | `median` |
-| `merge()` | `merge` |
-| `DescTools::Mode()` | `modes` |
-| `na.omit()` | `naOmit` |
-| `tidyr::pivot_longer()` | `pivotLonger` |
-| `tidyr::pivot_wider()` | `pivotWider` |
-| `pretty()` | `pretty` |
-| `prod()` | `prod` |
-| `quantile()` | `quantile` |
-| `range()` | `range` |
-| `rank()` | `rank` |
-| `scale()` | `scale` |
-| `sd()` | `sd` |
-| `e1071::skewness()` | `skewness` |
-| `split()` | `split` |
-| `subset()` | `subset` |
-| `sum()` | `sum` |
-| `table()` | `table` |
-| `tabulate()` | `tabulate` |
-| `tapply()` | `tapply` |
-| `unique()` | `unique` |
-| `var()` | `variance` |
-| `weighted.mean()` | `weightedMean` |
-| (not in R) | `fromRows`, `toRows` |
+| R | rStats.js | Description |
+| --- | --- | --- |
+| `aggregate()` | `aggregate` | The function applied to the values of each group, as a data frame. |
+| `DescTools::CoefVar()` | `cv` | Coefficient of variation sd / mean. |
+| `complete.cases()` | `completeCases` | Which rows have no missing value. |
+| `cor()` | `cor` | Correlation of two vectors, or correlation matrix of the columns of a matrix. |
+| `cov()` | `cov` | Covariance of two vectors, or covariance matrix of the columns of a matrix. |
+| `cummax()` | `cummax` | Running maxima. |
+| `cummin()` | `cummin` | Running minima. |
+| `cumprod()` | `cumprod` | Running products. |
+| `cumsum()` | `cumsum` | Running sums. |
+| `cut()` | `cut` | Interval numbers of the values, or NaN outside the breaks. |
+| `diff()` | `diff` | Lagged and iterated differences. |
+| `ecdf()` | `ecdf` | Empirical distribution function of `x`: a function returning the fraction of values at or below its argument. |
+| `findInterval()` | `findInterval` | For each value, the number of break points at or below it. |
+| `fivenum()` | `fivenum` | Tukey's five-number summary. |
+| `DescTools::Gmean()` | `geometricMean` | Geometric mean exp(mean(log x)). |
+| `hist()` | `hist` | Histogram counts. |
+| `IQR()` | `IQR` | Interquartile range, the difference of the 0.75 and 0.25 quantiles. |
+| `e1071::kurtosis()` | `kurtosis` | Sample excess kurtosis. |
+| `mad()` | `mad` | Median absolute deviation, scaled. |
+| `mean()` | `mean` | Arithmetic mean, optionally trimmed. |
+| `DescTools::MeanAD()` | `meanAD` | Mean absolute deviation from the centre. |
+| `median()` | `median` | Median of the values. |
+| `merge()` | `merge` | Join two data frames on key columns. |
+| `DescTools::Mode()` | `modes` | The most frequent values and their frequency. |
+| `na.omit()` | `naOmit` | The values that are not missing. |
+| `tidyr::pivot_longer()` | `pivotLonger` | Reshapes a data frame from wide to long: the selected columns become rows. |
+| `tidyr::pivot_wider()` | `pivotWider` | Reshapes a data frame from long to wide: the values of `namesFrom` become columns, filled from `valuesFrom`. |
+| `pretty()` | `pretty` | About n + 1 equally spaced "round" values covering the range of `x`. |
+| `prod()` | `prod` | Product of the values. |
+| `quantile()` | `quantile` | Sample quantiles. |
+| `range()` | `range` | `[min, max]` of the values. |
+| `rank()` | `rank` | Sample ranks. |
+| `scale()` | `scale` | Centre and scale the columns of a matrix. |
+| `sd()` | `sd` | Sample standard deviation. |
+| `e1071::skewness()` | `skewness` | Sample skewness. |
+| `split()` | `split` | The values of `x` divided into groups. |
+| `subset()` | `subset` | The rows of a data frame that meet a condition, and optionally some of its columns. |
+| `sum()` | `sum` | Sum of the values. |
+| `table()` | `table` | Frequency table of the distinct values. |
+| `tabulate()` | `tabulate` | Counts of the integers 1..nbins in `bin`. |
+| `tapply()` | `tapply` | The function applied to the values of each group. |
+| `unique()` | `unique` | Distinct values in order of first appearance. |
+| `var()` | `variance` | Sample variance. |
+| `weighted.mean()` | `weightedMean` | Weighted mean `sum(x w) / sum(w)`. |
+| (not in R) | `fromRows` | A data frame from an array of row objects, the usual shape of JSON and of parsed CSV. |
+| (not in R) | `toRows` | The rows of a data frame as an array of objects, the inverse of `fromRows`. |
 
 ## Numerical methods (`rStats.js/numerics`)
 
-| R | rStats.js |
-| --- | --- |
-| `approx()` | `approx` |
-| `pracma::barylag()` | `barylag` |
-| `numDeriv::grad()` | `grad` |
-| `numDeriv::hessian()` | `hessian` |
-| `integrate()` | `integrate` |
-| `numDeriv::jacobian()` | `jacobian` |
-| `deSolve::ode()` | `ode` |
-| `optim()` | `optim` |
-| `optimHess()` | `optimHess` |
-| `optimize()` | `optimize` |
-| `spline()` | `spline` |
-| `splinefun()` | `splinefun` |
-| `splinefunH()` | `splinefunH` |
-| `uniroot()` | `uniroot` |
-| (not in R) | `hermiteInterp` |
+| R | rStats.js | Description |
+| --- | --- | --- |
+| `approx()` | `approx` | Linear or constant interpolation. |
+| `pracma::barylag()` | `barylag` | Lagrange interpolation in barycentric form through the points (xi, yi). |
+| `numDeriv::grad()` | `grad` | Gradient of a scalar function of a vector. |
+| `numDeriv::hessian()` | `hessian` | Hessian matrix of a scalar function of a vector, by Richardson extrapolation. |
+| `integrate()` | `integrate` | Integral of a function of one variable over a finite or infinite range. |
+| `numDeriv::jacobian()` | `jacobian` | Jacobian of a vector function of a vector: row i holds the derivatives of the i-th value. |
+| `deSolve::ode()` | `ode` | Solve the initial value problem y' = func(t, y, parms), y(times[0]) = y, with one fixed step per interval of `times`. |
+| `optim()` | `optim` | General-purpose minimisation of `fn` from the starting point `par`. |
+| `optimHess()` | `optimHess` | Numerically differentiated Hessian of fn at par, from central differences of the gradient. |
+| `optimize()` | `optimize` | Minimum of a function of one variable on an interval, by Brent's golden-section and parabolic search. |
+| `spline()` | `spline` | Cubic spline interpolation at given or equally spaced points. |
+| `splinefun()` | `splinefun` | The cubic spline through the points, as a function of `x` and the order of derivative. |
+| `splinefunH()` | `splinefunH` | The cubic Hermite spline with values `y` and slopes `m` at the points `x`, as a function of `x` and the order of derivative; linear outside the data. |
+| `uniroot()` | `uniroot` | A root of a function of one variable in an interval, by Brent's zeroin. |
+| (not in R) | `hermiteInterp` | The polynomial of degree 2n - 1 through n points with given values and derivatives, evaluated at `x`. |

@@ -103,8 +103,9 @@ rStats.js is MIT licensed. To keep it that way:
 - Every exported function's TSDoc has an `@example` whose `// value` comments are checked by
   `test/docExamples.test.ts`, and exactly one sentence naming its R counterpart in a fixed form
   (``Equivalent to R's `t.test()`.``, ``Equivalent to `car::Anova()` in R.`` or `Not an R function.`;
-  `test/rNames.test.ts`). After changing these, regenerate `docs/r-functions.md` with `node
-  scripts/r-index.mjs > docs/r-functions.md` and copy its tables into `docs/ja/r-functions.md`.
+  `test/rNames.test.ts`). After changing the exports or these comments, regenerate the index pages with `node
+  scripts/r-index.mjs > docs/r-functions.md` and `node scripts/r-index.mjs --ja > docs/ja/r-functions.md`
+  (the Japanese descriptions are in `docs/ja/r-functions.json`, one per function; the test checks both pages).
   `npx typedoc@0.28.20` must report no warnings.
 - Errors: `TypeError` for wrong types or shapes, `RangeError` for values out of range, `Error`
   for numerical failures. Messages are in English.

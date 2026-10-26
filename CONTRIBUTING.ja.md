@@ -107,8 +107,9 @@ rStats.js は MIT ライセンスです。それを保つために、次のこ�
 - export するすべての関数の TSDoc に `@example` を付けます。その `// 値` のコメントは
   `test/docExamples.test.ts` が確かめます。R の何に当たるかを、決まった形の 1 文で書きます
   (``Equivalent to R's `t.test()`.``、``Equivalent to `car::Anova()` in R.``、`Not an R function.`。
-  `test/rNames.test.ts` が確かめます)。これらを変えたら `node scripts/r-index.mjs > docs/r-functions.md` で
-  `docs/r-functions.md` を作り直し、その表を `docs/ja/r-functions.md` に写してください。`npx typedoc@0.28.20` の
+  `test/rNames.test.ts` が確かめます)。export やこれらのコメントを変えたら、`node scripts/r-index.mjs > docs/r-functions.md` と
+  `node scripts/r-index.mjs --ja > docs/ja/r-functions.md` で索引のページを作り直してください (日本語の説明は
+  `docs/ja/r-functions.json` に関数ごとに 1 つ。どちらのページもテストが確かめます)。`npx typedoc@0.28.20` の
   警告は 0 件にします。
 - エラーは、型や形が誤っているときは `TypeError`、値が範囲外のときは `RangeError`、数値計算が
   失敗したときは `Error` にします。メッセージは英語です。

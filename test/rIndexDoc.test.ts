@@ -1,20 +1,21 @@
-// docs/r-functions.md (and its Japanese version, docs/ja/r-functions.md, which has its own introduction) is the output
-// of scripts/r-index.mjs; regenerate it with `node scripts/r-index.mjs > docs/r-functions.md` and copy the tables into
-// the Japanese file after a change of the doc comments.
+// docs/r-functions.md and docs/ja/r-functions.md are the output of scripts/r-index.mjs (English descriptions from the
+// doc comments; Japanese ones from docs/ja/r-functions.json, which must describe every exported function). After a
+// change of the exports or their doc comments, regenerate them:
+//   node scripts/r-index.mjs > docs/r-functions.md && node scripts/r-index.mjs --ja > docs/ja/r-functions.md
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const generated = execFileSync(process.execPath, ["scripts/r-index.mjs"], { cwd: root, encoding: "utf8" });
-const tables = (s: string): string => s.slice(s.indexOf("\n## "));
+const run = (...args: string[]): string =>
+  execFileSync(process.execPath, ["scripts/r-index.mjs", ...args], { cwd: root, encoding: "utf8" });
 
-describe("docs/r-functions.md", () => {
-  it("is the current output of scripts/r-index.mjs", () => {
-    expect(readFileSync(`${root}/docs/r-functions.md`, "utf8")).toBe(generated);
+describe("the R function index", () => {
+  it("docs/r-functions.md is the current output of scripts/r-index.mjs", () => {
+    expect(readFileSync(`${root}/docs/r-functions.md`, "utf8")).toBe(run());
   });
-  it("has the same tables in Japanese", () => {
-    expect(tables(readFileSync(`${root}/docs/ja/r-functions.md`, "utf8"))).toBe(tables(generated));
+  it("docs/ja/r-functions.md is the current output of scripts/r-index.mjs --ja (every function described)", () => {
+    expect(readFileSync(`${root}/docs/ja/r-functions.md`, "utf8")).toBe(run("--ja"));
   });
 });
