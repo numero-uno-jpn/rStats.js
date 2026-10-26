@@ -18,6 +18,8 @@ describe("pretty (bit for bit)", () => {
   // Every value R returns here is reproduced exactly (same operations in the same order), not just within 1e-14
   it("reproduces R's doubles exactly", () => {
     for (const c of loadHTestFixture("pretty").cases) {
+      // (the errors are checked by the suite above)
+      if (c.expected.error !== undefined) continue;
       const expected = (c.expected.value as string[]).map((v) => num(v));
       expect(call(c.args), JSON.stringify(c.args)).toEqual(expected);
     }

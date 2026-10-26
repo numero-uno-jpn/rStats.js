@@ -20,9 +20,15 @@ import type { Sample } from "../htest/types.js";
  * @category Descriptive statistics
  */
 export interface PrettyOptions {
-  /** Desired number of intervals. Default `5`. */
+  /**
+   * Desired number of intervals. Default `5`. Truncated towards 0 to an integer (as in R); `NaN`, a negative value
+   * or one of 2^31 or more in absolute value is an error (unless `x` has no finite values).
+   */
   n?: number;
-  /** Minimal number of intervals. Default `n / 3` rounded down. */
+  /**
+   * Minimal number of intervals. Default `n / 3` rounded down (computed from `n` before it is truncated). Truncated
+   * towards 0 to an integer (as in R); `NaN`, a negative value or one greater than `n` is an error.
+   */
   minN?: number;
   /** Factor applied to the cell when the range is very small. Default `0.75`. */
   shrinkSml?: number;
@@ -46,8 +52,15 @@ export interface PrettyOptions {
 export function pretty(x: Sample, options: PrettyOptions = {}): number[] {
   const finite = Array.from(x).filter(Number.isFinite);
   if (finite.length === 0) return [];
-  const n = options.n ?? 5;
-  const minN = options.minN ?? Math.floor(n / 3);
+  // R converts n and minN to integers (truncating towards 0) and checks them in this order
+  const nGiven = options.n ?? 5;
+  if (Number.isNaN(nGiven) || Math.abs(nGiven) >= 2 ** 31 || Math.trunc(nGiven) < 0) throw new RangeError("invalid 'n' argument");
+  const n = Math.trunc(nGiven);
+  const minNGiven = options.minN ?? Math.floor(nGiven / 3);
+  if (Number.isNaN(minNGiven) || Math.trunc(minNGiven) < 0 || Math.trunc(minNGiven) > n) {
+    throw new RangeError("invalid 'min.n' argument");
+  }
+  const minN = Math.trunc(minNGiven);
   const shrink = options.shrinkSml ?? 0.75;
   const h = options.highUBias ?? 1.5;
   const h5 = options.u5Bias ?? 0.5 + 1.5 * h;
