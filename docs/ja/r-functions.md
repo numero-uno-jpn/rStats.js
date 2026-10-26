@@ -381,4 +381,6 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 
 | R | rStats.js | 説明 |
 | --- | --- | --- |
+| `lmerTest::contest()` | `lmerContest` | lmer の当てはめの固定効果の対比 L β = rhs の検定 (Satterthwaite の自由度による F 検定または t 検定) |
 | `lme4::lmer()` | `lmer` | REML または最尤法による線形混合モデルの当てはめ |
+| `lmerTest::summary()` | `lmerSummary` | lmer の当てはめの係数表 (Satterthwaite の自由度と t 検定の p 値つき) |

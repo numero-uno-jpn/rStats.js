@@ -52,6 +52,10 @@
 // A⁻¹ only on the blocks of Z'Z, which lie on the pattern of L: the selected inverse (A⁻¹ on the pattern of L, by
 // Takahashi's recurrences; K by blocks of Z'Z, never formed), so the gradient costs about one more factorisation, and
 // memory of the order of the nonzeros of L, Z and Z'X.
+//
+// The second derivatives that lmerTest's tests need (src/models/mixedDerivatives.ts) are computed from the same state
+// (plsState): the selected inverse, the sums of levelTraceSums, and the derivatives of the factor and of the selected
+// inverse along an element of θ (factoriseSystemTangent, selectedInverseTangent).
 
 import { potf2, potri } from "../linalg/chol.js";
 import type { Mat } from "../linalg/matrix.js";
@@ -92,7 +96,7 @@ export interface ProfiledDevianceOptions {
 }
 
 /** What does not depend on θ: the cross-products, Z by rows, the groups of columns and the pattern of the factor */
-interface SparseSystem {
+export interface SparseSystem {
   n: number;
   p: number;
   q: number;
@@ -378,7 +382,7 @@ function blocksOf(sys: SparseSystem, theta: readonly number[]): Float64Array[] {
 }
 
 /** Λ_θ w (q-vector) */
-function lambdaTimes(sys: SparseSystem, t: Float64Array[], w: Float64Array): Float64Array {
+export function lambdaTimes(sys: SparseSystem, t: Float64Array[], w: Float64Array): Float64Array {
   const out = new Float64Array(sys.q);
   for (let g = 0; g < sys.nGroups; g++) {
     const k = sys.groupTerm[g]!;
@@ -395,7 +399,7 @@ function lambdaTimes(sys: SparseSystem, t: Float64Array[], w: Float64Array): Flo
 }
 
 /** Λ_θ' M for a q × ncol column-major M */
-function lambdaTransposeTimes(sys: SparseSystem, t: Float64Array[], m: Float64Array, ncol = 1): Float64Array {
+export function lambdaTransposeTimes(sys: SparseSystem, t: Float64Array[], m: Float64Array, ncol = 1): Float64Array {
   const q = sys.q;
   const out = new Float64Array(q * ncol);
   for (let g = 0; g < sys.nGroups; g++) {
@@ -498,7 +502,7 @@ function factorise(sys: SparseSystem, a: Float64Array): Float64Array {
 }
 
 /** Solves L x = v in place (v of length q, at an offset) */
-function solveL(sys: SparseSystem, l: Float64Array, v: Float64Array, offset = 0): void {
+export function solveL(sys: SparseSystem, l: Float64Array, v: Float64Array, offset = 0): void {
   const { q, colStart, colRows } = sys;
   for (let j = 0; j < q; j++) {
     const start = colStart[j]!;
@@ -509,7 +513,7 @@ function solveL(sys: SparseSystem, l: Float64Array, v: Float64Array, offset = 0)
 }
 
 /** Solves L' x = v in place */
-function solveLt(sys: SparseSystem, l: Float64Array, v: Float64Array, offset = 0): void {
+export function solveLt(sys: SparseSystem, l: Float64Array, v: Float64Array, offset = 0): void {
   const { q, colStart, colRows } = sys;
   for (let j = q - 1; j >= 0; j--) {
     const start = colStart[j]!;
@@ -539,7 +543,7 @@ function backSolve(r: Float64Array, k: number, v: Float64Array): void {
 }
 
 /** The full symmetric inverse of R'R from an upper-triangular factor R (column-major, k × k; R is not changed) */
-function inverseFromFactor(r: Float64Array, k: number): Float64Array {
+export function inverseFromFactor(r: Float64Array, k: number): Float64Array {
   const inv = r.slice();
   for (let j = 0; j < k; j++) for (let i = j + 1; i < k; i++) inv[i + j * k] = 0;
   potri({ nrow: k, ncol: k, data: inv });
@@ -563,6 +567,64 @@ export function profiledDeviance(
   reml: boolean,
   options: ProfiledDevianceOptions = {},
 ): ProfiledDeviance {
+  const state = plsState(structure, theta);
+  const { sys, t, l, rx, ws, xResiduals, res, uv } = state;
+  const { n, p, q } = sys;
+  const beta = Array.from(state.beta);
+  const u = Array.from(uv);
+  const b = Array.from(state.b);
+
+  let rss = 0;
+  for (const e of res) rss += e * e;
+  let ussq = 0;
+  for (const v of u) ussq += v * v;
+  const prss = rss + ussq;
+
+  let logDetL = 0;
+  for (let j = 0; j < q; j++) logDetL += Math.log(l[sys.colStart[j]!]!);
+  logDetL *= 2;
+  let logDetRX = 0;
+  for (let k = 0; k < p; k++) logDetRX += Math.log(rx[k + k * p]!);
+  logDetRX *= 2;
+  const df = reml ? n - p : n;
+  const deviance = (reml ? logDetL + logDetRX : logDetL) + df * (1 + Math.log((2 * Math.PI * prss) / df));
+  const out: ProfiledDeviance = { deviance, beta, u, b, rss, ussq, prss, logDetL, logDetRX };
+
+  const sInverse = options.gradient === true || options.rxInverse === true ? inverseFromFactor(rx, p) : undefined;
+  if (options.rxInverse === true) {
+    out.rxInverse = Array.from({ length: p }, (_, i) => Array.from({ length: p }, (_, j) => sInverse![i + j * p]!));
+  }
+  if (options.gradient === true) {
+    out.gradient = sparseGradient(structure, sys, t, l, theta, reml, { res, uv, prss, ws, xResiduals, sInverse: sInverse! });
+  }
+  return out;
+}
+
+/**
+ * The state of the penalised least-squares solution at a given θ (internal): the system of the structure, the blocks
+ * T_k, the sparse factor L of A, C_X = L⁻¹ Λ'Z'X, the Cholesky factor R_X (upper triangle, column-major, p × p) of
+ * R_X'R_X = E'E + W'W, the columns of W = A⁻¹ Λ'Z'X and of E = X − ZΛW, the residual y − Xβ̂ − ZΛû, û, β̂, b = Λû,
+ * and the solver of the normal equations of the penalised least squares. {@link profiledDeviance} is computed from
+ * it, and src/models/mixedDerivatives.ts takes the second derivatives from it.
+ */
+export interface PlsState {
+  sys: SparseSystem;
+  t: Float64Array[];
+  l: Float64Array;
+  cx: Float64Array;
+  rx: Float64Array;
+  ws: Float64Array[];
+  xResiduals: Float64Array[];
+  res: Float64Array;
+  uv: Float64Array;
+  beta: Float64Array;
+  b: Float64Array;
+  /** Solves [A, Λ'Z'X; X'ZΛ, X'X] (u, β) = (gu, gβ) with the two factors, overwriting gu with u and gβ with β */
+  solveNormal: (gu: Float64Array, gb: Float64Array) => void;
+}
+
+/** The penalised least-squares solution at θ and the factors it was computed with (see {@link PlsState}) */
+export function plsState(structure: MixedModelStructure, theta: readonly number[]): PlsState {
   if (theta.length !== structure.theta.length) {
     throw new RangeError(`theta must have length ${structure.theta.length}, not ${theta.length}`);
   }
@@ -695,34 +757,7 @@ export function profiledDeviance(
     bv = lambdaTimes(sys, t, uv);
     res = residual(betav, bv);
   }
-  const beta = Array.from(betav);
-  const u = Array.from(uv);
-  const b = Array.from(bv);
-
-  let rss = 0;
-  for (const e of res) rss += e * e;
-  let ussq = 0;
-  for (const v of u) ussq += v * v;
-  const prss = rss + ussq;
-
-  let logDetL = 0;
-  for (let j = 0; j < q; j++) logDetL += Math.log(l[sys.colStart[j]!]!);
-  logDetL *= 2;
-  let logDetRX = 0;
-  for (let k = 0; k < p; k++) logDetRX += Math.log(rx[k + k * p]!);
-  logDetRX *= 2;
-  const df = reml ? n - p : n;
-  const deviance = (reml ? logDetL + logDetRX : logDetL) + df * (1 + Math.log((2 * Math.PI * prss) / df));
-  const out: ProfiledDeviance = { deviance, beta, u, b, rss, ussq, prss, logDetL, logDetRX };
-
-  const sInverse = options.gradient === true || options.rxInverse === true ? inverseFromFactor(rx, p) : undefined;
-  if (options.rxInverse === true) {
-    out.rxInverse = Array.from({ length: p }, (_, i) => Array.from({ length: p }, (_, j) => sInverse![i + j * p]!));
-  }
-  if (options.gradient === true) {
-    out.gradient = sparseGradient(structure, sys, t, l, theta, reml, { res, uv, prss, ws, xResiduals, sInverse: sInverse! });
-  }
-  return out;
+  return { sys, t, l, cx, rx, ws, xResiduals, res, uv, beta: betav, b: bv, solveNormal };
 }
 
 /** The quantities of the penalised least-squares solution that the gradient needs */
@@ -744,7 +779,7 @@ interface GradientInputs {
  * Cholesky pattern), so every A⁻¹[k, i] needed is on the pattern, in column min(k, i), already computed when the
  * columns are taken from the last to the first. The cost is that of the factorisation.
  */
-function selectedInverse(sys: SparseSystem, l: Float64Array): Float64Array {
+export function selectedInverse(sys: SparseSystem, l: Float64Array): Float64Array {
   const { q, colStart, colRows } = sys;
   const inv = new Float64Array(l.length);
   const inColumn = new Int32Array(q).fill(-1);
@@ -788,6 +823,114 @@ function selectedInverse(sys: SparseSystem, l: Float64Array): Float64Array {
 }
 
 /**
+ * The derivative ∂L of the Cholesky factor L of A along a direction in which A changes by ∂A (`da`, the layout of the
+ * blocks of A, both triangles of the diagonal blocks): {@link factorise} differentiated step by step (forward mode).
+ * In column j, after the columns k < j are subtracted, the work vector holds L_jj L[r, j] (L_jj² at r = j), so with
+ * ∂ of the same subtractions (∂L[r, k] L[j, k] + L[r, k] ∂L[j, k]),
+ *   ∂L_jj = ∂work[j] / (2 L_jj),  ∂L[r, j] = (∂work[r] − L[r, j] ∂L_jj) / L_jj.
+ * An entry L[j, k] that is 0 (a column of Λ_θ that is 0) is not skipped: its derivative need not be 0.
+ */
+export function factoriseSystemTangent(sys: SparseSystem, l: Float64Array, da: Float64Array): Float64Array {
+  const { q, colStart, colRows, rowListStart, rowListCol, rowListPos } = sys;
+  const dl = new Float64Array(l.length);
+  const work = new Float64Array(q);
+  for (let h = 0; h < sys.nGroups; h++) {
+    const ncc = sys.termNc[sys.groupTerm[h]!]!;
+    const first = sys.groupStart[h]!;
+    for (let c = 0; c < ncc; c++) {
+      const j = first + c;
+      for (let b = sys.blockStart[h]!; b < sys.blockStart[h + 1]!; b++) {
+        const g = sys.blockRow[b]!;
+        const ncr = sys.termNc[sys.groupTerm[g]!]!;
+        const base = sys.blockValueStart[b]! + c * ncr;
+        const r0 = sys.groupStart[g]!;
+        for (let r = g === h ? c : 0; r < ncr; r++) work[r0 + r] = da[base + r]!;
+      }
+      for (let e = rowListStart[j]!; e < rowListStart[j + 1]!; e++) {
+        const k = rowListCol[e]!;
+        const pos = rowListPos[e]!;
+        const ljk = l[pos]!;
+        const dljk = dl[pos]!;
+        if (ljk === 0 && dljk === 0) continue;
+        const end = colStart[k + 1]!;
+        for (let t = pos; t < end; t++) work[colRows[t]!]! -= dl[t]! * ljk + l[t]! * dljk;
+      }
+      const start = colStart[j]!;
+      const ljj = l[start]!;
+      const dljj = work[j]! / (2 * ljj);
+      dl[start] = dljj;
+      work[j] = 0;
+      for (let t = start + 1; t < colStart[j + 1]!; t++) {
+        const r = colRows[t]!;
+        dl[t] = (work[r]! - l[t]! * dljj) / ljj;
+        work[r] = 0;
+      }
+    }
+  }
+  return dl;
+}
+
+/**
+ * The derivative of the selected inverse `inv` of A = L L' given the derivative ∂L of L (`dl`): the recurrences of
+ * {@link selectedInverse} differentiated step by step (forward mode). It is ∂(A⁻¹) = −A⁻¹ ∂A A⁻¹ on the pattern of L.
+ */
+export function selectedInverseTangent(sys: SparseSystem, l: Float64Array, dl: Float64Array, inv: Float64Array): Float64Array {
+  const { q, colStart, colRows } = sys;
+  const dinv = new Float64Array(l.length);
+  const inColumn = new Int32Array(q).fill(-1);
+  const lj = new Float64Array(q);
+  const dlj = new Float64Array(q);
+  const acc = new Float64Array(q);
+  const dacc = new Float64Array(q);
+  for (let j = q - 1; j >= 0; j--) {
+    const start = colStart[j]!;
+    const end = colStart[j + 1]!;
+    for (let t = start + 1; t < end; t++) {
+      const r = colRows[t]!;
+      inColumn[r] = j;
+      lj[r] = l[t]!;
+      dlj[r] = dl[t]!;
+      acc[r] = 0;
+      dacc[r] = 0;
+    }
+    for (let t = start + 1; t < end; t++) {
+      const k = colRows[t]!;
+      const lkj = l[t]!;
+      const dlkj = dl[t]!;
+      const kStart = colStart[k]!;
+      let sum = inv[kStart]! * lkj;
+      let dsum = dinv[kStart]! * lkj + inv[kStart]! * dlkj;
+      for (let e = kStart + 1; e < colStart[k + 1]!; e++) {
+        const r = colRows[e]!;
+        if (inColumn[r] !== j) continue;
+        const v = inv[e]!;
+        const dv = dinv[e]!;
+        acc[r]! += v * lkj;
+        dacc[r]! += dv * lkj + v * dlkj;
+        sum += v * lj[r]!;
+        dsum += dv * lj[r]! + v * dlj[r]!;
+      }
+      acc[k]! += sum;
+      dacc[k]! += dsum;
+    }
+    const d = l[start]!;
+    const dd = dl[start]!;
+    let diagonal = 1 / d;
+    let ddiagonal = -dd / (d * d);
+    for (let t = start + 1; t < end; t++) {
+      const r = colRows[t]!;
+      const v = inv[t]!;
+      const dv = -dacc[r]! / d + (acc[r]! * dd) / (d * d);
+      dinv[t] = dv;
+      diagonal -= l[t]! * v;
+      ddiagonal -= dl[t]! * v + l[t]! * dv;
+    }
+    dinv[start] = ddiagonal / d - (diagonal * dd) / (d * d);
+  }
+  return dinv;
+}
+
+/**
  * The gradient of the criterion with respect to θ (see the header), sparse. The log-determinant term
  * 2 Σ_(r,c) (A⁻¹ K)[c, r] (K = Λ'Z'Z) involves, for the entries (r, c) of Λ_θ in group G,
  *   (A⁻¹ K)[c, r] = Σ_H (A⁻¹(G, H) T_H' Z'Z(H, G))[c, r]
@@ -804,9 +947,61 @@ function sparseGradient(
   reml: boolean,
   { res, uv, prss, ws, xResiduals, sInverse }: GradientInputs,
 ): number[] {
-  const { n, p, q, colStart, zz } = sys;
-  const inv = selectedInverse(sys, l);
-  // S_k = Σ over the levels G of term k of (A⁻¹ K) on G's columns (nc_k × nc_k, column-major)
+  const { n, p, q } = sys;
+  const sums = levelTraceSums(sys, selectedInverse(sys, l), t);
+  const gradient = new Array<number>(theta.length).fill(0);
+  sys.termTheta.forEach((idx, k) => {
+    const nc = sys.termNc[k]!;
+    for (let cl = 0; cl < nc; cl++) {
+      for (let rl = cl; rl < nc; rl++) gradient[idx[rl + cl * nc]!]! += 2 * sums[k]![cl + rl * nc]!;
+    }
+  });
+
+  // Z' res
+  const zRes = new Float64Array(q);
+  for (let i = 0; i < n; i++) {
+    const ri = res[i]!;
+    for (let c = sys.rowStart[i]!; c < sys.rowStart[i + 1]!; c++) zRes[sys.rowCols[c]!]! += sys.rowValues[c]! * ri;
+  }
+  // REML: V = W S⁻¹ (q × p) and E'Z (p × q), both column-major
+  let v: Float64Array | undefined;
+  let ez: Float64Array | undefined;
+  if (reml && p > 0) {
+    v = new Float64Array(q * p);
+    for (let m = 0; m < p; m++) {
+      for (let k = 0; k < p; k++) {
+        const skm = sInverse[k + m * p]!;
+        const wk = ws[k]!;
+        for (let c = 0; c < q; c++) v[c + m * q]! += wk[c]! * skm;
+      }
+    }
+    ez = new Float64Array(p * q);
+    for (let i = 0; i < n; i++) {
+      for (let c = sys.rowStart[i]!; c < sys.rowStart[i + 1]!; c++) {
+        const zr = sys.rowCols[c]!;
+        const val = sys.rowValues[c]!;
+        for (let m = 0; m < p; m++) ez[m + zr * p]! += xResiduals[m]![i]! * val;
+      }
+    }
+  }
+  const df = reml ? n - p : n;
+  const prssFactor = (2 * df) / prss;
+  for (const { row: rr, col: c, theta: ti } of structure.lambda) {
+    let tr = 0;
+    if (v !== undefined && ez !== undefined) for (let m = 0; m < p; m++) tr += v[c + m * q]! * ez[m + rr * p]!;
+    gradient[ti]! -= 2 * tr + prssFactor * zRes[rr]! * uv[c]!;
+  }
+  return gradient;
+}
+
+/**
+ * S_k = Σ over the levels G of term k of (Y Λ' Z'Z) on G's columns (nc_k × nc_k, column-major), for Y = A⁻¹ given by
+ * its selected inverse `inv` (the layout of L's values) and Λ by its blocks `t` (see {@link sparseGradient}). Linear
+ * in `inv` and in `t`, so that the derivatives of the sums (src/models/mixedDerivatives.ts) come from the derivative
+ * of the selected inverse and of the blocks.
+ */
+export function levelTraceSums(sys: SparseSystem, inv: Float64Array, t: Float64Array[]): Float64Array[] {
+  const { colStart, zz } = sys;
   const sums = sys.termNc.map((nc) => new Float64Array(nc * nc));
   let y = new Float64Array(16);
   let f = new Float64Array(16);
@@ -883,47 +1078,5 @@ function sparseGradient(
       }
     }
   }
-  const gradient = new Array<number>(theta.length).fill(0);
-  sys.termTheta.forEach((idx, k) => {
-    const nc = sys.termNc[k]!;
-    for (let cl = 0; cl < nc; cl++) {
-      for (let rl = cl; rl < nc; rl++) gradient[idx[rl + cl * nc]!]! += 2 * sums[k]![cl + rl * nc]!;
-    }
-  });
-
-  // Z' res
-  const zRes = new Float64Array(q);
-  for (let i = 0; i < n; i++) {
-    const ri = res[i]!;
-    for (let c = sys.rowStart[i]!; c < sys.rowStart[i + 1]!; c++) zRes[sys.rowCols[c]!]! += sys.rowValues[c]! * ri;
-  }
-  // REML: V = W S⁻¹ (q × p) and E'Z (p × q), both column-major
-  let v: Float64Array | undefined;
-  let ez: Float64Array | undefined;
-  if (reml && p > 0) {
-    v = new Float64Array(q * p);
-    for (let m = 0; m < p; m++) {
-      for (let k = 0; k < p; k++) {
-        const skm = sInverse[k + m * p]!;
-        const wk = ws[k]!;
-        for (let c = 0; c < q; c++) v[c + m * q]! += wk[c]! * skm;
-      }
-    }
-    ez = new Float64Array(p * q);
-    for (let i = 0; i < n; i++) {
-      for (let c = sys.rowStart[i]!; c < sys.rowStart[i + 1]!; c++) {
-        const zr = sys.rowCols[c]!;
-        const val = sys.rowValues[c]!;
-        for (let m = 0; m < p; m++) ez[m + zr * p]! += xResiduals[m]![i]! * val;
-      }
-    }
-  }
-  const df = reml ? n - p : n;
-  const prssFactor = (2 * df) / prss;
-  for (const { row: rr, col: c, theta: ti } of structure.lambda) {
-    let tr = 0;
-    if (v !== undefined && ez !== undefined) for (let m = 0; m < p; m++) tr += v[c + m * q]! * ez[m + rr * p]!;
-    gradient[ti]! -= 2 * tr + prssFactor * zRes[rr]! * uv[c]!;
-  }
-  return gradient;
+  return sums;
 }
