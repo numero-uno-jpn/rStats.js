@@ -85,24 +85,24 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 |---|---|---|
 | `pnorm` | 2.3 KB | 1.2 KB |
 | `setSeed`, `rnorm` | 3.4 KB | 1.7 KB |
-| `solve` / `svd` / `eigen` | 3.8 / 4.5 / 9.6 KB | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` | 29.0 KB | 12.3 KB |
-| `fisherTest` | 32.2 KB | 15.6 KB |
-| `tTest` | 54.8 KB | 25.1 KB |
-| `qbeta` | 49.7 KB | 23.2 KB |
-| `pt`, `qt` | 63.8 KB | 30.3 KB |
-| `glm`, `glmSummary` / `glm` with all its methods | 62.7 / 88.7 KB | 27.2 / 39.2 KB |
-| everything (except `/mixed`) | 492.4 KB | 186.1 KB |
-| `@numero-uno-jpn/rstats/distributions` (all of it) | 171.4 KB | 67.8 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 359.6 KB | 141.3 KB |
-| `@numero-uno-jpn/rstats/linalg` (all of it) | 48.9 KB | 18.1 KB |
-| `@numero-uno-jpn/rstats/descriptive` (all of it) | 42.9 KB | 16.1 KB |
-| `@numero-uno-jpn/rstats/numerics` (all of it) | 47.8 KB | 20.7 KB |
-| `@numero-uno-jpn/rstats/special` (all of it) | 57.9 KB | 26.8 KB |
-| `@numero-uno-jpn/rstats/mixed` (all of it: `lmer`) | 37.9 KB | 14.9 KB |
+| `solve` / `svd` / `eigen` | 3.8 / 4.5 / 11.5 KB | 1.7 / 2.0 / 4.5 KB |
+| `wilcoxTest` | 29.8 KB | 12.5 KB |
+| `fisherTest` | 32.4 KB | 15.7 KB |
+| `tTest` | 55.4 KB | 25.3 KB |
+| `qbeta` | 49.6 KB | 23.2 KB |
+| `pt`, `qt` | 63.7 KB | 30.3 KB |
+| `glm`, `glmSummary` / `glm` with all its methods | 63.2 / 89.4 KB | 27.4 / 39.5 KB |
+| everything (except `/mixed`) | 496.9 KB | 187.7 KB |
+| `@numero-uno-jpn/rstats/distributions` (all of it) | 171.5 KB | 67.9 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 364.1 KB | 143.0 KB |
+| `@numero-uno-jpn/rstats/linalg` (all of it) | 50.2 KB | 18.5 KB |
+| `@numero-uno-jpn/rstats/descriptive` (all of it) | 44.8 KB | 16.7 KB |
+| `@numero-uno-jpn/rstats/numerics` (all of it) | 48.7 KB | 20.9 KB |
+| `@numero-uno-jpn/rstats/special` (all of it) | 57.7 KB | 26.7 KB |
+| `@numero-uno-jpn/rstats/mixed` (all of it: `lmer`) | 37.9 KB | 15.0 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share code between areas
-through `dist/chunks/`, so one area loaded from them transfers more: 19 KB (`mixed`) to 156 KB (`tests`) gzipped,
+through `dist/chunks/`, so one area loaded from them transfers more: 20 KB (`mixed`) to 158 KB (`tests`) gzipped,
 chunks included. `pt` is large because the non-central t and the double-double building blocks come with it; the
 tests with a formula form bring the formula and model-frame code.
 

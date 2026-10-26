@@ -7,7 +7,21 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 0.13.0 - 2026-10-27
+
+### Breaking
+
+Results change where they now follow R (details under Fixed):
+
+- Numeric group labels with the same 15-digit text form one group (`table`, `tapply`, `split`, `aggregate`, the
+  tests' (x, g) forms and others), and numeric level names are written as R writes them ("1e+15").
+- `beta` and `lbeta` return NaN for a negative argument.
+- `kappa` without `exact` no longer throws for the norms "F", "M" and "2" through the triangular factor (it uses
+  the 1-norm, as R does), a lower-case "i" there gives the 1-norm estimate, and `qr(x, { lapack: true }).qraux` has
+  min(n, p) elements.
+- Several functions throw R's errors for arguments they used to accept (`optimize`/`uniroot` with infinite ends,
+  `tabulate` with a negative `nbins`, `pretty` with a negative `n`, `approx` with `f` outside [0, 1], `cut` of data
+  without a finite range).
 
 ### Added
 

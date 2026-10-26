@@ -83,25 +83,25 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 |---|---|---|
 | `pnorm` | 2.3 KB | 1.2 KB |
 | `setSeed`、`rnorm` | 3.4 KB | 1.7 KB |
-| `solve` / `svd` / `eigen` | 3.8 / 4.5 / 9.6 KB | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` | 29.0 KB | 12.3 KB |
-| `fisherTest` | 32.2 KB | 15.6 KB |
-| `tTest` | 54.8 KB | 25.1 KB |
-| `qbeta` | 49.7 KB | 23.2 KB |
-| `pt`、`qt` | 63.8 KB | 30.3 KB |
-| `glm`、`glmSummary` / `glm` とすべてのメソッド | 62.7 / 88.7 KB | 27.2 / 39.2 KB |
-| すべて (`/mixed` を除く) | 492.4 KB | 186.1 KB |
-| `@numero-uno-jpn/rstats/distributions` (全体) | 171.4 KB | 67.8 KB |
-| `@numero-uno-jpn/rstats/tests` (全体) | 359.6 KB | 141.3 KB |
-| `@numero-uno-jpn/rstats/linalg` (全体) | 48.9 KB | 18.1 KB |
-| `@numero-uno-jpn/rstats/descriptive` (全体) | 42.9 KB | 16.1 KB |
-| `@numero-uno-jpn/rstats/numerics` (全体) | 47.8 KB | 20.7 KB |
-| `@numero-uno-jpn/rstats/special` (全体) | 57.9 KB | 26.8 KB |
-| `@numero-uno-jpn/rstats/mixed` (全体: `lmer`) | 37.9 KB | 14.9 KB |
+| `solve` / `svd` / `eigen` | 3.8 / 4.5 / 11.5 KB | 1.7 / 2.0 / 4.5 KB |
+| `wilcoxTest` | 29.8 KB | 12.5 KB |
+| `fisherTest` | 32.4 KB | 15.7 KB |
+| `tTest` | 55.4 KB | 25.3 KB |
+| `qbeta` | 49.6 KB | 23.2 KB |
+| `pt`、`qt` | 63.7 KB | 30.3 KB |
+| `glm`、`glmSummary` / `glm` とすべてのメソッド | 63.2 / 89.4 KB | 27.4 / 39.5 KB |
+| すべて (`/mixed` を除く) | 496.9 KB | 187.7 KB |
+| `@numero-uno-jpn/rstats/distributions` (全体) | 171.5 KB | 67.9 KB |
+| `@numero-uno-jpn/rstats/tests` (全体) | 364.1 KB | 143.0 KB |
+| `@numero-uno-jpn/rstats/linalg` (全体) | 50.2 KB | 18.5 KB |
+| `@numero-uno-jpn/rstats/descriptive` (全体) | 44.8 KB | 16.7 KB |
+| `@numero-uno-jpn/rstats/numerics` (全体) | 48.7 KB | 20.9 KB |
+| `@numero-uno-jpn/rstats/special` (全体) | 57.7 KB | 26.7 KB |
+| `@numero-uno-jpn/rstats/mixed` (全体: `lmer`) | 37.9 KB | 15.0 KB |
 
 サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを
-`dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 19 KB
-(`mixed`) から 156 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
+`dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 20 KB
+(`mixed`) から 158 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
 ある検定には、formula とモデルフレームのコードが入ります。
 
 ## 測り方
