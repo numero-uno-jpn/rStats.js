@@ -29,7 +29,9 @@ the stratum (`id`, `id:W`, `Within`), each with its term rows (sum of squares `S
 (`SSe_s`, `dfe_s`). For `aovEz` (afex's univariate tests, `univariate`, intercept row left out): a row whose name
 contains no within-subject factor belongs to the subject stratum `Subject`; any other row to the stratum
 `Subject:w`, where `w` is the within-subject term whose factors all occur in the row's name (as whole words), the one
-with the most factors; each stratum's residual is the `Error SS` and `den Df` of its rows.
+with the most factors; each stratum's residual is the `Error SS` and `den Df` of its rows. The intercept row belongs to the subject
+stratum for this purpose: its residual is there even when no between-subjects term is (a design with only
+within-subject factors), and the intercept row itself is then left out of the table.
 
 Then, with `MSe_s = SSe_s/dfe_s` for each stratum, `SStot` = the sum of all term and residual sums of squares of all
 strata, and `subj` the subject stratum (`id` / `Subject`):
