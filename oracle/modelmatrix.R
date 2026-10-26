@@ -70,6 +70,20 @@ add("y ~ A^0.5")
 add("y ~")
 add("~ A")                                                    # no response: allowed
 
+# (added later, at the end so that the earlier cases keep their indices)
+# an operand that expands to no terms: R's * and / append to the left operand's list, so an empty left gives nothing
+for (f in c("y ~ 1 * B", "y ~ 1/B", "y ~ 0 * B", "y ~ B * 1", "y ~ B/1", "y ~ B %in% 1", "y ~ 1 * 0 * B",
+            "y ~ 0 * B - x", "y ~ 0 %in% A * (x - 1)", "y ~ -1 * B", "y ~ (A - A) * B", "y ~ (1 + A) * B",
+            "y ~ (A + B)^2.5", "y ~ A^2.9", "y ~ (A + B)^1.5", "y ~ (1)^2 + A"))
+  add(f)
+# contrasts for a variable that is not in the formula, or numeric
+add("y ~ A", contrasts = list(A = "contr.sum", B = "contr.helmert"))
+add("y ~ A - 1", contrasts = list(Q = "contr.sum", A = "contr.sum", Z = "contr.helmert"))
+add("y ~ x:A", contrasts = list(B = "contr.sum"))
+add("y ~ A + x", contrasts = list(x = "contr.sum"))
+add("y ~ A", contrasts = list(y = "contr.sum"))
+add("y ~ L", contrasts = list(L = "contr.sum"))
+
 write_anova_fixture("modelMatrix", cases, function(a) {
   r <- with_warnings(function() {
     dat <- a$data

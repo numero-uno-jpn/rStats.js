@@ -81,6 +81,8 @@ add("y ~ A", unb, compare = I("y ~ x + A"))
 add("y ~ A + B", unb, weights = "w", compare = I("y ~ A * B"))
 add("y ~ A", na, compare = I("y ~ A + B"))                      # the same rows are used: both drop the same
 add("y ~ A", na, compare = I("y ~ A + x"))                      # x has its own missing value: different sizes
+# (added later, at the end so that the earlier cases keep their indices)
+add("y ~ A", unb, contrasts = list(A = "contr.sum", Q = "contr.helmert"))   # a contrast for an absent variable
 
 fit <- function(formula, a) {
   ctr <- if (is.null(a$contrasts)) NULL else lapply(a$contrasts, identity)

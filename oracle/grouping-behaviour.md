@@ -29,7 +29,12 @@ numeric columns are written as number strings). Where this file and the fixture 
   move integer-like keys first). One factor: the levels present. Several: every combination of their levels, named
   by joining the levels with `sep` (default `"."`), empty ones included unless `drop: true`.
 - `aggregate(formula, data, fun)` and `aggregate(x, by, fun)`: the formula form with `"y ~ g"`, `"y ~ g + h"`,
-  `"cbind(y, z) ~ g"` (several summarised columns) and `". ~ g"` (every column of `data` not on the right); the
+  `"cbind(y, z) ~ g"` (several summarised columns) and `". ~ g"` (every column of `data` not on the right). **The
+  grouping variables are all the variables of the right-hand side, in order of first appearance; its operators do
+  not matter** (R takes them from the model frame): `y ~ A:B`, `y ~ A*B`, `y ~ A/B`, `y ~ (A + B)^2`, `y ~ A %in% B`
+  and even `y ~ A + B - A` group by `A` and `B`; `y ~ B:A` by `B` then `A`; `y ~ 0 + A` by `A`; `y ~ .` by every
+  column other than the summarised ones; `y ~ 1` has no grouping variable and gives one row (the summary of all the
+  rows used, without a grouping column). The
   data-frame form with `x` a `DataFrame` of the columns to summarise and `by` an object of group-label columns
   (its keys name them). Result: a `DataFrame` with the grouping columns first (named as in the formula or `by`,
   values as in the data: strings or numbers), then one column per summarised column; one row per non-empty

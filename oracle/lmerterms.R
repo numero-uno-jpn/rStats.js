@@ -109,6 +109,9 @@ add("y ~ (1 | Q)")                                               # unknown varia
 d0 <- d; d0$y <- NA_real_
 add("y ~ (1 | a)", data = d0)                                    # no rows left
 
+# (added later, at the end so that the earlier cases keep their indices)
+add("y ~ f + (1 | a)", contrasts = list(f = "contr.sum", a = "contr.sum", Q = "contr.helmert"))  # a, Q: absent from X
+
 write_anova_fixture("lmerTerms", cases, function(a) {
   r <- with_conditions(function() {
     dat <- a$data

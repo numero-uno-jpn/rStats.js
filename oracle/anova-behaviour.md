@@ -61,7 +61,11 @@ whose names differ by more than case.
 
 Options shared by `modelMatrix`, `lm` and `aov`:
 
-- `contrasts`: a contrast per factor, `"contr.treatment"` (default), `"contr.sum"` or `"contr.helmert"`
+- `contrasts`: a contrast per factor, `"contr.treatment"` (default), `"contr.sum"` or `"contr.helmert"`. A name that
+  is not a variable of the formula (response included; for `lmer`, of the fixed-effects part) gives the warning
+  `variable 'B' is absent, its contrast will be ignored`, one per such name in the order of the `contrasts` object
+  (also in `lm`, `aov` and `lmer`). A name of a numeric variable (the response too) is an error: `contrasts apply only
+  to factors`. A boolean variable takes the contrast given (`contr.sum` gives the column `L1`).
 - `levels`: the order of the levels of a factor (`{ A: ["c", "a", "b"] }`), as `factor(x, levels = ...)` in R
 - `weights` (`lm` and `aov` only): an array parallel to the rows of `data`, or the name of a numeric column
 
@@ -106,7 +110,7 @@ A formula is `response ~ right-hand side` or `~ right-hand side`. Supported:
 
 - variable names (letters, digits, `.` and `_`, not starting with a digit or with `.` followed by a digit), and `.`
   alone, meaning every column of `data` that is not the response, in the order of the columns of `data`;
-- `+`, `-`, `*`, `/`, `:`, `%in%`, `^` with a whole number of at least 2, parentheses, and `0` and `1`;
+- `+`, `-`, `*`, `/`, `:`, `%in%`, `^` with a number, parentheses, and `0` and `1`;
 - in `aov` only, one `Error(...)` term, whose argument is itself a right-hand side.
 
 Anything else (function calls such as `log(x)` or `I(x^2)`, backquoted names, `offset()`) is an error. A formula
@@ -126,7 +130,8 @@ A right-hand side expands to an ordered list of **terms**, each a set of variabl
 - `a * b`: `L(a)`, then `L(b)`, then the terms of `a : b`; duplicates removed;
 - `a ^ n`: the unions of `n` terms of `L(a)`: start from `L(a)` and `n - 1` times replace the current list by the
   unions `s ∪ t` for `s` in `L(a)` (outer loop) and `t` in the current list (inner loop), removing duplicates each
-  time. `n` that is not a whole number of at least 2 is an error: `invalid power in formula`;
+  time. `n` is truncated towards zero first (R's `asInteger`: `^2.5` is `^2`); a truncated `n` below 2 (`^1`, `^1.5`)
+  is an error: `invalid power in formula`. If `L(a)` is empty, the result is empty;
 - `a / b`: `L(a)`, then for each term `t` of `L(b)` the union of `t` with all the variables of `L(a)`; duplicates
   removed. So `(A + B)/C` is `A + B + A:B:C`;
 - `b %in% a`: each term of `L(b)` united with all the variables of `L(a)` (and nothing else); duplicates removed.
@@ -134,6 +139,12 @@ A right-hand side expands to an ordered list of **terms**, each a set of variabl
 - `a - b`: `L(a)` without the terms that are equal (as sets) to a term of `L(b)`; `- 1` and `- 0` act on the
   intercept, see below; unary `-b` is `nothing - b`;
 - `( e )`: `L(e)`;
+- **An operand that expands to no terms** (`1`, `0`, `-1`, `(A - A)`, ...) in `*`, `/` and `%in%`: R builds these
+  lists by appending to the list of the left operand, so **when `L(a)` is empty, `a * b`, `a / b` and `a %in% b`
+  are empty** whatever `b` is (`y ~ 1 * B` and `y ~ 1/B` have only the intercept; `y ~ 0 * B` has nothing). The
+  right operand is still expanded for its effect on the intercept (`y ~ 1 * 0 * B` has no intercept). When `L(b)`
+  is empty and `L(a)` is not, the rules above apply unchanged: `B * 1` is `B`, `B / 1` is `B`, `B %in% 1` is `B`.
+  `a : b` is empty when either list is empty, as the rule above gives.
 - `1`: no term; sets the intercept, `0`: no term; removes it. Inside the right operand of a `-`, the meaning of
   `0` and `1` is reversed (so `- 1` removes the intercept and `- 0` keeps it); `y ~ -1` has no intercept and no
   terms, `y ~ 1 - 1` likewise.

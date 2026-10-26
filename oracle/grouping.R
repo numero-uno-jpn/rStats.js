@@ -38,6 +38,12 @@ add(fn = "aggregate", formula = "y ~ g + h", data = d3, fun = "sum")
 add(fn = "aggregate.by", data = d, cols = I(c("y", "z")), by = I("g"), fun = "mean")   # NA in y stays: mean is NA
 add(fn = "aggregate.by", data = d, cols = I("z"), by = I(c("g", "h")), fun = "max")
 
+# (added later, at the end so that the earlier cases keep their indices)
+# the grouping variables are the variables of the right-hand side, whatever its operators
+for (f in c("y ~ g:h", "y ~ g*h", "y ~ h:g", "y ~ g/h", "y ~ (g + h)^2", "y ~ g + h - g", "y ~ g %in% h", "y ~ 0 + g",
+            "y ~ 1", "y ~ .", "cbind(y, z) ~ ."))
+  add(fn = "aggregate", formula = f, data = d[, c("y", "z", "g", "h")], fun = "sum")
+
 frame <- function(r) { r <- do.call(data.frame, c(as.list(r), check.names = FALSE)); rownames(r) <- NULL; df_json(r) }
 write_anova_fixture("grouping", cases, function(a) {
   dd <- a$data; f <- if (is.null(a$fun)) NULL else funs[[a$fun]]
