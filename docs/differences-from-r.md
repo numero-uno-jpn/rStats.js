@@ -278,6 +278,15 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`aovEz` messages that R completes with a printout of the data** (ids removed for missing
   values, empty within-subject cells, empty between-subject cells) stop where the printout starts.
 
+- **`coxph`** takes the covariates as a matrix (no formula), and non-integer case weights throw "non-integer
+  weights (robust variance) are not supported yet": R switches to the robust (sandwich) variance for them.
+  R's own results for a coefficient running off to infinity over many iterations depend on the platform (x86_64
+  and arm64 R differ by 1e-7 after 20 iterations), so such fits agree with R only to that size.
+- **`omega`** with one factor reports the group column of the Schmid-Leiman matrix and the group omegas as exactly 0;
+  R reports the square roots of rounding residues (about 1e-8). With four or more group factors R's own results move
+  by up to 4e-11 when the data change in the last bit, so `omega` agrees with R to about that size there (1e-12 with
+  up to three).
+
 ### Linear models
 
 - **`lm` with every weight 0** throws "all weights are zero"; R returns NA coefficients.
@@ -523,3 +532,7 @@ By default rStats.js returns what R returns;
   argument, and the `side` argument of `grad` and `jacobian`.
 - deSolve's adaptive solvers (`lsoda`, `ode45`, ...); `ode` has the fixed-step `euler`, `rk2`
   and `rk4`.
+- `coxph`: counting-process data (`Surv(start, stop, event)`), `ties = "exact"`, offsets, clusters and the robust
+  variance, `tt()` terms and residuals; concordance.
+- `omega`: factoring methods other than minres, rotations other than oblimin, `n.iter` (bootstrap intervals) and
+  `poly = TRUE`.

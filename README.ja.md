@@ -164,8 +164,8 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
 | ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest) |
 | 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`dunnettTest`、`gamesHowellTest`、`tukeyTest` (PMCMRplus)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
-| 生存時間解析 | `survdiff` (log-rank)、`survfit` (Kaplan-Meier。信頼区間と中央値) |
-| 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor)、`pbvnorm`、`factanal` |
+| 生存時間解析 | `survdiff` (log-rank)、`survfit` (Kaplan-Meier。信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイの扱い、ケースの重み、層、Wald・尤度比・スコア検定) |
+| 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor)、`pbvnorm`、`factanal`、`omega` (McDonald の ω。psych) |
 | 線形代数 | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS)、`schur`、`expm` |
 | 数値計算 | `integrate`, `optimize`, `optim`, `optimHess`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
 

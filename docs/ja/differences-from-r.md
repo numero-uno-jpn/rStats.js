@@ -269,6 +269,14 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **R がデータの表示で締めくくる `aovEz` のメッセージ** (欠測値で除いた id、被験者内の空のセル、
   被験者間の空のセル) は、表示の手前で終わります。
 
+- **`coxph`** は共変量を行列で受け取ります (formula はありません)。整数でないケースの重みは "non-integer weights (robust
+  variance) are not supported yet" で止まります (R はそのとき頑健 (サンドイッチ) 分散に切り替えます)。多数の反復で
+  係数が無限大に向かう例では R 自身の結果がプラットフォームで違う (20 回の反復で x86_64 と arm64 の R が 1e-7
+  違う) ので、その程度までしか一致しません。
+- **`omega`** は 1 因子のとき、Schmid-Leiman 行列の群因子の列と群ごとの ω を厳密に 0 と返します。R は丸めの残差の
+  平方根 (1e-8 ほど) を返します。群因子が 4 つ以上だと、データの最終ビットを変えるだけで R 自身の結果が最大 4e-11
+  動くので、その程度で一致します (3 つまでは 1e-12)。
+
 ### 線形モデル
 
 - **重みがすべて 0 の `lm`** は "all weights are zero" で例外を投げます。R は NA の係数を返します。
@@ -492,3 +500,6 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - numDeriv の複素数ステップ法 (`method = "complex"`。複素数の引数を受け取る関数が要る) と、`grad`・
   `jacobian` の `side` 引数。
 - deSolve の適応刻みの解法 (`lsoda`、`ode45` など)。`ode` は固定刻みの `euler`・`rk2`・`rk4` です。
+- `coxph`: 計数過程のデータ (`Surv(start, stop, event)`)、`ties = "exact"`、オフセット、クラスターと頑健分散、
+  `tt()` の項、残差、concordance。
+- `omega`: minres 以外の因子抽出法、oblimin 以外の回転、`n.iter` (ブートストラップの区間)、`poly = TRUE`。

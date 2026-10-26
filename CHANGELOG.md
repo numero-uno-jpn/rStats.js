@@ -48,10 +48,15 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   (R's mvtnorm integration is randomised and about 1e-3 accurate); studentized-range p-values are R's to full
   precision (R's `ptukey` has about 8 digits).
 - Survival analysis: `survdiff` (log-rank, G-rho family) and `survfit` (Kaplan-Meier with its intervals and median).
+- `coxph` (Cox regression, survival's `coxph` for right-censored data with a covariate matrix): Efron and Breslow
+  ties, case weights, strata, starting values, R's Newton-Raphson iterations and warnings, and the summary's
+  coefficient table, intervals and the likelihood-ratio, score and Wald tests.
 - Agreement and reliability: `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych).
 - `schur` (real Schur decomposition, `Matrix::Schur`) and `expm` (the matrix exponential, expm's `Higham08.b` and
   `Higham08`).
 - `factanal` (maximum-likelihood factor analysis with varimax and promax rotations), on `optim`'s L-BFGS-B.
+- `omega` (McDonald's ω, psych's `omega`): minres factor analysis, varimax and oblimin rotations, the
+  Schmid-Leiman transformation, ω_h, ω_t, ω_lim, α, G6, ECV and the group omegas.
 - `polychor` and `polyserial` (polycor's two-step estimates) and `pbvnorm` (bivariate normal rectangle
   probabilities, Genz's method).
 - `optim` with Nelder-Mead, BFGS, CG, L-BFGS-B (a port of the Netlib code), SANN and Brent, following R's iterations
