@@ -8,8 +8,8 @@ fixture seem to disagree, report it.
 
 ## Easy to get wrong
 
-1. kappa2's levels: the levels of the two raters' ratings combined (those of the rater with more levels first), **sorted
-   as strings** when the ratings are numeric (so 10 sorts before 2).
+1. kappa2's levels: the levels of both raters' ratings put together, **sorted as strings** when the ratings are
+   numeric (so 10 sorts before 2), duplicates removed.
 2. kappa2's p-value uses the variance **under the null hypothesis** (no `(1 − kappa)` factor). irr forms the
    p-values of both kappas as `2 (1 − Φ(|z|))`, losing small ones; compute `2 Φ(−|z|)` (the fixtures' `reference`,
    compared as a known difference where R differs).
@@ -77,5 +77,5 @@ The correlation matrix R; with `a = {i, j}` and `b` the other columns, `P = R_aa
 
 ## Accuracy
 
-Relative 1e-12 to R value by value; no loosening; known differences only within 1e-12 of an exact reference (none in
-the fixture).
+Relative 1e-12 to R value by value; no loosening; known differences only within 1e-12 of the fixture's reference
+(the kappa p-values of rule 2), listed with reasons.
