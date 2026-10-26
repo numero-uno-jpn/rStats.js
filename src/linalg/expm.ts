@@ -4,14 +4,12 @@
 // Sources: the specification oracle/matfn-behaviour.md; the scaling and squaring method with Padé approximants of
 // N. J. Higham, "The scaling and squaring method for the matrix exponential revisited", SIAM J. Matrix Anal. Appl.
 // 26 (2005) 1179-1193 (degrees 3, 5, 7, 9 and 13, the bounds on the 1-norm and the Padé coefficients);
-// the balancing is a port of LAPACK 3.12.0's SRC/dgebal.f (modified BSD; see THIRD_PARTY_NOTICES.md).
+// the balancing is src/linalg/balance.ts (a port of LAPACK 3.12.0's SRC/dgebal.f, modified BSD).
 // - "Higham08.b" (default) balances first: dgebal with job "P" (permutation), then dgebal with job "S" (scaling) on
 //   the result, as two separate calls; "Higham08" does not balance
 // - The Padé degree is chosen from the 1-norm of the (balanced) matrix; above 2.1, degree 13 with scaling by 2^-s
 // - X = (V - U)^-1 (V + U) is solved by LU decomposition as solve (which throws if V - U is computationally
 //   singular), then squared s times, and the balancing is undone
-// - dgebal's DNRM2 is computed with the classic scaled sum of squares rather than reference BLAS 3.12's algorithm
-//   (it only decides between powers of 2 in the scaling; the results may differ in rare borderline cases)
 // - "Pade", "Taylor", "PadeO", "TaylorO" (Shapira and Firth's methods, as the specification describes them): scaling
 //   by N = 2^p with p from sqrt(1-norm x infinity-norm), a Taylor polynomial or a diagonal Padé approximant of degree
 //   order (default 8) by Horner's rule, the Padé quotient by the conjugate gradient squared method column by column,
@@ -21,6 +19,7 @@
 
 import { fromMat, newMat, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
 import { infNorm, oneNorm } from "./norm.js";
+import { gebal } from "./balance.js";
 import { solve } from "./solve.js";
 
 /**
@@ -327,144 +326,4 @@ function comb(terms: readonly (readonly [number, Mat])[]): Mat {
   const Y = scale(M0, a0);
   for (let t = 1; t < terms.length; t++) axpy(Y, terms[t]![0], terms[t]![1]);
   return Y;
-}
-
-/** 2-norm of n values a[o], a[o + stride], ... (scaled sum of squares) */
-function nrm2(a: Float64Array, o: number, count: number, stride: number): number {
-  let sc = 0;
-  let ssq = 1;
-  for (let k = 0; k < count; k++) {
-    const v = a[o + k * stride]!;
-    if (v === 0) continue;
-    const av = Math.abs(v);
-    if (sc < av) {
-      ssq = 1 + ssq * (sc / av) ** 2;
-      sc = av;
-    } else ssq += (av / sc) ** 2;
-  }
-  return sc * Math.sqrt(ssq);
-}
-
-/**
- * Balancing (dgebal) with job "P" (permute only) or "S" (scale only); A is overwritten. Indices are 0-based:
- * scale[i] holds the index of the row and column interchanged with i for i < ilo and i > ihi, and the scaling factor
- * for ilo <= i <= ihi
- */
-export function gebal(job: "P" | "S", A: Mat): { ilo: number; ihi: number; scale: Float64Array } {
-  const n = A.nrow;
-  const a = A.data;
-  const at = (i: number, j: number) => i + j * n;
-  const scale = new Float64Array(n);
-  const swapCols = (i: number, j: number, rows: number) => {
-    for (let r = 0; r < rows; r++) [a[at(r, i)], a[at(r, j)]] = [a[at(r, j)]!, a[at(r, i)]!];
-  };
-  const swapRows = (i: number, j: number, from: number) => {
-    for (let c = from; c < n; c++) [a[at(i, c)], a[at(j, c)]] = [a[at(j, c)]!, a[at(i, c)]!];
-  };
-  // Permutation to isolate eigenvalues if possible
-  let k = 0;
-  let l = n - 1;
-  if (job === "P") {
-    // Search for rows isolating an eigenvalue and push them down (the loop bounds are fixed at entry, as in Fortran)
-    let noconv = true;
-    while (noconv) {
-      noconv = false;
-      for (let i = l; i >= 0; i--) {
-        let canswap = true;
-        for (let j = 0; j <= l; j++) {
-          if (i !== j && a[at(i, j)] !== 0) {
-            canswap = false;
-            break;
-          }
-        }
-        if (canswap) {
-          scale[l] = i;
-          if (i !== l) {
-            swapCols(i, l, l + 1);
-            swapRows(i, l, k);
-          }
-          noconv = true;
-          if (l === 0) return { ilo: 0, ihi: 0, scale };
-          l--;
-        }
-      }
-    }
-    // Search for columns isolating an eigenvalue and push them left
-    noconv = true;
-    while (noconv) {
-      noconv = false;
-      for (let j = k, last = l; j <= last; j++) {
-        let canswap = true;
-        for (let i = k; i <= l; i++) {
-          if (i !== j && a[at(i, j)] !== 0) {
-            canswap = false;
-            break;
-          }
-        }
-        if (canswap) {
-          scale[k] = j;
-          if (j !== k) {
-            swapCols(j, k, l + 1);
-            swapRows(j, k, k);
-          }
-          noconv = true;
-          k++;
-        }
-      }
-    }
-  }
-  for (let i = k; i <= l; i++) scale[i] = 1;
-  if (job === "P") return { ilo: k, ihi: l, scale };
-  // Balance the submatrix in rows k to l by powers of 2 (iterative loop for norm reduction)
-  const SCLFAC = 2;
-  const FACTOR = 0.95;
-  const sfmin1 = 2 ** -1022 / Number.EPSILON;
-  const sfmax1 = 1 / sfmin1;
-  const sfmin2 = sfmin1 * SCLFAC;
-  const sfmax2 = 1 / sfmin2;
-  let noconv = true;
-  while (noconv) {
-    noconv = false;
-    for (let i = k; i <= l; i++) {
-      let c = nrm2(a, at(k, i), l - k + 1, 1);
-      let r = nrm2(a, at(i, k), l - k + 1, n);
-      let ca = 0;
-      for (let q = 0; q <= l; q++) ca = Math.max(ca, Math.abs(a[at(q, i)]!));
-      let ra = 0;
-      for (let q = k; q < n; q++) ra = Math.max(ra, Math.abs(a[at(i, q)]!));
-      // Guard against zero c or r due to underflow
-      if (c === 0 || r === 0) continue;
-      if (Number.isNaN(c + ca + r + ra)) throw new RangeError("the matrix contains NaN or infinite values");
-      let g = r / SCLFAC;
-      let f = 1;
-      const s = c + r;
-      while (c < g && Math.max(f, c, ca) < sfmax2 && Math.min(r, g, ra) > sfmin2) {
-        f *= SCLFAC;
-        c *= SCLFAC;
-        ca *= SCLFAC;
-        r /= SCLFAC;
-        g /= SCLFAC;
-        ra /= SCLFAC;
-      }
-      g = c / SCLFAC;
-      while (g >= r && Math.max(r, ra) < sfmax2 && Math.min(f, c, g, ca) > sfmin2) {
-        f /= SCLFAC;
-        c /= SCLFAC;
-        g /= SCLFAC;
-        ca /= SCLFAC;
-        r *= SCLFAC;
-        ra *= SCLFAC;
-      }
-      // Now balance
-      if (c + r >= FACTOR * s) continue;
-      if (f < 1 && scale[i]! < 1 && f * scale[i]! <= sfmin1) continue;
-      if (f > 1 && scale[i]! > 1 && scale[i]! >= sfmax1 / f) continue;
-      g = 1 / f;
-      scale[i] = scale[i]! * f;
-      noconv = true;
-      for (let q = k; q < n; q++) a[at(i, q)] = a[at(i, q)]! * g;
-      for (let q = 0; q <= l; q++) a[at(q, i)] = a[at(q, i)]! * f;
-    }
-  }
-  return { ilo: k, ihi: l, scale };
 }
