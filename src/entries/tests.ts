@@ -130,3 +130,12 @@ export {
   type AnovaEffectSizeTable,
 } from "../htest/effectSize.js";
 export { aovEz, type AovEzOptions, type AovEzResult, type AovEzTable, type AovEzEffectSize } from "../models/aovEz.js";
+export {
+  survdiff,
+  survfit,
+  type SurvdiffOptions,
+  type SurvdiffResult,
+  type SurvfitOptions,
+  type SurvfitResult,
+  type SurvfitConfType,
+} from "../models/survival.js";
