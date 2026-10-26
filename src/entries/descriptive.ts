@@ -22,3 +22,7 @@ export {
   merge, subset, fromRows, toRows,
   type MergeOptions, type SubsetOptions, type FromRowsOptions, type DataRow, type DataValue,
 } from "../descriptive/dataFrames.js";
+export {
+  pivotLonger, pivotWider,
+  type PivotLongerOptions, type PivotWiderOptions, type PivotSummary,
+} from "../descriptive/pivot.js";

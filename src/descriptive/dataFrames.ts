@@ -15,17 +15,18 @@ export type DataValue = number | string | boolean | null;
 /** A row of a data frame, as passed to the condition of {@link subset}: column name to value. */
 export type DataRow = Record<string, DataValue>;
 
-type Column = DataFrame[string];
+/** One column of a data frame. */
+export type Column = DataFrame[string];
 
 /** The number of rows of a data frame (0 without columns); all columns must have the same length */
-function rowCount(frame: DataFrame): number {
+export function rowCount(frame: DataFrame): number {
   const cols = Object.values(frame);
   const n = cols[0]?.length ?? 0;
   if (cols.some((c) => c.length !== n)) throw new RangeError("the columns of a data frame must have the same length");
   return n;
 }
 
-const isMissing = (v: DataValue | undefined): boolean => v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
+export const isMissing = (v: DataValue | undefined): boolean => v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
 
 const valueAt = (col: Column, i: number): DataValue => col[i]!;
 
@@ -43,12 +44,12 @@ function gather(sources: readonly Column[], rows: readonly ([Column, number] | n
 }
 
 /** A copy of a column restricted to the given rows */
-function pick(col: Column, rows: readonly number[]): Column {
+export function pick(col: Column, rows: readonly number[]): Column {
   return col instanceof Float64Array ? Float64Array.from(rows, (i) => col[i]!) : rows.map((i) => valueAt(col, i));
 }
 
 /** Adds a column to a result under construction; names must be unique */
-function addColumn(out: DataFrame, name: string, col: Column): void {
+export function addColumn(out: DataFrame, name: string, col: Column): void {
   if (Object.hasOwn(out, name)) throw new Error(`duplicate column name '${name}'`);
   out[name] = col;
 }
@@ -93,7 +94,7 @@ type Key = number | string | boolean | typeof MISSING_KEY;
 const typeRank = (v: number | string | boolean): number => (typeof v === "number" ? 0 : typeof v === "string" ? 1 : 2);
 
 /** Comparison of two values for sorting: numbers as numbers, text by code point, FALSE before TRUE, missing last */
-function compareValues(a: DataValue, b: DataValue): number {
+export function compareValues(a: DataValue, b: DataValue): number {
   const ma = isMissing(a);
   const mb = isMissing(b);
   if (ma || mb) return ma === mb ? 0 : ma ? 1 : -1;
