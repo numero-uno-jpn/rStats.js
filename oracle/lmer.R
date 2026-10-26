@@ -21,9 +21,9 @@ suppressPackageStartupMessages({library(lme4); library(Rmpfr)})
 #   messages, warnings  R's messages and warnings
 # reference: the same fields at the exact optimum of the criterion. lme4's optimiser stops near the optimum (theta
 #   is typically within 1e-6 to 1e-4 of it). The reference starts from lme4's theta, fixes at 0 the diagonal elements
-#   that lme4 left below 1e-4 (checking that the one-sided derivative of the criterion there is positive, so that the
-#   optimum is on the boundary), and solves for a zero gradient of the criterion in the other elements by Newton's
-#   method in 128-bit arithmetic: the criterion is computed with dense matrices from the paper's formulas (as in
+#   that lme4 left below 1e-4, and those that Newton's method below drives below 1e-15 (checking that the one-sided
+#   derivative of the criterion there is positive, so that the optimum is on the boundary), and solves for a zero
+#   gradient of the criterion in the other elements by Newton's method in 128-bit arithmetic: the criterion is computed with dense matrices from the paper's formulas (as in
 #   oracle/lmerdev.R), its gradient by central differences (step 1e-15), its Hessian once by central differences
 #   (step 1e-8), until the Newton step is below 1e-20 (the gradient is accurate to about 1e-21). All fields are then
 #   computed at that theta in 128-bit arithmetic. "newtonSteps" records the size of the Newton steps taken.
@@ -100,9 +100,8 @@ pls <- function(s, theta) {
 criterion <- function(s, theta, reml) { r <- pls(s, theta); if (reml) r$devREML else r$devML }
 
 # Newton's method on the free elements of theta
-optimum <- function(s, theta0, reml) {
+optimum <- function(s, theta0, reml, fixed = s$lower == 0 & theta0 < 1e-4) {
   theta <- mp(theta0)
-  fixed <- s$lower == 0 & theta0 < 1e-4
   theta[fixed] <- mp(0)
   free <- which(!fixed)
   f0 <- criterion(s, theta, reml)
@@ -137,6 +136,12 @@ optimum <- function(s, theta0, reml) {
     steps <- c(steps, sprintf("%.1e", sz))
     if (sz < 1e-20) break
   }
+  # an element that Newton's method drove to its bound (below 1e-15) is on the boundary: fix it at 0 and solve again
+  near <- s$lower == 0 & !fixed & abs(asNumeric(theta)) < 1e-15
+  if (any(near)) {
+    again <- optimum(s, asNumeric(theta), reml, fixed | near)
+    return(list(theta = again$theta, steps = c(steps, "(boundary)", again$steps)))
+  }
   if (sz >= 1e-20) stop("Newton's method did not converge")
   if (any(asNumeric(theta[s$lower == 0]) < 0)) stop("the optimum is outside the bounds")
   list(theta = theta, steps = steps)
@@ -156,7 +161,7 @@ fields_at <- function(s, theta, reml) {
     for (j in seq_len(m)) for (i in j:m) { pos <- pos + 1; T[i, j] <- theta[pos] }
     S <- sigma2 * (T %*% t(T)); sd <- sqrt(diag(S))
     C <- mpfrArray(0, BITS, dim = c(m, m))
-    for (i in seq_len(m)) for (j in seq_len(m)) C[i, j] <- S[i, j] / (sd[i] * sd[j])
+    for (i in seq_len(m)) for (j in seq_len(m)) C[i, j] <- if (i == j) mp(1) else S[i, j] / (sd[i] * sd[j])
     list(group = names(rt$cnms)[k], columns = I(rt$cnms[[k]]), sd = I(num2str(asNumeric(sd))),
          corr = lapply(seq_len(m), function(i) I(num2str(asNumeric(C[i, ])))))
   })

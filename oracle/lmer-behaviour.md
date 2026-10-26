@@ -243,7 +243,8 @@ With `n`, `p`, the penalised least-squares solution `(β̂, û)`, `b = Λ_θ̂ �
 - `sigma = sqrt(prss / (n − p))` for REML fits and `sqrt(prss / n)` for ML fits.
 - `vcov = sigma² (R_X'R_X)⁻¹`; `stdError` the square roots of its diagonal; `tValue = fixef / stdError`.
 - `varCorr`: for term `k`, `Σ_k = sigma² T_k T_k'` (`T_k` filled from θ̂ as in stage 1a); `sd` the square roots of
-  its diagonal, `corr[i][j] = Σ_k[i][j] / (sd_i sd_j)` (1 on the diagonal; a 1 × 1 term has `corr` `[[1]]`). `group`
+  its diagonal, `corr[i][j] = Σ_k[i][j] / (sd_i sd_j)` (1 on the diagonal, also where `sd_i` is 0; a 1 × 1 term
+  has `corr` `[[1]]`; off the diagonal, NaN where an `sd` is 0, as R's 0/0). `group`
   is the grouping factor's name, `columns` the term's columns. Terms are listed separately even when they share a
   grouping factor (`(1 | g) + (0 + x | g)` has two entries, both with group `g`).
 - `ranef`: for each grouping factor (in the order of the structure's groups), the rows are its levels and the
@@ -261,13 +262,18 @@ With `n`, `p`, the penalised least-squares solution `(β̂, û)`, `b = Λ_θ̂ �
 ### The fixture lmer (`oracle/lmer.R`)
 
 The comment at the top of the oracle describes the fields. `expected` holds lme4's values, `reference` the values
-at the exact minimiser (with `newtonSteps`, for information).
+at the exact minimiser (with `newtonSteps`, for information). The fixture **lmerMore** (`oracle/lmermore.R`) has more
+cases in the same format and is tested the same way; among them, `y ~ cond + (1 | subj/cond)` (ML) has its optimum
+on the boundary although lme4 stops inside (so lme4's `singular` and `messages` differ from the reference's: the
+reference is right), and `y ~ x + (1 | subj)` (REML) has its optimum just inside the boundary (θ ≈ 0.0099), where the
+criterion is very flat.
 
 Accuracy required, against `reference`: `logLik`, `AIC`, `BIC`, `deviance`, `REMLcrit`: relative 1e-12 (they are
 insensitive to small errors in θ̂). `theta`, `fixef`, `stdError`, `tValue`, `vcov`, `sigma`, `varCorr` (`sd`, and
 `corr` absolute), `ranef` values, `fitted`, `residuals`: within 1e-9 × the largest absolute value of the reference
-vector or matrix (`sigma` relative). Elements of θ that are 0 in the reference must be exactly 0. `df`,
-`singular`, the names and levels, `messages` and `warnings`: equal to the reference / lme4.
+vector or matrix (`sigma` relative). Elements of θ that are 0 in the reference must be exactly 0. `singular`:
+equal to the reference's. `messages`: lme4's messages without `boundary (singular) fit: see help('isSingular')`, then
+that message if the reference is singular. `df`, the names and levels, and `warnings`: equal to lme4's.
 
 Against `expected` (lme4): the criterion of the fit must not be worse than lme4's (`d(θ̂) ≤ d(θ_lme4) + 1e-10
 |d(θ_lme4)|`, with `d(θ_lme4)` lme4's `REMLcrit` or `deviance`), and the test log should print the largest
