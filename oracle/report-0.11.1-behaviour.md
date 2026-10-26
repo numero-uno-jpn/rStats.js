@@ -95,6 +95,14 @@ one group ("0.3"), and 1e15 and 1e15 + 1 are one group ("1e+15"). The library gr
 - Strings and booleans are unchanged.
 - Fixtures: `table` (oracle/descriptive.R), `grouping` (oracle/grouping.R), `formulaTests` (oracle/formulatests.R).
 
+### 1.5 The text of a numeric level (added after batch 1)
+
+Where the library returns the level of a numeric label as text (the group labels of the hypothesis tests from the
+(x, g) form, such as the names in pairwise tests, TukeyHSD and the multiple comparisons, and any other place that
+writes a numeric level with `String`), the text is R's: `formatR` of the level's value (as.character, 15 significant
+digits), so 1e15 is "1e+15" and 1/3 is "0.333333333333333". Short numbers are written the same either way, so
+existing results only change for numbers that need more than 15 digits or are written in exponent form by R.
+
 ## Batch 2
 
 ### 2.1 Gamma and chi-squared distributions with an infinite shape
