@@ -62,7 +62,9 @@ whose names differ by more than case.
 Options shared by `modelMatrix`, `lm` and `aov`:
 
 - `contrasts`: a contrast per factor, `"contr.treatment"` (default), `"contr.sum"` or `"contr.helmert"`. A name that
-  is not a variable of the formula (response included; for `lmer`, of the fixed-effects part) gives the warning
+  is not a variable of the formula (response included; for `aov` with `Error()`, of the formula without the
+  `Error()` term, so a variable that appears only inside `Error()` is absent; for `lmer`, of the fixed-effects part)
+  gives the warning
   `variable 'B' is absent, its contrast will be ignored`, one per such name in the order of the `contrasts` object
   (also in `lm`, `aov` and `lmer`). A name of a numeric variable (the response too) is an error: `contrasts apply only
   to factors`. A boolean variable takes the contrast given (`contr.sum` gives the column `L1`).

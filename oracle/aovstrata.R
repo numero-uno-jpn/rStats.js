@@ -40,6 +40,10 @@ add("y ~ W + Error(id + G)", mix)          # G is constant within id: the Error(
 add("y ~ W + Error(id) + Error(W)", w1)
 cases[[length(cases) + 1]] <- list(formula = "y ~ W + Error(id/W)", data = wb, weights = "wt")
 
+# (added later, at the end so that the earlier cases keep their indices)
+# a contrast for a variable that appears only inside Error(): absent from the treatment model, so R warns
+add("y ~ G * W + Error(id/W)", mixu, contrasts = list(id = "contr.sum", W = "contr.sum", Q = "contr.helmert"))
+
 write_anova_fixture("aovStrata", cases, function(a) {
   r <- with_warnings(function() {
     ctr <- if (is.null(a$contrasts)) NULL else lapply(a$contrasts, identity)
