@@ -6,6 +6,7 @@
 // (the first factor varies fastest). A row whose label is missing (null, or NaN in a numeric column) belongs to no
 // group. tapply keeps the empty cells (NaN or null), split keeps them unless `drop`, aggregate leaves them out.
 
+import { formatR } from "../htest/core/simulate.js";
 import { parseFormula, type FormulaNode } from "../models/formula.js";
 import { compareCodePoints, type DataFrame } from "../models/modelFrame.js";
 
@@ -40,8 +41,9 @@ const isMissing = (v: Label): boolean => v === null || (typeof v === "number" &&
 const levelOrder = (a: GroupingLevel, b: GroupingLevel): number =>
   typeof a === "number" ? a - (b as number) : typeof a === "string" ? compareCodePoints(a, b as string) : Number(a) - Number(b);
 
-/** A level as R names it: numbers as JavaScript prints them, booleans as TRUE and FALSE */
-const levelName = (v: GroupingLevel): string => (typeof v === "boolean" ? (v ? "TRUE" : "FALSE") : String(v));
+/** A level as R names it: numbers as as.character (15 significant digits), booleans as TRUE and FALSE */
+const levelName = (v: GroupingLevel): string =>
+  typeof v === "boolean" ? (v ? "TRUE" : "FALSE") : typeof v === "string" ? v : Number.isFinite(v) ? formatR(v) : v > 0 ? "Inf" : "-Inf";
 
 function factorOf(name: string, labels: GroupingLabels): GroupFactor {
   const vals = Array.from(labels as ArrayLike<Label>, (v) => (v === 0 ? 0 : v)); // -0 is the label 0

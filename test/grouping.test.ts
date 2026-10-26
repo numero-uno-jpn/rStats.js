@@ -96,6 +96,13 @@ describe("tapply, split, aggregate", () => {
     expect(cmp.failures, cmp.failures.slice(0, 20).join("\n")).toEqual([]);
   });
 
+  it("names numeric levels as R's as.character", () => {
+    const r = split([1, 2, 3, 4, 5], [0.1 + 0.2, 1 / 3, 100000, 1e-20, -2.5]);
+    expect([...r.keys()]).toEqual(["-2.5", "1e-20", "0.3", "0.333333333333333", "1e+05"]);
+    const both = split([1, 2], [[0.1 + 0.2, 1 / 3], ["a", "b"]], { drop: true });
+    expect([...both.keys()]).toEqual(["0.3.a", "0.333333333333333.b"]);
+  });
+
   it("errors when fun returns values of different lengths", () => {
     expect(() => aggregate("y ~ g", { y: [1, 2, 3], g: ["a", "b", "b"] }, (v) => v)).toThrow(
       "fun must return values of the same length for every group",
