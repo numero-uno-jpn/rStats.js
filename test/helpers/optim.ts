@@ -221,8 +221,8 @@ export function runCase(a: OptimCase["args"]): OptimResult {
   return optim(vecArg(a.par), f.fn, options);
 }
 
-/** Compares a result with R's; returns the failures and the largest error */
-export function compare(c: OptimCase, r: OptimResult): { failures: string[]; maxErr: number } {
+/** Compares a result with R's (par, value and hessian within `tol`); returns the failures and the largest error */
+export function compare(c: OptimCase, r: OptimResult, tol = TOL): { failures: string[]; maxErr: number } {
   const e = c.expected;
   const failures: string[] = [];
   let maxErr = 0;
@@ -230,7 +230,7 @@ export function compare(c: OptimCase, r: OptimResult): { failures: string[]; max
   const check = (what: string, actual: number, expected: number, absolute = false) => {
     const err = errorOf(actual, expected, absolute);
     maxErr = Math.max(maxErr, err);
-    if (!(err <= TOL)) failures.push(`${what}: ${actual} vs ${expected} (${err.toExponential(2)})`);
+    if (!(err <= tol)) failures.push(`${what}: ${actual} vs ${expected} (${err.toExponential(2)})`);
   };
   expect(r.par.length).toBe(e.par.length);
   r.par.forEach((p, i) => check(`par[${i}]`, p, num(e.par[i])));
