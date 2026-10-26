@@ -13,3 +13,4 @@ export {
   skewness, kurtosis, geometricMean, modes, meanAD, cv, scale,
   type MomentOptions, type MeanADOptions, type CvOptions, type ScaleOptions,
 } from "../descriptive/moments.js";
+export { factanal, type FactanalOptions, type FactanalResult, type FactanalRotation } from "../descriptive/factanal.js";
