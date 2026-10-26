@@ -1,7 +1,9 @@
+# oracle-platform: amd64
 source("/oracle/_anova.R")
 source("/oracle/_optimfns.R")
 
-# optim (ROADMAP: Nelder-Mead, BFGS, CG, L-BFGS-B, Brent; SANN in oracle/optimsann.R) and factanal.
+# optim (ROADMAP: Nelder-Mead, BFGS, CG, L-BFGS-B, Brent; SANN in oracle/optimsann.R) and factanal. Run on x86_64 R:
+# the arm64 build of R fuses multiply-adds in optim's C code, which changes the last bits and so the iterations.
 #   optim        fn (a name in oracle/_optimfns.R), par, method, gradient (TRUE: use the analytic gradient), lower,
 #                upper, hessian, control (maxit, reltol, abstol, parscale, fnscale, type for CG, lmm, factr, pgtol,
 #                ndeps). Written: par, value, counts (function, gradient), convergence, message ("NULL" for R's
