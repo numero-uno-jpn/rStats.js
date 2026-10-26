@@ -66,6 +66,22 @@ for (m in gmats) {
 for (m in smats[c(2, 4, 6)]) add(x = m, symmetric = FALSE)
 add(x = rmat(4, 4))                       # symmetry check (nonsymmetric)
 add(x = matrix(c(1, NaN, 2, 1), 2, 2), symmetric = FALSE)
+# (added later, at the end) badly scaled matrices: R's dgeev balances them first (permutation, then scaling)
+dsim <- function(m, d) diag(d) %*% m %*% diag(1 / d)
+bad <- list(
+  matrix(c(1, 1e-8, 0, 1e8, 1, 1e-6, 0, 1e6, 2), 3, 3),
+  dsim(rmat(5, 5), 10^c(-6, -3, 0, 3, 6)),
+  dsim(rmat(6, 6), 10^c(8, -8, 4, -4, 0, 2)),
+  dsim(matrix(c(0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -1, 2, -3, 1), 4, 4), 10^c(0, 5, -5, 7)),   # complex pairs
+  dsim(companion(c(2, -3, 1, 5, -1, 0.5)), 2^c(30, 10, -10, 0, -30, 20)),
+  matrix(c(1, 0, 0, 0, 2, 3, 0, 0, 4, 5, 6, 0, 7, 8, 9, 10), 4, 4),          # triangular: permutation only
+  matrix(c(1, 2, 0, 3, 4, 5, 0, 0, 0, 6, 7, 8, 9, 1, 0, 2, 3, 4, 0, 0, 5, 6, 7, 0, 8), 5, 5),   # zero rows and columns
+  dsim(matrix(c(4, 1, 0, 0, 2, 3, 0, 0, 1, 5, 2, 1, 6, 7, 3, 1), 4, 4), 10^c(4, -4, 2, 0))
+)
+for (m in bad) {
+  add(x = m, symmetric = FALSE)
+  add(x = m, symmetric = FALSE, onlyValues = TRUE)
+}
 cases <- lapply(cases, function(a) {
   if (!all(is.finite(a$x))) return(a)
   e <- eigen(a$x, symmetric = FALSE)

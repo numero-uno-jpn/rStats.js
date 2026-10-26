@@ -22,6 +22,12 @@ samples <- list(
 )
 with_na <- list(c(1, NA, 3, 4, NaN, 2), c(NA_real_, NA_real_))
 special <- list(c(1, Inf, 3), c(-Inf, 2, Inf), numeric(0))
+# (added later; their cases come at the end of each fixture) sums and products that overflow or underflow a
+# double on the way: R accumulates in long double
+overflow <- list(c(1e308, 1e308, 1e308), c(1e308, 1e308, -1e308), c(1.5e308, -1e308, 1.5e308), c(1.5e308, 1.7e308),
+                 c(-1.7e308, -1.5e308), c(1e308, 1e308), c(1e308, 1e308, 1e308, 1, 2), c(1e308, 10, 0.1),
+                 c(1e-308, 1e-10, 1e10), c(1e308, 1e308, NA, -1e308), c(1e308, 1e308, Inf),
+                 c(.Machine$double.xmax, .Machine$double.xmax, -.Machine$double.xmax, 1, 3))
 
 cases <- list()
 add <- function(...) cases[[length(cases) + 1]] <<- list(...)
@@ -30,19 +36,20 @@ s <- function(x) num2str(unname(x))
 all_samples <- c(samples, special)
 
 # --- sum, prod, mean (trim), var, sd, median, range, min, max ---------------------------------------------
-basic <- function(name, f, extra = list(list())) {
+basic <- function(name, f, extra = list(list()), more = list()) {
   cases <<- list()
   for (x in all_samples) for (e in extra) do.call(add, c(list(x = I(x)), e))
   for (x in with_na) for (e in extra) for (nr in c(FALSE, TRUE)) do.call(add, c(list(x = I(x), naRm = nr), e))
+  for (x in more) for (e in extra) do.call(add, c(list(x = I(x)), e))
   write_htest_fixture(name, cases, f)
 }
-basic("sum", function(a) list(value = s(sum(a$x, na.rm = isTRUE(a$naRm)))))
-basic("prod", function(a) list(value = s(prod(a$x, na.rm = isTRUE(a$naRm)))))
+basic("sum", function(a) list(value = s(sum(a$x, na.rm = isTRUE(a$naRm)))), more = overflow)
+basic("prod", function(a) list(value = s(prod(a$x, na.rm = isTRUE(a$naRm)))), more = overflow)
 basic("mean", function(a) list(value = s(mean(a$x, trim = if (is.null(a$trim)) 0 else a$trim, na.rm = isTRUE(a$naRm)))),
-      extra = list(list(), list(trim = 0.1), list(trim = 0.25), list(trim = 0.5), list(trim = 0.6), list(trim = -0.1)))
+      extra = list(list(), list(trim = 0.1), list(trim = 0.25), list(trim = 0.5), list(trim = 0.6), list(trim = -0.1)), more = overflow)
 basic("var", function(a) list(value = s(var(a$x, na.rm = isTRUE(a$naRm)))))
 basic("sd", function(a) list(value = s(sd(a$x, na.rm = isTRUE(a$naRm)))))
-basic("median", function(a) list(value = s(median(a$x, na.rm = isTRUE(a$naRm)))))
+basic("median", function(a) list(value = s(median(a$x, na.rm = isTRUE(a$naRm)))), more = overflow)
 basic("range", function(a) list(value = v(suppressWarnings(range(a$x, na.rm = isTRUE(a$naRm))))))
 
 # weighted.mean
@@ -56,6 +63,12 @@ add(x = I(c(1, NA, 3)), w = I(c(1, 1, 1)))
 add(x = I(c(1, NA, 3)), w = I(c(1, 1, 1)), naRm = TRUE)
 add(x = I(c(1, 2, 3)), w = I(c(0, 0, 0)))
 add(x = I(c(1, 2, 3)), w = I(c(1, 2)))
+# (added later, at the end) products and sums that overflow
+add(x = I(c(1e308, 1e308, -1e308)), w = I(c(1, 1, 1)))
+add(x = I(c(1.5e308, 1e308)), w = I(c(1, 1)))
+add(x = I(c(1e308, 1e308)), w = I(c(0.5, 0.5)))
+add(x = I(c(1e308, 5)), w = I(c(2, 1)))
+add(x = I(c(1e308, 1e308, 3)), w = I(c(1, 1, 0)))
 write_htest_fixture("weightedMean", cases, function(a)
   list(value = s(weighted.mean(a$x, a$w, na.rm = isTRUE(a$naRm)))))
 
@@ -102,6 +115,7 @@ write_htest_fixture("mad", cases, function(a)
 for (fn in c("cumsum", "cumprod", "cummax", "cummin")) {
   cases <- list()
   for (x in c(all_samples, with_na)) add(x = I(x))
+  for (x in overflow) add(x = I(x))
   f <- get(fn)
   write_htest_fixture(fn, cases, function(a) list(value = v(f(a$x))))
 }
@@ -166,6 +180,11 @@ write_htest_fixture("tabulate", cases, function(a)
 cases <- list()
 for (x in c(samples[c(1, 4, 5, 12, 13)], list(c(2, NA, 1, 2, NaN)))) for (ex in c("no", "ifany", "always"))
   add(x = I(x), useNA = ex)
+# (added later, at the end) numbers with the same 15-digit text are one level (R's factor uses as.character)
+for (x in list(c(0.1 + 0.2, 0.3, 1 / 3, 0.3333333333333333), c(1e15, 1e15 + 1, 1e15),
+               c(1 / 3, 0.3333333333333331, 0.3333333333333333), c(0.3, NA, 0.1 + 0.2, 0.7, 0.1 * 7),
+               c(-0, 0, 1e-300, 2)))
+  for (ex in c("no", "ifany")) add(x = I(x), useNA = ex)
 write_htest_fixture("table", cases, function(a) {
   t <- table(a$x, useNA = a$useNA)
   # values: the distinct values in table order (NA last); counts: their frequencies

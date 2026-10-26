@@ -43,6 +43,17 @@ add(fn = "aggregate.by", data = d, cols = I("z"), by = I(c("g", "h")), fun = "ma
 for (f in c("y ~ g:h", "y ~ g*h", "y ~ h:g", "y ~ g/h", "y ~ (g + h)^2", "y ~ g + h - g", "y ~ g %in% h", "y ~ 0 + g",
             "y ~ 1", "y ~ .", "cbind(y, z) ~ ."))
   add(fn = "aggregate", formula = f, data = d[, c("y", "z", "g", "h")], fun = "sum")
+# numeric labels with the same 15-digit text are one group (R's factor uses as.character); aggregate's group
+# column keeps the label of each group's first row
+dn <- data.frame(y = c(1, 2, 3, 4, 5, 6, 7, 8), g = c(0.1 + 0.2, 0.3, 10, 1e15 + 1, 1e15, 0.3, 1 / 3, 0.3333333333333331),
+                 h = c(1, 1, 2, 2, 1, 1, 2, 2))
+add(fn = "tapply", data = dn, x = "y", by = I("g"), fun = "sum")
+add(fn = "tapply", data = dn, x = "y", by = I(c("g", "h")), fun = "sum")
+add(fn = "split", data = dn, x = "y", by = I("g"))
+add(fn = "split", data = dn, by = I("g"))
+add(fn = "aggregate", formula = "y ~ g", data = dn, fun = "sum")
+add(fn = "aggregate", formula = "y ~ g + h", data = dn, fun = "length")
+add(fn = "aggregate.by", data = dn, cols = I("y"), by = I("g"), fun = "mean")
 
 frame <- function(r) { r <- do.call(data.frame, c(as.list(r), check.names = FALSE)); rownames(r) <- NULL; df_json(r) }
 write_anova_fixture("grouping", cases, function(a) {

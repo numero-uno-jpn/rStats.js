@@ -1,7 +1,7 @@
 {
   "function": "optimize",
   "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T08:54:45+0000",
+  "generated": "2026-10-26T20:54:39+0000",
   "cases": [
     {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"0","upper":"1","maximum":false},"expected":{"optimum":"0.33333333333333331","objective":"0"}},
     {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"0","upper":"1","maximum":false,"tol":"1e-10"},"expected":{"optimum":"0.33333333333333331","objective":"0"}},
@@ -36,6 +36,14 @@
     {"args":{"fn":"exp","js":"Math.exp(x)","lower":"-3","upper":"2","maximum":true},"expected":{"optimum":"1.9999219713166749","objective":"7.3884795631056939"}},
     {"args":{"fn":"exp","js":"Math.exp(x)","lower":"-3","upper":"2","maximum":true,"tol":"1e-10"},"expected":{"optimum":"1.999999942794251","objective":"7.3890556762341735"}},
     {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"1","upper":"0","maximum":false},"expected":{"error":"'xmin' not less than 'xmax'"}},
-    {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"0.5","upper":"0.5","maximum":false},"expected":{"error":"'xmin' not less than 'xmax'"}}
+    {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"0.5","upper":"0.5","maximum":false},"expected":{"error":"'xmin' not less than 'xmax'"}},
+    {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"-Inf","upper":"Inf","maximum":false},"expected":{"error":"invalid 'xmin' value"}},
+    {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"0","upper":"Inf","maximum":false},"expected":{"error":"invalid 'xmax' value"}},
+    {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"-Inf","upper":"1","maximum":false},"expected":{"error":"invalid 'xmin' value"}},
+    {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"NaN","upper":"1","maximum":false},"expected":{"error":"invalid 'xmin' value"}},
+    {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"0","upper":"NaN","maximum":false},"expected":{"error":"invalid 'xmax' value"}},
+    {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"NaN","upper":"NaN","maximum":false},"expected":{"error":"invalid 'xmin' value"}},
+    {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"Inf","upper":"0","maximum":false},"expected":{"error":"invalid 'xmin' value"}},
+    {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"0","upper":"Inf","maximum":true},"expected":{"error":"invalid 'xmax' value"}}
   ]
 }

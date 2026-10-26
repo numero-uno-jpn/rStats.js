@@ -87,6 +87,10 @@ for (o in opts) for (mx in c(FALSE, TRUE)) for (tol in list(NULL, 1e-10))
 # lower must be less than upper (R does not swap them)
 add(fn = "quad13", js = fns$quad13$js, lower = 1, upper = 0, maximum = FALSE)
 add(fn = "quad13", js = fns$quad13$js, lower = 0.5, upper = 0.5, maximum = FALSE)
+# (added later, at the end) the ends must be finite: checked before f is called, xmin first
+for (e in list(c(-Inf, Inf), c(0, Inf), c(-Inf, 1), c(NaN, 1), c(0, NaN), c(NaN, NaN), c(Inf, 0)))
+  add(fn = "quad13", js = fns$quad13$js, lower = e[1], upper = e[2], maximum = FALSE)
+add(fn = "quad13", js = fns$quad13$js, lower = 0, upper = Inf, maximum = TRUE)
 write_htest_fixture("optimize", cases, function(a) {
   r <- call_with(optimize, list(f = F(a$fn), lower = a$lower, upper = a$upper, maximum = a$maximum, tol = a$tol))
   list(optimum = s(if (a$maximum) r$maximum else r$minimum), objective = s(r$objective))
@@ -105,6 +109,14 @@ add(fn = "nanMid", js = fns$nanMid$js, lower = -1, upper = 3)
 add(fn = "infHi", js = fns$infHi$js, lower = 0, upper = 3)
 add(fn = "nanLeft", js = fns$nanLeft$js, lower = 0, upper = 1, extendInt = "yes")
 add(fn = "lin5", js = fns$lin5$js, lower = 0, upper = 1, extendInt = "upX")
+# (added later, at the end) an end that is not finite: f is evaluated at both ends and the sign test passes
+# before the error; f(Inf) = NaN fails earlier with the f.upper message; extendInt moves only the finite end
+add(fn = "lin5", js = fns$lin5$js, lower = 0, upper = Inf)
+add(fn = "lin5", js = fns$lin5$js, lower = -Inf, upper = 10)
+add(fn = "lin5", js = fns$lin5$js, lower = -Inf, upper = Inf)
+add(fn = "sin", js = fns$sin$js, lower = 3, upper = Inf)
+add(fn = "lin5", js = fns$lin5$js, lower = 6, upper = Inf, extendInt = "yes")
+add(fn = "lin5", js = fns$lin5$js, lower = -Inf, upper = 0, extendInt = "yes")
 write_htest_fixture("uniroot", cases, function(a) {
   r <- call_with(uniroot, list(f = F(a$fn), lower = a$lower, upper = a$upper, tol = a$tol, maxiter = a$maxiter,
                                extendInt = a$extendInt))

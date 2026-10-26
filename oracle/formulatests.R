@@ -64,6 +64,12 @@ add("friedman.test", "y ~ w | b", blkna)         # the row with NA y is dropped 
 add("friedman.test", "y ~ w", blk)               # error
 add("complete.cases", NULL, mix); add("na.omit", NULL, mix)
 add("complete.cases", NULL, dna); add("na.omit", NULL, dna); add("na.omit", NULL, d1)
+# (added later, at the end) numeric group labels with the same 15-digit text are one group
+dg <- data.frame(y = c(3.1, 2.4, 5.6, 4.4, 6.1, 1.9, 7.3, 5.2, 4.8),
+                 g = c(0.1 + 0.2, 0.3, 0.3, 0.7, 0.1 * 7, 0.7, 1e15, 1e15 + 1, 1e15))
+add("kruskal.test", "y ~ g", dg)
+add("oneway.test", "y ~ g", dg)
+add("fligner.test", "y ~ g", dg)
 
 write_anova_fixture("formulaTests", cases, function(a) {
   d <- a$data
