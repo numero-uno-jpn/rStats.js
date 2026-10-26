@@ -202,4 +202,11 @@ export {
 } from "../htest/agreement.js";
 export { factanal, type FactanalOptions, type FactanalResult, type FactanalRotation } from "../descriptive/factanal.js";
 export { omega, type OmegaOptions, type OmegaResult } from "../descriptive/omega.js";
-export { polychor, polyserial, type PolycorResult } from "../htest/polycor.js";
+export {
+  polychor,
+  polyserial,
+  type PolycorResult,
+  type PolycorOptions,
+  type PolychorStdErrResult,
+  type PolyserialStdErrResult,
+} from "../htest/polycor.js";
