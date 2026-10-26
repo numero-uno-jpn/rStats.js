@@ -22,6 +22,7 @@ const CATEGORIES = [
   "Effect sizes and power",
   "Linear models and ANOVA",
   "Generalized linear models",
+  "Mixed models",
   "Survival analysis",
   "Agreement, reliability and factor analysis",
   "Linear algebra",

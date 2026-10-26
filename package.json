@@ -54,6 +54,10 @@
     "./special": {
       "types": "./dist/entries/special.d.ts",
       "import": "./dist/entries/special.js"
+    },
+    "./mixed": {
+      "types": "./dist/entries/mixed.d.ts",
+      "import": "./dist/entries/mixed.js"
     }
   },
   "types": "./dist/index.d.ts",

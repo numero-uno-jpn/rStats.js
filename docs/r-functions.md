@@ -376,3 +376,9 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `splinefunH()` | `splinefunH` | The cubic Hermite spline with values `y` and slopes `m` at the points `x`, as a function of `x` and the order of derivative; linear outside the data. |
 | `uniroot()` | `uniroot` | A root of a function of one variable in an interval, by Brent's zeroin. |
 | (not in R) | `hermiteInterp` | The polynomial of degree 2n - 1 through n points with given values and derivatives, evaluated at `x`. |
+
+## Mixed models (`rStats.js/mixed`)
+
+| R | rStats.js | Description |
+| --- | --- | --- |
+| `lme4::lmer()` | `lmer` | Fit a linear mixed model by REML or maximum likelihood. |

@@ -376,3 +376,9 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `splinefunH()` | `splinefunH` | 点 `x` で値 `y` と傾き `m` をとる 3 次 Hermite スプライン (`x` と導関数の階数の関数として、データの外では線形) |
 | `uniroot()` | `uniroot` | Brent の zeroin による、区間内の 1 変数関数の根 |
 | (R にない) | `hermiteInterp` | 値と導関数を与えた n 点を通る 2n - 1 次の多項式の `x` での値 |
+
+## 混合モデル (`rStats.js/mixed`)
+
+| R | rStats.js | 説明 |
+| --- | --- | --- |
+| `lme4::lmer()` | `lmer` | REML または最尤法による線形混合モデルの当てはめ |

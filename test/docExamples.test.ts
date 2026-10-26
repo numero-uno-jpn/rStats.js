@@ -1,9 +1,9 @@
 // Runs the `@example` blocks of the doc comments of every exported function (read from the source by
 // test/helpers/docComments.ts) and checks the values they show.
 //
-// Each ```ts block runs on its own, with every export of src/index.ts in scope (the TypeScript is stripped by
-// esbuild). A statement followed by a value comment (`expr; // 0.0052`, or the comment alone on the next line) is
-// checked against it:
+// Each ```ts block runs on its own, with every export of the areas in scope (those of src/index.ts and of the areas
+// not in it, src/entries/mixed.ts; the TypeScript is stripped by esbuild). A statement followed by a value comment
+// (`expr; // 0.0052`, or the comment alone on the next line) is checked against it:
 // - a number equals the actual value rounded to the significant digits written (`0.0052` for 0.00520162..., `10`
 //   has two significant digits), or, written to 13 or more digits, is within a relative 1e-12 of it (the last bits
 //   may differ between platforms); `0` must be exactly 0; `NaN`, `Infinity` and `-Infinity` are exact;
@@ -20,6 +20,7 @@
 import { transformSync } from "esbuild";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import * as Mixed from "../src/entries/mixed.js";
 import * as R from "../src/index.js";
 import { collectFunctions, exampleBlocks } from "./helpers/docComments.js";
 
@@ -256,8 +257,10 @@ export function expectedValue(comment: string): Expected {
 
 // ---- Running a block ----
 
-const names = Object.keys(R);
-const values = names.map((n) => (R as Record<string, unknown>)[n]);
+/** Every export of the areas: src/index.ts and the areas that are not in it (src/entries/mixed.ts) */
+const scope: Record<string, unknown> = { ...R, ...Mixed };
+const names = Object.keys(scope);
+const values = names.map((n) => scope[n]);
 
 /** Runs an example block and returns the problems found (empty if it is right). */
 export function runExample(block: string): string[] {
