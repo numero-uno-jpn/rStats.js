@@ -6,7 +6,7 @@ export function simulatedMethod(B: number): string {
 }
 
 /** A number as R's as.character prints it (15 significant digits, fixed or scientific, whichever is narrower) */
-function formatR(v: number): string {
+export function formatR(v: number): string {
   if (!Number.isFinite(v) || v === 0) return String(v);
   const sci = v.toExponential(14).replace(/\.?0+e/, "e");
   const [mant, exp] = sci.split("e") as [string, string];

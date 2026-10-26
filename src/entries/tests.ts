@@ -130,3 +130,17 @@ export {
   type AnovaEffectSizeTable,
 } from "../htest/effectSize.js";
 export { aovEz, type AovEzOptions, type AovEzResult, type AovEzTable, type AovEzEffectSize } from "../models/aovEz.js";
+export {
+  kappa2,
+  kappamFleiss,
+  icc,
+  cronbachAlpha,
+  partialR,
+  type Kappa2Weight,
+  type Kappa2Options,
+  type KappaResult,
+  type KappamFleissOptions,
+  type IccOptions,
+  type IccResult,
+  type CronbachAlphaResult,
+} from "../htest/agreement.js";
