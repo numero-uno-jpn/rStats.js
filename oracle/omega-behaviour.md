@@ -2,8 +2,7 @@
 
 What psych 2.6.9's `omega` computes with its defaults (`fm = "minres"`, `rotate = "oblimin"` from GPArotation
 2026.8-2, `option = "equal"`, `flip = TRUE`), in words, for an implementation that must not read the source of R,
-psych or GPArotation. Fixture `omega` (`oracle/omega.R`; format in its header); the `omega` cases of the fixture
-`agreement` (omega_h, alpha, omega.tot only) are further checks. It needs this library's `cor`, `eigen`
+psych or GPArotation. Fixture `omega` (`oracle/omega.R`; format in its header). It needs this library's `cor`, `eigen`
 (symmetric), `svd`, `solve`, `optim` (L-BFGS-B) and the varimax rotation of `factanal` (`oracle/factanal-behaviour.md`,
 step 5). Where this file and a fixture seem to disagree, report it.
 
