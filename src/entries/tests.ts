@@ -159,3 +159,16 @@ export {
   type CvmTestResult,
   type PearsonTestOptions,
 } from "../htest/normalityTests.js";
+  kappa2,
+  kappamFleiss,
+  icc,
+  cronbachAlpha,
+  partialR,
+  type Kappa2Weight,
+  type Kappa2Options,
+  type KappaResult,
+  type KappamFleissOptions,
+  type IccOptions,
+  type IccResult,
+  type CronbachAlphaResult,
+} from "../htest/agreement.js";

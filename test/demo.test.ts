@@ -37,6 +37,7 @@ const NOT_IN_DEMO_YET: string[] = [
   "cohensD", "hedgesG", "etaSquared", "omegaSquared", "epsilonSquared",
   "survdiff", "survfit",
   "leveneTest", "propTrendTest", "jonckheereTest", "cochranQTest", "adTest", "lillieTest", "cvmTest", "sfTest", "pearsonTest",
+  "kappa2", "kappamFleiss", "icc", "cronbachAlpha", "partialR",
 ];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 
