@@ -63,7 +63,7 @@ export type QuasiVariance = "constant" | "mu(1-mu)" | "mu" | "mu^2" | "mu^3";
 export interface GlmFamilySpec {
   /** The family's name, such as `"binomial"`. */
   family: GlmFamilyName;
-  /** The link. Default: the family's default (the first of its allowed links). */
+  /** The link: any named link (for `quasi`, one of its own list). Default: the family's default link. */
   link?: GlmLink;
   /** Variance function of `quasi`. Default `"constant"`. */
   variance?: QuasiVariance;
@@ -135,6 +135,24 @@ function sqrtWarn(x: number): number {
   return Math.sqrt(x);
 }
 
+/** A number as C's printf("%g") writes it: 6 significant digits, fixed or scientific, trailing zeros dropped */
+function formatG(v: number): string {
+  if (!Number.isFinite(v)) return Number.isNaN(v) ? "nan" : v > 0 ? "inf" : "-inf";
+  const sci = v.toExponential(5);
+  const e = Number(sci.slice(sci.indexOf("e") + 1));
+  if (e >= -4 && e < 6) return v.toFixed(5 - e).replace(/\.?0+$/, "");
+  const [mant, exp] = sci.split("e") as [string, string];
+  return `${mant.replace(/\.?0+$/, "")}e${e < 0 ? "-" : "+"}${String(Math.abs(Number(exp))).padStart(2, "0")}`;
+}
+
+/** The logit link function: a mean outside [0, 1] is an error, as in R (0 and 1 give -Inf and Inf) */
+function logit(m: number): number {
+  if (m < 0 || m > 1) throw new RangeError(`Value ${formatG(m)} out of range (0, 1)`);
+  return Math.log(m / (1 - m));
+}
+
+const LINK_NAMES: readonly string[] = ["logit", "probit", "cauchit", "cloglog", "identity", "log", "sqrt", "1/mu^2", "inverse"];
+
 function namedLink(name: GlmLinkName): LinkFunctions {
   switch (name) {
     case "identity":
@@ -168,7 +186,7 @@ function namedLink(name: GlmLinkName): LinkFunctions {
     case "logit":
       return {
         name,
-        link: (m) => Math.log(m / (1 - m)),
+        link: logit,
         linkinv: (e) => {
           const t = e < -30 ? EPS : e > 30 ? 1 / EPS : Math.exp(e);
           return t / (1 + t);
@@ -278,9 +296,12 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
     if (name !== "quasi") throw new RangeError(`link "power" not available for ${name} family`);
     lf = powerLink(lk.power);
   } else {
-    if (!allowed.includes(lk)) {
+    // As in R, a link given by name may be any link R knows, whatever the family; the family's list of usual links
+    // restricts only the quasi family
+    if (name === "quasi" && !allowed.includes(lk)) {
       throw new RangeError(`link "${lk}" not available for ${name} family; available links are ${allowed.map((a) => `'${a}'`).join(", ")}`);
     }
+    if (!LINK_NAMES.includes(lk)) throw new RangeError(`\u2018${lk}\u2019 link not recognised`);
     lf = namedLink(lk as GlmLinkName);
   }
   if (spec.variance !== undefined && name !== "quasi") throw new TypeError("'variance' is only used by the quasi family");
