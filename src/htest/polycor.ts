@@ -309,15 +309,21 @@ function newtonStep(at: LogLikelihood, free: readonly number[]): number[] {
   return step;
 }
 
+/** The log-likelihood is no lower than `than`, up to its rounding */
+const noLowerThan = (value: number, than: number): boolean => value >= than - 1e-12 * Math.abs(than);
+
 /**
- * Maximises a log-likelihood whose first parameter is the correlation, kept in [−0.9999, 0.9999], by Newton's method
- * with step halving. If the likelihood increases up to the bound, the correlation stays there (`bounded`) and the
- * other parameters are maximised given it.
+ * Newton iterations with step halving from theta, the correlation (first parameter) kept in [−0.9999, 0.9999] and
+ * fixed with `bounded`. Reaching the bound with the step pointing outwards fixes the correlation there.
  */
-function maximiseLogLik(evaluate: (theta: readonly number[]) => LogLikelihood, start: readonly number[]): { theta: number[]; at: LogLikelihood; bounded: boolean } {
-  let theta = [Math.max(-BOUND, Math.min(BOUND, start[0]!)), ...start.slice(1)];
+function newtonIterations(
+  evaluate: (theta: readonly number[]) => LogLikelihood,
+  start: readonly number[],
+  startBounded: boolean,
+): { theta: number[]; at: LogLikelihood; bounded: boolean } {
+  let theta = [...start];
   let at = evaluate(theta);
-  let bounded = false;
+  let bounded = startBounded;
   const all = theta.map((_, k) => k);
   for (let iter = 0; iter < 200; iter++) {
     const free = bounded ? all.slice(1) : all;
@@ -333,7 +339,7 @@ function maximiseLogLik(evaluate: (theta: readonly number[]) => LogLikelihood, s
       const next = theta.map((v, k) => v + scale * step[k]!);
       if (scale * step[0]! !== 0 && Math.abs(next[0]!) >= BOUND * (1 - 1e-15)) next[0] = Math.sign(next[0]!) * BOUND;
       const nextAt = evaluate(next);
-      if (nextAt.value >= at.value - 1e-12 * Math.abs(at.value)) {
+      if (noLowerThan(nextAt.value, at.value)) {
         const moved = Math.max(...next.map((v, k) => Math.abs(v - theta[k]!) / Math.max(1, Math.abs(theta[k]!))));
         theta = next;
         at = nextAt;
@@ -347,10 +353,30 @@ function maximiseLogLik(evaluate: (theta: readonly number[]) => LogLikelihood, s
   return { theta, at, bounded };
 }
 
-/** (−H)⁻¹, symmetrised; at the bound of the correlation (not a maximum) all infinite, as R's 1 × 1 variance there */
+/**
+ * Maximises a log-likelihood whose first parameter is the correlation, kept in [−0.9999, 0.9999], by Newton's method
+ * with step halving. If the likelihood increases up to the bound, the correlation stays there (`bounded`) and the
+ * other parameters are maximised given it. Where the likelihood rises along a flat ridge towards the bound (cells
+ * whose probability goes to 0 have no cases), the iterations stall short of it: the point reached is compared with
+ * the maximum given the correlation at the bound on that side, and the bound is taken if it is no lower.
+ */
+function maximiseLogLik(evaluate: (theta: readonly number[]) => LogLikelihood, start: readonly number[]): { theta: number[]; at: LogLikelihood; bounded: boolean } {
+  const found = newtonIterations(evaluate, [Math.max(-BOUND, Math.min(BOUND, start[0]!)), ...start.slice(1)], false);
+  if (found.bounded || found.theta[0] === 0) return found;
+  const atBound = newtonIterations(evaluate, [Math.sign(found.theta[0]!) * BOUND, ...found.theta.slice(1)], true);
+  return noLowerThan(atBound.at.value, found.at.value) ? atBound : found;
+}
+
+/** (−H)⁻¹, symmetrised; all infinite at the bound of the correlation (not a maximum, as R's 1 × 1 variance there) or where −H is singular */
 function inverseNegHessian(hessian: readonly (readonly number[])[], bounded: boolean): number[][] {
-  if (bounded) return hessian.map((row) => row.map(() => Infinity));
-  const inv = solve(hessian.map((row) => row.map((v) => -v)));
+  const infinite = (): number[][] => hessian.map((row) => row.map(() => Infinity));
+  if (bounded) return infinite();
+  let inv: number[][];
+  try {
+    inv = solve(hessian.map((row) => row.map((v) => -v)));
+  } catch {
+    return infinite();
+  }
   return inv.map((row, a) => row.map((v, b) => (v + inv[b]![a]!) / 2));
 }
 
@@ -442,6 +468,8 @@ export function polychor(
     const terms: number[] = [];
     for (let i = 0; i < r; i++) {
       for (let j = 0; j < c; j++) {
+        // an empty cell contributes 0, also where its probability underflows to 0
+        if (tab[i]![j]! === 0) continue;
         const p = pbvnorm([rowCuts[i]!, colCuts[j]!], [rowCuts[i + 1]!, colCuts[j + 1]!], rho);
         terms.push(tab[i]![j]! * Math.log(p));
       }

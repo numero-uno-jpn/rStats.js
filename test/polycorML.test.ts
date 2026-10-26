@@ -88,6 +88,29 @@ describe("polycor ML and standard errors", () => {
     expect(polychor([[0, 50], [50, 0]], { stdErr: true })).toMatchObject({ rho: -0.9999, warnings: ["inadmissible correlation set to -0.9999"] });
   });
 
+  it("takes the bound where the likelihood rises along a flat ridge (empty cells whose probability goes to 0)", () => {
+    // the second row has cases only in the last column: the likelihood increases as rho -> 1 (R stops near 0.944)
+    const positive = [[32, 12, 149], [0, 0, 7]];
+    const negative = [[149, 12, 32], [7, 0, 0]];
+    for (const [tab, sign] of [[positive, 1], [negative, -1]] as const) {
+      const warning = `inadmissible correlation set to ${sign > 0 ? "" : "-"}0.9999`;
+      const ml = polychor(tab, { ML: true, stdErr: true });
+      expect(ml.rho).toBe(sign * 0.9999);
+      expect(ml.warnings).toEqual([warning]);
+      expect(ml.var.flat().every((v) => v === Infinity)).toBe(true);
+      expect(ml.var.length).toBe(4);
+      expect([ml.df, ml.n]).toEqual([1, 200]);
+      expect(Number.isFinite(ml.chisq)).toBe(true);
+      expect(polychor(tab, { ML: true })).toEqual({ rho: sign * 0.9999, warnings: [warning] });
+      const twoStep = polychor(tab, { stdErr: true });
+      expect(twoStep).toMatchObject({ rho: sign * 0.9999, warnings: [warning], var: [[Infinity]], df: 1, n: 200 });
+      // the same table as vectors
+      const x = tab.flatMap((row, i) => row.flatMap((count) => new Array<number>(count).fill(i + 1)));
+      const y = tab.flatMap((row) => row.flatMap((count, j) => new Array<number>(count).fill(j + 1)));
+      expect(polychor(x, y, { ML: true, stdErr: true })).toEqual(ml);
+    }
+  });
+
   it("returns NaN alone for tables with fewer than two rows", () => {
     expect(polychor([[3, 4], [0, 0]], { ML: true, stdErr: true })).toEqual({
       rho: NaN,
