@@ -316,6 +316,11 @@ they are listed so that readers can find the originals.
 - netlib fmm (https://netlib.org/fmm/fmin.f; Brent, "Algorithms for Minimization without Derivatives",
   1973, chapter 5): `fmin` (Brent's localmin, golden-section search with parabolic interpolation),
   the minimiser of `optimize` — `src/optim/localmin.ts`
+- L-BFGS-B version 2.1 (C. Zhu, R. H. Byrd, P. Lu-Chen and J. Nocedal; netlib
+  https://www.netlib.org/opt/lbfgs_bcm.shar, `routines.f`, distributed without a copyright notice): `setulb`/`mainlb`
+  and their subroutines (generalized Cauchy point, subspace minimisation, limited-memory BFGS matrices), with the
+  MINPACK-2 line search `dcsrch`/`dcstep` (Moré and Thuente) and the LINPACK/BLAS routines it ships with, the method
+  "L-BFGS-B" of `optim` — `src/optim/lbfgsb.ts`
 - QUADPACK (Piessens, de Doncker-Kapenga, Überhuber, Kahaner 1983): `dqagse` and `dqagie` (adaptive
   Gauss–Kronrod quadrature with extrapolation), behind `integrate` — `src/integrate/quadpack.ts`,
   ported from SciPy's C translation (see SciPy above)
