@@ -266,11 +266,12 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   sorts as `"B"`, `"a"`, `"b"` here and as `"a"`, `"b"`, `"B"` in an en_US locale). The same holds
   for the levels of the two factors of `chisqTest(x, y)` (the rows and columns of the table), which
   must be strings (`null` for missing values).
-  It also holds for the factors of formulas (`modelMatrix`, `lm`, `aov`; `levels` fixes the order)
+  It also holds for the factors of formulas (`modelMatrix`, `lm`, `aov`, `lmer`; `levels` fixes the order)
   and for the between-subject factors of `aovEz`. The within-subject factors of `aovEz` keep afex's
   order of first appearance in the data.
 - **Formulas** are strings and support variable names, `.`, `+`, `-`, `*`, `/`, `:`, `%in%`, `^`,
-  parentheses, `0` and `1`, and one `Error()` term in `aov`. Function calls (`log(x)`, `I(x^2)`,
+  parentheses, `0` and `1`, one `Error()` term in `aov`, and random-effects terms `(lhs | g)` and `(lhs || g)` in
+  `lmer` (not the covariance structures `diag()`, `cs()`, `ar1()` of lme4 2.0). Function calls (`log(x)`, `I(x^2)`,
   `poly(x, 2)`, `offset()`), backquoted names and transformed responses are not supported: compute
   the column first. Contrasts are `contr.treatment` (default), `contr.sum` and `contr.helmert`. A
   formula that cannot be parsed throws "invalid formula: ..." instead of R's parse error.
@@ -342,6 +343,25 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   cancellation and known only to eps times its condition number (up to 7.3e-4 for a standard error
   that depends on a mean of 3.9e-14); and the AIC of a gaussian perfect fit, n log of a deviance that
   is rounding residue.
+
+### Mixed models
+
+- **`lmer` returns the exact optimum** of the REML criterion (or the ML deviance), found by Newton's method with
+  the analytic gradient. lme4's optimiser stops when its own tolerances are met, typically 1e-9 to 1e-5 (relative)
+  from the optimum in θ, so θ, the variance components (`VarCorr`), the standard errors and the random effects
+  differ from lme4's in about the 5th to 9th significant digit; the fixed effects and the log-likelihood agree to
+  more digits (the criterion is flat at the optimum). rStats.js's criterion is never larger than lme4's. lme4's
+  convergence warnings (`Model failed to converge ...`) are not emitted.
+- **A singular fit is judged at the exact optimum:** an element of θ whose optimum is on the boundary is exactly 0,
+  and `singular` and the message `boundary (singular) fit: see help('isSingular')` follow from it. Where lme4 stops
+  just inside the boundary (θ above its threshold of 1e-4) it reports a non-singular fit that rStats.js reports as
+  singular.
+- **Terms with two or more columns** (`(x | g)`): when the variance of the first column goes to 0, lme4's
+  bound-constrained optimiser can stop at a point that is not a minimum, because the criterion does not change
+  when a column of the covariance factor changes sign. rStats.js minimises without that bound and reports the
+  equivalent factor, so it can reach a lower criterion than lme4 there (a better fit of the same model).
+- **The computation is sparse,** as lme4's, but in JavaScript: a fit takes about 1.4 to 3 times lme4's time (see
+  [performance.md](performance.md)).
 
 ### Linear algebra
 
@@ -537,12 +557,13 @@ By default rStats.js returns what R returns;
 
 - Recycling of distribution parameters (`rnorm(3, mean = c(0, 10, 100))`).
 - RNG kinds other than R's default.
-- Formula interfaces, Fisher's `hybrid` and `workspace`, and Wilcoxon's `digits.rank`.
-  Kendall's concordance count is O(n²).
-- `aov` beyond one way: multi-way designs and the formula interface (`aov` takes one sample with
-  group labels, or a list of samples).
+- Fisher's `hybrid` and `workspace`, and Wilcoxon's `digits.rank`. Kendall's concordance count is O(n²).
 - `kappa`'s `inv_z`, complex matrices, and `EISPACK = TRUE` / `LINPACK = TRUE`.
-- Formulas for `lm` and `glm` (the predictors are a matrix; see [ROADMAP.md](../ROADMAP.md)).
+- Formulas for `glm` (the predictors are a matrix; see [ROADMAP.md](../ROADMAP.md)).
+- `lmer`: the covariance structures of lme4 2.0 (`diag()`, `cs()`, `ar1()` terms), `weights`, `offset`, `subset`,
+  `na.action` (rows with a missing value are always dropped), `start` and `control`; lmerTest's p-values and
+  `anova` of fits, `predict`, `simulate`, `confint` and `profile`; `glmer` and `nlmer` (see
+  [ROADMAP.md](../ROADMAP.md)).
 - numDeriv's complex-step method (`method = "complex"`), which needs a function of a complex
   argument, and the `side` argument of `grad` and `jacobian`.
 - deSolve's adaptive solvers (`lsoda`, `ode45`, ...); `ode` has the fixed-step `euler`, `rk2`

@@ -60,6 +60,22 @@ Matrices of standard normal values (`chol`: AᵀA + nI; symmetric `eigen`: (A + 
 For the matrix sizes typical in statistics (up to a few dozen columns) a call takes well under a millisecond to a
 few ms.
 
+## Mixed models
+
+One fit of `lmer` (REML) from the data, structure included, the median of 3 fits; lme4 2.0.6 with its default
+optimiser on the same data (written out from `scripts/lmer-timing.mjs`'s seeded generator), the median of 3. Both
+use a sparse Cholesky factorisation; rStats.js's criterion at its estimate was never larger than lme4's.
+
+| Model | n | q | rStats.js | lme4 |
+|---|---|---|---|---|
+| `y ~ x + (1 \| s) + (1 \| i)`, 200 subjects × 100 items crossed | 20000 | 300 | 0.33 s | 0.20 s |
+| the same, 500 × 200 | 100000 | 700 | 2.17 s | 1.51 s |
+| `y ~ x + (x \| s)`, 1000 subjects × 10 | 10000 | 2000 | 0.20 s | 0.07 s |
+| the same, 5000 subjects × 10 | 50000 | 10000 | 0.84 s | 0.35 s |
+
+Small models (the fixtures: up to a few hundred rows) take 0.1 to 7 ms. `node scripts/lmer-timing.mjs` measures the
+fits and single evaluations of the criterion.
+
 ## Bundle size
 
 `npm run size` (`scripts/size.mjs`) bundles each import from the built `dist/` with esbuild, then minifies and gzips
@@ -70,22 +86,23 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `pnorm` | 2.3 KB | 1.2 KB |
 | `setSeed`, `rnorm` | 3.4 KB | 1.7 KB |
 | `solve` / `svd` / `eigen` | 3.8 / 4.5 / 9.6 KB | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` | 28.5 KB | 12.1 KB |
+| `wilcoxTest` | 29.0 KB | 12.3 KB |
 | `fisherTest` | 32.2 KB | 15.6 KB |
-| `tTest` | 54.3 KB | 24.9 KB |
+| `tTest` | 54.8 KB | 25.1 KB |
 | `qbeta` | 49.7 KB | 23.2 KB |
 | `pt`, `qt` | 63.8 KB | 30.3 KB |
 | `glm`, `glmSummary` / `glm` with all its methods | 62.7 / 88.7 KB | 27.2 / 39.2 KB |
-| everything | 491.5 KB | 185.8 KB |
+| everything (except `/mixed`) | 492.4 KB | 186.1 KB |
 | `@numero-uno-jpn/rstats/distributions` (all of it) | 171.4 KB | 67.8 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 358.6 KB | 140.9 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 359.6 KB | 141.3 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 48.9 KB | 18.1 KB |
-| `@numero-uno-jpn/rstats/descriptive` (all of it) | 40.9 KB | 15.4 KB |
+| `@numero-uno-jpn/rstats/descriptive` (all of it) | 42.9 KB | 16.1 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 47.8 KB | 20.7 KB |
 | `@numero-uno-jpn/rstats/special` (all of it) | 57.9 KB | 26.8 KB |
+| `@numero-uno-jpn/rstats/mixed` (all of it: `lmer`) | 37.9 KB | 14.9 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share code between areas
-through `dist/chunks/`, so one area loaded from them transfers more: 29 KB (`numerics`) to 153 KB (`tests`) gzipped,
+through `dist/chunks/`, so one area loaded from them transfers more: 19 KB (`mixed`) to 156 KB (`tests`) gzipped,
 chunks included. `pt` is large because the non-central t and the double-double building blocks come with it; the
 tests with a formula form bring the formula and model-frame code.
 
@@ -95,7 +112,8 @@ Apple M1 (Mac mini), Node.js 24, the `tsc` build, 2026-10-26 (version 0.11.0). D
 bench` (`scripts/bench.mjs`), one call at a time, the minimum of 5 runs; its inputs come from the library's own
 `setSeed`/`runif`, so every build sees the same ones. Linear algebra: the minimum of 5 runs of the mean of 20 calls
 (3 for n = 300). R 4.5.2 (arm64) in the same machine's container, the same kind of inputs from R's own random
-numbers.
+numbers. The bundle sizes and the mixed models were measured on 2026-10-27 (the code of 0.12.0), the mixed models
+with lme4 2.0.6 in the same container.
 
 ## Reference
 

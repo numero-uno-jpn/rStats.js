@@ -58,6 +58,22 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 
 統計でよくある大きさの行列 (列が数十まで) なら、1 回の呼び出しは 1 ms 未満から数 ms です。
 
+## 混合モデル
+
+`lmer` (REML) のデータからの当てはめ 1 回 (構造を作る処理を含む) の時間で、3 回の中央値です。lme4 2.0.6 は既定の
+最適化で、同じデータ (`scripts/lmer-timing.mjs` の乱数の種つき生成器から書き出したもの) を当てはめた 3 回の中央値です。
+どちらも疎なコレスキー分解を使います。rStats.js の推定値での基準の値が lme4 より大きくなることはありませんでした。
+
+| モデル | n | q | rStats.js | lme4 |
+|---|---|---|---|---|
+| `y ~ x + (1 \| s) + (1 \| i)`、被験者 200 × 項目 100 の交差 | 20000 | 300 | 0.33 秒 | 0.20 秒 |
+| 同じモデル、500 × 200 | 100000 | 700 | 2.17 秒 | 1.51 秒 |
+| `y ~ x + (x \| s)`、被験者 1000 人 × 10 | 10000 | 2000 | 0.20 秒 | 0.07 秒 |
+| 同じモデル、被験者 5000 人 × 10 | 50000 | 10000 | 0.84 秒 | 0.35 秒 |
+
+小さいモデル (fixture の例: 数百行まで) は 0.1〜7 ミリ秒です。`node scripts/lmer-timing.mjs` で、当てはめと基準の
+1 回の評価の時間を測れます。
+
 ## バンドルサイズ
 
 `npm run size` (`scripts/size.mjs`) は、ビルドした `dist/` からの各 import を esbuild でバンドルし、minify して gzip で
@@ -68,23 +84,24 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 | `pnorm` | 2.3 KB | 1.2 KB |
 | `setSeed`、`rnorm` | 3.4 KB | 1.7 KB |
 | `solve` / `svd` / `eigen` | 3.8 / 4.5 / 9.6 KB | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` | 28.5 KB | 12.1 KB |
+| `wilcoxTest` | 29.0 KB | 12.3 KB |
 | `fisherTest` | 32.2 KB | 15.6 KB |
-| `tTest` | 54.3 KB | 24.9 KB |
+| `tTest` | 54.8 KB | 25.1 KB |
 | `qbeta` | 49.7 KB | 23.2 KB |
 | `pt`、`qt` | 63.8 KB | 30.3 KB |
 | `glm`、`glmSummary` / `glm` とすべてのメソッド | 62.7 / 88.7 KB | 27.2 / 39.2 KB |
-| すべて | 491.5 KB | 185.8 KB |
+| すべて (`/mixed` を除く) | 492.4 KB | 186.1 KB |
 | `@numero-uno-jpn/rstats/distributions` (全体) | 171.4 KB | 67.8 KB |
-| `@numero-uno-jpn/rstats/tests` (全体) | 358.6 KB | 140.9 KB |
+| `@numero-uno-jpn/rstats/tests` (全体) | 359.6 KB | 141.3 KB |
 | `@numero-uno-jpn/rstats/linalg` (全体) | 48.9 KB | 18.1 KB |
-| `@numero-uno-jpn/rstats/descriptive` (全体) | 40.9 KB | 15.4 KB |
+| `@numero-uno-jpn/rstats/descriptive` (全体) | 42.9 KB | 16.1 KB |
 | `@numero-uno-jpn/rstats/numerics` (全体) | 47.8 KB | 20.7 KB |
 | `@numero-uno-jpn/rstats/special` (全体) | 57.9 KB | 26.8 KB |
+| `@numero-uno-jpn/rstats/mixed` (全体: `lmer`) | 37.9 KB | 14.9 KB |
 
 サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを
-`dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 29 KB
-(`numerics`) から 153 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
+`dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 19 KB
+(`mixed`) から 156 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
 ある検定には、formula とモデルフレームのコードが入ります。
 
 ## 測り方
@@ -92,7 +109,8 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 Apple M1 (Mac mini)、Node.js 24、`tsc` によるビルド、2026-10-26 (版 0.11.0)。分布関数と `tTest` は `npm run bench`
 (`scripts/bench.mjs`) で、1 回ずつ呼び出し、5 回の実行の最小値です。入力はライブラリ自身の `setSeed`/`runif` で生成するので、
 どのビルドにも同じ入力が渡ります。線形代数は、20 回 (n = 300 では 3 回) の呼び出しの平均の、5 回の実行の最小値です。R 4.5.2
-(arm64) は同じマシンのコンテナで、同じ種類の入力を R 自身の乱数で作って測りました。
+(arm64) は同じマシンのコンテナで、同じ種類の入力を R 自身の乱数で作って測りました。バンドルサイズと混合モデルは
+2026-10-27 (0.12.0 のコード) に測りました。混合モデルの lme4 2.0.6 も同じコンテナです。
 
 ## 参考情報
 

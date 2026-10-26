@@ -95,6 +95,14 @@ Details of the comparison:
   API): the fixtures hold correctly rounded values computed with Rmpfr (512 bits, more for
   `lgamma1p` at tiny x so that 1 + x is exact), not R's output, and are compared with a tolerance
   of 1e-14 (the largest observed error is 1.7e-15, for `lgamma1p`).
+- **Mixed models (`lmer`):** lme4's estimates are where its optimiser stopped, typically 1e-9 to 1e-5 (relative)
+  from the optimum in θ, so the fixtures carry a reference at the exact optimum: starting from lme4's θ, the
+  oracles (`oracle/lmer.R`, `lmermore.R`, `lmerboundary.R`) solve for a zero gradient of the criterion by Newton's
+  method in 128-bit arithmetic (Rmpfr; the criterion from the paper's formulas with dense matrices, the gradient by
+  central differences), fixing at 0 the elements whose optimum is on the boundary after checking that the
+  one-sided derivative there is positive, and compute every result field at that θ. The profiled deviance at a
+  given θ (`lmerDeviance`) has 200-bit references. The structure (`lmerTerms`: the model matrices, Z and the layout
+  of the covariance factor) is compared with lme4's exactly.
 - **Linear algebra:** `solve` and determinants have exact references computed with gmp rationals
   (every double is exactly representable as a rational). Decompositions are instead checked by
   backward error and orthogonality (see below).
@@ -110,6 +118,7 @@ Details of the comparison:
 | Descriptive statistics | 1e-14 (skewness and kurtosis near 0, which come from cancellation, measured absolutely) |
 | Hypothesis tests | 1e-12 for every numeric field (`cor`: 1e-15, `pAdjust`: exact; roots found by `uniroot` with tolerance 1e-4, such as the normal-approximation interval of `ansariTest`: 1e-4); text fields exactly equal |
 | Linear models (`lm`, `confint`, `predict`) | 1e-12 for every numeric field |
+| Mixed models (`lmer`) | against the reference at the exact optimum: `logLik`, `AIC`, `BIC`, `deviance`, `REMLcrit` 1e-12; θ, the fixed effects, their covariance and standard errors, σ, `VarCorr`, `ranef`, fitted values and residuals 1e-9 of the largest absolute value of each (largest observed: 1.2e-12, a flat optimum just inside the boundary); elements of θ that are 0 in the reference exactly 0; against lme4 only that the criterion is not larger than lme4's. The profiled deviance at a given θ 1e-12 |
 | Linear algebra | 1e-14 (`crossprod`, `norm`, `backsolve`, `chol`, `qr`, the 2-norm from `svd`, matrix arithmetic, `seq`, `lu`) or 1e-13 (`solve`, `determinant`, `rcond`, `svd`, `kappa`, `ginv`, `eigen`), measured relative to the norm of the result; `prcomp` 1e-12; pivots, ranks and signs of determinants exactly equal |
 | Numerical methods | 1e-15 (`approx`), 1e-14 (`integrate`, `optimize`, `uniroot`, `barylag`, `hermiteInterp`, `ode`, and `grad`, `jacobian`, `hessian` with an absolute floor of 1e-12) or 1e-13 (`spline`, `splinefun`, `splinefunH`) |
 

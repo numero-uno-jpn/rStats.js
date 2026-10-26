@@ -7,6 +7,50 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Linear mixed models:** `lmer`, lme4's `lmer()`, in a new area `@numero-uno-jpn/rstats/mixed` (`dist/mixed.js` on a
+  CDN). It is not in the main entry point or the single-file bundle `dist/rstats.js` while it is new. REML (default)
+  and maximum likelihood; random-effects terms `(x | g)` and `(x || g)`, crossed factors, `a:b` and nested `a/b`
+  grouping, the fixed-effects part coded as in `lm` (`contrasts`, `levels`). The result has the quantities of
+  `fixef`, `coef(summary())` (estimates, standard errors, t values; p-values come later), `vcov`, `sigma`,
+  `VarCorr`, `ranef`, `fitted`, `residuals`, `logLik`, `AIC`, `BIC`, `deviance`, `REMLcrit` and `isSingular`, with
+  lme4's checks, messages and warnings. Implemented from Bates, Mächler, Bolker and Walker (2015) with a sparse
+  Cholesky factorisation and the analytic gradient of the profiled criterion; the estimates are the exact optimum
+  (references at the optimum in 128-bit arithmetic, matched within 1e-9 and the log-likelihood within 1e-12), which
+  lme4's optimiser approaches to its own tolerances, so lme4's variance components differ in about the 5th to 9th
+  significant digit. A fit with 5000 subjects and correlated random slopes takes under a second (lme4: 0.35 s);
+  see docs/performance.md and docs/differences-from-r.md.
+
+### Fixed
+
+Six differences from R in the formula functions, found by an external check of 471 formula cases against R and
+confirmed with R 4.5.2:
+
+- `modelMatrix` made all-zero columns for a value of a string column that occurs only in rows dropped for a missing
+  value (`y ~ A` with `A = "c"` only where `y` is missing gave a column `Ac`; `y ~ A * B` gave 9 columns instead of
+  4). A string column is now a factor of the rows kept, as R's; a column with `levels` given still keeps its unused
+  levels in `modelMatrix`, as an R factor does. **The model matrices of such data change.**
+- `lm`, `aov` (and `lmer`) threw "contrasts can be applied only to factors with 2 or more levels" for a boolean
+  column with one value in the rows used. Booleans are now always coded with the levels FALSE and TRUE in model
+  matrices, as R codes logicals: the column is aliased (coefficient `NaN`, R's `NA`). Grouping by a boolean (the
+  formula forms of the tests) still uses the values present.
+- `1 * B`, `1/B`, `0 * B` and other `*`, `/` and `%in%` whose left operand expands to no terms gave the terms of the
+  right operand; R gives none (`B * 1` still gives `B`).
+- `^` with a non-integer power was an error; R truncates it (`(A + B)^2.5` is `(A + B)^2`).
+- `contrasts` naming a variable that is not in the formula is now warned about (`variable 'B' is absent, its
+  contrast will be ignored`), in `modelMatrix`, `lm`, `aov` (where a variable only inside `Error()` is absent) and
+  `lmer`; a numeric variable is an error (`contrasts apply only to factors`). Both were ignored silently.
+- `aggregate("y ~ A:B", ...)`, `"y ~ A*B"`, `"y ~ ."` and `"y ~ 1"` were errors; as in R, the grouping variables are
+  all the variables of the right-hand side, whatever its operators (`y ~ 1`: one row).
+
+### Changed
+
+- docs/differences-from-r.md: the "Not supported" list no longer lists the formula interfaces of the tests, `lm`
+  and `aov`, which are supported since 0.10.0 and 0.11.0.
+
 ## 0.11.1 - 2026-10-26
 
 Documentation only; the code is the same as in 0.11.0.

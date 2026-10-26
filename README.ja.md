@@ -122,6 +122,31 @@ aovEz(long, { id: "id", dv: "y", within: "W" }).anova.table[0];
 // ≈ [1.735, 6.940, 0.21653, 35.876, 0.84607, 0.00026363] (num Df, den Df, MSE, F, ges, p。GG で補正)
 ```
 
+### 線形混合モデル
+
+`lmer` は、lme4 の線形混合モデルを REML または最尤法で当てはめます。独立した分野
+`@numero-uno-jpn/rstats/mixed` (CDN では `dist/mixed.js`) にあり、1 ファイルにまとめたビルドには含めていません。
+
+```ts
+import { lmer } from "@numero-uno-jpn/rstats/mixed";
+
+const d = { subj: ["s1", "s2", "s3", "s4", "s5", "s6"].flatMap((s) => [s, s, s, s]),
+            day: [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3],
+            rt: [251, 262, 280, 293, 230, 251, 265, 282, 270, 275, 290, 318,
+                 242, 263, 270, 296, 260, 284, 309, 330, 238, 245, 262, 268] };
+const fit = lmer("rt ~ day + (day | subj)", d);   // R: lme4::lmer(rt ~ day + (day | subj), d)
+fit.fixef;                       // [247.65, 16.4]
+fit.coefTable.stdError;          // ≈ [5.3177, 1.7104]
+fit.varCorr[0].sd;               // ≈ [12.485, 3.6894] (subj の切片と傾き。VarCorr)
+fit.varCorr[0].corr[0][1];       // ≈ 0.6737
+fit.sigma;                       // ≈ 4.4385
+fit.ranef[0].values[1];          // ≈ [-13.118, -1.0038] (s2 の ranef)
+fit.REMLcrit;                    // ≈ 158.563
+```
+
+推定値は REML 基準の厳密な最適点です。lme4 の最適化はその手前で止まるので、分散成分は lme4 と
+有効数字 5〜9 桁程度まで、固定効果と対数尤度はそれ以上の桁まで一致します。
+
 ### 効果量と検出力
 
 ```ts
@@ -162,6 +187,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | 分散分析 | formula で呼ぶ `aov` と `aovSummary` (多元、交互作用、共変量、`Error()` の層), `anova` (`anova.lm`。逐次の表とモデルの比較), `Anova` (car の Type II と III), `aovEz` (afex。反復測定と混合計画、Greenhouse-Geisser と Huynh-Feldt の補正、一般化 η² と偏 η²), `mauchlyTest` (`mauchly.test`) |
 | 効果量と検出力 | `cohensD`, `hedgesG` (effectsize。信頼区間は厳密な限界), `etaSquared`, `omegaSquared`, `epsilonSquared` (偏・一般化。`anova` と `Anova` の表から), `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`), `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
+| 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)。`@numero-uno-jpn/rstats/mixed` から import する |
 | ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest) |
 | 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest` (PMCMRplus)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
 | 生存時間解析 | `survdiff` (log-rank)、`survfit` (Kaplan-Meier。信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイの扱い、ケースの重み、層、Wald・尤度比・スコア検定) |
@@ -201,6 +227,8 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 - 検定は R の警告を出しません。数値の欄と手法の名前はすべて一致します。`glm` は R の警告を結果の
   `warnings` で返します。
 - 分布の母数は、ベクトルとして使い回されません (リサイクルしない)。
+- `lmer` は基準の厳密な最適点を返します。lme4 の最適化はそこへ許容誤差の範囲でしか近づきません。
+  また、lme4 の収束の警告は出しません。
 
 すべての違いは [docs/ja/differences-from-r.md](docs/ja/differences-from-r.md) にあります。
 
@@ -214,19 +242,21 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `pnorm` | 1.2 KB |
 | `setSeed`, `rnorm` | 1.7 KB |
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 12.1 / 15.6 / 24.9 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 12.3 / 15.6 / 25.1 KB |
 | `qbeta` / `pt` と `qt` | 23.2 / 30.3 KB |
 | `glm` と `glmSummary` / `glm` とそのすべての関数 | 27.2 / 39.2 KB |
-| すべて | 185.8 KB |
+| `lmer` (`/mixed` から) | 14.9 KB |
+| すべて (`/mixed` を除く) | 186.1 KB |
 
 (`npm run size` で測れます。)
 
 分野ごとにサブパスからも export しているので、1 つの分野だけを import することもできます。
 `@numero-uno-jpn/rstats/distributions`、`/tests` (検定、`lm`・`confint`・`predict`、`glm` とその関数)、`/linalg`、
-`/descriptive`、`/numerics`、`/special` です。
+`/descriptive`、`/numerics`、`/special`、`/mixed` です (`/mixed` の `lmer` は、この方法でしか import
+できません。メインの入口には含めていません)。
 
-バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (すべての関数を含む minify 済みの
-ES モジュール、gzip で 186 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
+バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` 以外のすべての関数を含む
+minify 済みの ES モジュール、gzip で 186 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
 タグをそのまま配信します。
 
 ```html
@@ -244,10 +274,10 @@ ES モジュール、gzip で 186 KB) を jsDelivr から読み込めます。js
 ブラウザのコンソールから使うときは、自分で `window.rs = rs` としてください。
 
 一部の分野だけを使うページでは、代わりに分野ごとのバンドルを読み込めます。`dist/distributions.js`、
-`dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js` は
-上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、2 つの分野を
-読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で 29 KB
-(`numerics`) から 153 KB (`tests`) です。
+`dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
+`dist/mixed.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
+2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
+19 KB (`mixed`) から 156 KB (`tests`) です。
 
 ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm を元にした CDN も
 使えます。たとえば

@@ -118,6 +118,31 @@ aovEz(long, { id: "id", dv: "y", within: "W" }).anova.table[0];
 // ≈ [1.735, 6.940, 0.21653, 35.876, 0.84607, 0.00026363] (num Df, den Df, MSE, F, ges, p; GG-corrected)
 ```
 
+### Linear mixed models
+
+`lmer` fits lme4's linear mixed models by REML or maximum likelihood. It is in its own area,
+`@numero-uno-jpn/rstats/mixed` (`dist/mixed.js` on a CDN), not in the single-file bundle.
+
+```ts
+import { lmer } from "@numero-uno-jpn/rstats/mixed";
+
+const d = { subj: ["s1", "s2", "s3", "s4", "s5", "s6"].flatMap((s) => [s, s, s, s]),
+            day: [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3],
+            rt: [251, 262, 280, 293, 230, 251, 265, 282, 270, 275, 290, 318,
+                 242, 263, 270, 296, 260, 284, 309, 330, 238, 245, 262, 268] };
+const fit = lmer("rt ~ day + (day | subj)", d);   // R: lme4::lmer(rt ~ day + (day | subj), d)
+fit.fixef;                       // [247.65, 16.4]
+fit.coefTable.stdError;          // ≈ [5.3177, 1.7104]
+fit.varCorr[0].sd;               // ≈ [12.485, 3.6894] (subj: intercept and slope; VarCorr)
+fit.varCorr[0].corr[0][1];       // ≈ 0.6737
+fit.sigma;                       // ≈ 4.4385
+fit.ranef[0].values[1];          // ≈ [-13.118, -1.0038] (ranef for s2)
+fit.REMLcrit;                    // ≈ 158.563
+```
+
+The estimates are the exact optimum of the REML criterion; lme4's optimiser stops close to it, so the variance
+components agree with lme4 to about 5 to 9 significant digits and the fixed effects and log-likelihood to more.
+
 ### Effect sizes and power
 
 ```ts
@@ -159,6 +184,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | Analysis of variance | `aov` and `aovSummary` with a formula (several factors, interactions, covariates, `Error()` strata), `anova` (`anova.lm`, sequential and model comparison), `Anova` (car: types II and III), `aovEz` (afex: repeated-measures and mixed designs, Greenhouse-Geisser and Huynh-Feldt corrections, generalized and partial eta squared), `mauchlyTest` (`mauchly.test`) |
 | Effect sizes and power | `cohensD`, `hedgesG` (effectsize, with exact confidence limits), `etaSquared`, `omegaSquared`, `epsilonSquared` (partial, generalized, from `anova` and `Anova` tables); `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`); `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`) |
+| Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), from `@numero-uno-jpn/rstats/mixed` |
 | More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest) |
 | Multiple comparisons | `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest` (PMCMRplus), `dunnTest` (dunn.test), `glhtDunnett` (multcomp) |
 | Survival analysis | `survdiff` (log-rank), `survfit` (Kaplan-Meier with intervals and median), `coxph` (Cox regression: Efron and Breslow ties, case weights, strata, the Wald, likelihood-ratio and score tests) |
@@ -197,6 +223,8 @@ everyday use:
 - Hypothesis tests do not emit R's warnings; all numeric fields and method names match. `glm` returns
   R's warnings in its result (`warnings`).
 - Distribution parameters are not recycled as vectors.
+- `lmer` returns the exact optimum of its criterion, which lme4's optimiser approaches only to its tolerances, and
+  does not emit lme4's convergence warnings.
 
 Full list: [docs/differences-from-r.md](docs/differences-from-r.md).
 
@@ -210,19 +238,21 @@ removed. Approximate sizes after minification and gzip:
 | `pnorm` | 1.2 KB |
 | `setSeed`, `rnorm` | 1.7 KB |
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 12.1 / 15.6 / 24.9 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 12.3 / 15.6 / 25.1 KB |
 | `qbeta` / `pt` and `qt` | 23.2 / 30.3 KB |
 | `glm` and `glmSummary` / `glm` with all its methods | 27.2 / 39.2 KB |
-| everything | 185.8 KB |
+| `lmer` (from `/mixed`) | 14.9 KB |
+| everything (except `/mixed`) | 186.1 KB |
 
 (`npm run size` measures these.)
 
 Each area is also a subpath export, for importing one area without the rest:
 `@numero-uno-jpn/rstats/distributions`, `/tests` (hypothesis tests, `lm`, `confint` and
-`predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics` and `/special`.
+`predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics`, `/special` and `/mixed`
+(`lmer`; this area is only available this way, not from the main entry point).
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function, 186 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+function except those of `/mixed`, 186 KB gzipped) from jsDelivr, which serves each release tag of this repository:
 
 ```html
 <script type="module">
@@ -239,10 +269,10 @@ loaded either way. Nothing is added to `window`: to use the functions from other
 browser console, assign `window.rs = rs` yourself.
 
 A page that needs only some areas can load the per-area bundles instead: `dist/distributions.js`,
-`dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js` and `dist/special.js`
-export the same functions as the subpaths above, and share their common code through
+`dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js` and
+`dist/mixed.js` export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 29 KB (`numerics`) to 153 KB (`tests`) gzipped.
+transfers 19 KB (`mixed`) to 156 KB (`tests`) gzipped.
 
 Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
 work as well, for example

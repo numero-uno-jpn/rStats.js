@@ -40,6 +40,7 @@ against R and are not a priority.
 | Effect sizes and power | effectsize's `cohens_d`, `hedges_g`, `eta_squared`, `omega_squared`, `epsilon_squared` (from `anova` and `Anova` tables, exact confidence limits); `power.t.test`, `power.prop.test`, `power.anova.test` and the power functions of `pwr` |
 | More tests | `leveneTest` (car), `propTrendTest` (`prop.trend.test`), `jonckheereTest` (DescTools and clinfun), `cochranQTest` (DescTools), `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (nortest) |
 | Multiple comparisons | PMCMRplus's `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest`; `dunnTest` (dunn.test); `glhtDunnett` (multcomp); Dunnett-type probabilities computed exactly (R's are randomised) |
+| Mixed models | lme4's `lmer` as `lmer` (REML and ML; correlated and uncorrelated random effects `(x \| g)`, `(x \|\| g)`, crossed and nested grouping factors `a/b`, `a:b`), with the quantities of `fixef`, `vcov`, `coef(summary())` (without p-values), `VarCorr`, `ranef`, `fitted`, `residuals`, `logLik`, `AIC`, `BIC`, `deviance`, `REMLcrit` and `isSingular`; implemented from Bates et al. (2015) with a sparse Cholesky factorisation; the estimates are the exact optimum of the criterion (lme4 stops close to it). In its own area `@numero-uno-jpn/rstats/mixed` (`dist/mixed.js`), not in the single-file bundle |
 | Survival analysis | `survdiff` (log-rank and the G-rho family) and `survfit` (Kaplan-Meier with log, plain and log-log intervals and the median) and `coxph` (Cox regression: Efron and Breslow ties, weights, strata, the summary tests) of the `survival` package |
 | Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor, two-step and maximum likelihood), `pbvnorm`, `omega` (McDonald's ω, psych); effect sizes of repeated-measures designs (`Error()` strata and `aovEz`) |
 | Optimisation | `factanal` (maximum likelihood, varimax and promax); `optim` with all six methods (Nelder-Mead, BFGS, CG, L-BFGS-B, SANN, Brent), following R's iterations, and `optimHess` |
@@ -65,10 +66,14 @@ brackets.
    [docs/performance.md](docs/performance.md)). Remaining: the continued fraction, which stays in
    double-double and is still used where neither expansion applies (moderate parameters, such as
    a = 30 and b = 20, where it is short, and the far tails).
+2. **Mixed models, continued:** lmerTest's Satterthwaite degrees of freedom and p-values for the fixed effects,
+   and `anova` of `lmer` fits (likelihood-ratio tests) [lmerTest 3.2.1, lme4 2.0.6]; then `glmer` (Laplace
+   approximation) [lme4]. Whether the `mixed` area joins the single-file bundle `dist/rstats.js` is decided once
+   these are done.
 
 Out of scope: the parts of SciPy with no counterpart in R (most of `scipy.special` and the
-distributions that only `scipy.stats` has). Structural equation models (`lavaan`) and mixed models
-(`lme4`) are out of scope too: each is the size of a library of its own. Also out of scope:
+distributions that only `scipy.stats` has). Structural equation models (`lavaan`) are out of scope too: they are
+the size of a library of their own. Also out of scope:
 recycling distribution parameters as vectors (`rnorm(3, mean = c(0, 10, 100))`), since `map` does
 the same with R's results and random stream (see
 [docs/differences-from-r.md](docs/differences-from-r.md#general)). The other RNG kinds (Wichmann-Hill, Marsaglia-Multicarry, Super-Duper, Knuth-TAOCP) and normal kinds
@@ -80,8 +85,9 @@ old code.
 Users of a bundler only get the functions they import (`pnorm` alone is 1.2 KB gzipped), so
 adding functions costs them nothing. For CDN use there is one file per area
 (`dist/distributions.js`, `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`,
-`dist/numerics.js`, `dist/special.js`), built with esbuild's code splitting so that shared code is
-not duplicated, and `dist/rstats.js` with everything. The same areas are subpath exports of the
+`dist/numerics.js`, `dist/special.js`, `dist/mixed.js`), built with esbuild's code splitting so that shared code is
+not duplicated, and `dist/rstats.js` with everything except `mixed` (lmer is in its first release, so it stays out
+of the single-file bundle for now). The same areas are subpath exports of the
 package (`@numero-uno-jpn/rstats/linalg`, ...). `npm run size` reports the sizes. After
 publishing to npm, CDNs that bundle per export (such as esm.sh with `?exports=`) are a further
 option.

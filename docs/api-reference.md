@@ -1,9 +1,10 @@
 # rStats.js API reference
 
 rStats.js gives JavaScript the numerical core of R: probability distributions, random numbers that match R's
-`set.seed()`, descriptive statistics, hypothesis tests, linear and generalized linear models, survival analysis,
-linear algebra and numerical methods. Function names and results follow R, and the functions are tested against R
-(to a relative 1e-12) or against high-precision references (where R itself is inaccurate, or has no such function).
+`set.seed()`, descriptive statistics, hypothesis tests, linear, generalized linear and linear mixed models, survival
+analysis, linear algebra and numerical methods. Function names and results follow R, and the functions are tested
+against R (to a relative 1e-12) or against high-precision references (where R itself is inaccurate, or has no such
+function).
 
 This reference lists every function with its options, results and an example (the examples are run by the tests).
 The functions are grouped by subject in the menu.
@@ -28,10 +29,11 @@ npm install @numero-uno-jpn/rstats
 import { pnorm, tTest, lm } from "@numero-uno-jpn/rstats";        // everything (tree-shaken by a bundler)
 import { qbeta } from "@numero-uno-jpn/rstats/distributions";       // or one area: distributions, tests,
                                                                      // descriptive, linalg, numerics, special
+import { lmer } from "@numero-uno-jpn/rstats/mixed";                // mixed models: only from this area
 ```
 
 Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats/dist/rstats.js` is one ES module with every
-function.
+function except the mixed models, which are in `dist/mixed.js`.
 
 ## Conventions
 

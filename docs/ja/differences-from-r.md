@@ -258,10 +258,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   rStats.js では `"B"`、`"a"`、`"b"`、en_US ロケールの R では `"a"`、`"b"`、`"B"` の順になります)。
   `chisqTest(x, y)` の 2 つの因子の水準 (表の行と列) も同じです。因子の値は文字列 (欠測値は `null`)
   でなければなりません。
-  formula の因子 (`modelMatrix`、`lm`、`aov`。`levels` で順序を固定できます) と、`aovEz` の被験者間
+  formula の因子 (`modelMatrix`、`lm`、`aov`、`lmer`。`levels` で順序を固定できます) と、`aovEz` の被験者間
   因子も同じです。`aovEz` の被験者内因子は、afex と同じくデータに現れた順です。
 - **formula** は文字列で、変数名、`.`、`+`、`-`、`*`、`/`、`:`、`%in%`、`^`、括弧、`0` と `1`、
-  `aov` では 1 つの `Error()` に対応します。関数呼び出し (`log(x)`、`I(x^2)`、`poly(x, 2)`、
+  `aov` では 1 つの `Error()`、`lmer` では変量効果の項 `(lhs | g)` と `(lhs || g)` に対応します (lme4 2.0 の
+  共分散の構造 `diag()`・`cs()`・`ar1()` には対応しません)。関数呼び出し (`log(x)`、`I(x^2)`、`poly(x, 2)`、
   `offset()`)、バッククォートの名前、変換した応答には対応しません。先に列を計算してください。
   対比は `contr.treatment` (既定)、`contr.sum`、`contr.helmert` です。解析できない formula は、
   R の構文エラーの代わりに "invalid formula: ..." を投げます。
@@ -328,6 +329,25 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   0 に近い identity リンクの Poisson) では、その平均は桁落ちの結果で、eps とその条件数の積までしか
   決まりません (3.9e-14 の平均に依存する標準誤差で最大 7.3e-4)。gaussian の完全な当てはめの AIC は、
   丸め誤差だけの逸脱度の n log です。
+
+### 混合モデル
+
+- **`lmer` は厳密な最適点を返します。** REML 基準 (または ML の逸脱度) の最適点を、解析的な勾配を使った
+  ニュートン法で求めます。lme4 の最適化は自分の許容誤差を満たしたところで止まり、θ では最適点から
+  相対でおおむね 1e-9〜1e-5 離れています。そのため、θ、分散成分 (`VarCorr`)、標準誤差、変量効果は、lme4 と
+  有効数字 5〜9 桁目あたりで違います。固定効果と対数尤度は、それより多くの桁で一致します (最適点では基準が
+  平らなため)。rStats.js の基準の値が lme4 より大きくなることはありません。lme4 の収束の警告
+  (`Model failed to converge ...`) は出しません。
+- **特異な当てはめは、厳密な最適点で判定します。** 最適点が境界上にある θ の要素はちょうど 0 になり、
+  `singular` と message `boundary (singular) fit: see help('isSingular')` はそれに従います。lme4 が境界の
+  すぐ内側 (θ が閾値 1e-4 より大きい所) で止まる場合、lme4 は特異でないと報告しますが、rStats.js は
+  特異と報告します。
+- **列が 2 つ以上の項** (`(x | g)`): 先頭の列の分散が 0 に向かうと、共分散の因子の列の符号を変えても基準が
+  変わらないため、lme4 の境界つきの最適化は最小でない点で止まることがあります。rStats.js はその境界なしで
+  最小化し、同じ意味の因子で報告するので、そこでは lme4 より低い基準に達することがあります (同じモデルの、
+  よりよい当てはめです)。
+- **計算は lme4 と同じく疎行列で行いますが、JavaScript なので、** 当てはめの時間は lme4 のおよそ
+  1.4〜3 倍です ([performance.md](performance.md) を参照)。
 
 ### 線形代数
 
@@ -506,12 +526,12 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 
 - 分布パラメータのリサイクル (`rnorm(3, mean = c(0, 10, 100))`)。
 - R の既定以外の RNG の種類。
-- formula インターフェース、Fisher の `hybrid` と `workspace`、Wilcoxon の `digits.rank`。Kendall の
-  一致ペアの数え上げは O(n²) です。
-- 一元配置を超える `aov`: 多元配置と formula インターフェース (`aov` は、グループラベル付きの 1 つの
-  標本か、標本のリストを受け取ります)。
+- Fisher の `hybrid` と `workspace`、Wilcoxon の `digits.rank`。Kendall の一致ペアの数え上げは O(n²) です。
 - `kappa` の `inv_z`、複素行列、`EISPACK = TRUE` / `LINPACK = TRUE`。
-- `lm` と `glm` の formula (説明変数は行列で渡します。[ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください)。
+- `glm` の formula (説明変数は行列で渡します。[ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください)。
+- `lmer`: lme4 2.0 の共分散の構造 (`diag()`・`cs()`・`ar1()` の項)、`weights`、`offset`、`subset`、`na.action`
+  (欠測値のある行は常に除きます)、`start`、`control`。lmerTest の p 値と当てはめの `anova`、`predict`、
+  `simulate`、`confint`、`profile`。`glmer` と `nlmer` ([ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください)。
 - numDeriv の複素数ステップ法 (`method = "complex"`。複素数の引数を受け取る関数が要る) と、`grad`・
   `jacobian` の `side` 引数。
 - deSolve の適応刻みの解法 (`lsoda`、`ode45` など)。`ode` は固定刻みの `euler`・`rk2`・`rk4` です。

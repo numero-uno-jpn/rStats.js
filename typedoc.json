@@ -1,9 +1,9 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
-    "src/index.ts"
+    "src/api-reference.ts"
   ],
-  "tsconfig": "tsconfig.build.json",
+  "tsconfig": "tsconfig.typedoc.json",
   "out": "docs/api",
   "name": "rStats.js",
   "readme": "docs/api-reference.md",

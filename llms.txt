@@ -1,7 +1,7 @@
 # rStats.js
 
 > R-compatible statistics for JavaScript and TypeScript: distributions, random numbers that match
-> R's `set.seed()`, descriptive statistics, hypothesis tests, `lm` and `glm`, special functions,
+> R's `set.seed()`, descriptive statistics, hypothesis tests, `lm`, `glm` and lme4's `lmer`, special functions,
 > numerical methods and linear algebra, with R's function names, defaults and numerical results.
 > Every function is tested against R 4.5.2. ESM only, no dependencies, runs in browsers, Node.js,
 > Deno and Bun.
@@ -9,8 +9,9 @@
 Install with `npm install @numero-uno-jpn/rstats`. All functions are named exports:
 `import { pnorm, tTest } from "@numero-uno-jpn/rstats"`, or `import * as rs from
 "@numero-uno-jpn/rstats"` and call `rs.tTest(x, y)`. Each area is also a subpath export
-(`/distributions`, `/tests`, `/linalg`, `/descriptive`, `/numerics`, `/special`). For use from a
-CDN without a bundler, see the README section "Using it in the browser".
+(`/distributions`, `/tests`, `/linalg`, `/descriptive`, `/numerics`, `/special`). Mixed models are only in the
+subpath `/mixed`: `import { lmer } from "@numero-uno-jpn/rstats/mixed"` (not in the main entry point). For use from
+a CDN without a bundler, see the README section "Using it in the browser".
 
 ## Translating R code
 
@@ -49,6 +50,13 @@ CDN without a bundler, see the README section "Using it in the browser".
   family })` takes a matrix (array of rows) or a vector of predictors (no formula); the intercept
   is added unless `intercept: false`. A binomial response can be rows of `[successes, failures]`,
   like `cbind(s, f)` in R.
+- Mixed models: lme4's `lmer(y ~ x + (x | subject), data = d, REML = FALSE)` →
+  `lmer("y ~ x + (x | subject)", d, { REML: false })` from `@numero-uno-jpn/rstats/mixed`, with `(1 | a/b)`,
+  `(1 | a:b)`, `(x || g)` and crossed terms. The result has the fields `fixef`, `coefTable` (`{ estimate, stdError,
+  tValue }`; no p-values yet), `vcov`, `sigma`, `varCorr` (one `{ group, columns, sd, corr }` per term, as
+  `VarCorr`), `ranef` (one `{ group, levels, columns, values }` per grouping factor), `fitted`, `residuals`,
+  `logLik`, `AIC`, `BIC`, `deviance`, `REMLcrit`, `theta` and `singular`. The estimates are the exact optimum, so
+  the variance components differ from lme4's in the 5th to 9th significant digit.
 - Indices are 0-based where R returns indices: `sampleInt(n)` returns `0..n-1` (R's
   `sample.int(n) - 1` from the same random stream), and the pivots of `qr` and `chol`.
 - Hypothesis tests do not emit R's warnings. `glm` returns R's warnings in its result

@@ -25,6 +25,7 @@ rStats.js が意図して R と異なるケースは、テストファイルで�
 - **仮説検定:** oracle はすべてのケースについて参照値をフィクスチャの `reference` フィールドに保存します。高精度が必要なのは平均、分散、相関係数だけなので、これは速く済みます。t 検定では、分散と標準誤差を Rmpfr (256 ビット) で計算しますが、平均は先に double へ丸めます。R も rStats.js も、`estimate` に出力する丸めた平均の差を使うためです。そのうえで p 値と分位点は R の `pt`/`qt` から求めます。Fisher の r × c 検定はすべての表を列挙し、gmp で厳密に合計します。Kendall の正確検定は Rmpfr (1024 ビット) で反転数を数えます。
 - **0.6.1 で追加した特殊関数** (`choose`、`lchoose`、`factorial`、`lfactorial`、`digamma`、`trigamma`、`psigamma`、ベッセル関数、`dmultinom`、および R にない `gammainc`、`erfinv`、`erfcinv`、`perm`。これら 4 つの R のフィクスチャは `pgamma` × `gamma`、pracma の定義、Rmpfr で計算します): R のフィクスチャに加えて mpmath とも照合します (`scripts/mpmath/*.py`、60〜800 桁、`test/fixtures/<name>.mpmath.json`)。許容誤差は同じ 1e-14 です (`erfinv`、`erfcinv`、`perm` は 1e-15)。mpmath の値は数学的な関数なので、この照合では `rCompatible: false` を使います。R が不正確な点や失敗する点の参照値 (`<name>.ref.json`) は、Rmpfr ではなく mpmath (100〜800 桁、引数は倍精度の値) で計算しました。項が打ち消し合う箇所 (x < 0 の digamma と psigamma、振動する領域の J と Y、負の非整数次数の I) では、打ち消し合う項の大きさ (フィクスチャの `scale`) に対する相対誤差で測ります。x < 0 の `psigamma` は 2e-14 まで許します。反射項が cot(pi x) の deriv + 1 次の多項式で、cot の誤差を最大 101 倍にするためです (R との照合でも同じ)。`besselJ` と `besselY` の R との照合では、答えが打ち消し合う項よりはるかに小さいケースは、mpmath の値との差が `scale` に対して 1e-14 以内なら合格とします (`knownDifference`)。そこでは相対誤差で見ると R のほうが近いためです。
 - **log1p 系の関数** (`log1pmx`、`lgamma1p`、`log1mexp`、`log1pexp`。R では C API にしかありません): フィクスチャは R の出力ではなく、Rmpfr で計算した正しく丸めた値 (512 ビット。x が非常に小さい `lgamma1p` では 1 + x が厳密になるようにビット数を増やす) で、許容誤差 1e-14 で比較します (観測された最大の誤差は `lgamma1p` の 1.7e-15)。
+- **混合モデル (`lmer`):** lme4 の推定値は最適化が止まった点で、θ では最適点から相対でおおむね 1e-9〜1e-5 離れています。そのため fixture には、厳密な最適点での参照値を持たせています。oracle (`oracle/lmer.R`、`lmermore.R`、`lmerboundary.R`) は lme4 の θ から出発し、基準の勾配が 0 になる点を 128 ビットの演算 (Rmpfr。基準は論文の式を密行列で、勾配は中心差分で) のニュートン法で求めます。最適点が境界上にある要素は、そこでの片側の微分が正であることを確かめてから 0 に固定します。そのうえで、その θ ですべての結果の項目を計算します。与えた θ での逸脱度 (`lmerDeviance`) には 200 ビットの参照値があります。構造 (`lmerTerms`: 計画行列、Z、共分散の因子の配置) は lme4 と完全に一致させます。
 - **線形代数:** `solve` と行列式には、gmp の有理数で計算した厳密な参照値があります (どの double も有理数で正確に表せます)。分解はそうではなく、後退誤差と直交性で確かめます (下記参照)。
 
 ## 許容誤差
@@ -38,6 +39,7 @@ rStats.js が意図して R と異なるケースは、テストファイルで�
 | 記述統計 | 1e-14 (打ち消し合いから決まる 0 に近い歪度と尖度は絶対誤差で測る) |
 | 仮説検定 | すべての数値フィールドで 1e-12 (`cor`: 1e-15、`pAdjust`: 完全一致。`ansariTest` の正規近似の区間など、許容誤差 1e-4 の `uniroot` で求める根: 1e-4)。テキストフィールドは完全一致 |
 | 線形モデル (`lm`、`confint`、`predict`) | すべての数値フィールドで 1e-12 |
+| 混合モデル (`lmer`) | 厳密な最適点の参照値に対して、`logLik`、`AIC`、`BIC`、`deviance`、`REMLcrit` は 1e-12。θ、固定効果とその共分散と標準誤差、σ、`VarCorr`、`ranef`、当てはめ値と残差は、それぞれの最大の絶対値の 1e-9 (観測した最大は 1.2e-12。境界のすぐ内側の平らな最適点)。参照値で 0 の θ の要素はちょうど 0。lme4 に対しては、基準の値が lme4 より大きくないことだけ。与えた θ での逸脱度は 1e-12 |
 | 線形代数 | 1e-14 (`crossprod`、`norm`、`backsolve`、`chol`、`qr`、`svd` による 2-ノルム、行列演算、`seq`、`lu`) または 1e-13 (`solve`、`determinant`、`rcond`、`svd`、`kappa`、`ginv`、`eigen`)。結果のノルムに対する相対値で測る。`prcomp` は 1e-12。ピボット、ランク、行列式の符号は完全一致 |
 | 数値計算 | 1e-15 (`approx`)、1e-14 (`integrate`、`optimize`、`uniroot`、`barylag`、`hermiteInterp`、`ode`、および絶対誤差の下限 1e-12 付きの `grad`、`jacobian`、`hessian`)、1e-13 (`spline`、`splinefun`、`splinefunH`) |
 
