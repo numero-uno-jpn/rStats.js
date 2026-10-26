@@ -29,22 +29,9 @@ const names = Object.keys(lib);
  * Exports added since the last release. The public demo loads the released build from jsDelivr, so their examples
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
-const NOT_IN_DEMO_YET: string[] = [
-  "modelMatrix", "anova", "aovSummary", "Anova", "aovEz", "mauchlyTest",
-  "powerTTest", "powerPropTest", "powerAnovaTest",
-  "pwrTTest", "pwrT2nTest", "pwr2pTest", "pwr2p2nTest", "pwrPTest", "pwrNormTest", "pwrRTest", "pwrChisqTest", "pwrAnovaTest", "pwrF2Test",
-  "esH", "esW1", "esW2", "cohenES",
-  "cohensD", "hedgesG", "etaSquared", "omegaSquared", "epsilonSquared",
-  "dscfAllPairsTest", "kwAllPairsDunnTest", "kwManyOneDunnTest", "dunnettTest", "gamesHowellTest", "tukeyTest", "steelTest", "manyOneUTest",
-  "dunnTest", "glhtDunnett",
-  "survdiff", "survfit", "coxph",
-  "leveneTest", "propTrendTest", "jonckheereTest", "cochranQTest", "adTest", "lillieTest", "cvmTest", "sfTest", "pearsonTest",
-  "kappa2", "kappamFleiss", "icc", "cronbachAlpha", "partialR",
-  "pbvnorm", "polychor", "polyserial",
-  "schur", "expm",
-  "optim", "optimHess",
-  "factanal", "omega",
-];
+const NOT_IN_DEMO_YET: string[] = [];
+/** Exports that only reproduce R's errors (PMCMRplus 1.9.12's steelTest fails on every input), so no example can show a value */
+const NO_DEMO: string[] = ["steelTest"];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 
 /** Evaluates an example's js with every export in scope and flattens the result to numbers */
@@ -78,7 +65,7 @@ describe("demo examples", () => {
       .filter((s) => s && !s.startsWith("type "));
     expect(exported.sort()).toEqual([...names].sort());
     const used = new Set(examples.flatMap((e) => e.js.match(/[A-Za-z_$][\w$]*/g) ?? []));
-    expect(exported.filter((n) => !used.has(n) && !NOT_IN_DEMO_YET.includes(n))).toEqual([]);
+    expect(exported.filter((n) => !used.has(n) && !NOT_IN_DEMO_YET.includes(n) && !NO_DEMO.includes(n))).toEqual([]);
   });
 
   for (const e of examples) {
