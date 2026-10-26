@@ -290,17 +290,22 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
   for (const t of terms) {
     const { levels, codes } = groups[t.group]!;
     const nc = t.columns.length;
+    // the rows are visited once, in order, each appended to the columns of its level
+    const columns: SparseColumn[] = Array.from({ length: levels.length * nc }, () => ({ rows: [], values: [] }));
+    for (let i = 0; i < n; i++) {
+      const row = t.matrix[i]!;
+      const base = codes[i]! * nc;
+      for (let j = 0; j < nc; j++) {
+        const v = row[j]!;
+        if (v === 0) continue;
+        const col = columns[base + j]!;
+        col.rows.push(i);
+        col.values.push(v);
+      }
+    }
     for (let l = 0; l < levels.length; l++) {
       for (let j = 0; j < nc; j++) {
-        const col: SparseColumn = { rows: [], values: [] };
-        for (let i = 0; i < n; i++) {
-          const v = t.matrix[i]![j]!;
-          if (codes[i] === l && v !== 0) {
-            col.rows.push(i);
-            col.values.push(v);
-          }
-        }
-        z.push(col);
+        z.push(columns[l * nc + j]!);
         zColLevels.push(levels[l]!);
       }
     }

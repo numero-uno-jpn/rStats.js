@@ -1,14 +1,16 @@
-// Time of one evaluation of the profiled deviance of lmer (src/models/mixedDeviance.ts) on the four data sets of the
-// speed table in oracle/lmer-behaviour.md ("Sparse computation (stages S1 and S2)"), built here with a seeded
-// generator; for information also one evaluation by the dense reference (test/helpers/mixedDense.ts) where its q × q
-// arrays are small enough.
+// Time of one fit by lmer (src/models/lmer.ts) and of one evaluation of its profiled deviance
+// (src/models/mixedDeviance.ts) on the four data sets of the speed table in oracle/lmer-behaviour.md ("Sparse
+// computation (stages S1 and S2)"), built here with a seeded generator; for information also one evaluation by the
+// dense reference (test/helpers/mixedDense.ts) where its q × q arrays are small enough.
 //
 //   node scripts/lmer-timing.mjs            (no build needed: the TypeScript sources are bundled with esbuild)
 //
-// For each data set: n, q, the time to build the structure, the first evaluation (which also forms the cross-products
-// and the pattern of the factor, once per structure), the median of 5 further evaluations at other values of θ, one
-// with the gradient (dense until stage S2) where q is small enough, and one dense evaluation (its first, which also
-// forms its own cross-products). Stop other heavy work while measuring.
+// For each data set: n, q, the time of the whole fit (lmer from the data: the structure, the minimisation and the
+// results; the median of 3 fits) against the target of the speed table, the number of evaluations of the criterion
+// with its gradient in a fit, the time to build the structure, the first evaluation (which also forms the
+// cross-products and the pattern of the factor, once per structure), the median of 5 further evaluations at other
+// values of θ, one with the gradient, and one dense evaluation (its first, which also forms its own cross-products).
+// Stop other heavy work while measuring.
 
 import { build } from "esbuild";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -23,13 +25,14 @@ writeFileSync(
   entry,
   [
     `export { mixedModelStructure } from ${JSON.stringify(path.join(root, "src/models/mixedStructure.ts"))};`,
+    `export { lmer, lmerWithCriterion } from ${JSON.stringify(path.join(root, "src/models/lmer.ts"))};`,
     `export { profiledDeviance } from ${JSON.stringify(path.join(root, "src/models/mixedDeviance.ts"))};`,
     `export { denseProfiledDeviance } from ${JSON.stringify(path.join(root, "test/helpers/mixedDense.ts"))};`,
   ].join("\n"),
 );
 const outfile = path.join(dir, "bundle.mjs");
 await build({ entryPoints: [entry], outfile, bundle: true, format: "esm", platform: "node", target: "es2022", logLevel: "error" });
-const { mixedModelStructure, profiledDeviance, denseProfiledDeviance } = await import(pathToFileURL(outfile).href);
+const { lmer, lmerWithCriterion, mixedModelStructure, profiledDeviance, denseProfiledDeviance } = await import(pathToFileURL(outfile).href);
 rmSync(dir, { recursive: true, force: true });
 
 /** A seeded generator of uniform and normal numbers (mulberry32 and Box-Muller) */
@@ -61,7 +64,7 @@ function crossed(ns, ni, seed) {
       data.y.push(1 + 0.5 * x + se[s] + ie[i] + norm());
     }
   }
-  return { formula: "y ~ x + (1 | s) + (1 | i)", data, label: `crossed ${ns} × ${ni}` };
+  return { formula: "y ~ x + (1 | s) + (1 | i)", data, label: `crossed ${ns} × ${ni}`, target: ns === 200 ? 0.5 : 6 };
 }
 
 /** y ~ x + (x | s), `per` rows per subject */
@@ -77,11 +80,11 @@ function slopes(ns, per, seed) {
       data.y.push(2 + 0.3 * x + b0 + b1 * x + 0.8 * norm());
     }
   }
-  return { formula: "y ~ x + (x | s)", data, label: `${ns} subjects × ${per}` };
+  return { formula: "y ~ x + (x | s)", data, label: `${ns} subjects × ${per}`, target: ns === 1000 ? 0.5 : 3 };
 }
 
 const DENSE_MAX_Q = 2000;
-const GRADIENT_MAX_Q = 2000;
+const FITS = 3;
 const seconds = (ms) => `${(ms / 1000).toFixed(3)} s`;
 const time = (f) => {
   const t0 = performance.now();
@@ -92,12 +95,20 @@ const median = (v) => v.slice().sort((a, b) => a - b)[Math.floor(v.length / 2)];
 
 const rows = [];
 for (const m of [crossed(200, 100, 1), crossed(500, 200, 2), slopes(1000, 10, 3), slopes(5000, 10, 4)]) {
+  const fits = [];
+  for (let k = 0; k < FITS; k++) fits.push(time(() => lmer(m.formula, m.data)).ms);
+  let evaluations = 0;
+  lmerWithCriterion(m.formula, m.data, {}, (s, theta, reml) => {
+    evaluations++;
+    const r = profiledDeviance(s, theta, reml, { gradient: true });
+    return { f: r.deviance, g: r.gradient };
+  });
   const { ms: structureMs, value: s } = time(() => mixedModelStructure(m.formula, m.data));
   const thetaAt = (k) => s.theta.map((t, j) => (s.lower[j] === 0 ? 0.5 + 0.1 * k + 0.05 * j : -0.2 + 0.05 * k));
   const first = time(() => profiledDeviance(s, s.theta, true));
   const later = [];
   for (let k = 0; k < 5; k++) later.push(time(() => profiledDeviance(s, thetaAt(k), true)).ms);
-  const gradient = s.q <= GRADIENT_MAX_Q ? time(() => profiledDeviance(s, thetaAt(0), true, { gradient: true })) : undefined;
+  const gradient = time(() => profiledDeviance(s, thetaAt(0), true, { gradient: true }));
   let dense;
   if (s.q <= DENSE_MAX_Q) {
     dense = time(() => denseProfiledDeviance(s, thetaAt(0), true));
@@ -108,14 +119,27 @@ for (const m of [crossed(200, 100, 1), crossed(500, 200, 2), slopes(1000, 10, 3)
     `\`${m.formula.replaceAll("|", "\\|")}\`, ${m.label}`,
     s.y.length,
     s.q,
+    `${seconds(median(fits))} (≤ ${m.target} s)`,
+    evaluations,
     seconds(structureMs),
     seconds(first.ms),
     seconds(median(later)),
-    gradient === undefined ? "–" : seconds(gradient.ms),
+    seconds(gradient.ms),
     dense === undefined ? "–" : `${seconds(dense.ms)} (difference ${dense.relative.toExponential(1)})`,
   ]);
 }
-const header = ["Model", "n", "q", "structure", "first evaluation", "evaluation (median)", "with gradient (dense)", "dense reference (first call)"];
+const header = [
+  "Model",
+  "n",
+  "q",
+  "fit (target)",
+  "evaluations in a fit",
+  "structure",
+  "first evaluation",
+  "evaluation (median)",
+  "with gradient",
+  "dense reference (first call)",
+];
 const line = (c) => `| ${c.join(" | ")} |`;
 console.log(`Node ${process.version} (${process.arch})`);
 console.log([line(header), line(header.map(() => "---")), ...rows.map(line)].join("\n"));
