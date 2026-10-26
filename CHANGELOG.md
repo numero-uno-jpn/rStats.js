@@ -20,7 +20,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   - `tapply`, `split` (a `Map` in R's order) and `aggregate` (formula and data-frame forms);
   - `merge` (R's row order, including its order of duplicated keys), `subset`, and `rbind` / `cbind` of data
     frames (the matrix forms are unchanged);
-  - `fromRows` and `toRows`: data frames from arrays of row objects (JSON, parsed CSV) and back.
+  - `fromRows` and `toRows`: data frames from arrays of row objects (JSON, parsed CSV) and back;
+  - `pivotLonger` and `pivotWider` (tidyr's `pivot_longer` and `pivot_wider`): wide and long formats, with
+    `.value`, `namesSep`, `namesPattern`, `valuesFill` and `valuesFn`.
 - [docs/guide-for-js-developers.md](docs/guide-for-js-developers.md) (and its Japanese translation): R's way of
   writing an analysis explained for JavaScript developers, with a worked example that the tests run.
 

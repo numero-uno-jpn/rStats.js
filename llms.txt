@@ -69,7 +69,10 @@ CDN without a bundler, see the README section "Using it in the browser".
   `completeCases(d)`, `subset(d, age >= 20, select = c(y, g))` → `subset(d, (r) => r.age >= 20, { select: ["y",
   "g"] })`, `tapply(x, g, mean)` → `tapply(x, g, mean)` (`{ dim, dimnames, values }`), `split(x, g)` → a `Map`,
   `aggregate(y ~ g + sex, d, mean)` → `aggregate("y ~ g + sex", d, mean)`, `merge(a, b, by = "id", all.x = TRUE)`
-  → `merge(a, b, { by: "id", allX: true })`, `rbind(d1, d2)` → `rbind(d1, d2)`.
+  → `merge(a, b, { by: "id", allX: true })`, `rbind(d1, d2)` → `rbind(d1, d2)`. tidyr's `pivot_longer(d, cols =
+  c(t1, t2), names_to = "time", values_to = "score")` → `pivotLonger(d, { cols: ["t1", "t2"], namesTo: "time",
+  valuesTo: "score" })`, `pivot_wider(d, names_from = time, values_from = score)` → `pivotWider(d, { namesFrom:
+  "time", valuesFrom: "score" })`.
 - Random numbers: after `setSeed(42)`, `rnorm`, `runif`, `sample` and the other `r*` functions
   give the same numbers as R after `set.seed(42)`. `RNGkind` supports Mersenne-Twister (R's
   default) and L'Ecuyer-CMRG.
