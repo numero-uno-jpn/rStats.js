@@ -3,16 +3,85 @@
 // R's mean and var accumulate sums in extended precision. Here sums are taken in double-double (src/special/dd.ts)
 // and rounded to double at the end. The mean divides the first sum by n, then corrects it with the sum of deviations
 // (so that rounding errors from adding double values do not remain).
+//
+// R's long double accumulator has a much wider exponent range than double, so a sum may pass the largest double on
+// the way without overflowing; only the result is rounded to double (±Inf beyond the range). Here the double-double
+// sum runs unscaled while it stays finite (so its results are unchanged), and once it would overflow it continues on
+// the values scaled by a power of 2 (exact) and is scaled back at the end. A mean whose sum overflows a double is the
+// mean of the scaled values, scaled back (R averages x[i] / n in that case, which gives the mean without overflow).
 
 import { ddAdd, ddDivNum, ddMul, ddSub, type DD } from "../special/dd.js";
+
+/**
+ * Running sum of finite values in double-double that does not overflow: its value is (s[0] + s[1]) 2^shift. shift
+ * is 0 until an addition would overflow; from then on the values are added scaled by 2^-shift
+ */
+export interface WideSum {
+  s: DD;
+  shift: number;
+}
+
+export function wideSum(): WideSum {
+  return { s: [0, 0], shift: 0 };
+}
+
+/**
+ * Power of 2 by which the sums of n finite values are scaled once they overflow: the scaled sum stays below 2^992,
+ * so that it can also be divided in double-double (whose splitting overflows above about 2^996). Values below
+ * 2^(shift - 1022) lose bits when scaled, which cannot matter next to a sum beyond the double range
+ */
+function overflowShift(n: number): number {
+  return 32 + Math.ceil(Math.log2(Math.max(n, 1)));
+}
+
+/** Adds the finite value v to acc; n is the number of values the sum will have in all */
+export function wideSumAdd(acc: WideSum, v: number, n: number): void {
+  if (acc.shift === 0) {
+    const t = ddAdd(acc.s, [v, 0]);
+    if (Number.isFinite(t[0]) && Number.isFinite(t[1])) {
+      acc.s = t;
+      return;
+    }
+    acc.shift = overflowShift(n);
+    const f = 2 ** -acc.shift;
+    acc.s = [acc.s[0] * f, acc.s[1] * f];
+  }
+  acc.s = ddAdd(acc.s, [v * 2 ** -acc.shift, 0]);
+}
+
+/** The value of the sum rounded to double (±Infinity beyond the range) */
+export function wideSumValue(acc: WideSum): number {
+  return ldexp(acc.s[0] + acc.s[1], acc.shift);
+}
+
+/** v 2^k for an integer k, in two steps so that 2^k itself does not overflow or underflow */
+export function ldexp(v: number, k: number): number {
+  const a = Math.trunc(k / 2);
+  return v * 2 ** a * 2 ** (k - a);
+}
+
+/** Sum of values that are not all finite, as in double arithmetic (NaN propagates, Inf and -Inf give NaN) */
+function nonFiniteSum(x: readonly number[]): number {
+  let s = 0;
+  for (const v of x) if (!Number.isFinite(v)) s += v;
+  return s;
+}
 
 /** Mean as double-double. x contains no NaN and has length >= 1 */
 export function meanDD(x: readonly number[]): DD {
   const n = x.length;
-  // With Inf present the double-double sum becomes NaN, so add in double precision instead (result is ±Inf or NaN)
-  if (!x.every(Number.isFinite)) return [x.reduce((a, b) => a + b, 0) / n, 0];
-  let s: DD = [0, 0];
-  for (const v of x) s = ddAdd(s, [v, 0]);
+  // With Inf present the double-double sum becomes NaN; the mean is the (infinite or NaN) sum divided by n
+  if (!x.every(Number.isFinite)) return [nonFiniteSum(x) / n, 0];
+  const acc = wideSum();
+  for (const v of x) wideSumAdd(acc, v, n);
+  if (acc.shift !== 0) {
+    // The sum overflows a double: the mean of the values scaled by a power of 2, scaled back
+    const k = overflowShift(n);
+    const f = 2 ** -k;
+    const m = meanDD(x.map((v) => v * f));
+    return [ldexp(m[0], k), ldexp(m[1], k)];
+  }
+  const s = acc.s;
   const m = ddDivNum(s, n);
   if (!Number.isFinite(m[0])) return [s[0] / n, 0];
   let t: DD = [0, 0];
@@ -62,11 +131,15 @@ function scaleExponent(d: readonly DD[]): number {
   return m === 0 || !Number.isFinite(m) ? 0 : Math.max(-1022, Math.floor(Math.log2(m)));
 }
 
-/** Sum (accumulated in double-double, then rounded) */
+/**
+ * Sum (accumulated in double-double without overflow, then rounded; ±Infinity beyond the double range). With
+ * infinite or NaN values, as in double arithmetic
+ */
 export function sum(x: readonly number[]): number {
-  let s: DD = [0, 0];
-  for (const v of x) s = ddAdd(s, [v, 0]);
-  return s[0];
+  if (!x.every(Number.isFinite)) return nonFiniteSum(x);
+  const acc = wideSum();
+  for (const v of x) wideSumAdd(acc, v, x.length);
+  return wideSumValue(acc);
 }
 
 /**

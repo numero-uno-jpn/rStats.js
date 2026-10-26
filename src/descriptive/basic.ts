@@ -3,12 +3,23 @@
 //
 // Written for rStats.js (no ported code). R accumulates sums and products in long double (64-bit mantissa) and
 // rounds once at the end; here they are accumulated in double-double (106 bits) and rounded once, which gives the
-// correctly rounded result in the same cases and more. Products keep a separate power-of-two exponent, so that
-// intermediate values beyond the double range do not overflow (as long double's wider exponent avoids in R).
+// correctly rounded result in the same cases and more. Intermediate values beyond the double range do not overflow
+// (as long double's wider exponent avoids in R): sums continue on values scaled by a power of 2 once they would
+// overflow (src/internal/summary.ts), and products keep a separate power-of-two exponent, with factors far from 1
+// scaled before they are multiplied.
 // As everywhere in rStats.js, NaN stands for R's NA: with `naRm` it is dropped, otherwise it propagates.
 
-import { mean as meanOf, meanDD, variance as varianceOf } from "../internal/summary.js";
-import { ddAdd, ddMul, type DD } from "../special/dd.js";
+import {
+  ldexp,
+  mean as meanOf,
+  meanDD,
+  sum as sumOf,
+  variance as varianceOf,
+  wideSum,
+  wideSumAdd,
+  wideSumValue,
+} from "../internal/summary.js";
+import { ddMul, type DD } from "../special/dd.js";
 import type { Sample } from "../htest/types.js";
 
 /**
@@ -26,14 +37,6 @@ export function values(x: Sample, naRm: boolean | undefined): number[] | undefin
   const xs = Array.from(x);
   if (naRm) return xs.filter((v) => !Number.isNaN(v));
   return xs.some(Number.isNaN) ? undefined : xs;
-}
-
-/** Sum of finite values in double-double; with infinities the plain sum (Inf, -Inf or NaN) */
-function sumOf(xs: readonly number[]): number {
-  if (!xs.every(Number.isFinite)) return xs.reduce((a, b) => a + b, 0);
-  let s: DD = [0, 0];
-  for (const v of xs) s = ddAdd(s, [v, 0]);
-  return s[0] + s[1];
 }
 
 /**
@@ -64,20 +67,48 @@ export function sum(x: Sample, options: NaRmOptions = {}): number {
 export function prod(x: Sample, options: NaRmOptions = {}): number {
   const xs = values(x, options.naRm);
   if (xs === undefined) return NaN;
-  if (!xs.every(Number.isFinite) || xs.includes(0)) return xs.reduce((a, b) => a * b, 1);
-  // mantissa in double-double, exponent apart: value = (h + l) 2^e
-  let p: DD = [1, 0];
-  let e = 0;
-  for (const v of xs) {
-    p = ddMul(p, [v, 0]);
-    const k = Math.floor(Math.log2(Math.abs(p[0])));
-    if (k > 500 || k < -500) {
-      const f = 2 ** -k;
-      p = [p[0] * f, p[1] * f];
-      e += k;
-    }
+  const acc = wideProd();
+  for (let i = 0; i < xs.length; i++) {
+    const v = xs[i]!;
+    // A zero or infinite factor fixes the magnitude: the sign of the product so far times the remaining factors
+    if (!Number.isFinite(v) || v === 0) return xs.slice(i).reduce((a, b) => a * b, prodSign(acc));
+    wideProdMul(acc, v);
   }
-  return scaled(p, e);
+  return scaled(acc.p, acc.e);
+}
+
+/** Product of finite non-zero factors: mantissa in double-double, exponent apart (value = (h + l) 2^e) */
+interface WideProd {
+  p: DD;
+  e: number;
+}
+
+function wideProd(): WideProd {
+  return { p: [1, 0], e: 0 };
+}
+
+/** Multiplies acc by the finite non-zero v */
+function wideProdMul(acc: WideProd, v: number): void {
+  // A factor far from 1 is scaled near 1 first (exactly), so that the product and its splitting cannot overflow
+  // and its low word cannot underflow
+  let k = Math.floor(Math.log2(Math.abs(v)));
+  if (k > 500 || k < -500) {
+    v = ldexp(v, -k);
+    acc.e += k;
+  }
+  let p = ddMul(acc.p, [v, 0]);
+  k = Math.floor(Math.log2(Math.abs(p[0])));
+  if (k > 500 || k < -500) {
+    const f = 2 ** -k;
+    p = [p[0] * f, p[1] * f];
+    acc.e += k;
+  }
+  acc.p = p;
+}
+
+/** ±1, the sign of the product */
+function prodSign(acc: WideProd): number {
+  return acc.p[0] < 0 ? -1 : 1;
 }
 
 /**
@@ -232,19 +263,20 @@ export function range(x: Sample, options: NaRmOptions = {}): [number, number] {
  * @category Descriptive statistics
  */
 export function cumsum(x: Sample): number[] {
+  const xs = Array.from(x);
   const out: number[] = [];
-  let s: DD = [0, 0];
-  let plain = 0;
-  let exact = true;
-  for (const v of Array.from(x)) {
-    plain += v;
-    if (exact && Number.isFinite(v)) {
-      s = ddAdd(s, [v, 0]);
-      out.push(s[0] + s[1]);
-    } else {
-      exact = false;
-      out.push(Number.isNaN(v) || Number.isNaN(plain) ? NaN : plain);
+  const acc = wideSum();
+  // From the first value that is not finite on, the sums are ±Inf or NaN whatever the finite sum before it
+  let plain: number | undefined;
+  for (const v of xs) {
+    if (plain === undefined && !Number.isFinite(v)) plain = 0;
+    if (plain !== undefined) {
+      plain += v;
+      out.push(plain);
+      continue;
     }
+    wideSumAdd(acc, v, xs.length);
+    out.push(wideSumValue(acc));
   }
   return out;
 }
@@ -263,23 +295,18 @@ export function cumsum(x: Sample): number[] {
 export function cumprod(x: Sample): number[] {
   const out: number[] = [];
   // exact while the factors are finite and non-zero: double-double mantissa times 2^e
-  let p: DD = [1, 0];
-  let e = 0;
+  const acc = wideProd();
+  // From the first zero or non-finite factor on, the products are ±0, ±Inf or NaN: the sign so far times the factors
   let plain: number | undefined;
   for (const v of Array.from(x)) {
-    if (plain === undefined && (!Number.isFinite(v) || v === 0)) plain = scaled(p, e);
+    if (plain === undefined && (!Number.isFinite(v) || v === 0)) plain = prodSign(acc);
     if (plain !== undefined) {
       plain *= v;
       out.push(plain);
       continue;
     }
-    p = ddMul(p, [v, 0]);
-    const k = Math.floor(Math.log2(Math.abs(p[0])));
-    if (k > 500 || k < -500) {
-      p = [p[0] * 2 ** -k, p[1] * 2 ** -k];
-      e += k;
-    }
-    out.push(scaled(p, e));
+    wideProdMul(acc, v);
+    out.push(scaled(acc.p, acc.e));
   }
   return out;
 }
