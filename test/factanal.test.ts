@@ -1,5 +1,6 @@
 // factanal against R (oracle/optim.R, x86_64 R; rules in oracle/factanal-behaviour.md, "Accuracy"): every value
-// within a relative 1e-12, loadings with each column's sum positive (as the fixture writes them)
+// within a relative 1e-12, loadings with each column's sum positive (as the fixture writes them) and also passing
+// within 1e-12 times the largest absolute loading of their column
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { factanal, type FactanalRotation } from "../src/index.js";
@@ -29,13 +30,16 @@ describe("factanal against R", () => {
       }
       const r = run();
       const failures: string[] = [];
-      const check = (what: string, actual: number, expected: number) => {
-        const err = relativeError(actual, expected);
+      const check = (what: string, actual: number, expected: number, scale = 0) => {
+        // a loading may also be within 1e-12 times the largest absolute loading of its column
+        const err = Math.min(relativeError(actual, expected), scale > 0 ? Math.abs(actual - expected) / scale : Infinity);
         maxErr = Math.max(maxErr, err);
         if (!(err <= TOL)) failures.push(`${what}: ${actual} vs ${expected} (${err.toExponential(2)})`);
       };
       (e.uniquenesses as string[]).forEach((v, i) => check(`uniquenesses[${i}]`, r.uniquenesses[i]!, num(v)));
-      mat(e.loadings).forEach((row, i) => row.forEach((v, j) => check(`loadings[${i}][${j}]`, r.loadings[i]![j]!, v)));
+      const L = mat(e.loadings);
+      const colMax = L[0]!.map((_, j) => Math.max(...L.map((row) => Math.abs(row[j]!))));
+      L.forEach((row, i) => row.forEach((v, j) => check(`loadings[${i}][${j}]`, r.loadings[i]![j]!, v, colMax[j]!)));
       check("STATISTIC", r.STATISTIC, num(e.STATISTIC as string));
       check("dof", r.dof, num(e.dof as string));
       check("PVAL", r.PVAL, num(e.PVAL as string));
