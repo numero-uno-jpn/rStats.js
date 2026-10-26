@@ -450,7 +450,7 @@ function cgmin(s: Scaled, start: readonly number[], type: number, abstol: number
         if (count < n) {
           let newstep = 2 * (f - Fmin - gradproj * steplength);
           if (newstep > 0) {
-            newstep = -((gradproj * (steplength * steplength)) / newstep);
+            newstep = -((gradproj * steplength * steplength) / newstep);
             for (let i = 0; i < n; i++) b[i] = X[i]! + newstep * t[i]!;
             Fmin = f;
             f = s.f(b);
