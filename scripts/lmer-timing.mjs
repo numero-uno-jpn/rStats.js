@@ -10,6 +10,8 @@
 // with its gradient in a fit, the time to build the structure, the first evaluation (which also forms the
 // cross-products and the pattern of the factor, once per structure), the median of 5 further evaluations at other
 // values of θ, one with the gradient, and one dense evaluation (its first, which also forms its own cross-products).
+// Then the time of lmerSummary (src/models/lmerTest.ts) on a fresh fit: the analytic Hessian of the deviance in (θ, σ),
+// the Jacobians of the covariance of β̂ and the Satterthwaite degrees of freedom (the median of 3).
 // Stop other heavy work while measuring.
 
 import { build } from "esbuild";
@@ -26,13 +28,14 @@ writeFileSync(
   [
     `export { mixedModelStructure } from ${JSON.stringify(path.join(root, "src/models/mixedStructure.ts"))};`,
     `export { lmer, lmerWithCriterion } from ${JSON.stringify(path.join(root, "src/models/lmer.ts"))};`,
+    `export { lmerSummary } from ${JSON.stringify(path.join(root, "src/models/lmerTest.ts"))};`,
     `export { profiledDeviance } from ${JSON.stringify(path.join(root, "src/models/mixedDeviance.ts"))};`,
     `export { denseProfiledDeviance } from ${JSON.stringify(path.join(root, "test/helpers/mixedDense.ts"))};`,
   ].join("\n"),
 );
 const outfile = path.join(dir, "bundle.mjs");
 await build({ entryPoints: [entry], outfile, bundle: true, format: "esm", platform: "node", target: "es2022", logLevel: "error" });
-const { lmer, lmerWithCriterion, mixedModelStructure, profiledDeviance, denseProfiledDeviance } = await import(pathToFileURL(outfile).href);
+const { lmer, lmerSummary, lmerWithCriterion, mixedModelStructure, profiledDeviance, denseProfiledDeviance } = await import(pathToFileURL(outfile).href);
 rmSync(dir, { recursive: true, force: true });
 
 /** A seeded generator of uniform and normal numbers (mulberry32 and Box-Muller) */
@@ -97,6 +100,11 @@ const rows = [];
 for (const m of [crossed(200, 100, 1), crossed(500, 200, 2), slopes(1000, 10, 3), slopes(5000, 10, 4)]) {
   const fits = [];
   for (let k = 0; k < FITS; k++) fits.push(time(() => lmer(m.formula, m.data)).ms);
+  const summaries = [];
+  for (let k = 0; k < FITS; k++) {
+    const fit = lmer(m.formula, m.data);
+    summaries.push(time(() => lmerSummary(fit)).ms);
+  }
   let evaluations = 0;
   lmerWithCriterion(m.formula, m.data, {}, (s, theta, reml) => {
     evaluations++;
@@ -126,6 +134,7 @@ for (const m of [crossed(200, 100, 1), crossed(500, 200, 2), slopes(1000, 10, 3)
     seconds(median(later)),
     seconds(gradient.ms),
     dense === undefined ? "–" : `${seconds(dense.ms)} (difference ${dense.relative.toExponential(1)})`,
+    seconds(median(summaries)),
   ]);
 }
 const header = [
@@ -139,6 +148,7 @@ const header = [
   "evaluation (median)",
   "with gradient",
   "dense reference (first call)",
+  "lmerSummary (Satterthwaite)",
 ];
 const line = (c) => `| ${c.join(" | ")} |`;
 console.log(`Node ${process.version} (${process.arch})`);
