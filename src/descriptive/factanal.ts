@@ -79,7 +79,7 @@ function loadingsAt(S: readonly (readonly number[])[], psi: readonly number[], q
 }
 
 /** Columns sorted by decreasing sum of squares, each made to have a positive sum; `rot` (if any) permuted and signed alike */
-function sortLoadings(L: number[][], rot?: number[][]): { L: number[][]; rot?: number[][] } {
+function orderAndSignColumns(L: number[][], rot?: number[][]): { L: number[][]; rot?: number[][] } {
   const ssq = colSumsOf(L, (v) => v * v);
   const order = ssq.map((_, j) => j).sort((a, b) => ssq[b]! - ssq[a]! || a - b);
   let out = L.map((r) => order.map((j) => r[j]!));
@@ -193,12 +193,12 @@ export function factanal(x: readonly (readonly number[])[] | null, factors: numb
   });
   if (fit.convergence !== 0) throw new Error("unable to optimize from this starting value");
   const psi = fit.par;
-  let L = sortLoadings(loadingsAt(S, psi, q)).L;
+  let L = orderAndSignColumns(loadingsAt(S, psi, q)).L;
   let rotmat: number[][] | undefined;
   const rotation = options.rotation ?? "varimax";
   if (rotation !== "none" && q >= 2) {
     const r = rotation === "varimax" ? varimax(L) : promax(L);
-    const sorted = sortLoadings(r.loadings, r.rotmat);
+    const sorted = orderAndSignColumns(r.loadings, r.rotmat);
     L = sorted.L;
     rotmat = sorted.rot;
   } else if (rotation !== "varimax" && rotation !== "promax" && rotation !== "none") {
