@@ -1,26 +1,18 @@
 // coxph (Cox proportional hazards regression) against R's survival package (oracle/coxph.R,
 // oracle/coxph-behaviour.md): every value within a relative 1e-12 of R's, NaN matching NaN (R's NA included), the
 // same iteration counts and warnings; no known differences.
-//
-// NOT RESOLVED: the three monotone-likelihood cases (#22, #23, #24: coefficients near 20 to 100, variances up to 5e8)
-// differ from R by up to a relative 8e-8. Their information is a difference of nearly equal sums, so the last bit of
-// every operation reaches the result, and the fixture comes from arm64 R (FMA contraction in the compiled C code,
-// glibc's exp and log). They are compared strictly in a skipped test below until the fixture or the rule is settled.
 import { describe, expect, it } from "vitest";
 import { coxph, type CoxphOptions } from "../src/index.js";
 import { Comparison, loadAnovaFixture } from "./helpers/anova.js";
 import { num } from "./helpers/fixture.js";
 
 const fixture = loadAnovaFixture("coxph");
-/** Cases not matched within 1e-12 (see above) */
-const UNRESOLVED = new Set([22, 23, 24]);
 
-/** Compares the cases accepted by `select` with R's values */
-function compareCases(select: (index: number) => boolean): void {
+/** Compares every case of the fixture with R's values */
+function compareCases(): void {
   const cmp = new Comparison([]);
   let nErrors = 0;
   fixture.cases.forEach((c, index) => {
-    if (!select(index)) return;
     const a = c.args;
     const e = c.expected;
     const time = (a.time as string[]).map(num);
@@ -74,9 +66,7 @@ function compareCases(select: (index: number) => boolean): void {
 }
 
 describe("coxph", () => {
-  it(`matches R (${fixture.r_version})`, () => compareCases((index) => !UNRESOLVED.has(index)));
-
-  it.skip("matches R in the monotone-likelihood cases (not resolved)", () => compareCases((index) => UNRESOLVED.has(index)));
+  it(`matches R (${fixture.r_version})`, () => compareCases());
 
   it("drops rows with a missing value", () => {
     const time = [5, 3, 8, 1, 9, 4, 6, 2];

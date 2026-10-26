@@ -460,6 +460,7 @@ export function coxph(
       } else {
         halving = 0;
         best = ev.loglik;
+        loglik[1] = best;
         step = cholSolve(factor, ev.score);
         beta = next;
         next = next.map((b, i) => b + step[i]!);
@@ -471,8 +472,8 @@ export function coxph(
       iter = iterMax + 1;
       ranOut = true;
       if (iterMax > 1) {
-        // R recomputes at the last accepted point and inverts the information without factorising it: only the
-        // diagonal survives, the off-diagonal entries come out as -0
+        // R recomputes at the last accepted point and applies the inverse step without factorising: that step reads
+        // the triangle the accumulation leaves at zero, so only the diagonal survives (off-diagonal entries -0)
         ev = evaluate(data, beta, efron);
         loglik[1] = ev.loglik;
         inverse = ev.info.map((row, i) => row.map((_, j) => (i === j ? (row[i]! > 0 ? 1 / row[i]! : 0) : -0)));
@@ -515,7 +516,7 @@ export function coxph(
       const flagged: number[] = [];
       for (let j = 0; j < p; j++) {
         const f = infinity[j]!;
-        if (!Number.isFinite(u[j]!) || (f > eps && f > tolerInf * Math.abs(coefficients[j]!))) flagged.push(j + 1);
+        if (!Number.isFinite(u[j]!) || (f > eps && f > tolerInf * Math.abs(internal[j]!))) flagged.push(j + 1);
       }
       if (flagged.length > 0) {
         warnings.add(`Loglik converged before variable  ${flagged.join(",")} ; coefficient may be infinite. `);
