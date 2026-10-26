@@ -205,7 +205,16 @@ describe("glm behaviour not covered by the fixtures", () => {
     expect(glm(x, y, { family: "quasi", link: { power: 1 / 3 } }).link).toBe("mu^0.333");
     expect(glm(x, y, { family: "quasi", link: { power: -0.5 } }).link).toBe("log");
     expect(glm(x, y, { family: "quasi", link: { power: 1 } }).link).toBe("identity");
-    expect(() => glm(x, y, { family: "poisson", link: "logit" })).toThrow(/not available for poisson family/);
+    expect(() => glm(x, y, { family: "quasi", link: "cauchit" })).toThrow(/not available for quasi family/);
+  });
+
+  it("takes every named link in every family; the logit link rejects a mean outside [0, 1] as R's does", () => {
+    expect(() => glm(x, y, { family: "poisson", link: "logit" })).toThrow("Value 1.3 out of range (0, 1)");
+    expect(() => glm(x, [0.5, -0.25, 0.3, 0.2, 0.1, 0.4], { link: "logit" })).toThrow("Value -0.25 out of range (0, 1)");
+    expect(() => glm(x, [0.5, 1234567, 0.3, 0.2, 0.1, 0.4], { link: "logit" })).toThrow("Value 1.23457e+06 out of range (0, 1)");
+    expect(() => glm(x, [0.5, 1.0000001, 0.3, 0.2, 0.1, 0.4], { link: "logit" })).toThrow("Value 1 out of range (0, 1)");
+    expect(() => glm(x, y, { family: "Gamma", link: "foo" as "log" })).toThrow("\u2018foo\u2019 link not recognised");
+    expect(glm(x, y, { family: "Gamma", link: "sqrt" }).link).toBe("sqrt");
   });
 
   it("fits a model without columns from the offset", () => {

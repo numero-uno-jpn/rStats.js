@@ -41,7 +41,10 @@ export interface GlmOptions {
    * as R's `quasi(link = "log", variance = "mu^2")`.
    */
   family?: GlmFamilyName | GlmFamilySpec;
-  /** The link (overrides the family object's): a name such as `"logit"` or `{ power: lambda }` (quasi only). */
+  /**
+   * The link (overrides the family object's): a name such as `"logit"` or `{ power: lambda }` (quasi only). As in R,
+   * any named link may be used with any family except `quasi`, which takes only its own list.
+   */
   link?: GlmLink;
   /** Prior weights (non-negative). */
   weights?: Sample;

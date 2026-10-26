@@ -37,6 +37,8 @@ function lbetaAsymp(a: number, b: number): { value: number; sign: number } {
  */
 export function beta(a: number, b: number): number {
   if (Number.isNaN(a) || Number.isNaN(b)) return NaN;
+  // As R: NaN for a negative argument (-0 counts as 0)
+  if (a < 0 || b < 0) return NaN;
   // 0 if one is +Inf and the other positive (as in R)
   if ((a === Infinity && b > 0) || (b === Infinity && a > 0)) return 0;
   // For large parameters use the double-double log (xsf's sum and difference of lgamma is off by 1e-10 relative at a = 1e5)
@@ -52,8 +54,7 @@ export function beta(a: number, b: number): number {
     return Math.exp(e[0]) * (1 + e[1]);
   }
   let sign = 1;
-  if (a <= 0 && a === Math.floor(a)) return betaNegint(a, b);
-  if (b <= 0 && b === Math.floor(b)) return betaNegint(b, a);
+  if (a === 0 || b === 0) return Infinity;
   if (Math.abs(a) < Math.abs(b)) [a, b] = [b, a];
   if (Math.abs(a) > ASYMP_FACTOR * Math.abs(b) && a > ASYMP_FACTOR) {
     /* Avoid loss of precision in lgam(a + b) - lgam(a) */
@@ -79,14 +80,6 @@ export function beta(a: number, b: number): number {
   return ga * y * gb;
 }
 
-function betaNegint(a: number, b: number): number {
-  if (b === Math.floor(b) && 1 - a - b > 0) {
-    const sgn = b % 2 === 0 ? 1 : -1;
-    return sgn * beta(1 - a - b, b);
-  }
-  return Infinity;
-}
-
 /**
  * Natural logarithm of the absolute value of the beta function, log|B(a, b)|.
  * Equivalent to R's `lbeta()`. Takes single numbers.
@@ -108,6 +101,8 @@ function betaNegint(a: number, b: number): number {
  */
 export function lbeta(a: number, b: number): number {
   if (Number.isNaN(a) || Number.isNaN(b)) return NaN;
+  // As R: NaN for a negative argument (-0 counts as 0)
+  if (a < 0 || b < 0) return NaN;
   if ((a === Infinity && b > 0) || (b === Infinity && a > 0)) return -Infinity;
   if (a > 0 && b > 0 && Number.isFinite(a) && Number.isFinite(b) && Math.max(a, b) > 15) {
     const lo = Math.min(a, b);
@@ -117,8 +112,7 @@ export function lbeta(a: number, b: number): number {
     const e = hi >= HUGE ? lbetaHuge(hi, lo) : lbetaDD(a, b);
     return e[0] + e[1];
   }
-  if (a <= 0 && a === Math.floor(a)) return lbetaNegint(a, b);
-  if (b <= 0 && b === Math.floor(b)) return lbetaNegint(b, a);
+  if (a === 0 || b === 0) return Infinity;
   if (Math.abs(a) < Math.abs(b)) [a, b] = [b, a];
   if (Math.abs(a) > ASYMP_FACTOR * Math.abs(b) && a > ASYMP_FACTOR) return lbetaAsymp(a, b).value;
   let y = a + b;
@@ -131,11 +125,6 @@ export function lbeta(a: number, b: number): number {
   if (!Number.isFinite(y)) return Infinity;
   const v = Math.abs(Math.abs(ga * y) - 1) > Math.abs(Math.abs(gb * y) - 1) ? gb * y * ga : ga * y * gb;
   return Math.log(Math.abs(v));
-}
-
-function lbetaNegint(a: number, b: number): number {
-  if (b === Math.floor(b) && 1 - a - b > 0) return lbeta(1 - a - b, b);
-  return Infinity;
 }
 
 const LS2PI_DD: DD = [0.91893853320467278, -3.8782941580672414e-17];

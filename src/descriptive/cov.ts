@@ -98,6 +98,8 @@ function compute(x: Input, y: Input | undefined, options: CovOptions, correlatio
         v = rank(v);
       }
     } else if (u.some(Number.isNaN) || v.some(Number.isNaN)) return NaN;
+    // fewer than 2 observations (for "pairwise.complete.obs", in this pair): NaN, as in R, for every method
+    if (u.length < 2) return NaN;
     if (method === "kendall") {
       if (correlation) return kendall(u, v).tau;
       return 2 * kendall(u, v).s;
@@ -106,8 +108,10 @@ function compute(x: Input, y: Input | undefined, options: CovOptions, correlatio
     return covariance(u, v);
   };
   const out = px.map((a) => py.map((b) => entry(a, b)));
-  // as in R, the correlation matrix of x alone has 1 on the diagonal, whatever the column holds
-  if (correlation && y === undefined && use !== "pairwise.complete.obs") out.forEach((r, i) => (r[i] = 1));
+  // as in R, the correlation matrix of x alone has 1 on the diagonal, whatever the column holds, unless fewer than 2
+  // observations are used (then it is all NaN)
+  const used = keepRows === undefined ? n : keepRows.filter(Boolean).length;
+  if (correlation && y === undefined && use !== "pairwise.complete.obs" && used >= 2) out.forEach((r, i) => (r[i] = 1));
   return (y === undefined ? false : !isMatrix(x) && !isMatrix(y)) ? out[0]![0]! : out;
 }
 

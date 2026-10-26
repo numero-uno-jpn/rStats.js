@@ -191,6 +191,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | パラメータが無限大の非心 `qbeta` (たとえば shape2 = Inf) | NaN 上の探索から 0、0.5、1 | NaN |
 | ncp = ±Inf の `qt` | p によって NaN と ±Inf が混在 | 端点以外は NaN |
 | `qchisq(p, 0, ncp = 0)` (質量がすべて 0 にある) | NaN または Inf | 0 |
+| 0 < q / s < 1 の `pgamma(q, Inf, scale = s)`、つまり 0 < q < 2 の `pchisq(q, Inf)` (質量がすべて +Inf にある) | NaN | 極限値: 下側 0、上側 1 (ほかの有限の q で R が返す値と同じ) |
 | `df(0, df1, Inf, ncp, log = TRUE)` | 線形の値の対数にならない (ncp = 0 で −1.386。線形の値は 1) | 線形の値の対数 |
 | 答えが丸めで 0 になる、df2 = Inf の `qf` | 2e-130 のような意味のない値。log p = -1e-300 で Inf | 分布関数で確認した値 |
 
