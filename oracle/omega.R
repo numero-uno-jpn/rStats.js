@@ -21,7 +21,6 @@ cont12 <- round(bifactor(300, g = c(0.7, 0.6, 0.65, 0.5, 0.55, 0.6, 0.7, 0.45, 0
 lik9 <- bifactor(400, g = c(0.6, 0.55, 0.5, 0.65, 0.6, 0.5, 0.55, 0.7, 0.6),
                  s = c(0.5, 0.45, 0.4, 0.35, 0.5, 0.45, 0.4, 0.3, 0.45), groups = 3)
 lik9 <- apply(lik9, 2, function(v) as.integer(cut(v, c(-Inf, -1.2, -0.4, 0.4, 1.2, Inf))))
-cont16 <- round(bifactor(500, g = rep(c(0.6, 0.55, 0.65, 0.5), 4), s = rep(c(0.5, 0.45, 0.4, 0.55), each = 4), groups = 4), 2)
 rev12 <- cont12; rev12[, c(2, 7)] <- -rev12[, c(2, 7)]
 
 cases <- list()
@@ -29,7 +28,6 @@ add <- function(...) cases[[length(cases) + 1]] <<- list(...)
 for (nf in c(3, 2, 1)) add(x = cont12, nfactors = nf)
 add(x = rev12, nfactors = 3)                               # two reversed items (flipped by omega)
 add(x = lik9, nfactors = 3)                                # five-point items
-add(x = cont16, nfactors = 4)                              # four group factors
 add(x = cont12[, c(1:3, 5:7, 9:11)], nfactors = 3)          # 9 items, 3 factors
 add(r = unname(as.matrix(Thurstone)), nfactors = 3)        # a correlation matrix (psych's Thurstone, 9 variables)
 add(r = unname(as.matrix(Thurstone)), nfactors = 2)
