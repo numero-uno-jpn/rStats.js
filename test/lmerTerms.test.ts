@@ -77,4 +77,9 @@ describe("mixedModelStructure (lmerTerms)", () => {
     console.log(`lmerTerms: ${fixture.cases.length} cases (${errors} errors verified), ${cmp.cells} numbers compared exactly`);
     expect(cmp.failures, cmp.failures.slice(0, 20).join("\n")).toEqual([]);
   });
+
+  it("reports the model frame's errors before the missing random-effects terms (check 0)", () => {
+    const data = { y: [1, 2, 3, 4], x: [1, 3, 2, 5] };
+    expect(() => mixedModelStructure("y ~ x + Q", data)).toThrow(/^object 'Q' not found$/);
+  });
 });

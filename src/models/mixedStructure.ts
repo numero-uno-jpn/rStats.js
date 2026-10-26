@@ -162,7 +162,6 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
   const parsed = parseFormula(formula, false, true);
   if (parsed.response === undefined) throw new TypeError("the formula has no response");
   const { fixed, bars } = splitBarTerms(parsed.rhs);
-  if (bars.length === 0) throw new Error("No random effects terms specified in formula");
   if (typeof data !== "object" || data === null) throw new TypeError("data must be an object of columns");
 
   // the fixed-effects part (its terms collect the variables of the whole formula, so that every model matrix below
@@ -177,6 +176,8 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
   const { frame } = fixedDesign;
   const n = frame.rows.length;
   if (n === 0) throw new RangeError("0 (non-NA) cases");
+  // (the model frame's errors, above, come before this check)
+  if (bars.length === 0) throw new Error("No random effects terms specified in formula");
   const variables = fixedDesign.terms.variables;
 
   // (lhs || group) split into one term per term of lhs, then each term expanded by its grouping factors
