@@ -265,7 +265,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `aov` では 1 つの `Error()`、`lmer` では変量効果の項 `(lhs | g)` と `(lhs || g)` に対応します (lme4 2.0 の
   共分散の構造 `diag()`・`cs()`・`ar1()` には対応しません)。関数呼び出し (`log(x)`、`I(x^2)`、`poly(x, 2)`、
   `offset()`)、バッククォートの名前、変換した応答には対応しません。先に列を計算してください。
-  対比は `contr.treatment` (既定)、`contr.sum`、`contr.helmert` です。解析できない formula は、
+  対比は `contr.treatment` (既定)、`contr.sum`、`contr.helmert` です (`lmer` では `contr.poly` も)。解析できない formula は、
   R の構文エラーの代わりに "invalid formula: ..." を投げます。
 - **`dunnTest`** は値を数として順位づけます。dunn.test 1.4.2 は、群を文字列のベクトルで渡すと値を文字列として
   順位づけ (10.06 が 8.88 より前)、因子で渡すと数として順位づけます。`dunnTest` は後者を再現します。
@@ -349,6 +349,17 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   よりよい当てはめです)。
 - **計算は lme4 と同じく疎行列で行いますが、JavaScript なので、** 当てはめの時間は lme4 のおよそ
   1.4〜3 倍です ([performance.md](performance.md) を参照)。
+
+- **lmerTest の検定** (`lmerSummary`、`lmerContest`、`lmerAnova`) は、厳密な最適点で、逸脱度と固定効果の共分散の
+  厳密な (解析的な) 導関数を使います。lmerTest は lme4 の近似の最適点で数値微分します。そのため Satterthwaite
+  の自由度は lmerTest と有効数字 4〜8 桁目で違い (128 ビットで計算した参照値とは 1e-13 程度で一致します)、
+  p 値もそれに応じて違います。ヘッセ行列の警告 (`Model failed to converge with ...`、`Model may not have
+  converged with ...`) は厳密なヘッセ行列から判定し、当てはめのときではなく、各結果の `warnings` に返します。
+  方法は Satterthwaite だけです (Kenward-Roger と、`lmerAnova` の `ddf = "lme4"` はありません)。`ranova`、
+  `ls_means`、`difflsmeans`、`step` は実装していません。
+- **当てはめどうしの比較** (`lmerAnova([fit1, fit2])`): REML の当てはめは、最尤法の厳密な最適点へ当てはめ直します
+  (lme4 の当てはめ直しはその手前で止まります)。どの当てはめも、同じデータのオブジェクトに対する `lmer` の結果で
+  なければなりません。
 
 ### 線形代数
 
@@ -532,8 +543,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - `kappa` の `inv_z`、複素行列、`EISPACK = TRUE` / `LINPACK = TRUE`。
 - `glm` の formula (説明変数は行列で渡します。[ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください)。
 - `lmer`: lme4 2.0 の共分散の構造 (`diag()`・`cs()`・`ar1()` の項)、`weights`、`offset`、`subset`、`na.action`
-  (欠測値のある行は常に除きます)、`start`、`control`。lmerTest の p 値と当てはめの `anova`、`predict`、
-  `simulate`、`confint`、`profile`。`glmer` と `nlmer` ([ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください)。
+  (欠測値のある行は常に除きます)、`start`、`control`。`predict`、`simulate`、`confint`、`profile`。lmerTest の
+  Kenward-Roger 法、`ranova`、`ls_means`、`step`。`glmer` と `nlmer` ([ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください)。
 - numDeriv の複素数ステップ法 (`method = "complex"`。複素数の引数を受け取る関数が要る) と、`grad`・
   `jacobian` の `side` 引数。
 - deSolve の適応刻みの解法 (`lsoda`、`ode45` など)。`ode` は固定刻みの `euler`・`rk2`・`rk4` です。

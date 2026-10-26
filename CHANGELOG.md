@@ -7,6 +7,26 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Tests for linear mixed models** (area `@numero-uno-jpn/rstats/mixed`), as lmerTest 3.2.1 and lme4 give them:
+  - `lmerSummary(fit)`: the coefficient table with Satterthwaite's degrees of freedom, t values and p-values
+    (`summary()` of a `lmerTest::lmer` fit).
+  - `lmerContest(fit, L, { joint, rhs, confint, level })`: t-tests of contrasts with confidence intervals, and joint
+    F-tests (`lmerTest::contest`).
+  - `lmerAnova(fit, { type })`: the Type III (default), II and I ANOVA tables with Satterthwaite's F-tests
+    (`anova()` of a lmerTest fit), with lmerTest's hypothesis matrices (and their rounding) and its "Missing cells"
+    message.
+  - `lmerAnova([fit1, fit2, ...], { refit, names })`: likelihood-ratio comparison of fits (lme4's `anova()`), REML
+    fits refitted by maximum likelihood.
+  The degrees of freedom use exact (analytic) derivatives at the exact optimum and agree with references computed
+  in 128-bit arithmetic to about 1e-13; lmerTest differentiates numerically at lme4's approximate optimum, so its
+  values differ in about the 4th to 8th significant digit (see docs/differences-from-r.md). A summary takes about
+  0.05 s for a fit with 5000 groups. Kenward-Roger, `ranova`, `ls_means` and `step` are not included.
+- `lmer` accepts `contr.poly` among the `contrasts` of the fixed effects.
+
 ## 0.13.0 - 2026-10-27
 
 ### Breaking

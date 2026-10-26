@@ -124,7 +124,7 @@ aovEz(long, { id: "id", dv: "y", within: "W" }).anova.table[0];
 `@numero-uno-jpn/rstats/mixed` (`dist/mixed.js` on a CDN), not in the single-file bundle.
 
 ```ts
-import { lmer } from "@numero-uno-jpn/rstats/mixed";
+import { lmer, lmerSummary, lmerAnova } from "@numero-uno-jpn/rstats/mixed";
 
 const d = { subj: ["s1", "s2", "s3", "s4", "s5", "s6"].flatMap((s) => [s, s, s, s]),
             day: [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3],
@@ -138,10 +138,19 @@ fit.varCorr[0].corr[0][1];       // ≈ 0.6737
 fit.sigma;                       // ≈ 4.4385
 fit.ranef[0].values[1];          // ≈ [-13.118, -1.0038] (ranef for s2)
 fit.REMLcrit;                    // ≈ 158.563
+
+// lmerTest's tests, with Satterthwaite's degrees of freedom
+const s = lmerSummary(fit);      // R: summary(lmerTest::lmer(rt ~ day + (day | subj), d))
+s.df;                            // ≈ [5, 5]
+s.pValue;                        // ≈ [8.6215e-8, 0.00020903]
+lmerAnova(fit).F;                // ≈ [91.942] (Type III; R: anova(fit))
 ```
 
 The estimates are the exact optimum of the REML criterion; lme4's optimiser stops close to it, so the variance
 components agree with lme4 to about 5 to 9 significant digits and the fixed effects and log-likelihood to more.
+`lmerSummary`, `lmerContest` and `lmerAnova` give lmerTest's t- and F-tests with Satterthwaite's degrees of freedom
+(computed with exact derivatives at that optimum; lmerTest differentiates numerically at lme4's) and the Type I,
+II and III ANOVA tables; `lmerAnova([fit1, fit2])` compares fits by likelihood-ratio tests, as lme4's `anova()`.
 
 ### Effect sizes and power
 
@@ -184,7 +193,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | Analysis of variance | `aov` and `aovSummary` with a formula (several factors, interactions, covariates, `Error()` strata), `anova` (`anova.lm`, sequential and model comparison), `Anova` (car: types II and III), `aovEz` (afex: repeated-measures and mixed designs, Greenhouse-Geisser and Huynh-Feldt corrections, generalized and partial eta squared), `mauchlyTest` (`mauchly.test`) |
 | Effect sizes and power | `cohensD`, `hedgesG` (effectsize, with exact confidence limits), `etaSquared`, `omegaSquared`, `epsilonSquared` (partial, generalized, from `anova` and `Anova` tables); `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`); `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`) |
-| Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), from `@numero-uno-jpn/rstats/mixed` |
+| Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), from `@numero-uno-jpn/rstats/mixed` |
 | More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest) |
 | Multiple comparisons | `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest` (PMCMRplus), `dunnTest` (dunn.test), `glhtDunnett` (multcomp) |
 | Survival analysis | `survdiff` (log-rank), `survfit` (Kaplan-Meier with intervals and median), `coxph` (Cox regression: Efron and Breslow ties, case weights, strata, the Wald, likelihood-ratio and score tests) |

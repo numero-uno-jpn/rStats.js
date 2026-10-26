@@ -274,7 +274,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   parentheses, `0` and `1`, one `Error()` term in `aov`, and random-effects terms `(lhs | g)` and `(lhs || g)` in
   `lmer` (not the covariance structures `diag()`, `cs()`, `ar1()` of lme4 2.0). Function calls (`log(x)`, `I(x^2)`,
   `poly(x, 2)`, `offset()`), backquoted names and transformed responses are not supported: compute
-  the column first. Contrasts are `contr.treatment` (default), `contr.sum` and `contr.helmert`. A
+  the column first. Contrasts are `contr.treatment` (default), `contr.sum` and `contr.helmert` (and `contr.poly` in
+  `lmer`). A
   formula that cannot be parsed throws "invalid formula: ..." instead of R's parse error.
 - **`dunnTest`** ranks the values as numbers. dunn.test 1.4.2 given a character group vector ranks them as text
   (so 10.06 before 8.88); with a factor it ranks them as numbers, which is what `dunnTest` reproduces.
@@ -363,6 +364,17 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   equivalent factor, so it can reach a lower criterion than lme4 there (a better fit of the same model).
 - **The computation is sparse,** as lme4's, but in JavaScript: a fit takes about 1.4 to 3 times lme4's time (see
   [performance.md](performance.md)).
+
+- **lmerTest's tests** (`lmerSummary`, `lmerContest`, `lmerAnova`) use exact (analytic) derivatives of the deviance
+  and of the covariance of the fixed effects at the exact optimum; lmerTest differentiates numerically at lme4's
+  approximate optimum. The Satterthwaite degrees of freedom therefore differ from lmerTest's in about the 4th to
+  8th significant digit (agreeing to about 1e-13 with references computed in 128-bit arithmetic), and the p-values
+  correspondingly. The Hessian's warnings (`Model failed to converge with ...`, `Model may not have converged
+  with ...`) are decided from the exact Hessian and returned in each result's `warnings`, not emitted when the
+  model is fitted. Only Satterthwaite's method is available (not Kenward-Roger's, nor `ddf = "lme4"` in
+  `lmerAnova`); `ranova`, `ls_means`, `difflsmeans` and `step` are not implemented.
+- **Comparing fits** (`lmerAnova([fit1, fit2])`): the REML fits are refitted by maximum likelihood to the exact ML
+  optimum (lme4's refit stops near it); the fits must be results of `lmer` on the same data object.
 
 ### Linear algebra
 
@@ -563,8 +575,8 @@ By default rStats.js returns what R returns;
 - `kappa`'s `inv_z`, complex matrices, and `EISPACK = TRUE` / `LINPACK = TRUE`.
 - Formulas for `glm` (the predictors are a matrix; see [ROADMAP.md](../ROADMAP.md)).
 - `lmer`: the covariance structures of lme4 2.0 (`diag()`, `cs()`, `ar1()` terms), `weights`, `offset`, `subset`,
-  `na.action` (rows with a missing value are always dropped), `start` and `control`; lmerTest's p-values and
-  `anova` of fits, `predict`, `simulate`, `confint` and `profile`; `glmer` and `nlmer` (see
+  `na.action` (rows with a missing value are always dropped), `start` and `control`; `predict`, `simulate`,
+  `confint` and `profile`; lmerTest's Kenward-Roger method, `ranova`, `ls_means` and `step`; `glmer` and `nlmer` (see
   [ROADMAP.md](../ROADMAP.md)).
 - numDeriv's complex-step method (`method = "complex"`), which needs a function of a complex
   argument, and the `side` argument of `grad` and `jacobian`.

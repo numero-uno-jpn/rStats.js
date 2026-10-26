@@ -169,7 +169,7 @@ reference <- function(a) {
     hyp <- attr(suppressMessages(anova(fit, type = ty)), "hypotheses")
     rows <- lapply(hyp, function(L) f_row(S, L))
     keep <- !vapply(rows, is.null, NA)
-    c(list(type = ty, terms = I(names(hyp)[keep])), rows_out(rows[keep]))
+    c(list(type = ty, terms = I(as.character(names(hyp)[keep]))), rows_out(rows[keep]))
   })
   message(sprintf("%s REML=%s: Newton steps %s; Hessian eigenvalues %s", a$formula, isTRUE(a$REML),
                   paste(opt$steps, collapse = " "), paste(sprintf("%.3g", S$eig), collapse = " ")))
@@ -225,6 +225,7 @@ shard <- Sys.getenv("LMERTEST_SHARD", "")
 if (nzchar(shard)) {
   ik <- as.integer(strsplit(shard, "/")[[1]]); dir.create(cache_dir, showWarnings = FALSE)
   for (i in seq(ik[1], length(cases), by = ik[2])) {
+    if (file.exists(cache_file(i))) next
     e <- tryCatch(suppressWarnings(expected(cases[[i]])), error = function(err) list(error = conditionMessage(err)))
     r <- if (is.null(e$error)) reference(cases[[i]]) else NULL
     saveRDS(list(expected = e, reference = r), cache_file(i))

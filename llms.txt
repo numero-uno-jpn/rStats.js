@@ -53,10 +53,15 @@ a CDN without a bundler, see the README section "Using it in the browser".
 - Mixed models: lme4's `lmer(y ~ x + (x | subject), data = d, REML = FALSE)` →
   `lmer("y ~ x + (x | subject)", d, { REML: false })` from `@numero-uno-jpn/rstats/mixed`, with `(1 | a/b)`,
   `(1 | a:b)`, `(x || g)` and crossed terms. The result has the fields `fixef`, `coefTable` (`{ estimate, stdError,
-  tValue }`; no p-values yet), `vcov`, `sigma`, `varCorr` (one `{ group, columns, sd, corr }` per term, as
+  tValue }`), `vcov`, `sigma`, `varCorr` (one `{ group, columns, sd, corr }` per term, as
   `VarCorr`), `ranef` (one `{ group, levels, columns, values }` per grouping factor), `fitted`, `residuals`,
   `logLik`, `AIC`, `BIC`, `deviance`, `REMLcrit`, `theta` and `singular`. The estimates are the exact optimum, so
   the variance components differ from lme4's in the 5th to 9th significant digit.
+- lmerTest: `summary(fit)` of `lmerTest::lmer` → `lmerSummary(fit)` (`{ names, estimate, stdError, df, tValue,
+  pValue }`, Satterthwaite's df); `contest(fit, L)` → `lmerContest(fit, L, { joint, rhs, level })`;
+  `anova(fit, type = "II")` → `lmerAnova(fit, { type: "II" })` (`{ terms, sumSq, meanSq, numDF, denDF, F, pValue }`,
+  Type III by default); lme4's `anova(m1, m2)` → `lmerAnova([m1, m2], { names })` (likelihood-ratio tests; REML fits
+  are refitted by ML). Pass the object `lmer` returned (not a copy). Kenward-Roger is not available.
 - Indices are 0-based where R returns indices: `sampleInt(n)` returns `0..n-1` (R's
   `sample.int(n) - 1` from the same random stream), and the pivots of `qr` and `chol`.
 - Hypothesis tests do not emit R's warnings. `glm` returns R's warnings in its result

@@ -128,7 +128,7 @@ aovEz(long, { id: "id", dv: "y", within: "W" }).anova.table[0];
 `@numero-uno-jpn/rstats/mixed` (CDN では `dist/mixed.js`) にあり、1 ファイルにまとめたビルドには含めていません。
 
 ```ts
-import { lmer } from "@numero-uno-jpn/rstats/mixed";
+import { lmer, lmerSummary, lmerAnova } from "@numero-uno-jpn/rstats/mixed";
 
 const d = { subj: ["s1", "s2", "s3", "s4", "s5", "s6"].flatMap((s) => [s, s, s, s]),
             day: [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3],
@@ -142,10 +142,19 @@ fit.varCorr[0].corr[0][1];       // ≈ 0.6737
 fit.sigma;                       // ≈ 4.4385
 fit.ranef[0].values[1];          // ≈ [-13.118, -1.0038] (s2 の ranef)
 fit.REMLcrit;                    // ≈ 158.563
+
+// lmerTest の検定 (Satterthwaite の自由度)
+const s = lmerSummary(fit);      // R: summary(lmerTest::lmer(rt ~ day + (day | subj), d))
+s.df;                            // ≈ [5, 5]
+s.pValue;                        // ≈ [8.6215e-8, 0.00020903]
+lmerAnova(fit).F;                // ≈ [91.942] (Type III。R: anova(fit))
 ```
 
 推定値は REML 基準の厳密な最適点です。lme4 の最適化はその手前で止まるので、分散成分は lme4 と
 有効数字 5〜9 桁程度まで、固定効果と対数尤度はそれ以上の桁まで一致します。
+`lmerSummary`、`lmerContest`、`lmerAnova` は、lmerTest の Satterthwaite の自由度による t 検定と F 検定、
+Type I・II・III の分散分析表を返します (自由度はその最適点で厳密な導関数から求めます。lmerTest は lme4 の
+最適点で数値微分します)。`lmerAnova([fit1, fit2])` は、lme4 の `anova()` と同じく当てはめを尤度比検定で比べます。
 
 ### 効果量と検出力
 
@@ -187,7 +196,7 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | 分散分析 | formula で呼ぶ `aov` と `aovSummary` (多元、交互作用、共変量、`Error()` の層), `anova` (`anova.lm`。逐次の表とモデルの比較), `Anova` (car の Type II と III), `aovEz` (afex。反復測定と混合計画、Greenhouse-Geisser と Huynh-Feldt の補正、一般化 η² と偏 η²), `mauchlyTest` (`mauchly.test`) |
 | 効果量と検出力 | `cohensD`, `hedgesG` (effectsize。信頼区間は厳密な限界), `etaSquared`, `omegaSquared`, `epsilonSquared` (偏・一般化。`anova` と `Anova` の表から), `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`), `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
-| 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)。`@numero-uno-jpn/rstats/mixed` から import する |
+| 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)。`@numero-uno-jpn/rstats/mixed` から import する |
 | ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest) |
 | 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest` (PMCMRplus)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
 | 生存時間解析 | `survdiff` (log-rank)、`survfit` (Kaplan-Meier。信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイの扱い、ケースの重み、層、Wald・尤度比・スコア検定) |
