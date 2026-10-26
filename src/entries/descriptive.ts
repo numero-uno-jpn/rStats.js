@@ -18,4 +18,7 @@ export {
   tapply, split, aggregate,
   type TapplyResult, type SplitOptions, type AggregateValue, type GroupingLabels, type GroupingLevel,
 } from "../data/grouping.js";
-export { merge, subset, type MergeOptions, type SubsetOptions, type DataRow, type DataValue } from "../descriptive/dataFrames.js";
+export {
+  merge, subset, fromRows, toRows,
+  type MergeOptions, type SubsetOptions, type FromRowsOptions, type DataRow, type DataValue,
+} from "../descriptive/dataFrames.js";

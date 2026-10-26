@@ -167,6 +167,8 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | Linear algebra | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` with `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS), `schur`, `expm` |
 | Numerical methods | `integrate`, `optimize`, `optim`, `optimHess`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
 
+New to R's way of writing an analysis (data frames, formulas, factors)? [docs/guide-for-js-developers.md](docs/guide-for-js-developers.md) explains it from a JavaScript developer's point of view, with a worked example.
+
 Coming from jStat? [docs/migrating-from-jstat.md](docs/migrating-from-jstat.md) lists the replacement for every jStat function.
 
 An API reference can be generated with `npm run docs` (TypeDoc).

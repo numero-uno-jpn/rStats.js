@@ -1,4 +1,5 @@
-// Data frame operations: R's merge (merge.data.frame), subset (subset.data.frame), and rbind and cbind of data frames.
+// Data frame operations: R's merge (merge.data.frame), subset (subset.data.frame), and rbind and cbind of data frames;
+// and fromRows / toRows, the conversion to and from arrays of row objects (not R functions).
 //
 // Written for rStats.js (no ported code) from oracle/dataframes-behaviour.md. A data frame is an object of columns
 // (the library's DataFrame); `null`, and `NaN` in a numeric column, is a missing value. A Float64Array column stays a
@@ -360,4 +361,65 @@ export function cbindFrames(frames: readonly DataFrame[]): DataFrame {
     for (const [n, c] of Object.entries(f)) addColumn(out, n, c instanceof Float64Array ? Float64Array.from(c) : [...c]);
   }
   return out;
+}
+
+/** Options of {@link fromRows}. */
+export interface FromRowsOptions {
+  /**
+   * The columns to take, in this order. Default: every key that occurs in some row, in the order of first
+   * appearance.
+   */
+  columns?: readonly string[];
+}
+
+/**
+ * A data frame (an object of columns) from an array of row objects, the usual shape of JSON and of parsed CSV:
+ * `[{ age: 30, score: 5 }, { age: 41, score: 7 }]` becomes `{ age: [30, 41], score: [5, 7] }`. A key that a row
+ * lacks, and `undefined`, become `null` (a missing value). Values must be numbers, strings, booleans or `null`, and
+ * one column may not mix numbers, strings and booleans. Not an R function: R reads data as data frames directly.
+ *
+ * @example
+ * ```ts
+ * fromRows([{ id: "a", score: 5 }, { id: "b" }]);   // { id: ["a", "b"], score: [5, null] }
+ * ```
+ */
+export function fromRows(rows: readonly Readonly<Record<string, unknown>>[], options: FromRowsOptions = {}): DataFrame {
+  let names = options.columns;
+  if (names === undefined) {
+    const seen = new Set<string>();
+    for (const row of rows) for (const k of Object.keys(row)) seen.add(k);
+    names = [...seen];
+  }
+  const out: DataFrame = {};
+  for (const name of names) {
+    const kinds = new Set<string>();
+    const col = rows.map((row, i): DataValue => {
+      const v = Object.hasOwn(row, name) ? row[name] : undefined;
+      if (v === undefined || v === null) return null;
+      if (typeof v !== "number" && typeof v !== "string" && typeof v !== "boolean") {
+        throw new TypeError(`row ${i}, column '${name}': values must be numbers, strings, booleans or null`);
+      }
+      kinds.add(typeof v);
+      return v;
+    });
+    if (kinds.size > 1) throw new TypeError(`column '${name}' mixes ${[...kinds].join(" and ")} values`);
+    addColumn(out, name, col);
+  }
+  return out;
+}
+
+/**
+ * The rows of a data frame as an array of objects, the inverse of {@link fromRows}: `{ age: [30, 41], score: [5, 7]
+ * }` becomes `[{ age: 30, score: 5 }, { age: 41, score: 7 }]`. Missing values stay as they are (`null`, or `NaN` in a
+ * numeric column).
+ *
+ * @example
+ * ```ts
+ * toRows({ id: ["a", "b"], score: [5, null] });   // [{ id: "a", score: 5 }, { id: "b", score: null }]
+ * ```
+ */
+export function toRows(data: DataFrame): DataRow[] {
+  const names = Object.keys(data);
+  const n = rowCount(data);
+  return Array.from({ length: n }, (_, i) => Object.fromEntries(names.map((c) => [c, valueAt(data[c]!, i)])));
 }

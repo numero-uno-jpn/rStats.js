@@ -170,6 +170,8 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | 線形代数 | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS)、`schur`、`expm` |
 | 数値計算 | `integrate`, `optimize`, `optim`, `optimHess`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
 
+R の分析の書き方 (データフレーム、formula、因子) に慣れていない場合は、[docs/ja/guide-for-js-developers.md](docs/ja/guide-for-js-developers.md) が JavaScript の開発者の立場から例を使って説明しています。
+
 jStat から移るときは [docs/ja/migrating-from-jstat.md](docs/ja/migrating-from-jstat.md) に jStat の全関数の置き換えがあります。
 
 API リファレンスは `npm run docs` (TypeDoc) で作れます (英語)。
