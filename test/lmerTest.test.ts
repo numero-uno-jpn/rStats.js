@@ -1,6 +1,7 @@
 // lmerTest's Satterthwaite tests (src/models/lmerTest.ts, src/models/mixedDerivatives.ts; oracle/lmertest-behaviour.md
-// section 1) against the fixture lmerTest (oracle/lmertest.R): the summary's coefficient table, varpar, vcovVarpar and
-// the contests. The ANOVA tables of the fixture are tested elsewhere.
+// sections 1 and 2; src/models/lmerAnova.ts) against the fixture lmerTest (oracle/lmertest.R): the summary's
+// coefficient table, varpar, vcovVarpar, the contests and the Type III, II and I ANOVA tables (their terms exactly,
+// their numbers as the F rows of the contests; the hypothesis matrices are tested in test/lmerHypotheses.test.ts).
 //
 // Against the reference (the fixture's `reference`, at the exact optimum with exact derivatives; the comparison is on
 // as soon as a case has one), as in "Accuracy": df, t, F (and DenDF) and p-values relative 1e-9 (p-values below 1e-300
@@ -24,9 +25,6 @@
 // printed, not checked (lme4's optimum is 1e-9 to 1e-5 from the exact one). Names, messages and warnings are compared
 // exactly with lmerTest's.
 //
-// The cases with polynomial contrasts (contr.poly) cannot be fitted: the model matrix does not implement them, and the
-// test checks that lmer rejects them with "unknown contrast 'contr.poly'" (and lists them in its output).
-//
 // Independently of the fixture, the analytic derivatives are checked against Richardson-extrapolated central
 // differences of the analytic first derivatives (of d and of the covariance of β̂), within 1e-9 × the largest absolute
 // element, on the fixture's models and on larger seeded data (crossed, partially crossed with random slopes, nested,
@@ -47,6 +45,7 @@ import {
   type LmerSatterthwaite,
 } from "../src/models/lmerTest.js";
 import { Warnings } from "../src/models/glmFamily.js";
+import { anovaHypotheses, anovaRowsOf, lmerAnova } from "../src/models/lmerAnova.js";
 import { num } from "./helpers/fixture.js";
 import { dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
 
@@ -94,12 +93,6 @@ function contestOptionsOf(spec: ContestSpec): Parameters<typeof lmerContest>[2] 
   if (spec.level !== undefined) o.level = num(spec.level);
   return o;
 }
-/**
- * Whether a case asks for polynomial contrasts, which the model matrix does not implement yet (lmer rejects them with
- * "unknown contrast 'contr.poly'"; the test checks that error for these cases).
- */
-const usesPolynomialContrasts = (a: Record<string, unknown>): boolean =>
-  Object.values((a.contrasts ?? {}) as Record<string, string>).includes("contr.poly");
 const unit = (p: number, i: number): number[] => Array.from({ length: p }, (_, j) => (j === i ? 1 : 0));
 
 /** The rows of a contest as the fixture writes them, computed from given Satterthwaite quantities */
@@ -126,9 +119,13 @@ function contestRowsAt(s: LmerSatterthwaite, spec: ContestSpec, p: number): Reco
 /** The tolerance kind of each field of the tables */
 const SCALED = new Set(["estimate", "stdError", "lower", "upper"]);
 const EXACT = new Set(["numDF"]);
+/** Fields of the fixture's tables that are not numbers (the ANOVA terms are compared on their own; the hypothesis
+ * matrices are tested in test/lmerHypotheses.test.ts) */
+const NOT_NUMERIC = new Set(["names", "type", "terms", "hypotheses"]);
+const ANOVA_TYPES = ["III", "II", "I"] as const;
 
 describe("lmerTest: Satterthwaite's tests", () => {
-  it(`summary, varpar, vcovVarpar and contests against lmerTest (${fixture.r_version})`, () => {
+  it(`summary, varpar, vcovVarpar, contests and ANOVA tables against lmerTest (${fixture.r_version})`, () => {
     const failures: string[] = [];
     const worstExpected = new Map<string, number>();
     const worstAt = new Map<string, number>();
@@ -137,17 +134,11 @@ describe("lmerTest: Satterthwaite's tests", () => {
       map.set(field, Math.max(map.get(field) ?? 0, Number.isNaN(err) ? Infinity : err));
     };
     let withReference = 0;
-    const unsupported: string[] = [];
 
     fixture.cases.forEach((c, ci) => {
       const a = c.args;
       const where = `case ${ci + 1} ${String(a.formula)} REML=${String(a.REML)}${a.contrasts ? ` ${JSON.stringify(a.contrasts)}` : ""}`;
       const data = dataFrameOf(a.data, a.dataTypes);
-      if (usesPolynomialContrasts(a)) {
-        expect(() => lmer(a.formula as string, data, optionsOf(a)), where).toThrow("unknown contrast 'contr.poly'");
-        unsupported.push(where);
-        return;
-      }
       const fit = lmer(a.formula as string, data, optionsOf(a));
       const e = c.expected as Record<string, unknown>;
       const ref = c.reference;
@@ -156,15 +147,16 @@ describe("lmerTest: Satterthwaite's tests", () => {
       const s = lmerSatterthwaite(fit);
       const specs = (a.contests ?? []) as ContestSpec[];
       const contests = specs.map((spec) => lmerContest(fit, contrastOf(spec), contestOptionsOf(spec)) as unknown as Record<string, number[]>);
+      const anovas = ANOVA_TYPES.map((type) => lmerAnova(fit, { type }));
 
       // names, messages, warnings
       const es = e.summary as Rows;
       if (JSON.stringify(summary.names) !== JSON.stringify(es.names)) failures.push(`${where}: names ${JSON.stringify(summary.names)}`);
-      const ours = new Set([...fit.messages, ...summary.messages, ...contests.flatMap((r) => r.messages as unknown as string[])]);
-      // (the "Missing cells" message belongs to the ANOVA tables)
-      const theirs = (e.messages as Strings).filter((m) => !m.startsWith("Missing cells"));
+      const results = [summary, ...contests, ...anovas] as unknown as { messages: string[]; warnings: string[] }[];
+      const ours = new Set([...fit.messages, ...results.flatMap((r) => r.messages)]);
+      const theirs = e.messages as Strings;
       if (JSON.stringify([...ours]) !== JSON.stringify(theirs)) failures.push(`${where}: messages ${JSON.stringify([...ours])}, lmerTest ${JSON.stringify(theirs)}`);
-      const ourWarnings = [...new Set([...fit.warnings, ...summary.warnings, ...contests.flatMap((r) => r.warnings as unknown as string[])])];
+      const ourWarnings = [...new Set([...fit.warnings, ...results.flatMap((r) => r.warnings)])];
       if (JSON.stringify(withoutNumbers(ourWarnings)) !== JSON.stringify(withoutNumbers(e.warnings as Strings))) {
         failures.push(`${where}: warnings ${JSON.stringify(ourWarnings)}, lmerTest ${JSON.stringify(e.warnings)}`);
       }
@@ -178,6 +170,17 @@ describe("lmerTest: Satterthwaite's tests", () => {
           (ref?.contests as Rows[] | undefined)?.[k],
           (e.contests as Rows[])[k]!,
         ]),
+        ...ANOVA_TYPES.map((type, k): [string, Record<string, number[]>, Rows | undefined, Rows] => {
+          const theirsTable = (e.anova as Rows[]).find((t) => (t.type as unknown as string) === type)!;
+          const refTable = (ref?.anova as Rows[] | undefined)?.find((t) => (t.type as unknown as string) === type);
+          if (JSON.stringify(anovas[k]!.terms) !== JSON.stringify(theirsTable.terms)) {
+            failures.push(`${where} anova ${type}: terms ${JSON.stringify(anovas[k]!.terms)}, lmerTest ${JSON.stringify(theirsTable.terms)}`);
+          }
+          if (refTable !== undefined && JSON.stringify(anovas[k]!.terms) !== JSON.stringify(refTable.terms)) {
+            failures.push(`${where} anova ${type}: terms ${JSON.stringify(anovas[k]!.terms)}, reference ${JSON.stringify(refTable.terms)}`);
+          }
+          return [`anova ${type}`, anovas[k] as unknown as Record<string, number[]>, refTable, theirsTable];
+        }),
       ];
 
       // against lmerTest at lme4's optimum
@@ -196,6 +199,19 @@ describe("lmerTest: Satterthwaite's tests", () => {
           };
         })(),
         ...specs.map((spec) => contestRowsAt(at, spec, p)),
+        ...ANOVA_TYPES.map((type) => {
+          const { hypotheses, termLabels } = anovaHypotheses(fit, type);
+          const { rows } = anovaRowsOf(at, hypotheses, termLabels, new Warnings());
+          const column = (k: keyof (typeof rows)[number]): number[] => rows.map((r) => r[k]);
+          return {
+            sumSq: column("sumSq"),
+            meanSq: column("meanSq"),
+            numDF: column("numDF"),
+            denDF: column("denDF"),
+            F: column("F"),
+            pValue: column("pValue"),
+          };
+        }),
       ];
       const sigmaErr = relative(at.sigma, varparLme4[varparLme4.length - 1]!);
       note(worstAt, "sigma", sigmaErr);
@@ -213,7 +229,7 @@ describe("lmerTest: Satterthwaite's tests", () => {
       tables.forEach(([label, , , theirsTable], k) => {
         const mine = atTables[k]!;
         for (const [field, values] of Object.entries(theirsTable)) {
-          if (field === "names" || field === "lower" || field === "upper") continue; // (the intervals: with the fit below)
+          if (NOT_NUMERIC.has(field) || field === "lower" || field === "upper") continue; // (the intervals: with the fit below)
           const want = nums(values);
           const got = mine[field];
           if (got === undefined || got.length !== want.length) {
@@ -233,7 +249,7 @@ describe("lmerTest: Satterthwaite's tests", () => {
       if (ref !== undefined) withReference++;
       for (const [label, mine, refTable, theirsTable] of tables) {
         for (const [field, values] of Object.entries(theirsTable)) {
-          if (field === "names") continue;
+          if (NOT_NUMERIC.has(field)) continue;
           const want = nums(values);
           const got = mine[field];
           if (got === undefined || got.length !== want.length) {
@@ -246,7 +262,7 @@ describe("lmerTest: Satterthwaite's tests", () => {
             if (refValues === undefined) return;
             const r = refValues[i]!;
             const scale = SCALED.has(field) ? maxAbs(refValues) : Math.abs(r);
-            const err = EXACT.has(field) ? (v === r ? 0 : Infinity) : field === "pValue" && r < 1e-300 ? Math.abs(v - r) : v === r ? 0 : Math.abs(v - r) / scale;
+            const err = EXACT.has(field) ? (Object.is(v, r) ? 0 : Infinity) : field === "pValue" && r < 1e-300 ? Math.abs(v - r) : v === r ? 0 : Math.abs(v - r) / scale;
             note(worstRef, field, err);
             if (!(err <= TOL_REF)) failures.push(`${where} ${label} ${field}[${i}]: reference ${r}, got ${v}`);
             const bound = 2 * Math.abs(r - want[i]!) + TOL_EXPECTED * Math.abs(want[i]!);
@@ -281,7 +297,6 @@ describe("lmerTest: Satterthwaite's tests", () => {
 
     const show = (m: Map<string, number>): string => [...m].map(([k, v]) => `${k} ${v.toExponential(1)}`).join(", ");
     console.log(`lmerTest: ${fixture.cases.length} cases, ${withReference} with references`);
-    if (unsupported.length > 0) console.log(`  not fitted (contr.poly is not implemented in the model matrix): ${unsupported.join("; ")}`);
     console.log(`  at lme4's optimum, largest relative difference from lmerTest: ${show(worstAt)}`);
     console.log(`  at the exact optimum, largest relative difference from lmerTest: ${show(worstExpected)}`);
     if (withReference > 0) console.log(`  largest error against the reference: ${show(worstRef)}`);
@@ -409,7 +424,7 @@ describe("lmerTest: the analytic derivatives", () => {
     longitudinal("y ~ x + z + (x + z || s)", 40, 5, 14),
     nested(8, 4, 15),
   ];
-  const fixtureModels = fixture.cases.filter((c) => !usesPolynomialContrasts(c.args)).map((c) => ({ formula: c.args.formula as string, data: dataFrameOf(c.args.data, c.args.dataTypes), options: optionsOf(c.args) }));
+  const fixtureModels = fixture.cases.map((c) => ({ formula: c.args.formula as string, data: dataFrameOf(c.args.data, c.args.dataTypes), options: optionsOf(c.args) }));
 
   it("the Hessian of d(θ, σ) and the Jacobians of C agree with Richardson-extrapolated differences, at and away from the fit", () => {
     const failures: string[] = [];
