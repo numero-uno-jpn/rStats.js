@@ -21,10 +21,10 @@ Francis's double-shift QR, EISPACK's `orthes`/`hqr2`, public domain; reuse it). 
 - where T's diagonal blocks come out in R's order and Q's columns have R's signs, T and Q match R's within 1e-12
   relative (otherwise not compared).
 
-## expm(x, { method })
+## expm(x, { method, order })
 
-R: `expm::expm(x, method)`. Methods `"Higham08.b"` (default) and `"Higham08"` now; the fixture's other methods
-(`Pade`, `Taylor`, `PadeO`, `TaylorO`) come later (skip them in the test, saying so).
+R: `expm::expm(x, method, order)`. Methods `"Higham08.b"` (default), `"Higham08"`, and Shapira and Firth's
+`"Pade"`, `"Taylor"`, `"PadeO"`, `"TaylorO"` (section "Padé and Taylor" below; `order` default 8, used only by them).
 
 Higham's scaling and squaring with Padé approximants (N. J. Higham, SIAM J. Matrix Anal. Appl. 26 (2005) 1179–1193),
 as expm 1.0-1 implements it:
@@ -46,6 +46,35 @@ as expm 1.0-1 implements it:
 5. Undo the balancing: `X_ij ← X_ij d_i / d_j` with the scaling factors d of the `"S"` call; then the permutations of
    the `"P"` call: for i from ilo − 1 down to 1, swap columns i and p_i and rows i and p_i; for i from ihi + 1 up to n,
    the same (p the permutation record, ilo and ihi as `dgebal` returns them, 1-based).
+
+### Padé and Taylor (expm's "mexp" methods)
+
+Scaling and squaring with a Taylor polynomial or a diagonal Padé approximant of degree `order` (k), computed by
+expm 1.0-1's Fortran code (by M. Shapira and D. Firth). The four methods compute the same thing; `"PadeO"` and
+`"TaylorO"` with plain loops (the "old" code), `"Pade"` and `"Taylor"` with BLAS calls (R's OpenBLAS: matrix products,
+inner products and Euclidean norms, whose summation order may differ from plain loops in the last bits). All
+matrices are n × n.
+
+1. `ν = sqrt(‖x‖_1 ‖x‖_∞)` (maximum absolute column sum and row sum, each summed in index order); `L` = the smallest
+   integer `L ≥ 1` with `2^L ≥ ν`; `p = L + 4`; `N = 2^p`.
+2. Taylor: `S = I`; for j = k, k − 1, ..., 1: `S ← (S x) × (1/(j N))` (the matrix product, then each entry times the
+   double `1/(j N)`), then `S_ii += 1`.
+3. Padé: numerator `P = I`; for j = k, ..., 1: `P ← (P x) × c_j`, `P_ii += 1`, with `c_j = (k − j + 1)/(j (2k − j + 1) N)`
+   (numerator and denominator formed as integers, converted to double, then divided); denominator `Q` the same with −x.
+   Then for each column i of P, solve `Q y = P_·i` by the conjugate gradient squared method below; the solutions are
+   the columns of the result.
+4. The result is squared p times (`R ← R R`).
+5. (R also computes an `accuracy` attribute from the degree k + 10; not reproduced.)
+
+Matrix products `z_ij = Σ_l x_il y_lj` (l in order, starting from 0 and adding each product); matrix-vector products
+likewise; the inner product `⟨u, v⟩ = Σ u_i v_i` and the norm `sqrt(⟨u, u⟩)`.
+
+Conjugate gradient squared for `A x = f` (all vectors of length n; `u + a v` means each entry `u_i + a v_i`):
+`x = 0`; `r = rc = p = u = rbar = f`; `ω_init = ‖rc‖`; `ρ0 = ⟨rbar, r⟩`; stop (x = 0) if `|ρ0| ≤ 1e-100`. For up to n
+iterations: `v = A p`; `σ = ⟨rbar, v⟩`, stop if `|σ| ≤ 1e-100`; `α = ρ0/σ`, stop if `|α| ≤ 1e-100`; `q = u + (−α) v`;
+`v = u + q`; `s = A v`; `rc = rc + (−α) s`; `ω1 = ‖rc‖`; `x = x + α v`; stop if `|ω1/ω_init| ≤ 1e-30`; `ρ1 = ⟨rbar,
+rc⟩`, stop if `|ρ1| ≤ 1e-100`; `β = ρ1/ρ0`, `ρ0 = ρ1`; `u = rc + β q`; `s = q + β p`; `p = u + β s`. (Each stop
+returns the current x.)
 
 Accuracy: entries within a relative 1e-12 of R, or within 1e-12 × the largest absolute entry of the result where R's
 entry is (near) 0 by cancellation; the symmetric cases also have exact references (`reference`, Rmpfr), which may
