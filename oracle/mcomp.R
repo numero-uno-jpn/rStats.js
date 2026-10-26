@@ -2,10 +2,10 @@ source("/oracle/_anova.R")
 suppressPackageStartupMessages({library(PMCMRplus); library(dunn.test); library(multcomp)})
 
 # Multiple comparisons (ROADMAP: Steel-Dwass, Dunn, Dunnett, Steel). Fixtures, one case per row of `cases`:
-#   mcompPMCMR  (reference: the exact p-values of dunnettTest and of the single-step kwManyOneDunnTest, and the
+#   mcompPMCMR  (reference: the exact p-values of dunnettTest and of the single-step kwManyOneDunnTest and manyOneUTest, and the
 #               studentized-range p-values of dscfAllPairsTest, gamesHowellTest and tukeyTest to full precision)
 #               PMCMRplus: fn one of dscfAllPairsTest (Steel-Dwass-Critchlow-Fligner), steelTest (Steel's many-one),
-#               kwAllPairsDunnTest, kwManyOneDunnTest, dunnettTest, gamesHowellTest, tukeyTest; args x (values), g
+#               kwAllPairsDunnTest, kwManyOneDunnTest, dunnettTest, gamesHowellTest, tukeyTest, manyOneUTest; args x (values), g
 #               (group labels), and p.adjust.method / alternative where given. Written: method, statistic and
 #               p.value (matrices as arrays of rows, NA for the empty cells), rowNames, colNames, p.adjust.method.
 #   mcompDunn   dunn.test::dunn.test(x, factor(g), method, kw = FALSE, table = FALSE, altp): chi2 (Kruskal-Wallis), Z, P,
@@ -78,6 +78,15 @@ for (d in datasets) {
   for (fn in c("steelTest", "kwManyOneDunnTest", "dunnettTest")) for (alt in c("two.sided", "greater", "less"))
     addp(fn = fn, x = I(d$x), g = I(d$g), alternative = alt)
 }
+# manyOneUTest (Steel's many-one rank test in its normal approximation: Wilcoxon-Mann-Whitney z of each group against
+# the control, single-step p-values from the multivariate normal), last so that the earlier cases keep their random
+# numbers (mvtnorm)
+for (d in datasets) {
+  for (alt in c("two.sided", "greater", "less")) addp(fn = "manyOneUTest", x = I(d$x), g = I(d$g), alternative = alt)
+  for (adj in c("holm", "bonferroni", "none")) addp(fn = "manyOneUTest", x = I(d$x), g = I(d$g), p.adjust.method = adj)
+}
+addp(fn = "manyOneUTest", x = I(c(d1$x[1:16])), g = I(d1$g[1:16]))   # two groups: single-step needs three
+addp(fn = "manyOneUTest", x = I(c(d1$x[1:16])), g = I(d1$g[1:16]), p.adjust.method = "none", alternative = "less")
 
 write_anova_fixture("mcompPMCMR", pcases, function(a) {
   args <- list(x = unclass(a$x), g = factor(unclass(a$g)))
@@ -109,7 +118,7 @@ write_anova_fixture("mcompPMCMR", pcases, function(a) {
     }
     return(list(p.value = lapply(seq_len(nrow(P)), function(i) I(num2str(P[i, ])))))
   }
-  single <- a$fn == "kwManyOneDunnTest" && (is.null(a$p.adjust.method) || a$p.adjust.method == "single-step")
+  single <- a$fn %in% c("kwManyOneDunnTest", "manyOneUTest") && (is.null(a$p.adjust.method) || a$p.adjust.method == "single-step")
   if (!(a$fn == "dunnettTest" || single)) return(NULL)
   args <- list(x = unclass(a$x), g = factor(unclass(a$g)))
   if (!is.null(a$alternative)) args$alternative <- a$alternative

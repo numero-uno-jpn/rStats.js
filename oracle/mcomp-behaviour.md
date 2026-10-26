@@ -6,7 +6,7 @@ read their source. Fixtures `mcompPMCMR`, `mcompDunn`, `mcompDunnett` (`oracle/m
 
 ## Easy to get wrong
 
-1. **Dunnett-type p-values** (PMCMRplus `dunnettTest`, the single-step `kwManyOneDunnTest`, multcomp's Dunnett) are
+1. **Dunnett-type p-values** (PMCMRplus `dunnettTest`, the single-step `kwManyOneDunnTest` and `manyOneUTest`, multcomp's Dunnett) are
    computed by R with mvtnorm's randomised integration and are only about 1e-3 (absolute) accurate. This library
    computes them exactly with a one-dimensional integral (see "Dunnett's probabilities"); they are compared with the
    fixtures' `reference`, not with R.
@@ -25,7 +25,7 @@ read their source. Fixtures `mcompPMCMR`, `mcompDunn`, `mcompDunnett` (`oracle/m
 ## API
 
 One function per test, with R's names in camelCase: `dscfAllPairsTest`, `kwAllPairsDunnTest`,
-`kwManyOneDunnTest`, `dunnettTest`, `gamesHowellTest`, `tukeyTest`, `steelTest` (PMCMRplus), `dunnTest`
+`kwManyOneDunnTest`, `dunnettTest`, `gamesHowellTest`, `tukeyTest`, `steelTest`, `manyOneUTest` (PMCMRplus), `dunnTest`
 (dunn.test), `glhtDunnett(x, g, { alternative })` (multcomp's `summary(glht(aov(y ~ g), mcp(g = "Dunnett")))`).
 Arguments `(x, g, options)` like the other k-sample tests
 (`src/htest/groups.ts`); options `pAdjustMethod`, `alternative` as in R (`"two.sided"`, `"greater"`, `"less"`).
@@ -62,6 +62,16 @@ the tie term `C = Σ (t³ − t) / (12 (N − 1))` over the tie groups t of the 
   Method `"Games-Howell test"`, `pAdjustMethod` `"none"`.
 - **tukeyTest**: pooled `s²` over N − k df, `q_ij = (m_i − m_j)/sqrt(s² (1/n_i + 1/n_j)/2)`, p = upper studentized
   range tail (k, N − k) at |q|. Method `"Tukey's test"`, `"single-step"`.
+- **manyOneUTest** (Steel's many-one rank test, normal approximation; `alternative` default `"two.sided"`,
+  `pAdjustMethod` default `"single-step"`, or any of `p.adjust`'s): for each group j ≥ 2, rank the control's and
+  group j's values together (midranks of the two groups only), `R_1`, `R_j` the rank sums, `U_1 = n_1 n_j + n_1(n_1 +
+  1)/2 − R_1`, `U_j = n_1 n_j + n_j(n_j + 1)/2 − R_j`, `S = n_1 + n_j`, `VAR = n_1 n_j/(S(S − 1)) × ((S³ − S)/12 − Σ (t³ −
+  t)/12)` (tie groups t of the pair's ranks), `z_j = (min(U_1, U_j) − n_1 n_j/2)/sqrt(VAR)`, negated when `R_1 < R_j`
+  (so z_j > 0 when group j ranks higher). With a `p.adjust` method: two-sided `2 × upper tail of |z|`, greater the
+  upper tail, less the lower tail, then `p.adjust` over the k − 1 values. Single-step (k ≥ 3, else error: R's string
+  in the fixture): the multivariate normal with correlations `sqrt(λ_i λ_j)`, `λ_i = n_i/(n_i + n_1)` (as Dunnett's
+  with df = ∞): two-sided `P(max |Z_i| ≥ |z|)`, greater `P(max Z_i ≥ z)`, less `P(min Z_i ≤ z)`. Method: R's string
+  (`"Wilcoxon, Mann, Whittney U-test"`, a newline, a tab, `"for multiple comparisons with one control"`). No warnings.
 - **steelTest**: PMCMRplus 1.9.12 fails on every input of the fixture (errors recorded); reproduce those errors for
   those inputs (`'arg' should be one of “greater”, “less”` for two-sided, `Steel's test is only valid for balanced
   designs.` for unequal sizes, and for balanced data the error string of the fixture).
