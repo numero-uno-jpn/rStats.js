@@ -76,10 +76,19 @@ export interface OptimResult {
   warnings: string[];
 }
 
-const REL_TEST = 10;
-const ACC_TOL = 1e-4;
-const STEP_REDN = 0.2;
-const BIG = 1e35;
+// R's constants (oracle/optim-behaviour.md, rule 5)
+/** Scale at which a step is taken to change nothing */
+const SHIFT = 10;
+/** Sufficient-decrease factor of the line searches */
+const DECREASE = 1e-4;
+/** Step reduction of the line searches */
+const REDUCTION = 0.2;
+/** Growth of the first step of CG's next line search */
+const GROWTH = 1.7;
+/** Value used for a function value that is not finite (Nelder-Mead, SANN) */
+const HUGE_VALUE = 1e35;
+/** e - 1 to 8 digits, SANN's temperature schedule */
+const E_MINUS_1 = 1.7182818;
 
 function recycle(v: number | readonly number[] | undefined, n: number, dflt: number): number[] {
   if (v === undefined) return new Array<number>(n).fill(dflt);
@@ -118,7 +127,7 @@ class Scaled {
       return gx.map((v, i) => (v * parscale[i]!) / fnscale);
     }
     const x = this.unscale(p);
-    const df = new Array<number>(n);
+    const slopes = new Array<number>(n);
     for (let i = 0; i < n; i++) {
       const eps = this.ndeps[i]!;
       let up = p[i]! + eps;
@@ -142,365 +151,369 @@ class Scaled {
       const v1 = this.fn(x.slice()) / fnscale;
       x[i] = down * parscale[i]!;
       const v2 = this.fn(x.slice()) / fnscale;
-      df[i] = (v1 - v2) / width;
-      if (!Number.isFinite(df[i]!)) throw new Error(`non-finite finite-difference value [${i + 1}]`);
+      slopes[i] = (v1 - v2) / width;
+      if (!Number.isFinite(slopes[i]!)) throw new Error(`non-finite finite-difference value [${i + 1}]`);
       x[i] = p[i]! * parscale[i]!;
     }
-    return df;
+    return slopes;
   }
 }
 
-interface Run {
+/** What a method returns, in the scaled parameters */
+interface MethodResult {
   par: number[];
   value: number;
-  fncount: number;
-  grcount: number;
-  fail: number;
+  fnEvals: number;
+  gradEvals: number;
+  code: number;
 }
 
-/** Nelder-Mead simplex (Nash's Algorithm 19) */
-function nelderMead(s: Scaled, start: readonly number[], alpha: number, beta: number, gamma: number, abstol: number, reltol: number, maxit: number): Run {
+/** Replaces a value that is not finite by a large one (for the derivative-free methods) */
+const orHuge = (v: number): number => (Number.isFinite(v) ? v : HUGE_VALUE);
+
+/** Whether `from + amount` is indistinguishable from `from` at the scale of SHIFT (the rule "10 + x == 10 + y") */
+const unchanged = (from: number, to: number): boolean => SHIFT + from === SHIFT + to;
+
+interface Backtrack {
+  /** Step length when the search ended (accepted, or the one at which nothing changed) */
+  step: number;
+  /** Whether a point was accepted (otherwise the trial point no longer differs from the start) */
+  accepted: boolean;
+  /** The last function value computed (or `lastValue` if none was) */
+  value: number;
+  evals: number;
+}
+
+/**
+ * Backtracking line search shared by BFGS and CG: from `from` along `dir`, trial points `from + step dir` with the
+ * step cut by REDUCTION until the value satisfies the sufficient-decrease test against `best` or the trial point no
+ * longer moves any coordinate. `point` receives the last trial point.
+ */
+function backtrack(s: Scaled, from: readonly number[], dir: readonly number[], slope: number, best: number, firstStep: number, point: number[], lastValue: number): Backtrack {
+  const n = from.length;
+  let step = firstStep;
+  let value = lastValue;
+  let evals = 0;
+  for (;;) {
+    let same = 0;
+    for (let i = 0; i < n; i++) {
+      point[i] = from[i]! + step * dir[i]!;
+      if (unchanged(from[i]!, point[i]!)) same++;
+    }
+    if (same === n) return { step, accepted: false, value, evals };
+    value = s.f(point);
+    evals++;
+    if (Number.isFinite(value) && value <= best + slope * step * DECREASE) return { step, accepted: true, value, evals };
+    step *= REDUCTION;
+  }
+}
+
+/** Nelder-Mead simplex (Nash's Algorithm 19, with R's details from the specification) */
+function simplexSearch(s: Scaled, start: readonly number[], reflect: number, contract: number, expand: number, abstol: number, reltol: number, maxit: number): MethodResult {
   const n = start.length;
-  const fin = (v: number): number => (Number.isFinite(v) ? v : BIG);
-  if (maxit <= 0) return { par: start.slice(), value: s.f(start), fncount: 0, grcount: NaN, fail: 0 };
-  const f0 = s.f(start);
-  if (!Number.isFinite(f0)) throw new Error("function cannot be evaluated at initial parameters");
-  let funcount = 1;
-  const convtol = reltol * (Math.abs(f0) + reltol);
-  const P: number[][] = [start.slice()];
-  const fv: number[] = [f0];
-  let step = 0;
-  for (const v of start) if (0.1 * Math.abs(v) > step) step = 0.1 * Math.abs(v);
-  if (step === 0) step = 0.1;
-  let size = 0;
-  for (let j = 1; j <= n; j++) {
+  if (maxit <= 0) return { par: start.slice(), value: s.f(start), fnEvals: 0, gradEvals: NaN, code: 0 };
+  const startValue = s.f(start);
+  if (!Number.isFinite(startValue)) throw new Error("function cannot be evaluated at initial parameters");
+  let evals = 1;
+  const tolerance = reltol * (Math.abs(startValue) + reltol);
+  // the vertices and their values (NaN: to be computed)
+  const vertex: number[][] = [start.slice()];
+  const value: number[] = [startValue];
+  let initialStep = 0;
+  for (const v of start) if (0.1 * Math.abs(v) > initialStep) initialStep = 0.1 * Math.abs(v);
+  if (initialStep === 0) initialStep = 0.1;
+  let extent = 0;
+  for (let j = 0; j < n; j++) {
     const v = start.slice();
-    let trystep = step;
-    let used = 0;
-    while (v[j - 1] === start[j - 1]) {
-      v[j - 1] = start[j - 1]! + trystep;
-      used = trystep;
-      trystep *= 10;
+    let used = initialStep;
+    v[j] = start[j]! + used;
+    while (v[j] === start[j]) {
+      used *= 10;
+      v[j] = start[j]! + used;
     }
-    size += used;
-    P.push(v);
-    fv.push(NaN);
+    extent += used;
+    vertex.push(v);
+    value.push(NaN);
   }
-  let oldsize = size;
-  let L = 0;
-  let calcvert = true;
-  let fail = 0;
-  const C = new Array<number>(n);
+  let lastExtent = extent;
+  let low = 0;
+  let code = 0;
+  const centroid = new Array<number>(n);
   do {
-    if (calcvert) {
-      for (let j = 0; j <= n; j++) {
-        if (j === L) continue;
-        fv[j] = fin(s.f(P[j]!));
-        funcount++;
-      }
-      calcvert = false;
-    }
-    let VL = fv[L]!;
-    let VH = VL;
-    let H = L;
     for (let j = 0; j <= n; j++) {
-      if (j === L) continue;
-      const fj = fv[j]!;
-      if (fj < VL) {
-        L = j;
-        VL = fj;
-      }
-      if (fj > VH) {
-        H = j;
-        VH = fj;
+      if (j !== low && Number.isNaN(value[j]!)) {
+        value[j] = orHuge(s.f(vertex[j]!));
+        evals++;
       }
     }
-    if (VH <= VL + convtol || VL <= abstol) break;
-    const PH = P[H]!;
+    let lowValue = value[low]!;
+    let highValue = lowValue;
+    let high = low;
+    for (let j = 0; j <= n; j++) {
+      if (j === low) continue;
+      const v = value[j]!;
+      if (v < lowValue) {
+        low = j;
+        lowValue = v;
+      }
+      if (v > highValue) {
+        high = j;
+        highValue = v;
+      }
+    }
+    if (highValue <= lowValue + tolerance || lowValue <= abstol) break;
+    const worst = vertex[high]!;
     for (let i = 0; i < n; i++) {
-      let temp = -PH[i]!;
-      for (let j = 0; j <= n; j++) temp += P[j]![i]!;
-      C[i] = temp / n;
+      // all vertices summed, less the worst one
+      let total = -worst[i]!;
+      for (const v of vertex) total += v[i]!;
+      centroid[i] = total / n;
     }
-    const R = C.map((c, i) => (1 + alpha) * c - alpha * PH[i]!);
-    const VR = fin(s.f(R));
-    funcount++;
-    if (VR < VL) {
-      const E = R.map((r, i) => gamma * r + (1 - gamma) * C[i]!);
-      const fE = fin(s.f(E));
-      funcount++;
-      if (fE < VR) {
-        P[H] = E;
-        fv[H] = fE;
+    const reflected = centroid.map((m, i) => (1 + reflect) * m - reflect * worst[i]!);
+    const reflectedValue = orHuge(s.f(reflected));
+    evals++;
+    if (reflectedValue < lowValue) {
+      const expanded = reflected.map((r, i) => expand * r + (1 - expand) * centroid[i]!);
+      const expandedValue = orHuge(s.f(expanded));
+      evals++;
+      const better = expandedValue < reflectedValue;
+      vertex[high] = better ? expanded : reflected;
+      value[high] = better ? expandedValue : reflectedValue;
+      continue;
+    }
+    if (reflectedValue < highValue) {
+      vertex[high] = reflected;
+      value[high] = reflectedValue;
+    }
+    const contracted = vertex[high]!.map((h, i) => (1 - contract) * h + contract * centroid[i]!);
+    const contractedValue = orHuge(s.f(contracted));
+    evals++;
+    if (contractedValue < value[high]!) {
+      vertex[high] = contracted;
+      value[high] = contractedValue;
+    } else if (reflectedValue >= highValue) {
+      // shrink towards the lowest vertex; its values are recomputed on the next pass
+      const best = vertex[low]!;
+      extent = 0;
+      vertex.forEach((v, j) => {
+        if (j === low) return;
+        for (let i = 0; i < n; i++) {
+          v[i] = contract * (v[i]! - best[i]!) + best[i]!;
+          extent += Math.abs(v[i]! - best[i]!);
+        }
+        value[j] = NaN;
+      });
+      if (!(extent < lastExtent)) {
+        code = 10;
+        break;
+      }
+      lastExtent = extent;
+    }
+  } while (evals <= maxit);
+  if (code !== 10 && evals > maxit) code = 1;
+  return { par: vertex[low]!.slice(), value: value[low]!, fnEvals: evals, gradEvals: NaN, code };
+}
+
+/** Variable metric (BFGS; Nash's Algorithm 21, with R's details and order of arithmetic from the specification) */
+function variableMetric(s: Scaled, start: readonly number[], abstol: number, reltol: number, maxit: number): MethodResult {
+  const n = start.length;
+  const point = start.slice();
+  if (maxit <= 0) return { par: point, value: s.f(point), fnEvals: 0, gradEvals: 0, code: 0 };
+  let value = s.f(point);
+  if (!Number.isFinite(value)) throw new Error("initial value in 'vmmin' is not finite");
+  let best = value;
+  let fnEvals = 1;
+  let gradEvals = 1;
+  let grad = s.g(point);
+  let lastReset = gradEvals;
+  // the inverse Hessian approximation H, kept as its lower triangle
+  const H: number[][] = Array.from({ length: n }, (_, i) => new Array<number>(i + 1).fill(0));
+  const h = (i: number, j: number): number => (j <= i ? H[i]![j]! : H[j]![i]!);
+  const dir = new Array<number>(n).fill(0);
+  const from = new Array<number>(n).fill(0);
+  const Hy = new Array<number>(n).fill(0);
+  let stalled = false;
+  let limitReached = false;
+  do {
+    if (lastReset === gradEvals) {
+      for (let i = 0; i < n; i++) {
+        H[i]!.fill(0);
+        H[i]![i] = 1;
+      }
+    }
+    for (let i = 0; i < n; i++) from[i] = point[i]!;
+    const prevGrad = grad.slice();
+    let slope = 0;
+    for (let i = 0; i < n; i++) {
+      let d = 0;
+      for (let j = 0; j < n; j++) d -= h(i, j) * grad[j]!;
+      dir[i] = d;
+      slope += d * grad[i]!;
+    }
+    if (slope < 0) {
+      const search = backtrack(s, from, dir, slope, best, 1, point, value);
+      fnEvals += search.evals;
+      value = search.value;
+      let progressed = search.accepted;
+      // too small a change counts as none, with the value taken as the best
+      if (!(value > abstol && Math.abs(value - best) > reltol * (Math.abs(best) + reltol))) {
+        progressed = false;
+        best = value;
+      }
+      if (progressed) {
+        best = value;
+        grad = s.g(point);
+        gradEvals++;
+        // step and change of gradient
+        const y = prevGrad;
+        let sy = 0;
+        for (let i = 0; i < n; i++) {
+          dir[i] = search.step * dir[i]!;
+          y[i] = grad[i]! - y[i]!;
+          sy += dir[i]! * y[i]!;
+        }
+        if (sy > 0) {
+          let yHy = 0;
+          for (let i = 0; i < n; i++) {
+            let v = 0;
+            for (let j = 0; j < n; j++) v += h(i, j) * y[j]!;
+            Hy[i] = v;
+            yHy += v * y[i]!;
+          }
+          const factor = 1 + yHy / sy;
+          for (let i = 0; i < n; i++) {
+            for (let j = 0; j <= i; j++) H[i]![j] = H[i]![j]! + (factor * dir[i]! * dir[j]! - Hy[i]! * dir[j]! - dir[i]! * Hy[j]!) / sy;
+          }
+        } else lastReset = gradEvals;
+        stalled = false;
       } else {
-        P[H] = R;
-        fv[H] = VR;
+        // no progress: start again from the identity, unless that was just done
+        stalled = lastReset === gradEvals;
+        lastReset = gradEvals;
       }
     } else {
-      if (VR < VH) {
-        P[H] = R;
-        fv[H] = VR;
-      }
-      const cur = P[H]!;
-      const Kp = cur.map((h, i) => (1 - beta) * h + beta * C[i]!);
-      const fK = fin(s.f(Kp));
-      funcount++;
-      if (fK < fv[H]!) {
-        P[H] = Kp;
-        fv[H] = fK;
-      } else if (VR >= VH) {
-        // shrink towards the lowest vertex
-        calcvert = true;
-        size = 0;
-        const PL = P[L]!;
-        for (let j = 0; j <= n; j++) {
-          if (j === L) continue;
-          const v = P[j]!;
-          for (let i = 0; i < n; i++) {
-            v[i] = beta * (v[i]! - PL[i]!) + PL[i]!;
-            size += Math.abs(v[i]! - PL[i]!);
-          }
-        }
-        if (size < oldsize) oldsize = size;
-        else {
-          fail = 10;
-          break;
-        }
-      }
+      // not a descent direction: the same
+      stalled = lastReset === gradEvals;
+      lastReset = gradEvals;
     }
-  } while (funcount <= maxit);
-  if (fail !== 10) fail = funcount > maxit ? 1 : 0;
-  return { par: P[L]!.slice(), value: fv[L]!, fncount: funcount, grcount: NaN, fail };
+    if (gradEvals >= maxit) {
+      limitReached = true;
+      break;
+    }
+    if (gradEvals - lastReset > 2 * n) lastReset = gradEvals;
+  } while (!stalled || lastReset !== gradEvals);
+  return { par: point, value: best, fnEvals, gradEvals, code: limitReached ? 1 : 0 };
 }
 
-/** Variable metric (Nash's Algorithm 21) */
-function vmmin(s: Scaled, start: readonly number[], abstol: number, reltol: number, maxit: number): Run {
+/** Conjugate gradients (Nash's Algorithm 22, with R's details from the specification) */
+function conjugateGradients(s: Scaled, start: readonly number[], type: number, abstol: number, reltol: number, maxit: number): MethodResult {
   const n = start.length;
-  const b = start.slice();
-  if (maxit <= 0) return { par: b, value: s.f(b), fncount: 0, grcount: 0, fail: 0 };
-  let f = s.f(b);
-  if (!Number.isFinite(f)) throw new Error("initial value in 'vmmin' is not finite");
-  let Fmin = f;
-  let funcount = 1;
-  let gradcount = 1;
-  let g = s.g(b);
-  let iter = 1;
-  let ilast = gradcount;
-  // lower triangle of the inverse Hessian approximation
-  const B: number[][] = Array.from({ length: n }, (_, i) => new Array<number>(i + 1).fill(0));
-  const Bij = (i: number, j: number): number => (j <= i ? B[i]![j]! : B[j]![i]!);
-  const t = new Array<number>(n).fill(0);
-  const X = new Array<number>(n).fill(0);
-  let c = new Array<number>(n).fill(0);
-  let count = 0;
-  let fail = 1;
-  do {
-    if (ilast === gradcount) {
-      for (let i = 0; i < n; i++) {
-        for (let j = 0; j < i; j++) B[i]![j] = 0;
-        B[i]![i] = 1;
-      }
-    }
-    for (let i = 0; i < n; i++) X[i] = b[i]!;
-    c = g.slice();
-    let gradproj = 0;
-    for (let i = 0; i < n; i++) {
-      let sum = 0;
-      for (let j = 0; j < n; j++) sum -= Bij(i, j) * g[j]!;
-      t[i] = sum;
-      gradproj += sum * g[i]!;
-    }
-    if (gradproj < 0) {
-      let steplength = 1;
-      let accpoint = false;
-      do {
-        count = 0;
-        for (let i = 0; i < n; i++) {
-          b[i] = X[i]! + steplength * t[i]!;
-          if (REL_TEST + X[i]! === REL_TEST + b[i]!) count++;
-        }
-        if (count < n) {
-          f = s.f(b);
-          funcount++;
-          accpoint = Number.isFinite(f) && f <= Fmin + gradproj * steplength * ACC_TOL;
-          if (!accpoint) steplength *= STEP_REDN;
-        }
-      } while (!(count === n || accpoint));
-      const enough = f > abstol && Math.abs(f - Fmin) > reltol * (Math.abs(Fmin) + reltol);
-      // not enough change: as no change, with f taken as the minimum (R's behaviour, see the fixture)
-      if (!enough) {
-        count = n;
-        Fmin = f;
-      }
-      if (count < n) {
-        Fmin = f;
-        g = s.g(b);
-        gradcount++;
-        iter++;
-        let D1 = 0;
-        for (let i = 0; i < n; i++) {
-          t[i] = steplength * t[i]!;
-          c[i] = g[i]! - c[i]!;
-          D1 += t[i]! * c[i]!;
-        }
-        if (D1 > 0) {
-          let D2 = 0;
-          for (let i = 0; i < n; i++) {
-            let sum = 0;
-            for (let j = 0; j < n; j++) sum += Bij(i, j) * c[j]!;
-            X[i] = sum;
-            D2 += sum * c[i]!;
-          }
-          D2 = 1 + D2 / D1;
-          for (let i = 0; i < n; i++) {
-            for (let j = 0; j <= i; j++) B[i]![j] = B[i]![j]! + (D2 * t[i]! * t[j]! - X[i]! * t[j]! - t[i]! * X[j]!) / D1;
-          }
-        } else ilast = gradcount;
-      } else if (ilast < gradcount) {
-        // no progress: reset unless just reset
-        count = 0;
-        ilast = gradcount;
-      }
-    } else {
-      // uphill direction: reset unless just reset
-      count = 0;
-      if (ilast === gradcount) count = n;
-      else ilast = gradcount;
-    }
-    if (iter >= maxit) break;
-    if (gradcount - ilast > 2 * n) ilast = gradcount;
-  } while (count !== n || ilast !== gradcount);
-  if (iter < maxit) fail = 0;
-  return { par: b, value: Fmin, fncount: funcount, grcount: gradcount, fail };
-}
-
-/** Conjugate gradients (Nash's Algorithm 22) */
-function cgmin(s: Scaled, start: readonly number[], type: number, abstol: number, reltol: number, maxit: number): Run {
-  const n = start.length;
-  const b = start.slice();
-  if (maxit <= 0) return { par: b, value: s.f(b), fncount: 0, grcount: 0, fail: 0 };
+  const point = start.slice();
+  if (maxit <= 0) return { par: point, value: s.f(point), fnEvals: 0, gradEvals: 0, code: 0 };
   if (type !== 1 && type !== 2 && type !== 3) throw new RangeError("unknown 'type' in \"CG\" method of 'optim'");
-  const tol = reltol * n * Math.sqrt(reltol);
-  const setstep = 1.7;
-  let f = s.f(b);
-  if (!Number.isFinite(f)) throw new Error("function cannot be evaluated at initial parameters");
-  let Fmin = f;
-  let funcount = 1;
-  let gradcount = 0;
-  const t = new Array<number>(n).fill(0);
-  const c = new Array<number>(n).fill(0);
-  const X = new Array<number>(n).fill(0);
-  let count = 0;
-  let cycle = 0;
-  let G1 = 0;
-  do {
-    for (let i = 0; i < n; i++) {
-      t[i] = 0;
-      c[i] = 0;
-    }
-    cycle = 0;
-    let oldstep = 1;
-    count = 0;
+  const threshold = reltol * n * Math.sqrt(reltol);
+  let value = s.f(point);
+  if (!Number.isFinite(value)) throw new Error("function cannot be evaluated at initial parameters");
+  let best = value;
+  let fnEvals = 1;
+  let gradEvals = 0;
+  const dir = new Array<number>(n);
+  const prevGrad = new Array<number>(n);
+  const from = new Array<number>(n).fill(0);
+  let moved = true;
+  let inner = 0;
+  let numer = 0;
+  for (;;) {
+    // restart: steepest descent, first step 1
+    dir.fill(0);
+    prevGrad.fill(0);
+    inner = 0;
+    let firstStep = 1;
+    moved = true;
     do {
-      cycle++;
-      gradcount++;
-      // the result is the point of the last gradient (X), with the last accepted value (R's behaviour, see the fixture)
-      if (gradcount > maxit) return { par: X.slice(), value: Fmin, fncount: funcount, grcount: gradcount, fail: 1 };
-      const g = s.g(b);
-      G1 = 0;
-      let G2 = 0;
+      inner++;
+      gradEvals++;
+      // the result is the point of the last gradient, with the best value
+      if (gradEvals > maxit) return { par: from.slice(), value: best, fnEvals, gradEvals, code: 1 };
+      const grad = s.g(point);
+      numer = 0;
+      let denom = 0;
       for (let i = 0; i < n; i++) {
-        X[i] = b[i]!;
-        const gi = g[i]!;
+        from[i] = point[i]!;
+        const gi = grad[i]!;
+        const ci = prevGrad[i]!;
         if (type === 1) {
-          G1 += gi * gi;
-          G2 += c[i]! * c[i]!;
+          numer += gi * gi;
+          denom += ci * ci;
         } else if (type === 2) {
-          G1 += gi * (gi - c[i]!);
-          G2 += c[i]! * c[i]!;
+          numer += gi * (gi - ci);
+          denom += ci * ci;
         } else {
-          G1 += gi * (gi - c[i]!);
-          G2 += t[i]! * (gi - c[i]!);
+          numer += gi * (gi - ci);
+          denom += dir[i]! * (gi - ci);
         }
-        c[i] = gi;
+        prevGrad[i] = gi;
       }
-      if (G1 > tol) {
-        const G3 = G2 > 0 ? G1 / G2 : 1;
-        let gradproj = 0;
-        for (let i = 0; i < n; i++) {
-          t[i] = t[i]! * G3 - g[i]!;
-          gradproj += t[i]! * g[i]!;
-        }
-        let steplength = oldstep;
-        let accpoint = false;
-        do {
-          count = 0;
-          for (let i = 0; i < n; i++) {
-            b[i] = X[i]! + steplength * t[i]!;
-            if (REL_TEST + X[i]! === REL_TEST + b[i]!) count++;
-          }
-          if (count < n) {
-            f = s.f(b);
-            funcount++;
-            accpoint = Number.isFinite(f) && f <= Fmin + gradproj * steplength * ACC_TOL;
-            if (!accpoint) steplength *= STEP_REDN;
-            else Fmin = f;
-          }
-        } while (!(count === n || accpoint));
-        if (count < n) {
-          let newstep = 2 * (f - Fmin - gradproj * steplength);
-          if (newstep > 0) {
-            newstep = -((gradproj * steplength * steplength) / newstep);
-            for (let i = 0; i < n; i++) b[i] = X[i]! + newstep * t[i]!;
-            Fmin = f;
-            f = s.f(b);
-            funcount++;
-            if (f < Fmin) Fmin = f;
-            else for (let i = 0; i < n; i++) b[i] = X[i]! + steplength * t[i]!;
-          }
-        }
-        oldstep = setstep * steplength;
-        if (oldstep > 1) oldstep = 1;
+      if (!(numer > threshold)) break;
+      const beta = denom > 0 ? numer / denom : 1;
+      let slope = 0;
+      for (let i = 0; i < n; i++) {
+        dir[i] = dir[i]! * beta - grad[i]!;
+        slope += dir[i]! * grad[i]!;
       }
-    } while (count !== n && G1 > tol && cycle !== n);
-  } while (cycle !== 1 || (count !== n && G1 > tol && Fmin > abstol));
-  return { par: X.slice(), value: Fmin, fncount: funcount, grcount: gradcount, fail: 0 };
+      const search = backtrack(s, from, dir, slope, best, firstStep, point, value);
+      fnEvals += search.evals;
+      value = search.value;
+      moved = search.accepted;
+      const step = search.step;
+      if (moved) {
+        best = value;
+        // minimum of the parabola through the start (value and slope) and the accepted point
+        let curvature = 2 * (value - best - slope * step);
+        if (curvature > 0) {
+          curvature = -((slope * step * step) / curvature);
+          for (let i = 0; i < n; i++) point[i] = from[i]! + curvature * dir[i]!;
+          best = value;
+          value = s.f(point);
+          fnEvals++;
+          if (value < best) best = value;
+          else for (let i = 0; i < n; i++) point[i] = from[i]! + step * dir[i]!;
+        }
+      }
+      firstStep = Math.min(1, GROWTH * step);
+    } while (moved && inner !== n);
+    if (inner === 1 && (!moved || !(numer > threshold) || best <= abstol)) break;
+  }
+  return { par: from.slice(), value: best, fnEvals, gradEvals, code: 0 };
 }
 
-/** Simulated annealing with Gaussian candidates (R's default generator) */
-function samin(s: Scaled, start: readonly number[], maxit: number, tmax: number, ti: number): Run {
-  const n = start.length;
-  // e - 1 as R has it, to 8 digits (the fixture follows this constant, not e - 1 in full)
-  const E1 = 1.7182818;
-  const fin = (v: number): number => (Number.isFinite(v) ? v : BIG);
-  let p = start.slice();
-  if (maxit <= 0) return { par: p, value: s.f(p), fncount: 0, grcount: NaN, fail: 0 };
-  const scale = 1 / ti;
-  let y = fin(s.f(p));
-  let ybest = y;
-  let pbest = p.slice();
-  let its = 1;
-  while (its < maxit) {
-    const t = ti / Math.log(its + E1);
-    let k = 1;
-    while (k <= tmax && its < maxit) {
-      const ptry = new Array<number>(n);
-      for (let i = 0; i < n; i++) ptry[i] = p[i]! + scale * t * normRand();
-      const ytry = fin(s.f(ptry));
-      const dy = ytry - y;
-      if (dy <= 0 || unifRand() < Math.exp(-dy / t)) {
-        p = ptry;
-        y = ytry;
-        if (y <= ybest) {
-          pbest = p.slice();
-          ybest = y;
+/** Simulated annealing with Gaussian candidates (Bélisle 1992; R's default candidate generator) */
+function annealing(s: Scaled, start: readonly number[], maxit: number, perTemperature: number, startTemperature: number): MethodResult {
+  let current = start.slice();
+  if (maxit <= 0) return { par: current, value: s.f(current), fnEvals: 0, gradEvals: NaN, code: 0 };
+  const spread = 1 / startTemperature;
+  let currentValue = orHuge(s.f(current));
+  let bestValue = currentValue;
+  let bestPoint = current.slice();
+  let evals = 1;
+  while (evals < maxit) {
+    const temperature = startTemperature / Math.log(evals + E_MINUS_1);
+    for (let k = 0; k < perTemperature && evals < maxit; k++) {
+      const candidate = current.map((v) => v + spread * temperature * normRand());
+      const candidateValue = orHuge(s.f(candidate));
+      const rise = candidateValue - currentValue;
+      if (rise <= 0 || unifRand() < Math.exp(-rise / temperature)) {
+        current = candidate;
+        currentValue = candidateValue;
+        if (currentValue <= bestValue) {
+          bestPoint = current.slice();
+          bestValue = currentValue;
         }
       }
-      its++;
-      k++;
+      evals++;
     }
   }
-  return { par: pbest, value: ybest, fncount: maxit, grcount: NaN, fail: 0 };
+  return { par: bestPoint, value: bestValue, fnEvals: maxit, gradEvals: NaN, code: 0 };
 }
 
 /**
@@ -521,25 +534,26 @@ export function optimHess(par: readonly number[], fn: (par: number[]) => number,
 function hessianOf(s: Scaled, par: readonly number[]): number[][] {
   const { n, parscale, fnscale, ndeps } = s;
   const p = par.map((v, i) => v / parscale[i]!);
-  const H: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  const hess: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
   for (let i = 0; i < n; i++) {
-    const eps = ndeps[i]! / parscale[i]!;
-    const pi = p[i]!;
-    p[i] = pi + eps;
-    const g1 = s.g(p);
-    p[i] = pi - eps;
-    const g2 = s.g(p);
-    p[i] = pi;
-    for (let j = 0; j < n; j++) H[i]![j] = (fnscale * (g1[j]! - g2[j]!)) / (2 * eps * parscale[i]! * parscale[j]!);
+    const step = ndeps[i]! / parscale[i]!;
+    const centre = p[i]!;
+    p[i] = centre + step;
+    const gradUp = s.g(p);
+    p[i] = centre - step;
+    const gradDown = s.g(p);
+    p[i] = centre;
+    for (let j = 0; j < n; j++) hess[i]![j] = (fnscale * (gradUp[j]! - gradDown[j]!)) / (2 * step * parscale[i]! * parscale[j]!);
   }
+  // symmetrise
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < i; j++) {
-      const v = 0.5 * (H[i]![j]! + H[j]![i]!);
-      H[i]![j] = v;
-      H[j]![i] = v;
+      const v = 0.5 * (hess[i]![j]! + hess[j]![i]!);
+      hess[i]![j] = v;
+      hess[j]![i] = v;
     }
   }
-  return H;
+  return hess;
 }
 
 const METHODS: readonly OptimMethod[] = ["Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN", "Brent"];
@@ -580,29 +594,29 @@ export function optim(par: readonly number[], fn: (par: number[]) => number, opt
   const s = new Scaled(fn, options.gr, parscale, fnscale, ndeps);
   const start = par.map((v, i) => v / parscale[i]!);
 
-  let run: Run;
+  let run: MethodResult;
   let message: string | null = null;
   switch (method) {
     case "Nelder-Mead":
-      run = nelderMead(s, start, control.alpha ?? 1, control.beta ?? 0.5, control.gamma ?? 2, abstol, reltol, maxit);
+      run = simplexSearch(s, start, control.alpha ?? 1, control.beta ?? 0.5, control.gamma ?? 2, abstol, reltol, maxit);
       break;
     case "BFGS":
-      run = vmmin(s, start, abstol, reltol, maxit);
+      run = variableMetric(s, start, abstol, reltol, maxit);
       break;
     case "CG":
-      run = cgmin(s, start, control.type ?? 1, abstol, reltol, maxit);
+      run = conjugateGradients(s, start, control.type ?? 1, abstol, reltol, maxit);
       break;
     case "SANN": {
-      const tmax = control.tmax ?? 10;
-      if (!(tmax >= 1)) throw new RangeError("'tmax' is not a positive integer");
-      run = samin(s, start, maxit, Math.trunc(tmax), control.temp ?? 10);
+      const perTemperature = control.tmax ?? 10;
+      if (!(perTemperature >= 1)) throw new RangeError("'tmax' is not a positive integer");
+      run = annealing(s, start, maxit, Math.trunc(perTemperature), control.temp ?? 10);
       break;
     }
     case "Brent": {
       if (n !== 1) throw new RangeError('method = "Brent" is only available for one-dimensional optimization');
       if (!Number.isFinite(lower[0]!) || !Number.isFinite(upper[0]!)) throw new RangeError("'lower' and 'upper' must be finite values");
       const r = optimize((x) => fn([x]) / fnscale, lower[0]!, upper[0]!, { tol: reltol });
-      run = { par: [r.optimum], value: r.objective, fncount: NaN, grcount: NaN, fail: 0 };
+      run = { par: [r.optimum], value: r.objective, fnEvals: NaN, gradEvals: NaN, code: 0 };
       // par is not scaled for Brent
       const result: OptimResult = { par: run.par, value: run.value * fnscale, counts: [NaN, NaN], convergence: 0, message: null, warnings };
       if (options.hessian) result.hessian = hessianOf(s, result.par);
@@ -613,7 +627,7 @@ export function optim(par: readonly number[], fn: (par: number[]) => number, opt
       const lo = lower.map((v, i) => v / parscale[i]!);
       const up = upper.map((v, i) => v / parscale[i]!);
       if (n === 0) {
-        run = { par: [], value: s.f([]), fncount: 0, grcount: 0, fail: 0 };
+        run = { par: [], value: s.f([]), fnEvals: 0, gradEvals: 0, code: 0 };
         message = "NOTHING TO DO";
         break;
       }
@@ -640,15 +654,15 @@ export function optim(par: readonly number[], fn: (par: number[]) => number, opt
         () => ++iterations > maxit,
       );
       message = r.task;
-      const fail = r.task.startsWith("NEW_X") ? 1 : r.task.startsWith("CONV") ? 0 : r.task.startsWith("WARN") ? 51 : 52;
-      run = { par: r.x, value: r.f, fncount: r.nfgv, grcount: r.nfgv, fail };
+      const code = r.task.startsWith("NEW_X") ? 1 : r.task.startsWith("CONV") ? 0 : r.task.startsWith("WARN") ? 51 : 52;
+      run = { par: r.x, value: r.f, fnEvals: r.nfgv, gradEvals: r.nfgv, code };
     }
   }
   const result: OptimResult = {
     par: s.unscale(run.par),
     value: run.value * fnscale,
-    counts: [run.fncount, run.grcount],
-    convergence: run.fail,
+    counts: [run.fnEvals, run.gradEvals],
+    convergence: run.code,
     message,
     warnings,
   };
