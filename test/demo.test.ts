@@ -43,7 +43,7 @@ const NOT_IN_DEMO_YET: string[] = [
   "pbvnorm", "polychor", "polyserial",
   "schur", "expm",
   "optim", "optimHess",
-  "factanal",
+  "factanal", "omega",
 ];
 const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
 
