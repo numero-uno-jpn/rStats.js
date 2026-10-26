@@ -1,3 +1,5 @@
+# oracle-platform: amd64
+# (x86_64 R: arm64 R's Fortran fuses multiply-adds in expm's Padé and Taylor code, which moves their last bits)
 source("/oracle/_linalg.R")
 suppressPackageStartupMessages({library(Matrix); library(expm)})
 
