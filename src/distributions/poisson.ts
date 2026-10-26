@@ -60,6 +60,12 @@ export function qpois1(p: number, lambda: number, lowerTail: boolean, logP: bool
  * @param lambda - Mean.
  * @param options - `log` (see {@link DensityOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * dpois(2, 3);         // 0.22404180765538775
+ * dpois([0, 1, 2], 3); // [0.049787068367863944, 0.14936120510359185, 0.22404180765538775]
+ * ```
  */
 export function dpois<T extends Vectorizable>(x: T, lambda: number, options: DensityOptions = {}): VectorResult<T> {
   const log = options.log ?? false;
@@ -92,6 +98,12 @@ export function ppois<T extends Vectorizable>(q: T, lambda: number, options: Tai
  * @param lambda - Mean.
  * @param options - `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qpois(0.5, 3);           // 3
+ * qpois([0.05, 0.95], 3);  // [1, 6]
+ * ```
  */
 export function qpois<T extends Vectorizable>(p: T, lambda: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;

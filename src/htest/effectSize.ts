@@ -39,10 +39,13 @@ export interface CohensDOptions {
 export interface CohensDResult {
   /** `"Cohens_d"` or `"Hedges_g"`. */
   name: "Cohens_d" | "Hedges_g";
+  /** The effect size. */
   value: number;
   /** Confidence level (absent without an interval). */
   ci?: number;
+  /** Lower confidence limit (R's `CI_low`; `-Infinity` for `"less"`). */
   ciLow?: number;
+  /** Upper confidence limit (R's `CI_high`; `Infinity` for `"greater"`). */
   ciHigh?: number;
   /** effectsize's warnings. */
   warnings: string[];
@@ -125,8 +128,8 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
 
 /**
  * Cohen's d: the standardized difference of means of two samples (pooled or averaged standard deviation), of paired
- * samples, or of one sample against `mu`, with a confidence interval from the noncentral t distribution. Equivalent
- * to effectsize's `cohens_d()`.
+ * samples, or of one sample against `mu`, with a confidence interval from the noncentral t distribution.
+ * Equivalent to `effectsize::cohens_d()` in R.
  *
  * @example
  * ```ts
@@ -138,8 +141,13 @@ export function cohensD(x: Sample, y?: Sample, options: CohensDOptions = {}): Co
 }
 
 /**
- * Hedges' g: Cohen's d and its interval multiplied by the small-sample correction J(df). Equivalent to effectsize's
- * `hedges_g()`.
+ * Hedges' g: Cohen's d and its interval multiplied by the small-sample correction J(df). Equivalent to
+ * `effectsize::hedges_g()` in R.
+ *
+ * @example
+ * ```ts
+ * hedgesG([5.1, 4.9, 6.2, 5.8], [4.1, 4.5, 3.9, 5.0]).value; // 1.7804187661174387
+ * ```
  */
 export function hedgesG(x: Sample, y?: Sample, options: Omit<CohensDOptions, "adjust"> = {}): CohensDResult {
   return standardizedDifference(x, y, options, true);
@@ -436,7 +444,7 @@ function strataEffectSize(model: StrataModel, kind: Kind, options: EtaSquaredOpt
 
 /**
  * Eta squared of the terms of an analysis-of-variance table (partial by default, or generalized), with confidence
- * intervals from the noncentral F distribution. Equivalent to effectsize's `eta_squared()` for a table of
+ * intervals from the noncentral F distribution. Equivalent to `effectsize::eta_squared()` in R. It takes a table of
  * `anova()` or `Anova()`; a fit from `lm()` with a formula is replaced by its `anova()` table.
  *
  * Repeated measures: for a fit of `aov()` with an `Error()` term (or its {@link aovSummary}) each term is measured
@@ -445,7 +453,13 @@ function strataEffectSize(model: StrataModel, kind: Kind, options: EtaSquaredOpt
  *
  * @example
  * ```ts
+ * const data = { y: [2.1, 3.9, 6.2, 7.8, 10.1, 11.8], g: ["a", "a", "b", "b", "c", "c"] };
  * etaSquared(anova(lm("y ~ g", data))).colNames; // ["Eta2", "CI", "CI_low", "CI_high"]
+ * const long = {
+ *   y: [5, 7, 8, 4, 6, 9, 6, 8, 8, 5, 5, 7],
+ *   W: ["a", "b", "c", "a", "b", "c", "a", "b", "c", "a", "b", "c"],
+ *   id: ["s1", "s1", "s1", "s2", "s2", "s2", "s3", "s3", "s3", "s4", "s4", "s4"],
+ * };
  * etaSquared(aov("y ~ W + Error(id/W)", long)).groups; // ["id:W"]
  * ```
  */
@@ -455,7 +469,13 @@ export function etaSquared(model: AnovaEffectSizeModel, options: EtaSquaredOptio
 
 /**
  * Omega squared of the terms of an analysis-of-variance table, also of repeated-measures designs (see
- * {@link etaSquared}). Equivalent to effectsize's `omega_squared()`.
+ * {@link etaSquared}). Equivalent to `effectsize::omega_squared()` in R.
+ *
+ * @example
+ * ```ts
+ * const data = { y: [2.1, 3.9, 6.2, 7.8, 10.1, 11.8], g: ["a", "a", "b", "b", "c", "c"] };
+ * omegaSquared(anova(lm("y ~ g", data))).table; // [[0.8740518865645682, 0.95, 0.0566677410780818, 1]]
+ * ```
  */
 export function omegaSquared(model: AnovaEffectSizeModel, options: AnovaEffectSizeOptions = {}): AnovaEffectSizeTable {
   return anovaEffectSize(model, "Omega2", options);
@@ -463,7 +483,13 @@ export function omegaSquared(model: AnovaEffectSizeModel, options: AnovaEffectSi
 
 /**
  * Epsilon squared of the terms of an analysis-of-variance table, also of repeated-measures designs (see
- * {@link etaSquared}). Equivalent to effectsize's `epsilon_squared()`.
+ * {@link etaSquared}). Equivalent to `effectsize::epsilon_squared()` in R.
+ *
+ * @example
+ * ```ts
+ * const data = { y: [2.1, 3.9, 6.2, 7.8, 10.1, 11.8], g: ["a", "a", "b", "b", "c", "c"] };
+ * epsilonSquared(anova(lm("y ~ g", data))).table; // [[0.8927928150213428, 0.95, 0.1720126241673212, 1]]
+ * ```
  */
 export function epsilonSquared(model: AnovaEffectSizeModel, options: AnovaEffectSizeOptions = {}): AnovaEffectSizeTable {
   return anovaEffectSize(model, "Epsilon2", options);

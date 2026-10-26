@@ -60,6 +60,12 @@ export function qunif1(p: number, min: number, max: number, lowerTail: boolean, 
  * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `min` and `max` (see {@link UniformParams}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dunif(0.5);                        // 1
+ * dunif([1, 3], { min: 0, max: 2 }); // [0.5, 0]
+ * ```
  */
 export function dunif<T extends Vectorizable>(x: T, options: UniformParams & DensityOptions = {}): VectorResult<T> {
   const { min = 0, max = 1, log = false } = options;
@@ -72,6 +78,12 @@ export function dunif<T extends Vectorizable>(x: T, options: UniformParams & Den
  * @param q - Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `min` and `max` (see {@link UniformParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * punif(0.3);                        // 0.3
+ * punif(1.5, { min: 1, max: 3 });    // 0.25
+ * ```
  */
 export function punif<T extends Vectorizable>(q: T, options: UniformParams & TailOptions = {}): VectorResult<T> {
   const { min = 0, max = 1, lowerTail = true, logP = false } = options;
@@ -84,6 +96,12 @@ export function punif<T extends Vectorizable>(q: T, options: UniformParams & Tai
  * @param p - Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `min` and `max` (see {@link UniformParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qunif(0.25);                       // 0.25
+ * qunif([0.1, 0.9], { min: -1, max: 1 }); // [-0.8, 0.8]
+ * ```
  */
 export function qunif<T extends Vectorizable>(p: T, options: UniformParams & TailOptions = {}): VectorResult<T> {
   const { min = 0, max = 1, lowerTail = true, logP = false } = options;

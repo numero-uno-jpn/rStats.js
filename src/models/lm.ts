@@ -38,13 +38,23 @@ export interface LmResult {
   coefficients: number[];
   /** Residuals y - fitted (rows with a missing value dropped; rows of weight 0 included). */
   residuals: number[];
+  /** Fitted values, one per residual (R's `fitted.values`). */
   fittedValues: number[];
   /** Numerical rank of the model matrix. */
   rank: number;
   /** Residual degrees of freedom, n - rank (n counts the rows of non-zero weight). */
   dfResidual: number;
   /** The coefficient table of the columns that are not aliased, in their order. */
-  coefTable: { estimate: number[]; stdError: number[]; tValue: number[]; pValue: number[] };
+  coefTable: {
+    /** Estimates (R's `Estimate`). */
+    estimate: number[];
+    /** Standard errors (R's `Std. Error`). */
+    stdError: number[];
+    /** t statistics (R's `t value`). */
+    tValue: number[];
+    /** Two-sided p-values (R's `Pr(>|t|)`). */
+    pValue: number[];
+  };
   /** Residual standard error. */
   sigma: number;
   /** R^2; 0 for a model with nothing beyond the intercept, as in R. */
@@ -55,7 +65,14 @@ export interface LmResult {
    * Overall F statistic with its degrees of freedom. Absent (as is `fPValue`) when the model has nothing beyond the
    * intercept, where R's `summary(lm)` has no `fstatistic`.
    */
-  fStatistic?: { value: number; numdf: number; dendf: number };
+  fStatistic?: {
+    /** The F statistic. */
+    value: number;
+    /** Numerator degrees of freedom (rank minus the intercept). */
+    numdf: number;
+    /** Denominator degrees of freedom (the residual degrees of freedom). */
+    dendf: number;
+  };
   /** p-value of the overall F test; absent with `fStatistic`. */
   fPValue?: number;
   /** Whether the model has an intercept. */
@@ -147,8 +164,8 @@ export function lmFormulaFit(formula: string, d: Design, aov: boolean): LmFormul
 }
 
 /**
- * Fit a linear model from a formula. Equivalent to R's `lm(formula, data)` (with `weights` and `contrasts`)
- * together with `summary()`.
+ * Fit a linear model from a formula. Equivalent to R's `lm(formula, data)`. With `weights` and `contrasts`, and the
+ * quantities of `summary()`.
  *
  * The model matrix is that of {@link modelMatrix} (but levels without rows are dropped, as R's
  * `drop.unused.levels`); the fit is that of the matrix form (same pivoting and tolerance), its sums of squares computed
@@ -167,9 +184,9 @@ export function lmFormulaFit(formula: string, d: Design, aov: boolean): LmFormul
  */
 export function lm(formula: string, data: DataFrame, options?: LmFormulaOptions): LmFormulaResult;
 /**
- * Fit a linear model by least squares, the predictors given as a matrix. Equivalent to R's `lm(y ~ x)` (or
- * `y ~ x - 1` without intercept, with `weights` for weighted least squares) together with `summary()`. Rows with a
- * missing value in `x`, `y` or the weights are dropped.
+ * Fit a linear model by least squares, the predictors given as a matrix: R's `lm(y ~ x)` (or `y ~ x - 1` without
+ * intercept, with `weights` for weighted least squares) together with `summary()`. Rows with a missing value in `x`,
+ * `y` or the weights are dropped.
  *
  * @param x Predictors: a matrix (array of rows, one column per predictor) or a vector (one predictor).
  * @param y Response.
@@ -177,8 +194,8 @@ export function lm(formula: string, data: DataFrame, options?: LmFormulaOptions)
  * @example
  * ```ts
  * const fit = lm([1, 2, 3, 4, 5], [2.1, 3.9, 6.2, 7.8, 10.1]);
- * fit.coefficients; // [intercept, slope]
- * fit.rSquared;
+ * fit.coefficients; // [0.05, 1.99]
+ * fit.rSquared;     // 0.99731
  * ```
  */
 export function lm(x: MatrixInput | Sample, y: Sample, options?: LmOptions): LmResult;
@@ -363,10 +380,25 @@ export interface ConfintOptions {
 }
 
 /**
- * Confidence intervals for the coefficients of a linear model (NaN for aliased columns). Equivalent to R's
- * `confint()` for an `lm` fit.
+ * Confidence intervals for the coefficients of a linear model (NaN for aliased columns), for an `lm` fit.
+ * Equivalent to R's `confint()`.
+ *
+ * @example
+ * ```ts
+ * const fit = lm([1, 2, 3, 4, 5], [2.1, 3.9, 6.2, 7.8, 10.1]);
+ * confint(fit); // { lower: [-0.58036, 1.79994], upper: [0.68036, 2.18006] }
+ * confint(fit, { level: 0.9 }).lower; // [-0.41614, 1.84945]
+ * ```
  */
-export function confint(fit: LmResult, options: ConfintOptions = {}): { lower: number[]; upper: number[] } {
+export function confint(
+  fit: LmResult,
+  options: ConfintOptions = {},
+): {
+  /** Lower limits, one per coefficient (R's first column, `2.5 %` by default). */
+  lower: number[];
+  /** Upper limits, one per coefficient (R's second column, `97.5 %` by default). */
+  upper: number[];
+} {
   const level = options.level ?? 0.95;
   const t = qt1((1 + level) / 2, fit.dfResidual, true, false);
   const { estimate, stdError } = fit.coefTable;
@@ -391,16 +423,32 @@ export interface PredictOptions {
 }
 
 /**
- * Predictions of a linear model at new values of the predictors, with standard errors and optionally intervals.
- * Equivalent to R's `predict()` for an `lm` fit (`se.fit = TRUE`). Aliased columns are left out, as R does.
+ * Predictions of a linear model at new values of the predictors, with standard errors and optionally intervals, for
+ * an `lm` fit (`se.fit = TRUE`). Equivalent to R's `predict()`. Aliased columns are left out, as R does.
  *
  * @param newdata New predictor values, with the columns of `x` (no column of ones).
+ *
+ * @example
+ * ```ts
+ * const fit = lm([1, 2, 3, 4, 5], [2.1, 3.9, 6.2, 7.8, 10.1]);
+ * predict(fit, [6, 7]); // { fit: [11.99, 13.98], seFit: [0.19807, 0.25338] }
+ * predict(fit, [6], { interval: "prediction" }); // { lwr: [11.119], upr: [12.861] }
+ * ```
  */
 export function predict(
   fit: LmResult,
   newdata: MatrixInput | Sample,
   options: PredictOptions = {},
-): { fit: number[]; seFit: number[]; lwr?: number[]; upr?: number[] } {
+): {
+  /** Predicted values, one per row of `newdata`. */
+  fit: number[];
+  /** Standard errors of the predicted means (R's `se.fit`). */
+  seFit: number[];
+  /** Lower limits of the intervals (absent with `interval: "none"`). */
+  lwr?: number[];
+  /** Upper limits of the intervals (absent with `interval: "none"`). */
+  upr?: number[];
+} {
   const rows: number[][] =
     newdata.length > 0 && typeof newdata[0] !== "number"
       ? (newdata as MatrixInput).map((r) => Array.from(r))

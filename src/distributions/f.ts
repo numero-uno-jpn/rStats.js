@@ -151,6 +151,12 @@ export function qf1(p: number, m: number, n: number, lowerTail: boolean, logP: b
  * @param df2 - Denominator degrees of freedom.
  * @param options - `ncp` (see {@link NoncentralOption}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * df(1, 3, 10); // 0.40412281148856277
+ * df(1, 3, 10, { log: true }); // -0.9060364583831545
+ * ```
  */
 export function df<T extends Vectorizable>(
   x: T,
@@ -200,6 +206,12 @@ export function pf<T extends Vectorizable>(
  * @param df2 - Denominator degrees of freedom.
  * @param options - `ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qf(0.95, 3, 10); // 3.708264819046843
+ * qf(0.05, 2, 20, { lowerTail: false }); // 3.4928284767356335
+ * ```
  */
 export function qf<T extends Vectorizable>(
   p: T,

@@ -999,6 +999,12 @@ export function ptukey<T extends Vectorizable>(
  * @param df - Degrees of freedom of the standard deviation estimate.
  * @param options - `nranges`, `lowerTail` and `logP` (see {@link TukeyOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qtukey(0.95, 3, 12); // 3.7729289657270084
+ * qtukey(0.95, 4, 20); // 3.958293560945357
+ * ```
  */
 export function qtukey<T extends Vectorizable>(
   p: T,

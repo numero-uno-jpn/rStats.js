@@ -43,8 +43,8 @@ const MAXLOG = 7.097827128933839730962063185871e2;
 const INV_SQRT_PI = 0.5641895835477562869;
 
 /**
- * Error function, erf(x) = 2 / sqrt(pi) * integral from 0 to x of exp(-t^2) dt. Not part of R (where it is written
- * `2 * pnorm(x * sqrt(2)) - 1`, which loses the relative accuracy of small x).
+ * Error function, erf(x) = 2 / sqrt(pi) * integral from 0 to x of exp(-t^2) dt.
+ * Not an R function. R writes it as `2 * pnorm(x * sqrt(2)) - 1`, which loses the relative accuracy of small x.
  *
  * @param x - Argument.
  * @returns erf(x).
@@ -65,7 +65,8 @@ export function erf(x: number): number {
 
 /**
  * Complementary error function, erfc(x) = 1 - erf(x), accurate in the upper tail (down to the subnormal range near
- * x = 27). Not part of R (where it is written `2 * pnorm(x * sqrt(2), lower.tail = FALSE)`).
+ * x = 27).
+ * Not an R function. R writes it as `2 * pnorm(x * sqrt(2), lower.tail = FALSE)`.
  *
  * @param a - Argument.
  * @returns erfc(a).

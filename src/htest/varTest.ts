@@ -27,6 +27,7 @@ export interface VarTestOptions {
 export interface VarTestResult extends Omit<HTest, "parameter" | "parameterName"> {
   /** `[num df, denom df]`. */
   parameter: [number, number];
+  /** Names of `parameter`: `["num df", "denom df"]`. */
   parameterName: [string, string];
   confInt: [number, number];
   confLevel: number;
@@ -41,14 +42,14 @@ export interface VarTestResult extends Omit<HTest, "parameter" | "parameterName"
  *
  * @example
  * ```ts
- * varTest([1, 3, 2, 5, 4], [2, 9, 4, 12, 7, 1]).statistic; // 0.2307692
+ * varTest([1, 3, 2, 5, 4], [2, 9, 4, 12, 7, 1]).statistic; // 0.13761467889908255
  * ```
  *
  * There is also a formula form, `varTest("y ~ g", data, options)` (next overload).
  */
 export function varTest(x: Sample, y: Sample, options?: VarTestOptions): VarTestResult;
 /**
- * F test of two variances from a formula and a data frame. Equivalent to R's `var.test(formula, data)`: `"y ~ g"`
+ * F test of two variances from a formula and a data frame. As R's `var.test(formula, data)`: `"y ~ g"`
  * compares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where
  * one of them is missing are dropped.
  *
@@ -114,8 +115,8 @@ export interface BartlettTestResult extends Omit<HTest, "alternative"> {
 }
 
 /**
- * Bartlett's test that the variances of several normal samples are equal. Equivalent to R's `bartlett.test()` with
- * a list of samples. `NaN` and infinite values are dropped, as in R.
+ * Bartlett's test that the variances of several normal samples are equal. Equivalent to R's `bartlett.test()`.
+ * Takes a list of samples. `NaN` and infinite values are dropped, as in R.
  *
  * @param groups The samples (at least two), each with at least two finite values.
  *
@@ -128,7 +129,7 @@ export interface BartlettTestResult extends Omit<HTest, "alternative"> {
  */
 export function bartlettTest(groups: readonly Sample[]): BartlettTestResult;
 /**
- * Bartlett's test from a formula and a data frame. Equivalent to R's `bartlett.test(formula, data)`: `"y ~ g"`, one
+ * Bartlett's test from a formula and a data frame. As R's `bartlett.test(formula, data)`: `"y ~ g"`, one
  * group per level of `g`, in the order of the levels. Only the variables of the formula count: the rows where one of
  * them is missing are dropped.
  *

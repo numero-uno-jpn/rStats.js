@@ -98,6 +98,13 @@ export interface PairwiseTTestOptions extends PairwiseOptions {
  *
  * @param x Response values.
  * @param g Group labels, parallel to `x`.
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * pairwiseTTest(x, g).pValue; // [[0.029519264601117815, NaN], [0.0018407330776394456, 0.029519264601117815]]
+ * ```
  */
 export function pairwiseTTest(x: Sample, g: readonly GroupLabel[], options: PairwiseTTestOptions = {}): PairwiseResult {
   const paired = options.paired ?? false;
@@ -142,6 +149,13 @@ export interface PairwiseWilcoxTestOptions extends PairwiseOptions, Omit<WilcoxT
 /**
  * Pairwise Wilcoxon rank sum (or signed rank, with `paired`) tests between groups, with adjusted p-values. Equivalent
  * to R's `pairwise.wilcox.test()`. `method` is that of the last comparison, as in R.
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * pairwiseWilcoxTest(x, g).pValue; // [[0.3, NaN], [0.3, 0.3]]
+ * ```
  */
 export function pairwiseWilcoxTest(
   x: Sample,
@@ -180,6 +194,11 @@ export interface PairwisePropTestOptions {
  * @param x Numbers of successes per group.
  * @param n Numbers of trials per group. Groups with `NaN` in `x` or `n` are dropped (the rows and columns are then
  *   numbered over the groups kept, as in R).
+ *
+ * @example
+ * ```ts
+ * pairwisePropTest([15, 25, 40], [50, 50, 50]).pValue; // [[0.06619257972219345, NaN], [0.000004217380554293543, 0.006666708050273146]]
+ * ```
  */
 export function pairwisePropTest(
   x: readonly number[],

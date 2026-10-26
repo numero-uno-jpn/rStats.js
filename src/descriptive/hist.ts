@@ -150,10 +150,13 @@ export interface HistOptions {
 
 /** Result of {@link hist}. */
 export interface HistResult {
+  /** The cell boundaries, one more than the cells. */
   breaks: number[];
+  /** Number of values in each cell. */
   counts: number[];
   /** counts / (n * cell width) */
   density: number[];
+  /** Cell midpoints. */
   mids: number[];
 }
 
@@ -202,12 +205,12 @@ function fuzzScale(br: readonly number[], dataRange: number): number {
 }
 
 /**
- * Histogram counts. Equivalent to R's `hist(x, plot = FALSE)`: break points (by default pretty points over the range
+ * Histogram counts. Equivalent to R's `hist(x, plot = FALSE)`. Break points (by default pretty points over the range
  * with about Sturges' number of cells), counts, densities and cell midpoints. Non-finite values are dropped.
  *
  * @example
  * ```ts
- * hist([1, 2, 2, 3, 3, 3, 4]).counts; // [3, 3, 1] for breaks [1, 2, 3, 4]
+ * hist([1, 2, 2, 3, 3, 3, 4]).counts; // [3, 3, 1] (for breaks [1, 2, 3, 4])
  * ```
  */
 export function hist(x: Sample, options: HistOptions = {}): HistResult {
@@ -293,7 +296,7 @@ function cellOf(v: number, f: readonly number[], right: boolean, includeLowest: 
  *
  * @example
  * ```ts
- * ecdf([3, 1, 2])(2); // 2/3
+ * ecdf([3, 1, 2])(2); // 0.6666666666666666
  * ```
  */
 export function ecdf(x: Sample): (q: number) => number {

@@ -36,6 +36,13 @@ export interface NormOptions {
  * @param x A matrix (array of rows).
  * @param options See {@link NormOptions}.
  * @returns The norm of `x`.
+ *
+ * @example
+ * ```ts
+ * norm([[1, -2], [3, 4]]);                // 6 (one norm)
+ * norm([[1, -2], [3, 4]], { type: "I" }); // 7
+ * norm([[1, -2], [3, 4]], { type: "F" }); // 5.477225575051661
+ * ```
  */
 export function norm(x: MatrixInput, options: NormOptions = {}): number {
   const m = toMat(x);

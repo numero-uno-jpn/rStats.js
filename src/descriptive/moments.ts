@@ -39,7 +39,14 @@ function checkType(type: number): void {
 }
 
 /**
- * Sample skewness. Equivalent to `e1071::skewness()` (missing values dropped); `{ type: 1 }` is jStat's skewness.
+ * Sample skewness. Equivalent to `e1071::skewness()` in R. Missing values are dropped; `{ type: 1 }` is jStat's
+ * skewness.
+ *
+ * @example
+ * ```ts
+ * skewness([1, 2, 3, 10]);              // 0.6614
+ * skewness([1, 2, 3, 10], { type: 2 }); // 1.7636
+ * ```
  */
 export function skewness(x: Sample, options: MomentOptions = {}): number {
   const type = options.type ?? 3;
@@ -57,8 +64,14 @@ export function skewness(x: Sample, options: MomentOptions = {}): number {
 }
 
 /**
- * Sample excess kurtosis. Equivalent to `e1071::kurtosis()` (missing values dropped); `{ type: 1 }` is jStat's
- * kurtosis.
+ * Sample excess kurtosis. Equivalent to `e1071::kurtosis()` in R. Missing values are dropped; `{ type: 1 }` is
+ * jStat's kurtosis.
+ *
+ * @example
+ * ```ts
+ * kurtosis([1, 2, 3, 10]);              // -1.7454
+ * kurtosis([1, 2, 3, 10], { type: 1 }); // -0.7696
+ * ```
  */
 export function kurtosis(x: Sample, options: MomentOptions = {}): number {
   const type = options.type ?? 3;
@@ -76,7 +89,13 @@ export function kurtosis(x: Sample, options: MomentOptions = {}): number {
 }
 
 /**
- * Geometric mean exp(mean(log x)). Equivalent to `DescTools::Gmean()`: NaN with a negative value, 0 with a zero.
+ * Geometric mean exp(mean(log x)). Equivalent to `DescTools::Gmean()` in R. NaN with a negative value, 0 with a
+ * zero.
+ *
+ * @example
+ * ```ts
+ * geometricMean([1, 2, 4, 8]); // 2.82842712474619
+ * ```
  */
 export function geometricMean(x: Sample, options: NaRmOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -87,10 +106,21 @@ export function geometricMean(x: Sample, options: NaRmOptions = {}): number {
 }
 
 /**
- * The most frequent values (all of them, in increasing order) and their frequency. Equivalent to `DescTools::Mode()`
- * (missing values dropped): `value` is `[NaN]` and `frequency` NaN when every value occurs once.
+ * The most frequent values (all of them, in increasing order) and their frequency. Equivalent to
+ * `DescTools::Mode()` in R. Missing values are dropped; `value` is `[NaN]` and `frequency` NaN when every value
+ * occurs once.
+ *
+ * @example
+ * ```ts
+ * modes([1, 2, 2, 3, 3, 4]); // { value: [2, 3], frequency: 2 }
+ * ```
  */
-export function modes(x: Sample): { value: number[]; frequency: number } {
+export function modes(x: Sample): {
+  /** The most frequent values, in increasing order (`[NaN]` when every value occurs once). */
+  value: number[];
+  /** How often each of them occurs (NaN when every value occurs once). */
+  frequency: number;
+} {
   const xs = values(x, true)!;
   const counts = new Map<number, number>();
   for (const v of xs) counts.set(v === 0 ? 0 : v, (counts.get(v === 0 ? 0 : v) ?? 0) + 1);
@@ -107,7 +137,15 @@ export interface MeanADOptions {
   center?: "mean" | "median" | number;
 }
 
-/** Mean absolute deviation from the centre. Equivalent to `DescTools::MeanAD()` (missing values dropped). */
+/**
+ * Mean absolute deviation from the centre. Equivalent to `DescTools::MeanAD()` in R. Missing values are dropped.
+ *
+ * @example
+ * ```ts
+ * meanAD([1, 2, 3, 10]);                       // 3
+ * meanAD([1, 2, 3, 10], { center: "median" }); // 2.5
+ * ```
+ */
 export function meanAD(x: Sample, options: MeanADOptions = {}): number {
   const xs = values(x, true)!;
   const c = options.center ?? "mean";
@@ -122,7 +160,12 @@ export interface CvOptions extends NaRmOptions {
 }
 
 /**
- * Coefficient of variation sd / mean (sample standard deviation). Equivalent to `DescTools::CoefVar()`.
+ * Coefficient of variation sd / mean (sample standard deviation). Equivalent to `DescTools::CoefVar()` in R.
+ *
+ * @example
+ * ```ts
+ * cv([2, 4, 4, 4, 5, 5, 7, 9]); // 0.4276
+ * ```
  */
 export function cv(x: Sample, options: CvOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -145,13 +188,25 @@ export interface ScaleOptions {
 }
 
 /**
- * Centre and scale the columns of a matrix (array of rows; a vector is one column). Equivalent to R's `scale()`:
+ * Centre and scale the columns of a matrix (array of rows; a vector is one column). Equivalent to R's `scale()`.
  * `center` and `scale` report the values used (R's attributes), when any.
+ *
+ * @example
+ * ```ts
+ * scale([1, 2, 3]); // { scaled: [[-1], [0], [1]], center: [2], scale: [1] }
+ * ```
  */
 export function scale(
   x: Sample | readonly (readonly number[])[],
   options: ScaleOptions = {},
-): { scaled: number[][]; center?: number[]; scale?: number[] } {
+): {
+  /** The centred and scaled matrix, as an array of rows (R's returned matrix). */
+  scaled: number[][];
+  /** The values subtracted from each column (R's `scaled:center` attribute); absent with `center: false`. */
+  center?: number[];
+  /** The values each column was divided by (R's `scaled:scale` attribute); absent with `scale: false`. */
+  scale?: number[];
+} {
   const rows: number[][] =
     x.length > 0 && Array.isArray(x[0]) ? (x as readonly (readonly number[])[]).map((r) => [...r]) : Array.from(x as Sample, (v) => [v]);
   const nc = rows[0]?.length ?? 0;

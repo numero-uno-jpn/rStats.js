@@ -8,13 +8,12 @@
 // "complete.obs" and "na.or.complete" (rows with any missing value are dropped) and "pairwise.complete.obs" (each
 // pair of variables uses the rows where both are present).
 
-import { kendall, pearsonDD } from "../htest/cor.js";
+import { kendall, pearsonDD, type CorMethod } from "../htest/cor.js";
 import type { Sample } from "../htest/types.js";
 import { covariance } from "../internal/summary.js";
 import { rank } from "./rank.js";
 
-/** Correlation or covariance method, as R's `method`. */
-export type CorMethod = "pearson" | "kendall" | "spearman";
+export type { CorMethod };
 
 /** Handling of missing values, as R's `use`. */
 export type CorUse = "everything" | "all.obs" | "complete.obs" | "na.or.complete" | "pairwise.complete.obs";
@@ -110,13 +109,13 @@ function compute(x: Input, y: Input | undefined, options: CovOptions, correlatio
  *
  * @example
  * ```ts
- * cov([1, 2, 3, 4], [2, 4, 5, 9]);   // 3.6666666666666665
- * cov([[1, 2], [2, 4], [3, 5], [4, 9]]); // 2 x 2 matrix
+ * cov([1, 2, 3, 4], [2, 4, 5, 9]);       // 3.6666666666666665
+ * cov([[1, 2], [2, 4], [3, 5], [4, 9]]); // [[1.6666666666666667, 3.6666666666666665], [3.6666666666666665, 8.666666666666666]]
  * ```
  */
 export function cov(x: Sample, y: Sample, options?: CovOptions): number;
-export function cov(x: Input, y?: Input, options?: CovOptions): number | number[][];
-export function cov(x: Input, y?: Input | CovOptions, options: CovOptions = {}): number | number[][] {
+export function cov(x: Sample | readonly (readonly number[])[], y?: Sample | readonly (readonly number[])[], options?: CovOptions): number | number[][];
+export function cov(x: Sample | readonly (readonly number[])[], y?: Sample | readonly (readonly number[])[] | CovOptions, options: CovOptions = {}): number | number[][] {
   if (y !== undefined && !Array.isArray(y) && !ArrayBuffer.isView(y)) return compute(x, undefined, y as CovOptions, false);
   return compute(x, y as Input | undefined, options, false);
 }
@@ -128,13 +127,13 @@ export function cov(x: Input, y?: Input | CovOptions, options: CovOptions = {}):
  *
  * @example
  * ```ts
- * cor([1, 2, 3, 4], [2, 4, 5, 9]);                          // 0.9561828874675149
- * cor([1, 2, 3, 4], [2, 4, 5, 9], { method: "spearman" });  // 1
+ * cor([1, 2, 3, 4], [2, 4, 5, 9]);                         // 0.9647638212377322
+ * cor([1, 2, 3, 4], [2, 4, 5, 9], { method: "spearman" }); // 1
  * ```
  */
 export function cor(x: Sample, y: Sample, options?: CovOptions): number;
-export function cor(x: Input, y?: Input, options?: CovOptions): number | number[][];
-export function cor(x: Input, y?: Input | CovOptions, options: CovOptions = {}): number | number[][] {
+export function cor(x: Sample | readonly (readonly number[])[], y?: Sample | readonly (readonly number[])[], options?: CovOptions): number | number[][];
+export function cor(x: Sample | readonly (readonly number[])[], y?: Sample | readonly (readonly number[])[] | CovOptions, options: CovOptions = {}): number | number[][] {
   if (y !== undefined && !Array.isArray(y) && !ArrayBuffer.isView(y)) return compute(x, undefined, y as CovOptions, true);
   return compute(x, y as Input | undefined, options, true);
 }

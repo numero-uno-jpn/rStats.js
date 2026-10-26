@@ -29,11 +29,17 @@ import { qarcsine } from "./arcsine.js";
 
 /** Result of {@link distSummary}. */
 export interface DistSummary {
+  /** Mean (NaN when it does not exist, `Infinity` when it is infinite). */
   mean: number;
+  /** Variance (NaN when it does not exist, `Infinity` when it is infinite). */
   variance: number;
+  /** Standard deviation, the square root of the variance. */
   sd: number;
+  /** Median: the q function at 0.5 (for discrete distributions the smallest x with F(x) >= 0.5). */
   median: number;
+  /** Mode: the maximum of the density (NaN when it is not unique; the larger of two adjacent modes). */
   mode: number;
+  /** Skewness, E[(X - mean)^3] / sd^3. */
   skewness: number;
   /** Excess kurtosis (0 for the normal distribution). */
   kurtosis: number;
@@ -99,6 +105,8 @@ const has = (o: Record<string, number | undefined>, k: string): boolean => o[k] 
  * Mean, variance, standard deviation, median, mode, skewness and excess kurtosis of a distribution, given by the
  * name of its d/p/q/r functions and their parameters (with the same names and defaults; `gamma` takes `rate` or
  * `scale`, `nbinom` takes `prob` or `mu`). Invalid parameters give NaN throughout.
+ * Not an R function. R has no function for these summaries; the R references are closed forms checked against
+ * numerical moments.
  *
  * @example
  * ```ts

@@ -32,8 +32,11 @@ export interface MauchlyTestOptions {
 export interface MauchlyTestResult {
   /** Mauchly's W. */
   statistic: number;
+  /** Name of the statistic (R's `names(statistic)`). */
   statisticName: "W";
+  /** p-value (R's `p.value`). */
   pValue: number;
+  /** Name of the test (R's `method`). */
   method: "Mauchly's test of sphericity";
 }
 
@@ -92,15 +95,17 @@ export function contrastCrossprod(S: DDMatrix, mcols: number[][], xcols: number[
 
 /**
  * Mauchly's test of sphericity of the measurements of each subject (a row of `y`), on the contrasts spanned by `M`
- * and orthogonal to `X` (both formulas over `idata`). Equivalent to R's `mauchly.test(lm(y ~ 1), X = ~1)` and its
- * variants (`group` for `lm(y ~ group)`, `M`, `X`, `idata`).
+ * and orthogonal to `X` (both formulas over `idata`). Equivalent to R's `mauchly.test()`. As R's
+ * `mauchly.test(lm(y ~ 1), X = ~1)` and its variants (`group` for `lm(y ~ group)`, `M`, `X`, `idata`).
  *
  * @param y One row per subject, one column per measurement.
  *
  * @example
  * ```ts
  * const y = [[10.5, 9.8, 8.8], [11.2, 10.1, 9.9], [9.7, 9.5, 9.0], [10.9, 10.6, 9.1], [10.1, 9.2, 9.4]];
- * mauchlyTest(y, { X: "~1" }).statistic; // W
+ * const r = mauchlyTest(y, { X: "~1" });
+ * r.statistic; // 0.64938
+ * r.pValue;    // 0.5233
  * ```
  */
 export function mauchlyTest(y: MatrixInput, options: MauchlyTestOptions = {}): MauchlyTestResult {

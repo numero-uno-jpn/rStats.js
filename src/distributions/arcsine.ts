@@ -55,24 +55,49 @@ export function qarcsine1(p: number, a: number, b: number, lowerTail: boolean, l
 }
 
 /**
- * Density of the arcsine distribution on (a, b), f(x) = 1 / (pi sqrt((x - a)(b - x))). R has no arcsine
- * distribution; this equals `dbeta((x - a) / (b - a), 0.5, 0.5) / (b - a)`.
+ * Density of the arcsine distribution on (a, b), f(x) = 1 / (pi sqrt((x - a)(b - x))).
+ * Not an R function. Neither base R nor extraDistr has the arcsine distribution; this equals
+ * `dbeta((x - a) / (b - a), 0.5, 0.5) / (b - a)`.
  *
  * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `a` and `b` (see {@link ArcsineParams}) and `log` (see {@link DensityOptions}).
+ *
+ * @example
+ * ```ts
+ * darcsine(0.5);                   // 0.6366197723675813
+ * darcsine(1, { a: 0, b: 4 });     // 0.1837762984739307
+ * ```
  */
 export function darcsine<T extends Vectorizable>(x: T, options: ArcsineParams & DensityOptions = {}): VectorResult<T> {
   const { a = 0, b = 1, log = false } = options;
   return vectorize(x, (v) => darcsine1(v, a, b, log));
 }
 
-/** Distribution function of the arcsine distribution on (a, b): `pbeta((q - a) / (b - a), 0.5, 0.5)`. */
+/**
+ * Distribution function of the arcsine distribution on (a, b): `pbeta((q - a) / (b - a), 0.5, 0.5)`.
+ * Not an R function. Neither base R nor extraDistr has the arcsine distribution.
+ *
+ * @example
+ * ```ts
+ * parcsine(0.25);                  // 0.3333333333333333
+ * parcsine(1, { a: 0, b: 4 });     // 0.3333333333333333
+ * ```
+ */
 export function parcsine<T extends Vectorizable>(q: T, options: ArcsineParams & TailOptions = {}): VectorResult<T> {
   const { a = 0, b = 1, lowerTail = true, logP = false } = options;
   return vectorize(q, (v) => parcsine1(v, a, b, lowerTail, logP));
 }
 
-/** Quantile function of the arcsine distribution on (a, b): `a + (b - a) qbeta(p, 0.5, 0.5)`. */
+/**
+ * Quantile function of the arcsine distribution on (a, b): `a + (b - a) qbeta(p, 0.5, 0.5)`.
+ * Not an R function. Neither base R nor extraDistr has the arcsine distribution.
+ *
+ * @example
+ * ```ts
+ * qarcsine(0.5);                   // 0.5
+ * qarcsine(0.25, { a: 0, b: 4 });  // 0.5857864376269049
+ * ```
+ */
 export function qarcsine<T extends Vectorizable>(p: T, options: ArcsineParams & TailOptions = {}): VectorResult<T> {
   const { a = 0, b = 1, lowerTail = true, logP = false } = options;
   return vectorize(p, (v) => qarcsine1(v, a, b, lowerTail, logP));

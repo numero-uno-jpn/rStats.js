@@ -234,6 +234,12 @@ export function qwilcox1(p: number, m: number, n: number, lowerTail: boolean, lo
  * @param n - Size of the second sample.
  * @param options - `log` (see {@link DensityOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * dwilcox(5, 4, 6);        // 0.02857142857142857
+ * dwilcox([0, 1, 2], 3, 4); // [0.02857142857142857, 0.02857142857142857, 0.05714285714285714]
+ * ```
  */
 export function dwilcox<T extends Vectorizable>(x: T, m: number, n: number, options: DensityOptions = {}): VectorResult<T> {
   const log = options.log ?? false;
@@ -252,6 +258,12 @@ export function dwilcox<T extends Vectorizable>(x: T, m: number, n: number, opti
  * @param n - Size of the second sample.
  * @param options - `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * pwilcox(5, 4, 6);                       // 0.08571428571428572
+ * pwilcox(18, 4, 6, { lowerTail: false }); // 0.08571428571428572
+ * ```
  */
 export function pwilcox<T extends Vectorizable>(q: T, m: number, n: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;
@@ -270,6 +282,12 @@ export function pwilcox<T extends Vectorizable>(q: T, m: number, n: number, opti
  * @param n - Size of the second sample.
  * @param options - `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qwilcox(0.025, 4, 6);         // 3
+ * qwilcox([0.25, 0.75], 4, 6);  // [9, 15]
+ * ```
  */
 export function qwilcox<T extends Vectorizable>(p: T, m: number, n: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;

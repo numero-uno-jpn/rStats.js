@@ -68,7 +68,7 @@ function quantileOfSorted(s: readonly number[], p: number, type: number): number
 }
 
 /**
- * Sample quantiles. Equivalent to R's `quantile()` (with `names = FALSE`).
+ * Sample quantiles. Equivalent to R's `quantile()`. Without names (R's `names = FALSE`).
  *
  * @param x The data.
  * @param probs Probabilities in [0, 1]. Default `[0, 0.25, 0.5, 0.75, 1]`. A single number gives a single number.
@@ -102,15 +102,27 @@ export function quantile(
   return typeof probs === "number" ? out[0]! : out;
 }
 
-/** Interquartile range, the difference of the 0.75 and 0.25 quantiles. Equivalent to R's `IQR()`. */
+/**
+ * Interquartile range, the difference of the 0.75 and 0.25 quantiles. Equivalent to R's `IQR()`.
+ *
+ * @example
+ * ```ts
+ * IQR([1, 2, 3, 4, 5, 6]); // 2.5
+ * ```
+ */
 export function IQR(x: Sample, options: QuantileOptions = {}): number {
   const [a, b] = quantile(x, [0.25, 0.75], options);
   return b! - a!;
 }
 
 /**
- * Tukey's five-number summary (minimum, lower hinge, median, upper hinge, maximum). Equivalent to R's `fivenum()`;
+ * Tukey's five-number summary (minimum, lower hinge, median, upper hinge, maximum). Equivalent to R's `fivenum()`.
  * `NaN` values are dropped.
+ *
+ * @example
+ * ```ts
+ * fivenum([1, 2, 3, 4, 5, 6]); // [1, 2, 3.5, 5, 6]
+ * ```
  */
 export function fivenum(x: Sample): [number, number, number, number, number] {
   const s = Array.from(x)

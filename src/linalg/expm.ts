@@ -45,8 +45,8 @@ export interface ExpmOptions {
 }
 
 /**
- * Matrix exponential. Equivalent to R's `expm::expm(x, method, order)` with methods `"Higham08.b"` (the default),
- * `"Higham08"`, `"Pade"`, `"Taylor"`, `"PadeO"` and `"TaylorO"`.
+ * Matrix exponential. Equivalent to `expm::expm(x, method, order)` in R. The methods are `"Higham08.b"` (the
+ * default), `"Higham08"`, `"Pade"`, `"Taylor"`, `"PadeO"` and `"TaylorO"`.
  *
  * `"Higham08.b"` and `"Higham08"` use the scaling and squaring method with Padé approximants of degree 3, 5, 7, 9 or
  * 13 (Higham 2005), with or without balancing first, and throw if a linear system of the method is computationally
@@ -60,7 +60,7 @@ export interface ExpmOptions {
  * @example
  * ```ts
  * expm([[0, 1], [0, 0]]); // [[1, 1], [0, 1]]
- * expm([[0, -1], [1, 0]]); // [[cos 1, -sin 1], [sin 1, cos 1]] (up to rounding)
+ * expm([[0, -1], [1, 0]]); // [[0.5403023059, -0.8414709848], [0.8414709848, 0.5403023059]] (cos 1 and sin 1)
  * ```
  */
 export function expm(x: MatrixInput, options: ExpmOptions = {}): number[][] {

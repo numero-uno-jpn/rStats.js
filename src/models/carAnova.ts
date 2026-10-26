@@ -51,8 +51,8 @@ function addedSS(fit: LmFormulaResult, base: number[], added: number[]): { ss: n
 }
 
 /**
- * Type II or type III tests of the terms of a linear model, equivalent to `car::Anova(fit, type = 2)` or `type = 3`
- * for an `lm` fit. Columns `Sum Sq`, `Df`, `F value`, `Pr(>F)`; rows the terms (type III: `(Intercept)` first when the
+ * Type II or type III tests of the terms of a linear model. Equivalent to `car::Anova()` in R. As
+ * `car::Anova(fit, type = 2)` or `type = 3` for an `lm` fit: columns `Sum Sq`, `Df`, `F value`, `Pr(>F)`; rows the terms (type III: `(Intercept)` first when the
  * model has one) and `Residuals`.
  *
  * Type II tests each term after all the others except the terms that contain it (car's marginality; it does not

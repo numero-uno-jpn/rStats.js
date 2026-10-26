@@ -22,11 +22,16 @@ function lbetaAsymp(a: number, b: number): { value: number; sign: number } {
 }
 
 /**
- * Beta function B(a, b). Equivalent to R's `beta(a, b)` for single numbers.
+ * Beta function B(a, b). Equivalent to R's `beta()`. Takes single numbers.
  *
  * @param a - First argument.
  * @param b - Second argument.
  * @returns B(a, b).
+ *
+ * @example
+ * ```ts
+ * beta(2, 3);  // 0.08333333333333333
+ * ```
  */
 export function beta(a: number, b: number): number {
   if (Number.isNaN(a) || Number.isNaN(b)) return NaN;
@@ -82,7 +87,7 @@ function betaNegint(a: number, b: number): number {
 
 /**
  * Natural logarithm of the absolute value of the beta function, log|B(a, b)|.
- * Equivalent to R's `lbeta(a, b)` for single numbers.
+ * Equivalent to R's `lbeta()`. Takes single numbers.
  *
  * For a, b > 0 with the larger argument above 15, it is computed as
  * lgamma(small) - [lgamma(large + small) - lgamma(large)] with the bracketed difference
@@ -91,6 +96,11 @@ function betaNegint(a: number, b: number): number {
  * @param a - First argument.
  * @param b - Second argument.
  * @returns log|B(a, b)|.
+ *
+ * @example
+ * ```ts
+ * lbeta(1000, 1000);  // -1388.4826016359023
+ * ```
  */
 export function lbeta(a: number, b: number): number {
   if (Number.isNaN(a) || Number.isNaN(b)) return NaN;

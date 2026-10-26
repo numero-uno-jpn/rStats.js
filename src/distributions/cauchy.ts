@@ -98,6 +98,12 @@ export function qcauchy1(p: number, location: number, scale: number, lowerTail: 
  * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `location` and `scale` (see {@link LocationScaleParams}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dcauchy(0);                             // 0.3183098861837907
+ * dcauchy(1, { location: 1, scale: 2 });  // 0.15915494309189535
+ * ```
  */
 export function dcauchy<T extends Vectorizable>(x: T, options: LocationScaleParams & DensityOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, log = false } = options;
@@ -110,6 +116,12 @@ export function dcauchy<T extends Vectorizable>(x: T, options: LocationScalePara
  * @param q - Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `location` and `scale` (see {@link LocationScaleParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * pcauchy(1);                             // 0.75
+ * pcauchy(3, { location: 1, scale: 2 });  // 0.75
+ * ```
  */
 export function pcauchy<T extends Vectorizable>(q: T, options: LocationScaleParams & TailOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, lowerTail = true, logP = false } = options;
@@ -122,6 +134,12 @@ export function pcauchy<T extends Vectorizable>(q: T, options: LocationScalePara
  * @param p - Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `location` and `scale` (see {@link LocationScaleParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qcauchy(0.75);                          // 1.0000000000000002
+ * qcauchy(0.975, { scale: 2 });           // 25.41240947234939
+ * ```
  */
 export function qcauchy<T extends Vectorizable>(p: T, options: LocationScaleParams & TailOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, lowerTail = true, logP = false } = options;

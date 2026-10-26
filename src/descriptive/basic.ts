@@ -33,11 +33,11 @@ function sumOf(xs: readonly number[]): number {
 }
 
 /**
- * Sum of the values. Equivalent to R's `sum()` for a numeric vector (0 for an empty one).
+ * Sum of the values. Equivalent to R's `sum()`. For a numeric vector (0 for an empty one).
  *
  * @example
  * ```ts
- * sum([0.1, 0.2, 0.3]); // 0.6000000000000001 in plain JS addition, 0.6 here (correctly rounded)
+ * sum([0.1, 0.2, 0.3]); // 0.6 (plain JS addition gives 0.6000000000000001)
  * ```
  */
 export function sum(x: Sample, options: NaRmOptions = {}): number {
@@ -46,7 +46,12 @@ export function sum(x: Sample, options: NaRmOptions = {}): number {
 }
 
 /**
- * Product of the values. Equivalent to R's `prod()` (1 for an empty vector).
+ * Product of the values. Equivalent to R's `prod()`. 1 for an empty vector.
+ *
+ * @example
+ * ```ts
+ * prod([1, 2, 3, 4]); // 24
+ * ```
  */
 export function prod(x: Sample, options: NaRmOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -76,6 +81,12 @@ export interface MeanOptions extends NaRmOptions {
 /**
  * Arithmetic mean, optionally trimmed. Equivalent to R's `mean()`. Accurate to the last bit: the sum is taken in
  * double-double and corrected by the mean deviation, as R corrects its long double mean.
+ *
+ * @example
+ * ```ts
+ * mean([1, 2, 3, 10]);                // 4
+ * mean([1, 2, 3, 10], { trim: 0.25 }); // 2.5
+ * ```
  */
 export function mean(x: Sample, options: MeanOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -95,8 +106,13 @@ export function mean(x: Sample, options: MeanOptions = {}): number {
 }
 
 /**
- * Weighted mean `sum(x w) / sum(w)`. Equivalent to R's `weighted.mean()`: values with weight 0 do not enter the
+ * Weighted mean `sum(x w) / sum(w)`. Equivalent to R's `weighted.mean()`. Values with weight 0 do not enter the
  * numerator (even if infinite or NaN), and `naRm` drops missing values of `x` with their weights.
+ *
+ * @example
+ * ```ts
+ * weightedMean([1, 2, 3], [3, 1, 1]); // 1.6
+ * ```
  */
 export function weightedMean(x: Sample, w: Sample, options: NaRmOptions = {}): number {
   let xs = Array.from(x);
@@ -113,8 +129,13 @@ export function weightedMean(x: Sample, w: Sample, options: NaRmOptions = {}): n
 }
 
 /**
- * Sample variance (denominator n - 1). Equivalent to R's `var()` for a vector (`NaN` for fewer than 2 values); named
+ * Sample variance (denominator n - 1). Equivalent to R's `var()`. For a vector (`NaN` for fewer than 2 values); named
  * `variance` because `var` cannot be a name in JavaScript. For matrices use `cov`.
+ *
+ * @example
+ * ```ts
+ * variance([1, 2, 3, 4]); // 1.6666666666666667
+ * ```
  */
 export function variance(x: Sample, options: NaRmOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -122,12 +143,27 @@ export function variance(x: Sample, options: NaRmOptions = {}): number {
   return varianceOf(xs);
 }
 
-/** Sample standard deviation (denominator n - 1). Equivalent to R's `sd()`. */
+/**
+ * Sample standard deviation (denominator n - 1). Equivalent to R's `sd()`.
+ *
+ * @example
+ * ```ts
+ * sd([2, 4, 4, 4, 5, 5, 7, 9]); // 2.138
+ * ```
+ */
 export function sd(x: Sample, options: NaRmOptions = {}): number {
   return Math.sqrt(variance(x, options));
 }
 
-/** Median of the values (the mean of the two middle ones for an even count). Equivalent to R's `median()`. */
+/**
+ * Median of the values (the mean of the two middle ones for an even count). Equivalent to R's `median()`.
+ *
+ * @example
+ * ```ts
+ * median([3, 1, 2]);    // 2
+ * median([4, 1, 3, 2]); // 2.5
+ * ```
+ */
 export function median(x: Sample, options: NaRmOptions = {}): number {
   const xs = values(x, options.naRm);
   if (xs === undefined) return NaN;
@@ -139,8 +175,14 @@ export function median(x: Sample, options: NaRmOptions = {}): number {
 }
 
 /**
- * `[min, max]` of the values. Equivalent to R's `range()` (`[NaN, NaN]` with a missing value unless `naRm`;
- * `[Infinity, -Infinity]` for an empty vector).
+ * `[min, max]` of the values. Equivalent to R's `range()`. `[NaN, NaN]` with a missing value unless `naRm`;
+ * `[Infinity, -Infinity]` for an empty vector.
+ *
+ * @example
+ * ```ts
+ * range([3, 1, 4, 1, 5]);             // [1, 5]
+ * range([3, NaN, 4], { naRm: true }); // [3, 4]
+ * ```
  */
 export function range(x: Sample, options: NaRmOptions = {}): [number, number] {
   const xs = values(x, options.naRm);
@@ -154,7 +196,15 @@ export function range(x: Sample, options: NaRmOptions = {}): [number, number] {
   return [lo, hi];
 }
 
-/** Running sums. Equivalent to R's `cumsum()`: each partial sum is rounded from an exact accumulator; `NaN` from the first `NaN` on. */
+/**
+ * Running sums. Equivalent to R's `cumsum()`. Each partial sum is rounded from an exact accumulator; `NaN` from the
+ * first `NaN` on.
+ *
+ * @example
+ * ```ts
+ * cumsum([1, 2, 3, 4]); // [1, 3, 6, 10]
+ * ```
+ */
 export function cumsum(x: Sample): number[] {
   const out: number[] = [];
   let s: DD = [0, 0];
@@ -174,8 +224,13 @@ export function cumsum(x: Sample): number[] {
 }
 
 /**
- * Running products. Equivalent to R's `cumprod()`: products beyond the double range show as ±Infinity with the right
+ * Running products. Equivalent to R's `cumprod()`. Products beyond the double range show as ±Infinity with the right
  * sign, as R's long double accumulator does.
+ *
+ * @example
+ * ```ts
+ * cumprod([1, 2, 3, 4]); // [1, 2, 6, 24]
+ * ```
  */
 export function cumprod(x: Sample): number[] {
   const out: number[] = [];
@@ -233,12 +288,26 @@ function cumExtreme(x: Sample, better: (a: number, b: number) => boolean): numbe
   return out;
 }
 
-/** Running maxima. Equivalent to R's `cummax()`: `NaN` from the first `NaN` on. */
+/**
+ * Running maxima. Equivalent to R's `cummax()`. `NaN` from the first `NaN` on.
+ *
+ * @example
+ * ```ts
+ * cummax([1, 3, 2, 5, 4]); // [1, 3, 3, 5, 5]
+ * ```
+ */
 export function cummax(x: Sample): number[] {
   return cumExtreme(x, (a, b) => a > b);
 }
 
-/** Running minima. Equivalent to R's `cummin()`. */
+/**
+ * Running minima. Equivalent to R's `cummin()`.
+ *
+ * @example
+ * ```ts
+ * cummin([5, 3, 4, 1, 2]); // [5, 3, 3, 1, 1]
+ * ```
+ */
 export function cummin(x: Sample): number[] {
   return cumExtreme(x, (a, b) => a < b);
 }
@@ -252,8 +321,14 @@ export interface DiffOptions {
 }
 
 /**
- * Lagged and iterated differences. Equivalent to R's `diff()` for a vector (empty when `lag * differences` is at
+ * Lagged and iterated differences. Equivalent to R's `diff()`. For a vector (empty when `lag * differences` is at
  * least the length).
+ *
+ * @example
+ * ```ts
+ * diff([1, 4, 9, 16]);                     // [3, 5, 7]
+ * diff([1, 4, 9, 16], { differences: 2 }); // [2, 2]
+ * ```
  */
 export function diff(x: Sample, options: DiffOptions = {}): number[] {
   const lag = options.lag ?? 1;

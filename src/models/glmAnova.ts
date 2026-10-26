@@ -61,10 +61,21 @@ function rowOf(model: GlmModel, cols: number[], warnings: Warnings): Row {
 const rao = (small: Row, large: Row) => scoreStatistic(large.x, small.fit.workingResiduals, small.fit.workingWeights, large.intercept);
 
 /**
- * Analysis of deviance. Equivalent to R's `anova()` for one `glm` fit (the sequential table, each column of `x`
- * added in order) or for several fits of the same data (`anova(fit1, fit2, ...)`).
+ * Analysis of deviance, for one `glm` fit (the sequential table, each column of `x` added in order) or for several
+ * fits of the same data (`anova(fit1, fit2, ...)`). Equivalent to R's `anova()`.
  *
  * @param fits One fit, or an array of fits to compare.
+ *
+ * @example
+ * ```ts
+ * const y = [0, 0, 1, 0, 1, 1];
+ * const fit0 = glm([[], [], [], [], [], []], y, { family: "binomial" });
+ * const fit1 = glm([1, 2, 3, 4, 5, 6], y, { family: "binomial" });
+ * const a = glmAnova(fit1);
+ * a.colNames; // ["Df", "Deviance", "Resid. Df", "Resid. Dev", "Pr(>Chi)"]
+ * a.table[1];  // [1, 3.3618, 4, 4.956, 0.066725]
+ * glmAnova([fit0, fit1], { test: "LRT" }).table[1]; // [4, 4.956, 1, 3.3618, 0.066725]
+ * ```
  */
 export function glmAnova(fits: GlmResult | readonly GlmResult[], options: GlmAnovaOptions = {}): GlmAnovaResult {
   const list = Array.isArray(fits) ? (fits as readonly GlmResult[]) : [fits as GlmResult];

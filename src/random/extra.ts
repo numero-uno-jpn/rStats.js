@@ -14,29 +14,60 @@ import { rgamma1 } from "./gamma.js";
 import { expRand, unifRand } from "./rng.js";
 
 /**
- * Random numbers from the inverse gamma distribution. Equivalent to `extraDistr::rinvgamma(n, alpha, beta = 1)`.
+ * Random numbers from the inverse gamma distribution. Equivalent to `extraDistr::rinvgamma(n, alpha, beta = 1)` in R.
  *
  * @param n Number of values to generate.
  * @param alpha Shape.
  * @param options.beta Scale. Default `1`.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rinvgamma(2, 3, { beta: 2 }); // [1.24409, 0.3964566]
+ * ```
  */
 export function rinvgamma(n: number, alpha: number, options: { beta?: number } = {}): number[] {
   const { beta = 1 } = options;
   return generate(n, () => (alpha > 0 && beta > 0 && Number.isFinite(alpha) && Number.isFinite(beta) ? 1 / rgamma1(alpha, 1 / beta) : NaN));
 }
 
-/** Random numbers from the Kumaraswamy distribution. Equivalent to `extraDistr::rkumar(n, a, b)`. */
+/**
+ * Random numbers from the Kumaraswamy distribution. Equivalent to `extraDistr::rkumar(n, a, b)` in R.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rkumar(2, 2, 3); // [0.5977236, 0.5298335]
+ * ```
+ */
 export function rkumar(n: number, a: number, b: number): number[] {
   return generate(n, () => (a > 0 && b > 0 && Number.isFinite(a) && Number.isFinite(b) ? qkumar1(1 - unifRand(), a, b, true, false) : NaN));
 }
 
-/** Random numbers from the Pareto distribution. Equivalent to `extraDistr::rpareto(n, a = 1, b = 1)`. */
+/**
+ * Random numbers from the Pareto distribution. Equivalent to `extraDistr::rpareto(n, a = 1, b = 1)` in R.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rpareto(2, { a: 3, b: 1 }); // [1.555872, 1.390286]
+ * ```
+ */
 export function rpareto(n: number, options: { a?: number; b?: number } = {}): number[] {
   const { a = 1, b = 1 } = options;
   return generate(n, () => (a > 0 && b > 0 && Number.isFinite(a) && Number.isFinite(b) ? qpareto1(1 - unifRand(), a, b, true, false) : NaN));
 }
 
-/** Random numbers from the triangular distribution. Equivalent to `extraDistr::rtriang(n, a = -1, b = 1, c = (a + b)/2)`. */
+/**
+ * Random numbers from the triangular distribution.
+ * Equivalent to `extraDistr::rtriang(n, a = -1, b = 1, c = (a + b)/2)` in R.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rtriang(2, { a: 0, b: 2, c: 1 }); // [0.6376326, 1.481061]
+ * ```
+ */
 export function rtriang(n: number, options: { a?: number; b?: number; c?: number } = {}): number[] {
   const { a = -1, b = 1 } = options;
   const c = options.c ?? (a + b) / 2;
@@ -49,7 +80,15 @@ export function rtriang(n: number, options: { a?: number; b?: number; c?: number
   });
 }
 
-/** Random numbers from the Laplace distribution. Equivalent to `extraDistr::rlaplace(n, mu = 0, sigma = 1)`. */
+/**
+ * Random numbers from the Laplace distribution. Equivalent to `extraDistr::rlaplace(n, mu = 0, sigma = 1)` in R.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rlaplace(2, { mu: 0, sigma: 1 }); // [-0.7551818, 0.1457067]
+ * ```
+ */
 export function rlaplace(n: number, options: { mu?: number; sigma?: number } = {}): number[] {
   const { mu = 0, sigma = 1 } = options;
   return generate(n, () => {
@@ -60,7 +99,16 @@ export function rlaplace(n: number, options: { mu?: number; sigma?: number } = {
   });
 }
 
-/** Random numbers from the arcsine distribution on (a, b), by inversion: `qarcsine(runif(n), a, b)`. */
+/**
+ * Random numbers from the arcsine distribution on (a, b), by inversion: `qarcsine(runif(n), a, b)`.
+ * Not an R function. The arcsine distribution is neither in base R nor in extraDistr.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rarcsine(2, { a: 0, b: 1 }); // [0.1640851, 0.3044923]
+ * ```
+ */
 export function rarcsine(n: number, options: { a?: number; b?: number } = {}): number[] {
   const { a = 0, b = 1 } = options;
   return generate(n, () => (Number.isFinite(a) && Number.isFinite(b) && a < b ? qarcsine1(unifRand(), a, b, true, false) : NaN));

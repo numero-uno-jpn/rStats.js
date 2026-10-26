@@ -26,6 +26,7 @@ export interface IntegrateOptions {
 
 /** Result of {@link integrate}. */
 export interface IntegrateResult {
+  /** The estimate of the integral. */
   value: number;
   /** Estimate of the absolute error. */
   absError: number;
@@ -55,7 +56,7 @@ const TOL = Number.EPSILON ** 0.25;
  *
  * @example
  * ```ts
- * integrate((x) => Math.exp(-x * x / 2), -Infinity, Infinity).value; // 2.5066282746310002 (sqrt(2 pi))
+ * integrate((x) => Math.exp(-x * x / 2), -Infinity, Infinity).value; // 2.506628274115034 (sqrt(2 pi) = 2.5066282746310002)
  * ```
  */
 export function integrate(f: (x: number) => number, lower: number, upper: number, options: IntegrateOptions = {}): IntegrateResult {
@@ -94,7 +95,7 @@ export interface OptimizeOptions {
 
 /**
  * Minimum (or maximum) of a function of one variable on an interval, by Brent's golden-section and parabolic
- * search. Equivalent to R's `optimize()`: `optimum` is the location (R's `minimum`/`maximum`) and `objective` the
+ * search. Equivalent to R's `optimize()`. `optimum` is the location (R's `minimum`/`maximum`) and `objective` the
  * function there. `lower` must be less than `upper`, as in R.
  *
  * @example
@@ -102,7 +103,17 @@ export interface OptimizeOptions {
  * optimize((x) => (x - 1 / 3) ** 2, 0, 1).optimum; // 0.3333333333333333
  * ```
  */
-export function optimize(f: (x: number) => number, lower: number, upper: number, options: OptimizeOptions = {}): { optimum: number; objective: number } {
+export function optimize(
+  f: (x: number) => number,
+  lower: number,
+  upper: number,
+  options: OptimizeOptions = {},
+): {
+  /** Location of the minimum or maximum (R's `minimum` or `maximum`). */
+  optimum: number;
+  /** Value of the function there. */
+  objective: number;
+} {
   const maximum = options.maximum ?? false;
   const tol = options.tol ?? TOL;
   if (!(lower < upper)) throw new RangeError("'xmin' not less than 'xmax'");
@@ -129,6 +140,7 @@ export interface UnirootOptions {
 
 /** Result of {@link uniroot}. */
 export interface UnirootResult {
+  /** The root found. */
   root: number;
   /** f at the root. */
   fRoot: number;

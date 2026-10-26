@@ -17,6 +17,12 @@ import { dnchisq1, pnchisq1, qnchisq1 } from "./nchisq.js";
  * @param df - Degrees of freedom.
  * @param options - `ncp` (see {@link NoncentralOption}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dchisq(1, 3);              // 0.24197072451914337
+ * dchisq(1, 3, { ncp: 2 });  // 0.12180056753215114
+ * ```
  */
 export function dchisq<T extends Vectorizable>(
   x: T,
@@ -63,6 +69,12 @@ export function pchisq<T extends Vectorizable>(
  * @param df - Degrees of freedom.
  * @param options - `ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qchisq(0.95, 1);                   // 3.841458820694125
+ * qchisq(0.05, 3, { lowerTail: false }); // 7.814727903251181
+ * ```
  */
 export function qchisq<T extends Vectorizable>(
   p: T,

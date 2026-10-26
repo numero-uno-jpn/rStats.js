@@ -222,6 +222,12 @@ function accept(ix: number, v: number): boolean {
  * @param n Number of black balls in the urn.
  * @param k Number of balls drawn from the urn.
  * @returns An array of `nn` values (the number of white balls drawn); `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rhyper(5, 10, 7, 8); // [5, 5, 5, 3, 6]
+ * ```
  */
 export function rhyper(nn: number, m: number, n: number, k: number): number[] {
   return generate(nn, () => rhyper1(m, n, k));

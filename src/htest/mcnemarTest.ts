@@ -21,7 +21,7 @@ export interface McnemarTestResult extends Omit<HTest, "alternative"> {
 
 /**
  * McNemar's chi-squared test for symmetry of rows and columns in a square table of counts. Equivalent to R's
- * `mcnemar.test()` with a matrix, or with two factors given as paired category codes.
+ * `mcnemar.test()`. Takes a matrix, or two factors given as paired category codes.
  *
  * @param x Square table of counts as an array of rows, or the first of two paired samples of category codes.
  * @param y Second paired sample of category codes, when `x` is a sample. May be omitted (and the options passed in
@@ -30,7 +30,7 @@ export interface McnemarTestResult extends Omit<HTest, "alternative"> {
  *
  * @example
  * ```ts
- * mcnemarTest([[794, 86], [150, 570]]).statistic; // 34.71186
+ * mcnemarTest([[794, 86], [150, 570]]).statistic; // 16.81779661016949
  * ```
  */
 export function mcnemarTest(

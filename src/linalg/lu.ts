@@ -26,12 +26,13 @@ export interface LuResult {
 }
 
 /**
- * LU decomposition with partial (row) pivoting, `x = P L U`. Equivalent to `Matrix::expand(Matrix::lu(x))`
- * (LAPACK's dgetrf).
+ * LU decomposition with partial (row) pivoting, `x = P L U`. Equivalent to R's `Matrix::lu()`. The factors are those
+ * of `Matrix::expand(Matrix::lu(x))` (LAPACK's dgetrf).
  *
  * @example
  * ```ts
- * const { P, L, U } = lu([[1, 2], [3, 4]]); // P = [[0, 1], [1, 0]], L = [[1, 0], [1/3, 1]], U = [[3, 4], [0, 2/3]]
+ * lu([[1, 2], [3, 4]]);
+ * // { P: [[0, 1], [1, 0]], L: [[1, 0], [0.3333333333333333, 1]], U: [[3, 4], [0, 0.6666666666666667]] }
  * ```
  */
 export function lu(x: MatrixInput): LuResult {
@@ -100,6 +101,13 @@ export interface PrcompResult {
 /**
  * Principal components of the columns of `x` (observations as rows). Equivalent to R's `prcomp()`. The sign of each
  * component is arbitrary, as in R.
+ *
+ * @example
+ * ```ts
+ * const pc = prcomp([[1, 2], [2, 1], [3, 4], [4, 3]]);
+ * pc.sdev; // [1.632993161855452, 0.816496580927726]
+ * pc.x;    // [[-1.4142, 0.7071], [-1.4142, -0.7071], [1.4142, 0.7071], [1.4142, -0.7071]] (signs may differ from R)
+ * ```
  */
 export function prcomp(x: MatrixInput, options: PrcompOptions = {}): PrcompResult {
   const rows = x.map((r) => Array.from(r));

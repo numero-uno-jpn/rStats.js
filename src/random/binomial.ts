@@ -159,6 +159,12 @@ export function rbinom1(nin: number, pp: number): number {
  * @param size Number of trials.
  * @param prob Probability of success in each trial.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rbinom(5, 10, 0.5); // [4, 4, 5, 7, 4]
+ * ```
  */
 export function rbinom(n: number, size: number, prob: number): number[] {
   return generate(n, () => rbinom1(size, prob));
@@ -176,6 +182,12 @@ export function rbinom(n: number, size: number, prob: number): number[] {
  * @returns An array of `n` arrays, each of length K and summing to `size`.
  * @throws RangeError if `size` is not a non-negative integer, or `prob` has a negative or
  *   non-finite value, or no positive value.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rmultinom(2, 5, [0.2, 0.3, 0.5]); // [[0, 1, 4], [1, 3, 1]]
+ * ```
  */
 export function rmultinom(n: number, size: number, prob: readonly number[]): number[][] {
   if (!Number.isFinite(size) || size < 0 || Math.round(size) !== size) throw new RangeError("size must be a non-negative integer");

@@ -19,7 +19,11 @@ import type { Sample } from "../htest/types.js";
 import { seqLength } from "../internal/seq.js";
 import { findInterval } from "../descriptive/table.js";
 
-type Ties = "mean" | "min" | "max" | ((v: number[]) => number);
+/**
+ * How equal `x` values are merged before interpolating (R's `ties`): `"mean"`, `"min"` or `"max"` of their `y`, or a
+ * function of their `y` values.
+ */
+export type Ties = "mean" | "min" | "max" | ((v: number[]) => number);
 
 /**
  * The data as R uses it for interpolation: pairs with a NaN dropped, sorted by x, and each run of equal x merged into
@@ -88,7 +92,16 @@ export interface ApproxOptions {
  * approx([1, 2, 3], [10, 20, 40], { xout: [1.5, 2.5] }).y; // [15, 30]
  * ```
  */
-export function approx(x: Sample, y: Sample, options: ApproxOptions = {}): { x: number[]; y: number[] } {
+export function approx(
+  x: Sample,
+  y: Sample,
+  options: ApproxOptions = {},
+): {
+  /** The points interpolated at (`xout`, or the equally spaced points). */
+  x: number[];
+  /** The interpolated values, one per point of `x`. */
+  y: number[];
+} {
   const { method = "linear", n = 50, f = 0, rule = 1, ties = "mean" } = options;
   const pts = regularize(x, y, ties);
   const nx = pts.x.length;
@@ -391,7 +404,9 @@ export interface SplineOptions {
   n?: number;
   /** `"fmm"` (default), `"natural"`, `"periodic"` or `"hyman"`. */
   method?: SplineMethod;
+  /** Left end of the equally spaced points. Default: the smallest `x`. */
   xmin?: number;
+  /** Right end of the equally spaced points. Default: the largest `x`. */
   xmax?: number;
   /** Points to interpolate at (then `n`, `xmin` and `xmax` are not used). */
   xout?: Sample;
@@ -407,7 +422,16 @@ export interface SplineOptions {
  * spline([1, 2, 3, 4], [1, 4, 9, 16], { xout: [2.5] }).y; // [6.25]
  * ```
  */
-export function spline(x: Sample, y: Sample, options: SplineOptions = {}): { x: number[]; y: number[] } {
+export function spline(
+  x: Sample,
+  y: Sample,
+  options: SplineOptions = {},
+): {
+  /** The points interpolated at (`xout`, or the equally spaced points). */
+  x: number[];
+  /** The interpolated values, one per point of `x`. */
+  y: number[];
+} {
   const { method = "fmm", ties = "mean" } = options;
   const sp = cubicSpline(x, y, method, ties);
   let xout: number[];
@@ -432,7 +456,7 @@ export interface SplinefunOptions {
 
 /**
  * The cubic spline through the points, as a function of `x` and the order of derivative (0 to 3; a fraction is
- * truncated, as R does). Equivalent to R's `splinefun()`, except that the third derivative of `"monoH.FC"` is the
+ * truncated, as R does). Equivalent to R's `splinefun()`. Except that the third derivative of `"monoH.FC"` is the
  * exact one (see {@link splinefunH}).
  *
  * @example
@@ -525,8 +549,8 @@ function evalHermite(x: readonly number[], y: readonly number[], m: readonly num
 
 /**
  * The cubic Hermite spline with values `y` and slopes `m` at the points `x`, as a function of `x` and the order of
- * derivative (0 to 3; a fraction is truncated, as R does); linear outside the data. Equivalent to R's `splinefunH()`,
- * except for the third derivative: on [x_i, x_{i+1}] it is the exact (6 m_i + 6 m_{i+1} - 12 delta) / h^2, with
+ * derivative (0 to 3; a fraction is truncated, as R does); linear outside the data. Equivalent to R's `splinefunH()`.
+ * Except for the third derivative: on [x_i, x_{i+1}] it is the exact (6 m_i + 6 m_{i+1} - 12 delta) / h^2, with
  * h = x_{i+1} - x_i and delta = (y_{i+1} - y_i) / h, where R divides by h only once (the two agree when h = 1).
  *
  * @example
@@ -547,8 +571,13 @@ export function splinefunH(x: Sample, y: Sample, m: Sample): (xq: Sample, deriv?
 }
 
 /**
- * Lagrange interpolation in barycentric form through the points (xi, yi). Equivalent to `pracma::barylag()`; the
- * points must lie within the range of the nodes.
+ * Lagrange interpolation in barycentric form through the points (xi, yi). Equivalent to `pracma::barylag()` in R.
+ * The points must lie within the range of the nodes.
+ *
+ * @example
+ * ```ts
+ * barylag([0, 1, 2], [1, 3, 7], [0.5, 1.5]); // [1.75, 4.75]
+ * ```
  */
 export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
   const X = Array.from(xi);
@@ -582,7 +611,14 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
 
 /**
  * The polynomial of degree 2n - 1 through n points with given values and derivatives (global Hermite
- * interpolation, jStat's hermite), evaluated at `x`. Computed by divided differences on the doubled nodes.
+ * interpolation, jStat's hermite), evaluated at `x`. Not an R function. Neither base R nor the recommended packages
+ * have it (for piecewise cubic Hermite interpolation, see {@link splinefunH}). Computed by divided differences on
+ * the doubled nodes.
+ *
+ * @example
+ * ```ts
+ * hermiteInterp([0, 1], [0, 1], [0, 0], [0.25, 0.5]); // [0.15625, 0.5]
+ * ```
  */
 export function hermiteInterp(xi: Sample, yi: Sample, di: Sample, x: Sample): number[] {
   const X = Array.from(xi);

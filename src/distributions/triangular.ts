@@ -67,10 +67,16 @@ export function qtriang1(p: number, a: number, b: number, c: number, lowerTail: 
 }
 
 /**
- * Density of the triangular distribution. Equivalent to `extraDistr::dtriang(x, a = -1, b = 1, c = (a + b)/2, log = FALSE)`.
+ * Density of the triangular distribution. Equivalent to `extraDistr::dtriang(x, a = -1, b = 1, c = (a + b)/2, log = FALSE)` in R.
  *
  * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `a`, `b` and `c` (see {@link TriangParams}) and `log` (see {@link DensityOptions}).
+ *
+ * @example
+ * ```ts
+ * dtriang(0);                            // 1
+ * dtriang(1, { a: 0, b: 4, c: 1 });      // 0.5
+ * ```
  */
 export function dtriang<T extends Vectorizable>(x: T, options: TriangParams & DensityOptions = {}): VectorResult<T> {
   const { a = -1, b = 1, log = false } = options;
@@ -78,14 +84,30 @@ export function dtriang<T extends Vectorizable>(x: T, options: TriangParams & De
   return vectorize(x, (v) => dtriang1(v, a, b, c, log));
 }
 
-/** Distribution function of the triangular distribution. Equivalent to `extraDistr::ptriang(q, a, b, c, lower.tail, log.p)`. */
+/**
+ * Distribution function of the triangular distribution. Equivalent to `extraDistr::ptriang(q, a, b, c, lower.tail, log.p)` in R.
+ *
+ * @example
+ * ```ts
+ * ptriang(0);                            // 0.5
+ * ptriang(2, { a: 0, b: 4, c: 1 });      // 0.6666666666666667
+ * ```
+ */
 export function ptriang<T extends Vectorizable>(q: T, options: TriangParams & TailOptions = {}): VectorResult<T> {
   const { a = -1, b = 1, lowerTail = true, logP = false } = options;
   const c = options.c ?? (a + b) / 2;
   return vectorize(q, (v) => ptriang1(v, a, b, c, lowerTail, logP));
 }
 
-/** Quantile function of the triangular distribution. Equivalent to `extraDistr::qtriang(p, a, b, c, lower.tail, log.p)`. */
+/**
+ * Quantile function of the triangular distribution. Equivalent to `extraDistr::qtriang(p, a, b, c, lower.tail, log.p)` in R.
+ *
+ * @example
+ * ```ts
+ * qtriang(0.5);                          // 0
+ * qtriang(0.9, { a: 0, b: 4, c: 1 });    // 2.904554884989668
+ * ```
+ */
 export function qtriang<T extends Vectorizable>(p: T, options: TriangParams & TailOptions = {}): VectorResult<T> {
   const { a = -1, b = 1, lowerTail = true, logP = false } = options;
   const c = options.c ?? (a + b) / 2;

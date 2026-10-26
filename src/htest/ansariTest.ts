@@ -58,7 +58,7 @@ export interface AnsariTestOptions {
  */
 export function ansariTest(x: Sample, y: Sample, options?: AnsariTestOptions): HTest;
 /**
- * Ansari-Bradley test from a formula and a data frame. Equivalent to R's `ansari.test(formula, data)`: `"y ~ g"`
+ * Ansari-Bradley test from a formula and a data frame. As R's `ansari.test(formula, data)`: `"y ~ g"`
  * compares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where
  * one of them is missing are dropped.
  *

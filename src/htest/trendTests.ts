@@ -86,6 +86,7 @@ export interface JonckheereTestOptions {
 
 /** Result of {@link jonckheereTest}. */
 export interface JonckheereTestResult extends Omit<HTest, "alternative"> {
+  /** Alternative hypothesis: `"two.sided"`, `"increasing"` or `"decreasing"`. */
   alternative: JonckheereAlternative;
   /** The packages' warnings (normal approximation). */
   warnings: string[];
@@ -118,10 +119,10 @@ function orderedGroups(x: Sample, g: readonly GroupLabel[], levels: readonly Gro
 }
 
 /**
- * Jonckheere-Terpstra test of equal distributions against ordered alternatives. Equivalent to DescTools'
- * `JonckheereTerpstraTest(x, g, alternative, exact)` (with `g` an ordered factor) or, with `variant: "clinfun"`, to
- * clinfun's `jonckheere.test(x, g, alternative)` (whose two-sided p-value is `2 min(p_increasing, p_decreasing,
- * 0.5)`; DescTools caps it at 1 instead of 0.5). Pairs with a missing value are dropped.
+ * Jonckheere-Terpstra test of equal distributions against ordered alternatives. Equivalent to
+ * `DescTools::JonckheereTerpstraTest()` in R. Computes `JonckheereTerpstraTest(x, g, alternative, exact)` (with `g`
+ * an ordered factor) or, with `variant: "clinfun"`, clinfun's `jonckheere.test(x, g, alternative)` (whose
+ * two-sided p-value is `2 min(p_increasing, p_decreasing, 0.5)`; DescTools caps it at 1 instead of 0.5). Pairs with a missing value are dropped.
  *
  * @param x The values.
  * @param g Group labels, parallel to `x`, in the order of the alternative.

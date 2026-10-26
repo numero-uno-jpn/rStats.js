@@ -124,6 +124,12 @@ export function rgamma1(a: number, scale: number): number {
  * @param options.rate Rate. Default `1`. Give either `rate` or `scale`.
  * @param options.scale Scale (`1 / rate`). Default `1`. Giving both is an error unless `scale = 1 / rate`.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rgamma(2, 2, { rate: 1 }); // [0.830865, 3.570756]
+ * ```
  */
 export function rgamma(n: number, shape: number, options: { rate?: number; scale?: number } = {}): number[] {
   const scale = gammaScale(options);
@@ -152,6 +158,13 @@ export function rnchisq1(df: number, ncp: number): number {
  * @param df Degrees of freedom.
  * @param options.ncp Non-centrality parameter. If omitted, the central distribution is used.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rchisq(2, 3); // [0.9433146, 5.543782]
+ * rchisq(2, 3, { ncp: 1 });
+ * ```
  */
 export function rchisq(n: number, df: number, options: { ncp?: number } = {}): number[] {
   const { ncp } = options;
@@ -166,6 +179,12 @@ export function rchisq(n: number, df: number, options: { ncp?: number } = {}): n
  * @param df Degrees of freedom (may be `Infinity`).
  * @param options.ncp Non-centrality parameter. If omitted, the central distribution is used.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rt(2, 5); // [-0.6576941, -0.5973472]
+ * ```
  */
 export function rt(n: number, df: number, options: { ncp?: number } = {}): number[] {
   const { ncp } = options;
@@ -192,6 +211,12 @@ export function rt(n: number, df: number, options: { ncp?: number } = {}): numbe
  * @param df2 Denominator degrees of freedom.
  * @param options.ncp Non-centrality parameter. If omitted, the central distribution is used.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rf(2, 3, 10); // [0.2025231, 1.645713]
+ * ```
  */
 export function rf(n: number, df1: number, df2: number, options: { ncp?: number } = {}): number[] {
   const { ncp } = options;

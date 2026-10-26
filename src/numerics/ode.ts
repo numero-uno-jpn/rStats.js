@@ -16,8 +16,8 @@ export interface OdeOptions {
 
 /**
  * Solve the initial value problem y' = func(t, y, parms), y(times[0]) = y, with one fixed step per interval of
- * `times`. Equivalent to `deSolve::ode(y, times, func, parms, method)` for `"euler"` and `"rk4"`; for `"rk2"`, to
- * `deSolve::ode(..., method = rkMethod("rk2"))` (or `deSolve::rk(..., method = "rk2")`), since deSolve's `ode()`
+ * `times`. Equivalent to `deSolve::ode(y, times, func, parms, method)` in R. That is for `"euler"` and `"rk4"`; for
+ * `"rk2"`, it is `deSolve::ode(..., method = rkMethod("rk2"))` (or `deSolve::rk(..., method = "rk2")`), since deSolve's `ode()`
  * does not accept `method = "rk2"`.
  *
  * @returns One row per time: `[t, y1, y2, ...]`.
@@ -26,7 +26,7 @@ export interface OdeOptions {
  * ```ts
  * // exponential decay y' = -0.7 y
  * const out = ode([1], [0, 0.5, 1], (t, y, p) => [-p[0]! * y[0]!], [0.7], { method: "rk4" });
- * out[2]; // [1, 0.4965...]
+ * out[2]; // [1, 0.49664] (exp(-0.7) = 0.49659)
  * ```
  */
 export function ode(y: readonly number[], times: readonly number[], func: OdeFunc, parms: readonly number[] = [], options: OdeOptions = {}): number[][] {

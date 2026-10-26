@@ -23,8 +23,8 @@ function columnsOf(x: MissingVector | DataFrame): { columns: MissingVector[]; ro
 }
 
 /**
- * Which rows have no missing value. Equivalent to R's `complete.cases()`: one boolean per row, true when no column of
- * any argument is missing (`null`, or `NaN` in a numeric column) in that row.
+ * Which rows have no missing value. Equivalent to R's `complete.cases()`. One boolean per row, true when no column
+ * of any argument is missing (`null`, or `NaN` in a numeric column) in that row.
  *
  * @param args Data frames (objects of equal-length columns) or arrays, all with the same number of rows.
  *
@@ -43,7 +43,7 @@ export function completeCases(...args: (MissingVector | DataFrame)[]): boolean[]
 }
 
 /**
- * The values that are not missing. Equivalent to R's `na.omit()` for a vector.
+ * The values that are not missing. Equivalent to R's `na.omit()`. For a vector.
  *
  * @example
  * ```ts
@@ -53,8 +53,7 @@ export function completeCases(...args: (MissingVector | DataFrame)[]): boolean[]
 export function naOmit(x: readonly number[] | Float64Array): number[];
 export function naOmit<T extends string | boolean | number>(x: readonly (T | null)[]): T[];
 /**
- * The complete rows of a data frame. Equivalent to R's `na.omit()` for a data frame: the same columns, in order,
- * restricted to the rows where none is missing (`null`, or `NaN` in a numeric column); see {@link completeCases}.
+ * The complete rows of a data frame, as R's `na.omit()` for a data frame: the same columns, in order, restricted to the rows where none is missing (`null`, or `NaN` in a numeric column); see {@link completeCases}.
  *
  * @example
  * ```ts

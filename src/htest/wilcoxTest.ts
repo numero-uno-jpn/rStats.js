@@ -100,7 +100,7 @@ export interface WilcoxTestResult extends HTest {
  */
 export function wilcoxTest(x: Sample, y?: Sample | WilcoxTestOptions, options?: WilcoxTestOptions): WilcoxTestResult;
 /**
- * Wilcoxon tests from a formula and a data frame. Equivalent to R's `wilcox.test(formula, data)`: `"y ~ g"` is the
+ * Wilcoxon tests from a formula and a data frame. As R's `wilcox.test(formula, data)`: `"y ~ g"` is the
  * rank sum test of the two levels of `g` (the first level is `x`), `"y ~ 1"` the signed rank test and
  * `"Pair(a, b) ~ 1"` the paired test of `a` and `b` (the option `paired` is not allowed). Only the variables of the
  * formula count: the rows where one of them is missing are dropped.

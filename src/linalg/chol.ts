@@ -50,7 +50,7 @@ export interface CholPivotResult {
  */
 export function chol(x: MatrixInput, options?: CholOptions & { pivot?: false }): number[][];
 /**
- * Pivoted Cholesky decomposition. Equivalent to R's `chol(x, pivot = TRUE)`.
+ * Pivoted Cholesky decomposition, as R's `chol(x, pivot = TRUE)`.
  *
  * Does not throw for rank-deficient (positive semi-definite) matrices; check `rank` instead (R gives a
  * warning). Rows of `r` after `rank` are not meaningful: the diagonal element at the stopping position holds
@@ -68,7 +68,7 @@ export function chol(x: MatrixInput, options?: CholOptions & { pivot?: false }):
  */
 export function chol(x: MatrixInput, options: CholOptions & { pivot: true }): CholPivotResult;
 /**
- * Cholesky decomposition, with or without pivoting. Equivalent to R's `chol()`.
+ * Cholesky decomposition, with or without pivoting.
  *
  * @param x A square symmetric matrix (array of rows).
  * @param options See {@link CholOptions}.
@@ -185,6 +185,11 @@ export interface Chol2InvOptions {
  * @param x The upper triangular Cholesky factor `R` (array of rows), e.g. from {@link chol}. A vector is treated as a one-column matrix.
  * @param options See {@link Chol2InvOptions}.
  * @returns The symmetric inverse matrix (`size` x `size`) as an array of rows.
+ *
+ * @example
+ * ```ts
+ * chol2inv([[2, 1], [0, 1]]); // [[0.5, -0.5], [-0.5, 1]]
+ * ```
  */
 export function chol2inv(x: MatrixInput | readonly number[] | Float64Array, options: Chol2InvOptions = {}): number[][] {
   const m = toMatOrColumn(x);

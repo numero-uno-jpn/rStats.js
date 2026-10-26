@@ -9,7 +9,8 @@ import { lgamma1p as lgamma1pKernel } from "./gamma.js";
 import { log1pmx as log1pmxKernel } from "./log1pmx.js";
 
 /**
- * log(1 + x) - x, accurate for small |x| (where log1p(x) - x would cancel). As `log1pmx` in R's C API (Rmath.h).
+ * log(1 + x) - x, accurate for small |x| (where log1p(x) - x would cancel).
+ * Not an R function. R has it only in its C API (Rmath.h), as `log1pmx`.
  *
  * @param x A number >= -1.
  * @returns log(1 + x) - x; `-Infinity` at x = -1 and x = Infinity, `NaN` for x < -1.
@@ -26,8 +27,8 @@ export function log1pmx(x: number): number {
 }
 
 /**
- * lgamma(1 + x) = log|Gamma(1 + x)|, accurate near x = 0 and x = 1, where it is near 0. As `lgamma1p` in R's C
- * API (Rmath.h).
+ * lgamma(1 + x) = log|Gamma(1 + x)|, accurate near x = 0 and x = 1, where it is near 0.
+ * Not an R function. R has it only in its C API (Rmath.h), as `lgamma1p`.
  *
  * @param x A number.
  * @returns log|Gamma(1 + x)|; `Infinity` at the poles (x a negative integer) and at x = Infinity, `NaN` for
@@ -46,8 +47,8 @@ export function lgamma1p(x: number): number {
 }
 
 /**
- * log(1 - exp(-x)) for x >= 0, accurate for both small and large x. As `log1mexp` in R's C API (Rmath.h) and the DPQ
- * package; note the sign of the argument.
+ * log(1 - exp(-x)) for x >= 0, accurate for both small and large x; note the sign of the argument.
+ * Not an R function. R has it only in its C API (Rmath.h), as `log1mexp`; the DPQ package also has it.
  *
  * @param x A number >= 0.
  * @returns log(1 - exp(-x)); `-Infinity` at x = 0, 0 at x = Infinity, `NaN` for x < 0.
@@ -65,8 +66,8 @@ export function log1mexp(x: number): number {
 }
 
 /**
- * log(1 + exp(x)), without overflow for large x and accurate for very negative x. As `log1pexp` in R's C API
- * (Rmath.h) and the DPQ package.
+ * log(1 + exp(x)), without overflow for large x and accurate for very negative x.
+ * Not an R function. R has it only in its C API (Rmath.h), as `log1pexp`; the DPQ package also has it.
  *
  * @param x A number.
  * @returns log(1 + exp(x)); 0 at x = -Infinity, `Infinity` at x = Infinity.

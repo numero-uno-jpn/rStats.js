@@ -58,12 +58,15 @@ export interface OptimOptions {
   upper?: number | readonly number[];
   /** Also return the numerically differentiated Hessian at the solution. Default `false`. */
   hessian?: boolean;
+  /** Control parameters (R's `control`). See {@link OptimControl}. */
   control?: OptimControl;
 }
 
 /** Result of {@link optim} */
 export interface OptimResult {
+  /** The best parameters found. */
   par: number[];
+  /** fn at `par`. */
   value: number;
   /** Evaluations of fn and gr (NaN where R has NA) */
   counts: [number, number];
@@ -71,6 +74,7 @@ export interface OptimResult {
   convergence: number;
   /** L-BFGS-B's final message; null for the other methods */
   message: string | null;
+  /** The numerically differentiated Hessian at `par`, when `hessian` is true (array of rows). */
   hessian?: number[][];
   /** R's warnings */
   warnings: string[];
@@ -518,11 +522,11 @@ function annealing(s: Scaled, start: readonly number[], maxit: number, perTemper
 
 /**
  * Numerically differentiated Hessian of fn at par, from central differences of the gradient (gr, or the numerical
- * gradient of fn). Equivalent to R's `optimHess()`; `control` uses `fnscale`, `parscale` and `ndeps`.
+ * gradient of fn). Equivalent to R's `optimHess()`. `control` uses `fnscale`, `parscale` and `ndeps`.
  *
  * @example
  * ```ts
- * optimHess([1, 2], (x) => x[0] ** 2 + 3 * x[0] * x[1] + x[1] ** 2); // ≈ [[2, 3], [3, 2]]
+ * optimHess([1, 2], (x) => x[0] ** 2 + 3 * x[0] * x[1] + x[1] ** 2); // [[2, 3], [3, 2]]
  * ```
  */
 export function optimHess(par: readonly number[], fn: (par: number[]) => number, gr?: (par: number[]) => number[], control: OptimControl = {}): number[][] {
@@ -559,14 +563,14 @@ function hessianOf(s: Scaled, par: readonly number[]): number[][] {
 const METHODS: readonly OptimMethod[] = ["Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN", "Brent"];
 
 /**
- * General-purpose minimisation of `fn` from the starting point `par`. Equivalent to R's `optim()`: the same methods
+ * General-purpose minimisation of `fn` from the starting point `par`. Equivalent to R's `optim()`. The same methods
  * with the same iterations, so the same results and counts.
  *
  * @example
  * ```ts
  * const rosen = (x: number[]) => 100 * (x[1] - x[0] ** 2) ** 2 + (1 - x[0]) ** 2;
  * optim([-1.2, 1], rosen).par; // [1.0002601387256695, 1.000505999303765]
- * optim([-1.2, 1], rosen, { method: "BFGS" }).counts; // [120, 38]
+ * optim([-1.2, 1], rosen, { method: "BFGS" }).counts; // [118, 38]
  * ```
  */
 export function optim(par: readonly number[], fn: (par: number[]) => number, options: OptimOptions = {}): OptimResult {

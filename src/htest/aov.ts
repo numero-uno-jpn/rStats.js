@@ -57,7 +57,8 @@ function sums(groups: readonly number[][]): { ssb: number; ssw: number; means: n
 }
 
 /**
- * One-way analysis of variance. Equivalent to the table of R's `summary(aov(y ~ g))` for one factor.
+ * One-way analysis of variance. Equivalent to R's `aov()`. Gives the table of R's `summary(aov(y ~ g))` for one
+ * factor.
  *
  * @param x An array of samples (groups), or one sample with group labels `g`.
  * @param g Group labels, parallel to `x`.
@@ -65,13 +66,13 @@ function sums(groups: readonly number[][]): { ssb: number; ssw: number; means: n
  * @example
  * ```ts
  * const r = aov([[2.9, 3.0, 2.5, 2.6, 3.2], [3.8, 2.7, 4.0, 2.4], [2.8, 3.4, 3.7, 2.2, 2.0]]);
- * r.fValue; // 0.5600732600732597
+ * r.fValue; // 0.56007326007326
  * r.pValue; // 0.586632991041738
  * ```
  */
 export function aov(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): AovResult;
 /**
- * Analysis of variance from a model formula. Equivalent to R's `aov(formula, data)` (with `weights` and
+ * Analysis of variance from a model formula, as R's `aov(formula, data)` (with `weights` and
  * `contrasts`): the same fit as {@link lm} with a formula; {@link aovSummary} gives the table of R's
  * `summary(aov(...))`. With one `Error()` term (`y ~ W + Error(id/W)`) the fit has error strata: the result is an
  * {@link AovStrataFit} whose tables {@link aovSummary} returns, one per stratum.
@@ -156,6 +157,16 @@ export interface TukeyHSDResult {
  * sizes). Equivalent to R's `TukeyHSD(aov(y ~ g))`.
  *
  * @param x An array of samples (groups), or one sample with group labels `g` (then `options` comes third).
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * const r = TukeyHSD(x, g);
+ * r.names; // ["b-a", "c-a", "c-b"]
+ * r.diff;  // [1.4333333333333336, 2.7666666666666666, 1.333333333333333]
+ * r.pAdj;  // [0.03403130149294014, 0.001492661804896774, 0.04527523376597547]
+ * ```
  */
 export function TukeyHSD(
   x: Sample | readonly Sample[],
@@ -209,12 +220,12 @@ export interface ZTestOptions {
 
 /**
  * z test for the mean of one sample, or the difference of the means of two, with known standard deviations.
- * Equivalent to `BSDA::z.test()` (the open end of a one-sided interval is ±Infinity here, NA in BSDA). `NaN` values
- * are dropped.
+ * Equivalent to `BSDA::z.test()` in R. The open end of a one-sided interval is ±Infinity here (NA in BSDA). `NaN`
+ * values are dropped.
  *
  * @example
  * ```ts
- * zTest([5.1, 4.9, 5.6, 5.8, 6.0], { mu: 5, sigmaX: 0.5 }).pValue;
+ * zTest([5.1, 4.9, 5.6, 5.8, 6.0], { mu: 5, sigmaX: 0.5 }).pValue; // 0.031823127386490346
  * ```
  */
 export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOptions = {}): HTest {

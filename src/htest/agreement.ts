@@ -55,8 +55,8 @@ export interface KappaResult {
 }
 
 /**
- * Cohen's kappa for two raters, unweighted or weighted, with the z test of kappa = 0. Equivalent to irr's
- * `kappa2(ratings, weight)` (numeric ratings).
+ * Cohen's kappa for two raters, unweighted or weighted, with the z test of kappa = 0. Equivalent to
+ * `irr::kappa2(ratings, weight)` in R. The ratings are numeric.
  *
  * The levels are the distinct ratings of both raters sorted as R sorts their character forms (so 10 sorts before 2,
  * which matters for the weighted kappas). Rows with a missing value (`NaN`) are dropped. The variance of the test is
@@ -71,7 +71,7 @@ export interface KappaResult {
  * kappa2([[1, 1], [2, 2], [3, 2], [1, 1], [2, 3], [3, 3]]); // { value: 0.49999999999999994, statistic: 1.7320508075688772, pValue: 0.08326451666355043 }
  * ```
  */
-export function kappa2(ratings: Ratings, options: Kappa2Options = {}): Required<KappaResult> {
+export function kappa2(ratings: readonly (readonly number[])[], options: Kappa2Options = {}): Required<KappaResult> {
   const weight = matchChoice(options.weight, ["unweighted", "equal", "squared"] as const);
   if (ratings.some((r) => r.length !== 2)) throw new TypeError("'ratings' must be a matrix with two columns");
   const rows = ratings.filter((r) => !r.some(Number.isNaN));
@@ -112,7 +112,7 @@ export interface KappamFleissOptions {
 
 /**
  * Fleiss' kappa for several raters (or Conger's exact kappa), with the z test of kappa = 0 for Fleiss' kappa.
- * Equivalent to irr's `kappam.fleiss(ratings, exact)` (numeric ratings, no missing values).
+ * Equivalent to `irr::kappam.fleiss(ratings, exact)` in R. The ratings are numeric, without missing values.
  *
  * The p-value is computed as 2 Φ(−|z|), so small p-values are more accurate than irr's.
  *
@@ -124,7 +124,7 @@ export interface KappamFleissOptions {
  * kappamFleiss([[1, 1, 2], [2, 2, 2], [3, 3, 2], [1, 1, 1], [2, 3, 3]]).value; // 0.3918918918918918
  * ```
  */
-export function kappamFleiss(ratings: Ratings, options: KappamFleissOptions = {}): KappaResult {
+export function kappamFleiss(ratings: readonly (readonly number[])[], options: KappamFleissOptions = {}): KappaResult {
   const exact = options.exact ?? false;
   const cols = columnsOf(ratings, "ratings");
   requireComplete(ratings, "ratings");
@@ -180,7 +180,9 @@ export interface IccResult {
   value: number;
   /** F statistic of the test of ICC = r0. */
   Fvalue: number;
+  /** Numerator degrees of freedom of the F test. */
   df1: number;
+  /** Denominator degrees of freedom of the F test. */
   df2: number;
   /** Upper-tail p-value of the F test. */
   pValue: number;
@@ -191,8 +193,8 @@ export interface IccResult {
 }
 
 /**
- * Intraclass correlation coefficient with its F test and confidence interval (McGraw and Wong's forms). Equivalent
- * to irr's `icc(ratings, model, type, unit, r0, conf.level)` (no missing values).
+ * Intraclass correlation coefficient with its F test and confidence interval (McGraw and Wong's forms).
+ * Equivalent to `irr::icc(ratings, model, type, unit, r0, conf.level)` in R. No missing values are allowed.
  *
  * @param ratings - An n × k matrix (array of rows): the ratings of the k raters for each of the n subjects.
  * @param options - See {@link IccOptions}.
@@ -203,7 +205,7 @@ export interface IccResult {
  *     { model: "twoway", type: "agreement" }).value; // 0.28976377952755905
  * ```
  */
-export function icc(ratings: Ratings, options: IccOptions = {}): IccResult {
+export function icc(ratings: readonly (readonly number[])[], options: IccOptions = {}): IccResult {
   const model = matchChoice(options.model, ["oneway", "twoway"] as const);
   const type = matchChoice(options.type, ["consistency", "agreement"] as const);
   const unit = matchChoice(options.unit, ["single", "average"] as const);
@@ -285,8 +287,8 @@ function rawAlphaOf(C: readonly (readonly number[])[], keep: readonly number[]):
 
 /**
  * Cronbach's alpha of a set of items, standardized alpha, Guttman's lambda 6 and the mean inter-item correlation,
- * and alpha with each item dropped. Equivalent to the `total` row and `alpha.drop$raw_alpha` of psych's `alpha(x)`
- * with its defaults (no missing values, no reversed items).
+ * and alpha with each item dropped. Equivalent to `psych::alpha()` in R. It gives the `total` row and
+ * `alpha.drop$raw_alpha` of `alpha(x)` with its defaults (no missing values, no reversed items).
  *
  * @param x - An n × k matrix (array of rows): k items observed on n subjects.
  *
@@ -295,7 +297,7 @@ function rawAlphaOf(C: readonly (readonly number[])[], keep: readonly number[]):
  * cronbachAlpha([[1, 2, 2], [2, 3, 3], [3, 3, 4], [4, 5, 4], [2, 2, 3]]).rawAlpha; // 0.935483870967742
  * ```
  */
-export function cronbachAlpha(x: Ratings): CronbachAlphaResult {
+export function cronbachAlpha(x: readonly (readonly number[])[]): CronbachAlphaResult {
   const k = columnsOf(x, "x").length;
   requireComplete(x, "x");
   if (k < 2) throw new RangeError("'x' needs at least two items");
@@ -315,8 +317,8 @@ export function cronbachAlpha(x: Ratings): CronbachAlphaResult {
 }
 
 /**
- * Partial correlation of columns `i` and `j` of `x` given all its other columns. Equivalent to psych's
- * `partial.r(x, c(i, j), others)` (its off-diagonal element; no missing values).
+ * Partial correlation of columns `i` and `j` of `x` given all its other columns. Equivalent to
+ * `psych::partial.r(x, c(i, j), others)` in R. Returns its off-diagonal element (no missing values).
  *
  * @param x - An n × p matrix (array of rows), the variables in the columns.
  * @param i - 0-based column index.
@@ -327,7 +329,7 @@ export function cronbachAlpha(x: Ratings): CronbachAlphaResult {
  * partialR([[1, 2, 3], [2, 1, 5], [3, 5, 4], [4, 3, 8], [5, 6, 7]], 0, 1); // 0.9804877404385672
  * ```
  */
-export function partialR(x: Ratings, i: number, j: number): number {
+export function partialR(x: readonly (readonly number[])[], i: number, j: number): number {
   const p = columnsOf(x, "x").length;
   requireComplete(x, "x");
   for (const c of [i, j]) {

@@ -102,6 +102,12 @@ export function rbeta1(aa: number, bb: number): number {
  * @param shape2 Second shape parameter.
  * @param options.ncp Non-centrality parameter. If omitted, the central distribution is used.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rbeta(2, 2, 3); // [0.2550998, 0.4468707]
+ * ```
  */
 export function rbeta(n: number, shape1: number, shape2: number, options: { ncp?: number } = {}): number[] {
   const { ncp } = options;

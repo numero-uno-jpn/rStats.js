@@ -65,6 +65,12 @@ export function qlogis1(p: number, location: number, scale: number, lowerTail: b
  * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `location` and `scale` (see {@link LocationScaleParams}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dlogis(0);                               // 0.25
+ * dlogis(1, { location: 1, scale: 2 });    // 0.125
+ * ```
  */
 export function dlogis<T extends Vectorizable>(x: T, options: LocationScaleParams & DensityOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, log = false } = options;
@@ -77,6 +83,12 @@ export function dlogis<T extends Vectorizable>(x: T, options: LocationScaleParam
  * @param q - Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `location` and `scale` (see {@link LocationScaleParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * plogis(1);                               // 0.7310585786300049
+ * plogis([-2, 0, 2], { scale: 2 });        // [0.2689414213699951, 0.5, 0.7310585786300049]
+ * ```
  */
 export function plogis<T extends Vectorizable>(q: T, options: LocationScaleParams & TailOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, lowerTail = true, logP = false } = options;
@@ -89,6 +101,12 @@ export function plogis<T extends Vectorizable>(q: T, options: LocationScaleParam
  * @param p - Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `location` and `scale` (see {@link LocationScaleParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qlogis(0.75);                            // 1.0986122886681096
+ * qlogis(0.9, { location: 1, scale: 2 });  // 5.394449154672439
+ * ```
  */
 export function qlogis<T extends Vectorizable>(p: T, options: LocationScaleParams & TailOptions = {}): VectorResult<T> {
   const { location = 0, scale = 1, lowerTail = true, logP = false } = options;

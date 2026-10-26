@@ -179,8 +179,8 @@ function keyColumns(frame: DataFrame, names: readonly string[]): Column[] {
 }
 
 /**
- * Join two data frames on key columns. Equivalent to R's `merge()` of data frames: every pair of rows of x and y with
- * equal keys (missing keys match each other), and with `allX` / `allY` the rows without a match. Columns: the keys
+ * Join two data frames on key columns. Equivalent to R's `merge()`. For data frames: every pair of rows of x and y
+ * with equal keys (missing keys match each other), and with `allX` / `allY` the rows without a match. Columns: the keys
  * (named as in x), x's other columns, y's other columns; a non-key name present in both gets the suffixes. Rows are
  * ordered by the key unless `sort` is false (several keys: as text joined with "\r" unless `allX` or `allY`, as R
  * does); without key columns, the cross join (x varying fastest).
@@ -293,8 +293,8 @@ export interface SubsetOptions {
 }
 
 /**
- * The rows of a data frame that meet a condition, and optionally some of its columns. Equivalent to R's `subset()`
- * of a data frame: `keep` is a boolean per row or a function of the row; a missing (`null`) or non-boolean result
+ * The rows of a data frame that meet a condition, and optionally some of its columns. Equivalent to R's `subset()`.
+ * For a data frame: `keep` is a boolean per row or a function of the row; a missing (`null`) or non-boolean result
  * counts as false, as R drops the rows whose condition is NA.
  *
  * @example
@@ -377,7 +377,7 @@ export interface FromRowsOptions {
  * A data frame (an object of columns) from an array of row objects, the usual shape of JSON and of parsed CSV:
  * `[{ age: 30, score: 5 }, { age: 41, score: 7 }]` becomes `{ age: [30, 41], score: [5, 7] }`. A key that a row
  * lacks, and `undefined`, become `null` (a missing value). Values must be numbers, strings, booleans or `null`, and
- * one column may not mix numbers, strings and booleans. Not an R function: R reads data as data frames directly.
+ * one column may not mix numbers, strings and booleans. Not an R function. R reads data as data frames directly.
  *
  * @example
  * ```ts
@@ -412,7 +412,7 @@ export function fromRows(rows: readonly Readonly<Record<string, unknown>>[], opt
 /**
  * The rows of a data frame as an array of objects, the inverse of {@link fromRows}: `{ age: [30, 41], score: [5, 7]
  * }` becomes `[{ age: 30, score: 5 }, { age: 41, score: 7 }]`. Missing values stay as they are (`null`, or `NaN` in a
- * numeric column).
+ * numeric column). Not an R function. R keeps data in data frames and has no need for row objects.
  *
  * @example
  * ```ts

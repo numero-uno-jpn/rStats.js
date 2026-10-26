@@ -60,11 +60,11 @@ function method(options: DerivOptions): "Richardson" | "simple" {
 }
 
 /**
- * Gradient of a scalar function of a vector. Equivalent to `numDeriv::grad(func, x, method)`.
+ * Gradient of a scalar function of a vector. Equivalent to `numDeriv::grad(func, x, method)` in R.
  *
  * @example
  * ```ts
- * grad((x) => x[0]! ** 2 + Math.sin(x[1]!), [1, 0]); // ≈ [2, 1]
+ * grad((x) => x[0]! ** 2 + Math.sin(x[1]!), [1, 0]); // [2, 1]
  * ```
  */
 export function grad(func: (x: number[]) => number, x: readonly number[], options: DerivOptions = {}): number[] {
@@ -94,7 +94,12 @@ export function grad(func: (x: number[]) => number, x: readonly number[], option
 
 /**
  * Jacobian of a vector function of a vector: row i holds the derivatives of the i-th value. Equivalent to
- * `numDeriv::jacobian(func, x, method)`.
+ * `numDeriv::jacobian(func, x, method)` in R.
+ *
+ * @example
+ * ```ts
+ * jacobian((x) => [x[0]! * x[1]!, x[0]! + 2 * x[1]!], [2, 3]); // [[3, 2], [1, 2]]
+ * ```
  */
 export function jacobian(func: (x: number[]) => readonly number[], x: readonly number[], options: DerivOptions = {}): number[][] {
   const xs = [...x];
@@ -126,11 +131,11 @@ export function jacobian(func: (x: number[]) => readonly number[], x: readonly n
 
 /**
  * Hessian matrix of a scalar function of a vector, by Richardson extrapolation (Bates and Watts). Equivalent to
- * `numDeriv::hessian(func, x)`.
+ * `numDeriv::hessian(func, x)` in R.
  *
  * @example
  * ```ts
- * hessian((x) => x[0]! ** 2 * x[1]!, [1, 2]); // ≈ [[4, 2], [2, 0]]
+ * hessian((x) => x[0]! ** 2 * x[1]! ** 2, [1, 2]); // [[8, 8], [8, 2]]
  * ```
  */
 export function hessian(func: (x: number[]) => number, x: readonly number[], options: DerivOptions = {}): number[][] {
