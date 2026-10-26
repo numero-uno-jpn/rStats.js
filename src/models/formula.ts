@@ -3,7 +3,8 @@
 // Written for rStats.js (no ported code) from oracle/anova-behaviour.md ("Formulas" and "Coding"). The parser is an
 // operator-precedence parser with R's precedences (^, then unary - and +, then :, then %in%, then * and /, then binary
 // + and -). The expansion follows the rules listed there: + concatenates, : forms the unions of pairs, * is a + b + a:b,
-// ^n the unions of n terms, / and %in% nest, - removes terms (and in its right operand 0 and 1 swap meanings). The
+// ^n the unions of n terms (n truncated towards zero), / and %in% nest, - removes terms (and in its right operand 0
+// and 1 swap meanings); *, / and %in% with a left operand that expands to no terms give no terms. The
 // terms are then sorted stably by degree, and the variables of each term listed in order of first appearance in the
 // formula. `codes` gives R's "factors" attribute (1: contrasts, 2: indicators) from the rule on earlier terms.
 //
@@ -321,6 +322,16 @@ function collectVariables(n: FormulaNode | undefined, dot: readonly string[], ou
   }
 }
 
+/**
+ * The variable names of a right-hand side, in order of first appearance (`.` stands for `dot`), whatever its
+ * operators: R's variables of the model frame (aggregate's grouping variables).
+ */
+export function formulaVariables(rhs: FormulaNode, dot: readonly string[]): string[] {
+  const out: string[] = [];
+  collectVariables(rhs, dot, out);
+  return out;
+}
+
 const keyOf = (t: readonly number[]): string => t.join(",");
 
 function dedupe(terms: number[][]): number[][] {
@@ -373,8 +384,9 @@ export function expandRhs(
           const a = L(n.left, negated);
           let e = n.right;
           while (e.type === "paren") e = e.arg;
-          const p = e.type === "num" ? e.value : NaN;
-          if (!Number.isInteger(p) || p < 2) throw new Error("invalid power in formula");
+          // n is truncated towards zero (R's asInteger: ^2.5 is ^2)
+          const p = e.type === "num" ? Math.trunc(e.value) : NaN;
+          if (!(p >= 2)) throw new Error("invalid power in formula");
           let cur = a;
           for (let k = 1; k < p; k++) {
             const nxt: number[][] = [];
@@ -390,6 +402,9 @@ export function expandRhs(
         }
         const a = L(n.left, negated);
         const b = L(n.right, negated);
+        // R builds *, / and %in% by appending to the left operand's list: an empty left operand gives no terms (the
+        // right operand has still been expanded, for its effect on the intercept)
+        if (a.length === 0 && n.op !== "+") return [];
         const cross = (): number[][] => {
           const out: number[][] = [];
           for (const s of a) for (const t of b) out.push(union(s, t));

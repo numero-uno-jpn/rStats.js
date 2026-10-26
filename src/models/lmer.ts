@@ -53,7 +53,11 @@ import { mixedModelStructure, type MixedModelStructure } from "./mixedStructure.
 export interface LmerOptions {
   /** Whether to minimise the REML criterion (default `true`) or the ML deviance (`false`). */
   REML?: boolean;
-  /** A contrast per factor of the fixed-effects part (default `"contr.treatment"`); the random-effects terms always use treatment contrasts. */
+  /**
+   * A contrast per factor of the fixed-effects part (default `"contr.treatment"`); the random-effects terms always use
+   * treatment contrasts. A name that is not a variable of the fixed-effects part (a grouping variable alone included)
+   * gives the warning `variable 'B' is absent, its contrast will be ignored`.
+   */
   contrasts?: Record<string, ContrastName>;
   /** The order of the levels of a factor (`{ A: ["c", "a", "b"] }`), as `factor(x, levels = ...)` in R. */
   levels?: Record<string, readonly string[]>;

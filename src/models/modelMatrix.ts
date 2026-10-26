@@ -22,7 +22,11 @@ export type ContrastName = "contr.treatment" | "contr.sum" | "contr.helmert";
  * @category Linear models and ANOVA
  */
 export interface ModelMatrixOptions {
-  /** A contrast per factor (default `"contr.treatment"`). */
+  /**
+   * A contrast per factor (default `"contr.treatment"`); a boolean variable takes it too. A name that is not a
+   * variable of the formula gives the warning `variable 'B' is absent, its contrast will be ignored`; a numeric
+   * variable (the response too) is an error.
+   */
   contrasts?: Record<string, ContrastName>;
   /** The order of the levels of a factor (`{ A: ["c", "a", "b"] }`), as `factor(x, levels = ...)` in R. */
   levels?: Record<string, readonly string[]>;
@@ -113,6 +117,11 @@ export interface DesignOptions extends ModelMatrixOptions {
   intercept?: boolean;
   /** More variables whose missing values drop rows (the rest of the formula, for the error model of aov) */
   extraVariables?: readonly string[];
+  /**
+   * The variables a name of `contrasts` may refer to without the warning that it is absent (default: the variables
+   * of the whole formula, the response included; lmer passes those of the fixed-effects part)
+   */
+  contrastVariables?: readonly string[];
 }
 
 /**
@@ -134,6 +143,14 @@ export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOp
   const nr = frame.rows.length;
   // the terms that get columns, and the code of each variable in them
   const used = terms.terms.map((_, j) => j !== terms.responseTerm);
+  // the contrasts given: a warning for each name that is not a variable of the formula (in the order of the object),
+  // an error for a numeric variable
+  const contrastWarnings: string[] = [];
+  const present = options.contrastVariables ?? terms.variables;
+  for (const name of Object.keys(options.contrasts ?? {})) {
+    if (!present.includes(name)) contrastWarnings.push(`variable '${name}' is absent, its contrast will be ignored`);
+    else if (vars[terms.variables.indexOf(name)]?.kind === "numeric") throw new TypeError("contrasts apply only to factors");
+  }
   const codes = terms.terms.map((t, j) => t.map((v) => terms.factors[v]![j]!));
   for (let j = 0; j < terms.terms.length; j++) {
     if (!used[j]) continue;
@@ -187,7 +204,10 @@ export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOp
     }
   });
   const x = Array.from({ length: nr }, (_, i) => columns.map((c) => c[i]!));
-  const out: Design = { terms, frame, x, colNames, assign, warnings: [...terms.warnings] };
+  // (the warnings of terms() come first, those of model.matrix() after: the absent contrasts, then the response's term)
+  const fromTerms = terms.warnings.filter((w) => !w.startsWith("problem with term"));
+  const warnings = [...fromTerms, ...contrastWarnings, ...terms.warnings.filter((w) => !fromTerms.includes(w))];
+  const out: Design = { terms, frame, x, colNames, assign, warnings };
   if (terms.response >= 0) {
     const r = vars[terms.response]!;
     if (r.kind !== "numeric") throw new TypeError("the response must be numeric");
