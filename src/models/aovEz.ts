@@ -62,6 +62,8 @@ export interface AovEzResult {
   corrections?: AovEzTable;
   /** Mauchly's tests of the same rows. */
   sphericity?: AovEzTable;
+  /** The within-subject factors (columns), as given. */
+  within: string[];
   warnings: string[];
 }
 
@@ -248,6 +250,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
     return {
       anova: anovaTable(rows, [fit.rss], es, observed),
       univariate: { colNames: tab.colNames, rowNames: tab.rowNames, table: tab.table },
+      within,
       warnings,
     };
   }
@@ -370,6 +373,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
     const out: AovEzResult = {
       anova: anovaTable(rows, errorSS, es, observed),
       univariate: { colNames: ["Sum Sq", "num Df", "Error SS", "den Df", "F value", "Pr(>F)"], rowNames: uniNames, table: uni },
+      within,
       warnings,
     };
     if (corr.length > 0) {
