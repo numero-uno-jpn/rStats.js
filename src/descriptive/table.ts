@@ -2,8 +2,10 @@
 //
 // Written for rStats.js. cut's generation of breaks from a number of intervals follows R's behaviour: equal spacing
 // over the range, ends widened by 1/1000 of the range, and a special case for a zero range. NaN stands for R's NA:
-// unique keeps one NaN; table counts it according to `useNA`; cut and findInterval return NaN for it.
+// unique keeps one NaN; table counts it according to `useNA`; cut and findInterval return NaN for it. table's levels
+// are made as R's factor() makes them: numbers with the same 15-digit text are one level (src/internal/levels.ts).
 
+import { numberLevels } from "../internal/levels.js";
 import { seqLength } from "../internal/seq.js";
 import type { Sample } from "../htest/types.js";
 
@@ -39,7 +41,8 @@ export interface TableOptions {
 
 /**
  * Frequency table of the distinct values. Equivalent to R's `table()`. For one numeric vector: `values` in increasing
- * order (NaN last when counted) with their `counts`.
+ * order (NaN last when counted) with their `counts`. As in R, values with the same text (15 significant digits, as
+ * R's `as.character`) are counted as one, under the smallest of them.
  *
  * @example
  * ```ts
@@ -58,12 +61,12 @@ export function table(
   counts: number[];
 } {
   const useNA = options.useNA ?? "no";
-  const xs = Array.from(x);
+  const xs = numberLevels(Array.from(x));
   const map = new Map<number, number>();
   let nas = 0;
   for (const v of xs) {
     if (Number.isNaN(v)) nas++;
-    else map.set(v === 0 ? 0 : v, (map.get(v === 0 ? 0 : v) ?? 0) + 1);
+    else map.set(v, (map.get(v) ?? 0) + 1);
   }
   const values = Array.from(map.keys()).sort((a, b) => a - b);
   const counts = values.map((v) => map.get(v)!);

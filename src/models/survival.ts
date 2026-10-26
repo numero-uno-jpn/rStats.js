@@ -10,6 +10,7 @@
 import { pchisq } from "../distributions/chisq.js";
 import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
+import { numberLevels } from "../internal/levels.js";
 import { solve } from "../linalg/solve.js";
 
 /**
@@ -122,6 +123,8 @@ function prepare(
   if (keep.length === 0) throw new RangeError("no observations without missing values");
   let labels: GroupLabel[] = [];
   const index = new Map<GroupLabel, number>();
+  // numeric labels with the same 15-digit text are one group, as in R's factor()
+  if (group !== undefined) group = numberLevels(group);
   if (group !== undefined) {
     labels = Array.from(new Set(keep.map((i) => group[i] as GroupLabel))).sort((a, b) =>
       typeof a === "number" && typeof b === "number" ? a - b : String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,

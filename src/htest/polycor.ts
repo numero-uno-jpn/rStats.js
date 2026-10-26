@@ -17,6 +17,7 @@
 import { pbvnorm } from "../distributions/bvnorm.js";
 import { dnorm, pnorm, qnorm } from "../distributions/normal.js";
 import { pearsonDD } from "./cor.js";
+import { numberLevels } from "../internal/levels.js";
 import { mean, sum, variance } from "../internal/summary.js";
 import { optimize } from "../numerics/integrate.js";
 import { solve } from "../linalg/solve.js";
@@ -453,8 +454,9 @@ export function polychor(
     const y = yOrOptions;
     if (xs.length !== y.length) throw new RangeError("'x' and 'y' must have the same length");
     const keep = xs.map((v, i) => !Number.isNaN(v) && !Number.isNaN(y[i]!));
-    const xv = xs.filter((_, i) => keep[i]);
-    const yv = y.filter((_, i) => keep[i]);
+    // (the categories as R's table() makes them: numbers with the same 15-digit text are one category)
+    const xv = numberLevels(xs.filter((_, i) => keep[i]));
+    const yv = numberLevels(y.filter((_, i) => keep[i]));
     const rows = new Map(sortedDistinct(xv).map((v, i) => [v, i]));
     const cols = new Map(sortedDistinct(yv).map((v, j) => [v, j]));
     tab = Array.from({ length: rows.size }, () => new Array<number>(cols.size).fill(0));
@@ -590,7 +592,7 @@ export function polyserial(x: readonly number[], y: readonly number[], options: 
   const { ML = false, stdErr = false } = options;
   const keep = x.map((v, i) => !Number.isNaN(v) && !Number.isNaN(y[i]!));
   const xv = x.filter((_, i) => keep[i]);
-  const yv = y.filter((_, i) => keep[i]);
+  const yv = numberLevels(y.filter((_, i) => keep[i]));
   const n = xv.length;
   const levels = sortedDistinct(yv);
   if (levels.length < 2) return { rho: NaN, warnings: ["y has fewer than 2 levels"] };

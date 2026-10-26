@@ -13,6 +13,7 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm } from "../distributions/normal.js";
 import { dwilcox1 } from "../distributions/wilcox.js";
+import { numberLevels } from "../internal/levels.js";
 import { compareCodePoints } from "../models/modelFrame.js";
 import type { GroupLabel } from "./groups.js";
 import { matchChoice } from "./power.js";
@@ -118,6 +119,9 @@ function orderedGroups(x: Sample, g: readonly GroupLabel[], levels: readonly Gro
   const xs = Array.from(x);
   if (xs.length !== g.length) throw new RangeError("'x' and 'g' must have the same length");
   const keep = xs.flatMap((v, i) => (Number.isNaN(v) || (typeof g[i] === "number" && Number.isNaN(g[i])) ? [] : [i]));
+  // numeric labels with the same 15-digit text are one level, as in R's factor() (only without given levels, which
+  // are matched by String)
+  if (levels === undefined) g = numberLevels(g);
   let order: string[];
   if (levels !== undefined) order = levels.map(String);
   else {

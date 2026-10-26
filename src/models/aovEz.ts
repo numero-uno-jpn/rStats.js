@@ -10,6 +10,7 @@
 // of these matrices times (P'P)^-1, and the epsilons and Mauchly's W follow from P'EP (src/models/ddMatrix.ts).
 
 import { pf1 } from "../distributions/f.js";
+import { numberLevels } from "../internal/levels.js";
 import { eigen } from "../linalg/eigen.js";
 import { qr } from "../linalg/qr.js";
 import { ddAdd, ddDiv, ddDivNum, ddMul, ddMulNum, type DD } from "../special/dd.js";
@@ -179,13 +180,14 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
   const warnings: string[] = [];
 
   // 1. the columns as factors
-  const ids = column(data, options.id).map(label);
+  // (the id and factor columns as R's factor() makes them: numbers with the same 15-digit text are one level)
+  const ids = numberLevels(column(data, options.id)).map(label);
   const dv = column(data, options.dv).map((v) => {
     if (typeof v !== "number") throw new TypeError(`the response '${options.dv}' must be numeric`);
     return v;
   });
-  const bcols = between.map((b) => column(data, b));
-  const wcols = within.map((w) => column(data, w));
+  const bcols = between.map((b) => numberLevels(column(data, b)));
+  const wcols = within.map((w) => numberLevels(column(data, w)));
   const nrow = ids.length;
   for (const c of [dv, ...bcols, ...wcols]) if (c.length !== nrow) throw new RangeError("the columns must have the same length");
   const blevels = bcols.map((c) => sortedLevels(c));
