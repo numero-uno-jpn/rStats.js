@@ -6,6 +6,13 @@
 // ^n the unions of n terms, / and %in% nest, - removes terms (and in its right operand 0 and 1 swap meanings). The
 // terms are then sorted stably by degree, and the variables of each term listed in order of first appearance in the
 // formula. `codes` gives R's "factors" attribute (1: contrasts, 2: indicators) from the rule on earlier terms.
+//
+// Random-effects terms `(lhs | group)` and `(lhs || group)` of linear mixed models (oracle/lmer-behaviour.md,
+// "Formulas with random-effects terms") are parsed only when asked for: `|` and `||` bind more loosely than every
+// other operator, `splitBarTerms` separates them from the fixed-effects part, and `deparseFormula` prints a node as
+// R deparses it (for the terms' labels).
+
+import { formatR } from "../htest/core/simulate.js";
 
 /** A node of a parsed formula. */
 export type FormulaNode =
@@ -15,7 +22,9 @@ export type FormulaNode =
   | { type: "binary"; op: "+" | "-" | "*" | "/" | ":" | "%in%" | "^"; left: FormulaNode; right: FormulaNode }
   | { type: "unary"; op: "+" | "-"; arg: FormulaNode }
   | { type: "paren"; arg: FormulaNode }
-  | { type: "Error"; arg: FormulaNode };
+  | { type: "Error"; arg: FormulaNode }
+  /** A random-effects term `lhs | group` (`double`: `lhs || group`) */
+  | { type: "bar"; double: boolean; lhs: FormulaNode; group: FormulaNode };
 
 /** A parsed formula before expansion. */
 export interface ParsedFormula {
@@ -33,7 +42,7 @@ type Token =
 
 const invalid = (why: string): Error => new SyntaxError(`invalid formula: ${why}`);
 
-function tokenize(s: string): Token[] {
+function tokenize(s: string, allowBars: boolean): Token[] {
   const out: Token[] = [];
   let i = 0;
   while (i < s.length) {
@@ -59,6 +68,12 @@ function tokenize(s: string): Token[] {
       i += 4;
       continue;
     }
+    if (allowBars && c === "|") {
+      const text = s[i + 1] === "|" ? "||" : "|";
+      out.push({ kind: "op", text });
+      i += text.length;
+      continue;
+    }
     if ("~+-*/:^()".includes(c)) {
       out.push({ kind: "op", text: c });
       i++;
@@ -70,8 +85,8 @@ function tokenize(s: string): Token[] {
   return out;
 }
 
-/** Binding powers of the binary operators (higher binds tighter); ^ is right associative */
-const BINARY: Record<string, number> = { "+": 1, "-": 1, "*": 2, "/": 2, "%in%": 3, ":": 4, "^": 6 };
+/** Binding powers of the binary operators (higher binds tighter); ^ is right associative; | and || bind loosest */
+const BINARY: Record<string, number> = { "|": 0.5, "||": 0.5, "+": 1, "-": 1, "*": 2, "/": 2, "%in%": 3, ":": 4, "^": 6 };
 const UNARY = 5;
 
 /**
@@ -79,10 +94,11 @@ const UNARY = 5;
  * or uses something that is not supported (function calls other than Error(), backquoted names, ...).
  *
  * @param allowError Accept `Error(...)` terms (aov only).
+ * @param allowBars Accept the random-effects terms `(lhs | group)` and `(lhs || group)` (mixed models only).
  */
-export function parseFormula(formula: string, allowError = false): ParsedFormula {
+export function parseFormula(formula: string, allowError = false, allowBars = false): ParsedFormula {
   if (typeof formula !== "string") throw new TypeError("the formula must be a string");
-  const toks = tokenize(formula);
+  const toks = tokenize(formula, allowBars);
   let pos = 0;
   const peek = (): Token => toks[pos]!;
   const next = (): Token => toks[pos++]!;
@@ -124,7 +140,7 @@ export function parseFormula(formula: string, allowError = false): ParsedFormula
       next();
       // ^ is right associative: its right operand may contain another ^
       const right = expr(t.text === "^" ? bp - 1 : bp);
-      left = { type: "binary", op: t.text as "+", left, right };
+      left = t.text === "|" || t.text === "||" ? { type: "bar", double: t.text === "||", lhs: left, group: right } : { type: "binary", op: t.text as "+", left, right };
     }
     return left;
   }
@@ -177,6 +193,84 @@ export function splitErrorTerms(rhs: FormulaNode): { treatment: FormulaNode | un
   return { treatment, errors };
 }
 
+/** The random-effects terms of a right-hand side (summands, possibly in parentheses) and the right-hand side without them. */
+export function splitBarTerms(rhs: FormulaNode): { fixed: FormulaNode | undefined; bars: Extract<FormulaNode, { type: "bar" }>[] } {
+  const bars: Extract<FormulaNode, { type: "bar" }>[] = [];
+  const strip = (n: FormulaNode): FormulaNode | undefined => {
+    switch (n.type) {
+      case "bar":
+        bars.push(n);
+        return undefined;
+      case "paren": {
+        const a = strip(n.arg);
+        return a === undefined ? undefined : { ...n, arg: a };
+      }
+      case "binary":
+        if (n.op === "+") {
+          const l = strip(n.left);
+          const r = strip(n.right);
+          if (l === undefined) return r;
+          if (r === undefined) return l;
+          return { ...n, left: l, right: r };
+        }
+        if (n.op === "-") {
+          // y ~ x + (1 | g) - 1: the random-effects term is a summand of the left operand
+          const l = strip(n.left);
+          if (l === undefined) return { type: "unary", op: "-", arg: n.right };
+          return { ...n, left: l };
+        }
+        return n;
+      default:
+        return n;
+    }
+  };
+  const fixed = strip(rhs);
+  const check = (n: FormulaNode): void => {
+    if (n.type === "bar") throw invalid("a random-effects term (lhs | group) must be a term of the right-hand side");
+    if (n.type === "binary") {
+      check(n.left);
+      check(n.right);
+    } else if (n.type === "unary" || n.type === "paren" || n.type === "Error") check(n.arg);
+  };
+  if (fixed !== undefined) check(fixed);
+  for (const b of bars) {
+    check(b.lhs);
+    check(b.group);
+  }
+  return { fixed, bars };
+}
+
+/** Binary operators that R deparses with a space on each side */
+const SPACED = new Set(["+", "-", "*", "%in%"]);
+
+/**
+ * A formula node as R deparses it: `+`, `-`, `*` and `%in%` with a space on each side, `:`, `/` and `^` without,
+ * unary minus and plus without a space, parentheses as written.
+ */
+export function deparseFormula(n: FormulaNode): string {
+  switch (n.type) {
+    case "var":
+      return n.name;
+    case "dot":
+      return ".";
+    case "num":
+      return formatR(n.value);
+    case "binary": {
+      const l = deparseFormula(n.left);
+      const r = deparseFormula(n.right);
+      return SPACED.has(n.op) ? `${l} ${n.op} ${r}` : `${l}${n.op}${r}`;
+    }
+    case "unary":
+      return `${n.op}${deparseFormula(n.arg)}`;
+    case "paren":
+      return `(${deparseFormula(n.arg)})`;
+    case "Error":
+      return `Error(${deparseFormula(n.arg)})`;
+    case "bar":
+      return `${deparseFormula(n.lhs)} ${n.double ? "||" : "|"} ${deparseFormula(n.group)}`;
+  }
+}
+
 /** Terms of a model: the variables of each term as indices into `variables`, in increasing order. */
 export interface Terms {
   /** The variable names: the response first (if any), then in order of first appearance in the formula. */
@@ -220,6 +314,10 @@ function collectVariables(n: FormulaNode | undefined, dot: readonly string[], ou
     case "paren":
     case "Error":
       collectVariables(n.arg, dot, out);
+      return;
+    case "bar":
+      collectVariables(n.lhs, dot, out);
+      collectVariables(n.group, dot, out);
   }
 }
 
@@ -264,6 +362,8 @@ export function expandRhs(
         return L(n.arg, negated);
       case "Error":
         throw invalid("Error() must be a term of the right-hand side");
+      case "bar":
+        throw invalid("a random-effects term (lhs | group) must be a term of the right-hand side");
       case "unary":
         if (n.op === "+") return L(n.arg, negated);
         L(n.arg, !negated);
