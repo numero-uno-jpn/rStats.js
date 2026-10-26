@@ -256,12 +256,12 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 できません。メインの入口には含めていません)。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` 以外のすべての関数を含む
-minify 済みの ES モジュール、gzip で 186 KB) を jsDelivr から読み込めます。jsDelivr は、このリポジトリのリリースの
-タグをそのまま配信します。
+minify 済みの ES モジュール、gzip で 186 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
+そのまま配信します。
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.12.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.12.0/dist/rstats.js";
   console.log(pnorm(1.96)); // 0.9750021048517795
 </script>
 ```
@@ -279,10 +279,10 @@ minify 済みの ES モジュール、gzip で 186 KB) を jsDelivr から読み
 2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
 19 KB (`mixed`) から 156 KB (`tests`) です。
 
-ビルド結果 (`dist/`) は main ブランチにはなく、リリースのタグにだけ入っています。npm を元にした CDN も
-使えます。たとえば
-`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.12.0/dist/rstats.js` や
-`https://esm.sh/@numero-uno-jpn/rstats` です。
+npm を元にしたほかの CDN も使えます。たとえば `https://esm.sh/@numero-uno-jpn/rstats` です。ビルド結果
+(`dist/`) は main ブランチにはなく、リリースのタグにも入っていますが、jsDelivr の GitHub 経由の配信
+(`cdn.jsdelivr.net/gh/...`) は、0.12.0 以降のタグを配信しません。テストの fixture を含めると、リポジトリが
+その上限の 50 MB を超えるためです。上の npm 経由の URL を使ってください。
 
 ブラウザ向けのビルドは、headless Chromium でテストしています。バンドラでまとめた場合と、
 `dist/rstats.js` を ES モジュールとして読み込んだ場合の両方です (`npm run test:browser`)。

@@ -252,11 +252,11 @@ Each area is also a subpath export, for importing one area without the rest:
 (`lmer`; this area is only available this way, not from the main entry point).
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function except those of `/mixed`, 186 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+function except those of `/mixed`, 186 KB gzipped) from jsDelivr, which serves each npm release:
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.12.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.12.0/dist/rstats.js";
   console.log(pnorm(1.96)); // 0.9750021048517795
 </script>
 ```
@@ -274,10 +274,10 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
 transfers 19 KB (`mixed`) to 156 KB (`tests`) gzipped.
 
-Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
-work as well, for example
-`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.12.0/dist/rstats.js` or
-`https://esm.sh/@numero-uno-jpn/rstats`.
+Other npm-based CDNs work as well, for example `https://esm.sh/@numero-uno-jpn/rstats`. Release tags also contain
+the build output (`dist/`), which is not on the main branch, but jsDelivr's GitHub route
+(`cdn.jsdelivr.net/gh/...`) does not serve tags from 0.12.0 on: with the test fixtures, the repository exceeds its
+size limit of 50 MB. Use the npm route above.
 
 The browser build is tested in headless Chromium, both bundled and as `dist/rstats.js` loaded as
 an ES module (`npm run test:browser`).

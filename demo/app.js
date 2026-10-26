@@ -14,7 +14,9 @@ import { createCompareTab } from "./examples.js";
 
 /** The release whose build is loaded from jsDelivr. */
 const VERSION = "v0.12.0";
-const CDN_DIST = `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@${VERSION}/dist/`;
+// jsDelivr's npm route: its GitHub route (cdn.jsdelivr.net/gh/...) does not serve release tags from v0.12.0 on, since
+// the repository with its test fixtures exceeds its size limit of 50 MB
+const CDN_DIST = `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@${VERSION.slice(1)}/dist/`;
 const LOCAL_DIST = "../dist/";
 
 const params = new URLSearchParams(location.search);

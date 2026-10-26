@@ -20,7 +20,7 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const origin = "http://rstats.test";
-const CDN = /^https:\/\/cdn\.jsdelivr\.net\/gh\/numero-uno-jpn\/rStats\.js@v[^/]+\/dist\/(.+\.js)$/;
+const CDN = /^https:\/\/cdn\.jsdelivr\.net\/npm\/@numero-uno-jpn\/rstats@[^/]+\/dist\/(.+\.js)$/;
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
