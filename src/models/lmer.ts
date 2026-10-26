@@ -46,6 +46,14 @@ import type { ContrastName } from "./modelMatrix.js";
 import { mixedModelStructure, type MixedModelStructure } from "./mixedStructure.js";
 
 /**
+ * A contrast of a factor of lmer's fixed effects: R's `contr.treatment`, `contr.sum`, `contr.helmert` or `contr.poly`
+ * (orthogonal polynomials in the level scores 1, 2, ..., columns `.L`, `.Q`, `.C`, `^4`, ...).
+ *
+ * @category Mixed models
+ */
+export type LmerContrastName = ContrastName | "contr.poly";
+
+/**
  * Options of {@link lmer}.
  *
  * @category Mixed models
@@ -54,11 +62,12 @@ export interface LmerOptions {
   /** Whether to minimise the REML criterion (default `true`) or the ML deviance (`false`). */
   REML?: boolean;
   /**
-   * A contrast per factor of the fixed-effects part (default `"contr.treatment"`); the random-effects terms always use
-   * treatment contrasts. A name that is not a variable of the fixed-effects part (a grouping variable alone included)
-   * gives the warning `variable 'B' is absent, its contrast will be ignored`.
+   * A contrast per factor of the fixed-effects part: `"contr.treatment"` (default), `"contr.sum"`, `"contr.helmert"` or
+   * `"contr.poly"` (see {@link LmerContrastName}); the random-effects terms always use treatment contrasts. A name that
+   * is not a variable of the fixed-effects part (a grouping variable alone included) gives the warning
+   * `variable 'B' is absent, its contrast will be ignored`.
    */
-  contrasts?: Record<string, ContrastName>;
+  contrasts?: Record<string, LmerContrastName>;
   /** The order of the levels of a factor (`{ A: ["c", "a", "b"] }`), as `factor(x, levels = ...)` in R. */
   levels?: Record<string, readonly string[]>;
 }
@@ -536,7 +545,7 @@ export function lmerInternals(fit: LmerResult): LmerInternals {
  */
 export function lmerWithCriterion(formula: string, data: DataFrame, options: LmerOptions, criterion: MixedCriterion): LmerResult {
   const reml = options.REML ?? true;
-  const modelOptions: { contrasts?: Record<string, ContrastName>; levels?: Record<string, readonly string[]> } = {};
+  const modelOptions: { contrasts?: Record<string, LmerContrastName>; levels?: Record<string, readonly string[]> } = {};
   if (options.contrasts !== undefined) modelOptions.contrasts = options.contrasts;
   if (options.levels !== undefined) modelOptions.levels = options.levels;
   const s = mixedModelStructure(formula, data, modelOptions);

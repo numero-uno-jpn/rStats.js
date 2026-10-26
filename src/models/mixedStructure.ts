@@ -16,7 +16,7 @@ import { formatR } from "../htest/core/simulate.js";
 import { qr } from "../linalg/qr.js";
 import { deparseFormula, expandRhs, parseFormula, splitBarTerms, termsOf, type FormulaNode } from "./formula.js";
 import { presentLevels, type DataFrame, type FrameVariable } from "./modelFrame.js";
-import { design, type ModelMatrixOptions } from "./modelMatrix.js";
+import { design, type DesignContrast, type ModelMatrixOptions } from "./modelMatrix.js";
 
 /** A random-effects term of a mixed model, after the expansion of its grouping expression and of `||`. */
 export interface RandomEffectsTerm {
@@ -91,8 +91,8 @@ export interface MixedModelStructure {
   warnings: string[];
 }
 
-/** Options of {@link mixedModelStructure}: those of the fixed-effects model matrix. */
-export type MixedModelStructureOptions = ModelMatrixOptions;
+/** Options of {@link mixedModelStructure}: those of the fixed-effects model matrix (contr.poly accepted too). */
+export type MixedModelStructureOptions = Omit<ModelMatrixOptions, "contrasts"> & { contrasts?: Record<string, DesignContrast> };
 
 /** A random-effects term before the grouping factors are formed */
 interface ExpandedTerm {
