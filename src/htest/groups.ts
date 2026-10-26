@@ -4,7 +4,11 @@
 
 import type { Sample } from "./types.js";
 
-/** Group label: a number or a string. */
+/**
+ * Group label: a number or a string.
+ *
+ * @category Hypothesis tests
+ */
 export type GroupLabel = number | string;
 
 /** Groups with their labels: the sorted labels (x, g form) or the 1-based positions in the list (list form) */

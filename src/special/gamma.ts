@@ -75,6 +75,8 @@ function stirfXsf(x: number): number {
  * gamma(5);    // 24
  * gamma(0.5);  // 1.7724538509055159 (sqrt(pi))
  * ```
+ *
+ * @category Special functions
  */
 export function gamma(x: number): number {
   if (!Number.isFinite(x)) return x > 0 ? x : NaN;
@@ -208,6 +210,8 @@ export function lgammaSign(x: number): { value: number; sign: number } {
  * lgamma(100);   // 359.1342053695754
  * lgamma(-0.5);  // 1.2655121234846454
  * ```
+ *
+ * @category Special functions
  */
 export function lgamma(x: number): number {
   if (Math.abs(x - 1) <= 0.2) return lgamma1p(x - 1);

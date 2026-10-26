@@ -10,13 +10,21 @@ import { labelledGroups, median, type GroupLabel } from "./groups.js";
 import { matchChoice } from "./power.js";
 import type { Sample } from "./types.js";
 
-/** Options for {@link leveneTest}. */
+/**
+ * Options for {@link leveneTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface LeveneTestOptions {
   /** The centre of each group: `"median"` (default) or `"mean"`. */
   center?: "median" | "mean" | (string & {});
 }
 
-/** Result of {@link leveneTest}: car's table. */
+/**
+ * Result of {@link leveneTest}: car's table.
+ *
+ * @category Hypothesis tests
+ */
 export interface LeveneTestResult {
   /** `["Df", "F value", "Pr(>F)"]`. */
   colNames: string[];
@@ -39,6 +47,8 @@ export interface LeveneTestResult {
  * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
  * leveneTest([4.2, 5.1, 6.3, 5.8, 7.9, 8.4, 6.6, 7.0, 5.5], g).table[0]; // [2, 0.15936952714535912, 0.8561748951935417]
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function leveneTest(y: Sample, g: readonly GroupLabel[], options: LeveneTestOptions = {}): LeveneTestResult {
   const center = matchChoice(options.center ?? "median", ["median", "mean"] as const);

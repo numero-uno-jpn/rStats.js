@@ -8,7 +8,11 @@ import { erf, erfcxNonNegative } from "../special/erf.js";
 import { ndtri, ndtriExp } from "../special/ndtri.js";
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 
-/** Options for {@link pnorm} and {@link qnorm}. */
+/**
+ * Options for {@link pnorm} and {@link qnorm}.
+ *
+ * @category Distributions
+ */
 export interface NormalOptions {
   /** Mean. Default `0`. */
   mean?: number;
@@ -136,6 +140,8 @@ function dnorm1(x: number, mean: number, sd: number, log: boolean): number {
  * dnorm([-1, 0, 1]);                         // [0.24197072451914337, 0.3989422804014327, 0.24197072451914337]
  * dnorm(1, { mean: 1, sd: 2, log: true });   // -1.612085713764618
  * ```
+ *
+ * @category Distributions
  */
 export function dnorm<T extends Vectorizable>(
   x: T,
@@ -160,6 +166,8 @@ export function dnorm<T extends Vectorizable>(
  * pnorm(new Float64Array([-1, 0, 1]));  // Float64Array [0.15865525393145707, 0.5, 0.8413447460685429]
  * pnorm(-40, { logP: true });           // -804.6084420137538
  * ```
+ *
+ * @category Distributions
  */
 export function pnorm<T extends Vectorizable>(q: T, options: NormalOptions = {}): VectorResult<T> {
   const { mean = 0, sd = 1, lowerTail = true, logP = false } = options;
@@ -179,6 +187,8 @@ export function pnorm<T extends Vectorizable>(q: T, options: NormalOptions = {})
  * qnorm(0.975);                         // 1.959963984540054
  * qnorm(0.05, { mean: 100, sd: 15 });   // 75.32719559572791
  * ```
+ *
+ * @category Distributions
  */
 export function qnorm<T extends Vectorizable>(p: T, options: NormalOptions = {}): VectorResult<T> {
   const { mean = 0, sd = 1, lowerTail = true, logP = false } = options;

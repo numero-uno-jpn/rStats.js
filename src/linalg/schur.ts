@@ -15,7 +15,11 @@
 import { orthes, hqr2 } from "./eigen.js";
 import { fromMat, newMat, requireSquare, toMat, type MatrixInput } from "./matrix.js";
 
-/** Result of {@link schur}: `x = Q T Q'`. */
+/**
+ * Result of {@link schur}: `x = Q T Q'`.
+ *
+ * @category Linear algebra
+ */
 export interface SchurResult {
   /** The upper quasi-triangular factor (array of rows). */
   T: number[][];
@@ -43,6 +47,8 @@ export interface SchurResult {
  * schur([[0, -1], [1, 0]]);
  * // { T: [[0, -1], [1, 0]], Q: [[1, 0], [0, 1]], valuesRe: [0, 0], valuesIm: [1, -1] }
  * ```
+ *
+ * @category Linear algebra
  */
 export function schur(x: MatrixInput): SchurResult {
   const A = toMat(x);

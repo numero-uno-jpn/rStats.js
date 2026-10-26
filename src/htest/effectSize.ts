@@ -19,7 +19,11 @@ import { lgamma } from "../special/gamma.js";
 import { matchChoice } from "./power.js";
 import type { Alternative, Sample } from "./types.js";
 
-/** Options for {@link cohensD} and {@link hedgesG}. */
+/**
+ * Options for {@link cohensD} and {@link hedgesG}.
+ *
+ * @category Effect sizes and power
+ */
 export interface CohensDOptions {
   /** Two samples: standardize by the pooled standard deviation (default `true`) or by `sqrt((s1² + s2²)/2)`. */
   pooledSd?: boolean;
@@ -35,7 +39,11 @@ export interface CohensDOptions {
   adjust?: boolean;
 }
 
-/** Result of {@link cohensD} and {@link hedgesG}. */
+/**
+ * Result of {@link cohensD} and {@link hedgesG}.
+ *
+ * @category Effect sizes and power
+ */
 export interface CohensDResult {
   /** `"Cohens_d"` or `"Hedges_g"`. */
   name: "Cohens_d" | "Hedges_g";
@@ -135,6 +143,8 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
  * ```ts
  * cohensD([5.1, 4.9, 6.2, 5.8], [4.1, 4.5, 3.9, 5.0]).value; // 2.049693834034246
  * ```
+ *
+ * @category Effect sizes and power
  */
 export function cohensD(x: Sample, y?: Sample, options: CohensDOptions = {}): CohensDResult {
   return standardizedDifference(x, y, options, options.adjust ?? false);
@@ -148,12 +158,18 @@ export function cohensD(x: Sample, y?: Sample, options: CohensDOptions = {}): Co
  * ```ts
  * hedgesG([5.1, 4.9, 6.2, 5.8], [4.1, 4.5, 3.9, 5.0]).value; // 1.7804187661174387
  * ```
+ *
+ * @category Effect sizes and power
  */
 export function hedgesG(x: Sample, y?: Sample, options: Omit<CohensDOptions, "adjust"> = {}): CohensDResult {
   return standardizedDifference(x, y, options, true);
 }
 
-/** Options for {@link etaSquared}, {@link omegaSquared} and {@link epsilonSquared}. */
+/**
+ * Options for {@link etaSquared}, {@link omegaSquared} and {@link epsilonSquared}.
+ *
+ * @category Effect sizes and power
+ */
 export interface AnovaEffectSizeOptions {
   /**
    * Partial effect sizes (default `true`). A table with a single term always gives the non-partial one (not so for
@@ -166,7 +182,11 @@ export interface AnovaEffectSizeOptions {
   alternative?: Alternative | (string & {});
 }
 
-/** Options for {@link etaSquared}. */
+/**
+ * Options for {@link etaSquared}.
+ *
+ * @category Effect sizes and power
+ */
 export interface EtaSquaredOptions extends AnovaEffectSizeOptions {
   /**
    * Generalized eta squared: `true` (all factors manipulated) or the names of the observed factors. Default
@@ -175,7 +195,11 @@ export interface EtaSquaredOptions extends AnovaEffectSizeOptions {
   generalized?: boolean | readonly string[];
 }
 
-/** Result of the ANOVA effect sizes: one row per term. */
+/**
+ * Result of the ANOVA effect sizes: one row per term.
+ *
+ * @category Effect sizes and power
+ */
 export interface AnovaEffectSizeTable {
   /** effectsize's columns: the effect size (`"Eta2_partial"`, `"Omega2"`, ...), then `"CI"`, `"CI_low"`, `"CI_high"`. */
   colNames: string[];
@@ -192,6 +216,8 @@ export interface AnovaEffectSizeTable {
 /**
  * A model of the ANOVA effect sizes: a table of `anova()` or `Anova()`, a fit from `lm()` or `aov()` (also with
  * `Error()`), the `aovSummary()` of an `aov()` fit with `Error()`, or a result of `aovEz()`.
+ *
+ * @category Effect sizes and power
  */
 export type AnovaEffectSizeModel = AnovaTable | LmFormulaResult | AovStrataFit | AovStrataSummary | AovEzResult;
 
@@ -462,6 +488,8 @@ function strataEffectSize(model: StrataModel, kind: Kind, options: EtaSquaredOpt
  * };
  * etaSquared(aov("y ~ W + Error(id/W)", long)).groups; // ["id:W"]
  * ```
+ *
+ * @category Effect sizes and power
  */
 export function etaSquared(model: AnovaEffectSizeModel, options: EtaSquaredOptions = {}): AnovaEffectSizeTable {
   return anovaEffectSize(model, "Eta2", options);
@@ -476,6 +504,8 @@ export function etaSquared(model: AnovaEffectSizeModel, options: EtaSquaredOptio
  * const data = { y: [2.1, 3.9, 6.2, 7.8, 10.1, 11.8], g: ["a", "a", "b", "b", "c", "c"] };
  * omegaSquared(anova(lm("y ~ g", data))).table; // [[0.8740518865645682, 0.95, 0.0566677410780818, 1]]
  * ```
+ *
+ * @category Effect sizes and power
  */
 export function omegaSquared(model: AnovaEffectSizeModel, options: AnovaEffectSizeOptions = {}): AnovaEffectSizeTable {
   return anovaEffectSize(model, "Omega2", options);
@@ -490,6 +520,8 @@ export function omegaSquared(model: AnovaEffectSizeModel, options: AnovaEffectSi
  * const data = { y: [2.1, 3.9, 6.2, 7.8, 10.1, 11.8], g: ["a", "a", "b", "b", "c", "c"] };
  * epsilonSquared(anova(lm("y ~ g", data))).table; // [[0.8927928150213428, 0.95, 0.1720126241673212, 1]]
  * ```
+ *
+ * @category Effect sizes and power
  */
 export function epsilonSquared(model: AnovaEffectSizeModel, options: AnovaEffectSizeOptions = {}): AnovaEffectSizeTable {
   return anovaEffectSize(model, "Epsilon2", options);

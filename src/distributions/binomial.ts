@@ -89,6 +89,8 @@ export function qbinom1(p: number, size: number, prob: number, lowerTail: boolea
  * dbinom(3, 10, 0.5);      // 0.1171875
  * dbinom([0, 5], 10, 0.5); // [0.0009765625, 0.24609375]
  * ```
+ *
+ * @category Distributions
  */
 export function dbinom<T extends Vectorizable>(
   x: T,
@@ -114,6 +116,8 @@ export function dbinom<T extends Vectorizable>(
  * pbinom(3, 10, 0.5);      // 0.171875
  * pbinom([3, 5], 10, 0.5); // [0.171875, 0.623046875]
  * ```
+ *
+ * @category Distributions
  */
 export function pbinom<T extends Vectorizable>(
   q: T,
@@ -139,6 +143,8 @@ export function pbinom<T extends Vectorizable>(
  * qbinom(0.5, 10, 0.3);          // 3
  * qbinom([0.025, 0.975], 10, 0.3); // [0, 6]
  * ```
+ *
+ * @category Distributions
  */
 export function qbinom<T extends Vectorizable>(
   p: T,

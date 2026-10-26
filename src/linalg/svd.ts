@@ -12,7 +12,11 @@
 import { fromMat, newMat, toMat, transpose, type Mat, type MatrixInput } from "./matrix.js";
 import { larfg, larfLeft } from "./qr.js";
 
-/** Options for {@link svd}. */
+/**
+ * Options for {@link svd}.
+ *
+ * @category Linear algebra
+ */
 export interface SvdOptions {
   /** Number of left singular vectors to compute. Default: `min(nrow, ncol)`. Values above the number of rows are reduced to it. */
   nu?: number;
@@ -20,7 +24,11 @@ export interface SvdOptions {
   nv?: number;
 }
 
-/** Result of {@link svd}: `x = u %*% diag(d) %*% t(v)`. */
+/**
+ * Result of {@link svd}: `x = u %*% diag(d) %*% t(v)`.
+ *
+ * @category Linear algebra
+ */
 export interface SvdResult {
   /** The singular values, in decreasing order. */
   d: number[];
@@ -47,6 +55,8 @@ export interface SvdResult {
  * svd([[3, 0], [0, 4]]);
  * // { d: [4, 3], u: [[0, 1], [1, 0]], v: [[0, 1], [1, 0]] }  (signs of u and v may differ from R)
  * ```
+ *
+ * @category Linear algebra
  */
 export function svd(x: MatrixInput, options: SvdOptions = {}): SvdResult {
   const a = toMat(x);

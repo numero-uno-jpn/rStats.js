@@ -15,7 +15,11 @@ import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
 import { Warnings } from "./glmFamily.js";
 
-/** Control of the Newton-Raphson iterations of {@link coxph} (R's `coxph.control`). */
+/**
+ * Control of the Newton-Raphson iterations of {@link coxph} (R's `coxph.control`).
+ *
+ * @category Survival analysis
+ */
 export interface CoxphControl {
   /** Convergence tolerance on the relative change of the log partial likelihood. Default 1e-9. */
   eps?: number;
@@ -27,7 +31,11 @@ export interface CoxphControl {
   tolerInf?: number;
 }
 
-/** Options for {@link coxph}. */
+/**
+ * Options for {@link coxph}.
+ *
+ * @category Survival analysis
+ */
 export interface CoxphOptions {
   /** Handling of tied event times. Default `"efron"`. */
   ties?: "efron" | "breslow";
@@ -45,7 +53,11 @@ export interface CoxphOptions {
   confLevel?: number;
 }
 
-/** A test statistic with its degrees of freedom and upper chi-squared tail. */
+/**
+ * A test statistic with its degrees of freedom and upper chi-squared tail.
+ *
+ * @category Survival analysis
+ */
 export interface CoxphTest {
   /** The chi-squared statistic (R's `test`). */
   statistic: number;
@@ -55,7 +67,11 @@ export interface CoxphTest {
   pValue: number;
 }
 
-/** Result of {@link coxph}. */
+/**
+ * Result of {@link coxph}.
+ *
+ * @category Survival analysis
+ */
 export interface CoxphResult {
   /** Coefficients (NaN for R's NA: an aliased column or one whose information fell below the tolerance) */
   coefficients: number[];
@@ -350,6 +366,8 @@ const chisqTest = (statistic: number, df: number): CoxphTest => ({
  * fit.coefficients;   // [1.0324]
  * fit.logtest.pValue; // 0.18817
  * ```
+ *
+ * @category Survival analysis
  */
 export function coxph(
   time: readonly number[],

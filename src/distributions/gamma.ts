@@ -18,6 +18,8 @@ import { qnorm } from "./normal.js";
 /**
  * Parameters of the gamma distribution. Give either `rate` or `scale`; if both are given,
  * `scale` must equal `1 / rate`.
+ *
+ * @category Distributions
  */
 export interface GammaParams {
   /** Rate (`rate = 1 / scale`). Default `1`. */
@@ -146,6 +148,8 @@ export function qgamma1(p: number, shape: number, scale: number, lowerTail: bool
  * dgamma(1, 2);              // 0.36787944117144233
  * dgamma(1, 2, { rate: 3 }); // 0.44808361531077556
  * ```
+ *
+ * @category Distributions
  */
 export function dgamma<T extends Vectorizable>(
   x: T,
@@ -173,6 +177,8 @@ export function dgamma<T extends Vectorizable>(
  * pgamma(2, 2, { rate: 3 }); // 0.9826487347633355
  * pgamma(2, 2, { scale: 3 }); // 0.14430480161234657
  * ```
+ *
+ * @category Distributions
  */
 export function pgamma<T extends Vectorizable>(
   q: T,
@@ -199,6 +205,8 @@ export function pgamma<T extends Vectorizable>(
  * qgamma(0.5, 2);                   // 1.6783469900166605
  * qgamma([0.05, 0.95], 2, { rate: 3 }); // [0.11845383689955402, 1.5812881727968588]
  * ```
+ *
+ * @category Distributions
  */
 export function qgamma<T extends Vectorizable>(
   p: T,

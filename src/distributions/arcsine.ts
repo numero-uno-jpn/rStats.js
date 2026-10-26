@@ -12,7 +12,11 @@ import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions
 import { ddAdd, ddLog, twoSum, type DD } from "../special/dd.js";
 import { pbeta1, qbeta1 } from "./beta.js";
 
-/** Limits of the arcsine distribution. */
+/**
+ * Limits of the arcsine distribution.
+ *
+ * @category Distributions
+ */
 export interface ArcsineParams {
   /** Lower limit. Default `0`. */
   a?: number;
@@ -67,6 +71,8 @@ export function qarcsine1(p: number, a: number, b: number, lowerTail: boolean, l
  * darcsine(0.5);                   // 0.6366197723675813
  * darcsine(1, { a: 0, b: 4 });     // 0.1837762984739307
  * ```
+ *
+ * @category Distributions
  */
 export function darcsine<T extends Vectorizable>(x: T, options: ArcsineParams & DensityOptions = {}): VectorResult<T> {
   const { a = 0, b = 1, log = false } = options;
@@ -82,6 +88,8 @@ export function darcsine<T extends Vectorizable>(x: T, options: ArcsineParams & 
  * parcsine(0.25);                  // 0.3333333333333333
  * parcsine(1, { a: 0, b: 4 });     // 0.3333333333333333
  * ```
+ *
+ * @category Distributions
  */
 export function parcsine<T extends Vectorizable>(q: T, options: ArcsineParams & TailOptions = {}): VectorResult<T> {
   const { a = 0, b = 1, lowerTail = true, logP = false } = options;
@@ -97,6 +105,8 @@ export function parcsine<T extends Vectorizable>(q: T, options: ArcsineParams & 
  * qarcsine(0.5);                   // 0.5
  * qarcsine(0.25, { a: 0, b: 4 });  // 0.5857864376269049
  * ```
+ *
+ * @category Distributions
  */
 export function qarcsine<T extends Vectorizable>(p: T, options: ArcsineParams & TailOptions = {}): VectorResult<T> {
   const { a = 0, b = 1, lowerTail = true, logP = false } = options;

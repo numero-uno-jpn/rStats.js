@@ -23,6 +23,8 @@ import { dnchisq1, pnchisq1, qnchisq1 } from "./nchisq.js";
  * dchisq(1, 3);              // 0.24197072451914337
  * dchisq(1, 3, { ncp: 2 });  // 0.12180056753215114
  * ```
+ *
+ * @category Distributions
  */
 export function dchisq<T extends Vectorizable>(
   x: T,
@@ -49,6 +51,8 @@ export function dchisq<T extends Vectorizable>(
  * pchisq(3.84, 1, { lowerTail: false }); // 0.05004352124870517
  * pchisq(5, 3, { ncp: 2 });              // 0.5934051800831556
  * ```
+ *
+ * @category Distributions
  */
 export function pchisq<T extends Vectorizable>(
   q: T,
@@ -75,6 +79,8 @@ export function pchisq<T extends Vectorizable>(
  * qchisq(0.95, 1);                   // 3.841458820694125
  * qchisq(0.05, 3, { lowerTail: false }); // 7.814727903251181
  * ```
+ *
+ * @category Distributions
  */
 export function qchisq<T extends Vectorizable>(
   p: T,

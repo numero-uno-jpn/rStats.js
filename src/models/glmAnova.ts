@@ -12,10 +12,18 @@ import { glmDispersion, refit, type GlmModel, type GlmResult, type IrlsFit } fro
 import { makeFamily, Warnings } from "./glmFamily.js";
 import { scoreStatistic } from "./glmConfint.js";
 
-/** Tests of {@link glmAnova}. */
+/**
+ * Tests of {@link glmAnova}.
+ *
+ * @category Generalized linear models
+ */
 export type GlmAnovaTest = "Chisq" | "LRT" | "Rao" | "F" | "Cp";
 
-/** Options for {@link glmAnova}. */
+/**
+ * Options for {@link glmAnova}.
+ *
+ * @category Generalized linear models
+ */
 export interface GlmAnovaOptions {
   /**
    * The test: `"Chisq"` (or its synonym `"LRT"`), `"Rao"`, `"F"`, `"Cp"`, or `false` for none. Default, as R since
@@ -26,7 +34,11 @@ export interface GlmAnovaOptions {
   dispersion?: number;
 }
 
-/** Result of {@link glmAnova}: R's anova table. */
+/**
+ * Result of {@link glmAnova}: R's anova table.
+ *
+ * @category Generalized linear models
+ */
 export interface GlmAnovaResult {
   /** Column names, such as `"Df"`, `"Deviance"`, `"Resid. Df"`, `"Resid. Dev"`, `"Pr(>Chi)"`. */
   colNames: string[];
@@ -76,6 +88,8 @@ const rao = (small: Row, large: Row) => scoreStatistic(large.x, small.fit.workin
  * a.table[1];  // [1, 3.3618, 4, 4.956, 0.066725]
  * glmAnova([fit0, fit1], { test: "LRT" }).table[1]; // [4, 4.956, 1, 3.3618, 0.066725]
  * ```
+ *
+ * @category Generalized linear models
  */
 export function glmAnova(fits: GlmResult | readonly GlmResult[], options: GlmAnovaOptions = {}): GlmAnovaResult {
   const list = Array.isArray(fits) ? (fits as readonly GlmResult[]) : [fits as GlmResult];

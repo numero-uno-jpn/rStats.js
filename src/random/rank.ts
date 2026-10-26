@@ -18,6 +18,8 @@ import { generate } from "./common.js";
  * setSeed(1);
  * rsignrank(5, 10); // [37, 33, 13, 29, 40]
  * ```
+ *
+ * @category Random numbers
  */
 export function rsignrank(nn: number, n: number): number[] {
   return generate(nn, () => {
@@ -46,6 +48,8 @@ export function rsignrank(nn: number, n: number): number[] {
  * setSeed(1);
  * rwilcox(5, 4, 6); // [7, 5, 12, 17, 10]
  * ```
+ *
+ * @category Random numbers
  */
 export function rwilcox(nn: number, m: number, n: number): number[] {
   return generate(nn, () => {

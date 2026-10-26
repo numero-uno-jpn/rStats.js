@@ -9,12 +9,24 @@ import { MersenneTwister } from "./mt.js";
 import { Mrg32k3a, checkState } from "./lecuyer.js";
 import { ppnd16 } from "./as241.js";
 
-/** A uniform random number generator, R's `RNGkind(kind)`. */
+/**
+ * A uniform random number generator, R's `RNGkind(kind)`.
+ *
+ * @category Random numbers
+ */
 export type RNGKindName = "Mersenne-Twister" | "L'Ecuyer-CMRG";
-/** How `sample` turns uniforms into indices, R's `RNGkind(sample.kind)`. */
+/**
+ * How `sample` turns uniforms into indices, R's `RNGkind(sample.kind)`.
+ *
+ * @category Random numbers
+ */
 export type SampleKindName = "Rejection" | "Rounding";
 
-/** Options for {@link RNGkind}. Omitted entries keep the current setting, as in R. */
+/**
+ * Options for {@link RNGkind}. Omitted entries keep the current setting, as in R.
+ *
+ * @category Random numbers
+ */
 export interface RNGKindOptions {
   /** Uniform generator: `"Mersenne-Twister"` (R's default), `"L'Ecuyer-CMRG"`, or `"default"`. */
   kind?: RNGKindName | "default" | undefined;
@@ -25,7 +37,11 @@ export interface RNGKindOptions {
   sampleKind?: SampleKindName | "default" | undefined;
 }
 
-/** The kinds in effect, as returned by {@link RNGkind}. */
+/**
+ * The kinds in effect, as returned by {@link RNGkind}.
+ *
+ * @category Random numbers
+ */
 export interface RNGKinds {
   /** The uniform generator. */
   kind: RNGKindName;
@@ -76,6 +92,8 @@ function ensureSeeded(): void {
  * rnorm(3); // [-0.6264538107423324, 0.18364332422208224, -0.8356286124100472]
  * // R: set.seed(1); rnorm(3)
  * ```
+ *
+ * @category Random numbers
  */
 export function setSeed(seed: number): void {
   if (!Number.isFinite(seed)) throw new RangeError("seed must be a finite number");
@@ -128,6 +146,8 @@ function lookup(table: Record<string, boolean>, name: string | undefined, what: 
  * sampleInt(10, { size: 3 }); // [2, 3, 4]
  * // R: set.seed(1, kind = "default", sample.kind = "Rounding"); sample.int(10, 3) - 1
  * ```
+ *
+ * @category Random numbers
  */
 export function RNGkind(options: RNGKindOptions = {}): RNGKinds {
   const previous: RNGKinds = {
@@ -166,6 +186,8 @@ const kindCode = (): number => (gen === mt ? 3 : 7) + 400 + (rounding ? 0 : 1000
  * s.length; // 626
  * s[0]; // 10403
  * ```
+ *
+ * @category Random numbers
  */
 export function getRandomSeed(): Int32Array {
   ensureSeeded();
@@ -191,6 +213,8 @@ export function getRandomSeed(): Int32Array {
  * setRandomSeed(s);
  * runif(2); // [0.2655087, 0.3721239] (the same again)
  * ```
+ *
+ * @category Random numbers
  */
 export function setRandomSeed(state: ArrayLike<number>): void {
   const code = state[0]!;

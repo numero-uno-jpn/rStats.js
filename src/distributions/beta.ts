@@ -203,6 +203,8 @@ export function qbeta1(p: number, a: number, b: number, lowerTail: boolean, logP
  * dbeta(0.5, 2, 3);         // 1.5
  * dbeta([0.25, 0.75], 2, 3); // [1.6875, 0.5625]
  * ```
+ *
+ * @category Distributions
  */
 export function dbeta<T extends Vectorizable>(
   x: T,
@@ -230,6 +232,8 @@ export function dbeta<T extends Vectorizable>(
  * ```ts
  * pbeta(0.5, 2, 3); // 0.6875 (up to rounding)
  * ```
+ *
+ * @category Distributions
  */
 export function pbeta<T extends Vectorizable>(
   q: T,
@@ -258,6 +262,8 @@ export function pbeta<T extends Vectorizable>(
  * qbeta(0.025, 3, 7);          // 0.07485463141969181
  * qbeta([0.025, 0.975], 3, 7); // [0.07485463141969181, 0.6000935737163121]
  * ```
+ *
+ * @category Distributions
  */
 export function qbeta<T extends Vectorizable>(
   p: T,

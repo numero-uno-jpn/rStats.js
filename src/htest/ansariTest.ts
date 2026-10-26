@@ -25,7 +25,11 @@ import { pansariExact, qansariR } from "./core/ansari.js";
 import { twoGroupData } from "./testFormula.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
-/** Options for {@link ansariTest}. */
+/**
+ * Options for {@link ansariTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface AnsariTestOptions {
   /** Alternative hypothesis (unambiguous abbreviations accepted). Default `"two.sided"`. */
   alternative?: Alternative | "two" | "l" | "g";
@@ -55,6 +59,8 @@ export interface AnsariTestOptions {
  * ```
  *
  * There is also a formula form, `ansariTest("y ~ g", data, options)` (next overload).
+ *
+ * @category Hypothesis tests
  */
 export function ansariTest(x: Sample, y: Sample, options?: AnsariTestOptions): HTest;
 /**

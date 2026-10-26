@@ -23,7 +23,11 @@ import { design } from "../models/modelMatrix.js";
 import { labelledGroups, toGroups, type GroupLabel } from "./groups.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
-/** Result of {@link aov}: the one-way ANOVA table, rows "between groups" and "residuals". */
+/**
+ * Result of {@link aov}: the one-way ANOVA table, rows "between groups" and "residuals".
+ *
+ * @category Linear models and ANOVA
+ */
 export interface AovResult {
   /** Degrees of freedom `[k - 1, N - k]`. */
   df: [number, number];
@@ -69,6 +73,8 @@ function sums(groups: readonly number[][]): { ssb: number; ssw: number; means: n
  * r.fValue; // 0.56007326007326
  * r.pValue; // 0.586632991041738
  * ```
+ *
+ * @category Linear models and ANOVA
  */
 export function aov(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): AovResult;
 /**
@@ -125,13 +131,21 @@ function aovOneway(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): Ao
   };
 }
 
-/** Options for {@link TukeyHSD}. */
+/**
+ * Options for {@link TukeyHSD}.
+ *
+ * @category Multiple comparisons
+ */
 export interface TukeyHSDOptions {
   /** Family-wise confidence level. Default `0.95`. */
   confLevel?: number;
 }
 
-/** Result of {@link TukeyHSD}: one entry per pair of groups, in R's order (2-1, 3-1, ..., k-1, 3-2, ...). */
+/**
+ * Result of {@link TukeyHSD}: one entry per pair of groups, in R's order (2-1, 3-1, ..., k-1, 3-2, ...).
+ *
+ * @category Multiple comparisons
+ */
 export interface TukeyHSDResult {
   /**
    * Labels of the comparisons, `"a-b"`: the group labels when given, otherwise the positions of the samples in the
@@ -167,6 +181,8 @@ export interface TukeyHSDResult {
  * r.diff;  // [1.4333333333333336, 2.7666666666666666, 1.333333333333333]
  * r.pAdj;  // [0.03403130149294014, 0.001492661804896774, 0.04527523376597547]
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function TukeyHSD(
   x: Sample | readonly Sample[],
@@ -204,7 +220,11 @@ export function TukeyHSD(
   return out;
 }
 
-/** Options for {@link zTest}. */
+/**
+ * Options for {@link zTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface ZTestOptions {
   /** Known standard deviation of the population of `x` (required). */
   sigmaX?: number;
@@ -227,6 +247,8 @@ export interface ZTestOptions {
  * ```ts
  * zTest([5.1, 4.9, 5.6, 5.8, 6.0], { mu: 5, sigmaX: 0.5 }).pValue; // 0.031823127386490346
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOptions = {}): HTest {
   let ys: Sample | undefined;

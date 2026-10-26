@@ -21,7 +21,11 @@ import { ddAdd, type DD } from "../special/dd.js";
 import { ConvolvedNoncentralHyper, conditionalMLE, lowerLimit, upperLimit, type Stratum } from "./core/mantelhaen.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
-/** Options for {@link mantelhaenTest}. */
+/**
+ * Options for {@link mantelhaenTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface MantelhaenTestOptions {
   /** Alternative hypothesis (2 x 2 x K only). Default `"two.sided"`. */
   alternative?: Alternative | "two" | "l" | "g";
@@ -33,7 +37,11 @@ export interface MantelhaenTestOptions {
   confLevel?: number;
 }
 
-/** Result of {@link mantelhaenTest}. 2 x 2 x K tables add the common odds ratio and its interval. */
+/**
+ * Result of {@link mantelhaenTest}. 2 x 2 x K tables add the common odds ratio and its interval.
+ *
+ * @category Hypothesis tests
+ */
 export interface MantelhaenTestResult extends Omit<HTest, "alternative"> {
   /** Present for 2 x 2 x K tables. */
   alternative?: Alternative;
@@ -58,6 +66,8 @@ export interface MantelhaenTestResult extends Omit<HTest, "alternative"> {
  * r.pValue;    // 0.002740590103473906
  * r.estimate;  // 4.13218122372723 (common odds ratio)
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function mantelhaenTest(
   strata: readonly (readonly (readonly number[])[])[],

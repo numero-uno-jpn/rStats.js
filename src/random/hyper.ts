@@ -228,6 +228,8 @@ function accept(ix: number, v: number): boolean {
  * setSeed(1);
  * rhyper(5, 10, 7, 8); // [5, 5, 5, 3, 6]
  * ```
+ *
+ * @category Random numbers
  */
 export function rhyper(nn: number, m: number, n: number, k: number): number[] {
   return generate(nn, () => rhyper1(m, n, k));

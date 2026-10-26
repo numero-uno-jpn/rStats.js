@@ -22,7 +22,11 @@ import { gammaInc, igamcContinuedFractionValue, igamSeriesSum } from "./igam.js"
 import { bd0dd, stirlerr } from "./loader.js";
 import { digamma } from "./psigamma.js";
 
-/** Result of {@link gammainc}. */
+/**
+ * Result of {@link gammainc}.
+ *
+ * @category Special functions
+ */
 export interface GammaincResult {
   /** Lower incomplete gamma function gamma(a, x) = integral from 0 to x of t^(a-1) e^-t dt. */
   lower: number;
@@ -43,6 +47,8 @@ export interface GammaincResult {
  * ```ts
  * gammainc(2, 3).lower; // 0.6466471676338731 (2 - 10 e^-2)
  * ```
+ *
+ * @category Special functions
  */
 export function gammainc(x: number, a: number): GammaincResult {
   if (Number.isNaN(x) || Number.isNaN(a) || x < 0 || !(a > 0)) return { lower: NaN, upper: NaN, logLower: NaN, logUpper: NaN };
@@ -90,6 +96,8 @@ function smallTail(x: number, a: number, lower: boolean): [number, number] {
  * erfcinv(0.5);    // 0.4769362762044699
  * erfcinv(1e-20);  // 6.601580622355143
  * ```
+ *
+ * @category Special functions
  */
 export function erfcinv(z: number): number {
   if (Number.isNaN(z) || z < 0 || z > 2) return NaN;
@@ -105,6 +113,8 @@ export function erfcinv(z: number): number {
  * ```ts
  * erfinv(0.5); // 0.4769362762044699
  * ```
+ *
+ * @category Special functions
  */
 export function erfinv(y: number): number {
   if (Number.isNaN(y) || y < -1 || y > 1) return NaN;
@@ -130,6 +140,8 @@ export function erfinv(y: number): number {
  * ```ts
  * perm(5, 2); // 20
  * ```
+ *
+ * @category Special functions
  */
 export function perm(n: number, k: number): number {
   if (Number.isNaN(n) || Number.isNaN(k) || n < 0 || k < 0) return NaN;

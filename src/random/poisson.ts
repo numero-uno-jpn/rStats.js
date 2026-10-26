@@ -156,6 +156,8 @@ export function rpois1(mu: number): number {
  * setSeed(1);
  * rpois(5, 3); // [2, 2, 3, 5, 2]
  * ```
+ *
+ * @category Random numbers
  */
 export function rpois(n: number, lambda: number): number[] {
   return generate(n, () => rpois1(lambda));
@@ -174,6 +176,8 @@ export function rpois(n: number, lambda: number): number[] {
  * setSeed(1);
  * rgeom(5, 0.3); // [1, 1, 7, 0, 3]
  * ```
+ *
+ * @category Random numbers
  */
 export function rgeom(n: number, prob: number): number[] {
   return generate(n, () => {
@@ -198,6 +202,8 @@ export function rgeom(n: number, prob: number): number[] {
  * rnbinom(5, 3, { prob: 0.5 }); // [3, 2, 2, 2, 2]
  * rnbinom(5, 3, { mu: 2 });
  * ```
+ *
+ * @category Random numbers
  */
 export function rnbinom(n: number, size: number, options: { prob?: number; mu?: number }): number[] {
   const { prob, mu } = options;

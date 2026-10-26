@@ -7,13 +7,21 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import type { HTest } from "./types.js";
 
-/** Options for {@link mcnemarTest}. */
+/**
+ * Options for {@link mcnemarTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface McnemarTestOptions {
   /** Apply the continuity correction (2 x 2 tables only). Default `true`. */
   correct?: boolean;
 }
 
-/** Result of {@link mcnemarTest}. Has no `alternative`, as R's `mcnemar.test()` returns none. */
+/**
+ * Result of {@link mcnemarTest}. Has no `alternative`, as R's `mcnemar.test()` returns none.
+ *
+ * @category Hypothesis tests
+ */
 export interface McnemarTestResult extends Omit<HTest, "alternative"> {
   /** Degrees of freedom (`parameterName` is `"df"`). */
   parameter: number;
@@ -32,6 +40,8 @@ export interface McnemarTestResult extends Omit<HTest, "alternative"> {
  * ```ts
  * mcnemarTest([[794, 86], [150, 570]]).statistic; // 16.81779661016949
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function mcnemarTest(
   x: readonly (readonly number[])[] | readonly (number | string)[],

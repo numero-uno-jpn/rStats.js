@@ -32,10 +32,18 @@ function requireComplete(x: Ratings, what: string): void {
 /** Two-sided normal p-value 2 Φ(−|z|) */
 const twoSidedP = (z: number): number => 2 * pnorm(-Math.abs(z));
 
-/** Weighting of the disagreements in {@link kappa2}. */
+/**
+ * Weighting of the disagreements in {@link kappa2}.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export type Kappa2Weight = "unweighted" | "equal" | "squared";
 
-/** Options for {@link kappa2}. */
+/**
+ * Options for {@link kappa2}.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface Kappa2Options {
   /**
    * `"unweighted"` (default): only identical ratings agree. `"equal"`: weights `1 − d/(c − 1)` for levels `d` apart
@@ -44,7 +52,11 @@ export interface Kappa2Options {
   weight?: Kappa2Weight | (string & {});
 }
 
-/** Result of {@link kappa2} and {@link kappamFleiss}. */
+/**
+ * Result of {@link kappa2} and {@link kappamFleiss}.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface KappaResult {
   /** The kappa coefficient. */
   value: number;
@@ -70,6 +82,8 @@ export interface KappaResult {
  * ```ts
  * kappa2([[1, 1], [2, 2], [3, 2], [1, 1], [2, 3], [3, 3]]); // { value: 0.49999999999999994, statistic: 1.7320508075688772, pValue: 0.08326451666355043 }
  * ```
+ *
+ * @category Agreement, reliability and factor analysis
  */
 export function kappa2(ratings: readonly (readonly number[])[], options: Kappa2Options = {}): Required<KappaResult> {
   const weight = matchChoice(options.weight, ["unweighted", "equal", "squared"] as const);
@@ -104,7 +118,11 @@ export function kappa2(ratings: readonly (readonly number[])[], options: Kappa2O
   return { value, statistic, pValue: twoSidedP(statistic) };
 }
 
-/** Options for {@link kappamFleiss}. */
+/**
+ * Options for {@link kappamFleiss}.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface KappamFleissOptions {
   /** Conger's exact kappa instead of Fleiss' (no test is then given). Default `false`. */
   exact?: boolean;
@@ -123,6 +141,8 @@ export interface KappamFleissOptions {
  * ```ts
  * kappamFleiss([[1, 1, 2], [2, 2, 2], [3, 3, 2], [1, 1, 1], [2, 3, 3]]).value; // 0.3918918918918918
  * ```
+ *
+ * @category Agreement, reliability and factor analysis
  */
 export function kappamFleiss(ratings: readonly (readonly number[])[], options: KappamFleissOptions = {}): KappaResult {
   const exact = options.exact ?? false;
@@ -160,7 +180,11 @@ export function kappamFleiss(ratings: readonly (readonly number[])[], options: K
   return { value, statistic, pValue: twoSidedP(statistic) };
 }
 
-/** Options for {@link icc}. Unambiguous abbreviations of the choices are accepted. */
+/**
+ * Options for {@link icc}. Unambiguous abbreviations of the choices are accepted.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface IccOptions {
   /** `"oneway"` (default; subjects are the only effect) or `"twoway"` (subjects and raters). */
   model?: "oneway" | "twoway" | (string & {});
@@ -174,7 +198,11 @@ export interface IccOptions {
   confLevel?: number;
 }
 
-/** Result of {@link icc}. */
+/**
+ * Result of {@link icc}.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface IccResult {
   /** The intraclass correlation coefficient. */
   value: number;
@@ -204,6 +232,8 @@ export interface IccResult {
  * icc([[9, 2, 5, 8], [6, 1, 3, 2], [8, 4, 6, 8], [7, 1, 2, 6], [10, 5, 6, 9], [6, 2, 4, 7]],
  *     { model: "twoway", type: "agreement" }).value; // 0.28976377952755905
  * ```
+ *
+ * @category Agreement, reliability and factor analysis
  */
 export function icc(ratings: readonly (readonly number[])[], options: IccOptions = {}): IccResult {
   const model = matchChoice(options.model, ["oneway", "twoway"] as const);
@@ -263,7 +293,11 @@ export function icc(ratings: readonly (readonly number[])[], options: IccOptions
   return { value, Fvalue, df1, df2, pValue: upper(Fvalue, df1, df2), lbound, ubound };
 }
 
-/** Result of {@link cronbachAlpha}. */
+/**
+ * Result of {@link cronbachAlpha}.
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface CronbachAlphaResult {
   /** Cronbach's alpha from the covariances. */
   rawAlpha: number;
@@ -296,6 +330,8 @@ function rawAlphaOf(C: readonly (readonly number[])[], keep: readonly number[]):
  * ```ts
  * cronbachAlpha([[1, 2, 2], [2, 3, 3], [3, 3, 4], [4, 5, 4], [2, 2, 3]]).rawAlpha; // 0.935483870967742
  * ```
+ *
+ * @category Agreement, reliability and factor analysis
  */
 export function cronbachAlpha(x: readonly (readonly number[])[]): CronbachAlphaResult {
   const k = columnsOf(x, "x").length;
@@ -328,6 +364,8 @@ export function cronbachAlpha(x: readonly (readonly number[])[]): CronbachAlphaR
  * ```ts
  * partialR([[1, 2, 3], [2, 1, 5], [3, 5, 4], [4, 3, 8], [5, 6, 7]], 0, 1); // 0.9804877404385672
  * ```
+ *
+ * @category Agreement, reliability and factor analysis
  */
 export function partialR(x: readonly (readonly number[])[], i: number, j: number): number {
   const p = columnsOf(x, "x").length;

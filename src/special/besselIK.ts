@@ -265,7 +265,11 @@ function kPos(v: number, x: number): Scaled {
   return { m: k, e2: exp2, ex: -1 };
 }
 
-/** Options for {@link besselI} and {@link besselK}. */
+/**
+ * Options for {@link besselI} and {@link besselK}.
+ *
+ * @category Special functions
+ */
 export interface BesselOptions {
   /** If `true`, return `exp(-x) I(x, nu)` (for `besselI`) or `exp(x) K(x, nu)` (for `besselK`). Default `false`. */
   exponScaled?: boolean;
@@ -286,6 +290,8 @@ export interface BesselOptions {
  * besselI(1, 0);                             // 1.2660658777520086
  * besselI(1000, 2, { exponScaled: true });   // 0.012592018595377398
  * ```
+ *
+ * @category Special functions
  */
 export function besselI(x: number, nu: number, options: BesselOptions = {}): number {
   const scaled = options.exponScaled ?? false;
@@ -319,6 +325,8 @@ export function besselI(x: number, nu: number, options: BesselOptions = {}): num
  * besselK(1, 0);                              // 0.4210244382407083
  * besselK(1000, 2, { exponScaled: true });    // 0.03970761786238014
  * ```
+ *
+ * @category Special functions
  */
 export function besselK(x: number, nu: number, options: BesselOptions = {}): number {
   const scaled = options.exponScaled ?? false;

@@ -5,10 +5,18 @@
 // per interval), as in deSolve's fixed-step methods. rk2 is Heun's method (deSolve's rkMethod("rk2")): the slopes at
 // the start and at the Euler predictor, averaged; rk4 is the classical fourth-order Runge-Kutta method.
 
-/** Derivative of the state: `func(t, y, parms)` returns dy/dt (one value per state variable). */
+/**
+ * Derivative of the state: `func(t, y, parms)` returns dy/dt (one value per state variable).
+ *
+ * @category Numerical methods
+ */
 export type OdeFunc = (t: number, y: number[], parms: number[]) => readonly number[];
 
-/** Options for {@link ode}. */
+/**
+ * Options for {@link ode}.
+ *
+ * @category Numerical methods
+ */
 export interface OdeOptions {
   /** `"euler"`, `"rk2"` (Heun) or `"rk4"` (classical Runge-Kutta, default). */
   method?: "euler" | "rk2" | "rk4";
@@ -28,6 +36,8 @@ export interface OdeOptions {
  * const out = ode([1], [0, 0.5, 1], (t, y, p) => [-p[0]! * y[0]!], [0.7], { method: "rk4" });
  * out[2]; // [1, 0.49664] (exp(-0.7) = 0.49659)
  * ```
+ *
+ * @category Numerical methods
  */
 export function ode(y: readonly number[], times: readonly number[], func: OdeFunc, parms: readonly number[] = [], options: OdeOptions = {}): number[][] {
   const method = options.method ?? "rk4";

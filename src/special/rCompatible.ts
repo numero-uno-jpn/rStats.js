@@ -1,4 +1,8 @@
-/** Option shared by functions whose edge cases R defines differently from the mathematical function */
+/**
+ * Option shared by functions whose edge cases R defines differently from the mathematical function
+ *
+ * @category Special functions
+ */
 export interface RCompatibleOptions {
   /**
    * `true` (default) returns what R returns at the edge cases listed for each function; `false` returns the

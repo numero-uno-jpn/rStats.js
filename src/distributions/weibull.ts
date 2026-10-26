@@ -11,7 +11,11 @@ import { d0, dt0, quantileBoundaries, type DensityOptions, type TailOptions } fr
 import { ddExp, expNeg, log1mExp, logOneMinusExpNeg, standardizeDD } from "../internal/ddexp.js";
 import { ddLog, ddMulNum, ddSub, type DD } from "../special/dd.js";
 
-/** Parameters of the Weibull distribution (besides the positional `shape`). */
+/**
+ * Parameters of the Weibull distribution (besides the positional `shape`).
+ *
+ * @category Distributions
+ */
 export interface WeibullParams {
   /** Scale. Default `1`. */
   scale?: number;
@@ -96,6 +100,8 @@ export function qweibull1(p: number, shape: number, scale: number, lowerTail: bo
  * dweibull(1, 2);               // 0.7357588823428847
  * dweibull(1, 2, { scale: 3 }); // 0.1988531815143044
  * ```
+ *
+ * @category Distributions
  */
 export function dweibull<T extends Vectorizable>(
   x: T,
@@ -119,6 +125,8 @@ export function dweibull<T extends Vectorizable>(
  * pweibull(1, 2);               // 0.6321205588285577
  * pweibull(2, 1.5, { scale: 3 }); // 0.41977020402532716
  * ```
+ *
+ * @category Distributions
  */
 export function pweibull<T extends Vectorizable>(
   q: T,
@@ -142,6 +150,8 @@ export function pweibull<T extends Vectorizable>(
  * qweibull(0.5, 2);               // 0.8325546111576977
  * qweibull(0.9, 1.5, { scale: 3 }); // 5.231164540789235
  * ```
+ *
+ * @category Distributions
  */
 export function qweibull<T extends Vectorizable>(
   p: T,

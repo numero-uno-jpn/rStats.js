@@ -7,12 +7,16 @@
 /**
  * A matrix given as an array of rows. Each row may be a plain array or a `Float64Array`;
  * all rows must have the same length. A matrix with zero rows is treated as 0 x 0.
+ *
+ * @category Linear algebra
  */
 export type MatrixInput = readonly (readonly number[] | Float64Array)[];
 
 /**
  * A vector or a matrix (array of rows). Used for arguments that accept either, such as the
  * right-hand side of `backsolve`; a vector is treated as a one-column matrix, as in R.
+ *
+ * @category Linear algebra
  */
 export type VectorOrMatrix = readonly number[] | Float64Array | MatrixInput;
 

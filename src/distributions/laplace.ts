@@ -8,7 +8,11 @@ import { vectorize, type Vectorizable, type VectorResult } from "../internal/vec
 import { quantileBoundaries, smallerTail, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { expNeg, locationScale, standardizeDD } from "../internal/ddexp.js";
 
-/** Location and scale of the Laplace distribution. */
+/**
+ * Location and scale of the Laplace distribution.
+ *
+ * @category Distributions
+ */
 export interface LaplaceParams {
   /** Location. Default `0`. */
   mu?: number;
@@ -64,6 +68,8 @@ export function qlaplace1(p: number, mu: number, sigma: number, lowerTail: boole
  * dlaplace(0);                         // 0.5
  * dlaplace(1, { mu: 1, sigma: 2 });    // 0.25
  * ```
+ *
+ * @category Distributions
  */
 export function dlaplace<T extends Vectorizable>(x: T, options: LaplaceParams & DensityOptions = {}): VectorResult<T> {
   const { mu = 0, sigma = 1, log = false } = options;
@@ -78,6 +84,8 @@ export function dlaplace<T extends Vectorizable>(x: T, options: LaplaceParams & 
  * plaplace(1);                         // 0.8160602794142788
  * plaplace(-1, { mu: 1, sigma: 2 });   // 0.18393972058572117
  * ```
+ *
+ * @category Distributions
  */
 export function plaplace<T extends Vectorizable>(q: T, options: LaplaceParams & TailOptions = {}): VectorResult<T> {
   const { mu = 0, sigma = 1, lowerTail = true, logP = false } = options;
@@ -92,6 +100,8 @@ export function plaplace<T extends Vectorizable>(q: T, options: LaplaceParams & 
  * qlaplace(0.75);                      // 0.6931471805599453
  * qlaplace(0.9, { mu: 1, sigma: 2 });  // 4.218875824868201
  * ```
+ *
+ * @category Distributions
  */
 export function qlaplace<T extends Vectorizable>(p: T, options: LaplaceParams & TailOptions = {}): VectorResult<T> {
   const { mu = 0, sigma = 1, lowerTail = true, logP = false } = options;

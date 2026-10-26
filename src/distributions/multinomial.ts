@@ -10,7 +10,11 @@
 import { dbinomRawDD } from "../special/loader.js";
 import { ddAdd, ddDiv, type DD } from "../special/dd.js";
 
-/** Options for {@link dmultinom}. */
+/**
+ * Options for {@link dmultinom}.
+ *
+ * @category Distributions
+ */
 export interface MultinomialOptions {
   /** Total number of objects; defaults to the sum of `x` (it must equal it, as in R). */
   size?: number;
@@ -33,6 +37,8 @@ export interface MultinomialOptions {
  * ```ts
  * dmultinom([1, 2, 1], [0.2, 0.5, 0.3]);  // 0.18000000000000002
  * ```
+ *
+ * @category Distributions
  */
 export function dmultinom(x: readonly number[], prob: readonly number[], options: MultinomialOptions = {}): number {
   const log = options.log ?? false;

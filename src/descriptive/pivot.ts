@@ -11,7 +11,11 @@ import { formatR } from "../htest/core/simulate.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { addColumn, compareValues, isMissing, pick, rowCount, type Column, type DataValue } from "./dataFrames.js";
 
-/** Options for {@link pivotLonger} (tidyr's arguments in camelCase). */
+/**
+ * Options for {@link pivotLonger} (tidyr's arguments in camelCase).
+ *
+ * @category Data frames
+ */
 export interface PivotLongerOptions {
   /** The columns to pivot: their names, in this order, or a test of the name (selecting in the data's order). */
   cols: readonly string[] | ((name: string) => boolean);
@@ -41,10 +45,18 @@ export interface PivotLongerOptions {
   onWarning?: (message: string) => void;
 }
 
-/** A summary of the values of one cell (in data order), for `valuesFn` of {@link pivotWider}. */
+/**
+ * A summary of the values of one cell (in data order), for `valuesFn` of {@link pivotWider}.
+ *
+ * @category Data frames
+ */
 export type PivotSummary = (values: DataValue[]) => DataValue;
 
-/** Options for {@link pivotWider} (tidyr's arguments in camelCase). */
+/**
+ * Options for {@link pivotWider} (tidyr's arguments in camelCase).
+ *
+ * @category Data frames
+ */
 export interface PivotWiderOptions {
   /** The column (or columns) whose values name the new columns. Default `"name"`. */
   namesFrom?: string | readonly string[];
@@ -190,6 +202,8 @@ interface LongValue {
  * pivotLonger(wide, { cols: ["t1", "t2"], namesTo: "time", valuesTo: "score" });
  * // { id: ["s1", "s1", "s2", "s2"], time: ["t1", "t2", "t1", "t2"], score: [5.1, 6.3, 4.8, 7.2] }
  * ```
+ *
+ * @category Data frames
  */
 export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataFrame {
   const n = rowCount(data);
@@ -338,6 +352,8 @@ function perColumn<T>(
  * pivotWider(long, { namesFrom: "time", valuesFrom: "score" });
  * // { id: ["s1", "s2"], t1: [5.1, 4.8], t2: [6.3, null] }
  * ```
+ *
+ * @category Data frames
  */
 export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): DataFrame {
   const n = rowCount(data);

@@ -263,6 +263,8 @@ function polygamma(n: number, x: number, rCompatible: boolean): number {
  * ```ts
  * digamma(1);  // -0.5772156649015329 (minus Euler's constant)
  * ```
+ *
+ * @category Special functions
  */
 export function digamma(x: number): number {
   if (Math.abs(x - NEGROOT) < 0.3) return digammaNearNegroot(x);
@@ -282,6 +284,8 @@ export function digamma(x: number): number {
  * ```ts
  * trigamma(1);  // 1.6449340668482264 (pi^2 / 6)
  * ```
+ *
+ * @category Special functions
  */
 export function trigamma(x: number, options?: RCompatibleOptions): number {
   return polygamma(1, x, options?.rCompatible ?? true);
@@ -305,6 +309,8 @@ export function trigamma(x: number, options?: RCompatibleOptions): number {
  * ```ts
  * psigamma(2, 2);  // -0.40411380631918853 (-2 (zeta(3) - 1))
  * ```
+ *
+ * @category Special functions
  */
 export function psigamma(x: number, deriv = 0, options?: RCompatibleOptions): number {
   const n = roundHalfEven(deriv);

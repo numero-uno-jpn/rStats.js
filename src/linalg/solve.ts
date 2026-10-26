@@ -251,7 +251,11 @@ export function trcon(T: Mat, upper: boolean, oneNormKind: boolean): number {
   return ainvnm === 0 ? 0 : 1 / anorm / ainvnm;
 }
 
-/** Options for {@link solve}. */
+/**
+ * Options for {@link solve}.
+ *
+ * @category Linear algebra
+ */
 export interface SolveOptions {
   /**
    * Tolerance for detecting singularity: throws if the estimated reciprocal condition number (one norm) is
@@ -275,6 +279,8 @@ export interface SolveOptions {
  * ```ts
  * solve([[2, 1], [1, 3]]); // [[0.6, -0.2], [-0.2, 0.4]]
  * ```
+ *
+ * @category Linear algebra
  */
 export function solve(a: MatrixInput, b?: undefined, options?: SolveOptions): number[][];
 /**
@@ -336,7 +342,11 @@ export function solve(a: MatrixInput, b?: VectorOrMatrix, options: SolveOptions 
   return b !== undefined && !isMatrixInput(b) ? Array.from(B.data) : fromMat(B);
 }
 
-/** Result of {@link determinant}: the determinant equals `sign * modulus` (or `sign * exp(modulus)` when `logarithm` is `true`). */
+/**
+ * Result of {@link determinant}: the determinant equals `sign * modulus` (or `sign * exp(modulus)` when `logarithm` is `true`).
+ *
+ * @category Linear algebra
+ */
 export interface Determinant {
   /** The absolute value of the determinant, or its natural logarithm when `logarithm` is `true`. `-Infinity` (or 0) for an exactly singular matrix. */
   modulus: number;
@@ -360,6 +370,8 @@ export interface Determinant {
  * determinant([[1, 2], [3, 4]]); // { modulus: 0.6931471805599453, sign: -1 }
  * determinant([[1, 2], [3, 4]], { logarithm: false }); // { modulus: 2, sign: -1 }
  * ```
+ *
+ * @category Linear algebra
  */
 export function determinant(x: MatrixInput, options: { logarithm?: boolean } = {}): Determinant {
   const logarithm = options.logarithm ?? true;
@@ -390,13 +402,19 @@ export function determinant(x: MatrixInput, options: { logarithm?: boolean } = {
  * ```ts
  * det([[1, 2], [3, 4]]); // -2
  * ```
+ *
+ * @category Linear algebra
  */
 export function det(x: MatrixInput): number {
   const { modulus, sign } = determinant(x);
   return sign * Math.exp(modulus);
 }
 
-/** Options for {@link rcond}. */
+/**
+ * Options for {@link rcond}.
+ *
+ * @category Linear algebra
+ */
 export interface RcondOptions {
   /** The norm: `"O"` or `"1"` (one norm) or `"I"` (infinity norm). Default: `"O"`. */
   norm?: "O" | "1" | "I";
@@ -421,6 +439,8 @@ export interface RcondOptions {
  * ```ts
  * rcond([[1, 2], [3, 4]]); // 0.04761904761904762
  * ```
+ *
+ * @category Linear algebra
  */
 export function rcond(x: MatrixInput, options: RcondOptions = {}): number {
   const norm = options.norm ?? "O";

@@ -12,7 +12,11 @@ import { qgamma1 } from "../distributions/gamma.js";
 import { binomTest } from "./binomTest.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
-/** Options for {@link poissonTest}. */
+/**
+ * Options for {@link poissonTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface PoissonTestOptions {
   /** Time base(s): one per count, nonnegative. Default `1` (or `[1, 1]`). */
   T?: number | readonly number[];
@@ -24,7 +28,11 @@ export interface PoissonTestOptions {
   confLevel?: number;
 }
 
-/** Result of {@link poissonTest}. */
+/**
+ * Result of {@link poissonTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface PoissonTestResult extends HTest {
   /** Time base (one sample) or expected first count under the null hypothesis (two samples). */
   parameter: number;
@@ -104,6 +112,8 @@ function twoSidedP(x: number, m: number): number {
  * poissonTest(137, { T: 24.19893 }).pValue; // < 2.2e-16 (rate 1 against 5.66)
  * poissonTest([11, 23], { T: [800, 3011] }).estimate; // rate ratio 1.80
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function poissonTest(x: number | readonly number[], options: PoissonTestOptions = {}): PoissonTestResult {
   const xs = typeof x === "number" ? [x] : Array.from(x);

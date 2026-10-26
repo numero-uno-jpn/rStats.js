@@ -40,7 +40,11 @@ export function solveFor(f: (x: number) => number, lower: number, upper: number,
 /** pt(q, df, ncp) in one tail */
 export const ptNcp = (q: number, df: number, ncp: number, lowerTail: boolean): number => pt(q, df, { ncp, lowerTail });
 
-/** Options for {@link powerTTest}. The quantity given as `null` (or omitted, for those without a default) is solved for. */
+/**
+ * Options for {@link powerTTest}. The quantity given as `null` (or omitted, for those without a default) is solved for.
+ *
+ * @category Effect sizes and power
+ */
 export interface PowerTTestOptions {
   /** Number of observations (per group). */
   n?: number | null;
@@ -62,7 +66,11 @@ export interface PowerTTestOptions {
   tol?: number;
 }
 
-/** Result of {@link powerTTest}: R's power.htest with the solved quantity filled in. */
+/**
+ * Result of {@link powerTTest}: R's power.htest with the solved quantity filled in.
+ *
+ * @category Effect sizes and power
+ */
 export interface PowerTTestResult {
   /** Number of observations (per group, or of pairs). */
   n: number;
@@ -98,6 +106,8 @@ const SIG_MESSAGE = "'sig.level' must be numeric in [0, 1]";
  * powerTTest({ n: 20, delta: 1 }).power;           // 0.8689528016921269
  * powerTTest({ delta: 0.5, power: 0.8 }).n;        // 63.765763714280546
  * ```
+ *
+ * @category Effect sizes and power
  */
 export function powerTTest(options: PowerTTestOptions = {}): PowerTTestResult {
   let { n, delta, power } = options;
@@ -150,7 +160,11 @@ export function powerTTest(options: PowerTTestOptions = {}): PowerTTestResult {
   };
 }
 
-/** Options for {@link powerPropTest}. The quantity given as `null` (or omitted, for those without a default) is solved for. */
+/**
+ * Options for {@link powerPropTest}. The quantity given as `null` (or omitted, for those without a default) is solved for.
+ *
+ * @category Effect sizes and power
+ */
 export interface PowerPropTestOptions {
   /** Number of observations per group. */
   n?: number | null;
@@ -170,7 +184,11 @@ export interface PowerPropTestOptions {
   tol?: number;
 }
 
-/** Result of {@link powerPropTest}. */
+/**
+ * Result of {@link powerPropTest}.
+ *
+ * @category Effect sizes and power
+ */
 export interface PowerPropTestResult {
   /** Number of observations per group. */
   n: number;
@@ -200,6 +218,8 @@ export interface PowerPropTestResult {
  * ```ts
  * powerPropTest({ n: 50, p1: 0.5, p2: 0.75 }).power;   // 0.7401659013313878
  * ```
+ *
+ * @category Effect sizes and power
  */
 export function powerPropTest(options: PowerPropTestOptions = {}): PowerPropTestResult {
   let { n, p1, p2, power } = options;
@@ -257,7 +277,11 @@ export function powerPropTest(options: PowerPropTestOptions = {}): PowerPropTest
   };
 }
 
-/** Options for {@link powerAnovaTest}. The quantity given as `null` (or omitted, for those without a default) is solved for. */
+/**
+ * Options for {@link powerAnovaTest}. The quantity given as `null` (or omitted, for those without a default) is solved for.
+ *
+ * @category Effect sizes and power
+ */
 export interface PowerAnovaTestOptions {
   /** Number of groups. */
   groups?: number | null;
@@ -273,7 +297,11 @@ export interface PowerAnovaTestOptions {
   power?: number | null;
 }
 
-/** Result of {@link powerAnovaTest}. */
+/**
+ * Result of {@link powerAnovaTest}.
+ *
+ * @category Effect sizes and power
+ */
 export interface PowerAnovaTestResult {
   /** Number of groups. */
   groups: number;
@@ -301,6 +329,8 @@ export interface PowerAnovaTestResult {
  * ```ts
  * powerAnovaTest({ groups: 4, n: 5, betweenVar: 1, withinVar: 3 }).power;   // 0.3535594237229933
  * ```
+ *
+ * @category Effect sizes and power
  */
 export function powerAnovaTest(options: PowerAnovaTestOptions = {}): PowerAnovaTestResult {
   let { groups, n, betweenVar, withinVar, power } = options;

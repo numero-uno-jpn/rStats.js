@@ -14,7 +14,11 @@ import { roundHalfEven } from "../internal/integer.js";
 
 const EPS = 2 ** -52;
 
-/** Names of the families of R's stats. */
+/**
+ * Names of the families of R's stats.
+ *
+ * @category Generalized linear models
+ */
 export type GlmFamilyName =
   | "gaussian"
   | "binomial"
@@ -25,10 +29,18 @@ export type GlmFamilyName =
   | "inverse.gaussian"
   | "quasi";
 
-/** Names of the links of R's stats (`make.link`). */
+/**
+ * Names of the links of R's stats (`make.link`).
+ *
+ * @category Generalized linear models
+ */
 export type GlmLinkName = "identity" | "log" | "inverse" | "logit" | "probit" | "cauchit" | "cloglog" | "sqrt" | "1/mu^2";
 
-/** A link: one of R's named links or a power link `mu^power` (R's `power(lambda)`; `power <= 0` is the log link). */
+/**
+ * A link: one of R's named links or a power link `mu^power` (R's `power(lambda)`; `power <= 0` is the log link).
+ *
+ * @category Generalized linear models
+ */
 export type GlmLink =
   | GlmLinkName
   | {
@@ -36,10 +48,18 @@ export type GlmLink =
       power: number;
     };
 
-/** Variance functions of the `quasi` family. */
+/**
+ * Variance functions of the `quasi` family.
+ *
+ * @category Generalized linear models
+ */
 export type QuasiVariance = "constant" | "mu(1-mu)" | "mu" | "mu^2" | "mu^3";
 
-/** A family with its link (and, for `quasi`, its variance function), as R's family objects such as `quasi(link = "log", variance = "mu^2")`. */
+/**
+ * A family with its link (and, for `quasi`, its variance function), as R's family objects such as `quasi(link = "log", variance = "mu^2")`.
+ *
+ * @category Generalized linear models
+ */
 export interface GlmFamilySpec {
   /** The family's name, such as `"binomial"`. */
   family: GlmFamilyName;

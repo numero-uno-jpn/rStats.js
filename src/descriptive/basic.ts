@@ -11,7 +11,11 @@ import { mean as meanOf, meanDD, variance as varianceOf } from "../internal/summ
 import { ddAdd, ddMul, type DD } from "../special/dd.js";
 import type { Sample } from "../htest/types.js";
 
-/** Options of the summaries that can drop missing values. */
+/**
+ * Options of the summaries that can drop missing values.
+ *
+ * @category Descriptive statistics
+ */
 export interface NaRmOptions {
   /** Drop `NaN` (R's `NA`) before computing. Default `false`: a `NaN` gives `NaN`. */
   naRm?: boolean;
@@ -39,6 +43,8 @@ function sumOf(xs: readonly number[]): number {
  * ```ts
  * sum([0.1, 0.2, 0.3]); // 0.6 (plain JS addition gives 0.6000000000000001)
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function sum(x: Sample, options: NaRmOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -52,6 +58,8 @@ export function sum(x: Sample, options: NaRmOptions = {}): number {
  * ```ts
  * prod([1, 2, 3, 4]); // 24
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function prod(x: Sample, options: NaRmOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -72,7 +80,11 @@ export function prod(x: Sample, options: NaRmOptions = {}): number {
   return scaled(p, e);
 }
 
-/** Options for {@link mean}. */
+/**
+ * Options for {@link mean}.
+ *
+ * @category Descriptive statistics
+ */
 export interface MeanOptions extends NaRmOptions {
   /** Fraction (0 to 0.5) of values trimmed from each end before the mean. Default `0`. */
   trim?: number;
@@ -87,6 +99,8 @@ export interface MeanOptions extends NaRmOptions {
  * mean([1, 2, 3, 10]);                // 4
  * mean([1, 2, 3, 10], { trim: 0.25 }); // 2.5
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function mean(x: Sample, options: MeanOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -113,6 +127,8 @@ export function mean(x: Sample, options: MeanOptions = {}): number {
  * ```ts
  * weightedMean([1, 2, 3], [3, 1, 1]); // 1.6
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function weightedMean(x: Sample, w: Sample, options: NaRmOptions = {}): number {
   let xs = Array.from(x);
@@ -136,6 +152,8 @@ export function weightedMean(x: Sample, w: Sample, options: NaRmOptions = {}): n
  * ```ts
  * variance([1, 2, 3, 4]); // 1.6666666666666667
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function variance(x: Sample, options: NaRmOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -150,6 +168,8 @@ export function variance(x: Sample, options: NaRmOptions = {}): number {
  * ```ts
  * sd([2, 4, 4, 4, 5, 5, 7, 9]); // 2.138
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function sd(x: Sample, options: NaRmOptions = {}): number {
   return Math.sqrt(variance(x, options));
@@ -163,6 +183,8 @@ export function sd(x: Sample, options: NaRmOptions = {}): number {
  * median([3, 1, 2]);    // 2
  * median([4, 1, 3, 2]); // 2.5
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function median(x: Sample, options: NaRmOptions = {}): number {
   const xs = values(x, options.naRm);
@@ -183,6 +205,8 @@ export function median(x: Sample, options: NaRmOptions = {}): number {
  * range([3, 1, 4, 1, 5]);             // [1, 5]
  * range([3, NaN, 4], { naRm: true }); // [3, 4]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function range(x: Sample, options: NaRmOptions = {}): [number, number] {
   const xs = values(x, options.naRm);
@@ -204,6 +228,8 @@ export function range(x: Sample, options: NaRmOptions = {}): [number, number] {
  * ```ts
  * cumsum([1, 2, 3, 4]); // [1, 3, 6, 10]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function cumsum(x: Sample): number[] {
   const out: number[] = [];
@@ -231,6 +257,8 @@ export function cumsum(x: Sample): number[] {
  * ```ts
  * cumprod([1, 2, 3, 4]); // [1, 2, 6, 24]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function cumprod(x: Sample): number[] {
   const out: number[] = [];
@@ -295,6 +323,8 @@ function cumExtreme(x: Sample, better: (a: number, b: number) => boolean): numbe
  * ```ts
  * cummax([1, 3, 2, 5, 4]); // [1, 3, 3, 5, 5]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function cummax(x: Sample): number[] {
   return cumExtreme(x, (a, b) => a > b);
@@ -307,12 +337,18 @@ export function cummax(x: Sample): number[] {
  * ```ts
  * cummin([5, 3, 4, 1, 2]); // [5, 3, 3, 1, 1]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function cummin(x: Sample): number[] {
   return cumExtreme(x, (a, b) => a < b);
 }
 
-/** Options for {@link diff}. */
+/**
+ * Options for {@link diff}.
+ *
+ * @category Descriptive statistics
+ */
 export interface DiffOptions {
   /** Distance between the values subtracted. Default `1`. */
   lag?: number;
@@ -329,6 +365,8 @@ export interface DiffOptions {
  * diff([1, 4, 9, 16]);                     // [3, 5, 7]
  * diff([1, 4, 9, 16], { differences: 2 }); // [2, 2]
  * ```
+ *
+ * @category Descriptive statistics
  */
 export function diff(x: Sample, options: DiffOptions = {}): number[] {
   const lag = options.lag ?? 1;

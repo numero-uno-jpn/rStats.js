@@ -6,13 +6,23 @@
 /**
  * Alternative hypothesis of a test, as in R. Test options also accept unambiguous
  * abbreviations (`"two"`, `"l"`, `"g"`), like R's `match.arg()`.
+ *
+ * @category Hypothesis tests
  */
 export type Alternative = "two.sided" | "less" | "greater";
 
-/** A sample: an array of numbers. */
+/**
+ * A sample: an array of numbers.
+ *
+ * @category Hypothesis tests
+ */
 export type Sample = readonly number[] | Float64Array;
 
-/** Counts: an array of numbers. A contingency table is passed as an array of rows. */
+/**
+ * Counts: an array of numbers. A contingency table is passed as an array of rows.
+ *
+ * @category Hypothesis tests
+ */
 export type Counts = readonly number[] | Float64Array;
 
 /**
@@ -22,6 +32,8 @@ export type Counts = readonly number[] | Float64Array;
  * number and a separate `...Name` field. `estimate` is an array only when there are two
  * estimates (for example the two means of a two-sample t-test). `conf.int`'s
  * `conf.level` attribute becomes `confLevel`.
+ *
+ * @category Hypothesis tests
  */
 export interface HTest {
   /** Description of the test, as R's `method` (e.g. `"Welch Two Sample t-test"`). */

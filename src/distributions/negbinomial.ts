@@ -20,7 +20,11 @@ import { qgamma1 } from "./gamma.js";
 import { ppois1, qpois1 } from "./poisson.js";
 import { probPair } from "./geometric.js";
 
-/** Parameters of the negative binomial distribution. Give exactly one of `prob` and `mu`. */
+/**
+ * Parameters of the negative binomial distribution. Give exactly one of `prob` and `mu`.
+ *
+ * @category Distributions
+ */
 export interface NegBinomialParams {
   /** Probability of success on each trial (`0 < prob <= 1`). Do not combine with `mu`. */
   prob?: number;
@@ -268,6 +272,8 @@ function which(options: NegBinomialParams): { kind: "prob"; v: number } | { kind
  * dnbinom(3, 5, { prob: 0.5 }); // 0.13671875
  * dnbinom(3, 5, { mu: 4 });     // 0.16261401187793145
  * ```
+ *
+ * @category Distributions
  */
 export function dnbinom<T extends Vectorizable>(
   x: T,
@@ -298,6 +304,8 @@ export function dnbinom<T extends Vectorizable>(
  * pnbinom(3, 5, { prob: 0.5 }); // 0.36328125
  * pnbinom(3, 5, { mu: 4 });     // 0.4899473063232853
  * ```
+ *
+ * @category Distributions
  */
 export function pnbinom<T extends Vectorizable>(
   q: T,
@@ -328,6 +336,8 @@ export function pnbinom<T extends Vectorizable>(
  * qnbinom(0.5, 5, { prob: 0.5 });  // 4
  * qnbinom([0.05, 0.95], 5, { mu: 4 }); // [0, 9]
  * ```
+ *
+ * @category Distributions
  */
 export function qnbinom<T extends Vectorizable>(
   p: T,

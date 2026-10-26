@@ -9,10 +9,18 @@ import { optimize } from "../numerics/integrate.js";
 import { normRand, unifRand } from "../random/rng.js";
 import { lbfgsb } from "./lbfgsb.js";
 
-/** Methods of {@link optim} */
+/**
+ * Methods of {@link optim}
+ *
+ * @category Numerical methods
+ */
 export type OptimMethod = "Nelder-Mead" | "BFGS" | "CG" | "L-BFGS-B" | "SANN" | "Brent";
 
-/** Control parameters of {@link optim} (R's `control`, in camelCase) */
+/**
+ * Control parameters of {@link optim} (R's `control`, in camelCase)
+ *
+ * @category Numerical methods
+ */
 export interface OptimControl {
   /** Maximum number of iterations. Default 500 for Nelder-Mead, 10000 for SANN, 100 otherwise. */
   maxit?: number;
@@ -46,7 +54,11 @@ export interface OptimControl {
   tmax?: number;
 }
 
-/** Options of {@link optim} */
+/**
+ * Options of {@link optim}
+ *
+ * @category Numerical methods
+ */
 export interface OptimOptions {
   /** Gradient of fn (numerical by central differences when omitted) */
   gr?: (par: number[]) => number[];
@@ -62,7 +74,11 @@ export interface OptimOptions {
   control?: OptimControl;
 }
 
-/** Result of {@link optim} */
+/**
+ * Result of {@link optim}
+ *
+ * @category Numerical methods
+ */
 export interface OptimResult {
   /** The best parameters found. */
   par: number[];
@@ -528,6 +544,8 @@ function annealing(s: Scaled, start: readonly number[], maxit: number, perTemper
  * ```ts
  * optimHess([1, 2], (x) => x[0] ** 2 + 3 * x[0] * x[1] + x[1] ** 2); // [[2, 3], [3, 2]]
  * ```
+ *
+ * @category Numerical methods
  */
 export function optimHess(par: readonly number[], fn: (par: number[]) => number, gr?: (par: number[]) => number[], control: OptimControl = {}): number[][] {
   const n = par.length;
@@ -572,6 +590,8 @@ const METHODS: readonly OptimMethod[] = ["Nelder-Mead", "BFGS", "CG", "L-BFGS-B"
  * optim([-1.2, 1], rosen).par; // [1.0002601387256695, 1.000505999303765]
  * optim([-1.2, 1], rosen, { method: "BFGS" }).counts; // [118, 38]
  * ```
+ *
+ * @category Numerical methods
  */
 export function optim(par: readonly number[], fn: (par: number[]) => number, options: OptimOptions = {}): OptimResult {
   const n = par.length;

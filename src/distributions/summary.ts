@@ -27,7 +27,11 @@ import { dkumar1, pkumar1, qkumar, qkumar1 } from "./kumaraswamy.js";
 import { qtriang } from "./triangular.js";
 import { qarcsine } from "./arcsine.js";
 
-/** Result of {@link distSummary}. */
+/**
+ * Result of {@link distSummary}.
+ *
+ * @category Distributions
+ */
 export interface DistSummary {
   /** Mean (NaN when it does not exist, `Infinity` when it is infinite). */
   mean: number;
@@ -45,7 +49,11 @@ export interface DistSummary {
   kurtosis: number;
 }
 
-/** Distributions known to {@link distSummary} (the names of their d/p/q/r functions). */
+/**
+ * Distributions known to {@link distSummary} (the names of their d/p/q/r functions).
+ *
+ * @category Distributions
+ */
 export type DistName =
   | "norm" | "lnorm" | "unif" | "exp" | "gamma" | "chisq" | "beta" | "t" | "f" | "cauchy" | "weibull" | "logis"
   | "binom" | "pois" | "geom" | "nbinom" | "hyper" | "invgamma" | "kumar" | "pareto" | "triang" | "laplace" | "arcsine";
@@ -113,6 +121,8 @@ const has = (o: Record<string, number | undefined>, k: string): boolean => o[k] 
  * distSummary("gamma", { shape: 2.5, rate: 2 }); // { mean: 1.25, variance: 0.625, ..., mode: 0.75, kurtosis: 2.4 }
  * distSummary("binom", { size: 9, prob: 0.5 }).mode; // 5 (4 and 5 are equally likely: the larger)
  * ```
+ *
+ * @category Distributions
  */
 export function distSummary(distribution: DistName, params: Record<string, number | undefined> = {}): DistSummary {
   const P = params;

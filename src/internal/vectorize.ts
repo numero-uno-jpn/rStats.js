@@ -2,12 +2,16 @@
  * Input accepted as the vectorized first argument of the distribution functions
  * (the counterpart of R's automatic vectorization).
  * A number gives a number, a `number[]` gives a `number[]`, and a `Float64Array` gives a `Float64Array`.
+ *
+ * @category Distributions
  */
 export type Vectorizable = number | readonly number[] | Float64Array;
 
 /**
  * Result type matching the shape of a {@link Vectorizable} input:
  * `number` for a number, `Float64Array` for a `Float64Array`, and `number[]` for an array.
+ *
+ * @category Distributions
  */
 export type VectorResult<T extends Vectorizable> = T extends number
   ? number

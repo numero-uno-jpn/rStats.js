@@ -24,7 +24,11 @@ import { parseFormula } from "./formula.js";
 import type { DataFrame } from "./modelFrame.js";
 import { design, type Design, type ModelMatrixOptions } from "./modelMatrix.js";
 
-/** Options for {@link lm}. */
+/**
+ * Options for {@link lm}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface LmOptions {
   /** Include an intercept (a column of ones before the columns of `x`). Default `true`. */
   intercept?: boolean;
@@ -32,7 +36,11 @@ export interface LmOptions {
   weights?: Sample;
 }
 
-/** Result of {@link lm}: the fit and the quantities of R's `summary(lm)`. */
+/**
+ * Result of {@link lm}: the fit and the quantities of R's `summary(lm)`.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface LmResult {
   /** Coefficients (intercept first); NaN for aliased columns. */
   coefficients: number[];
@@ -81,13 +89,21 @@ export interface LmResult {
   qr: QR;
 }
 
-/** Options of {@link lm} with a formula. */
+/**
+ * Options of {@link lm} with a formula.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface LmFormulaOptions extends ModelMatrixOptions {
   /** Weights: an array parallel to the rows of `data`, or the name of a numeric column. */
   weights?: Sample | string;
 }
 
-/** Result of {@link lm} with a formula: the fit of the model matrix, with the formula's terms. */
+/**
+ * Result of {@link lm} with a formula: the fit of the model matrix, with the formula's terms.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface LmFormulaResult extends LmResult {
   /** The formula. */
   formula: string;
@@ -181,6 +197,8 @@ export function lmFormulaFit(formula: string, d: Design, aov: boolean): LmFormul
  * fit.coefNames;    // ["(Intercept)", "gb", "gc"]
  * fit.coefficients; // [3, 4, 7.95]
  * ```
+ *
+ * @category Linear models and ANOVA
  */
 export function lm(formula: string, data: DataFrame, options?: LmFormulaOptions): LmFormulaResult;
 /**
@@ -373,7 +391,11 @@ export function fitLm(Xall: number[][], Yall: number[], Wall: number[] | undefin
   return core;
 }
 
-/** Options for {@link confint}. */
+/**
+ * Options for {@link confint}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface ConfintOptions {
   /** Confidence level. Default `0.95`. */
   level?: number;
@@ -389,6 +411,8 @@ export interface ConfintOptions {
  * confint(fit); // { lower: [-0.58036, 1.79994], upper: [0.68036, 2.18006] }
  * confint(fit, { level: 0.9 }).lower; // [-0.41614, 1.84945]
  * ```
+ *
+ * @category Linear models and ANOVA
  */
 export function confint(
   fit: LmResult,
@@ -414,7 +438,11 @@ export function confint(
   return { lower, upper };
 }
 
-/** Options for {@link predict}. */
+/**
+ * Options for {@link predict}.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface PredictOptions {
   /** `"none"` (default), `"confidence"` (for the mean response) or `"prediction"` (for a new observation). */
   interval?: "none" | "confidence" | "prediction";
@@ -434,6 +462,8 @@ export interface PredictOptions {
  * predict(fit, [6, 7]); // { fit: [11.99, 13.98], seFit: [0.19807, 0.25338] }
  * predict(fit, [6], { interval: "prediction" }); // { lwr: [11.119], upr: [12.861] }
  * ```
+ *
+ * @category Linear models and ANOVA
  */
 export function predict(
   fit: LmResult,

@@ -15,7 +15,11 @@ import { matMul } from "./ops.js";
 /** Smallest normal double (LAPACK's dlamch("S")): below it, 1 / pivot would overflow. */
 const SFMIN = 2.2250738585072014e-308;
 
-/** Result of {@link lu}: `x = P L U`. */
+/**
+ * Result of {@link lu}: `x = P L U`.
+ *
+ * @category Linear algebra
+ */
 export interface LuResult {
   /** Permutation matrix (m x m). */
   P: number[][];
@@ -34,6 +38,8 @@ export interface LuResult {
  * lu([[1, 2], [3, 4]]);
  * // { P: [[0, 1], [1, 0]], L: [[1, 0], [0.3333333333333333, 1]], U: [[3, 4], [0, 0.6666666666666667]] }
  * ```
+ *
+ * @category Linear algebra
  */
 export function lu(x: MatrixInput): LuResult {
   const m = x.length;
@@ -76,7 +82,11 @@ export function lu(x: MatrixInput): LuResult {
   return { P, L, U };
 }
 
-/** Options for {@link prcomp}. */
+/**
+ * Options for {@link prcomp}.
+ *
+ * @category Linear algebra
+ */
 export interface PrcompOptions {
   /** Centre the columns (default `true`), or subtract the given values. */
   center?: boolean | readonly number[];
@@ -84,7 +94,11 @@ export interface PrcompOptions {
   scale?: boolean | readonly number[];
 }
 
-/** Result of {@link prcomp}. */
+/**
+ * Result of {@link prcomp}.
+ *
+ * @category Linear algebra
+ */
 export interface PrcompResult {
   /** Standard deviations of the principal components. */
   sdev: number[];
@@ -108,6 +122,8 @@ export interface PrcompResult {
  * pc.sdev; // [1.632993161855452, 0.816496580927726]
  * pc.x;    // [[-1.4142, 0.7071], [-1.4142, -0.7071], [1.4142, 0.7071], [1.4142, -0.7071]] (signs may differ from R)
  * ```
+ *
+ * @category Linear algebra
  */
 export function prcomp(x: MatrixInput, options: PrcompOptions = {}): PrcompResult {
   const rows = x.map((r) => Array.from(r));

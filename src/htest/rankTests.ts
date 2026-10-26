@@ -26,7 +26,11 @@ import { completeRows, median, toGroups, type GroupLabel } from "./groups.js";
 import { blockData, kSampleData, twoGroupData } from "./testFormula.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
-/** Result of a k-sample test with a chi-squared statistic. Has no `alternative`, as R returns none. */
+/**
+ * Result of a k-sample test with a chi-squared statistic. Has no `alternative`, as R returns none.
+ *
+ * @category Hypothesis tests
+ */
 export interface ChisqStatTestResult extends Omit<HTest, "alternative"> {
   /** Degrees of freedom (`parameterName` is `"df"`). */
   parameter: number;
@@ -64,6 +68,8 @@ function sumTies(x: readonly number[]): number {
  * r.statistic; // 0.7714285714285722
  * r.pValue;    // 0.6799647735788935
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function kruskalTest(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): ChisqStatTestResult;
 /**
@@ -112,6 +118,8 @@ export function kruskalTest(x: Sample | readonly Sample[] | string, g?: readonly
  * r.statistic; // 0.4
  * r.pValue;    // 0.8187307530779818
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function friedmanTest(y: readonly (readonly number[])[]): ChisqStatTestResult;
 /**
@@ -156,12 +164,18 @@ export function friedmanTest(y: readonly (readonly number[])[] | string, data?: 
  * r.statistic; // 3.5
  * r.pValue;    // 0.17377394345044514
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function cochranQTest(y: readonly (readonly number[])[]): ChisqStatTestResult {
   return { ...friedmanTest(y), method: "Cochran's Q test", statisticName: "Q" };
 }
 
-/** Result of {@link quadeTest}: an F statistic with two degrees of freedom. */
+/**
+ * Result of {@link quadeTest}: an F statistic with two degrees of freedom.
+ *
+ * @category Hypothesis tests
+ */
 export interface QuadeTestResult extends Omit<HTest, "alternative" | "parameter" | "parameterName"> {
   /** `[num df, denom df]`. */
   parameter: [number, number];
@@ -183,6 +197,8 @@ export interface QuadeTestResult extends Omit<HTest, "alternative" | "parameter"
  * r.parameter; // [2, 8]
  * r.pValue;    // 0.8177464498805584
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function quadeTest(y: readonly (readonly number[])[]): QuadeTestResult;
 /**
@@ -256,6 +272,8 @@ export function quadeTest(y: readonly (readonly number[])[] | string, data?: Dat
  * r.statistic; // 5.209183208821734
  * r.pValue;    // 0.07393332507668932
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function flignerTest(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): ChisqStatTestResult;
 /**
@@ -298,7 +316,11 @@ export function flignerTest(x: Sample | readonly Sample[] | string, g?: readonly
   return chisqResult("Fligner-Killeen test of homogeneity of variances", "Fligner-Killeen:med chi-squared", stat, k - 1);
 }
 
-/** Options for {@link moodTest}. */
+/**
+ * Options for {@link moodTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface MoodTestOptions {
   /** Alternative hypothesis (unambiguous abbreviations accepted). Default `"two.sided"`. */
   alternative?: Alternative | "two" | "l" | "g";
@@ -316,6 +338,8 @@ export interface MoodTestOptions {
  * r.statistic; // 2.0919054414739633
  * r.pValue;    // 0.03644697523591335
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function moodTest(x: Sample, y: Sample, options?: MoodTestOptions): HTest;
 /**

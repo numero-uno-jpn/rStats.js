@@ -18,7 +18,11 @@ import type { LmFormulaOptions } from "./lm.js";
 import type { DataFrame } from "./modelFrame.js";
 import { design } from "./modelMatrix.js";
 
-/** The table of one error stratum, as `summary(aov(...))` prints it. */
+/**
+ * The table of one error stratum, as `summary(aov(...))` prints it.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface AovStratum {
   /** `"Error: id"`, `"Error: id:W"`, `"Error: Within"`. */
   stratum: string;
@@ -30,7 +34,11 @@ export interface AovStratum {
   table: number[][];
 }
 
-/** Result of {@link aov} with an `Error()` term. */
+/**
+ * Result of {@link aov} with an `Error()` term.
+ *
+ * @category Linear models and ANOVA
+ */
 export interface AovStrataFit {
   /** The formula. */
   formula: string;

@@ -8,7 +8,11 @@ import { vectorize, type Vectorizable, type VectorResult } from "../internal/vec
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { expNeg, log1mExp, logOneMinusExpNeg, mulDD } from "../internal/ddexp.js";
 
-/** Parameters of the exponential distribution. */
+/**
+ * Parameters of the exponential distribution.
+ *
+ * @category Distributions
+ */
 export interface ExponentialParams {
   /** Rate. Default `1`. */
   rate?: number;
@@ -66,6 +70,8 @@ export function qexp1(p: number, rate: number, lowerTail: boolean, logP: boolean
  * dexp(1);              // 0.36787944117144233
  * dexp(1, { rate: 2 }); // 0.2706705664732254
  * ```
+ *
+ * @category Distributions
  */
 export function dexp<T extends Vectorizable>(x: T, options: ExponentialParams & DensityOptions = {}): VectorResult<T> {
   const { rate = 1, log = false } = options;
@@ -84,6 +90,8 @@ export function dexp<T extends Vectorizable>(x: T, options: ExponentialParams & 
  * pexp(1);                                  // 0.6321205588285577
  * pexp(1, { rate: 2, lowerTail: false });   // 0.1353352832366127
  * ```
+ *
+ * @category Distributions
  */
 export function pexp<T extends Vectorizable>(q: T, options: ExponentialParams & TailOptions = {}): VectorResult<T> {
   const { rate = 1, lowerTail = true, logP = false } = options;
@@ -102,6 +110,8 @@ export function pexp<T extends Vectorizable>(q: T, options: ExponentialParams & 
  * qexp(0.5, { rate: 2 });      // 0.34657359027997264
  * qexp([0.25, 0.75]);          // [0.2876820724517809, 1.3862943611198906]
  * ```
+ *
+ * @category Distributions
  */
 export function qexp<T extends Vectorizable>(p: T, options: ExponentialParams & TailOptions = {}): VectorResult<T> {
   const { rate = 1, lowerTail = true, logP = false } = options;

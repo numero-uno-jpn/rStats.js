@@ -165,6 +165,8 @@ export function rbinom1(nin: number, pp: number): number {
  * setSeed(1);
  * rbinom(5, 10, 0.5); // [4, 4, 5, 7, 4]
  * ```
+ *
+ * @category Random numbers
  */
 export function rbinom(n: number, size: number, prob: number): number[] {
   return generate(n, () => rbinom1(size, prob));
@@ -188,6 +190,8 @@ export function rbinom(n: number, size: number, prob: number): number[] {
  * setSeed(1);
  * rmultinom(2, 5, [0.2, 0.3, 0.5]); // [[0, 1, 4], [1, 3, 1]]
  * ```
+ *
+ * @category Random numbers
  */
 export function rmultinom(n: number, size: number, prob: readonly number[]): number[][] {
   if (!Number.isFinite(size) || size < 0 || Math.round(size) !== size) throw new RangeError("size must be a non-negative integer");

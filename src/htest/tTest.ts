@@ -12,7 +12,11 @@ import type { DataFrame } from "../models/modelFrame.js";
 import { twoSampleData } from "./testFormula.js";
 import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
-/** Options for {@link tTest}. */
+/**
+ * Options for {@link tTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface TTestOptions {
   /**
    * Alternative hypothesis: `"two.sided"`, `"less"` or `"greater"`. Default `"two.sided"`.
@@ -29,7 +33,11 @@ export interface TTestOptions {
   confLevel?: number;
 }
 
-/** Result of {@link tTest}. */
+/**
+ * Result of {@link tTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface TTestResult extends HTest {
   /** Degrees of freedom of the t distribution (`parameterName` is `"df"`). */
   parameter: number;
@@ -71,6 +79,8 @@ export interface TTestResult extends HTest {
  * ```
  *
  * There is also a formula form, `tTest("y ~ g", data, options)` (next overload).
+ *
+ * @category Hypothesis tests
  */
 export function tTest(x: Sample, y?: Sample | TTestOptions, options?: TTestOptions): TTestResult;
 /**

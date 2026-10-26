@@ -18,7 +18,11 @@ import type { GroupLabel } from "./groups.js";
 import { matchChoice } from "./power.js";
 import type { HTest, Sample } from "./types.js";
 
-/** Result of {@link propTrendTest}: no `alternative`, as R returns none. */
+/**
+ * Result of {@link propTrendTest}: no `alternative`, as R returns none.
+ *
+ * @category Hypothesis tests
+ */
 export interface PropTrendTestResult extends Omit<HTest, "alternative"> {
   /** Degrees of freedom (1). */
   parameter: number;
@@ -35,6 +39,8 @@ export interface PropTrendTestResult extends Omit<HTest, "alternative"> {
  * ```ts
  * propTrendTest([15, 10, 8, 4], [30, 30, 30, 30]).statistic; // 9.573428850537288
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTestResult {
   const xs = Array.from(x);
@@ -66,10 +72,18 @@ export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTe
   };
 }
 
-/** Alternative of {@link jonckheereTest}. */
+/**
+ * Alternative of {@link jonckheereTest}.
+ *
+ * @category Hypothesis tests
+ */
 export type JonckheereAlternative = "two.sided" | "increasing" | "decreasing";
 
-/** Options for {@link jonckheereTest}. */
+/**
+ * Options for {@link jonckheereTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface JonckheereTestOptions {
   /** `"two.sided"` (default), `"increasing"` or `"decreasing"` (unambiguous abbreviations accepted). */
   alternative?: JonckheereAlternative | (string & {});
@@ -84,7 +98,11 @@ export interface JonckheereTestOptions {
   levels?: readonly GroupLabel[];
 }
 
-/** Result of {@link jonckheereTest}. */
+/**
+ * Result of {@link jonckheereTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface JonckheereTestResult extends Omit<HTest, "alternative"> {
   /** Alternative hypothesis: `"two.sided"`, `"increasing"` or `"decreasing"`. */
   alternative: JonckheereAlternative;
@@ -131,6 +149,8 @@ function orderedGroups(x: Sample, g: readonly GroupLabel[], levels: readonly Gro
  * ```ts
  * jonckheereTest([1.1, 2.0, 2.4, 3.5, 3.1, 4.6], [1, 1, 2, 2, 3, 3], { alternative: "increasing" }).statistic; // 11
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function jonckheereTest(x: Sample, g: readonly GroupLabel[], options: JonckheereTestOptions = {}): JonckheereTestResult {
   const alternative = matchChoice(options.alternative, ["two.sided", "increasing", "decreasing"] as const);

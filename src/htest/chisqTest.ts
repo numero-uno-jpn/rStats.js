@@ -26,7 +26,11 @@ import { ddAdd, type DD } from "../special/dd.js";
 import { simulatedMethod } from "./core/simulate.js";
 import type { HTest, Counts } from "./types.js";
 
-/** Options for {@link chisqTest}. */
+/**
+ * Options for {@link chisqTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface ChisqTestOptions {
   /** Apply Yates' continuity correction (2 x 2 tables only). Default `true`. */
   correct?: boolean;
@@ -45,6 +49,8 @@ export interface ChisqTestOptions {
 
 /**
  * Result of {@link chisqTest}. Has no `alternative`, because R's `chisq.test()` does not return one.
+ *
+ * @category Hypothesis tests
  */
 export interface ChisqTestResult extends Omit<HTest, "alternative"> {
   /** Degrees of freedom (`parameterName` is `"df"`). */
@@ -63,7 +69,11 @@ export interface ChisqTestResult extends Omit<HTest, "alternative"> {
   stdres: number[] | number[][];
 }
 
-/** Result of {@link chisqTest} with two factor vectors: also the levels that label the rows and columns. */
+/**
+ * Result of {@link chisqTest} with two factor vectors: also the levels that label the rows and columns.
+ *
+ * @category Hypothesis tests
+ */
 export interface ChisqTestFactorsResult extends ChisqTestResult {
   observed: number[][];
   expected: number[][];
@@ -75,7 +85,11 @@ export interface ChisqTestFactorsResult extends ChisqTestResult {
   colLevels: string[];
 }
 
-/** A factor: category labels, with `null` or `undefined` for missing values (R's NA). */
+/**
+ * A factor: category labels, with `null` or `undefined` for missing values (R's NA).
+ *
+ * @category Hypothesis tests
+ */
 export type Factor = readonly (string | null | undefined)[];
 
 
@@ -125,6 +139,8 @@ function ddSum(x: readonly number[]): number {
  *
  * chisqTest(["a", "b", "a", "b"], ["u", "u", "v", "v"]).rowLevels; // ["a", "b"]
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function chisqTest(x: Counts | readonly Counts[], options?: ChisqTestOptions): ChisqTestResult;
 export function chisqTest(x: Factor, y: Factor, options?: ChisqTestOptions): ChisqTestFactorsResult;

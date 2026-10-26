@@ -10,7 +10,11 @@ import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions
 import { standardizeDD } from "../internal/ddexp.js";
 import { dgamma1, pgamma1, qgamma1 } from "./gamma.js";
 
-/** Scale parameter of the inverse gamma distribution. */
+/**
+ * Scale parameter of the inverse gamma distribution.
+ *
+ * @category Distributions
+ */
 export interface InvgammaParams {
   /** Scale (the rate of the gamma distribution of 1/X). Default `1`. */
   beta?: number;
@@ -67,6 +71,8 @@ export function qinvgamma1(p: number, alpha: number, beta: number, lowerTail: bo
  * dinvgamma(1, 3);                // 0.18393972058572117
  * dinvgamma(0.5, 3, { beta: 2 }); // 1.1722008888789877
  * ```
+ *
+ * @category Distributions
  */
 export function dinvgamma<T extends Vectorizable>(x: T, alpha: number, options: InvgammaParams & DensityOptions = {}): VectorResult<T> {
   const { beta = 1, log = false } = options;
@@ -82,6 +88,8 @@ export function dinvgamma<T extends Vectorizable>(x: T, alpha: number, options: 
  * pinvgamma(1, 3);                // 0.9196986029286058
  * pinvgamma(0.5, 3, { beta: 2 }); // 0.23810330555354436
  * ```
+ *
+ * @category Distributions
  */
 export function pinvgamma<T extends Vectorizable>(q: T, alpha: number, options: InvgammaParams & TailOptions = {}): VectorResult<T> {
   const { beta = 1, lowerTail = true, logP = false } = options;
@@ -97,6 +105,8 @@ export function pinvgamma<T extends Vectorizable>(q: T, alpha: number, options: 
  * qinvgamma(0.5, 3);              // 0.3739631431901122
  * qinvgamma(0.95, 3, { beta: 2 }); // 2.445910382133402
  * ```
+ *
+ * @category Distributions
  */
 export function qinvgamma<T extends Vectorizable>(p: T, alpha: number, options: InvgammaParams & TailOptions = {}): VectorResult<T> {
   const { beta = 1, lowerTail = true, logP = false } = options;

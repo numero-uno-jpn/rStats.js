@@ -17,10 +17,16 @@ import { sum } from "../internal/summary.js";
 
 /**
  * Adjustment method for {@link pAdjust}, as in R's `p.adjust.methods`. `"fdr"` is an alias of `"BH"`.
+ *
+ * @category Multiple comparisons
  */
 export type PAdjustMethod = "holm" | "hochberg" | "hommel" | "bonferroni" | "BH" | "BY" | "fdr" | "none";
 
-/** Options for {@link pAdjust}. */
+/**
+ * Options for {@link pAdjust}.
+ *
+ * @category Multiple comparisons
+ */
 export interface PAdjustOptions {
   /** Adjustment method. Default `"holm"`. Unambiguous abbreviations are accepted, as in R. */
   method?: PAdjustMethod | (string & {});
@@ -58,6 +64,8 @@ function matchMethod(m: string): PAdjustMethod {
  * pAdjust(p, "BH"); // [0.05, 0.05, 0.05, 0.05, 0.05]
  * pAdjust(p, { method: "bonferroni", n: 10 });
  * ```
+ *
+ * @category Multiple comparisons
  */
 export function pAdjust(
   p: readonly number[] | Float64Array,

@@ -79,6 +79,8 @@ export function qkumar1(p: number, a: number, b: number, lowerTail: boolean, log
  * dkumar(0.5, 2, 3);        // 1.6875
  * dkumar([0.25, 0.75], 2, 3); // [1.318359375, 0.861328125]
  * ```
+ *
+ * @category Distributions
  */
 export function dkumar<T extends Vectorizable>(x: T, a: number, b: number, options: DensityOptions = {}): VectorResult<T> {
   const { log = false } = options;
@@ -93,6 +95,8 @@ export function dkumar<T extends Vectorizable>(x: T, a: number, b: number, optio
  * pkumar(0.5, 2, 3);        // 0.578125
  * pkumar(0.5, 2, 3, { lowerTail: false }); // 0.421875
  * ```
+ *
+ * @category Distributions
  */
 export function pkumar<T extends Vectorizable>(q: T, a: number, b: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;
@@ -107,6 +111,8 @@ export function pkumar<T extends Vectorizable>(q: T, a: number, b: number, optio
  * qkumar(0.5, 2, 3);        // 0.4542020189474066
  * qkumar([0.1, 0.9], 2, 3); // [0.18577032969333462, 0.7320116915997463]
  * ```
+ *
+ * @category Distributions
  */
 export function qkumar<T extends Vectorizable>(p: T, a: number, b: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;

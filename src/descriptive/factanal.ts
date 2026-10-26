@@ -12,10 +12,18 @@ import { optim } from "../optim/optim.js";
 import { twoSum } from "../special/dd.js";
 import { cov } from "./cov.js";
 
-/** Rotations of {@link factanal} */
+/**
+ * Rotations of {@link factanal}
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export type FactanalRotation = "varimax" | "promax" | "none";
 
-/** Options of {@link factanal} */
+/**
+ * Options of {@link factanal}
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface FactanalOptions {
   /** A covariance (or correlation) matrix to analyse instead of the data `x` (pass `null` as `x`). */
   covmat?: readonly (readonly number[])[];
@@ -32,7 +40,11 @@ export interface FactanalOptions {
   };
 }
 
-/** Result of {@link factanal} */
+/**
+ * Result of {@link factanal}
+ *
+ * @category Agreement, reliability and factor analysis
+ */
 export interface FactanalResult {
   /** The uniquenesses, one per variable: the variance not explained by the factors. */
   uniquenesses: number[];
@@ -155,6 +167,8 @@ function promax(L: readonly (readonly number[])[]): { loadings: number[][]; rotm
  * fa.uniquenesses; // [0.19, 0.36, 0.51]
  * fa.loadings;     // [[0.9], [0.8], [0.7]]
  * ```
+ *
+ * @category Agreement, reliability and factor analysis
  */
 export function factanal(x: readonly (readonly number[])[] | null, factors: number, options: FactanalOptions = {}): FactanalResult {
   let cv: number[][];

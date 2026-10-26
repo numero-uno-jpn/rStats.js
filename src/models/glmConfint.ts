@@ -17,7 +17,11 @@ import { qr, qrResid } from "../linalg/qr.js";
 import { glmSummary, refit, type GlmResult, type IrlsFit } from "./glm.js";
 import { Warnings } from "./glmFamily.js";
 
-/** Options for {@link glmConfint}. */
+/**
+ * Options for {@link glmConfint}.
+ *
+ * @category Generalized linear models
+ */
 export interface GlmConfintOptions {
   /** Indices of the coefficients (0-based, intercept first). Default: all. */
   parm?: readonly number[];
@@ -70,6 +74,8 @@ export function scoreStatistic(x: number[][], r: number[], v: number[], intercep
  * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
  * glmConfint(fit); // { lower: [-15.124, -0.065819], upper: [0.57792, 4.1592] }
  * ```
+ *
+ * @category Generalized linear models
  */
 export function glmConfint(
   fit: GlmResult,

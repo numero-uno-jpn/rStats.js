@@ -14,7 +14,11 @@ import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
-/** Options for {@link propTest}. */
+/**
+ * Options for {@link propTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface PropTestOptions {
   /** Hypothesized proportion(s), one per group, each strictly between 0 and 1. Default: `0.5` for one group, and
    *  equality of the proportions for several. */
@@ -27,7 +31,11 @@ export interface PropTestOptions {
   correct?: boolean;
 }
 
-/** Result of {@link propTest}. */
+/**
+ * Result of {@link propTest}.
+ *
+ * @category Hypothesis tests
+ */
 export interface PropTestResult extends Omit<HTest, "nullValue" | "nullValueName"> {
   /** Degrees of freedom (`parameterName` is `"df"`). */
   parameter: number;
@@ -51,6 +59,8 @@ export interface PropTestResult extends Omit<HTest, "nullValue" | "nullValueName
  * propTest([83, 90, 129, 70], [86, 93, 136, 82]).pValue; // equality of four proportions
  * propTest(15, 20, { p: 0.5 }).confInt;
  * ```
+ *
+ * @category Hypothesis tests
  */
 export function propTest(
   x: number | readonly number[] | readonly (readonly number[])[],

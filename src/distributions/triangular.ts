@@ -8,7 +8,11 @@
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 
-/** Limits and mode of the triangular distribution. */
+/**
+ * Limits and mode of the triangular distribution.
+ *
+ * @category Distributions
+ */
 export interface TriangParams {
   /** Minimum. Default `-1`. */
   a?: number;
@@ -77,6 +81,8 @@ export function qtriang1(p: number, a: number, b: number, c: number, lowerTail: 
  * dtriang(0);                            // 1
  * dtriang(1, { a: 0, b: 4, c: 1 });      // 0.5
  * ```
+ *
+ * @category Distributions
  */
 export function dtriang<T extends Vectorizable>(x: T, options: TriangParams & DensityOptions = {}): VectorResult<T> {
   const { a = -1, b = 1, log = false } = options;
@@ -92,6 +98,8 @@ export function dtriang<T extends Vectorizable>(x: T, options: TriangParams & De
  * ptriang(0);                            // 0.5
  * ptriang(2, { a: 0, b: 4, c: 1 });      // 0.6666666666666667
  * ```
+ *
+ * @category Distributions
  */
 export function ptriang<T extends Vectorizable>(q: T, options: TriangParams & TailOptions = {}): VectorResult<T> {
   const { a = -1, b = 1, lowerTail = true, logP = false } = options;
@@ -107,6 +115,8 @@ export function ptriang<T extends Vectorizable>(q: T, options: TriangParams & Ta
  * qtriang(0.5);                          // 0
  * qtriang(0.9, { a: 0, b: 4, c: 1 });    // 2.904554884989668
  * ```
+ *
+ * @category Distributions
  */
 export function qtriang<T extends Vectorizable>(p: T, options: TriangParams & TailOptions = {}): VectorResult<T> {
   const { a = -1, b = 1, lowerTail = true, logP = false } = options;

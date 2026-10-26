@@ -32,6 +32,8 @@ function lbetaAsymp(a: number, b: number): { value: number; sign: number } {
  * ```ts
  * beta(2, 3);  // 0.08333333333333333
  * ```
+ *
+ * @category Special functions
  */
 export function beta(a: number, b: number): number {
   if (Number.isNaN(a) || Number.isNaN(b)) return NaN;
@@ -101,6 +103,8 @@ function betaNegint(a: number, b: number): number {
  * ```ts
  * lbeta(1000, 1000);  // -1388.4826016359023
  * ```
+ *
+ * @category Special functions
  */
 export function lbeta(a: number, b: number): number {
   if (Number.isNaN(a) || Number.isNaN(b)) return NaN;
