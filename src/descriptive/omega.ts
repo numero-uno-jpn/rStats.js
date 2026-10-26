@@ -291,6 +291,8 @@ export function omega(x: readonly (readonly number[])[] | null, options: OmegaOp
   const h2 = rowSums(orthog, (v) => v * v);
   const u2 = h2.map((h, i) => R[i]![i]! - h);
   const groupLoadings = oblique.map((r, i) => r.map((v, k) => {
+    // one factor (gloading 1): v is 0 exactly, the formula would leave only a rounding residue
+    if (q === 1) return 0;
     const Rii = R[i]![i]!;
     let w = Rii - (Rii - v * v) - (v * gloading[k]!) ** 2;
     if (w < 0) w = 0;
