@@ -11,10 +11,10 @@ Journal of Statistical Software 67(1), doi:10.18637/jss.v067.i01 (open access). 
 random effects `b = Λ_θ u` with `u ~ N(0, σ² I)`, `Z` the random-effects model matrix, `θ` the covariance
 parameters, `X` the fixed-effects model matrix.
 
-The work is done in stages; each stage has its own section and fixture. **Stage 1a** (this version of the file):
-the structure of the model (formula, `X`, `Z`, `Λ_θ`, the initial `θ` and its bounds), with nothing fitted and
-nothing exported yet. Later stages (the profiled deviance at a given `θ`; the fit and its results) will be added to
-this file.
+The work is done in stages; each stage has its own section and fixture. **Stage 1a**: the structure of the model
+(formula, `X`, `Z`, `Λ_θ`, the initial `θ` and its bounds), with nothing fitted and nothing exported. **Stage 1b**:
+the profiled deviance and the penalised least-squares solution at a given `θ` (section "The profiled deviance"),
+still internal. A later stage (the fit and its results) will be added to this file.
 
 ## Easy to get wrong
 
@@ -118,6 +118,8 @@ copies of `T_k` along the diagonal, in the order of `Z`'s columns. The initial `
 
 ## Checks, in this order
 
+0. The model frame is built first, so its errors (an unknown variable: `object 'Q' not found`; no row left:
+   `0 (non-NA) cases`) come before every check below, also for a formula without random-effects terms.
 1. No random-effects term: error `No random effects terms specified in formula`.
 2. A grouping factor (of the distinct ones) with fewer than 2 levels: error `grouping factors must have > 1 sampled
    level`.
@@ -148,6 +150,47 @@ are optional arguments as in `lm`. `z` and `lambda` are sparse triplets `[row, c
 Everything in this fixture is exact: integers, labels, and copies of the data (and products of data values in `Z`
 and `X`). The comparison is equality, with no tolerance, except that error messages for formulas R cannot parse only
 need to start with "invalid formula" (as in the `modelMatrix` test).
+
+## The profiled deviance (stage 1b)
+
+For a given `θ` (any finite values, of the length of the structure's `θ`; values below the lower bounds are
+accepted, as lme4's deviance function accepts them), with `n` the number of rows kept, `p` the number of columns of
+`X` (after dropping aliased columns) and `q` the number of columns of `Z`:
+
+- `Λ_θ` is filled from `θ` by the layout of stage 1a.
+- The **penalised least-squares** problem: minimise `‖y − Xβ − ZΛ_θ u‖² + ‖u‖²` over `β` and `u` (the paper's
+  equations (13)–(19)). Its minimiser `(β̂, û)` is unique (the matrix `Λ_θ' Z' Z Λ_θ + I` is positive definite for
+  every `θ`, and `X` has full column rank after stage 1a). The random effects are `b = Λ_θ û`.
+- `rss = ‖y − Xβ̂ − ZΛ_θ û‖²`, `ussq = ‖û‖²`, `prss = rss + ussq`.
+- `logDetL = log det(Λ_θ' Z' Z Λ_θ + I)` (twice the log determinant of its Cholesky factor `L_θ`).
+- `logDetRX = log det(X'X − X'ZΛ_θ (Λ_θ'Z'ZΛ_θ + I)⁻¹ Λ_θ'Z'X)` (twice the log determinant of the paper's `R_X`).
+- The **ML deviance** (`REML = false`): `logDetL + n (1 + log(2π prss / n))`. This is −2 times the log-likelihood
+  maximised over `β` and `σ` at this `θ`.
+- The **REML criterion** (`REML = true`): `logDetL + logDetRX + (n − p)(1 + log(2π prss / (n − p)))`.
+
+The fill-reducing permutation `P` of the paper only affects sparsity; the values do not depend on it, and a dense
+implementation is acceptable at this stage. **Measure and report** the time of one evaluation for a few sizes, for
+example crossed random intercepts `(1 | subject) + (1 | item)` with 50 × 40 and 200 × 100 subjects × items (one row
+per pair), and `(x | subject)` with 1000 subjects × 10 rows: whether a sparse Cholesky decomposition is needed will be
+decided from these numbers.
+
+Easy to get wrong here:
+
+1. `p` is the number of columns of `X` **after** aliased columns were dropped.
+2. `u` is the **spherical** random effects; `b = Λ_θ u` is what is called the random effects later (`ranef`).
+3. A `θ` with zeros on the diagonal (a singular `Λ_θ`) is valid: the deviance is still finite.
+
+### The fixture lmerDeviance (`oracle/lmerdev.R`)
+
+The comment at the top of the oracle describes the fields: arguments `formula`, `data` (with `dataTypes`), `REML`,
+`theta`; expected `deviance`, `beta`, `u`, `b`, `rss`, `ussq`, `prss`, `logDetL`, `logDetRX` from lme4, and
+`reference` with the same fields computed in 200-bit arithmetic. lme4's values are within 4e-13 (relative to the
+largest element of each vector) of the reference in every case.
+
+Accuracy required: each value must be within the tolerance of **R's value or of the reference value** (either one):
+`deviance`, `rss`, `ussq`, `prss`: relative 1e-12; `logDetL`, `logDetRX`: absolute `1e-12 × max(1, |value|)`;
+`beta`, `u`, `b`: each element within `1e-12 ×` the largest absolute element of the reference vector. No known
+differences are expected.
 
 ## Planned API (stage 1c; not to be implemented in stage 1a)
 
