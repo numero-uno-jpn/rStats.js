@@ -8,6 +8,8 @@
 
 import { pt1, qt1 } from "../distributions/t.js";
 import { completePairs, dropNaN, mean, variance } from "../internal/summary.js";
+import type { DataFrame } from "../models/modelFrame.js";
+import { twoSampleData } from "./testFormula.js";
 import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /** Options for {@link tTest}. */
@@ -67,8 +69,29 @@ export interface TTestResult extends HTest {
  *
  * tTest([1, 2, 3, 4, 5], [3, 4, 5, 6, 8]).pValue; // 0.0849560662972433 (Welch)
  * ```
+ *
+ * There is also a formula form, `tTest("y ~ g", data, options)` (next overload).
  */
-export function tTest(x: Sample, y?: Sample | TTestOptions, options: TTestOptions = {}): TTestResult {
+export function tTest(x: Sample, y?: Sample | TTestOptions, options?: TTestOptions): TTestResult;
+/**
+ * Student's t-test from a formula and a data frame. Equivalent to R's `t.test(formula, data)`: `"y ~ g"` compares
+ * the two levels of `g` (the first level is `x`; `estimateNames` and `nullValueName` name the levels, as in R),
+ * `"y ~ 1"` is the one-sample test and `"Pair(a, b) ~ 1"` the paired test of `a` and `b` (the option `paired` is not
+ * allowed). Only the variables of the formula count: the rows where one of them is missing are dropped.
+ *
+ * @param formula `"y ~ g"`, `"y ~ 1"` or `"Pair(a, b) ~ 1"`.
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ * @param options See {@link TTestOptions}.
+ *
+ * @example
+ * ```ts
+ * tTest("y ~ g", { y: [5.1, 4.9, 5.6, 5.8, 6.0, 5.4], g: ["a", "a", "a", "b", "b", "b"] }).estimateNames;
+ * // ["mean in group a", "mean in group b"]
+ * ```
+ */
+export function tTest(formula: string, data: DataFrame, options?: TTestOptions): TTestResult;
+export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame, options: TTestOptions = {}): TTestResult {
+  if (typeof x === "string") return tTestFormula(x, y as DataFrame, options);
   // Also accept the form tTest(x, { mu: 1 })
   let ys: Sample | undefined;
   if (y !== undefined && !ArrayBuffer.isView(y) && !Array.isArray(y)) options = y as TTestOptions;
@@ -174,5 +197,19 @@ export function tTest(x: Sample, y?: Sample | TTestOptions, options: TTestOption
     nullValue: mu,
     nullValueName,
     stdErr,
+  };
+}
+
+/** t.test from a formula: the default form on the data the formula selects, with the estimates named after the levels */
+function tTestFormula(formula: string, data: DataFrame, options: TTestOptions): TTestResult {
+  if (options.paired !== undefined) throw new Error("cannot use 'paired' in formula method");
+  const d = twoSampleData(formula, data, true);
+  if (d.kind === "one") return tTest(d.x, options);
+  if (d.kind === "paired") return tTest(d.x, d.y, { ...options, paired: true });
+  const [first, second] = d.levels;
+  return {
+    ...tTest(d.x, d.y, options),
+    estimateNames: [`mean in group ${first}`, `mean in group ${second}`],
+    nullValueName: `difference in means between group ${first} and group ${second}`,
   };
 }

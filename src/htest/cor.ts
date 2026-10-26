@@ -28,6 +28,8 @@ import { pt1 } from "../distributions/t.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { ddAdd, ddDiv, ddMul, ddSub, twoProd, twoSum, type DD } from "../special/dd.js";
 import { completePairs, meanDD, rank, tieCounts } from "../internal/summary.js";
+import type { DataFrame } from "../models/modelFrame.js";
+import { correlationData } from "./testFormula.js";
 import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /** Correlation coefficient: Pearson's r, Kendall's tau or Spearman's rho. */
@@ -346,8 +348,29 @@ function spearmanTail(n: number, q: number, lower: boolean): number {
  *
  * corTest([1, 2, 3, 4, 5, 6], [2, 1, 4, 3, 7, 8], { method: "spearman" });
  * ```
+ *
+ * There is also a formula form, `corTest("~ x + y", data, options)` (next overload).
  */
-export function corTest(x: Sample, y: Sample, options: CorTestOptions = {}): CorTestResult {
+export function corTest(x: Sample, y: Sample, options?: CorTestOptions): CorTestResult;
+/**
+ * Test for correlation from a formula and a data frame. Equivalent to R's `cor.test(formula, data)`: the one-sided
+ * formula `"~ x + y"` names the two variables. Only they count: the rows where one of them is missing are dropped.
+ *
+ * @param formula `"~ x + y"` (exactly two variables, no response).
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ * @param options See {@link CorTestOptions}.
+ */
+export function corTest(formula: string, data: DataFrame, options?: CorTestOptions): CorTestResult;
+export function corTest(x: Sample | string, y: Sample | DataFrame, options: CorTestOptions = {}): CorTestResult {
+  if (typeof x === "string") {
+    const d = correlationData(x, y as DataFrame);
+    return corTest(d.x, d.y, options);
+  }
+  return corTestSamples(x, y as Sample, options);
+}
+
+/** cor.test's default form */
+function corTestSamples(x: Sample, y: Sample, options: CorTestOptions): CorTestResult {
   if (x.length !== y.length) throw new TypeError("x and y must have the same length");
   const alternative = matchAlternative(options.alternative);
   const method = matchMethod(options.method);
