@@ -2,12 +2,14 @@
 //
 // Written for rStats.js (no ported code) from oracle/anova-behaviour.md ("Coding"). Each term contributes the
 // products of one column of each of its variables, the first variable varying fastest: a numeric variable's values,
-// or a factor's contrast columns (contr.treatment, contr.sum or contr.helmert) or indicator columns, as chosen by the
-// codes of src/models/formula.ts. Without an intercept the first factor found is coded by indicators.
+// or a factor's contrast columns (contr.treatment, contr.sum or contr.helmert; internally also contr.poly) or indicator
+// columns, as chosen by the codes of src/models/formula.ts. Without an intercept the first factor found is coded by
+// indicators.
 
 import { parseFormula, termsOf, type FormulaNode, type ParsedFormula, type Terms } from "./formula.js";
 import { modelFrame, type DataFrame, type FrameVariable, type ModelFrame } from "./modelFrame.js";
 import type { Sample } from "../htest/types.js";
+import { qr, qrQ, qrR } from "../linalg/qr.js";
 
 /**
  * A contrast of a factor: R's `contr.treatment`, `contr.sum` or `contr.helmert`.
@@ -60,8 +62,28 @@ export interface ModelMatrixResult {
   warnings: string[];
 }
 
+/**
+ * A contrast the internal model-matrix code accepts: those of {@link ContrastName} and R's `contr.poly` (orthogonal
+ * polynomials in the level scores 1, 2, ..., columns `.L`, `.Q`, `.C`, `^4`, ...), which lmer's fixed effects may use.
+ */
+export type DesignContrast = ContrastName | "contr.poly";
+
+/**
+ * contr.poly for k levels (scores 1..k): the orthonormal polynomials of degrees 1..k-1 in the scores, the columns
+ * of Q of the QR decomposition of the powers 0..k-1 of the centred scores, each signed so that its coefficient of
+ * the highest power is positive (Q diag(R), normalised).
+ */
+function polyContrasts(k: number): number[][] {
+  const mean = (k + 1) / 2;
+  const powers = Array.from({ length: k }, (_, i) => Array.from({ length: k }, (__, j) => (i + 1 - mean) ** j));
+  const d = qr(powers);
+  const q = qrQ(d);
+  const r = qrR(d);
+  return q.map((row) => row.slice(1).map((v, j) => (r[j + 1]![j + 1]! < 0 ? -v : v)));
+}
+
 /** A contrast matrix (one row per level) and its column names */
-export function contrastMatrix(levels: readonly string[], contrast: ContrastName | "indicators"): { m: number[][]; names: string[] } {
+export function contrastMatrix(levels: readonly string[], contrast: DesignContrast | "indicators"): { m: number[][]; names: string[] } {
   const k = levels.length;
   const m = levels.map(() => [] as number[]);
   let names: string[];
@@ -88,6 +110,12 @@ export function contrastMatrix(levels: readonly string[], contrast: ContrastName
       });
       names = Array.from({ length: k - 1 }, (_, j) => String(j + 1));
       break;
+    case "contr.poly": {
+      const pc = polyContrasts(k);
+      levels.forEach((_, i) => m[i]!.push(...pc[i]!));
+      names = Array.from({ length: k - 1 }, (_, j) => [".L", ".Q", ".C"][j] ?? `^${j + 1}`);
+      break;
+    }
     default:
       throw new RangeError(`unknown contrast '${String(contrast)}'`);
   }
@@ -108,11 +136,13 @@ export interface Design {
 }
 
 /** Options of {@link design} */
-export interface DesignOptions extends ModelMatrixOptions {
+export interface DesignOptions extends Omit<ModelMatrixOptions, "contrasts"> {
+  /** A contrast per factor, as {@link ModelMatrixOptions.contrasts} (`contr.poly` too) */
+  contrasts?: Record<string, DesignContrast>;
   weights?: Sample | string;
   dropUnusedLevels?: boolean;
   /** Contrast used for every factor instead of `contrasts` (the error model of aov) */
-  allContrasts?: ContrastName;
+  allContrasts?: DesignContrast;
   /** The intercept flag to use instead of the formula's (the error model of aov) */
   intercept?: boolean;
   /** More variables whose missing values drop rows (the rest of the formula, for the error model of aov) */
