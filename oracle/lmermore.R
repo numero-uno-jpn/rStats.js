@@ -3,7 +3,8 @@ suppressPackageStartupMessages({library(lme4); library(Rmpfr)})
 
 # Fitted linear mixed models: lme4's lmer() and its methods (fixture lmerMore: more cases, among them a fit whose
 # optimum is on the boundary although lme4 stops inside it, and one whose optimum is just inside the boundary).
-# Behaviour in oracle/lmer-behaviour.md ("The fit and its results"). The fields are those of oracle/lmer.R. Each case has
+# Behaviour in oracle/lmer-behaviour.md ("The fit and its results"). The fields are those of oracle/lmer.R.
+# Each case has
 #   formula, data   as in the fixture lmerTerms
 #   REML            logical
 #   contrasts, levels  (optional) as in lmerTerms
@@ -128,7 +129,7 @@ optimum <- function(s, theta0, reml, fixed = s$lower == 0 & theta0 < 1e-4) {
   }
   Hinv <- solve(H)
   steps <- character(0)
-  for (it in 1:12) {
+  for (it in 1:60) {
     g <- gradmp(theta)
     step <- mp(numeric(m))
     for (k in seq_len(m)) step[k] <- -sum(mp(Hinv[k, ]) * g)
