@@ -6,6 +6,7 @@ import {
   gamesHowellTest,
   kwAllPairsDunnTest,
   kwManyOneDunnTest,
+  manyOneUTest,
   steelTest,
   tukeyTest,
   type Alternative,
@@ -59,6 +60,8 @@ function run(a: Record<string, unknown>): PMCMRResult {
       return tukeyTest(x, g);
     case "steelTest":
       return steelTest(x, g, alt);
+    case "manyOneUTest":
+      return manyOneUTest(x, g, { ...alt, ...adj });
     default:
       throw new Error(`unknown function ${String(a.fn)}`);
   }
@@ -78,8 +81,9 @@ describe("mcompPMCMR", () => {
       cmp.strings(i, "warnings", e.warnings, r.warnings);
       cmp.numbers(i, "statistic", e.statistic, r.statistic);
       // the Dunnett-type p-values (rule 1) against the reference only
+      const singleStep = (c.args["p.adjust.method"] ?? "single-step") === "single-step";
       const dunnett =
-        c.args.fn === "dunnettTest" || (c.args.fn === "kwManyOneDunnTest" && (c.args["p.adjust.method"] ?? "single-step") === "single-step");
+        c.args.fn === "dunnettTest" || ((c.args.fn === "kwManyOneDunnTest" || c.args.fn === "manyOneUTest") && singleStep);
       cmp.numbers(i, "pValue", e["p.value"], r.pValue, c.reference?.["p.value"], dunnett);
     });
     cmp.check("mcompPMCMR", fixture.cases.length);
