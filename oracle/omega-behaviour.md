@@ -90,5 +90,7 @@ be within 1e-12 times the largest absolute value of its column, for the reason g
 column of omegaGroup are compared with their exact value 0 (known differences from R's rounding residues). The
 fixture keeps only cases where R's own results move by at most a few 1e-12 when the data change by one unit in
 the last place (a uniqueness at its lower bound, or zero degrees of freedom, makes the minres iterations
-amplify rounding to 1e-6, so such cases are left out). No other loosening; if a case does not
+amplify rounding to 1e-6, so such cases are left out). With four group factors R's results move by 6e-12 to 4e-11 under
+such a change (the uniquenesses u2 = 1 − h2 lose another digit to cancellation), so the fixture has no four-factor
+case; the implementation handles any number of factors. No other loosening; if a case does not
 follow R's iterations, report it with the case rather than adjusting.
