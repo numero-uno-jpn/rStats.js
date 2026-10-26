@@ -175,7 +175,12 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
   };
   // (if nothing is left of the right-hand side, the fixed part is `1`)
   const fixedRhs: FormulaNode = fixed ?? { type: "num", value: 1, text: "1" };
-  const fixedDesign = design(parsed, data, { ...frameOptions, ...(options.contrasts === undefined ? {} : { contrasts: options.contrasts }) }, fixedRhs);
+  // (a contrast is for a variable of the fixed-effects part: a grouping variable alone counts as absent)
+  const contrastOptions =
+    options.contrasts === undefined
+      ? {}
+      : { contrasts: options.contrasts, contrastVariables: termsOf({ response: parsed.response, rhs: fixedRhs }, Object.keys(data)).variables };
+  const fixedDesign = design(parsed, data, { ...frameOptions, ...contrastOptions }, fixedRhs);
   const { frame } = fixedDesign;
   const n = frame.rows.length;
   if (n === 0) throw new RangeError("0 (non-NA) cases");

@@ -7,7 +7,7 @@
 // group. tapply keeps the empty cells (NaN or null), split keeps them unless `drop`, aggregate leaves them out.
 
 import { formatR } from "../htest/core/simulate.js";
-import { parseFormula, type FormulaNode } from "../models/formula.js";
+import { expandRhs, formulaVariables, parseFormula } from "../models/formula.js";
 import { compareCodePoints, type DataFrame } from "../models/modelFrame.js";
 
 /** A group label: a number, string or boolean; `null` (and `NaN`) is a missing label */
@@ -269,35 +269,34 @@ function labelColumn(data: DataFrame, name: string): GroupingLabels {
   return col;
 }
 
-/** The variables of a right-hand side that is a sum of variables (`g`, `g + h`, ...) */
-function summands(node: FormulaNode, out: string[]): string[] {
-  if (node.type === "var") out.push(node.name);
-  else if (node.type === "binary" && node.op === "+") {
-    summands(node.left, out);
-    summands(node.right, out);
-  } else if (node.type === "paren") summands(node.arg, out);
-  else throw new SyntaxError("invalid formula: the right-hand side must be grouping variables joined by '+'");
-  return out;
-}
-
-/** The summarised and the grouping columns of `y ~ g`, `y ~ g + h`, `cbind(y, z) ~ g` or `. ~ g` */
+/**
+ * The summarised and the grouping columns of a formula: the grouping columns are all the variables of the right-hand
+ * side in order of first appearance, whatever its operators (`y ~ g:h`, `y ~ g*h` and `y ~ g + h - g` all group by g
+ * and h; `y ~ 1` by nothing); `.` on the right stands for every column not summarised, on the left for every column
+ * not on the right.
+ */
 function aggregateFormula(formula: string, columns: readonly string[]): { values: string[]; groups: string[] } {
   if (typeof formula !== "string") throw new TypeError("the formula must be a string");
   const tilde = formula.indexOf("~");
   if (tilde < 0) throw new SyntaxError("invalid formula: missing '~'");
   const lhs = formula.slice(0, tilde).trim();
-  const groups = summands(parseFormula(`~ ${formula.slice(tilde + 1)}`).rhs, []);
+  const { rhs } = parseFormula(`~ ${formula.slice(tilde + 1)}`);
   const name = /^[A-Za-z.][A-Za-z0-9._]*$/;
-  let values: string[];
-  if (lhs === ".") values = columns.filter((c) => !groups.includes(c));
-  else {
+  let values: string[] | undefined;
+  if (lhs !== ".") {
     const m = /^cbind\s*\((.*)\)$/s.exec(lhs);
     values = m === null ? [lhs] : m[1]!.split(",").map((s) => s.trim());
     if (values.some((v) => !name.test(v) || v === ".")) {
       throw new SyntaxError("invalid formula: the left-hand side must be a variable, cbind(...) of variables or '.'");
     }
+  } else if (formulaVariables(rhs, []).length < formulaVariables(rhs, ["."]).length) {
+    throw new SyntaxError("invalid formula: '.' cannot be on both sides");
   }
-  return { values, groups };
+  const dot = values === undefined ? [] : columns.filter((c) => !values.includes(c));
+  const groups = formulaVariables(rhs, dot);
+  // (the expansion's errors, such as a number that is not a term or an invalid power, as R's terms())
+  expandRhs(rhs, () => 0, dot);
+  return { values: values ?? columns.filter((c) => !groups.includes(c)), groups };
 }
 
 function aggregateRows(
@@ -308,7 +307,8 @@ function aggregateRows(
   keep: (row: number) => boolean,
   fun: (values: number[]) => AggregateValue,
 ): DataFrame {
-  const n = groupCols[0]?.length ?? 0;
+  // (y ~ 1: no grouping column, one group of all the rows)
+  const n = groupCols[0]?.length ?? valueCols[0]?.length ?? 0;
   valueNames.forEach((v, j) => {
     if (valueCols[j]!.length !== n) throw new RangeError(`variable lengths differ (found for '${v}')`);
   });
@@ -346,9 +346,12 @@ function aggregateRows(
  * The function applied to the values of each group, as a data frame. Equivalent to R's `aggregate()`.
  *
  * Formula form, `aggregate(formula, data, fun)`: `"y ~ g"`, `"y ~ g + h"`, `"cbind(y, z) ~ g"` or `". ~ g"` (every
- * column not on the right); the rows with a missing value in any variable of the formula are dropped first. Data
- * frame form, `aggregate(x, by, fun)`: the columns of `x` summarised by the label columns of `by` (its keys name
- * them); only the rows with a missing label are dropped, so `fun` sees the missing values of `x`.
+ * column not on the right). The grouping variables are all the variables of the right-hand side in order of first
+ * appearance, whatever its operators (`"y ~ g:h"` and `"y ~ g * h"` group by g and h); `"y ~ ."` groups by every
+ * column not summarised, and `"y ~ 1"` gives one row without a grouping column. The rows with a missing value in any
+ * variable of the formula are dropped first. Data frame form, `aggregate(x, by, fun)`: the columns of `x` summarised
+ * by the label columns of `by` (its keys name them); only the rows with a missing label are dropped, so `fun` sees the
+ * missing values of `x`.
  *
  * The result has the grouping columns first (with the labels as in the data), then one column per summarised column,
  * and one row per non-empty combination of the groups (the first factor varying fastest). When `fun` returns k > 1
