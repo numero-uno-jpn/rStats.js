@@ -3,7 +3,8 @@
 What irr 0.85 and psych 2.6.9 compute for Cohen's and Fleiss' kappa, the ICC, Cronbach's alpha and the partial
 correlation, in words, for an implementation that must not read their source. Fixture `agreement`
 (`oracle/agreement.R`; format in its header). Only the cases with `fn` = `kappa2`, `kappam.fleiss`, `icc`, `alpha`,
-`partial.r` are in scope now (`omega`, `polychor` and `polyserial` come later, after `optim`). Where this file and the
+`partial.r` are in scope here (`omega` has its own fixture and `oracle/omega-behaviour.md`; `polychor` and
+`polyserial` theirs, `oracle/polycor-behaviour.md`). Where this file and the
 fixture seem to disagree, report it.
 
 ## Easy to get wrong

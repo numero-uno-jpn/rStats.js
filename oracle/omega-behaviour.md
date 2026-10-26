@@ -70,7 +70,8 @@ total, general, group; NaN for a group with no items), `warnings`, `messages`.
    omega_t\n` and warning `Omega_h and Omega_asymptotic are not meaningful with one factor`.
 7. **Schmid-Leiman.** `g = oblique · gloading` (p-vector); `h2_i = Σ_k orthog_ik²`; `u2_i = R_ii − h2_i`; for each
    item i and factor k: `v = R_ii − (R_ii − oblique_ik²) − (oblique_ik gloading_k)²`, set to 0 if negative, `F_ik* =
-   sign(oblique_ik) sqrt(v)`; `p2_i = g_i²/h2_i`; with the row `F = (g_i, F_i1*, ..., F_iq*)`: `com_i = (Σ F²)²/Σ F⁴`. `sl`
+   sign(oblique_ik) sqrt(v)` (for one factor, v = 0 exactly: gloading is 1, and R's formula leaves only a rounding residue
+   of about 1e-16, whose square root R reports, e.g. 2^-27; the exact 0 is the reference); `p2_i = g_i²/h2_i`; with the row `F = (g_i, F_i1*, ..., F_iq*)`: `com_i = (Σ F²)²/Σ F⁴`. `sl`
    = the columns g, F1*, ..., Fq*, h2, u2, p2, com.
 8. **Flip.** `key_i = sign(g_i)` (+1 for 0). If some key is −1: `R ← diag(key) R diag(key)` and the first q + 1
    columns of sl are multiplied row-wise by key.
@@ -86,5 +87,9 @@ total, general, group; NaN for a group with no items), `warnings`, `messages`.
 
 Within a relative 1e-12 of R value by value (the L-BFGS-B and oblimin iterations must be R's). A loading may instead
 be within 1e-12 times the largest absolute value of its column, for the reason given in `factanal-behaviour.md`
-(R's symmetric eigensolver and this library's agree only to rounding). No other loosening; if a case does not
+(R's symmetric eigensolver and this library's agree only to rounding). The one-factor F1* column and the group
+column of omegaGroup are compared with their exact value 0 (known differences from R's rounding residues). The
+fixture keeps only cases where R's own results move by at most a few 1e-12 when the data change by one unit in
+the last place (a uniqueness at its lower bound, or zero degrees of freedom, makes the minres iterations
+amplify rounding to 1e-6, so such cases are left out). No other loosening; if a case does not
 follow R's iterations, report it with the case rather than adjusting.

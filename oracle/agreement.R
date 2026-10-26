@@ -8,7 +8,6 @@ suppressPackageStartupMessages({library(irr); library(psych); library(polycor); 
 #                  "average", conf.level): value, Fvalue, df1, df2, p.value, lbound, ubound
 #   alpha          psych::alpha(x): raw_alpha, std.alpha, G6(smc), average_r (the "total" row), and alpha if each item
 #                  is dropped (raw_alpha column of alpha.drop)
-#   omega          psych::omega(x, nfactors, fm = "minres" by default, plot = FALSE): omega_h, alpha, omega.tot
 #   partial.r      psych::partial.r(x, xy = c(i, j), z = the others): the partial correlation matrix of i and j
 #   polychor       polycor::polychor(table or x, y, ML, std.err): rho, and var and the thresholds with ML / std.err
 #   polyserial     polycor::polyserial(x numeric, y ordinal, ML, std.err): rho
@@ -31,7 +30,6 @@ for (model in c("oneway", "twoway")) for (type in c("consistency", "agreement"))
   add("icc", ratings = cont, model = model, type = type, unit = unit)
 add("icc", ratings = cont, model = "twoway", type = "agreement", unit = "single", conf.level = 0.9)
 add("alpha", x = items); add("alpha", x = cont)
-add("omega", x = items, nfactors = 3); add("omega", x = cbind(items, cont), nfactors = 2)
 add("partial.r", x = cont, i = 1, j = 2); add("partial.r", x = items, i = 2, j = 5)
 tab <- table(r1, r2)
 for (ML in c(FALSE, TRUE)) {
@@ -50,8 +48,6 @@ write_anova_fixture("agreement", cases, function(a) {
     alpha = { v <- suppressMessages(psych::alpha(a$x)); tot <- v$total
       list(raw_alpha = num2str(tot$raw_alpha), std.alpha = num2str(tot$std.alpha), G6 = num2str(tot[["G6(smc)"]]),
            average_r = num2str(tot$average_r), alpha.drop = I(num2str(v$alpha.drop$raw_alpha))) },
-    omega = { v <- suppressMessages(psych::omega(a$x, nfactors = a$nfactors, plot = FALSE))
-      list(omega_h = num2str(v$omega_h), alpha = num2str(v$alpha), omega.tot = num2str(v$omega.tot)) },
     partial.r = { x <- a$x; colnames(x) <- paste0("v", seq_len(ncol(x)))
       z <- setdiff(seq_len(ncol(x)), c(a$i, a$j)); v <- psych::partial.r(as.data.frame(x), c(a$i, a$j), z)
       list(r = num2str(unclass(v)[1, 2])) },
