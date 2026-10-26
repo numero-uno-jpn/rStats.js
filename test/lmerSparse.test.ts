@@ -6,13 +6,23 @@
 // deviance relative 1e-13; beta, u, b and the gradient each element within 1e-11 × the largest absolute element of the
 // dense result. Also compared, with the same tolerances: rss, ussq, prss (relative 1e-13), logDetL, logDetRX
 // (absolute 1e-13 × max(1, |value|)) and (R_X'R_X)⁻¹ (1e-11 × its largest absolute element).
+//
+// Also full lmer fits on these data (models of moderate q, as the dense reference costs q³ per evaluation; REML and
+// ML) against fits that minimise the criterion of the dense reference with its gradient (lmerWithCriterion), with the
+// tolerances of the fixtures (test/lmer.test.ts): logLik, AIC, BIC, deviance, REMLcrit relative 1e-12; theta, fixef,
+// stdError, tValue, vcov, varCorr sd, ranef values, fitted, residuals within 1e-9 × the largest absolute value of the
+// dense fit's vector or matrix; sigma relative 1e-9; varCorr corr absolute 1e-9; elements of theta that are 0 in one
+// fit exactly 0 in the other; singular and messages equal.
 import { describe, expect, it } from "vitest";
+import { lmer, lmerWithCriterion, type LmerResult, type MixedCriterion } from "../src/models/lmer.js";
 import { profiledDeviance, type ProfiledDeviance } from "../src/models/mixedDeviance.js";
 import { mixedModelStructure } from "../src/models/mixedStructure.js";
 import { denseProfiledDeviance } from "./helpers/mixedDense.js";
 
 const TOL_DEVIANCE = 1e-13;
 const TOL_VECTOR = 1e-11;
+const TOL_FIT_CRITERION = 1e-12;
+const TOL_FIT = 1e-9;
 
 /** A seeded generator of uniform and normal numbers (mulberry32 and Box-Muller) */
 function generator(seed: number): { unif: () => number; norm: () => number } {
@@ -151,6 +161,76 @@ describe("profiledDeviance (sparse) against the dense reference", () => {
     });
     const summary = [...worst].map(([f, e]) => `${f} ${e.toExponential(1)}`).join(", ");
     console.log(`lmerSparse: ${MODELS.length} models, ${evaluations} evaluations; largest difference from the dense reference: ${summary}`);
+    expect(failures, failures.slice(0, 20).join("\n")).toEqual([]);
+  });
+});
+
+/** The criterion and its gradient from the dense reference */
+const denseCriterion: MixedCriterion = (s, theta, reml) => {
+  const r = denseProfiledDeviance(s, theta, reml, { gradient: true });
+  return { f: r.deviance, g: r.gradient! };
+};
+
+/** The models fitted (q up to about 250) */
+const FIT_MODELS: Model[] = [
+  MODELS[0]!,
+  longitudinal("y ~ x + (x | s)", 100, 8, false, 12),
+  MODELS[2]!,
+  MODELS[3]!,
+  MODELS[4]!,
+  MODELS[5]!,
+];
+
+/** The numeric vectors of a fit (one name per field, possibly several vectors) */
+function fitVectors(r: LmerResult): Record<string, number[][]> {
+  return {
+    theta: [r.theta],
+    fixef: [r.fixef],
+    stdError: [r.coefTable.stdError],
+    tValue: [r.coefTable.tValue],
+    vcov: [r.vcov.flat()],
+    sd: r.varCorr.map((v) => v.sd),
+    ranef: r.ranef.map((g) => g.values.flat()),
+    fitted: [r.fitted],
+    residuals: [r.residuals],
+  };
+}
+
+describe("lmer (sparse) against fits with the dense reference criterion", () => {
+  it("agrees on larger seeded data, REML and ML", () => {
+    const failures: string[] = [];
+    const worst = new Map<string, number>();
+    const check = (where: string, field: string, err: number, tol: number): void => {
+      worst.set(field, Math.max(worst.get(field) ?? 0, Number.isNaN(err) ? Infinity : err));
+      if (!(err <= tol)) failures.push(`${where} ${field}: error ${err.toExponential(2)}`);
+    };
+    let fits = 0;
+    for (const m of FIT_MODELS) {
+      for (const REML of [true, false]) {
+        const where = `${m.formula} (n = ${m.data.y!.length}), REML = ${REML}`;
+        const sparse = lmer(m.formula, m.data, { REML });
+        const dense = lmerWithCriterion(m.formula, m.data, { REML }, denseCriterion);
+        fits++;
+        for (const f of ["logLik", "AIC", "BIC", "deviance", "REMLcrit"] as const) check(where, f, relative(sparse[f], dense[f]), TOL_FIT_CRITERION);
+        check(where, "sigma", relative(sparse.sigma, dense.sigma), TOL_FIT);
+        const a = fitVectors(sparse);
+        const e = fitVectors(dense);
+        for (const f of Object.keys(e)) {
+          const scale = Math.max(...e[f]!.flat().map(Math.abs));
+          const err = Math.max(0, ...e[f]!.flatMap((v, k) => v.map((x, i) => (a[f]![k]![i] === x ? 0 : Math.abs(a[f]![k]![i]! - x) / scale))));
+          check(where, f, err, TOL_FIT);
+        }
+        const sparseCorr = sparse.varCorr.flatMap((v) => v.corr.flat());
+        const corrErr = Math.max(0, ...dense.varCorr.flatMap((v) => v.corr.flat()).map((x, i) => (sparseCorr[i] === x ? 0 : Math.abs(sparseCorr[i]! - x))));
+        check(where, "corr", corrErr, TOL_FIT);
+        const zeros = sparse.theta.every((t, j) => (t === 0) === (dense.theta[j] === 0));
+        check(where, "zeros of theta", zeros ? 0 : Infinity, 0);
+        check(where, "singular", sparse.singular === dense.singular ? 0 : Infinity, 0);
+        check(where, "messages", JSON.stringify(sparse.messages) === JSON.stringify(dense.messages) ? 0 : Infinity, 0);
+      }
+    }
+    const summary = [...worst].map(([f, e]) => `${f} ${e.toExponential(1)}`).join(", ");
+    console.log(`lmerSparse: ${fits} fits; largest difference from the fits with the dense reference: ${summary}`);
     expect(failures, failures.slice(0, 20).join("\n")).toEqual([]);
   });
 });

@@ -48,9 +48,10 @@
 //   ∂ log det A = 2 tr(A⁻¹ K ∂Λ) = 2 Σ_(r,c) (A⁻¹K)[c, r],
 //   ∂ (log det A + log det R_X'R_X) = ∂ log det M, M = [A, Λ'Z'X; X'ZΛ, X'X], which adds −2 Σ_(r,c) (W S⁻¹ E'Z)[c, r]
 //   (S = R_X'R_X; the blocks of M⁻¹ are A⁻¹ + W S⁻¹ W' and −W S⁻¹, and X'Z − W'K = E'Z).
-// The criterion's derivative is then the log-determinant terms plus (n or n − p) ∂ prss / prss. Until stage S2 (the
-// selected inverse), this part is still dense: A⁻¹ (q × q, from q solves with the sparse factor) and K (q × q) are
-// formed densely, so the gradient costs O(q²) memory and O(q × nonzeros of L) time.
+// The criterion's derivative is then the log-determinant terms plus (n or n − p) ∂ prss / prss. The trace term needs
+// A⁻¹ only on the blocks of Z'Z, which lie on the pattern of L: the selected inverse (A⁻¹ on the pattern of L, by
+// Takahashi's recurrences; K by blocks of Z'Z, never formed), so the gradient costs about one more factorisation, and
+// memory of the order of the nonzeros of L, Z and Z'X.
 
 import { potf2, potri } from "../linalg/chol.js";
 import type { Mat } from "../linalg/matrix.js";
@@ -84,7 +85,7 @@ export interface ProfiledDeviance {
 
 /** What {@link profiledDeviance} computes beyond the deviance and the penalised least-squares solution. */
 export interface ProfiledDevianceOptions {
-  /** Also the gradient of the criterion with respect to θ (still dense until stage S2: O(q²) memory). */
+  /** Also the gradient of the criterion with respect to θ (from the selected inverse of A). */
   gradient?: boolean;
   /** Also (R_X' R_X)⁻¹. */
   rxInverse?: boolean;
@@ -130,6 +131,12 @@ interface SparseSystem {
   rowListStart: Int32Array;
   rowListCol: Int32Array;
   rowListPos: Int32Array;
+  /**
+   * For each block b of Z'Z off the diagonal (row group g, column group h): the number of rows of L's column groups
+   * before g in the pattern of h, so that the entry (row r of g, column c of h) of L (and of the selected inverse) is
+   * at colStart[column] + (rows of the diagonal block from the column) + blockPatternOffset[b] + r (0 on the diagonal)
+   */
+  blockPatternOffset: Int32Array;
 }
 
 /** Steps of iterative refinement of the penalised least-squares solution */
@@ -292,6 +299,19 @@ function sparseSystemOf(s: MixedModelStructure): SparseSystem {
     groupPattern[h] = pattern;
     if (pattern.length > 0) children[pattern[0]!]!.push(h);
   }
+  // the position of each off-diagonal block of Z'Z in the pattern of its column group
+  const blockPatternOffset = new Int32Array(nBlocks);
+  {
+    const offsetOf = new Int32Array(nGroups);
+    for (let h = 0; h < nGroups; h++) {
+      let at = 0;
+      for (const r of groupPattern[h]!) {
+        offsetOf[r] = at;
+        at += groupStart[r + 1]! - groupStart[r]!;
+      }
+      for (let b = blockStart[h]! + 1; b < blockStart[h + 1]!; b++) blockPatternOffset[b] = offsetOf[blockRow[b]!]!;
+    }
+  }
   // the pattern of L by columns
   const colStart = new Int32Array(q + 1);
   for (let h = 0; h < nGroups; h++) {
@@ -346,6 +366,7 @@ function sparseSystemOf(s: MixedModelStructure): SparseSystem {
     rowListStart,
     rowListCol,
     rowListPos,
+    blockPatternOffset,
   };
   systemCache.set(s, result);
   return result;
@@ -699,7 +720,7 @@ export function profiledDeviance(
     out.rxInverse = Array.from({ length: p }, (_, i) => Array.from({ length: p }, (_, j) => sInverse![i + j * p]!));
   }
   if (options.gradient === true) {
-    out.gradient = denseGradient(structure, sys, t, l, theta, reml, { res, uv, prss, ws, xResiduals, sInverse: sInverse! });
+    out.gradient = sparseGradient(structure, sys, t, l, theta, reml, { res, uv, prss, ws, xResiduals, sInverse: sInverse! });
   }
   return out;
 }
@@ -715,10 +736,66 @@ interface GradientInputs {
 }
 
 /**
- * The gradient of the criterion with respect to θ (see the header). Temporary dense computation until stage S2: A⁻¹
- * (from q solves with the sparse factor) and K = Λ'Z'Z are formed as dense q × q arrays.
+ * The selected inverse of A = L L': the entries of A⁻¹ on the pattern of L (lower part, the layout of L's values), by
+ * the recurrences of Takahashi, Fagan and Chin (1973). Since L' A⁻¹ = L⁻¹ is lower triangular with diagonal 1 / L_jj,
+ * row j of it gives, for i > j in the pattern of column j,
+ *   A⁻¹[i, j] = −(1 / L_jj) Σ_k L[k, j] A⁻¹[k, i],   A⁻¹[j, j] = 1 / L_jj² − (1 / L_jj) Σ_k L[k, j] A⁻¹[k, j],
+ * the sums over the rows k > j of column j. The rows of column j form a clique in the pattern of L (the closure of a
+ * Cholesky pattern), so every A⁻¹[k, i] needed is on the pattern, in column min(k, i), already computed when the
+ * columns are taken from the last to the first. The cost is that of the factorisation.
  */
-function denseGradient(
+function selectedInverse(sys: SparseSystem, l: Float64Array): Float64Array {
+  const { q, colStart, colRows } = sys;
+  const inv = new Float64Array(l.length);
+  const inColumn = new Int32Array(q).fill(-1);
+  const lj = new Float64Array(q);
+  const acc = new Float64Array(q);
+  for (let j = q - 1; j >= 0; j--) {
+    const start = colStart[j]!;
+    const end = colStart[j + 1]!;
+    for (let t = start + 1; t < end; t++) {
+      const r = colRows[t]!;
+      inColumn[r] = j;
+      lj[r] = l[t]!;
+      acc[r] = 0;
+    }
+    // acc[i] = Σ_k L[k, j] A⁻¹[k, i] for the rows i of column j: column k of the selected inverse holds A⁻¹[r, k],
+    // r ≥ k, which counts once for A⁻¹[k, r] (i = r) and once for A⁻¹[r, k] (i = k)
+    for (let t = start + 1; t < end; t++) {
+      const k = colRows[t]!;
+      const lkj = l[t]!;
+      const kStart = colStart[k]!;
+      let sum = inv[kStart]! * lkj;
+      for (let e = kStart + 1; e < colStart[k + 1]!; e++) {
+        const r = colRows[e]!;
+        if (inColumn[r] !== j) continue;
+        const v = inv[e]!;
+        acc[r]! += v * lkj;
+        sum += v * lj[r]!;
+      }
+      acc[k]! += sum;
+    }
+    const d = l[start]!;
+    let diagonal = 1 / d;
+    for (let t = start + 1; t < end; t++) {
+      const v = -acc[colRows[t]!]! / d;
+      inv[t] = v;
+      diagonal -= l[t]! * v;
+    }
+    inv[start] = diagonal / d;
+  }
+  return inv;
+}
+
+/**
+ * The gradient of the criterion with respect to θ (see the header), sparse. The log-determinant term
+ * 2 Σ_(r,c) (A⁻¹ K)[c, r] (K = Λ'Z'Z) involves, for the entries (r, c) of Λ_θ in group G,
+ *   (A⁻¹ K)[c, r] = Σ_H (A⁻¹(G, H) T_H' Z'Z(H, G))[c, r]
+ * over the groups H that share rows with G: the blocks of A⁻¹ on the pattern of A, hence of L, given by the selected
+ * inverse. These nc × nc products are summed over the levels of each term, as the same element of θ sits at the same
+ * place of T_k in every level. The other terms need Z'res (q), W S⁻¹ (q × p) and E'Z (p × q).
+ */
+function sparseGradient(
   structure: MixedModelStructure,
   sys: SparseSystem,
   t: Float64Array[],
@@ -727,33 +804,93 @@ function denseGradient(
   reml: boolean,
   { res, uv, prss, ws, xResiduals, sInverse }: GradientInputs,
 ): number[] {
-  const { n, p, q } = sys;
-  const aInverse = new Float64Array(q * q);
-  for (let c = 0; c < q; c++) {
-    aInverse[c + c * q] = 1;
-    solveL(sys, l, aInverse, c * q);
-    solveLt(sys, l, aInverse, c * q);
-  }
-  // K = Λ' Z'Z (column-major), from Z'Z formed densely (both triangles) from its blocks
-  const zzDense = new Float64Array(q * q);
+  const { n, p, q, colStart, zz } = sys;
+  const inv = selectedInverse(sys, l);
+  // S_k = Σ over the levels G of term k of (A⁻¹ K) on G's columns (nc_k × nc_k, column-major)
+  const sums = sys.termNc.map((nc) => new Float64Array(nc * nc));
+  let y = new Float64Array(16);
+  let f = new Float64Array(16);
   for (let h = 0; h < sys.nGroups; h++) {
-    const ncc = sys.termNc[sys.groupTerm[h]!]!;
+    const kh = sys.groupTerm[h]!;
+    const nch = sys.termNc[kh]!;
+    const th = t[kh]!;
     const c0 = sys.groupStart[h]!;
     for (let b = sys.blockStart[h]!; b < sys.blockStart[h + 1]!; b++) {
       const g = sys.blockRow[b]!;
-      const ncr = sys.termNc[sys.groupTerm[g]!]!;
-      const r0 = sys.groupStart[g]!;
+      const kg = sys.groupTerm[g]!;
+      const ncg = sys.termNc[kg]!;
+      const tg = t[kg]!;
       const base = sys.blockValueStart[b]!;
-      for (let c = 0; c < ncc; c++) {
-        for (let r = 0; r < ncr; r++) {
-          const v = sys.zz[base + r + c * ncr]!;
-          zzDense[r0 + r + (c0 + c) * q] = v;
-          zzDense[c0 + c + (r0 + r) * q] = v;
+      if (nch === 1 && ncg === 1) {
+        // Y = A⁻¹(g, h), B = Z'Z(g, h): Y T_g B to S_h and, off the diagonal, Y T_h B to S_g
+        const at = g === h ? colStart[c0]! : colStart[c0]! + 1 + sys.blockPatternOffset[b]!;
+        const yb = inv[at]! * zz[base]!;
+        sums[kh]![0]! += yb * tg[0]!;
+        if (g !== h) sums[kg]![0]! += yb * th[0]!;
+        continue;
+      }
+      const size = ncg * nch;
+      if (y.length < size) {
+        y = new Float64Array(size);
+        f = new Float64Array(Math.max(size, ncg * ncg, nch * nch));
+      }
+      // Y = A⁻¹(g, h) (ncg × nch), from the selected inverse (the diagonal block from its lower triangle)
+      for (let cc = 0; cc < nch; cc++) {
+        const col = colStart[c0 + cc]!;
+        if (g === h) {
+          for (let rr = cc; rr < ncg; rr++) {
+            const v = inv[col + rr - cc]!;
+            y[rr + cc * ncg] = v;
+            y[cc + rr * ncg] = v;
+          }
+        } else {
+          const at = col + (nch - cc) + sys.blockPatternOffset[b]!;
+          for (let rr = 0; rr < ncg; rr++) y[rr + cc * ncg] = inv[at + rr]!;
+        }
+      }
+      // S_h += Y' T_g' B: F = T_g' B (ncg × nch), then Y' F
+      for (let cc = 0; cc < nch; cc++) {
+        for (let a = 0; a < ncg; a++) {
+          let sum = 0;
+          for (let m = a; m < ncg; m++) sum += tg[m + a * ncg]! * zz[base + m + cc * ncg]!;
+          f[a + cc * ncg] = sum;
+        }
+      }
+      const sh = sums[kh]!;
+      for (let x = 0; x < nch; x++) {
+        for (let z = 0; z < nch; z++) {
+          let sum = 0;
+          for (let a = 0; a < ncg; a++) sum += y[a + x * ncg]! * f[a + z * ncg]!;
+          sh[x + z * nch]! += sum;
+        }
+      }
+      if (g === h) continue;
+      // S_g += Y T_h' B': F = T_h' B' (nch × ncg), then Y F
+      for (let rr = 0; rr < ncg; rr++) {
+        for (let a = 0; a < nch; a++) {
+          let sum = 0;
+          for (let m = a; m < nch; m++) sum += th[m + a * nch]! * zz[base + rr + m * ncg]!;
+          f[a + rr * nch] = sum;
+        }
+      }
+      const sg = sums[kg]!;
+      for (let x = 0; x < ncg; x++) {
+        for (let z = 0; z < ncg; z++) {
+          let sum = 0;
+          for (let a = 0; a < nch; a++) sum += y[x + a * ncg]! * f[a + z * nch]!;
+          sg[x + z * ncg]! += sum;
         }
       }
     }
   }
-  const lzz = lambdaTransposeTimes(sys, t, zzDense, q);
+  const gradient = new Array<number>(theta.length).fill(0);
+  sys.termTheta.forEach((idx, k) => {
+    const nc = sys.termNc[k]!;
+    for (let cl = 0; cl < nc; cl++) {
+      for (let rl = cl; rl < nc; rl++) gradient[idx[rl + cl * nc]!]! += 2 * sums[k]![cl + rl * nc]!;
+    }
+  });
+
   // Z' res
   const zRes = new Float64Array(q);
   for (let i = 0; i < n; i++) {
@@ -781,17 +918,12 @@ function denseGradient(
       }
     }
   }
-  // lzz holds K = Λ'Z'Z (column-major): K[k, r] = lzz[k + r q]
   const df = reml ? n - p : n;
   const prssFactor = (2 * df) / prss;
-  const gradient = new Array<number>(theta.length).fill(0);
   for (const { row: rr, col: c, theta: ti } of structure.lambda) {
     let tr = 0;
-    const ac = c * q;
-    const kr = rr * q;
-    for (let k = 0; k < q; k++) tr += aInverse[k + ac]! * lzz[k + kr]!;
-    if (v !== undefined && ez !== undefined) for (let m = 0; m < p; m++) tr -= v[c + m * q]! * ez[m + rr * p]!;
-    gradient[ti]! += 2 * tr - prssFactor * zRes[rr]! * uv[c]!;
+    if (v !== undefined && ez !== undefined) for (let m = 0; m < p; m++) tr += v[c + m * q]! * ez[m + rr * p]!;
+    gradient[ti]! -= 2 * tr + prssFactor * zRes[rr]! * uv[c]!;
   }
   return gradient;
 }

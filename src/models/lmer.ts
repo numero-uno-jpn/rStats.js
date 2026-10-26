@@ -29,7 +29,10 @@
 // where the values of the criterion are equal to rounding (it can be that flat near 0), the actual reduction is taken
 // from the gradients by the trapezoid rule. Eigenvalues below 1e-6 of the largest count as 0 (flat to the accuracy of
 // the Hessian, as along a set of equivalent minimisers). Convergence: a Newton step below 1e-13 max(1, max |θ|), or
-// steps at rounding level that stop decreasing, with the gradient below 1e-9 max(1, |criterion|).
+// steps at rounding level that stop decreasing (with a fresh Hessian), with the gradient below 1e-9 max(1, |criterion|).
+// The Hessian is used again in the next iteration after a Newton step that was accepted with an actual reduction
+// within 0.75 to 1/0.75 of the predicted one and at most half the previous Newton step: the model is still good there,
+// and its 2m evaluations of the gradient are saved while the convergence stays fast.
 //
 // At convergence, diagonal elements below 1e-4 max(1, max |θ|) are set to exactly 0 and held there while the others
 // converge again; an element held at 0 is released if the derivative there is not 0 (to rounding), or if the Hessian
@@ -170,6 +173,8 @@ const STEP_FLOOR = 1e-10;
 /** The gradient on the free elements at convergence must be below this times max(1, |criterion|) */
 const GRADIENT_TOLERANCE = 1e-9;
 const MAX_ITERATIONS = 500;
+/** The Hessian is used again after a Newton step whose actual reduction is within this ratio of the predicted one */
+const HESSIAN_REUSE_RATIO = 0.75;
 
 const OPTIMISATION_FAILED = "lmer: the minimisation of the criterion over theta did not converge";
 
@@ -293,13 +298,22 @@ function columnsOfTheta(s: MixedModelStructure): number[][] {
   return out;
 }
 
+/**
+ * The criterion (REML criterion or ML deviance) and its gradient with respect to θ at `theta`. Internal: the fit uses
+ * the sparse {@link profiledDeviance}; the regression test injects the dense reference implementation.
+ */
+export type MixedCriterion = (s: MixedModelStructure, theta: readonly number[], reml: boolean) => { f: number; g: number[] };
+
+/** The criterion and its gradient from the sparse {@link profiledDeviance} */
+const sparseCriterion: MixedCriterion = (s, theta, reml) => {
+  const r = profiledDeviance(s, theta, reml, { gradient: true });
+  return { f: r.deviance, g: r.gradient! };
+};
+
 /** The minimiser of the criterion over θ, subject to the lower bounds (see the header) */
-function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
+function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: MixedCriterion): number[] {
   const diagonal = s.lower.map((b) => b === 0);
-  const evaluate = (theta: readonly number[]): { f: number; g: number[] } => {
-    const r = profiledDeviance(s, theta, reml, { gradient: true });
-    return { f: r.deviance, g: r.gradient! };
-  };
+  const evaluate = (theta: readonly number[]): { f: number; g: number[] } => criterion(s, theta, reml);
 
   let theta = s.theta.slice();
   let { f, g } = evaluate(theta);
@@ -311,6 +325,8 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
   const gradientTolerance = (): number => GRADIENT_TOLERANCE * Math.max(1, Math.abs(f));
   let radius = INITIAL_RADIUS * scaleOf();
   let previousNewton = Infinity;
+  /** The Hessian of the last iteration, when it may be used again (see iterate) */
+  let reusable: { free: number[]; h: number[][] } | undefined;
 
   /** The Hessian on the elements `set`, from central differences of the gradient */
   const hessian = (set: number[]): number[][] => {
@@ -330,7 +346,9 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
 
   /** One trust-region iteration on the free elements; returns whether it converged */
   const iterate = (free: number[]): boolean => {
-    const h = hessian(free);
+    const fresh = reusable === undefined || reusable.free.length !== free.length || reusable.free.some((j, a) => j !== free[a]);
+    const h = fresh ? hessian(free) : reusable!.h;
+    reusable = undefined;
     const eig = symmetricEigen(h);
     const zero = EIGENVALUE_TOLERANCE * Math.max(...eig.values.map(Math.abs));
     const gFree = free.map((j) => g[j]!);
@@ -358,7 +376,11 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
       return false;
     }
     const gradientSmall = free.every((j) => Math.abs(g[j]!) <= gradientTolerance());
-    const done = gradientSmall && (size <= STEP_TOLERANCE || (size <= STEP_FLOOR && size >= 0.5 * previousNewton));
+    // (the steps stopping decreasing is taken as rounding level only with a fresh Hessian)
+    const done = gradientSmall && (size <= STEP_TOLERANCE || (fresh && size <= STEP_FLOOR && size >= 0.5 * previousNewton));
+    // the Hessian is kept for the next iteration after a Newton step that was accepted, predicted well and at most
+    // half the previous one (the model is still good; convergence stays fast)
+    if (ratio > HESSIAN_REUSE_RATIO && ratio < 1 / HESSIAN_REUSE_RATIO && size < 0.5 * previousNewton) reusable = { free, h };
     previousNewton = size;
     return done;
   };
@@ -402,6 +424,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
       }
       ({ f, g } = evaluate(theta));
       previousNewton = Infinity;
+      reusable = undefined;
       continue;
     }
     // elements held at 0 with a derivative, or with a direction of negative curvature, are released
@@ -421,6 +444,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
     }
     radius = Math.max(radius, INITIAL_RADIUS * BOUNDARY_CANDIDATE * scaleOf());
     previousNewton = Infinity;
+    reusable = undefined;
   }
   throw new Error(OPTIMISATION_FAILED);
 }
@@ -438,7 +462,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
  * The covariance parameters θ are the lower triangles of the relative covariance factors of the terms; the estimate
  * is the exact minimiser of the profiled criterion (lme4's optimiser stops close to it, so lme4's values typically
  * differ in the 5th to 9th significant digit). Elements on the boundary are exactly 0, and the fit is then singular.
- * The computation is dense: the time grows with the cube of the number of random effects.
+ * The computation is sparse (a sparse Cholesky factorisation, as in lme4), so many groups are handled quickly.
  *
  * @param formula A formula such as `"Reaction ~ Days + (Days | Subject)"`.
  * @param data The data frame: an object of columns.
@@ -462,12 +486,20 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
  * @category Mixed models
  */
 export function lmer(formula: string, data: DataFrame, options: LmerOptions = {}): LmerResult {
+  return lmerWithCriterion(formula, data, options, sparseCriterion);
+}
+
+/**
+ * {@link lmer} with the criterion and its gradient given (internal: not exported from the package). The regression
+ * test of the sparse computation fits with the dense reference implementation through it.
+ */
+export function lmerWithCriterion(formula: string, data: DataFrame, options: LmerOptions, criterion: MixedCriterion): LmerResult {
   const reml = options.REML ?? true;
   const modelOptions: { contrasts?: Record<string, ContrastName>; levels?: Record<string, readonly string[]> } = {};
   if (options.contrasts !== undefined) modelOptions.contrasts = options.contrasts;
   if (options.levels !== undefined) modelOptions.levels = options.levels;
   const s = mixedModelStructure(formula, data, modelOptions);
-  const theta = minimiseCriterion(s, reml);
+  const theta = minimiseCriterion(s, reml, criterion);
 
   const r = profiledDeviance(s, theta, reml, { rxInverse: true });
   const n = s.y.length;
