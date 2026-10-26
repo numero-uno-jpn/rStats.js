@@ -83,3 +83,20 @@ describe("numeric labels with the same text are one level", () => {
     expect(kappamFleiss(ratings)).toEqual(kappamFleiss(ratingsSame));
   });
 });
+
+// The text of a numeric level is R's (as.character, 15 significant digits): oracle/report-0.11.1-behaviour.md, 1.5.
+// The names are those of R 4.5.2 for the same data.
+describe("numeric levels are written as R writes them", () => {
+  const y = [3.1, 2.4, 5.6, 4.4, 6.1, 1.9, 7.3, 5.2, 4.8];
+  const g = [1 / 3, 1 / 3, 1 / 3, 1e15, 1e15, 1e15, 2, 2, 2];
+
+  it("in the pairwise tests", () => {
+    const r = pairwiseTTest(y, g);
+    expect(r.rowNames).toEqual(["2", "1e+15"]);
+    expect(r.colNames).toEqual(["0.333333333333333", "2"]);
+  });
+
+  it("in TukeyHSD", () => {
+    expect(TukeyHSD(y, g).names).toEqual(["2-0.333333333333333", "1e+15-0.333333333333333", "1e+15-2"]);
+  });
+});

@@ -13,7 +13,7 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm } from "../distributions/normal.js";
 import { dwilcox1 } from "../distributions/wilcox.js";
-import { numberLevels } from "../internal/levels.js";
+import { levelText, numberLevels } from "../internal/levels.js";
 import { compareCodePoints } from "../models/modelFrame.js";
 import type { GroupLabel } from "./groups.js";
 import { matchChoice } from "./power.js";
@@ -120,21 +120,21 @@ function orderedGroups(x: Sample, g: readonly GroupLabel[], levels: readonly Gro
   if (xs.length !== g.length) throw new RangeError("'x' and 'g' must have the same length");
   const keep = xs.flatMap((v, i) => (Number.isNaN(v) || (typeof g[i] === "number" && Number.isNaN(g[i])) ? [] : [i]));
   // numeric labels with the same 15-digit text are one level, as in R's factor() (only without given levels, which
-  // are matched by String)
+  // are matched by their text)
   if (levels === undefined) g = numberLevels(g);
   let order: string[];
-  if (levels !== undefined) order = levels.map(String);
+  if (levels !== undefined) order = levels.map(levelText);
   else {
     const distinct = [...new Set(keep.map((i) => g[i]!))];
     order = distinct.every((l) => typeof l === "number")
-      ? (distinct as number[]).sort((a, b) => a - b).map(String)
-      : [...new Set(distinct.map(String))].sort(compareCodePoints);
+      ? (distinct as number[]).sort((a, b) => a - b).map(levelText)
+      : [...new Set(distinct.map(levelText))].sort(compareCodePoints);
   }
   const groups = order.map((): number[] => []);
   const index = new Map(order.map((l, k) => [l, k]));
   for (const i of keep) {
-    const k = index.get(String(g[i]!));
-    if (k === undefined) throw new RangeError(`the group '${String(g[i])}' is not among 'levels'`);
+    const k = index.get(levelText(g[i]!));
+    if (k === undefined) throw new RangeError(`the group '${levelText(g[i])}' is not among 'levels'`);
     groups[k]!.push(xs[i]!);
   }
   return groups;

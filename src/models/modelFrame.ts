@@ -10,6 +10,7 @@
 // a variable use the levels present (`presentLevels`).
 
 import type { Sample } from "../htest/types.js";
+import { levelText } from "../internal/levels.js";
 
 /**
  * A data frame: an object of columns of equal length. `null` (and `NaN` in a numeric column) is a missing value.
@@ -82,7 +83,7 @@ function convert(
     return { v: { kind: "numeric", values }, missing: values.map((x) => Number.isNaN(x)) };
   }
   const str = (x: number | string | boolean | null): string | null =>
-    x === null || (typeof x === "number" && Number.isNaN(x)) ? null : typeof x === "boolean" ? (x ? "TRUE" : "FALSE") : String(x);
+    x === null || (typeof x === "number" && Number.isNaN(x)) ? null : typeof x === "boolean" ? (x ? "TRUE" : "FALSE") : levelText(x);
   const labels = vals.map(str);
   let lev: string[];
   if (levels !== undefined) lev = Array.from(levels, String);

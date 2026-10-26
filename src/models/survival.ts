@@ -10,7 +10,7 @@
 import { pchisq } from "../distributions/chisq.js";
 import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
-import { numberLevels } from "../internal/levels.js";
+import { levelText, numberLevels } from "../internal/levels.js";
 import { solve } from "../linalg/solve.js";
 
 /**
@@ -137,7 +137,7 @@ function prepare(
     group: group === undefined ? 0 : index.get(group[i] as GroupLabel)!,
   }));
   obs.sort((a, b) => a.time - b.time);
-  return { obs, labels: labels.map((l) => `group=${String(l)}`) };
+  return { obs, labels: labels.map((l) => `group=${levelText(l)}`) };
 }
 
 /**

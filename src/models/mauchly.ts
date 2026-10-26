@@ -8,6 +8,7 @@
 // (src/models/ddMatrix.ts).
 
 import { pgamma1 } from "../distributions/gamma.js";
+import { levelText } from "../internal/levels.js";
 import type { MatrixInput } from "../linalg/matrix.js";
 import { qr } from "../linalg/qr.js";
 import { ddAdd, ddDiv, ddDivNum, ddMul, ddSub, type DD } from "../special/dd.js";
@@ -125,7 +126,7 @@ export function mauchlyTest(y: MatrixInput, options: MauchlyTestOptions = {}): M
   if (k === 0 || rows.some((r) => r.length !== k)) throw new TypeError("y must be a matrix with at least one column");
   const group = options.group;
   if (group !== undefined && group.length !== nsub) throw new RangeError("'group' must have one label per row of y");
-  const labels = group?.map(String) ?? rows.map(() => "");
+  const labels = group?.map(levelText) ?? rows.map(() => "");
   const levels = [...new Set(labels)].sort(compareCodePoints);
   // residuals from the group means (double-double), and their cross-products
   const res: DD[][] = rows.map((r) => r.map((): DD => [0, 0]));

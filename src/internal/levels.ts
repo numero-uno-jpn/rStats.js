@@ -36,3 +36,14 @@ export function numberLevels<T>(labels: ArrayLike<T>): T[] {
   const map = levelValueMap(xs.filter((v): v is T & number => typeof v === "number"));
   return xs.map((v) => (typeof v === "number" && !Number.isNaN(v) ? (map.get(v) as T) : v));
 }
+
+/**
+ * The text of a level as R writes it: a number as as.character does (15 significant digits, so 1e15 is "1e+15" and
+ * 1/3 is "0.333333333333333"; Inf is "Inf"), anything else with String
+ */
+export function levelText(v: unknown): string {
+  if (typeof v !== "number") return String(v);
+  if (v === Infinity) return "Inf";
+  if (v === -Infinity) return "-Inf";
+  return formatR(v);
+}

@@ -10,7 +10,7 @@
 // of these matrices times (P'P)^-1, and the epsilons and Mauchly's W follow from P'EP (src/models/ddMatrix.ts).
 
 import { pf1 } from "../distributions/f.js";
-import { numberLevels } from "../internal/levels.js";
+import { levelText, numberLevels } from "../internal/levels.js";
 import { eigen } from "../linalg/eigen.js";
 import { qr } from "../linalg/qr.js";
 import { ddAdd, ddDiv, ddDivNum, ddMul, ddMulNum, type DD } from "../special/dd.js";
@@ -98,7 +98,7 @@ function column(data: DataFrame, name: string): readonly unknown[] {
   return Array.from(c as ArrayLike<unknown>);
 }
 
-const label = (v: unknown): string => (typeof v === "boolean" ? (v ? "TRUE" : "FALSE") : String(v));
+const label = (v: unknown): string => (typeof v === "boolean" ? (v ? "TRUE" : "FALSE") : levelText(v));
 
 /** Levels sorted (numbers as numbers, strings by code point) */
 function sortedLevels(values: readonly unknown[]): string[] {

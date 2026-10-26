@@ -7,7 +7,7 @@
 // freedom; the other comparisons are the two-sample tests themselves.
 
 import { pt1 } from "../distributions/t.js";
-import { numberLevels } from "../internal/levels.js";
+import { levelText, numberLevels } from "../internal/levels.js";
 import { mean, variance } from "../internal/summary.js";
 import type { GroupLabel } from "./groups.js";
 import { pAdjust, type PAdjustMethod } from "./pAdjust.js";
@@ -90,8 +90,8 @@ function result(method: string, levels: GroupLabel[], pValue: number[][], adjust
   return {
     method,
     pValue,
-    rowNames: levels.slice(1).map(String),
-    colNames: levels.slice(0, -1).map(String),
+    rowNames: levels.slice(1).map(levelText),
+    colNames: levels.slice(0, -1).map(levelText),
     pAdjustMethod: adjust,
   };
 }

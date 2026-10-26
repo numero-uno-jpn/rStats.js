@@ -1,9 +1,10 @@
 // Grouped data for the k-sample tests: either an array of samples (R's list form) or a sample with a parallel array
 // of group labels (R's x, g form). Pairs with a missing value or label are dropped, and groups are kept in order
 // of the sorted labels (as R orders factor levels). Numeric labels with the same 15-digit text are one group, as in
-// R's factor() (src/internal/levels.ts); the group's label is the smallest of them.
+// R's factor() (src/internal/levels.ts); the group's label is the smallest of them, written as R writes it
+// ("1e+15", "0.333333333333333").
 
-import { numberLevels } from "../internal/levels.js";
+import { levelText, numberLevels } from "../internal/levels.js";
 import type { Sample } from "./types.js";
 
 /**
@@ -58,7 +59,7 @@ export function labelledGroups(
   const labels = Array.from(byLabel.keys()).sort((a, b) =>
     typeof a === "number" && typeof b === "number" ? a - b : String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
   );
-  return { labels: labels.map(String), groups: labels.map((l) => byLabel.get(l)!) };
+  return { labels: labels.map(levelText), groups: labels.map((l) => byLabel.get(l)!) };
 }
 
 /** Normalise the two input forms to an array of non-empty groups with NaN removed (see {@link labelledGroups}) */
