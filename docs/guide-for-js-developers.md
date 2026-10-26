@@ -110,7 +110,36 @@ wilcoxTest("score ~ arm", adults).pValue;   // 0.0095 (exact)
 
 The same in R: `t.test(score ~ arm, data = na.omit(subset(d, age >= 18)))`.
 
-## 6. Reading a test result
+## 6. Wide and long data
+
+Repeated measurements often arrive *wide*, one row per subject and one column per time point, while the
+repeated-measures functions want them *long*, one row per measurement. `pivotLonger` and `pivotWider` (tidyr's
+`pivot_longer` and `pivot_wider`) convert:
+
+```js
+import { aovEz, friedmanTest, pivotLonger, pivotWider } from "@numero-uno-jpn/rstats";
+
+const wide = {
+  subject: ["p1", "p2", "p3", "p4", "p5", "p6"],
+  week0: [21, 25, 18, 30, 24, 27],
+  week4: [18, 22, 17, 26, 20, 25],
+  week8: [15, 20, 16, 22, 19, 21],
+};
+const long = pivotLonger(wide, { cols: ["week0", "week4", "week8"], namesTo: "week", valuesTo: "score" });
+// { subject: ["p1", "p1", "p1", "p2", ...], week: ["week0", "week4", "week8", "week0", ...], score: [21, 18, 15, 25, ...] }
+
+aovEz(long, { id: "subject", dv: "score", within: "week" }).anova;
+// week: F = 35.935 on 1.42 and 7.10 df (Greenhouse-Geisser), p = 0.00031, generalized eta squared 0.303
+
+friedmanTest("score ~ week | subject", long).pValue;   // 0.0025 (chi-squared 12)
+
+pivotWider(long, { namesFrom: "week", valuesFrom: "score" });   // back to the wide table
+```
+
+Column names that hold two things, such as `score_pre`, `score_post`, `weight_pre`, split with `namesSep: "_"` and
+`namesTo: [".value", "time"]`, which gives the columns `time`, `score` and `weight`.
+
+## 7. Reading a test result
 
 Every test returns a plain object with R's fields in camelCase:
 
@@ -127,7 +156,7 @@ Every test returns a plain object with R's fields in camelCase:
 Options are one object with R's argument names in camelCase: `t.test(..., var.equal = TRUE, conf.level = 0.99)`
 is `tTest(..., { varEqual: true, confLevel: 0.99 })`.
 
-## 7. Which function for which question
+## 8. Which function for which question
 
 | I want to ... | Function |
 |---|---|
@@ -144,6 +173,7 @@ is `tTest(..., { varEqual: true, confLevel: 0.99 })`.
 | plan a sample size | `powerTTest({ delta: 0.5, power: 0.8 })`, `pwrTTest`, ... |
 | summarise by group | `aggregate`, `tapply`, `split` |
 | combine tables | `merge(a, b, { by: "id" })`, `rbind`, `cbind` |
+| change between wide and long | `pivotLonger`, `pivotWider` |
 
 More tests on the same data:
 
@@ -156,7 +186,7 @@ chisqTest(all.arm, all.improved);                                     // X-squar
 corTest("~ age + score", all, { method: "spearman" }).estimate;      // -0.3636 (rho), p 0.2732
 ```
 
-## 8. Other habits from R
+## 9. Other habits from R
 
 - **Indices are 0-based** where a function returns positions (as everywhere in JavaScript); R's are 1-based.
 - **Random numbers** follow R's: after `setSeed(42)`, `rnorm(5)` gives what R gives after `set.seed(42)`.

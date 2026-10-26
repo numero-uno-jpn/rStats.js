@@ -2,8 +2,8 @@
 // run as written: the values the guide shows in comments are checked here. Change both when changing one.
 import { describe, expect, it } from "vitest";
 import {
-  aggregate, chisqTest, completeCases, corTest, fromRows, kruskalTest, mean, naOmit, sd, split, subset, tapply,
-  toRows, tTest, wilcoxTest,
+  aggregate, aovEz, chisqTest, completeCases, corTest, friedmanTest, fromRows, kruskalTest, mean, naOmit, pivotLonger,
+  pivotWider, sd, split, subset, tapply, toRows, tTest, wilcoxTest,
 } from "../src/index.js";
 
 const rows = [
@@ -73,5 +73,23 @@ describe("guide for JavaScript developers", () => {
     const groups = split(d.score as number[], d.arm as string[]);
     expect([...groups.keys()]).toEqual(["drug", "placebo"]);
     expect(groups.get("drug")).toEqual([7.1, 6.4, 8.2, 7.8, 6.9]);
+  });
+
+  it("wide and long data", () => {
+    const wide = {
+      subject: ["p1", "p2", "p3", "p4", "p5", "p6"],
+      week0: [21, 25, 18, 30, 24, 27],
+      week4: [18, 22, 17, 26, 20, 25],
+      week8: [15, 20, 16, 22, 19, 21],
+    };
+    const long = pivotLonger(wide, { cols: ["week0", "week4", "week8"], namesTo: "week", valuesTo: "score" });
+    expect(long.subject!.slice(0, 4)).toEqual(["p1", "p1", "p1", "p2"]);
+    expect(long.week!.slice(0, 4)).toEqual(["week0", "week4", "week8", "week0"]);
+    expect(Array.from(long.score!).slice(0, 4)).toEqual([21, 18, 15, 25]);
+    const [numDf, denDf, , F, ges, p] = aovEz(long, { id: "subject", dv: "score", within: "week" }).anova.table[0]!;
+    expect([round(F!, 3), round(numDf!, 2), round(denDf!, 2), round(p!, 5), round(ges!, 3)]).toEqual([35.935, 1.42, 7.1, 0.00031, 0.303]);
+    const f = friedmanTest("score ~ week | subject", long);
+    expect([f.statistic, round(f.pValue)]).toEqual([12, 0.0025]);
+    expect(pivotWider(long, { namesFrom: "week", valuesFrom: "score" })).toEqual(wide);
   });
 });

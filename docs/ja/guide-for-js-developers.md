@@ -108,7 +108,36 @@ wilcoxTest("score ~ arm", adults).pValue;   // 0.0095 (正確な p 値)
 
 R で書くと `t.test(score ~ arm, data = na.omit(subset(d, age >= 18)))` です。
 
-## 6. 検定の結果の読み方
+## 6. wide と long
+
+反復測定のデータは、1 行が 1 被験者で時点ごとに列がある *wide* の形で届くことがよくあります。一方、反復測定の関数は
+1 行が 1 測定の *long* の形を求めます。`pivotLonger` と `pivotWider` (tidyr の `pivot_longer` と `pivot_wider`) で
+変換できます。
+
+```js
+import { aovEz, friedmanTest, pivotLonger, pivotWider } from "@numero-uno-jpn/rstats";
+
+const wide = {
+  subject: ["p1", "p2", "p3", "p4", "p5", "p6"],
+  week0: [21, 25, 18, 30, 24, 27],
+  week4: [18, 22, 17, 26, 20, 25],
+  week8: [15, 20, 16, 22, 19, 21],
+};
+const long = pivotLonger(wide, { cols: ["week0", "week4", "week8"], namesTo: "week", valuesTo: "score" });
+// { subject: ["p1", "p1", "p1", "p2", ...], week: ["week0", "week4", "week8", "week0", ...], score: [21, 18, 15, 25, ...] }
+
+aovEz(long, { id: "subject", dv: "score", within: "week" }).anova;
+// week: F = 35.935、自由度 1.42 と 7.10 (Greenhouse-Geisser)、p = 0.00031、一般化 η² 0.303
+
+friedmanTest("score ~ week | subject", long).pValue;   // 0.0025 (χ² 12)
+
+pivotWider(long, { namesFrom: "week", valuesFrom: "score" });   // wide の表に戻る
+```
+
+`score_pre`、`score_post`、`weight_pre` のように 2 つの情報を持つ列名は、`namesSep: "_"` と `namesTo: [".value",
+"time"]` で分けられます。結果は `time`、`score`、`weight` の列になります。
+
+## 7. 検定の結果の読み方
 
 どの検定も、R の欄を camelCase にした普通のオブジェクトを返します。
 
@@ -125,7 +154,7 @@ R で書くと `t.test(score ~ arm, data = na.omit(subset(d, age >= 18)))` で�
 オプションは、R の引数名を camelCase にした 1 つのオブジェクトで渡します。`t.test(..., var.equal = TRUE,
 conf.level = 0.99)` は `tTest(..., { varEqual: true, confLevel: 0.99 })` です。
 
-## 7. やりたいことと関数
+## 8. やりたいことと関数
 
 | やりたいこと | 関数 |
 |---|---|
@@ -142,6 +171,7 @@ conf.level = 0.99)` は `tTest(..., { varEqual: true, confLevel: 0.99 })` です
 | 標本サイズの設計 | `powerTTest({ delta: 0.5, power: 0.8 })`、`pwrTTest` など |
 | 群ごとの要約 | `aggregate`、`tapply`、`split` |
 | 表の結合 | `merge(a, b, { by: "id" })`、`rbind`、`cbind` |
+| wide と long の変換 | `pivotLonger`、`pivotWider` |
 
 同じデータでほかの検定も:
 
@@ -154,7 +184,7 @@ chisqTest(all.arm, all.improved);                                     // X-squar
 corTest("~ age + score", all, { method: "spearman" }).estimate;      // -0.3636 (rho)、p 0.2732
 ```
 
-## 8. R から来たそのほかの習慣
+## 9. R から来たそのほかの習慣
 
 - **位置を返す関数の添字は 0 始まり**です (JavaScript のふつう)。R は 1 始まりです。
 - **乱数**は R と同じです。`setSeed(42)` の後の `rnorm(5)` は、R の `set.seed(42)` の後と同じ値になります。
