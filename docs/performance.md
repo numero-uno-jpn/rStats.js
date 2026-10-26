@@ -96,17 +96,17 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `qbeta` | 49.6 KB | 23.2 KB |
 | `pt`, `qt` | 63.7 KB | 30.3 KB |
 | `glm`, `glmSummary` / `glm` with all its methods | 63.2 / 89.4 KB | 27.4 / 39.5 KB |
-| everything (except `/mixed`) | 496.9 KB | 187.7 KB |
+| everything (except `/mixed`) | 497.2 KB | 187.9 KB |
 | `@numero-uno-jpn/rstats/distributions` (all of it) | 171.5 KB | 67.9 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 364.1 KB | 143.0 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 364.9 KB | 143.3 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 50.2 KB | 18.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 44.8 KB | 16.7 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 48.7 KB | 20.9 KB |
 | `@numero-uno-jpn/rstats/special` (all of it) | 57.7 KB | 26.7 KB |
-| `@numero-uno-jpn/rstats/mixed` (all of it: `lmer`) | 37.9 KB | 15.0 KB |
+| `@numero-uno-jpn/rstats/mixed`: `lmer` alone / all of it (with lmerTest's tests) | 39.7 / 134.5 KB | 15.5 / 58.0 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share code between areas
-through `dist/chunks/`, so one area loaded from them transfers more: 20 KB (`mixed`) to 158 KB (`tests`) gzipped,
+through `dist/chunks/`, so one area loaded from them transfers more: 30 KB (`special`) to 159 KB (`tests`) gzipped,
 chunks included. `pt` is large because the non-central t and the double-double building blocks come with it; the
 tests with a formula form bring the formula and model-frame code.
 
