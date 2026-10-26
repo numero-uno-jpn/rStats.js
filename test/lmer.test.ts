@@ -1,18 +1,19 @@
-// Linear mixed models fitted by lmer against lme4 (fixtures lmer and lmerMore: oracle/lmer.R, oracle/lmermore.R;
-// oracle/lmer-behaviour.md "The fit and its results"), both tested the same way. Against the reference (the fields at the exact minimiser of the criterion, in 128-bit arithmetic):
-// logLik, AIC, BIC, deviance, REMLcrit relative 1e-12; theta, fixef, stdError, tValue, vcov, varCorr sd, ranef
-// values, fitted, residuals within 1e-9 × the largest absolute value of the reference vector or matrix; sigma relative
-// 1e-9; varCorr corr absolute 1e-9; elements of theta that are 0 in the reference exactly 0; singular equal to the
+// Linear mixed models fitted by lmer against lme4: the fixtures lmer, lmerMore and lmerBoundary (oracle/lmer.R,
+// oracle/lmermore.R, oracle/lmerboundary.R; oracle/lmer-behaviour.md "The fit and its results"), all tested the same
+// way. Against the reference (the fields at the exact minimiser of the criterion, in 128-bit arithmetic): logLik,
+// AIC, BIC, deviance, REMLcrit relative 1e-12; theta, fixef, stdError, tValue, vcov, varCorr sd, ranef values,
+// fitted, residuals within 1e-9 × the largest absolute value of the reference vector or matrix; sigma relative 1e-9;
+// varCorr corr absolute 1e-9; elements of theta that are 0 in the reference exactly 0; singular equal to the
 // reference's; messages equal to lme4's without the singular-fit message, then that message if the reference is
-// singular; df, the names and levels, and warnings equal to lme4's. Against lme4 (expected): the criterion
-// of the fit no worse than lme4's (d ≤ d_lme4 + 1e-10 |d_lme4|); the largest relative difference of each field from
-// lme4 is printed (how far lme4's optimiser stops from the minimiser), not checked.
+// singular; df, the names and levels, and warnings equal to lme4's. Against lme4 (expected): the criterion of the fit
+// no worse than lme4's (d ≤ d_lme4 + 1e-10 |d_lme4|); the largest relative difference of each field from lme4 is
+// printed (how far lme4's optimiser stops from the minimiser), not checked.
 import { describe, expect, it } from "vitest";
 import { lmer, type LmerOptions, type LmerResult } from "../src/models/lmer.js";
 import { num } from "./helpers/fixture.js";
 import { dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
 
-const FIXTURES = ["lmer", "lmerMore"] as const;
+const FIXTURES = ["lmer", "lmerMore", "lmerBoundary"] as const;
 const SINGULAR_MESSAGE = "boundary (singular) fit: see help('isSingular')";
 const TOL_CRITERION = 1e-12;
 const TOL = 1e-9;
