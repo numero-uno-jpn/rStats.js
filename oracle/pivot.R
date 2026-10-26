@@ -39,6 +39,8 @@ add(fn = "pivot_longer", data = odd, cols = I(c("a_x", "b", "c_y_z")), names_to 
 add(fn = "pivot_longer", data = mixed, cols = I(c("x", "y")))
 add(fn = "pivot_longer", data = lgl, cols = I(c("x", "y")))
 add(fn = "pivot_longer", data = wide, cols = I(character(0)))
+twonas <- data.frame(id = 1:2, a_x = c(1, NA), b_x = c(NA, NA), a_y = c(3, 4), b_y = c(NA, 5))
+add(fn = "pivot_longer", data = twonas, cols = I(c("a_x", "b_x", "a_y", "b_y")), names_to = I(c(".value", "k")), names_sep = "_", values_drop_na = TRUE)   # drops only rows where every value column is missing
 add(fn = "pivot_wider", data = long, names_from = "time", values_from = "score")
 add(fn = "pivot_wider", data = long, names_from = "time", values_from = "score", values_fill = 0)
 add(fn = "pivot_wider", data = long, names_from = "time", values_from = "score", names_sort = TRUE)

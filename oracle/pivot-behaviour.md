@@ -46,7 +46,8 @@ boolean, which selects in the data's order), `namesTo` (`"name"`; a string or an
    first conflicting columns; types `<double>` for numbers, `<character>` for strings, `<logical>` for booleans).
 5. Result: the columns not selected (in the data's order), the name-part columns (in `namesTo` order, without
    `".value"`), the value columns. Rows: `"fastest"`: for each input row, one row per key, keys in order;
-   `"slowest"`: for each key, all input rows. `valuesDropNa`: drop the rows where a value column is missing.
+   `"slowest"`: for each key, all input rows. `valuesDropNa`: drop the rows where **every** value column is missing (with one value column: where it is
+   missing).
 
 ## pivotWider(data, options)
 
