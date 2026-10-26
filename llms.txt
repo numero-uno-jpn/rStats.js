@@ -62,6 +62,13 @@ CDN without a bundler, see the README section "Using it in the browser".
   "breslow", weights = w)` → `coxph(time, status, x, { ties: "breslow", weights: w })`, with `strata` as labels.
   psych's `omega(m, nfactors = 3)` → `omega(x, { nfactors: 3 })` (`omega(null, { covmat: R })` for a correlation
   matrix).
+- Data frames are objects of columns (`null` or `NaN` for NA). Tests take formulas like R's:
+  `t.test(y ~ g, data = d)` → `tTest("y ~ g", d)`, `friedman.test(y ~ w | b, d)` → `friedmanTest("y ~ w | b", d)`,
+  `cor.test(~ x + y, d)` → `corTest("~ x + y", d)`. `na.omit(d)` → `naOmit(d)`, `complete.cases(d)` →
+  `completeCases(d)`, `subset(d, age >= 20, select = c(y, g))` → `subset(d, (r) => r.age >= 20, { select: ["y",
+  "g"] })`, `tapply(x, g, mean)` → `tapply(x, g, mean)` (`{ dim, dimnames, values }`), `split(x, g)` → a `Map`,
+  `aggregate(y ~ g + sex, d, mean)` → `aggregate("y ~ g + sex", d, mean)`, `merge(a, b, by = "id", all.x = TRUE)`
+  → `merge(a, b, { by: "id", allX: true })`, `rbind(d1, d2)` → `rbind(d1, d2)`.
 - Random numbers: after `setSeed(42)`, `rnorm`, `runif`, `sample` and the other `r*` functions
   give the same numbers as R after `set.seed(42)`. `RNGkind` supports Mersenne-Twister (R's
   default) and L'Ecuyer-CMRG.

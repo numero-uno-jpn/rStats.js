@@ -7,6 +7,20 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- Data handling, for "missing values → groups → test" without hand work:
+  - formula forms of the tests: `tTest("y ~ g", data)` (also `"y ~ 1"` and `"Pair(a, b) ~ 1"`), `wilcoxTest`,
+    `varTest`, `ansariTest`, `moodTest`, `ksTest`, `kruskalTest`, `flignerTest`, `bartlettTest`, `onewayTest`
+    (several factors as their interaction), `friedmanTest` and `quadeTest` (`"y ~ w | b"`), `corTest("~ x + y",
+    data)`, with R's handling of missing values, levels and messages;
+  - `completeCases` (`complete.cases`) and `naOmit` (`na.omit`);
+  - `tapply`, `split` (a `Map` in R's order) and `aggregate` (formula and data-frame forms);
+  - `merge` (R's row order, including its order of duplicated keys), `subset`, and `rbind` / `cbind` of data
+    frames (the matrix forms are unchanged).
+
 ## 0.10.0 - 2026-10-26
 
 ### Added

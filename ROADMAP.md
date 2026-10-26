@@ -43,6 +43,7 @@ against R and are not a priority.
 | Survival analysis | `survdiff` (log-rank and the G-rho family) and `survfit` (Kaplan-Meier with log, plain and log-log intervals and the median) and `coxph` (Cox regression: Efron and Breslow ties, weights, strata, the summary tests) of the `survival` package |
 | Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor, two-step and maximum likelihood), `pbvnorm`, `omega` (McDonald's ω, psych); effect sizes of repeated-measures designs (`Error()` strata and `aovEz`) |
 | Optimisation | `factanal` (maximum likelihood, varimax and promax); `optim` with all six methods (Nelder-Mead, BFGS, CG, L-BFGS-B, SANN, Brent), following R's iterations, and `optimHess` |
+| Data handling | `completeCases` (`complete.cases`), `naOmit` (`na.omit`), `subset`, `merge`, `rbind` and `cbind` of data frames, `tapply`, `split`, `aggregate`; formula forms of the tests (`tTest("y ~ g", data)`, `kruskalTest`, `friedmanTest("y ~ w \| b", data)`, `corTest("~ x + y", data)`, ...) |
 | Linear algebra | the matrix functions of R's `base`, with `Matrix::lu`, `prcomp` (`stats`) and `MASS::ginv`: matrix arithmetic, `crossprod`, `norm`, `backsolve`, `chol`, `qr` (R's pivoting and LAPACK), `solve`, `det`, `rcond`, `kappa`, `svd`, `eigen` (symmetric and general), `lu`, `prcomp`, `ginv`, `schur` (`Matrix::Schur`) and `expm` (expm's Higham08, Padé and Taylor methods) |
 | Numerical methods | `integrate`, `optimize`, `uniroot`, `approx`, `spline`/`splinefun`/`splinefunH`, Lagrange (pracma) and Hermite interpolation, fixed-step `ode` (deSolve), `grad`/`jacobian`/`hessian` (numDeriv) |
 | jStat | every jStat function has a replacement ([docs/migrating-from-jstat.md](docs/migrating-from-jstat.md)), checked against jStat |
@@ -55,11 +56,7 @@ The full list is in the [README](README.md#what-is-included); known differences 
 In order of priority. The R function or package that each item is checked against is given in
 brackets.
 
-1. **Data handling,** so that "missing values → groups → test" needs no hand work (base R and `stats`):
-   (a) `completeCases` and `naOmit`, and formula forms of the tests (`tTest("y ~ g", data)`, `kruskalTest`,
-   `friedmanTest("y ~ w | b", data)`, `corTest("~ x + y", data)`, ...); (b) `tapply`, `split` and `aggregate`
-   (`aggregate("y ~ g + sex", data, mean)`); (c) `subset`, `merge`, and `rbind` / `cbind` of data frames.
-2. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
+1. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
    uniform asymptotic expansion (constant time instead of a continued fraction of length √(a + b)),
    with one parameter large and the other small DiDonato and Morris's expansion (`pt` and `pf` with
    large degrees of freedom, `pbeta(x, 1e6, 10)`, `pbinom` with x near 0 or n: about the time of a

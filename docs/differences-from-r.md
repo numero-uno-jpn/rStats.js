@@ -288,6 +288,17 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   by up to 4e-11 when the data change in the last bit, so `omega` agrees with R to about that size there (1e-12 with
   up to three).
 
+### Data handling
+
+- **`subset`** takes the condition as a boolean per row or a function of the row (`(r) => r.age >= 20`), not an
+  expression; `select` is an array of names. A missing condition counts as false, as in R.
+- **`split`** returns a `Map` (in R's order of the groups), since a plain object would move integer-like names
+  first.
+- **`aggregate`** summarises numeric columns with a function returning a number or the same number of values for
+  every group (R would also make list columns).
+- **`merge`** never matches a number key with a string key (R converts one to the other); `merge` and `cbind`
+  throw on a duplicated column name, which R allows but an object of columns cannot hold.
+
 ### Linear models
 
 - **`lm` with every weight 0** throws "all weights are zero"; R returns NA coefficients.
