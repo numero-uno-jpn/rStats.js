@@ -20,6 +20,13 @@ import { cov } from "./cov.js";
 export type FactanalRotation = "varimax" | "promax" | "none";
 
 /**
+ * Factor scores of {@link factanal}
+ *
+ * @category Agreement, reliability and factor analysis
+ */
+export type FactanalScores = "none" | "regression" | "Bartlett";
+
+/**
  * Options of {@link factanal}
  *
  * @category Agreement, reliability and factor analysis
@@ -31,6 +38,13 @@ export interface FactanalOptions {
   nObs?: number;
   /** Default `"varimax"`. */
   rotation?: FactanalRotation;
+  /**
+   * Factor scores to compute from the data (R's `scores`): `"none"` (default), `"regression"` (Thomson's,
+   * z R^-1 L) or `"Bartlett"` (z W L (L' W L)^-1 with W = diag(1 / uniquenesses)), where z is the data
+   * standardised by column (denominator n - 1), R its correlation matrix and L the final loadings. Scores need
+   * `x`: with `covmat` they are an error.
+   */
+  scores?: FactanalScores;
   /** Settings of the optimisation (part of R's `control` list). */
   control?: {
     /** Lower bound of the uniquenesses. Default 0.005. */
@@ -50,6 +64,8 @@ export interface FactanalResult {
   uniquenesses: number[];
   /** The (rotated) loadings, p rows by `factors` columns, columns sorted by decreasing sum of squares, each column's sum positive */
   loadings: number[][];
+  /** The factor scores (with `scores` other than `"none"`): one row per observation, one column per factor */
+  scores?: number[][];
   /** The rotation matrix (absent for `rotation: "none"` and for one factor) */
   rotmat?: number[][];
   /** The likelihood-ratio statistic (NaN without n.obs or with no degrees of freedom) */
@@ -166,14 +182,20 @@ function promax(L: readonly (readonly number[])[]): { loadings: number[][]; rotm
  * const fa = factanal(null, 1, { covmat: R });
  * fa.uniquenesses; // [0.19, 0.36, 0.51]
  * fa.loadings;     // [[0.9], [0.8], [0.7]]
+ * // Factor scores need the data: factanal(x, 1, { scores: "regression" }).scores (one row per row of x)
  * ```
  *
  * @category Agreement, reliability and factor analysis
  */
 export function factanal(x: readonly (readonly number[])[] | null, factors: number, options: FactanalOptions = {}): FactanalResult {
+  const scores = options.scores ?? "none";
+  if (scores !== "none" && scores !== "regression" && scores !== "Bartlett") {
+    throw new RangeError("'arg' should be one of “none”, “regression”, “Bartlett”");
+  }
   let cv: number[][];
   let nObs: number;
   if (options.covmat !== undefined) {
+    if (scores !== "none") throw new RangeError("requested scores without an 'x' matrix");
     cv = options.covmat.map((r) => r.slice());
     nObs = options.nObs ?? NaN;
   } else {
@@ -240,6 +262,30 @@ export function factanal(x: readonly (readonly number[])[] | null, factors: numb
     objective: fit.value,
     counts: fit.counts,
   };
+  if (scores !== "none") out.scores = factorScores(x!, S, psi, L, scores);
   if (rotmat !== undefined) out.rotmat = rotmat;
   return out;
+}
+
+/**
+ * Factor scores from the data x standardised by column (z), the correlation matrix S, the uniquenesses psi and the
+ * final loadings L: regression (Thomson) z S^-1 L, or Bartlett z W L (L' W L)^-1 with W = diag(1 / psi). No factor
+ * covariance enters (none is defined for the varimax and promax rotations)
+ */
+function factorScores(
+  x: readonly (readonly number[])[],
+  S: readonly (readonly number[])[],
+  psi: readonly number[],
+  L: readonly (readonly number[])[],
+  method: "regression" | "Bartlett",
+): number[][] {
+  const n = x.length;
+  const means = x[0]!.map((_, j) => sumOnce(x.map((r) => r[j]!)) / n);
+  const centred = x.map((r) => r.map((v, j) => v - means[j]!));
+  const sds = colSumsOf(centred, (v) => v * v).map((s) => Math.sqrt(s / (n - 1)));
+  const z = centred.map((r) => r.map((v, j) => v / sds[j]!));
+  if (method === "regression") return matMul(z, solve(S, L));
+  const WL = L.map((r, i) => r.map((v) => v / psi[i]!));
+  // (L' W L)^-1 is symmetric, so W L (L' W L)^-1 is the transpose of solve(L' W L, (W L)')
+  return matMul(z, transpose(solve(matMul(transpose(L), WL), transpose(WL))));
 }
