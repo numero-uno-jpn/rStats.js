@@ -17,8 +17,8 @@ export interface FunctionDoc {
   comments: string[];
 }
 
-/** The order of the areas, as in src/index.ts. */
-export const ENTRY_ORDER = ["special", "distributions", "tests", "linalg", "descriptive", "numerics"];
+/** The order of the areas: as in src/index.ts, then the areas that are not in src/index.ts. */
+export const ENTRY_ORDER = ["special", "distributions", "tests", "linalg", "descriptive", "numerics", "mixed"];
 
 /** The text of a `/** ... *\/` block: the delimiters and the leading ` * ` of each line removed. */
 function commentText(block: string): string {

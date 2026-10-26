@@ -6,6 +6,7 @@ import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import * as mixed from "../src/entries/mixed.js";
 import * as lib from "../src/index.js";
 
 interface Example {
@@ -23,16 +24,18 @@ const rResults = (JSON.parse(readFileSync(path("demo/r-results.json"), "utf8")) 
   results: Record<string, string[] | { error: string }>;
 }).results;
 
-const names = Object.keys(lib);
+/** Every export of the areas: src/index.ts and the areas that are not in it (src/entries/mixed.ts) */
+const scope: Record<string, unknown> = { ...lib, ...mixed };
+const names = Object.keys(scope);
 
 /**
  * Exports added since the last release. The public demo loads the released build from jsDelivr, so their examples
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
-const NOT_IN_DEMO_YET: string[] = [];
+const NOT_IN_DEMO_YET: string[] = ["lmer"];
 /** Exports that only reproduce R's errors (PMCMRplus 1.9.12's steelTest fails on every input), so no example can show a value */
 const NO_DEMO: string[] = ["steelTest"];
-const fns = names.map((n) => (lib as Record<string, unknown>)[n]);
+const fns = names.map((n) => scope[n]);
 
 /** Evaluates an example's js with every export in scope and flattens the result to numbers */
 function run(js: string): number[] {
@@ -53,9 +56,9 @@ describe("demo examples", () => {
     for (const e of examples) expect(Array.isArray(rResults[e.id]), e.id).toBe(true);
   });
 
-  it("every export of src/index.ts appears in some example", () => {
+  it("every export of the areas appears in some example", () => {
     // Value exports only: skip `export type { ... }` and `type X` entries. src/index.ts re-exports the area
-    // modules of src/entries/
+    // modules of src/entries/ except mixed.ts
     const source = readdirSync(path("src/entries"))
       .map((f) => readFileSync(path(`src/entries/${f}`), "utf8"))
       .join("\n");

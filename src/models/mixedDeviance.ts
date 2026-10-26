@@ -15,8 +15,18 @@
 // recovers the accuracy of an orthogonal decomposition (the corrected semi-normal equations), and R_X' R_X is formed
 // as the sum of squares E'E + W'W. The fill-reducing permutation of the paper only affects sparsity, so it is not
 // used.
+//
+// On request, the gradient of the criterion with respect to θ (for the fit, stage 1c), derived here from the
+// formulas above. With ∂Λ the derivative of Λ_θ with respect to one element of θ (the entries (r, c) of Λ_θ that
+// hold it), K = Λ_θ'Z'Z and the residual res = y − Xβ̂ − ZΛ_θ û:
+//   ∂ prss = −2 res'Z ∂Λ û   (prss is a minimum over (β, u), so only its explicit dependence on θ counts),
+//   ∂ log det A = 2 tr(A⁻¹ K ∂Λ) = 2 Σ_(r,c) (A⁻¹K)[c, r],
+//   ∂ (log det A + log det R_X'R_X) = ∂ log det M, M = [A, Λ'Z'X; X'ZΛ, X'X], which adds −2 Σ_(r,c) (W S⁻¹ E'Z)[c, r]
+//   (S = R_X'R_X; the blocks of M⁻¹ are A⁻¹ + W S⁻¹ W' and −W S⁻¹, and X'Z − W'K = E'Z).
+// The criterion's derivative is then the log-determinant terms plus (n or n − p) ∂ prss / prss. A⁻¹ is formed densely
+// from the Cholesky factor.
 
-import { potf2 } from "../linalg/chol.js";
+import { potf2, potri } from "../linalg/chol.js";
 import type { Mat } from "../linalg/matrix.js";
 import type { MixedModelStructure } from "./mixedStructure.js";
 
@@ -40,6 +50,18 @@ export interface ProfiledDeviance {
   logDetL: number;
   /** log det(X'X − X'ZΛ_θ (Λ_θ'Z'ZΛ_θ + I)⁻¹ Λ_θ'Z'X): twice the log determinant of R_X. */
   logDetRX: number;
+  /** The derivative of `deviance` with respect to each element of θ (with `options.gradient`). */
+  gradient?: number[];
+  /** (R_X' R_X)⁻¹, p × p, array of rows (with `options.rxInverse`): the covariance of β̂ divided by σ². */
+  rxInverse?: number[][];
+}
+
+/** What {@link profiledDeviance} computes beyond the deviance and the penalised least-squares solution. */
+export interface ProfiledDevianceOptions {
+  /** Also the gradient of the criterion with respect to θ (dense: O(q³)). */
+  gradient?: boolean;
+  /** Also (R_X' R_X)⁻¹. */
+  rxInverse?: boolean;
 }
 
 /** The cross-products of a structure, which do not depend on θ */
@@ -149,6 +171,15 @@ function backSolve(r: Float64Array, k: number, v: Float64Array): void {
   }
 }
 
+/** The full symmetric inverse of R'R from an upper-triangular factor R (column-major, k × k; R is not changed) */
+function inverseFromFactor(r: Float64Array, k: number): Float64Array {
+  const inv = r.slice();
+  for (let j = 0; j < k; j++) for (let i = j + 1; i < k; i++) inv[i + j * k] = 0;
+  potri({ nrow: k, ncol: k, data: inv });
+  for (let j = 0; j < k; j++) for (let i = j + 1; i < k; i++) inv[i + j * k] = inv[j + i * k]!;
+  return inv;
+}
+
 /** Twice the sum of the logs of the diagonal of a k × k factor */
 function logDetOfFactor(r: Float64Array, k: number): number {
   let sum = 0;
@@ -164,8 +195,14 @@ function logDetOfFactor(r: Float64Array, k: number): number {
  * @param theta The covariance parameters (finite, of the length of `structure.theta`; values below the lower bounds
  *   are accepted).
  * @param reml Whether to return the REML criterion (true) or the ML deviance (false).
+ * @param options What to compute besides: the gradient with respect to θ, (R_X' R_X)⁻¹.
  */
-export function profiledDeviance(structure: MixedModelStructure, theta: readonly number[], reml: boolean): ProfiledDeviance {
+export function profiledDeviance(
+  structure: MixedModelStructure,
+  theta: readonly number[],
+  reml: boolean,
+  options: ProfiledDevianceOptions = {},
+): ProfiledDeviance {
   if (theta.length !== structure.theta.length) {
     throw new RangeError(`theta must have length ${structure.theta.length}, not ${theta.length}`);
   }
@@ -325,5 +362,53 @@ export function profiledDeviance(structure: MixedModelStructure, theta: readonly
   const logDetRX = logDetOfFactor(rx, p);
   const df = reml ? n - p : n;
   const deviance = (reml ? logDetL + logDetRX : logDetL) + df * (1 + Math.log((2 * Math.PI * prss) / df));
-  return { deviance, beta, u, b, rss, ussq, prss, logDetL, logDetRX };
+  const out: ProfiledDeviance = { deviance, beta, u, b, rss, ussq, prss, logDetL, logDetRX };
+
+  const sInverse = options.gradient === true || options.rxInverse === true ? inverseFromFactor(rx, p) : undefined;
+  if (options.rxInverse === true) {
+    out.rxInverse = Array.from({ length: p }, (_, i) => Array.from({ length: p }, (_, j) => sInverse![i + j * p]!));
+  }
+  if (options.gradient === true) {
+    const aInverse = inverseFromFactor(r, q);
+    // Z' res
+    const zRes = new Float64Array(q);
+    for (let i = 0; i < n; i++) {
+      const ri = res[i]!;
+      for (let c = cp.rowStart[i]!; c < cp.rowStart[i + 1]!; c++) zRes[cp.rowCols[c]!]! += cp.rowValues[c]! * ri;
+    }
+    // REML: V = W S⁻¹ (q × p) and E'Z (p × q), both column-major
+    let v: Float64Array | undefined;
+    let ez: Float64Array | undefined;
+    if (reml && p > 0) {
+      v = new Float64Array(q * p);
+      for (let l = 0; l < p; l++) {
+        for (let k = 0; k < p; k++) {
+          const skl = sInverse![k + l * p]!;
+          const wk = ws[k]!;
+          for (let c = 0; c < q; c++) v[c + l * q]! += wk[c]! * skl;
+        }
+      }
+      ez = new Float64Array(p * q);
+      for (let i = 0; i < n; i++) {
+        for (let c = cp.rowStart[i]!; c < cp.rowStart[i + 1]!; c++) {
+          const zr = cp.rowCols[c]!;
+          const val = cp.rowValues[c]!;
+          for (let l = 0; l < p; l++) ez[l + zr * p]! += xResiduals[l]![i]! * val;
+        }
+      }
+    }
+    // lzz holds K = Λ'Z'Z (column-major): K[k, r] = lzz[k + r q]
+    const prssFactor = (2 * df) / prss;
+    const gradient = new Array<number>(theta.length).fill(0);
+    for (const { row: rr, col: c, theta: t } of structure.lambda) {
+      let tr = 0;
+      const ac = c * q;
+      const kr = rr * q;
+      for (let k = 0; k < q; k++) tr += aInverse[k + ac]! * lzz[k + kr]!;
+      if (v !== undefined && ez !== undefined) for (let l = 0; l < p; l++) tr -= v[c + l * q]! * ez[l + rr * p]!;
+      gradient[t]! += 2 * tr - prssFactor * zRes[rr]! * uv[c]!;
+    }
+    out.gradient = gradient;
+  }
+  return out;
 }

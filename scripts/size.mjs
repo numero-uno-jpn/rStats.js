@@ -24,7 +24,7 @@ const cases = [
   ["everything", "*"],
 ];
 
-const areas = ["distributions", "tests", "linalg", "descriptive", "numerics", "special"];
+const areas = ["distributions", "tests", "linalg", "descriptive", "numerics", "special", "mixed"];
 for (const a of areas) cases.push([`rStats.js/${a} (all of it)`, "*", fileURLToPath(new URL(`../dist/entries/${a}.js`, import.meta.url))]);
 
 const rows = [];
