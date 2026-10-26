@@ -39,7 +39,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 | 分散分析 | formula で呼ぶ `aov`、`lm`、`modelMatrix` (多元、交互作用、共変量、`Error()` の層)、`anova` (逐次の表とモデルの比較)、car の `Anova` (Type II と III)、afex の `aov_ez` に当たる `aovEz` (反復測定、Greenhouse-Geisser と Huynh-Feldt、一般化 η²)、`mauchly.test` |
 | 効果量と検出力 | effectsize の `cohens_d`、`hedges_g`、`eta_squared`、`omega_squared`、`epsilon_squared` (`anova` と `Anova` の表から。信頼区間は厳密な限界)、`power.t.test`、`power.prop.test`、`power.anova.test` と `pwr` の検出力の関数 |
 | ほかの検定 | `leveneTest` (car)、`propTrendTest` (`prop.trend.test`)、`jonckheereTest` (DescTools と clinfun)、`cochranQTest` (DescTools)、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (nortest) |
-| 多重比較 | PMCMRplus の `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`dunnettTest`、`gamesHowellTest`、`tukeyTest`、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp)。Dunnett 型の確率は厳密に計算する (R は乱数を使う) |
+| 多重比較 | PMCMRplus の `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest`、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp)。Dunnett 型の確率は厳密に計算する (R は乱数を使う) |
 | 生存時間解析 | `survival` パッケージの `survdiff` (log-rank と G-rho 族) と `survfit` (Kaplan-Meier。log・plain・log-log の信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイ、重み、層、summary の検定) |
 | 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor の 2 段階推定と最尤推定)、`pbvnorm`、`omega` (McDonald の ω。psych)。反復測定の計画の効果量 (`Error()` の層と `aovEz`) |
 | 最適化 | `factanal` (最尤法、varimax と promax)、`optim` の 6 つの手法すべて (Nelder-Mead、BFGS、CG、L-BFGS-B、SANN、Brent。R と同じ反復) と `optimHess` |
@@ -54,9 +54,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-1. **後で:** Steel の多対一の検定 (PMCMRplus 1.9.12 の `steelTest` はどの入力でもエラーになるので、別の照合先が
-   要る)。
-2. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
+1. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
    使い (長さ √(a + b) の連分数の代わりに定数時間)、一方のパラメータが大きく他方が小さいときは
    DiDonato と Morris の展開を使う (自由度が大きい `pt` と `pf`、`pbeta(x, 1e6, 10)`、x が 0 または n
    に近い `pbinom`。最大 30 倍かかっていたのが、典型的な `pbeta` 程度の時間になった)。主要な d/p 関数は、

@@ -39,7 +39,7 @@ against R and are not a priority.
 | Analysis of variance | `aov`, `lm` and `modelMatrix` from formulas (several factors, interactions, covariates, `Error()` strata), `anova` (sequential and model comparison), car's `Anova` (types II and III), afex's `aov_ez` as `aovEz` (repeated measures, Greenhouse-Geisser and Huynh-Feldt, generalized eta squared), `mauchly.test` |
 | Effect sizes and power | effectsize's `cohens_d`, `hedges_g`, `eta_squared`, `omega_squared`, `epsilon_squared` (from `anova` and `Anova` tables, exact confidence limits); `power.t.test`, `power.prop.test`, `power.anova.test` and the power functions of `pwr` |
 | More tests | `leveneTest` (car), `propTrendTest` (`prop.trend.test`), `jonckheereTest` (DescTools and clinfun), `cochranQTest` (DescTools), `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (nortest) |
-| Multiple comparisons | PMCMRplus's `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `dunnettTest`, `gamesHowellTest`, `tukeyTest`; `dunnTest` (dunn.test); `glhtDunnett` (multcomp); Dunnett-type probabilities computed exactly (R's are randomised) |
+| Multiple comparisons | PMCMRplus's `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest`; `dunnTest` (dunn.test); `glhtDunnett` (multcomp); Dunnett-type probabilities computed exactly (R's are randomised) |
 | Survival analysis | `survdiff` (log-rank and the G-rho family) and `survfit` (Kaplan-Meier with log, plain and log-log intervals and the median) and `coxph` (Cox regression: Efron and Breslow ties, weights, strata, the summary tests) of the `survival` package |
 | Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor, two-step and maximum likelihood), `pbvnorm`, `omega` (McDonald's ω, psych); effect sizes of repeated-measures designs (`Error()` strata and `aovEz`) |
 | Optimisation | `factanal` (maximum likelihood, varimax and promax); `optim` with all six methods (Nelder-Mead, BFGS, CG, L-BFGS-B, SANN, Brent), following R's iterations, and `optimHess` |
@@ -55,9 +55,7 @@ The full list is in the [README](README.md#what-is-included); known differences 
 In order of priority. The R function or package that each item is checked against is given in
 brackets.
 
-1. **Later:** Steel's many-one test (PMCMRplus 1.9.12's `steelTest` fails on every input, so another reference
-   is needed).
-2. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
+1. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
    uniform asymptotic expansion (constant time instead of a continued fraction of length √(a + b)),
    with one parameter large and the other small DiDonato and Morris's expansion (`pt` and `pf` with
    large degrees of freedom, `pbeta(x, 1e6, 10)`, `pbinom` with x near 0 or n: about the time of a

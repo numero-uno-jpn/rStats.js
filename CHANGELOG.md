@@ -42,7 +42,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   variants), `cochranQTest` (DescTools), and nortest's `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest`.
 - Effect sizes of repeated-measures designs: `etaSquared`, `omegaSquared`, `epsilonSquared` of `aov` fits with
   `Error()` and of `aovEz` results, with exact intervals.
-- Multiple comparisons: PMCMRplus's `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`,
+- Multiple comparisons: PMCMRplus's `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test),
   `dunnettTest`, `gamesHowellTest`, `tukeyTest` and `steelTest` (its errors); dunn.test's `dunnTest`; multcomp's
   Dunnett comparisons (`glhtDunnett`). Dunnett-type probabilities are computed exactly by a one-dimensional integral
   (R's mvtnorm integration is randomised and about 1e-3 accurate); studentized-range p-values are R's to full
