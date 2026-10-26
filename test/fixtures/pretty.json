@@ -1,7 +1,7 @@
 {
   "function": "pretty",
   "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-26T21:14:09+0000",
+  "generated": "2026-10-26T21:20:01+0000",
   "cases": [
     {"args":{"x":["0.29999999999999999","9.5999999999999996"]},"expected":{"value":["0","2","4","6","8","10"]}},
     {"args":{"x":["0","1"]},"expected":{"value":["0","0.20000000000000001","0.40000000000000002","0.60000000000000009","0.80000000000000004","1"]}},
@@ -50,6 +50,14 @@
     {"args":{"x":["1","10"],"n":"-1"},"expected":{"error":"invalid 'n' argument"}},
     {"args":{"x":["1","10"],"n":"NaN"},"expected":{"error":"invalid 'n' argument"}},
     {"args":{"x":["NaN","Inf"],"n":"-1"},"expected":{"value":[]}},
-    {"args":{"x":["1","10"],"n":"2.7000000000000002"},"expected":{"value":["0","5","10"]}}
+    {"args":{"x":["1","10"],"n":"2.7000000000000002"},"expected":{"value":["0","5","10"]}},
+    {"args":{"x":["1","10"],"n":"-0.5"},"expected":{"error":"invalid 'min.n' argument"}},
+    {"args":{"x":["1","10"],"n":"2.8999999999999999"},"expected":{"value":["0","5","10"]}},
+    {"args":{"x":["1","10"],"n":"-0.20000000000000001","minN":"0"},"expected":{"value":["0","10"]}},
+    {"args":{"x":["1","10"],"n":"3","minN":"4"},"expected":{"error":"invalid 'min.n' argument"}},
+    {"args":{"x":["1","10"],"n":"3","minN":"-1"},"expected":{"error":"invalid 'min.n' argument"}},
+    {"args":{"x":["1","10"],"n":"5","minN":"NaN"},"expected":{"error":"invalid 'min.n' argument"}},
+    {"args":{"x":["1","10"],"n":"5","minN":"2.7000000000000002"},"expected":{"value":["0","2","4","6","8","10"]}},
+    {"args":{"x":["1","10"],"n":"10000000000"},"expected":{"error":"invalid 'n' argument"}}
   ]
 }

@@ -226,8 +226,12 @@ Fixture: `findInterval` (oracle/descriptive.R).
   negative value after truncation is the error "invalid 'nbin' argument"; NaN is the error "missing value where
   TRUE/FALSE needed"; a value of 2^31 or more (Inf included) is the error "attempt to make a table with >= 2^31
   elements". Today a non-integer nbins throws "Invalid array length" and a negative one returns [].
-- `pretty(x, { n })`: after dropping the values of x that are not finite (an empty remainder returns [] whatever n
-  is, as now), n < 0 or NaN is the error "invalid 'n' argument".
+- `pretty(x, { n, minN })`: after dropping the values of x that are not finite (an empty remainder returns []
+  whatever n is, as now), R converts n and minN to integers by truncation towards 0 and checks them in this order:
+  n NaN, outside the 32-bit integer range (|n| >= 2^31) or negative after truncation is the error "invalid 'n'
+  argument"; then minN (default: floor(n / 3) computed from the n given, before truncation) NaN, negative after
+  truncation, or greater than the truncated n is the error "invalid 'min.n' argument". So n = -0.5 is n = 0 with
+  minN = -1: the minN error; n = 2.9 works as n = 2 (R gives 0, 5, 10 for x = [1, 10]); minN = 2.7 works as 2.
 - `mad(x, { low or high })`: R uses the low/high rule only when the number n of values is even, and it counts the
   missing values in n unless naRm removed them. Then it takes the k-th smallest of |x - center| among the values
   that are not missing (R's partial sort drops them), with k = n / 2 (+ 1 for high); if fewer than k values are not
