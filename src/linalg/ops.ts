@@ -1,11 +1,14 @@
 // Matrix arithmetic and construction: R's %*% (matMul), element-wise +, -, *, / with R's recycling (add, subtract,
-// multiply, divide), outer, t, diag, cbind, rbind, matrix, kronecker and seq.
+// multiply, divide), outer, t, diag, cbind, rbind (also of data frames: src/descriptive/dataFrames.ts), matrix,
+// kronecker and seq.
 //
 // Written for rStats.js (no ported code). Matrices are arrays of rows, as everywhere in rStats.js; a plain array is a
 // vector, which R treats as a row or a column as the operation needs. Element-wise operations recycle a shorter
 // vector over a matrix in column-major order (R's storage order), as R does.
 
 import type { Sample } from "../htest/types.js";
+import { cbindFrames, rbindFrames } from "../descriptive/dataFrames.js";
+import type { DataFrame } from "../models/modelFrame.js";
 
 /** A vector (plain array) or a matrix (array of rows). */
 export type Operand = number | Sample | readonly (readonly number[])[];
@@ -207,14 +210,41 @@ function bindParts(args: readonly Operand[], byColumn: boolean): Matrix {
   return parts.flatMap((p) => p.map((v) => Array.from({ length: len }, (_, i) => v[i % v.length]!)));
 }
 
-/** Combine vectors and matrices as columns. Equivalent to R's `cbind()` (vectors recycled to the number of rows). */
-export function cbind(...args: Operand[]): Matrix {
-  return t(bindParts(args, true));
+/** A data frame (object of columns) rather than a number, vector or matrix */
+function isDataFrame(x: Operand | DataFrame): x is DataFrame {
+  return typeof x === "object" && !Array.isArray(x) && !ArrayBuffer.isView(x);
 }
 
-/** Combine vectors and matrices as rows. Equivalent to R's `rbind()`. */
-export function rbind(...args: Operand[]): Matrix {
-  return bindParts(args, false);
+/** The data frames, if all arguments are data frames (and there is at least one); a mix is an error */
+function framesOf(args: readonly (Operand | DataFrame)[]): DataFrame[] | undefined {
+  const frames = args.filter(isDataFrame);
+  if (frames.length === 0) return undefined;
+  if (frames.length < args.length) throw new TypeError("cannot combine data frames with vectors or matrices");
+  return frames;
+}
+
+/**
+ * Combine vectors and matrices as columns. Equivalent to R's `cbind()` (vectors recycled to the number of rows).
+ * Given data frames (objects of columns), puts their columns side by side, as R's `cbind()` of data frames: all must
+ * have the same number of rows, and a column name may occur only once.
+ */
+export function cbind(...args: Operand[]): Matrix;
+export function cbind(...frames: DataFrame[]): DataFrame;
+export function cbind(...args: (Operand | DataFrame)[]): Matrix | DataFrame {
+  const frames = framesOf(args);
+  return frames === undefined ? t(bindParts(args as Operand[], true)) : cbindFrames(frames);
+}
+
+/**
+ * Combine vectors and matrices as rows. Equivalent to R's `rbind()`. Given data frames (objects of columns), stacks
+ * their rows, as R's `rbind()` of data frames: all must have the same column names, matched by name (the result has
+ * the first frame's column order).
+ */
+export function rbind(...args: Operand[]): Matrix;
+export function rbind(...frames: DataFrame[]): DataFrame;
+export function rbind(...args: (Operand | DataFrame)[]): Matrix | DataFrame {
+  const frames = framesOf(args);
+  return frames === undefined ? bindParts(args as Operand[], false) : rbindFrames(frames);
 }
 
 /** Options for {@link matrix}. */
