@@ -9,10 +9,10 @@ const PERFECT = "ANOVA F-tests on an essentially perfect fit are unreliable";
 /** Cells that differ from R by more than 1e-12 but are within 1e-12 of the exact reference */
 const BIG_MEAN = "y has a mean of 1e6: R's QR loses digits to the intercept; rStats.js computes in double-double";
 const KNOWN: KnownDifference[] = [
-  { case: 45, table: "coefficients", row: "Ab:Bq", col: "", reason: `${BIG_MEAN} (R 3.3e-12 from the reference)` },
-  { case: 45, table: "coefficients", row: "Ac:Bq", col: "", reason: `${BIG_MEAN} (R 1.5e-11 from the reference)` },
-  { case: 45, table: "rSquared", row: "rSquared", col: "", reason: `${BIG_MEAN} (R 2.8e-12 from the reference)` },
-  { case: 45, table: "adjRSquared", row: "adjRSquared", col: "", reason: `${BIG_MEAN} (R 4.0e-12 from the reference)` },
+  { case: 50, table: "coefficients", row: "Ab:Bq", col: "", reason: `${BIG_MEAN} (R 3.3e-12 from the reference)` },
+  { case: 50, table: "coefficients", row: "Ac:Bq", col: "", reason: `${BIG_MEAN} (R 1.5e-11 from the reference)` },
+  { case: 50, table: "rSquared", row: "rSquared", col: "", reason: `${BIG_MEAN} (R 2.8e-12 from the reference)` },
+  { case: 50, table: "adjRSquared", row: "adjRSquared", col: "", reason: `${BIG_MEAN} (R 4.0e-12 from the reference)` },
 ];
 
 const fixture = loadAnovaFixture("anovaLm");
