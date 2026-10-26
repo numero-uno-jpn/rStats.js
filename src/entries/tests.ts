@@ -159,6 +159,7 @@ export {
   type CvmTestResult,
   type PearsonTestOptions,
 } from "../htest/normalityTests.js";
+export {
   kappa2,
   kappamFleiss,
   icc,
