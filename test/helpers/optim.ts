@@ -9,41 +9,50 @@ import { expect } from "vitest";
 import { optim, type OptimControl, type OptimMethod, type OptimOptions, type OptimResult } from "../../src/index.js";
 import { num } from "./fixture.js";
 
-/** R's sum() of doubles accumulates in extended precision; for these few terms that is the correctly rounded sum */
+/** The exact value of a double, as an integer multiple of 2^-1074 */
+function exact(x: number): bigint {
+  if (x === 0) return 0n;
+  const view = new DataView(new ArrayBuffer(8));
+  view.setFloat64(0, x);
+  const bits = view.getBigUint64(0);
+  const e = Number((bits >> 52n) & 0x7ffn);
+  let m = bits & ((1n << 52n) - 1n);
+  if (e > 0) m |= 1n << 52n;
+  const v = m << BigInt(Math.max(e, 1) - 1);
+  return bits >> 63n ? -v : v;
+}
+
+/** v rounded to `bits` significant bits, to nearest with ties to even */
+function roundTo(v: bigint, bits: number): bigint {
+  const a = v < 0n ? -v : v;
+  const drop = a.toString(2).length - bits;
+  if (drop <= 0) return v;
+  const d = BigInt(drop);
+  let q = a >> d;
+  const r = a - (q << d);
+  const half = 1n << (d - 1n);
+  if (r > half || (r === half && (q & 1n) === 1n)) q += 1n;
+  return (v < 0n ? -q : q) << d;
+}
+
+/** A multiple of 2^-1074 (with at most 53 significant bits) as a double */
+function toDouble(v: bigint): number {
+  if (v === 0n) return 0;
+  let a = v < 0n ? -v : v;
+  let k = -1074;
+  while ((a & 1n) === 0n) {
+    a >>= 1n;
+    k++;
+  }
+  const x = Number(a) * 2 ** (k + 600) * 2 ** -600;
+  return v < 0n ? -x : x;
+}
+
+/** R's sum() of doubles: accumulated in long double (x87 extended, 64-bit significand, on x86_64 R), then rounded */
 function rsum(terms: number[]): number {
-  // Shewchuk's exact summation (as in Python's math.fsum), then rounding of the expansion
-  const partials: number[] = [];
-  for (let x of terms) {
-    let i = 0;
-    for (let y of partials) {
-      if (Math.abs(x) < Math.abs(y)) [x, y] = [y, x];
-      const hi = x + y;
-      const lo = y - (hi - x);
-      if (lo !== 0) partials[i++] = lo;
-      x = hi;
-    }
-    partials.length = i;
-    partials.push(x);
-  }
-  let n = partials.length;
-  if (n === 0) return 0;
-  let hi = partials[--n]!;
-  let lo = 0;
-  while (n > 0) {
-    const x = hi;
-    const y = partials[--n]!;
-    hi = x + y;
-    const yr = hi - x;
-    lo = y - yr;
-    if (lo !== 0) break;
-  }
-  // half-way correction
-  if (n > 0 && ((lo < 0 && partials[n - 1]! < 0) || (lo > 0 && partials[n - 1]! > 0))) {
-    const y = lo * 2;
-    const x = hi + y;
-    if (y === x - hi) hi = x;
-  }
-  return hi;
+  let s = 0n;
+  for (const t of terms) s = roundTo(s + exact(t), 64);
+  return toDouble(roundTo(s, 53));
 }
 
 /** x^3 correctly rounded, as the C library's pow (R's x^3) */

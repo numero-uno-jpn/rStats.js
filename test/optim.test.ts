@@ -2,17 +2,9 @@
 // oracle/optim-behaviour.md, "Accuracy")
 import { describe, expect, it } from "vitest";
 import { optim, optimHess } from "../src/index.js";
-import { OPT_FNS, TOL, compare, loadOptimFixture, runCase } from "./helpers/optim.js";
+import { OPT_FNS, compare, loadOptimFixture, runCase } from "./helpers/optim.js";
 
 const cases = loadOptimFixture("optim");
-
-/**
- * Known differences (oracle/optim-behaviour.md, "Accuracy"): L-BFGS-B cases with R's counts and message whose par or
- * value differ in the last bits, compared within a relative 1e-10. Each must fail at 1e-12, or the entry is not needed.
- */
-const KNOWN: Record<number, string> = {
-  24: "R's L-BFGS-B takes inner products with the BLAS (OpenBLAS ddot, summation order of the CPU kernel)",
-};
 
 describe("optim against R", () => {
   const byMethod = new Map<string, { cases: number; maxErr: number }>();
@@ -20,15 +12,9 @@ describe("optim against R", () => {
     const name = `${k}: ${c.args.fn as string} ${c.args.method as string}${c.args.gradient === true ? " gr" : ""} ${JSON.stringify(c.args.control ?? {})}`;
     it(name, () => {
       const r = runCase(c.args);
-      const known = KNOWN[k];
-      if (known !== undefined) {
-        expect(c.args.method).toBe("L-BFGS-B");
-        expect(compare(c, r).failures, "known difference not needed").not.toEqual([]);
-        console.log(`optim case ${k}: known difference (${known})`);
-      }
-      const { failures, maxErr } = compare(c, r, known === undefined ? TOL : 1e-10);
+      const { failures, maxErr } = compare(c, r);
       const m = byMethod.get(c.args.method as string) ?? { cases: 0, maxErr: 0 };
-      if (known === undefined) byMethod.set(c.args.method as string, { cases: m.cases + 1, maxErr: Math.max(m.maxErr, maxErr) });
+      byMethod.set(c.args.method as string, { cases: m.cases + 1, maxErr: Math.max(m.maxErr, maxErr) });
       expect(failures).toEqual([]);
     });
   });
