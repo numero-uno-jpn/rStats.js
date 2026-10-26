@@ -7,6 +7,19 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## 0.11.1 - 2026-10-26
+
+Documentation only; the code is the same as in 0.11.0.
+
+### Added
+
+- The [API reference](https://numero-uno-jpn.github.io/rStats.js/api/) is published on GitHub Pages, built from
+  each release: a front page, the functions grouped by subject, every result field documented, and an example for
+  every function (the examples are run by the tests, which found and fixed wrong values in eight of the older ones).
+- [docs/r-functions.md](docs/r-functions.md) (and [docs/ja/r-functions.md](docs/ja/r-functions.md)): the R function
+  that each rStats.js function corresponds to, with a one-line description, generated from the doc comments.
+- The performance page is remeasured on 0.11.0, with R's times alongside.
+
 ## 0.11.0 - 2026-10-26
 
 ### Added
