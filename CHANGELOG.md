@@ -7,6 +7,48 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `prcomp` options `rank` and `tol` (R's `rank.` and `tol`): `rotation` and `x` keep only the first components;
+  `sdev` keeps all of them, as in R.
+- `factanal` option `scores` (`"regression"` or `"Bartlett"`) and the `scores` of the result.
+
+### Fixed
+
+Differences from R found by an external check of 0.11.1 against R (4057 cases) and confirmed with R 4.5.2:
+
+- `optimize` never returned when an end of the interval was infinite; it and `uniroot` now fail with R's
+  `invalid 'xmin' value` / `invalid 'xmax' value`.
+- `eigen` of a nonsymmetric matrix now balances it first, as LAPACK's dgeev does: badly scaled matrices lost most of
+  their accuracy (eigenvalues of [[1, 1e8, 0], [1e-8, 1, 1e6], [0, 1e-6, 2]] were 2.635, 1.714, -0.348 instead of
+  2.802, 1.445, -0.247).
+- `sum`, `prod`, `cumsum`, `cumprod`, `mean` (also trimmed), `median` and `weightedMean` gave NaN when a running
+  sum or product passed the double range; they now give R's values (R accumulates in long double), for example
+  `mean([1e308, 1e308, 1e308])` = 1e308 and `prod([1e-308, 1e-10, 1e10])` = 1e-308.
+- Numbers as group labels (`table`, `tapply`, `split`, `aggregate`, the (x, g) forms of the k-sample tests and
+  multiple comparisons, survival strata, `aovEz`, `mauchlyTest` and others) are grouped by their 15-digit text, as
+  R's `factor()` does: 0.1 + 0.2 and 0.3 are one group, and so are 1e15 and 1e15 + 1. A level's value is the
+  smallest of its values; numeric level names are written as R writes them ("1e+15"). **Results for such labels
+  change.**
+- Gamma and chi-squared distributions with an infinite shape (`qgamma(p, Inf)` gave 1, `pgamma(Inf, Inf)` NaN).
+  Where R itself gives NaN (0 < q/scale < 1) the library gives the limit; see docs/differences-from-r.md.
+- `tTest` with `varEqual: true` accepts a sample of size 1, as R does.
+- `glm` accepts every named link in every family, as R does (`poisson` with `"inverse"`, `binomial` with
+  `"identity"`, ...), with R's errors for links that fail (`Value 1.1 out of range (0, 1)`) or are unknown.
+- `cut` drops NaN among the breaks and gives R's errors for data without a finite range.
+- `cor` and `cov` of fewer than 2 observations are NaN, the diagonal included.
+- `dbinom` with `size` Inf is 0 (1 at x = 0 for prob 0), as in R 4.5.
+- `beta` and `lbeta` with a negative argument are NaN, as in R (they gave the analytic continuation).
+- `qr` with `lapack: true` returns `qraux` with min(n, p) elements.
+- `kappa` estimates: through the triangular factor, every norm other than "I" gives the 1-norm estimate (R warns),
+  instead of an error for "F", "M" and "2"; with `method: "direct"` other norms are R's error.
+- `dbeta` with a shape of 1 is exact (`dbeta(x, 1, 1, { log: true })` is 0).
+- `findInterval` with fewer than 2 break points, `tabulate` with a fractional or invalid `nbins`, `pretty` with a
+  negative or fractional `n` or invalid `minN`, `mad` with `low`/`high` and missing values, and `approx` with `f`
+  outside [0, 1]: R's values and errors.
+
 ## 0.12.0 - 2026-10-27
 
 ### Added
