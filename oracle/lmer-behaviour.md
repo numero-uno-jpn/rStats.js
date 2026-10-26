@@ -266,7 +266,8 @@ at the exact minimiser (with `newtonSteps`, for information). The fixture **lmer
 cases in the same format and is tested the same way; among them, `y ~ cond + (1 | subj/cond)` (ML) has its optimum
 on the boundary although lme4 stops inside (so lme4's `singular` and `messages` differ from the reference's: the
 reference is right), and `y ~ x + (1 | subj)` (REML) has its optimum just inside the boundary (θ ≈ 0.0099), where the
-criterion is very flat.
+criterion is very flat. The fixture **lmerBoundary** (`oracle/lmerboundary.R`) has 16 more cases with small group
+variances, whose optima are on the boundary or just inside it.
 
 Accuracy required, against `reference`: `logLik`, `AIC`, `BIC`, `deviance`, `REMLcrit`: relative 1e-12 (they are
 insensitive to small errors in θ̂). `theta`, `fixef`, `stdError`, `tValue`, `vcov`, `sigma`, `varCorr` (`sd`, and

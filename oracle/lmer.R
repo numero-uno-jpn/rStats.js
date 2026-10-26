@@ -127,7 +127,7 @@ optimum <- function(s, theta0, reml, fixed = s$lower == 0 & theta0 < 1e-4) {
   }
   Hinv <- solve(H)
   steps <- character(0)
-  for (it in 1:12) {
+  for (it in 1:60) {
     g <- gradmp(theta)
     step <- mp(numeric(m))
     for (k in seq_len(m)) step[k] <- -sum(mp(Hinv[k, ]) * g)
