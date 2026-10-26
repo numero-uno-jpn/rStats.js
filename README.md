@@ -14,7 +14,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.2 KB gzipped).
 
-Status: **0.10.0.** The goal is to cover the numerical core of R's
+Status: **0.11.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
 functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -208,10 +208,10 @@ removed. Approximate sizes after minification and gzip:
 | `pnorm` | 1.2 KB |
 | `setSeed`, `rnorm` | 1.7 KB |
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 8.6 / 15.6 / 21.4 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 12.1 / 15.6 / 24.9 KB |
 | `qbeta` / `pt` and `qt` | 23.2 / 30.3 KB |
 | `glm` and `glmSummary` / `glm` with all its methods | 27.2 / 39.2 KB |
-| everything | 177.9 KB |
+| everything | 185.8 KB |
 
 (`npm run size` measures these.)
 
@@ -220,11 +220,11 @@ Each area is also a subpath export, for importing one area without the rest:
 `predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics` and `/special`.
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function, 178 KB gzipped) from jsDelivr, which serves each release tag of this repository:
+function, 186 KB gzipped) from jsDelivr, which serves each release tag of this repository:
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.10.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.11.0/dist/rstats.js";
   console.log(pnorm(1.96)); // 0.9750021048517795
 </script>
 ```
@@ -240,11 +240,11 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js` and `dist/special.js`
 export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 27 KB (`linalg`) to 151 KB (`tests`) gzipped.
+transfers 29 KB (`numerics`) to 153 KB (`tests`) gzipped.
 
 Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
 work as well, for example
-`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.10.0/dist/rstats.js` or
+`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.11.0/dist/rstats.js` or
 `https://esm.sh/@numero-uno-jpn/rstats`.
 
 The browser build is tested in headless Chromium, both bundled and as `dist/rstats.js` loaded as

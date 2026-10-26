@@ -342,23 +342,23 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 | `pnorm` | 2.3 KB | 1.2 KB |
 | `setSeed`, `rnorm` | 3.4 KB | 1.7 KB |
 | `solve` / `svd` / `eigen` | 3.8 / 4.5 / 9.6 KB | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` | 19.4 KB | 8.6 KB |
+| `wilcoxTest` | 28.5 KB | 12.1 KB |
 | `fisherTest` | 32.2 KB | 15.6 KB |
-| `tTest` | 45.0 KB | 21.4 KB |
+| `tTest` | 54.3 KB | 24.9 KB |
 | `qbeta` | 49.7 KB | 23.2 KB |
 | `pt`, `qt` | 63.8 KB | 30.3 KB |
 | `glm`, `glmSummary` / `glm` with all its methods | 62.7 / 88.7 KB | 27.2 / 39.2 KB |
-| everything | 469.2 KB | 177.9 KB |
+| everything | 491.5 KB | 185.8 KB |
 | `@numero-uno-jpn/rstats/distributions` (all of it) | 171.4 KB | 67.8 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 354.0 KB | 139.3 KB |
-| `@numero-uno-jpn/rstats/linalg` (all of it) | 47.6 KB | 17.6 KB |
-| `@numero-uno-jpn/rstats/descriptive` (all of it) | 21.5 KB | 8.4 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 358.6 KB | 140.9 KB |
+| `@numero-uno-jpn/rstats/linalg` (all of it) | 48.9 KB | 18.1 KB |
+| `@numero-uno-jpn/rstats/descriptive` (all of it) | 40.9 KB | 15.4 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 47.8 KB | 20.7 KB |
 | `@numero-uno-jpn/rstats/special` (all of it) | 57.9 KB | 26.8 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share
-code between areas through `dist/chunks/`, so one area loaded from them transfers more: 27 KB
-(`linalg`) to 151 KB (`tests`) gzipped, chunks included.
+code between areas through `dist/chunks/`, so one area loaded from them transfers more: 29 KB
+(`numerics`) to 153 KB (`tests`) gzipped, chunks included.
 
 The incomplete beta function's uniform asymptotic expansion adds 1.3 KB gzipped to everything
 that uses `pbeta` (`qbeta`, `pt`, `tTest`, ...), and the allocation-free loop of its continued

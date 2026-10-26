@@ -184,21 +184,21 @@ rStats.js は R より 3〜28 倍遅くなっています。R はブロック化
 | `pnorm` | 2.3 KB | 1.2 KB |
 | `setSeed`、`rnorm` | 3.4 KB | 1.7 KB |
 | `solve` / `svd` / `eigen` | 3.8 / 4.5 / 9.6 KB | 1.7 / 2.0 / 3.7 KB |
-| `wilcoxTest` | 19.4 KB | 8.6 KB |
+| `wilcoxTest` | 28.5 KB | 12.1 KB |
 | `fisherTest` | 32.2 KB | 15.6 KB |
-| `tTest` | 45.0 KB | 21.4 KB |
+| `tTest` | 54.3 KB | 24.9 KB |
 | `qbeta` | 49.7 KB | 23.2 KB |
 | `pt`、`qt` | 63.8 KB | 30.3 KB |
 | `glm`、`glmSummary` / `glm` とすべてのメソッド | 62.7 / 88.7 KB | 27.2 / 39.2 KB |
-| すべて | 469.2 KB | 177.9 KB |
+| すべて | 491.5 KB | 185.8 KB |
 | `@numero-uno-jpn/rstats/distributions` (全体) | 171.4 KB | 67.8 KB |
-| `@numero-uno-jpn/rstats/tests` (全体) | 354.0 KB | 139.3 KB |
-| `@numero-uno-jpn/rstats/linalg` (全体) | 47.6 KB | 17.6 KB |
-| `@numero-uno-jpn/rstats/descriptive` (全体) | 21.5 KB | 8.4 KB |
+| `@numero-uno-jpn/rstats/tests` (全体) | 358.6 KB | 140.9 KB |
+| `@numero-uno-jpn/rstats/linalg` (全体) | 48.9 KB | 18.1 KB |
+| `@numero-uno-jpn/rstats/descriptive` (全体) | 40.9 KB | 15.4 KB |
 | `@numero-uno-jpn/rstats/numerics` (全体) | 47.8 KB | 20.7 KB |
 | `@numero-uno-jpn/rstats/special` (全体) | 57.9 KB | 26.8 KB |
 
-サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 27 KB (`linalg`) から 151 KB (`tests`) です。
+サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 29 KB (`numerics`) から 153 KB (`tests`) です。
 
 不完全ベータ関数の一様漸近展開は、`pbeta` を使うもの (`qbeta`、`pt`、`tTest` など) に gzip で 1.3 KB、連分数の配列を確保しないループは 2.6 KB を加えます (割り算も含めてすべての double-double 演算を書き出すと、さらに 1.3 KB 大きくなり、ループはさらに約 1.3 倍速くなるだけでした)。一方のパラメータが大きく他方が小さいときの展開は gzip で 0.8〜1.1 KB を加えます (`pt` と `qt` 29.4 → 30.3 KB、`qbeta` 22.1 → 23.2 KB、`tTest` 20.3 → 21.4 KB、すべて 120.9 → 121.8 KB)。
 

@@ -7,7 +7,7 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 0.11.0 - 2026-10-26
 
 ### Added
 
@@ -25,6 +25,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
     `.value`, `namesSep`, `namesPattern`, `valuesFill` and `valuesFn`.
 - [docs/guide-for-js-developers.md](docs/guide-for-js-developers.md) (and its Japanese translation): R's way of
   writing an analysis explained for JavaScript developers, with a worked example that the tests run.
+
+### Changed
+
+- The tests with a formula form import the formula and model-frame code: `tTest` alone is 24.9 KB gzipped (was
+  21.4 KB), `wilcoxTest` 12.1 KB (was 8.6 KB). Everything together is 185.8 KB.
 
 ## 0.10.0 - 2026-10-26
 
