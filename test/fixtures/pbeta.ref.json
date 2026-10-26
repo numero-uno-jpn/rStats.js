@@ -308,5 +308,13 @@
   {"args":{"q":"1e-100","shape1":"2.5","shape2":"5","lowerTail":false,"logP":true},"reference":"-2.3460937500000001e-249"},
   {"args":{"q":"9.9999999999999995e-21","shape1":"5","shape2":"100","lowerTail":false,"logP":true},"reference":"-9.1962519999999977e-93"},
   {"args":{"q":"0.10000000000000001","shape1":"2.5","shape2":"1000","lowerTail":false,"logP":false},"reference":"1.335152311519892e-43"},
-  {"args":{"q":"0.10000000000000001","shape1":"2.5","shape2":"1000","lowerTail":true,"logP":true},"reference":"-1.335152311519892e-43"}
+  {"args":{"q":"0.10000000000000001","shape1":"2.5","shape2":"1000","lowerTail":true,"logP":true},"reference":"-1.335152311519892e-43"},
+  {"args":{"q":"1e-300","shape1":"1","shape2":"3","lowerTail":true,"logP":false},"reference":"3.0000000000000002e-300"},
+  {"args":{"q":"1e-300","shape1":"1","shape2":"3","lowerTail":false,"logP":true},"reference":"-3.0000000000000002e-300"},
+  {"args":{"q":"1e-300","shape1":"1","shape2":"2","lowerTail":true,"logP":false},"reference":"2.0000000000000001e-300"},
+  {"args":{"q":"1e-300","shape1":"1","shape2":"2","lowerTail":false,"logP":true},"reference":"-2.0000000000000001e-300"},
+  {"args":{"q":"1e-300","shape1":"1","shape2":"1","lowerTail":true,"logP":false},"reference":"1e-300"},
+  {"args":{"q":"1e-300","shape1":"1","shape2":"1","lowerTail":false,"logP":true},"reference":"-1e-300"},
+  {"args":{"q":"1e-300","shape1":"1","shape2":"1.5","lowerTail":true,"logP":false},"reference":"1.5000000000000001e-300"},
+  {"args":{"q":"1e-300","shape1":"1","shape2":"1.5","lowerTail":false,"logP":true},"reference":"-1.5000000000000001e-300"}
 ]

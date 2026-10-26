@@ -53,6 +53,19 @@ function dbetaCore(x: number, a: number, b: number, log: boolean): number {
   return log ? t[0] + t[1] : Math.exp(t[0]) * (1 + t[1]);
 }
 
+/**
+ * Log density when one shape is 1 (0 < x < 1, 0 < a, b < Inf, not both 1). The density is elementary:
+ *   log f = log(b) + (b - 1) log(1 - x)  for a = 1,   log f = log(a) + (a - 1) log(x)  for b = 1
+ * (B(1, b) = 1/b). Evaluated in double-double, with 1 - x exact, so that the result is correctly rounded in practice
+ * and exactly 0 where the two terms cancel, as R's (for example Beta(1, 2) at x = 1/2)
+ */
+function dbetaShape1Log(x: number, a: number, b: number): number {
+  const [xd, xcd] = pair(x);
+  const [s, l] = a === 1 ? [b, xcd] : [a, xd];
+  const t = ddAdd(ddLog([s, 0]), ddMul(twoSum(s, -1), ddLog(l)));
+  return t[0] + t[1];
+}
+
 /** Log density (0 < x < 1, 0 < a, b < Inf) */
 export function dbetaLog(x: number, _xc: number, a: number, b: number): number {
   return dbetaCore(x, a, b, true);
@@ -79,6 +92,9 @@ export function dbeta1(x: number, a: number, b: number, log: boolean): number {
     if (b < 1) return Infinity;
     return log ? Math.log(a) : a;
   }
+  // Beta(1, 1) is uniform: density exactly 1, log density exactly 0 (as in R)
+  if (a === 1 && b === 1) return log ? 0 : 1;
+  if (log && (a === 1 || b === 1)) return dbetaShape1Log(x, a, b);
   return dbetaCore(x, a, b, log);
 }
 

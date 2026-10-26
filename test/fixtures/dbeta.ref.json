@@ -255,5 +255,6 @@
   {"args":{"x":"0.75","shape1":"2","shape2":"100","log":false},"reference":"1.8855736291919259e-56"},
   {"args":{"x":"0.25","shape1":"100","shape2":"2","log":false},"reference":"1.8855736291919259e-56"},
   {"args":{"x":"0.90000000000000002","shape1":"1","shape2":"100","log":false},"reference":"9.9999999999997808e-98"},
-  {"args":{"x":"0.25","shape1":"100","shape2":"50","log":false},"reference":"1.2611199435438221e-24"}
+  {"args":{"x":"0.25","shape1":"100","shape2":"50","log":false},"reference":"1.2611199435438221e-24"},
+  {"args":{"x":"1e-300","shape1":"2","shape2":"1","log":false},"reference":"2.0000000000000001e-300"}
 ]
