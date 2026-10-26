@@ -171,7 +171,9 @@ New to R's way of writing an analysis (data frames, formulas, factors)? [docs/gu
 
 Coming from jStat? [docs/migrating-from-jstat.md](docs/migrating-from-jstat.md) lists the replacement for every jStat function.
 
-An API reference can be generated with `npm run docs` (TypeDoc).
+The [API reference](https://numero-uno-jpn.github.io/rStats.js/api/) documents every function, with an example
+for each (the examples are run by the tests). [docs/r-functions.md](docs/r-functions.md) lists the R function that
+each one corresponds to. (`npm run docs` builds the reference locally.)
 
 For AI coding assistants, [llms.txt](llms.txt) summarises how R code translates to rStats.js
 calls (also in the npm package and at <https://numero-uno-jpn.github.io/rStats.js/llms.txt>).

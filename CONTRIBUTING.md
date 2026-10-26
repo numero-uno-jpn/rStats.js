@@ -100,6 +100,12 @@ rStats.js is MIT licensed. To keep it that way:
   (`*.md` and `docs/`) are written in English. `docs/ja/` and the `*.ja.md` files are Japanese
   translations; the English documents are authoritative, and a change to one should be made in
   its translation too.
+- Every exported function's TSDoc has an `@example` whose `// value` comments are checked by
+  `test/docExamples.test.ts`, and exactly one sentence naming its R counterpart in a fixed form
+  (``Equivalent to R's `t.test()`.``, ``Equivalent to `car::Anova()` in R.`` or `Not an R function.`;
+  `test/rNames.test.ts`). After changing these, regenerate `docs/r-functions.md` with `node
+  scripts/r-index.mjs > docs/r-functions.md` and copy its tables into `docs/ja/r-functions.md`.
+  `npx typedoc@0.28.20` must report no warnings.
 - Errors: `TypeError` for wrong types or shapes, `RangeError` for values out of range, `Error`
   for numerical failures. Messages are in English.
 

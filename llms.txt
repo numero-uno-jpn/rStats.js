@@ -103,6 +103,8 @@ glmSummary(fit).pValue;  // ≈ [5.357e-8, 3.579e-9]
 - [README](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/README.md): install, examples, the full list of functions by area
 - [Differences from R](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/differences-from-r.md): every known difference from R, function by function
 - [Accuracy](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/accuracy.md): how results are checked against R and high-precision references
+- [API reference](https://numero-uno-jpn.github.io/rStats.js/api/): every function with its options, results and an example
+- [R functions](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/r-functions.md): the R function each rStats.js function corresponds to
 - [Guide for JavaScript developers](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/guide-for-js-developers.md): data frames, missing values, factors, formulas and a worked analysis
 - [Migrating from jStat](https://raw.githubusercontent.com/numero-uno-jpn/rStats.js/main/docs/migrating-from-jstat.md): the replacement for every jStat function
 

@@ -174,7 +174,8 @@ R の分析の書き方 (データフレーム、formula、因子) に慣れて�
 
 jStat から移るときは [docs/ja/migrating-from-jstat.md](docs/ja/migrating-from-jstat.md) に jStat の全関数の置き換えがあります。
 
-API リファレンスは `npm run docs` (TypeDoc) で作れます (英語)。
+[API リファレンス](https://numero-uno-jpn.github.io/rStats.js/api/) (英語) に、すべての関数の説明と使用例があります (使用例はテストで実行しています)。
+R の関数から rStats.js の関数を引くには [docs/ja/r-functions.md](docs/ja/r-functions.md) を見てください。(`npm run docs` で手元でもリファレンスを作れます。)
 
 AI のコーディング支援向けに、R のコードを rStats.js の呼び出しに書き換える方法を [llms.txt](llms.txt)
 にまとめています (英語。npm のパッケージにも入っていて、<https://numero-uno-jpn.github.io/rStats.js/llms.txt>
