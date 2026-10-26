@@ -9,7 +9,9 @@
 import { pf1 } from "../distributions/f.js";
 import { mean, variance } from "../internal/summary.js";
 import { swilkOneMinusW, swilkPValueFromOneMinusW } from "./core/shapiro.js";
+import type { DataFrame } from "../models/modelFrame.js";
 import { toGroups, type GroupLabel } from "./groups.js";
+import { onewayData } from "./testFormula.js";
 import type { HTest, Sample } from "./types.js";
 
 /** Options for {@link onewayTest}. */
@@ -31,12 +33,34 @@ export interface OnewayTestResult extends Omit<HTest, "alternative" | "parameter
  *
  * @param x An array of samples, or one sample with group labels `g`.
  * @param g Group labels, parallel to `x` (or the options, when `x` is an array of samples).
+ *
+ * There is also a formula form, `onewayTest("y ~ A + B", data, options)` (next overload).
  */
 export function onewayTest(
   x: Sample | readonly Sample[],
   g?: readonly GroupLabel[] | OnewayTestOptions,
+  options?: OnewayTestOptions,
+): OnewayTestResult;
+/**
+ * One-way analysis of means from a formula and a data frame. Equivalent to R's `oneway.test(formula, data)`:
+ * `"y ~ A"` has one group per level of `A`; with several factors, `"y ~ A + B"`, the groups are the combinations of
+ * their levels present in the data (R's `interaction()`, the first factor varying fastest). Only the variables of
+ * the formula count: the rows where one of them is missing are dropped.
+ *
+ * @param formula `"y ~ A"` or `"y ~ A + B + ..."`.
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ * @param options See {@link OnewayTestOptions}.
+ */
+export function onewayTest(formula: string, data: DataFrame, options?: OnewayTestOptions): OnewayTestResult;
+export function onewayTest(
+  x: Sample | readonly Sample[] | string,
+  g?: readonly GroupLabel[] | OnewayTestOptions | DataFrame,
   options: OnewayTestOptions = {},
 ): OnewayTestResult {
+  if (typeof x === "string") {
+    const d = onewayData(x, g as DataFrame);
+    return onewayTest(d.values, d.groups, options);
+  }
   let labels: readonly GroupLabel[] | undefined;
   if (g !== undefined && !Array.isArray(g)) options = g as OnewayTestOptions;
   else labels = g as readonly GroupLabel[] | undefined;

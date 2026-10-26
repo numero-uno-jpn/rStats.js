@@ -21,7 +21,9 @@ import { pf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { rank, tieCounts, variance } from "../internal/summary.js";
+import type { DataFrame } from "../models/modelFrame.js";
 import { completeRows, median, toGroups, type GroupLabel } from "./groups.js";
+import { blockData, kSampleData, twoGroupData } from "./testFormula.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /** Result of a k-sample test with a chi-squared statistic. Has no `alternative`, as R returns none. */
@@ -53,9 +55,25 @@ function sumTies(x: readonly number[]): number {
  * @param x An array of samples (each with at least one non-missing value, as R requires), or one sample with group
  *   labels `g`.
  * @param g Group labels, parallel to `x`.
+ *
+ * There is also a formula form, `kruskalTest("y ~ g", data)` (next overload).
  */
-export function kruskalTest(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): ChisqStatTestResult {
-  const groups = toGroups(x, g, "error");
+export function kruskalTest(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): ChisqStatTestResult;
+/**
+ * Kruskal-Wallis test from a formula and a data frame. Equivalent to R's `kruskal.test(formula, data)`: `"y ~ g"`,
+ * one group per level of `g`. Only the variables of the formula count: the rows where one of them is missing are
+ * dropped.
+ *
+ * @param formula `"y ~ g"` (one variable on each side).
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ */
+export function kruskalTest(formula: string, data: DataFrame): ChisqStatTestResult;
+export function kruskalTest(x: Sample | readonly Sample[] | string, g?: readonly GroupLabel[] | DataFrame): ChisqStatTestResult {
+  if (typeof x === "string") {
+    const d = kSampleData(x, g as DataFrame);
+    return kruskalTest(d.values, d.group.codes);
+  }
+  const groups = toGroups(x, g as readonly GroupLabel[] | undefined, "error");
   const k = groups.length;
   if (k < 2) throw new RangeError("all observations are in the same group");
   const all = groups.flat();
@@ -78,8 +96,22 @@ export function kruskalTest(x: Sample | readonly Sample[], g?: readonly GroupLab
  * matrix.
  *
  * @param y Blocks as rows, treatments as columns. Rows with a missing value are dropped.
+ *
+ * There is also a formula form, `friedmanTest("y ~ w | b", data)` (next overload).
  */
-export function friedmanTest(y: readonly (readonly number[])[]): ChisqStatTestResult {
+export function friedmanTest(y: readonly (readonly number[])[]): ChisqStatTestResult;
+/**
+ * Friedman test from a formula and a data frame. Equivalent to R's `friedman.test(formula, data)`: `"y ~ w | b"`
+ * with the groups `w` and the blocks `b`. The rows where `y`, `w` or `b` is missing are dropped first; then every
+ * combination of group and block must occur exactly once (else the error `not an unreplicated complete block
+ * design`, so that one missing value fails, unlike the matrix form, which drops its block).
+ *
+ * @param formula `"y ~ w | b"` (one variable on each side of `|`).
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ */
+export function friedmanTest(formula: string, data: DataFrame): ChisqStatTestResult;
+export function friedmanTest(y: readonly (readonly number[])[] | string, data?: DataFrame): ChisqStatTestResult {
+  if (typeof y === "string") return friedmanTest(blockData(y, data!));
   const rows = completeRows(y);
   const n = rows.length;
   const k = y[0]?.length ?? 0;
@@ -119,8 +151,21 @@ export interface QuadeTestResult extends Omit<HTest, "alternative" | "parameter"
  * Quade test for an unreplicated complete block design. Equivalent to R's `quade.test()` with a matrix.
  *
  * @param y Blocks as rows, treatments as columns. Rows with a missing value are dropped.
+ *
+ * There is also a formula form, `quadeTest("y ~ w | b", data)` (next overload).
  */
-export function quadeTest(y: readonly (readonly number[])[]): QuadeTestResult {
+export function quadeTest(y: readonly (readonly number[])[]): QuadeTestResult;
+/**
+ * Quade test from a formula and a data frame. Equivalent to R's `quade.test(formula, data)`: `"y ~ w | b"` with the
+ * groups `w` and the blocks `b`. The rows where `y`, `w` or `b` is missing are dropped first; then every combination
+ * of group and block must occur exactly once (else the error `not an unreplicated complete block design`).
+ *
+ * @param formula `"y ~ w | b"` (one variable on each side of `|`).
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ */
+export function quadeTest(formula: string, data: DataFrame): QuadeTestResult;
+export function quadeTest(y: readonly (readonly number[])[] | string, data?: DataFrame): QuadeTestResult {
+  if (typeof y === "string") return quadeTest(blockData(y, data!));
   const rows = completeRows(y);
   // as in R, b counts all blocks, including those dropped for a missing value
   const b = y.length;
@@ -172,9 +217,25 @@ export function quadeTest(y: readonly (readonly number[])[]): QuadeTestResult {
  * @param x An array of samples (each with at least one non-missing value, as R requires), or one sample with group
  *   labels `g`.
  * @param g Group labels, parallel to `x`.
+ *
+ * There is also a formula form, `flignerTest("y ~ g", data)` (next overload).
  */
-export function flignerTest(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): ChisqStatTestResult {
-  const groups = toGroups(x, g, "error");
+export function flignerTest(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): ChisqStatTestResult;
+/**
+ * Fligner-Killeen test from a formula and a data frame. Equivalent to R's `fligner.test(formula, data)`: `"y ~ g"`,
+ * one group per level of `g`. Only the variables of the formula count: the rows where one of them is missing are
+ * dropped.
+ *
+ * @param formula `"y ~ g"` (one variable on each side).
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ */
+export function flignerTest(formula: string, data: DataFrame): ChisqStatTestResult;
+export function flignerTest(x: Sample | readonly Sample[] | string, g?: readonly GroupLabel[] | DataFrame): ChisqStatTestResult {
+  if (typeof x === "string") {
+    const d = kSampleData(x, g as DataFrame);
+    return flignerTest(d.values, d.group.codes);
+  }
+  const groups = toGroups(x, g as readonly GroupLabel[] | undefined, "error");
   const k = groups.length;
   if (k < 2) throw new RangeError("all observations are in the same group");
   const centred = groups.flatMap((grp) => {
@@ -209,11 +270,27 @@ export interface MoodTestOptions {
 /**
  * Mood's two-sample test of scale. Equivalent to R's `mood.test()`. `NaN` values are dropped; ties get the average
  * of the scores of their positions.
+ *
+ * There is also a formula form, `moodTest("y ~ g", data, options)` (next overload).
  */
-export function moodTest(x: Sample, y: Sample, options: MoodTestOptions = {}): HTest {
+export function moodTest(x: Sample, y: Sample, options?: MoodTestOptions): HTest;
+/**
+ * Mood's test from a formula and a data frame. Equivalent to R's `mood.test(formula, data)`: `"y ~ g"` compares the
+ * two levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where one of them is
+ * missing are dropped.
+ *
+ * @param formula `"y ~ g"`.
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ */
+export function moodTest(formula: string, data: DataFrame, options?: MoodTestOptions): HTest;
+export function moodTest(x: Sample | string, y: Sample | DataFrame, options: MoodTestOptions = {}): HTest {
+  if (typeof x === "string") {
+    const d = twoGroupData(x, y as DataFrame);
+    return moodTest(d.x, d.y, options);
+  }
   // as in R, infinite values are dropped along with NaN
   const xs = Array.from(x).filter(Number.isFinite);
-  const ys = Array.from(y).filter(Number.isFinite);
+  const ys = Array.from(y as Sample).filter(Number.isFinite);
   const alternative = matchAlternative(options.alternative);
   const m = xs.length;
   const n = ys.length;

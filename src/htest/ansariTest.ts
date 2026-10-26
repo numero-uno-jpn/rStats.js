@@ -20,7 +20,9 @@
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { rank } from "../internal/summary.js";
 import { uniroot } from "../internal/uniroot.js";
+import type { DataFrame } from "../models/modelFrame.js";
 import { pansariExact, qansariR } from "./core/ansari.js";
+import { twoGroupData } from "./testFormula.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /** Options for {@link ansariTest}. */
@@ -51,10 +53,26 @@ export interface AnsariTestOptions {
  * r.confInt;  // [0.25, 0.6666666666666666]
  * r.estimate; // 0.41666666666666663
  * ```
+ *
+ * There is also a formula form, `ansariTest("y ~ g", data, options)` (next overload).
  */
-export function ansariTest(x: Sample, y: Sample, options: AnsariTestOptions = {}): HTest {
+export function ansariTest(x: Sample, y: Sample, options?: AnsariTestOptions): HTest;
+/**
+ * Ansari-Bradley test from a formula and a data frame. Equivalent to R's `ansari.test(formula, data)`: `"y ~ g"`
+ * compares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where
+ * one of them is missing are dropped.
+ *
+ * @param formula `"y ~ g"`.
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ */
+export function ansariTest(formula: string, data: DataFrame, options?: AnsariTestOptions): HTest;
+export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: AnsariTestOptions = {}): HTest {
+  if (typeof x === "string") {
+    const d = twoGroupData(x, y as DataFrame);
+    return ansariTest(d.x, d.y, options);
+  }
   const xs = Array.from(x).filter((v) => !Number.isNaN(v));
-  const ys = Array.from(y).filter((v) => !Number.isNaN(v));
+  const ys = Array.from(y as Sample).filter((v) => !Number.isNaN(v));
   const m = xs.length;
   const n = ys.length;
   if (m < 1) throw new RangeError("not enough 'x' observations");

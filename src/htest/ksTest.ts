@@ -8,7 +8,9 @@
 // by counting lattice paths, asymptotic ones as for one sample with n replaced by m n / (m + n).
 
 import { pkolmogorovExact, pkolmogorovLimit, pkolmogorovOneSidedUpper } from "./core/kolmogorov.js";
+import type { DataFrame } from "../models/modelFrame.js";
 import { psmirnovUpper } from "./core/smirnov.js";
+import { twoGroupData } from "./testFormula.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /** Options for {@link ksTest}. */
@@ -47,8 +49,29 @@ function describe(alternative: Alternative, oneSample: boolean): string {
  * @param x Sample.
  * @param y A continuous distribution function, or a second sample.
  * @param options See {@link KsTestOptions}.
+ *
+ * There is also a formula form for two samples, `ksTest("y ~ g", data, options)` (next overload).
  */
-export function ksTest(x: Sample, y: Sample | ((q: number) => number), options: KsTestOptions = {}): KsTestResult {
+export function ksTest(x: Sample, y: Sample | ((q: number) => number), options?: KsTestOptions): KsTestResult;
+/**
+ * Two-sample Kolmogorov-Smirnov test from a formula and a data frame. Equivalent to R's `ks.test(formula, data)`:
+ * `"y ~ g"` compares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the
+ * rows where one of them is missing are dropped.
+ *
+ * @param formula `"y ~ g"`.
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ * @param options See {@link KsTestOptions}.
+ */
+export function ksTest(formula: string, data: DataFrame, options?: KsTestOptions): KsTestResult;
+export function ksTest(
+  x: Sample | string,
+  y: Sample | ((q: number) => number) | DataFrame,
+  options: KsTestOptions = {},
+): KsTestResult {
+  if (typeof x === "string") {
+    const d = twoGroupData(x, y as DataFrame);
+    return ksTest(d.x, d.y, options);
+  }
   const xs = Array.from(x)
     .filter((v) => !Number.isNaN(v))
     .sort((a, b) => a - b);
@@ -84,7 +107,7 @@ export function ksTest(x: Sample, y: Sample | ((q: number) => number), options: 
     };
   }
 
-  const ys = Array.from(y).filter((v) => !Number.isNaN(v));
+  const ys = Array.from(y as Sample).filter((v) => !Number.isNaN(v));
   const m = ys.length;
   if (m < 1) throw new RangeError("not enough 'y' data");
   // walk the pooled sorted values, recording F_x - F_y after each run of equal values

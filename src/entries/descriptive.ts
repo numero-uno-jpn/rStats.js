@@ -8,6 +8,7 @@ export { quantile, IQR, fivenum, mad, type QuantileOptions, type MadOptions } fr
 export { rank, type RankOptions, type TiesMethod } from "../descriptive/rank.js";
 export { cov, cor, type CovOptions, type CorUse } from "../descriptive/cov.js";
 export { tabulate, table, unique, cut, findInterval, type TableOptions, type CutOptions, type FindIntervalOptions } from "../descriptive/table.js";
+export { completeCases, naOmit, type MissingVector } from "../descriptive/missing.js";
 export { hist, pretty, ecdf, type HistOptions, type HistResult, type PrettyOptions } from "../descriptive/hist.js";
 export {
   skewness, kurtosis, geometricMean, modes, meanAD, cv, scale,

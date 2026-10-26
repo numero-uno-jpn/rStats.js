@@ -9,6 +9,8 @@
 import { pf1, qf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
 import { variance } from "../internal/summary.js";
+import type { DataFrame } from "../models/modelFrame.js";
+import { kSampleData, samplesByLevel, twoGroupData } from "./testFormula.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /** Options for {@link varTest}. */
@@ -41,11 +43,27 @@ export interface VarTestResult extends Omit<HTest, "parameter" | "parameterName"
  * ```ts
  * varTest([1, 3, 2, 5, 4], [2, 9, 4, 12, 7, 1]).statistic; // 0.2307692
  * ```
+ *
+ * There is also a formula form, `varTest("y ~ g", data, options)` (next overload).
  */
-export function varTest(x: Sample, y: Sample, options: VarTestOptions = {}): VarTestResult {
+export function varTest(x: Sample, y: Sample, options?: VarTestOptions): VarTestResult;
+/**
+ * F test of two variances from a formula and a data frame. Equivalent to R's `var.test(formula, data)`: `"y ~ g"`
+ * compares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where
+ * one of them is missing are dropped.
+ *
+ * @param formula `"y ~ g"`.
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ */
+export function varTest(formula: string, data: DataFrame, options?: VarTestOptions): VarTestResult;
+export function varTest(x: Sample | string, y: Sample | DataFrame, options: VarTestOptions = {}): VarTestResult {
+  if (typeof x === "string") {
+    const d = twoGroupData(x, y as DataFrame);
+    return varTest(d.x, d.y, options);
+  }
   // as in R, infinite values are dropped along with NaN
   const xs = Array.from(x).filter(Number.isFinite);
-  const ys = Array.from(y).filter(Number.isFinite);
+  const ys = Array.from(y as Sample).filter(Number.isFinite);
   const ratio = options.ratio ?? 1;
   if (!(Number.isFinite(ratio) && ratio > 0)) throw new RangeError("'ratio' must be a single positive number");
   const alternative = matchAlternative(options.alternative);
@@ -105,8 +123,25 @@ export interface BartlettTestResult extends Omit<HTest, "alternative"> {
  * ```ts
  * bartlettTest([[1, 3, 2, 5], [2, 9, 4, 12, 7], [3, 3.5, 4, 2]]).statistic;
  * ```
+ *
+ * There is also a formula form, `bartlettTest("y ~ g", data)` (next overload).
  */
-export function bartlettTest(groups: readonly Sample[]): BartlettTestResult {
+export function bartlettTest(groups: readonly Sample[]): BartlettTestResult;
+/**
+ * Bartlett's test from a formula and a data frame. Equivalent to R's `bartlett.test(formula, data)`: `"y ~ g"`, one
+ * group per level of `g`, in the order of the levels. Only the variables of the formula count: the rows where one of
+ * them is missing are dropped.
+ *
+ * @param formula `"y ~ g"` (one variable on each side).
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ */
+export function bartlettTest(formula: string, data: DataFrame): BartlettTestResult;
+export function bartlettTest(x: readonly Sample[] | string, data?: DataFrame): BartlettTestResult {
+  if (typeof x === "string") {
+    const d = kSampleData(x, data!);
+    return bartlettTest(samplesByLevel(d.values, d.group));
+  }
+  const groups = x;
   const k = groups.length;
   if (k < 2) throw new RangeError("'x' must be a list with at least 2 elements");
   const n: number[] = [];

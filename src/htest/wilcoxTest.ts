@@ -30,6 +30,8 @@ import {
   tieCounts,
 } from "../internal/summary.js";
 import { uniroot } from "../internal/uniroot.js";
+import type { DataFrame } from "../models/modelFrame.js";
+import { twoSampleData } from "./testFormula.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /** Options for {@link wilcoxTest}. */
@@ -93,12 +95,32 @@ export interface WilcoxTestResult extends HTest {
  * r.statistic; // 40 (V)
  * r.pValue;    // 0.01953125
  * ```
+ *
+ * There is also a formula form, `wilcoxTest("y ~ g", data, options)` (next overload).
  */
+export function wilcoxTest(x: Sample, y?: Sample | WilcoxTestOptions, options?: WilcoxTestOptions): WilcoxTestResult;
+/**
+ * Wilcoxon tests from a formula and a data frame. Equivalent to R's `wilcox.test(formula, data)`: `"y ~ g"` is the
+ * rank sum test of the two levels of `g` (the first level is `x`), `"y ~ 1"` the signed rank test and
+ * `"Pair(a, b) ~ 1"` the paired test of `a` and `b` (the option `paired` is not allowed). Only the variables of the
+ * formula count: the rows where one of them is missing are dropped.
+ *
+ * @param formula `"y ~ g"`, `"y ~ 1"` or `"Pair(a, b) ~ 1"`.
+ * @param data The data frame: an object of columns (`null` or `NaN` for a missing value).
+ * @param options See {@link WilcoxTestOptions}.
+ */
+export function wilcoxTest(formula: string, data: DataFrame, options?: WilcoxTestOptions): WilcoxTestResult;
 export function wilcoxTest(
-  x: Sample,
-  y?: Sample | WilcoxTestOptions,
+  x: Sample | string,
+  y?: Sample | WilcoxTestOptions | DataFrame,
   options: WilcoxTestOptions = {},
 ): WilcoxTestResult {
+  if (typeof x === "string") {
+    if (options.paired !== undefined) throw new Error("cannot use 'paired' in formula method");
+    const d = twoSampleData(x, y as DataFrame, true);
+    if (d.kind === "one") return wilcoxTest(d.x, options);
+    return wilcoxTest(d.x, d.y, d.kind === "paired" ? { ...options, paired: true } : options);
+  }
   // Also accept the form wilcoxTest(x, { mu: 1 })
   let ys: Sample | undefined;
   if (y !== undefined && !ArrayBuffer.isView(y) && !Array.isArray(y))
