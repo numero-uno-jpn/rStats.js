@@ -17,7 +17,9 @@ listed here, and the results must follow R's (the same iterations, so the same c
 3. Several tests compare `10 + x == 10 + y` (in double precision) to decide that a step changed nothing.
 4. In CG, after an accepted step the "previous" function value is overwritten before the quadratic interpolation, so
    the interpolation denominator is `−2 g·t s` (see CG). Reproduce it.
-5. Defaults: maxit 500 (Nelder-Mead), 10000 (SANN), 100 otherwise; reltol sqrt(eps); abstol −Inf; L-BFGS-B factr 1e7,
+5. R's own constants: SANN's `e − 1` is the 8-digit `1.7182818`; the line-search constants are 1e-4 (acceptance),
+   0.2 (step reduction) and 10 (rule 3); CG's step growth 1.7.
+6. Defaults: maxit 500 (Nelder-Mead), 10000 (SANN), 100 otherwise; reltol sqrt(eps); abstol −Inf; L-BFGS-B factr 1e7,
    pgtol 0, lmm 5; SANN temp 10, tmax 10; CG type 1.
 
 ## API
@@ -56,11 +58,18 @@ previous size, stop with convergence code 10. Result: the vertex L; convergence 
 Inverse Hessian approximation B (identity at a reset). At each step, direction `t = −B g`, `gradproj = t·g`. If
 gradproj < 0: steplength 1; try `x + s t`; if no coordinate changes (rule 3) stop the search; else accept when f is
 finite and `f ≤ f_min + gradproj s × 1e-4`, otherwise `s ×= 0.2`. Then "enough" = `f > abstol` and `|f − f_min| >
-reltol (|f_min| + reltol)`; if not enough, treat as no change. On progress: new gradient, `t ← s t`, `c ← g_new −
+reltol (|f_min| + reltol)`; if not enough, set f_min to f and treat as no change. On progress: new gradient, `t ← s t`, `c ← g_new −
 g_old`, `D1 = t·c`; if D1 > 0, update `B ← B + ((1 + c'Bc/D1) t t' − (Bc) t' − t (Bc)') / D1`, else reset at the next
 step. No progress: reset unless just reset (then stop). Uphill direction: reset unless just reset (then stop). Reset
 also when more than 2n gradients since the last reset. Iterations count the gradient evaluations (the first
 included); stop with convergence 1 at maxit. Counts: function and gradient evaluations.
+
+Order of the arithmetic (the iterations depend on the last bits): B is kept as its lower triangle. The direction:
+for each i in order, `t_i = −(Σ_{j ≤ i} B_ij g_j + Σ_{j > i} B_ji g_j)`, the sums taken j = 0, 1, ... in that order
+(subtracting each term from 0), and `gradproj += t_i g_i` in the same loop. The trial point `x_i + s t_i`; acceptance
+`f ≤ f_min + ((gradproj × s) × 1e-4)`. After a step, in one loop over i: `t_i ← s t_i`, `c_i ← g_i − c_i`, `D1 += t_i c_i`;
+then for each i: `(Bc)_i = Σ_{j ≤ i} B_ij c_j + Σ_{j > i} B_ji c_j` (same order), `D2 += (Bc)_i c_i`; `D2 = 1 + D2/D1`; then
+for each i and j ≤ i: `B_ij += (D2 t_i t_j − (Bc)_i t_j − t_i (Bc)_j) / D1` (the numerator evaluated left to right).
 
 ## CG (Nash's Algorithm 22)
 
@@ -71,7 +80,10 @@ g(g − c)`, `G2 = Σ c²`; type 3 (Beale-Sorenson) `G1 = Σ g(g − c)`, `G2 = 
 G1/G2` (1 if G2 ≤ 0), `t ← G3 t − g`, `gradproj = t·g`; line search from `s = oldstep` as in BFGS (acceptance updates
 f_min to the accepted f); then if some coordinate changed: `newstep = 2 (f − f_min − gradproj s)` (rule 4: f_min
 already equals f, so this is `−2 gradproj s`), and if it is positive, `newstep = −gradproj s² / newstep`, try `x +
-newstep t`: keep it if lower, else go back to `x + s t`. `oldstep = min(1, 1.7 s)`. The inner loop continues while some
+newstep t`: keep it if lower, else go back to `x + s t`. `oldstep = min(1, 1.7 s)` (s the last step tried; when G1 ≤ tol there was no line search and s is the previous
+one). There is no check that t is a descent direction. In the gradient loop, for each i in order, the type's terms
+use the previous `c_i` (and `t_i`) before `c_i ← g_i`, and `x_i` is set to the current point in the same loop. The
+result of CG is the point of the last gradient evaluation (x) with the last f_min. The inner loop continues while some
 coordinate changed, G1 > tol and cycle < n; the outer loop repeats unless (cycle = 1 and (nothing changed or G1 ≤ tol
 or f_min ≤ abstol)).
 
@@ -103,6 +115,9 @@ fnscale (g⁺_j − g⁻_j) / (2 e parscale_i parscale_j)`; then symmetrize `(H 
 ## Accuracy
 
 par, value and hessian within a relative 1e-12 of R (or 1e-12 absolute where R's value is 0 or the value is a
-minimum of 0); counts, convergence and message exactly. Known differences only within 1e-12 of an exact reference
+minimum of 0); counts, convergence and message exactly. One exception: R's L-BFGS-B takes its inner products with the
+BLAS (`ddot`, here OpenBLAS, whose summation order depends on the CPU kernel), so when an L-BFGS-B case has R's
+counts and message but par or value differ in the last bits, they may be listed as known differences up to a relative
+1e-10, with that reason. Known differences only within 1e-12 of an exact reference
 (none here), listed with reasons; no loosening. If an L-BFGS-B case does not follow R's iterations, report it with the
 case rather than adjusting.
