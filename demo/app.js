@@ -1,4 +1,5 @@
-// rStats.js demo: loads the library (jsDelivr by default, ../dist/rstats.js with ?src=local) and builds the tabs.
+// rStats.js demo: loads the library (jsDelivr by default, ../dist/rstats.js with ?src=local) and the mixed-models
+// area, which is not in the single-file bundle (dist/mixed.js), and builds the tabs.
 
 import { applyI18n, getLang, initLang, setLang, t } from "./i18n.js";
 import { h, setChildren, storage } from "./util.js";
@@ -12,14 +13,16 @@ import { createNumericsTab } from "./numerics.js";
 import { createCompareTab } from "./examples.js";
 
 /** The release whose build is loaded from jsDelivr. */
-const VERSION = "v0.11.1";
-const CDN_URL = `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@${VERSION}/dist/rstats.js`;
-const LOCAL_URL = "../dist/rstats.js";
+const VERSION = "v0.12.0";
+const CDN_DIST = `https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@${VERSION}/dist/`;
+const LOCAL_DIST = "../dist/";
 
 const params = new URLSearchParams(location.search);
 const source = params.get("src") === "local" ? "local" : "cdn";
-const libUrl = source === "local" ? LOCAL_URL : CDN_URL;
-const absUrl = new URL(libUrl, location.href).href;
+const distUrl = new URL(source === "local" ? LOCAL_DIST : CDN_DIST, location.href).href;
+const libUrl = `${distUrl}rstats.js`;
+/** The mixed-models area (lmer): a separate file, since it is not in dist/rstats.js */
+const mixedUrl = `${distUrl}mixed.js`;
 
 const ALL_TABS = ["distributions", "descriptive", "special", "random", "tests", "linalg", "numerics", "compare"];
 /** Tabs that need functions newer than some builds: shown only when the loaded build has them */
@@ -101,7 +104,7 @@ function showLoadError(err) {
       "section",
       { class: "card load-error", role: "alert", "data-testid": "load-error" },
       h("h2", { class: "card-title", i18n: "load.title" }),
-      h("p", {}, h("span", { i18n: "load.url" }), " ", h("code", { text: absUrl })),
+      h("p", {}, h("span", { i18n: "load.url" }), " ", h("code", { text: libUrl })),
       h("p", { class: "mono error-text", text: String(err?.message ?? err) }),
       source === "cdn" ? h("p", { i18n: "load.cdnHint" }) : h("p", { i18n: "load.localHint" }),
       h("ol", { class: "steps" }, h("li", {}, h("code", { text: "npm run build" })), h("li", {}, h("code", { text: "npx serve ." }), " ", h("span", { i18n: "load.serveHint" })), h("li", {}, h("span", { i18n: "load.open" }), " ", h("code", { text: "/demo/?src=local" }))),
@@ -192,22 +195,32 @@ async function start() {
   initLang(storage.get("rstats-demo-lang"), navigator.language);
   applyLang();
   let lib;
+  let mixed;
   try {
-    lib = await import(libUrl);
+    [lib, mixed] = await Promise.all([import(libUrl), import(mixedUrl)]);
   } catch (err) {
     showLoadError(err);
     return;
   }
+  const mixedNames = new Set(Object.keys(mixed));
   const [examplesFile, rResults] = await Promise.all([fetchJSON("examples.json"), fetchJSON("r-results.json")]);
   const ctx = {
-    lib,
+    lib: { ...lib, ...mixed },
     examples: Array.isArray(examplesFile?.examples) ? examplesFile.examples : null,
     rResults: rResults?.results ? rResults : null,
     refreshers: [],
-    importLine: (names) => `const { ${[...new Set(names)].join(", ")} } = await import("${absUrl}");`,
+    importLine: (names) => {
+      const unique = [...new Set(names)];
+      const fromMixed = unique.filter((n) => mixedNames.has(n));
+      const fromMain = unique.filter((n) => !mixedNames.has(n));
+      return [
+        ...(fromMain.length ? [`const { ${fromMain.join(", ")} } = await import("${libUrl}");`] : []),
+        ...(fromMixed.length ? [`const { ${fromMixed.join(", ")} } = await import("${mixedUrl}");`] : []),
+      ].join("\n");
+    },
   };
   buildTabs(ctx);
-  state = { phase: "ready", count: Object.keys(lib).length };
+  state = { phase: "ready", count: Object.keys(ctx.lib).length };
   renderStatus();
 }
 

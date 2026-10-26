@@ -14,7 +14,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.2 KB gzipped).
 
-Status: **0.11.1.** The goal is to cover the numerical core of R's
+Status: **0.12.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
 functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -256,7 +256,7 @@ function except those of `/mixed`, 186 KB gzipped) from jsDelivr, which serves e
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.11.1/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/gh/numero-uno-jpn/rStats.js@v0.12.0/dist/rstats.js";
   console.log(pnorm(1.96)); // 0.9750021048517795
 </script>
 ```
@@ -276,7 +276,7 @@ transfers 19 KB (`mixed`) to 156 KB (`tests`) gzipped.
 
 Release tags contain the build output (`dist/`), which is not on the main branch. npm-based CDNs
 work as well, for example
-`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.11.1/dist/rstats.js` or
+`https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.12.0/dist/rstats.js` or
 `https://esm.sh/@numero-uno-jpn/rstats`.
 
 The browser build is tested in headless Chromium, both bundled and as `dist/rstats.js` loaded as

@@ -1,7 +1,8 @@
 // End-to-end test of the demo (demo/) in headless Chromium (Playwright).
 //
 // The repository is served on a fake origin (http://rstats.test/) through page.route, and the jsDelivr URL of
-// the library is intercepted and answered with the local dist/rstats.js, so the real CDN code path is tested.
+// the library (dist/rstats.js, dist/mixed.js and the chunks the latter imports) is intercepted and answered with the
+// local dist/, so the real CDN code path is tested.
 // Every form operation is driven through the UI: every distribution with d/p/q, every r* function, every test
 // and every linear algebra operation. The page must not throw, and no error message may be shown (except where
 // an error is the expected outcome). The "Compare with R" tab must report all examples as passing.
@@ -19,7 +20,7 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const origin = "http://rstats.test";
-const CDN = /^https:\/\/cdn\.jsdelivr\.net\/gh\/numero-uno-jpn\/rStats\.js@v[^/]+\/dist\/rstats\.js$/;
+const CDN = /^https:\/\/cdn\.jsdelivr\.net\/gh\/numero-uno-jpn\/rStats\.js@v[^/]+\/dist\/(.+\.js)$/;
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -71,7 +72,7 @@ async function openDemo(browser, { cdn = "ok", query = "", contextOptions = {} }
           status: 200,
           contentType: "text/javascript; charset=utf-8",
           headers: { "access-control-allow-origin": "*" },
-          body: readFileSync(join(root, "dist", "rstats.js")),
+          body: readFileSync(join(root, "dist", ...CDN.exec(route.request().url())[1].split("/"))),
         })
       : route.fulfill({ status: 404, contentType: "text/plain", headers: { "access-control-allow-origin": "*" }, body: "Couldn't find the requested file" }),
   );
@@ -519,7 +520,10 @@ try {
     const { context, page, errors } = await openDemo(browser);
     await page.waitForSelector(`${tid("status")}[data-state="ready"]`, { timeout: 20000 });
     check("status shows the CDN source", (await page.getAttribute(tid("status"), "data-source")) === "cdn");
-    const exportCount = Object.keys(await import(new URL("../../dist/rstats.js", import.meta.url).href)).length;
+    // the demo loads dist/rstats.js and the mixed-models area dist/mixed.js
+    const exportCount = (
+      await Promise.all(["rstats.js", "mixed.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
+    ).reduce((n, m) => n + Object.keys(m).length, 0);
     check(`status mentions ${exportCount} functions`, (await page.textContent(tid("status"))).includes(String(exportCount)));
     for (const [name, fn] of [
       ["distributions", testDistributions],

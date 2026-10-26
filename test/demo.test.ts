@@ -32,7 +32,7 @@ const names = Object.keys(scope);
  * Exports added since the last release. The public demo loads the released build from jsDelivr, so their examples
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
-const NOT_IN_DEMO_YET: string[] = ["lmer"];
+const NOT_IN_DEMO_YET: string[] = [];
 /** Exports that only reproduce R's errors (PMCMRplus 1.9.12's steelTest fails on every input), so no example can show a value */
 const NO_DEMO: string[] = ["steelTest"];
 const fns = names.map((n) => scope[n]);
