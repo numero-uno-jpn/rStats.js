@@ -54,7 +54,11 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-1. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
+1. **データの扱い:** 「欠測値の処理 → 群分け → 検定」を手作業なしで (base R と `stats`)。(a) `completeCases` と
+   `naOmit`、検定の formula 版 (`tTest("y ~ g", data)`、`kruskalTest`、`friedmanTest("y ~ w | b", data)`、
+   `corTest("~ x + y", data)` など)。(b) `tapply`、`split`、`aggregate` (`aggregate("y ~ g + sex", data, mean)`)。
+   (c) `subset`、`merge`、データフレームの `rbind`・`cbind`。
+2. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
    使い (長さ √(a + b) の連分数の代わりに定数時間)、一方のパラメータが大きく他方が小さいときは
    DiDonato と Morris の展開を使う (自由度が大きい `pt` と `pf`、`pbeta(x, 1e6, 10)`、x が 0 または n
    に近い `pbinom`。最大 30 倍かかっていたのが、典型的な `pbeta` 程度の時間になった)。主要な d/p 関数は、
