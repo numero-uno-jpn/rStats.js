@@ -1,5 +1,5 @@
 // Multiple comparisons after a one-way layout: PMCMRplus's dscfAllPairsTest, kwAllPairsDunnTest, kwManyOneDunnTest,
-// dunnettTest, gamesHowellTest, tukeyTest and steelTest, dunn.test's dunn.test and multcomp's Dunnett contrasts
+// dunnettTest, gamesHowellTest, tukeyTest, steelTest and manyOneUTest, dunn.test's dunn.test and multcomp's Dunnett contrasts
 // (summary(glht(aov(y ~ g), mcp(g = "Dunnett")))).
 //
 // Written for rStats.js from the published statistics and the behaviour described in oracle/mcomp-behaviour.md (no
@@ -10,6 +10,8 @@
 //   probabilities are computed exactly by src/htest/dunnett.ts (R computes them by randomised integration).
 // - Dwass (1960), Steel (1960), Critchlow and Fligner (1991): pairwise Mann-Whitney statistics standardised and
 //   compared with the studentized range for k means and infinite degrees of freedom.
+// - Steel (Biometrics 15, 1959): the Mann-Whitney statistic of each group against the control, standardised, with
+//   simultaneous normal probabilities for the correlations of Dunnett's many-to-one comparisons.
 // - Games and Howell (1976): Welch's standard error and degrees of freedom per pair, studentized range.
 // - Tukey (1953), Tukey-Kramer: the pooled standard error, studentized range on N - k degrees of freedom.
 
@@ -61,6 +63,9 @@ export interface KwManyOneDunnTestOptions extends ManyOneTestOptions {
   /** `"single-step"` (simultaneous normal probabilities, the default) or a `pAdjust` method. */
   pAdjustMethod?: "single-step" | PAdjustMethod | (string & {});
 }
+
+/** Options of Steel's many-to-one rank test (`manyOneUTest`). */
+export type ManyOneUTestOptions = KwManyOneDunnTestOptions;
 
 const TIES_WARNING = "Ties are present. z-quantiles were corrected for ties.";
 
@@ -184,21 +189,28 @@ export function kwManyOneDunnTest(x: Sample, g: readonly GroupLabel[], options: 
   const v = (d.N * (d.N + 1)) / 12 - C;
   const idx = d.n.slice(1).map((_, i) => i + 1);
   const z = idx.map((j) => (R[j]! - R[0]!) / Math.sqrt(v * (1 / d.n[0]! + 1 / d.n[j]!)));
-  let p: number[];
+  const lambda = idx.map((j) => d.n[j]! / (d.n[j]! + d.n[0]!));
+  const p = manyOneNormalP(z, lambda, alternative, adjust);
+  return manyOne(d, "Dunn's many-to-one test", z, p, adjust, C !== 0 ? [TIES_WARNING] : []);
+}
+
+/**
+ * Many-to-one p-values of normal statistics z (one per group against the control): `"single-step"`, the exact
+ * simultaneous normal probabilities for the correlations sqrt(lambda_i lambda_j), or the marginal normal tails
+ * adjusted by `pAdjust`.
+ */
+function manyOneNormalP(z: readonly number[], lambda: readonly number[], alternative: Alternative, adjust: string): number[] {
   if (adjust === "single-step") {
-    const lambda = idx.map((j) => d.n[j]! / (d.n[j]! + d.n[0]!));
-    p = z.map((s) =>
+    return z.map((s) =>
       alternative === "two.sided"
         ? pDunnettUpper(s, lambda, Infinity, true)
         : pDunnettUpper(alternative === "greater" ? s : -s, lambda, Infinity, false),
     );
-  } else {
-    p = pAdjust(
-      z.map((s) => (alternative === "two.sided" ? 2 * upperNormal(Math.abs(s)) : upperNormal(alternative === "greater" ? s : -s))),
-      adjust,
-    );
   }
-  return manyOne(d, "Dunn's many-to-one test", z, p, adjust, C !== 0 ? [TIES_WARNING] : []);
+  return pAdjust(
+    z.map((s) => (alternative === "two.sided" ? 2 * upperNormal(Math.abs(s)) : upperNormal(alternative === "greater" ? s : -s))),
+    adjust,
+  );
 }
 
 /**
@@ -220,6 +232,46 @@ export function dunnettTest(x: Sample, g: readonly GroupLabel[], options: ManyOn
       : pDunnettUpper(alternative === "greater" ? v : -v, lambda, df, false),
   );
   return manyOne(d, "Dunnett's-test for multiple\t\n                         comparisons with one control", t, p, "single-step");
+}
+
+/**
+ * Steel's many-to-one rank test in its normal approximation: the Mann-Whitney statistic of each group against the
+ * control (the first group), each pair ranked on its own (midranks), standardised with the tie-corrected variance.
+ * Equivalent to PMCMRplus's `manyOneUTest()`. The statistic is positive when the group ranks higher than the
+ * control. With `pAdjustMethod` `"single-step"` (the default; at least three groups) the p-values are the exact
+ * simultaneous normal probabilities (R approximates them by randomised integration).
+ *
+ * @param x Response values.
+ * @param g Group labels, parallel to `x` (groups in the order of the sorted labels).
+ */
+export function manyOneUTest(x: Sample, g: readonly GroupLabel[], options: ManyOneUTestOptions = {}): PMCMRResult {
+  const alternative = matchAlternative(options.alternative);
+  const adjust = options.pAdjustMethod ?? "single-step";
+  const d = layout(x, g);
+  if (adjust === "single-step" && d.k < 3) {
+    throw new RangeError("for 'p.adjust.method = single-step' at least\n\n                      k = 3 groups are required.");
+  }
+  const n1 = d.n[0]!;
+  const idx = d.n.slice(1).map((_, i) => i + 1);
+  const z = idx.map((j) => {
+    const nj = d.n[j]!;
+    const pair = [...d.groups[0]!, ...d.groups[j]!];
+    const r = rank(pair);
+    let rankSumControl = 0;
+    for (let a = 0; a < n1; a++) rankSumControl += r[a]!;
+    const S = n1 + nj;
+    const rankSumGroup = (S * (S + 1)) / 2 - rankSumControl;
+    const uControl = n1 * nj + (n1 * (n1 + 1)) / 2 - rankSumControl;
+    const uGroup = n1 * nj + (nj * (nj + 1)) / 2 - rankSumGroup;
+    let t3 = 0;
+    for (const t of tieCounts(pair)) t3 += t * t * t - t;
+    const v = ((n1 * nj) / (S * (S - 1))) * ((S * S * S - S) / 12 - t3 / 12);
+    const stat = (Math.min(uControl, uGroup) - (n1 * nj) / 2) / Math.sqrt(v);
+    return rankSumControl < rankSumGroup ? -stat : stat;
+  });
+  const lambda = idx.map((j) => d.n[j]! / (d.n[j]! + n1));
+  const p = manyOneNormalP(z, lambda, alternative, adjust);
+  return manyOne(d, "Wilcoxon, Mann, Whittney U-test\n\tfor multiple comparisons with one control", z, p, adjust);
 }
 
 /**
