@@ -505,8 +505,8 @@ also from R's source. They are listed because they are easy to get wrong.
   the number of columns is an error.
 - **`qrSolve`:** an error unless rank = min(rows, columns). For wide matrices the unused
   coefficients are 0. `b` may be omitted only for square matrices.
-- **`qr(x, { lapack: true })`:** `qraux` (tau) has length equal to the number of columns
-  (padded with 0); rank is always min(rows, columns); `qrFitted` and `qrResid` throw. Matrices
+- **`qr(x, { lapack: true })`:** `qraux` (tau) has min(rows, columns) elements, one
+  per reflection, as in R; rank is always min(rows, columns); `qrFitted` and `qrResid` throw. Matrices
   containing NaN or Inf are not rejected (R also returns meaningless values; the values need not
   match R's).
 - **`kappa`:** the default (`exact: false`) applies LINPACK's `dtrco` estimate to R from a QR

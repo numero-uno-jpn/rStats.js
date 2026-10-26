@@ -478,7 +478,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   小さい `ncol` はエラーです。
 - **`qrSolve`:** rank = min(行数, 列数) でなければエラーです。横長の行列では使わない係数は 0 です。
   `b` を省略できるのは正方行列のときだけです。
-- **`qr(x, { lapack: true })`:** `qraux` (tau) の長さは列数に等しくなります (0 で埋めます)。rank は
+- **`qr(x, { lapack: true })`:** `qraux` (tau) は R と同じく反射ごとに 1 つ、min(行数, 列数) 個です。rank は
   常に min(行数, 列数) で、`qrFitted` と `qrResid` は例外を投げます。NaN や Inf を含む行列も拒否
   しません (R も意味のない値を返します。値が R と一致する必要はありません)。
 - **`kappa`:** 既定 (`exact: false`) では、QR 分解の R (横長の行列は転置した後) に LINPACK の

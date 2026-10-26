@@ -47,7 +47,10 @@ export interface QR {
   qr: number[][];
   /** The computed rank of the matrix. Always `min(nrow, ncol)` for `lapack: true`. */
   rank: number;
-  /** Auxiliary information about `Q` (the leading elements of the Householder vectors for the LINPACK method, `tau` for the LAPACK method). */
+  /**
+   * Auxiliary information about `Q`: the leading elements of the Householder vectors for the LINPACK method (`ncol`
+   * elements), `tau` for the LAPACK method (one per reflection, `min(nrow, ncol)` elements).
+   */
   qraux: number[];
   /** The column permutation, 0-based (R's `pivot` minus 1). */
   pivot: number[];
@@ -83,8 +86,8 @@ export function qr(x: MatrixInput, options: QROptions = {}): QR {
   const a = toMat(x);
   if (options.lapack) {
     const { tau, pivot } = geqp3(a);
-    // R returns tau with length equal to the number of columns (padded with 0)
-    const qraux = Array.from({ length: a.ncol }, (_, j) => tau[j] ?? 0);
+    // One Householder scalar per reflection: min(nrow, ncol) elements, as in R
+    const qraux = Array.from(tau);
     return { qr: fromMat(a), rank: Math.min(a.nrow, a.ncol), qraux, pivot: pivot.map((v) => v - 1), useLapack: true };
   }
   for (const v of a.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
