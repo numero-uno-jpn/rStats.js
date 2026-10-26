@@ -38,7 +38,12 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 | 線形モデル | 行列で渡す `lm` と `summary.lm` の値、`confint`、`predict`。行列で渡す `glm` (R の `stats` のすべての族とリンク)、`summary.glm`、4 種類の残差、`hatvalues`、`rstandard`、`cooks.distance`、標準誤差つきの `predict`、プロファイル尤度の `confint` (厳密な限界)、`anova` |
 | 分散分析 | formula で呼ぶ `aov`、`lm`、`modelMatrix` (多元、交互作用、共変量、`Error()` の層)、`anova` (逐次の表とモデルの比較)、car の `Anova` (Type II と III)、afex の `aov_ez` に当たる `aovEz` (反復測定、Greenhouse-Geisser と Huynh-Feldt、一般化 η²)、`mauchly.test` |
 | 効果量と検出力 | effectsize の `cohens_d`、`hedges_g`、`eta_squared`、`omega_squared`、`epsilon_squared` (`anova` と `Anova` の表から。信頼区間は厳密な限界)、`power.t.test`、`power.prop.test`、`power.anova.test` と `pwr` の検出力の関数 |
-| 線形代数 | R の `base` の行列関数と、`Matrix::lu`、`prcomp` (`stats`)、`MASS::ginv`: 行列演算、`crossprod`、`norm`、`backsolve`、`chol`、`qr` (R のピボット選択と LAPACK)、`solve`、`det`、`rcond`、`kappa`、`svd`、`eigen` (対称と一般)、`lu`、`prcomp`、`ginv` |
+| ほかの検定 | `leveneTest` (car)、`propTrendTest` (`prop.trend.test`)、`jonckheereTest` (DescTools と clinfun)、`cochranQTest` (DescTools)、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (nortest) |
+| 多重比較 | PMCMRplus の `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`dunnettTest`、`gamesHowellTest`、`tukeyTest`、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp)。Dunnett 型の確率は厳密に計算する (R は乱数を使う) |
+| 生存時間解析 | `survival` パッケージの `survdiff` (log-rank と G-rho 族) と `survfit` (Kaplan-Meier。log・plain・log-log の信頼区間と中央値) |
+| 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`cronbachAlpha`、`partialR` (psych)。反復測定の計画の効果量 (`Error()` の層と `aovEz`) |
+| 最適化 | `optim` の 6 つの手法すべて (Nelder-Mead、BFGS、CG、L-BFGS-B、SANN、Brent。R と同じ反復) と `optimHess` |
+| 線形代数 | R の `base` の行列関数と、`Matrix::lu`、`prcomp` (`stats`)、`MASS::ginv`: 行列演算、`crossprod`、`norm`、`backsolve`、`chol`、`qr` (R のピボット選択と LAPACK)、`solve`、`det`、`rcond`、`kappa`、`svd`、`eigen` (対称と一般)、`lu`、`prcomp`、`ginv`、`schur` (`Matrix::Schur`) と `expm` (expm の Higham08 の方法) |
 | 数値計算 | `integrate`、`optimize`、`uniroot`、`approx`、`spline`/`splinefun`/`splinefunH`、Lagrange (pracma) と Hermite の補間、固定刻みの `ode` (deSolve)、`grad`/`jacobian`/`hessian` (numDeriv) |
 | jStat | jStat の全関数に置き換えがある ([docs/ja/migrating-from-jstat.md](docs/ja/migrating-from-jstat.md))。jStat と照合済み |
 
@@ -49,30 +54,17 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-1. **反復測定の効果量:** `Error()` の層と `aovEz` の結果に対する η²・ω²・ε² (effectsize の `aovlist` と
-   `afex_aov` の方法)。
-2. **多重比較:** Steel-Dwass (`PMCMRplus`)、Dunn (`dunn.test`)、Dunnett と Steel (`multcomp`、
-   `PMCMRplus`)。`multcomp` は Dunnett の p 値を `mvtnorm` の乱数を使う積分で求めるので、再現するのは
-   5 桁程度です。Dunnett の統計量の相関は積の形をしていて、確率が 1 次元の積分に帰着するので、
-   これらは完全な精度で計算し、代わりに高精度の参照値と照合します。
-3. **ほかの検定:** Levene (`car::leveneTest`)、`prop.trend.test` (`stats`)、Jonckheere-Terpstra
-   (`clinfun`)、Cochran の Q (`DescTools`)、正規性の Anderson-Darling 検定と Lilliefors 検定
-   (`nortest`)。
-4. **生存時間解析:** log-rank 検定 (`survival::survdiff`) と、Kaplan-Meier 推定とその信頼区間
-   (`survival::survfit`)。Cox 回帰は後で。
-5. **最適化と因子分析:** `optim`、次に `factanal` (`stats`)、次に McDonald の ω (`psych`)。
-6. **一致度・信頼性・相関:** Cohen の κ と ICC (`irr`)、Cronbach の α (`psych`)、偏相関、
-   ポリコリック相関とテトラコリック相関 (`polycor`)。
-7. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
+1. **因子分析:** `factanal` (`stats`。最尤法と varimax・promax)、次に McDonald の ω (`psych`) と、
+   ポリコリック・テトラコリック・ポリシリアル相関 (`polycor`)。
+2. **後で:** Steel の多対一の検定 (PMCMRplus 1.9.12 の `steelTest` はどの入力でもエラーになるので、別の照合先が
+   要る)、`expm` のほかの方法 (Padé と Taylor)、Cox 回帰。
+3. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
    使い (長さ √(a + b) の連分数の代わりに定数時間)、一方のパラメータが大きく他方が小さいときは
    DiDonato と Morris の展開を使う (自由度が大きい `pt` と `pf`、`pbeta(x, 1e6, 10)`、x が 0 または n
    に近い `pbinom`。最大 30 倍かかっていたのが、典型的な `pbeta` 程度の時間になった)。主要な d/p 関数は、
    誤差の上界から不要と分かる double-double の処理を省く ([docs/ja/performance.md](docs/ja/performance.md)
    を参照)。残り: double-double のままの連分数。どちらの展開も当てはまらないところ (a = 30、b = 20
    のような中程度のパラメータ。そこでは連分数は短い。および遠い裾) では、今も連分数を使う。
-
-いずれ取り組むかもしれないもの (それ自体が大きなプロジェクト): **`base` を超える線形代数**。
-Schur 分解と行列指数関数で、推奨パッケージ `Matrix` と `expm` パッケージで照合する。
 
 対象外: SciPy のうち R に対応するもののない部分 (`scipy.special` の大部分と、`scipy.stats` にしか
 ない分布)。構造方程式モデル (`lavaan`) と混合モデル (`lme4`) も対象外です。どちらもそれだけで

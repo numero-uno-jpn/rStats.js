@@ -102,6 +102,9 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | `M` と `X` で対比を指定した `mauchly.test` | W が厳密な値から最大 4e-12 ずれ、W ≈ 1 の p 値は 1.3e-12 ずれる | W を double-double で計算する。厳密な値との差は 1e-15 以内 |
 | 非心分布を使う検出力の計算 (`power.t.test`、`power.anova.test`、`pwr.*`) | R の非心 t は 1e-12 程度、非心 F は 1e-9 程度の精度 (自由度 4e5 を超える t は近似式) なので、検出力とそこから解いた標本サイズが最大 3e-8 ずれる | 正確な非心分布。解く量は R と同じ `uniroot` の呼び出し (同じ区間と許容) なので、R の許容の精度のまま |
 | effectsize の信頼区間 (`cohens_d`、`hedges_g`、`eta_squared` など) | 非心度を Nelder-Mead (`optim`) で探すので、限界が 1e-9 程度、最大で相対 3e-3 ずれる (偏 η² の上限が 0.25111 でなく 0.25181) | 厳密な限界 |
+| Dunnett 型の p 値 (multcomp の Dunnett、PMCMRplus の `dunnettTest` と single-step の `kwManyOneDunnTest`) | mvtnorm の乱数を使う積分で、絶対 1e-3 程度。実行ごとに変わる (種で固定) | 1 次元積分で厳密に |
+| 多重比較 (Steel-Dwass、Games-Howell、Tukey) のステューデント化範囲の p 値 | R の `ptukey` は 8 桁程度 (テストで最大 3.4e-8 ずれる) | 完全な精度 |
+| irr の κ の p 値 | 2 (1 − Φ(|z|)) で作るので、小さい値が桁落ちする (1.7e-16 でなく 2.2e-16) | 2 Φ(−|z|) |
 
 ### R にない分布
 
@@ -261,6 +264,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `offset()`)、バッククォートの名前、変換した応答には対応しません。先に列を計算してください。
   対比は `contr.treatment` (既定)、`contr.sum`、`contr.helmert` です。解析できない formula は、
   R の構文エラーの代わりに "invalid formula: ..." を投げます。
+- **`dunnTest`** は値を数として順位づけます。dunn.test 1.4.2 は、群を文字列のベクトルで渡すと値を文字列として
+  順位づけ (10.06 が 8.88 より前)、因子で渡すと数として順位づけます。`dunnTest` は後者を再現します。
 - **R がデータの表示で締めくくる `aovEz` のメッセージ** (欠測値で除いた id、被験者内の空のセル、
   被験者間の空のセル) は、表示の手前で終わります。
 

@@ -38,6 +38,22 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   own `uniroot` calls, with accurate noncentral distributions (R's noncentral t and F are not: computed powers
   differ from R's by up to 3e-8).
 
+- More tests: `leveneTest` (car), `propTrendTest` (`prop.trend.test`), `jonckheereTest` (DescTools' and clinfun's
+  variants), `cochranQTest` (DescTools), and nortest's `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest`.
+- Effect sizes of repeated-measures designs: `etaSquared`, `omegaSquared`, `epsilonSquared` of `aov` fits with
+  `Error()` and of `aovEz` results, with exact intervals.
+- Multiple comparisons: PMCMRplus's `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`,
+  `dunnettTest`, `gamesHowellTest`, `tukeyTest` and `steelTest` (its errors); dunn.test's `dunnTest`; multcomp's
+  Dunnett comparisons (`glhtDunnett`). Dunnett-type probabilities are computed exactly by a one-dimensional integral
+  (R's mvtnorm integration is randomised and about 1e-3 accurate); studentized-range p-values are R's to full
+  precision (R's `ptukey` has about 8 digits).
+- Survival analysis: `survdiff` (log-rank, G-rho family) and `survfit` (Kaplan-Meier with its intervals and median).
+- Agreement and reliability: `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych).
+- `schur` (real Schur decomposition, `Matrix::Schur`) and `expm` (the matrix exponential, expm's `Higham08.b` and
+  `Higham08`).
+- `optim` with Nelder-Mead, BFGS, CG, L-BFGS-B (a port of the Netlib code), SANN and Brent, following R's iterations
+  (the same evaluation counts), and `optimHess`.
+
 ### Fixed
 
 - `pchisq` and `pf` with a huge noncentrality (above about 1e12) far from the quantile returned wrong values or NaN;

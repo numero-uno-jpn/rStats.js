@@ -108,6 +108,9 @@ affected.
 | `mauchly.test` on contrasts given by `M` and `X` | W off by up to 4e-12 from the exact value, and the p-value near W = 1 by 1.3e-12 | W in double-double; within 1e-15 of the exact value |
 | Power calculations with noncentral distributions (`power.t.test`, `power.anova.test`, `pwr.*`) | R's noncentral t is accurate to about 1e-12 and its noncentral F to about 1e-9 (and t with more than 4e5 degrees of freedom uses an approximation), so computed powers and the sample sizes solved from them are off by up to 3e-8 | accurate noncentral distributions; the solved quantities follow R's `uniroot` calls (same interval and tolerance), so they keep R's tolerance |
 | effectsize's confidence intervals (`cohens_d`, `hedges_g`, `eta_squared`, ...) | the noncentrality parameters are found with Nelder-Mead (`optim`): limits off by about 1e-9, up to 3e-3 relative (a partial eta² upper limit of 0.25181 instead of 0.25111) | the exact limits |
+| Dunnett-type p-values (multcomp's Dunnett, PMCMRplus's `dunnettTest` and single-step `kwManyOneDunnTest`) | mvtnorm's randomised integration: about 1e-3 absolute, different from run to run (seeded) | exact one-dimensional integral |
+| Studentized-range p-values of post-hoc tests (Steel-Dwass, Games-Howell, Tukey) | R's `ptukey`, about 8 digits (off by up to 3.4e-8 in the tests) | full precision |
+| irr's kappa p-values | formed as 2 (1 − Φ(|z|)), losing small ones (2.2e-16 instead of 1.7e-16) | 2 Φ(−|z|) |
 
 ### Distributions outside base R
 
@@ -270,6 +273,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `poly(x, 2)`, `offset()`), backquoted names and transformed responses are not supported: compute
   the column first. Contrasts are `contr.treatment` (default), `contr.sum` and `contr.helmert`. A
   formula that cannot be parsed throws "invalid formula: ..." instead of R's parse error.
+- **`dunnTest`** ranks the values as numbers. dunn.test 1.4.2 given a character group vector ranks them as text
+  (so 10.06 before 8.88); with a factor it ranks them as numbers, which is what `dunnTest` reproduces.
 - **`aovEz` messages that R completes with a printout of the data** (ids removed for missing
   values, empty within-subject cells, empty between-subject cells) stop where the printout starts.
 
