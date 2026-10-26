@@ -200,9 +200,10 @@ export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOp
  * The model matrix of a formula on a data frame, with the attributes of R's `terms()`. Equivalent to R's
  * `model.matrix(formula, data)`. With `contrasts.arg`, together with `attr(terms(formula), ...)`.
  *
- * Strings are factors (levels sorted by code point unless `levels` gives them), booleans factors with levels FALSE
- * and TRUE, numbers numeric. Rows with a missing value (`null`, or `NaN` in a numeric column) in any variable of the
- * formula are dropped; levels without rows are kept (their columns are 0).
+ * Rows with a missing value (`null`, or `NaN` in a numeric column) in any variable of the formula are dropped first.
+ * Strings are factors of the values in the rows kept (sorted by code point), unless `levels` gives the levels, which
+ * are then all kept even without a row (their columns are 0); booleans are factors with always the two levels FALSE
+ * and TRUE; numbers are numeric.
  *
  * @param formula A formula such as `"y ~ A * B"`, `"y ~ x + A - 1"` or `"~ A"`.
  * @param data The data frame: an object of columns.

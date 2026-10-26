@@ -8,7 +8,7 @@
 // parser does not know, are split off the text first.
 
 import { parseFormula, termsOf, type Terms } from "../models/formula.js";
-import { modelFrame, type DataFrame, type FrameVariable } from "../models/modelFrame.js";
+import { modelFrame, presentLevels, type DataFrame, type FrameVariable } from "../models/modelFrame.js";
 import { formatR } from "./core/simulate.js";
 
 /** A grouping variable as a factor: its levels and the 0-based level of each row. */
@@ -17,9 +17,12 @@ interface GroupFactor {
   codes: number[];
 }
 
-/** A variable of a model frame as a factor: numbers sorted as numbers and labelled as R prints them */
+/**
+ * A variable of a model frame as a factor of the values present: numbers sorted as numbers and labelled as R prints
+ * them, a boolean's levels FALSE and TRUE only if they occur
+ */
 function groupFactor(v: FrameVariable): GroupFactor {
-  if (v.kind === "factor") return { levels: v.levels, codes: v.codes };
+  if (v.kind === "factor") return presentLevels(v);
   const sorted = [...new Set(v.values)].sort((a, b) => a - b);
   const levels = [...new Set(sorted.map(formatR))];
   const position = new Map(levels.map((l, i) => [l, i]));

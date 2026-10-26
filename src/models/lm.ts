@@ -183,8 +183,8 @@ export function lmFormulaFit(formula: string, d: Design, aov: boolean): LmFormul
  * Fit a linear model from a formula. Equivalent to R's `lm(formula, data)`. With `weights` and `contrasts`, and the
  * quantities of `summary()`.
  *
- * The model matrix is that of {@link modelMatrix} (but levels without rows are dropped, as R's
- * `drop.unused.levels`); the fit is that of the matrix form (same pivoting and tolerance), its sums of squares computed
+ * The model matrix is that of {@link modelMatrix} (but the levels given by `levels` that have no row left are
+ * dropped, as R's `drop.unused.levels`; a boolean column keeps both levels FALSE and TRUE); the fit is that of the matrix form (same pivoting and tolerance), its sums of squares computed
  * in double-double so that data with a large mean keep their accuracy. Rows with a missing value in a variable of the
  * formula or in the weights are dropped (`rows` lists those used).
  *

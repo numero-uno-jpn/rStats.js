@@ -15,7 +15,7 @@
 import { formatR } from "../htest/core/simulate.js";
 import { qr } from "../linalg/qr.js";
 import { deparseFormula, expandRhs, parseFormula, splitBarTerms, termsOf, type FormulaNode } from "./formula.js";
-import type { DataFrame, FrameVariable } from "./modelFrame.js";
+import { presentLevels, type DataFrame, type FrameVariable } from "./modelFrame.js";
 import { design, type ModelMatrixOptions } from "./modelMatrix.js";
 
 /** A random-effects term of a mixed model, after the expansion of its grouping expression and of `||`. */
@@ -133,9 +133,12 @@ function groupingFactorsOf(group: FormulaNode): string[][] {
   return factors;
 }
 
-/** A variable of the model frame as a factor: numbers become levels sorted numerically, labelled as R's as.character */
+/**
+ * A variable of the model frame as a grouping factor of the values present: numbers become levels sorted numerically,
+ * labelled as R's as.character; a boolean (whose frame variable keeps both levels) has only the values present
+ */
 function asFactor(v: FrameVariable): { levels: string[]; codes: number[] } {
-  if (v.kind === "factor") return v;
+  if (v.kind === "factor") return presentLevels(v);
   const distinct = [...new Set(v.values)].sort((a, b) => a - b);
   const levels: string[] = [];
   const index = new Map<string, number>();
