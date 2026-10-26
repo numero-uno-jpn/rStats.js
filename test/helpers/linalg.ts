@@ -59,6 +59,18 @@ export const condScaled =
   };
 
 /**
+ * Columns (1-based) whose vectors are not determined, from their singular values or standard deviations d (same
+ * rule as vector_mask in oracle/_linalg.R): a value within 1e-8 (relative to the largest) of another, or at most
+ * 1e-13 times the largest. All of them if every value is 0.
+ */
+export function vectorMask(d: readonly number[]): number[] {
+  const s = Math.max(...d.map(Math.abs));
+  if (s === 0) return d.map((_, k) => k + 1);
+  const gap = (k: number) => (d.length === 1 ? 1 : Math.min(...d.filter((_, j) => j !== k).map((v) => Math.abs(d[k]! - v))) / s);
+  return d.flatMap((v, k) => (gap(k) < 1e-8 || Math.abs(v) <= 1e-13 * s ? [k + 1] : []));
+}
+
+/**
  * Normalizes the columns of singular/eigenvector matrices (same rule as align_columns in oracle/_linalg.R).
  * Columns listed in mask (1-based) are set to NaN; in the remaining columns, the first component whose absolute
  * value is at least (1 - 1e-8) times the maximum is made positive. The same column of partner (v for u) is flipped too.

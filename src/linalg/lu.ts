@@ -92,6 +92,16 @@ export interface PrcompOptions {
   center?: boolean | readonly number[];
   /** Scale the columns to unit variance (default `false`), or divide by the given values. */
   scale?: boolean | readonly number[];
+  /**
+   * The number k of components to keep in `rotation` and `x` (R's `rank.`): `min(trunc(rank), nrow, ncol)`. It must
+   * be finite with a positive integer part. Default: all `min(nrow, ncol)`. `sdev` always has all of them, as in R.
+   */
+  rank?: number;
+  /**
+   * Drop the components whose standard deviation is at most `tol` times that of the first: `rotation` and `x` keep
+   * the components with `sdev > sdev[0] * tol` if they are fewer than k. Default: none are dropped.
+   */
+  tol?: number;
 }
 
 /**
@@ -102,9 +112,9 @@ export interface PrcompOptions {
 export interface PrcompResult {
   /** Standard deviations of the principal components. */
   sdev: number[];
-  /** Loadings: the eigenvectors as columns (variables x components). */
+  /** Loadings: the eigenvectors as columns (variables x components kept). */
   rotation: number[][];
-  /** Scores: the data in the coordinates of the components (observations x components). */
+  /** Scores: the data in the coordinates of the components (observations x components kept). */
   x: number[][];
   /** The centring used, when any. */
   center?: number[];
@@ -121,21 +131,32 @@ export interface PrcompResult {
  * const pc = prcomp([[1, 2], [2, 1], [3, 4], [4, 3]]);
  * pc.sdev; // [1.632993161855452, 0.816496580927726]
  * pc.x;    // [[-1.4142, 0.7071], [-1.4142, -0.7071], [1.4142, 0.7071], [1.4142, -0.7071]] (signs may differ from R)
+ * prcomp([[1, 2], [2, 1], [3, 4], [4, 3]], { rank: 1 }).rotation.length; // 2 (variables; one column each)
  * ```
  *
  * @category Linear algebra
  */
 export function prcomp(x: MatrixInput, options: PrcompOptions = {}): PrcompResult {
+  const { rank, tol } = options;
+  if (rank !== undefined) {
+    if (!Number.isFinite(rank)) throw new RangeError("is.finite(rank.) is not TRUE");
+    // (R converts rank. to an integer: a value of 2^31 or more has none, and fails the same check)
+    if (!(Math.trunc(rank) > 0 && Math.abs(rank) < 2 ** 31)) throw new RangeError("as.integer(rank.) > 0 is not TRUE");
+  }
   const rows = x.map((r) => Array.from(r));
   const s = scaleColumns(rows, { center: options.center ?? true, scale: options.scale ?? false });
   if (s.scale?.some((v) => v === 0)) throw new RangeError("cannot rescale a constant/zero column to unit variance");
   const dec = svd(s.scaled, { nu: 0 });
   const n = rows.length;
-  const rotation = dec.v!;
+  const sdev = dec.d.map((d) => d / Math.sqrt(Math.max(1, n - 1)));
+  // Components kept: at most rank, and with tol only those whose sdev is greater than tol times the first
+  let k = rank === undefined ? sdev.length : Math.min(Math.trunc(rank), sdev.length);
+  if (tol !== undefined) k = Math.min(k, sdev.filter((d) => d > sdev[0]! * tol).length);
+  const rotation = dec.v!.map((r) => r.slice(0, k));
   const out: PrcompResult = {
-    sdev: dec.d.map((d) => d / Math.sqrt(Math.max(1, n - 1))),
+    sdev,
     rotation,
-    x: matMul(s.scaled, rotation),
+    x: matMul(s.scaled, dec.v!).map((r) => r.slice(0, k)),
   };
   if (s.center !== undefined) out.center = s.center;
   if (s.scale !== undefined) out.scale = s.scale;
