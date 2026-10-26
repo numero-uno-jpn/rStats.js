@@ -4,20 +4,12 @@
 // dataFrames.ts): `null`, and `NaN` in a numeric column, is a missing value. Columns that are copied through (the
 // columns not pivoted, the id columns) keep their kind (a Float64Array stays a Float64Array); a value column is a
 // Float64Array when its sources are, else an array. Where tidyr would make a list column (a cell that several rows
-// fill), pivotWider throws instead, since a data frame here cannot hold one. tidyr's warnings are returned next to the
-// data frame, as the models return R's.
+// fill), pivotWider throws instead, since a data frame here cannot hold one. pivotLonger passes tidyr's warnings to
+// its `onWarning` option.
 
 import { formatR } from "../htest/core/simulate.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { addColumn, compareValues, isMissing, pick, rowCount, type Column, type DataValue } from "./dataFrames.js";
-
-/** Result of {@link pivotLonger} and {@link pivotWider}. */
-export interface PivotResult {
-  /** The reshaped data frame. */
-  data: DataFrame;
-  /** tidyr's warnings, each once, in order of first appearance. */
-  warnings: string[];
-}
 
 /** Options for {@link pivotLonger} (tidyr's arguments in camelCase). */
 export interface PivotLongerOptions {
@@ -38,13 +30,15 @@ export interface PivotLongerOptions {
   namesTransform?: Readonly<Record<string, (part: string) => DataValue>>;
   /** The name of the value column (without `".value"` in `namesTo`). Default `"value"`. */
   valuesTo?: string;
-  /** Drop the rows where a value column is missing. Default `false`. */
+  /** Drop the rows where every value column is missing. Default `false`. */
   valuesDropNa?: boolean;
   /**
    * `"fastest"` (default): the pivoted columns vary within each input row; `"slowest"`: all rows for each column in
    * turn.
    */
   colsVary?: "fastest" | "slowest";
+  /** Called with each of tidyr's warnings, once per distinct warning, in order. Default: the warnings are dropped. */
+  onWarning?: (message: string) => void;
 }
 
 /** A summary of the values of one cell (in data order), for `valuesFn` of {@link pivotWider}. */
@@ -193,11 +187,11 @@ interface LongValue {
  * @example
  * ```ts
  * const wide = { id: ["s1", "s2"], t1: [5.1, 4.8], t2: [6.3, 7.2] };
- * pivotLonger(wide, { cols: ["t1", "t2"], namesTo: "time", valuesTo: "score" }).data;
+ * pivotLonger(wide, { cols: ["t1", "t2"], namesTo: "time", valuesTo: "score" });
  * // { id: ["s1", "s1", "s2", "s2"], time: ["t1", "t2", "t1", "t2"], score: [5.1, 6.3, 4.8, 7.2] }
  * ```
  */
-export function pivotLonger(data: DataFrame, options: PivotLongerOptions): PivotResult {
+export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataFrame {
   const n = rowCount(data);
   const allNames = Object.keys(data);
   const cols = typeof options.cols === "function" ? allNames.filter(options.cols) : [...new Set(options.cols)];
@@ -256,7 +250,7 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): Pivot
     return s === null || s === undefined ? null : data[s]![i]!;
   };
   if (options.valuesDropNa === true) {
-    rows = rows.filter(([i, k]) => values.every((v) => !isMissing(cellOf(v, i, k))));
+    rows = rows.filter(([i, k]) => values.some((v) => !isMissing(cellOf(v, i, k))));
   }
 
   const out: DataFrame = {};
@@ -283,7 +277,8 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): Pivot
       addColumn(out, v.name, cells);
     }
   });
-  return { data: out, warnings };
+  if (options.onWarning !== undefined) for (const w of new Set(warnings)) options.onWarning(w);
+  return out;
 }
 
 // ---- pivotWider ----
@@ -340,11 +335,11 @@ function perColumn<T>(
  * @example
  * ```ts
  * const long = { id: ["s1", "s1", "s2"], time: ["t1", "t2", "t1"], score: [5.1, 6.3, 4.8] };
- * pivotWider(long, { namesFrom: "time", valuesFrom: "score" }).data;
+ * pivotWider(long, { namesFrom: "time", valuesFrom: "score" });
  * // { id: ["s1", "s2"], t1: [5.1, 4.8], t2: [6.3, null] }
  * ```
  */
-export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): PivotResult {
+export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): DataFrame {
   const n = rowCount(data);
   const namesFrom = nameList(options.namesFrom ?? "name");
   const valuesFrom = nameList(options.valuesFrom ?? "value");
@@ -410,5 +405,5 @@ export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): Pi
   } else {
     for (const v of valuesFrom) for (const m of nameOrder) addColumn(out, columnName(v, m), columnOf(v, m));
   }
-  return { data: out, warnings: [] };
+  return out;
 }

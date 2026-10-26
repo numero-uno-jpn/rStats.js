@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import {
   mean, pivotLonger, pivotWider, sum,
-  type DataFrame, type DataValue, type PivotLongerOptions, type PivotResult, type PivotSummary, type PivotWiderOptions,
+  type DataFrame, type DataValue, type PivotLongerOptions, type PivotSummary, type PivotWiderOptions,
 } from "../src/index.js";
 import { dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
 
@@ -30,12 +30,14 @@ function withFloat64(frame: DataFrame, types: Record<string, ColumnType>): DataF
 
 const names = (v: unknown): string[] => ([] as string[]).concat(v as string | string[]);
 
-/** The result of one case, or the message of the error thrown */
-function run(a: Record<string, unknown>, data: DataFrame): PivotResult | { error: string } {
+/** The result of one case and the warnings passed to onWarning, or the message of the error thrown */
+function run(a: Record<string, unknown>, data: DataFrame): { data: DataFrame; warnings: string[] } | { error: string } {
+  const warnings: string[] = [];
   try {
     if (a.fn === "pivot_longer") {
       const options: PivotLongerOptions = {
         cols: names(a.cols),
+        onWarning: (message) => warnings.push(message),
         ...(a.names_to === undefined ? {} : { namesTo: names(a.names_to) }),
         ...(a.values_to === undefined ? {} : { valuesTo: a.values_to as string }),
         ...(a.names_prefix === undefined ? {} : { namesPrefix: a.names_prefix as string }),
@@ -45,7 +47,7 @@ function run(a: Record<string, unknown>, data: DataFrame): PivotResult | { error
         ...(a.cols_vary === undefined ? {} : { colsVary: a.cols_vary as "fastest" | "slowest" }),
         ...(a.names_transform === "integer" ? { namesTransform: { [a.names_to as string]: Number } } : {}),
       };
-      return pivotLonger(data, options);
+      return { data: pivotLonger(data, options), warnings };
     }
     if (a.fn === "pivot_wider") {
       const options: PivotWiderOptions = {
@@ -60,7 +62,7 @@ function run(a: Record<string, unknown>, data: DataFrame): PivotResult | { error
         ...(a.values_fill === undefined ? {} : { valuesFill: Number(a.values_fill) }),
         ...(a.values_fn === undefined ? {} : { valuesFn: FUNS[a.values_fn as string]! }),
       };
-      return pivotWider(data, options);
+      return { data: pivotWider(data, options), warnings };
     }
     throw new Error(`unknown fn ${String(a.fn)}`);
   } catch (err) {
@@ -133,7 +135,7 @@ describe("pivotLonger, pivotWider", () => {
   });
 
   it("duplicated cells: tidyr warns and makes a list column, here an error", () => {
-    // case #20 of the fixture
+    // case #21 of the fixture
     const c = fixture.cases.find(
       (x) => x.args.fn === "pivot_wider" && x.args.values_fn === undefined && (x.expected.warnings as string[]).length > 0,
     )!;
@@ -151,11 +153,12 @@ describe("pivotLonger, pivotWider: API", () => {
 
   it("the doc examples", () => {
     expect(pivotLonger(wide, { cols: ["t1", "t2"], namesTo: "time", valuesTo: "score" })).toEqual({
-      data: { id: ["s1", "s1", "s2", "s2"], time: ["t1", "t2", "t1", "t2"], score: [5.1, 6.3, 4.8, 7.2] },
-      warnings: [],
+      id: ["s1", "s1", "s2", "s2"],
+      time: ["t1", "t2", "t1", "t2"],
+      score: [5.1, 6.3, 4.8, 7.2],
     });
     const long = { id: ["s1", "s1", "s2"], time: ["t1", "t2", "t1"], score: [5.1, 6.3, 4.8] };
-    expect(pivotWider(long, { namesFrom: "time", valuesFrom: "score" }).data).toEqual({
+    expect(pivotWider(long, { namesFrom: "time", valuesFrom: "score" })).toEqual({
       id: ["s1", "s2"],
       t1: [5.1, 4.8],
       t2: [6.3, null],
@@ -163,7 +166,7 @@ describe("pivotLonger, pivotWider: API", () => {
   });
 
   it("selects with a function in the data's order; errors", () => {
-    expect(pivotLonger(wide, { cols: (n) => n.startsWith("t") }).data).toEqual(pivotLonger(wide, { cols: ["t1", "t2"] }).data);
+    expect(pivotLonger(wide, { cols: (n) => n.startsWith("t") })).toEqual(pivotLonger(wide, { cols: ["t1", "t2"] }));
     expect(() => pivotLonger(wide, { cols: ["t1"], namesSep: "_" })).toThrow("`names_sep` can't be used with a length 1 `names_to`.");
     expect(() => pivotLonger(wide, { cols: ["t1"], namesTo: ["a", "b"] })).toThrow(
       "If you supply multiple names in `names_to` you must also supply one of `names_sep` or `names_pattern`.",
@@ -181,6 +184,6 @@ describe("pivotLonger, pivotWider: API", () => {
       valuesFill: { x: 0 },
       valuesFn: { x: (v) => sum(v as number[]), y: (v) => v.join("") },
     });
-    expect(r.data).toEqual({ id: [1, 2], x_a: [3, 0], x_b: [0, 3], y_a: ["uv", null], y_b: [null, "w"] });
+    expect(r).toEqual({ id: [1, 2], x_a: [3, 0], x_b: [0, 3], y_a: ["uv", null], y_b: [null, "w"] });
   });
 });

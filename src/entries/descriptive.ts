@@ -24,5 +24,5 @@ export {
 } from "../descriptive/dataFrames.js";
 export {
   pivotLonger, pivotWider,
-  type PivotLongerOptions, type PivotWiderOptions, type PivotResult, type PivotSummary,
+  type PivotLongerOptions, type PivotWiderOptions, type PivotSummary,
 } from "../descriptive/pivot.js";
