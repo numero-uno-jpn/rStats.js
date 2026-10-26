@@ -21,6 +21,7 @@ export { dhyper, phyper, qhyper } from "../distributions/hypergeometric.js";
 export { dsignrank, psignrank, qsignrank } from "../distributions/signrank.js";
 export { dwilcox, pwilcox, qwilcox } from "../distributions/wilcox.js";
 export { ptukey, qtukey, type TukeyOptions } from "../distributions/tukey.js";
+export { pbvnorm } from "../distributions/bvnorm.js";
 // Distributions outside base R (extraDistr's names and parameters; arcsine as beta(1/2, 1/2) on (a, b))
 export { dinvgamma, pinvgamma, qinvgamma, type InvgammaParams } from "../distributions/invgamma.js";
 export { dkumar, pkumar, qkumar } from "../distributions/kumaraswamy.js";

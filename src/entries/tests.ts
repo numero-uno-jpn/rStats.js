@@ -193,3 +193,4 @@ export {
   type IccResult,
   type CronbachAlphaResult,
 } from "../htest/agreement.js";
+export { polychor, polyserial, type PolycorResult } from "../htest/polycor.js";
