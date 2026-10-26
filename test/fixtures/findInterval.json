@@ -1,7 +1,7 @@
 {
   "function": "findInterval",
   "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T00:02:07+0000",
+  "generated": "2026-10-26T21:16:01+0000",
   "cases": [
     {"args":{"x":["-1","0","0.5","1","2.5","3","4","6.9000000000000004","7","8","NA"],"vec":["0","1","2.5","4","4","7"],"rightmostClosed":false,"allInside":false,"leftOpen":false},"expected":{"value":["0","1","1","2","3","3","5","5","6","6","NA"]}},
     {"args":{"x":["-1","0","0.5","1","2.5","3","4","6.9000000000000004","7","8","NA"],"vec":["0","1","2.5","4","4","7"],"rightmostClosed":false,"allInside":false,"leftOpen":true},"expected":{"value":["0","0","1","1","2","3","3","5","5","6","NA"]}},
@@ -10,6 +10,30 @@
     {"args":{"x":["-1","0","0.5","1","2.5","3","4","6.9000000000000004","7","8","NA"],"vec":["0","1","2.5","4","4","7"],"rightmostClosed":true,"allInside":false,"leftOpen":false},"expected":{"value":["0","1","1","2","3","3","5","5","5","6","NA"]}},
     {"args":{"x":["-1","0","0.5","1","2.5","3","4","6.9000000000000004","7","8","NA"],"vec":["0","1","2.5","4","4","7"],"rightmostClosed":true,"allInside":false,"leftOpen":true},"expected":{"value":["0","1","1","1","2","3","3","5","5","6","NA"]}},
     {"args":{"x":["-1","0","0.5","1","2.5","3","4","6.9000000000000004","7","8","NA"],"vec":["0","1","2.5","4","4","7"],"rightmostClosed":true,"allInside":true,"leftOpen":false},"expected":{"value":["1","1","1","2","3","3","5","5","5","5","NA"]}},
-    {"args":{"x":["-1","0","0.5","1","2.5","3","4","6.9000000000000004","7","8","NA"],"vec":["0","1","2.5","4","4","7"],"rightmostClosed":true,"allInside":true,"leftOpen":true},"expected":{"value":["1","1","1","1","2","3","3","5","5","5","NA"]}}
+    {"args":{"x":["-1","0","0.5","1","2.5","3","4","6.9000000000000004","7","8","NA"],"vec":["0","1","2.5","4","4","7"],"rightmostClosed":true,"allInside":true,"leftOpen":true},"expected":{"value":["1","1","1","1","2","3","3","5","5","5","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1"],"rightmostClosed":false,"allInside":false,"leftOpen":false},"expected":{"value":["0","1","1","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1"],"rightmostClosed":false,"allInside":false,"leftOpen":true},"expected":{"value":["0","0","1","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1"],"rightmostClosed":false,"allInside":true,"leftOpen":false},"expected":{"value":["1","0","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1"],"rightmostClosed":false,"allInside":true,"leftOpen":true},"expected":{"value":["1","1","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1"],"rightmostClosed":true,"allInside":false,"leftOpen":false},"expected":{"value":["0","0","1","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1"],"rightmostClosed":true,"allInside":false,"leftOpen":true},"expected":{"value":["0","1","1","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1"],"rightmostClosed":true,"allInside":true,"leftOpen":false},"expected":{"value":["1","0","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1"],"rightmostClosed":true,"allInside":true,"leftOpen":true},"expected":{"value":["1","1","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":[],"rightmostClosed":false,"allInside":false,"leftOpen":false},"expected":{"value":["0","0","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":[],"rightmostClosed":false,"allInside":false,"leftOpen":true},"expected":{"value":["0","0","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":[],"rightmostClosed":false,"allInside":true,"leftOpen":false},"expected":{"value":["0","0","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":[],"rightmostClosed":false,"allInside":true,"leftOpen":true},"expected":{"value":["0","0","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":[],"rightmostClosed":true,"allInside":false,"leftOpen":false},"expected":{"value":["0","0","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":[],"rightmostClosed":true,"allInside":false,"leftOpen":true},"expected":{"value":["0","0","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":[],"rightmostClosed":true,"allInside":true,"leftOpen":false},"expected":{"value":["0","0","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":[],"rightmostClosed":true,"allInside":true,"leftOpen":true},"expected":{"value":["0","0","0","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1","1"],"rightmostClosed":false,"allInside":false,"leftOpen":false},"expected":{"value":["0","2","2","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1","1"],"rightmostClosed":false,"allInside":false,"leftOpen":true},"expected":{"value":["0","0","2","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1","1"],"rightmostClosed":false,"allInside":true,"leftOpen":false},"expected":{"value":["1","1","1","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1","1"],"rightmostClosed":false,"allInside":true,"leftOpen":true},"expected":{"value":["1","1","1","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1","1"],"rightmostClosed":true,"allInside":false,"leftOpen":false},"expected":{"value":["0","1","2","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1","1"],"rightmostClosed":true,"allInside":false,"leftOpen":true},"expected":{"value":["0","1","2","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1","1"],"rightmostClosed":true,"allInside":true,"leftOpen":false},"expected":{"value":["1","1","1","NA"]}},
+    {"args":{"x":["0","1","2","NA"],"vec":["1","1"],"rightmostClosed":true,"allInside":true,"leftOpen":true},"expected":{"value":["1","1","1","NA"]}}
   ]
 }

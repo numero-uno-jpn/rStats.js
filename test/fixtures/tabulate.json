@@ -1,7 +1,7 @@
 {
   "function": "tabulate",
   "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T00:02:07+0000",
+  "generated": "2026-10-26T21:16:01+0000",
   "cases": [
     {"args":{"bin":["1","2","2","5"]},"expected":{"value":["1","2","0","0","1"]}},
     {"args":{"bin":["1","2","2","5"],"nbins":"3"},"expected":{"value":["1","2","0"]}},
@@ -10,6 +10,14 @@
     {"args":{"bin":["1.7","2.2000000000000002","2.8999999999999999"]},"expected":{"value":["1","2"]}},
     {"args":{"bin":["1.7","2.2000000000000002","2.8999999999999999"],"nbins":"3"},"expected":{"value":["1","2","0"]}},
     {"args":{"bin":["1","NA","2"]},"expected":{"value":["1","1"]}},
-    {"args":{"bin":["1","NA","2"],"nbins":"3"},"expected":{"value":["1","1","0"]}}
+    {"args":{"bin":["1","NA","2"],"nbins":"3"},"expected":{"value":["1","1","0"]}},
+    {"args":{"bin":["1","2","2","3"],"nbins":"2.5"},"expected":{"value":["1","2"]}},
+    {"args":{"bin":["1","2","2","3"],"nbins":"2.8999999999999999"},"expected":{"value":["1","2"]}},
+    {"args":{"bin":["1","2","2","3"],"nbins":"-0.5"},"expected":{"value":[]}},
+    {"args":{"bin":["1","2","2","3"],"nbins":"0"},"expected":{"value":[]}},
+    {"args":{"bin":["1","2","2","3"],"nbins":"-1"},"expected":{"error":"invalid 'nbin' argument"}},
+    {"args":{"bin":["1","2","2","3"],"nbins":"NaN"},"expected":{"error":"missing value where TRUE/FALSE needed"}},
+    {"args":{"bin":["1","2","2","3"],"nbins":"Inf"},"expected":{"error":"attempt to make a table with >= 2^31 elements"}},
+    {"args":{"bin":["1","2","2","3"],"nbins":"3000000000"},"expected":{"error":"attempt to make a table with >= 2^31 elements"}}
   ]
 }

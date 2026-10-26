@@ -63,6 +63,14 @@ add(x = c(1, 2, Inf))
 add(x = c(1, 2, 3, 4), mu = 1e6)
 add(x = c(1, 2, 3, 4) + 1e15)
 add(x = c(1, 2, 3, 4), y = c(1, 2, 3, 4) + 1e-10, paired = TRUE)
+# (added later, at the end) equal variances need one observation per sample and three in all
+add(x = 5, y = c(1, 2, 4), varEqual = TRUE)
+add(x = c(1, 2, 4), y = 5, varEqual = TRUE)
+add(x = 5, y = c(1, 2, 4), varEqual = TRUE, alternative = "less", confLevel = 0.9)
+add(x = c(5, NA), y = c(1, 2, 4, NA), varEqual = TRUE)
+add(x = 5, y = 4, varEqual = TRUE)
+add(x = 5, y = c(4, 6))
+add(x = c(4, 6), y = 5)
 
 # Reference: compute the variance, standard error and degrees of freedom with Rmpfr, and get the p-value and quantiles by passing
 # them to R's pt / qt (R's var is off by about 1e-11 for data with a large mean and small spread, and for values around 1e200

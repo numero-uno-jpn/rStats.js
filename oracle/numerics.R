@@ -136,6 +136,9 @@ add(x = I(c(1, 2, NA, 4)), y = I(c(1, NA, 3, 4)), xout = I(c(1.5, 3.5)))
 add(x = I(c(1)), y = I(c(2)), xout = I(c(1)))
 # a fractional n is rounded up (seq's length.out)
 for (nn in c(3.5, 2.2, 0.5)) add(x = I(ax), y = I(ay), n = nn, ties = "mean")
+# (added later, at the end) f must be in [0, 1] for the constant method
+for (ff in c(2, -0.1, NaN, 1, 0)) add(x = I(ax), y = I(ay), xout = I(c(1.5, 5)), method = "constant", f = ff, ties = "mean")
+add(x = I(ax), y = I(ay), xout = I(c(1.5, 5)), method = "linear", f = 2, ties = "mean")
 write_htest_fixture("approx", cases, function(a) {
   r <- call_with(approx, list(x = a$x, y = a$y, xout = a$xout, method = a$method, n = a$n, yleft = a$yleft,
                               yright = a$yright, rule = unclass(a$rule), f = a$f,

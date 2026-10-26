@@ -107,8 +107,22 @@ for (x in samples) {
 }
 add(x = I(c(1, NA, 3, 8)), naRm = TRUE)
 add(x = I(c(1, NA, 3, 8)))
+# (added later, at the end) low/high: only for an even count, which includes the missing values unless removed
+add(x = I(c(1, 2, NA, 4)), center = 3, low = TRUE)
+add(x = I(c(1, 2, NA, 4)), center = 3, high = TRUE)
+add(x = I(c(1, NA, NA, 4)), center = 0, low = TRUE)
+add(x = I(c(1, NA, NA, 4)), center = 0, high = TRUE)
+add(x = I(c(NA, NA)), center = 0, low = TRUE)
+add(x = I(c(1, 2, NA, 4)), low = TRUE)
+add(x = I(c(1, 2, NA, 4)), center = 3, low = TRUE, naRm = TRUE)
+add(x = I(c(1, 2, NA, 4, 9)), center = 3, low = TRUE)
+add(x = I(numeric(0)), low = TRUE)
+add(x = I(numeric(0)), high = TRUE)
+add(x = I(c(1, 2, 3)), low = TRUE, high = TRUE)
+add(x = I(c(1, 2, 3, 4)), low = TRUE, high = TRUE)
 write_htest_fixture("mad", cases, function(a)
-  list(value = s(call_with(mad, list(x = a$x, center = a$center, constant = a$constant,
+  # unclass: an AsIs x would make R's sort ignore `partial` (the object method), which changes the low/high results
+  list(value = s(call_with(mad, list(x = unclass(a$x), center = a$center, constant = a$constant,
                                      na.rm = isTRUE(a$naRm), low = isTRUE(a$low), high = isTRUE(a$high))))))
 
 # --- cumsum, cumprod, cummax, cummin, diff ----------------------------------------------------------------
@@ -146,6 +160,13 @@ for (method in c("pearson", "spearman", "kendall")) {
 }
 add(x = cbind(1e8 + rnorm(10, 0, 1e-3), 1e8 + rnorm(10, 0, 1e-3)), method = "pearson")
 add(x = cbind(c(1, 1, 1), c(1, 2, 3)), method = "pearson")
+# (added later, at the end) fewer than 2 observations: all NaN, the diagonal too
+mfew <- cbind(c(1, NA, 3, 4), c(2, 5, NA, NA), c(1, 2, 3, 5))
+for (method in c("pearson", "spearman", "kendall")) {
+  add(x = matrix(c(1, 2, 3), 1), method = method)
+  for (use in c("everything", "complete.obs", "pairwise.complete.obs")) add(x = mfew, method = method, use = use)
+  add(x = cbind(c(1, 1, 1), c(1, 2, 3)), method = method)
+}
 # The fixture name "cor" is taken by oracle/cor.R (correlation of two vectors), so the matrix version is corMatrix
 for (fn in c("cov", "cor")) {
   f <- get(fn)
@@ -174,6 +195,8 @@ for (x in list(c(1, 2, 2, 5), c(3, 3, 0, -1, 2, 7), c(1.7, 2.2, 2.9), c(1, NA, 2
   add(bin = I(x))
   add(bin = I(x), nbins = 3)
 }
+# (added later, at the end) nbins is truncated; negative, NaN and huge values are errors
+for (nb in c(2.5, 2.9, -0.5, 0, -1, NaN, Inf, 3e9)) add(bin = I(c(1, 2, 2, 3)), nbins = nb)
 write_htest_fixture("tabulate", cases, function(a)
   list(value = v(call_with(tabulate, list(bin = a$bin, nbins = a$nbins)))))
 
@@ -203,6 +226,19 @@ for (br in list(4, 10, I(c(0, 40, 50, 60, 100)), I(c(30, 50, 70)))) for (right i
 add(x = I(c(1, 2, 3)), breaks = I(c(1, 2, 3)))
 add(x = I(c(1, 1, 1)), breaks = 3)
 add(x = I(c(1, 2)), breaks = 1)
+# (added later, at the end) NaN among the breaks is dropped; data without a finite range
+add(x = I(c(1, 2, 3)), breaks = I(c(0, NaN, 2, 4)))
+add(x = I(c(1, 2, 3, 5)), breaks = I(c(4, NaN, 0, NaN, 2)), right = FALSE)
+add(x = I(c(1, 2, 3)), breaks = I(c(NaN, 2)))
+add(x = I(c(1, 2, 3)), breaks = I(c(NaN, NaN)))
+add(x = I(c(1, 2, 3)), breaks = I(c(0, NaN, 2, 2)))
+add(x = I(c(1, 2, 3)), breaks = NaN)
+add(x = I(c(NaN, NaN)), breaks = 2)
+add(x = I(c(1, Inf, 3)), breaks = 3)
+add(x = I(c(-Inf, 1)), breaks = 3)
+add(x = I(c(-Inf, Inf)), breaks = 3)
+add(x = I(c(Inf, Inf, NaN)), breaks = 3)
+add(x = I(c(1, NaN)), breaks = 2)
 write_htest_fixture("cut", cases, function(a)
   list(value = v(as.integer(cut(a$x, breaks = a$breaks, labels = FALSE, right = !isFALSE(a$right),
                                 include.lowest = isTRUE(a$includeLowest))))))
@@ -212,6 +248,9 @@ vec <- c(0, 1, 2.5, 4, 4, 7)
 xq <- c(-1, 0, 0.5, 1, 2.5, 3, 4, 6.9, 7, 8, NA)
 for (rc in c(FALSE, TRUE)) for (ai in c(FALSE, TRUE)) for (lo in c(FALSE, TRUE))
   add(x = I(xq), vec = I(vec), rightmostClosed = rc, allInside = ai, leftOpen = lo)
+# (added later, at the end) one break point and none: the boundary rules apply separately
+for (v1 in list(1, numeric(0), c(1, 1))) for (rc in c(FALSE, TRUE)) for (ai in c(FALSE, TRUE)) for (lo in c(FALSE, TRUE))
+  add(x = I(c(0, 1, 2, NA)), vec = I(v1), rightmostClosed = rc, allInside = ai, leftOpen = lo)
 write_htest_fixture("findInterval", cases, function(a)
   list(value = v(findInterval(a$x, a$vec, rightmost.closed = a$rightmostClosed, all.inside = a$allInside,
                               left.open = a$leftOpen))))

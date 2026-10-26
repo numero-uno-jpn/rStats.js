@@ -11,7 +11,10 @@ bx <- c(0, 1e-300, 1e-100, 1e-20, 1e-10, 1e-5, 0.001, 0.01, 0.1, 0.25, 0.4, 0.5,
         0.6, 0.75, 0.9, 0.99, 0.999, 1 - 1e-10, 1, -0.1, 1.1, NaN)
 bgrid <- rbind(grid_of(x = bx, shape1 = ab, shape2 = c(0.5, 2.5, 100)),
                grid_of(x = bx, shape1 = c(0.5, 2.5, 100), shape2 = ab),
-               data.frame(x = 0.3, shape1 = c(-1, 2, NaN), shape2 = c(2, -1, 2)))
+               data.frame(x = 0.3, shape1 = c(-1, 2, NaN), shape2 = c(2, -1, 2)),
+               # (added later, at the end) shape 1: the terms with a = 1 or b = 1 are exactly 0, lbeta(1, 1) = 0
+               grid_of(x = c(0.3, 0.5, 1e-300, 0.999, 1 - 1e-10), shape1 = 1, shape2 = c(1, 1.5, 2, 3, 0.5)),
+               grid_of(x = c(0.3, 0.5, 1e-300, 0.999, 1 - 1e-10), shape1 = c(1.5, 2, 3, 0.5), shape2 = 1))
 ref_dbeta <- function(x, a, b, log) {
   if (!(fin(x, a, b) && x > 0 && x < 1 && a > 0 && b > 0)) return(NA)
   out((mp(a) - 1) * lmp(x) + (mp(b) - 1) * log(1 - mp(x)) - (lg(a) + lg(b) - lg(mp(a) + b)), log)
@@ -39,6 +42,8 @@ ngrid <- ngrid[is.na(ngrid$x) | !is.finite(ngrid$x) | ngrid$x <= pmax(ngrid$size
                  ngrid$x %in% c(0, 1, 5), ]
 # Threshold for the integer check (R uses relative 1e-9 for both x and size)
 ngrid <- rbind(ngrid, data.frame(x = c(2 + 1e-8, 2 + 9e-10, 1, 1), size = c(5, 5, 5 + 1e-8, 5 + 9e-10), prob = 0.5))
+# (added later, at the end) size = Inf: the density is 0 (1 at x = 0 for prob = 0); pbinom stays NaN
+ngrid <- rbind(ngrid, grid_of(x = c(0, 1, 3, 2.5, 1e10, -1, Inf, NaN), size = Inf, prob = c(0, 0.3, 1, -0.1, NaN)))
 ref_dbinom <- function(x, n, p, log) {
   if (!(fin(x, n, p) && x >= 0 && x <= n && x == round(x) && n == round(n) && p > 0 && p < 1)) return(NA)
   out(lg(mp(n) + 1) - lg(mp(x) + 1) - lg(mp(n) - x + 1) + x * lmp(p) + (mp(n) - x) * log(1 - mp(p)), log)

@@ -107,8 +107,15 @@ X1 <- rmat(20, 4) %*% matrix(c(2, 0.5, 0, 0, 0, 1, 0.3, 0, 0, 0, 1, 0.2, 0, 0, 0
 for (m in list(X1, rmat(10, 3), cbind(rnorm(15, 1e6), rnorm(15, 1e6, 1e-2), rnorm(15))))
   for (ce in c(TRUE, FALSE)) for (sc in c(FALSE, TRUE)) add(x = m, center = ce, scale = sc)
 add(x = cbind(c(1, 2, 3), c(5, 5, 5)), center = TRUE, scale = TRUE)    # constant column cannot be scaled
+# (added later, at the end) rank and tol keep fewer components (sdev keeps them all)
+for (r in list(1, 2, 2.7, 10)) add(x = X1, center = TRUE, scale = FALSE, rank = r)
+for (tl in c(0.1, 0.5, 0)) add(x = X1, center = TRUE, scale = FALSE, tol = tl)
+add(x = X1, center = TRUE, scale = TRUE, rank = 3, tol = 0.6)
+add(x = rmat(3, 5), center = TRUE, scale = FALSE, rank = 4)
+add(x = X1, center = TRUE, scale = FALSE, rank = 0)
+add(x = X1, center = TRUE, scale = FALSE, rank = Inf)
 write_linalg_fixture("prcomp", cases, function(a) {
-  p <- prcomp(a$x, center = a$center, scale. = a$scale)
+  p <- prcomp(a$x, center = a$center, scale. = a$scale, rank. = a$rank, tol = a$tol)
   m <- vector_mask(p$sdev)
   al <- align_columns(p$rotation, m$mask, p$x)
   out <- list(sdev = vec_out(p$sdev), rotation = mat_out(al$M), x = mat_out(al$partner))

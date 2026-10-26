@@ -141,6 +141,26 @@ add(x = xs, y = I(c(1, 0, 2, 3, 1, 1)), family = "inverse.gaussian")
 add(x = xs, y = I(c(0.5, 1.5, 2, 3, 1, 1)), family = "poisson")              # non-integer counts: a warning in dpois (aic)
 add(x = X, y = I(yp[1:10]), family = "poisson")                              # lengths differ
 
+# (added later, at the end) links outside a family's usual list: R accepts every link its link factory knows
+add(x = X, y = I(yp), family = "poisson", link = "inverse", newdata = newX)
+add(x = X, y = I(yp), family = "poisson", link = "1/mu^2")
+add(x = X, y = I(yp), family = "poisson", link = "logit")                    # Value 1.1 out of range (0, 1)
+add(x = X, y = I(yp), family = "poisson", link = "cloglog")                  # no valid starting values
+add(x = X, y = I(yp), family = "poisson", link = "probit")
+add(x = X, y = I(yp), family = "quasipoisson", link = "inverse")
+add(x = X, y = I(yg), family = "Gamma", link = "sqrt", newdata = newX)
+add(x = X, y = I(yg), family = "Gamma", link = "1/mu^2")
+add(x = X, y = I(yg), family = "inverse.gaussian", link = "sqrt")
+add(x = X, y = I(yn), family = "gaussian", link = "sqrt", newdata = newX)
+add(x = X, y = I(yn), family = "gaussian", link = "1/mu^2")
+add(x = X, y = I(mu01), family = "gaussian", link = "logit")
+add(x = X, y = I(mu01), family = "gaussian", link = "cauchit")
+add(x = X, y = I(yb), family = "binomial", link = "identity", start = I(c(mean(yb), 0, 0)), newdata = newX)
+add(x = X, y = I(yb), family = "binomial", link = "sqrt", start = I(c(sqrt(mean(yb)), 0, 0)))
+add(x = X, y = I(yb), family = "quasibinomial", link = "sqrt", start = I(c(sqrt(mean(yb)), 0, 0)))
+add(x = X, y = I(yb), family = "quasibinomial", link = "identity", start = I(c(mean(yb), 0, 0)))
+add(x = X, y = I(yp), family = "poisson", link = "foo")                      # not a link
+
 write_linalg_fixture("glm", cases, function(a) {
   r <- with_warnings(function() {
     fit <- glm_fit(a)

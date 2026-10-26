@@ -34,6 +34,11 @@ add(x = hilbert(12), tol = 1e-12)
 add(x = hilbert(12), tol = 0)
 add(x = matrix(c(1, NaN, 3, 4), 2, 2))
 add(x = matrix(c(1, Inf, 3, 4), 2, 2))
+# (added later, at the end) wide matrices with LAPACK: qraux has min(n, p) elements
+# (fixed matrices: random ones here would shift the random numbers of the cases below)
+wide <- list(matrix(c(2, -1, 0.5, 3, 1, -2, 0.7, 4, -1.5, 1, 2.2, -0.3, 5, 1, 1, -2, 0.1, 3), 3, 6),
+             matrix(c(1, 4, -2, 0.5, 3, 3, -1, 2, 0.25, -6), 2, 5), matrix(c(3, -1, 2, 0.5), 1, 4))
+for (m in wide) for (lp in c(FALSE, TRUE)) add(x = m, LAPACK = lp)
 
 # Put the numerical rank numRank and the condition number cond of the columns within it into args.
 # For linearly dependent columns (after numRank in pivoted order) the transformation vectors are determined by rounding error alone,

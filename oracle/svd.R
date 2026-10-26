@@ -73,6 +73,14 @@ for (m in list(rmat(6, 4), rmat(4, 6), matrix(1:6, 3, 2) + 0)) {
   add(z = m, norm = "I")
 }
 add(z = rmat(3, 3), method = "direct", norm = "2")
+# (added later, at the end) estimates through a triangular factor: other norms become "1"; only "I" is the inf-norm
+mk <- rmat(4, 4)
+for (nm in c("2", "F", "M", "E", "f", "i", "o", "I")) {
+  add(z = mk, norm = nm)
+  add(z = mk, norm = nm, method = "direct", triangular = TRUE)
+  add(z = mk, norm = nm, method = "direct")
+}
+add(z = rmat(3, 5), norm = "F")
 # Condition number (estimates are sensitive to rounding differences in the decomposition in proportion to it, so the tests widen the tolerance)
 cases <- lapply(cases, function(a) { if (nrow(a$z) == ncol(a$z)) a$cond <- kappa(a$z, exact = TRUE); a })
 write_linalg_fixture("kappa", cases, function(a)

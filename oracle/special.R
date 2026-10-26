@@ -28,6 +28,8 @@ write_fixture("lgamma", gg, function(r) lgamma(r$x), function(r) ref_lgamma(r$x)
 
 ba <- c(1e-300, 1e-10, 0.001, 0.5, 1, 1.5, 2, 3.7, 10, 50, 100, 170, 1000, 1e5, 1e10, 0, Inf, NaN)
 bg <- grid_of(a = ba, b = ba)
+# (added later, at the end) negative arguments: NaN in R (-0 counts as 0)
+bg <- rbind(bg, grid_of(a = c(-0.5, -1, -3.5, -1e-300, -0, 2.5), b = c(-0.5, 2.5, -1, -0, 3)))
 ref_lbeta <- function(a, b) if (all(is.finite(c(a, b))) && a > 0 && b > 0)
   lgamma(mp(a)) + lgamma(mp(b)) - lgamma(mp(a) + b) else NA
 write_fixture("beta", bg, function(r) beta(r$a, r$b),

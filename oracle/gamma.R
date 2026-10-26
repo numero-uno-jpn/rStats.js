@@ -13,7 +13,11 @@ base <- rbind(grid_of(x = xs, shape = shapes), near)
 base$scale <- 1
 extra <- grid_of(x = c(0.5, 3, 20), shape = c(0.5, 3, 100), scale = c(0.01, 2.5, 1e5))
 bad <- data.frame(x = 1, shape = c(-1, 2, 2, NaN), scale = c(1, 0, -1, 1))
-dgrid <- rbind(base, extra, bad)
+# (added later, at the end) shape = Inf: all the mass at +Inf. R's pgamma gives NaN for 0 < x/scale < 1 there
+# (the limit is 0), so those points are left out
+infs <- grid_of(x = c(0, 1, 1.5, 10, 1e300, Inf, -1, NaN), shape = Inf, scale = c(1, 2))
+infs <- infs[!(infs$x / infs$scale > 0 & infs$x / infs$scale < 1) | is.na(infs$x), ]
+dgrid <- rbind(base, extra, bad, infs)
 
 # High-precision reference: f(x) = x^(a-1) e^(-x/s) / (Gamma(a) s^a)
 ref_dgamma <- function(x, a, s, log) {
@@ -35,7 +39,8 @@ write_fixture("pgamma", with_tails(pgrid), function(r)
 qparams <- rbind(data.frame(shape = shapes, scale = 1),
                  data.frame(shape = c(0.5, 3, 100), scale = c(0.01, 2.5, 1e5)),
                  data.frame(shape = c(-1, 2, NaN), scale = c(1, -1, 1)))
-write_fixture("qgamma", quantile_grid(qparams), function(r)
+# (added later, at the end) shape = Inf
+write_fixture("qgamma", rbind(quantile_grid(qparams), quantile_grid(data.frame(shape = Inf, scale = c(1, 2)))), function(r)
   qgamma(r$p, r$shape, scale = r$scale, lower.tail = r$lowerTail, log.p = r$logP))
 
 # χ²
@@ -43,12 +48,14 @@ dfs <- c(0, 0.5, 1, 2, 3, 5, 10, 50, 100, 1000, 1e5, -1, NaN)
 cx <- c(0, 1e-300, 1e-10, 0.001, 0.1, 0.5, 1, 2, 3.84, 5, 10, 20, 50, 100, 200,
         1000, 1e4, 1e6, Inf, -1, NaN)
 cgrid <- grid_of(x = cx, df = dfs)
+# (added later, at the end) df = Inf, without 0 < x < 2 where R's value is NaN (the limit is 0)
+cgrid <- rbind(cgrid, grid_of(x = cx[!(cx > 0 & cx < 2) | is.na(cx)], df = Inf))
 write_fixture("dchisq", with_log(cgrid), function(r) dchisq(r$x, r$df, log = r$log))
 names(cgrid)[1] <- "q"
 write_fixture("pchisq", with_tails(cgrid), function(r)
   pchisq(r$q, r$df, lower.tail = r$lowerTail, log.p = r$logP),
   function(r) ref_gammainc(r$df / 2, r$q / 2, r$lowerTail, r$logP))
-write_fixture("qchisq", quantile_grid(data.frame(df = dfs)), function(r)
+write_fixture("qchisq", rbind(quantile_grid(data.frame(df = dfs)), quantile_grid(data.frame(df = Inf))), function(r)
   qchisq(r$p, r$df, lower.tail = r$lowerTail, log.p = r$logP))
 
 # Poisson

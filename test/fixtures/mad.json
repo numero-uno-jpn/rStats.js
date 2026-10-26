@@ -1,7 +1,7 @@
 {
   "function": "mad",
   "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T00:02:07+0000",
+  "generated": "2026-10-26T21:16:01+0000",
   "cases": [
     {"args":{"x":["2.5","1","4","3.5","2"]},"expected":{"value":"1.4825999999999999"}},
     {"args":{"x":["2.5","1","4","3.5","2"],"constant":"1"},"expected":{"value":"1"}},
@@ -69,6 +69,18 @@
     {"args":{"x":["-3","0","0","2","8","-1","0","5"],"low":true},"expected":{"value":"1.4825999999999999"}},
     {"args":{"x":["-3","0","0","2","8","-1","0","5"],"high":true},"expected":{"value":"2.9651999999999998"}},
     {"args":{"x":["1","NA","3","8"],"naRm":true},"expected":{"value":"2.9651999999999998"}},
-    {"args":{"x":["1","NA","3","8"]},"expected":{"value":"NA"}}
+    {"args":{"x":["1","NA","3","8"]},"expected":{"value":"NA"}},
+    {"args":{"x":["1","2","NA","4"],"center":"3","low":true},"expected":{"value":"1.4825999999999999"}},
+    {"args":{"x":["1","2","NA","4"],"center":"3","high":true},"expected":{"value":"2.9651999999999998"}},
+    {"args":{"x":["1","NA","NA","4"],"center":"0","low":true},"expected":{"value":"5.9303999999999997"}},
+    {"args":{"x":["1","NA","NA","4"],"center":"0","high":true},"expected":{"error":"'partial' index 3 outside bounds"}},
+    {"args":{"x":[null,null],"center":"0","low":true},"expected":{"error":"'partial' index 1 outside bounds"}},
+    {"args":{"x":["1","2","NA","4"],"low":true},"expected":{"error":"'partial' index 2 outside bounds"}},
+    {"args":{"x":["1","2","NA","4"],"center":"3","low":true,"naRm":true},"expected":{"value":"1.4825999999999999"}},
+    {"args":{"x":["1","2","NA","4","9"],"center":"3","low":true},"expected":{"value":"NA"}},
+    {"args":{"x":[],"low":true},"expected":{"error":"'partial' index 0 outside bounds"}},
+    {"args":{"x":[],"high":true},"expected":{"error":"'partial' index 1 outside bounds"}},
+    {"args":{"x":["1","2","3"],"low":true,"high":true},"expected":{"value":"1.4825999999999999"}},
+    {"args":{"x":["1","2","3","4"],"low":true,"high":true},"expected":{"error":"'low' and 'high' cannot be both TRUE"}}
   ]
 }

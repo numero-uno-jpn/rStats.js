@@ -63,15 +63,25 @@ for (rot in c("none", "varimax", "promax")) {
 fcases[[length(fcases) + 1]] <- list(x = X, factors = 1, rotation = "none")
 fcases[[length(fcases) + 1]] <- list(covmat = cov(X), n.obs = n, factors = 2, rotation = "varimax")
 fcases[[length(fcases) + 1]] <- list(x = X, factors = 4, rotation = "none")       # too many factors: an error
+# (added later, at the end) scores
+for (sc in c("regression", "Bartlett")) for (rot in c("none", "varimax", "promax")) {
+  fcases[[length(fcases) + 1]] <- list(x = X, factors = 2, rotation = rot, scores = sc)
+  fcases[[length(fcases) + 1]] <- list(x = X3, factors = 3, rotation = rot, scores = sc)
+}
+fcases[[length(fcases) + 1]] <- list(x = X, factors = 1, rotation = "none", scores = "regression")
+fcases[[length(fcases) + 1]] <- list(covmat = cov(X), n.obs = n, factors = 2, rotation = "varimax", scores = "regression")
 
 write_anova_fixture("factanal", fcases, function(a) {
   r <- with_warnings(function() {
-    fa <- if (!is.null(a$covmat)) factanal(covmat = a$covmat, n.obs = a$n.obs, factors = a$factors, rotation = a$rotation)
-          else factanal(a$x, factors = a$factors, rotation = a$rotation)
-    Lm <- unclass(fa$loadings); Lm <- sweep(Lm, 2, ifelse(colSums(Lm) < 0, -1, 1), "*")
+    sc <- if (is.null(a$scores)) "none" else a$scores
+    fa <- if (!is.null(a$covmat)) factanal(covmat = a$covmat, n.obs = a$n.obs, factors = a$factors, rotation = a$rotation, scores = sc)
+          else factanal(a$x, factors = a$factors, rotation = a$rotation, scores = sc)
+    sg <- ifelse(colSums(unclass(fa$loadings)) < 0, -1, 1)
+    Lm <- unclass(fa$loadings); Lm <- sweep(Lm, 2, sg, "*")
+    c(if (sc != "none") list(scores = lapply(seq_len(nrow(fa$scores)), function(i) I(num2str(unname(fa$scores[i, ] * sg))))),
     list(uniquenesses = I(num2str(unname(fa$uniquenesses))), loadings = lapply(seq_len(nrow(Lm)), function(i) I(num2str(Lm[i, ]))),
          STATISTIC = if (is.null(fa$STATISTIC)) "NA" else num2str(unname(fa$STATISTIC)), dof = num2str(fa$dof),
-         PVAL = if (is.null(fa$PVAL)) "NA" else num2str(unname(fa$PVAL)), converged = fa$converged)
+         PVAL = if (is.null(fa$PVAL)) "NA" else num2str(unname(fa$PVAL)), converged = fa$converged))
   })
   c(r$value, list(warnings = r$warnings))
 })
