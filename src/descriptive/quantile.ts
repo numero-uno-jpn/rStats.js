@@ -151,13 +151,18 @@ export function fivenum(x: Sample): [number, number, number, number, number] {
  * @category Descriptive statistics
  */
 export interface MadOptions extends NaRmOptions {
-  /** Centre. Default: the median. */
+  /** Centre. Default: the median (`NaN` if `x` has a missing value and `naRm` is not set). */
   center?: number;
   /** Scale factor. Default `1.4826` (consistent for the normal standard deviation). */
   constant?: number;
-  /** For an even count, take the lower of the two middle absolute deviations (the "lo-median"). */
+  /**
+   * For an even count n, take the lower of the two middle absolute deviations (the "lo-median"): the (n / 2)-th
+   * smallest. As in R, n counts the missing values unless `naRm` removed them, the k-th smallest is taken among
+   * the deviations that are not missing, and fewer than k of them (or k = 0) is an error. With an odd count the
+   * ordinary median is used.
+   */
   low?: boolean;
-  /** For an even count, take the higher one (the "hi-median"). */
+  /** For an even count n, take the higher one (the "hi-median"): the (n / 2 + 1)-th smallest, as for `low`. Both `low` and `high` is an error for an even count. */
   high?: boolean;
 }
 
@@ -173,18 +178,22 @@ export interface MadOptions extends NaRmOptions {
  * @category Descriptive statistics
  */
 export function mad(x: Sample, options: MadOptions = {}): number {
-  const xs = values(x, options.naRm);
-  if (xs === undefined) return NaN;
-  const center = options.center ?? median(xs);
+  // Missing values stay in (and count in n) unless naRm removes them, as in R
+  const given = Array.from(x);
+  const xs = given.filter((v) => !Number.isNaN(v));
+  const all = options.naRm ? xs : given;
+  const center = options.center ?? (all.length > xs.length ? NaN : median(xs));
   const constant = options.constant ?? 1.4826;
   const low = options.low ?? false;
   const high = options.high ?? false;
-  const dev = xs.map((v) => Math.abs(v - center));
+  const dev = all.map((v) => Math.abs(v - center));
   const n = dev.length;
   if ((low || high) && n % 2 === 0) {
     if (low && high) throw new RangeError("'low' and 'high' cannot be both TRUE");
+    // The k-th smallest among the deviations that are not missing (R's partial sort drops the missing ones)
     const k = n / 2 + (high ? 1 : 0);
-    const s = dev.sort((a, b) => a - b);
+    const s = dev.filter((v) => !Number.isNaN(v)).sort((a, b) => a - b);
+    if (k === 0 || s.length < k) throw new RangeError(`'partial' index ${k} outside bounds`);
     return constant * s[k - 1]!;
   }
   return constant * median(dev);

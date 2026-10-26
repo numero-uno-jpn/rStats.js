@@ -3,7 +3,7 @@ import {
   add, cbind, diag, divide, kronecker, lu, matMul, matrix, multiply, outer, prcomp, rbind, seq, subtract, t,
 } from "../src/index.js";
 import { arg, defined, htestSuite, type HTestArg } from "./helpers/htest.js";
-import { alignColumns } from "./helpers/linalg.js";
+import { alignColumns, vectorMask } from "./helpers/linalg.js";
 
 type A = Record<string, HTestArg>;
 type M = number[][];
@@ -37,8 +37,9 @@ htestSuite({
   name: "prcomp",
   call: (a) => {
     const opt = (x: HTestArg | undefined) => (typeof x === "boolean" ? x : arg.vec(x));
-    const r = prcomp(arg.mat(a.x)!, defined({ center: opt(a.center), scale: opt(a.scale) }));
-    alignColumns(r.rotation, [], r.x);
+    const r = prcomp(arg.mat(a.x)!, defined({ center: opt(a.center), scale: opt(a.scale), rank: arg.num(a.rank), tol: arg.num(a.tol) }));
+    // components with a standard deviation of (nearly) 0 or equal to another's are not determined (NaN, as in the oracle)
+    alignColumns(r.rotation, vectorMask(r.sdev), r.x);
     return r;
   },
   tolerance: 1e-12,

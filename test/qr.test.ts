@@ -10,11 +10,15 @@ htestSuite({
   name: "qr",
   call: (a) => {
     const q = decompose(a);
+    // The oracle's NaN padding hides the length, so check it here: one Householder scalar per reflection for LAPACK
+    const width = q.qr[0]?.length ?? 0;
+    if (q.qraux.length !== (q.useLapack ? Math.min(q.qr.length, width) : width)) throw new Error(`qraux has ${q.qraux.length} elements`);
     // Householder vectors of linearly dependent columns are determined by rounding error alone, so they are not compared (set to NaN, as in oracle/qr.R)
     const r = arg.num(a.numRank);
     if (r !== undefined) {
       q.qr.forEach((row, i) => row.forEach((_, j) => j >= r && i > j && (row[j] = NaN)));
-      q.qraux.forEach((_, j) => j >= r && (q.qraux[j] = NaN));
+      // As in the oracle, this extends the shorter LAPACK qraux to ncol elements
+      for (let j = r; j < width; j++) q.qraux[j] = NaN;
     }
     // pivot is 0-based; add 1 to compare with R
     return { qr: q.qr, qraux: q.qraux, rank: q.rank, pivot: q.pivot.map((v) => v + 1) };

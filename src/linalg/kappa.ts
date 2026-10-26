@@ -11,6 +11,11 @@
 // - For dtrco with norm: "I", the same-side triangle of the transposed matrix is used, matching R's output
 //   (this looks at the opposite triangle of the original matrix; for R from a QR decomposition, only the diagonal)
 // - triangular only has an effect with method: "direct" (from R's output)
+// - Norms of the estimates (R's documented and observed behaviour): through a triangular factor (method "qr", or
+//   "direct" with triangular), only the norm written exactly "I" gives the infinity-norm estimate and every other
+//   norm ("2", "F", "M", "E", lower-case "i", ...) the 1-norm estimate (R warns for "2" and for norms other than
+//   "1", "O" and "I"; the library does not report warnings). rcond (method "direct") accepts "1", "O" and "I" in
+//   either case and rejects any other with R's message
 // ginv is the Moore-Penrose generalised inverse via the SVD; singular values at most largest singular value × tol are treated as 0.
 
 import { fromMat, newMat, toMat, transpose, type Mat, type MatrixInput } from "./matrix.js";
@@ -28,8 +33,12 @@ export interface KappaOptions {
   /** Compute the condition number exactly instead of estimating it. Default: `false`. */
   exact?: boolean;
   /**
-   * The norm. Default: `"2"` when `exact` is `true`, otherwise `"1"`. With `exact: false` only `"1"`/`"O"` and `"I"`
-   * are allowed. With `exact: true`, `"2"` uses the singular values and other norms use `norm(z) * norm(solve(z))`.
+   * The norm. Default: `"2"` when `exact` is `true`, otherwise `"1"`. With `exact: true`, `"2"` uses the singular
+   * values and other norms use `norm(z) * norm(solve(z))`. With `exact: false`, as in R: the estimates through a
+   * triangular factor (`method: "qr"`, or `"direct"` with `triangular: true`) use the infinity norm only for `"I"`
+   * written exactly so and the 1-norm for any other norm (R warns for norms other than `"1"`, `"O"` and `"I"`, and
+   * for `"2"`); `method: "direct"` without `triangular` accepts `"1"`, `"O"` and `"I"` in either case and throws for
+   * any other.
    */
   norm?: NormType;
   /**
@@ -63,9 +72,9 @@ export interface KappaOptions {
  * @category Linear algebra
  */
 export function kappa(z: MatrixInput, options: KappaOptions = {}): number {
-  // The default norm is "2" if exact, "1" if estimated
-  const nrm = options.norm === undefined ? (options.exact ? "2" : "O") : normalize(options.norm);
   if (options.exact) {
+    // The default norm is "2" if exact, "1" if estimated
+    const nrm = options.norm === undefined ? "2" : normalize(options.norm);
     if (nrm === "2") {
       const d = svd(z, { nu: 0, nv: 0 }).d;
       const min = Math.min(...d);
@@ -73,15 +82,19 @@ export function kappa(z: MatrixInput, options: KappaOptions = {}): number {
     }
     return norm(z, { type: nrm }) * norm(solve(z), { type: nrm });
   }
-  if (nrm !== "O" && nrm !== "I") throw new RangeError(`norm must be "1", "O" or "I" when exact is false (got "${options.norm}")`);
+  // Through a triangular factor, only "I" itself is the infinity norm; any other norm becomes the 1-norm (as in R)
+  const triNorm = options.norm === "I" ? "I" : "O";
   if ((options.method ?? "qr") === "direct") {
-    if (options.triangular) return 1 / triangularEstimate(toMat(z), (options.uplo ?? "U") === "U", nrm);
-    return 1 / rcond(z, { norm: nrm });
+    if (options.triangular) return 1 / triangularEstimate(toMat(z), (options.uplo ?? "U") === "U", triNorm);
+    const t = options.norm ?? "O";
+    const u = t.toUpperCase();
+    if (u !== "1" && u !== "O" && u !== "I") throw new RangeError(`argument type[1]='${t}' must be one of '1','O', or 'I'`);
+    return 1 / rcond(z, { norm: u === "I" ? "I" : "O" });
   }
   // If wide, transpose before the QR decomposition (from R's output)
   const zm = toMat(z);
   const zz = zm.nrow < zm.ncol ? fromMat(transpose(zm)) : z;
-  return 1 / triangularEstimate(toMat(qrR(qr(zz))), true, nrm);
+  return 1 / triangularEstimate(toMat(qrR(qr(zz))), true, triNorm);
 }
 
 /**

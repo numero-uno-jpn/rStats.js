@@ -84,7 +84,7 @@ export interface ApproxOptions {
   yright?: number;
   /** Extrapolation rule (1: NaN, 2: the end value), for both sides or `[left, right]`. Default `1`. */
   rule?: number | readonly [number, number];
-  /** For `"constant"`: the step value is (1 - f) y_left + f y_right. Default `0`. */
+  /** For `"constant"`: the step value is (1 - f) y_left + f y_right, with f in [0, 1] (else an error, as in R). Default `0`. */
   f?: number;
   /** How to merge equal x values. Default `"mean"`. */
   ties?: Ties;
@@ -115,6 +115,8 @@ export function approx(
   const nx = pts.x.length;
   if (nx <= 1 && method === "linear") throw new RangeError("need at least two non-NA values to interpolate");
   if (nx === 0) throw new RangeError("zero non-NA points");
+  // As in R, f is checked only for the constant method
+  if (method === "constant" && !(f >= 0 && f <= 1)) throw new RangeError("approx(): invalid f value");
   const [ruleLeft, ruleRight] = typeof rule === "number" ? [rule, rule] : rule;
   const yleft = options.yleft ?? (ruleLeft === 1 ? NaN : pts.y[0]!);
   const yright = options.yright ?? (ruleRight === 1 ? NaN : pts.y[nx - 1]!);
