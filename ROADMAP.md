@@ -41,8 +41,8 @@ against R and are not a priority.
 | More tests | `leveneTest` (car), `propTrendTest` (`prop.trend.test`), `jonckheereTest` (DescTools and clinfun), `cochranQTest` (DescTools), `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (nortest) |
 | Multiple comparisons | PMCMRplus's `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `dunnettTest`, `gamesHowellTest`, `tukeyTest`; `dunnTest` (dunn.test); `glhtDunnett` (multcomp); Dunnett-type probabilities computed exactly (R's are randomised) |
 | Survival analysis | `survdiff` (log-rank and the G-rho family) and `survfit` (Kaplan-Meier with log, plain and log-log intervals and the median) of the `survival` package |
-| Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych); effect sizes of repeated-measures designs (`Error()` strata and `aovEz`) |
-| Optimisation | `optim` with all six methods (Nelder-Mead, BFGS, CG, L-BFGS-B, SANN, Brent), following R's iterations, and `optimHess` |
+| Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor, two-step), `pbvnorm`; effect sizes of repeated-measures designs (`Error()` strata and `aovEz`) |
+| Optimisation | `factanal` (maximum likelihood, varimax and promax); `optim` with all six methods (Nelder-Mead, BFGS, CG, L-BFGS-B, SANN, Brent), following R's iterations, and `optimHess` |
 | Linear algebra | the matrix functions of R's `base`, with `Matrix::lu`, `prcomp` (`stats`) and `MASS::ginv`: matrix arithmetic, `crossprod`, `norm`, `backsolve`, `chol`, `qr` (R's pivoting and LAPACK), `solve`, `det`, `rcond`, `kappa`, `svd`, `eigen` (symmetric and general), `lu`, `prcomp`, `ginv`, `schur` (`Matrix::Schur`) and `expm` (expm's Higham08 methods) |
 | Numerical methods | `integrate`, `optimize`, `uniroot`, `approx`, `spline`/`splinefun`/`splinefunH`, Lagrange (pracma) and Hermite interpolation, fixed-step `ode` (deSolve), `grad`/`jacobian`/`hessian` (numDeriv) |
 | jStat | every jStat function has a replacement ([docs/migrating-from-jstat.md](docs/migrating-from-jstat.md)), checked against jStat |
@@ -55,8 +55,9 @@ The full list is in the [README](README.md#what-is-included); known differences 
 In order of priority. The R function or package that each item is checked against is given in
 brackets.
 
-1. **Factor analysis:** `factanal` (`stats`, maximum likelihood with varimax and promax), then McDonald's
-   ω (`psych`) and polychoric, tetrachoric and polyserial correlation (`polycor`).
+1. **Reliability and correlation, the rest:** McDonald's ω (`psych`, after a factor analysis of its own) and the
+   maximum-likelihood polychoric and polyserial correlations (`polycor` with `ML = TRUE`, against exact
+   maximum-likelihood references: R's Nelder-Mead result depends on the last bits of mvtnorm).
 2. **Later:** Steel's many-one test (PMCMRplus 1.9.12's `steelTest` fails on every input, so another reference
    is needed), the other methods of `expm` (Padé and Taylor), Cox regression.
 3. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's

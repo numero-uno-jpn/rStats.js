@@ -348,17 +348,17 @@ minifies and gzips it. Tree-shaking keeps only the imported functions and their 
 | `qbeta` | 49.7 KB | 23.2 KB |
 | `pt`, `qt` | 63.8 KB | 30.3 KB |
 | `glm`, `glmSummary` / `glm` with all its methods | 62.7 / 88.7 KB | 27.2 / 39.2 KB |
-| everything | 390.3 KB | 146.7 KB |
-| `@numero-uno-jpn/rstats/distributions` (all of it) | 169.7 KB | 67.0 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 269.4 KB | 105.0 KB |
-| `@numero-uno-jpn/rstats/linalg` (all of it) | 39.9 KB | 14.5 KB |
+| everything | 449.0 KB | 169.8 KB |
+| `@numero-uno-jpn/rstats/distributions` (all of it) | 171.4 KB | 67.8 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 335.6 KB | 132.1 KB |
+| `@numero-uno-jpn/rstats/linalg` (all of it) | 45.9 KB | 17.1 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 21.5 KB | 8.4 KB |
-| `@numero-uno-jpn/rstats/numerics` (all of it) | 22.8 KB | 10.3 KB |
+| `@numero-uno-jpn/rstats/numerics` (all of it) | 47.8 KB | 20.7 KB |
 | `@numero-uno-jpn/rstats/special` (all of it) | 57.9 KB | 26.8 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share
-code between areas through `dist/chunks/`, so one area loaded from them transfers more: 18 KB
-(`numerics`) to 122 KB (`tests`) gzipped, chunks included.
+code between areas through `dist/chunks/`, so one area loaded from them transfers more: 26 KB
+(`linalg`) to 144 KB (`tests`) gzipped, chunks included.
 
 The incomplete beta function's uniform asymptotic expansion adds 1.3 KB gzipped to everything
 that uses `pbeta` (`qbeta`, `pt`, `tTest`, ...), and the allocation-free loop of its continued
