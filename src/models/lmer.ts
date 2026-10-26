@@ -11,11 +11,16 @@
 //      diagonal elements of each block T_k), run to tight tolerances;
 //   2. an active-set Newton method that locates the minimiser to rounding error: the bounded elements left below
 //      1e-4 are candidates for the boundary and held at exactly 0; Newton steps on the other ("free") elements, with
-//      the Hessian from central differences of the analytic gradient, until the step is at rounding level; an
-//      element that a step would take below 0 joins the boundary. Then each element on the boundary is checked:
-//      it stays there if the derivative of the criterion at 0 is positive, or zero (to rounding) with the derivative
-//      at a small positive value positive (the criterion is even in a 1 × 1 block's element, so its derivative at 0
-//      vanishes); otherwise it is released and the Newton phase repeats.
+//      the Hessian from central differences of the analytic gradient (the step relative to |θ_j|, with a floor),
+//      until the step is at rounding level; an element that a step would take below 0 joins the boundary. If the
+//      Hessian is not positive definite, the point is not yet in the convex region around the minimiser and phase 1
+//      is resumed from it. Then each element on the boundary is checked: it stays there if the derivative of the
+//      criterion at 0 is positive, or zero (to rounding) with the derivative just inside the bound positive;
+//      otherwise it is released, moved just inside the bound, and phase 1 is resumed.
+// The second test matters because the criterion is even in the element of a 1 × 1 block (and, in general, in the
+// sign of a column of T_k), so its derivative at 0 vanishes: 0 is then a stationary point, which L-BFGS-B may stop at
+// (its projected gradient is exactly 0) although it is a local maximum along the element, with the minimiser just
+// inside the bound. Between the two the criterion is concave, so Newton's method cannot start from near 0.
 // lme4's own optimiser (and its convergence warnings) are not reproduced: the result is the exact minimiser, which
 // lme4 approaches to its tolerances.
 
@@ -136,8 +141,14 @@ export interface LmerResult {
 
 /** Bounded elements of θ below this value after the quasi-Newton phase are candidates for the boundary */
 const BOUNDARY_CANDIDATE = 1e-4;
-/** Relative step (to max(1, |θ_j|)) of the central differences of the gradient that give the Hessian */
+/** Step of the central differences of the gradient that give the Hessian, relative to |θ_j| ... */
 const HESSIAN_STEP = 1e-4;
+/** ... and at least this (relative to max(1, max |θ|)), for elements at or near 0 */
+const HESSIAN_STEP_FLOOR = 1e-6;
+/** Where the derivative is probed when it vanishes at the bound (relative to max(1, max |θ|)) */
+const BOUNDARY_PROBE = 1e-6;
+/** The largest move of the search along a descent direction (relative to max(1, max |θ|)) */
+const SLOPE_SEARCH_LIMIT = 10;
 /** The Newton phase stops when a step is below this, relative to max(1, max |θ|) */
 const NEWTON_TOLERANCE = 1e-13;
 /** ... or when the steps no longer decrease (rounding level) and are below this */
@@ -186,36 +197,51 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
   };
   const gradientAt = (theta: readonly number[]): number[] => evaluate(theta).g;
 
-  // 1. quasi-Newton with bounds
-  const qn = lbfgsb(
-    nTheta,
-    10,
-    s.theta,
-    new Array<number>(nTheta).fill(0),
-    new Array<number>(nTheta).fill(0),
-    bounded.map((b) => (b ? 1 : 0)),
-    10,
-    0,
-    (x) => evaluate(x),
-    () => false,
-  );
-  if (qn.task.startsWith("ERROR") || !qn.x.every(Number.isFinite)) throw new Error(OPTIMISATION_FAILED);
+  /** Quasi-Newton with bounds from `start` (all elements free, the bounds enforced by projection) */
+  const quasiNewton = (start: readonly number[]): number[] => {
+    const qn = lbfgsb(
+      nTheta,
+      10,
+      start,
+      new Array<number>(nTheta).fill(0),
+      new Array<number>(nTheta).fill(0),
+      bounded.map((b) => (b ? 1 : 0)),
+      10,
+      0,
+      (x) => evaluate(x),
+      () => false,
+    );
+    if (qn.task.startsWith("ERROR") || !qn.x.every(Number.isFinite)) throw new Error(OPTIMISATION_FAILED);
+    return qn.x.map((v, j) => (bounded[j] && v < 0 ? 0 : v));
+  };
 
-  // 2. active-set Newton
-  const theta = qn.x.map((v, j) => (bounded[j] && v < 0 ? 0 : v));
+  const theta = s.theta.slice();
   const fixed = new Set<number>();
-  theta.forEach((v, j) => {
-    if (bounded[j] && v < BOUNDARY_CANDIDATE) {
-      fixed.add(j);
-      theta[j] = 0;
-    }
-  });
+  /** Elements released from the boundary (not candidates for it again unless a Newton step takes them there) */
+  const released = new Set<number>();
+  /** Runs the quasi-Newton phase from the current θ and holds the candidates for the boundary at 0 */
+  const restart = (): void => {
+    quasiNewton(theta).forEach((v, j) => (theta[j] = v));
+    fixed.clear();
+    theta.forEach((v, j) => {
+      if (bounded[j] && v < BOUNDARY_CANDIDATE && !released.has(j)) {
+        fixed.add(j);
+        theta[j] = 0;
+      }
+    });
+  };
+  const scaleOf = (): number => Math.max(1, ...theta.map(Math.abs));
 
-  /** Newton steps on the free elements; returns the bounded elements that a step took to 0 or below */
-  const newton = (free: number[]): number[] => {
+  /**
+   * Newton steps on the free elements: "converged", the bounded elements that a step took to 0 or below, or
+   * "indefinite" when the Hessian is not positive definite (the point is not yet in the convex region around the
+   * minimiser: the quasi-Newton phase is resumed from it)
+   */
+  const newton = (free: number[]): "converged" | "indefinite" | number[] => {
     const hessian = (): number[][] => {
+      const floor = HESSIAN_STEP_FLOOR * scaleOf();
       const cols = free.map((j) => {
-        const h = HESSIAN_STEP * Math.max(1, Math.abs(theta[j]!));
+        const h = Math.max(HESSIAN_STEP * Math.abs(theta[j]!), floor);
         const plus = theta.slice();
         plus[j] = theta[j]! + h;
         const minus = theta.slice();
@@ -234,7 +260,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
         h,
         free.map((j) => g[j]!),
       );
-      if (delta === undefined) throw new Error(OPTIMISATION_FAILED);
+      if (delta === undefined) return "indefinite";
       const hit: number[] = [];
       free.forEach((j, a) => {
         theta[j] = theta[j]! - delta[a]!;
@@ -244,12 +270,11 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
         for (const j of hit) theta[j] = 0;
         return hit;
       }
-      const scale = Math.max(1, ...theta.map(Math.abs));
-      const size = Math.max(...delta.map(Math.abs)) / scale;
+      const size = Math.max(...delta.map(Math.abs)) / scaleOf();
       if (!Number.isFinite(size)) throw new Error(OPTIMISATION_FAILED);
-      if (size <= NEWTON_TOLERANCE) return [];
+      if (size <= NEWTON_TOLERANCE) return "converged";
       if (size > 0.5 * previous) {
-        if (size <= NEWTON_FLOOR) return [];
+        if (size <= NEWTON_FLOOR) return "converged";
         h = hessian(); // slow contraction: the Hessian is renewed
       }
       previous = size;
@@ -257,7 +282,11 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
     throw new Error(OPTIMISATION_FAILED);
   };
 
-  /** Elements held at 0 that must be released (the criterion decreases into the feasible side) */
+  /**
+   * Elements held at 0 that must be released: the criterion decreases from 0 into the feasible side. Where the
+   * derivative at 0 vanishes (to rounding), as it does for a 1 × 1 block (the criterion is even in its element), the
+   * sign of the derivative just inside the bound decides.
+   */
   const toRelease = (): number[] => {
     const out: number[] = [];
     if (fixed.size === 0) return out;
@@ -267,7 +296,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
       if (g[j]! > tolerance) continue;
       if (g[j]! >= -tolerance) {
         const probe = theta.slice();
-        probe[j] = BOUNDARY_CANDIDATE;
+        probe[j] = BOUNDARY_PROBE * scaleOf();
         if (gradientAt(probe)[j]! > 0) continue;
       }
       out.push(j);
@@ -275,21 +304,55 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean): number[] {
     return out;
   };
 
+  /**
+   * Moves θ along `direction` (a descent direction) until the directional derivative is no longer negative: the
+   * steps grow by 4 from BOUNDARY_PROBE (relative to the scale of θ) up to SLOPE_SEARCH_LIMIT, and stop short of the
+   * bounds. Only the gradient is used: where the criterion is flat to rounding (near a stationary point on the
+   * bound), its values cannot show the descent, and L-BFGS-B, which needs a decrease of the criterion, would stop
+   * where it starts.
+   */
+  const slopeSearch = (direction: number[]): void => {
+    const size = Math.max(...direction.map(Math.abs));
+    if (!(size > 0)) return;
+    const scale = scaleOf();
+    const base = theta.slice();
+    for (let alpha = (BOUNDARY_PROBE * scale) / size; alpha * size <= SLOPE_SEARCH_LIMIT * scale; alpha *= 4) {
+      const trial = base.map((v, j) => v + alpha * direction[j]!);
+      if (trial.some((v, j) => bounded[j] && v < 0)) return;
+      trial.forEach((v, j) => (theta[j] = v));
+      const g = gradientAt(trial);
+      if (g.reduce((sum, gj, j) => sum + gj * direction[j]!, 0) >= 0) return;
+    }
+  };
+
+  restart();
   for (let round = 0; round < MAX_ACTIVE_SET_ROUNDS; round++) {
     const free = theta.map((_, j) => j).filter((j) => !fixed.has(j));
-    if (free.length > 0) {
-      const hit = newton(free);
-      if (hit.length > 0) {
-        for (const j of hit) fixed.add(j);
-        continue;
+    const outcome = free.length > 0 ? newton(free) : "converged";
+    if (outcome === "indefinite") {
+      // not yet in the convex region around the minimiser: along the steepest descent, then quasi-Newton again
+      const g = gradientAt(theta);
+      slopeSearch(theta.map((_, j) => (fixed.has(j) ? 0 : -g[j]!)));
+      restart();
+      continue;
+    }
+    if (outcome !== "converged") {
+      for (const j of outcome) {
+        fixed.add(j);
+        released.delete(j);
       }
+      continue;
     }
     const release = toRelease();
     if (release.length === 0) return theta;
+    // moved into the feasible side until the criterion no longer decreases along the released elements, then
+    // quasi-Newton again
     for (const j of release) {
       fixed.delete(j);
-      theta[j] = BOUNDARY_CANDIDATE;
+      released.add(j);
     }
+    slopeSearch(theta.map((_, j) => (release.includes(j) ? 1 : 0)));
+    restart();
   }
   throw new Error(OPTIMISATION_FAILED);
 }

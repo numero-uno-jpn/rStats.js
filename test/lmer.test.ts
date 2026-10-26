@@ -1,9 +1,10 @@
-// Linear mixed models fitted by lmer against lme4 (oracle/lmer.R, oracle/lmer-behaviour.md "The fit and its
-// results"). Against the reference (the fields at the exact minimiser of the criterion, in 128-bit arithmetic):
+// Linear mixed models fitted by lmer against lme4 (fixtures lmer and lmerMore: oracle/lmer.R, oracle/lmermore.R;
+// oracle/lmer-behaviour.md "The fit and its results"), both tested the same way. Against the reference (the fields at the exact minimiser of the criterion, in 128-bit arithmetic):
 // logLik, AIC, BIC, deviance, REMLcrit relative 1e-12; theta, fixef, stdError, tValue, vcov, varCorr sd, ranef
 // values, fitted, residuals within 1e-9 × the largest absolute value of the reference vector or matrix; sigma relative
-// 1e-9; varCorr corr absolute 1e-9; elements of theta that are 0 in the reference exactly 0; df, singular, the names
-// and levels equal to the reference; messages and warnings equal to lme4's. Against lme4 (expected): the criterion
+// 1e-9; varCorr corr absolute 1e-9; elements of theta that are 0 in the reference exactly 0; singular equal to the
+// reference's; messages equal to lme4's without the singular-fit message, then that message if the reference is
+// singular; df, the names and levels, and warnings equal to lme4's. Against lme4 (expected): the criterion
 // of the fit no worse than lme4's (d ≤ d_lme4 + 1e-10 |d_lme4|); the largest relative difference of each field from
 // lme4 is printed (how far lme4's optimiser stops from the minimiser), not checked.
 import { describe, expect, it } from "vitest";
@@ -11,7 +12,8 @@ import { lmer, type LmerOptions, type LmerResult } from "../src/models/lmer.js";
 import { num } from "./helpers/fixture.js";
 import { dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
 
-const fixture = loadAnovaFixture("lmer");
+const FIXTURES = ["lmer", "lmerMore"] as const;
+const SINGULAR_MESSAGE = "boundary (singular) fit: see help('isSingular')";
 const TOL_CRITERION = 1e-12;
 const TOL = 1e-9;
 const TOL_LME4 = 1e-10;
@@ -65,7 +67,9 @@ function fixtureVectorsOf(f: Record<string, unknown>): Record<string, number[][]
 }
 
 describe("lmer", () => {
-  it(`matches the exact minimiser and is at least as good as lme4 (${fixture.r_version})`, () => {
+  for (const name of FIXTURES) {
+  const fixture = loadAnovaFixture(name);
+  it(`${name}: matches the exact minimiser and is at least as good as lme4 (${fixture.r_version})`, () => {
     const failures: string[] = [];
     // the largest error of each field against the reference (in units of its tolerance's scale), and the largest
     // relative difference from lme4
@@ -131,12 +135,13 @@ describe("lmer", () => {
       // varCorr: names, and corr (absolute)
       const vcRef = ref.varCorr as FixtureVarCorr[];
       const vcLme4 = e.varCorr as FixtureVarCorr[];
-      if (r.varCorr.length !== vcRef.length) failures.push(`${where} varCorr: ${r.varCorr.length} terms, expected ${vcRef.length}`);
+      if (r.varCorr.length !== vcRef.length || r.varCorr.length !== vcLme4.length) failures.push(`${where} varCorr: ${r.varCorr.length} terms, expected ${vcRef.length}`);
       else {
         r.varCorr.forEach((v, k) => {
           const x = vcRef[k]!;
-          if (v.group !== x.group) failures.push(`${where} varCorr[${k}].group: ${v.group}, expected ${x.group}`);
-          if (JSON.stringify(v.columns) !== JSON.stringify(x.columns)) failures.push(`${where} varCorr[${k}].columns: ${JSON.stringify(v.columns)}, expected ${JSON.stringify(x.columns)}`);
+          const l = vcLme4[k]!;
+          if (v.group !== l.group) failures.push(`${where} varCorr[${k}].group: ${v.group}, lme4 ${l.group}`);
+          if (JSON.stringify(v.columns) !== JSON.stringify(l.columns)) failures.push(`${where} varCorr[${k}].columns: ${JSON.stringify(v.columns)}, lme4 ${JSON.stringify(l.columns)}`);
           const corr = v.corr.flat();
           const corrRef = x.corr.flatMap(nums);
           const corrLme4 = vcLme4[k]!.corr.flatMap(nums);
@@ -154,22 +159,23 @@ describe("lmer", () => {
       }
 
       // ranef: names and levels
-      const reRef = ref.ranef as FixtureRanef[];
-      if (r.ranef.length !== reRef.length) failures.push(`${where} ranef: ${r.ranef.length} groups, expected ${reRef.length}`);
+      const reLme4 = e.ranef as FixtureRanef[];
+      if (r.ranef.length !== reLme4.length) failures.push(`${where} ranef: ${r.ranef.length} groups, lme4 ${reLme4.length}`);
       else {
         r.ranef.forEach((g, k) => {
-          const x = reRef[k]!;
-          if (g.group !== x.group) failures.push(`${where} ranef[${k}].group: ${g.group}, expected ${x.group}`);
-          if (JSON.stringify(g.levels) !== JSON.stringify(x.levels)) failures.push(`${where} ranef[${k}].levels differ`);
-          if (JSON.stringify(g.columns) !== JSON.stringify(x.columns)) failures.push(`${where} ranef[${k}].columns: ${JSON.stringify(g.columns)}, expected ${JSON.stringify(x.columns)}`);
+          const x = reLme4[k]!;
+          if (g.group !== x.group) failures.push(`${where} ranef[${k}].group: ${g.group}, lme4 ${x.group}`);
+          if (JSON.stringify(g.levels) !== JSON.stringify(x.levels)) failures.push(`${where} ranef[${k}].levels differ from lme4's`);
+          if (JSON.stringify(g.columns) !== JSON.stringify(x.columns)) failures.push(`${where} ranef[${k}].columns: ${JSON.stringify(g.columns)}, lme4 ${JSON.stringify(x.columns)}`);
         });
       }
 
       // df, singular, messages, warnings
-      if (r.df !== num(ref.df as string)) failures.push(`${where} df: ${r.df}, expected ${String(ref.df)}`);
-      if (r.singular !== ref.singular) failures.push(`${where} singular: ${r.singular}, expected ${String(ref.singular)}`);
-      if (r.singular !== e.singular) failures.push(`${where} singular: ${r.singular}, lme4 ${String(e.singular)}`);
-      if (JSON.stringify(r.messages) !== JSON.stringify(e.messages)) failures.push(`${where} messages: ${JSON.stringify(r.messages)}, lme4 ${JSON.stringify(e.messages)}`);
+      if (r.df !== num(e.df as string)) failures.push(`${where} df: ${r.df}, lme4 ${String(e.df)}`);
+      if (r.singular !== ref.singular) failures.push(`${where} singular: ${r.singular}, reference ${String(ref.singular)}`);
+      const messages = (e.messages as string[]).filter((m) => m !== SINGULAR_MESSAGE);
+      if (ref.singular === true) messages.push(SINGULAR_MESSAGE);
+      if (JSON.stringify(r.messages) !== JSON.stringify(messages)) failures.push(`${where} messages: ${JSON.stringify(r.messages)}, expected ${JSON.stringify(messages)}`);
       if (JSON.stringify(r.warnings) !== JSON.stringify(e.warnings)) failures.push(`${where} warnings: ${JSON.stringify(r.warnings)}, lme4 ${JSON.stringify(e.warnings)}`);
       if (r.nObs !== r.fitted.length || r.rows.length !== r.nObs) failures.push(`${where} nObs ${r.nObs}, rows ${r.rows.length}`);
 
@@ -179,10 +185,11 @@ describe("lmer", () => {
       if (!(d <= dLme4 + TOL_LME4 * Math.abs(dLme4))) failures.push(`${where} criterion ${d} worse than lme4's ${dLme4}`);
     });
     const show = (m: Map<string, number>): string => [...m].map(([f, w]) => `${f} ${w.toExponential(1)}`).join(", ");
-    console.log(`lmer: ${fixture.cases.length} cases; largest error against the reference: ${show(worstRef)}`);
-    console.log(`lmer: largest relative difference from lme4: ${show(worstLme4)}`);
+    console.log(`${name}: ${fixture.cases.length} cases; largest error against the reference: ${show(worstRef)}`);
+    console.log(`${name}: largest relative difference from lme4: ${show(worstLme4)}`);
     expect(failures, failures.slice(0, 20).join("\n")).toEqual([]);
   });
+  }
 
   it("throws for a formula without random-effects terms", () => {
     expect(() => lmer("y ~ x", { y: [1, 2, 3], x: [1, 2, 4] })).toThrow("No random effects terms specified in formula");
