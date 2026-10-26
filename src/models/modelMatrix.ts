@@ -119,7 +119,8 @@ export interface DesignOptions extends ModelMatrixOptions {
   extraVariables?: readonly string[];
   /**
    * The variables a name of `contrasts` may refer to without the warning that it is absent (default: the variables
-   * of the whole formula, the response included; lmer passes those of the fixed-effects part)
+   * of the whole formula, the response included; lmer passes those of the fixed-effects part, aov with Error() those
+   * of the formula without the Error() term)
    */
   contrastVariables?: readonly string[];
 }

@@ -13,7 +13,7 @@ import { pf1 } from "../distributions/f.js";
 import { qr } from "../linalg/qr.js";
 import { ddAdd, ddMul, type DD } from "../special/dd.js";
 import { ddLeastSquares, ddLeastSquaresMulti, ddSumSquares } from "./ddLeastSquares.js";
-import type { FormulaNode, ParsedFormula } from "./formula.js";
+import { termsOf, type FormulaNode, type ParsedFormula } from "./formula.js";
 import type { LmFormulaOptions } from "./lm.js";
 import type { DataFrame } from "./modelFrame.js";
 import { design } from "./modelMatrix.js";
@@ -116,7 +116,10 @@ export function aovStrataFit(
 ): AovStrataFit {
   if (options.weights !== undefined) throw new Error("weights are not supported in a multistratum aov() fit");
   // y ~ Error(id): no treatment terms, the intercept only
-  const dt = design(parsed, data, { ...options, dropUnusedLevels: true }, treatment ?? { type: "num", value: 1, text: "1" });
+  const treatmentRhs: FormulaNode = treatment ?? { type: "num", value: 1, text: "1" };
+  // (a contrast is for a variable of the formula without the Error() term: one only inside Error() is absent)
+  const contrastVariables = termsOf({ response: parsed.response, rhs: treatmentRhs }, Object.keys(data)).variables;
+  const dt = design(parsed, data, { ...options, dropUnusedLevels: true, contrastVariables }, treatmentRhs);
   const y = dt.y;
   if (y === undefined) throw new TypeError("the formula has no response");
   const de = design({ response: parsed.response, rhs: errorRhs }, data, {
