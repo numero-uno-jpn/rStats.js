@@ -50,8 +50,8 @@ export interface FactanalResult {
   counts: [number, number];
 }
 
-/** Sum rounded once (R's long double accumulation, here double-double) */
-function sumOnce(xs: readonly number[]): number {
+/** Sum rounded once (R's long double accumulation, here double-double); also used by omega */
+export function sumOnce(xs: readonly number[]): number {
   let hi = 0;
   let lo = 0;
   for (const x of xs) {
@@ -98,8 +98,8 @@ const matMul = (A: readonly (readonly number[])[], B: readonly (readonly number[
   }));
 const transpose = (A: readonly (readonly number[])[]): number[][] => A[0]!.map((_, j) => A.map((r) => r[j]!));
 
-/** Varimax rotation (normalised, eps 1e-5, at most 1000 iterations) */
-function varimax(L: readonly (readonly number[])[]): { loadings: number[][]; rotmat: number[][] } {
+/** Varimax rotation (normalised, eps 1e-5, at most 1000 iterations); also used by omega */
+export function varimax(L: readonly (readonly number[])[]): { loadings: number[][]; rotmat: number[][] } {
   const k = L[0]!.length;
   const p = L.length;
   const len = L.map((r) => Math.sqrt(sumOnce(r.map((v) => v * v))));
