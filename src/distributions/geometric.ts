@@ -78,6 +78,12 @@ export function qgeom1(p: number, prob: number, lowerTail: boolean, logP: boolea
  * @param prob - Probability of success on each trial.
  * @param options - `log` (see {@link DensityOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * dgeom(2, 0.3);         // 0.147
+ * dgeom([0, 1, 2], 0.5); // [0.5, 0.25, 0.125]
+ * ```
  */
 export function dgeom<T extends Vectorizable>(x: T, prob: number, options: DensityOptions = {}): VectorResult<T> {
   const log = options.log ?? false;
@@ -91,6 +97,12 @@ export function dgeom<T extends Vectorizable>(x: T, prob: number, options: Densi
  * @param prob - Probability of success on each trial.
  * @param options - `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * pgeom(2, 0.3);                       // 0.657
+ * pgeom(2, 0.3, { lowerTail: false }); // 0.343
+ * ```
  */
 export function pgeom<T extends Vectorizable>(q: T, prob: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;
@@ -104,6 +116,12 @@ export function pgeom<T extends Vectorizable>(q: T, prob: number, options: TailO
  * @param prob - Probability of success on each trial.
  * @param options - `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qgeom(0.5, 0.3);          // 1
+ * qgeom([0.1, 0.9], 0.3);   // [0, 6]
+ * ```
  */
 export function qgeom<T extends Vectorizable>(p: T, prob: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;

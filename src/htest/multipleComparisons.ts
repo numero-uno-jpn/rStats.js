@@ -161,10 +161,17 @@ function pooled(d: Layout): { m: number[]; s2: number; df: number } {
 }
 
 /**
- * Dunn's all-pairs test of mean ranks with adjusted p-values. Equivalent to PMCMRplus's `kwAllPairsDunnTest()`.
+ * Dunn's all-pairs test of mean ranks with adjusted p-values. Equivalent to `PMCMRplus::kwAllPairsDunnTest()` in R.
  *
  * @param x Response values.
  * @param g Group labels, parallel to `x` (groups in the order of the sorted labels).
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * kwAllPairsDunnTest(x, g).pValue; // [[0.3594249897579995, NaN], [0.02187107427460692, 0.3594249897579995]]
+ * ```
  */
 export function kwAllPairsDunnTest(x: Sample, g: readonly GroupLabel[], options: KwAllPairsDunnTestOptions = {}): PMCMRResult {
   const adjust = options.pAdjustMethod ?? "holm";
@@ -177,9 +184,16 @@ export function kwAllPairsDunnTest(x: Sample, g: readonly GroupLabel[], options:
 }
 
 /**
- * Dunn's many-to-one test of mean ranks against the control (the first group). Equivalent to PMCMRplus's
- * `kwManyOneDunnTest()`. With `pAdjustMethod` `"single-step"` (the default) the p-values are the exact simultaneous
- * normal probabilities (R approximates them by randomised integration).
+ * Dunn's many-to-one test of mean ranks against the control (the first group). Equivalent to
+ * `PMCMRplus::kwManyOneDunnTest()` in R. With `pAdjustMethod` `"single-step"` (the default) the p-values are the
+ * exact simultaneous normal probabilities (R approximates them by randomised integration).
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * kwManyOneDunnTest(x, g).pValue; // [[0.30272579742071715], [0.013938744281312318]]
+ * ```
  */
 export function kwManyOneDunnTest(x: Sample, g: readonly GroupLabel[], options: KwManyOneDunnTestOptions = {}): PMCMRResult {
   const alternative = matchAlternative(options.alternative);
@@ -215,8 +229,15 @@ function manyOneNormalP(z: readonly number[], lambda: readonly number[], alterna
 
 /**
  * Dunnett's many-to-one test of means against the control (the first group), with the pooled variance. Equivalent to
- * PMCMRplus's `dunnettTest()`. The p-values are the exact multivariate t probabilities (R approximates them by
+ * `PMCMRplus::dunnettTest()` in R. The p-values are the exact multivariate t probabilities (R approximates them by
  * randomised integration); two-sided, as in PMCMRplus, `min(1, 2 P(max T_i >= |t|))`.
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * dunnettTest(x, g).pValue; // [[0.026103399464872296], [0.0011111316275120736]]
+ * ```
  */
 export function dunnettTest(x: Sample, g: readonly GroupLabel[], options: ManyOneTestOptions = {}): PMCMRResult {
   const alternative = matchAlternative(options.alternative);
@@ -237,12 +258,19 @@ export function dunnettTest(x: Sample, g: readonly GroupLabel[], options: ManyOn
 /**
  * Steel's many-to-one rank test in its normal approximation: the Mann-Whitney statistic of each group against the
  * control (the first group), each pair ranked on its own (midranks), standardised with the tie-corrected variance.
- * Equivalent to PMCMRplus's `manyOneUTest()`. The statistic is positive when the group ranks higher than the
+ * Equivalent to `PMCMRplus::manyOneUTest()` in R. The statistic is positive when the group ranks higher than the
  * control. With `pAdjustMethod` `"single-step"` (the default; at least three groups) the p-values are the exact
  * simultaneous normal probabilities (R approximates them by randomised integration).
  *
  * @param x Response values.
  * @param g Group labels, parallel to `x` (groups in the order of the sorted labels).
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * manyOneUTest(x, g).pValue; // [[0.08993551204759488], [0.08993551204759488]]
+ * ```
  */
 export function manyOneUTest(x: Sample, g: readonly GroupLabel[], options: ManyOneUTestOptions = {}): PMCMRResult {
   const alternative = matchAlternative(options.alternative);
@@ -275,8 +303,16 @@ export function manyOneUTest(x: Sample, g: readonly GroupLabel[], options: ManyO
 }
 
 /**
- * Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. Equivalent to PMCMRplus's
- * `dscfAllPairsTest()`. The statistic, sqrt(2) (U - n_i n_j / 2) / sqrt(Var U) with the smaller U, is never positive.
+ * Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. Equivalent to
+ * `PMCMRplus::dscfAllPairsTest()` in R. The statistic, sqrt(2) (U - n_i n_j / 2) / sqrt(Var U) with the smaller U,
+ * is never positive.
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * dscfAllPairsTest(x, g).pValue; // [[0.12122941216677251, NaN], [0.12122941216677251, 0.12122941216677251]]
+ * ```
  */
 export function dscfAllPairsTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
   const d = layout(x, g);
@@ -301,7 +337,14 @@ export function dscfAllPairsTest(x: Sample, g: readonly GroupLabel[]): PMCMRResu
 
 /**
  * Games-Howell all-pairs test of means with Welch's standard errors and degrees of freedom. Equivalent to
- * PMCMRplus's `gamesHowellTest()`.
+ * `PMCMRplus::gamesHowellTest()` in R.
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * gamesHowellTest(x, g).pValue; // [[0.05271565998164183, NaN], [0.009781818487986175, 0.08494498877912128]]
+ * ```
  */
 export function gamesHowellTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
   const d = layout(x, g);
@@ -315,7 +358,16 @@ export function gamesHowellTest(x: Sample, g: readonly GroupLabel[]): PMCMRResul
   return allPairs(d, "Games-Howell test", q, p, "none");
 }
 
-/** Tukey's all-pairs test of means (Tukey-Kramer for unequal sizes). Equivalent to PMCMRplus's `tukeyTest()`. */
+/**
+ * Tukey's all-pairs test of means (Tukey-Kramer for unequal sizes). Equivalent to `PMCMRplus::tukeyTest()` in R.
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * tukeyTest(x, g).pValue; // [[0.03403130149294014, NaN], [0.001492661804896774, 0.04527523376597547]]
+ * ```
+ */
 export function tukeyTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
   const d = layout(x, g);
   const { m, s2, df } = pooled(d);
@@ -325,12 +377,26 @@ export function tukeyTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
 }
 
 /**
- * Steel's many-to-one rank test, as PMCMRplus 1.9.12's `steelTest()` behaves: it fails on every input, so this
- * reproduces its errors. A two-sided alternative is rejected (`'arg' should be one of “greater”, “less”`), unequal
- * group sizes give `Steel's test is only valid for balanced designs.`, and balanced data the error PMCMRplus raises
- * internally.
+ * Steel's many-to-one rank test. Equivalent to `PMCMRplus::steelTest()` in R. It behaves as `steelTest()` of
+ * PMCMRplus 1.9.12 does: that fails on every input, so this reproduces its errors. A two-sided
+ * alternative is rejected (`'arg' should be one of “greater”, “less”`), unequal group sizes give `Steel's test is
+ * only valid for balanced designs.`, and balanced data the error PMCMRplus raises internally.
  *
  * @throws Always.
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * const message = (() => {
+ *   try {
+ *     steelTest(x, g, { alternative: "greater" });
+ *   } catch (e) {
+ *     return (e as Error).message;
+ *   }
+ * })();
+ * message; // "'data' must be of a vector type, was 'NULL'"
+ * ```
  */
 export function steelTest(x: Sample, g: readonly GroupLabel[], options: ManyOneTestOptions = {}): never {
   const alternative = options.alternative === undefined ? "greater" : matchAlternative(options.alternative);
@@ -366,9 +432,18 @@ export interface DunnTestResult {
 }
 
 /**
- * Dunn's test of all pairs of mean ranks. Equivalent to dunn.test's `dunn.test(x, g, method, altp)`. The step-wise
+ * Dunn's test of all pairs of mean ranks. Equivalent to `dunn.test::dunn.test(x, g, method, altp)` in R. The step-wise
  * adjustments multiply (or transform) each p-value by the factor of its rank and cap it at 1, without enforcing
  * monotonicity, as dunn.test does (unlike `pAdjust`).
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * const r = dunnTest(x, g, { method: "bonferroni" });
+ * r.comparisons; // ["a - b", "a - c", "b - c"]
+ * r.PAdjusted;   // [0.26956874231849964, 0.01093553713730346, 0.26956874231849964]
+ * ```
  */
 export function dunnTest(x: Sample, g: readonly GroupLabel[], options: DunnTestOptions = {}): DunnTestResult {
   const method = options.method ?? "none";
@@ -457,10 +532,19 @@ export interface GlhtDunnettResult {
 }
 
 /**
- * Dunnett's many-to-one comparisons of a one-way ANOVA with simultaneous p-values. Equivalent to multcomp's
- * `summary(glht(aov(y ~ g), linfct = mcp(g = "Dunnett"), alternative))`, with the exact multivariate t probabilities
- * (R approximates them by randomised integration): two-sided `P(max |T_i| >= |t|)`, greater `P(max T_i >= t)`, less
- * `P(min T_i <= t)`.
+ * Dunnett's many-to-one comparisons of a one-way ANOVA with simultaneous p-values. Equivalent to
+ * `multcomp::glht()` in R. It gives `summary(glht(aov(y ~ g), linfct = mcp(g = "Dunnett"), alternative))`, with the
+ * exact multivariate t probabilities (R approximates them by randomised integration): two-sided
+ * `P(max |T_i| >= |t|)`, greater `P(max T_i >= t)`, less `P(min T_i <= t)`.
+ *
+ * @example
+ * ```ts
+ * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
+ * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+ * const r = glhtDunnett(x, g);
+ * r.names; // ["b - a", "c - a"]
+ * r.p;     // [0.02601829573165104, 0.0011091043143827048]
+ * ```
  */
 export function glhtDunnett(x: Sample, g: readonly GroupLabel[], options: GlhtDunnettOptions = {}): GlhtDunnettResult {
   const alternative = matchAlternative(options.alternative);

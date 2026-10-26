@@ -64,13 +64,21 @@ export interface PowerTTestOptions {
 
 /** Result of {@link powerTTest}: R's power.htest with the solved quantity filled in. */
 export interface PowerTTestResult {
+  /** Number of observations (per group, or of pairs). */
   n: number;
+  /** True difference in means. */
   delta: number;
+  /** Standard deviation. */
   sd: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** `"two.sided"` or `"one.sided"`. */
   alternative: "two.sided" | "one.sided";
+  /** A note on the sample size. */
   note?: string;
+  /** Description of the calculation. */
   method: string;
 }
 
@@ -164,13 +172,21 @@ export interface PowerPropTestOptions {
 
 /** Result of {@link powerPropTest}. */
 export interface PowerPropTestResult {
+  /** Number of observations per group. */
   n: number;
+  /** Probability in one group. */
   p1: number;
+  /** Probability in the other group. */
   p2: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** `"two.sided"` or `"one.sided"`. */
   alternative: "two.sided" | "one.sided";
+  /** A note on the sample size. */
   note: string;
+  /** Description of the calculation. */
   method: string;
   /** R's warnings. */
   warnings: string[];
@@ -259,13 +275,21 @@ export interface PowerAnovaTestOptions {
 
 /** Result of {@link powerAnovaTest}. */
 export interface PowerAnovaTestResult {
+  /** Number of groups. */
   groups: number;
+  /** Number of observations per group. */
   n: number;
+  /** Variance between the groups' means (R's `between.var`). */
   betweenVar: number;
+  /** Variance within the groups (R's `within.var`). */
   withinVar: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** A note on the sample size. */
   note: string;
+  /** Description of the calculation. */
   method: string;
 }
 

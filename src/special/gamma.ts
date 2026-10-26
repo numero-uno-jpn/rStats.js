@@ -65,10 +65,16 @@ function stirfXsf(x: number): number {
 }
 
 /**
- * Gamma function. Equivalent to R's `gamma(x)` for a single number.
+ * Gamma function. Equivalent to R's `gamma()`. Takes a single number.
  *
  * @param x - Argument.
  * @returns Gamma(x). `NaN` at zero and negative integers; `Infinity` on overflow.
+ *
+ * @example
+ * ```ts
+ * gamma(5);    // 24
+ * gamma(0.5);  // 1.7724538509055159 (sqrt(pi))
+ * ```
  */
 export function gamma(x: number): number {
   if (!Number.isFinite(x)) return x > 0 ? x : NaN;
@@ -189,13 +195,19 @@ export function lgammaSign(x: number): { value: number; sign: number } {
 
 /**
  * Natural logarithm of the absolute value of the gamma function, log|Gamma(x)|.
- * Equivalent to R's `lgamma(x)` for a single number.
+ * Equivalent to R's `lgamma()`. Takes a single number.
  *
  * Near the zeros x = 1 and x = 2 the result keeps full relative accuracy
  * (computed as lgamma(1 + e) = lgamma1p(e) and lgamma(2 + e) = lgamma1p(e) + log1p(e)).
  *
  * @param x - Argument.
  * @returns log|Gamma(x)|.
+ *
+ * @example
+ * ```ts
+ * lgamma(100);   // 359.1342053695754
+ * lgamma(-0.5);  // 1.2655121234846454
+ * ```
  */
 export function lgamma(x: number): number {
   if (Math.abs(x - 1) <= 0.2) return lgamma1p(x - 1);

@@ -191,6 +191,12 @@ export function qsignrank1(p: number, n: number, lowerTail: boolean, logP: boole
  * @param n - Number of observations.
  * @param options - `log` (see {@link DensityOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * dsignrank(5, 10);        // 0.0029296875
+ * dsignrank([0, 1, 2], 4); // [0.0625, 0.0625, 0.0625]
+ * ```
  */
 export function dsignrank<T extends Vectorizable>(x: T, n: number, options: DensityOptions = {}): VectorResult<T> {
   const log = options.log ?? false;
@@ -206,6 +212,12 @@ export function dsignrank<T extends Vectorizable>(x: T, n: number, options: Dens
  * @param n - Number of observations.
  * @param options - `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * psignrank(10, 10);                        // 0.0419921875
+ * psignrank(40, 10, { lowerTail: false });  // 0.0966796875
+ * ```
  */
 export function psignrank<T extends Vectorizable>(q: T, n: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;
@@ -221,6 +233,12 @@ export function psignrank<T extends Vectorizable>(q: T, n: number, options: Tail
  * @param n - Number of observations.
  * @param options - `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qsignrank(0.025, 10);         // 9
+ * qsignrank([0.25, 0.75], 10);  // [21, 34]
+ * ```
  */
 export function qsignrank<T extends Vectorizable>(p: T, n: number, options: TailOptions = {}): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;

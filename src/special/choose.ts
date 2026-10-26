@@ -78,7 +78,7 @@ function logChooseLarge(n: number, k: number): { log: DD; sign: number } | undef
 }
 
 /**
- * Binomial coefficient. Equivalent to R's `choose(n, k)` for single numbers.
+ * Binomial coefficient. Equivalent to R's `choose()`. Takes single numbers.
  *
  * `n` may be any real number. `k` is rounded to the nearest integer (as R does, which also warns
  * when `k` is not close to an integer); `choose(n, k)` is 0 for `k < 0` and 1 for `k = 0`.
@@ -136,8 +136,8 @@ export function choose(n: number, k: number, options?: RCompatibleOptions): numb
 }
 
 /**
- * Logarithm of the absolute value of the binomial coefficient. Equivalent to R's `lchoose(n, k)`
- * for single numbers: `log(abs(choose(n, k)))`, computed without overflow.
+ * Logarithm of the absolute value of the binomial coefficient. Equivalent to R's `lchoose()`.
+ * Takes single numbers: `log(abs(choose(n, k)))`, computed without overflow.
  *
  * Edge cases where R differs from the mathematical value, followed by default (`rCompatible: false`
  * returns the mathematical value instead): `n` within 1e-9 max(1, |n|) of an integer is treated as that
@@ -186,7 +186,7 @@ export function lchoose(n: number, k: number, options?: RCompatibleOptions): num
 }
 
 /**
- * Factorial. Equivalent to R's `factorial(x)` for a single number: `gamma(x + 1)`, defined for
+ * Factorial. Equivalent to R's `factorial()`. Takes a single number: `gamma(x + 1)`, defined for
  * any real `x` that is not a negative integer.
  *
  * @param x - Argument.
@@ -203,7 +203,7 @@ export function factorial(x: number): number {
 }
 
 /**
- * Logarithm of the factorial. Equivalent to R's `lfactorial(x)` for a single number:
+ * Logarithm of the factorial. Equivalent to R's `lfactorial()`. Takes a single number:
  * `lgamma(x + 1)`, computed without forming `x + 1` near 0 so that small `x` keep their accuracy.
  *
  * @param x - Argument.

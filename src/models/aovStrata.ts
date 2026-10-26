@@ -22,7 +22,9 @@ import { design } from "./modelMatrix.js";
 export interface AovStratum {
   /** `"Error: id"`, `"Error: id:W"`, `"Error: Within"`. */
   stratum: string;
+  /** R's column names: `"Df"`, `"Sum Sq"`, `"Mean Sq"`, and `"F value"`, `"Pr(>F)"` when there are residuals. */
   colNames: string[];
+  /** Row names: the labels of the terms in the stratum, then `"Residuals"` when its df is positive. */
   rowNames: string[];
   /** One array per row; NaN where R prints nothing. */
   table: number[][];

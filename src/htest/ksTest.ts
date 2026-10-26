@@ -32,7 +32,9 @@ export interface KsTestOptions {
  * above the null hypothesis", ...), and `exact` tells whether the p-value is exact.
  */
 export interface KsTestResult extends Omit<HTest, "alternative"> {
+  /** Description of the alternative hypothesis, as R prints it (e.g. `"two-sided"`). */
   alternative: string;
+  /** Whether the p-value is exact. */
   exact: boolean;
 }
 
@@ -43,7 +45,7 @@ function describe(alternative: Alternative, oneSample: boolean): string {
 }
 
 /**
- * Kolmogorov-Smirnov test. Equivalent to R's `ks.test()`, with a distribution function given as a function (for
+ * Kolmogorov-Smirnov test. Equivalent to R's `ks.test()`. Takes a distribution function given as a function (for
  * example `(q) => pnorm(q)`) or a second sample. `NaN` values are dropped.
  *
  * @param x Sample.
@@ -51,10 +53,17 @@ function describe(alternative: Alternative, oneSample: boolean): string {
  * @param options See {@link KsTestOptions}.
  *
  * There is also a formula form for two samples, `ksTest("y ~ g", data, options)` (next overload).
+ *
+ * @example
+ * ```ts
+ * const x = [0.61, -1.2, 0.33, 1.57, -0.42, 0.08, -0.85, 1.1];
+ * ksTest(x, (q) => pnorm(q)).pValue; // 0.9716870044206776
+ * ksTest(x, [0.9, 2.1, 1.4, 2.8, 1.7, 0.4]).statistic; // 0.625
+ * ```
  */
 export function ksTest(x: Sample, y: Sample | ((q: number) => number), options?: KsTestOptions): KsTestResult;
 /**
- * Two-sample Kolmogorov-Smirnov test from a formula and a data frame. Equivalent to R's `ks.test(formula, data)`:
+ * Two-sample Kolmogorov-Smirnov test from a formula and a data frame. As R's `ks.test(formula, data)`:
  * `"y ~ g"` compares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the
  * rows where one of them is missing are dropped.
  *

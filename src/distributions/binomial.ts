@@ -83,6 +83,12 @@ export function qbinom1(p: number, size: number, prob: number, lowerTail: boolea
  * @param prob - Probability of success on each trial.
  * @param options - `log` (see {@link DensityOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * dbinom(3, 10, 0.5);      // 0.1171875
+ * dbinom([0, 5], 10, 0.5); // [0.0009765625, 0.24609375]
+ * ```
  */
 export function dbinom<T extends Vectorizable>(
   x: T,
@@ -127,6 +133,12 @@ export function pbinom<T extends Vectorizable>(
  * @param prob - Probability of success on each trial.
  * @param options - `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qbinom(0.5, 10, 0.3);          // 3
+ * qbinom([0.025, 0.975], 10, 0.3); // [0, 6]
+ * ```
  */
 export function qbinom<T extends Vectorizable>(
   p: T,

@@ -30,15 +30,16 @@ function checkRows(x: readonly (readonly number[])[]): number {
 }
 
 /**
- * Matrix product. Equivalent to R's `x %*% y`: a vector is taken as a row or a column so that the product is
- * defined (two vectors give their inner product as a 1 x 1 matrix).
+ * Matrix product. Equivalent to R's `%*%`. A vector is taken as a row or a column so that the product is defined
+ * (two vectors give their inner product as a 1 x 1 matrix).
  *
  * @example
  * ```ts
  * matMul([[1, 2], [3, 4]], [[5], [6]]); // [[17], [39]]
+ * matMul([1, 2, 3], [4, 5, 6]);         // [[32]]
  * ```
  */
-export function matMul(x: Operand, y: Operand): Matrix {
+export function matMul(x: Operand, y: Operand): number[][] {
   let a: Matrix;
   let b: Matrix;
   if (isMatrix(x) && isMatrix(y)) {
@@ -108,23 +109,59 @@ function elementwise(x: Operand, y: Operand, f: (a: number, b: number) => number
   return Array.from({ length: n }, (_, i) => f(u[i % u.length]!, v[i % v.length]!));
 }
 
-/** Element-wise sum with R's recycling (R's `x + y`). */
-export function add(x: Operand, y: Operand): number[] | Matrix {
+/**
+ * Element-wise sum with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to
+ * R's `+`.
+ *
+ * @example
+ * ```ts
+ * add([[1, 2], [3, 4]], [10, 20]); // [[11, 12], [23, 24]]
+ * add([1, 2, 3], 2);             // [3, 4, 5]
+ * ```
+ */
+export function add(x: Operand, y: Operand): number[] | number[][] {
   return elementwise(x, y, (a, b) => a + b);
 }
 
-/** Element-wise difference with R's recycling (R's `x - y`). */
-export function subtract(x: Operand, y: Operand): number[] | Matrix {
+/**
+ * Element-wise difference with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to
+ * R's `-`.
+ *
+ * @example
+ * ```ts
+ * subtract([[1, 2], [3, 4]], [10, 20]); // [[-9, -8], [-17, -16]]
+ * subtract([1, 2, 3], 2);             // [-1, 0, 1]
+ * ```
+ */
+export function subtract(x: Operand, y: Operand): number[] | number[][] {
   return elementwise(x, y, (a, b) => a - b);
 }
 
-/** Element-wise product with R's recycling (R's `x * y`); the matrix product is {@link matMul}. */
-export function multiply(x: Operand, y: Operand): number[] | Matrix {
+/**
+ * Element-wise product with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to
+ * R's `*`. The matrix product is {@link matMul}.
+ *
+ * @example
+ * ```ts
+ * multiply([[1, 2], [3, 4]], [10, 20]); // [[10, 20], [60, 80]]
+ * multiply([1, 2, 3], 2);             // [2, 4, 6]
+ * ```
+ */
+export function multiply(x: Operand, y: Operand): number[] | number[][] {
   return elementwise(x, y, (a, b) => a * b);
 }
 
-/** Element-wise quotient with R's recycling (R's `x / y`). */
-export function divide(x: Operand, y: Operand): number[] | Matrix {
+/**
+ * Element-wise quotient with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to
+ * R's `/`.
+ *
+ * @example
+ * ```ts
+ * divide([[1, 2], [3, 4]], [10, 20]); // [[0.1, 0.2], [0.15, 0.2]]
+ * divide([1, 2, 3], 2);             // [0.5, 1, 1.5]
+ * ```
+ */
+export function divide(x: Operand, y: Operand): number[] | number[][] {
   return elementwise(x, y, (a, b) => a / b);
 }
 
@@ -137,10 +174,16 @@ const OUTER_OPS: Record<string, (a: number, b: number) => number> = {
 };
 
 /**
- * Outer product of two vectors: the matrix of `fun(x[i], y[j])`. Equivalent to R's `outer()`; `fun` is `"*"`
+ * Outer product of two vectors: the matrix of `fun(x[i], y[j])`. Equivalent to R's `outer()`. `fun` is `"*"`
  * (default), `"+"`, `"-"`, `"/"`, `"^"` or a function of two numbers.
+ *
+ * @example
+ * ```ts
+ * outer([1, 2], [1, 2, 3]);      // [[1, 2, 3], [2, 4, 6]]
+ * outer([1, 2], [1, 2, 3], "+"); // [[2, 3, 4], [3, 4, 5]]
+ * ```
  */
-export function outer(x: Sample, y: Sample, fun: "*" | "+" | "-" | "/" | "^" | ((a: number, b: number) => number) = "*"): Matrix {
+export function outer(x: Sample, y: Sample, fun: "*" | "+" | "-" | "/" | "^" | ((a: number, b: number) => number) = "*"): number[][] {
   const f = typeof fun === "function" ? fun : OUTER_OPS[fun];
   if (f === undefined) throw new RangeError(`invalid fun "${String(fun)}"`);
   const u = Array.from(x);
@@ -148,8 +191,16 @@ export function outer(x: Sample, y: Sample, fun: "*" | "+" | "-" | "/" | "^" | (
   return u.map((a) => v.map((b) => f(a, b)));
 }
 
-/** Transpose. Equivalent to R's `t()`: a vector becomes a 1-row matrix. */
-export function t(x: Operand): Matrix {
+/**
+ * Transpose. Equivalent to R's `t()`. A vector becomes a 1-row matrix.
+ *
+ * @example
+ * ```ts
+ * t([[1, 2, 3], [4, 5, 6]]); // [[1, 4], [2, 5], [3, 6]]
+ * t([1, 2]);                 // [[1, 2]]
+ * ```
+ */
+export function t(x: Operand): number[][] {
   if (!isMatrix(x)) return [asVector(x)];
   const nc = checkRows(x);
   return Array.from({ length: nc }, (_, j) => x.map((r) => r[j]!));
@@ -157,23 +208,25 @@ export function t(x: Operand): Matrix {
 
 /** Options for {@link diag}. */
 export interface DiagOptions {
+  /** Number of rows of the matrix built from a vector or a number (R's `nrow`). Default: the length of the vector. */
   nrow?: number;
+  /** Number of columns of the matrix built from a vector or a number (R's `ncol`). Default: `nrow`. */
   ncol?: number;
 }
 
 /**
- * R's `diag()`, with its three meanings: the diagonal of a matrix (as a vector); the diagonal matrix of a vector of
- * length 2 or more (its values recycled along the diagonal of an `nrow` x `ncol` matrix when given); and for a single
+ * Matrix diagonals, diagonal matrices and identity matrices. Equivalent to R's `diag()`. It has three meanings: the
+ * diagonal of a matrix (as a vector); the diagonal matrix of a vector of length 2 or more (its values recycled along the diagonal of an `nrow` x `ncol` matrix when given); and for a single
  * number n, the n x n identity matrix (with `nrow`/`ncol`, a matrix with that number on the diagonal).
  *
  * @example
  * ```ts
  * diag([[1, 2], [3, 4]]); // [1, 4]
  * diag([2, 3]);           // [[2, 0], [0, 3]]
- * diag(3);                // 3 x 3 identity
+ * diag(3);                // [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
  * ```
  */
-export function diag(x: Operand, options: DiagOptions = {}): number[] | Matrix {
+export function diag(x: Operand, options: DiagOptions = {}): number[] | number[][] {
   if (isMatrix(x)) {
     const nc = checkRows(x);
     return Array.from({ length: Math.min(x.length, nc) }, (_, i) => x[i]![i]!);
@@ -224,13 +277,19 @@ function framesOf(args: readonly (Operand | DataFrame)[]): DataFrame[] | undefin
 }
 
 /**
- * Combine vectors and matrices as columns. Equivalent to R's `cbind()` (vectors recycled to the number of rows).
+ * Combine vectors and matrices as columns. Equivalent to R's `cbind()`. Vectors are recycled to the number of rows.
  * Given data frames (objects of columns), puts their columns side by side, as R's `cbind()` of data frames: all must
  * have the same number of rows, and a column name may occur only once.
+ *
+ * @example
+ * ```ts
+ * cbind([1, 2], [3, 4]);      // [[1, 3], [2, 4]]
+ * cbind([[1, 2], [3, 4]], 0); // [[1, 2, 0], [3, 4, 0]]
+ * ```
  */
-export function cbind(...args: Operand[]): Matrix;
+export function cbind(...args: Operand[]): number[][];
 export function cbind(...frames: DataFrame[]): DataFrame;
-export function cbind(...args: (Operand | DataFrame)[]): Matrix | DataFrame {
+export function cbind(...args: (Operand | DataFrame)[]): number[][] | DataFrame {
   const frames = framesOf(args);
   return frames === undefined ? t(bindParts(args as Operand[], true)) : cbindFrames(frames);
 }
@@ -239,32 +298,46 @@ export function cbind(...args: (Operand | DataFrame)[]): Matrix | DataFrame {
  * Combine vectors and matrices as rows. Equivalent to R's `rbind()`. Given data frames (objects of columns), stacks
  * their rows, as R's `rbind()` of data frames: all must have the same column names, matched by name (the result has
  * the first frame's column order).
+ *
+ * @example
+ * ```ts
+ * rbind([1, 2], [3, 4]);           // [[1, 2], [3, 4]]
+ * rbind([[1, 2], [3, 4]], [5, 6]); // [[1, 2], [3, 4], [5, 6]]
+ * ```
  */
-export function rbind(...args: Operand[]): Matrix;
+export function rbind(...args: Operand[]): number[][];
 export function rbind(...frames: DataFrame[]): DataFrame;
-export function rbind(...args: (Operand | DataFrame)[]): Matrix | DataFrame {
+export function rbind(...args: (Operand | DataFrame)[]): number[][] | DataFrame {
   const frames = framesOf(args);
   return frames === undefined ? bindParts(args as Operand[], false) : rbindFrames(frames);
 }
 
 /** Options for {@link matrix}. */
 export interface MatrixOptions {
+  /**
+   * Number of rows (R's `nrow`). Default: the length of the data divided by `ncol` (rounded up), or the length of
+   * the data when `ncol` is not given either.
+   */
   nrow?: number;
+  /**
+   * Number of columns (R's `ncol`). Default: the length of the data divided by `nrow` (rounded up), or 1 when `nrow`
+   * is not given either.
+   */
   ncol?: number;
   /** Fill by rows instead of by columns (R's default). Default `false`. */
   byrow?: boolean;
 }
 
 /**
- * Build a matrix from data, recycled to fill it. Equivalent to R's `matrix()`: filled by columns unless `byrow`.
+ * Build a matrix from data, recycled to fill it. Equivalent to R's `matrix()`. Filled by columns unless `byrow`.
  *
  * @example
  * ```ts
  * matrix([1, 2, 3, 4, 5, 6], { nrow: 2 }); // [[1, 3, 5], [2, 4, 6]]
- * matrix(0, { nrow: 2, ncol: 3 });         // zeros
+ * matrix(0, { nrow: 2, ncol: 3 });         // [[0, 0, 0], [0, 0, 0]]
  * ```
  */
-export function matrix(data: number | Sample, options: MatrixOptions = {}): Matrix {
+export function matrix(data: number | Sample, options: MatrixOptions = {}): number[][] {
   const v = asVector(data);
   const len = v.length;
   let { nrow, ncol } = options;
@@ -279,8 +352,16 @@ export function matrix(data: number | Sample, options: MatrixOptions = {}): Matr
   );
 }
 
-/** Kronecker product. Equivalent to R's `kronecker()` (two vectors give a vector). */
-export function kronecker(x: Operand, y: Operand): number[] | Matrix {
+/**
+ * Kronecker product. Equivalent to R's `kronecker()`. Two vectors give a vector.
+ *
+ * @example
+ * ```ts
+ * kronecker([[1, 2], [3, 4]], [[1, 1]]); // [[1, 1, 2, 2], [3, 3, 4, 4]]
+ * kronecker([1, 2], [1, 10]);           // [1, 10, 2, 20]
+ * ```
+ */
+export function kronecker(x: Operand, y: Operand): number[] | number[][] {
   if (!isMatrix(x) && !isMatrix(y)) {
     const u = asVector(x);
     const v = asVector(y);
@@ -302,7 +383,7 @@ export interface SeqOptions {
 }
 
 /**
- * Regular sequences. Equivalent to R's `seq()`: `seq(from, to)` steps by ±1; `by` steps by the increment, up to
+ * Regular sequences. Equivalent to R's `seq()`. `seq(from, to)` steps by ±1; `by` steps by the increment, up to
  * `to`; `lengthOut` gives that many values, both ends exact. `from` or `to` may be omitted (`undefined`) when the
  * other two are given; `seq(n)` alone is `1, 2, ..., n`.
  *

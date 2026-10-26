@@ -29,7 +29,7 @@ export interface BrunnerMunzelTestOptions {
 
 /**
  * Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal
- * variances or shapes. Equivalent to `lawstat::brunner.munzel.test()`. `NaN` values are dropped.
+ * variances or shapes. Equivalent to `lawstat::brunner.munzel.test()` in R. `NaN` values are dropped.
  *
  * `estimate` is the estimated relative effect and `confInt` its two-sided interval (not clipped to [0, 1]). When a
  * sample has one value, or when the variance estimates are 0 (for example completely separated samples), the
@@ -39,7 +39,7 @@ export interface BrunnerMunzelTestOptions {
  * ```ts
  * const r = brunnerMunzelTest([1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 4, 1, 1], [3, 3, 4, 3, 1, 2, 3, 1, 1, 5, 4]);
  * r.statistic; // 3.1374674823029509
- * r.pValue;    // 0.0057862086661515377
+ * r.pValue;    // 0.0057862086661514605
  * r.estimate;  // 0.78896103896103909
  * ```
  */

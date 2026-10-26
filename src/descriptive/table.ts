@@ -9,7 +9,13 @@ import type { Sample } from "../htest/types.js";
 
 /**
  * Counts of the integers 1..nbins in `bin` (values truncated towards 0; others and NaN are not counted).
- * Equivalent to R's `tabulate()`; `nbins` defaults to max(1, bin).
+ * Equivalent to R's `tabulate()`. `nbins` defaults to max(1, bin).
+ *
+ * @example
+ * ```ts
+ * tabulate([1, 2, 2, 5]);    // [1, 2, 0, 0, 1]
+ * tabulate([1, 2, 2, 5], 3); // [1, 2, 0]
+ * ```
  */
 export function tabulate(bin: Sample, nbins?: number): number[] {
   const b = Array.from(bin).map((v) => Math.trunc(v));
@@ -26,7 +32,7 @@ export interface TableOptions {
 }
 
 /**
- * Frequency table of the distinct values. Equivalent to R's `table()` for one numeric vector: `values` in increasing
+ * Frequency table of the distinct values. Equivalent to R's `table()`. For one numeric vector: `values` in increasing
  * order (NaN last when counted) with their `counts`.
  *
  * @example
@@ -34,7 +40,15 @@ export interface TableOptions {
  * table([3, 1, 3, 2, 3]); // { values: [1, 2, 3], counts: [1, 1, 3] }
  * ```
  */
-export function table(x: Sample, options: TableOptions = {}): { values: number[]; counts: number[] } {
+export function table(
+  x: Sample,
+  options: TableOptions = {},
+): {
+  /** The distinct values, in increasing order (NaN last when missing values are counted); R's names. */
+  values: number[];
+  /** How often each value occurs. */
+  counts: number[];
+} {
   const useNA = options.useNA ?? "no";
   const xs = Array.from(x);
   const map = new Map<number, number>();
@@ -52,7 +66,14 @@ export function table(x: Sample, options: TableOptions = {}): { values: number[]
   return { values, counts };
 }
 
-/** Distinct values in order of first appearance (one NaN at most). Equivalent to R's `unique()`. */
+/**
+ * Distinct values in order of first appearance (one NaN at most). Equivalent to R's `unique()`.
+ *
+ * @example
+ * ```ts
+ * unique([3, 1, 3, 2, 1]); // [3, 1, 2]
+ * ```
+ */
 export function unique(x: Sample): number[] {
   const seen = new Set<number>();
   const out: number[] = [];
@@ -79,6 +100,12 @@ export interface CutOptions {
  *
  * @param breaks The break points, or a number of intervals (at least 2): then equal intervals over the range of `x`,
  *   widened by 1/1000 of the range at each end, as R does.
+ *
+ * @example
+ * ```ts
+ * cut([1, 2.5, 4, 6], [0, 2, 4, 6]);                  // [1, 2, 2, 3]
+ * cut([1, 2.5, 4, 6], [0, 2, 4, 6], { right: false }); // [1, 2, 3, NaN]
+ * ```
  */
 export function cut(x: Sample, breaks: number | readonly number[], options: CutOptions = {}): number[] {
   const right = options.right ?? true;
@@ -140,7 +167,12 @@ export interface FindIntervalOptions {
 
 /**
  * For each value, the number of break points at or below it (the interval index). Equivalent to R's
- * `findInterval()`; `vec` must be non-decreasing.
+ * `findInterval()`. `vec` must be non-decreasing.
+ *
+ * @example
+ * ```ts
+ * findInterval([0, 1.5, 3, 5], [1, 2, 3]); // [0, 1, 3, 3]
+ * ```
  */
 export function findInterval(x: Sample, vec: readonly number[], options: FindIntervalOptions = {}): number[] {
   const n = vec.length;

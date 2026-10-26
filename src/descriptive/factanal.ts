@@ -23,6 +23,7 @@ export interface FactanalOptions {
   nObs?: number;
   /** Default `"varimax"`. */
   rotation?: FactanalRotation;
+  /** Settings of the optimisation (part of R's `control` list). */
   control?: {
     /** Lower bound of the uniquenesses. Default 0.005. */
     lower?: number;
@@ -33,6 +34,7 @@ export interface FactanalOptions {
 
 /** Result of {@link factanal} */
 export interface FactanalResult {
+  /** The uniquenesses, one per variable: the variance not explained by the factors. */
   uniquenesses: number[];
   /** The (rotated) loadings, p rows by `factors` columns, columns sorted by decreasing sum of squares, each column's sum positive */
   loadings: number[][];
@@ -40,9 +42,11 @@ export interface FactanalResult {
   rotmat?: number[][];
   /** The likelihood-ratio statistic (NaN without n.obs or with no degrees of freedom) */
   STATISTIC: number;
+  /** Degrees of freedom of the statistic, ((p - factors)^2 - (p + factors)) / 2. */
   dof: number;
   /** Its upper chi-squared tail probability (NaN as STATISTIC) */
   PVAL: number;
+  /** Whether the optimisation converged. */
   converged: boolean;
   /** The minimised criterion */
   objective: number;
@@ -139,15 +143,17 @@ function promax(L: readonly (readonly number[])[]): { loadings: number[][]; rotm
 
 /**
  * Maximum-likelihood factor analysis of a data matrix (rows are observations) or, with `options.covmat`, of a
- * covariance matrix. Equivalent to R's `factanal()` with `rotation` `"varimax"`, `"promax"` or `"none"`.
+ * covariance matrix. Equivalent to R's `factanal()`. With `rotation` `"varimax"`, `"promax"` or `"none"`.
  *
  * @param x The data matrix (array of rows), or `null` with `options.covmat`.
  * @param factors The number of factors.
  *
  * @example
  * ```ts
- * const fa = factanal(x, 2); // x: an n x 6 data matrix
- * fa.uniquenesses; fa.loadings; fa.PVAL;
+ * const R = [[1, 0.72, 0.63], [0.72, 1, 0.56], [0.63, 0.56, 1]];
+ * const fa = factanal(null, 1, { covmat: R });
+ * fa.uniquenesses; // [0.19, 0.36, 0.51]
+ * fa.loadings;     // [[0.9], [0.8], [0.7]]
  * ```
  */
 export function factanal(x: readonly (readonly number[])[] | null, factors: number, options: FactanalOptions = {}): FactanalResult {

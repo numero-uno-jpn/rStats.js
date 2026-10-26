@@ -74,7 +74,7 @@ export interface TTestResult extends HTest {
  */
 export function tTest(x: Sample, y?: Sample | TTestOptions, options?: TTestOptions): TTestResult;
 /**
- * Student's t-test from a formula and a data frame. Equivalent to R's `t.test(formula, data)`: `"y ~ g"` compares
+ * Student's t-test from a formula and a data frame. As R's `t.test(formula, data)`: `"y ~ g"` compares
  * the two levels of `g` (the first level is `x`; `estimateNames` and `nullValueName` name the levels, as in R),
  * `"y ~ 1"` is the one-sample test and `"Pair(a, b) ~ 1"` the paired test of `a` and `b` (the option `paired` is not
  * allowed). Only the variables of the formula count: the rows where one of them is missing are dropped.

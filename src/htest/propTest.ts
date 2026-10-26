@@ -35,6 +35,7 @@ export interface PropTestResult extends Omit<HTest, "nullValue" | "nullValueName
   estimate: number | number[];
   /** Hypothesized proportion(s), when given or for one group. */
   nullValue?: number | number[];
+  /** Names of `nullValue` (R's `names(null.value)`), one per group. */
   nullValueName?: string | string[];
 }
 

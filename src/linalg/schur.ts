@@ -41,7 +41,7 @@ export interface SchurResult {
  * @example
  * ```ts
  * schur([[0, -1], [1, 0]]);
- * // T: [[0, -1], [1, 0]], Q: [[1, 0], [0, 1]], valuesRe: [0, 0], valuesIm: [1, -1]
+ * // { T: [[0, -1], [1, 0]], Q: [[1, 0], [0, 1]], valuesRe: [0, 0], valuesIm: [1, -1] }
  * ```
  */
 export function schur(x: MatrixInput): SchurResult {

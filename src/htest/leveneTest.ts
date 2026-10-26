@@ -27,8 +27,9 @@ export interface LeveneTestResult {
 }
 
 /**
- * Levene's test for homogeneity of variance across groups. Equivalent to car's `leveneTest(y ~ g, center =
- * median)` (or `mean`). Pairs with a missing value are dropped; groups are ordered by their sorted labels.
+ * Levene's test for homogeneity of variance across groups. Equivalent to `car::leveneTest()` in R. Computes
+ * `leveneTest(y ~ g, center = median)` (or `mean`). Pairs with a missing value are dropped; groups are ordered by
+ * their sorted labels.
  *
  * @param y The values.
  * @param g Group labels, parallel to `y`.

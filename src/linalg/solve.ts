@@ -278,7 +278,7 @@ export interface SolveOptions {
  */
 export function solve(a: MatrixInput, b?: undefined, options?: SolveOptions): number[][];
 /**
- * Solves the linear system `a x = b` for a vector `b`. Equivalent to R's `solve(a, b)`.
+ * Solves the linear system `a x = b` for a vector `b`, as R's `solve(a, b)`.
  *
  * Throws if `a` is exactly singular or its estimated reciprocal condition number is below `tol`.
  *
@@ -294,7 +294,7 @@ export function solve(a: MatrixInput, b?: undefined, options?: SolveOptions): nu
  */
 export function solve(a: MatrixInput, b: readonly number[] | Float64Array, options?: SolveOptions): number[];
 /**
- * Solves the linear system `a x = b` for a matrix `b`. Equivalent to R's `solve(a, b)`.
+ * Solves the linear system `a x = b` for a matrix `b`.
  *
  * @param a A square matrix (array of rows).
  * @param b The right-hand side matrix (array of rows), with as many rows as `a`.
@@ -303,7 +303,7 @@ export function solve(a: MatrixInput, b: readonly number[] | Float64Array, optio
  */
 export function solve(a: MatrixInput, b: MatrixInput, options?: SolveOptions): number[][];
 /**
- * Solves the linear system `a x = b`, or inverts `a` when `b` is omitted. Equivalent to R's `solve()`.
+ * Solves the linear system `a x = b`, or inverts `a` when `b` is omitted.
  *
  * @param a A square matrix (array of rows).
  * @param b The right-hand side, a vector or a matrix. Omit to compute the inverse.
@@ -354,6 +354,12 @@ export interface Determinant {
  * @param x A square matrix (array of rows).
  * @param options `logarithm`: return the natural logarithm of the modulus. Default: `true`.
  * @returns The modulus and sign. See {@link Determinant}.
+ *
+ * @example
+ * ```ts
+ * determinant([[1, 2], [3, 4]]); // { modulus: 0.6931471805599453, sign: -1 }
+ * determinant([[1, 2], [3, 4]], { logarithm: false }); // { modulus: 2, sign: -1 }
+ * ```
  */
 export function determinant(x: MatrixInput, options: { logarithm?: boolean } = {}): Determinant {
   const logarithm = options.logarithm ?? true;
@@ -379,6 +385,11 @@ export function determinant(x: MatrixInput, options: { logarithm?: boolean } = {
  *
  * @param x A square matrix (array of rows).
  * @returns The determinant.
+ *
+ * @example
+ * ```ts
+ * det([[1, 2], [3, 4]]); // -2
+ * ```
  */
 export function det(x: MatrixInput): number {
   const { modulus, sign } = determinant(x);
@@ -405,6 +416,11 @@ export interface RcondOptions {
  * @param x A matrix (array of rows).
  * @param options See {@link RcondOptions}.
  * @returns The estimated reciprocal condition number, between 0 and 1.
+ *
+ * @example
+ * ```ts
+ * rcond([[1, 2], [3, 4]]); // 0.04761904761904762
+ * ```
  */
 export function rcond(x: MatrixInput, options: RcondOptions = {}): number {
   const norm = options.norm ?? "O";

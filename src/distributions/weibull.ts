@@ -90,6 +90,12 @@ export function qweibull1(p: number, shape: number, scale: number, lowerTail: bo
  * @param shape - Shape parameter.
  * @param options - `scale` (see {@link WeibullParams}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dweibull(1, 2);               // 0.7357588823428847
+ * dweibull(1, 2, { scale: 3 }); // 0.1988531815143044
+ * ```
  */
 export function dweibull<T extends Vectorizable>(
   x: T,
@@ -107,6 +113,12 @@ export function dweibull<T extends Vectorizable>(
  * @param shape - Shape parameter.
  * @param options - `scale` (see {@link WeibullParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * pweibull(1, 2);               // 0.6321205588285577
+ * pweibull(2, 1.5, { scale: 3 }); // 0.41977020402532716
+ * ```
  */
 export function pweibull<T extends Vectorizable>(
   q: T,
@@ -124,6 +136,12 @@ export function pweibull<T extends Vectorizable>(
  * @param shape - Shape parameter.
  * @param options - `scale` (see {@link WeibullParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qweibull(0.5, 2);               // 0.8325546111576977
+ * qweibull(0.9, 1.5, { scale: 3 }); // 5.231164540789235
+ * ```
  */
 export function qweibull<T extends Vectorizable>(
   p: T,

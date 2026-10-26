@@ -186,7 +186,7 @@ export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOp
 
 /**
  * The model matrix of a formula on a data frame, with the attributes of R's `terms()`. Equivalent to R's
- * `model.matrix(formula, data)` (with `contrasts.arg`), together with `attr(terms(formula), ...)`.
+ * `model.matrix(formula, data)`. With `contrasts.arg`, together with `attr(terms(formula), ...)`.
  *
  * Strings are factors (levels sorted by code point unless `levels` gives them), booleans factors with levels FALSE
  * and TRUE, numbers numeric. Rows with a missing value (`null`, or `NaN` in a numeric column) in any variable of the

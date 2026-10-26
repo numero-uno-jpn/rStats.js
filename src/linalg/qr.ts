@@ -344,10 +344,16 @@ function range(from: number, to: number): number[] {
  * @param q A QR decomposition from {@link qr}.
  * @param y A vector with as many elements as the decomposed matrix has rows.
  * @returns `t(Q) %*% y` as a vector.
+ *
+ * @example
+ * ```ts
+ * const q = qr([[3, 0], [4, 5]]);
+ * qrQty(q, [3, 4]); // [-5, 0]
+ * ```
  */
 export function qrQty(q: QR, y: readonly number[] | Float64Array): number[];
 /**
- * Computes `t(Q) %*% y` for a matrix `y`. Equivalent to R's `qr.qty()`.
+ * Computes `t(Q) %*% y` for a matrix `y`.
  *
  * @param q A QR decomposition from {@link qr}.
  * @param y A matrix (array of rows) with as many rows as the decomposed matrix.
@@ -355,7 +361,7 @@ export function qrQty(q: QR, y: readonly number[] | Float64Array): number[];
  */
 export function qrQty(q: QR, y: MatrixInput): number[][];
 /**
- * Computes `t(Q) %*% y`. Equivalent to R's `qr.qty()`.
+ * Computes `t(Q) %*% y`.
  *
  * @param q A QR decomposition from {@link qr}.
  * @param y A vector or a matrix with as many rows as the decomposed matrix.
@@ -375,10 +381,16 @@ export function qrQty(q: QR, y: VectorOrMatrix): number[] | number[][] {
  * @param q A QR decomposition from {@link qr}.
  * @param y A vector with as many elements as the decomposed matrix has rows.
  * @returns `Q %*% y` as a vector.
+ *
+ * @example
+ * ```ts
+ * const q = qr([[3, 0], [4, 5]]);
+ * qrQy(q, [-5, 0]); // [3, 4]
+ * ```
  */
 export function qrQy(q: QR, y: readonly number[] | Float64Array): number[];
 /**
- * Computes `Q %*% y` for a matrix `y`. Equivalent to R's `qr.qy()`.
+ * Computes `Q %*% y` for a matrix `y`.
  *
  * @param q A QR decomposition from {@link qr}.
  * @param y A matrix (array of rows) with as many rows as the decomposed matrix.
@@ -386,7 +398,7 @@ export function qrQy(q: QR, y: readonly number[] | Float64Array): number[];
  */
 export function qrQy(q: QR, y: MatrixInput): number[][];
 /**
- * Computes `Q %*% y`. Equivalent to R's `qr.qy()`.
+ * Computes `Q %*% y`.
  *
  * @param q A QR decomposition from {@link qr}.
  * @param y A vector or a matrix with as many rows as the decomposed matrix.
@@ -419,7 +431,7 @@ export function qrQy(q: QR, y: VectorOrMatrix): number[] | number[][] {
  */
 export function qrCoef(q: QR, y: readonly number[] | Float64Array): number[];
 /**
- * Least-squares coefficients for each column of a matrix response. Equivalent to R's `qr.coef()`.
+ * Least-squares coefficients for each column of a matrix response.
  *
  * @param q A QR decomposition from {@link qr}.
  * @param y The response matrix (array of rows), with as many rows as the decomposed matrix.
@@ -427,7 +439,7 @@ export function qrCoef(q: QR, y: readonly number[] | Float64Array): number[];
  */
 export function qrCoef(q: QR, y: MatrixInput): number[][];
 /**
- * Least-squares coefficients. Equivalent to R's `qr.coef()`.
+ * Least-squares coefficients.
  *
  * @param q A QR decomposition from {@link qr}.
  * @param y The response, a vector or a matrix.
@@ -492,10 +504,16 @@ function residOrFitted(q: QR, y: VectorOrMatrix, fitted: boolean, k?: number): n
  * @param q A QR decomposition from {@link qr}.
  * @param y The response vector, with as many elements as the decomposed matrix has rows.
  * @returns The residual vector.
+ *
+ * @example
+ * ```ts
+ * const q = qr([[1, 1], [1, 2], [1, 3], [1, 4]]);
+ * qrResid(q, [2.1, 3.9, 6.2, 7.8]); // [0.01, -0.13, 0.23, -0.11]
+ * ```
  */
 export function qrResid(q: QR, y: readonly number[] | Float64Array): number[];
 /**
- * Least-squares residuals for each column of a matrix response. Equivalent to R's `qr.resid()`.
+ * Least-squares residuals for each column of a matrix response.
  *
  * @param q A QR decomposition from {@link qr} (not `lapack: true`).
  * @param y The response matrix (array of rows), with as many rows as the decomposed matrix.
@@ -503,7 +521,7 @@ export function qrResid(q: QR, y: readonly number[] | Float64Array): number[];
  */
 export function qrResid(q: QR, y: MatrixInput): number[][];
 /**
- * Least-squares residuals. Equivalent to R's `qr.resid()`.
+ * Least-squares residuals.
  *
  * @param q A QR decomposition from {@link qr} (not `lapack: true`).
  * @param y The response, a vector or a matrix.
@@ -524,10 +542,16 @@ export function qrResid(q: QR, y: VectorOrMatrix): number[] | number[][] {
  * @param y The response vector, with as many elements as the decomposed matrix has rows.
  * @param options `k`: the number of pivoted columns to project onto (an integer from 0 to `rank`). Default: `q.rank`.
  * @returns The fitted values as a vector.
+ *
+ * @example
+ * ```ts
+ * const q = qr([[1, 1], [1, 2], [1, 3], [1, 4]]);
+ * qrFitted(q, [2.1, 3.9, 6.2, 7.8]); // [2.09, 4.03, 5.97, 7.91]
+ * ```
  */
 export function qrFitted(q: QR, y: readonly number[] | Float64Array, options?: { k?: number }): number[];
 /**
- * Least-squares fitted values for each column of a matrix response. Equivalent to R's `qr.fitted()`.
+ * Least-squares fitted values for each column of a matrix response.
  *
  * @param q A QR decomposition from {@link qr} (not `lapack: true`).
  * @param y The response matrix (array of rows), with as many rows as the decomposed matrix.
@@ -536,7 +560,7 @@ export function qrFitted(q: QR, y: readonly number[] | Float64Array, options?: {
  */
 export function qrFitted(q: QR, y: MatrixInput, options?: { k?: number }): number[][];
 /**
- * Least-squares fitted values. Equivalent to R's `qr.fitted()`.
+ * Least-squares fitted values.
  *
  * @param q A QR decomposition from {@link qr} (not `lapack: true`).
  * @param y The response, a vector or a matrix.
@@ -562,6 +586,11 @@ export interface QRQOptions {
  * @param q A QR decomposition from {@link qr}.
  * @param options See {@link QRQOptions}.
  * @returns `Q` as an array of rows.
+ *
+ * @example
+ * ```ts
+ * qrQ(qr([[3, 0], [4, 5]])); // [[-0.6, -0.8], [-0.8, 0.6]]
+ * ```
  */
 export function qrQ(q: QR, options: QRQOptions = {}): number[][] {
   const d = decomp(q);
@@ -583,6 +612,11 @@ export function qrQ(q: QR, options: QRQOptions = {}): number[][] {
  * @param q A QR decomposition from {@link qr}.
  * @param options `complete`: return all `n` rows instead of the first `min(n, p)`. Default: `false`.
  * @returns `R` as an array of rows.
+ *
+ * @example
+ * ```ts
+ * qrR(qr([[3, 0], [4, 5]])); // [[-5, -4], [0, 3]]
+ * ```
  */
 export function qrR(q: QR, options: { complete?: boolean } = {}): number[][] {
   const a = toMat(q.qr);
@@ -602,6 +636,11 @@ export function qrR(q: QR, options: { complete?: boolean } = {}): number[][] {
  * @param options `complete`: whether the default `ncol` is the number of rows (`true`) or `min(nrow, ncol)` (`false`, the default).
  *   `ncol`: the number of columns to return; columns beyond the original ones are taken from `Q` (as in R).
  * @returns The reconstructed matrix as an array of rows.
+ *
+ * @example
+ * ```ts
+ * qrX(qr([[3, 0], [4, 5]])); // [[3, 0], [4, 5]]
+ * ```
  */
 export function qrX(q: QR, options: { complete?: boolean; ncol?: number } = {}): number[][] {
   const d = decomp(q);
@@ -640,6 +679,12 @@ export function qrX(q: QR, options: { complete?: boolean; ncol?: number } = {}):
  * @param b The right-hand side, a vector or a matrix. Default: the identity matrix.
  * @param options `tol`: the tolerance passed to {@link qr} when `a` is a matrix. Default: `1e-7`.
  * @returns A vector if `b` is a vector, otherwise an array of rows.
+ *
+ * @example
+ * ```ts
+ * qrSolve([[2, 1], [1, 3]], [3, 5]); // [0.8, 1.4]
+ * qrSolve([[1, 1], [1, 2], [1, 3]], [1, 2, 4]); // [-0.6667, 1.5]
+ * ```
  */
 export function qrSolve(a: MatrixInput | QR, b?: VectorOrMatrix, options: { tol?: number } = {}): number[] | number[][] {
   const q = Array.isArray(a) ? qr(a as MatrixInput, { tol: options.tol ?? 1e-7 }) : (a as QR);

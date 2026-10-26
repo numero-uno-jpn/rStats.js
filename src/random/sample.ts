@@ -20,7 +20,7 @@ export interface SampleOptions {
 }
 
 /**
- * Random sample of integers from `0..n-1`. Equivalent to R's `sample.int()`, but 0-based.
+ * Random sample of integers from `0..n-1`. Equivalent to R's `sample.int()`. Unlike R, it is 0-based.
  *
  * The result is R's `sample.int(n, ...)` minus 1, so it can be used directly as array
  * indices. It consumes the same random numbers as R (default `sample.kind = "Rejection"`).

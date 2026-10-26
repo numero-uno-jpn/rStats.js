@@ -21,9 +21,13 @@ export type CohenTest = "p" | "t" | "r" | "anov" | "chisq" | "f2";
 
 /** Result of {@link cohenES}. */
 export interface CohenESResult {
+  /** The test. */
   test: CohenTest;
+  /** The conventional size. */
   size: "small" | "medium" | "large";
+  /** Cohen's effect size (R's `effect.size`). */
   effectSize: number;
+  /** Description of the calculation. */
   method: string;
 }
 
@@ -37,7 +41,7 @@ const COHEN: Record<CohenTest, [number, number, number]> = {
 };
 
 /**
- * Cohen's conventional effect sizes. Equivalent to pwr's `cohen.ES(test, size)`.
+ * Cohen's conventional effect sizes. Equivalent to `pwr::cohen.ES(test, size)` in R.
  *
  * @example
  * ```ts
@@ -50,12 +54,26 @@ export function cohenES(test: CohenTest | (string & {}) = "p", size: "small" | "
   return { test: t, size: s, effectSize: COHEN[t][["small", "medium", "large"].indexOf(s)]!, method: "Conventional effect size from Cohen (1982)" };
 }
 
-/** Effect size h of two proportions: `2 asin(sqrt(p1)) - 2 asin(sqrt(p2))`. Equivalent to pwr's `ES.h`. */
+/**
+ * Effect size h of two proportions: `2 asin(sqrt(p1)) - 2 asin(sqrt(p2))`. Equivalent to `pwr::ES.h()` in R.
+ *
+ * @example
+ * ```ts
+ * esH(0.65, 0.45); // 0.40486007517695755
+ * ```
+ */
 export function esH(p1: number, p2: number): number {
   return 2 * Math.asin(Math.sqrt(p1)) - 2 * Math.asin(Math.sqrt(p2));
 }
 
-/** Effect size w of a goodness-of-fit test, `sqrt(sum((p1 - p0)^2 / p0))`. Equivalent to pwr's `ES.w1`. */
+/**
+ * Effect size w of a goodness-of-fit test, `sqrt(sum((p1 - p0)^2 / p0))`. Equivalent to `pwr::ES.w1()` in R.
+ *
+ * @example
+ * ```ts
+ * esW1([0.25, 0.25, 0.25, 0.25], [0.4, 0.2, 0.2, 0.2]); // 0.34641016151377546
+ * ```
+ */
 export function esW1(p0: readonly number[], p1: readonly number[]): number {
   if (p0.length !== p1.length) throw new RangeError("'P0' and 'P1' must have the same length");
   let s = 0;
@@ -65,7 +83,12 @@ export function esW1(p0: readonly number[], p1: readonly number[]): number {
 
 /**
  * Effect size w of a test of association, for a matrix of cell probabilities (an array of rows): with the row sums
- * r and column sums c, `p0 = r c'` and `sqrt(sum((p - p0)^2 / p0))`. Equivalent to pwr's `ES.w2`.
+ * r and column sums c, `p0 = r c'` and `sqrt(sum((p - p0)^2 / p0))`. Equivalent to `pwr::ES.w2()` in R.
+ *
+ * @example
+ * ```ts
+ * esW2([[0.3, 0.2], [0.1, 0.4]]); // 0.40824829046386296
+ * ```
  */
 export function esW2(p: readonly (readonly number[])[]): number {
   const rows = p.map((r) => r.reduce((a, b) => a + b, 0));
@@ -147,18 +170,25 @@ export interface PwrTTestOptions extends PwrAlternative {
 
 /** Result of {@link pwrTTest}. */
 export interface PwrTTestResult {
+  /** Number of observations (per group, or of pairs). */
   n: number;
+  /** Effect size d. */
   d: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** The alternative hypothesis. */
   alternative: Alternative;
+  /** A note on the sample size. */
   note?: string;
+  /** Description of the calculation. */
   method: string;
 }
 
 /**
- * Power of a t test of means, or the sample size, effect size or significance level for a given power. Equivalent
- * to pwr's `pwr.t.test()`.
+ * Power of a t test of means, or the sample size, effect size or significance level for a given power.
+ * Equivalent to `pwr::pwr.t.test()` in R.
  *
  * @example
  * ```ts
@@ -201,18 +231,31 @@ export interface PwrT2nTestOptions extends PwrAlternative {
 
 /** Result of {@link pwrT2nTest}. */
 export interface PwrT2nTestResult {
+  /** Number of observations in the first group. */
   n1: number;
+  /** Number of observations in the second group. */
   n2: number;
+  /** Effect size d. */
   d: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** The alternative hypothesis. */
   alternative: Alternative;
+  /** Description of the calculation. */
   method: string;
 }
 
 /**
  * Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance
- * level for a given power. Equivalent to pwr's `pwr.t2n.test()`.
+ * level for a given power. Equivalent to `pwr::pwr.t2n.test()` in R.
+ *
+ * @example
+ * ```ts
+ * pwrT2nTest({ n1: 20, n2: 30, d: 0.5 }).power; // 0.39656999440895696
+ * pwrT2nTest({ n1: 50, d: 0.5, power: 0.8 }).n2; // 87.70891347276086
+ * ```
  */
 export function pwrT2nTest(options: PwrT2nTestOptions = {}): PwrT2nTestResult {
   let { n1, n2, power } = options;
@@ -247,12 +290,19 @@ export interface Pwr2pTestOptions extends PwrAlternative {
 
 /** Result of {@link pwr2pTest} and {@link pwrPTest}. */
 export interface Pwr2pTestResult {
+  /** Effect size h. */
   h: number;
+  /** Number of observations (per group for {@link pwr2pTest}). */
   n: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** The alternative hypothesis. */
   alternative: Alternative;
+  /** Description of the calculation. */
   method: string;
+  /** A note on the sample sizes (absent for {@link pwrPTest}). */
   note?: string;
 }
 
@@ -286,7 +336,13 @@ function normalTest(
 
 /**
  * Power of the test of two proportions with equal sample sizes (arcsine transformation), or the effect size, sample
- * size or significance level for a given power. Equivalent to pwr's `pwr.2p.test()`.
+ * size or significance level for a given power. Equivalent to `pwr::pwr.2p.test()` in R.
+ *
+ * @example
+ * ```ts
+ * pwr2pTest({ h: 0.3, n: 80 }).power; // 0.47510087057263806
+ * pwr2pTest({ h: esH(0.65, 0.45), power: 0.8 }).n; // 95.76938656160651
+ * ```
  */
 export function pwr2pTest(options: Pwr2pTestOptions = {}): Pwr2pTestResult {
   const r = normalTest(options.h, options, "h", (n) => Math.sqrt(n / 2), 2 + 1e-10, 1e-10);
@@ -303,7 +359,13 @@ export function pwr2pTest(options: Pwr2pTestOptions = {}): Pwr2pTestResult {
 
 /**
  * Power of the test of one proportion (arcsine transformation), or the effect size, sample size or significance
- * level for a given power. Equivalent to pwr's `pwr.p.test()`.
+ * level for a given power. Equivalent to `pwr::pwr.p.test()` in R.
+ *
+ * @example
+ * ```ts
+ * pwrPTest({ h: 0.2, n: 60 }).power; // 0.34084512406749834
+ * pwrPTest({ h: 0.2, power: 0.8 }).n; // 196.221512550509
+ * ```
  */
 export function pwrPTest(options: Pwr2pTestOptions = {}): Pwr2pTestResult {
   const r = normalTest(options.h, options, "h", (n) => Math.sqrt(n), 2 + 1e-10, 1e-10);
@@ -327,17 +389,29 @@ export interface PwrNormTestOptions extends PwrAlternative {
 
 /** Result of {@link pwrNormTest}. */
 export interface PwrNormTestResult {
+  /** Effect size d. */
   d: number;
+  /** Number of observations. */
   n: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** The alternative hypothesis. */
   alternative: Alternative;
+  /** Description of the calculation. */
   method: string;
 }
 
 /**
  * Power of the test of a mean of a normal distribution with known variance, or the effect size, sample size or
- * significance level for a given power. Equivalent to pwr's `pwr.norm.test()`.
+ * significance level for a given power. Equivalent to `pwr::pwr.norm.test()` in R.
+ *
+ * @example
+ * ```ts
+ * pwrNormTest({ d: 0.3, n: 50 }).power; // 0.5641160254310038
+ * pwrNormTest({ d: 0.3, power: 0.8 }).n; // 87.20953791564195
+ * ```
  */
 export function pwrNormTest(options: PwrNormTestOptions = {}): PwrNormTestResult {
   const r = normalTest(options.d, options, "d", (n) => Math.sqrt(n), 1 + 1e-10, 1e-10);
@@ -363,19 +437,33 @@ export interface Pwr2p2nTestOptions extends PwrAlternative {
 
 /** Result of {@link pwr2p2nTest}. */
 export interface Pwr2p2nTestResult {
+  /** Effect size h. */
   h: number;
+  /** Number of observations in the first group. */
   n1: number;
+  /** Number of observations in the second group. */
   n2: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** The alternative hypothesis. */
   alternative: Alternative;
+  /** Description of the calculation. */
   method: string;
+  /** A note on the sample sizes. */
   note: string;
 }
 
 /**
  * Power of the test of two proportions with unequal sample sizes (arcsine transformation), or the effect size, a
- * sample size or the significance level for a given power. Equivalent to pwr's `pwr.2p2n.test()`.
+ * sample size or the significance level for a given power. Equivalent to `pwr::pwr.2p2n.test()` in R.
+ *
+ * @example
+ * ```ts
+ * pwr2p2nTest({ h: 0.3, n1: 80, n2: 120 }).power; // 0.5471899635264242
+ * pwr2p2nTest({ h: 0.3, n1: 200, power: 0.8 }).n2; // 154.6399892648981
+ * ```
  */
 export function pwr2p2nTest(options: Pwr2p2nTestOptions = {}): Pwr2p2nTestResult {
   let { n1, n2, power } = options;
@@ -418,18 +506,30 @@ export interface PwrRTestOptions extends PwrAlternative {
 
 /** Result of {@link pwrRTest}. */
 export interface PwrRTestResult {
+  /** Number of observations. */
   n: number;
+  /** Correlation. */
   r: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** The alternative hypothesis. */
   alternative: Alternative;
+  /** Description of the calculation. */
   method: string;
 }
 
 /**
  * Power of the test of a correlation (Fisher's z transformation), or the sample size, correlation or significance
- * level for a given power. Equivalent to pwr's `pwr.r.test()`. As in pwr, the power computed for `"less"` reports
+ * level for a given power. Equivalent to `pwr::pwr.r.test()` in R. As in pwr, the power computed for `"less"` reports
  * `r` negated.
+ *
+ * @example
+ * ```ts
+ * pwrRTest({ n: 50, r: 0.3 }).power; // 0.571555841860208
+ * pwrRTest({ r: 0.3, power: 0.8 }).n; // 84.07363978228769
+ * ```
  */
 export function pwrRTest(options: PwrRTestOptions = {}): PwrRTestResult {
   let { n, power } = options;
@@ -483,18 +583,31 @@ export interface PwrChisqTestOptions extends PwrCommon {
 
 /** Result of {@link pwrChisqTest}. */
 export interface PwrChisqTestResult {
+  /** Effect size w. */
   w: number;
+  /** Total number of observations. */
   N: number;
+  /** Degrees of freedom. */
   df: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** Description of the calculation. */
   method: string;
+  /** A note on the sample size. */
   note: string;
 }
 
 /**
  * Power of a chi-squared test, or the effect size, number of observations or significance level for a given power.
- * Equivalent to pwr's `pwr.chisq.test()`.
+ * Equivalent to `pwr::pwr.chisq.test()` in R.
+ *
+ * @example
+ * ```ts
+ * pwrChisqTest({ w: 0.3, N: 100, df: 3 }).power; // 0.7112535997950422
+ * pwrChisqTest({ w: 0.3, df: 3, power: 0.8 }).N; // 121.13959310294602
+ * ```
  */
 export function pwrChisqTest(options: PwrChisqTestOptions): PwrChisqTestResult {
   let { N, power } = options;
@@ -530,18 +643,31 @@ export interface PwrAnovaTestOptions extends PwrCommon {
 
 /** Result of {@link pwrAnovaTest}. */
 export interface PwrAnovaTestResult {
+  /** Number of groups. */
   k: number;
+  /** Number of observations per group. */
   n: number;
+  /** Effect size f. */
   f: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** A note on the sample size. */
   note: string;
+  /** Description of the calculation. */
   method: string;
 }
 
 /**
  * Power of the F test of a balanced one-way analysis of variance, or the number of groups, sample size, effect size
- * or significance level for a given power. Equivalent to pwr's `pwr.anova.test()`.
+ * or significance level for a given power. Equivalent to `pwr::pwr.anova.test()` in R.
+ *
+ * @example
+ * ```ts
+ * pwrAnovaTest({ k: 4, n: 20, f: 0.25 }).power; // 0.42039009037704295
+ * pwrAnovaTest({ k: 4, f: 0.25, power: 0.8 }).n; // 44.59927432039623
+ * ```
  */
 export function pwrAnovaTest(options: PwrAnovaTestOptions = {}): PwrAnovaTestResult {
   let { k, n, power } = options;
@@ -588,17 +714,29 @@ export interface PwrF2TestOptions extends PwrCommon {
 
 /** Result of {@link pwrF2Test}. */
 export interface PwrF2TestResult {
+  /** Degrees of freedom of the numerator. */
   u: number;
+  /** Degrees of freedom of the denominator. */
   v: number;
+  /** Effect size f². */
   f2: number;
+  /** Significance level (R's `sig.level`). */
   sigLevel: number;
+  /** Power of the test. */
   power: number;
+  /** Description of the calculation. */
   method: string;
 }
 
 /**
  * Power of the F test of a general linear model, or the degrees of freedom, effect size or significance level for a
- * given power. Equivalent to pwr's `pwr.f2.test()`.
+ * given power. Equivalent to `pwr::pwr.f2.test()` in R.
+ *
+ * @example
+ * ```ts
+ * pwrF2Test({ u: 3, v: 60, f2: 0.15 }).power; // 0.7109605416866717
+ * pwrF2Test({ u: 3, f2: 0.15, power: 0.8 }).v; // 72.70582657950871
+ * ```
  */
 export function pwrF2Test(options: PwrF2TestOptions = {}): PwrF2TestResult {
   let { u, v, power } = options;

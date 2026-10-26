@@ -59,12 +59,11 @@ export interface EigenResult {
  *
  * @example
  * ```ts
- * eigen([[2, 1], [1, 2]]);
- * // values: [3, 1] (up to rounding)
- * // vectors: [[0.7071, 0.7071], [0.7071, -0.7071]] (signs may differ from R)
+ * const e = eigen([[2, 1], [1, 2]]);
+ * e.values;  // [3, 1]
+ * e.vectors; // [[0.7071, 0.7071], [0.7071, -0.7071]] (signs may differ from R)
  *
- * eigen([[0, -1], [1, 0]]);
- * // values: [0, 0], valuesIm: [1, -1]
+ * eigen([[0, -1], [1, 0]]); // { values: [0, 0], valuesIm: [1, -1] }
  * ```
  */
 export function eigen(x: MatrixInput, options: EigenOptions = {}): EigenResult {

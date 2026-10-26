@@ -53,15 +53,21 @@ export interface SurvfitOptions {
 export interface SurvfitResult {
   /** Stratum of each row (`"group=<label>"`, or `"all"` for a single curve) */
   strata: string[];
+  /** Time of each row (the distinct times of the stratum, censored ones included) */
   time: number[];
+  /** Number at risk just before the time (R's `n.risk`) */
   nRisk: number[];
+  /** Number of events at the time (R's `n.event`) */
   nEvent: number[];
+  /** Number censored at the time (R's `n.censor`) */
   nCensor: number[];
   /** Kaplan-Meier estimate S(t) */
   surv: number[];
   /** Standard error of S(t) (S times the standard error of log S) */
   stdErr: number[];
+  /** Lower limit of the pointwise confidence interval of S(t) */
   lower: number[];
+  /** Upper limit of the pointwise confidence interval of S(t) */
   upper: number[];
   /** Per stratum, [median, lower limit, upper limit] (NaN for R's NA) */
   median: number[][];
@@ -113,7 +119,7 @@ function prepare(
 
 /**
  * Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for
- * `rho = 0`. Equivalent to R's `survdiff(Surv(time, status) ~ group, rho = rho)` (package survival).
+ * `rho = 0`. Equivalent to R's `survival::survdiff()`. As `survdiff(Surv(time, status) ~ group, rho = rho)`.
  *
  * Rows with a missing time, status or group are dropped.
  *
@@ -124,7 +130,9 @@ function prepare(
  *
  * @example
  * ```ts
- * survdiff([1, 2, 3, 4, 5, 6], [1, 1, 0, 1, 1, 1], ["a", "b", "a", "b", "a", "b"]).chisq;
+ * const r = survdiff([1, 2, 3, 4, 5, 6], [1, 1, 0, 1, 1, 1], ["a", "b", "a", "b", "a", "b"]);
+ * r.chisq;  // 0.073903
+ * r.pvalue; // 0.78574
  * ```
  */
 export function survdiff(
@@ -215,8 +223,8 @@ function curveMedian(time: readonly number[], nEvent: readonly number[], curve: 
 
 /**
  * Kaplan-Meier estimate of the survival function with Greenwood's standard error and pointwise confidence intervals.
- * Equivalent to R's `summary(survfit(Surv(time, status) ~ group, conf.type, conf.int), censored = TRUE)` (package
- * survival), with the medians and their confidence limits of `summary(fit)$table`.
+ * Equivalent to R's `survival::survfit()`. As `summary(survfit(Surv(time, status) ~ group, conf.type, conf.int),
+ * censored = TRUE)`, with the medians and their confidence limits of `summary(fit)$table`.
  *
  * Rows with a missing time, status or group are dropped.
  *

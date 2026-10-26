@@ -99,7 +99,7 @@ function comparisonTable(fits: readonly LmFormulaResult[]): AnovaTable {
 }
 
 /**
- * Analysis of variance of linear models fitted from a formula. With one fit, the table of sequential (type I) sums
+ * Analysis of variance of linear models fitted from a formula. Equivalent to R's `anova()`. With one fit, the table of sequential (type I) sums
  * of squares, equivalent to R's `anova(fit)`: one row per term (the intercept left out), in the order of the model,
  * and `Residuals`. With several fits, the comparison of the models in the order given, equivalent to R's
  * `anova(fit1, fit2, ...)`: columns `Res.Df`, `RSS`, `Df`, `Sum of Sq`, `F`, `Pr(>F)`, the F tests scaled by the
@@ -139,16 +139,26 @@ export function anova(fit: LmFormulaResult, ...fits: LmFormulaResult[]): AnovaTa
 export interface AovStrataSummary {
   /** The table of each stratum, in order, without the intercept stratum. */
   strata: AovStratum[];
+  /** Warnings of the summary (empty; the fit's warnings are in its own `warnings`). */
   warnings: string[];
 }
 
 /**
- * The table of R's `summary(aov(formula, data))` for a fit without `Error()`: the rows of {@link anova}'s
+ * The table of an analysis of variance fitted by {@link aov}. Equivalent to R's `summary()`. As R's
+ * `summary(aov(formula, data))` for a fit without `Error()`: the rows of {@link anova}'s
  * sequential table, except that without residual degrees of freedom there is no `Residuals` row and no `F value` and
  * `Pr(>F)` columns. For a fit with an `Error()` term, the tables of the strata (`{ strata: [{ stratum: "Error: id",
  * colNames, rowNames, table }, ...] }`), without the intercept stratum.
  *
  * @param fit A fit from {@link aov} (or {@link lm}) with a formula.
+ *
+ * @example
+ * ```ts
+ * const fit = aov("y ~ g", { y: [4.2, 5.1, 6.3, 5.8, 7.9, 8.4], g: ["a", "a", "b", "b", "c", "c"] });
+ * const t = aovSummary(fit);
+ * t.colNames; // ["Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)"]
+ * t.table[0]; // [2, 12.413, 6.2067, 28.427, 0.011221]
+ * ```
  */
 export function aovSummary(fit: AovStrataFit): AovStrataSummary;
 export function aovSummary(fit: LmFormulaResult): AnovaTable;

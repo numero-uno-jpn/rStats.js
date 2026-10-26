@@ -199,6 +199,12 @@ export function qhyper1(p: number, m: number, n: number, k: number, lowerTail: b
  * @param k - Number of balls drawn.
  * @param options - `log` (see {@link DensityOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * dhyper(2, 10, 7, 8);          // 0.012957630604689432
+ * dhyper([0, 1], 10, 7, 8);     // [0, 0.00041135335252982303]
+ * ```
  */
 export function dhyper<T extends Vectorizable>(
   x: T,
@@ -220,6 +226,12 @@ export function dhyper<T extends Vectorizable>(
  * @param k - Number of balls drawn.
  * @param options - `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * phyper(2, 10, 7, 8);                       // 0.013368983957219256
+ * phyper(5, 10, 7, 8, { lowerTail: false }); // 0.21781160016454126
+ * ```
  */
 export function phyper<T extends Vectorizable>(
   q: T,
@@ -241,6 +253,12 @@ export function phyper<T extends Vectorizable>(
  * @param k - Number of balls drawn.
  * @param options - `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qhyper(0.5, 10, 7, 8);          // 5
+ * qhyper([0.05, 0.95], 10, 7, 8); // [3, 6]
+ * ```
  */
 export function qhyper<T extends Vectorizable>(
   p: T,

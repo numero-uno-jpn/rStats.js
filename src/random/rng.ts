@@ -151,12 +151,21 @@ export function RNGkind(options: RNGKindOptions = {}): RNGKinds {
 const kindCode = (): number => (gen === mt ? 3 : 7) + 400 + (rounding ? 0 : 10000);
 
 /**
- * Returns a copy of the current generator state. Equivalent to reading R's `.Random.seed`.
+ * Returns a copy of the current generator state, as reading R's `.Random.seed` does.
+ * Equivalent to R's `.Random.seed`.
  *
  * @returns The same integers as R's `.Random.seed`: the kind code (`10403` for R's default,
  *   `403` with `sampleKind: "Rounding"`, `10407` for L'Ecuyer-CMRG), followed by 625 integers
  *   for Mersenne-Twister or 6 for L'Ecuyer-CMRG (unsigned seeds of 2^31 or more appear as
  *   negative numbers, as in R). Pass it to {@link setRandomSeed} to restore the state.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * const s = getRandomSeed();
+ * s.length; // 626
+ * s[0]; // 10403
+ * ```
  */
 export function getRandomSeed(): Int32Array {
   ensureSeeded();
@@ -166,12 +175,22 @@ export function getRandomSeed(): Int32Array {
 }
 
 /**
- * Restores a generator state, including its kinds. Equivalent to assigning R's `.Random.seed`.
+ * Restores a generator state, including its kinds, as assigning R's `.Random.seed` does.
+ * Equivalent to R's `.Random.seed`.
  *
  * @param state The integers returned by {@link getRandomSeed}, or copied from R's `.Random.seed`.
  * @throws RangeError for a kind code other than those of Mersenne-Twister or L'Ecuyer-CMRG with
  *   Inversion and Rejection or Rounding (`10403`, `403`, `10407`, `407`), a state of the wrong
  *   length, or an invalid L'Ecuyer-CMRG state (R reseeds from the clock in these cases).
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * const s = getRandomSeed();
+ * runif(2); // [0.2655087, 0.3721239]
+ * setRandomSeed(s);
+ * runif(2); // [0.2655087, 0.3721239] (the same again)
+ * ```
  */
 export function setRandomSeed(state: ArrayLike<number>): void {
   const code = state[0]!;

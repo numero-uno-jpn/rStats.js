@@ -47,8 +47,11 @@ export interface AovEzOptions {
 
 /** A table of {@link aovEz}. */
 export interface AovEzTable {
+  /** Column names, such as afex's `"num Df"`, `"den Df"`, `"MSE"`, `"F"`, `"ges"`, `"Pr(>F)"`. */
   colNames: string[];
+  /** Row names: the terms (and `"(Intercept)"` in car's tables). */
   rowNames: string[];
+  /** One array per row, one value per column. */
   table: number[][];
 }
 
@@ -64,6 +67,7 @@ export interface AovEzResult {
   sphericity?: AovEzTable;
   /** The within-subject factors (columns), as given. */
   within: string[];
+  /** afex's and car's warnings (averaged cells, removed subjects, `HF eps > 1 treated as 1`, ...). */
   warnings: string[];
 }
 
@@ -124,8 +128,9 @@ function anovaTable(rows: Row[], errorSS: number[], es: AovEzEffectSize[], obser
 }
 
 /**
- * Repeated-measures (within-subjects), between-subjects and mixed analysis of variance from long data, as afex's
- * `aov_ez(id, dv, data, between, within, type, observed, anova_table = list(correction, es))`. Returns afex's
+ * Repeated-measures (within-subjects), between-subjects and mixed analysis of variance from long data. Equivalent to
+ * `afex::aov_ez()` in R. As afex's
+ * `aov_ez(id, dv, data, between, within, type, observed, anova_table = list(correction, es))`, it returns afex's
  * anova table and car's univariate tests, sphericity corrections (Greenhouse-Geisser, Huynh-Feldt) and Mauchly tests.
  *
  * Between-subjects factors use `contr.sum` and sorted levels; the levels of within-subjects factors are taken in order

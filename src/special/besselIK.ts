@@ -273,7 +273,7 @@ export interface BesselOptions {
 
 /**
  * Modified Bessel function of the first kind. Equivalent to R's
- * `besselI(x, nu, expon.scaled = FALSE)` for single numbers.
+ * `besselI(x, nu, expon.scaled = FALSE)`. Takes single numbers.
  *
  * @param x - Argument, `x >= 0` (`NaN` for negative `x`).
  * @param nu - Order, any real number. For `nu < 0`, `I(x, -nu) = I(x, nu) + 2/pi sin(pi nu) K(x, nu)`
@@ -307,7 +307,7 @@ export function besselI(x: number, nu: number, options: BesselOptions = {}): num
 
 /**
  * Modified Bessel function of the second kind. Equivalent to R's
- * `besselK(x, nu, expon.scaled = FALSE)` for single numbers.
+ * `besselK(x, nu, expon.scaled = FALSE)`. Takes single numbers.
  *
  * @param x - Argument, `x >= 0` (`NaN` for negative `x`).
  * @param nu - Order, any real number (`K(x, -nu) = K(x, nu)`).

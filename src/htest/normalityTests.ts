@@ -17,6 +17,7 @@ export type NormalityTestResult = Omit<HTest, "alternative">;
 
 /** Result of {@link cvmTest}, with nortest's warning for a p-value below the approximation's range. */
 export interface CvmTestResult extends NormalityTestResult {
+  /** Warnings, as nortest gives them (empty when there are none). */
   warnings: string[];
 }
 
@@ -33,7 +34,7 @@ function standardized(xs: readonly number[]): number[] {
 }
 
 /**
- * Anderson-Darling test for normality. Equivalent to nortest's `ad.test()`. `NaN` values are dropped; at least 8
+ * Anderson-Darling test for normality. Equivalent to `nortest::ad.test()` in R. `NaN` values are dropped; at least 8
  * values are needed.
  *
  * @example
@@ -62,8 +63,14 @@ export function adTest(x: Sample): NormalityTestResult {
 }
 
 /**
- * Cramer-von Mises test for normality. Equivalent to nortest's `cvm.test()`. `NaN` values are dropped; at least 8
+ * Cramer-von Mises test for normality. Equivalent to `nortest::cvm.test()` in R. `NaN` values are dropped; at least 8
  * values are needed.
+ *
+ * @example
+ * ```ts
+ * const x = [2.1, 3.4, 1.9, 5.6, 4.4, 3.3, 2.8, 4.1, 3.9, 6.2];
+ * cvmTest(x).pValue; // 0.8725514730213816
+ * ```
  */
 export function cvmTest(x: Sample): CvmTestResult {
   const xs = sorted(x);
@@ -89,8 +96,14 @@ export function cvmTest(x: Sample): CvmTestResult {
 }
 
 /**
- * Lilliefors (Kolmogorov-Smirnov) test for normality. Equivalent to nortest's `lillie.test()`. `NaN` values are
+ * Lilliefors (Kolmogorov-Smirnov) test for normality. Equivalent to `nortest::lillie.test()` in R. `NaN` values are
  * dropped; at least 5 values are needed.
+ *
+ * @example
+ * ```ts
+ * const x = [2.1, 3.4, 1.9, 5.6, 4.4, 3.3, 2.8, 4.1, 3.9, 6.2];
+ * lillieTest(x).pValue; // 0.9287268902599117
+ * ```
  */
 export function lillieTest(x: Sample): NormalityTestResult {
   const xs = sorted(x);
@@ -121,8 +134,14 @@ export function lillieTest(x: Sample): NormalityTestResult {
 }
 
 /**
- * Shapiro-Francia test for normality. Equivalent to nortest's `sf.test()`. `NaN` values are dropped; the sample size
- * must be between 5 and 5000.
+ * Shapiro-Francia test for normality. Equivalent to `nortest::sf.test()` in R. `NaN` values are dropped; the sample
+ * size must be between 5 and 5000.
+ *
+ * @example
+ * ```ts
+ * const x = [2.1, 3.4, 1.9, 5.6, 4.4, 3.3, 2.8, 4.1, 3.9, 6.2];
+ * sfTest(x).pValue; // 0.8583583366365347
+ * ```
  */
 export function sfTest(x: Sample): NormalityTestResult {
   const xs = sorted(x);
@@ -148,7 +167,13 @@ export interface PearsonTestOptions {
 
 /**
  * Pearson chi-square test for normality, with classes of equal probability under the fitted normal distribution.
- * Equivalent to nortest's `pearson.test()`. `NaN` values are dropped.
+ * Equivalent to `nortest::pearson.test()` in R. `NaN` values are dropped.
+ *
+ * @example
+ * ```ts
+ * const x = [2.1, 3.4, 1.9, 5.6, 4.4, 3.3, 2.8, 4.1, 3.9, 6.2];
+ * pearsonTest(x).pValue; // 0.8494670333918255
+ * ```
  */
 export function pearsonTest(x: Sample, options: PearsonTestOptions = {}): NormalityTestResult {
   const xs = sorted(x);

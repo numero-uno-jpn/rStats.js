@@ -179,6 +179,12 @@ export function qt1(p: number, df: number, lowerTail: boolean, logP: boolean): n
  * @param df - Degrees of freedom.
  * @param options - `ncp` (see {@link NoncentralOption}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dt(0, 5);             // 0.37960668982249446
+ * dt(1, 5, { ncp: 1 }); // 0.36232483923371867
+ * ```
  */
 export function dt<T extends Vectorizable>(
   x: T,
@@ -225,6 +231,12 @@ export function pt<T extends Vectorizable>(
  * @param df - Degrees of freedom.
  * @param options - `ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qt(0.975, 10);         // 2.228138851986274
+ * qt([0.025, 0.975], 5); // [-2.5705818356363155, 2.5705818356363146]
+ * ```
  */
 export function qt<T extends Vectorizable>(
   p: T,

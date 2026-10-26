@@ -197,6 +197,12 @@ export function qbeta1(p: number, a: number, b: number, lowerTail: boolean, logP
  * @param shape2 - Second shape parameter (b).
  * @param options - `ncp` (see {@link NoncentralOption}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dbeta(0.5, 2, 3);         // 1.5
+ * dbeta([0.25, 0.75], 2, 3); // [1.6875, 0.5625]
+ * ```
  */
 export function dbeta<T extends Vectorizable>(
   x: T,

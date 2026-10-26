@@ -133,6 +133,12 @@ export function qlnorm1(p: number, meanlog: number, sdlog: number, lowerTail: bo
  * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `meanlog` and `sdlog` (see {@link LognormalParams}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dlnorm(1);                             // 0.3989422804014327
+ * dlnorm(2, { meanlog: 0.5, sdlog: 0.8 }); // 0.24217677488483338
+ * ```
  */
 export function dlnorm<T extends Vectorizable>(x: T, options: LognormalParams & DensityOptions = {}): VectorResult<T> {
   const { meanlog = 0, sdlog = 1, log = false } = options;
@@ -145,6 +151,12 @@ export function dlnorm<T extends Vectorizable>(x: T, options: LognormalParams & 
  * @param q - Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `meanlog` and `sdlog` (see {@link LognormalParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * plnorm(2);                             // 0.7558914042144173
+ * plnorm(2, { meanlog: 0.5, sdlog: 0.8 }); // 0.595390608679215
+ * ```
  */
 export function plnorm<T extends Vectorizable>(q: T, options: LognormalParams & TailOptions = {}): VectorResult<T> {
   const { meanlog = 0, sdlog = 1, lowerTail = true, logP = false } = options;
@@ -157,6 +169,12 @@ export function plnorm<T extends Vectorizable>(q: T, options: LognormalParams & 
  * @param p - Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `meanlog` and `sdlog` (see {@link LognormalParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qlnorm(0.5, { meanlog: 1 });  // 2.718281828459045
+ * qlnorm([0.05, 0.95]);         // [0.19304081669873657, 5.180251602233015]
+ * ```
  */
 export function qlnorm<T extends Vectorizable>(p: T, options: LognormalParams & TailOptions = {}): VectorResult<T> {
   const { meanlog = 0, sdlog = 1, lowerTail = true, logP = false } = options;

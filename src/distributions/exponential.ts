@@ -60,6 +60,12 @@ export function qexp1(p: number, rate: number, lowerTail: boolean, logP: boolean
  * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `rate` (see {@link ExponentialParams}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dexp(1);              // 0.36787944117144233
+ * dexp(1, { rate: 2 }); // 0.2706705664732254
+ * ```
  */
 export function dexp<T extends Vectorizable>(x: T, options: ExponentialParams & DensityOptions = {}): VectorResult<T> {
   const { rate = 1, log = false } = options;
@@ -72,6 +78,12 @@ export function dexp<T extends Vectorizable>(x: T, options: ExponentialParams & 
  * @param q - Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `rate` (see {@link ExponentialParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * pexp(1);                                  // 0.6321205588285577
+ * pexp(1, { rate: 2, lowerTail: false });   // 0.1353352832366127
+ * ```
  */
 export function pexp<T extends Vectorizable>(q: T, options: ExponentialParams & TailOptions = {}): VectorResult<T> {
   const { rate = 1, lowerTail = true, logP = false } = options;
@@ -84,6 +96,12 @@ export function pexp<T extends Vectorizable>(q: T, options: ExponentialParams & 
  * @param p - Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `rate` (see {@link ExponentialParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qexp(0.5, { rate: 2 });      // 0.34657359027997264
+ * qexp([0.25, 0.75]);          // [0.2876820724517809, 1.3862943611198906]
+ * ```
  */
 export function qexp<T extends Vectorizable>(p: T, options: ExponentialParams & TailOptions = {}): VectorResult<T> {
   const { rate = 1, lowerTail = true, logP = false } = options;

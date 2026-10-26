@@ -61,11 +61,25 @@ export function scoreStatistic(x: number[][], r: number[], v: number[], intercep
 
 /**
  * Profile likelihood confidence intervals for the coefficients of a generalized linear model (NaN for aliased
- * columns, and for a limit that the profile does not reach). Equivalent to R's `confint()` for a `glm` fit, but with
+ * columns, and for a limit that the profile does not reach), for a `glm` fit. Equivalent to R's `confint()`. With
  * the exact solutions of the profile equations, where R interpolates a spline through a grid of profile points (and
  * is up to about 5e-4 standard errors from them).
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmConfint(fit); // { lower: [-15.124, -0.065819], upper: [0.57792, 4.1592] }
+ * ```
  */
-export function glmConfint(fit: GlmResult, options: GlmConfintOptions = {}): { lower: number[]; upper: number[] } {
+export function glmConfint(
+  fit: GlmResult,
+  options: GlmConfintOptions = {},
+): {
+  /** Lower limits, one per coefficient (R's first column, `2.5 %` by default). */
+  lower: number[];
+  /** Upper limits, one per coefficient (R's second column, `97.5 %` by default). */
+  upper: number[];
+} {
   const level = options.level ?? 0.95;
   const test = options.test ?? "LRT";
   if (!(level > 0 && level < 1)) throw new RangeError("'level' must be in (0, 1)");

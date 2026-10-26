@@ -17,7 +17,7 @@ type Label = number | string | boolean | null;
 export type GroupingLevel = number | string | boolean;
 
 /** The group labels of the rows: one per row. */
-export type GroupingLabels = readonly Label[] | Float64Array;
+export type GroupingLabels = readonly (number | string | boolean | null)[] | Float64Array;
 
 /** The values of a vector to group: an array of any cells, or a Float64Array. */
 type Cells<T> = readonly T[] | Float64Array;
@@ -142,7 +142,7 @@ export interface TapplyResult<R> {
  * tapply([1, 2, 3, 4], ["b", "a", "b", "a"], (v) => v.length); // { dim: [2], dimnames: [["a", "b"]], values: [2, 2] }
  * ```
  */
-export function tapply<T, R>(x: Cells<T>, index: GroupingLabels | readonly GroupingLabels[], fun: (values: T[]) => R): TapplyResult<R> {
+export function tapply<T, R>(x: readonly T[] | Float64Array, index: GroupingLabels | readonly GroupingLabels[], fun: (values: T[]) => R): TapplyResult<R> {
   const xs = Array.from(x as ArrayLike<T>);
   const lists = labelLists(index);
   const g = groupingOf(lists, factorNames(lists.length, "index"), xs.length);

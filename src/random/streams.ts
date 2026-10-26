@@ -73,6 +73,15 @@ export function nextRNGStream(state: ArrayLike<number>): Int32Array {
  * @param state A 7-integer state, as for {@link nextRNGStream}.
  * @returns A new state of the same form.
  * @throws RangeError if `state` is not a valid L'Ecuyer-CMRG state.
+ *
+ * @example
+ * ```ts
+ * RNGkind({ kind: "L'Ecuyer-CMRG" });
+ * setSeed(1);
+ * setRandomSeed(nextRNGSubStream(getRandomSeed()));
+ * // R: .Random.seed <- parallel::nextRNGSubStream(.Random.seed)
+ * runif(2); // [0.9158314, 0.1484848]
+ * ```
  */
 export function nextRNGSubStream(state: ArrayLike<number>): Int32Array {
   return jump(state, A1P76, A2P76);

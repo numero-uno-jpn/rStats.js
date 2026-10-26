@@ -17,6 +17,12 @@ import { fromMat, isMatrixInput, newMat, toMat, toMatOrColumn, type Mat, type Ma
  * @param x A matrix (array of rows) or a vector.
  * @param y A matrix or a vector with the same number of rows as `x`. Defaults to `x`.
  * @returns The product as an array of rows (`ncol(x)` x `ncol(y)`).
+ *
+ * @example
+ * ```ts
+ * crossprod([[1, 2], [3, 4]]);         // [[10, 14], [14, 20]]
+ * crossprod([[1, 2], [3, 4]], [1, 1]); // [[4], [6]]
+ * ```
  */
 export function crossprod(x: VectorOrMatrix, y?: VectorOrMatrix): number[][] {
   const a = toMatOrColumn(x);
@@ -45,6 +51,11 @@ export function crossprod(x: VectorOrMatrix, y?: VectorOrMatrix): number[][] {
  * @param x A matrix (array of rows) or a vector.
  * @param y A matrix or a vector with the same number of columns as `x`. Defaults to `x`.
  * @returns The product as an array of rows (`nrow(x)` x `nrow(y)`).
+ *
+ * @example
+ * ```ts
+ * tcrossprod([[1, 2], [3, 4]]); // [[5, 11], [11, 25]]
+ * ```
  */
 export function tcrossprod(x: VectorOrMatrix, y?: VectorOrMatrix): number[][] {
   const a = toMatOrColumn(x);
@@ -90,10 +101,16 @@ export interface BacksolveOptions {
  * @param x The right-hand side vector.
  * @param options See {@link BacksolveOptions}.
  * @returns The solution `y`, a vector of length `k`.
+ *
+ * @example
+ * ```ts
+ * backsolve([[2, 1], [0, 4]], [4, 8]);              // [1, 2]
+ * backsolve([[2, 1], [0, 4]], [[4, 2], [8, 4]]);    // [[1, 0.5], [2, 1]]
+ * ```
  */
 export function backsolve(r: MatrixInput, x: readonly number[] | Float64Array, options?: BacksolveOptions): number[];
 /**
- * Solves the triangular system `r y = x` with a matrix right-hand side. Equivalent to R's `backsolve()`.
+ * Solves the triangular system `r y = x` with a matrix right-hand side.
  *
  * @param r A triangular matrix (array of rows).
  * @param x The right-hand side matrix (array of rows); only its first `k` rows are used.
@@ -102,7 +119,7 @@ export function backsolve(r: MatrixInput, x: readonly number[] | Float64Array, o
  */
 export function backsolve(r: MatrixInput, x: MatrixInput, options?: BacksolveOptions): number[][];
 /**
- * Solves the triangular system `r y = x`. Equivalent to R's `backsolve()`.
+ * Solves the triangular system `r y = x`.
  *
  * @param r A triangular matrix (array of rows).
  * @param x The right-hand side, a vector or a matrix.
@@ -124,10 +141,15 @@ export function backsolve(r: MatrixInput, x: VectorOrMatrix, options: BacksolveO
  * @param x The right-hand side vector.
  * @param options See {@link BacksolveOptions}.
  * @returns The solution `y`, a vector of length `k`.
+ *
+ * @example
+ * ```ts
+ * forwardsolve([[2, 0], [1, 4]], [4, 10]); // [2, 2]
+ * ```
  */
 export function forwardsolve(l: MatrixInput, x: readonly number[] | Float64Array, options?: BacksolveOptions): number[];
 /**
- * Solves the triangular system `l y = x` with a matrix right-hand side. Equivalent to R's `forwardsolve()`.
+ * Solves the triangular system `l y = x` with a matrix right-hand side.
  *
  * @param l A triangular matrix (array of rows).
  * @param x The right-hand side matrix (array of rows); only its first `k` rows are used.
@@ -136,7 +158,7 @@ export function forwardsolve(l: MatrixInput, x: readonly number[] | Float64Array
  */
 export function forwardsolve(l: MatrixInput, x: MatrixInput, options?: BacksolveOptions): number[][];
 /**
- * Solves the triangular system `l y = x`. Equivalent to R's `forwardsolve()`.
+ * Solves the triangular system `l y = x`.
  *
  * @param l A triangular matrix (array of rows).
  * @param x The right-hand side, a vector or a matrix.

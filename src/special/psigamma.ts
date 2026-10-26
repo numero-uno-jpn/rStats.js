@@ -254,7 +254,7 @@ function polygamma(n: number, x: number, rCompatible: boolean): number {
 }
 
 /**
- * Digamma function, the derivative of `lgamma`. Equivalent to R's `digamma(x)` for a single number.
+ * Digamma function, the derivative of `lgamma`. Equivalent to R's `digamma()`. Takes a single number.
  *
  * @param x - Argument.
  * @returns psi(x) (`NaN` at zero and the negative integers).
@@ -270,7 +270,7 @@ export function digamma(x: number): number {
 }
 
 /**
- * Trigamma function, the second derivative of `lgamma`. Equivalent to R's `trigamma(x)` for a single number.
+ * Trigamma function, the second derivative of `lgamma`. Equivalent to R's `trigamma()`. Takes a single number.
  *
  * `trigamma(-Infinity)` is `Infinity` as in R (`NaN` with `rCompatible: false`).
  *
@@ -289,7 +289,7 @@ export function trigamma(x: number, options?: RCompatibleOptions): number {
 
 /**
  * Polygamma function, the derivative of order `deriv` of `digamma`. Equivalent to R's
- * `psigamma(x, deriv)` for a single number.
+ * `psigamma()`. Takes a single number.
  *
  * `psigamma(-Infinity, deriv)` is `Infinity` for odd `deriv` as in R, which treats it like the poles
  * (`NaN` with `rCompatible: false`). Unlike R, which returns `NaN` for `x < 0` with `deriv >= 6` and

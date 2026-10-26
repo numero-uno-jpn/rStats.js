@@ -13,6 +13,13 @@ import { generate } from "./common.js";
  * @param options.min Lower limit. Default `0`.
  * @param options.max Upper limit. Default `1`.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * runif(3); // [0.2655087, 0.3721239, 0.5728534]
+ * runif(2, { min: -1, max: 1 });
+ * ```
  */
 export function runif(n: number, options: { min?: number; max?: number } = {}): number[] {
   const { min = 0, max = 1 } = options;
@@ -58,6 +65,12 @@ export function rnorm(n: number, options: { mean?: number; sd?: number } = {}): 
  * @param n Number of values to generate (fractions are truncated, as in R).
  * @param options.rate Rate. Default `1`.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rexp(2, { rate: 2 }); // [0.3775909, 0.5908214]
+ * ```
  */
 export function rexp(n: number, options: { rate?: number } = {}): number[] {
   const scale = 1 / (options.rate ?? 1);
@@ -74,6 +87,12 @@ export function rexp(n: number, options: { rate?: number } = {}): number[] {
  * @param options.meanlog Mean on the log scale. Default `0`.
  * @param options.sdlog Standard deviation on the log scale. Default `1`.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rlnorm(2, { meanlog: 0, sdlog: 1 }); // [0.5344838, 1.201587]
+ * ```
  */
 export function rlnorm(n: number, options: { meanlog?: number; sdlog?: number } = {}): number[] {
   const { meanlog = 0, sdlog = 1 } = options;
@@ -90,6 +109,12 @@ export function rlnorm(n: number, options: { meanlog?: number; sdlog?: number } 
  * @param options.location Location. Default `0`.
  * @param options.scale Scale. Default `1`.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rlogis(2, { location: 0, scale: 1 }); // [-1.017531, -0.523116]
+ * ```
  */
 export function rlogis(n: number, options: { location?: number; scale?: number } = {}): number[] {
   const { location = 0, scale = 1 } = options;
@@ -108,6 +133,12 @@ export function rlogis(n: number, options: { location?: number; scale?: number }
  * @param options.location Location. Default `0`.
  * @param options.scale Scale. Default `1`.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rcauchy(2, { location: 0, scale: 1 }); // [1.10252, 2.353831]
+ * ```
  */
 export function rcauchy(n: number, options: { location?: number; scale?: number } = {}): number[] {
   const { location = 0, scale = 1 } = options;
@@ -125,6 +156,12 @@ export function rcauchy(n: number, options: { location?: number; scale?: number 
  * @param shape Shape parameter (required, as in R).
  * @param options.scale Scale. Default `1`.
  * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rweibull(2, 2, { scale: 1 }); // [1.151568, 0.9942477]
+ * ```
  */
 export function rweibull(n: number, shape: number, options: { scale?: number } = {}): number[] {
   const { scale = 1 } = options;

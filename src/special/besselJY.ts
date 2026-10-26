@@ -430,7 +430,7 @@ function besselJYPos(v: number, x: number, needY: boolean): { j: number; y: Pow2
 }
 
 /**
- * Bessel function of the first kind. Equivalent to R's `besselJ(x, nu)` for single numbers.
+ * Bessel function of the first kind. Equivalent to R's `besselJ(x, nu)`. Takes single numbers.
  *
  * @param x - Argument, `x >= 0` (`NaN` for negative `x`).
  * @param nu - Order, any real number. For `nu < 0`, `J(x, -nu) = cos(pi nu) J(x, nu) - sin(pi nu) Y(x, nu)`
@@ -466,7 +466,7 @@ export function besselJ(x: number, nu: number): number {
 }
 
 /**
- * Bessel function of the second kind. Equivalent to R's `besselY(x, nu)` for single numbers.
+ * Bessel function of the second kind. Equivalent to R's `besselY(x, nu)`. Takes single numbers.
  *
  * @param x - Argument, `x >= 0` (`NaN` for negative `x`; `-Infinity` at 0).
  * @param nu - Order, any real number. For `nu < 0`, `Y(x, -nu) = sin(pi nu) J(x, nu) + cos(pi nu) Y(x, nu)`

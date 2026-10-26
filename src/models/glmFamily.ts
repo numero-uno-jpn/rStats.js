@@ -29,13 +29,19 @@ export type GlmFamilyName =
 export type GlmLinkName = "identity" | "log" | "inverse" | "logit" | "probit" | "cauchit" | "cloglog" | "sqrt" | "1/mu^2";
 
 /** A link: one of R's named links or a power link `mu^power` (R's `power(lambda)`; `power <= 0` is the log link). */
-export type GlmLink = GlmLinkName | { power: number };
+export type GlmLink =
+  | GlmLinkName
+  | {
+      /** The exponent lambda of the power link (R's `power(lambda)`). */
+      power: number;
+    };
 
 /** Variance functions of the `quasi` family. */
 export type QuasiVariance = "constant" | "mu(1-mu)" | "mu" | "mu^2" | "mu^3";
 
 /** A family with its link (and, for `quasi`, its variance function), as R's family objects such as `quasi(link = "log", variance = "mu^2")`. */
 export interface GlmFamilySpec {
+  /** The family's name, such as `"binomial"`. */
   family: GlmFamilyName;
   /** The link. Default: the family's default (the first of its allowed links). */
   link?: GlmLink;

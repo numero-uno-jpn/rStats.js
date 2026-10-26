@@ -54,23 +54,45 @@ export function qlaplace1(p: number, mu: number, sigma: number, lowerTail: boole
 }
 
 /**
- * Density of the Laplace distribution. Equivalent to `extraDistr::dlaplace(x, mu = 0, sigma = 1, log = FALSE)`.
+ * Density of the Laplace distribution. Equivalent to `extraDistr::dlaplace(x, mu = 0, sigma = 1, log = FALSE)` in R.
  *
  * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param options - `mu` and `sigma` (see {@link LaplaceParams}) and `log` (see {@link DensityOptions}).
+ *
+ * @example
+ * ```ts
+ * dlaplace(0);                         // 0.5
+ * dlaplace(1, { mu: 1, sigma: 2 });    // 0.25
+ * ```
  */
 export function dlaplace<T extends Vectorizable>(x: T, options: LaplaceParams & DensityOptions = {}): VectorResult<T> {
   const { mu = 0, sigma = 1, log = false } = options;
   return vectorize(x, (v) => dlaplace1(v, mu, sigma, log));
 }
 
-/** Distribution function of the Laplace distribution. Equivalent to `extraDistr::plaplace(q, mu = 0, sigma = 1, lower.tail, log.p)`. */
+/**
+ * Distribution function of the Laplace distribution. Equivalent to `extraDistr::plaplace(q, mu = 0, sigma = 1, lower.tail, log.p)` in R.
+ *
+ * @example
+ * ```ts
+ * plaplace(1);                         // 0.8160602794142788
+ * plaplace(-1, { mu: 1, sigma: 2 });   // 0.18393972058572117
+ * ```
+ */
 export function plaplace<T extends Vectorizable>(q: T, options: LaplaceParams & TailOptions = {}): VectorResult<T> {
   const { mu = 0, sigma = 1, lowerTail = true, logP = false } = options;
   return vectorize(q, (v) => plaplace1(v, mu, sigma, lowerTail, logP));
 }
 
-/** Quantile function of the Laplace distribution. Equivalent to `extraDistr::qlaplace(p, mu = 0, sigma = 1, lower.tail, log.p)`. */
+/**
+ * Quantile function of the Laplace distribution. Equivalent to `extraDistr::qlaplace(p, mu = 0, sigma = 1, lower.tail, log.p)` in R.
+ *
+ * @example
+ * ```ts
+ * qlaplace(0.75);                      // 0.6931471805599453
+ * qlaplace(0.9, { mu: 1, sigma: 2 });  // 4.218875824868201
+ * ```
+ */
 export function qlaplace<T extends Vectorizable>(p: T, options: LaplaceParams & TailOptions = {}): VectorResult<T> {
   const { mu = 0, sigma = 1, lowerTail = true, logP = false } = options;
   return vectorize(p, (v) => qlaplace1(v, mu, sigma, lowerTail, logP));

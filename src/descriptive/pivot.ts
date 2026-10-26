@@ -179,8 +179,8 @@ interface LongValue {
 }
 
 /**
- * Reshapes a data frame from wide to long: the selected columns become rows. Equivalent to tidyr's `pivot_longer()`:
- * the result has the columns not selected, a column per part of the selected names (`namesTo`), and the value
+ * Reshapes a data frame from wide to long: the selected columns become rows. Equivalent to `tidyr::pivot_longer()` in
+ * R. The result has the columns not selected, a column per part of the selected names (`namesTo`), and the value
  * column (`valuesTo`), or with `".value"` in `namesTo` one value column per value of that part. The values of the
  * selected columns are combined into one type: numbers with booleans give numbers; strings with either are an error.
  *
@@ -327,7 +327,7 @@ function perColumn<T>(
 
 /**
  * Reshapes a data frame from long to wide: the values of `namesFrom` become columns, filled from `valuesFrom`.
- * Equivalent to tidyr's `pivot_wider()`: one row per combination of the id columns (in order of first appearance),
+ * Equivalent to `tidyr::pivot_wider()` in R. One row per combination of the id columns (in order of first appearance),
  * the new columns in order of first appearance of their names (unless `namesSort`). A cell that no row fills is
  * `valuesFill` (default missing). A cell that several rows fill is an error unless `valuesFn` summarises the values
  * (tidyr makes a list column there, which a data frame here cannot hold).

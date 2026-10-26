@@ -353,7 +353,7 @@ function spearmanTail(n: number, q: number, lower: boolean): number {
  */
 export function corTest(x: Sample, y: Sample, options?: CorTestOptions): CorTestResult;
 /**
- * Test for correlation from a formula and a data frame. Equivalent to R's `cor.test(formula, data)`: the one-sided
+ * Test for correlation from a formula and a data frame. As R's `cor.test(formula, data)`: the one-sided
  * formula `"~ x + y"` names the two variables. Only they count: the rows where one of them is missing are dropped.
  *
  * @param formula `"~ x + y"` (exactly two variables, no response).

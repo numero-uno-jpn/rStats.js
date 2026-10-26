@@ -384,7 +384,8 @@ const inadmissibleWarning = (rho: number): string => `inadmissible correlation s
 
 /**
  * Polychoric correlation of two ordinal variables. By default the two-step estimate: thresholds from the margins,
- * then the maximum-likelihood correlation given them. Equivalent to polycor's `polychor(x, y)` or `polychor(table)`.
+ * then the maximum-likelihood correlation given them. Equivalent to `polycor::polychor()` in R. It takes `x` and `y`
+ * or a table, as `polychor(x, y)` or `polychor(table)`.
  *
  * Given `x` and `y`, the table has the sorted distinct values of `x` as rows and those of `y` as columns (pairs with
  * a missing value are not counted). Rows and columns with a zero margin are removed with a warning; with fewer than
@@ -404,8 +405,8 @@ const inadmissibleWarning = (rho: number): string => `inadmissible correlation s
  * polychor([[20, 8, 1], [5, 30, 9], [2, 6, 25]], { ML: true }).rho; // 0.7911463316235798
  * ```
  */
-export function polychor(table: Table, options: PolycorOptions & { stdErr: true }): PolychorStdErrResult;
-export function polychor(table: Table, options?: PolycorOptions): PolycorResult;
+export function polychor(table: readonly (readonly number[])[], options: PolycorOptions & { stdErr: true }): PolychorStdErrResult;
+export function polychor(table: readonly (readonly number[])[], options?: PolycorOptions): PolycorResult;
 /**
  * Polychoric correlation of two ordinal variables given as vectors of category codes (see the table form).
  *
@@ -542,7 +543,7 @@ function polyserialChisq(codes: readonly number[], z: readonly number[], cuts: r
 
 /**
  * Polyserial correlation of a numeric variable and an ordinal one. By default the two-step (ad hoc) estimate.
- * Equivalent to polycor's `polyserial(x, y)`.
+ * Equivalent to `polycor::polyserial(x, y)` in R.
  *
  * Pairs with a missing value are dropped. The categories of `y` are its sorted distinct values, coded 1, 2, ...;
  * with fewer than two, `rho` is `NaN` (and the result has no other fields). A two-step estimate beyond ±0.9999 is set

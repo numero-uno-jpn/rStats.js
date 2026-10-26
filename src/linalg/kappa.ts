@@ -49,6 +49,12 @@ export interface KappaOptions {
  * @param z A matrix (array of rows).
  * @param options See {@link KappaOptions}.
  * @returns The (estimated) condition number.
+ *
+ * @example
+ * ```ts
+ * kappa([[1, 2], [3, 4]]);                  // 17.85 (LINPACK estimate)
+ * kappa([[1, 2], [3, 4]], { exact: true }); // 14.933034373659272
+ * ```
  */
 export function kappa(z: MatrixInput, options: KappaOptions = {}): number {
   // The default norm is "2" if exact, "1" if estimated
@@ -186,6 +192,12 @@ function asum(z: Float64Array): number {
  * @param x A matrix (array of rows).
  * @param options `tol`: relative tolerance for treating singular values as zero. Default: `sqrt(Number.EPSILON)`.
  * @returns The generalized inverse (`ncol` x `nrow`) as an array of rows.
+ *
+ * @example
+ * ```ts
+ * ginv([[1, 2], [3, 4]]); // [[-2, 1], [1.5, -0.5]]
+ * ginv([[1, 1], [1, 1]]); // [[0.25, 0.25], [0.25, 0.25]]
+ * ```
  */
 export function ginv(x: MatrixInput, options: { tol?: number } = {}): number[][] {
   const tol = options.tol ?? Math.sqrt(Number.EPSILON);

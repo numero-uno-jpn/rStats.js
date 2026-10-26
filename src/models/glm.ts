@@ -63,13 +63,19 @@ export interface GlmModel {
   yGiven: number[] | number[][];
   /** Prior weights as given (1 when not given). */
   priorGiven: number[];
+  /** Offset, one per row (0 when not given). */
   offset: number[];
   /** Whether an offset was given. */
   hasOffset: boolean;
+  /** Whether the model has an intercept. */
   intercept: boolean;
+  /** The family and link of the fit. */
   familySpec: GlmFamilySpec;
+  /** Convergence tolerance (R's `glm.control(epsilon)`). */
   epsilon: number;
+  /** Maximum number of iterations (R's `glm.control(maxit)`). */
   maxit: number;
+  /** Starting coefficients, if given. */
   start: number[] | undefined;
 }
 
@@ -79,16 +85,23 @@ export interface GlmResult {
   coefficients: number[];
   /** Fitted means, one per row (rows with a missing value dropped). */
   fittedValues: number[];
+  /** Linear predictors, one per row, offset included (R's `linear.predictors`). */
   linearPredictors: number[];
+  /** Residual deviance. */
   deviance: number;
+  /** Deviance of the model with the intercept only, or of the empty model without intercept (R's `null.deviance`). */
   nullDeviance: number;
   /** AIC; NaN for the quasi families. */
   aic: number;
+  /** Numerical rank of the model matrix. */
   rank: number;
+  /** Residual degrees of freedom (R's `df.residual`). */
   dfResidual: number;
+  /** Degrees of freedom of the null deviance (R's `df.null`). */
   dfNull: number;
   /** Number of iterations. */
   iter: number;
+  /** Whether the iterations converged. */
   converged: boolean;
   /** Whether the step was truncated (halved) in the last iteration. */
   boundary: boolean;
@@ -102,11 +115,13 @@ export interface GlmResult {
   residuals: number[];
   /** The family's name and the link's name (`"mu^0.333"` for a power link). */
   family: GlmFamilyName;
+  /** The link's name, such as `"logit"`. */
   link: string;
   /** R's warnings, each once, in order of first appearance. */
   warnings: string[];
   /** QR decomposition of the last weighted least squares problem (undefined for a model without columns). */
   qr: QR | undefined;
+  /** The data and settings of the fit, for the refits of {@link glmConfint} and {@link glmAnova}. */
   model: GlmModel;
 }
 
@@ -382,7 +397,7 @@ export function refit(
 
 /**
  * Fit a generalized linear model by iteratively reweighted least squares. Equivalent to R's
- * `glm(y ~ x, family = ...)` (or `y ~ x - 1` without intercept); the predictors are given as a matrix instead of a
+ * `glm(y ~ x, family = ...)`. Or `y ~ x - 1` without intercept; the predictors are given as a matrix instead of a
  * formula. Rows with a missing value (NaN) in `x`, `y`, the weights or the offset are dropped. Every family and link
  * of R's `stats` is available; R's warnings are returned in `warnings`. See {@link glmSummary}, {@link glmResiduals},
  * {@link glmPredict}, {@link glmConfint} and {@link glmAnova} for the methods.
@@ -394,8 +409,8 @@ export function refit(
  * @example
  * ```ts
  * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
- * fit.coefficients; // [intercept, slope]
- * glmSummary(fit).pValue;
+ * fit.coefficients; // [-4.2491, 1.214]
+ * glmSummary(fit).pValue; // [0.20976, 0.18341]
  * ```
  */
 export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: GlmOptions = {}): GlmResult {
@@ -521,11 +536,15 @@ export interface GlmSummaryOptions {
 
 /** Result of {@link glmSummary}: the quantities of R's `summary(glm)`. */
 export interface GlmSummary {
+  /** The dispersion used (estimated, given, or 1 for binomial and poisson). */
   dispersion: number;
   /** The coefficient table of the columns that are not aliased, in their order. */
   estimate: number[];
+  /** Standard errors (R's `Std. Error`). */
   stdError: number[];
+  /** z or t statistics (see `statisticName`). */
   statistic: number[];
+  /** Two-sided p-values (R's `Pr(>|z|)` or `Pr(>|t|)`). */
   pValue: number[];
   /** `"z value"` when the dispersion is fixed (binomial, poisson), else `"t value"`. */
   statisticName: "z value" | "t value";
@@ -533,6 +552,7 @@ export interface GlmSummary {
   covUnscaled: number[][];
   /** covUnscaled times the dispersion. */
   covScaled: number[][];
+  /** Residual degrees of freedom (R's `df.residual`). */
   dfResidual: number;
   /** Warnings (such as "observations with zero weight not used for calculating dispersion"). */
   warnings: string[];
@@ -546,8 +566,17 @@ function unscaledCovariance(fit: GlmResult): number[][] {
 }
 
 /**
- * Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates.
- * Equivalent to R's `summary()` for a `glm` fit.
+ * Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates,
+ * for a `glm` fit. Equivalent to R's `summary()`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * const s = glmSummary(fit);
+ * s.estimate; // [-4.2491, 1.214]
+ * s.stdError; // [3.3878, 0.91258]
+ * s.statisticName; // "z value"
+ * ```
  */
 export function glmSummary(fit: GlmResult, options: GlmSummaryOptions = {}): GlmSummary {
   const warnings = new Warnings();
@@ -585,8 +614,15 @@ export function glmSummary(fit: GlmResult, options: GlmSummaryOptions = {}): Glm
 export type GlmResidualType = "deviance" | "pearson" | "working" | "response";
 
 /**
- * Residuals of a generalized linear model, one per row. Equivalent to R's `residuals(fit, type)` for a `glm` fit
- * (default `"deviance"`).
+ * Residuals of a generalized linear model, one per row, for a `glm` fit (default `"deviance"`). Equivalent to R's
+ * `residuals(fit, type)`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmResiduals(fit); // [-0.30644, -0.54776, 1.4436, -1.4436, 0.54776, 0.30644]
+ * glmResiduals(fit, "pearson"); // [-0.21925, -0.40231, 1.3546, -1.3546, 0.40231, 0.21925]
+ * ```
  */
 export function glmResiduals(fit: GlmResult, type: GlmResidualType = "deviance"): number[] {
   const fam = familyOf(fit);
@@ -607,8 +643,14 @@ export function glmResiduals(fit: GlmResult, type: GlmResidualType = "deviance")
 }
 
 /**
- * Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight.
- * Equivalent to R's `hatvalues()` for a `glm` fit.
+ * Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight, for a
+ * `glm` fit. Equivalent to R's `hatvalues()`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmHatvalues(fit); // [0.28361, 0.37762, 0.33877, 0.33877, 0.37762, 0.28361]
+ * ```
  */
 export function glmHatvalues(fit: GlmResult): number[] {
   const out: number[] = [];
@@ -637,8 +679,14 @@ function median(v: number[]): number {
 }
 
 /**
- * Standardized deviance residuals, for the rows of non-zero prior weight. Equivalent to R's `rstandard()` for a
- * `glm` fit.
+ * Standardized deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. Equivalent to R's
+ * `rstandard()`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmRstandard(fit); // [-0.36205, -0.69432, 1.7753, -1.7753, 0.69432, 0.36205]
+ * ```
  */
 export function glmRstandard(fit: GlmResult, options: GlmSummaryOptions = {}): number[] {
   const h = glmHatvalues(fit);
@@ -651,7 +699,15 @@ export function glmRstandard(fit: GlmResult, options: GlmSummaryOptions = {}): n
   });
 }
 
-/** Cook's distances, for the rows of non-zero prior weight. Equivalent to R's `cooks.distance()` for a `glm` fit. */
+/**
+ * Cook's distances, for the rows of non-zero prior weight, for a `glm` fit. Equivalent to R's `cooks.distance()`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmCooksDistance(fit); // [0.013283, 0.078894, 0.71087, 0.71087, 0.078894, 0.013283]
+ * ```
+ */
 export function glmCooksDistance(fit: GlmResult, options: GlmSummaryOptions = {}): number[] {
   const h = glmHatvalues(fit);
   const disp = options.dispersion ?? glmDispersion(fit);
@@ -675,10 +731,25 @@ export interface GlmPredictOptions {
 }
 
 /**
- * Predictions of a generalized linear model with their standard errors. Equivalent to R's
- * `predict(fit, newdata, type, se.fit = TRUE)` for a `glm` fit. Aliased columns are left out, as R does.
+ * Predictions of a generalized linear model with their standard errors, for a `glm` fit. Equivalent to R's
+ * `predict(fit, newdata, type, se.fit = TRUE)`. Aliased columns are left out, as R does.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmPredict(fit, { newdata: [7] }); // { fit: [4.2491], seFit: [3.3878] }
+ * glmPredict(fit, { newdata: [7], type: "response" }).fit; // [0.98592]
+ * ```
  */
-export function glmPredict(fit: GlmResult, options: GlmPredictOptions = {}): { fit: number[]; seFit: number[] } {
+export function glmPredict(
+  fit: GlmResult,
+  options: GlmPredictOptions = {},
+): {
+  /** Predictions on the scale of `type`, one per row. */
+  fit: number[];
+  /** Their standard errors (R's `se.fit`). */
+  seFit: number[];
+} {
   const fam = familyOf(fit);
   let X: number[][];
   let eta: number[];

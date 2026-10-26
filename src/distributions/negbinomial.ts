@@ -262,6 +262,12 @@ function which(options: NegBinomialParams): { kind: "prob"; v: number } | { kind
  * @param size - Target number of successes (need not be an integer).
  * @param options - `prob` or `mu` (see {@link NegBinomialParams}; exactly one is required) and `log` (see {@link DensityOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * dnbinom(3, 5, { prob: 0.5 }); // 0.13671875
+ * dnbinom(3, 5, { mu: 4 });     // 0.16261401187793145
+ * ```
  */
 export function dnbinom<T extends Vectorizable>(
   x: T,
@@ -286,6 +292,12 @@ export function dnbinom<T extends Vectorizable>(
  * @param size - Target number of successes (need not be an integer).
  * @param options - `prob` or `mu` (see {@link NegBinomialParams}; exactly one is required), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * pnbinom(3, 5, { prob: 0.5 }); // 0.36328125
+ * pnbinom(3, 5, { mu: 4 });     // 0.4899473063232853
+ * ```
  */
 export function pnbinom<T extends Vectorizable>(
   q: T,
@@ -310,6 +322,12 @@ export function pnbinom<T extends Vectorizable>(
  * @param size - Target number of successes (need not be an integer).
  * @param options - `prob` or `mu` (see {@link NegBinomialParams}; exactly one is required), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qnbinom(0.5, 5, { prob: 0.5 });  // 4
+ * qnbinom([0.05, 0.95], 5, { mu: 4 }); // [0, 9]
+ * ```
  */
 export function qnbinom<T extends Vectorizable>(
   p: T,

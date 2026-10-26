@@ -50,7 +50,9 @@ export interface OmegaResult {
   key: number[];
   /** Rows g, F1*, ...; columns total, general, group (NaN for a group with no items) */
   omegaGroup: number[][];
+  /** The warnings R would give (e.g. an ultra-Heywood case, or one factor), each once. */
   warnings: string[];
+  /** The messages R would print (e.g. for two factors), each once. */
   messages: string[];
 }
 
@@ -231,8 +233,8 @@ function oblimin(A: Matrix): { loadings: Matrix; phi: Matrix; converged: boolean
 
 /**
  * McDonald's omega (hierarchical, asymptotic and total) from a Schmid-Leiman transformation of an oblique minres
- * factor solution. Equivalent to R's `psych::omega(x, nfactors)` with its defaults (`fm = "minres"`, `rotate =
- * "oblimin"`, `option = "equal"`, `flip = TRUE`).
+ * factor solution. Equivalent to `psych::omega()` in R. With its defaults (`fm = "minres"`, `rotate = "oblimin"`,
+ * `option = "equal"`, `flip = TRUE`).
  *
  * @param x The data matrix (array of rows, NaN for missing values: correlations of pairwise complete observations),
  *   or `null` with `options.covmat`.
@@ -240,8 +242,18 @@ function oblimin(A: Matrix): { loadings: Matrix; phi: Matrix; converged: boolean
  *
  * @example
  * ```ts
- * const om = omega(x); // x: an n x 12 data matrix
- * om.omegaH; om.omegaTot; om.sl;
+ * // 6 items: general loadings 0.6, three pairs with group loadings 0.4
+ * const R = [
+ *   [1, 0.52, 0.36, 0.36, 0.36, 0.36],
+ *   [0.52, 1, 0.36, 0.36, 0.36, 0.36],
+ *   [0.36, 0.36, 1, 0.52, 0.36, 0.36],
+ *   [0.36, 0.36, 0.52, 1, 0.36, 0.36],
+ *   [0.36, 0.36, 0.36, 0.36, 1, 0.52],
+ *   [0.36, 0.36, 0.36, 0.36, 0.52, 1],
+ * ];
+ * const om = omega(null, { covmat: R });
+ * om.omegaH;   // 0.7297
+ * om.omegaTot; // 0.8378378378378378
  * ```
  */
 export function omega(x: readonly (readonly number[])[] | null, options: OmegaOptions = {}): OmegaResult {

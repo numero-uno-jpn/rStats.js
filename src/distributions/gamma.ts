@@ -140,6 +140,12 @@ export function qgamma1(p: number, shape: number, scale: number, lowerTail: bool
  * @param shape - Shape parameter.
  * @param options - `rate` or `scale` (see {@link GammaParams}) and `log` (see {@link DensityOptions}).
  * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dgamma(1, 2);              // 0.36787944117144233
+ * dgamma(1, 2, { rate: 3 }); // 0.44808361531077556
+ * ```
  */
 export function dgamma<T extends Vectorizable>(
   x: T,
@@ -187,6 +193,12 @@ export function pgamma<T extends Vectorizable>(
  * @param shape - Shape parameter.
  * @param options - `rate` or `scale` (see {@link GammaParams}), `lowerTail` and `logP` (see {@link TailOptions}).
  * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qgamma(0.5, 2);                   // 1.6783469900166605
+ * qgamma([0.05, 0.95], 2, { rate: 3 }); // [0.11845383689955402, 1.5812881727968588]
+ * ```
  */
 export function qgamma<T extends Vectorizable>(
   p: T,

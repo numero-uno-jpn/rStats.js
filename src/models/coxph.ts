@@ -47,8 +47,11 @@ export interface CoxphOptions {
 
 /** A test statistic with its degrees of freedom and upper chi-squared tail. */
 export interface CoxphTest {
+  /** The chi-squared statistic (R's `test`). */
   statistic: number;
+  /** Degrees of freedom (R's `df`). */
   df: number;
+  /** Upper chi-squared tail (R's `pvalue`). */
   pValue: number;
 }
 
@@ -91,7 +94,12 @@ export interface CoxphResult {
   /** Wald test */
   waldtest: CoxphTest;
   /** R^2 (1 - exp(-logtest / n)) and its maximum (1 - exp(2 loglik[0] / n)) */
-  rsq: { rsq: number; maxrsq: number };
+  rsq: {
+    /** R^2, 1 - exp(-logtest / n) (R's `rsq`). */
+    rsq: number;
+    /** Its maximum, 1 - exp(2 loglik[0] / n) (R's `maxrsq`). */
+    maxrsq: number;
+  };
   /** R's warnings, each once, in order of first appearance. */
   warnings: string[];
 }
@@ -322,8 +330,9 @@ const chisqTest = (statistic: number, df: number): CoxphTest => ({
 });
 
 /**
- * Cox proportional hazards regression. Equivalent to R's `coxph(Surv(time, status) ~ x [+ strata(strata)], weights,
- * ties, init, control)` (package survival) for right-censored data, with the values of `summary(fit)`.
+ * Cox proportional hazards regression. Equivalent to R's `survival::coxph()`. As
+ * `coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, control)` for right-censored data, with the
+ * values of `summary(fit)`.
  *
  * Rows with a missing time, status, covariate, weight or stratum are dropped. Times within sqrt(eps) of each other are
  * treated as tied. Covariates whose values all lie in `nocenter` are not centred; the others are centred by their
@@ -337,7 +346,9 @@ const chisqTest = (statistic: number, df: number): CoxphTest => ({
  *
  * @example
  * ```ts
- * coxph([5, 3, 8, 1, 9, 4], [1, 1, 0, 1, 0, 1], [[1.2], [0.3], [-0.5], [2], [0.7], [0.1]]).coefficients;
+ * const fit = coxph([5, 3, 8, 1, 9, 4], [1, 1, 0, 1, 0, 1], [[1.2], [0.3], [-0.5], [2], [0.7], [0.1]]);
+ * fit.coefficients;   // [1.0324]
+ * fit.logtest.pValue; // 0.18817
  * ```
  */
 export function coxph(
