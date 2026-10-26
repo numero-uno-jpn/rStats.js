@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { dchisq, dgamma, dpois, pchisq, pgamma, ppois, qchisq, qgamma, qpois } from "../src/index.js";
 import { bool, num } from "./helpers/fixture.js";
 import { fixtureSuite } from "./helpers/suite.js";
@@ -59,4 +60,20 @@ fixtureSuite({
   discreteCdf: (a, y, lg) => ppois(y, num(a.lambda), { lowerTail: bool(a.lowerTail), logP: lg ?? bool(a.logP) }),
   knownDifference: nearOne,
   call: (a) => qpois(num(a.p), num(a.lambda), tail(a)),
+});
+
+describe("gamma and chi-squared with an infinite shape", () => {
+  // R gives NaN for 0 < q / scale < 1 (docs/differences-from-r.md); the library returns the limits there too
+  it("returns the limits 0 and 1 for 0 < q / scale < 1", () => {
+    for (const [q, scale] of [[0.5, 1], [1e-300, 1], [1.5, 2], [0.999, 1]] as const) {
+      expect(pgamma(q, Infinity, { scale })).toBe(0);
+      expect(pgamma(q, Infinity, { scale, lowerTail: false })).toBe(1);
+      expect(pgamma(q, Infinity, { scale, logP: true })).toBe(-Infinity);
+      expect(pgamma(q, Infinity, { scale, lowerTail: false, logP: true })).toBe(0);
+    }
+    for (const q of [1e-10, 1, 1.999]) {
+      expect(pchisq(q, Infinity)).toBe(0);
+      expect(pchisq(q, Infinity, { lowerTail: false })).toBe(1);
+    }
+  });
 });

@@ -80,6 +80,9 @@ export function pgamma1(q: number, shape: number, scale: number, lowerTail: bool
   const x = q / scale;
   if (Number.isNaN(x)) return x;
   if (shape === 0) return x <= 0 ? dt0(lowerTail, logP) : dt1(lowerTail, logP);
+  // Shape Inf puts all the mass at +Inf. R gives NaN for 0 < x < 1 and these limits elsewhere; the limits are
+  // returned for every finite x (docs/differences-from-r.md)
+  if (shape === Infinity) return x === Infinity ? dt1(lowerTail, logP) : dt0(lowerTail, logP);
   if (x <= 0) return dt0(lowerTail, logP);
   return gammaInc(shape, x, lowerTail, logP);
 }
@@ -130,6 +133,8 @@ export function qgamma1(p: number, shape: number, scale: number, lowerTail: bool
   if (b !== undefined) return b;
   if (shape < 0 || scale <= 0) return NaN;
   if (shape === 0) return 0;
+  // Shape Inf: all the mass at +Inf, so every probability strictly between 0 and 1 maps to Inf
+  if (shape === Infinity) return Infinity;
   return qgammaStd(p, shape, lowerTail, logP) * scale;
 }
 

@@ -198,6 +198,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | Non-central `qbeta` with an infinite parameter (e.g. shape2 = Inf) | 0, 0.5 or 1 from a search on NaN | NaN |
 | `qt` with ncp = ±Inf | a mix of NaN and ±Inf depending on p | NaN except at the end points |
 | `qchisq(p, 0, ncp = 0)` (all mass at 0) | NaN or Inf | 0 |
+| `pgamma(q, Inf, scale = s)` with 0 < q / s < 1, so `pchisq(q, Inf)` with 0 < q < 2 (all mass at +Inf) | NaN | the limits: lower tail 0, upper tail 1 (as R gives for every other finite q) |
 | `df(0, df1, Inf, ncp, log = TRUE)` | not the log of the linear value (−1.386 with ncp = 0, where the linear value is 1) | log of the linear value |
 | `qf` with df2 = Inf when the answer rounds to 0 | meaningless values such as 2e-130; Inf for log p = -1e-300 | value checked with the distribution function |
 
