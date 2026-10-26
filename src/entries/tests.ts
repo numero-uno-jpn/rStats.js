@@ -160,6 +160,13 @@ export {
   type SurvfitResult,
   type SurvfitConfType,
 } from "../models/survival.js";
+export {
+  coxph,
+  type CoxphOptions,
+  type CoxphControl,
+  type CoxphResult,
+  type CoxphTest,
+} from "../models/coxph.js";
 export { leveneTest, type LeveneTestOptions, type LeveneTestResult } from "../htest/leveneTest.js";
 export {
   propTrendTest,
