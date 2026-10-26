@@ -494,6 +494,43 @@ export function lmer(formula: string, data: DataFrame, options: LmerOptions = {}
 }
 
 /**
+ * What a fit by {@link lmer} was made from and with (internal: not exported from the package), for the functions that
+ * work on a fit beyond its result fields (lmerTest's tests in src/models/lmerTest.ts, the ANOVA tables, the comparison
+ * of fits): they need the model's structure, the data object (model comparison requires the same object), the options
+ * (to refit, for example by maximum likelihood) and the criterion (so that a refit uses the same one).
+ */
+export interface LmerInternals {
+  /** The structure of the model (X, Z, the terms, the layout of θ, the model frame's rows) */
+  structure: MixedModelStructure;
+  /** The data frame given to lmer (the same object, not a copy) */
+  data: DataFrame;
+  /** The options given to lmer (a copy) */
+  options: LmerOptions;
+  /** Whether the REML criterion was minimised */
+  reml: boolean;
+  /** The criterion with its gradient that was minimised (the sparse one, or the injected one of the regression test) */
+  criterion: MixedCriterion;
+  /** The estimate θ̂ (a copy, unaffected by changes to the result's `theta`) */
+  theta: number[];
+}
+
+/**
+ * The internals of every result returned by {@link lmer} (and {@link lmerWithCriterion}), keyed by the result object
+ * itself: a copy of a result (`{ ...fit }`) has none.
+ */
+const internalsByFit = new WeakMap<LmerResult, LmerInternals>();
+
+/**
+ * The internals of a fit (see {@link LmerInternals}). Internal. Throws a TypeError for an object that is not a result
+ * returned by {@link lmer}.
+ */
+export function lmerInternals(fit: LmerResult): LmerInternals {
+  const internals = typeof fit === "object" && fit !== null ? internalsByFit.get(fit) : undefined;
+  if (internals === undefined) throw new TypeError("fit must be a result returned by lmer (not a copy of one)");
+  return internals;
+}
+
+/**
  * {@link lmer} with the criterion and its gradient given (internal: not exported from the package). The regression
  * test of the sparse computation fits with the dense reference implementation through it.
  */
@@ -558,7 +595,7 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
   const messages = [...s.messages];
   if (singular) messages.push("boundary (singular) fit: see help('isSingular')");
 
-  return {
+  const result: LmerResult = {
     formula,
     REML: reml,
     nObs: n,
@@ -583,4 +620,6 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
     messages,
     warnings: [...s.warnings],
   };
+  internalsByFit.set(result, { structure: s, data, options: { ...options }, reml, criterion, theta: [...theta] });
+  return result;
 }
