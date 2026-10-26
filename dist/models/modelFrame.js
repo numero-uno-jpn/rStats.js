@@ -1,0 +1,131 @@
+// Model frames: the variables of a formula taken from a data frame, with the rows that have a missing value dropped
+// and string and boolean columns turned into factors (R's model.frame with na.omit).
+//
+// Written for rStats.js (no ported code) from oracle/anova-behaviour.md ("Data and missing values"). Levels of a
+// string column are its distinct values sorted by code point unless `levels` gives them; a boolean column has the
+// levels FALSE and TRUE; numeric columns stay numeric. `dropUnusedLevels` removes the levels without a row left
+// (R's drop.unused.levels = TRUE, used by lm and aov).
+/** Comparison of strings by code point (not by UTF-16 code unit) */
+export function compareCodePoints(a, b) {
+    const ia = a[Symbol.iterator]();
+    const ib = b[Symbol.iterator]();
+    for (;;) {
+        const x = ia.next();
+        const y = ib.next();
+        if (x.done)
+            return y.done ? 0 : -1;
+        if (y.done)
+            return 1;
+        const d = x.value.codePointAt(0) - y.value.codePointAt(0);
+        if (d !== 0)
+            return d;
+    }
+}
+/** A column as a variable over all rows, with a missing flag per row */
+function convert(name, col, levels) {
+    if (col instanceof Float64Array && levels === undefined) {
+        const values = Array.from(col);
+        return { v: { kind: "numeric", values }, missing: values.map((x) => Number.isNaN(x)) };
+    }
+    const vals = Array.from(col);
+    const kinds = new Set(vals.filter((x) => x !== null).map((x) => typeof x));
+    if (kinds.size > 1)
+        throw new TypeError(`column '${name}' mixes ${[...kinds].join(" and ")} values`);
+    const kind = [...kinds][0] ?? "number";
+    if (kind !== "number" && kind !== "string" && kind !== "boolean")
+        throw new TypeError(`column '${name}' has values of an unsupported type`);
+    if (kind === "number" && levels === undefined) {
+        const values = vals.map((x) => (x === null ? NaN : x));
+        return { v: { kind: "numeric", values }, missing: values.map((x) => Number.isNaN(x)) };
+    }
+    const str = (x) => x === null || (typeof x === "number" && Number.isNaN(x)) ? null : typeof x === "boolean" ? (x ? "TRUE" : "FALSE") : String(x);
+    const labels = vals.map(str);
+    let lev;
+    if (levels !== undefined)
+        lev = Array.from(levels, String);
+    else if (kind === "boolean")
+        lev = ["FALSE", "TRUE"];
+    else
+        lev = [...new Set(labels.filter((x) => x !== null))].sort(compareCodePoints);
+    const pos = new Map(lev.map((l, i) => [l, i]));
+    const codes = labels.map((l) => (l === null ? -1 : (pos.get(l) ?? -1)));
+    return { v: { kind: "factor", levels: lev, codes }, missing: codes.map((c) => c < 0) };
+}
+/**
+ * The model frame of the given variables: each variable taken from the data, the rows with a missing value in any
+ * of them (or in the weights) dropped.
+ *
+ * Errors as R: `object 'Q' not found` for a variable that is not a column, `variable lengths differ (found for 'x')`
+ * for columns of different lengths.
+ */
+export function modelFrame(data, names, options = {}) {
+    if (typeof data !== "object" || data === null)
+        throw new TypeError("data must be an object of columns");
+    const cols = names.map((v) => {
+        const c = Object.prototype.hasOwnProperty.call(data, v) ? data[v] : undefined;
+        if (c === undefined)
+            throw new Error(`object '${v}' not found`);
+        if (!Array.isArray(c) && !(c instanceof Float64Array))
+            throw new TypeError(`column '${v}' must be an array`);
+        return c;
+    });
+    let w;
+    if (typeof options.weights === "string") {
+        const c = Object.prototype.hasOwnProperty.call(data, options.weights) ? data[options.weights] : undefined;
+        if (c === undefined)
+            throw new Error(`object '${options.weights}' not found`);
+        w = c;
+    }
+    else if (options.weights !== undefined)
+        w = Array.from(options.weights);
+    const n = cols.length > 0 ? cols[0].length : (w?.length ?? Object.values(data)[0]?.length ?? 0);
+    names.forEach((v, i) => {
+        if (cols[i].length !== n)
+            throw new RangeError(`variable lengths differ (found for '${v}')`);
+    });
+    if (w !== undefined && w.length !== n)
+        throw new RangeError("variable lengths differ (found for '(weights)')");
+    const conv = names.map((v, i) => convert(v, cols[i], options.levels?.[v]));
+    let weights;
+    if (w !== undefined) {
+        weights = Array.from(w, (x) => {
+            if (x === null)
+                return NaN;
+            if (typeof x !== "number")
+                throw new TypeError("the weights must be numeric");
+            return x;
+        });
+    }
+    const rows = [];
+    for (let i = 0; i < n; i++) {
+        if (conv.some((c) => c.missing[i]) || (weights !== undefined && Number.isNaN(weights[i])))
+            continue;
+        rows.push(i);
+    }
+    const variables = conv.map(({ v }) => {
+        if (v.kind === "numeric")
+            return { kind: "numeric", values: rows.map((i) => v.values[i]) };
+        let codes = rows.map((i) => v.codes[i]);
+        let levels = v.levels;
+        if (options.dropUnusedLevels) {
+            const used = levels.map(() => false);
+            for (const c of codes)
+                used[c] = true;
+            const map = new Map();
+            levels = levels.filter((_, k) => {
+                if (used[k])
+                    map.set(k, map.size);
+                return used[k];
+            });
+            codes = codes.map((c) => map.get(c));
+        }
+        return { kind: "factor", levels, codes };
+    });
+    const out = { rows, variables };
+    if (weights !== undefined) {
+        out.weights = rows.map((i) => weights[i]);
+        if (out.weights.some((x) => x < 0))
+            throw new RangeError("missing or negative weights not allowed");
+    }
+    return out;
+}
