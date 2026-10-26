@@ -130,3 +130,23 @@ export {
   type AnovaEffectSizeTable,
 } from "../htest/effectSize.js";
 export { aovEz, type AovEzOptions, type AovEzResult, type AovEzTable, type AovEzEffectSize } from "../models/aovEz.js";
+export {
+  dscfAllPairsTest,
+  kwAllPairsDunnTest,
+  kwManyOneDunnTest,
+  dunnettTest,
+  gamesHowellTest,
+  tukeyTest,
+  steelTest,
+  dunnTest,
+  glhtDunnett,
+  type PMCMRResult,
+  type KwAllPairsDunnTestOptions,
+  type ManyOneTestOptions,
+  type KwManyOneDunnTestOptions,
+  type DunnTestMethod,
+  type DunnTestOptions,
+  type DunnTestResult,
+  type GlhtDunnettOptions,
+  type GlhtDunnettResult,
+} from "../htest/multipleComparisons.js";
