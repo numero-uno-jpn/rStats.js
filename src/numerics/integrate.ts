@@ -110,7 +110,7 @@ export interface OptimizeOptions {
 /**
  * Minimum (or maximum) of a function of one variable on an interval, by Brent's golden-section and parabolic
  * search. Equivalent to R's `optimize()`. `optimum` is the location (R's `minimum`/`maximum`) and `objective` the
- * function there. `lower` must be less than `upper`, as in R.
+ * function there. `lower` and `upper` must be finite and `lower` less than `upper`, as in R.
  *
  * @example
  * ```ts
@@ -132,6 +132,9 @@ export function optimize(
 } {
   const maximum = options.maximum ?? false;
   const tol = options.tol ?? TOL;
+  // R checks the ends before calling f, lower first
+  if (!Number.isFinite(lower)) throw new RangeError("invalid 'xmin' value");
+  if (!Number.isFinite(upper)) throw new RangeError("invalid 'xmax' value");
   if (!(lower < upper)) throw new RangeError("'xmin' not less than 'xmax'");
   const r = localMin(maximum ? (x) => -f(x) : f, lower, upper, tol);
   return { optimum: r.x, objective: f(r.x) };
@@ -228,14 +231,14 @@ export function uniroot(f: (x: number) => number, lower: number, upper: number, 
     }
   } else if (extend) {
     let d = step0(lower);
-    while (sig * fLo > 0) {
+    while (sig * fLo > 0 && Number.isFinite(lower)) {
       count();
       lower -= d;
       fLo = f(lower);
       d *= 2;
     }
     d = step0(upper);
-    while (sig * fUp < 0) {
+    while (sig * fUp < 0 && Number.isFinite(upper)) {
       count();
       upper += d;
       fUp = f(upper);
@@ -247,6 +250,9 @@ export function uniroot(f: (x: number) => number, lower: number, upper: number, 
       extend ? "did not succeed extending the interval endpoints for f(lower) * f(upper) <= 0" : "f() values at end points not of opposite sign",
     );
   }
+  // An end that is not finite passes the checks above (f may be infinite there) but not the root search
+  if (!Number.isFinite(lower)) throw new RangeError("invalid 'xmin' value");
+  if (!Number.isFinite(upper)) throw new RangeError("invalid 'xmax' value");
 
   const z = zero((x) => finiteValue(f(x)), lower, upper, finiteValue(fLo), finiteValue(fUp), tol, maxiter);
   return {

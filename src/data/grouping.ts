@@ -2,11 +2,14 @@
 //
 // Written for rStats.js (no ported code) from oracle/grouping-behaviour.md. Group labels are turned into factors with
 // the library's level rules: the sorted distinct non-missing values (numbers by value, strings by code point, FALSE
-// before TRUE). With several factors the groups are the cells of their cross classification in column-major order
+// before TRUE); numbers with the same 15-digit text are one level, as in R's factor() (src/internal/levels.ts). With several factors the groups are the cells of their cross classification in column-major order
 // (the first factor varies fastest). A row whose label is missing (null, or NaN in a numeric column) belongs to no
 // group. tapply keeps the empty cells (NaN or null), split keeps them unless `drop`, aggregate leaves them out.
+// aggregate's grouping columns hold the labels of each group's first row, which for numbers may differ from the
+// level's value.
 
 import { formatR } from "../htest/core/simulate.js";
+import { numberLevels } from "../internal/levels.js";
 import { expandRhs, formulaVariables, parseFormula } from "../models/formula.js";
 import { compareCodePoints, type DataFrame } from "../models/modelFrame.js";
 
@@ -54,7 +57,7 @@ const levelName = (v: GroupingLevel): string =>
   typeof v === "boolean" ? (v ? "TRUE" : "FALSE") : typeof v === "string" ? v : Number.isFinite(v) ? formatR(v) : v > 0 ? "Inf" : "-Inf";
 
 function factorOf(name: string, labels: GroupingLabels): GroupFactor {
-  const vals = Array.from(labels as ArrayLike<Label>, (v) => (v === 0 ? 0 : v)); // -0 is the label 0
+  const vals = numberLevels(labels as ArrayLike<Label>); // numbers by their text; -0 is the label 0
   const kinds = new Set(vals.filter((v) => !isMissing(v)).map((v) => typeof v));
   if (kinds.size > 1) throw new TypeError(`${name} mixes ${[...kinds].join(" and ")} labels`);
   const kind = [...kinds][0];
@@ -315,9 +318,13 @@ function aggregateRows(
   const g = groupingOf(groupCols, groupNames, n);
   const cells = rowsByCell(g).map((rows, cell) => ({ cell, rows: rows.filter(keep) })).filter((c) => c.rows.length > 0);
   const out: DataFrame = {};
-  const levels = cells.map((c) => cellLevels(g, c.cell));
+  // The labels of each group's first row (-0 as 0), as R keeps them
   groupNames.forEach((name, j) => {
-    out[name] = levels.map((l) => l[j]!);
+    const col = groupCols[j]!;
+    out[name] = cells.map((c) => {
+      const v = col[c.rows[0]!]!;
+      return v === 0 ? 0 : v;
+    });
   });
   valueNames.forEach((name, j) => {
     const col = valueCols[j]!;

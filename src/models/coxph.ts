@@ -13,6 +13,7 @@
 import { pchisq } from "../distributions/chisq.js";
 import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
+import { numberLevels } from "../internal/levels.js";
 import { Warnings } from "./glmFamily.js";
 
 /**
@@ -411,10 +412,12 @@ export function coxph(
   const mergedTime = mergeTiedTimes(keep.map((i) => time[i]!));
   let stratumOf = new Array<number>(n).fill(0);
   if (strata !== undefined) {
-    const labels = Array.from(new Set(keep.map((i) => strata[i] as GroupLabel))).sort(compareLabels);
+    // numeric labels with the same 15-digit text are one stratum, as in R's factor()
+    const sl = numberLevels(strata);
+    const labels = Array.from(new Set(keep.map((i) => sl[i] as GroupLabel))).sort(compareLabels);
     const index = new Map<GroupLabel, number>();
     labels.forEach((l, k) => index.set(l, k));
-    stratumOf = keep.map((i) => index.get(strata[i] as GroupLabel)!);
+    stratumOf = keep.map((i) => index.get(sl[i] as GroupLabel)!);
   }
   const order = Array.from({ length: n }, (_, k) => k).sort(
     (a, b) => stratumOf[a]! - stratumOf[b]! || mergedTime[a]! - mergedTime[b]! || a - b,

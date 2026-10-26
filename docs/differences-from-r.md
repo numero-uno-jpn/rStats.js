@@ -373,8 +373,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   differ from R.
 - **Algorithms:** `svd` uses Golub–Reinsch and `eigen` uses the EISPACK algorithms `tred2`,
   `tql2`, `orthes` and `hqr2` (R uses LAPACK's `dgesdd`, `dsyevr` and `dgeev`). Values agree to
-  rounding. The general `eigen` does not balance the matrix first (`dgebal`), so badly scaled
-  matrices may lose more accuracy than in R.
+  rounding. The general `eigen` balances the matrix first as `dgeev` does (`dgebal`).
 - **`rcond` of triangular matrices** solves by plain substitution instead of `dlatrs` (which
   rescales to avoid overflow), so matrices on the edge of overflow may give a different value.
 - **`chol`** propagates NaN on the diagonal instead of failing (R's OpenBLAS does the same; the

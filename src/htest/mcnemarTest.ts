@@ -5,6 +5,7 @@
 // table the continuity correction replaces |n_12 - n_21| by |n_12 - n_21| - 1.
 
 import { pgamma1 } from "../distributions/gamma.js";
+import { numberLevels } from "../internal/levels.js";
 import type { HTest } from "./types.js";
 
 /**
@@ -98,9 +99,12 @@ export function mcnemarTest(
 function crossTable(x: readonly (number | string)[], y: readonly (number | string)[]): number[][] {
   if (x.length !== y.length) throw new RangeError("'x' and 'y' must have the same length");
   const keep: [number | string, number | string][] = [];
+  // numeric values with the same 15-digit text are one level, as in R's factor()
+  const xl = numberLevels(x);
+  const yl = numberLevels(y);
   for (let i = 0; i < x.length; i++) {
-    const a = x[i]!;
-    const b = y[i]!;
+    const a = xl[i]!;
+    const b = yl[i]!;
     if (typeof a === "number" && Number.isNaN(a)) continue;
     if (typeof b === "number" && Number.isNaN(b)) continue;
     keep.push([a, b]);

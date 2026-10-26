@@ -7,6 +7,7 @@
 // freedom; the other comparisons are the two-sample tests themselves.
 
 import { pt1 } from "../distributions/t.js";
+import { numberLevels } from "../internal/levels.js";
 import { mean, variance } from "../internal/summary.js";
 import type { GroupLabel } from "./groups.js";
 import { pAdjust, type PAdjustMethod } from "./pAdjust.js";
@@ -53,8 +54,10 @@ function byLevel(x: Sample, g: readonly GroupLabel[], dropNaN: boolean): { level
   const xs = Array.from(x);
   if (xs.length !== g.length) throw new RangeError("'x' and 'g' must have the same length");
   const map = new Map<GroupLabel, number[]>();
+  // numeric labels with the same 15-digit text are one level, as in R's factor()
+  const gs = numberLevels(g);
   for (let i = 0; i < xs.length; i++) {
-    const l = g[i]!;
+    const l = gs[i]!;
     if (typeof l === "number" && Number.isNaN(l)) continue;
     if (dropNaN && Number.isNaN(xs[i]!)) continue;
     let arr = map.get(l);

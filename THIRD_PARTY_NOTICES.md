@@ -240,8 +240,8 @@ DAMAGE.
 - Source: https://github.com/Reference-LAPACK/lapack (tag v3.12.0)
   - `BLAS/SRC/dtrsm.f`, `SRC/dlange.f`, `SRC/dpotf2.f`, `SRC/dpstf2.f`, `SRC/dpotri.f` (`dtrti2.f`, `dlauu2.f`),
     `SRC/dgeqp3.f` (`dlaqp2.f`, `dlarfg.f`, `dlarf.f`), `SRC/dorm2r.f`, `SRC/dgetf2.f`, `SRC/dgetrs.f`,
-    `SRC/dgecon.f`, `SRC/dtrcon.f`, `SRC/dlacn2.f`, `SRC/dgebal.f`, `SRC/dlanv2.f`
-- Used in: `src/linalg/basic.ts`, `src/linalg/norm.ts`, `src/linalg/chol.ts`, `src/linalg/qr.ts`, `src/linalg/solve.ts`, `src/linalg/svd.ts`, `src/linalg/expm.ts`, `src/linalg/schur.ts`
+    `SRC/dgecon.f`, `SRC/dtrcon.f`, `SRC/dlacn2.f`, `SRC/dgebal.f`, `SRC/dgebak.f`, `SRC/dlanv2.f`
+- Used in: `src/linalg/basic.ts`, `src/linalg/norm.ts`, `src/linalg/chol.ts`, `src/linalg/qr.ts`, `src/linalg/solve.ts`, `src/linalg/svd.ts`, `src/linalg/balance.ts`, `src/linalg/schur.ts`
 - License: modified BSD
 
 ```

@@ -1,6 +1,7 @@
 // tapply, split and aggregate against R (oracle/grouping.R; behaviour in oracle/grouping-behaviour.md)
 import { describe, expect, it } from "vitest";
 import { aggregate, mean, median, range, sd, split, sum, tapply, type AggregateValue, type DataFrame, type GroupingLabels } from "../src/index.js";
+import { formatR } from "../src/htest/core/simulate.js";
 import { Comparison, dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
 
 const fixture = loadAnovaFixture("grouping");
@@ -46,7 +47,8 @@ describe("tapply, split, aggregate", () => {
           case "tapply": {
             const r = tapply(data[a.x as string] as number[], labels, fun!);
             cmp.numbers(index, "dim", (e.dim as number[]).map(String), r.dim);
-            cmp.strings(index, "dimnames", e.dimnames, r.dimnames.map((l) => l.map(String)));
+            // numeric levels are returned as numbers (the smallest value of each level): compared by R's text of them
+            cmp.strings(index, "dimnames", e.dimnames, r.dimnames.map((l) => l.map((v) => (typeof v === "number" ? formatR(v) : String(v)))));
             if (e.cells !== undefined) {
               const cells = e.cells as (string[] | null)[];
               const got = r.values as (AggregateValue | null)[];

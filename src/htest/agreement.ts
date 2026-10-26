@@ -10,6 +10,7 @@
 import { cor, cov } from "../descriptive/cov.js";
 import { pf1, qf1 } from "../distributions/f.js";
 import { pnorm } from "../distributions/normal.js";
+import { numberLevels } from "../internal/levels.js";
 import { mean, sum, variance } from "../internal/summary.js";
 import { solve } from "../linalg/solve.js";
 import { formatR } from "./core/simulate.js";
@@ -150,8 +151,12 @@ export function kappamFleiss(ratings: readonly (readonly number[])[], options: K
   requireComplete(ratings, "ratings");
   const n = ratings.length;
   const m = cols.length;
-  const levels = [...new Set(ratings.flat())].sort((x, y) => x - y);
-  const index = new Map(levels.map((l, j) => [l, j]));
+  // (the categories as R's factor() makes them: numbers with the same 15-digit text are one category)
+  const flat = ratings.flat();
+  const levelOf = numberLevels(flat);
+  const levels = [...new Set(levelOf)].sort((x, y) => x - y);
+  const position = new Map(levels.map((l, j) => [l, j]));
+  const index = new Map(flat.map((v, i) => [v, position.get(levelOf[i]!)!]));
   const L = levels.length;
   // t[i][j]: raters giving subject i level j; q[r][j]: subjects that rater r put in level j
   const t = ratings.map((row) => {

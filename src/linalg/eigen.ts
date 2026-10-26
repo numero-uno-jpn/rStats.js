@@ -5,7 +5,10 @@
 // then compute eigenvectors by back substitution (same procedure as EISPACK's orthes and hqr2).
 // The code is modelled on JAMA's EigenvalueDecomposition. EISPACK and JAMA are in the public domain.
 // R uses LAPACK's dsyevr and dgeev, so eigenvalues agree to rounding error, while eigenvectors may differ in sign
-// (phase for complex ones, orientation for repeated eigenvalues). Unlike dgeev, no balancing (dgebal) is done.
+// (phase for complex ones, orientation for repeated eigenvalues).
+// - Nonsymmetric matrices are balanced first as dgeev does (dgebal with job "B": permutations isolating eigenvalues,
+//   then scaling of the remaining rows and columns by powers of 2; src/linalg/balance.ts), and the eigenvectors are
+//   transformed back (dgebak) before they are normalised. Symmetric matrices are not balanced (nor are they by dsyevr)
 // Argument checks and result shapes follow R's documentation (?eigen) and observed output.
 // - If symmetric is omitted, the matrix is treated as symmetric when sum|A - t(A)| / sum|A| <= 100 ε, as R's isSymmetric
 // - For symmetric matrices only the lower triangle is used
@@ -15,6 +18,7 @@
 // - If a nonsymmetric matrix has all real eigenvalues, valuesIm and vectorsIm are omitted (R also returns real results)
 // - NaN or Inf is an error
 
+import { gebak, gebal } from "./balance.js";
 import { fromMat, newMat, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
 
 /**
@@ -55,7 +59,7 @@ export interface EigenResult {
  * Eigenvalues and eigenvectors of a square matrix. Equivalent to R's `eigen()`.
  *
  * Symmetric matrices use tridiagonalization and the implicit QL method; other matrices use Hessenberg reduction
- * and the Francis double-shift QR method (no balancing). R uses LAPACK, so eigenvalues agree up to rounding, but
+ * and the Francis double-shift QR method, after balancing the matrix as LAPACK's `dgebal` does. R uses LAPACK, so eigenvalues agree up to rounding, but
  * eigenvector signs may differ from R (both are correct); for repeated eigenvalues the basis may differ.
  * Complex eigenvalues and eigenvectors are returned as separate real and imaginary parts (`valuesIm`,
  * `vectorsIm`). Each complex eigenvector is scaled to unit length with its largest component real and positive.
@@ -297,6 +301,7 @@ function generalEigen(A: Mat, wantVectors: boolean): EigenResult {
   const V = newMat(n, n);
   const d = new Float64Array(n);
   const e = new Float64Array(n);
+  const bal = gebal("B", H);
   orthes(H, V);
   hqr2(H, V, d, e);
   // Sort by decreasing absolute value (ties keep original order; conjugate pairs already have the positive imaginary part first)
@@ -306,6 +311,7 @@ function generalEigen(A: Mat, wantVectors: boolean): EigenResult {
   const out: EigenResult = { values: order.map((i) => d[i]!) };
   if (complex) out.valuesIm = order.map((i) => e[i]!);
   if (!wantVectors) return out;
+  gebak(bal, V);
   // Eigenvectors: real eigenvalues use columns of V; a complex pair (j, j+1) gives V[:, j] ± i V[:, j+1]
   const re = newMat(n, n);
   const im = newMat(n, n);
