@@ -1,12 +1,41 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["src/index.ts"],
+  "entryPoints": [
+    "src/index.ts"
+  ],
   "tsconfig": "tsconfig.build.json",
   "out": "docs/api",
   "name": "rStats.js",
-  "readme": "none",
+  "readme": "docs/api-reference.md",
   "excludePrivate": true,
   "excludeInternal": true,
   "treatWarningsAsErrors": false,
-  "validation": { "notExported": true, "invalidLink": true, "notDocumented": true }
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": true
+  },
+  "categorizeByGroup": false,
+  "defaultCategory": "Other",
+  "categoryOrder": [
+    "Distributions",
+    "Random numbers",
+    "Descriptive statistics",
+    "Data frames",
+    "Hypothesis tests",
+    "Multiple comparisons",
+    "Effect sizes and power",
+    "Linear models and ANOVA",
+    "Generalized linear models",
+    "Survival analysis",
+    "Agreement, reliability and factor analysis",
+    "Linear algebra",
+    "Numerical methods",
+    "Special functions",
+    "*"
+  ],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": false
+  }
 }
