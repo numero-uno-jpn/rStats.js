@@ -13,3 +13,4 @@ export {
   skewness, kurtosis, geometricMean, modes, meanAD, cv, scale,
   type MomentOptions, type MeanADOptions, type CvOptions, type ScaleOptions,
 } from "../descriptive/moments.js";
+export { merge, subset, type MergeOptions, type SubsetOptions, type DataRow, type DataValue } from "../descriptive/dataFrames.js";
