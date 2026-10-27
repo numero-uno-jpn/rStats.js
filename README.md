@@ -14,7 +14,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.2 KB gzipped).
 
-Status: **0.14.0.** The goal is to cover the numerical core of R's
+Status: **0.15.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
 functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -249,9 +249,9 @@ removed. Approximate sizes after minification and gzip:
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 4.5 KB |
 | `wilcoxTest` / `fisherTest` / `tTest` | 12.5 / 15.7 / 25.3 KB |
 | `qbeta` / `pt` and `qt` | 23.2 / 30.3 KB |
-| `glm` and `glmSummary` / `glm` with all its methods | 27.4 / 39.5 KB |
-| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 15.5 / 58.0 KB |
-| everything (except `/mixed`) | 187.9 KB |
+| `glm` and `glmSummary` / `glm` with all its methods | 27.5 / 39.4 KB |
+| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 16.5 / 58.9 KB |
+| everything (except `/mixed`) | 187.8 KB |
 
 (`npm run size` measures these.)
 
@@ -265,7 +265,7 @@ function except those of `/mixed`, 188 KB gzipped) from jsDelivr, which serves e
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.14.0/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.15.0/dist/rstats.js";
   console.log(pnorm(1.96)); // 0.9750021048517795
 </script>
 ```

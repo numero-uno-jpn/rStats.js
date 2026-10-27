@@ -98,15 +98,15 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `tTest` | 55.4 KB | 25.3 KB |
 | `qbeta` | 49.6 KB | 23.2 KB |
 | `pt`, `qt` | 63.7 KB | 30.3 KB |
-| `glm`, `glmSummary` / `glm` with all its methods | 63.2 / 89.4 KB | 27.4 / 39.5 KB |
-| everything (except `/mixed`) | 497.2 KB | 187.9 KB |
+| `glm`, `glmSummary` / `glm` with all its methods | 63.2 / 89.4 KB | 27.5 / 39.4 KB |
+| everything (except `/mixed`) | 497.2 KB | 187.8 KB |
 | `@numero-uno-jpn/rstats/distributions` (all of it) | 171.5 KB | 67.9 KB |
 | `@numero-uno-jpn/rstats/tests` (all of it) | 364.9 KB | 143.3 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 50.2 KB | 18.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 44.8 KB | 16.7 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 48.7 KB | 20.9 KB |
 | `@numero-uno-jpn/rstats/special` (all of it) | 57.7 KB | 26.7 KB |
-| `@numero-uno-jpn/rstats/mixed`: `lmer` alone / all of it (with lmerTest's tests) | 39.7 / 134.5 KB | 15.5 / 58.0 KB |
+| `@numero-uno-jpn/rstats/mixed`: `lmer` alone / all of it (with lmerTest's tests) | 42.5 / 137.3 KB | 16.5 / 58.9 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share code between areas
 through `dist/chunks/`, so one area loaded from them transfers more: 30 KB (`special`) to 159 KB (`tests`) gzipped,
@@ -120,7 +120,7 @@ bench` (`scripts/bench.mjs`), one call at a time, the minimum of 5 runs; its inp
 `setSeed`/`runif`, so every build sees the same ones. Linear algebra: the minimum of 5 runs of the mean of 20 calls
 (3 for n = 300). R 4.5.2 (arm64) in the same machine's container, the same kind of inputs from R's own random
 numbers. The bundle sizes and the mixed models were measured on 2026-10-27 (the code of 0.12.0; the fits of `lmer`
-and `lmerSummary` again with the code after 0.14.0), the mixed models with lme4 2.0.6 in the same container.
+and `lmerSummary` again with the code of 0.15.0), the mixed models with lme4 2.0.6 in the same container.
 
 ## Reference
 

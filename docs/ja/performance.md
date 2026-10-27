@@ -95,15 +95,15 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 | `tTest` | 55.4 KB | 25.3 KB |
 | `qbeta` | 49.6 KB | 23.2 KB |
 | `pt`、`qt` | 63.7 KB | 30.3 KB |
-| `glm`、`glmSummary` / `glm` とすべてのメソッド | 63.2 / 89.4 KB | 27.4 / 39.5 KB |
-| すべて (`/mixed` を除く) | 497.2 KB | 187.9 KB |
+| `glm`、`glmSummary` / `glm` とすべてのメソッド | 63.2 / 89.4 KB | 27.5 / 39.4 KB |
+| すべて (`/mixed` を除く) | 497.2 KB | 187.8 KB |
 | `@numero-uno-jpn/rstats/distributions` (全体) | 171.5 KB | 67.9 KB |
 | `@numero-uno-jpn/rstats/tests` (全体) | 364.9 KB | 143.3 KB |
 | `@numero-uno-jpn/rstats/linalg` (全体) | 50.2 KB | 18.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (全体) | 44.8 KB | 16.7 KB |
 | `@numero-uno-jpn/rstats/numerics` (全体) | 48.7 KB | 20.9 KB |
 | `@numero-uno-jpn/rstats/special` (全体) | 57.7 KB | 26.7 KB |
-| `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / 全体 (lmerTest の検定を含む) | 39.7 / 134.5 KB | 15.5 / 58.0 KB |
+| `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / 全体 (lmerTest の検定を含む) | 42.5 / 137.3 KB | 16.5 / 58.9 KB |
 
 サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを
 `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 30 KB
@@ -116,7 +116,7 @@ Apple M1 (Mac mini)、Node.js 24、`tsc` によるビルド、2026-10-26 (版 0.
 (`scripts/bench.mjs`) で、1 回ずつ呼び出し、5 回の実行の最小値です。入力はライブラリ自身の `setSeed`/`runif` で生成するので、
 どのビルドにも同じ入力が渡ります。線形代数は、20 回 (n = 300 では 3 回) の呼び出しの平均の、5 回の実行の最小値です。R 4.5.2
 (arm64) は同じマシンのコンテナで、同じ種類の入力を R 自身の乱数で作って測りました。バンドルサイズと混合モデルは
-2026-10-27 (0.12.0 のコード。`lmer` と `lmerSummary` の当てはめは 0.14.0 の後のコードで測り直しました) に測りました。混合モデルの lme4 2.0.6 も同じコンテナです。
+2026-10-27 (0.12.0 のコード。`lmer` と `lmerSummary` の当てはめは 0.15.0 のコードで測り直しました) に測りました。混合モデルの lme4 2.0.6 も同じコンテナです。
 
 ## 参考情報
 
