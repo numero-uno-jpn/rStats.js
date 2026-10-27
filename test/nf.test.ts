@@ -1,5 +1,6 @@
-import { df, pf, qf } from "../src/index.js";
-import { bool, num } from "./helpers/fixture.js";
+import { describe, expect, it } from "vitest";
+import { df, pf, qchisq, qf, qnorm } from "../src/index.js";
+import { bool, num, relativeError } from "./helpers/fixture.js";
 import { fixtureSuite } from "./helpers/suite.js";
 
 // Noncentral F distribution (when ncp is given)
@@ -50,4 +51,25 @@ fixtureSuite({
   knownDifference: infDf2,
   call: (a) => qf(num(a.p), num(a.df1), num(a.df2), opts(a)),
   backward: (a, x) => pf(x, num(a.df1), num(a.df2), opts(a)),
+});
+
+describe("noncentral F at extreme parameters (regressions; these did not return)", () => {
+  it("a huge df2: F is χ²(df1, λ)/df1", () => {
+    const [p, m, n, ncp] = [9.423429403249297e-250, 1.8411616538629063, 3.908407098865747e188, 198.72404032716406];
+    const ref = (qchisq(p, m, { ncp, lowerTail: false }) as number) / m;
+    expect(relativeError(qf(p, m, n, { ncp, lowerTail: false }) as number, ref)).toBeLessThanOrEqual(1e-14);
+  });
+
+  it("a huge ncp: F is (λ/m) / (W/n), W ~ χ²(n)", () => {
+    const [p, m, n, ncp] = [0.07404623872624663, 2, 0.38811687804355227, 6.39113448329404e269];
+    const ref = ncp / m / ((qchisq(p, n) as number) / n);
+    expect(relativeError(qf(p, m, n, { ncp, lowerTail: false }) as number, ref)).toBeLessThanOrEqual(1e-14);
+  });
+
+  it("a huge ncp and df2: the quantile of W/n moves F by its relative spread sqrt(2/n)", () => {
+    const [p, m, n, ncp] = [7.48573219148339e-47, 3.2077830404612326e-234, 3.226003964094021e24, 3.664217781203523e36];
+    // F = (Y/m)/(W/n) with Y nearly constant (relative spread 1e-18), W/n = 1 + sqrt(2/n) Z: the lower tail at W/n large
+    const ref = ncp / m / (1 + Math.sqrt(2 / n) * (qnorm(p, { lowerTail: false }) as number));
+    expect(relativeError(qf(p, m, n, { ncp }) as number, ref)).toBeLessThanOrEqual(1e-12);
+  });
 });

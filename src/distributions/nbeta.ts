@@ -8,6 +8,7 @@
 //   e_j = Gamma(a+b+j) / (Gamma(a+j+1) Gamma(b)) x^(a+j) (1-x)^b
 //       = dbinom(a + j; a + b + j, x) b / (a + b + j)
 // The density of component j is e_j (a + j) / (x (1 - x)). The sums are done in src/internal/poissonMixture.ts.
+// For a huge λ or extreme shapes the distribution is computed from X = Y / (Y + W) instead (see "Extreme parameters").
 //
 // The noncentral F is computed from the fact that X = m F / (n + m F) follows the noncentral beta (m/2, n/2, λ).
 // Its density is f_F(q) = Σ_j w_j e_j (a + j) / q (dx/dq and x (1 - x) cancel).
@@ -15,15 +16,20 @@
 
 import { dt0, dt1, quantileBoundaries, smallerTail } from "../internal/dpq.js";
 import { invertContinuous } from "../internal/invert.js";
+import { kronrodAdaptive, narrowQuantile, quadratureControl, searchDoubles } from "../internal/noncentral.js";
+import { gammaInc } from "../special/igam.js";
 import { mixtureCdf, mixtureDensity, type MixtureKernel } from "../internal/poissonMixture.js";
 import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddNeg, twoProd, twoSum, type DD } from "../special/dd.js";
 import { lbeta, lbetaDD } from "../special/beta.js";
+import { lgamma, lgamma1p } from "../special/gamma.js";
+import { log1pmx } from "../special/log1pmx.js";
 import { digamma } from "../special/psigamma.js";
 import { betaIncDD } from "../special/incbet.js";
 import { dbinomExponent, dbinomRawDD } from "../special/loader.js";
 import { dbeta1, pbeta1, qbeta1 } from "./beta.js";
 import { dfDensity1, pf1, qf1 } from "./f.js";
-import { dnchisq1, negligibleTail, pnchisq1, qnchisq1, type FarTail } from "./nchisq.js";
+import { confirmQuantile, dnchisq1, dnchisqLogNear, gammaTailNear, negligibleTail, pnchisq1, qnchisq1, type FarTail } from "./nchisq.js";
+import { dgamma1 } from "./gamma.js";
 
 function betaKernel(a: number, b: number, xd: DD, xcd: DD): MixtureKernel {
   const ab = twoSum(a, b);
@@ -35,6 +41,12 @@ function betaKernel(a: number, b: number, xd: DD, xcd: DD): MixtureKernel {
     cdf: (j, lower, log) => betaIncDD(a + j, b, xd, xcd, lower, log),
     inc: (j, log) => {
       const [s, corr] = incCorrection(a, b, j, xd);
+      if (!binomialHelpersApply(s, b, xd, xcd)) {
+        // Near subnormal x or for a tiny shape the binomial-probability helpers break down, as in incLogDD
+        const l = betaKernelIncLog(s, b, xd, xcd);
+        const lv = (typeof l === "number" ? l : l[0] + l[1]) + corr;
+        return log ? lv : Math.exp(lv);
+      }
       const c = b / (s + b);
       return log
         ? dbinomRawDD(s, b, xd, xcd, true) + Math.log(c) + corr
@@ -44,9 +56,10 @@ function betaKernel(a: number, b: number, xd: DD, xcd: DD): MixtureKernel {
     ratio: (j) => ddDiv(ddMul(xs, ddAdd(ab, [j - 1, 0])), twoSum(a, j)),
     incLogDD: (j) => {
       // log e_j = log dbinom(a + j; a + b + j, x) + log(b / (a + b + j))
-      // Near subnormal x the binomial-probability helpers break down, so build it from the log of the beta function
+      // Near subnormal x (n x underflows) or for a tiny shape (b = 1e-264: NaN) the binomial-probability helpers
+      // break down, so build it from the log of the beta function
       const [s, corr] = incCorrection(a, b, j, xd);
-      if (!(xd[0] > 1e-305 && xcd[0] > 1e-305)) {
+      if (!binomialHelpersApply(s, b, xd, xcd)) {
         const l = betaKernelIncLog(s, b, xd, xcd);
         return typeof l === "number" ? l + corr : ddAdd(l, [corr, 0]);
       }
@@ -54,6 +67,11 @@ function betaKernel(a: number, b: number, xd: DD, xcd: DD): MixtureKernel {
       return ddAdd([-e[0], -e[1]], [-0.5 * logDenom + Math.log(b / (s + b)) + corr, 0]);
     },
   };
+}
+
+/** Whether e_j can be taken from the binomial-probability helpers (dbinomRawDD, dbinomExponent) */
+function binomialHelpersApply(s: number, b: number, xd: DD, xcd: DD): boolean {
+  return xd[0] > 1e-305 && xcd[0] > 1e-305 && s > 1e-10 && b > 1e-10;
 }
 
 /**
@@ -85,6 +103,8 @@ function pair(x: number): [DD, DD] {
 
 /** One-sided probability (P[X <= x] if lower). 0 < x < 1 */
 function pnbetaRaw(a: number, b: number, ncp: number, xd: DD, xcd: DD, lower: boolean, log: boolean): number {
+  const m = method(a, b, ncp);
+  if (m !== "mixture") return extremeTail(m, a, b, ncp, xd, xcd, lower, log);
   const kernel = betaKernel(a, b, xd, xcd);
   const mu = ncp / 2;
   const v = mixtureCdf(mu, kernel, lower, false);
@@ -96,6 +116,13 @@ function pnbetaRaw(a: number, b: number, ncp: number, xd: DD, xcd: DD, lower: bo
 
 /** Σ_j w_j e_j (a + j) / divisor. For the density, divisor = x (1 - x) (beta) or q (F) */
 function densitySum(a: number, b: number, ncp: number, xd: DD, xcd: DD, divisor: number, log: boolean): number {
+  const m = method(a, b, ncp);
+  if (m !== "mixture") {
+    // The sum is f(x) x (1 - x) / divisor
+    const xx = ddMul(xd, xcd);
+    const l = extremeDensityLog(m, a, b, ncp, xd, xcd) + Math.log(xx[0] + xx[1]) - Math.log(divisor);
+    return log ? l : Math.exp(l);
+  }
   const mu = ncp / 2;
   const x = xd[0];
   // The peak is at the j where the term ratio mu x (a + b + j - 1) / (j (a + j - 1)) equals 1
@@ -103,6 +130,309 @@ function densitySum(a: number, b: number, ncp: number, xd: DD, xcd: DD, divisor:
   const p = a - 1 - c;
   const jStar = (-p + Math.sqrt(Math.max(0, p * p + 4 * c * (a + b - 1)))) / 2;
   return mixtureDensity(mu, betaKernel(a, b, xd, xcd), (j) => a + j, jStar, divisor, log);
+}
+
+// ---- Extreme parameters ----
+// X = Y / (Y + W) with Y ~ χ²(2a, λ) and W ~ χ²(2b) independent. Where the mixture would need too many terms (a huge
+// λ, or a huge b against a + λ: its peak is near j = sqrt(λ x b / 2)), and where the central incomplete beta function
+// of its components is out of its range (huge shapes), the distribution is computed from that of Y and W instead.
+
+/** Above this mean of the Poisson weights the mixture (at least 10 sqrt(λ/2) terms) is replaced by an integral */
+const MU_MIXTURE = 1e6;
+
+type Method = "mixture" | "chisq" | "gamma" | "w" | "integral";
+
+/**
+ * How the distribution is computed:
+ * - "chisq": b > 1e20 (a + j)² over the Poisson range of j. Then I_x(a + j, b) = P(a + j, -b log(1 - x)) to
+ *   O((a + j)²/b) (in t = -b log(1 - X) the density of Beta(s, b) is (1 - e^(-t/b))^(s-1) e^-t up to a constant), so
+ *   P[X <= x] = P[Y <= -2b log(1 - x)]
+ * - "gamma": Y is nearly constant on the scale of the gamma function below (its relative spread 2 sqrt(a + λ)/(2a + λ)
+ *   is below 1e-4 / S, S = 40 sqrt(b) + 750 bounding |d log P(b, t)/d log t| where P is above the double range), so
+ *   P[X > x] = P[W < Y k] = E P(b, T), T = Y k/2, k = (1 - x)/x, is P(b, t0) plus its expansion in the cumulants of T
+ *   about t0 = E T (gammaExpansion)
+ * - "w": W is nearly constant on the scale of the distribution function F of Y (its relative spread 1/sqrt(b) is below
+ *   1e-5 / S, S = 40 m/σ + 750 bounding |d log F/d log y| likewise, m = 2a + λ, σ = 2 sqrt(a + λ)), so
+ *   P[X <= x] = P[Y <= W/k] = E F(W/k) = F(y0) + (2b/k²) F''(y0) + ..., y0 = E W/k = 2b/k (the next term, with the
+ *   third cumulant of W, is below 1e-15 of F)
+ * - "integral": a large λ or a huge shape otherwise (integralLog)
+ */
+function method(a: number, b: number, ncp: number): Method {
+  const mu = ncp / 2;
+  const s = a + mu + 10 * Math.sqrt(mu) + 10;
+  if (b > 1e20 * s * s) return "chisq";
+  if (2 * Math.sqrt(a + ncp) * (40 * Math.sqrt(b) + 750) < 1e-4 * (2 * a + ncp)) return "gamma";
+  if ((40 * (2 * a + ncp)) / (2 * Math.sqrt(a + ncp)) + 750 < 1e-5 * Math.sqrt(b)) return "w";
+  // (shapes above 1e15 are out of the range of the central incomplete beta function: it does not return for
+  // a = 1.7e32, b = 6e-35 at a tiny x)
+  return mu > MU_MIXTURE || a > 1e15 || b > 1e15 ? "integral" : "mixture";
+}
+
+/** -log(1 - x) from the pair (x, 1 - x) */
+function minusLog1mx(xd: DD, xcd: DD): number {
+  return xd[0] <= 0.5 ? -Math.log1p(-(xd[0] + xd[1])) : -(Math.log(xcd[0]) + xcd[1] / xcd[0]);
+}
+
+/** (1 - x)/x from the pair */
+function oddsInverse(xd: DD, xcd: DD): number {
+  const r = ddDiv(xcd, xd);
+  return r[0] + r[1];
+}
+
+/**
+ * log g_b(t), the Gamma(b, 1) density, at t = t0 e^v (v = 0 but for the integrals over log y, where the offset is
+ * exact; log t0 given where t0 underflows). For b > 1e4 as
+ *   b (log(1 + d) - d) - log t + log(b/(2 pi))/2 - 1/(12b) + 1/(360b³),  d = t/b - 1,
+ * with t - b = (t0 - b) + t0 (e^v - 1) (Stirling's series for log Γ(b), whose next term is below 1e-23): the density's
+ * helpers overflow for b or t near 1e300 and break down where t/b underflows, and the rounding of t would carry an
+ * error of eps sqrt(b) into the log near the mode. For smaller b the log is dominated by -t or -log Γ(b) where t/b or
+ * b/t is beyond 1e300 (or t underflows), and is taken from (b - 1) log t - t - log Γ(b) directly; for a tiny b as
+ * log b + (b - 1) log t - t - log Γ(1 + b) (dgamma1 is Infinity at b = 1.9e-199)
+ */
+function gammaDensityLog(t0: number, b: number, v = 0, logT0 = Math.log(t0)): number {
+  const logT = logT0 + v;
+  const t = v === 0 ? t0 : Math.exp(logT);
+  if (b > 1e4) {
+    const d = (t0 - b + t0 * Math.expm1(v)) / b;
+    return b * log1pmx(d) - logT + 0.5 * Math.log(b / (2 * Math.PI)) - 1 / (12 * b) + 1 / (360 * b * b * b);
+  }
+  if (b < 1e-10) return Math.log(b) + (b - 1) * logT - t - lgamma1p(b);
+  if (!(t > 1e-300) || t > 1e300 * b || b > 1e300 * t) return (b - 1) * logT - t - lgamma(b);
+  return dgamma1(t, b, 1, true);
+}
+
+/**
+ * P(b, t) (lower) or Q(b, t), the distribution function of W/2 (its log if log), at t = t0 e^v (as gammaDensityLog).
+ * Below t = 1e-300 (where t may have underflowed) from the first term of the series, P(b, t) = t^b / Γ(1 + b) (1 + O(t))
+ */
+function gammaTail(b: number, t0: number, lower: boolean, log: boolean, v = 0, logT0 = Math.log(t0)): number {
+  const logT = logT0 + v;
+  const t = v === 0 ? t0 : Math.exp(logT);
+  if (t < 1e-300) {
+    const lp = b * logT - lgamma1p(b);
+    if (lower) return log ? lp : Math.exp(lp);
+    return log ? Math.log1p(-Math.exp(lp)) : -Math.expm1(lp);
+  }
+  // (gammaInc takes 40 ms at b = 1e12, t < b, and 0.1 s at b = 1e37)
+  if (b > 1e4) return gammaTailNear(b, t0, v, lower, log);
+  // Both tails, and the log, from the linear value of the small tail, so that they are consistent (gammaInc's log of
+  // a tail can differ from the log of its linear value by 4e-14 relative at a tiny t)
+  const small = t < b;
+  const p = gammaInc(b, t, small, false);
+  if (small !== lower) return log ? Math.log1p(-p) : 1 - p;
+  if (!log) return p;
+  return p > 1e-300 ? Math.log(p) : gammaInc(b, t, lower, true);
+}
+
+/** P[X <= x] (lower) / P[X > x] (its log if log) by the method (not "mixture") */
+function extremeTail(m: Method, a: number, b: number, ncp: number, xd: DD, xcd: DD, lower: boolean, log: boolean): number {
+  if (m === "chisq") return pnchisq1(2 * b * minusLog1mx(xd, xcd), 2 * a, ncp, lower, log);
+  const k = oddsInverse(xd, xcd);
+  const expansion =
+    m === "gamma" ? gammaExpansion(a, b, ncp, k, !lower, log) : m === "w" ? wExpansion(a, b, ncp, k, lower, log) : undefined;
+  if (expansion !== undefined) return expansion;
+  const l = integralTailLog(a, b, ncp, k, lower);
+  if (l > -Math.LN2) {
+    // The integral is accurate relative to itself: a value near 1 is built from the small value of the other side
+    const other = Math.exp(integralTailLog(a, b, ncp, k, !lower));
+    return log ? Math.log1p(-other) : 1 - other;
+  }
+  return log ? l : Math.exp(l);
+}
+
+/** log P[X <= x] (lower) / log P[X > x] by integralLog, for k = (1 - x)/x */
+function integralTailLog(a: number, b: number, ncp: number, k: number, lower: boolean): number {
+  // X <= x is W >= Y k
+  // (towards y = 0 the integrand goes as y^a, or y^(a + b) where P[W < y k] ~ (y k/2)^b / Γ(b + 1))
+  const lk = Math.log(k / 2);
+  const h = (u0: number, v: number): number => gammaTail(b, Math.exp(u0 + lk), !lower, true, v, u0 + lk) + u0 + v;
+  return integralLog(a, ncp, h, b, lower ? a : a + b);
+}
+
+/** log f(x) by the method (not "mixture") */
+function extremeDensityLog(m: Method, a: number, b: number, ncp: number, xd: DD, xcd: DD): number {
+  const x = xd[0] + xd[1];
+  if (m === "chisq") {
+    // f(x) = f_Y(2t) 2b/(1 - x), t = -b log(1 - x)
+    return dnchisq1(2 * b * minusLog1mx(xd, xcd), 2 * a, ncp, true) + Math.log(2 * b) - Math.log(xcd[0] + xcd[1]);
+  }
+  const k = oddsInverse(xd, xcd);
+  // f(x) = E[g_b(T) T] / (k x²), g_b the Gamma(b, 1) density (the derivative of E P(b, T) with dk/dx = -1/x²),
+  // expanded to second order about t0
+  if (m === "gamma") {
+    const t0 = (a + ncp / 2) * k;
+    // v (h² + h' + 2h/t) with h = (b - 1)/t - 1, written as in gammaExpansion (H = b - 1 - t0)
+    const H = b - 1 - t0;
+    const c = ((a + ncp) / (a + ncp / 2) / (a + ncp / 2)) * (H * H - (b - 1) + 2 * H);
+    if (Math.abs(c) < 1e-3) return gammaDensityLog(t0, b) + Math.log(a + ncp / 2) + Math.log1p(c / 2) - 2 * Math.log(x);
+  }
+  // f(x) = E[f_Y(W/k) W] / (k² x²), to zeroth order f_Y(y0) y0 / (k x²) (relative error below 1e-10)
+  if (m === "w") {
+    const y0 = (2 * b) / k;
+    return dnchisq1(y0, 2 * a, ncp, true) + Math.log(y0) - Math.log(k) - 2 * Math.log(x);
+  }
+  // f(x) = ∫ f_Y(y) f_W(y k) y/x² dy
+  const lk = Math.log(k / 2);
+  const h = (u0: number, v: number): number => gammaDensityLog(Math.exp(u0 + lk), b, v, u0 + lk) - Math.LN2 + 2 * (u0 + v);
+  return integralLog(a, ncp, h, b, a + b) - 2 * Math.log(x);
+}
+
+/**
+ * E P(b, T) (lower) or E Q(b, T) for T = Y k/2 (its log if log), by the expansion about t0 = E T = (a + λ/2) k in the
+ * cumulants of T (variance v = (a + λ) k², third and fourth cumulants (2a + 3λ) k³ and 6 (a + 2λ) k⁴, from those of
+ * the noncentral χ²: 2(n + 2λ), 8(n + 3λ), 48(n + 4λ) with n = 2a):
+ *   E P(b, T) = P(t0) + v P''/2 + κ3 P'''/6 + (κ4 + 3v²) P''''/24 + ...,
+ * with P' = g, P'' = g h, P''' = g (h² - (b - 1)/t²), P'''' = g (h³ - 3h (b - 1)/t² + 2(b - 1)/t³), h = (b - 1)/t - 1.
+ * The terms fall by factors of the relative spread of Y times |d log P/d log t| (below 1e-4 by "gamma"), so the
+ * error is below 1e-20. Undefined where the correction is not small (|d log P/d log t| larger in a far tail)
+ */
+function gammaExpansion(a: number, b: number, ncp: number, k: number, lower: boolean, log: boolean): number | undefined {
+  const t0 = (a + ncp / 2) * k;
+  const base = gammaTail(b, t0, lower, log);
+  // (the ratio of the density to the tail; 0 far in the other tail, where the moments below can overflow)
+  const ratio = log ? Math.exp(gammaDensityLog(t0, b) - base) : base > 0 ? Math.exp(gammaDensityLog(t0, b)) / base : 0;
+  if (!(t0 > 0 && t0 < Infinity) || ratio === 0) return base;
+  // In terms of H = h t0 = b - 1 - t0, B = b - 1 and the cumulants relative to A^n (A = a + λ/2, t0 = A k), which do
+  // not underflow or overflow where the cumulants themselves do: v h/2 = (w/2) t0 H, w = (a + λ)/A², and so on
+  const A = a + ncp / 2;
+  const w = (a + ncp) / A / A;
+  const u3 = (2 * a + 3 * ncp) / A / A / A;
+  const u4 = (6 * (a + 2 * ncp)) / A / A / A / A;
+  const H = b - 1 - t0;
+  const B = b - 1;
+  const series = t0 * ((w / 2) * H + (u3 / 6) * (H * H - B) + ((u4 + 3 * w * w) / 24) * (H * H * H - 3 * H * B + 2 * B));
+  // The correction relative to the tail (P or Q = 1 - P, whose derivatives are those of P negated)
+  const rel = (lower ? 1 : -1) * ratio * series;
+  if (!(Math.abs(rel) < 1e-3)) return undefined;
+  return log ? base + Math.log1p(rel) : base * (1 + rel);
+}
+
+/**
+ * E F(W/k) (lower) or E (1 - F(W/k)) (its log if log) for the method "w": F(y0) plus (2b/k²) f'(y0) (Var W = 4b, the
+ * second derivative of F is f'), with f' from a central difference of log f. Undefined where the correction is not
+ * small
+ */
+function wExpansion(a: number, b: number, ncp: number, k: number, lower: boolean, log: boolean): number | undefined {
+  const y0 = (2 * b) / k;
+  const base = pnchisq1(y0, 2 * a, ncp, lower, log);
+  if (!(y0 > 0 && y0 < Infinity)) return base;
+  const h = 1e-6;
+  const dlogf = (dnchisq1(y0 * (1 + h), 2 * a, ncp, true) - dnchisq1(y0 * (1 - h), 2 * a, ncp, true)) / (2 * h * y0);
+  const lf = dnchisq1(y0, 2 * a, ncp, true);
+  const ratio = log ? Math.exp(lf - base) : base > 0 ? Math.exp(lf) / base : 0;
+  const rel = (lower ? 1 : -1) * ((2 * b) / (k * k)) * ratio * dlogf;
+  if (!(Math.abs(rel) < 1e-3)) return undefined;
+  return log ? base + Math.log1p(rel) : base * (1 + rel);
+}
+
+/** Ends of the integrals in u = log y: the logs of the smallest and the largest positive doubles */
+const U_MIN = -744;
+const U_MAX = 709.78;
+
+/**
+ * log ∫ exp(L(u)) du over u = log y, L(u) = log f_Y(y) + h(u) (Y ~ χ²(2a, λ)), for an h that makes the integrand
+ * unimodal (the log of a distribution function of W at y k, or of its density, plus u or 2u) and that goes as
+ * e^(leftSlope u) as y -> 0; h(u0, v) is taken at u0 + v with the offset v exact (as dnchisqLogNear does for f_Y), so
+ * that the integrand keeps its accuracy however narrow its peak is in u. The mode is found by a golden-section search,
+ * then the integral of exp(L(u) - L(mode)) is taken outwards from it on both sides over intervals of doubling width,
+ * each by the adaptive Kronrod rule: upwards until the integrand is below 1e-17 of the sum relative to the rate at
+ * which it falls (the secant over the last interval, which overestimates the rest for a log-concave integrand),
+ * downwards the same for leftSlope > 1/2, otherwise to the smallest double and the exponential tail beyond. The
+ * relative accuracy is that of L(u) - L(mode), about 1e-16 |L(mode)|.
+ */
+function integralLog(a: number, ncp: number, h: (u0: number, v: number) => number, b: number, leftSlope: number): number {
+  // L at u0 + v, with the density of Y and h taken at the exact offset v from y0 = e^u0 (dnchisqLogNear)
+  const near = (u0: number, v: number): number => {
+    const l = dnchisqLogNear(Math.exp(u0), v, 2 * a, ncp) + h(u0, v);
+    return Number.isNaN(l) ? -Infinity : l;
+  };
+  const L = (u: number): number => near(u, 0);
+  // Golden-section search for the mode. Far from the mode of Y (about log(2a + λ)) L can be constant to the double
+  // (-λ/2 + O(sqrt(λ y)) for y << λ = 1e22); equal values there send the search towards it
+  const uy = Math.log(2 * a + ncp);
+  const g = (3 - Math.sqrt(5)) / 2;
+  let lo = U_MIN;
+  let hi = U_MAX;
+  let c = lo + g * (hi - lo);
+  let d = hi - g * (hi - lo);
+  let fc = L(c);
+  let fd = L(d);
+  // (where L is beyond 1e18 only L(mode) is wanted, to its rounding of 1e-16 |L|: a u to 1e-8 gives that)
+  const tol = (): number => (Math.abs(fc) > 1e18 ? 1e-8 : 1e-14) * Math.max(1, Math.abs(c));
+  for (let i = 0; i < 300 && hi - lo > tol(); i++) {
+    if (fc > fd || (fc === fd && d > uy)) {
+      hi = d;
+      d = c;
+      fd = fc;
+      c = lo + g * (hi - lo);
+      fc = L(c);
+    } else {
+      lo = c;
+      c = d;
+      fc = fd;
+      d = hi - g * (hi - lo);
+      fd = L(d);
+    }
+  }
+  const [um, lm] = fc >= fd ? [c, fc] : [d, fd];
+  // Beyond 1e18 the rounding of L(mode) alone exceeds any log of the integral of exp(L - L(mode)) (the log of a width)
+  if (!Number.isFinite(lm) || Math.abs(lm) > 1e18) return lm;
+  // The integrand at u = mode + t
+  const f = (t: number): number => {
+    const v = Math.exp(near(um, t) - lm);
+    return Number.isFinite(v) ? v : 0;
+  };
+  // First width: from the curvature at the mode, measured over a step where L falls by about 1 (starting from the
+  // spread of log Y or of log W)
+  const m = 2 * a + ncp;
+  let h0 = Math.min(0.1, (2 * Math.sqrt(a + ncp)) / m, 1 / Math.sqrt(b));
+  let fall = 0;
+  for (let i = 0; i < 30; i++) {
+    fall = 2 * lm - near(um, h0) - near(um, -h0);
+    if (fall < 0.01 && h0 < 1) h0 *= 10;
+    else if (fall > 100) h0 /= 10;
+    else break;
+  }
+  const w0 = fall > 0 && Number.isFinite(fall) ? h0 / Math.sqrt(fall) : h0;
+  let sum = 0;
+  // The integrand is known to about eps |L(mode)| (its rounding noise), and costs a density of Y and a gamma function
+  const control = quadratureControl(Math.max(1e-15, 4 * Number.EPSILON * Math.abs(lm)), 300);
+  // L at the smallest double (computed when needed)
+  let lEnd: number | undefined;
+  for (const dir of [1, -1]) {
+    const end = dir > 0 ? U_MAX - um : um - U_MIN;
+    let s0 = 0;
+    let w = w0;
+    let prev = lm;
+    for (let i = 0; i < 200 && s0 < end; i++) {
+      const s1 = Math.min(s0 + w, end);
+      sum += kronrodAdaptive((t) => f(dir * t), s0, s1, sum, 0, control);
+      const l1 = near(um, dir * s1);
+      const rate = (prev - l1) / (s1 - s0);
+      const rest = rate > 0 ? Math.exp(l1 - lm) / rate : Infinity;
+      // For a small leftSlope the integrand can have a second, flat part towards y = 0 (for a = 1e-20 Y has nearly an
+      // atom e^(-λ/2) at 0), which the fall of the bulk would hide: there the integral goes on until L follows the
+      // power law e^(leftSlope u) down to the smallest double, and the rest is that of the power law
+      if ((dir > 0 || leftSlope > 0.5) && rest <= 1e-17 * sum) break;
+      if (dir < 0 && s1 < end) {
+        lEnd ??= near(um, -end);
+        // (no flat part where even the power law from the smallest double would be negligible)
+        if (rest <= 1e-17 * sum && Math.exp(lEnd - lm) / leftSlope <= 1e-17 * sum) break;
+        const predicted = l1 - leftSlope * (end - s1);
+        if (Number.isFinite(lEnd) && Math.abs(lEnd - predicted) <= 1e-9 * Math.max(1, Math.abs(lEnd))) {
+          sum += Math.exp(l1 - lm) / leftSlope;
+          break;
+        }
+      }
+      // At the lower end of the range (y below the smallest double) add the rest of the tail, exp(L) falling as
+      // e^(leftSlope u) (for a shape of 1e-20 L is constant to the double there, and the rest is most of the integral)
+      if (s1 === end && dir < 0) sum += Math.exp(l1 - lm) / leftSlope;
+      prev = l1;
+      s0 = s1;
+      w *= 2;
+    }
+  }
+  return lm + Math.log(sum);
 }
 
 function validBeta(a: number, b: number, ncp: number): boolean {
@@ -148,6 +478,30 @@ export function pnbeta1(q: number, a: number, b: number, ncp: number, lowerTail:
   return pnbetaRaw(a, b, ncp, xd, xcd, lowerTail, logP);
 }
 
+/** The larger of the relative spreads of Y and W, 2 sqrt(a + λ)/(2a + λ) and 1/sqrt(b) */
+function relativeSpread(a: number, b: number, ncp: number): number {
+  return Math.max((2 * Math.sqrt(a + ncp)) / (2 * a + ncp), 1 / Math.sqrt(b));
+}
+
+/** The distribution function of a quantile search, remembering its values: the searches come back to the same x */
+function memoCdf(f: (x: number, lower: boolean, log: boolean) => number): (x: number, lower: boolean, log: boolean) => number {
+  const cache = new Map<string, number>();
+  return (x, lower, log) => {
+    const key = `${x} ${lower} ${log}`;
+    let v = cache.get(key);
+    if (v === undefined) {
+      v = f(x, lower, log);
+      cache.set(key, v);
+    }
+    return v;
+  };
+}
+
+/** Whether a shape or df is in the range where the central quantile serves as a starting value */
+function inCentralRange(s: number): boolean {
+  return s >= 1e-10 && s <= 1e15;
+}
+
 export function qnbeta1(p: number, a: number, b: number, ncp: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(p) || Number.isNaN(a) || Number.isNaN(b) || Number.isNaN(ncp)) return NaN;
   if (!(a > 0 && b > 0 && ncp >= 0)) return NaN;
@@ -157,19 +511,24 @@ export function qnbeta1(p: number, a: number, b: number, ncp: number, lowerTail:
   if (!validBeta(a, b, ncp)) return NaN;
   if (ncp === 0) return qbeta1(p, a, b, lowerTail, logP);
   const { lower, logTarget, linearTarget } = smallerTail(p, lowerTail, logP);
-  const cdfAt = (x: number, l: boolean, log: boolean): number => {
+  const cdfAt = memoCdf((x, l, log) => {
     const [xd, xcd] = pair(x);
     return pnbetaRaw(a, b, ncp, xd, xcd, l, log);
-  };
+  });
   // If the target is already passed at an end point, the answer is not representable (0 or 1)
   const atMin = cdfAt(Number.MIN_VALUE, lower, true);
   if (lower ? atMin >= logTarget : atMin <= logTarget) return 0;
   const atMax = cdfAt(1 - Number.EPSILON / 2, lower, true);
   if (lower ? atMax < logTarget : atMax > logTarget) return 1;
-  // Starting value: quantile of the approximation Beta(a + λ/2, b) (rather than a mean-matched central beta)
-  let x0 = qbeta1(logTarget, a + ncp / 2, b, lower, true);
+  // Starting value: quantile of the approximation Beta(a + λ/2, b) (rather than a mean-matched central beta); its
+  // mean where the shapes are out of the central quantile's range
+  const central = method(a, b, ncp) === "mixture" && inCentralRange(a) && inCentralRange(b);
+  let x0 = central ? qbeta1(logTarget, a + ncp / 2, b, lower, true) : (a + ncp / 2) / (a + ncp / 2 + b);
   if (!(x0 > 0 && x0 < 1)) x0 = 0.5;
-  return invertContinuous({
+  const passes = (x: number): boolean => (lower ? cdfAt(x, true, true) >= logTarget : cdfAt(x, false, true) <= logTarget);
+  const narrow = relativeSpread(a, b, ncp) < 1e-10 ? narrowQuantile(x0, 1 - Number.EPSILON / 2, passes) : undefined;
+  if (narrow !== undefined) return narrow;
+  const x = invertContinuous({
     logTarget,
     ...(linearTarget !== undefined && { linearTarget }),
     lower,
@@ -180,7 +539,10 @@ export function qnbeta1(p: number, a: number, b: number, ncp: number, lowerTail:
     lo: 0,
     hi: 1,
     positive: true,
+    maxIter: 60,
   });
+  const search = (): number => searchDoubles(x, Number.MIN_VALUE, 1 - Number.EPSILON / 2, passes);
+  return confirmQuantile(x, cdfAt(x, lower, true), logTarget, search);
 }
 
 // ---- Noncentral F ----
@@ -305,24 +667,33 @@ export function qnf1(p: number, m: number, n: number, ncp: number, lowerTail: bo
 
 function qnfRaw(p: number, m: number, n: number, ncp: number, lowerTail: boolean, logP: boolean): number {
   const { lower, logTarget, linearTarget } = smallerTail(p, lowerTail, logP);
-  const atMin = pnfRaw(Number.MIN_VALUE, m, n, ncp, lower, true);
+  const cdfAt = memoCdf((x, l, log) => pnfRaw(x, m, n, ncp, l, log));
+  const atMin = cdfAt(Number.MIN_VALUE, lower, true);
   if (lower ? atMin >= logTarget : atMin <= logTarget) return 0;
-  const atMax = pnfRaw(Number.MAX_VALUE, m, n, ncp, lower, true);
+  const atMax = cdfAt(Number.MAX_VALUE, lower, true);
   if (lower ? atMax < logTarget : atMax > logTarget) return Infinity;
-  // Starting value: Patnaik's approximation (m + λ)/m F(ν, n), ν = (m + λ)^2/(m + 2λ)
-  const nu = ((m + ncp) * (m + ncp)) / (m + 2 * ncp);
-  let x0 = ((m + ncp) / m) * qf1(logTarget, nu, n, lower, true);
+  // Starting value: Patnaik's approximation (m + λ)/m F(ν, n), ν = (m + λ)^2/(m + 2λ); (m + λ)/m (the ratio of the
+  // means of the χ² variables per degree of freedom) where the parameters are out of the central quantile's range
+  const nu = (m + ncp) * ((m + ncp) / (m + 2 * ncp));
+  const central = method(m / 2, n / 2, ncp) === "mixture" && inCentralRange(m) && inCentralRange(n);
+  let x0 = ((m + ncp) / m) * (central ? qf1(logTarget, nu, n, lower, true) : 1);
   if (!(x0 > 0) || !Number.isFinite(x0)) x0 = 1;
-  return invertContinuous({
+  const passes = (x: number): boolean => (lower ? cdfAt(x, true, true) >= logTarget : cdfAt(x, false, true) <= logTarget);
+  const narrow = relativeSpread(m / 2, n / 2, ncp) < 1e-10 ? narrowQuantile(x0, Number.MAX_VALUE, passes) : undefined;
+  if (narrow !== undefined) return narrow;
+  const x = invertContinuous({
     logTarget,
     ...(linearTarget !== undefined && { linearTarget }),
     lower,
-    cdf: (x, l) => pnfRaw(x, m, n, ncp, l, false),
-    cdfLog: (x, l) => pnfRaw(x, m, n, ncp, l, true),
+    cdf: (x, l) => cdfAt(x, l, false),
+    cdfLog: (x, l) => cdfAt(x, l, true),
     pdfLog: (x) => dnfCore(x, m, n, ncp, true),
     x0,
     lo: 0,
     hi: Infinity,
     positive: true,
+    maxIter: 60,
   });
+  const search = (): number => searchDoubles(x, Number.MIN_VALUE, Number.MAX_VALUE, passes);
+  return confirmQuantile(x, cdfAt(x, lower, true), logTarget, search);
 }

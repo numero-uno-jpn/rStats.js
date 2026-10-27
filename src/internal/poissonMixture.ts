@@ -100,6 +100,9 @@ function fromValue(lin: number, logv: () => number | DD): Scaled {
   if (hi === -Infinity) return ZERO;
   if (Number.isNaN(hi)) return { h: NaN, l: 0, k: 0 };
   const k = Math.round(hi / LN_UNIT);
+  // Beyond 2^50 units the exponent k is not resolved to the integer (the log of the value, about -1e18 or less, is known
+  // only to a few units itself), so the remainder would be meaningless: keep the exponent alone
+  if (Math.abs(k) > 2 ** 50) return norm(1, 0, k, true);
   const r = ddAdd([hi, lo], ddMul(LN_UNIT_DD, [-k, 0]));
   const m = Math.exp(r[0]);
   return typeof lv === "number" ? norm(m, 0, k, true) : norm(m, m * r[1], k);
@@ -154,8 +157,12 @@ function mul(a: Scaled, b: Scaled): Scaled {
   return norm(p[0], p[1], a.k + b.k, a.approx === true || b.approx === true);
 }
 
-/** Multiply by 2^(E (from - to)) to align to exponent to (to >= from) */
+/**
+ * Multiply by 2^(E (from - to)) to align to exponent to (to >= from). The mantissa is below 2^1024, so from three
+ * steps on the result is 0 (the exponents can differ by 1e40 when a term is e^-1e42)
+ */
 function shift(h: number, l: number, from: number, to: number): DD {
+  if (to - from >= 3) return [0, 0];
   for (let i = from; i < to && h !== 0; i++) {
     h *= DOWN;
     l *= DOWN;
@@ -203,6 +210,13 @@ class ScaledSum {
     else this.c += x - t + this.s;
     this.s = t;
   }
+  get positive(): boolean {
+    return this.s + this.c > 0;
+  }
+  /** The sum as a Scaled value (not normalised) */
+  get scaled(): Scaled {
+    return { h: this.s + this.c, l: 0, k: this.k };
+  }
   get log(): number {
     const v = this.s + this.c;
     if (Number.isNaN(v)) return NaN;
@@ -210,8 +224,9 @@ class ScaledSum {
   }
   get linear(): number {
     let v = this.s + this.c;
-    for (let i = 0; i < this.k; i++) v *= UP;
-    for (let i = 0; i > this.k && v !== 0; i--) v *= DOWN;
+    // From five steps on the value has overflowed or underflowed (the exponent can be of order 1e40)
+    for (let i = 0; i < Math.min(this.k, 5); i++) v *= UP;
+    for (let i = 0; i > Math.max(this.k, -5) && v !== 0; i--) v *= DOWN;
     return v;
   }
   value(log: boolean): number {
@@ -226,8 +241,12 @@ class ScaledSum {
   }
 }
 
+/** Above this mean the starts are searched for on the log scale (the walk below takes about 10 sqrt(mu) steps) */
+const WALK_START = 1e8;
+
 /** Start of the lower sum: J such that Pois(> J) <= 3e-21 Pois(mode) */
 function upperStart(mu: number): number {
+  if (mu > WALK_START) return startSearch(mu, 1);
   let j = Math.floor(mu);
   let r = 1;
   for (;;) {
@@ -239,6 +258,7 @@ function upperStart(mu: number): number {
 
 /** Start of the upper sum: J such that Pois(< J) <= 3e-21 Pois(mode) */
 function lowerStart(mu: number): number {
+  if (mu > WALK_START) return startSearch(mu, -1);
   let j = Math.floor(mu);
   let r = 1;
   while (j > 0) {
@@ -250,13 +270,54 @@ function lowerStart(mu: number): number {
 }
 
 /**
+ * The starts of upperStart (dir = 1) and lowerStart (dir = -1) for a large mean, by bisection on the log of the pmf
+ * relative to the mode: the first J beyond which the Poisson tail, bounded by the geometric series of the pmf ratio, is
+ * below 3e-21 of the mode. The ratio pmf(j ± 1)/pmf(j) is at most mu/(j + 1) (dir = 1) or j/mu (dir = -1) there.
+ */
+function startSearch(mu: number, dir: 1 | -1): number {
+  const mode = Math.floor(mu);
+  const lm = dpoisRaw(mode, mu, true);
+  const ok = (j: number): boolean => {
+    const next = j + dir;
+    if (next < 0) return true;
+    const r = dir > 0 ? mu / (j + 2) : (j - 1) / mu;
+    return dpoisRaw(next, mu, true) - lm - Math.log1p(-r) < Math.log(3e-21);
+  };
+  // About 10 standard deviations; double the offset until it is far enough, then bisect
+  let lo = 0;
+  let hi = Math.ceil(10 * Math.sqrt(mu));
+  while (!ok(mode + dir * hi)) {
+    lo = hi;
+    hi *= 2;
+  }
+  for (let i = 0; i < 200 && hi - lo > 1; i++) {
+    const m = Math.floor((lo + hi) / 2);
+    if (m <= lo || m >= hi) break;
+    if (ok(mode + dir * m)) hi = m;
+    else lo = m;
+  }
+  return Math.max(0, mode + dir * hi);
+}
+
+/**
  * Whether, after the peak (terms have started decreasing), the sum of the remaining terms is within relative TOL.
  * By log-concavity the rest is bounded by the geometric series term r/(1-r) with ratio r = term/prev (compared on the log scale).
+ * prev is ZERO before the first term
  */
-function negligible(lt: number, lprev: number, lsum: number): boolean {
-  if (lsum === -Infinity || !(lt < lprev)) return false;
-  const lr = lt - lprev;
-  return lt + lr - Math.log(-Math.expm1(lr)) <= LOG_TOL + lsum;
+function negligible(t: Scaled, prev: Scaled, sum: ScaledSum): boolean {
+  const lr = logRatio(t, prev);
+  if (!(lr < 0) || !sum.positive) return false;
+  return logRatio(t, sum.scaled) + lr - Math.log(-Math.expm1(lr)) <= LOG_TOL;
+}
+
+/**
+ * log(a/b), from the mantissas and the difference of the exponents: the logs themselves lose their fraction when a term
+ * is as small as e^-1e34 (then every term would compare equal to the previous one)
+ */
+function logRatio(a: Scaled, b: Scaled): number {
+  if (a.h === 0) return b.h === 0 ? NaN : -Infinity;
+  if (b.h === 0) return Infinity;
+  return Math.log(a.h / b.h) + (a.l / a.h - b.l / b.h) + (a.k - b.k) * LN_UNIT;
 }
 
 function weight(j: number, mu: number): Scaled {
@@ -285,12 +346,14 @@ function logTerm(k: MixtureKernel, mu: number, j: number, lower: boolean): numbe
 
 /** Maximiser of a unimodal f on [lo, hi] (integer ternary search) */
 function argmax(f: (j: number) => number, lo: number, hi: number): number {
-  while (hi - lo > 2) {
+  // (beyond 2^53 the thirds may round to the ends, so the iterations are bounded)
+  for (let i = 0; i < 3000 && hi - lo > 2; i++) {
     const m1 = Math.floor(lo + (hi - lo) / 3);
     const m2 = Math.ceil(hi - (hi - lo) / 3);
     if (f(m1) < f(m2)) lo = m1;
     else hi = m2;
   }
+  if (hi - lo > 2) return Math.round((lo + hi) / 2);
   let best = lo;
   for (let j = lo + 1; j <= hi; j++) if (f(j) > f(best)) best = j;
   return best;
@@ -324,13 +387,13 @@ function sumLower(mu: number, k: MixtureKernel): ScaledSum {
   let w = weight(J, mu);
   let d = J > 0 ? increment(k, J - 1) : ZERO;
   const sum = new ScaledSum();
-  let prev = -Infinity;
+  let prev: Scaled = ZERO;
   for (let j = J; j >= 0; j--) {
     const t = mul(w, p);
-    const lt = logOf(t);
     sum.add(t);
-    if (negligible(lt, prev, sum.log)) break;
-    prev = lt;
+    // (a NaN term, from a component out of its range, ends the sum: the result is NaN, not a loop to MAX_TERMS)
+    if (negligible(t, prev, sum) || Number.isNaN(t.h)) break;
+    prev = t;
     if (j === 0) break;
     // P_{j-1} = P_j + d_{j-1}, w_{j-1} = w_j j/μ, d_{j-2} = d_{j-1} / (d_{j-1}/d_{j-2})
     p = add(p, d);
@@ -348,21 +411,20 @@ function sumUpper(mu: number, k: MixtureKernel): ScaledSum {
     let w = weight(J, mu);
     let d = increment(k, J);
     const sum = new ScaledSum();
-    let prev = -Infinity;
+    let prev: Scaled = ZERO;
     let restart = -1;
     for (let j = J; j < J + MAX_TERMS; j++) {
       const t = mul(w, q);
-      const lt = logOf(t);
       sum.add(t);
-      if (negligible(lt, prev, sum.log)) break;
-      if (lt === -Infinity && j > mu + 50 && j > J + 50) break; // all later terms are 0 too
-      if (!searched && j - J >= LONG_WALK && lt >= prev) {
+      if (negligible(t, prev, sum) || Number.isNaN(t.h)) break;
+      if (t.h === 0 && j > mu + 50 && j > J + 50) break; // all later terms are 0 too
+      if (!searched && j - J >= LONG_WALK && !(logRatio(t, prev) < 0)) {
         // Not past the peak yet (Q_j grows rapidly with j: x far to the right of the mean).
         // Find an upper bound bracketing the peak by doubling and restart from slightly below the peak
         const f = (i: number): number => logTerm(k, mu, i, false);
         const fj = f(j);
         let hi = j + 1;
-        for (let step = 1; f(hi) >= fj; step *= 2) hi = j + step;
+        for (let step = 1; f(hi) >= fj && step < 2 ** 60; step *= 2) hi = j + step;
         const r = farEdge(f, argmax(f, j, hi), -1, j);
         searched = true;
         if (r > j) {
@@ -370,7 +432,7 @@ function sumUpper(mu: number, k: MixtureKernel): ScaledSum {
           break;
         }
       }
-      prev = lt;
+      prev = t;
       // Q_{j+1} = Q_j + d_j, w_{j+1} = w_j μ/(j+1), d_{j+1} = d_j (d_{j+1}/d_j)
       q = add(q, d);
       w = refresh(mulDD(w, ddDivNum([mu, 0], j + 1)), () => weight(j + 1, mu));
@@ -402,29 +464,27 @@ export function mixtureDensity(
   // Upward
   let w = w0;
   let d = d0;
-  let prev = -Infinity;
+  let prev: Scaled = ZERO;
   for (let j = j0; j < j0 + MAX_TERMS; j++) {
     const t = mulDD(mul(w, d), [coef(j), 0]);
-    const lt = logOf(t);
     sum.add(t);
-    if (negligible(lt, prev, sum.log)) break;
-    if (lt === -Infinity && j > mu + 50 && j > j0 + 50) break; // all later terms are 0 too
-    prev = lt;
+    if (negligible(t, prev, sum) || Number.isNaN(t.h)) break;
+    if (t.h === 0 && j > mu + 50 && j > j0 + 50) break; // all later terms are 0 too
+    prev = t;
     w = refresh(mulDD(w, ddDivNum([mu, 0], j + 1)), () => weight(j + 1, mu));
     d = d.h === 0 ? increment(kernel, j + 1) : refresh(mulRatio(d, kernel, j + 1), () => increment(kernel, j + 1));
   }
   // Downward
   w = w0;
   d = d0;
-  prev = -Infinity;
+  prev = ZERO;
   for (let j = j0 - 1; j >= 0; j--) {
     w = refresh(mulDD(w, ddDivNum([j + 1, 0], mu)), () => weight(j, mu));
     d = d.h === 0 ? increment(kernel, j) : refresh(divRatio(d, kernel, j + 1), () => increment(kernel, j));
     const t = mulDD(mul(w, d), [coef(j), 0]);
-    const lt = logOf(t);
     sum.add(t);
-    if (negligible(lt, prev, sum.log)) break;
-    prev = lt;
+    if (negligible(t, prev, sum) || Number.isNaN(t.h)) break;
+    prev = t;
   }
   sum.divideBy(divisor);
   return sum.value(log);

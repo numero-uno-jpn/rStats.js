@@ -433,44 +433,57 @@ export const knownViolations: KnownViolation[] = [
     }),
   ),
   // ---- noncentral χ², F, beta; Tukey ----
-  ...(
-    [
-      ["nchisq", ["df", "ncp"], "qchisq(-540.03, 12.208291652901835, { ncp: 3.6217639322648935e+30, logP: true }), dchisq(2.74411393140549e+62, 249793.9932751507, { ncp: 5.444811654742161e-245 })"],
-      ["nf", ["df1", "df2", "ncp"], "qf(9.423429403249297e-250, 1.8411616538629063, 3.908407098865747e+188, { ncp: 198.72404032716406, lowerTail: false }), qf(0.07404623872624663, 2, 0.38811687804355227, { ncp: 6.39113448329404e+269, lowerTail: false })"],
-      ["nbeta", ["shape1", "shape2", "ncp"], "qbeta(4.8413814407701786e-293, 3.977300675482711e+243, 2, { ncp: 0 }), qbeta(5.3577955561017315e-43, 79.32204890240992, 0.09403994879604119, { ncp: 1.245630132105305e+22 })"],
-    ] as const
-  ).map(
-    ([family, keys, examples]): KnownViolation => ({
-      family,
-      property: ALL,
-      match: on(/./, (pr) => extreme(pr, keys, 1e-10, 1e10)),
-      reason:
-        `parameters beyond [1e-10, 1e10]: calls not made in the test, since many do not return (${examples}); the fuzz ` +
-        "script finds NaN, values outside [0, 1] and TypeErrors there too",
-      exclude: (_kind, _x, pr) => extreme(pr, keys, 1e-10, 1e10),
-    }),
-  ),
   {
-    family: "nchisq",
-    property: "time",
-    match: on(/chisq$/, (pr, x) => x * pr.ncp! > 4e18),
+    family: "nbeta",
+    property: ALL,
+    match: on(/beta$/, (pr) => pr.ncp! > 0 && extreme(pr, ["shape1", "shape2"], 1e-10, 1e10)),
     reason:
-      "pchisq with ncp does not return in the Bessel branch (x ncp > 4e18) for large df: pchisq(1.1e10, 1e10, { ncp: 1e9 }) " +
-      "and pchisq(2.0003e9, 3e5, { ncp: 2e9 }) (over 15 s; 40 ms for df up to 1e5); qchisq takes 1-2 s for ncp around " +
-      "2e9 (qchisq(1e-100, 1e4, { ncp: 2e9 })); not made in the test",
-    exclude: (kind, x, pr) => (kind === "q" ? pr.ncp! > 1e8 : kind === "p" && x * pr.ncp! > 4e18 && pr.df! > 5e4),
+      "shapes beyond [1e-10, 1e10] (ncp > 0): for tiny shapes the mixture's central incomplete beta function is off " +
+      "(pbeta(0.0694, 7.39e-69, 8.94, { ncp: 105.43, lowerTail: false }) is 1.0000000000000002; the two tails of " +
+      "pbeta(6.3e-135, 3.8e-291, 3.92e-190, { ncp: 0.0121 }) add up to 0.503; pbeta(1.83e-241, 1.59e-262, 3.96e-163, " +
+      "{ ncp: 2800.9 }) is NaN) or throws TypeError in ddLog; where both shapes are huge, the integral over Y does not " +
+      "resolve their relative spreads of 1e-92: both tails of pbeta(8.46e-245, 1.77e183, 4.15e186, { ncp: 1 }) are 0",
+    examples: [{ params: { shape1: 7.394731865684941e-69, shape2: 8.939495036867422, ncp: 105.42996507071281 }, x: [0.06935494532808661] }],
   },
   {
-    family: "nchisq",
-    property: "range",
-    match: on(/^dchisq$/, (pr, x) => x * pr.ncp! > 4e18),
+    family: "nf",
+    property: ALL,
+    match: on(/^[dpq]f$/, (pr) => pr.ncp! > 0 && extreme(pr, ["df1", "df2"], 1e-10, 1e10)),
     reason:
-      "dchisq with ncp is NaN in the Bessel branch for large df: dchisq(1.1e10, 1e10, { ncp: 1e9, log: true }) and " +
-      "dchisq(2.0001e9, 1e6, { ncp: 2e9, log: true }) are NaN",
-    examples: [
-      { params: { df: 1e10, ncp: 1e9 }, x: [1.1e10] },
-      { params: { df: 1e6, ncp: 2e9 }, x: [2.0001e9] },
-    ],
+      "df beyond [1e-10, 1e10] (ncp > 0), through the noncentral beta (as for nbeta): pf(7.33e-248, 1.14e-218, 1, " +
+      "{ ncp: 12.34, lowerTail: false, logP: true }) is -0.0020873, log of the linear value -0.0020895; " +
+      "pf(7.67e-114, 4.79e-248, 5.62e-71, { ncp: 1 }) is NaN; TypeError in ddLog for tiny df; df is NaN for a huge df1 " +
+      "with a tiny df2 (df(8.5e147, 4.97e118, 1.04e-57, { ncp: 4.01e87 }))",
+    examples: [{ params: { df1: 1.1415699806958447e-218, df2: 1, ncp: 12.343768528437282 }, x: [7.327311511990816e-248] }],
+  },
+  // ncp = 0 is the central distribution (computed by the central functions, src/distributions/{chisq,beta,f}.ts): the
+  // central entries above apply, with the same calls not made
+  {
+    family: "nchisq",
+    property: ALL,
+    match: on(/chisq$/, (pr) => pr.ncp === 0 && pr.df! > 1e15),
+    reason: "ncp = 0 with huge df: the central χ² (see the chisq entry above): qchisq throws TypeError or is slow",
+    examples: [{ params: { df: 8.697626929131906e252, ncp: 0 }, x: [3.161055179390935e256] }],
+    exclude: (kind, _x, pr) => kind === "q" && pr.ncp === 0 && pr.df! > 1e15,
+  },
+  {
+    family: "nbeta",
+    property: ALL,
+    match: on(/beta$/, (pr) => pr.ncp === 0 && extreme(pr, ["shape1", "shape2"], 1e-10, 1e15)),
+    reason: "ncp = 0 with extreme shapes: the central beta (see the beta entries above)",
+    examples: [{ params: { shape1: 1.0352246639693515e190, shape2: 6.2918828463792074e193, ncp: 0 }, x: [5.120716175636001e-280] }],
+    exclude: (kind, _x, pr) => kind === "q" && pr.ncp === 0 && (pr.shape1! > 1e15 || pr.shape2! > 1e15),
+  },
+  {
+    family: "nf",
+    property: ALL,
+    match: on(/^[dpq]f$/, (pr) => pr.ncp === 0 && extreme(pr, ["df1", "df2"], 1e-10, 1e15)),
+    reason: "ncp = 0 with extreme df: the central F (see the f entry above)",
+    examples: [{ params: { df1: 1.5352254500141903e186, df2: 99.33785701936728, ncp: 0 }, x: [5.925999535882428e-161] }],
+    exclude: (kind, _x, pr) =>
+      pr.ncp === 0 &&
+      (kind === "q" || pr.df1! > 1e100 || (pr.df1! > 1e15 && pr.df2! < 1e-10)) &&
+      extreme(pr, ["df1", "df2"], 1e-10, 1e15),
   },
   {
     family: "tukey",

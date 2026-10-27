@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { dchisq, dnorm, pchisq, pnorm, qchisq } from "../src/index.js";
+import { dchisq, dnorm, pchisq, pnorm, qchisq, qnorm } from "../src/index.js";
+import { ddAdd, ddDiv, twoProd, twoSum, type DD } from "../src/special/dd.js";
 import { bool, num, relativeError } from "./helpers/fixture.js";
 import { fixtureSuite } from "./helpers/suite.js";
 
@@ -79,15 +80,26 @@ describe("noncentral χ² distribution function for x λ > 4e18", () => {
 
   /**
    * Exact for k = 1: X = (Z + sqrt(λ))², so P[X <= x] = Φ(a) - Φ(-sqrt(x) - sqrt(λ)) with a = sqrt(x) - sqrt(λ),
-   * written a = (x - λ)/(sqrt(x) + sqrt(λ)) to avoid cancellation
+   * written a = (x - λ)/(sqrt(x) + sqrt(λ)) to avoid cancellation, with the roots in double-double: their rounding
+   * would put a relative error of 1e-16 into a, 1e-14 into the tail at a = 10. The tail at a = ah + al is that at ah
+   * corrected by the first-order term φ(ah) al
    */
   function df1(x: number, ncp: number, lowerTail: boolean, logP: boolean): number {
-    const a = (x - ncp) / (Math.sqrt(x) + Math.sqrt(ncp));
+    const root = (v: number): DD => {
+      const r = Math.sqrt(v);
+      const [p, e] = twoProd(r, r);
+      return [r, (v - p - e) / (2 * r)];
+    };
+    const [ah, al] = ddDiv(twoSum(x, -ncp), ddAdd(root(x), root(ncp)));
+    const lt = pnorm(ah, { lowerTail, logP: true }) as number;
+    // (the correction relative to the tail, and the tail itself linear: its exp would lose |log| ulps)
+    const rel = (lowerTail ? al : -al) * Math.exp((dnorm(ah, { log: true }) as number) - lt);
+    const ta = (pnorm(ah, { lowerTail }) as number) * (1 + rel);
     const b = -Math.sqrt(x) - Math.sqrt(ncp);
     const pb = pnorm(b) as number;
     // Φ(b) is below the double range here, so the tails are those of the normal at a
-    if (pb === 0) return pnorm(a, { lowerTail, logP }) as number;
-    const v = lowerTail ? (pnorm(a) as number) - pb : (pnorm(a, { lowerTail: false }) as number) + pb;
+    if (pb === 0) return logP ? lt + Math.log1p(rel) : ta;
+    const v = lowerTail ? ta - pb : ta + pb;
     return logP ? Math.log(v) : v;
   }
 
@@ -122,15 +134,22 @@ describe("noncentral χ² distribution function for x λ > 4e18", () => {
     return b[0]!;
   }
 
-  it("is continuous where the Poisson mixture series hands over (λ x = 4e18)", () => {
+  it("is continuous where the Poisson mixture series hands over to the large-argument expansion", () => {
     for (const df of [1, 5, 50]) {
+      // The expansion is used for sqrt(λ x) > 1e4 where ν² <= sqrt(λ x)/100 (ν = df/2 - 1): from λ x = zs²
+      const nu = df / 2 - 1;
+      const zs = Math.max(1e4, 100 * nu * nu);
+      const expansion = (x: number, ncp: number): boolean => {
+        const zx = Math.sqrt(ncp) * Math.sqrt(x);
+        return zx > 1e4 && nu * nu <= zx / 100;
+      };
       for (const z of [-3, 0, 3]) {
         // λ with x = (sqrt(λ) + z)² at the threshold, and the last x for the series
-        let ncp = 2e9;
-        for (let i = 0; i < 5; i++) ncp = 4e18 / (Math.sqrt(ncp) + z) ** 2;
-        let below = 4e18 / ncp;
-        while ((ncp / 2) * (below / 2) > 1e18) below = nextDouble(below, false);
-        while ((ncp / 2) * (nextDouble(below, true) / 2) <= 1e18) below = nextDouble(below, true);
+        let ncp = zs;
+        for (let i = 0; i < 20; i++) ncp = (zs * zs) / (Math.sqrt(ncp) + z) ** 2;
+        let below = (zs * zs) / ncp;
+        while (expansion(below, ncp)) below = nextDouble(below, false);
+        while (!expansion(nextDouble(below, true), ncp)) below = nextDouble(below, true);
         const above = nextDouble(below, true);
         // The smaller tail, carried from below to above along the density (its second-order change is far below 1e-16)
         const lowerTail = z <= 0;
@@ -162,5 +181,52 @@ describe("noncentral χ² distribution function for x λ > 4e18", () => {
         }
       }
     }
+  });
+});
+
+describe("noncentral χ² with a large df or extreme parameters (regressions)", () => {
+  /** The neighbouring double of x */
+  function nextDouble(x: number, up: boolean): number {
+    const b = new Float64Array([x]);
+    const i = new BigInt64Array(b.buffer);
+    i[0]! += up ? 1n : -1n;
+    return b[0]!;
+  }
+
+  it("gives the log density where the large-argument expansion fails (ν² >> sqrt(λ x)), against mpmath", () => {
+    // These were NaN. References: the Poisson mixture summed at 80 digits by mpmath
+    expect(relativeError(dchisq(2.0001e9, 1e6, { ncp: 2e9, log: true }) as number, -62.94381384181123)).toBeLessThanOrEqual(1e-14);
+    expect(relativeError(dchisq(1.1e10, 1e10, { ncp: 1e9, log: true }) as number, -12.86959836686902)).toBeLessThanOrEqual(1e-14);
+  });
+
+  it("returns the distribution function for a large df (these did not return)", () => {
+    for (const [x, df, ncp] of [
+      [1.1e10, 1e10, 1e9],
+      [2.0003e9, 3e5, 2e9],
+    ] as const) {
+      const lo = pchisq(x, df, { ncp }) as number;
+      const hi = pchisq(x, df, { ncp, lowerTail: false }) as number;
+      expect(Math.abs(lo + hi - 1)).toBeLessThanOrEqual(2e-16);
+      // Near the centre: against the normal approximation (skewness below 1e-4), and the slope against the density
+      const sd = Math.sqrt(2 * (df + 2 * ncp));
+      expect(Math.abs(lo - (pnorm((x - df - ncp) / sd) as number))).toBeLessThan(1e-4);
+      const h = 1e-3 * sd;
+      const diff = ((pchisq(x + h, df, { ncp }) as number) - (pchisq(x - h, df, { ncp }) as number)) / (2 * h);
+      expect(relativeError(diff, dchisq(x, df, { ncp }) as number)).toBeLessThanOrEqual(1e-6);
+    }
+  });
+
+  it("returns at extreme parameters (these did not return)", () => {
+    // λ = 3.6e30: X = (Z + sqrt(λ))² to far below the double resolution of sqrt(λ)
+    const x = qchisq(-540.03, 12.208291652901835, { ncp: 3.6217639322648935e30, logP: true }) as number;
+    const ref = (Math.sqrt(3.6217639322648935e30) + (qnorm(-540.03, { logP: true }) as number)) ** 2;
+    expect(relativeError(x, ref)).toBeLessThanOrEqual(1e-14);
+    // A tiny λ: the central density (it summed terms until an exponent of 1e34 lost its fraction)
+    expect(dchisq(2.743545666032594e34, 2, { ncp: 2.546231756044769e-216, log: true })).toBe(dchisq(2.743545666032594e34, 2, { log: true }));
+    // A relative spread below the double resolution: the distribution function steps at one double
+    const [p, df] = [5.7285590455359545e-12, 5.345349749112763e64];
+    const q = qchisq(p, df, { ncp: 1 }) as number;
+    expect(pchisq(q, df, { ncp: 1 })).toBeGreaterThanOrEqual(p);
+    expect(pchisq(nextDouble(q, false), df, { ncp: 1 })).toBeLessThan(p);
   });
 });

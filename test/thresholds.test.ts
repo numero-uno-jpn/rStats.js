@@ -46,6 +46,7 @@ import {
   qbeta,
   qbinom,
   qcauchy,
+  qchisq,
   qf,
   qgamma,
   qhyper,
@@ -131,7 +132,7 @@ interface CheckCase {
 type Case = PairCase | ExtrapCase | SweepCase | CheckCase;
 
 interface Entry {
-  /** file:line in src (as of commit 71aaadb) */
+  /** file:line in src (as of commit 71aaadb; the nchisq.ts, nbeta.ts and poissonMixture.ts entries as revised with them) */
   where: string;
   /** Public functions affected */
   fns: string;
@@ -1592,7 +1593,7 @@ function upperStart(mu: number): number {
 
 const NBETA: Entry[] = [
   {
-    where: "distributions/nbeta.ts:31",
+    where: "distributions/nbeta.ts:37",
     fns: "pbeta, dbeta, qbeta with ncp",
     condition: "x < 1e-250",
     methods: "term ratio as is | scaled by 2^500",
@@ -1603,18 +1604,23 @@ const NBETA: Entry[] = [
     ],
   },
   {
-    where: "distributions/nbeta.ts:49",
+    where: "distributions/nbeta.ts:44, :62, :74",
     fns: "pbeta, dbeta, qbeta with ncp",
-    condition: "x and 1 - x > 1e-305 (log of the increment)",
+    condition: "x and 1 - x > 1e-305, shapes s = a + j and b > 1e-10 (log of the increment)",
     methods: "-log B(s, b) - log s + s log x + b log(1 - x) | Loader's form",
-    point: "x = 1e-305 at a = 0.5, b = 3, ncp = 5 (log scale)",
-    cases: () => [
-      ...pPairs("pbeta(x, 0.5, 3, ncp 5)", pbn(0.5, 3, 5), up(1e-305), { tails: TAILS.slice(2) }),
-      pair("dbeta(x, 0.5, 3, ncp 5, log)", (x) => dbeta(x, 0.5, 3, { ncp: 5, log: true }), up(1e-305)),
-    ],
+    point: "x = 1e-305 at a = 0.5, b = 3, ncp = 5 (log scale); b = 1e-10 at x = 0.5, a = 2, ncp = 5",
+    cases: () => {
+      const ab = flipPoint((b) => b > 1e-10, 5e-11, 2e-10);
+      return [
+        ...pPairs("pbeta(x, 0.5, 3, ncp 5)", pbn(0.5, 3, 5), up(1e-305), { tails: TAILS.slice(2) }),
+        pair("dbeta(x, 0.5, 3, ncp 5, log)", (x) => dbeta(x, 0.5, 3, { ncp: 5, log: true }), up(1e-305)),
+        ...pPairs("pbeta(0.5, 2, b, ncp 5)", (b, t) => pbeta(0.5, 2, b, { ncp: 5, ...t }), ab),
+        ...dPairs("dbeta(0.5, 2, b, ncp 5)", (b, log) => dbeta(0.5, 2, b, { ncp: 5, log }), ab),
+      ];
+    },
   },
   {
-    where: "distributions/nbeta.ts:94",
+    where: "distributions/nbeta.ts:114",
     fns: "pbeta, pf with ncp (log)",
     condition: "linear value >= 1e-280",
     methods: "sum on the log scale | log of the linear sum",
@@ -1622,7 +1628,113 @@ const NBETA: Entry[] = [
     cases: () => [pair("pbeta(x, 2, 3, ncp 5, lower log)", (x) => pbeta(x, 2, 3, { ncp: 5, logP: true }), flipPoint((x) => pbeta(x, 2, 3, { ncp: 5 }) >= 1e-280, 1e-142, 1e-138))],
   },
   {
-    where: "distributions/nbeta.ts:200, :222, :260",
+    where: "distributions/nbeta.ts:168 (λ/2 > 1e6)",
+    fns: "pbeta, dbeta, qbeta, pf, df, qf with ncp",
+    condition: "λ/2 > 1e6",
+    methods: "Poisson mixture | integral over log y of f_Y(y) P[W >< y k] (integralLog)",
+    point: "ncp = 2e6 at a = 3.5, b = 0.7, x = 1 - 2e-6 (near the mean)",
+    cases: () => {
+      const ab = flipPoint((l) => l / 2 > 1e6, 1.9e6, 2.1e6);
+      return [...pPairs("pbeta(1 - 2e-6, 3.5, 0.7, ncp)", (l, t) => pbeta(1 - 2e-6, 3.5, 0.7, { ncp: l, ...t }), ab), ...dPairs("dbeta(1 - 2e-6, 3.5, 0.7, ncp)", (l, log) => dbeta(1 - 2e-6, 3.5, 0.7, { ncp: l, log }), ab)];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:168 (b > 1e15)",
+    fns: "pbeta, dbeta, qbeta, pf, df, qf with ncp",
+    condition: "a or b > 1e15 (the central incomplete beta function does not return for some such shapes)",
+    methods: "Poisson mixture | integral over log y",
+    point: "b = 1e15 at a = 2, ncp = 5, x = 4.5e-15 (b x near the mean of Y/2)",
+    cases: () => {
+      const ab = flipPoint((b) => b > 1e15, 0.9e15, 1.1e15);
+      return [...pPairs("pbeta(4.5e-15, 2, b, ncp 5)", (b, t) => pbeta(4.5e-15, 2, b, { ncp: 5, ...t }), ab), ...dPairs("dbeta(4.5e-15, 2, b, ncp 5)", (b, log) => dbeta(4.5e-15, 2, b, { ncp: 5, log }), ab)];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:163",
+    fns: "pbeta, dbeta, qbeta, pf, df, qf with ncp",
+    condition: "b > 1e20 s², s = a + λ/2 + 10 sqrt(λ/2) + 10",
+    methods: "integral over log y | P[Y <= -2b log(1 - x)] (the components' gamma limit)",
+    point: "b at the condition for a = 2, ncp = 5 (about 9.2e22), x = 4.5 / b",
+    cases: () => {
+      const s = 2 + 2.5 + 10 * Math.sqrt(2.5) + 10;
+      const ab = flipPoint((b) => b > 1e20 * s * s, 1e20 * s * s * 0.9, 1e20 * s * s * 1.1);
+      const x = 4.5 / ab[0];
+      return [...pPairs(`pbeta(${x}, 2, b, ncp 5)`, (b, t) => pbeta(x, 2, b, { ncp: 5, ...t }), ab), ...dPairs(`dbeta(${x}, 2, b, ncp 5)`, (b, log) => dbeta(x, 2, b, { ncp: 5, log }), ab)];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:164",
+    fns: "pbeta, dbeta, qbeta, pf, df, qf with ncp",
+    condition: "2 sqrt(a + λ) (40 sqrt(b) + 750) < 1e-4 (2a + λ)",
+    methods: "integral over log y | expansion of E P(b, Y k/2) about the mean of Y (gammaExpansion)",
+    point: "ncp at the condition for a = 2, b = 3 (about 2.7e14), x = 1 - 6/ncp (near the mean)",
+    cases: () => {
+      const cond = (l: number) => 2 * Math.sqrt(2 + l) * (40 * Math.sqrt(3) + 750) < 1e-4 * (4 + l);
+      const ab = flipPoint(cond, 1e14, 1e15);
+      const x = 1 - 6 / ab[0];
+      return [...pPairs(`pbeta(${x}, 2, 3, ncp)`, (l, t) => pbeta(x, 2, 3, { ncp: l, ...t }), ab), ...dPairs(`dbeta(${x}, 2, 3, ncp)`, (l, log) => dbeta(x, 2, 3, { ncp: l, log }), ab)];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:165",
+    fns: "pbeta, dbeta, qbeta, pf, df, qf with ncp",
+    condition: "40 (2a + λ)/(2 sqrt(a + λ)) + 750 < 1e-5 sqrt(b)",
+    methods: "integral over log y | expansion of E F_Y(W/k) about the mean of W (wExpansion)",
+    point: "b at the condition for a = 2, ncp = 5 (about 6.7e15), x = 9/(2b) (near the mean)",
+    cases: () => {
+      const cond = (b: number) => (40 * 9) / (2 * Math.sqrt(7)) + 750 < 1e-5 * Math.sqrt(b);
+      const ab = flipPoint(cond, 1e15, 1e17);
+      const x = 9 / (2 * ab[0]);
+      return [...pPairs(`pbeta(${x}, 2, b, ncp 5)`, (b, t) => pbeta(x, 2, b, { ncp: 5, ...t }), ab), ...dPairs(`dbeta(${x}, 2, b, ncp 5)`, (b, log) => dbeta(x, 2, b, { ncp: 5, log }), ab)];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:217",
+    fns: "pbeta, pf with ncp (integral, gamma expansion)",
+    condition: "b > 1e10 (the distribution function of W)",
+    methods: "gammaInc | the central χ² by the uniform expansion (gammaTailHuge)",
+    point: "b = 1e10 at a = 2, ncp = 1e8 (integral), x = 4.975e-3 (near the mean)",
+    cases: () => pPairs("pbeta(4.975e-3, 2, b, ncp 1e8)", (b, t) => pbeta(4.975e-3, 2, b, { ncp: 1e8, ...t }), flipPoint((b) => b > 1e10, 0.9e10, 1.1e10)),
+  },
+  {
+    where: "distributions/nbeta.ts:195",
+    fns: "dbeta, df with ncp (integral, gamma expansion)",
+    condition: "b > 1e10 (the density of W)",
+    methods: "dgamma1 | Stirling's series in log form",
+    point: "b = 1e10 at a = 2, ncp = 1e8 (integral), x = 4.975e-3 (near the mean)",
+    cases: () => dPairs("dbeta(4.975e-3, 2, b, ncp 1e8)", (b, log) => dbeta(4.975e-3, 2, b, { ncp: 1e8, log }), flipPoint((b) => b > 1e10, 0.9e10, 1.1e10)),
+  },
+  {
+    where: "distributions/nbeta.ts:199, :200, :211",
+    fns: "pbeta, dbeta, pf, df with ncp (integral, gamma expansion)",
+    skip:
+      "the density and the distribution function of W for a tiny b, at t beyond 1e300 b or below 1e-300: closed forms " +
+      "of the same quantity where the general functions break down (tiny shapes are also out of the central functions' " +
+      "range, see the nbeta entry of test/helpers/distributionKnown.ts)",
+    condition: "b < 1e-10; t > 1e300 b, b > 1e300 t; t < 1e-300",
+    methods: "-",
+    point: "-",
+  },
+  {
+    where: "distributions/nbeta.ts:379, :416",
+    fns: "pbeta, dbeta, pf, df with ncp (integral)",
+    skip:
+      "stopping rules of the integral: the log of the mode alone where its rounding exceeds the log of any integral of " +
+      "exp(L - L(mode)); the rest of the downward integral bounded by the power law where leftSlope <= 1/2",
+    condition: "|L(mode)| > 1e18; leftSlope > 1/2",
+    methods: "-",
+    point: "-",
+  },
+  {
+    where: "distributions/nbeta.ts:529, :682",
+    fns: "qbeta, qf with ncp",
+    skip: "as distributions/nchisq.ts:611 (the quantile of a spread below 1e-10, by a search over the doubles)",
+    condition: "relative spread of Y and W < 1e-10",
+    methods: "-",
+    point: "-",
+  },
+  {
+    where: "distributions/nbeta.ts:562, :584, :622",
     fns: "pf, df with ncp",
     condition: "(m/n) q < 1e-306",
     methods: "mixture | first term exp(-λ/2) (mq/n)^a / (a B(a, b))",
@@ -1633,7 +1745,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "distributions/nbeta.ts:191",
+    where: "distributions/nbeta.ts:553",
     fns: "pf, df, qf with ncp",
     condition: "|m q| < 1e290",
     methods: "1 - x = n/(m q) in double | x, 1 - x as double-double quotients",
@@ -1644,7 +1756,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "internal/poissonMixture.ts:318",
+    where: "internal/poissonMixture.ts:381",
     fns: "pchisq, pbeta, pf with ncp",
     condition: "start index J > 3000 (LONG_WALK)",
     methods: "walk down from J | locate the peak first",
@@ -1655,7 +1767,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "internal/poissonMixture.ts:97, :124",
+    where: "internal/poissonMixture.ts:97, :127",
     fns: "pchisq, pbeta, pf with ncp",
     condition: "term above 1e-305 (else built from its log); log above -700 (approximate terms recomputed)",
     methods: "term from its log | from the linear value",
@@ -1666,7 +1778,18 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "internal/poissonMixture.ts:359",
+    where: "internal/poissonMixture.ts:105",
+    fns: "pchisq, dchisq, pbeta, dbeta with ncp",
+    condition: "|log of a term| / (500 log 2) > 2^50",
+    methods: "mantissa from the remainder of the log | the exponent alone (the log known only to a few units)",
+    point: "log dchisq(x, 3, ncp 1e-10) at x = 2^51 500 log 2 (about 7.8e17, where the j = 0 term crosses; extrapolated)",
+    cases: () => {
+      const at = 2 ** 51 * 500 * Math.LN2;
+      return [{ kind: "extrap", label: "log dchisq(x, 3, ncp 1e-10)", f: (x) => dchisq(x, 3, { ncp: 1e-10, log: true }), at, gap: at * 1e-9, linear: true }];
+    },
+  },
+  {
+    where: "internal/poissonMixture.ts:421",
     fns: "pchisq, pbeta, pf with ncp (upper tail)",
     skip:
       "the restart happens when the terms of the upper sum are still growing 3000 steps after the start, which depends " +
@@ -1676,12 +1799,22 @@ const NBETA: Entry[] = [
     point: "-",
   },
   {
-    where: "internal/poissonMixture.ts:112",
+    where: "internal/poissonMixture.ts:115",
     fns: "pchisq, pbeta, pf with ncp",
     condition: "x <= λ DBL_MIN or λ < x DBL_MIN (log Poisson weight)",
     methods: "Loader's form | closed form",
     point: "ncp = 2 DBL_MIN (mu = DBL_MIN; the weights j >= 1 are then about mu^j, the result is the central one)",
     cases: () => pPairs("pchisq(5, 3, ncp)", (ncp, t) => pchisq(5, 3, { ncp, ...t }), down(2 * DBL_MIN)),
+  },
+  {
+    where: "internal/poissonMixture.ts:165, :350",
+    fns: "pchisq, pbeta, pf with ncp",
+    skip:
+      "exponents three or more units apart (the shifted mantissa is then 0 as it would be after the three steps), and the " +
+      "argmax search cut off where its thirds round to its ends (beyond 2^53): no change of the result",
+    condition: "to - from >= 3; 3000 iterations",
+    methods: "-",
+    point: "-",
   },
 ];
 
@@ -1935,9 +2068,19 @@ function nchisqDensityClosedLog(x: number, df: 1 | 3, ncp: number): number {
   return df === 1 ? a + Math.log1p(Math.exp(b - a)) - Math.log(2 * r) : a + Math.log(-Math.expm1(b - a)) - Math.log(2 * s);
 }
 
+/** sqrt(λ x), the Bessel argument (mirror of nchisq.ts) */
+const besselZ = (x: number, ncp: number): number => Math.sqrt(ncp) * Math.sqrt(x);
+
+/** Log density of the noncentral χ² by mpmath (summing the Poisson mixture at 80 digits) */
+const NCHISQ_LOG_DENSITY: [number, number, number, number][] = [
+  // x, df, ncp, log f(x)
+  [2.0001e9, 1e6, 2e9, -62.94381384181123],
+  [1.1e10, 1e10, 1e9, -12.86959836686902],
+];
+
 const NCHISQ: Entry[] = [
   {
-    where: "distributions/nchisq.ts:26",
+    where: "distributions/nchisq.ts:33",
     fns: "pchisq, dchisq, qchisq with ncp",
     condition: "y = x/2 < 1e-250",
     methods: "term ratio as is | scaled by 2^500",
@@ -1948,17 +2091,26 @@ const NCHISQ: Entry[] = [
     ],
   },
   {
-    where: "distributions/nchisq.ts:67",
-    fns: "pchisq, qchisq with ncp",
-    condition: "(λ/2)(x/2) > 1e18 (SUSPECT: valid only for sqrt(λx) >> ν², ν = df/2 - 1, which is not checked)",
-    methods: "Poisson mixture | integral of the large-argument Bessel expansion (besselTails)",
-    point:
-      "x = 2e9 at df = 3, ncp = 2e9 (the centre; each side against the closed form). Validity: closed forms for df = 1 " +
-      "and 3 at ncp = 1e12 from sqrt(x) - sqrt(λ) = -38 to 38 and at x = 1e6, ncp = 1e13 (far left); df = 2e5 at " +
-      "ncp = 2e9 against the normal approximation (skewness 1e-4). From about df = 3e5 at ncp = 2e9 the call does not return",
+    where: "distributions/nchisq.ts:40, :50",
+    fns: "pchisq, dchisq, qchisq with ncp",
+    condition: "shape s = df/2 + j < 1e-8 (the j = 0 increment of a tiny df)",
+    methods: "dpoisRaw (Stirling form) | s log y - y - log Γ(1 + s)",
+    point: "df = 2e-8 at x = 1, ncp = 2",
     cases: () => {
-      const ncp = 2e9;
-      const ab = flipPoint((x) => (ncp / 2) * (x / 2) > 1e18, 1.9e9, 2.1e9);
+      const ab = flipPoint((df) => df / 2 < 1e-8, 1e-8, 3e-8);
+      return [...pPairs("pchisq(1, df, ncp 2)", (df, t) => pchisq(1, df, { ncp: 2, ...t }), ab), ...dPairs("dchisq(1, df, ncp 2)", (df, log) => dchisq(1, df, { ncp: 2, log }), ab)];
+    },
+  },
+  {
+    where: "distributions/nchisq.ts:185 (z > 1e4)",
+    fns: "pchisq, dchisq, qchisq with ncp",
+    condition: "z = sqrt(λ x) > 1e4 and ν² <= z/100 (ν = df/2 - 1)",
+    methods: "Poisson mixture | large-argument Bessel expansion (besselAsymptotic; besselTails integrates it)",
+    point:
+      "x = 1e4 at df = 3, ncp = 1e4 (the centre). Validity: closed forms for df = 1 and 3 at ncp = 1e4 and 1e12 from " +
+      "sqrt(x) - sqrt(λ) = -38 to 38, at x = 1e6, ncp = 1e13 (far left) and the earlier bug at x = ncp = 3e9",
+    cases: () => {
+      const ab = flipPoint((x) => besselZ(x, 1e4) > 1e4, 9e3, 1.1e4);
       const closed = (x: number, df: 1 | 3, l: number): string | undefined => {
         for (const t of TAILS) {
           const v = pchisq(x, df, { ncp: l, ...t });
@@ -1966,28 +2118,25 @@ const NCHISQ: Entry[] = [
           const r = near(v, t.logP ? ref : Math.exp(ref), 1e-13, `pchisq(${x}, ${df}, ncp ${l}, ${tailName(t)})`);
           if (r !== undefined) return r;
         }
-        return undefined;
+        return near(dchisq(x, df, { ncp: l, log: true }), nchisqDensityClosedLog(x, df, l), 1e-13, `log dchisq(${x}, ${df}, ncp ${l})`);
       };
-      // (the mixture side takes 0.2 s per call, so the two sides are compared with the closed form in two modes only;
-      // the true change over the ulp is 2e-12 relative, so they are not compared with each other directly)
       return [
+        ...pPairs("pchisq(x, 3, ncp 1e4)", (x, t) => pchisq(x, 3, { ncp: 1e4, ...t }), ab),
+        ...dPairs("dchisq(x, 3, ncp 1e4)", (x, log) => dchisq(x, 3, { ncp: 1e4, log }), ab),
         {
           kind: "check",
-          label: "pchisq(x, 3, ncp 2e9) on both sides against the closed form (lower, upper log)",
-          run: () =>
-            ab
-              .map((x) => near(pchisq(x, 3, { ncp }), Math.exp(nchisqClosedLog(x, 3, ncp, true)), 1e-13, `pchisq(${x}, 3, ncp 2e9)`) ??
-                near(pchisq(x, 3, { ncp, lowerTail: false, logP: true }), nchisqClosedLog(x, 3, ncp, false), 1e-13, `log pchisq(${x}, 3, ncp 2e9, upper)`))
-              .find((s) => s !== undefined),
-        },
-        {
-          kind: "check",
-          label: "df = 1, 3 against the closed forms at ncp = 1e12 (and the earlier bug at x = ncp = 3e9)",
+          label: "df = 1, 3 against the closed forms at ncp = 1e4 and 1e12 (and the earlier bug at x = ncp = 3e9)",
           run: () => {
-            for (const df of [1, 3] as const) {
-              for (const k of [-38, -5, 0, 5, 38]) {
-                const r = closed((1e6 + k) ** 2, df, 1e12);
-                if (r !== undefined) return r;
+            // (at ncp = 1e4 not as far as 38: the tails there are subnormal, the logs of the near tails with them)
+            for (const [l, far] of [
+              [1e4, 30],
+              [1e12, 38],
+            ] as const) {
+              for (const df of [1, 3] as const) {
+                for (const k of [-far, -5, 0, 5, far]) {
+                  const r = closed((Math.sqrt(l) + k) ** 2, df, l);
+                  if (r !== undefined) return r;
+                }
               }
             }
             return closed(3e9, 1, 3e9);
@@ -1998,19 +2147,63 @@ const NCHISQ: Entry[] = [
           label: "df = 1 far left (x = 1e6, ncp = 1e13) against the closed form",
           run: () => near(pchisq(1e6, 1, { ncp: 1e13, logP: true }), nchisqClosedLog(1e6, 1, 1e13, true), 1e-13, "log pchisq(1e6, 1, ncp 1e13)"),
         },
+      ];
+    },
+  },
+  {
+    where: "distributions/nchisq.ts:185 (ν² <= z/100)",
+    fns: "pchisq, dchisq, qchisq with ncp",
+    condition: "ν² <= z/100 (z > 1e4)",
+    methods: "uniform expansion in ν (debyeAt, debyeTails) | large-argument expansion",
+    point: "x = 1e8 at df = 2002 (ν = 1000), ncp = 1e8, near the mean",
+    cases: () => {
+      const ab = flipPoint((x) => 1000 * 1000 <= besselZ(x, 1e8) / 100, 0.9e8, 1.1e8);
+      return [
+        ...pPairs("pchisq(x, 2002, ncp 1e8)", (x, t) => pchisq(x, 2002, { ncp: 1e8, ...t }), ab),
+        ...dPairs("dchisq(x, 2002, ncp 1e8)", (x, log) => dchisq(x, 2002, { ncp: 1e8, log }), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/nchisq.ts:186 (z > 1e6)",
+    fns: "pchisq, dchisq, qchisq with ncp",
+    condition: "z > 1e6 where ν² > z/100 (so ν > 100)",
+    methods: "Poisson mixture | uniform expansion in ν",
+    point:
+      "x = 1e6 at df = 1000, ncp = 1e6 (the centre). Validity: the reported cases of ν² >> z: log dchisq(2.0001e9, 1e6, " +
+      "ncp 2e9) and (1.1e10, 1e10, ncp 1e9) against mpmath (they were NaN), pchisq(1.1e10, 1e10, ncp 1e9) and " +
+      "pchisq(2.0003e9, 3e5, ncp 2e9) (they did not return), df = 2e5 at ncp = 2e9, against the normal approximation",
+    cases: () => {
+      const ab = flipPoint((x) => besselZ(x, 1e6) > 1e6, 0.9e6, 1.1e6);
+      return [
+        ...pPairs("pchisq(x, 1000, ncp 1e6)", (x, t) => pchisq(x, 1000, { ncp: 1e6, ...t }), ab),
+        ...dPairs("dchisq(x, 1000, ncp 1e6)", (x, log) => dchisq(x, 1000, { ncp: 1e6, log }), ab),
         {
           kind: "check",
-          label: "df = 2e5, ncp = 2e9: range, complement and the normal approximation",
+          label: "large df: log density against mpmath",
+          run: () =>
+            NCHISQ_LOG_DENSITY.map(([x, df, l, ref]) => near(dchisq(x, df, { ncp: l, log: true }), ref, 1e-13, `log dchisq(${x}, ${df}, ncp ${l})`)).find(
+              (s) => s !== undefined,
+            ),
+        },
+        {
+          kind: "check",
+          label: "large df: range, complement and the normal approximation",
           run: () => {
-            const [df, mean] = [2e5, 2e5 + ncp];
-            const sd = Math.sqrt(2 * (df + 2 * ncp));
-            // (all three on the Bessel side: mean - 3 sd would fall below 2e9 and take the slow mixture)
-            for (const k of [-1, 0, 3]) {
-              const x = mean + k * sd;
-              const r =
-                tailsConsistent((t) => pchisq(x, df, { ncp, ...t }), 1e-13, `pchisq(${x}, 2e5, ncp 2e9)`) ??
-                (Math.abs(pchisq(x, df, { ncp }) - pnorm(k)) < 5e-3 ? undefined : `pchisq(${x}, 2e5, ncp 2e9) = ${pchisq(x, df, { ncp })}, normal ${pnorm(k)}`);
-              if (r !== undefined) return r;
+            for (const [df, l, ks] of [
+              [1e10, 1e9, [-1, 0, 3]],
+              [3e5, 2e9, [-3, 0, 1]],
+              [2e5, 2e9, [-1, 0, 3]],
+            ] as const) {
+              const mean = df + l;
+              const sd = Math.sqrt(2 * (df + 2 * l));
+              for (const k of ks) {
+                const x = mean + k * sd;
+                const r =
+                  tailsConsistent((t) => pchisq(x, df, { ncp: l, ...t }), 1e-13, `pchisq(${x}, ${df}, ncp ${l})`) ??
+                  (Math.abs(pchisq(x, df, { ncp: l }) - pnorm(k)) < 5e-3 ? undefined : `pchisq(${x}, ${df}, ncp ${l}) = ${pchisq(x, df, { ncp: l })}, normal ${pnorm(k)}`);
+                if (r !== undefined) return r;
+              }
             }
             return undefined;
           },
@@ -2019,45 +2212,102 @@ const NCHISQ: Entry[] = [
     },
   },
   {
-    where: "distributions/nchisq.ts:112",
-    fns: "dchisq, qchisq (density in Newton steps) with ncp",
-    condition: "(λ/2)(x/2) > 1e18 (SUSPECT, as above)",
-    methods: "Poisson mixture | large-argument Bessel expansion (besselAsymptotic)",
-    point:
-      "x = 2e9 at df = 3, ncp = 2e9 (the mode, so the density hardly changes over an ulp). Validity: closed forms for " +
-      "df = 1, 3 at ncp = 1e12; df = 1e6 at ncp = 2e9 and the example df = 1e10, ncp = 1e9, x = 1.1e10 (ν² >> z)",
+    where: "distributions/nchisq.ts:186 (ν > 1e4)",
+    fns: "pchisq, dchisq, qchisq with ncp",
+    condition: "ν = df/2 - 1 > 1e4 (z <= 1e6)",
+    methods: "Poisson mixture | uniform expansion in ν",
+    point: "df = 20002 at x = 20012 (the mean), ncp = 10",
     cases: () => {
-      const ncp = 2e9;
-      const ab = flipPoint((x) => (ncp / 2) * (x / 2) > 1e18, 1.9e9, 2.1e9);
+      const ab = flipPoint((df) => df / 2 - 1 > 1e4, 20001, 20003);
       return [
-        pair("dchisq(x, 3, ncp 2e9)", (x) => dchisq(x, 3, { ncp }), ab, { flat: true }),
-        {
-          kind: "check",
-          label: "df = 1, 3 against the closed forms at ncp = 1e12",
-          run: () => {
-            for (const df of [1, 3] as const) {
-              for (const k of [-38, -5, 0, 5, 38]) {
-                const x = (1e6 + k) ** 2;
-                const r = near(dchisq(x, df, { ncp: 1e12, log: true }), nchisqDensityClosedLog(x, df, 1e12), 1e-13, `log dchisq(${x}, ${df}, ncp 1e12)`);
-                if (r !== undefined) return r;
-              }
-            }
-            return undefined;
-          },
-        },
-        {
-          kind: "check",
-          label: "large df: the log density is finite",
-          run: () => {
-            const bad = [
-              [2.0001e9, 1e6, 2e9],
-              [1.1e10, 1e10, 1e9],
-            ].filter(([x, df, l]) => !Number.isFinite(dchisq(x!, df!, { ncp: l!, log: true })));
-            return bad.length === 0 ? undefined : bad.map(([x, df, l]) => `dchisq(${x}, ${df}, ncp ${l}, log) = ${dchisq(x!, df!, { ncp: l!, log: true })}`).join("; ");
-          },
-        },
+        ...pPairs("pchisq(20012, df, ncp 10)", (df, t) => pchisq(20012, df, { ncp: 10, ...t }), ab),
+        ...dPairs("dchisq(20012, df, ncp 10)", (df, log) => dchisq(20012, df, { ncp: 10, log }), ab),
       ];
     },
+  },
+  {
+    where: "distributions/nchisq.ts:216",
+    fns: "pchisq, dchisq, qchisq with ncp (large-argument expansion)",
+    condition: "d / sqrt(λ) > -1/2 (d = sqrt(x) - sqrt(λ))",
+    methods: "log(sqrt(x)/sqrt(λ)) as log(x)/2 - log sqrt(λ) | log1p(d/sqrt(λ))",
+    point: "x = λ/4 at df = 3, ncp = 1e8 (far in the lower tail; log scale)",
+    cases: () => [
+      ...pPairs("pchisq(x, 3, ncp 1e8)", (x, t) => pchisq(x, 3, { ncp: 1e8, ...t }), around(2.5e7), { tails: TAILS.slice(2) }),
+      pair("dchisq(x, 3, ncp 1e8, log)", (x) => dchisq(x, 3, { ncp: 1e8, log: true }), around(2.5e7)),
+    ],
+  },
+  {
+    where: "distributions/nchisq.ts:391",
+    fns: "pchisq, dchisq, qchisq with ncp (uniform expansion)",
+    condition: "e = x/(ν + R) - 1 > -1/2",
+    methods: "log(1 + e) - e as log x - log(ν + R) - e | log1pmx(e)",
+    point: "x = (λ/2 + 2ν)/2 at df = 1000, ncp = 4e6 (far in the lower tail; extrapolated, log scale)",
+    cases: () => {
+      const at = (4e6 / 2 + 2 * 499) / 2;
+      return [
+        { kind: "extrap", label: "log dchisq(x, 1000, ncp 4e6)", f: (x) => dchisq(x, 1000, { ncp: 4e6, log: true }), at, gap: at * 1e-7 },
+        { kind: "extrap", label: "log pchisq(x, 1000, ncp 4e6)", f: (x) => pchisq(x, 1000, { ncp: 4e6, logP: true }), at, gap: at * 1e-7 },
+      ];
+    },
+  },
+  {
+    where: "distributions/nchisq.ts:91; internal/poissonMixture.ts:249, :261",
+    fns: "pchisq, qchisq with ncp",
+    condition: "λ/2 > 1e8 (where the mixture is used: z <= 1e4, x far below the mean)",
+    methods: "each tail summed | the upper tail as 1 - the lower; the start of the sums searched for on the log scale",
+    point: "ncp = 2e8 at x = 0.3, df = 3",
+    cases: () => pPairs("pchisq(0.3, 3, ncp)", (l, t) => pchisq(0.3, 3, { ncp: l, ...t }), flipPoint((l) => l / 2 > 1e8, 1.9e8, 2.1e8)),
+  },
+  {
+    where: "distributions/nchisq.ts:564",
+    fns: "pchisq with ncp",
+    skip:
+      "decides only whether a tail is below the double range (Chernoff bound); the two forms are the same bound, " +
+      "rearranged, and a tail near the decision is computed in full either way",
+    condition: "s <= 1/4",
+    methods: "-",
+    point: "-",
+  },
+  {
+    where: "distributions/nchisq.ts:605",
+    fns: "qchisq with ncp",
+    skip: "only the starting value of the Newton iteration (Wilson and Hilferty's cube root of Patnaik's χ² for ν > 1e5)",
+    condition: "ν > 1e5",
+    methods: "-",
+    point: "-",
+  },
+  {
+    where: "distributions/nchisq.ts:611",
+    fns: "qchisq with ncp",
+    condition: "relative spread sqrt(2(k + 2λ))/(k + λ) < 1e-10",
+    methods: "Newton iteration | search over the doubles around the start (narrowQuantile)",
+    point: "df on both sides of the condition at ncp = 1 (df about 2e20): the quantile reaches p, and the previous double does not",
+    cases: () => [
+      {
+        kind: "check",
+        label: "qchisq at df either side of a relative spread of 1e-10",
+        run: () => {
+          const [d0, d1] = flipPoint((df) => Math.sqrt(2 * (df + 2)) < 1e-10 * (df + 1), 1e20, 1e21);
+          for (const df of [d0, d1]) {
+            for (const p of [1e-100, 0.3]) {
+              const q = qchisq(p, df, { ncp: 1 });
+              const pq = pchisq(q, df, { ncp: 1 });
+              const pPrev = pchisq(nextDown(q), df, { ncp: 1 });
+              if (!(pq >= p * (1 - 1e-9) && pPrev <= p * (1 + 1e-9))) return `qchisq(${p}, ${df}, ncp 1) = ${q}: pchisq there ${pq}, at the previous double ${pPrev}`;
+            }
+          }
+          return undefined;
+        },
+      },
+    ],
+  },
+  {
+    where: "distributions/nchisq.ts:470",
+    fns: "pbeta, pf with ncp (the integral of nbeta.ts)",
+    skip: "x0 e^v formed from the logs only where e^v over- or underflows on its own: the same x",
+    condition: "|v| < 700",
+    methods: "-",
+    point: "-",
   },
 ];
 
@@ -2390,13 +2640,6 @@ const KNOWN: KnownViolation[] = [
     reason: "the same rounding of a + 1, a + 2: the error of log P grows with a (3e-8 at a = 2^40 - 2^-13, 1.3e-4 at 2^52 - 0.5)",
   },
   {
-    entry: "distributions/nchisq.ts:112",
-    check: "large df: the log density is finite",
-    reason:
-      "the Bessel expansion diverges for ν² >> sqrt(λ x): dchisq(1.1e10, 1e10, ncp = 1e9, log) and " +
-      "dchisq(2.0001e9, 1e6, ncp = 2e9, log) are NaN (normal approximation about -12.3 for the latter)",
-  },
-  {
     entry: "distributions/kumaraswamy.ts:56",
     check: "b x^a >= 1e-5 against the closed form",
     reason:
@@ -2405,18 +2648,7 @@ const KNOWN: KnownViolation[] = [
   },
 ];
 
-const HANGS: Hang[] = [
-  {
-    entry: "distributions/nchisq.ts:67",
-    call: "pchisq(1.1e10, 1e10, { ncp: 1e9 })",
-    reason: "besselTails with ν = 5e9 >> sqrt(λ x) = 3.3e9: the Bessel series diverges (NaN) and the adaptive rule bisects to depth 40",
-  },
-  {
-    entry: "distributions/nchisq.ts:67",
-    call: "pchisq(2.0003e9, 3e5, { ncp: 2e9 })",
-    reason: "the same from about df = 3e5 at ncp = 2e9 (ν² = 2.25e10 > sqrt(λ x) = 2e9), although dchisq is finite there; df = 2e5 still returns",
-  },
-];
+const HANGS: Hang[] = [];
 
 const used = new Set<KnownViolation>();
 
