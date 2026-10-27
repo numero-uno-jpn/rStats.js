@@ -123,10 +123,16 @@ function besselAsymptotic(x: number, df: number, ncp: number, log: boolean): num
   const nu = df / 2 - 1;
   const z = Math.sqrt(ncp * x);
   const s = besselSeries(nu, z);
-  // -(x + λ)/2 + z = -(sqrt(x) - sqrt(λ))^2 / 2
-  const d = Math.sqrt(x) - Math.sqrt(ncp);
-  const lv = -Math.LN2 - (d * d) / 2 + (nu / 2) * Math.log(x / ncp) - 0.5 * Math.log(2 * Math.PI * z) + Math.log(s);
-  return log ? lv : Math.exp(lv);
+  // -(x + λ)/2 + z = -(sqrt(x) - sqrt(λ))^2 / 2, with sqrt(x) - sqrt(λ) written without cancellation (the difference
+  // of the rounded roots carries an error of ulp(sqrt(λ))) and its square in double-double, as in besselTails
+  const rl = Math.sqrt(ncp);
+  const d = (x - ncp) / (Math.sqrt(x) + rl);
+  const [p, pe] = twoProd(d, d);
+  const hi = -p / 2;
+  // (ν/2) log(x/λ) = ν log(sqrt(x)/sqrt(λ))
+  const rest = -Math.LN2 - pe / 2 + nu * Math.log1p(d / rl) - 0.5 * Math.log(2 * Math.PI * z) + Math.log(s);
+  if (log) return hi + rest;
+  return hi > -700 ? Math.exp(hi) * Math.exp(rest) : Math.exp(hi + rest);
 }
 
 /** Σ_m (-1)^m a_m(ν) / z^m of besselAsymptotic */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dchisq, pchisq, pnorm, qchisq } from "../src/index.js";
+import { dchisq, dnorm, pchisq, pnorm, qchisq } from "../src/index.js";
 import { bool, num, relativeError } from "./helpers/fixture.js";
 import { fixtureSuite } from "./helpers/suite.js";
 
@@ -37,6 +37,34 @@ fixtureSuite({
       : undefined,
   call: (a) => qchisq(num(a.p), num(a.df), opts(a)),
   backward: (a, x) => pchisq(x, num(a.df), opts(a)),
+});
+
+describe("noncentral χ² density for x λ > 4e18", () => {
+  /**
+   * Exact log density for k = 1: f(x) = [φ(sqrt(x) - sqrt(λ)) + φ(sqrt(x) + sqrt(λ))] / (2 sqrt(x)), the second term
+   * negligible here, with sqrt(x) - sqrt(λ) written (x - λ)/(sqrt(x) + sqrt(λ)) to avoid cancellation
+   */
+  function logDf1(x: number, ncp: number): number {
+    const a = (x - ncp) / (Math.sqrt(x) + Math.sqrt(ncp));
+    return (dnorm(a, { log: true }) as number) - Math.log(2 * Math.sqrt(x));
+  }
+
+  it("matches the exact density for df = 1 (relative 1e-14)", () => {
+    for (const ncp of [5e9, 3e10, 1e15, 7.3e17]) {
+      for (const z of [-200, -40, -5, -0.5, 0.5, 5, 40, 200]) {
+        const x = (Math.sqrt(ncp) + z) ** 2;
+        expect(ncp * x).toBeGreaterThan(4e18);
+        const msg = `ncp = ${ncp}, z = ${z}`;
+        const lf = logDf1(x, ncp);
+        expect(relativeError(dchisq(x, 1, { ncp, log: true }) as number, lf), msg).toBeLessThanOrEqual(1e-14);
+        // The linear density where it is a normal double
+        const f = Math.exp(lf);
+        if (f >= 2.2250738585072014e-308) {
+          expect(relativeError(dchisq(x, 1, { ncp }) as number, f), msg).toBeLessThanOrEqual(1e-14);
+        }
+      }
+    }
+  });
 });
 
 describe("noncentral χ² distribution function for x λ > 4e18", () => {
