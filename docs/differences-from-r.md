@@ -352,8 +352,16 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   the analytic gradient. lme4's optimiser stops when its own tolerances are met, typically 1e-9 to 1e-5 (relative)
   from the optimum in θ, so θ, the variance components (`VarCorr`), the standard errors and the random effects
   differ from lme4's in about the 5th to 9th significant digit; the fixed effects and the log-likelihood agree to
-  more digits (the criterion is flat at the optimum). rStats.js's criterion is never larger than lme4's. lme4's
-  convergence warnings (`Model failed to converge ...`) are not emitted.
+  more digits (the criterion is flat at the optimum). lme4's convergence warnings (`Model failed to converge ...`)
+  are not emitted.
+- **Local minima:** the criterion can have several local minima (for example crossed groups without a fixed
+  intercept, where one term can take the place of the intercept). After the local minimisation, rStats.js compares
+  the fit with the boundary points where one random-effects term is removed (its variances set to 0), minimised
+  over the other terms, and continues from the lowest of them if it is lower. This finds the global minimum in the
+  usual case of two crossed terms, but it is not a global optimiser: with three or more terms, two of them can
+  change roles (one taking the place of the intercept instead of the other), and the fit can then stay above the
+  model without one of its terms. lme4 can stop at a higher local minimum where rStats.js does not; rStats.js then
+  reports a different (better) fit of the same model, often singular.
 - **A singular fit is judged at the exact optimum:** an element of θ whose optimum is on the boundary is exactly 0,
   and `singular` and the message `boundary (singular) fit: see help('isSingular')` follow from it. Where lme4 stops
   just inside the boundary (θ above its threshold of 1e-4) it reports a non-singular fit that rStats.js reports as
@@ -365,6 +373,18 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **The computation is sparse,** as lme4's, but in JavaScript: a fit takes about 1.4 to 3 times lme4's time (see
   [performance.md](performance.md)).
 
+- **Options are checked:** an option that R's `lmer` has but rStats.js does not support (`weights`, `offset`,
+  `subset`, `naAction`, `control`, `start`, ...) is an error, and so is an unknown key (`unused argument (reml)`; R
+  also writes the value). lmerTest's `summary`, `contest` and `anova` ignore unknown arguments (`summary` with a
+  warning); `lmerSummary`, `lmerContest` and `lmerAnova` reject them. The logical options (`REML`, `joint`,
+  `confint`, `refit`) take booleans and numbers (0 is false), as R does, but not strings (R accepts `"TRUE"`, `"F"`
+  and the like).
+- **A response fitted exactly by the fixed effects** (a constant response with an intercept, or as many fixed
+  effects as observations) is an error: the residual variance is 0 and there is no estimate. lme4 returns a σ of
+  rounding size and a log-likelihood near +∞ (or fails when there are as many fixed effects as observations).
+- **A random-effects term without columns** (`(0 | g)`, `(0 || g)`) is an error with its own message, where lme4
+  fails with internal messages.
+
 - **lmerTest's tests** (`lmerSummary`, `lmerContest`, `lmerAnova`) use exact (analytic) derivatives of the deviance
   and of the covariance of the fixed effects at the exact optimum; lmerTest differentiates numerically at lme4's
   approximate optimum. The Satterthwaite degrees of freedom therefore differ from lmerTest's in about the 4th to
@@ -373,6 +393,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   with ...`) are decided from the exact Hessian and returned in each result's `warnings`, not emitted when the
   model is fitted. Only Satterthwaite's method is available (not Kenward-Roger's, nor `ddf = "lme4"` in
   `lmerAnova`); `ranova`, `ls_means`, `difflsmeans` and `step` are not implemented.
+- **`lmerContest` with `joint: false`** accepts a right-hand side per row of L (`rhs: [1, 0, 2]`), each row tested
+  against its own value; lmerTest gives an error there.
 - **Comparing fits** (`lmerAnova([fit1, fit2])`): the REML fits are refitted by maximum likelihood to the exact ML
   optimum (lme4's refit stops near it); the fits must be results of `lmer` on the same data object.
 

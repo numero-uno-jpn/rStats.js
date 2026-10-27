@@ -218,6 +218,8 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
         deviance: totalDeviance(fam, y, mu, w),
         iter: 0,
         converged: true,
+        // (true, not a mistake: R's glm.fit marks the empty model both converged and at the boundary; the warning
+        // "algorithm stopped at boundary value" is still not given, see finalWarnings)
         boundary: true,
         rank: 0,
         qr: undefined,

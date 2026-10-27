@@ -679,6 +679,7 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
 
   const vcov = r.rxInverse!.map((row) => row.map((v) => sigma2 * v));
   const stdError = vcov.map((row, i) => Math.sqrt(row[i]!));
+  // (a standard error of 0 gives ±Infinity or NaN, as R's division does: not guarded on purpose)
   const tValue = fixef.map((b, i) => b / stdError[i]!);
 
   // the blocks T_k and the variance components
@@ -689,6 +690,7 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
     for (let j = 0; j < nc; j++) for (let i = j; i < nc; i++) t[i]![j] = theta[k++]!;
     const cov = t.map((ti) => t.map((tj) => sigma2 * ti.reduce((sum, v, m) => sum + v * tj[m]!, 0)));
     const sd = cov.map((row, i) => Math.sqrt(row[i]!));
+    // (a column with variance 0 has the correlations 0/0 = NaN with the others, as lme4's VarCorr: not a bug)
     const corr = cov.map((row, i) => row.map((v, j) => (i === j ? 1 : v / (sd[i]! * sd[j]!))));
     return { group: s.groups[term.group]!.name, columns: [...term.columns], sd, corr };
   });
@@ -723,6 +725,8 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
 
   const logLik = -(reml ? REMLcrit : deviance) / 2;
   const df = p + theta.length + 1;
+  // (an absolute threshold on θ's diagonal elements, as lme4's isSingular with its default tolerance 1e-4; it is not
+  // meant to match the minimiser's relative boundary test)
   const singular = theta.some((v, j) => s.lower[j] === 0 && v < 1e-4);
   const messages = [...s.messages];
   if (singular) messages.push("boundary (singular) fit: see help('isSingular')");

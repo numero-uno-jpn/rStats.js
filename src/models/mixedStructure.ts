@@ -374,6 +374,8 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
     sds.push(sd);
   }
   const limit = Math.log(1000);
+  // (a constant column other than 0/1 has sd 0, so log(0) = -Infinity and the warning is given: lme4's check includes
+  // such columns too, so this is intended)
   const badScale = sds.some((a, i) => Math.abs(Math.log(a)) > limit || sds.some((b, k) => k !== i && Math.abs(Math.log(a / b)) > limit));
   if (badScale) {
     warnings.push(

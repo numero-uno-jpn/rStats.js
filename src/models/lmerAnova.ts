@@ -171,6 +171,7 @@ function anovaOfFit(fit: LmerResult, options: LmerAnovaOptions): LmerAnovaTable 
 function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): LmerCompareTable {
   if (fits.length < 2) throw new TypeError("lmerAnova needs one fit, or an array of at least two fits to compare");
   const internals = fits.map(lmerInternals);
+  // (only the number of observations is compared, as lme4 does; the fits must also share the data object below)
   if (fits.some((f) => f.nObs !== fits[0]!.nObs)) throw new Error("models were not all fitted to the same size of dataset");
   if (internals.some((i) => i.data !== internals[0]!.data)) throw new Error("all models must be fit to the same data object");
   const warnings = new Warnings();

@@ -7,6 +7,33 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Breaking
+
+- `lmer`, `lmerSummary`, `lmerContest` and `lmerAnova` check their options: an option of R that is not supported
+  (`weights`, `offset`, `subset`, `naAction`, `control`, `start`, ...) and an unknown key are errors (they were
+  ignored: `lmer(..., { weights })` fitted without weights, `{ reml: false }` fitted by REML). The logical options
+  (`REML`, `joint`, `confint`, `refit`) accept booleans and numbers (0 is false); a string such as `"no"` is the
+  error `argument is not interpretable as logical`.
+- `lmer` throws for a response fitted exactly by the fixed effects (a constant response, or as many fixed effects
+  as observations) and for a random-effects term without columns (`(0 | g)`), which it fitted before.
+
+### Fixed
+
+- `lmer` could stop at a local minimum of the criterion (crossed groups without a fixed intercept, where one term
+  takes the place of the intercept), with a higher criterion than the model without that term. The fit now compares
+  its result with the boundary points where one term is removed and continues from a lower one. lmerTest's tests and
+  the model comparisons follow.
+- The names of `lmer`'s fixed effects follow the formula without the random-effects terms, as lme4's do:
+  `y ~ (z | g) + x * z` has `x:z` (it was `z:x`), and the rows of `lmerAnova`'s tables follow.
+- `lmer` failed ("did not converge") for a response with a large mean (1e6 and more): the fit now works with the
+  response minus its least-squares fit on the fixed effects, which gives the same model without the cancellation.
+- `lmer(..., { REML: 0 })` reports `REML: false` (it was `0`).
+- `glm`: the warning `NaNs produced` when a step makes a mean negative under a family whose deviance takes the
+  logarithm of y/μ (Poisson, quasi-Poisson and Gamma with the inverse link, for example), before `step size truncated
+  due to divergence`, as in R; the deviance of `quasi` with variance `"mu^2"` for a negative response follows R's.
+
 ## 0.14.0 - 2026-10-27
 
 ### Added

@@ -284,6 +284,7 @@ function quasiVariance(v: QuasiVariance): { variance: (mu: number) => number; mu
   }
 }
 
+/** (R computes this deviance in compiled code, so a mean outside (0, 1) gives NaN without "NaNs produced") */
 function binomialDev(y: number, mu: number, w: number): number {
   const a = y === 0 ? 0 : y * Math.log(y / mu);
   const b = y === 1 ? 0 : (1 - y) * Math.log((1 - y) / (1 - mu));
@@ -335,6 +336,7 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
         fixedDispersion: name === "poisson",
         variance: (m) => m,
         muOk: (m) => Number.isFinite(m) && m > 0,
+        // (a row with y = 0 takes no logarithm, so a negative mean there does not warn, as in R)
         devContribution: (y, mu, w) => (y > 0 ? 2 * w * (y * logWarn(y / mu) - (y - mu)) : 2 * w * mu),
       };
     case "Gamma":

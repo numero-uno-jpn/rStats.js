@@ -76,9 +76,12 @@ one-term models (`(x | s)`) should be essentially unchanged (removing their only
   criterion of lmerTest's fit is not in the fixture: compute it from lmerTest's θ (`expected.varpar` without its
   last element, σ) with the library's own criterion function (internal `profiledDeviance` of
   src/models/mixedDeviance.ts) and compare with the reference θ's value. Write the rule in the header comment.
-- Also add unit tests on new seeded data (not in a fixture) that the fit's criterion is never above that of the
-  model with any one term dropped (fitted separately), for crossed models with two and three terms and a model with
-  `(x | g)` plus a crossed term.
+- Also add unit tests on new seeded data (not in a fixture) that the fit's criterion is not above that of the model
+  with any one term dropped (fitted separately), for crossed models with two and three terms and a model with
+  `(x | g)` plus a crossed term. The rule does not guarantee this in general: with three crossed terms, two of them
+  can change roles (one taking the place of the missing intercept instead of the other), which removing one term at
+  a time does not reach (seed 43 of the implementation's test). Decided (the user): the rule stays as it is, and the
+  limitation is documented.
 
 ## 2. The names of the fixed effects come from the formula without the random-effects terms
 

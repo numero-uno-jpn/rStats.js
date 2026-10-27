@@ -1,6 +1,6 @@
 // lmer and lmerTest's functions: the behaviour specified in oracle/report-0.14.0-behaviour.md, on seeded data (not in
-// a fixture). Section 1: the fit's criterion is never above that of the model with any one term dropped (fitted
-// separately). Section 2: the names of the fixed effects come from the formula without the random-effects terms.
+// a fixture). Section 1: on these seeds, the fit's criterion is not above that of the model with any one term dropped
+// (fitted separately; the rule does not guarantee it in general, see seed 43 below). Section 2: the names of the fixed effects come from the formula without the random-effects terms.
 // Section 3: the option checks. Section 4: a response fitted exactly by the fixed effects is an error. Section 6: a
 // random-effects term without columns is an error. Section 7: a response with a large mean fits as the same data
 // centred.
@@ -57,11 +57,12 @@ function crossedData(seed: number, { slopeSd = 0, hLevels = 4, hSd = 0 } = {}): 
 const criterionOf = (fit: LmerResult): number => (fit.REML ? fit.REMLcrit : fit.deviance);
 
 describe("lmer: the global minimum over the boundary points of whole terms (section 1)", () => {
-  // (the first local minimum, from the initial θ, is worse than a model without a term for seeds 6 and 30 of the first
-  // model, 28 and 29 of the second, 6, 14 and 30 of the third: these fail without the restarts. Seed 43 is not
-  // included: with the second model, the rule's estimate (θ = 1.328, 0.155, 9.536 for g, item, h; REML criterion
-  // 297.048) is above the model without h (296.249, with item at 9.605 in the place of the intercept that h takes in
-  // the full fit): reaching it needs two terms to change roles, which removing one term at a time does not do.)
+  // The rule compares the fit only with the local minima reached from its boundary points with one term removed, so
+  // "no worse than any model with one term dropped, fitted separately" is what it achieves on these seeds, not a
+  // guarantee. (The first local minimum, from the initial θ, is worse than a model without a term for seeds 6 and 30
+  // of the first model, 28 and 29 of the second, 6, 14 and 30 of the third: these fail without the restarts.) Seed 43
+  // of the second model is the known exception, kept as its own test below (decided: the rule stays as it is; the
+  // limitation is documented in docs/differences-from-r.md).
   const models = [
     { fixed: "y ~ 0 + x", terms: ["(1 | g)", "(1 | item)"], options: {} },
     { fixed: "y ~ 0 + x", terms: ["(1 | g)", "(1 | item)", "(1 | h)"], options: { hLevels: 6 } },
@@ -85,6 +86,17 @@ describe("lmer: the global minimum over the boundary points of whole terms (sect
       expect(failures).toEqual([]);
     });
   }
+});
+
+describe("lmer: the limitation of the rule (section 1)", () => {
+  it("seed 43: two terms changing roles is not found (the model without h is lower)", () => {
+    const data = crossedData(43, { hLevels: 6 });
+    const full = lmer("y ~ 0 + x + (1 | g) + (1 | item) + (1 | h)", data);
+    const withoutH = lmer("y ~ 0 + x + (1 | g) + (1 | item)", data);
+    // documented, not wanted: if a change of the rule finds the lower point, this test should be turned around
+    expect(full.REMLcrit).toBeCloseTo(297.048, 2);
+    expect(withoutH.REMLcrit).toBeCloseTo(296.249, 2);
+  });
 });
 
 describe("lmer: the names of the fixed effects (section 2)", () => {

@@ -175,6 +175,7 @@ function jointDenDF(nu: readonly number[]): number {
   if (nu.length === 1) return nu[0]!;
   if (nu.every((v, i) => i === 0 || Math.abs(v - nu[i - 1]!) < EQUAL_DF_TOLERANCE)) return nu.reduce((a, b) => a + b, 0) / nu.length;
   if (nu.some((v) => v <= 2)) return 2;
+  // (as lmerTest: with every ν > 2 each term ν/(ν − 2) exceeds 1, so e > nu.length and the result is positive)
   const e = nu.reduce((sum, v) => sum + v / (v - 2), 0);
   return (2 * e) / (e - nu.length);
 }
