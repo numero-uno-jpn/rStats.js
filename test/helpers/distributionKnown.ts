@@ -296,34 +296,15 @@ export const knownViolations: KnownViolation[] = [
       "with a tiny df2 (df(8.5e147, 4.97e118, 1.04e-57, { ncp: 4.01e87 }))",
     examples: [{ params: { df1: 1.1415699806958447e-218, df2: 1, ncp: 12.343768528437282 }, x: [7.327311511990816e-248] }],
   },
-  // ncp = 0 is the central distribution (computed by the central functions, src/distributions/{chisq,beta,f}.ts): the
-  // central entries above apply, with the same calls not made
-  {
-    family: "nchisq",
-    property: ALL,
-    match: on(/chisq$/, (pr) => pr.ncp === 0 && pr.df! > 1e15),
-    reason: "ncp = 0 with huge df: the central χ² (see the chisq entry above): qchisq throws TypeError or is slow",
-    examples: [{ params: { df: 8.697626929131906e252, ncp: 0 }, x: [3.161055179390935e256] }],
-    exclude: (kind, _x, pr) => kind === "q" && pr.ncp === 0 && pr.df! > 1e15,
-  },
-  {
-    family: "nbeta",
-    property: ALL,
-    match: on(/beta$/, (pr) => pr.ncp === 0 && extreme(pr, ["shape1", "shape2"], 1e-10, 1e15)),
-    reason: "ncp = 0 with extreme shapes: the central beta (see the beta entries above)",
-    examples: [{ params: { shape1: 1.0352246639693515e190, shape2: 6.2918828463792074e193, ncp: 0 }, x: [5.120716175636001e-280] }],
-    exclude: (kind, _x, pr) => kind === "q" && pr.ncp === 0 && (pr.shape1! > 1e15 || pr.shape2! > 1e15),
-  },
+
+  // ncp = 0 is the central distribution (computed by the central functions in src/distributions/f.ts): the central
+  // entry above applies
   {
     family: "nf",
     property: ALL,
     match: on(/^[dpq]f$/, (pr) => pr.ncp === 0 && extreme(pr, ["df1", "df2"], 1e-10, 1e15)),
     reason: "ncp = 0 with extreme df: the central F (see the f entry above)",
     examples: [{ params: { df1: 1.5352254500141903e186, df2: 99.33785701936728, ncp: 0 }, x: [5.925999535882428e-161] }],
-    exclude: (kind, _x, pr) =>
-      pr.ncp === 0 &&
-      (kind === "q" || pr.df1! > 1e100 || (pr.df1! > 1e15 && pr.df2! < 1e-10)) &&
-      extreme(pr, ["df1", "df2"], 1e-10, 1e15),
   },
 
   // ---- found with the fuzz script at moderate parameters ----
