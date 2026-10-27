@@ -93,15 +93,15 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `pnorm` | 2.3 KB | 1.2 KB |
 | `setSeed`, `rnorm` | 3.4 KB | 1.7 KB |
 | `solve` / `svd` / `eigen` | 3.8 / 4.5 / 11.5 KB | 1.7 / 2.0 / 4.5 KB |
-| `wilcoxTest` | 29.8 KB | 12.5 KB |
+| `wilcoxTest` | 30.2 KB | 12.7 KB |
 | `fisherTest` | 32.4 KB | 15.7 KB |
 | `tTest` | 55.4 KB | 25.3 KB |
 | `qbeta` | 49.6 KB | 23.2 KB |
 | `pt`, `qt` | 63.7 KB | 30.3 KB |
 | `glm`, `glmSummary` / `glm` with all its methods | 63.2 / 89.4 KB | 27.5 / 39.4 KB |
-| everything (except `/mixed`) | 497.2 KB | 187.8 KB |
-| `@numero-uno-jpn/rstats/distributions` (all of it) | 171.5 KB | 67.9 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 364.9 KB | 143.3 KB |
+| everything (except `/mixed`) | 498.9 KB | 188.6 KB |
+| `@numero-uno-jpn/rstats/distributions` (all of it) | 173.2 KB | 68.8 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 366.6 KB | 144.3 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 50.2 KB | 18.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 44.8 KB | 16.7 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 48.7 KB | 20.9 KB |
