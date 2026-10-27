@@ -8,7 +8,7 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { log1mExp, standardizeDD } from "../internal/ddexp.js";
+import { log1mExp, logRatioDD, standardizeDD } from "../internal/ddexp.js";
 
 /**
  * Shape and scale of the Pareto distribution.
@@ -40,7 +40,9 @@ function ratio(x: number, b: number): [number, number, number] {
       return [r, e, Math.log(r) + e];
     }
   }
-  return [Infinity, 0, Math.log(x) - Math.log(b)];
+  // log x - log b in double-double (the roundings of the two logs near 709 were 1e-12 of the tail at a = 25)
+  const lr = logRatioDD(x, b);
+  return [Infinity, 0, lr[0] + lr[1]];
 }
 
 /**
@@ -65,16 +67,24 @@ export function dpareto1(x: number, a: number, b: number, log: boolean): number 
   const [r, e, lr] = ratio(x, b);
   const ab = a / b;
   const lab = ab >= MIN_NORMAL && ab < Infinity ? Math.log(ab) : Math.log(a) - Math.log(b);
-  if (log) return lab - (a + 1) * lr;
+  const ld = lab - (a + 1) * lr;
   // (a / b) r^-(a+1), unless a / b or the power leaves the normal range (or a e is not small): then in logs. Where
   // r^-a is subnormal but a large a / b brings the density back, r^-a = h^2 with h = r^(-a/2) (exact halving)
-  let d = 0;
-  if (ab < Infinity && Math.abs(a * e) < 1e-8) {
+  const product = (): number => {
+    if (!(ab < Infinity && Math.abs(a * e) < 1e-8)) return 0;
     const u = Math.pow(r, -a);
     const h = u >= MIN_NORMAL ? 0 : Math.pow(r, -a / 2);
-    d = u >= MIN_NORMAL ? (ab * u) / r : h >= MIN_NORMAL ? ((ab * h) / r) * h : 0;
+    return u >= MIN_NORMAL ? (ab * u) / r : h >= MIN_NORMAL ? ((ab * h) / r) * h : 0;
+  };
+  if (log) {
+    // Where log(a / b) and (a + 1) log r (hundreds near the ends of the range) cancel to below half, their roundings
+    // would show: the log of the product instead (dpareto(1.1e-263, 1640, 7.8e-264, log) was 1.7e-13 off at -0.88)
+    if (!(Math.abs(ld) < 0.5 * Math.abs(lab))) return ld;
+    const d = product();
+    return d >= MIN_NORMAL && d < Infinity ? Math.log(d) + Math.log1p(-(a + 1) * e) : ld;
   }
-  return d >= MIN_NORMAL && d < Infinity ? d * (1 - (a + 1) * e) : Math.exp(lab - (a + 1) * lr);
+  const d = product();
+  return d >= MIN_NORMAL && d < Infinity ? d * (1 - (a + 1) * e) : Math.exp(ld);
 }
 
 export function ppareto1(q: number, a: number, b: number, lowerTail: boolean, logP: boolean): number {

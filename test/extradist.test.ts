@@ -216,6 +216,9 @@ describe("extreme arguments", () => {
     const qp = qpareto(-683.2098293111569, o);
     expect(Number.isFinite(qp)).toBe(true);
     expect(Math.abs(ppareto(qp, o) + 683.2098293111569)).toBeLessThan(1e-12);
+    // x above 1e308: log x - log b in double-double (the tail was 2.8e-12 off; mpmath; exp of -539 adds up to 1.2e-13)
+    const o2 = { a: 25.36266508107808, b: 1.0320902106962991e299, lowerTail: false };
+    expect(rel(ppareto(1.7056124047140275e308, o2), 1.5952439414287054e-234)).toBeLessThan(1e-13);
   });
 
   it("kumaraswamy: large b, tiny b, subnormal x^a", () => {
@@ -239,6 +242,9 @@ describe("extreme arguments", () => {
     // 1 - (1 - p)^(1 / b) = p / b to double precision: x = exp((log p - log b) / a)
     const [p4, a4, b4] = [3.167816805805275e-260, 4193.829732917642, 1.031067914309409e75];
     expect(rel(qkumar(p4, a4, b4), Math.exp((Math.log(p4) - Math.log(b4)) / a4))).toBeLessThan(1e-14);
+    // tiny a and b: a b = 3.3e-315 is subnormal, the density 5.4e98 (mpmath; 6e-10 relative off); exp of 227 adds 227 eps
+    const [x5, a5, b5] = [1.0633949738004854e-263, 9.384198866749112e-154, 3.4691672925843805e-162];
+    expect(rel(dkumar(x5, a5, b5), 5.387698522110894e98)).toBeLessThan(1e-13);
   });
 
   it("inverse gamma: beta / x huge or underflowing", () => {
@@ -254,5 +260,30 @@ describe("extreme arguments", () => {
     expect(rel(pinvgamma(x3, alpha3, { beta: beta3, lowerTail: false }), upper)).toBeLessThan(1e-13);
     // alpha = beta = 1e200: 1 / X is near its mean 1, where f ≈ 1 / sqrt(2π alpha) per unit of z, times z / x = 1e200
     expect(rel(dinvgamma(1, 1e200, { beta: 1e200 }), 1e100 / Math.sqrt(2 * Math.PI))).toBeLessThan(1e-14);
+  });
+
+  it("inverse gamma: huge alpha, a subnormal gamma quantile", () => {
+    // alpha above 1e15: the gamma tail at the rounded z (the first-order correction for its low part gave 8.09e16)
+    const [x, alpha, beta] = [2.403439191651939e-65, 1.527471870384886e67, 367.1185757428926];
+    expect(pinvgamma(x, alpha, { beta })).toBe(pgamma(beta / x, alpha, { lowerTail: false }));
+    // the gamma density subnormal while f z is not: the linear value from the log (lost 3e-11)
+    const [x2, alpha2, beta2] = [4.8625730065674e-33, 3.0242277399093077e32, 1.4705528173795366];
+    const ld = dinvgamma(x2, alpha2, { beta: beta2, log: true });
+    expect(rel(Math.log(dinvgamma(x2, alpha2, { beta: beta2 })), ld)).toBeLessThan(1e-15);
+    // beta / (p Γ(1.5))^2 where qgamma(p, 0.5) underflows or is subnormal (Infinity; 8e-7 relative)
+    expect(rel(qinvgamma(2.431739343042036e-199, 0.5, { beta: 3.325020537939267e-102, lowerTail: false }), 7.159297477622279e295)).toBeLessThan(1e-15);
+    expect(rel(qinvgamma(5.017353909284426e-160, 0.5, { beta: 4.3249964967109584e-165, lowerTail: false }), 2.187491664181877e154)).toBeLessThan(
+      1e-15,
+    );
+  });
+
+  it("arcsine: (x - a) / (b - a) and sin^2 below the normal range", () => {
+    // b sin^2(π p / 2) (0: sin^2 underflowed)
+    expect(rel(qarcsine(1.7053740454118274e-208, { a: 0, b: 2.6427604573393012e187 }), 1.8964301539205125e-228)).toBeLessThan(1e-15);
+    // near b with the lower tail given on the log scale: b - (b - a) sin^2(π q / 2), q = -expm1(p)
+    expect(rel(qarcsine(-1e-200, { a: -1e300, b: 0, logP: true }), -2.4674011002723396e-100)).toBeLessThan(1e-15);
+    // (2/π) asin(sqrt(z)) with z = 1e-320 subnormal
+    expect(rel(parcsine(1e-300, { a: 0, b: 1e20 }), 6.366197723675813e-161)).toBeLessThan(1e-15);
+    expect(rel(parcsine(1e-300, { a: 0, b: 1e20, logP: true }), -368.8651975843368)).toBeLessThan(1e-15);
   });
 });

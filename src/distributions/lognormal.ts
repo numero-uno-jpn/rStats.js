@@ -7,7 +7,7 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { expNeg, mulDD } from "../internal/ddexp.js";
+import { ddExp, expNeg, mulDD } from "../internal/ddexp.js";
 import { ddAdd, ddDiv, ddLog, ddMul, ddSub, twoSum, type DD } from "../special/dd.js";
 import { erfcxNonNegative } from "../special/erf.js";
 import { pnorm, qnorm } from "./normal.js";
@@ -26,6 +26,9 @@ export interface LognormalParams {
 
 const LN_SQRT_2PI = 0.918938533204672741780329736406;
 const INV_SQRT_2PI = 0.398942280401432677939946059934;
+const MIN_NORMAL = 2 ** -1022;
+/** log(sqrt(2 pi)) in double-double */
+const LN_SQRT_2PI_DD: DD = [0.91893853320467278, -3.8782941580672414e-17];
 
 /** z = (log x - meanlog) / sdlog (x > 0, finite parameters, sdlog > 0) */
 function zOf(x: number, meanlog: number, sdlog: number): DD {
@@ -104,8 +107,25 @@ export function dlnorm1(x: number, meanlog: number, sdlog: number, log: boolean)
   }
   const z = zOf(x, meanlog, sdlog);
   const h = halfSquare(z);
-  if (log) return -(LN_SQRT_2PI + h[0] + h[1] + Math.log(sdlog) + Math.log(x));
-  return (INV_SQRT_2PI * expNeg(h)) / sdlog / x;
+  // The exponent z^2/2 + log(sqrt(2 pi) sdlog x) in double-double: its terms (log x up to 745) can cancel to a log
+  // density near 0, where their roundings would show (dlnorm(1.1e-294, -0.21, 18.5, log) was 1.3e-13 off)
+  const exponent = (): DD => ddAdd(ddAdd(h, LN_SQRT_2PI_DD), ddAdd(ddLog([x, 0]), ddLog([sdlog, 0])));
+  if (log) {
+    if (!(h[0] < 1e300)) return -(LN_SQRT_2PI + h[0] + h[1] + Math.log(sdlog) + Math.log(x));
+    const e = exponent();
+    return -(e[0] + e[1]);
+  }
+  const eh = expNeg(h);
+  // Where exp(-z^2/2) underflows to 0 the density is 0 even if 1 / x would bring it back into range: R computes it so
+  // (fixture: dlnorm(1e-100, -100, 3) is 0, 5.6e-311 exactly), kept to match
+  if (eh === 0) return 0;
+  if (eh < MIN_NORMAL) {
+    // exp(-z^2/2) subnormal: exp of the whole exponent instead (dlnorm(2e-105, 1.53, 6.36) had lost 2.8e-7 relative in
+    // the subnormal factor)
+    const e = exponent();
+    return e[0] > 746 ? 0 : ddExp([-e[0], -e[1]])[0];
+  }
+  return (INV_SQRT_2PI * eh) / sdlog / x;
 }
 
 export function plnorm1(q: number, meanlog: number, sdlog: number, lowerTail: boolean, logP: boolean): number {

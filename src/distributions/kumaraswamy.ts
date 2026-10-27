@@ -6,8 +6,8 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { log1mExp } from "../internal/ddexp.js";
-import { twoProd } from "../special/dd.js";
+import { ddExp, log1mExp } from "../internal/ddexp.js";
+import { ddAdd, ddLog, ddMul, ddSub, twoProd, twoSum, type DD } from "../special/dd.js";
 
 const valid = (a: number, b: number): boolean => a > 0 && b > 0 && Number.isFinite(b);
 // a = Inf is taken as the limit (the distribution concentrates at 1), as extraDistr does
@@ -20,10 +20,18 @@ const MIN_NORMAL = 2.2250738585072014e-308;
  */
 const scaledTinyPow = (x: number, a: number, c: number): number => -Math.sign(c) * Math.exp(Math.log(Math.abs(c)) + a * Math.log(x));
 
+/**
+ * Whether a log x (x near 1, a tiny) is subnormal or 0 although 1 - x^a > 0: -expm1 of it has lost digits
+ * (dkumar(1 - 1.1e-16, 2.6e-300, 0.29) was 6e-8 off). 1 - x^a = -a log x to double precision there, taken from the
+ * factors
+ */
+const subnormalALogX = (x: number, a: number): boolean => x < 1 && -(a * Math.log(x)) < MIN_NORMAL;
+
 /** log(1 - x^a) for 0 <= x <= 1 */
 function log1mPow(x: number, a: number): number {
   const xa = Math.pow(x, a);
-  return xa < 0.5 ? Math.log1p(-xa) : Math.log(-Math.expm1(a * Math.log(x)));
+  if (xa < 0.5) return Math.log1p(-xa);
+  return subnormalALogX(x, a) ? Math.log(a) + Math.log(-Math.log(x)) : Math.log(-Math.expm1(a * Math.log(x)));
 }
 
 /**
@@ -32,7 +40,13 @@ function log1mPow(x: number, a: number): number {
  */
 function powOneMinus(x: number, a: number, e: number): number {
   const xa = Math.pow(x, a);
-  if (xa >= 0.5) return Math.pow(-Math.expm1(a * Math.log(x)), e);
+  if (xa >= 0.5) {
+    if (!subnormalALogX(x, a)) return Math.pow(-Math.expm1(a * Math.log(x)), e);
+    // (-a log x)^e = ((a 2^600) (-log x))^e 2^(-600 e), the base made normal by an exact scaling; from the logs where a
+    // factor leaves the range
+    const v = Math.pow(a * 2 ** 600 * -Math.log(x), e) * Math.pow(2, -600 * e);
+    return v >= MIN_NORMAL && v < Infinity ? v : Math.exp(e * (Math.log(a) + Math.log(-Math.log(x))));
+  }
   const hi = 1 - xa;
   const lo = 1 - hi - xa; // exact remainder (Fast2Sum)
   const c = (e * lo) / hi;
@@ -41,6 +55,34 @@ function powOneMinus(x: number, a: number, e: number): number {
 
 /** c log(v), 0 when c is 0 */
 const xlog = (c: number, v: number): number => (c === 0 ? 0 : c * Math.log(v));
+
+/**
+ * log a + log b + (a - 1) log x + (b - 1) log(1 - x^a), given lb = the last term in double. The terms can be hundreds
+ * that cancel to a log density near 0, where their roundings would show (1.6e-13 at dkumar(0.305, 486, 3.8e247)), so
+ * they are summed in double-double, with a - 1 and b - 1 exact and log(1 - x^a) from x^a = exp(a log x) in
+ * double-double where x^a > 1e-10 (below, log1p(-x^a) in double is accurate to its last bit). lb is used as is for
+ * x = 0 or 1, a subnormal x^a, and shapes beyond the range of Veltkamp splitting
+ */
+function logDensity(x: number, a: number, b: number, lb: number, xa: number): number {
+  if (x === 0 || !(a < 1e300) || !(b < 1e300)) return Math.log(a) + Math.log(b) + xlog(a - 1, x) + lb;
+  const lx = ddLog([x, 0]);
+  let s = ddAdd(ddLog([a, 0]), ddLog([b, 0]));
+  if (a !== 1) s = ddAdd(s, ddMul(lx, twoSum(a, -1)));
+  if (b === 1 || x === 1 || xa < MIN_NORMAL) {
+    if (!Number.isFinite(lb)) return s[0] + lb;
+    const t = ddAdd(s, [lb, 0]);
+    return t[0] + t[1];
+  }
+  // (log a + log(-log x) where a log x is subnormal, see subnormalALogX)
+  const l1: DD =
+    xa <= 1e-10
+      ? [Math.log1p(-xa), 0]
+      : subnormalALogX(x, a)
+        ? ddAdd(ddLog([a, 0]), ddLog([-lx[0], -lx[1]]))
+        : ddLog(ddSub([1, 0], ddExp(ddMul(lx, [a, 0]))));
+  const t = ddAdd(s, ddMul(l1, twoSum(b, -1)));
+  return t[0] + t[1];
+}
 
 export function dkumar1(x: number, a: number, b: number, log: boolean): number {
   if (Number.isNaN(x) || !valid(a, b)) return NaN;
@@ -51,15 +93,20 @@ export function dkumar1(x: number, a: number, b: number, log: boolean): number {
   const l1 = x === 1 ? -Infinity : log1mPow(x, a);
   // (b - 1) log(1 - x^a)
   const lb = b === 1 ? 0 : tiny ? scaledTinyPow(x, a, b - 1) : (b - 1) * l1;
-  const ld = Math.log(a) + Math.log(b) + xlog(a - 1, x) + lb;
+  const ld = logDensity(x, a, b, lb, xa);
   if (log) return ld;
   // the product keeps the relative accuracy that exp(ld) loses for large |ld|; exp(ld) where it under- or overflows
   // or where x^(a-1) is subnormal (a large b can bring the density back into the normal range)
   // x^(a-1) as x^a / x (a - 1 itself may round, which x^(a-1) magnifies by |log x|)
   const xm = a === 1 ? 1 : xa > 1e-290 ? xa / x : Math.pow(x, a - 1);
   if (x > 0 && xm < MIN_NORMAL) return Math.exp(ld);
-  const d = a * b * xm * (b === 1 || x === 0 ? 1 : tiny ? Math.exp(lb) : powOneMinus(x, a, b - 1));
-  return d > MIN_NORMAL && d < Infinity ? d : Math.exp(ld);
+  // (also where a factor or partial product is below the normal range: a b = 3.3e-315 for tiny shapes, which xm and
+  // the power brought back to 1e99 with 6e-10 relative error; the power (1 - x^a)^(b-1) subnormal)
+  const ab = a * b;
+  const abx = ab * xm;
+  const pw = b === 1 || x === 0 ? 1 : tiny ? Math.exp(lb) : powOneMinus(x, a, b - 1);
+  const d = abx * pw;
+  return ab >= MIN_NORMAL && abx >= MIN_NORMAL && pw >= MIN_NORMAL && d > MIN_NORMAL && d < Infinity ? d : Math.exp(ld);
 }
 
 export function pkumar1(q: number, a: number, b: number, lowerTail: boolean, logP: boolean): number {

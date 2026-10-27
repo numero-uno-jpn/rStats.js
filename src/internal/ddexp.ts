@@ -4,7 +4,7 @@
 // becomes the relative error of the probability directly, so the parts that build t are computed in double-double.
 // The method is the standard argument reduction (x = n log 2 + r, Taylor series on r scaled by 2^-10, then repeated squaring).
 
-import { ddAdd, ddMul, ddMulNum, ddSub, isDoubleDouble, twoProd, twoSum, type DD } from "../special/dd.js";
+import { ddAdd, ddLog, ddMul, ddMulNum, ddSub, isDoubleDouble, twoProd, twoSum, type DD } from "../special/dd.js";
 
 const LN2: DD = [0.6931471805599453, 2.3190468138462996e-17];
 
@@ -51,10 +51,37 @@ export function standardizeDD(x: number, location: number, scale: number): DD {
   if (scale === 1) return d;
   const q1 = d[0] / scale;
   if (!Number.isFinite(q1) || q1 === 0) return [q1, 0];
-  // Build the remainder d - q1 scale exactly to get the second term
-  const rem = ddSub(d, mulDD(scale, q1));
+  return divideTail(d, scale, q1);
+}
+
+/** d / scale as double-double from its rounded value q1: the remainder d - q1 scale gives the second term */
+function divideTail(d: DD, scale: number, q1: number): DD {
+  if (Math.abs(d[0]) < 2 ** -900) {
+    // Near the subnormal range the error term of q1 scale underflows (the low part of x / scale was 4.8e-10 relative
+    // off at x = 1.3e-314): everything times 2^600 (exact) and back
+    const f = 2 ** 600;
+    const r = divideTail([d[0] * f, d[1] * f], scale, q1 * f);
+    return [r[0] / f, r[1] / f];
+  }
+  const st = mulDD(scale, q1);
+  if (!Number.isFinite(st[0])) {
+    // Near the largest double q1 scale can round up to Infinity (the remainder was then NaN): divide d 2^-40 instead
+    // (exact, and small enough for mulDD's exact product) and scale back
+    const f = 2 ** -40;
+    const r = divideTail([d[0] * f, d[1] * f], scale, q1 * f);
+    return [r[0] / f, r[1] / f];
+  }
+  const rem = ddSub(d, st);
   const q2 = (rem[0] + rem[1]) / scale;
   return twoSum(q1, q2);
+}
+
+/**
+ * log(a / b) as double-double for positive finite a and b: log a - log b, which keeps its digits where a / b is
+ * subnormal, 0 or overflows (the log of a subnormal ratio has lost them in the division)
+ */
+export function logRatioDD(a: number, b: number): DD {
+  return ddSub(ddLog([a, 0]), ddLog([b, 0]));
 }
 
 /** a b as double-double. Only the double product when Veltkamp splitting would overflow (above 1e300) or for non-finite values */

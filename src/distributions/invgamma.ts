@@ -3,13 +3,17 @@
 // Written for rStats.js (no ported code). X = 1/Y with Y ~ Gamma(alpha, rate = beta), so with z = beta / x
 //   f(x) = f_Gamma(z; alpha, 1) z / x,   P[X <= x] = P[Z >= z],   q(p) = beta / q_Gamma(1 - p; alpha, 1)
 // which keeps the gamma functions' accuracy in both tails. z is formed in double-double and its low part enters to
-// first order (the density and the tails are steep in z when alpha is large).
+// first order (the density and the tails are steep in z when alpha is large). Above alpha = 1e15 it is left out: near
+// the centre the low part (up to eps z / 2, z about alpha) is no longer small against the width sqrt(alpha) over which
+// the tails change, so a first-order term is not valid (it gave probabilities of 1e16); the functions are then those
+// at the rounded z (relative errors of order eps sqrt(alpha), the condition of the problem itself).
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
-import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { log1mExp, standardizeDD } from "../internal/ddexp.js";
-import { lgamma, lgamma1p } from "../special/gamma.js";
-import { dgamma1, pgamma1, qgamma1 } from "./gamma.js";
+import { d0, dt0, dt1, quantileBoundaries, smallerTail, type DensityOptions, type TailOptions } from "../internal/dpq.js";
+import { ddExp, logRatioDD, standardizeDD } from "../internal/ddexp.js";
+import { ddAdd, ddLog, ddMulNum, ddSub } from "../special/dd.js";
+import { lgamma } from "../special/gamma.js";
+import { dgamma1, logTinyGammaQuantile, pgamma1, qgamma1 } from "./gamma.js";
 
 /**
  * Scale parameter of the inverse gamma distribution.
@@ -25,6 +29,8 @@ const valid = (alpha: number, beta: number): boolean => alpha > 0 && beta > 0 &&
 // alpha = Inf is taken as the limit (the distribution concentrates at 0), as extraDistr does
 
 const MIN_NORMAL = 2 ** -1022;
+/** Largest alpha for which the low part of z enters to first order (see the top of the file) */
+const MAX_ALPHA_CORRECTED = 1e15;
 
 export function dinvgamma1(x: number, alpha: number, beta: number, log: boolean): number {
   if (Number.isNaN(x) || !valid(alpha, beta)) return NaN;
@@ -33,17 +39,33 @@ export function dinvgamma1(x: number, alpha: number, beta: number, log: boolean)
   const [z, zl] = standardizeDD(beta, 0, x);
   if (z === Infinity) return d0(log);
   if (z < MIN_NORMAL) {
-    // beta / x subnormal or 0: in logs, log f = alpha log(beta / x) - lgamma(alpha) - log x - beta / x
-    const ld = alpha * (Math.log(beta) - Math.log(x)) - lgamma(alpha) - Math.log(x) - z;
-    return log ? ld : Math.exp(ld);
+    // beta / x subnormal or 0: in logs, log f = alpha log(beta / x) - lgamma(alpha) - log x (e^-z is 1), with
+    // log(beta / x) from log beta - log x
+    const lr = logRatioDD(beta, x);
+    const l = ddAdd(ddSub(alpha < 1e300 ? ddMulNum(lr, alpha) : [lr[0] * alpha, 0], ddLog([x, 0])), [-lgamma(alpha), 0]);
+    return log ? l[0] + l[1] : l[0] < -746 ? 0 : ddExp(l)[0];
   }
   // d/dz log(f_Gamma(z) z) = alpha / z - 1
-  const c = Number.isFinite(zl) ? alpha * (zl / z) - zl : 0;
-  if (log) return dgamma1(z, alpha, 1, true) + Math.log(z) - Math.log(x) + c;
-  const dz = dgamma1(z, alpha, 1, false) * z;
-  // f_Gamma(z) z below the normal range (where 1 / x can bring the density back): from the log density
-  if (!(dz >= MIN_NORMAL)) return Math.exp(dgamma1(z, alpha, 1, true) + Math.log(z) - Math.log(x) + c);
-  return (dz / x) * (1 + c);
+  const c = Number.isFinite(zl) && alpha <= MAX_ALPHA_CORRECTED ? alpha * (zl / z) - zl : 0;
+  // f_Gamma(z) z / x from normal factors (undefined where f_Gamma(z) or f_Gamma(z) z is below the normal range, where z
+  // or 1 / x can bring the density back)
+  const linear = (): number | undefined => {
+    const g = dgamma1(z, alpha, 1, false);
+    const dz = g * z;
+    return g >= MIN_NORMAL && dz >= MIN_NORMAL ? dz / x : undefined;
+  };
+  if (log) {
+    const lg = dgamma1(z, alpha, 1, true);
+    const ld = lg + Math.log(z) - Math.log(x) + c;
+    if (!(Math.abs(ld) < 0.5 * Math.abs(lg))) return ld;
+    // log f_Gamma and log(z / x) (hundreds near the ends of the range) cancelled to below half, so their roundings
+    // would show: the log of the linear value instead (dinvgamma(9.7e-286, 91.7, beta 2.5e-287, log) was 1.2e-13 off)
+    const v = linear();
+    return v !== undefined && v >= MIN_NORMAL && v < Infinity ? Math.log(v) + c : ld;
+  }
+  const v = linear();
+  if (v === undefined) return Math.exp(dgamma1(z, alpha, 1, true) + Math.log(z) - Math.log(x) + c);
+  return v * (1 + c);
 }
 
 export function pinvgamma1(q: number, alpha: number, beta: number, lowerTail: boolean, logP: boolean): number {
@@ -52,13 +74,12 @@ export function pinvgamma1(q: number, alpha: number, beta: number, lowerTail: bo
   if (q === Infinity || alpha === Infinity) return dt1(lowerTail, logP);
   const [z, zl] = standardizeDD(beta, 0, q);
   if (z < MIN_NORMAL) {
-    // beta / x subnormal or 0: P[Z <= z] = z^alpha / Γ(alpha + 1) (1 - O(z)), its log from log beta - log x
-    const ls = alpha * (Math.log(beta) - Math.log(q)) - lgamma1p(alpha);
-    if (lowerTail) return logP ? log1mExp(ls) : -Math.expm1(ls);
-    return logP ? ls : Math.exp(ls);
+    // beta / x subnormal or 0: P[Z >= z] is the upper tail at beta of the gamma distribution with scale x, which
+    // pgamma takes in logs there
+    return pgamma1(beta, alpha, q, !lowerTail, logP);
   }
   const v = pgamma1(z, alpha, 1, !lowerTail, logP);
-  if (!(zl !== 0 && Number.isFinite(zl) && Number.isFinite(z))) return v;
+  if (!(zl !== 0 && Number.isFinite(zl) && Number.isFinite(z) && alpha <= MAX_ALPHA_CORRECTED)) return v;
   // P[Z <= z] grows by f(z) zl, P[Z > z] falls by it
   const sign = lowerTail ? -1 : 1;
   if (!logP) return v + sign * dgamma1(z, alpha, 1, false) * zl;
@@ -74,6 +95,10 @@ export function qinvgamma1(p: number, alpha: number, beta: number, lowerTail: bo
   const b = quantileBoundaries(p, 0, Infinity, lowerTail, logP);
   if (b !== undefined) return b;
   if (alpha === Infinity) return 0;
+  // A gamma quantile below the smallest normal double has lost digits (or is 0): beta / it from the log
+  const { lower, logTarget, linearTarget } = smallerTail(p, !lowerTail, logP);
+  const tiny = logTinyGammaQuantile(logTarget, lower, alpha, linearTarget);
+  if (tiny !== undefined) return Math.log(beta) - tiny[0] > 710 ? Infinity : ddExp(ddSub(ddLog([beta, 0]), tiny))[0];
   return beta / qgamma1(p, alpha, 1, !lowerTail, logP);
 }
 
