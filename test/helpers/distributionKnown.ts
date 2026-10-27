@@ -216,16 +216,7 @@ export const knownViolations: KnownViolation[] = [
     examples: [{ params: { df1: 1.5352254500141903e186, df2: 99.33785701936728, ncp: 0 }, x: [5.925999535882428e-161] }],
   },
 
-  {
-    family: "f",
-    property: "roundtrip",
-    match: on(/^qf$/, (pr, _x, v) => pr.df2 === Infinity && v.detail.startsWith("= 0;")),
-    reason:
-      "qf with df2 = Infinity (χ²/df1) where the quantile is below the smallest positive double: qf(6.551701789807721e-149, " +
-      "0.14754556850238376, Infinity) is 0, which the round trip cannot confirm (pf(5e-324, ...) is already 1.3e-24, " +
-      "(df1 x / 2)^(df1/2) / Γ(df1/2 + 1) at that x)",
-    examples: [{ params: { df1: 0.14754556850238376, df2: Infinity }, x: [6.551701789807721e-149] }],
-  },
+
   {
     family: "f",
     property: "range",
