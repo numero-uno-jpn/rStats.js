@@ -132,7 +132,45 @@ export function invertContinuous(problem: InvertProblem): number {
       lF = lFn;
       r = rn;
     }
+    if (Math.abs(r) > 1e-9) return bisectX(x, r);
     return x;
+  }
+
+  /**
+   * Where Newton's method in x makes no progress (the distribution function rises across a few ulps of x, as for
+   * qchisq(1.5e-233, 6.3e234), whose standard deviation is 1e-117 of the mean; the density there underflows), bisect
+   * in x within the bracket of the search in u (spacing 1.1e-13 relative at |u| = 500) down to adjacent doubles
+   */
+  function bisectX(x0: number, r0: number): number {
+    // x with residual r lies below the solution if r < 0 for the lower tail (r > 0 for the upper)
+    const below = (r: number): boolean => r < 0 === lower;
+    let xl = toX(lo);
+    let xh = toX(hi);
+    if (below(r0)) xl = Math.max(xl, x0);
+    else xh = Math.min(xh, x0);
+    // An end the search never reached: step away from x0 by doubling relative steps
+    for (let k = 0, s = 1e-13; k < 60 && !(xl > 0); k++, s *= 2) {
+      const t = s < 0.5 ? x0 * (1 - s) : x0 / (2 * s);
+      if (below(evaluate(t)[1])) xl = t;
+      else xh = Math.min(xh, t);
+    }
+    for (let k = 0, s = 1e-13; k < 60 && !Number.isFinite(xh); k++, s *= 2) {
+      const t = x0 * (1 + s);
+      if (below(evaluate(t)[1])) xl = Math.max(xl, t);
+      else xh = t;
+    }
+    if (!(xl > 0 && xh > xl && Number.isFinite(xh))) return x0;
+    for (let k = 0; k < 64; k++) {
+      const mid = xl + (xh - xl) / 2;
+      if (mid <= xl || mid >= xh) break;
+      const r = evaluate(mid)[1];
+      if (r === 0) return mid;
+      if (below(r)) xl = mid;
+      else xh = mid;
+    }
+    // The end with the smaller residual (the residual can jump across the last ulp; x0 itself may be far off with a
+    // residual no larger, as the probability saturates at 0 or 1 on either side)
+    return Math.abs(evaluate(xl)[1]) < Math.abs(evaluate(xh)[1]) ? xl : xh;
   }
 }
 

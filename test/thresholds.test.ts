@@ -131,7 +131,7 @@ interface CheckCase {
 type Case = PairCase | ExtrapCase | SweepCase | CheckCase;
 
 interface Entry {
-  /** file:line in src (as of commit 71aaadb) */
+  /** file:line in src (as of the last change to the file) */
   where: string;
   /** Public functions affected */
   fns: string;
@@ -359,7 +359,7 @@ const IGAM: Entry[] = [
     cases: () => pPairs("pgamma(x, 1e5)", pg(1e5), flipPoint((x) => x > 0.97 * 1e5, 9e4, 9.9e4)),
   },
   {
-    where: "special/igam.ts:229",
+    where: "special/igam.ts:309",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "x > 1.1 (then x < a)",
     methods: "small-x rules (P series if -0.4/log x < a or 1.1 x < a, else Q series) | P series or Q continued fraction",
@@ -367,7 +367,7 @@ const IGAM: Entry[] = [
     cases: () => [...pPairs("pgamma(x, 1.2)", pg(1.2), up(1.1)), ...pPairs("pgamma(x, 0.9)", pg(0.9), up(1.1))],
   },
   {
-    where: "special/igam.ts:230",
+    where: "special/igam.ts:310",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "x < a (x > 1.1, outside Temme's region)",
     methods: "continued fraction for Q | series for P",
@@ -375,7 +375,7 @@ const IGAM: Entry[] = [
     cases: () => [...pPairs("pgamma(x, 5)", pg(5), down(5)), ...pPairs("pgamma(x, 20)", pg(20), down(20))],
   },
   {
-    where: "special/igam.ts:234",
+    where: "special/igam.ts:314",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "x <= 0.5 ? -0.4/log(x) < a : 1.1 x < a",
     methods: "series for Q (DLMF 8.7.3) | series for P",
@@ -387,7 +387,7 @@ const IGAM: Entry[] = [
     ],
   },
   {
-    where: "special/igam.ts:273, :313",
+    where: "special/igam.ts:353, :391",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "x > 1e15 max(a, 1)",
     methods: "continued fraction | Q = x^(a-1) e^-x / Gamma(a) (1 + (a-1)/x)",
@@ -395,7 +395,7 @@ const IGAM: Entry[] = [
     cases: () => [...pPairs("pgamma(x, 0.5)", pg(0.5), up(1e15)), ...pPairs("pgamma(x, 2)", pg(2), up(2e15))],
   },
   {
-    where: "special/igam.ts:279, :320",
+    where: "special/igam.ts:262 (:359, :399), 20 < a < 200",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "20 < a < 200 && |x - a|/a < 0.3",
     methods: "series / continued fraction | Temme's uniform expansion",
@@ -410,7 +410,7 @@ const IGAM: Entry[] = [
     },
   },
   {
-    where: "special/igam.ts:280, :321",
+    where: "special/igam.ts:262 (:359, :399), a > 200",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "a > 200 && |x - a|/a < 4.5/sqrt(a)",
     methods: "series / continued fraction | Temme's uniform expansion",
@@ -595,7 +595,7 @@ const betaPrefactor = (x: number, a: number, b: number): number => dbeta(x, a, b
 
 const INCBET: Entry[] = [
   {
-    where: "special/incbet.ts:123, :699",
+    where: "special/incbet.ts:123, :705",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "prefactor x^a (1-x)^b / B(a, b) > 2.2e-305",
     methods: "exponent in double-double, one exp at the end | product on the linear scale",
@@ -638,7 +638,7 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:680",
+    where: "special/incbet.ts:686",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "b x <= 1 && x <= 0.95 (series in the frame)",
     methods: "continued fraction / complement of the other frame's series | power series",
@@ -649,7 +649,7 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:685",
+    where: "special/incbet.ts:691",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x <= a/(a + b) (continued fraction in this frame)",
     methods: "1 - (continued fraction of the other frame) | continued fraction",
@@ -657,7 +657,7 @@ const INCBET: Entry[] = [
     cases: () => pPairs("pbeta(x, 5, 8)", pb(5, 8), flipPoint((x) => x <= 5 / 13, 0.3, 0.45)),
   },
   {
-    where: "special/incbet.ts:693",
+    where: "special/incbet.ts:699",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x (a + b - 2) - (a - 1) < 0",
     methods: "continued fraction #2 | #1",
@@ -665,7 +665,7 @@ const INCBET: Entry[] = [
     cases: () => pPairs("pbeta(x, 5, 8)", pb(5, 8), flipPoint((x) => x * (5 + 8 - 2) - (5 - 1) < 0, 0.3, 0.38)),
   },
   {
-    where: "special/incbet.ts:766",
+    where: "special/incbet.ts:772",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x < DBL_MIN or 1 - x < DBL_MIN",
     methods: "series / continued fraction | first series term x^a / (a B(a, b)) in logs",
@@ -676,17 +676,17 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:782",
+    where: "special/incbet.ts:788",
     fns: "pbeta",
-    skip: "only a shortcut: m = ab/(a + b) < min(a, b), so Temme's m >= 25 (incbetTemme.ts:175) already implies a, b >= 25",
+    skip: "only a shortcut: m = ab/(a + b) < min(a, b), so Temme's m >= 25 (incbetTemme.ts:187) already implies a, b >= 25",
     condition: "a >= 25 && b >= 25",
     methods: "-",
     point: "-",
   },
   {
-    where: "special/incbet.ts:794",
+    where: "special/incbet.ts:803",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
-    condition: "max(a, b) >= 15 && min(a, b) <= 40",
+    condition: "max(a, b) >= 15 && min(a, b) <= 40 (or x rounding to 1 in the large frame, see below)",
     methods: "continued fraction | expansion for large a (incbetLargeA.ts) where it applies",
     point: "a = 15 at b = 5, x = 0.8; b = 40 at a = 200, x = 0.95 (|τ| > 1, so not Temme's)",
     cases: () => [
@@ -695,9 +695,9 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:815, :838",
+    where: "special/incbet.ts:827, :852",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
-    condition: "a |log x| > 32 v && x below the mean in the requested frame (v from the other frame's series)",
+    condition: "a |log x| > 32 v && x below the mean and below 1 in the requested frame (v from the other frame's series)",
     methods: "complement of the other frame's series | continued fraction (or the large-a expansion)",
     point: "where 0.01 |log(1 - x)| = 32 I_x(1e4, 0.01), x about 1 - 8e-5 (the example of the comment, both frames)",
     cases: () => {
@@ -708,7 +708,7 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:825",
+    where: "special/incbet.ts:837",
     fns: "pbeta, pt, pf, pbinom, pnbinom (log)",
     condition: "log wanted && v < 1e-290",
     methods: "log of the linear value | recomputed in logs",
@@ -738,15 +738,15 @@ const temmeX = (a: number, b: number, lim: number): number =>
 
 const TEMME: Entry[] = [
   {
-    where: "special/incbetTemme.ts:175",
+    where: "special/incbetTemme.ts:187",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
-    condition: "m = ab/(a + b) >= 25",
+    condition: "m = ab/(a + b) >= 25 (and a + b finite)",
     methods: "continued fraction / large-a expansion | Temme's expansion",
     point: "m = 25 at b = 100 (a = 100/3), x = 0.25",
     cases: () => pPairs("pbeta(0.25, a, 100)", (a, t) => pbeta(0.25, a, 100, t), flipPoint((a) => (a * 100) / (a + 100) >= 25, 30, 40)),
   },
   {
-    where: "special/incbetTemme.ts:181",
+    where: "special/incbetTemme.ts:193",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "|x - p| > 2pq (cheap filter before τ)",
     methods: "Temme's expansion if |τ| <= 1 | not used",
@@ -759,7 +759,7 @@ const TEMME: Entry[] = [
     },
   },
   {
-    where: "special/incbetTemme.ts:190",
+    where: "special/incbetTemme.ts:202",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "τ² <= 1",
     methods: "continued fraction / series | Temme's expansion",
@@ -770,7 +770,7 @@ const TEMME: Entry[] = [
     ],
   },
   {
-    where: "special/incbetTemme.ts:193",
+    where: "special/incbetTemme.ts:205",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "|τ| <= 0.5 / <= 0.75",
     methods: "30 | 24 | 20 Taylor coefficients",
@@ -781,7 +781,7 @@ const TEMME: Entry[] = [
     ],
   },
   {
-    where: "special/incbetTemme.ts:199",
+    where: "special/incbetTemme.ts:211",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "y = sqrt(E) < 1.5",
     methods: "tail form e^-E (F(y) + ...) | ½ erfc(∓y) ∓ R",
@@ -824,9 +824,9 @@ const LARGE_A: Entry[] = [
     cases: () => pPairs("pbeta(x, 100, 5)", pb(100, 5), around(flipPoint((x) => largeAU0(x, 100, 5) >= 5 - 1 / 3, 0.9, 0.99)[0], 2)),
   },
   {
-    where: "special/incbetLargeA.ts:127",
+    where: "special/incbetLargeA.ts:128",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
-    condition: "u0 > 500, or J side with u0 < 0.1",
+    condition: "u0 > 500 (unless x rounds to 1), or J side with u0 < 0.1",
     methods: "expansion | continued fraction",
     point: "u0 = 500 at a = 2000, b = 5; u0 = 0.1 at a = 100, b = 0.1 (J side)",
     cases: () => [
@@ -835,11 +835,12 @@ const LARGE_A: Entry[] = [
     ],
   },
   {
-    where: "special/incbetLargeA.ts:200",
+    where: "special/incbetLargeA.ts:205",
     fns: "pbeta",
     skip:
-      "unreachable: the H side falls below 1e-290 only for a y < 1e-6, where the series in frame (b, a, y) is used " +
-      "first; the J side is at least about Q(b, 500) > 1e-230",
+      "unreachable except where x rounds to 1 (then the log form, see the extreme-parameter entries below): the H side " +
+      "falls below 1e-290 only for a y < 1e-6, where the series in frame (b, a, y) is used first; the J side is at least " +
+      "about Q(b, 500) > 1e-230",
     condition: "small >= 1e-290",
     methods: "-",
     point: "-",
@@ -942,7 +943,7 @@ const LOADER: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:97, :354",
+    where: "special/loader.ts:104, :362",
     fns: "every density, pgamma, pbeta",
     condition: "|x - M| < 0.1 (x + M) in bd0(x, M)",
     methods: "x log(x/M) + M - x | series in v = (x - M)/(x + M)",
@@ -956,7 +957,7 @@ const LOADER: Entry[] = [
     },
   },
   {
-    where: "special/loader.ts:192",
+    where: "special/loader.ts:199",
     fns: "every density, pgamma, pbeta",
     condition: "|x v^3| <= 0.12 in the bd0 series",
     methods: "series tail in double-double | in double",
@@ -967,9 +968,9 @@ const LOADER: Entry[] = [
     },
   },
   {
-    where: "special/loader.ts:347, :370",
+    where: "special/loader.ts:355, :378",
     fns: "every density, pgamma, pbeta",
-    condition: "1e-290 < x/M < 1e290",
+    condition: "1e-290 < x/M < 1e290 && max(x, M) < 1e300",
     methods: "log x - log M | log of the double-double quotient",
     point: "dpois(1e10, λ) at λ = 1e-280 and dpois(1, λ) at λ = 1e290 (log scale; the values underflow)",
     cases: () => [
@@ -978,7 +979,7 @@ const LOADER: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:423, :433",
+    where: "special/loader.ts:448, :458",
     fns: "dbinom, dgeom, dnbinom, pgeom, dhyper",
     condition: "x = 0 with p < 0.1 (n - x = 0 with q < 0.1)",
     methods: "n log q in double-double | -bd0(n, nq) - np",
@@ -990,7 +991,7 @@ const LOADER: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:480",
+    where: "special/loader.ts:505",
     fns: "dpois, dgamma (shape < 1), pgamma",
     condition: "x <= λ DBL_MIN",
     methods: "Loader's form | e^-λ",
@@ -1001,7 +1002,7 @@ const LOADER: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:481",
+    where: "special/loader.ts:506",
     fns: "dpois, dgamma, pgamma",
     condition: "λ < x DBL_MIN",
     methods: "Loader's form | -λ + x log λ - lgamma1p(x)",
@@ -1441,7 +1442,7 @@ const ELEMENTARY: Entry[] = [
 
 const BETA_T_F: Entry[] = [
   {
-    where: "distributions/beta.ts:35, :40",
+    where: "distributions/beta.ts:40, :45",
     fns: "dbeta",
     condition: "linear scale: E < 700, x and 1 - x > 1e-290, v = exp(-E) sqrt(m/2π) within 1e±290",
     methods: "log form | product on the linear scale",
@@ -1452,7 +1453,7 @@ const BETA_T_F: Entry[] = [
     ],
   },
   {
-    where: "distributions/beta.ts:47, :49",
+    where: "distributions/beta.ts:52, :54",
     fns: "dbeta (log, and linear where the product form is not used)",
     condition: "x and 1 - x > 1e-290; 1e-290 < m < 1e290",
     methods: "log x + log(1 - x), separate logs of a, b, a + b | log of the products",
@@ -1464,7 +1465,7 @@ const BETA_T_F: Entry[] = [
     ],
   },
   {
-    where: "distributions/beta.ts:97",
+    where: "distributions/beta.ts:114",
     fns: "dbeta (log)",
     condition: "a == 1 or b == 1",
     methods: "Loader's form | elementary log(b) + (b - 1) log(1 - x)",
@@ -1472,7 +1473,7 @@ const BETA_T_F: Entry[] = [
     cases: () => [pair("dbeta(0.3, a, 3, log)", (a) => dbeta(0.3, a, 3, { log: true }), down(1)), pair("dbeta(0.3, a, 3, log)", (a) => dbeta(0.3, a, 3, { log: true }), up(1))],
   },
   {
-    where: "distributions/beta.ts:158",
+    where: "distributions/beta.ts:175",
     fns: "qbeta",
     condition: "tail guess x^a / (a B(a, b)) < 1e-3",
     methods: "A&S 26.5.22 start | tail start",
@@ -1486,7 +1487,7 @@ const BETA_T_F: Entry[] = [
     },
   },
   {
-    where: "distributions/beta.ts:200",
+    where: "distributions/beta.ts:224",
     fns: "qbeta, qarcsine",
     condition: "target vs the distribution function at 1/2",
     methods: "1 - (lower quantile of Beta(b, a)) | lower quantile",
@@ -1738,7 +1739,7 @@ const DISCRETE: Entry[] = [
     },
   },
   {
-    where: "distributions/negbinomial.ts:114, :124",
+    where: "distributions/negbinomial.ts:114, :128",
     fns: "qnbinom",
     condition: "prob < 0.05 (gamma start); start > 1e4 (continuous refinement)",
     methods: "Cornish-Fisher | gamma quantile / -log q; integer search from the start | after Newton/secant steps",
@@ -1834,7 +1835,7 @@ const DISCRETE: Entry[] = [
     ],
   },
   {
-    where: "internal/discrete.ts:32, :41",
+    where: "internal/discrete.ts:40, :49",
     fns: "qpois, qbinom, qnbinom, qhyper, qgeom, qsignrank, qwilcox",
     condition: "logP || p < 1e-290 (compare on the log scale); t > 0.5 (compare the complements)",
     methods: "linear comparison | log comparison; F >= t | 1 - F <= 1 - t",
@@ -2182,7 +2183,7 @@ function tukeySwitch290(k: number): ExtrapCase {
 
 const TUKEY: Entry[] = [
   {
-    where: "distributions/tukey.ts:237, :268, :278, :446, :482",
+    where: "distributions/tukey.ts:248, :279, :289, :458, :494",
     fns: "ptukey, qtukey",
     condition:
       "per node of the inner integral: narrow window w max(1, |z|, |z - w|) < 0.5; z > 0 && z - w < 0; a < P/2; lt < -log 2",
@@ -2196,7 +2197,7 @@ const TUKEY: Entry[] = [
     ],
   },
   {
-    where: "distributions/tukey.ts:461, :663",
+    where: "distributions/tukey.ts:473, :681",
     fns: "ptukey, qtukey",
     condition: "w > 40 (integration range around w/2); log w <= log 40 (interpolant of 1 - W)",
     methods: "interpolant of (1 - W) e^(w²/4) | direct integral on [w/2 - 15, w/2 + 15]",
@@ -2204,7 +2205,7 @@ const TUKEY: Entry[] = [
     cases: () => pPairs("ptukey(q, 5, Inf)", ptk(5, Infinity), flipPoint((q) => Math.log(q) <= Math.log(40), 39.9, 40.1)),
   },
   {
-    where: "distributions/tukey.ts:466, :476",
+    where: "distributions/tukey.ts:478, :488",
     fns: "ptukey, qtukey (log)",
     condition: "w > 100",
     methods: "log integral | log(k (k - 1) Φc(w/sqrt(2))) (the correction is below e^-833)",
@@ -2212,18 +2213,18 @@ const TUKEY: Entry[] = [
     cases: () => [pair("ptukey(q, 5, Inf, upper log)", (q) => ptukey(q, 5, Infinity, { lowerTail: false, logP: true }), up(100))],
   },
   {
-    where: "distributions/tukey.ts:481",
+    where: "distributions/tukey.ts:493",
     fns: "ptukey, qtukey (deep upper tail, log)",
     condition: "lt = log(Φ(z - w)/Φ(z)) < -40 (SUSPECT: first order, relative error about k e^lt / 2 <= k 2e-18 whatever k)",
     methods: "log(-expm1((k - 1) log1p(-e^lt))) | log(k - 1) + lt",
     point:
       "reached only in the log integrals (results below 1e-290). It costs 1e-13 only for nmeans above about 1e5, where " +
       "building the interpolants takes many seconds (14 s at 1e6); tested by the continuity of the switch to the log " +
-      "integral (tukey.ts:837) at nmeans = 50 (5 there)",
+      "integral (tukey.ts:866) at nmeans = 50 (5 there)",
     cases: () => [tukeySwitch290(50)],
   },
   {
-    where: "distributions/tukey.ts:616",
+    where: "distributions/tukey.ts:634",
     fns: "ptukey, qtukey",
     condition: "W > 1e-290 (while building the interpolants)",
     methods: "log W integrated | log of W",
@@ -2234,7 +2235,7 @@ const TUKEY: Entry[] = [
     },
   },
   {
-    where: "distributions/tukey.ts:647, :655",
+    where: "distributions/tukey.ts:665, :673",
     fns: "ptukey, qtukey",
     condition: "log w >= log 20: W = 1 (SUSPECT: assumes nmeans <= 1000, unchecked)",
     methods: "interpolant of log W | 1",
@@ -2244,7 +2245,7 @@ const TUKEY: Entry[] = [
     cases: () => pPairs("ptukey(q, 5, Inf)", ptk(5, Infinity), flipPoint((q) => Math.log(q) >= Math.log(20), 19.9, 20.1)),
   },
   {
-    where: "distributions/tukey.ts:649, :650, :661",
+    where: "distributions/tukey.ts:667, :668, :679",
     fns: "ptukey, qtukey",
     condition: "log w >= log 0.01 (interpolant of log W; of 1 - W); log w >= log 1e-10 (small-w interpolant)",
     methods: "small-w interpolant + (k - 1) log w (constant below 1e-10) | interpolant of log W; 1 - W | interpolant of 1 - W",
@@ -2255,7 +2256,7 @@ const TUKEY: Entry[] = [
     ],
   },
   {
-    where: "distributions/tukey.ts:679",
+    where: "distributions/tukey.ts:697",
     fns: "ptukey, qtukey (nranges > 1)",
     condition: "1 - W <= 0.5",
     methods: "1 - W^r | -expm1(r log1p(-(1 - W)))",
@@ -2263,10 +2264,10 @@ const TUKEY: Entry[] = [
     cases: () => pPairs("ptukey(q, 3, Inf, nranges 2)", ptk(3, Infinity, 2), flipPoint((q) => ptukey(q, 3, Infinity, { lowerTail: false }) <= 0.5, 1, 3)),
   },
   {
-    where: "distributions/tukey.ts:723, :746",
+    where: "distributions/tukey.ts:746",
     fns: "ptukey, qtukey (finite df)",
-    condition: "per node of the outer integral: |v| < 0.5 (series for e^v - 1 - v); t = e^u > 1e-300 (log density by dpoisRaw)",
-    methods: "expm1(v) - v | series; a u - t - lgamma(a + 1) | Loader's form",
+    condition: "per node of the outer integral: |v| < 0.5 (series for e^v - 1 - v)",
+    methods: "expm1(v) - v | series",
     point: "sweeps of ptukey(q, 5, 10) over q in [3.4, 3.42] and of log ptukey(q, 5, 5, upper) over log q around 1e150",
     cases: () => [
       { kind: "sweep", label: "ptukey(q, 5, 10)", f: (q) => ptukey(q, 5, 10), xs: grid(3.4, 5e-4, 41) },
@@ -2280,7 +2281,7 @@ const TUKEY: Entry[] = [
     ],
   },
   {
-    where: "distributions/tukey.ts:828, :830",
+    where: "distributions/tukey.ts:857, :859",
     fns: "ptukey, qtukey (finite df)",
     condition: "df = Inf value of the guessed side > 0.5; integrated side > 0.5 (then the other side)",
     methods: "integrate the guessed tail | the other tail",
@@ -2291,15 +2292,15 @@ const TUKEY: Entry[] = [
     ],
   },
   {
-    where: "distributions/tukey.ts:837",
+    where: "distributions/tukey.ts:866",
     fns: "ptukey, qtukey (finite df)",
     condition: "smaller tail < 1e-290",
     methods: "linear integral | log integral",
-    point: "upper tail = 1e-290 at k = 5, df = 10 (see also tukey.ts:481, at nmeans = 50)",
+    point: "upper tail = 1e-290 at k = 5, df = 10 (see also tukey.ts:493, at nmeans = 50)",
     cases: () => [tukeySwitch290(5)],
   },
   {
-    where: "distributions/tukey.ts:864, :879",
+    where: "distributions/tukey.ts:893, :908",
     fns: "qtukey",
     condition: "linear target > 1e-290",
     methods: "residual from the log | log of the linear ratio",
@@ -2351,6 +2352,181 @@ const EXTRA: Entry[] = [
   },
 ];
 
+// ---- Switches added for extreme parameters (test/extremeParameters.test.ts) ----
+
+/** η of Temme's expansion of P(a, x), with the sign of x - a */
+const temmeEta = (a: number, x: number): number => {
+  const s = (x - a) / a;
+  return Math.sign(s) * Math.sqrt(2 * (s - Math.log1p(s)));
+};
+
+const EXTREME: Entry[] = [
+  {
+    where: "special/igam.ts:271 (:363, :405)",
+    fns: "pgamma, pchisq, ppois, qgamma",
+    condition: "a > 200 && (|x - a|/a < 1e-3 || a > 1e299)",
+    methods: "series / continued fraction | Temme's expansion in the form e^-bd0(a, x) (erfcx(y)/2 ± S/sqrt(2π a))",
+    point: "x = a (1 ± 1e-3) at a = 1e10 (100 standard deviations); a = 1e299 at x = 0.99e299",
+    cases: () => {
+      const rel = (a: number) => (x: number) => Math.abs(x - a) / a < 1e-3;
+      return [
+        ...pPairs("pgamma(x, 1e10)", pg(1e10), flipPoint(rel(1e10), 0.998e10, 0.9995e10)),
+        ...pPairs("pgamma(x, 1e10)", pg(1e10), flipPoint(rel(1e10), 1.0005e10, 1.002e10)),
+        ...pPairs("pgamma(0.99e299, a)", pgShape(0.99e299), up(1e299)),
+      ];
+    },
+  },
+  {
+    where: "special/igam.ts:292",
+    fns: "pgamma, pchisq, ppois",
+    condition: "a > 1e299 && |η| > 0.1",
+    methods: "c_0(η) by its power series | 1/(λ - 1) - 1/η",
+    point: "η = ±0.1 at a = 2^1000",
+    cases: () => {
+      const a = 2 ** 1000;
+      return [
+        ...pPairs("pgamma(x, 2^1000)", pg(a), flipPoint((x) => Math.abs(temmeEta(a, x)) > 0.1, 0.85 * a, 0.95 * a)),
+        ...pPairs("pgamma(x, 2^1000)", pg(a), flipPoint((x) => Math.abs(temmeEta(a, x)) > 0.1, 1.05 * a, 1.15 * a)),
+      ];
+    },
+  },
+  {
+    where: "special/igam.ts:295",
+    fns: "pgamma, pchisq, ppois",
+    condition: "bd0(a, x) > 2000 (the smaller tail by Temme's form)",
+    methods: "e^-E B | 0",
+    point: "-",
+    skip: "both sides are 0 on the linear scale (e^-2000 underflows); the log is the same expression on both sides",
+  },
+  {
+    where: "special/igam.ts:127",
+    fns: "pgamma, pchisq, ppois",
+    condition: "x > 1e20 (continued fraction for Q)",
+    methods: "convergents with rescaling | modified Lentz method",
+    point: "x = 1e20 at a = 1e19",
+    cases: () => pPairs("pgamma(x, 1e19)", pg(1e19), up(1e20)),
+  },
+  {
+    where: "special/loader.ts:78",
+    fns: "every density, pgamma, pbeta",
+    condition: "max(x, M) > 1e299 && min(x, M) > 1e-250",
+    methods: "bd0(x, M) | 2^64 bd0(x 2^-64, M 2^-64)",
+    point: "dpois(9.9e298, λ) at λ = 1e299 (log scale)",
+    cases: () => [pair("dpois(9.9e298, λ, log)", (l) => dpois(9.9e298, l, { log: true }), up(1e299))],
+  },
+  {
+    where: "special/loader.ts:389, :392",
+    fns: "dbinom, dbeta, df, pbeta, pf, pnbinom",
+    condition: "n > 1e299 (n scaled in the product n p); n p >= 1e-290",
+    methods: "bd0(x, n p) | n p scaled by 2^-64 and back; x (log x - log n - log p) + n p - x | bd0(x, n p)",
+    point: "dbinom(1e298, n, 0.1) at n = 1e299; dbinom(1, 10, p) at 10 p = 1e-290 (log scale)",
+    cases: () => [
+      pair("dbinom(1e298, n, 0.1, log)", (n) => dbinom(1e298, n, 0.1, { log: true }), up(1e299)),
+      pair("dbinom(1, 10, p, log)", (p) => dbinom(1, 10, p, { log: true }), flipPoint((p) => 10 * p >= 1e-290, 5e-292, 5e-291)),
+    ],
+  },
+  {
+    where: "special/loader.ts:410",
+    fns: "dpois, dgamma, dbinom, dbeta",
+    condition: "e > 2000 (linear scale)",
+    methods: "exp(700 - e) (1 - e_low) exp(-700) | 0",
+    point: "-",
+    skip: "both sides are 0 (e^-2000 underflows); the guard only keeps 1 - e_low, with e_low half an ulp of e, from giving -0",
+  },
+  {
+    where: "special/incbet.ts:602",
+    fns: "pbeta, pf, pbinom, pnbinom",
+    condition: "max(a, b) > 1e150 (continued fraction)",
+    methods: "partial numerators as products over products | quotients first",
+    point: "pbeta(0.5, a, 5) at a = 1e150 (the upper tail, by the continued fraction in the frame of a)",
+    cases: () => pPairs("pbeta(0.5, a, 5)", (a, t) => pbeta(0.5, a, 5, t), up(1e150)),
+  },
+  {
+    where: "special/incbetTemme.ts:164, :186",
+    fns: "pbeta, pt, pf, pbinom, pnbinom",
+    condition: "r = a + b > 1e299 (r x scaled); a b overflows (m = a (b / r))",
+    methods: "r x | 2^64 ((r 2^-64) x); a b / r | a (b / r)",
+    point: "pbeta(0.4999, a, a) at a = 5e298 (r = 1e299) and at a = 1.3407807929942596e154 (a^2 overflows)",
+    cases: () => [
+      ...pPairs("pbeta(0.4999, a, a)", (a, t) => pbeta(0.4999, a, a, t), flipPoint((a) => 2 * a > 1e299, 4e298, 6e298)),
+      ...pPairs("pbeta(0.4999, a, a)", (a, t) => pbeta(0.4999, a, a, t), flipPoint((a) => !Number.isFinite(a * a), 1.3e154, 1.4e154)),
+    ],
+  },
+  {
+    where: "special/incbetLargeA.ts:135",
+    fns: "pbeta, pt, pf, pbinom, pnbinom",
+    condition: "y = 1 - x < 1e-15",
+    methods: "l = -log x by ddLog | y + y^2/2",
+    point: "pnbinom(1e16, 5, prob) at prob = 1e-15 (I_q(1e16 + 1, 5) with y = prob, u = 10; in pbeta, 1 - x moves by 10% per ulp there)",
+    cases: () =>
+      pPairs("pnbinom(1e16, 5, prob)", (p, t) => pnbinom(1e16, 5, { prob: p, ...t }), flipPoint((p) => p < 1e-15, 5e-16, 2e-15)),
+  },
+  {
+    where: "special/incbet.ts:803, special/incbetLargeA.ts:128, :205",
+    fns: "pbeta, pf, pnbinom",
+    condition: "x rounds to 1 in the frame of the large parameter (b up to 1e4, b < 1e-8 a): the expansion also for b > 40, u > 500, and on the log scale below 1e-290",
+    methods: "continued fraction (NaN there) | expansion",
+    point: "-",
+    skip:
+      "reached only where 1 - x is below ε in the frame of a, where the methods of the other side do not apply (they gave NaN " +
+      "or -Infinity); test/extremeParameters.test.ts checks the values against the gamma limit",
+  },
+  {
+    where: "distributions/beta.ts:33",
+    fns: "dbeta, qbeta",
+    condition: "(a + b) min(x, 1 - x) < 2^-1022",
+    methods: "Loader's form | (a - 1) log x + (b - 1) log(1 - x) - log B(a, b)",
+    point: "dbeta(x, 2, 3) at 5 x = 2^-1022 (x subnormal)",
+    cases: () => dPairs("dbeta(x, 2, 3)", (x, log) => dbeta(x, 2, 3, { log }), flipPoint((x) => 5 * x < DBL_MIN, 4e-309, 5e-309)),
+  },
+  {
+    where: "distributions/beta.ts:179",
+    fns: "qbeta",
+    condition: "b > 1e10 && b > 1e10 a (left half)",
+    methods: "starting value from the tails or A&S 26.5.22 | qgamma(p, a) / b",
+    point: "-",
+    skip: "a starting value: the search ends at the same quantile",
+  },
+  {
+    where: "distributions/negbinomial.ts:122",
+    fns: "qnbinom",
+    condition: "starting value beyond the doubles (prob < 0.05)",
+    methods: "integer search | Infinity",
+    point: "-",
+    skip: "the quantile itself is beyond the largest double there",
+  },
+  {
+    where: "distributions/tukey.ts:722, :772",
+    fns: "ptukey, qtukey",
+    condition: "max((k-1) r, q^2, 1)^2 < 1e-17 df",
+    methods: "outer integral over the χ density | the df = ∞ value",
+    point: "df = 1.6e18 at q = 1, nmeans = 5",
+    cases: () => pPairs("ptukey(1, 5, df)", (df, t) => ptukey(1, 5, df, t), flipPoint((df) => 16 < 1e-17 * df, 1e18, 1e19)),
+  },
+  {
+    where: "distributions/tukey.ts:511",
+    fns: "ptukey, qtukey",
+    condition: "ε |M| > 1 (log outer integral)",
+    methods: "M + log ∫ exp(lf - M) | M",
+    point: "-",
+    skip:
+      "the log of the integral (a few dozen at most) is then below the rounding of M (above 4.5e15); reached for huge df with " +
+      "q above about 1e8",
+  },
+  {
+    where: "distributions/tukey.ts:150, :169, :928; internal/discrete.ts:65, :93; internal/invert.ts:135",
+    fns: "ptukey, qtukey, qpois, qbinom, qnbinom, every continuous quantile",
+    condition:
+      "integrals: error at the noise level of the integrand, or 256 intervals; searches: first step the spacing of the " +
+      "doubles, stop at Infinity or past the doubles; Newton's polish leaving |r| > 1e-9",
+    methods: "-",
+    point: "-",
+    skip:
+      "bounds on work and the search path: they do not change converged values. The polish fallback (bisection in x) is " +
+      "reached only where the distribution function rises within a few ulps (qchisq at df = 6e234, qbeta at shapes 1e190)",
+  },
+];
+
 // ---- Running the entries ----
 
 const ENTRIES: Entry[] = [
@@ -2373,6 +2549,7 @@ const ENTRIES: Entry[] = [
   ...DISCRETE,
   ...INTERNAL,
   ...EXTRA,
+  ...EXTREME,
 ];
 
 /** Checks that fail at the time of writing (live bugs, not fixed here) */

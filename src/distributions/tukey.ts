@@ -17,13 +17,12 @@
 //   interpolants in log w (speeds up the outer integral, the quantile search, and repeated calls with the same nmeans)
 // - The outer integral is over v = log(t/a), t = df s^2 / 2 ~ Gamma(a = df/2), with the density in Loader's form
 //   (stirlerr and bd0 = a (e^v - 1 - v)). When the result is below 1e-290, it is recomputed with a version that
-//   keeps the integrand on the log scale (u = log t, dpoisRaw)
+//   keeps the integrand on the log scale
 // Quantiles solve for the log probability of the smaller tail in log q with Brent's method.
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { dt0, dt1, quantileBoundaries, smallerTail, type TailOptions } from "../internal/dpq.js";
-import { dpoisRaw, stirlerr } from "../special/loader.js";
-import { lgamma } from "../special/gamma.js";
+import { stirlerr } from "../special/loader.js";
 import { pnorm } from "./normal.js";
 
 /**
@@ -46,6 +45,8 @@ export interface TukeyOptions extends TailOptions {
 
 const CC_MAX = 128;
 const EPS = Number.EPSILON;
+/** Upper bound on the number of intervals of one integral (smooth integrands need a few dozen) */
+const MAX_PIECES = 256;
 
 /** Table of cos(π m / CC_MAX) (m = 0..2 CC_MAX) */
 const COS_TABLE = Float64Array.from({ length: 2 * CC_MAX + 1 }, (_, m) => Math.cos((Math.PI * m) / CC_MAX));
@@ -106,6 +107,8 @@ class CCPiece {
     private readonly f: (x: number) => number,
     readonly a: number,
     readonly b: number,
+    /** Relative noise of the values of f (the error estimate does not go below it) */
+    private readonly noise: number,
   ) {
     this.c = 0.5 * (a + b);
     this.h = 0.5 * (b - a);
@@ -126,20 +129,24 @@ class CCPiece {
     const res = chebyshev(v, N);
     this.N = N;
     this.integral = res.integral * this.h;
-    // Truncation error is about trailing coefficient × Σ 2/m^2 ≈ trailing × 4/N. Do not go below rounding error
-    this.error = Math.max((res.tail * 4) / N, 4 * EPS * res.scale) * Math.abs(this.h);
+    // Truncation error is about trailing coefficient × Σ 2/m^2 ≈ trailing × 4/N. Do not go below the noise of the values
+    this.error = Math.max((res.tail * 4) / N, this.noise * res.scale) * Math.abs(this.h);
   }
 }
 
 /**
  * Integrate f over the sequence of intervals edges (ascending). First compute each interval with 16 points to
  * estimate the magnitude of the integral, then double the points until each interval's error estimate is at most
- * relTol × |total| / (number of intervals) (bisecting if 128 points are not enough).
+ * relTol × |total| / (number of intervals) (bisecting if 128 points are not enough). noise is the relative error of
+ * the values of f: an interval whose error estimate is at that level is accepted, since refining it cannot make the
+ * estimate smaller (the noise shows up in the trailing coefficients at any width). Without it, an integrand computed
+ * as exp(lf - M) with |lf| in the thousands (noise ε |lf|) was bisected down to the round limit at every call. The
+ * number of intervals is bounded as well, so that the work stays bounded whatever the integrand.
  */
-function integrate(f: (x: number) => number, edges: readonly number[], relTol: number): number {
+function integrate(f: (x: number) => number, edges: readonly number[], relTol: number, noise = 4 * EPS): number {
   let pieces: CCPiece[] = [];
   for (let i = 0; i + 1 < edges.length; i++) {
-    const p = new CCPiece(f, edges[i]!, edges[i + 1]!);
+    const p = new CCPiece(f, edges[i]!, edges[i + 1]!, noise);
     p.advance(16);
     pieces.push(p);
   }
@@ -148,9 +155,10 @@ function integrate(f: (x: number) => number, edges: readonly number[], relTol: n
     for (const p of pieces) total += p.integral;
     const tol = (relTol * Math.abs(total)) / pieces.length;
     let done = true;
+    let count = pieces.length;
     const next: CCPiece[] = [];
     for (const p of pieces) {
-      if (p.error <= tol || p.error <= 4 * EPS * Math.abs(p.integral)) {
+      if (p.error <= tol || p.error <= noise * Math.abs(p.integral)) {
         next.push(p);
         continue;
       }
@@ -158,9 +166,12 @@ function integrate(f: (x: number) => number, edges: readonly number[], relTol: n
       if (p.N < CC_MAX) {
         p.advance(2 * p.N);
         next.push(p);
+      } else if (count >= MAX_PIECES) {
+        next.push(p);
       } else {
-        const l = new CCPiece(f, p.a, p.c);
-        const r = new CCPiece(f, p.c, p.b);
+        count++;
+        const l = new CCPiece(f, p.a, p.c, noise);
+        const r = new CCPiece(f, p.c, p.b, noise);
         l.advance(16);
         r.advance(16);
         next.push(l, r);
@@ -418,7 +429,8 @@ function logPeakIntegrate(lf: (x: number) => number, lo: number, hi: number): nu
   const left = end(-1);
   const right = end(1);
   const pts = [...new Set([left, top, right])].sort((x, y) => x - y);
-  return M + Math.log(integrate((x) => Math.exp(lf(x) - M), pts, INNER_TOL));
+  // lf is a sum of terms of its own size, so its values carry an absolute error of a few ε |M|
+  return M + Math.log(integrate((x) => Math.exp(lf(x) - M), pts, INNER_TOL, 4 * EPS * Math.max(1, Math.abs(M))));
 }
 
 // ---- Inner integral: the range distribution function W(w) and its complement ----
@@ -493,6 +505,10 @@ function logIntegrate(lf: (x: number) => number, edges: readonly number[]): numb
   for (const x of edges) M = Math.max(M, lf(x));
   for (let i = 0; i + 1 < edges.length; i++) M = Math.max(M, lf(0.5 * (edges[i]! + edges[i + 1]!)));
   if (M === -Infinity) return -Infinity;
+  // When the rounding of lf (ε |M|) exceeds 1, exp(lf - M) is noise, and the log of the integral (the log of the peak
+  // width, a few dozen at most) is below the rounding of M anyway (huge df with large q: ptukey(2.3e11, 2, 4.8e27,
+  // { lowerTail: false, logP: true }) is about -1.3e22)
+  if (EPS * Math.abs(M) > 1) return M;
   for (let it = 0; it < 4; it++) {
     let seen = M;
     const v = integrate(
@@ -503,6 +519,8 @@ function logIntegrate(lf: (x: number) => number, edges: readonly number[]): numb
       },
       edges,
       REL_TOL,
+      // The absolute error of lf (the inner log integral included) is a few ε |M|
+      8 * EPS * Math.max(1, Math.abs(M)),
     );
     if (Number.isFinite(v) && seen - M < 300) return M + Math.log(v);
     M = seen;
@@ -680,9 +698,15 @@ function rangeMaxCdf(w: number, k: number, r: number, upper: boolean): number {
   return 1 - Math.min(rangeCdfFast(w, k), 1) ** r;
 }
 
+/**
+ * log G(w) (log(1 - G(w)) if upper). From the interpolants where they apply, and integrating directly only where 1 - W
+ * underflows: the outer log integral evaluates this at a few hundred w, and a direct inner integral at each made
+ * ptukey(1e-20, 200, 5) and ptukey(2.5e118, 4, 3, { nranges: 2 }) take minutes.
+ */
 function logRangeMaxCdf(w: number, k: number, r: number, upper: boolean): number {
-  if (!upper) return r * logRangeCdf(w, k);
-  const lWc = logRangeCdfC(w, k);
+  if (!upper) return r * (Math.log(w) < X_HI_W ? logRangeCdfFast(w, k) : Math.log1p(-Math.min(rangeCdfCFast(w, k), 1)));
+  const Wc = Math.min(rangeCdfCFast(w, k), 1);
+  const lWc = Wc > 1e-290 ? Math.log(Wc) : logRangeCdfC(w, k);
   if (r === 1) return lWc;
   // 1 - (1 - Wc)^r
   return Math.log(-Math.expm1(r * Math.log1p(-Math.exp(lWc))));
@@ -695,29 +719,28 @@ function logRangeMaxCdf(w: number, k: number, r: number, upper: boolean): number
  * Integrate over u, the log of t = df s^2 / 2 ~ Gamma(a = df/2): ∫ a dpois(a; e^u) G(q sqrt(e^u / a)) du
  */
 function tukeyIntegral(q: number, k: number, df: number, r: number, upper: boolean): number {
-  if (df === Infinity) return rangeMaxCdf(q, k, r, upper);
+  if (df === Infinity || dfIsInfinite(q, k, df, r)) return rangeMaxCdf(q, k, r, upper);
   const a = df / 2;
-  const la = Math.log(a);
-  const dens = gammaDensityAt(a);
+  const logDens = logGammaDensityAt(a);
   // Integrate over v = u - log a. For large df the peak width 1/√a is small relative to |u|, and rounding of the
   // u nodes (ulp(log a)) becomes noise in the integrand (1e-14 relative at df = 1e5). v is near 0, so rounding is small
   const f = (v: number): number => {
-    const { d, s } = dens(v);
-    return d === 0 ? 0 : d * rangeMaxCdf(q * s, k, r, upper);
+    const d = Math.exp(logDens(v));
+    return d === 0 ? 0 : d * rangeMaxCdf(q * Math.exp(0.5 * v), k, r, upper);
   };
-  return integrate(f, outerEdges(q, k, df, r, upper).map((u) => u - la), REL_TOL);
+  return integrate(f, outerEdges(q, k, df, r, upper), REL_TOL);
 }
 
 /**
- * Density of Gamma(a) at v = log(t/a), t f(t) = a dpois(a; t), and s = sqrt(t/a).
- * Loader's form a exp(-stirlerr(a) - bd0(a, t)) / sqrt(2π a), with bd0(a, t) = a (e^v - 1 - v) and s = e^(v/2)
- * computed directly from v (e^v - 1 - v by series for |v| < 1/2). Rounding t = a e^v before forming the density
- * would, for large df where the slope of the density in t (a - t) is large, turn the rounding into noise in the
- * integrand and disturb convergence (1e-14 relative at df = 1e5). The absolute error of the exponent is about ε × bd0.
+ * log density of Gamma(a) at v = log(t/a), i.e. log(t f(t)) = log(a dpois(a; t)); then s = sqrt(t/a) = e^(v/2).
+ * Loader's form a exp(-stirlerr(a) - bd0(a, t)) / sqrt(2π a), with bd0(a, t) = a (e^v - 1 - v) computed directly
+ * from v (e^v - 1 - v by series for |v| < 1/2). Rounding t = a e^v before forming the density would, for large df
+ * where the slope of the density in t (a - t) is large, turn the rounding into noise in the integrand and disturb
+ * convergence (1e-14 relative at df = 1e5; for df above about 1e30 the whole peak lies within one ulp of log a).
+ * The absolute error of the exponent is about ε × bd0.
  */
-function gammaDensityAt(a: number): (v: number) => { d: number; s: number } {
-  const st = stirlerr(a);
-  const c0 = Math.sqrt(a / (2 * Math.PI));
+function logGammaDensityAt(a: number): (v: number) => number {
+  const c = 0.5 * Math.log(a / (2 * Math.PI)) - stirlerr(a);
   return (v: number) => {
     let phi: number;
     if (Math.abs(v) < 0.5) {
@@ -731,27 +754,32 @@ function gammaDensityAt(a: number): (v: number) => { d: number; s: number } {
     } else {
       phi = Math.expm1(v) - v;
     }
-    return { d: c0 * Math.exp(-st - a * phi), s: Math.exp(0.5 * v) };
+    return c - a * phi;
   };
 }
 
+/**
+ * Whether df is large enough that P equals its df = ∞ value to double precision. With log s ~ N(0, 1/(2a)) the
+ * relative change of E[G(q s)] from G(q) is about L^2 / (8a), L = d log G / d log q, which is at most about
+ * (k-1) r in the lower tail and q^2 in the upper
+ */
+function dfIsInfinite(q: number, k: number, df: number, r: number): boolean {
+  const L = Math.max((k - 1) * r, q * q, 1);
+  return L * L < 1e-17 * df;
+}
+
 function logTukeyIntegral(q: number, k: number, df: number, r: number, upper: boolean): number {
-  if (df === Infinity) return logRangeMaxCdf(q, k, r, upper);
-  const a = df / 2;
-  const la = Math.log(a);
-  const lga1 = lgamma(a + 1);
+  if (df === Infinity || dfIsInfinite(q, k, df, r)) return logRangeMaxCdf(q, k, r, upper);
+  const logDens = logGammaDensityAt(df / 2);
+  const lq = Math.log(q);
   // Stay on the log scale so that the deep upper tail (extremely large q), where t = e^u underflows, can be computed
-  const lf = (u: number): number => {
-    const t = Math.exp(u);
-    const ld = t > 1e-300 ? dpoisRaw(a, t, true) : a * u - t - lga1;
-    return la + ld + logRangeMaxCdf(Math.exp(Math.log(q) + 0.5 * (u - la)), k, r, upper);
-  };
+  const lf = (v: number): number => logDens(v) + logRangeMaxCdf(Math.exp(lq + 0.5 * v), k, r, upper);
   return logIntegrate(lf, outerEdges(q, k, df, r, upper, true));
 }
 
 /**
- * Endpoints of the intervals for the outer integral (u = log t).
- * The Gamma(a) density concentrates around u = log a with width 1/√a; the left tail decays like t^a and the right
+ * Endpoints of the intervals for the outer integral, in v = log(t / a).
+ * The Gamma(a) density concentrates around v = 0 with width 1/√a; the left tail decays like t^a and the right
  * like e^-t. Multiplying by G(q s) moves the peak: in the lower tail G ≈ (q s)^((k-1) r) as q s → 0, which moves it
  * toward larger t (equivalent to the exponent growing from a to a + (k-1) r / 2); in the upper tail
  * 1 - G ≈ exp(-(q s)^2 / 4), equivalent to the rate growing to 1 + q^2 / (4a), so the peak moves to
@@ -762,28 +790,29 @@ function outerEdges(q: number, k: number, df: number, r: number, upper: boolean,
   const a = df / 2;
   // Peak of Gamma(a) before multiplying by G, and the peak it moves to when G matters in the tail (shape, center)
   let shape = a;
-  let center = Math.log(a);
+  let center: number;
   if (upper) {
     const lq2 = 2 * Math.log(q) - Math.log(4 * a);
-    center -= lq2 > 30 ? lq2 : Math.log1p(Math.exp(lq2));
+    center = -(lq2 > 30 ? lq2 : Math.log1p(Math.exp(lq2)));
   } else {
     shape = a + ((k - 1) * r) / 2;
-    center = Math.log(shape);
+    center = Math.log1p(((k - 1) * r) / (2 * a));
   }
   // Where the density is about 1e-18 of the peak (decaying like t^shape on the left and e^-t on the right)
   const range = (c: number, sh: number): [number, number] => [
     c - 9 / Math.sqrt(sh) - 41 / sh,
     c + 9 / Math.sqrt(sh) + Math.log1p(41 / sh),
   ];
-  const [lo1, hi1] = range(Math.log(a), a);
+  const [lo1, hi1] = range(0, a);
   const [lo2, hi2] = range(center, shape);
-  // The linear version is limited to where e^u does not underflow (beyond that the result is below 1e-290 and is recomputed with the log version)
-  const lo = deep ? Math.min(lo1, lo2) : Math.max(Math.min(lo1, lo2), -740);
+  // The linear version is limited to where t = e^u does not underflow (beyond that the result is below 1e-290 and is
+  // recomputed with the log version)
+  const lo = deep ? Math.min(lo1, lo2) : Math.max(Math.min(lo1, lo2), -740 - Math.log(a));
   const hi = Math.max(hi1, hi2);
   // Split into a central interval containing both peaks (±4 sd) and left and right tail intervals
   const sd1 = 1 / Math.sqrt(a);
   const sd2 = 1 / Math.sqrt(shape);
-  const edges = [lo, Math.min(Math.log(a) - 4 * sd1, center - 4 * sd2), Math.max(Math.log(a) + 4 * sd1, center + 4 * sd2), hi];
+  const edges = [lo, Math.min(-4 * sd1, center - 4 * sd2), Math.max(4 * sd1, center + 4 * sd2), hi];
   return [...new Set(edges.map((x) => Math.min(Math.max(x, lo), hi)))].sort((x, y) => x - y);
 }
 
@@ -892,12 +921,22 @@ function solveMonotone(g: (y: number) => number, y0: number, increasing: boolean
   let step = 0.05;
   let b = a + dir * step;
   let fb = g(b);
+  // A point past the range of doubles (e^y underflows to 0 or overflows), where g is not finite. Once one is found,
+  // steps go halfway to it instead of past it; a zero beyond the doubles ends at the last finite point
+  let bad = NaN;
   for (let i = 0; i < 200 && Math.sign(fb) === Math.sign(fa) && fb !== 0; i++) {
+    if (Math.abs(bad - b) < 1e-3) return b;
     a = b;
     fa = fb;
     step *= 2;
-    b = a + dir * step;
+    b = (a + dir * step - bad) * dir >= 0 ? 0.5 * (a + bad) : a + dir * step;
     fb = g(b);
+    while (!Number.isFinite(fb)) {
+      bad = b;
+      if (Math.abs(bad - a) < 1e-3) return a;
+      b = 0.5 * (a + bad);
+      fb = g(b);
+    }
   }
   if (fb === 0) return b;
   if (!Number.isFinite(fb) || Math.sign(fb) === Math.sign(fa)) return Number.isFinite(fb) ? b : a;

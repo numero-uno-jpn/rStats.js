@@ -229,10 +229,9 @@ export const knownViolations: KnownViolation[] = [
     match: on(/invgamma$/, (pr) => pr.alpha! > 1e15),
     reason:
       "large alpha: pinvgamma(2.403439191651939e-65, 1.527471870384886e+67, { beta: 367.1185757428926 }) is 8.09e16, " +
-      "pgamma(beta / x, alpha, { lowerTail: false }) = 0.5 expected; qinvgamma's upper tail does not return for alpha " +
-      "around 1e17 (qinvgamma(8.561849062297012e-10, 68795589720441740000, { beta: 3.5954869304357335e-198, lowerTail: false }))",
+      "pgamma(beta / x, alpha, { lowerTail: false }) = 0.5 expected, so qinvgamma's quantiles (beta / qgamma) cannot be " +
+      "confirmed; dinvgamma is NaN for x around 1e136 with alpha 1.4e202",
     examples: [{ params: { alpha: 1.527471870384886e67, beta: 367.1185757428926 } }],
-    exclude: (kind, _x, pr) => kind === "q" && pr.alpha! > 1e15,
   },
   {
     family: "invgamma",
@@ -248,28 +247,7 @@ export const knownViolations: KnownViolation[] = [
     examples: [{ params: { alpha: 1, beta: 2.795663805653832e-192 }, x: [5.20010667081513e152] }],
   },
   // ---- χ², gamma, t, beta, F (central) ----
-  {
-    family: "chisq",
-    property: ALL,
-    match: on(/chisq$/, (pr) => pr.df! > 1e15),
-    reason:
-      "huge df: pchisq(3.161055179390935e+256, 8.697626929131906e+252) is NaN, 1 expected; qchisq is off, throws TypeError " +
-      "(df above 1e150) or takes 1-2 s (df above 1e70); qchisq(-52.93, 2428784754292026400, { logP: true }) does not return",
-    examples: [{ params: { df: 8.697626929131906e252 }, x: [3.161055179390935e256] }],
-    exclude: (kind, _x, pr) => kind === "q" && pr.df! > 1e15,
-  },
   ...["gamma(rate)", "gamma(scale)"].flatMap((family): KnownViolation[] => [
-    {
-      family,
-      property: ALL,
-      match: on(/gamma$/, (pr) => pr.shape! > 1e15),
-      reason:
-        "huge shape: pgamma(4.083839400055824e+172, 5.309225446733691e+163, { rate: 0.0012716221973754155 }) is NaN, " +
-        "1 expected; qgamma is off and slow, and qgamma(-52.45, 119226008529095940, { scale: 7.14, logP: true }) does " +
-        "not return; dgamma throws TypeError for shape around 1e183",
-      examples: [{ params: { shape: 5.309225446733691e163, rate: 0.0012716221973754155 }, x: [4.083839400055824e172] }],
-      exclude: (kind, _x, pr) => kind === "q" && pr.shape! > 1e15,
-    },
     {
       family,
       property: ["roundtrip", "density", "log"],
@@ -312,22 +290,10 @@ export const knownViolations: KnownViolation[] = [
   {
     family: "beta",
     property: ALL,
-    match: on(/beta$/, (pr) => pr.shape1! > 1e15 || pr.shape2! > 1e15),
-    reason:
-      "huge shapes: pbeta(5.120716175636001e-280, 1.0352246639693515e+190, 6.2918828463792074e+193, { logP: true }) is NaN; " +
-      "qbeta returns 0.75 there, throws TypeError (qbeta(9.334322569622605e-85, 3.999342658055056e+204, 1)) or does not " +
-      "return (qbeta(8.778764095654974e-96, 5.376836280643888, 9.006258581539712e+283))",
-    examples: [{ params: { shape1: 1.0352246639693515e190, shape2: 6.2918828463792074e193 }, x: [5.120716175636001e-280] }],
-    exclude: (kind, _x, pr) => kind === "q" && (pr.shape1! > 1e15 || pr.shape2! > 1e15),
-  },
-  {
-    family: "beta",
-    property: ALL,
     match: on(/beta$/, (pr) => pr.shape1! < 1e-10 || pr.shape2! < 1e-10),
     reason:
       "tiny shapes: pbeta(1.078577302826644e-285, 1.5597941463167979e-130, 2) is 1.0000000000000195 (above 1); the larger " +
-      "tail is off by 1e-14; dbeta and qbeta throw TypeError (dbeta(2.739884385782668e-289, 7.460679824918593e-126, " +
-      "7.634632923335423e-180))",
+      "tail is off by 1e-14",
     examples: [{ params: { shape1: 1.5597941463167979e-130, shape2: 2 }, x: [1.078577302826644e-285] }],
   },
   {
@@ -335,13 +301,11 @@ export const knownViolations: KnownViolation[] = [
     property: ALL,
     match: on(/^[dpq]f$/, (pr) => extreme(pr, ["df1", "df2"], 1e-10, 1e15)),
     reason:
-      "extreme df: pf(5.925999535882428e-161, 1.5352254500141903e+186, 99.33785701936728) is NaN, 0 expected; " +
-      "pf(1e300, 0.169, 1.18e-86, { lowerTail: false }) is 0, about 1 expected; pf is above 1; qf is off, throws TypeError " +
-      "or does not return (qf(2.0518364426170894e-207, 6.591717355238955e+76, 3); pf(0.99999999999999, " +
-      "1.9650315763119397e+288, 0.5370666120548222); pf(2.496810009129591e-97, 1.6914000120615383e+80, 2.67741530170955e-95))",
-    examples: [{ params: { df1: 1.5352254500141903e186, df2: 99.33785701936728 }, x: [5.925999535882428e-161] }],
-    exclude: (kind, _x, pr) =>
-      (kind === "q" || pr.df1! > 1e100 || (pr.df1! > 1e15 && pr.df2! < 1e-10)) && extreme(pr, ["df1", "df2"], 1e-10, 1e15),
+      "extreme df: pf(6.616261056709485e-112, 3.193376520741174e-173, 1867.9657047120206) is 1.0000000000000124 (above 1); " +
+      "pf(1e300, 0.169, 1.18e-86, { lowerTail: false }) is 0, about 1 expected; qf for tiny df2 is Infinity or 1 where " +
+      "the quantile is finite (qf(2.0956937315626893e-87, 534379.3621049117, 4.0035115818718566e-131, { lowerTail: false })); " +
+      "df is NaN for tiny df1 (df(4.633805988965048e-157, 3.193376520741174e-173, 1867.9657047120206))",
+    examples: [{ params: { df1: 3.193376520741174e-173, df2: 1867.9657047120206 }, x: [6.616261056709485e-112] }],
   },
   ...["f", "nf"].map(
     (family): KnownViolation => ({
@@ -353,16 +317,6 @@ export const knownViolations: KnownViolation[] = [
     }),
   ),
   // ---- discrete ----
-  {
-    family: "pois",
-    property: ALL,
-    match: on(/pois$/, (pr) => pr.lambda! > 1e15),
-    reason:
-      "huge lambda: ppois(3.400935567303781e+240, 5.54101330048476e+241) is NaN, 0 expected; qpois does not return for " +
-      "lambda around 1e20 (qpois(5.678138243114416e-54, 32801123463837233000, { lowerTail: false }))",
-    examples: [{ params: { lambda: 5.54101330048476e241 }, x: [3.400935567303781e240] }],
-    exclude: (kind, _x, pr) => kind === "q" && pr.lambda! > 1e15,
-  },
   ...["nbinom(prob)", "nbinom(mu)"].flatMap((family): KnownViolation[] => [
     {
       family,
@@ -371,17 +325,16 @@ export const knownViolations: KnownViolation[] = [
         extreme(pr, ["size", "mu"], 1e-300, 1e15) || (pr.prob ?? 1) < 1e-15 || x > 1e100,
       ),
       reason:
-        "extreme parameters or x: pnbinom(5.312647942870648e+171, 0.013666599619527478, { prob: 0.03615475841797888 }) is " +
-        "NaN, 1 expected; pnbinom(660, 3.102992688838784e+287, { mu: 195.56831659259922 }) is NaN; qnbinom throws TypeError " +
-        "for size above 1e150 and does not return for huge mu or size or tiny size (qnbinom(2.7310066097710254e-299, " +
-        "6.0104102662856364e+178, { mu: 0.34891747044274307 }), qnbinom(1.5691356852884617e-293, 2.7623800274362807e-255, " +
-        "{ mu: 53.58082374975206, lowerTail: false }))",
+        "extreme parameters or x: pnbinom(2.6329019116607608e+200, 3.102992688838784e+287, { mu: 195.56831659259922 }) is " +
+        "NaN, 1 expected (the continued fraction of the incomplete beta function at both parameters huge); qnbinom is then " +
+        "NaN (qnbinom(1.2418608579304552e-133, 1.2440368303321599e+39, { prob: 3.411918904687509e-265 })); for tiny prob " +
+        "the tails do not add up to 1 within 1e-14 (pnbinom(6.549300334796171e+214, 0.72772746911027, { prob: " +
+        "4.524121951236202e-216 }): 0.3999596206918988 and 0.6000403793081133)",
       examples: [
         family === "nbinom(mu)"
-          ? { params: { size: 3.102992688838784e287, mu: 195.56831659259922 }, x: [660] }
-          : { params: { size: 0.013666599619527478, prob: 0.03615475841797888 }, x: [5.312647942870648e171] },
+          ? { params: { size: 3.102992688838784e287, mu: 195.56831659259922 }, x: [2.6329019116607608e200] }
+          : { params: { size: 0.72772746911027, prob: 4.524121951236202e-216 }, x: [6.549300334796171e214] },
       ],
-      exclude: (kind, _x, pr) => kind === "q" && (extreme(pr, ["size", "mu"], 1e-15, 1e15) || (pr.prob ?? 1) < 1e-15),
     },
     {
       family,
@@ -471,16 +424,6 @@ export const knownViolations: KnownViolation[] = [
       { params: { df: 1e10, ncp: 1e9 }, x: [1.1e10] },
       { params: { df: 1e6, ncp: 2e9 }, x: [2.0001e9] },
     ],
-  },
-  {
-    family: "tukey",
-    property: "time",
-    match: on(/tukey$/, (_pr, x, v) => (fnOf(v) === "qtukey" ? (v.call.includes("logP: true") ? x < -230 : x < 1e-100) : x < 1e-3 || x > 1e30)),
-    reason:
-      "ptukey does not return (or takes seconds) for small or huge q: ptukey(1e-20, 200, 5), ptukey(1e-12, 200, 5, " +
-      "{ nranges: 20 }), ptukey(1.0491344840524078e-85, 28, 146.82232749321562), ptukey(2.4654327013958976e+118, 4, 3, " +
-      "{ nranges: 2 }); ptukey(1e-8, 200, 5) takes 1.2 s; qtukey for tiny p calls it there; not made in the test",
-    exclude: (kind, x, _pr, flags) => (kind === "q" ? (flags.logP === true ? x < -230 : x < 1e-100) : x < 1e-3 || x > 1e30),
   },
 
   // ---- found with the fuzz script at moderate parameters ----

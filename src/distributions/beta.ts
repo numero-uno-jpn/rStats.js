@@ -15,6 +15,7 @@ import { ddAdd, ddLog, ddMul, ddNeg, twoSum, type DD } from "../special/dd.js";
 import type { NoncentralOption } from "../internal/noncentral.js";
 import { dnbeta1, pnbeta1, qnbeta1 } from "./nbeta.js";
 import { qnorm } from "./normal.js";
+import { qgammaStd } from "./gamma.js";
 
 /** Form x and 1 - x as a double-double pair based on the smaller of the two (no rounding of 1 - x brought in) */
 function pair(x: number): [DD, DD] {
@@ -29,6 +30,10 @@ function pair(x: number): [DD, DD] {
  */
 function dbetaCore(x: number, a: number, b: number, log: boolean): number {
   const [xd, xcd] = pair(x);
+  if ((a + b) * Math.min(xd[0], xcd[0]) < 2.2250738585072014e-308) {
+    const l = dbetaDirectLog(xd, xcd, a, b);
+    return log ? l : Math.exp(l);
+  }
   const { e } = dbinomExponent(a, b, xd, xcd);
   // With m = ab/(a+b), log(denom)/2 = log(2 pi m)/2 and log(ab/(a+b)) - log(denom)/2 = log(m/(2 pi))/2
   const m = (a * b) / (a + b);
@@ -66,8 +71,20 @@ function dbetaShape1Log(x: number, a: number, b: number): number {
   return t[0] + t[1];
 }
 
-/** Log density (0 < x < 1, 0 < a, b < Inf) */
+/**
+ * log f = (a - 1) log x + (b - 1) log(1 - x) - log B(a, b) directly, in double-double, for (a + b) x or (a + b)(1 - x)
+ * below the normal range: the deviances of dbinomExponent take the log of that product, which has then lost its
+ * digits or underflowed to 0 (dbeta(2.7e-289, 7.5e-126, 7.6e-180) threw a TypeError). Such products need tiny shapes
+ * or x, where the terms are of moderate size and Loader's form brings nothing
+ */
+function dbetaDirectLog(xd: DD, xcd: DD, a: number, b: number): number {
+  const t = ddAdd(ddMul(twoSum(a, -1), ddLog(xd)), ddMul(twoSum(b, -1), ddLog(xcd)));
+  return t[0] + (t[1] - lbeta(a, b));
+}
+
+/** Log density (0 < a, b < Inf; also at x = 0 or 1, which a quantile search in log x reaches by underflow, as dbeta) */
 export function dbetaLog(x: number, _xc: number, a: number, b: number): number {
+  if (!(x > 0 && x < 1)) return dbeta1(x, a, b, true);
   return dbetaCore(x, a, b, true);
 }
 
@@ -158,6 +175,13 @@ function solveLeftHalf(
   if (!(tail < 1e-3)) {
     const g = betaQuantileGuess(a, b, lower, logTarget);
     if (g !== undefined && g < 0.5) x0 = g;
+  }
+  if (b > 1e10 && b > 1e10 * a) {
+    // b X tends to Gamma(a): start from the gamma quantile. From 0.25 the log probability (about b log(3/4)) and the
+    // log density each round to 1e-16 of their size, and their difference, the Newton slope, was noise for b = 4e204
+    // (qbeta(9.3e-85, 1, 4e204, { lowerTail: false }) returned 0)
+    const g = qgammaStd(logTarget, a, lower, true) / b;
+    if (g > 0 && g < 0.5) x0 = g;
   }
   return invertContinuous({
     logTarget,

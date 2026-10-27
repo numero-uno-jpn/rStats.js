@@ -115,7 +115,11 @@ function quantileRaw(p: number, par: Params, lowerTail: boolean, logP: boolean):
     // For small p, X (-log q) is nearly gamma (shape = size). Even for highly skewed distributions (small size)
     // this is a much closer starting value than Cornish-Fisher, reducing distribution-function evaluations
     // -log q = log(1 + p/q) (taking log of a rounded q loses digits for small p)
-    y0 = qgamma1(p, par.size, 1, lowerTail, logP) / Math.log1p(prob / (par.qd[0] + par.qd[1]));
+    const g = qgamma1(p, par.size, 1, lowerTail, logP);
+    y0 = g / Math.log1p(prob / (par.qd[0] + par.qd[1]));
+    // A finite gamma quantile divided by a tiny -log q beyond the doubles: so is the quantile (the distribution
+    // function cannot be evaluated out there; qnbinom(2.2e-284, 2.7e37, { prob: 1.9e-279 }) threw a TypeError)
+    if (y0 === Infinity && g > 0 && Number.isFinite(g)) return Infinity;
   } else {
     const z = qnorm(p, { lowerTail, logP });
     y0 = mu + sigma * (z + (gamma * (z * z - 1)) / 6);

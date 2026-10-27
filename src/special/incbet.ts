@@ -598,6 +598,8 @@ function continuedFractionCoreOps(a: number, b: number, xd: DD, xcd: DD, second:
   // #1: coefficients use x; #2: coefficients use z = x/(1-x)
   const z: DD = second ? ddDiv(xd, xcd) : xd;
   const huge = Math.max(a, b) >= 2 ** 52;
+  // Above 1e150 the products of two of the parameters (h3 h4 = a (a + 1), ...) overflow: divide before multiplying
+  const vast = Math.max(a, b) > 1e150;
   // Partial numerators k1 x k2 / (k3 k4) and k5 x k6 / (k7 k8). k1, k3, k4, k7, k8 are doubles, with
   // double-double copies (h1, ...) that are used and advanced only when huge
   let k1 = a;
@@ -620,16 +622,20 @@ function continuedFractionCoreOps(a: number, b: number, xd: DD, xcd: DD, second:
   let qkm1: DD = [1, 0];
   let ans: DD = [1, 0];
   for (let n = 0; n < 100000; n++) {
-    let xk = huge
-      ? ddDiv(ddMul(ddMul(z, h1), k2), ddMul(h3, h4))
-      : ddDiv(ddMul(ddMulNum(z, k1), k2), twoProd(k3, k4));
+    let xk = vast
+      ? ddMul(ddMul(z, ddDiv(h1, h3)), ddDiv(k2, h4))
+      : huge
+        ? ddDiv(ddMul(ddMul(z, h1), k2), ddMul(h3, h4))
+        : ddDiv(ddMul(ddMulNum(z, k1), k2), twoProd(k3, k4));
     let pk = ddSub(pkm1, ddMul(pkm2, xk));
     let qk = ddSub(qkm1, ddMul(qkm2, xk));
     pkm2 = pkm1;
     pkm1 = pk;
     qkm2 = qkm1;
     qkm1 = qk;
-    xk = ddDiv(ddMul(ddMulNum(z, k5), k6), huge ? ddMul(h7, h8) : twoProd(k7, k8));
+    xk = vast
+      ? ddMul(ddMulNum(z, k5), ddDiv(ddDiv(k6, h7), h8))
+      : ddDiv(ddMul(ddMulNum(z, k5), k6), huge ? ddMul(h7, h8) : twoProd(k7, k8));
     pk = ddAdd(pkm1, ddMul(pkm2, xk));
     qk = ddAdd(qkm1, ddMul(qkm2, xk));
     pkm2 = pkm1;
@@ -791,7 +797,13 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
   // large a (incbetLargeA.ts) instead, in the frame of the large parameter. The length of the continued fraction
   // stops growing with the large parameter, but in the bulk it takes 30 to 170 double-double steps; the expansion
   // takes a few terms
-  const largeA = Math.max(a, b) >= LARGE_A_MIN && Math.min(a, b) <= SMALL_B_MAX;
+  // Also for a larger small parameter (up to 1e4, as the expansion takes about b/2 steps) where x rounds to 1 in the
+  // frame of the large one (then l = -log x is below ε and the terms after the leading Q(b, u) or P(b, u) vanish):
+  // the continued fraction is NaN there (pnbinom(1.9e153, 44.4, { prob: 1.6e-149, lowerTail: false }))
+  const largeA =
+    Math.max(a, b) >= LARGE_A_MIN &&
+    (Math.min(a, b) <= SMALL_B_MAX ||
+      ((a >= b ? xd[0] : xcd[0]) === 1 && Math.min(a, b) <= 1e4 && Math.min(a, b) < 1e-8 * Math.max(a, b)));
   const viaLargeA = (low: boolean, log: boolean): [number, number] | undefined => {
     if (!largeA) return undefined;
     return a >= b ? betaIncLargeA(a, b, xd, xcd, low, log) : betaIncLargeA(b, a, xcd, xd, !low, log);
@@ -812,7 +824,7 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
     if (pseriesOk(pa, pb, px[0])) {
       const v = pseriesComplement(pa, pb, px, false);
       // Cancellation check as for the requested tail (see below)
-      if (pa * Math.abs(Math.log(px[0])) > 32 * v && cfOk(oa, ob, ox[0])) {
+      if (pa * Math.abs(Math.log(px[0])) > 32 * v && ox[0] < 1 && cfOk(oa, ob, ox[0])) {
         return viaLargeA(!lower, false)?.[1] ?? continuedFraction(oa, ob, ox, oxc, false);
       }
       return v;
@@ -835,7 +847,9 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
     // When a |log x| exceeds the result 32 times and the continued fraction applies in this tail's frame, use it
     // instead (a lower threshold would also send cases where the series is accurate, e.g. most of pt near 0, to the
     // slower continued fraction)
-    if (oa * Math.abs(Math.log(ox[0])) > 32 * v && cfOk(pa, pb, px[0])) {
+    // (Not when x rounds to 1 in this frame, with 1 - x below ε, e.g. pnbinom with size 6e178: the continued fraction
+    // is then NaN, and the exponent is so negative that the series value is 1 to double precision)
+    if (oa * Math.abs(Math.log(ox[0])) > 32 * v && px[0] < 1 && cfOk(pa, pb, px[0])) {
       const e = viaLargeA(lower, wantLog);
       if (e !== undefined) return e;
       const w = continuedFraction(pa, pb, px, pxc, false);
