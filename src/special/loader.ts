@@ -72,6 +72,13 @@ const TAIL_IN_DOUBLE = 0.12;
  * When x and M are close, it is computed by the series in v = (x - M)/(x + M) (Loader 2000).
  */
 export function bd0dd(x: number, M: DD): DD {
+  // bd0 is homogeneous of degree 1: from about 1e300 the splitting in the double-double products overflows (x + M
+  // enters them), so scale x and M by 2^-64 (exactly, unless the smaller one would become subnormal; its quotient is
+  // then far out and the logarithms are taken separately below) and the result back (pgamma(9.9e299, 1e300) was NaN)
+  if (Math.max(x, M[0]) > 1e299 && Math.min(x, M[0]) > 1e-250) {
+    const r = bd0dd(x * 2 ** -64, [M[0] * 2 ** -64, M[1] * 2 ** -64]);
+    return [r[0] * 2 ** 64, r[1] * 2 ** 64];
+  }
   if (!isDoubleDouble()) return bd0ddOps(x, M);
   // d = x - M and the series expand the same operations as bd0ddOps below, in the same order, without allocating arrays
   // (see docs/performance.md). Generated with python3 scripts/ddgen.py bd0dd. One difference: when the series tail
@@ -342,9 +349,10 @@ export function bd0dd(x: number, M: DD): DD {
   }
 
   // x log(x/M) + (M - x), with log(x/M) from the double-double quotient (one logarithm instead of two) unless the
-  // quotient leaves the normal range, where its low part would be lost
+  // quotient leaves the normal range, where its low part would be lost, or x or M is above 1e300, where the splitting
+  // of the double-double division overflows (dgamma(9.3e281, 1.9e183, { rate: 3e21 }) threw a TypeError)
   const ratio = x / M[0];
-  const lr = ratio > 1e-290 && ratio < 1e290 ? ddLog(ddDiv([x, 0], M)) : ddSub(ddLog([x, 0]), ddLog(M));
+  const lr = ratio > 1e-290 && ratio < 1e290 && Math.max(x, M[0]) < 1e300 ? ddLog(ddDiv([x, 0], M)) : ddSub(ddLog([x, 0]), ddLog(M));
   return ddAdd(ddMulNum(lr, x), [-dh, -dl]);
 }
 
@@ -367,8 +375,23 @@ function bd0ddOps(x: number, M: DD): DD {
   }
   // x log(x/M) + (M - x)
   const ratio = x / M[0];
-  const lr = ratio > 1e-290 && ratio < 1e290 ? ddLog(ddDiv([x, 0], M)) : ddSub(ddLog([x, 0]), ddLog(M));
+  const lr = ratio > 1e-290 && ratio < 1e290 && Math.max(x, M[0]) < 1e300 ? ddLog(ddDiv([x, 0], M)) : ddSub(ddLog([x, 0]), ddLog(M));
   return ddAdd(ddMulNum(lr, x), ddNeg(d));
+}
+
+/**
+ * bd0(x, n p) with n and p in double-double. Above 1e299 the splitting in the double-double product overflows, so n is
+ * scaled by 2^-64 there (exactly) and the product back. Where n p is not a normal number well inside the range (below
+ * 1e-290, down to 0 by underflow, as with tiny shapes: pbeta(5.8e-295, 2.8e-193, 3.5e-153) threw a TypeError), its
+ * logarithm is taken as log n + log p
+ */
+function bd0Prod(x: number, nn: DD, p: DD): DD {
+  const s = nn[0] > 1e299 ? 2 ** -64 : 1;
+  const ms = ddMul([nn[0] * s, nn[1] * s], p);
+  const M: DD = [ms[0] / s, ms[1] / s];
+  if (M[0] >= 1e-290) return bd0dd(x, M);
+  const lr = ddSub(ddLog([x, 0]), ddAdd(ddLog(nn), ddLog(p)));
+  return ddAdd(ddMulNum(lr, x), twoSum(nn[0] * p[0], -x));
 }
 
 /** Double-precision version of bd0 */
@@ -383,6 +406,8 @@ export function bd0(x: number, M: number): number {
 function expNegDD(e: DD, log: boolean, logDenom: () => number, denom: () => number): number {
   if (log) return -e[0] - e[1] - 0.5 * logDenom();
   if (e[0] < 700) return (Math.exp(-e[0]) * (1 - e[1])) / Math.sqrt(denom());
+  // Far below the subnormals; e[1] can then exceed 1 (it is up to half an ulp of e[0]) and 1 - e[1] would give -0
+  if (e[0] > 2000) return 0;
   // Region where the result is near subnormal: multiply by exp(-700) last so that rounding happens once, at the end
   const d = denom();
   if (!Number.isFinite(d) || d === 0) return Math.exp(-e[0] - e[1] - 0.5 * logDenom());
@@ -422,7 +447,7 @@ export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean):
     if (n === 0) return one;
     if (p[0] < 0.1) {
       // n log q = -bd0(n, n q) - n p
-      const e = ddAdd(bd0dd(n, ddMul(nn, q)), ddMul(nn, p));
+      const e = ddAdd(bd0Prod(n, nn, q), ddMul(nn, p));
       return log ? -e[0] - e[1] : Math.exp(-e[0]) * (1 - e[1]);
     }
     const lq = ddLog(q);
@@ -431,7 +456,7 @@ export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean):
   }
   if (nmx === 0) {
     if (q[0] < 0.1) {
-      const e = ddAdd(bd0dd(n, ddMul(nn, p)), ddMul(nn, q));
+      const e = ddAdd(bd0Prod(n, nn, p), ddMul(nn, q));
       return log ? -e[0] - e[1] : Math.exp(-e[0]) * (1 - e[1]);
     }
     const lc = ddMul(nn, ddLog(p));
@@ -439,7 +464,7 @@ export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean):
   }
   if (x < 0 || nmx < 0) return zero;
   // E = stirlerr(x) + stirlerr(n-x) - stirlerr(n) + bd0(x, np) + bd0(n-x, nq)
-  let e = ddAdd(bd0dd(x, ddMul(nn, p)), bd0dd(nmx, ddMul(nn, q)));
+  let e = ddAdd(bd0Prod(x, nn, p), bd0Prod(nmx, nn, q));
   e = ddAdd(e, twoSum(stirlerr(x) + stirlerr(nmx), -stirlerr(n)));
   // Denominator 2 pi x (n - x) / n
   return expNegDD(
@@ -457,7 +482,7 @@ export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean):
 export function dbinomExponent(x: number, nmx: number, p: DD, q: DD): { e: DD; logDenom: number } {
   const nn = twoSum(x, nmx);
   const n = nn[0];
-  let e = ddAdd(bd0dd(x, ddMul(nn, p)), bd0dd(nmx, ddMul(nn, q)));
+  let e = ddAdd(bd0Prod(x, nn, p), bd0Prod(nmx, nn, q));
   e = ddAdd(e, twoSum(stirlerr(x) + stirlerr(nmx), -stirlerr(n)));
   return { e, logDenom: LN_2PI + Math.log(x) + Math.log(nmx) - Math.log(n) };
 }

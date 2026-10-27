@@ -157,6 +157,16 @@ function erfcxMinusLeading(y: number): number {
 }
 
 /**
+ * r x in double-double for r up to the largest double: above 1e299 the splitting in the product overflows, so r is
+ * scaled by 2^-64 (exactly) and the product back (pbeta(0.5, 6e299, 6e299) was Infinity)
+ */
+function mulLarge(r: DD, x: DD): DD {
+  if (!(r[0] > 1e299)) return ddMul(r, x);
+  const p = ddMul([r[0] * 2 ** -64, r[1] * 2 ** -64], x);
+  return [p[0] * 2 ** 64, p[1] * 2 ** 64];
+}
+
+/**
  * I_x(a, b) (lower) or 1 - I_x(a, b) by the uniform asymptotic expansion, as [log, linear] (log NaN unless
  * wantLog). x and 1 - x are given in double-double. Returns undefined outside the region where the expansion is
  * used (m >= TEMME_MIN_M and |τ| <= TAU_MAX); the caller then uses the series or continued fractions
@@ -171,7 +181,9 @@ export function betaIncTemme(
 ): [number, number] | undefined {
   const rr = twoSum(a, b);
   const r = rr[0];
-  const m = (a * b) / r;
+  // (a b overflows beyond 1.8e308: then a (b / r))
+  const ab = a * b;
+  const m = Number.isFinite(ab) ? ab / r : a * (b / r);
   if (!(m >= TEMME_MIN_M) || !Number.isFinite(r)) return undefined;
   const p = a / r;
   const q = b / r;
@@ -180,11 +192,11 @@ export function betaIncTemme(
   const x = xd[0];
   if (Math.abs(x - p) > 2 * pq) return undefined;
   // r x - a exactly enough (sign of x - p, and g_0 in the tail form)
-  const rx = ddMul(rr, xd);
+  const rx = mulLarge(rr, xd);
   const dx = ddSub(rx, [a, 0]);
   const d = dx[0] + dx[1];
   // E = bd0(a, r x) + bd0(b, r (1 - x)) in double-double
-  const e = ddAdd(bd0dd(a, rx), bd0dd(b, ddMul(rr, xcd)));
+  const e = ddAdd(bd0dd(a, rx), bd0dd(b, mulLarge(rr, xcd)));
   const E = e[0] + e[1];
   const tau2 = (2 * E) / m;
   if (!(tau2 <= TAU_MAX * TAU_MAX)) return undefined;

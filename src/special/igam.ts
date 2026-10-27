@@ -9,12 +9,12 @@
 // - The prefactor x^a e^-x / Gamma(a) is computed with Loader's dpoisRaw (= x^a e^-x / Gamma(a+1)),
 //   to avoid cancellation in the log for large a and x
 
-import { erfc } from "./erf.js";
+import { erfc, erfcxNonNegative } from "./erf.js";
 import { SPLITTER } from "./dd.js";
 import { MACHEP } from "./constants.js";
 import { lgamma, lgamma1p } from "./gamma.js";
 import { IGAM_ASYMP_COEFF_D, IGAM_ASYMP_COEFF_K, IGAM_ASYMP_COEFF_N } from "./igamAsympCoeff.js";
-import { dpoisRaw, dpoisRawBoth } from "./loader.js";
+import { bd0dd, dpoisRaw, dpoisRawBoth } from "./loader.js";
 import { log1pmx } from "./log1pmx.js";
 
 // xsf uses 2000. For a around 1e6 with x close to a, the series and continued fraction take thousands of iterations, so raise it
@@ -124,6 +124,7 @@ function igamcContinuedFractionBoth(a: number, x: number): [number, number] {
 
 /** The continued fraction of DLMF 8.9.2: Q(a, x) = x^a e^-x / Gamma(a) times this */
 export function igamcContinuedFractionValue(a: number, x: number): number {
+  if (x > 1e20) return igamcContinuedFractionLentz(a, x);
   let y = 1 - a;
   let z = x + y + 1;
   let c = 0;
@@ -162,6 +163,33 @@ export function igamcContinuedFractionValue(a: number, x: number): number {
   return ans;
 }
 
+/**
+ * The same continued fraction by the modified Lentz method (only ratios are kept, so nothing grows). For large x
+ * the convergents above overflow: the first denominator is already (x + 2 - a) x, and each step multiplies by about x
+ * while the rescaling divides by only 2^52 (pgamma(7.2e60, 6.1e55), ppois(3.66e124, 8.1e125) and ppois(3.4e240,
+ * 5.5e241) were NaN). Used above 1e20, where overflow takes about 70 steps or fewer
+ */
+function igamcContinuedFractionLentz(a: number, x: number): number {
+  const tiny = 1e-300;
+  let b = x + 1 - a;
+  let c = 1 / tiny;
+  let d = 1 / b;
+  let h = d;
+  for (let i = 1; i < MAXITER; i++) {
+    const an = -i * (i - a);
+    b += 2;
+    d = an * d + b;
+    if (Math.abs(d) < tiny) d = tiny;
+    c = b + an / c;
+    if (Math.abs(c) < tiny) c = tiny;
+    d = 1 / d;
+    const del = d * c;
+    h *= del;
+    if (Math.abs(del - 1) <= MACHEP) break;
+  }
+  return h;
+}
+
 /** Q(a, x) by DLMF 8.7.3. For small x (the value does not approach 0) */
 function igamcSeries(a: number, x: number): number {
   let fac = 1;
@@ -183,14 +211,23 @@ function igamcSeries(a: number, x: number): number {
 /** Temme's uniform asymptotic expansion for a close to x (DLMF 8.12.3/8.12.4) */
 function asymptoticSeries(a: number, x: number, lower: boolean): number {
   const sgn = lower ? -1 : 1;
+  const eta = temmeEta(a, x);
+  let res = 0.5 * erfc(sgn * eta * Math.sqrt(a / 2));
+  res += (sgn * Math.exp(-0.5 * a * eta * eta) * temmeSum(a, eta)) / Math.sqrt(2 * Math.PI * a);
+  return res;
+}
+
+/** η of Temme's expansion: η^2 / 2 = λ - 1 - log λ (λ = x / a), with the sign of λ - 1 */
+function temmeEta(a: number, x: number): number {
   const lambda = x / a;
   const sigma = (x - a) / a;
-  let eta: number;
-  if (lambda > 1) eta = Math.sqrt(-2 * log1pmx(sigma));
-  else if (lambda < 1) eta = -Math.sqrt(-2 * log1pmx(sigma));
-  else eta = 0;
-  let res = 0.5 * erfc(sgn * eta * Math.sqrt(a / 2));
+  if (lambda > 1) return Math.sqrt(-2 * log1pmx(sigma));
+  if (lambda < 1) return -Math.sqrt(-2 * log1pmx(sigma));
+  return 0;
+}
 
+/** Σ_k c_k(η) a^-k of Temme's expansion */
+function temmeSum(a: number, eta: number): number {
   const etapow = new Array<number>(IGAM_ASYMP_COEFF_N).fill(0);
   etapow[0] = 1;
   let maxpow = 0;
@@ -217,8 +254,51 @@ function asymptoticSeries(a: number, x: number, lower: boolean): number {
     absoldterm = absterm;
     afac /= a;
   }
-  res += (sgn * Math.exp(-0.5 * a * eta * eta) * sum) / Math.sqrt(2 * Math.PI * a);
-  return res;
+  return sum;
+}
+
+/** xsf's region for Temme's expansion: |x - a| / a below 0.3 for 20 < a < 200, within 4.5 standard deviations for larger a */
+function xsfAsymptotic(a: number, absxmaA: number): boolean {
+  return (a > SMALL && a < LARGE && absxmaA < SMALLRATIO) || (a > LARGE && absxmaA < LARGERATIO / Math.sqrt(a));
+}
+
+/**
+ * Above this a, Temme's expansion is used at every x (below 1e15 a): the double-double series of P overflows in its
+ * products of terms around a (pgamma(0.99 * 2^1000, 2^1000) was NaN after 0.1 s), and only the leading term of the
+ * expansion is left
+ */
+const HUGE_A = 1e299;
+
+/**
+ * Beyond xsf's region, Temme's expansion is also used for a > 200 with |x - a| / a below 1e-3. There the series and
+ * the continued fraction need about 40 a / |x - a| terms (beyond 10^7 for a above 1e14: ppois(3.28e19 + 1e11, 3.28e19)
+ * took 0.15 s per call and stopped short of convergence), while η is below 1e-3 and the expansion converges in a few
+ * terms; and at every x above HUGE_A. See temmeTail for the form used.
+ */
+const farAsymptotic = (a: number, absxmaA: number): boolean => a > LARGE && (absxmaA < 1e-3 || a > HUGE_A);
+
+/**
+ * [log, linear] of the smaller tail (the upper if x > a) by Temme's expansion, in the form
+ *   e^(-a η^2 / 2) (erfcx(y) / 2 ± S / sqrt(2π a)),   y = |η| sqrt(a / 2),
+ * with a η^2 / 2 = a log(a / x) + x - a computed as Loader's bd0 in double-double. Forming erfc(y) and
+ * e^(-a η^2 / 2) from η directly carries the rounding of η times a η^2 (1e-14 relative at 11 standard deviations)
+ */
+function temmeTail(a: number, x: number): [number, number] {
+  const e = bd0dd(a, [x, 0]);
+  const sgn = x > a ? 1 : -1;
+  const eta = temmeEta(a, x);
+  // Beyond a = 1e299 the sum is c_0(η) alone (the next term is c_1 / a), used for any x there (see farAsymptotic):
+  // in closed form c_0 = 1/(λ - 1) - 1/η away from η = 0, where the power series in η no longer converges
+  const s = a > HUGE_A && Math.abs(eta) > 0.1 ? 1 / ((x - a) / a) - 1 / eta : temmeSum(a, eta);
+  const b = 0.5 * erfcxNonNegative(Math.sqrt(e[0] + e[1])) + (sgn * s) / Math.sqrt(2 * Math.PI * a);
+  // (far below the subnormals e[1], half an ulp of E, can exceed 1)
+  return [-e[0] - e[1] + Math.log(b), e[0] > 2000 ? 0 : Math.exp(-e[0]) * (1 - e[1]) * b];
+}
+
+/** [log, linear] of P(a, x) (Q if !lower) in the region of farAsymptotic */
+function farTail(a: number, x: number, lower: boolean): [number, number] {
+  const [log, lin] = temmeTail(a, x);
+  return (x > a) !== lower ? [log, lin] : [Math.log1p(-lin), 1 - lin];
 }
 
 /**
@@ -276,13 +356,11 @@ export function gammaIncBoth(a: number, x: number, lower: boolean): [number, num
     return [lq, Math.exp(lq)];
   }
   const absxmaA = Math.abs(x - a) / a;
-  if (
-    (a > SMALL && a < LARGE && absxmaA < SMALLRATIO) ||
-    (a > LARGE && absxmaA < LARGERATIO / Math.sqrt(a))
-  ) {
+  if (xsfAsymptotic(a, absxmaA)) {
     const v = asymptoticSeries(a, x, lower);
     return [v > 0.5 ? Math.log1p(-asymptoticSeries(a, x, !lower)) : Math.log(v), v];
   }
+  if (farAsymptotic(a, absxmaA)) return farTail(a, x, lower);
   const d = directTailBoth(a, x);
   if (d.lower === lower) return [d.log, d.lin];
   return [d.lin > 0 ? Math.log1p(-d.lin) : -Math.exp(d.log), 1 - d.lin];
@@ -318,15 +396,13 @@ export function gammaInc(a: number, x: number, lower: boolean, log: boolean): nu
 
   /* Asymptotic regime where a ~ x: both tails can be computed directly */
   const absxmaA = Math.abs(x - a) / a;
-  if (
-    (a > SMALL && a < LARGE && absxmaA < SMALLRATIO) ||
-    (a > LARGE && absxmaA < LARGERATIO / Math.sqrt(a))
-  ) {
+  if (xsfAsymptotic(a, absxmaA)) {
     const v = asymptoticSeries(a, x, lower);
     if (!log) return v;
     // The log of a value near 1 is built with log1p from the small value of the other side
     return v > 0.5 ? Math.log1p(-asymptoticSeries(a, x, !lower)) : Math.log(v);
   }
+  if (farAsymptotic(a, absxmaA)) return farTail(a, x, lower)[log ? 0 : 1];
 
   if (log) {
     const d = directTail(a, x, true);

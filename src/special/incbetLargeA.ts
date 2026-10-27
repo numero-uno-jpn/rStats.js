@@ -30,7 +30,7 @@
 //   igam.ts, and H_N from the series in double-double: both to about an ulp.
 
 import { dbinomExponent } from "./loader.js";
-import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddSub, twoProd, twoSum, type DD } from "./dd.js";
+import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddNeg, ddSub, twoProd, twoSum, type DD } from "./dd.js";
 import { erfcxNonNegative } from "./erf.js";
 import { igamSeriesSumDD } from "./igam.js";
 import { halfErfc } from "./incbetTemme.js";
@@ -124,14 +124,19 @@ export function betaIncLargeA(
   // The median of Gamma(b, 1) is about b - 1/3 for b >= 1 and below 2^(-1/b) for small b
   const med = b >= 1 ? b - 1 / 3 : Math.pow(0.5, 1 / b);
   const jSide = u0 >= med;
-  if (u0 > U_MAX || (jSide && u0 < U_MIN_J)) return undefined;
+  // (Where x rounds to 1 nothing else in incbet.ts applies, so U_MAX is not imposed there)
+  if ((u0 > U_MAX && xd[0] < 1) || (jSide && u0 < U_MIN_J)) return undefined;
   // T = a + (b - 1)/2, l = -log x and u = T l in double-double
   const bm1 = twoSum(b, -1);
   const td = ddAdd([a, 0], [bm1[0] / 2, bm1[1] / 2]);
-  const lx = ddLog(xd);
+  // For y below 1e-15, l = y + y^2/2 (+ y^3/3, below 1e-30 relative) from y: the logarithm of x is accurate to about
+  // 1e-32 absolute, which is all of l when y is tiny (l came out 0 for y = 6e-79 and the continued fraction for J_0,
+  // with 100/u steps, did not end)
+  const lx = y < 1e-15 ? ddNeg(ddAdd(yd, [(y * y) / 2, 0])) : ddLog(xd);
   const ld: DD = [-lx[0], -lx[1]];
   const ud = ddMul(td, ld);
   const u = ud[0] + ud[1];
+  if (!(u > 0 && u < Infinity)) return undefined;
   // (the low part of u, which the incomplete gamma functions below take into account)
   const uLow = ud[1] - (u - ud[0]);
   const l = ld[0];
@@ -197,7 +202,15 @@ export function betaIncLargeA(
   const mSum = Math.exp(-e[0]) * (sh * sum);
   const small = mSum + mSum * delta;
   // (far in the lower tails e^-E underflows; the series of incbet.ts handles them)
-  if (!(small >= 1e-290)) return undefined;
+  if (!(small >= 1e-290)) {
+    // ... except where x rounds to 1 (y below ε), where neither the series nor the continued fraction of incbet.ts
+    // applies (pnbinom(1.6e258, 2.8e-255, { mu: 53.6, lowerTail: false }) was NaN): the log from the factors
+    // (δ is not formed: e[1], half an ulp of E, is no longer small when E is huge)
+    if (xd[0] < 1 || !(sum > 0)) return undefined;
+    const ls = -e[0] + (em - e[1]) + Math.log(sh * sum) + Math.log1p((md[0] - sq[0] - sq[1] + md[1]) / (2 * md[0]));
+    const v = Math.exp(ls);
+    return lower === jSide ? [wantLog ? ls : NaN, v] : [wantLog ? -v : NaN, 1 - v];
+  }
   // The J side is I_x(a, b)
   if (lower === jSide) return [wantLog ? Math.log(small) : NaN, small];
   return [wantLog ? Math.log1p(-small) : NaN, 1 - small];
