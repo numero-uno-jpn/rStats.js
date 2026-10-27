@@ -18,7 +18,7 @@
 import { dt0, dt1, quantileBoundaries, smallerTail } from "../internal/dpq.js";
 import { invertContinuous } from "../internal/invert.js";
 import { kronrodAdaptive, narrowQuantile, quadratureControl, searchDoubles } from "../internal/noncentral.js";
-import { dpoisLogDD, mixtureCdf, mixtureCdfBoth, mixtureDensity, type MixtureKernel } from "../internal/poissonMixture.js";
+import { dpoisLogDD, mixtureCdf, mixtureDensity, mixtureTail, type MixtureKernel } from "../internal/poissonMixture.js";
 import { gammaInc } from "../special/igam.js";
 import { dpoisRaw } from "../special/loader.js";
 import { ddAdd, ddDiv, twoProd, twoSum, type DD } from "../special/dd.js";
@@ -79,7 +79,7 @@ function validParams(df: number, ncp: number): boolean {
 
 /**
  * Linear value and log of P[X <= x] (lower) / P[X > x] (x > 0 finite, ncp > 0).
- * The log of a value near 1 is built with log1p from the small value of the other side
+ * A value near 1, and its log, are built from the small value of the other side
  */
 function pnchisqBoth(x: number, df: number, ncp: number, lower: boolean): { lin: number; log: number } {
   const mu = ncp / 2;
@@ -101,19 +101,8 @@ function pnchisqBoth(x: number, df: number, ncp: number, lower: boolean): { lin:
       },
     };
   }
-  const own = mixtureCdfBoth(mu, kernel, lower);
-  if (own.lin > 0.5) {
-    // The log of a value near 1 is built with log1p from the small value of the other side (computed only when the log is needed)
-    let lg: number | undefined;
-    return {
-      lin: own.lin,
-      get log() {
-        lg ??= Math.log1p(-mixtureCdf(mu, kernel, !lower, false));
-        return lg;
-      },
-    };
-  }
-  return own;
+  // (the lower tail is likely the smaller below the mean k + λ)
+  return mixtureTail(mu, kernel, lower, x < df + ncp);
 }
 
 function pnchisqRaw(x: number, df: number, ncp: number, lower: boolean, log: boolean): number {
@@ -571,13 +560,24 @@ function chisqTailBound(q: number, df: number, ncp: number): FarTail {
 }
 
 /**
- * The quantile x found by the Newton iteration if its log probability lp is within 1e-9 of the target, otherwise that
- * of `search`. The iteration fails where the distribution function is too steep to be resolved by the doubles (for a
- * huge df or ncp the spread can be below the spacing of x, so that the function steps from 0 to 1/2 at one double); a
- * search over the doubles (searchDoubles) then gives the smallest x that reaches the target
+ * The quantile x found by the Newton iteration if its log probability lp is within 1e-15 of the target, or within 1e-9
+ * and x is the quantile to 1e-14 (x reaches the target and x (1 - 1e-14) does not: where the distribution function is
+ * nearly flat in log x the iteration can stall 1e-8 away in log p, and where it is steep in log x, 1e-12 in log p can
+ * be 4e-13 in x), otherwise that of `search`. The iteration fails where the distribution function is too steep to be
+ * resolved by the doubles (for a huge df or ncp the spread can be below the spacing of x, so that the function steps
+ * from 0 to 1/2 at one double); a search over the doubles (searchDoubles) then gives the smallest x that reaches the
+ * target
  */
-export function confirmQuantile(x: number, lp: number, logTarget: number, search: () => number): number {
-  return Math.abs(lp - logTarget) <= 1e-9 * Math.max(1, Math.abs(logTarget)) ? x : search();
+export function confirmQuantile(
+  x: number,
+  lp: number,
+  logTarget: number,
+  search: () => number,
+  passes: (x: number) => boolean,
+): number {
+  const r = Math.abs(lp - logTarget) / Math.max(1, Math.abs(logTarget));
+  if (r <= 1e-15 || (r <= 1e-9 && passes(x) && !passes(x * (1 - 1e-14)))) return x;
+  return search();
 }
 
 export function qnchisq1(p: number, df: number, ncp: number, lowerTail: boolean, logP: boolean): number {
@@ -633,5 +633,5 @@ export function qnchisq1(p: number, df: number, ncp: number, lowerTail: boolean,
     positive: true,
     maxIter: 60,
   });
-  return confirmQuantile(x, cdf(x, lower).log, logTarget, () => searchDoubles(x, lo, hi, passes));
+  return confirmQuantile(x, cdf(x, lower).log, logTarget, () => searchDoubles(x, lo, hi, passes), passes);
 }

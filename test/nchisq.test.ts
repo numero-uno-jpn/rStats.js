@@ -230,3 +230,13 @@ describe("noncentral χ² with a large df or extreme parameters (regressions)", 
     expect(pchisq(nextDouble(q, false), df, { ncp: 1 })).toBeLessThan(p);
   });
 });
+
+describe("noncentral χ²: the larger tail", () => {
+  it("is 1 - (smaller), so that it does not exceed 1 (1.0000000000000002 before)", () => {
+    for (const x of [761.3707616472069, 763.6617468878705, 765.9527321285341]) {
+      const lower = pchisq(x, 2, { ncp: 16.99599089257515 }) as number;
+      expect(lower).toBeLessThanOrEqual(1);
+      expect(lower).toBe(1 - (pchisq(x, 2, { ncp: 16.99599089257515, lowerTail: false }) as number));
+    }
+  });
+});

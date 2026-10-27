@@ -333,10 +333,22 @@ export function mixtureCdf(mu: number, kernel: MixtureKernel, lower: boolean, lo
   return (lower ? sumLower(mu, kernel) : sumUpper(mu, kernel)).value(log);
 }
 
-/** Return both the linear value and the log of mixtureCdf from a single summation */
-export function mixtureCdfBoth(mu: number, kernel: MixtureKernel, lower: boolean): { lin: number; log: number } {
-  const s = lower ? sumLower(mu, kernel) : sumUpper(mu, kernel);
-  return { lin: s.linear, log: s.log };
+/**
+ * Linear value and log of mixtureCdf, with the larger tail taken as 1 - (smaller): summed directly it can exceed 1 by
+ * a few ulps (the weights' rounding errors add up, while every P_j or Q_j is near 1), and its errors need not follow
+ * x, so it could also step back. lowerSmaller guesses which tail is the smaller (summed first; when the guess is wrong
+ * the other is summed too)
+ */
+export function mixtureTail(mu: number, kernel: MixtureKernel, lower: boolean, lowerSmaller: boolean): { lin: number; log: number } {
+  let side = lowerSmaller;
+  let s = side ? sumLower(mu, kernel) : sumUpper(mu, kernel);
+  if (s.linear > 0.5) {
+    side = !side;
+    s = side ? sumLower(mu, kernel) : sumUpper(mu, kernel);
+  }
+  if (side === lower) return { lin: s.linear, log: s.log };
+  const other = s.linear;
+  return { lin: 1 - other, log: Math.log1p(-other) };
 }
 
 /** Compute the log of the term w_j F_j directly (to locate the starting index) */
