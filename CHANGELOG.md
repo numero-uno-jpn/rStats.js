@@ -7,6 +7,25 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Fixed
+
+- Calls that did not return: `ptukey` and `qtukey` for small or huge q (`ptukey(1e-20, 200, 5)`); `qpois` for λ
+  around 1e20; `qnbinom`, `qgamma`, `qchisq`, `qinvgamma`, `qbeta`, `qf` and `pf` at huge or tiny parameters;
+  `pchisq` with a noncentrality parameter and a large df (`pchisq(1.1e10, 1e10, { ncp: 1e9 })`); the noncentral
+  quantiles at extreme parameters. All now return in milliseconds.
+- TypeErrors: `dweibull` and `pweibull` when x / scale underflows or overflows (`dweibull(1e-300, 2, { scale: 1e100 })`);
+  the noncentral `qbeta` upper tail for a tiny p, also at an ordinary ncp
+  (`qbeta(1.2e-270, 0.0316, 0.279, { ncp: 0.646, lowerTail: false })`); `qnbinom`, `qbeta`, `dbeta`, `dgamma`, `pf`
+  and `qf` at extreme parameters.
+- NaN, or values outside [0, 1], for valid arguments: `dchisq` with a noncentrality parameter and a large df;
+  `pnorm` and `dnorm` when (x - mean) / sd overflows; `qlnorm`'s upper tail (`-Infinity` for `+Infinity`); the
+  triangular distribution for very wide or very narrow intervals; `ppareto`'s upper tail (0 for a subnormal b / x);
+  `pkumar` and `qkumar` for large b; `pinvgamma` (a positive log, `pinvgamma(3.65e-16, 35.87, { beta: 269.9, logP: true })`)
+  and `dinvgamma` when beta / x underflows; `pgamma`, `pchisq`, `ppois` and `pbeta` at huge parameters.
+- `qunif`'s upper tail lost digits near `max` (`qunif(3.7e-216, { min: -1, max: 0, lowerTail: false })` was 0).
+
 ## 0.15.1 - 2026-10-27
 
 ### Fixed
