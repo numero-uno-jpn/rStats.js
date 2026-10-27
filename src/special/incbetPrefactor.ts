@@ -1,0 +1,97 @@
+// The factor x^a (1-x)^b / B(a, b) in front of the series, continued fractions and expansions of the incomplete beta
+// function (incbet.ts, incbetLargeA.ts) where Loader's binomial form (loader.ts), used elsewhere, loses digits: when one
+// shape is small, or one is huge and the other moderate. Derived from Γ(1 + s) = s Γ(s) and Stirling's series.
+
+import { ddAdd, ddLog, ddMulNum, ddNeg, ddSub, type DD } from "./dd.js";
+import { gamma, lgamma1p } from "./gamma.js";
+import { lgammaDiff, lgammaDiffDD } from "./lgammaDiff.js";
+
+/**
+ * Below this smaller shape the prefactor is formed by the small-shape form of prefactorParts. Loader's stirlerr of a
+ * shape s < 1 is lgamma1p(s) - (s + 1/2) log s + ..., whose rounding (absolute, about ε |log s| / 2) cancels against the
+ * log of the denominator: the prefactor was off by 2e-15 to 1e-14 relative for shapes from 1e-8 to 1e-30 (2e-14 at
+ * 1e-130: pbeta(1.08e-285, 1.56e-130, 2) was 1.0000000000000195). Against mpmath, the small-shape form was within 4e-16
+ * for smaller shapes from 1e-30 to 0.3 (Loader's 1.5e-15), and from 0.3 to 1 within 1.3e-15 with an rms error of
+ * 2.6e-16 (Loader's 1.1e-15 and 3.8e-16); from 1 on Loader's form is the better one where both shapes grow. Up to 1
+ * rather than 0.3: tails of a moderate shape from both forms disagreed by 1.6e-15 (pnbinom(0, 0.818, { prob: 0.0821 })
+ * and its upper tail), enough to move qnbinom of that upper tail to 1
+ */
+export const SMALL_SHAPE = 1;
+
+/**
+ * From this larger shape on (with the smaller one at most HUGE_SHAPE_MAX_SMALL), the huge-shape form of
+ * prefactorParts. Loader's form was off by up to 2e-14 relative from 1e15 on and 8e-14 near 1e300 (against mpmath, the
+ * smaller shape from 1e-3 to 40 and 1 - x around it divided by the larger: pbeta(5.6e-161, 0.82, 1.5e160) and its
+ * upper tail added up to 1 + 3e-14); the huge-shape form stayed within 3.4e-15 from 1e15 on (the rounding of Γ(s)),
+ * but neglects terms of order s³/l² (see lgammaRatioHuge), which matter below about 1e10
+ */
+export const HUGE_SHAPE = 2 ** 52;
+/** Largest smaller shape for the huge-shape form (Γ(s) is finite and accurate to a few ulps up to there) */
+export const HUGE_SHAPE_MAX_SMALL = 100;
+
+/**
+ * x^a (1-x)^b / B(a, b) = c exp(e) as [c, e] (e in double-double) where Loader's form loses digits: for
+ * min(a, b) < SMALL_SHAPE, or max(a, b) >= HUGE_SHAPE with min(a, b) <= HUGE_SHAPE_MAX_SMALL; undefined elsewhere.
+ * With s = min(a, b), l = max(a, b):
+ * - small shape: 1/B(a, b) = ab/(a + b) Γ(1+a+b)/(Γ(1+a) Γ(1+b)), c = ab/(a + b) = s/(1 + s/l) (no underflow of the
+ *   product ab), and the log of the ratio of gamma functions from smallShapeG, of the size of s log l or less
+ * - huge shape: 1/B(a, b) = Γ(l + s)/(Γ(l) Γ(s)), c = 1/Γ(s), and log Γ(l + s) - log Γ(l) from lgammaRatioHuge
+ * a log x and b log(1-x) are formed in double-double (b log(1-x) can be large), each logarithm from the smaller of x and
+ * 1 - x: x may have rounded to 1 even in double-double (pf(2.5e-97, 1.7e80, 2.7e-95) passes 1 - x = 6.3e-79 with
+ * x = [1, 0]), and a log x, about -a (1 - x), then still matters for a huge a
+ */
+export function prefactorParts(a: number, b: number, x: DD, xc: DD): [number, DD] | undefined {
+  const s = Math.min(a, b);
+  const l = Math.max(a, b);
+  let c: number;
+  let g: DD;
+  if (s < SMALL_SHAPE) {
+    c = s / (1 + s / l);
+    g = smallShapeG(a, b);
+  } else if (l >= HUGE_SHAPE && s <= HUGE_SHAPE_MAX_SMALL) {
+    c = 1 / gamma(s);
+    g = lgammaRatioHuge(s, l);
+  } else {
+    return undefined;
+  }
+  const lx = x[0] <= 0.5 ? ddLog(x) : log1m(xc);
+  const lxc = xc[0] <= 0.5 ? ddLog(xc) : log1m(x);
+  return [c, ddAdd(ddAdd(mulBig(lx, a), mulBig(lxc, b)), g)];
+}
+
+/**
+ * log Γ(l + s) - log Γ(l) in double-double for l >= HUGE_SHAPE and s <= HUGE_SHAPE_MAX_SMALL. From Stirling's series,
+ *   log Γ(l + s) - log Γ(l) = s log l + [(l + s - 1/2) log1p(s/l) - s] + [stirlerr(l + s) - stirlerr(l)]
+ *                           = s log l + s (s - 1) / (2 l) + O(s³/l²)
+ * (the stirlerr terms differ by about -s/(12 l²)); the neglected terms are below 1e-25 here. s log l is formed in
+ * double-double. lgammaDiff loses s itself where s/l underflows (it forms (l - 1/2) log1p(s/l) - s, which is then -s, not
+ * about 0): pbeta(2.2e-292, 2.4e-69, 4.5e290, { lowerTail: false }) was 6.87e-69, 4.44e-69 expected
+ */
+export function lgammaRatioHuge(s: number, l: number): DD {
+  return ddAdd(mulBig(ddLog([l, 0]), s), [(s * (s - 1)) / (2 * l), 0]);
+}
+
+/**
+ * log Γ(1+a+b)/(Γ(1+a) Γ(1+b)) for min(a, b) < SMALL_SHAPE (see prefactorParts), with s = min(a, b), l = max(a, b), as
+ * [lgamma(1+l+s) - lgamma(1+l)] - lgamma1p(s), or for l >= 1 with Γ(1+s+l)/Γ(1+l) = (s + l)/l Γ(s+l)/Γ(l). Each term
+ * is of the size of s (log l) and accurate relative to that: the result is about s (ψ(1+l) + γ), and where it decides
+ * 1 - I_x(a, b) = -expm1(...) it must be (with lgamma1p(a + b) for the first term, a + b dropped s at s = 5.9e-87,
+ * b = 0.0845, and pf(1e300, 0.169, 1.18e-86) came out 1.5e-4 too large). For l >= HUGE_SHAPE, lgamma(s+l) - lgamma(l)
+ * from lgammaRatioHuge (lgammaDiff loses s where s/l underflows)
+ */
+export function smallShapeG(a: number, b: number): DD {
+  const s = Math.min(a, b);
+  const l = Math.max(a, b);
+  if (l < 1) return [lgammaDiff(s, 1 + l) - lgamma1p(s), 0];
+  return ddAdd(l >= HUGE_SHAPE ? lgammaRatioHuge(s, l) : lgammaDiffDD(s, l), [Math.log1p(s / l) - lgamma1p(s), 0]);
+}
+
+/** log(1 - y) in double-double (0 <= y <= 1/2); below 1e-15, -(y + y^2/2) (the next term is below 1e-30 relative) */
+function log1m(y: DD): DD {
+  return y[0] < 1e-15 ? ddNeg(ddAdd(y, [(y[0] * y[0]) / 2, 0])) : ddLog(ddSub([1, 0], y));
+}
+
+/** x a in double-double, also for a above 1e290 (where the splitting of a in ddMulNum would overflow) */
+function mulBig(x: DD, a: number): DD {
+  return a > 1e290 ? ddMulNum(ddMulNum(x, a / 2 ** 64), 2 ** 64) : ddMulNum(x, a);
+}

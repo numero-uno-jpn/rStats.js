@@ -23,7 +23,8 @@
 //   H side below it); the other tail is 1 - (that one), which is at least 1/2. Boost computes only the J side.
 // - M is formed as [x^a (1-x)^b / B(a, b)] x^((b-1)/2) (l/y)^b, y = 1 - x, with the first factor from Loader's
 //   binomial density (dbinomExponent, the deviances in double-double), instead of Γ(a + b) / (Γ(a) T^b) times
-//   u^b e^-u / Γ(b), whose parts cancel for large a.
+//   u^b e^-u / Γ(b), whose parts cancel for large a (for a small b or a huge a, the first factor from
+//   incbetPrefactor.ts instead).
 // - l = -log x and u are formed in double-double from x in double-double: the result is about as sensitive to the
 //   absolute error of u as to a relative one, and u is of order b.
 // - J_0 comes from a continued fraction evaluated backwards (below), not from the incomplete gamma function of
@@ -34,6 +35,7 @@ import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddNeg, ddSub, twoProd, twoSum, ty
 import { erfcxNonNegative } from "./erf.js";
 import { igamSeriesSumDD } from "./igam.js";
 import { halfErfc } from "./incbetTemme.js";
+import { prefactorParts } from "./incbetPrefactor.js";
 
 /**
  * Region where the expansion is used (the caller tries it where it would otherwise use the continued fraction):
@@ -144,14 +146,28 @@ export function betaIncLargeA(
   // M = [x^a y^b / B(a, b)] exp(b log(l/y) - (b - 1) l/2), with l - y in double-double (l/y = 1 + O(y)), and
   // x^a y^b / B(a, b) = e^-E sqrt(m/(2 pi)), m = ab/(a + b), from the exponent E of Loader's binomial density.
   // M = e^-E_hi sh (1 + δ): sqrt(m/(2 pi)) = sh + sl from m in double-double, and the small factors in δ, applied
-  // last, so that each rounds once
+  // last, so that each rounds once. For a small b or a huge a, x^a y^b / B(a, b) = c e^(eHi + eLo) from prefactorParts
+  // instead (Loader's exponent loses digits there: 2e-14 at pbeta(0.0066, 1.4e-166, 317.19, { lowerTail: false }) and
+  // 8e-14 at a = 1e300). In both cases M = e^eHi fac (1 + δ), with facCorr the relative correction of fac
   const dl = ddSub(ld, yd);
   const em = b * Math.log1p((dl[0] + dl[1]) / y) - ((b - 1) / 2) * l;
-  const { e } = dbinomExponent(a, b, xd, yd);
-  const md = ddMul(ddDiv(twoProd(a, b), twoSum(a, b)), INV_2PI);
-  const sh = Math.sqrt(md[0]);
-  const sq = twoProd(sh, sh);
-  const delta = Math.expm1(em - e[1]) + (md[0] - sq[0] - sq[1] + md[1]) / (2 * md[0]);
+  let eHi: number;
+  let eLo: number;
+  let fac: number;
+  let facCorr = 0;
+  const parts = prefactorParts(a, b, xd, yd);
+  if (parts !== undefined) {
+    const [c, es] = parts;
+    [eHi, eLo, fac] = [es[0], es[1], c];
+  } else {
+    const { e } = dbinomExponent(a, b, xd, yd);
+    const md = ddMul(ddDiv(twoProd(a, b), twoSum(a, b)), INV_2PI);
+    const sh = Math.sqrt(md[0]);
+    const sq = twoProd(sh, sh);
+    [eHi, eLo, fac] = [-e[0], -e[1], sh];
+    facCorr = (md[0] - sq[0] - sq[1] + md[1]) / (2 * md[0]);
+  }
+  const delta = Math.expm1(em + eLo) + facCorr;
   const l2 = (l / 2) * (l / 2);
   const t4 = 4 * T * T;
   let sum: number;
@@ -199,15 +215,18 @@ export function betaIncLargeA(
     // rounding of u to a double, which would cost up to ε u times that
     sum *= 1 + uLow * (1 - b / u + 1 / (u * h));
   }
-  const mSum = Math.exp(-e[0]) * (sh * sum);
+  const mSum = Math.exp(eHi) * (fac * sum);
   const small = mSum + mSum * delta;
   // (far in the lower tails e^-E underflows; the series of incbet.ts handles them)
   if (!(small >= 1e-290)) {
     // ... except where x rounds to 1 (y below ε), where neither the series nor the continued fraction of incbet.ts
     // applies (pnbinom(1.6e258, 2.8e-255, { mu: 53.6, lowerTail: false }) was NaN): the log from the factors
-    // (δ is not formed: e[1], half an ulp of E, is no longer small when E is huge)
+    // (δ is not formed: the low part of the exponent, half an ulp of its high part, is no longer small when that is huge)
     if (xd[0] < 1 || !(sum > 0)) return undefined;
-    const ls = -e[0] + (em - e[1]) + Math.log(sh * sum) + Math.log1p((md[0] - sq[0] - sq[1] + md[1]) / (2 * md[0]));
+    // (fac sum can underflow where fac is a tiny shape: pbeta(4.2e-24, 2.5e-209, 2e213, { lowerTail: false, logP: true })
+    // was -Infinity)
+    const lfs = fac * sum > 0 ? Math.log(fac * sum) : Math.log(fac) + Math.log(sum);
+    const ls = eHi + (em + eLo) + lfs + Math.log1p(facCorr);
     const v = Math.exp(ls);
     return lower === jSide ? [wantLog ? ls : NaN, v] : [wantLog ? -v : NaN, 1 - v];
   }

@@ -9,14 +9,23 @@
 // - For each tail, choose the frame in which it can be computed directly (I_x(a,b) or I_{1-x}(b,a)),
 //   because forming it as 1 - (the other) loses digits in the smaller tail
 // - The factor x^a (1-x)^b / B(a, b) in front of the series and continued fractions is computed with
-//   Loader's dbinomRaw (avoids cancellation in the log for large a, b)
+//   Loader's dbinomRaw (avoids cancellation in the log for large a, b), or for a small shape, or a huge one with the
+//   other moderate, from the forms of incbetPrefactor.ts
 // - The log is formed directly from the result of each computation
 
 import { MACHEP } from "./constants.js";
 import { dbinomExponent, dbinomRawDD } from "./loader.js";
 import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddSub, isDoubleDouble, SPLITTER, twoProd, twoSum, type DD } from "./dd.js";
 import { lgamma1p } from "./gamma.js";
-import { lgammaDiff } from "./lgammaDiff.js";
+import { lgammaDiffDD } from "./lgammaDiff.js";
+import {
+  HUGE_SHAPE,
+  HUGE_SHAPE_MAX_SMALL,
+  lgammaRatioHuge,
+  prefactorParts,
+  SMALL_SHAPE,
+  smallShapeG,
+} from "./incbetPrefactor.js";
 import { betaIncTemme, TEMME_MIN_M } from "./incbetTemme.js";
 import { betaIncLargeA, LARGE_A_MIN, SMALL_B_MAX } from "./incbetLargeA.js";
 
@@ -27,14 +36,19 @@ const BIGINV = 2.22044604925031308085e-16;
  * Log of x^a (1-x)^b / B(a, b).
  * Since dbinom(a; a + b, x) = Gamma(a+b+1)/(Gamma(a+1) Gamma(b+1)) x^a (1-x)^b
  * (a and b are passed separately; recovering them from a + b loses digits of the smaller one),
- * x^a (1-x)^b / B(a, b) = dbinom(a; a+b, x) * a b / (a + b).
+ * x^a (1-x)^b / B(a, b) = dbinom(a; a+b, x) * a b / (a + b). For a small shape, or a huge one with the other moderate,
+ * from prefactorParts (incbetPrefactor.ts) instead, as in prefactor and smallPrefactorTimes
  */
 function logPrefactor(a: number, b: number, x: DD, xc: DD): number {
+  const parts = prefactorParts(a, b, x, xc);
+  if (parts !== undefined) return Math.log(parts[0]) + parts[1][0] + parts[1][1];
   return dbinomRawDD(a, b, x, xc, true) + Math.log(a) + Math.log(b) - Math.log(a + b);
 }
 
 /** Linear value of x^a (1-x)^b / B(a, b) (0 on underflow) */
 function prefactor(a: number, b: number, x: DD, xc: DD): number {
+  const parts = prefactorParts(a, b, x, xc);
+  if (parts !== undefined) return parts[0] * (Math.exp(parts[1][0]) * (1 + parts[1][1]));
   return dbinomRawDD(a, b, x, xc, false) * ((a * b) / (a + b));
 }
 
@@ -49,6 +63,14 @@ const NORMAL_MIN = 2.2250738585072014e-308 * 1e3;
  * Returns undefined when the result underflows to 0 (the caller then works on the log scale)
  */
 function smallPrefactorTimes(a: number, b: number, x: DD, xc: DD, m: number): number | undefined {
+  const parts = prefactorParts(a, b, x, xc);
+  if (parts !== undefined) {
+    const [ms, e] = parts;
+    const c = m * ms;
+    if (!(e[0] > -1400) || !Number.isFinite(c) || c === 0) return undefined;
+    const v = Math.exp(e[0] + 700) * (1 + e[1]) * c * Math.exp(-700);
+    return v > 0 ? v : undefined;
+  }
   const { e } = dbinomExponent(a, b, x, xc);
   const c = (m * ((a * b) / (a + b))) / Math.sqrt(2 * Math.PI * a * (b / (a + b)));
   if (!(e[0] < 1400) || !Number.isFinite(c) || c === 0) return undefined;
@@ -85,12 +107,16 @@ function pseriesSum(a: number, b: number, x: number): number {
  *   1 - I = -expm1(L) - E a S,  L = a log x + [lgamma(b+a) - lgamma(b)] - lgamma1p(a)
  * For small a, I is close to 1 and forming 1 - I by subtraction loses digits (1e-7 relative at a = 1e-10).
  * (Derived from the definition of the series)
+ * a log x and lgamma(b+a) - lgamma(b) (about a log b for a huge b) are added in double-double: for x near 1/b they
+ * cancel, and their rounding was 5e-14 of the result at pbeta(1.37e-272, 0.054, 3.9e270, { lowerTail: false }) (the
+ * latter from lgammaRatioHuge for a huge b, see there)
  */
 function pseriesComplement(a: number, b: number, xd: DD, log: boolean): number {
   const x = xd[0];
-  const L = a * (Math.log(x) + xd[1] / x) + lgammaDiff(a, b) - lgamma1p(a);
-  const E = Math.exp(L);
-  const v = -Math.expm1(L) - E * a * pseriesSum(a, b, x);
+  const lg = b >= HUGE_SHAPE && a <= HUGE_SHAPE_MAX_SMALL ? lgammaRatioHuge(a, b) : lgammaDiffDD(a, b);
+  const Ld = ddAdd(ddAdd(ddMulNum(ddLog(xd), a), lg), [-lgamma1p(a), 0]);
+  const E = Math.exp(Ld[0]) * (1 + Ld[1]);
+  const v = -(Math.expm1(Ld[0]) + Ld[1] * Math.exp(Ld[0])) - E * a * pseriesSum(a, b, x);
   return log ? Math.log(v) : v;
 }
 
@@ -139,7 +165,10 @@ function pseries(a: number, b: number, xd: DD, xcd: DD, log: boolean): number {
  *
  * For the same reason a + b and b - 1 are kept in double-double: with a ≫ b, rounding a + b loses digits of b
  * (5e-11 relative at a = 1e8, b = 0.01, x = 1 - 1e-6; checked against mpmath). From 2^52 on, the steps k += 1 of
- * the other coefficients would be lost as well, so there every coefficient is a double-double (huge)
+ * the other coefficients would be lost as well, so there every coefficient is a double-double (huge). Below 2^52 the
+ * same holds for a non-integer a just below a power of two: a + 1, a + 2, ... cross into the next binade, where a's
+ * last bit no longer fits, and every coefficient after that is rounded the same way. The error grows with a (log P
+ * off by 3e-8 at a = 2^40 - 2^-13, 1.3e-4 at a = 2^52 - 0.5); see stepsInexact
  */
 // ddDiv for the loop of the continued fraction without allocating: the same operations as in dd.ts, with the
 // result left in R (a typed array, so that storing it allocates nothing). Generated with python3 scripts/ddgen.py scalar
@@ -217,8 +246,24 @@ function sDiv(ah: number, al: number, bh: number, bl: number): void {
   R[1] = e67;
 }
 
+/** The continued fractions stop after 100000 steps, where the largest coefficient is a + 2 * 100000 + 2 */
+const CF_SPAN = 200002;
+
+/**
+ * Whether the steps a + 1, a + 2, ... of the continued fraction are not all exact in double (a < 2^52). They are all
+ * exact when a + CF_SPAN is (the ulp only grows along the way), which for a > CF_SPAN is (a + CF_SPAN) - a === CF_SPAN.
+ * Only from 2^20 on: below, the rounding of the steps (relative ε/2) moves the result by about an ulp (against the
+ * double-double steps: 2e-16 on log P at a = 2^20, 7e-16 at 2^25), and the slower double-double steps would be taken
+ * by most non-integer a (a + CF_SPAN crosses a binade for every a below 2^17)
+ */
+function stepsInexact(a: number): boolean {
+  return a >= 2 ** 20 && a < 2 ** 52 && a + CF_SPAN - a !== CF_SPAN;
+}
+
 function continuedFractionCore(a: number, b: number, xd: DD, xcd: DD, second: boolean): number {
-  if (!isDoubleDouble() || Math.max(a, b) >= 2 ** 52) return continuedFractionCoreOps(a, b, xd, xcd, second);
+  if (!isDoubleDouble() || Math.max(a, b) >= 2 ** 52 || stepsInexact(a)) {
+    return continuedFractionCoreOps(a, b, xd, xcd, second);
+  }
   // The loop of continuedFractionCoreOps below on local variables, without allocating [hi, lo] arrays: the same
   // operations in the same order, so the result is bit-identical. Generated with python3 scripts/ddgen.py cf
   let zh = xd[0];
@@ -597,7 +642,7 @@ function continuedFractionCore(a: number, b: number, xd: DD, xcd: DD, second: bo
 function continuedFractionCoreOps(a: number, b: number, xd: DD, xcd: DD, second: boolean): number {
   // #1: coefficients use x; #2: coefficients use z = x/(1-x)
   const z: DD = second ? ddDiv(xd, xcd) : xd;
-  const huge = Math.max(a, b) >= 2 ** 52;
+  const huge = Math.max(a, b) >= 2 ** 52 || stepsInexact(a);
   // Above 1e150 the products of two of the parameters (h3 h4 = a (a + 1), ...) overflow: divide before multiplying
   const vast = Math.max(a, b) > 1e150;
   // Partial numerators k1 x k2 / (k3 k4) and k5 x k6 / (k7 k8). k1, k3, k4, k7, k8 are doubles, with
@@ -686,9 +731,15 @@ function pseriesOk(a: number, b: number, x: number): boolean {
   return b * x <= 1 && x <= 0.95;
 }
 
-/** Whether to compute I_x(a, b) by continued fraction in frame (a, b, x) (below the mean, as in xsf) */
-function cfOk(a: number, b: number, x: number): boolean {
-  return x <= a / (a + b);
+/**
+ * Whether to compute I_x(a, b) by continued fraction in frame (a, b, x) (below the mean, as in xsf). Above x = 1/2 the
+ * test is 1 - x >= b/(a + b), on the smaller sides: x and the mean can both round to 1 (pnbinom(2.6e200, 3.1e287,
+ * { mu: 195.6 }) has 1 - x = 6.3e-286 against b/(a + b) = 8.5e-88, and the continued fraction above the mean was NaN)
+ */
+function cfOk(a: number, b: number, x: DD, xc: DD): boolean {
+  if (x[0] <= 0.5) return x[0] <= a / (a + b);
+  // (b/(a + b) as 1/(1 + a/b) where a + b overflows)
+  return xc[0] >= (a + b < Infinity ? b / (a + b) : 1 / (1 + a / b));
 }
 
 /** Compute I_x(a, b) by continued fraction */
@@ -757,31 +808,59 @@ export function betaIncBoth(a: number, b: number, x: number, xc: number, lower: 
   return betaIncCore(a, b, xd, xcd, lower, true);
 }
 
+const DBL_MIN = 2.2250738585072014e-308;
+
+/**
+ * I_x(a, b) (lower) or 1 - I_x(a, b) for x below DBL_MIN, from x and lx = log x in double-double (x itself may have
+ * underflowed to 0, as in the F distribution far out: only lx then carries it), as [log, linear] (log NaN unless
+ * wantLog). From the series I_x(a, b) = x^a / (a B(a, b)) (1 + a S), S = pseriesSum(a, b, x): the terms of S are about
+ * (-b x)^n / n!, and b x is at most 4 here (b near the largest double), mostly negligible.
+ * log(1/(a B(a, b))) is lgamma(a+b) - lgamma(b) - lgamma(a+1) without subtraction, or for a small shape
+ * log(b/(a + b)) + log Γ(1+a+b)/(Γ(1+a) Γ(1+b)) with the ratio r = b/(a + b) kept on the linear scale (as a log, its
+ * rounding of ε |log r| would become the relative error of the result)
+ */
+export function betaIncTinyX(a: number, b: number, x: number, lx: DD, lower: boolean, wantLog: boolean): [number, number] {
+  const c = Math.log1p(a * pseriesSum(a, b, x));
+  let r = 1;
+  let lr = 0;
+  let e: DD;
+  if (Math.min(a, b) < SMALL_SHAPE) {
+    const q = Math.min(a, b) / Math.max(a, b);
+    [r, lr] = a <= b ? [1 / (1 + q), -Math.log1p(q)] : [q / (1 + q), Math.log(q) - Math.log1p(q)];
+    e = ddAdd(ddAdd(ddMulNum(lx, a), smallShapeG(a, b)), [c, 0]);
+  } else {
+    const lg = b >= HUGE_SHAPE && a <= HUGE_SHAPE_MAX_SMALL ? lgammaRatioHuge(a, b) : lgammaDiffDD(a, b);
+    e = ddAdd(ddAdd(ddMulNum(lx, a), lg), [c - lgamma1p(a), 0]);
+  }
+  const lt = lr + e[0] + e[1];
+  const v = r * (Math.exp(e[0]) * (1 + e[1]));
+  if (lower) return [lt, v];
+  // The other tail: -expm1(lt), and its log from v where v is small (lt rounded to a double is off by up to ε |lt|,
+  // which would become the relative error of the result for |lt| > 700) and from -expm1(lt) where v is close to 1
+  // (log1p(-v) would lose the digits of 1 - v: 1 - I is -Infinity for x = 5e-324 at a = 5.7e-37)
+  return [wantLog ? (lt < -Math.LN2 ? Math.log1p(-v) : Math.log(-Math.expm1(lt))) : NaN, -Math.expm1(lt)];
+}
+
 /**
  * Core of betaIncDD. Returns [log, linear]. The linear value is always computed; the log only when wantLog
  * (otherwise the log slot is NaN). The log is log(v) of the linear value v; if v exceeds 1/2 the other side is
- * computed directly and log1p is used, and if v is close to subnormal it is recomputed on the spot
+ * computed directly and log1p is used, and if v is close to subnormal it is recomputed on the spot.
+ * A value within rounding of 1 can come out an ulp above it (from the product of a prefactor and a series near 1:
+ * pbeta(0.615, 2, 2.7e-158, { lowerTail: false }) was 1.0000000000000002), so it is capped at 1 (log at 0)
  */
 function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, wantLog: boolean): [number, number] {
+  const r = betaIncUncapped(a, b, xd, xcd, lower, wantLog);
+  return r[1] > 1 || r[0] > 0 ? [Math.min(r[0], 0), Math.min(r[1], 1)] : r;
+}
+
+function betaIncUncapped(a: number, b: number, xd: DD, xcd: DD, lower: boolean, wantLog: boolean): [number, number] {
   if (xd[0] <= 0) return lower ? [-Infinity, 0] : [0, 1];
   if (xcd[0] <= 0) return lower ? [0, 1] : [-Infinity, 0];
 
-  // x (or 1 - x) is subnormal: the first series term I_x(a, b) ≈ x^a / (a B(a, b)) suffices (relative error about x).
-  // The binomial-probability helpers break down on products of subnormals, so build this region directly in logs
-  const DBL_MIN = 2.2250738585072014e-308;
-  if (xd[0] < DBL_MIN || xcd[0] < DBL_MIN) {
-    const small = xd[0] < DBL_MIN;
-    const [sa, sb, sx] = small ? [a, b, xd] : [b, a, xcd];
-    // log(1/(a B(a, b))) = lgamma(a+b) - lgamma(b) - lgamma(a+1), without subtraction
-    const e = ddAdd(ddMulNum(ddLog(sx), sa), [lgammaDiff(sa, sb) - lgamma1p(sa), 0]);
-    const lt = e[0] + e[1]; // log of the smaller tail (the lower tail if small)
-    const own = small === lower;
-    const v = Math.exp(e[0]) * (1 + e[1]);
-    if (own) return [lt, v];
-    // The log of the other tail from v, not from exp(lt): lt rounded to a double is off by up to ε |lt| (|lt| > 700),
-    // which would become the relative error of the result
-    return [wantLog ? Math.log1p(-v) : NaN, -Math.expm1(lt)];
-  }
+  // x (or 1 - x) is subnormal: the series with its prefactor in logs (betaIncTinyX). The binomial-probability helpers
+  // break down on products of subnormals
+  if (xd[0] < DBL_MIN) return betaIncTinyX(a, b, xd[0], ddLog(xd), lower, wantLog);
+  if (xcd[0] < DBL_MIN) return betaIncTinyX(b, a, xcd[0], ddLog(xcd), !lower, wantLog);
 
   // Both parameters large and x near the mean: the uniform asymptotic expansion, whose cost does not grow with
   // the parameters (the continued fraction needs about sqrt(a + b) steps there)
@@ -824,12 +903,14 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
     if (pseriesOk(pa, pb, px[0])) {
       const v = pseriesComplement(pa, pb, px, false);
       // Cancellation check as for the requested tail (see below)
-      if (pa * Math.abs(Math.log(px[0])) > 32 * v && ox[0] < 1 && cfOk(oa, ob, ox[0])) {
-        return viaLargeA(!lower, false)?.[1] ?? continuedFraction(oa, ob, ox, oxc, false);
+      if (pa * Math.abs(Math.log(px[0])) > 32 * v) {
+        const e = viaLargeA(!lower, false)?.[1];
+        if (e !== undefined) return e;
+        if (ox[0] < 1 && cfOk(oa, ob, ox, oxc)) return continuedFraction(oa, ob, ox, oxc, false);
       }
       return v;
     }
-    if (cfOk(oa, ob, ox[0])) return viaLargeA(!lower, false)?.[1] ?? continuedFraction(oa, ob, ox, oxc, false);
+    if (cfOk(oa, ob, ox, oxc)) return viaLargeA(!lower, false)?.[1] ?? continuedFraction(oa, ob, ox, oxc, false);
     return undefined;
   };
 
@@ -838,29 +919,44 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
   if (pseriesOk(pa, pb, px[0])) {
     const v = pseries(pa, pb, px, pxc, false);
     if (wantLog && v < TINY) return [pseries(pa, pb, px, pxc, true), v];
+    // Above 1/2 with the series applying in the other frame too: 1 minus the other tail, which is accurate to about an
+    // ulp, while this series near x = 0.95 sums hundreds of terms whose products round (pbeta(0.9398, 0.0209, 0.723)
+    // and its upper tail added up to 1 - 2e-15)
+    if (v > 0.5 && pseriesOk(oa, ob, ox[0])) {
+      const o = pseries(oa, ob, ox, oxc, false);
+      return [wantLog ? Math.log1p(-o) : NaN, 1 - o];
+    }
     return finish(v, otherDirect);
   }
   if (pseriesOk(oa, ob, ox[0])) {
+    // Where the other tail is below 1/2, 1 minus it is accurate to about an ulp, while the exponent of
+    // pseriesComplement rounds at ε (|a log x| + |lgamma(b + a) - lgamma(b)| + |lgamma(a + 1)|), terms that cancel
+    // (pbinom(20, 21, 0.9265) was 0.7985148925910792, 2e-15 above 1 - prob^21)
+    const o = pseries(oa, ob, ox, oxc, false);
+    if (o < 0.5) return [wantLog ? Math.log1p(-o) : NaN, 1 - o];
     const v = pseriesComplement(oa, ob, ox, false);
     // The exponent L of pseriesComplement is a sum of terms of size a |log x| that can cancel, and their rounding
     // (absolute, about ε a |log x|) is then large relative to a small result (1e-14 at a = 0.01, b = 1e4, x = 1e-4).
-    // When a |log x| exceeds the result 32 times and the continued fraction applies in this tail's frame, use it
-    // instead (a lower threshold would also send cases where the series is accurate, e.g. most of pt near 0, to the
-    // slower continued fraction)
-    // (Not when x rounds to 1 in this frame, with 1 - x below ε, e.g. pnbinom with size 6e178: the continued fraction
-    // is then NaN, and the exponent is so negative that the series value is 1 to double precision)
-    if (oa * Math.abs(Math.log(ox[0])) > 32 * v && px[0] < 1 && cfOk(pa, pb, px[0])) {
+    // When a |log x| exceeds the result 32 times, use the expansion for large a where it applies, or the continued
+    // fraction where it applies in this tail's frame (a lower threshold would also send cases where the series is
+    // accurate, e.g. most of pt near 0, to the slower continued fraction). The expansion does not need the continued
+    // fraction's side of the mean (the upper tail of pbeta(5.6e-161, 0.82, 1.5e160) was off by 8e-14 from the series)
+    // (The continued fraction not when x rounds to 1 in this frame, with 1 - x below ε, e.g. pnbinom with size 6e178:
+    // it is then NaN, and the exponent is so negative that the series value is 1 to double precision)
+    if (oa * Math.abs(Math.log(ox[0])) > 32 * v) {
       const e = viaLargeA(lower, wantLog);
       if (e !== undefined) return e;
-      const w = continuedFraction(pa, pb, px, pxc, false);
-      if (wantLog && w < TINY) return [continuedFraction(pa, pb, px, pxc, true), w];
-      return finish(w, otherDirect);
+      if (px[0] < 1 && cfOk(pa, pb, px, pxc)) {
+        const w = continuedFraction(pa, pb, px, pxc, false);
+        if (wantLog && w < TINY) return [continuedFraction(pa, pb, px, pxc, true), w];
+        return finish(w, otherDirect);
+      }
     }
-    return finish(v, () => pseries(oa, ob, ox, oxc, false));
+    return finish(v, () => o);
   }
   const e = viaLargeA(lower, wantLog);
   if (e !== undefined) return e;
-  if (cfOk(pa, pb, px[0])) {
+  if (cfOk(pa, pb, px, pxc)) {
     const v = continuedFraction(pa, pb, px, pxc, false);
     if (wantLog && v < TINY) return [continuedFraction(pa, pb, px, pxc, true), v];
     return finish(v, otherDirect);

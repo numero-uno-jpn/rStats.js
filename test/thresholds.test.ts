@@ -33,6 +33,7 @@ import {
   pchisq,
   pf,
   pgamma,
+  pgeom,
   phyper,
   pkumar,
   plnorm,
@@ -596,7 +597,7 @@ const betaPrefactor = (x: number, a: number, b: number): number => dbeta(x, a, b
 
 const INCBET: Entry[] = [
   {
-    where: "special/incbet.ts:123, :705",
+    where: "special/incbet.ts:149, :756",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "prefactor x^a (1-x)^b / B(a, b) > 2.2e-305",
     methods: "exponent in double-double, one exp at the end | product on the linear scale",
@@ -611,14 +612,15 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:221",
+    where: "special/incbet.ts:264, :645",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
-    condition: "max(a, b) >= 2^52",
+    condition: "max(a, b) >= 2^52, or a >= 2^20 with a + 200002 not exact (the steps a + 1, a + 2, ... cross into a binade where a's last bit does not fit)",
     methods: "continued fraction with double coefficients (loop inlined) | with double-double coefficients",
     point:
-      "a = 2^52, b = 100, x = 1 - 1e-12 (continued fraction #1 in the lower frame; log P about -4030). Validity: for " +
-      "huge a, I_x(a, b) = Q(b, u) (1 + O(b²/a²)) with u = (a + (b - 1)/2)(-log x) (DiDonato & Morris eq. 9), checked " +
-      "just below powers of two, where a + 1 and a + 2 are not exact for a non-integer a",
+      "a = 2^52, b = 100, x = 1 - 1e-12 (continued fraction #1 in the lower frame; log P about -4030); a = 2^21 (exact " +
+      "steps) against nextDown(2^21) (inexact) at b = 100, x = 1 - 4000/2^21. Validity: for huge a, I_x(a, b) = Q(b, u) " +
+      "(1 + O(b²/a²)) with u = (a + (b - 1)/2)(-log x) (DiDonato & Morris eq. 9), checked just below powers of two, " +
+      "where a + 1 and a + 2 are not exact for a non-integer a",
     cases: () => {
       const viaGamma = (as: number[]) => (): string | undefined => {
         const bad: string[] = [];
@@ -633,13 +635,14 @@ const INCBET: Entry[] = [
       const ks = [40, 45, 48, 50, 51, 52];
       return [
         ...pPairs("pbeta(1 - 1e-12, a, 100)", (a, t) => pbeta(1 - 1e-12, a, 100, t), down(2 ** 52)),
+        ...pPairs("pbeta(1 - 4000/2^21, a, 100)", (a, t) => pbeta(1 - 4000 / 2 ** 21, a, 100, t), down(2 ** 21)),
         { kind: "check", label: "integer a = 2^k - 1 against Q(b, u)", run: viaGamma(ks.map((k) => 2 ** k - 1)) },
         { kind: "check", label: "a = nextDown(2^k) against Q(b, u)", run: viaGamma(ks.map((k) => nextDown(2 ** k))) },
       ];
     },
   },
   {
-    where: "special/incbet.ts:686",
+    where: "special/incbet.ts:731",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "b x <= 1 && x <= 0.95 (series in the frame)",
     methods: "continued fraction / complement of the other frame's series | power series",
@@ -650,15 +653,18 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:691",
+    where: "special/incbet.ts:740, :742",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
-    condition: "x <= a/(a + b) (continued fraction in this frame)",
+    condition: "x <= a/(a + b), as 1 - x >= b/(a + b) above x = 1/2 (continued fraction in this frame)",
     methods: "1 - (continued fraction of the other frame) | continued fraction",
-    point: "x = 5/13 at a = 5, b = 8",
-    cases: () => pPairs("pbeta(x, 5, 8)", pb(5, 8), flipPoint((x) => x <= 5 / 13, 0.3, 0.45)),
+    point: "x = 5/13 at a = 5, b = 8; x = 8/13 at a = 8, b = 5",
+    cases: () => [
+      ...pPairs("pbeta(x, 5, 8)", pb(5, 8), flipPoint((x) => x <= 5 / 13, 0.3, 0.45)),
+      ...pPairs("pbeta(x, 8, 5)", pb(8, 5), flipPoint((x) => 1 - x >= 5 / 13, 0.55, 0.7)),
+    ],
   },
   {
-    where: "special/incbet.ts:699",
+    where: "special/incbet.ts:750",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x (a + b - 2) - (a - 1) < 0",
     methods: "continued fraction #2 | #1",
@@ -666,10 +672,10 @@ const INCBET: Entry[] = [
     cases: () => pPairs("pbeta(x, 5, 8)", pb(5, 8), flipPoint((x) => x * (5 + 8 - 2) - (5 - 1) < 0, 0.3, 0.38)),
   },
   {
-    where: "special/incbet.ts:772",
+    where: "special/incbet.ts:862, :863",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x < DBL_MIN or 1 - x < DBL_MIN",
-    methods: "series / continued fraction | first series term x^a / (a B(a, b)) in logs",
+    methods: "series / continued fraction | the series with x^a / (a B(a, b)) in logs (betaIncTinyX)",
     point: "x = DBL_MIN at a = 0.5, b = 3; 1 - x = t^2/(3 + t^2) = DBL_MIN in pt(t, 3)",
     cases: () => [
       ...pPairs("pbeta(x, 0.5, 3)", pb(0.5, 3), down(DBL_MIN)),
@@ -677,7 +683,7 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:788",
+    where: "special/incbet.ts:867",
     fns: "pbeta",
     skip: "only a shortcut: m = ab/(a + b) < min(a, b), so Temme's m >= 25 (incbetTemme.ts:187) already implies a, b >= 25",
     condition: "a >= 25 && b >= 25",
@@ -685,7 +691,7 @@ const INCBET: Entry[] = [
     point: "-",
   },
   {
-    where: "special/incbet.ts:803",
+    where: "special/incbet.ts:882",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "max(a, b) >= 15 && min(a, b) <= 40 (or x rounding to 1 in the large frame, see below)",
     methods: "continued fraction | expansion for large a (incbetLargeA.ts) where it applies",
@@ -696,10 +702,12 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:827, :852",
+    where: "special/incbet.ts:906, :946",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
-    condition: "a |log x| > 32 v && x below the mean and below 1 in the requested frame (v from the other frame's series)",
-    methods: "complement of the other frame's series | continued fraction (or the large-a expansion)",
+    condition:
+      "a |log x| > 32 v (v from the other frame's series) && the large-a expansion applies, or x below the mean and below " +
+      "1 in the requested frame",
+    methods: "complement of the other frame's series | large-a expansion, else continued fraction",
     point: "where 0.01 |log(1 - x)| = 32 I_x(1e4, 0.01), x about 1 - 8e-5 (the example of the comment, both frames)",
     cases: () => {
       const lower = { lowerTail: true, logP: false };
@@ -709,7 +717,26 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:837",
+    where: "special/incbet.ts:925",
+    fns: "pbeta, pt, pf, pbinom, pnbinom",
+    condition: "series in this frame with value v > 1/2, and the series applies in the other frame",
+    methods: "v | 1 - (the other frame's series)",
+    point: "v = 1/2 in pbeta(x, 0.3, 0.7)",
+    cases: () => {
+      const half = flipPoint((x) => pbeta(x, 0.3, 0.7) > 0.5, 0.05, 0.4)[0];
+      return pPairs("pbeta(x, 0.3, 0.7)", pb(0.3, 0.7), around(half, 8));
+    },
+  },
+  {
+    where: "special/incbet.ts:936",
+    fns: "pbeta, pt, pf, pbinom, pnbinom",
+    condition: "series in the other frame only, its value o < 1/2",
+    methods: "complement of the other frame's series (pseriesComplement) | 1 - o",
+    point: "o = (1 - x)^0.1 = 1/2 in pbeta(x, 1, 0.1) (frame (0.1, 1, 1 - x) for the lower tail; x = 1 - 2^-10)",
+    cases: () => pPairs("pbeta(x, 1, 0.1)", pb(1, 0.1), around(flipPoint((x) => Math.pow(1 - x, 0.1) < 0.5, 0.99, 0.9999)[0], 8)),
+  },
+  {
+    where: "special/incbet.ts:918",
     fns: "pbeta, pt, pf, pbinom, pnbinom (log)",
     condition: "log wanted && v < 1e-290",
     methods: "log of the linear value | recomputed in logs",
@@ -722,6 +749,37 @@ const INCBET: Entry[] = [
         ...pPairs("pbeta(x, 50, 100)", pb(50, 100), flipPoint(lin(50, 100), 1e-10, 0.2), { tails: log }),
       ];
     },
+  },
+];
+
+// ---- special/incbetPrefactor.ts: x^a (1-x)^b / B(a, b) for a small or a huge shape ----
+
+const PREFACTOR: Entry[] = [
+  {
+    where: "special/incbetPrefactor.ts:48, distributions/f.ts:85",
+    fns: "pbeta, pt, pf, pbinom, pnbinom, df",
+    condition: "min(a, b) < 1",
+    methods: "Loader's binomial form | 1/B(a, b) = ab/(a + b) Γ(1+a+b)/(Γ(1+a) Γ(1+b))",
+    point:
+      "a = 1 at b = 3, x = 0.3 (series); b = 1 at a = 3, x = 0.3 (continued fraction) and at a = 200, x = 0.95 " +
+      "(large-a expansion); df2 = 2 in df(0.7, 5, df2) (df1 = 2 switches the form of Loader's density as well, below)",
+    cases: () => [
+      ...pPairs("pbeta(0.3, a, 3)", (a, t) => pbeta(0.3, a, 3, t), down(1)),
+      ...pPairs("pbeta(0.3, 3, b)", (b, t) => pbeta(0.3, 3, b, t), down(1)),
+      ...pPairs("pbeta(0.95, 200, b)", (b, t) => pbeta(0.95, 200, b, t), down(1)),
+      ...dPairs("df(0.7, 5, df2)", (n, log) => df(0.7, 5, n, { log }), down(2)),
+    ],
+  },
+  {
+    where: "special/incbetPrefactor.ts:51",
+    fns: "pbeta, pt, pf, pbinom, pnbinom",
+    condition: "max(a, b) >= 2^52 && min(a, b) <= 100",
+    methods: "Loader's binomial form | 1/B(a, b) = Γ(l + s)/(Γ(l) Γ(s)) from Stirling's series",
+    point: "a = 2^52 at b = 5, 1 - x = 5/2^52 (large-a expansion); b = 100 at a = 2^60, 1 - x = 400/2^60 (continued fraction)",
+    cases: () => [
+      ...pPairs("pbeta(1 - 5/2^52, a, 5)", (a, t) => pbeta(1 - 5 / 2 ** 52, a, 5, t), down(2 ** 52)),
+      ...pPairs("pbeta(1 - 400/2^60, 2^60, b)", (b, t) => pbeta(1 - 400 / 2 ** 60, 2 ** 60, b, t), up(100)),
+    ],
   },
 ];
 
@@ -809,7 +867,7 @@ const largeAU0 = (x: number, a: number, b: number): number => -(a + (b - 1) / 2)
 
 const LARGE_A: Entry[] = [
   {
-    where: "special/incbetLargeA.ts:122",
+    where: "special/incbetLargeA.ts:124",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "y = 1 - x <= 0.3",
     methods: "continued fraction | expansion",
@@ -817,7 +875,7 @@ const LARGE_A: Entry[] = [
     cases: () => pPairs("pbeta(x, 100, 5)", pb(100, 5), flipPoint((x) => 1 - x <= 0.3, 0.6, 0.8)),
   },
   {
-    where: "special/incbetLargeA.ts:126",
+    where: "special/incbetLargeA.ts:128",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "u0 >= median of Gamma(b, 1) (b - 1/3, or 2^(-1/b) for b < 1)",
     methods: "H side (lower incomplete gamma) | J side (upper)",
@@ -825,7 +883,7 @@ const LARGE_A: Entry[] = [
     cases: () => pPairs("pbeta(x, 100, 5)", pb(100, 5), around(flipPoint((x) => largeAU0(x, 100, 5) >= 5 - 1 / 3, 0.9, 0.99)[0], 2)),
   },
   {
-    where: "special/incbetLargeA.ts:128",
+    where: "special/incbetLargeA.ts:130",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "u0 > 500 (unless x rounds to 1), or J side with u0 < 0.1",
     methods: "expansion | continued fraction",
@@ -836,7 +894,7 @@ const LARGE_A: Entry[] = [
     ],
   },
   {
-    where: "special/incbetLargeA.ts:205",
+    where: "special/incbetLargeA.ts:221",
     fns: "pbeta",
     skip:
       "unreachable except where x rounds to 1 (then the log form, see the extreme-parameter entries below): the H side " +
@@ -847,7 +905,7 @@ const LARGE_A: Entry[] = [
     point: "-",
   },
   {
-    where: "special/incbetLargeA.ts:85, :87",
+    where: "special/incbetLargeA.ts:87, :89",
     fns: "pbeta, pt (b = 1/2 frames), pf",
     condition: "b == 0.5; then sqrt(u) >= 1",
     methods: "continued fraction for J_0 | closed form with erfcx (r >= 1) or with ½ erfc (r < 1)",
@@ -1474,7 +1532,51 @@ const BETA_T_F: Entry[] = [
     cases: () => [pair("dbeta(0.3, a, 3, log)", (a) => dbeta(0.3, a, 3, { log: true }), down(1)), pair("dbeta(0.3, a, 3, log)", (a) => dbeta(0.3, a, 3, { log: true }), up(1))],
   },
   {
-    where: "distributions/beta.ts:175",
+    where: "distributions/beta.ts:167",
+    fns: "qbeta",
+    condition: "coefficient of variation sqrt(b / (a (a + b + 1))) < 1e-15 (and the target bracketed in m (1 ± 1e-13))",
+    methods: "Newton's method in log x | bisection of the doubles around the mean m",
+    point:
+      "a = 1e30 at b = 1e36 and a = b = 5e29 (the boundary), checked as the validity of both sides: the target lies " +
+      "between the distribution function at x (1 ∓ 1e-14) (at least 4 ulps), as in the round trip of " +
+      "test/helpers/properties.ts; beyond the boundary, the target lies between its values 2 ulps either side of x",
+    cases: () => [
+      {
+        kind: "check",
+        label: "qbeta at the step of the distribution function",
+        run: () => {
+          const bad: string[] = [];
+          const sets: [number, number, boolean][] = [
+            [0.99e30, 1e36, false],
+            [1.01e30, 1e36, false],
+            [4.9e29, 4.9e29, false],
+            [5.1e29, 5.1e29, false],
+            [1.3e32, 1.3e32, true],
+            [1e40, 1e60, true],
+            [1.6931854251429734e160, 1.6168490723157686e175, true],
+          ];
+          for (const [a, b, exact] of sets) {
+            for (const lowerTail of [true, false]) {
+              for (const p of [0.3, 1e-15]) {
+                const x = qbeta(p, a, b, { lowerTail });
+                const at = (v: number) => pbeta(v, a, b, { lowerTail });
+                // (2 ulps either side at the step: in the right half x = 1 - y rounds y's last bit)
+                const [l, h] = exact
+                  ? [ulpsFrom(x, -2), ulpsFrom(x, 2)]
+                  : [Math.min(x * (1 - 1e-14), ulpsFrom(x, -4)), Math.max(x * (1 + 1e-14), ulpsFrom(x, 4))];
+                const [pl, ph] = [at(l), at(h)];
+                const ok = Math.min(pl, ph) <= p * (1 + 1e-12) && p <= Math.max(pl, ph) * (1 + 1e-12);
+                if (!ok) bad.push(`qbeta(${p}, ${a}, ${b}, ${lowerTail ? "lower" : "upper"}) = ${fmt(x)}: p there ${fmt(pl)}, ${fmt(ph)}`);
+              }
+            }
+          }
+          return bad.length === 0 ? undefined : bad.join("; ");
+        },
+      },
+    ],
+  },
+  {
+    where: "distributions/beta.ts:208",
     fns: "qbeta",
     condition: "tail guess x^a / (a B(a, b)) < 1e-3",
     methods: "A&S 26.5.22 start | tail start",
@@ -1488,7 +1590,7 @@ const BETA_T_F: Entry[] = [
     },
   },
   {
-    where: "distributions/beta.ts:224",
+    where: "distributions/beta.ts:257",
     fns: "qbeta, qarcsine",
     condition: "target vs the distribution function at 1/2",
     methods: "1 - (lower quantile of Beta(b, a)) | lower quantile",
@@ -1557,7 +1659,7 @@ const BETA_T_F: Entry[] = [
     },
   },
   {
-    where: "distributions/f.ts:27, :72, :92",
+    where: "distributions/f.ts:53",
     fns: "df, pf, qf",
     condition: "|m x| < 1e290",
     methods: "1 - z = n/(m x) in double | z, 1 - z as double-double quotients",
@@ -1568,12 +1670,75 @@ const BETA_T_F: Entry[] = [
     },
   },
   {
-    where: "distributions/f.ts:38",
+    where: "distributions/f.ts:88",
     fns: "df, qf (density in Newton steps)",
     condition: "m >= 2",
     methods: "dbinom(m/2; (m+n)/2) form | dbinom((m-2)/2; (m+n-2)/2) form",
     point: "m = 2 at x = 0.7, n = 5",
     cases: () => dPairs("df(0.7, m, 5)", (m, log) => df(0.7, m, 5, { log }), down(2)),
+  },
+  {
+    where: "distributions/f.ts:55",
+    fns: "df, pf, qf",
+    condition: "x > 0, m x < 1e-290 && n < 1e127",
+    methods: "m x and n as they are | both scaled by 2^600",
+    point: "3 x = 1e-290 at m = 3, n = 1e-288",
+    cases: () => {
+      const ab = flipPoint((x) => 3 * x < 1e-290, 3e-291, 4e-291);
+      return [...pPairs("pf(x, 3, 1e-288)", (x, t) => pf(x, 3, 1e-288, t), ab), ...dPairs("df(x, 3, 1e-288)", (x, log) => df(x, 3, 1e-288, { log }), ab)];
+    },
+  },
+  {
+    where: "distributions/f.ts:70, :71, :131, :132",
+    fns: "df, pf, qf",
+    condition: "m x/n < DBL_MIN or n/(m x) < DBL_MIN (in logs)",
+    methods: "the ratios m x/(n + m x), n/(n + m x) | the incomplete beta function (betaIncTinyX) and the density from the log of the tiny ratio",
+    point: "3 x/5 = DBL_MIN and 5/(3 x) = DBL_MIN at m = 3, n = 5",
+    cases: () => {
+      const lo = around(flipPoint((x) => Math.log((3 * x) / 5) < Math.log(DBL_MIN), 3e-308, 5e-308)[0], 8);
+      const hi = around(flipPoint((x) => Math.log(x * (3 / 5)) > -Math.log(DBL_MIN), 6e307, 9e307)[0], 8);
+      return [
+        ...pPairs("pf(x, 3, 5)", (x, t) => pf(x, 3, 5, t), lo),
+        ...dPairs("df(x, 3, 5)", (x, log) => df(x, 3, 5, { log }), lo),
+        ...pPairs("pf(x, 3, 5)", (x, t) => pf(x, 3, 5, t), hi),
+        ...dPairs("df(x, 3, 5)", (x, log) => df(x, 3, 5, { log }), hi),
+      ];
+    },
+  },
+  {
+    where: "distributions/f.ts:197, :205, :206",
+    fns: "qf",
+    condition:
+      "upper tail whose leading term overflows, confirmed by pf at the largest double; lower tail and n < 1 with pf(largest " +
+      "double) below the target; upper tail and m < 1 with the upper tail at the smallest positive number below it",
+    methods: "Newton's method | Infinity; 0",
+    point:
+      "the target at the upper tail of pf(Number.MAX_VALUE, 2875.5, 1), at pf(Number.MAX_VALUE, 0.754, 4.56e-152), and at " +
+      "the upper tail of pf(5e-324, 1e-200, 3)",
+    cases: () => [
+      {
+        kind: "check",
+        label: "qf on either side of the distribution function at the ends of the doubles",
+        run: () => {
+          const bad: string[] = [];
+          const far = pf(Number.MAX_VALUE, 2875.5, 1, { lowerTail: false });
+          if (qf(far * 0.99, 2875.5, 1, { lowerTail: false }) !== Infinity) bad.push("qf (upper) below pf(largest double) is not Infinity");
+          const z = qf(far * 1.01, 2875.5, 1, { lowerTail: false });
+          if (!(z < Infinity && pf(z, 2875.5, 1, { lowerTail: false }) <= far * 1.01 * (1 + 1e-12))) bad.push(`qf (upper) above pf(largest double) is ${fmt(z)}`);
+          const top = pf(Number.MAX_VALUE, 0.754, 4.56e-152);
+          if (qf(top * 1.01, 0.754, 4.56e-152) !== Infinity) bad.push("qf above pf(largest double) is not Infinity");
+          const x = qf(top * 0.99, 0.754, 4.56e-152);
+          if (!(x < Infinity && pf(x, 0.754, 4.56e-152) >= top * 0.99)) bad.push(`qf below pf(largest double) is ${fmt(x)}`);
+          const bottom = pf(Number.MIN_VALUE, 1e-200, 3, { lowerTail: false });
+          if (qf(bottom * 1.01, 1e-200, 3, { lowerTail: false }) !== 0) bad.push("qf (upper) above the upper tail at 5e-324 is not 0");
+          // (y is subnormal, with a few significant bits: bracket the target 1% either side)
+          const y = qf(bottom * 0.99, 1e-200, 3, { lowerTail: false });
+          const up = (v: number) => pf(v, 1e-200, 3, { lowerTail: false });
+          if (!(y > 0 && up(y * 1.01) <= bottom * 0.99 && bottom * 0.99 <= up(y * 0.99))) bad.push(`qf (upper) below the upper tail at 5e-324 is ${fmt(y)}`);
+          return bad.length === 0 ? undefined : bad.join("; ");
+        },
+      },
+    ],
   },
 ];
 
@@ -1838,7 +2003,21 @@ function hyperCdfRef(x: number, m: number, n: number, k: number): number {
 
 const DISCRETE: Entry[] = [
   {
-    where: "distributions/negbinomial.ts:83",
+    where: "distributions/geometric.ts:28",
+    fns: "dgeom, pgeom",
+    condition: "n < 1e290 (n = x for dgeom, x + 1 for pgeom)",
+    methods: "n log q in double-double, scaled by 2^±64 | Loader's form",
+    point: "x = 1e290 at prob = 1e-290 (q^n = e^-1)",
+    cases: () => {
+      const ab = flipPoint((x) => x < 1e290, 9e289, 2e290);
+      return [
+        ...pPairs("pgeom(x, 1e-290)", (x, t) => pgeom(x, 1e-290, t), ab),
+        ...dPairs("dgeom(x, 1e-290)", (x, log) => dgeom(x, 1e-290, { log }), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/negbinomial.ts:85",
     fns: "pnbinom, qnbinom",
     condition: "size <= 1 && q >= 0.95 && p >= 1e-4 (series for the upper tail)",
     methods: "incomplete beta | positive-term series",
@@ -1854,7 +2033,7 @@ const DISCRETE: Entry[] = [
     },
   },
   {
-    where: "distributions/negbinomial.ts:88, :99",
+    where: "distributions/negbinomial.ts:96, :109",
     fns: "pnbinom, qnbinom",
     condition: "prefactor > 1e-290; series value <= 0.5",
     methods: "incomplete beta | series",
@@ -1872,7 +2051,7 @@ const DISCRETE: Entry[] = [
     },
   },
   {
-    where: "distributions/negbinomial.ts:114, :128",
+    where: "distributions/negbinomial.ts:124, :138",
     fns: "qnbinom",
     condition: "prob < 0.05 (gamma start); start > 1e4 (continuous refinement)",
     methods: "Cornish-Fisher | gamma quantile / -log q; integer search from the start | after Newton/secant steps",
@@ -2684,7 +2863,7 @@ const EXTREME: Entry[] = [
     skip: "both sides are 0 (e^-2000 underflows); the guard only keeps 1 - e_low, with e_low half an ulp of e, from giving -0",
   },
   {
-    where: "special/incbet.ts:602",
+    where: "special/incbet.ts:647",
     fns: "pbeta, pf, pbinom, pnbinom",
     condition: "max(a, b) > 1e150 (continued fraction)",
     methods: "partial numerators as products over products | quotients first",
@@ -2703,7 +2882,7 @@ const EXTREME: Entry[] = [
     ],
   },
   {
-    where: "special/incbetLargeA.ts:135",
+    where: "special/incbetLargeA.ts:137",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "y = 1 - x < 1e-15",
     methods: "l = -log x by ddLog | y + y^2/2",
@@ -2712,7 +2891,7 @@ const EXTREME: Entry[] = [
       pPairs("pnbinom(1e16, 5, prob)", (p, t) => pnbinom(1e16, 5, { prob: p, ...t }), flipPoint((p) => p < 1e-15, 5e-16, 2e-15)),
   },
   {
-    where: "special/incbet.ts:803, special/incbetLargeA.ts:128, :205",
+    where: "special/incbet.ts:882, special/incbetLargeA.ts:130, :221",
     fns: "pbeta, pf, pnbinom",
     condition: "x rounds to 1 in the frame of the large parameter (b up to 1e4, b < 1e-8 a): the expansion also for b > 40, u > 500, and on the log scale below 1e-290",
     methods: "continued fraction (NaN there) | expansion",
@@ -2730,7 +2909,7 @@ const EXTREME: Entry[] = [
     cases: () => dPairs("dbeta(x, 2, 3)", (x, log) => dbeta(x, 2, 3, { log }), flipPoint((x) => 5 * x < DBL_MIN, 4e-309, 5e-309)),
   },
   {
-    where: "distributions/beta.ts:179",
+    where: "distributions/beta.ts:212",
     fns: "qbeta",
     condition: "b > 1e10 && b > 1e10 a (left half)",
     methods: "starting value from the tails or A&S 26.5.22 | qgamma(p, a) / b",
@@ -2738,7 +2917,7 @@ const EXTREME: Entry[] = [
     skip: "a starting value: the search ends at the same quantile",
   },
   {
-    where: "distributions/negbinomial.ts:122",
+    where: "distributions/negbinomial.ts:132",
     fns: "qnbinom",
     condition: "starting value beyond the doubles (prob < 0.05)",
     methods: "integer search | Infinity",
@@ -2784,6 +2963,7 @@ const ENTRIES: Entry[] = [
   ...IGAMI,
   ...GAMMA,
   ...INCBET,
+  ...PREFACTOR,
   ...TEMME,
   ...LARGE_A,
   ...BETA_FN,
@@ -2803,20 +2983,7 @@ const ENTRIES: Entry[] = [
 ];
 
 /** Checks that fail at the time of writing (live bugs, not fixed here) */
-const KNOWN: KnownViolation[] = [
-  {
-    entry: "special/incbet.ts:221",
-    check: "pbeta(1 - 1e-12, a, 100) (lower log)",
-    reason:
-      "the continued fraction advances a + 1, a + 2, ... in double below 2^52, which is not exact for a non-integer a " +
-      "near the top of its binade: log pbeta(1 - 1e-12, 2^52 - 0.5, 100) = -4029.76346, -4029.76358 at a = 2^52 and from Q(b, u)",
-  },
-  {
-    entry: "special/incbet.ts:221",
-    check: "a = nextDown(2^k) against Q(b, u)",
-    reason: "the same rounding of a + 1, a + 2: the error of log P grows with a (3e-8 at a = 2^40 - 2^-13, 1.3e-4 at 2^52 - 0.5)",
-  },
-];
+const KNOWN: KnownViolation[] = [];
 
 const HANGS: Hang[] = [];
 

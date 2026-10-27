@@ -13,6 +13,7 @@ import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions
 import { discreteQuantile } from "../internal/discrete.js";
 import { nonInt } from "../internal/integer.js";
 import { betaIncDD } from "../special/incbet.js";
+import { prefactorParts } from "../special/incbetPrefactor.js";
 import { dbinomRawDD, dpoisRaw } from "../special/loader.js";
 import { ddAdd, ddDiv, ddMul, twoSum, type DD } from "../special/dd.js";
 import { qnorm } from "./normal.js";
@@ -74,7 +75,8 @@ function pnbinomRaw(x: number, par: Params, lower: boolean, log: boolean): numbe
  *   I_z(A, B) = z^A (1 - z)^B / (A B(A, B)) [1 + Σ_{k>=1} Π_{j<k} (A + B + j) / (A + 1 + j) z^k]
  * (z = q, A = x + 1, B = size). In this region the incomplete beta continued fraction is off by about 3e-14
  * relative near the mean. All terms are positive, so there is no cancellation. The number of terms is about
- * -log(1e-17) / -log z. Returns undefined when not usable (too many terms, or the value exceeds 1/2)
+ * -log(1e-18 p) / -log z (at most about 5e5 for p >= 1e-4). Returns undefined when not usable (too many terms, or the
+ * value exceeds 1/2)
  */
 function upperSeries(x: number, par: Params): number | undefined {
   const { size, pd, qd } = par;
@@ -83,8 +85,14 @@ function upperSeries(x: number, par: Params): number | undefined {
   if (!(size <= 1) || !(z >= 0.95) || p < 1e-4) return undefined;
   const A = x + 1;
   const B = size;
-  // Prefactor z^A (1 - z)^B / (A B(A, B)) = b(A; A + B, z) B / (A + B)
-  const pre = (dbinomRawDD(A, B, qd, pd, false) * B) / (A + B);
+  // Prefactor z^A (1 - z)^B / (A B(A, B)) = b(A; A + B, z) B / (A + B), or for B < 1 from the small-shape form of
+  // incbet.ts (incbetPrefactor.ts): Loader's form loses about ε |log B| / 2 there (5e-14 at size 5.6e-245:
+  // pnbinom(1545, 5.6e-245, { mu: 4.6e-241, lowerTail: false }))
+  const parts = prefactorParts(A, B, qd, pd);
+  const pre =
+    parts !== undefined
+      ? (parts[0] * (Math.exp(parts[1][0]) * (1 + parts[1][1]))) / A
+      : (dbinomRawDD(A, B, qd, pd, false) * B) / (A + B);
   if (!(pre > 1e-290)) return undefined;
   // Rounding of the term ratios accumulates with the number of terms (1e-12 over tens of thousands), so keep terms and sum in double-double
   const ab = twoSum(A, B);
@@ -94,7 +102,9 @@ function upperSeries(x: number, par: Params): number | undefined {
     const ratio = ddDiv(ddAdd(ab, [k, 0]), [A + 1 + k, 0]);
     term = ddMul(ddMul(term, ratio), qd);
     sum = ddAdd(sum, term);
-    if (term[0] < 1e-18 * sum[0]) {
+    // The term ratios rise towards z, so the rest of the series is below term z/(1 - z) < term/p: stopping at
+    // term < 1e-18 sum alone left 8e-15 of it out at p = 1.2e-4 (pnbinom(1545, 5.6e-245, { mu: 4.6e-241, lowerTail: false }))
+    if (term[0] < 1e-18 * sum[0] * p) {
       const v = pre * (sum[0] + sum[1]);
       return v <= 0.5 ? v : undefined;
     }

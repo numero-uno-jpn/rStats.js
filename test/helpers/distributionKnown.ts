@@ -91,21 +91,16 @@ export const knownViolations: KnownViolation[] = [
   },
   {
     family: "geom",
-    property: ["range", "throws"],
-    match: on(/geom$/, (_pr, x) => x > 1e200),
-    reason:
-      "dgeom and pgeom are NaN (or throw TypeError) for x around 1e300: pgeom(8.663961183897879e+299, " +
-      "1.1060325197469172e-300) is NaN, 1 - exp(x log1p(-prob)) = 0.616 expected",
-    examples: [{ params: { prob: 1.1060325197469172e-300 }, x: [8.663961183897879e299] }],
-  },
-  {
-    family: "geom",
     property: "roundtrip",
     match: on(/^qgeom$/),
     reason:
-      "qgeom's closed form log(1 - p) / log1p(-prob) - 1 with a fixed slack of 1e-12 is off by one where its rounding error " +
-      "exceeds the slack: qgeom(0.8757104766401955, 0.0000011843097327690854, { lowerTail: false }) is 112065, 112064 " +
-      "expected (pgeom(112064, ...) is that p); also near p = 1 and for x around 1e9",
+      "qgeom's closed form log(1 - p) / log1p(-prob) - 1 with a fixed slack of 1e-12 is one above the test's answer where " +
+      "p is the distribution function at x rounded within an ulp or two: qgeom(0.8757104766401955, " +
+      "0.0000011843097327690854, { lowerTail: false }) is 112065 where pgeom(112064, ...) gives that p (but (1 - prob)^112065 " +
+      "is 0.87571047664019558, above p, so 112065 is the answer for p as given); near p = 1 (qgeom(0.9999999998246265, " +
+      "0.14171325019560754) is 147 where pgeom(146, ...) gives p) and for x around 1e9. Kept to match R, which computes " +
+      "the same closed form (R 4.5.2 gives 112065, 147, 49 for qgeom(0.9999129723837309, 0.17370360321365297) and 2 for " +
+      "qgeom(0.9999999999999999, 0.9999999886719217))",
     examples: [{ params: { prob: 0.0000011843097327690854 }, x: [112064] }],
   },
   {
@@ -155,40 +150,27 @@ export const knownViolations: KnownViolation[] = [
         "(pt there 0.129)",
       examples: [{ params: { df: 1e120, ...(family === "nt" ? { ncp: 1 } : {}) }, x: [-3.5346299778784046e115] }],
     },
-    {
-      family,
-      property: ALL,
-      match: on(/^[dpq]t$/, (pr) => pr.df! < 1e-15),
-      reason:
-        "tiny df: pt(-5.047172795936206, 2.4305283208746584e-242) is 0.49999999999998995 but 0.5 further out (not monotone; " +
-        "0.5 to double precision expected); with ncp the tails do not add up: pt(-59193519471.86663, 1.9146506048870366e-245, " +
-        "{ ncp: -1.8387038943733192 }) is 1.2e-227 and its upper tail 0.033",
-      examples: [
-        family === "nt"
-          ? { params: { df: 1.9146506048870366e-245, ncp: -1.8387038943733192 }, x: [-59193519471.86663] }
-          : { params: { df: 2.4305283208746584e-242 }, x: [-5.047172795936206, -2.061482495385393e107] },
-      ],
-    },
   ]),
   {
-    family: "beta",
+    family: "nt",
     property: ALL,
-    match: on(/beta$/, (pr) => pr.shape1! < 1e-10 || pr.shape2! < 1e-10),
+    match: on(/^[dpq]t$/, (pr) => pr.df! < 1e-15),
     reason:
-      "tiny shapes: pbeta(1.078577302826644e-285, 1.5597941463167979e-130, 2) is 1.0000000000000195 (above 1); the larger " +
-      "tail is off by 1e-14",
-    examples: [{ params: { shape1: 1.5597941463167979e-130, shape2: 2 }, x: [1.078577302826644e-285] }],
+      "tiny df with ncp: the tails do not add up: pt(-59193519471.86663, 1.9146506048870366e-245, { ncp: -1.8387038943733192 }) " +
+      "is 1.2e-227 and its upper tail 0.033",
+    examples: [{ params: { df: 1.9146506048870366e-245, ncp: -1.8387038943733192 }, x: [-59193519471.86663] }],
   },
   {
     family: "f",
     property: ALL,
     match: on(/^[dpq]f$/, (pr) => extreme(pr, ["df1", "df2"], 1e-10, 1e15)),
     reason:
-      "extreme df: pf(6.616261056709485e-112, 3.193376520741174e-173, 1867.9657047120206) is 1.0000000000000124 (above 1); " +
-      "pf(1e300, 0.169, 1.18e-86, { lowerTail: false }) is 0, about 1 expected; qf for tiny df2 is Infinity or 1 where " +
-      "the quantile is finite (qf(2.0956937315626893e-87, 534379.3621049117, 4.0035115818718566e-131, { lowerTail: false })); " +
-      "df is NaN for tiny df1 (df(4.633805988965048e-157, 3.193376520741174e-173, 1867.9657047120206))",
-    examples: [{ params: { df1: 3.193376520741174e-173, df2: 1867.9657047120206 }, x: [6.616261056709485e-112] }],
+      "extreme df: for huge df (from about 1e15) the incomplete beta function does not resolve the approach to the χ² " +
+      "limits: pf(1, 4.97780454911219e+82, 5.169046454871392e+97) is NaN; qf(1.188618725766894e-46, 3.681988559312397e+236, " +
+      "2139.330681815907) is 1 (pf(1, ...) is 0.496); df(1, 3.681988559312397e+236, 2139.330681815907) is not the slope " +
+      "of pf. For tiny df, quantiles that underflow cannot be confirmed by the round trip: qf(5.530393157225372e-86, " +
+      "1.1930862602789481e-234, 7.287200568987145e-276) is 0 (pf(5e-324, ...) is already about df2/(df1 + df2) = 6e-42)",
+    examples: [{ params: { df1: 4.97780454911219e82, df2: 5.169046454871392e97 }, x: [1] }],
   },
   ...["f", "nf"].map(
     (family): KnownViolation => ({
@@ -210,26 +192,17 @@ export const knownViolations: KnownViolation[] = [
         extreme(pr, ["size", "mu"], 1e-300, 1e15) || (pr.prob ?? 1) < 1e-15 || x > 1e100,
       ),
       reason:
-        "extreme parameters or x: pnbinom(2.6329019116607608e+200, 3.102992688838784e+287, { mu: 195.56831659259922 }) is " +
-        "NaN, 1 expected (the continued fraction of the incomplete beta function at both parameters huge); qnbinom is then " +
-        "NaN (qnbinom(1.2418608579304552e-133, 1.2440368303321599e+39, { prob: 3.411918904687509e-265 })); for tiny prob " +
-        "the tails do not add up to 1 within 1e-14 (pnbinom(6.549300334796171e+214, 0.72772746911027, { prob: " +
-        "4.524121951236202e-216 }): 0.3999596206918988 and 0.6000403793081133)",
+        "extreme parameters or x: where size and mu are both huge, the relative spread of the distribution (1e-49 for size " +
+        "7.9e96, mu 2e132) is below what the double-double arguments of the incomplete beta function resolve: " +
+        "pnbinom(2.0074063923101808e+132, 7.935540851960292e+96, { mu: 2.0074063923101808e+132 }) is NaN (about 1/2 " +
+        "expected), and qnbinom NaN (qnbinom(1.329008389153242e-57, 3.576114202522741e+144, { mu: 8.763634708385052e+74 })); " +
+        "for prob near 1e-300 the upper tail far out is NaN (pnbinom(1e303, 641.0457517358916, { prob: 8.999877024359508e-300, " +
+        "lowerTail: false }), 0 expected), and so is qnbinom(4.073478073311389e-242, 641.0457517358916, { prob: " +
+        "8.999877024359508e-300, lowerTail: false })",
       examples: [
         family === "nbinom(mu)"
-          ? { params: { size: 3.102992688838784e287, mu: 195.56831659259922 }, x: [2.6329019116607608e200] }
-          : { params: { size: 0.72772746911027, prob: 4.524121951236202e-216 }, x: [6.549300334796171e214] },
-      ],
-    },
-    {
-      family,
-      property: ["complement", "monotone", "range"],
-      match: on(/nbinom$/, (pr) => pr.size! > 0 && pr.size! < 1e-15),
-      reason:
-        "tiny size: pnbinom(0, 3.67089151234586e-241, { prob: 0.6815368835814297 }) is 0.9999999999999597, 1 - 1.4e-241 " +
-        "expected, and decreases further out (0.9999999999999799 at 1.7e60)",
-      examples: [
-        { params: family === "nbinom(mu)" ? { size: 1.710538355542234e-94, mu: 0.25618896943625025 } : { size: 3.67089151234586e-241, prob: 0.6815368835814297 }, x: [0] },
+          ? { params: { size: 7.935540851960292e96, mu: 2.0074063923101808e132 }, x: [2.0074063923101808e132] }
+          : { params: { size: 641.0457517358916, prob: 8.999877024359508e-300 }, x: [1e303] },
       ],
     },
   ]),
@@ -241,15 +214,6 @@ export const knownViolations: KnownViolation[] = [
       "dnbinom(1, 0, { mu: 0 }) is NaN; size = 0 and mu = 0 is the point mass at 0, so 0 expected (-Infinity with log). " +
       "Kept to match R, which gives NaN there too (fixtures: dnbinom(1:4, 0, mu = 0) are NaN)",
     examples: [{ params: { size: 0, mu: 0 }, x: [1] }],
-  },
-  {
-    family: "f",
-    property: "roundtrip",
-    match: on(/^qf$/, (_pr, _x, v) => valueOf(v) < 2 ** -1022),
-    reason:
-      "pf at subnormal x is 0 or loses digits, so subnormal quantiles are wrong or cannot be confirmed: qf(9.593069285029728e-169, " +
-      "1.0433869454565992, 206159.4104536305) is 5.43e-319 where pf is already 1.0e-166",
-    examples: [{ params: { df1: 1.0433869454565992, df2: 206159.4104536305 }, x: [5.43275e-319] }],
   },
   ...["nt", "nchisq", "nf", "nbeta"].map(
     (family): KnownViolation => ({
@@ -278,12 +242,12 @@ export const knownViolations: KnownViolation[] = [
     property: ALL,
     match: on(/beta$/, (pr) => pr.ncp! > 0 && extreme(pr, ["shape1", "shape2"], 1e-10, 1e10)),
     reason:
-      "shapes beyond [1e-10, 1e10] (ncp > 0): for tiny shapes the mixture's central incomplete beta function is off " +
-      "(pbeta(0.0694, 7.39e-69, 8.94, { ncp: 105.43, lowerTail: false }) is 1.0000000000000002; the two tails of " +
-      "pbeta(6.3e-135, 3.8e-291, 3.92e-190, { ncp: 0.0121 }) add up to 0.503; pbeta(1.83e-241, 1.59e-262, 3.96e-163, " +
-      "{ ncp: 2800.9 }) is NaN) or throws TypeError in ddLog; where both shapes are huge, the integral over Y does not " +
+      "shapes beyond [1e-10, 1e10] (ncp > 0): for tiny shapes the Poisson mixture is off (the two tails of " +
+      "pbeta(1.1503720176314804e-213, 9.945391091428387e-228, 173.12594454685888, { ncp: 34.07827321668406 }) add up to " +
+      "1 - 1.7e-14; pbeta(6.3e-135, 3.8e-291, 3.92e-190, { ncp: 0.0121 }) and pbeta(1.83e-241, 1.59e-262, 3.96e-163, " +
+      "{ ncp: 2800.9 }) are NaN) or throws TypeError in ddLog; where both shapes are huge, the integral over Y does not " +
       "resolve their relative spreads of 1e-92: both tails of pbeta(8.46e-245, 1.77e183, 4.15e186, { ncp: 1 }) are 0",
-    examples: [{ params: { shape1: 7.394731865684941e-69, shape2: 8.939495036867422, ncp: 105.42996507071281 }, x: [0.06935494532808661] }],
+    examples: [{ params: { shape1: 9.945391091428387e-228, shape2: 173.12594454685888, ncp: 34.07827321668406 }, x: [1.1503720176314804e-213] }],
   },
   {
     family: "nf",
@@ -307,21 +271,16 @@ export const knownViolations: KnownViolation[] = [
     examples: [{ params: { df1: 1.5352254500141903e186, df2: 99.33785701936728, ncp: 0 }, x: [5.925999535882428e-161] }],
   },
 
-  // ---- found with the fuzz script at moderate parameters ----
-  ...(
-    [
-      ["binom", "qbinom(0.7985148925910792, 21, 0.9265496833249927) is 21 where pbinom(20, ...) is exactly that p", { size: 21, prob: 0.9265496833249927 }, 20],
-      ["nbinom(prob)", "qnbinom(0.7919311160429315, 16.7480243029891, { prob: 0.9105234742164612, lowerTail: false }) is 1 where pnbinom(0, ..., { lowerTail: false }) is exactly that p", { size: 16.7480243029891, prob: 0.9105234742164612 }, 0],
-    ] as const
-  ).map(
-    ([family, example, params, x]): KnownViolation => ({
-      family,
-      property: "roundtrip",
-      match: on(/^q/),
-      reason: `the quantile is one too large at a p that the distribution function gives exactly at x: ${example}, x expected`,
-      examples: [{ params, x: [x] }],
-    }),
-  ),
+  {
+    family: "f",
+    property: "roundtrip",
+    match: on(/^qf$/, (pr, _x, v) => pr.df2 === Infinity && v.detail.startsWith("= 0;")),
+    reason:
+      "qf with df2 = Infinity (χ²/df1) where the quantile is below the smallest positive double: qf(6.551701789807721e-149, " +
+      "0.14754556850238376, Infinity) is 0, which the round trip cannot confirm (pf(5e-324, ...) is already 1.3e-24, " +
+      "(df1 x / 2)^(df1/2) / Γ(df1/2 + 1) at that x)",
+    examples: [{ params: { df1: 0.14754556850238376, df2: Infinity }, x: [6.551701789807721e-149] }],
+  },
   {
     family: "f",
     property: "range",

@@ -151,6 +151,37 @@ export function betaQuantileGuess(a: number, b: number, lower: boolean, logTarge
 }
 
 /**
+ * The quantile where the relative spread of Beta(a, b) about its mean m = a/(a + b) (the coefficient of variation
+ * sqrt(b / (a (a + b + 1)))) is below 1e-15: the distribution function then rises from 0 to 1 within a few dozen ulps
+ * of m, and Newton's method on its log fails where the rise is within an ulp (qbeta(1.47e-15, 1.69e160, 1.62e175,
+ * { lowerTail: false }) returned 0, qbeta(exp(-226.4), 2.7e43, 8.3e95, { logP: true }) 2.7e-20 for m = 3.3e-53,
+ * qbeta(0.3, 1.3e32, 1.3e32) 0.49999998; measured to work down to a spread of 2e-16). Bisects the doubles in
+ * m (1 ± 1e-13) (100 times the spread) for the smallest x with I_x(a, b) >= target (lower) or 1 - I_x(a, b) <= target;
+ * undefined when the spread is larger or the target is not bracketed there
+ */
+function stepQuantile(a: number, b: number, lower: boolean, logTarget: number): number | undefined {
+  const s = Math.min(a, b);
+  const l = Math.max(a, b);
+  // log of the coefficient of variation (a + b + 1 as l (1 + s/l) to the rounding, without overflow)
+  const lcv = 0.5 * (Math.log(b) - Math.log(a) - Math.log(l) - Math.log1p(s / l));
+  if (!(lcv < Math.log(1e-15))) return undefined;
+  const ok = (x: number): boolean => {
+    const v = betaInc(a, b, x, 1 - x, lower, true);
+    return lower ? v >= logTarget : v <= logTarget;
+  };
+  const m = 1 / (1 + b / a);
+  let lo = m * (1 - 1e-13);
+  let hi = m * (1 + 1e-13);
+  if (ok(lo) || !ok(hi)) return undefined;
+  for (;;) {
+    const mid = lo + (hi - lo) / 2;
+    if (mid === lo || mid === hi) return hi;
+    if (ok(mid)) hi = mid;
+    else lo = mid;
+  }
+}
+
+/**
  * Solve for the quantile in frame (a, b) when the answer lies in (0, 1/2].
  * I_x(a, b) = target if lower, otherwise 1 - I_x(a, b) = target.
  */
@@ -164,6 +195,8 @@ function solveLeftHalf(
   // If the distribution function at the smallest positive number already passes the target, the answer is too small to represent (0)
   const atMin = betaInc(a, b, Number.MIN_VALUE, 1, lower, true);
   if (lower ? atMin >= logTarget : atMin <= logTarget) return 0;
+  const step = stepQuantile(a, b, lower, logTarget);
+  if (step !== undefined) return step;
   // Starting value: near 0, the tail approximation I_x(a, b) ≈ x^a / (a B(a, b)); otherwise the A&S 26.5.22 approximation
   let x0 = 0.25;
   let tail = Infinity;

@@ -136,6 +136,9 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qbinom(-1e10, 1e5, 0.01, log.p = TRUE)` | 37 (search stops early) | 0 (F(0) ≈ e^-1005 exceeds e^-1e10) |
 | `qt(1e-320, 2)` (subnormal p) | -Inf | -7.0711e159 (matches the closed form −sqrt(1/(2p))) |
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (the true answer rounds to 1) |
+| `qbeta(2.25e-265, 5.68e-37, 5643.4, lower.tail = FALSE)` (a tiny shape) | 1, with a warning | 0.08797712670529832 |
+| `df(1.33e-322, 1.04, 206159)` and other subnormal x | NaN | 3.77e153 (from the log of m x / n) |
+| `pf(5.43e-319, 1.04, 206159)` (subnormal x) | 1.0014e-166 | 7.3742e-167 |
 | `dcauchy(1e300, log = TRUE)`, `pcauchy(-1e300, scale = 1e-300, log.p = TRUE)` | -Inf | -1382.69… |
 | `dweibull(1e-300, 3, log = TRUE)` | -Inf | -1380.45… |
 | `dweibull(1e100, 5, log = TRUE)` | NaN (∞ − ∞) | -Inf |
