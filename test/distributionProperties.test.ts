@@ -47,11 +47,32 @@ const PARAM_SETS: Record<string, number> = {
 
 /**
  * Parameter sets run on every test besides the random ones: bugs fixed before these tests existed, which the random sets
- * may not reach. pchisq(3e9, 1, { ncp: 3e9 }) was -21849.97 (0.15.0); signrank's low values changed once the table
+ * may not reach. pchisq(3e9, 1, { ncp: 3e9 }) was -21849.97 (0.15.0); pchisq(763.66, 2, { ncp: 17.0 }) was
+ * 1.0000000000000002 (0.15.1), and likewise pt, pf and pbeta below; signrank's low values changed once the table
  * for the centre of n had been built (read with the points in increasing order, without quantiles first)
  */
 const REGRESSION: Record<string, { params: Params; x: number[]; sizes?: Omit<Sizes, "extra"> }[]> = {
-  nchisq: [{ params: { df: 1, ncp: 3e9 }, x: [3e9, 3.0001e9] }],
+  // The larger tail was summed or integrated itself and came out a few ulps above 1 (0.15.1)
+  nchisq: [
+    { params: { df: 1, ncp: 3e9 }, x: [3e9, 3.0001e9] },
+    { params: { df: 2, ncp: 16.99599089257515 }, x: [763.6617468878705] },
+  ],
+  // and at a huge or tiny df the noncentral t was NaN, Infinity or not consistent; at a huge λ, pf and pbeta in the far
+  // left tail were not monotone (0.15.1)
+  nt: [
+    { params: { df: 52.80813184100357, ncp: 3.6452526524836575 }, x: [3428773.6947873095] },
+    { params: { df: 100100312298908620, ncp: 2.475805900718761 }, x: [-1.0440480647904281e26, -30.268742563306827, 2.3074923907795758e54] },
+    { params: { df: 1e120, ncp: 1 }, x: [-3.5346299778784046e115] },
+    { params: { df: 1.9146506048870366e-245, ncp: -1.8387038943733192 }, x: [-59193519471.86663] },
+  ],
+  nf: [
+    { params: { df1: 456.14174201689434, df2: 771.5785513038477, ncp: 26.634566720706474 }, x: [2.473952189555483] },
+    { params: { df1: 1297.9256468956266, df2: 204.30365281952962, ncp: 7.500667311607752e266 }, x: [3.495699996315728e104, 1.5482840755724838e155] },
+  ],
+  nbeta: [
+    { params: { shape1: 0.5, shape2: 0.4399301350869252, ncp: 287.25848611940876 }, x: [9.867288258188533e-299] },
+    { params: { shape1: 178.5166557908405, shape2: 461.69685003899446, ncp: 18428991667705106000 }, x: [0.055855858605355024, 0.12485740100964904] },
+  ],
   signrank: [
     {
       params: { n: 1100 },

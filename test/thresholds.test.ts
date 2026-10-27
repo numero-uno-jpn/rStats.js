@@ -1594,18 +1594,40 @@ function upperStart(mu: number): number {
 
 const NBETA: Entry[] = [
   {
-    where: "distributions/nbeta.ts:37",
+    where: "distributions/nbeta.ts:39",
     fns: "pbeta, dbeta, qbeta with ncp",
-    condition: "x < 1e-250",
-    methods: "term ratio as is | scaled by 2^500",
-    point: "x = 1e-250 at a = 2, b = 3, ncp = 5 (log scale; the values underflow)",
-    cases: () => [
-      ...pPairs("pbeta(x, 2, 3, ncp 5)", pbn(2, 3, 5), down(1e-250), { tails: TAILS.slice(2) }),
-      pair("dbeta(x, 2, 3, ncp 5, log)", (x) => dbeta(x, 2, 3, { ncp: 5, log: true }), down(1e-250)),
-    ],
+    condition: "x min(1, a + b) < 2^-830 (about 1.4e-250)",
+    methods: "term ratio as is | scaled by 2^(500 K)",
+    point:
+      "x = 2^-830 at a = 2, b = 3, ncp = 5 (log scale; the values underflow), and where x (a + b) passes 2^-830 at " +
+      "a = 1e-210, b = 1e-200, ncp = 5 (x about 1.4e-50)",
+    cases: () => {
+      const x0 = 2 ** -830;
+      const ab = flipPoint((x) => Math.log2(x) + Math.log2(1e-210 + 1e-200) < -830, 1e-50, 2e-50);
+      return [
+        ...pPairs("pbeta(x, 2, 3, ncp 5)", pbn(2, 3, 5), down(x0), { tails: TAILS.slice(2) }),
+        pair("dbeta(x, 2, 3, ncp 5, log)", (x) => dbeta(x, 2, 3, { ncp: 5, log: true }), down(x0)),
+        ...pPairs("pbeta(x, 1e-210, 1e-200, ncp 5)", pbn(1e-210, 1e-200, 5), ab),
+        ...dPairs("dbeta(x, 1e-210, 1e-200, ncp 5)", (x, log) => dbeta(x, 1e-210, 1e-200, { ncp: 5, log }), ab),
+      ];
+    },
   },
   {
-    where: "distributions/nbeta.ts:44, :62, :74",
+    where: "distributions/nbeta.ts:101",
+    fns: "pbeta, dbeta, pf, df with ncp",
+    condition: "s < 1 and b < 1 (log of the increment where the binomial-probability helpers do not apply)",
+    methods: "-log B(s, b) - log s | log Γ(1 + s) + log Γ(1 + b) - log Γ(1 + s + b) + log(1 + s/b)",
+    point: "b = 1 at a = 1e-12 (the shape s = a + j is below 1e-10 at j = 0), x = 0.3, ncp = 1",
+    cases: () => {
+      const ab = flipPoint((b) => b < 1, 0.99, 1.01);
+      return [
+        ...pPairs("pbeta(0.3, 1e-12, b, ncp 1)", (b, t) => pbeta(0.3, 1e-12, b, { ncp: 1, ...t }), ab),
+        ...dPairs("dbeta(0.3, 1e-12, b, ncp 1)", (b, log) => dbeta(0.3, 1e-12, b, { ncp: 1, log }), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:47, :65, :77",
     fns: "pbeta, dbeta, qbeta with ncp",
     condition: "x and 1 - x > 1e-305, shapes s = a + j and b > 1e-10 (log of the increment)",
     methods: "-log B(s, b) - log s + s log x + b log(1 - x) | Loader's form",
@@ -1621,15 +1643,78 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "distributions/nbeta.ts:114",
-    fns: "pbeta, pf with ncp (log)",
-    condition: "linear value >= 1e-280",
-    methods: "sum on the log scale | log of the linear sum",
-    point: "lower tail = 1e-280 at a = 2, b = 3, ncp = 5",
-    cases: () => [pair("pbeta(x, 2, 3, ncp 5, lower log)", (x) => pbeta(x, 2, 3, { ncp: 5, logP: true }), flipPoint((x) => pbeta(x, 2, 3, { ncp: 5 }) >= 1e-280, 1e-142, 1e-138))],
+    where: "internal/poissonMixture.ts:345; distributions/nbeta.ts:132; distributions/nchisq.ts:105",
+    fns: "pbeta, pf, pchisq with ncp",
+    condition: "the tail guessed to be the smaller (below the mean) has a sum above 1/2",
+    methods: "the requested tail summed | 1 - (the other tail)",
+    point: "the medians of pbeta(x, 2, 3, ncp 5) and pchisq(x, 3, ncp 10), and the guesses' switch at the means",
+    cases: () => {
+      const mb = flipPoint((x) => (pbeta(x, 2, 3, { ncp: 5 }) as number) > 0.5, 0.3, 0.7);
+      const mc = flipPoint((x) => (pchisq(x, 3, { ncp: 10 }) as number) > 0.5, 8, 16);
+      return [
+        ...pPairs("pbeta(x, 2, 3, ncp 5)", pbn(2, 3, 5), mb),
+        ...pPairs("pbeta(x, 2, 3, ncp 5)", pbn(2, 3, 5), down(4.5 / 7.5)),
+        ...pPairs("pchisq(x, 3, ncp 10)", (x, t) => pchisq(x, 3, { ncp: 10, ...t }), mc),
+        ...pPairs("pchisq(x, 3, ncp 10)", (x, t) => pchisq(x, 3, { ncp: 10, ...t }), down(13)),
+      ];
+    },
   },
   {
-    where: "distributions/nbeta.ts:168 (λ/2 > 1e6)",
+    where: "distributions/nbeta.ts:148, :149, :157",
+    fns: "pbeta, pf with ncp (methods for extreme parameters)",
+    condition:
+      "far left tail at a large λ: r = (λ/2) x max(1, (a + b)/(a + 1)) <= 100 (the sum with e^(-λ/2) taken out); " +
+      "x max(...) <= 1e-16 (its first term)",
+    methods: "integral | -λ/2 + log Σ (λ/2)^j/j! I_x(a + j, b) | -λ/2 + log I_x(a, b)",
+    point: "r = 100 at a = 3, b = 5, ncp = 2e7 (x = 5e-6); x max(...) = 1e-16 at a = 3, b = 5, ncp = 1e30 (log scale)",
+    cases: () => {
+      const r100 = flipPoint((x) => 1e7 * x * 2 <= 100, 4e-6, 6e-6);
+      const first = flipPoint((x) => x * 2 <= 1e-16, 4e-17, 6e-17);
+      return [
+        pair("pbeta(x, 3, 5, ncp 2e7, lower log)", (x) => pbeta(x, 3, 5, { ncp: 2e7, logP: true }), r100),
+        pair("pbeta(x, 3, 5, ncp 1e30, lower log)", (x) => pbeta(x, 3, 5, { ncp: 1e30, logP: true }), first),
+      ];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:345, :348",
+    fns: "pbeta, pf with ncp (methods for extreme parameters)",
+    condition: "λ/2 > 1e18 and (λ/2)(1 - x) >= 1e17 (a + b + 1) (log(λ/2) + 50)",
+    methods: "the methods for extreme parameters | log P = -(λ/2)(1 - x), the rest below its rounding",
+    point: "ncp where the second condition flips at a = 2, b = 3, x = 0.5 (about 2.2e20; log scale)",
+    cases: () => {
+      const ab = flipPoint((l) => (l / 2) * 0.5 >= 1e17 * 6 * (Math.log(l / 2) + 50), 1e20, 5e20);
+      return [pair("pbeta(0.5, 2, 3, ncp, lower log)", (l) => pbeta(0.5, 2, 3, { ncp: l, logP: true }), ab)];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:401, :411, :413, :417",
+    fns: "pbeta, pf with ncp (gamma expansion)",
+    condition:
+      "log scale: (v/2) L'^2 <= 1e-16 |log G| (log G alone); far in the tail of G, κ3 |L'|³/6 <= 1e-16 |log G| (log G " +
+      "plus (v/2)(L'² + L'')); beyond 40 sqrt(b) + 750 from b with a relative spread of T times |t0 - b| above 1e-4, " +
+      "the linear value from the log",
+    methods: "the cumulant expansion | log G(b, t0) | log G(b, t0) + (v/2)(L'² + L'') | the integral",
+    point:
+      "a sweep of log pf(q, 1, 4.33, ncp 2.58e31) against log q through k = n/(m q) = 1e-16 (q = 4.33e16), where the " +
+      "first condition flips (log P = -t0 = -1.3e15 there)",
+    cases: () => {
+      const xs = grid(Math.log(4.332294895430028e16) - 20 * 1e-4, 1e-4, 41);
+      return [{ kind: "sweep", label: "log pf(q, 1, 4.33, ncp 2.58e31) against log q", f: (lq: number) => pf(Math.exp(lq), 1, 4.332294895430028, { ncp: 2.5806231220467997e31, logP: true }), xs }];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:308, :296",
+    fns: "pbeta, dbeta, pf, df with ncp (methods for extreme parameters)",
+    skip:
+      "the distribution function of W: the smaller of P(b, t) and Q(b, t) (P below 1/2) taken from gammaInc and the other " +
+      "as 1 - (it), both to the rounding on either side; below t = 1e-300 the first term of the series",
+    condition: "P(b, t) <= 1/2; t < 1e-300",
+    methods: "-",
+    point: "-",
+  },
+  {
+    where: "distributions/nbeta.ts:231 (λ/2 > 1e6)",
     fns: "pbeta, dbeta, qbeta, pf, df, qf with ncp",
     condition: "λ/2 > 1e6",
     methods: "Poisson mixture | integral over log y of f_Y(y) P[W >< y k] (integralLog)",
@@ -1640,7 +1725,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "distributions/nbeta.ts:168 (b > 1e15)",
+    where: "distributions/nbeta.ts:231 (b > 1e15)",
     fns: "pbeta, dbeta, qbeta, pf, df, qf with ncp",
     condition: "a or b > 1e15 (the central incomplete beta function does not return for some such shapes)",
     methods: "Poisson mixture | integral over log y",
@@ -1651,7 +1736,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "distributions/nbeta.ts:163",
+    where: "distributions/nbeta.ts:226",
     fns: "pbeta, dbeta, qbeta, pf, df, qf with ncp",
     condition: "b > 1e20 s², s = a + λ/2 + 10 sqrt(λ/2) + 10",
     methods: "integral over log y | P[Y <= -2b log(1 - x)] (the components' gamma limit)",
@@ -1664,7 +1749,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "distributions/nbeta.ts:164",
+    where: "distributions/nbeta.ts:227",
     fns: "pbeta, dbeta, qbeta, pf, df, qf with ncp",
     condition: "2 sqrt(a + λ) (40 sqrt(b) + 750) < 1e-4 (2a + λ)",
     methods: "integral over log y | expansion of E P(b, Y k/2) about the mean of Y (gammaExpansion)",
@@ -1677,7 +1762,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "distributions/nbeta.ts:165",
+    where: "distributions/nbeta.ts:228",
     fns: "pbeta, dbeta, qbeta, pf, df, qf with ncp",
     condition: "40 (2a + λ)/(2 sqrt(a + λ)) + 750 < 1e-5 sqrt(b)",
     methods: "integral over log y | expansion of E F_Y(W/k) about the mean of W (wExpansion)",
@@ -1690,7 +1775,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "distributions/nbeta.ts:217",
+    where: "distributions/nbeta.ts:303",
     fns: "pbeta, pf with ncp (integral, gamma expansion)",
     condition: "b > 1e10 (the distribution function of W)",
     methods: "gammaInc | the central χ² by the uniform expansion (gammaTailHuge)",
@@ -1698,7 +1783,7 @@ const NBETA: Entry[] = [
     cases: () => pPairs("pbeta(4.975e-3, 2, b, ncp 1e8)", (b, t) => pbeta(4.975e-3, 2, b, { ncp: 1e8, ...t }), flipPoint((b) => b > 1e10, 0.9e10, 1.1e10)),
   },
   {
-    where: "distributions/nbeta.ts:195",
+    where: "distributions/nbeta.ts:280",
     fns: "dbeta, df with ncp (integral, gamma expansion)",
     condition: "b > 1e10 (the density of W)",
     methods: "dgamma1 | Stirling's series in log form",
@@ -1706,7 +1791,7 @@ const NBETA: Entry[] = [
     cases: () => dPairs("dbeta(4.975e-3, 2, b, ncp 1e8)", (b, log) => dbeta(4.975e-3, 2, b, { ncp: 1e8, log }), flipPoint((b) => b > 1e10, 0.9e10, 1.1e10)),
   },
   {
-    where: "distributions/nbeta.ts:199, :200, :211",
+    where: "distributions/nbeta.ts:284, :285, :296",
     fns: "pbeta, dbeta, pf, df with ncp (integral, gamma expansion)",
     skip:
       "the density and the distribution function of W for a tiny b, at t beyond 1e300 b or below 1e-300: closed forms " +
@@ -1717,7 +1802,7 @@ const NBETA: Entry[] = [
     point: "-",
   },
   {
-    where: "distributions/nbeta.ts:379, :416",
+    where: "distributions/nbeta.ts:511, :548",
     fns: "pbeta, dbeta, pf, df with ncp (integral)",
     skip:
       "stopping rules of the integral: the log of the mode alone where its rounding exceeds the log of any integral of " +
@@ -1727,7 +1812,7 @@ const NBETA: Entry[] = [
     point: "-",
   },
   {
-    where: "distributions/nbeta.ts:529, :682",
+    where: "distributions/nbeta.ts:663, :832",
     fns: "qbeta, qf with ncp",
     skip: "as distributions/nchisq.ts:611 (the quantile of a spread below 1e-10, by a search over the doubles)",
     condition: "relative spread of Y and W < 1e-10",
@@ -1735,7 +1820,21 @@ const NBETA: Entry[] = [
     point: "-",
   },
   {
-    where: "distributions/nbeta.ts:562, :584, :622",
+    where: "distributions/nbeta.ts:687",
+    fns: "pf, df with ncp",
+    condition: "m q < 1e-290 (x = r/(1 + r) with r = (m/n) q)",
+    methods: "x = m q/(n + m q) | x = r/(1 + r)",
+    point: "q where m q = 1e-290 at m = 1e-250, n = 1e-200, ncp = 1 (r = 1e-40 there)",
+    cases: () => {
+      const ab = flipPoint((q) => 1e-250 * q < 1e-290, 5e-41, 2e-40);
+      return [
+        ...pPairs("pf(q, 1e-250, 1e-200, ncp 1)", (q, t) => pf(q, 1e-250, 1e-200, { ncp: 1, ...t }), ab),
+        ...dPairs("df(q, 1e-250, 1e-200, ncp 1)", (q, log) => df(q, 1e-250, 1e-200, { ncp: 1, log }), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:711, :733, :771",
     fns: "pf, df with ncp",
     condition: "(m/n) q < 1e-306",
     methods: "mixture | first term exp(-λ/2) (mq/n)^a / (a B(a, b))",
@@ -1746,9 +1845,9 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "distributions/nbeta.ts:553",
+    where: "distributions/nbeta.ts:693, :704",
     fns: "pf, df, qf with ncp",
-    condition: "|m q| < 1e290",
+    condition: "|m q| < 1e290; k = n/(m q) below 1e-300 (its log from those of n, m and q)",
     methods: "1 - x = n/(m q) in double | x, 1 - x as double-double quotients",
     point: "q = 1e290 at m = 1, n = 5, ncp = 2",
     cases: () => {
@@ -1757,7 +1856,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "internal/poissonMixture.ts:381",
+    where: "internal/poissonMixture.ts:393",
     fns: "pchisq, pbeta, pf with ncp",
     condition: "start index J > 3000 (LONG_WALK)",
     methods: "walk down from J | locate the peak first",
@@ -1790,7 +1889,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "internal/poissonMixture.ts:421",
+    where: "internal/poissonMixture.ts:433",
     fns: "pchisq, pbeta, pf with ncp (upper tail)",
     skip:
       "the restart happens when the terms of the upper sum are still growing 3000 steps after the start, which depends " +
@@ -1808,7 +1907,7 @@ const NBETA: Entry[] = [
     cases: () => pPairs("pchisq(5, 3, ncp)", (ncp, t) => pchisq(5, 3, { ncp, ...t }), down(2 * DBL_MIN)),
   },
   {
-    where: "internal/poissonMixture.ts:165, :350",
+    where: "internal/poissonMixture.ts:165, :362",
     fns: "pchisq, pbeta, pf with ncp",
     skip:
       "exponents three or more units apart (the shifted mantissa is then 0 as it would be after the three steps), and the " +
@@ -2103,7 +2202,7 @@ const NCHISQ: Entry[] = [
     },
   },
   {
-    where: "distributions/nchisq.ts:185 (z > 1e4)",
+    where: "distributions/nchisq.ts:174 (z > 1e4)",
     fns: "pchisq, dchisq, qchisq with ncp",
     condition: "z = sqrt(λ x) > 1e4 and ν² <= z/100 (ν = df/2 - 1)",
     methods: "Poisson mixture | large-argument Bessel expansion (besselAsymptotic; besselTails integrates it)",
@@ -2152,7 +2251,7 @@ const NCHISQ: Entry[] = [
     },
   },
   {
-    where: "distributions/nchisq.ts:185 (ν² <= z/100)",
+    where: "distributions/nchisq.ts:174 (ν² <= z/100)",
     fns: "pchisq, dchisq, qchisq with ncp",
     condition: "ν² <= z/100 (z > 1e4)",
     methods: "uniform expansion in ν (debyeAt, debyeTails) | large-argument expansion",
@@ -2166,7 +2265,7 @@ const NCHISQ: Entry[] = [
     },
   },
   {
-    where: "distributions/nchisq.ts:186 (z > 1e6)",
+    where: "distributions/nchisq.ts:175 (z > 1e6)",
     fns: "pchisq, dchisq, qchisq with ncp",
     condition: "z > 1e6 where ν² > z/100 (so ν > 100)",
     methods: "Poisson mixture | uniform expansion in ν",
@@ -2213,7 +2312,7 @@ const NCHISQ: Entry[] = [
     },
   },
   {
-    where: "distributions/nchisq.ts:186 (ν > 1e4)",
+    where: "distributions/nchisq.ts:175 (ν > 1e4)",
     fns: "pchisq, dchisq, qchisq with ncp",
     condition: "ν = df/2 - 1 > 1e4 (z <= 1e6)",
     methods: "Poisson mixture | uniform expansion in ν",
@@ -2227,7 +2326,7 @@ const NCHISQ: Entry[] = [
     },
   },
   {
-    where: "distributions/nchisq.ts:216",
+    where: "distributions/nchisq.ts:205",
     fns: "pchisq, dchisq, qchisq with ncp (large-argument expansion)",
     condition: "d / sqrt(λ) > -1/2 (d = sqrt(x) - sqrt(λ))",
     methods: "log(sqrt(x)/sqrt(λ)) as log(x)/2 - log sqrt(λ) | log1p(d/sqrt(λ))",
@@ -2238,7 +2337,7 @@ const NCHISQ: Entry[] = [
     ],
   },
   {
-    where: "distributions/nchisq.ts:391",
+    where: "distributions/nchisq.ts:380",
     fns: "pchisq, dchisq, qchisq with ncp (uniform expansion)",
     condition: "e = x/(ν + R) - 1 > -1/2",
     methods: "log(1 + e) - e as log x - log(ν + R) - e | log1pmx(e)",
@@ -2260,12 +2359,22 @@ const NCHISQ: Entry[] = [
     cases: () => pPairs("pchisq(0.3, 3, ncp)", (l, t) => pchisq(0.3, 3, { ncp: l, ...t }), flipPoint((l) => l / 2 > 1e8, 1.9e8, 2.1e8)),
   },
   {
-    where: "distributions/nchisq.ts:564",
+    where: "distributions/nchisq.ts:553",
     fns: "pchisq with ncp",
     skip:
       "decides only whether a tail is below the double range (Chernoff bound); the two forms are the same bound, " +
       "rearranged, and a tail near the decision is computed in full either way",
     condition: "s <= 1/4",
+    methods: "-",
+    point: "-",
+  },
+  {
+    where: "distributions/nchisq.ts:579",
+    fns: "qchisq, qbeta, qf with ncp",
+    skip:
+      "acceptance of the Newton iteration's quantile: within 1e-15 of the target log p, or within 1e-9 and the quantile " +
+      "to 1e-14 by its definition; otherwise the search over the doubles, which ends at the same quantile",
+    condition: "|log p - target| <= 1e-15 |target|",
     methods: "-",
     point: "-",
   },
@@ -2303,7 +2412,7 @@ const NCHISQ: Entry[] = [
     ],
   },
   {
-    where: "distributions/nchisq.ts:470",
+    where: "distributions/nchisq.ts:459",
     fns: "pbeta, pf with ncp (the integral of nbeta.ts)",
     skip: "x0 e^v formed from the logs only where e^v over- or underflows on its own: the same x",
     condition: "|v| < 700",
@@ -2320,7 +2429,7 @@ const grid = (from: number, step: number, n: number): number[] => Array.from({ l
 
 const NT: Entry[] = [
   {
-    where: "distributions/nt.ts:302",
+    where: "distributions/nt.ts:340",
     fns: "pt, qt with ncp",
     condition: "|t| S width/2 > 2 (S = e^(w*/2) at the peak, width = 1/sqrt(a e^w*)); this is |t| > 4 sqrt(a) unless the width is clipped at 10",
     methods: "formula A (E[Φ(tS - δ)]) | formula B (integration by parts)",
@@ -2354,7 +2463,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:63, :75, :90, :203, :206",
+    where: "distributions/nt.ts:66, :78, :93, :227, :232",
     fns: "pt, dt, qt with ncp",
     condition: "per node: |w| < 1e-6 / < 0.1 (e^w - 1 - w by series); z < 0 (Mills ratio); rounding estimate <= 4 peak (double-precision fast path)",
     methods: "double-double node | double node; direct | series forms",
@@ -2366,7 +2475,7 @@ const NT: Entry[] = [
     ],
   },
   {
-    where: "distributions/nt.ts:329, :349, :180",
+    where: "distributions/nt.ts:512, :532, :204",
     fns: "pt, dt, qt with ncp",
     condition: "peak log integrand L outside ±650 (sum on the log scale); exp(offset) with offset > -700; log Φ in double-double for z <= -5",
     methods: "linear sum | sum relative to the peak, on the log scale",
@@ -2377,7 +2486,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:365, :382, :405, :416, :485",
+    where: "distributions/nt.ts:548, :594, :618, :687",
     fns: "pt, dt, qt with ncp",
     condition: "|t| > T0 = 1e10 (|δ| + 10) sqrt(a + 1) (minor SUSPECT: the bound on the correction assumes Z bounded, but its weight peaks near sqrt(2a))",
     methods: "integral | power law P(T0) (T0/|t|)^(2a), f(T0) (T0/|t|)^(2a+1)",
@@ -2400,6 +2509,113 @@ const NT: Entry[] = [
         { kind: "check", label: "power law against the central t (df 2e6)", run: () => far(2e6) },
       ];
     },
+  },
+  {
+    where: "distributions/nt.ts:600, :602",
+    fns: "pt, qt with ncp",
+    condition: "the tail guessed to be the smaller (lower for t < δ) has a value above 1/2",
+    methods: "the requested tail integrated | 1 - (the other tail)",
+    point: "the median of pt(t, 10, ncp 1) and the guess's switch at t = δ = 1",
+    cases: () => [...pPairs("pt(t, 10, ncp 1)", ptn(10, 1), flipPoint((t) => (pt(t, 10, { ncp: 1 }) as number) > 0.5, 0.5, 2)), ...pPairs("pt(t, 10, ncp 1)", ptn(10, 1), down(1))],
+  },
+  {
+    where: "distributions/nt.ts:328, :497",
+    fns: "pt, dt, qt with ncp",
+    condition: "a > 1e5 and the neglected terms of Laplace's method, 1/L2² + q^6, below 1e-17 max(1, |log value|)",
+    methods: "integral | Laplace's method",
+    point:
+      "df = 2e5 at t = -3000, ncp = -0.5 (far in the lower tail, where Laplace's method is taken from a = 1e5 on); a " +
+      "sweep of log pt(t, 2e8, ncp 0) through log P = -10, from where on it is taken at a = 1e8 (1/L2² = 1e-16)",
+    cases: () => {
+      const ab = flipPoint((d) => d / 2 > 1e5, 1.9e5, 2.1e5);
+      return [
+        ...pPairs("pt(-3000, df, ncp -0.5)", (d, t) => pt(-3000, d, { ncp: -0.5, ...t }), ab, { tails: TAILS.slice(2) }),
+        pair("dt(-3000, df, ncp -0.5, log)", (d) => dt(-3000, d, { ncp: -0.5, log: true }), ab),
+        {
+          kind: "sweep",
+          label: "log pt(t, 2e8, ncp 0)",
+          f: (v) => pt(v, 2e8, { ncp: 1e-300, logP: true }),
+          xs: grid(flipPoint((v) => (pt(v, 2e8, { ncp: 1e-300, logP: true }) as number) < -10, -5, -3)[0] - 20 * 2e-4, 2e-4, 41),
+        },
+      ];
+    },
+  },
+  {
+    where: "distributions/nt.ts:390, :404",
+    fns: "pt, dt, qt with ncp (Laplace's method)",
+    condition: "u < -3 (u + m and 1 + ℓ2 from the continued fraction); u < -1e3 (ℓ3, ℓ4 from their series)",
+    methods: "direct | continued fraction | asymptotic series",
+    point: "sweeps of log pt(t, 1e12, ncp 0) through t = -3 and t = -1000 (u = t at ncp 0)",
+    cases: () => [
+      { kind: "sweep", label: "log pt(t, 1e12, ncp 1e-300) through u = -3", f: (v) => pt(v, 1e12, { ncp: 1e-300, logP: true }), xs: grid(-3.004, 2e-4, 41) },
+      { kind: "sweep", label: "log pt(t, 1e12, ncp 1e-300) through u = -1000", f: (v) => pt(v, 1e12, { ncp: 1e-300, logP: true }), xs: grid(-1000.004, 2e-4, 41) },
+    ],
+  },
+  {
+    where: "distributions/nt.ts:335, :350",
+    fns: "pt, qt with ncp",
+    condition: "a < 1e-5",
+    methods: "formula A or B by the steepness at the peak | formula B (for t < 0 as Φ(-δ) minus the part with Q(a, a S²))",
+    point: "df = 2e-5 at t = -3, 0.5 and 1000 with ncp = 1 and 40",
+    cases: () => {
+      const ab = flipPoint((d) => d / 2 < 1e-5, 1.9e-5, 2.1e-5);
+      return [-3, 0.5, 1000].flatMap((t) => [1, 40].flatMap((ncp) => pPairs(`pt(${t}, df, ncp ${ncp})`, (d, tl) => pt(t, d, { ncp, ...tl }), ab)));
+    },
+  },
+  {
+    where: "distributions/nt.ts:590",
+    fns: "pt, qt with ncp",
+    condition: "|t| sqrt((4a + 2δ² + 800)/a) (|δ| + 2) <= 1e-17",
+    methods: "integral | Φ(-δ), Φ(δ)",
+    point: "t where the condition flips at df = 10, ncp = 1 and at df = 2e-20, ncp = 7 (both signs of t)",
+    cases: () => {
+      const cond = (a: number, d: number) => (t: number) => Math.abs(t) * Math.sqrt((4 * a + 2 * d * d + 800) / a) * (Math.abs(d) + 2) <= 1e-17;
+      const f1 = flipPoint(cond(5, 1), 1e-20, 1e-18);
+      const f2 = flipPoint(cond(1e-20, 7), 1e-38, 1e-26);
+      return [
+        ...pPairs("pt(t, 10, ncp 1)", ptn(10, 1), f1),
+        ...pPairs("pt(-t, 10, ncp 1)", (t, tl) => pt(-t, 10, { ncp: 1, ...tl }), f1),
+        ...pPairs("pt(t, 2e-20, ncp 7)", ptn(2e-20, 7), f2),
+        ...pPairs("pt(-t, 2e-20, ncp 7)", (t, tl) => pt(-t, 2e-20, { ncp: 7, ...tl }), f2),
+      ];
+    },
+  },
+  {
+    where: "distributions/nt.ts:570",
+    fns: "pt, qt with ncp",
+    condition: "|t| > T0 with the far tail still above 1/2 (a tiny a: it falls only as |t|^(-2a))",
+    methods: "integral | near tail at T0 plus what the far tail lost",
+    point: "t = T0 = 1.7e11 at df = 2e-20, ncp = 7",
+    cases: () => pPairs("pt(t, 2e-20, ncp 7)", ptn(2e-20, 7), around(1e10 * 17 * Math.sqrt(1 + 1e-20), 8)),
+  },
+  {
+    where: "distributions/nt.ts:114, :118, :127, :231, :252, :269",
+    fns: "pt, dt, qt with ncp",
+    skip:
+      "per node of the integrals: x = a e^w below 1e-300 in formula B (P(a, x) from log x), a e^w formed from logs " +
+      "beyond e^700, the density's terms in one exp where C_a e^-E underflows; the same values in other forms",
+    condition: "a e^w < 1e-300; w >= 700; log of C_a e^-E φ below -700",
+    methods: "-",
+    point: "-",
+  },
+  {
+    where: "distributions/nt.ts:696",
+    fns: "qt with ncp",
+    condition: "df < 1e-3 and P[T <= largest double] below the target (the near tail of a small a)",
+    methods: "-",
+    point: "validity: the quantile is Infinity where the lower tail at the largest double is below p (df 5.4e-96, ncp 48.9)",
+    cases: () => [
+      {
+        kind: "check",
+        label: "qt beyond the largest double",
+        run: () => {
+          const [p, d, ncp] = [1.4426402575659767e-62, 5.449761356942939e-96, 48.87598483697083];
+          const q = qt(p, d, { ncp });
+          const pMax = pt(Number.MAX_VALUE, d, { ncp }) as number;
+          return q === Infinity && pMax < p ? undefined : `qt(${p}, ${d}, ncp ${ncp}) = ${q}, pt at the largest double ${pMax}`;
+        },
+      },
+    ],
   },
 ];
 

@@ -143,7 +143,7 @@ export const knownViolations: KnownViolation[] = [
       examples: [{ params: { shape: 0.054834562146833105, rate: 0.04511610840333119 }, x: [2e-323] }],
     },
   ]),
-  ...["t", "nt"].flatMap((family): KnownViolation[] => [
+  ...["t"].flatMap((family): KnownViolation[] => [
     {
       family,
       property: ALL,
@@ -170,6 +170,15 @@ export const knownViolations: KnownViolation[] = [
       ],
     },
   ]),
+  // ncp = 0 is the central distribution (computed by the central functions in src/distributions/t.ts): the t entries
+  // above apply
+  {
+    family: "nt",
+    property: ALL,
+    match: on(/^[dpq]t$/, (pr) => pr.ncp === 0 && ((pr.df! > 1e30 && Number.isFinite(pr.df!)) || pr.df! < 1e-15)),
+    reason: "ncp = 0 with huge or tiny df: the central t (see the t entries above)",
+    examples: [{ params: { df: 7.653487633524523e-162, ncp: 0 }, x: [-1.1511455640671718e-50, -1.2128120784753087e-125] }],
+  },
   {
     family: "beta",
     property: ALL,
@@ -251,50 +260,38 @@ export const knownViolations: KnownViolation[] = [
       "1.0433869454565992, 206159.4104536305) is 5.43e-319 where pf is already 1.0e-166",
     examples: [{ params: { df1: 1.0433869454565992, df2: 206159.4104536305 }, x: [5.43275e-319] }],
   },
-  ...["nt", "nchisq", "nf", "nbeta"].map(
-    (family): KnownViolation => ({
-      family,
-      property: ["range", "monotone"],
-      match: on(/^p/, (_pr, _x, v) => {
-        const p = valueOf(v);
-        return v.property === "monotone" || (p > 1 && p < 1 + 1e-13);
-      }),
-      reason:
-        "a tail probability a few ulps above 1 (the larger tail is not 1 - (smaller)): pt(3428773.6947873095, 52.80813184100357, " +
-        "{ ncp: 3.6452526524836575 }) is 1.0000000000000002; pchisq(763.6617468878705, 2, { ncp: 16.99599089257515 }) the same",
-      examples: [
-        {
-          nt: { params: { df: 52.80813184100357, ncp: 3.6452526524836575 }, x: [3428773.6947873095] },
-          nchisq: { params: { df: 2, ncp: 16.99599089257515 }, x: [763.6617468878705] },
-          nf: { params: { df1: 456.14174201689434, df2: 771.5785513038477, ncp: 26.634566720706474 }, x: [2.473952189555483] },
-          nbeta: { params: { shape1: 0.5, shape2: 0.4399301350869252, ncp: 287.25848611940876 }, x: [9.867288258188533e-299] },
-        }[family]!,
-      ],
-    }),
-  ),
   // ---- noncentral χ², F, beta; Tukey ----
   {
     family: "nbeta",
     property: ALL,
     match: on(/beta$/, (pr) => pr.ncp! > 0 && extreme(pr, ["shape1", "shape2"], 1e-10, 1e10)),
     reason:
-      "shapes beyond [1e-10, 1e10] (ncp > 0): for tiny shapes the mixture's central incomplete beta function is off " +
-      "(pbeta(0.0694, 7.39e-69, 8.94, { ncp: 105.43, lowerTail: false }) is 1.0000000000000002; the two tails of " +
-      "pbeta(6.3e-135, 3.8e-291, 3.92e-190, { ncp: 0.0121 }) add up to 0.503; pbeta(1.83e-241, 1.59e-262, 3.96e-163, " +
-      "{ ncp: 2800.9 }) is NaN) or throws TypeError in ddLog; where both shapes are huge, the integral over Y does not " +
-      "resolve their relative spreads of 1e-92: both tails of pbeta(8.46e-245, 1.77e183, 4.15e186, { ncp: 1 }) are 0",
-    examples: [{ params: { shape1: 7.394731865684941e-69, shape2: 8.939495036867422, ncp: 105.42996507071281 }, x: [0.06935494532808661] }],
+      "shapes beyond [1e-10, 1e10] (ncp > 0): for tiny shapes the central incomplete beta function of the mixture's " +
+      "components is off (src/special/incbet.ts: I_x(5.89e-241, 3.73e-57) at x = 0.0096 is 0.99999999999996 with its " +
+      "complement 1.6e-184), so pbeta(x, 5.89e-241, 3.73e-57, { ncp: 7.96 }) falls from 0.018695982755622172 at " +
+      "x = 1.2e-145 to 0.018695982755621832 at x = 0.0096; for a tiny shape with λ/2 above 1e6 the integral over Y does " +
+      "not find its mode, flat to the double towards y = 0 (log pbeta(0.5, 8.2e-68, 0.0177, { ncp: 1.3e8 }) is -Infinity, " +
+      "about -(λ/2)(1 - x) = -3.2e7 expected); where a shape is huge, the integral over Y does not resolve " +
+      "the relative spreads of Y and W (1e-65 and less): both tails of pbeta(5.31e-154, 3.11e130, 6.99e120, { ncp: 0.381 }) " +
+      "and of pbeta(8.94e-43, 996.6, 1.0e174, { ncp: 1.79e132 }) are 0",
+    examples: [
+      { params: { shape1: 5.894864017885108e-241, shape2: 3.732011312647187e-57, ncp: 7.958893208205063 }, x: [1.2374249540046398e-145, 0.009604043327271938] },
+      { params: { shape1: 3.105105241289273e130, shape2: 6.991712888026983e120, ncp: 0.3808404615338111 }, x: [5.3056139055482243e-154] },
+    ],
   },
   {
     family: "nf",
     property: ALL,
     match: on(/^[dpq]f$/, (pr) => pr.ncp! > 0 && extreme(pr, ["df1", "df2"], 1e-10, 1e10)),
     reason:
-      "df beyond [1e-10, 1e10] (ncp > 0), through the noncentral beta (as for nbeta): pf(7.33e-248, 1.14e-218, 1, " +
-      "{ ncp: 12.34, lowerTail: false, logP: true }) is -0.0020873, log of the linear value -0.0020895; " +
-      "pf(7.67e-114, 4.79e-248, 5.62e-71, { ncp: 1 }) is NaN; TypeError in ddLog for tiny df; df is NaN for a huge df1 " +
-      "with a tiny df2 (df(8.5e147, 4.97e118, 1.04e-57, { ncp: 4.01e87 }))",
-    examples: [{ params: { df1: 1.1415699806958447e-218, df2: 1, ncp: 12.343768528437282 }, x: [7.327311511990816e-248] }],
+      "df beyond [1e-10, 1e10] (ncp > 0), through the noncentral beta (as for nbeta): for a tiny df the central " +
+      "incomplete beta function of the components is off (pf(q, 6.63e-202, 2, { ncp: 1 }) falls from 0.6065306597126334 " +
+      "at q = 2.1e-130 to 0.6065306597126264 at q = 1.35e-103, where I_x(3.3e-202, 1) is 1.0000000000000158); where a df " +
+      "is huge, both tails of pf(1, 6.39e153, 6.32e180, { ncp: 81.8 }) are 0 and df there is NaN",
+    examples: [
+      { params: { df1: 6.6323017271354765e-202, df2: 2, ncp: 1 }, x: [2.1284149466105694e-130, 1.3499976946715385e-103] },
+      { params: { df1: 6.3877677183519304e153, df2: 6.3206222974994505e180, ncp: 81.76981163437114 }, x: [1] },
+    ],
   },
 
   // ncp = 0 is the central distribution (computed by the central functions in src/distributions/f.ts): the central
