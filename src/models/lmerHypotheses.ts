@@ -87,9 +87,10 @@ export interface LmerHypotheses {
 const ONE: FormulaNode = { type: "num", value: 1, text: "1" };
 
 /**
- * The fixed-effects design of an lmer fit, from lmer's inputs: the formula's fixed part coded on the model frame of
- * the whole formula (rows with a missing value in any of its variables dropped, unused levels dropped), the
- * contrasts given, and the aliased columns of X (pivoted QR, tolerance 1e-7) dropped, as lmer's `fixefNames`.
+ * The fixed-effects design of an lmer fit, from lmer's inputs: the formula without its random-effects terms (whose
+ * order of the variables names the terms and the interaction columns) coded on the model frame of the whole formula
+ * (rows with a missing value in any of its variables dropped, unused levels dropped), the contrasts given, and the
+ * aliased columns of X (pivoted QR, tolerance 1e-7) dropped, as lmer's `fixefNames`.
  */
 export function fixedEffectsDescription(formula: string, data: DataFrame, options: FixedEffectsDescriptionOptions = {}): FixedEffectsDescription {
   const parsed = parseFormula(formula, false, true);
@@ -97,11 +98,16 @@ export function fixedEffectsDescription(formula: string, data: DataFrame, option
   if (typeof data !== "object" || data === null) throw new TypeError("data must be an object of columns");
   const { fixed } = splitBarTerms(parsed.rhs);
   const fixedRhs = fixed ?? ONE;
-  const contrastOptions =
-    options.contrasts === undefined
-      ? {}
-      : { contrasts: options.contrasts, contrastVariables: termsOf({ response: parsed.response, rhs: fixedRhs }, Object.keys(data)).variables };
-  const d = design(parsed, data, { ...(options.levels === undefined ? {} : { levels: options.levels }), dropUnusedLevels: true, ...contrastOptions }, fixedRhs);
+  // as lmer (src/models/mixedStructure.ts): the formula without the random-effects terms, on the model frame of the
+  // whole formula
+  const extraVariables = termsOf(parsed, Object.keys(data), fixedRhs).variables;
+  const contrastOptions = options.contrasts === undefined ? {} : { contrasts: options.contrasts };
+  const d = design(
+    { response: parsed.response, rhs: fixedRhs },
+    data,
+    { ...(options.levels === undefined ? {} : { levels: options.levels }), dropUnusedLevels: true, ...contrastOptions, extraVariables },
+    fixedRhs,
+  );
   const { terms, frame } = d;
 
   let keep = d.colNames.map((_, j) => j);

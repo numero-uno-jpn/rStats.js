@@ -81,13 +81,18 @@ describe("lmer", () => {
     };
     fixture.cases.forEach((c, index) => {
       const a = c.args;
-      const options: LmerOptions = { REML: a.REML as boolean };
+      // (REML may be given as a number, written as a string in the fixture: `REML: 0` is ML)
+      const options: LmerOptions = { REML: (typeof a.REML === "string" ? num(a.REML) : a.REML) as boolean };
       if (a.contrasts !== undefined) options.contrasts = a.contrasts as NonNullable<LmerOptions["contrasts"]>;
       if (a.levels !== undefined) options.levels = a.levels as NonNullable<LmerOptions["levels"]>;
       const r = lmer(a.formula as string, dataFrameOf(a.data, a.dataTypes), options);
       const e = c.expected;
       const ref = c.reference!;
       const where = `case ${index} (${String(a.formula)}, REML = ${String(a.REML)})`;
+      // (the result's REML is the boolean)
+      if (r.REML !== (options.REML === undefined ? true : Boolean(options.REML))) {
+        failures.push(`${where} REML: ${String(r.REML)}`);
+      }
 
       for (const f of SCALARS) {
         const x = num(ref[f] as string);
@@ -181,8 +186,8 @@ describe("lmer", () => {
       if (r.nObs !== r.fitted.length || r.rows.length !== r.nObs) failures.push(`${where} nObs ${r.nObs}, rows ${r.rows.length}`);
 
       // the criterion is no worse than lme4's
-      const dLme4 = num((a.REML ? e.REMLcrit : e.deviance) as string);
-      const d = a.REML ? r.REMLcrit : r.deviance;
+      const dLme4 = num((r.REML ? e.REMLcrit : e.deviance) as string);
+      const d = r.REML ? r.REMLcrit : r.deviance;
       if (!(d <= dLme4 + TOL_LME4 * Math.abs(dLme4))) failures.push(`${where} criterion ${d} worse than lme4's ${dLme4}`);
     });
     const show = (m: Map<string, number>): string => [...m].map(([f, w]) => `${f} ${w.toExponential(1)}`).join(", ");

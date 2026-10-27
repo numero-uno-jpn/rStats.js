@@ -18,7 +18,7 @@ import { pt1, qt1 } from "../distributions/t.js";
 import { eigen } from "../linalg/eigen.js";
 import { ginv } from "../linalg/kappa.js";
 import { Warnings } from "./glmFamily.js";
-import { lmerInternals, type LmerResult } from "./lmer.js";
+import { checkOptions, lmerInternals, logicalOption, type LmerResult } from "./lmer.js";
 import { varparDerivatives } from "./mixedDerivatives.js";
 import type { MixedModelStructure } from "./mixedStructure.js";
 
@@ -79,16 +79,22 @@ export function lmerSatterthwaite(fit: LmerResult): LmerSatterthwaite {
   const cached = satterthwaiteByFit.get(fit);
   if (cached !== undefined) return cached;
   const internals = lmerInternals(fit);
-  const result = satterthwaiteAt(internals.structure, internals.theta, internals.reml);
+  const result = satterthwaiteAt(internals.structure, internals.theta, internals.reml, internals.beta0);
   satterthwaiteByFit.set(fit, result);
   return result;
 }
 
 /**
- * The Satterthwaite quantities at any θ (σ from the penalised residual sum of squares there). Internal: the test
- * evaluates them at lme4's optimum too, to compare with lmerTest's numerical derivatives at the same point.
+ * The Satterthwaite quantities at any θ (σ from the penalised residual sum of squares there), `beta0` added to the
+ * fixed effects (those of a fit's structure, whose response is y − X β₀). Internal: the test evaluates them at lme4's
+ * optimum too, to compare with lmerTest's numerical derivatives at the same point.
  */
-export function satterthwaiteAt(structure: MixedModelStructure, theta: readonly number[], reml: boolean): LmerSatterthwaite {
+export function satterthwaiteAt(
+  structure: MixedModelStructure,
+  theta: readonly number[],
+  reml: boolean,
+  beta0: readonly number[] = [],
+): LmerSatterthwaite {
   const d = varparDerivatives(structure, theta, reml);
   const m = d.varpar.length;
   const e = eigen(d.hessian, { symmetric: true });
@@ -107,7 +113,7 @@ export function satterthwaiteAt(structure: MixedModelStructure, theta: readonly 
     hessian: d.hessian,
     hessianEigenvalues: values,
     vcovVarpar,
-    beta: d.beta,
+    beta: d.beta.map((b, k) => b + (beta0[k] ?? 0)),
     sigma: d.varpar[m - 1]!,
     vcov: d.vcov,
     jacobian: d.jacobian,
@@ -229,7 +235,8 @@ export function fTestOf(s: LmerSatterthwaite, L: readonly (readonly number[])[],
 }
 
 /**
- * Options of {@link lmerSummary}.
+ * Options of {@link lmerSummary}. Any other key is the TypeError `unused argument (<key>)` (R's lmerTest ignores
+ * unknown arguments with a warning).
  *
  * @category Mixed models
  */
@@ -296,8 +303,8 @@ export interface LmerSummary {
  *
  * @category Mixed models
  */
-export function lmerSummary(fit: LmerResult, options: LmerSummaryOptions = {}): LmerSummary {
-  const ddf = options.ddf ?? "Satterthwaite";
+export function lmerSummary(fit: LmerResult, options?: LmerSummaryOptions): LmerSummary {
+  const ddf = checkOptions("lmerSummary", options, ["ddf"], []).ddf ?? "Satterthwaite";
   if (ddf !== "Satterthwaite" && ddf !== "lme4") throw new RangeError(`ddf must be "Satterthwaite" or "lme4", not ${JSON.stringify(ddf)}`);
   const internals = lmerInternals(fit);
   const names = [...internals.structure.xColNames];
@@ -322,16 +329,20 @@ export function lmerSummary(fit: LmerResult, options: LmerSummaryOptions = {}): 
 }
 
 /**
- * Options of {@link lmerContest}.
+ * Options of {@link lmerContest}. R's `collect`, `checkEstimability`, `check_estimability` and `ddf` give the Error
+ * `lmerContest: argument '<key>' is not supported`, any other key the TypeError `unused argument (<key>)`.
  *
  * @category Mixed models
  */
 export interface LmerContestOptions {
   /** The right-hand side of the hypothesis L β = rhs: one value, or one per row of L (default 0). */
   rhs?: number | readonly number[];
-  /** Test the rows jointly with one F-test (default `true`), or each row with its own t-test (`false`). */
+  /**
+   * Test the rows jointly with one F-test (default `true`), or each row with its own t-test (`false`). As in R's
+   * conditions, a number is `false` for 0 and `true` otherwise; `null` and other values are TypeErrors.
+   */
   joint?: boolean;
-  /** With `joint: false`, whether to add the confidence intervals (default `true`). */
+  /** With `joint: false`, whether to add the confidence intervals (default `true`; a logical value as `joint`). */
   confint?: boolean;
   /** The confidence level of the intervals (default 0.95). */
   level?: number;
@@ -392,6 +403,9 @@ export interface LmerContestT {
   warnings: string[];
 }
 
+const CONTEST_KEYS = ["rhs", "joint", "confint", "level"];
+const CONTEST_UNSUPPORTED = ["collect", "checkEstimability", "check_estimability", "ddf"];
+
 /** The rows of a contrast argument: a vector is one row; each row must have one value per fixed effect */
 function contrastRows(L: readonly number[] | readonly (readonly number[])[], p: number): number[][] {
   if (!Array.isArray(L)) throw new TypeError("L must be an array of numbers or an array of rows");
@@ -439,12 +453,13 @@ function contrastRows(L: readonly number[] | readonly (readonly number[])[], p: 
 export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (readonly number[])[], options?: LmerContestOptions & { joint?: true }): LmerContestF;
 export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (readonly number[])[], options: LmerContestOptions & { joint: false }): LmerContestT;
 export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (readonly number[])[], options?: LmerContestOptions): LmerContestF | LmerContestT;
-export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (readonly number[])[], options: LmerContestOptions = {}): LmerContestF | LmerContestT {
+export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (readonly number[])[], options?: LmerContestOptions): LmerContestF | LmerContestT {
+  options = checkOptions("lmerContest", options, CONTEST_KEYS, CONTEST_UNSUPPORTED);
+  const joint = logicalOption(options.joint, true);
+  const confint = logicalOption(options.confint, true);
   const internals = lmerInternals(fit);
   const p = internals.structure.xColNames.length;
   const rows = contrastRows(L, p);
-  const joint = options.joint ?? true;
-  const confint = options.confint ?? true;
   const level = options.level ?? 0.95;
   if (typeof level !== "number" || !(level >= 0 && level <= 1)) throw new RangeError("level must be a number between 0 and 1");
   const rhsOption = options.rhs ?? 0;

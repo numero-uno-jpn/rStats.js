@@ -39,7 +39,22 @@
 // of all the elements has a direction of negative curvature that moves it (then θ is moved a little along it).
 // lme4's own optimiser (and its convergence warnings) are not reproduced: the result is the exact minimiser, which
 // lme4 approaches to its tolerances.
+//
+// The criterion can have several local minima (crossed terms without a fixed intercept, for example, where one term
+// can take the place of the missing intercept). So the local minimum θ* reached from the initial θ is compared with
+// the boundary points of whole terms (oracle/report-0.14.0-behaviour.md, section 1): for each term whose block is not
+// entirely 0 in θ*, the local minimum started at θ* with that term removed (its whole block set to 0) and held at 0.
+// If the lowest of these is lower than θ*'s criterion by more than 1e-8 max(1, |criterion|), the minimisation starts
+// again from it with every element free, and the comparison is repeated; otherwise θ* is the estimate (at most 50
+// restarts). Only whole terms are removed, one at a time.
+//
+// The penalised least-squares problem is linear in y: y − X β₀ for any β₀ gives the same criterion, residuals,
+// random effects and derivatives, and β̂ − β₀. So the fit works with y − X β₀, β₀ the least-squares coefficients of y
+// on X, and adds β₀ back to the fixed effects: with a response of large mean, the rounding error of the fixed effects
+// from the normal equations would otherwise be large next to the residuals, and the criterion noisy. If y − X β₀ is
+// 0 (to 1e-12 max |y|), the criterion is −∞ for every θ and there is no estimate: an error.
 
+import { qr, qrCoef } from "../linalg/qr.js";
 import { profiledDeviance } from "./mixedDeviance.js";
 import type { DataFrame } from "./modelFrame.js";
 import type { ContrastName } from "./modelMatrix.js";
@@ -54,12 +69,18 @@ import { mixedModelStructure, type MixedModelStructure } from "./mixedStructure.
 export type LmerContrastName = ContrastName | "contr.poly";
 
 /**
- * Options of {@link lmer}.
+ * Options of {@link lmer}. Only the keys below are accepted: R's `weights`, `offset`, `subset`, `naAction`,
+ * `na.action`, `control`, `start`, `verbose` and `devFunOnly` give the Error `lmer: argument '<key>' is not
+ * supported`, any other key the TypeError `unused argument (<key>)` (a key whose value is `undefined` included).
  *
  * @category Mixed models
  */
 export interface LmerOptions {
-  /** Whether to minimise the REML criterion (default `true`) or the ML deviance (`false`). */
+  /**
+   * Whether to minimise the REML criterion (default `true`) or the ML deviance (`false`). As in R's conditions, a
+   * number is `false` for 0 and `true` otherwise; `null` and other values (the strings `"TRUE"`, `"FALSE"` included)
+   * are TypeErrors. The result's `REML` is the boolean.
+   */
   REML?: boolean;
   /**
    * A contrast per factor of the fixed-effects part: `"contr.treatment"` (default), `"contr.sum"`, `"contr.helmert"` or
@@ -188,6 +209,16 @@ const GRADIENT_TOLERANCE = 1e-9;
 const MAX_ITERATIONS = 500;
 /** The Hessian is used again after a Newton step whose actual reduction is within this ratio of the predicted one */
 const HESSIAN_REUSE_RATIO = 0.75;
+
+/** A restart from a boundary point must lower the criterion by more than this times max(1, |criterion|) ... */
+const RESTART_THRESHOLD = 1e-8;
+/** ... and there are at most this many restarts */
+const MAX_RESTARTS = 50;
+
+/** The response is fitted exactly by the fixed effects when its least-squares residuals are below this × max |y| */
+const EXACT_FIT = 1e-12;
+const EXACT_FIT_ERROR =
+  "lmer: the response is fitted exactly by the fixed effects (a constant response, for example), so the residual variance is 0";
 
 const OPTIMISATION_FAILED = "lmer: the minimisation of the criterion over theta did not converge";
 
@@ -323,12 +354,21 @@ const sparseCriterion: MixedCriterion = (s, theta, reml) => {
   return { f: r.deviance, g: r.gradient! };
 };
 
-/** The minimiser of the criterion over θ, subject to the lower bounds (see the header) */
-function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: MixedCriterion): number[] {
+/**
+ * A local minimiser of the criterion over θ, subject to the lower bounds (see the header), started at `start`, with
+ * the elements in `held` kept at exactly 0 throughout (never free, never released); with its criterion
+ */
+function localMinimum(
+  s: MixedModelStructure,
+  reml: boolean,
+  criterion: MixedCriterion,
+  start: readonly number[],
+  held: ReadonlySet<number> = new Set(),
+): { theta: number[]; f: number } {
   const diagonal = s.lower.map((b) => b === 0);
   const evaluate = (theta: readonly number[]): { f: number; g: number[] } => criterion(s, theta, reml);
 
-  let theta = s.theta.slice();
+  let theta = start.map((v, j) => (held.has(j) ? 0 : v));
   let { f, g } = evaluate(theta);
   /** Diagonal elements held at exactly 0 */
   const fixed = new Set<number>();
@@ -407,7 +447,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: Mix
    */
   const leaveAlongNegativeCurvature = (): boolean => {
     if (fixed.size === 0) return false;
-    const set = theta.map((_, j) => j);
+    const set = theta.map((_, j) => j).filter((j) => !held.has(j));
     const eig = symmetricEigen(hessian(set));
     const zero = EIGENVALUE_TOLERANCE * Math.max(...eig.values.map(Math.abs));
     const k = eig.values.indexOf(Math.min(...eig.values));
@@ -426,7 +466,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: Mix
   };
 
   for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-    const free = theta.map((_, j) => j).filter((j) => !fixed.has(j));
+    const free = theta.map((_, j) => j).filter((j) => !fixed.has(j) && !held.has(j));
     if (free.length > 0 && !iterate(free)) continue;
     // converged on the free elements. Diagonal elements that reached 0 (to rounding) are held at exactly 0
     const toZero = free.filter((j) => diagonal[j] && !released.has(j) && Math.abs(theta[j]!) < BOUNDARY_CANDIDATE * scaleOf());
@@ -453,7 +493,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: Mix
       for (const column of columnsOfTheta(s)) {
         if (theta[column[0]!]! < 0) for (const j of column) theta[j] = -theta[j]!;
       }
-      return theta.map((v) => (v === 0 ? 0 : v)); // no -0
+      return { theta: theta.map((v) => (v === 0 ? 0 : v)), f }; // no -0
     }
     radius = Math.max(radius, INITIAL_RADIUS * BOUNDARY_CANDIDATE * scaleOf());
     previousNewton = Infinity;
@@ -461,6 +501,68 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: Mix
   }
   throw new Error(OPTIMISATION_FAILED);
 }
+
+/**
+ * The estimate of θ: the local minimum reached from the initial θ, then compared with the local minima reached from
+ * its boundary points with one whole term removed (see the header); a clearly better one is the start of a new local
+ * minimisation, until none is.
+ */
+function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: MixedCriterion): number[] {
+  /** The θ indices of each term's block (its whole lower triangle) */
+  const blocks = s.terms.map((t) => {
+    const nc = t.columns.length;
+    return Array.from({ length: (nc * (nc + 1)) / 2 }, (_, i) => t.thetaOffset + i);
+  });
+  let best = localMinimum(s, reml, criterion, s.theta);
+  for (let round = 0; round < MAX_RESTARTS; round++) {
+    let candidate: { theta: number[]; f: number } | undefined;
+    for (const block of blocks) {
+      if (block.every((j) => best.theta[j] === 0)) continue;
+      const removed = localMinimum(s, reml, criterion, best.theta, new Set(block));
+      if (candidate === undefined || removed.f < candidate.f) candidate = removed;
+    }
+    if (candidate === undefined || !(candidate.f < best.f - RESTART_THRESHOLD * Math.max(1, Math.abs(best.f)))) return best.theta;
+    best = localMinimum(s, reml, criterion, candidate.theta);
+  }
+  throw new Error(OPTIMISATION_FAILED);
+}
+
+/**
+ * The option checks of lmer and of lmerTest's functions (internal; oracle/report-0.14.0-behaviour.md, section 3):
+ * `options` must be an object when given (not null, not an array); its own keys, in order, may be neither among those
+ * of R that are not supported (the first gives an Error) nor unknown (a TypeError listing all of them). A key whose
+ * value is `undefined` counts as given. Returns the options as an object (`{}` when not given).
+ */
+export function checkOptions<T extends object>(
+  fn: string,
+  options: T | undefined,
+  accepted: readonly string[],
+  unsupported: readonly string[],
+): T {
+  if (options === undefined) return {} as T;
+  if (typeof options !== "object" || options === null || Array.isArray(options)) throw new TypeError("options must be an object");
+  const keys = Object.keys(options);
+  const notSupported = keys.find((k) => unsupported.includes(k));
+  if (notSupported !== undefined) throw new Error(`${fn}: argument '${notSupported}' is not supported`);
+  const unknown = keys.filter((k) => !accepted.includes(k));
+  if (unknown.length > 0) throw new TypeError(`unused argument${unknown.length === 1 ? "" : "s"} (${unknown.join(", ")})`);
+  return options;
+}
+
+/**
+ * A logical option as R's conditions take it (internal): `undefined` gives the default, a boolean itself, a number
+ * other than NaN `false` for 0 and `true` otherwise; `null` and anything else are TypeErrors.
+ */
+export function logicalOption(value: unknown, defaultValue: boolean): boolean {
+  if (value === undefined) return defaultValue;
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number" && !Number.isNaN(value)) return value !== 0;
+  if (value === null) throw new TypeError("argument is of length zero");
+  throw new TypeError("argument is not interpretable as logical");
+}
+
+const LMER_KEYS = ["REML", "contrasts", "levels"];
+const LMER_UNSUPPORTED = ["weights", "offset", "subset", "naAction", "na.action", "control", "start", "verbose", "devFunOnly"];
 
 /**
  * Fit a linear mixed model by REML (default) or maximum likelihood. Equivalent to `lme4::lmer()` in R. With the
@@ -479,7 +581,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: Mix
  *
  * @param formula A formula such as `"Reaction ~ Days + (Days | Subject)"`.
  * @param data The data frame: an object of columns.
- * @param options `REML`, and `contrasts` and `levels` as in {@link lm}.
+ * @param options `REML`, and `contrasts` and `levels` as in {@link lm} (see {@link LmerOptions} for the keys accepted).
  *
  * @example
  * ```ts
@@ -498,7 +600,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: Mix
  *
  * @category Mixed models
  */
-export function lmer(formula: string, data: DataFrame, options: LmerOptions = {}): LmerResult {
+export function lmer(formula: string, data: DataFrame, options?: LmerOptions): LmerResult {
   return lmerWithCriterion(formula, data, options, sparseCriterion);
 }
 
@@ -509,8 +611,13 @@ export function lmer(formula: string, data: DataFrame, options: LmerOptions = {}
  * (to refit, for example by maximum likelihood) and the criterion (so that a refit uses the same one).
  */
 export interface LmerInternals {
-  /** The structure of the model (X, Z, the terms, the layout of θ, the model frame's rows) */
+  /**
+   * The structure of the model (X, Z, the terms, the layout of θ, the model frame's rows), with the response replaced
+   * by y − X β₀ (see `beta0`): the criterion and every derivative are those of the model, the fixed effects β̂ − β₀
+   */
   structure: MixedModelStructure;
+  /** β₀, the least-squares coefficients of y on X, to be added to the fixed effects computed from `structure` */
+  beta0: number[];
   /** The data frame given to lmer (the same object, not a copy) */
   data: DataFrame;
   /** The options given to lmer (a copy) */
@@ -543,17 +650,27 @@ export function lmerInternals(fit: LmerResult): LmerInternals {
  * {@link lmer} with the criterion and its gradient given (internal: not exported from the package). The regression
  * test of the sparse computation fits with the dense reference implementation through it.
  */
-export function lmerWithCriterion(formula: string, data: DataFrame, options: LmerOptions, criterion: MixedCriterion): LmerResult {
-  const reml = options.REML ?? true;
+export function lmerWithCriterion(formula: string, data: DataFrame, options: LmerOptions | undefined, criterion: MixedCriterion): LmerResult {
+  const given = checkOptions("lmer", options, LMER_KEYS, LMER_UNSUPPORTED);
+  const reml = logicalOption(given.REML, true);
+  options = { ...given, REML: reml };
   const modelOptions: { contrasts?: Record<string, LmerContrastName>; levels?: Record<string, readonly string[]> } = {};
   if (options.contrasts !== undefined) modelOptions.contrasts = options.contrasts;
   if (options.levels !== undefined) modelOptions.levels = options.levels;
-  const s = mixedModelStructure(formula, data, modelOptions);
+  const original = mixedModelStructure(formula, data, modelOptions);
+  const n = original.y.length;
+  const p = original.xColNames.length;
+  // β₀, the least-squares coefficients of y on X, and the residuals y − X β₀ (see the header)
+  const beta0 = p === 0 ? [] : qrCoef(qr(original.x), original.y);
+  const yc = original.y.map((y, i) => y - original.x[i]!.reduce((sum, v, k) => sum + v * beta0[k]!, 0));
+  // a response in the column space of X: the criterion is −∞ for every θ (no estimate)
+  const maxAbs = (v: readonly number[]): number => v.reduce((m, x) => Math.max(m, Math.abs(x)), 0);
+  if (maxAbs(yc) <= EXACT_FIT * maxAbs(original.y)) throw new Error(EXACT_FIT_ERROR);
+  const s: MixedModelStructure = { ...original, y: yc };
   const theta = minimiseCriterion(s, reml, criterion);
 
   const r = profiledDeviance(s, theta, reml, { rxInverse: true });
-  const n = s.y.length;
-  const p = s.xColNames.length;
+  const fixef = r.beta.map((b, k) => b + beta0[k]!);
   const twoPi = 2 * Math.PI;
   const deviance = r.logDetL + n * (1 + Math.log((twoPi * r.prss) / n));
   const REMLcrit = r.logDetL + r.logDetRX + (n - p) * (1 + Math.log((twoPi * r.prss) / (n - p)));
@@ -562,7 +679,7 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
 
   const vcov = r.rxInverse!.map((row) => row.map((v) => sigma2 * v));
   const stdError = vcov.map((row, i) => Math.sqrt(row[i]!));
-  const tValue = r.beta.map((b, i) => b / stdError[i]!);
+  const tValue = fixef.map((b, i) => b / stdError[i]!);
 
   // the blocks T_k and the variance components
   const varCorr: LmerVarCorr[] = s.terms.map((term) => {
@@ -591,12 +708,18 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
     };
   });
 
-  const fitted = s.x.map((xi) => xi.reduce((sum, v, k) => sum + v * r.beta[k]!, 0));
+  // the residuals from y − X β₀ (the more accurate), the fitted values with the whole fixed effects
+  const fitted = s.x.map((xi) => xi.reduce((sum, v, k) => sum + v * fixef[k]!, 0));
+  const residuals = s.x.map((xi, i) => yc[i]! - xi.reduce((sum, v, k) => sum + v * r.beta[k]!, 0));
   s.z.forEach((col, j) => {
     const bj = r.b[j]!;
-    if (bj !== 0) col.rows.forEach((i, k) => (fitted[i]! += col.values[k]! * bj));
+    if (bj !== 0) {
+      col.rows.forEach((i, k) => {
+        fitted[i]! += col.values[k]! * bj;
+        residuals[i]! -= col.values[k]! * bj;
+      });
+    }
   });
-  const residuals = s.y.map((y, i) => y - fitted[i]!);
 
   const logLik = -(reml ? REMLcrit : deviance) / 2;
   const df = p + theta.length + 1;
@@ -611,8 +734,8 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
     rows: [...s.rows],
     theta,
     fixefNames: [...s.xColNames],
-    fixef: r.beta,
-    coefTable: { estimate: [...r.beta], stdError, tValue },
+    fixef,
+    coefTable: { estimate: [...fixef], stdError, tValue },
     vcov,
     sigma,
     varCorr,
@@ -629,6 +752,6 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
     messages,
     warnings: [...s.warnings],
   };
-  internalsByFit.set(result, { structure: s, data, options: { ...options }, reml, criterion, theta: [...theta] });
+  internalsByFit.set(result, { structure: s, beta0, data, options, reml, criterion, theta: [...theta] });
   return result;
 }

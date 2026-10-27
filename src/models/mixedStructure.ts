@@ -4,8 +4,10 @@
 //
 // Written for rStats.js (no ported code) from oracle/lmer-behaviour.md (stage 1a) and the notation of D. Bates,
 // M. Mächler, B. Bolker, S. Walker (2015), "Fitting Linear Mixed-Effects Models Using lme4", Journal of Statistical
-// Software 67(1). The fixed-effects part is coded as in lm (src/models/modelMatrix.ts); each random-effects term's
-// left-hand side is a model matrix with treatment contrasts; its grouping expression is expanded as a right-hand side
+// Software 67(1). The fixed-effects part is the formula without the random-effects terms, coded as lm codes it
+// (src/models/modelMatrix.ts; the order of its own variables names the interaction columns: `y ~ (z | g) + x * z` has
+// `x:z`), on the model frame of the whole formula; each random-effects term's left-hand side is a model matrix with
+// treatment contrasts (a term without columns is an error); its grouping expression is expanded as a right-hand side
 // into grouping factors (`a/b` gives `b:a` and `a`); `||` splits a term into one term per column group. The terms are
 // then ordered by their number of levels (decreasing, when not already non-increasing; ties reversed). Z is
 // level-major within each term, and Λ_θ is block diagonal with one lower-triangular block per level of each term,
@@ -97,6 +99,8 @@ export type MixedModelStructureOptions = Omit<ModelMatrixOptions, "contrasts"> &
 /** A random-effects term before the grouping factors are formed */
 interface ExpandedTerm {
   lhs: FormulaNode;
+  /** The index of its bar term in the formula */
+  bar: number;
   /** The variables of the grouping factor, in the order of its name */
   groupVariables: string[];
 }
@@ -167,42 +171,46 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
   const { fixed, bars } = splitBarTerms(parsed.rhs);
   if (typeof data !== "object" || data === null) throw new TypeError("data must be an object of columns");
 
-  // the fixed-effects part (its terms collect the variables of the whole formula, so that every model matrix below
-  // uses the same rows)
+  // the fixed-effects part: the formula without the random-effects terms, `response ~ fixed part`, as lm codes it (the
+  // order of its variables names the interaction columns); its model frame has the variables of the whole formula too,
+  // so that every model matrix below uses the same rows
   const frameOptions = {
     ...(options.levels === undefined ? {} : { levels: options.levels }),
     dropUnusedLevels: true,
   };
   // (if nothing is left of the right-hand side, the fixed part is `1`)
   const fixedRhs: FormulaNode = fixed ?? { type: "num", value: 1, text: "1" };
+  const fixedFormula = { response: parsed.response, rhs: fixedRhs };
+  // the variables of the whole formula (in the model frame, those of the fixed part come first, in its order)
+  const allVariables = termsOf(parsed, Object.keys(data), fixedRhs).variables;
   // (a contrast is for a variable of the fixed-effects part: a grouping variable alone counts as absent)
-  const contrastOptions =
-    options.contrasts === undefined
-      ? {}
-      : { contrasts: options.contrasts, contrastVariables: termsOf({ response: parsed.response, rhs: fixedRhs }, Object.keys(data)).variables };
-  const fixedDesign = design(parsed, data, { ...frameOptions, ...contrastOptions }, fixedRhs);
+  const contrastOptions = options.contrasts === undefined ? {} : { contrasts: options.contrasts };
+  const fixedDesign = design(fixedFormula, data, { ...frameOptions, ...contrastOptions, extraVariables: allVariables }, fixedRhs);
   const { frame } = fixedDesign;
   const n = frame.rows.length;
   if (n === 0) throw new RangeError("0 (non-NA) cases");
   // (the model frame's errors, above, come before this check)
   if (bars.length === 0) throw new Error("No random effects terms specified in formula");
-  const variables = fixedDesign.terms.variables;
+  const variables = [...fixedDesign.terms.variables, ...allVariables.filter((v) => !fixedDesign.terms.variables.includes(v))];
 
   // (lhs || group) split into one term per term of lhs, then each term expanded by its grouping factors
   const expanded: ExpandedTerm[] = [];
-  for (const bar of bars) {
+  /** The first bar term (in the formula's order) without columns */
+  let noColumns: number | undefined;
+  bars.forEach((bar, barIndex) => {
     let lhsList: FormulaNode[] = [bar.lhs];
     if (bar.double) {
       const lhsTerms = termsOf(parsed, Object.keys(data), bar.lhs);
       lhsList = lhsTerms.intercept ? [{ type: "num", value: 1, text: "1" }] : [];
       for (const t of lhsTerms.terms) {
-        const term = t.map((v): FormulaNode => ({ type: "var", name: variables[v]! })).reduce((l, r) => ({ type: "binary", op: ":", left: l, right: r }));
+        const term = t.map((v): FormulaNode => ({ type: "var", name: lhsTerms.variables[v]! })).reduce((l, r) => ({ type: "binary", op: ":", left: l, right: r }));
         lhsList.push({ type: "binary", op: "+", left: { type: "num", value: 0, text: "0" }, right: term });
       }
+      if (lhsList.length === 0) noColumns ??= barIndex;
     }
     const factors = groupingFactorsOf(bar.group);
-    for (const lhs of lhsList) for (const groupVariables of factors) expanded.push({ lhs, groupVariables });
-  }
+    for (const lhs of lhsList) for (const groupVariables of factors) expanded.push({ lhs, groupVariables, bar: barIndex });
+  });
 
   // the grouping factors (levels present, ordered by the levels of the first variable, then the second, ...)
   const factorCache = new Map<string, { levels: string[]; codes: number[] }>();
@@ -259,6 +267,7 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
     // the left-hand side: treatment contrasts whatever the options say
     const lhsDesign = design(parsed, data, frameOptions, t.lhs);
     const nc = lhsDesign.colNames.length;
+    if (nc === 0 && (noColumns === undefined || t.bar < noColumns)) noColumns = t.bar;
     const nLevels = t.factor.levels.length;
     terms.push({
       label: `${deparseFormula(t.lhs)} | ${t.name}`,
@@ -273,7 +282,11 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
     thetaOffset += (nc * (nc + 1)) / 2;
   }
 
-  // checks
+  // checks: a term without columns (its bar term as written), then the grouping factors and the numbers of effects
+  if (noColumns !== undefined) {
+    const bar = bars[noColumns]!;
+    throw new Error(`lmer: the random-effects term '${deparseFormula(bar.lhs)} ${bar.double ? "||" : "|"} ${deparseFormula(bar.group)}' has no columns`);
+  }
   if (groups.some((g) => g.levels.length < 2)) throw new RangeError("grouping factors must have > 1 sampled level");
   const tooMany = groups.filter((g) => g.levels.length >= n).map((g) => g.name);
   if (tooMany.length > 0) {

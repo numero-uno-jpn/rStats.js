@@ -8,12 +8,13 @@
 
 import { pgamma1 } from "../distributions/gamma.js";
 import { Warnings } from "./glmFamily.js";
-import { lmerInternals, lmerWithCriterion, type LmerResult } from "./lmer.js";
+import { checkOptions, lmerInternals, lmerWithCriterion, logicalOption, type LmerResult } from "./lmer.js";
 import { fixedEffectsDescription, lmerHypotheses, type HypothesisType, type LmerHypotheses } from "./lmerHypotheses.js";
 import { fTestOf, lmerSatterthwaite, type LmerFRow, type LmerSatterthwaite } from "./lmerTest.js";
 
 /**
- * Options of {@link lmerAnova} for one fit.
+ * Options of {@link lmerAnova} for one fit. R's `ddf` gives the Error `lmerAnova: argument 'ddf' is not supported`,
+ * any other key the TypeError `unused argument (<key>)`.
  *
  * @category Mixed models
  */
@@ -51,12 +52,16 @@ export interface LmerAnovaTable {
 }
 
 /**
- * Options of {@link lmerAnova} for several fits.
+ * Options of {@link lmerAnova} for several fits. R's `modelNames` and `model.names` give the Error
+ * `lmerAnova: argument '<key>' is not supported`, any other key the TypeError `unused argument (<key>)`.
  *
  * @category Mixed models
  */
 export interface LmerCompareOptions {
-  /** Refit the REML fits by maximum likelihood before comparing them (default `true`). */
+  /**
+   * Refit the REML fits by maximum likelihood before comparing them (default `true`). As in R's conditions, a number
+   * is `false` for 0 and `true` otherwise; `null` and other values are TypeErrors.
+   */
   refit?: boolean;
   /** The names of the models, in the order given (default `"MODEL1"`, `"MODEL2"`, ...). */
   names?: readonly string[];
@@ -178,7 +183,7 @@ function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): 
     if (new Set(options.names).size === options.names.length) names = [...options.names];
     else warnings.add("failed to find model names, assigning generic names");
   }
-  const refit = options.refit ?? true;
+  const refit = logicalOption(options.refit, true);
   let logLik: number[];
   if (refit) {
     if (fits.some((f) => f.REML)) messages.push("refitting model(s) with ML (instead of REML)");
@@ -257,7 +262,12 @@ export function lmerAnova(fit: LmerResult, options?: LmerAnovaOptions): LmerAnov
 export function lmerAnova(fits: readonly LmerResult[], options?: LmerCompareOptions): LmerCompareTable;
 export function lmerAnova(
   fit: LmerResult | readonly LmerResult[],
-  options: LmerAnovaOptions | LmerCompareOptions = {},
+  options?: LmerAnovaOptions | LmerCompareOptions,
 ): LmerAnovaTable | LmerCompareTable {
-  return Array.isArray(fit) ? compareFits(fit, options as LmerCompareOptions) : anovaOfFit(fit as LmerResult, options as LmerAnovaOptions);
+  if (Array.isArray(fit)) {
+    const checked = checkOptions<LmerCompareOptions>("lmerAnova", options as LmerCompareOptions | undefined, ["refit", "names"], ["modelNames", "model.names"]);
+    // (the logical value is checked with the options, before the fits)
+    return compareFits(fit, { ...checked, refit: logicalOption(checked.refit, true) });
+  }
+  return anovaOfFit(fit as LmerResult, checkOptions<LmerAnovaOptions>("lmerAnova", options as LmerAnovaOptions | undefined, ["type"], ["ddf"]));
 }

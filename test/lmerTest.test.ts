@@ -23,7 +23,12 @@
 // 1e-5 on the Hessian's diagonal; that element does not enter the degrees of freedom, as the covariance of β̂ does not
 // depend on it there). At the fit's own (exact) optimum the largest relative difference from lmerTest of each field is
 // printed, not checked (lme4's optimum is 1e-9 to 1e-5 from the exact one). Names, messages and warnings are compared
-// exactly with lmerTest's.
+// exactly with lmerTest's, except where lmerTest stopped at another local minimum (the criterion at lmerTest's θ, the
+// fixture's varpar without σ, computed with the library's own criterion function, above the criterion at the
+// reference's θ by more than 1e-6 relative; oracle/report-0.14.0-behaviour.md, section 1): there the messages are
+// lmerTest's without the singular-fit message, then that message if the reference is singular (a diagonal element of
+// its θ below 1e-4), as in test/lmer.test.ts, and the numbers are the reference's (the comparison with lmerTest's
+// values holds trivially there).
 //
 // Independently of the fixture, the analytic derivatives are checked against Richardson-extrapolated central
 // differences of the analytic first derivatives (of d and of the covariance of β̂), within 1e-9 × the largest absolute
@@ -57,6 +62,9 @@ const TOL_AT_P = 1e-6;
 const TOL_AT_EXACT = 1e-12;
 const TOL_AT_VCOV_VARPAR = 1e-8;
 const TOL_AT_VCOV_VARPAR_BOUNDARY = 2e-5;
+/** lmerTest's criterion above the reference's by more than this (relative): lmerTest stopped at another local minimum */
+const TOL_LOCAL = 1e-6;
+const SINGULAR_MESSAGE = "boundary (singular) fit: see help('isSingular')";
 
 const fixture = loadAnovaFixture("lmerTest");
 
@@ -154,7 +162,19 @@ describe("lmerTest: Satterthwaite's tests", () => {
       if (JSON.stringify(summary.names) !== JSON.stringify(es.names)) failures.push(`${where}: names ${JSON.stringify(summary.names)}`);
       const results = [summary, ...contests, ...anovas] as unknown as { messages: string[]; warnings: string[] }[];
       const ours = new Set([...fit.messages, ...results.flatMap((r) => r.messages)]);
-      const theirs = e.messages as Strings;
+      let theirs = e.messages as Strings;
+      // where lmerTest stopped at another local minimum (its criterion clearly above the reference's; see the header),
+      // its messages without the singular-fit message, then that message if the reference is singular
+      if (ref !== undefined) {
+        const { structure, reml } = lmerInternals(fit);
+        const thetaRef = nums(ref.varpar).slice(0, -1);
+        const fRef = profiledDeviance(structure, thetaRef, reml).deviance;
+        const fLmerTest = profiledDeviance(structure, nums(e.varpar).slice(0, -1), reml).deviance;
+        if (fLmerTest > fRef + TOL_LOCAL * Math.abs(fRef)) {
+          theirs = theirs.filter((m) => m !== SINGULAR_MESSAGE);
+          if (thetaRef.some((v, j) => structure.lower[j] === 0 && v < 1e-4)) theirs.push(SINGULAR_MESSAGE);
+        }
+      }
       if (JSON.stringify([...ours]) !== JSON.stringify(theirs)) failures.push(`${where}: messages ${JSON.stringify([...ours])}, lmerTest ${JSON.stringify(theirs)}`);
       const ourWarnings = [...new Set([...fit.warnings, ...results.flatMap((r) => r.warnings)])];
       if (JSON.stringify(withoutNumbers(ourWarnings)) !== JSON.stringify(withoutNumbers(e.warnings as Strings))) {
@@ -186,7 +206,7 @@ describe("lmerTest: Satterthwaite's tests", () => {
       // against lmerTest at lme4's optimum
       const varparLme4 = nums(e.varpar);
       const thetaLme4 = varparLme4.slice(0, -1);
-      const at = satterthwaiteAt(lmerInternals(fit).structure, thetaLme4, fit.REML);
+      const at = satterthwaiteAt(lmerInternals(fit).structure, thetaLme4, fit.REML, lmerInternals(fit).beta0);
       const atTables: Record<string, number[]>[] = [
         (() => {
           const t = Array.from({ length: p }, (_, i) => tTestOf(at, unit(p, i), 0));
@@ -469,7 +489,7 @@ describe("lmerTest: the analytic derivatives", () => {
   it("the derivative of d in θ at σ̂ is the gradient of the profiled criterion, and vanishes at the fit", () => {
     for (const m of fixtureModels.slice(0, 12)) {
       const fit = lmer(m.formula, m.data, m.options);
-      const { structure: s, reml } = lmerInternals(fit);
+      const { structure: s, reml, beta0 } = lmerInternals(fit);
       const theta = fit.theta.map((t, i) => t + 0.1 * (i + 1));
       const d = varparDerivatives(s, theta, reml);
       const g = profiledDeviance(s, theta, reml, { gradient: true }).gradient!;
@@ -479,7 +499,7 @@ describe("lmerTest: the analytic derivatives", () => {
       const atFit = varparDerivatives(s, fit.theta, reml);
       atFit.gradient.forEach((v) => expect(Math.abs(v)).toBeLessThan(1e-9 * Math.max(1, Math.abs(atFit.deviance))));
       expect(atFit.vcov.flat()).toEqual(fit.vcov.flat());
-      expect(atFit.beta).toEqual(fit.fixef);
+      expect(atFit.beta.map((b, k) => b + beta0[k]!)).toEqual(fit.fixef);
     }
   });
 });
