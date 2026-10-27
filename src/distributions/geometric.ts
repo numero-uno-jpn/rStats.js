@@ -10,13 +10,25 @@ import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions
 import { log1mExp } from "../internal/ddexp.js";
 import { nonInt } from "../internal/integer.js";
 import { dbinomRawDD } from "../special/loader.js";
-import { twoSum, type DD } from "../special/dd.js";
+import { ddLog, ddMul, ddMulNum, twoSum, type DD } from "../special/dd.js";
 
 /** p and q = 1 - p in double-double (the smaller one is the exact base) */
 export function probPair(prob: number): { pd: DD; qd: DD } {
   return prob <= 0.5
     ? { pd: [prob, 0], qd: twoSum(1, -prob) }
     : { pd: twoSum(1, -(1 - prob)), qd: [1 - prob, 0] };
+}
+
+/**
+ * q^n (its log if log) for an integer n >= 0 by Loader's form, except from n = 1e290 on: there its double-double
+ * products overflow in the splitting of n (pgeom(8.7e299, 1.1e-300) was NaN, 0.616 expected), and n log q is formed in
+ * double-double with n scaled down by 2^64 and log q up by 2^64 (both exact)
+ */
+function qPow(n: number, pd: DD, qd: DD, log: boolean): number {
+  if (n < 1e290) return dbinomRawDD(0, n, pd, qd, log);
+  const l = ddMul([n / 2 ** 64, 0], ddMulNum(ddLog(qd), 2 ** 64));
+  if (!(l[0] > -Infinity)) return log ? -Infinity : 0;
+  return log ? l[0] + l[1] : Math.exp(l[0]) * (1 + l[1]);
 }
 
 function badProb(prob: number): boolean {
@@ -30,14 +42,14 @@ export function dgeom1(x: number, prob: number, log: boolean): number {
   const n = Math.round(x);
   const { pd, qd } = probPair(prob);
   // q^n
-  const qn = dbinomRawDD(0, n, pd, qd, log);
+  const qn = qPow(n, pd, qd, log);
   return log ? Math.log(prob) + qn : prob * qn;
 }
 
 /** P[X > x] = q^(x+1) (x a nonnegative integer) */
 function upper(x: number, prob: number, log: boolean): number {
   const { pd, qd } = probPair(prob);
-  return dbinomRawDD(0, x + 1, pd, qd, log);
+  return qPow(x + 1, pd, qd, log);
 }
 
 function pgeomRaw(x: number, prob: number, lowerTail: boolean, logP: boolean): number {

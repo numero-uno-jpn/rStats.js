@@ -578,5 +578,9 @@
   {"args":{"q":"5","size":"50","prob":"0.29999999999999999","lowerTail":false,"logP":true},"reference":"-4.3796902193715425e-21"},
   {"args":{"q":"100","size":"1e-10","prob":"0.69999999999999996","lowerTail":false,"logP":false},"reference":"2.177778799439068e-65"},
   {"args":{"q":"30","size":"3","prob":"0.99999999989999999","lowerTail":true,"logP":true},"reference":"-5.2800135419377302e-308"},
-  {"args":{"q":"300","size":"50","prob":"0.29999999999999999","lowerTail":false,"logP":false},"reference":"1.9950359671058499e-12"}
+  {"args":{"q":"300","size":"50","prob":"0.29999999999999999","lowerTail":false,"logP":false},"reference":"1.9950359671058499e-12"},
+  {"args":{"q":"50","size":"1e-10","prob":"0.69999999999999996","lowerTail":true,"logP":true},"reference":"-5.983821218382011e-39"},
+  {"args":{"q":"300","size":"1e-10","prob":"0.10000000000000001","lowerTail":false,"logP":false},"reference":"5.4452556344783192e-26"},
+  {"args":{"q":"300","size":"1e-10","prob":"0.10000000000000001","lowerTail":true,"logP":true},"reference":"-5.4452556344783192e-26"},
+  {"args":{"q":"300","size":"0.01","prob":"0.69999999999999996","lowerTail":true,"logP":true},"reference":"-2.0650236913740059e-162"}
 ]

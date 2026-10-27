@@ -58,5 +58,9 @@
   {"args":{"q":"-1e+20","df":"5","lowerTail":true,"logP":false},"reference":"9.4901672455623611e-100"},
   {"args":{"q":"1e+20","df":"5","lowerTail":false,"logP":false},"reference":"9.4901672455623611e-100"},
   {"args":{"q":"-1e+20","df":"10","lowerTail":true,"logP":false},"reference":"1.23046875e-196"},
-  {"args":{"q":"1e+20","df":"10","lowerTail":false,"logP":false},"reference":"1.23046875e-196"}
+  {"args":{"q":"1e+20","df":"10","lowerTail":false,"logP":false},"reference":"1.23046875e-196"},
+  {"args":{"q":"-1e+100","df":"1.5","lowerTail":true,"logP":false},"reference":"3.770852432016246e-151"},
+  {"args":{"q":"-1e+100","df":"1.5","lowerTail":false,"logP":true},"reference":"-3.770852432016246e-151"},
+  {"args":{"q":"1e+100","df":"1.5","lowerTail":false,"logP":false},"reference":"3.770852432016246e-151"},
+  {"args":{"q":"1e+100","df":"1.5","lowerTail":true,"logP":true},"reference":"-3.770852432016246e-151"}
 ]
