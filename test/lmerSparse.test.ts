@@ -18,25 +18,12 @@ import { lmer, lmerWithCriterion, type LmerResult, type MixedCriterion } from ".
 import { profiledDeviance, type ProfiledDeviance } from "../src/models/mixedDeviance.js";
 import { mixedModelStructure } from "../src/models/mixedStructure.js";
 import { denseProfiledDeviance } from "./helpers/mixedDense.js";
+import { generator } from "./helpers/properties.js";
 
 const TOL_DEVIANCE = 1e-13;
 const TOL_VECTOR = 1e-11;
 const TOL_FIT_CRITERION = 1e-12;
 const TOL_FIT = 1e-9;
-
-/** A seeded generator of uniform and normal numbers (mulberry32 and Box-Muller) */
-function generator(seed: number): { unif: () => number; norm: () => number } {
-  let a = seed >>> 0;
-  const unif = (): number => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-  const norm = (): number => Math.sqrt(-2 * Math.log(1 - unif())) * Math.cos(2 * Math.PI * unif());
-  return { unif, norm };
-}
 
 interface Model {
   formula: string;

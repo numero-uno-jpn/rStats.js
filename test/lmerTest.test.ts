@@ -53,6 +53,7 @@ import { Warnings } from "../src/models/glmFamily.js";
 import { anovaHypotheses, anovaRowsOf, lmerAnova } from "../src/models/lmerAnova.js";
 import { num } from "./helpers/fixture.js";
 import { dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
+import { generator } from "./helpers/properties.js";
 
 const TOL_REF = 1e-9;
 const TOL_EXPECTED = 1e-8;
@@ -326,19 +327,6 @@ describe("lmerTest: Satterthwaite's tests", () => {
 
 // ---- the derivatives against differences of the first derivatives ----
 
-/** A seeded generator of uniform and normal numbers (mulberry32 and Box-Muller) */
-function generator(seed: number): { unif: () => number; norm: () => number } {
-  let a = seed >>> 0;
-  const unif = (): number => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-  const norm = (): number => Math.sqrt(-2 * Math.log(1 - unif())) * Math.cos(2 * Math.PI * unif());
-  return { unif, norm };
-}
 interface Model {
   formula: string;
   data: Record<string, (number | string)[]>;

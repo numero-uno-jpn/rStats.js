@@ -9,6 +9,7 @@ import {
   type FixtureCase,
 } from "./fixture.js";
 import { precisionMode, summarize, writePrecision } from "./precision.js";
+import { satisfiesDefinition as definitionHolds } from "./properties.js";
 
 export interface FixtureSpec {
   /** Fixture name (test/fixtures/<name>.json) */
@@ -49,31 +50,13 @@ function backwardError(spec: FixtureSpec, args: FixtureCase["args"], x: number):
   return Math.abs(back - p) / Math.max(Math.abs(p), Number.MIN_VALUE);
 }
 
-/**
- * Whether the discrete quantile y satisfies the definition, with the same slack as src/internal/discrete.ts
- * (8 ε linear, 2 ε log): lower tail F(y) >= p and F(y-1) < p; upper tail P[X > y] <= p and P[X > y-1] > p.
- */
+/** The definition check of properties.ts on a fixture case (p, lowerTail and logP from its arguments) */
 function satisfiesDefinition(
   args: FixtureCase["args"],
   y: number,
   cdf: (args: FixtureCase["args"], y: number, logScale?: boolean) => number,
 ): boolean {
-  const p = num(args.p);
-  const lower = args.lowerTail === true;
-  const logP = args.logP === true;
-  const E = Number.EPSILON;
-  if (!logP && p < 1e-290) {
-    // p near the subnormal range is compared on the log scale, as in the implementation (discrete.ts)
-    const lt = Math.log(p) + Math.log1p(lower ? -8 * E : 8 * E);
-    const lcdf = (v: number): number => cdf(args, v, true);
-    const okl = (v: number): boolean => (lower ? lcdf(v) >= lt : lcdf(v) <= lt);
-    return okl(y) && (y === 0 || !okl(y - 1));
-  }
-  let t: number;
-  if (logP) t = lower ? p * (1 + 2 * E) : p * (1 - 2 * E);
-  else t = lower ? p * (1 - 8 * E) : 1 - p > 32 * E ? p * (1 + 8 * E) : p;
-  const ok = (v: number): boolean => (lower ? cdf(args, v) >= t : cdf(args, v) <= t);
-  return ok(y) && (y === 0 || !ok(y - 1));
+  return definitionHolds(num(args.p), args.lowerTail === true, args.logP === true, y, (v, logScale) => cdf(args, v, logScale));
 }
 
 /**
