@@ -9,14 +9,15 @@
 // Quantiles use Newton's method starting from Patnaik's (1949) approximation (c χ²_ν, c = (k + 2λ)/(k + λ),
 // ν = (k + λ)^2/(k + 2λ)).
 // With a huge λ the mixture is slow and inaccurate far from the centre; there a Chernoff bound decides first whether
-// the far tail is below the double range (then it is 0 and the near tail 1).
+// the far tail is below the double range (then it is 0 and the near tail 1). For x λ > 4e18 the density comes from the
+// large-argument expansion of the Bessel function and the distribution function from integrating it numerically.
 
 import { dt0, dt1, quantileBoundaries, smallerTail } from "../internal/dpq.js";
 import { invertContinuous } from "../internal/invert.js";
 import { dpoisLogDD, mixtureCdf, mixtureCdfBoth, mixtureDensity, type MixtureKernel } from "../internal/poissonMixture.js";
 import { gammaInc } from "../special/igam.js";
 import { dpoisRaw } from "../special/loader.js";
-import { ddAdd, ddDiv, twoSum } from "../special/dd.js";
+import { ddAdd, ddDiv, twoProd, twoSum } from "../special/dd.js";
 import { digamma } from "../special/psigamma.js";
 import { dgamma1, qgamma1 } from "./gamma.js";
 
@@ -62,12 +63,8 @@ function validParams(df: number, ncp: number): boolean {
  */
 function pnchisqBoth(x: number, df: number, ncp: number, lower: boolean): { lin: number; log: number } {
   const mu = ncp / 2;
-  if (mu * (x / 2) > 1e18) {
-    // x λ is very large (far in the right tail): the peak of the series is too far away, so build the tail from the density (besselAsymptotic)
-    const lq = upperTailAsymptotic(x, df, ncp);
-    if (lower) return { lin: -Math.expm1(lq), log: Math.log1p(-Math.exp(lq)) };
-    return { lin: Math.exp(lq), log: lq };
-  }
+  // x λ is very large: the peak of the series is too far away, so integrate the density (besselAsymptotic)
+  if (mu * (x / 2) > 1e18) return besselTails(x, df, ncp, lower);
   // x so small that x/2 underflows to 0 (the smallest subnormal) is approximated by the smallest positive number
   const kernel = gammaKernel(df / 2, Math.max(x / 2, Number.MIN_VALUE));
   const own = mixtureCdfBoth(mu, kernel, lower);
@@ -83,16 +80,6 @@ function pnchisqBoth(x: number, df: number, ncp: number, lower: boolean): { lin:
     };
   }
   return own;
-}
-
-/**
- * log P[X > x] for very large x. Using the log-derivative of the density f, -(log f)' = s(x),
- * P[X > x] = f(x)/s(x) (1 + O(x^-3/2)),  s(x) = 1/2 - sqrt(λ/x)/2 - (k - 3)/(4x)
- * (f in the form of besselAsymptotic. Used for x λ > 1e18, so the correction is negligible)
- */
-function upperTailAsymptotic(x: number, df: number, ncp: number): number {
-  const s = 0.5 - Math.sqrt(ncp / x) / 2 - (df - 3) / (4 * x);
-  return besselAsymptotic(x, df, ncp, true) - Math.log(s);
 }
 
 function pnchisqRaw(x: number, df: number, ncp: number, lower: boolean, log: boolean): number {
@@ -135,6 +122,15 @@ function dnchisqRaw(x: number, df: number, ncp: number, log: boolean): number {
 function besselAsymptotic(x: number, df: number, ncp: number, log: boolean): number {
   const nu = df / 2 - 1;
   const z = Math.sqrt(ncp * x);
+  const s = besselSeries(nu, z);
+  // -(x + λ)/2 + z = -(sqrt(x) - sqrt(λ))^2 / 2
+  const d = Math.sqrt(x) - Math.sqrt(ncp);
+  const lv = -Math.LN2 - (d * d) / 2 + (nu / 2) * Math.log(x / ncp) - 0.5 * Math.log(2 * Math.PI * z) + Math.log(s);
+  return log ? lv : Math.exp(lv);
+}
+
+/** Σ_m (-1)^m a_m(ν) / z^m of besselAsymptotic */
+function besselSeries(nu: number, z: number): number {
   const mu4 = 4 * nu * nu;
   let term = 1;
   let s = 1;
@@ -143,10 +139,102 @@ function besselAsymptotic(x: number, df: number, ncp: number, log: boolean): num
     s += term;
     if (Math.abs(term) < 1e-17 * Math.abs(s)) break;
   }
-  // -(x + λ)/2 + z = -(sqrt(x) - sqrt(λ))^2 / 2
-  const d = Math.sqrt(x) - Math.sqrt(ncp);
-  const lv = -Math.LN2 - (d * d) / 2 + (nu / 2) * Math.log(x / ncp) - 0.5 * Math.log(2 * Math.PI * z) + Math.log(s);
-  return log ? lv : Math.exp(lv);
+  return s;
+}
+
+/** log(sqrt(2 pi)) */
+const LN_SQRT_2PI = 0.918938533204672741780329736406;
+
+/**
+ * Linear value and log of P[X <= x] (lower) / P[X > x] for very large x λ, by integrating the density of
+ * besselAsymptotic. In t = sqrt(x) the density is g(t) = f(t²) 2t, with
+ *   log g(t) = -(t - sqrt(λ))²/2 + (ν + 1/2) log(t / sqrt(λ)) - log sqrt(2 pi) + log S(t sqrt(λ))
+ * (S the series of besselSeries, 1 + O(1/(t sqrt(λ)))): close to a unit normal density whatever λ is (for k = 1 it
+ * is φ(t - sqrt(λ)), the term φ(t + sqrt(λ)) of the exact density being negligible). log g is concave (its second
+ * derivative is -1 - (ν + 1/2)/t² up to O(1/(t sqrt(λ)))), so g falls on both sides of its mode, the root of
+ * t² - sqrt(λ) t - (ν + 1/2) = 0. The tail beyond t0 = sqrt(x) away from the mode is the smaller one, at most about
+ * 1/2 (g is symmetric up to O(1/sqrt(λ))); it is integrated from t0 outwards and the other tail is 1 - (that).
+ * The integrand is g(t)/g(t0), which starts at 1 and decays monotonically, so the integral has full relative accuracy
+ * even far in a tail; log g(t0) is added in log space, with (t0 - sqrt(λ))² in double-double since in a deep tail its
+ * rounding would otherwise become the relative error of the probability.
+ */
+function besselTails(x: number, df: number, ncp: number, lower: boolean): { lin: number; log: number } {
+  const nu = df / 2 - 1;
+  const c = nu + 0.5;
+  const rl = Math.sqrt(ncp);
+  const t0 = Math.sqrt(x);
+  // t0 - sqrt(λ) without cancellation
+  const d0 = (x - ncp) / (t0 + rl);
+  const mode = (rl + Math.sqrt(Math.max(ncp + 4 * c, 0))) / 2;
+  const up = t0 >= mode;
+  const dir = up ? 1 : -1;
+  const ls0 = Math.log(besselSeries(nu, t0 * rl));
+  // log(g(t0 + dir u) / g(t0)), written with the offset h so that it has no cancellation near u = 0
+  const integrand = (u: number): number => {
+    const h = dir * u;
+    return Math.exp((-h * (2 * d0 + h)) / 2 + c * Math.log1p(h / t0) + Math.log(besselSeries(nu, (t0 + h) * rl)) - ls0);
+  };
+  // Rate at which log g falls at distance u from t0 (the derivative of log g, without the O(1/(t sqrt(λ))) part of S)
+  const rate = (u: number): number => -dir * (c / (t0 + dir * u) - (d0 + dir * u));
+  // Integrate over intervals of doubling width, starting from about the length over which g falls by e^-1. Since log g
+  // is concave, the rest beyond u is at most g(u)/rate(u); stop when that is negligible
+  const end = up ? Infinity : t0;
+  let w = 1 / (1 + Math.abs(rate(0)));
+  let a = 0;
+  let sum = 0;
+  for (let i = 0; i < 200 && a < end; i++) {
+    const b = Math.min(a + w, end);
+    sum += kronrodAdaptive(integrand, a, b, sum, 0);
+    const r = rate(b);
+    if (r > 0 && integrand(b) <= 1e-17 * r * sum) break;
+    a = b;
+    w *= 2;
+  }
+  const [p, pe] = twoProd(d0, d0);
+  const hi = -p / 2;
+  const rest = -pe / 2 + c * Math.log1p(d0 / rl) - LN_SQRT_2PI + ls0 + Math.log(sum);
+  const tail = hi > -700 ? Math.exp(hi) * Math.exp(rest) : Math.exp(hi + rest);
+  if (up !== lower) return { lin: tail, log: hi + rest };
+  return { lin: 1 - tail, log: Math.log1p(-tail) };
+}
+
+// Gauss-Kronrod 7-15 rule (QUADPACK, public domain; as in src/integrate/quadpack.ts): Kronrod nodes, from the end of
+// [-1, 1] to the centre, their weights, and the Gauss weights of the odd-numbered nodes
+const GK15_X = [
+  0.991455371120812639206854697526329, 0.949107912342758524526189684047851, 0.864864423359769072789712788640926,
+  0.741531185599394439863864773280788, 0.58608723546769113029414483825873, 0.405845151377397166906606412076961,
+  0.207784955007898467600689403773245, 0,
+];
+const GK15_WK = [
+  0.02293532201052922496373200805897, 0.063092092629978553290700663189204, 0.104790010322250183839876322541518,
+  0.140653259715525918745189590510238, 0.16900472663926790282658342659855, 0.190350578064785409913256402421014,
+  0.204432940075298892414161999234649, 0.209482141084727828012999174891714,
+];
+const GK15_WG = [
+  0.129484966168869693270611432679082, 0.27970539148927666790146777142378, 0.381830050505118944950369775488975,
+  0.417959183673469387755102040816327,
+];
+
+/**
+ * Integral of f over [a, b] by the 15-point Kronrod rule, bisecting while it differs from the 7-point Gauss rule by
+ * more than 1e-15 of the total (`total`, the integral accumulated so far, or this part's own value). The difference
+ * overestimates the error of the Kronrod value by far, so the result is good to about the rounding of the sum
+ */
+function kronrodAdaptive(f: (u: number) => number, a: number, b: number, total: number, depth: number): number {
+  const m = (a + b) / 2;
+  const h = (b - a) / 2;
+  const fc = f(m);
+  let k = GK15_WK[7]! * fc;
+  let g = GK15_WG[3]! * fc;
+  for (let j = 0; j < 7; j++) {
+    const fs = f(m - h * GK15_X[j]!) + f(m + h * GK15_X[j]!);
+    k += GK15_WK[j]! * fs;
+    if (j % 2 === 1) g += GK15_WG[(j - 1) / 2]! * fs;
+  }
+  k *= h;
+  g *= h;
+  if (Math.abs(k - g) <= 1e-15 * Math.max(Math.abs(k), total) || depth >= 40) return k;
+  return kronrodAdaptive(f, a, m, total, depth + 1) + kronrodAdaptive(f, m, b, total, depth + 1);
 }
 
 export function dnchisq1(x: number, df: number, ncp: number, log: boolean): number {
@@ -246,8 +334,9 @@ export function qnchisq1(p: number, df: number, ncp: number, lowerTail: boolean,
   const { lower, logTarget, linearTarget } = smallerTail(p, lowerTail, logP);
   const cdf = memoCdf(df, ncp);
   // If the distribution function at the smallest positive number already passes the target, the answer is 0 (includes the point mass for df = 0)
-  const atMin = pnchisqRaw(Number.MIN_VALUE, df, ncp, lower, true);
-  if (lower ? atMin >= logTarget : atMin <= logTarget) return 0;
+  // (the upper tail there is built from the lower one: the series for the upper tail itself takes seconds for λ = 1e12)
+  const atMin = pnchisqRaw(Number.MIN_VALUE, df, ncp, true, lower);
+  if (lower ? atMin >= logTarget : Math.log1p(-atMin) <= logTarget) return 0;
   // Patnaik's approximation as the starting value
   const c = (df + 2 * ncp) / (df + ncp);
   const nu = ((df + ncp) * (df + ncp)) / (df + 2 * ncp);
@@ -267,7 +356,9 @@ export function qnchisq1(p: number, df: number, ncp: number, lowerTail: boolean,
     cdf: (x, l) => cdf(x, l).lin,
     cdfLog: (x, l) => cdf(x, l).log,
     pdfLog: (x) => dnchisqRaw(x, df, ncp, true),
-    x0: Math.min(x0, hi),
+    // Start just inside the bracket when the first upper end already passes the target: a start at the end itself
+    // falls back to bisection towards 0, through x where the series is slow (seconds for λ = 1e12)
+    x0: x0 < hi ? x0 : hi * (1 - 2 ** -26),
     lo: 0,
     hi,
     positive: true,
