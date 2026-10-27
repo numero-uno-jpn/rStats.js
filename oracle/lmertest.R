@@ -154,7 +154,8 @@ expected <- function(a) {
 reference <- function(a) {
   s <- prepare(a)
   fit <- suppressMessages(suppressWarnings(lmerTest::lmer(as.formula(a$formula), s$dat, REML = isTRUE(a$REML), contrasts = s$ctr)))
-  opt <- optimum(s, unname(getME(fit, "theta")), isTRUE(a$REML))
+  start <- global_start(s, a, unname(getME(fit, "theta")), isTRUE(a$REML))
+  opt <- optimum(s, start$theta, isTRUE(a$REML))
   S <- satterthwaite_at(s, opt$theta, isTRUE(a$REML))
   p <- s$p
   one <- function(L, rhs = 0, confint = FALSE, level = 0.95) t_row(S, L, rhs, confint, level)
@@ -171,7 +172,7 @@ reference <- function(a) {
     keep <- !vapply(rows, is.null, NA)
     c(list(type = ty, terms = I(as.character(names(hyp)[keep]))), rows_out(rows[keep]))
   })
-  message(sprintf("%s REML=%s: Newton steps %s; Hessian eigenvalues %s", a$formula, isTRUE(a$REML),
+  message(sprintf("%s REML=%s: %s; Newton steps %s; Hessian eigenvalues %s", a$formula, isTRUE(a$REML), start$note,
                   paste(opt$steps, collapse = " "), paste(sprintf("%.3g", S$eig), collapse = " ")))
   out
 }
@@ -215,6 +216,11 @@ add("y ~ A * B * C + (1 | subj)", abc, remls = TRUE)
 add("y ~ A + B + (1 | subj) + (1 | subj:B)", unb)
 # (added after the first cases) a fit on the boundary (theta = 0): the Hessian's warnings
 add("Yield ~ 1 + (1 | Batch)", dye2)
+# (added after; oracle/report-0.14.0-behaviour.md) a local minimum of lme4 or the library (crossed_local in
+# oracle/lmer.R), and the names of the fixed effects from the formula without the random-effects terms
+add("y ~ 0 + x + (1 | g) + (1 | item)", loc1)
+add("y ~ 0 + x + (1 | g) + (1 | item)", loc13, remls = TRUE)
+add("y ~ (x | g) + f * x", d, remls = TRUE)
 
 # The references take minutes per case, so the cases can be computed in parallel shards first:
 #   LMERTEST_SHARD=i/k   compute the cases i, i + k, ... and save them in /out/.lmertest-cache (then stop)

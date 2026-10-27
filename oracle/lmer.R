@@ -147,6 +147,49 @@ optimum <- function(s, theta0, reml, fixed = s$lower == 0 & theta0 < 1e-4) {
   list(theta = theta, steps = steps)
 }
 
+# The start of the reference's Newton iterations: lme4's theta, unless a clearly lower criterion (by more than 1e-7
+# relative) is found elsewhere, since lme4 can stop at a local minimum. Candidates, minimised in double precision with
+# lme4's own deviance function and its default optimiser with its default tolerances (nloptr's BOBYQA): for every nonempty proper subset of the
+# random-effects terms, lme4's theta with the blocks of those terms set to 0, minimised with them held at 0 and then
+# again with every element free; and 5 random starts (diagonal elements uniform on (0, 3 max(1, max theta)), the
+# others 0; their own random stream, so the global one is untouched). Returns the start and a note for the log.
+global_start <- function(s, a, theta_lme4, reml) {
+  devfun <- suppressMessages(suppressWarnings(lmer(as.formula(a$formula), s$dat, REML = reml, contrasts = s$ctr,
+                                                   devFunOnly = TRUE)))
+  nc <- lengths(s$lf$reTrms$cnms); ntheta <- nc * (nc + 1) / 2
+  blocks <- split(seq_along(theta_lme4), rep(seq_along(nc), ntheta))
+  diag_el <- s$lower == 0
+  minimise <- function(start, held = integer(0)) {
+    free <- setdiff(seq_along(start), held)
+    if (!length(free)) return(start)
+    f <- function(p) { th <- start; th[free] <- p; devfun(th) }
+    o <- suppressWarnings(nloptwrap(start[free], f, lower = s$lower[free], upper = rep(Inf, length(free))))
+    th <- start; th[free] <- o$par; th
+  }
+  cands <- list()
+  k <- length(blocks)
+  if (k > 1) for (m in seq_len(2^k - 2)) {
+    drop <- unlist(blocks[bitwAnd(m, 2^(seq_len(k) - 1)) > 0])
+    th <- theta_lme4; th[drop] <- 0
+    held <- minimise(th, drop)
+    cands[[length(cands) + 1]] <- held
+    cands[[length(cands) + 1]] <- minimise(held)
+  } else cands[[1]] <- minimise(replace(theta_lme4, blocks[[1]], 0), blocks[[1]])
+  seed <- if (exists(".Random.seed", globalenv())) get(".Random.seed", globalenv()) else NULL
+  set.seed(1)
+  for (r in 1:5) {
+    th <- ifelse(diag_el, runif(length(theta_lme4), 0, 3 * max(1, theta_lme4)), 0)
+    cands[[length(cands) + 1]] <- minimise(th)
+  }
+  if (is.null(seed)) rm(".Random.seed", envir = globalenv()) else assign(".Random.seed", seed, globalenv())
+  vals <- vapply(cands, devfun, 0)
+  f0 <- devfun(theta_lme4); best <- which.min(vals)
+  if (vals[best] < f0 - 1e-7 * max(1, abs(f0)))
+    list(theta = cands[[best]], note = sprintf("start moved from lme4's theta (criterion %.10g) to %s (%.10g)", f0,
+                                                paste(sprintf("%.6g", cands[[best]]), collapse = ", "), vals[best]))
+  else list(theta = theta_lme4, note = "start: lme4's theta")
+}
+
 # The fields of a fit from theta and the penalised least squares (mpfr), in the fixture's layout
 fields_at <- function(s, theta, reml) {
   r <- pls(s, theta)
@@ -228,10 +271,11 @@ expected <- function(a) {
 reference <- function(a) {
   s <- prepare(a)
   fit <- suppressMessages(suppressWarnings(lmer(as.formula(a$formula), s$dat, REML = isTRUE(a$REML), contrasts = s$ctr)))
-  opt <- optimum(s, unname(getME(fit, "theta")), isTRUE(a$REML))
+  start <- global_start(s, a, unname(getME(fit, "theta")), isTRUE(a$REML))
+  opt <- optimum(s, start$theta, isTRUE(a$REML))
   out <- fields_at(s, opt$theta, isTRUE(a$REML))
   out$newtonSteps <- I(opt$steps)
-  message(sprintf("%s REML=%s: Newton steps %s", a$formula, isTRUE(a$REML), paste(opt$steps, collapse = " ")))
+  message(sprintf("%s REML=%s: %s; Newton steps %s", a$formula, isTRUE(a$REML), start$note, paste(opt$steps, collapse = " ")))
   out
 }
 
@@ -265,5 +309,27 @@ add("y ~ x * f + (1 | g)", d, contrasts = list(f = "contr.sum"))
 add("y ~ f + x + (1 | g)", d, levels = list(f = c("mid", "lo", "hi")))
 add("y ~ x + (x | g)", dna)                                     # missing values
 add("y ~ x + x2 + (1 | g) + (1 | h)", dcol)                     # an aliased column dropped
+
+# (added after the first cases; oracle/report-0.14.0-behaviour.md)
+# crossed groups without a fixed intercept, where the item term can take the place of the intercept: a local minimum
+# with a large item variance besides the global one with the item term at 0 (seed 20261101: the library stopped at the
+# local one, lme4 at the global one; seed 20261113: both stopped at the local one)
+crossed_local <- function(seed) {
+  set.seed(seed)
+  ng <- 12; ni <- 6
+  bg <- 11 + rnorm(ng) * (0.5 + 2 * runif(ng)); bi <- rnorm(ni) * 0.3 * runif(ni)
+  dd <- expand.grid(item = sprintf("i%d", 1:ni), g = sprintf("s%02d", 1:ng), stringsAsFactors = FALSE)[, c("g", "item")]
+  dd$x <- round(rnorm(nrow(dd)), 2)
+  gi <- match(dd$g, unique(dd$g)); ii <- match(dd$item, unique(dd$item))
+  dd$y <- round(bg[gi] + bi[ii] + 2 * dd$x + rnorm(nrow(dd)) * (0.5 + runif(nrow(dd))), 2)
+  dd
+}
+loc1 <- crossed_local(20261101); loc13 <- crossed_local(20261113)
+add("y ~ 0 + x + (1 | g) + (1 | item)", loc1)
+add("y ~ 0 + x + (1 | g) + (1 | item)", loc13)
+# the names of the fixed effects follow the formula without the random-effects terms: f, x and f:x (not x:f)
+add("y ~ (x | g) + f * x", d)
+# REML given as a number: 0 is FALSE
+cases[[length(cases) + 1]] <- list(formula = "Yield ~ 1 + (1 | Batch)", data = dye, REML = 0)
 
 if (!exists("DEBUG_ONE")) write_anova_fixture("lmer", cases, expected, reference)

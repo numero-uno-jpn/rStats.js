@@ -163,6 +163,20 @@ add(x = X, y = I(yb), family = "quasibinomial", link = "sqrt", start = I(c(sqrt(
 add(x = X, y = I(yb), family = "quasibinomial", link = "identity", start = I(c(mean(yb), 0, 0)))
 add(x = X, y = I(yp), family = "poisson", link = "foo")                      # not a link
 
+# (added after; oracle/report-0.14.0-behaviour.md) the inverse link of the Poisson and Gamma families: a step that
+# makes a mean negative gives "NaNs produced" (from the deviance residuals) before "step size truncated due to
+# divergence"
+x10 <- matrix(1:10, ncol = 1)
+add(x = x10, y = I(c(1, 1, 3, 8, 6, 15, 7, 10, 15, 20)), family = "poisson", link = "inverse", start = I(c(0.5, -0.04)))
+add(x = x10, y = I(c(1, 1, 3, 8, 6, 15, 7, 10, 15, 20)), family = "quasipoisson", link = "inverse", start = I(c(0.5, -0.04)))
+add(x = x10, y = I(c(2, 4, 5, 7, 12, 15, 17, 36, 62, 97)), family = "poisson", link = "inverse", start = I(c(0.5, -0.04)))
+add(x = x10, y = I(c(1.41, 5.01, 6.18, 4.36, 7.82, 7.39, 34.62, 82.57, 20.33, 55.75)), family = "Gamma", link = "inverse",
+    start = I(c(0.5, -0.04)))
+# quasi(variance = "mu^2") with a negative response: its deviance residual is NaN (log of y/mu), so the step cannot
+# be corrected (an error)
+add(x = x10, y = I(c(2.1, 1.4, -0.3, 2.2, 3.1, 2.7, 4.4, 3.9, 5.2, 6.1)), family = "quasi", variance = "mu^2", link = "log",
+    start = I(c(0.5, 0.1)))
+
 write_linalg_fixture("glm", cases, function(a) {
   r <- with_warnings(function() {
     fit <- glm_fit(a)
