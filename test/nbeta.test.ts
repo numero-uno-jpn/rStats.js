@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { dbeta, pbeta, qbeta } from "../src/index.js";
 import { bool, num } from "./helpers/fixture.js";
 import { fixtureSuite } from "./helpers/suite.js";
@@ -30,4 +31,30 @@ fixtureSuite({
       : undefined,
   call: (a) => qbeta(num(a.p), num(a.shape1), num(a.shape2), opts(a)),
   backward: (a, x) => pbeta(x, num(a.shape1), num(a.shape2), opts(a)),
+});
+
+describe("noncentral beta: regressions", () => {
+  it("gives 1 for an upper-tail quantile beyond the largest double below 1 (these threw TypeError)", () => {
+    // A tiny p with a small shape2: P[X > x] is still above p at x = 1 - 2^-53, so the answer is 1
+    for (const [p, a, b, ncp] of [
+      [1.2066869150839893e-270, 0.031616179278943515, 0.2793791077635366, 0.6460099483845458],
+      [3.976297326742368e-86, 0.29917959692439394, 0.014605186447542447, 1],
+      [1.0672001223561913e-146, 0.2044317355987288, 0.03536673333921324, 8.073418284076341],
+    ] as const) {
+      expect(qbeta(p, a, b, { ncp, lowerTail: false })).toBe(1);
+      expect(pbeta(1 - 2 ** -53, a, b, { ncp, lowerTail: false })).toBeGreaterThan(p);
+      expect(qbeta(Math.log(p), a, b, { ncp, lowerTail: false, logP: true })).toBe(1);
+    }
+  });
+
+  it("returns at a huge ncp (these did not return)", () => {
+    // λ = 1.2e22: 1 - X is about W/λ, below the double resolution of 1, so the lower-tail quantile is 1
+    const [a, b, ncp] = [79.32204890240992, 0.09403994879604119, 1.245630132105305e22];
+    expect(qbeta(5.3577955561017315e-43, a, b, { ncp })).toBe(1);
+    expect(pbeta(1 - 2 ** -53, a, b, { ncp, logP: true })).toBeLessThan(Math.log(5.3577955561017315e-43));
+    // λ = 2e9: P[X <= x] = P[W >= Y k], k = (1 - x)/x, near the mean of Y: P[χ²_4 >= 2e9 k] = e^-t (1 + t), t = 1e9 k
+    const k = 1e-8 / (1 - 1e-8);
+    const t = 1e9 * k;
+    expect(Math.abs((pbeta(1 - 1e-8, 1, 2, { ncp: 2e9 }) as number) / (Math.exp(-t) * (1 + t)) - 1)).toBeLessThan(1e-3);
+  });
 });

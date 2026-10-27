@@ -267,8 +267,11 @@ the LAPACK reference implementation (modified BSD), LINPACK and EISPACK (public 
   kept separately (mantissa × 2^(500k)), so log answers stay accurate below 1e-300. The
   non-central t integrates a positive integrand after a one-sided double-exponential change of
   variables, so opposite signs of t and δ cause no cancellation; far tails use an integrated-by-
-  parts form and then the |t|^(−ν) power law. The non-central chi-squared density uses the
-  asymptotic expansion of the Bessel function for very large x × ncp.
+  parts form and then the |t|^(−ν) power law. Where the mixture would have too many terms, the
+  non-central chi-squared density uses an asymptotic expansion of the Bessel function (the
+  large-argument one, or the uniform one in the order for large df) and its distribution function
+  integrates that density; the non-central beta and F use limits of X = Y/(Y + W) with Y or W
+  nearly constant, expanded in its cumulants, or an integral over Y.
 - **Sums for tests** (`src/internal/summary.ts`): means, variances and correlations are summed in
   double-double, and deviations are rescaled by powers of two before multiplying, so data around
   1e±200 neither overflow nor underflow.
