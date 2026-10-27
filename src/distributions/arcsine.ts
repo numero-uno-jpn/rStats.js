@@ -9,7 +9,8 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { ddAdd, ddLog, twoSum, type DD } from "../special/dd.js";
+import { ddAdd, ddLog, ddMulNum, ddSub, twoSum, type DD } from "../special/dd.js";
+import { ddExp } from "../internal/ddexp.js";
 import { pbeta1, qbeta1 } from "./beta.js";
 
 /**
@@ -38,20 +39,61 @@ export function darcsine1(x: number, a: number, b: number, log: boolean): number
 }
 
 const LOGPI_DD: DD = [1.1447298858494002, 1.0265951162707826e-17];
+/** log(2 / pi) and log(pi / 2) in double-double */
+const LOG_2_OVER_PI_DD: DD = [Math.LN2 - LOGPI_DD[0], 2.3190468138462996e-17 - LOGPI_DD[1]];
+const LOG_HALF_PI_DD: DD = [-LOG_2_OVER_PI_DD[0], -LOG_2_OVER_PI_DD[1]];
+/** Below this z, asin(sqrt(z)) is sqrt(z) to double precision (the next term is z/6 relative) */
+const TINY = 1e-20;
+const MIN_NORMAL = 2 ** -1022;
 
 export function parcsine1(q: number, a: number, b: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(q) || !valid(a, b)) return NaN;
   if (q <= a) return dt0(lowerTail, logP);
   if (q >= b) return dt1(lowerTail, logP);
   const w = b - a;
-  if (q - a <= b - q) return pbeta1((q - a) / w, 0.5, 0.5, lowerTail, logP);
-  return pbeta1((b - q) / w, 0.5, 0.5, !lowerTail, logP);
+  const nearA = q - a <= b - q;
+  // distance to the nearer end, and the tail on that side
+  const d = nearA ? q - a : b - q;
+  const z = d / w;
+  if (z < TINY) {
+    // (2/pi) asin(sqrt(z)) = (2/pi) sqrt(z) (1 + z/6 + ...): sqrt(d) / sqrt(w), and its log from log d - log w, keep the
+    // digits where z is subnormal or 0
+    const l = ddAdd(LOG_2_OVER_PI_DD, ddMulNum(ddSub(ddLog([d, 0]), ddLog([w, 0])), 0.5));
+    const sq = (Math.sqrt(d) / Math.sqrt(w)) * (2 / Math.PI);
+    const near = sq >= MIN_NORMAL ? sq : Math.exp(l[0]);
+    if (lowerTail === nearA) return logP ? l[0] + l[1] : near;
+    return logP ? Math.log1p(-near) : 1 - near;
+  }
+  if (nearA) return pbeta1(z, 0.5, 0.5, lowerTail, logP);
+  return pbeta1(z, 0.5, 0.5, !lowerTail, logP);
 }
 
 export function qarcsine1(p: number, a: number, b: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(p) || !valid(a, b)) return NaN;
   const bd = quantileBoundaries(p, a, b, lowerTail, logP);
   if (bd !== undefined) return bd;
+  // Where the lower or upper probability is below e^-40, the distance to that end is w sin^2(pi p / 2) = w (pi p / 2)^2
+  // (1 - O(p^2)), from logs (sin^2 underflowed: qarcsine(1.7e-208, 0, 2.6e187) was 0, not 1.9e-228). The log of a
+  // tiny probability in double-double from its linear value (log p rounded loses eps |log p| relative); 1 - p is exact
+  // for p >= 1/2
+  const given: DD = logP ? [p, 0] : ddLog([p, 0]);
+  const other: DD = logP
+    ? p > -Math.LN2
+      ? ddLog([-Math.expm1(p), 0])
+      : [Math.log1p(-Math.exp(p)), 0]
+    : p >= 0.5
+      ? ddLog([1 - p, 0])
+      : [Math.log1p(-p), 0];
+  const [lower, upper] = lowerTail ? [given, other] : [other, given];
+  for (const [lt, fromA] of [
+    [lower, true],
+    [upper, false],
+  ] as const) {
+    if (!(lt[0] < -40)) continue;
+    const e = ddAdd(ddMulNum(ddAdd(lt, LOG_HALF_PI_DD), 2), ddLog([b - a, 0]));
+    const dist = e[0] < -746 ? 0 : ddExp(e)[0];
+    return fromA ? Math.min(a + dist, b) : Math.max(b - dist, a);
+  }
   const z = qbeta1(p, 0.5, 0.5, lowerTail, logP);
   if (z <= 0.5) return a + (b - a) * z;
   // upper half: from b, with the mirrored probability (z near 1 has lost the digits of 1 - z)

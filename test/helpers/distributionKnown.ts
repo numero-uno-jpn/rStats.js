@@ -51,15 +51,6 @@ export function matchesKnown(k: KnownViolation, v: Violation): boolean {
 export const knownViolations: KnownViolation[] = [
   // ---- normal, lognormal, uniform, exponential ----
   {
-    family: "lnorm",
-    property: "log",
-    match: on(/^dlnorm$/, (_pr, x) => x < 1e-10),
-    reason:
-      "dlnorm loses digits far in the left tail: dlnorm(1.994886988462406e-105, { meanlog: 1.5255962912530279, sdlog: " +
-      "6.3597796759296115 }) is exp(-489.2844599522524), the log density -489.2844596759455 is right (relative error 2.8e-7)",
-    examples: [{ params: { meanlog: 1.5255962912530279, sdlog: 6.3597796759296115 }, x: [1.994886988462406e-105] }],
-  },
-  {
     family: "unif",
     property: "log",
     match: on(/^punif$/),
@@ -75,20 +66,13 @@ export const knownViolations: KnownViolation[] = [
     property: "density",
     match: on(/^dexp$/, (pr, x) => pr.rate! * x < 2 ** -1022),
     reason:
-      "pexp's log for subnormal rate x loses digits (log(-expm1(-rate x)), not log(rate) + log(x)): " +
-      "pexp(9.530984706928441e-97, { rate: 4.936871737348155e-227, logP: true })",
+      "pexp's log for subnormal rate x loses digits (log(-expm1(-rate x)) of the rounded product, not log(rate) + " +
+      "log(x)): pexp(9.530984706928441e-97, { rate: 4.936871737348155e-227, logP: true }). Kept to match R, which " +
+      "computes it so (fixtures: pexp(1e-20, 1e-300, log.p = TRUE) is -736.8272408909739, -736.8272297580946 exactly; " +
+      "pexp(1e-300, 1e-300, log.p = TRUE) is -Inf)",
     examples: [{ params: { rate: 4.936871737348155e-227 }, x: [9.530984706928441e-97] }],
   },
   // ---- Weibull, arcsine, triangular, Pareto, Kumaraswamy, inverse gamma ----
-  {
-    family: "arcsine",
-    property: ["roundtrip", "density"],
-    match: on(/arcsine$/, (pr, x, v) => (v.property === "roundtrip" ? x < 1e-100 : (x - pr.a!) / (pr.b! - pr.a!) < 1e-290)),
-    reason:
-      "(x - a) / (b - a) and sin^2 underflow: qarcsine(1.7053740454118274e-208, { a: 0, b: 2.6427604573393012e+187 }) " +
-      "is 0, b (π p / 2)^2 = 1.9e-228 expected; parcsine loses digits when the ratio is subnormal",
-    examples: [{ params: { a: 0, b: 2.6427604573393012e187 } }],
-  },
   {
     family: "geom",
     property: "roundtrip",
@@ -103,61 +87,22 @@ export const knownViolations: KnownViolation[] = [
       "qgeom(0.9999999999999999, 0.9999999886719217))",
     examples: [{ params: { prob: 0.0000011843097327690854 }, x: [112064] }],
   },
-  {
-    family: "invgamma",
-    property: ALL,
-    match: on(/invgamma$/, (pr) => pr.alpha! > 1e15),
-    reason:
-      "large alpha: pinvgamma(2.403439191651939e-65, 1.527471870384886e+67, { beta: 367.1185757428926 }) is 8.09e16, " +
-      "pgamma(beta / x, alpha, { lowerTail: false }) = 0.5 expected, so qinvgamma's quantiles (beta / qgamma) cannot be " +
-      "confirmed; dinvgamma is NaN for x around 1e136 with alpha 1.4e202",
-    examples: [{ params: { alpha: 1.527471870384886e67, beta: 367.1185757428926 } }],
-  },
-  {
-    family: "invgamma",
-    property: "roundtrip",
-    match: on(/^qinvgamma$/, (pr, _x, v) => v.detail.startsWith("= Infinity") || pr.beta! / valueOf(v) < 2 ** -1022),
-    reason:
-      "qinvgamma's upper tail where the gamma quantile beta / x is subnormal or underflows: qinvgamma(2.431739343042036e-199, " +
-      "0.5, { beta: 3.325020537939267e-102, lowerTail: false }) is Infinity, beta / (p Γ(1.5))^2 = 7.2e295 expected " +
-      "(qgamma(p, 0.5) is 0 there); qinvgamma(5.017353909284426e-160, 0.5, { beta: 4.3249964967109584e-165, lowerTail: false }) " +
-      "is off by 8e-7 relative (qgamma(p, 0.5) = 1.98e-319 is subnormal)",
-    examples: [{ params: { alpha: 0.20663543805092938, beta: 5.045560860879713e-226 } }, { params: { alpha: 0.5, beta: 1e-300 } }],
-  },
   // ---- χ², gamma, t, beta, F (central) ----
-  ...["gamma(rate)", "gamma(scale)"].flatMap((family): KnownViolation[] => [
-    {
-      family,
-      property: ["roundtrip", "density", "log"],
-      match: on(/gamma$/, (pr, x, v) =>
-        v.property === "roundtrip" ? v.detail.startsWith("= 0;") : x / (pr.scale ?? 1 / pr.rate!) < 2 ** -1022,
-      ),
-      reason:
-        "x / scale underflows to a subnormal or 0: pgamma(2e-323, 0.0548, { rate: 0.045 }) is 0, (rate x)^shape / " +
-        "Γ(shape + 1) = 1.6e-18 expected (so a quantile that rounds to 0 cannot be confirmed); the log loses digits",
-      examples: [{ params: { shape: 0.054834562146833105, rate: 0.04511610840333119 }, x: [2e-323] }],
-    },
-  ]),
-  ...["t", "nt"].flatMap((family): KnownViolation[] => [
-    {
-      family,
-      property: ALL,
-      match: on(/^[dpq]t$/, (pr) => pr.df! > 1e30 && Number.isFinite(pr.df!)),
-      reason:
-        "huge df (from about 1e30): pt(-3.5346299778784046e+115, 1.8931460816013525e+290) is NaN (0 expected) or throws " +
-        "TypeError; with ncp pt(-1.0255872288729821e+294, 5.791529101318887e+33, { ncp: 1e-84 }) is Infinity; " +
-        "qt(9.216872914669392e-16, 8.973812795594767e+243) is 0, qnorm(p) = -7.95 expected; qt(1.6e-243, 1e120) is -1.13 " +
-        "(pt there 0.129)",
-      examples: [{ params: { df: 1e120, ...(family === "nt" ? { ncp: 1 } : {}) }, x: [-3.5346299778784046e115] }],
-    },
-  ]),
+  {
+    family: "nt",
+    property: ALL,
+    match: on(/^[dpq]t$/, (pr) => pr.df! > 1e30 && Number.isFinite(pr.df!)),
+    reason:
+      "huge df (from about 1e30) with ncp: pt(-1.0255872288729821e+294, 5.791529101318887e+33, { ncp: 1e-84 }) is Infinity",
+    examples: [{ params: { df: 1e120, ncp: 1 }, x: [-3.5346299778784046e115] }],
+  },
   {
     family: "nt",
     property: ALL,
     match: on(/^[dpq]t$/, (pr) => pr.df! < 1e-15),
     reason:
-      "tiny df with ncp: the tails do not add up: pt(-59193519471.86663, 1.9146506048870366e-245, { ncp: -1.8387038943733192 }) " +
-      "is 1.2e-227 and its upper tail 0.033",
+      "tiny df with ncp: the tails do not add up: pt(-59193519471.86663, 1.9146506048870366e-245, " +
+      "{ ncp: -1.8387038943733192 }) is 1.2e-227 and its upper tail 0.033",
     examples: [{ params: { df: 1.9146506048870366e-245, ncp: -1.8387038943733192 }, x: [-59193519471.86663] }],
   },
   {

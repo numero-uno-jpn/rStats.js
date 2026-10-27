@@ -6,17 +6,21 @@ import {
   dbinom,
   dcauchy,
   dchisq,
+  dexp,
   df,
   dgamma,
   dgeom,
   dhyper,
   digamma,
+  dinvgamma,
   dkumar,
   dlnorm,
   dnorm,
+  dpareto,
   dpois,
   dt,
   dtriang,
+  dweibull,
   erf,
   erfc,
   erfinv,
@@ -35,10 +39,12 @@ import {
   pgamma,
   pgeom,
   phyper,
+  pinvgamma,
   pkumar,
   plnorm,
   pnbinom,
   pnorm,
+  ppareto,
   pt,
   ptriang,
   ptukey,
@@ -51,14 +57,18 @@ import {
   qf,
   qgamma,
   qhyper,
+  qinvgamma,
+  qkumar,
   qlnorm,
   qlogis,
   qnbinom,
   qnorm,
+  qpareto,
   qpois,
   qt,
   qtriang,
   qtukey,
+  qweibull,
 } from "../src/index.js";
 import { flipPoint, nextDown, nextUp, ulpsFrom } from "./helpers/float.js";
 
@@ -1628,15 +1638,20 @@ const BETA_T_F: Entry[] = [
     cases: () => pPairs("pt(t, 2)", (v, t) => pt(v, 2, t), flipPoint((v) => 2 / (2 + v * v) > 1e-250, 1e125, 2e125)),
   },
   {
-    where: "distributions/t.ts:138",
+    where: "distributions/t.ts:178",
     fns: "qt",
-    condition: "log p < -30 (start value; SUSPECT: the power law ignores n)",
-    methods: "Cornish-Fisher | power law t = (n^(n/2) / (n B(n/2, 1/2) p))^(1/n)",
+    condition: "log p < -30 and t0^2 > e n (start value; the power law t0 only in its region t^2 >> n)",
+    methods: "Cornish-Fisher | power law t0 = (n^(n/2) / (n B(n/2, 1/2) p))^(1/n)",
     point:
-      "log p = -30 at n = 5 and n = 1e6 (where the power-law start is about sqrt(n) = 1000 while the answer is 7.8). " +
-      "Validity: pt(qt(p)) = p at n = 1e6 for log p from -31 to -700",
+      "log p = -30 at n = 5 and n = 1e6 (where the power-law start would be about sqrt(n) = 1000 while the answer is 7.8); " +
+      "t0^2 = e n at n = 1000 (log p near -504). Validity: pt(qt(p)) = p at n = 1e6 for log p from -31 to -700",
     cases: () => {
       const out: Case[] = [];
+      // log t0 for n = 1000 (mirror of t.ts)
+      const lx0 = (lp: number) => (500 * Math.log(1000) - Math.log(1000) - lbeta(500, 0.5) - lp) / 1000;
+      const ab = flipPoint((lp) => 2 * lx0(lp) > Math.log(1000) + 1, -520, -490);
+      out.push(pair("qt(lp, 1000, lower log)", (lp) => qt(lp, 1000, { logP: true }), ab));
+      out.push(pair("qt(lp, 1000, upper log)", (lp) => qt(lp, 1000, { lowerTail: false, logP: true }), ab));
       for (const n of [5, 1e6]) {
         for (const lowerTail of [true, false]) {
           out.push(pair(`qt(lp, ${n}, ${lowerTail ? "lower" : "upper"} log)`, (lp) => qt(lp, n, { lowerTail, logP: true }), down(-30)));
@@ -2956,6 +2971,518 @@ const EXTREME: Entry[] = [
   },
 ];
 
+// ---- Switches for subnormal, overflowing and huge intermediates (the location-scale and extraDistr families, the
+// gamma family, t) ----
+
+/** log of the lower probability below which qgamma's answer (standardized) is below 2^-1022 (mirror of gamma.ts) */
+const tinyGammaLog = (shape: number): number => shape * (-1022 * Math.LN2) - lgamma1p(shape);
+
+
+const SUBNORMAL: Entry[] = [
+  {
+    where: "distributions/exponential.ts:34",
+    fns: "dexp",
+    condition: "exp(-rate x) < 2^-1022 and rate > 1",
+    methods: "rate exp(-rate x) | exp(log rate - rate x) in double-double",
+    point: "rate x = log(2^1022) at rate = 1e300",
+    cases: () => [
+      pair("dexp(x, 1e300)", (x) => dexp(x, { rate: 1e300 }), around(flipPoint((x) => Math.exp(-1e300 * x) < DBL_MIN, 7e-298, 7.2e-298)[0])),
+    ],
+  },
+  {
+    where: "distributions/gamma.ts:101, :139",
+    fns: "dgamma, pgamma, dchisq, pchisq, dinvgamma, pinvgamma",
+    condition: "y = x / scale < 2^-1022 (x > 0)",
+    methods: "Loader's density, incomplete gamma | y^shape / Γ(shape + 1) and y^shape / (Γ(shape) x), log y = log x - log scale",
+    point: "x = 2^-1022 at shapes 0.5 and 2; x = 2^-1022 1e10 at scale 1e10",
+    cases: () => {
+      const ab = flipPoint((x) => x / 1e10 < DBL_MIN, 1e-298, 1e-297);
+      return [
+        ...pPairs("pgamma(x, 0.5)", pg(0.5), down(DBL_MIN)),
+        ...pPairs("pgamma(x, 2)", pg(2), down(DBL_MIN), { tails: TAILS.slice(2) }),
+        ...dPairs("dgamma(x, 0.5)", (x, log) => dgamma(x, 0.5, { log }), down(DBL_MIN)),
+        ...dPairs("dgamma(x, 2)", (x, log) => dgamma(x, 2, { log }), down(DBL_MIN)),
+        ...pPairs("pgamma(x, 0.5, scale 1e10)", (x, t) => pgamma(x, 0.5, { scale: 1e10, ...t }), ab),
+        ...dPairs("dgamma(x, 0.5, scale 1e10)", (x, log) => dgamma(x, 0.5, { scale: 1e10, log }), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/gamma.ts:166",
+    fns: "qgamma, qchisq, qinvgamma, qbeta (its gamma start)",
+    condition: "log P < shape log(2^-1022) - lgamma(shape + 1) (the standardized quantile below 2^-1022)",
+    methods: "Newton | (P Γ(shape + 1))^(1/shape) in logs, scaled in logs",
+    point: "that P at shapes 0.5 and 2 (lower tail; 2 only on the log scale), from the upper tail on the log scale at 0.5, and at shape 1e-4 from the upper tail (Q near 0.07)",
+    cases: () => {
+      const out: Case[] = [];
+      for (const shape of [0.5, 2]) {
+        const lp0 = tinyGammaLog(shape);
+        out.push(pair(`qgamma(lp, ${shape}, log)`, (lp) => qgamma(lp, shape, { logP: true }), flipPoint((lp) => lp < lp0, lp0 - 1, lp0 + 1)));
+      }
+      const lp0 = tinyGammaLog(0.5);
+      // the upper tail given on the log scale, near 0: the lower tail is -expm1(lp)
+      out.push(pair("qgamma(lp, 0.5, upper log)", (lp) => qgamma(lp, 0.5, { lowerTail: false, logP: true }), flipPoint((lp) => Math.log(-Math.expm1(lp)) < lp0, -1e-150, -1e-160)));
+      out.push(pair("qgamma(p, 0.5)", (p) => qgamma(p, 0.5), flipPoint((p) => Math.log(p) < lp0, Math.exp(lp0) / 2, Math.exp(lp0) * 2)));
+      out.push(pair("qgamma(p, 0.5, scale 1e100)", (p) => qgamma(p, 0.5, { scale: 1e100 }), flipPoint((p) => Math.log(p) < lp0, Math.exp(lp0) / 2, Math.exp(lp0) * 2)));
+      const lq = tinyGammaLog(1e-4);
+      out.push(pair("qgamma(q, 1e-4, upper)", (q) => qgamma(q, 1e-4, { lowerTail: false }), flipPoint((q) => Math.log1p(-q) < lq, 0.01, 0.2)));
+      return out;
+    },
+  },
+  {
+    where: "distributions/gamma.ts:86, :112",
+    fns: "dgamma (log), qgamma (density in Newton steps)",
+    condition: "shape / x normal and finite (shape < 1)",
+    methods: "log shape - log x | log(shape / x)",
+    point: "shape / x = 2^-1022 at shape 1e-300, scale 1e8 (x about 4.5e7)",
+    cases: () => [
+      pair("dgamma(x, 1e-300, scale 1e8, log)", (x) => dgamma(x, 1e-300, { scale: 1e8, log: true }), flipPoint((x) => 1e-300 / x >= DBL_MIN, 4e7, 5e7)),
+    ],
+  },
+  {
+    where: "distributions/gamma.ts:113, :121; invgamma.ts:60",
+    fns: "dgamma, dchisq, dinvgamma (log)",
+    condition: "the log density below half of the log of the Poisson (gamma) factor (the two logs cancelling)",
+    methods: "sum of the logs | log of the linear value",
+    point: "dgamma(x, 2, scale 1e-200, log) at y = x / scale near 313; dinvgamma(x, 2, beta 1e-300, log) at beta / x near 475",
+    cases: () => [
+      pair(
+        "dgamma(x, 2, scale 1e-200, log)",
+        (x) => dgamma(x, 2, { scale: 1e-200, log: true }),
+        flipPoint((x) => Math.abs(dgamma(x, 2, { scale: 1e-200, log: true })) < 0.5 * Math.abs(dpois(1, x / 1e-200, { log: true })), 2.5e-198, 4e-198),
+      ),
+      pair(
+        "dinvgamma(x, 2, beta 1e-300, log)",
+        (x) => dinvgamma(x, 2, { beta: 1e-300, log: true }),
+        flipPoint((x) => Math.abs(dinvgamma(x, 2, { beta: 1e-300, log: true })) < 0.5 * Math.abs(dgamma(1e-300 / x, 2, { log: true })), 1e-303, 3e-303),
+      ),
+    ],
+  },
+  {
+    where: "distributions/invgamma.ts:41, :76",
+    fns: "dinvgamma, pinvgamma",
+    condition: "z = beta / x < 2^-1022",
+    methods: "gamma functions at z (double-double z) | in logs (pgamma with scale x, log beta - log x)",
+    point: "x = 2^1022 at beta = 1, alpha 0.5 and 2",
+    cases: () =>
+      [0.5, 2].flatMap((alpha) => [
+        ...pPairs(`pinvgamma(x, ${alpha})`, (x, t) => pinvgamma(x, alpha, t), up(2 ** 1022)),
+        ...dPairs(`dinvgamma(x, ${alpha})`, (x, log) => dinvgamma(x, alpha, { log }), up(2 ** 1022)),
+      ]),
+  },
+  {
+    where: "distributions/invgamma.ts:55",
+    fns: "dinvgamma",
+    condition: "f_Gamma(z) and f_Gamma(z) z normal",
+    methods: "exp of the log density | f_Gamma(z) z / x",
+    point: "f_Gamma(z) = 2^-1022 at alpha = 2 (z near 715, x = 1 / z)",
+    cases: () => [
+      pair("dinvgamma(x, 2)", (x) => dinvgamma(x, 2), flipPoint((x) => dgamma(1 / x, 2) >= DBL_MIN, 1 / 730, 1 / 700)),
+    ],
+  },
+  {
+    where: "distributions/invgamma.ts:49, :82",
+    fns: "dinvgamma, pinvgamma",
+    condition: "alpha <= 1e15",
+    methods: "the functions at the rounded z | corrected to first order for the low part of z",
+    point: "alpha = 1e15 at x = 1e-15 (z = 1e15, the centre)",
+    cases: () =>
+      pPairs("pinvgamma(1e-15, alpha)", (a, t) => pinvgamma(1e-15, a, t), up(1e15), {
+        tol: {
+          rel: 1e-8,
+          why: "discontinuous by design: the jump is the first-order term for the low part of z, up to eps sqrt(alpha) relative near the centre",
+        },
+      }),
+  },
+  {
+    where: "distributions/invgamma.ts:88",
+    fns: "pinvgamma (log)",
+    condition: "|log P| < 1e8",
+    methods: "log P | log P + f / P zl",
+    point: "log Q_Gamma(z, 2) = -1e8 (z near 1e8 + log z)",
+    cases: () => [
+      pair("pinvgamma(x, 2, log)", (x) => pinvgamma(x, 2, { logP: true }), flipPoint((x) => Math.abs(pgamma(1 / x, 2, { lowerTail: false, logP: true })) < 1e8, 0.9e-8, 1.1e-8)),
+    ],
+  },
+  {
+    where: "distributions/invgamma.ts:101",
+    fns: "qinvgamma",
+    condition: "the gamma quantile below 2^-1022 (gamma.ts:166 for 1 - p)",
+    methods: "beta / qgamma | exp(log beta - log of the gamma quantile)",
+    point: "the gamma lower tail at the flip of gamma.ts:166 at alpha = 0.5, beta = 1e-300",
+    cases: () => {
+      const lp0 = tinyGammaLog(0.5);
+      const o = { beta: 1e-300, lowerTail: false };
+      return [
+        pair("qinvgamma(p, 0.5, upper)", (p) => qinvgamma(p, 0.5, o), flipPoint((p) => Math.log(p) < lp0, Math.exp(lp0) / 2, Math.exp(lp0) * 2)),
+        pair("qinvgamma(lp, 0.5, upper log)", (lp) => qinvgamma(lp, 0.5, { ...o, logP: true }), flipPoint((lp) => lp < lp0, lp0 - 1, lp0 + 1)),
+      ];
+    },
+  },
+  {
+    where: "distributions/t.ts:175",
+    fns: "qt",
+    condition: "log t0 > 709.79, or > 709.77 with the tail at the largest double above the target",
+    methods: "Newton | ±Infinity",
+    point: "-",
+    skip: "the quantile passes the largest double there: Infinity on one side by definition",
+  },
+  {
+    where: "distributions/t.ts:110, :131",
+    fns: "pt, qt",
+    condition: "n < 1e-15",
+    methods: "incomplete beta | 1/2 - (n/2) asinh(t / sqrt(n))",
+    point: "n = 1e-15 at t = 0.001, 3 and 1e100",
+    cases: () => [1e-3, 3, 1e100].flatMap((v) => pPairs(`pt(${v}, n)`, (n, t) => pt(v, n, t), down(1e-15))),
+  },
+  {
+    where: "distributions/t.ts:87",
+    fns: "pt",
+    condition: "t / sqrt(n) < 1e300 (n < 1e-15)",
+    methods: "log(2 r) | asinh(r)",
+    point: "t = 1e290 at n = 1e-20",
+    cases: () => pPairs("pt(t, 1e-20)", (v, t) => pt(v, 1e-20, t), flipPoint((v) => v / 1e-10 < 1e300, 9e289, 1.1e290)),
+  },
+  {
+    where: "distributions/t.ts:98",
+    fns: "pt, qt",
+    condition: "t > 1e150 || n > 1e290",
+    methods: "x and 1 - x as double-double quotients | the same after scaling t^2 and n by a power of 2",
+    point: "t = 1e150 at n = 1e100; n = 1e290 at t = 2e145",
+    cases: () => [
+      ...pPairs("pt(t, 1e100)", (v, t) => pt(v, 1e100, t), down(1e150)),
+      ...pPairs("pt(2e145, n)", (n, t) => pt(2e145, n, t), down(1e290)),
+    ],
+  },
+  {
+    where: "distributions/arcsine.ts:58",
+    fns: "parcsine",
+    condition: "z < 1e-20 (z the distance to the nearer end over b - a)",
+    methods: "pbeta(z, 1/2, 1/2) | (2/π) sqrt(d) / sqrt(w), its log from log d - log w",
+    point: "q = 1e-20 at a = 0, b = 1; q = -1e-20 at a = -1, b = 0",
+    cases: () => [
+      ...pPairs("parcsine(q, 0, 1)", (q, t) => parcsine(q, t), down(1e-20)),
+      ...pPairs("parcsine(q, -1, 0)", (q, t) => parcsine(q, { a: -1, b: 0, ...t }), up(-1e-20)),
+    ],
+  },
+  {
+    where: "distributions/arcsine.ts:92",
+    fns: "qarcsine",
+    condition: "log of the lower or upper probability < -40",
+    methods: "a + w qbeta(p, 1/2, 1/2) | w (π p / 2)^2 from logs",
+    point: "p = e^-40 on either side at a = 0, b = 1",
+    cases: () =>
+      TAILS.map((t) => ({
+        kind: "pair" as const,
+        label: `qarcsine(p, ${tailName(t)})`,
+        f: (p: number) => qarcsine(p, t),
+        ...toAB(t.logP ? down(-40) : flipPoint((p) => Math.log(p) < -40, 1e-18, 1e-17)),
+      })),
+  },
+  {
+    where: "distributions/lognormal.ts:122",
+    fns: "dlnorm",
+    condition: "exp(-z^2/2) < 2^-1022",
+    methods: "the product exp(-z^2/2) / (sqrt(2π) sdlog x) | exp of the whole exponent in double-double",
+    point: "z^2/2 = 708.4 at meanlog 0, sdlog 1 (x = e^-37.64)",
+    cases: () => [pair("dlnorm(x)", (x) => dlnorm(x), around(flipPoint((x) => Math.exp(-(Math.log(x) ** 2) / 2) >= DBL_MIN, 4e-17, 6e-17)[0]))],
+  },
+  {
+    where: "distributions/lognormal.ts:121",
+    fns: "dlnorm",
+    condition: "exp(-z^2/2) underflows to 0",
+    methods: "as above | 0",
+    point: "-",
+    skip:
+      "discontinuous by design, as R: the density is 0 there even where 1 / x would bring it back into range (fixture " +
+      "dlnorm(1e-100, -100, 3) is 0)",
+  },
+  {
+    where: "internal/ddexp.ts:59",
+    fns: "every function using standardizeDD (dinvgamma, pinvgamma, dweibull, pweibull, dlogis, ...)",
+    condition: "|x - location| < 2^-900",
+    methods: "remainder x - q1 scale | the same for everything times 2^600, scaled back",
+    point: "x = 2^-900 at shape 2, scale 1e-271 (x / scale near 1.2)",
+    cases: () => [
+      ...pPairs("pweibull(x, 2, scale 1e-271)", (x, t) => pweibull(x, 2, { scale: 1e-271, ...t }), down(2 ** -900)),
+      ...dPairs("dweibull(x, 2, scale 1e-271)", (x, log) => dweibull(x, 2, { scale: 1e-271, log }), down(2 ** -900)),
+    ],
+  },
+  {
+    where: "internal/ddexp.ts:67",
+    fns: "every function using standardizeDD (dinvgamma, pinvgamma, dlogis, ...)",
+    condition: "q1 scale overflows (x / scale near the largest double)",
+    methods: "remainder x - q1 scale | the same for x 2^-40, scaled back",
+    point:
+      "pinvgamma(x, 2, { beta: 1.797e308, log }) for x from 3.8905 over 61 steps of 2^-46 (z = beta / x near 4.6e307; the " +
+      "log, about -z, scaled by 1e-300 so that the fit through the neighbours does not overflow)",
+    cases: () => [
+      {
+        kind: "sweep",
+        label: "pinvgamma(x, 2, beta max, log)",
+        f: (x) => pinvgamma(x, 2, { beta: Number.MAX_VALUE, logP: true }) * 1e-300,
+        xs: grid(3.8905, 2 ** -46, 61),
+      },
+    ],
+  },
+  // weibull.ts, pareto.ts, triangular.ts, kumaraswamy.ts: the switches for subnormal and overflowing intermediates
+  {
+    where: "distributions/weibull.ts:38",
+    fns: "dweibull, pweibull, qweibull",
+    condition: "x / scale normal and finite, x < 1e300",
+    methods: "log x - log scale | log of the double-double quotient",
+    point: "x / scale = 2^-1022 at scale 1e10 (shape 0.5); x = 1e300 at scale 1e290 (shape 0.05)",
+    cases: () => {
+      const ab = flipPoint((x) => x / 1e10 >= DBL_MIN, 1e-298, 1e-297);
+      return [
+        ...pPairs("pweibull(x, 0.5, scale 1e10)", (x, t) => pweibull(x, 0.5, { scale: 1e10, ...t }), ab),
+        ...dPairs("dweibull(x, 0.5, scale 1e10)", (x, log) => dweibull(x, 0.5, { scale: 1e10, log }), ab),
+        ...pPairs("pweibull(x, 0.05, scale 1e290)", (x, t) => pweibull(x, 0.05, { scale: 1e290, ...t }), down(1e300)),
+        ...dPairs("dweibull(x, 0.05, scale 1e290)", (x, log) => dweibull(x, 0.05, { scale: 1e290, log }), down(1e300)),
+      ];
+    },
+  },
+  {
+    where: "distributions/weibull.ts:45",
+    fns: "dweibull, pweibull",
+    condition: "shape < 1e300 and the product finite",
+    methods: "the double product | shape log u in double-double",
+    point: "-",
+    skip:
+      "both sides give the same value: log u is 0 or at least 1.1e-16 in magnitude, so shape log u near shape = 1e300 is 0 " +
+      "or beyond 1e284, and t is 1, 0 or Infinity on both sides",
+  },
+  {
+    where: "distributions/weibull.ts:81",
+    fns: "dweibull",
+    condition: "E < -2500",
+    methods: "the forms below | 0",
+    point: "-",
+    skip: "both sides are 0: |log(shape / scale)| < 1455, so the density is below e^-1045",
+  },
+  {
+    where: "distributions/weibull.ts:82",
+    fns: "dweibull",
+    condition: "shape / scale normal and finite, E > -708",
+    methods: "exp(log(shape / scale) + E) | (shape / scale) exp(E)",
+    point: "x = 708 at shape = scale = 1 (E = -x); scale = 2^1022 at shape 1, x = 1e300",
+    cases: () => [
+      pair("dweibull(x, 1)", (x) => dweibull(x, 1), down(708)),
+      pair("dweibull(1e300, 1, scale)", (s) => dweibull(1e300, 1, { scale: s }), up(2 ** 1022)),
+    ],
+  },
+  {
+    where: "distributions/weibull.ts:100",
+    fns: "pweibull (lower log)",
+    condition: "shape log u < -700",
+    methods: "log(1 - exp(-t)) | log t",
+    point: "q = e^-700 at shape = scale = 1",
+    cases: () => [pair("pweibull(q, 1, lower log)", (q) => pweibull(q, 1, { logP: true }), around(flipPoint((q) => Math.log(q) < -700, 1e-305, 1e-303)[0]))],
+  },
+  {
+    where: "distributions/weibull.ts:117",
+    fns: "qweibull",
+    condition: "(-log P[X > x])^(1/shape) normal and finite",
+    methods: "exp(log scale + log(-lu) / shape) | scale times it",
+    point: "p = 2^-1022 at shape 1, scale 1e100",
+    cases: () => [pair("qweibull(p, 1, scale 1e100)", (p) => qweibull(p, 1, { scale: 1e100 }), down(DBL_MIN))],
+  },
+  {
+    where: "distributions/pareto.ts:36, :38",
+    fns: "dpareto, ppareto",
+    condition: "x < 1e308 and x / b finite",
+    methods: "log x - log b | double-double x / b",
+    point: "x = 1e308 at b = 1; x / b overflowing at b = 0.5 (a = 0.5)",
+    cases: () => [
+      ...pPairs("ppareto(x, 0.5, 1)", (x, t) => ppareto(x, { a: 0.5, b: 1, ...t }), down(1e308)),
+      ...pPairs("ppareto(x, 0.5, 0.5)", (x, t) => ppareto(x, { a: 0.5, b: 0.5, ...t }), flipPoint((x) => x / 0.5 < Infinity, 8e307, 9e307)),
+      ...dPairs("dpareto(x, 0.5, 0.5)", (x, log) => dpareto(x, { a: 0.5, b: 0.5, log }), flipPoint((x) => x / 0.5 < Infinity, 8e307, 9e307)),
+    ],
+  },
+  {
+    where: "distributions/pareto.ts:53, :56",
+    fns: "ppareto",
+    condition: "|a e| < 1e-8 (e the relative low part of x / b) and the powers normal",
+    methods: "exp(-a log r) | pow corrected to first order",
+    point: "a = 1e9, b = 3, x over 61 steps of 2^-48 (8 ulps) from 3.000000003 (|a e| above and below 1e-8); x = 2^511 at a = 2, b = 1",
+    cases: () => [
+      { kind: "sweep", label: "ppareto(x, 1e9, 3, upper)", f: (x) => ppareto(x, { a: 1e9, b: 3, lowerTail: false }), xs: grid(3.000000003, 2 ** -48, 61) },
+      ...pPairs("ppareto(x, 2, 1)", (x, t) => ppareto(x, { a: 2, b: 1, ...t }), up(2 ** 511)),
+    ],
+  },
+  {
+    where: "distributions/pareto.ts:67, :71-76, :85",
+    fns: "dpareto",
+    condition: "a / b normal; r^-a, r^(-a/2) and the density normal; |a e| < 1e-8",
+    methods: "exp(log(a/b) - (a + 1) log r) | (a/b) r^-a / r, or (a/b) h / r h with h = r^(-a/2)",
+    point: "x = 2^511 at a = 2, b = 1 (r^-a = 2^-1022); the density 2 x^-3 = 2^-1022; a / b = 2^-1022 at a = 1, x = 2^1023 (log)",
+    cases: () => [
+      ...dPairs("dpareto(x, 2, 1)", (x, log) => dpareto(x, { a: 2, b: 1, log }), up(2 ** 511)),
+      pair("dpareto(x, 2, 1)", (x) => dpareto(x, { a: 2, b: 1 }), flipPoint((x) => 2 * x ** -3 >= DBL_MIN, 2 ** 341, 2 ** 342)),
+      pair("dpareto(2^1023, 1, b, log)", (b) => dpareto(2 ** 1023, { a: 1, b, log: true }), up(2 ** 1022)),
+    ],
+  },
+  {
+    where: "distributions/pareto.ts:80",
+    fns: "dpareto (log)",
+    condition: "|log density| < |log(a / b)| / 2 (the logs cancelling)",
+    methods: "log(a / b) - (a + 1) log r | log of the product",
+    point: "a = 1, b = 1e-300 at log(x / b) = 3 log(1e300) / 4",
+    cases: () => [
+      pair(
+        "dpareto(x, 1, 1e-300, log)",
+        (x) => dpareto(x, { a: 1, b: 1e-300, log: true }),
+        flipPoint((x) => Math.abs(dpareto(x, { a: 1, b: 1e-300, log: true })) < 0.5 * Math.log(1e300), 1e-226, 1e-224),
+      ),
+    ],
+  },
+  {
+    where: "distributions/pareto.ts:108",
+    fns: "qpareto",
+    condition: "exp(-log P[X > x] / a) finite",
+    methods: "exp(log b - lu / a) | b exp(-lu / a)",
+    point: "log p = -709.78 (upper tail) at a = 1, b = 1e-10",
+    cases: () => [
+      pair(
+        "qpareto(lp, 1, 1e-10, upper log)",
+        (lp) => qpareto(lp, { a: 1, b: 1e-10, lowerTail: false, logP: true }),
+        flipPoint((lp) => Math.exp(-lp) < Infinity, -710, -709),
+      ),
+    ],
+  },
+  {
+    where: "distributions/triangular.ts:34, :68, :82",
+    fns: "dtriang, ptriang, qtriang",
+    condition: "b - a finite",
+    methods: "everything halved (x, a, b, c) | direct",
+    point: "b - a overflowing at a = -1e308, c = 0",
+    cases: () => {
+      const ab = flipPoint((b) => Number.isFinite(b + 1e308), 7.9e307, 8e307);
+      return [
+        ...pPairs("ptriang(-1e307, -1e308, b, 0)", (b, t) => ptriang(-1e307, { a: -1e308, b, c: 0, ...t }), ab),
+        ...dPairs("dtriang(-1e307, -1e308, b, 0)", (b, log) => dtriang(-1e307, { a: -1e308, b, c: 0, log }), ab),
+        pair("qtriang(0.3, -1e308, b, 0)", (b) => qtriang(0.3, { a: -1e308, b, c: 0 }), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/triangular.ts:75",
+    fns: "ptriang (log of the near tail)",
+    condition: "the near tail below 2^-1022",
+    methods: "log v | log s + log t",
+    point: "2 q^2 = 2^-1022 at a = 0, b = 1, c = 0.5",
+    cases: () => [pair("ptriang(q, lower log)", (q) => ptriang(q, { a: 0, b: 1, c: 0.5, logP: true }), flipPoint((q) => 2 * q * q < DBL_MIN, 1e-154, 2e-154))],
+  },
+  {
+    where: "distributions/triangular.ts:87",
+    fns: "qtriang (log)",
+    condition: "exp(p) < 2^-1022",
+    methods: "sqrt(exp(p)) | exp(p / 2)",
+    point: "log p = log 2^-1022 at a = 0, b = 1, c = 0.5",
+    cases: () => [pair("qtriang(lp, log)", (lp) => qtriang(lp, { a: 0, b: 1, c: 0.5, logP: true }), flipPoint((lp) => Math.exp(lp) < DBL_MIN, -709, -707))],
+  },
+  {
+    where: "distributions/triangular.ts:100, :106",
+    fns: "qtriang",
+    condition: "t <= 1/2 (t the share of the probability on the quantile's side of the mode)",
+    methods: "from the mode, (1 - t) / (1 + sqrt(t)) | from the end, sqrt(t)",
+    point: "lower = 0.25 and upper = 0.25 at a = 0, b = 1, c = 0.5",
+    cases: () => {
+      const o = { a: 0, b: 1, c: 0.5 };
+      return [
+        pair("qtriang(p)", (p) => qtriang(p, o), up(0.25)),
+        pair("qtriang(p)", (p) => qtriang(p, o), down(0.75)),
+        pair("qtriang(p, upper)", (p) => qtriang(p, { ...o, lowerTail: false }), up(0.25)),
+      ];
+    },
+  },
+  {
+    where: "distributions/kumaraswamy.ts:28",
+    fns: "dkumar, pkumar",
+    condition: "a log x subnormal (x near 1, a tiny)",
+    methods: "-expm1(a log x) | -a log x from the factors (log a + log(-log x), or the base scaled by 2^600)",
+    point: "x = 1 - 2^-40, a where a (-log x) = 2^-1022",
+    cases: () => {
+      const lx = -Math.log(1 - 2 ** -40);
+      const ab = flipPoint((a) => a * lx < DBL_MIN, 1e-296, 1e-295);
+      return [
+        pair("dkumar(1 - 2^-40, a, 0.5, log)", (a) => dkumar(1 - 2 ** -40, a, 0.5, { log: true }), ab),
+        pair("dkumar(1 - 2^-40, a, 0.5)", (a) => dkumar(1 - 2 ** -40, a, 0.5), ab),
+        ...pPairs("pkumar(1 - 2^-40, a, 0.5)", (a, tl) => pkumar(1 - 2 ** -40, a, 0.5, tl), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/kumaraswamy.ts:53",
+    fns: "dkumar, pkumar",
+    condition: "|c| < 1e-8 (c = e lo / hi, the first-order correction for the rounding of 1 - x^a)",
+    methods: "exp(e log1p(-x^a)) | pow(1 - x^a, e) (1 + c)",
+    point: "a = 1, b = 1e9, x over 61 steps of 2^-70 from 1e-9 (|c| above and below 1e-8)",
+    cases: () => [{ kind: "sweep", label: "pkumar(x, 1, 1e9, upper)", f: (x) => pkumar(x, 1, 1e9, { lowerTail: false }), xs: grid(1e-9, 2 ** -70, 61) }],
+  },
+  {
+    where: "distributions/kumaraswamy.ts:92, :118",
+    fns: "dkumar, pkumar",
+    condition: "x^a < 2^-1022",
+    methods: "log1p(-x^a) | -x^a from logs",
+    point: "x^2 = 2^-1022 at a = 2, b = 3",
+    cases: () => {
+      const ab = flipPoint((x) => Math.pow(x, 2) < DBL_MIN, 1e-154, 2e-154);
+      return [
+        ...pPairs("pkumar(x, 2, 3)", (x, t) => pkumar(x, 2, 3, t), ab),
+        ...dPairs("dkumar(x, 2, 3)", (x, log) => dkumar(x, 2, 3, { log }), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/kumaraswamy.ts:102",
+    fns: "dkumar",
+    condition: "x^(a-1) < 2^-1022",
+    methods: "the product | exp(log density)",
+    point: "x^2 = 2^-1022 at a = 3, b = 1e300",
+    cases: () => [pair("dkumar(x, 3, 1e300)", (x) => dkumar(x, 3, 1e300), flipPoint((x) => Math.pow(x, 2) < DBL_MIN, 1e-154, 2e-154))],
+  },
+  {
+    where: "distributions/kumaraswamy.ts:109",
+    fns: "dkumar",
+    condition: "a b, a b x^(a-1) and (1 - x^a)^(b-1) normal (and the density normal and finite)",
+    methods: "exp(log density) | the product",
+    point: "a b = 2^-1022 at a = 1e-154, x = 1e-200",
+    cases: () => [pair("dkumar(1e-200, 1e-154, b)", (b) => dkumar(1e-200, 1e-154, b), flipPoint((b) => 1e-154 * b >= DBL_MIN, 2e-154, 3e-154))],
+  },
+  {
+    where: "distributions/kumaraswamy.ts:67, :77",
+    fns: "dkumar",
+    condition: "x = 0, or a or b beyond 1e300 (double); x^a > 1e-10 (log(1 - x^a) from x^a in double-double)",
+    methods: "double | double-double sum; log1p(-x^a) | log of 1 - exp(a log x) in double-double",
+    point: "x^a = 1e-10 at a = 2, b = 3 (x = 1e-5); a = 1e300 at x = 0.5, b = 2 (log)",
+    cases: () => [
+      ...dPairs("dkumar(x, 2, 3)", (x, log) => dkumar(x, 2, 3, { log }), flipPoint((x) => Math.pow(x, 2) > 1e-10, 9e-6, 1.1e-5)),
+      pair("dkumar(0.5, a, 2, log)", (a) => dkumar(0.5, a, 2, { log: true }), down(1e300)),
+    ],
+  },
+  {
+    where: "distributions/kumaraswamy.ts:125",
+    fns: "pkumar (lower log)",
+    condition: "log P[X > q] < -log 2 (and x^a normal)",
+    methods: "log1mExp(lu) | log1p(-(1 - x^a)^b)",
+    point: "q = 0.5 at a = b = 1",
+    cases: () => [pair("pkumar(q, 1, 1, lower log)", (q) => pkumar(q, 1, 1, { logP: true }), up(0.5))],
+  },
+  {
+    where: "distributions/kumaraswamy.ts:138, :139, :142",
+    fns: "qkumar",
+    condition: "lu / b <= -2^-1022; lu / b < -log 2; a < 1e300",
+    methods: "(-lu / b)^(1/a) in logs | log1p(-exp(t)) / a | w^(1/a) corrected for the rounding of 1/a (or plain above 1e300)",
+    point: "b = log 2 / 2^-1022 at p = 1/2, a = 2; p = 1/2 at a = 2, b = 1; a = 1e300 at p = 1/2, b = 1",
+    cases: () => [
+      pair("qkumar(0.5, 2, b)", (b) => qkumar(0.5, 2, b), flipPoint((b) => Math.log(0.5) / b <= -DBL_MIN, 3e307, 3.2e307)),
+      pair("qkumar(p, 2, 1)", (p) => qkumar(p, 2, 1), flipPoint((p) => Math.log1p(-p) < -Math.LN2, 0.49, 0.51)),
+      pair("qkumar(0.5, a, 1)", (a) => qkumar(0.5, a, 1), down(1e300)),
+    ],
+  },
+];
+
 // ---- Running the entries ----
 
 const ENTRIES: Entry[] = [
@@ -2980,6 +3507,7 @@ const ENTRIES: Entry[] = [
   ...INTERNAL,
   ...EXTRA,
   ...EXTREME,
+  ...SUBNORMAL,
 ];
 
 /** Checks that fail at the time of writing (live bugs, not fixed here) */

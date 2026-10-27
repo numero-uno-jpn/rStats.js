@@ -1,12 +1,20 @@
 // Calls at extreme parameters that did not return, took seconds or threw a TypeError (0.15.1), found by the property
 // tests and the fuzz script (test/helpers/distributionKnown.ts). Each must now return quickly; the expected values come
-// from closed forms, limiting distributions or other functions of the library (none from R).
+// from closed forms, limiting distributions or other functions of the library (none from R). The last block: values
+// that had lost digits or were wrong where an intermediate left the normal range, against mpmath (50 digits) or closed
+// forms.
 
 import { describe, expect, it } from "vitest";
 import {
   dbeta,
+  dexp,
   dgamma,
+  dinvgamma,
+  dkumar,
+  dlnorm,
+  dpareto,
   dpois,
+  dweibull,
   lgamma,
   pbeta,
   pchisq,
@@ -15,6 +23,7 @@ import {
   pnbinom,
   pnorm,
   ppois,
+  pt,
   ptukey,
   qbeta,
   qchisq,
@@ -24,8 +33,11 @@ import {
   qnbinom,
   qnorm,
   qpois,
+  qt,
   qtukey,
+  lbeta,
 } from "../src/index.js";
+import { standardizeDD } from "../src/internal/ddexp.js";
 import { nextUp } from "./helpers/float.js";
 
 /** Time bound per call (ms): every call here takes a few ms, at most about 150 for the first ptukey with a given nmeans */
@@ -311,5 +323,86 @@ describe("qbeta, dbeta, pbeta, qf and pf at extreme shapes", () => {
     const v = timed(() => pf(1.7976931348623151e308, 1.511996148841185e-70, 3.444131209067992e-51, { lowerTail: false }));
     expect(v).toBeGreaterThan(0);
     expect(v).toBeLessThan(1);
+  });
+});
+
+describe("intermediates below the normal range or beyond the doubles", () => {
+  it("pgamma and dgamma where x / scale underflows (pgamma was 0)", () => {
+    // x rate = 9e-325 rounds to 0 (or a subnormal): P = (rate x)^shape / Γ(shape + 1) from log x + log rate
+    const [x, shape, rate] = [2e-323, 0.054834562146833105, 0.04511610840333119];
+    expect(rel(pgamma(x, shape, { rate }), 1.752142688656291e-18)).toBeLessThan(1e-14);
+    expect(rel(pgamma(x, shape, { rate, logP: true }), -40.885692241397976)).toBeLessThan(1e-15);
+    expect(rel(pgamma(x, shape, { rate, lowerTail: false }), 1 - 1.752142688656291e-18)).toBeLessThan(1e-16);
+    expect(rel(dgamma(x, shape, { rate, log: true }), 699.2646507311401)).toBeLessThan(1e-15);
+    // shape / x = 8.5e-320 subnormal (log density off by 4e-6): mpmath
+    expect(rel(dgamma(8.753368684162427e214, 7.403118389513195e-105, { rate: 6.255521989443359e-268, log: true }), -734.6921819684226)).toBeLessThan(
+      1e-15,
+    );
+  });
+
+  it("qgamma with a subnormal answer, or a subnormal standardized one (p at the answer was off by 1e-8)", () => {
+    // (p Γ(shape + 1))^(1/shape) scale: subnormal answers to within one step of the subnormals
+    const q1 = qgamma(6.94089809390861e-171, 0.538397823950752, { rate: 0.042693200983347945 });
+    expect(Math.abs(q1 - 1.68926137e-315)).toBeLessThanOrEqual(Number.MIN_VALUE);
+    const q2 = qgamma(4.912965580122071e-160, 0.5, { scale: 839.7372232559014 });
+    expect(Math.abs(q2 - 1.59191815e-316)).toBeLessThanOrEqual(Number.MIN_VALUE);
+    // (p Γ(1.5))^2 = 7.9e-321 standardized, 7.9e-221 once scaled
+    expect(rel(qgamma(1e-160, 0.5, { scale: 1e100 }), 7.853981633974483e-221)).toBeLessThan(1e-15);
+  });
+
+  it("pt and qt at huge df (qt was 0 or -1.13, pt NaN), and near the largest double", () => {
+    // the deep tail: the normal quantile (the t correction (z^3 + z) / (4 n) is below 1e-100 here)
+    expect(rel(qt(9.216872914669392e-16, 8.973812795594767e243), qnorm(9.216872914669392e-16))).toBeLessThan(1e-15);
+    expect(rel(qt(1.6e-243, 1e120), qnorm(1.6e-243))).toBeLessThan(1e-15);
+    expect(pt(-3.5346299778784046e115, 1.8931460816013525e290)).toBe(0);
+    // an answer just inside the doubles (was -Infinity): pt at it gives p back
+    const q = qt(3.048061276945099e-196, 0.6326305466426076);
+    expect(Number.isFinite(q)).toBe(true);
+    expect(rel(pt(q, 0.6326305466426076), 3.048061276945099e-196)).toBeLessThan(1e-13);
+    // x = n / (n + t^2) = 3.5e-182: log P = (n/2) log x - log(n/2) - log B(n/2, 1/2) - log 2 (relative error about x)
+    const [t, n] = [-3.4968967838384863e151, 4.303784828616399e121];
+    const lp = (n / 2) * (Math.log(n) - 2 * Math.log(-t)) - Math.log(n / 2) - lbeta(n / 2, 0.5) - Math.LN2;
+    expect(rel(pt(t, n, { logP: true }), lp)).toBeLessThan(1e-14);
+  });
+
+  it("pt at tiny df (0.49999999999998995 near the centre, 0.5 further out)", () => {
+    expect(pt(-5.047172795936206, 2.4305283208746584e-242)).toBe(0.5);
+    expect(pt(-2.061482495385393e107, 2.4305283208746584e-242)).toBe(0.5);
+    // P[T > t] = I_{n/(n+t^2)}(n/2, 1/2) / 2 by mpmath
+    expect(rel(pt(1e300, 1e-16, { lowerTail: false }), 0.49999999999996453)).toBeLessThan(1e-15);
+    expect(rel(pt(1e300, 1e-16), 0.5000000000000355)).toBeLessThan(1e-15);
+    expect(rel(pt(-3, 1e-16), 0.499999999999999)).toBeLessThan(1e-15);
+    expect(rel(pt(-1e-3, 5e-16), 0.49999999999999717)).toBeLessThan(1e-15);
+  });
+
+  it("dlnorm where exp(-z^2/2) is subnormal (2.8e-7 relative)", () => {
+    const o = { meanlog: 1.5255962912530279, sdlog: 6.3597796759296115 };
+    expect(rel(dlnorm(1.994886988462406e-105, o), 3.2096603827752054e-213)).toBeLessThan(1e-14);
+  });
+
+  it("densities whose factors leave the normal range, or whose logs cancel (mpmath)", () => {
+    // the Poisson factor of dgamma is 1e-322, divided by scale 1.6e-231 (0.4% off)
+    expect(rel(dgamma(6.758279557670165e-291, 6.369947738882342, { scale: 1.6386262381344325e-231 }), 3.423871255820576e-91)).toBeLessThan(1e-13);
+    // x / scale formed with an underflowing error term (4.8e-10 off)
+    expect(rel(dweibull(1.2750765166e-314, 2.250749369996566, { scale: 2.1302175131196527e-293 }), 3.015711289186064e266)).toBeLessThan(1e-14);
+    // log densities near 0 from logs in the hundreds (1.2e-13 to 1.7e-13 off)
+    expect(Math.abs(dinvgamma(9.733914175700438e-286, 91.71039355829886, { beta: 2.5410326411963103e-287, log: true }) - 0.5393994188513022)).toBeLessThan(
+      2e-15,
+    );
+    expect(Math.abs(dpareto(1.1350282929399287e-263, { a: 1640.2411211467913, b: 7.807350669130063e-264, log: true }) + 0.8846617545726139)).toBeLessThan(
+      2e-15,
+    );
+    expect(Math.abs(dkumar(0.30527349408014803, 486.22156834689594, 3.7995271926418764e247, { log: true }) - 0.5207067008544974)).toBeLessThan(2e-15);
+    // 1 - x^a with a log x = -2.8e-314 subnormal (6e-8 off): log(1 - x^a) = log a + log(-log x)
+    expect(rel(dkumar(0.9999999999999893, 2.626503041842417e-300, 0.2906601731651021, { log: true }), -178.91465628123893)).toBeLessThan(1e-14);
+    // exp(-rate x) subnormal, times rate 3e296 (8e-8 off)
+    expect(rel(dexp(2.465047774705277e-294, { rate: 2.9587899214440655e296 }), 5.198674482753862e-21)).toBeLessThan(1e-14);
+  });
+
+  it("standardizeDD near the largest double (NaN: q1 scale rounded to Infinity)", () => {
+    // MAX / 3.890590419749287 in double-double (exact rational arithmetic: relative error 1.9e-33)
+    const [hi, lo] = standardizeDD(Number.MAX_VALUE, 0, 3.890590419749287);
+    expect(hi).toBe(4.620617800673454e307);
+    expect(rel(lo, -3.0426855558538435e291)).toBeLessThan(1e-14);
   });
 });

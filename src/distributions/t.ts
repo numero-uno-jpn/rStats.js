@@ -71,8 +71,46 @@ export function dtDensity1(x: number, df: number, log: boolean): number {
   return dtCore(x, df, log);
 }
 
+/** Below this n the upper tail is 1/2 - tinyDfDelta (the next terms are under 1e-23 absolute) */
+const TINY_DF = 1e-15;
+
+/**
+ * P[0 < T < t] (t > 0) for n < TINY_DF: (n/2) asinh(t / sqrt(n)). With a = n/2 and y = t^2/(n + t^2),
+ * P[|T| < t] = I_y(1/2, a), where 1/B(1/2, a) = a (1 + O(a)) and the integrand u^(-1/2) (1 - u)^(a-1) is
+ * u^(-1/2) / (1 - u) (1 + O(a log(1 - u))), whose integral over [0, y] is 2 atanh(sqrt(y)) = 2 asinh(t / sqrt(n)).
+ * The relative error is O(n log(t^2/n)), below n^2 log^2(t^2/n) < 1e-23 absolute. The incomplete beta function's
+ * series loses digits for so small an a (pt(-5.05, 2.4e-242) was 0.49999999999998995, 0.5 further out)
+ */
+function tinyDfDelta(t: number, n: number): number {
+  const r = t / Math.sqrt(n);
+  // asinh(r) = log(2 r) + O(r^-2) where r overflows
+  return 0.5 * n * (r < 1e300 ? Math.asinh(r) : Math.LN2 + Math.log(t) - 0.5 * Math.log(n));
+}
+
+/**
+ * x = n/(n + t^2) and 1 - x = t^2/(n + t^2) in double-double. Where t^2 or n is beyond the range of Veltkamp
+ * splitting (the products in ddDiv overflowed to NaN: pt(-3.5e151, 4.3e121)), both are first scaled by the same power
+ * of 2, 2^-2m with 2^m >= max(t, sqrt(n)) (exact unless t^2 / n is so small that 1 - x does not matter)
+ */
+function betaArgs(t: number, n: number): [DD, DD] {
+  let tt = t;
+  let nn = n;
+  if (t > 1e150 || n > 1e290) {
+    const f = 2 ** -Math.ceil(Math.log2(Math.max(t, Math.sqrt(n))));
+    tt = t * f;
+    nn = n * f * f;
+  }
+  const t2d = twoProd(tt, tt);
+  const den = ddAdd(t2d, [nn, 0]);
+  return [ddDiv([nn, 0], den), ddDiv(t2d, den)];
+}
+
 /** Log or value of P[T > t] (t > 0): half of s = P[|T| > t] = I_{n/(n+t^2)}(n/2, 1/2) */
 function upperTailPositive(t: number, n: number, log: boolean): number {
+  if (n < TINY_DF) {
+    const d = tinyDfDelta(t, n);
+    return log ? Math.log1p(-2 * d) - Math.LN2 : 0.5 - d;
+  }
   const t2 = t * t;
   const x = n / (n + t2);
   if (!(x > 1e-250)) {
@@ -83,15 +121,14 @@ function upperTailPositive(t: number, n: number, log: boolean): number {
     const e = ddAdd(ddMulNum(lx, n / 2), [-Math.log(n / 2) - lbeta(n / 2, 0.5) - Math.LN2, 0]);
     return log ? e[0] + e[1] : Math.exp(e[0]) * (1 + e[1]);
   }
-  // Form x = n/(n + t^2) and 1 - x = t^2/(n + t^2) in double-double
-  const t2d = twoProd(t, t);
-  const den = ddAdd(t2d, [n, 0]);
-  const s = betaIncDD(n / 2, 0.5, ddDiv([n, 0], den), ddDiv(t2d, den), true, log);
+  const [x1, y1] = betaArgs(t, n);
+  const s = betaIncDD(n / 2, 0.5, x1, y1, true, log);
   return log ? s - Math.LN2 : s / 2;
 }
 
 /** [log, linear] of upperTailPositive (each value identical to upperTailPositive) */
 function upperTailPositiveBoth(t: number, n: number): [number, number] {
+  if (n < TINY_DF) return [upperTailPositive(t, n, true), upperTailPositive(t, n, false)];
   const t2 = t * t;
   const x = n / (n + t2);
   if (!(x > 1e-250)) {
@@ -99,9 +136,8 @@ function upperTailPositiveBoth(t: number, n: number): [number, number] {
     const e = ddAdd(ddMulNum(lx, n / 2), [-Math.log(n / 2) - lbeta(n / 2, 0.5) - Math.LN2, 0]);
     return [e[0] + e[1], Math.exp(e[0]) * (1 + e[1])];
   }
-  const t2d = twoProd(t, t);
-  const den = ddAdd(t2d, [n, 0]);
-  const s = betaIncBothDD(n / 2, 0.5, ddDiv([n, 0], den), ddDiv(t2d, den), true);
+  const [x1, y1] = betaArgs(t, n);
+  const s = betaIncBothDD(n / 2, 0.5, x1, y1, true);
   return [s[0] - Math.LN2, s[1] / 2];
 }
 
@@ -133,9 +169,13 @@ export function qt1(p: number, df: number, lowerTail: boolean, logP: boolean): n
   let x0: number;
   // log t from the tail asymptotic P[T > t] ≈ n^(n/2) t^(-n) / (n B(n/2, 1/2))
   const lx0 = (0.5 * n * Math.log(n) - Math.log(n) - lbeta(n / 2, 0.5) - logTarget) / n;
-  // ±Inf if the answer exceeds the largest double (t is large there and the asymptotic form is accurate)
-  if (lx0 > 709.78) return lower ? -Infinity : Infinity;
-  if (logTarget < -30) {
+  // ±Inf if the answer exceeds the largest double (t is large there and the asymptotic form is accurate); near that
+  // decided by the tail at the largest double itself (a fixed 709.78 gave -Infinity for qt(3.048e-196, 0.633), whose
+  // answer is -1.79e308)
+  if (lx0 > 709.79 || (lx0 > 709.77 && upperTailPositive(Number.MAX_VALUE, n, true) > logTarget)) return lower ? -Infinity : Infinity;
+  // The asymptotic form needs t^2 >> n; for large n the tail stays normal-like far out (t^2 < n), where it would
+  // start Newton near sqrt(n) (qt(1.6e-243, 1e120) converged to -1.13 from there)
+  if (logTarget < -30 && 2 * lx0 > Math.log(n) + 1) {
     x0 = Math.exp(lx0);
   } else {
     // Cornish-Fisher expansion from the normal point z (Abramowitz & Stegun 26.7.5). Poor for small n, so only for n >= 3

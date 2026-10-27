@@ -6,7 +6,10 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { expNeg, log1mExp, logOneMinusExpNeg, mulDD } from "../internal/ddexp.js";
+import { ddExp, expNeg, log1mExp, logOneMinusExpNeg, mulDD } from "../internal/ddexp.js";
+import { ddLog, ddSub } from "../special/dd.js";
+
+const MIN_NORMAL = 2 ** -1022;
 
 /**
  * Parameters of the exponential distribution.
@@ -25,7 +28,14 @@ export function dexp1(x: number, rate: number, log: boolean): number {
   const t = mulDD(rate, x);
   if (Number.isNaN(t[0])) return NaN;
   if (log) return Math.log(rate) - t[0] - t[1];
-  return rate * expNeg(t);
+  const e = expNeg(t);
+  // exp(-rate x) subnormal while a large rate brings the density back: from the log in double-double (it had lost
+  // digits: dexp(2.5e-294, 3e296) was 8e-8 off)
+  if (e < MIN_NORMAL && rate > 1 && t[0] < 1500) {
+    const l = ddSub(ddLog([rate, 0]), t);
+    return l[0] < -746 ? 0 : ddExp(l)[0];
+  }
+  return rate * e;
 }
 
 /** Log or linear value of P[X > x], according to the tail direction */
