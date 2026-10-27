@@ -7,6 +7,21 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Fixed
+
+- `pchisq` and `qchisq` with a noncentrality parameter when x λ > 4e18: the distribution function came from an
+  expansion valid only far in the right tail, and gave values outside [0, 1] near the centre
+  (`pchisq(3e9, 1, { ncp: 3e9 })` was -21849.97, now 0.5) and a relative error up to 3e-3 in the log of the right
+  tail. It now integrates the density, to full double precision in both tails and in log scale. `qchisq` with a huge
+  λ no longer takes seconds.
+- `dchisq` with a noncentrality parameter when x λ > 4e18 lost digits to the difference of two rounded square roots
+  (relative error 1e-8 for λ = 1e15); it is now accurate to rounding.
+- `dsignrank`, `psignrank` and `qsignrank` depended on earlier calls with the same n: once the centre of the
+  distribution had been evaluated, small values underflowed (`dsignrank(0, 2000, { log: true })` became `-Infinity`)
+  or lost digits. Results no longer depend on the order of calls.
+
 ## 0.15.0 - 2026-10-27
 
 ### Breaking
