@@ -191,6 +191,20 @@ same NaN without the warning.
   link and starting values (warnings `NaNs produced`, `step size truncated due to divergence`), and quasi(`"mu^2"`)
   with a negative response and starting values (the error `inner loop 1; cannot correct step size`).
 
+## 6. lmer: a random-effects term without columns is an error
+
+A term whose left-hand side has no columns (`(0 | g)`, `(0 || g)`, `(-1 | g)`) gives no random effects. lme4 fails on
+such a formula (with internal messages that are not worth copying: `length(theta) > 0L is not TRUE`, a parse error
+for `(0 || g)`, a missing method when another term is present). The library today accepts it and fits a model without
+that term (or without any random effect).
+
+- While the structure is built, a bar term `(lhs | group)` whose left-hand side gives no column, or a `(lhs || group)`
+  whose left-hand side gives no term at all, is the Error `lmer: the random-effects term '<label>' has no columns`,
+  with the term as written, deparsed as elsewhere in the structure (`0 | g`, `0 || g`). The first such term in the
+  formula is reported. This comes after the existing errors of the formula and the data (as the other structure
+  errors do).
+- Unit tests: `y ~ 1 + (0 | g)`, `y ~ x + (0 || g)`, `y ~ x + (0 | g) + (1 | g)`; `(0 + x || g)` stays valid.
+
 ## Not changed
 
 - `lmerContest` with `joint: false` accepts a right-hand side per row of L, where lmerTest gives an error: kept as an
