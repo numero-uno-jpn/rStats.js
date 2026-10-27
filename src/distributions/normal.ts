@@ -35,6 +35,8 @@ const SQRT1_2 = Math.SQRT1_2;
  * Where the result is subnormal, rounding happens only in the final multiplication.
  */
 function scaledExpNegHalfSq(a: number, scale: number): number {
+  // exp(-a^2 / 2) underflows for any finite scale (and a * 16 would overflow near the largest double)
+  if (a > 1e10) return 0;
   const hi = Math.floor(a * 16) / 16;
   const lo = a - hi;
   const halfHiSq = (hi * hi) / 2;

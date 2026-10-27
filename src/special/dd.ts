@@ -386,7 +386,7 @@ const LOGTAB128: readonly DD[] = [
 ];
 
 /**
- * Natural log in double-double. x > 0 and finite.
+ * Natural log in double-double. 0 gives -Infinity, Infinity gives Infinity, a negative x or NaN gives NaN.
  *
  * After reducing x = m 2^k (m ∈ [1/√2, √2)), divide m by the nearest c = i/128 and use
  *   log m = log c + 2 atanh(s),  s = (m - c)/(m + c)  (|s| <= 0.0028)
@@ -398,6 +398,8 @@ const LOGTAB128: readonly DD[] = [
  */
 export function ddLog(x: DD): DD {
   if (!ddEnabled) return [Math.log(x[0]), 0];
+  // Outside (0, Infinity) the table index below is out of range; answer as Math.log does
+  if (!(x[0] > 0 && x[0] < Infinity)) return [Math.log(x[0]), 0];
   // x = m 2^k, m ∈ [1/√2, √2). Subnormals are first multiplied by 2^600 to make them normal (exact, being a power of 2)
   let x0 = x[0];
   let x1 = x[1];

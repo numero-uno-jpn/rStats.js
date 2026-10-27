@@ -58,6 +58,7 @@ export function dfDensity1(x: number, m: number, n: number, log: boolean): numbe
   if (!Number.isFinite(n)) return dgamma1(x, m / 2, 2 / m, log); // χ²_m / m
   if (!Number.isFinite(m)) {
     // n / χ²_n: 1/x follows a gamma distribution with shape n/2, scale 2/n
+    // At tiny x this is 0 / 0 = NaN (x^2 underflows), as R gives (df(1e-300, Inf, 5) is NaN); the log is finite
     const dens = dgamma1(1 / x, n / 2, 2 / n, log);
     return log ? dens - 2 * Math.log(x) : dens / (x * x);
   }

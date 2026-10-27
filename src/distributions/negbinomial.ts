@@ -216,6 +216,7 @@ export function dnbinomMu1(x: number, size: number, mu: number, log: boolean): n
   const n = Math.round(x);
   if (size === 0) {
     if (n === 0) return log ? 0 : 1;
+    // NaN at mu = 0 to match R (dnbinom(1, 0, mu = 0) is NaN there), although size = 0 and mu = 0 is the point mass at 0
     return mu === 0 ? NaN : d0(log);
   }
   if (mu === Infinity) return d0(log);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { beta, dnorm, gamma, lbeta, lgamma } from "../src/index.js";
+import { ddLog } from "../src/special/dd.js";
 import { bool, num } from "./helpers/fixture.js";
 import { referenceSuite } from "./helpers/mpmath.js";
 import { fixtureSuite } from "./helpers/suite.js";
@@ -33,5 +34,18 @@ describe("beta and lbeta with huge arguments", () => {
       expect(Math.abs(lbeta(a, b) - l) / Math.abs(l), `lbeta(${a}, ${b})`).toBeLessThan(1e-14);
       expect(Math.abs(beta(a, b) - v), `beta(${a}, ${b})`).toBeLessThanOrEqual(2e-14 * v);
     }
+  });
+});
+
+// The double-double log outside (0, Infinity), where its table index used to fall off the table (TypeError)
+describe("ddLog", () => {
+  it("answers as Math.log for 0, Infinity, negative x and NaN", () => {
+    expect(ddLog([0, 0])).toEqual([-Infinity, 0]);
+    expect(ddLog([-0, 0])).toEqual([-Infinity, 0]);
+    expect(ddLog([Infinity, 0])).toEqual([Infinity, 0]);
+    expect(ddLog([-1, 0])).toEqual([NaN, 0]);
+    expect(ddLog([NaN, 0])).toEqual([NaN, 0]);
+    expect(ddLog([5e-324, 0])[0]).toBe(Math.log(5e-324));
+    expect(ddLog([Number.MAX_VALUE, 0])[0]).toBe(Math.log(Number.MAX_VALUE));
   });
 });

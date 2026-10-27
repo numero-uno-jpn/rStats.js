@@ -40,6 +40,8 @@ export function punif1(q: number, min: number, max: number, lowerTail: boolean, 
   const h = halfIfOverflow(min, max);
   const w = max * h - min * h;
   const v = lowerTail ? (q * h - min * h) / w : (max * h - q * h) / w;
+  // log(v) even near probability 1, where log1p(-(other tail)) would keep more digits: R does the same
+  // (punif(1e-300, lower.tail = FALSE, log.p = TRUE) is 0 there)
   return logP ? Math.log(v) : v;
 }
 
@@ -50,12 +52,14 @@ export function qunif1(p: number, min: number, max: number, lowerTail: boolean, 
   if (Number.isNaN(b)) return NaN;
   if (max === min) return min;
   if (b !== undefined) return b;
-  // Convert to a lower probability, then min + q (max - min)
-  let q: number;
-  if (logP) q = lowerTail ? Math.exp(p) : -Math.expm1(p);
-  else q = lowerTail ? p : 0.5 - p + 0.5;
-  if (halfIfOverflow(min, max) !== 1) return (1 - q) * min + q * max;
-  return min + q * (max - min);
+  // Lower tail: min + p (max - min). Upper tail with p < 1/2: max - p (max - min), which keeps the digits of a small p
+  // (1 - p would lose them); otherwise min + (1 - p)(max - min) with 1 - p exact (or -expm1(log p)), as R gives
+  const half = halfIfOverflow(min, max) !== 1;
+  const at = (q: number): number => (half ? (1 - q) * min + q * max : min + q * (max - min));
+  const pp = logP ? Math.exp(p) : p;
+  if (lowerTail) return at(pp);
+  if (pp < 0.5) return half ? pp * min + (1 - pp) * max : max - pp * (max - min);
+  return at(logP ? -Math.expm1(p) : 0.5 - p + 0.5);
 }
 
 /**
