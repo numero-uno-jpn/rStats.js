@@ -1375,11 +1375,11 @@ const ELEMENTARY: Entry[] = [
   {
     where: "distributions/kumaraswamy.ts:56",
     fns: "pkumar (lower tail, log)",
-    condition: "x^a < 1e-20 (SUSPECT: assumes b x^a << 1, b unchecked)",
+    condition: "max(b, 1) x^a < 1e-10",
     methods: "log1mExp(b log(1 - x^a)) | log(b) + a log x + log1p(-(b - 1) x^a / 2)",
     point:
-      "x^a = 1e-20 at a = 1, b = 3. Validity: log P = log(-expm1(b log1p(-x^a))) (exact closed form) at x = 1e-21 for " +
-      "b x^a from 1e-9 (the expansion holds) to 1e4 (it does not)",
+      "b x^a = 1e-10 at a = 1, b = 3. Validity: log P = log(-expm1(b log1p(-x^a))) (exact closed form) at x = 1e-21 for " +
+      "b x^a from 1e-9 to 1e4 (the expansion was once used there for any b once x^a < 1e-20)",
     cases: () => {
       const ref = (x: number, a: number, b: number) => Math.log(-Math.expm1(b * Math.log1p(-Math.pow(x, a))));
       const check = (bs: number[]) => (): string | undefined => {
@@ -1388,7 +1388,7 @@ const ELEMENTARY: Entry[] = [
         return f.length === 0 ? undefined : f.join("; ");
       };
       return [
-        pair("pkumar(x, 1, 3, lower log)", (x) => pkumar(x, 1, 3, { logP: true }), flipPoint((x) => x < 1e-20, 5e-21, 2e-20)),
+        pair("pkumar(x, 1, 3, lower log)", (x) => pkumar(x, 1, 3, { logP: true }), flipPoint((x) => 3 * x < 1e-10, 2e-11, 5e-11)),
         { kind: "check", label: "b x^a <= 1e-9 against the closed form", run: check([1e3, 1e8, 1e12]) },
         { kind: "check", label: "b x^a >= 1e-5 against the closed form", run: check([1e16, 1e19, 1e21, 1e25]) },
       ];
@@ -2395,13 +2395,6 @@ const KNOWN: KnownViolation[] = [
     reason:
       "the Bessel expansion diverges for ν² >> sqrt(λ x): dchisq(1.1e10, 1e10, ncp = 1e9, log) and " +
       "dchisq(2.0001e9, 1e6, ncp = 2e9, log) are NaN (normal approximation about -12.3 for the latter)",
-  },
-  {
-    entry: "distributions/kumaraswamy.ts:56",
-    check: "b x^a >= 1e-5 against the closed form",
-    reason:
-      "the first-order expansion is used for any b once x^a < 1e-20: log pkumar(1e-21, 1, 1e21, logP) = -0.693 " +
-      "(true -0.459), NaN for b x^a > 2 (pkumar(1e-21, 1, 1e25, logP), true about 0)",
   },
 ];
 

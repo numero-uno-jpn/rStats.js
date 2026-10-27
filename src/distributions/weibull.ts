@@ -26,9 +26,29 @@ function cpow(a: number, b: number): number {
   return a === 1 ? 1 : Math.pow(a, b);
 }
 
-/** log u (u = x / scale) in double-double. x > 0, finite parameters */
+const MIN_NORMAL = 2 ** -1022;
+
+/**
+ * log u (u = x / scale) in double-double. x > 0, finite parameters. When x / scale is subnormal, 0 or overflows,
+ * log x - log scale instead; also for x above 1e300, where the exact remainder in standardizeDD overflows
+ */
 function logU(x: number, scale: number): DD {
-  return ddLog(scale === 1 ? [x, 0] : standardizeDD(x, 0, scale));
+  if (scale === 1) return ddLog([x, 0]);
+  const u = x / scale;
+  if (u >= MIN_NORMAL && u < Infinity && x < 1e300) return ddLog(standardizeDD(x, 0, scale));
+  return ddSub(ddLog([x, 0]), ddLog([scale, 0]));
+}
+
+/** a s in double-double; only the double product when s is beyond the range of Veltkamp splitting or it overflows */
+function mulLarge(a: DD, s: number): DD {
+  const p = a[0] * s;
+  return s < 1e300 && Number.isFinite(p) ? ddMulNum(a, s) : [p, 0];
+}
+
+/** log(a / b) for positive finite a, b, also when a / b over- or underflows */
+function logRatio(a: number, b: number): number {
+  const r = a / b;
+  return r >= MIN_NORMAL && r < Infinity ? Math.log(r) : Math.log(a) - Math.log(b);
 }
 
 function allFinite(...v: number[]): boolean {
@@ -51,12 +71,17 @@ export function dweibull1(x: number, shape: number, scale: number, log: boolean)
     return log ? -Math.log(scale) : 1 / scale;
   }
   const lu = logU(x, scale);
-  const t = ddExp(ddMulNum(lu, shape));
+  const t = ddExp(mulLarge(lu, shape));
   if (t[0] === Infinity) return d0(log);
   // E = (shape - 1) log u - t
-  const e = ddSub(shape === 1 ? [0, 0] : ddMulNum(lu, shape - 1), t);
-  if (log) return Math.log(shape / scale) + e[0] + e[1];
-  return (shape / scale) * Math.exp(e[0]) * (1 + e[1]);
+  const e = ddSub(shape === 1 ? [0, 0] : mulLarge(lu, shape - 1), t);
+  const r = shape / scale;
+  if (log) return logRatio(shape, scale) + e[0] + e[1];
+  // |log(shape / scale)| < 1455, so the density underflows; for a huge shape e[1] can exceed 1 and flip the sign below
+  if (e[0] < -2500) return 0;
+  if (r >= MIN_NORMAL && r < Infinity && e[0] > -708) return r * Math.exp(e[0]) * (1 + e[1]);
+  // shape / scale over- or underflows, or exp(E) is subnormal: fold it into the exponent
+  return Math.exp(logRatio(shape, scale) + e[0]) * (1 + e[1]);
 }
 
 export function pweibull1(q: number, shape: number, scale: number, lowerTail: boolean, logP: boolean): number {
@@ -68,7 +93,11 @@ export function pweibull1(q: number, shape: number, scale: number, lowerTail: bo
     t = [cpow(q / scale, shape), 0];
     if (Number.isNaN(t[0])) return NaN;
   } else {
-    t = ddExp(ddMulNum(logU(q, scale), shape));
+    const l = mulLarge(logU(q, scale), shape);
+    t = ddExp(l);
+    // log(1 - exp(-t)) = log t - t / 2 + ...: below e^-700 it is log t, which stays exact where t is subnormal. Where
+    // t underflows to 0 the result is -Infinity, as in R (pweibull(1e-5, 1000, log.p = TRUE) is -Inf)
+    if (lowerTail && logP && l[0] < -700) return t[0] === 0 ? -Infinity : l[0] + l[1];
   }
   if (!lowerTail) return logP ? -t[0] - t[1] : expNeg(t);
   const s = t[0] + t[1];
@@ -84,7 +113,10 @@ export function qweibull1(p: number, shape: number, scale: number, lowerTail: bo
   let lu: number;
   if (logP) lu = lowerTail ? log1mExp(p) : p;
   else lu = lowerTail ? Math.log1p(-p) : Math.log(p);
-  return scale * cpow(-lu, 1 / shape);
+  const v = cpow(-lu, 1 / shape);
+  if ((v >= MIN_NORMAL && v < Infinity) || !allFinite(shape, scale) || v === 1) return scale * v;
+  // (-lu)^(1 / shape) is subnormal, 0 or overflows although scale times it may not be: in logs
+  return Math.exp(Math.log(scale) + Math.log(-lu) / shape);
 }
 
 /**

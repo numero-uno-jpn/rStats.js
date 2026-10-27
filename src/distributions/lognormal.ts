@@ -128,6 +128,8 @@ export function qlnorm1(p: number, meanlog: number, sdlog: number, lowerTail: bo
   // exp(meanlog + sdlog z). Form the exponent in double-double and apply the low-order term to first order
   const zd = refineStdQuantile(z, p, lowerTail, logP);
   const e = ddAdd(ddAdd(mulDD(sdlog, zd[0]), [sdlog * zd[1], 0]), [meanlog, 0]);
+  // Beyond the range of exp the result is 0 or Infinity (for a huge exponent e[1] can exceed 1 and flip the sign)
+  if (!(Math.abs(e[0]) < 750)) return Math.exp(e[0]);
   return Math.exp(e[0]) * (1 + e[1]);
 }
 

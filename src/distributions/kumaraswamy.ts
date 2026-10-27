@@ -7,9 +7,18 @@
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { log1mExp } from "../internal/ddexp.js";
+import { twoProd } from "../special/dd.js";
 
 const valid = (a: number, b: number): boolean => a > 0 && b > 0 && Number.isFinite(b);
 // a = Inf is taken as the limit (the distribution concentrates at 1), as extraDistr does
+
+const MIN_NORMAL = 2.2250738585072014e-308;
+
+/**
+ * c log(1 - x^a) for 0 < x < 1 where x^a is subnormal: -c x^a (to double precision) from logs, since x^a itself has
+ * lost digits
+ */
+const scaledTinyPow = (x: number, a: number, c: number): number => -Math.sign(c) * Math.exp(Math.log(Math.abs(c)) + a * Math.log(x));
 
 /** log(1 - x^a) for 0 <= x <= 1 */
 function log1mPow(x: number, a: number): number {
@@ -17,13 +26,17 @@ function log1mPow(x: number, a: number): number {
   return xa < 0.5 ? Math.log1p(-xa) : Math.log(-Math.expm1(a * Math.log(x)));
 }
 
-/** (1 - x^a)^e for 0 < x < 1: pow of 1 - x^a with the rounding of the subtraction corrected to first order */
+/**
+ * (1 - x^a)^e for 0 < x < 1: pow of 1 - x^a with the rounding of the subtraction corrected to first order. Where the
+ * correction is not small (e above about 1e8 magnifies the rounding of 1 - x^a), exp(e log1p(-x^a)) instead
+ */
 function powOneMinus(x: number, a: number, e: number): number {
   const xa = Math.pow(x, a);
   if (xa >= 0.5) return Math.pow(-Math.expm1(a * Math.log(x)), e);
   const hi = 1 - xa;
   const lo = 1 - hi - xa; // exact remainder (Fast2Sum)
-  return Math.pow(hi, e) * (1 + (e * lo) / hi);
+  const c = (e * lo) / hi;
+  return Math.abs(c) < 1e-8 ? Math.pow(hi, e) * (1 + c) : Math.exp(e * Math.log1p(-xa));
 }
 
 /** c log(v), 0 when c is 0 */
@@ -33,14 +46,20 @@ export function dkumar1(x: number, a: number, b: number, log: boolean): number {
   if (Number.isNaN(x) || !valid(a, b)) return NaN;
   if (x < 0 || x > 1) return d0(log);
   if (a === Infinity) return x === 1 ? Infinity : d0(log);
+  const xa = Math.pow(x, a);
+  const tiny = x > 0 && xa < MIN_NORMAL;
   const l1 = x === 1 ? -Infinity : log1mPow(x, a);
-  const ld = Math.log(a) + Math.log(b) + xlog(a - 1, x) + (b === 1 ? 0 : (b - 1) * l1);
+  // (b - 1) log(1 - x^a)
+  const lb = b === 1 ? 0 : tiny ? scaledTinyPow(x, a, b - 1) : (b - 1) * l1;
+  const ld = Math.log(a) + Math.log(b) + xlog(a - 1, x) + lb;
   if (log) return ld;
   // the product keeps the relative accuracy that exp(ld) loses for large |ld|; exp(ld) where it under- or overflows
+  // or where x^(a-1) is subnormal (a large b can bring the density back into the normal range)
   // x^(a-1) as x^a / x (a - 1 itself may round, which x^(a-1) magnifies by |log x|)
-  const xa = Math.pow(x, a);
-  const d = a * b * (a === 1 ? 1 : xa > 1e-290 ? xa / x : Math.pow(x, a - 1)) * (b === 1 || x === 0 ? 1 : powOneMinus(x, a, b - 1));
-  return d > 2.2250738585072014e-308 && d < Infinity ? d : Math.exp(ld);
+  const xm = a === 1 ? 1 : xa > 1e-290 ? xa / x : Math.pow(x, a - 1);
+  if (x > 0 && xm < MIN_NORMAL) return Math.exp(ld);
+  const d = a * b * xm * (b === 1 || x === 0 ? 1 : tiny ? Math.exp(lb) : powOneMinus(x, a, b - 1));
+  return d > MIN_NORMAL && d < Infinity ? d : Math.exp(ld);
 }
 
 export function pkumar1(q: number, a: number, b: number, lowerTail: boolean, logP: boolean): number {
@@ -48,13 +67,15 @@ export function pkumar1(q: number, a: number, b: number, lowerTail: boolean, log
   if (q <= 0) return dt0(lowerTail, logP);
   if (q >= 1) return dt1(lowerTail, logP);
   if (a === Infinity) return dt0(lowerTail, logP);
-  const lu = b * log1mPow(q, a); // log P[X > q]
-  if (!lowerTail) return logP ? lu : powOneMinus(q, a, b);
-  if (!logP) return -Math.expm1(lu);
-  // for tiny x^a, P[X <= q] = b x^a (1 + O(b x^a)) whose log survives where 1 - exp(lu) underflows
   const xa = Math.pow(q, a);
-  if (xa < 1e-20) return Math.log(b) + a * Math.log(q) + Math.log1p((-(b - 1) * xa) / 2);
-  return lu < -Math.LN2 ? Math.log1p(-powOneMinus(q, a, b)) : log1mExp(lu);
+  const tiny = xa < MIN_NORMAL;
+  const lu = tiny ? scaledTinyPow(q, a, b) : b * log1mPow(q, a); // log P[X > q]
+  if (!lowerTail) return logP ? lu : tiny ? Math.exp(lu) : powOneMinus(q, a, b);
+  if (!logP) return -Math.expm1(lu);
+  // for small x^a and b x^a, P[X <= q] = b x^a (1 - (b - 1) x^a / 2 + O(max(1, b)^2 x^2a)) whose log survives where
+  // x^a or 1 - exp(lu) underflows; elsewhere the forms below are accurate
+  if (Math.max(b, 1) * xa < 1e-10) return Math.log(b) + a * Math.log(q) + Math.log1p((-(b - 1) * xa) / 2);
+  return lu < -Math.LN2 && !tiny ? Math.log1p(-powOneMinus(q, a, b)) : log1mExp(lu);
 }
 
 export function qkumar1(p: number, a: number, b: number, lowerTail: boolean, logP: boolean): number {
@@ -64,7 +85,17 @@ export function qkumar1(p: number, a: number, b: number, lowerTail: boolean, log
   if (a === Infinity) return 1;
   // log of the upper probability
   const lu = lowerTail ? (logP ? log1mExp(p) : Math.log1p(-p)) : logP ? p : Math.log(p);
-  return Math.pow(-Math.expm1(lu / b), 1 / a);
+  // w^(1 / a) with w = 1 - exp(lu / b). Where lu / b is subnormal or underflows, w = -lu / b, in logs; for w > 1/2
+  // log w = log1p(-exp(lu / b)) keeps the digits of 1 - w
+  const t = lu / b;
+  if (!(t <= -MIN_NORMAL)) return Math.exp((Math.log(-lu) - Math.log(b)) / a);
+  if (t < -Math.LN2) return Math.exp(Math.log1p(-Math.exp(t)) / a);
+  const w = -Math.expm1(t);
+  const r = 1 / a;
+  if (!(a < 1e300)) return Math.pow(w, r);
+  // w^r corrected for the rounding of r = 1 / a (exactly 1 / a - r = (1 - a r) / a), which log w magnifies
+  const [ar, e] = twoProd(a, r);
+  return Math.pow(w, r) * (1 + (Math.log(w) * (1 - ar - e)) / a);
 }
 
 /**

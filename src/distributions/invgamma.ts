@@ -7,7 +7,8 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { standardizeDD } from "../internal/ddexp.js";
+import { log1mExp, standardizeDD } from "../internal/ddexp.js";
+import { lgamma, lgamma1p } from "../special/gamma.js";
 import { dgamma1, pgamma1, qgamma1 } from "./gamma.js";
 
 /**
@@ -23,16 +24,26 @@ export interface InvgammaParams {
 const valid = (alpha: number, beta: number): boolean => alpha > 0 && beta > 0 && Number.isFinite(beta);
 // alpha = Inf is taken as the limit (the distribution concentrates at 0), as extraDistr does
 
+const MIN_NORMAL = 2 ** -1022;
+
 export function dinvgamma1(x: number, alpha: number, beta: number, log: boolean): number {
   if (Number.isNaN(x) || !valid(alpha, beta)) return NaN;
   if (x <= 0 || x === Infinity) return d0(log);
   if (alpha === Infinity) return NaN;
   const [z, zl] = standardizeDD(beta, 0, x);
   if (z === Infinity) return d0(log);
+  if (z < MIN_NORMAL) {
+    // beta / x subnormal or 0: in logs, log f = alpha log(beta / x) - lgamma(alpha) - log x - beta / x
+    const ld = alpha * (Math.log(beta) - Math.log(x)) - lgamma(alpha) - Math.log(x) - z;
+    return log ? ld : Math.exp(ld);
+  }
   // d/dz log(f_Gamma(z) z) = alpha / z - 1
-  const c = Number.isFinite(zl) ? (alpha / z - 1) * zl : 0;
+  const c = Number.isFinite(zl) ? alpha * (zl / z) - zl : 0;
   if (log) return dgamma1(z, alpha, 1, true) + Math.log(z) - Math.log(x) + c;
-  return ((dgamma1(z, alpha, 1, false) * z) / x) * (1 + c);
+  const dz = dgamma1(z, alpha, 1, false) * z;
+  // f_Gamma(z) z below the normal range (where 1 / x can bring the density back): from the log density
+  if (!(dz >= MIN_NORMAL)) return Math.exp(dgamma1(z, alpha, 1, true) + Math.log(z) - Math.log(x) + c);
+  return (dz / x) * (1 + c);
 }
 
 export function pinvgamma1(q: number, alpha: number, beta: number, lowerTail: boolean, logP: boolean): number {
@@ -40,12 +51,20 @@ export function pinvgamma1(q: number, alpha: number, beta: number, lowerTail: bo
   if (q <= 0) return dt0(lowerTail, logP);
   if (q === Infinity || alpha === Infinity) return dt1(lowerTail, logP);
   const [z, zl] = standardizeDD(beta, 0, q);
+  if (z < MIN_NORMAL) {
+    // beta / x subnormal or 0: P[Z <= z] = z^alpha / Γ(alpha + 1) (1 - O(z)), its log from log beta - log x
+    const ls = alpha * (Math.log(beta) - Math.log(q)) - lgamma1p(alpha);
+    if (lowerTail) return logP ? log1mExp(ls) : -Math.expm1(ls);
+    return logP ? ls : Math.exp(ls);
+  }
   const v = pgamma1(z, alpha, 1, !lowerTail, logP);
   if (!(zl !== 0 && Number.isFinite(zl) && Number.isFinite(z))) return v;
   // P[Z <= z] grows by f(z) zl, P[Z > z] falls by it
   const sign = lowerTail ? -1 : 1;
   if (!logP) return v + sign * dgamma1(z, alpha, 1, false) * zl;
-  // log P + f(z) zl / P, with f / P from the logs (P may underflow)
+  // log P + f(z) zl / P, with f / P from the logs (P may underflow). Beyond |log P| = 1e8 the difference of the logs
+  // has lost its digits (eps |log P| absolute) and the correction is below the rounding of log P anyway
+  if (!(Math.abs(v) < 1e8)) return v;
   const c = sign * Math.exp(dgamma1(z, alpha, 1, true) - v) * zl;
   return Number.isFinite(c) ? v + c : v;
 }

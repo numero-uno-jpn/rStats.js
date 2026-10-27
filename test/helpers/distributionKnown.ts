@@ -51,24 +51,6 @@ export function matchesKnown(k: KnownViolation, v: Violation): boolean {
 export const knownViolations: KnownViolation[] = [
   // ---- normal, lognormal, uniform, exponential ----
   {
-    family: "norm",
-    property: "range",
-    match: on(/^[dp]norm$/, (pr, x) => Math.abs(x - pr.mean!) / pr.sd! > 1e300),
-    reason:
-      "NaN when (x - mean) / sd is near the overflow threshold: pnorm(1.68e291, { mean: -304.67, sd: 1.12e-17 }) " +
-      "is NaN (1 expected), dnorm the same (0 expected)",
-    examples: [{ params: { mean: -304.67, sd: 1.12e-17 }, x: [1.68e291] }],
-  },
-  {
-    family: "lnorm",
-    property: "range",
-    match: on(/^qlnorm$/, (pr) => pr.sdlog! > 1e15),
-    reason:
-      "qlnorm's upper tail is -Infinity when meanlog + sdlog z overflows: qlnorm(1e-7, { sdlog: 1e100, lowerTail: false }) " +
-      "is -Infinity, Infinity expected",
-    examples: [{ params: { meanlog: 0, sdlog: 1e100 } }],
-  },
-  {
     family: "lnorm",
     property: "log",
     match: on(/^dlnorm$/, (_pr, x) => x < 1e-10),
@@ -83,15 +65,10 @@ export const knownViolations: KnownViolation[] = [
     match: on(/^punif$/),
     reason:
       "punif's log near probability 1 is log(p), not log1p(-other tail): punif(2.1e-275, { lowerTail: false, logP: true }) " +
-      "is 0, -2.1e-275 expected; relative errors up to 1e-4 within 1e-12 of 1",
+      "is 0, -2.1e-275 expected; relative errors up to 1e-4 within 1e-12 of 1. Kept to match R, which computes log(p) " +
+      "too (fixtures: punif(1e-300, lower.tail = FALSE, log.p = TRUE) is 0, punif(0.999, -1, 1, log.p = TRUE) is " +
+      "log(0.9995) rounded, not log1p(-0.0005))",
     examples: [{ params: { min: 0, max: 1 }, x: [2.1074708991110435e-275] }],
-  },
-  {
-    family: "unif",
-    property: "roundtrip",
-    match: on(/^qunif$/, (_pr, _x, v) => v.call.includes("lowerTail: false")),
-    reason: "qunif's upper tail is min + (1 - p)(max - min): qunif(3.7e-216, { min: -1, max: 0, lowerTail: false }) is 0, -3.7e-216 expected",
-    examples: [{ params: { min: -1, max: 0 } }],
   },
   {
     family: "exp",
@@ -104,31 +81,6 @@ export const knownViolations: KnownViolation[] = [
   },
   // ---- Weibull, arcsine, triangular, Pareto, Kumaraswamy, inverse gamma ----
   {
-    family: "weibull",
-    property: "throws",
-    match: on(/^[dp]weibull$/),
-    reason:
-      "TypeError from ddLog when x / scale underflows to 0 or overflows: dweibull(1e-300, 2, { scale: 1e100 }), " +
-      "pweibull(2e-323, 0.5, { scale: 10 }), pweibull(1.7e308, 1e-20, { scale: 0.1, lowerTail: false }) throw",
-    examples: [{ params: { shape: 2, scale: 1e100 }, x: [1e-300] }],
-  },
-  {
-    family: "weibull",
-    property: "range",
-    match: on(/^dweibull$/, (pr) => pr.shape! > 1e50),
-    reason: "dweibull is NaN for a huge shape: dweibull(1.2e-293, 6.8e254, { scale: 2.6e-293 }) is NaN, 0 expected",
-    examples: [{ params: { shape: 6.8e254, scale: 2.6e-293 }, x: [1.2e-293] }],
-  },
-  {
-    family: "weibull",
-    property: ["density", "log", "roundtrip"],
-    match: on(/weibull$/),
-    reason:
-      "subnormal intermediates lose digits: (x / scale)^shape below 2^-1022 in pweibull's log, p^(1 / shape) in qweibull: " +
-      "qweibull(2.0873605415528046e-162, 0.5, { scale: 379.78228278051154 }) is 1.877e-321, 1.66e-321 expected",
-    examples: [{ params: { shape: 2, scale: 639.1605591752661 }, x: [1.0806026394113126e-157] }],
-  },
-  {
     family: "arcsine",
     property: ["roundtrip", "density"],
     match: on(/arcsine$/, (pr, x, v) => (v.property === "roundtrip" ? x < 1e-100 : (x - pr.a!) / (pr.b! - pr.a!) < 1e-290)),
@@ -136,73 +88,6 @@ export const knownViolations: KnownViolation[] = [
       "(x - a) / (b - a) and sin^2 underflow: qarcsine(1.7053740454118274e-208, { a: 0, b: 2.6427604573393012e+187 }) " +
       "is 0, b (π p / 2)^2 = 1.9e-228 expected; parcsine loses digits when the ratio is subnormal",
     examples: [{ params: { a: 0, b: 2.6427604573393012e187 } }],
-  },
-  {
-    family: "triang",
-    property: ALL,
-    match: on(/triang$/, (pr) => pr.b! - pr.a! > 1e150),
-    reason:
-      "(b - a)(c - a) overflows for wide intervals: ptriang(2.4424154074773638e+184, { a: -22.463868531113192, " +
-      "b: 2.0965034859876516e+185, c: 7.278558690233114e+184 }) is NaN, 0.0390 expected; qtriang returns ±Infinity",
-    examples: [{ params: { a: -22.463868531113192, b: 2.0965034859876516e185, c: 7.278558690233114e184 } }],
-  },
-  {
-    family: "triang",
-    property: ALL,
-    match: on(/triang$/, (pr) => pr.b! - pr.a! < 1e-140),
-    reason:
-      "products underflow for narrow intervals: dtriang(0, { a: 0, b: 2.362486118430361e-229, c: 2.362486118430361e-229 }) " +
-      "is NaN, 0 expected; ptriang is above 1 near b",
-    examples: [{ params: { a: 0, b: 2.362486118430361e-229, c: 2.362486118430361e-229 }, x: [0] }],
-  },
-  {
-    family: "triang",
-    property: ["range", "roundtrip", "density", "log"],
-    match: on(/triang$/, (pr, x, v) =>
-      fnOf(v) === "qtriang"
-        ? pr.c === pr.a || pr.c === pr.b || x < 1e-30 || v.call.includes("logP: true")
-        : (x - pr.a!) / (pr.b! - pr.a!) < 1e-150 || x - pr.a! < 1.5e-154,
-    ),
-    reason:
-      "cancellation and underflow near a: qtriang(2.5e-182, { a: 0, b: 141, c: 0 }) is 0, 141 p / 2 = 1.76e-180 expected " +
-      "(b - (b - a) sqrt(1 - p)); with a > 0 the result can fall below a, and for c = a it loses digits (relative 1e-7 at " +
-      "qtriang(2.4861429152022987e-10, { a: 0.026014183705880798, b: 48.595997168949395, c: 0.026014183705880798 })); " +
-      "ptriang's (x - a)^2 underflows",
-    examples: [{ params: { a: 0, b: 141, c: 0 } }],
-  },
-  {
-    family: "pareto",
-    property: ["roundtrip", "complement", "log", "density", "monotone", "range"],
-    match: on(/pareto$/, (pr, x, v) =>
-      fnOf(v) === "qpareto" ? true : pr.b! / x < 2 ** -1022 || pr.a! < 1e-30 || pr.a! > 1e12 || pr.b! < 1e-200,
-    ),
-    reason:
-      "ppareto's upper tail is 0 when b / x is subnormal (ppareto(1.7e308, { a: 0.5, b: 0.147, lowerTail: false }) is 0, " +
-      "2.94e-155 expected) and its lower tail is 1 for tiny a; for a > 1e12 log(x / b) is not log1p((x - b) / b) " +
-      "(ppareto(6918267127725.448, { a: 2925352522038695, b: 6918267127725.422 }): lower + upper - 1 = -8.8e-8); for " +
-      "b below 1e-200 b^a underflows (dpareto(7.381852998173452e-208, { a: 3.8584050302230875, b: 5.8963229972762575e-291 }) " +
-      "is off by 1.5e-5 relative)",
-    examples: [{ params: { a: 0.5, b: 0.147 }, x: [1.7e308] }, { params: { a: 2925352522038695, b: 6918267127725.422 }, x: [6918267127725.448] }],
-  },
-  {
-    family: "kumar",
-    property: ALL,
-    match: on(/kumar$/, (pr) => pr.b! > 1e9),
-    reason:
-      "pkumar's upper tail and log for large b (above 1e9 relative errors 1e-12 to 1e-3; above 1e15 out of range): pkumar(0.37133675925961757, 53.00336661461517, 3.74883649682607e+24, " +
-      "{ lowerTail: false }) is -57.9, exp(b log1p(-x^a)) = 2.62e-26 expected; pkumar(1e-21, 1, 1e25, { logP: true }) is " +
-      "NaN (-e^-10000 expected); pkumar(1e-21, 1, 1e21, { logP: true }) is -0.693, log(0.632) = -0.459 expected; " +
-      "qkumar(3.167816805805275e-260, 4193.829732917642, 1.031067914309409e+75) is 0, exp((log p - log b) / a) = 0.8325 expected",
-    examples: [{ params: { a: 53.00336661461517, b: 3.74883649682607e24 } }, { params: { a: 1, b: 1e25 }, x: [1e-21] }, { params: { a: 1, b: 1e21 }, x: [1e-21] }],
-  },
-  {
-    family: "kumar",
-    property: ["roundtrip", "log", "density", "complement", "monotone", "range"],
-    match: on(/kumar$/, (pr) => pr.a! < 1e-10 || pr.a! > 1e15),
-    reason:
-      "extreme a: x^a rounds to 1 or underflows; qkumar(1.2e-11, 4.8e-12, 0.5, { lowerTail: false }) is 1, " +
-      "exp(-p^(1 / b) / a) = 1 - 3e-11 expected",
-    examples: [{ params: { a: 4.8e-12, b: 0.5 } }],
   },
   {
     family: "geom",
@@ -236,16 +121,14 @@ export const knownViolations: KnownViolation[] = [
   },
   {
     family: "invgamma",
-    property: ["range", "throws", "roundtrip"],
-    match: on(/invgamma$/, (pr, x, v) =>
-      fnOf(v) === "qinvgamma" ? v.detail.startsWith("= Infinity") : pr.beta! / x < 1e-200 || pr.beta! > 1e100 || pr.beta! < 1e-200,
-    ),
+    property: "roundtrip",
+    match: on(/^qinvgamma$/, (pr, _x, v) => v.detail.startsWith("= Infinity") || pr.beta! / valueOf(v) < 2 ** -1022),
     reason:
-      "beta / x underflows: dinvgamma(5.20010667081513e+152, 1, { beta: 2.795663805653832e-192, log: true }) is NaN, " +
-      "log(beta) - 2 log(x) = -1143.7 expected; pinvgamma(1.7e308, 0.15027305543499947, { beta: 8.75984919070316e-25, " +
-      "lowerTail: false }) is 0, (beta / x)^alpha / Γ(alpha + 1) = 1.6e-50 expected (so a quantile beyond the largest " +
-      "double cannot be confirmed); TypeError for alpha and beta around 1e200",
-    examples: [{ params: { alpha: 1, beta: 2.795663805653832e-192 }, x: [5.20010667081513e152] }],
+      "qinvgamma's upper tail where the gamma quantile beta / x is subnormal or underflows: qinvgamma(2.431739343042036e-199, " +
+      "0.5, { beta: 3.325020537939267e-102, lowerTail: false }) is Infinity, beta / (p Γ(1.5))^2 = 7.2e295 expected " +
+      "(qgamma(p, 0.5) is 0 there); qinvgamma(5.017353909284426e-160, 0.5, { beta: 4.3249964967109584e-165, lowerTail: false }) " +
+      "is off by 8e-7 relative (qgamma(p, 0.5) = 1.98e-319 is subnormal)",
+    examples: [{ params: { alpha: 0.20663543805092938, beta: 5.045560860879713e-226 } }, { params: { alpha: 0.5, beta: 1e-300 } }],
   },
   // ---- χ², gamma, t, beta, F (central) ----
   {
@@ -348,8 +231,10 @@ export const knownViolations: KnownViolation[] = [
       family,
       property: "range",
       match: on(/^df$/, (_pr, x) => x === Infinity),
-      reason: "df(Infinity, ...) is NaN, 0 expected: df(Infinity, 0.2569224787760626, 18695.725602202554)",
-      examples: [{ params: { df1: 3, df2: 412.3959198056142, ...(family === "nf" ? { ncp: 0.32 } : {}) }, x: [Infinity] }],
+      reason:
+        "df(Infinity, ...) is NaN, 0 expected: df(Infinity, 0.2569224787760626, 18695.725602202554) (for df1 < 2; with ncp " +
+        "for any df1). Kept to match R, which gives NaN there too (fixtures: df(Inf, 1.5, 1) and df(Inf, 3, 5, ncp = 0) are NaN)",
+      examples: [{ params: { df1: family === "nf" ? 3 : 0.2569224787760626, df2: 412.3959198056142, ...(family === "nf" ? { ncp: 0.32 } : {}) }, x: [Infinity] }],
     }),
   ),
   // ---- discrete ----
@@ -399,7 +284,9 @@ export const knownViolations: KnownViolation[] = [
     family: "nbinom(mu)",
     property: "range",
     match: on(/^dnbinom$/, (pr, x) => pr.size === 0 && pr.mu === 0 && x > 0),
-    reason: "dnbinom(1, 0, { mu: 0 }) is NaN; size = 0 and mu = 0 is the point mass at 0, so 0 expected (-Infinity with log)",
+    reason:
+      "dnbinom(1, 0, { mu: 0 }) is NaN; size = 0 and mu = 0 is the point mass at 0, so 0 expected (-Infinity with log). " +
+      "Kept to match R, which gives NaN there too (fixtures: dnbinom(1:4, 0, mu = 0) are NaN)",
     examples: [{ params: { size: 0, mu: 0 }, x: [1] }],
   },
   {
@@ -484,16 +371,6 @@ export const knownViolations: KnownViolation[] = [
   },
 
   // ---- found with the fuzz script at moderate parameters ----
-  {
-    family: "invgamma",
-    property: ["range", "monotone"],
-    match: on(/^pinvgamma$/, (pr, x, v) => v.property === "monotone" || pr.beta! / x > 1e12),
-    reason:
-      "pinvgamma's log is positive when beta / x is huge: pinvgamma(3.6506154146302763e-16, 35.87186122146188, " +
-      "{ beta: 269.8924867108752, logP: true }) is 2.8e56, pgamma(beta / x, alpha, { lowerTail: false, logP: true }) = " +
-      "-7.4e17 expected",
-    examples: [{ params: { alpha: 35.87186122146188, beta: 269.8924867108752 }, x: [3.6506154146302763e-16] }],
-  },
   ...(
     [
       ["binom", "qbinom(0.7985148925910792, 21, 0.9265496833249927) is 21 where pbinom(20, ...) is exactly that p", { size: 21, prob: 0.9265496833249927 }, 20],
@@ -509,19 +386,13 @@ export const knownViolations: KnownViolation[] = [
     }),
   ),
   {
-    family: "triang",
-    property: ["range", "monotone"],
-    match: on(/^ptriang$/, (_pr, _x, v) => v.property === "monotone" || (valueOf(v) > 1 && valueOf(v) < 1 + 1e-13)),
-    reason:
-      "a tail an ulp above 1: ptriang(54.365036307212875, { a: 51.80896011403241, b: 54.36503630721428, c: 52.30157068741966 }) " +
-      "is 1.0000000000000002",
-    examples: [{ params: { a: 51.80896011403241, b: 54.36503630721428, c: 52.30157068741966 }, x: [54.365036307212875] }],
-  },
-  {
     family: "f",
     property: "range",
     match: on(/^df$/, (pr) => pr.df1 === Infinity),
-    reason: "df(4.42353856391398e-263, Infinity, 14.333573434318904) is NaN (df1 = Infinity at tiny x); df(1, Infinity, 14.33) is finite",
+    reason:
+      "df(4.42353856391398e-263, Infinity, 14.333573434318904) is NaN (df1 = Infinity at tiny x: 0 / 0 once x^2 " +
+      "underflows), 0 expected; df(1, Infinity, 14.33) is finite. Kept to match R, which gives NaN there too (fixtures: " +
+      "df(1e-300, Inf, 5) is NaN); the log density is finite",
     examples: [{ params: { df1: Infinity, df2: 14.333573434318904 }, x: [4.42353856391398e-263] }],
   },
 ];
