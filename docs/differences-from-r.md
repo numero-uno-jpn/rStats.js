@@ -370,7 +370,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   bound-constrained optimiser can stop at a point that is not a minimum, because the criterion does not change
   when a column of the covariance factor changes sign. rStats.js minimises without that bound and reports the
   equivalent factor, so it can reach a lower criterion than lme4 there (a better fit of the same model).
-- **The computation is sparse,** as lme4's, but in JavaScript: a fit takes about 1.4 to 3 times lme4's time (see
+- **The computation is sparse,** as lme4's, but in JavaScript: a fit takes about 2.5 to 3 times lme4's time (see
   [performance.md](performance.md)).
 
 - **Options are checked:** an option that R's `lmer` has but rStats.js does not support (`weights`, `offset`,

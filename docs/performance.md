@@ -68,17 +68,20 @@ use a sparse Cholesky factorisation; rStats.js's criterion at its estimate was n
 
 | Model | n | q | rStats.js | lme4 |
 |---|---|---|---|---|
-| `y ~ x + (1 \| s) + (1 \| i)`, 200 subjects × 100 items crossed | 20000 | 300 | 0.33 s | 0.20 s |
-| the same, 500 × 200 | 100000 | 700 | 2.17 s | 1.51 s |
+| `y ~ x + (1 \| s) + (1 \| i)`, 200 subjects × 100 items crossed | 20000 | 300 | 0.59 s | 0.20 s |
+| the same, 500 × 200 | 100000 | 700 | 4.13 s | 1.51 s |
 | `y ~ x + (x \| s)`, 1000 subjects × 10 | 10000 | 2000 | 0.20 s | 0.07 s |
-| the same, 5000 subjects × 10 | 50000 | 10000 | 0.84 s | 0.35 s |
+| the same, 5000 subjects × 10 | 50000 | 10000 | 0.87 s | 0.35 s |
 
-Small models (the fixtures: up to a few hundred rows) take 0.1 to 7 ms. `node scripts/lmer-timing.mjs` measures the
+With two or more random-effects terms, a fit takes about twice as long as the local minimisation alone (0.32 s and
+2.09 s for the crossed models in 0.14.0): after it, the fit is compared with the boundary points where one term is
+removed, each minimised again (see "Local minima" in [differences-from-r.md](differences-from-r.md)). Small models (the
+fixtures: up to a few hundred rows) take 0.1 to 7 ms. `node scripts/lmer-timing.mjs` measures the
 fits and single evaluations of the criterion.
 
 `lmerSummary` (Satterthwaite's degrees of freedom: the analytic Hessian of the deviance and the Jacobians of the
-covariance of the fixed effects) adds, after the fit: 0.04 s (crossed 200 × 100), 0.25 s (500 × 200), 0.01 s
-(1000 subjects) and 0.05 s (5000 subjects), Node 24 on arm64.
+covariance of the fixed effects) adds, after the fit: 0.03 s (crossed 200 × 100), 0.25 s (500 × 200), 0.01 s
+(1000 subjects) and 0.04 s (5000 subjects), Node 24 on arm64.
 
 ## Bundle size
 
@@ -116,8 +119,8 @@ Apple M1 (Mac mini), Node.js 24, the `tsc` build, 2026-10-26 (version 0.11.0). D
 bench` (`scripts/bench.mjs`), one call at a time, the minimum of 5 runs; its inputs come from the library's own
 `setSeed`/`runif`, so every build sees the same ones. Linear algebra: the minimum of 5 runs of the mean of 20 calls
 (3 for n = 300). R 4.5.2 (arm64) in the same machine's container, the same kind of inputs from R's own random
-numbers. The bundle sizes and the mixed models were measured on 2026-10-27 (the code of 0.12.0), the mixed models
-with lme4 2.0.6 in the same container.
+numbers. The bundle sizes and the mixed models were measured on 2026-10-27 (the code of 0.12.0; the fits of `lmer`
+and `lmerSummary` again with the code after 0.14.0), the mixed models with lme4 2.0.6 in the same container.
 
 ## Reference
 

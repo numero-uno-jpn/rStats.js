@@ -354,7 +354,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   最小化し、同じ意味の因子で報告するので、そこでは lme4 より低い基準に達することがあります (同じモデルの、
   よりよい当てはめです)。
 - **計算は lme4 と同じく疎行列で行いますが、JavaScript なので、** 当てはめの時間は lme4 のおよそ
-  1.4〜3 倍です ([performance.md](performance.md) を参照)。
+  2.5〜3 倍です ([performance.md](performance.md) を参照)。
 
 - **options を確かめます:** R の `lmer` にあって rStats.js が対応していない引数 (`weights`、`offset`、`subset`、
   `naAction`、`control`、`start` など) はエラーです。知らないキーもエラーです (`unused argument (reml)`。R は値も
