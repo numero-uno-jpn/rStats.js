@@ -500,8 +500,8 @@ export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: G
       swy += w[i]! * yy[i]!;
     }
     const m = swy / sw;
-    nullDeviance = totalDeviance(fam, yy, yy.map(() => m), w);
-  } else nullDeviance = totalDeviance(fam, yy, withWarnings(warnings, () => offset.map((o) => fam.linkinv(o))), w);
+    nullDeviance = withWarnings(warnings, () => totalDeviance(fam, yy, yy.map(() => m), w));
+  } else nullDeviance = withWarnings(warnings, () => totalDeviance(fam, yy, offset.map((o) => fam.linkinv(o)), w));
 
   const nOk = n - w.filter((v) => v === 0).length;
   const aic = familyAic(fam, yy, fit.mu, w, size, fit.deviance, warnings) + 2 * fit.rank;

@@ -135,6 +135,15 @@ function sqrtWarn(x: number): number {
   return Math.sqrt(x);
 }
 
+/**
+ * Logarithm that warns as R's log does when it produces NaN (a negative argument, -Inf included; NaN does not warn).
+ * Used by the deviance contributions that R computes in R code (poisson, quasipoisson, Gamma, quasi "mu" and "mu^2")
+ */
+function logWarn(x: number): number {
+  if (x < 0) currentWarnings?.add("NaNs produced");
+  return Math.log(x);
+}
+
 /** A number as C's printf("%g") writes it: 6 significant digits, fixed or scientific, trailing zeros dropped */
 function formatG(v: number): string {
   if (!Number.isFinite(v)) return Number.isNaN(v) ? "nan" : v > 0 ? "inf" : "-inf";
@@ -259,13 +268,14 @@ function quasiVariance(v: QuasiVariance): { variance: (mu: number) => number; mu
       return {
         variance: (m) => m,
         muOk: (m) => m > 0,
-        dev: (y, mu, w) => 2 * w * ((y === 0 ? 0 : y * Math.log(y / mu)) - (y - mu)),
+        dev: (y, mu, w) => 2 * w * ((y === 0 ? 0 : y * logWarn(y / mu)) - (y - mu)),
       };
     case "mu^2":
       return {
         variance: (m) => m * m,
         muOk: (m) => m > 0,
-        dev: (y, mu, w) => Math.max(-2 * w * (Math.log(y > 0 ? y / mu : 1 / mu) - (y - mu) / mu), 0),
+        // log(y/mu) for every y != 0 (NaN for a negative y, as in R), log(1/mu) for y = 0
+        dev: (y, mu, w) => Math.max(-2 * w * (logWarn(y !== 0 ? y / mu : 1 / mu) - (y - mu) / mu), 0),
       };
     case "mu^3":
       return { variance: (m) => m * m * m, muOk: (m) => m > 0, dev: inverseGaussianDev };
@@ -325,14 +335,14 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
         fixedDispersion: name === "poisson",
         variance: (m) => m,
         muOk: (m) => Number.isFinite(m) && m > 0,
-        devContribution: (y, mu, w) => (y > 0 ? 2 * w * (y * Math.log(y / mu) - (y - mu)) : 2 * w * mu),
+        devContribution: (y, mu, w) => (y > 0 ? 2 * w * (y * logWarn(y / mu) - (y - mu)) : 2 * w * mu),
       };
     case "Gamma":
       return {
         ...base,
         variance: (m) => m * m,
         muOk: (m) => Number.isFinite(m) && m > 0,
-        devContribution: (y, mu, w) => -2 * w * ((y === 0 ? 0 : Math.log(y / mu)) - (y - mu) / mu),
+        devContribution: (y, mu, w) => -2 * w * ((y === 0 ? 0 : logWarn(y / mu)) - (y - mu) / mu),
       };
     case "inverse.gaussian":
       return { ...base, variance: (m) => m * m * m, muOk: () => true, devContribution: inverseGaussianDev };
