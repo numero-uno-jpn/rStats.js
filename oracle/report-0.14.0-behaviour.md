@@ -205,6 +205,26 @@ that term (or without any random effect).
   errors do).
 - Unit tests: `y ~ 1 + (0 | g)`, `y ~ x + (0 || g)`, `y ~ x + (0 | g) + (1 | g)`; `(0 + x || g)` stays valid.
 
+## 7. lmer: a response with a large mean
+
+With `y ~ x + (1 | g)` and a response of mean 1e6 (the same data plus a constant), the fit fails with the "did not
+converge" error, while the same data with mean 0 or 1e4 fits. The fixed effects are solved through the normal
+equations, so with a large mean their rounding error is large next to the residuals; the criterion then carries noise
+of about 1e-4 and the convergence tests cannot be met.
+
+- The penalised least-squares problem is linear in y: replacing y by y − X β₀ for any fixed β₀ leaves θ's criterion,
+  the residuals, the random effects and every derivative unchanged, and shifts β̂ by −β₀. Before the minimisation,
+  take β₀ = the least-squares coefficients of y on X (the columns kept; from the QR decomposition already used for
+  the aliased columns and for section 4's check), work with y − X β₀ throughout (the minimisation, lmerTest's
+  derivatives, the refits of the comparisons), and add β₀ back to the fixed effects in the results (`fixef`,
+  `coefTable.estimate`, lmerTest's estimates and contrasts' estimates). Fitted values and residuals are those of the
+  original y.
+- Results on today's fixtures must not change beyond their tolerances.
+- Unit tests (seeded data, not in a fixture): the same data with the response shifted by 0, 1e4, 1e6 and 1e8 give θ,
+  σ, the standard errors and lmerSummary's df within 1e-8 (relative) of the unshifted fit, and the intercept shifted
+  by the constant. For reference, lmerTest's df on such data drifts by about 5e-7 relative at mean 1e4 (lme4's
+  precision), so lmerTest's values are not the target here.
+
 ## Not changed
 
 - `lmerContest` with `joint: false` accepts a right-hand side per row of L, where lmerTest gives an error: kept as an
