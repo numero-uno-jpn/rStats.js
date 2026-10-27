@@ -75,6 +75,16 @@ R がいつも正しいとは限りません。一致しないケースがある
 生成したコード、速度の測り方 (`npm run bench`)、double-double によって精度がどれだけ上がるかの
 測り方 (`npm run precision-report`) を説明しています。
 
+分布関数は、参照値の要らない性質でも検査しています (`test/distributionProperties.test.ts`。検査の
+中身は `test/helpers/properties.ts`)。確率が [0, 1] に収まること、下側 + 上側 = 1、対数スケールと
+線形スケールの一致、単調性、分位点の往復、密度と分布関数の差分の一致、時間、呼び出し順に結果が
+依らないことを、1e-300 から 1e300 までのパラメータで確かめます。現時点で分かっている違反は理由を
+付けて `test/helpers/distributionKnown.ts` に載せてあり、不要になった項目があるとテストは失敗します。
+より長く探すには、ビルドしてから `node scripts/fuzz-distributions.mjs <seed> <iterations>
+[family regex] [output.json]` を実行します (オプションは冒頭のコメント)。分布ごとにワーカースレッドで
+動かし、5 秒以内に戻らない呼び出しも報告して、違反を JSON で書き出します (`--known` を付けると
+既知のものを除きます)。
+
 ## ライセンスの決まり
 
 rStats.js は MIT ライセンスです。それを保つために、次のことを守ってください。

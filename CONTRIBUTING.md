@@ -71,6 +71,16 @@ where rStats.js deliberately differs from R are excluded with a written reason
 code from `scripts/ddgen.py`, and how to measure speed (`npm run bench`) and what double-double
 buys in accuracy (`npm run precision-report`).
 
+The distribution functions are also checked for properties that need no reference value
+(`test/distributionProperties.test.ts`, with the checks in `test/helpers/properties.ts`): probabilities
+in [0, 1], lower + upper tail = 1, the log scale against the linear one, monotonicity, quantile round
+trips, the density against differences of the distribution function, time and independence of call
+order, over parameters from 1e-300 to 1e300. Violations known today are listed with their reasons in
+`test/helpers/distributionKnown.ts`; an entry that is no longer needed fails the test. For a longer
+search, build and run `node scripts/fuzz-distributions.mjs <seed> <iterations> [family regex]
+[output.json]` (options in its header): it runs each family in a worker thread, reports calls that do
+not return within 5 s, and writes the violations as JSON (`--known` leaves out the listed ones).
+
 ## Licensing rules
 
 rStats.js is MIT licensed. To keep it that way:
