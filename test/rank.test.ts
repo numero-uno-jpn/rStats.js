@@ -1,6 +1,7 @@
+import { describe, expect, it, vi } from "vitest";
 import { dsignrank, psignrank, qsignrank } from "../src/distributions/signrank.js";
 import { dwilcox, pwilcox, qwilcox } from "../src/distributions/wilcox.js";
-import { bool, num } from "./helpers/fixture.js";
+import { bool, num, relativeError } from "./helpers/fixture.js";
 import { fixtureSuite } from "./helpers/suite.js";
 
 const tail = (a: Record<string, string | boolean>) => ({ lowerTail: bool(a.lowerTail), logP: bool(a.logP) });
@@ -55,4 +56,40 @@ fixtureSuite({
     pwilcox(y, num(a.m), num(a.n), { lowerTail: bool(a.lowerTail), logP: lg ?? bool(a.logP) }),
   knownDifference: knownDiff,
   call: (a) => qwilcox(num(a.p), num(a.m), num(a.n), tail(a)),
+});
+
+describe("signrank results do not depend on what was evaluated first", () => {
+  // A table built out to the centre has been rescaled, and its low entries lost digits (c_n(0) = 1 underflowed to 0
+  // for n = 2000). For n = 2000, s = 95000 is a normal number in that table but was off by 1e-7 relative.
+  // Evaluated fresh, each small s is the last entry of the table built for it, which is exact
+  it.each([
+    [1000, [0, 1, 5, 50, 500]],
+    [2000, [0, 1, 5, 50, 500, 95000]],
+  ])("n = %i: small s fresh, after the centre, and again", async (n, small) => {
+    // A fresh copy of the module, so that no table is cached yet (the fixtures above share this module state)
+    vi.resetModules();
+    const m = await import("../src/distributions/signrank.js");
+    const values = () => small.flatMap((s) => [m.dsignrank(s, n, { log: true }), m.psignrank(s, n, { logP: true })]);
+    const fresh = values();
+    for (const v of fresh) expect(Number.isFinite(v)).toBe(true);
+    const centre = (n * (n + 1)) / 4;
+    expect(Number.isFinite(m.dsignrank(centre, n, { log: true }))).toBe(true);
+    expect(Number.isFinite(m.psignrank(centre, n, { logP: true }))).toBe(true);
+    expect(values()).toEqual(fresh);
+    expect(values()).toEqual(fresh);
+    // c_n(0) = c_n(1) = c_n(2) = 1, c_n(3) = 2, c_n(5) = 3, so P[V <= 5] = (1 + 1 + 1 + 2 + 2 + 3) / 2^n
+    const l2 = n * Math.LN2;
+    for (const [s, c] of [
+      [0, 1],
+      [1, 1],
+      [2, 1],
+      [3, 2],
+      [5, 3],
+    ]) {
+      expect(relativeError(m.dsignrank(s!, n, { log: true }), Math.log(c!) - l2)).toBeLessThanOrEqual(1e-15);
+    }
+    expect(relativeError(m.psignrank(5, n, { logP: true }), Math.log(10) - l2)).toBeLessThanOrEqual(1e-15);
+    // qsignrank reads the same values
+    expect(m.qsignrank(m.psignrank(5, n, { logP: true }), n, { logP: true })).toBe(5);
+  });
 });
