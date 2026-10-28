@@ -37,6 +37,30 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   every finite q there); and upper tails of the order of a shape below 1e-300 lost digits on the log scale
   (`pgamma(1, 4.8e-316, { scale: 2.06, lowerTail: false, logP: true })` was 5e-9 off,
   `pgamma(1e-310, 5e-324, { lowerTail: false, logP: true })` 3e-4), so that `dgamma` did not match their differences.
+- The beta and F families at a huge parameter: from a shape of about 1e299 `pbeta` was NaN far from the mass
+  (`pbeta(1.5e-236, 9220.5, 2.6e301)`, now 1 as R; `pbeta(1e-307, 55.1, 6.3e307)`; and where b log(1 - x) is beyond the
+  doubles, `pbeta(0.998, 55.1, 6.3e307)` and `dbeta` there), where the double-double divisions and products of the
+  continued fraction overflowed in their splitting; `qbeta` was 0 after 0.8 s (`qbeta(5.9e-49, 9220.5, 2.6e301)`, now
+  3.078354768366422e-298 as R) or did not return (`qbeta(8.7e-285, 1.3e304, 5.9)`, now 1; R does not converge);
+  `qf(1.9e-13, 0.0885, 6e302)` did not return (now the χ² limit 4.611344535319733e-287, where R gives
+  4.6113445353195029e-287), and the noncentral `qf` far out took seconds (`qf(5.4e-11, 3.7e-313, 1249, { ncp: 1.7e243 })`
+  did not return; now Infinity, as R, from Chernoff bounds at the ends; from a df2 of about 1e40 the noncentral χ²
+  limit, where `qf(-385.8, 1.05, 1.1e264, { ncp: 1.7e262, logP: true })` did not return (R gives Inf)); `pf` with ncp
+  near the largest double was 0 in both tails (`pf(2.5e300, 1828, 0.165, { ncp: 3.7e307 })`; R gives NaN); and the
+  `nbinom` upper tail far out at prob near 1e-300 is no longer NaN (`pnbinom(1e303, 641, { prob: 9e-300, lowerTail: false
+  })`, 0).
+- The beta and F families at a subnormal or tiny parameter: noncentral densities at a tiny ncp were NaN
+  (`dbeta(1.05e-231, 0.19, 141, { ncp: 1.4e-303 })`, `dchisq(1, 1, { ncp: 1e-310 })`, `df(2.9e-257, 0.0275, 3, { ncp:
+  5e-324 })`; now the central density, which they equal to the double); the log of a beta tail of the order of a
+  shape below 1e-300 lost digits, so that `dbeta` did not match its differences (`pbeta(0.97, 0.13, 8.15e-322, { logP:
+  true })`, now -736.93155014878607; R gives -736.93128475074695); `pbeta(1 - 6e-14, 0.97, 4.7e-307, { lowerTail:
+  false })` was 1 - 5.5e-14 beside a lower tail of 1.4e-305 (now 1, as R); a subnormal `qbeta` was 5e-14 off
+  (`qbeta(3.8e-277, 27.9, 1.5e299)`, now 9.585930727509766e-309 as R); and `pf(2e-323, 0.0121, Inf)` was 0 (q df1
+  underflowed; now 0.01091389160021212, R gives 0).
+- `qtukey` with nranges > 1 did not return where 1 - W underflows in the upper tail
+  (`qtukey(1.5e-287, 3, 4.7e10, { nranges: 2, lowerTail: false })`, now 51.31849500218445; R does not converge), as the
+  log of that tail was -Infinity (`ptukey(54.5, 3, Inf, { nranges: 2, lowerTail: false, logP: true })`, now
+  -744.6488312090673; R gives -Inf).
 
 ## 0.15.2 - 2026-10-28
 

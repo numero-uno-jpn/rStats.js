@@ -17,7 +17,7 @@
 
 import { dt0, dt1, quantileBoundaries, smallerTail } from "../internal/dpq.js";
 import { invertContinuous } from "../internal/invert.js";
-import { kronrodAdaptive, narrowQuantile, quadratureControl, searchDoubles } from "../internal/noncentral.js";
+import { kronrodAdaptive, narrowQuantile, negligibleNcp, quadratureControl, searchDoubles } from "../internal/noncentral.js";
 import { dpoisLogDD, mixtureCdf, mixtureDensity, mixtureTail, type MixtureKernel } from "../internal/poissonMixture.js";
 import { gammaInc } from "../special/igam.js";
 import { dpoisRaw } from "../special/loader.js";
@@ -441,6 +441,7 @@ export function dnchisq1(x: number, df: number, ncp: number, log: boolean): numb
     if (df === 2) return log ? -ncp / 2 - Math.LN2 : Math.exp(-ncp / 2) / 2;
     return log ? -Infinity : 0;
   }
+  if (negligibleNcp(ncp / 2, x / df)) return dgamma1(x, df / 2, 2, log);
   return dnchisqRaw(x, df, ncp, log);
 }
 

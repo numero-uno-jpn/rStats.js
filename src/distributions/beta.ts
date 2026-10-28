@@ -35,6 +35,9 @@ function dbetaCore(x: number, a: number, b: number, log: boolean): number {
     return log ? l : Math.exp(l);
   }
   const { e } = dbinomExponent(a, b, xd, xcd);
+  // (a deviance beyond the doubles, from a shape near the largest double: the density is 0, where the double-double sums
+  // below were NaN: dbeta(0.998, 55.1, 6.3e307))
+  if (e[0] === Infinity) return d0(log);
   // With m = ab/(a+b), log(denom)/2 = log(2 pi m)/2 and log(ab/(a+b)) - log(denom)/2 = log(m/(2 pi))/2
   const m = (a * b) / (a + b);
   if (!log && e[0] < 700 && x > 1e-290 && xcd[0] > 1e-290) {
@@ -256,7 +259,12 @@ export function qbeta1(p: number, a: number, b: number, lowerTail: boolean, logP
   const atHalf = betaInc(a, b, 0.5, 0.5, lower, true);
   const leftHalf = lower ? logTarget <= atHalf : logTarget >= atHalf;
   if (leftHalf) return solveLeftHalf(a, b, lower, logTarget, linearTarget);
-  // Right half: y = 1 - x lies in (0, 1/2] in frame (b, a), with the tails swapped
+  // Right half: y = 1 - x lies in (0, 1/2] in frame (b, a), with the tails swapped. Where y is below 2^-55, x rounds to
+  // 1 (the search for such a y took seconds for a huge a: qbeta(8.7e-285, 1.3e304, 5.9), where y is about 5e-302; R
+  // does not converge there)
+  const yMin = 2 ** -55;
+  const atMinY = betaInc(b, a, yMin, 1 - yMin, !lower, true);
+  if (lower ? atMinY <= logTarget : atMinY >= logTarget) return 1;
   return 1 - solveLeftHalf(b, a, !lower, logTarget, linearTarget);
 }
 

@@ -16,7 +16,7 @@
 
 import { dt0, dt1, quantileBoundaries, smallerTail } from "../internal/dpq.js";
 import { invertContinuous } from "../internal/invert.js";
-import { kronrodAdaptive, narrowQuantile, quadratureControl, searchDoubles } from "../internal/noncentral.js";
+import { kronrodAdaptive, narrowQuantile, negligibleNcp, quadratureControl, searchDoubles } from "../internal/noncentral.js";
 import { gammaInc } from "../special/igam.js";
 import { mixtureDensity, mixtureTail, type MixtureKernel } from "../internal/poissonMixture.js";
 import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddNeg, twoProd, twoSum, type DD } from "../special/dd.js";
@@ -424,11 +424,14 @@ function gammaExpansion(a: number, b: number, ncp: number, o: Odds, lower: boole
   const ratio = log ? Math.exp(lgt - base) : base > 0 ? Math.exp(lgt) / base : 0;
   if (!(t0 > 0 && t0 < Infinity) || ratio === 0) return base;
   // In terms of H = h t0 = b - 1 - t0, B = b - 1 and the cumulants relative to A^n (A = a + λ/2, t0 = A k), which do
-  // not underflow or overflow where the cumulants themselves do: v h/2 = (w/2) t0 H, w = (a + λ)/A², and so on
+  // not underflow or overflow where the cumulants themselves do: v h/2 = (w/2) t0 H, w = (a + λ)/A², and so on (with a
+  // and λ divided by A first: 6 (a + 2λ) overflowed from λ = 1.5e307, and both tails of pf(2.5e300, 1828, 0.165,
+  // { ncp: 3.7e307 }) were 0)
   const A = a + ncp / 2;
-  const w = (a + ncp) / A / A;
-  const u3 = (2 * a + 3 * ncp) / A / A / A;
-  const u4 = (6 * (a + 2 * ncp)) / A / A / A / A;
+  const [ra, rl] = [a / A, ncp / A];
+  const w = (ra + rl) / A;
+  const u3 = (2 * ra + 3 * rl) / A / A;
+  const u4 = (6 * (ra + 2 * rl)) / A / A / A;
   const H = b - 1 - t0;
   const B = b - 1;
   const series = (w / 2) * H + (u3 / 6) * (H * H - B) + ((u4 + 3 * w * w) / 24) * (H * H * H - 3 * H * B + 2 * B);
@@ -599,6 +602,7 @@ export function dnbeta1(x: number, a: number, b: number, ncp: number, log: boole
     if (b < 1) return Infinity;
     return log ? Math.log(a + mu) : a + mu;
   }
+  if (negligibleNcp(mu, x * ((a + b) / a))) return dbeta1(x, a, b, log);
   return dnbetaCore(x, a, b, ncp, log);
 }
 
@@ -756,7 +760,8 @@ export function dnf1(x: number, m: number, n: number, ncp: number, log: boolean)
     if (m > 2) return log ? -Infinity : 0;
     return log ? -ncp / 2 : Math.exp(-ncp / 2);
   }
-  if (ncp === 0) return dfDensity1(x, m, n, log);
+  // (x (a + b)/a of the beta at x = m q/(n + m q), with a = m/2 and b = n/2)
+  if (ncp === 0 || negligibleNcp(ncp / 2, (1 + n / m) / (1 + n / (m * x)))) return dfDensity1(x, m, n, log);
   return dnfCore(x, m, n, ncp, log);
 }
 
@@ -786,22 +791,27 @@ const LOG_NEGLIGIBLE = -746;
  * bound is below the double range.
  */
 function fTailBound(q: number, m: number, n: number, ncp: number): FarTail {
-  const c = (q * m) / n;
-  if (!(c > 0 && Number.isFinite(c))) return undefined;
-  // (c s formed first: 2c overflows for q near the largest double)
-  const lower = (s: number): number => -(m / 2) * Math.log1p(2 * s) - (ncp * s) / (1 + 2 * s) - (n / 2) * Math.log1p(-2 * (c * s));
-  const upper = (s: number): number => -(m / 2) * Math.log1p(-2 * s) + (ncp * s) / (1 - 2 * s) - (n / 2) * Math.log1p(2 * (c * s));
-  const best = (f: (s: number) => number, sMax: number): number => {
-    let b = Infinity;
-    for (let i = 1; i <= 60; i++) {
-      const v = Math.min(f(sMax * 2 ** -i), f(sMax * (1 - 2 ** -i)));
-      if (v < b) b = v;
-    }
-    return b;
-  };
-  if (best(lower, 1 / (2 * c)) < LOG_NEGLIGIBLE) return "lower";
-  if (best(upper, 0.5) < LOG_NEGLIGIBLE) return "upper";
+  if (fChernoffLog(q, m, n, ncp, true) < LOG_NEGLIGIBLE) return "lower";
+  if (fChernoffLog(q, m, n, ncp, false) < LOG_NEGLIGIBLE) return "upper";
   return undefined;
+}
+
+/** The bound of fTailBound on log P[F <= q] (lower) or log P[F >= q], as a log (NaN where q m/n is 0 or overflows) */
+function fChernoffLog(q: number, m: number, n: number, ncp: number, lower: boolean): number {
+  // (as q (m/n) where q m overflows, as at the largest double)
+  const c = q * m < Infinity ? (q * m) / n : q * (m / n);
+  if (!(c > 0 && Number.isFinite(c))) return NaN;
+  // (c s formed first: 2c overflows for q near the largest double)
+  const f = lower
+    ? (s: number): number => -(m / 2) * Math.log1p(2 * s) - (ncp * s) / (1 + 2 * s) - (n / 2) * Math.log1p(-2 * (c * s))
+    : (s: number): number => -(m / 2) * Math.log1p(-2 * s) + (ncp * s) / (1 - 2 * s) - (n / 2) * Math.log1p(2 * (c * s));
+  const sMax = lower ? 1 / (2 * c) : 0.5;
+  let b = Infinity;
+  for (let i = 1; i <= 60; i++) {
+    const v = Math.min(f(sMax * 2 ** -i), f(sMax * (1 - 2 ** -i)));
+    if (v < b) b = v;
+  }
+  return b;
 }
 
 export function qnf1(p: number, m: number, n: number, ncp: number, lowerTail: boolean, logP: boolean): number {
@@ -818,6 +828,24 @@ export function qnf1(p: number, m: number, n: number, ncp: number, lowerTail: bo
 function qnfRaw(p: number, m: number, n: number, ncp: number, lowerTail: boolean, logP: boolean): number {
   const { lower, logTarget, linearTarget } = smallerTail(p, lowerTail, logP);
   const cdfAt = memoCdf((x, l, log) => pnfRaw(x, m, n, ncp, l, log));
+  // The Chernoff bounds at the smallest and largest doubles (fChernoffLog), which decide the ends where the distribution
+  // function there is NaN (out of the range of its methods): where the bound B on log P[F <= MAX] is below the target,
+  // no double reaches a lower-tail target, and the upper tail stays above 1 - e^B, above an upper-tail target (at most
+  // 1/2) where B < -log 2; likewise at the smallest double. For a subnormal df1 and a huge λ, F lies beyond the doubles
+  // but for the point mass e^(-λ/2) at 0 (R does not converge, and the search over NaN took seconds: qf(5.4e-11, 3.7e-313,
+  // 1249, { ncp: 1.7e243 }))
+  if (fChernoffLog(Number.MAX_VALUE, m, n, ncp, true) < (lower ? logTarget : -Math.LN2)) return Infinity;
+  if (fChernoffLog(Number.MIN_VALUE, m, n, ncp, false) < (lower ? -Math.LN2 : logTarget)) return 0;
+  // A df2 so large that W = χ²_n/n is 1 on the scale of the quantile: the noncentral χ² limit, as for df2 = Inf. log W
+  // has a spread s = sqrt(2/n); it moves the quantile of log F by at most about s (sqrt(2 |log p|) + 1) where W alone
+  // would make the tail, and by s² L otherwise, L = |d log P/d log x| of the limit, at most of the order of
+  // m + 2 |log p| + 2 sqrt((m + λ)(|log p| + 1)) (the power m/2 near 0, the exponential tail, the normal bulk of a large
+  // λ); both are below 1e-20 here. (Out of the range of the distribution function, at both a huge df2 and λ, the search
+  // took seconds: qf(exp(-385.8), 1.05, 1.1e264, { ncp: 1.7e262 }))
+  const lp = -logTarget;
+  if (n > 1e40 * (lp + 1) && n > 1e20 * (m + 2 * lp + 1e3 + 4 * Math.sqrt((m + ncp) * (lp + 1)))) {
+    return qnchisq1(p, m, ncp, lowerTail, logP) / m;
+  }
   const atMin = cdfAt(Number.MIN_VALUE, lower, true);
   if (lower ? atMin >= logTarget : atMin <= logTarget) return 0;
   const atMax = cdfAt(Number.MAX_VALUE, lower, true);
@@ -827,6 +855,10 @@ function qnfRaw(p: number, m: number, n: number, ncp: number, lowerTail: boolean
   const nu = (m + ncp) * ((m + ncp) / (m + 2 * ncp));
   const central = method(m / 2, n / 2, ncp) === "mixture" && inCentralRange(m) && inCentralRange(n);
   let x0 = ((m + ncp) / m) * (central ? qf1(logTarget, nu, n, lower, true) : 1);
+  // For a df2 above the central range, the quantile of the χ² limit (df2 = Inf): from (m + λ)/m the search took seconds
+  // in the far tails, at 0.1 s per call of the integral (qf(exp(-645), 314, 5.2e16, { ncp: 2393, lowerTail: false }))
+  const limitStart = n > 1e15 && inCentralRange(m);
+  if (limitStart) x0 = qnchisq1(logTarget, m, ncp, lower, true) / m;
   if (!(x0 > 0) || !Number.isFinite(x0)) x0 = 1;
   const passes = (x: number): boolean => (lower ? cdfAt(x, true, true) >= logTarget : cdfAt(x, false, true) <= logTarget);
   const narrow = relativeSpread(m / 2, n / 2, ncp) < 1e-10 ? narrowQuantile(x0, Number.MAX_VALUE, passes) : undefined;
@@ -843,6 +875,9 @@ function qnfRaw(p: number, m: number, n: number, ncp: number, lowerTail: boolean
     hi: Infinity,
     positive: true,
     maxIter: 60,
+    // (there the distribution function is the integral, accurate to about 1e-13 (see the known violations), at 0.2 s a
+    // call: the steps over its noise took seconds (qf(exp(-3.79), 314.2, 5.2e16, { ncp: 2393 })))
+    ...(limitStart && { residualTolerance: 1e-12 * Math.max(1, -logTarget) }),
   });
   const search = (): number => searchDoubles(x, Number.MIN_VALUE, Number.MAX_VALUE, passes);
   return confirmQuantile(x, cdfAt(x, lower, true), logTarget, search, passes);

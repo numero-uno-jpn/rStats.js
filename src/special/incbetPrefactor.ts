@@ -56,7 +56,12 @@ export function prefactorParts(a: number, b: number, x: DD, xc: DD): [number, DD
   }
   const lx = x[0] <= 0.5 ? ddLog(x) : log1m(xc);
   const lxc = xc[0] <= 0.5 ? ddLog(xc) : log1m(x);
-  return [c, ddAdd(ddAdd(mulBig(lx, a), mulBig(lxc, b)), g)];
+  const ta = mulBig(lx, a);
+  const tb = mulBig(lxc, b);
+  // (both terms are at most 0; where one overflows the exponent is -Infinity, which the double-double sums made NaN:
+  // pbeta(0.998, 55.1, 6.3e307) was NaN)
+  if (!Number.isFinite(ta[0]) || !Number.isFinite(tb[0])) return [c, [ta[0] + tb[0], 0]];
+  return [c, ddAdd(ddAdd(ta, tb), g)];
 }
 
 /**
@@ -91,7 +96,11 @@ function log1m(y: DD): DD {
   return y[0] < 1e-15 ? ddNeg(ddAdd(y, [(y[0] * y[0]) / 2, 0])) : ddLog(ddSub([1, 0], y));
 }
 
-/** x a in double-double, also for a above 1e290 (where the splitting of a in ddMulNum would overflow) */
+/**
+ * x a in double-double, also for a above 1e290 (where the splitting of a in ddMulNum would overflow); [±Infinity, 0]
+ * where the product overflows (the scaling back made it NaN)
+ */
 function mulBig(x: DD, a: number): DD {
+  if (!Number.isFinite(x[0] * a)) return [x[0] * a, 0];
   return a > 1e290 ? ddMulNum(ddMulNum(x, a / 2 ** 64), 2 ** 64) : ddMulNum(x, a);
 }

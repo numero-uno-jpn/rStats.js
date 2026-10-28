@@ -4,6 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  dbeta,
   dchisq,
   df,
   dgamma,
@@ -24,6 +25,7 @@ import {
   pnbinom,
   pnorm,
   pt,
+  ptukey,
   qbeta,
   qbinom,
   qcauchy,
@@ -35,6 +37,7 @@ import {
   qnbinom,
   qnorm,
   qt,
+  qtukey,
 } from "../src/index.js";
 import { nextDown } from "./helpers/float.js";
 
@@ -462,5 +465,133 @@ describe("gamma, chisq and invgamma with a subnormal parameter", () => {
     // Where q / scale is below the normal range, log Q from log(shape) (mpmath, from -expm1(shape log q - lgamma1p(shape)));
     // 3e-4 off before
     expect(rel(pgamma(1e-310, 5e-324, { lowerTail: false, logP: true }), -737.87027615604015)).toBeLessThan(4 * Number.EPSILON);
+  });
+});
+
+describe("beta, F, noncentral F and Tukey at huge and subnormal parameters", () => {
+  /** The call's value and its time in ms */
+  const timed = (f: () => number): [number, number] => {
+    const start = performance.now();
+    const v = f();
+    return [v, performance.now() - start];
+  };
+
+  it("pbeta far above the mass at a shape of 2.6e301 (NaN: the splitting of the continued fraction's divisors overflowed)", () => {
+    const [x, a, b] = [1.4897613331026733e-236, 9220.54059054371, 2.5608778622012845e301];
+    expect(pbeta(x, a, b)).toBe(1);
+    expect(Math.abs(pbeta(x, a, b, { logP: true }))).toBe(0);
+    expect(pbeta(x, a, b, { lowerTail: false })).toBe(0);
+    // mpmath, from the gamma limit: -y + (a - 1) log y - lgamma(a), y = -b log1p(-x) (R 4.5.2: -3.8150968179061101e65)
+    expect(rel(pbeta(x, a, b, { lowerTail: false, logP: true }), -3.8150968179061096e65)).toBeLessThan(1e-15);
+  });
+
+  it("pbeta and dbeta at a shape of 6.3e307 (NaN: the products in the continued fraction and the expansion for large a overflowed)", () => {
+    const [a, b] = [55.11485820081626, 6.332054207061664e307];
+    // mpmath, from the gamma limit P(a, -b log1p(-x)) (relative error of order a²/b)
+    expect(rel(pbeta(1e-307, a, b), 1.4956825292090002e-32)).toBeLessThan(1e-14);
+    expect(rel(pbeta(1e-305, a, b, { lowerTail: false, logP: true }), -448.81185571357994)).toBeLessThan(1e-14);
+    // b log(1 - x) beyond the doubles
+    expect(pbeta(0.9981707623107112, a, b)).toBe(1);
+    expect(pbeta(0.9981707623107112, a, b, { lowerTail: false, logP: true })).toBe(-Infinity);
+    expect(dbeta(0.9981707623107112, a, b)).toBe(0);
+    expect(dbeta(0.9981707623107112, a, b, { log: true })).toBe(-Infinity);
+  });
+
+  it("pf with ncp = 3.7e307: the tails add up (both 0 before; 6 (a + 2λ) overflowed; R 4.5.2 gives NaN)", () => {
+    const o = { ncp: 3.6563492032068665e307 };
+    for (const q of [2.5e300, 1e303, 1e307]) {
+      const lo = pf(q, 1827.512149376115, 0.16542329604093037, o);
+      const up = pf(q, 1827.512149376115, 0.16542329604093037, { ...o, lowerTail: false });
+      expect(lo).toBeGreaterThan(0);
+      expect(Math.abs(lo + up - 1)).toBeLessThan(4 * Number.EPSILON);
+      expect(rel(pf(q, 1827.512149376115, 0.16542329604093037, { ...o, logP: true }), Math.log(lo))).toBeLessThan(1e-13);
+    }
+  });
+
+  it("qbeta at a mean of 3.6e-298 (0 after 800 ms; R 4.5.2: 3.0783547683664219e-298, 2.7961046762139912e-298)", () => {
+    const [a, b] = [9220.54059054371, 2.5608778622012845e301];
+    const [q, ms] = timed(() => qbeta(5.865506627317276e-49, a, b));
+    expect(rel(q, 3.0783547683664219e-298)).toBeLessThan(1e-14);
+    expect(ms).toBeLessThan(100);
+    expect(rel(qbeta(-275.4002018147623, a, b, { logP: true }), 2.7961046762139912e-298)).toBeLessThan(1e-14);
+  });
+
+  it("qbeta(8.7e-285, 1.3e304, 5.9) is 1 (did not return; R 4.5.2 does not converge): 1 - x is about 5e-302", () => {
+    const [q, ms] = timed(() => qbeta(8.695245994573303e-285, 1.326518545361005e304, 5.890954242396564));
+    expect(q).toBe(1);
+    expect(ms).toBeLessThan(100);
+  });
+
+  it("pbeta's upper tail beside a lower tail of 1.4e-305 is 1 (1 - 5.5e-14; R 4.5.2: 1 and 1.4255049416209152e-305)", () => {
+    const [x, a, b] = [0.9999999999999395, 0.9668818597712154, 4.675035776702327e-307];
+    expect(pbeta(x, a, b, { lowerTail: false })).toBe(1);
+    // (mpmath: 1.4255049416209151e-305)
+    expect(pbeta(x, a, b)).toBe(1.4255049416209152e-305);
+  });
+
+  it("the log of a beta tail of the order of a subnormal shape (mpmath at 400 digits)", () => {
+    // (lost digits, so that dbeta did not match the differences of pbeta; R 4.5.2: -736.93128475074695)
+    expect(rel(pbeta(0.972696723183617, 0.130360175608773, 8.15e-322, { logP: true }), -736.93155014878607)).toBeLessThan(1e-15);
+    const upper = pbeta(4.972082704953929e-48, 6e-323, 433.58274113933624, { lowerTail: false, logP: true });
+    expect(rel(upper, -737.3275283536092)).toBeLessThan(1e-15);
+  });
+
+  it("qbeta with a subnormal answer is found to its last digits (R 4.5.2: 9.5859307275097659e-309; 9.58593072751027e-309 before)", () => {
+    expect(qbeta(3.830053778789327e-277, 27.945113448945182, 1.5106518374066408e299)).toBe(9.5859307275097659e-309);
+  });
+
+  it("noncentral densities at a tiny or subnormal ncp are the central ones (NaN)", () => {
+    // mpmath: 9.3999238814456980e185, 1.0377814439791256e133, 0.24197072451914335, 1.3617011778446561e251 (R 4.5.2:
+    // 9.3999238814454927e185, 1.0377814439791258e133, 0.24197072451914337, 1.3617011778446392e251)
+    const x = 1.0522653871898304e-231;
+    expect(dbeta(x, 0.1937170160875713, 141.08193369784416, { ncp: 1.3857699868036388e-303 })).toBe(dbeta(x, 0.1937170160875713, 141.08193369784416));
+    expect(rel(dbeta(x, 0.1937170160875713, 141.08193369784416), 9.399923881445698e185)).toBeLessThan(1e-15);
+    expect(dchisq(1.4777750489339286e-267, 1, { ncp: 1.1186442675478367e-308 })).toBe(dchisq(1.4777750489339286e-267, 1));
+    expect(rel(dchisq(1.4777750489339286e-267, 1), 1.0377814439791256e133)).toBeLessThan(1e-15);
+    expect(dchisq(1, 1, { ncp: 1e-310 })).toBe(0.24197072451914337);
+    const q = 2.855286418252648e-257;
+    expect(df(q, 0.02747085704007554, 3, { ncp: 5e-324 })).toBe(df(q, 0.02747085704007554, 3));
+    expect(rel(df(q, 0.02747085704007554, 3), 1.3617011778446561e251)).toBeLessThan(1e-15);
+    // Where the first terms of the mixture matter (λ/2 times the density ratio 2.5e279 at a shape of 1e-280)
+    expect(rel(dbeta(0.5, 1e-280, 1, { ncp: 2e-290 }), 2e-280 * (1 + 1e-290 * (0.5 / 1e-280 - 1)))).toBeLessThan(1e-14);
+  });
+
+  it("qf at a df2 of 6e302 is the χ² limit (did not return; R 4.5.2: 4.6113445353195029e-287)", () => {
+    // mpmath: the quantile of χ²_m / m, 4.6113445353197333e-287
+    const [q, ms] = timed(() => qf(1.8948181757135773e-13, 0.08851774263240042, 6.009378697059168e302));
+    expect(rel(q, 4.6113445353197333e-287)).toBeLessThan(1e-14);
+    expect(ms).toBeLessThan(100);
+  });
+
+  it("pf and qf with df2 = Inf where q df1 is below the normal range (0; R 4.5.2 gives 0 too)", () => {
+    // mpmath: P(0.0060430404814836891, 1.2e-325) = 0.010913891600212120
+    expect(rel(pf(2e-323, 0.012086080962967378, Infinity), 0.01091389160021212)).toBeLessThan(1e-14);
+    expect(qf(7.829924534587012e-37, 0.012086080962967378, Infinity)).toBe(0);
+  });
+
+  it("noncentral qf beyond the doubles is Infinity (did not return; R 4.5.2: Inf)", () => {
+    // A subnormal df1 and λ = 1.7e243: F lies beyond the doubles but for the point mass e^(-λ/2) at 0
+    const [q, ms] = timed(() => qf(5.390320876058269e-11, 3.69345607573e-313, 1249.223519976018, { ncp: 1.676553834669942e243 }));
+    expect(q).toBe(Infinity);
+    expect(ms).toBeLessThan(100);
+  });
+
+  it("noncentral qf at a df2 of 1.1e264 is the noncentral χ² limit (did not return; R 4.5.2: Inf)", () => {
+    const [m, n, ncp] = [1.052878110723803, 1.1413991322004876e264, 1.6535148456194238e262];
+    const [q, ms] = timed(() => qf(-385.7634988957127, m, n, { ncp, logP: true }));
+    // (log W has a spread of 1.3e-132 there)
+    expect(q).toBe(qchisq(-385.7634988957127, m, { ncp, logP: true }) / m);
+    expect(ms).toBeLessThan(100);
+  });
+
+  it("qtukey and ptukey where 1 - W underflows with nranges = 2 (did not return; R 4.5.2: NaN, and -Inf on the log scale)", () => {
+    const o = { nranges: 2, lowerTail: false };
+    const [q, ms] = timed(() => qtukey(1.5199556825410626e-287, 3, 46673457704.69311, o));
+    expect(rel(ptukey(q, 3, 46673457704.69311, o), 1.5199556825410626e-287)).toBeLessThan(1e-13);
+    expect(ms).toBeLessThan(500);
+    // log(1 - (1 - Wc)^2) is log 2 + log Wc to the double (-Infinity before)
+    expect(ptukey(54.5, 3, Infinity, { ...o, logP: true })).toBe(Math.LN2 + ptukey(54.5, 3, Infinity, { lowerTail: false, logP: true }));
+    // mpmath: log(1 - W) = -745.34197838962728 for k = 3 (with nranges = 2: -744.64883120906734)
+    expect(rel(ptukey(54.5, 3, Infinity, { ...o, logP: true }), -744.64883120906734)).toBeLessThan(1e-14);
   });
 });

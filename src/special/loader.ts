@@ -482,8 +482,7 @@ export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean):
   }
   if (x < 0 || nmx < 0) return zero;
   // E = stirlerr(x) + stirlerr(n-x) - stirlerr(n) + bd0(x, np) + bd0(n-x, nq)
-  let e = ddAdd(bd0Prod(x, nn, p), bd0Prod(nmx, nn, q));
-  e = ddAdd(e, twoSum(stirlerr(x) + stirlerr(nmx), -stirlerr(n)));
+  const e = binomialExponent(x, nmx, nn, p, q);
   // Denominator 2 pi x (n - x) / n
   return expNegDD(
     e,
@@ -500,9 +499,18 @@ export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean):
 export function dbinomExponent(x: number, nmx: number, p: DD, q: DD): { e: DD; logDenom: number } {
   const nn = twoSum(x, nmx);
   const n = nn[0];
-  let e = ddAdd(bd0Prod(x, nn, p), bd0Prod(nmx, nn, q));
-  e = ddAdd(e, twoSum(stirlerr(x) + stirlerr(nmx), -stirlerr(n)));
-  return { e, logDenom: LN_2PI + Math.log(x) + Math.log(nmx) - Math.log(n) };
+  return { e: binomialExponent(x, nmx, nn, p, q), logDenom: LN_2PI + Math.log(x) + Math.log(nmx) - Math.log(n) };
+}
+
+/**
+ * The exponent E = bd0(x, np) + bd0(n - x, nq) + stirlerr(x) + stirlerr(n - x) - stirlerr(n) in double-double;
+ * [Infinity, 0] where a deviance overflows (the double-double sums made it NaN: dbeta(0.998, 55.1, 6.3e307))
+ */
+function binomialExponent(x: number, nmx: number, nn: DD, p: DD, q: DD): DD {
+  const d1 = bd0Prod(x, nn, p);
+  const d2 = bd0Prod(nmx, nn, q);
+  if (!Number.isFinite(d1[0] + d2[0])) return [Infinity, 0];
+  return ddAdd(ddAdd(d1, d2), twoSum(stirlerr(x) + stirlerr(nmx), -stirlerr(nn[0])));
 }
 
 /** Poisson probability lambda^x e^-lambda / x!. x need not be an integer (used by the gamma distribution). */

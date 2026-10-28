@@ -136,7 +136,9 @@ export function betaIncLargeA(
   // with 100/u steps, did not end)
   const lx = y < 1e-15 ? ddNeg(ddAdd(yd, [(y * y) / 2, 0])) : ddLog(xd);
   const ld: DD = [-lx[0], -lx[1]];
-  const ud = ddMul(td, ld);
+  // (td scaled by 2^-64 and ld by 2^64 above 1e299, where the splitting of td overflowed: pbeta(1e-305, 55.1, 6.3e307)
+  // was NaN)
+  const ud = td[0] > 1e299 ? ddMul([td[0] * 2 ** -64, td[1] * 2 ** -64], [ld[0] * 2 ** 64, ld[1] * 2 ** 64]) : ddMul(td, ld);
   const u = ud[0] + ud[1];
   if (!(u > 0 && u < Infinity)) return undefined;
   // (the low part of u, which the incomplete gamma functions below take into account)
@@ -161,7 +163,10 @@ export function betaIncLargeA(
     [eHi, eLo, fac] = [es[0], es[1], c];
   } else {
     const { e } = dbinomExponent(a, b, xd, yd);
-    const md = ddMul(ddDiv(twoProd(a, b), twoSum(a, b)), INV_2PI);
+    // (with a and a + b scaled by 2^-64 above 1e299, where the splitting of a in the products would overflow)
+    const as = a > 1e299 ? a * 2 ** -64 : a;
+    const bs = a > 1e299 ? b * 2 ** -64 : b;
+    const md = ddMul(ddDiv(twoProd(as, b), twoSum(as, bs)), INV_2PI);
     const sh = Math.sqrt(md[0]);
     const sq = twoProd(sh, sh);
     [eHi, eLo, fac] = [-e[0], -e[1], sh];

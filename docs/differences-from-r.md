@@ -59,6 +59,10 @@ reference, the case passes as "more accurate than R".
 | `dchisq(1e-300, 0, ncp = 1)` | 0 | 0.1516 | same as truth |
 | `df(1e10, 5, Inf, ncp = 0, log = TRUE)` | -1.25e11 | -2.5e10 | same as truth |
 | `qchisq(-1e10, 5, ncp = 1, lower.tail = FALSE, log.p = TRUE)` | 2.29e10 | 2.00e10 (checked with the distribution function) | same as truth |
+| `dbeta(1.05e-231, 0.194, 141.1, ncp = 1.39e-303)` (a noncentral density at a tiny ncp) | 9.3999238814454927e185 | 9.399923881445698e185 (mpmath) | same as truth (the central density) |
+| `df(2.86e-257, 0.0275, 3, ncp = 5e-324)` | 1.3617011778446392e251 | 1.3617011778446561e251 (mpmath) | 1.3617011778446567e251 (the central density) |
+| `qf(1.89e-13, 0.0885, 6.01e302)` | 4.6113445353195029e-287 | 4.6113445353197333e-287 (mpmath, the χ² limit) | 4.611344535319733e-287 |
+| `pbeta(0.973, 0.130, 8.15e-322, log.p = TRUE)` | -736.93128475074695 | -736.93155014878607 (mpmath) | same as truth |
 
 ### Special functions
 
@@ -151,6 +155,12 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `dwilcox(3, Inf, 5)`, `dsignrank(3, Inf)` | allocation error or crash | NaN |
 | `qsignrank(p, 1100)`, `qhyper(0.5, 1e15, 1e15, 1e15)` | does not finish | computed (`qhyper` takes about ten seconds at this size) |
 | `qtukey(1e-10, 20, 10)` | NaN | finite answer |
+| `qtukey(1.52e-287, 3, 4.67e10, nranges = 2, lower.tail = FALSE)` | NaN ("convergence failed") | 51.31849500218445 |
+| `ptukey(54.5, 3, Inf, nranges = 2, lower.tail = FALSE, log.p = TRUE)` (1 − W below the double range) | -Inf | -744.6488312090673 (log 2 + log(1 − W)) |
+| `qbeta(8.7e-285, 1.33e304, 5.89)` (a huge shape; the answer rounds to 1) | NaN, with warnings from `bgrat` | 1 |
+| `pf(2e-323, 0.0121, Inf)` (q df1 below the normal range) | 0 | 0.01091389160021212 |
+| `qf(-385.76, 1.05, 1.14e264, ncp = 1.65e262, log.p = TRUE)` | Inf, with a warning | 1.5704712908151466e262 (the noncentral χ² limit) |
+| `pf(2.5e300, 1827.5, 0.165, ncp = 3.66e307)` | NaN, with warnings | 7.4814091599854485e-292 |
 | `qhyper(1 - 1e-15, 1e4, 1e5, 5000)` | 5000 | 617 (by definition) |
 | `fisher.test` on a 3 × 5 table with n = 179 | FEXACT error 7 with the default workspace | 0.2023726720757 (0.65 s) |
 | `wilcox.test(exact = TRUE)` with very large n (e.g. 3000) | `psignrank` gives NaN | computed |

@@ -708,6 +708,10 @@ function logRangeMaxCdf(w: number, k: number, r: number, upper: boolean): number
   const Wc = Math.min(rangeCdfCFast(w, k), 1);
   const lWc = Wc > 1e-290 ? Math.log(Wc) : logRangeCdfC(w, k);
   if (r === 1) return lWc;
+  // 1 - (1 - Wc)^r = r Wc (1 - (r - 1) Wc/2 + ...): log r + log Wc where Wc is below e^-700 (the form below was
+  // -Infinity once Wc underflowed, from q = 54.5 at k = 3, r = 2, and the outer integral over that edge was bisected to
+  // its limit at seconds per call: qtukey(1.5e-287, 3, 4.7e10, { nranges: 2, lowerTail: false }))
+  if (lWc < -700) return Math.log(r) + lWc;
   // 1 - (1 - Wc)^r
   return Math.log(-Math.expm1(r * Math.log1p(-Math.exp(lWc))));
 }

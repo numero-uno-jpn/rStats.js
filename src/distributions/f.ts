@@ -163,6 +163,27 @@ function pfRawBoth(x: number, m: number, n: number, lower: boolean): [number, nu
   return betaIncBoth(m / 2, n / 2, 1 - zc, zc, lower);
 }
 
+const MIN_NORMAL = 2.2250738585072014e-308;
+
+/**
+ * P[χ²_m / m <= q] (lower), the F distribution with df2 = Inf: pgamma at q m, or with scale 2/m where q m is below the
+ * normal range (the product had lost its digits or underflowed to 0: pf(2e-323, 0.012, Inf) was 0, as R 4.5.2 gives,
+ * where it is 0.011; so the quantile 0 of qf(7.8e-37, 0.012, Inf) did not round-trip). Not for a subnormal m, where 2/m
+ * overflows
+ */
+function pChisqLimit(q: number, m: number, lowerTail: boolean, logP: boolean): number {
+  const t = q * m;
+  if (t < MIN_NORMAL && m > MIN_NORMAL) return pgamma1(q, m / 2, 2 / m, lowerTail, logP);
+  return pgamma1(t, m / 2, 2, lowerTail, logP);
+}
+
+/** The quantile of χ²_m / m, likewise with scale 2/m where the quantile or that of χ²_m is below the normal range */
+function qChisqLimit(p: number, m: number, lowerTail: boolean, logP: boolean): number {
+  const t = qgamma1(p, m / 2, 2, lowerTail, logP);
+  if ((t < MIN_NORMAL || t / m < MIN_NORMAL) && m > MIN_NORMAL) return qgamma1(p, m / 2, 2 / m, lowerTail, logP);
+  return t / m;
+}
+
 export function pf1(q: number, m: number, n: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(q) || Number.isNaN(m) || Number.isNaN(n)) return NaN;
   if (m <= 0 || n <= 0) return NaN;
@@ -173,7 +194,7 @@ export function pf1(q: number, m: number, n: number, lowerTail: boolean, logP: b
     if (q === 1) return logP ? -Math.LN2 : 0.5;
     return q < 1 ? dt0(lowerTail, logP) : dt1(lowerTail, logP);
   }
-  if (!Number.isFinite(n)) return pgamma1(q * m, m / 2, 2, lowerTail, logP); // χ²_m
+  if (!Number.isFinite(n)) return pChisqLimit(q, m, lowerTail, logP); // χ²_m
   if (!Number.isFinite(m)) return pgamma1(n / q, n / 2, 2, !lowerTail, logP); // n / χ²_n
   return pfRaw(q, m, n, lowerTail, logP);
 }
@@ -184,9 +205,15 @@ export function qf1(p: number, m: number, n: number, lowerTail: boolean, logP: b
   const b = quantileBoundaries(p, 0, Infinity, lowerTail, logP);
   if (b !== undefined) return b;
   if (!Number.isFinite(m) && !Number.isFinite(n)) return 1;
-  if (!Number.isFinite(n)) return qgamma1(p, m / 2, 2, lowerTail, logP) / m;
+  if (!Number.isFinite(n)) return qChisqLimit(p, m, lowerTail, logP);
   if (!Number.isFinite(m)) return n / qgamma1(p, n / 2, 2, !lowerTail, logP);
   const { lower, logTarget, linearTarget } = smallerTail(p, lowerTail, logP);
+  // A df2 so large that χ²_n/n is 1 on the scale of the quantile: the χ² limit, as for n = Inf. With W = χ²_n/n and G
+  // the distribution function of χ²_m, P[F <= x] = E G(m x W) moves from G(m x) by Var W (m x)² G''/2 = (m x)² G''/n,
+  // and (m x)² G''/G is of the order of (d log G/d log t)², at most (m + 2 |log p| + 1e3)² (p the smaller tail): the
+  // quantile moves by less than 1e-20 relative. (The incomplete beta function, out of its range at such a df (see the
+  // known violations), was NaN in the bulk, and the search took seconds: qf(1.9e-13, 0.0885, 6e302) did not return)
+  if (n > 1e20 * (m - 2 * logTarget + 1e3) ** 2) return qChisqLimit(p, m, lowerTail, logP);
   // Near 0, P[F <= x] ≈ (m x / n)^(m/2) / ((m/2) B(m/2, n/2)). The answer is 0 if it underflows
   if (lower && (logTarget + Math.log(m / 2) + lbeta(m / 2, n / 2)) / (m / 2) + Math.log(n / m) < -746) return 0;
   // Near infinity, P[F > x] ≈ (n / (m x))^(n/2) / ((n/2) B(m/2, n/2)). Inf if it overflows, as confirmed by the upper

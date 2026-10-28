@@ -607,7 +607,7 @@ const betaPrefactor = (x: number, a: number, b: number): number => dbeta(x, a, b
 
 const INCBET: Entry[] = [
   {
-    where: "special/incbet.ts:149, :756",
+    where: "special/incbet.ts:153, :778",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "prefactor x^a (1-x)^b / B(a, b) > 2.2e-305",
     methods: "exponent in double-double, one exp at the end | product on the linear scale",
@@ -622,7 +622,7 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:264, :645",
+    where: "special/incbet.ts:268, :649",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "max(a, b) >= 2^52, or a >= 2^20 with a + 200002 not exact (the steps a + 1, a + 2, ... cross into a binade where a's last bit does not fit)",
     methods: "continued fraction with double coefficients (loop inlined) | with double-double coefficients",
@@ -652,7 +652,7 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:731",
+    where: "special/incbet.ts:753",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "b x <= 1 && x <= 0.95 (series in the frame)",
     methods: "continued fraction / complement of the other frame's series | power series",
@@ -663,7 +663,7 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:740, :742",
+    where: "special/incbet.ts:762, :764",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x <= a/(a + b), as 1 - x >= b/(a + b) above x = 1/2 (continued fraction in this frame)",
     methods: "1 - (continued fraction of the other frame) | continued fraction",
@@ -674,7 +674,7 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:750",
+    where: "special/incbet.ts:772",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x (a + b - 2) - (a - 1) < 0",
     methods: "continued fraction #2 | #1",
@@ -682,7 +682,7 @@ const INCBET: Entry[] = [
     cases: () => pPairs("pbeta(x, 5, 8)", pb(5, 8), flipPoint((x) => x * (5 + 8 - 2) - (5 - 1) < 0, 0.3, 0.38)),
   },
   {
-    where: "special/incbet.ts:862, :863",
+    where: "special/incbet.ts:907, :908",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x < DBL_MIN or 1 - x < DBL_MIN",
     methods: "series / continued fraction | the series with x^a / (a B(a, b)) in logs (betaIncTinyX)",
@@ -693,7 +693,7 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:867",
+    where: "special/incbet.ts:912",
     fns: "pbeta",
     skip: "only a shortcut: m = ab/(a + b) < min(a, b), so Temme's m >= 25 (incbetTemme.ts:187) already implies a, b >= 25",
     condition: "a >= 25 && b >= 25",
@@ -701,7 +701,7 @@ const INCBET: Entry[] = [
     point: "-",
   },
   {
-    where: "special/incbet.ts:882",
+    where: "special/incbet.ts:927",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "max(a, b) >= 15 && min(a, b) <= 40 (or x rounding to 1 in the large frame, see below)",
     methods: "continued fraction | expansion for large a (incbetLargeA.ts) where it applies",
@@ -712,7 +712,7 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:906, :946",
+    where: "special/incbet.ts:951, :998",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition:
       "a |log x| > 32 v (v from the other frame's series) && the large-a expansion applies, or x below the mean and below " +
@@ -727,7 +727,7 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:925",
+    where: "special/incbet.ts:970",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "series in this frame with value v > 1/2, and the series applies in the other frame",
     methods: "v | 1 - (the other frame's series)",
@@ -738,7 +738,7 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:936",
+    where: "special/incbet.ts:988",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "series in the other frame only, its value o < 1/2",
     methods: "complement of the other frame's series (pseriesComplement) | 1 - o",
@@ -746,7 +746,7 @@ const INCBET: Entry[] = [
     cases: () => pPairs("pbeta(x, 1, 0.1)", pb(1, 0.1), around(flipPoint((x) => Math.pow(1 - x, 0.1) < 0.5, 0.99, 0.9999)[0], 8)),
   },
   {
-    where: "special/incbet.ts:918",
+    where: "special/incbet.ts:963",
     fns: "pbeta, pt, pf, pbinom, pnbinom (log)",
     condition: "log wanted && v < 1e-290",
     methods: "log of the linear value | recomputed in logs",
@@ -904,7 +904,7 @@ const LARGE_A: Entry[] = [
     ],
   },
   {
-    where: "special/incbetLargeA.ts:221",
+    where: "special/incbetLargeA.ts:226",
     fns: "pbeta",
     skip:
       "unreachable except where x rounds to 1 (then the log form, see the extreme-parameter entries below): the H side " +
@@ -1060,7 +1060,7 @@ const LOADER: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:523",
+    where: "special/loader.ts:531",
     fns: "dpois, dgamma (shape < 1), pgamma",
     condition: "x <= λ DBL_MIN",
     methods: "Loader's form | e^-λ",
@@ -1071,7 +1071,7 @@ const LOADER: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:524",
+    where: "special/loader.ts:532",
     fns: "dpois, dgamma, pgamma",
     condition: "λ < x DBL_MIN",
     methods: "Loader's form | -λ + x log λ - lgamma1p(x)",
@@ -1511,7 +1511,7 @@ const ELEMENTARY: Entry[] = [
 
 const BETA_T_F: Entry[] = [
   {
-    where: "distributions/beta.ts:40, :45",
+    where: "distributions/beta.ts:43, :48",
     fns: "dbeta",
     condition: "linear scale: E < 700, x and 1 - x > 1e-290, v = exp(-E) sqrt(m/2π) within 1e±290",
     methods: "log form | product on the linear scale",
@@ -1522,7 +1522,7 @@ const BETA_T_F: Entry[] = [
     ],
   },
   {
-    where: "distributions/beta.ts:52, :54",
+    where: "distributions/beta.ts:55, :57",
     fns: "dbeta (log, and linear where the product form is not used)",
     condition: "x and 1 - x > 1e-290; 1e-290 < m < 1e290",
     methods: "log x + log(1 - x), separate logs of a, b, a + b | log of the products",
@@ -1534,7 +1534,7 @@ const BETA_T_F: Entry[] = [
     ],
   },
   {
-    where: "distributions/beta.ts:114",
+    where: "distributions/beta.ts:117",
     fns: "dbeta (log)",
     condition: "a == 1 or b == 1",
     methods: "Loader's form | elementary log(b) + (b - 1) log(1 - x)",
@@ -1542,7 +1542,7 @@ const BETA_T_F: Entry[] = [
     cases: () => [pair("dbeta(0.3, a, 3, log)", (a) => dbeta(0.3, a, 3, { log: true }), down(1)), pair("dbeta(0.3, a, 3, log)", (a) => dbeta(0.3, a, 3, { log: true }), up(1))],
   },
   {
-    where: "distributions/beta.ts:167",
+    where: "distributions/beta.ts:170",
     fns: "qbeta",
     condition: "coefficient of variation sqrt(b / (a (a + b + 1))) < 1e-15 (and the target bracketed in m (1 ± 1e-13))",
     methods: "Newton's method in log x | bisection of the doubles around the mean m",
@@ -1586,7 +1586,7 @@ const BETA_T_F: Entry[] = [
     ],
   },
   {
-    where: "distributions/beta.ts:208",
+    where: "distributions/beta.ts:211",
     fns: "qbeta",
     condition: "tail guess x^a / (a B(a, b)) < 1e-3",
     methods: "A&S 26.5.22 start | tail start",
@@ -1600,7 +1600,7 @@ const BETA_T_F: Entry[] = [
     },
   },
   {
-    where: "distributions/beta.ts:257",
+    where: "distributions/beta.ts:260",
     fns: "qbeta, qarcsine",
     condition: "target vs the distribution function at 1/2",
     methods: "1 - (lower quantile of Beta(b, a)) | lower quantile",
@@ -1721,7 +1721,7 @@ const BETA_T_F: Entry[] = [
     },
   },
   {
-    where: "distributions/f.ts:197, :205, :206",
+    where: "distributions/f.ts:224, :232, :233",
     fns: "qf",
     condition:
       "upper tail whose leading term overflows, confirmed by pf at the largest double; lower tail and n < 1 with pf(largest " +
@@ -1982,7 +1982,7 @@ const NBETA: Entry[] = [
     point: "-",
   },
   {
-    where: "distributions/nbeta.ts:511, :548",
+    where: "distributions/nbeta.ts:514, :551",
     fns: "pbeta, dbeta, pf, df with ncp (integral)",
     skip:
       "stopping rules of the integral: the log of the mode alone where its rounding exceeds the log of any integral of " +
@@ -1992,15 +1992,15 @@ const NBETA: Entry[] = [
     point: "-",
   },
   {
-    where: "distributions/nbeta.ts:663, :832",
+    where: "distributions/nbeta.ts:667, :864",
     fns: "qbeta, qf with ncp",
-    skip: "as distributions/nchisq.ts:611 (the quantile of a spread below 1e-10, by a search over the doubles)",
+    skip: "as distributions/nchisq.ts:612 (the quantile of a spread below 1e-10, by a search over the doubles)",
     condition: "relative spread of Y and W < 1e-10",
     methods: "-",
     point: "-",
   },
   {
-    where: "distributions/nbeta.ts:687",
+    where: "distributions/nbeta.ts:691",
     fns: "pf, df with ncp",
     condition: "m q < 1e-290 (x = r/(1 + r) with r = (m/n) q)",
     methods: "x = m q/(n + m q) | x = r/(1 + r)",
@@ -2014,7 +2014,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "distributions/nbeta.ts:711, :733, :771",
+    where: "distributions/nbeta.ts:715, :737, :776",
     fns: "pf, df with ncp",
     condition: "(m/n) q < 1e-306",
     methods: "mixture | first term exp(-λ/2) (mq/n)^a / (a B(a, b))",
@@ -2025,7 +2025,7 @@ const NBETA: Entry[] = [
     },
   },
   {
-    where: "distributions/nbeta.ts:693, :704",
+    where: "distributions/nbeta.ts:697, :708",
     fns: "pf, df, qf with ncp",
     condition: "|m q| < 1e290; k = n/(m q) below 1e-300 (its log from those of n, m and q)",
     methods: "1 - x = n/(m q) in double | x, 1 - x as double-double quotients",
@@ -2279,7 +2279,7 @@ const DISCRETE: Entry[] = [
 
 const INTERNAL: Entry[] = [
   {
-    where: "internal/invert.ts:47, :60",
+    where: "internal/invert.ts:52, :65",
     fns: "every continuous q* solved by Newton (qgamma, qbeta, qt, qf, qchisq with ncp, ...)",
     condition: "log F > -700 (residual from the linear ratio)",
     methods: "log F - log target | log(F / target)",
@@ -2290,7 +2290,7 @@ const INTERNAL: Entry[] = [
     },
   },
   {
-    where: "internal/invert.ts:98",
+    where: "internal/invert.ts:103",
     fns: "q* with a log-density derivative",
     skip: "a per-iteration choice between the Halley and Newton steps; it changes the path, not the converged root (checked by every quantile entry)",
     condition: "Halley/Newton step ratio in [0.5, 2]",
@@ -2298,7 +2298,7 @@ const INTERNAL: Entry[] = [
     point: "-",
   },
   {
-    where: "internal/invert.ts:122",
+    where: "internal/invert.ts:127",
     fns: "every continuous q* on a positive support",
     condition: "|log x| <= 2",
     methods: "Newton polish in x | none",
@@ -2553,7 +2553,7 @@ const NCHISQ: Entry[] = [
     cases: () => pPairs("pchisq(0.3, 3, ncp)", (l, t) => pchisq(0.3, 3, { ncp: l, ...t }), flipPoint((l) => l / 2 > 1e8, 1.9e8, 2.1e8)),
   },
   {
-    where: "distributions/nchisq.ts:553",
+    where: "distributions/nchisq.ts:554",
     fns: "pchisq with ncp",
     skip:
       "decides only whether a tail is below the double range (Chernoff bound); the two forms are the same bound, " +
@@ -2563,7 +2563,7 @@ const NCHISQ: Entry[] = [
     point: "-",
   },
   {
-    where: "distributions/nchisq.ts:579",
+    where: "distributions/nchisq.ts:580",
     fns: "qchisq, qbeta, qf with ncp",
     skip:
       "acceptance of the Newton iteration's quantile: within 1e-15 of the target log p, or within 1e-9 and the quantile " +
@@ -2573,7 +2573,7 @@ const NCHISQ: Entry[] = [
     point: "-",
   },
   {
-    where: "distributions/nchisq.ts:605",
+    where: "distributions/nchisq.ts:606",
     fns: "qchisq with ncp",
     skip: "only the starting value of the Newton iteration (Wilson and Hilferty's cube root of Patnaik's χ² for ν > 1e5)",
     condition: "ν > 1e5",
@@ -2581,7 +2581,7 @@ const NCHISQ: Entry[] = [
     point: "-",
   },
   {
-    where: "distributions/nchisq.ts:611",
+    where: "distributions/nchisq.ts:612",
     fns: "qchisq with ncp",
     condition: "relative spread sqrt(2(k + 2λ))/(k + λ) < 1e-10",
     methods: "Newton iteration | search over the doubles around the start (narrowQuantile)",
@@ -2606,7 +2606,7 @@ const NCHISQ: Entry[] = [
     ],
   },
   {
-    where: "distributions/nchisq.ts:459",
+    where: "distributions/nchisq.ts:460",
     fns: "pbeta, pf with ncp (the integral of nbeta.ts)",
     skip: "x0 e^v formed from the logs only where e^v over- or underflows on its own: the same x",
     condition: "|v| < 700",
@@ -3007,7 +3007,7 @@ const GAMMA_ENDS: Entry[] = [
       [1e-260, 1e-300].flatMap((x) => pPairs(`pgamma(${x}, shape)`, pgShape(x), up(1e299), { tails: TAILS.slice(2) })),
   },
   {
-    where: "special/loader.ts:537",
+    where: "special/loader.ts:545",
     fns: "dgamma, dchisq, dpois, dinvgamma (linear scale)",
     condition: "x > 2e307 in Loader's density (2 pi x overflows from 2.9e307)",
     methods: "exp(-E) / sqrt(2 pi x) | exp(-E) / sqrt(pi x / 8) / 4",
@@ -3030,7 +3030,7 @@ const GAMMA_ENDS: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:528",
+    where: "special/loader.ts:536",
     fns: "dgamma, dchisq, dpois (log scale)",
     condition: "lgamma1p(x) overflows (x above 2.5e305) where λ < x 2^-1022",
     methods: "-λ + x log λ - lgamma1p(x) | -Infinity",
@@ -3068,6 +3068,252 @@ const GAMMA_ENDS: Entry[] = [
     methods: "exp(meanlog + sdlog z) with the exponent in double-double | in double (0 or Infinity unless z = 0)",
     point: "sdlog = 1e300 at p = 0.3, 0.5 and 0.7, meanlog 3",
     cases: () => [0.3, 0.5, 0.7].map((p) => pair(`qlnorm(${p}, 3, sdlog)`, (sd) => qlnorm(p, { meanlog: 3, sdlog: sd }), down(1e300))),
+  },
+];
+
+// ---- beta, F, noncentral F and Tukey: the ends of the parameters ----
+
+const BETA_F_ENDS: Entry[] = [
+  {
+    where: "special/incbet.ts:656, :661",
+    fns: "pbeta, pf, pbinom, pnbinom (the continued fraction for max(a, b) > 1e150)",
+    condition: "a divisor above 1e299 (the frame's first shape and the steps from it)",
+    methods: "ddDiv, ddMul | the same with the operands scaled by 2^±64",
+    point: "b = 1e299 in pbeta(1e-236, 9220.5, b) (the continued fraction in the frame of b, far above the mean)",
+    cases: () => pPairs("pbeta(1e-236, 9220.5, b)", (b, t) => pbeta(1e-236, 9220.5, b, t), up(1e299)),
+  },
+  {
+    where: "special/incbet.ts:657, :662",
+    fns: "pbeta, pf, pbinom, pnbinom (the continued fraction for max(a, b) > 1e150)",
+    condition: "a quotient (a + b)/(a + 1), or an operand of a product, above 1e299",
+    methods: "ddDiv, ddMul | the same with the operands scaled by 2^±64",
+    point: "(55.1 + b)/56.1 = 1e299 in pbeta(1e-307, 55.1, b) (the continued fraction below the mean)",
+    cases: () =>
+      pPairs("pbeta(1e-307, 55.1, b)", (b, t) => pbeta(1e-307, 55.1, b, t), flipPoint((b) => 55.1 + b > 1e299 * (55.1 + 1), 5e300, 6e300)),
+  },
+  {
+    where: "special/incbet.ts:74",
+    fns: "pbeta, pf, pbinom, pnbinom",
+    skip:
+      "not reachable as a boundary: the prefactor is below the normal range through c (the smaller shape, or the series " +
+      "factor) alone where e > -700; in the series in the frame of a shape below 2e-305, e is between -3.2 and 0, and " +
+      "with the smaller shape below 2e-305 times the larger (so the larger above 4.5e4) x <= 0.95 puts e below -2300",
+    condition: "e > -700 where the prefactor c e^e (small-shape or huge-shape form) is below 2.2e-305",
+    methods: "exp(e + 700) c exp(-700) | exp(e) c",
+    point: "-",
+  },
+  {
+    where: "special/incbet.ts:939",
+    fns: "pbeta, pt, pf, pbinom, pnbinom",
+    condition: "series in this frame only, its value v > 1/2, and the complement of the series passes the cancellation check",
+    methods: "v | 1 - (pseriesComplement)",
+    point: "v = 1/2 in pbeta(x, 0.05, 0.5) (x about 3.7e-6; the other frame's series needs x >= 0.05)",
+    cases: () => {
+      const half = flipPoint((x) => pbeta(x, 0.05, 0.5) > 0.5, 1e-6, 1e-5)[0];
+      return pPairs("pbeta(x, 0.05, 0.5)", pb(0.05, 0.5), around(half, 8));
+    },
+  },
+  {
+    where: "special/incbet.ts:902, :903",
+    fns: "pbeta, pt, pf, pbinom, pnbinom",
+    condition: "a < 1e-300 with b > 1e-280 (b < 1e-300 with a > 1e-280)",
+    methods: "the series and continued fractions | the tail of the order of the shape at 1e-300, scaled",
+    point: "a = 1e-300 in pbeta(0.3, a, 2) and b = 1e-300 in pbeta(0.3, 2, b); b = 1e-280 in pbeta(0.3, 1e-310, b)",
+    cases: () => [
+      ...pPairs("pbeta(0.3, a, 2)", (a, t) => pbeta(0.3, a, 2, t), down(1e-300)),
+      ...pPairs("pbeta(0.3, 2, b)", (b, t) => pbeta(0.3, 2, b, t), down(1e-300)),
+      ...pPairs("pbeta(0.3, 1e-310, b)", (b, t) => pbeta(0.3, 1e-310, b, t), up(1e-280)),
+    ],
+  },
+  {
+    where: "special/incbetLargeA.ts:141, :167",
+    fns: "pbeta, pf, pbinom, pnbinom (the expansion for large a)",
+    condition: "T = a + (b - 1)/2 > 1e299 in u = T l; a > 1e299 in ab/(a + b)",
+    methods: "double-double products | the same with the operands scaled by 2^±64",
+    point: "b = 1e299 in pbeta(1e-297, 55.1, b) and pbeta(1e-297, 200, b) (the frame of b; 200 is above the huge-shape form)",
+    cases: () => [
+      ...pPairs("pbeta(1e-297, 55.1, b)", (b, t) => pbeta(1e-297, 55.1, b, t), up(1e299)),
+      ...pPairs("pbeta(1e-297, 200, b)", (b, t) => pbeta(1e-297, 200, b, t), up(1e299)),
+    ],
+  },
+  {
+    where: "internal/poissonMixture.ts:475, :499",
+    fns: "dbeta, df, dchisq (with ncp)",
+    condition: "λ/2 > 0 (the peak's index from jStar); λ/2 > 1e-290 (the downward weights w (j + 1)/μ)",
+    methods: "j = 0 alone | from jStar; w ((j + 1)/μ) | (w (j + 1))/μ with μ scaled",
+    point: "λ = 5e-324 against 1e-323 in dbeta(0.5, 1e-310, 1) (log); λ/2 = 1e-290 in dbeta(0.5, 1e-280, 1)",
+    cases: () => [
+      pair("dbeta(0.5, 1e-310, 1, ncp, log)", (ncp) => dbeta(0.5, 1e-310, 1, { ncp, log: true }), [5e-324, 1e-323]),
+      ...dPairs(
+        "dbeta(0.5, 1e-280, 1, ncp)",
+        (ncp, log) => dbeta(0.5, 1e-280, 1, { ncp, log }),
+        flipPoint((ncp) => ncp / 2 > 1e-290, 1.9e-290, 2.1e-290),
+      ),
+    ],
+  },
+  {
+    where: "distributions/nbeta.ts:605, :764; nchisq.ts:444",
+    fns: "dbeta, df, dchisq (with ncp)",
+    condition: "λ/2 max(1, r) < 1e-20 (r the ratio of the densities of the first two components)",
+    methods: "the Poisson mixture | the central density",
+    point: "λ/2 = 1e-20 in dchisq(1, 1) (r = 1), dbeta(0.5, 2, 3) (r = 1.25) and df(1, 3, 5) (r = 1)",
+    cases: () => [
+      ...dPairs("dchisq(1, 1, ncp)", (ncp, log) => dchisq(1, 1, { ncp, log }), flipPoint((ncp) => ncp / 2 < 1e-20, 1e-20, 3e-20)),
+      ...dPairs("dbeta(0.5, 2, 3, ncp)", (ncp, log) => dbeta(0.5, 2, 3, { ncp, log }), flipPoint((ncp) => (ncp / 2) * 1.25 < 1e-20, 1e-20, 3e-20)),
+      ...dPairs("df(1, 3, 5, ncp)", (ncp, log) => df(1, 3, 5, { ncp, log }), flipPoint((ncp) => ncp / 2 < 1e-20, 1e-20, 3e-20)),
+    ],
+  },
+  {
+    where: "distributions/beta.ts:267",
+    fns: "qbeta",
+    condition: "the answer's distance y from 1 below 2^-55 (the right half)",
+    methods: "search for y | 1",
+    point: "p = I(2^-55; 0.5, 3) in qbeta(p, 3, 0.5, upper)",
+    cases: () => [pair("qbeta(p, 3, 0.5, upper)", (p) => qbeta(p, 3, 0.5, { lowerTail: false }), around(pbeta(2 ** -55, 0.5, 3)))],
+  },
+  {
+    where: "distributions/f.ts:216",
+    fns: "qf",
+    condition: "n > 1e20 (m + 2 |log p| + 1e3)² (p the smaller tail)",
+    methods: "the search on pf | the quantile of χ²_m / m",
+    point: "n = 1e20 (2 - 2 log 0.3 + 1e3)² in qf(0.3, 2, n)",
+    cases: () => [pair("qf(0.3, 2, n)", (n) => qf(0.3, 2, n), flipPoint((n) => n > 1e20 * (2 - 2 * Math.log(0.3) + 1e3) ** 2, 1e26, 1.1e26))],
+  },
+  {
+    where: "distributions/f.ts:176, :183",
+    fns: "pf, qf (df2 = Inf)",
+    condition: "q m below 2^-1022 (the χ² quantile or the answer below 2^-1022), with m above 2^-1022",
+    methods: "pgamma(q m, m/2, scale 2) (qgamma / m) | with scale 2/m",
+    point: "q = 2^-1023 in pf(q, 2, Inf); the answer 2^-1022 in qf(p, 2, Inf); m = 2^-1022 in pf(0.5, m, Inf)",
+    cases: () => [
+      ...pPairs("pf(q, 2, Inf)", (q, t) => pf(q, 2, Infinity, t), down(DBL_MIN / 2)),
+      pair("qf(p, 2, Inf)", (p) => qf(p, 2, Infinity), around(flipPoint((p) => qchisq(p, 2) / 2 < DBL_MIN, 1e-308, 1e-307)[0])),
+      ...pPairs("pf(0.5, m, Inf)", (m, t) => pf(0.5, m, Infinity, t), up(DBL_MIN)),
+    ],
+  },
+  {
+    where: "distributions/nbeta.ts:837, :838",
+    fns: "qf (with ncp)",
+    condition: "the Chernoff bound on log P[F <= MAX] (log P[F >= 2^-1074]) below the target, or below -log 2 for the other tail",
+    methods: "the distribution function at the ends, and the search | Infinity (0)",
+    point:
+      "validity: where F lies beyond the doubles but for the point mass e^(-λ/2) at 0 (subnormal df1, λ = 1.7e243), " +
+      "both tails give Infinity; and qf(1e-300, 5, 20, { ncp: 10 }) in both tails maps back to p",
+    cases: () => [
+      {
+        kind: "check",
+        label: "qf beyond the doubles, and in an ordinary case",
+        run: () => {
+          const [m, n, ncp] = [3.69345607573e-313, 1249.223519976018, 1.676553834669942e243];
+          const bad: string[] = [];
+          for (const lowerTail of [true, false]) {
+            const q = qf(5.390320876058269e-11, m, n, { ncp, lowerTail });
+            if (q !== Infinity) bad.push(`qf(5.4e-11, ${m}, ${n}, { ncp: ${ncp}, lowerTail: ${lowerTail} }) = ${q}`);
+            const back = pf(qf(1e-300, 5, 20, { ncp: 10, lowerTail }), 5, 20, { ncp: 10, lowerTail, logP: true });
+            const r = near(back, Math.log(1e-300), 1e-12, `log pf(qf(1e-300, 5, 20, { ncp: 10, lowerTail: ${lowerTail} }))`);
+            if (r !== undefined) bad.push(r);
+          }
+          return bad.length === 0 ? undefined : bad.join("; ");
+        },
+      },
+    ],
+  },
+  {
+    where: "distributions/nbeta.ts:846",
+    fns: "qf (with ncp)",
+    condition: "n > 1e40 (|log p| + 1) and n > 1e20 (m + 2 |log p| + 1e3 + 4 sqrt((m + λ)(|log p| + 1)))",
+    methods: "the search on pf | the quantile of the noncentral χ² limit, divided by m",
+    point: "n = 1e40 (1 - log 0.3) in qf(0.3, 2, n, { ncp: 1 }) (the second condition holds from 1e23)",
+    cases: () => [
+      pair(
+        "qf(0.3, 2, n, ncp 1)",
+        (n) => qf(0.3, 2, n, { ncp: 1 }),
+        flipPoint((n) => n > 1e40 * (-Math.log(0.3) + 1), 2e40, 2.4e40),
+      ),
+    ],
+  },
+  {
+    where: "distributions/nbeta.ts:860, :880; internal/invert.ts:86",
+    fns: "qf (with ncp)",
+    condition: "n > 1e15 with m in [1e-10, 1e15]",
+    methods:
+      "start (m + λ)/m, steps until they stall | start from the quantile of the noncentral χ² limit, stop within " +
+      "1e-12 max(1, |log p|) of the target",
+    point: "validity: the quantile maps back to p at n = 1e15, the double above it and 1e16 (qf(1e-100, 3, n, { ncp: 2 }), both tails)",
+    cases: () => [
+      {
+        kind: "check",
+        label: "pf(qf(p)) = p on both sides of n = 1e15",
+        run: () => {
+          const bad: string[] = [];
+          for (const n of [1e15, nextUp(1e15), 1e16]) {
+            for (const lowerTail of [true, false]) {
+              const q = qf(1e-100, 3, n, { ncp: 2, lowerTail });
+              const back = pf(q, 3, n, { ncp: 2, lowerTail, logP: true });
+              const r = near(back, Math.log(1e-100), 1e-12, `log pf(qf(1e-100, 3, ${n}, { ncp: 2, lowerTail: ${lowerTail} }))`);
+              if (r !== undefined) bad.push(r);
+            }
+          }
+          return bad.length === 0 ? undefined : bad.join("; ");
+        },
+      },
+    ],
+  },
+  {
+    where: "distributions/tukey.ts:714",
+    fns: "ptukey, qtukey (nranges > 1, upper tail, log)",
+    condition: "log(1 - W) < -700",
+    methods: "log(1 - (1 - (1 - W))^r) | log r + log(1 - W)",
+    point: "log(1 - W) = -700 at k = 3, r = 2 (q about 53.1)",
+    cases: () => {
+      const q0 = flipPoint((q) => ptukey(q, 3, Infinity, { lowerTail: false, logP: true }) < -700, 52, 54)[0];
+      const f = (q: number) => ptukey(q, 3, Infinity, { nranges: 2, lowerTail: false, logP: true });
+      return [pair("ptukey(q, 3, Inf, nranges 2, upper log)", f, around(q0))];
+    },
+  },
+  {
+    where: "special/loader.ts:512; special/incbetPrefactor.ts:63, :104; distributions/beta.ts:40; distributions/nbeta.ts:802",
+    fns: "pbeta, dbeta, pf, qf (with ncp), and the other users of the binomial exponent",
+    condition: "a deviance, or b log(1 - x), beyond the doubles; q m overflowing in the Chernoff bounds of the noncentral F",
+    methods: "double-double sums | [Infinity, 0] (the log -Infinity, the value 0); (q m)/n | q (m/n)",
+    point:
+      "validity: pbeta(0.998, 55.1, b) and dbeta for b from 1e307 (finite logs) to 6.3e307 (beyond the doubles); where " +
+      "q m overflows the bound was NaN before (no decision), so only its validity matters (Chernoff's bound holds for any c)",
+    cases: () => [
+      {
+        kind: "check",
+        label: "the logs reach -Infinity, not NaN",
+        run: () => {
+          const bad: string[] = [];
+          for (const b of [1e307, 3e307, 6.3e307, 1e308]) {
+            const lq = pbeta(0.998, 55.1, b, { lowerTail: false, logP: true });
+            const ld = dbeta(0.998, 55.1, b, { log: true });
+            const expected = b * Math.log1p(-0.998);
+            if (!(pbeta(0.998, 55.1, b) === 1 && (lq === -Infinity ? expected === -Infinity : Math.abs(lq / expected - 1) < 1e-3))) {
+              bad.push(`pbeta(0.998, 55.1, ${b}): ${pbeta(0.998, 55.1, b)}, upper log ${lq}`);
+            }
+            if (!(dbeta(0.998, 55.1, b) === 0 && (ld === -Infinity ? expected === -Infinity : Math.abs(ld / expected - 1) < 1e-3))) {
+              bad.push(`dbeta(0.998, 55.1, ${b}, log) = ${ld}`);
+            }
+          }
+          return bad.length === 0 ? undefined : bad.join("; ");
+        },
+      },
+    ],
+  },
+  {
+    where: "internal/invert.ts:135",
+    fns: "every continuous quantile (the polishing in x)",
+    condition: "f/F finite",
+    methods: "r F/f | the step relative to x, x r F/(x f)",
+    point: "f/F = 2/x = MAX in qbeta(lp, 2, 3, log) (P = 6x², the answer about 1.1e-308)",
+    cases: () => [
+      pair(
+        "qbeta(lp, 2, 3, log)",
+        (lp) => qbeta(lp, 2, 3, { logP: true }),
+        around(flipPoint((lp) => 2 / Math.exp((lp - Math.log(6)) / 2) > Number.MAX_VALUE, -1420, -1410)[0]),
+      ),
+    ],
   },
 ];
 
@@ -3138,7 +3384,7 @@ const TUKEY: Entry[] = [
     point:
       "reached only in the log integrals (results below 1e-290). It costs 1e-13 only for nmeans above about 1e5, where " +
       "building the interpolants takes many seconds (14 s at 1e6); tested by the continuity of the switch to the log " +
-      "integral (tukey.ts:866) at nmeans = 50 (5 there)",
+      "integral (tukey.ts:870) at nmeans = 50 (5 there)",
     cases: () => [tukeySwitch290(50)],
   },
   {
@@ -3182,7 +3428,7 @@ const TUKEY: Entry[] = [
     cases: () => pPairs("ptukey(q, 3, Inf, nranges 2)", ptk(3, Infinity, 2), flipPoint((q) => ptukey(q, 3, Infinity, { lowerTail: false }) <= 0.5, 1, 3)),
   },
   {
-    where: "distributions/tukey.ts:746",
+    where: "distributions/tukey.ts:750",
     fns: "ptukey, qtukey (finite df)",
     condition: "per node of the outer integral: |v| < 0.5 (series for e^v - 1 - v)",
     methods: "expm1(v) - v | series",
@@ -3199,7 +3445,7 @@ const TUKEY: Entry[] = [
     ],
   },
   {
-    where: "distributions/tukey.ts:857, :859",
+    where: "distributions/tukey.ts:861, :863",
     fns: "ptukey, qtukey (finite df)",
     condition: "df = Inf value of the guessed side > 0.5; integrated side > 0.5 (then the other side)",
     methods: "integrate the guessed tail | the other tail",
@@ -3210,7 +3456,7 @@ const TUKEY: Entry[] = [
     ],
   },
   {
-    where: "distributions/tukey.ts:866",
+    where: "distributions/tukey.ts:870",
     fns: "ptukey, qtukey (finite df)",
     condition: "smaller tail < 1e-290",
     methods: "linear integral | log integral",
@@ -3218,7 +3464,7 @@ const TUKEY: Entry[] = [
     cases: () => [tukeySwitch290(5)],
   },
   {
-    where: "distributions/tukey.ts:893, :908",
+    where: "distributions/tukey.ts:897, :912",
     fns: "qtukey",
     condition: "linear target > 1e-290",
     methods: "residual from the log | log of the linear ratio",
@@ -3352,7 +3598,7 @@ const EXTREME: Entry[] = [
     skip: "both sides are 0 (e^-2000 underflows); the guard only keeps 1 - e_low, with e_low half an ulp of e, from giving -0",
   },
   {
-    where: "special/incbet.ts:647",
+    where: "special/incbet.ts:651",
     fns: "pbeta, pf, pbinom, pnbinom",
     condition: "max(a, b) > 1e150 (continued fraction)",
     methods: "partial numerators as products over products | quotients first",
@@ -3380,7 +3626,7 @@ const EXTREME: Entry[] = [
       pPairs("pnbinom(1e16, 5, prob)", (p, t) => pnbinom(1e16, 5, { prob: p, ...t }), flipPoint((p) => p < 1e-15, 5e-16, 2e-15)),
   },
   {
-    where: "special/incbet.ts:882, special/incbetLargeA.ts:130, :221",
+    where: "special/incbet.ts:927, special/incbetLargeA.ts:130, :226",
     fns: "pbeta, pf, pnbinom",
     condition: "x rounds to 1 in the frame of the large parameter (b up to 1e4, b < 1e-8 a): the expansion also for b > 40, u > 500, and on the log scale below 1e-290",
     methods: "continued fraction (NaN there) | expansion",
@@ -3398,7 +3644,7 @@ const EXTREME: Entry[] = [
     cases: () => dPairs("dbeta(x, 2, 3)", (x, log) => dbeta(x, 2, 3, { log }), flipPoint((x) => 5 * x < DBL_MIN, 4e-309, 5e-309)),
   },
   {
-    where: "distributions/beta.ts:212",
+    where: "distributions/beta.ts:215",
     fns: "qbeta",
     condition: "b > 1e10 && b > 1e10 a (left half)",
     methods: "starting value from the tails or A&S 26.5.22 | qgamma(p, a) / b",
@@ -3414,7 +3660,7 @@ const EXTREME: Entry[] = [
     skip: "the quantile itself is beyond the largest double there",
   },
   {
-    where: "distributions/tukey.ts:722, :772",
+    where: "distributions/tukey.ts:726, :776",
     fns: "ptukey, qtukey",
     condition: "max((k-1) r, q^2, 1)^2 < 1e-17 df",
     methods: "outer integral over the χ density | the df = ∞ value",
@@ -3432,7 +3678,7 @@ const EXTREME: Entry[] = [
       "q above about 1e8",
   },
   {
-    where: "distributions/tukey.ts:150, :169, :928; internal/discrete.ts:65, :93; internal/invert.ts:135",
+    where: "distributions/tukey.ts:150, :169, :932; internal/discrete.ts:65, :93; internal/invert.ts:143",
     fns: "ptukey, qtukey, qpois, qbinom, qnbinom, every continuous quantile",
     condition:
       "integrals: error at the noise level of the integrand, or 256 intervals; searches: first step the spacing of the " +
@@ -3978,6 +4224,7 @@ const ENTRIES: Entry[] = [
   ...NT,
   ...T_ENDS,
   ...GAMMA_ENDS,
+  ...BETA_F_ENDS,
   ...TUKEY,
   ...DISCRETE,
   ...INTERNAL,

@@ -68,6 +68,10 @@ function smallPrefactorTimes(a: number, b: number, x: DD, xc: DD, m: number): nu
     const [ms, e] = parts;
     const c = m * ms;
     if (!(e[0] > -1400) || !Number.isFinite(c) || c === 0) return undefined;
+    // (exp(e) directly above -700, where the prefactor is below the normal range through c alone, a shape below 1e-305:
+    // e + 700 would round e to the ulp of 700, 1e-13, and pbeta(1 - 6e-14, 0.97, 4.7e-307, { lowerTail: false }) was
+    // 1 - 5.5e-14, not 1)
+    if (e[0] > -700) return Math.exp(e[0]) * (1 + e[1]) * c || undefined;
     const v = Math.exp(e[0] + 700) * (1 + e[1]) * c * Math.exp(-700);
     return v > 0 ? v : undefined;
   }
@@ -645,6 +649,19 @@ function continuedFractionCoreOps(a: number, b: number, xd: DD, xcd: DD, second:
   const huge = Math.max(a, b) >= 2 ** 52 || stepsInexact(a);
   // Above 1e150 the products of two of the parameters (h3 h4 = a (a + 1), ...) overflow: divide before multiplying
   const vast = Math.max(a, b) > 1e150;
+  // The splitting of an operand, or of a quotient, above about 1.3e300 overflows in ddDiv and ddMul: where one would be
+  // that large, the operands are scaled by 2^±64 first (exactly; the other operand is then small, or the result
+  // overflows anyway), and a quotient back. pbeta(1.5e-236, 9220.5, 2.6e301) and pbeta(1e-307, 55.1, 6.3e307) were NaN
+  const div = (p: DD, q: DD): DD => {
+    if (q[0] > 1e299) return ddDiv(scaled(p, 2 ** -64), scaled(q, 2 ** -64));
+    if (Math.abs(p[0]) > 1e299 * q[0]) return scaled(ddDiv(scaled(p, 2 ** -64), q), 2 ** 64);
+    return ddDiv(p, q);
+  };
+  const mul = (p: DD, q: DD): DD => {
+    if (Math.abs(q[0]) > 1e299) return ddMul(scaled(p, 2 ** 64), scaled(q, 2 ** -64));
+    if (Math.abs(p[0]) > 1e299) return ddMul(scaled(p, 2 ** -64), scaled(q, 2 ** 64));
+    return ddMul(p, q);
+  };
   // Partial numerators k1 x k2 / (k3 k4) and k5 x k6 / (k7 k8). k1, k3, k4, k7, k8 are doubles, with
   // double-double copies (h1, ...) that are used and advanced only when huge
   let k1 = a;
@@ -668,7 +685,7 @@ function continuedFractionCoreOps(a: number, b: number, xd: DD, xcd: DD, second:
   let ans: DD = [1, 0];
   for (let n = 0; n < 100000; n++) {
     let xk = vast
-      ? ddMul(ddMul(z, ddDiv(h1, h3)), ddDiv(k2, h4))
+      ? mul(mul(z, div(h1, h3)), div(k2, h4))
       : huge
         ? ddDiv(ddMul(ddMul(z, h1), k2), ddMul(h3, h4))
         : ddDiv(ddMul(ddMulNum(z, k1), k2), twoProd(k3, k4));
@@ -679,7 +696,7 @@ function continuedFractionCoreOps(a: number, b: number, xd: DD, xcd: DD, second:
     qkm2 = qkm1;
     qkm1 = qk;
     xk = vast
-      ? ddMul(ddMulNum(z, k5), ddDiv(ddDiv(k6, h7), h8))
+      ? mul(mul(z, [k5, 0]), div(div(k6, h7), h8))
       : ddDiv(ddMul(ddMulNum(z, k5), k6), huge ? ddMul(h7, h8) : twoProd(k7, k8));
     pk = ddAdd(pkm1, ddMul(pkm2, xk));
     qk = ddAdd(qkm1, ddMul(qkm2, xk));
@@ -724,6 +741,11 @@ function continuedFractionCoreOps(a: number, b: number, xd: DD, xcd: DD, second:
     }
   }
   return ans[0] + ans[1];
+}
+
+/** p s for a power of two s */
+function scaled(p: DD, s: number): DD {
+  return [p[0] * s, p[1] * s];
 }
 
 /** Whether the series can be used in frame (a, b, x) */
@@ -853,9 +875,32 @@ function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, want
   return r[1] > 1 || r[0] > 0 ? [Math.min(r[0], 0), Math.min(r[1], 1)] : r;
 }
 
+/**
+ * Below this shape s, the tail of the order of s (1 - I_x(s, b), or I_x(a, s)) is taken as (s / SUB_SHAPE) times its
+ * value at SUB_SHAPE, where the other shape is above SUB_OTHER: 1 - I_x(s, b) = s g(x, b) (1 + O(s / min(1, b)) times
+ * logs of x and b), so the relative error of the scaling is below 1e-19. The tail is subnormal for s below 1e-308 or
+ * so, and its log, taken of the subnormal value, had lost digits (dbeta(0.97, 0.13, 8.15e-322) did not match the
+ * differences of pbeta(x, 0.13, 8.15e-322, { logP: true }))
+ */
+const SUB_SHAPE = 1e-300;
+const SUB_OTHER = 1e-280;
+
+/** [log, linear] of the tail t at SUB_SHAPE scaled to the shape s (small), or of the other tail (!small) */
+function subShapeTail(t: [number, number], s: number, small: boolean): [number, number] {
+  const r = s / SUB_SHAPE;
+  const v = t[1] * r;
+  if (small) return [t[0] + Math.log(r), v];
+  return [Math.log1p(-v), 1 - v];
+}
+
 function betaIncUncapped(a: number, b: number, xd: DD, xcd: DD, lower: boolean, wantLog: boolean): [number, number] {
   if (xd[0] <= 0) return lower ? [-Infinity, 0] : [0, 1];
   if (xcd[0] <= 0) return lower ? [0, 1] : [-Infinity, 0];
+
+  // The tail of the order of a shape below SUB_SHAPE (1 - I_x(a, b) for a tiny a, I_x(a, b) for a tiny b), from
+  // that at SUB_SHAPE scaled (see there), and the other tail as 1 minus it
+  if (a < SUB_SHAPE && b > SUB_OTHER) return subShapeTail(betaIncUncapped(SUB_SHAPE, b, xd, xcd, false, wantLog), a, !lower);
+  if (b < SUB_SHAPE && a > SUB_OTHER) return subShapeTail(betaIncUncapped(a, SUB_SHAPE, xd, xcd, true, wantLog), b, lower);
 
   // x (or 1 - x) is subnormal: the series with its prefactor in logs (betaIncTinyX). The binomial-probability helpers
   // break down on products of subnormals
@@ -925,6 +970,13 @@ function betaIncUncapped(a: number, b: number, xd: DD, xcd: DD, lower: boolean, 
     if (v > 0.5 && pseriesOk(oa, ob, ox[0])) {
       const o = pseries(oa, ob, ox, oxc, false);
       return [wantLog ? Math.log1p(-o) : NaN, 1 - o];
+    }
+    // Likewise from the complement of the series where it passes the cancellation check (see below), as the log already
+    // is: for a tiny shape the series value is 1 - O(shape) and its rounding of a few ulps was all of its distance from 1
+    // (pbeta(1 - 6e-14, 0.97, 4.7e-307, { lowerTail: false }) was 1 - 1.1e-16 beside a lower tail of 1.4e-305)
+    if (v > 0.5) {
+      const o = pseriesComplement(pa, pb, px, false);
+      if (pa * Math.abs(Math.log(px[0])) <= 32 * o) return [wantLog ? Math.log1p(-o) : NaN, 1 - o];
     }
     return finish(v, otherDirect);
   }

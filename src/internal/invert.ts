@@ -38,6 +38,11 @@ export interface InvertProblem {
    */
   positive?: boolean;
   maxIter?: number;
+  /**
+   * (Optional) The noise of log F (absolute): a point whose residual is within it is returned as it is (where the
+   * distribution function is an integral accurate to about 1e-13, the steps would otherwise wander over a few ulps of x)
+   */
+  residualTolerance?: number;
 }
 
 export function invertContinuous(problem: InvertProblem): number {
@@ -78,7 +83,7 @@ export function invertContinuous(problem: InvertProblem): number {
       bestResid = Math.abs(resid);
       best = u;
     }
-    if (resid === 0) return x;
+    if (resid === 0 || Math.abs(resid) <= (problem.residualTolerance ?? 0)) return x;
     // The lower probability is increasing in x, the upper decreasing
     if (resid < 0 === lower) lo = u;
     else hi = u;
@@ -123,8 +128,11 @@ export function invertContinuous(problem: InvertProblem): number {
     let x = x0;
     let [lF, r] = evaluate(x);
     for (let k = 0; k < 4 && r !== 0; k++) {
-      const slope = (lower ? 1 : -1) * Math.exp(pdfLog(x) - lF);
-      const xn = x - r / slope;
+      const lf = pdfLog(x) - lF;
+      const slope = (lower ? 1 : -1) * Math.exp(lf);
+      // (where f/F overflows, as at a subnormal x, the step relative to x: qbeta(3.8e-277, 27.9, 1.5e299) is 9.6e-309,
+      // and the step there was 0, which left the answer 5e-14 off)
+      const xn = Number.isFinite(slope) ? x - r / slope : x - (lower ? 1 : -1) * r * x * Math.exp(-(lf + Math.log(x)));
       if (!(xn > 0) || !Number.isFinite(xn) || xn === x) break;
       const [lFn, rn] = evaluate(xn);
       if (!(Math.abs(rn) < Math.abs(r))) break;

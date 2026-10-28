@@ -112,28 +112,17 @@ export const knownViolations: KnownViolation[] = [
     }),
   ),
   // ---- discrete ----
-  ...["nbinom(prob)", "nbinom(mu)"].flatMap((family): KnownViolation[] => [
-    {
-      family,
-      property: ALL,
-      match: on(/nbinom$/, (pr, x) =>
-        extreme(pr, ["size", "mu"], 1e-300, 1e15) || (pr.prob ?? 1) < 1e-15 || x > 1e100,
-      ),
-      reason:
-        "extreme parameters or x: where size and mu are both huge, the relative spread of the distribution (1e-49 for size " +
-        "7.9e96, mu 2e132) is below what the double-double arguments of the incomplete beta function resolve: " +
-        "pnbinom(2.0074063923101808e+132, 7.935540851960292e+96, { mu: 2.0074063923101808e+132 }) is NaN (about 1/2 " +
-        "expected), and qnbinom NaN (qnbinom(1.329008389153242e-57, 3.576114202522741e+144, { mu: 8.763634708385052e+74 })); " +
-        "for prob near 1e-300 the upper tail far out is NaN (pnbinom(1e303, 641.0457517358916, { prob: 8.999877024359508e-300, " +
-        "lowerTail: false }), 0 expected), and so is qnbinom(4.073478073311389e-242, 641.0457517358916, { prob: " +
-        "8.999877024359508e-300, lowerTail: false })",
-      examples: [
-        family === "nbinom(mu)"
-          ? { params: { size: 7.935540851960292e96, mu: 2.0074063923101808e132 }, x: [2.0074063923101808e132] }
-          : { params: { size: 641.0457517358916, prob: 8.999877024359508e-300 }, x: [1e303] },
-      ],
-    },
-  ]),
+  {
+    family: "nbinom(mu)",
+    property: ALL,
+    match: on(/nbinom$/, (pr, x) => extreme(pr, ["size", "mu"], 1e-300, 1e15) || x > 1e100),
+    reason:
+      "extreme parameters or x: where size and mu are both huge, the relative spread of the distribution (1e-49 for size " +
+      "7.9e96, mu 2e132) is below what the double-double arguments of the incomplete beta function resolve: " +
+      "pnbinom(2.0074063923101808e+132, 7.935540851960292e+96, { mu: 2.0074063923101808e+132 }) is NaN (about 1/2 " +
+      "expected), and qnbinom NaN (qnbinom(1.329008389153242e-57, 3.576114202522741e+144, { mu: 8.763634708385052e+74 }))",
+    examples: [{ params: { size: 7.935540851960292e96, mu: 2.0074063923101808e132 }, x: [2.0074063923101808e132] }],
+  },
   {
     family: "nbinom(mu)",
     property: "range",
@@ -170,7 +159,8 @@ export const knownViolations: KnownViolation[] = [
       "df beyond [1e-10, 1e10] (ncp > 0), through the noncentral beta (as for nbeta): for a tiny df the central " +
       "incomplete beta function of the components is off (pf(q, 6.63e-202, 2, { ncp: 1 }) falls from 0.6065306597126334 " +
       "at q = 2.1e-130 to 0.6065306597126264 at q = 1.35e-103, where I_x(3.3e-202, 1) is 1.0000000000000158); where a df " +
-      "is huge, both tails of pf(1, 6.39e153, 6.32e180, { ncp: 81.8 }) are 0 and df there is NaN",
+      "is huge, both tails of pf(1, 6.39e153, 6.32e180, { ncp: 81.8 }) are 0 and df there is NaN; from df2 = 1e15 pf takes " +
+      "0.2 s per call there, and qf seconds (qf(exp(-3.79), 314.2, 5.2e16, { ncp: 2393 }), 2 s)",
     examples: [
       { params: { df1: 6.6323017271354765e-202, df2: 2, ncp: 1 }, x: [2.1284149466105694e-130, 1.3499976946715385e-103] },
       { params: { df1: 6.3877677183519304e153, df2: 6.3206222974994505e180, ncp: 81.76981163437114 }, x: [1] },

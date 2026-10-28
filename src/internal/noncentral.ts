@@ -147,3 +147,13 @@ export function kronrodAdaptive(
   if (++control.bisections > control.maxBisections) return k;
   return kronrodAdaptive(f, a, m, total, depth + 1, control) + kronrodAdaptive(f, m, b, total, depth + 1, control);
 }
+
+/**
+ * Whether a noncentral density equals the central one to the double: it is e^-μ Σ_j μ^j/j! f_j, and f_1/f_0 is r
+ * (x (a + b)/a for the beta, x/k for χ² with k df), with the ratios of later terms smaller still, so the terms from
+ * j = 1 on and the factor e^-μ change it by less than 2 μ max(1, r) relative. Below 1e-20 that is the central density
+ * itself (at a tiny or subnormal λ the mixture's weights were NaN: dbeta(1.05e-231, 0.19, 141, { ncp: 1.4e-303 }))
+ */
+export function negligibleNcp(mu: number, r: number): boolean {
+  return mu * Math.max(1, r) < 1e-20;
+}

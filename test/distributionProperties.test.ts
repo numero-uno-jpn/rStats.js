@@ -56,6 +56,9 @@ const REGRESSION: Record<string, { params: Params; x: number[]; sizes?: Omit<Siz
   nchisq: [
     { params: { df: 1, ncp: 3e9 }, x: [3e9, 3.0001e9] },
     { params: { df: 2, ncp: 16.99599089257515 }, x: [763.6617468878705] },
+    // Densities at a tiny or subnormal ncp were NaN (0.15.2)
+    { params: { df: 1, ncp: 1.1186442675478367e-308 }, x: [1.4777750489339286e-267, 1] },
+    { params: { df: 3, ncp: 5e-324 }, x: [1] },
   ],
   // and at a huge or tiny df the noncentral t was NaN, Infinity or not consistent; at a huge λ, pf and pbeta in the far
   // left tail were not monotone (0.15.1)
@@ -105,11 +108,39 @@ const REGRESSION: Record<string, { params: Params; x: number[]; sizes?: Omit<Siz
   nf: [
     { params: { df1: 456.14174201689434, df2: 771.5785513038477, ncp: 26.634566720706474 }, x: [2.473952189555483] },
     { params: { df1: 1297.9256468956266, df2: 204.30365281952962, ncp: 7.500667311607752e266 }, x: [3.495699996315728e104, 1.5482840755724838e155] },
+    // At a subnormal ncp the density was NaN; qf with a subnormal df1 and λ = 1.7e243 did not return (0.15.2)
+    { params: { df1: 0.02747085704007554, df2: 3, ncp: 5e-324 }, x: [2.855286418252648e-257] },
+    { params: { df1: 3.69345607573e-313, df2: 1249.223519976018, ncp: 1.676553834669942e243 }, x: [1] },
+    // Both tails 0 at ncp = 3.7e307 (0.15.2)
+    { params: { df1: 1827.512149376115, df2: 0.16542329604093037, ncp: 3.6563492032068665e307 }, x: [2.5e300, 1e303] },
   ],
   nbeta: [
     { params: { shape1: 0.5, shape2: 0.4399301350869252, ncp: 287.25848611940876 }, x: [9.867288258188533e-299] },
     { params: { shape1: 178.5166557908405, shape2: 461.69685003899446, ncp: 18428991667705106000 }, x: [0.055855858605355024, 0.12485740100964904] },
+    // A tiny ncp: the density was NaN (0.15.2)
+    { params: { shape1: 0.1937170160875713, shape2: 141.08193369784416, ncp: 1.3857699868036388e-303 }, x: [1.0522653871898304e-231] },
   ],
+  // At a shape of 1e299 and more pbeta was NaN far from the mass, qbeta 0 or did not return; at a subnormal shape the
+  // log of a tail of its order lost digits, a tail near 1 was 5.5e-14 short of it, and a subnormal quantile was 5e-14 off
+  // (0.15.2)
+  beta: [
+    { params: { shape1: 9220.54059054371, shape2: 2.5608778622012845e301 }, x: [3.6e-298, 1.4897613331026733e-236] },
+    { params: { shape1: 1.326518545361005e304, shape2: 5.890954242396564 }, x: [0.5] },
+    { params: { shape1: 0.9668818597712154, shape2: 4.675035776702327e-307 }, x: [0.9999999999999395] },
+    { params: { shape1: 6e-323, shape2: 433.58274113933624 }, x: [4.972082704953929e-48] },
+    { params: { shape1: 0.130360175608773, shape2: 8.15e-322 }, x: [0.972696723183617, 0.9999698176120555] },
+    { params: { shape1: 27.945113448945182, shape2: 1.5106518374066408e299 }, x: [9.585930727509766e-309] },
+    { params: { shape1: 55.11485820081626, shape2: 6.332054207061664e307 }, x: [1e-307, 1e-305, 0.9981707623107112] },
+  ],
+  // qf at a df2 of 6e302 did not return; with df2 = Inf, pf was 0 where q df1 underflowed (0.15.2)
+  f: [
+    { params: { df1: 0.08851774263240042, df2: 6.009378697059168e302 }, x: [4.6e-287] },
+    { params: { df1: 0.012086080962967378, df2: Infinity }, x: [2e-323, 1e-300] },
+  ],
+  // qtukey did not return where 1 - W underflowed with nranges = 2 (the log was -Infinity) (0.15.2)
+  tukey: [{ params: { nmeans: 3, df: 46673457704.69311, nranges: 2 }, x: [51.3, 54.5] }],
+  // The upper tail far out was NaN (the splitting in the continued fraction overflowed) (0.15.2)
+  "nbinom(prob)": [{ params: { size: 641.0457517358916, prob: 8.999877024359508e-300 }, x: [1e303] }],
   signrank: [
     {
       params: { n: 1100 },

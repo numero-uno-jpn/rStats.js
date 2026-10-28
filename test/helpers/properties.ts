@@ -137,8 +137,6 @@ const real: [number, number] = [-Infinity, Infinity];
 const halfLine: [number, number] = [0, Infinity];
 const unit: [number, number] = [0, 1];
 
-const df = (r: Rng): number => positive(r, [1e-2, 1e6], [1e-300, 1e300], [0.5, 1, 2, 3]);
-const ncp = (r: Rng): number => positive(r, [1e-2, 1e4], [1e-300, 1e300], [0, 1]);
 const shape = (r: Rng): number => positive(r, [1e-2, 1e4], [1e-300, 1e300], [0.5, 1, 2]);
 const scale = (r: Rng): number => positive(r, [1e-3, 1e3]);
 /** The whole positive range of doubles, subnormals included (for the families checked out to their ends so far) */
@@ -146,6 +144,7 @@ const wide: [number, number] = [5e-324, 1e308];
 const wideDf = (r: Rng): number => positive(r, [1e-2, 1e6], wide, [0.5, 1, 2, 3]);
 const wideShape = (r: Rng): number => positive(r, [1e-2, 1e4], wide, [0.5, 1, 2]);
 const wideScale = (r: Rng): number => positive(r, [1e-3, 1e3], wide);
+const wideNcp = (r: Rng): number => positive(r, [1e-2, 1e4], wide, [0, 1]);
 const betaMoments = (a: number, b: number): [number, number] => [a / (a + b), Math.sqrt((a * b) / ((a + b) ** 2 * (a + b + 1)))];
 
 export const distributionFamilies: Family[] = [
@@ -233,7 +232,7 @@ export const distributionFamilies: Family[] = [
     name: "nchisq",
     fn: "chisq",
     positional: ["df"],
-    params: (r) => ({ df: df(r), ncp: ncp(r) }),
+    params: (r) => ({ df: wideDf(r), ncp: wideNcp(r) }),
     support: () => halfLine,
     moments: (pr) => [pr.df! + pr.ncp!, Math.sqrt(2 * (pr.df! + 2 * pr.ncp!))],
   },
@@ -262,8 +261,8 @@ export const distributionFamilies: Family[] = [
     fn: "f",
     positional: ["df1", "df2"],
     params: (r) => ({
-      df1: positive(r, [1e-2, 1e6], [1e-300, 1e300], [1, 2, 3, Infinity]),
-      df2: positive(r, [1e-2, 1e6], [1e-300, 1e300], [1, 2, 3, Infinity]),
+      df1: positive(r, [1e-2, 1e6], wide, [1, 2, 3, Infinity]),
+      df2: positive(r, [1e-2, 1e6], wide, [1, 2, 3, Infinity]),
     }),
     support: () => halfLine,
   },
@@ -272,9 +271,9 @@ export const distributionFamilies: Family[] = [
     fn: "f",
     positional: ["df1", "df2"],
     params: (r) => ({
-      df1: positive(r, [1e-2, 1e4], [1e-300, 1e300], [1, 2, 3]),
-      df2: positive(r, [1e-2, 1e4], [1e-300, 1e300], [1, 2, 3]),
-      ncp: ncp(r),
+      df1: positive(r, [1e-2, 1e4], wide, [1, 2, 3]),
+      df2: positive(r, [1e-2, 1e4], wide, [1, 2, 3]),
+      ncp: wideNcp(r),
     }),
     support: () => halfLine,
   },
@@ -282,7 +281,7 @@ export const distributionFamilies: Family[] = [
     name: "beta",
     fn: "beta",
     positional: ["shape1", "shape2"],
-    params: (r) => ({ shape1: shape(r), shape2: shape(r) }),
+    params: (r) => ({ shape1: wideShape(r), shape2: wideShape(r) }),
     support: () => unit,
     moments: (pr) => betaMoments(pr.shape1!, pr.shape2!),
   },
@@ -290,7 +289,7 @@ export const distributionFamilies: Family[] = [
     name: "nbeta",
     fn: "beta",
     positional: ["shape1", "shape2"],
-    params: (r) => ({ shape1: shape(r), shape2: shape(r), ncp: ncp(r) }),
+    params: (r) => ({ shape1: wideShape(r), shape2: wideShape(r), ncp: wideNcp(r) }),
     support: () => unit,
   },
   {
@@ -386,7 +385,7 @@ export const distributionFamilies: Family[] = [
     accuracy: 2e-14,
     params: (r) => ({
       nmeans: Math.max(2, integer(r, 20, 200, [2, 3])),
-      df: positive(r, [2, 1e3], [2, 1e300], [2, 3, Infinity]),
+      df: positive(r, [2, 1e3], [2, 1e308], [2, 3, Infinity]),
       nranges: r.unif() < 0.7 ? 1 : integer(r, 5, 20, [1, 2]) || 1,
     }),
     support: () => halfLine,

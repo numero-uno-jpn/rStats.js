@@ -469,7 +469,10 @@ export function mixtureDensity(
   divisor: number,
   log: boolean,
 ): number {
-  const j0 = Number.isFinite(jStar) ? Math.max(0, Math.round(jStar)) : 0;
+  // (μ = 0 where λ/2 underflows, at λ = 5e-324: the j = 0 term alone, as for the central distribution, whose weight is
+  // the only one not 0; the terms from j = 1 on are of relative size μ times the ratio of the densities of components 1
+  // and 0, negligible unless that ratio is above 1e300)
+  const j0 = Number.isFinite(jStar) && mu > 0 ? Math.max(0, Math.round(jStar)) : 0;
   const sum = new ScaledSum();
   const w0 = weight(j0, mu);
   const d0 = increment(kernel, j0);
@@ -491,7 +494,9 @@ export function mixtureDensity(
   d = d0;
   prev = ZERO;
   for (let j = j0 - 1; j >= 0; j--) {
-    w = refresh(mulDD(w, ddDivNum([j + 1, 0], mu)), () => weight(j, mu));
+    // (w (j + 1)/μ with μ split off as a scaled number where (j + 1)/μ would overflow the splitting of ddDivNum: the
+    // densities at λ = 1.4e-303 were NaN)
+    w = refresh(mu > 1e-290 ? mulDD(w, ddDivNum([j + 1, 0], mu)) : divDD(mulDD(w, [j + 1, 0]), [mu, 0]), () => weight(j, mu));
     d = d.h === 0 ? increment(kernel, j) : refresh(divRatio(d, kernel, j + 1), () => increment(kernel, j));
     const t = mulDD(mul(w, d), [coef(j), 0]);
     sum.add(t);
