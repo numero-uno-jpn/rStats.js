@@ -1,0 +1,184 @@
+// Weibull distribution dweibull / pweibull / qweibull.
+//
+// With u = x / scale and t = u^shape, P[X > x] = exp(-t) and
+// f(x) = (shape / scale) exp((shape - 1) log u - t).
+// t is formed in double-double (the relative error of exp(-t) equals the absolute error of t, and the rounding
+// of t^shape is amplified shape times). For infinite parameters the defining formula is evaluated as is, to match
+// R's output (where Inf and NaN appear).
+import { vectorize } from "../internal/vectorize.js";
+import { d0, dt0, quantileBoundaries } from "../internal/dpq.js";
+import { ddExp, expNeg, log1mExp, logOneMinusExpNeg, standardizeDD } from "../internal/ddexp.js";
+import { ddLog, ddMulNum, ddSub } from "../special/dd.js";
+/** 1^y = 1, as with C's pow (JS Math.pow(1, Infinity) is NaN) */
+function cpow(a, b) {
+    return a === 1 ? 1 : Math.pow(a, b);
+}
+const MIN_NORMAL = 2 ** -1022;
+/**
+ * log u (u = x / scale) in double-double. x > 0, finite parameters. When x / scale is subnormal, 0 or overflows,
+ * log x - log scale instead; also for x above 1e300, where the exact remainder in standardizeDD overflows
+ */
+function logU(x, scale) {
+    if (scale === 1)
+        return ddLog([x, 0]);
+    const u = x / scale;
+    if (u >= MIN_NORMAL && u < Infinity && x < 1e300)
+        return ddLog(standardizeDD(x, 0, scale));
+    return ddSub(ddLog([x, 0]), ddLog([scale, 0]));
+}
+/** a s in double-double; only the double product when s is beyond the range of Veltkamp splitting or it overflows */
+function mulLarge(a, s) {
+    const p = a[0] * s;
+    return s < 1e300 && Number.isFinite(p) ? ddMulNum(a, s) : [p, 0];
+}
+/** log(a / b) for positive finite a, b, also when a / b over- or underflows */
+function logRatio(a, b) {
+    const r = a / b;
+    return r >= MIN_NORMAL && r < Infinity ? Math.log(r) : Math.log(a) - Math.log(b);
+}
+function allFinite(...v) {
+    return v.every(Number.isFinite);
+}
+export function dweibull1(x, shape, scale, log) {
+    if (Number.isNaN(x) || Number.isNaN(shape) || Number.isNaN(scale))
+        return NaN;
+    if (!(shape > 0) || !(scale > 0))
+        return NaN;
+    if (x < 0 || x === Infinity)
+        return d0(log);
+    if (x === 0 && shape < 1)
+        return Infinity;
+    if (!allFinite(shape, scale)) {
+        // The defining formula as is
+        const t1 = cpow(x / scale, shape - 1);
+        const t2 = t1 * (x / scale);
+        return log ? -t2 + Math.log((shape * t1) / scale) : (shape * t1 * Math.exp(-t2)) / scale;
+    }
+    if (x === 0) {
+        if (shape > 1)
+            return d0(log);
+        return log ? -Math.log(scale) : 1 / scale;
+    }
+    const lu = logU(x, scale);
+    const t = ddExp(mulLarge(lu, shape));
+    if (t[0] === Infinity)
+        return d0(log);
+    // E = (shape - 1) log u - t
+    const e = ddSub(shape === 1 ? [0, 0] : mulLarge(lu, shape - 1), t);
+    const r = shape / scale;
+    if (log)
+        return logRatio(shape, scale) + e[0] + e[1];
+    // |log(shape / scale)| < 1455, so the density underflows; for a huge shape e[1] can exceed 1 and flip the sign below
+    if (e[0] < -2500)
+        return 0;
+    if (r >= MIN_NORMAL && r < Infinity && e[0] > -708)
+        return r * Math.exp(e[0]) * (1 + e[1]);
+    // shape / scale over- or underflows, or exp(E) is subnormal: fold it into the exponent
+    return Math.exp(logRatio(shape, scale) + e[0]) * (1 + e[1]);
+}
+export function pweibull1(q, shape, scale, lowerTail, logP) {
+    if (Number.isNaN(q) || Number.isNaN(shape) || Number.isNaN(scale))
+        return NaN;
+    if (!(shape > 0) || !(scale > 0))
+        return NaN;
+    if (q <= 0)
+        return dt0(lowerTail, logP);
+    let t;
+    if (!allFinite(q, shape, scale)) {
+        t = [cpow(q / scale, shape), 0];
+        if (Number.isNaN(t[0]))
+            return NaN;
+    }
+    else {
+        const l = mulLarge(logU(q, scale), shape);
+        t = ddExp(l);
+        // log(1 - exp(-t)) = log t - t / 2 + ...: below e^-700 it is log t, which stays exact where t is subnormal. Where
+        // t underflows to 0 the result is -Infinity, as in R (pweibull(1e-5, 1000, log.p = TRUE) is -Inf)
+        if (lowerTail && logP && l[0] < -700)
+            return t[0] === 0 ? -Infinity : l[0] + l[1];
+    }
+    if (!lowerTail)
+        return logP ? -t[0] - t[1] : expNeg(t);
+    const s = t[0] + t[1];
+    return logP ? logOneMinusExpNeg(t) : -Math.expm1(-s);
+}
+export function qweibull1(p, shape, scale, lowerTail, logP) {
+    if (Number.isNaN(p) || Number.isNaN(shape) || Number.isNaN(scale))
+        return NaN;
+    if (!(shape > 0) || !(scale > 0))
+        return NaN;
+    const b = quantileBoundaries(p, 0, Infinity, lowerTail, logP);
+    if (b !== undefined)
+        return b;
+    // -log P[X > x] = t
+    let lu;
+    if (logP)
+        lu = lowerTail ? log1mExp(p) : p;
+    else
+        lu = lowerTail ? Math.log1p(-p) : Math.log(p);
+    const v = cpow(-lu, 1 / shape);
+    if ((v >= MIN_NORMAL && v < Infinity) || !allFinite(shape, scale) || v === 1)
+        return scale * v;
+    // (-lu)^(1 / shape) is subnormal, 0 or overflows although scale times it may not be: in logs
+    return Math.exp(Math.log(scale) + Math.log(-lu) / shape);
+}
+/**
+ * Density of the Weibull distribution. Equivalent to R's `dweibull(x, shape, scale = 1, log = FALSE)`.
+ *
+ * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
+ * @param shape - Shape parameter.
+ * @param options - `scale` (see {@link WeibullParams}) and `log` (see {@link DensityOptions}).
+ * @returns The density (or log density).
+ *
+ * @example
+ * ```ts
+ * dweibull(1, 2);               // 0.7357588823428847
+ * dweibull(1, 2, { scale: 3 }); // 0.1988531815143044
+ * ```
+ *
+ * @category Distributions
+ */
+export function dweibull(x, shape, options = {}) {
+    const { scale = 1, log = false } = options;
+    return vectorize(x, (v) => dweibull1(v, shape, scale, log));
+}
+/**
+ * Distribution function of the Weibull distribution. Equivalent to R's `pweibull(q, shape, scale = 1, lower.tail = TRUE, log.p = FALSE)`.
+ *
+ * @param q - Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.
+ * @param shape - Shape parameter.
+ * @param options - `scale` (see {@link WeibullParams}), `lowerTail` and `logP` (see {@link TailOptions}).
+ * @returns The probability (or log probability).
+ *
+ * @example
+ * ```ts
+ * pweibull(1, 2);               // 0.6321205588285577
+ * pweibull(2, 1.5, { scale: 3 }); // 0.41977020402532716
+ * ```
+ *
+ * @category Distributions
+ */
+export function pweibull(q, shape, options = {}) {
+    const { scale = 1, lowerTail = true, logP = false } = options;
+    return vectorize(q, (v) => pweibull1(v, shape, scale, lowerTail, logP));
+}
+/**
+ * Quantile function of the Weibull distribution. Equivalent to R's `qweibull(p, shape, scale = 1, lower.tail = TRUE, log.p = FALSE)`.
+ *
+ * @param p - Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.
+ * @param shape - Shape parameter.
+ * @param options - `scale` (see {@link WeibullParams}), `lowerTail` and `logP` (see {@link TailOptions}).
+ * @returns The quantile(s).
+ *
+ * @example
+ * ```ts
+ * qweibull(0.5, 2);               // 0.8325546111576977
+ * qweibull(0.9, 1.5, { scale: 3 }); // 5.231164540789235
+ * ```
+ *
+ * @category Distributions
+ */
+export function qweibull(p, shape, options = {}) {
+    const { scale = 1, lowerTail = true, logP = false } = options;
+    return vectorize(p, (v) => qweibull1(v, shape, scale, lowerTail, logP));
+}
