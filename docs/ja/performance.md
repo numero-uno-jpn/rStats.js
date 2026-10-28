@@ -91,19 +91,19 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 | `setSeed`、`rnorm` | 3.4 KB | 1.7 KB |
 | `solve` / `svd` / `eigen` | 3.8 / 4.5 / 11.5 KB | 1.7 / 2.0 / 4.5 KB |
 | `wilcoxTest` | 30.5 KB | 12.8 KB |
-| `fisherTest` | 32.8 KB | 15.8 KB |
-| `tTest` | 59.0 KB | 26.7 KB |
-| `qbeta` | 89.3 KB | 40.4 KB |
-| `pt`、`qt` | 70.5 KB | 33.0 KB |
-| `glm`、`glmSummary` / `glm` とすべてのメソッド | 67.3 / 95.0 KB | 29.1 / 41.5 KB |
-| すべて (`/mixed` を除く) | 524.5 KB | 198.6 KB |
-| `@numero-uno-jpn/rstats/distributions` (全体) | 198.8 KB | 79.0 KB |
-| `@numero-uno-jpn/rstats/tests` (全体) | 388.7 KB | 153.1 KB |
+| `fisherTest` | 33.1 KB | 15.9 KB |
+| `tTest` | 61.2 KB | 27.5 KB |
+| `qbeta` | 92.0 KB | 41.4 KB |
+| `pt`、`qt` | 78.4 KB | 35.9 KB |
+| `glm`、`glmSummary` / `glm` とすべてのメソッド | 70.5 / 98.6 KB | 30.1 / 42.7 KB |
+| すべて (`/mixed` を除く) | 533.1 KB | 201.9 KB |
+| `@numero-uno-jpn/rstats/distributions` (全体) | 207.4 KB | 82.1 KB |
+| `@numero-uno-jpn/rstats/tests` (全体) | 395.3 KB | 155.4 KB |
 | `@numero-uno-jpn/rstats/linalg` (全体) | 50.2 KB | 18.5 KB |
 | `@numero-uno-jpn/rstats/descriptive` (全体) | 44.8 KB | 16.7 KB |
 | `@numero-uno-jpn/rstats/numerics` (全体) | 48.7 KB | 20.9 KB |
-| `@numero-uno-jpn/rstats/special` (全体) | 58.7 KB | 27.1 KB |
-| `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / 全体 (lmerTest の検定を含む) | 42.5 / 143.1 KB | 16.5 / 61.0 KB |
+| `@numero-uno-jpn/rstats/special` (全体) | 59.3 KB | 27.3 KB |
+| `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / 全体 (lmerTest の検定を含む) | 42.5 / 145.9 KB | 16.5 / 62.0 KB |
 
 サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを
 `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 30 KB

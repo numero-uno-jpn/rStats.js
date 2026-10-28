@@ -14,7 +14,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
   (`pnorm` alone is 1.2 KB gzipped).
 
-Status: **0.15.2.** The goal is to cover the numerical core of R's
+Status: **0.15.3.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
 functions, numerical methods and the basics of linear algebra) with R-compatible results; see [ROADMAP.md](ROADMAP.md) for what remains. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -247,11 +247,11 @@ removed. Approximate sizes after minification and gzip:
 | `pnorm` | 1.2 KB |
 | `setSeed`, `rnorm` | 1.7 KB |
 | `solve` / `svd` / `eigen` | 1.7 / 2.0 / 4.5 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 12.8 / 15.8 / 26.7 KB |
-| `qbeta` / `pt` and `qt` | 40.4 / 33.0 KB |
-| `glm` and `glmSummary` / `glm` with all its methods | 29.1 / 41.5 KB |
-| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 16.5 / 61.0 KB |
-| everything (except `/mixed`) | 198.6 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 12.8 / 15.9 / 27.5 KB |
+| `qbeta` / `pt` and `qt` | 41.4 / 35.9 KB |
+| `glm` and `glmSummary` / `glm` with all its methods | 30.1 / 42.7 KB |
+| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 16.5 / 62.0 KB |
+| everything (except `/mixed`) | 201.9 KB |
 
 (`npm run size` measures these.)
 
@@ -261,11 +261,11 @@ Each area is also a subpath export, for importing one area without the rest:
 (`lmer` and lmerTest's tests; this area is only available this way, not from the main entry point).
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function except those of `/mixed`, 199 KB gzipped) from jsDelivr, which serves each npm release:
+function except those of `/mixed`, 202 KB gzipped) from jsDelivr, which serves each npm release:
 
 ```html
 <script type="module">
-  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.15.2/dist/rstats.js";
+  import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.15.3/dist/rstats.js";
   console.log(pnorm(1.96)); // 0.9750021048517795
 </script>
 ```
