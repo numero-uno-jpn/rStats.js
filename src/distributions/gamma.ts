@@ -43,11 +43,15 @@ export function gammaScale(params: GammaParams): number {
     return scale;
   }
   if (scale !== undefined) return scale;
+  // For a rate below about 5.6e-309 (subnormal), 1 / rate overflows to Infinity and the whole distribution is treated as
+  // lying at +Infinity (pgamma 0 and dgamma 0 at every finite x, qgamma Infinity), as R does with its scale = 1 / rate;
+  // some quantiles of the exact distribution would be finite there
   if (rate !== undefined) return 1 / rate;
   return 1;
 }
 
 const MIN_NORMAL = 2 ** -1022;
+const EULER = 0.5772156649015329;
 const LOG_MIN_NORMAL = -1022 * Math.LN2;
 
 /** c t in double-double; only the double product where c is beyond the range of Veltkamp splitting */
@@ -61,7 +65,12 @@ const expOf = (l: DD): number => (l[0] < -746 ? 0 : ddExp(l)[0]);
  * lgamma(shape + 1), with log y from log x - log scale (y itself has lost digits in the division, or is 0)
  */
 function logLowerTiny(x: number, shape: number, scale: number): DD {
-  return ddAdd(mulBig(logRatioDD(x, scale), shape), [-lgamma1p(shape), 0]);
+  const m = mulBig(logRatioDD(x, scale), shape);
+  const lg = lgamma1p(shape);
+  // (both terms are negative; where one overflows the sum is -Infinity, which a double-double sum made NaN:
+  // pchisq(1e-320, 1e306) was NaN)
+  if (!Number.isFinite(m[0]) || !Number.isFinite(lg)) return [m[0] - lg, 0];
+  return ddAdd(m, [-lg, 0]);
 }
 
 /**
@@ -100,7 +109,10 @@ export function dgamma1(x: number, shape: number, scale: number, log: boolean): 
   }
   if (x / scale < MIN_NORMAL && scale < Infinity && shape < Infinity) {
     // log f = shape log y + log(shape) - lgamma(shape + 1) - log x (e^-y is 1)
-    const l = ddAdd(ddSub(logLowerTiny(x, shape, scale), ddLog([x, 0])), ddLog([shape, 0]));
+    const lp = logLowerTiny(x, shape, scale);
+    // (-Infinity where shape log y or lgamma(shape + 1) overflows: dgamma(3.1e-272, 4.4e307, scale 4.1e138) was NaN)
+    if (lp[0] === -Infinity) return d0(log);
+    const l = ddAdd(ddSub(lp, ddLog([x, 0])), ddLog([shape, 0]));
     return log ? l[0] + l[1] : expOf(l);
   }
   if (shape < 1) {
@@ -129,6 +141,9 @@ export function dgamma1(x: number, shape: number, scale: number, log: boolean): 
 export function pgamma1(q: number, shape: number, scale: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(q) || Number.isNaN(shape) || Number.isNaN(scale)) return NaN;
   if (shape < 0 || scale <= 0) return NaN;
+  // P[X <= Inf] = 1 also at scale = Inf (from a subnormal rate, 1/rate overflows), where q / scale is NaN. R 4.5.2
+  // gives NaN there (pgamma(Inf, 892.4, rate = 2.8e-316))
+  if (q === Infinity) return dt1(lowerTail, logP);
   const x = q / scale;
   if (Number.isNaN(x)) return x;
   if (shape === 0) return x <= 0 ? dt0(lowerTail, logP) : dt1(lowerTail, logP);
@@ -141,6 +156,13 @@ export function pgamma1(q: number, shape: number, scale: number, lowerTail: bool
     const lp = l[0] + l[1];
     if (lowerTail) return logP ? lp : expOf(l);
     // 1 - P with P from the double-double log where P < 1/2 (exp of the rounded log loses eps |log P| relative)
+    if (lp > -1e-10 && logP) {
+      // log Q = log(-lp) + log1p(lp / 2) with -lp = shape (-m), m = log y - lgamma1p(shape) / shape, from log shape: Q is
+      // of the order of shape and lost digits where it is subnormal (pgamma(1e-310, 5e-324, upper, log) was 3e-4 off).
+      // lgamma1p(shape) / shape is -γ (1 + O(shape)) where lgamma1p(shape) would be subnormal
+      const m = logRatioDD(q, scale)[0] - (shape < 1e-300 ? -EULER : lgamma1p(shape) / shape);
+      return Math.log(shape) + Math.log(-m) + Math.log1p(lp / 2);
+    }
     if (lp > -Math.LN2) return logP ? Math.log(-Math.expm1(lp)) : -Math.expm1(lp);
     const e = expOf(l);
     return logP ? Math.log1p(-e) : 1 - e;
@@ -177,7 +199,9 @@ export function logTinyGammaQuantile(
 export function qgammaStd(p: number, shape: number, lowerTail: boolean, logP: boolean, scale = 1): number {
   const { lower, logTarget, linearTarget } = smallerTail(p, lowerTail, logP);
   const tiny = logTinyGammaQuantile(logTarget, lower, shape, linearTarget);
-  if (tiny !== undefined) return expOf(scale === 1 ? tiny : ddAdd(tiny, ddLog([scale, 0])));
+  // (the log is -Infinity where log P / shape overflows at a subnormal shape; added to log scale in double-double it was
+  // NaN: qchisq(0.5, 1e-310) was NaN)
+  if (tiny !== undefined) return expOf(scale === 1 || tiny[0] === -Infinity ? tiny : ddAdd(tiny, ddLog([scale, 0])));
   let x0: number;
   if (shape > 1 && logTarget <= -700) {
     // Deep tail: Wilson-Hilferty approximation x = a (1 - 1/(9a) + z / sqrt(9a))^3
@@ -221,6 +245,9 @@ export function qgamma1(p: number, shape: number, scale: number, lowerTail: bool
   if (shape === 0) return 0;
   // Shape Inf: all the mass at +Inf, so every probability strictly between 0 and 1 maps to Inf
   if (shape === Infinity) return Infinity;
+  // Scale Inf (1/rate overflows for a rate below 5.6e-309): pgamma is 0 at every finite q there, so Inf likewise (the
+  // scaling of a quantile below the normal range made it NaN: qgamma(3.3e-160, 0.5, rate = 4.2e-319))
+  if (scale === Infinity) return Infinity;
   return qgammaStd(p, shape, lowerTail, logP, scale);
 }
 

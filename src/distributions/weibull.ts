@@ -74,7 +74,10 @@ export function dweibull1(x: number, shape: number, scale: number, log: boolean)
   const t = ddExp(mulLarge(lu, shape));
   if (t[0] === Infinity) return d0(log);
   // E = (shape - 1) log u - t
-  const e = ddSub(shape === 1 ? [0, 0] : mulLarge(lu, shape - 1), t);
+  const m: DD = shape === 1 ? [0, 0] : mulLarge(lu, shape - 1);
+  // (-Infinity where (shape - 1) log u overflows, which the double-double difference made NaN: dweibull(1.9e-255,
+  // 6.6e306, scale 98.6) was NaN)
+  const e = m[0] === -Infinity ? m : ddSub(m, t);
   const r = shape / scale;
   if (log) return logRatio(shape, scale) + e[0] + e[1];
   // |log(shape / scale)| < 1455, so the density underflows; for a huge shape e[1] can exceed 1 and flip the sign below

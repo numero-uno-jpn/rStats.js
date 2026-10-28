@@ -201,6 +201,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | Non-central `qbeta` with an infinite parameter (e.g. shape2 = Inf) | 0, 0.5 or 1 from a search on NaN | NaN |
 | `qt` with ncp = ±Inf | a mix of NaN and ±Inf depending on p | NaN except at the end points |
 | `qchisq(p, 0, ncp = 0)` (all mass at 0) | NaN or Inf | 0 |
+| `pgamma(Inf, shape, rate = r)` with a subnormal r (below about 5.6e-309, so 1 / r overflows) | NaN | 1 (P[X ≤ Inf] = 1 by definition) |
 | `pgamma(q, Inf, scale = s)` with 0 < q / s < 1, so `pchisq(q, Inf)` with 0 < q < 2 (all mass at +Inf) | NaN | the limits: lower tail 0, upper tail 1 (as R gives for every other finite q) |
 | `df(0, df1, Inf, ncp, log = TRUE)` | not the log of the linear value (−1.386 with ncp = 0, where the linear value is 1) | log of the linear value |
 | `qf` with df2 = Inf when the answer rounds to 0 | meaningless values such as 2e-130; Inf for log p = -1e-300 | value checked with the distribution function |
@@ -446,6 +447,11 @@ also from R's source. They are listed because they are easy to get wrong.
   Non-central chi-squared and beta with ncp = Inf give NaN (`qchisq` returns values only at the
   end points). `pf(·, Inf, df2, ncp)` is NaN; `df(·, Inf, df2, ncp)` ignores ncp;
   `df(Inf, df1, finite, ncp)` is NaN.
+- The gamma distributions (and so `dgamma`, `pgamma`, `qgamma`) with a rate below about 5.6e-309 (subnormal):
+  scale = 1 / rate overflows to Inf, and the distribution is treated as lying at +Inf: `pgamma` and `dgamma`
+  are 0 at every finite x and `qgamma` is Inf, as in R (some quantiles of the exact distribution would be finite,
+  for example about 0.3 for `qgamma(3.3e-160, 0.5, rate = 4.19e-319)`). Only `pgamma(Inf, ...)` differs (1, not
+  NaN; see the table of deliberate differences).
 - `ptukey` returns NaN for nmeans < 2, df < 2 or nranges < 1; non-integer nmeans and nranges are
   accepted.
 - The order in which arguments are checked (for example, `qcauchy` with scale = 0 returns

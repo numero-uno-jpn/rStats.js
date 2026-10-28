@@ -194,6 +194,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | パラメータが無限大の非心 `qbeta` (たとえば shape2 = Inf) | NaN 上の探索から 0、0.5、1 | NaN |
 | ncp = ±Inf の `qt` | p によって NaN と ±Inf が混在 | 端点以外は NaN |
 | `qchisq(p, 0, ncp = 0)` (質量がすべて 0 にある) | NaN または Inf | 0 |
+| r が非正規化数 (約 5.6e-309 未満で、1 / r が溢れる) の `pgamma(Inf, shape, rate = r)` | NaN | 1 (定義により P[X ≤ Inf] = 1) |
 | 0 < q / s < 1 の `pgamma(q, Inf, scale = s)`、つまり 0 < q < 2 の `pchisq(q, Inf)` (質量がすべて +Inf にある) | NaN | 極限値: 下側 0、上側 1 (ほかの有限の q で R が返す値と同じ) |
 | `df(0, df1, Inf, ncp, log = TRUE)` | 線形の値の対数にならない (ncp = 0 で −1.386。線形の値は 1) | 線形の値の対数 |
 | 答えが丸めで 0 になる、df2 = Inf の `qf` | 2e-130 のような意味のない値。log p = -1e-300 で Inf | 分布関数で確認した値 |
@@ -425,6 +426,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   ncp = Inf の非心カイ二乗分布と非心ベータ分布は NaN を返します (`qchisq` は端点でのみ値を返します)。
   `pf(·, Inf, df2, ncp)` は NaN です。`df(·, Inf, df2, ncp)` は ncp を無視します。
   `df(Inf, df1, finite, ncp)` は NaN です。
+- rate が約 5.6e-309 未満 (非正規化数) のガンマ分布 (`dgamma`、`pgamma`、`qgamma`) では、scale = 1 / rate が
+  Inf に溢れ、分布全体が +Inf にあるものとして扱います。有限の x では `pgamma` も `dgamma` も 0、`qgamma` は Inf
+  で、R と同じです (正確な分布では有限になる分位点もあります。たとえば `qgamma(3.3e-160, 0.5, rate = 4.19e-319)`
+  は約 0.3)。`pgamma(Inf, ...)` だけは違います (NaN ではなく 1。意図的な違いの表を参照)。
 - `ptukey` は nmeans < 2、df < 2、nranges < 1 で NaN を返します。整数でない nmeans と nranges は
   受け付けます。
 - 引数を調べる順序 (たとえば scale = 0 の `qcauchy` は p を見る前に location を返す) は R に従います。

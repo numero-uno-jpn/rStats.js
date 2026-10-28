@@ -399,7 +399,7 @@ const IGAM: Entry[] = [
     ],
   },
   {
-    where: "special/igam.ts:353, :391",
+    where: "special/igam.ts:361, :403",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "x > 1e15 max(a, 1)",
     methods: "continued fraction | Q = x^(a-1) e^-x / Gamma(a) (1 + (a-1)/x)",
@@ -407,7 +407,7 @@ const IGAM: Entry[] = [
     cases: () => [...pPairs("pgamma(x, 0.5)", pg(0.5), up(1e15)), ...pPairs("pgamma(x, 2)", pg(2), up(2e15))],
   },
   {
-    where: "special/igam.ts:262 (:359, :399), 20 < a < 200",
+    where: "special/igam.ts:262 (:371, :416), 20 < a < 200",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "20 < a < 200 && |x - a|/a < 0.3",
     methods: "series / continued fraction | Temme's uniform expansion",
@@ -422,7 +422,7 @@ const IGAM: Entry[] = [
     },
   },
   {
-    where: "special/igam.ts:262 (:359, :399), a > 200",
+    where: "special/igam.ts:262 (:371, :416), a > 200",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "a > 200 && |x - a|/a < 4.5/sqrt(a)",
     methods: "series / continued fraction | Temme's uniform expansion",
@@ -567,7 +567,7 @@ const IGAMI: Entry[] = [
 
 const GAMMA: Entry[] = [
   {
-    where: "distributions/gamma.ts:47, :65",
+    where: "distributions/gamma.ts:89, :115",
     fns: "dgamma, dchisq, qgamma (density in Newton steps)",
     condition: "shape < 1",
     methods: "dpois(shape - 1; x) | dpois(shape; x) shape / x",
@@ -578,7 +578,7 @@ const GAMMA: Entry[] = [
     ],
   },
   {
-    where: "distributions/gamma.ts:97",
+    where: "distributions/gamma.ts:203",
     fns: "qgamma, qchisq",
     condition: "shape > 1 && log p <= -700 (smaller tail); else log p > -700; else lower / upper",
     methods: "Wilson-Hilferty | DiDonato & Morris | x^a / Gamma(a + 1) or Q iteration",
@@ -1012,7 +1012,7 @@ const LOADER: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:104, :362",
+    where: "special/loader.ts:103, :361",
     fns: "every density, pgamma, pbeta",
     condition: "|x - M| < 0.1 (x + M) in bd0(x, M)",
     methods: "x log(x/M) + M - x | series in v = (x - M)/(x + M)",
@@ -1026,7 +1026,7 @@ const LOADER: Entry[] = [
     },
   },
   {
-    where: "special/loader.ts:199",
+    where: "special/loader.ts:198",
     fns: "every density, pgamma, pbeta",
     condition: "|x v^3| <= 0.12 in the bd0 series",
     methods: "series tail in double-double | in double",
@@ -1037,7 +1037,7 @@ const LOADER: Entry[] = [
     },
   },
   {
-    where: "special/loader.ts:355, :378",
+    where: "special/loader.ts:354, :377",
     fns: "every density, pgamma, pbeta",
     condition: "1e-290 < x/M < 1e290 && max(x, M) < 1e300",
     methods: "log x - log M | log of the double-double quotient",
@@ -1048,7 +1048,7 @@ const LOADER: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:448, :458",
+    where: "special/loader.ts:466, :476",
     fns: "dbinom, dgeom, dnbinom, pgeom, dhyper",
     condition: "x = 0 with p < 0.1 (n - x = 0 with q < 0.1)",
     methods: "n log q in double-double | -bd0(n, nq) - np",
@@ -1060,7 +1060,7 @@ const LOADER: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:505",
+    where: "special/loader.ts:523",
     fns: "dpois, dgamma (shape < 1), pgamma",
     condition: "x <= λ DBL_MIN",
     methods: "Loader's form | e^-λ",
@@ -1071,7 +1071,7 @@ const LOADER: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:506",
+    where: "special/loader.ts:524",
     fns: "dpois, dgamma, pgamma",
     condition: "λ < x DBL_MIN",
     methods: "Loader's form | -λ + x log λ - lgamma1p(x)",
@@ -1315,7 +1315,7 @@ const NORMAL: Entry[] = [
 
 const ELEMENTARY: Entry[] = [
   {
-    where: "distributions/lognormal.ts:47",
+    where: "distributions/lognormal.ts:55",
     fns: "plnorm",
     condition: "-sqrt(2) < z < sqrt(2) (z = log x in double-double)",
     methods: "erfcx form of the smaller tail | pnorm(z)",
@@ -1326,7 +1326,7 @@ const ELEMENTARY: Entry[] = [
     ],
   },
   {
-    where: "distributions/lognormal.ts:35, :40",
+    where: "distributions/lognormal.ts:48, :38",
     fns: "plnorm, dlnorm (log scale; the values are 0 or 1)",
     condition: "|z| > 1e150 (z² in double); |z| < 1e300 (z in double-double)",
     methods: "double-double | double",
@@ -1343,7 +1343,7 @@ const ELEMENTARY: Entry[] = [
     },
   },
   {
-    where: "distributions/lognormal.ts:78, :82",
+    where: "distributions/lognormal.ts:86, :90",
     fns: "qlnorm",
     condition: "s <= -sqrt(2); s >= sqrt(2) (s the standard normal point on the lower side)",
     methods: "residual from pnorm | from the erfcx form of either tail",
@@ -2970,6 +2970,107 @@ const T_ENDS: Entry[] = [
   },
 ];
 
+// ---- distributions/gamma.ts, lognormal.ts and their special functions: the ends of the parameters ----
+
+/** The upper tails, on both scales */
+const upperTails: Tail[] = [TAILS[1]!, TAILS[3]!];
+/** log P of pgamma(1e-310, shape) as the code forms it (shape log y - lgamma(shape + 1)) */
+const tinyLowerLog = (shape: number) => shape * Math.log(1e-310) - lgamma1p(shape);
+
+const GAMMA_ENDS: Entry[] = [
+  {
+    where: "special/igam.ts:366, :409",
+    fns: "pgamma, pchisq, pinvgamma (the upper tail of the gamma)",
+    condition: "a < 1e-300 (upper tail)",
+    methods: "series or continued fraction | (a / 1e-300) Q(1e-300, x)",
+    point: "a = 1e-300 at x = 1e-200, 1 and 30",
+    cases: () => [1e-200, 1, 30].flatMap((x) => pPairs(`pgamma(${x}, shape)`, pgShape(x), down(1e-300), { tails: upperTails })),
+  },
+  {
+    where: "distributions/gamma.ts:156, :160",
+    fns: "pgamma, pchisq, pinvgamma (upper tail, log scale), y = q / scale below 2^-1022",
+    condition: "log P > -1e-10; shape < 1e-300 inside",
+    methods: "log(-expm1(log P)) | log(shape) + log(-m) + log1p(log P / 2), m = log y - lgamma1p(shape) / shape (-γ below 1e-300)",
+    point: "q = 1e-310: the shape where log P = -1e-10 (1.4e-13), and shape = 1e-300",
+    cases: () => [
+      ...pPairs("pgamma(1e-310, shape)", pgShape(1e-310), flipPoint((a) => tinyLowerLog(a) > -1e-10, 1e-13, 2e-13), { tails: [TAILS[3]!] }),
+      ...pPairs("pgamma(1e-310, shape)", pgShape(1e-310), down(1e-300), { tails: [TAILS[3]!] }),
+    ],
+  },
+  {
+    where: "special/loader.ts:387; special/igam.ts:278",
+    fns: "pgamma, pchisq, ppois, dgamma (and the other users of the deviance)",
+    condition: "x < 1e299 in the deviance x log(x/M) + M - x with M below 1e-250; a > 1e299 for Temme's expansion",
+    methods: "double-double product | the same scaled by 2^-64 (exact); series | Temme's expansion",
+    point: "a = 1e299 at x = 1e-260 and 1e-300 (log scale; the linear values are 0 and 1)",
+    cases: () =>
+      [1e-260, 1e-300].flatMap((x) => pPairs(`pgamma(${x}, shape)`, pgShape(x), up(1e299), { tails: TAILS.slice(2) })),
+  },
+  {
+    where: "special/loader.ts:537",
+    fns: "dgamma, dchisq, dpois, dinvgamma (linear scale)",
+    condition: "x > 2e307 in Loader's density (2 pi x overflows from 2.9e307)",
+    methods: "exp(-E) / sqrt(2 pi x) | exp(-E) / sqrt(pi x / 8) / 4",
+    point:
+      "validity on both sides of shape = 2e307 (one ulp of the shape moves the mode by 1e138 standard deviations, so " +
+      "no pair): the density at the mode, x = shape - 1 (= shape), is 1/sqrt(2 pi shape) up to stirlerr (1e-308)",
+    cases: () => [
+      {
+        kind: "check",
+        label: "dgamma(shape, shape) at shape = 2e307 and the doubles next to it",
+        run: () => {
+          for (const a of [nextDown(2e307), 2e307, nextUp(2e307), 1e308]) {
+            const v = dgamma(a, a);
+            const ref = 1 / (Math.sqrt(2 * Math.PI) * Math.sqrt(a));
+            if (!(Math.abs(v - ref) <= 4 * Number.EPSILON * ref)) return `dgamma(${a}, ${a}) = ${v}, not ${ref}`;
+          }
+          return undefined;
+        },
+      },
+    ],
+  },
+  {
+    where: "special/loader.ts:528",
+    fns: "dgamma, dchisq, dpois (log scale)",
+    condition: "lgamma1p(x) overflows (x above 2.5e305) where λ < x 2^-1022",
+    methods: "-λ + x log λ - lgamma1p(x) | -Infinity",
+    point: "validity: the log density at shape 2.5e305 and above is below -1.7e308 or -Infinity (not NaN)",
+    cases: () => [
+      {
+        kind: "check",
+        label: "dgamma(1e-3, shape, log) around the overflow of lgamma1p",
+        run: () => {
+          for (const a of [2.5e305, 2.55e305, 2.6e305, 1e306, 1e308]) {
+            const v = dgamma(1e-3, a, { log: true });
+            if (!(v < -1.7e308)) return `dgamma(1e-3, ${a}, log) = ${v}`;
+          }
+          return undefined;
+        },
+      },
+    ],
+  },
+  {
+    where: "distributions/lognormal.ts:39",
+    fns: "plnorm, dlnorm",
+    condition: "sdlog < 1e300",
+    methods: "z = (log x - meanlog) / sdlog in double-double | the same with both scaled by 2^-64",
+    point: "sdlog = 1e300 at meanlog -1e302 and -5e299 (z near 100 and 0.5)",
+    cases: () =>
+      [-1e302, -5e299].flatMap((m) => [
+        ...pPairs(`plnorm(2, ${m}, sdlog)`, (sd, t) => plnorm(2, { meanlog: m, sdlog: sd, ...t }), down(1e300)),
+        pair(`dlnorm(2, ${m}, sdlog, log)`, (sd) => dlnorm(2, { meanlog: m, sdlog: sd, log: true }), down(1e300)),
+      ]),
+  },
+  {
+    where: "distributions/lognormal.ts:157",
+    fns: "qlnorm",
+    condition: "sdlog >= 1e300",
+    methods: "exp(meanlog + sdlog z) with the exponent in double-double | in double (0 or Infinity unless z = 0)",
+    point: "sdlog = 1e300 at p = 0.3, 0.5 and 0.7, meanlog 3",
+    cases: () => [0.3, 0.5, 0.7].map((p) => pair(`qlnorm(${p}, 3, sdlog)`, (sd) => qlnorm(p, { meanlog: 3, sdlog: sd }), down(1e300))),
+  },
+];
+
 // ---- distributions/tukey.ts: studentized range ----
 // With df = Inf the distribution function is the inner integral itself, so q is the argument w of W(w)
 
@@ -3179,7 +3280,7 @@ const temmeEta = (a: number, x: number): number => {
 
 const EXTREME: Entry[] = [
   {
-    where: "special/igam.ts:271 (:363, :405)",
+    where: "special/igam.ts:278 (:375, :422)",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "a > 200 && (|x - a|/a < 1e-3 || a > 1e299)",
     methods: "series / continued fraction | Temme's expansion in the form e^-bd0(a, x) (erfcx(y)/2 ± S/sqrt(2π a))",
@@ -3232,7 +3333,7 @@ const EXTREME: Entry[] = [
     cases: () => [pair("dpois(9.9e298, λ, log)", (l) => dpois(9.9e298, l, { log: true }), up(1e299))],
   },
   {
-    where: "special/loader.ts:389, :392",
+    where: "special/loader.ts:407, :410",
     fns: "dbinom, dbeta, df, pbeta, pf, pnbinom",
     condition: "n > 1e299 (n scaled in the product n p); n p >= 1e-290",
     methods: "bd0(x, n p) | n p scaled by 2^-64 and back; x (log x - log n - log p) + n p - x | bd0(x, n p)",
@@ -3243,7 +3344,7 @@ const EXTREME: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:410",
+    where: "special/loader.ts:428",
     fns: "dpois, dgamma, dbinom, dbeta",
     condition: "e > 2000 (linear scale)",
     methods: "exp(700 - e) (1 - e_low) exp(-700) | 0",
@@ -3363,7 +3464,7 @@ const SUBNORMAL: Entry[] = [
     ],
   },
   {
-    where: "distributions/gamma.ts:101, :139",
+    where: "distributions/gamma.ts:107, :151",
     fns: "dgamma, pgamma, dchisq, pchisq, dinvgamma, pinvgamma",
     condition: "y = x / scale < 2^-1022 (x > 0)",
     methods: "Loader's density, incomplete gamma | y^shape / Γ(shape + 1) and y^shape / (Γ(shape) x), log y = log x - log scale",
@@ -3381,7 +3482,7 @@ const SUBNORMAL: Entry[] = [
     },
   },
   {
-    where: "distributions/gamma.ts:166",
+    where: "distributions/gamma.ts:185",
     fns: "qgamma, qchisq, qinvgamma, qbeta (its gamma start)",
     condition: "log P < shape log(2^-1022) - lgamma(shape + 1) (the standardized quantile below 2^-1022)",
     methods: "Newton | (P Γ(shape + 1))^(1/shape) in logs, scaled in logs",
@@ -3403,7 +3504,7 @@ const SUBNORMAL: Entry[] = [
     },
   },
   {
-    where: "distributions/gamma.ts:86, :112",
+    where: "distributions/gamma.ts:92, :121",
     fns: "dgamma (log), qgamma (density in Newton steps)",
     condition: "shape / x normal and finite (shape < 1)",
     methods: "log shape - log x | log(shape / x)",
@@ -3413,7 +3514,7 @@ const SUBNORMAL: Entry[] = [
     ],
   },
   {
-    where: "distributions/gamma.ts:113, :121; invgamma.ts:60",
+    where: "distributions/gamma.ts:122, :130; invgamma.ts:63",
     fns: "dgamma, dchisq, dinvgamma (log)",
     condition: "the log density below half of the log of the Poisson (gamma) factor (the two logs cancelling)",
     methods: "sum of the logs | log of the linear value",
@@ -3432,7 +3533,7 @@ const SUBNORMAL: Entry[] = [
     ],
   },
   {
-    where: "distributions/invgamma.ts:41, :76",
+    where: "distributions/invgamma.ts:41, :79",
     fns: "dinvgamma, pinvgamma",
     condition: "z = beta / x < 2^-1022",
     methods: "gamma functions at z (double-double z) | in logs (pgamma with scale x, log beta - log x)",
@@ -3444,7 +3545,7 @@ const SUBNORMAL: Entry[] = [
       ]),
   },
   {
-    where: "distributions/invgamma.ts:55",
+    where: "distributions/invgamma.ts:58",
     fns: "dinvgamma",
     condition: "f_Gamma(z) and f_Gamma(z) z normal",
     methods: "exp of the log density | f_Gamma(z) z / x",
@@ -3454,7 +3555,7 @@ const SUBNORMAL: Entry[] = [
     ],
   },
   {
-    where: "distributions/invgamma.ts:49, :82",
+    where: "distributions/invgamma.ts:52, :85",
     fns: "dinvgamma, pinvgamma",
     condition: "alpha <= 1e15",
     methods: "the functions at the rounded z | corrected to first order for the low part of z",
@@ -3468,7 +3569,7 @@ const SUBNORMAL: Entry[] = [
       }),
   },
   {
-    where: "distributions/invgamma.ts:88",
+    where: "distributions/invgamma.ts:91",
     fns: "pinvgamma (log)",
     condition: "|log P| < 1e8",
     methods: "log P | log P + f / P zl",
@@ -3478,7 +3579,7 @@ const SUBNORMAL: Entry[] = [
     ],
   },
   {
-    where: "distributions/invgamma.ts:101",
+    where: "distributions/invgamma.ts:104",
     fns: "qinvgamma",
     condition: "the gamma quantile below 2^-1022 (gamma.ts:166 for 1 - p)",
     methods: "beta / qgamma | exp(log beta - log of the gamma quantile)",
@@ -3553,7 +3654,7 @@ const SUBNORMAL: Entry[] = [
       })),
   },
   {
-    where: "distributions/lognormal.ts:122",
+    where: "distributions/lognormal.ts:127",
     fns: "dlnorm",
     condition: "exp(-z^2/2) < 2^-1022",
     methods: "the product exp(-z^2/2) / (sqrt(2π) sdlog x) | exp of the whole exponent in double-double",
@@ -3561,7 +3662,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => [pair("dlnorm(x)", (x) => dlnorm(x), around(flipPoint((x) => Math.exp(-(Math.log(x) ** 2) / 2) >= DBL_MIN, 4e-17, 6e-17)[0]))],
   },
   {
-    where: "distributions/lognormal.ts:121",
+    where: "distributions/lognormal.ts:126",
     fns: "dlnorm",
     condition: "exp(-z^2/2) underflows to 0",
     methods: "as above | 0",
@@ -3626,7 +3727,7 @@ const SUBNORMAL: Entry[] = [
       "or beyond 1e284, and t is 1, 0 or Infinity on both sides",
   },
   {
-    where: "distributions/weibull.ts:81",
+    where: "distributions/weibull.ts:84",
     fns: "dweibull",
     condition: "E < -2500",
     methods: "the forms below | 0",
@@ -3634,7 +3735,7 @@ const SUBNORMAL: Entry[] = [
     skip: "both sides are 0: |log(shape / scale)| < 1455, so the density is below e^-1045",
   },
   {
-    where: "distributions/weibull.ts:82",
+    where: "distributions/weibull.ts:85",
     fns: "dweibull",
     condition: "shape / scale normal and finite, E > -708",
     methods: "exp(log(shape / scale) + E) | (shape / scale) exp(E)",
@@ -3645,7 +3746,7 @@ const SUBNORMAL: Entry[] = [
     ],
   },
   {
-    where: "distributions/weibull.ts:100",
+    where: "distributions/weibull.ts:103",
     fns: "pweibull (lower log)",
     condition: "shape log u < -700",
     methods: "log(1 - exp(-t)) | log t",
@@ -3653,7 +3754,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => [pair("pweibull(q, 1, lower log)", (q) => pweibull(q, 1, { logP: true }), around(flipPoint((q) => Math.log(q) < -700, 1e-305, 1e-303)[0]))],
   },
   {
-    where: "distributions/weibull.ts:117",
+    where: "distributions/weibull.ts:120",
     fns: "qweibull",
     condition: "(-log P[X > x])^(1/shape) normal and finite",
     methods: "exp(log scale + log(-lu) / shape) | scale times it",
@@ -3876,6 +3977,7 @@ const ENTRIES: Entry[] = [
   ...NBETA,
   ...NT,
   ...T_ENDS,
+  ...GAMMA_ENDS,
   ...TUKEY,
   ...DISCRETE,
   ...INTERNAL,

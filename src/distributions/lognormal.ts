@@ -35,7 +35,12 @@ function zOf(x: number, meanlog: number, sdlog: number): DD {
   const d = ddSub(ddLog([x, 0]), [meanlog, 0]);
   if (sdlog === 1) return d;
   const hi = d[0] / sdlog;
-  return Number.isFinite(hi) && Math.abs(hi) < 1e300 ? ddDiv(d, [sdlog, 0]) : [hi, 0];
+  if (!(Number.isFinite(hi) && Math.abs(hi) < 1e300)) return [hi, 0];
+  if (sdlog < 1e300) return ddDiv(d, [sdlog, 0]);
+  // The splitting of sdlog in the division overflows above 1e300 (plnorm(2, sdlog = 1e302) was NaN): both scaled by
+  // 2^-64 (exactly, unless d is so small that z is far below the rounding of the terms it enters)
+  const s = 2 ** -64;
+  return ddDiv([d[0] * s, d[1] * s], [sdlog * s, 0]);
 }
 
 /** z^2 / 2 in double-double */
@@ -147,6 +152,9 @@ export function qlnorm1(p: number, meanlog: number, sdlog: number, lowerTail: bo
   }
   // exp(meanlog + sdlog z). Form the exponent in double-double and apply the low-order term to first order
   const zd = refineStdQuantile(z, p, lowerTail, logP);
+  // Above sdlog = 1e300 the splitting in the double-double product overflows (qlnorm(1e-30, 0, 9e307) was NaN). The
+  // exponent is then beyond the range of exp unless |z| < 1e-297 (p within that of 1/2), where it is close to meanlog
+  if (sdlog >= 1e300) return Math.exp(meanlog + sdlog * zd[0]);
   const e = ddAdd(ddAdd(mulDD(sdlog, zd[0]), [sdlog * zd[1], 0]), [meanlog, 0]);
   // Beyond the range of exp the result is 0 or Infinity (for a huge exponent e[1] can exceed 1 and flip the sign)
   if (!(Math.abs(e[0]) < 750)) return Math.exp(e[0]);

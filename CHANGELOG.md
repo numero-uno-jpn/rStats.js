@@ -25,6 +25,18 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   digits (`pt(51.65, 2.6e-316, { ncp: 51.6 })` was 0, below its value at 49.77).
 - `qt` near p = 1/2 for df between 1e-15 and about 1e-9 (`qt(0.499999999, 1e-10, { lowerTail: false })` was 0.59,
   not 2425.8), and `qt(-1e100, 1e150, { logP: true })` (-1, not -1.4e50).
+- The gamma family, `chisq`, `invgamma`, `weibull` and `lnorm` at a huge parameter: from a shape, df, alpha or sdlog of
+  about 1e301 many calls were NaN (`pgamma(1.4e-284, 4.2e301, { rate: 0.0014, logP: true })`, now -5.643831101470294e304
+  as R; `pchisq(1e-300, 1e308)`, `dchisq(0.22, 5.3e306)`, `dweibull(1.9e-255, 6.6e306, { scale: 98.6 })`,
+  `pinvgamma(5.1e280, 2e304)`, `plnorm(2, { sdlog: 1e302 })`, `qlnorm(1e-30, { sdlog: 9.3e307 })`), where double-double
+  products of numbers above 1e300 overflowed in their splitting or an overflowed term met another in a sum; and
+  `dchisq(1e308, 1e308)` was 0, not 2.8209479177387811e-155 (2πx overflowed in the normalizing factor).
+- The same functions at a subnormal parameter: `qchisq(0.5, 1e-310)` and `qgamma` at shapes below about 1e-307 were NaN
+  (now 0, as R); `pgamma(Inf, 892.4, { rate: 2.8e-316 })`, where 1/rate overflows, was NaN (now 1; R gives NaN) and
+  `qgamma` at such a rate NaN for a quantile below the normal range (now Infinity, as at other p, since `pgamma` is 0 at
+  every finite q there); and upper tails of the order of a shape below 1e-300 lost digits on the log scale
+  (`pgamma(1, 4.8e-316, { scale: 2.06, lowerTail: false, logP: true })` was 5e-9 off,
+  `pgamma(1e-310, 5e-324, { lowerTail: false, logP: true })` 3e-4), so that `dgamma` did not match their differences.
 
 ## 0.15.2 - 2026-10-28
 

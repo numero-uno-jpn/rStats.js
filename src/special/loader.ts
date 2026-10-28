@@ -76,8 +76,7 @@ export function bd0dd(x: number, M: DD): DD {
   // enters them), so scale x and M by 2^-64 (exactly, unless the smaller one would become subnormal; its quotient is
   // then far out and the logarithms are taken separately below) and the result back (pgamma(9.9e299, 1e300) was NaN)
   if (Math.max(x, M[0]) > 1e299 && Math.min(x, M[0]) > 1e-250) {
-    const r = bd0dd(x * 2 ** -64, [M[0] * 2 ** -64, M[1] * 2 ** -64]);
-    return [r[0] * 2 ** 64, r[1] * 2 ** 64];
+    return scaleUp(bd0dd(x * 2 ** -64, [M[0] * 2 ** -64, M[1] * 2 ** -64]));
   }
   if (!isDoubleDouble()) return bd0ddOps(x, M);
   // d = x - M and the series expand the same operations as bd0ddOps below, in the same order, without allocating arrays
@@ -353,7 +352,7 @@ export function bd0dd(x: number, M: DD): DD {
   // of the double-double division overflows (dgamma(9.3e281, 1.9e183, { rate: 3e21 }) threw a TypeError)
   const ratio = x / M[0];
   const lr = ratio > 1e-290 && ratio < 1e290 && Math.max(x, M[0]) < 1e300 ? ddLog(ddDiv([x, 0], M)) : ddSub(ddLog([x, 0]), ddLog(M));
-  return ddAdd(ddMulNum(lr, x), [-dh, -dl]);
+  return farDeviance(lr, x, [dh, dl]);
 }
 
 /** bd0dd written with calls to the double-double helpers (used when evaluating in double-precision mode; see src/special/dd.ts) */
@@ -376,7 +375,26 @@ function bd0ddOps(x: number, M: DD): DD {
   // x log(x/M) + (M - x)
   const ratio = x / M[0];
   const lr = ratio > 1e-290 && ratio < 1e290 && Math.max(x, M[0]) < 1e300 ? ddLog(ddDiv([x, 0], M)) : ddSub(ddLog([x, 0]), ddLog(M));
-  return ddAdd(ddMulNum(lr, x), ddNeg(d));
+  return farDeviance(lr, x, d);
+}
+
+/**
+ * x lr - d for lr = log(x/M) and d = x - M (the far branch of bd0dd). Above 1e299 the splitting of x in the product
+ * overflows (pgamma(1e-300, 1e301) was NaN, where M is too small for the scaling at the top of bd0dd): the product and
+ * d are then taken times 2^-64 (exactly) and the sum scaled back, Infinity where that overflows
+ */
+function farDeviance(lr: DD, x: number, d: DD): DD {
+  if (x < 1e299) return ddAdd(ddMulNum(lr, x), ddNeg(d));
+  return scaleUp(ddAdd(ddMulNum(lr, x * 2 ** -64), [-d[0] * 2 ** -64, -d[1] * 2 ** -64]));
+}
+
+/**
+ * A deviance computed times 2^-64, scaled back; [Infinity, 0] where it overflows (a finite low part beside it made
+ * the sums of its callers NaN: dgamma(1.3e27, 9.2e305, rate 0.44) was NaN)
+ */
+function scaleUp(r: DD): DD {
+  const hi = r[0] * 2 ** 64;
+  return Number.isFinite(hi) ? [hi, r[1] * 2 ** 64] : [hi, 0];
 }
 
 /**
@@ -505,11 +523,21 @@ function dpoisRawCore(x: number, lambda: number, wantLog: boolean, wantLin: bool
   if (x <= lambda * DBL_MIN) return [-lambda, wantLin ? Math.exp(-lambda) : NaN];
   if (lambda < x * DBL_MIN) {
     if (!Number.isFinite(x)) return [-Infinity, 0];
-    const v = -lambda + x * Math.log(lambda) - lgamma1p(x);
+    // (lgamma1p(x) overflows from about 2.5e305 on, where x log(lambda) may too: the log is -Infinity, not NaN)
+    const lg = lgamma1p(x);
+    const v = lg === Infinity ? -Infinity : -lambda + x * Math.log(lambda) - lg;
     return [v, wantLin ? Math.exp(v) : NaN];
   }
-  const e = ddAdd(bd0dd(x, [lambda, 0]), [stirlerr(x), 0]);
+  const b = bd0dd(x, [lambda, 0]);
+  // (an overflowed deviance stays [Infinity, 0]: the double-double sum would make it NaN)
+  const e = b[0] === Infinity ? b : ddAdd(b, [stirlerr(x), 0]);
   const logDenom = (): number => LN_2PI + Math.log(x);
-  const denom = (): number => 2 * Math.PI * x;
-  return [wantLog ? expNegDD(e, true, logDenom, denom) : NaN, wantLin ? expNegDD(e, false, logDenom, denom) : NaN];
+  // 2 pi x overflows above about 2.9e307: the linear value is then taken with pi x / 8 and divided by 4 (it was 0 where
+  // dchisq(1e308, 1e308) is 2.8e-155)
+  const big = x > 2e307;
+  const denom = big ? (): number => (Math.PI / 8) * x : (): number => 2 * Math.PI * x;
+  return [
+    wantLog ? expNegDD(e, true, logDenom, denom) : NaN,
+    wantLin ? expNegDD(e, false, logDenom, denom) / (big ? 4 : 1) : NaN,
+  ];
 }

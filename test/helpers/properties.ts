@@ -141,6 +141,11 @@ const df = (r: Rng): number => positive(r, [1e-2, 1e6], [1e-300, 1e300], [0.5, 1
 const ncp = (r: Rng): number => positive(r, [1e-2, 1e4], [1e-300, 1e300], [0, 1]);
 const shape = (r: Rng): number => positive(r, [1e-2, 1e4], [1e-300, 1e300], [0.5, 1, 2]);
 const scale = (r: Rng): number => positive(r, [1e-3, 1e3]);
+/** The whole positive range of doubles, subnormals included (for the families checked out to their ends so far) */
+const wide: [number, number] = [5e-324, 1e308];
+const wideDf = (r: Rng): number => positive(r, [1e-2, 1e6], wide, [0.5, 1, 2, 3]);
+const wideShape = (r: Rng): number => positive(r, [1e-2, 1e4], wide, [0.5, 1, 2]);
+const wideScale = (r: Rng): number => positive(r, [1e-3, 1e3], wide);
 const betaMoments = (a: number, b: number): [number, number] => [a / (a + b), Math.sqrt((a * b) / ((a + b) ** 2 * (a + b + 1)))];
 
 export const distributionFamilies: Family[] = [
@@ -156,7 +161,7 @@ export const distributionFamilies: Family[] = [
     name: "lnorm",
     fn: "lnorm",
     positional: [],
-    params: (r) => ({ meanlog: signed(r, [1e-3, 1e2], [1e-300, 1e3]), sdlog: positive(r, [1e-3, 1e2]) }),
+    params: (r) => ({ meanlog: signed(r, [1e-3, 1e2], wide), sdlog: positive(r, [1e-3, 1e2], wide) }),
     support: () => halfLine,
   },
   {
@@ -197,14 +202,14 @@ export const distributionFamilies: Family[] = [
     name: "weibull",
     fn: "weibull",
     positional: ["shape"],
-    params: (r) => ({ shape: positive(r, [0.1, 50], [1e-300, 1e300], [0.5, 1, 2]), scale: scale(r) }),
+    params: (r) => ({ shape: positive(r, [0.1, 50], wide, [0.5, 1, 2]), scale: wideScale(r) }),
     support: () => halfLine,
   },
   {
     name: "gamma(rate)",
     fn: "gamma",
     positional: ["shape"],
-    params: (r) => ({ shape: shape(r), rate: scale(r) }),
+    params: (r) => ({ shape: wideShape(r), rate: wideScale(r) }),
     support: () => halfLine,
     moments: (pr) => [pr.shape! / pr.rate!, Math.sqrt(pr.shape!) / pr.rate!],
   },
@@ -212,7 +217,7 @@ export const distributionFamilies: Family[] = [
     name: "gamma(scale)",
     fn: "gamma",
     positional: ["shape"],
-    params: (r) => ({ shape: shape(r), scale: scale(r) }),
+    params: (r) => ({ shape: wideShape(r), scale: wideScale(r) }),
     support: () => halfLine,
     moments: (pr) => [pr.shape! * pr.scale!, Math.sqrt(pr.shape!) * pr.scale!],
   },
@@ -220,7 +225,7 @@ export const distributionFamilies: Family[] = [
     name: "chisq",
     fn: "chisq",
     positional: ["df"],
-    params: (r) => ({ df: df(r) }),
+    params: (r) => ({ df: wideDf(r) }),
     support: () => halfLine,
     moments: (pr) => [pr.df!, Math.sqrt(2 * pr.df!)],
   },
@@ -390,7 +395,7 @@ export const distributionFamilies: Family[] = [
     name: "invgamma",
     fn: "invgamma",
     positional: ["alpha"],
-    params: (r) => ({ alpha: shape(r), beta: scale(r) }),
+    params: (r) => ({ alpha: wideShape(r), beta: wideScale(r) }),
     support: () => halfLine,
   },
   {

@@ -333,6 +333,14 @@ function directTailBoth(a: number, x: number): { lower: boolean; log: number; li
 }
 
 /**
+ * Below this a, Q(a, x) is taken as (a / A_SUB) Q(A_SUB, x): Q(a, x) / a varies with a by a relative O(a log x) only
+ * (below 1e-297 here). Q is then of the order of a, so subnormal for a below 1e-308 or so, and the direct forms had
+ * lost digits before the log was taken (pgamma(1, 4.8e-316, scale = 2.06, lower = FALSE, log = TRUE) was 5e-9
+ * off)
+ */
+const A_SUB = 1e-300;
+
+/**
  * Return [log, linear] of gammaInc from a single series/continued-fraction computation.
  * The values are bit-identical to gammaInc(.., true) and gammaInc(.., false) respectively
  * (used by the Newton iteration for quantiles, which needs both at the same x)
@@ -354,6 +362,10 @@ export function gammaIncBoth(a: number, x: number, lower: boolean): [number, num
     const lq = (a - 1) * Math.log(x) - x - lgamma(a) + Math.log1p((a - 1) / x);
     if (lower) return [Math.log1p(-Math.exp(lq)), -Math.expm1(lq)];
     return [lq, Math.exp(lq)];
+  }
+  if (!lower && a < A_SUB) {
+    const [l, v] = gammaIncBoth(A_SUB, x, false);
+    return [l + Math.log(a / A_SUB), v * (a / A_SUB)];
   }
   const absxmaA = Math.abs(x - a) / a;
   if (xsfAsymptotic(a, absxmaA)) {
@@ -392,6 +404,11 @@ export function gammaInc(a: number, x: number, lower: boolean, log: boolean): nu
     const lq = (a - 1) * Math.log(x) - x - lgamma(a) + Math.log1p((a - 1) / x);
     if (lower) return log ? Math.log1p(-Math.exp(lq)) : -Math.expm1(lq);
     return log ? lq : Math.exp(lq);
+  }
+
+  if (!lower && a < A_SUB) {
+    const v = gammaInc(A_SUB, x, false, log);
+    return log ? v + Math.log(a / A_SUB) : v * (a / A_SUB);
   }
 
   /* Asymptotic regime where a ~ x: both tails can be computed directly */

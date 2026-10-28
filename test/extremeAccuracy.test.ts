@@ -4,23 +4,34 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  dchisq,
   df,
+  dgamma,
   dgeom,
+  dinvgamma,
+  dlnorm,
   dnorm,
   dt,
+  dweibull,
   pbeta,
   pbinom,
+  pchisq,
   pf,
   pgamma,
   pgeom,
+  pinvgamma,
+  plnorm,
   pnbinom,
   pnorm,
   pt,
   qbeta,
   qbinom,
   qcauchy,
+  qchisq,
   qf,
+  qgamma,
   qgeom,
+  qlnorm,
   qnbinom,
   qnorm,
   qt,
@@ -356,5 +367,100 @@ describe("noncentral pt and dt at the ends of df", () => {
     // P is about df times terms in log(df), which change little from df to 1e10 df
     const diff = pt(1, n, { ncp, logP: true }) - Math.log(n) - (pt(1, n * 1e10, { ncp, logP: true }) - Math.log(n * 1e10));
     expect(Math.abs(diff)).toBeLessThan(0.05);
+  });
+});
+
+describe("gamma, chisq, invgamma, weibull and lnorm with a huge parameter", () => {
+  // NaN from a shape (df, alpha) or sdlog of about 1e301 on: double-double products of numbers above 1e300 overflowed
+  // in their splitting, and sums with an overflowed term were Inf - Inf
+  it("pgamma(1.4e-284, 4.2e301) (R 4.5.2: log -5.643831101470294e304; mpmath -5.6438311014702939e304)", () => {
+    const o = { rate: 0.0013796161711058558 };
+    expect(rel(pgamma(1.3913836039305888e-284, 4.169202345291529e301, { ...o, logP: true }), -5.643831101470294e304)).toBeLessThan(1e-15);
+    expect(pgamma(1.3913836039305888e-284, 4.169202345291529e301, o)).toBe(0);
+    expect(pgamma(1.3913836039305888e-284, 4.169202345291529e301, { ...o, lowerTail: false })).toBe(1);
+  });
+
+  it("dgamma at a shape of 9.2e305 (R 4.5.2)", () => {
+    const o = { rate: 0.44272583475376925 };
+    // log density about -5.9e308, beyond the doubles
+    expect(dgamma(1.327296847098002e27, 9.153352708527047e305, o)).toBe(0);
+    expect(dgamma(1.327296847098002e27, 9.153352708527047e305, { ...o, log: true })).toBe(-Infinity);
+    // (ill-conditioned: the rounding of x / scale alone, eps times 9e305, moves it by 1e-10 relative; this is R's value)
+    expect(rel(dgamma(2.0675e306, 9.153352708527047e305, { ...o, log: true }), -8.4153190000542292e292)).toBeLessThan(1e-15);
+  });
+
+  it("pchisq and dchisq at df up to 1e308 (R 4.5.2; mpmath for dchisq(1e308, 1e308): 2.8209479177387814e-155)", () => {
+    expect(pchisq(1e-300, 1e308)).toBe(0);
+    expect(pchisq(1e-300, 1e308, { logP: true })).toBe(-Infinity);
+    expect(pchisq(1e-300, 1e308, { lowerTail: false })).toBe(1);
+    expect(pchisq(1e-320, 1e306)).toBe(0);
+    expect(dchisq(0.21536010784896303, 5.286330057824879e306)).toBe(0);
+    expect(dchisq(0.21536010784896303, 5.286330057824879e306, { log: true })).toBe(-Infinity);
+    // (0: 2 pi x overflowed in the normalizing factor)
+    expect(rel(dchisq(1e308, 1e308), 2.8209479177387811e-155)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(dchisq(1e308, 1e308, { log: true }), -355.8636164445677)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(dchisq(5.286330057824879e306, 5.286330057824879e306, { log: true }), -354.39359347868862)).toBeLessThan(4 * Number.EPSILON);
+  });
+
+  it("pinvgamma and dinvgamma at alpha above 1e304 (R 4.5.2 / extraDistr)", () => {
+    expect(pinvgamma(5.059185917895126e280, 2.0242939794760302e304, { beta: 1 })).toBe(1);
+    const o = { beta: 1.7968496566871956e-118 };
+    expect(dinvgamma(1.1835200363587186e-257, 1.329253088279987e306, { ...o, log: true })).toBe(-Infinity);
+    expect(dinvgamma(4.9194550701942195e270, 1.329253088279987e306, o)).toBe(0);
+  });
+
+  it("dweibull at a shape of 6.6e306 (R 4.5.2; mpmath 700.88513087879334)", () => {
+    const o = { scale: 98.6446406954739 };
+    expect(dweibull(1.9162046506434228e-255, 6.590415042316493e306, o)).toBe(0);
+    expect(dweibull(1e-10, 6.590415042316493e306, { ...o, log: true })).toBe(-Infinity);
+    expect(rel(dweibull(98.6446406954739, 6.590415042316493e306, { ...o, log: true }), 700.88513087879335)).toBeLessThan(4 * Number.EPSILON);
+  });
+
+  it("plnorm, dlnorm and qlnorm at an sdlog above 1e300 (R 4.5.2; mpmath for dlnorm: -132.60835706727899)", () => {
+    expect(plnorm(2, { sdlog: 1e302 })).toBe(0.5);
+    const o = { meanlog: -2.1424711721428453, sdlog: 1.292825240812572e305 };
+    expect(plnorm(1.2035052020620526e-248, { ...o, logP: true })).toBe(-Math.LN2);
+    expect(rel(dlnorm(1.2035052020620526e-248, { ...o, log: true }), -132.608357067279)).toBeLessThan(4 * Number.EPSILON);
+    expect(qlnorm(5.06e-257, { ...o, lowerTail: false })).toBe(Infinity);
+    expect(qlnorm(0.3, { meanlog: -2.14, sdlog: 1.29e305 })).toBe(0);
+    // (NaN above sdlog = 1e300)
+    expect(qlnorm(1e-30, { meanlog: -2.196297604130958, sdlog: 9.311905655416405e307 })).toBe(0);
+    expect(qlnorm(1e-30, { sdlog: 9.311905655416405e307, lowerTail: false })).toBe(Infinity);
+    expect(qlnorm(0.5, { meanlog: -2.196297604130958, sdlog: 9.311905655416405e307 })).toBe(Math.exp(-2.196297604130958));
+  });
+});
+
+describe("gamma, chisq and invgamma with a subnormal parameter", () => {
+  it("qchisq and qgamma at a subnormal df or shape are 0 (NaN; R 4.5.2: 0)", () => {
+    expect(qchisq(0.5, 1e-310)).toBe(0);
+    expect(qchisq(3.656211020028785e-160, 1.107e-321)).toBe(0);
+    expect(qchisq(0.5, 5e-324)).toBe(0);
+    expect(qgamma(9.443445113059914e-208, 3.2393711057909095e-307, { rate: 1.8038736175233981e-106 })).toBe(0);
+    expect(qgamma(1.2343885600319219e-216, 4.7893788e-316, { scale: 2.0638560126343632 })).toBe(0);
+    expect(qgamma(Math.log(1.2343885600319219e-216), 4.7893788e-316, { scale: 2.0638560126343632, logP: true })).toBe(0);
+  });
+
+  it("pgamma(Inf) is 1 at a subnormal rate, where 1/rate overflows (NaN; R 4.5.2 gives NaN too)", () => {
+    const o = { rate: 2.7994597e-316 };
+    expect(qgamma(1.0799480959477422e-229, 892.4483530128322, { ...o, lowerTail: false })).toBe(Infinity);
+    expect(pgamma(Infinity, 892.4483530128322, o)).toBe(1);
+    expect(pgamma(Infinity, 892.4483530128322, { ...o, lowerTail: false, logP: true })).toBe(-Infinity);
+    // pgamma is 0 at every finite q there, so the quantile is Infinity (NaN for a quantile below the normal range before)
+    expect(qgamma(3.305367973484006e-160, 0.5, { rate: 4.1869e-319 })).toBe(Infinity);
+  });
+
+  it("the log of an upper tail of the order of a subnormal shape (mpmath: log(shape) + log(E1(x)), to O(shape))", () => {
+    // (5e-9 off, so that its differences did not match dgamma)
+    const o = { scale: 2.0638560126343632, lowerTail: false, logP: true };
+    expect(rel(pgamma(1, 4.7893788e-316, o), -726.59696706903367)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(pgamma(1.1183229256009648e-36, 4.7893788e-316, o), -721.63250875171321)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(pchisq(1, 4.3624e-319, { lowerTail: false, logP: true }), -734.32499188853328)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(pinvgamma(1, 4.35e-322, { logP: true }), -741.4796670659051)).toBeLessThan(4 * Number.EPSILON);
+    // The density is shape / x e^(-x/scale) to O(shape) (R 4.5.2: -643.26925549824171, less accurate)
+    const d = dgamma(1.1183229256009648e-36, 4.7893788e-316, { scale: 2.0638560126343632, log: true });
+    expect(rel(d, -643.26925549850858)).toBeLessThan(4 * Number.EPSILON);
+    // Where q / scale is below the normal range, log Q from log(shape) (mpmath, from -expm1(shape log q - lgamma1p(shape)));
+    // 3e-4 off before
+    expect(rel(pgamma(1e-310, 5e-324, { lowerTail: false, logP: true }), -737.87027615604015)).toBeLessThan(4 * Number.EPSILON);
   });
 });

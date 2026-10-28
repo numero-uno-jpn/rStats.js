@@ -42,6 +42,9 @@ export function dinvgamma1(x: number, alpha: number, beta: number, log: boolean)
     // beta / x subnormal or 0: in logs, log f = alpha log(beta / x) - lgamma(alpha) - log x (e^-z is 1), with
     // log(beta / x) from log beta - log x
     const lr = logRatioDD(beta, x);
+    // (where alpha log(beta / x) or lgamma(alpha) overflows the log is -Infinity, which the double-double sums made NaN:
+    // dinvgamma(4.9e270, 1.3e306, beta 1.8e-118))
+    if (!(Math.abs(lr[0] * alpha) < Infinity) || lgamma(alpha) === Infinity) return d0(log);
     const l = ddAdd(ddSub(alpha < 1e300 ? ddMulNum(lr, alpha) : [lr[0] * alpha, 0], ddLog([x, 0])), [-lgamma(alpha), 0]);
     return log ? l[0] + l[1] : l[0] < -746 ? 0 : ddExp(l)[0];
   }
