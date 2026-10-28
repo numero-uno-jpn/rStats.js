@@ -3,7 +3,7 @@
 // from closed forms, limiting distributions or mpmath (as noted); where R's behaviour is kept, from R 4.5.2.
 
 import { describe, expect, it } from "vitest";
-import { df, dgeom, pbeta, pbinom, pf, pgamma, pgeom, pnbinom, qbeta, qbinom, qf, qgeom, qnbinom } from "../src/index.js";
+import { df, dgeom, pbeta, pbinom, pf, pgamma, pgeom, pnbinom, qbeta, qbinom, qcauchy, qf, qgeom, qnbinom } from "../src/index.js";
 import { nextDown } from "./helpers/float.js";
 
 const rel = (a: number, b: number): number => (a === b ? 0 : Math.abs(a - b) / Math.abs(b));
@@ -183,5 +183,36 @@ describe("pnbinom, pbinom and pgeom: closed forms at the edges", () => {
   it("qgeom keeps R's closed form (R 4.5.2: 112065 and 147)", () => {
     expect(qgeom(0.8757104766401955, 0.0000011843097327690854, { lowerTail: false })).toBe(112065);
     expect(qgeom(0.9999999998246265, 0.14171325019560754)).toBe(147);
+  });
+});
+
+describe("qcauchy in the far tail", () => {
+  // For p < 1e-200 the quantile is scale / (π p) (tan(π p) = π p to relative (π p)²/3). scale / p overflowed before the
+  // division by π (Infinity for p in (1/(π MAX_VALUE), 1/MAX_VALUE), 0.15.2). The reference (1/π)/p takes two roundings and
+  // the result at most three, so they agree to a few ulps (4 ulps = 8.9e-16)
+  it.each([5.5e-309, 2.2e-309, 2.0e-309, 1.8e-309])("qcauchy(%s) in either tail is finite and ∓1/(π p)", (p) => {
+    const ref = 1 / Math.PI / p;
+    const upper = qcauchy(p, { lowerTail: false });
+    const lower = qcauchy(p);
+    expect(Number.isFinite(upper) && upper > 0).toBe(true);
+    expect(Number.isFinite(lower) && lower < 0).toBe(true);
+    expect(rel(upper, ref)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(lower, -ref)).toBeLessThan(4 * Number.EPSILON);
+  });
+
+  it("qcauchy(1.7e-309) is ∓Infinity (1/(π p) = 1.87e308 is beyond the largest double)", () => {
+    expect(qcauchy(1.7e-309, { lowerTail: false })).toBe(Infinity);
+    expect(qcauchy(1.7e-309)).toBe(-Infinity);
+  });
+
+  it("a subnormal scale still divides by p before π (scale / π would lose bits)", () => {
+    // Value before the fix: 5e-324 / 1e-300 / π
+    expect(qcauchy(1e-300, { scale: 5e-324, lowerTail: false })).toBe(1.5726597949504821e-24);
+  });
+
+  it("location and scale in the tiny tail: location ± scale / (π p)", () => {
+    const ref = 2 / Math.PI / 1e-250; // location 3 is far below one ulp of the result
+    expect(rel(qcauchy(1e-250, { location: 3, scale: 2, lowerTail: false }), ref)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(qcauchy(1e-250, { location: 3, scale: 2 }), -ref)).toBeLessThan(4 * Number.EPSILON);
   });
 });

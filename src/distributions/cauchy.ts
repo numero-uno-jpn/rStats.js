@@ -60,10 +60,16 @@ const TINY_LOG = -460;
 /**
  * scale |T| = scale / tan(π s) ≈ scale / (π s) when the probability on that side is tiny.
  * When π s is subnormal, 1 / (π s) overflows and loses accuracy, so change the order of division.
+ * Without logP, divide scale by s first (scale / π could underflow to a subnormal for a tiny scale) and then by π;
+ * if scale / s overflows although the quantile is still finite, divide by π first instead (then scale exceeds about
+ * 9e-16, so scale / π is a normal number).
  * With logP (s is a log), multiply by e^-s split into two halves (taking log and exp back would amplify the rounding of the exponent)
  */
 function tinyTail(scale: number, s: number, logP: boolean): number {
-  if (!logP) return scale / s / Math.PI;
+  if (!logP) {
+    const r = scale / s;
+    return Number.isFinite(r) ? r / Math.PI : scale / Math.PI / s;
+  }
   const h = Math.exp(-s / 2);
   return h * (scale / Math.PI) * h;
 }
