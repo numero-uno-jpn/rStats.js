@@ -390,6 +390,29 @@ describe("noncentral pt and dt at the ends of df", () => {
     const diff = pt(1, n, { ncp, logP: true }) - Math.log(n) - (pt(1, n * 1e10, { ncp, logP: true }) - Math.log(n * 1e10));
     expect(Math.abs(diff)).toBeLessThan(0.05);
   });
+
+  // References from mpmath (50 digits) of P[T <= t] = Φ(-δ) + ∫ φ(x) Q(a, a (x + δ)²/t²) dx (t > 0, a = df/2; by parts in
+  // S), with Q(a, y) = a E1(y) y^a / Γ(1 + a): Γ(a, y) is E1(y) up to O(a), below 1e-100 relative here; the quantiles by
+  // findroot on its log. At t = 1 it is a (-γ - log a - 2 log δ + 1/δ²) to the same digits
+  it("qt at a tiny df with a large ncp (qt(1e-300, 1e-300, ncp = 1e4) was 1, where pt is 3.4e-298; R 4.5.2: 18961.5)", () => {
+    // (pt is 6e-14 off at t = 1, within the 1e-13 of the noncentral t; the quantile follows it)
+    expect(rel(pt(1, 1e-300, { ncp: 1e4 }), 3.3623538933995988458e-298)).toBeLessThan(2e-13);
+    const q = 2.4637413705646496662e-146;
+    expect(rel(qt(1e-300, 1e-300, { ncp: 1e4 }), q)).toBeLessThan(2e-13);
+    expect(rel(qt(Math.log(1e-300), 1e-300, { ncp: 1e4, logP: true }), q)).toBeLessThan(2e-13);
+    expect(rel(qt(1e-300, 1e-300, { ncp: -1e4, lowerTail: false }), -q)).toBeLessThan(2e-13);
+    expect(rel(qt(1e-300, 1e-300, { ncp: 1e6 }), 2.4637413849113557351e-144)).toBeLessThan(2e-13);
+    expect(rel(qt(-720, 1e-310, { ncp: 1e4, logP: true }), 3.5623338969749184223e-152)).toBeLessThan(2e-13);
+    // (50 ms before: the start was 1, and the first step went to t = 0)
+    expect(rel(qt(1e-300, 1e-200, { ncp: 1e4 }), 4.7229787426913929383e-98)).toBeLessThan(1e-14);
+    expect(rel(qt(1e-300, 1e-100, { ncp: 1e4 }), 3.3196830107614347874e-48)).toBeLessThan(1e-14);
+  });
+
+  it("pt at a subnormal df with ncp = 1e5 and 1e6 where the peak of the integral is far out (log: +Infinity)", () => {
+    // (within the 1e-13 of the noncentral t: 3e-14 off in log P here, where the log of the integrand is -2.5e9)
+    expect(rel(pt(1e-155, 1e-310, { ncp: 1e5, logP: true }), -2500000735.7875051328)).toBeLessThan(1e-13);
+    expect(rel(pt(3.1622776601683793e-162, 5e-324, { ncp: 1e6, logP: true }), -248507555532.04026484)).toBeLessThan(1e-13);
+  });
 });
 
 describe("gamma, chisq, invgamma, weibull and lnorm with a huge parameter", () => {

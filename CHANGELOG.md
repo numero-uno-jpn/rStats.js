@@ -25,6 +25,13 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   digits (`pt(51.65, 2.6e-316, { ncp: 51.6 })` was 0, below its value at 49.77).
 - `qt` near p = 1/2 for df between 1e-15 and about 1e-9 (`qt(0.499999999, 1e-10, { lowerTail: false })` was 0.59,
   not 2425.8), and `qt(-1e100, 1e150, { logP: true })` (-1, not -1.4e50).
+- `qt` with `ncp` at a tiny df and a large ncp: `qt(1e-300, 1e-300, { ncp: 1e4 })` was 1, where `pt` is 3.4e-298 (now
+  2.463741370564455e-146; R gives 18961.5, with `pt(1, 1e-300, 1e4)` 0). The test for a t so near 0 that `pt` is
+  Φ(-δ) overflowed below df = 2e-300 with a large ncp, and at t = 0 it was NaN, so the solver's first step to 0 led
+  nowhere; the solver now starts from the gamma quantile where P[T <= t] is about Q(df/2, (df/2) δ²/t²) (at df = 1e-200
+  it took 50 ms). And `pt` with `ncp = 1e5` and `1e6` at a subnormal df was +Infinity on the log scale at some t
+  (`pt(1e-155, 1e-310, { ncp: 1e5, logP: true })`, now -2500000735.787591), where the peak of the integral was not
+  found.
 - The gamma family, `chisq`, `invgamma`, `weibull` and `lnorm` at a huge parameter: from a shape, df, alpha or sdlog of
   about 1e301 many calls were NaN (`pgamma(1.4e-284, 4.2e301, { rate: 0.0014, logP: true })`, now -5.643831101470294e304
   as R; `pchisq(1e-300, 1e308)`, `dchisq(0.22, 5.3e306)`, `dweibull(1.9e-255, 6.6e306, { scale: 98.6 })`,

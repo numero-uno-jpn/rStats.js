@@ -2735,7 +2735,7 @@ const grid = (from: number, step: number, n: number): number[] => Array.from({ l
 
 const NT: Entry[] = [
   {
-    where: "distributions/nt.ts:355",
+    where: "distributions/nt.ts:363",
     fns: "pt, qt with ncp",
     condition: "|t| S width/2 > 2 (S = e^(w*/2) at the peak, width = 1/sqrt(a e^w*)); this is |t| > 4 sqrt(a) unless the width is clipped at 10",
     methods: "formula A (E[Φ(tS - δ)]) | formula B (integration by parts)",
@@ -2769,7 +2769,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:66, :78, :93, :242, :247",
+    where: "distributions/nt.ts:67, :79, :94, :250, :255",
     fns: "pt, dt, qt with ncp",
     condition: "per node: |w| < 1e-6 / < 0.1 (e^w - 1 - w by series); z < 0 (Mills ratio); rounding estimate <= 4 peak (double-precision fast path)",
     methods: "double-double node | double node; direct | series forms",
@@ -2781,7 +2781,7 @@ const NT: Entry[] = [
     ],
   },
   {
-    where: "distributions/nt.ts:527, :547, :219",
+    where: "distributions/nt.ts:535, :555, :227",
     fns: "pt, dt, qt with ncp",
     condition: "peak log integrand L outside ±650 (sum on the log scale); exp(offset) with offset > -700; log Φ in double-double for z <= -5",
     methods: "linear sum | sum relative to the peak, on the log scale",
@@ -2792,7 +2792,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:563, :612, :636, :792",
+    where: "distributions/nt.ts:571, :622, :646, :802",
     fns: "pt, dt, qt with ncp",
     condition: "|t| > T0 = 1e10 (|δ| + 10) sqrt(a + 1) (minor SUSPECT: the bound on the correction assumes Z bounded, but its weight peaks near sqrt(2a))",
     methods: "integral | power law P(T0) (T0/|t|)^(2a), f(T0) (T0/|t|)^(2a+1)",
@@ -2817,7 +2817,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:618, :620",
+    where: "distributions/nt.ts:628, :630",
     fns: "pt, qt with ncp",
     condition: "the tail guessed to be the smaller (lower for t < δ) has a value above 1/2",
     methods: "the requested tail integrated | 1 - (the other tail)",
@@ -2825,7 +2825,7 @@ const NT: Entry[] = [
     cases: () => [...pPairs("pt(t, 10, ncp 1)", ptn(10, 1), flipPoint((t) => (pt(t, 10, { ncp: 1 }) as number) > 0.5, 0.5, 2)), ...pPairs("pt(t, 10, ncp 1)", ptn(10, 1), down(1))],
   },
   {
-    where: "distributions/nt.ts:343, :512",
+    where: "distributions/nt.ts:351, :520",
     fns: "pt, dt, qt with ncp",
     condition: "a > 1e5 and the neglected terms of Laplace's method, 1/L2² + q^6, below 1e-17 max(1, |log value|)",
     methods: "integral | Laplace's method",
@@ -2847,7 +2847,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:405, :419",
+    where: "distributions/nt.ts:413, :427",
     fns: "pt, dt, qt with ncp (Laplace's method)",
     condition: "u < -3 (u + m and 1 + ℓ2 from the continued fraction); u < -1e3 (ℓ3, ℓ4 from their series)",
     methods: "direct | continued fraction | asymptotic series",
@@ -2858,7 +2858,7 @@ const NT: Entry[] = [
     ],
   },
   {
-    where: "distributions/nt.ts:350, :365",
+    where: "distributions/nt.ts:358, :373",
     fns: "pt, qt with ncp",
     condition: "a < 1e-5",
     methods: "formula A or B by the steepness at the peak | formula B (for t < 0 as Φ(-δ) minus the part with Q(a, a S²))",
@@ -2869,25 +2869,29 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:608",
+    where: "distributions/nt.ts:618",
     fns: "pt, qt with ncp",
-    condition: "|t| sqrt((4a + 2δ² + 800)/a) (|δ| + 2) <= 1e-17",
+    condition: "(|t|/sqrt(a)) sqrt(4a + 2δ² + 800) (|δ| + 2) <= 1e-17",
     methods: "integral | Φ(-δ), Φ(δ)",
-    point: "t where the condition flips at df = 10, ncp = 1 and at df = 2e-20, ncp = 7 (both signs of t)",
+    point: "t where the condition flips at df = 10, ncp = 1, at df = 2e-20, ncp = 7 and at df = 1e-300, ncp = 1e4 (both signs of t)",
     cases: () => {
-      const cond = (a: number, d: number) => (t: number) => Math.abs(t) * Math.sqrt((4 * a + 2 * d * d + 800) / a) * (Math.abs(d) + 2) <= 1e-17;
+      const cond = (a: number, d: number) => (t: number) =>
+        (Math.abs(t) / Math.sqrt(a)) * Math.hypot(Math.SQRT2 * d, Math.sqrt(4 * a + 800)) * (Math.abs(d) + 2) <= 1e-17;
       const f1 = flipPoint(cond(5, 1), 1e-20, 1e-18);
       const f2 = flipPoint(cond(1e-20, 7), 1e-38, 1e-26);
+      const f3 = flipPoint(cond(5e-301, 1e4), 1e-180, 1e-170);
       return [
         ...pPairs("pt(t, 10, ncp 1)", ptn(10, 1), f1),
         ...pPairs("pt(-t, 10, ncp 1)", (t, tl) => pt(-t, 10, { ncp: 1, ...tl }), f1),
         ...pPairs("pt(t, 2e-20, ncp 7)", ptn(2e-20, 7), f2),
         ...pPairs("pt(-t, 2e-20, ncp 7)", (t, tl) => pt(-t, 2e-20, { ncp: 7, ...tl }), f2),
+        ...pPairs("pt(t, 1e-300, ncp 1e4)", ptn(1e-300, 1e4), f3),
+        ...pPairs("pt(-t, 1e-300, ncp 1e4)", (t, tl) => pt(-t, 1e-300, { ncp: 1e4, ...tl }), f3),
       ];
     },
   },
   {
-    where: "distributions/nt.ts:586",
+    where: "distributions/nt.ts:594",
     fns: "pt, qt with ncp",
     condition: "|t| > T0 with the far tail still above 1/2 (a tiny a: it falls only as |t|^(-2a))",
     methods: "integral | near tail at T0 plus what the far tail lost",
@@ -2895,7 +2899,7 @@ const NT: Entry[] = [
     cases: () => pPairs("pt(t, 2e-20, ncp 7)", ptn(2e-20, 7), around(1e10 * 17 * Math.sqrt(1 + 1e-20), 8)),
   },
   {
-    where: "distributions/nt.ts:114, :118, :127, :138, :246, :267, :284",
+    where: "distributions/nt.ts:115, :119, :128, :139, :254, :275, :292",
     fns: "pt, dt, qt with ncp",
     skip:
       "per node of the integrals: x = a e^w below 1e-300 in formula B (P(a, x) from log x, and log Q from log a where " +
@@ -2906,7 +2910,7 @@ const NT: Entry[] = [
     point: "-",
   },
   {
-    where: "distributions/nt.ts:801",
+    where: "distributions/nt.ts:811",
     fns: "qt with ncp",
     condition: "df < 1e-3 and P[T <= largest double] below the target (the near tail of a small a)",
     methods: "-",
@@ -2934,7 +2938,7 @@ const ratio300 = (t: number) => (t / 1e150) ** 2;
 
 const T_ENDS: Entry[] = [
   {
-    where: "distributions/t.ts:71, :178, :194; distributions/nt.ts:720, :743, :762",
+    where: "distributions/t.ts:71, :178, :194; distributions/nt.ts:730, :753, :772",
     fns: "pt, dt, qt (also with ncp)",
     condition: "df > 1e200",
     methods: "incomplete beta, Loader's density, the integral | the normal, or -(df/2) log1p(t²/df) in the far tail",
@@ -2955,7 +2959,7 @@ const T_ENDS: Entry[] = [
     },
   },
   {
-    where: "distributions/t.ts:72, :178, :197; distributions/nt.ts:721, :744, :765",
+    where: "distributions/t.ts:72, :178, :197; distributions/nt.ts:731, :754, :775",
     fns: "pt, dt, qt (also with ncp), df > 1e200",
     condition: "t²/df < 1e-17",
     methods: "-(df/2) log1p(t²/df) | the normal",
@@ -2973,7 +2977,7 @@ const T_ENDS: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:698",
+    where: "distributions/nt.ts:708",
     fns: "pt, dt, qt with ncp, df > 1e200 and t²/df >= 1e-17",
     condition: "|δ| <= 1e-20 min(|t|, sqrt(df))",
     methods: "the integral | the central far tail -(df/2) log1p(t²/df)",
@@ -2988,7 +2992,7 @@ const T_ENDS: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:668, :671",
+    where: "distributions/nt.ts:678, :681",
     fns: "pt, dt, qt (also with ncp), df > 1e200",
     condition: "t/sqrt(df) > 1e8; t²/df < 1e-5",
     methods: "(t²/2) log1p(y)/y (series below 1e-5) | df (log u + log1p(1/u²)/2)",
@@ -3001,7 +3005,7 @@ const T_ENDS: Entry[] = [
     ],
   },
   {
-    where: "distributions/nt.ts:681",
+    where: "distributions/nt.ts:691",
     fns: "qt (also with ncp), df > 1e200",
     condition: "-2 log p / df < 700",
     methods: "sqrt(df) exp(r/2) | sqrt(df expm1(r))",
@@ -3043,7 +3047,7 @@ const T_ENDS: Entry[] = [
     ],
   },
   {
-    where: "distributions/nt.ts:130, :134",
+    where: "distributions/nt.ts:131, :135",
     fns: "pt, dt, qt with ncp",
     condition: "a = df/2 < 1e-300",
     methods: "log Q(a, x) | log Q(1e-300, x) + log(a / 1e-300); lgamma1p(a)/a | -γ",
@@ -3054,7 +3058,7 @@ const T_ENDS: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:590",
+    where: "distributions/nt.ts:598",
     fns: "pt, qt with ncp",
     condition: "k = 2a log(|t|/T0) < 1e-10 (|t| > T0 with the far tail above 1/2)",
     methods: "log(-expm1(-k)) | log(2a) + log(log(|t|/T0)) - k/2",
@@ -3065,7 +3069,27 @@ const T_ENDS: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:706",
+    where: "distributions/nt.ts:171",
+    fns: "pt, dt, qt with ncp",
+    condition: "x = a e^w > 1e8 (a + 1) at the peak of formula B with Q (only the width of the peak changes)",
+    methods: "xf (x - a - xf) | -xf (1 + (a-1)/x)",
+    point:
+      "t where x at the peak, a (t δ/(t² + 2a))², is 1e8 (a + 1) at df = 1e-200 and 1e-310, ncp = 1e5 (log of the lower tail " +
+      "swept over 1e-9 relative steps of t: the peak found lies within 1e-9 of that)",
+    cases: () =>
+      [1e-200, 1e-310].map((df) => {
+        const a = df / 2;
+        const t0 = flipPoint((v) => a * ((v * 1e5) / (v * v + 2 * a)) ** 2 > 1e8 * (a + 1), Math.sqrt(df), 1e10 * Math.sqrt(df))[0];
+        return {
+          kind: "sweep" as const,
+          label: `log pt(t, ${df}, ncp 1e5)`,
+          f: (v: number) => pt(v, df, { ncp: 1e5, logP: true }),
+          xs: grid(-20, 1, 41).map((k) => t0 * (1 + k * 1e-9)),
+        };
+      }),
+  },
+  {
+    where: "distributions/nt.ts:716",
     fns: "pt, dt, qt with ncp",
     skip: "a single point, not a boundary: at df = 5e-324, whose half rounds to 0, df = 1e-323 is used",
     condition: "df = 5e-324",

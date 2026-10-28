@@ -55,6 +55,9 @@ reference, the case passes as "more accurate than R".
 | `pbeta(1 - 1e-10, 2, 3, ncp = 1, lower.tail = FALSE)` | 1.7e-10 | 7.52e-30 | same as truth |
 | `pt(-1, 5, ncp = 10)` | 0 | 1.3248e-26 | same as truth |
 | `pt(1, 5, ncp = 40)` | 1.009e-303 | 1.0887e-287 | same as truth |
+| `pt(1, 1e-300, ncp = 1e4)` | 0 | 3.3623538933995988e-298 (mpmath) | 3.362353893399793e-298 |
+| `qt(1e-300, 1e-300, ncp = 1e4)` | 18961.503816218225 | 2.4637413705646497e-146 (mpmath) | 2.463741370564455e-146 |
+| `qt(1e-300, 1e-100, ncp = 1e4)` | 1.8961503816217974e104 | 3.3196830107614348e-48 (mpmath) | 3.3196830107614347e-48 |
 | `dchisq(1e4, 5, ncp = 10, log = TRUE)` | -2975.1 | -4688.08 | same as truth |
 | `dchisq(1e-300, 0, ncp = 1)` | 0 | 0.1516 | same as truth |
 | `df(1e10, 5, Inf, ncp = 0, log = TRUE)` | -1.25e11 | -2.5e10 | same as truth |

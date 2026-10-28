@@ -36,6 +36,7 @@ import { erfcxNonNegative } from "../special/erf.js";
 import { gammaInc } from "../special/igam.js";
 import { dpoisRaw, stirlerr } from "../special/loader.js";
 import { lgamma1p } from "../special/gamma.js";
+import { qgammaStd } from "./gamma.js";
 import { dnorm, pnorm, qnorm } from "./normal.js";
 
 const LN_SQRT_2PI = 0.918938533204672741780329736406;
@@ -142,6 +143,8 @@ function gammaLog(a: number, w: number, lower: boolean): [number, number] {
 /** Below this a the upper incomplete gamma function is scaled from Q(A_SUB, x) (gammaLog) */
 const A_SUB = 1e-300;
 const EULER = 0.5772156649015329;
+/** Above this x/(a + 1) the second derivative of log Q(a, x) in w comes from the asymptotic series of Q (logIntegrand) */
+const Q_ASYMPTOTIC = 1e8;
 
 /** Log of the integrand (double precision, for locating the peak) and its first and second derivatives */
 function logIntegrand(pr: Problem, w: number): [number, number, number] {
@@ -161,7 +164,12 @@ function logIntegrand(pr: Problem, w: number): [number, number, number] {
     const sgn = upperG ? -1 : 1;
     const L = Math.log(t / 2) + w / 2 - 0.5 * z * z - LN_SQRT_2PI + lG;
     const d1 = 0.5 - (z * tS) / 2 + sgn * xf;
-    const d2 = -(tS * tS) / 4 - (z * tS) / 4 + sgn * xf * (a - x) - xf * xf;
+    // (for Q, the derivative of -xf is xf (x - a - xf), which cancels where x is large: xf = x/(1 + (a-1)/x + ...),
+    // from logs near -x, is off by about eps x relative, the difference by eps x² against its value of about -1. From
+    // the asymptotic series of Q, x - a - xf = -1 - (a-1)/x up to O(((a+1)/x)²); with the cancelled form the peak
+    // search of formula B for a subnormal a and δ = 1e5 stopped short in steps of 1/x, and the log of pt was +Infinity)
+    const d2G = upperG && x > Q_ASYMPTOTIC * (a + 1) ? -xf * (1 + (a - 1) / x) : sgn * xf * (a - x) - xf * xf;
+    const d2 = -(tS * tS) / 4 - (z * tS) / 4 + d2G;
     return [L, d1, d2];
   }
   let L = pr.logC - a * m;
@@ -599,7 +607,9 @@ function farTails(t: number, a: number, delta: number, lower: boolean): Value {
  * e^w overflows
  */
 function nearZero(t: number, a: number, delta: number): boolean {
-  return Math.abs(t) * Math.sqrt((4 * a + 2 * delta * delta + 800) / a) * (Math.abs(delta) + 2) <= 1e-17;
+  // (|t|/sqrt(a) first, and sqrt(y1) as a hypot: y1/a overflowed for a below about 1e-300 with a large δ, and at t = 0
+  // the test was NaN, false, so that the integral was taken at t = 0 and gave NaN to qt)
+  return (Math.abs(t) / Math.sqrt(a)) * Math.hypot(Math.SQRT2 * delta, Math.sqrt(4 * a + 800)) * (Math.abs(delta) + 2) <= 1e-17;
 }
 
 /** Linear value and log of P[T <= t] (lower) / P[T > t] (the log may be NaN unless needLog) */
@@ -803,6 +813,16 @@ export function qnt1(p: number, df0: number, ncp: number, lowerTail: boolean, lo
     // the largest double (that needs 2a log(1.8e308) < log(2c), a < 5e-4): the quantile is beyond it
     return s * Infinity;
   }
+  // Where the normal start falls on the other side of 0 (a small ν with a large δ, for one): on the side of δ,
+  // P[sT <= y] = P[s Z + |δ| <= y S] is about P[S >= |δ|/y] = Q(a, a δ²/y²) when Φ is a step on the scale of S, so y
+  // from the gamma quantile. (The start was 1, far above the quantile, from where the first step went to y = 0 and
+  // the solver bisected back in log y across the doubly exponential fall of P: 50 ms at df = 1e-200, ncp = 1e4)
+  const sideStart = (): number => {
+    if (s * ncp <= 0) return 1;
+    const g = qgammaStd(logTarget, df / 2, !lowerY, true);
+    const y0 = Math.abs(ncp) * Math.sqrt(df / 2 / g);
+    return y0 > 0 && Number.isFinite(y0) ? y0 : 1;
+  };
   const y = invertContinuous({
     logTarget,
     ...(linearTarget !== undefined && { linearTarget }),
@@ -810,7 +830,7 @@ export function qnt1(p: number, df0: number, ncp: number, lowerTail: boolean, lo
     cdf: (y, l) => cdfY(y, l, false),
     cdfLog: (y, l) => cdfY(y, l, true),
     pdfLog: (y) => dntRaw(s * y, df, ncp, true),
-    x0: Math.min(Math.abs(x0) > 0 && Number.isFinite(x0) && Math.sign(x0) === s ? Math.abs(x0) : 1, hi / 2),
+    x0: Math.min(Math.abs(x0) > 0 && Number.isFinite(x0) && Math.sign(x0) === s ? Math.abs(x0) : sideStart(), hi / 2),
     lo: 0,
     hi,
     positive: true,
