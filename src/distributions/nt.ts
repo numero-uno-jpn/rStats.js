@@ -36,7 +36,7 @@ import { erfcxNonNegative } from "../special/erf.js";
 import { gammaInc } from "../special/igam.js";
 import { dpoisRaw, stirlerr } from "../special/loader.js";
 import { lgamma1p } from "../special/gamma.js";
-import { pnorm, qnorm } from "./normal.js";
+import { dnorm, pnorm, qnorm } from "./normal.js";
 
 const LN_SQRT_2PI = 0.918938533204672741780329736406;
 const SQRT_2_PI = 0.7978845608028654; // sqrt(2/pi)
@@ -124,10 +124,24 @@ function shapeTimesExp(a: number, w: number): number {
  */
 function gammaLog(a: number, w: number, lower: boolean): [number, number] {
   const x = shapeTimesExp(a, w);
-  if (x > X_TINY) return [gammaInc(a, x, lower, true), dpoisRaw(a, x, true)];
-  const lp = a * (Math.log(a) + w) - lgamma1p(a);
-  return [lower ? lp : lp > -Math.LN2 ? Math.log(-Math.expm1(lp)) : Math.log1p(-Math.exp(lp)), lp];
+  if (x > X_TINY) {
+    // Q(a, x) = (a/A_SUB) Q(A_SUB, x) (1 + O(A_SUB log x)) for a < A_SUB: at a subnormal a the log of Q, itself near a,
+    // lost digits (7e-5 at a = 1e-320)
+    if (!lower && a < A_SUB) return [gammaInc(A_SUB, x, false, true) + Math.log(a / A_SUB), dpoisRaw(a, x, true)];
+    return [gammaInc(a, x, lower, true), dpoisRaw(a, x, true)];
+  }
+  // log P = a m, m = log x - lgamma1p(a)/a; lgamma1p(a)/a is -γ (1 + O(a)) where lgamma1p(a) would be subnormal
+  const m = Math.log(a) + w - (a < A_SUB ? -EULER : lgamma1p(a) / a);
+  const lp = a * m;
+  if (lower) return [lp, lp];
+  // log Q = log(-expm1(a m)): log(a) + log(-m) + log1p(lp/2) where a m is so small (it may be subnormal)
+  const lq = lp > -1e-10 ? Math.log(a) + Math.log(-m) + Math.log1p(lp / 2) : lp > -Math.LN2 ? Math.log(-Math.expm1(lp)) : Math.log1p(-Math.exp(lp));
+  return [lq, lp];
 }
+
+/** Below this a the upper incomplete gamma function is scaled from Q(A_SUB, x) (gammaLog) */
+const A_SUB = 1e-300;
+const EULER = 0.5772156649015329;
 
 /** Log of the integrand (double precision, for locating the peak) and its first and second derivatives */
 function logIntegrand(pr: Problem, w: number): [number, number, number] {
@@ -142,7 +156,8 @@ function logIntegrand(pr: Problem, w: number): [number, number, number] {
     const x = shapeTimesExp(a, w);
     const upperG = pr.kind === "cdfQ";
     const [lG, ld] = gammaLog(a, w, !upperG);
-    const xf = a * Math.exp(ld - lG); // x f(x) / G
+    // x f(x) / G (with log a inside the exp: for a subnormal a, f(x)/G alone can overflow)
+    const xf = Math.exp(Math.log(a) + ld - lG);
     const sgn = upperG ? -1 : 1;
     const L = Math.log(t / 2) + w / 2 - 0.5 * z * z - LN_SQRT_2PI + lG;
     const d1 = 0.5 - (z * tS) / 2 + sgn * xf;
@@ -564,13 +579,16 @@ function farTails(t: number, a: number, delta: number, lower: boolean): Value {
   const s = Math.sign(t);
   const farLower = s < 0;
   const f0 = pntBoth(s * T0, 2 * a, delta, farLower);
-  const k = 2 * a * (Math.log(Math.abs(t)) - Math.log(T0));
+  const r = Math.log(Math.abs(t)) - Math.log(T0);
+  const k = 2 * a * r;
   const far = { lin: f0.lin > 0 ? f0.lin * Math.exp(-k) : Math.exp(f0.log - k), log: f0.log - k };
   if (lower === farLower) return far;
   if (far.lin < 0.5) return { lin: 1 - far.lin, log: Math.log1p(-far.lin) };
   const n0 = pntBoth(s * T0, 2 * a, delta, !farLower);
   const gain = -Math.expm1(-k);
-  return { lin: n0.lin + f0.lin * gain, log: logAddExp(n0.log, f0.log + Math.log(gain)) };
+  // (log k from log 2a where k is so small that it may be subnormal: for a subnormal a it kept a few bits only)
+  const logGain = k < 1e-10 ? Math.log(2 * a) + Math.log(r) - k / 2 : Math.log(gain);
+  return { lin: n0.lin + f0.lin * gain, log: logAddExp(n0.log, f0.log + logGain) };
 }
 
 /**
@@ -625,21 +643,94 @@ function dntRaw(x: number, df: number, delta: number, log: boolean): number {
   return log ? v.log : v.lin;
 }
 
-export function dnt1(x: number, df: number, ncp: number, log: boolean): number {
-  if (Number.isNaN(x) || Number.isNaN(df) || Number.isNaN(ncp)) return NaN;
-  if (df <= 0) return NaN;
+/**
+ * Above this df the central and noncentral t are taken from their limits (hugeDf*; shared with t.ts). The t
+ * differs from the normal by terms of relative order t²/ν and 1/ν: where y = t²/ν < 1e-17 it is the normal to the
+ * double (the absolute error in the log, about t⁴/ν, is below 1e-180 wherever the linear value is above the
+ * underflow), and beyond, |t| > 3e91, the log of the far tail and of the density is -(ν/2) log1p(y) up to terms
+ * below 1e-179 of it. The general code fails from about 1.3e300 on (NaN where its intermediate terms overflow)
+ */
+export const HUGE_DF = 1e200;
+
+/** y = t²/ν (t² may overflow on its own) */
+export function hugeDfRatio(t: number, n: number): number {
+  const u = t / Math.sqrt(n);
+  return u * u;
+}
+
+/**
+ * Log of the far tail beyond |t| and of the density at t (relative error about eps) for n > HUGE_DF and
+ * hugeDfRatio(t, n) >= 1e-17: -(n/2) log1p(t²/n), formed without overflow
+ */
+export function hugeDfTailLog(t: number, n: number): number {
+  const u = Math.abs(t) / Math.sqrt(n);
+  // log1p(u²) = 2 log u + log1p(1/u²) where u² is huge (n log u may overflow: the log is then -Infinity, as it is)
+  if (u > 1e8) return -n * (Math.log(u) + 0.5 * Math.log1p(1 / (u * u)));
+  const y = u * u;
+  // (n/2) log1p(y) = (t²/2) log1p(y)/y, the ratio by its series for a small y (error y⁴/5)
+  const g = y < 1e-5 ? 1 - y * (1 / 2 - y * (1 / 3 - y / 4)) : Math.log1p(y) / y;
+  return -0.5 * Math.abs(t) * (Math.abs(t) * g);
+}
+
+/**
+ * |t| with hugeDfTailLog(t, n) = logTarget (logTarget < 0), Infinity beyond the largest double: t² = n expm1(-2 logTarget / n).
+ * (sqrt(n) is taken apart: through exp(log t) its log, up to 354, would multiply the rounding error)
+ */
+export function hugeDfTailQuantile(logTarget: number, n: number): number {
+  const r = 2 * (-logTarget / n);
+  return r < 700 ? Math.sqrt(n) * Math.sqrt(Math.expm1(r)) : Math.sqrt(n) * Math.exp(r / 2);
+}
+
+/**
+ * P[T <= t] (lower) / P[T > t] for n > HUGE_DF and hugeDfRatio(t, n) >= 1e-17 from hugeDfTailLog: the tail beyond |t|
+ * is its exp (0), the other is 1
+ */
+export function hugeDfTail(t: number, n: number, lowerTail: boolean, logP: boolean): number {
+  const l = hugeDfTailLog(t, n);
+  if (t < 0 === lowerTail) return logP ? l : Math.exp(l);
+  return logP ? Math.log1p(-Math.exp(l)) : 1 - Math.exp(l);
+}
+
+/**
+ * Whether the noncentral t at n > HUGE_DF and hugeDfRatio(t, n) >= 1e-17 has the central far tail and density
+ * (hugeDfTailLog): δ shifts their log by about δ min(|t|, sqrt(n)), below 1e-19 of it here
+ */
+function hugeDfCentral(t: number, n: number, delta: number): boolean {
+  return Math.abs(delta) <= 1e-20 * Math.min(Math.abs(t), Math.sqrt(n));
+}
+
+/**
+ * df with a nonzero half: the smallest subnormal, whose half rounds to 0, is taken as twice itself (a = 5e-324). Below
+ * about 1e-308 a = df/2 is rounded to the subnormal grid anyway; only the terms of order a beside Φ(∓δ) feel that
+ */
+function halvable(df: number): number {
+  return df === Number.MIN_VALUE ? 2 * df : df;
+}
+
+export function dnt1(x: number, df0: number, ncp: number, log: boolean): number {
+  if (Number.isNaN(x) || Number.isNaN(df0) || Number.isNaN(ncp)) return NaN;
+  if (df0 <= 0) return NaN;
+  const df = halvable(df0);
   if (!Number.isFinite(x) || !Number.isFinite(ncp)) return log ? -Infinity : 0;
   if (df === Infinity) {
     const z = x - ncp;
     const lv = -0.5 * z * z - LN_SQRT_2PI;
     return log ? lv : Math.exp(lv);
   }
+  if (df > HUGE_DF) {
+    if (hugeDfRatio(x, df) < 1e-17) return dnorm(x - ncp, { log });
+    if (hugeDfCentral(x, df, ncp)) {
+      const lv = hugeDfTailLog(x, df);
+      return log ? lv : Math.exp(lv);
+    }
+  }
   return dntRaw(x, df, ncp, log);
 }
 
-export function pnt1(q: number, df: number, ncp: number, lowerTail: boolean, logP: boolean): number {
-  if (Number.isNaN(q) || Number.isNaN(df) || Number.isNaN(ncp)) return NaN;
-  if (df <= 0) return NaN;
+export function pnt1(q: number, df0: number, ncp: number, lowerTail: boolean, logP: boolean): number {
+  if (Number.isNaN(q) || Number.isNaN(df0) || Number.isNaN(ncp)) return NaN;
+  if (df0 <= 0) return NaN;
+  const df = halvable(df0);
   const zero = lowerTail ? (logP ? -Infinity : 0) : logP ? 0 : 1;
   const one = lowerTail ? (logP ? 0 : 1) : logP ? -Infinity : 0;
   if (q === Infinity) return one;
@@ -649,18 +740,32 @@ export function pnt1(q: number, df: number, ncp: number, lowerTail: boolean, log
   if (ncp === -Infinity) return one;
   if (df === Infinity) return pnorm(q - ncp, { lowerTail, logP });
   if (q === 0) return pnorm(-ncp, { lowerTail, logP });
+  if (df > HUGE_DF) {
+    if (hugeDfRatio(q, df) < 1e-17) return pnorm(q - ncp, { lowerTail, logP });
+    // The far tail beyond |q| (R 4.5.2 gives 0.5 for pt(-4.05e269, 3.586e307, ncp = 1), far in the left tail of
+    // what is N(1, 1) to the double; the lower tail is 0 here)
+    if (hugeDfCentral(q, df, ncp)) return hugeDfTail(q, df, lowerTail, logP);
+  }
   return pntRaw(q, df, ncp, lowerTail, logP);
 }
 
-export function qnt1(p: number, df: number, ncp: number, lowerTail: boolean, logP: boolean): number {
-  if (Number.isNaN(p) || Number.isNaN(df) || Number.isNaN(ncp)) return NaN;
-  if (df <= 0) return NaN;
+export function qnt1(p: number, df0: number, ncp: number, lowerTail: boolean, logP: boolean): number {
+  if (Number.isNaN(p) || Number.isNaN(df0) || Number.isNaN(ncp)) return NaN;
+  if (df0 <= 0) return NaN;
+  const df = halvable(df0);
   const b = quantileBoundaries(p, -Infinity, Infinity, lowerTail, logP);
   if (b !== undefined) return b;
   if (df === Infinity) return ncp + qnorm(p, { lowerTail, logP });
   // ncp = ±Inf concentrates the distribution at ±∞ and the quantile is undefined, so NaN (R's answer mixes NaN and ±Inf depending on p)
   if (!Number.isFinite(ncp)) return NaN;
   const { lower, logTarget, linearTarget } = smallerTail(p, lowerTail, logP);
+  if (df > HUGE_DF) {
+    // The quantiles of the limits of pnt1
+    const x = ncp + qnorm(p, { lowerTail, logP });
+    if (hugeDfRatio(x, df) < 1e-17) return x;
+    const y = hugeDfTailQuantile(logTarget, df);
+    if (hugeDfCentral(y, df, ncp)) return lower ? -y : y;
+  }
   // Starting value: normal approximation (mean δ; t spreads a little in the direction of δ)
   const z = qnorm(logTarget, { lowerTail: lower, logP: true });
   const x0 = ncp + z * Math.sqrt(1 + (ncp * ncp) / (2 * df));

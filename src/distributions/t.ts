@@ -15,9 +15,9 @@ import { lbeta } from "../special/beta.js";
 import { ddAdd, ddDiv, ddDivNum, ddLog, ddMul, ddMulNum, ddNeg, ddSub, twoProd, twoSum, type DD } from "../special/dd.js";
 import { betaIncBothDD, betaIncDD } from "../special/incbet.js";
 import { bd0, bd0dd, stirlerr } from "../special/loader.js";
-import { pnorm, qnorm } from "./normal.js";
+import { dnorm, pnorm, qnorm } from "./normal.js";
 import type { NoncentralOption } from "../internal/noncentral.js";
-import { dnt1, pnt1, qnt1 } from "./nt.js";
+import { HUGE_DF, dnt1, hugeDfRatio, hugeDfTail, hugeDfTailLog, hugeDfTailQuantile, pnt1, qnt1 } from "./nt.js";
 
 const LN_SQRT_2PI = 0.918938533204672741780329736406;
 /** -log(sqrt(2 pi)) in double-double (computed with Rmpfr) */
@@ -68,7 +68,32 @@ export function dtDensity1(x: number, df: number, log: boolean): number {
     const lv = -0.5 * x * x - LN_SQRT_2PI;
     return log ? lv : Math.exp(lv);
   }
+  if (df > HUGE_DF) {
+    if (hugeDfRatio(x, df) < 1e-17) return dnorm(x, { log });
+    const lv = hugeDfTailLog(x, df);
+    return log ? lv : Math.exp(lv);
+  }
+  if (df < TINY_DF_DENSITY) return dtTinyDf(x, df, log);
   return dtCore(x, df, log);
+}
+
+/**
+ * Below this n the density is sqrt(n) / (2 sqrt(1 + x^2/n)) (dtTinyDf). dtCore loses digits there (1e-14 of the
+ * value at n = 1e-80), and for a subnormal n, h = n/2 is rounded (0 at the smallest subnormal: NaN)
+ */
+const TINY_DF_DENSITY = 1e-20;
+
+/**
+ * Density for n < TINY_DF_DENSITY: with Gamma(n/2) = (2/n)(1 + O(n)), f(x) = sqrt(n)/2 (1 + x^2/n)^(-1/2) times
+ * (1 + O(n)) and (1 + x^2/n)^(-n/2), whose log, n log(|x|/sqrt(n)) at most, is below 1e-17
+ */
+function dtTinyDf(x: number, n: number, log: boolean): number {
+  const sn = Math.sqrt(n);
+  const ax = Math.abs(x);
+  // u = |x|/sqrt(n) may overflow; beyond 1e150, sqrt(1 + u^2) = u
+  const u = ax / sn;
+  if (log) return Math.log(0.5 * sn) - (u < 1e150 ? 0.5 * Math.log1p(u * u) : Math.log(ax) - Math.log(sn));
+  return u < 1e150 ? (0.5 * sn) / Math.sqrt(1 + u * u) : 0.5 * sn * (sn / ax);
 }
 
 /** Below this n the upper tail is 1/2 - tinyDfDelta (the next terms are under 1e-23 absolute) */
@@ -107,6 +132,9 @@ function betaArgs(t: number, n: number): [DD, DD] {
 
 /** Log or value of P[T > t] (t > 0): half of s = P[|T| > t] = I_{n/(n+t^2)}(n/2, 1/2) */
 function upperTailPositive(t: number, n: number, log: boolean): number {
+  // (qt's solver can step to t = Infinity, which gave NaN and left it at a wrong point: qt(0.499999999, 1e-10, upper)
+  // was 0.59, not 2425.8)
+  if (t === Infinity) return log ? -Infinity : 0;
   if (n < TINY_DF) {
     const d = tinyDfDelta(t, n);
     return log ? Math.log1p(-2 * d) - Math.LN2 : 0.5 - d;
@@ -128,7 +156,7 @@ function upperTailPositive(t: number, n: number, log: boolean): number {
 
 /** [log, linear] of upperTailPositive (each value identical to upperTailPositive) */
 function upperTailPositiveBoth(t: number, n: number): [number, number] {
-  if (n < TINY_DF) return [upperTailPositive(t, n, true), upperTailPositive(t, n, false)];
+  if (n < TINY_DF || t === Infinity) return [upperTailPositive(t, n, true), upperTailPositive(t, n, false)];
   const t2 = t * t;
   const x = n / (n + t2);
   if (!(x > 1e-250)) {
@@ -147,6 +175,7 @@ export function pt1(q: number, df: number, lowerTail: boolean, logP: boolean): n
   if (!Number.isFinite(q)) return q < 0 ? dt0(lowerTail, logP) : dt1(lowerTail, logP);
   if (!Number.isFinite(df)) return pnorm(q, { lowerTail, logP });
   if (q === 0) return logP ? -Math.LN2 : 0.5;
+  if (df > HUGE_DF) return hugeDfRatio(q, df) < 1e-17 ? pnorm(q, { lowerTail, logP }) : hugeDfTail(q, df, lowerTail, logP);
   // Lower tail for q < 0 = upper tail at |q|. If the requested side is the smaller tail compute it directly, otherwise 1 - (smaller tail)
   const small = q < 0 === lowerTail;
   const a = Math.abs(q);
@@ -162,7 +191,23 @@ export function qt1(p: number, df: number, lowerTail: boolean, logP: boolean): n
   if (df <= 0) return NaN;
   if (!Number.isFinite(df)) return qnorm(p, { lowerTail, logP });
   const { lower, logTarget, linearTarget } = smallerTail(p, lowerTail, logP);
+  if (df > HUGE_DF) {
+    // The quantiles of the limits of pt1
+    const z = qnorm(p, { lowerTail, logP });
+    if (hugeDfRatio(z, df) < 1e-17) return z;
+    const y = hugeDfTailQuantile(logTarget, df);
+    return lower ? -y : y;
+  }
   if (logTarget === -Math.LN2 && linearTarget === 0.5) return 0;
+  if (df < TINY_DF) {
+    // Invert P[T > t] = 1/2 - (n/2) asinh(t / sqrt(n)) (tinyDfDelta) for t: Infinity unless p is within about
+    // 400 n of 1/2. (Through the general code below lbeta(n/2, 1/2) is Infinity at a subnormal n, and the solver stopped
+    // on the flat tail: qt(1e-5, 1e-310, upper) was 4.26, although P[T > t] is 1/2 to the double there)
+    const d = linearTarget !== undefined ? 0.5 - linearTarget : -0.5 * Math.expm1(logTarget + Math.LN2);
+    const A = (2 * d) / df;
+    const y = A < 700 ? Math.sqrt(df) * Math.sinh(A) : Math.exp(A - Math.LN2 + 0.5 * Math.log(df));
+    return lower ? -y : y;
+  }
   // Smaller tail: if lower, the answer is negative. Solve the upper tail in |t|
   // Starting value: in the deep tail P[T > t] ≈ n^(n/2) t^(-n) / (n B(n/2, 1/2))
   const n = df;
@@ -188,6 +233,8 @@ export function qt1(p: number, df: number, lowerTail: boolean, logP: boolean): n
       const g3 = (z * (((3 * z2 + 19) * z2 + 17) * z2 - 15)) / 384;
       const g4 = (z * ((((79 * z2 + 776) * z2 + 1482) * z2 - 1920) * z2 - 945)) / 92160;
       x0 = z + (g1 + (g2 + (g3 + g4 / n) / n) / n) / n;
+      // (the terms overflow for a huge z: qt(-1e100, 1e150, log = TRUE) was -1, solved from x0 = 1)
+      if (!Number.isFinite(x0)) x0 = z;
     }
   }
   if (!(x0 > 0) || !Number.isFinite(x0)) x0 = 1;

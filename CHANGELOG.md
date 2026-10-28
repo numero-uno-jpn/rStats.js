@@ -14,6 +14,17 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - `qcauchy` returned ±Infinity for p between about 1.8e-309 and 5.6e-309 although the quantile is finite
   (`qcauchy(2.2e-309, { lowerTail: false })` is now 1.4468631190172319e308): scale / p overflowed before the division
   by π.
+- `pt`, `dt` and `qt` at a huge df: from about 1.3e300 `dt` and `pt` were NaN (`pt(10, 1e305)`,
+  `dt(0, 1e305)`), and `qt` was off (`qt(1.31e-295, 7.19e301, { lowerTail: false })` was 36.72783758590317; now
+  36.727901113286414, as R) or took a second. Above df = 1e200 the normal is used where t²/df < 1e-17, and the far tail
+  -(df/2) log1p(t²/df) beyond; likewise with `ncp`, where `pt(-4.05e269, 3.586e307, { ncp: 1 })` and `dt` were NaN
+  (R gives 0.5 for that `pt`; it is 0).
+- `qt` and `dt` at a subnormal df: `qt(1e-5, 1e-310, { lowerTail: false })` was 4.26 although `pt` is 1/2 at every
+  finite t there (now Infinity, as at df = 1e-300 and in R), `dt(0, 5e-324)` was NaN; with `ncp`, `pt` and `dt` at
+  df = 5e-324 were NaN, and below df = 1e-308 tails of the order of df were 0, Infinity on the log scale or lost
+  digits (`pt(51.65, 2.6e-316, { ncp: 51.6 })` was 0, below its value at 49.77).
+- `qt` near p = 1/2 for df between 1e-15 and about 1e-9 (`qt(0.499999999, 1e-10, { lowerTail: false })` was 0.59,
+  not 2425.8), and `qt(-1e100, 1e150, { logP: true })` (-1, not -1.4e50).
 
 ## 0.15.2 - 2026-10-28
 

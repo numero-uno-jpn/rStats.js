@@ -236,7 +236,7 @@ export const distributionFamilies: Family[] = [
     name: "t",
     fn: "t",
     positional: ["df"],
-    params: (r) => ({ df: positive(r, [1e-2, 1e6], [1e-300, 1e300], [0.5, 1, 2, 3, Infinity]) }),
+    params: (r) => ({ df: positive(r, [1e-2, 1e6], [5e-324, 1e308], [0.5, 1, 2, 3, Infinity]) }),
     support: () => real,
     moments: () => [0, 1],
   },
@@ -246,7 +246,7 @@ export const distributionFamilies: Family[] = [
     positional: ["df"],
     accuracy: 1e-13,
     params: (r) => ({
-      df: positive(r, [1e-1, 1e4], [1e-300, 1e300], [1, 2, 3, Infinity]),
+      df: positive(r, [1e-1, 1e4], [5e-324, 1e308], [1, 2, 3, Infinity]),
       ncp: signed(r, [1e-2, 50], [1e-300, 1e4]),
     }),
     support: () => real,

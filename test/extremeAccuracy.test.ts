@@ -3,7 +3,28 @@
 // from closed forms, limiting distributions or mpmath (as noted); where R's behaviour is kept, from R 4.5.2.
 
 import { describe, expect, it } from "vitest";
-import { df, dgeom, pbeta, pbinom, pf, pgamma, pgeom, pnbinom, qbeta, qbinom, qcauchy, qf, qgeom, qnbinom } from "../src/index.js";
+import {
+  df,
+  dgeom,
+  dnorm,
+  dt,
+  pbeta,
+  pbinom,
+  pf,
+  pgamma,
+  pgeom,
+  pnbinom,
+  pnorm,
+  pt,
+  qbeta,
+  qbinom,
+  qcauchy,
+  qf,
+  qgeom,
+  qnbinom,
+  qnorm,
+  qt,
+} from "../src/index.js";
 import { nextDown } from "./helpers/float.js";
 
 const rel = (a: number, b: number): number => (a === b ? 0 : Math.abs(a - b) / Math.abs(b));
@@ -214,5 +235,126 @@ describe("qcauchy in the far tail", () => {
     const ref = 2 / Math.PI / 1e-250; // location 3 is far below one ulp of the result
     expect(rel(qcauchy(1e-250, { location: 3, scale: 2, lowerTail: false }), ref)).toBeLessThan(4 * Number.EPSILON);
     expect(rel(qcauchy(1e-250, { location: 3, scale: 2 }), -ref)).toBeLessThan(4 * Number.EPSILON);
+  });
+});
+
+describe("pt, dt and qt with a huge df", () => {
+  // Above df = 1e200 the t is the normal to the double where t^2/df < 1e-17, and beyond that its log tail and log density
+  // are -(df/2) log1p(t^2/df) (src/distributions/nt.ts, HUGE_DF). NaN from df = 1.34e300 (dt) and 3e300 (pt) before
+  const flags = [
+    { lowerTail: true, logP: false },
+    { lowerTail: false, logP: false },
+    { lowerTail: true, logP: true },
+    { lowerTail: false, logP: true },
+  ];
+
+  it("R 4.5.2: pt(10, 1e305) = 1, dt(0, 1e305) = 0.3989422804014327, pt(-6.78e140, 7.19e301) = 0", () => {
+    expect(pt(10, 1e305)).toBe(1);
+    expect(dt(0, 1e305)).toBe(0.3989422804014327);
+    expect(pt(-6.78e140, 7.19e301)).toBe(0);
+  });
+
+  it.each([-1e10, -40, -3, -1e-300, 0.5, 10, 38])("pt(%d, df) and dt are pnorm and dnorm at df = 1e305 and 7.19e301", (x) => {
+    for (const n of [1e305, 7.19e301, 1e308]) {
+      for (const o of flags) expect(pt(x, n, o)).toBe(pnorm(x, o));
+      expect(dt(x, n)).toBe(dnorm(x));
+      expect(dt(x, n, { log: true })).toBe(dnorm(x, { log: true }));
+    }
+    // (dt(1.48e-132, 7.19e301, log) was NaN)
+    expect(dt(1.48e-132, 7.19e301, { log: true })).toBe(dnorm(1.48e-132, { log: true }));
+  });
+
+  it("the far tail -(df/2) log1p(t^2/df), continuous with the general code at df = 1e200", () => {
+    // t^2/df = 1e-8 at df = 1e300: -(t^2/2)(1 - y/2 + y^2/3)
+    const y = 1e-8;
+    expect(rel(pt(1e146, 1e300, { lowerTail: false, logP: true }), -0.5e292 * (1 - y / 2 + (y * y) / 3))).toBeLessThan(1e-14);
+    // (t^2/df = 1e-16: -(t^2/2)(1 - 5e-17))
+    expect(rel(pt(-1e146, 1e308, { logP: true }), -5e291)).toBeLessThan(4 * Number.EPSILON);
+    expect(pt(1e146, 1e308, { lowerTail: false })).toBe(0);
+    expect(pt(1e146, 1e308)).toBe(1);
+    expect(rel(dt(1e146, 1e308, { log: true }), -5e291)).toBeLessThan(4 * Number.EPSILON);
+    // Beyond the doubles: the log is -Infinity (the true value is -2.3e308)
+    expect(pt(-1e155, 1e308, { logP: true })).toBe(-Infinity);
+    const above = 1.0000000000000002e200;
+    for (const x of [0.3, 3, 30, 1e10, 1e91, 1e95, 1e100, 1e150]) {
+      expect(rel(pt(-x, above, { logP: true }), pt(-x, 1e200, { logP: true }))).toBeLessThan(1e-14);
+      expect(rel(dt(x, above, { log: true }), dt(x, 1e200, { log: true }))).toBeLessThan(1e-14);
+    }
+  });
+
+  it("qt is qnorm (R 4.5.2: qt(1.31e-295, 7.19e301, lower.tail = FALSE) = 36.727901113286414; 36.72783758590317 before)", () => {
+    expect(qt(1.31e-295, 7.19e301, { lowerTail: false })).toBe(36.727901113286414);
+    expect(pt(36.727901113286414, 7.19e301, { lowerTail: false })).toBe(pnorm(36.727901113286414, { lowerTail: false }));
+    // (took about 1 s)
+    const start = performance.now();
+    expect(qt(1.68e-35, 7.19e301)).toBe(qnorm(1.68e-35));
+    expect(performance.now() - start).toBeLessThan(50);
+    // Far out the tail is not the normal: t = sqrt(df expm1(-2 log p / df))
+    const q = -qt(-1e300, 1e308, { logP: true });
+    expect(rel(q, Math.sqrt(1e308 * Math.expm1(2e-8)))).toBeLessThan(1e-15);
+    expect(rel(pt(q, 1e308, { lowerTail: false, logP: true }), -1e300)).toBeLessThan(1e-15);
+  });
+
+  it("qt(-1e100, 1e150, log) (the Cornish-Fisher start overflowed: -1)", () => {
+    expect(rel(qt(-1e100, 1e150, { logP: true }), qnorm(-1e100, { logP: true }))).toBeLessThan(1e-15);
+  });
+});
+
+describe("pt, dt and qt with a tiny df", () => {
+  it("qt at a subnormal df is ±Infinity, as at df = 1e-300 (R 4.5.2: Inf for qt(1.0877e-5, 8.832105e-318, lower.tail = FALSE))", () => {
+    // P[T > t] is 1/2 - (df/2) asinh(t / sqrt(df)): 1/2 to the double at every finite t. 4.26 and 0.2533 before
+    expect(qt(1e-5, 1e-310, { lowerTail: false })).toBe(Infinity);
+    expect(qt(0.4, 1e-310, { lowerTail: false })).toBe(Infinity);
+    expect(qt(1.0877e-5, 8.832105e-318, { lowerTail: false })).toBe(Infinity);
+    expect(qt(1.0877e-5, 8.832105e-318)).toBe(-Infinity);
+    expect(qt(-700, 5e-324, { logP: true })).toBe(-Infinity);
+    expect(pt(-3, 1e-310)).toBe(0.5);
+    expect(pt(-3, 5e-324, { lowerTail: false, logP: true })).toBe(-Math.LN2);
+  });
+
+  it("qt inverts 1/2 - (df/2) asinh(t / sqrt(df)) near 1/2", () => {
+    const p = 0.4999999999999999;
+    expect(rel(qt(p, 1e-16, { lowerTail: false }), 1e-8 * Math.sinh(2 * (0.5 - p) * 1e16))).toBeLessThan(1e-14);
+    // (the solver stepped to t = Infinity, where the tail was NaN, and stopped at 0.59)
+    const q = qt(0.499999999, 1e-10, { lowerTail: false });
+    expect(rel(0.5 - pt(q, 1e-10, { lowerTail: false }), 0.5 - 0.499999999)).toBeLessThan(1e-6);
+  });
+
+  it("dt at a tiny df is sqrt(df) / (2 sqrt(1 + x^2/df)) (NaN at df = 5e-324; 1e-14 off at df = 1e-80)", () => {
+    expect(dt(0, 5e-324)).toBe(Math.sqrt(5e-324) / 2);
+    expect(rel(dt(3, 1e-80), 1e-40 / 2 / Math.sqrt(9e80))).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(dt(3, 1e-310, { log: true }), Math.log(1e-310 / 6))).toBeLessThan(1e-15);
+    expect(rel(dt(1e300, 5e-324, { log: true }), Math.log(5e-324) - Math.log(2e300))).toBeLessThan(1e-15);
+  });
+});
+
+describe("noncentral pt and dt at the ends of df", () => {
+  it("pt(-4.05e269, 3.586e307, ncp = 1) is 0 (NaN; R 4.5.2 gives 0.5, but T is N(1, 1) to the double there)", () => {
+    expect(pt(-4.05e269, 3.586e307, { ncp: 1 })).toBe(0);
+    expect(pt(-4.05e269, 3.586e307, { ncp: 1, logP: true })).toBe(-Infinity);
+    expect(pt(-4.05e269, 3.586e307, { ncp: 1, lowerTail: false })).toBe(1);
+    expect(dt(-4.05e269, 3.586e307, { ncp: 1 })).toBe(0);
+    expect(dt(-4.05e269, 3.586e307, { ncp: 1, log: true })).toBe(-Infinity);
+    // The far tail of the central t where ncp is negligible
+    expect(pt(1e146, 1e308, { ncp: 1, lowerTail: false, logP: true })).toBe(pt(1e146, 1e308, { lowerTail: false, logP: true }));
+  });
+
+  it.each([1e201, 1e305, 1e308, Infinity])("at df = %d, ordinary x give pnorm(x - ncp) and dnorm(x - ncp)", (n) => {
+    expect(pt(1, n, { ncp: 1 })).toBe(0.5);
+    expect(pt(3, n, { ncp: 1 })).toBe(pnorm(2));
+    expect(pt(-30, n, { ncp: 1, logP: true })).toBe(pnorm(-31, { logP: true }));
+    expect(rel(dt(3, n, { ncp: 1 }), dnorm(2))).toBeLessThan(2 * Number.EPSILON);
+    expect(qt(1e-300, n, { ncp: 1 })).toBe(1 + qnorm(1e-300));
+  });
+
+  it("at the smallest subnormal df (NaN: df/2 rounds to 0) and below 1e-308 (the far tails lost their digits)", () => {
+    expect(pt(1e-300, 5e-324, { ncp: 1 })).toBe(pnorm(-1));
+    expect(Number.isFinite(dt(0, 5e-324, { ncp: 1, log: true }))).toBe(true);
+    // A tail of order df (Φ(-δ) underflows): 0 and Infinity on the log scale before
+    const [n, ncp] = [2.64786573e-316, 51.602876797164654];
+    expect(pt(51.6475084516575, n, { ncp })).toBeGreaterThan(pt(49.76970539722677, n, { ncp }));
+    // P is about df times terms in log(df), which change little from df to 1e10 df
+    const diff = pt(1, n, { ncp, logP: true }) - Math.log(n) - (pt(1, n * 1e10, { ncp, logP: true }) - Math.log(n * 1e10));
+    expect(Math.abs(diff)).toBeLessThan(0.05);
   });
 });

@@ -64,6 +64,18 @@ const REGRESSION: Record<string, { params: Params; x: number[]; sizes?: Omit<Siz
     { params: { df: 100100312298908620, ncp: 2.475805900718761 }, x: [-1.0440480647904281e26, -30.268742563306827, 2.3074923907795758e54] },
     { params: { df: 1e120, ncp: 1 }, x: [-3.5346299778784046e115] },
     { params: { df: 1.9146506048870366e-245, ncp: -1.8387038943733192 }, x: [-59193519471.86663] },
+    // NaN at a df near the largest double; at a subnormal df NaN (5e-324), and tails of order df that were 0 or lost
+    // their digits (0.15.2)
+    { params: { df: 3.586e307, ncp: 1 }, x: [-4.05e269, 1e146] },
+    { params: { df: 5e-324, ncp: 1 }, x: [1e-300] },
+    { params: { df: 2.64786573e-316, ncp: 51.602876797164654 }, x: [49.76970539722677, 51.6475084516575] },
+    { params: { df: 8.99e-321, ncp: 44.354884551454724 }, x: [59754709620367.96] },
+  ],
+  // At a df above 1.34e300 dt and pt were NaN and qt off; at a subnormal df qt was finite and dt NaN (0.15.2)
+  t: [
+    { params: { df: 7.19e301 }, x: [-6.78e140, 1.48e-132, 36.727901113286414, 1e146] },
+    { params: { df: 8.832105e-318 }, x: [4.246073934552899] },
+    { params: { df: 5e-324 }, x: [1e-300, 3] },
   ],
   nf: [
     { params: { df1: 456.14174201689434, df2: 771.5785513038477, ncp: 26.634566720706474 }, x: [2.473952189555483] },

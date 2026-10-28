@@ -1630,7 +1630,7 @@ const BETA_T_F: Entry[] = [
     cases: () => dPairs("dt(x, 10)", (x, log) => dt(x, 10, { log }), flipPoint((x) => x * x > 2, 1.3, 1.5)),
   },
   {
-    where: "distributions/t.ts:78, :97",
+    where: "distributions/t.ts:144, :162",
     fns: "pt, qt",
     condition: "n/(n + t²) <= 1e-250",
     methods: "incomplete beta | first series term in logs",
@@ -1638,7 +1638,7 @@ const BETA_T_F: Entry[] = [
     cases: () => pPairs("pt(t, 2)", (v, t) => pt(v, 2, t), flipPoint((v) => 2 / (2 + v * v) > 1e-250, 1e125, 2e125)),
   },
   {
-    where: "distributions/t.ts:178",
+    where: "distributions/t.ts:223",
     fns: "qt",
     condition: "log p < -30 and t0^2 > e n (start value; the power law t0 only in its region t^2 >> n)",
     methods: "Cornish-Fisher | power law t0 = (n^(n/2) / (n B(n/2, 1/2) p))^(1/n)",
@@ -2623,7 +2623,7 @@ const grid = (from: number, step: number, n: number): number[] => Array.from({ l
 
 const NT: Entry[] = [
   {
-    where: "distributions/nt.ts:340",
+    where: "distributions/nt.ts:355",
     fns: "pt, qt with ncp",
     condition: "|t| S width/2 > 2 (S = e^(w*/2) at the peak, width = 1/sqrt(a e^w*)); this is |t| > 4 sqrt(a) unless the width is clipped at 10",
     methods: "formula A (E[Φ(tS - δ)]) | formula B (integration by parts)",
@@ -2657,7 +2657,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:66, :78, :93, :227, :232",
+    where: "distributions/nt.ts:66, :78, :93, :242, :247",
     fns: "pt, dt, qt with ncp",
     condition: "per node: |w| < 1e-6 / < 0.1 (e^w - 1 - w by series); z < 0 (Mills ratio); rounding estimate <= 4 peak (double-precision fast path)",
     methods: "double-double node | double node; direct | series forms",
@@ -2669,7 +2669,7 @@ const NT: Entry[] = [
     ],
   },
   {
-    where: "distributions/nt.ts:512, :532, :204",
+    where: "distributions/nt.ts:527, :547, :219",
     fns: "pt, dt, qt with ncp",
     condition: "peak log integrand L outside ±650 (sum on the log scale); exp(offset) with offset > -700; log Φ in double-double for z <= -5",
     methods: "linear sum | sum relative to the peak, on the log scale",
@@ -2680,7 +2680,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:548, :594, :618, :687",
+    where: "distributions/nt.ts:563, :612, :636, :792",
     fns: "pt, dt, qt with ncp",
     condition: "|t| > T0 = 1e10 (|δ| + 10) sqrt(a + 1) (minor SUSPECT: the bound on the correction assumes Z bounded, but its weight peaks near sqrt(2a))",
     methods: "integral | power law P(T0) (T0/|t|)^(2a), f(T0) (T0/|t|)^(2a+1)",
@@ -2705,7 +2705,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:600, :602",
+    where: "distributions/nt.ts:618, :620",
     fns: "pt, qt with ncp",
     condition: "the tail guessed to be the smaller (lower for t < δ) has a value above 1/2",
     methods: "the requested tail integrated | 1 - (the other tail)",
@@ -2713,7 +2713,7 @@ const NT: Entry[] = [
     cases: () => [...pPairs("pt(t, 10, ncp 1)", ptn(10, 1), flipPoint((t) => (pt(t, 10, { ncp: 1 }) as number) > 0.5, 0.5, 2)), ...pPairs("pt(t, 10, ncp 1)", ptn(10, 1), down(1))],
   },
   {
-    where: "distributions/nt.ts:328, :497",
+    where: "distributions/nt.ts:343, :512",
     fns: "pt, dt, qt with ncp",
     condition: "a > 1e5 and the neglected terms of Laplace's method, 1/L2² + q^6, below 1e-17 max(1, |log value|)",
     methods: "integral | Laplace's method",
@@ -2735,7 +2735,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:390, :404",
+    where: "distributions/nt.ts:405, :419",
     fns: "pt, dt, qt with ncp (Laplace's method)",
     condition: "u < -3 (u + m and 1 + ℓ2 from the continued fraction); u < -1e3 (ℓ3, ℓ4 from their series)",
     methods: "direct | continued fraction | asymptotic series",
@@ -2746,7 +2746,7 @@ const NT: Entry[] = [
     ],
   },
   {
-    where: "distributions/nt.ts:335, :350",
+    where: "distributions/nt.ts:350, :365",
     fns: "pt, qt with ncp",
     condition: "a < 1e-5",
     methods: "formula A or B by the steepness at the peak | formula B (for t < 0 as Φ(-δ) minus the part with Q(a, a S²))",
@@ -2757,7 +2757,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:590",
+    where: "distributions/nt.ts:608",
     fns: "pt, qt with ncp",
     condition: "|t| sqrt((4a + 2δ² + 800)/a) (|δ| + 2) <= 1e-17",
     methods: "integral | Φ(-δ), Φ(δ)",
@@ -2775,7 +2775,7 @@ const NT: Entry[] = [
     },
   },
   {
-    where: "distributions/nt.ts:570",
+    where: "distributions/nt.ts:586",
     fns: "pt, qt with ncp",
     condition: "|t| > T0 with the far tail still above 1/2 (a tiny a: it falls only as |t|^(-2a))",
     methods: "integral | near tail at T0 plus what the far tail lost",
@@ -2783,17 +2783,18 @@ const NT: Entry[] = [
     cases: () => pPairs("pt(t, 2e-20, ncp 7)", ptn(2e-20, 7), around(1e10 * 17 * Math.sqrt(1 + 1e-20), 8)),
   },
   {
-    where: "distributions/nt.ts:114, :118, :127, :231, :252, :269",
+    where: "distributions/nt.ts:114, :118, :127, :138, :246, :267, :284",
     fns: "pt, dt, qt with ncp",
     skip:
-      "per node of the integrals: x = a e^w below 1e-300 in formula B (P(a, x) from log x), a e^w formed from logs " +
-      "beyond e^700, the density's terms in one exp where C_a e^-E underflows; the same values in other forms",
-    condition: "a e^w < 1e-300; w >= 700; log of C_a e^-E φ below -700",
+      "per node of the integrals: x = a e^w below 1e-300 in formula B (P(a, x) from log x, and log Q from log a where " +
+      "a log x is above -1e-10), a e^w formed from logs beyond e^700, the density's terms in one exp where C_a e^-E " +
+      "underflows; the same values in other forms",
+    condition: "a e^w < 1e-300; a log x > -1e-10; w >= 700; log of C_a e^-E φ below -700",
     methods: "-",
     point: "-",
   },
   {
-    where: "distributions/nt.ts:696",
+    where: "distributions/nt.ts:801",
     fns: "qt with ncp",
     condition: "df < 1e-3 and P[T <= largest double] below the target (the near tail of a small a)",
     methods: "-",
@@ -2810,6 +2811,162 @@ const NT: Entry[] = [
         },
       },
     ],
+  },
+];
+
+// ---- distributions/t.ts, nt.ts: the ends of df ----
+
+/** log pt(t, 1e300, upper) and dt on the log scale (the linear values are 0 or 1 on both sides) */
+const hugeTails: Tail[] = [{ lowerTail: false, logP: true }];
+const ratio300 = (t: number) => (t / 1e150) ** 2;
+
+const T_ENDS: Entry[] = [
+  {
+    where: "distributions/t.ts:71, :178, :194; distributions/nt.ts:720, :743, :762",
+    fns: "pt, dt, qt (also with ncp)",
+    condition: "df > 1e200",
+    methods: "incomplete beta, Loader's density, the integral | the normal, or -(df/2) log1p(t²/df) in the far tail",
+    point: "df = 1e200 at t = 0.3, -40 and 1e95 (the far tail), ncp 0 and 1; qt at p = 1e-10 and log p = -1e185",
+    cases: () => {
+      const ab = up(1e200);
+      const out: Case[] = [];
+      for (const v of [0.3, -40, 1e95]) {
+        out.push(...pPairs(`pt(${v}, df)`, (n, t) => pt(v, n, t), ab));
+        out.push(...pPairs(`pt(${v}, df, ncp 1)`, (n, t) => pt(v, n, { ncp: 1, ...t }), ab));
+        out.push(...dPairs(`dt(${v}, df)`, (n, log) => dt(v, n, { log }), ab));
+        out.push(...dPairs(`dt(${v}, df, ncp 1)`, (n, log) => dt(v, n, { ncp: 1, log }), ab));
+      }
+      out.push(pair("qt(1e-10, df)", (n) => qt(1e-10, n), ab));
+      out.push(pair("qt(-1e185, df, upper log)", (n) => qt(-1e185, n, { lowerTail: false, logP: true }), ab));
+      out.push(pair("qt(1e-10, df, ncp 1)", (n) => qt(1e-10, n, { ncp: 1 }), ab));
+      return out;
+    },
+  },
+  {
+    where: "distributions/t.ts:72, :178, :197; distributions/nt.ts:721, :744, :765",
+    fns: "pt, dt, qt (also with ncp), df > 1e200",
+    condition: "t²/df < 1e-17",
+    methods: "-(df/2) log1p(t²/df) | the normal",
+    point: "t = 3.2e141 at df = 1e300, ncp 0 and 1; qt at the log p where qnorm crosses it",
+    cases: () => {
+      const ab = flipPoint((v) => ratio300(v) < 1e-17, 3e141, 3.3e141);
+      const lp = flipPoint((l) => ratio300(qnorm(l, { logP: true })) < 1e-17, -5.1e282, -4.9e282);
+      return [
+        ...pPairs("pt(t, 1e300)", (v, t) => pt(v, 1e300, t), ab, { tails: hugeTails }),
+        ...pPairs("pt(t, 1e300, ncp 1)", (v, t) => pt(v, 1e300, { ncp: 1, ...t }), ab, { tails: hugeTails }),
+        pair("dt(t, 1e300, log)", (v) => dt(v, 1e300, { log: true }), ab),
+        pair("dt(t, 1e300, ncp 1, log)", (v) => dt(v, 1e300, { ncp: 1, log: true }), ab),
+        pair("qt(lp, 1e300, log)", (l) => qt(l, 1e300, { logP: true }), lp),
+      ];
+    },
+  },
+  {
+    where: "distributions/nt.ts:698",
+    fns: "pt, dt, qt with ncp, df > 1e200 and t²/df >= 1e-17",
+    condition: "|δ| <= 1e-20 min(|t|, sqrt(df))",
+    methods: "the integral | the central far tail -(df/2) log1p(t²/df)",
+    point: "δ = 1e122 at t = ±1e142, df = 1e300",
+    cases: () => {
+      const ab = flipPoint((d) => d <= 1e-20 * 1e142, 0.9e122, 1.1e122);
+      return [
+        ...pPairs("pt(1e142, 1e300, ncp δ)", (d, t) => pt(1e142, 1e300, { ncp: d, ...t }), ab, { tails: hugeTails }),
+        ...pPairs("pt(-1e142, 1e300, ncp δ)", (d, t) => pt(-1e142, 1e300, { ncp: d, ...t }), ab, { tails: TAILS.slice(2, 3) }),
+        pair("dt(1e142, 1e300, ncp δ, log)", (d) => dt(1e142, 1e300, { ncp: d, log: true }), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/nt.ts:668, :671",
+    fns: "pt, dt, qt (also with ncp), df > 1e200",
+    condition: "t/sqrt(df) > 1e8; t²/df < 1e-5",
+    methods: "(t²/2) log1p(y)/y (series below 1e-5) | df (log u + log1p(1/u²)/2)",
+    point: "t = 1e158 and t = 3.2e147 at df = 1e300",
+    cases: () => [
+      ...[flipPoint((v) => v / 1e150 > 1e8, 9e157, 1.1e158), flipPoint((v) => ratio300(v) < 1e-5, 3e147, 3.3e147)].flatMap((ab) => [
+        ...pPairs("pt(t, 1e300)", (v, t) => pt(v, 1e300, t), ab, { tails: hugeTails }),
+        pair("dt(t, 1e300, log)", (v) => dt(v, 1e300, { log: true }), ab),
+      ]),
+    ],
+  },
+  {
+    where: "distributions/nt.ts:681",
+    fns: "qt (also with ncp), df > 1e200",
+    condition: "-2 log p / df < 700",
+    methods: "sqrt(df) exp(r/2) | sqrt(df expm1(r))",
+    point: "log p = -3.5e302 at df = 1e300",
+    cases: () => [pair("qt(lp, 1e300, upper log)", (l) => qt(l, 1e300, { lowerTail: false, logP: true }), flipPoint((l) => 2 * (-l / 1e300) < 700, -3.6e302, -3.4e302))],
+  },
+  {
+    where: "distributions/t.ts:76",
+    fns: "dt",
+    condition: "df < 1e-20",
+    methods: "Loader's form | sqrt(df) / (2 sqrt(1 + x²/df))",
+    point: "df = 1e-20 at x = 0, 3 and 1e100",
+    cases: () => [0, 3, 1e100].flatMap((v) => dPairs(`dt(${v}, df)`, (n, log) => dt(v, n, { log }), down(1e-20))),
+  },
+  {
+    where: "distributions/t.ts:202",
+    fns: "qt",
+    condition: "df < 1e-15",
+    methods: "Newton | 1/2 - (df/2) asinh(t / sqrt(df)) inverted",
+    point:
+      "validity on both sides of df = 1e-15: the round trip of p within 1e-13 of 1/2 (where 1/2 - p is resolved to " +
+      "its rounding only, so the quantiles on the two sides differ by much more than 1e-13), and Infinity for p = 0.4",
+    cases: () => [
+      {
+        kind: "check",
+        label: "qt(p, df, upper) at df = 1e-15 and the double below",
+        run: () => {
+          for (const n of [nextDown(1e-15), 1e-15]) {
+            if (qt(0.4, n, { lowerTail: false }) !== Infinity) return `qt(0.4, ${n}, upper) is not Infinity`;
+            for (const p of [0.49999999999999, 0.4999999999999]) {
+              const q = qt(p, n, { lowerTail: false });
+              const back = pt(q, n, { lowerTail: false });
+              if (!(Math.abs(back - p) <= 4e-16)) return `pt(qt(${p}, ${n}, upper)) = ${back}`;
+            }
+          }
+          return undefined;
+        },
+      },
+    ],
+  },
+  {
+    where: "distributions/nt.ts:130, :134",
+    fns: "pt, dt, qt with ncp",
+    condition: "a = df/2 < 1e-300",
+    methods: "log Q(a, x) | log Q(1e-300, x) + log(a / 1e-300); lgamma1p(a)/a | -γ",
+    point: "df = 2e-300 at t = 1 and 52, ncp = 40 (Φ(-40) is far below the term of order a)",
+    cases: () => {
+      const ab = flipPoint((d) => d / 2 < 1e-300, 1.9e-300, 2.1e-300);
+      return [1, 52].flatMap((v) => pPairs(`pt(${v}, df, ncp 40)`, (d, t) => pt(v, d, { ncp: 40, ...t }), ab, { tails: TAILS.slice(2) }));
+    },
+  },
+  {
+    where: "distributions/nt.ts:590",
+    fns: "pt, qt with ncp",
+    condition: "k = 2a log(|t|/T0) < 1e-10 (|t| > T0 with the far tail above 1/2)",
+    methods: "log(-expm1(-k)) | log(2a) + log(log(|t|/T0)) - k/2",
+    point: "t = T0 e^0.005 at df = 2e-8, ncp = 7",
+    cases: () => {
+      const T0 = 1e10 * 17 * Math.sqrt(1 + 1e-8);
+      return pPairs("pt(t, 2e-8, ncp 7)", ptn(2e-8, 7), flipPoint((v) => 2e-8 * (Math.log(v) - Math.log(T0)) < 1e-10, T0 * 1.004, T0 * 1.006));
+    },
+  },
+  {
+    where: "distributions/nt.ts:706",
+    fns: "pt, dt, qt with ncp",
+    skip: "a single point, not a boundary: at df = 5e-324, whose half rounds to 0, df = 1e-323 is used",
+    condition: "df = 5e-324",
+    methods: "-",
+    point: "-",
+  },
+  {
+    where: "distributions/t.ts:137, :159, :237",
+    fns: "qt",
+    skip: "the limit at t = Infinity for steps of the solver, and the normal point as the start where the Cornish-Fisher terms overflow: the same quantile",
+    condition: "t = Infinity; Cornish-Fisher start not finite",
+    methods: "-",
+    point: "-",
   },
 ];
 
@@ -3336,7 +3493,7 @@ const SUBNORMAL: Entry[] = [
     },
   },
   {
-    where: "distributions/t.ts:175",
+    where: "distributions/t.ts:220",
     fns: "qt",
     condition: "log t0 > 709.79, or > 709.77 with the tail at the largest double above the target",
     methods: "Newton | ±Infinity",
@@ -3344,7 +3501,7 @@ const SUBNORMAL: Entry[] = [
     skip: "the quantile passes the largest double there: Infinity on one side by definition",
   },
   {
-    where: "distributions/t.ts:110, :131",
+    where: "distributions/t.ts:138, :159",
     fns: "pt, qt",
     condition: "n < 1e-15",
     methods: "incomplete beta | 1/2 - (n/2) asinh(t / sqrt(n))",
@@ -3352,7 +3509,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => [1e-3, 3, 1e100].flatMap((v) => pPairs(`pt(${v}, n)`, (n, t) => pt(v, n, t), down(1e-15))),
   },
   {
-    where: "distributions/t.ts:87",
+    where: "distributions/t.ts:112",
     fns: "pt",
     condition: "t / sqrt(n) < 1e300 (n < 1e-15)",
     methods: "log(2 r) | asinh(r)",
@@ -3360,7 +3517,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => pPairs("pt(t, 1e-20)", (v, t) => pt(v, 1e-20, t), flipPoint((v) => v / 1e-10 < 1e300, 9e289, 1.1e290)),
   },
   {
-    where: "distributions/t.ts:98",
+    where: "distributions/t.ts:123",
     fns: "pt, qt",
     condition: "t > 1e150 || n > 1e290",
     methods: "x and 1 - x as double-double quotients | the same after scaling t^2 and n by a power of 2",
@@ -3718,6 +3875,7 @@ const ENTRIES: Entry[] = [
   ...NCHISQ,
   ...NBETA,
   ...NT,
+  ...T_ENDS,
   ...TUKEY,
   ...DISCRETE,
   ...INTERNAL,
