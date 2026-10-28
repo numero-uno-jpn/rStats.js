@@ -22,6 +22,7 @@ import {
   HUGE_SHAPE,
   HUGE_SHAPE_MAX_SMALL,
   lgammaRatioHuge,
+  mulBig,
   prefactorParts,
   SMALL_SHAPE,
   smallShapeG,
@@ -846,16 +847,22 @@ export function betaIncTinyX(a: number, b: number, x: number, lx: DD, lower: boo
   let r = 1;
   let lr = 0;
   let e: DD;
+  // a log x by mulBig (the splitting of a above 1e300 in ddMulNum overflowed: pbeta(1.5e-323, 1.4e304, 0.5) was NaN).
+  // Where it overflows to -Infinity, the terms of the order of a log a below are Infinity too, and the sum was NaN
+  // (pbeta(4.2e-310, 4.1e307, 1113))
+  const ax = mulBig(lx, a);
+  if (ax[0] === -Infinity) return lower ? [-Infinity, 0] : [0, 1];
   if (Math.min(a, b) < SMALL_SHAPE) {
     const q = Math.min(a, b) / Math.max(a, b);
     [r, lr] = a <= b ? [1 / (1 + q), -Math.log1p(q)] : [q / (1 + q), Math.log(q) - Math.log1p(q)];
-    e = ddAdd(ddAdd(ddMulNum(lx, a), smallShapeG(a, b)), [c, 0]);
+    e = ddAdd(ddAdd(ax, smallShapeG(a, b)), [c, 0]);
   } else {
     const lg = b >= HUGE_SHAPE && a <= HUGE_SHAPE_MAX_SMALL ? lgammaRatioHuge(a, b) : lgammaDiffDD(a, b);
-    e = ddAdd(ddAdd(ddMulNum(lx, a), lg), [c - lgamma1p(a), 0]);
+    e = ddAdd(ddAdd(ax, lg), [c - lgamma1p(a), 0]);
   }
   const lt = lr + e[0] + e[1];
-  const v = r * (Math.exp(e[0]) * (1 + e[1]));
+  // (0 below the subnormal range, where the low part of e can be far beyond 1 and made it -0)
+  const v = e[0] < -746 ? 0 : r * (Math.exp(e[0]) * (1 + e[1]));
   if (lower) return [lt, v];
   // The other tail: -expm1(lt), and its log from v where v is small (lt rounded to a double is off by up to ε |lt|,
   // which would become the relative error of the result for |lt| > 700) and from -expm1(lt) where v is close to 1

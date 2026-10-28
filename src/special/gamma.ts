@@ -163,6 +163,9 @@ export function lgammaSign(x: number): { value: number; sign: number } {
     if (z === 0) return { value: Infinity, sign: 1 };
     return { value: LOGPI - Math.log(z) - w, sign };
   }
+  // log|Γ(x)| = -log|x| - γ x + O(x²), -log|x| to the double; the product below overflowed (1 / x) and lgamma was Infinity
+  // at a subnormal x (lgamma(5e-324) is 744.44007192138122, as R gives)
+  if (x !== 0 && Math.abs(x) < 1e-300) return { value: -Math.log(Math.abs(x)), sign: x > 0 ? 1 : -1 };
   if (x < 13) {
     let z = 1;
     let p = 0;

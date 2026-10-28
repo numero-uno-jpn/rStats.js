@@ -26,7 +26,10 @@ export function probPair(prob: number): { pd: DD; qd: DD } {
  */
 function qPow(n: number, pd: DD, qd: DD, log: boolean): number {
   if (n < 1e290) return dbinomRawDD(0, n, pd, qd, log);
-  const l = ddMul([n / 2 ** 64, 0], ddMulNum(ddLog(qd), 2 ** 64));
+  // log q = -p - p²/2 - ... for a tiny p (ddLog of 1 - p lost a subnormal p in its low part, and pgeom(1e290, 5e-324)
+  // was 0, 4.9e-34 expected)
+  const lq: DD = qd[0] === 1 ? [-pd[0], -(pd[0] * pd[0]) / 2] : ddLog(qd);
+  const l = ddMul([n / 2 ** 64, 0], ddMulNum(lq, 2 ** 64));
   if (!(l[0] > -Infinity)) return log ? -Infinity : 0;
   return log ? l[0] + l[1] : Math.exp(l[0]) * (1 + l[1]);
 }

@@ -56,6 +56,8 @@ export function qunif1(p: number, min: number, max: number, lowerTail: boolean, 
   // (1 - p would lose them); otherwise min + (1 - p)(max - min) with 1 - p exact (or -expm1(log p)), as R gives
   const half = halfIfOverflow(min, max) !== 1;
   const at = (q: number): number => (half ? (1 - q) * min + q * max : min + q * (max - min));
+  // (exp(p) is rounded on the subnormal grid for a log p below -708, which the range can magnify back into the normal
+  // range; kept so, as R does, and as punif takes the log of the subnormal ratio (test/helpers/distributionKnown.ts))
   const pp = logP ? Math.exp(p) : p;
   if (lowerTail) return at(pp);
   if (pp < 0.5) return half ? pp * min + (1 - pp) * max : max - pp * (max - min);

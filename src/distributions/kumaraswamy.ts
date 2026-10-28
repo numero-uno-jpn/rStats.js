@@ -7,12 +7,13 @@
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { ddExp, log1mExp } from "../internal/ddexp.js";
-import { ddAdd, ddLog, ddMul, ddSub, twoProd, twoSum, type DD } from "../special/dd.js";
+import { ddAdd, ddDivNum, ddLog, ddMul, ddSub, twoProd, twoSum, type DD } from "../special/dd.js";
 
 const valid = (a: number, b: number): boolean => a > 0 && b > 0 && Number.isFinite(b);
 // a = Inf is taken as the limit (the distribution concentrates at 1), as extraDistr does
 
 const MIN_NORMAL = 2.2250738585072014e-308;
+const LOG_MIN_NORMAL = -1022 * Math.LN2;
 
 /**
  * c log(1 - x^a) for 0 < x < 1 where x^a is subnormal: -c x^a (to double precision) from logs, since x^a itself has
@@ -139,7 +140,17 @@ export function qkumar1(p: number, a: number, b: number, lowerTail: boolean, log
   // w^(1 / a) with w = 1 - exp(lu / b). Where lu / b is subnormal or underflows, w = -lu / b, in logs; for w > 1/2
   // log w = log1p(-exp(lu / b)) keeps the digits of 1 - w
   const t = lu / b;
-  if (!(t <= -MIN_NORMAL)) return Math.exp((Math.log(-lu) - Math.log(b)) / a);
+  // (log(-lu) is p itself where a lower tail given as its log is below the normal range: -lu = exp(p) was rounded on
+  // the subnormal grid (qkumar(-744.24, 1.13, 0.124, { logP: true }) was 17% off). The exponent, of the order of
+  // hundreds, in double-double: its rounding is the relative error of the quantile (3.7e-14 there)
+  if (!(t <= -MIN_NORMAL)) {
+    const llu = logP && lowerTail && p < LOG_MIN_NORMAL ? p : Math.log(-lu);
+    const n = ddSub([llu, 0], ddLog([b, 0]));
+    const q = n[0] / a;
+    if (!(a < 1e300 && Math.abs(q) < 1e300)) return Math.exp(q);
+    const e = ddExp(ddDivNum(n, a));
+    return e[0] + e[1];
+  }
   if (t < -Math.LN2) return Math.exp(Math.log1p(-Math.exp(t)) / a);
   const w = -Math.expm1(t);
   const r = 1 / a;

@@ -49,11 +49,14 @@ function fromLog(e: DD, log: boolean): number {
  * DBL_MIN and the callers work from its log)
  */
 function fRatios(x: number, m: number, n: number): [DD, DD] | undefined {
-  let mx = twoProd(m, x);
+  // A factor above 1e290 is scaled down by 2^600 and the other up (exactly), as its splitting in twoProd overflows: at a
+  // subnormal df1 and x from 1e301, m x is moderate but was taken for huge, and n/m overflowed in the callers' q ≈ n/(m x)
+  // (pf(1e301, 1.4e-312, 6.72, { lowerTail: false }) was 1, 1.77e-311 expected; qf there did not return)
+  const S = 2 ** 600;
+  let mx = x > 1e290 ? twoProd(m * S, x / S) : m > 1e290 ? twoProd(m / S, x * S) : twoProd(m, x);
   if (!(Number.isFinite(mx[0]) && Number.isFinite(mx[1]) && Math.abs(mx[0]) < 1e290)) return undefined;
   let nn = n;
   if (x > 0 && mx[0] < 1e-290 && n < 1e127) {
-    const S = 2 ** 600;
     mx = m < x ? twoProd(m * S, x) : twoProd(m, x * S);
     nn = n * S;
   }
@@ -133,8 +136,9 @@ function pfTiny(x: number, m: number, n: number, lower: boolean, wantLog: boolea
   return undefined;
 }
 
-/** P[F <= x] (lower) / P[F > x] (!lower). x finite and positive, m, n finite */
+/** P[F <= x] (lower) / P[F > x] (!lower). x positive, m, n finite */
 function pfRaw(x: number, m: number, n: number, lower: boolean, log: boolean): number {
+  if (x === Infinity) return lower === log ? 0 : lower ? 1 : -Infinity;
   const t = pfTiny(x, m, n, lower, log);
   if (t !== undefined) return log ? t[0] : t[1];
   // Form m x/(n + m x) and n/(n + m x) in double-double (rounding would be amplified m/2 and n/2 times)
@@ -155,6 +159,9 @@ function fQuantileGuess(m: number, n: number, lower: boolean, logTarget: number)
 
 /** [log, linear] of pfRaw (each value identical to pfRaw) */
 function pfRawBoth(x: number, m: number, n: number, lower: boolean): [number, number] {
+  // (x = Infinity, which the quantile search reaches from a far step, was NaN, and the search spent its iterations on it
+  // at 25 ms each: qf(-735.2, 1.25e-305, 3.3e5, { lowerTail: false, logP: true }) returned 1 after 5 s)
+  if (x === Infinity) return lower ? [0, 1] : [-Infinity, 0];
   const t = pfTiny(x, m, n, lower, true);
   if (t !== undefined) return t;
   const r = fRatios(x, m, n);

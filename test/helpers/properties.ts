@@ -2,7 +2,7 @@
 // scripts/fuzz-distributions.mjs): range, complement, log consistency, monotonicity, quantile round trip, density
 // against the CDF, time and independence of call order. Parameters come from seeded generators mixing log-uniform
 // values over the valid range with boundary values; evaluation points are raw log-uniform values, points around the
-// mean and quantiles q(p) for p from 1e-300 to 0.5 in both tails.
+// mean and quantiles q(p) for p from 5e-324 to 0.5 in both tails.
 //
 // The functions are passed in as a module (src/entries/distributions.ts in vitest, dist/ in the fuzz script), and this
 // file has no relative imports and only erasable TypeScript, so that Node can load it with its type stripping.
@@ -99,7 +99,7 @@ function integer(r: Rng, typicalHi: number, fullHi: number, boundary: readonly n
 function probability(r: Rng, boundary: readonly number[] = [0, 0.5, 1]): number {
   const u = r.unif();
   if (u < 0.15) return pick(r, boundary);
-  if (u < 0.4) return logUniform(r, 1e-300, 0.5);
+  if (u < 0.4) return logUniform(r, 5e-324, 0.5);
   if (u < 0.6) return 1 - logUniform(r, 1e-17, 0.5);
   return r.unif();
 }
@@ -250,7 +250,7 @@ export const distributionFamilies: Family[] = [
     accuracy: 1e-13,
     params: (r) => ({
       df: positive(r, [1e-1, 1e4], WIDE, [1, 2, 3, Infinity]),
-      ncp: signed(r, [1e-2, 50], [1e-300, 1e4]),
+      ncp: signed(r, [1e-2, 50], [5e-324, 1e4]),
     }),
     support: () => real,
     moments: (pr) => [pr.ncp!, 1],
@@ -563,7 +563,7 @@ interface Point {
 // - quantile round trip (continuous): p must lie between p(x (1 ∓ 1e-14)) (at least 4 ulps either side), widened by
 //   1e-12 relative (1e-12 absolute on the log scale). The 1e-14 is the documented accuracy of quantiles; it absorbs the
 //   steep regions where x, not p, limits the round trip (x d(x) / p large). In flat regions 1e-12 is left for the root
-//   finder, still 100 times the accuracy of p
+//   finder, still 100 times the accuracy of p. A subnormal p is compared on the log scale (log p at the two points)
 // - quantile round trip (discrete): q(p(x)) = x where d(x) > 0, or a y satisfying the definition (satisfiesDefinition).
 //   Skipped on a tail where p(x) is 0 or 1 (the ends of the support by definition) or d(x) < 64 ε p(x): the steps
 //   there are below the slack of the definition, so the answer is decided by rounding (p near 1 carries no more
@@ -679,7 +679,7 @@ export class FamilyRunner {
     const [lo, hi] = fam.support(pr);
     const xs = new Set<number>();
     for (let i = 0; i < sizes.quantile; i++) {
-      const p0 = logUniform(r, 1e-300, 0.5);
+      const p0 = logUniform(r, 5e-324, 0.5);
       const flags = { lowerTail: r.unif() < 0.5, logP: r.unif() < 0.25 };
       const arg = flags.logP ? Math.log(p0) : p0;
       skipping(() => {
@@ -723,7 +723,7 @@ export class FamilyRunner {
     else if (u < 0.1) x = Number.isFinite(hi) ? hi + logUniform(r, 1e-3, 1e3) : Infinity;
     else if (Number.isFinite(lo) && Number.isFinite(hi)) {
       const v = r.unif();
-      const t = v < 0.3 ? logUniform(r, 1e-300, 1) : v < 0.6 ? 1 - logUniform(r, 1e-17, 1) : r.unif();
+      const t = v < 0.3 ? logUniform(r, 5e-324, 1) : v < 0.6 ? 1 - logUniform(r, 1e-17, 1) : r.unif();
       x = lo + (hi - lo) * t;
     } else if (Number.isFinite(lo)) {
       x = lo + (lo === 0 ? 1 : Math.abs(lo)) * logUniform(r, ...WIDE);
@@ -752,14 +752,22 @@ export class FamilyRunner {
   /** p must lie between p(x (1 ∓ 1e-14)) (at least 4 ulps either side), within TOL_ROUNDTRIP */
   private roundTripContinuous(x: number, p: number, pr: Params, flags: Flags): void {
     const w = Number.isFinite(x) ? 1e-14 * Math.abs(x) : 0;
-    const a = this.call("p", Math.min(stepUlps(x, -4), x - w), pr, flags);
-    const b = this.call("p", Math.max(stepUlps(x, 4), x + w), pr, flags);
-    const tol = flags.logP === true ? TOL_ROUNDTRIP : TOL_ROUNDTRIP * Math.abs(p);
-    if (p >= Math.min(a, b) - tol && p <= Math.max(a, b) + tol) return;
+    // A subnormal p is compared on the log scale: p(x) is rounded to the subnormal grid, whose spacing relative to p can
+    // exceed the change of p over x (1 ∓ 1e-14), so that p at both points rounds to the same subnormal next to p
+    // without bracketing it (qchisq(2.625507e-315, 147646.99, { lowerTail: false }): 2.625506986e-315 at both). The log
+    // of p is exact, and the log of the distribution function keeps its digits there (an artifact of the check, not of
+    // the quantile: a quantile with p(x) = 0, as qgamma's at 7.2e-317 was, still fails)
+    const sub = flags.logP !== true && p < MIN_NORMAL;
+    const fl = sub ? { ...flags, logP: true } : flags;
+    const t = sub ? Math.log(p) : p;
+    const a = this.call("p", Math.min(stepUlps(x, -4), x - w), pr, fl);
+    const b = this.call("p", Math.max(stepUlps(x, 4), x + w), pr, fl);
+    const tol = fl.logP === true ? TOL_ROUNDTRIP : TOL_ROUNDTRIP * Math.abs(p);
+    if (t >= Math.min(a, b) - tol && t <= Math.max(a, b) + tol) return;
     this.report(
       "roundtrip",
       callText(this.family, "q", p, pr, flags),
-      `= ${x}; p at x (1 ∓ 1e-14): ${a}, ${b}`,
+      `= ${x}; ${sub ? "log p" : "p"} at x (1 ∓ 1e-14): ${a}, ${b}`,
       pr,
       p,
     );

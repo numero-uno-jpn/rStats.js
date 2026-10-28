@@ -4,6 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  beta,
   dbeta,
   dcauchy,
   dchisq,
@@ -12,12 +13,17 @@ import {
   dgeom,
   dinvgamma,
   dkumar,
+  dlaplace,
   dlnorm,
+  dlogis,
   dnbinom,
   dnorm,
   dpareto,
   dt,
+  dtriang,
   dweibull,
+  lbeta,
+  lgamma,
   pbeta,
   pbinom,
   pcauchy,
@@ -31,12 +37,15 @@ import {
   pnbinom,
   pnorm,
   ppareto,
+  ppois,
   pt,
+  ptriang,
   ptukey,
   qbeta,
   qbinom,
   qcauchy,
   qchisq,
+  qexp,
   qf,
   qgamma,
   qgeom,
@@ -47,6 +56,7 @@ import {
   qt,
   qtriang,
   qtukey,
+  qweibull,
 } from "../src/index.js";
 import { nextDown } from "./helpers/float.js";
 
@@ -716,5 +726,120 @@ describe("Cauchy, Kumaraswamy, Pareto, negative binomial and noncentral χ² at 
     // b - sqrt(p (b - a)(b - c)) and b (1 - sqrt(1 - p)) for c = a, to the subnormal grid
     expect(qtriang(1.551140155802517e-8, { a: 0, b: 1.02822077e-316, c: 8.726421e-317, lowerTail: false })).toBe(1.02817096e-316);
     expect(qtriang(-7.385706883968851, { a: 0, b: 7.36918471256e-313, c: 0, logP: true })).toBe(2.2849939e-316);
+  });
+});
+
+describe("subnormal probabilities, shapes and scales: quantile searches, densities and tails", () => {
+  it("qgamma at a subnormal p: the search's residual F / p overflowed (8.2e146, 1e21 times the mean, before)", () => {
+    // mean + 38 sd rounds to the mean (R 4.5.2: 4.4838914172971214e125)
+    const o = { scale: 0.13574289405428971, lowerTail: false };
+    expect(rel(qgamma(7.228026e-317, 3.3032236777741095e126, o), 4.4838914172971214e125)).toBeLessThan(4 * Number.EPSILON);
+    // mpmath: 1068.1884134409693566
+    expect(rel(qgamma(1e-320, 100, { lowerTail: false }), 1068.1884134409693566)).toBeLessThan(1e-15);
+  });
+
+  it("pbeta at a subnormal x and a shape above 1e300 (NaN before: the splitting of a overflowed)", () => {
+    // mpmath: a log x - log a - log B(a, b) = -1.0617460181147866708e307 (R 4.5.2: 0 for the probability)
+    const [x, a, b] = [1.5e-323, 1.428342256921063e304, 0.5];
+    expect(rel(pbeta(x, a, b, { logP: true }), -1.0617460181147866708e307)).toBeLessThan(4 * Number.EPSILON);
+    expect(Object.is(pbeta(x, a, b), 0)).toBe(true);
+    expect(pbeta(x, a, b, { lowerTail: false })).toBe(1);
+    // where a log x overflows: 0 and 1 (NaN before)
+    expect(pbeta(4.2200334418145e-310, 4.1497590175229216e307, 1113.067753031272)).toBe(0);
+    expect(pbeta(4.2200334418145e-310, 4.1497590175229216e307, 1113.067753031272, { lowerTail: false })).toBe(1);
+  });
+
+  it("pf and qf at a subnormal df1 (pf 1 from x = 1e301, qf did not return)", () => {
+    // mpmath: 1 - I_z(m/2, n/2) = 1.7736597835407333347e-311 (R 4.5.2: 1.7736597835471501e-311). The tail is of the
+    // order of df1 / 2, and halving the subnormal df1 rounds it by 3.5e-12 relative (one ulp of 2.8e11), as in R
+    expect(rel(pf(1e301, 1.404267690436e-312, 6.719470768117538, { lowerTail: false }), 1.7736597835407333347e-311)).toBeLessThan(1e-11);
+    // the upper tail at the largest double is above p: Infinity (as R 4.5.2)
+    expect(qf(1.1e-322, 1.404267690436e-312, 6.719470768117538, { lowerTail: false })).toBe(Infinity);
+    expect(qf(7.4e-323, 5.19e-321, 6919.816403825189, { lowerTail: false })).toBe(Infinity);
+    expect(qf(-744.4400719213812, 4.41e-321, 188.37652352362298, { lowerTail: false, logP: true })).toBe(Infinity);
+    expect(qf(8.69116e-319, 8.85435e-319, 0.19301319994257646, { lowerTail: false })).toBe(Infinity);
+    // a step of the search to Infinity, where pf was NaN, left it there (1 after 5 s before); the round trip
+    const [m, n] = [1.2521637655121952e-305, 334518.7421552894];
+    const q = qf(-735.1552736384871, m, n, { lowerTail: false, logP: true });
+    expect(Math.abs(pf(q, m, n, { lowerTail: false, logP: true }) + 735.1552736384871)).toBeLessThan(1e-12);
+  });
+
+  it("lgamma and lbeta at a subnormal argument (Infinity and NaN before)", () => {
+    // mpmath: 744.44007192138126231, 714.49452600871411041 (R 4.5.2: 744.44007192138122, 714.49452600871405)
+    expect(rel(lgamma(5e-324), 744.44007192138126231)).toBeLessThan(4 * Number.EPSILON);
+    // -log|x| to the double (R 4.5.2: lgamma(1e-310) is 713.80137882815416, lbeta(2.6e-321, 3460) 738.17477070864356)
+    expect(rel(lgamma(-1e-310), 713.80137882815416)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(lbeta(1e-310, 1e-310), 714.49452600871411041)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(lbeta(2.6e-321, 3460), 738.17477070864356)).toBeLessThan(4 * Number.EPSILON);
+    // B(a, a) > 2/a overflows (R 4.5.2 gives NaN)
+    expect(beta(1e-310, 1e-310)).toBe(Infinity);
+  });
+
+  it("noncentral qf at a huge λ starts from the df1 = Inf limit (1 s before, through a 0.5 s integral far in the left tail)", () => {
+    const [p, m, n, ncp] = [3.9676390269921496e-237, 364.44554111063366, 1.476228574471317, 194107871089.7223];
+    const q = qf(p, m, n, { ncp });
+    expect(rel(pf(q, m, n, { ncp }), p)).toBeLessThan(1e-12);
+  });
+
+  it("densities formed without a subnormal intermediate (exp(-|z|), π scale or size / (size + x) rounded there)", () => {
+    // mpmath: e^(-|z|) / (2 σ) = 5.725311369130697478737989811e-153 (6e-4 off before; extraDistr: 5.7253113691307606e-153)
+    const lap = dlaplace(9.486302497985611e-158, { mu: 9.486302498433996e-158, sigma: 6.044548486737205e-171 });
+    expect(rel(lap, 5.725311369130697478737989811e-153)).toBeLessThan(4 * Number.EPSILON);
+    // mpmath: log(e / (s (1 + e)^2)) = -7.1442419008923713678 (R 4.5.2 linear: log -7.1442431635500565)
+    expect(rel(Math.log(dlogis(-3.5667197e-316, { scale: 4.81926e-319 })), -7.1442419008923713678)).toBeLessThan(1e-15);
+    // mpmath with z = x / sd rounded to the double, as in the log density: 5.257663011252930427e-304 (3e-4 off before;
+    // R 4.5.2: 0)
+    expect(rel(dnorm(-1.59e-321, { sd: 3e-323 }), 5.257663011252930427e-304)).toBeLessThan(4 * Number.EPSILON);
+    // mpmath: scale / (π (x² + scale²)) = 1.0713040120123239228e305 (R 4.5.2: 1.0713040120126725e305) and
+    // 1.5726597949504820695e-304 (0 before: z overflowed; R 4.5.2: 0), whose log is -699.53309994734974888
+    expect(rel(dcauchy(-2.16543841389836e-309, { scale: 1.57817263326e-312 }), 1.0713040120123239228e305)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(dcauchy(1e-10, { scale: 5e-324 }), 1.5726597949504820695e-304)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(dcauchy(1e-10, { scale: 5e-324, log: true }), -699.53309994734974888)).toBeLessThan(1e-15);
+    // mpmath, from the series of the pmf: -735.57086038617797193 and -735.72132165919674871 (R 4.5.2:
+    // -735.57086040999684, -735.721321651675)
+    const o = { prob: 0.12459577713161707, log: true };
+    expect(rel(dnbinom(57, 3.941094207e-315, o), -735.57086038617797193)).toBeLessThan(1e-15);
+    expect(rel(dnbinom(58, 3.941094207e-315, o), -735.72132165919674871)).toBeLessThan(1e-15);
+  });
+
+  it("quantiles at a log p below the normal range (exp(p) was rounded on the subnormal grid)", () => {
+    // mpmath: -log1p(-e^p) / rate = 1.488073648635756043e-56 (R 4.5.2: 1.4880736486358194e-56)
+    expect(rel(qexp(-720.6156070081367, { rate: 7.378938265185878e-258, logP: true }), 1.488073648635756043e-56)).toBeLessThan(4 * Number.EPSILON);
+    // mpmath: scale (-log1p(-e^p)) = 1.48806429415538799e-56 (R 4.5.2: 1.4880642941554512e-56)
+    expect(rel(qweibull(-720.6156070081367, 1, { scale: 1.3552e257, logP: true }), 1.48806429415538799e-56)).toBeLessThan(4 * Number.EPSILON);
+    // mpmath at 700 digits: (1 - (1 - e^p)^(1/b))^(1/a) = 1.0076418889538287057e-284 (extraDistr: 0)
+    const k = qkumar(-744.2443613428673, 1.1349253174979674, 0.12411336352541393, { logP: true });
+    expect(rel(k, 1.0076418889538287057e-284)).toBeLessThan(4 * Number.EPSILON);
+  });
+
+  it("gamma and Poisson tails of a few subnormal ulps (0 before, the factor x^a e^-x / Γ(a + 1) underflowed first)", () => {
+    // mpmath: 9.8813129168228543e-324 and 2.7530007493947218e-323, i.e. 2 and 6 ulps of 2^-1074 (as R 4.5.2)
+    expect(pchisq(150856.77415319227, 172464.33346354478)).toBe(2 * Number.MIN_VALUE);
+    expect(ppois(248046, 229399.39745017525, { lowerTail: false })).toBe(6 * Number.MIN_VALUE);
+  });
+
+  it("ptriang and dtriang where a ratio of lengths is subnormal (extraDistr gives -Inf for ptriang)", () => {
+    // mpmath: log(x² / (b c)) = -1484.8619589788330398, log(2 x / (b c)) = -1047.7980830038098432
+    const o = { a: 0, b: 1.2412114100115105e133, c: 5.580977276459495e132 };
+    expect(rel(ptriang(3.066199584564306e-190, { ...o, logP: true }), -1484.8619589788330398)).toBeLessThan(1e-15);
+    expect(rel(dtriang(3.066199584564306e-190, { ...o, log: true }), -1047.7980830038098432)).toBeLessThan(1e-15);
+    // mpmath at 700 digits: log(1 - (1 - x/b)²) = -735.59530309385156731 (the far tail for c = a)
+    const t = ptriang(2.2847913320311623e-257, { a: 0, b: 1.3330842142984116e63, c: 0, logP: true });
+    expect(rel(t, -735.59530309385156731)).toBeLessThan(1e-15);
+  });
+
+  it("pgeom at a subnormal prob from x = 1e290 (0 before: log(1 - prob) lost the subnormal prob)", () => {
+    // 1 - (1 - p)^(x+1) = (x + 1) p to the double: 1e290 * 2^-1074
+    expect(rel(pgeom(1e290, 5e-324), 1e290 * 5e-324)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(pgeom(1.948811553346453e294, 5e-324, { lowerTail: false, logP: true }), -1.948811553346453e294 * 5e-324)).toBeLessThan(4 * Number.EPSILON);
+  });
+
+  it("ptukey at a subnormal q scales the lower tail from 2^-1000 (the integral lost 3e-11 there, and qtukey took 1.2 s)", () => {
+    // the lower tail is c q^((k-1) r) to (1 + O(q²)): log P(1e-300) + log(q / 1e-300) for k = 2
+    const o = { logP: true };
+    const at = ptukey(1e-300, 2, 486.8681928207351, o) + Math.log(3.5335144e-316 * 1e300);
+    expect(Math.abs(ptukey(3.5335144e-316, 2, 486.8681928207351, o) - at)).toBeLessThan(1e-12);
+    const q = qtukey(-726.9274748544988, 2, 486.8681928207351, o);
+    expect(Math.abs(ptukey(q, 2, 486.8681928207351, o) + 726.9274748544988)).toBeLessThan(1e-9);
   });
 });

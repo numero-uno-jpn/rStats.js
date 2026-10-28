@@ -26,18 +26,28 @@ const LARGERATIO = 4.5;
 const BIG = 4.503599627370496e15;
 const BIGINV = 2.22044604925031308085e-16;
 
+/**
+ * Below this the factor x^a e^-x / Gamma(a + 1) (dpoisRaw) is rounded on the subnormal grid or 0, and the linear value
+ * of the tail is exp of its log instead: the product with the series or continued fraction had lost digits, or was 0
+ * where the tail is a few subnormal ulps (pchisq(150856.77, 172464.33) was 0, its log -743.7469247408216, so 1e-323)
+ */
+const MIN_NORMAL = 2 ** -1022;
+
 /** Series for P(a, x) (DLMF 8.11.4) */
 function igamSeries(a: number, x: number, log: boolean): number {
   const ans = igamSeriesSum(a, x);
   // x^a e^-x / Gamma(a) * ans / a = dpoisRaw(a, x) * ans
-  return log ? dpoisRaw(a, x, true) + Math.log(ans) : dpoisRaw(a, x, false) * ans;
+  if (log) return dpoisRaw(a, x, true) + Math.log(ans);
+  const d = dpoisRaw(a, x, false);
+  return d >= MIN_NORMAL ? d * ans : Math.exp(dpoisRaw(a, x, true) + Math.log(ans));
 }
 
 /** [log, linear] of igamSeries */
 function igamSeriesBoth(a: number, x: number): [number, number] {
   const ans = igamSeriesSum(a, x);
   const d = dpoisRawBoth(a, x);
-  return [d[0] + Math.log(ans), d[1] * ans];
+  const l = d[0] + Math.log(ans);
+  return [l, d[1] >= MIN_NORMAL ? d[1] * ans : Math.exp(l)];
 }
 
 /** sum_n x^n / ((a + 1) ... (a + n)): P(a, x) = x^a e^-x / Gamma(a + 1) times this */
@@ -110,16 +120,17 @@ export function igamSeriesSumDD(a: number, x: number): number {
 function igamcContinuedFraction(a: number, x: number, log: boolean): number {
   const ans = igamcContinuedFractionValue(a, x);
   // x^a e^-x / Gamma(a) * ans = a * dpoisRaw(a, x) * ans
-  return log
-    ? Math.log(a) + dpoisRaw(a, x, true) + Math.log(ans)
-    : a * dpoisRaw(a, x, false) * ans;
+  if (log) return Math.log(a) + dpoisRaw(a, x, true) + Math.log(ans);
+  const d = dpoisRaw(a, x, false);
+  return d >= MIN_NORMAL ? a * d * ans : Math.exp(Math.log(a) + dpoisRaw(a, x, true) + Math.log(ans));
 }
 
 /** [log, linear] of igamcContinuedFraction */
 function igamcContinuedFractionBoth(a: number, x: number): [number, number] {
   const ans = igamcContinuedFractionValue(a, x);
   const d = dpoisRawBoth(a, x);
-  return [Math.log(a) + d[0] + Math.log(ans), a * d[1] * ans];
+  const l = Math.log(a) + d[0] + Math.log(ans);
+  return [l, d[1] >= MIN_NORMAL ? a * d[1] * ans : Math.exp(l)];
 }
 
 /** The continued fraction of DLMF 8.9.2: Q(a, x) = x^a e^-x / Gamma(a) times this */

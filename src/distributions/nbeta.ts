@@ -854,7 +854,11 @@ function qnfRaw(p: number, m: number, n: number, ncp: number, lowerTail: boolean
   // means of the χ² variables per degree of freedom) where the parameters are out of the central quantile's range
   const nu = (m + ncp) * ((m + ncp) / (m + 2 * ncp));
   const central = method(m / 2, n / 2, ncp) === "mixture" && inCentralRange(m) && inCentralRange(n);
-  let x0 = ((m + ncp) / m) * (central ? qf1(logTarget, nu, n, lower, true) : 1);
+  // Out of the mixture's range (λ/2 large) χ²(m, λ)/m is (m + λ)/m to within its spread of order 1/sqrt(λ), so F is
+  // that times n/χ²_n, the F quantile at df1 = Inf (from (m + λ)/m alone the search took 1 s, through an integral of
+  // 0.5 s far in the left tail: qf(3.97e-237, 364.4, 1.476, { ncp: 1.94e11 }))
+  const limit = !central && inCentralRange(n) ? qf1(logTarget, Infinity, n, lower, true) : 1;
+  let x0 = ((m + ncp) / m) * (central ? qf1(logTarget, nu, n, lower, true) : limit);
   // For a df2 above the central range, the quantile of the χ² limit (df2 = Inf): from (m + λ)/m the search took seconds
   // in the far tails, at 0.1 s per call of the integral (qf(exp(-645), 314, 5.2e16, { ncp: 2393, lowerTail: false }))
   const limitStart = n > 1e15 && inCentralRange(m);

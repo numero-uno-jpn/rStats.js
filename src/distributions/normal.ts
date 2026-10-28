@@ -140,6 +140,12 @@ function tinySdDensity(a: number, sd: number): number {
   const halfHiSq = (hi * hi) / 2;
   const m = (INV_SQRT_2PI / (sd * 2 ** 600)) * Math.exp((-lo * (a + hi)) / 2);
   if (halfHiSq <= 700) return m * Math.exp(-halfHiSq) * 2 ** 600;
+  if (halfHiSq > 1400) {
+    // (exp(700 - a^2/2) is itself subnormal from a^2/2 = 1408 on, where the density can still be normal: dnorm(-1.59e-321,
+    // { sd: 3e-323 }) was 3e-4 off. m exp(1400 - a^2/2) is above e^276 wherever the density is normal, so each partial
+    // product below stays normal until the last factor)
+    return m * Math.exp(1400 - halfHiSq) * Math.exp(-700) * 2 ** 600 * Math.exp(-700);
+  }
   const t = m * Math.exp(700 - halfHiSq);
   return t >= 1 ? t * Math.exp(-700) * 2 ** 600 : t * 2 ** 600 * Math.exp(-700);
 }

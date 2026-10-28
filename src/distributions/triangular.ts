@@ -9,6 +9,8 @@
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 
+const MIN_NORMAL = 2 ** -1022;
+
 /**
  * Limits and mode of the triangular distribution.
  *
@@ -43,22 +45,45 @@ export function dtriang1(x: number, a: number, b: number, c: number, log: boolea
   const r = x === c ? 0 : x < c ? (c - x) / (c - a) : (x - c) / (b - c);
   if (r < 0.5) return log ? Math.LN2 - Math.log(w) + Math.log1p(-r) : (2 * (1 - r)) / w;
   const s = x < c ? (x - a) / (c - a) : (b - x) / (b - c);
-  return log ? Math.LN2 - Math.log(w) + Math.log(s) : (2 * s) / w;
+  if (s >= MIN_NORMAL) return log ? Math.LN2 - Math.log(w) + Math.log(s) : (2 * s) / w;
+  // (a subnormal s has lost digits: from the lengths instead; dtriang(3.1e-190, { a: 0, b: 1.24e133, c: 5.58e132,
+  // log: true }) was 1% off)
+  const l = Math.LN2 - Math.log(w) + (x < c ? Math.log(x - a) - Math.log(c - a) : Math.log(b - x) - Math.log(b - c));
+  return log ? l : Math.exp(l);
 }
 
 /**
  * The tails [lower, upper] at a < q < b (b - a finite), from ratios of lengths that are at most 1, and the log of the
- * near tail (the one from the end on q's side of the mode) as a sum of logs, which stays exact where the tail is subnormal
+ * near tail (the one from the end on q's side of the mode) as a sum of logs, which stays exact where the tail is
+ * subnormal (from the lengths themselves where a ratio is subnormal too: ptriang(3.1e-190, { a: 0, b: 1.24e133, c:
+ * 5.58e132, logP: true }) had lost its digits)
  */
 function tails(q: number, a: number, b: number, c: number): [number, number, number] {
   const w = b - a;
+  const lnear = (s: number, t: number, d: number, part: number): number =>
+    s >= MIN_NORMAL && t >= MIN_NORMAL ? Math.log(s) + Math.log(t) : 2 * Math.log(d) - Math.log(part) - Math.log(w);
   // the far tail as a sum of positive terms: 1 - (q - a)^2 / (w (c - a)) = (b - c) / w + (c - q)(q - a + c - a) / (w (c - a))
   if (q <= c) {
     const [s, t] = [(q - a) / (c - a), (q - a) / w];
-    return [s * t, (b - c) / w + ((c - q) / (c - a)) * (t + (c - a) / w), Math.log(s) + Math.log(t)];
+    return [s * t, (b - c) / w + ((c - q) / (c - a)) * (t + (c - a) / w), lnear(s, t, q - a, c - a)];
   }
   const [s, t] = [(b - q) / (b - c), (b - q) / w];
-  return [(c - a) / w + ((q - c) / (b - c)) * (t + (b - c) / w), s * t, Math.log(s) + Math.log(t)];
+  return [(c - a) / w + ((q - c) / (b - c)) * (t + (b - c) / w), s * t, lnear(s, t, b - q, b - c)];
+}
+
+/**
+ * log of the far tail (see tails) where it is subnormal, from the logs of its terms: the log of the subnormal sum had
+ * lost digits (ptriang(2.28e-257, { a: 0, b: 1.33e63, c: 0, logP: true }) was 25% off in its slope)
+ */
+function logFar(q: number, a: number, b: number, c: number): number {
+  const w = b - a;
+  const [first, d, part, t, share] =
+    q <= c ? [b - c, c - q, c - a, (q - a) / w, (c - a) / w] : [c - a, q - c, b - c, (b - q) / w, (b - c) / w];
+  const l2 = Math.log(d) - Math.log(part) + Math.log(t + share);
+  if (!(first > 0)) return l2;
+  const l1 = Math.log(first) - Math.log(w);
+  const m = Math.max(l1, l2);
+  return m + Math.log(Math.exp(l1 - m) + Math.exp(l2 - m));
 }
 
 export function ptriang1(q: number, a: number, b: number, c: number, lowerTail: boolean, logP: boolean): number {
@@ -72,7 +97,8 @@ export function ptriang1(q: number, a: number, b: number, c: number, lowerTail: 
   if (!logP) return v;
   // the log of a probability above 1/2 from the other tail; a subnormal near tail from its factors
   if (v > 0.5) return Math.log1p(-(lowerTail ? upper : lower));
-  return v < 2 ** -1022 && lowerTail === q <= c ? lnear : Math.log(v);
+  if (v >= MIN_NORMAL) return Math.log(v);
+  return lowerTail === q <= c ? lnear : logFar(q * h, a * h, b * h, c * h);
 }
 
 export function qtriang1(p: number, a: number, b: number, c: number, lowerTail: boolean, logP: boolean): number {

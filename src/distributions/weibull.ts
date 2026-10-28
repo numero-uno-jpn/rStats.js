@@ -8,8 +8,8 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { ddExp, expNeg, log1mExp, logOneMinusExpNeg, standardizeDD } from "../internal/ddexp.js";
-import { ddLog, ddMulNum, ddSub, type DD } from "../special/dd.js";
+import { ddExp, expNeg, expNegOver, log1mExp, logOneMinusExpNeg, standardizeDD } from "../internal/ddexp.js";
+import { ddDivNum, ddLog, ddMulNum, ddSub, type DD } from "../special/dd.js";
 
 /**
  * Parameters of the Weibull distribution (besides the positional `shape`).
@@ -27,6 +27,7 @@ function cpow(a: number, b: number): number {
 }
 
 const MIN_NORMAL = 2 ** -1022;
+const LOG_MIN_NORMAL = -1022 * Math.LN2;
 
 /**
  * log u (u = x / scale) in double-double. x > 0, finite parameters. When x / scale is subnormal, 0 or overflows,
@@ -113,6 +114,20 @@ export function qweibull1(p: number, shape: number, scale: number, lowerTail: bo
   const b = quantileBoundaries(p, 0, Infinity, lowerTail, logP);
   if (b !== undefined) return b;
   // -log P[X > x] = t
+  // (an infinite shape or scale is left to the forms below, which give R's NaN for Infinity times 0)
+  if (logP && lowerTail && p < LOG_MIN_NORMAL && allFinite(shape, scale)) {
+    // -log(1 - P) is P = exp(p) to the double, but rounded on the subnormal grid there: x = scale exp(p / shape), with
+    // p / shape in double-double (qweibull(-720.6, 1, { scale: 1.36e257, logP: true }) was 5e-15 off)
+    // (in double where the shape or the quotient is beyond the range of Veltkamp splitting)
+    const q: DD = shape < 1e300 && Math.abs(p / shape) < 1e300 ? ddDivNum([p, 0], shape) : [p / shape, 0];
+    const e = ddExp(q);
+    const v = e[0] + e[1];
+    if (v >= MIN_NORMAL && v < Infinity) return scale * v;
+    // (exp(p / shape) itself below the normal range: divided by 1 / scale without rounding it there)
+    const r = 1 / scale;
+    if (r >= MIN_NORMAL && r < Infinity && q[0] < 0) return expNegOver([-q[0], -q[1]], r);
+    return Math.exp(Math.log(scale) + q[0]);
+  }
   let lu: number;
   if (logP) lu = lowerTail ? log1mExp(p) : p;
   else lu = lowerTail ? Math.log1p(-p) : Math.log(p);

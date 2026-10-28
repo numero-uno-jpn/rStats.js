@@ -6,7 +6,9 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { quantileBoundaries, smallerTail, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { expNeg, locationScale, standardizeDD } from "../internal/ddexp.js";
+import { expNeg, expNegOver, locationScale, standardizeDD } from "../internal/ddexp.js";
+
+const MIN_NORMAL = 2 ** -1022;
 
 /**
  * Location and scale of the Laplace distribution.
@@ -29,7 +31,9 @@ export function dlaplace1(x: number, mu: number, sigma: number, log: boolean): n
   const z = standardizeDD(x, mu, sigma);
   const a: [number, number] = z[0] < 0 ? [-z[0], -z[1]] : [z[0], z[1]];
   if (log) return -a[0] - a[1] - Math.log(2 * sigma);
-  return expNeg(a) / (2 * sigma);
+  // (from exp(-|z|) below the normal range the quotient is formed without rounding it there: see expNegOver)
+  const e = expNeg(a);
+  return e >= MIN_NORMAL ? e / (2 * sigma) : expNegOver(a, 2 * sigma);
 }
 
 export function plaplace1(q: number, mu: number, sigma: number, lowerTail: boolean, logP: boolean): number {

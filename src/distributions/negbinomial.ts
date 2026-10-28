@@ -55,8 +55,13 @@ function dnbinomRaw(x: number, par: Params, log: boolean): number {
   const b = dbinomRawDD(size, x, pd, qd, log);
   if (x === 0) return b;
   const r = size / (size + x);
-  return log ? b + Math.log(r) : b * r;
+  if (r >= MIN_NORMAL) return log ? b + Math.log(r) : b * r;
+  // A subnormal size / (size + x) has lost digits (dnbinom(58, 3.94e-315, { prob: 0.125, log: true }) was 7.5e-12 off,
+  // 2.4e-8 at x = 57): log size - log(size + x), and the division by size + x before the product with size
+  return log ? b + (Math.log(size) - Math.log(size + x)) : (b / (size + x)) * size;
 }
+
+const MIN_NORMAL = 2 ** -1022;
 
 /** P[X <= x] (lower) / P[X > x] (!lower) (x a nonnegative integer) */
 function pnbinomRaw(x: number, par: Params, lower: boolean, log: boolean): number {

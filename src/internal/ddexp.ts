@@ -100,6 +100,33 @@ export function expNeg(t: DD): number {
   return Math.exp(-t[0]) * (1 - t[1]);
 }
 
+/**
+ * exp(-t) / s (t double-double, s > 0) where exp(-t) is below the normal range and s small enough to bring the quotient
+ * back into it: exp(-t) itself would be rounded on the subnormal grid (a density formed so had lost digits:
+ * dlaplace(9.4863e-158, { mu: 9.4863e-158 + 4.5e-167, sigma: 6.04e-171 }) was 6e-4 off). With k = round(t / log 2) and
+ * s = f 2^j (f in [1, 2)), it is exp(-(t - k log 2)) / f times 2^(-k - j), the power of two applied last (in two
+ * steps, the first within the normal range), so that the only rounding into the subnormal range is the final one
+ */
+export function expNegOver(t: DD, s: number): number {
+  // (beyond t = 2000 the quotient is below e^-1255 even for the smallest s)
+  if (!(t[0] < 2000) || s === Infinity) return 0;
+  let j = 0;
+  let f = s;
+  if (f < 2 ** -1000) {
+    f *= 2 ** 600;
+    j = -600;
+  }
+  const e = Math.floor(Math.log2(f));
+  f *= 2 ** -e;
+  j += e;
+  const k = Math.round(t[0] / LN2[0]);
+  const r = ddSub(t, ddMulNum(LN2, k));
+  const v = (Math.exp(-r[0]) * (1 - r[1])) / f;
+  const n = -k - j;
+  const h = Math.trunc(n / 2);
+  return v * 2 ** h * 2 ** (n - h);
+}
+
 /** log(1 - exp(x)) (x <= 0). Switches method by the size of x to avoid cancellation */
 export function log1mExp(x: number): number {
   return x > -Math.LN2 ? Math.log(-Math.expm1(x)) : Math.log1p(-Math.exp(x));

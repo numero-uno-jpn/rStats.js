@@ -85,6 +85,34 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   `dnorm(30 sd, { sd })` is now 8.772626419912559e125 there).
 - `qtriang` with a subnormal width returned the mode where the tail's share of its part overflowed
   (`qtriang(1.6e-8, { a: 0, b: 1.03e-316, c: 8.7e-317, lowerTail: false })`, now 1.02817096e-316).
+- Quantile searches at a subnormal p: the residual F(x) / p overflowed, and the steps went astray
+  (`qgamma(7.2e-317, 3.3e126, { scale: 0.136, lowerTail: false })` was 8.2e146, 1e21 times the mean; now
+  4.4838914172971214e125, as R).
+- `pbeta` at a subnormal x and a shape above 1e300 was NaN (`pbeta(1.5e-323, 1.4e304, 0.5)`, now 0 as R, and
+  -1.0617460181147866e307 on the log scale; `pbeta(4.2e-310, 4.1e307, 1113)`, where a log x overflows, now 0).
+- `pf` at a subnormal df1 was 1 in the upper tail from x = 1e301 on (`pf(1e301, 1.4e-312, 6.72, { lowerTail: false })`,
+  now 1.77365978354e-311), and `qf` there did not return (`qf(1.1e-322, 1.4e-312, 6.72, { lowerTail: false })`, now
+  Infinity as R); `qf` whose search stepped to Infinity, where `pf` was NaN, returned 1 after 5 s
+  (`qf(-735.2, 1.25e-305, 3.3e5, { lowerTail: false, logP: true })`, now 4.63214927370753e306); the noncentral `qf` at
+  a huge ncp took a second (`qf(3.97e-237, 364.4, 1.476, { ncp: 1.94e11 })`).
+- `ptukey` at a subnormal q lost digits (3e-11 in the log at `ptukey(3.53e-316, 2, 486.9, { logP: true })`) and took
+  20 to 50 ms a call, so that `qtukey(-726.9, 2, 486.9, { logP: true })` took 1.2 s: the lower tail is now scaled from
+  q = 2^-1000 by q^((k-1) r).
+- `lgamma` at a subnormal argument was Infinity (`lgamma(5e-324)`, now 744.4400719213812 as R), and with it `lbeta`
+  (`lbeta(5e-324, 3)`); `lbeta(1e-310, 1e-310)` was NaN (now 714.494526008714 as R), `beta(1e-310, 1e-310)` NaN (now
+  Infinity; R gives NaN).
+- Densities whose linear value passed through a subnormal intermediate lost digits: `dlaplace` and `dlogis` through
+  exp(-|z|) (`dlaplace(9.4863e-158, { mu: 9.4863e-158 + 4.5e-167, sigma: 6.04e-171 })` was 6e-4 off; extraDistr is
+  right there), `dlogis`, `dcauchy` and `dnorm` through a subnormal scale (`dnorm(-1.59e-321, { sd: 3e-323 })` 3e-4
+  off; `dcauchy(1e-10, { scale: 5e-324 })` was 0, now 1.5726597949504821e-304), `dnbinom` through size / (size + x) at
+  a subnormal size (`dnbinom(57, 3.94e-315, { prob: 0.125, log: true })` was 2.4e-8 off), and `dtriang` through a
+  subnormal ratio of lengths, as was the log of `ptriang` (extraDistr gives -Inf for it).
+- Quantiles at a log p below -708: `qexp`, `qweibull` and `qkumar` took exp(p) on the subnormal grid
+  (`qexp(-720.6, { rate: 7.4e-258, logP: true })` was 4e-14 off, `qkumar(-744.24, 1.13, 0.124, { logP: true })` 17%;
+  extraDistr gives 0 for it).
+- `pgeom` at a subnormal prob was 0 from x = 1e290 on (`pgeom(1e290, 5e-324)`, now 4.940656458412465e-34).
+- Gamma and Poisson tails of a few subnormal ulps were 0 (`pchisq(150856.77, 172464.33)`, now 1e-323 as R; its log
+  was right): the factor x^a e^-x / Γ(a + 1) underflowed before the product with the series.
 
 ## 0.15.2 - 2026-10-28
 

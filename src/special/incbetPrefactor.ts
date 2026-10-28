@@ -100,7 +100,7 @@ function log1m(y: DD): DD {
  * x a in double-double, also for a above 1e290 (where the splitting of a in ddMulNum would overflow); [±Infinity, 0]
  * where the product overflows (the scaling back made it NaN)
  */
-function mulBig(x: DD, a: number): DD {
+export function mulBig(x: DD, a: number): DD {
   if (!Number.isFinite(x[0] * a)) return [x[0] * a, 0];
   return a > 1e290 ? ddMulNum(ddMulNum(x, a / 2 ** 64), 2 ** 64) : ddMulNum(x, a);
 }

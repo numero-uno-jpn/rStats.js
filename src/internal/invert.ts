@@ -51,7 +51,7 @@ export function invertContinuous(problem: InvertProblem): number {
   const residual = (x: number, lF: number): number => {
     if (linearTarget !== undefined && cdf !== undefined && lF > -700) {
       const F = cdf(x, lower);
-      if (F > 0) return Math.log(F / linearTarget);
+      if (F > 0 && F / linearTarget < Infinity) return Math.log(F / linearTarget);
     }
     return lF - logTarget;
   };
@@ -62,7 +62,9 @@ export function invertContinuous(problem: InvertProblem): number {
       return [lF, residual(x, lF)];
     }
     const [lF, F] = cdfBoth(x, lower);
-    if (linearTarget !== undefined && lF > -700 && F > 0) return [lF, Math.log(F / linearTarget)];
+    // (F / target overflows for a subnormal target; the residual was then Infinity and the steps went astray:
+    // qgamma(7.2e-317, 3.3e126, { scale: 0.136, lowerTail: false }) was 8.2e146, 1e21 times the mean)
+    if (linearTarget !== undefined && lF > -700 && F > 0 && F / linearTarget < Infinity) return [lF, Math.log(F / linearTarget)];
     return [lF, lF - logTarget];
   };
   const positive = problem.positive ?? false;

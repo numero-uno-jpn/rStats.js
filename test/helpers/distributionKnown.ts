@@ -52,24 +52,34 @@ export const knownViolations: KnownViolation[] = [
   // ---- normal, lognormal, uniform, exponential ----
   {
     family: "unif",
-    property: "log",
-    match: on(/^punif$/),
+    property: ["log", "density"],
+    match: (v) =>
+      fnOf(v) === "punif" || (fnOf(v) === "dunif" && (v.x - v.params.min!) / (v.params.max! - v.params.min!) < 2 ** -1022),
     reason:
       "punif's log near probability 1 is log(p), not log1p(-other tail): punif(2.1e-275, { lowerTail: false, logP: true }) " +
-      "is 0, -2.1e-275 expected; relative errors up to 1e-4 within 1e-12 of 1. Kept to match R, which computes log(p) " +
-      "too (fixtures: punif(1e-300, lower.tail = FALSE, log.p = TRUE) is 0, punif(0.999, -1, 1, log.p = TRUE) is " +
-      "log(0.9995) rounded, not log1p(-0.0005))",
-    examples: [{ params: { min: 0, max: 1 }, x: [2.1074708991110435e-275] }],
+      "is 0, -2.1e-275 expected; relative errors up to 1e-4 within 1e-12 of 1. Likewise the log of a subnormal p is that " +
+      "of p rounded to the subnormal grid, so that its differences do not match dunif: punif(1.0768051632645422e-159, " +
+      "{ min: 0, max: 6.99009352385927e156, logP: true }) is -727.1847997661001, -727.18479975404097 expected " +
+      "(log x - log max). Kept to match R, which computes log(p) too (fixtures: punif(1e-300, lower.tail = FALSE, " +
+      "log.p = TRUE) is 0, punif(0.999, -1, 1, log.p = TRUE) is log(0.9995) rounded, not log1p(-0.0005); R 4.5.2 gives " +
+      "-727.18479976610013 for the subnormal case)",
+    examples: [
+      { params: { min: 0, max: 1 }, x: [2.1074708991110435e-275] },
+      { params: { min: 0, max: 6.99009352385927e156 }, x: [1.0757294338307116e-159] },
+    ],
   },
   {
     family: "exp",
-    property: "density",
-    match: on(/^dexp$/, (pr, x) => pr.rate! * x < 2 ** -1022),
+    property: ["density", "roundtrip"],
+    match: (v) =>
+      (fnOf(v) === "dexp" && v.params.rate! * v.x < 2 ** -1022) || (fnOf(v) === "qexp" && v.params.rate! * valueOf(v) < 2 ** -1022),
     reason:
       "pexp's log for subnormal rate x loses digits (log(-expm1(-rate x)) of the rounded product, not log(rate) + " +
-      "log(x)): pexp(9.530984706928441e-97, { rate: 4.936871737348155e-227, logP: true }). Kept to match R, which " +
-      "computes it so (fixtures: pexp(1e-20, 1e-300, log.p = TRUE) is -736.8272408909739, -736.8272297580946 exactly; " +
-      "pexp(1e-300, 1e-300, log.p = TRUE) is -Inf)",
+      "log(x)): pexp(9.530984706928441e-97, { rate: 4.936871737348155e-227, logP: true }); so the round trip of a qexp " +
+      "whose answer has a subnormal rate x cannot be confirmed (qexp(7.747165377e-315, { rate: 1.1939971855464353e-219 }) " +
+      "is 6.4884285076530645e-96, -log1p(-p) / rate = 6.4884285076530641e-96 to mpmath, where pexp is the same at " +
+      "x (1 ∓ 1e-14)). Kept to match R, which computes it so (fixtures: pexp(1e-20, 1e-300, log.p = TRUE) is " +
+      "-736.8272408909739, -736.8272297580946 exactly; pexp(1e-300, 1e-300, log.p = TRUE) is -Inf)",
     examples: [{ params: { rate: 4.936871737348155e-227 }, x: [9.530984706928441e-97] }],
   },
   // ---- Weibull, arcsine, triangular, Pareto, Kumaraswamy, inverse gamma ----

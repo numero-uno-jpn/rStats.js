@@ -96,8 +96,14 @@ const REGRESSION: Record<string, { params: Params; x: number[]; sizes?: Omit<Siz
     { params: { shape: 3.2393711057909095e-307, rate: 1.8038736175233981e-106 }, x: [1e-300] },
     { params: { shape: 892.4483530128322, rate: 2.7994597e-316 }, x: [Infinity] },
   ],
-  "gamma(scale)": [{ params: { shape: 4.7893788e-316, scale: 2.0638560126343632 }, x: [1.1183229256009648e-36, 2.0638560126343632] }],
+  // and qgamma at a subnormal p and a shape of 3.3e126 was 1e21 times the mean (0.15.2)
+  "gamma(scale)": [
+    { params: { shape: 4.7893788e-316, scale: 2.0638560126343632 }, x: [1.1183229256009648e-36, 2.0638560126343632] },
+    { params: { shape: 3.3032236777741095e126, scale: 0.13574289405428971 }, x: [4.4838914172971214e125] },
+  ],
+  // and a lower tail of a few subnormal ulps was 0 (0.15.2)
   chisq: [
+    { params: { df: 172464.33346354478 }, x: [150856.77415319227] },
     { params: { df: 5.286330057824879e306 }, x: [0.21536010784896303, 5.286330057824879e306] },
     { params: { df: 1e308 }, x: [1e-300, 1e308] },
     { params: { df: 1.107e-321 }, x: [1e-300, 1] },
@@ -139,6 +145,8 @@ const REGRESSION: Record<string, { params: Params; x: number[]; sizes?: Omit<Siz
     { params: { shape1: 0.130360175608773, shape2: 8.15e-322 }, x: [0.972696723183617, 0.9999698176120555] },
     { params: { shape1: 27.945113448945182, shape2: 1.5106518374066408e299 }, x: [9.585930727509766e-309] },
     { params: { shape1: 55.11485820081626, shape2: 6.332054207061664e307 }, x: [1e-307, 1e-305, 0.9981707623107112] },
+    // NaN at a subnormal x and a shape above 1e300 (0.15.2)
+    { params: { shape1: 1.428342256921063e304, shape2: 0.5 }, x: [1.5e-323, 5e-324] },
   ],
   // qf at a df2 of 6e302 did not return; with df2 = Inf, pf was 0 where q df1 underflowed (0.15.2)
   f: [
@@ -152,18 +160,37 @@ const REGRESSION: Record<string, { params: Params; x: number[]; sizes?: Omit<Siz
   "nbinom(prob)": [
     { params: { size: 641.0457517358916, prob: 8.999877024359508e-300 }, x: [1e303] },
     { params: { size: 2.373385507516785e301, prob: 0.9999999999768105 }, x: [0, 1] },
+    // dnbinom at a subnormal size lost digits (0.15.2)
+    { params: { size: 3.941094207e-315, prob: 0.12459577713161707 }, x: [57, 58] },
   ],
   // qcauchy with logP lost digits at a subnormal scale; the tail where q - location overflows was 0 (0.15.2)
   cauchy: [
     { params: { location: 3.5476859422264514e-180, scale: 9.11522704e-314 }, x: [-1.7624822526054919e-76] },
     { params: { location: -1.1000747441814416e307, scale: 2.7035785439311993e296 }, x: [1.79e308] },
+    // dcauchy at a subnormal scale lost digits or was 0 (0.15.2)
+    { params: { location: 0, scale: 1.57817263326e-312 }, x: [-2.16543841389836e-309] },
+    { params: { location: 0, scale: 5e-324 }, x: [1e-10] },
   ],
   // dnorm was NaN where 1 / sd overflows (0.15.2)
-  norm: [{ params: { mean: 0, sd: 1.7e-322 }, x: [4.84965e-319, 5.1e-321] }],
+  // and lost digits where exp(700 - z²/2) was subnormal (0.15.2)
+  norm: [
+    { params: { mean: 0, sd: 1.7e-322 }, x: [4.84965e-319, 5.1e-321] },
+    { params: { mean: 0, sd: 3e-323 }, x: [-1.59e-321] },
+  ],
+  // Densities through a subnormal exp(-|z|) lost digits (0.15.2)
+  laplace: [{ params: { mu: 9.486302498433996e-158, sigma: 6.044548486737205e-171 }, x: [9.486302497985611e-158] }],
+  logis: [{ params: { location: 0, scale: 4.81926e-319 }, x: [-3.5667197e-316] }],
+  // pgeom at a subnormal prob was 0 from x = 1e290 (0.15.2)
+  geom: [{ params: { prob: 5e-324 }, x: [2.7772312556802523e285, 1.948811553346453e294] }],
+  // An upper tail of a few subnormal ulps was 0 (0.15.2)
+  pois: [{ params: { lambda: 229399.39745017525 }, x: [248046] }],
   // qtriang returned the mode at a subnormal width (0.15.2)
   triang: [
     { params: { a: 0, b: 1.02822077e-316, c: 8.726421e-317 }, x: [1.02817096e-316] },
     { params: { a: 0, b: 7.36918471256e-313, c: 0 }, x: [2.2849939e-316] },
+    // and lost digits in the log where a ratio of lengths was subnormal (0.15.2)
+    { params: { a: 0, b: 1.2412114100115105e133, c: 5.580977276459495e132 }, x: [3.066199584564306e-190] },
+    { params: { a: 0, b: 1.3330842142984116e63, c: 0 }, x: [2.2847913320311623e-257] },
   ],
   // At a subnormal shape qkumar was NaN and the log of a tail of the shape's order lost digits (0.15.2)
   kumar: [

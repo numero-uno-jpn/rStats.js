@@ -14,7 +14,9 @@ import {
   digamma,
   dinvgamma,
   dkumar,
+  dlaplace,
   dlnorm,
+  dlogis,
   dnbinom,
   dnorm,
   dpareto,
@@ -55,6 +57,7 @@ import {
   qbinom,
   qcauchy,
   qchisq,
+  qexp,
   qf,
   qgamma,
   qhyper,
@@ -362,7 +365,7 @@ const pgShape = (x: number) => (shape: number, t: Tail) => pgamma(x, shape, t);
 
 const IGAM: Entry[] = [
   {
-    where: "special/igam.ts:45",
+    where: "special/igam.ts:55",
     fns: "pgamma, pchisq, ppois, gammainc",
     condition: "a > 1000 && x > 0.97 a",
     methods: "series for P in double | in double-double",
@@ -372,7 +375,7 @@ const IGAM: Entry[] = [
     cases: () => pPairs("pgamma(x, 1e5)", pg(1e5), flipPoint((x) => x > 0.97 * 1e5, 9e4, 9.9e4)),
   },
   {
-    where: "special/igam.ts:309",
+    where: "special/igam.ts:320",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "x > 1.1 (then x < a)",
     methods: "small-x rules (P series if -0.4/log x < a or 1.1 x < a, else Q series) | P series or Q continued fraction",
@@ -380,7 +383,7 @@ const IGAM: Entry[] = [
     cases: () => [...pPairs("pgamma(x, 1.2)", pg(1.2), up(1.1)), ...pPairs("pgamma(x, 0.9)", pg(0.9), up(1.1))],
   },
   {
-    where: "special/igam.ts:310",
+    where: "special/igam.ts:321",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "x < a (x > 1.1, outside Temme's region)",
     methods: "continued fraction for Q | series for P",
@@ -388,7 +391,7 @@ const IGAM: Entry[] = [
     cases: () => [...pPairs("pgamma(x, 5)", pg(5), down(5)), ...pPairs("pgamma(x, 20)", pg(20), down(20))],
   },
   {
-    where: "special/igam.ts:314",
+    where: "special/igam.ts:325",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "x <= 0.5 ? -0.4/log(x) < a : 1.1 x < a",
     methods: "series for Q (DLMF 8.7.3) | series for P",
@@ -400,7 +403,7 @@ const IGAM: Entry[] = [
     ],
   },
   {
-    where: "special/igam.ts:361, :403",
+    where: "special/igam.ts:372, :414",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "x > 1e15 max(a, 1)",
     methods: "continued fraction | Q = x^(a-1) e^-x / Gamma(a) (1 + (a-1)/x)",
@@ -408,7 +411,7 @@ const IGAM: Entry[] = [
     cases: () => [...pPairs("pgamma(x, 0.5)", pg(0.5), up(1e15)), ...pPairs("pgamma(x, 2)", pg(2), up(2e15))],
   },
   {
-    where: "special/igam.ts:262 (:371, :416), 20 < a < 200",
+    where: "special/igam.ts:273 (:382, :427), 20 < a < 200",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "20 < a < 200 && |x - a|/a < 0.3",
     methods: "series / continued fraction | Temme's uniform expansion",
@@ -423,7 +426,7 @@ const IGAM: Entry[] = [
     },
   },
   {
-    where: "special/igam.ts:262 (:371, :416), a > 200",
+    where: "special/igam.ts:273 (:382, :427), a > 200",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "a > 200 && |x - a|/a < 4.5/sqrt(a)",
     methods: "series / continued fraction | Temme's uniform expansion",
@@ -608,7 +611,7 @@ const betaPrefactor = (x: number, a: number, b: number): number => dbeta(x, a, b
 
 const INCBET: Entry[] = [
   {
-    where: "special/incbet.ts:153, :778",
+    where: "special/incbet.ts:154, :779",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "prefactor x^a (1-x)^b / B(a, b) > 2.2e-305",
     methods: "exponent in double-double, one exp at the end | product on the linear scale",
@@ -623,7 +626,7 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:268, :649",
+    where: "special/incbet.ts:269, :650",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "max(a, b) >= 2^52, or a >= 2^20 with a + 200002 not exact (the steps a + 1, a + 2, ... cross into a binade where a's last bit does not fit)",
     methods: "continued fraction with double coefficients (loop inlined) | with double-double coefficients",
@@ -653,7 +656,7 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:753",
+    where: "special/incbet.ts:754",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "b x <= 1 && x <= 0.95 (series in the frame)",
     methods: "continued fraction / complement of the other frame's series | power series",
@@ -664,7 +667,7 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:762, :764",
+    where: "special/incbet.ts:763, :765",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x <= a/(a + b), as 1 - x >= b/(a + b) above x = 1/2 (continued fraction in this frame)",
     methods: "1 - (continued fraction of the other frame) | continued fraction",
@@ -675,7 +678,7 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:772",
+    where: "special/incbet.ts:773",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x (a + b - 2) - (a - 1) < 0",
     methods: "continued fraction #2 | #1",
@@ -683,7 +686,7 @@ const INCBET: Entry[] = [
     cases: () => pPairs("pbeta(x, 5, 8)", pb(5, 8), flipPoint((x) => x * (5 + 8 - 2) - (5 - 1) < 0, 0.3, 0.38)),
   },
   {
-    where: "special/incbet.ts:907, :908",
+    where: "special/incbet.ts:914, :915",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "x < DBL_MIN or 1 - x < DBL_MIN",
     methods: "series / continued fraction | the series with x^a / (a B(a, b)) in logs (betaIncTinyX)",
@@ -694,7 +697,7 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:912",
+    where: "special/incbet.ts:919",
     fns: "pbeta",
     skip: "only a shortcut: m = ab/(a + b) < min(a, b), so Temme's m >= 25 (incbetTemme.ts:187) already implies a, b >= 25",
     condition: "a >= 25 && b >= 25",
@@ -702,7 +705,7 @@ const INCBET: Entry[] = [
     point: "-",
   },
   {
-    where: "special/incbet.ts:927",
+    where: "special/incbet.ts:934",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "max(a, b) >= 15 && min(a, b) <= 40 (or x rounding to 1 in the large frame, see below)",
     methods: "continued fraction | expansion for large a (incbetLargeA.ts) where it applies",
@@ -713,7 +716,7 @@ const INCBET: Entry[] = [
     ],
   },
   {
-    where: "special/incbet.ts:951, :998",
+    where: "special/incbet.ts:958, :1005",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition:
       "a |log x| > 32 v (v from the other frame's series) && the large-a expansion applies, or x below the mean and below " +
@@ -728,7 +731,7 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:970",
+    where: "special/incbet.ts:977",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "series in this frame with value v > 1/2, and the series applies in the other frame",
     methods: "v | 1 - (the other frame's series)",
@@ -739,7 +742,7 @@ const INCBET: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:988",
+    where: "special/incbet.ts:995",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "series in the other frame only, its value o < 1/2",
     methods: "complement of the other frame's series (pseriesComplement) | 1 - o",
@@ -747,7 +750,7 @@ const INCBET: Entry[] = [
     cases: () => pPairs("pbeta(x, 1, 0.1)", pb(1, 0.1), around(flipPoint((x) => Math.pow(1 - x, 0.1) < 0.5, 0.99, 0.9999)[0], 8)),
   },
   {
-    where: "special/incbet.ts:963",
+    where: "special/incbet.ts:970",
     fns: "pbeta, pt, pf, pbinom, pnbinom (log)",
     condition: "log wanted && v < 1e-290",
     methods: "log of the linear value | recomputed in logs",
@@ -767,7 +770,7 @@ const INCBET: Entry[] = [
 
 const PREFACTOR: Entry[] = [
   {
-    where: "special/incbetPrefactor.ts:48, distributions/f.ts:85",
+    where: "special/incbetPrefactor.ts:48, distributions/f.ts:88",
     fns: "pbeta, pt, pf, pbinom, pnbinom, df",
     condition: "min(a, b) < 1",
     methods: "Loader's binomial form | 1/B(a, b) = ab/(a + b) Γ(1+a+b)/(Γ(1+a) Γ(1+b))",
@@ -935,7 +938,7 @@ const LARGE_A: Entry[] = [
 
 const BETA_FN: Entry[] = [
   {
-    where: "special/beta.ts:45, :107",
+    where: "special/beta.ts:45, :109",
     fns: "beta, lbeta (and through them pt, qt, qbeta, pf, ...)",
     condition: "max(a, b) > 15",
     methods: "Cephes (gamma ratio) | double-double Stirling form",
@@ -943,7 +946,7 @@ const BETA_FN: Entry[] = [
     cases: () => [pair("lbeta(a, 3)", (a) => lbeta(a, 3), up(15)), pair("beta(a, 3)", (a) => beta(a, 3), up(15))],
   },
   {
-    where: "special/beta.ts:49, :111",
+    where: "special/beta.ts:49, :113",
     fns: "beta, lbeta",
     condition: "max > 15 and min(a, b) < 1",
     methods: "double-double Stirling form | lgamma(min) - lgammaDiff(min, max)",
@@ -951,7 +954,7 @@ const BETA_FN: Entry[] = [
     cases: () => [pair("lbeta(20, b)", (b) => lbeta(20, b), down(1)), pair("beta(20, b)", (b) => beta(20, b), down(1))],
   },
   {
-    where: "special/beta.ts:53, :112",
+    where: "special/beta.ts:53, :114",
     fns: "beta, lbeta, pbeta and pt with huge parameters",
     condition: "max(a, b) >= 2^52",
     methods: "double-double Stirling form | b log(b/a) form (lbetaHuge)",
@@ -959,7 +962,7 @@ const BETA_FN: Entry[] = [
     cases: () => [pair("lbeta(a, 5)", (a) => lbeta(a, 5), down(2 ** 52)), pair("beta(a, 5)", (a) => beta(a, 5), down(2 ** 52))],
   },
   {
-    where: "special/beta.ts:59, :117",
+    where: "special/beta.ts:61, :122",
     fns: "beta, lbeta",
     skip: "unreachable: reached only for max(a, b) <= 15, but needs a > 1e6 (lbetaAsymp); likewise MAXGAM (171) at :65, :119",
     condition: "a > 1e6 max(|b|, 1)",
@@ -1126,7 +1129,7 @@ const GAMMA_FN: Entry[] = [
     cases: () => [{ kind: "check", label: "reflection at -34 ± 0.3", run: () => reflection(-34.3) ?? reflection(-33.7) }],
   },
   {
-    where: "special/gamma.ts:166, :192",
+    where: "special/gamma.ts:169, :195",
     fns: "lgamma",
     condition: "x < 13; x >= 1000",
     methods: "recurrence and rational approximation | Stirling series | Stirling with three terms",
@@ -1142,7 +1145,7 @@ const GAMMA_FN: Entry[] = [
     cases: () => [pair("lgamma(x)", (x) => lgamma(x), up(1e8))],
   },
   {
-    where: "special/gamma.ts:217",
+    where: "special/gamma.ts:220",
     fns: "lgamma",
     condition: "|x - 1| <= 0.2, |x - 2| <= 0.2",
     methods: "lgammaSign | lgamma1p(x - 1) or lgamma1p(x - 2) + log1p(x - 2)",
@@ -1156,7 +1159,7 @@ const GAMMA_FN: Entry[] = [
       ].map(([c, lo, hi]) => pair("lgamma(x)", (x) => lgamma(x), flipPoint((x) => Math.abs(x - c!) <= 0.2, lo!, hi!))),
   },
   {
-    where: "special/gamma.ts:257",
+    where: "special/gamma.ts:260",
     fns: "lgamma1p (and pgamma, pbeta, the start of qbeta through it)",
     condition: "|x| <= 0.2, |x - 1| <= 0.2",
     methods: "lgamma(x + 1) | log(x) + Taylor series of lgamma1p(x - 1) | Taylor series",
@@ -1369,7 +1372,7 @@ const ELEMENTARY: Entry[] = [
       ),
   },
   {
-    where: "distributions/cauchy.ts:35, :67",
+    where: "distributions/cauchy.ts:68, :100",
     fns: "dcauchy, pcauchy",
     condition: "|z| <= 1",
     methods: "forms in y = 1/|z| | forms in z",
@@ -1381,7 +1384,7 @@ const ELEMENTARY: Entry[] = [
     ],
   },
   {
-    where: "distributions/cauchy.ts:79",
+    where: "distributions/cauchy.ts:112",
     fns: "pcauchy (log)",
     condition: "w = 1/|z| < 1e-150",
     methods: "log(atan(w)/π) | log w - log π",
@@ -1389,7 +1392,7 @@ const ELEMENTARY: Entry[] = [
     cases: () => [pair("pcauchy(x, upper log)", (x) => pcauchy(x, { lowerTail: false, logP: true }), flipPoint((x) => 1 / x < 1e-150, 5e149, 2e150))],
   },
   {
-    where: "distributions/cauchy.ts:109",
+    where: "distributions/cauchy.ts:142",
     fns: "qcauchy",
     condition: "s <= 0.25",
     methods: "-tan(π (1/2 - s)) | -1/tan(π s)",
@@ -1401,7 +1404,7 @@ const ELEMENTARY: Entry[] = [
     ],
   },
   {
-    where: "distributions/cauchy.ts:122, :126",
+    where: "distributions/cauchy.ts:155, :159",
     fns: "qcauchy",
     condition: "p < 1e-200; log p < -460",
     methods: "tan forms | scale / (π p) (tan(πp) = πp to (πp)²/3)",
@@ -1413,7 +1416,7 @@ const ELEMENTARY: Entry[] = [
     ],
   },
   {
-    where: "distributions/cauchy.ts:17",
+    where: "distributions/cauchy.ts:49",
     fns: "dcauchy, pcauchy",
     condition: "x - location overflows (both finite)",
     methods: "x - location | from the halves x/2 - location/2",
@@ -1425,7 +1428,7 @@ const ELEMENTARY: Entry[] = [
     },
   },
   {
-    where: "distributions/logistic.ts:51",
+    where: "distributions/logistic.ts:57",
     fns: "qlogis",
     condition: "p < 0.25",
     methods: "log1p((2p - 1)/(1 - p)) | log(p/(1 - p))",
@@ -1433,7 +1436,7 @@ const ELEMENTARY: Entry[] = [
     cases: () => [pair("qlogis(p)", (p) => qlogis(p), down(0.25)), pair("qlogis(p, upper)", (p) => qlogis(p, { lowerTail: false }), down(0.25))],
   },
   {
-    where: "distributions/kumaraswamy.ts:17, :23",
+    where: "distributions/kumaraswamy.ts:34, :44",
     fns: "dkumar, pkumar",
     condition: "x^a < 0.5",
     methods: "-expm1(a log x) | 1 - x^a",
@@ -1444,7 +1447,7 @@ const ELEMENTARY: Entry[] = [
     },
   },
   {
-    where: "distributions/kumaraswamy.ts:42",
+    where: "distributions/kumaraswamy.ts:102",
     fns: "dkumar",
     condition: "x^a > 1e-290",
     methods: "x^(a-1) by pow | as x^a / x",
@@ -1452,7 +1455,7 @@ const ELEMENTARY: Entry[] = [
     cases: () => dPairs("dkumar(x, 2, 3)", (x, log) => dkumar(x, 2, 3, { log }), flipPoint((x) => Math.pow(x, 2) > 1e-290, 5e-146, 5e-145)),
   },
   {
-    where: "distributions/kumaraswamy.ts:43",
+    where: "distributions/kumaraswamy.ts:110 (d)",
     fns: "dkumar",
     condition: "DBL_MIN < d < Inf (d the product form)",
     methods: "exp(log density) | product",
@@ -1464,7 +1467,7 @@ const ELEMENTARY: Entry[] = [
     ],
   },
   {
-    where: "distributions/kumaraswamy.ts:56",
+    where: "distributions/kumaraswamy.ts:125",
     fns: "pkumar (lower tail, log)",
     condition: "max(b, 1) x^a < 1e-10",
     methods: "log1mExp(b log(1 - x^a)) | log(b) + a log x + log1p(-(b - 1) x^a / 2)",
@@ -1486,7 +1489,7 @@ const ELEMENTARY: Entry[] = [
     },
   },
   {
-    where: "distributions/triangular.ts:35",
+    where: "distributions/triangular.ts:46",
     fns: "dtriang",
     condition: "r < 0.5 (r the fraction from the mode to the end)",
     methods: "distance to the end | 1 - r",
@@ -1500,7 +1503,7 @@ const ELEMENTARY: Entry[] = [
     },
   },
   {
-    where: "distributions/triangular.ts:48, :69",
+    where: "distributions/triangular.ts:66, :125",
     fns: "ptriang, qtriang",
     condition: "q <= c; lower <= (c - a)/w",
     methods: "forms from the upper end | from the lower end",
@@ -1695,7 +1698,7 @@ const BETA_T_F: Entry[] = [
     },
   },
   {
-    where: "distributions/f.ts:53",
+    where: "distributions/f.ts:57",
     fns: "df, pf, qf",
     condition: "|m x| < 1e290",
     methods: "1 - z = n/(m x) in double | z, 1 - z as double-double quotients",
@@ -1706,7 +1709,7 @@ const BETA_T_F: Entry[] = [
     },
   },
   {
-    where: "distributions/f.ts:88",
+    where: "distributions/f.ts:91",
     fns: "df, qf (density in Newton steps)",
     condition: "m >= 2",
     methods: "dbinom(m/2; (m+n)/2) form | dbinom((m-2)/2; (m+n-2)/2) form",
@@ -1714,7 +1717,7 @@ const BETA_T_F: Entry[] = [
     cases: () => dPairs("df(0.7, m, 5)", (m, log) => df(0.7, m, 5, { log }), down(2)),
   },
   {
-    where: "distributions/f.ts:55",
+    where: "distributions/f.ts:59",
     fns: "df, pf, qf",
     condition: "x > 0, m x < 1e-290 && n < 1e127",
     methods: "m x and n as they are | both scaled by 2^600",
@@ -1725,7 +1728,7 @@ const BETA_T_F: Entry[] = [
     },
   },
   {
-    where: "distributions/f.ts:70, :71, :131, :132",
+    where: "distributions/f.ts:73, :74, :134, :135",
     fns: "df, pf, qf",
     condition: "m x/n < DBL_MIN or n/(m x) < DBL_MIN (in logs)",
     methods: "the ratios m x/(n + m x), n/(n + m x) | the incomplete beta function (betaIncTinyX) and the density from the log of the tiny ratio",
@@ -1742,7 +1745,7 @@ const BETA_T_F: Entry[] = [
     },
   },
   {
-    where: "distributions/f.ts:224, :232, :233",
+    where: "distributions/f.ts:231, :239, :240",
     fns: "qf",
     condition:
       "upper tail whose leading term overflows, confirmed by pf at the largest double; lower tail and n < 1 with pf(largest " +
@@ -2013,7 +2016,7 @@ const NBETA: Entry[] = [
     point: "-",
   },
   {
-    where: "distributions/nbeta.ts:667, :864",
+    where: "distributions/nbeta.ts:667, :868",
     fns: "qbeta, qf with ncp",
     skip: "as distributions/nchisq.ts:658 (the quantile of a spread below 1e-10, by a search over the doubles)",
     condition: "relative spread of Y and W < 1e-10",
@@ -2176,7 +2179,7 @@ const DISCRETE: Entry[] = [
     },
   },
   {
-    where: "distributions/negbinomial.ts:85",
+    where: "distributions/negbinomial.ts:90",
     fns: "pnbinom, qnbinom",
     condition: "size <= 1 && q >= 0.95 && p >= 1e-4 (series for the upper tail)",
     methods: "incomplete beta | positive-term series",
@@ -2192,7 +2195,7 @@ const DISCRETE: Entry[] = [
     },
   },
   {
-    where: "distributions/negbinomial.ts:96, :109",
+    where: "distributions/negbinomial.ts:101, :114",
     fns: "pnbinom, qnbinom",
     condition: "prefactor > 1e-290; series value <= 0.5",
     methods: "incomplete beta | series",
@@ -2210,7 +2213,7 @@ const DISCRETE: Entry[] = [
     },
   },
   {
-    where: "distributions/negbinomial.ts:124, :138",
+    where: "distributions/negbinomial.ts:129, :143",
     fns: "qnbinom",
     condition: "prob < 0.05 (gamma start); start > 1e4 (continuous refinement)",
     methods: "Cornish-Fisher | gamma quantile / -log q; integer search from the start | after Newton/secant steps",
@@ -2324,7 +2327,7 @@ const DISCRETE: Entry[] = [
 
 const INTERNAL: Entry[] = [
   {
-    where: "internal/invert.ts:52, :65",
+    where: "internal/invert.ts:52, :67",
     fns: "every continuous q* solved by Newton (qgamma, qbeta, qt, qf, qchisq with ncp, ...)",
     condition: "log F > -700 (residual from the linear ratio)",
     methods: "log F - log target | log(F / target)",
@@ -2335,7 +2338,7 @@ const INTERNAL: Entry[] = [
     },
   },
   {
-    where: "internal/invert.ts:103",
+    where: "internal/invert.ts:105",
     fns: "q* with a log-density derivative",
     skip: "a per-iteration choice between the Halley and Newton steps; it changes the path, not the converged root (checked by every quantile entry)",
     condition: "Halley/Newton step ratio in [0.5, 2]",
@@ -2343,7 +2346,7 @@ const INTERNAL: Entry[] = [
     point: "-",
   },
   {
-    where: "internal/invert.ts:127",
+    where: "internal/invert.ts:129",
     fns: "every continuous q* on a positive support",
     condition: "|log x| <= 2",
     methods: "Newton polish in x | none",
@@ -3088,7 +3091,7 @@ const tinyLowerLog = (shape: number) => shape * Math.log(1e-310) - lgamma1p(shap
 
 const GAMMA_ENDS: Entry[] = [
   {
-    where: "special/igam.ts:366, :409",
+    where: "special/igam.ts:377, :420",
     fns: "pgamma, pchisq, pinvgamma (the upper tail of the gamma)",
     condition: "a < 1e-300 (upper tail)",
     methods: "series or continued fraction | (a / 1e-300) Q(1e-300, x)",
@@ -3107,7 +3110,7 @@ const GAMMA_ENDS: Entry[] = [
     ],
   },
   {
-    where: "special/loader.ts:387; special/igam.ts:278",
+    where: "special/loader.ts:387; special/igam.ts:289",
     fns: "pgamma, pchisq, ppois, dgamma (and the other users of the deviance)",
     condition: "x < 1e299 in the deviance x log(x/M) + M - x with M below 1e-250; a > 1e299 for Temme's expansion",
     methods: "double-double product | the same scaled by 2^-64 (exact); series | Temme's expansion",
@@ -3184,7 +3187,7 @@ const GAMMA_ENDS: Entry[] = [
 
 const BETA_F_ENDS: Entry[] = [
   {
-    where: "special/incbet.ts:656, :661",
+    where: "special/incbet.ts:657, :662",
     fns: "pbeta, pf, pbinom, pnbinom (the continued fraction for max(a, b) > 1e150)",
     condition: "a divisor above 1e299 (the frame's first shape and the steps from it)",
     methods: "ddDiv, ddMul | the same with the operands scaled by 2^±64",
@@ -3192,7 +3195,7 @@ const BETA_F_ENDS: Entry[] = [
     cases: () => pPairs("pbeta(1e-236, 9220.5, b)", (b, t) => pbeta(1e-236, 9220.5, b, t), up(1e299)),
   },
   {
-    where: "special/incbet.ts:657, :662",
+    where: "special/incbet.ts:658, :663",
     fns: "pbeta, pf, pbinom, pnbinom (the continued fraction for max(a, b) > 1e150)",
     condition: "a quotient (a + b)/(a + 1), or an operand of a product, above 1e299",
     methods: "ddDiv, ddMul | the same with the operands scaled by 2^±64",
@@ -3201,7 +3204,7 @@ const BETA_F_ENDS: Entry[] = [
       pPairs("pbeta(1e-307, 55.1, b)", (b, t) => pbeta(1e-307, 55.1, b, t), flipPoint((b) => 55.1 + b > 1e299 * (55.1 + 1), 5e300, 6e300)),
   },
   {
-    where: "special/incbet.ts:74",
+    where: "special/incbet.ts:75",
     fns: "pbeta, pf, pbinom, pnbinom",
     skip:
       "not reachable as a boundary: the prefactor is below the normal range through c (the smaller shape, or the series " +
@@ -3212,7 +3215,7 @@ const BETA_F_ENDS: Entry[] = [
     point: "-",
   },
   {
-    where: "special/incbet.ts:939",
+    where: "special/incbet.ts:946",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "series in this frame only, its value v > 1/2, and the complement of the series passes the cancellation check",
     methods: "v | 1 - (pseriesComplement)",
@@ -3223,7 +3226,7 @@ const BETA_F_ENDS: Entry[] = [
     },
   },
   {
-    where: "special/incbet.ts:902, :903",
+    where: "special/incbet.ts:909, :910",
     fns: "pbeta, pt, pf, pbinom, pnbinom",
     condition: "a < 1e-300 with b > 1e-280 (b < 1e-300 with a > 1e-280)",
     methods: "the series and continued fractions | the tail of the order of the shape at 1e-300, scaled",
@@ -3281,7 +3284,7 @@ const BETA_F_ENDS: Entry[] = [
     cases: () => [pair("qbeta(p, 3, 0.5, upper)", (p) => qbeta(p, 3, 0.5, { lowerTail: false }), around(pbeta(2 ** -55, 0.5, 3)))],
   },
   {
-    where: "distributions/f.ts:216",
+    where: "distributions/f.ts:223",
     fns: "qf",
     condition: "n > 1e20 (m + 2 |log p| + 1e3)² (p the smaller tail)",
     methods: "the search on pf | the quantile of χ²_m / m",
@@ -3289,7 +3292,7 @@ const BETA_F_ENDS: Entry[] = [
     cases: () => [pair("qf(0.3, 2, n)", (n) => qf(0.3, 2, n), flipPoint((n) => n > 1e20 * (2 - 2 * Math.log(0.3) + 1e3) ** 2, 1e26, 1.1e26))],
   },
   {
-    where: "distributions/f.ts:176, :183",
+    where: "distributions/f.ts:183, :190",
     fns: "pf, qf (df2 = Inf)",
     condition: "q m below 2^-1022 (the χ² quantile or the answer below 2^-1022), with m above 2^-1022",
     methods: "pgamma(q m, m/2, scale 2) (qgamma / m) | with scale 2/m",
@@ -3342,7 +3345,7 @@ const BETA_F_ENDS: Entry[] = [
     ],
   },
   {
-    where: "distributions/nbeta.ts:860, :880; internal/invert.ts:86",
+    where: "distributions/nbeta.ts:864, :884; internal/invert.ts:88",
     fns: "qf (with ncp)",
     condition: "n > 1e15 with m in [1e-10, 1e15]",
     methods:
@@ -3411,7 +3414,7 @@ const BETA_F_ENDS: Entry[] = [
     ],
   },
   {
-    where: "internal/invert.ts:135",
+    where: "internal/invert.ts:137",
     fns: "every continuous quantile (the polishing in x)",
     condition: "f/F finite",
     methods: "r F/f | the step relative to x, x r F/(x f)",
@@ -3554,7 +3557,7 @@ const TUKEY: Entry[] = [
     ],
   },
   {
-    where: "distributions/tukey.ts:861, :863",
+    where: "distributions/tukey.ts:872, :874",
     fns: "ptukey, qtukey (finite df)",
     condition: "df = Inf value of the guessed side > 0.5; integrated side > 0.5 (then the other side)",
     methods: "integrate the guessed tail | the other tail",
@@ -3565,7 +3568,7 @@ const TUKEY: Entry[] = [
     ],
   },
   {
-    where: "distributions/tukey.ts:870",
+    where: "distributions/tukey.ts:881",
     fns: "ptukey, qtukey (finite df)",
     condition: "smaller tail < 1e-290",
     methods: "linear integral | log integral",
@@ -3573,7 +3576,7 @@ const TUKEY: Entry[] = [
     cases: () => [tukeySwitch290(5)],
   },
   {
-    where: "distributions/tukey.ts:897, :912",
+    where: "distributions/tukey.ts:908, :923",
     fns: "qtukey",
     condition: "linear target > 1e-290",
     methods: "residual from the log | log of the linear ratio",
@@ -3635,7 +3638,7 @@ const temmeEta = (a: number, x: number): number => {
 
 const EXTREME: Entry[] = [
   {
-    where: "special/igam.ts:278 (:375, :422)",
+    where: "special/igam.ts:289 (:386, :433)",
     fns: "pgamma, pchisq, ppois, qgamma",
     condition: "a > 200 && (|x - a|/a < 1e-3 || a > 1e299)",
     methods: "series / continued fraction | Temme's expansion in the form e^-bd0(a, x) (erfcx(y)/2 ± S/sqrt(2π a))",
@@ -3650,7 +3653,7 @@ const EXTREME: Entry[] = [
     },
   },
   {
-    where: "special/igam.ts:292",
+    where: "special/igam.ts:303",
     fns: "pgamma, pchisq, ppois",
     condition: "a > 1e299 && |η| > 0.1",
     methods: "c_0(η) by its power series | 1/(λ - 1) - 1/η",
@@ -3664,7 +3667,7 @@ const EXTREME: Entry[] = [
     },
   },
   {
-    where: "special/igam.ts:295",
+    where: "special/igam.ts:306",
     fns: "pgamma, pchisq, ppois",
     condition: "bd0(a, x) > 2000 (the smaller tail by Temme's form)",
     methods: "e^-E B | 0",
@@ -3672,7 +3675,7 @@ const EXTREME: Entry[] = [
     skip: "both sides are 0 on the linear scale (e^-2000 underflows); the log is the same expression on both sides",
   },
   {
-    where: "special/igam.ts:127",
+    where: "special/igam.ts:138",
     fns: "pgamma, pchisq, ppois",
     condition: "x > 1e20 (continued fraction for Q)",
     methods: "convergents with rescaling | modified Lentz method",
@@ -3726,7 +3729,7 @@ const EXTREME: Entry[] = [
     skip: "both sides are 0 (e^-2000 underflows); the guard only keeps 1 + l_low, with l_low up to half an ulp of l, from giving -0",
   },
   {
-    where: "special/incbet.ts:651",
+    where: "special/incbet.ts:652",
     fns: "pbeta, pf, pbinom, pnbinom",
     condition: "max(a, b) > 1e150 (continued fraction)",
     methods: "partial numerators as products over products | quotients first",
@@ -3754,7 +3757,7 @@ const EXTREME: Entry[] = [
       pPairs("pnbinom(1e16, 5, prob)", (p, t) => pnbinom(1e16, 5, { prob: p, ...t }), flipPoint((p) => p < 1e-15, 5e-16, 2e-15)),
   },
   {
-    where: "special/incbet.ts:927, special/incbetLargeA.ts:130, :226",
+    where: "special/incbet.ts:934, special/incbetLargeA.ts:130, :226",
     fns: "pbeta, pf, pnbinom",
     condition: "x rounds to 1 in the frame of the large parameter (b up to 1e4, b < 1e-8 a): the expansion also for b > 40, u > 500, and on the log scale below 1e-290",
     methods: "continued fraction (NaN there) | expansion",
@@ -3780,7 +3783,7 @@ const EXTREME: Entry[] = [
     skip: "a starting value: the search ends at the same quantile",
   },
   {
-    where: "distributions/negbinomial.ts:132",
+    where: "distributions/negbinomial.ts:137",
     fns: "qnbinom",
     condition: "starting value beyond the doubles (prob < 0.05)",
     methods: "integer search | Infinity",
@@ -3806,7 +3809,7 @@ const EXTREME: Entry[] = [
       "q above about 1e8",
   },
   {
-    where: "distributions/tukey.ts:150, :169, :932; internal/discrete.ts:65, :93; internal/invert.ts:143",
+    where: "distributions/tukey.ts:150, :169, :943; internal/discrete.ts:65, :93; internal/invert.ts:145",
     fns: "ptukey, qtukey, qpois, qbinom, qnbinom, every continuous quantile",
     condition:
       "integrals: error at the noise level of the integrand, or 256 intervals; searches: first step the spacing of the " +
@@ -3828,7 +3831,7 @@ const tinyGammaLog = (shape: number): number => shape * (-1022 * Math.LN2) - lga
 
 const SUBNORMAL: Entry[] = [
   {
-    where: "distributions/exponential.ts:34",
+    where: "distributions/exponential.ts:35",
     fns: "dexp",
     condition: "exp(-rate x) < 2^-1022 and rate > 1",
     methods: "rate exp(-rate x) | exp(log rate - rate x) in double-double",
@@ -4075,7 +4078,7 @@ const SUBNORMAL: Entry[] = [
   },
   // weibull.ts, pareto.ts, triangular.ts, kumaraswamy.ts: the switches for subnormal and overflowing intermediates
   {
-    where: "distributions/weibull.ts:38",
+    where: "distributions/weibull.ts:39",
     fns: "dweibull, pweibull, qweibull",
     condition: "x / scale normal and finite, x < 1e300",
     methods: "log x - log scale | log of the double-double quotient",
@@ -4091,7 +4094,7 @@ const SUBNORMAL: Entry[] = [
     },
   },
   {
-    where: "distributions/weibull.ts:45",
+    where: "distributions/weibull.ts:46",
     fns: "dweibull, pweibull",
     condition: "shape < 1e300 and the product finite",
     methods: "the double product | shape log u in double-double",
@@ -4101,7 +4104,7 @@ const SUBNORMAL: Entry[] = [
       "or beyond 1e284, and t is 1, 0 or Infinity on both sides",
   },
   {
-    where: "distributions/weibull.ts:84",
+    where: "distributions/weibull.ts:85",
     fns: "dweibull",
     condition: "E < -2500",
     methods: "the forms below | 0",
@@ -4109,7 +4112,7 @@ const SUBNORMAL: Entry[] = [
     skip: "both sides are 0: |log(shape / scale)| < 1455, so the density is below e^-1045",
   },
   {
-    where: "distributions/weibull.ts:85",
+    where: "distributions/weibull.ts:86",
     fns: "dweibull",
     condition: "shape / scale normal and finite, E > -708",
     methods: "exp(log(shape / scale) + E) | (shape / scale) exp(E)",
@@ -4120,7 +4123,7 @@ const SUBNORMAL: Entry[] = [
     ],
   },
   {
-    where: "distributions/weibull.ts:103",
+    where: "distributions/weibull.ts:104",
     fns: "pweibull (lower log)",
     condition: "shape log u < -700",
     methods: "log(1 - exp(-t)) | log t",
@@ -4128,7 +4131,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => [pair("pweibull(q, 1, lower log)", (q) => pweibull(q, 1, { logP: true }), around(flipPoint((q) => Math.log(q) < -700, 1e-305, 1e-303)[0]))],
   },
   {
-    where: "distributions/weibull.ts:120",
+    where: "distributions/weibull.ts:135",
     fns: "qweibull",
     condition: "(-log P[X > x])^(1/shape) normal and finite",
     methods: "exp(log scale + log(-lu) / shape) | scale times it",
@@ -4209,7 +4212,7 @@ const SUBNORMAL: Entry[] = [
     ],
   },
   {
-    where: "distributions/triangular.ts:34, :68, :82",
+    where: "distributions/triangular.ts:36, :93, :108",
     fns: "dtriang, ptriang, qtriang",
     condition: "b - a finite",
     methods: "everything halved (x, a, b, c) | direct",
@@ -4224,7 +4227,7 @@ const SUBNORMAL: Entry[] = [
     },
   },
   {
-    where: "distributions/triangular.ts:75",
+    where: "distributions/triangular.ts:101",
     fns: "ptriang (log of the near tail)",
     condition: "the near tail below 2^-1022",
     methods: "log v | log s + log t",
@@ -4232,7 +4235,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => [pair("ptriang(q, lower log)", (q) => ptriang(q, { a: 0, b: 1, c: 0.5, logP: true }), flipPoint((q) => 2 * q * q < DBL_MIN, 1e-154, 2e-154))],
   },
   {
-    where: "distributions/triangular.ts:87",
+    where: "distributions/triangular.ts:113",
     fns: "qtriang (log)",
     condition: "exp(p) < 2^-1022",
     methods: "sqrt(exp(p)) | exp(p / 2)",
@@ -4240,7 +4243,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => [pair("qtriang(lp, log)", (lp) => qtriang(lp, { a: 0, b: 1, c: 0.5, logP: true }), flipPoint((lp) => Math.exp(lp) < DBL_MIN, -709, -707))],
   },
   {
-    where: "distributions/triangular.ts:102, :108",
+    where: "distributions/triangular.ts:128, :134",
     fns: "qtriang",
     condition: "t <= 1/2 (t the share of the probability on the quantile's side of the mode)",
     methods: "from the mode, (1 - t) / (1 + sqrt(t)) | from the end, sqrt(t)",
@@ -4255,7 +4258,7 @@ const SUBNORMAL: Entry[] = [
     },
   },
   {
-    where: "distributions/kumaraswamy.ts:28",
+    where: "distributions/kumaraswamy.ts:29",
     fns: "dkumar, pkumar",
     condition: "a log x subnormal (x near 1, a tiny)",
     methods: "-expm1(a log x) | -a log x from the factors (log a + log(-log x), or the base scaled by 2^600)",
@@ -4271,7 +4274,7 @@ const SUBNORMAL: Entry[] = [
     },
   },
   {
-    where: "distributions/kumaraswamy.ts:53",
+    where: "distributions/kumaraswamy.ts:54",
     fns: "dkumar, pkumar",
     condition: "|c| < 1e-8 (c = e lo / hi, the first-order correction for the rounding of 1 - x^a)",
     methods: "exp(e log1p(-x^a)) | pow(1 - x^a, e) (1 + c)",
@@ -4279,7 +4282,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => [{ kind: "sweep", label: "pkumar(x, 1, 1e9, upper)", f: (x) => pkumar(x, 1, 1e9, { lowerTail: false }), xs: grid(1e-9, 2 ** -70, 61) }],
   },
   {
-    where: "distributions/kumaraswamy.ts:92, :118",
+    where: "distributions/kumaraswamy.ts:93, :119",
     fns: "dkumar, pkumar",
     condition: "x^a < 2^-1022",
     methods: "log1p(-x^a) | -x^a from logs",
@@ -4293,7 +4296,7 @@ const SUBNORMAL: Entry[] = [
     },
   },
   {
-    where: "distributions/kumaraswamy.ts:102",
+    where: "distributions/kumaraswamy.ts:103",
     fns: "dkumar",
     condition: "x^(a-1) < 2^-1022",
     methods: "the product | exp(log density)",
@@ -4301,7 +4304,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => [pair("dkumar(x, 3, 1e300)", (x) => dkumar(x, 3, 1e300), flipPoint((x) => Math.pow(x, 2) < DBL_MIN, 1e-154, 2e-154))],
   },
   {
-    where: "distributions/kumaraswamy.ts:109",
+    where: "distributions/kumaraswamy.ts:110",
     fns: "dkumar",
     condition: "a b, a b x^(a-1) and (1 - x^a)^(b-1) normal (and the density normal and finite)",
     methods: "exp(log density) | the product",
@@ -4309,7 +4312,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => [pair("dkumar(1e-200, 1e-154, b)", (b) => dkumar(1e-200, 1e-154, b), flipPoint((b) => 1e-154 * b >= DBL_MIN, 2e-154, 3e-154))],
   },
   {
-    where: "distributions/kumaraswamy.ts:67, :77",
+    where: "distributions/kumaraswamy.ts:68, :78",
     fns: "dkumar",
     condition: "x = 0, or a or b beyond 1e300 (double); x^a > 1e-10 (log(1 - x^a) from x^a in double-double)",
     methods: "double | double-double sum; log1p(-x^a) | log of 1 - exp(a log x) in double-double",
@@ -4320,7 +4323,7 @@ const SUBNORMAL: Entry[] = [
     ],
   },
   {
-    where: "distributions/kumaraswamy.ts:128",
+    where: "distributions/kumaraswamy.ts:129",
     fns: "pkumar (lower log)",
     condition: "-b log(1 - x^a) < 2^-1022 (a subnormal log of the upper tail)",
     methods: "log1mExp(lu) | log b + log(-log(1 - x^a))",
@@ -4330,7 +4333,7 @@ const SUBNORMAL: Entry[] = [
     ],
   },
   {
-    where: "distributions/kumaraswamy.ts:129",
+    where: "distributions/kumaraswamy.ts:130",
     fns: "pkumar (lower log)",
     condition: "log P[X > q] < -log 2 (and x^a normal)",
     methods: "log1mExp(lu) | log1p(-(1 - x^a)^b)",
@@ -4338,7 +4341,7 @@ const SUBNORMAL: Entry[] = [
     cases: () => [pair("pkumar(q, 1, 1, lower log)", (q) => pkumar(q, 1, 1, { logP: true }), up(0.5))],
   },
   {
-    where: "distributions/kumaraswamy.ts:142, :143, :148",
+    where: "distributions/kumaraswamy.ts:146, :154, :159",
     fns: "qkumar",
     condition: "lu / b <= -2^-1022; lu / b < -log 2; a < 1e300 and 1/a < 1e300",
     methods:
@@ -4350,6 +4353,213 @@ const SUBNORMAL: Entry[] = [
       pair("qkumar(p, 2, 1)", (p) => qkumar(p, 2, 1), flipPoint((p) => Math.log1p(-p) < -Math.LN2, 0.49, 0.51)),
       pair("qkumar(0.5, a, 1)", (a) => qkumar(0.5, a, 1), down(1e300)),
       pair("qkumar(0.5, a, 1)", (a) => qkumar(0.5, a, 1), flipPoint((a) => 1 / a < 1e300, 9e-301, 1.1e-300)),
+    ],
+  },
+];
+
+/** -1022 log 2: log p below it means a probability below the normal range */
+const LOG_DBL_MIN = -1022 * Math.LN2;
+
+const SUBNORMAL_PARTS: Entry[] = [
+  {
+    where: "internal/invert.ts:54, :67",
+    fns: "quantiles solved by invertContinuous (qgamma, qbeta, qf, ...)",
+    skip:
+      "a switch of the residual inside the search (F / p overflows only at points far from the root, where the residual is " +
+      "hundreds either way), not of the answer; the qgamma case in extremeAccuracy.test.ts covers it",
+    condition: "F / p finite (a subnormal linear target p)",
+    methods: "log F - log p | log(F / p)",
+    point: "-",
+  },
+  {
+    where: "special/incbet.ts:854, :865",
+    fns: "pbeta, pf, pbinom, pnbinom (x or 1 - x below 2^-1022)",
+    condition: "a log x overflows to -Infinity; e < -746 (the exponent of the series' prefactor)",
+    methods: "the series | the limits 0 and 1; r e^e (1 + e_lo) | 0 (e^-746 rounds to 0 as the product did)",
+    point: "validity: pbeta(4.2e-310, a, 1113) on both sides of the a where a log x overflows",
+    cases: () => {
+      const x = 4.2200334418145e-310;
+      const ab = flipPoint((a) => a * Math.log(x) === -Infinity, 1e305, 1e306);
+      return [
+        {
+          kind: "check",
+          label: "pbeta(4.2e-310, a, 1113): lower 0 and upper 1 on both sides, the lower log -Infinity (the true log is below -1.8e308)",
+          run: () => {
+            const v = ab.map((a) => [pbeta(x, a, 1113), pbeta(x, a, 1113, { lowerTail: false }), pbeta(x, a, 1113, { logP: true })]);
+            const ok = v.every(([lo, up, l]) => Object.is(lo, 0) && up === 1 && l === -Infinity);
+            return ok ? undefined : v.map((r) => r.join(", ")).join("; ");
+          },
+        },
+      ];
+    },
+  },
+  {
+    where: "distributions/f.ts:56",
+    fns: "pf, df, qf",
+    condition: "x > 1e290 or df1 > 1e290 (the factor scaled by 2^-600 and the other by 2^600 before twoProd)",
+    methods: "twoProd(m, x) | the scaled factors",
+    point: "x = 1e290 at df1 = 1e-300, df2 = 3; df1 = 1e290 at q = 1e-295, df2 = 3",
+    cases: () => [
+      ...pPairs("pf(x, 1e-300, 3)", (x, t) => pf(x, 1e-300, 3, t), up(1e290)),
+      ...pPairs("pf(1e-295, df1, 3)", (m, t) => pf(1e-295, m, 3, t), up(1e290)),
+    ],
+  },
+  {
+    where: "special/gamma.ts:168",
+    fns: "lgamma, lbeta, and everything taking log Γ of a tiny argument",
+    condition: "0 < |x| < 1e-300",
+    methods: "the product of 1/x and the series | -log|x|",
+    point: "x = ±1e-300",
+    cases: () => [pair("lgamma(x)", lgamma, down(1e-300)), pair("lgamma(-x)", lgamma, up(-1e-300))],
+  },
+  {
+    where: "special/beta.ts:59, :120",
+    fns: "beta, lbeta",
+    condition: "1 / min(a, b) overflows (beta); min(a, b) < 1e-300 (lbeta, both below 15)",
+    methods: "the gamma products | Infinity; lgamma(a) + lgamma(b) - lgamma(a + b)",
+    point: "a = 1e-300 at b = 3 and b = a (lbeta); the a where 1/a overflows at b = 3 (beta)",
+    cases: () => {
+      const ab = flipPoint((a) => 1 / a === Infinity, 5e-309, 6e-309);
+      return [
+        pair("lbeta(a, 3)", (a) => lbeta(a, 3), down(1e-300)),
+        pair("lbeta(a, a)", (a) => lbeta(a, a), down(1e-300)),
+        {
+          kind: "check",
+          label: "beta(a, 3) Infinity where 1/a overflows, finite and above 1.7e308 just above",
+          run: () => {
+            const [lo, hi] = [beta(ab[0], 3), beta(ab[1], 3)];
+            return lo === Infinity && hi > 1.7e308 && hi < Infinity ? undefined : `beta = ${lo}, ${hi}`;
+          },
+        },
+      ];
+    },
+  },
+  {
+    where: "distributions/nbeta.ts:860",
+    fns: "qf with ncp",
+    skip: "the starting value of the search (the df1 = Inf limit out of the mixture's range), not the answer",
+    condition: "not the mixture method and df2 in the central range",
+    methods: "(m + λ)/m | (m + λ)/m times the F quantile at df1 = Inf",
+    point: "-",
+  },
+  {
+    where: "distributions/laplace.ts:36; logistic.ts:37",
+    fns: "dlaplace, dlogis",
+    condition: "exp(-|z|) >= 2^-1022",
+    methods: "expNegOver (powers of two applied last) | exp(-|z|) / (2 sigma), and the logistic form",
+    point: "|z| = 1022 log 2 at sigma = scale = 1e-300",
+    cases: () => {
+      const ab = flipPoint((x) => Math.exp(-x / 1e-300) >= DBL_MIN, 7.07e-298, 7.09e-298);
+      return [
+        pair("dlaplace(x, 0, 1e-300)", (x) => dlaplace(x, { sigma: 1e-300 }), ab),
+        pair("dlogis(x, 0, 1e-300)", (x) => dlogis(x, { scale: 1e-300 }), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/logistic.ts:38",
+    fns: "dlogis",
+    condition: "scale >= 2^-1022",
+    methods: "e / (1 + e)^2 / scale | e / (scale (1 + e)^2)",
+    point: "scale = 2^-1022 at x = 2^-1021 (z = 2)",
+    cases: () => [pair("dlogis(2^-1021, 0, scale)", (sc) => dlogis(2 * DBL_MIN, { scale: sc }), down(DBL_MIN))],
+  },
+  {
+    where: "distributions/normal.ts:143",
+    fns: "dnorm (an sd whose reciprocal overflows)",
+    condition: "hi²/2 > 1400 (hi = |z| floored to sixteenths)",
+    methods: "exp(700 - hi²/2) | exp(1400 - hi²/2) and two factors of exp(-700)",
+    point: "z = 52.9375 at sd = 2^-1070",
+    cases: () => {
+      const sd = 2 ** -1070;
+      const ab = flipPoint((x) => (Math.floor((x / sd) * 16) / 16) ** 2 / 2 > 1400, 52.5 * sd, 53.5 * sd);
+      return [...dPairs("dnorm(x, 0, 2^-1070)", (x, log) => dnorm(x, { sd, log }), ab)];
+    },
+  },
+  {
+    where: "distributions/cauchy.ts:67",
+    fns: "dcauchy",
+    condition: "scale < 2^-1022",
+    methods: "1 / (π scale (1 + z²)) and the y = 1/|z| form | the powers of two of scale and x - location applied last",
+    point: "scale = 2^-1022 at x = 3 2^-1022 (|z| > 1) and x = 2^-1023 (|z| < 1)",
+    cases: () => [
+      ...dPairs("dcauchy(3 2^-1022, 0, scale)", (sc, log) => dcauchy(3 * DBL_MIN, { scale: sc, log }), down(DBL_MIN)),
+      ...dPairs("dcauchy(2^-1023, 0, scale)", (sc, log) => dcauchy(DBL_MIN / 2, { scale: sc, log }), down(DBL_MIN)),
+    ],
+  },
+  {
+    where: "distributions/exponential.ts:68; weibull.ts:118, :128; kumaraswamy.ts:147",
+    fns: "qexp, qweibull, qkumar (lower tail, log p)",
+    condition: "log p < -1022 log 2 (then exp(p / shape) below 2^-1022 for qweibull)",
+    methods: "-log1p(-exp(p)) | exp(p) without rounding it on the subnormal grid",
+    point: "log p = -1022 log 2 at rate 1e-300, shapes 1 and 2 (scale 1e-300 and 1), a = 2, b = 3",
+    cases: () => {
+      const ab = down(LOG_DBL_MIN);
+      return [
+        pair("qexp(lp, 1e-300, log)", (lp) => qexp(lp, { rate: 1e-300, logP: true }), ab),
+        pair("qweibull(lp, 2, log)", (lp) => qweibull(lp, 2, { logP: true }), ab),
+        pair("qweibull(lp, 1, 1e-300, log)", (lp) => qweibull(lp, 1, { scale: 1e-300, logP: true }), ab),
+        pair("qweibull(lp, 1, 1e300, log)", (lp) => qweibull(lp, 1, { scale: 1e300, logP: true }), ab),
+        pair("qkumar(lp, 2, 3, log)", (lp) => qkumar(lp, 2, 3, { logP: true }), ab),
+      ];
+    },
+  },
+  {
+    where: "distributions/negbinomial.ts:58",
+    fns: "dnbinom",
+    condition: "size / (size + x) >= 2^-1022",
+    methods: "log size - log(size + x), (b / (size + x)) size | the ratio",
+    point: "size where size / (size + 5) = 2^-1022 at x = 5, prob 0.5",
+    cases: () => [
+      ...dPairs("dnbinom(5, size, 0.5)", (n, log) => dnbinom(5, n, { prob: 0.5, log }), flipPoint((n) => n / (n + 5) >= DBL_MIN, 1e-307, 2e-307)),
+    ],
+  },
+  {
+    where: "distributions/triangular.ts:48, :64, :100",
+    fns: "dtriang, ptriang (log)",
+    condition: "the ratios s, t of lengths >= 2^-1022 (density, near tail); the tail >= 2^-1022 (far tail)",
+    methods: "from the lengths themselves, the far tail as a sum of logs | from the ratios",
+    point: "x = 2^-1022 at a = 0, c = 1, b = 2; the far lower tail 2x - x² = 2^-1022 at a = c = 0, b = 1",
+    cases: () => {
+      const o = { a: 0, b: 2, c: 1 };
+      const far = flipPoint((x) => 2 * x - x * x < DBL_MIN, DBL_MIN / 4, DBL_MIN);
+      return [
+        ...dPairs("dtriang(x, 0, 2, 1)", (x, log) => dtriang(x, { ...o, log }), down(DBL_MIN)),
+        pair("ptriang(x, 0, 2, 1, log)", (x) => ptriang(x, { ...o, logP: true }), flipPoint((x) => x / 2 < DBL_MIN, DBL_MIN, 4 * DBL_MIN)),
+        pair("ptriang(x, 0, 1, 0, log)", (x) => ptriang(x, { a: 0, b: 1, c: 0, logP: true }), far),
+      ];
+    },
+  },
+  {
+    where: "special/igam.ts:42, :50, :125, :133",
+    fns: "pgamma, pchisq, ppois, pinvgamma (linear)",
+    condition: "x^a e^-x / Γ(a + 1) >= 2^-1022",
+    methods: "exp of the log | the factor times the series or continued fraction",
+    point: "that factor at 2^-1022 for a = 100 (series, x near 0.03) and a = 2 (continued fraction, x near 717)",
+    cases: () => [
+      pair("pgamma(x, 100)", (x) => pgamma(x, 100), flipPoint((x) => dpois(100, x) >= DBL_MIN, 0.01, 0.1)),
+      pair("pgamma(x, 2, upper)", (x) => pgamma(x, 2, { lowerTail: false }), flipPoint((x) => dpois(2, x) >= DBL_MIN, 700, 730)),
+    ],
+  },
+  {
+    where: "distributions/tukey.ts:842",
+    fns: "ptukey, qtukey",
+    condition: "q < 2^-1000",
+    methods: "the integrals | the lower tail scaled from 2^-1000 by q^((k-1) r)",
+    point: "q = 2^-1000 at k = 2, df = 486.9 and at k = 5, df = 10, nranges = 3",
+    cases: () => [
+      ...pPairs("ptukey(q, 2, 486.9)", (q, t) => ptukey(q, 2, 486.8681928207351, t), down(2 ** -1000)),
+      ...pPairs("ptukey(q, 5, 10, 3)", (q, t) => ptukey(q, 5, 10, { nranges: 3, ...t }), down(2 ** -1000), { tails: TAILS.slice(2) }),
+    ],
+  },
+  {
+    where: "distributions/geometric.ts:31",
+    fns: "pgeom, dgeom (x from 1e290)",
+    condition: "1 - prob rounds to 1",
+    methods: "ddLog(1 - prob) | -prob - prob²/2",
+    point: "prob = 2^-54 at x = 1e291 (upper log)",
+    cases: () => [
+      pair("pgeom(1e291, prob, upper log)", (p) => pgeom(1e291, p, { lowerTail: false, logP: true }), flipPoint((p) => 1 - p === 1, 1e-17, 1e-16)),
     ],
   },
 ];
@@ -4382,6 +4592,7 @@ const ENTRIES: Entry[] = [
   ...EXTRA,
   ...EXTREME,
   ...SUBNORMAL,
+  ...SUBNORMAL_PARTS,
 ];
 
 /** Checks that fail at the time of writing (live bugs, not fixed here) */

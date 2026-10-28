@@ -839,6 +839,14 @@ interface SmallTail {
  * Calls with the same (q, nmeans, df, nranges) differing only in tail or log use the same integral, so the last result is cached.
  */
 function ptukeyRaw(q: number, k: number, df: number, r: number, lowerTail: boolean, logP: boolean): number {
+  if (q < TINY_Q) {
+    // The lower tail is c q^((k-1) r) (1 + O(q²)) there (W(w) is of the order of w^(k-1) near 0): scaled in logs from
+    // q = 2^-1000. The integrals at a subnormal q took 20 to 50 ms a call (the subdivision chasing the rounding of the
+    // subnormal arguments), so that qtukey(-726.9, 2, 486.9, { logP: true }), whose answer is 3.5e-316, took 1.2 s
+    const lv = ptukeyRaw(TINY_Q, k, df, r, true, true) + (k - 1) * r * Math.log(q * 2 ** 1000);
+    if (lowerTail) return logP ? lv : Math.exp(lv);
+    return logP ? -Math.exp(lv) : -Math.expm1(lv);
+  }
   let t: SmallTail;
   if (memo !== undefined && memo.q === q && memo.k === k && memo.df === df && memo.r === r) t = memo.tail;
   else {
@@ -850,6 +858,9 @@ function ptukeyRaw(q: number, k: number, df: number, r: number, lowerTail: boole
 }
 
 let memo: { q: number; k: number; df: number; r: number; tail: SmallTail } | undefined;
+
+/** Below this (2^-1000) the lower tail of ptukeyRaw is scaled from its value here */
+const TINY_Q = 2 ** -1000;
 
 /**
  * The smaller tail. Which tail is smaller is guessed from the df = ∞ value (one inner integral); if the guess is

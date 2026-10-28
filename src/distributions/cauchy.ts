@@ -12,6 +12,38 @@ import { locationScale } from "../internal/ddexp.js";
 
 const LOG_PI = 1.1447298858494002;
 
+const MIN_NORMAL = 2 ** -1022;
+
+/** [f, e] with v = f 2^e, f in [1, 2) up to the rounding of log2 (v > 0 finite; exact, subnormal v included) */
+function frexp(v: number): [number, number] {
+  const s = v < 2 ** -1000 ? 600 : 0;
+  const e = Math.floor(Math.log2(v * 2 ** s));
+  return [v * 2 ** s * 2 ** -e, e - s];
+}
+
+/**
+ * The density at a subnormal scale, from d = x - location (finite or infinite) without rounding a product on the
+ * subnormal grid: π scale had lost digits (dcauchy(-2.165e-309, { scale: 1.578e-312 }) was 3.3e-13 off), and z = d /
+ * scale overflowed where the density is still normal (dcauchy(1e-10, { scale: 5e-324 }) was 0, 1.57e-304 expected).
+ * For |z| > 1, f = scale / (π d^2 (1 + y^2)) with y = scale / |d|, its powers of two taken out of scale and d and
+ * applied last (in two steps, the first within the normal range)
+ */
+function tinyScaleDensity(d: number, scale: number, az: number, log: boolean): number {
+  if (az <= 1) {
+    if (log) return -(LOG_PI + Math.log(scale)) - Math.log1p(az * az);
+    return 1 / (Math.PI * (1 + az * az)) / scale;
+  }
+  const ad = Math.abs(d);
+  const y = scale / ad;
+  if (log) return -LOG_PI + Math.log(scale) - 2 * Math.log(ad) - Math.log1p(y * y);
+  if (ad === Infinity) return 0;
+  const [fs, es] = frexp(scale);
+  const [fa, ea] = frexp(ad);
+  const n = es - 2 * ea;
+  const h = Math.trunc(n / 2);
+  return (fs / (fa * fa) / (Math.PI * (1 + y * y))) * 2 ** h * 2 ** (n - h);
+}
+
 /** |x - location| / 2 where the difference of the finite x and location overflows, else undefined */
 function halfDistance(x: number, location: number): number | undefined {
   if (Number.isFinite(x - location) || !Number.isFinite(x) || !Number.isFinite(location)) return undefined;
@@ -32,6 +64,7 @@ export function dcauchy1(x: number, location: number, scale: number, log: boolea
     return (y / (Math.PI * scale)) * (y / (1 + y * y));
   }
   const az = Math.abs(z);
+  if (scale < MIN_NORMAL) return tinyScaleDensity(x - location, scale, az, log);
   if (az <= 1) {
     if (log) return -(LOG_PI + Math.log(scale)) - Math.log1p(z * z);
     return 1 / (Math.PI * scale * (1 + z * z));

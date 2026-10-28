@@ -6,10 +6,11 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { ddExp, expNeg, log1mExp, logOneMinusExpNeg, mulDD } from "../internal/ddexp.js";
+import { ddExp, expNeg, expNegOver, log1mExp, logOneMinusExpNeg, mulDD } from "../internal/ddexp.js";
 import { ddLog, ddSub } from "../special/dd.js";
 
 const MIN_NORMAL = 2 ** -1022;
+const LOG_MIN_NORMAL = -1022 * Math.LN2;
 
 /**
  * Parameters of the exponential distribution.
@@ -62,6 +63,9 @@ export function qexp1(p: number, rate: number, lowerTail: boolean, logP: boolean
   const b = quantileBoundaries(p, 0, Infinity, lowerTail, logP);
   if (Number.isNaN(b) || b === 0) return b!;
   // Log of the upper probability, log P[X > x] = -rate x
+  // A lower tail below the normal range, given as its log: -log(1 - P) is P to the double, but exp(p) would be rounded
+  // on the subnormal grid before the division by the rate (qexp(-720.6, { rate: 7.4e-258, logP: true }) was 4e-14 off)
+  if (logP && lowerTail && p < LOG_MIN_NORMAL && rate > 0) return expNegOver([-p, 0], rate);
   let lu: number;
   if (logP) lu = lowerTail ? log1mExp(p) : p;
   else lu = lowerTail ? Math.log1p(-p) : Math.log(p);

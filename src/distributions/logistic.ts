@@ -7,7 +7,9 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
-import { expNeg, locationScale, log1mExp, standardizeDD } from "../internal/ddexp.js";
+import { expNeg, expNegOver, locationScale, log1mExp, standardizeDD } from "../internal/ddexp.js";
+
+const MIN_NORMAL = 2 ** -1022;
 
 /**
  * Location and scale parameters, used by the logistic and Cauchy distributions.
@@ -29,7 +31,11 @@ export function dlogis1(x: number, location: number, scale: number, log: boolean
   const a: [number, number] = z[0] < 0 ? [-z[0], -z[1]] : [z[0], z[1]];
   const e = expNeg(a);
   if (log) return -a[0] - a[1] - Math.log(scale) - 2 * Math.log1p(e);
-  return e / (scale * (1 + e) * (1 + e));
+  // Neither e nor the denominator may be rounded on the subnormal grid: from e below the normal range (1 + e is then 1)
+  // the quotient by expNegOver, and for a subnormal scale the division by it last (dlogis(-3.5667e-316, { scale:
+  // 4.81926e-319 }) was 1.3e-6 off)
+  if (e < MIN_NORMAL) return expNegOver(a, scale);
+  return scale >= MIN_NORMAL ? e / (scale * (1 + e) * (1 + e)) : e / ((1 + e) * (1 + e)) / scale;
 }
 
 export function plogis1(q: number, location: number, scale: number, lowerTail: boolean, logP: boolean): number {

@@ -55,6 +55,8 @@ export function beta(a: number, b: number): number {
   }
   let sign = 1;
   if (a === 0 || b === 0) return Infinity;
+  // B(a, b) > 1/a overflows where 1/a does (the product below was NaN at beta(1e-310, 1e-310); R gives Inf)
+  if (1 / Math.min(a, b) === Infinity) return Infinity;
   if (Math.abs(a) < Math.abs(b)) [a, b] = [b, a];
   if (Math.abs(a) > ASYMP_FACTOR * Math.abs(b) && a > ASYMP_FACTOR) {
     /* Avoid loss of precision in lgam(a + b) - lgam(a) */
@@ -113,6 +115,9 @@ export function lbeta(a: number, b: number): number {
     return e[0] + e[1];
   }
   if (a === 0 || b === 0) return Infinity;
+  // Γ of a shape below 1e-300 overflows (Γ(a) ≈ 1/a), and the product below was Infinity or NaN (lbeta(1e-310, 1e-310) was
+  // NaN, R gives 714.49452600871405): the logs instead, -log a each, which cancel by at most a few ulps
+  if (Math.min(a, b) < 1e-300) return lgamma(a) + lgamma(b) - lgamma(a + b);
   if (Math.abs(a) < Math.abs(b)) [a, b] = [b, a];
   if (Math.abs(a) > ASYMP_FACTOR * Math.abs(b) && a > ASYMP_FACTOR) return lbetaAsymp(a, b).value;
   let y = a + b;
