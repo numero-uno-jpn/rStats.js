@@ -59,6 +59,14 @@ const REGRESSION: Record<string, { params: Params; x: number[]; sizes?: Omit<Siz
     // Densities at a tiny or subnormal ncp were NaN (0.15.2)
     { params: { df: 1, ncp: 1.1186442675478367e-308 }, x: [1.4777750489339286e-267, 1] },
     { params: { df: 3, ncp: 5e-324 }, x: [1] },
+    // NaN at λ = 2.9e304 and a tiny x; at a subnormal x with an odd last bit the rounding of x/2 showed (0.15.2)
+    { params: { df: 294.3792308686567, ncp: 2.9075530479120456e304 }, x: [1.0051275796545665e-308] },
+    { params: { df: 1.1880112027598556e-51, ncp: 197.42584661272352 }, x: [5.331474942214491e-296, 2.1396743e-317] },
+    { params: { df: 0.5, ncp: 24.327519525000625 }, x: [7.02293709e-315, 1.63e-322] },
+    { params: { df: 1.0815364379934587e-261, ncp: 376.01614454288807 }, x: [3.773015050217397e-307, 3.612655063767058e-198] },
+    // NaN at a huge x and a tiny ncp, and where x + λ is beyond the doubles (0.15.2)
+    { params: { df: 0.5, ncp: 2.227e-320 }, x: [2.961066668065476e307] },
+    { params: { df: 3.2994201097489077e268, ncp: 6.93900544389044e307 }, x: [1e308, 1.7976931348623157e308] },
   ],
   // and at a huge or tiny df the noncentral t was NaN, Infinity or not consistent; at a huge λ, pf and pbeta in the far
   // left tail were not monotone (0.15.1)
@@ -140,7 +148,29 @@ const REGRESSION: Record<string, { params: Params; x: number[]; sizes?: Omit<Siz
   // qtukey did not return where 1 - W underflowed with nranges = 2 (the log was -Infinity) (0.15.2)
   tukey: [{ params: { nmeans: 3, df: 46673457704.69311, nranges: 2 }, x: [51.3, 54.5] }],
   // The upper tail far out was NaN (the splitting in the continued fraction overflowed) (0.15.2)
-  "nbinom(prob)": [{ params: { size: 641.0457517358916, prob: 8.999877024359508e-300 }, x: [1e303] }],
+  // and dnbinom(0) at a size of 2.4e301 was NaN (0.15.2)
+  "nbinom(prob)": [
+    { params: { size: 641.0457517358916, prob: 8.999877024359508e-300 }, x: [1e303] },
+    { params: { size: 2.373385507516785e301, prob: 0.9999999999768105 }, x: [0, 1] },
+  ],
+  // qcauchy with logP lost digits at a subnormal scale; the tail where q - location overflows was 0 (0.15.2)
+  cauchy: [
+    { params: { location: 3.5476859422264514e-180, scale: 9.11522704e-314 }, x: [-1.7624822526054919e-76] },
+    { params: { location: -1.1000747441814416e307, scale: 2.7035785439311993e296 }, x: [1.79e308] },
+  ],
+  // dnorm was NaN where 1 / sd overflows (0.15.2)
+  norm: [{ params: { mean: 0, sd: 1.7e-322 }, x: [4.84965e-319, 5.1e-321] }],
+  // qtriang returned the mode at a subnormal width (0.15.2)
+  triang: [
+    { params: { a: 0, b: 1.02822077e-316, c: 8.726421e-317 }, x: [1.02817096e-316] },
+    { params: { a: 0, b: 7.36918471256e-313, c: 0 }, x: [2.2849939e-316] },
+  ],
+  // At a subnormal shape qkumar was NaN and the log of a tail of the shape's order lost digits (0.15.2)
+  kumar: [
+    { params: { a: 9.850037901e-314, b: 2.5311232825763126 }, x: [0.5] },
+    { params: { a: 0.4223756809729819, b: 1.8537887e-317 }, x: [0.20150301163084805] },
+  ],
+  pareto: [{ params: { a: 1.040734e-317, b: 1 }, x: [318.7041047333832] }],
   signrank: [
     {
       params: { n: 1100 },

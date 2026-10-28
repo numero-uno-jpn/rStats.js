@@ -12,11 +12,25 @@ import { locationScale } from "../internal/ddexp.js";
 
 const LOG_PI = 1.1447298858494002;
 
+/** |x - location| / 2 where the difference of the finite x and location overflows, else undefined */
+function halfDistance(x: number, location: number): number | undefined {
+  if (Number.isFinite(x - location) || !Number.isFinite(x) || !Number.isFinite(location)) return undefined;
+  return Math.abs(x / 2 - location / 2);
+}
+
 export function dcauchy1(x: number, location: number, scale: number, log: boolean): number {
   if (Number.isNaN(x) || Number.isNaN(location) || Number.isNaN(scale)) return NaN;
   if (!(scale > 0)) return NaN;
   const z = (x - location) / scale;
   if (Number.isNaN(z)) return NaN;
+  const ah = halfDistance(x, location);
+  if (ah !== undefined) {
+    // x - location overflows (both finite): |z| = 2 |x/2 - location/2| / scale, in logs, and 1/|z| from the halves
+    // (the density was 0 and its log -Infinity: dcauchy(1.79e308, { location: -1.1e307, scale: 2.7e296 }))
+    const y = scale / ah / 2;
+    if (log) return -(LOG_PI + Math.log(scale)) - 2 * (Math.log(ah) + Math.LN2 - Math.log(scale)) - Math.log1p(y * y);
+    return (y / (Math.PI * scale)) * (y / (1 + y * y));
+  }
   const az = Math.abs(z);
   if (az <= 1) {
     if (log) return -(LOG_PI + Math.log(scale)) - Math.log1p(z * z);
@@ -37,6 +51,19 @@ export function pcauchy1(q: number, location: number, scale: number, lowerTail: 
   if (!(scale > 0)) return NaN;
   const d = q - location;
   if (Number.isNaN(d)) return NaN;
+  const ah = halfDistance(q, location);
+  if (ah !== undefined) {
+    // q - location overflows (both finite): the smaller tail from the halves, scale / |d| = (scale / |d/2|) / 2 (it
+    // was 0 although of order scale / 1.8e308: pcauchy(1.79e308, { location: -1.1e307, scale: 2.7e296, lowerTail:
+    // false }) is 4.5e-13)
+    const w = scale / ah / 2;
+    const v = Math.atan(w) / Math.PI;
+    if (lowerTail === d < 0) {
+      if (!logP) return v;
+      return w < 1e-150 ? Math.log(scale) - Math.log(ah) - Math.LN2 - LOG_PI : Math.log(v);
+    }
+    return logP ? Math.log1p(-v) : 1 - v;
+  }
   if (!(Math.abs(d) > scale)) {
     const z = d / scale;
     const v = 0.5 + Math.atan(lowerTail ? z : -z) / Math.PI;
@@ -63,15 +90,18 @@ const TINY_LOG = -460;
  * Without logP, divide scale by s first (scale / π could underflow to a subnormal for a tiny scale) and then by π;
  * if scale / s overflows although the quantile is still finite, divide by π first instead (then scale exceeds about
  * 9e-16, so scale / π is a normal number).
- * With logP (s is a log), multiply by e^-s split into two halves (taking log and exp back would amplify the rounding of the exponent)
+ * With logP (s is a log), multiply by e^-s split into four quarters (s / 4 is exact; taking log and exp back would
+ * amplify the rounding of the exponent). As s < -460, a quarter is at least e^115, so scale times it is a normal number
+ * before the division by π even for a subnormal scale (scale / π lost bits there); the later products only grow, so one
+ * overflows only where the quantile does, and quarters (not halves) keep e^(-s/4) finite wherever the quantile is.
  */
 function tinyTail(scale: number, s: number, logP: boolean): number {
   if (!logP) {
     const r = scale / s;
     return Number.isFinite(r) ? r / Math.PI : scale / Math.PI / s;
   }
-  const h = Math.exp(-s / 2);
-  return h * (scale / Math.PI) * h;
+  const h = Math.exp(-s / 4);
+  return ((h * scale) / Math.PI) * h * h * h;
 }
 
 /** Quantile tan(π (s - 1/2)) of the standard Cauchy for lower probability s (0 < s <= 1/2) */

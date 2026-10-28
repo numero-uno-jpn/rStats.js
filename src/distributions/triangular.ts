@@ -90,18 +90,20 @@ export function qtriang1(p: number, a: number, b: number, c: number, lowerTail: 
   // Left of the mode x - a = (c - a) sqrt(t) with t = lower w / (c - a), the share of the left part's probability;
   // right of it b - x = (b - c) sqrt(t), t = upper w / (b - c). Near the mode (t > 1/2) the distance from it instead,
   // (1 - sqrt(t)) = (1 - t) / (1 + sqrt(t)) with 1 - t from the other tail (for c = a or c = b that tail itself, so
-  // no cancellation near the end). The square roots are taken factor by factor so that no product over- or underflows
+  // no cancellation near the end). The square roots are taken factor by factor so that no product over- or underflows,
+  // and t as the ratio of the probability to the part's share (lower / (c - a) overflowed for a subnormal width, which
+  // put x at the mode: qtriang(1.6e-8, { a: 0, b: 1.03e-316, c: 8.7e-317, lowerTail: false }))
   const cl = (c - a) / w;
   const cr = (b - c) / w;
   let x: number;
   if (cl > 0 && lower <= cl) {
-    const t = (lower / (c - a)) * w;
+    const t = lower / cl;
     x =
       t <= 0.5
         ? a + (lowerTail ? sqrtP : Math.sqrt(lower)) * Math.sqrt(w) * Math.sqrt(c - a)
         : c - ((c - a) * ((upper - cr) / cl)) / (1 + Math.sqrt(t));
   } else {
-    const t = (upper / (b - c)) * w;
+    const t = upper / cr;
     x =
       t <= 0.5
         ? b - (lowerTail ? Math.sqrt(upper) : sqrtP) * Math.sqrt(w) * Math.sqrt(b - c)

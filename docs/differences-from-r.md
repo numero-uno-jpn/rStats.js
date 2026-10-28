@@ -63,6 +63,7 @@ reference, the case passes as "more accurate than R".
 | `df(2.86e-257, 0.0275, 3, ncp = 5e-324)` | 1.3617011778446392e251 | 1.3617011778446561e251 (mpmath) | 1.3617011778446567e251 (the central density) |
 | `qf(1.89e-13, 0.0885, 6.01e302)` | 4.6113445353195029e-287 | 4.6113445353197333e-287 (mpmath, the χ² limit) | 4.611344535319733e-287 |
 | `pbeta(0.973, 0.130, 8.15e-322, log.p = TRUE)` | -736.93128475074695 | -736.93155014878607 (mpmath) | same as truth |
+| `dchisq(1.005e-308, 294.4, ncp = 2.91e304, log = TRUE)` | -1.0243631212370614e307 | -1.4537765239560228e304 (−λ/2; the rest is of order 1e5) | same as truth |
 
 ### Special functions
 
@@ -126,6 +127,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | Case | R | rStats.js |
 |---|---|---|
 | Tails of `pinvgamma`, `pkumar`, `ppareto`, `plaplace`, `ptriang` | extraDistr evaluates the textbook formulas: 1 − x^a and 1 − p cancel and log probabilities are taken after the probability underflowed (`pkumar(1e-10, 1, 1)` is off by 8e-8, `pinvgamma(1e-300, 1, 1, log.p = TRUE)` is −Inf instead of −1e300) | tails computed directly |
+| Log tails of the order of a subnormal shape (`pkumar(0.2015, 0.4224, 1.85e-317, log.p = TRUE)`, `ppareto(318.7, 1.04e-317, 1, log.p = TRUE)`) | −Inf | −729.6448082452898, −728.127870954796 (mpmath: −729.64480824528978, −728.12787095479600) |
+| `dkumar(0.2015, 0.4224, 1.85e-317, log = TRUE)` | −728.528830589584 (off by 1.2e-10) | −728.5288305013036 (mpmath: −728.52883050130359) |
 | Quantiles in the far tails (`qlaplace`, `qkumar`, `qtriang`, ...) | 1 − p rounds: `qlaplace(1e-300, lower.tail = FALSE)` is Inf | correctly rounded (maps back to p) |
 | Densities steep in a parameter (`dinvgamma` with alpha = 100, `dtriang` near the ends) | the rounding of beta / x or b − x is magnified (to 9e-14) | the division in double-double |
 | `distSummary` skewness and kurtosis of `weibull` and `kumar` | the raw-moment formulas cancel: 9 digits of the kurtosis lost for shape 20 | central moments integrated directly (3e-14) |

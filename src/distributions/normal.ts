@@ -123,7 +123,25 @@ function dnorm1(x: number, mean: number, sd: number, log: boolean): number {
   if (!Number.isFinite(z)) return log ? -Infinity : 0;
   if (log) return -(LN_SQRT_2PI + 0.5 * z * z + Math.log(sd));
   // Rounding of z^2 is amplified by the exponential in exp(-z^2/2), so split it as in pnorm
-  return scaledExpNegHalfSq(Math.abs(z), INV_SQRT_2PI / sd);
+  const c = INV_SQRT_2PI / sd;
+  return c < Infinity ? scaledExpNegHalfSq(Math.abs(z), c) : tinySdDensity(Math.abs(z), sd);
+}
+
+/**
+ * exp(-a^2/2) / (sd sqrt(2π)) for an sd so far below the normal range that 1 / (sd sqrt(2π)) overflows (it was NaN, as
+ * Infinity times exp(-a^2/2) = 0: dnorm(4.85e-319, { sd: 1.7e-322 })), with the split of scaledExpNegHalfSq: sd is
+ * scaled by 2^600 (exactly) and the factor 2^600 put back where neither the partial product overflows nor its last
+ * factor exp(-700) makes it subnormal
+ */
+function tinySdDensity(a: number, sd: number): number {
+  if (a > 1e10) return 0;
+  const hi = Math.floor(a * 16) / 16;
+  const lo = a - hi;
+  const halfHiSq = (hi * hi) / 2;
+  const m = (INV_SQRT_2PI / (sd * 2 ** 600)) * Math.exp((-lo * (a + hi)) / 2);
+  if (halfHiSq <= 700) return m * Math.exp(-halfHiSq) * 2 ** 600;
+  const t = m * Math.exp(700 - halfHiSq);
+  return t >= 1 ? t * Math.exp(-700) * 2 ** 600 : t * 2 ** 600 * Math.exp(-700);
 }
 
 /**

@@ -5,25 +5,32 @@
 import { describe, expect, it } from "vitest";
 import {
   dbeta,
+  dcauchy,
   dchisq,
   df,
   dgamma,
   dgeom,
   dinvgamma,
+  dkumar,
   dlnorm,
+  dnbinom,
   dnorm,
+  dpareto,
   dt,
   dweibull,
   pbeta,
   pbinom,
+  pcauchy,
   pchisq,
   pf,
   pgamma,
   pgeom,
   pinvgamma,
+  pkumar,
   plnorm,
   pnbinom,
   pnorm,
+  ppareto,
   pt,
   ptukey,
   qbeta,
@@ -33,10 +40,12 @@ import {
   qf,
   qgamma,
   qgeom,
+  qkumar,
   qlnorm,
   qnbinom,
   qnorm,
   qt,
+  qtriang,
   qtukey,
 } from "../src/index.js";
 import { nextDown } from "./helpers/float.js";
@@ -593,5 +602,119 @@ describe("beta, F, noncentral F and Tukey at huge and subnormal parameters", () 
     expect(ptukey(54.5, 3, Infinity, { ...o, logP: true })).toBe(Math.LN2 + ptukey(54.5, 3, Infinity, { lowerTail: false, logP: true }));
     // mpmath: log(1 - W) = -745.34197838962728 for k = 3 (with nranges = 2: -744.64883120906734)
     expect(rel(ptukey(54.5, 3, Infinity, { ...o, logP: true }), -744.64883120906734)).toBeLessThan(1e-14);
+  });
+});
+
+describe("Cauchy, Kumaraswamy, Pareto, negative binomial and noncentral χ² at subnormal and huge arguments", () => {
+  it("qcauchy with logP and a subnormal scale keeps its digits (scale / π lost bits; R 4.5.2: -1.7624822526054919e-76)", () => {
+    // mpmath: location - scale / tan(π e^p) = -1.7624822526054919646e-76 (-1.762482252486489e-76 before)
+    const q = qcauchy(-547.516758888431, { location: 3.5476859422264514e-180, scale: 9.11522704e-314, logP: true });
+    expect(rel(q, -1.7624822526054919646e-76)).toBeLessThan(4 * Number.EPSILON);
+    // e^(-p/2) overflowed from -p = 1420 on, where the quantile at the smallest scale is still finite (-Infinity before);
+    // mpmath: -3.8079279709616671755e301
+    expect(rel(qcauchy(-1440, { scale: 5e-324, logP: true }), -3.8079279709616671755e301)).toBeLessThan(4 * Number.EPSILON);
+  });
+
+  it("qkumar at a tiny a is 0: w^(1/a) underflows for every w <= 1/2 (NaN before; extraDistr gives 0)", () => {
+    const [a, b] = [9.850037901e-314, 2.5311232825763126];
+    expect(qkumar(4.809434689888833e-52, a, b)).toBe(0);
+    expect(qkumar(0.5, a, b)).toBe(0);
+    expect(qkumar(Math.log(0.5), a, b, { logP: true })).toBe(0);
+    expect(qkumar(0.5, 1.436669495309376e-308, 2)).toBe(0);
+  });
+
+  it("the log of a Kumaraswamy or Pareto tail of the order of a subnormal shape (lost digits; extraDistr gives -Inf)", () => {
+    // mpmath at 60 digits: log(-expm1(b log(1 - x^a))) = -729.64480824528978 (-729.6448080640358 before), and the log
+    // density log(a b x^(a-1) (1 - x^a)^(b-1)) = -728.52883050130359 (extraDistr: -728.528830589584, off)
+    const [x, a, b] = [0.20150301163084805, 0.4223756809729819, 1.8537887e-317];
+    expect(rel(pkumar(x, a, b, { logP: true }), -729.64480824528978)).toBeLessThan(1e-15);
+    expect(rel(dkumar(x, a, b, { log: true }), -728.52883050130359)).toBeLessThan(1e-15);
+    // mpmath: log(-expm1(-a log x)) = -728.12787095479600 (-728.1278709160887 before), log(a x^-(a+1)) = -735.64381137839809
+    expect(rel(ppareto(318.7041047333832, { a: 1.040734e-317, logP: true }), -728.127870954796)).toBeLessThan(1e-15);
+    expect(rel(dpareto(318.7041047333832, { a: 1.040734e-317, log: true }), -735.64381137839809)).toBeLessThan(1e-15);
+  });
+
+  it("dnbinom(0) at a size of 2.4e301 is prob^size (NaN: the splitting of size in the product overflowed)", () => {
+    // mpmath: size log(prob) = -5.5037505412224715e290 (R 4.5.2 too)
+    const [n, prob] = [2.373385507516785e301, 0.9999999999768105];
+    expect(rel(dnbinom(0, n, { prob, log: true }), -5.5037505412224715e290)).toBe(0);
+    expect(Object.is(dnbinom(0, n, { prob }), 0)).toBe(true);
+  });
+
+  it("noncentral χ² at λ = 2.9e304 and a tiny x: e^(-λ/2) times the central parts (NaN)", () => {
+    const [x, k, ncp] = [1.0051275796545665e-308, 294.3792308686567, 2.9075530479120456e304];
+    // The log is -λ/2 plus terms of order 1e5, far below an ulp of it (R 4.5.2: -1.0243631212370614e307 for the
+    // density, off)
+    expect(dchisq(x, k, { ncp, log: true })).toBe(-ncp / 2);
+    expect(rel(pchisq(x, k, { ncp, logP: true }), -ncp / 2)).toBeLessThan(4 * Number.EPSILON);
+    expect(pchisq(x, k, { ncp })).toBe(0);
+    expect(pchisq(x, k, { ncp, lowerTail: false })).toBe(1);
+  });
+
+  it("noncentral χ² at a subnormal x with an odd last bit: no step from the rounding of x/2 (mpmath at 60 digits)", () => {
+    // P = e^(-λ/2) to double precision for a df of 1.2e-51 (1.3474793410715707e-43 before; R 4.5.2: 1.3474793410715195e-43)
+    const tiny = pchisq(2.1396743e-317, 1.1880112027598556e-51, { ncp: 197.42584661272352 });
+    expect(rel(tiny, 1.3474793410715195e-43)).toBeLessThan(4 * Number.EPSILON);
+    // Σ_j Pois(j; λ/2) P(k/2 + j, x/2) and its density, at x/2 exactly (x/2 rounded was 0.8% off at x = 1.63e-322)
+    expect(rel(pchisq(1.63e-322, 0.4879396427871575, { ncp: 1 }), 1.7579084577982178e-79)).toBeLessThan(1e-14);
+    expect(rel(dchisq(1.63e-322, 0.4879396427871575, { ncp: 1 }), 2.6304725077516812e242)).toBeLessThan(1e-14);
+    const o = { ncp: 24.327519525000625 };
+    expect(rel(pchisq(7.022937096e-315, 0.5, o), 1.4008684938876251e-84)).toBeLessThan(1e-14);
+    expect(rel(dchisq(7.022937096e-315, 0.5, o), 4.9867615030698938e229)).toBeLessThan(1e-14);
+    const upper = pchisq(1.9283e-320, 1.3552501438938642, { ncp: 54.19031987702839, lowerTail: false, logP: true });
+    expect(rel(upper, -2.6638446817959692e-229)).toBeLessThan(1e-14);
+  });
+
+  it("noncentral χ² at a huge x and a tiny ncp: the central values (NaN: the term ratio y / (a + j) overflowed its splitting)", () => {
+    // mpmath: the central log density -1.4805333340327379e307
+    const x = 2.961066668065476e307;
+    expect(dchisq(x, 0.5, { ncp: 2.227e-320 })).toBe(0);
+    expect(rel(dchisq(x, 0.5, { ncp: 2.227e-320, log: true }), -1.4805333340327379e307)).toBeLessThan(1e-15);
+    expect(pchisq(4.2297265002286223e301, 0.01148621542883975, { ncp: 1.4912053330895896e-303 })).toBe(1);
+    expect(pchisq(4.2297265002286223e301, 0.01148621542883975, { ncp: 1.4912053330895896e-303, lowerTail: false, logP: true })).toBe(
+      pchisq(4.2297265002286223e301, 0.01148621542883975, { lowerTail: false, logP: true }),
+    );
+  });
+
+  it("noncentral χ² where x + λ is beyond the doubles (0.55 at x = 1e308 for λ = 6.9e307, NaN or -Infinity beyond)", () => {
+    const [k, ncp] = [3.2994201097489077e268, 6.93900544389044e307];
+    // the mean is 6.94e307 and the standard deviation 1.7e154: the upper tail far out, the quantile at the mean
+    for (const x of [1e308, 1.5e308, 1.7976931348623157e308]) {
+      expect(pchisq(x, k, { ncp })).toBe(1);
+      expect(pchisq(x, k, { ncp, lowerTail: false, logP: true })).toBeLessThan(-1e306);
+      expect(dchisq(x, k, { ncp, log: true })).toBeLessThan(-1e306);
+    }
+    expect(rel(qchisq(-85.58095236813449, k, { ncp, logP: true }), ncp)).toBeLessThan(1e-14);
+    // mpmath, from I_(1/2)(z) = sqrt(2 / (π z)) sinh z: -5.7091183974034792e306 (-Infinity before: 2πz overflowed)
+    expect(rel(dchisq(1.79e308, 3, { ncp: 1e308, log: true }), -5.7091183974034792e306)).toBeLessThan(1e-14);
+  });
+
+  it("pchisq at x near 1e-307 and a tiny df: no step from the log Poisson weights (1.4e-15 above e^(-λ/2) before)", () => {
+    const e = Math.exp(-376.01614454288807 / 2); // P = e^(-λ/2) (1 - O(df)) to the double
+    for (const x of [1e-307, 3.773015050217397e-307, 3.612655063767058e-198]) {
+      expect(rel(pchisq(x, 1.0815364379934587e-261, { ncp: 376.01614454288807 }), e)).toBeLessThan(4 * Number.EPSILON);
+    }
+  });
+
+  it("pcauchy and dcauchy where q - location overflows (0 and -Infinity before)", () => {
+    const o = { location: -1.1000747441814416e307, scale: 2.7035785439311993e296 };
+    // mpmath: atan(scale / (q - location)) / π = 4.529328385253959e-13, log density -738.26109900198
+    expect(rel(pcauchy(1.79e308, { ...o, lowerTail: false }), 4.529328385253959e-13)).toBeLessThan(4 * Number.EPSILON);
+    expect(rel(pcauchy(1.79e308, { ...o, lowerTail: false, logP: true }), Math.log(4.529328385253959e-13))).toBeLessThan(1e-15);
+    expect(rel(dcauchy(1.79e308, { ...o, log: true }), -738.26109900198)).toBeLessThan(1e-15);
+  });
+
+  it("dnorm at an sd whose reciprocal overflows (NaN before)", () => {
+    // mpmath: φ(30) / sd = 8.7726264199125589e125 (sd = 1.7e-322 is 34 times 2^-1074, so x / sd = 30 exactly)
+    const sd = 1.7e-322;
+    expect(rel(dnorm(30 * sd, { sd }), 8.7726264199125589e125)).toBeLessThan(4 * Number.EPSILON);
+    expect(dnorm(sd, { sd })).toBe(Infinity);
+    expect(dnorm(4.84965e-319, { sd })).toBe(0);
+  });
+
+  it("qtriang with a subnormal width (the mode before: the share of the tail overflowed)", () => {
+    // b - sqrt(p (b - a)(b - c)) and b (1 - sqrt(1 - p)) for c = a, to the subnormal grid
+    expect(qtriang(1.551140155802517e-8, { a: 0, b: 1.02822077e-316, c: 8.726421e-317, lowerTail: false })).toBe(1.02817096e-316);
+    expect(qtriang(-7.385706883968851, { a: 0, b: 7.36918471256e-313, c: 0, logP: true })).toBe(2.2849939e-316);
   });
 });

@@ -29,11 +29,13 @@ import { dgamma1, qgamma1 } from "./gamma.js";
 import { qnorm } from "./normal.js";
 
 function gammaKernel(a: number, y: number): MixtureKernel {
-  // For very small y the ratio y/(a+j) underflows, so keep it scaled by 2^500
+  // For very small y the ratio y/(a+j) underflows, so keep it scaled by 2^500; for a huge y scaled by 2^-500 (the
+  // splitting in the double-double quotient overflowed: dchisq(3e307, 0.5, { ncp: 2.2e-320 }) was NaN)
   const tiny = y < 1e-250;
-  const ys = tiny ? y * 2 ** 500 : y;
+  const huge = y > 1e250;
+  const ys = tiny ? y * 2 ** 500 : huge ? y * 2 ** -500 : y;
   return {
-    ratioK: tiny ? -1 : 0,
+    ratioK: tiny ? -1 : huge ? 1 : 0,
     cdf: (j, lower, log) => gammaInc(a + j, y, lower, log),
     inc: (j, log) => {
       const [s, corr] = incCorrection(a, j, y);
@@ -86,6 +88,18 @@ function pnchisqBoth(x: number, df: number, ncp: number, lower: boolean): { lin:
   // The series has too many terms (or gammaInc is slow for its huge shapes): integrate an asymptotic form of the density
   const method = asymptoticMethod(df, besselArg(x, ncp));
   if (method !== undefined) return method === "hankel" ? besselTails(x, df, ncp, lower) : debyeTails(x, df, ncp, lower);
+  const lt = subnormalHalf(x);
+  if (lt !== undefined) {
+    // P[X <= x] = P[X <= x2] (x/x2)^(df/2) (see subnormalHalf); the upper tail as Q(x2) - P(x2) ((x/x2)^(df/2) - 1),
+    // where the change is small beside Q(x2) (it is at most of the order of df/2, Q(x2) at least of df/2 log(2/x))
+    const x2 = 2 * (x / 2);
+    const e = Math.expm1((df / 2) * lt);
+    const lo = pnchisqBoth(x2, df, ncp, true);
+    if (lower) return { lin: lo.lin * (1 + e), log: lo.log + (df / 2) * lt };
+    const up = pnchisqBoth(x2, df, ncp, false);
+    const r = (lo.lin * e) / up.lin;
+    return Number.isFinite(r) ? { lin: up.lin - lo.lin * e, log: up.log + Math.log1p(-r) } : up;
+  }
   // x so small that x/2 underflows to 0 (the smallest subnormal) is approximated by the smallest positive number
   const kernel = gammaKernel(df / 2, Math.max(x / 2, Number.MIN_VALUE));
   if (mu > 1e8 && !lower) {
@@ -103,6 +117,19 @@ function pnchisqBoth(x: number, df: number, ncp: number, lower: boolean): { lin:
   }
   // (the lower tail is likely the smaller below the mean k + λ)
   return mixtureTail(mu, kernel, lower, x < df + ncp);
+}
+
+/**
+ * log(x / x2) for a subnormal x with an odd last bit, where y = x/2 rounds to x2/2 (by 2.5e-324: 1e-9 of x near 1e-315,
+ * 3% at 1.6e-322, more than the accuracy of the mixture; with its density, the differences of pchisq were 2e-6 off at
+ * pchisq(7.02e-315, 0.5, { ncp: 24.3 })); undefined where x/2 is exact or 0. With y that small, e^-y and the series
+ * of the components in y are 1 to double precision, so each component scales as y^(k/2 + j) (P[X <= x], density
+ * times y), and the mixture as y^(k/2) times 1 + O(λ |x - x2|) (j > 0 adds j to the power, with weights of order
+ * (λ x)^j; λ |x - x2| is below 1e-15): the values at x come from those at x2 by the factor (x/x2)^(k/2)
+ */
+function subnormalHalf(x: number): number | undefined {
+  const x2 = 2 * (x / 2);
+  return x2 > 0 && x2 !== x ? Math.log1p((x - x2) / x2) : undefined;
 }
 
 function pnchisqRaw(x: number, df: number, ncp: number, lower: boolean, log: boolean): number {
@@ -137,6 +164,12 @@ function dnchisqRaw(x: number, df: number, ncp: number, log: boolean): number {
   if (method === "debye") {
     const l = debyeAt(x, df, ncp).logf;
     return log ? l : Math.exp(l);
+  }
+  const lt = subnormalHalf(x);
+  if (lt !== undefined) {
+    // the density at x2 times (x/x2)^(k/2 - 1) (subnormalHalf)
+    const x2 = 2 * (x / 2);
+    return log ? dnchisqRaw(x2, df, ncp, true) + (a - 1) * lt : dnchisqRaw(x2, df, ncp, false) * Math.exp((a - 1) * lt);
   }
   // The ratio of terms w_j g_j is mu y / (j (a + j - 1)) = (z/2)² / (j (a + j - 1)); the peak is at the j where it
   // equals 1, the positive root of j² + (a - 1) j - (z/2)² (written without cancellation for a > 1)
@@ -186,6 +219,11 @@ function rootDiff(x: number, ncp: number): DD {
 
 /** sqrt(x) in double-double (one Newton correction of the rounded root) */
 function sqrtDD(x: number): DD {
+  // (from x/4, scaled back exactly, near the largest double, where s² can round to Infinity)
+  if (x > 1e300) {
+    const [h, l] = sqrtDD(x / 4);
+    return [2 * h, 2 * l];
+  }
   const s = Math.sqrt(x);
   const [p, pe] = twoProd(s, s);
   return [s, (x - p - pe) / (2 * s)];
@@ -222,8 +260,9 @@ function besselAsymptotic(x: number, df: number, ncp: number, log: boolean, dGiv
   const d = dd[0] + dd[1];
   const [p, pe] = squareDD(dd);
   const hi = -p / 2;
-  // (ν/2) log(x/λ) = ν log(sqrt(x)/sqrt(λ))
-  const rest = -Math.LN2 - pe / 2 + nu * logRootRatio(d, rl, x) - 0.5 * Math.log(2 * Math.PI * z) + Math.log(s);
+  // (ν/2) log(x/λ) = ν log(sqrt(x)/sqrt(λ)); log sqrt(2πz) in two terms (2πz overflows near 1e308: the log density at
+  // dchisq(1.79e308, 3, { ncp: 1e308 }) was -Infinity)
+  const rest = -Math.LN2 - pe / 2 + nu * logRootRatio(d, rl, x) - LN_SQRT_2PI - 0.5 * Math.log(z) + Math.log(s);
   if (log) return hi + rest;
   return hi > -700 ? Math.exp(hi) * Math.exp(rest) : Math.exp(hi + rest);
 }
@@ -371,10 +410,17 @@ function debyeAt(x: number, df: number, ncp: number, nGiven?: number): DebyeStat
   const z = besselArg(x, ncp);
   const R = Math.hypot(nu, z);
   const rn = R + nu;
-  // (nGiven: N from the caller, for an x known more precisely than its double)
-  const N = nGiven ?? ddSum(ddAdd(ddAdd(twoSum(ncp, df), [-2, 0]), [-x, 0]));
+  // (nGiven: N from the caller, for an x known more precisely than its double; in halves above x = 1e307, where the
+  // error terms of the double-double sums overflowed: pchisq(1.8e308, 3.3e268, { ncp: 6.9e307 }) was NaN)
+  const N =
+    nGiven ??
+    (x > 1e307
+      ? 2 * ddSum(ddAdd(ddAdd(twoSum(ncp / 2, df / 2), [-1, 0]), [-x / 2, 0]))
+      : ddSum(ddAdd(ddAdd(twoSum(ncp, df), [-2, 0]), [-x, 0])));
   const D = x + z * (z / rn);
-  const e = -(x / D) * (N / rn);
+  // (where D overflows, as x + λ x / (R + ν) can for x and λ near 1e308, x / D = (R + ν) / (R + ν + λ), in halves:
+  // pchisq(1e308, 3.3e268, { ncp: 6.9e307 }) was 0.55 and NaN beyond)
+  const e = D < Infinity ? -(x / D) * (N / rn) : -(N / 2) / (rn / 2 + ncp / 2);
   const ls = Math.log(debyeSeries(nu, nu / R));
   // log(1 + e) - e; far below the mode e rounds to -1, and log(1 + e) = log r is taken from x and ν + R
   const lm = e > -0.5 ? log1pmx(e) : Math.log(x) - Math.log(rn) - e;
@@ -423,8 +469,8 @@ function debyeTails(x: number, df: number, ncp: number, lower: boolean, nGiven?:
     a = b;
     w *= 2;
   }
-  // g(r0) = f(x0) 2 R0
-  const lt = logf + Math.log(2 * R0) + Math.log(sum);
+  // g(r0) = f(x0) 2 R0 (log 2 + log R0: 2 R0 overflows for x and λ near 1e308)
+  const lt = logf + Math.LN2 + Math.log(R0) + Math.log(sum);
   const tail = Math.exp(lt);
   if (up !== lower) return { lin: tail, log: lt };
   return { lin: 1 - tail, log: Math.log1p(-tail) };

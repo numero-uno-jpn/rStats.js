@@ -433,6 +433,21 @@ function expNegDD(e: DD, log: boolean, logDenom: () => number, denom: () => numb
 }
 
 /**
+ * n v for a double-double n that may exceed 1e299, where the splitting in ddMul overflows (dnbinom(0, 2.4e301, { prob:
+ * 1 - 2.3e-11 }) was NaN): n is then scaled by 2^-64 (exactly) and the product back
+ */
+function mulLarge(nn: DD, v: DD): DD {
+  if (!(nn[0] > 1e299)) return ddMul(nn, v);
+  return scaleUp(ddMul([nn[0] * 2 ** -64, nn[1] * 2 ** -64], v));
+}
+
+/**
+ * exp of a double-double log probability; 0 far below the subnormals, where the low part can exceed 1 and the first
+ * order correction would give -0
+ */
+const expLogDD = (l: DD): number => (l[0] < -2000 ? 0 : Math.exp(l[0]) * (1 + l[1]));
+
+/**
  * Binomial probability C(n, x) p^x q^(n-x). x and n need not be integers (used by the beta and F distributions).
  * The caller passes q = 1 - p accurately.
  */
@@ -465,20 +480,20 @@ export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean):
     if (n === 0) return one;
     if (p[0] < 0.1) {
       // n log q = -bd0(n, n q) - n p
-      const e = ddAdd(bd0Prod(n, nn, q), ddMul(nn, p));
-      return log ? -e[0] - e[1] : Math.exp(-e[0]) * (1 - e[1]);
+      const e = ddAdd(bd0Prod(n, nn, q), mulLarge(nn, p));
+      return log ? -e[0] - e[1] : expLogDD([-e[0], -e[1]]);
     }
     const lq = ddLog(q);
-    const lc = ddMul(nn, lq);
-    return log ? lc[0] + lc[1] : Math.exp(lc[0]) * (1 + lc[1]);
+    const lc = mulLarge(nn, lq);
+    return log ? lc[0] + lc[1] : expLogDD(lc);
   }
   if (nmx === 0) {
     if (q[0] < 0.1) {
-      const e = ddAdd(bd0Prod(n, nn, p), ddMul(nn, q));
-      return log ? -e[0] - e[1] : Math.exp(-e[0]) * (1 - e[1]);
+      const e = ddAdd(bd0Prod(n, nn, p), mulLarge(nn, q));
+      return log ? -e[0] - e[1] : expLogDD([-e[0], -e[1]]);
     }
-    const lc = ddMul(nn, ddLog(p));
-    return log ? lc[0] + lc[1] : Math.exp(lc[0]) * (1 + lc[1]);
+    const lc = mulLarge(nn, ddLog(p));
+    return log ? lc[0] + lc[1] : expLogDD(lc);
   }
   if (x < 0 || nmx < 0) return zero;
   // E = stirlerr(x) + stirlerr(n-x) - stirlerr(n) + bd0(x, np) + bd0(n-x, nq)

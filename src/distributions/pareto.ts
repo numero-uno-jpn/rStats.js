@@ -95,6 +95,10 @@ export function ppareto1(q: number, a: number, b: number, lowerTail: boolean, lo
   const lu = -a * rt[2]; // log P[X > q]
   if (!lowerTail) return logP ? lu : powNeg(q, b, rt, a);
   if (!logP) return -Math.expm1(lu);
+  // Where a log r is subnormal (a subnormal shape), it has lost digits, and so would the log of the probability -lu
+  // taken from it: log a + log log r instead (ppareto(318.7, { a: 1.04e-317, logP: true }) was 3e-11 off; extraDistr
+  // gives -Inf there, taking the log after the probability underflowed)
+  if (-lu < MIN_NORMAL) return Math.log(a) + Math.log(rt[2]);
   return lu < -Math.LN2 ? Math.log1p(-powNeg(q, b, rt, a)) : log1mExp(lu);
 }
 

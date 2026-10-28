@@ -112,7 +112,12 @@ function fromValue(lin: number, logv: () => number | DD): Scaled {
 export function dpoisLogDD(x: number, lambda: number): DD {
   if (x === 0) return [-lambda, 0];
   const DBL_MIN = 2.2250738585072014e-308;
-  if (x <= lambda * DBL_MIN || lambda < x * DBL_MIN || !Number.isFinite(x)) {
+  // (λ < x DBL_MIN not for x in [1, 1e10], where lgamma1p(x) in double would put an absolute error of eps log Γ(x + 1)
+  // into a log that is not much larger: pchisq(1e-310, 1.2e-51, { ncp: 197 }) was 3.8e-15 off, and 1.4e-15 at x = 1e-307;
+  // bd0dd takes the logs of x and λ apart for such ratios. Below 1 log Γ(x + 1) is small, while stirlerr(x) and log x
+  // cancel in Loader's form; above 1e10 the error is below eps of x log λ)
+  const moderate = x >= 1 && x <= 1e10;
+  if (x <= lambda * DBL_MIN || (lambda < x * DBL_MIN && !moderate) || !Number.isFinite(x)) {
     const l = ddAdd(ddMul(ddLog([lambda, 0]), [x, 0]), [-lambda - lgamma1p(x), 0]);
     return l;
   }
@@ -320,6 +325,23 @@ function logRatio(a: Scaled, b: Scaled): number {
   return Math.log(a.h / b.h) + (a.l / a.h - b.l / b.h) + (a.k - b.k) * LN_UNIT;
 }
 
+/**
+ * w_j = w_(j-1) μ / j. Where μ is beyond 1e290 the splitting of the quotient in ddDivNum overflows (the noncentral χ²
+ * at λ = 1e302 and x = 1e-300 was NaN), so μ is multiplied in as a scaled number instead. (R 4.5.2 gives
+ * -1.0243631212370614e307 for dchisq(1e-308, 294.4, ncp = 2.9e304, log = TRUE), which is -λ/2 = -1.45e304 to the double)
+ */
+function weightUp(w: Scaled, mu: number, j: number): Scaled {
+  return mu < 1e290 ? mulDD(w, ddDivNum([mu, 0], j)) : divDD(mulDD(w, [mu, 0]), [j, 0]);
+}
+
+/**
+ * w_(j-1) = w_j j / μ, with μ split off as a scaled number where the splitting in ddDivNum would overflow: for a tiny
+ * μ (of j / μ; the densities at λ = 1.4e-303 were NaN) and for a huge one (of μ)
+ */
+function weightDown(w: Scaled, j: number, mu: number): Scaled {
+  return mu > 1e-290 && mu < 1e290 ? mulDD(w, ddDivNum([j, 0], mu)) : divDD(mulDD(w, [j, 0]), [mu, 0]);
+}
+
 function weight(j: number, mu: number): Scaled {
   return fromValue(dpoisRaw(j, mu, false), () => dpoisLogDD(j, mu));
 }
@@ -409,7 +431,7 @@ function sumLower(mu: number, k: MixtureKernel): ScaledSum {
     if (j === 0) break;
     // P_{j-1} = P_j + d_{j-1}, w_{j-1} = w_j j/μ, d_{j-2} = d_{j-1} / (d_{j-1}/d_{j-2})
     p = add(p, d);
-    w = refresh(mulDD(w, ddDivNum([j, 0], mu)), () => weight(j - 1, mu));
+    w = refresh(weightDown(w, j, mu), () => weight(j - 1, mu));
     if (j >= 2) d = d.h === 0 ? increment(k, j - 2) : refresh(divRatio(d, k, j - 1), () => increment(k, j - 2));
   }
   return sum;
@@ -447,7 +469,7 @@ function sumUpper(mu: number, k: MixtureKernel): ScaledSum {
       prev = t;
       // Q_{j+1} = Q_j + d_j, w_{j+1} = w_j μ/(j+1), d_{j+1} = d_j (d_{j+1}/d_j)
       q = add(q, d);
-      w = refresh(mulDD(w, ddDivNum([mu, 0], j + 1)), () => weight(j + 1, mu));
+      w = refresh(weightUp(w, mu, j + 1), () => weight(j + 1, mu));
       d = d.h === 0 ? increment(k, j + 1) : refresh(mulRatio(d, k, j + 1), () => increment(k, j + 1));
     }
     if (restart < 0) return sum;
@@ -486,7 +508,7 @@ export function mixtureDensity(
     if (negligible(t, prev, sum) || Number.isNaN(t.h)) break;
     if (t.h === 0 && j > mu + 50 && j > j0 + 50) break; // all later terms are 0 too
     prev = t;
-    w = refresh(mulDD(w, ddDivNum([mu, 0], j + 1)), () => weight(j + 1, mu));
+    w = refresh(weightUp(w, mu, j + 1), () => weight(j + 1, mu));
     d = d.h === 0 ? increment(kernel, j + 1) : refresh(mulRatio(d, kernel, j + 1), () => increment(kernel, j + 1));
   }
   // Downward
@@ -494,9 +516,7 @@ export function mixtureDensity(
   d = d0;
   prev = ZERO;
   for (let j = j0 - 1; j >= 0; j--) {
-    // (w (j + 1)/μ with μ split off as a scaled number where (j + 1)/μ would overflow the splitting of ddDivNum: the
-    // densities at λ = 1.4e-303 were NaN)
-    w = refresh(mu > 1e-290 ? mulDD(w, ddDivNum([j + 1, 0], mu)) : divDD(mulDD(w, [j + 1, 0]), [mu, 0]), () => weight(j, mu));
+    w = refresh(weightDown(w, j + 1, mu), () => weight(j, mu));
     d = d.h === 0 ? increment(kernel, j) : refresh(divRatio(d, kernel, j + 1), () => increment(kernel, j));
     const t = mulDD(mul(w, d), [coef(j), 0]);
     sum.add(t);

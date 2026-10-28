@@ -122,6 +122,10 @@ export function pkumar1(q: number, a: number, b: number, lowerTail: boolean, log
   // for small x^a and b x^a, P[X <= q] = b x^a (1 - (b - 1) x^a / 2 + O(max(1, b)^2 x^2a)) whose log survives where
   // x^a or 1 - exp(lu) underflows; elsewhere the forms below are accurate
   if (Math.max(b, 1) * xa < 1e-10) return Math.log(b) + a * Math.log(q) + Math.log1p((-(b - 1) * xa) / 2);
+  // Where b log(1 - x^a) is subnormal (a subnormal b), it has lost digits, and so would the log of the probability
+  // -lu taken from it: log b + log(-log(1 - x^a)) instead (pkumar(0.2, 0.42, 1.85e-317, { logP: true }) was 2.5e-10 off;
+  // extraDistr gives -Inf there, taking the log after the probability underflowed)
+  if (-lu < MIN_NORMAL) return Math.log(b) + Math.log(-log1mPow(q, a));
   return lu < -Math.LN2 && !tiny ? Math.log1p(-powOneMinus(q, a, b)) : log1mExp(lu);
 }
 
@@ -139,7 +143,9 @@ export function qkumar1(p: number, a: number, b: number, lowerTail: boolean, log
   if (t < -Math.LN2) return Math.exp(Math.log1p(-Math.exp(t)) / a);
   const w = -Math.expm1(t);
   const r = 1 / a;
-  if (!(a < 1e300)) return Math.pow(w, r);
+  // (for a below 1e-300, w <= 1/2 here and the quantile w^(1/a) underflows to 0; the correction below was NaN there,
+  // from the splitting of a subnormal a or 1 / a overflowing: qkumar(4.8e-52, 9.9e-314, 2.5))
+  if (!(a < 1e300) || !(r < 1e300)) return Math.pow(w, r);
   // w^r corrected for the rounding of r = 1 / a (exactly 1 / a - r = (1 - a r) / a), which log w magnifies
   const [ar, e] = twoProd(a, r);
   return Math.pow(w, r) * (1 + (Math.log(w) * (1 - ar - e)) / a);

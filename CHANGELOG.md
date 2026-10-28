@@ -61,6 +61,30 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   (`qtukey(1.5e-287, 3, 4.7e10, { nranges: 2, lowerTail: false })`, now 51.31849500218445; R does not converge), as the
   log of that tail was -Infinity (`ptukey(54.5, 3, Inf, { nranges: 2, lowerTail: false, logP: true })`, now
   -744.6488312090673; R gives -Inf).
+- `qcauchy` with `logP` at a subnormal scale lost digits (`qcauchy(-547.5, { location: 3.5e-180, scale: 9.1e-314,
+  logP: true })` was 7e-11 off; scale / π was subnormal), and was -Infinity from log p = -1420 on although the quantile
+  at the smallest scales is finite down to -1454.
+- `qkumar` at a shape a below 1e-300 was NaN (`qkumar(4.8e-52, 9.9e-314, 2.5)`, now 0 as extraDistr); the log of the
+  lower tail of `pkumar` and `ppareto` at a subnormal shape lost digits (`pkumar(0.2, 0.42, 1.85e-317, { logP: true })`
+  was 2.5e-10 off, `ppareto(318.7, { a: 1.04e-317, logP: true })` 3e-11; extraDistr gives -Inf for both).
+- `dnbinom(0, size)` from a size of about 1e299 was NaN (`dnbinom(0, 2.4e301, { prob: 1 - 2.3e-11 })`, now 0 and
+  -5.5037505412224715e290 on the log scale, as R).
+- Noncentral χ²: from ncp = 2e290 at a tiny x, `pchisq` and `dchisq` were NaN (`pchisq(1e-308, 294, { ncp: 2.9e304
+  })`, now 0 as R; on the log scale -λ/2 to the double, where R's `dchisq` gives -1.02e307 instead of -1.45e304); at a
+  subnormal x with an odd last bit, the rounding of x/2 showed (2% at `pchisq(1.63e-322, 0.49, { ncp: 1 })`, 2e-6 in the
+  differences of `pchisq` against `dchisq(7.02e-315, 0.5, { ncp: 24.3 })`), and below x = 2.2e-308 the log Poisson
+  weights of the mixture took log Γ in double, so that `pchisq(2.1e-317, 1.2e-51, { ncp: 197 })` was 3.8e-15 above its
+  value at 5.3e-296 (likewise 1.4e-15 at x = 1e-307 and df = 1.1e-261). At a huge x and a tiny ncp `pchisq` and `dchisq`
+  were NaN (`dchisq(3e307, 0.5, { ncp: 2.2e-320 })`, `pchisq(4.2e301, 0.0115, { ncp: 1.5e-303 })`), and where x + ncp
+  is beyond the doubles they were wrong or NaN (`pchisq(1e308, 3.3e268, { ncp: 6.9e307 })` was 0.55, not 1, and NaN or
+  -Infinity above; `qchisq(-85.6, 3.3e268, { ncp: 6.9e307, logP: true })` was Infinity, not 6.939005443890441e307;
+  `dchisq(1.79e308, 3, { ncp: 1e308, log: true })` was -Infinity).
+- `pcauchy` and `dcauchy` where q - location overflows: the smaller tail was 0 and the log density -Infinity
+  (`pcauchy(1.79e308, { location: -1.1e307, scale: 2.7e296, lowerTail: false })`, now 4.529328385253959e-13).
+- `dnorm` at an sd below about 2.2e-309, where 1 / sd overflows, was NaN (`dnorm(4.85e-319, { sd: 1.7e-322 })`, now 0;
+  `dnorm(30 sd, { sd })` is now 8.772626419912559e125 there).
+- `qtriang` with a subnormal width returned the mode where the tail's share of its part overflowed
+  (`qtriang(1.6e-8, { a: 0, b: 1.03e-316, c: 8.7e-317, lowerTail: false })`, now 1.02817096e-316).
 
 ## 0.15.2 - 2026-10-28
 
