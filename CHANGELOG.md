@@ -26,6 +26,20 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   and `dinvgamma` when beta / x underflows; `pgamma`, `pchisq`, `ppois` and `pbeta` at huge parameters.
 - `qunif`'s upper tail lost digits near `max` (`qunif(3.7e-216, { min: -1, max: 0, lowerTail: false })` was 0).
 
+- Accuracy:
+  - The noncentral t, χ², F and beta distribution functions could give a larger tail an ulp or two above 1, and
+    step backwards; the larger tail is now 1 minus the smaller.
+  - `pbeta` lost accuracy for a large non-integer shape just below a power of 2 (relative error 1.3e-4 in the log at
+    a = 2^52 - 0.5), and at tiny shapes (above 1). `pbinom`, `pnbinom` and `pf` gain from the same fixes
+    (`pbinom` was 2e-15 off near the upper end).
+  - Subnormal arguments and results: `pgamma` and `qgamma` (0 for `pgamma(2e-323, 0.0548, { rate: 0.045 })`),
+    `qinvgamma`, `pf` and `qf`, `dlnorm` (relative error 2.8e-7), the arcsine distribution.
+  - `pt` and `qt` at huge or tiny df (`qt(9.2e-16, 9e243)` was 0); `dt` and `pt` with a noncentrality parameter at
+    large df (NaN from about df = 1e14); `pinvgamma` for alpha above 1e15; `pnbinom` at tiny size; `pgeom` for x
+    around 1e300.
+- `qbeta`'s upper tail for a tiny first shape (`qbeta(2.2e-265, 5.7e-37, 5643, { lowerTail: false })` is 0.088;
+  R gives 1 with a warning), and `df` at subnormal x (R gives NaN), now differ from R; see docs/differences-from-r.md.
+
 ## 0.15.1 - 2026-10-27
 
 ### Fixed

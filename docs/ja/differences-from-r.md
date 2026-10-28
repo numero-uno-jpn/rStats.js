@@ -130,6 +130,9 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `qbinom(-1e10, 1e5, 0.01, log.p = TRUE)` | 37 (探索が途中で止まる) | 0 (F(0) ≈ e^-1005 は e^-1e10 を超える) |
 | `qt(1e-320, 2)` (非正規化数の p) | -Inf | -7.0711e159 (閉じた式 −sqrt(1/(2p)) と一致) |
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (真の答えを丸めると 1) |
+| `qbeta(2.25e-265, 5.68e-37, 5643.4, lower.tail = FALSE)` (極小の shape) | 1 (警告つき) | 0.08797712670529832 |
+| `df(1.33e-322, 1.04, 206159)` など非正規化数の x | NaN | 3.77e153 (m x / n の log から計算) |
+| `pf(5.43e-319, 1.04, 206159)` (非正規化数の x) | 1.0014e-166 | 7.3742e-167 |
 | `dcauchy(1e300, log = TRUE)`、`pcauchy(-1e300, scale = 1e-300, log.p = TRUE)` | -Inf | -1382.69… |
 | `dweibull(1e-300, 3, log = TRUE)` | -Inf | -1380.45… |
 | `dweibull(1e100, 5, log = TRUE)` | NaN (∞ − ∞) | -Inf |
