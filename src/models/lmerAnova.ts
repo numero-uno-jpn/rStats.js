@@ -174,6 +174,12 @@ function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): 
   // (only the number of observations is compared, as lme4 does; the fits must also share the data object below)
   if (fits.some((f) => f.nObs !== fits[0]!.nObs)) throw new Error("models were not all fitted to the same size of dataset");
   if (internals.some((i) => i.data !== internals[0]!.data)) throw new Error("all models must be fit to the same data object");
+  // A likelihood ratio compares likelihoods of the same observations: the same rows of the data and the same response
+  // (lme4 compares only the number of rows, and returns a test for fits of different rows or responses)
+  const sameRows = (r: readonly number[]): boolean => r.length === fits[0]!.rows.length && r.every((v, i) => v === fits[0]!.rows[i]);
+  if (fits.some((f) => !sameRows(f.rows))) throw new Error("models were not all fitted to the same rows of the data");
+  const response = (f: LmerResult): string => f.formula.slice(0, f.formula.indexOf("~")).replace(/\s+/g, "");
+  if (fits.some((f) => response(f) !== response(fits[0]!))) throw new Error("models were not all fitted to the same response");
   const warnings = new Warnings();
   const messages: string[] = [];
   let names = fits.map((_, i) => `MODEL${i + 1}`);

@@ -82,6 +82,14 @@
 - 確認: `ddMulNum([1e302, 0], 1)` などが [1e302, 0]。数式形式の `lm("y ~ x")` で y を 1e150 倍しても R² = 0.97827 (行列形式・R と同じ)
 - 性能: 演算ごとに `Number.isFinite` の判定が 1 回増える。`npm run bench` での計測は未実施
 
+## 4 回目: 残っていた小〜中規模の項目
+
+- No.117 `lmerTest` の `fTestOf`: 1 行のコントラストも、L V L' が 0 以下 (階数 0、0 だけの行など) なら複数行と同じく `undefined` (検定なし)
+- No.119 `lmerAnova` の比較: 行数に加えて、使った行 (`rows`) と応答 (式の左辺) が一致しなければエラー (lme4 は行数だけを比べる)
+- No.118 `predict` (lm) / `glmPredict`: R 4.5 の predict.lm (rankdeficient = "warnif") と同じく、ランク落ちの当てはめで推定可能でない newdata の行を零空間で判定し、`nonEstimable` (0 始まりの行番号) と R の警告文 `warnings` を返す (新規 `src/models/estimable.ts`)。推定可能な行だけなら何も付かない
+- No.122 `aovStrata`: 層への射影を採用するしきい値を、R の絶対値 1e-5 から「1e-5 × 列の平均二乗」に。レビューの例で x を 1e-4 倍・1e4 倍しても同じ表になることを確認
+- `docs/differences-from-r.md` (英日) に No.119・No.122 の行を追加
+
 ## 変更しなかったもの
 
 - No.64 `rlogis` の負の scale: NaN を返すと乱数を消費しないので、乱数列が R とずれる (random.test で確認)。R のまま
@@ -93,16 +101,11 @@
 - No.93 `ansariTest` の CI 探索範囲が空: 未対応 (R 4.6.0 では NA と警告になった、との指摘あり → R 突合)
 - No.94 `binomTest` の 1e-7 の整数判定許容: 浮動小数点で渡された度数を受け付けるための許容で妥当
 - No.99 `pwrTTest` の n=Infinity: 未対応 (極限としての検出力は意味を持ちうる)
-- No.119 `lmerAnova` の行比較 / No.122 `aovStrata` の 1e-5 しきい値: R と同じ。設計を伴うため未対応 (下記)
 
 ## 未修正・要対応 (設計を伴う作業)
 
 - No.31/120/121 `lmer` のスケール依存 (応答 1e200 倍で収束しない、Satterthwaite 自由度が Inf になる、ランダム傾きが説明変数の単位で収束しない)
 - No.33 `coxph` の標準誤差が共変量 1e200 倍でアンダーフロー (R の coxph は内部でスケーリングする)
-- No.117 `lmerTest` の単一ゼロコントラストを自由度 1 として扱う
-- No.119 `lmerAnova`: nobs だけでなく使った行が同じかを確認する
-- No.122 `aovStrata`: 列の採否を平方和 > 1e-5 の絶対しきい値でなく相対的なランク判定で行う
-- No.118 ランク落ちモデルの `predict`: R の predict.lm は推定不能な予測に警告を出す ("prediction from rank-deficient fit")
 
 ## R 突合が必要 (後でまとめて)
 

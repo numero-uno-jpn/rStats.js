@@ -23,6 +23,7 @@ import type { Sample } from "../htest/types.js";
 import { parseFormula } from "./formula.js";
 import type { DataFrame } from "./modelFrame.js";
 import { design, type Design, type ModelMatrixOptions } from "./modelMatrix.js";
+import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
 
 /**
  * Options for {@link lm}.
@@ -481,6 +482,10 @@ export function predict(
   lwr?: number[];
   /** Upper limits of the intervals (absent with `interval: "none"`). */
   upr?: number[];
+  /** 0-based rows of `newdata` whose prediction is not estimable from a rank-deficient fit (R's `attr(, "non-estim")`); present only when there are some. */
+  nonEstimable?: number[];
+  /** R's warning for those rows; present only when there are some. */
+  warnings?: string[];
 } {
   const rows: number[][] =
     newdata.length > 0 && typeof newdata[0] !== "number"
@@ -505,8 +510,11 @@ export function predict(
   });
   const interval = options.interval ?? "none";
   if (interval !== "none" && interval !== "confidence" && interval !== "prediction") throw new RangeError(`invalid 'interval': ${String(interval)}`);
-  if (interval === "none") return { fit: values, seFit };
+  // R's predict.lm (rankdeficient = "warnif"): the rows that are not estimable from a rank-deficient fit
+  const nonEstimable = nonEstimableRows(fit.qr, fit.rank, X);
+  const extra = nonEstimable.length > 0 ? { nonEstimable, warnings: [NON_ESTIMABLE_WARNING] } : {};
+  if (interval === "none") return { fit: values, seFit, ...extra };
   const t = qt1((1 + (options.level ?? 0.95)) / 2, fit.dfResidual, true, false);
   const half = seFit.map((s) => t * Math.sqrt(s * s + (interval === "prediction" ? resvar : 0)));
-  return { fit: values, seFit, lwr: values.map((v, i) => v - half[i]!), upr: values.map((v, i) => v + half[i]!) };
+  return { fit: values, seFit, lwr: values.map((v, i) => v - half[i]!), upr: values.map((v, i) => v + half[i]!), ...extra };
 }

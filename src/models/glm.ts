@@ -25,6 +25,7 @@ import {
   type GlmLink,
 } from "./glmFamily.js";
 import { maxOf } from "../internal/extremes.js";
+import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
 
 export type { GlmFamilyName, GlmFamilySpec, GlmLink, GlmLinkName, QuasiVariance } from "./glmFamily.js";
 
@@ -801,6 +802,10 @@ export function glmPredict(
   fit: number[];
   /** Their standard errors (R's `se.fit`). */
   seFit: number[];
+  /** 0-based rows of `newdata` whose prediction is not estimable from a rank-deficient fit (R's `attr(, "non-estim")`); present only when there are some. */
+  nonEstimable?: number[];
+  /** R's warning for those rows; present only when there are some. */
+  warnings?: string[];
 } {
   const fam = familyOf(fit);
   let X: number[][];
@@ -833,9 +838,13 @@ export function glmPredict(
   });
   const type = options.type ?? "link";
   if (type !== "link" && type !== "response") throw new RangeError(`invalid 'type': ${String(type)}`);
-  if (type === "link") return { fit: eta, seFit: se };
+  // as predict.lm, which R's predict.glm calls (only for new data: the fitted rows are estimable)
+  const nonEstimable = options.newdata === undefined ? [] : nonEstimableRows(fit.qr, rank, X);
+  const extra = nonEstimable.length > 0 ? { nonEstimable, warnings: [NON_ESTIMABLE_WARNING] } : {};
+  if (type === "link") return { fit: eta, seFit: se, ...extra };
   return withWarnings(new Warnings(), () => ({
     fit: eta.map((e) => fam.linkinv(e)),
     seFit: se.map((s, i) => s * Math.abs(fam.muEta(eta[i]!))),
+    ...extra,
   }));
 }

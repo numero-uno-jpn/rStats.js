@@ -195,7 +195,10 @@ export function fTestOf(s: LmerSatterthwaite, L: readonly (readonly number[])[],
   if (r === 0) return undefined;
   const right = rhs ?? new Array<number>(r).fill(0);
   if (r === 1) {
-    const t = tTestOf(s, L[0]!, right[0]!);
+    // A contrast of rank 0 (L V L' = 0, such as a row of zeros) has no hypothesis to test, as for several rows below
+    const l = L[0]!;
+    if (!l.some(Number.isNaN) && !(l.reduce((sum, v, j) => sum + v * l.reduce((t, w, k) => t + s.vcov[j]![k]! * w, 0), 0) > 0)) return undefined;
+    const t = tTestOf(s, l, right[0]!);
     return fRowOf(s, t.tValue * t.tValue, 1, t.df);
   }
   if (L.some((row) => row.some(Number.isNaN)) || right.some(Number.isNaN)) return fRowOf(s, NaN, NaN, NaN);

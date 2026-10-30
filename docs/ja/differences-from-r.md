@@ -192,6 +192,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 小数の `B` での `fisher.test`/`chisq.test(simulate.p.value = TRUE)` | 整数部分しかシミュレーションしないのに B + 1 で割る | 実際の回数 + 1 で割る |
 | `JonckheereTerpstraTest` (DescTools) の両側 p 値 | 1 を超えることがある | 最大 1 |
 | distSummary の `unif(-1e308, 1e308)` の平均、`beta(1e150, 1e150)` の分散 | Inf、0 | 0、1.25e-151 |
+| 小さな単位の共変量 x (x * 1e-4) での `aov(y ~ x + w + Error(id/w))` | x の行が消える (層への射影の平方和が 1e-5 を超える列だけを採用するため) | x の尺度によらず同じ表 (しきい値は 1e-5 × 列の平均二乗) |
+| 行数は同じだが使った行や応答が異なる lmer の当てはめの `anova()` | 尤度比検定を返す | エラー (lme4 は行数だけを比べる) |
 
 ## 意図的な違い
 

@@ -198,6 +198,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `fisher.test`/`chisq.test(simulate.p.value = TRUE)` with a fractional `B` | divides by B + 1 though only the integer part of B is simulated | divides by the number simulated plus 1 |
 | `JonckheereTerpstraTest` (DescTools) two-sided | can exceed 1 | at most 1 |
 | distSummary's mean of `unif(-1e308, 1e308)`, variance of `beta(1e150, 1e150)` | Inf, 0 | 0, 1.25e-151 |
+| `aov(y ~ x + w + Error(id/w))` with a covariate x in small units (x * 1e-4) | the x row disappears (a column is kept in a stratum when its projection's squared length exceeds 1e-5) | the same table at any scale of x (1e-5 times the column's mean square) |
+| `anova()` of lmer fits of different rows of the data or different responses with the same number of rows | a likelihood ratio test | an error (lme4 compares only the number of rows) |
 
 ## Deliberate differences
 
