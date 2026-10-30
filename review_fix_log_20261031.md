@@ -124,3 +124,40 @@
 
 - `npx tsc --noEmit`: エラーなし
 - `npx vitest run`: 2031 passed / 34 skipped (3 回目の dd.ts 修正後も同じ。全件成功。初回の全体実行では signrank と qtukey の時間制限テストが負荷で落ちたが、単独実行では変更前後とも成功)
+
+## セッション終了時点の残課題 (2026-10-31)
+
+コミット: `440b953` (1〜3 回目)、`3f0515b` (4 回目)。どちらも origin/main に push 済み。
+
+### 1. 未修正の不具合 (直す方針)
+
+- No.33 `coxph`: 共変量 1e200 倍で標準誤差がアンダーフローして 0、p 値 0。共変量を内部で標準化して推定し、係数と分散行列を元の単位に戻す (R の coxph も内部でスケーリングする)。規模は中。着手するならこちらが先
+- No.31 `lmer`: 応答 1e200 倍で最適化が収束しない
+- No.120 `lmer`/`lmerTest`: 応答の単位を変えるだけで Satterthwaite 自由度が有限値から Inf になる (固有値判定が絶対的)
+- No.121 `lmer`: ランダム傾きのモデルが説明変数の単位を変えるだけで収束しない
+  - lmer の 3 件は、応答と X・Z の列を内部で標準化して元に戻す方針。最適化の経路が変わるので、lme4 との突合を全体にやり直す必要がある。規模は大
+
+- No.113 `glmAnova`: 応答の異なる GLM どうしを尤度比検定で比較できてしまう (見落としていた)。比較するモデルの応答 (と使った行) が同じかを確認する。R の anova.glmlist は式の左辺が違うモデルを警告付きで除外する。規模小
+
+### 2. 直すかどうかの判断が残っているもの
+
+- No.93 `ansariTest`: CI 探索範囲が空で例外 (R 4.5 と同じ。R 4.6.0 は NA と警告に変わったとの指摘あり)
+- No.64 `rlogis`: 負の scale で乱数を返す (NaN にすると乱数の消費がずれて R の乱数列と合わなくなる)
+- No.72 `optim`: maxit=0 で反復せず convergence 0 (R と同じ)
+- No.99 `pwrTTest`: n=Infinity を受け付ける
+- No.55 `poissonTest`: T=0 で推定値 NaN
+
+### 3. R 突合が必要 (上の「R 突合が必要」の節も参照)
+
+- No.82〜84: pf(1, 1e308, 1e308)=0、qf(0.5, 1e308, 1e308)=2、pbeta/qbeta/dbeta(0.5, 9e307, 9e307)、pgamma(1, 8e307, scale=1.25e-308)=0 の R の値
+- No.7 expm パッケージの Taylor/Pade が [[0,1e308],[0,0]] で何を返すか
+- R と違う値にした箇所 (fivenum、scale、KM 中央値、splinefun など) が R で本当に Inf/NaN になるか
+- No.30 nortest の pearson.test/sf.test は定数データで結果を返すか (rStats.js はエラー)
+- No.106 rbind.data.frame の型変換 (数値の文字列化の書式) の一致
+- No.11/12/69 eigen/svd の 1e±200 倍での LAPACK の値との一致
+
+### 4. 作業上の残り
+
+- dd.ts の修正で演算ごとに Number.isFinite の判定が 1 回増えた。`npm run bench` での性能計測は未実施
+- `Math.max(...配列)` が 2 か所残る (src/htest/chisqTest.ts:335、src/models/lmer.ts:382)。要素は数個で実害なし
+- レポート `ChatGPT_notices_20261030.txt` の各指摘の見出しの直後に「【rStats.js 対応状況 2026-10-31】」の行を書き込んだ
