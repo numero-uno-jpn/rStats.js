@@ -192,7 +192,11 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 小数の `B` での `fisher.test`/`chisq.test(simulate.p.value = TRUE)` | 整数部分しかシミュレーションしないのに B + 1 で割る | 実際の回数 + 1 で割る |
 | `JonckheereTerpstraTest` (DescTools) の両側 p 値 | 1 を超えることがある | 最大 1 |
 | distSummary の `unif(-1e308, 1e308)` の平均、`beta(1e150, 1e150)` の分散 | Inf、0 | 0、1.25e-151 |
-| 小さな単位の共変量 x (x * 1e-4) での `aov(y ~ x + w + Error(id/w))` | x の行が消える (層への射影の平方和が 1e-5 を超える列だけを採用するため) | x の尺度によらず同じ表 (しきい値は 1e-5 × 列の平均二乗) |
+| 小さな単位の共変量 x (x * 1e-4) での `aov(y ~ x + w + Error(id/w))` | x の行が消える (層への射影の平方和が 1e-5 を超える列だけを採用するため) | x の尺度によらず同じ表 (しきい値は列自身の平方和の 1e-14 倍。以前の 1e-5 × 列の平均二乗では、主に被験者間で変動する共変量の小さな被験者内成分も落ちていた) |
+| 1e-200 や 1e155 程度のデータでの `t.test`、`oneway.test`、`var.test`、`bartlett.test`、PMCMRplus の `tukeyTest`/`gamesHowellTest`、`pairwise.t.test` | "data are essentially constant" か NaN (分散が 0 にアンダーフロー、またはその二乗がオーバーフロー) | 尺度によらず同じ結果 (データを 2 の冪で正規化。丸め誤差なし) |
+| 1e±150 程度のデータでの `t.test`、`gamesHowellTest`、`cohensD`、ICC の二元配置の限界の Welch 自由度 | NaN (標準誤差の 4 乗) | 尺度によらず同じ自由度 |
+| `chisq.test(c(1e200, 1e200), p = c(0.1, 0.9))`、`chisq.test(matrix(1e200, 2, 2))`、`mcnemar.test`・`prop.test`・`mantelhaen.test` の Pearson 型の項 | Inf か NaN (偏差の二乗や周辺度数の積がオーバーフロー) | 3.56e200、0 (必要なときは (d / sqrt(e))^2、(a / n) b の順で計算) |
+| 応答の単位を変えた (1e-4 倍、1e±100 程度) afex の `aov_ez` と `mauchly.test` | 球面性の補正と Mauchly 検定が消える (car の固有値の絶対しきい値)、または W が NaN | 尺度によらず同じ ε と W (ランクは最大固有値に対する相対値で判定。W は det(U / (trace(U)/p)) で計算) |
 | 行数は同じだが使った行や応答が異なる lmer の当てはめの `anova()` | 尤度比検定を返す | エラー (lme4 は行数だけを比べる) |
 
 ## 意図的な違い
@@ -320,6 +324,12 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   順位づけ (10.06 が 8.88 より前)、因子で渡すと数として順位づけます。`dunnTest` は後者を再現します。
 - **R がデータの表示で締めくくる `aovEz` のメッセージ** (欠測値で除いた id、被験者内の空のセル、
   被験者間の空のセル) は、表示の手前で終わります。
+- **`aovEz` の欠測値**: 応答が `null` か `NaN` ならその id を除きます (afex の "Missing values for ... ID(s)")。応答の
+  無限大はエラーです。id や因子が欠測の行は除きます。被験者内の項の誤差 SSP 行列が特異なときは、その p 値が未補正である
+  ことを警告します (afex は何も出しません)。被験者内因子が 1 水準なら、被験者間因子と同じくエラーです (afex は空の表を返します)。
+- **`mauchlyTest`** は、`y` に欠測値がある行と `group` が欠測の行を除きます (`lm(y ~ group)` と同じ)。無限大はエラーです。
+- **`poissonTest`** の `T` と `r` は有限値が必要です (R は `Inf` を受け付けます)。1 標本の検定は R と同じく `confLevel` の
+  0 と 1 を受け付けます (2 標本の検定は `binomTest` と同じく 0 < `confLevel` < 1)。
 
 - **`coxph`** は共変量を行列で受け取ります (formula はありません)。整数でないケースの重みは "non-integer weights (robust
   variance) are not supported yet" で止まります (R はそのとき頑健 (サンドイッチ) 分散に切り替えます)。多数の反復で

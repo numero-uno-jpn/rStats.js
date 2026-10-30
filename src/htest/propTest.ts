@@ -12,6 +12,7 @@
 
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
+import { squareOver } from "../internal/summary.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /**
@@ -133,8 +134,8 @@ export function propTest(
       const pi = p?.[i] ?? pooled;
       const e1 = ns[i]! * pi;
       const e2 = ns[i]! * (1 - pi);
-      statistic += (Math.abs(xs[i]! - e1) - yates) ** 2 / e1;
-      statistic += (Math.abs(ns[i]! - xs[i]! - e2) - yates) ** 2 / e2;
+      statistic += squareOver(Math.abs(xs[i]! - e1) - yates, e1);
+      statistic += squareOver(Math.abs(ns[i]! - xs[i]! - e2) - yates, e2);
     }
   }
   const df = p !== undefined ? k : k - 1;

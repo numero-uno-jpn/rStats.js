@@ -11,7 +11,7 @@ import { cor, cov } from "../descriptive/cov.js";
 import { pf1, qf1 } from "../distributions/f.js";
 import { pnorm } from "../distributions/normal.js";
 import { numberLevels } from "../internal/levels.js";
-import { mean, sum, variance } from "../internal/summary.js";
+import { mean, satterthwaiteDf, sum, variance } from "../internal/summary.js";
 import { solve } from "../linalg/solve.js";
 import { formatR } from "./core/simulate.js";
 import { matchChoice } from "./power.js";
@@ -279,8 +279,7 @@ export function icc(ratings: readonly (readonly number[])[], options: IccOptions
   // two-way agreement: Satterthwaite's degrees of freedom v for the combination a MSc + b MSe
   const scale = unit === "single" ? k : 1;
   const coefficients = (r: number): [number, number] => [(scale * r) / (n * (1 - r)), 1 + (scale * r * (n - 1)) / (n * (1 - r))];
-  const dfOf = (a: number, b: number): number =>
-    (a * msc + b * mse) ** 2 / ((a * msc) ** 2 / (k - 1) + (b * mse) ** 2 / ((n - 1) * (k - 1)));
+  const dfOf = (a: number, b: number): number => satterthwaiteDf([a * msc, b * mse], [k - 1, (n - 1) * (k - 1)]);
   const value =
     unit === "single" ? (msr - mse) / (msr + (k - 1) * mse + (k / n) * (msc - mse)) : (msr - mse) / (msr + (msc - mse) / n);
   const [a0, b0] = coefficients(r0);

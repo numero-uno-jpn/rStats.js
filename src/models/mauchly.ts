@@ -9,6 +9,7 @@
 
 import { pgamma1 } from "../distributions/gamma.js";
 import { levelText } from "../internal/levels.js";
+import { scaleToUnit } from "../internal/summary.js";
 import type { MatrixInput } from "../linalg/matrix.js";
 import { qr } from "../linalg/qr.js";
 import { ddAdd, ddDiv, ddDivNum, ddMul, ddSub, type DD } from "../special/dd.js";
@@ -51,14 +52,14 @@ export interface MauchlyTestResult {
 
 const upperChisq = (q: number, df: number): number => pgamma1(q, df / 2, 2, false, false);
 
-/** W = det(U) / (trace(U)/p)^p of a p x p matrix U */
+/**
+ * W = det(U) / (trace(U)/p)^p of a p x p matrix U, as det(U / (trace(U)/p)): the scaled matrix has trace p, so
+ * neither the determinant nor the power overflows or underflows when W itself is in range
+ */
 export function sphericityW(U: DDMatrix): number {
   const p = U.length;
-  let m = ddDivNum(ddTrace(U), p);
-  let pow: DD = [1, 0];
-  for (let i = 0; i < p; i++) pow = ddMul(pow, m);
-  m = ddDiv(ddDet(U), pow);
-  return m[0];
+  const m = ddDivNum(ddTrace(U), p);
+  return ddDet(U.map((r) => r.map((v) => ddDiv(v, m))))[0];
 }
 
 /**
@@ -120,13 +121,19 @@ export function contrastCrossprod(S: DDMatrix, mcols: number[][], xcols: number[
  * @category Linear models and ANOVA
  */
 export function mauchlyTest(y: MatrixInput, options: MauchlyTestOptions = {}): MauchlyTestResult {
-  const rows = y.map((r) => Array.from(r));
-  const nsub = rows.length;
-  const k = rows[0]?.length ?? 0;
-  if (k === 0 || rows.some((r) => r.length !== k)) throw new TypeError("y must be a matrix with at least one column");
+  const all = y.map((r) => Array.from(r));
+  const k = all[0]?.length ?? 0;
+  if (k === 0 || all.some((r) => r.length !== k)) throw new TypeError("y must be a matrix with at least one column");
   const group = options.group;
-  if (group !== undefined && group.length !== nsub) throw new RangeError("'group' must have one label per row of y");
-  const labels = group?.map(levelText) ?? rows.map(() => "");
+  if (group !== undefined && group.length !== all.length) throw new RangeError("'group' must have one label per row of y");
+  // as for lm(y ~ group): rows with a missing value (NaN or null) in y or a missing group are dropped
+  const isMissing = (v: unknown): boolean => v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
+  const keep = all.map((r, i) => !r.some(isMissing) && (group === undefined || !isMissing(group[i])));
+  if (all.some((r, i) => keep[i] && r.some((v) => !Number.isFinite(v)))) throw new RangeError("y must not contain infinite values");
+  // scaled by a power of 2 (exact) so that the cross-products stay in range; W does not depend on the units
+  const rows = scaleToUnit(all.filter((_, i) => keep[i])).groups;
+  const nsub = rows.length;
+  const labels = group?.filter((_, i) => keep[i]).map(levelText) ?? rows.map(() => "");
   const levels = [...new Set(labels)].sort(compareCodePoints);
   // residuals from the group means (double-double), and their cross-products
   const res: DD[][] = rows.map((r) => r.map((): DD => [0, 0]));

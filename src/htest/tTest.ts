@@ -7,7 +7,7 @@
 // - If the standard error is below 10 eps times the absolute mean, the data are treated as constant and an error is raised (as in R)
 
 import { pt1, qt1 } from "../distributions/t.js";
-import { completePairs, dropNaN, mean, variance } from "../internal/summary.js";
+import { completePairs, dropNaN, ldexp, mean, satterthwaiteDf, scaleToUnit, variance } from "../internal/summary.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { twoSampleData } from "./testFormula.js";
 import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
@@ -126,6 +126,13 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
     xs = dropNaN(xs);
     if (yv !== undefined) yv = dropNaN(yv);
   }
+  // Work on the data scaled by 2^-k (exact), so that the variances and their squares stay in range; mu goes with
+  // them, and the estimates, standard error and interval are scaled back at the end
+  const scaled = scaleToUnit(yv === undefined ? [xs] : [xs, yv]);
+  const k = scaled.k;
+  xs = scaled.groups[0]!;
+  if (yv !== undefined) yv = scaled.groups[1]!;
+  const muS = ldexp(mu, -k);
 
   let tstat: number;
   let df: number;
@@ -145,7 +152,7 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
     df = nx - 1;
     stdErr = Math.sqrt(vx / nx);
     if (stdErr < 10 * Number.EPSILON * Math.abs(mx)) throw new Error("data are essentially constant");
-    tstat = (mx - mu) / stdErr;
+    tstat = (mx - muS) / stdErr;
     method = paired ? "Paired t-test" : "One Sample t-test";
     estimate = mx;
     estimateNames = paired ? "mean difference" : "mean of x";
@@ -172,12 +179,12 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
       const sx = vx / nx;
       const sy = vy / ny;
       stdErr = Math.sqrt(sx + sy);
-      df = (stdErr * stdErr) ** 2 / ((sx * sx) / (nx - 1) + (sy * sy) / (ny - 1));
+      df = satterthwaiteDf([sx, sy], [nx - 1, ny - 1]);
     }
     if (stdErr < 10 * Number.EPSILON * Math.max(Math.abs(mx), Math.abs(my))) {
       throw new Error("data are essentially constant");
     }
-    tstat = (mx - my - mu) / stdErr;
+    tstat = (mx - my - muS) / stdErr;
   }
 
   let pValue: number;
@@ -194,7 +201,9 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
     const c = qt1(1 - alpha / 2, df, true, false);
     confInt = [tstat - c, tstat + c];
   }
-  confInt = [mu + confInt[0] * stdErr, mu + confInt[1] * stdErr];
+  confInt = [ldexp(muS + confInt[0] * stdErr, k), ldexp(muS + confInt[1] * stdErr, k)];
+  estimate = typeof estimate === "number" ? ldexp(estimate, k) : estimate.map((v) => ldexp(v, k));
+  stdErr = ldexp(stdErr, k);
 
   return {
     method,

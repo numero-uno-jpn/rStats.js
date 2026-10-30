@@ -22,6 +22,7 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import { logFactorialTable, rcont2 } from "../random/r2dtable.js";
 import { sampleInt } from "../random/sample.js";
+import { productOver, squareOver } from "../internal/summary.js";
 import { ddAdd, type DD } from "../special/dd.js";
 import { simulatedMethod } from "./core/simulate.js";
 import type { HTest, Counts } from "./types.js";
@@ -244,7 +245,7 @@ function goodnessOfFit(x: number[], options: ChisqTestOptions): ChisqTestResult 
   const E = p.map((v) => n * v);
   checkExpected(E);
   const V = p.map((v, i) => E[i]! * (1 - v));
-  const stat = ddSum(x.map((v, i) => (v - E[i]!) ** 2 / E[i]!));
+  const stat = ddSum(x.map((v, i) => squareOver(v - E[i]!, E[i]!)));
   let method = "Chi-squared test for given probabilities";
   let df = k - 1;
   let pValue: number;
@@ -324,7 +325,7 @@ function contingency(x: number[][], options: ChisqTestOptions): ChisqTestResult 
   if (!(n > 0)) throw new RangeError("at least one entry of 'x' must be positive");
   const sr = x.map((r) => ddSum(r));
   const sc = x[0]!.map((_, j) => ddSum(x.map((r) => r[j]!)));
-  const E = sr.map((a) => sc.map((b) => (a * b) / n));
+  const E = sr.map((a) => sc.map((b) => productOver(a, b, n)));
   checkExpected(E.flat());
   const diff = x.map((r, i) => r.map((v, j) => v - E[i]![j]!));
   let method = "Pearson's Chi-squared test";
@@ -337,7 +338,7 @@ function contingency(x: number[][], options: ChisqTestOptions): ChisqTestResult 
     // counts are integers for the simulation (R's C code takes the margins as integers)
     const B = replicates(options);
     method += simulatedMethod(B);
-    stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => (d * d) / E[i]![j]!)));
+    stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => squareOver(d, E[i]![j]!))));
     df = NaN;
     const sims = simulateTables(
       sr.map((v) => Math.trunc(v)),
@@ -348,9 +349,9 @@ function contingency(x: number[][], options: ChisqTestOptions): ChisqTestResult 
     pValue = monteCarloP(sims, stat, B);
   } else if (yates > 0) {
     method += " with Yates' continuity correction";
-    stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => (Math.abs(d) - yates) ** 2 / E[i]![j]!)));
+    stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => squareOver(Math.abs(d) - yates, E[i]![j]!))));
   } else {
-    stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => (d * d) / E[i]![j]!)));
+    stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => squareOver(d, E[i]![j]!))));
   }
   const V = E.map((r, i) => r.map((e, j) => e * (1 - sr[i]! / n) * (1 - sc[j]! / n)));
   return {

@@ -198,7 +198,11 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `fisher.test`/`chisq.test(simulate.p.value = TRUE)` with a fractional `B` | divides by B + 1 though only the integer part of B is simulated | divides by the number simulated plus 1 |
 | `JonckheereTerpstraTest` (DescTools) two-sided | can exceed 1 | at most 1 |
 | distSummary's mean of `unif(-1e308, 1e308)`, variance of `beta(1e150, 1e150)` | Inf, 0 | 0, 1.25e-151 |
-| `aov(y ~ x + w + Error(id/w))` with a covariate x in small units (x * 1e-4) | the x row disappears (a column is kept in a stratum when its projection's squared length exceeds 1e-5) | the same table at any scale of x (1e-5 times the column's mean square) |
+| `aov(y ~ x + w + Error(id/w))` with a covariate x in small units (x * 1e-4) | the x row disappears (a column is kept in a stratum when its projection's squared length exceeds 1e-5) | the same table at any scale of x (the threshold is 1e-14 times the column's own squared length; 1e-5 times its mean square, used before, also dropped the small within-subject part of a covariate that varies mostly between subjects) |
+| `t.test`, `oneway.test`, `var.test`, `bartlett.test`, PMCMRplus's `tukeyTest`/`gamesHowellTest`, `pairwise.t.test` on data around 1e-200 or 1e155 | "data are essentially constant", or NaN (the variances underflow to 0 or their squares overflow) | the result at any scale (the data rescaled by a power of 2, which is exact) |
+| The Welch degrees of freedom of `t.test`, `gamesHowellTest`, `cohensD` and ICC's two-way bounds, data around 1e±150 | NaN (fourth powers of the standard errors) | the same df at any scale |
+| `chisq.test(c(1e200, 1e200), p = c(0.1, 0.9))`, `chisq.test(matrix(1e200, 2, 2))`, and the Pearson terms of `mcnemar.test`, `prop.test`, `mantelhaen.test` | Inf or NaN (the squared deviation or the product of the margins overflows) | 3.56e200, 0 (formed as (d / sqrt(e))^2 or (a / n) b when needed) |
+| afex's `aov_ez` and `mauchly.test` with the response in other units (1e-4 times, or around 1e±100) | the sphericity corrections and Mauchly's test disappear (car's absolute eigenvalue threshold), or W is NaN | the same epsilons and W at any scale (the rank judged relative to the largest eigenvalue; W as det(U / (trace(U)/p))) |
 | `anova()` of lmer fits of different rows of the data or different responses with the same number of rows | a likelihood ratio test | an error (lme4 compares only the number of rows) |
 
 ## Deliberate differences
@@ -331,6 +335,14 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   (so 10.06 before 8.88); with a factor it ranks them as numbers, which is what `dunnTest` reproduces.
 - **`aovEz` messages that R completes with a printout of the data** (ids removed for missing
   values, empty within-subject cells, empty between-subject cells) stop where the printout starts.
+- **`aovEz` and missing values**: a response that is `null` or `NaN` removes its id (afex's "Missing values for ...
+  ID(s)"), an infinite response is an error, and rows with a missing id or factor value are dropped. When the error
+  SSP matrix of a within-subject term is singular, a warning says that its p-values are uncorrected (afex prints none).
+  A within-subject factor with one level is an error, as a between-subject one is (afex returns an empty table).
+- **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);
+  an infinite value is an error.
+- **`poissonTest`** requires a finite `T` and `r` (R accepts `Inf`). The one-sample test accepts `confLevel` 0 and 1
+  as R does (the two-sample test, as `binomTest`, needs 0 < `confLevel` < 1).
 
 - **`coxph`** takes the covariates as a matrix (no formula), and non-integer case weights throw "non-integer
   weights (robust variance) are not supported yet": R switches to the robust (sandwich) variance for them.

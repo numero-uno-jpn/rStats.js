@@ -116,11 +116,15 @@ export interface JonckheereTestResult extends Omit<HTest, "alternative"> {
 const NOT_EXACT = "Sample size > 100 or data with ties \n p-value based on normal approximation. Specify nperm for permutation p-value";
 const TIES = "Sample data with ties \n p-value based on normal approximation. Specify nperm for permutation p-value.";
 
-/** The groups in order: the labels sorted (numbers as numbers, strings by code point) or as `levels` */
-function orderedGroups(x: Sample, g: readonly GroupLabel[], levels: readonly GroupLabel[] | undefined): number[][] {
+/**
+ * The groups in order: the labels sorted (numbers as numbers, strings by code point) or as `levels`. Pairs with a NaN
+ * are dropped, and with `finiteOnly` also those with an infinite value or numeric label
+ */
+function orderedGroups(x: Sample, g: readonly GroupLabel[], levels: readonly GroupLabel[] | undefined, finiteOnly = false): number[][] {
   const xs = Array.from(x);
   if (xs.length !== g.length) throw new RangeError("'x' and 'g' must have the same length");
-  const keep = xs.flatMap((v, i) => (Number.isNaN(v) || (typeof g[i] === "number" && Number.isNaN(g[i])) ? [] : [i]));
+  const bad = (v: unknown): boolean => typeof v === "number" && (finiteOnly ? !Number.isFinite(v) : Number.isNaN(v));
+  const keep = xs.flatMap((v, i) => (bad(v) || bad(g[i]) ? [] : [i]));
   // numeric labels with the same 15-digit text are one level, as in R's factor() (only without given levels, which
   // are matched by their text)
   if (levels === undefined) g = numberLevels(g);
@@ -146,7 +150,7 @@ function orderedGroups(x: Sample, g: readonly GroupLabel[], levels: readonly Gro
  * Jonckheere-Terpstra test of equal distributions against ordered alternatives. Equivalent to
  * `DescTools::JonckheereTerpstraTest()` in R. Computes `JonckheereTerpstraTest(x, g, alternative, exact)` (with `g`
  * an ordered factor) or, with `variant: "clinfun"`, clinfun's `jonckheere.test(x, g, alternative)` (whose
- * two-sided p-value is `2 min(p_increasing, p_decreasing, 0.5)`; DescTools caps it at 1 instead of 0.5). Pairs with a missing value are dropped.
+ * two-sided p-value is `2 min(p_increasing, p_decreasing, 0.5)`; DescTools caps it at 1 instead of 0.5). Pairs with a missing value are dropped (with `variant: "clinfun"`, also those with an infinite value, as clinfun does).
  *
  * @param x The values.
  * @param g Group labels, parallel to `x`, in the order of the alternative.
@@ -163,7 +167,8 @@ export function jonckheereTest(x: Sample, g: readonly GroupLabel[], options: Jon
   const variant = options.variant ?? "DescTools";
   if (variant !== "DescTools" && variant !== "clinfun") throw new RangeError(`invalid variant "${String(variant)}"`);
   if (variant === "clinfun" && options.exact !== undefined) throw new TypeError("clinfun's jonckheere.test has no option 'exact'");
-  const groups = orderedGroups(x, g, options.levels);
+  // clinfun keeps only the pairs where both values are finite
+  const groups = orderedGroups(x, g, options.levels, variant === "clinfun");
   const all = groups.flat();
   const nTotal = all.length;
   const ties = new Set(all).size < nTotal;

@@ -8,7 +8,7 @@
 
 import { pt1 } from "../distributions/t.js";
 import { levelText, numberLevels } from "../internal/levels.js";
-import { mean, variance } from "../internal/summary.js";
+import { mean, scaleToUnit, variance } from "../internal/summary.js";
 import type { GroupLabel } from "./groups.js";
 import { pAdjust, type PAdjustMethod } from "./pAdjust.js";
 import { propTest } from "./propTest.js";
@@ -137,10 +137,12 @@ export function pairwiseTTest(x: Sample, g: readonly GroupLabel[], options: Pair
   if (poolSd) {
     method = "t tests with pooled SD";
     const n = groups.map((s) => s.length);
-    const means = groups.map((s) => (s.length > 0 ? mean(s) : NaN));
+    // scaled by a power of 2 (exact) so that the variances stay in range; t does not depend on the units
+    const scaled = scaleToUnit(groups).groups;
+    const means = scaled.map((s) => (s.length > 0 ? mean(s) : NaN));
     let ss = 0;
     let df = 0;
-    groups.forEach((s) => {
+    scaled.forEach((s) => {
       if (s.length > 1) {
         ss += variance(s) * (s.length - 1);
         df += s.length - 1;

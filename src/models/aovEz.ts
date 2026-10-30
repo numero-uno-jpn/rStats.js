@@ -11,6 +11,7 @@
 
 import { pf1 } from "../distributions/f.js";
 import { levelText, numberLevels } from "../internal/levels.js";
+import { ldexp, scaleToUnit } from "../internal/summary.js";
 import { eigen } from "../linalg/eigen.js";
 import { qr } from "../linalg/qr.js";
 import { ddAdd, ddDiv, ddDivNum, ddMul, ddMulNum, type DD } from "../special/dd.js";
@@ -90,7 +91,8 @@ export interface AovEzResult {
 
 const list = (v: readonly string[] | string | undefined): string[] => (v === undefined ? [] : typeof v === "string" ? [v] : [...v]);
 
-const SQRT_EPS = Math.sqrt(2.220446049250313e-16);
+/** Eigenvalues of the error SSP matrix below this fraction of the largest one count as 0 */
+const REL_RANK_TOL = 1e-12;
 
 function column(data: DataFrame, name: string): readonly unknown[] {
   const c = Object.prototype.hasOwnProperty.call(data, name) ? data[name] : undefined;
@@ -185,13 +187,28 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
 
   // 1. the columns as factors
   // (the id and factor columns as R's factor() makes them: numbers with the same 15-digit text are one level)
-  const ids = numberLevels(column(data, options.id)).map(label);
-  const dv = column(data, options.dv).map((v) => {
+  // Rows with a missing id or factor value (null, undefined or NaN) are dropped, as from a model frame. A missing
+  // response (null or NaN) makes its cell missing, so that its id is removed in step 6, as afex does
+  const isMissing = (v: unknown): boolean => v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
+  const dvRaw = column(data, options.dv);
+  const keyCols = [options.id, ...between, ...within].map((c) => column(data, c));
+  for (const c of keyCols) if (c.length !== dvRaw.length) throw new RangeError("the columns must have the same length");
+  const keep = dvRaw.map((_, i) => keyCols.every((c) => !isMissing(c[i])));
+  const used = <T>(c: readonly T[]): T[] => c.filter((_, i) => keep[i]);
+  const ids = numberLevels(used(keyCols[0]!)).map(label);
+  const dvUsed = used(dvRaw).map((v) => {
+    if (isMissing(v)) return NaN;
     if (typeof v !== "number") throw new TypeError(`the response '${options.dv}' must be numeric`);
+    if (!Number.isFinite(v)) throw new RangeError(`the response '${options.dv}' must be finite`);
     return v;
   });
-  const bcols = between.map((b) => numberLevels(column(data, b)));
-  const wcols = within.map((w) => numberLevels(column(data, w)));
+  // The response scaled by 2^-k (exact), so that its cross-products stay in range; sums of squares are scaled back by
+  // 2^2k for output, and F, the epsilons and Mauchly's W do not depend on the units
+  const { groups: scaledDv, k: dvExp } = scaleToUnit([dvUsed]);
+  const dv = scaledDv[0]!;
+  const unscale = (v: number): number => ldexp(v, 2 * dvExp);
+  const bcols = between.map((_, k) => numberLevels(used(keyCols[1 + k]!)));
+  const wcols = within.map((_, k) => numberLevels(used(keyCols[1 + between.length + k]!)));
   const nrow = ids.length;
   for (const c of [dv, ...bcols, ...wcols]) if (c.length !== nrow) throw new RangeError("the columns must have the same length");
   const blevels = bcols.map((c) => sortedLevels(c));
@@ -201,6 +218,10 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
   // 2. a between factor with one level
   blevels.forEach((l, k) => {
     if (l.length < 2) throw new Error(`Factor "${between[k]}" consists of one level only. Remove factor from model?`);
+  });
+  // a within factor with one level is also an error (afex returns an empty table, which hides the mistake)
+  wlevels.forEach((l, k) => {
+    if (l.length < 2) throw new Error(`Factor "${within[k]}" consists of one level only. Remove factor from model?`);
   });
   // 3. ids in more than one between cell
   const idOrder = [...new Set(ids)];
@@ -237,8 +258,8 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
       "More than one observation per design cell, aggregating data using `fun_aggregate = mean`.\nTo turn off this warning, pass `fun_aggregate = mean` explicitly.",
     );
   }
-  // 6. ids that miss a cell are removed
-  const missing = idOrder.filter((id) => sums.get(id)!.n.some((v) => v === 0));
+  // 6. ids that miss a cell (or have a missing response in one) are removed
+  const missing = idOrder.filter((id) => sums.get(id)!.n.some((v, k) => v === 0 || Number.isNaN(sums.get(id)!.s[k]![0])));
   if (missing.length > 0) {
     // the ids sorted as the levels of a factor; afex goes on with a printout of the data, which is not reproduced
     const sorted = [...missing].sort(compareCodePoints);
@@ -274,11 +295,12 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
     const rows: Row[] = tab.rowNames.flatMap((name, i) => {
       if (name === "(Intercept)" || name === "Residuals") return [];
       const [ss, df, f, p] = tab.table[i]!;
-      return [{ name, ss: ss!, numDf: df!, errSS: fit.rss, denDf: rdf, f: f!, p: p! }];
+      return [{ name, ss: unscale(ss!), numDf: df!, errSS: unscale(fit.rss), denDf: rdf, f: f!, p: p! }];
     });
+    const ssCol = tab.colNames.indexOf("Sum Sq");
     return {
-      anova: anovaTable(rows, [fit.rss], es, observed),
-      univariate: { colNames: tab.colNames, rowNames: tab.rowNames, table: tab.table },
+      anova: anovaTable(rows, [unscale(fit.rss)], es, observed),
+      univariate: { colNames: tab.colNames, rowNames: tab.rowNames, table: tab.table.map((r) => r.map((v, j) => (j === ssCol ? unscale(v) : v))) },
       within,
       warnings,
     };
@@ -351,14 +373,20 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
       let mp = NaN;
       let corrected = false;
       if (p >= 2) {
+        // The corrections need a nonsingular error SSP matrix. The rank is judged relative to its largest eigenvalue
+        // (an absolute threshold would depend on the units of the response): exactly singular matrices, from d < p or
+        // collinear measurements, have eigenvalues near 1e-16 of the largest one
         const ev = eigen(ddHi(PEP), { symmetric: true, onlyValues: true }).values as number[];
-        if (ev.filter((v) => v >= SQRT_EPS).length === p) {
+        const top = ev.reduce((a, b) => Math.max(a, b), 0);
+        if (top > 0 && ev.every((v) => v > top * REL_RANK_TOL)) {
           corrected = true;
           const tA = ddTrace(A);
           gg = ddDiv(ddMul(tA, tA), ddMulNum(ddTrace(ddMatMul(A, A)), p))[0];
           hf = ((d + 1) * p * gg - 2) / (p * (d - p * gg));
           mw = sphericityW(ddMatMul(M, PEP));
           mp = mauchlyPValue(mw, p, d, nc);
+        } else {
+          warnings.push(`The error SSP matrix of ${wlabs[wt]} is singular: no sphericity corrections (the p-values are uncorrected)`);
         }
       }
       for (let bi = 0; bi < bterms.length; bi++) {
@@ -378,10 +406,10 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
         const f = ss / numDf / (errSS / denDf);
         const pval = pf1(f, numDf, denDf, false, false);
         const name = wt === 0 ? blabs[bi]! : bt === 0 ? wlabs[wt]! : `${blabs[bi]}:${wlabs[wt]}`;
-        uni.push([ss, numDf, errSS, denDf, f, pval]);
+        uni.push([unscale(ss), numDf, unscale(errSS), denDf, f, pval]);
         uniNames.push(name);
-        errorSS.push(errSS);
-        let row: Row = { name, ss, numDf, errSS, denDf, f, p: pval };
+        errorSS.push(unscale(errSS));
+        let row: Row = { name, ss: unscale(ss), numDf, errSS: unscale(errSS), denDf, f, p: pval };
         if (corrected) {
           const hf1 = Math.min(1, hf);
           const pgg = pf1(f, gg * numDf, gg * denDf, false, false);

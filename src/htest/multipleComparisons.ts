@@ -17,7 +17,7 @@
 
 import { pnorm } from "../distributions/normal.js";
 import { ptukey } from "../distributions/tukey.js";
-import { mean, rank, tieCounts, variance } from "../internal/summary.js";
+import { ldexp, mean, rank, satterthwaiteDf, scaleToUnit, tieCounts, variance } from "../internal/summary.js";
 import { pDunnettUpper } from "./dunnett.js";
 import { labelledGroups, type GroupLabel } from "./groups.js";
 import { pAdjust, type PAdjustMethod } from "./pAdjust.js";
@@ -168,16 +168,20 @@ function manyOne(d: Layout, method: string, statistic: number[], pValue: number[
 const upperNormal = (z: number): number => pnorm(z, { lowerTail: false });
 const upperRange = (q: number, k: number, df: number): number => ptukey(Math.abs(q), k, df, { lowerTail: false });
 
-/** Group means, and the pooled variance sum (n_i - 1) s_i^2 / sum (n_i - 1) with its degrees of freedom */
-function pooled(d: Layout): { m: number[]; s2: number; df: number } {
+/**
+ * Group means, and the pooled variance sum (n_i - 1) s_i^2 / sum (n_i - 1) with its degrees of freedom, of the data
+ * scaled by 2^-k (exact; the variances then stay in range). Means and standard errors are multiplied by 2^k for output
+ */
+function pooled(d: Layout): { m: number[]; s2: number; df: number; k: number } {
   let ss = 0;
   let df = 0;
-  for (const grp of d.groups) {
+  const { groups, k } = scaleToUnit(d.groups);
+  for (const grp of groups) {
     if (grp.length < 2) continue;
     ss += (grp.length - 1) * variance(grp);
     df += grp.length - 1;
   }
-  return { m: d.groups.map(mean), s2: ss / df, df: d.N - d.k };
+  return { m: groups.map(mean), s2: ss / df, df: d.N - d.k, k };
 }
 
 /**
@@ -380,11 +384,13 @@ export function dscfAllPairsTest(x: Sample, g: readonly GroupLabel[]): PMCMRResu
  */
 export function gamesHowellTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
   const d = layout(x, g);
-  const m = d.groups.map(mean);
-  const w = d.groups.map((grp, i) => variance(grp) / d.n[i]!);
+  // scaled by a power of 2 (exact) so that the variances stay in range; q and df do not depend on the units
+  const groups = scaleToUnit(d.groups).groups;
+  const m = groups.map(mean);
+  const w = groups.map((grp, i) => variance(grp) / d.n[i]!);
   const q = lowerTable(d.k, (i, j) => ((m[i]! - m[j]!) / Math.sqrt(w[i]! + w[j]!)) * Math.SQRT2);
   const p = lowerTable(d.k, (i, j) => {
-    const df = (w[i]! + w[j]!) ** 2 / (w[i]! ** 2 / (d.n[i]! - 1) + w[j]! ** 2 / (d.n[j]! - 1));
+    const df = satterthwaiteDf([w[i]!, w[j]!], [d.n[i]! - 1, d.n[j]! - 1]);
     return upperRange(q[i - 1]![j]!, d.k, df);
   });
   return allPairs(d, "Games-Howell test", q, p, "none");
@@ -609,12 +615,14 @@ export interface GlhtDunnettResult {
 export function glhtDunnett(x: Sample, g: readonly GroupLabel[], options: GlhtDunnettOptions = {}): GlhtDunnettResult {
   const alternative = matchAlternative(options.alternative);
   const d = layout(x, g);
-  const { m, s2, df } = pooled(d);
+  const { m, s2, df, k } = pooled(d);
   const s = Math.sqrt(s2);
   const idx = d.n.slice(1).map((_, i) => i + 1);
-  const estimate = idx.map((j) => m[j]! - m[0]!);
-  const se = idx.map((j) => s * Math.sqrt(1 / d.n[j]! + 1 / d.n[0]!));
-  const t = estimate.map((e, i) => e / se[i]!);
+  const est = idx.map((j) => m[j]! - m[0]!);
+  const seS = idx.map((j) => s * Math.sqrt(1 / d.n[j]! + 1 / d.n[0]!));
+  const t = est.map((e, i) => e / seS[i]!);
+  const estimate = est.map((v) => ldexp(v, k));
+  const se = seS.map((v) => ldexp(v, k));
   const lambda = idx.map((j) => d.n[j]! / (d.n[j]! + d.n[0]!));
   const p = t.map((v) =>
     alternative === "two.sided"

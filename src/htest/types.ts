@@ -80,6 +80,14 @@ export function checkConfLevel(level: number): void {
   }
 }
 
+/**
+ * Whether v is a nonnegative count. The slack is absolute: a count is an integer whatever its size, so a relative
+ * slack would accept 1e8 + 0.25 and silently round it
+ */
+export function isCount(v: number): boolean {
+  return Number.isFinite(v) && v >= 0 && Math.abs(v - Math.round(v)) <= 1e-7;
+}
+
 /** Validate the confidence level strictly inside (0, 1), as most of R's tests require */
 export function checkConfLevelOpen(level: number): void {
   if (!(Number.isFinite(level) && level > 0 && level < 1)) {

@@ -17,6 +17,7 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { solve } from "../linalg/solve.js";
+import { squareOver } from "../internal/summary.js";
 import { ddAdd, type DD } from "../special/dd.js";
 import { ConvolvedNoncentralHyper, conditionalMLE, lowerLimit, upperLimit, type Stratum } from "./core/mantelhaen.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
@@ -134,7 +135,7 @@ function asymptotic2x2xK(
   });
   const delta = sa - se;
   const yates = correct && Math.abs(delta) >= 0.5 ? 0.5 : 0;
-  const statistic = (Math.abs(delta) - yates) ** 2 / sv;
+  const statistic = squareOver(Math.abs(delta) - yates, sv);
   const pValue =
     alternative === "two.sided"
       ? pgamma1(statistic, 0.5, 2, false, false)

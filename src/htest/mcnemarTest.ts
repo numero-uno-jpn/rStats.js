@@ -6,6 +6,7 @@
 
 import { pgamma1 } from "../distributions/gamma.js";
 import { numberLevels } from "../internal/levels.js";
+import { squareOver } from "../internal/summary.js";
 import type { HTest } from "./types.js";
 
 /**
@@ -68,14 +69,14 @@ export function mcnemarTest(
   if (useCorrection) {
     const b = table[0]![1]!;
     const c = table[1]![0]!;
-    statistic = (Math.abs(b - c) - 1) ** 2 / (b + c);
+    statistic = squareOver(Math.abs(b - c) - 1, b + c);
   } else {
     statistic = 0;
     for (let i = 0; i < r; i++) {
       for (let j = i + 1; j < r; j++) {
         const a = table[i]![j]!;
         const b = table[j]![i]!;
-        statistic += (a - b) ** 2 / (a + b);
+        statistic += squareOver(a - b, a + b);
       }
     }
   }

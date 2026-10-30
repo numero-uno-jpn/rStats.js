@@ -6,9 +6,12 @@
 // its orthonormal Q, computed in double-double (src/models/ddLeastSquares.ts), splits the space of the observations
 // into strata: the columns of each term of the error model orthogonal to the earlier ones, and the rest ("Within").
 // In the coordinates of a stratum (Q'v restricted to it, which keeps lengths and inner products of the projections),
-// the treatment columns whose projection has a squared length greater than 1e-5 times the column's mean square are kept
-// (R's aov uses 1e-5 itself, which suits columns of values around 1: a covariate in small units lost its effect, and
-// one in large units kept a projection that is rounding error), and the projected response
+// the treatment columns whose projection has a squared length greater than 1e-14 times the column's own are kept, that
+// is, those not orthogonal to the stratum up to rounding (R's aov compares the squared length with 1e-5 itself, which
+// depends on the units: a covariate in small units lost its effect, and one in large units kept a projection that is
+// rounding error; a threshold relative to the column's mean square instead dropped the small within-subject part of a
+// covariate that varies mostly between subjects). Q is accurate to double-double, so the projection of a column
+// lying in other strata is far below the threshold, and the projected response
 // is fitted on them in order with the same pivoting QR (tolerance 1e-7) as lm; the effects give the sums of squares.
 
 import { pf1 } from "../distributions/f.js";
@@ -54,6 +57,9 @@ export interface AovStrataFit {
   warnings: string[];
 }
 
+/** Squared length of a column's projection on a stratum, relative to its own, below which it is not in the stratum */
+const STRATUM_TOL = 1e-14;
+
 /** The table of a stratum: terms that have columns in it, then Residuals when its df is positive */
 function stratumTable(
   name: string,
@@ -61,10 +67,10 @@ function stratumTable(
   zcols: readonly (readonly DD[])[],
   assign: readonly number[],
   labels: readonly string[],
-  meanSquares: readonly number[],
+  columnSS: readonly number[],
 ): AovStratum {
   const dim = zy.length;
-  const kept = zcols.flatMap((c, j) => (ddSumSquares(c)[0] > 1e-5 * meanSquares[j]! ? [j] : []));
+  const kept = zcols.flatMap((c, j) => (ddSumSquares(c)[0] > STRATUM_TOL * columnSS[j]! ? [j] : []));
   let rank = 0;
   let order: number[] = [];
   let qty: DD[] = zy.slice();
@@ -146,8 +152,8 @@ export function aovStrataFit(
     toDD(y),
     tcols,
   );
-  // the mean square of each treatment column (the scale of its threshold in stratumTable)
-  const meanSquares = tcols.map((c) => ddSumSquares(c)[0] / n);
+  // the squared length of each treatment column (the scale of its threshold in stratumTable)
+  const columnSS = tcols.map((c) => ddSumSquares(c)[0]);
   // the strata: positions of Q's columns by term of the error model, then the rest
   const groups: { name: string; idx: number[] }[] = [];
   kept.forEach((j, k) => {
@@ -165,7 +171,7 @@ export function aovStrataFit(
       qtv.map((c) => g.idx.map((i) => c[i]!)),
       dt.assign,
       dt.terms.termLabels,
-      meanSquares,
+      columnSS,
     ),
   );
   return { formula, multistratum: true, strata, rows: dt.frame.rows, warnings };

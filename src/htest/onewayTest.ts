@@ -7,7 +7,7 @@
 // shapiro.test: W and its p-value from src/htest/core/shapiro.ts (Royston's AS R94).
 
 import { pf1 } from "../distributions/f.js";
-import { mean, variance } from "../internal/summary.js";
+import { mean, scaleToUnit, variance } from "../internal/summary.js";
 import { swilkOneMinusW, swilkPValueFromOneMinusW } from "./core/shapiro.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { toGroups, type GroupLabel } from "./groups.js";
@@ -83,7 +83,8 @@ export function onewayTest(
   let labels: readonly GroupLabel[] | undefined;
   if (g !== undefined && !Array.isArray(g)) options = g as OnewayTestOptions;
   else labels = g as readonly GroupLabel[] | undefined;
-  const groups = toGroups(x, labels);
+  // scaled by a power of 2 (exact) so that the variances stay in range; the statistic does not depend on the units
+  const groups = scaleToUnit(toGroups(x, labels)).groups;
   const varEqual = options.varEqual ?? false;
   const k = groups.length;
   if (k < 2) throw new RangeError("not enough groups");

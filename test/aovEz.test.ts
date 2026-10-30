@@ -20,6 +20,7 @@ describe("aovEz", () => {
   it(`matches R (${fixture.r_version})`, () => {
     const cmp = new Comparison(KNOWN);
     let errors = 0;
+    let substituted = 0;
     fixture.cases.forEach((c, index) => {
       const a = c.args;
       const options: AovEzOptions = {
@@ -32,7 +33,11 @@ describe("aovEz", () => {
         ...(a.es === undefined ? {} : { es: strs(a.es) as AovEzEffectSize[] }),
         ...(a.observed === undefined ? {} : { observed: strs(a.observed)! }),
       };
-      const e = c.expected;
+      // Deliberate difference: a within factor with one level is an error (afex returns an empty table)
+      const data = a.data as Record<string, unknown[]>;
+      const oneLevel = (strs(a.within) ?? []).find((w) => new Set(data[w]).size < 2);
+      const e = oneLevel === undefined ? c.expected : { error: `Factor "${oneLevel}" consists of one level only. Remove factor from model?` };
+      if (oneLevel !== undefined) substituted++;
       let r;
       try {
         r = aovEz(dataFrameOf(a.data, a.dataTypes), options);
@@ -60,6 +65,7 @@ describe("aovEz", () => {
       cmp.strings(index, "warnings", (e.warnings as string[]).map(cut), r.warnings.map(cut));
     });
     console.log(cmp.summary("aovEz", fixture.cases.length, errors));
+    console.log(`  ${substituted} known difference(s): a within factor with one level is an error (afex returns an empty table)`);
     expect(cmp.failures, cmp.failures.slice(0, 30).join("\n")).toEqual([]);
     expect(cmp.unused(), "known differences that are not needed").toEqual([]);
   });

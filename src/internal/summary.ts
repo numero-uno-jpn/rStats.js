@@ -123,8 +123,28 @@ export function covariance(x: readonly number[], y: readonly number[]): number {
     s = ddAdd(s, ddMul(a, b));
   }
   const v = ddDivNum(s, n - 1)[0];
-  // Multiply by 2^(kx + ky) in two steps (a single step can overflow or underflow to 0)
-  return v * 2 ** kx * 2 ** ky;
+  // Multiply by 2^(kx + ky) at once: multiplying by 2^kx first could overflow (or underflow) where 2^ky would bring
+  // it back, and cov(x, y) would then differ from cov(y, x)
+  return ldexp(v, kx + ky);
+}
+
+/**
+ * Satterthwaite's degrees of freedom (sum w)^2 / sum(w^2 / df) of a sum of independent variance estimates w with
+ * degrees of freedom df. The w are scaled by a power of 2 first (no rounding), so the squares neither overflow nor
+ * underflow when the w do not; the ratio does not depend on the units of the data
+ */
+export function satterthwaiteDf(w: readonly number[], df: readonly number[]): number {
+  let m = 0;
+  for (const v of w) m = Math.max(m, Math.abs(v));
+  const k = m === 0 || !Number.isFinite(m) ? 0 : Math.floor(Math.log2(m));
+  let num = 0;
+  let den = 0;
+  for (let i = 0; i < w.length; i++) {
+    const a = ldexp(w[i]!, -k);
+    num += a;
+    den += (a * a) / df[i]!;
+  }
+  return (num * num) / den;
 }
 
 /** Binary exponent of the largest absolute deviation (0 if it is 0) */
@@ -196,4 +216,36 @@ export function completePairs(x: readonly number[], y: readonly number[]): [numb
     }
   }
   return [a, b];
+}
+
+const MIN_NORMAL = 2 ** -1022;
+
+/**
+ * d^2 / e, as for a Pearson chi-squared term. When d^2 overflows (or loses precision below the normal range) although
+ * the quotient is representable, it is formed as (d / sqrt(e))^2 instead
+ */
+export function squareOver(d: number, e: number): number {
+  const d2 = d * d;
+  if (d2 < Infinity && (d2 >= MIN_NORMAL || d === 0)) return d2 / e;
+  const z = d / Math.sqrt(e);
+  return z * z;
+}
+
+/** a b / n, as for an expected count from two margins; divides first when the product overflows or underflows */
+export function productOver(a: number, b: number, n: number): number {
+  const ab = a * b;
+  return ab < Infinity && (ab >= MIN_NORMAL || ab === 0) ? ab / n : (a / n) * b;
+}
+
+/**
+ * Data scaled by a power of 2, 2^-k, so that the largest finite absolute value is in [1, 2) (k = 0 when there is
+ * none). The scaling adds no rounding error, so statistics that do not depend on the units (t, F, chi-squared,
+ * ratios of variances, degrees of freedom) come out as from the original data, but their squares and variances
+ * can no longer overflow or underflow. Quantities with units are multiplied back by 2^k (see ldexp)
+ */
+export function scaleToUnit(groups: readonly (readonly number[])[]): { groups: number[][]; k: number } {
+  let m = 0;
+  for (const g of groups) for (const v of g) if (Number.isFinite(v)) m = Math.max(m, Math.abs(v));
+  const k = m === 0 ? 0 : Math.floor(Math.log2(m));
+  return { groups: groups.map((g) => (k === 0 ? Array.from(g) : g.map((v) => ldexp(v, -k)))), k };
 }

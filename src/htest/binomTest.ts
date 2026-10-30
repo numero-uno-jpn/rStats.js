@@ -9,7 +9,7 @@
 
 import { dbinom1, pbinom1 } from "../distributions/binomial.js";
 import { qbeta1 } from "../distributions/beta.js";
-import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
+import { checkConfLevelOpen, isCount, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /**
  * Options for {@link binomTest}.
@@ -43,10 +43,6 @@ export interface BinomTestResult extends HTest {
 
 /** Relative slack when comparing outcome probabilities with the observed one */
 const SLACK = 1 + 1e-7;
-
-function isCount(v: number): boolean {
-  return Number.isFinite(v) && v >= 0 && Math.abs(v - Math.round(v)) <= 1e-7 * Math.max(1, Math.abs(v));
-}
 
 /**
  * Two-sided p-value: the total probability of the outcomes no more likely than x (within the relative slack). The

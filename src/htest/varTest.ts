@@ -8,7 +8,7 @@
 
 import { pf1, qf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
-import { variance } from "../internal/summary.js";
+import { scaleToUnit, variance } from "../internal/summary.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { kSampleData, samplesByLevel, twoGroupData } from "./testFormula.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
@@ -84,7 +84,9 @@ export function varTest(x: Sample | string, y: Sample | DataFrame, options: VarT
   const dfy = ys.length - 1;
   if (dfx < 1) throw new Error("not enough 'x' observations");
   if (dfy < 1) throw new Error("not enough 'y' observations");
-  const estimate = variance(xs) / variance(ys);
+  // scaled by a power of 2 (exact) so that the variances stay in range; the statistic does not depend on the units
+  const [sx, sy] = scaleToUnit([xs, ys]).groups as [number[], number[]];
+  const estimate = variance(sx) / variance(sy);
   const statistic = estimate / ratio;
   const lower = pf1(statistic, dfx, dfy, true, false);
   const upper = pf1(statistic, dfx, dfy, false, false);
@@ -161,15 +163,12 @@ export function bartlettTest(x: readonly Sample[] | string, data?: DataFrame): B
   const groups = x;
   const k = groups.length;
   if (k < 2) throw new RangeError("'x' must be a list with at least 2 elements");
-  const n: number[] = [];
-  const v: number[] = [];
-  for (const g of groups) {
-    // as in R, infinite values are dropped along with NaN
-    const s = Array.from(g).filter(Number.isFinite);
-    if (s.length < 2) throw new RangeError("there must be at least 2 observations in each group");
-    n.push(s.length - 1);
-    v.push(variance(s));
-  }
+  // as in R, infinite values are dropped along with NaN
+  const samples = groups.map((g) => Array.from(g).filter(Number.isFinite));
+  if (samples.some((s) => s.length < 2)) throw new RangeError("there must be at least 2 observations in each group");
+  const n = samples.map((s) => s.length - 1);
+  // scaled by a power of 2 (exact) so that the variances stay in range; the statistic does not depend on the units
+  const v = scaleToUnit(samples).groups.map(variance);
   let N = 0;
   let pooled = 0;
   let sumLog = 0;

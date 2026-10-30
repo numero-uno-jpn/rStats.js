@@ -10,7 +10,7 @@
 import { dpois1, ppois1 } from "../distributions/poisson.js";
 import { qgamma1 } from "../distributions/gamma.js";
 import { binomTest } from "./binomTest.js";
-import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
+import { checkConfLevel, checkConfLevelOpen, isCount, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /**
  * Options for {@link poissonTest}.
@@ -44,10 +44,6 @@ export interface PoissonTestResult extends HTest {
 }
 
 const REL_ERR = 1 + 1e-7;
-
-function isCount(v: number): boolean {
-  return Number.isFinite(v) && v >= 0 && Math.abs(v - Math.round(v)) <= 1e-7 * Math.max(1, Math.abs(v));
-}
 
 
 /**
@@ -130,7 +126,10 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
   if (!(Number.isFinite(r) && r >= 0)) throw new RangeError("'r' must be a single positive number");
   const alternative = matchAlternative(options.alternative);
   const confLevel = options.confLevel ?? 0.95;
-  checkConfLevelOpen(confLevel);
+  // as in R, the one-sample interval takes the closed range (at 1 it is [0, Inf)); the two-sample one goes through
+  // binomTest, which needs 0 < confLevel < 1
+  if (k === 2) checkConfLevelOpen(confLevel);
+  else checkConfLevel(confLevel);
 
   if (k === 2) {
     const [x1, x2] = counts as [number, number];
