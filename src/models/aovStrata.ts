@@ -15,6 +15,7 @@
 // is fitted on them in order with the same pivoting QR (tolerance 1e-7) as lm; the effects give the sums of squares.
 
 import { pf1 } from "../distributions/f.js";
+import { ldexp, scaleToUnit } from "../internal/summary.js";
 import { qr } from "../linalg/qr.js";
 import { ddAdd, ddMul, type DD } from "../special/dd.js";
 import { ddLeastSquares, ddLeastSquaresMulti, ddSumSquares } from "./ddLeastSquares.js";
@@ -68,7 +69,10 @@ function stratumTable(
   assign: readonly number[],
   labels: readonly string[],
   columnSS: readonly number[],
+  k: number,
 ): AovStratum {
+  // zy is the response scaled by 2^-k: F and p come from it, the sums of squares are scaled back by 2^2k
+  const back = (v: number): number => ldexp(v, 2 * k);
   const dim = zy.length;
   const kept = zcols.flatMap((c, j) => (ddSumSquares(c)[0] > STRATUM_TOL * columnSS[j]! ? [j] : []));
   let rank = 0;
@@ -96,16 +100,16 @@ function stratumTable(
     const rms = rss / rdf;
     const table = rows.map(({ df, ss }) => {
       const f = ss[0] / df / rms;
-      return [df, ss[0], ss[0] / df, f, pf1(f, df, rdf, false, false)];
+      return [df, back(ss[0]), back(ss[0] / df), f, pf1(f, df, rdf, false, false)];
     });
-    table.push([rdf, rss, rms, NaN, NaN]);
+    table.push([rdf, back(rss), back(rms), NaN, NaN]);
     return { stratum: `Error: ${name}`, colNames: ["Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)"], rowNames: [...rowNames, "Residuals"], table };
   }
   return {
     stratum: `Error: ${name}`,
     colNames: ["Df", "Sum Sq", "Mean Sq"],
     rowNames,
-    table: rows.map(({ df, ss }) => [df, ss[0], ss[0] / df]),
+    table: rows.map(({ df, ss }) => [df, back(ss[0]), back(ss[0] / df)]),
   };
 }
 
@@ -147,9 +151,11 @@ export function aovStrataFit(
   const kept = qe?.pivot.slice(0, re) ?? [];
   const toDD = (v: readonly number[]): DD[] => v.map((t): DD => [t, 0]);
   const tcols = dt.colNames.map((_, j) => toDD(dt.x.map((r) => r[j]!)));
+  // the response scaled by 2^-k (exact, src/internal/summary.ts), so that its sums of squares stay in range
+  const { groups: scaledY, k: yScale } = scaleToUnit([y]);
   const { fit, qtv } = ddLeastSquaresMulti(
     kept.map((j) => toDD(de.x.map((r) => r[j]!))),
-    toDD(y),
+    toDD(scaledY[0]!),
     tcols,
   );
   // the squared length of each treatment column (the scale of its threshold in stratumTable)
@@ -172,6 +178,7 @@ export function aovStrataFit(
       dt.assign,
       dt.terms.termLabels,
       columnSS,
+      yScale,
     ),
   );
   return { formula, multistratum: true, strata, rows: dt.frame.rows, warnings };

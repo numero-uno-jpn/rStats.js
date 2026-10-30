@@ -17,7 +17,7 @@
 
 import { pnorm } from "../distributions/normal.js";
 import { ptukey } from "../distributions/tukey.js";
-import { ldexp, mean, rank, satterthwaiteDf, scaleToUnit, tieCounts, variance } from "../internal/summary.js";
+import { groupMoments, ldexp, rank, satterthwaiteDf, tieCounts } from "../internal/summary.js";
 import { pDunnettUpper } from "./dunnett.js";
 import { labelledGroups, type GroupLabel } from "./groups.js";
 import { pAdjust, type PAdjustMethod } from "./pAdjust.js";
@@ -173,15 +173,10 @@ const upperRange = (q: number, k: number, df: number): number => ptukey(Math.abs
  * scaled by 2^-k (exact; the variances then stay in range). Means and standard errors are multiplied by 2^k for output
  */
 function pooled(d: Layout): { m: number[]; s2: number; df: number; k: number } {
-  let ss = 0;
+  const gm = groupMoments(d.groups);
   let df = 0;
-  const { groups, k } = scaleToUnit(d.groups);
-  for (const grp of groups) {
-    if (grp.length < 2) continue;
-    ss += (grp.length - 1) * variance(grp);
-    df += grp.length - 1;
-  }
-  return { m: groups.map(mean), s2: ss / df, df: d.N - d.k, k };
+  for (const n of gm.n) if (n > 1) df += n - 1;
+  return { m: gm.mean, s2: gm.ssWithin / df, df: d.N - d.k, k: gm.k };
 }
 
 /**
@@ -384,10 +379,10 @@ export function dscfAllPairsTest(x: Sample, g: readonly GroupLabel[]): PMCMRResu
  */
 export function gamesHowellTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
   const d = layout(x, g);
-  // scaled by a power of 2 (exact) so that the variances stay in range; q and df do not depend on the units
-  const groups = scaleToUnit(d.groups).groups;
-  const m = groups.map(mean);
-  const w = groups.map((grp, i) => variance(grp) / d.n[i]!);
+  // moments of the data scaled by a power of 2 (exact), so that the variances stay in range; q and df have no units
+  const gm = groupMoments(d.groups);
+  const m = gm.mean;
+  const w = gm.variance.map((v, i) => v / d.n[i]!);
   const q = lowerTable(d.k, (i, j) => ((m[i]! - m[j]!) / Math.sqrt(w[i]! + w[j]!)) * Math.SQRT2);
   const p = lowerTable(d.k, (i, j) => {
     const df = satterthwaiteDf([w[i]!, w[j]!], [d.n[i]! - 1, d.n[j]! - 1]);

@@ -8,7 +8,7 @@
 
 import { pt1 } from "../distributions/t.js";
 import { levelText, numberLevels } from "../internal/levels.js";
-import { mean, scaleToUnit, variance } from "../internal/summary.js";
+import { groupMoments } from "../internal/summary.js";
 import type { GroupLabel } from "./groups.js";
 import { pAdjust, type PAdjustMethod } from "./pAdjust.js";
 import { propTest } from "./propTest.js";
@@ -137,18 +137,12 @@ export function pairwiseTTest(x: Sample, g: readonly GroupLabel[], options: Pair
   if (poolSd) {
     method = "t tests with pooled SD";
     const n = groups.map((s) => s.length);
-    // scaled by a power of 2 (exact) so that the variances stay in range; t does not depend on the units
-    const scaled = scaleToUnit(groups).groups;
-    const means = scaled.map((s) => (s.length > 0 ? mean(s) : NaN));
-    let ss = 0;
+    // moments of the data scaled by a power of 2 (exact), so that the variances stay in range; t has no units
+    const gm = groupMoments(groups);
+    const means = gm.mean;
     let df = 0;
-    scaled.forEach((s) => {
-      if (s.length > 1) {
-        ss += variance(s) * (s.length - 1);
-        df += s.length - 1;
-      }
-    });
-    const sd = Math.sqrt(ss / df);
+    for (const m of n) if (m > 1) df += m - 1;
+    const sd = Math.sqrt(gm.ssWithin / df);
     compare = (i, j) => {
       const t = (means[i]! - means[j]!) / (sd * Math.sqrt(1 / n[i]! + 1 / n[j]!));
       if (alternative === "less") return pt1(t, df, true, false);

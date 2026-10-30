@@ -7,7 +7,7 @@
 // shapiro.test: W and its p-value from src/htest/core/shapiro.ts (Royston's AS R94).
 
 import { pf1 } from "../distributions/f.js";
-import { mean, scaleToUnit, variance } from "../internal/summary.js";
+import { groupMoments } from "../internal/summary.js";
 import { swilkOneMinusW, swilkPValueFromOneMinusW } from "./core/shapiro.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { toGroups, type GroupLabel } from "./groups.js";
@@ -83,20 +83,22 @@ export function onewayTest(
   let labels: readonly GroupLabel[] | undefined;
   if (g !== undefined && !Array.isArray(g)) options = g as OnewayTestOptions;
   else labels = g as readonly GroupLabel[] | undefined;
-  // scaled by a power of 2 (exact) so that the variances stay in range; the statistic does not depend on the units
-  const groups = scaleToUnit(toGroups(x, labels)).groups;
+  // moments of the data scaled by a power of 2 (exact), so that the variances stay in range; the statistic has no
+  // units
+  const gm = groupMoments(toGroups(x, labels));
+  const groups = gm.groups;
   const varEqual = options.varEqual ?? false;
   const k = groups.length;
   if (k < 2) throw new RangeError("not enough groups");
   const ni = groups.map((s) => s.length);
   if (ni.some((n) => n < 2)) throw new RangeError("not enough observations");
-  const mi = groups.map(mean);
-  const vi = groups.map(variance);
+  const mi = gm.mean;
+  const vi = gm.variance;
   const N = ni.reduce((a, b) => a + b, 0);
   let statistic: number;
   let df2: number;
   if (varEqual) {
-    const m = mean(groups.flat());
+    const m = gm.grandMean;
     let between = 0;
     let within = 0;
     for (let i = 0; i < k; i++) {

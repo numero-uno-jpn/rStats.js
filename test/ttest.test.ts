@@ -19,6 +19,9 @@ htestSuite({
   tolerance: 1e-12,
   // Interval endpoints are mu + (t ± q) * standard error. Large mu causes cancellation, so measure relative to |mu|
   floor: { confInt: (c) => Math.abs(num(c.expected.nullValue as string)) },
+  // The interval does not depend on mu: R forms it as mu + (t ± q) stdErr, which is NaN for an infinite mu
+  knownDifference: (args, field, expected) =>
+    field === "confInt" && Number.isNaN(expected) && !Number.isFinite(arg.num(args.mu) ?? 0) ? "R's interval is NaN for an infinite mu" : undefined,
   // R's variances of data around 1e-200 underflow to 0 (it stops with "data are essentially constant"), and those of
   // widely spread data around 1e300 overflow to Inf (it reports a standard error of Inf). rStats.js scales the data by
   // a power of 2 first, so these cases are compared with its result for the data scaled by 2^600 or 2^-600 (exact),

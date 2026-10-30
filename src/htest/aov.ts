@@ -13,8 +13,7 @@
 import { pf1 } from "../distributions/f.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { ptukey, qtukey } from "../distributions/tukey.js";
-import { meanDD } from "../internal/summary.js";
-import { ddAdd, ddMul, ddSub, type DD } from "../special/dd.js";
+import { groupMoments, ldexp, meanDD, scaleToUnit } from "../internal/summary.js";
 import { parseFormula, splitErrorTerms } from "../models/formula.js";
 import { aovStrataFit, type AovStrataFit } from "../models/aovStrata.js";
 import { lmFormulaFit, type LmFormulaOptions, type LmFormulaResult } from "../models/lm.js";
@@ -41,24 +40,6 @@ export interface AovResult {
   pValue: number;
 }
 
-function sums(groups: readonly number[][]): { ssb: number; ssw: number; means: number[] } {
-  const all = groups.flat();
-  const m = meanDD(all);
-  let ssb: DD = [0, 0];
-  let ssw: DD = [0, 0];
-  const means: number[] = [];
-  for (const g of groups) {
-    const mi = meanDD(g);
-    means.push(mi[0]);
-    const d = ddSub(mi, m);
-    ssb = ddAdd(ssb, ddMul(ddMul(d, d), [g.length, 0]));
-    for (const v of g) {
-      const e = ddSub([v, 0], mi);
-      ssw = ddAdd(ssw, ddMul(e, e));
-    }
-  }
-  return { ssb: ssb[0], ssw: ssw[0], means };
-}
 
 /**
  * One-way analysis of variance. Equivalent to R's `aov()`. Gives the table of R's `summary(aov(y ~ g))` for one
@@ -116,16 +97,18 @@ function aovOneway(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): Ao
   const k = groups.length;
   if (k < 2) throw new RangeError("contrasts can be applied only to factors with 2 or more levels");
   const N = groups.reduce((a, s) => a + s.length, 0);
-  const { ssb, ssw } = sums(groups);
+  // sums of squares of the data scaled by 2^-k (groupMoments): F from them, the sums of squares scaled back
+  const { ssBetween: ssb, ssWithin: ssw, k: e } = groupMoments(groups);
   const df1 = k - 1;
   const df2 = N - k;
   const msb = ssb / df1;
   const msw = ssw / df2;
   const fValue = msb / msw;
+  const back = (v: number): number => ldexp(v, 2 * e);
   return {
     df: [df1, df2],
-    sumSq: [ssb, ssw],
-    meanSq: [msb, msw],
+    sumSq: [back(ssb), back(ssw)],
+    meanSq: [back(msb), back(msw)],
     fValue,
     pValue: df2 > 0 ? pf1(fValue, df1, df2, false, false) : NaN,
   };
@@ -200,7 +183,8 @@ export function TukeyHSD(
   const confLevel = options.confLevel ?? 0.95;
   const N = groups.reduce((a, s) => a + s.length, 0);
   const df = N - k;
-  const { ssw, means } = sums(groups);
+  // means and MSE of the data scaled by 2^-e (groupMoments): the differences and limits are scaled back
+  const { ssWithin: ssw, mean: means, k: e } = groupMoments(groups);
   const mse = ssw / df;
   const q = qtukey(confLevel, k, df);
   const out: TukeyHSDResult = { names: [], i: [], j: [], diff: [], lwr: [], upr: [], pAdj: [] };
@@ -211,9 +195,9 @@ export function TukeyHSD(
       out.names.push(`${names[a]}-${names[b]}`);
       out.i.push(a + 1);
       out.j.push(b + 1);
-      out.diff.push(diff);
-      out.lwr.push(diff - q * se);
-      out.upr.push(diff + q * se);
+      out.diff.push(ldexp(diff, e));
+      out.lwr.push(ldexp(diff - q * se, e));
+      out.upr.push(ldexp(diff + q * se, e));
       out.pAdj.push(ptukey(Math.abs(diff) / se, k, df, { lowerTail: false }));
     }
   }
@@ -272,12 +256,16 @@ export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOption
   if (xs.length < 3) throw new RangeError("x needs at least 3 non-missing values");
   if (yv !== undefined && yv.length < 3) throw new RangeError("y needs at least 3 non-missing values");
 
-  const meanX = meanDD(xs)[0];
-  const meanY = yv === undefined ? NaN : meanDD(yv)[0];
-  const se =
-    yv === undefined ? sigmaX / Math.sqrt(xs.length) : Math.sqrt(sigmaX ** 2 / xs.length + sigmaY! ** 2 / yv.length);
+  // the data, the known standard deviations and mu scaled by one power of 2 (exact), so that the squared standard
+  // deviations stay in range; the estimates and interval are scaled back
+  const sc = scaleToUnit([xs, yv ?? [], [sigmaX, sigmaY ?? 0]]);
+  const k = sc.k;
+  const [xS, yS, [sxS, syS]] = sc.groups as [number[], number[], [number, number]];
+  const meanX = meanDD(xS)[0];
+  const meanY = yv === undefined ? NaN : meanDD(yS)[0];
+  const se = yv === undefined ? sxS / Math.sqrt(xs.length) : Math.sqrt(sxS ** 2 / xs.length + syS ** 2 / yv.length);
   const target = yv === undefined ? meanX : meanX - meanY;
-  const z = (target - mu) / se;
+  const z = (target - ldexp(mu, -k)) / se;
 
   let pValue: number;
   let confInt: [number, number];
@@ -292,6 +280,7 @@ export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOption
     const half = qnorm(1 - (1 - confLevel) / 2) * se;
     confInt = [target - half, target + half];
   }
+  confInt = [ldexp(confInt[0], k), ldexp(confInt[1], k)];
   const twoSample = yv !== undefined;
   return {
     method: twoSample ? "Two-sample z-Test" : "One-sample z-Test",
@@ -301,7 +290,7 @@ export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOption
     pValue,
     confInt,
     confLevel,
-    estimate: twoSample ? [meanX, meanY] : meanX,
+    estimate: twoSample ? [ldexp(meanX, k), ldexp(meanY, k)] : ldexp(meanX, k),
     estimateNames: twoSample ? ["mean of x", "mean of y"] : "mean of x",
     nullValue: mu,
     nullValueName: twoSample ? "difference in means" : "mean",

@@ -11,7 +11,7 @@ import { cor, cov } from "../descriptive/cov.js";
 import { pf1, qf1 } from "../distributions/f.js";
 import { pnorm } from "../distributions/normal.js";
 import { numberLevels } from "../internal/levels.js";
-import { mean, satterthwaiteDf, sum, variance } from "../internal/summary.js";
+import { mean, satterthwaiteDf, scaleToUnit, sum, variance } from "../internal/summary.js";
 import { solve } from "../linalg/solve.js";
 import { formatR } from "./core/simulate.js";
 import { matchChoice } from "./power.js";
@@ -28,6 +28,7 @@ function columnsOf(x: Ratings, what: string): number[][] {
 
 function requireComplete(x: Ratings, what: string): void {
   if (x.some((r) => r.some(Number.isNaN))) throw new RangeError(`'${what}' contains missing values`);
+  if (x.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError(`'${what}' contains infinite values`);
 }
 
 /** Two-sided normal p-value 2 Φ(−|z|) */
@@ -248,18 +249,22 @@ export function icc(ratings: readonly (readonly number[])[], options: IccOptions
   const r0 = options.r0 ?? 0;
   const confLevel = options.confLevel ?? 0.95;
   checkConfLevelOpen(confLevel);
-  const cols = columnsOf(ratings, "ratings");
+  columnsOf(ratings, "ratings");
   requireComplete(ratings, "ratings");
-  const n = ratings.length;
+  // the ratings scaled by one power of 2 (exact), so that the mean squares stay in range; the ICC, F and bounds do
+  // not depend on the units
+  const rows = scaleToUnit(ratings).groups;
+  const cols = columnsOf(rows, "ratings");
+  const n = rows.length;
   const k = cols.length;
   if (n < 2 || k < 2) throw new RangeError("at least 2 subjects and 2 raters are needed");
   if (!(r0 >= -1 && r0 < 1)) throw new RangeError("'r0' must be in [-1, 1)");
   const alpha = 1 - confLevel;
   // mean squares from sample variances
-  const msr = variance(ratings.map((r) => mean(r))) * k;
+  const msr = variance(rows.map((r) => mean(r))) * k;
   const msc = variance(cols.map((c) => mean(c))) * n;
-  const msw = mean(ratings.map((r) => variance(r)));
-  const ssTotal = variance(ratings.flat()) * (n * k - 1);
+  const msw = mean(rows.map((r) => variance(r)));
+  const ssTotal = variance(rows.flat()) * (n * k - 1);
   const mse = (ssTotal - msr * (n - 1) - msc * (k - 1)) / ((n - 1) * (k - 1));
   const upper = (F: number, d1: number, d2: number): number => pf1(F, d1, d2, false, false);
   const q = (d1: number, d2: number): number => qf1(1 - alpha / 2, d1, d2, true, false);
@@ -344,7 +349,8 @@ export function cronbachAlpha(x: readonly (readonly number[])[]): CronbachAlphaR
   const k = columnsOf(x, "x").length;
   requireComplete(x, "x");
   if (k < 2) throw new RangeError("'x' needs at least two items");
-  const C = cov(x) as number[][];
+  // the covariances of the data scaled by one power of 2 (exact): raw alpha is a ratio of them
+  const C = cov(scaleToUnit(x).groups) as number[][];
   const R = cor(x) as number[][];
   const items = Array.from({ length: k }, (_, i) => i);
   const sumR = sum(R.flat());

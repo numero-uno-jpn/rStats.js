@@ -9,7 +9,7 @@
 
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
-import { covariance, dropNaN, mean, variance } from "../internal/summary.js";
+import { covariance, dropNaN, scaleToUnit, standardize, variance } from "../internal/summary.js";
 import type { HTest, Sample } from "./types.js";
 
 /**
@@ -36,10 +36,12 @@ function sorted(x: Sample): number[] {
 
 /** The sorted values standardised by their mean and standard deviation */
 function standardized(xs: readonly number[]): number[] {
-  const m = mean(xs);
-  const s = Math.sqrt(variance(xs));
-  if (!(s > 0)) throw new RangeError("all 'x' values are identical");
-  return xs.map((v) => (v - m) / s);
+  // from the deviations of the values scaled by a power of 2 first (src/internal/summary.ts): no overflow or
+  // underflow at any scale; infinite values give NaN, as before
+  if (!xs.every(Number.isFinite)) return xs.map(() => NaN);
+  const z = standardize(xs);
+  if (z.some(Number.isNaN)) throw new RangeError("all 'x' values are identical");
+  return z;
 }
 
 /**
@@ -166,7 +168,9 @@ export function sfTest(x: Sample): NormalityTestResult {
   if (n < 5 || n > 5000) throw new RangeError("sample size must be between 5 and 5000");
   if (xs[0] === xs[n - 1]) throw new RangeError("all 'x' values are identical");
   const q = xs.map((_, k) => qnorm((k + 1 - 3 / 8) / (n + 1 / 4)));
-  const w = covariance(xs, q) ** 2 / (variance(xs) * variance(q));
+  // the values scaled by a power of 2 (exact) first, so that the squared covariance stays in range (W has no units)
+  const xu = scaleToUnit([xs]).groups[0]!;
+  const w = covariance(xu, q) ** 2 / (variance(xu) * variance(q));
   const u = Math.log(n);
   const v = Math.log(u);
   const mu = -1.2725 + 1.0521 * (v - u);

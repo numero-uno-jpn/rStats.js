@@ -203,6 +203,9 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | The Welch degrees of freedom of `t.test`, `gamesHowellTest`, `cohensD` and ICC's two-way bounds, data around 1e±150 | NaN (fourth powers of the standard errors) | the same df at any scale |
 | `chisq.test(c(1e200, 1e200), p = c(0.1, 0.9))`, `chisq.test(matrix(1e200, 2, 2))`, and the Pearson terms of `mcnemar.test`, `prop.test`, `mantelhaen.test` | Inf or NaN (the squared deviation or the product of the margins overflows) | 3.56e200, 0 (formed as (d / sqrt(e))^2 or (a / n) b when needed) |
 | afex's `aov_ez` and `mauchly.test` with the response in other units (1e-4 times, or around 1e±100) | the sphericity corrections and Mauchly's test disappear (car's absolute eigenvalue threshold), or W is NaN | the same epsilons and W at any scale (the rank judged relative to the largest eigenvalue; W as det(U / (trace(U)/p))) |
+| `zTest` (BSDA's `z.test`), effectsize's `cohens_d`/`hedges_g`, irr's `icc`, psych's `alpha`, nortest's `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`, `aov`, `TukeyHSD`, car's `leveneTest`, `lm`, `anova`, `aov(... + Error())`, afex's `ges` on data around 1e±200 | NaN, 0, ±Inf or a different test result (squares of the data overflow or underflow) | the result at any scale (the data scaled by a power of 2 before the mean is subtracted; sums of squares, MSE, standard errors and intervals scaled back for output) |
+| `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` the largest double), and a paired `t.test` of values of opposite sign near the largest double | -Inf or NaN (the deviation, or the difference, overflows before any rescaling) | about -2.3969 and a correlation of -1; the paired test as at any other scale |
+| `t.test(x, mu = 1e100)` | interval [0, 0] (formed as mu + (t ± q) stdErr) | the interval about the mean of x, which does not depend on mu (NaN in R for an infinite mu) |
 | `anova()` of lmer fits of different rows of the data or different responses with the same number of rows | a likelihood ratio test | an error (lme4 compares only the number of rows) |
 
 ## Deliberate differences
@@ -341,6 +344,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   A within-subject factor with one level is an error, as a between-subject one is (afex returns an empty table).
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);
   an infinite value is an error.
+- **No residual degrees of freedom is an error** in `aovEz` (fewer subjects than between-subject parameters, or as
+  many) and in `mauchlyTest` (as many complete rows as groups), where R returns NaN.
+- **`icc`, `cronbachAlpha` and the other functions on rating matrices** reject infinite values ("contains infinite
+  values").
 - **`poissonTest`** requires a finite `T` and `r` (R accepts `Inf`). The one-sample test accepts `confLevel` 0 and 1
   as R does (the two-sample test, as `binomTest`, needs 0 < `confLevel` < 1).
 

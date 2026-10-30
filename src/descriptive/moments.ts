@@ -8,7 +8,7 @@
 // b2 = (g2 + 3) ((n-1)/n)^2 - 3. The central moments are summed after subtracting the double-double mean.
 
 import { values, type NaRmOptions } from "./basic.js";
-import { meanDD, mean as meanOf, variance } from "../internal/summary.js";
+import { meanDD, mean as meanOf, scaleToUnit, variance } from "../internal/summary.js";
 import { median } from "./basic.js";
 import type { Sample } from "../htest/types.js";
 import { maxOf } from "../internal/extremes.js";
@@ -24,11 +24,13 @@ export interface MomentOptions {
 }
 
 /**
- * Central sums sum (x - mean)^2, ^3, ^4 of values without NaN. When the deviations are so large or small that the
- * powers could overflow or underflow (R returns NaN there), they are all divided by the same power of 2 (exact): the
- * sums are then those of the scaled deviations, which leaves the scale-free ratios of skewness and kurtosis unchanged.
+ * Central sums sum (x - mean)^2, ^3, ^4 of values without NaN, of the data scaled by a power of 2 (exact) first, so
+ * that neither the deviations nor their powers overflow or underflow (R returns NaN there). The sums are those of the
+ * scaled deviations; only the scale-free ratios of skewness and kurtosis are taken from them. Deviations that are
+ * still tiny next to the values are scaled up as well.
  */
-function centralSums(xs: readonly number[]): [number, number, number] {
+function centralSums(values: readonly number[]): [number, number, number] {
+  const xs = scaleToUnit([values]).groups[0]!;
   const m = meanDD(xs);
   const dev = xs.map((v) => v - m[0] - m[1]);
   let mx = 0;

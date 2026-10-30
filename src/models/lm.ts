@@ -17,6 +17,7 @@ import { pt1, qt1 } from "../distributions/t.js";
 import { chol2inv } from "../linalg/chol.js";
 import type { MatrixInput } from "../linalg/matrix.js";
 import { qr, qrCoef, qrResid, type QR } from "../linalg/qr.js";
+import { ldexp, scaleToUnit } from "../internal/summary.js";
 import { ddAdd, ddDiv, ddMul, ddMulNum, ddSub, type DD } from "../special/dd.js";
 import { ddLeastSquares, ddSqrtWeights, ddSumSquares } from "./ddLeastSquares.js";
 import type { Sample } from "../htest/types.js";
@@ -250,6 +251,8 @@ export interface LmCore {
   effects: number[];
   /** The weighted residual sum of squares */
   rss: number;
+  /** k when the response was fitted scaled by 2^-k (rss / 2^2k is then the residual sum of squares of that fit) */
+  yScale?: number;
 }
 
 /**
@@ -301,8 +304,28 @@ function preciseFit(Xall: number[][], Yall: number[], Wall: number[] | undefined
 /**
  * Least squares on a full model matrix (the column of ones included when `intercept` is true). Rows of weight 0 are
  * left out of the fit and of the counts.
+ *
+ * The response is scaled by a power of 2, 2^-k, before the fit (exact; see src/internal/summary.ts), so that its sums
+ * of squares stay in range: t, F, R^2 and the p-values come from the scaled fit, and the coefficients, residuals,
+ * fitted values, effects, sigma and standard errors are multiplied by 2^k, the residual sum of squares by 2^2k.
  */
 export function fitLm(Xall: number[][], Yall: number[], Wall: number[] | undefined, intercept: boolean, precise = false): LmCore {
+  const k = scaleToUnit([Yall.filter((_, i) => Wall === undefined || Wall[i]! !== 0)]).k;
+  if (k === 0) return fitLmUnit(Xall, Yall, Wall, intercept, precise);
+  const core = fitLmUnit(Xall, Yall.map((v) => ldexp(v, -k)), Wall, intercept, precise);
+  const r = core.result;
+  const back = (v: number): number => ldexp(v, k);
+  r.coefficients = r.coefficients.map(back);
+  r.residuals = r.residuals.map(back);
+  r.fittedValues = r.fittedValues.map(back);
+  r.sigma = back(r.sigma);
+  r.coefTable.estimate = r.coefTable.estimate.map(back);
+  r.coefTable.stdError = r.coefTable.stdError.map(back);
+  return { ...core, effects: core.effects.map(back), rss: ldexp(core.rss, 2 * k), yScale: k };
+}
+
+/** fitLm on a response already in [1, 2) in absolute value (or one whose scale needs no change) */
+function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined, intercept: boolean, precise: boolean): LmCore {
   if (Yall.length === 0) throw new RangeError("0 (non-NA) cases");
   // the fit uses the rows of non-zero weight only
   const fitRow = Yall.map((_, i) => Wall === undefined || Wall[i]! !== 0);

@@ -27,7 +27,7 @@
 import { pt1 } from "../distributions/t.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { ddAdd, ddDiv, ddMul, ddSub, twoProd, twoSum, type DD } from "../special/dd.js";
-import { completePairs, meanDD, rank, tieCounts } from "../internal/summary.js";
+import { centered, completePairs, rank, tieCounts } from "../internal/summary.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { correlationData } from "./testFormula.js";
 import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
@@ -132,24 +132,13 @@ function ddSqrt(a: DD): DD {
   return twoSum(s, e[0] / (2 * s));
 }
 
-/** Deviations (mean subtracted in double-double, scaled by a power of 2 to be near 1). Correlation is scale-invariant */
-function scaledDeviations(x: readonly number[]): DD[] | undefined {
-  const m = meanDD(x);
-  if (!Number.isFinite(m[0])) return undefined;
-  const d = x.map((v) => ddSub([v, 0], m));
-  let mx = 0;
-  for (const v of d) mx = Math.max(mx, Math.abs(v[0]));
-  if (mx === 0) return d;
-  const f = 2 ** -Math.max(-1022, Math.floor(Math.log2(mx)));
-  return d.map((v) => [v[0] * f, v[1] * f] as DD);
-}
-
 /** Pearson's correlation coefficient in double-double (so 1 - r is computed without cancellation near perfect correlation) */
 export function pearsonDD(x: readonly number[], y: readonly number[]): DD {
   const n = x.length;
   if (n < 2) return [NaN, 0];
-  const dx = scaledDeviations(x);
-  const dy = scaledDeviations(y);
+  // deviations of the values scaled by a power of 2 first (the correlation does not depend on the scales)
+  const dx = centered(x)?.d;
+  const dy = centered(y)?.d;
   if (dx === undefined || dy === undefined) return [NaN, 0];
   let sxy: DD = [0, 0];
   let sxx: DD = [0, 0];

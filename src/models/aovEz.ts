@@ -126,9 +126,10 @@ interface Row {
 
 /**
  * The anova table from the rows (intercept excluded) with the effect sizes; `errorSS` are the error sums of squares of
- * all rows of the univariate table (intercept included)
+ * all rows of the univariate table (intercept included). The sums of squares are those of the scaled response: the
+ * effect sizes are ratios of them, and only the MSE is scaled back (`unscale`)
  */
-function anovaTable(rows: Row[], errorSS: number[], es: AovEzEffectSize[], observed: string[]): AovEzTable {
+function anovaTable(rows: Row[], errorSS: number[], es: AovEzEffectSize[], observed: string[], unscale: (v: number) => number): AovEzTable {
   const isObserved = (name: string): boolean => observed.some((o) => inTerm(o, name));
   for (const o of observed) {
     if (!rows.some((r) => inTerm(o, r.name))) throw new Error(`Observed variable not in data: ${o}`);
@@ -143,7 +144,7 @@ function anovaTable(rows: Row[], errorSS: number[], es: AovEzEffectSize[], obser
       const effects = want.map((e) =>
         e === "pes" ? r.ss / (r.ss + r.errSS) : r.ss / (r.ss + distinctError + O - (isObserved(r.name) ? r.ss : 0)),
       );
-      return [r.numDf, r.denDf, r.errSS / r.denDf, r.f, ...effects, r.p];
+      return [r.numDf, r.denDf, unscale(r.errSS / r.denDf), r.f, ...effects, r.p];
     }),
   };
 }
@@ -289,17 +290,18 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
     const frame: DataFrame = { ...bdata, [dvName]: Y.map((r) => r[0]![0]) };
     const fit = lm(`${dvName} ~ ${between.length > 0 ? between.join(" * ") : "1"}`, frame, { contrasts: sum, levels: blevelOpt });
     if (fit.rank < fit.coefNames.length) throw new Error(rankDeficient);
+    if (fit.dfResidual <= 0) throw new RangeError(`no residual degrees of freedom: ${Y.length} subject(s) for ${fit.rank} parameter(s)`);
     const tab: AnovaTable = Anova(fit, { type });
     warnings.push(...tab.warnings.filter((w) => !warnings.includes(w)));
     const rdf = fit.dfResidual;
     const rows: Row[] = tab.rowNames.flatMap((name, i) => {
       if (name === "(Intercept)" || name === "Residuals") return [];
       const [ss, df, f, p] = tab.table[i]!;
-      return [{ name, ss: unscale(ss!), numDf: df!, errSS: unscale(fit.rss), denDf: rdf, f: f!, p: p! }];
+      return [{ name, ss: ss!, numDf: df!, errSS: fit.rss, denDf: rdf, f: f!, p: p! }];
     });
     const ssCol = tab.colNames.indexOf("Sum Sq");
     return {
-      anova: anovaTable(rows, [unscale(fit.rss)], es, observed),
+      anova: anovaTable(rows, [fit.rss], es, observed, unscale),
       univariate: { colNames: tab.colNames, rowNames: tab.rowNames, table: tab.table.map((r) => r.map((v, j) => (j === ssCol ? unscale(v) : v))) },
       within,
       warnings,
@@ -316,6 +318,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
     const px = X.colNames.length;
     if (n === 0 || qr(X.x).rank < px) throw new Error(rankDeficient);
     const d = n - px;
+    if (d <= 0) throw new RangeError(`no residual degrees of freedom: ${n} subject(s) for ${px} between-subject parameter(s)`);
     const bterms = [0, ...X.termLabels.map((_, j) => j + 1)];
     const blabs = ["(Intercept)", ...X.termLabels];
     const colsOf = (terms: number[]): number[] => X.assign.flatMap((a, j) => (terms.includes(a) ? [j] : []));
@@ -408,8 +411,8 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
         const name = wt === 0 ? blabs[bi]! : bt === 0 ? wlabs[wt]! : `${blabs[bi]}:${wlabs[wt]}`;
         uni.push([unscale(ss), numDf, unscale(errSS), denDf, f, pval]);
         uniNames.push(name);
-        errorSS.push(unscale(errSS));
-        let row: Row = { name, ss: unscale(ss), numDf, errSS: unscale(errSS), denDf, f, p: pval };
+        errorSS.push(errSS);
+        let row: Row = { name, ss, numDf, errSS, denDf, f, p: pval };
         if (corrected) {
           const hf1 = Math.min(1, hf);
           const pgg = pf1(f, gg * numDf, gg * denDf, false, false);
@@ -428,7 +431,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
     }
     if (hfAbove) warnings.push("HF eps > 1 treated as 1");
     const out: AovEzResult = {
-      anova: anovaTable(rows, errorSS, es, observed),
+      anova: anovaTable(rows, errorSS, es, observed, unscale),
       univariate: { colNames: ["Sum Sq", "num Df", "Error SS", "den Df", "F value", "Pr(>F)"], rowNames: uniNames, table: uni },
       within,
       warnings,

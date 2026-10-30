@@ -4,7 +4,7 @@
 //
 // Written for rStats.js from oracle/rm-tests-behaviour.md (no ported code; car's source was not read).
 
-import { mean } from "../internal/summary.js";
+import { mean, scaleToUnit } from "../internal/summary.js";
 import { aov } from "./aov.js";
 import { labelledGroups, median, type GroupLabel } from "./groups.js";
 import { matchChoice } from "./power.js";
@@ -54,7 +54,9 @@ export function leveneTest(y: Sample, g: readonly GroupLabel[], options: LeveneT
   const center = matchChoice(options.center ?? "median", ["median", "mean"] as const);
   const { groups } = labelledGroups(y, g);
   if (groups.length < 2) throw new RangeError("contrasts can be applied only to factors with 2 or more levels");
-  const deviations = groups.map((s) => {
+  // the absolute deviations of the data scaled by one power of 2 (exact), so that they cannot overflow; F does not
+  // depend on the units
+  const deviations = scaleToUnit(groups).groups.map((s) => {
     const c = center === "median" ? median(s) : mean(s);
     return s.map((v) => Math.abs(v - c));
   });

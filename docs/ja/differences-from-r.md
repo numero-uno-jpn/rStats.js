@@ -197,6 +197,9 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 1e±150 程度のデータでの `t.test`、`gamesHowellTest`、`cohensD`、ICC の二元配置の限界の Welch 自由度 | NaN (標準誤差の 4 乗) | 尺度によらず同じ自由度 |
 | `chisq.test(c(1e200, 1e200), p = c(0.1, 0.9))`、`chisq.test(matrix(1e200, 2, 2))`、`mcnemar.test`・`prop.test`・`mantelhaen.test` の Pearson 型の項 | Inf か NaN (偏差の二乗や周辺度数の積がオーバーフロー) | 3.56e200、0 (必要なときは (d / sqrt(e))^2、(a / n) b の順で計算) |
 | 応答の単位を変えた (1e-4 倍、1e±100 程度) afex の `aov_ez` と `mauchly.test` | 球面性の補正と Mauchly 検定が消える (car の固有値の絶対しきい値)、または W が NaN | 尺度によらず同じ ε と W (ランクは最大固有値に対する相対値で判定。W は det(U / (trace(U)/p)) で計算) |
+| 1e±200 程度のデータでの `zTest` (BSDA の `z.test`)、effectsize の `cohens_d`/`hedges_g`、irr の `icc`、psych の `alpha`、nortest の `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`、`aov`、`TukeyHSD`、car の `leveneTest`、`lm`、`anova`、`aov(... + Error())`、afex の `ges` | NaN、0、±Inf、または異なる検定結果 (データの二乗がオーバーフロー・アンダーフロー) | 尺度によらず同じ結果 (平均を引く前にデータを 2 の冪で正規化。平方和、MSE、標準誤差、区間は出力時に単位を戻す) |
+| `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` は double の最大値)、double の最大値に近い符号の異なる値の対応のある `t.test` | -Inf か NaN (正規化の前に偏差や差がオーバーフロー) | 約 -2.3969、相関は -1。対応のある検定は他の尺度と同じ結果 |
+| `t.test(x, mu = 1e100)` | 区間が [0, 0] (mu + (t ± q) stdErr の形で計算) | x の平均を中心とする区間 (mu に依存しない。mu が無限大のとき R は NaN) |
 | 行数は同じだが使った行や応答が異なる lmer の当てはめの `anova()` | 尤度比検定を返す | エラー (lme4 は行数だけを比べる) |
 
 ## 意図的な違い
@@ -328,6 +331,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   無限大はエラーです。id や因子が欠測の行は除きます。被験者内の項の誤差 SSP 行列が特異なときは、その p 値が未補正である
   ことを警告します (afex は何も出しません)。被験者内因子が 1 水準なら、被験者間因子と同じくエラーです (afex は空の表を返します)。
 - **`mauchlyTest`** は、`y` に欠測値がある行と `group` が欠測の行を除きます (`lm(y ~ group)` と同じ)。無限大はエラーです。
+- **残差自由度がないときはエラー**: `aovEz` (被験者数が被験者間のパラメータ数以下) と `mauchlyTest` (完全な行の数が群の数
+  以下)。R は NaN を返します。
+- **`icc`、`cronbachAlpha` など評価行列を受け取る関数**は、無限大を拒否します ("contains infinite values")。
 - **`poissonTest`** の `T` と `r` は有限値が必要です (R は `Inf` を受け付けます)。1 標本の検定は R と同じく `confLevel` の
   0 と 1 を受け付けます (2 標本の検定は `binomTest` と同じく 0 < `confLevel` < 1)。
 

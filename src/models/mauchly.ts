@@ -147,6 +147,7 @@ export function mauchlyTest(y: MatrixInput, options: MauchlyTestOptions = {}): M
     }
   }
   const n = nsub - levels.length;
+  if (n <= 0) throw new RangeError(`no residual degrees of freedom: ${nsub} complete row(s) for ${levels.length} group(s)`);
   const S: DDMatrix = Array.from({ length: k }, (_, a) =>
     Array.from({ length: k }, (_, b) => {
       let s: DD = [0, 0];

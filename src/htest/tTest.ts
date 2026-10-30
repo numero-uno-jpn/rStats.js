@@ -7,7 +7,7 @@
 // - If the standard error is below 10 eps times the absolute mean, the data are treated as constant and an error is raised (as in R)
 
 import { pt1, qt1 } from "../distributions/t.js";
-import { completePairs, dropNaN, ldexp, mean, satterthwaiteDf, scaleToUnit, variance } from "../internal/summary.js";
+import { completePairs, dropNaN, ldexp, mean, pairedDifferences, satterthwaiteDf, scaleToUnit, variance } from "../internal/summary.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { twoSampleData } from "./testFormula.js";
 import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
@@ -116,22 +116,21 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
   checkConfLevel(confLevel);
   if (paired && ys === undefined) throw new TypeError("y is required when paired is true");
 
-  let xs = Array.from(x);
-  let yv = ys === undefined ? undefined : Array.from(ys);
+  // Work on the data scaled by 2^-k (exact; paired values before their differences are taken), so that neither the
+  // differences nor the variances and their squares leave the range. mu goes with them; the estimates, standard
+  // error and interval are scaled back at the end
+  let xs: number[];
+  let yv: number[] | undefined;
+  let k: number;
   if (paired) {
-    const [a, b] = completePairs(xs, yv!);
-    xs = a.map((v, i) => v - b[i]!);
-    yv = undefined;
+    const [a, b] = completePairs(Array.from(x), Array.from(ys!));
+    ({ d: xs, k } = pairedDifferences(a, b));
   } else {
-    xs = dropNaN(xs);
-    if (yv !== undefined) yv = dropNaN(yv);
+    const scaled = scaleToUnit(ys === undefined ? [dropNaN(Array.from(x))] : [dropNaN(Array.from(x)), dropNaN(Array.from(ys))]);
+    k = scaled.k;
+    xs = scaled.groups[0]!;
+    yv = scaled.groups[1];
   }
-  // Work on the data scaled by 2^-k (exact), so that the variances and their squares stay in range; mu goes with
-  // them, and the estimates, standard error and interval are scaled back at the end
-  const scaled = scaleToUnit(yv === undefined ? [xs] : [xs, yv]);
-  const k = scaled.k;
-  xs = scaled.groups[0]!;
-  if (yv !== undefined) yv = scaled.groups[1]!;
   const muS = ldexp(mu, -k);
 
   let tstat: number;
@@ -187,21 +186,25 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
     tstat = (mx - my - muS) / stdErr;
   }
 
+  // The interval is centred on the estimate (R forms it as mu + (t ± q) stdErr, which cancels for a large mu). With a
+  // standard error of 0 its finite ends are NaN, as in R (t is ±Inf or NaN there)
+  const centre = typeof estimate === "number" ? estimate : estimate[0]! - estimate[1]!;
+  const half = (q: number): number => (stdErr > 0 ? q * stdErr : NaN);
   let pValue: number;
   let confInt: [number, number];
   if (alternative === "less") {
     pValue = pt1(tstat, df, true, false);
-    confInt = [-Infinity, tstat + qt1(confLevel, df, true, false)];
+    confInt = [-Infinity, centre + half(qt1(confLevel, df, true, false))];
   } else if (alternative === "greater") {
     pValue = pt1(tstat, df, false, false);
-    confInt = [tstat - qt1(confLevel, df, true, false), Infinity];
+    confInt = [centre - half(qt1(confLevel, df, true, false)), Infinity];
   } else {
     pValue = 2 * pt1(-Math.abs(tstat), df, true, false);
     const alpha = 1 - confLevel;
     const c = qt1(1 - alpha / 2, df, true, false);
-    confInt = [tstat - c, tstat + c];
+    confInt = [centre - half(c), centre + half(c)];
   }
-  confInt = [ldexp(muS + confInt[0] * stdErr, k), ldexp(muS + confInt[1] * stdErr, k)];
+  confInt = [ldexp(confInt[0], k), ldexp(confInt[1], k)];
   estimate = typeof estimate === "number" ? ldexp(estimate, k) : estimate.map((v) => ldexp(v, k));
   stdErr = ldexp(stdErr, k);
 

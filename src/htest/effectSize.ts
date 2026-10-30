@@ -9,7 +9,7 @@
 
 import { pf, qf } from "../distributions/f.js";
 import { pt } from "../distributions/t.js";
-import { completePairs, dropNaN, mean, satterthwaiteDf, variance } from "../internal/summary.js";
+import { completePairs, dropNaN, groupMoments, ldexp, mean, pairedDifferences, satterthwaiteDf, scaleToUnit, variance } from "../internal/summary.js";
 import { anova, aovSummary, type AnovaTable, type AovStrataSummary } from "../models/anovaSequential.js";
 import type { AovEzResult } from "../models/aovEz.js";
 import type { AovStrataFit } from "../models/aovStrata.js";
@@ -83,17 +83,20 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
   const ys = y === undefined ? undefined : Array.from(y);
   const warnings: string[] = [];
   if (xs.some(Number.isNaN) || (ys?.some(Number.isNaN) ?? false)) warnings.push(NA_WARNING);
+  // Everything is computed on the data scaled by one power of 2, 2^-k (exact; paired values before their differences
+  // are taken), with mu scaled alike: the effect size and its interval have no units, so nothing is scaled back
   let d: number;
   let s: number;
   let se: number;
   let h: number;
   let df: number;
+  let k: number;
   if (ys === undefined || paired) {
     let v: number[];
-    if (ys === undefined) v = dropNaN(xs);
+    if (ys === undefined) ({ groups: [v], k } = scaleToUnit([dropNaN(xs)]) as { groups: [number[]]; k: number });
     else {
       const [a, b] = completePairs(xs, ys);
-      v = a.map((ai, i) => ai - b[i]!);
+      ({ d: v, k } = pairedDifferences(a, b));
     }
     const n = v.length;
     d = mean(v);
@@ -102,13 +105,12 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
     h = 1 / n;
     df = n - 1;
   } else {
-    const a = dropNaN(xs);
-    const b = dropNaN(ys);
-    const n1 = a.length;
-    const n2 = b.length;
-    d = mean(a) - mean(b);
-    const s1 = Math.sqrt(variance(a));
-    const s2 = Math.sqrt(variance(b));
+    const gm = groupMoments([dropNaN(xs), dropNaN(ys)]);
+    k = gm.k;
+    const [n1, n2] = gm.n as [number, number];
+    d = gm.mean[0]! - gm.mean[1]!;
+    const s1 = Math.sqrt(gm.variance[0]!);
+    const s2 = Math.sqrt(gm.variance[1]!);
     if (pooled) {
       s = Math.sqrt(((n1 - 1) * s1 ** 2 + (n2 - 1) * s2 ** 2) / (n1 + n2 - 2));
       se = s * Math.sqrt(1 / n1 + 1 / n2);
@@ -122,11 +124,12 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
     }
   }
   const j = adjust ? hedgesJ(df) : 1;
-  const value = ((d - mu) / s) * j;
+  const muS = ldexp(mu, -k);
+  const value = ((d - muS) / s) * j;
   const name = adjust ? "Hedges_g" : "Cohens_d";
   if (ci === null) return { name, value, warnings };
   const level = alt === "two.sided" ? ci : 2 * ci - 1;
-  const t = (d - mu) / se;
+  const t = (d - muS) / se;
   let ciLow = ncpOfT(t, df, (1 + level) / 2) * Math.sqrt(h) * j;
   let ciHigh = ncpOfT(t, df, (1 - level) / 2) * Math.sqrt(h) * j;
   if (alt === "less") ciLow = -Infinity;

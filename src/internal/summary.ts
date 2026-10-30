@@ -9,6 +9,18 @@
 // sum runs unscaled while it stays finite (so its results are unchanged), and once it would overflow it continues on
 // the values scaled by a power of 2 (exact) and is scaled back at the end. A mean whose sum overflows a double is the
 // mean of the scaled values, scaled back (R averages x[i] / n in that case, which gives the mean without overflow).
+//
+// Moments (deviations, variances, covariances, sums of squares) follow these rules, so that no statistic depends on
+// the units of the data:
+// 1. Scale first, centre afterwards: the data are divided by a power of 2, 2^-k, that brings the largest absolute
+//    value into [1, 2) (exact), and the mean, deviations and cross-products are computed on the scaled values. A
+//    deviation x - mean can then neither overflow (values near both ends of the range) nor underflow.
+// 2. Quantities without units (t, F, chi-squared, correlations, effect sizes, ratios, degrees of freedom, p-values)
+//    are computed in the scaled coordinates.
+// 3. Quantities with units are scaled back only for output: means, differences, standard errors and intervals by
+//    2^k, sums of squares and variances by 2^2k (ldexp). Nothing without units is computed from scaled-back values.
+// 4. In the ordinary range the results are those of the unscaled formulas (scaling by a power of 2 changes no bit).
+//    See centered, groupMoments, pairedDifferences, standardize and scaleToUnit.
 
 import { ddAdd, ddDivNum, ddMul, ddSub, type DD } from "../special/dd.js";
 
@@ -105,27 +117,118 @@ export function variance(x: readonly number[]): number {
 export function covariance(x: readonly number[], y: readonly number[]): number {
   const n = x.length;
   if (n < 2) return NaN;
-  const mx = meanDD(x);
-  const my = x === y ? mx : meanDD(y);
-  if (!Number.isFinite(mx[0]) || !Number.isFinite(my[0])) return NaN;
-  // Scale the deviations by a power of 2 to be near 1 before multiplying (so products of values around 1e200 do not
-  // overflow and products around 1e-200 do not underflow to 0; powers of 2 add no rounding error)
-  const dx = x.map((v) => ddSub([v, 0], mx));
-  const dy = x === y ? dx : y.map((v) => ddSub([v, 0], my));
-  const kx = scaleExponent(dx);
-  const ky = x === y ? kx : scaleExponent(dy);
-  const fx = 2 ** -kx;
-  const fy = 2 ** -ky;
+  const cx = centered(x);
+  const cy = x === y ? cx : centered(y);
+  if (cx === undefined || cy === undefined) return NaN;
+  const s = crossSum(cx.d, cy.d);
+  // Scaled back by 2^(kx + ky) at once: by 2^kx first could overflow (or underflow) where 2^ky would bring it back,
+  // and cov(x, y) would then differ from cov(y, x)
+  return ldexp(ddDivNum(s, n - 1)[0], cx.k + cy.k);
+}
+
+/** Binary exponent k that brings the largest finite absolute value into [1, 2) (0 when there is none) */
+function unitExponent(groups: readonly (readonly number[])[]): number {
+  let m = 0;
+  for (const g of groups) for (const v of g) if (Number.isFinite(v)) m = Math.max(m, Math.abs(v));
+  return m === 0 ? 0 : Math.floor(Math.log2(m));
+}
+
+/** sum a[i] b[i] in double-double */
+function crossSum(a: readonly DD[], b: readonly DD[]): DD {
   let s: DD = [0, 0];
-  for (let i = 0; i < n; i++) {
-    const a: DD = [dx[i]![0] * fx, dx[i]![1] * fx];
-    const b: DD = [dy[i]![0] * fy, dy[i]![1] * fy];
-    s = ddAdd(s, ddMul(a, b));
+  for (let i = 0; i < a.length; i++) s = ddAdd(s, ddMul(a[i]!, b[i]!));
+  return s;
+}
+
+/**
+ * The deviations from the mean of x scaled by 2^-k (the scaling first, see the rules above), in double-double, with k
+ * and the scaled mean. undefined when x has an infinite value (the mean is not finite)
+ */
+export function centered(x: readonly number[]): { d: DD[]; k: number; mean: DD } | undefined {
+  if (!x.every(Number.isFinite)) return undefined;
+  const k = unitExponent([x]);
+  const xs = k === 0 ? x : x.map((v) => ldexp(v, -k));
+  const mean = meanDD(xs);
+  return { d: xs.map((v) => ddSub([v, 0], mean)), k, mean };
+}
+
+/**
+ * (x - mean) / sd, from the scaled deviations (no overflow or underflow at any scale). NaN values when the standard
+ * deviation is 0 or x has fewer than 2 values or an infinite one
+ */
+export function standardize(x: readonly number[]): number[] {
+  const c = x.length < 2 ? undefined : centered(x);
+  if (c === undefined) return x.map(() => NaN);
+  const sd = Math.sqrt(ddDivNum(crossSum(c.d, c.d), x.length - 1)[0]);
+  return c.d.map((v) => (sd > 0 ? v[0] / sd : NaN));
+}
+
+/**
+ * Moments of groups on one common scale 2^-k (see the rules above): per group the size, mean, within sum of squares
+ * and variance (NaN below 2 values), the grand mean, the between and pooled within sums of squares (accumulated in
+ * double-double), and the scaled values. Means are scaled back by 2^k, sums of squares and variances by 2^2k
+ */
+export interface GroupMoments {
+  k: number;
+  groups: number[][];
+  n: number[];
+  mean: number[];
+  ss: number[];
+  variance: number[];
+  grandMean: number;
+  ssBetween: number;
+  ssWithin: number;
+}
+
+export function groupMoments(groups: readonly (readonly number[])[]): GroupMoments {
+  const { groups: scaled, k } = scaleToUnit(groups);
+  const n = scaled.map((g) => g.length);
+  const all = scaled.flat();
+  const grand = all.length === 0 ? ([NaN, 0] as DD) : meanDD(all);
+  const mean: number[] = [];
+  const ss: number[] = [];
+  const variance: number[] = [];
+  let ssb: DD = [0, 0];
+  let ssw: DD = [0, 0];
+  for (const g of scaled) {
+    if (g.length === 0) {
+      mean.push(NaN);
+      ss.push(NaN);
+      variance.push(NaN);
+      continue;
+    }
+    const m = meanDD(g);
+    let s: DD = [0, 0];
+    for (const v of g) {
+      const e = ddSub([v, 0], m);
+      s = ddAdd(s, ddMul(e, e));
+    }
+    const d = ddSub(m, grand);
+    ssb = ddAdd(ssb, ddMul(ddMul(d, d), [g.length, 0]));
+    ssw = ddAdd(ssw, s);
+    mean.push(m[0]);
+    ss.push(s[0]);
+    // divided in double-double, as variance() does
+    variance.push(g.length > 1 ? ddDivNum(s, g.length - 1)[0] : NaN);
   }
-  const v = ddDivNum(s, n - 1)[0];
-  // Multiply by 2^(kx + ky) at once: multiplying by 2^kx first could overflow (or underflow) where 2^ky would bring
-  // it back, and cov(x, y) would then differ from cov(y, x)
-  return ldexp(v, kx + ky);
+  return {
+    k,
+    groups: scaled,
+    n,
+    mean,
+    ss,
+    variance,
+    grandMean: grand[0],
+    ssBetween: ssb[0],
+    ssWithin: ssw[0],
+  };
+}
+
+/** x - y for paired values, both scaled by one 2^-k first (so the differences cannot overflow), with k */
+export function pairedDifferences(x: readonly number[], y: readonly number[]): { d: number[]; k: number } {
+  const { groups, k } = scaleToUnit([x, y]);
+  const [a, b] = groups as [number[], number[]];
+  return { d: a.map((v, i) => v - b[i]!), k };
 }
 
 /**
@@ -147,12 +250,6 @@ export function satterthwaiteDf(w: readonly number[], df: readonly number[]): nu
   return (num * num) / den;
 }
 
-/** Binary exponent of the largest absolute deviation (0 if it is 0) */
-function scaleExponent(d: readonly DD[]): number {
-  let m = 0;
-  for (const v of d) m = Math.max(m, Math.abs(v[0]));
-  return m === 0 || !Number.isFinite(m) ? 0 : Math.max(-1022, Math.floor(Math.log2(m)));
-}
 
 /**
  * Sum (accumulated in double-double without overflow, then rounded; ±Infinity beyond the double range). With
@@ -231,10 +328,18 @@ export function squareOver(d: number, e: number): number {
   return z * z;
 }
 
-/** a b / n, as for an expected count from two margins; divides first when the product overflows or underflows */
+/**
+ * a b / n, as for an expected count from two margins. When the product overflows, underflows or is subnormal (with a
+ * and b not 0), the three are scaled to [1, 2) by powers of 2 and the exponents added back at the end
+ */
 export function productOver(a: number, b: number, n: number): number {
   const ab = a * b;
-  return ab < Infinity && (ab >= MIN_NORMAL || ab === 0) ? ab / n : (a / n) * b;
+  if (a === 0 || b === 0 || !Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(n)) return ab / n;
+  if (Math.abs(ab) >= MIN_NORMAL && Math.abs(ab) < Infinity) return ab / n;
+  const ka = unitExponent([[a]]);
+  const kb = unitExponent([[b]]);
+  const kn = unitExponent([[n]]);
+  return ldexp((ldexp(a, -ka) * ldexp(b, -kb)) / ldexp(n, -kn), ka + kb - kn);
 }
 
 /**
@@ -244,8 +349,6 @@ export function productOver(a: number, b: number, n: number): number {
  * can no longer overflow or underflow. Quantities with units are multiplied back by 2^k (see ldexp)
  */
 export function scaleToUnit(groups: readonly (readonly number[])[]): { groups: number[][]; k: number } {
-  let m = 0;
-  for (const g of groups) for (const v of g) if (Number.isFinite(v)) m = Math.max(m, Math.abs(v));
-  const k = m === 0 ? 0 : Math.floor(Math.log2(m));
+  const k = unitExponent(groups);
   return { groups: groups.map((g) => (k === 0 ? Array.from(g) : g.map((v) => ldexp(v, -k)))), k };
 }

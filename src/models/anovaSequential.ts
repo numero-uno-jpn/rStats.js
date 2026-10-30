@@ -6,6 +6,7 @@
 // terms appear in the order of their first column among the columns kept.
 
 import { pf1 } from "../distributions/f.js";
+import { ldexp, scaleToUnit } from "../internal/summary.js";
 import type { AovStrataFit, AovStratum } from "./aovStrata.js";
 import type { LmFormulaResult } from "./lm.js";
 
@@ -25,8 +26,35 @@ export interface AnovaTable {
   warnings: string[];
 }
 
-/** Sequential sums of squares of the terms (intercept row included when the model has one) and the residuals */
-export function sequentialTerms(fit: LmFormulaResult): { terms: { term: number; df: number; ss: number }[]; rdf: number; rss: number } {
+/** The exponent k that brings the responses of the fits (fitted values and residuals) into [1, 2) */
+function responseScale(fits: readonly LmFormulaResult[]): number {
+  return scaleToUnit(fits.flatMap((f) => [f.fittedValues, f.residuals])).k;
+}
+
+/**
+ * Residual sums of squares of fits in the scale of the response divided by 2^k (see src/internal/summary.ts): rss /
+ * 2^2k when rss is in range, otherwise from the residuals scaled by 2^-k
+ */
+function scaledRss(fits: readonly LmFormulaResult[], k: number): number[] {
+  return fits.map((f) => {
+    if (f.rss >= MIN_NORMAL && f.rss < Infinity) return ldexp(f.rss, -2 * k);
+    let s = 0;
+    f.residuals.forEach((r, i) => {
+      const v = ldexp(r, -k);
+      s += (f.weights?.[i] ?? 1) * v * v;
+    });
+    return s;
+  });
+}
+
+const MIN_NORMAL = 2 ** -1022;
+
+/**
+ * Sequential sums of squares of the terms (intercept row included when the model has one) and the residuals, of the
+ * response scaled by 2^-k (k returned): F and p-values come from these, the sums of squares are scaled back by 2^2k
+ */
+export function sequentialTerms(fit: LmFormulaResult): { terms: { term: number; df: number; ss: number }[]; rdf: number; rss: number; k: number } {
+  const k = responseScale([fit]);
   const { pivot } = fit.qr;
   const terms: { term: number; df: number; ss: number }[] = [];
   const byTerm = new Map<number, { term: number; df: number; ss: number }>();
@@ -39,36 +67,38 @@ export function sequentialTerms(fit: LmFormulaResult): { terms: { term: number; 
       terms.push(row);
     }
     row.df++;
-    row.ss += fit.effects[i]! ** 2;
+    row.ss += ldexp(fit.effects[i]!, -k) ** 2;
   }
-  return { terms, rdf: fit.dfResidual, rss: fit.rss };
+  return { terms, rdf: fit.dfResidual, rss: scaledRss([fit], k)[0]!, k };
 }
 
 const upperF = (f: number, df1: number, df2: number): number => pf1(f, df1, df2, false, false);
 
 /** The rows of the sequential table without the intercept, and the warning on a perfect fit */
-function sequentialRows(fit: LmFormulaResult): { names: string[]; rows: { df: number; ss: number }[]; rdf: number; rss: number; perfect: boolean } {
+function sequentialRows(fit: LmFormulaResult): { names: string[]; rows: { df: number; ss: number }[]; rdf: number; rss: number; k: number; perfect: boolean } {
   const s = sequentialTerms(fit);
   const kept = s.terms.filter((t) => t.term !== 0);
   let fss = 0;
-  fit.fittedValues.forEach((f, i) => (fss += (fit.weights?.[i] ?? 1) * f * f));
+  fit.fittedValues.forEach((f, i) => (fss += (fit.weights?.[i] ?? 1) * ldexp(f, -s.k) ** 2));
   return {
     names: kept.map((t) => fit.termLabels[t.term - 1]!),
     rows: kept,
     rdf: s.rdf,
     rss: s.rss,
+    k: s.k,
     perfect: s.rss < 1e-10 * fss,
   };
 }
 
 function sequentialTable(fit: LmFormulaResult): AnovaTable {
-  const { names, rows, rdf, rss, perfect } = sequentialRows(fit);
+  const { names, rows, rdf, rss, k, perfect } = sequentialRows(fit);
   const rms = rss / rdf;
+  const back = (v: number): number => ldexp(v, 2 * k);
   const table = rows.map(({ df, ss }) => {
     const f = ss / df / rms;
-    return [df, ss, ss / df, f, upperF(f, df, rdf)];
+    return [df, back(ss), back(ss / df), f, upperF(f, df, rdf)];
   });
-  table.push([rdf, rss, rdf === 0 ? NaN : rms, NaN, NaN]);
+  table.push([rdf, back(rss), rdf === 0 ? NaN : back(rms), NaN, NaN]);
   return {
     colNames: ["Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)"],
     rowNames: [...names, "Residuals"],
@@ -79,7 +109,10 @@ function sequentialTable(fit: LmFormulaResult): AnovaTable {
 
 function comparisonTable(fits: readonly LmFormulaResult[]): AnovaTable {
   const rdf = fits.map((f) => f.dfResidual);
-  const rss = fits.map((f) => f.rss);
+  // F from the residual sums of squares of the responses scaled by 2^-k; the sums of squares are scaled back
+  const k = responseScale(fits);
+  const rss = scaledRss(fits, k);
+  const back = (v: number): number => ldexp(v, 2 * k);
   // the scale: the residual mean square of the (first) model with the smallest residual df
   let big = 0;
   rdf.forEach((d, i) => {
@@ -87,12 +120,12 @@ function comparisonTable(fits: readonly LmFormulaResult[]): AnovaTable {
   });
   const scale = rss[big]! / rdf[big]!;
   const table = fits.map((_, i) => {
-    if (i === 0) return [rdf[0]!, rss[0]!, NaN, NaN, NaN, NaN];
+    if (i === 0) return [rdf[0]!, back(rss[0]!), NaN, NaN, NaN, NaN];
     const df = rdf[i - 1]! - rdf[i]!;
     const ss = rss[i - 1]! - rss[i]!;
     let f = df === 0 ? NaN : ss / df / scale;
     if (f < 0) f = NaN;
-    return [rdf[i]!, rss[i]!, df, ss, f, Number.isNaN(f) ? NaN : upperF(f, Math.abs(df), rdf[big]!)];
+    return [rdf[i]!, back(rss[i]!), df, back(ss), f, Number.isNaN(f) ? NaN : upperF(f, Math.abs(df), rdf[big]!)];
   });
   return {
     colNames: ["Res.Df", "RSS", "Df", "Sum of Sq", "F", "Pr(>F)"],
