@@ -9,6 +9,7 @@
 import type { Sample } from "../htest/types.js";
 import { cbindFrames, rbindFrames } from "../descriptive/dataFrames.js";
 import type { DataFrame } from "../models/modelFrame.js";
+import { maxOf } from "../internal/extremes.js";
 
 /**
  * A vector (plain array) or a matrix (array of rows).
@@ -264,9 +265,9 @@ export function diag(x: Operand, options: DiagOptions = {}): number[] | number[]
     values = [1];
   } else {
     values = v;
-    nrow = options.nrow ?? v.length;
+    nrow = dimArg(options.nrow, "nrow") ?? v.length;
   }
-  const ncol = options.ncol ?? nrow;
+  const ncol = dimArg(options.ncol, "ncol") ?? nrow;
   const out = Array.from({ length: nrow }, () => new Array<number>(ncol).fill(0));
   for (let i = 0; i < Math.min(nrow, ncol); i++) out[i]![i] = values[i % values.length]!;
   return nrow === 0 ? [] : out;
@@ -277,7 +278,7 @@ function bindParts(args: readonly Operand[], byColumn: boolean): Matrix {
   const parts = args.map((a) => (isMatrix(a) ? (byColumn ? t(a) : a.map((r) => [...r])) : [asVector(a)]));
   // the common length: the matrices' rows (cbind) or columns (rbind), else the longest vector
   const mats = args.filter(isMatrix);
-  const len = mats.length > 0 ? (byColumn ? mats[0]!.length : checkRows(mats[0]!)) : Math.max(...parts.map((p) => p[0]!.length));
+  const len = mats.length > 0 ? (byColumn ? mats[0]!.length : checkRows(mats[0]!)) : maxOf(parts.map((p) => p[0]!.length));
   mats.forEach((m, k) => {
     const l = byColumn ? m.length : checkRows(m);
     if (l !== len) {
@@ -360,6 +361,13 @@ export interface MatrixOptions {
   byrow?: boolean;
 }
 
+/** A dimension argument truncated to an integer as R's as.integer does; a negative or non-finite one is an error */
+function dimArg(d: number | undefined, name: string): number | undefined {
+  if (d === undefined) return undefined;
+  if (!Number.isFinite(d) || d <= -1) throw new RangeError(`invalid '${name}' value`);
+  return Math.trunc(d) + 0;
+}
+
 /**
  * Build a matrix from data, recycled to fill it. Equivalent to R's `matrix()`. Filled by columns unless `byrow`.
  *
@@ -374,7 +382,8 @@ export interface MatrixOptions {
 export function matrix(data: number | Sample, options: MatrixOptions = {}): number[][] {
   const v = asVector(data);
   const len = v.length;
-  let { nrow, ncol } = options;
+  let nrow = dimArg(options.nrow, "nrow");
+  let ncol = dimArg(options.ncol, "ncol");
   if (nrow === undefined && ncol === undefined) {
     nrow = len;
     ncol = 1;
@@ -459,7 +468,7 @@ export function seq(from?: number, to?: number, options: SeqOptions = {}): numbe
     if (Math.abs(del) / Math.max(Math.abs(b), Math.abs(a)) < 100 * Number.EPSILON) return [a];
     const k = Math.trunc(n + 1e-10);
     // the last value may overshoot `to` by rounding: hold it at `to`
-    return Array.from({ length: k + 1 }, (_, i) => (by > 0 ? Math.min(a + i * by, b) : Math.max(a + i * by, b)));
+    return Array.from({ length: k + 1 }, (_, i) => (i === 0 ? a : by > 0 ? Math.min(a + i * by, b) : Math.max(a + i * by, b)));
   }
 
   if (!Number.isFinite(lengthOut) || lengthOut < 0) throw new RangeError("'length.out' must be a non-negative number");

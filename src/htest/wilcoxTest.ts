@@ -33,6 +33,7 @@ import { uniroot } from "../internal/uniroot.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { twoSampleData } from "./testFormula.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
+import { maxOf, midpoint, minOf } from "../internal/extremes.js";
 
 /**
  * Options for {@link wilcoxTest}.
@@ -328,7 +329,7 @@ function exactRank(quantile: (p: number) => number, alternative: Alternative, a:
 }
 
 function checkTolRoot(tol: number): void {
-  if (!(tol > 0)) throw new RangeError("tolRoot must be positive");
+  if (!(tol > 0 && tol < Infinity)) throw new RangeError("tolRoot must be a positive finite number");
 }
 
 /**
@@ -339,7 +340,7 @@ function signedRankExactCI(x: readonly number[], ctx: Context): CIPart {
   const { alternative, confLevel } = ctx;
   const n = x.length;
   const walsh: number[] = [];
-  for (let i = 0; i < n; i++) for (let j = i; j < n; j++) walsh.push((x[i]! + x[j]!) / 2);
+  for (let i = 0; i < n; i++) for (let j = i; j < n; j++) walsh.push(midpoint(x[i]!, x[j]!));
   walsh.sort(ascending);
   const N = walsh.length;
   const a = 1 - confLevel;
@@ -362,10 +363,10 @@ function signedRankNormalCI(x: readonly number[], ctx: Context): CIPart {
   const { alternative, correct, confLevel, tolRoot } = ctx;
   const n = x.length;
   if (n === 0) return noInterval(alternative, NaN);
-  const lo = Math.min(...x);
-  const hi = Math.max(...x);
+  const lo = minOf(x);
+  const hi = maxOf(x);
   if (!Number.isFinite(lo) || !Number.isFinite(hi) || n === 1 || lo === hi) {
-    return noInterval(alternative, (lo + hi) / 2, "midrange");
+    return noInterval(alternative, midpoint(lo, hi), "midrange");
   }
   const stat = (d: number, corr: boolean): number => {
     const [, centre, sigma] = signedRankStat(x.map((v) => v - d).filter((v) => v !== 0));
@@ -506,8 +507,8 @@ function rankSumExactCI(x: readonly number[], y: readonly number[], ctx: Context
  */
 function rankSumNormalCI(x: readonly number[], y: readonly number[], ctx: Context): CIPart {
   const { alternative, correct, confLevel, tolRoot } = ctx;
-  const lo = Math.min(...x) - Math.max(...y);
-  const hi = Math.max(...x) - Math.min(...y);
+  const lo = minOf(x) - maxOf(y);
+  const hi = maxOf(x) - minOf(y);
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) {
     throw new Error("cannot compute the confidence interval because the differences are not finite");
   }

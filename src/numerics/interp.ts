@@ -18,6 +18,7 @@ import { mean } from "../internal/summary.js";
 import type { Sample } from "../htest/types.js";
 import { seqLength } from "../internal/seq.js";
 import { findInterval } from "../descriptive/table.js";
+import { maxOf, midpoint, minOf } from "../internal/extremes.js";
 
 /**
  * How equal `x` values are merged before interpolating (R's `ties`): `"mean"`, `"min"` or `"max"` of their `y`, or a
@@ -38,8 +39,8 @@ function regularize(x: Sample, y: Sample, ties: Ties = "mean"): { x: number[]; y
   idx.sort((a, b) => x[a]! - x[b]!); // stable
   const merge =
     typeof ties === "function" ? ties
-    : ties === "min" ? (v: number[]) => Math.min(...v)
-    : ties === "max" ? (v: number[]) => Math.max(...v)
+    : ties === "min" ? (v: number[]) => minOf(v)
+    : ties === "max" ? (v: number[]) => maxOf(v)
     : mean;
   const xs: number[] = [];
   const ys: number[] = [];
@@ -512,7 +513,7 @@ function fritschCarlsonSlopes(x: readonly number[], y: readonly number[]): numbe
   const n = x.length;
   if (n < 2) throw new RangeError("length(m) must be at least two");
   const S = Array.from({ length: n - 1 }, (_, k) => (y[k + 1]! - y[k]!) / (x[k + 1]! - x[k]!));
-  const m = Array.from({ length: n }, (_, k) => (k === 0 ? S[0]! : k === n - 1 ? S[n - 2]! : (S[k - 1]! + S[k]!) / 2));
+  const m = Array.from({ length: n }, (_, k) => (k === 0 ? S[0]! : k === n - 1 ? S[n - 2]! : midpoint(S[k - 1]!, S[k]!)));
   for (let k = 0; k < n - 1; k++) {
     const Sk = S[k]!;
     if (Sk === 0) {
@@ -615,8 +616,8 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
   const n = X.length;
   if (Y.length !== n) throw new RangeError("'xi' and 'yi' must have the same length");
   const xs = Array.from(x);
-  const lo = Math.min(...X);
-  const hi = Math.max(...X);
+  const lo = minOf(X);
+  const hi = maxOf(X);
   if (xs.some((v) => v < lo || v > hi)) throw new RangeError("Some interpolation points outside the nodes.");
   const w = X.map((a, j) => {
     let p = 1;

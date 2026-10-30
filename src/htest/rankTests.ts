@@ -25,6 +25,7 @@ import type { DataFrame } from "../models/modelFrame.js";
 import { completeRows, median, toGroups, type GroupLabel } from "./groups.js";
 import { blockData, kSampleData, twoGroupData } from "./testFormula.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
+import { maxOf, minOf } from "../internal/extremes.js";
 
 /**
  * Result of a k-sample test with a chi-squared statistic. Has no `alternative`, as R returns none.
@@ -168,6 +169,7 @@ export function friedmanTest(y: readonly (readonly number[])[] | string, data?: 
  * @category Hypothesis tests
  */
 export function cochranQTest(y: readonly (readonly number[])[]): ChisqStatTestResult {
+  if (y.some((r) => r.some((v) => !Number.isNaN(v) && v !== 0 && v !== 1))) throw new RangeError("the responses must be 0 or 1 (or NaN)");
   return { ...friedmanTest(y), method: "Cochran's Q test", statisticName: "Q" };
 }
 
@@ -217,7 +219,7 @@ export function quadeTest(y: readonly (readonly number[])[] | string, data?: Dat
   const b = y.length;
   const k = y[0]?.length ?? 0;
   if (rows.length < 2 || k < 2) throw new RangeError("'y' must have at least two complete rows and two columns");
-  const q = rank(rows.map((r) => Math.max(...r) - Math.min(...r)));
+  const q = rank(rows.map((r) => maxOf(r) - minOf(r)));
   const colS = new Array<number>(k).fill(0);
   let A = 0;
   rows.forEach((row, i) => {
@@ -364,6 +366,7 @@ export function moodTest(x: Sample | string, y: Sample | DataFrame, options: Moo
   const n = ys.length;
   const N = m + n;
   if (N < 3) throw new RangeError("not enough observations");
+  if (m === 0 || n === 0) throw new RangeError("not enough observations in each sample");
   const z = xs.concat(ys);
   // positions in sorted order; tied values share the mean of the scores of their positions
   const order = Array.from({ length: N }, (_, i) => i).sort((p, q) => z[p]! - z[q]!);

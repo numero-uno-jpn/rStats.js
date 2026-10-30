@@ -70,9 +70,10 @@ const TOL = Number.EPSILON ** 0.25;
  * @category Numerical methods
  */
 export function integrate(f: (x: number) => number, lower: number, upper: number, options: IntegrateOptions = {}): IntegrateResult {
-  const limit = options.subdivisions ?? 100;
+  const limit = Math.trunc(options.subdivisions ?? 100);
   const relTol = options.relTol ?? TOL;
   const absTol = options.absTol ?? relTol;
+  if (!Number.isFinite(limit) || Number.isNaN(relTol) || Number.isNaN(absTol)) throw new RangeError("invalid parameter values");
   const stopOnError = options.stopOnError ?? true;
   if (Number.isNaN(lower) || Number.isNaN(upper)) throw new RangeError("a limit is NA or NaN");
   if (limit < 1 || (absTol <= 0 && relTol < Math.max(50 * Number.EPSILON, 0.5e-28))) throw new RangeError("invalid parameter values");
@@ -132,6 +133,7 @@ export function optimize(
 } {
   const maximum = options.maximum ?? false;
   const tol = options.tol ?? TOL;
+  if (!(tol >= 0 && tol < Infinity)) throw new RangeError("'tol' must be a non-negative finite number");
   // R checks the ends before calling f, lower first
   if (!Number.isFinite(lower)) throw new RangeError("invalid 'xmin' value");
   if (!Number.isFinite(upper)) throw new RangeError("invalid 'xmax' value");
@@ -191,7 +193,9 @@ export interface UnirootResult {
  */
 export function uniroot(f: (x: number) => number, lower: number, upper: number, options: UnirootOptions = {}): UnirootResult {
   const tol = options.tol ?? TOL;
-  const maxiter = options.maxiter ?? 1000;
+  const maxiter = Math.trunc(options.maxiter ?? 1000);
+  if (!(tol >= 0 && tol < Infinity)) throw new RangeError("'tol' must be a non-negative finite number");
+  if (!(maxiter >= 1 && maxiter < Infinity)) throw new RangeError("'maxiter' must be a positive integer");
   const extendInt = options.extendInt ?? "no";
   if (!(lower < upper)) throw new RangeError("lower < upper  is not fulfilled");
   let fLo = options.fLower ?? f(lower);

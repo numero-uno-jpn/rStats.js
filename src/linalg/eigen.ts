@@ -19,7 +19,7 @@
 // - NaN or Inf is an error
 
 import { gebak, gebal } from "./balance.js";
-import { fromMat, newMat, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
+import { fromMat, newMat, rangeExponent, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
 
 /**
  * Options for {@link eigen}.
@@ -85,9 +85,30 @@ export function eigen(x: MatrixInput, options: EigenOptions = {}): EigenResult {
   requireSquare(a);
   if (a.nrow === 0) throw new RangeError("the matrix has zero dimension");
   for (const v of a.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
-  const symmetric = options.symmetric ?? isSymmetric(a);
+  // A matrix of extreme magnitude is scaled by a power of 2 (exact) and the eigenvalues scaled back, so that the
+  // iterations neither overflow nor underflow; other matrices are used as given
+  const k = rangeExponent(a.data);
+  const as = k === 0 ? a : { ...a, data: a.data.map((v) => v * 2 ** -k) };
+  // The automatic symmetry test is made on the matrix normalised by a power of 2 near its largest |a_ij|, so that it
+  // is relative at every scale: R's (all.equal) falls back to an absolute difference when mean |a_ij| <= 100 eps, and
+  // takes a small nonsymmetric matrix (such as [[1, 2], [3, 4]] * 1e-60) for a symmetric one
+  const symmetric = options.symmetric ?? isSymmetric(normalized(a));
   const wantVectors = !(options.onlyValues ?? false);
-  return symmetric ? symmetricEigen(a, wantVectors) : generalEigen(a, wantVectors);
+  const out = symmetric ? symmetricEigen(as, wantVectors) : generalEigen(as, wantVectors);
+  if (k !== 0) {
+    out.values = out.values.map((v) => v * 2 ** k);
+    if (out.valuesIm) out.valuesIm = out.valuesIm.map((v) => v * 2 ** k);
+  }
+  return out;
+}
+
+/** The matrix divided by 2^floor(log2(max |a_ij|)) (exact), or the matrix itself when it is all zero */
+function normalized(a: Mat): Mat {
+  let mx = 0;
+  for (const v of a.data) mx = Math.max(mx, Math.abs(v));
+  if (mx === 0) return a;
+  const f = 2 ** Math.min(1023, -Math.floor(Math.log2(mx)));
+  return f === 1 ? a : { ...a, data: a.data.map((v) => v * f) };
 }
 
 /** Same test as R's isSymmetric (all.equal(A, t(A), tolerance = 100 ε)) */
@@ -99,6 +120,21 @@ export function isSymmetric(a: Mat): boolean {
     for (let i = 0; i < n; i++) {
       diff += Math.abs(a.data[i + j * n]! - a.data[j + i * n]!);
       size += Math.abs(a.data[i + j * n]!);
+    }
+  }
+  if (size === Infinity) {
+    // R's mean accumulates in long double and does not overflow here: divide by the largest |a_ij| (a power of 2,
+    // exact), which leaves the relative difference unchanged
+    let mx = 0;
+    for (const v of a.data) mx = Math.max(mx, Math.abs(v));
+    const f = 2 ** -Math.floor(Math.log2(mx));
+    diff = 0;
+    size = 0;
+    for (let j = 0; j < n; j++) {
+      for (let i = 0; i < n; i++) {
+        diff += Math.abs(a.data[i + j * n]! * f - a.data[j + i * n]! * f);
+        size += Math.abs(a.data[i + j * n]! * f);
+      }
     }
   }
   const tol = 100 * Number.EPSILON;

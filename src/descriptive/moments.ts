@@ -11,6 +11,7 @@ import { values, type NaRmOptions } from "./basic.js";
 import { meanDD, mean as meanOf, variance } from "../internal/summary.js";
 import { median } from "./basic.js";
 import type { Sample } from "../htest/types.js";
+import { maxOf } from "../internal/extremes.js";
 
 /**
  * Options for {@link skewness} and {@link kurtosis}.
@@ -22,14 +23,22 @@ export interface MomentOptions {
   type?: 1 | 2 | 3;
 }
 
-/** Central sums sum (x - mean)^2, ^3, ^4 of values without NaN */
+/**
+ * Central sums sum (x - mean)^2, ^3, ^4 of values without NaN. When the deviations are so large or small that the
+ * powers could overflow or underflow (R returns NaN there), they are all divided by the same power of 2 (exact): the
+ * sums are then those of the scaled deviations, which leaves the scale-free ratios of skewness and kurtosis unchanged.
+ */
 function centralSums(xs: readonly number[]): [number, number, number] {
   const m = meanDD(xs);
+  const dev = xs.map((v) => v - m[0] - m[1]);
+  let mx = 0;
+  for (const d of dev) mx = Math.max(mx, Math.abs(d));
+  const f = mx > 0 && (mx < 2 ** -120 || mx > 2 ** 120) ? 2 ** -Math.floor(Math.log2(mx)) : 1;
   let s2 = 0;
   let s3 = 0;
   let s4 = 0;
-  for (const v of xs) {
-    const d = v - m[0] - m[1];
+  for (const dv of dev) {
+    const d = dv * f;
     const d2 = d * d;
     s2 += d2;
     s3 += d2 * d;
@@ -257,6 +266,14 @@ export function scale(
             const v = col(j).filter((t) => !Number.isNaN(t));
             let ss = 0;
             for (const t of v) ss += t * t;
+            const mx = maxOf(v.map(Math.abs));
+            if ((ss === Infinity || ss < 2 ** -960) && mx > 0 && mx < Infinity) {
+              // The squares overflow or underflow (R's scale returns Inf or 0): sum the squares of the values divided
+              // by the largest
+              ss = 0;
+              for (const t of v) ss += (t / mx) ** 2;
+              return Math.sqrt(ss / Math.max(1, v.length - 1)) * mx;
+            }
             return Math.sqrt(ss / Math.max(1, v.length - 1));
           })
         : [...s];

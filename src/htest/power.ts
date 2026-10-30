@@ -28,6 +28,14 @@ export function matchChoice<T extends string>(value: string | undefined, choices
 export const isUnknown = (v: unknown): v is null | undefined => v === null || v === undefined;
 
 /** The error when not exactly one of the quantities is unknown */
+/** Throws unless a known (non-null) value satisfies ok */
+function checkKnown(v: number | null | undefined, ok: (v: number) => boolean, message: string): void {
+  if (!isUnknown(v) && !ok(v)) throw new RangeError(message);
+}
+
+const isProb = (v: number): boolean => v >= 0 && v <= 1;
+const isPositiveFinite = (v: number): boolean => v > 0 && v < Infinity;
+
 export function checkExactlyOne(values: readonly unknown[], message: string): void {
   if (values.filter(isUnknown).length !== 1) throw new RangeError(message);
 }
@@ -115,6 +123,10 @@ export function powerTTest(options: PowerTTestOptions = {}): PowerTTestResult {
   let sigLevel = options.sigLevel === undefined ? 0.05 : options.sigLevel;
   checkExactlyOne([n, delta, sd, power, sigLevel], "exactly one of 'n', 'delta', 'sd', 'power', and 'sig.level' must be NULL");
   checkSigLevel(sigLevel, SIG_MESSAGE);
+  checkKnown(power, isProb, "'power' must be a probability");
+  checkKnown(sd, isPositiveFinite, "'sd' must be a positive finite number");
+  checkKnown(n, (v) => v >= 2, "number of observations in each group must be at least 2");
+  checkKnown(options.tol, isPositiveFinite, "'tol' must be a positive finite number");
   const type = matchChoice(options.type, ["two.sample", "one.sample", "paired"] as const);
   const alternative = matchChoice(options.alternative, ["two.sided", "one.sided"] as const);
   const strict = options.strict ?? false;
@@ -226,6 +238,10 @@ export function powerPropTest(options: PowerPropTestOptions = {}): PowerPropTest
   let sigLevel = options.sigLevel === undefined ? 0.05 : options.sigLevel;
   checkExactlyOne([n, p1, p2, power, sigLevel], "exactly one of 'n', 'p1', 'p2', 'power', and 'sig.level' must be NULL");
   checkSigLevel(sigLevel, SIG_MESSAGE);
+  checkKnown(power, isProb, "'power' must be a probability");
+  checkKnown(p1, isProb, "'p1' must be a probability");
+  checkKnown(p2, isProb, "'p2' must be a probability");
+  checkKnown(options.tol, isPositiveFinite, "'tol' must be a positive finite number");
   const alternative = matchChoice(options.alternative, ["two.sided", "one.sided"] as const);
   const strict = options.strict ?? false;
   const tol = options.tol ?? TOL;
@@ -342,6 +358,9 @@ export function powerAnovaTest(options: PowerAnovaTestOptions = {}): PowerAnovaT
   if (!isUnknown(groups) && groups < 2) throw new RangeError("number of groups must be at least 2");
   if (!isUnknown(n) && n < 2) throw new RangeError("number of observations in each group must be at least 2");
   checkSigLevel(sigLevel, SIG_MESSAGE);
+  checkKnown(power, isProb, "'power' must be a probability");
+  checkKnown(betweenVar, (v) => v >= 0 && v < Infinity, "'betweenVar' must be a nonnegative finite number");
+  checkKnown(withinVar, isPositiveFinite, "'withinVar' must be a positive finite number");
   const powerOf = (groups: number, n: number, between: number, within: number, sig: number): number => {
     const lambda = ((groups - 1) * n * between) / within;
     const df1 = groups - 1;

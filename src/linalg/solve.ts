@@ -333,6 +333,7 @@ export function solve(a: MatrixInput, b?: VectorOrMatrix, options: SolveOptions 
   const { ipiv, info } = getrf(A);
   if (info > 0) throw new Error(`the system is exactly singular: U[${info}, ${info}] = 0`);
   const tol = options.tol ?? Number.EPSILON;
+  if (Number.isNaN(tol)) throw new RangeError("'tol' must not be NaN");
   // Matrices containing NaN or Inf are not checked (dgecon returns an error, which R ignores and returns the solution)
   if (tol > 0 && Number.isFinite(anorm)) {
     const rc = gecon(A, anorm, true);

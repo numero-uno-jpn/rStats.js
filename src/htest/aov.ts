@@ -260,6 +260,9 @@ export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOption
   if (sigmaX === undefined || (ys !== undefined && sigmaY === undefined)) {
     throw new RangeError("sigmaX and sigmaY are both required for two samples");
   }
+  for (const sd of [sigmaX, sigmaY]) {
+    if (sd !== undefined && !(sd > 0 && sd < Infinity)) throw new RangeError("sigmaX and sigmaY must be positive finite numbers");
+  }
   if (Number.isNaN(mu)) throw new RangeError("mu must be a number");
   const alternative = matchAlternative(options.alternative);
   const confLevel = options.confLevel ?? 0.95;

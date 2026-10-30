@@ -73,6 +73,11 @@ htestSuite({
     ),
   tolerance: 1e-12,
   floor: { confInt: 1 },
+  // A known standard deviation must be positive: BSDA accepts sigma <= 0 (and returns a reversed interval)
+  substitute: (c) =>
+    [c.args.sigmaX, c.args.sigmaY].some((v) => v !== undefined && !(Number(v) > 0))
+      ? { expected: { error: "sigmaX and sigmaY must be positive finite numbers" }, reason: "BSDA accepts a known standard deviation <= 0" }
+      : undefined,
   knownDifference: (_a, field, expected, actual) => {
     if (field === "confInt" && Number.isNaN(expected) && !Number.isFinite(actual)) return "BSDA reports NA for the open end of a one-sided interval";
     if (field === "pValue" && Math.abs(actual - expected) <= 1e-15) return "BSDA forms the upper tail as 1 - pnorm(z)";

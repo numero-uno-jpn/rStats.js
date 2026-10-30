@@ -8,6 +8,7 @@
 import { numberLevels } from "../internal/levels.js";
 import { seqLength } from "../internal/seq.js";
 import type { Sample } from "../htest/types.js";
+import { maxOf, minOf } from "../internal/extremes.js";
 
 /**
  * Counts of the integers 1..nbins in `bin` (values truncated towards 0; others and NaN are not counted).
@@ -28,7 +29,7 @@ export function tabulate(bin: Sample, nbins?: number): number[] {
     if (Math.trunc(nbins) < 0) throw new RangeError("invalid 'nbin' argument");
     if (Math.trunc(nbins) >= 2 ** 31) throw new RangeError("attempt to make a table with >= 2^31 elements");
   }
-  const nb = nbins === undefined ? Math.max(1, ...b.filter((v) => !Number.isNaN(v))) : Math.trunc(nbins);
+  const nb = nbins === undefined ? Math.max(1, maxOf(b.filter((v) => !Number.isNaN(v)))) : Math.trunc(nbins);
   const out = new Array<number>(Math.max(0, nb)).fill(0);
   for (const v of b) if (v >= 1 && v <= nb) out[v - 1]!++;
   return out;
@@ -142,8 +143,8 @@ export function cut(x: Sample, breaks: number | readonly number[], options: CutO
     if (!(k >= 2)) throw new RangeError("invalid number of intervals");
     const nb = Math.trunc(k + 1);
     const present = xs.filter((v) => !Number.isNaN(v));
-    const lo = Math.min(...present);
-    const hi = Math.max(...present);
+    const lo = minOf(present);
+    const hi = maxOf(present);
     // R's errors for a range that is not finite: the same infinity everywhere fails before the checks of the ends
     if (present.length > 0 && lo === hi && !Number.isFinite(lo)) throw new RangeError("missing value where TRUE/FALSE needed");
     if (present.length === 0 || lo === -Infinity) throw new RangeError("'from' must be a finite number");

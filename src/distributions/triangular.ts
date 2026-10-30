@@ -8,6 +8,7 @@
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
+import { midpoint } from "../internal/extremes.js";
 
 const MIN_NORMAL = 2 ** -1022;
 
@@ -155,7 +156,7 @@ export function qtriang1(p: number, a: number, b: number, c: number, lowerTail: 
  */
 export function dtriang<T extends Vectorizable>(x: T, options: TriangParams & DensityOptions = {}): VectorResult<T> {
   const { a = -1, b = 1, log = false } = options;
-  const c = options.c ?? (a + b) / 2;
+  const c = options.c ?? midpoint(a, b);
   return vectorize(x, (v) => dtriang1(v, a, b, c, log));
 }
 
@@ -172,7 +173,7 @@ export function dtriang<T extends Vectorizable>(x: T, options: TriangParams & De
  */
 export function ptriang<T extends Vectorizable>(q: T, options: TriangParams & TailOptions = {}): VectorResult<T> {
   const { a = -1, b = 1, lowerTail = true, logP = false } = options;
-  const c = options.c ?? (a + b) / 2;
+  const c = options.c ?? midpoint(a, b);
   return vectorize(q, (v) => ptriang1(v, a, b, c, lowerTail, logP));
 }
 
@@ -189,6 +190,6 @@ export function ptriang<T extends Vectorizable>(q: T, options: TriangParams & Ta
  */
 export function qtriang<T extends Vectorizable>(p: T, options: TriangParams & TailOptions = {}): VectorResult<T> {
   const { a = -1, b = 1, lowerTail = true, logP = false } = options;
-  const c = options.c ?? (a + b) / 2;
+  const c = options.c ?? midpoint(a, b);
   return vectorize(p, (v) => qtriang1(v, a, b, c, lowerTail, logP));
 }

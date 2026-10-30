@@ -26,6 +26,7 @@ import { qinvgamma } from "./invgamma.js";
 import { dkumar1, pkumar1, qkumar, qkumar1 } from "./kumaraswamy.js";
 import { qtriang } from "./triangular.js";
 import { qarcsine } from "./arcsine.js";
+import { midpoint } from "../internal/extremes.js";
 
 /**
  * Result of {@link distSummary}.
@@ -109,6 +110,12 @@ function productAtMost(a: DD, b: number, c: number): boolean {
 
 const has = (o: Record<string, number | undefined>, k: string): boolean => o[k] !== undefined;
 
+/** ab / (s^2 (s + 1)), from the ratios a / s and b / s when the products overflow or underflow (huge shapes) */
+function betaVariance(a: number, b: number, s: number): number {
+  const v = (a * b) / (s * s * (s + 1));
+  return v > 0 && v < Infinity ? v : ((a / s) * (b / s)) / (s + 1);
+}
+
 /**
  * Mean, variance, standard deviation, median, mode, skewness and excess kurtosis of a distribution, given by the
  * name of its d/p/q/r functions and their parameters (with the same names and defaults; `gamma` takes `rate` or
@@ -124,6 +131,7 @@ const has = (o: Record<string, number | undefined>, k: string): boolean => o[k] 
  *
  * @category Distributions
  */
+
 export function distSummary(distribution: DistName, params: Record<string, number | undefined> = {}): DistSummary {
   const P = params;
   switch (distribution) {
@@ -151,7 +159,7 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
     case "unif": {
       const { min = 0, max = 1 } = P;
       if (!(Number.isFinite(min) && Number.isFinite(max) && min < max)) return NAN;
-      const m = min + (max - min) / 2;
+      const m = Number.isFinite(max - min) ? min + (max - min) / 2 : midpoint(min, max);
       return make(m, (max - min) ** 2 / 12, m, NaN, 0, -1.2);
     }
     case "exp": {
@@ -181,7 +189,7 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       else mode = a <= 1 && b >= 1 ? 0 : 1;
       return make(
         a / s,
-        (a * b) / (s * s * (s + 1)),
+        betaVariance(a, b, s),
         qbeta(0.5, a, b),
         mode,
         (2 * (b - a) * Math.sqrt(s + 1)) / ((s + 2) * Math.sqrt(a * b)),
@@ -347,11 +355,11 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
     }
     case "triang": {
       const { a = -1, b = 1 } = P;
-      const c = P.c ?? (a + b) / 2;
+      const c = P.c ?? midpoint(a, b);
       if (!(Number.isFinite(a) && Number.isFinite(b) && a < b && a <= c && c <= b)) return NAN;
       const q = a * a + b * b + c * c - a * b - a * c - b * c;
       return make(
-        (a + b + c) / 3,
+        Number.isFinite(a + b + c) ? (a + b + c) / 3 : a / 3 + b / 3 + c / 3,
         q / 18,
         qtriang(0.5, { a, b, c }),
         c,

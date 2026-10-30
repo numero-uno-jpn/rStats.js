@@ -387,6 +387,7 @@ export function prepareResponse(fam: Family, y: number[] | number[][], prior: nu
     if (name === "binomial" && rows.some((r) => Math.abs(r[0]! - Math.round(r[0]!)) > 1e-3 || Math.abs(r[1]! - Math.round(r[1]!)) > 1e-3)) {
       warnings.add("non-integer counts in a binomial glm!");
     }
+    if (rows.some((r) => r[0]! < 0 || r[1]! < 0)) throw new RangeError("counts must be nonnegative");
     const size = rows.map((r) => r[0]! + r[1]!);
     const yy = rows.map((r, i) => (size[i] === 0 ? 0 : r[0]! / size[i]!));
     const weights = prior.map((w, i) => w * size[i]!);

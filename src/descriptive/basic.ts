@@ -21,6 +21,7 @@ import {
 } from "../internal/summary.js";
 import { ddMul, type DD } from "../special/dd.js";
 import type { Sample } from "../htest/types.js";
+import { maxOf } from "../internal/extremes.js";
 
 /**
  * Options of the summaries that can drop missing values.
@@ -172,7 +173,16 @@ export function weightedMean(x: Sample, w: Sample, options: NaRmOptions = {}): n
   }
   const prods: number[] = [];
   for (let i = 0; i < xs.length; i++) if (ws[i] !== 0) prods.push(xs[i]! * ws[i]!);
-  return sumOf(prods) / sumOf(ws);
+  const m = sumOf(prods) / sumOf(ws);
+  if (Number.isFinite(m) || !xs.every(Number.isFinite) || !ws.every(Number.isFinite)) return m;
+  // Finite values whose products or sums overflow (R returns Inf or NaN): divide the values and the weights by their
+  // largest absolute values
+  const mx = maxOf(xs.map(Math.abs));
+  const mw = maxOf(ws.map(Math.abs));
+  if (mx === 0 || mw === 0) return m;
+  const scaled: number[] = [];
+  for (let i = 0; i < xs.length; i++) if (ws[i] !== 0) scaled.push((xs[i]! / mx) * (ws[i]! / mw));
+  return (sumOf(scaled) / sumOf(ws.map((v) => v / mw))) * mx;
 }
 
 /**

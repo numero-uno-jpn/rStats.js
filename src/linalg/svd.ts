@@ -9,7 +9,7 @@
 // - Singular values in decreasing order. NaN or Inf is an error
 // - Singular vectors beyond min(rows, cols) (the remaining columns of U or V) are a basis of the orthogonal complement and do not match R
 
-import { fromMat, newMat, toMat, transpose, type Mat, type MatrixInput } from "./matrix.js";
+import { fromMat, newMat, rangeExponent, toMat, transpose, type Mat, type MatrixInput } from "./matrix.js";
 import { larfg, larfLeft } from "./qr.js";
 
 /**
@@ -69,8 +69,11 @@ export function svd(x: MatrixInput, options: SvdOptions = {}): SvdResult {
   }
   // If wide, transpose and swap U and V
   const wide = a.nrow < a.ncol;
-  const r = decompose(wide ? transpose(a) : a, wide ? nv : nu, wide ? nu : nv);
-  const out: SvdResult = { d: Array.from(r.d) };
+  // A matrix of extreme magnitude is scaled by a power of 2 (exact) and the singular values scaled back
+  const s = rangeExponent(a.data);
+  const as = s === 0 ? a : { ...a, data: a.data.map((v) => v * 2 ** -s) };
+  const r = decompose(wide ? transpose(as) : as, wide ? nv : nu, wide ? nu : nv);
+  const out: SvdResult = { d: Array.from(r.d, (v) => v * 2 ** s) };
   const [U, V] = wide ? [r.v, r.u] : [r.u, r.v];
   if (nu > 0) out.u = fromMat(firstColumns(U!, nu));
   if (nv > 0) out.v = fromMat(firstColumns(V!, nv));
@@ -79,7 +82,9 @@ export function svd(x: MatrixInput, options: SvdOptions = {}): SvdResult {
 
 /** Singular values only (decreasing) */
 export function svdValues(a: Mat): Float64Array {
-  return decompose(a.nrow < a.ncol ? transpose(a) : a, 0, 0).d;
+  const s = rangeExponent(a.data);
+  const as = s === 0 ? a : { ...a, data: a.data.map((v) => v * 2 ** -s) };
+  return decompose(as.nrow < as.ncol ? transpose(as) : as, 0, 0).d.map((v) => v * 2 ** s);
 }
 
 function firstColumns(m: Mat, k: number): Mat {

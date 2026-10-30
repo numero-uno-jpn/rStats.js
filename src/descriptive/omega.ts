@@ -11,6 +11,7 @@ import { svd } from "../linalg/svd.js";
 import { optim } from "../optim/optim.js";
 import { cor } from "./cov.js";
 import { sumOnce, varimax } from "./factanal.js";
+import { maxOf } from "../internal/extremes.js";
 
 /**
  * Options of {@link omega}
@@ -145,7 +146,7 @@ function minres(S0: readonly (readonly number[])[], q: number, warnings: string[
     gr: gradient,
     method: "L-BFGS-B",
     lower: 0.005,
-    upper: Math.max(Math.max(...s), 1),
+    upper: Math.max(maxOf(s), 1),
     control: { fnscale: 1, parscale: new Array<number>(p).fill(0.01) },
   });
   const psi = fit.par;
@@ -221,7 +222,7 @@ function oblimin(A: Matrix): { loadings: Matrix; phi: Matrix; converged: boolean
     } else {
       alpha = 2 * alpha;
     }
-    const target = Math.max(...values.slice(-10));
+    const target = maxOf(values.slice(-10));
     let trial = cur;
     let Tt = T;
     for (let i = 0; i <= 10; i++) {

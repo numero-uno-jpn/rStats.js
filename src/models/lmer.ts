@@ -59,6 +59,7 @@ import { profiledDeviance } from "./mixedDeviance.js";
 import type { DataFrame } from "./modelFrame.js";
 import type { ContrastName } from "./modelMatrix.js";
 import { mixedModelStructure, type MixedModelStructure } from "./mixedStructure.js";
+import { maxOf, minOf } from "../internal/extremes.js";
 
 /**
  * A contrast of a factor of lmer's fixed effects: R's `contr.treatment`, `contr.sum`, `contr.helmert` or `contr.poly`
@@ -215,8 +216,12 @@ const RESTART_THRESHOLD = 1e-8;
 /** ... and there are at most this many restarts */
 const MAX_RESTARTS = 50;
 
-/** The response is fitted exactly by the fixed effects when its least-squares residuals are below this × max |y| */
-const EXACT_FIT = 1e-12;
+/**
+ * The response is fitted exactly by the fixed effects when its least-squares residuals are below this × max |y|: a
+ * few times the rounding error of the residuals, so that a response with a large mean and a small spread (around
+ * 1e12 with residuals of 0.1, say) is not taken for an exact fit
+ */
+const EXACT_FIT = 64 * Number.EPSILON;
 const EXACT_FIT_ERROR =
   "lmer: the response is fitted exactly by the fixed effects (a constant response, for example), so the residual variance is 0";
 
@@ -293,7 +298,7 @@ function trustRegionStep(
     coef.forEach((c, k) => vectors[k]!.forEach((vi, i) => (p[i]! += c * vi)));
     return p;
   };
-  const minValue = Math.min(...values);
+  const minValue = minOf(values);
   // the Newton step, if the Hessian is positive semidefinite, the gradient has no component along its null
   // directions, and the step is inside the region
   if (minValue > -zero && values.every((l, k) => l > zero || Math.abs(gt[k]!) <= gradientZero)) {
@@ -303,10 +308,10 @@ function trustRegionStep(
   // on the boundary: p(μ) = −Σ gt_k / (λ_k + μ) v_k with ‖p(μ)‖ = radius, μ > max(0, −λ_min), by bisection
   const lowest = Math.max(0, -minValue);
   const lengthAt = (mu: number): number => Math.sqrt(values.reduce((sum, l, k) => sum + (gt[k]! / (l + mu)) ** 2, 0));
-  const tiny = Math.max(zero, 1e-12 * Math.max(...values.map(Math.abs), 1));
+  const tiny = Math.max(zero, 1e-12 * Math.max(maxOf(values.map(Math.abs)), 1));
   if (lengthAt(lowest + tiny) >= radius) {
     let lo = lowest + tiny;
-    let hi = lowest + norm(g) / radius + Math.max(...values.map(Math.abs)) + tiny;
+    let hi = lowest + norm(g) / radius + maxOf(values.map(Math.abs)) + tiny;
     for (let k = 0; k < 200 && hi - lo > 1e-15 * hi; k++) {
       const mid = (lo + hi) / 2;
       if (lengthAt(mid) > radius) lo = mid;
@@ -403,12 +408,12 @@ function localMinimum(
     const h = fresh ? hessian(free) : reusable!.h;
     reusable = undefined;
     const eig = symmetricEigen(h);
-    const zero = EIGENVALUE_TOLERANCE * Math.max(...eig.values.map(Math.abs));
+    const zero = EIGENVALUE_TOLERANCE * maxOf(eig.values.map(Math.abs));
     const gFree = free.map((j) => g[j]!);
     const { step, newton } = trustRegionStep(gFree, eig, radius, zero, gradientTolerance());
     const trial = theta.slice();
     free.forEach((j, a) => (trial[j] = theta[j]! + step[a]!));
-    const size = Math.max(...step.map(Math.abs)) / scaleOf();
+    const size = maxOf(step.map(Math.abs)) / scaleOf();
     const next = evaluate(trial);
     if (!Number.isFinite(next.f)) throw new Error(OPTIMISATION_FAILED);
     const predicted = -(dot(gFree, step) + dot(step, h.map((row) => dot(row, step))) / 2);
@@ -449,8 +454,8 @@ function localMinimum(
     if (fixed.size === 0) return false;
     const set = theta.map((_, j) => j).filter((j) => !held.has(j));
     const eig = symmetricEigen(hessian(set));
-    const zero = EIGENVALUE_TOLERANCE * Math.max(...eig.values.map(Math.abs));
-    const k = eig.values.indexOf(Math.min(...eig.values));
+    const zero = EIGENVALUE_TOLERANCE * maxOf(eig.values.map(Math.abs));
+    const k = eig.values.indexOf(minOf(eig.values));
     if (!(eig.values[k]! < -zero)) return false;
     const v = eig.vectors[k]!;
     const leaving = set.filter((j, a) => fixed.has(j) && Math.abs(v[a]!) > 1e-8);

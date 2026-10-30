@@ -88,6 +88,7 @@ export function glmConfint(
 } {
   const level = options.level ?? 0.95;
   const test = options.test ?? "LRT";
+  if (test !== "LRT" && test !== "Rao") throw new RangeError(`invalid 'test': ${String(test)}`);
   if (!(level > 0 && level < 1)) throw new RangeError("'level' must be in (0, 1)");
   const p = fit.coefficients.length;
   const parm = options.parm ?? Array.from({ length: p }, (_, j) => j);

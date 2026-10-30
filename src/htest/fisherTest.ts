@@ -40,6 +40,7 @@ import { uniroot } from "../internal/uniroot.js";
 import { ddAdd, ddLog, ddNeg, ddSub, type DD } from "../special/dd.js";
 import { simulatedMethod } from "./core/simulate.js";
 import { matchAlternative, type Alternative, type HTest, type Counts } from "./types.js";
+import { maxOf, minOf } from "../internal/extremes.js";
 
 /**
  * Options for {@link fisherTest}.
@@ -155,7 +156,7 @@ function fisherSimulated(t: number[][], B: number): number {
     for (let k = 0; k < table.length; k++) s -= fact[table[k]!]!;
     if (s <= threshold) count++;
   }
-  return Math.max(0, Math.min(1, (1 + count) / (B + 1)));
+  return Math.max(0, Math.min(1, (1 + count) / (reps + 1)));
 }
 
 // ---- 2×2 ----
@@ -464,8 +465,8 @@ function fisherRxC(t: number[][]): number {
     };
     rec(0, colSums[j]!, [0, 0]);
     node.edges = [...groups.values()];
-    node.max = Math.max(...node.edges.map((e) => e.hi + e.to.max));
-    node.min = Math.min(...node.edges.map((e) => e.hi + e.to.min));
+    node.max = maxOf(node.edges.map((e) => e.hi + e.to.max));
+    node.min = minOf(node.edges.map((e) => e.hi + e.to.min));
     if (j === ncol - 2) {
       // With two columns left, the rest of the table is determined by a single edge. Sort by value and take cumulative sums,
       // then find the threshold position per path by binary search (reducing paths × edges work to paths × log(edges))

@@ -28,22 +28,52 @@ export function isDoubleDouble(): boolean {
 export function twoSum(a: number, b: number): DD {
   if (!ddEnabled) return [a + b, 0];
   const s = a + b;
+  // A sum, product or quotient beyond the double range has no error term (the steps below would make it NaN)
+  if (!Number.isFinite(s)) return [s, 0];
   const bb = s - a;
   const e = a - (s - bb) + (b - bb);
   return [s, e];
+}
+
+/** x 2^k, in two steps so that 2^k itself cannot overflow or underflow */
+function scale2(x: number, k: number): number {
+  const h = Math.trunc(k / 2);
+  return x * 2 ** h * 2 ** (k - h);
+}
+
+/**
+ * The rounding error a * b - fl(a * b) for operands so large that Veltkamp splitting overflows: each operand is
+ * scaled near 1 by a power of 2 (exact), and the error of the scaled product scaled back
+ */
+function prodErrScaled(a: number, b: number): number {
+  const ka = a === 0 ? 0 : Math.floor(Math.log2(Math.abs(a)));
+  const kb = b === 0 ? 0 : Math.floor(Math.log2(Math.abs(b)));
+  const x = scale2(a, -ka);
+  const y = scale2(b, -kb);
+  const p = x * y;
+  let t = SPLITTER * x;
+  const xh = t - (t - x);
+  const xl = x - xh;
+  t = SPLITTER * y;
+  const yh = t - (t - y);
+  const yl = y - yh;
+  return scale2(scale2(xh * yh - p + xh * yl + xl * yh + xl * yl, ka), kb);
 }
 
 /** [p, e] satisfying a * b = p + e exactly (Veltkamp splitting) */
 export function twoProd(a: number, b: number): DD {
   if (!ddEnabled) return [a * b, 0];
   const p = a * b;
+  // A sum, product or quotient beyond the double range has no error term (the steps below would make it NaN)
+  if (!Number.isFinite(p)) return [p, 0];
   let t = SPLITTER * a;
   const ah = t - (t - a);
   const al = a - ah;
   t = SPLITTER * b;
   const bh = t - (t - b);
   const bl = b - bh;
-  const e = ah * bh - p + ah * bl + al * bh + al * bl;
+  let e = ah * bh - p + ah * bl + al * bh + al * bl;
+  if (!Number.isFinite(e) && Number.isFinite(p)) e = prodErrScaled(a, b);
   return [p, e];
 }
 
@@ -56,6 +86,8 @@ export function twoProd(a: number, b: number): DD {
 export function ddAdd(a: DD, b: DD): DD {
   if (!ddEnabled) return [a[0] + b[0], 0];
   const s1 = a[0] + b[0];
+  // A sum, product or quotient beyond the double range has no error term (the steps below would make it NaN)
+  if (!Number.isFinite(s1)) return [s1, 0];
   const bb2 = s1 - a[0];
   const e3 = a[0] - (s1 - bb2) + (b[0] - bb2);
   const s4 = a[1] + b[1];
@@ -79,6 +111,8 @@ export function ddSub(a: DD, b: DD): DD {
   const n1 = -b[0];
   const n2 = -b[1];
   const s3 = a[0] + n1;
+  // A sum, product or quotient beyond the double range has no error term (the steps below would make it NaN)
+  if (!Number.isFinite(s3)) return [s3, 0];
   const bb4 = s3 - a[0];
   const e5 = a[0] - (s3 - bb4) + (n1 - bb4);
   const s6 = a[1] + n2;
@@ -96,13 +130,16 @@ export function ddSub(a: DD, b: DD): DD {
 export function ddMul(a: DD, b: DD): DD {
   if (!ddEnabled) return [a[0] * b[0], 0];
   const p1 = a[0] * b[0];
+  // A sum, product or quotient beyond the double range has no error term (the steps below would make it NaN)
+  if (!Number.isFinite(p1)) return [p1, 0];
   const t2 = SPLITTER * a[0];
   const ah3 = t2 - (t2 - a[0]);
   const al4 = a[0] - ah3;
   const t5 = SPLITTER * b[0];
   const bh6 = t5 - (t5 - b[0]);
   const bl7 = b[0] - bh6;
-  const e8 = ah3 * bh6 - p1 + ah3 * bl7 + al4 * bh6 + al4 * bl7;
+  let e8 = ah3 * bh6 - p1 + ah3 * bl7 + al4 * bh6 + al4 * bl7;
+  if (!Number.isFinite(e8) && Number.isFinite(p1)) e8 = prodErrScaled(a[0], b[0]);
   const u9 = e8 + (a[0] * b[1] + a[1] * b[0]);
   const s10 = p1 + u9;
   const e11 = u9 - (s10 - p1);
@@ -112,13 +149,16 @@ export function ddMul(a: DD, b: DD): DD {
 export function ddMulNum(a: DD, b: number): DD {
   if (!ddEnabled) return [a[0] * b, 0];
   const p1 = a[0] * b;
+  // A sum, product or quotient beyond the double range has no error term (the steps below would make it NaN)
+  if (!Number.isFinite(p1)) return [p1, 0];
   const t2 = SPLITTER * a[0];
   const ah3 = t2 - (t2 - a[0]);
   const al4 = a[0] - ah3;
   const t5 = SPLITTER * b;
   const bh6 = t5 - (t5 - b);
   const bl7 = b - bh6;
-  const e8 = ah3 * bh6 - p1 + ah3 * bl7 + al4 * bh6 + al4 * bl7;
+  let e8 = ah3 * bh6 - p1 + ah3 * bl7 + al4 * bh6 + al4 * bl7;
+  if (!Number.isFinite(e8) && Number.isFinite(p1)) e8 = prodErrScaled(a[0], b);
   const u9 = e8 + a[1] * b;
   const s10 = p1 + u9;
   const e11 = u9 - (s10 - p1);
@@ -128,6 +168,8 @@ export function ddMulNum(a: DD, b: number): DD {
 export function ddDiv(a: DD, b: DD): DD {
   if (!ddEnabled) return [a[0] / b[0], 0];
   const q1 = a[0] / b[0];
+  // A sum, product or quotient beyond the double range has no error term (the steps below would make it NaN)
+  if (!Number.isFinite(q1)) return [q1, 0];
   const p2 = b[0] * q1;
   const t3 = SPLITTER * b[0];
   const ah4 = t3 - (t3 - b[0]);
@@ -135,7 +177,8 @@ export function ddDiv(a: DD, b: DD): DD {
   const t6 = SPLITTER * q1;
   const bh7 = t6 - (t6 - q1);
   const bl8 = q1 - bh7;
-  const e9 = ah4 * bh7 - p2 + ah4 * bl8 + al5 * bh7 + al5 * bl8;
+  let e9 = ah4 * bh7 - p2 + ah4 * bl8 + al5 * bh7 + al5 * bl8;
+  if (!Number.isFinite(e9) && Number.isFinite(p2)) e9 = prodErrScaled(b[0], q1);
   const u10 = e9 + b[1] * q1;
   const s11 = p2 + u10;
   const e12 = u10 - (s11 - p2);
@@ -161,7 +204,8 @@ export function ddDiv(a: DD, b: DD): DD {
   const t32 = SPLITTER * q27;
   const bh33 = t32 - (t32 - q27);
   const bl34 = q27 - bh33;
-  const e35 = ah30 * bh33 - p28 + ah30 * bl34 + al31 * bh33 + al31 * bl34;
+  let e35 = ah30 * bh33 - p28 + ah30 * bl34 + al31 * bh33 + al31 * bl34;
+  if (!Number.isFinite(e35) && Number.isFinite(p28)) e35 = prodErrScaled(b[0], q27);
   const u36 = e35 + b[1] * q27;
   const s37 = p28 + u36;
   const e38 = u36 - (s37 - p28);
@@ -200,6 +244,8 @@ export function ddDiv(a: DD, b: DD): DD {
 export function ddDivNum(a: DD, b: number): DD {
   if (!ddEnabled) return [a[0] / b, 0];
   const q1 = a[0] / b;
+  // A sum, product or quotient beyond the double range has no error term (the steps below would make it NaN)
+  if (!Number.isFinite(q1)) return [q1, 0];
   const p2 = b * q1;
   const t3 = SPLITTER * b;
   const ah4 = t3 - (t3 - b);
@@ -207,7 +253,8 @@ export function ddDivNum(a: DD, b: number): DD {
   const t6 = SPLITTER * q1;
   const bh7 = t6 - (t6 - q1);
   const bl8 = q1 - bh7;
-  const e9 = ah4 * bh7 - p2 + ah4 * bl8 + al5 * bh7 + al5 * bl8;
+  let e9 = ah4 * bh7 - p2 + ah4 * bl8 + al5 * bh7 + al5 * bl8;
+  if (!Number.isFinite(e9) && Number.isFinite(p2)) e9 = prodErrScaled(b, q1);
   const u10 = e9 + 0 * q1;
   const s11 = p2 + u10;
   const e12 = u10 - (s11 - p2);
@@ -233,7 +280,8 @@ export function ddDivNum(a: DD, b: number): DD {
   const t32 = SPLITTER * q27;
   const bh33 = t32 - (t32 - q27);
   const bl34 = q27 - bh33;
-  const e35 = ah30 * bh33 - p28 + ah30 * bl34 + al31 * bh33 + al31 * bl34;
+  let e35 = ah30 * bh33 - p28 + ah30 * bl34 + al31 * bh33 + al31 * bl34;
+  if (!Number.isFinite(e35) && Number.isFinite(p28)) e35 = prodErrScaled(b, q27);
   const u36 = e35 + 0 * q27;
   const s37 = p28 + u36;
   const e38 = u36 - (s37 - p28);
@@ -460,7 +508,8 @@ export function ddLog(x: DD): DD {
   const t32 = SPLITTER * q27;
   const bh33 = t32 - (t32 - q27);
   const bl34 = q27 - bh33;
-  const e35 = ah30 * bh33 - p28 + ah30 * bl34 + al31 * bh33 + al31 * bl34;
+  let e35 = ah30 * bh33 - p28 + ah30 * bl34 + al31 * bh33 + al31 * bl34;
+  if (!Number.isFinite(e35) && Number.isFinite(p28)) e35 = prodErrScaled(s25, q27);
   const u36 = e35 + e26 * q27;
   const s37 = p28 + u36;
   const e38 = u36 - (s37 - p28);
@@ -486,7 +535,8 @@ export function ddLog(x: DD): DD {
   const t58 = SPLITTER * q53;
   const bh59 = t58 - (t58 - q53);
   const bl60 = q53 - bh59;
-  const e61 = ah56 * bh59 - p54 + ah56 * bl60 + al57 * bh59 + al57 * bl60;
+  let e61 = ah56 * bh59 - p54 + ah56 * bl60 + al57 * bh59 + al57 * bl60;
+  if (!Number.isFinite(e61) && Number.isFinite(p54)) e61 = prodErrScaled(s25, q53);
   const u62 = e61 + e26 * q53;
   const s63 = p54 + u62;
   const e64 = u62 - (s63 - p54);
@@ -526,7 +576,8 @@ export function ddLog(x: DD): DD {
   const t98 = SPLITTER * s92;
   const bh99 = t98 - (t98 - s92);
   const bl100 = s92 - bh99;
-  const e101 = ah96 * bh99 - p94 + ah96 * bl100 + al97 * bh99 + al97 * bl100;
+  let e101 = ah96 * bh99 - p94 + ah96 * bl100 + al97 * bh99 + al97 * bl100;
+  if (!Number.isFinite(e101) && Number.isFinite(p94)) e101 = prodErrScaled(s92, s92);
   const u102 = e101 + (s92 * e93 + e93 * s92);
   const s103 = p94 + u102;
   const e104 = u102 - (s103 - p94);
@@ -537,7 +588,8 @@ export function ddLog(x: DD): DD {
   const t109 = SPLITTER * s103;
   const bh110 = t109 - (t109 - s103);
   const bl111 = s103 - bh110;
-  const e112 = ah107 * bh110 - p105 + ah107 * bl111 + al108 * bh110 + al108 * bl111;
+  let e112 = ah107 * bh110 - p105 + ah107 * bl111 + al108 * bh110 + al108 * bl111;
+  if (!Number.isFinite(e112) && Number.isFinite(p105)) e112 = prodErrScaled(RECIP[5]![0], s103);
   const u113 = e112 + (RECIP[5]![0] * e104 + RECIP[5]![1] * s103);
   const s114 = p105 + u113;
   const e115 = u113 - (s114 - p105);
@@ -560,7 +612,8 @@ export function ddLog(x: DD): DD {
   const t132 = SPLITTER * s103;
   const bh133 = t132 - (t132 - s103);
   const bl134 = s103 - bh133;
-  const e135 = ah130 * bh133 - p128 + ah130 * bl134 + al131 * bh133 + al131 * bl134;
+  let e135 = ah130 * bh133 - p128 + ah130 * bl134 + al131 * bh133 + al131 * bl134;
+  if (!Number.isFinite(e135) && Number.isFinite(p128)) e135 = prodErrScaled(s126, s103);
   const u136 = e135 + (s126 * e104 + e127 * s103);
   const s137 = p128 + u136;
   const e138 = u136 - (s137 - p128);
@@ -583,7 +636,8 @@ export function ddLog(x: DD): DD {
   const t155 = SPLITTER * s103;
   const bh156 = t155 - (t155 - s103);
   const bl157 = s103 - bh156;
-  const e158 = ah153 * bh156 - p151 + ah153 * bl157 + al154 * bh156 + al154 * bl157;
+  let e158 = ah153 * bh156 - p151 + ah153 * bl157 + al154 * bh156 + al154 * bl157;
+  if (!Number.isFinite(e158) && Number.isFinite(p151)) e158 = prodErrScaled(s149, s103);
   const u159 = e158 + (s149 * e104 + e150 * s103);
   const s160 = p151 + u159;
   const e161 = u159 - (s160 - p151);
@@ -606,7 +660,8 @@ export function ddLog(x: DD): DD {
   const t178 = SPLITTER * s103;
   const bh179 = t178 - (t178 - s103);
   const bl180 = s103 - bh179;
-  const e181 = ah176 * bh179 - p174 + ah176 * bl180 + al177 * bh179 + al177 * bl180;
+  let e181 = ah176 * bh179 - p174 + ah176 * bl180 + al177 * bh179 + al177 * bl180;
+  if (!Number.isFinite(e181) && Number.isFinite(p174)) e181 = prodErrScaled(s172, s103);
   const u182 = e181 + (s172 * e104 + e173 * s103);
   const s183 = p174 + u182;
   const e184 = u182 - (s183 - p174);
@@ -629,7 +684,8 @@ export function ddLog(x: DD): DD {
   const t201 = SPLITTER * s103;
   const bh202 = t201 - (t201 - s103);
   const bl203 = s103 - bh202;
-  const e204 = ah199 * bh202 - p197 + ah199 * bl203 + al200 * bh202 + al200 * bl203;
+  let e204 = ah199 * bh202 - p197 + ah199 * bl203 + al200 * bh202 + al200 * bl203;
+  if (!Number.isFinite(e204) && Number.isFinite(p197)) e204 = prodErrScaled(s195, s103);
   const u205 = e204 + (s195 * e104 + e196 * s103);
   const s206 = p197 + u205;
   const e207 = u205 - (s206 - p197);
@@ -652,7 +708,8 @@ export function ddLog(x: DD): DD {
   const t224 = SPLITTER * s218;
   const bh225 = t224 - (t224 - s218);
   const bl226 = s218 - bh225;
-  const e227 = ah222 * bh225 - p220 + ah222 * bl226 + al223 * bh225 + al223 * bl226;
+  let e227 = ah222 * bh225 - p220 + ah222 * bl226 + al223 * bh225 + al223 * bl226;
+  if (!Number.isFinite(e227) && Number.isFinite(p220)) e227 = prodErrScaled(s92, s218);
   const u228 = e227 + (s92 * e219 + e93 * s218);
   const s229 = p220 + u228;
   const e230 = u228 - (s229 - p220);
@@ -663,7 +720,8 @@ export function ddLog(x: DD): DD {
   const t235 = SPLITTER * 2;
   const bh236 = t235 - (t235 - 2);
   const bl237 = 2 - bh236;
-  const e238 = ah233 * bh236 - p231 + ah233 * bl237 + al234 * bh236 + al234 * bl237;
+  let e238 = ah233 * bh236 - p231 + ah233 * bl237 + al234 * bh236 + al234 * bl237;
+  if (!Number.isFinite(e238) && Number.isFinite(p231)) e238 = prodErrScaled(s229, 2);
   const u239 = e238 + e230 * 2;
   const s240 = p231 + u239;
   const e241 = u239 - (s240 - p231);
@@ -686,7 +744,8 @@ export function ddLog(x: DD): DD {
   const t258 = SPLITTER * k;
   const bh259 = t258 - (t258 - k);
   const bl260 = k - bh259;
-  const e261 = ah256 * bh259 - p254 + ah256 * bl260 + al257 * bh259 + al257 * bl260;
+  let e261 = ah256 * bh259 - p254 + ah256 * bl260 + al257 * bh259 + al257 * bl260;
+  if (!Number.isFinite(e261) && Number.isFinite(p254)) e261 = prodErrScaled(LN2[0], k);
   const u262 = e261 + LN2[1] * k;
   const s263 = p254 + u262;
   const e264 = u262 - (s263 - p254);

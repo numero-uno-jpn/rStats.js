@@ -708,6 +708,7 @@ export function pwrChisqTest(options: PwrChisqTestOptions): PwrChisqTestResult {
   let sigLevel = options.sigLevel === undefined ? 0.05 : options.sigLevel;
   checkExactlyOne([w, N, power, sigLevel], "exactly one of w, N, power, and sig.level must be NULL");
   if (typeof df !== "number") throw new TypeError('argument "df" is missing, with no default');
+  if (!(df > 0 && df < Infinity)) throw new RangeError("'df' must be a positive finite number");
   checkProbabilities(sigLevel, power);
   if (!isUnknown(w) && w < 0) throw new RangeError("w must be positive");
   if (!isUnknown(N) && N < 1) throw new RangeError("number of observations must be at least 1");

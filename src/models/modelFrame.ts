@@ -86,7 +86,11 @@ function convert(
     x === null || (typeof x === "number" && Number.isNaN(x)) ? null : typeof x === "boolean" ? (x ? "TRUE" : "FALSE") : levelText(x);
   const labels = vals.map(str);
   let lev: string[];
-  if (levels !== undefined) lev = Array.from(levels, String);
+  if (levels !== undefined) {
+    lev = Array.from(levels, String);
+    const dup = lev.findIndex((l, i) => lev.indexOf(l) !== i);
+    if (dup >= 0) throw new RangeError(`factor level [${dup + 1}] is duplicated`);
+  }
   else if (kind === "boolean") lev = ["FALSE", "TRUE"];
   else lev = [...new Set(labels.filter((x): x is string => x !== null))].sort(compareCodePoints);
   const pos = new Map(lev.map((l, i) => [l, i]));

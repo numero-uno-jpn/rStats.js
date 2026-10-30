@@ -122,13 +122,27 @@ function naAndNaN(a: A): string | undefined {
   return raw.includes("NA") && raw.includes("NaN") ? "R tells NA from NaN; rStats.js has one NaN" : undefined;
 }
 
+/**
+ * Values so large that R's sums overflow: R's weighted.mean returns Inf or NaN and e1071's moments NaN; rStats.js
+ * rescales and returns the finite value (docs/differences-from-r.md)
+ */
+function overflow(limit: number): (a: A) => string | undefined {
+  return (a) => {
+    const m = mat(a.x);
+    if (m === undefined) return undefined;
+    const v = (Array.isArray(m[0]) ? (m as number[][]).flat() : (m as number[])).filter(Number.isFinite);
+    return v.some((t) => Math.abs(t) > limit) ? "R's sums overflow; rStats.js rescales and returns the finite value" : undefined;
+  };
+}
+
 const known: Record<string, (a: A) => string | undefined> = {
+  weightedMean: overflow(1e300),
   var: largeMean,
   sd: largeMean,
   cov: largeMean,
   corMatrix: largeMean,
-  skewness: largeMean,
-  kurtosis: largeMean,
+  skewness: (a) => largeMean(a) ?? overflow(1e75)(a),
+  kurtosis: (a) => largeMean(a) ?? overflow(1e75)(a),
   cv: largeMean,
   table: naAndNaN,
   unique: naAndNaN,

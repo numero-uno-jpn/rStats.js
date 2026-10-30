@@ -49,6 +49,8 @@ export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTe
   const k = xs.length;
   const s = score === undefined ? xs.map((_, i) => i + 1) : Array.from(score);
   if (ns.length !== k || s.length !== k) throw new RangeError("'x', 'n' and 'score' must have the same length");
+  if (ns.some((v) => !(v > 0 && v < Infinity))) throw new RangeError("elements of 'n' must be positive and finite");
+  if (xs.some((v, i) => !(v >= 0 && v <= ns[i]!))) throw new RangeError("elements of 'x' must be between 0 and 'n'");
   const p = xs.reduce((a, v) => a + v, 0) / ns.reduce((a, v) => a + v, 0);
   const w = ns.map((v) => v / (p * (1 - p)));
   const f = xs.map((v, i) => v / ns[i]!);
@@ -211,6 +213,6 @@ export function jonckheereTest(x: Sample, g: readonly GroupLabel[], options: Jon
     upper = 1 - lower;
   }
   const cap = variant === "clinfun" ? 0.5 : 1;
-  const pValue = alternative === "increasing" ? upper : alternative === "decreasing" ? lower : 2 * Math.min(upper, lower, cap);
+  const pValue = alternative === "increasing" ? upper : alternative === "decreasing" ? lower : Math.min(1, 2 * Math.min(upper, lower, cap)); // (DescTools can exceed 1)
   return { method: "Jonckheere-Terpstra test", alternative, statistic: jt, statisticName: "JT", pValue, warnings };
 }

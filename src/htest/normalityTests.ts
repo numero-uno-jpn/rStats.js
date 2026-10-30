@@ -38,6 +38,7 @@ function sorted(x: Sample): number[] {
 function standardized(xs: readonly number[]): number[] {
   const m = mean(xs);
   const s = Math.sqrt(variance(xs));
+  if (!(s > 0)) throw new RangeError("all 'x' values are identical");
   return xs.map((v) => (v - m) / s);
 }
 
@@ -163,6 +164,7 @@ export function sfTest(x: Sample): NormalityTestResult {
   const xs = sorted(x);
   const n = xs.length;
   if (n < 5 || n > 5000) throw new RangeError("sample size must be between 5 and 5000");
+  if (xs[0] === xs[n - 1]) throw new RangeError("all 'x' values are identical");
   const q = xs.map((_, k) => qnorm((k + 1 - 3 / 8) / (n + 1 / 4)));
   const w = covariance(xs, q) ** 2 / (variance(xs) * variance(q));
   const u = Math.log(n);
@@ -202,6 +204,7 @@ export function pearsonTest(x: Sample, options: PearsonTestOptions = {}): Normal
   const n = xs.length;
   const k = options.nClasses ?? Math.ceil(2 * n ** (2 / 5));
   const adjust = options.adjust ?? true;
+  if (!(Number.isInteger(k) && k - 1 - (adjust ? 2 : 0) > 0)) throw new RangeError("'nClasses' must be an integer leaving positive degrees of freedom");
   const counts = new Array<number>(k).fill(0);
   for (const z of standardized(xs)) {
     const c = Math.floor(1 + k * pnorm(z));

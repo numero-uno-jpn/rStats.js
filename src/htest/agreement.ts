@@ -151,6 +151,7 @@ export function kappamFleiss(ratings: readonly (readonly number[])[], options: K
   requireComplete(ratings, "ratings");
   const n = ratings.length;
   const m = cols.length;
+  if (n < 2 || m < 2) throw new RangeError("at least 2 subjects and 2 raters are needed");
   // (the categories as R's factor() makes them: numbers with the same 15-digit text are one category)
   const flat = ratings.flat();
   const levelOf = numberLevels(flat);
@@ -251,6 +252,8 @@ export function icc(ratings: readonly (readonly number[])[], options: IccOptions
   requireComplete(ratings, "ratings");
   const n = ratings.length;
   const k = cols.length;
+  if (n < 2 || k < 2) throw new RangeError("at least 2 subjects and 2 raters are needed");
+  if (!(r0 >= -1 && r0 < 1)) throw new RangeError("'r0' must be in [-1, 1)");
   const alpha = 1 - confLevel;
   // mean squares from sample variances
   const msr = variance(ratings.map((r) => mean(r))) * k;

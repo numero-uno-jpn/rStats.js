@@ -37,7 +37,8 @@ function rankValues(x: readonly number[], method: TiesMethod): number[] {
     const u = method === "random" ? runif(n) : [];
     const idx = Array.from({ length: n }, (_, i) => i);
     idx.sort((a, b) => {
-      const d = x[a]! - x[b]!;
+      // compared, not subtracted: Infinity - Infinity is NaN, which would hide the tie
+      const d = x[a]! < x[b]! ? -1 : x[a]! > x[b]! ? 1 : 0;
       if (d !== 0) return d;
       if (method === "first") return a - b;
       if (method === "last") return b - a;
@@ -75,6 +76,7 @@ export function rank(x: Sample, options: RankOptions = {}): number[] {
     throw new RangeError(`invalid tiesMethod "${method}"`);
   }
   const naLast = options.naLast ?? "last";
+  if (naLast !== "last" && naLast !== "first" && naLast !== "keep") throw new RangeError(`invalid 'naLast': ${String(naLast)}`);
   const xs = Array.from(x);
   const present = xs.filter((v) => !Number.isNaN(v));
   const r = rankValues(present, method);

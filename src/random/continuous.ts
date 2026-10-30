@@ -29,7 +29,8 @@ export function runif(n: number, options: { min?: number; max?: number } = {}): 
     if (!Number.isFinite(min) || !Number.isFinite(max) || max < min) return NaN;
     if (min === max) return min;
     const u = unifRand();
-    return min + (max - min) * u;
+    // a width that overflows (R returns Inf): the weighted mean of the ends instead
+    return Number.isFinite(max - min) ? min + (max - min) * u : min * (1 - u) + max * u;
   });
 }
 

@@ -100,6 +100,7 @@ export function glmAnova(fits: GlmResult | readonly GlmResult[], options: GlmAno
   const fam = makeFamily(first.model.familySpec);
   const fixed = fam.fixedDispersion;
   const test = options.test === undefined ? (options.dispersion !== undefined || fixed ? "Chisq" : "F") : options.test;
+  if (test !== false && !["Rao", "LRT", "Chisq", "F", "Cp"].includes(test)) throw new RangeError(`invalid 'test': ${String(test)}`);
 
   const rows: { name: string; dfRes: number; dev: number }[] = [];
   let df: number[];

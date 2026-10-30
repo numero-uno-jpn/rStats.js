@@ -10,6 +10,7 @@
 
 import { median, values, type NaRmOptions } from "./basic.js";
 import type { Sample } from "../htest/types.js";
+import { midpoint } from "../internal/extremes.js";
 
 /**
  * Options for {@link quantile}.
@@ -142,7 +143,7 @@ export function fivenum(x: Sample): [number, number, number, number, number] {
   if (n === 0) return [NaN, NaN, NaN, NaN, NaN];
   const n4 = Math.floor((n + 3) / 2) / 2;
   const d = [1, n4, (n + 1) / 2, n + 1 - n4, n];
-  return d.map((v) => 0.5 * (s[Math.floor(v) - 1]! + s[Math.ceil(v) - 1]!)) as [number, number, number, number, number];
+  return d.map((v) => midpoint(s[Math.floor(v) - 1]!, s[Math.ceil(v) - 1]!)) as [number, number, number, number, number];
 }
 
 /**

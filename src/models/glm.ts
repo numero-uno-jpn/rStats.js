@@ -24,6 +24,7 @@ import {
   type GlmFamilySpec,
   type GlmLink,
 } from "./glmFamily.js";
+import { maxOf } from "../internal/extremes.js";
 
 export type { GlmFamilyName, GlmFamilySpec, GlmLink, GlmLinkName, QuasiVariance } from "./glmFamily.js";
 
@@ -201,6 +202,9 @@ function totalDeviance(fam: Family, y: number[], mu: number[], w: number[]): num
 export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
   const { x, p, y, w, offset, fam, epsilon, maxit } = inp;
   const n = y.length;
+  // As R, whose least-squares step (C_Cdqrls) stops on a non-finite value among the rows of positive weight
+  if (y.some((v, i) => w[i]! > 0 && !Number.isFinite(v))) throw new RangeError("NA/NaN/Inf in 'y'");
+  if (x.some((r, i) => w[i]! > 0 && r.some((v) => !Number.isFinite(v)))) throw new RangeError("NA/NaN/Inf in 'x'");
   return withWarnings(warnings, () => {
     const allOk = (eta: number[], mu: number[]) => eta.every((e) => fam.etaOk(e)) && mu.every((m) => fam.muOk(m));
     if (p === 0) {
@@ -319,7 +323,7 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
         dev = totalDeviance(fam, y, mu, w);
       }
       if (inp.untilCoefficients) {
-        const scale = Math.max(...coef.map(Math.abs));
+        const scale = maxOf(coef.map(Math.abs));
         if (previous !== undefined && coef.every((v, j) => Math.abs(v - previous![j]!) <= 8 * EPS * scale)) {
           converged = true;
           break;
@@ -472,11 +476,12 @@ export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: G
     intercept,
     familySpec,
     epsilon: options.epsilon ?? 1e-8,
-    maxit: options.maxit ?? 25,
+    // R loops over 1:maxit, so a fractional maxit runs (and reports) its integer part
+    maxit: Math.floor(options.maxit ?? 25),
     start: options.start === undefined ? undefined : Array.from(options.start),
   };
-  if (!(model.epsilon > 0)) throw new RangeError("value of 'epsilon' must be > 0");
-  if (!(model.maxit > 0)) throw new RangeError("maximum number of iterations must be > 0");
+  if (!(model.epsilon > 0 && model.epsilon < Infinity)) throw new RangeError("value of 'epsilon' must be > 0 and finite");
+  if (!(model.maxit > 0 && model.maxit < Infinity)) throw new RangeError("maximum number of iterations must be > 0");
 
   const warnings = new Warnings();
   const all = Array.from({ length: p }, (_, j) => j);
@@ -805,6 +810,7 @@ export function glmPredict(
     eta = fit.linearPredictors.slice();
   } else {
     X = toRows(options.newdata).map((r) => (fit.model.intercept ? [1, ...r] : r));
+    if (X.some((r) => r.length !== fit.coefficients.length)) throw new RangeError("newdata must have one column per predictor of the fit");
     const off = options.newoffset === undefined ? X.map(() => 0) : Array.from(options.newoffset);
     if (off.length !== X.length) throw new RangeError("newoffset must have one value per row of newdata");
     eta = X.map((r, i) => r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0) + off[i]!);
@@ -825,7 +831,9 @@ export function glmPredict(
     }
     return Math.sqrt(ss) * Math.sqrt(disp);
   });
-  if ((options.type ?? "link") === "link") return { fit: eta, seFit: se };
+  const type = options.type ?? "link";
+  if (type !== "link" && type !== "response") throw new RangeError(`invalid 'type': ${String(type)}`);
+  if (type === "link") return { fit: eta, seFit: se };
   return withWarnings(new Warnings(), () => ({
     fit: eta.map((e) => fam.linkinv(e)),
     seFit: se.map((s, i) => s * Math.abs(fam.muEta(eta[i]!))),

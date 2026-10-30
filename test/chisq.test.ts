@@ -14,6 +14,11 @@ htestSuite({
       defined({ p: arg.vec(a.p), rescaleP: arg.bool(a.rescaleP), correct: arg.bool(a.correct) }),
     ),
   tolerance: 1e-12,
+  // An infinite probability is an error: R rescales it to NaN and returns NaN expected counts
+  substitute: (c) =>
+    Array.isArray(c.args.p) && (c.args.p as string[]).includes("Inf")
+      ? { expected: { error: "probabilities must be finite" }, reason: "R rescales an infinite probability to NaN" }
+      : undefined,
 });
 
 // Simulated p-values: set.seed(seed) right before the test; next is the runif(1) drawn afterwards (the number of

@@ -208,7 +208,8 @@ function monteCarloP(sims: ArrayLike<number>, stat: number, B: number): number {
   const threshold = (1 - 64 * Number.EPSILON) * stat;
   let count = 0;
   for (let i = 0; i < sims.length; i++) if (sims[i]! >= threshold) count++;
-  return (1 + count) / (B + 1);
+  // the simulations actually made (R divides by B + 1 with a fractional B, of which only the integer part is run)
+  return (1 + count) / (Math.trunc(B) + 1);
 }
 
 function pValueOf(stat: number, df: number): number {
@@ -233,6 +234,7 @@ function goodnessOfFit(x: number[], options: ChisqTestOptions): ChisqTestResult 
   if (p.length !== k) throw new TypeError("'x' and 'p' must have the same number of elements");
   if (p.some(Number.isNaN)) throw new RangeError("p contains missing values");
   if (p.some((v) => v < 0)) throw new RangeError("probabilities must be non-negative");
+  if (p.some((v) => v === Infinity)) throw new RangeError("probabilities must be finite");
   if (options.rescaleP ?? false) {
     const s = ddSum(p);
     p = p.map((v) => v / s);

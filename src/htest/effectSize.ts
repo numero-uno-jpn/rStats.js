@@ -248,9 +248,10 @@ const isEz = (m: object): m is AovEzResult => {
   return typeof e.univariate === "object" && typeof e.anova === "object";
 };
 
-const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 /** A name as a whole word */
-const word = (name: string): RegExp => new RegExp(`\\b${escapeRegExp(name)}\\b`);
+// Whether a variable is one of the components of a term name such as "a:b" (compared as names, so that a name that is
+// not a run of word characters, such as ".grp", is found too)
+const word = (name: string): { test: (term: string) => boolean } => ({ test: (term) => term.split(":").includes(name) });
 
 /** The strata of aov with Error() from its summary (intercept stratum left out), and the subject stratum */
 function summaryStrata(s: AovStrataSummary): { strata: Stratum[]; subject: Stratum } {

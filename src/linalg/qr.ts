@@ -91,7 +91,9 @@ export function qr(x: MatrixInput, options: QROptions = {}): QR {
     return { qr: fromMat(a), rank: Math.min(a.nrow, a.ncol), qraux, pivot: pivot.map((v) => v - 1), useLapack: true };
   }
   for (const v of a.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
-  const { qraux, pivot, rank } = linpackQR(a, options.tol ?? 1e-7);
+  const tol = options.tol ?? 1e-7;
+  if (Number.isNaN(tol)) throw new RangeError("'tol' must not be NaN");
+  const { qraux, pivot, rank } = linpackQR(a, tol);
   return { qr: fromMat(a), rank, qraux: Array.from(qraux), pivot: pivot.map((v) => v - 1), useLapack: false };
 }
 

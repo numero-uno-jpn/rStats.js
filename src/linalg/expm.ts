@@ -177,10 +177,22 @@ function pade(A: Mat): Mat {
  * 2^L >= nu, p = L + 4
  */
 function scalingExponent(A: Mat): number {
-  const nu = Math.sqrt(oneNorm(A) * infNorm(A));
+  const n1 = oneNorm(A);
+  const nInf = infNorm(A);
+  // Finite norms whose product overflows: take the square roots first
+  const nu = n1 * nInf < Infinity ? Math.sqrt(n1 * nInf) : Math.sqrt(n1) * Math.sqrt(nInf);
   let L = 1;
   while (2 ** L < nu) L++;
   return L + 4;
+}
+
+/**
+ * A and N = 2^p for the scaled methods. When 2^p would overflow, part of the scaling (an exact power of 2) is moved
+ * into A, so that A / N is unchanged; below that the values are the same as with A and 2^p.
+ */
+function scaledPair(A: Mat, p: number): { A: Mat; N: number } {
+  const q = Math.max(0, p - 1000);
+  return { A: q === 0 ? A : scale(A, 2 ** -q), N: 2 ** (p - q) };
 }
 
 /** R <- R R, p times */
@@ -198,10 +210,10 @@ function addIdentity(M: Mat): void {
 /** "Taylor": S = I, then S <- (S A) (1 / (j N)) + I for j = order ... 1, then squared p times */
 function taylorScaled(A: Mat, order: number): Mat {
   const p = scalingExponent(A);
-  const N = 2 ** p;
+  const { A: As, N } = scaledPair(A, p);
   let S = identity(A.nrow);
   for (let j = order; j >= 1; j--) {
-    S = scale(mul(S, A), 1 / (j * N));
+    S = scale(mul(S, As), 1 / (j * N));
     addIdentity(S);
   }
   return squareRepeatedly(S, p);
@@ -223,9 +235,9 @@ function padeHorner(A: Mat, order: number, N: number, sign: 1 | -1): Mat {
 function padeScaled(A: Mat, order: number): Mat {
   const n = A.nrow;
   const p = scalingExponent(A);
-  const N = 2 ** p;
-  const numer = padeHorner(A, order, N, 1);
-  const denom = padeHorner(A, order, N, -1);
+  const { A: As, N } = scaledPair(A, p);
+  const numer = padeHorner(As, order, N, 1);
+  const denom = padeHorner(As, order, N, -1);
   const R = newMat(n, n);
   for (let i = 0; i < n; i++) {
     R.data.set(conjugateGradientSquared(denom, numer.data.subarray(i * n, (i + 1) * n)), i * n);

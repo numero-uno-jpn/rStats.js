@@ -90,7 +90,9 @@ export function chol(x: MatrixInput, options: CholOptions = {}): number[][] | Ch
   requireSquare(a);
   if (a.nrow === 0) throw new RangeError("the matrix has zero dimension");
   if (options.pivot) {
-    const { pivot, rank } = pstf2(a, options.tol ?? -1);
+    const tol = options.tol ?? -1;
+    if (Number.isNaN(tol)) throw new RangeError("'tol' must not be NaN");
+    const { pivot, rank } = pstf2(a, tol);
     zeroLower(a);
     return { r: fromMat(a), pivot: pivot.map((v) => v - 1), rank };
   }

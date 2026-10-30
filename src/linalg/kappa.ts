@@ -23,6 +23,7 @@ import { norm, type NormType } from "./norm.js";
 import { qr, qrR } from "./qr.js";
 import { rcond, solve } from "./solve.js";
 import { svd } from "./svd.js";
+import { maxOf, minOf } from "../internal/extremes.js";
 
 /**
  * Options for {@link kappa}.
@@ -77,8 +78,8 @@ export function kappa(z: MatrixInput, options: KappaOptions = {}): number {
     const nrm = options.norm === undefined ? "2" : normalize(options.norm);
     if (nrm === "2") {
       const d = svd(z, { nu: 0, nv: 0 }).d;
-      const min = Math.min(...d);
-      return min === 0 ? Infinity : Math.max(...d) / min;
+      const min = minOf(d);
+      return min === 0 ? Infinity : maxOf(d) / min;
     }
     return norm(z, { type: nrm }) * norm(solve(z), { type: nrm });
   }

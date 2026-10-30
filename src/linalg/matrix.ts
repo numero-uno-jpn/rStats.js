@@ -87,3 +87,14 @@ export function hasNonFinite(m: Mat): boolean {
 export function requireSquare(m: Mat, what = "the matrix"): void {
   if (m.nrow !== m.ncol) throw new TypeError(`${what} must be square (got ${m.nrow} x ${m.ncol})`);
 }
+
+/**
+ * 0 when the largest absolute value is within [2^-256, 2^256] (or all are 0); otherwise its binary exponent, the
+ * power of 2 to divide by to bring the values near 1
+ */
+export function rangeExponent(data: ArrayLike<number>): number {
+  let mx = 0;
+  for (let i = 0; i < data.length; i++) mx = Math.max(mx, Math.abs(data[i]!));
+  if (mx === 0 || (mx >= 2 ** -256 && mx <= 2 ** 256)) return 0;
+  return Math.floor(Math.log2(mx));
+}

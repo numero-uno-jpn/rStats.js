@@ -12,6 +12,7 @@ import { qpareto1 } from "../distributions/pareto.js";
 import { generate } from "./common.js";
 import { rgamma1 } from "./gamma.js";
 import { expRand, unifRand } from "./rng.js";
+import { midpoint } from "../internal/extremes.js";
 
 /**
  * Random numbers from the inverse gamma distribution. Equivalent to `extraDistr::rinvgamma(n, alpha, beta = 1)` in R.
@@ -78,7 +79,7 @@ export function rpareto(n: number, options: { a?: number; b?: number } = {}): nu
  */
 export function rtriang(n: number, options: { a?: number; b?: number; c?: number } = {}): number[] {
   const { a = -1, b = 1 } = options;
-  const c = options.c ?? (a + b) / 2;
+  const c = options.c ?? midpoint(a, b);
   return generate(n, () => {
     if (!(Number.isFinite(a) && Number.isFinite(b) && a < b && a <= c && c <= b)) return NaN;
     const u = unifRand();

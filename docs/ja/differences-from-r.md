@@ -181,6 +181,17 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `besselJ(1e6, 0)` | 0 | 3.3104301373987376e-4 |
 | `besselY(1e6, -2.75)` | -4.1e-4 | -2.8030753997749413e-5 |
 | タイがあり `exact` を指定しない (または `TRUE`) `ansari.test(conf.int = TRUE)` | エラー "object 'cint' not found" (両方の標本が 50 未満だと R は正確な方法の分岐に入り、タイがあると区間を飛ばす) | 正規近似の区間と推定値 (`exact: false` と同じ) |
+| `weighted.mean(c(1e308, 1e308), c(1, 1))` など和が溢れる場合 | Inf | 1e308 (値と重みをスケーリング) |
+| `fivenum(c(1e308, 1e308))`、`hist(...)$mids`、Kaplan-Meier の中央値、`wilcox.test` の Hodges-Lehmann 推定値と midrange、三角分布の既定の最頻値、`splinefun` の `monoH.FC` の傾き (いずれも `(a + b) / 2`) | a + b が溢れると Inf | 中点 (a + b が溢れるときは a / 2 + b / 2) |
+| 1e150 程度のデータに対する e1071 の `skewness`、`kurtosis` | NaN (べき乗が溢れる) | 尺度によらない値 (偏差を 2 のべき乗でスケーリング) |
+| `scale(c(1e200, 2e200, 3e200))`、`scale(c(1e-200, 2e-200, 3e-200))` | scale が Inf または 0、標準化値が 0 または ±Inf | -1, 0, 1 (二乗和をスケーリング) |
+| `runif(n, -1e308, 1e308)` | Inf (max - min が溢れる) | 範囲内の値 |
+| `seq(1, 2, by = Inf)` | NaN | 1 |
+| `matrix(c(1, 3, 2, 4), 2) * 1e-60` のような小さな非対称行列の `eigen()` | 対称とみなす (平均 \|a\| <= 100 eps で `isSymmetric` が絶対差で比べる) ため固有値が誤る | 対称判定をどの尺度でも相対的に行う (`isSymmetric()` 自体は R と同じ) |
+| 値に "\r" を含む複数キー、または `NA` と文字列 "NA" での `merge()` | 異なるキーの行が結合される (キーを "\r" で連結するため) | 等しいキーだけを結合 |
+| 小数の `B` での `fisher.test`/`chisq.test(simulate.p.value = TRUE)` | 整数部分しかシミュレーションしないのに B + 1 で割る | 実際の回数 + 1 で割る |
+| `JonckheereTerpstraTest` (DescTools) の両側 p 値 | 1 を超えることがある | 最大 1 |
+| distSummary の `unif(-1e308, 1e308)` の平均、`beta(1e150, 1e150)` の分散 | Inf、0 | 0、1.25e-151 |
 
 ## 意図的な違い
 
@@ -202,6 +213,12 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 - **NA は NaN で表します。** R は `NA` と `NaN` を区別します (たとえば `table` と `unique` は別々に数える)
   が、rStats.js には `NaN` が 1 つしかありません。
 - **`var` は `variance` という名前です。** JavaScript では `var` を名前に使えないためです。
+
+- **意味のない入力はエラーにする** (R は値を返す場合でも)。たとえば `zTest` の 0 以下の既知標準偏差、
+  `chisqTest` の無限大の確率、`cochranQTest` の二値でないデータ、`propTrendTest`・`polychor`・二列形式の
+  二項 `glm` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`pwrChisqTest` の `df <= 0`、
+  非有限または NaN の許容誤差 (`optim` の `reltol`、`uniroot`、`optimize`、`integrate`、`qr`、`chol`、
+  `solve`、`coxph`、`glm`)。
 
 ### 分布
 

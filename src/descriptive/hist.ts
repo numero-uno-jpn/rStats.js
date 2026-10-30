@@ -13,6 +13,7 @@ import { median, range, sd } from "./basic.js";
 import { IQR, quantile } from "./quantile.js";
 import { seqLength } from "../internal/seq.js";
 import type { Sample } from "../htest/types.js";
+import { midpoint, minOf } from "../internal/extremes.js";
 
 /**
  * Options for {@link pretty}.
@@ -228,7 +229,7 @@ function fuzzScale(br: readonly number[], dataRange: number): number {
   const widths = br.slice(1).map((v, i) => v - br[i]!);
   if (br.length > 5) return median(widths);
   if (br.length <= 3) return dataRange;
-  return Math.min(...widths.filter((w) => w > 0));
+  return minOf(widths.filter((w) => w > 0));
 }
 
 /**
@@ -251,6 +252,7 @@ export function hist(x: Sample, options: HistOptions = {}): HistResult {
   let br: number[];
   if (typeof spec !== "string" && typeof spec !== "number" && spec.length > 1) {
     br = [...spec].sort((a, b) => a - b);
+    if (br.some((v, i) => i > 0 && !(v > br[i - 1]!))) throw new RangeError("'breaks' are not strictly increasing");
   } else {
     includeLowest = true;
     let k = typeof spec === "string" ? classCount(xs, spec) : typeof spec === "number" ? spec : spec[0]!;
@@ -285,7 +287,7 @@ export function hist(x: Sample, options: HistOptions = {}): HistResult {
   if (total < n) throw new RangeError("some 'x' not counted; maybe 'breaks' do not span range of 'x'");
 
   const density = counts.map((c, i) => c / (n * (br[i + 1]! - br[i]!)));
-  const mids = counts.map((_, i) => 0.5 * (br[i + 1]! + br[i]!));
+  const mids = counts.map((_, i) => midpoint(br[i + 1]!, br[i]!));
   return { breaks: br, counts, density, mids };
 }
 

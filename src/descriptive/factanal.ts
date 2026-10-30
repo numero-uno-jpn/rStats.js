@@ -238,13 +238,12 @@ export function factanal(x: readonly (readonly number[])[] | null, factors: numb
   let L = orderAndSignColumns(loadingsAt(S, psi, q)).L;
   let rotmat: number[][] | undefined;
   const rotation = options.rotation ?? "varimax";
+  if (rotation !== "varimax" && rotation !== "promax" && rotation !== "none") throw new RangeError(`unknown rotation '${String(rotation)}'`);
   if (rotation !== "none" && q >= 2) {
     const r = rotation === "varimax" ? varimax(L) : promax(L);
     const sorted = orderAndSignColumns(r.loadings, r.rotmat);
     L = sorted.L;
     rotmat = sorted.rot;
-  } else if (rotation !== "varimax" && rotation !== "promax" && rotation !== "none") {
-    throw new RangeError(`unknown rotation '${String(rotation)}'`);
   }
   let STATISTIC = NaN;
   let PVAL = NaN;

@@ -310,6 +310,9 @@ export function fitLm(Xall: number[][], Yall: number[], Wall: number[] | undefin
   const W = Wall?.filter((_, i) => fitRow[i]);
   const n = Y.length;
   if (n === 0) throw new RangeError("all weights are zero");
+  // As R's lm.fit and lm.wfit (on the rows of non-zero weight)
+  if (X.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("NA/NaN/Inf in 'x'");
+  if (Y.some((v) => !Number.isFinite(v))) throw new RangeError("NA/NaN/Inf in 'y'");
 
   const fitRows = Yall.flatMap((_, i) => (fitRow[i] ? [i] : []));
   const sw = W?.map(Math.sqrt);
@@ -484,6 +487,7 @@ export function predict(
       ? (newdata as MatrixInput).map((r) => Array.from(r))
       : Array.from(newdata as Sample, (v) => [v]);
   const X = rows.map((r) => (fit.intercept ? [1, ...r] : r));
+  if (X.some((r) => r.length !== fit.coefficients.length)) throw new RangeError("newdata must have one column per predictor of the fit");
   const rank = fit.rank;
   const piv = fit.qr.pivot.slice(0, rank);
   const Rr = fit.qr.qr.slice(0, rank).map((row) => row.slice(0, rank));
@@ -500,6 +504,7 @@ export function predict(
     return Math.sqrt(z.reduce((a, v) => a + v * v, 0) * resvar);
   });
   const interval = options.interval ?? "none";
+  if (interval !== "none" && interval !== "confidence" && interval !== "prediction") throw new RangeError(`invalid 'interval': ${String(interval)}`);
   if (interval === "none") return { fit: values, seFit };
   const t = qt1((1 + (options.level ?? 0.95)) / 2, fit.dfResidual, true, false);
   const half = seFit.map((s) => t * Math.sqrt(s * s + (interval === "prediction" ? resvar : 0)));

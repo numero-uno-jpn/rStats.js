@@ -15,6 +15,7 @@ import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
 import { numberLevels } from "../internal/levels.js";
 import { Warnings } from "./glmFamily.js";
+import { maxOf } from "../internal/extremes.js";
 
 /**
  * Control of the Newton-Raphson iterations of {@link coxph} (R's `coxph.control`).
@@ -380,7 +381,9 @@ export function coxph(
   const { eps = 1e-9, iterMax = 20, tolerChol = 2 ** -39 } = control;
   const tolerInf = control.tolerInf ?? Math.sqrt(eps);
   if (ties !== "efron" && ties !== "breslow") throw new RangeError(`invalid 'ties': ${String(ties)}`);
-  if (!(eps > 0)) throw new RangeError("'eps' must be positive");
+  if (!(eps > 0 && eps < Infinity)) throw new RangeError("'eps' must be a positive finite number");
+  if (!(tolerChol > 0 && tolerChol < Infinity)) throw new RangeError("'tolerChol' must be a positive finite number");
+  if (!(tolerInf > 0 && tolerInf < Infinity)) throw new RangeError("'tolerInf' must be a positive finite number");
   if (!(Number.isInteger(iterMax) && iterMax >= 0)) throw new RangeError("'iterMax' must be a non-negative integer");
   if (!(confLevel > 0 && confLevel < 1)) throw new RangeError("'confLevel' must be between 0 and 1");
   const nIn = time.length;
@@ -391,6 +394,7 @@ export function coxph(
   if (p < 1) throw new RangeError("'x' must have at least one column");
   if (x.some((row) => row.length !== p)) throw new RangeError("the rows of 'x' must have the same length");
   if (init !== undefined && init.length !== p) throw new RangeError("'init' must have one value per column of 'x'");
+  if (init?.some((v) => !Number.isFinite(v))) throw new RangeError("'init' must contain finite values");
 
   // 1. the rows used
   const keep: number[] = [];
@@ -404,6 +408,7 @@ export function coxph(
   }
   const n = keep.length;
   if (n === 0) throw new RangeError("no observations without missing values");
+  if (keep.some((i) => x[i]!.some((v) => !Number.isFinite(v)))) throw new RangeError("'x' contains infinite values");
   const w = keep.map((i) => (weights === undefined ? 1 : weights[i]!));
   if (w.some((v) => !(v > 0))) throw new RangeError("Invalid weights, must be >0");
   if (w.some((v) => !Number.isInteger(v))) throw new RangeError("non-integer weights (robust variance) are not supported yet");
@@ -541,7 +546,7 @@ export function coxph(
     });
     if (ranOut) {
       warnings.add("Ran out of iterations and did not converge");
-      if (Math.max(...linearPredictors) > 500 || infinity.some((f) => !Number.isFinite(f))) {
+      if (maxOf(linearPredictors) > 500 || infinity.some((f) => !Number.isFinite(f))) {
         warnings.add("one or more coefficients may be infinite");
       }
     } else {

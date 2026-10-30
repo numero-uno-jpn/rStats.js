@@ -91,6 +91,7 @@ export function propTest(
   xs = kept.map((i) => xs[i]!);
   ns = kept.map((i) => ns[i]!);
   if (ns.some((v) => !(v > 0))) throw new RangeError("elements of 'n' must be positive");
+  if (ns.some((v) => v === Infinity)) throw new RangeError("elements of 'n' must be finite");
   if (xs.some((v) => !(v >= 0))) throw new RangeError("elements of 'x' must be nonnegative");
   if (xs.some((v, i) => v > ns[i]!)) throw new RangeError("elements of 'x' must not be greater than those of 'n'");
 

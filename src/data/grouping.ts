@@ -240,6 +240,8 @@ export function split<T>(
   rowsByCell(g).forEach((rows, cell) => {
     if (rows.length === 0 && (options.drop || g.factors.length === 1)) return;
     const name = cellLevels(g, cell).map(levelName).join(sep);
+    // Two different combinations of levels whose names joined with sep coincide would overwrite one another
+    if (out.has(name)) throw new RangeError(`the group names joined with '${sep}' are not unique ('${name}'); use another sep`);
     out.set(name, frame ? rowsOf(x as DataFrame, rows) : rows.map((i) => xs[i]!));
   });
   return out;
@@ -326,6 +328,11 @@ function aggregateRows(
       return v === 0 ? 0 : v;
     });
   });
+  // A result column whose name is already taken (by a grouping column or another result) would overwrite it
+  const setColumn = (name: string, v: number[]): void => {
+    if (Object.hasOwn(out, name)) throw new RangeError(`duplicate column name '${name}' in the result`);
+    out[name] = v;
+  };
   valueNames.forEach((name, j) => {
     const col = valueCols[j]!;
     const results = cells.map((c) => fun(c.rows.map((i) => col[i]!)));
@@ -338,12 +345,12 @@ function aggregateRows(
     const k = flat[0]?.values.length ?? 1;
     if (flat.some((r) => r.values.length !== k)) throw new RangeError("fun must return values of the same length for every group");
     if (k === 1 && flat[0]?.names === undefined) {
-      out[name] = flat.map((r) => r.values[0]!);
+      setColumn(name, flat.map((r) => r.values[0]!));
       return;
     }
     for (let m = 0; m < k; m++) {
       const suffix = flat[0]!.names?.[m] ?? String(m + 1);
-      out[`${name}.${suffix}`] = flat.map((r) => r.values[m]!);
+      setColumn(`${name}.${suffix}`, flat.map((r) => r.values[m]!));
     }
   });
   return out;

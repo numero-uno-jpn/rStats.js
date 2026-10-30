@@ -151,6 +151,7 @@ export function prcomp(x: MatrixInput, options: PrcompOptions = {}): PrcompResul
   const sdev = dec.d.map((d) => d / Math.sqrt(Math.max(1, n - 1)));
   // Components kept: at most rank, and with tol only those whose sdev is greater than tol times the first
   let k = rank === undefined ? sdev.length : Math.min(Math.trunc(rank), sdev.length);
+  if (Number.isNaN(tol)) throw new RangeError("'tol' must not be NaN");
   if (tol !== undefined) k = Math.min(k, sdev.filter((d) => d > sdev[0]! * tol).length);
   const rotation = dec.v!.map((r) => r.slice(0, k));
   const out: PrcompResult = {

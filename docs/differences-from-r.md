@@ -187,6 +187,17 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `besselJ(1e6, 0)` | 0 | 3.3104301373987376e-4 |
 | `besselY(1e6, -2.75)` | -4.1e-4 | -2.8030753997749413e-5 |
 | `ansari.test(conf.int = TRUE)` with ties and `exact` unset (or `TRUE`) | error "object 'cint' not found" (with both samples below 50 values R takes the exact branch, which skips the interval with ties) | the normal-approximation interval and estimate, the same as with `exact: false` |
+| `weighted.mean(c(1e308, 1e308), c(1, 1))` and other sums that overflow | Inf | 1e308 (the values and weights rescaled) |
+| `fivenum(c(1e308, 1e308))`, `hist(...)$mids`, the Kaplan-Meier median, the Hodges-Lehmann estimate and the midrange of `wilcox.test`, the default mode of the triangular distribution, the `monoH.FC` slopes of `splinefun` (all `(a + b) / 2`) | Inf when a + b overflows | the midpoint, as a / 2 + b / 2 when a + b overflows |
+| e1071's `skewness`, `kurtosis` on data around 1e150 | NaN (the powers overflow) | the value at any scale (the deviations rescaled by a power of 2) |
+| `scale(c(1e200, 2e200, 3e200))`, `scale(c(1e-200, 2e-200, 3e-200))` | scale Inf or 0, scaled values 0 or ±Inf | -1, 0, 1 (the sum of squares rescaled) |
+| `runif(n, -1e308, 1e308)` | Inf (max - min overflows) | values in the range |
+| `seq(1, 2, by = Inf)` | NaN | 1 |
+| `eigen()` of a small nonsymmetric matrix such as `matrix(c(1, 3, 2, 4), 2) * 1e-60` | treated as symmetric (`isSymmetric` compares absolutely when mean \|a\| <= 100 eps): wrong eigenvalues | the symmetry test made relative at every scale (`isSymmetric()` itself is R's) |
+| `merge()` on several keys whose values contain "\r", or `NA` against the text "NA" | rows with different keys matched (the keys are pasted with "\r") | matched only on equal keys |
+| `fisher.test`/`chisq.test(simulate.p.value = TRUE)` with a fractional `B` | divides by B + 1 though only the integer part of B is simulated | divides by the number simulated plus 1 |
+| `JonckheereTerpstraTest` (DescTools) two-sided | can exceed 1 | at most 1 |
+| distSummary's mean of `unif(-1e308, 1e308)`, variance of `beta(1e150, 1e150)` | Inf, 0 | 0, 1.25e-151 |
 
 ## Deliberate differences
 
@@ -209,6 +220,13 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 - **NA is represented by NaN.** R tells `NA` from `NaN` (for example `table` and `unique` count them
   apart); rStats.js has one `NaN`.
 - **`var` is called `variance`**, because `var` cannot be a name in JavaScript.
+
+- **Input that has no meaning is an error** where R returns a value: for example a known standard
+  deviation <= 0 in `zTest`, an infinite probability in `chisqTest`, non-binary data in
+  `cochranQTest`, negative counts in `propTrendTest`, `polychor` and two-column binomial `glm`,
+  fewer than 2 subjects or raters in `icc` and `kappamFleiss`, `df <= 0` in `pwrChisqTest`, and
+  a non-finite or NaN tolerance (`optim`'s `reltol`, `uniroot`, `optimize`, `integrate`, `qr`,
+  `chol`, `solve`, `coxph`, `glm`).
 
 ### Distributions
 

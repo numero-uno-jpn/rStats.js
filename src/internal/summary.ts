@@ -86,6 +86,9 @@ export function meanDD(x: readonly number[]): DD {
   if (!Number.isFinite(m[0])) return [s[0] / n, 0];
   let t: DD = [0, 0];
   for (const v of x) t = ddAdd(t, ddSub([v, 0], m));
+  // A deviation v - m beyond the double range (values near both ends of it) leaves the correction infinite: m, the
+  // double-double quotient of the exact sum, is kept
+  if (!Number.isFinite(t[0])) return m;
   return ddAdd(m, ddDivNum(t, n));
 }
 

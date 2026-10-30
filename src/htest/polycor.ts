@@ -22,6 +22,7 @@ import { mean, sum, variance } from "../internal/summary.js";
 import { optimize } from "../numerics/integrate.js";
 import { solve } from "../linalg/solve.js";
 import { formatR } from "./core/simulate.js";
+import { maxOf } from "../internal/extremes.js";
 
 /**
  * Result of {@link polychor} and {@link polyserial}.
@@ -357,7 +358,7 @@ function newtonIterations(
       if (scale * step[0]! !== 0 && Math.abs(next[0]!) >= BOUND * (1 - 1e-15)) next[0] = Math.sign(next[0]!) * BOUND;
       const nextAt = evaluate(next);
       if (noLowerThan(nextAt.value, at.value)) {
-        const moved = Math.max(...next.map((v, k) => Math.abs(v - theta[k]!) / Math.max(1, Math.abs(theta[k]!))));
+        const moved = maxOf(next.map((v, k) => Math.abs(v - theta[k]!) / Math.max(1, Math.abs(theta[k]!))));
         theta = next;
         at = nextAt;
         accepted = moved > 1e-12;
@@ -448,6 +449,7 @@ export function polychor(
     const k = t[0]?.length ?? 0;
     if (t.some((r) => r.length !== k)) throw new TypeError("the table must have rows of equal length");
     tab = t.map((r) => Array.from(r));
+    if (tab.some((r) => r.some((v) => !(v >= 0 && v < Infinity)))) throw new RangeError("the counts of the table must be nonnegative and finite");
     options = yOrOptions ?? {};
   } else {
     const xs = x as readonly number[];

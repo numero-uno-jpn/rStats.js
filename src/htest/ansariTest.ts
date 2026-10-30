@@ -24,6 +24,7 @@ import type { DataFrame } from "../models/modelFrame.js";
 import { pansariExact, qansariR } from "./core/ansari.js";
 import { twoGroupData } from "./testFormula.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
+import { maxOf, minOf } from "../internal/extremes.js";
 
 /**
  * Options for {@link ansariTest}.
@@ -254,7 +255,7 @@ function normalInterval(
   const ends: number[] = [];
   const range = (xp: number[], yp: number[]): void => {
     if (xp.length === 0 || yp.length === 0) return;
-    ends.push(Math.min(...xp) / Math.max(...yp), Math.max(...xp) / Math.min(...yp));
+    ends.push(minOf(xp) / maxOf(yp), maxOf(xp) / minOf(yp));
   };
   range(
     xs.filter((v) => v > 0),
@@ -265,8 +266,8 @@ function normalInterval(
     ys.filter((v) => v < 0),
   );
   if (ends.some((v) => !Number.isFinite(v))) return undefined;
-  const lo = Math.min(...ends);
-  const hi = Math.max(...ends);
+  const lo = minOf(ends);
+  const hi = maxOf(ends);
   const root = (zq: number): number => uniroot((s) => z(s, zq), lo, hi, { tol: 1e-4 });
   const limits = (alpha: number): [number, number] => {
     const zLow = qnorm(alpha / 2);

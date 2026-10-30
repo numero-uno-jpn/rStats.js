@@ -12,6 +12,7 @@ import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
 import { levelText, numberLevels } from "../internal/levels.js";
 import { solve } from "../linalg/solve.js";
+import { midpoint } from "../internal/extremes.js";
 
 /**
  * Options for {@link survdiff}.
@@ -170,6 +171,7 @@ export function survdiff(
   if (!Number.isFinite(rho)) throw new RangeError("'rho' must be a finite number");
   const { obs, labels } = prepare(time, status, group);
   const k = labels.length;
+  if (k < 2) throw new RangeError("there is only 1 group");
   const n = new Array<number>(k).fill(0);
   for (const o of obs) n[o.group]!++;
   const observed = new Array<number>(k).fill(0);
@@ -238,7 +240,7 @@ function curveMedian(time: readonly number[], nEvent: readonly number[], curve: 
     const c = curve[i]!;
     if (!(c < 0.5 + tol)) continue;
     if (c > 0.5 - tol) {
-      for (let j = i + 1; j < curve.length; j++) if (nEvent[j]! > 0) return (time[i]! + time[j]!) / 2;
+      for (let j = i + 1; j < curve.length; j++) if (nEvent[j]! > 0) return midpoint(time[i]!, time[j]!);
       return time[i]!;
     }
     return time[i]!;

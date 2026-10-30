@@ -6,6 +6,7 @@
 
 import { levelText, numberLevels } from "../internal/levels.js";
 import type { Sample } from "./types.js";
+import { midpoint } from "../internal/extremes.js";
 
 /**
  * Group label: a number or a string.
@@ -75,7 +76,7 @@ export function toGroups(
 export function median(x: readonly number[]): number {
   const s = [...x].sort((a, b) => a - b);
   const n = s.length;
-  return n % 2 === 1 ? s[(n - 1) / 2]! : (s[n / 2 - 1]! + s[n / 2]!) / 2;
+  return n % 2 === 1 ? s[(n - 1) / 2]! : midpoint(s[n / 2 - 1]!, s[n / 2]!);
 }
 
 /** Rows of a blocks x treatments table with any NaN dropped (R's complete.cases) */

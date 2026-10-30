@@ -59,7 +59,8 @@ export function pick(col: Column, rows: readonly number[]): Column {
 /** Adds a column to a result under construction; names must be unique */
 export function addColumn(out: DataFrame, name: string, col: Column): void {
   if (Object.hasOwn(out, name)) throw new Error(`duplicate column name '${name}'`);
-  out[name] = col;
+  // defineProperty, so that a column named "__proto__" is an own column rather than setting the prototype
+  Object.defineProperty(out, name, { value: col, enumerable: true, writable: true, configurable: true });
 }
 
 /**
@@ -239,7 +240,10 @@ export function merge(x: DataFrame, y: DataFrame, options: MergeOptions = {}): D
             const v = valueAt(cols[0]!, i);
             return isMissing(v) ? MISSING_KEY : (v as number | string | boolean);
           }
-        : (cols: readonly Column[], i: number): Key => cols.map((c) => valueText(valueAt(c, i))).join("\r");
+        : // Matched on the values' text, as R, but encoded unambiguously: R pastes them with "\r", so that a key
+          // containing "\r", or "NA" against a missing value, matches a different key
+          (cols: readonly Column[], i: number): Key =>
+            JSON.stringify(cols.map((c) => (isMissing(valueAt(c, i)) ? null : valueText(valueAt(c, i)))));
     const kx = Array.from({ length: nx }, (_, i) => keyOf(keysX, i));
     const ky = Array.from({ length: ny }, (_, j) => keyOf(keysY, j));
     const inY = new Set(ky);
@@ -364,9 +368,22 @@ export function rbindFrames(frames: readonly DataFrame[]): DataFrame {
   for (const n of names) {
     const cols = frames.map((f) => f[n]!);
     const rows = cols.flatMap((c) => Array.from({ length: c.length }, (_, i): [Column, number] => [c, i]));
-    out[n] = gather(cols, rows);
+    addColumn(out, n, commonType(gather(cols, rows)));
   }
   return out;
+}
+
+/**
+ * A column of mixed value types converted to their common type, as R's rbind does: text if any value is text
+ * (numbers as as.character writes them, logicals as "TRUE" / "FALSE"), otherwise numbers (TRUE as 1) when numbers
+ * and logicals are mixed
+ */
+function commonType(col: Column): Column {
+  if (col instanceof Float64Array) return col;
+  const kinds = new Set(col.filter((v) => !isMissing(v)).map((v) => typeof v));
+  if (kinds.size < 2) return col;
+  if (kinds.has("string")) return col.map((v) => (isMissing(v) ? null : typeof v === "string" ? v : valueText(v)));
+  return col.map((v) => (isMissing(v) ? null : typeof v === "boolean" ? (v ? 1 : 0) : v));
 }
 
 /**

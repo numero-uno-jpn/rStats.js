@@ -107,7 +107,9 @@ function sortedLevels(values: readonly unknown[]): string[] {
   return [...new Set(distinct.map(label))].sort(compareCodePoints);
 }
 
-const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// Whether a variable is one of the components of a term name such as "a:b" (compared as names, so that a name that is
+// not a run of word characters, such as ".grp", is found too)
+const inTerm = (variable: string, term: string): boolean => term.split(":").includes(variable);
 
 /** Row of the anova table before the effect sizes */
 interface Row {
@@ -125,9 +127,9 @@ interface Row {
  * all rows of the univariate table (intercept included)
  */
 function anovaTable(rows: Row[], errorSS: number[], es: AovEzEffectSize[], observed: string[]): AovEzTable {
-  const isObserved = (name: string): boolean => observed.some((o) => new RegExp(`\\b${escapeRegExp(o)}\\b`).test(name));
+  const isObserved = (name: string): boolean => observed.some((o) => inTerm(o, name));
   for (const o of observed) {
-    if (!rows.some((r) => new RegExp(`\\b${escapeRegExp(o)}\\b`).test(r.name))) throw new Error(`Observed variable not in data: ${o}`);
+    if (!rows.some((r) => inTerm(o, r.name))) throw new Error(`Observed variable not in data: ${o}`);
   }
   const distinctError = [...new Set(errorSS)].reduce((s, v) => s + v, 0);
   const O = rows.reduce((s, r) => (isObserved(r.name) ? s + r.ss : s), 0);
@@ -175,7 +177,9 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
   const type = options.type ?? 3;
   if (type !== 2 && type !== 3) throw new RangeError(`invalid type (${String(type)}): use 2 or 3`);
   const correction = options.correction ?? "GG";
+  if (!["GG", "HF", "none"].includes(correction)) throw new RangeError(`invalid 'correction': ${String(correction)}`);
   const es = list(options.es ?? "ges") as AovEzEffectSize[];
+  for (const e of es) if (e !== "ges" && e !== "pes") throw new RangeError(`invalid 'es': ${String(e)}`);
   const observed = list(options.observed);
   const warnings: string[] = [];
 

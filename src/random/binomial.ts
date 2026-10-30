@@ -8,6 +8,7 @@
 import { unifRand } from "./rng.js";
 import { generate, powInt } from "./common.js";
 import { qbinom } from "../distributions/binomial.js";
+import { maxOf } from "../internal/extremes.js";
 
 const INT_MAX = 2147483647;
 
@@ -201,7 +202,16 @@ export function rmultinom(n: number, size: number, prob: readonly number[]): num
     sum += v;
   }
   if (sum === 0) throw new RangeError("prob must contain at least one positive value");
-  const pr = prob.map((v) => v / sum);
+  let pr: number[];
+  if (sum === Infinity) {
+    // Finite weights whose sum overflows: rescale by the largest before summing
+    const mx = maxOf(prob);
+    sum = 0;
+    for (const v of prob) sum += v / mx;
+    pr = prob.map((v) => v / mx / sum);
+  } else {
+    pr = prob.map((v) => v / sum);
+  }
   const K = pr.length;
   const draw = (): number[] => {
     const out = new Array<number>(K).fill(0);

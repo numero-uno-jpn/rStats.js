@@ -8,6 +8,7 @@
 // All of this was verified against observed R output.
 
 import { isRounding, unifIndex, unifRand } from "./rng.js";
+import { maxOf } from "../internal/extremes.js";
 
 /**
  * Options for {@link sample} and {@link sampleInt}.
@@ -54,6 +55,7 @@ function sampleInt1(n: number, options: SampleOptions): number[] {
   const size = sizeGiven ? options.size! : n;
   if (!Number.isFinite(size) || size < 0) throw new RangeError("size must be a non-negative number");
   const k = Math.trunc(size);
+  if (n === 0 && k > 0) throw new RangeError("cannot take a sample from an empty population");
 
   if (prob !== undefined) {
     if (n >= 2 ** 31) throw new RangeError("n must be less than 2^31 with prob");
@@ -135,6 +137,13 @@ function fixupProb(prob: readonly number[], k: number, replace: boolean): Float6
     }
   }
   if (npos === 0 || (!replace && k > npos)) throw new RangeError("too few positive probabilities");
+  if (sum === Infinity) {
+    // Finite weights whose sum overflows: rescale by the largest before summing
+    const mx = maxOf(prob);
+    sum = 0;
+    for (const v of prob) sum += v / mx;
+    return Float64Array.from(prob, (v) => v / mx / sum);
+  }
   return Float64Array.from(prob, (v) => v / sum);
 }
 

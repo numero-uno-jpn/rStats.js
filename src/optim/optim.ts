@@ -611,6 +611,8 @@ export function optim(par: readonly number[], fn: (par: number[]) => number, opt
   const maxit = control.maxit ?? (method === "Nelder-Mead" ? 500 : method === "SANN" ? 10000 : 100);
   const reltol = control.reltol ?? Math.sqrt(2 ** -52);
   const abstol = control.abstol ?? -Infinity;
+  if (!(reltol >= 0 && reltol < Infinity)) throw new RangeError("'reltol' must be a non-negative finite number");
+  if (Number.isNaN(abstol)) throw new RangeError("'abstol' must not be NaN");
   if (method === "Nelder-Mead" && n === 1)
     warnings.push('one-dimensional optimization by Nelder-Mead is unreliable:\nuse "Brent" or optimize() directly');
   if (method === "L-BFGS-B" && (control.reltol !== undefined || control.abstol !== undefined))
