@@ -205,6 +205,9 @@ export function rt(n: number, df: number, options: { ncp?: number } = {}): numbe
   // Noncentral t: as in R, generate n normal variates first, then n χ² variates
   if (Number.isNaN(ncp)) return generate(n, () => NaN);
   const z = generate(n, () => rnorm1(ncp, 1));
+  // df = Inf: V / df is 1 in the limit, so T = Z + ncp ~ N(ncp, 1) (R gives NaN, as its rchisq(n, Inf) does). No χ²
+  // variates are drawn then, as R's rchisq(n, Inf) draws none, so the stream stays R's
+  if (df === Infinity) return z;
   const v = rchisq(n, df);
   return z.map((zi, i) => zi / Math.sqrt(v[i]! / df));
 }
@@ -237,7 +240,11 @@ export function rf(n: number, df1: number, df2: number, options: { ncp?: number 
     });
   }
   // Noncentral F: as in R, generate n noncentral χ² variates first, then n χ² variates
-  const x = rchisq(n, df1, { ncp });
-  const y = rchisq(n, df2);
-  return x.map((xi, i) => xi / df1 / (y[i]! / df2));
+  // An infinite df makes that χ² over its df 1 in the limit (for a finite ncp >= 0: mean (df + ncp) / df, variance
+  // (2 df + 4 ncp) / df^2): F is then X / df1, df2 / Y or 1 (R gives NaN). As R's rchisq with an infinite df draws no
+  // variates, leaving them out keeps the stream R's
+  const ncpOk = ncp !== undefined && ncp >= 0 && Number.isFinite(ncp);
+  const x = df1 === Infinity ? generate(n, () => (ncpOk ? 1 : NaN)) : rchisq(n, df1, { ncp }).map((v) => v / df1);
+  const y = df2 === Infinity ? generate(n, () => 1) : rchisq(n, df2).map((v) => v / df2);
+  return x.map((xi, i) => xi / y[i]!);
 }

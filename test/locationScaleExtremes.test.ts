@@ -126,3 +126,30 @@ describe("input limits of r2dtable and omega", () => {
     expect(Number.isFinite(omega(null, { covmat: R(4), nfactors: 4 }).omegaH)).toBe(true);
   });
 });
+
+describe("noncentral rt and rf with an infinite df", () => {
+  // the limits, drawing what R draws (R 4.5.2 gives NaN but consumes the same variates; values checked in R)
+  it("rt is N(ncp, 1)", async () => {
+    const R = await import("../src/index.js");
+    R.setSeed(1);
+    const z = R.rnorm(3, { mean: 1 });
+    const next = R.runif(1)[0];
+    R.setSeed(1);
+    expect(R.rt(3, Infinity, { ncp: 1 })).toEqual(z);
+    expect(R.runif(1)[0]).toBe(next);
+    expect(z[0]).toBe(0.3735461892576676);
+  });
+  it("rf takes chi-squared over an infinite df as 1", async () => {
+    const R = await import("../src/index.js");
+    R.setSeed(1);
+    const y = R.rchisq(3, 10);
+    R.setSeed(1);
+    expect(R.rf(3, Infinity, 10, { ncp: 2 })).toEqual(y.map((v) => 1 / (v / 10)));
+    R.setSeed(1);
+    const x = R.rchisq(3, 10, { ncp: 2 });
+    R.setSeed(1);
+    expect(R.rf(3, 10, Infinity, { ncp: 2 })).toEqual(x.map((v) => v / 10));
+    expect(R.rf(3, Infinity, Infinity, { ncp: 2 })).toEqual([1, 1, 1]);
+    expect(R.rf(1, Infinity, 10, { ncp: -1 })).toEqual([NaN]);
+  });
+});
