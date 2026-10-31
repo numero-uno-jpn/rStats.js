@@ -198,7 +198,8 @@ function linearPredictor(x: number[][], b: number[], offset: number[]): number[]
 
 function totalDeviance(fam: Family, y: number[], mu: number[], w: number[]): number {
   let d = 0;
-  for (let i = 0; i < y.length; i++) d += fam.devContribution(y[i]!, mu[i]!, w[i]!);
+  // an observation of weight 0 adds nothing (its contribution 0 * Inf was NaN for a poisson y of 1e308, as in R)
+  for (let i = 0; i < y.length; i++) if (w[i] !== 0) d += fam.devContribution(y[i]!, mu[i]!, w[i]!);
   return d;
 }
 
@@ -758,7 +759,9 @@ function residualsOf(fit: GlmResult, type: GlmResidualType): number[] {
       return y.map((v, i) => ((v - mu[i]!) * Math.sqrt(w[i]!)) / Math.sqrt(fam.variance(mu[i]!)));
     case "deviance":
       if (fit.dfResidual <= 0) return y.map(() => 0);
-      return y.map((v, i) => Math.sign(v - mu[i]!) * Math.sqrt(Math.max(fam.devContribution(v, mu[i]!, w[i]!), 0)));
+      return y.map((v, i) =>
+        w[i] === 0 ? 0 : Math.sign(v - mu[i]!) * Math.sqrt(Math.max(fam.devContribution(v, mu[i]!, w[i]!), 0)),
+      );
     default:
       throw new RangeError(`unknown type of residuals "${String(type)}"`);
   }

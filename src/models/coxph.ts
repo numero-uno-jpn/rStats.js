@@ -489,7 +489,9 @@ export function coxph(
       rank = cholFactor(factor, tolerChol);
       const finite =
         Number.isFinite(ev.loglik) && ev.score.every(Number.isFinite) && ev.info.every((row) => row.every(Number.isFinite));
-      if (finite && Math.abs(1 - best / ev.loglik) <= eps) {
+      // an unchanged log likelihood is converged too (both 0, as for coxph([1], [1], [[0]]), made the ratio 0/0 = NaN and
+      // ran out of iterations, as R)
+      if (finite && (ev.loglik === best || Math.abs(1 - best / ev.loglik) <= eps)) {
         converged = true;
         loglik[1] = ev.loglik;
         beta = next;

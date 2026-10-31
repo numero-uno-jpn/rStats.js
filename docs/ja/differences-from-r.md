@@ -219,6 +219,11 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `qnorm(0.5, 3, Inf)`、`qlnorm(0.5, 0, Inf)`、`qlogis(0.5, 3, Inf)` (尺度が無限大のときの中央値) | NaN (Inf × 0)。ほかの p では極限の値 (±Inf、`qlnorm` では 0 と Inf) を返し、`pnorm(3, 3, Inf)` は 0.5 | 位置パラメータ (3、`qlnorm` では exp(meanlog) = 1)。極限の値 |
 | `dbeta(0.5, 1e308, 1e308)` など、形状の和が溢れる場合 | NaN | 1.128e154 (log は 354.72)。半分の形状で指数を求めて 2 倍する (偏差は同次) |
 | `qcauchy(p, 3, Inf)` | すべての p で NaN。ただし `dcauchy`・`pcauchy` は極限の値 0 と 0.5 を返す | 中央値より下・中央値・上で -Inf、3、Inf。`qnorm`・`qlogis` と同じ |
+| `integrate(f, 0, -Inf)`、`integrate(f, Inf, 1)`、`integrate(f, Inf, -Inf)`、`integrate(f, Inf, Inf)` | (0, Inf)、(-Inf, 1)、(-Inf, Inf)、(-Inf, Inf) での積分。無限大の端点の符号を見ない | (-Inf, 0)、(1, Inf)、(-Inf, Inf) での積分の符号を反転したもの、および 0 |
+| upper − lower が溢れる `integrate`・`optimize`・`uniroot` (`uniroot(function(x) x, c(-1e308, 1e308))`) | `integrate` は "roundoff error was detected"。`optimize`・`uniroot` は警告 ("Inf replaced by maximum positive value") | x / 2 の座標で、半分にした区間で解く (`uniroot` は 0。以前ここでは -Inf を返し、`optimize` は終わらなかった) |
+| f(1) と f(2) が同符号で、その積がアンダーフローする `uniroot(f, c(1, 2), extendInt = "yes")` (1e-300 (x − 5)) | "f() values at end points not of opposite sign" | ほかの同符号の値と同じく区間を広げる (5) |
+| 重み 0 の観測の逸脱度の寄与が 0 × Inf になる `glm` (poisson、y = 1e308) | 逸脱度が NaN | その観測は 0 を足す (逸脱度残差も 0) |
+| x = 0 の `coxph(Surv(1, 1) ~ x)` など、対数尤度が 0 のまま変わらない当てはめ | "Ran out of iterations and did not converge" (判定 1 − 0/0 が NaN) | 収束 (対数尤度が変わらなければ収束とする) |
 | `survdiff(Surv(c(1, 1), c(1, 1)) ~ c("A", "B"))` など、分散行列が特異になるデータ | "system is exactly singular" | 一般化逆行列を使い、自由度は rank(V) (結果の `df`)。群について情報がない (rank 0) ときは chisq 0、df 0、p NaN |
 | 打ち切り時刻が `Inf` の `survdiff`・`survfit` | "NA/NaN/Inf in foreign function call" | その個体は最後までリスク集合に入る (`Inf` でのイベントはエラー) |
 | 小さな単位の説明変数を含む lmerTest の `anova(fit, type = 1)` (type 2 も)。例: `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | x1 の type I の F が type II の F になる (13.96 が 14.45)。Doolittle 分解のピボットと要素を、データの単位のまま 1e-6 と比べるため。lmerTest のバグ (R 4.5.2 で実行して確認) | 単位によらず同じ検定 (分解を、対角を 1 に正規化した交差積行列で行う) |
@@ -249,7 +254,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   `chisqTest` の無限大の確率、`cochranQTest` の二値でないデータ、`propTrendTest`・`polychor`・二列形式の
   二項 `glm` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`pwrChisqTest` の `df <= 0`、
   非有限または NaN の許容誤差 (`optim` の `reltol`、`uniroot`、`optimize`、`integrate`、`qr`、`chol`、
-  `solve`、`coxph`、`glm`)。
+  `solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value supplied
+  by optim" で止まり、負の値は受け付ける)。
 
 ### 分布
 

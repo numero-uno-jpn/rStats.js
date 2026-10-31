@@ -9,7 +9,7 @@
 // documented and observed behaviour: the interval can be extended outwards (extendInt), non-finite values of f are replaced by the
 // largest finite numbers, and the result reports the iterations and Brent's estimate of the precision.
 
-import { dqagie, dqagse } from "../integrate/quadpack.js";
+import { dqagie, dqagse, type QuadResult } from "../integrate/quadpack.js";
 import { localMin } from "../optim/localmin.js";
 
 /**
@@ -85,18 +85,31 @@ export function integrate(f: (x: number) => number, lower: number, upper: number
     if (!Number.isFinite(v)) throw new RangeError("non-finite function value");
     return v;
   };
-  const r =
-    Number.isFinite(lower) && Number.isFinite(upper)
-      ? dqagse(g, lower, upper, absTol, relTol, limit)
-      : Number.isFinite(lower)
-        ? dqagie(g, lower, 1, absTol, relTol, limit)
-        : Number.isFinite(upper)
-          ? dqagie(g, upper, -1, absTol, relTol, limit)
-          : dqagie(g, 0, 2, absTol, relTol, limit);
+  // An infinite limit is taken with its sign: from a to -Inf is minus the integral over (-Inf, a), from Inf to b minus
+  // that over (b, Inf), from Inf to -Inf minus the whole line (R integrates over (a, Inf) and (-Inf, Inf) there, so
+  // integrate(f, 0, -Inf) had the sign and the side wrong), and between equal infinite limits 0
+  if (lower === upper && !Number.isFinite(lower)) return { value: 0, absError: 0, subdivisions: 0, ier: 0, message: MESSAGES[0]! };
+  let sign = 1;
+  if (lower === Infinity || upper === -Infinity) {
+    [lower, upper] = [upper, lower];
+    sign = -1;
+  }
+  let r: QuadResult;
+  if (Number.isFinite(lower) && Number.isFinite(upper)) {
+    // b - a overflows (both finite): x = 2u, the integral of f(2u) over (a/2, b/2) doubled (it ended in "roundoff error"
+    // for a density spread over (-1e308, 1e308))
+    if (Number.isFinite(upper - lower)) r = dqagse(g, lower, upper, absTol, relTol, limit);
+    else {
+      const h = dqagse((u) => g(2 * u), lower * 0.5, upper * 0.5, absTol * 0.5, relTol, limit);
+      r = { ...h, result: 2 * h.result, abserr: 2 * h.abserr };
+    }
+  } else if (Number.isFinite(lower)) r = dqagie(g, lower, 1, absTol, relTol, limit);
+  else if (Number.isFinite(upper)) r = dqagie(g, upper, -1, absTol, relTol, limit);
+  else r = dqagie(g, 0, 2, absTol, relTol, limit);
   const message = MESSAGES[r.ier] ?? "unknown error";
   if (r.ier === 6) throw new RangeError("the input is invalid");
   if (r.ier !== 0 && stopOnError) throw new RangeError(message);
-  return { value: r.result, absError: r.abserr, subdivisions: r.last, ier: r.ier, message };
+  return { value: sign * r.result, absError: r.abserr, subdivisions: r.last, ier: r.ier, message };
 }
 
 /**
@@ -141,8 +154,13 @@ export function optimize(
   if (!Number.isFinite(lower)) throw new RangeError("invalid 'xmin' value");
   if (!Number.isFinite(upper)) throw new RangeError("invalid 'xmax' value");
   if (!(lower < upper)) throw new RangeError("'xmin' not less than 'xmax'");
-  const r = localMin(maximum ? (x) => -f(x) : f, lower, upper, tol);
-  return { optimum: r.x, objective: f(r.x) };
+  const fn = maximum ? (x: number) => -f(x) : f;
+  // upper - lower overflows (both finite): search over u = x/2 on (lower/2, upper/2) with tol/2 (the search did not
+  // return: optimize((x / 1e308)^2, -1e308, 1e308))
+  const x = Number.isFinite(upper - lower)
+    ? localMin(fn, lower, upper, tol).x
+    : 2 * localMin((u) => fn(2 * u), lower * 0.5, upper * 0.5, tol * 0.5).x;
+  return { optimum: x, objective: f(x) };
 }
 
 /**
@@ -210,8 +228,10 @@ export function uniroot(f: (x: number) => number, lower: number, upper: number, 
   const bound = (v: number): number => Math.max(-Number.MAX_VALUE, Math.min(Number.MAX_VALUE, v));
   const step0 = (u: number): number => 0.01 * Math.max(1e-4, Math.abs(u));
   const sig = extendInt === "downX" ? -1 : extendInt === "upX" ? 1 : 0;
+  // same sign from the signs, not the product (1e-300 * 2e-300 underflows to 0, and the interval was not extended)
+  const sameSign = (a: number, b: number): boolean => Math.sign(a) * Math.sign(b) > 0;
   const extend =
-    extendInt === "yes" ? bound(fLo) * bound(fUp) > 0 : sig !== 0 && (sig * bound(fLo) > 0 || sig * bound(fUp) < 0);
+    extendInt === "yes" ? sameSign(fLo, fUp) : sig !== 0 && (sig * bound(fLo) > 0 || sig * bound(fUp) < 0);
   let extIter = 0;
   const count = (): void => {
     if (++extIter > maxiter) throw new RangeError(`no sign change found in ${extIter - 1} iterations`);
@@ -219,7 +239,7 @@ export function uniroot(f: (x: number) => number, lower: number, upper: number, 
   if (extend && extendInt === "yes") {
     let dLo = step0(lower);
     let dUp = step0(upper);
-    while (fLo * fUp > 0 && (Number.isFinite(lower) || Number.isFinite(upper))) {
+    while (sameSign(fLo, fUp) && (Number.isFinite(lower) || Number.isFinite(upper))) {
       count();
       if (Number.isFinite(lower)) {
         const x = lower - dLo;
@@ -261,7 +281,13 @@ export function uniroot(f: (x: number) => number, lower: number, upper: number, 
   if (!Number.isFinite(lower)) throw new RangeError("invalid 'xmin' value");
   if (!Number.isFinite(upper)) throw new RangeError("invalid 'xmax' value");
 
-  const z = zero((x) => finiteValue(f(x)), lower, upper, finiteValue(fLo), finiteValue(fUp), tol, maxiter);
+  // upper - lower overflows (both finite): the root of f(2u) on (lower/2, upper/2) with tol/2, doubled (uniroot(x,
+  // -1e308, 1e308) gave -Infinity)
+  const wide = !Number.isFinite(upper - lower);
+  const zh = wide
+    ? zero((u) => finiteValue(f(2 * u)), lower * 0.5, upper * 0.5, finiteValue(fLo), finiteValue(fUp), tol * 0.5, maxiter)
+    : zero((x) => finiteValue(f(x)), lower, upper, finiteValue(fLo), finiteValue(fUp), tol, maxiter);
+  const z = wide ? { ...zh, root: 2 * zh.root, estimPrec: 2 * zh.estimPrec } : zh;
   return {
     root: z.root,
     fRoot: f(z.root),

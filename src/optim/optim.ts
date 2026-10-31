@@ -635,6 +635,11 @@ export function optim(par: readonly number[], fn: (par: number[]) => number, opt
     case "SANN": {
       const perTemperature = control.tmax ?? 10;
       if (!(perTemperature >= 1)) throw new RangeError("'tmax' is not a positive integer");
+      // (R fails on 0 with "non-finite value supplied by optim" and accepts a negative one, where the acceptance
+      // probability exp(-Δ / T) prefers uphill moves; here 0 returned the start silently)
+      if (!(control.temp === undefined || (control.temp > 0 && control.temp < Infinity))) {
+        throw new RangeError("'temp' must be a positive finite number");
+      }
       run = annealing(s, start, maxit, Math.trunc(perTemperature), control.temp ?? 10);
       break;
     }

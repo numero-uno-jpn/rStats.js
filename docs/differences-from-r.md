@@ -225,6 +225,11 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qnorm(0.5, 3, Inf)`, `qlnorm(0.5, 0, Inf)`, `qlogis(0.5, 3, Inf)` (the median with an infinite scale) | NaN (Inf * 0), although the other p give the limits (±Inf; 0 and Inf for `qlnorm`) and `pnorm(3, 3, Inf)` is 0.5 | the location (3; exp(meanlog) = 1 for `qlnorm`), the limit |
 | `dbeta(0.5, 1e308, 1e308)` and other shapes whose sum overflows | NaN | 1.128e154 (log 354.72): the exponent from the halved shapes, doubled (the deviances are homogeneous) |
 | `qcauchy(p, 3, Inf)` | NaN for every p, although `dcauchy` and `pcauchy` give the limits 0 and 0.5 | -Inf, 3 and Inf below, at and above the median, as `qnorm` and `qlogis` |
+| `integrate(f, 0, -Inf)`, `integrate(f, Inf, 1)`, `integrate(f, Inf, -Inf)`, `integrate(f, Inf, Inf)` | the integral over (0, Inf), (-Inf, 1), (-Inf, Inf) and (-Inf, Inf): the sign of an infinite limit is not used | minus the integrals over (-Inf, 0), (1, Inf) and (-Inf, Inf), and 0 |
+| `integrate`, `optimize` and `uniroot` where upper − lower overflows (`uniroot(function(x) x, c(-1e308, 1e308))`) | `integrate`: "roundoff error was detected"; `optimize` and `uniroot`: warnings ("Inf replaced by maximum positive value") | solved in x / 2 on the halved interval (`uniroot` 0, which was -Inf here before; `optimize` did not return) |
+| `uniroot(f, c(1, 2), extendInt = "yes")` with f(1) and f(2) of the same sign whose product underflows (1e-300 (x − 5)) | "f() values at end points not of opposite sign" | extended as for other values of the same sign (5) |
+| `glm` with an observation of weight 0 whose deviance contribution is 0 × Inf (poisson, y = 1e308) | deviance NaN | the observation adds 0 (and its deviance residual is 0) |
+| `coxph(Surv(1, 1) ~ x)` with x = 0 and other fits whose log likelihood stays 0 | "Ran out of iterations and did not converge" (the test 1 − 0/0 is NaN) | converged (an unchanged log likelihood is converged) |
 | `survdiff(Surv(c(1, 1), c(1, 1)) ~ c("A", "B"))` and other data whose variance matrix is singular | "system is exactly singular" | the generalized inverse on rank(V) degrees of freedom (`df` in the result); with no information on the groups (rank 0) chisq 0, df 0, p NaN |
 | `survdiff` or `survfit` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the subject at risk throughout (an event at `Inf` is an error) |
 | lmerTest's `anova(fit, type = 1)` (and type 2) with a predictor in small units, e.g. `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | the type I F of x1 becomes its type II F (14.45 instead of 13.96): the Doolittle factorisation compares pivots and entries with 1e-6 in the units of the data; a bug in lmerTest (R 4.5.2, checked by running it) | the same tests at any units (the factorisation on the cross-product matrix scaled to unit diagonal) |
@@ -257,7 +262,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   `cochranQTest`, negative counts in `propTrendTest`, `polychor` and two-column binomial `glm`,
   fewer than 2 subjects or raters in `icc` and `kappamFleiss`, `df <= 0` in `pwrChisqTest`, and
   a non-finite or NaN tolerance (`optim`'s `reltol`, `uniroot`, `optimize`, `integrate`, `qr`,
-  `chol`, `solve`, `coxph`, `glm`).
+  `chol`, `solve`, `coxph`, `glm`), and a temperature `temp` that is not positive and finite in
+  `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one).
 
 ### Distributions
 
