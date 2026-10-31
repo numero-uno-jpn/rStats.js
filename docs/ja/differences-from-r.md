@@ -339,6 +339,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   のときは GG で補正)。Mauchly 検定は正則なときだけです。出せないものは警告します。
 - **`Anova` (型 II・III)** は、残差平方和が応答の全平方和 (中心化・重み付き) の sqrt(eps) 倍未満のとき "residual sum of squares
   is 0 (within rounding error)" とします。car は sqrt(eps) そのものと比べるので、単位に依存します。
+- **`omega`** は、minres の当てはめ (L-BFGS-B) が収束しないとき警告を出します ("minres did not converge ...")。psych の `fa` は
+  何も言わずに最後の点から先へ進みます。値は同じです。
 - **`mauchlyTest`** は、`y` に欠測値がある行と `group` が欠測の行を除きます (`lm(y ~ group)` と同じ)。無限大はエラーです。
 - **残差自由度がないときはエラー**: `aovEz` (被験者数が被験者間のパラメータ数以下) と `mauchlyTest` (完全な行の数が群の数
   以下)。R は NaN を返します。

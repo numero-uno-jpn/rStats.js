@@ -149,6 +149,11 @@ function minres(S0: readonly (readonly number[])[], q: number, warnings: string[
     upper: Math.max(maxOf(s), 1),
     control: { fnscale: 1, parscale: new Array<number>(p).fill(0.01) },
   });
+  // psych's fa goes on from the last point without a word when optim does not converge; the loadings, omegas and G6
+  // then come from uniquenesses that are not a minimum, so say so (the values are kept, as psych's)
+  if (fit.convergence !== 0) {
+    addMessage(warnings, `minres did not converge (optim convergence code ${fit.convergence}): examine the results carefully`);
+  }
   const psi = fit.par;
   let L = principalLoadings(S, psi.map((v, i) => S[i]![i]! - v), q, (e) => Math.max(e, 0));
   L = signColumns(L, q);

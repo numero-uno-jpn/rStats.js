@@ -353,6 +353,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`Anova` (types II and III)** reports "residual sum of squares is 0 (within rounding error)" when the residual sum
   of squares is below sqrt(eps) times the total (centred, weighted) sum of squares of the response; car compares it
   with sqrt(eps) itself, which depends on the units.
+- **`omega`** adds a warning when the minres fit (L-BFGS-B) does not converge ("minres did not converge ...");
+  psych's `fa` goes on from the last point silently. The values are the same.
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);
   an infinite value is an error.
 - **No residual degrees of freedom is an error** in `aovEz` (fewer subjects than between-subject parameters, or as
