@@ -153,3 +153,51 @@ describe("noncentral rt and rf with an infinite df", () => {
     expect(R.rf(1, Infinity, 10, { ncp: -1 })).toEqual([NaN]);
   });
 });
+
+describe("integer parameters of the random generators, as R's R_forceint", () => {
+  // values from R 4.5.2 after set.seed(1) / set.seed(3): halves go to the even integer
+  it("rhyper, rwilcox and rsignrank round halves to even", async () => {
+    const R = await import("../src/index.js");
+    const at = (seed: number, f: () => number[]): number[] => (R.setSeed(seed), f());
+    expect(at(1, () => R.rwilcox(6, 2.5, 4))).toEqual([4, 4, 5, 4, 2, 6]);
+    expect(at(1, () => R.rsignrank(6, 2.5))).toEqual([0, 3, 2, 3, 1, 0]);
+    expect(at(3, () => R.rhyper(8, 2.5, 4, 3))).toEqual([2, 0, 1, 1, 1, 1, 2, 1]);
+    expect(at(3, () => R.rhyper(8, 5, 4, 2.5))).toEqual([2, 1, 1, 1, 1, 1, 2, 1]);
+    expect(at(3, () => R.rhyper(8, 5, 4.5, 3))).toEqual([2, 1, 2, 2, 1, 1, 2, 2]);
+    expect(at(3, () => R.rwilcox(6, 3, 4.5))).toEqual([4, 4, 7, 7, 6, 3]);
+  });
+  it("rsignrank of an infinite n is NaN, rwilcox of a huge m + n an error", async () => {
+    const R = await import("../src/index.js");
+    expect(R.rsignrank(2, Infinity)).toEqual([NaN, NaN]);
+    expect(() => R.rwilcox(1, Infinity, 5)).toThrow("m + n must be at most 2147483647");
+    expect(() => R.rwilcox(1, 2147483648, 5)).toThrow("m + n must be at most 2147483647");
+  });
+  it("noncentral rf with a df of 0 is NaN, drawing what R draws", async () => {
+    const R = await import("../src/index.js");
+    R.setSeed(1);
+    expect(R.rf(5, 0, 10, { ncp: 2 })).toEqual([NaN, NaN, NaN, NaN, NaN]);
+    R.setSeed(1);
+    R.rchisq(5, 0, { ncp: 2 });
+    R.rchisq(5, 10);
+    const next = R.runif(1)[0];
+    R.setSeed(1);
+    R.rf(5, 0, 10, { ncp: 2 });
+    expect(R.runif(1)[0]).toBe(next);
+    expect(next).toBe(0.38238795707002282); // R 4.5.2: runif(1) after set.seed(1); rf(5, 0, 10, ncp = 2)
+  });
+  it("a Mersenne-Twister state with a negative or fractional position is refused", async () => {
+    const R = await import("../src/index.js");
+    R.setSeed(1);
+    const s = R.getRandomSeed();
+    for (const mti of [-1, 1.5, NaN]) {
+      const t = Int32Array.from(s) as unknown as number[];
+      const u = Array.from(t);
+      u[1] = mti;
+      expect(() => R.setRandomSeed(u)).toThrow("non-negative integer");
+    }
+    const u = Array.from(s);
+    u[1] = 1000; // past N: the next draw regenerates, as in R
+    R.setRandomSeed(u);
+    expect(R.runif(1)[0]).toBe(0.2655086631421);
+  });
+});

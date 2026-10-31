@@ -7,6 +7,7 @@
 
 import { unifRand } from "./rng.js";
 import { generate } from "./common.js";
+import { roundHalfEven } from "../internal/integer.js";
 import { rbinom1 } from "./binomial.js";
 import { qhyper1 } from "../distributions/hypergeometric.js";
 
@@ -44,9 +45,10 @@ let a = 0, d = 0, xl = 0, xr = 0, kl = 0, kr = 0, lamdl = 0, lamdr = 0, p1 = 0, 
 /** One hypergeometric variate (kkin draws from nn1in white and nn2in black balls) */
 export function rhyper1(nn1in: number, nn2in: number, kkin: number): number {
   if (!Number.isFinite(nn1in) || !Number.isFinite(nn2in) || !Number.isFinite(kkin)) return NaN;
-  nn1in = Math.round(nn1in);
-  nn2in = Math.round(nn2in);
-  kkin = Math.round(kkin);
+  // as R's R_forceint (nearbyint): halves go to the even integer (2.5 is 2, as in R; Math.round made it 3)
+  nn1in = roundHalfEven(nn1in);
+  nn2in = roundHalfEven(nn2in);
+  kkin = roundHalfEven(kkin);
   if (nn1in < 0 || nn2in < 0 || kkin < 0 || kkin > nn1in + nn2in) return NaN;
   if (nn1in >= INT_MAX || nn2in >= INT_MAX || kkin >= INT_MAX) {
     // Parameters beyond the integer range: Bernoulli for a single draw, otherwise invert via the quantile function

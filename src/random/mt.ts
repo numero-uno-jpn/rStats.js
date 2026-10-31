@@ -91,7 +91,15 @@ export class MersenneTwister {
 
   setRandomSeed(state: ArrayLike<number>): void {
     if (state.length !== N + 2) throw new RangeError(`the random seed state must have ${N + 2} integers`);
-    this.mti = state[1]!;
+    // the position must be an integer from 0 (a position past N makes the next draw regenerate, as in R). R takes a
+    // negative one as given and its first draw then reads that slot itself as a state word; a corrupted state is
+    // refused here instead of producing numbers from it
+    const mti = state[1]!;
+    if (!Number.isInteger(mti) || mti < 0) throw new RangeError("the position in the random seed state must be a non-negative integer");
+    for (let i = 0; i < N; i++) {
+      if (!Number.isInteger(state[i + 2]!)) throw new RangeError("the random seed state must hold integers");
+    }
+    this.mti = mti;
     for (let i = 0; i < N; i++) this.mt[i] = state[i + 2]! >>> 0;
   }
 }

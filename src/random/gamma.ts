@@ -246,5 +246,8 @@ export function rf(n: number, df1: number, df2: number, options: { ncp?: number 
   const ncpOk = ncp !== undefined && ncp >= 0 && Number.isFinite(ncp);
   const x = df1 === Infinity ? generate(n, () => (ncpOk ? 1 : NaN)) : rchisq(n, df1, { ncp }).map((v) => v / df1);
   const y = df2 === Infinity ? generate(n, () => 1) : rchisq(n, df2).map((v) => v / df2);
+  // F needs df1 > 0 and df2 > 0 (the central branch gives NaN otherwise). R divides by df1 = 0 here and returns Inf or
+  // NaN depending on the draw; NaN throughout, with the same variates drawn (so the stream stays R's)
+  if (!(df1 > 0 && df2 > 0)) return x.map(() => NaN);
   return x.map((xi, i) => xi / y[i]!);
 }

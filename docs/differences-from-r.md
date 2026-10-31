@@ -210,6 +210,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `pnorm(1e308, -1e308, 1.7e308)`, `qnorm(0.9, -1e308, 1.7e308)`, and the same for `plogis`/`qlogis`, `pcauchy`/`qcauchy`, extraDistr's `plaplace`/`qlaplace`/`dlaplace`: x - location or scale z overflows although the result is in range | 1, Inf, 0 or -Inf (pnorm 1, dnorm 0, qnorm Inf confirmed in R 4.5.2) | 0.8803, 1.1786e308 (x and location halved, or location and scale divided by a power of 2, before the subtraction or product) |
 | `quade.test(y)` where a block (row) has a missing value, e.g. `y <- rbind(c(10,12,15), c(11,14,16), c(12,NA,17), c(13,15,18), c(14,16,20))` | F = 10, df (2, 8), p = 0.00666: the dropped block still counts in b (B = sum S_j^2 / b, (b - 1) B / (A - B), df (b - 1)(k - 1)), so the result differs from `quade.test(y[-3, ])` (F = 25, df (2, 6), p = 0.00123) for the same data; a bug in R (4.5.2, checked by running it) | the test on the complete blocks: F = 25, df (2, 6), p = 0.00123, as for the data without the block |
 | `rt(n, Inf, ncp = 1)`, `rf(n, Inf, 10, ncp = 2)`, `rf(n, 10, Inf, ncp = 2)` (noncentral, an infinite df) | NaN ("NAs produced"; the central `rt(n, Inf)` and `rf(n, Inf, 10)` do give values) | the limits: N(ncp, 1) for t; for F the chi-squared over its infinite df is 1 (X / df1, df2 / Y, or 1). The same variates are drawn as in R, so the stream after the call is R's |
+| `rf(n, 0, 10, ncp = 2)` (noncentral, df1 = 0), `rsignrank(n, Inf)` | Inf or NaN depending on the draw (division by df1 = 0; the central `rf` gives NaN); an undefined integer cast of Inf | NaN (F needs df1, df2 > 0; the same variates are drawn as in R, so the stream after the call is R's); NaN without drawing |
 | `anova()` of lmer fits of different rows of the data or different responses with the same number of rows | a likelihood ratio test | an error (lme4 compares only the number of rows) |
 
 ## Deliberate differences
@@ -354,6 +355,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`Anova` (types II and III)** reports "residual sum of squares is 0 (within rounding error)" when the residual sum
   of squares is below sqrt(eps) times the total (centred, weighted) sum of squares of the response; car compares it
   with sqrt(eps) itself, which depends on the units.
+- **`setRandomSeed`** refuses a Mersenne-Twister state whose position is negative or not an integer, or whose words are
+  not integers. R takes a negative position as given, and its first draw then reads the position slot itself as a
+  state word. A position past 624 regenerates on the next draw, as in R.
+- **`rwilcox`** throws "m + n must be at most 2147483647" where R's allocation of the ranks fails.
 - **`omega`** adds a warning when the minres fit (L-BFGS-B) does not converge ("minres did not converge ...");
   psych's `fa` goes on from the last point silently. The values are the same.
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);

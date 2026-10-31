@@ -4,6 +4,7 @@
 
 import { unifIndex, unifRand } from "./rng.js";
 import { generate } from "./common.js";
+import { roundHalfEven } from "../internal/integer.js";
 
 /**
  * Random numbers from the distribution of the Wilcoxon signed rank statistic.
@@ -23,8 +24,10 @@ import { generate } from "./common.js";
  */
 export function rsignrank(nn: number, n: number): number[] {
   return generate(nn, () => {
-    if (Number.isNaN(n)) return NaN;
-    const k = Math.round(n);
+    // an infinite n would never end the loop below (R's (int) cast of it is undefined)
+    if (!Number.isFinite(n)) return NaN;
+    // as R's R_forceint (nearbyint): halves go to the even integer
+    const k = roundHalfEven(n);
     if (k < 0) return NaN;
     if (k === 0) return 0;
     let r = 0;
@@ -54,10 +57,13 @@ export function rsignrank(nn: number, n: number): number[] {
 export function rwilcox(nn: number, m: number, n: number): number[] {
   return generate(nn, () => {
     if (Number.isNaN(m) || Number.isNaN(n)) return NaN;
-    const mm = Math.round(m);
-    const ny = Math.round(n);
+    // as R's R_forceint (nearbyint): halves go to the even integer
+    const mm = roundHalfEven(m);
+    const ny = roundHalfEven(n);
     if (mm < 0 || ny < 0) return NaN;
     if (mm === 0 || ny === 0) return 0;
+    // the m + n ranks are held in an array (R's allocation fails there too)
+    if (!(mm + ny <= 2147483647)) throw new RangeError("m + n must be at most 2147483647");
     // Choose n of 0..m+n-1 without replacement and subtract the minimum n(n-1)/2 from their sum
     let k = mm + ny;
     const x = new Int32Array(k);
