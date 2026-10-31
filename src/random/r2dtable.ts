@@ -141,6 +141,9 @@ export function r2dtable(n: number, r: readonly number[], c: readonly number[]):
   const cols = margins(c, "c");
   const total = rows.reduce((a, b) => a + b, 0);
   if (total !== cols.reduce((a, b) => a + b, 0)) throw new RangeError("arguments 'r' and 'c' must have the same sums");
+  // the table of log factorials has total + 1 entries: a total beyond the integer range (R's integer sum overflows and
+  // the allocation fails) would take tens of gigabytes
+  if (total > 2147483647) throw new RangeError("the sum of 'r' must be at most 2147483647");
   const fact = logFactorialTable(total);
   const out = new Int32Array(rows.length * cols.length);
   const tables: number[][][] = [];

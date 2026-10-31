@@ -111,3 +111,18 @@ describe("r2dtable count", () => {
     expect(r2dtable(2.5, [2, 2], [2, 2])).toHaveLength(2);
   });
 });
+
+describe("input limits of r2dtable and omega", () => {
+  it("r2dtable rejects margins whose total is beyond the integer range", async () => {
+    const { r2dtable } = await import("../src/index.js");
+    const m = 2147483647;
+    expect(() => r2dtable(1, [m, m], [m, m])).toThrow("the sum of 'r' must be at most 2147483647");
+  });
+  it("omega rejects more factors than variables", async () => {
+    const { omega } = await import("../src/index.js");
+    const R = (p: number): number[][] => Array.from({ length: p }, (_, i) => Array.from({ length: p }, (_, j) => (i === j ? 1 : 0.4)));
+    expect(() => omega(null, { covmat: R(2), nfactors: 3 })).toThrow("'nfactors' (3) must not exceed the number of variables (2)");
+    expect(() => omega(null, { covmat: R(4), nfactors: 5 })).toThrow("must not exceed");
+    expect(Number.isFinite(omega(null, { covmat: R(4), nfactors: 4 }).omegaH)).toBe(true);
+  });
+});

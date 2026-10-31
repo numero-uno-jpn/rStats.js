@@ -283,6 +283,8 @@ export function omega(x: readonly (readonly number[])[] | null, options: OmegaOp
     R = cor(x as number[][], undefined, { use: "pairwise.complete.obs" }) as Matrix;
   }
   const p = R.length;
+  // psych stops on a subscript out of bounds there; the cause is said instead
+  if (q > p) throw new RangeError(`'nfactors' (${q}) must not exceed the number of variables (${p})`);
   const warnings: string[] = [];
   const messages: string[] = [];
 
