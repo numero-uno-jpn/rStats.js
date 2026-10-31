@@ -97,7 +97,9 @@ export class MersenneTwister {
     const mti = state[1]!;
     if (!Number.isInteger(mti) || mti < 0) throw new RangeError("the position in the random seed state must be a non-negative integer");
     for (let i = 0; i < N; i++) {
-      if (!Number.isInteger(state[i + 2]!)) throw new RangeError("the random seed state must hold integers");
+      const v = state[i + 2]!;
+      // 32-bit words, as R's integer .Random.seed holds them (signed or unsigned); others were reduced modulo 2^32
+      if (!Number.isInteger(v) || v < -(2 ** 31) || v >= 2 ** 32) throw new RangeError("the random seed state must hold 32-bit integers");
     }
     this.mti = mti;
     for (let i = 0; i < N; i++) this.mt[i] = state[i + 2]! >>> 0;

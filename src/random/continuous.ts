@@ -131,6 +131,12 @@ export function rlogis(n: number, options: { location?: number; scale?: number }
   const { location = 0, scale = 1 } = options;
   return generate(n, () => {
     if (Number.isNaN(location) || !Number.isFinite(scale)) return NaN;
+    // a negative scale defines no distribution (dlogis, plogis and qlogis give NaN; R draws from it). The uniform R
+    // draws is drawn as well, so the stream stays R's
+    if (scale < 0) {
+      unifRand();
+      return NaN;
+    }
     if (scale === 0 || !Number.isFinite(location)) return location;
     const u = unifRand();
     return location + scale * Math.log(u / (1 - u));
@@ -181,7 +187,10 @@ export function rcauchy(n: number, options: { location?: number; scale?: number 
 export function rweibull(n: number, shape: number, options: { scale?: number } = {}): number[] {
   const { scale = 1 } = options;
   return generate(n, () => {
-    if (!Number.isFinite(shape) || !Number.isFinite(scale) || shape <= 0 || scale <= 0) {
+    // an invalid shape (or a negative scale) is NaN also with scale = 0 (R returns 0 there; no variate is drawn either
+    // way); scale = 0 is the point mass at 0
+    if (!(shape > 0) || !(scale >= 0)) return NaN;
+    if (!Number.isFinite(shape) || !Number.isFinite(scale) || scale === 0) {
       return scale === 0 ? 0 : NaN;
     }
     return scale * Math.pow(-Math.log(unifRand()), 1 / shape);

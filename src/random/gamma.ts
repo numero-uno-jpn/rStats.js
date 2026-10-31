@@ -38,7 +38,10 @@ function qOf(t: number): number {
 /** One gamma variate (shape a, scale) */
 export function rgamma1(a: number, scale: number): number {
   if (Number.isNaN(a) || Number.isNaN(scale)) return NaN;
-  if (a <= 0 || scale <= 0) return scale === 0 || a === 0 ? 0 : NaN;
+  // a negative shape or scale defines no distribution, also when the other is 0 (R returns 0 there; no variate is
+  // drawn either way, so the stream is R's); shape 0 or scale 0 is the point mass at 0
+  if (a < 0 || scale < 0) return NaN;
+  if (a === 0 || scale === 0) return 0;
   if (!Number.isFinite(a) || !Number.isFinite(scale)) return Infinity;
 
   if (a < 1) {

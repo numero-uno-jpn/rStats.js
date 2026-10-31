@@ -15,7 +15,16 @@ const callOrSummary = (a: Args): number[] => (isLong(a) ? summary(call(a)) : cal
 // (docs/differences-from-r.md)
 const CONTINUOUS = 1e-12;
 randomSuite([
-  ...["rbasic", "rgamma", "rchisq", "rbeta", "rother"].map((name) => ({ name, call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS })),
+  ...["rbasic", "rgamma", "rchisq", "rbeta"].map((name) => ({ name, call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS })),
+  {
+    name: "rother",
+    call: callOrSummary,
+    isSummary: isLong,
+    tolerance: CONTINUOUS,
+    // a negative logistic scale defines no distribution: NaN, where R draws from it (the same uniforms are drawn)
+    knownDifference: (a: Args, actual: number[]) =>
+      a.fn === "rlogis" && Number(a.scale) < 0 && actual.every(Number.isNaN) ? "rlogis with a negative scale: NaN, R draws" : undefined,
+  },
   ...["rpois", "rbinom", "rnbinom", "rrank", "rsample", "rmultinom", "rhyper"].map((name) => ({ name, call: callOrSummary, isSummary: isLong })),
   // Mixes binomial and Poisson (integer) with gamma and beta (continuous)
   { name: "rextradist", call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS },

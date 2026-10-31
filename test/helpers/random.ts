@@ -56,6 +56,11 @@ export interface RandomSpec {
   tolerance?: number;
   /** Whether the case compares a summary */
   isSummary?: (args: RandomCase["args"]) => boolean;
+  /**
+   * Cases whose values deliberately differ from R's (docs/differences-from-r.md): a reason when they do. Only allowed
+   * when the uniform drawn next is R's, so the stream stays R's
+   */
+  knownDifference?: (args: RandomCase["args"], actual: number[]) => string | undefined;
 }
 
 export function randomSuite(specs: RandomSpec[]): void {
@@ -67,6 +72,7 @@ export function randomSuite(specs: RandomSpec[]): void {
         let values = 0;
         let maxRel = 0;
         const errors: number[] = [];
+        const known = new Map<string, number>();
         const t0 = performance.now();
         for (const c of fixture.cases) {
           setSeed(num(c.seed));
@@ -85,6 +91,13 @@ export function randomSuite(specs: RandomSpec[]): void {
           }
           values += expected.length;
           if (num(c.next) !== next) ok = false;
+          else if (!ok) {
+            const reason = spec.knownDifference?.(c.args, actual);
+            if (reason !== undefined) {
+              known.set(reason, (known.get(reason) ?? 0) + 1);
+              continue;
+            }
+          }
           if (!ok) {
             failures.push(
               `seed ${c.seed} ${JSON.stringify(c.args)}\n    expected ${c.expected.slice(0, 8).join(" ")} next ${c.next}\n    actual   ${actual

@@ -352,7 +352,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   のときは GG で補正)。Mauchly 検定は正則なときだけです。出せないものは警告します。
 - **`Anova` (型 II・III)** は、残差平方和が応答の全平方和 (中心化・重み付き) の sqrt(eps) 倍未満のとき "residual sum of squares
   is 0 (within rounding error)" とします。car は sqrt(eps) そのものと比べるので、単位に依存します。
-- **`setRandomSeed`** は、Mersenne-Twister の状態で、位置が負または整数でないもの、状態語が整数でないものを拒否します。R は負の
+- **分布を定義しないパラメータの乱数**は、R が乱数を引くか 0 を返すところで NaN を返します: 負 (または NaN) の shape と scale 0 の
+  `rgamma`・`rweibull`、負の scale の `rlogis`。R が引く一様乱数は同じく引くので、呼び出し後の乱数の状態は R と同じです。
+- **`setRandomSeed`** は、Mersenne-Twister の状態で、位置が負または整数でないもの、状態語が 32 ビット整数でないものを拒否します。R は負の
   位置をそのまま受け取り、最初の乱数でその位置の欄自体を状態語として読みます。624 を超える位置は、R と同じく次の乱数で再生成します。
 - **`rwilcox`** は、R で順位の配列の確保に失敗する場合に "m + n must be at most 2147483647" を投げます。
 - **当てはめの比較** (lm の `anova(fit1, fit2)`、複数の当てはめを渡した `glmAnova`) は、使った行・応答の値・重みが同じことを
