@@ -554,7 +554,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   p 0 for an infinite rhs); NaN gives NaN results, as lmerTest's NA. `level` must be strictly between 0 and 1, as in
   lmerTest.
 - **Comparing fits** (`lmerAnova([fit1, fit2])`): the REML fits are refitted by maximum likelihood to the exact ML
-  optimum (lme4's refit stops near it); the fits must be results of `lmer` on the same data object.
+  optimum (lme4's refit stops near it); the fits must be results of `lmer` on the same data object, unchanged
+  between the fits. The hypotheses and refits of `lmerAnova` are built from a copy of the data taken at the fit, as R
+  uses the model frame stored in the fit.
+- **The denominator df of a joint F test** takes the term ν/(ν − 2) of an infinite ν as its limit 1, and is infinite
+  when every ν is (lmerTest's formula gives NaN there, and an error when every ν is infinite).
 
 ### Linear algebra
 

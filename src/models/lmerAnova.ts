@@ -11,6 +11,7 @@ import { Warnings } from "./glmFamily.js";
 import { checkOptions, lmerInternals, lmerWithCriterion, logicalOption, type LmerResult } from "./lmer.js";
 import { fixedEffectsDescription, lmerHypotheses, type HypothesisType, type LmerHypotheses } from "./lmerHypotheses.js";
 import { fTestOf, lmerSatterthwaite, type LmerFRow, type LmerSatterthwaite } from "./lmerTest.js";
+import type { DataFrame } from "./modelFrame.js";
 
 /**
  * Options of {@link lmerAnova} for one fit. R's `ddf` gives the Error `lmerAnova: argument 'ddf' is not supported`,
@@ -109,7 +110,8 @@ const TYPES: Record<string, LmerAnovaType> = { I: "I", II: "II", III: "III", 1: 
 
 /** The hypotheses of a fit's ANOVA table of the given type (internal; the test uses them at other points too) */
 export function anovaHypotheses(fit: LmerResult, type: HypothesisType): { hypotheses: LmerHypotheses; termLabels: string[] } {
-  const { structure, data, options } = lmerInternals(fit);
+  // the hypotheses from the data as it was at the fit (the data object may have changed since)
+  const { structure, snapshot: data, options } = lmerInternals(fit);
   const descOptions: Parameters<typeof fixedEffectsDescription>[2] = {};
   if (options.contrasts !== undefined) descOptions.contrasts = options.contrasts;
   if (options.levels !== undefined) descOptions.levels = options.levels;
@@ -168,12 +170,25 @@ function anovaOfFit(fit: LmerResult, options: LmerAnovaOptions): LmerAnovaTable 
   };
 }
 
+/** Whether two copies of a data frame hold the same columns and values (NaN equal to NaN) */
+function sameFrame(a: DataFrame, b: DataFrame): boolean {
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every((k) => {
+    const u = a[k]!;
+    const v = b[k];
+    return v !== undefined && u.length === v.length && Array.prototype.every.call(u, (x: unknown, i: number) => Object.is(x, v[i]));
+  });
+}
+
 function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): LmerCompareTable {
   if (fits.length < 2) throw new TypeError("lmerAnova needs one fit, or an array of at least two fits to compare");
   const internals = fits.map(lmerInternals);
   // (only the number of observations is compared, as lme4 does; the fits must also share the data object below)
   if (fits.some((f) => f.nObs !== fits[0]!.nObs)) throw new Error("models were not all fitted to the same size of dataset");
   if (internals.some((i) => i.data !== internals[0]!.data)) throw new Error("all models must be fit to the same data object");
+  // (the same object changed between the fits holds different data)
+  if (internals.some((i) => !sameFrame(i.snapshot, internals[0]!.snapshot))) throw new Error("all models must be fit to the same data object");
   // A likelihood ratio compares likelihoods of the same observations: the same rows of the data and the same response
   // (lme4 compares only the number of rows, and returns a test for fits of different rows or responses)
   const sameRows = (r: readonly number[]): boolean => r.length === fits[0]!.rows.length && r.every((v, i) => v === fits[0]!.rows[i]);
@@ -196,8 +211,8 @@ function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): 
     if (fits.some((f) => f.REML)) messages.push("refitting model(s) with ML (instead of REML)");
     logLik = fits.map((f, i) => {
       if (!f.REML) return f.logLik;
-      const { data, options: o, criterion } = internals[i]!;
-      return lmerWithCriterion(f.formula, data, { ...o, REML: false }, criterion).logLik;
+      const { snapshot, options: o, criterion } = internals[i]!;
+      return lmerWithCriterion(f.formula, snapshot, { ...o, REML: false }, criterion).logLik;
     });
   } else {
     if (fits.some((f) => f.REML) && fits.some((f) => !f.REML)) warnings.add("some models fit with REML = TRUE, some not");

@@ -634,8 +634,13 @@ export interface LmerInternals {
   structure: MixedModelStructure;
   /** β₀, the least-squares coefficients of y on X, to be added to the fixed effects computed from `structure` */
   beta0: number[];
-  /** The data frame given to lmer (the same object, not a copy) */
+  /** The data frame given to lmer (the same object, not a copy: fits are compared on the same data object) */
   data: DataFrame;
+  /**
+   * A copy of the columns of `data` at the time of the fit, from which the analyses rebuild the model (changes to
+   * `data` after the fit changed lmerAnova's type I hypotheses silently)
+   */
+  snapshot: DataFrame;
   /** The options given to lmer (a copy) */
   options: LmerOptions;
   /** Whether the REML criterion was minimised */
@@ -772,6 +777,7 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
     messages,
     warnings: [...s.warnings],
   };
-  internalsByFit.set(result, { structure: s, beta0, data, options, reml, criterion, theta: [...theta] });
+  const snapshot: DataFrame = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v.slice()]));
+  internalsByFit.set(result, { structure: s, beta0, data, snapshot, options, reml, criterion, theta: [...theta] });
   return result;
 }
