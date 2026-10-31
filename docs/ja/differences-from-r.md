@@ -212,6 +212,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `kappa(matrix(c(1, 2, 2, 4), 2), exact = TRUE, norm = "1")` (厳密に特異、2 以外のノルム) | "system is exactly singular" | Inf。ノルム "2" と同じ (計算上特異な行列は R と同じく止まる) |
 | `anova(lm(y ~ x2), lm(y ~ x1 + x3))` や、入れ子でない glm の `anova()` (どちらのモデルも他方の特別な場合でない) | F 検定 (例では F 1110、p 4.6e-7)、glm では尤度比検定 | 検定しない。F、p 値、検定の列は NaN (`lmerAnova` と同じ)。入れ子かどうかは、パラメータの少ないモデルの列が他方の列空間に入るかを QR のランクで判定する |
 | `summary(glm(...), dispersion = -1)` (`glmAnova`、`glmPredict`、`glmRstandard`、`glmCooksDistance` も) | 標準誤差が NaN (警告あり) | エラー。dispersion は 0 以上の有限値 (0 なら R と同じく標準誤差 0) |
+| `pwr.chisq.test(w = 1e200, N = 100, df = 3)`、`pwr.f2.test(f2 = 1e308)`、`pwr.anova.test(f = 1e200)` (非心度が溢れる) | NaN | 検出力の極限 1。`powerAnovaTest` は、積だけが溢れる場合は between.var / within.var を先に計算する |
+| `ES.w1(c(0.5, 0.5, 0), c(0.5, 0.5, 0))` や、空の行・列がある `ES.w2` (両方の確率が 0 のセル) | NaN (0 / 0) | そのセルは 0 を足す (ここでは 0)。p0 = 0 < p1 は R と同じく Inf |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
 | `rgeom(n, 5e-324)` (約 5.6e-309 未満の prob)、p < 1 の `rnbinom(n, Inf, prob = p)` | NA。約 9e307 (size = MAX / 2 での値) か NA | Infinity。値は double の最大値を超える (rgeom は 1e-15 未満の確率を除いて。rnbinom は確率がすべて無限遠にあり、dnbinom・qnbinom と整合)。同じ乱数を引くので、乱数の状態は R と同じ |
@@ -263,6 +265,12 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   非有限または NaN の許容誤差 (`optim` の `reltol`、`uniroot`、`optimize`、`integrate`、`qr`、`chol`、
   `solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value supplied
   by optim" で止まり、負の値は受け付ける)。
+- **検出力と効果量の関数**は、既知の量の NaN (pwr はたいてい "missing value where TRUE/FALSE needed" で止まる。
+  以前は NaN を返していた)、`pwrRTest` の [-1, 1] の外の相関、`esH`・`esW1`・`esW2` の [0, 1] の外の確率 (R は NaN)、
+  `esW2` の空や不整形の行列 (R は 0)、`powerPropTest` の n <= 0 (R は n = 0 で検出力を返し、負なら NaN)、`pwrTTest` の
+  n < 2 (pwr と同じ) をエラーにします。`delta = 0` で `sd` を、`betweenVar = 0` で `withinVar` を求めるときは、検出力が
+  それによらないことをエラーで伝えます (R は "lower < upper is not fulfilled")。`cohensD` は、無限大の値と、(群ごとに)
+  2 個未満の観測をエラーにします (effectsize は NA)。
 
 ### 分布
 

@@ -79,6 +79,8 @@ export function cohenES(test: CohenTest | (string & {}) = "p", size: "small" | "
  * @category Effect sizes and power
  */
 export function esH(p1: number, p2: number): number {
+  // (a probability outside [0, 1] gave NaN through asin)
+  if (!isProbability(p1) || !isProbability(p2)) throw new RangeError("p1 and p2 must be probabilities in [0, 1]");
   return 2 * Math.asin(Math.sqrt(p1)) - 2 * Math.asin(Math.sqrt(p2));
 }
 
@@ -94,8 +96,10 @@ export function esH(p1: number, p2: number): number {
  */
 export function esW1(p0: readonly number[], p1: readonly number[]): number {
   if (p0.length !== p1.length) throw new RangeError("'P0' and 'P1' must have the same length");
+  if (![...p0, ...p1].every(isProbability)) throw new RangeError("'P0' and 'P1' must be probabilities in [0, 1]");
   let s = 0;
-  for (let i = 0; i < p0.length; i++) s += (p1[i]! - p0[i]!) ** 2 / p0[i]!;
+  // a cell with p0 = p1 = 0 adds nothing (0 / 0 was NaN); p0 = 0 < p1 adds Inf, as pwr
+  for (let i = 0; i < p0.length; i++) if (p0[i] !== 0 || p1[i] !== 0) s += (p1[i]! - p0[i]!) ** 2 / p0[i]!;
   return Math.sqrt(s);
 }
 
@@ -111,6 +115,11 @@ export function esW1(p0: readonly number[], p1: readonly number[]): number {
  * @category Effect sizes and power
  */
 export function esW2(p: readonly (readonly number[])[]): number {
+  // (an empty matrix gave 0, a ragged one NaN)
+  if (p.length === 0 || p[0]!.length === 0 || p.some((r) => r.length !== p[0]!.length)) {
+    throw new RangeError("'P' must be a non-empty matrix (rows of the same length)");
+  }
+  if (!p.every((r) => r.every(isProbability))) throw new RangeError("'P' must contain probabilities in [0, 1]");
   const rows = p.map((r) => r.reduce((a, b) => a + b, 0));
   const nc = p[0]?.length ?? 0;
   const cols = Array.from({ length: nc }, (_, j) => p.reduce((a, r) => a + r[j]!, 0));
@@ -119,13 +128,15 @@ export function esW2(p: readonly (readonly number[])[]): number {
   for (let j = 0; j < nc; j++) {
     for (let i = 0; i < p.length; i++) {
       const p0 = rows[i]! * cols[j]!;
-      s += (p[i]![j]! - p0) ** 2 / p0;
+      // (a cell of an empty row or column, p0 = p = 0, adds nothing: 0 / 0 was NaN)
+      if (p0 !== 0 || p[i]![j] !== 0) s += (p[i]![j]! - p0) ** 2 / p0;
     }
   }
   return Math.sqrt(s);
 }
 
 type Unknown = number | null | undefined;
+const isProbability = (v: number): boolean => v >= 0 && v <= 1;
 const SIG_MESSAGE = "‘sig.level’ must be numeric in [0, 1]";
 const POWER_MESSAGE = "‘power’ must be numeric in [0, 1]";
 
@@ -137,6 +148,8 @@ function checkProbabilities(sigLevel: Unknown, power: Unknown): void {
 
 /** A string effect size replaced by Cohen's value for the test */
 function effect(es: EffectSize | null | undefined, test: CohenTest): Unknown {
+  // (NaN gave a NaN power silently; pwr stops on it in most functions)
+  if (typeof es === "number" && Number.isNaN(es)) throw new RangeError("the effect size must not be NaN");
   return typeof es === "string" ? cohenES(test, es).effectSize : es;
 }
 
@@ -232,6 +245,7 @@ export function pwrTTest(options: PwrTTestOptions = {}): PwrTTestResult {
   let sigLevel = options.sigLevel === undefined ? 0.05 : options.sigLevel;
   checkExactlyOne([n, d, power, sigLevel], "exactly one of n, d, power, and sig.level must be NULL");
   checkProbabilities(sigLevel, power);
+  if (!isUnknown(n) && !(n >= 2)) throw new RangeError("number of observations in each group must be at least 2");
   const type = matchChoice(options.type, ["two.sample", "one.sample", "paired"] as const);
   const alt = matchChoice(options.alternative, ALTERNATIVES);
   const ts = type === "two.sample" ? 2 : 1;
@@ -303,8 +317,8 @@ export function pwrT2nTest(options: PwrT2nTestOptions = {}): PwrT2nTestResult {
   let sigLevel = options.sigLevel === undefined ? 0.05 : options.sigLevel;
   checkExactlyOne([n1, n2, d, power, sigLevel], "exactly one of n1, n2, d, power, and sig.level must be NULL");
   checkProbabilities(sigLevel, power);
-  if (!isUnknown(n1) && n1 < 2) throw new RangeError("number of observations in the first group must be at least 2");
-  if (!isUnknown(n2) && n2 < 2) throw new RangeError("number of observations in the second group must be at least 2");
+  if (!isUnknown(n1) && !(n1 >= 2)) throw new RangeError("number of observations in the first group must be at least 2");
+  if (!isUnknown(n2) && !(n2 >= 2)) throw new RangeError("number of observations in the second group must be at least 2");
   const alt = matchChoice(options.alternative, ALTERNATIVES);
   if (alt === "two.sided" && !isUnknown(d)) d = Math.abs(d);
   const powerOf = (n1: number, n2: number, d: number, sig: number): number =>
@@ -368,7 +382,7 @@ function normalTest(
   let sigLevel = options.sigLevel === undefined ? 0.05 : options.sigLevel;
   checkExactlyOne([es, n, power, sigLevel], `exactly one of ${name}, n, power, and sig.level must be NULL`);
   checkProbabilities(sigLevel, power);
-  if (!isUnknown(n) && n < 1) throw new RangeError("number of observations in each group must be at least 1");
+  if (!isUnknown(n) && !(n >= 1)) throw new RangeError("number of observations in each group must be at least 1");
   const alt = matchChoice(options.alternative, ALTERNATIVES);
   if (alt === "two.sided" && !isUnknown(es)) es = Math.abs(es);
   const powerOf = (es: number, n: number, sig: number): number => normalPower(es * scale(n), sig, alt);
@@ -543,8 +557,8 @@ export function pwr2p2nTest(options: Pwr2p2nTestOptions = {}): Pwr2p2nTestResult
   let sigLevel = options.sigLevel === undefined ? 0.05 : options.sigLevel;
   checkExactlyOne([h, n1, n2, power, sigLevel], "exactly one of h, n1, n2, power, and sig.level must be NULL");
   checkProbabilities(sigLevel, power);
-  if (!isUnknown(n1) && n1 < 2) throw new RangeError("number of observations in the first group must be at least 2");
-  if (!isUnknown(n2) && n2 < 2) throw new RangeError("number of observations in the second group must be at least 2");
+  if (!isUnknown(n1) && !(n1 >= 2)) throw new RangeError("number of observations in the first group must be at least 2");
+  if (!isUnknown(n2) && !(n2 >= 2)) throw new RangeError("number of observations in the second group must be at least 2");
   const alt = matchChoice(options.alternative, ALTERNATIVES);
   if (alt === "two.sided" && !isUnknown(h)) h = Math.abs(h);
   const powerOf = (h: number, n1: number, n2: number, sig: number): number => normalPower(h * Math.sqrt((n1 * n2) / (n1 + n2)), sig, alt);
@@ -619,7 +633,9 @@ export function pwrRTest(options: PwrRTestOptions = {}): PwrRTestResult {
   let sigLevel = options.sigLevel === undefined ? 0.05 : options.sigLevel;
   checkExactlyOne([n, r, power, sigLevel], "exactly one of n, r, power, and sig.level must be NULL");
   checkProbabilities(sigLevel, power);
-  if (!isUnknown(n) && n < 4) throw new RangeError("number of observations must be at least 4");
+  if (!isUnknown(n) && !(n >= 4)) throw new RangeError("number of observations must be at least 4");
+  // (a correlation outside [-1, 1] gave NaN through atanh)
+  if (!isUnknown(r) && !(Math.abs(r) <= 1)) throw new RangeError("'r' must be in [-1, 1]");
   const alt = matchChoice(options.alternative, ALTERNATIVES);
   if (alt === "two.sided" && !isUnknown(r)) r = Math.abs(r);
   const upper = (n: number, r: number, sig: number, twoSided: boolean): number => {
@@ -710,10 +726,13 @@ export function pwrChisqTest(options: PwrChisqTestOptions): PwrChisqTestResult {
   if (typeof df !== "number") throw new TypeError('argument "df" is missing, with no default');
   if (!(df > 0 && df < Infinity)) throw new RangeError("'df' must be a positive finite number");
   checkProbabilities(sigLevel, power);
-  if (!isUnknown(w) && w < 0) throw new RangeError("w must be positive");
-  if (!isUnknown(N) && N < 1) throw new RangeError("number of observations must be at least 1");
-  const powerOf = (w: number, N: number, sig: number): number =>
-    pchisq(qchisq(sig, df, { lowerTail: false }) as number, df, { ncp: N * w ** 2, lowerTail: false }) as number;
+  if (!isUnknown(w) && !(w >= 0)) throw new RangeError("w must be positive");
+  if (!isUnknown(N) && !(N >= 1)) throw new RangeError("number of observations must be at least 1");
+  // a noncentrality beyond the doubles: the power is its limit 1 (NaN from the distribution with ncp = Inf)
+  const powerOf = (w: number, N: number, sig: number): number => {
+    const ncp = N * w ** 2;
+    return ncp === Infinity ? 1 : (pchisq(qchisq(sig, df, { lowerTail: false }) as number, df, { ncp, lowerTail: false }) as number);
+  };
   if (isUnknown(power)) power = powerOf(w!, N!, sigLevel!);
   else {
     const target = power;
@@ -778,13 +797,15 @@ export function pwrAnovaTest(options: PwrAnovaTestOptions = {}): PwrAnovaTestRes
   let sigLevel = options.sigLevel === undefined ? 0.05 : options.sigLevel;
   checkExactlyOne([k, n, f, power, sigLevel], "exactly one of k, n, f, power, and sig.level must be NULL");
   checkProbabilities(sigLevel, power);
-  if (!isUnknown(f) && f < 0) throw new RangeError("f must be positive");
-  if (!isUnknown(k) && k < 2) throw new RangeError("number of groups must be at least 2");
-  if (!isUnknown(n) && n < 2) throw new RangeError("number of observations in each group must be at least 2");
+  if (!isUnknown(f) && !(f >= 0)) throw new RangeError("f must be positive");
+  if (!isUnknown(k) && !(k >= 2)) throw new RangeError("number of groups must be at least 2");
+  if (!isUnknown(n) && !(n >= 2)) throw new RangeError("number of observations in each group must be at least 2");
   const powerOf = (k: number, n: number, f: number, sig: number): number => {
     const df1 = k - 1;
     const df2 = (n - 1) * k;
-    return pf(qf(sig, df1, df2, { lowerTail: false }) as number, df1, df2, { ncp: k * n * f ** 2, lowerTail: false }) as number;
+    const ncp = k * n * f ** 2;
+    // (a noncentrality beyond the doubles: the limit 1)
+    return ncp === Infinity ? 1 : (pf(qf(sig, df1, df2, { lowerTail: false }) as number, df1, df2, { ncp, lowerTail: false }) as number);
   };
   if (isUnknown(power)) power = powerOf(k!, n!, f!, sigLevel!);
   else {
@@ -857,11 +878,14 @@ export function pwrF2Test(options: PwrF2TestOptions = {}): PwrF2TestResult {
   let sigLevel = options.sigLevel === undefined ? 0.05 : options.sigLevel;
   checkExactlyOne([u, v, f2, power, sigLevel], "exactly one of u, v, f2, power, and sig.level must be NULL");
   checkProbabilities(sigLevel, power);
-  if (!isUnknown(f2) && f2 < 0) throw new RangeError("f2 must be positive");
-  if (!isUnknown(u) && u < 1) throw new RangeError("degree of freedom u for numerator must be at least 1");
-  if (!isUnknown(v) && v < 1) throw new RangeError("degree of freedom v for denominator must be at least 1");
-  const powerOf = (u: number, v: number, f2: number, sig: number): number =>
-    pf(qf(sig, u, v, { lowerTail: false }) as number, u, v, { ncp: f2 * (u + v + 1), lowerTail: false }) as number;
+  if (!isUnknown(f2) && !(f2 >= 0)) throw new RangeError("f2 must be positive");
+  if (!isUnknown(u) && !(u >= 1)) throw new RangeError("degree of freedom u for numerator must be at least 1");
+  if (!isUnknown(v) && !(v >= 1)) throw new RangeError("degree of freedom v for denominator must be at least 1");
+  // a noncentrality beyond the doubles: the power is its limit 1
+  const powerOf = (u: number, v: number, f2: number, sig: number): number => {
+    const ncp = f2 * (u + v + 1);
+    return ncp === Infinity ? 1 : (pf(qf(sig, u, v, { lowerTail: false }) as number, u, v, { ncp, lowerTail: false }) as number);
+  };
   if (isUnknown(power)) power = powerOf(u!, v!, f2!, sigLevel!);
   else {
     const target = power;

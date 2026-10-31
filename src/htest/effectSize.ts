@@ -89,6 +89,10 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
   const ys = y === undefined ? undefined : Array.from(y);
   const warnings: string[] = [];
   if (xs.some(Number.isNaN) || (ys?.some(Number.isNaN) ?? false)) warnings.push(NA_WARNING);
+  // (an infinite value, or too few observations, ended in the root search of the interval: "lower < upper is not
+  // fulfilled"; effectsize gives NA)
+  const infinite = (v: number): boolean => v === Infinity || v === -Infinity;
+  if (xs.some(infinite) || (ys?.some(infinite) ?? false)) throw new RangeError("the observations must be finite (NaN is dropped as missing)");
   // Everything is computed on the data scaled by one power of 2, 2^-k (exact; paired values before their differences
   // are taken), with mu scaled alike: the effect size and its interval have no units, so nothing is scaled back
   let d: number;
@@ -105,6 +109,7 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
       ({ d: v, k } = pairedDifferences(a, b));
     }
     const n = v.length;
+    if (n < 2) throw new RangeError(ys === undefined ? "not enough observations: at least 2 are needed" : "not enough complete pairs: at least 2 are needed");
     d = mean(v);
     s = Math.sqrt(variance(v));
     se = s / Math.sqrt(n);
@@ -114,6 +119,7 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
     const gm = groupMoments([dropNaN(xs), dropNaN(ys)]);
     k = gm.k;
     const [n1, n2] = gm.n as [number, number];
+    if (n1 < 2 || n2 < 2) throw new RangeError("not enough observations: at least 2 are needed in each group");
     d = gm.mean[0]! - gm.mean[1]!;
     const s1 = Math.sqrt(gm.variance[0]!);
     const s2 = Math.sqrt(gm.variance[1]!);

@@ -126,6 +126,7 @@ export function powerTTest(options: PowerTTestOptions = {}): PowerTTestResult {
   checkKnown(power, isProb, "'power' must be a probability");
   checkKnown(sd, isPositiveFinite, "'sd' must be a positive finite number");
   checkKnown(n, (v) => v >= 2, "number of observations in each group must be at least 2");
+  checkKnown(delta, (v) => !Number.isNaN(v), "'delta' must not be NaN");
   checkKnown(options.tol, isPositiveFinite, "'tol' must be a positive finite number");
   const type = matchChoice(options.type, ["two.sample", "one.sample", "paired"] as const);
   const alternative = matchChoice(options.alternative, ["two.sided", "one.sided"] as const);
@@ -146,7 +147,11 @@ export function powerTTest(options: PowerTTestOptions = {}): PowerTTestResult {
     const target = power;
     if (isUnknown(n)) n = solveFor((x) => powerOf(x, delta!, sd!, sigLevel!) - target, 2, 1e7, { tol, extendInt: "upX" });
     else if (isUnknown(sd)) {
-      sd = solveFor((x) => powerOf(n!, delta!, x, sigLevel!) - target, delta! * 1e-7, delta! * 1e7, { tol, extendInt: "downX" });
+      // with delta = 0 the power does not depend on sd (R: "lower < upper is not fulfilled"); with a negative delta (one
+      // sided) the power rises towards sigLevel as sd grows, so the search runs over |delta| the other way
+      if (delta === 0) throw new RangeError("'sd' cannot be determined when 'delta' is 0: the power does not depend on it");
+      const ad = Math.abs(delta!);
+      sd = solveFor((x) => powerOf(n!, delta!, x, sigLevel!) - target, ad * 1e-7, ad * 1e7, { tol, extendInt: delta! > 0 ? "downX" : "upX" });
     } else if (isUnknown(delta)) {
       delta = solveFor((x) => powerOf(n!, x, sd!, sigLevel!) - target, sd * 1e-7, sd * 1e7, { tol, extendInt: "upX" });
     } else {
@@ -241,6 +246,8 @@ export function powerPropTest(options: PowerPropTestOptions = {}): PowerPropTest
   checkKnown(power, isProb, "'power' must be a probability");
   checkKnown(p1, isProb, "'p1' must be a probability");
   checkKnown(p2, isProb, "'p2' must be a probability");
+  // (R gives a power for n = 0 and NaN for a negative n)
+  checkKnown(n, (v) => v > 0, "number of observations in each group must be positive");
   checkKnown(options.tol, isPositiveFinite, "'tol' must be a positive finite number");
   const alternative = matchChoice(options.alternative, ["two.sided", "one.sided"] as const);
   const strict = options.strict ?? false;
@@ -355,17 +362,20 @@ export function powerAnovaTest(options: PowerAnovaTestOptions = {}): PowerAnovaT
     [groups, n, betweenVar, withinVar, power, sigLevel],
     "exactly one of 'groups', 'n', 'between.var', 'within.var', 'power', and 'sig.level' must be NULL",
   );
-  if (!isUnknown(groups) && groups < 2) throw new RangeError("number of groups must be at least 2");
-  if (!isUnknown(n) && n < 2) throw new RangeError("number of observations in each group must be at least 2");
+  if (!isUnknown(groups) && !(groups >= 2)) throw new RangeError("number of groups must be at least 2");
+  if (!isUnknown(n) && !(n >= 2)) throw new RangeError("number of observations in each group must be at least 2");
   checkSigLevel(sigLevel, SIG_MESSAGE);
   checkKnown(power, isProb, "'power' must be a probability");
   checkKnown(betweenVar, (v) => v >= 0 && v < Infinity, "'betweenVar' must be a nonnegative finite number");
   checkKnown(withinVar, isPositiveFinite, "'withinVar' must be a positive finite number");
   const powerOf = (groups: number, n: number, between: number, within: number, sig: number): number => {
-    const lambda = ((groups - 1) * n * between) / within;
+    // (the ratio first where the product with between overflows but the noncentrality is in range)
+    let lambda = ((groups - 1) * n * between) / within;
+    if (lambda === Infinity) lambda = (groups - 1) * n * (between / within);
     const df1 = groups - 1;
     const df2 = (n - 1) * groups;
-    return pf(qf(sig, df1, df2, { lowerTail: false }), df1, df2, { ncp: lambda, lowerTail: false });
+    // (a noncentrality beyond the doubles: the limit 1)
+    return lambda === Infinity ? 1 : pf(qf(sig, df1, df2, { lowerTail: false }), df1, df2, { ncp: lambda, lowerTail: false });
   };
   if (isUnknown(power)) power = powerOf(groups!, n!, betweenVar!, withinVar!, sigLevel!);
   else {
@@ -373,6 +383,8 @@ export function powerAnovaTest(options: PowerAnovaTestOptions = {}): PowerAnovaT
     if (isUnknown(groups)) groups = solveFor((x) => powerOf(x, n!, betweenVar!, withinVar!, sigLevel!) - target, 2, 100);
     else if (isUnknown(n)) n = solveFor((x) => powerOf(groups!, x, betweenVar!, withinVar!, sigLevel!) - target, 2, 1e5);
     else if (isUnknown(withinVar)) {
+      // (with betweenVar = 0 the power does not depend on withinVar; R: "lower < upper is not fulfilled")
+      if (betweenVar === 0) throw new RangeError("'withinVar' cannot be determined when 'betweenVar' is 0: the power does not depend on it");
       withinVar = solveFor((x) => powerOf(groups!, n!, betweenVar!, x, sigLevel!) - target, betweenVar! * 1e-7, betweenVar! * 1e7);
     } else if (isUnknown(betweenVar)) {
       betweenVar = solveFor((x) => powerOf(groups!, n!, x, withinVar!, sigLevel!) - target, withinVar * 1e-7, withinVar * 1e7);

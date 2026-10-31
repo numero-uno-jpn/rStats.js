@@ -218,6 +218,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `kappa(matrix(c(1, 2, 2, 4), 2), exact = TRUE, norm = "1")` (exactly singular, a norm other than 2) | "system is exactly singular" | Inf, as with norm "2" (a computationally singular matrix still stops, as in R) |
 | `anova(lm(y ~ x2), lm(y ~ x1 + x3))` and `anova()` of glm fits that are not nested (neither model is a special case of the other) | an F test (F 1110, p 4.6e-7 in the example), or a likelihood ratio test for glm | no test: F, the p-value and the test columns are NaN, as `lmerAnova` (nested: the columns of the model with fewer parameters lie in the column space of the other, judged by the QR rank) |
 | `summary(glm(...), dispersion = -1)` (also `glmAnova`, `glmPredict`, `glmRstandard`, `glmCooksDistance`) | NaN standard errors, with a warning | an error: the dispersion must be a non-negative finite number (0 gives standard errors of 0, as R) |
+| `pwr.chisq.test(w = 1e200, N = 100, df = 3)`, `pwr.f2.test(f2 = 1e308)`, `pwr.anova.test(f = 1e200)` (the noncentrality overflows) | NaN | 1, the limit of the power; `powerAnovaTest` takes between.var / within.var first where only the product overflows |
+| `ES.w1(c(0.5, 0.5, 0), c(0.5, 0.5, 0))` and `ES.w2` with an empty row or column (cells with both probabilities 0) | NaN (0 / 0) | such a cell adds 0 (0 here); p0 = 0 < p1 still gives Inf, as R |
 | `coxph(Surv(time, status) ~ x)` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the fit, with the subject at risk at every event time (the same as for a censoring time beyond the last event) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (every column is taken as dependent) |
 | `rgeom(n, 5e-324)` (prob below about 5.6e-309), `rnbinom(n, Inf, prob = p)` with p < 1 | NA; about 9e307 (the draw for size = MAX / 2) or NA | Infinity: the draws are beyond the largest double (for rgeom but with a probability below 1e-15; for rnbinom all the probability is at infinity, as dnbinom and qnbinom say). The same variates are drawn, so the stream is R's |
@@ -271,6 +273,12 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   a non-finite or NaN tolerance (`optim`'s `reltol`, `uniroot`, `optimize`, `integrate`, `qr`,
   `chol`, `solve`, `coxph`, `glm`), and a temperature `temp` that is not positive and finite in
   `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one).
+- **The power and effect-size functions** reject NaN for a known quantity (pwr mostly stops with "missing value
+  where TRUE/FALSE needed"; NaN was returned), a correlation outside [-1, 1] in `pwrRTest`, probabilities outside
+  [0, 1] in `esH`, `esW1` and `esW2` (R: NaN), an empty or ragged matrix in `esW2` (R: 0), n <= 0 in `powerPropTest`
+  (R: a power for n = 0, NaN below), and n < 2 in `pwrTTest` (as pwr). Solving for `sd` with `delta = 0`, or for
+  `withinVar` with `betweenVar = 0`, says that the power does not depend on it (R: "lower < upper is not fulfilled").
+  `cohensD` rejects infinite values and fewer than 2 observations (per group) with a message (effectsize: NA).
 
 ### Distributions
 
