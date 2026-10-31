@@ -13,7 +13,8 @@
 // - NaN or Inf is an error, as in eigen
 
 import { orthes, hqr2 } from "./eigen.js";
-import { fromMat, newMat, requireSquare, toMat, type MatrixInput } from "./matrix.js";
+import { fromMat, newMat, rangeExponent, requireSquare, toMat, type MatrixInput } from "./matrix.js";
+import { ldexp } from "../internal/summary.js";
 
 /**
  * Result of {@link schur}: `x = Q T Q'`.
@@ -56,7 +57,11 @@ export function schur(x: MatrixInput): SchurResult {
   const n = A.nrow;
   if (n === 0) throw new RangeError("the matrix has zero dimension");
   for (const v of A.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
-  const H = { nrow: n, ncol: n, data: A.data.slice() };
+  // scaled by a power of 2 as in eigen and svd (exact): T and the eigenvalues are scaled back, Q has no units. With
+  // entries near 1e308, sums in the reduction overflowed: schur([[1e308, 0], [1e308, 1e308]]) lost T's off-diagonal
+  // entry, and a 3 x 3 matrix did not converge
+  const k = rangeExponent(A.data);
+  const H = { nrow: n, ncol: n, data: k === 0 ? A.data.slice() : A.data.map((v) => ldexp(v, -k)) };
   const V = newMat(n, n);
   const d = new Float64Array(n);
   const e = new Float64Array(n);
@@ -109,7 +114,9 @@ export function schur(x: MatrixInput): SchurResult {
     valuesIm[j + 1] = s.rt2i;
     j++;
   }
-  return { T: fromMat(H), Q: fromMat(V), valuesRe, valuesIm };
+  if (k === 0) return { T: fromMat(H), Q: fromMat(V), valuesRe, valuesIm };
+  const back = (x: number): number => ldexp(x, k);
+  return { T: fromMat(H).map((r) => r.map(back)), Q: fromMat(V), valuesRe: valuesRe.map(back), valuesIm: valuesIm.map(back) };
 }
 
 const sign = (a: number, b: number) => (b >= 0 && !Object.is(b, -0) ? Math.abs(a) : -Math.abs(a));
