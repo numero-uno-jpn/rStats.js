@@ -214,6 +214,9 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | expm's `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | NaN in every entry (Inf * 0 in the squaring) | diag(Inf, 1): an overflowed entry stands for a finite value, so its product with an exact 0 is 0; a matrix whose 1-norm overflows no longer loops forever |
 | `coxph(Surv(time, status) ~ x)` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the fit, with the subject at risk at every event time (the same as for a censoring time beyond the last event) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (every column is taken as dependent) |
+| `qt(0.5, 10, ncp = Inf)` | NaN (or Inf, depending on p), although `pt(t, 10, ncp = Inf)` is 0 at every finite t | Inf: all the probability is at +∞ (-Inf for ncp = -Inf), as for df = Inf |
+| `pbeta(-1, 0, 2)`, `pbeta(-1, 0, 0)` (and an infinite shape) | 1, 0.5: the point masses are checked before q <= 0, so the distribution function is positive left of its support | 0 |
+| `dweibull(x, shape, scale = Inf)` at a finite x > 0 | NaN (Inf * 0) | 0 (log -Inf), the limit |
 | `survdiff(Surv(c(1, 1), c(1, 1)) ~ c("A", "B"))` and other data whose variance matrix is singular | "system is exactly singular" | the generalized inverse on rank(V) degrees of freedom (`df` in the result); with no information on the groups (rank 0) chisq 0, df 0, p NaN |
 | `survdiff` or `survfit` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the subject at risk throughout (an event at `Inf` is an error) |
 | lmerTest's `anova(fit, type = 1)` (and type 2) with a predictor in small units, e.g. `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | the type I F of x1 becomes its type II F (14.45 instead of 13.96): the Doolittle factorisation compares pivots and entries with 1e-6 in the units of the data; a bug in lmerTest (R 4.5.2, checked by running it) | the same tests at any units (the factorisation on the cross-product matrix scaled to unit diagonal) |
@@ -389,6 +392,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **The noncentral `pbeta`** checks its parameters before the ends of the support: a negative shape or a negative or
   infinite ncp gives NaN (R returns 0 or 1 at q <= 0 or q >= 1 for them, and the central `pbeta` NaN). Shapes of 0
   (point masses) keep the ends, as in R.
+- **`qnbinom`** with a negative size or mu is NaN, as `dnbinom` and `pnbinom` (R's `qnbinom` returns 0 for mu = 0 or
+  size = 0 before checking them).
 - **`omega`** adds a warning when the minres fit (L-BFGS-B) does not converge ("minres did not converge ...");
   psych's `fa` goes on from the last point silently. The values are the same.
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);

@@ -122,7 +122,10 @@ export function pbeta1(q: number, a: number, b: number, lowerTail: boolean, logP
   if (Number.isNaN(q) || Number.isNaN(a) || Number.isNaN(b)) return NaN;
   if (a < 0 || b < 0) return NaN;
   if (q >= 1) return dt1(lowerTail, logP);
-  // Point masses when a parameter is 0 or infinite (R checks this after q >= 1 and before q <= 0)
+  // Nothing lies left of the support, point masses at 0 included (R checks the point masses before q <= 0, so that
+  // pbeta(-1, 0, 2) was 1 and pbeta(-1, 0, 0) 0.5); at q = 0 the masses at 0 count
+  if (q < 0) return dt0(lowerTail, logP);
+  // Point masses when a parameter is 0 or infinite
   if (a === 0 || b === 0 || !Number.isFinite(a) || !Number.isFinite(b)) {
     if (a === 0 && b === 0) return logP ? -Math.LN2 : 0.5; // 1/2 each at 0 and 1
     if (a === 0 || b / a === Infinity) return dt1(lowerTail, logP); // concentrated at 0

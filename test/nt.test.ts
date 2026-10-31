@@ -28,9 +28,10 @@ fixtureSuite({
 fixtureSuite({
   name: "qnt",
   tolerance: 1e-14,
-  // The quantile is undefined for ncp = Inf. R returns NaN or ±Inf depending on p. We return NaN
+  // ncp = ±Inf puts all the probability at ±∞ (pt is 0 or 1 at every finite t): every quantile inside (0, 1) is ±∞.
+  // R returns NaN or ±Inf depending on p
   knownDifference: (a, _e, x) =>
-    Number.isNaN(x) && !Number.isFinite(num(a.ncp)) && !Number.isNaN(num(a.ncp)) ? "ncp = Inf: R returns ±Inf" : undefined,
+    x === num(a.ncp) && !Number.isFinite(x) ? "ncp = ±Inf: R returns NaN for some p" : undefined,
   call: (a) => qt(num(a.p), num(a.df), opts(a)),
   backward: (a, x) => pt(x, num(a.df), opts(a)),
 });

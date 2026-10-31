@@ -766,8 +766,9 @@ export function qnt1(p: number, df0: number, ncp: number, lowerTail: boolean, lo
   const b = quantileBoundaries(p, -Infinity, Infinity, lowerTail, logP);
   if (b !== undefined) return b;
   if (df === Infinity) return ncp + qnorm(p, { lowerTail, logP });
-  // ncp = ±Inf concentrates the distribution at ±∞ and the quantile is undefined, so NaN (R's answer mixes NaN and ±Inf depending on p)
-  if (!Number.isFinite(ncp)) return NaN;
+  // ncp = ±Inf puts all the probability at ±∞ (pt is 0 or 1 at every finite t, in R too), so every quantile inside
+  // (0, 1) is ±∞, as already for df = Inf above (R gives NaN for a finite df)
+  if (!Number.isFinite(ncp)) return ncp;
   const { lower, logTarget, linearTarget } = smallerTail(p, lowerTail, logP);
   if (df > HUGE_DF) {
     // The quantiles of the limits of pnt1

@@ -255,10 +255,11 @@ export function pnbinomMu1(q: number, size: number, mu: number, lowerTail: boole
 
 export function qnbinomMu1(p: number, size: number, mu: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(p) || Number.isNaN(size) || Number.isNaN(mu)) return NaN;
-  // As in R, size = Inf is the Poisson distribution, and size = 0 or mu = 0 gives 0 regardless of the other parameter or p
+  // A negative size or mu defines no distribution, as in dnbinom and pnbinom (R's qnbinom returns 0 for mu = 0 before
+  // checking them); size = Inf is the Poisson distribution, and size = 0 or mu = 0 gives 0 regardless of p
+  if (size < 0 || mu < 0) return NaN;
   if (size === Infinity) return qpois1(p, mu, lowerTail, logP);
   if (size === 0 || mu === 0) return 0;
-  if (size < 0 || mu < 0) return NaN;
   // mu = Inf answers only at the ends (p = 0, 1) and is NaN otherwise (as in R)
   if (mu === Infinity) return quantileBoundaries(p, 0, Infinity, lowerTail, logP) ?? NaN;
   const b = quantileBoundaries(p, 0, Infinity, lowerTail, logP);

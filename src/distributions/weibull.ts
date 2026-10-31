@@ -62,6 +62,9 @@ export function dweibull1(x: number, shape: number, scale: number, log: boolean)
   if (x < 0 || x === Infinity) return d0(log);
   if (x === 0 && shape < 1) return Infinity;
   if (!allFinite(shape, scale)) {
+    // scale = Inf moves all the probability out to infinity: the density at a finite x > 0 is 0 in the limit (shape
+    // (x / scale)^(shape - 1) / scale -> 0), where the formula gives Inf * 0 = NaN (as R does)
+    if (scale === Infinity && x > 0) return d0(log);
     // The defining formula as is
     const t1 = cpow(x / scale, shape - 1);
     const t2 = t1 * (x / scale);

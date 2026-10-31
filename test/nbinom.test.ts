@@ -111,8 +111,12 @@ fixtureSuite({
   tolerance: 0,
   discreteCdf: (a, y, lg) =>
     pnbinom(y, num(a.size), { mu: num(a.mu), lowerTail: bool(a.lowerTail), logP: lg ?? bool(a.logP) }),
+  // Deliberate: a negative size or mu is NaN, as in dnbinom and pnbinom; R's qnbinom returns 0 for mu = 0 or size = 0
+  // before checking them
   knownDifference: (a, e, x) =>
-    nbQuantileDifference(a, e, x, (y, l) => pnbinom(y, num(a.size), { mu: num(a.mu), lowerTail: l, logP: bool(a.logP) })),
+    Number.isNaN(x) && (num(a.size) < 0 || num(a.mu) < 0)
+      ? "a negative size or mu: R returns 0"
+      : nbQuantileDifference(a, e, x, (y, l) => pnbinom(y, num(a.size), { mu: num(a.mu), lowerTail: l, logP: bool(a.logP) })),
   call: (a) => qnbinom(num(a.p), num(a.size), { mu: num(a.mu), ...tail(a) }),
 });
 

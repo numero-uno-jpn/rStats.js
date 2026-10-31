@@ -25,6 +25,12 @@ fixtureSuite({
 fixtureSuite({
   name: "pbeta",
   tolerance: 1e-14,
+  // Deliberate: left of the support (q < 0) the distribution function is 0, point masses at 0 included; R checks the
+  // point masses of a shape 0 or Inf first and returns them (1, or 0.5 for both 0) there
+  knownDifference: (a, e, x) =>
+    num(a.q) < 0 && [num(a.shape1), num(a.shape2)].some((s) => s === 0 || s === Infinity) && e !== x
+      ? "q < 0 with a shape 0 or Inf: R returns the point mass"
+      : undefined,
   call: (a) => pbeta(num(a.q), num(a.shape1), num(a.shape2), tail(a)),
 });
 fixtureSuite({

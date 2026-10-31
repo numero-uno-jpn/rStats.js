@@ -120,8 +120,13 @@ fixtureSuite({
   name: "dweibull",
   tolerance: 1e-14,
   // When (x/scale)^shape overflows, R computes the log density as -Inf + Inf and returns NaN (the true value is -Inf)
+  // With scale = Inf the density at a finite x > 0 is 0 in the limit; R evaluates Inf * 0 = NaN
   knownDifference: (a, e, x) =>
-    a.log === true && Number.isNaN(e) && x === -Infinity ? "R's log density is ∞ - ∞ = NaN" : undefined,
+    a.log === true && Number.isNaN(e) && x === -Infinity
+      ? "R's log density is ∞ - ∞ = NaN"
+      : Number.isNaN(e) && num(a.scale) === Infinity && (x === 0 || x === -Infinity)
+        ? "scale = Inf: R's density is Inf * 0 = NaN"
+        : undefined,
   density: true,
   call: (a) => dweibull(num(a.x), num(a.shape), { scale: num(a.scale), log: bool(a.log) }),
 });

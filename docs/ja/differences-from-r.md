@@ -208,6 +208,9 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | expm の `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | 全要素 NaN (2 乗の段階で Inf × 0) | diag(Inf, 1)。溢れた要素は有限の巨大な値を表すので、厳密な 0 との積は 0。1-ノルムが溢れる行列でも無限ループしない |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
+| `qt(0.5, 10, ncp = Inf)` | NaN (p によっては Inf)。ただし `pt(t, 10, ncp = Inf)` はすべての有限の t で 0 | Inf。確率はすべて +∞ にある (ncp = -Inf なら -Inf)。df = Inf の場合と同じ |
+| `pbeta(-1, 0, 2)`、`pbeta(-1, 0, 0)` (形状が無限大のときも) | 1、0.5。点質量を q <= 0 より先に判定するので、台より左で分布関数が正になる | 0 |
+| 有限の x > 0 での `dweibull(x, shape, scale = Inf)` | NaN (Inf × 0) | 0 (log は -Inf)。極限の値 |
 | `survdiff(Surv(c(1, 1), c(1, 1)) ~ c("A", "B"))` など、分散行列が特異になるデータ | "system is exactly singular" | 一般化逆行列を使い、自由度は rank(V) (結果の `df`)。群について情報がない (rank 0) ときは chisq 0、df 0、p NaN |
 | 打ち切り時刻が `Inf` の `survdiff`・`survfit` | "NA/NaN/Inf in foreign function call" | その個体は最後までリスク集合に入る (`Inf` でのイベントはエラー) |
 | 小さな単位の説明変数を含む lmerTest の `anova(fit, type = 1)` (type 2 も)。例: `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | x1 の type I の F が type II の F になる (13.96 が 14.45)。Doolittle 分解のピボットと要素を、データの単位のまま 1e-6 と比べるため。lmerTest のバグ (R 4.5.2 で実行して確認) | 単位によらず同じ検定 (分解を、対角を 1 に正規化した交差積行列で行う) |
@@ -370,6 +373,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   (R は無限大の時刻があると止まる)。
 - **非心の `pbeta`** は、台の端より先にパラメータを確かめます。負の形状、負または無限大の ncp は NaN です (R は q <= 0 や q >= 1
   なら 0 か 1 を返し、非心でない `pbeta` は NaN)。形状 0 (点質量) は、R と同じく端の値を返します。
+- **`qnbinom`** は、`dnbinom`・`pnbinom` と同じく、負の size や mu で NaN です (R の `qnbinom` は、それを確かめる前に mu = 0 や
+  size = 0 で 0 を返す)。
 - **`omega`** は、minres の当てはめ (L-BFGS-B) が収束しないとき警告を出します ("minres did not converge ...")。psych の `fa` は
   何も言わずに最後の点から先へ進みます。値は同じです。
 - **`mauchlyTest`** は、`y` に欠測値がある行と `group` が欠測の行を除きます (`lm(y ~ group)` と同じ)。無限大はエラーです。
