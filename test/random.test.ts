@@ -25,7 +25,18 @@ randomSuite([
     knownDifference: (a: Args, actual: number[]) =>
       a.fn === "rlogis" && Number(a.scale) < 0 && actual.every(Number.isNaN) ? "rlogis with a negative scale: NaN, R draws" : undefined,
   },
-  ...["rpois", "rbinom", "rnbinom", "rrank", "rsample", "rmultinom", "rhyper"].map((name) => ({ name, call: callOrSummary, isSummary: isLong })),
+  ...["rpois", "rbinom", "rrank", "rsample", "rmultinom", "rhyper"].map((name) => ({ name, call: callOrSummary, isSummary: isLong })),
+  {
+    name: "rnbinom",
+    call: callOrSummary,
+    isSummary: isLong,
+    // size = Inf with a fixed prob puts all the probability at infinity: Infinity, where R returns its draw for
+    // size = MAX / 2, about 9e307, or NA when that overflows (the same variates are drawn)
+    knownDifference: (a: Args, actual: number[]) =>
+      a.size === "Inf" && a.prob !== undefined && Number(a.prob) < 1 && actual.every((v) => v === Infinity)
+        ? "rnbinom with size = Inf and prob < 1: Infinity, R about 9e307 or NA"
+        : undefined,
+  },
   // Mixes binomial and Poisson (integer) with gamma and beta (continuous)
   { name: "rextradist", call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS },
   { name: "rlong", call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS },

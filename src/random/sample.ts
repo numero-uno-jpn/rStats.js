@@ -30,7 +30,8 @@ export interface SampleOptions {
  * The result is R's `sample.int(n, ...)` minus 1, so it can be used directly as array
  * indices. It consumes the same random numbers as R (default `sample.kind = "Rejection"`).
  *
- * @param n Number of candidates (a non-negative number less than 2^31).
+ * @param n Number of candidates: a non-negative number up to 4.5e15 (2^52, as R); below 2^31 with `prob`, and for
+ *   sampling without replacement more than n / 2 of them.
  * @param options See {@link SampleOptions}.
  * @returns The drawn integers, each in `0..n-1`.
  *

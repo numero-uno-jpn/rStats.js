@@ -182,7 +182,10 @@ export function rpois(n: number, lambda: number): number[] {
 export function rgeom(n: number, prob: number): number[] {
   return generate(n, () => {
     if (!Number.isFinite(prob) || prob <= 0 || prob > 1) return NaN;
-    return rpois1(expRand() * ((1 - prob) / prob));
+    // for prob so small that the Poisson mean overflows (prob below about 5.6e-309) the draw is beyond the largest
+    // double but for a probability below 1e-15: Infinity (R gives NaN), after R's exponential draw
+    const mu = expRand() * ((1 - prob) / prob);
+    return mu === Infinity ? Infinity : rpois1(mu);
   });
 }
 
@@ -218,6 +221,10 @@ export function rnbinom(n: number, size: number, options: { prob?: number; mu?: 
   const p = prob!;
   return generate(n, () => {
     if (!Number.isFinite(p) || Number.isNaN(size) || size <= 0 || p <= 0 || p > 1) return NaN;
-    return p === 1 ? 0 : rpois1(rgamma1(sz, (1 - p) / p));
+    if (p === 1) return 0;
+    const v = rpois1(rgamma1(sz, (1 - p) / p));
+    // size = Inf with a fixed prob < 1 puts all the probability at infinity (dnbinom 0, qnbinom Inf): Infinity, where R
+    // returns the draw for size = MAX / 2 (about 9e307); the same variates are drawn, so the stream stays R's
+    return size === Infinity ? Infinity : v;
   });
 }

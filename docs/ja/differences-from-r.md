@@ -208,6 +208,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | expm の `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | 全要素 NaN (2 乗の段階で Inf × 0) | diag(Inf, 1)。溢れた要素は有限の巨大な値を表すので、厳密な 0 との積は 0。1-ノルムが溢れる行列でも無限ループしない |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
+| `rgeom(n, 5e-324)` (約 5.6e-309 未満の prob)、p < 1 の `rnbinom(n, Inf, prob = p)` | NA。約 9e307 (size = MAX / 2 での値) か NA | Infinity。値は double の最大値を超える (rgeom は 1e-15 未満の確率を除いて。rnbinom は確率がすべて無限遠にあり、dnbinom・qnbinom と整合)。同じ乱数を引くので、乱数の状態は R と同じ |
 | `rbeta(n, 1e308, 1e308)` など、約 1e154 を超える形状 (2ab が溢れる) | 0 (Algorithm BB の定数が溢れる) | 平均 a / (a + b)。分布は 1e-77 以内に集中している。同じ一様乱数を引くので、乱数の状態は R と同じ |
 | `rbeta(n, 0, 0, ncp = 0)` (ncp > 0 でも Poisson の回数 0 の成分) | NaN (0 / 0) | 確率 1/2 ずつ 0 か 1 (Beta(0, 0))。非心でない `rbeta(n, 0, 0)` と同じ。ここで一様乱数を 1 個引く (R は引かない) |
 | `dhyper(1, 1e308, 1e308, 1)`、`phyper`、`qhyper`、`rhyper(n, 1e308, 1e308, 1)` (m + n が溢れる) | NaN。rhyper はすべて 0 | 0.5、0.5、…。k / (m + n) が 2^-60 未満なら超幾何分布は倍精度で二項分布 Bin(k, m / (m + n)) と同じなので、それを使う (m / (m + n) は和を作らずに計算) |
