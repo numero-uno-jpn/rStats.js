@@ -13,6 +13,10 @@ const KNOWN: KnownDifference[] = [
   { case: 50, table: "coefficients", row: "Ac:Bq", col: "", reason: `${BIG_MEAN} (R 1.5e-11 from the reference)` },
   { case: 50, table: "rSquared", row: "rSquared", col: "", reason: `${BIG_MEAN} (R 2.8e-12 from the reference)` },
   { case: 50, table: "adjRSquared", row: "adjRSquared", col: "", reason: `${BIG_MEAN} (R 4.0e-12 from the reference)` },
+  // y ~ A against y ~ B (two different factors): neither model is a special case of the other, so no F test (R gives
+  // F 11.10, p 0.0033)
+  { case: 61, table: "compare", row: "2", col: "F", reason: "models not nested: no F test (R tests any pair)", value: NaN },
+  { case: 61, table: "compare", row: "2", col: "Pr(>F)", reason: "models not nested: no F test (R tests any pair)", value: NaN },
 ];
 
 const fixture = loadAnovaFixture("anovaLm");

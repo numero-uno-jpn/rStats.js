@@ -210,6 +210,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `rcond(matrix(c(1e308, 0, 1e308, 1e308), 2))` など、ノルムが溢れる行列 (`triangular = TRUE` と `solve` の条件数の検査も) | `dgecon` のエラー -5 (`triangular = TRUE` では 0)。この行列の `solve` は computationally singular (rcond = 0) で止まる | 0.3。2 の冪で割った行列と同じ値 (逆条件数は尺度によらない)。`solve` は (0, 1e-308) を返す |
 | `qr.solve(qr(matrix(c(1, 2, 2, 4), 2), LAPACK = TRUE), c(3, 6))` (ランク落ちの LAPACK の分解) | (8, -2.5)。LAPACK の分解のランクは常に min(n, p) | "singular matrix in qrSolve"。abs(R_kk) <= tol abs(R_11) (tol は 1e-7) をランク落ちとする |
 | `kappa(matrix(c(1, 2, 2, 4), 2), exact = TRUE, norm = "1")` (厳密に特異、2 以外のノルム) | "system is exactly singular" | Inf。ノルム "2" と同じ (計算上特異な行列は R と同じく止まる) |
+| `anova(lm(y ~ x2), lm(y ~ x1 + x3))` や、入れ子でない glm の `anova()` (どちらのモデルも他方の特別な場合でない) | F 検定 (例では F 1110、p 4.6e-7)、glm では尤度比検定 | 検定しない。F、p 値、検定の列は NaN (`lmerAnova` と同じ)。入れ子かどうかは、パラメータの少ないモデルの列が他方の列空間に入るかを QR のランクで判定する |
+| `summary(glm(...), dispersion = -1)` (`glmAnova`、`glmPredict`、`glmRstandard`、`glmCooksDistance` も) | 標準誤差が NaN (警告あり) | エラー。dispersion は 0 以上の有限値 (0 なら R と同じく標準誤差 0) |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
 | `rgeom(n, 5e-324)` (約 5.6e-309 未満の prob)、p < 1 の `rnbinom(n, Inf, prob = p)` | NA。約 9e307 (size = MAX / 2 での値) か NA | Infinity。値は double の最大値を超える (rgeom は 1e-15 未満の確率を除いて。rnbinom は確率がすべて無限遠にあり、dnbinom・qnbinom と整合)。同じ乱数を引くので、乱数の状態は R と同じ |

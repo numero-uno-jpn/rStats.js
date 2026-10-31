@@ -9,6 +9,7 @@ import { pf1 } from "../distributions/f.js";
 import { ldexp, scaleToUnit } from "../internal/summary.js";
 import type { AovStrataFit, AovStratum } from "./aovStrata.js";
 import type { LmFormulaResult } from "./lm.js";
+import { nestedColumns } from "./estimable.js";
 
 /**
  * An analysis of variance table, in the form of R's printed table.
@@ -129,7 +130,10 @@ function comparisonTable(fits: readonly LmFormulaResult[]): AnovaTable {
     if (i === 0) return [rdf[0]!, back(rss[0]!), NaN, NaN, NaN, NaN];
     const df = rdf[i - 1]! - rdf[i]!;
     const ss = rss[i - 1]! - rss[i]!;
-    let f = df === 0 ? NaN : ss / df / scale;
+    // An F test needs the model with fewer parameters to be a special case of the other (R tests any pair: y ~ x2
+    // against y ~ x1 + x3 gave F 1110); otherwise no test, as lmerAnova
+    const [small, large] = df > 0 ? [fits[i - 1]!, fits[i]!] : [fits[i]!, fits[i - 1]!];
+    let f = df === 0 || !nestedColumns(small.x, large.x) ? NaN : ss / df / scale;
     if (f < 0) f = NaN;
     return [rdf[i]!, back(rss[i]!), df, back(ss), f, Number.isNaN(f) ? NaN : upperF(f, Math.abs(df), rdf[big]!)];
   });

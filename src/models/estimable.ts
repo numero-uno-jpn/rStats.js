@@ -3,7 +3,7 @@
 // fit's model matrix, whose basis follows from the pivoted QR decomposition: for each aliased column k (pivoted
 // position >= rank), the vector with 1 at k and -R11^-1 R12[, k] on the first rank pivoted positions.
 
-import type { QR } from "../linalg/qr.js";
+import { qr, type QR } from "../linalg/qr.js";
 
 /** The warning R gives when some rows are not estimable */
 export const NON_ESTIMABLE_WARNING = 'prediction from rank-deficient fit; attr(*, "non-estim") has doubtful cases';
@@ -40,4 +40,16 @@ export function nonEstimableRows(qr: QR | undefined, rank: number, X: readonly (
     if (basis.some((v) => Math.abs(x.reduce((s, xi, j) => s + xi * v[j]!, 0)) > tol * nx * norm(v))) out.push(r);
   });
   return out;
+}
+
+/**
+ * Whether the columns of the model matrix `small` lie in the column space of `large` (the same rows): the smaller model
+ * is then a special case of the larger one, and their comparison by an F or likelihood ratio test has its usual
+ * meaning. Judged by the rank of [large, small] against that of large (LINPACK's tolerance 1e-7, relative to each
+ * column's norm, so the units of the predictors do not matter)
+ */
+export function nestedColumns(small: readonly (readonly number[])[], large: readonly (readonly number[])[]): boolean {
+  if (small.length === 0 || small[0]!.length === 0) return true;
+  const rl = large.length === 0 || large[0]!.length === 0 ? 0 : qr(large).rank;
+  return qr(large.map((r, i) => [...r, ...small[i]!])).rank === rl;
 }

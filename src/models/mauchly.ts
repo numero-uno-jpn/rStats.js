@@ -165,6 +165,8 @@ export function mauchlyTest(y: MatrixInput, options: MauchlyTestOptions = {}): M
   const xcols = design(options.X ?? "~0");
   const U = contrastCrossprod(S, mcols, xcols);
   const pp = U.length;
+  // X spanning M leaves nothing to test (W was 1 and the p-value NaN; R stops with "'a' is 0-diml")
+  if (pp === 0) throw new RangeError("X spans M: the test has no dimensions");
   const W = sphericityW(U);
   return { statistic: W, statisticName: "W", pValue: mauchlyPValue(W, pp, n, k), method: "Mauchly's test of sphericity" };
 }

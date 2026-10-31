@@ -67,6 +67,8 @@ export interface KnownDifference {
   row: string;
   col: string;
   reason: string;
+  /** A value given deliberately instead of R's (such as NaN for a test that does not apply): the cell passes if it is this value */
+  value?: number;
 }
 
 /** Columns in which a cell also passes within 1e-12 times the column's largest absolute value */
@@ -186,7 +188,7 @@ export class Comparison {
         const rowName = expected.rowNames?.[i] ?? String(i + 1);
         const listed = this.known.find((k) => k.case === index && k.table === name && k.row === rowName && k.col === col);
         if (errR <= TOL) return;
-        if (listed !== undefined && errRef <= TOL) {
+        if (listed !== undefined && (errRef <= TOL || (listed.value !== undefined && Object.is(av, listed.value)))) {
           this.used.add(listed);
           return;
         }

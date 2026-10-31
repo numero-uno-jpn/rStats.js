@@ -671,6 +671,15 @@ function unscaledCovariance(fit: GlmResult): number[][] {
 }
 
 /**
+ * A dispersion given by the user: a non-negative finite number (a negative one gave NaN standard errors, as R's with a
+ * warning; 0 gives standard errors of 0, as R)
+ */
+export function checkDispersion(d: number): number {
+  if (!(d >= 0 && d < Infinity)) throw new RangeError("'dispersion' must be a non-negative finite number");
+  return d;
+}
+
+/**
  * Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates,
  * for a `glm` fit. Equivalent to R's `summary()`.
  *
@@ -691,7 +700,7 @@ export function glmSummary(given: GlmResult, options: GlmSummaryOptions = {}): G
   const warnings = new Warnings();
   const fam = familyOf(fit);
   const estimated = options.dispersion === undefined && !fam.fixedDispersion;
-  const dispersion = options.dispersion === undefined ? dispersionOf(fit, warnings) : ldexp(options.dispersion, -2 * k);
+  const dispersion = options.dispersion === undefined ? dispersionOf(fit, warnings) : ldexp(checkDispersion(options.dispersion), -2 * k);
   const covUnscaled = unscaledCovariance(fit);
   const piv = fit.qr === undefined ? [] : fit.qr.pivot.slice(0, fit.rank);
   const estimate = piv.map((j) => fit.coefficients[j]!);
@@ -821,7 +830,7 @@ export function glmRstandard(given: GlmResult, options: GlmSummaryOptions = {}):
   // on the scaled fit (scaledView): the standardized residuals have no units
   const { fit, k } = scaledView(given);
   const h = glmHatvalues(fit);
-  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(options.dispersion, -2 * k);
+  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(checkDispersion(options.dispersion), -2 * k);
   const r = residualsOf(fit, "deviance").filter((_, i) => fit.priorWeights[i]! > 0);
   const small = 100 * EPS * median(r.map(Math.abs));
   return r.map((v, i) => {
@@ -845,7 +854,7 @@ export function glmCooksDistance(given: GlmResult, options: GlmSummaryOptions = 
   // on the scaled fit (scaledView): Cook's distances have no units
   const { fit, k } = scaledView(given);
   const h = glmHatvalues(fit);
-  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(options.dispersion, -2 * k);
+  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(checkDispersion(options.dispersion), -2 * k);
   const r = residualsOf(fit, "pearson").filter((_, i) => fit.priorWeights[i]! > 0);
   return r.map((v, i) => {
     const c = (v / (1 - h[i]!)) ** 2 * (h[i]! / (disp * fit.rank));
@@ -912,7 +921,7 @@ export function glmPredict(
     if (off.length !== X.length) throw new RangeError("newoffset must have one value per row of newdata");
     eta = X.map((r, i) => r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0) + off[i]!);
   }
-  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(options.dispersion, -2 * k);
+  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(checkDispersion(options.dispersion), -2 * k);
   const rank = fit.rank;
   const piv = fit.qr === undefined ? [] : fit.qr.pivot.slice(0, rank);
   const R = fit.qr?.qr;

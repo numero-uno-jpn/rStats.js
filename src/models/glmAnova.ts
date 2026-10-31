@@ -9,7 +9,8 @@
 import { pf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
 import { ldexp } from "../internal/summary.js";
-import { glmDispersion, refit, scaledView, type GlmModel, type GlmResult, type IrlsFit } from "./glm.js";
+import { nestedColumns } from "./estimable.js";
+import { checkDispersion, glmDispersion, refit, scaledView, type GlmModel, type GlmResult, type IrlsFit } from "./glm.js";
 import { makeFamily, Warnings } from "./glmFamily.js";
 import { scoreStatistic } from "./glmConfint.js";
 
@@ -99,7 +100,7 @@ export function glmAnova(fits: GlmResult | readonly GlmResult[], options: GlmAno
   const views = given.map(scaledView);
   const k = views.every((v) => v.k === views[0]!.k) ? views[0]!.k : 0;
   const list = k === 0 ? given : views.map((v) => v.fit);
-  const table = glmAnovaScaled(list, Array.isArray(fits) && list.length > 1, { ...options, ...(options.dispersion === undefined ? {} : { dispersion: ldexp(options.dispersion, -2 * k) }) });
+  const table = glmAnovaScaled(list, Array.isArray(fits) && list.length > 1, { ...options, ...(options.dispersion === undefined ? {} : { dispersion: ldexp(checkDispersion(options.dispersion), -2 * k) }) });
   if (k === 0) return table;
   const squared = new Set(["Deviance", "Resid. Dev", "Rao", "Cp"]);
   const cols = table.colNames.map((c) => squared.has(c));
@@ -123,6 +124,9 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
   let df: number[];
   let devDiff: number[];
   let score: number[] = [];
+  // rows (of a comparison) whose model with fewer parameters is not a special case of the other: no test (R tests any
+  // pair), as lmerAnova and anova of lm fits
+  const untested = new Set<number>();
   let ref: GlmResult;
   if (!compare) {
     const fit = first;
@@ -155,6 +159,11 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
     list.forEach((f, i) => rows.push({ name: String(i + 1), dfRes: f.dfResidual, dev: f.deviance }));
     df = rows.map((r, i) => (i === 0 ? NaN : rows[i - 1]!.dfRes - r.dfRes));
     devDiff = rows.map((r, i) => (i === 0 ? NaN : rows[i - 1]!.dev - r.dev));
+    list.forEach((f, i) => {
+      if (i === 0 || df[i] === 0) return;
+      const [small, large] = df[i]! > 0 ? [list[i - 1]!, f] : [f, list[i - 1]!];
+      if (!nestedColumns(small.model.x, large.model.x)) untested.add(i);
+    });
     if (test === "Rao") {
       const fr = list.map((f) => ({ dfRes: f.dfResidual, dev: f.deviance, fit: asIrls(f), x: f.model.x, intercept: f.model.intercept }));
       score = rows.map((_, i) => {
@@ -176,7 +185,7 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
   const colNames = [...head];
   const chisqP = (stat: number[]) =>
     rows.map((_, i) => {
-      if (i === 0 || df[i] === 0) return NaN;
+      if (i === 0 || df[i] === 0 || untested.has(i)) return NaN;
       const v = (stat[i]! / dispersion) * Math.sign(df[i]!);
       return v < 0 || Number.isNaN(v) ? NaN : pchisqUpper(v, Math.abs(df[i]!));
     });
@@ -186,13 +195,13 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
     extra = [chisqP(devDiff)];
   } else if (test === "Rao") {
     colNames.push("Rao", "Pr(>Chi)");
-    extra = [score, chisqP(score)];
+    extra = [score.map((v, i) => (untested.has(i) ? NaN : v)), chisqP(score)];
   } else if (test === "F") {
     if (fixed) warnings.add(`using F test with a '${fam.family}' family is inappropriate`);
     if (dfDispersion !== 0) {
       const F = rows.map((_, i) => {
         const v = devDiff[i]! / df[i]! / dispersion;
-        return i === 0 || df[i] === 0 || v < 0 ? NaN : v;
+        return i === 0 || df[i] === 0 || untested.has(i) || v < 0 ? NaN : v;
       });
       colNames.push("F", "Pr(>F)");
       extra = [F, F.map((v, i) => (Number.isNaN(v) ? NaN : pf1(v, Math.abs(df[i]!), dfDispersion, false, false)))];
