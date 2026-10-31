@@ -84,8 +84,13 @@ export function rtriang(n: number, options: { a?: number; b?: number; c?: number
     if (!(Number.isFinite(a) && Number.isFinite(b) && a < b && a <= c && c <= b)) return NaN;
     const u = unifRand();
     const v = unifRand();
-    const cc = (c - a) / (b - a);
-    return a + (b - a) * ((1 - cc) * Math.min(u, v) + cc * Math.max(u, v));
+    // b - a overflows for a range wider than the largest double: then from the halves of a, b and c (exact), the
+    // result doubled back (it lies in [a, b], so it is finite)
+    const wide = !Number.isFinite(b - a);
+    const [ah, bh, ch] = wide ? [a / 2, b / 2, c / 2] : [a, b, c];
+    const cc = (ch - ah) / (bh - ah);
+    const t = ah + (bh - ah) * ((1 - cc) * Math.min(u, v) + cc * Math.max(u, v));
+    return wide ? t * 2 : t;
   });
 }
 

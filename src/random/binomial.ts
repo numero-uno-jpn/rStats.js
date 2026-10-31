@@ -195,7 +195,10 @@ export function rbinom(n: number, size: number, prob: number): number[] {
  * @category Random numbers
  */
 export function rmultinom(n: number, size: number, prob: readonly number[]): number[][] {
-  if (!Number.isFinite(size) || size < 0 || Math.round(size) !== size) throw new RangeError("size must be a non-negative integer");
+  // as R, whose size is an integer: up to 2^31 - 1
+  if (!Number.isFinite(size) || size < 0 || Math.round(size) !== size || size > 2147483647) {
+    throw new RangeError("size must be a non-negative integer up to 2147483647");
+  }
   let sum = 0;
   for (const v of prob) {
     if (!Number.isFinite(v) || v < 0) throw new RangeError("prob must contain non-negative finite numbers");

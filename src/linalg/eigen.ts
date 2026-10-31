@@ -18,6 +18,7 @@
 // - If a nonsymmetric matrix has all real eigenvalues, valuesIm and vectorsIm are omitted (R also returns real results)
 // - NaN or Inf is an error
 
+import { ldexp } from "../internal/summary.js";
 import { gebak, gebal } from "./balance.js";
 import { fromMat, newMat, rangeExponent, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
 
@@ -88,7 +89,7 @@ export function eigen(x: MatrixInput, options: EigenOptions = {}): EigenResult {
   // A matrix of extreme magnitude is scaled by a power of 2 (exact) and the eigenvalues scaled back, so that the
   // iterations neither overflow nor underflow; other matrices are used as given
   const k = rangeExponent(a.data);
-  const as = k === 0 ? a : { ...a, data: a.data.map((v) => v * 2 ** -k) };
+  const as = k === 0 ? a : { ...a, data: a.data.map((v) => ldexp(v, -k)) };
   // The automatic symmetry test is made on the matrix normalised by a power of 2 near its largest |a_ij|, so that it
   // is relative at every scale: R's (all.equal) falls back to an absolute difference when mean |a_ij| <= 100 eps, and
   // takes a small nonsymmetric matrix (such as [[1, 2], [3, 4]] * 1e-60) for a symmetric one
@@ -96,8 +97,8 @@ export function eigen(x: MatrixInput, options: EigenOptions = {}): EigenResult {
   const wantVectors = !(options.onlyValues ?? false);
   const out = symmetric ? symmetricEigen(as, wantVectors) : generalEigen(as, wantVectors);
   if (k !== 0) {
-    out.values = out.values.map((v) => v * 2 ** k);
-    if (out.valuesIm) out.valuesIm = out.valuesIm.map((v) => v * 2 ** k);
+    out.values = out.values.map((v) => ldexp(v, k));
+    if (out.valuesIm) out.valuesIm = out.valuesIm.map((v) => ldexp(v, k));
   }
   return out;
 }

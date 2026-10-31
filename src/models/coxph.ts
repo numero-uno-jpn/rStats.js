@@ -14,6 +14,7 @@ import { pchisq } from "../distributions/chisq.js";
 import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
 import { numberLevels } from "../internal/levels.js";
+import { mean } from "../internal/summary.js";
 import { Warnings } from "./glmFamily.js";
 import { maxOf } from "../internal/extremes.js";
 
@@ -133,9 +134,9 @@ function mergeTiedTimes(time: readonly number[]): number[] {
   const tol = Math.sqrt(2 ** -52);
   const distinct = Array.from(new Set(time.filter((t) => Number.isFinite(t)))).sort((a, b) => a - b);
   if (distinct.length < 2) return time.slice();
-  let meanAbs = 0;
-  for (const y of distinct) meanAbs += Math.abs(y);
-  meanAbs /= distinct.length;
+  // the mean of |time| without overflow (a plain sum of times near 1e308 was Infinity, so every relative gap was 0 and
+  // distinct times were merged: coxph gave a coefficient of 0); a gap that overflows is Infinity, a distinct time
+  const meanAbs = mean(distinct.map(Math.abs));
   const cuts = [distinct[0]!];
   for (let k = 0; k + 1 < distinct.length; k++) {
     const gap = distinct[k + 1]! - distinct[k]!;

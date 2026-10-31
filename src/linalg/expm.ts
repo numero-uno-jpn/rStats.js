@@ -19,6 +19,7 @@
 
 import { fromMat, newMat, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
 import { infNorm, oneNorm } from "./norm.js";
+import { ldexp } from "../internal/summary.js";
 import { gebal } from "./balance.js";
 import { solve } from "./solve.js";
 
@@ -123,6 +124,15 @@ const PADE13 = [
   670442572800, 33522128640, 1323241920, 40840800, 960960, 16380, 182, 1,
 ];
 
+/** log2 of the 1-norm of A (given as nu), from A divided by a power of 2 when nu overflows */
+function log2OneNorm(A: Mat, nu: number): number {
+  if (nu < Infinity) return Math.log2(nu);
+  let mx = 0;
+  for (const v of A.data) mx = Math.max(mx, Math.abs(v));
+  const k = Math.floor(Math.log2(mx));
+  return Math.log2(oneNorm({ ...A, data: A.data.map((v) => ldexp(v, -k)) })) + k;
+}
+
 /** Scaling and squaring with a Padé approximant: exp(A) for the (balanced) matrix A */
 function pade(A: Mat): Mat {
   const n = A.nrow;
@@ -147,8 +157,11 @@ function pade(A: Mat): Mat {
     U = mul(A, u);
     V = v;
   } else {
-    s = Math.max(0, Math.ceil(Math.log2(nu / 5.4)));
-    const B = scale(A, 1 / 2 ** s);
+    // the norm's log from the matrix divided by a power of 2 when the column sums overflow (s was then Infinity, and
+    // the squaring below never ended), and A / 2^s formed in two steps (1 / 2^s is 0 from s = 1024 on, which made
+    // B = 0 and gave the identity instead of exp(A))
+    s = Math.max(0, Math.ceil(log2OneNorm(A, nu) - Math.log2(5.4)));
+    const B = { ...A, data: A.data.map((v) => ldexp(v, -s)) };
     const B2 = mul(B, B);
     const B4 = mul(B2, B2);
     const B6 = mul(B2, B4);
@@ -168,7 +181,7 @@ function pade(A: Mat): Mat {
     vpu.data[i] = V.data[i]! + U.data[i]!;
   }
   let X = toMat(solve(fromMat(vmu), fromMat(vpu)));
-  for (let k = 0; k < s; k++) X = mul(X, X);
+  for (let k = 0; k < s; k++) X = mulSquaring(X, X);
   return X;
 }
 
@@ -197,7 +210,7 @@ function scaledPair(A: Mat, p: number): { A: Mat; N: number } {
 
 /** R <- R R, p times */
 function squareRepeatedly(R: Mat, p: number): Mat {
-  for (let k = 0; k < p; k++) R = mul(R, R);
+  for (let k = 0; k < p; k++) R = mulSquaring(R, R);
   return R;
 }
 
@@ -308,6 +321,31 @@ function identity(n: number): Mat {
 }
 
 /** Matrix product (inner products in increasing order of the summation index) */
+/**
+ * A B for the squaring phase, where entries may have overflowed to ±Infinity: such an entry stands for a finite value
+ * too large to represent, so its product with an exact 0 is 0, not NaN (exp(diag(1e308, 0)) is diag(Inf, 1)). The same
+ * as mul for finite entries; NaN still propagates
+ */
+function mulSquaring(A: Mat, B: Mat): Mat {
+  const n = A.nrow;
+  const p = A.ncol;
+  const q = B.ncol;
+  const C = newMat(n, q);
+  for (let j = 0; j < q; j++) {
+    for (let i = 0; i < n; i++) {
+      let s = 0;
+      for (let k = 0; k < p; k++) {
+        const a = A.data[i + k * n]!;
+        const b = B.data[k + j * p]!;
+        if ((a === 0 && Math.abs(b) === Infinity) || (b === 0 && Math.abs(a) === Infinity)) continue;
+        s += a * b;
+      }
+      C.data[i + j * n] = s;
+    }
+  }
+  return C;
+}
+
 function mul(A: Mat, B: Mat): Mat {
   const n = A.nrow;
   const p = A.ncol;

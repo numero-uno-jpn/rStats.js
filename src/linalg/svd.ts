@@ -11,6 +11,7 @@
 
 import { fromMat, newMat, rangeExponent, toMat, transpose, type Mat, type MatrixInput } from "./matrix.js";
 import { larfg, larfLeft } from "./qr.js";
+import { ldexp } from "../internal/summary.js";
 
 /**
  * Options for {@link svd}.
@@ -71,9 +72,9 @@ export function svd(x: MatrixInput, options: SvdOptions = {}): SvdResult {
   const wide = a.nrow < a.ncol;
   // A matrix of extreme magnitude is scaled by a power of 2 (exact) and the singular values scaled back
   const s = rangeExponent(a.data);
-  const as = s === 0 ? a : { ...a, data: a.data.map((v) => v * 2 ** -s) };
+  const as = s === 0 ? a : { ...a, data: a.data.map((v) => ldexp(v, -s)) };
   const r = decompose(wide ? transpose(as) : as, wide ? nv : nu, wide ? nu : nv);
-  const out: SvdResult = { d: Array.from(r.d, (v) => v * 2 ** s) };
+  const out: SvdResult = { d: Array.from(r.d, (v) => ldexp(v, s)) };
   const [U, V] = wide ? [r.v, r.u] : [r.u, r.v];
   if (nu > 0) out.u = fromMat(firstColumns(U!, nu));
   if (nv > 0) out.v = fromMat(firstColumns(V!, nv));
@@ -83,8 +84,8 @@ export function svd(x: MatrixInput, options: SvdOptions = {}): SvdResult {
 /** Singular values only (decreasing) */
 export function svdValues(a: Mat): Float64Array {
   const s = rangeExponent(a.data);
-  const as = s === 0 ? a : { ...a, data: a.data.map((v) => v * 2 ** -s) };
-  return decompose(as.nrow < as.ncol ? transpose(as) : as, 0, 0).d.map((v) => v * 2 ** s);
+  const as = s === 0 ? a : { ...a, data: a.data.map((v) => ldexp(v, -s)) };
+  return decompose(as.nrow < as.ncol ? transpose(as) : as, 0, 0).d.map((v) => ldexp(v, s));
 }
 
 function firstColumns(m: Mat, k: number): Mat {

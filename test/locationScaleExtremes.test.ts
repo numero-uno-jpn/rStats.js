@@ -201,3 +201,38 @@ describe("integer parameters of the random generators, as R's R_forceint", () =>
     expect(R.runif(1)[0]).toBe(0.2655086631421);
   });
 });
+
+describe("linear algebra, coxph and generators near the ends of the range", () => {
+  it("eigen and svd of the smallest subnormal", async () => {
+    const R = await import("../src/index.js");
+    expect((R.eigen([[Number.MIN_VALUE]]) as { values: number[] }).values).toEqual([Number.MIN_VALUE]);
+    expect((R.svd([[Number.MIN_VALUE]]) as { d: number[] }).d).toEqual([Number.MIN_VALUE]);
+  });
+  it("expm with entries near the largest double ends and gives the limits", async () => {
+    const R = await import("../src/index.js");
+    const higham = { method: "Higham08" } as Parameters<typeof R.expm>[1];
+    expect(R.expm([[1e308, 0], [0, 0]], higham)).toEqual([[Infinity, 0], [0, 1]]);
+    expect(R.expm([[-1e308, 0], [0, -1e308]], higham)).toEqual([[0, 0], [0, 0]]);
+    const full = R.expm([[1e308, 1e308], [1e308, 1e308]], higham) as number[][];
+    expect(full.flat().every((v) => !Number.isFinite(v))).toBe(true); // ends (it never did)
+  });
+  it("coxph keeps distinct times near 1e308 apart", async () => {
+    const R = await import("../src/index.js");
+    const x = [[0.3], [1.2], [-0.5], [0.8]];
+    const big = R.coxph([1e308, 1.1e308, 1.2e308, 1.3e308], [1, 1, 1, 1], x).coefficients[0]!;
+    expect(big).toBeCloseTo(-0.0734150622315719, 12); // R 4.5.2, also for times 1, 2, 3, 4
+    // a time censored at Infinity is at risk throughout: R 4.5.2 stops ("NA/NaN/Inf in foreign function call"),
+    // with the censoring at 1e6 it gives 1.1475221865923
+    expect(R.coxph([1, 2, Infinity, 4], [1, 1, 0, 1], x).coefficients[0]).toBeCloseTo(1.1475221865923, 12);
+  });
+  it("qr with an infinite tolerance takes every column as dependent", async () => {
+    const R = await import("../src/index.js");
+    expect((R.qr([[1, 3], [2, 4]], { tol: Infinity }) as { rank: number }).rank).toBe(0);
+  });
+  it("rtriang on a range wider than the largest double, rmultinom's integer size", async () => {
+    const R = await import("../src/index.js");
+    const t = (R as unknown as { rtriang: (n: number, o: object) => number[] }).rtriang(50, { a: -1e308, b: 1e308, c: 0 });
+    expect(t.every((v) => Number.isFinite(v) && v >= -1e308 && v <= 1e308)).toBe(true);
+    expect(() => R.rmultinom(1, 2 ** 31, [0.5, 0.5])).toThrow("up to 2147483647");
+  });
+});
