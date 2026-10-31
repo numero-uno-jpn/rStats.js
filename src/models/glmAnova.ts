@@ -110,6 +110,11 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
   const warnings = new Warnings();
   const first = list[0]!;
   const fam = makeFamily(first.model.familySpec);
+  // deviances of different families (or links) are not on one likelihood: no test compares them (R uses the first
+  // fit's family for all)
+  if (list.some((f) => { const g = makeFamily(f.model.familySpec); return g.family !== fam.family || g.name !== fam.name || g.varianceName !== fam.varianceName; })) {
+    throw new RangeError("models were not all fitted with the same family and link");
+  }
   const fixed = fam.fixedDispersion;
   const test = options.test === undefined ? (options.dispersion !== undefined || fixed ? "Chisq" : "F") : options.test;
   if (test !== false && !["Rao", "LRT", "Chisq", "F", "Cp"].includes(test)) throw new RangeError(`invalid 'test': ${String(test)}`);

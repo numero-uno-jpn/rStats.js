@@ -214,6 +214,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | expm's `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | NaN in every entry (Inf * 0 in the squaring) | diag(Inf, 1): an overflowed entry stands for a finite value, so its product with an exact 0 is 0; a matrix whose 1-norm overflows no longer loops forever |
 | `coxph(Surv(time, status) ~ x)` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the fit, with the subject at risk at every event time (the same as for a censoring time beyond the last event) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (every column is taken as dependent) |
+| `survdiff(Surv(c(1, 1), c(1, 1)) ~ c("A", "B"))` and other data whose variance matrix is singular | "system is exactly singular" | the generalized inverse on rank(V) degrees of freedom (`df` in the result); with no information on the groups (rank 0) chisq 0, df 0, p NaN |
+| `survdiff` or `survfit` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the subject at risk throughout (an event at `Inf` is an error) |
 | lmerTest's `anova(fit, type = 1)` (and type 2) with a predictor in small units, e.g. `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | the type I F of x1 becomes its type II F (14.45 instead of 13.96): the Doolittle factorisation compares pivots and entries with 1e-6 in the units of the data; a bug in lmerTest (R 4.5.2, checked by running it) | the same tests at any units (the factorisation on the cross-product matrix scaled to unit diagonal) |
 | `anova()` of lmer fits of different rows of the data or different responses with the same number of rows | a likelihood ratio test | an error (lme4 compares only the number of rows) |
 
@@ -372,6 +374,13 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`lmerAnova` comparing fits that differ in a variance component** uses the chi-squared distribution, as lme4: the
   null value 0 is on the boundary, so the p-value is conservative (the reference distribution is a mixture of
   chi-squared distributions, 0.5 chi2_0 + 0.5 chi2_1 for a single random intercept).
+- **Inputs without meaning** that R lets through: an infinite count in `chisqTest` (R returns NaN), an infinite
+  offset in `glm` (R stops on the working response; rStats.js had returned coefficients of 0), and a distribution
+  function returning values outside [0, 1] in `ksTest` (R reports D = 1.5 and p = 0 for one returning 1.5) are errors.
+- **`glmAnova`** rejects fits of different families or links (R uses the first fit's family for all).
+- **`glmConfint`** gives NaN limits when the fit, or a restricted fit of the profile, does not converge.
+- **The inverse Gaussian family** requires a positive mean (R's validmu accepts any): a step of the iterations to a
+  mean of 0 or below is halved, where R goes on to NaN working weights.
 - **`omega`** adds a warning when the minres fit (L-BFGS-B) does not converge ("minres did not converge ...");
   psych's `fa` goes on from the last point silently. The values are the same.
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);

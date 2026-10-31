@@ -208,6 +208,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | expm の `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | 全要素 NaN (2 乗の段階で Inf × 0) | diag(Inf, 1)。溢れた要素は有限の巨大な値を表すので、厳密な 0 との積は 0。1-ノルムが溢れる行列でも無限ループしない |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
+| `survdiff(Surv(c(1, 1), c(1, 1)) ~ c("A", "B"))` など、分散行列が特異になるデータ | "system is exactly singular" | 一般化逆行列を使い、自由度は rank(V) (結果の `df`)。群について情報がない (rank 0) ときは chisq 0、df 0、p NaN |
+| 打ち切り時刻が `Inf` の `survdiff`・`survfit` | "NA/NaN/Inf in foreign function call" | その個体は最後までリスク集合に入る (`Inf` でのイベントはエラー) |
 | 小さな単位の説明変数を含む lmerTest の `anova(fit, type = 1)` (type 2 も)。例: `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | x1 の type I の F が type II の F になる (13.96 が 14.45)。Doolittle 分解のピボットと要素を、データの単位のまま 1e-6 と比べるため。lmerTest のバグ (R 4.5.2 で実行して確認) | 単位によらず同じ検定 (分解を、対角を 1 に正規化した交差積行列で行う) |
 | 行数は同じだが使った行や応答が異なる lmer の当てはめの `anova()` | 尤度比検定を返す | エラー (lme4 は行数だけを比べる) |
 
@@ -355,6 +357,12 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`qr`** は負の `tol` を拒否します (R は受け付け、どの列も従属にならない)。`tol: Infinity` は rank 0 です。
 - **分散成分が異なる当てはめを比べる `lmerAnova`** は、lme4 と同じくカイ二乗分布を使います。帰無仮説の値 0 が境界にあるので
   p 値は保守的です (参照分布はカイ二乗の混合。ランダム切片 1 つなら 0.5 χ²_0 + 0.5 χ²_1)。
+- **R が通してしまう意味のない入力**はエラーです: `chisqTest` の無限大の度数 (R は NaN)、`glm` の無限大の offset (R は作業応答で
+  止まる。rStats.js は係数 0 を返していた)、`ksTest` で [0, 1] の外の値を返す分布関数 (R は 1.5 を返す関数で D = 1.5、p = 0)。
+- **`glmAnova`** は、分布族や link が違う当てはめを拒否します (R は最初の当てはめの分布族をすべてに使う)。
+- **`glmConfint`** は、当てはめ、またはプロファイルの制約付き当てはめが収束しないとき、その限界を NaN にします。
+- **逆ガウス分布族**は平均が正であることを求めます (R の validmu はどの値も受け付ける)。反復の途中で平均が 0 以下になるステップは
+  半分にします。R はそのまま作業重みが NaN になります。
 - **`omega`** は、minres の当てはめ (L-BFGS-B) が収束しないとき警告を出します ("minres did not converge ...")。psych の `fa` は
   何も言わずに最後の点から先へ進みます。値は同じです。
 - **`mauchlyTest`** は、`y` に欠測値がある行と `group` が欠測の行を除きます (`lm(y ~ group)` と同じ)。無限大はエラーです。

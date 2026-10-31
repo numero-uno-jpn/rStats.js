@@ -227,7 +227,8 @@ function checkExpected(E: readonly number[]): void {
 
 function goodnessOfFit(x: number[], options: ChisqTestOptions): ChisqTestResult {
   const k = x.length;
-  if (x.some((v) => Number.isNaN(v) || v < 0)) throw new RangeError("all entries of 'x' must be non-negative and finite");
+  // (R lets Infinity through and returns NaN)
+  if (x.some((v) => !(v >= 0 && v < Infinity))) throw new RangeError("all entries of 'x' must be non-negative and finite");
   if (k < 2) throw new TypeError("'x' must have at least 2 elements");
   const n = ddSum(x);
   if (!(n > 0)) throw new RangeError("at least one entry of 'x' must be positive");

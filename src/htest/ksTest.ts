@@ -102,6 +102,8 @@ export function ksTest(
     let dminus = -Infinity;
     for (let i = 0; i < n; i++) {
       const f = y(xs[i]!);
+      // a distribution function takes values in [0, 1] (R uses whatever it returns: D = 1.5 and p = 0 for 1.5)
+      if (!(f >= 0 && f <= 1)) throw new RangeError(`the distribution function returned ${f} at ${xs[i]}, not a value in [0, 1]`);
       dplus = Math.max(dplus, (i + 1) / n - f);
       dminus = Math.max(dminus, f - i / n);
     }

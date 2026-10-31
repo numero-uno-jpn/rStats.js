@@ -347,7 +347,9 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
         devContribution: (y, mu, w) => -2 * w * ((y === 0 ? 0 : logWarn(y / mu)) - (y - mu) / mu),
       };
     case "inverse.gaussian":
-      return { ...base, variance: (m) => m * m * m, muOk: () => true, devContribution: inverseGaussianDev };
+      // the mean of an inverse Gaussian is positive (R's validmu accepts any mean, and a negative one turns the
+      // working weights NaN); a step to an invalid mean is halved
+      return { ...base, variance: (m) => m * m * m, muOk: (m) => Number.isFinite(m) && m > 0, devContribution: inverseGaussianDev };
     case "quasi": {
       const vname = spec.variance ?? "constant";
       const q = quasiVariance(vname);

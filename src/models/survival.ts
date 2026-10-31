@@ -11,6 +11,7 @@ import { pchisq } from "../distributions/chisq.js";
 import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
 import { levelText, numberLevels } from "../internal/levels.js";
+import { eigen } from "../linalg/eigen.js";
 import { solve } from "../linalg/solve.js";
 import { midpoint } from "../internal/extremes.js";
 
@@ -42,7 +43,12 @@ export interface SurvdiffResult {
   var: number[][];
   /** Chi-squared statistic */
   chisq: number;
-  /** Upper chi-squared tail on (number of groups with a positive expected count) - 1 degrees of freedom */
+  /**
+   * Degrees of freedom: (number of groups with a positive expected count) - 1, or the rank of the variance matrix of
+   * those groups (all but the first) when it is singular
+   */
+  df: number;
+  /** Upper chi-squared tail on `df` degrees of freedom (NaN for df = 0: the data carry no information on the groups) */
   pvalue: number;
 }
 
@@ -119,6 +125,9 @@ function prepare(
     if (Number.isNaN(time[i]!) || Number.isNaN(status[i]!) || (group !== undefined && isMissing(group[i]))) continue;
     const s = status[i]!;
     if (s !== 0 && s !== 1) throw new RangeError("'status' must be 0 (censored) or 1 (event)");
+    // a subject censored at Infinity is at risk throughout (R stops on any infinite time); an event cannot happen at an
+    // infinite time, nor anything at -Infinity
+    if (time[i] === -Infinity || (time[i] === Infinity && s === 1)) throw new RangeError("event times must be finite");
     keep.push(i);
   }
   if (keep.length === 0) throw new RangeError("no observations without missing values");
@@ -219,14 +228,42 @@ export function survdiff(
   // chi-squared on the groups with a positive expected count, dropping the first of them
   const used = expected.map((e, g) => (e > 0 ? g : -1)).filter((g) => g >= 0);
   let chisq = 0;
+  let df = Math.max(used.length - 1, 0);
   if (used.length >= 2) {
     const r = used.slice(1);
     const u = r.map((g) => observed[g]! - expected[g]!);
-    const x = solve(r.map((g) => r.map((h) => V[g]![h]!)), u);
-    chisq = u.reduce((s, ui, a) => s + ui * x[a]!, 0);
+    const Vr = r.map((g) => r.map((h) => V[g]![h]!));
+    try {
+      const x = solve(Vr, u);
+      chisq = u.reduce((s, ui, a) => s + ui * x[a]!, 0);
+    } catch {
+      // A singular variance matrix (all at risk failing at once, or groups that carry no information): u' V^- u with
+      // the generalized inverse, on rank(V) degrees of freedom, which is the chi-squared statistic of the contrasts
+      // the data inform (R stops: "system is exactly singular")
+      ({ chisq, df } = pseudoQuadratic(Vr, u));
+    }
   }
-  const pvalue = pchisq(chisq, used.length - 1, { lowerTail: false });
-  return { n, groups: labels, obs: observed, exp: expected, var: V, chisq, pvalue };
+  const pvalue = df === 0 ? NaN : pchisq(chisq, df, { lowerTail: false });
+  return { n, groups: labels, obs: observed, exp: expected, var: V, chisq, df, pvalue };
+}
+
+/**
+ * u' V^- u for a symmetric positive semi-definite V by its eigen decomposition, over the eigenvalues above 1e-10 of the
+ * largest (rank 0, chisq 0 when there are none), and that rank
+ */
+function pseudoQuadratic(V: number[][], u: number[]): { chisq: number; df: number } {
+  const e = eigen(V, { symmetric: true });
+  const values = e.values;
+  const top = values.reduce((a, b) => Math.max(a, b), 0);
+  let chisq = 0;
+  let df = 0;
+  values.forEach((l, k) => {
+    if (!(top > 0 && l > 1e-10 * top)) return;
+    const q = u.reduce((s, ui, i) => s + ui * e.vectors![i]![k]!, 0);
+    chisq += (q * q) / l;
+    df++;
+  });
+  return { chisq, df };
 }
 
 /**

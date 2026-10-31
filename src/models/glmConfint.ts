@@ -106,6 +106,11 @@ export function glmConfint(
   });
   const B = new Array<number>(p).fill(NaN);
   cols.forEach((j, k) => (B[j] = full.fit.coefficients[k]!));
+  // the profile is that of the maximum likelihood fit: without a converged fit there is none (NaN limits)
+  if (!full.fit.converged) return { lower: parm.map(() => NaN), upper: parm.map(() => NaN) };
+  // set when a restricted fit of the profile does not converge: its deviance is not the profile's, so the limit
+  // being searched is NaN rather than a root of a wrong function
+  let unconverged = false;
   const convergedFit: GlmResult = {
     ...fit,
     coefficients: B,
@@ -130,6 +135,10 @@ export function glmConfint(
       etastart: eta0,
       extraOffset: model.x.map((r) => r[j]! * b),
     }).fit;
+    if (!restricted.converged) {
+      unconverged = true;
+      return NaN;
+    }
     const stat =
       test === "LRT"
         ? restricted.deviance - full.fit.deviance
@@ -144,6 +153,7 @@ export function glmConfint(
     if (Number.isNaN(B[j]!)) return;
     for (const side of [0, 1] as const) {
       const dir = side === 0 ? -1 : 1;
+      unconverged = false;
       let far = NaN;
       let zFar = NaN;
       for (let e = 0; e <= 30; e++) {
@@ -155,11 +165,18 @@ export function glmConfint(
           break;
         }
       }
-      if (Number.isNaN(far)) continue;
+      if (Number.isNaN(far) || unconverged) continue;
       const f = (b: number) => (b === B[j] ? -cut[side] : zStat(j, b) - cut[side]);
       const [lo, hi] = side === 0 ? [far, B[j]!] : [B[j]!, far];
       const [fLo, fHi] = side === 0 ? [zFar - cut[side], -cut[side]] : [-cut[side], zFar - cut[side]];
-      const root = uniroot(f, lo, hi, { tol: 1e-14 * se[j]!, maxIter: 500, fLower: fLo, fUpper: fHi });
+      let root: number;
+      try {
+        root = uniroot(f, lo, hi, { tol: 1e-14 * se[j]!, maxIter: 500, fLower: fLo, fUpper: fHi });
+      } catch (err) {
+        if (!unconverged) throw err;
+        root = NaN;
+      }
+      if (unconverged) root = NaN;
       if (side === 0) lower[k] = root;
       else upper[k] = root;
     }

@@ -463,6 +463,8 @@ export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: G
   const priorGiven = wGiven === undefined ? new Array<number>(n).fill(1) : wGiven.filter((_, i) => keep[i]);
   if (priorGiven.some((v) => v < 0)) throw new RangeError("negative weights not allowed");
   const offset = oGiven === undefined ? new Array<number>(n).fill(0) : oGiven.filter((_, i) => keep[i]);
+  // as R ("NA/NaN/Inf in 'y'" there, from the working response); an infinite offset gave coefficients of 0
+  if (offset.some((v) => !Number.isFinite(v))) throw new RangeError("the offset must be finite");
   const nx = xr.length > 0 ? xr[0]!.length : 0;
   const columnNames = [...(intercept ? ["(Intercept)"] : []), ...Array.from({ length: nx }, (_, j) => `x${j + 1}`)];
   const p = columnNames.length;
