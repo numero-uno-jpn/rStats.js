@@ -512,7 +512,11 @@ function strataEffectSize(model: StrataModel, kind: Kind, options: EtaSquaredOpt
     }),
     warnings: [],
   };
-  if (!ez) out.groups = rows.map((r) => r.stratum.name);
+  if (!ez) {
+    out.groups = rows.map((r) => r.stratum.name);
+    // the warnings of the fit (or of its summary), such as "Error() model is singular"
+    out.warnings = [...(isStrataFit(model) || isStrataSummary(model) ? model.warnings : [])];
+  }
   return out;
 }
 

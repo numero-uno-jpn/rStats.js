@@ -369,6 +369,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `offset()`)、バッククォートの名前、変換した応答には対応しません。先に列を計算してください。
   対比は `contr.treatment` (既定)、`contr.sum`、`contr.helmert` です (`lmer` では `contr.poly` も)。解析できない formula は、
   R の構文エラーの代わりに "invalid formula: ..." を投げます。
+- **`Error()` 付きの `aov` の警告** ("Error() model is singular" など) は、その `aovSummary` と、当てはめや要約から計算した
+  効果量の結果にも引き継ぎます (R は当てはめのときだけ警告を出します)。
 - **`dunnTest`** は値を数として順位づけます。dunn.test 1.4.2 は、群を文字列のベクトルで渡すと値を文字列として
   順位づけ (10.06 が 8.88 より前)、因子で渡すと数として順位づけます。`dunnTest` は後者を再現します。
 - **R がデータの表示で締めくくる `aovEz` のメッセージ** (欠測値で除いた id、被験者内の空のセル、

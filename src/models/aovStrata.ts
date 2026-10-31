@@ -155,7 +155,10 @@ export function aovStrataFit(
   if (re < pe) warnings.push("Error() model is singular");
   const kept = qe?.pivot.slice(0, re) ?? [];
   const toDD = (v: readonly number[]): DD[] => v.map((t): DD => [t, 0]);
-  const tcols = dt.colNames.map((_, j) => toDD(dt.x.map((r) => r[j]!)));
+  // each treatment column divided by its own power of 2 (exact): a stratum's sums of squares depend only on the space
+  // the columns span, and the test of a column's projection is a ratio, but its squares overflowed for a covariate
+  // around 1e200 and the term was dropped from every stratum
+  const tcols = dt.colNames.map((_, j) => toDD(scaleToUnit([dt.x.map((r) => r[j]!)]).groups[0]!));
   // the response scaled by 2^-k (exact, src/internal/summary.ts), so that its sums of squares stay in range
   const { groups: scaledY, k: yScale } = scaleToUnit([y]);
   const { fit, qtv } = ddLeastSquaresMulti(

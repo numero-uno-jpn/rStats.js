@@ -231,7 +231,8 @@ export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | Ao
 export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | AovStrataSummary {
   if (typeof fit === "object" && fit !== null && (fit as AovStrataFit).multistratum === true) {
     const f = fit as AovStrataFit;
-    const summary: AovStrataSummary = { strata: f.strata.filter((s) => s.stratum !== "Error: (Intercept)").map((s) => ({ ...s })), warnings: [] };
+    // (with the fit's warnings, such as "Error() model is singular": they were left out)
+    const summary: AovStrataSummary = { strata: f.strata.filter((s) => s.stratum !== "Error: (Intercept)").map((s) => ({ ...s })), warnings: [...f.warnings] };
     const scaled = scaledTables.get(f);
     if (Array.isArray(scaled)) scaledTables.set(summary, scaled.filter((_, i) => f.strata[i]!.stratum !== "Error: (Intercept)"));
     return summary;
