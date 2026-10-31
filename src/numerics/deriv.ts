@@ -32,10 +32,26 @@ interface Steps {
   h0: number[];
 }
 
+function checkEps(eps: number): void {
+  if (!(Number.isFinite(eps) && eps !== 0)) throw new RangeError("'eps' must be a finite nonzero number");
+}
+
+/** The step of method "simple" */
+function simpleEps(options: DerivOptions): number {
+  const eps = options.eps ?? 1e-4;
+  checkEps(eps);
+  return eps;
+}
+
 function steps(x: readonly number[], options: DerivOptions, d0: number): Steps {
   const eps = options.eps ?? 1e-4;
   const d = options.d ?? d0;
   const zeroTol = options.zeroTol ?? Math.sqrt(Number.EPSILON / 7e-7);
+  // a step of 0 or a non-finite step defines no difference quotient (numDeriv: an error for d = 0, NaN for eps = 0);
+  // negative steps are differences taken the other way, as in numDeriv
+  if (!(Number.isFinite(d) && d !== 0)) throw new RangeError("'d' must be a finite nonzero number");
+  checkEps(eps);
+  if (!(Number.isFinite(zeroTol) && zeroTol >= 0)) throw new RangeError("'zeroTol' must be a non-negative finite number");
   const r = options.r ?? 4;
   if (!(Number.isInteger(r) && r >= 1)) throw new RangeError("'r' must be a positive integer");
   return { eps, r, h0: x.map((v) => Math.abs(d * v) + (Math.abs(v) < zeroTol ? eps : 0)) };
@@ -77,7 +93,7 @@ export function grad(func: (x: number[]) => number, x: readonly number[], option
   const xs = [...x];
   const n = xs.length;
   if (method(options) === "simple") {
-    const eps = options.eps ?? 1e-4;
+    const eps = simpleEps(options);
     const f0 = func([...xs]);
     return xs.map((_, i) => (func(shifted(xs, i, eps)) - f0) / eps);
   }
@@ -115,7 +131,7 @@ export function jacobian(func: (x: number[]) => readonly number[], x: readonly n
   const f0 = Array.from(func([...xs]));
   const J = f0.map(() => new Array<number>(n).fill(NaN));
   if (method(options) === "simple") {
-    const eps = options.eps ?? 1e-4;
+    const eps = simpleEps(options);
     for (let j = 0; j < n; j++) {
       const f1 = func(shifted(xs, j, eps));
       f0.forEach((v, i) => (J[i]![j] = (f1[i]! - v) / eps));

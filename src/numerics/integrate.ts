@@ -155,9 +155,10 @@ export function optimize(
   if (!Number.isFinite(upper)) throw new RangeError("invalid 'xmax' value");
   if (!(lower < upper)) throw new RangeError("'xmin' not less than 'xmax'");
   const fn = maximum ? (x: number) => -f(x) : f;
-  // upper - lower overflows (both finite): search over u = x/2 on (lower/2, upper/2) with tol/2 (the search did not
-  // return: optimize((x / 1e308)^2, -1e308, 1e308))
-  const x = Number.isFinite(upper - lower)
+  // upper - lower or upper + lower overflows (both finite): search over u = x/2 on (lower/2, upper/2) with tol/2 (the
+  // search did not return: optimize((x / 1e308)^2, -1e308, 1e308), and with the midpoint 0.5 (a + b) = Infinity,
+  // optimize((x / 1e308 - 1.05)^2, 1e308, 1.1e308); R too)
+  const x = Number.isFinite(upper - lower) && Number.isFinite(upper + lower)
     ? localMin(fn, lower, upper, tol).x
     : 2 * localMin((u) => fn(2 * u), lower * 0.5, upper * 0.5, tol * 0.5).x;
   return { optimum: x, objective: f(x) };

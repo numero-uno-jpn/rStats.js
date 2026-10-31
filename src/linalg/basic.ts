@@ -209,7 +209,9 @@ function triangularSolve(
 
 /**
  * Solve op(A) X = B, overwriting B with X (dtrsm with SIDE = 'L', DIAG = 'N').
- * Only the upper-left n x n triangle of A is used. B has n rows
+ * Only the upper-left n x n triangle of A is used. B has n rows. Coefficients of exactly 0 are skipped: an overflowed
+ * component stands for a finite value, and 0 * Infinity = NaN spoiled the components that do not depend on it
+ * (backsolve(diag(1e-308, 2), c(1, 2)) gave NaN, Infinity; R too)
  */
 export function trsm(A: Mat, n: number, B: Mat, upper: boolean, trans: boolean): void {
   const lda = A.nrow;
@@ -223,7 +225,7 @@ export function trsm(A: Mat, n: number, B: Mat, upper: boolean, trans: boolean):
         if (b[o + k] !== 0) {
           b[o + k]! /= a[k + k * lda]!;
           const bk = b[o + k]!;
-          for (let i = 0; i < k; i++) b[o + i]! -= bk * a[i + k * lda]!;
+          for (let i = 0; i < k; i++) if (a[i + k * lda] !== 0) b[o + i]! -= bk * a[i + k * lda]!;
         }
       }
     } else if (!trans) {
@@ -231,19 +233,19 @@ export function trsm(A: Mat, n: number, B: Mat, upper: boolean, trans: boolean):
         if (b[o + k] !== 0) {
           b[o + k]! /= a[k + k * lda]!;
           const bk = b[o + k]!;
-          for (let i = k + 1; i < n; i++) b[o + i]! -= bk * a[i + k * lda]!;
+          for (let i = k + 1; i < n; i++) if (a[i + k * lda] !== 0) b[o + i]! -= bk * a[i + k * lda]!;
         }
       }
     } else if (upper) {
       for (let i = 0; i < n; i++) {
         let t = b[o + i]!;
-        for (let k = 0; k < i; k++) t -= a[k + i * lda]! * b[o + k]!;
+        for (let k = 0; k < i; k++) if (a[k + i * lda] !== 0) t -= a[k + i * lda]! * b[o + k]!;
         b[o + i] = t / a[i + i * lda]!;
       }
     } else {
       for (let i = n - 1; i >= 0; i--) {
         let t = b[o + i]!;
-        for (let k = i + 1; k < n; k++) t -= a[k + i * lda]! * b[o + k]!;
+        for (let k = i + 1; k < n; k++) if (a[k + i * lda] !== 0) t -= a[k + i * lda]! * b[o + k]!;
         b[o + i] = t / a[i + i * lda]!;
       }
     }

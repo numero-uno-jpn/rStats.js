@@ -228,6 +228,11 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `shapiro.test(c(-1e308, 0, 1e308))` (the range overflows) | NaN | W = 1, as `shapiro.test(c(-1, 0, 1))` (the data divided by a power of 2 first) |
 | polycor's `polyserial(x * 1e200, y, std.err = TRUE)` (the sum of squares overflows) | rho 0, chisq NaN | the values for x (rho 0.589 in the review example) |
 | `rexp(n, rate = 1e-310)` (positive rate, 1 / rate overflows) | NaN, with a warning, drawing nothing | the variates `exp_rand() / rate` (Inf unless the exponential variate is below about 0.018), one exponential variate each |
+| `backsolve(diag(1e-308, 2), c(1, 2))`, `forwardsolve(..., transpose = TRUE)` (also `solve`) | NaN, Inf (0 * Inf from the overflowed component); `solve` stops with rcond = 0 | 1e308, Inf: coefficients of exactly 0 are skipped, as an overflowed component stands for a finite value |
+| `prcomp(c(1e308, -1e308, 1e308, -1e308))$sdev` (the singular value overflows) | Inf | 1.1547005383792517e308 (the decomposition of the matrix divided by a power of 2) |
+| `determinant(diag(c(1e308, 1e308, 1e-308, 1e-308)), logarithm = FALSE)` | modulus Inf (the running product overflows) | 1 (the product keeps a binary exponent apart) |
+| `matrix(c(1e308, 1e308), 1) %*% matrix(c(1e308, -1e308))` (the products overflow, the sum does not) | NaN | 0 (such entries are summed again from factors divided by powers of 2) |
+| `optimize(function(x) (x / 1e308 - 1.05)^2, c(1e308, 1.1e308))` (lower + upper overflows) | does not return (the midpoint is Inf) | 1.05e308 (the search in x/2) |
 | `summary(glm(...), dispersion = -1)` (also `glmAnova`, `glmPredict`, `glmRstandard`, `glmCooksDistance`) | NaN standard errors, with a warning | an error: the dispersion must be a non-negative finite number (0 gives standard errors of 0, as R) |
 | `pwr.chisq.test(w = 1e200, N = 100, df = 3)`, `pwr.f2.test(f2 = 1e308)`, `pwr.anova.test(f = 1e200)` (the noncentrality overflows) | NaN | 1, the limit of the power; `powerAnovaTest` takes between.var / within.var first where only the product overflows |
 | `ES.w1(c(0.5, 0.5, 0), c(0.5, 0.5, 0))` and `ES.w2` with an empty row or column (cells with both probabilities 0) | NaN (0 / 0) | such a cell adds 0 (0 here); p0 = 0 < p1 still gives Inf, as R |
@@ -292,7 +297,9 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one),
   `binomTest([0, 0])` (no trials; R returns a p-value of 1 for `binom.test(c(0, 0))`, while `poissonTest` compares two
   counts of 0 as R), and a `covmat` in `factanal` and `omega` that is not square, finite and symmetric (as R's
-  `isSymmetric`) with a positive diagonal (R's `factanal` analyses an asymmetric matrix).
+  `isSymmetric`) with a positive diagonal (R's `factanal` analyses an asymmetric matrix), and a step `eps` of 0 or a
+  non-finite `d`, `eps` or `zeroTol` in `grad`, `jacobian` and `hessian` (numDeriv's "simple" method gives NaN for
+  `eps = 0`; `d = 0` is an error there too).
 - **The power and effect-size functions** reject NaN for a known quantity (pwr mostly stops with "missing value
   where TRUE/FALSE needed"; NaN was returned), a correlation outside [-1, 1] in `pwrRTest`, probabilities outside
   [0, 1] in `esH`, `esW1` and `esW2` (R: NaN), an empty or ragged matrix in `esW2` (R: 0), n <= 0 in `powerPropTest`

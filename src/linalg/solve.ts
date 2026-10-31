@@ -84,14 +84,16 @@ function getrs(LU: Mat, ipiv: Int32Array, B: Mat): void {
     // L (unit lower triangular)
     for (let k = 0; k < n; k++) {
       const bk = b[o + k]!;
-      if (bk !== 0) for (let i = k + 1; i < n; i++) b[o + i]! -= bk * a[i + k * n]!;
+      // a coefficient of exactly 0 is skipped: an overflowed b_k stands for a finite value, and 0 * Infinity = NaN would
+      // spoil components that do not depend on it (solve(diag(1e-308, 2), c(1, 2)) gave NaN, Infinity)
+      if (bk !== 0) for (let i = k + 1; i < n; i++) if (a[i + k * n] !== 0) b[o + i]! -= bk * a[i + k * n]!;
     }
     // U (upper triangular)
     for (let k = n - 1; k >= 0; k--) {
       if (b[o + k] !== 0) {
         b[o + k]! /= a[k + k * n]!;
         const bk = b[o + k]!;
-        for (let i = 0; i < k; i++) b[o + i]! -= bk * a[i + k * n]!;
+        for (let i = 0; i < k; i++) if (a[i + k * n] !== 0) b[o + i]! -= bk * a[i + k * n]!;
       }
     }
   }
@@ -99,7 +101,7 @@ function getrs(LU: Mat, ipiv: Int32Array, B: Mat): void {
 
 /**
  * Triangular system (dtrsv, in place of dlatrs). Overwrites x.
- * If unit, the diagonal is taken as 1
+ * If unit, the diagonal is taken as 1. Coefficients of exactly 0 are skipped (as in getrs)
  */
 function trsv(T: Mat, upper: boolean, trans: boolean, unit: boolean, x: Float64Array): void {
   const n = T.nrow;
@@ -110,7 +112,7 @@ function trsv(T: Mat, upper: boolean, trans: boolean, unit: boolean, x: Float64A
         if (x[j] !== 0) {
           if (!unit) x[j]! /= a[j + j * n]!;
           const t = x[j]!;
-          for (let i = j - 1; i >= 0; i--) x[i]! -= t * a[i + j * n]!;
+          for (let i = j - 1; i >= 0; i--) if (a[i + j * n] !== 0) x[i]! -= t * a[i + j * n]!;
         }
       }
     } else {
@@ -118,21 +120,21 @@ function trsv(T: Mat, upper: boolean, trans: boolean, unit: boolean, x: Float64A
         if (x[j] !== 0) {
           if (!unit) x[j]! /= a[j + j * n]!;
           const t = x[j]!;
-          for (let i = j + 1; i < n; i++) x[i]! -= t * a[i + j * n]!;
+          for (let i = j + 1; i < n; i++) if (a[i + j * n] !== 0) x[i]! -= t * a[i + j * n]!;
         }
       }
     }
   } else if (upper) {
     for (let j = 0; j < n; j++) {
       let t = x[j]!;
-      for (let i = 0; i < j; i++) t -= a[i + j * n]! * x[i]!;
+      for (let i = 0; i < j; i++) if (a[i + j * n] !== 0) t -= a[i + j * n]! * x[i]!;
       if (!unit) t /= a[j + j * n]!;
       x[j] = t;
     }
   } else {
     for (let j = n - 1; j >= 0; j--) {
       let t = x[j]!;
-      for (let i = n - 1; i > j; i--) t -= a[i + j * n]! * x[i]!;
+      for (let i = n - 1; i > j; i--) if (a[i + j * n] !== 0) t -= a[i + j * n]! * x[i]!;
       if (!unit) t /= a[j + j * n]!;
       x[j] = t;
     }
@@ -400,13 +402,30 @@ export function determinant(x: MatrixInput, options: { logarithm?: boolean } = {
   if (info > 0) return { modulus: logarithm ? -Infinity : 0, logarithm, sign: 1 };
   let sign = 1;
   let modulus = logarithm ? 0 : 1;
+  // the product keeps a binary exponent apart (exact), so that it does not overflow or underflow on the way to a
+  // result in range: diag(1e308, 1e308, 1e-308, 1e-308) gave Infinity (R too). Without that it is the plain product
+  let exp2 = 0;
   for (let i = 0; i < n; i++) {
     if (ipiv[i] !== i) sign = -sign;
     const d = A.data[i + i * n]!;
     if (d < 0) sign = -sign;
     if (logarithm) modulus += Math.log(Math.abs(d));
-    else modulus *= Math.abs(d);
+    else {
+      let m = Math.abs(d);
+      if (m !== 0 && Number.isFinite(m) && (m > 2 ** 500 || m < 2 ** -500)) {
+        const k = Math.floor(Math.log2(m));
+        m = ldexp(m, -k);
+        exp2 += k;
+      }
+      modulus *= m;
+      if (modulus !== 0 && Number.isFinite(modulus) && (modulus > 2 ** 500 || modulus < 2 ** -500)) {
+        const k = Math.floor(Math.log2(modulus));
+        modulus = ldexp(modulus, -k);
+        exp2 += k;
+      }
+    }
   }
+  if (!logarithm && exp2 !== 0) modulus = ldexp(modulus, exp2);
   return { modulus, logarithm, sign };
 }
 

@@ -222,6 +222,11 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `shapiro.test(c(-1e308, 0, 1e308))` (範囲が溢れる) | NaN | W = 1。`shapiro.test(c(-1, 0, 1))` と同じ (先にデータを 2 の冪で割る) |
 | polycor の `polyserial(x * 1e200, y, std.err = TRUE)` (平方和が溢れる) | rho 0、chisq NaN | x のときと同じ値 (レビューの例では rho 0.589) |
 | `rexp(n, rate = 1e-310)` (正の rate で 1 / rate が溢れる) | 警告付きの NaN (乱数は引かない) | 乱数 `exp_rand() / rate` (指数乱数がおよそ 0.018 未満でなければ Inf)。1 個につき指数乱数を 1 個引く |
+| `backsolve(diag(1e-308, 2), c(1, 2))`、`forwardsolve(..., transpose = TRUE)` (`solve` も) | NaN、Inf (溢れた成分との 0 * Inf)。`solve` は rcond = 0 で止まる | 1e308、Inf。溢れた成分は有限の値の代わりなので、厳密に 0 の係数は飛ばす |
+| `prcomp(c(1e308, -1e308, 1e308, -1e308))$sdev` (特異値が溢れる) | Inf | 1.1547005383792517e308 (2 の冪で割った行列を分解する) |
+| `determinant(diag(c(1e308, 1e308, 1e-308, 1e-308)), logarithm = FALSE)` | modulus が Inf (途中の積が溢れる) | 1 (積の 2 の冪の指数を別に持つ) |
+| `matrix(c(1e308, 1e308), 1) %*% matrix(c(1e308, -1e308))` (積は溢れるが和は溢れない) | NaN | 0 (そうした要素は、2 の冪で割った因子から積和を取り直す) |
+| `optimize(function(x) (x / 1e308 - 1.05)^2, c(1e308, 1.1e308))` (lower + upper が溢れる) | 終わらない (中点が Inf) | 1.05e308 (x/2 の座標で探す) |
 | `summary(glm(...), dispersion = -1)` (`glmAnova`、`glmPredict`、`glmRstandard`、`glmCooksDistance` も) | 標準誤差が NaN (警告あり) | エラー。dispersion は 0 以上の有限値 (0 なら R と同じく標準誤差 0) |
 | `pwr.chisq.test(w = 1e200, N = 100, df = 3)`、`pwr.f2.test(f2 = 1e308)`、`pwr.anova.test(f = 1e200)` (非心度が溢れる) | NaN | 検出力の極限 1。`powerAnovaTest` は、積だけが溢れる場合は between.var / within.var を先に計算する |
 | `ES.w1(c(0.5, 0.5, 0), c(0.5, 0.5, 0))` や、空の行・列がある `ES.w2` (両方の確率が 0 のセル) | NaN (0 / 0) | そのセルは 0 を足す (ここでは 0)。p0 = 0 < p1 は R と同じく Inf |
@@ -283,7 +288,9 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   `solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value supplied
   by optim" で止まり、負の値は受け付ける)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
   `poissonTest` は事象数 0 どうしの比較を R どおり行う)、`factanal`・`omega` の `covmat` で、正方・有限・対称 (R の
-  `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)。
+  `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)、`grad`・`jacobian`・
+  `hessian` の 0 の刻み `eps` や、有限でない `d`・`eps`・`zeroTol` (numDeriv の "simple" 法は `eps = 0` で NaN を返す。`d = 0` は
+  numDeriv でもエラー)。
 - **検出力と効果量の関数**は、既知の量の NaN (pwr はたいてい "missing value where TRUE/FALSE needed" で止まる。
   以前は NaN を返していた)、`pwrRTest` の [-1, 1] の外の相関、`esH`・`esW1`・`esW2` の [0, 1] の外の確率 (R は NaN)、
   `esW2` の空や不整形の行列 (R は 0)、`powerPropTest` の n <= 0 (R は n = 0 で検出力を返し、負なら NaN)、`pwrTTest` の

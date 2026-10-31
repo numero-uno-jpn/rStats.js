@@ -11,6 +11,8 @@ import { scale as scaleColumns } from "../descriptive/moments.js";
 import { svd } from "./svd.js";
 import type { MatrixInput } from "./matrix.js";
 import { matMul } from "./ops.js";
+import { maxOf } from "../internal/extremes.js";
+import { ldexp } from "../internal/summary.js";
 
 /** Smallest normal double (LAPACK's dlamch("S")): below it, 1 / pivot would overflow. */
 const SFMIN = 2.2250738585072014e-308;
@@ -146,9 +148,16 @@ export function prcomp(x: MatrixInput, options: PrcompOptions = {}): PrcompResul
   const rows = x.map((r) => Array.from(r));
   const s = scaleColumns(rows, { center: options.center ?? true, scale: options.scale ?? false });
   if (s.scale?.some((v) => v === 0)) throw new RangeError("cannot rescale a constant/zero column to unit variance");
-  const dec = svd(s.scaled, { nu: 0 });
+  let dec = svd(s.scaled, { nu: 0 });
   const n = rows.length;
-  const sdev = dec.d.map((d) => d / Math.sqrt(Math.max(1, n - 1)));
+  let sdev = dec.d.map((d) => d / Math.sqrt(Math.max(1, n - 1)));
+  if (dec.d.some((d) => d === Infinity) && s.scaled.every((r) => r.every(Number.isFinite))) {
+    // a singular value overflows while sdev = d / sqrt(n - 1) may be in range (sdev 1.15e308 of
+    // c(1e308, -1e308, 1e308, -1e308) was Infinity, R too): the decomposition of the matrix divided by 2^k (exact)
+    const k = Math.floor(Math.log2(maxOf(s.scaled.flat().map(Math.abs))));
+    dec = svd(s.scaled.map((r) => r.map((v) => ldexp(v, -k))), { nu: 0 });
+    sdev = dec.d.map((d) => ldexp(d / Math.sqrt(Math.max(1, n - 1)), k));
+  }
   // Components kept: at most rank, and with tol only those whose sdev is greater than tol times the first
   let k = rank === undefined ? sdev.length : Math.min(Math.trunc(rank), sdev.length);
   if (Number.isNaN(tol)) throw new RangeError("'tol' must not be NaN");
