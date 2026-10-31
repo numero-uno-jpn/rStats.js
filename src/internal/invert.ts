@@ -170,8 +170,11 @@ export function invertContinuous(problem: InvertProblem): number {
       else xh = t;
     }
     if (!(xl > 0 && xh > xl && Number.isFinite(xh))) return x0;
-    for (let k = 0; k < 64; k++) {
-      const mid = xl + (xh - xl) / 2;
+    // halved on the bit patterns of the doubles (positive x: ordered as integers), so that any bracket shrinks to
+    // adjacent doubles within 64 steps; halving the values took 64 steps per factor 2^64 of width, and a bracket 1e55
+    // times wider than the answer ended far from it (qgamma(0.75, 1e145) was 151 ulps below the right 1e145)
+    for (let k = 0; k < 70; k++) {
+      const mid = bitMidpoint(xl, xh);
       if (mid <= xl || mid >= xh) break;
       const r = evaluate(mid)[1];
       if (r === 0) return mid;
@@ -182,6 +185,18 @@ export function invertContinuous(problem: InvertProblem): number {
     // residual no larger, as the probability saturates at 0 or 1 on either side)
     return Math.abs(evaluate(xl)[1]) < Math.abs(evaluate(xh)[1]) ? xl : xh;
   }
+}
+
+const bitView = new DataView(new ArrayBuffer(8));
+
+/** The double halfway between positive finite a < b in the order of the doubles (the mean of their bit patterns) */
+function bitMidpoint(a: number, b: number): number {
+  bitView.setFloat64(0, a);
+  const ia = bitView.getBigUint64(0);
+  bitView.setFloat64(0, b);
+  const ib = bitView.getBigUint64(0);
+  bitView.setBigUint64(0, (ia + ib) / 2n);
+  return bitView.getFloat64(0);
 }
 
 /** Midpoint of the bracketing interval. If an end is infinite, expand outward from the current value */

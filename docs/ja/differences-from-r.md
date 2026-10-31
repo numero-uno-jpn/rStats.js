@@ -229,6 +229,10 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `determinant(diag(c(1e308, 1e308, 1e-308, 1e-308)), logarithm = FALSE)` | modulus が Inf (途中の積が溢れる) | 1 (積の 2 の冪の指数を別に持つ) |
 | `matrix(c(1e308, 1e308), 1) %*% matrix(c(1e308, -1e308))` (積は溢れるが和は溢れない) | NaN | 0 (そうした要素は、2 の冪で割った因子から積和を取り直す) |
 | `optimize(function(x) (x / 1e308 - 1.05)^2, c(1e308, 1.1e308))` (lower + upper が溢れる) | 終わらない (中点が Inf) | 1.05e308 (x/2 の座標で探す) |
+| `approx(c(-1e308, 1e308), c(0, 1), n = 3)`、`approx(c(0, 1), c(-1e308, 1e308), xout = 0.5)`、`spline(c(-1e308, 1e308), c(0, 1), n = 3)` (有限な値の差が溢れる) | y が 0, 0, 1。Inf。spline は 0, 0, NaN | 0, 0.5, 1。0。0, 0.5, 1 (差を半分の座標で取る。spline は x / 2^k で作る) |
+| `rbeta(n, 1e308, 1e308, ncp = 0)` (2 shape が溢れる) | NaN | 0.5 (χ² 乱数を半分にして作る。引く乱数は R と同じ) |
+| `rgeom(n, 1e-309)`、`rnbinom(n, 1, prob = 1e-309)`、`rnbinom(n, 0.5, mu = 1e308)` ((1 - p) / p や mu / size が溢れる) | NA または NaN (その後の乱数を引かない) | 乱数の値 (`set.seed(4)` なら 1.716e308 など)。指数乱数や尺度 1 のガンマ乱数に 1 - p を掛けて p で割る。平均そのものが溢れるときだけ Inf。Poisson の段の乱数は引くので、R と乱数列がずれるのはこの場合だけ |
+| `rmultinom(n, size, c(0.5, 0.5, 1e-16))` (確率の和が double で 1 になる) | 2 番目の区分が残りをすべて取り (p = 1)、3 番目は引かれない | 2 番目は 0.5 / (0.5 + 1e-16) の二項乱数 (後ろの区分の確率を後ろから足した和で割る)。R と乱数列がずれるのはこうした場合だけ |
 | `summary(glm(...), dispersion = -1)` (`glmAnova`、`glmPredict`、`glmRstandard`、`glmCooksDistance` も) | 標準誤差が NaN (警告あり) | エラー。dispersion は 0 以上の有限値 (0 なら R と同じく標準誤差 0) |
 | `pwr.chisq.test(w = 1e200, N = 100, df = 3)`、`pwr.f2.test(f2 = 1e308)`、`pwr.anova.test(f = 1e200)` (非心度が溢れる) | NaN | 検出力の極限 1。`powerAnovaTest` は、積だけが溢れる場合は between.var / within.var を先に計算する |
 | `ES.w1(c(0.5, 0.5, 0), c(0.5, 0.5, 0))` や、空の行・列がある `ES.w2` (両方の確率が 0 のセル) | NaN (0 / 0) | そのセルは 0 を足す (ここでは 0)。p0 = 0 < p1 は R と同じく Inf |

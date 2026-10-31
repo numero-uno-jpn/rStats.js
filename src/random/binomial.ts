@@ -227,13 +227,18 @@ export function rmultinom(n: number, size: number, prob: readonly number[]): num
     pr = prob.map((v) => v / sum);
   }
   const K = pr.length;
+  // the probabilities from k on, summed from the end: pTot below (1 less the earlier ones, as R) can reach pr[k] while
+  // later categories still have probability (c(0.5, 0.5, 1e-16) sums to 1 in doubles, and the third was always 0)
+  const rest = new Array<number>(K + 1).fill(0);
+  for (let k = K - 1; k >= 0; k--) rest[k] = rest[k + 1]! + pr[k]!;
   const draw = (): number[] => {
     const out = new Array<number>(K).fill(0);
     let left = size;
     let pTot = 1;
     for (let k = 0; k < K - 1; k++) {
       if (pr[k]) {
-        const pk = pr[k]! / pTot;
+        let pk = pr[k]! / pTot;
+        if (pk >= 1 && rest[k + 1]! > 0) pk = pr[k]! / rest[k]!;
         out[k] = pk < 1 ? rbinom1(left, pk) : left;
         left -= out[k]!;
       }

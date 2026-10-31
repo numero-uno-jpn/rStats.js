@@ -182,11 +182,26 @@ export function rpois(n: number, lambda: number): number[] {
 export function rgeom(n: number, prob: number): number[] {
   return generate(n, () => {
     if (!Number.isFinite(prob) || prob <= 0 || prob > 1) return NaN;
-    // for prob so small that the Poisson mean overflows (prob below about 5.6e-309) the draw is beyond the largest
-    // double but for a probability below 1e-15: Infinity (R gives NaN), after R's exponential draw
-    const mu = expRand() * ((1 - prob) / prob);
+    // for prob below about 5.6e-309, (1 - prob) / prob overflows while E (1 - prob) / prob is finite unless E is large
+    // (with probability 0.16 at prob = 1e-309; R gives NaN): the exponential draw first. A mean that overflows
+    // itself gives Infinity
+    const odds = (1 - prob) / prob;
+    const e = expRand();
+    const mu = Number.isFinite(odds) ? e * odds : (e * (1 - prob)) / prob;
     return mu === Infinity ? Infinity : rpois1(mu);
   });
+}
+
+/**
+ * A Poisson variate whose mean is a gamma variate with shape sz and scale num / den. Where the scale overflows (prob
+ * below about 5.6e-309, or mu / size; R gives NaN) the unit gamma variate is multiplied by num and divided by den, which
+ * is finite unless the variate is large; a mean that overflows itself gives Infinity
+ */
+function poissonOfGamma(sz: number, num: number, den: number): number {
+  const scale = num / den;
+  if (Number.isFinite(scale)) return rpois1(rgamma1(sz, scale));
+  const m = (rgamma1(sz, 1) * num) / den;
+  return m === Infinity ? Infinity : rpois1(m);
 }
 
 /**
@@ -215,14 +230,14 @@ export function rnbinom(n: number, size: number, options: { prob?: number; mu?: 
   if (mu !== undefined) {
     return generate(n, () => {
       if (!Number.isFinite(mu) || Number.isNaN(size) || size <= 0 || mu < 0) return NaN;
-      return mu === 0 ? 0 : rpois1(rgamma1(sz, mu / sz));
+      return mu === 0 ? 0 : poissonOfGamma(sz, mu, sz);
     });
   }
   const p = prob!;
   return generate(n, () => {
     if (!Number.isFinite(p) || Number.isNaN(size) || size <= 0 || p <= 0 || p > 1) return NaN;
     if (p === 1) return 0;
-    const v = rpois1(rgamma1(sz, (1 - p) / p));
+    const v = poissonOfGamma(sz, 1 - p, p);
     // size = Inf with a fixed prob < 1 puts all the probability at infinity (dnbinom 0, qnbinom Inf): Infinity, where R
     // returns the draw for size = MAX / 2 (about 9e307); the same variates are drawn, so the stream stays R's
     return size === Infinity ? Infinity : v;

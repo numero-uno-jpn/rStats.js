@@ -14,7 +14,7 @@
 // R's documented and observed behaviour.
 // Each spline piece is y + b h + c h^2 + d h^3 with h the distance from its left knot.
 
-import { mean } from "../internal/summary.js";
+import { ldexp, mean } from "../internal/summary.js";
 import type { Sample } from "../htest/types.js";
 import { seqLength } from "../internal/seq.js";
 import { findInterval } from "../descriptive/table.js";
@@ -57,8 +57,13 @@ function regularize(x: Sample, y: Sample, ties: Ties = "mean"): { x: number[]; y
 
 /** Linear interpolation at v strictly inside [X[i], X[i+1]], grouped as y_i + (y_{i+1} - y_i) ((v - x_i) / h_i). */
 function linearAt(X: readonly number[], Y: readonly number[], i: number, v: number): number {
-  const t = (v - X[i]!) / (X[i + 1]! - X[i]!);
-  return Y[i]! + (Y[i + 1]! - Y[i]!) * t;
+  let t = (v - X[i]!) / (X[i + 1]! - X[i]!);
+  // differences of finite values that overflow are taken in half coordinates (approx(c(-1e308, 1e308), c(0, 1),
+  // xout = 0) was 0, and approx(c(0, 1), c(-1e308, 1e308), xout = 0.5) Infinity; R too)
+  if (!Number.isFinite(X[i + 1]! - X[i]!) || !Number.isFinite(v - X[i]!)) t = (v / 2 - X[i]! / 2) / (X[i + 1]! / 2 - X[i]! / 2);
+  const dy = Y[i + 1]! - Y[i]!;
+  if (!Number.isFinite(dy) && Number.isFinite(Y[i]!) && Number.isFinite(Y[i + 1]!)) return 2 * (Y[i]! / 2 + (Y[i + 1]! / 2 - Y[i]! / 2) * t);
+  return Y[i]! + dy * t;
 }
 
 /** Step value (1 - f) y_i + f y_{i+1}; a term with weight 0 is dropped, so an infinite y there does not give NaN. */
@@ -454,7 +459,13 @@ export function spline(
   y: number[];
 } {
   const { method = "fmm", ties = "mean" } = options;
-  const sp = cubicSpline(x, y, method, ties);
+  let sp = cubicSpline(x, y, method, ties);
+  // knots whose spacing overflows (x from -1e308 to 1e308; R gives NaN): the spline in x / 2^k, evaluated at xout / 2^k
+  let k = 0;
+  if (sp.x.some((v, i) => i > 0 && !Number.isFinite(v - sp.x[i - 1]!)) && sp.x.every(Number.isFinite)) {
+    k = Math.floor(Math.log2(maxOf(sp.x.map(Math.abs))));
+    sp = cubicSpline(Array.from(x, (v) => ldexp(v, -k)), y, method, ties);
+  }
   let xout: number[];
   if (options.xout !== undefined) xout = Array.from(options.xout);
   else {
@@ -462,9 +473,9 @@ export function spline(
     const nk = sp.x.length;
     const n = options.n ?? 3 * nk;
     if (n <= 0) throw new RangeError("'spline' requires n >= 1");
-    xout = seqLength(options.xmin ?? sp.x[0]!, options.xmax ?? sp.x[nk - 1]!, n);
+    xout = seqLength(options.xmin ?? ldexp(sp.x[0]!, k), options.xmax ?? ldexp(sp.x[nk - 1]!, k), n);
   }
-  return { x: xout, y: evalCubic(sp, xout, 0) };
+  return { x: xout, y: evalCubic(sp, k === 0 ? xout : xout.map((v) => ldexp(v, -k)), 0) };
 }
 
 /**

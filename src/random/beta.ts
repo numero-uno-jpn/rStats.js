@@ -7,7 +7,8 @@
 
 import { unifRand } from "./rng.js";
 import { generate } from "./common.js";
-import { rchisq } from "./gamma.js";
+import { rchisq, rgamma1 } from "./gamma.js";
+import { rpois1 } from "./poisson.js";
 
 /** The value of log(DBL_MAX) (1024 log 2) */
 const EXPMAX = 1024 * Math.LN2;
@@ -103,6 +104,16 @@ export function rbeta1(aa: number, bb: number): number {
   return aa !== a ? b / (b + w) : w / (b + w);
 }
 
+/** Half a noncentral chi-squared variate with 2 shape degrees of freedom (the draws of rnchisq1(2 shape, ncp)) */
+function halfNoncentralChisq(shape: number, ncp: number): number {
+  if (!Number.isFinite(ncp) || ncp < 0) return NaN;
+  if (ncp === 0) return shape === 0 ? 0 : rgamma1(shape, 1);
+  let r = rpois1(ncp / 2);
+  if (r > 0) r = rgamma1(r, 1);
+  if (shape > 0) r += rgamma1(shape, 1);
+  return r;
+}
+
 /**
  * Random numbers from the beta distribution. Equivalent to R's `rbeta()`.
  *
@@ -124,13 +135,24 @@ export function rbeta(n: number, shape1: number, shape2: number, options: { ncp?
   const { ncp } = options;
   if (ncp === undefined) return generate(n, () => rbeta1(shape1, shape2));
   // Noncentral beta: as in R, generate n draws X ~ noncentral χ²(2 shape1, ncp), then n draws Y ~ χ²(2 shape2), and return X / (X + Y)
-  const x = rchisq(n, 2 * shape1, { ncp });
-  const y = rchisq(n, 2 * shape2);
+  let x: number[];
+  let y: number[];
+  if (Number.isFinite(shape1) && Number.isFinite(shape2) && (!Number.isFinite(2 * shape1) || !Number.isFinite(2 * shape2))) {
+    // 2 shape overflows (rbeta(3, 1e308, 1e308, ncp = 0) was NaN, R too): X / 2 and Y / 2 as gamma variates, with the
+    // draws of R's rnchisq (rpois(ncp / 2) and a gamma for the Poisson count, then the gamma for the shape)
+    x = generate(n, () => halfNoncentralChisq(shape1, ncp));
+    y = generate(n, () => rgamma1(shape2, 1));
+  } else {
+    x = rchisq(n, 2 * shape1, { ncp });
+    y = rchisq(n, 2 * shape2);
+  }
   // With both shapes 0, X = Y = 0 (always for ncp = 0, for a Poisson count 0 otherwise) is the Beta(0, 0) component of
   // the mixture: 0 or 1 with probability 1/2 each, decided by a uniform as the central rbeta does (R returns 0 / 0 =
   // NaN without a draw, so the stream differs from R's only there)
   return x.map((xi, i) => {
     if (xi === 0 && y[i] === 0 && shape1 === 0 && shape2 === 0) return unifRand() < 0.5 ? 0 : 1;
-    return xi / (xi + y[i]!);
+    const yi = y[i]!;
+    // (the sum of two variates near 1e308 overflows: halved first)
+    return Number.isFinite(xi + yi) || !Number.isFinite(xi) || !Number.isFinite(yi) ? xi / (xi + yi) : xi / 2 / (xi / 2 + yi / 2);
   });
 }

@@ -55,6 +55,10 @@ export function gammainc(x: number, a: number): GammaincResult {
   const lg = lgamma(a);
   const g = gamma(a);
   const tail = (lower: boolean): [number, number] => {
+    const logP = gammaInc(a, x, lower, true);
+    // a tail that is exactly 0 (the upper at x = Infinity, the lower at x = 0): 0, also where Gamma(a) overflows
+    // (Infinity * 0 made gammainc(Infinity, 1e308)$upper NaN)
+    if (logP === -Infinity) return [0, -Infinity];
     const p = gammaInc(a, x, lower, false);
     const v = g * p;
     // the product where it is a normal number (then also its log: lgamma(a) + log P can cancel)
