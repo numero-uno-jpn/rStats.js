@@ -146,7 +146,9 @@ function quantileSmall(s: number): number {
 export function qcauchy1(p: number, location: number, scale: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(p) || Number.isNaN(location) || Number.isNaN(scale)) return NaN;
   if (logP ? p > 0 : p < 0 || p > 1) return NaN;
-  if (!(scale > 0) || !Number.isFinite(scale)) return scale === 0 ? location : NaN;
+  // scale = Inf gives the limits (-Inf, location, Inf below, at and above the median), as dcauchy and pcauchy (0 and
+  // 1/2) and qnorm and qlogis do (R: NaN)
+  if (!(scale > 0)) return scale === 0 ? location : NaN;
   // Standard quantile T for the probability p on that side (x = location + scale T for the lower tail)
   let t: number;
   if (logP) {

@@ -146,6 +146,8 @@ export function logOneMinusExpNeg(t: DD): number {
 
 /** location + scale t with a single rounding (the rounding of scale t would show up in the subtraction with location) */
 export function locationScale(location: number, scale: number, t: number): number {
+  // scale = Inf at the median (t = 0): location, the limit (Inf times 0 would be NaN; other t give ±Inf)
+  if (t === 0 && scale === Infinity) return location;
   const st = mulDD(scale, t);
   if (!Number.isFinite(st[0]) || !Number.isFinite(location)) {
     // scale t overflows although the three are finite: location and scale divided by a power of 2 (exact) first, the
@@ -179,6 +181,7 @@ export function standardizeValue(x: number, location: number, scale: number): nu
 
 /** location + scale t in double, as the plain formula gives it, unless scale t overflows (then as locationScale) */
 export function affine(location: number, scale: number, t: number): number {
+  if (t === 0 && scale === Infinity) return location; // the limit at the median, as in locationScale
   const st = scale * t;
   if (Number.isFinite(st) || !Number.isFinite(scale) || !Number.isFinite(t) || !Number.isFinite(location)) return location + st;
   return locationScale(location, scale, t);

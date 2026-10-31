@@ -31,7 +31,19 @@ export function darcsine1(x: number, a: number, b: number, log: boolean): number
   if (Number.isNaN(x) || !valid(a, b)) return NaN;
   if (x < a || x > b) return d0(log);
   if (x === a || x === b) return Infinity;
-  if (!log) return 1 / (Math.PI * Math.sqrt(x - a) * Math.sqrt(b - x)); // sqrt of each: the product can over- or underflow
+  // b - a overflows (both finite): the density of X/2 on (a/2, b/2), halved
+  if (!Number.isFinite(b - a)) {
+    const h = darcsine1(x * 0.5, a * 0.5, b * 0.5, log);
+    return log ? h - Math.LN2 : h * 0.5;
+  }
+  if (!log) {
+    // sqrt of each: the product (x - a)(b - x) can over- or underflow. Where pi sqrt(x - a) sqrt(b - x) overflows, divide
+    // in two steps (the density at the middle of (0, 1.7e308) was 0, not 3.7e-309)
+    const sa = Math.sqrt(x - a);
+    const sb = Math.sqrt(b - x);
+    const den = Math.PI * sa * sb;
+    return Number.isFinite(den) ? 1 / den : 1 / (Math.PI * sa) / sb;
+  }
   // -log(pi) - (log(x - a) + log(b - x)) / 2 in double-double from the exact differences (the log of a density near 1
   // would turn its rounding into a large relative error)
   const l = ddAdd(ddLog(twoSum(x, -a)), ddLog(twoSum(b, -x)));
@@ -50,6 +62,8 @@ export function parcsine1(q: number, a: number, b: number, lowerTail: boolean, l
   if (Number.isNaN(q) || !valid(a, b)) return NaN;
   if (q <= a) return dt0(lowerTail, logP);
   if (q >= b) return dt1(lowerTail, logP);
+  // b - a overflows (both finite): the same probability on the halved scale (parcsine(0, -1e308, 1e308) was 0, not 1/2)
+  if (!Number.isFinite(b - a)) return parcsine1(q * 0.5, a * 0.5, b * 0.5, lowerTail, logP);
   const w = b - a;
   const nearA = q - a <= b - q;
   // distance to the nearer end, and the tail on that side
@@ -72,6 +86,8 @@ export function qarcsine1(p: number, a: number, b: number, lowerTail: boolean, l
   if (Number.isNaN(p) || !valid(a, b)) return NaN;
   const bd = quantileBoundaries(p, a, b, lowerTail, logP);
   if (bd !== undefined) return bd;
+  // b - a overflows (both finite): twice the quantile on the halved scale (qarcsine(0.5, -1e308, 1e308) was Inf, not 0)
+  if (!Number.isFinite(b - a)) return 2 * qarcsine1(p, a * 0.5, b * 0.5, lowerTail, logP);
   // Where the lower or upper probability is below e^-40, the distance to that end is w sin^2(pi p / 2) = w (pi p / 2)^2
   // (1 - O(p^2)), from logs (sin^2 underflowed: qarcsine(1.7e-208, 0, 2.6e187) was 0, not 1.9e-228). The log of a
   // tiny probability in double-double from its linear value (log p rounded loses eps |log p| relative); 1 - p is exact

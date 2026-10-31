@@ -76,6 +76,11 @@ fixtureSuite({
 fixtureSuite({
   name: "qlnorm",
   tolerance: 1e-14,
+  // sdlog = Inf at the median: exp(meanlog), the limit (R: NaN from Inf * 0; other p give R's limits 0 and Inf)
+  knownDifference: (a, e, x) =>
+    Number.isNaN(e) && num(a.sdlog) === Infinity && x === Math.exp(num(a.meanlog))
+      ? "sdlog = Inf: the median is exp(meanlog)"
+      : undefined,
   call: (a) => qlnorm(num(a.p), { ...lnp(a), ...tail(a) }),
   backward: (a, x) => plnorm(x, { ...lnp(a), ...tail(a) }),
 });
@@ -94,6 +99,11 @@ fixtureSuite({
 fixtureSuite({
   name: "qlogis",
   tolerance: 1e-14,
+  // scale = Inf at the median: the location, the limit (R: NaN from Inf * 0; other p give R's limits ±Inf)
+  knownDifference: (a, e, x) =>
+    Number.isNaN(e) && num(a.scale) === Infinity && x === num(a.location)
+      ? "scale = Inf: the median is the location"
+      : undefined,
   call: (a) => qlogis(num(a.p), { ...ls(a), ...tail(a) }),
   backward: (a, x) => plogis(x, { ...ls(a), ...tail(a) }),
 });
@@ -112,6 +122,11 @@ fixtureSuite({
 fixtureSuite({
   name: "qcauchy",
   tolerance: 1e-14,
+  // scale = Inf: the limits -Inf, location and Inf below, at and above the median, as qnorm and qlogis (R: NaN for every p)
+  knownDifference: (a, e, x) =>
+    Number.isNaN(e) && num(a.scale) === Infinity && (x === num(a.location) || x === Infinity || x === -Infinity)
+      ? "scale = Inf: the limits of the quantiles"
+      : undefined,
   call: (a) => qcauchy(num(a.p), { ...ls(a), ...tail(a) }),
   backward: (a, x) => pcauchy(x, { ...ls(a), ...tail(a) }),
 });
