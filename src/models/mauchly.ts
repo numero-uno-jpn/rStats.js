@@ -167,6 +167,10 @@ export function mauchlyTest(y: MatrixInput, options: MauchlyTestOptions = {}): M
   const pp = U.length;
   // X spanning M leaves nothing to test (W was 1 and the p-value NaN; R stops with "'a' is 0-diml")
   if (pp === 0) throw new RangeError("X spans M: the test has no dimensions");
+  // with fewer residual degrees of freedom than dimensions the covariance is singular whatever the data, and the test
+  // is not defined (W was rounding noise, even negative, and p NaN or 1, as R's); n >= pp also keeps the correction's
+  // rho positive
+  if (n < pp) throw new RangeError(`too few residual degrees of freedom for the test: ${n} for ${pp} dimension(s)`);
   const W = sphericityW(U);
   return { statistic: W, statisticName: "W", pValue: mauchlyPValue(W, pp, n, k), method: "Mauchly's test of sphericity" };
 }

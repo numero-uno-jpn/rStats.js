@@ -217,6 +217,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | df が非常に大きい effectsize の `hedges_g` (Hedges の J を、df log df ほどの 2 つの lgamma の差で計算) | df = 1e10 で J が 0.99997 (相対誤差 3e-5)、1e14 で 1.28、1e16 で 1e-14。1e6 でも 3e-10 ずれる | lgamma の差を直接計算する (`lgammaDiff`)。大きな df では丸めの範囲で 1 - 3/(4 df - 1) |
 | 1e154 程度のデータの aov の effectsize の `eta_squared`・`omega_squared`・`epsilon_squared` (`Error()` 付きと afex の `aov_ez` も) | NaN (平方和が溢れる) | 単位を変えた同じデータと同じ値。当てはめたときの平方和 (応答を 2 の冪で割ったもの) を使い、比をとる前に共通の 2 の冪で割る |
 | 共変量 x が 1e-200 や 1e200 程度の `aov(y ~ x + W + Error(id))`、共変量 z が 1e-200 程度の `Error(z)` | x はすべての層から消える (2 乗がアンダーフローする)。z は正しい | 単位を変えた同じデータと同じ表。処置と誤差モデルの各列を、列ごとの 2 の冪で割る (層は列が張る空間だけで決まる) |
+| 残差自由度が次元より少ない `mauchly.test` (`mauchly.test(lm(cbind(c(1, 3), c(2, 7)) ~ 1))`) | NaN、または W = 0 で p = 1、または W 2e-17 で p 9e-4 (共分散はデータによらず特異) | エラー。検定には残差自由度が足りない |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
 | `rgeom(n, 5e-324)` (約 5.6e-309 未満の prob)、p < 1 の `rnbinom(n, Inf, prob = p)` | NA。約 9e307 (size = MAX / 2 での値) か NA | Infinity。値は double の最大値を超える (rgeom は 1e-15 未満の確率を除いて。rnbinom は確率がすべて無限遠にあり、dnbinom・qnbinom と整合)。同じ乱数を引くので、乱数の状態は R と同じ |
