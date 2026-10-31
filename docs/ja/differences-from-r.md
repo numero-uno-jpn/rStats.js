@@ -196,7 +196,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 1e-200 や 1e155 程度のデータでの `t.test`、`oneway.test`、`var.test`、`bartlett.test`、PMCMRplus の `tukeyTest`/`gamesHowellTest`、`pairwise.t.test` | "data are essentially constant" か NaN (分散が 0 にアンダーフロー、またはその二乗がオーバーフロー) | 尺度によらず同じ結果 (データを 2 の冪で正規化。丸め誤差なし) |
 | 1e±150 程度のデータでの `t.test`、`gamesHowellTest`、`cohensD`、ICC の二元配置の限界の Welch 自由度 | NaN (標準誤差の 4 乗) | 尺度によらず同じ自由度 |
 | `chisq.test(c(1e200, 1e200), p = c(0.1, 0.9))`、`chisq.test(matrix(1e200, 2, 2))`、`mcnemar.test`・`prop.test`・`mantelhaen.test` の Pearson 型の項 | Inf か NaN (偏差の二乗や周辺度数の積がオーバーフロー) | 3.56e200、0 (必要なときは (d / sqrt(e))^2、(a / n) b の順で計算) |
-| 応答の単位を変えた (1e-4 倍、1e±100 程度) afex の `aov_ez` と `mauchly.test` | 球面性の補正と Mauchly 検定が消える (car の固有値の絶対しきい値)、または W が NaN | 尺度によらず同じ ε と W (ランクは最大固有値に対する相対値で判定。W は det(U / (trace(U)/p)) で計算) |
+| 応答の単位を変えた (1e-4 倍、1e±100 程度) afex の `aov_ez` と `mauchly.test` | 球面性の補正と Mauchly 検定が消える (car の固有値の絶対しきい値)、または W が NaN | 尺度によらず同じ ε と W (ランクは最大固有値とデータの平方和に対する相対値で判定。W は det(U / (trace(U)/p)) で計算) |
 | 1e±200 程度のデータでの `zTest` (BSDA の `z.test`)、effectsize の `cohens_d`/`hedges_g`、irr の `icc`、psych の `alpha`、nortest の `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`、`aov`、`TukeyHSD`、car の `leveneTest`、`lm`、`anova`、`aov(... + Error())`、afex の `ges` | NaN、0、±Inf、または異なる検定結果 (データの二乗がオーバーフロー・アンダーフロー) | 尺度によらず同じ結果 (平均を引く前にデータを 2 の冪で正規化。平方和、MSE、標準誤差、区間は出力時に単位を戻す) |
 | `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` は double の最大値)、double の最大値に近い符号の異なる値の対応のある `t.test` | -Inf か NaN (正規化の前に偏差や差がオーバーフロー) | 約 -2.3969、相関は -1。対応のある検定は他の尺度と同じ結果 |
 | `t.test(x, mu = 1e100)` | 区間が [0, 0] (mu + (t ± q) stdErr の形で計算) | x の平均を中心とする区間 (mu に依存しない。mu が無限大のとき R は NaN) |
@@ -384,7 +384,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **誤差 SSP 行列が特異なときの `aovEz`** (被験者数が測定数より少ない場合など): car は球面性の補正を出しません
   ("Singular error SSP matrix")。rStats.js は補正ごとに条件を判定します。Greenhouse-Geisser の ε = tr(A)^2 / (p tr(A^2))
   は 0 でない A なら定義できるので出します。Huynh-Feldt は d - p GG > 0 のときだけ出します (それ以外は NaN。`correction: "HF"`
-  のときは GG で補正)。Mauchly 検定は正則なときだけです。出せないものは警告します。
+  のときは GG で補正)。Mauchly 検定は正則なときだけです。出せないものは警告します。誤差 SSP 行列の固有値は、最大固有値の
+  1e-12 倍、またはワイド形式のデータの平方和の 1e-24 倍以下なら 0 とみなします。判定には (P'P)^-1 の計量での行列を使うので、
+  対比の取り方によりません。そのため、データの丸めだけからなる誤差 SSP 行列 (y = s_i + c_j で s_i = 0.3, 1.7, ... のような、
+  小数の加法的なデータ) は 0 とみなし、どの尺度でも補正と Mauchly 検定を出しません。car も通常の尺度では出しませんが、
+  固有値の絶対しきい値のため、同じデータを 1e100 倍すると W = Inf、p = 1 を返します。
 - **`Anova` (型 II・III)** は、残差平方和が応答の全平方和 (中心化・重み付き) の sqrt(eps) 倍未満のとき "residual sum of squares
   is 0 (within rounding error)" とします。car は sqrt(eps) そのものと比べるので、単位に依存します。
 - **`nextRNGStream`** は、`setRandomSeed` が復元できる L'Ecuyer-CMRG の種別コード 10407 と 407 だけを受け付けます (R は末尾が 07 の

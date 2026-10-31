@@ -12,13 +12,14 @@
 import { pf1 } from "../distributions/f.js";
 import { levelText, numberLevels } from "../internal/levels.js";
 import { ldexp, scaleToUnit } from "../internal/summary.js";
+import { chol } from "../linalg/chol.js";
 import { eigen } from "../linalg/eigen.js";
 import { qr } from "../linalg/qr.js";
 import { ddAdd, ddDiv, ddDivNum, ddMul, ddMulNum, type DD } from "../special/dd.js";
 import type { AnovaTable } from "./anovaSequential.js";
 import { Anova } from "./carAnova.js";
 import { ddLeastSquaresMulti } from "./ddLeastSquares.js";
-import { ddHi, ddInverse, ddMatMul, ddTrace, type DDMatrix } from "./ddMatrix.js";
+import { ddHi, ddInverse, ddMatMul, ddTrace, ddTranspose, type DDMatrix } from "./ddMatrix.js";
 import { lm } from "./lm.js";
 import { mauchlyPValue, sphericityW } from "./mauchly.js";
 import { compareCodePoints, type DataFrame } from "./modelFrame.js";
@@ -94,6 +95,11 @@ const list = (v: readonly string[] | string | undefined): string[] => (v === und
 
 /** Eigenvalues of the error SSP matrix below this fraction of the largest one count as 0 */
 const REL_RANK_TOL = 1e-12;
+/**
+ * Eigenvalues of the error SSP matrix below this fraction of the sum of squares of the wide data count as 0: the
+ * rounding of the data (relative 2^-53 of each value) alone makes eigenvalues near 1e-32 of it
+ */
+const ABS_RANK_TOL = 1e-24;
 
 function column(data: DataFrame, name: string): readonly unknown[] {
   const c = Object.prototype.hasOwnProperty.call(data, name) ? data[name] : undefined;
@@ -315,6 +321,8 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
 
   function withinAnalysis(): AovEzResult {
     const n = subjects.length;
+    // the sum of squares of the wide data (scaled), the reference of the rounding of the data for the rank of P'EP
+    const dataSS = Y.reduce((s, r) => r.reduce((t, v) => t + v[0] * v[0], s), 0);
     // without between factors (an empty data frame) the model matrix is the column of ones
     const X =
       between.length > 0
@@ -386,23 +394,31 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
         // Each correction is judged on its own condition (car gives none of them for a singular error SSP matrix):
         // - GG: tr(A)^2 / (p tr(A^2)) is defined for any nonzero A, singular or not (1/p for rank 1)
         // - HF: needs d - p GG > 0
-        // - Mauchly: needs a nonsingular matrix. The rank is judged relative to its largest eigenvalue (an absolute
-        //   threshold would depend on the units of the response): exactly singular matrices, from d < p or collinear
-        //   measurements, have eigenvalues near 1e-16 of the largest one
+        // - Mauchly: needs a nonsingular matrix.
+        // The eigenvalues are those of R PEP R' (M = R'R), the same as those of A whatever the contrasts P, in the
+        // units of the squared response. An eigenvalue counts as 0 below a fraction of the largest one (exactly
+        // singular matrices, from d < p or collinear measurements, have eigenvalues near 1e-16 of it) or of the sum of
+        // squares of the wide data (an error SSP matrix made only of the rounding of additive data, at any scale).
+        // An absolute threshold, as car's, would depend on the units of the response.
         const term = wlabs[wt];
+        const Rm: DDMatrix = chol(ddHi(M)).map((r) => r.map((v): DD => [v, 0]));
+        const S = ddHi(ddMatMul(ddMatMul(Rm, PEP), ddTranspose(Rm)));
+        const ev = eigen(S, { symmetric: true, onlyValues: true }).values as number[];
+        const top = ev.reduce((a, b) => Math.max(a, b), 0);
+        const zero = Math.max(top * REL_RANK_TOL, dataSS * ABS_RANK_TOL);
         const tA = ddTrace(A);
         const tAA = ddTrace(ddMatMul(A, A));
-        if (tAA[0] > 0 && Number.isFinite(tAA[0])) {
+        if (top > dataSS * ABS_RANK_TOL && tAA[0] > 0 && Number.isFinite(tAA[0])) {
           corrected = true;
           gg = ddDiv(ddMul(tA, tA), ddMulNum(tAA, p))[0];
           if (d - p * gg > 0) hf = ((d + 1) * p * gg - 2) / (p * (d - p * gg));
           else warnings.push(`The Huynh-Feldt epsilon of ${term} is undefined (d - p GG <= 0)${correction === "HF" ? ": corrected with GG" : ""}`);
         } else {
-          warnings.push(`The error SSP matrix of ${term} is 0: no sphericity corrections (the p-values are uncorrected)`);
+          warnings.push(
+            `The error SSP matrix of ${term} is 0 (or at the rounding level of the data): no sphericity corrections (the p-values are uncorrected)`,
+          );
         }
-        const ev = eigen(ddHi(PEP), { symmetric: true, onlyValues: true }).values as number[];
-        const top = ev.reduce((a, b) => Math.max(a, b), 0);
-        if (top > 0 && ev.every((v) => v > top * REL_RANK_TOL)) {
+        if (corrected && ev.every((v) => v > zero)) {
           mw = sphericityW(ddMatMul(M, PEP));
           mp = mauchlyPValue(mw, p, d, nc);
         } else if (corrected) {

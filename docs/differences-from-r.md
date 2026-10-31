@@ -202,7 +202,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `t.test`, `oneway.test`, `var.test`, `bartlett.test`, PMCMRplus's `tukeyTest`/`gamesHowellTest`, `pairwise.t.test` on data around 1e-200 or 1e155 | "data are essentially constant", or NaN (the variances underflow to 0 or their squares overflow) | the result at any scale (the data rescaled by a power of 2, which is exact) |
 | The Welch degrees of freedom of `t.test`, `gamesHowellTest`, `cohensD` and ICC's two-way bounds, data around 1e±150 | NaN (fourth powers of the standard errors) | the same df at any scale |
 | `chisq.test(c(1e200, 1e200), p = c(0.1, 0.9))`, `chisq.test(matrix(1e200, 2, 2))`, and the Pearson terms of `mcnemar.test`, `prop.test`, `mantelhaen.test` | Inf or NaN (the squared deviation or the product of the margins overflows) | 3.56e200, 0 (formed as (d / sqrt(e))^2 or (a / n) b when needed) |
-| afex's `aov_ez` and `mauchly.test` with the response in other units (1e-4 times, or around 1e±100) | the sphericity corrections and Mauchly's test disappear (car's absolute eigenvalue threshold), or W is NaN | the same epsilons and W at any scale (the rank judged relative to the largest eigenvalue; W as det(U / (trace(U)/p))) |
+| afex's `aov_ez` and `mauchly.test` with the response in other units (1e-4 times, or around 1e±100) | the sphericity corrections and Mauchly's test disappear (car's absolute eigenvalue threshold), or W is NaN | the same epsilons and W at any scale (the rank judged relative to the largest eigenvalue and to the sum of squares of the data; W as det(U / (trace(U)/p))) |
 | `zTest` (BSDA's `z.test`), effectsize's `cohens_d`/`hedges_g`, irr's `icc`, psych's `alpha`, nortest's `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`, `aov`, `TukeyHSD`, car's `leveneTest`, `lm`, `anova`, `aov(... + Error())`, afex's `ges` on data around 1e±200 | NaN, 0, ±Inf or a different test result (squares of the data overflow or underflow) | the result at any scale (the data scaled by a power of 2 before the mean is subtracted; sums of squares, MSE, standard errors and intervals scaled back for output) |
 | `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` the largest double), and a paired `t.test` of values of opposite sign near the largest double | -Inf or NaN (the deviation, or the difference, overflows before any rescaling) | about -2.3969 and a correlation of -1; the paired test as at any other scale |
 | `t.test(x, mu = 1e100)` | interval [0, 0] (formed as mu + (t ± q) stdErr) | the interval about the mean of x, which does not depend on mu (NaN in R for an infinite mu) |
@@ -397,7 +397,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   sphericity corrections ("Singular error SSP matrix"). rStats.js judges each on its own condition: the
   Greenhouse-Geisser epsilon tr(A)^2 / (p tr(A^2)) is defined for any nonzero A and is given; Huynh-Feldt only when
   d - p GG > 0 (otherwise NaN, and `correction: "HF"` corrects with GG); Mauchly's test only for a nonsingular matrix.
-  Each omission comes with a warning.
+  Each omission comes with a warning. An eigenvalue of the error SSP matrix counts as 0 below 1e-12 of the largest one
+  or 1e-24 of the sum of squares of the wide data, judged on the matrix in the metric of (P'P)^-1 (whatever the
+  contrasts). So an error SSP matrix made only of the rounding of the data (additive data with decimal values, such as
+  y = s_i + c_j with s_i = 0.3, 1.7, ...) counts as 0: no corrections and no Mauchly test, at any scale. car gives none
+  either at the usual scales, but its absolute threshold gives W = Inf with p = 1 at 1e100 times the same data.
 - **`Anova` (types II and III)** reports "residual sum of squares is 0 (within rounding error)" when the residual sum
   of squares is below sqrt(eps) times the total (centred, weighted) sum of squares of the response; car compares it
   with sqrt(eps) itself, which depends on the units.
