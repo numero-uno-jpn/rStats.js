@@ -103,3 +103,11 @@ describe("two-sided binomTest by search", () => {
     expect(r).toBeLessThan(1);
   });
 });
+
+describe("r2dtable count", () => {
+  it("rejects an infinite count or one beyond the integer range, as R", async () => {
+    const { r2dtable } = await import("../src/index.js");
+    for (const n of [Infinity, 2147483648, -1, NaN]) expect(() => r2dtable(n, [2, 2], [2, 2])).toThrow("invalid argument 'n'");
+    expect(r2dtable(2.5, [2, 2], [2, 2])).toHaveLength(2);
+  });
+});
