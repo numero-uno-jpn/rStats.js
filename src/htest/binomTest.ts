@@ -9,6 +9,7 @@
 
 import { dbinom1, pbinom1 } from "../distributions/binomial.js";
 import { qbeta1 } from "../distributions/beta.js";
+import { firstTrue, lastTrue } from "../internal/discrete.js";
 import { checkConfLevelOpen, isCount, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /**
@@ -46,8 +47,11 @@ const SLACK = 1 + 1e-7;
 
 /**
  * Two-sided p-value: the total probability of the outcomes no more likely than x (within the relative slack). The
- * observed side is one tail of the distribution function; on the opposite side the qualifying outcomes are counted,
- * and as they are the most extreme ones there, their mass is again a tail probability.
+ * observed side is one tail of the distribution function; on the opposite side the qualifying outcomes are the most
+ * extreme ones there, so their mass is again a tail probability. The density decreases from ceil(np) upwards and
+ * increases up to floor(np) (the ratio f(i + 1) / f(i) = (n - i) p / ((i + 1)(1 - p)) is below 1 exactly for
+ * i > (n + 1) p - 1), so the boundary of the qualifying outcomes is found by search in O(log n) evaluations instead of
+ * testing each of the outcomes on that side (which took seconds for n around 1e8).
  */
 function twoSidedP(x: number, n: number, p: number): number {
   if (p === 0) return x === 0 ? 1 : 0;
@@ -55,14 +59,16 @@ function twoSidedP(x: number, n: number, p: number): number {
   const mean = n * p;
   if (x === mean) return 1;
   const cut = dbinom1(x, n, p, false) * SLACK;
-  let count = 0;
+  const qualifies = (i: number): boolean => dbinom1(i, n, p, false) <= cut;
   if (x < mean) {
-    for (let i = Math.ceil(mean); i <= n; i++) if (dbinom1(i, n, p, false) <= cut) count++;
-    const other = count === 0 ? 0 : pbinom1(n - count, n, p, false, false);
+    // the first qualifying outcome above the mean; those from it to n qualify
+    const j = firstTrue(qualifies, Math.ceil(mean), n);
+    const other = j > n ? 0 : pbinom1(j - 1, n, p, false, false);
     return Math.min(1, pbinom1(x, n, p, true, false) + other);
   }
-  for (let i = 0; i <= Math.floor(mean); i++) if (dbinom1(i, n, p, false) <= cut) count++;
-  const other = count === 0 ? 0 : pbinom1(count - 1, n, p, true, false);
+  // the last qualifying outcome below the mean; those from 0 to it qualify
+  const j = lastTrue(qualifies, 0, Math.floor(mean));
+  const other = j < 0 ? 0 : pbinom1(j, n, p, true, false);
   return Math.min(1, pbinom1(x - 1, n, p, false, false) + other);
 }
 

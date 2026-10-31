@@ -108,3 +108,49 @@ function bisect(bad: number, good: number, ok: (y: number) => boolean, stop: () 
   }
   return good;
 }
+
+/**
+ * For a predicate on the integers from lo on that is false up to some integer and true from there on: the first
+ * integer >= lo where it holds, at most hi + 1 (hi + 1 when none up to hi; hi may be Infinity). Found by doubling the
+ * step from lo and then bisecting, so in O(log) evaluations: the two-sided exact tests use it on the tail beyond the
+ * mode of a unimodal distribution, where "probability at most that of the observation" switches once
+ */
+export function firstTrue(pred: (i: number) => boolean, lo: number, hi: number): number {
+  if (lo > hi || pred(lo)) return lo;
+  let fails = lo; // largest integer known not to hold
+  let step = 1;
+  let j = lo + 1; // an integer known to hold, or hi + 1 (taken as holding, never evaluated)
+  for (;;) {
+    if (j > hi) {
+      j = hi + 1;
+      break;
+    }
+    if (pred(j)) break;
+    fails = j;
+    step *= 2;
+    j = lo + step;
+  }
+  while (j - fails > 1) {
+    const mid = fails + Math.floor((j - fails) / 2);
+    if (pred(mid)) j = mid;
+    else fails = mid;
+  }
+  return j;
+}
+
+/**
+ * For a predicate on lo..hi that is true up to some integer and false from there on: the last integer <= hi where it
+ * holds (lo - 1 when none). By bisection (the mirror image of firstTrue, on a finite range)
+ */
+export function lastTrue(pred: (i: number) => boolean, lo: number, hi: number): number {
+  if (lo > hi || !pred(lo)) return lo - 1;
+  if (pred(hi)) return hi;
+  let j = lo;
+  let fails = hi; // smallest integer known not to hold
+  while (fails - j > 1) {
+    const mid = j + Math.floor((fails - j) / 2);
+    if (pred(mid)) j = mid;
+    else fails = mid;
+  }
+  return j;
+}

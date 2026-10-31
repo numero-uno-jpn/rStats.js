@@ -74,3 +74,32 @@ describe("integrals that do not converge", () => {
     expect(r.p[0]).toBeLessThan(0.3);
   });
 });
+
+describe("two-sided binomTest by search", () => {
+  it("equals the count over every outcome", async () => {
+    const { dbinom1 } = await import("../src/distributions/binomial.js");
+    const { binomTest } = await import("../src/index.js");
+    const brute = (x: number, n: number, p: number): number => {
+      const cut = dbinom1(x, n, p, false) * (1 + 1e-7);
+      let s = 0;
+      for (let i = 0; i <= n; i++) if (dbinom1(i, n, p, false) <= cut) s += dbinom1(i, n, p, false);
+      return Math.min(1, s);
+    };
+    for (const n of [1, 2, 3, 7, 20, 101]) {
+      for (const p of [0.01, 0.2, 0.5, 0.73, 0.999]) {
+        for (let x = 0; x <= n; x++) {
+          const got = binomTest(x, n, { p }).pValue;
+          expect(Math.abs(got - brute(x, n, p))).toBeLessThanOrEqual(1e-12 * Math.max(got, 1e-300) + 1e-15);
+        }
+      }
+    }
+  });
+  it("takes no time for a billion trials", async () => {
+    const { binomTest } = await import("../src/index.js");
+    const t0 = Date.now();
+    const r = binomTest(500_010_000, 1_000_000_000, { p: 0.5 }).pValue;
+    expect(Date.now() - t0).toBeLessThan(1000);
+    expect(r).toBeGreaterThan(0);
+    expect(r).toBeLessThan(1);
+  });
+});

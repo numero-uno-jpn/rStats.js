@@ -9,6 +9,7 @@
 
 import { dpois1, ppois1 } from "../distributions/poisson.js";
 import { qgamma1 } from "../distributions/gamma.js";
+import { firstTrue, lastTrue } from "../internal/discrete.js";
 import { binomTest } from "./binomTest.js";
 import { checkConfLevel, checkConfLevelOpen, isCount, matchAlternative, type Alternative, type HTest } from "./types.js";
 
@@ -59,41 +60,14 @@ function twoSidedP(x: number, m: number): number {
   const qualifies = (i: number): boolean => dpois1(i, m, false) <= cut;
   const mode = Math.floor(m);
   if (x < m) {
-    // smallest j >= start with dpois(j) <= cut; densities decrease from the mode onwards (with m an integer, m - 1
-    // and m are equally likely, so starting at x + 1 picks up m when x = m - 1)
-    const start = Math.max(x + 1, mode);
-    let j = start;
-    if (!qualifies(start)) {
-      let fails = start; // largest count known not to qualify
-      let step = 1;
-      j = start + 1;
-      while (!qualifies(j)) {
-        fails = j;
-        step *= 2;
-        j = start + step;
-      }
-      while (j - fails > 1) {
-        const mid = fails + Math.floor((j - fails) / 2);
-        if (qualifies(mid)) j = mid;
-        else fails = mid;
-      }
-    }
+    // smallest j >= max(x + 1, mode) with dpois(j) <= cut; densities decrease from the mode onwards (with m an
+    // integer, m - 1 and m are equally likely, so starting at x + 1 picks up m when x = m - 1)
+    const j = firstTrue(qualifies, Math.max(x + 1, mode), Infinity);
     return Math.min(1, ppois1(x, m, true, false) + ppois1(j - 1, m, false, false));
   }
-  // x > m: largest j <= end with dpois(j) <= cut; densities increase from 0 up to the mode (j = -1 when none does)
-  const end = Math.min(x - 1, mode);
-  let j: number;
-  if (!qualifies(0)) j = -1;
-  else if (qualifies(end)) j = end;
-  else {
-    j = 0;
-    let fails = end; // smallest count known not to qualify
-    while (fails - j > 1) {
-      const mid = j + Math.floor((fails - j) / 2);
-      if (qualifies(mid)) j = mid;
-      else fails = mid;
-    }
-  }
+  // x > m: largest j <= min(x - 1, mode) with dpois(j) <= cut; densities increase from 0 up to the mode (j = -1
+  // when none does)
+  const j = lastTrue(qualifies, 0, Math.min(x - 1, mode));
   return Math.min(1, ppois1(j, m, true, false) + ppois1(x - 1, m, false, false));
 }
 
