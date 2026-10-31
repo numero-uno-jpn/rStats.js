@@ -200,6 +200,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 1e±200 程度のデータでの `zTest` (BSDA の `z.test`)、effectsize の `cohens_d`/`hedges_g`、irr の `icc`、psych の `alpha`、nortest の `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`、`aov`、`TukeyHSD`、car の `leveneTest`、`lm`、`anova`、`aov(... + Error())`、afex の `ges` | NaN、0、±Inf、または異なる検定結果 (データの二乗がオーバーフロー・アンダーフロー) | 尺度によらず同じ結果 (平均を引く前にデータを 2 の冪で正規化。平方和、MSE、標準誤差、区間は出力時に単位を戻す) |
 | `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` は double の最大値)、double の最大値に近い符号の異なる値の対応のある `t.test` | -Inf か NaN (正規化の前に偏差や差がオーバーフロー) | 約 -2.3969、相関は -1。対応のある検定は他の尺度と同じ結果 |
 | `t.test(x, mu = 1e100)` | 区間が [0, 0] (mu + (t ± q) stdErr の形で計算) | x の平均を中心とする区間 (mu に依存しない。mu が無限大のとき R は NaN) |
+| 応答が 1e±200 程度での car の `Anova` (型 II・III)、`predict(lm)` の標準誤差と区間、gaussian の `glm` とその `summary`・`residuals`・`rstandard`・`cooks.distance`・`predict`・`anova`・`confint`、DescTools の `CoefVar` と `MeanAD` | Inf、0、NaN、"residual sum of squares is 0"、または "no valid set of coefficients has been found" | 尺度によらず同じ結果 (応答を 2 の冪で正規化。glm は gaussian と定数分散の quasi の identity link) |
 | 行数は同じだが使った行や応答が異なる lmer の当てはめの `anova()` | 尤度比検定を返す | エラー (lme4 は行数だけを比べる) |
 
 ## 意図的な違い
@@ -330,6 +331,12 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`aovEz` の欠測値**: 応答が `null` か `NaN` ならその id を除きます (afex の "Missing values for ... ID(s)")。応答の
   無限大はエラーです。id や因子が欠測の行は除きます。被験者内の項の誤差 SSP 行列が特異なときは、その p 値が未補正である
   ことを警告します (afex は何も出しません)。被験者内因子が 1 水準なら、被験者間因子と同じくエラーです (afex は空の表を返します)。
+- **誤差 SSP 行列が特異なときの `aovEz`** (被験者数が測定数より少ない場合など): car は球面性の補正を出しません
+  ("Singular error SSP matrix")。rStats.js は補正ごとに条件を判定します。Greenhouse-Geisser の ε = tr(A)^2 / (p tr(A^2))
+  は 0 でない A なら定義できるので出します。Huynh-Feldt は d - p GG > 0 のときだけ出します (それ以外は NaN。`correction: "HF"`
+  のときは GG で補正)。Mauchly 検定は正則なときだけです。出せないものは警告します。
+- **`Anova` (型 II・III)** は、残差平方和が応答の全平方和 (中心化・重み付き) の sqrt(eps) 倍未満のとき "residual sum of squares
+  is 0 (within rounding error)" とします。car は sqrt(eps) そのものと比べるので、単位に依存します。
 - **`mauchlyTest`** は、`y` に欠測値がある行と `group` が欠測の行を除きます (`lm(y ~ group)` と同じ)。無限大はエラーです。
 - **残差自由度がないときはエラー**: `aovEz` (被験者数が被験者間のパラメータ数以下) と `mauchlyTest` (完全な行の数が群の数
   以下)。R は NaN を返します。

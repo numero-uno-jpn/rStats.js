@@ -126,15 +126,16 @@ interface Row {
 
 /**
  * The anova table from the rows (intercept excluded) with the effect sizes; `errorSS` are the error sums of squares of
- * all rows of the univariate table (intercept included). The sums of squares are those of the scaled response: the
+ * each error stratum (keyed by its within-subject term, so that two strata whose sums happen to be equal both count).
+ * The sums of squares are those of the scaled response: the
  * effect sizes are ratios of them, and only the MSE is scaled back (`unscale`)
  */
-function anovaTable(rows: Row[], errorSS: number[], es: AovEzEffectSize[], observed: string[], unscale: (v: number) => number): AovEzTable {
+function anovaTable(rows: Row[], errorSS: ReadonlyMap<number, number>, es: AovEzEffectSize[], observed: string[], unscale: (v: number) => number): AovEzTable {
   const isObserved = (name: string): boolean => observed.some((o) => inTerm(o, name));
   for (const o of observed) {
     if (!rows.some((r) => inTerm(o, r.name))) throw new Error(`Observed variable not in data: ${o}`);
   }
-  const distinctError = [...new Set(errorSS)].reduce((s, v) => s + v, 0);
+  const distinctError = [...errorSS.values()].reduce((s, v) => s + v, 0);
   const O = rows.reduce((s, r) => (isObserved(r.name) ? s + r.ss : s), 0);
   const want = (["pes", "ges"] as const).filter((e) => es.includes(e));
   return {
@@ -301,7 +302,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
     });
     const ssCol = tab.colNames.indexOf("Sum Sq");
     return {
-      anova: anovaTable(rows, [fit.rss], es, observed, unscale),
+      anova: anovaTable(rows, new Map([[0, fit.rss]]), es, observed, unscale),
       univariate: { colNames: tab.colNames, rowNames: tab.rowNames, table: tab.table.map((r) => r.map((v, j) => (j === ssCol ? unscale(v) : v))) },
       within,
       warnings,
@@ -358,7 +359,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
     const sph: number[][] = [];
     const corrNames: string[] = [];
     const rows: Row[] = [];
-    const errorSS: number[] = [];
+    const errorSS = new Map<number, number>();
     let hfAbove = false;
     for (const wt of wterms) {
       const wc = W.assign.flatMap((a, j) => (a === wt ? [j] : []));
@@ -376,20 +377,30 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
       let mp = NaN;
       let corrected = false;
       if (p >= 2) {
-        // The corrections need a nonsingular error SSP matrix. The rank is judged relative to its largest eigenvalue
-        // (an absolute threshold would depend on the units of the response): exactly singular matrices, from d < p or
-        // collinear measurements, have eigenvalues near 1e-16 of the largest one
+        // Each correction is judged on its own condition (car gives none of them for a singular error SSP matrix):
+        // - GG: tr(A)^2 / (p tr(A^2)) is defined for any nonzero A, singular or not (1/p for rank 1)
+        // - HF: needs d - p GG > 0
+        // - Mauchly: needs a nonsingular matrix. The rank is judged relative to its largest eigenvalue (an absolute
+        //   threshold would depend on the units of the response): exactly singular matrices, from d < p or collinear
+        //   measurements, have eigenvalues near 1e-16 of the largest one
+        const term = wlabs[wt];
+        const tA = ddTrace(A);
+        const tAA = ddTrace(ddMatMul(A, A));
+        if (tAA[0] > 0 && Number.isFinite(tAA[0])) {
+          corrected = true;
+          gg = ddDiv(ddMul(tA, tA), ddMulNum(tAA, p))[0];
+          if (d - p * gg > 0) hf = ((d + 1) * p * gg - 2) / (p * (d - p * gg));
+          else warnings.push(`The Huynh-Feldt epsilon of ${term} is undefined (d - p GG <= 0)${correction === "HF" ? ": corrected with GG" : ""}`);
+        } else {
+          warnings.push(`The error SSP matrix of ${term} is 0: no sphericity corrections (the p-values are uncorrected)`);
+        }
         const ev = eigen(ddHi(PEP), { symmetric: true, onlyValues: true }).values as number[];
         const top = ev.reduce((a, b) => Math.max(a, b), 0);
         if (top > 0 && ev.every((v) => v > top * REL_RANK_TOL)) {
-          corrected = true;
-          const tA = ddTrace(A);
-          gg = ddDiv(ddMul(tA, tA), ddMulNum(ddTrace(ddMatMul(A, A)), p))[0];
-          hf = ((d + 1) * p * gg - 2) / (p * (d - p * gg));
           mw = sphericityW(ddMatMul(M, PEP));
           mp = mauchlyPValue(mw, p, d, nc);
-        } else {
-          warnings.push(`The error SSP matrix of ${wlabs[wt]} is singular: no sphericity corrections (the p-values are uncorrected)`);
+        } else if (corrected) {
+          warnings.push(`The error SSP matrix of ${term} is singular: no Mauchly test (the epsilons are still defined)`);
         }
       }
       for (let bi = 0; bi < bterms.length; bi++) {
@@ -411,7 +422,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
         const name = wt === 0 ? blabs[bi]! : bt === 0 ? wlabs[wt]! : `${blabs[bi]}:${wlabs[wt]}`;
         uni.push([unscale(ss), numDf, unscale(errSS), denDf, f, pval]);
         uniNames.push(name);
-        errorSS.push(errSS);
+        errorSS.set(wt, errSS);
         let row: Row = { name, ss, numDf, errSS, denDf, f, p: pval };
         if (corrected) {
           const hf1 = Math.min(1, hf);
@@ -423,7 +434,10 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
           if (correction === "GG") row = { ...row, numDf: gg * numDf, denDf: gg * denDf, p: pgg };
           else if (correction === "HF") {
             if (hf > 1) hfAbove = true;
-            row = { ...row, numDf: hf1 * numDf, denDf: hf1 * denDf, p: phf };
+            // an undefined HF epsilon falls back on GG (with the warning above), not on the uncorrected test
+            row = Number.isNaN(hf)
+              ? { ...row, numDf: gg * numDf, denDf: gg * denDf, p: pgg }
+              : { ...row, numDf: hf1 * numDf, denDf: hf1 * denDf, p: phf };
           }
         }
         if (!(wt === 0 && bt === 0)) rows.push(row);

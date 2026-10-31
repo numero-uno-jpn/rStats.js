@@ -12,9 +12,10 @@
 // stops while the coefficients, the dispersion and the score statistic can still move by about sqrt(epsilon).
 
 import { qnorm } from "../distributions/normal.js";
+import { ldexp } from "../internal/summary.js";
 import { uniroot } from "../internal/uniroot.js";
 import { qr, qrResid } from "../linalg/qr.js";
-import { glmSummary, refit, type GlmResult, type IrlsFit } from "./glm.js";
+import { glmSummary, refit, scaledView, type GlmResult, type IrlsFit } from "./glm.js";
 import { Warnings } from "./glmFamily.js";
 
 /**
@@ -78,7 +79,7 @@ export function scoreStatistic(x: number[][], r: number[], v: number[], intercep
  * @category Generalized linear models
  */
 export function glmConfint(
-  fit: GlmResult,
+  given: GlmResult,
   options: GlmConfintOptions = {},
 ): {
   /** Lower limits, one per coefficient (R's first column, `2.5 %` by default). */
@@ -86,6 +87,8 @@ export function glmConfint(
   /** Upper limits, one per coefficient (R's second column, `97.5 %` by default). */
   upper: number[];
 } {
+  // on the scaled fit (scaledView); the limits scaled back
+  const { fit, k } = scaledView(given);
   const level = options.level ?? 0.95;
   const test = options.test ?? "LRT";
   if (test !== "LRT" && test !== "Rao") throw new RangeError(`invalid 'test': ${String(test)}`);
@@ -161,5 +164,5 @@ export function glmConfint(
       else upper[k] = root;
     }
   });
-  return { lower, upper };
+  return { lower: lower.map((v) => ldexp(v, k)), upper: upper.map((v) => ldexp(v, k)) };
 }

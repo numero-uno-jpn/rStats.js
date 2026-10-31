@@ -25,6 +25,7 @@ import {
   type GlmLink,
 } from "./glmFamily.js";
 import { maxOf } from "../internal/extremes.js";
+import { ldexp, scaleToUnit } from "../internal/summary.js";
 import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
 
 export type { GlmFamilyName, GlmFamilySpec, GlmLink, GlmLinkName, QuasiVariance } from "./glmFamily.js";
@@ -90,6 +91,8 @@ export interface GlmModel {
   maxit: number;
   /** Starting coefficients, if given. */
   start: number[] | undefined;
+  /** k when the fit was computed on the response scaled by 2^-k (gaussian on the identity link; see scaledView). */
+  yScale?: number;
 }
 
 /**
@@ -484,6 +487,25 @@ export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: G
   if (!(model.epsilon > 0 && model.epsilon < Infinity)) throw new RangeError("value of 'epsilon' must be > 0 and finite");
   if (!(model.maxit > 0 && model.maxit < Infinity)) throw new RangeError("maximum number of iterations must be > 0");
 
+  // gaussian (and quasi with constant variance) on the identity link: fitted to the response scaled by a power of 2
+  // (exact; src/internal/summary.ts), so that the deviance stays in range; see scaledView
+  const k = !yIsMatrix && scalesWithResponse(familySpec) ? scaleToUnit([yGiven as number[]]).k : 0;
+  if (k === 0) return fitModel(model);
+  const down = (v: number): number => ldexp(v, -k);
+  const scaled = fitModel({
+    ...model,
+    yGiven: (yGiven as number[]).map(down),
+    offset: offset.map(down),
+    start: model.start?.map(down),
+  });
+  return unscaledResult(scaled, k, { ...model, yScale: k });
+}
+
+/** The fit of a model (the part of glm after its checks) */
+function fitModel(model: GlmModel): GlmResult {
+  const { x: X, offset, intercept } = model;
+  const n = X.length;
+  const p = model.columnNames.length;
   const warnings = new Warnings();
   const all = Array.from({ length: p }, (_, j) => j);
   const { fit, fam, y: yy, w, size } = refit(model, all, warnings);
@@ -538,6 +560,46 @@ export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: G
   };
 }
 
+/** Whether the family's fit scales with the response: gaussian, or quasi with constant variance, on the identity link */
+function scalesWithResponse(spec: GlmFamilySpec): boolean {
+  const link = spec.link ?? "identity";
+  if (link !== "identity") return false;
+  return spec.family === "gaussian" || (spec.family === "quasi" && (spec.variance ?? "constant") === "constant");
+}
+
+/**
+ * The fit of the response in its own units from the fit of the response scaled by 2^-k: coefficients, means, linear
+ * predictors, the response and the working residuals times 2^k, deviances times 2^2k, and the gaussian AIC
+ * (n log(deviance / n) + ...) plus 2 n k log 2. The scaled fit stays with it (not enumerable), for scaledView
+ */
+function unscaledResult(scaled: GlmResult, k: number, model: GlmModel): GlmResult {
+  const up = (v: number): number => ldexp(v, k);
+  const out: GlmResult = {
+    ...scaled,
+    coefficients: scaled.coefficients.map(up),
+    fittedValues: scaled.fittedValues.map(up),
+    linearPredictors: scaled.linearPredictors.map(up),
+    deviance: ldexp(scaled.deviance, 2 * k),
+    nullDeviance: ldexp(scaled.nullDeviance, 2 * k),
+    aic: scaled.aic + 2 * scaled.y.length * k * Math.LN2,
+    y: scaled.y.map(up),
+    residuals: scaled.residuals.map(up),
+    model,
+  };
+  Object.defineProperty(out, "scaled", { value: scaled, enumerable: false });
+  return out;
+}
+
+/**
+ * The fit to compute with and its scale k: for a fit of a response scaled by 2^-k (see glm), that scaled fit, whose
+ * quantities with units are 2^-k (or 2^-2k) times the fit's; otherwise the fit itself with k = 0. The functions on a
+ * fit compute on it (statistics without units unchanged) and scale back only what has units
+ */
+export function scaledView(fit: GlmResult): { fit: GlmResult; k: number } {
+  const scaled = (fit as GlmResult & { scaled?: GlmResult }).scaled;
+  return scaled === undefined ? { fit, k: 0 } : { fit: scaled, k: fit.model.yScale ?? 0 };
+}
+
 /** The family object of a fit */
 export function familyOf(fit: GlmResult): Family {
   return makeFamily(fit.model.familySpec);
@@ -545,6 +607,13 @@ export function familyOf(fit: GlmResult): Family {
 
 /** Pearson dispersion of summary.glm (1 for binomial and poisson) */
 export function glmDispersion(fit: GlmResult, warnings?: Warnings): number {
+  const v = scaledView(fit);
+  const d = dispersionOf(v.fit, warnings);
+  return familyOf(fit).fixedDispersion ? d : ldexp(d, 2 * v.k);
+}
+
+/** The dispersion of a fit in its own units (of the scaled fit for a scaled view) */
+function dispersionOf(fit: GlmResult, warnings?: Warnings): number {
   if (familyOf(fit).fixedDispersion) return 1;
   if (fit.dfResidual <= 0) return NaN;
   let s = 0;
@@ -613,11 +682,13 @@ function unscaledCovariance(fit: GlmResult): number[][] {
  *
  * @category Generalized linear models
  */
-export function glmSummary(fit: GlmResult, options: GlmSummaryOptions = {}): GlmSummary {
+export function glmSummary(given: GlmResult, options: GlmSummaryOptions = {}): GlmSummary {
+  // computed on the scaled fit (scaledView); estimates, standard errors and the dispersion scaled back
+  const { fit, k } = scaledView(given);
   const warnings = new Warnings();
   const fam = familyOf(fit);
   const estimated = options.dispersion === undefined && !fam.fixedDispersion;
-  const dispersion = options.dispersion ?? glmDispersion(fit, warnings);
+  const dispersion = options.dispersion === undefined ? dispersionOf(fit, warnings) : ldexp(options.dispersion, -2 * k);
   const covUnscaled = unscaledCovariance(fit);
   const piv = fit.qr === undefined ? [] : fit.qr.pivot.slice(0, fit.rank);
   const estimate = piv.map((j) => fit.coefficients[j]!);
@@ -631,15 +702,17 @@ export function glmSummary(fit: GlmResult, options: GlmSummaryOptions = {}): Glm
     stdError.fill(NaN);
     statistic.fill(NaN);
   }
+  const up = (v: number): number => ldexp(v, k);
+  const up2 = (v: number): number => ldexp(v, 2 * k);
   return {
-    dispersion,
-    estimate,
-    stdError,
+    dispersion: up2(dispersion),
+    estimate: estimate.map(up),
+    stdError: stdError.map(up),
     statistic,
     pValue,
     statisticName: fam.fixedDispersion ? "z value" : "t value",
     covUnscaled,
-    covScaled: covUnscaled.map((r) => r.map((v) => v * dispersion)),
+    covScaled: covUnscaled.map((r) => r.map((v) => up2(v * dispersion))),
     dfResidual: fit.dfResidual,
     warnings: warnings.list,
   };
@@ -666,6 +739,12 @@ export type GlmResidualType = "deviance" | "pearson" | "working" | "response";
  * @category Generalized linear models
  */
 export function glmResiduals(fit: GlmResult, type: GlmResidualType = "deviance"): number[] {
+  // of the scaled fit (scaledView), scaled back: for the families that are scaled, every kind has the response's units
+  const v = scaledView(fit);
+  return residualsOf(v.fit, type).map((r) => ldexp(r, v.k));
+}
+
+function residualsOf(fit: GlmResult, type: GlmResidualType): number[] {
   const fam = familyOf(fit);
   const { y, fittedValues: mu, priorWeights: w } = fit;
   switch (type) {
@@ -733,10 +812,12 @@ function median(v: number[]): number {
  *
  * @category Generalized linear models
  */
-export function glmRstandard(fit: GlmResult, options: GlmSummaryOptions = {}): number[] {
+export function glmRstandard(given: GlmResult, options: GlmSummaryOptions = {}): number[] {
+  // on the scaled fit (scaledView): the standardized residuals have no units
+  const { fit, k } = scaledView(given);
   const h = glmHatvalues(fit);
-  const disp = options.dispersion ?? glmDispersion(fit);
-  const r = glmResiduals(fit, "deviance").filter((_, i) => fit.priorWeights[i]! > 0);
+  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(options.dispersion, -2 * k);
+  const r = residualsOf(fit, "deviance").filter((_, i) => fit.priorWeights[i]! > 0);
   const small = 100 * EPS * median(r.map(Math.abs));
   return r.map((v, i) => {
     const s = (Math.abs(v) < small ? 0 : v) / Math.sqrt(disp * (1 - h[i]!));
@@ -755,10 +836,12 @@ export function glmRstandard(fit: GlmResult, options: GlmSummaryOptions = {}): n
  *
  * @category Generalized linear models
  */
-export function glmCooksDistance(fit: GlmResult, options: GlmSummaryOptions = {}): number[] {
+export function glmCooksDistance(given: GlmResult, options: GlmSummaryOptions = {}): number[] {
+  // on the scaled fit (scaledView): Cook's distances have no units
+  const { fit, k } = scaledView(given);
   const h = glmHatvalues(fit);
-  const disp = options.dispersion ?? glmDispersion(fit);
-  const r = glmResiduals(fit, "pearson").filter((_, i) => fit.priorWeights[i]! > 0);
+  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(options.dispersion, -2 * k);
+  const r = residualsOf(fit, "pearson").filter((_, i) => fit.priorWeights[i]! > 0);
   return r.map((v, i) => {
     const c = (v / (1 - h[i]!)) ** 2 * (h[i]! / (disp * fit.rank));
     return Number.isFinite(c) ? c : NaN;
@@ -795,7 +878,7 @@ export interface GlmPredictOptions {
  * @category Generalized linear models
  */
 export function glmPredict(
-  fit: GlmResult,
+  given: GlmResult,
   options: GlmPredictOptions = {},
 ): {
   /** Predictions on the scale of `type`, one per row. */
@@ -807,6 +890,10 @@ export function glmPredict(
   /** R's warning for those rows; present only when there are some. */
   warnings?: string[];
 } {
+  // on the scaled fit (scaledView), with the new offset and the dispersion scaled alike; predictions and standard
+  // errors scaled back (the families that are scaled use the identity link)
+  const { fit, k } = scaledView(given);
+  const up = (v: number): number => ldexp(v, k);
   const fam = familyOf(fit);
   let X: number[][];
   let eta: number[];
@@ -816,11 +903,11 @@ export function glmPredict(
   } else {
     X = toRows(options.newdata).map((r) => (fit.model.intercept ? [1, ...r] : r));
     if (X.some((r) => r.length !== fit.coefficients.length)) throw new RangeError("newdata must have one column per predictor of the fit");
-    const off = options.newoffset === undefined ? X.map(() => 0) : Array.from(options.newoffset);
+    const off = options.newoffset === undefined ? X.map(() => 0) : Array.from(options.newoffset, (v) => ldexp(v, -k));
     if (off.length !== X.length) throw new RangeError("newoffset must have one value per row of newdata");
     eta = X.map((r, i) => r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0) + off[i]!);
   }
-  const disp = options.dispersion ?? glmDispersion(fit);
+  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(options.dispersion, -2 * k);
   const rank = fit.rank;
   const piv = fit.qr === undefined ? [] : fit.qr.pivot.slice(0, rank);
   const R = fit.qr?.qr;
@@ -841,10 +928,10 @@ export function glmPredict(
   // as predict.lm, which R's predict.glm calls (only for new data: the fitted rows are estimable)
   const nonEstimable = options.newdata === undefined ? [] : nonEstimableRows(fit.qr, rank, X);
   const extra = nonEstimable.length > 0 ? { nonEstimable, warnings: [NON_ESTIMABLE_WARNING] } : {};
-  if (type === "link") return { fit: eta, seFit: se, ...extra };
+  if (type === "link") return { fit: eta.map(up), seFit: se.map(up), ...extra };
   return withWarnings(new Warnings(), () => ({
-    fit: eta.map((e) => fam.linkinv(e)),
-    seFit: se.map((s, i) => s * Math.abs(fam.muEta(eta[i]!))),
+    fit: eta.map((e) => up(fam.linkinv(e))),
+    seFit: se.map((s, i) => up(s * Math.abs(fam.muEta(eta[i]!)))),
     ...extra,
   }));
 }

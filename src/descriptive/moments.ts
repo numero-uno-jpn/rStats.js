@@ -8,7 +8,7 @@
 // b2 = (g2 + 3) ((n-1)/n)^2 - 3. The central moments are summed after subtracting the double-double mean.
 
 import { values, type NaRmOptions } from "./basic.js";
-import { meanDD, mean as meanOf, scaleToUnit, variance } from "../internal/summary.js";
+import { ldexp, meanDD, mean as meanOf, scaleToUnit, variance } from "../internal/summary.js";
 import { median } from "./basic.js";
 import type { Sample } from "../htest/types.js";
 import { maxOf } from "../internal/extremes.js";
@@ -176,10 +176,13 @@ export interface MeanADOptions {
  * @category Descriptive statistics
  */
 export function meanAD(x: Sample, options: MeanADOptions = {}): number {
-  const xs = values(x, true)!;
   const c = options.center ?? "mean";
-  const center = c === "mean" ? meanOf(xs) : c === "median" ? median(xs) : c;
-  return meanOf(xs.map((v) => Math.abs(v - center)));
+  // the deviations of the values (and a given centre) scaled by a power of 2 (exact), so that they cannot overflow;
+  // the mean deviation is scaled back
+  const { groups, k } = scaleToUnit([values(x, true)!, typeof c === "number" ? [c] : []]);
+  const xs = groups[0]!;
+  const center = c === "mean" ? meanOf(xs) : c === "median" ? median(xs) : groups[1]![0]!;
+  return ldexp(meanOf(xs.map((v) => Math.abs(v - center))), k);
 }
 
 /**
@@ -206,7 +209,9 @@ export function cv(x: Sample, options: CvOptions = {}): number {
   const xs = values(x, options.naRm);
   if (xs === undefined) return NaN;
   const n = xs.length;
-  let res = Math.sqrt(variance(xs)) / meanOf(xs);
+  // sd and mean of the values scaled by a power of 2 (exact): their ratio has no units
+  const xu = scaleToUnit([xs]).groups[0]!;
+  let res = Math.sqrt(variance(xu)) / meanOf(xu);
   if (options.unbiased) res *= 1 - 1 / (4 * (n - 1)) + (res * res) / n + 1 / (2 * (n - 1) ** 2);
   return res;
 }

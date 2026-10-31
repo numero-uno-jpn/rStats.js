@@ -27,7 +27,7 @@ export interface AnovaTable {
 }
 
 /** The exponent k that brings the responses of the fits (fitted values and residuals) into [1, 2) */
-function responseScale(fits: readonly LmFormulaResult[]): number {
+export function responseScale(fits: readonly LmFormulaResult[]): number {
   return scaleToUnit(fits.flatMap((f) => [f.fittedValues, f.residuals])).k;
 }
 
@@ -35,13 +35,16 @@ function responseScale(fits: readonly LmFormulaResult[]): number {
  * Residual sums of squares of fits in the scale of the response divided by 2^k (see src/internal/summary.ts): rss /
  * 2^2k when rss is in range, otherwise from the residuals scaled by 2^-k
  */
-function scaledRss(fits: readonly LmFormulaResult[], k: number): number[] {
+export function scaledRss(fits: readonly LmFormulaResult[], k: number): number[] {
   return fits.map((f) => {
     if (f.rss >= MIN_NORMAL && f.rss < Infinity) return ldexp(f.rss, -2 * k);
     let s = 0;
     f.residuals.forEach((r, i) => {
+      // rows of weight 0 are not in the fit (their residual may even be infinite)
+      const w = f.weights?.[i] ?? 1;
+      if (w === 0) return;
       const v = ldexp(r, -k);
-      s += (f.weights?.[i] ?? 1) * v * v;
+      s += w * v * v;
     });
     return s;
   });
@@ -79,7 +82,10 @@ function sequentialRows(fit: LmFormulaResult): { names: string[]; rows: { df: nu
   const s = sequentialTerms(fit);
   const kept = s.terms.filter((t) => t.term !== 0);
   let fss = 0;
-  fit.fittedValues.forEach((f, i) => (fss += (fit.weights?.[i] ?? 1) * ldexp(f, -s.k) ** 2));
+  fit.fittedValues.forEach((f, i) => {
+    const w = fit.weights?.[i] ?? 1;
+    if (w !== 0) fss += w * ldexp(f, -s.k) ** 2;
+  });
   return {
     names: kept.map((t) => fit.termLabels[t.term - 1]!),
     rows: kept,

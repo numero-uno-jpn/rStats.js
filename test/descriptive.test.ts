@@ -143,7 +143,8 @@ const known: Record<string, (a: A) => string | undefined> = {
   corMatrix: largeMean,
   skewness: (a) => largeMean(a) ?? overflow(1e75)(a),
   kurtosis: (a) => largeMean(a) ?? overflow(1e75)(a),
-  cv: largeMean,
+  // the variance of data around 1e200 overflows in R (sd Inf); the CV has no units, rStats.js scales first
+  cv: (a) => largeMean(a) ?? overflow(1e150)(a),
   table: naAndNaN,
   unique: naAndNaN,
 };

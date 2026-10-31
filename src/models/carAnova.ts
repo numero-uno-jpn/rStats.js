@@ -9,10 +9,11 @@
 // computed in double-double (src/models/ddLeastSquares.ts).
 
 import { pf1 } from "../distributions/f.js";
+import { ldexp } from "../internal/summary.js";
 import { qr } from "../linalg/qr.js";
 import { ddAdd, ddMul, ddMulNum, type DD } from "../special/dd.js";
 import { ddLeastSquares, ddSqrtWeights } from "./ddLeastSquares.js";
-import type { AnovaTable } from "./anovaSequential.js";
+import { responseScale, scaledRss, type AnovaTable } from "./anovaSequential.js";
 import type { LmFormulaResult } from "./lm.js";
 
 /**
@@ -27,9 +28,10 @@ export interface AnovaOptions {
 
 /**
  * The sum of the squared effects of the columns `added` after the columns `base`, and the number of added columns
- * that are not aliased (the decrease of the residual sum of squares and the increase of the rank)
+ * that are not aliased (the decrease of the residual sum of squares and the increase of the rank), for the response
+ * scaled by 2^-k (src/internal/summary.ts)
  */
-function addedSS(fit: LmFormulaResult, base: number[], added: number[]): { ss: number; df: number } {
+function addedSS(fit: LmFormulaResult, base: number[], added: number[], k: number): { ss: number; df: number } {
   const cols = [...base, ...added];
   if (cols.length === 0) return { ss: 0, df: 0 };
   const rows = fit.y.flatMap((_, i) => (fit.weights === undefined || fit.weights[i] !== 0 ? [i] : []));
@@ -41,7 +43,7 @@ function addedSS(fit: LmFormulaResult, base: number[], added: number[]): { ss: n
   const kept = q.pivot.slice(0, q.rank);
   const { qty } = ddLeastSquares(
     kept.map((c) => rows.map((i, k) => ddMulNum(swd[k]!, fit.x[i]![cols[c]!]!))),
-    rows.map((i, k) => ddMulNum(swd[k]!, fit.y[i]!)),
+    rows.map((i, r) => ddMulNum(swd[r]!, ldexp(fit.y[i]!, -k))),
   );
   let ss: DD = [0, 0];
   let df = 0;
@@ -88,9 +90,18 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
   else if (t0 === 3 || t0 === "III") type = 3;
   else throw new RangeError(`invalid type (${String(t0)}): use 2 or 3`);
   const rdf = fit.dfResidual;
-  const rss = fit.rss;
+  // sums of squares of the response scaled by 2^-k: F and p from them, the Sum Sq column scaled back
+  const k = responseScale([fit]);
+  const rss = scaledRss([fit], k)[0]!;
+  const back = (v: number): number => ldexp(v, 2 * k);
   if (rdf === 0) throw new Error("residual df = 0");
-  if (rss < Math.sqrt(2.220446049250313e-16)) throw new Error("residual sum of squares is 0 (within rounding error)");
+  // car compares the residual sum of squares with sqrt(eps) in the units of the data, which depends on them; here it
+  // is compared with sqrt(eps) times the total (weighted, centred) sum of squares of the response
+  const wy = fit.y.flatMap((v, i) => ((fit.weights?.[i] ?? 1) === 0 ? [] : [[fit.weights?.[i] ?? 1, ldexp(v, -k)] as const]));
+  const sw = wy.reduce((a, [w]) => a + w, 0);
+  const my = wy.reduce((a, [w, v]) => a + w * v, 0) / sw;
+  const tss = wy.reduce((a, [w, v]) => a + w * (v - my) ** 2, 0);
+  if (!(rss >= Math.sqrt(2.220446049250313e-16) * tss) || rss === 0) throw new Error("residual sum of squares is 0 (within rounding error)");
   const warnings: string[] = [];
   const nTerms = fit.termLabels.length;
   if (type === 2 && nTerms === 0 && fit.intercept) {
@@ -107,7 +118,7 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
       const added = columnsOf(new Set([t]));
       const base = columnsOf(new Set(allTerms.filter((u) => u !== t)));
       names.push(t === 0 ? "(Intercept)" : fit.termLabels[t - 1]!);
-      rows.push({ ss: addedSS(fit, base, added).ss, df: added.length });
+      rows.push({ ss: addedSS(fit, base, added, k).ss, df: added.length });
     }
   } else {
     // the variables of each term (from the factors attribute)
@@ -117,7 +128,7 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
       const vt = varsOf(t);
       const containing = allTerms.filter((u) => u !== 0 && u !== t && vt.every((v) => fit.factors[v]![u - 1]! > 0));
       const base = columnsOf(new Set(allTerms.filter((u) => u !== t && !containing.includes(u))));
-      const r = addedSS(fit, base, columnsOf(new Set([t])));
+      const r = addedSS(fit, base, columnsOf(new Set([t])), k);
       names.push(fit.termLabels[t - 1]!);
       rows.push(r);
     }
@@ -125,8 +136,8 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
   const rms = rss / rdf;
   const table = rows.map(({ ss, df }) => {
     const f = ss / df / rms;
-    return [ss, df, f, pf1(f, df, rdf, false, false)];
+    return [back(ss), df, f, pf1(f, df, rdf, false, false)];
   });
-  table.push([rss, rdf, NaN, NaN]);
+  table.push([back(rss), rdf, NaN, NaN]);
   return { colNames: ["Sum Sq", "Df", "F value", "Pr(>F)"], rowNames: [...names, "Residuals"], table, warnings };
 }

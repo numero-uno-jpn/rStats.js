@@ -206,6 +206,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `zTest` (BSDA's `z.test`), effectsize's `cohens_d`/`hedges_g`, irr's `icc`, psych's `alpha`, nortest's `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`, `aov`, `TukeyHSD`, car's `leveneTest`, `lm`, `anova`, `aov(... + Error())`, afex's `ges` on data around 1e±200 | NaN, 0, ±Inf or a different test result (squares of the data overflow or underflow) | the result at any scale (the data scaled by a power of 2 before the mean is subtracted; sums of squares, MSE, standard errors and intervals scaled back for output) |
 | `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` the largest double), and a paired `t.test` of values of opposite sign near the largest double | -Inf or NaN (the deviation, or the difference, overflows before any rescaling) | about -2.3969 and a correlation of -1; the paired test as at any other scale |
 | `t.test(x, mu = 1e100)` | interval [0, 0] (formed as mu + (t ± q) stdErr) | the interval about the mean of x, which does not depend on mu (NaN in R for an infinite mu) |
+| car's `Anova` (types II and III), `predict(lm)` standard errors and intervals, gaussian `glm` and `summary`, `residuals`, `rstandard`, `cooks.distance`, `predict`, `anova`, `confint` of it, DescTools' `CoefVar` and `MeanAD`, with the response around 1e±200 | Inf, 0 or NaN, "residual sum of squares is 0", or "no valid set of coefficients has been found" | the result at any scale (the response scaled by a power of 2; for glm on the gaussian family, or quasi with constant variance, on the identity link) |
 | `anova()` of lmer fits of different rows of the data or different responses with the same number of rows | a likelihood ratio test | an error (lme4 compares only the number of rows) |
 
 ## Deliberate differences
@@ -342,6 +343,14 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   ID(s)"), an infinite response is an error, and rows with a missing id or factor value are dropped. When the error
   SSP matrix of a within-subject term is singular, a warning says that its p-values are uncorrected (afex prints none).
   A within-subject factor with one level is an error, as a between-subject one is (afex returns an empty table).
+- **`aovEz` with a singular error SSP matrix** (for example fewer subjects than measurements): car gives no
+  sphericity corrections ("Singular error SSP matrix"). rStats.js judges each on its own condition: the
+  Greenhouse-Geisser epsilon tr(A)^2 / (p tr(A^2)) is defined for any nonzero A and is given; Huynh-Feldt only when
+  d - p GG > 0 (otherwise NaN, and `correction: "HF"` corrects with GG); Mauchly's test only for a nonsingular matrix.
+  Each omission comes with a warning.
+- **`Anova` (types II and III)** reports "residual sum of squares is 0 (within rounding error)" when the residual sum
+  of squares is below sqrt(eps) times the total (centred, weighted) sum of squares of the response; car compares it
+  with sqrt(eps) itself, which depends on the units.
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);
   an infinite value is an error.
 - **No residual degrees of freedom is an error** in `aovEz` (fewer subjects than between-subject parameters, or as

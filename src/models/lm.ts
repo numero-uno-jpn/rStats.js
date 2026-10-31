@@ -151,11 +151,13 @@ export function lmFormulaFit(formula: string, d: Design, aov: boolean): LmFormul
   const r = core.result;
   const warnings = [...d.warnings];
   if (!aov) {
-    // summary.lm: residual variance negligible against the fitted values' mean square and variance
-    const f = core.fitRows.map((i) => r.fittedValues[i]!);
+    // summary.lm: residual variance negligible against the fitted values' mean square and variance (all of the
+    // response scaled by 2^-k, as fitted)
+    const k = core.yScale ?? 0;
+    const f = core.fitRows.map((i) => ldexp(r.fittedValues[i]!, -k));
     const m = f.reduce((s, v) => s + v, 0) / f.length;
     const v = f.length > 1 ? f.reduce((s, t) => s + (t - m) ** 2, 0) / (f.length - 1) : NaN;
-    const resvar = core.rss / r.dfResidual;
+    const resvar = (core.rssScaled ?? core.rss) / r.dfResidual;
     if (Number.isFinite(resvar) && resvar < 1e-30 * (m * m + v)) warnings.push("essentially perfect fit: summary may be unreliable");
   }
   const out: LmFormulaResult = {
@@ -251,8 +253,9 @@ export interface LmCore {
   effects: number[];
   /** The weighted residual sum of squares */
   rss: number;
-  /** k when the response was fitted scaled by 2^-k (rss / 2^2k is then the residual sum of squares of that fit) */
+  /** k when the response was fitted scaled by 2^-k, and the residual sum of squares of that scaled fit */
   yScale?: number;
+  rssScaled?: number;
 }
 
 /**
@@ -321,7 +324,7 @@ export function fitLm(Xall: number[][], Yall: number[], Wall: number[] | undefin
   r.sigma = back(r.sigma);
   r.coefTable.estimate = r.coefTable.estimate.map(back);
   r.coefTable.stdError = r.coefTable.stdError.map(back);
-  return { ...core, effects: core.effects.map(back), rss: ldexp(core.rss, 2 * k), yScale: k };
+  return { ...core, effects: core.effects.map(back), rss: ldexp(core.rss, 2 * k), yScale: k, rssScaled: core.rss };
 }
 
 /** fitLm on a response already in [1, 2) in absolute value (or one whose scale needs no change) */
@@ -519,7 +522,6 @@ export function predict(
   const rank = fit.rank;
   const piv = fit.qr.pivot.slice(0, rank);
   const Rr = fit.qr.qr.slice(0, rank).map((row) => row.slice(0, rank));
-  const resvar = fit.sigma ** 2;
   const values = X.map((r) => r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0));
   // se: || R^-T x_piv || sigma, by forward substitution with R^T
   const seFit = X.map((r) => {
@@ -529,7 +531,8 @@ export function predict(
       for (let k = 0; k < i; k++) s -= Rr[k]![i]! * z[k]!;
       z[i] = s / Rr[i]![i]!;
     }
-    return Math.sqrt(z.reduce((a, v) => a + v * v, 0) * resvar);
+    // sqrt(z'z) sigma, not sqrt(z'z sigma^2): sigma^2 can overflow or underflow where sigma does not
+    return Math.sqrt(z.reduce((a, v) => a + v * v, 0)) * fit.sigma;
   });
   const interval = options.interval ?? "none";
   if (interval !== "none" && interval !== "confidence" && interval !== "prediction") throw new RangeError(`invalid 'interval': ${String(interval)}`);
@@ -538,6 +541,6 @@ export function predict(
   const extra = nonEstimable.length > 0 ? { nonEstimable, warnings: [NON_ESTIMABLE_WARNING] } : {};
   if (interval === "none") return { fit: values, seFit, ...extra };
   const t = qt1((1 + (options.level ?? 0.95)) / 2, fit.dfResidual, true, false);
-  const half = seFit.map((s) => t * Math.sqrt(s * s + (interval === "prediction" ? resvar : 0)));
+  const half = seFit.map((s) => t * (interval === "prediction" ? Math.hypot(s, fit.sigma) : s));
   return { fit: values, seFit, lwr: values.map((v, i) => v - half[i]!), upr: values.map((v, i) => v + half[i]!), ...extra };
 }

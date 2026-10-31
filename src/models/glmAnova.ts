@@ -8,7 +8,8 @@
 
 import { pf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
-import { glmDispersion, refit, type GlmModel, type GlmResult, type IrlsFit } from "./glm.js";
+import { ldexp } from "../internal/summary.js";
+import { glmDispersion, refit, scaledView, type GlmModel, type GlmResult, type IrlsFit } from "./glm.js";
 import { makeFamily, Warnings } from "./glmFamily.js";
 import { scoreStatistic } from "./glmConfint.js";
 
@@ -92,10 +93,21 @@ const rao = (small: Row, large: Row) => scoreStatistic(large.x, small.fit.workin
  * @category Generalized linear models
  */
 export function glmAnova(fits: GlmResult | readonly GlmResult[], options: GlmAnovaOptions = {}): GlmAnovaResult {
-  const list = Array.isArray(fits) ? (fits as readonly GlmResult[]) : [fits as GlmResult];
-  if (list.length === 0) throw new RangeError("no fits to compare");
+  const given = Array.isArray(fits) ? (fits as readonly GlmResult[]) : [fits as GlmResult];
+  if (given.length === 0) throw new RangeError("no fits to compare");
+  // on the scaled fits (scaledView) when they share one scale: deviances, scores and Cp scaled back by 2^2k
+  const views = given.map(scaledView);
+  const k = views.every((v) => v.k === views[0]!.k) ? views[0]!.k : 0;
+  const list = k === 0 ? given : views.map((v) => v.fit);
+  const table = glmAnovaScaled(list, Array.isArray(fits) && list.length > 1, { ...options, ...(options.dispersion === undefined ? {} : { dispersion: ldexp(options.dispersion, -2 * k) }) });
+  if (k === 0) return table;
+  const squared = new Set(["Deviance", "Resid. Dev", "Rao", "Cp"]);
+  const cols = table.colNames.map((c) => squared.has(c));
+  return { ...table, table: table.table.map((r) => r.map((v, j) => (cols[j] ? ldexp(v, 2 * k) : v))) };
+}
+
+function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: GlmAnovaOptions): GlmAnovaResult {
   const warnings = new Warnings();
-  const compare = Array.isArray(fits) && list.length > 1;
   const first = list[0]!;
   const fam = makeFamily(first.model.familySpec);
   const fixed = fam.fixedDispersion;
