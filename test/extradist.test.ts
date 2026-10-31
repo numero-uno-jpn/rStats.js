@@ -155,6 +155,10 @@ htestSuite({
   // R computes the Weibull and Kumaraswamy moments from the raw moments, which cancel (9 digits of the kurtosis of
   // a Weibull with shape 20); the central moments here are integrated directly and agree with 50-digit values
   knownDifference: (a, field, _expected, actual) => {
+    // a point mass has no standardized moments: R's closed forms give -Inf and Inf (45th review)
+    if (a.distribution === "binom" && a.prob === "1" && (field === "skewness" || field === "kurtosis") && Number.isNaN(actual)) {
+      return "a point mass has no skewness or kurtosis (R's closed forms divide by the variance 0)";
+    }
     const r = summaryRef.get(JSON.stringify(a))?.[field];
     return r !== undefined && Math.abs(actual - num(r)) <= 3e-14 * Math.abs(num(r)) ? "R's raw-moment formulas cancel (agrees with mpmath)" : undefined;
   },

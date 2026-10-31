@@ -271,6 +271,8 @@ export function qbeta1(p: number, a: number, b: number, lowerTail: boolean, logP
   // Decide whether the answer lies left or right of 1/2 by comparing with the distribution function at x = 1/2
   // (for skewed distributions the answer can be near 0 even when the lower probability exceeds 1/2)
   const atHalf = betaInc(a, b, 0.5, 0.5, lower, true);
+  // (a NaN would send the search to the right half and return a wrong value)
+  if (Number.isNaN(atHalf)) return NaN;
   const leftHalf = lower ? logTarget <= atHalf : logTarget >= atHalf;
   if (leftHalf) return solveLeftHalf(a, b, lower, logTarget, linearTarget);
   // Right half: y = 1 - x lies in (0, 1/2] in frame (b, a), with the tails swapped. Where y is below 2^-55, x rounds to

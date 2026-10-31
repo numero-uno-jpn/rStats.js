@@ -237,6 +237,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `dweibull(x, shape, scale = Inf)` at a finite x > 0 | NaN (Inf * 0) | 0 (log -Inf), the limit |
 | `qnorm(0.5, 3, Inf)`, `qlnorm(0.5, 0, Inf)`, `qlogis(0.5, 3, Inf)` (the median with an infinite scale) | NaN (Inf * 0), although the other p give the limits (±Inf; 0 and Inf for `qlnorm`) and `pnorm(3, 3, Inf)` is 0.5 | the location (3; exp(meanlog) = 1 for `qlnorm`), the limit |
 | `dbeta(0.5, 1e308, 1e308)` and other shapes whose sum overflows | NaN | 1.128e154 (log 354.72): the exponent from the halved shapes, doubled (the deviances are homogeneous) |
+| `qbeta(0.5, 1e308, 1e308)` and other quantiles near the mean of shapes whose sum overflows; `pbeta(0.4999999999999999, 1e308, 1e308, log.p = TRUE)` | NaN ("NaNs produced"); -3.98e276 | 0.5 (the median of a symmetric beta); -4.93e276 = -a log(1 - 4 d^2) with d = 2^-53. The uniform expansion of the incomplete beta function in the halved shapes, with the deviance and m doubled (pbeta near the mean was NaN here) |
+| `pwilcox(x, 1050, 1050, log.p = TRUE)` for small x, and other lower tails whose probability is below 1e-308 (also `pwilcox(1000, 600, 600, log.p = TRUE)`) | -Inf (the probability divided by C(m + n, m), which overflows) | -1451.558 (x = 0), -752.510 (600): the table of probabilities rescaled by powers of 2 where its largest entry falls below 2^760, as dwilcox in logs |
 | `qcauchy(p, 3, Inf)` | NaN for every p, although `dcauchy` and `pcauchy` give the limits 0 and 0.5 | -Inf, 3 and Inf below, at and above the median, as `qnorm` and `qlogis` |
 | `lm(y ~ x, weights = rep(1e308, n))` (weighted sums of squares beyond the doubles) | R² NaN, F NaN | the values for any common scale of the weights (R² 0.982 for the example in the tests); sigma grows as the square root of the scale. The sums of squares are formed with the weights divided by a power of 2 |
 | `integrate(f, 0, -Inf)`, `integrate(f, Inf, 1)`, `integrate(f, Inf, -Inf)`, `integrate(f, Inf, Inf)` | the integral over (0, Inf), (-Inf, 1), (-Inf, Inf) and (-Inf, Inf): the sign of an infinite limit is not used | minus the integrals over (-Inf, 0), (1, Inf) and (-Inf, Inf), and 0 |
@@ -452,6 +454,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`phyper` and `qhyper`** whose support reaches beyond 2^53 are NaN: the tail sums step through the integers one by
   one, which no longer move there (`phyper(5e16, 1e17, 1e17, 1e17)` did not return). Below 2^53 the time grows as
   sqrt(m + n), about 40 s at 1e16.
+- **`dwilcox`, `pwilcox` and `qwilcox`** with mn beyond 2^53 are NaN: the statistic ranges over 0..mn, whose
+  integers are not all doubles there (as `phyper` above). The table was built in min(m, n) passes even for one
+  entry (`dwilcox(0, 1e12, 1e12)` would have taken about 50 minutes).
 - **`omega`** adds a warning when the minres fit (L-BFGS-B) does not converge ("minres did not converge ...");
   psych's `fa` goes on from the last point silently. The values are the same.
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);

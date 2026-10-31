@@ -231,6 +231,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 有限の x > 0 での `dweibull(x, shape, scale = Inf)` | NaN (Inf × 0) | 0 (log は -Inf)。極限の値 |
 | `qnorm(0.5, 3, Inf)`、`qlnorm(0.5, 0, Inf)`、`qlogis(0.5, 3, Inf)` (尺度が無限大のときの中央値) | NaN (Inf × 0)。ほかの p では極限の値 (±Inf、`qlnorm` では 0 と Inf) を返し、`pnorm(3, 3, Inf)` は 0.5 | 位置パラメータ (3、`qlnorm` では exp(meanlog) = 1)。極限の値 |
 | `dbeta(0.5, 1e308, 1e308)` など、形状の和が溢れる場合 | NaN | 1.128e154 (log は 354.72)。半分の形状で指数を求めて 2 倍する (偏差は同次) |
+| 形状の和が溢れる場合の、平均付近の `qbeta` (`qbeta(0.5, 1e308, 1e308)` など)。`pbeta(0.4999999999999999, 1e308, 1e308, log.p = TRUE)` | NaN ("NaNs produced")。−3.98e276 | 0.5 (対称なベータ分布の中央値)。−4.93e276 = −a log(1 − 4 d^2)、d = 2^-53。不完全ベータ関数の一様漸近展開を半分の形状で計算し、偏差と m を 2 倍する (平均付近の pbeta はここで NaN だった) |
+| 小さい x の `pwilcox(x, 1050, 1050, log.p = TRUE)` など、確率が 1e-308 を下回る下側の裾 (`pwilcox(1000, 600, 600, log.p = TRUE)` も) | −Inf (確率を C(m + n, m) で割り、その値が溢れる) | −1451.558 (x = 0)、−752.510 (600 の場合)。確率の表を、最大の項が 2^760 を下回ったら 2 の冪で拡大する。dwilcox の log と同じ値 |
 | `qcauchy(p, 3, Inf)` | すべての p で NaN。ただし `dcauchy`・`pcauchy` は極限の値 0 と 0.5 を返す | 中央値より下・中央値・上で -Inf、3、Inf。`qnorm`・`qlogis` と同じ |
 | `lm(y ~ x, weights = rep(1e308, n))` (重み付きの平方和が double の範囲を超える) | R² NaN、F NaN | 重みを一律に何倍しても同じ値 (テストの例で R² 0.982)。sigma は倍率の平方根に比例する。平方和は重みを 2 の冪で割って作る |
 | `integrate(f, 0, -Inf)`、`integrate(f, Inf, 1)`、`integrate(f, Inf, -Inf)`、`integrate(f, Inf, Inf)` | (0, Inf)、(-Inf, 1)、(-Inf, Inf)、(-Inf, Inf) での積分。無限大の端点の符号を見ない | (-Inf, 0)、(1, Inf)、(-Inf, Inf) での積分の符号を反転したもの、および 0 |
@@ -430,6 +432,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   lower.tail = FALSE)` は R で 112065 です (p は `pgeom(112064)` で、ここと R の `qnbinom` は 112064)。
 - **`phyper`・`qhyper`** は、台が 2^53 を超えると NaN です。裾の和は整数を 1 つずつ進むので、そこでは進まなくなります
   (`phyper(5e16, 1e17, 1e17, 1e17)` は終わらなかった)。2^53 未満では時間が sqrt(m + n) に比例し、1e16 で 40 秒ほどです。
+- **`dwilcox`・`pwilcox`・`qwilcox`** は、mn が 2^53 を超えると NaN です。統計量は 0..mn の整数をとり、そこでは整数がすべては
+  double で表せません (上の `phyper` と同じ)。表は、項が 1 つでも min(m, n) 回の段で作るので、`dwilcox(0, 1e12, 1e12)` は
+  50 分ほどかかるところでした。
 - **`omega`** は、minres の当てはめ (L-BFGS-B) が収束しないとき警告を出します ("minres did not converge ...")。psych の `fa` は
   何も言わずに最後の点から先へ進みます。値は同じです。
 - **`mauchlyTest`** は、`y` に欠測値がある行と `group` が欠測の行を除きます (`lm(y ~ group)` と同じ)。無限大はエラーです。

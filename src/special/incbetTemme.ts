@@ -179,24 +179,31 @@ export function betaIncTemme(
   lower: boolean,
   wantLog: boolean,
 ): [number, number] | undefined {
-  const rr = twoSum(a, b);
+  // Where a + b overflows, r x - a, the deviance E and m are formed from the halved shapes and doubled: they are
+  // homogeneous of degree 1 in (a, b), while p, q and τ do not change (pbeta(0.5, 1e308, 1e308) was NaN)
+  const c = Number.isFinite(a + b) ? 1 : 2;
+  const ah = a / c;
+  const bh = b / c;
+  const rr = twoSum(ah, bh);
   const r = rr[0];
   // (a b overflows beyond 1.8e308: then a (b / r))
-  const ab = a * b;
-  const m = Number.isFinite(ab) ? ab / r : a * (b / r);
+  const ab = ah * bh;
+  const mh = Number.isFinite(ab) ? ab / r : ah * (bh / r);
+  const m = c * mh;
   if (!(m >= TEMME_MIN_M) || !Number.isFinite(r)) return undefined;
-  const p = a / r;
-  const q = b / r;
-  const pq = m / r;
+  const p = ah / r;
+  const q = bh / r;
+  const pq = mh / r;
   // Cheap filter: |τ| <= 1 needs |w| = |x - p| / pq below about 1.6
   const x = xd[0];
   if (Math.abs(x - p) > 2 * pq) return undefined;
   // r x - a exactly enough (sign of x - p, and g_0 in the tail form)
   const rx = mulLarge(rr, xd);
-  const dx = ddSub(rx, [a, 0]);
-  const d = dx[0] + dx[1];
+  const dx = ddSub(rx, [ah, 0]);
+  const d = c * (dx[0] + dx[1]);
   // E = bd0(a, r x) + bd0(b, r (1 - x)) in double-double
-  const e = ddAdd(bd0dd(a, rx), bd0dd(b, mulLarge(rr, xcd)));
+  const eh = ddAdd(bd0dd(ah, rx), bd0dd(bh, mulLarge(rr, xcd)));
+  const e: DD = [c * eh[0], c * eh[1]];
   const E = e[0] + e[1];
   const tau2 = (2 * E) / m;
   if (!(tau2 <= TAU_MAX * TAU_MAX)) return undefined;
@@ -204,7 +211,8 @@ export function betaIncTemme(
   const tau = d < 0 ? -absTau : absTau;
   const n = absTau <= 0.5 ? 20 : absTau <= 0.75 ? 24 : NMAX;
   gCoefficients(p, q, n);
-  const eD = Math.exp(-(stirlerr(a) + stirlerr(b) - stirlerr(r)));
+  // (where a + b overflows, its stirlerr, about 1 / (12 (a + b)), is below 1e-309)
+  const eD = Math.exp(-(stirlerr(a) + stirlerr(b) - (c === 1 ? stirlerr(r) : 0)));
   const y = Math.sqrt(E);
   // The smaller tail is the lower one when x < p
   const smallIsLower = d < 0;
@@ -226,7 +234,9 @@ export function betaIncTemme(
     eD * (Math.sqrt(m / TWO_PI) / Math.abs(d) + expansionSum(tau, m, n, true) / (absTau * Math.sqrt(TWO_PI * m)));
   let small: number;
   if (e[0] < 700) small = Math.exp(-e[0]) * (1 - e[1]) * B;
-  else small = Math.exp(700 - e[0]) * (1 - e[1]) * B * Math.exp(-700);
+  // (beyond 1500 the result underflows; 1 - e[1] is then no longer near 1 and could make it -0)
+  else small = e[0] < 1500 ? Math.exp(700 - e[0]) * (1 - e[1]) * B * Math.exp(-700) : 0;
   if (lower === smallIsLower) return [wantLog ? -e[0] - e[1] + Math.log(B) : NaN, small];
-  return [wantLog ? Math.log1p(-small) : NaN, 1 - small];
+  // (log1p(-0) would be -0)
+  return [wantLog ? (small === 0 ? 0 : Math.log1p(-small)) : NaN, 1 - small];
 }

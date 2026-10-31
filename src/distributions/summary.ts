@@ -21,11 +21,11 @@ import { qbinom } from "./binomial.js";
 import { qpois } from "./poisson.js";
 import { qgeom } from "./geometric.js";
 import { qnbinom } from "./negbinomial.js";
-import { qhyper } from "./hypergeometric.js";
+import { dhyper1, qhyper } from "./hypergeometric.js";
 import { qinvgamma } from "./invgamma.js";
 import { dkumar1, pkumar1, qkumar, qkumar1 } from "./kumaraswamy.js";
 import { qtriang } from "./triangular.js";
-import { qarcsine } from "./arcsine.js";
+import { ldexp } from "../internal/summary.js";
 import { midpoint } from "../internal/extremes.js";
 
 /**
@@ -61,9 +61,24 @@ export type DistName =
 
 const NAN: DistSummary = { mean: NaN, variance: NaN, sd: NaN, median: NaN, mode: NaN, skewness: NaN, kurtosis: NaN };
 
-function make(mean: number, variance: number, median: number, mode: number, skewness: number, kurtosis: number): DistSummary {
-  return { mean, variance, sd: Math.sqrt(variance), median, mode, skewness, kurtosis };
+/**
+ * sdDirect: the standard deviation formed without the variance, used where the variance overflowed or lost digits
+ * below the smallest normal number (normal(sd = 1e200) has variance Inf and sd 1e200, normal(sd = 1e-200) variance 0)
+ */
+function make(
+  mean: number,
+  variance: number,
+  median: number,
+  mode: number,
+  skewness: number,
+  kurtosis: number,
+  sdDirect?: number,
+): DistSummary {
+  const sd = sdDirect === undefined || (variance >= MIN_NORMAL && variance < Infinity) ? Math.sqrt(variance) : sdDirect;
+  return { mean, variance, sd, median, mode, skewness, kurtosis };
 }
+
+const MIN_NORMAL = 2 ** -1022;
 
 /**
  * Variance, skewness and excess kurtosis from the central moments E[(X - mean)^n], integrated numerically from the
@@ -171,7 +186,7 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
     case "norm": {
       const { mean = 0, sd = 1 } = P;
       if (!(Number.isFinite(mean) && sd > 0 && Number.isFinite(sd))) return NAN;
-      return make(mean, sd * sd, mean, mean, 0, 0);
+      return make(mean, sd * sd, mean, mean, 0, 0, sd);
     }
     case "lnorm": {
       const { meanlog = 0, sdlog = 1 } = P;
@@ -187,29 +202,30 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         (w + 2) * Math.sqrt(em1),
         // w^4 + 2 w^3 + 3 w^2 - 6 with w = 1 + em1, expanded in em1 (the w form cancels for small sdlog)
         em1 * (16 + em1 * (15 + em1 * (6 + em1))),
+        Math.sqrt(em1) * Math.exp(meanlog + s2 / 2),
       );
     }
     case "unif": {
       const { min = 0, max = 1 } = P;
       if (!(Number.isFinite(min) && Number.isFinite(max) && min < max)) return NAN;
       const m = Number.isFinite(max - min) ? min + (max - min) / 2 : midpoint(min, max);
-      return make(m, (max - min) ** 2 / 12, m, NaN, 0, -1.2);
+      return make(m, (max - min) ** 2 / 12, m, NaN, 0, -1.2, (max / 2 - min / 2) * (2 / Math.sqrt(12)));
     }
     case "exp": {
       const { rate = 1 } = P;
       if (!(rate > 0 && Number.isFinite(rate))) return NAN;
-      return make(1 / rate, 1 / (rate * rate), Math.LN2 / rate, 0, 2, 6);
+      return make(1 / rate, 1 / (rate * rate), Math.LN2 / rate, 0, 2, 6, 1 / rate);
     }
     case "gamma": {
       const k = P.shape ?? NaN;
       const scale = has(P, "scale") ? P.scale! : 1 / (P.rate ?? 1);
       if (!(k > 0 && Number.isFinite(k) && scale > 0 && Number.isFinite(scale))) return NAN;
-      return make(k * scale, k * scale * scale, qgamma(0.5, k, { scale }), k >= 1 ? (k - 1) * scale : 0, 2 / Math.sqrt(k), 6 / k);
+      return make(k * scale, k * scale * scale, qgamma(0.5, k, { scale }), k >= 1 ? (k - 1) * scale : 0, 2 / Math.sqrt(k), 6 / k, Math.sqrt(k) * scale);
     }
     case "chisq": {
       const df = P.df ?? NaN;
       if (!(df > 0 && Number.isFinite(df))) return NAN;
-      return make(df, 2 * df, qchisq(0.5, df), Math.max(df - 2, 0), Math.sqrt(8 / df), 12 / df);
+      return make(df, 2 * df, qchisq(0.5, df), Math.max(df - 2, 0), Math.sqrt(8 / df), 12 / df, Math.SQRT2 * Math.sqrt(df));
     }
     case "beta": {
       const a = P.shape1 ?? NaN;
@@ -217,16 +233,44 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       if (!(a > 0 && b > 0 && Number.isFinite(a) && Number.isFinite(b))) return NAN;
       const s = a + b;
       let mode: number;
-      if (a > 1 && b > 1) mode = (a - 1) / (s - 2);
+      if (a > 1 && b > 1) mode = Number.isFinite(s) ? (a - 1) / (s - 2) : (a - 1) / 2 / ((a - 1) / 2 + (b - 1) / 2);
       else if ((a === 1 && b === 1) || (a < 1 && b < 1)) mode = NaN;
       else mode = a <= 1 && b >= 1 ? 0 : 1;
+      const median = qbeta(0.5, a, b);
+      if (!Number.isFinite(s)) {
+        // a + b overflows: from the halved shapes, p = a / (a + b), q = b / (a + b) and h = (a + b) / 2, with s + 1, s + 2
+        // and s + 3 equal to s (beta(1e308, 1e308) had mean 0, mode 0 and variance 0)
+        const h = a / 2 + b / 2;
+        const pa = a / 2 / h;
+        const pb = b / 2 / h;
+        return make(
+          pa,
+          (pa * pb) / h / 2,
+          median,
+          mode,
+          (2 * (pb - pa)) / (Math.sqrt(pa) * Math.sqrt(pb) * Math.SQRT2 * Math.sqrt(h)),
+          (3 * ((pa - pb) ** 2 / (pa * pb) - 1)) / h,
+          (Math.sqrt(pa) * Math.sqrt(pb)) / Math.sqrt(h) / Math.SQRT2,
+        );
+      }
+      const ab = a * b;
+      // Where a b overflows or underflows (shapes beyond 1e154 or below 1e-154), the moments in p = a / s and q = b / s
+      // (numerators and denominators divided by s^2; beta(1e200, 1e200) had kurtosis NaN)
+      const inRange = ab >= MIN_NORMAL && ab < Infinity;
+      const pa = a / s;
+      const pb = b / s;
       return make(
-        a / s,
+        pa,
         betaVariance(a, b, s),
-        qbeta(0.5, a, b),
+        median,
         mode,
-        (2 * (b - a) * Math.sqrt(s + 1)) / ((s + 2) * Math.sqrt(a * b)),
-        (6 * ((a - b) ** 2 * (s + 1) - a * b * (s + 2))) / (a * b * (s + 2) * (s + 3)),
+        inRange
+          ? (2 * (b - a) * Math.sqrt(s + 1)) / ((s + 2) * Math.sqrt(ab))
+          : (2 * (pb - pa) * Math.sqrt(s + 1)) / ((s + 2) * Math.sqrt(pa * pb)),
+        inRange
+          ? (6 * ((a - b) ** 2 * (s + 1) - ab * (s + 2))) / (ab * (s + 2) * (s + 3))
+          : (6 * ((pa - pb) ** 2 * ((s + 1) / (s + 2)) - pa * pb)) / (pa * pb * (s + 3)),
+        (Math.sqrt(pa) * Math.sqrt(pb)) / Math.sqrt(s + 1),
       );
     }
     case "t": {
@@ -247,7 +291,9 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         d2 > 8
           ? (12 * (d1 * (5 * d2 - 22) * (d1 + d2 - 2) + (d2 - 4) * (d2 - 2) ** 2)) / (d1 * (d2 - 6) * (d2 - 8) * (d1 + d2 - 2))
           : NaN;
-      return make(mean, variance, qf(0.5, d1, d2), d1 > 2 ? ((d1 - 2) / d1) * (d2 / (d2 + 2)) : 0, skewness, kurtosis);
+      // (the standard deviation from the square roots of the factors, where the variance overflows)
+      const sd = d2 > 4 ? (Math.SQRT2 * d2 * Math.sqrt(d1 + d2 - 2)) / (Math.sqrt(d1) * (d2 - 2) * Math.sqrt(d2 - 4)) : variance;
+      return make(mean, variance, qf(0.5, d1, d2), d1 > 2 ? ((d1 - 2) / d1) * (d2 / (d2 + 2)) : 0, skewness, kurtosis, sd);
     }
     case "cauchy": {
       const { location = 0, scale = 1 } = P;
@@ -269,26 +315,29 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         k > 1 ? lam * Math.pow((k - 1) / k, 1 / k) : 0,
         s.skewness,
         s.kurtosis,
+        lam * Math.sqrt(s.variance),
       );
     }
     case "logis": {
       const { location = 0, scale = 1 } = P;
       if (!(Number.isFinite(location) && scale > 0 && Number.isFinite(scale))) return NAN;
-      return make(location, (scale * scale * Math.PI * Math.PI) / 3, location, location, 0, 1.2);
+      return make(location, (scale * scale * Math.PI * Math.PI) / 3, location, location, 0, 1.2, (scale * Math.PI) / Math.sqrt(3));
     }
     case "binom": {
       const n = P.size ?? NaN;
       const p = P.prob ?? NaN;
       if (!(Number.isInteger(n) && n >= 0 && p >= 0 && p <= 1)) return NAN;
       const q = 1 - p;
+      // (a point mass: no skewness or kurtosis)
+      const point = n === 0 || p === 0 || p === 1;
       // P(x) >= P(x - 1) exactly when x <= (n + 1) p
       return make(
         n * p,
         n * p * q,
         qbinom(0.5, n, p),
         Math.min(n, floorProduct(n + 1, p)),
-        (q - p) / Math.sqrt(n * p * q),
-        (1 - 6 * p * q) / (n * p * q),
+        point ? NaN : (q - p) / Math.sqrt(n * p * q),
+        point ? NaN : (1 - 6 * p * q) / (n * p * q),
       );
     }
     case "pois": {
@@ -300,7 +349,16 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const p = P.prob ?? NaN;
       if (!(p > 0 && p <= 1)) return NAN;
       const q = 1 - p;
-      return make(q / p, q / (p * p), qgeom(0.5, p), 0, (2 - p) / Math.sqrt(q), 6 + (p * p) / q);
+      // (p = 1 is a point mass at 0: no skewness or kurtosis)
+      return make(
+        q / p,
+        q / (p * p),
+        qgeom(0.5, p),
+        0,
+        p === 1 ? NaN : (2 - p) / Math.sqrt(q),
+        p === 1 ? NaN : 6 + (p * p) / q,
+        Math.sqrt(q) / p,
+      );
     }
     case "nbinom": {
       const r = P.size ?? NaN;
@@ -323,8 +381,10 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         (r * q) / (p * p),
         qnbinom(0.5, r, opts),
         mode,
-        (2 - p) / Math.sqrt(r * q),
-        6 / r + (p * p) / (r * q),
+        // (p = 1 is a point mass at 0: no skewness or kurtosis)
+        p === 1 ? NaN : (2 - p) / Math.sqrt(r * q),
+        p === 1 ? NaN : 6 / r + (p * p) / (r * q),
+        (Math.sqrt(r) * Math.sqrt(q)) / p,
       );
     }
     case "hyper": {
@@ -334,17 +394,30 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       if (!([m, n, k].every((v) => Number.isInteger(v) && v >= 0) && k <= m + n)) return NAN;
       const N = m + n;
       const mo = Math.floor(((k + 1) * (m + 1)) / (N + 2));
-      const kurt =
-        ((N - 1) * N * N * (N * (N + 1) - 6 * m * n - 6 * k * (N - k)) + 6 * k * m * n * (N - k) * (5 * N - 6)) /
-        (k * m * n * (N - k) * (N - 2) * (N - 3));
-      return make(
-        (k * m) / N,
-        (((k * m) / N) * (n / N) * (N - k)) / (N - 1),
-        qhyper(0.5, m, n, k),
-        mo,
-        ((N - 2 * m) * Math.sqrt(N - 1) * (N - 2 * k)) / (Math.sqrt(k * m * n * (N - k)) * (N - 2)),
-        kurt,
-      );
+      const mean = (k * m) / N;
+      const variance = ((mean * (n / N)) * (N - k)) / (N - 1);
+      let skewness: number;
+      let kurt: number;
+      if (k === 0 || m === 0 || n === 0 || k === N) {
+        // a point mass: no skewness or kurtosis
+        skewness = NaN;
+        kurt = NaN;
+      } else if (N <= 3) {
+        // the closed forms divide by N - 2 and N - 3: the central moments over the (at most two-point) support
+        const c = [2, 3, 4].map((r) => {
+          let s = 0;
+          for (let x = Math.max(0, k - n); x <= Math.min(k, m); x++) s += dhyper1(x, m, n, k, false) * (x - mean) ** r;
+          return s;
+        });
+        skewness = c[1]! / c[0]! ** 1.5;
+        kurt = c[2]! / (c[0]! * c[0]!) - 3;
+      } else {
+        skewness = ((N - 2 * m) * Math.sqrt(N - 1) * (N - 2 * k)) / (Math.sqrt(k * m * n * (N - k)) * (N - 2));
+        kurt =
+          ((N - 1) * N * N * (N * (N + 1) - 6 * m * n - 6 * k * (N - k)) + 6 * k * m * n * (N - k) * (5 * N - 6)) /
+          (k * m * n * (N - k) * (N - 2) * (N - 3));
+      }
+      return make(mean, variance, qhyper(0.5, m, n, k), mo, skewness, kurt);
     }
     case "invgamma": {
       const a = P.alpha ?? NaN;
@@ -357,6 +430,7 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         b / (a + 1),
         a > 3 ? (4 * Math.sqrt(a - 2)) / (a - 3) : NaN,
         a > 4 ? (30 * a - 66) / ((a - 3) * (a - 4)) : NaN,
+        a > 2 ? b / ((a - 1) * Math.sqrt(a - 2)) : undefined,
       );
     }
     case "kumar": {
@@ -388,6 +462,7 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         b,
         a > 3 ? ((2 * (1 + a)) / (a - 3)) * Math.sqrt((a - 2) / a) : NaN,
         a > 4 ? (6 * (a ** 3 + a * a - 6 * a - 2)) / (a * (a - 3) * (a - 4)) : NaN,
+        a > 2 ? (b * Math.sqrt(a)) / ((a - 1) * Math.sqrt(a - 2)) : undefined,
       );
     }
     case "triang": {
@@ -395,6 +470,10 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const c = P.c ?? midpoint(a, b);
       if (!(Number.isFinite(a) && Number.isFinite(b) && a < b && a <= c && c <= b)) return NAN;
       const q = a * a + b * b + c * c - a * b - a * c - b * c;
+      // (where q overflows or underflows: from the parameters divided by a power of 2)
+      const e = Math.floor(Math.log2(Math.max(Math.abs(a), Math.abs(b), Math.abs(c))));
+      const [as, bs, cs] = [a, b, c].map((v) => ldexp(v, -e)) as [number, number, number];
+      const qs = as * as + bs * bs + cs * cs - as * bs - as * cs - bs * cs;
       return make(
         Number.isFinite(a + b + c) ? (a + b + c) / 3 : a / 3 + b / 3 + c / 3,
         q / 18,
@@ -402,17 +481,20 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         c,
         (Math.SQRT2 * (a + b - 2 * c) * (2 * a - b - c) * (a - 2 * b + c)) / (5 * q ** 1.5),
         -0.6,
+        ldexp(Math.sqrt(qs / 18), e),
       );
     }
     case "laplace": {
       const { mu = 0, sigma = 1 } = P;
       if (!(Number.isFinite(mu) && sigma > 0 && Number.isFinite(sigma))) return NAN;
-      return make(mu, 2 * sigma * sigma, mu, mu, 0, 3);
+      return make(mu, 2 * sigma * sigma, mu, mu, 0, 3, Math.SQRT2 * sigma);
     }
     case "arcsine": {
       const { a = 0, b = 1 } = P;
       if (!(Number.isFinite(a) && Number.isFinite(b) && a < b)) return NAN;
-      return make(a + (b - a) / 2, (b - a) ** 2 / 8, qarcsine(0.5, { a, b }), NaN, 0, -1.5);
+      // symmetric: the median is the mean (qarcsine(0.5) rounds to 1e-16 of the width); b - a may overflow
+      const mean = Number.isFinite(b - a) ? a + (b - a) / 2 : midpoint(a, b);
+      return make(mean, (b - a) ** 2 / 8, mean, NaN, 0, -1.5, (b / 2 - a / 2) / Math.SQRT2);
     }
   }
   throw new RangeError(`unknown distribution '${String(distribution)}'`);

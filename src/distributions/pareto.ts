@@ -89,8 +89,10 @@ export function dpareto1(x: number, a: number, b: number, log: boolean): number 
 
 export function ppareto1(q: number, a: number, b: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(q) || !valid(a, b)) return NaN;
+  // a = Infinity: the point mass at b, counted at q = b (as qpareto gives b and pnorm(0, 0, 0) 1)
+  if (a === Infinity) return q < b ? dt0(lowerTail, logP) : dt1(lowerTail, logP);
   if (q <= b) return dt0(lowerTail, logP);
-  if (q === Infinity || a === Infinity) return dt1(lowerTail, logP);
+  if (q === Infinity) return dt1(lowerTail, logP);
   const rt = ratio(q, b);
   const lu = -a * rt[2]; // log P[X > q]
   if (!lowerTail) return logP ? lu : powNeg(q, b, rt, a);
