@@ -381,6 +381,14 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`glmConfint`** gives NaN limits when the fit, or a restricted fit of the profile, does not converge.
 - **The inverse Gaussian family** requires a positive mean (R's validmu accepts any): a step of the iterations to a
   mean of 0 or below is halved, where R goes on to NaN working weights.
+- **`lmerAnova` of fits that are not nested** (fixed-effect columns of the smaller fit missing from the larger, or a
+  random-effect term not within a term of the same grouping factor there, such as `(1 | g)` against `(1 | h)`) gives
+  no Chisq and p-value; lme4 reports a likelihood ratio test for any pair. AIC and BIC compare them as before.
+- **`coxph`** takes a time censored at `Inf` as at risk throughout and rejects an event at `Inf`, as `survdiff` and
+  `survfit` (R stops on any infinite time).
+- **The noncentral `pbeta`** checks its parameters before the ends of the support: a negative shape or a negative or
+  infinite ncp gives NaN (R returns 0 or 1 at q <= 0 or q >= 1 for them, and the central `pbeta` NaN). Shapes of 0
+  (point masses) keep the ends, as in R.
 - **`omega`** adds a warning when the minres fit (L-BFGS-B) does not converge ("minres did not converge ...");
   psych's `fa` goes on from the last point silently. The values are the same.
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);

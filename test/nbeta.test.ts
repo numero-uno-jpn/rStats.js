@@ -19,6 +19,12 @@ fixtureSuite({
 fixtureSuite({
   name: "pnbeta",
   tolerance: 1e-14,
+  // Deliberate: a negative shape or a negative or infinite ncp defines no distribution; R returns 0 or 1 at the ends of the
+  // support for them (and NaN inside, as the central pbeta does everywhere), rStats.js NaN throughout
+  knownDifference: (a, _e, x) =>
+    Number.isNaN(x) && (num(a.shape1) < 0 || num(a.shape2) < 0 || num(a.ncp) < 0 || num(a.ncp) === Infinity)
+      ? "a negative shape or an infinite ncp: R returns the end of the support"
+      : undefined,
   call: (a) => pbeta(num(a.q), num(a.shape1), num(a.shape2), opts(a)),
 });
 fixtureSuite({

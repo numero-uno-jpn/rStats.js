@@ -608,6 +608,10 @@ export function dnbeta1(x: number, a: number, b: number, ncp: number, log: boole
 
 export function pnbeta1(q: number, a: number, b: number, ncp: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(q) || Number.isNaN(a) || Number.isNaN(b) || Number.isNaN(ncp)) return NaN;
+  // parameters that define no distribution are checked before the ends of the support, as in the central pbeta (R
+  // gives 0 or 1 at q <= 0 or q >= 1 even for a = -1 or ncp = Inf). Shapes of 0 (point masses, the limits R accepts
+  // there) still get the ends
+  if (a < 0 || b < 0 || ncp < 0 || ncp === Infinity) return NaN;
   if (q <= 0) return dt0(lowerTail, logP);
   if (q >= 1) return dt1(lowerTail, logP);
   if (!validBeta(a, b, ncp)) return NaN;

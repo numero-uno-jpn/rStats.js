@@ -208,7 +208,15 @@ function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): 
   const n = fits[0]!.nObs;
   const npar = order.map((i) => fits[i]!.df);
   const ll = order.map((i) => logLik[i]!);
-  const Chisq = ll.map((v, k) => (k === 0 ? NaN : 2 * Math.max(0, v - ll[k - 1]!)));
+  // A likelihood ratio test needs the smaller fit to be a special case of the larger one (lme4 gives a p-value for any
+  // pair): its fixed-effect columns among the larger fit's, and each of its random-effect terms within a term of the
+  // same grouping factor there ((1 | g) + (0 + x | g) within (1 + x | g), not the converse). Otherwise no test (AIC
+  // and BIC still compare the fits)
+  const nestedIn = (small: LmerResult, large: LmerResult): boolean =>
+    small.fixefNames.every((c) => large.fixefNames.includes(c)) &&
+    small.varCorr.every((t) => large.varCorr.some((u) => u.group === t.group && t.columns.every((c) => u.columns.includes(c))));
+  const nested = order.map((i, k) => k > 0 && nestedIn(fits[order[k - 1]!]!, fits[i]!));
+  const Chisq = ll.map((v, k) => (k === 0 || !nested[k] ? NaN : 2 * Math.max(0, v - ll[k - 1]!)));
   const Df = npar.map((v, k) => (k === 0 ? NaN : v - npar[k - 1]!));
   const pValue = Chisq.map((x, k) => (k === 0 || Df[k] === 0 ? NaN : pgamma1(x, Df[k]! / 2, 2, false, false)));
   return {

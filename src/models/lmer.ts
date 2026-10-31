@@ -54,7 +54,7 @@
 // from the normal equations would otherwise be large next to the residuals, and the criterion noisy. If y − X β₀ is
 // 0 (to 1e-12 max |y|), the criterion is −∞ for every θ and there is no estimate: an error.
 
-import { norm2 } from "../internal/summary.js";
+import { ldexp, norm2 } from "../internal/summary.js";
 import { qr, qrCoef } from "../linalg/qr.js";
 import { profiledDeviance } from "./mixedDeviance.js";
 import type { DataFrame } from "./modelFrame.js";
@@ -230,6 +230,15 @@ const OPTIMISATION_FAILED = "lmer: the minimisation of the criterion over theta 
 
 /** Eigenvalues and eigenvectors of a small symmetric matrix by cyclic Jacobi rotations; vectors[k] is the k-th vector */
 function symmetricEigen(a0: readonly (readonly number[])[]): { values: number[]; vectors: number[][] } {
+  // entries of extreme magnitude are scaled by a power of 2 (exact) first and the eigenvalues scaled back: the sums of
+  // squares below overflowed for entries around 1e200 (Infinity <= 1e-32 Infinity ended the sweeps at once)
+  let mx = 0;
+  for (const row of a0) for (const v of row) mx = Math.max(mx, Math.abs(v));
+  const k = mx === 0 || !Number.isFinite(mx) || (mx >= 2 ** -256 && mx <= 2 ** 256) ? 0 : Math.floor(Math.log2(mx));
+  if (k !== 0) {
+    const r = symmetricEigen(a0.map((row) => row.map((v) => ldexp(v, -k))));
+    return { values: r.values.map((v) => ldexp(v, k)), vectors: r.vectors };
+  }
   const m = a0.length;
   const a = a0.map((row) => row.slice());
   const v = a.map((_, i) => a.map((_, j): number => (i === j ? 1 : 0)));

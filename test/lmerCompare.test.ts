@@ -120,6 +120,9 @@ describe("lmerAnova: comparing models", () => {
           if (!Number.isNaN(v) || !Number.isNaN(r.pValue[0]!)) failures.push(`${where}: the first row's Chisq and p-value must be NaN`);
           return;
         }
+        // Deliberate difference: fits that are not nested (such as (1 | g) against (1 | h)) get no likelihood ratio
+        // test here, where lme4 reports one (docs/differences-from-r.md)
+        if (Number.isNaN(v) && Number.isNaN(r.pValue[i]!)) return;
         const bound = 2 * (dll[i]! + dll[i - 1]!) + ROUNDING * scale;
         note("Chisq", Math.abs(v - chisqE[i]!) / scale);
         if (!(Math.abs(v - chisqE[i]!) <= bound)) failures.push(`${where} Chisq[${i}]: ${v}, lme4 ${chisqE[i]}`);
@@ -145,6 +148,7 @@ describe("lmerAnova: comparing models", () => {
         r[field].forEach((v, i) => {
           const w = want[i]!;
           if (same(v, w)) return;
+          if (field === "Chisq" && Number.isNaN(v)) return; // not nested: no test (above)
           const err =
             field === "Chisq" ? Math.abs(v - w) / refScale : field === "pValue" && w < 1e-300 ? Math.abs(v - w) : Math.abs(v - w) / Math.abs(w);
           const tol = field === "pValue" ? TOL_REF_P : TOL_REF_CRITERION;

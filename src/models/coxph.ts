@@ -405,6 +405,9 @@ export function coxph(
     if (strata !== undefined && isMissingLabel(strata[i])) continue;
     const s = status[i]!;
     if (s !== 0 && s !== 1) throw new RangeError("'status' must be 0 (censored) or 1 (event)");
+    // a subject censored at Infinity is at risk throughout (R stops on any infinite time); an event cannot happen at an
+    // infinite time, nor anything at -Infinity (as survdiff and survfit)
+    if (time[i] === -Infinity || (time[i] === Infinity && s === 1)) throw new RangeError("event times must be finite");
     keep.push(i);
   }
   const n = keep.length;
