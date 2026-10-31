@@ -1,6 +1,6 @@
 // External review of linalg and numerics (review_fix_log_20261031_49.md).
 import { describe, expect, it } from "vitest";
-import { backsolve, determinant, forwardsolve, grad, hessian, matMul, optimize, prcomp, solve } from "../src/index.js";
+import { backsolve, determinant, forwardsolve, grad, hessian, matMul, optimize, prcomp, scale, sd, solve } from "../src/index.js";
 
 describe("review 49", () => {
   const D = [[1e-308, 0], [0, 1e-308]];
@@ -60,5 +60,32 @@ describe("review 49", () => {
     expect(() => hessian(f, [1], { zeroTol: NaN })).toThrow(/'zeroTol' must be/);
     // a negative step is a difference the other way, as in numDeriv
     expect(hessian(f, [1], { d: -0.1 })).toEqual([[2.000000000000556]]);
+  });
+
+  it("sd, scale and prcomp where the deviations from the mean overflow (added after the review)", () => {
+    // mean -5e307; the deviation of 1.5e308 is 2e308, out of range, while sd = sqrt(1.25e616) = 1.118e308 is not
+    const x = [-1e308, -1e308, -1e308, -1e308, 1.5e308];
+    const s = 1.118033988749895e308;
+    expect(sd(x)).toBe(s); // Infinity before (R too)
+    expect(scale(x, { scale: false }).scaled.flat()).toEqual([-5e307, -5e307, -5e307, -5e307, Infinity]);
+    const z = scale(x); // [0, 0, 0, 0, Infinity] with scale Infinity before (R: NaN)
+    expect(z.scale).toEqual([s]);
+    expect(z.scaled.flat()).toEqual([-0.4472135954999579, -0.4472135954999579, -0.4472135954999579, -0.4472135954999579, 1.7888543819998317]);
+    const p = prcomp(x.map((v) => [v])); // an error from svd before (R too)
+    expect(p.sdev).toEqual([s]);
+    expect(p.rotation).toEqual([[1]]);
+    expect(p.center).toEqual([-5e307]);
+    expect(p.x.flat()).toEqual([-5e307, -5e307, -5e307, -5e307, Infinity]);
+    expect(prcomp(x.map((v) => [v]), { scale: true }).x.flat()).toEqual(z.scaled.flat());
+    // scaled by a power of 2: the same bits as at the ordinary scale
+    const d = [[1, 0.5], [-1, 0.25], [1.5, -0.5], [-1, -0.25], [0.2, 0.1]];
+    const f = 2 ** 1000;
+    const big = d.map((r) => r.map((v) => v * f));
+    expect(sd(big.map((r) => r[0]!))).toBe(sd(d.map((r) => r[0]!)) * f);
+    // (scale's sum of squares overflows at this size and is formed from the values divided by the largest: 1 ulp)
+    scale(big).scaled.flat().forEach((v, i) => expect(v / scale(d).scaled.flat()[i]! - 1).toBeCloseTo(0, 15));
+    expect(prcomp(big).sdev).toEqual(prcomp(d).sdev.map((v) => v * f));
+    // the variance underflows: sd was 0
+    expect(sd([1e-200, 2e-200, 4e-200]) / (sd([1, 2, 4]) * 1e-200) - 1).toBeCloseTo(0, 15);
   });
 });

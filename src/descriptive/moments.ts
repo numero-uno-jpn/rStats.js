@@ -231,6 +231,21 @@ export interface ScaleOptions {
   scale?: boolean | readonly number[];
 }
 
+/** sqrt(sum v^2 / max(1, n - 1)), the scale of a centred column in R's scale() */
+function rootMeanSquare(v: readonly number[]): number {
+  let ss = 0;
+  for (const t of v) ss += t * t;
+  const mx = maxOf(v.map(Math.abs));
+  if ((ss === Infinity || ss < 2 ** -960) && mx > 0 && mx < Infinity) {
+    // The squares overflow or underflow (R's scale returns Inf or 0): sum the squares of the values divided by the
+    // largest
+    ss = 0;
+    for (const t of v) ss += (t / mx) ** 2;
+    return Math.sqrt(ss / Math.max(1, v.length - 1)) * mx;
+  }
+  return Math.sqrt(ss / Math.max(1, v.length - 1));
+}
+
 /**
  * Centre and scale the columns of a matrix (array of rows; a vector is one column). Equivalent to R's `scale()`.
  * `center` and `scale` report the values used (R's attributes), when any.
@@ -258,35 +273,42 @@ export function scale(
   const nc = rows[0]?.length ?? 0;
   const col = (j: number): number[] => rows.map((r) => r[j]!);
   const result: { scaled: number[][]; center?: number[]; scale?: number[] } = { scaled: rows };
+  const given = rows.map((r) => r.slice());
+  // columns whose deviations overflow although the values and the centre are finite (the deviation of 1.5e308 from
+  // -5e307 is 2e308): redone below in the coordinates 2^-k
+  const overflowed: number[] = [];
   const c = options.center ?? true;
+  let center: number[] | undefined;
   if (c !== false) {
-    const center = c === true ? Array.from({ length: nc }, (_, j) => meanOf(col(j).filter((v) => !Number.isNaN(v)))) : [...c];
+    center = c === true ? Array.from({ length: nc }, (_, j) => meanOf(col(j).filter((v) => !Number.isNaN(v)))) : [...c];
     if (center.length !== nc) throw new RangeError("length of 'center' must equal the number of columns of 'x'");
     for (const r of rows) for (let j = 0; j < nc; j++) r[j] = r[j]! - center[j]!;
     result.center = center;
+    for (let j = 0; j < nc; j++) {
+      if (Number.isFinite(center[j]!) && rows.some((r, i) => !Number.isFinite(r[j]!) && Number.isFinite(given[i]![j]!))) overflowed.push(j);
+    }
   }
   const s = options.scale ?? true;
+  let sc: number[] | undefined;
   if (s !== false) {
-    const sc =
-      s === true
-        ? Array.from({ length: nc }, (_, j) => {
-            const v = col(j).filter((t) => !Number.isNaN(t));
-            let ss = 0;
-            for (const t of v) ss += t * t;
-            const mx = maxOf(v.map(Math.abs));
-            if ((ss === Infinity || ss < 2 ** -960) && mx > 0 && mx < Infinity) {
-              // The squares overflow or underflow (R's scale returns Inf or 0): sum the squares of the values divided
-              // by the largest
-              ss = 0;
-              for (const t of v) ss += (t / mx) ** 2;
-              return Math.sqrt(ss / Math.max(1, v.length - 1)) * mx;
-            }
-            return Math.sqrt(ss / Math.max(1, v.length - 1));
-          })
-        : [...s];
+    sc = s === true ? Array.from({ length: nc }, (_, j) => rootMeanSquare(col(j).filter((t) => !Number.isNaN(t)))) : [...s];
     if (sc.length !== nc) throw new RangeError("length of 'scale' must equal the number of columns of 'x'");
     for (const r of rows) for (let j = 0; j < nc; j++) r[j] = r[j]! / sc[j]!;
     result.scale = sc;
+  }
+  for (const j of overflowed) {
+    const k = Math.floor(Math.log2(maxOf(given.map((r) => Math.abs(r[j]!)).filter(Number.isFinite))));
+    const cs = ldexp(center![j]!, -k);
+    const d = given.map((r) => ldexp(r[j]!, -k) - cs);
+    let divisor = 1;
+    if (sc !== undefined) {
+      if (s === true) {
+        divisor = rootMeanSquare(d.filter((t) => !Number.isNaN(t)));
+        sc[j] = ldexp(divisor, k);
+      } else divisor = ldexp(sc[j]!, -k);
+    }
+    // without scaling the deviations go back by 2^k (one that is out of range is Infinity, as before)
+    rows.forEach((r, i) => (r[j] = sc === undefined ? ldexp(d[i]!, k) : d[i]! / divisor));
   }
   return result;
 }

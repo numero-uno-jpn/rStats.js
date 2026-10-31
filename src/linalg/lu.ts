@@ -146,18 +146,30 @@ export function prcomp(x: MatrixInput, options: PrcompOptions = {}): PrcompResul
     if (!(Math.trunc(rank) > 0 && Math.abs(rank) < 2 ** 31)) throw new RangeError("as.integer(rank.) > 0 is not TRUE");
   }
   const rows = x.map((r) => Array.from(r));
-  const s = scaleColumns(rows, { center: options.center ?? true, scale: options.scale ?? false });
+  const center = options.center ?? true;
+  const scale = options.scale ?? false;
+  let s = scaleColumns(rows, { center, scale });
   if (s.scale?.some((v) => v === 0)) throw new RangeError("cannot rescale a constant/zero column to unit variance");
-  let dec = svd(s.scaled, { nu: 0 });
   const n = rows.length;
-  let sdev = dec.d.map((d) => d / Math.sqrt(Math.max(1, n - 1)));
-  if (dec.d.some((d) => d === Infinity) && s.scaled.every((r) => r.every(Number.isFinite))) {
-    // a singular value overflows while sdev = d / sqrt(n - 1) may be in range (sdev 1.15e308 of
-    // c(1e308, -1e308, 1e308, -1e308) was Infinity, R too): the decomposition of the matrix divided by 2^k (exact)
-    const k = Math.floor(Math.log2(maxOf(s.scaled.flat().map(Math.abs))));
-    dec = svd(s.scaled.map((r) => r.map((v) => ldexp(v, -k))), { nu: 0 });
-    sdev = dec.d.map((d) => ldexp(d / Math.sqrt(Math.max(1, n - 1)), k));
+  const finite = (m: readonly (readonly number[])[]): boolean => m.every((r) => r.every(Number.isFinite));
+  let dec = finite(rows) && finite(s.scaled) ? svd(s.scaled, { nu: 0 }) : undefined;
+  // 2^unit: the factor of sdev and the scores (the unit of the data, when the columns are not divided by a scale)
+  let unit = 0;
+  if (finite(rows) && (dec === undefined || dec.d.some((d) => d === Infinity))) {
+    // the deviations (1.5e308 from a mean of -5e307) or a singular value overflow while sdev may be in range (sdev
+    // 1.15e308 of c(1e308, -1e308, 1e308, -1e308) was Infinity, R too): all in the coordinates 2^-e (exact)
+    const e = Math.floor(Math.log2(maxOf(rows.flat().map(Math.abs))));
+    const down = (o: boolean | readonly number[]): boolean | number[] => (typeof o === "boolean" ? o : o.map((v) => ldexp(v, -e)));
+    const r = scaleColumns(rows.map((row) => row.map((v) => ldexp(v, -e))), { center: down(center), scale: down(scale) });
+    dec = svd(r.scaled, { nu: 0 });
+    if (scale === false) unit = e;
+    s = { scaled: r.scaled };
+    if (r.center !== undefined) s.center = r.center.map((v) => ldexp(v, e));
+    if (r.scale !== undefined) s.scale = r.scale.map((v) => ldexp(v, e));
   }
+  // a non-finite value in the data: an error from svd, as before
+  dec ??= svd(s.scaled, { nu: 0 });
+  const sdev = dec.d.map((d) => ldexp(d / Math.sqrt(Math.max(1, n - 1)), unit));
   // Components kept: at most rank, and with tol only those whose sdev is greater than tol times the first
   let k = rank === undefined ? sdev.length : Math.min(Math.trunc(rank), sdev.length);
   if (Number.isNaN(tol)) throw new RangeError("'tol' must not be NaN");
@@ -166,7 +178,7 @@ export function prcomp(x: MatrixInput, options: PrcompOptions = {}): PrcompResul
   const out: PrcompResult = {
     sdev,
     rotation,
-    x: matMul(s.scaled, dec.v!).map((r) => r.slice(0, k)),
+    x: matMul(s.scaled, dec.v!).map((r) => r.slice(0, k).map((v) => ldexp(v, unit))),
   };
   if (s.center !== undefined) out.center = s.center;
   if (s.scale !== undefined) out.scale = s.scale;

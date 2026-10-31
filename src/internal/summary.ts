@@ -113,6 +113,20 @@ export function variance(x: readonly number[]): number {
   return covariance(x, x);
 }
 
+/**
+ * Sample standard deviation from the scaled deviations: sqrt(sum d^2 / (n - 1)) in the coordinates 2^-k, times 2^k.
+ * The same bits as sqrt(variance(x)) where the variance is a normal number (the square root of 4^k y is 2^k sqrt(y)),
+ * and the right value where it overflows or underflows (sd of c(-1e308, -1e308, -1e308, -1e308, 1.5e308) is 1.118e308
+ * while its variance is 1.25e616). x contains no NaN
+ */
+export function standardDeviation(x: readonly number[]): number {
+  const n = x.length;
+  if (n < 2) return NaN;
+  const c = centered(x);
+  if (c === undefined) return NaN;
+  return ldexp(Math.sqrt(ddDivNum(crossSum(c.d, c.d), n - 1)[0]), c.k);
+}
+
 /** Unbiased covariance. x and y have the same length and contain no NaN */
 export function covariance(x: readonly number[], y: readonly number[]): number {
   const n = x.length;

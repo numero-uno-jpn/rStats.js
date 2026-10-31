@@ -14,6 +14,7 @@ import {
   mean as meanOf,
   meanDD,
   sum as sumOf,
+  standardDeviation,
   variance as varianceOf,
   wideSum,
   wideSumAdd,
@@ -213,7 +214,10 @@ export function variance(x: Sample, options: NaRmOptions = {}): number {
  * @category Descriptive statistics
  */
 export function sd(x: Sample, options: NaRmOptions = {}): number {
-  return Math.sqrt(variance(x, options));
+  // not sqrt(variance): the variance can overflow or underflow where the standard deviation is in range
+  const xs = values(x, options.naRm);
+  if (xs === undefined) return NaN;
+  return standardDeviation(xs);
 }
 
 /**

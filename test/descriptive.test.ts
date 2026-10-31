@@ -135,16 +135,30 @@ function overflow(limit: number): (a: A) => string | undefined {
   };
 }
 
+/**
+ * Values so small that R's variance underflows: sd 0, and e1071's moments and the CV from it NaN or 0; rStats.js
+ * scales first (review 49, docs/differences-from-r.md)
+ */
+function underflow(limit: number): (a: A) => string | undefined {
+  return (a) => {
+    const m = mat(a.x);
+    if (m === undefined) return undefined;
+    const v = (Array.isArray(m[0]) ? (m as number[][]).flat() : (m as number[])).filter(Number.isFinite);
+    return v.length > 0 && v.every((t) => Math.abs(t) < limit) ? "R's variance underflows; rStats.js scales first" : undefined;
+  };
+}
+
 const known: Record<string, (a: A) => string | undefined> = {
   weightedMean: overflow(1e300),
   var: largeMean,
-  sd: largeMean,
+  // the variance overflows or underflows where sd is in range (R: Inf or 0)
+  sd: (a) => largeMean(a) ?? overflow(1e150)(a) ?? underflow(1e-150)(a),
   cov: largeMean,
   corMatrix: largeMean,
-  skewness: (a) => largeMean(a) ?? overflow(1e75)(a),
-  kurtosis: (a) => largeMean(a) ?? overflow(1e75)(a),
+  skewness: (a) => largeMean(a) ?? overflow(1e75)(a) ?? underflow(1e-150)(a),
+  kurtosis: (a) => largeMean(a) ?? overflow(1e75)(a) ?? underflow(1e-150)(a),
   // the variance of data around 1e200 overflows in R (sd Inf); the CV has no units, rStats.js scales first
-  cv: (a) => largeMean(a) ?? overflow(1e150)(a),
+  cv: (a) => largeMean(a) ?? overflow(1e150)(a) ?? underflow(1e-150)(a),
   table: naAndNaN,
   unique: naAndNaN,
 };
