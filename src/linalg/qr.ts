@@ -728,6 +728,14 @@ export function qrSolve(a: MatrixInput | QR, b?: VectorOrMatrix, options: { tol?
   const n = q.qr.length;
   const p = n === 0 ? 0 : q.qr[0]!.length;
   if (q.rank !== Math.min(n, p)) throw new Error("singular matrix in qrSolve");
+  // a LAPACK decomposition has no rank (always min(n, p)): with column pivoting the diagonal of R decreases, and a
+  // matrix whose |R_kk| is at most tol |R_11| is singular too (R returns a meaningless solution: (8, -2.5) for
+  // [[1, 2], [2, 4]] x = (3, 6))
+  if (q.useLapack) {
+    const tol = options.tol ?? 1e-7;
+    const r11 = Math.abs(q.qr[0]?.[0] ?? 0);
+    for (let k = 0; k < Math.min(n, p); k++) if (!(Math.abs(q.qr[k]![k]!) > tol * r11)) throw new Error("singular matrix in qrSolve");
+  }
   if (b === undefined && n !== p) throw new TypeError("only square matrices can be inverted");
   const y = b ?? Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
   const res = qrCoef(q, y);

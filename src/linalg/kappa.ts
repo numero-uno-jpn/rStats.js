@@ -81,7 +81,16 @@ export function kappa(z: MatrixInput, options: KappaOptions = {}): number {
       const min = minOf(d);
       return min === 0 ? Infinity : maxOf(d) / min;
     }
-    return norm(z, { type: nrm }) * norm(solve(z), { type: nrm });
+    // an exactly singular matrix gives Inf, as the 2-norm (R stops with "exactly singular"); a computationally singular
+    // one still stops, as in R (its inverse has no accurate norm)
+    let inverse: number[][];
+    try {
+      inverse = solve(z);
+    } catch (e) {
+      if (e instanceof Error && e.message.startsWith("the system is exactly singular")) return Infinity;
+      throw e;
+    }
+    return norm(z, { type: nrm }) * norm(inverse, { type: nrm });
   }
   // Through a triangular factor, only "I" itself is the infinity norm; any other norm becomes the 1-norm (as in R)
   const triNorm = options.norm === "I" ? "I" : "O";

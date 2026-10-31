@@ -57,6 +57,11 @@ htestSuite({
   tolerance: 1e-13,
   // The estimate is derived from the decomposition, so rounding differences in the decomposition (proportional to the condition number) carry over directly
   floor: { value: condScaled("value", 1e-13, 1, 10) },
+  // An exactly singular matrix has an infinite condition number in every norm, as with norm "2" (R stops in solve)
+  substitute: (c) =>
+    typeof c.expected.error === "string" && c.expected.error.includes("exactly singular")
+      ? { expected: { value: "Inf" }, reason: "exact condition number of an exactly singular matrix: Inf (R: dgesv error)" }
+      : undefined,
 });
 
 htestSuite({

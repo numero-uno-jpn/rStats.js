@@ -78,7 +78,8 @@ export function matMul(x: Operand, y: Operand): number[][] {
   const n = a[0]?.length ?? 0;
   if (a.length === 0 || b.length !== n) throw new RangeError("non-conformable arguments");
   checkRows(a);
-  const p = checkRows(b);
+  // an inner dimension of 0 (an n x 0 matrix times an empty vector) gives n x 1 zeros, as R (b[0] was read)
+  const p = b.length > 0 ? checkRows(b) : 1;
   return a.map((row) => {
     const out = new Array<number>(p).fill(0);
     for (let j = 0; j < p; j++) {

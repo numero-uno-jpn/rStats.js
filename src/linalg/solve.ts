@@ -11,7 +11,8 @@
 // - Triangular solves use plain substitution rather than dlatrs (which rescales to avoid overflow),
 //   so values may differ from R for matrices on the verge of overflow
 
-import { fromMat, isMatrixInput, newMat, requireSquare, toMat, toMatOrColumn, transpose, type Mat, type MatrixInput, type VectorOrMatrix } from "./matrix.js";
+import { fromMat, isMatrixInput, newMat, rangeExponent, requireSquare, toMat, toMatOrColumn, transpose, type Mat, type MatrixInput, type VectorOrMatrix } from "./matrix.js";
+import { ldexp } from "../internal/summary.js";
 import { infNorm, oneNorm } from "./norm.js";
 import { qr, qrR } from "./qr.js";
 
@@ -203,6 +204,12 @@ export function lacn2(n: number, apply: (kase: 1 | 2, x: Float64Array) => void):
   return temp > est ? temp : est;
 }
 
+/** A copy of a finite matrix divided by a power of 2 (exact) when its largest entry is outside [2^-256, 2^256], else undefined */
+function scaledCopy(A: Mat): Mat | undefined {
+  const k = rangeExponent(A.data);
+  return k === 0 ? undefined : { ...A, data: A.data.map((v) => ldexp(v, -k)) };
+}
+
 /** Estimate the reciprocal condition number from the LU decomposition (dgecon). anorm is the norm of the original matrix */
 export function gecon(LU: Mat, anorm: number, oneNormKind: boolean): number {
   const n = LU.nrow;
@@ -329,14 +336,24 @@ export function solve(a: MatrixInput, b?: VectorOrMatrix, options: SolveOptions 
     B = toMatOrColumn(b);
     if (B.nrow !== n) throw new TypeError(`b (${B.nrow} x ${B.ncol}) is not compatible with a (${n} x ${n})`);
   }
+  const finite = A.data.every(Number.isFinite);
+  // the reciprocal condition number does not depend on the scale: for a matrix outside [2^-256, 2^256] it comes from a
+  // copy divided by a power of 2 (the 1-norm of finite entries near 1e308 overflowed and the check was skipped)
+  const scaled = finite ? scaledCopy(A) : undefined;
   const anorm = oneNorm(A);
   const { ipiv, info } = getrf(A);
   if (info > 0) throw new Error(`the system is exactly singular: U[${info}, ${info}] = 0`);
   const tol = options.tol ?? Number.EPSILON;
   if (Number.isNaN(tol)) throw new RangeError("'tol' must not be NaN");
   // Matrices containing NaN or Inf are not checked (dgecon returns an error, which R ignores and returns the solution)
-  if (tol > 0 && Number.isFinite(anorm)) {
-    const rc = gecon(A, anorm, true);
+  if (tol > 0 && finite) {
+    let rc: number;
+    if (scaled === undefined) rc = gecon(A, anorm, true);
+    else {
+      const anormScaled = oneNorm(scaled);
+      // (entries far below the largest can underflow in the copy and make it exactly singular: condition 0)
+      rc = getrf(scaled).info > 0 ? 0 : gecon(scaled, anormScaled, true);
+    }
     if (rc < tol) throw new Error(`the system is computationally singular: reciprocal condition number = ${rc.toPrecision(6)}`);
   }
   getrs(A, ipiv, B);
@@ -448,10 +465,13 @@ export function rcond(x: MatrixInput, options: RcondOptions = {}): number {
   if (!["O", "1", "I"].includes(norm)) throw new RangeError(`norm must be "O", "I" or "1" (got "${norm}")`);
   const one = norm !== "I";
   let A = toMat(x);
+  // scale-free: a matrix outside [2^-256, 2^256] is divided by a power of 2 first (its norm overflowed: 0 or an error
+  // for finite entries near 1e308, where the matrix divided by 1e308 has a positive value)
+  if (A.data.every(Number.isFinite)) A = scaledCopy(A) ?? A;
   if (A.nrow !== A.ncol) {
     // If not square, use R of the QR decomposition (transposed first if wide)
-    const t = A.nrow < A.ncol ? fromMat(transpose(A)) : x;
-    return trcon(toMat(qrR(qr(t as MatrixInput))), true, one);
+    const t = A.nrow < A.ncol ? transpose(A) : A;
+    return trcon(toMat(qrR(qr(fromMat(t)))), true, one);
   }
   if (options.triangular) return trcon(A, (options.uplo ?? "U") === "U", one);
   const anorm = one ? oneNorm(A) : infNorm(A);
