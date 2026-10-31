@@ -264,6 +264,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qf` answer overflows (e.g. `qf(-1e-300, 1, 1, log.p = TRUE)`) | a finite value near 2^1023 | Inf |
 | `qbinom` with non-integer size (e.g. 2.5) | searches with NaN from `pbinom` and returns meaningless values (including -0) | NaN (as `dbinom` and `pbinom`) |
 | Uniform with overflowing max − min (min = -1e308, max = 1e308) | Inf / 0 / NaN | computed with both ends halved (`dunif` 5e-309, `punif(-1)` 0.5, `qunif(0.5)` 0) |
+| `dmultinom` with finite weights whose sum overflows (`dmultinom(c(1, 1), prob = c(1e308, 1e308))`) | 0 (log -Inf) | 0.5 (log -0.693): the weights are divided by a power of 2 before they are summed |
 | `dnbinom` with size = Inf | finite log probabilities such as -1.2e308 for prob < 1; NaN for log P[X = 0] with prob = 1 | -Inf and 0 |
 | `qnbinom` with size = Inf and prob < 1 | Inf or NaN depending on p | always Inf (the mass is at X = ∞; p = 0 and 1 as in R) |
 | `qnbinom` answer above 2^53 | an answer whose distribution function misses the target (log p −31.85 for a target of −32) | an answer that meets the target |
@@ -271,7 +272,6 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qsignrank`, `qwilcox`, `qhyper` with `log.p = TRUE` and p = -Inf | NaN | same as p = 0 (lower end of the support) |
 | signrank with n = Inf, wilcox with m = Inf | crashes | NaN |
 | Non-central `qbeta` with an infinite parameter (e.g. shape2 = Inf) | 0, 0.5 or 1 from a search on NaN | NaN |
-| `qt` with ncp = ±Inf | a mix of NaN and ±Inf depending on p | NaN except at the end points |
 | `qchisq(p, 0, ncp = 0)` (all mass at 0) | NaN or Inf | 0 |
 | `pgamma(Inf, shape, rate = r)` with a subnormal r (below about 5.6e-309, so 1 / r overflows) | NaN | 1 (P[X ≤ Inf] = 1 by definition) |
 | `pgamma(q, Inf, scale = s)` with 0 < q / s < 1, so `pchisq(q, Inf)` with 0 < q < 2 (all mass at +Inf) | NaN | the limits: lower tail 0, upper tail 1 (as R gives for every other finite q) |

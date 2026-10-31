@@ -9,6 +9,7 @@
 
 import { dbinomRawDD } from "../special/loader.js";
 import { ddAdd, ddDiv, type DD } from "../special/dd.js";
+import { ldexp } from "../internal/summary.js";
 
 /**
  * Options for {@link dmultinom}.
@@ -50,22 +51,28 @@ export function dmultinom(x: readonly number[], prob: readonly number[], options
     throw new RangeError("x must be non-negative integers");
   const N = x.reduce((a, b) => a + b, 0);
   if (options.size !== undefined && options.size !== N) throw new RangeError("size must equal the sum of x");
-  // A category with probability 0 and a positive count makes the probability 0
-  for (let k = 0; k < K; k++) if (prob[k] === 0 && x[k]! > 0) return log ? -Infinity : 0;
   // Suffix sums of the weights (double-double) and the counts
-  const ps: DD[] = new Array<DD>(K + 1).fill([0, 0]);
-  const ns = new Array<number>(K + 1).fill(0);
-  for (let k = K - 1; k >= 0; k--) {
-    ps[k] = ddAdd(ps[k + 1]!, [prob[k]!, 0]);
-    ns[k] = ns[k + 1]! + x[k]!;
+  let w = prob;
+  let ps = suffixSums(w);
+  if (ps[0]![0] === Infinity) {
+    // Finite weights whose sum overflows: divided by 2^s >= K, which only the ratios matter for (exact unless a
+    // weight becomes subnormal; one that becomes 0 is below 1e-600 of the largest); weights with a sum in range are
+    // used as given
+    const s = Math.ceil(Math.log2(K));
+    w = prob.map((p) => ldexp(p, -s));
+    ps = suffixSums(w);
   }
+  const ns = new Array<number>(K + 1).fill(0);
+  for (let k = K - 1; k >= 0; k--) ns[k] = ns[k + 1]! + x[k]!;
+  // A category with probability 0 and a positive count makes the probability 0
+  for (let k = 0; k < K; k++) if (w[k] === 0 && x[k]! > 0) return log ? -Infinity : 0;
   let logSum = 0;
   let prodLin = 1;
   for (let k = 0; k < K; k++) {
-    if (prob[k] === 0) continue;
+    if (w[k] === 0) continue;
     const rest = ps[k + 1]!;
     if (rest[0] === 0) break; // the remaining counts all fall here: probability 1
-    const q: DD = ddDiv([prob[k]!, 0], ps[k]!);
+    const q: DD = ddDiv([w[k]!, 0], ps[k]!);
     const qc: DD = ddDiv(rest, ps[k]!);
     const xk = x[k]!;
     const nmx = ns[k + 1]!;
@@ -73,4 +80,11 @@ export function dmultinom(x: readonly number[], prob: readonly number[], options
     else prodLin *= dbinomRawDD(xk, nmx, q, qc, false);
   }
   return log ? logSum : prodLin;
+}
+
+/** Suffix sums w_k + ... + w_(K-1) in double-double, for k = 0..K (the last is 0) */
+function suffixSums(w: readonly number[]): DD[] {
+  const ps = new Array<DD>(w.length + 1).fill([0, 0]);
+  for (let k = w.length - 1; k >= 0; k--) ps[k] = ddAdd(ps[k + 1]!, [w[k]!, 0]);
+  return ps;
 }

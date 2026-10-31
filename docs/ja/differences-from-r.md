@@ -256,6 +256,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `qf` の答えがオーバーフローする (たとえば `qf(-1e-300, 1, 1, log.p = TRUE)`) | 2^1023 付近の有限値 | Inf |
 | size が整数でない `qbinom` (たとえば 2.5) | `pbinom` の NaN で探索し、意味のない値 (-0 を含む) を返す | NaN (`dbinom`、`pbinom` と同じ) |
 | max − min がオーバーフローする一様分布 (min = -1e308、max = 1e308) | Inf / 0 / NaN | 両端を半分にして計算 (`dunif` は 5e-309、`punif(-1)` は 0.5、`qunif(0.5)` は 0) |
+| 重みは有限だが合計がオーバーフローする `dmultinom` (`dmultinom(c(1, 1), prob = c(1e308, 1e308))`) | 0 (log は -Inf) | 0.5 (log は -0.693)。重みを 2 の冪で割ってから合計する |
 | size = Inf の `dnbinom` | prob < 1 で -1.2e308 のような有限の対数確率。prob = 1 で log P[X = 0] が NaN | -Inf と 0 |
 | size = Inf かつ prob < 1 の `qnbinom` | p によって Inf または NaN | 常に Inf (質量は X = ∞ にある。p = 0 と 1 は R と同じ) |
 | 答えが 2^53 を超える `qnbinom` | 分布関数が目標に届かない答え (目標 −32 に対して log p が −31.85) | 目標を満たす答え |
@@ -263,7 +264,6 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `log.p = TRUE` かつ p = -Inf の `qsignrank`、`qwilcox`、`qhyper` | NaN | p = 0 と同じ (台の下端) |
 | n = Inf の signrank、m = Inf の wilcox | クラッシュ | NaN |
 | パラメータが無限大の非心 `qbeta` (たとえば shape2 = Inf) | NaN 上の探索から 0、0.5、1 | NaN |
-| ncp = ±Inf の `qt` | p によって NaN と ±Inf が混在 | 端点以外は NaN |
 | `qchisq(p, 0, ncp = 0)` (質量がすべて 0 にある) | NaN または Inf | 0 |
 | r が非正規化数 (約 5.6e-309 未満で、1 / r が溢れる) の `pgamma(Inf, shape, rate = r)` | NaN | 1 (定義により P[X ≤ Inf] = 1) |
 | 0 < q / s < 1 の `pgamma(q, Inf, scale = s)`、つまり 0 < q < 2 の `pchisq(q, Inf)` (質量がすべて +Inf にある) | NaN | 極限値: 下側 0、上側 1 (ほかの有限の q で R が返す値と同じ) |
