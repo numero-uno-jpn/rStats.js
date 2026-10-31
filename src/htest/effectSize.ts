@@ -59,6 +59,11 @@ export interface CohensDResult {
   warnings: string[];
 }
 
+/** The confidence level of an interval, null for none: as effectsize, strictly between 0 and 1 */
+function checkCi(ci: number | null): void {
+  if (ci !== null && !(ci > 0 && ci < 1)) throw new RangeError("ci must be a single numeric value between (0, 1)");
+}
+
 const NA_WARNING = "Missing values detected. NAs dropped.";
 /** Brent's method run until the bracket is as narrow as doubles allow */
 const EXACT = { tol: 0, maxiter: 5000 };
@@ -78,6 +83,7 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
   const mu = options.mu ?? 0;
   const paired = options.paired ?? false;
   const ci = options.ci === undefined ? 0.95 : options.ci;
+  checkCi(ci);
   const alt = matchChoice(options.alternative, ["two.sided", "less", "greater"] as const);
   const xs = Array.from(x);
   const ys = y === undefined ? undefined : Array.from(y);
@@ -370,6 +376,7 @@ function anovaEffectSize(model: AnovaEffectSizeModel, kind: Kind, options: EtaSq
   const tab = isFit(model) ? anova(model) : model;
   if (!Array.isArray(tab.colNames) || !Array.isArray(tab.table)) throw new TypeError(NEEDS);
   const ci = options.ci === undefined ? 0.95 : options.ci;
+  checkCi(ci);
   const alt = matchChoice(options.alternative ?? "greater", ["two.sided", "less", "greater"] as const);
   const iDf = tab.colNames.indexOf("Df");
   const iSS = tab.colNames.indexOf("Sum Sq");
@@ -419,6 +426,7 @@ function anovaEffectSize(model: AnovaEffectSizeModel, kind: Kind, options: EtaSq
  */
 function strataEffectSize(model: StrataModel, kind: Kind, options: EtaSquaredOptions): AnovaEffectSizeTable {
   const ci = options.ci === undefined ? 0.95 : options.ci;
+  checkCi(ci);
   const alt = matchChoice(options.alternative ?? "greater", ["two.sided", "less", "greater"] as const);
   const ez = isEz(model);
   let strata: Stratum[];

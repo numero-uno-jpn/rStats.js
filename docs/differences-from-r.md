@@ -214,6 +214,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | expm's `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | NaN in every entry (Inf * 0 in the squaring) | diag(Inf, 1): an overflowed entry stands for a finite value, so its product with an exact 0 is 0; a matrix whose 1-norm overflows no longer loops forever |
 | `coxph(Surv(time, status) ~ x)` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the fit, with the subject at risk at every event time (the same as for a censoring time beyond the last event) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (every column is taken as dependent) |
+| lmerTest's `anova(fit, type = 1)` (and type 2) with a predictor in small units, e.g. `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | the type I F of x1 becomes its type II F (14.45 instead of 13.96): the Doolittle factorisation compares pivots and entries with 1e-6 in the units of the data; a bug in lmerTest (R 4.5.2, checked by running it) | the same tests at any units (the factorisation on the cross-product matrix scaled to unit diagonal) |
 | `anova()` of lmer fits of different rows of the data or different responses with the same number of rows | a likelihood ratio test | an error (lme4 compares only the number of rows) |
 
 ## Deliberate differences
@@ -362,6 +363,15 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   not integers. R takes a negative position as given, and its first draw then reads the position slot itself as a
   state word. A position past 624 regenerates on the next draw, as in R.
 - **`rwilcox`** throws "m + n must be at most 2147483647" where R's allocation of the ranks fails.
+- **Comparisons of fits** (`anova(fit1, fit2)` for lm, `glmAnova` with several fits) require the same rows, response
+  values and weights; R compares only the number of rows (and for glm drops fits with another response formula).
+  `lmerAnova` checks the same.
+- **Confidence levels outside (0, 1)** are errors in `confint` and `predict` for lm (R gives NaN limits, or an interval
+  of another coverage for a negative level) and in the effect sizes (`cohensD`, `etaSquared`, ..., as effectsize).
+- **`qr`** rejects a negative `tol` (R accepts it, and then no column is dependent); `tol: Infinity` gives rank 0.
+- **`lmerAnova` comparing fits that differ in a variance component** uses the chi-squared distribution, as lme4: the
+  null value 0 is on the boundary, so the p-value is conservative (the reference distribution is a mixture of
+  chi-squared distributions, 0.5 chi2_0 + 0.5 chi2_1 for a single random intercept).
 - **`omega`** adds a warning when the minres fit (L-BFGS-B) does not converge ("minres did not converge ...");
   psych's `fa` goes on from the last point silently. The values are the same.
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);

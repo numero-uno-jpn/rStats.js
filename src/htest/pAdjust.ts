@@ -13,7 +13,7 @@
 // Differences from R: with Hommel, a non-integer n is an error (R silently returns something). For a length-0 p
 // with Hommel and n > 0, R returns a length-1 value; here a length-0 result is returned
 
-import { sum } from "../internal/summary.js";
+import { wideSum, wideSumAdd, wideSumValue } from "../internal/summary.js";
 
 /**
  * Adjustment method for {@link pAdjust}, as in R's `p.adjust.methods`. `"fdr"` is an alias of `"BH"`.
@@ -129,7 +129,14 @@ function adjust(p: readonly number[], method: PAdjustMethod, n: number): number[
       // Cumulative minimum of (n / i) p_(i) in decreasing order. BY additionally multiplies by sum_{k=1}^{n} 1/k
       // (evaluated as q * n / i * p, which rounds the same way as R)
       // (R's sum accumulates in extended precision, so the sum is taken in double-double)
-      const q = method === "BY" ? sum(Array.from({ length: Math.floor(n) }, (_, k) => 1 / (k + 1))) : 1;
+      // sum_{k=1}^{n} 1/k accumulated term by term (no array of n terms; the same double-double sum as sum())
+      let q = 1;
+      if (method === "BY") {
+        const acc = wideSum();
+        const m = Math.floor(n);
+        for (let k = 1; k <= m; k++) wideSumAdd(acc, 1 / k, m);
+        q = wideSumValue(acc);
+      }
       const o = order(p, true);
       let m = Infinity;
       o.forEach((j, k) => {

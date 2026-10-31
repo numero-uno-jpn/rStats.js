@@ -142,6 +142,11 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
   } else {
     const n = list[0]!.model.x.length;
     if (list.some((f) => f.model.x.length !== n)) throw new RangeError("models were not all fitted to the same size of dataset");
+    // deviances compare likelihoods of the same observations: the same response and prior weights (R's anova.glmlist
+    // drops fits whose formula has another response, with a warning, and compares only the number of rows otherwise)
+    const same = (a: readonly unknown[], b: readonly unknown[]): boolean => a.length === b.length && a.every((v, i) => JSON.stringify(v) === JSON.stringify(b[i]));
+    if (list.some((f) => !same(f.model.yGiven, list[0]!.model.yGiven))) throw new RangeError("models were not all fitted to the same response");
+    if (list.some((f) => !same(f.model.priorGiven, list[0]!.model.priorGiven))) throw new RangeError("models were not all fitted with the same prior weights");
     list.forEach((f, i) => rows.push({ name: String(i + 1), dfRes: f.dfResidual, dev: f.deviance }));
     df = rows.map((r, i) => (i === 0 ? NaN : rows[i - 1]!.dfRes - r.dfRes));
     devDiff = rows.map((r, i) => (i === 0 ? NaN : rows[i - 1]!.dev - r.dev));

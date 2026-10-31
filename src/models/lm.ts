@@ -17,7 +17,7 @@ import { pt1, qt1 } from "../distributions/t.js";
 import { chol2inv } from "../linalg/chol.js";
 import type { MatrixInput } from "../linalg/matrix.js";
 import { qr, qrCoef, qrResid, type QR } from "../linalg/qr.js";
-import { ldexp, scaleToUnit } from "../internal/summary.js";
+import { ldexp, norm2, scaleToUnit } from "../internal/summary.js";
 import { ddAdd, ddDiv, ddMul, ddMulNum, ddSub, type DD } from "../special/dd.js";
 import { ddLeastSquares, ddSqrtWeights, ddSumSquares } from "./ddLeastSquares.js";
 import type { Sample } from "../htest/types.js";
@@ -454,6 +454,8 @@ export function confint(
   upper: number[];
 } {
   const level = options.level ?? 0.95;
+  // R's confint gives NaN limits for a level outside (0, 1) and predict an interval of some other coverage; an error
+  if (!(level > 0 && level < 1)) throw new RangeError("'level' must be between 0 and 1");
   const t = qt1((1 + level) / 2, fit.dfResidual, true, false);
   const { estimate, stdError } = fit.coefTable;
   const lower = fit.coefficients.map(() => NaN);
@@ -532,7 +534,7 @@ export function predict(
       z[i] = s / Rr[i]![i]!;
     }
     // sqrt(z'z) sigma, not sqrt(z'z sigma^2): sigma^2 can overflow or underflow where sigma does not
-    return Math.sqrt(z.reduce((a, v) => a + v * v, 0)) * fit.sigma;
+    return norm2(z) * fit.sigma;
   });
   const interval = options.interval ?? "none";
   if (interval !== "none" && interval !== "confidence" && interval !== "prediction") throw new RangeError(`invalid 'interval': ${String(interval)}`);
@@ -540,7 +542,9 @@ export function predict(
   const nonEstimable = nonEstimableRows(fit.qr, fit.rank, X);
   const extra = nonEstimable.length > 0 ? { nonEstimable, warnings: [NON_ESTIMABLE_WARNING] } : {};
   if (interval === "none") return { fit: values, seFit, ...extra };
-  const t = qt1((1 + (options.level ?? 0.95)) / 2, fit.dfResidual, true, false);
+  const level = options.level ?? 0.95;
+  if (!(level > 0 && level < 1)) throw new RangeError("'level' must be between 0 and 1");
+  const t = qt1((1 + level) / 2, fit.dfResidual, true, false);
   const half = seFit.map((s) => t * (interval === "prediction" ? Math.hypot(s, fit.sigma) : s));
   return { fit: values, seFit, lwr: values.map((v, i) => v - half[i]!), upr: values.map((v, i) => v + half[i]!), ...extra };
 }

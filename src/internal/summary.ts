@@ -352,3 +352,21 @@ export function scaleToUnit(groups: readonly (readonly number[])[]): { groups: n
   const k = unitExponent(groups);
   return { groups: groups.map((g) => (k === 0 ? Array.from(g) : g.map((v) => ldexp(v, -k)))), k };
 }
+
+/**
+ * Euclidean norm sqrt(sum x_i^2): the plain sum where it is in range (so the value is unchanged there), otherwise from
+ * the values divided by the largest |x_i| (as BLAS's dnrm2), so that squares of values around 1e200 or 1e-200 neither
+ * overflow nor underflow
+ */
+export function norm2(x: readonly number[]): number {
+  let s = 0;
+  for (const v of x) s += v * v;
+  if (s < Infinity && s >= MIN_NORMAL) return Math.sqrt(s);
+  let m = 0;
+  for (const v of x) m = Math.max(m, Math.abs(v));
+  // all 0, or an infinite value (NaN if there is also a NaN)
+  if (!(m > 0 && m < Infinity)) return Number.isNaN(s) ? NaN : m;
+  let t = 0;
+  for (const v of x) t += (v / m) ** 2;
+  return m * Math.sqrt(t);
+}

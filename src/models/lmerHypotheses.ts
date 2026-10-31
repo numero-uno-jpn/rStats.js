@@ -169,10 +169,23 @@ const DOOLITTLE_ZERO = 1e-6;
 
 /**
  * The Doolittle factorisation S = L U of a symmetric matrix without pivoting: L unit lower triangular, U upper
- * triangular; a column of L below a pivot |U_ii| < 1e-6 is 0, and entries below 1e-6 in absolute value are set to 0
- * at the end.
+ * triangular. It is computed on S scaled to unit diagonal, D^-1/2 S D^-1/2 (D = diag S), where a column of L below a
+ * pivot |U_ii| < 1e-6 is 0 and entries below 1e-6 are set to 0; then L = D^1/2 L_n D^-1/2 and U = D^1/2 U_n D^1/2.
+ * lmerTest applies the thresholds to S itself, so its type I and II hypotheses depend on the units of the
+ * predictors: with a predictor scaled by 1e-6 its pivot fell below 1e-6 and the type I test of an earlier term turned
+ * into its type II test (R 4.5.2, lmerTest; docs/differences-from-r.md). Scaled, they only remove dependence and
+ * rounding
  */
 export function doolittle(s: readonly (readonly number[])[]): { L: number[][]; U: number[][] } {
+  const r = s.map((row, i) => (row[i]! > 0 ? Math.sqrt(row[i]!) : 1));
+  const { L: Ln, U: Un } = doolittleUnit(s.map((row, i) => row.map((v, j) => v / r[i]! / r[j]!)));
+  return {
+    L: Ln.map((row, i) => row.map((v, j) => (v * r[i]!) / r[j]!)),
+    U: Un.map((row, i) => row.map((v, j) => v * r[i]! * r[j]!)),
+  };
+}
+
+function doolittleUnit(s: readonly (readonly number[])[]): { L: number[][]; U: number[][] } {
   const k = s.length;
   const L = Array.from({ length: k }, (_, i) => Array.from({ length: k }, (__, j): number => (i === j ? 1 : 0)));
   const U = Array.from({ length: k }, () => new Array<number>(k).fill(0));

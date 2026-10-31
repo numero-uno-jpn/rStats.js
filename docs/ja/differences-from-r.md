@@ -208,6 +208,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | expm の `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | 全要素 NaN (2 乗の段階で Inf × 0) | diag(Inf, 1)。溢れた要素は有限の巨大な値を表すので、厳密な 0 との積は 0。1-ノルムが溢れる行列でも無限ループしない |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
+| 小さな単位の説明変数を含む lmerTest の `anova(fit, type = 1)` (type 2 も)。例: `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | x1 の type I の F が type II の F になる (13.96 が 14.45)。Doolittle 分解のピボットと要素を、データの単位のまま 1e-6 と比べるため。lmerTest のバグ (R 4.5.2 で実行して確認) | 単位によらず同じ検定 (分解を、対角を 1 に正規化した交差積行列で行う) |
 | 行数は同じだが使った行や応答が異なる lmer の当てはめの `anova()` | 尤度比検定を返す | エラー (lme4 は行数だけを比べる) |
 
 ## 意図的な違い
@@ -347,6 +348,13 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`setRandomSeed`** は、Mersenne-Twister の状態で、位置が負または整数でないもの、状態語が整数でないものを拒否します。R は負の
   位置をそのまま受け取り、最初の乱数でその位置の欄自体を状態語として読みます。624 を超える位置は、R と同じく次の乱数で再生成します。
 - **`rwilcox`** は、R で順位の配列の確保に失敗する場合に "m + n must be at most 2147483647" を投げます。
+- **当てはめの比較** (lm の `anova(fit1, fit2)`、複数の当てはめを渡した `glmAnova`) は、使った行・応答の値・重みが同じことを
+  求めます。R は行数だけを比べます (glm では応答の式が違う当てはめを除きます)。`lmerAnova` も同じ確認をします。
+- **(0, 1) の外の信頼水準**は、lm の `confint` と `predict` (R は NaN の限界、負の水準では別の被覆率の区間を返す) と効果量
+  (`cohensD`、`etaSquared` など。effectsize と同じ) でエラーです。
+- **`qr`** は負の `tol` を拒否します (R は受け付け、どの列も従属にならない)。`tol: Infinity` は rank 0 です。
+- **分散成分が異なる当てはめを比べる `lmerAnova`** は、lme4 と同じくカイ二乗分布を使います。帰無仮説の値 0 が境界にあるので
+  p 値は保守的です (参照分布はカイ二乗の混合。ランダム切片 1 つなら 0.5 χ²_0 + 0.5 χ²_1)。
 - **`omega`** は、minres の当てはめ (L-BFGS-B) が収束しないとき警告を出します ("minres did not converge ...")。psych の `fa` は
   何も言わずに最後の点から先へ進みます。値は同じです。
 - **`mauchlyTest`** は、`y` に欠測値がある行と `group` が欠測の行を除きます (`lm(y ~ group)` と同じ)。無限大はエラーです。

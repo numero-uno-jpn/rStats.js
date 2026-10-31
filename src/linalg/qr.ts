@@ -92,7 +92,9 @@ export function qr(x: MatrixInput, options: QROptions = {}): QR {
   }
   for (const v of a.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
   const tol = options.tol ?? 1e-7;
-  if (Number.isNaN(tol)) throw new RangeError("'tol' must not be NaN");
+  // a negative tolerance has no meaning (R accepts it, and no column is then ever dependent); Infinity takes every
+  // column as dependent (rank 0)
+  if (!(tol >= 0)) throw new RangeError("'tol' must be a non-negative number");
   const { qraux, pivot, rank } = linpackQR(a, tol);
   return { qr: fromMat(a), rank, qraux: Array.from(qraux), pivot: pivot.map((v) => v - 1), useLapack: false };
 }

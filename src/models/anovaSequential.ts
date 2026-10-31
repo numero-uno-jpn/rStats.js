@@ -169,7 +169,14 @@ export function anova(fit: LmFormulaResult, ...fits: LmFormulaResult[]): AnovaTa
   }
   if (all.length === 1) return sequentialTable(fit);
   if (all.some((f) => f.rows.length !== fit.rows.length)) throw new Error("models were not all fitted to the same size of dataset");
+  // F tests compare residual sums of squares of the same observations: the same rows, response values and weights (R
+  // compares only the number of rows; lmerAnova checks the same)
+  const sameValues = (a: readonly number[] | undefined, b: readonly number[] | undefined): boolean =>
+    a === b || (a !== undefined && b !== undefined && a.length === b.length && a.every((v, i) => Object.is(v, b[i])));
+  if (all.some((f) => !sameValues(f.rows, fit.rows))) throw new Error("models were not all fitted to the same rows of the data");
   const same = all.filter((f) => f.response === fit.response);
+  if (same.some((f) => !sameValues(f.y, fit.y))) throw new Error("models were not all fitted to the same response values");
+  if (same.some((f) => !sameValues(f.weights, fit.weights))) throw new Error("models were not all fitted with the same weights");
   const warnings: string[] = [];
   if (same.length < all.length) {
     const removed = [...new Set(all.filter((f) => f.response !== fit.response).map((f) => f.response))];

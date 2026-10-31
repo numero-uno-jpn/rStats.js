@@ -54,6 +54,7 @@
 // from the normal equations would otherwise be large next to the residuals, and the criterion noisy. If y − X β₀ is
 // 0 (to 1e-12 max |y|), the criterion is −∞ for every θ and there is no estimate: an error.
 
+import { norm2 } from "../internal/summary.js";
 import { qr, qrCoef } from "../linalg/qr.js";
 import { profiledDeviance } from "./mixedDeviance.js";
 import type { DataFrame } from "./modelFrame.js";
@@ -274,7 +275,8 @@ function symmetricEigen(a0: readonly (readonly number[])[]): { values: number[];
   return { values: a.map((row, i) => row[i]!), vectors: a.map((_, k) => v.map((row) => row[k]!)) };
 }
 
-const norm = (x: readonly number[]): number => Math.sqrt(x.reduce((sum, v) => sum + v * v, 0));
+// without overflow of the squares (src/internal/summary.ts)
+const norm = norm2;
 const dot = (x: readonly number[], y: readonly number[]): number => x.reduce((sum, v, i) => sum + v * y[i]!, 0);
 
 /**
@@ -307,7 +309,7 @@ function trustRegionStep(
   }
   // on the boundary: p(μ) = −Σ gt_k / (λ_k + μ) v_k with ‖p(μ)‖ = radius, μ > max(0, −λ_min), by bisection
   const lowest = Math.max(0, -minValue);
-  const lengthAt = (mu: number): number => Math.sqrt(values.reduce((sum, l, k) => sum + (gt[k]! / (l + mu)) ** 2, 0));
+  const lengthAt = (mu: number): number => norm2(values.map((l, k) => gt[k]! / (l + mu)));
   const tiny = Math.max(zero, 1e-12 * Math.max(maxOf(values.map(Math.abs)), 1));
   if (lengthAt(lowest + tiny) >= radius) {
     let lo = lowest + tiny;
