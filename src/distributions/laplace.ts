@@ -30,10 +30,13 @@ export function dlaplace1(x: number, mu: number, sigma: number, log: boolean): n
   if (!Number.isFinite(mu)) return log ? -Infinity : 0;
   const z = standardizeDD(x, mu, sigma);
   const a: [number, number] = z[0] < 0 ? [-z[0], -z[1]] : [z[0], z[1]];
-  if (log) return -a[0] - a[1] - Math.log(2 * sigma);
+  // 2 sigma overflows for sigma above half the largest double: then the factor 1/2 is taken apart
+  const twoSigma = 2 * sigma;
+  if (log) return -a[0] - a[1] - (twoSigma < Infinity ? Math.log(twoSigma) : Math.LN2 + Math.log(sigma));
   // (from exp(-|z|) below the normal range the quotient is formed without rounding it there: see expNegOver)
   const e = expNeg(a);
-  return e >= MIN_NORMAL ? e / (2 * sigma) : expNegOver(a, 2 * sigma);
+  if (twoSigma === Infinity) return (e >= MIN_NORMAL ? e / sigma : expNegOver(a, sigma)) / 2;
+  return e >= MIN_NORMAL ? e / twoSigma : expNegOver(a, twoSigma);
 }
 
 export function plaplace1(q: number, mu: number, sigma: number, lowerTail: boolean, logP: boolean): number {

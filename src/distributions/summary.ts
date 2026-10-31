@@ -10,7 +10,7 @@
 
 import { dqagie, dqagse } from "../integrate/quadpack.js";
 import { ddAdd, ddMul, ddSub, type DD } from "../special/dd.js";
-import { gamma as gammaFn } from "../special/gamma.js";
+import { gamma as gammaFn, lgamma } from "../special/gamma.js";
 import { lbeta } from "../special/beta.js";
 import { qgamma } from "./gamma.js";
 import { qchisq } from "./chisq.js";
@@ -71,8 +71,39 @@ function make(mean: number, variance: number, median: number, mode: number, skew
  * cancels badly when the spread is small against the mean (Weibull with a large shape loses 9 digits of the kurtosis
  * that way)
  */
-function shape(f: (x: number) => number, mean: number, lower: number, upper: number): { variance: number; skewness: number; kurtosis: number } {
+function shape(f: (x: number) => number, mean: number, lower: number, upper: number): Shape {
   return central((t) => t, f, mean, mean, lower, upper);
+}
+
+/** Variance, skewness and excess kurtosis; ok is false when an integral did not converge (QUADPACK's ier) */
+interface Shape {
+  variance: number;
+  skewness: number;
+  kurtosis: number;
+  ok: boolean;
+}
+
+/** Whether a QUADPACK result can be used: it converged, or its error estimate is still within 1e-8 of it */
+function converged(r: { result: number; abserr: number; ier: number }): boolean {
+  return r.ier === 0 || r.abserr <= 1e-8 * Math.abs(r.result);
+}
+
+/**
+ * Variance, skewness and excess kurtosis from the logs l_r of the raw moments E[X^r], r = 1..4, through the ratios
+ * rho_r = E[X^r] / E[X]^r taken in logs (so heavy tails, where the integrals of shape() do not converge, neither
+ * overflow nor cancel: the leading terms dominate there)
+ */
+function fromLogRawMoments([l1, l2, l3, l4]: readonly [number, number, number, number]): Shape {
+  const r2 = l2 - 2 * l1;
+  const r3 = l3 - 3 * l1;
+  const r4 = l4 - 4 * l1;
+  const lv = r2 + Math.log(-Math.expm1(-r2)); // log(rho_2 - 1)
+  return {
+    variance: Math.exp(2 * l1 + lv),
+    skewness: Math.exp(r3 - 1.5 * lv) * (1 - 3 * Math.exp(r2 - r3) + 2 * Math.exp(-r3)),
+    kurtosis: Math.exp(r4 - 2 * lv) * (1 - 4 * Math.exp(r3 - r4) + 6 * Math.exp(r2 - r4) - 3 * Math.exp(-r4)) - 3,
+    ok: true,
+  };
 }
 
 /** shape() over t: x(t) with weight w(t), the integral split at t = split where x = mean */
@@ -83,16 +114,18 @@ function central(
   split: number,
   lower: number,
   upper: number,
-): { variance: number; skewness: number; kurtosis: number } {
+): Shape {
   const tol = 50 * Number.EPSILON;
+  let ok = true;
   const c = [2, 3, 4].map((n) => {
     const g = (t: number): number => (x(t) - mean) ** n * w(t);
-    const left = dqagse(g, lower, split, 0, tol, 200).result;
-    const right = upper === Infinity ? dqagie(g, split, 1, 0, tol, 200).result : dqagse(g, split, upper, 0, tol, 200).result;
-    return left + right;
+    const left = dqagse(g, lower, split, 0, tol, 200);
+    const right = upper === Infinity ? dqagie(g, split, 1, 0, tol, 200) : dqagse(g, split, upper, 0, tol, 200);
+    if (!converged(left) || !converged(right)) ok = false;
+    return left.result + right.result;
   });
   const v = c[0]!;
-  return { variance: v, skewness: c[1]! / v ** 1.5, kurtosis: c[2]! / (v * v) - 3 };
+  return { variance: v, skewness: c[1]! / v ** 1.5, kurtosis: c[2]! / (v * v) - 3, ok };
 }
 
 /** floor(a b) of the exact product (a b rounded to double may cross an integer) */
@@ -226,7 +259,9 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const lam = P.scale ?? 1;
       if (!(k > 0 && Number.isFinite(k) && lam > 0 && Number.isFinite(lam))) return NAN;
       const mean = gammaFn(1 + 1 / k);
-      const s = shape((x) => dweibull1(x, k, 1, false), mean, 0, Infinity);
+      // E[X^r] = Gamma(1 + r/k) for scale 1: used when the integrals do not converge (small shapes, heavy tails)
+      const si = shape((x) => dweibull1(x, k, 1, false), mean, 0, Infinity);
+      const s = si.ok ? si : fromLogRawMoments([1, 2, 3, 4].map((r) => lgamma(1 + r / k)) as [number, number, number, number]);
       return make(
         lam * mean,
         lam * lam * s.variance,
@@ -331,10 +366,12 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       // mean b B(1 + 1/a, b)
       const mean = b * Math.exp(lbeta(1 + 1 / a, b));
       // over the density, or over u = F(x) when the density diverges at 1 (b < 1: there the quantile is smooth)
-      const s =
+      const si =
         b < 1
           ? central((u) => qkumar1(u, a, b, true, false), () => 1, mean, pkumar1(mean, a, b, true, false), 0, 1)
           : shape((x) => dkumar1(x, a, b, false), mean, 0, 1);
+      // E[X^r] = b B(1 + r/a, b): used when the integrals do not converge
+      const s = si.ok ? si : fromLogRawMoments([1, 2, 3, 4].map((r) => Math.log(b) + lbeta(1 + r / a, b)) as [number, number, number, number]);
       let mode: number;
       if (a >= 1 && b >= 1) mode = a === 1 && b === 1 ? NaN : Math.pow((a - 1) / (a * b - 1), 1 / a);
       else if (a < 1 && b < 1) mode = NaN;

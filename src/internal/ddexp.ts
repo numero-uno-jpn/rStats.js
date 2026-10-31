@@ -46,7 +46,14 @@ export function ddExp(x: DD): DD {
  */
 export function standardizeDD(x: number, location: number, scale: number): DD {
   const diff = x - location;
-  if (!Number.isFinite(diff)) return [diff / scale, 0];
+  if (!Number.isFinite(diff)) {
+    // x - location overflows although both are finite: from the halves (exact), then times 2
+    if (Number.isFinite(x) && Number.isFinite(location)) {
+      const h = standardizeDD(x * 0.5, location * 0.5, scale);
+      return [h[0] * 2, h[1] * 2];
+    }
+    return [diff / scale, 0];
+  }
   const d = location === 0 ? ([x, 0] as DD) : twoSum(x, -location);
   if (scale === 1) return d;
   const q1 = d[0] / scale;
@@ -140,7 +147,39 @@ export function logOneMinusExpNeg(t: DD): number {
 /** location + scale t with a single rounding (the rounding of scale t would show up in the subtraction with location) */
 export function locationScale(location: number, scale: number, t: number): number {
   const st = mulDD(scale, t);
-  if (!Number.isFinite(st[0]) || !Number.isFinite(location)) return location + st[0];
+  if (!Number.isFinite(st[0]) || !Number.isFinite(location)) {
+    // scale t overflows although the three are finite: location and scale divided by a power of 2 (exact) first, the
+    // result multiplied back (finite whenever it is representable)
+    if (Number.isFinite(location) && Number.isFinite(scale) && Number.isFinite(t)) {
+      const k = Math.ceil(Math.log2(Math.abs(scale)));
+      const r = ddAdd(mulDD(ldexpSafe(scale, -k), t), [ldexpSafe(location, -k), 0]);
+      return ldexpSafe(r[0] + r[1], k);
+    }
+    return location + st[0];
+  }
   const r = ddAdd(st, [location, 0]);
   return r[0] + r[1];
+}
+
+/** v 2^k in two steps (2^k alone may overflow or underflow) */
+function ldexpSafe(v: number, k: number): number {
+  const a = Math.trunc(k / 2);
+  return v * 2 ** a * 2 ** (k - a);
+}
+
+/**
+ * (x - location) / scale in double, as the plain formula gives it, but from the halves of x and location when their
+ * difference overflows although both are finite (z itself may be in range)
+ */
+export function standardizeValue(x: number, location: number, scale: number): number {
+  const diff = x - location;
+  if (Number.isFinite(diff) || !Number.isFinite(x) || !Number.isFinite(location)) return diff / scale;
+  return ((x * 0.5 - location * 0.5) / scale) * 2;
+}
+
+/** location + scale t in double, as the plain formula gives it, unless scale t overflows (then as locationScale) */
+export function affine(location: number, scale: number, t: number): number {
+  const st = scale * t;
+  if (Number.isFinite(st) || !Number.isFinite(scale) || !Number.isFinite(t) || !Number.isFinite(location)) return location + st;
+  return locationScale(location, scale, t);
 }

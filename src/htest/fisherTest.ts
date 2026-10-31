@@ -119,6 +119,8 @@ export function fisherTest(x: readonly Counts[], options: FisherTestOptions = {}
   }
   if (raw.flat().some((v) => v === Infinity)) throw new RangeError("'x' has entries too large to be integer");
   const t = raw.map((r) => r.map(roundHalfEven));
+  // as in R, counts beyond the largest integer (2^31 - 1) are rejected (the 2 x 2 support would also be huge)
+  if (t.flat().some((v) => v > 2147483647)) throw new RangeError("'x' has entries too large to be integer");
   const method = "Fisher's Exact Test for Count Data";
   if (nr === 2 && nc === 2) return fisher2x2(t, options, method);
   // For rxc, alternative etc. are not validated and are returned as given (as in R)

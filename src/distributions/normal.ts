@@ -7,6 +7,7 @@
 import { erf, erfcxNonNegative } from "../special/erf.js";
 import { ndtri, ndtriExp } from "../special/ndtri.js";
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
+import { affine, standardizeValue } from "../internal/ddexp.js";
 
 /**
  * Options for {@link pnorm} and {@link qnorm}.
@@ -67,7 +68,8 @@ function pnorm1(q: number, mean: number, sd: number, lowerTail: boolean, logP: b
   const p1 = lowerTail ? (logP ? 0 : 1) : logP ? -Infinity : 0;
   if (sd < 0) return NaN;
   if (sd === 0) return q < mean ? p0 : p1;
-  const x = (q - mean) / sd;
+  // (q - mean) / sd, also where q - mean overflows but the standardized value does not
+  const x = standardizeValue(q, mean, sd);
   if (!Number.isFinite(x)) return q < mean ? p0 : p1;
   return pnormStd(lowerTail ? x : -x, logP);
 }
@@ -88,7 +90,8 @@ function qnorm1(p: number, mean: number, sd: number, lowerTail: boolean, logP: b
   if (sd < 0) return NaN;
   if (sd === 0) return mean;
   const z = logP ? ndtriLogRefined(p) : ndtri(p);
-  return mean + sd * (lowerTail ? z : -z);
+  // mean + sd z, also where sd z overflows but the quantile does not
+  return affine(mean, sd, lowerTail ? z : -z);
 }
 
 const SQRT_2_OVER_PI = 0.797884560802865355879892119869;
@@ -119,7 +122,7 @@ function dnorm1(x: number, mean: number, sd: number, log: boolean): number {
   if (!Number.isFinite(sd)) return log ? -Infinity : 0;
   if (!Number.isFinite(x) && mean === x) return NaN; // Inf - Inf
   if (sd === 0) return x === mean ? Infinity : log ? -Infinity : 0;
-  const z = (x - mean) / sd;
+  const z = standardizeValue(x, mean, sd);
   if (!Number.isFinite(z)) return log ? -Infinity : 0;
   if (log) return -(LN_SQRT_2PI + 0.5 * z * z + Math.log(sd));
   // Rounding of z^2 is amplified by the exponential in exp(-z^2/2), so split it as in pnorm

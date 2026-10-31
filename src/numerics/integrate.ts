@@ -73,7 +73,10 @@ export function integrate(f: (x: number) => number, lower: number, upper: number
   const limit = Math.trunc(options.subdivisions ?? 100);
   const relTol = options.relTol ?? TOL;
   const absTol = options.absTol ?? relTol;
-  if (!Number.isFinite(limit) || Number.isNaN(relTol) || Number.isNaN(absTol)) throw new RangeError("invalid parameter values");
+  // infinite or negative tolerances are errors (R accepts an infinite one and returns the first, coarse estimate as converged)
+  if (!Number.isFinite(limit) || !Number.isFinite(relTol) || !Number.isFinite(absTol) || relTol < 0 || absTol < 0) {
+    throw new RangeError("invalid parameter values");
+  }
   const stopOnError = options.stopOnError ?? true;
   if (Number.isNaN(lower) || Number.isNaN(upper)) throw new RangeError("a limit is NA or NaN");
   if (limit < 1 || (absTol <= 0 && relTol < Math.max(50 * Number.EPSILON, 0.5e-28))) throw new RangeError("invalid parameter values");

@@ -32,10 +32,17 @@ function logPhi(x: number): number {
   return pnorm(x, { logP: true });
 }
 
-/** Integral over the whole line with QUADPACK's dqagi at full precision */
-function wholeLine(f: (x: number) => number, lower = -Infinity): number {
+/**
+ * Integral over the whole line with QUADPACK's dqagi at full precision. With `checked` (the outer integral, the
+ * p-value itself), NaN when QUADPACK reports no convergence (ier 1: subdivisions used up, 3: bad integrand, 5:
+ * divergence) and its error estimate exceeds 1e-6 of it: no p-value rather than a wrong one. ier 2 and 4 (roundoff
+ * detected at this tight tolerance) leave the result usable. The inner integrals are not checked: conditional
+ * probabilities far below the p-value may carry a large relative error that does not reach it
+ */
+function wholeLine(f: (x: number) => number, lower = -Infinity, checked = false): number {
   const r = lower === -Infinity ? dqagie(f, 0, 2, 0, REL_TOL, LIMIT) : dqagie(f, lower, 1, 0, REL_TOL, LIMIT);
-  return r.result;
+  const failed = r.ier === 1 || r.ier === 3 || r.ier === 5;
+  return checked && failed && !(r.abserr <= 1e-6 * Math.abs(r.result)) ? NaN : r.result;
 }
 
 /**
@@ -58,7 +65,9 @@ function conditionalUpper(w: number, lambda: readonly number[], twoSided: boolea
       // probability outside (b, a): Phi(b) + (1 - Phi(a))
       const q = pnorm(b) + pnorm(a, { lowerTail: false });
       if (q < 0.5) logIn += Math.log1p(-q);
-      else logIn += Math.log(a + b < 0 ? pnorm(a) - pnorm(b) : pnorm(b, { lowerTail: false }) - pnorm(a, { lowerTail: false }));
+      // (b, a) is narrower than the rounding of the tail probabilities when w is tiny: their difference may come out
+      // below 0 (it gave NaN, and a NaN p-value: glhtDunnett two-sided at t = 1.55); it is at least 0
+      else logIn += Math.log(Math.max(0, a + b < 0 ? pnorm(a) - pnorm(b) : pnorm(b, { lowerTail: false }) - pnorm(a, { lowerTail: false })));
     }
     return phi(z) * -Math.expm1(logIn);
   };
@@ -83,5 +92,5 @@ export function pDunnettUpper(c: number, lambda: readonly number[], df: number, 
     if (ld < -745) return 0;
     return Math.exp(ld) * conditionalUpper(c * Math.exp(v), lambda, twoSided);
   };
-  return Math.min(1, wholeLine(g));
+  return Math.min(1, wholeLine(g, -Infinity, true));
 }
