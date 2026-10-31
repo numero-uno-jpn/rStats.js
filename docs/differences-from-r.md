@@ -186,6 +186,12 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `besselK(1000, 1000)`, `lfactorial(1e-300)`, `besselI(1e-300, 1)` | 0 | 1.2981802514667e-233, -5.77e-301, 5e-301 |
 | `besselJ(1e6, 0)` | 0 | 3.3104301373987376e-4 |
 | `besselY(1e6, -2.75)` | -4.1e-4 | -2.8030753997749413e-5 |
+| `gamma(171.6243769563027)` (the largest double whose Γ is finite) | Inf | 1.79769313486223e308 |
+| `gamma(-171.5)`, `gamma(-172.5)`, … down to `gamma(-177.5)` (subnormal results) | 0 | 1.9316265431712e-310, -1.1197835032888e-312, …, 5e-324 |
+| `lbeta(1e308, 1e308)` (a + b overflows) | -Inf | -1.3862943611198915e308 |
+| `besselY(1e-310, 0)`, `besselY(5e-324, 0)` | -Inf | -454.49387560035387, -473.99907342300429 |
+| `besselK(1, 1e12)`, `besselY(1, 1e12)`, `besselY(10, 1e8)` (results far out of range at large orders) | error "cannot allocate vector of size 7450.6 Gb"; NaN with a warning | Inf, -Inf, -Inf at once (bounds on the log of the result decide before the recurrences of about nu steps) |
+| `besselK(1e8, 2e8)` | 0 | Inf |
 | `ansari.test(conf.int = TRUE)` with ties and `exact` unset (or `TRUE`) | error "object 'cint' not found" (with both samples below 50 values R takes the exact branch, which skips the interval with ties) | the normal-approximation interval and estimate, the same as with `exact: false` |
 | `weighted.mean(c(1e308, 1e308), c(1, 1))` and other sums that overflow | Inf | 1e308 (the values and weights rescaled) |
 | `fivenum(c(1e308, 1e308))`, `hist(...)$mids`, the Kaplan-Meier median, the Hodges-Lehmann estimate and the midrange of `wilcox.test`, the default mode of the triangular distribution, the `monoH.FC` slopes of `splinefun` (all `(a + b) / 2`) | Inf when a + b overflows | the midpoint, as a / 2 + b / 2 when a + b overflows |

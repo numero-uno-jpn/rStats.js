@@ -11,7 +11,7 @@
 //     J_-v = cos(pi v) J_v - sin(pi v) Y_v,   Y_-v = sin(pi v) J_v + cos(pi v) Y_v.
 
 import { gamma, lgamma, lgamma1p, lgammaSign, sinpi } from "./gamma.js";
-import { seriesTimesPrefix } from "./besselSeries.js";
+import { certainRange, LARGE_ORDER, logHalf, logISeriesBounds, powHalf, seriesTimesPrefix } from "./besselSeries.js";
 import { ddDiv, ddMul, ddSub, twoSum, type DD } from "./dd.js";
 
 const EPS = Number.EPSILON;
@@ -88,13 +88,13 @@ function jSmallZ(v: number, x: number): number {
  * the reflection formula still multiplies it by a small factor)
  */
 function ySmallZ(v: number, x: number): Pow2 {
-  let p = Math.log(x / 2);
+  let p = logHalf(x);
   let e2 = 0;
   const needLogs = v >= 170 || 709.78 / v < Math.abs(p);
   let prefix: number;
   if (!needLogs) {
     let gam = gamma(v);
-    p = Math.pow(x / 2, v);
+    p = powHalf(x, v);
     if (DBL_MAX * p < gam) {
       gam *= 2 ** -1000;
       e2 = 1000;
@@ -170,8 +170,8 @@ function temmeJY(u: number, x: number): [number, number] {
   const gm = tgamma1pm1(-u);
   const spv = sinpi(u);
   const spv2 = sinpi(u / 2);
-  const xp = Math.pow(x / 2, u);
-  const a = Math.log(x / 2);
+  const xp = powHalf(x, u);
+  const a = logHalf(x);
   const sigma = -a * u;
   const d = Math.abs(sigma) < EPS ? 1 : Math.sinh(sigma) / sigma;
   const e = Math.abs(u) < EPS ? (u * Math.PI * Math.PI) / 2 : (2 * spv2 * spv2) / u;
@@ -232,6 +232,9 @@ function cf1JYDD(v: number, x: number): { fv: number; sign: number } {
 /** fv = J_(v+1) / J_v by continued fraction (A&S 9.1.73, modified Lentz), and the sign of the denominator */
 function cf1JY(v: number, x: number): { fv: number; sign: number } {
   if (x > 30) return cf1JYDD(v, x);
+  // b_1 = Infinity (x below 1e-308) made every Lentz step Infinity * 0 = NaN, so the loop ran to its 1e8 limit; the
+  // rest of the fraction is below (1/b_1)^2
+  if (!Number.isFinite((2 * (v + 1)) / x)) return { fv: x / 2 / (v + 1), sign: 1 };
   let C = TINY;
   let f = TINY;
   let D = 0;
@@ -345,6 +348,31 @@ function asymJY(v: number, x: number): { j: number; y: number } {
 }
 
 /**
+ * Margin for the reflection formulas, which multiply Y_v by sin(pi v) or cos(pi v): for 1000 < v < 2^53 that is not
+ * an integer (or a half-integer, for the cosine), the factor is at least sin(pi 2^-43) = 3.6e-13 = e^-28.7
+ */
+const REFLECT_MARGIN = 30;
+
+/**
+ * J and Y for v > LARGE_ORDER when the results are certainly out of range: J rounds to 0 by abs(J_v(x)) <=
+ * (x/2)^v / Gamma(v + 1), and Y overflows by abs(Y_v(x)) >= Gamma(v) (2/x)^v / pi with Y_v(x) < 0, for x <= v - 1.
+ * The latter holds as d/dx [x^v Y_v(x)] = x^v Y_(v-1)(x) < 0 below the first zero of Y_(v-1), which is beyond v - 1,
+ * and x^v Y_v(x) tends to -Gamma(v) 2^v / pi as x -> 0. Undefined when the bounds do not decide (the recurrences then
+ * take about v steps)
+ */
+function largeOrder(v: number, x: number, needY: boolean): { j: number; y: Pow2 } | undefined {
+  const jB = logISeriesBounds(v, x);
+  if (certainRange({ lo: -Infinity, hi: jB.lo, size: jB.size }) !== -1) return undefined;
+  if (!needY) return { j: 0, y: { m: NaN, e2: 0 } };
+  if (!(x <= v - 1)) return undefined;
+  const a = v * (Math.LN2 - Math.log(x));
+  const g = lgamma(v);
+  const lo = g + a - Math.log(Math.PI) - REFLECT_MARGIN;
+  if (certainRange({ lo, hi: Infinity, size: Math.abs(a) + Math.abs(g) + 2 }) !== 1) return undefined;
+  return { j: 0, y: { m: -1, e2: Infinity } };
+}
+
+/**
  * J_v(x) and Y_v(x) for v >= 0, x > 0 (Boost's bessel_jy without the reflection). Y is returned as y / yScale.
  * needY: whether Y is wanted (J alone allows a cheaper series)
  */
@@ -352,6 +380,10 @@ function besselJYPos(v: number, x: number, needY: boolean): { j: number; y: Pow2
   const n = Math.round(v);
   const u = v - n; // -1/2 < u <= 1/2
   const W = 2 / (x * Math.PI); // Wronskian
+  if (v > LARGE_ORDER) {
+    const big = largeOrder(v, x, needY);
+    if (big !== undefined) return big;
+  }
   if (!needY && (x < 5 || v > (x * x) / 4)) return { j: jSmallZ(v, x), y: { m: NaN, e2: 0 } };
   if (x < 1 && u !== 0 && Math.log(EPS / 2) > v * Math.log(((x / 2) * (x / 2)) / v)) {
     return { j: jSmallZ(v, x), y: ySmallZ(v, x) };
@@ -474,6 +506,10 @@ export function besselJ(x: number, nu: number): number {
  * @param nu - Order, any real number. For `nu < 0`, `Y(x, -nu) = sin(pi nu) J(x, nu) + cos(pi nu) Y(x, nu)`
  *   (A&S 9.1.2, as in R).
  * @returns Y_nu(x).
+ *
+ * For orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by
+ * bounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): about 2.4 s for
+ * `besselY(0.9e8, 1e8)`.
  *
  * @example
  * ```ts

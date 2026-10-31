@@ -11,10 +11,19 @@
 // - Negative orders follow R's documentation: I_-v = I_v + (2/pi) sin(pi v) K_v (A&S 9.6.2) and K_-v = K_v.
 
 import { lgamma1p, sinpi } from "./gamma.js";
-import { seriesTimesPrefix } from "./besselSeries.js";
+import {
+  certainRange,
+  LARGE_ORDER,
+  logHalf,
+  logISeriesBounds,
+  seriesTimesPrefix,
+  type LogBounds,
+} from "./besselSeries.js";
 
 const EPS = Number.EPSILON;
 const MAX_ITER = 1_000_000;
+/** Below this x, x^2/4 < 2^-2000: the power series are exact after their first term */
+const TINY_X = 2 ** -1000;
 
 /** Gamma(1 + v) - 1 for |v| <= 1/2 */
 function tgamma1pm1(v: number): number {
@@ -28,7 +37,7 @@ function tgamma1pm1(v: number): number {
 function temmeIK(u: number, x: number): [number, number] {
   const gp = tgamma1pm1(u);
   const gm = tgamma1pm1(-u);
-  const a = Math.log(x / 2);
+  const a = logHalf(x);
   const b = Math.exp(u * a);
   const sigma = -a * u;
   const c = Math.abs(u) < EPS ? 1 : sinpi(u) / (u * Math.PI);
@@ -57,6 +66,8 @@ function temmeIK(u: number, x: number): [number, number] {
 
 /** fv = I_(v+1) / I_v by continued fraction (A&S 9.1.73, modified Lentz) */
 function cf1IK(v: number, x: number): number {
+  // b_1 = Infinity would make the Lentz steps Infinity * 0 = NaN; the rest of the fraction is below (1/b_1)^2
+  if (!Number.isFinite((2 * (v + 1)) / x)) return x / 2 / (v + 1);
   const tiny = Math.sqrt(Number.MIN_VALUE * 2 ** 52); // sqrt(DBL_MIN)
   let C = tiny;
   let f = tiny;
@@ -138,8 +149,9 @@ function kScaled(v: number, x: number): { k: number; k1: number; exp2: number } 
   let prev: number;
   let current: number;
   if (u === -0.5) {
-    // K_-1/2 = K_1/2 = sqrt(pi / (2x)) e^-x exactly (Temme's series is off by 2e-14 at x = 1e-300)
-    prev = current = Math.sqrt(Math.PI / (2 * x));
+    // K_-1/2 = K_1/2 = sqrt(pi / (2x)) e^-x exactly (Temme's series is off by 2e-14 at x = 1e-300); for tiny x without
+    // the quotient, which overflows or loses digits when 2x is subnormal
+    prev = current = x < TINY_X ? Math.sqrt(Math.PI / 2) / Math.sqrt(x) : Math.sqrt(Math.PI / (2 * x));
   } else if (x <= 2) {
     const [ku, ku1] = temmeIK(u, x);
     const ex = Math.exp(x);
@@ -218,8 +230,15 @@ function resolve(r: Scaled, x: number, want: -1 | 0 | 1): number {
 
 /** I_v(x) for v >= 0, x > 0, as I_v = m 2^e2 e^(ex x) */
 function iPos(v: number, x: number): Scaled {
-  if (v === 0.5) return { m: Math.sqrt(2 / (x * Math.PI)) * (-Math.expm1(-2 * x) / 2), e2: 0, ex: 1 };
-  if (v > 0 && x / v < 0.25) return { m: iSmallZ(v, x), e2: 0, ex: 0 };
+  if (v === 0.5) {
+    // e^-x I_1/2 = sqrt(2 / (pi x)) (1 - e^-2x) / 2; for tiny x it is sqrt(2x / pi), formed without 2 / (pi x), which
+    // overflows (besselI(1e-310, 0.5) was Infinity)
+    if (x < TINY_X) return { m: Math.sqrt(2 / Math.PI) * Math.sqrt(x), e2: 0, ex: 1 };
+    return { m: Math.sqrt(2 / (x * Math.PI)) * (-Math.expm1(-2 * x) / 2), e2: 0, ex: 1 };
+  }
+  // For tiny x the series is exact after one term at any v; the Wronskian below needs K_(v+1), which overflows there
+  // (besselI(1e-310, 0) was NaN)
+  if (x < TINY_X || (v > 0 && x / v < 0.25)) return { m: iSmallZ(v, x), e2: 0, ex: 0 };
   let lim = (4 * v * v + 10) / (8 * x);
   lim *= lim;
   lim *= lim;
@@ -266,6 +285,25 @@ function kPos(v: number, x: number): Scaled {
 }
 
 /**
+ * Bounds on log K_v(x) for v >= 1. The Wronskian I_v K_(v+1) + I_(v+1) K_v = 1/x, with I decreasing and K increasing in
+ * the order, gives 1 / (2x I_(v-1)(x)) <= K_v(x) <= 1 / (x I_(v+1)(x)), and the series bounds of I go in
+ */
+function logKBounds(v: number, x: number): LogBounds {
+  const below = logISeriesBounds(v - 1, x);
+  const above = logISeriesBounds(v + 1, x);
+  const lx = Math.log(x);
+  return { lo: -below.hi - lx - Math.LN2, hi: -above.lo - lx, size: below.size + above.size + Math.abs(lx) + 1 };
+}
+
+/** The bounds of log(y e^s) */
+function shifted(b: LogBounds, s: number): LogBounds {
+  return { lo: b.lo + s, hi: b.hi + s, size: b.size + Math.abs(s) };
+}
+
+/** log(1 - 1/e): what is left of a term after taking off another at most 1/e of its size */
+const LOG_LEFT = Math.log1p(-Math.exp(-1));
+
+/**
  * Options for {@link besselI} and {@link besselK}.
  *
  * @category Special functions
@@ -284,6 +322,10 @@ export interface BesselOptions {
  *   (A&S 9.6.2, as in R).
  * @param options - `exponScaled` (see {@link BesselOptions}).
  * @returns I_nu(x), or `exp(-x) I_nu(x)` when `exponScaled`.
+ *
+ * For orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by
+ * bounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): several seconds at
+ * `nu = 1e8`.
  *
  * @example
  * ```ts
@@ -304,6 +346,21 @@ export function besselI(x: number, nu: number, options: BesselOptions = {}): num
   }
   if (x === Infinity) return scaled ? 0 : Infinity;
   const want = scaled ? -1 : 0;
+  if (v > LARGE_ORDER) {
+    // The result is far out of range (besselI(1e12, 1e12) is Infinity), decided before a recurrence of v steps
+    const iB = shifted(logISeriesBounds(v, x), want * x);
+    const ri = certainRange(iB);
+    if (!negNonInt) {
+      if (ri !== 0) return ri > 0 ? Infinity : 0;
+    } else {
+      // I_-v = I_v + (2/pi) sin(pi v) K_v: one term decides when it exceeds the other by a factor e
+      const s = sinpi(v);
+      const kB = shifted(logKBounds(v, x), want * x + Math.log((2 / Math.PI) * Math.abs(s)));
+      if (ri === -1 && certainRange(kB) === -1) return 0;
+      if (kB.lo - 1 > iB.hi && certainRange(shifted(kB, LOG_LEFT)) === 1) return s > 0 ? Infinity : -Infinity;
+      if (iB.lo - 1 > kB.hi && certainRange(shifted(iB, LOG_LEFT)) === 1) return Infinity;
+    }
+  }
   const i = resolve(iPos(v, x), x, want);
   if (!negNonInt) return i;
   // A&S 9.6.2: I_-v = I_v + (2/pi) sin(pi v) K_v, each term in the requested scaling
@@ -320,6 +377,10 @@ export function besselI(x: number, nu: number, options: BesselOptions = {}): num
  * @param options - `exponScaled` (see {@link BesselOptions}).
  * @returns K_nu(x), or `exp(x) K_nu(x)` when `exponScaled`.
  *
+ * For orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by
+ * bounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): several seconds at
+ * `nu = 1e8`.
+ *
  * @example
  * ```ts
  * besselK(1, 0);                              // 0.4210244382407083
@@ -334,5 +395,10 @@ export function besselK(x: number, nu: number, options: BesselOptions = {}): num
   const v = Math.abs(nu);
   if (x === 0) return Infinity;
   if (x === Infinity) return 0;
+  if (v > LARGE_ORDER) {
+    // besselK(1, 1e12) is Infinity, decided before a recurrence of v steps
+    const r = certainRange(shifted(logKBounds(v, x), scaled ? x : 0));
+    if (r !== 0) return r > 0 ? Infinity : 0;
+  }
   return resolve(kPos(v, x), x, scaled ? 1 : 0);
 }

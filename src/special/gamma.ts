@@ -43,7 +43,8 @@ export function sinpi(x: number): number {
  * Replaces xsf's Stirling approximation (polynomial STIR), which has a relative error of 7e-14 at x = 170.
  */
 function stirf(x: number): number {
-  if (x >= MAXGAM) return Infinity;
+  // MAXGAM rounds to the largest double whose Gamma is finite, so only beyond it is the result Infinity
+  if (x > MAXGAM) return Infinity;
   const n = x - 1;
   const e = ddAdd(ddMulNum(ddLog([n, 0]), n), [-n + stirlerrForGamma(n), 0]);
   return Math.sqrt(2 * Math.PI * n) * Math.exp(e[0]) * (1 + e[1]);
@@ -94,7 +95,13 @@ export function gamma(x: number): number {
       }
       z = q * sinpi(z);
       if (z === 0) return sgngam * Infinity;
-      return (sgngam * Math.PI) / (Math.abs(z) * stirf(q));
+      const denom = Math.abs(z) * stirf(q);
+      if (Number.isFinite(denom)) return (sgngam * Math.PI) / denom;
+      // The denominator overflows (q beyond 171.6, or near it) while the result is a subnormal down to q = 177.5:
+      // Gamma(q) = Gamma(q - 10) (q - 1) ... (q - 10), with q - 10 exact, and the result rounded once at the end
+      let prod = 1;
+      for (let i = 1; i <= 10; i++) prod *= q - i;
+      return (sgngam * Math.PI) / (Math.abs(z) * stirf(q - 10)) / prod;
     }
     return stirf(x);
   }

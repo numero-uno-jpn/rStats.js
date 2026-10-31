@@ -147,8 +147,10 @@ const HUGE = 2 ** 52;
  */
 function lbetaHuge(a: number, b: number): DD {
   const lead = ddMulNum(ddSub(ddLog([b, 0]), ddLog([a, 0])), b);
-  const rest =
-    -0.5 * Math.log(b) - (a + b - 0.5) * Math.log1p(b / a) + (stirlerr(a) + stirlerr(b) - stirlerr(a + b));
+  const l1p = Math.log1p(b / a);
+  // a + b can overflow (lbeta(1e308, 1e308) was -Infinity), while a L and b L stay finite
+  const sumTerm = Number.isFinite(a + b) ? (a + b - 0.5) * l1p : a * l1p + (b - 0.5) * l1p;
+  const rest = -0.5 * Math.log(b) - sumTerm + (stirlerr(a) + stirlerr(b) - stirlerr(a + b));
   return ddAdd(ddAdd(lead, LS2PI_DD), [rest, 0]);
 }
 

@@ -11,7 +11,16 @@ fixtureSuite({
   density: true,
   call: (a) => dnorm(num(a.x), { mean: num(a.mean), sd: num(a.sd), log: bool(a.log) }),
 });
-fixtureSuite({ name: "gamma", tolerance: 1e-14, call: (a) => gamma(num(a.x)) });
+fixtureSuite({
+  name: "gamma",
+  tolerance: 1e-14,
+  call: (a) => gamma(num(a.x)),
+  // R's reflection formula overflows in the denominator and returns 0 (review 47, SPEC-002)
+  knownDifference: (_a, expected, actual) =>
+    expected === 0 && actual !== 0 && Math.abs(actual) < 2.2250738585072014e-308
+      ? "R underflows to 0 where Gamma is subnormal"
+      : undefined,
+});
 fixtureSuite({ name: "lgamma", tolerance: 1e-14, call: (a) => lgamma(num(a.x)) });
 fixtureSuite({ name: "beta", tolerance: 1e-14, call: (a) => beta(num(a.a), num(a.b)) });
 fixtureSuite({ name: "lbeta", tolerance: 1e-14, call: (a) => lbeta(num(a.a), num(a.b)) });

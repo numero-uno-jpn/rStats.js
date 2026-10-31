@@ -101,6 +101,8 @@ function smallTail(x: number, a: number, lower: boolean): [number, number] {
  */
 export function erfcinv(z: number): number {
   if (Number.isNaN(z) || z < 0 || z > 2) return NaN;
+  // Below 2^-1021, z / 2 is not exact (Number.MIN_VALUE / 2 is 0): the log probability instead
+  if (z < 2 ** -1021) return -qnorm(Math.log(z) - Math.LN2, { logP: true }) * Math.SQRT1_2;
   return -qnorm(z / 2) * Math.SQRT1_2;
 }
 

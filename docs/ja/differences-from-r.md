@@ -180,6 +180,12 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `besselK(1000, 1000)`、`lfactorial(1e-300)`、`besselI(1e-300, 1)` | 0 | 1.2981802514667e-233、-5.77e-301、5e-301 |
 | `besselJ(1e6, 0)` | 0 | 3.3104301373987376e-4 |
 | `besselY(1e6, -2.75)` | -4.1e-4 | -2.8030753997749413e-5 |
+| `gamma(171.6243769563027)` (Γ が有限になる最大の double) | Inf | 1.79769313486223e308 |
+| `gamma(-171.5)`、`gamma(-172.5)`、… `gamma(-177.5)` まで (結果が非正規化数) | 0 | 1.9316265431712e-310、-1.1197835032888e-312、…、5e-324 |
+| `lbeta(1e308, 1e308)` (a + b が溢れる) | -Inf | -1.3862943611198915e308 |
+| `besselY(1e-310, 0)`、`besselY(5e-324, 0)` | -Inf | -454.49387560035387、-473.99907342300429 |
+| `besselK(1, 1e12)`、`besselY(1, 1e12)`、`besselY(10, 1e8)` (大きな次数で、結果が範囲を大きく超える) | エラー "cannot allocate vector of size 7450.6 Gb"、警告付きの NaN | Inf、-Inf、-Inf をすぐに返す (次数に比例する漸化式の前に、結果の対数の上界・下界で判定する) |
+| `besselK(1e8, 2e8)` | 0 | Inf |
 | タイがあり `exact` を指定しない (または `TRUE`) `ansari.test(conf.int = TRUE)` | エラー "object 'cint' not found" (両方の標本が 50 未満だと R は正確な方法の分岐に入り、タイがあると区間を飛ばす) | 正規近似の区間と推定値 (`exact: false` と同じ) |
 | `weighted.mean(c(1e308, 1e308), c(1, 1))` など和が溢れる場合 | Inf | 1e308 (値と重みをスケーリング) |
 | `fivenum(c(1e308, 1e308))`、`hist(...)$mids`、Kaplan-Meier の中央値、`wilcox.test` の Hodges-Lehmann 推定値と midrange、三角分布の既定の最頻値、`splinefun` の `monoH.FC` の傾き (いずれも `(a + b) / 2`) | a + b が溢れると Inf | 中点 (a + b が溢れるときは a / 2 + b / 2) |
