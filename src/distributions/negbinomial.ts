@@ -42,7 +42,14 @@ interface Params {
 
 function fromMu(size: number, mu: number): Params {
   const s = twoSum(size, mu);
-  return { size, pd: ddDiv([size, 0], s), qd: ddDiv([mu, 0], s) };
+  if (Number.isFinite(s[0])) return { size, pd: ddDiv([size, 0], s), qd: ddDiv([mu, 0], s) };
+  // size + mu overflows (both near the largest double): from the ratio r of the smaller to the larger, 1 / (1 + r)
+  // and r / (1 + r) (p and q were both 0)
+  const big = size >= mu;
+  const r = big ? mu / size : size / mu;
+  const one: DD = ddDiv([1, 0], twoSum(1, r));
+  const other: DD = ddDiv([r, 0], twoSum(1, r));
+  return big ? { size, pd: one, qd: other } : { size, pd: other, qd: one };
 }
 
 function fromProb(size: number, prob: number): Params {

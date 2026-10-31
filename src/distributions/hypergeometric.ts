@@ -13,6 +13,7 @@ import { nonInt, roundHalfEven } from "../internal/integer.js";
 import { bd0dd, dbinomExponent } from "../special/loader.js";
 import { ddAdd, ddDiv, ddLog, ddMul, ddNeg, ddSub, twoProd, type DD } from "../special/dd.js";
 import { qnorm } from "./normal.js";
+import { dbinom1, pbinom1, qbinom1 } from "./binomial.js";
 
 /** A probability held in the form exp(-e) / sqrt(denom) (e is double-double) */
 interface ExpForm {
@@ -75,6 +76,7 @@ export function dhyper1(x: number, m: number, n: number, k: number, log: boolean
   n = roundHalfEven(n);
   k = roundHalfEven(k);
   if (m < 0 || n < 0 || k < 0 || k > m + n) return NaN;
+  if (binomialLimit(m, n, k)) return dbinom1(x, k, whiteFraction(m, n), log);
   if (nonInt(x)) return d0(log);
   x = roundHalfEven(x);
   const [lo, hi] = support(m, n, k);
@@ -144,6 +146,20 @@ function directTail(x: number, m: number, n: number, k: number, lowerSide: boole
 }
 
 /** Check and round the parameters of phyper / qhyper. undefined if invalid */
+/** m / (m + n) without forming m + n, which may overflow */
+export function whiteFraction(m: number, n: number): number {
+  return m >= n ? 1 / (1 + n / m) : n / m === Infinity ? 0 : m / n / (1 + m / n);
+}
+
+/**
+ * Whether k draws from m + n differ from k independent draws by less than double precision: k / (m + n) < 2^-60 (the
+ * hypergeometric and Bin(k, m / (m + n)) probabilities differ by a relative k / (m + n) or so). Always so when m + n
+ * overflows with k below 2^290, where the exact computation (which forms m + n) gave NaN
+ */
+function binomialLimit(m: number, n: number, k: number): boolean {
+  return k > 0 && k < m * 2 ** -60 + n * 2 ** -60;
+}
+
 function hyperParams(m: number, n: number, k: number): [number, number, number] | undefined {
   if (![m, n, k].every(Number.isFinite)) return undefined;
   m = roundHalfEven(m);
@@ -158,6 +174,7 @@ export function phyper1(q: number, m: number, n: number, k: number, lowerTail: b
   const params = hyperParams(m, n, k);
   if (params === undefined) return NaN;
   [m, n, k] = params;
+  if (binomialLimit(m, n, k)) return pbinom1(q, k, whiteFraction(m, n), lowerTail, logP);
   const x = Math.floor(q + 1e-7);
   const [lo, hi] = support(m, n, k);
   if (x < lo) return dt0(lowerTail, logP);
@@ -170,6 +187,7 @@ export function qhyper1(p: number, m: number, n: number, k: number, lowerTail: b
   const params = hyperParams(m, n, k);
   if (params === undefined) return NaN;
   [m, n, k] = params;
+  if (binomialLimit(m, n, k)) return qbinom1(p, k, whiteFraction(m, n), lowerTail, logP);
   const [lo, hi] = support(m, n, k);
   const b = quantileBoundaries(p, lo, hi, lowerTail, logP);
   if (b !== undefined) return b;

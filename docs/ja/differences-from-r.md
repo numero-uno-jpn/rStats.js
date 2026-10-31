@@ -208,6 +208,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | expm の `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | 全要素 NaN (2 乗の段階で Inf × 0) | diag(Inf, 1)。溢れた要素は有限の巨大な値を表すので、厳密な 0 との積は 0。1-ノルムが溢れる行列でも無限ループしない |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
+| `dhyper(1, 1e308, 1e308, 1)`、`phyper`、`qhyper`、`rhyper(n, 1e308, 1e308, 1)` (m + n が溢れる) | NaN。rhyper はすべて 0 | 0.5、0.5、…。k / (m + n) が 2^-60 未満なら超幾何分布は倍精度で二項分布 Bin(k, m / (m + n)) と同じなので、それを使う (m / (m + n) は和を作らずに計算) |
+| `dnbinom(0, size = 1e308, mu = 1e308)` | 1 | 0 (= 0.5^1e308。和が溢れるときは size と mu の比から p と q を求める) |
 | `qt(0.5, 10, ncp = Inf)` | NaN (p によっては Inf)。ただし `pt(t, 10, ncp = Inf)` はすべての有限の t で 0 | Inf。確率はすべて +∞ にある (ncp = -Inf なら -Inf)。df = Inf の場合と同じ |
 | `pbeta(-1, 0, 2)`、`pbeta(-1, 0, 0)` (形状が無限大のときも) | 1、0.5。点質量を q <= 0 より先に判定するので、台より左で分布関数が正になる | 0 |
 | 有限の x > 0 での `dweibull(x, shape, scale = Inf)` | NaN (Inf × 0) | 0 (log は -Inf)。極限の値 |

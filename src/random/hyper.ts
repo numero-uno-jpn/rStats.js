@@ -9,7 +9,7 @@ import { unifRand } from "./rng.js";
 import { generate } from "./common.js";
 import { roundHalfEven } from "../internal/integer.js";
 import { rbinom1 } from "./binomial.js";
-import { qhyper1 } from "../distributions/hypergeometric.js";
+import { qhyper1, whiteFraction } from "../distributions/hypergeometric.js";
 
 const INT_MAX = 2147483647;
 const LN_SQRT_2PI = 0.918938533204672741780329736406;
@@ -52,7 +52,8 @@ export function rhyper1(nn1in: number, nn2in: number, kkin: number): number {
   if (nn1in < 0 || nn2in < 0 || kkin < 0 || kkin > nn1in + nn2in) return NaN;
   if (nn1in >= INT_MAX || nn2in >= INT_MAX || kkin >= INT_MAX) {
     // Parameters beyond the integer range: Bernoulli for a single draw, otherwise invert via the quantile function
-    if (kkin === 1) return rbinom1(kkin, nn1in / (nn1in + nn2in));
+    // (the white fraction without forming nn1 + nn2, which overflows near the largest double: it was 0)
+    if (kkin === 1) return rbinom1(kkin, whiteFraction(nn1in, nn2in));
     return qhyper1(unifRand(), nn1in, nn2in, kkin, false, false);
   }
   const nn1 = nn1in;

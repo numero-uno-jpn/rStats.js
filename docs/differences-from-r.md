@@ -214,6 +214,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | expm's `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | NaN in every entry (Inf * 0 in the squaring) | diag(Inf, 1): an overflowed entry stands for a finite value, so its product with an exact 0 is 0; a matrix whose 1-norm overflows no longer loops forever |
 | `coxph(Surv(time, status) ~ x)` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the fit, with the subject at risk at every event time (the same as for a censoring time beyond the last event) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (every column is taken as dependent) |
+| `dhyper(1, 1e308, 1e308, 1)`, `phyper`, `qhyper`, `rhyper(n, 1e308, 1e308, 1)` (m + n overflows) | NaN; rhyper 0 throughout | 0.5, 0.5, ...: with k / (m + n) below 2^-60 the hypergeometric is the binomial Bin(k, m / (m + n)) to double precision, which is used there (m / (m + n) formed without the sum) |
+| `dnbinom(0, size = 1e308, mu = 1e308)` | 1 | 0 (= 0.5^1e308; p and q from the ratio of size and mu when their sum overflows) |
 | `qt(0.5, 10, ncp = Inf)` | NaN (or Inf, depending on p), although `pt(t, 10, ncp = Inf)` is 0 at every finite t | Inf: all the probability is at +∞ (-Inf for ncp = -Inf), as for df = Inf |
 | `pbeta(-1, 0, 2)`, `pbeta(-1, 0, 0)` (and an infinite shape) | 1, 0.5: the point masses are checked before q <= 0, so the distribution function is positive left of its support | 0 |
 | `dweibull(x, shape, scale = Inf)` at a finite x > 0 | NaN (Inf * 0) | 0 (log -Inf), the limit |
