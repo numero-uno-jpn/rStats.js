@@ -23,6 +23,11 @@ fixtureSuite({
 fixtureSuite({
   name: "qgamma",
   tolerance: 1e-14,
+  // A negative shape or a scale <= 0 is NaN also at p = 0 and 1, as dgamma and pgamma (R gives 0 and Inf there)
+  knownDifference: (a, e, x) =>
+    Number.isNaN(x) && !Number.isNaN(e) && (num(a.shape) < 0 || num(a.scale) <= 0)
+      ? "invalid parameters checked before the ends"
+      : undefined,
   call: (a) => qgamma(num(a.p), num(a.shape), { scale: num(a.scale), ...tail(a) }),
   backward: (a, x) => pgamma(x, num(a.shape), { scale: num(a.scale), ...tail(a) }),
 });
@@ -40,6 +45,9 @@ fixtureSuite({
 fixtureSuite({
   name: "qchisq",
   tolerance: 1e-14,
+  // A negative df is NaN also at p = 0 and 1, as dchisq and pchisq (R gives 0 and Inf there)
+  knownDifference: (a, e, x) =>
+    Number.isNaN(x) && !Number.isNaN(e) && num(a.df) < 0 ? "invalid df checked before the ends" : undefined,
   call: (a) => qchisq(num(a.p), num(a.df), tail(a)),
   backward: (a, x) => pchisq(x, num(a.df), tail(a)),
 });

@@ -234,9 +234,13 @@ describe("pnbinom, pbinom and pgeom: closed forms at the edges", () => {
     expect(rel(dgeom(x, prob), prob * Math.exp(x * Math.log1p(-prob)))).toBeLessThan(1e-14);
   });
 
-  it("qgeom keeps R's closed form (R 4.5.2: 112065 and 147)", () => {
-    expect(qgeom(0.8757104766401955, 0.0000011843097327690854, { lowerTail: false })).toBe(112065);
-    expect(qgeom(0.9999999998246265, 0.14171325019560754)).toBe(147);
+  it("qgeom: qgeom(pgeom(y)) = y within the slack of the other discrete quantiles, exact where p's rounding spans steps", () => {
+    // R 4.5.2: qgeom 112065, its qnbinom(size = 1) 112064 (p is pgeom(112064) rounded)
+    expect(qgeom(0.8757104766401955, 0.0000011843097327690854, { lowerTail: false })).toBe(112064);
+    expect(qgeom(0.9999999998246265, 0.14171325019560754)).toBe(146); // R 4.5.2: 146
+    // R 4.5.2: Inf (qgeom and qnbinom with size 1). P[X <= 1] = 1 - 1.28e-16 is below p = 1 - 1.11e-16, and the slack
+    // of 8 ε on p would be most of a step here, so the answer for p as given
+    expect(qgeom(0.9999999999999999, 0.9999999886719217)).toBe(2);
   });
 });
 

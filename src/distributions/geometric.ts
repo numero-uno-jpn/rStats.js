@@ -3,14 +3,15 @@
 // P[X = x] = p q^x, P[X > x] = q^(x+1) (q = 1 - p). q^n is computed with Loader's (2000) building blocks
 // (dbinomRawDD in src/special/loader.ts, as the binomial probability of 0 successes and n failures)
 // (the exponent is kept in double-double so that the rounding of n log q is not amplified n times).
-// Quantiles use a closed form.
+// Quantiles use a closed form, with the ratio of logs in double-double.
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { log1mExp } from "../internal/ddexp.js";
 import { nonInt } from "../internal/integer.js";
+import { FUZZ_LINEAR, FUZZ_LOG } from "../internal/discrete.js";
 import { dbinomRawDD } from "../special/loader.js";
-import { ddLog, ddMul, ddMulNum, twoSum, type DD } from "../special/dd.js";
+import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, twoSum, type DD } from "../special/dd.js";
 
 /** p and q = 1 - p in double-double (the smaller one is the exact base) */
 export function probPair(prob: number): { pd: DD; qd: DD } {
@@ -78,12 +79,37 @@ export function qgeom1(p: number, prob: number, lowerTail: boolean, logP: boolea
   if (Number.isNaN(b)) return NaN;
   if (prob === 1) return 0;
   if (b !== undefined) return b;
-  // Smallest integer y with P[X > y] = q^(y+1) <= (upper probability), solved in closed form
-  // (matches R's output. The distribution function is flat, so in an integer search the probability slack would move the answer a lot)
-  let lu: number;
-  if (logP) lu = lowerTail ? log1mExp(p) : p;
-  else lu = lowerTail ? Math.log1p(-p) : Math.log(p);
-  return Math.max(0, Math.ceil(lu / Math.log1p(-prob) - 1 - 1e-12));
+  // Smallest integer y with P[X > y] = q^(y+1) <= (upper probability) u, in closed form: y + 1 = ceil(log u / log q)
+  // (the distribution function is flat, so in an integer search the probability slack would move the answer a lot).
+  // R's form in double with a slack of 1e-12 on the ratio took y - 1 for a p up to 1e-12 relative above a jump
+  // (qgeom(0.7500000000000866, 0.5) was 1, where P[X <= 1] = 0.75 < p). Here the ratio r is formed in double-double
+  // (log u exact from p, 1 - p by twoSum, except from a log lower probability, whose -expm1 is rounded once), and the
+  // slack of discreteQuantile on p (8 ε relative, 2 ε on the log scale, so that qgeom(pgeom(y)) = y) is carried over
+  // to r only where it is below half a step. Where the rounding of p spans whole steps (p near 1 with a tiny prob:
+  // 8 ε there is 1.8e5 steps for qgeom(0.9999999999, 1e-10)), the answer for p as given, as R's
+  let lu: DD;
+  let dlu: number; // change of log u for the slack on p
+  if (logP) {
+    lu = lowerTail ? (p > -Math.LN2 ? ddLog([-Math.expm1(p), 0]) : [log1mExp(p), 0]) : [p, 0];
+    // (u = 1 - e^p: d log u / dp = -1 / expm1(-p))
+    dlu = FUZZ_LOG * -p * (lowerTail ? 1 / Math.expm1(-p) : 1);
+  } else {
+    lu = lowerTail ? ddLog(twoSum(1, -p)) : ddLog([p, 0]);
+    dlu = FUZZ_LINEAR * (lowerTail ? p / (1 - p) : 1);
+  }
+  const { pd, qd } = probPair(prob);
+  const lq: DD = qd[0] === 1 ? [-pd[0], -(pd[0] * pd[0]) / 2] : ddLog(qd);
+  const r = ddDiv(lu, lq);
+  // beyond the doubles (a subnormal prob): Infinity
+  if (!Number.isFinite(r[0])) return r[0];
+  const dr = dlu / -lq[0];
+  // an r within 2^-90 relative above an integer is that integer too (a p equal to the distribution function at a jump,
+  // such as 0.75 for prob = 1/2, is not moved up by the rounding of the logs)
+  const tie = Math.abs(r[0]) * 2 ** -90;
+  const s = ddAdd(r, [-(dr < 0.5 ? dr + tie : tie), 0]);
+  let n = Math.ceil(s[0]);
+  if (s[0] === n && s[1] > 0) n += 1;
+  return Math.max(0, n - 1);
 }
 
 /**

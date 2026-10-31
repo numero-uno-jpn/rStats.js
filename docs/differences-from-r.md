@@ -223,6 +223,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `pbeta(-1, 0, 2)`, `pbeta(-1, 0, 0)` (and an infinite shape) | 1, 0.5: the point masses are checked before q <= 0, so the distribution function is positive left of its support | 0 |
 | `dweibull(x, shape, scale = Inf)` at a finite x > 0 | NaN (Inf * 0) | 0 (log -Inf), the limit |
 | `qnorm(0.5, 3, Inf)`, `qlnorm(0.5, 0, Inf)`, `qlogis(0.5, 3, Inf)` (the median with an infinite scale) | NaN (Inf * 0), although the other p give the limits (±Inf; 0 and Inf for `qlnorm`) and `pnorm(3, 3, Inf)` is 0.5 | the location (3; exp(meanlog) = 1 for `qlnorm`), the limit |
+| `dbeta(0.5, 1e308, 1e308)` and other shapes whose sum overflows | NaN | 1.128e154 (log 354.72): the exponent from the halved shapes, doubled (the deviances are homogeneous) |
 | `qcauchy(p, 3, Inf)` | NaN for every p, although `dcauchy` and `pcauchy` give the limits 0 and 0.5 | -Inf, 3 and Inf below, at and above the median, as `qnorm` and `qlogis` |
 | `survdiff(Surv(c(1, 1), c(1, 1)) ~ c("A", "B"))` and other data whose variance matrix is singular | "system is exactly singular" | the generalized inverse on rank(V) degrees of freedom (`df` in the result); with no information on the groups (rank 0) chisq 0, df 0, p NaN |
 | `survdiff` or `survfit` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the subject at risk throughout (an event at `Inf` is an error) |
@@ -407,6 +408,17 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   (point masses) keep the ends, as in R.
 - **`qnbinom`** with a negative size or mu is NaN, as `dnbinom` and `pnbinom` (R's `qnbinom` returns 0 for mu = 0 or
   size = 0 before checking them).
+- **`qgamma` and `qchisq`** with a negative shape or df, or a scale <= 0, are NaN also at p = 0 and 1, as the density
+  and distribution function (R returns 0 and Inf there).
+- **`qgeom`** takes the slack of the other discrete quantiles (8 ε relative on p, 2 ε on the log scale) where it is
+  below half a step, and is otherwise exact for p as given; it equals `qnbinom` with size 1. R's closed form subtracts
+  1e-12 from the ratio of logs, which takes y − 1 for a p up to 1e-12 relative above a jump: `qgeom(0.7500000000000866,
+  0.5)` is 1 in R, where P[X <= 1] = 0.75 < p (2 here, as R's `qnbinom(p, 1, 0.5)`), and
+  `qgeom(0.8757104766401955, 1.1843097327690854e-6, lower.tail = FALSE)` is 112065 in R (112064 here and in R's
+  `qnbinom`, p being `pgeom(112064)`).
+- **`phyper` and `qhyper`** whose support reaches beyond 2^53 are NaN: the tail sums step through the integers one by
+  one, which no longer move there (`phyper(5e16, 1e17, 1e17, 1e17)` did not return). Below 2^53 the time grows as
+  sqrt(m + n), about 40 s at 1e16.
 - **`omega`** adds a warning when the minres fit (L-BFGS-B) does not converge ("minres did not converge ...");
   psych's `fa` goes on from the last point silently. The values are the same.
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);

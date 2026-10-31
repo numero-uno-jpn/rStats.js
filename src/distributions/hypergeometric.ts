@@ -179,8 +179,16 @@ export function phyper1(q: number, m: number, n: number, k: number, lowerTail: b
   const [lo, hi] = support(m, n, k);
   if (x < lo) return dt0(lowerTail, logP);
   if (x >= hi) return dt1(lowerTail, logP);
+  if (hi > MAX_EXACT) return NaN;
   return phyperRaw(x, m, n, k, lowerTail, logP);
 }
+
+/**
+ * Largest upper end of the support for phyper and qhyper: the tail sums step through the integers one by one, which
+ * beyond 2^53 no longer move (phyper(5e16, 1e17, 1e17, 1e17) did not return), so the answer is NaN there, as for
+ * other integers beyond 2^53. Below it the time grows as sqrt(m + n) (about 40 s at 1e16, as R's)
+ */
+const MAX_EXACT = 2 ** 53;
 
 export function qhyper1(p: number, m: number, n: number, k: number, lowerTail: boolean, logP: boolean): number {
   if ([p, m, n, k].some(Number.isNaN)) return NaN;
@@ -192,6 +200,7 @@ export function qhyper1(p: number, m: number, n: number, k: number, lowerTail: b
   const b = quantileBoundaries(p, lo, hi, lowerTail, logP);
   if (b !== undefined) return b;
   if (lo === hi) return lo;
+  if (hi > MAX_EXACT) return NaN;
   const N = m + n;
   const mu = (k * m) / N;
   const sigma = Math.sqrt((((k * m) / N) * (n / N) * (N - k)) / Math.max(N - 1, 1));

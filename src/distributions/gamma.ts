@@ -37,7 +37,8 @@ export interface GammaParams {
 export function gammaScale(params: GammaParams): number {
   const { rate, scale } = params;
   if (rate !== undefined && scale !== undefined) {
-    if (Math.abs(rate * scale - 1) >= 1e-15) {
+    // (as R: a product that is NaN, from rate = NaN or Inf * 0, is an error too; it passed with >=)
+    if (!(Math.abs(rate * scale - 1) < 1e-15)) {
       throw new RangeError("rate and scale can both be given only when scale = 1 / rate");
     }
     return scale;
@@ -239,9 +240,10 @@ export function qgammaStd(p: number, shape: number, lowerTail: boolean, logP: bo
 
 export function qgamma1(p: number, shape: number, scale: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(p) || Number.isNaN(shape) || Number.isNaN(scale)) return NaN;
+  // parameters that define no distribution before the ends, as dgamma and pgamma (R gives 0 and Inf at p = 0 and 1)
+  if (shape < 0 || scale <= 0) return NaN;
   const b = quantileBoundaries(p, 0, Infinity, lowerTail, logP);
   if (b !== undefined) return b;
-  if (shape < 0 || scale <= 0) return NaN;
   if (shape === 0) return 0;
   // Shape Inf: all the mass at +Inf, so every probability strictly between 0 and 1 maps to Inf
   if (shape === Infinity) return Infinity;

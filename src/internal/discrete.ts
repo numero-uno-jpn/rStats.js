@@ -7,8 +7,8 @@
 // and 2 ε on the log scale, both chosen by comparison with R's answers (for p ≈ 1, converting to the smaller tail
 // before testing gives answers off by 1; the slack must be larger than 1.8 ε and smaller than 49 ε).
 
-const FUZZ_LINEAR = 8 * Number.EPSILON;
-const FUZZ_LOG = 2 * Number.EPSILON;
+export const FUZZ_LINEAR = 8 * Number.EPSILON;
+export const FUZZ_LOG = 2 * Number.EPSILON;
 /** Probabilities below this are near subnormal with few significant digits, so compare on the log scale */
 const TINY = 1e-290;
 

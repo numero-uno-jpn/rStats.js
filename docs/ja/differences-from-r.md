@@ -217,6 +217,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `pbeta(-1, 0, 2)`、`pbeta(-1, 0, 0)` (形状が無限大のときも) | 1、0.5。点質量を q <= 0 より先に判定するので、台より左で分布関数が正になる | 0 |
 | 有限の x > 0 での `dweibull(x, shape, scale = Inf)` | NaN (Inf × 0) | 0 (log は -Inf)。極限の値 |
 | `qnorm(0.5, 3, Inf)`、`qlnorm(0.5, 0, Inf)`、`qlogis(0.5, 3, Inf)` (尺度が無限大のときの中央値) | NaN (Inf × 0)。ほかの p では極限の値 (±Inf、`qlnorm` では 0 と Inf) を返し、`pnorm(3, 3, Inf)` は 0.5 | 位置パラメータ (3、`qlnorm` では exp(meanlog) = 1)。極限の値 |
+| `dbeta(0.5, 1e308, 1e308)` など、形状の和が溢れる場合 | NaN | 1.128e154 (log は 354.72)。半分の形状で指数を求めて 2 倍する (偏差は同次) |
 | `qcauchy(p, 3, Inf)` | すべての p で NaN。ただし `dcauchy`・`pcauchy` は極限の値 0 と 0.5 を返す | 中央値より下・中央値・上で -Inf、3、Inf。`qnorm`・`qlogis` と同じ |
 | `survdiff(Surv(c(1, 1), c(1, 1)) ~ c("A", "B"))` など、分散行列が特異になるデータ | "system is exactly singular" | 一般化逆行列を使い、自由度は rank(V) (結果の `df`)。群について情報がない (rank 0) ときは chisq 0、df 0、p NaN |
 | 打ち切り時刻が `Inf` の `survdiff`・`survfit` | "NA/NaN/Inf in foreign function call" | その個体は最後までリスク集合に入る (`Inf` でのイベントはエラー) |
@@ -387,6 +388,15 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   なら 0 か 1 を返し、非心でない `pbeta` は NaN)。形状 0 (点質量) は、R と同じく端の値を返します。
 - **`qnbinom`** は、`dnbinom`・`pnbinom` と同じく、負の size や mu で NaN です (R の `qnbinom` は、それを確かめる前に mu = 0 や
   size = 0 で 0 を返す)。
+- **`qgamma`・`qchisq`** は、密度や分布関数と同じく、負の形状や自由度、0 以下の scale で、p = 0 と 1 でも NaN です (R はそこで
+  0 と Inf を返す)。
+- **`qgeom`** は、ほかの離散分布の量子関数と同じ許容幅 (p に相対 8ε、log 尺度で 2ε) を、それが 1 段の半分未満のときだけ使い、
+  それ以外は与えられた p に対して厳密な答えを返します。`qnbinom` の size = 1 と一致します。R の閉じた式は log の比から 1e-12
+  を引くので、跳びより相対 1e-12 まで上の p で y − 1 を返します。`qgeom(0.7500000000000866, 0.5)` は R で 1 ですが、
+  P[X <= 1] = 0.75 < p です (ここでは R の `qnbinom(p, 1, 0.5)` と同じ 2)。`qgeom(0.8757104766401955, 1.1843097327690854e-6,
+  lower.tail = FALSE)` は R で 112065 です (p は `pgeom(112064)` で、ここと R の `qnbinom` は 112064)。
+- **`phyper`・`qhyper`** は、台が 2^53 を超えると NaN です。裾の和は整数を 1 つずつ進むので、そこでは進まなくなります
+  (`phyper(5e16, 1e17, 1e17, 1e17)` は終わらなかった)。2^53 未満では時間が sqrt(m + n) に比例し、1e16 で 40 秒ほどです。
 - **`omega`** は、minres の当てはめ (L-BFGS-B) が収束しないとき警告を出します ("minres did not converge ...")。psych の `fa` は
   何も言わずに最後の点から先へ進みます。値は同じです。
 - **`mauchlyTest`** は、`y` に欠測値がある行と `group` が欠測の行を除きます (`lm(y ~ group)` と同じ)。無限大はエラーです。

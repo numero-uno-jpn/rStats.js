@@ -83,20 +83,6 @@ export const knownViolations: KnownViolation[] = [
     examples: [{ params: { rate: 4.936871737348155e-227 }, x: [9.530984706928441e-97] }],
   },
   // ---- Weibull, arcsine, triangular, Pareto, Kumaraswamy, inverse gamma ----
-  {
-    family: "geom",
-    property: "roundtrip",
-    match: on(/^qgeom$/),
-    reason:
-      "qgeom's closed form log(1 - p) / log1p(-prob) - 1 with a fixed slack of 1e-12 is one above the test's answer where " +
-      "p is the distribution function at x rounded within an ulp or two: qgeom(0.8757104766401955, " +
-      "0.0000011843097327690854, { lowerTail: false }) is 112065 where pgeom(112064, ...) gives that p (but (1 - prob)^112065 " +
-      "is 0.87571047664019558, above p, so 112065 is the answer for p as given); near p = 1 (qgeom(0.9999999998246265, " +
-      "0.14171325019560754) is 147 where pgeom(146, ...) gives p) and for x around 1e9. Kept to match R, which computes " +
-      "the same closed form (R 4.5.2 gives 112065, 147, 49 for qgeom(0.9999129723837309, 0.17370360321365297) and 2 for " +
-      "qgeom(0.9999999999999999, 0.9999999886719217))",
-    examples: [{ params: { prob: 0.0000011843097327690854 }, x: [112064] }],
-  },
   // ---- χ², gamma, t, beta, F (central) ----
   {
     family: "f",

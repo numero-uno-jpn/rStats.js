@@ -34,12 +34,23 @@ function dbetaCore(x: number, a: number, b: number, log: boolean): number {
     const l = dbetaDirectLog(xd, xcd, a, b);
     return log ? l : Math.exp(l);
   }
-  const { e } = dbinomExponent(a, b, xd, xcd);
+  // a + b overflows (both shapes near the largest double): the deviances are homogeneous, bd0(cx, cM) = c bd0(x, M), so
+  // E is twice that of the halved shapes (the stirlerr terms, about 1/(12 a), are below 1e-308 there). The density was 0
+  // where it is 1.1e154: dbeta(0.5, 1e308, 1e308)
+  const sumOverflows = !Number.isFinite(a + b);
+  let e: DD;
+  if (sumOverflows) {
+    const h = dbinomExponent(a * 0.5, b * 0.5, xd, xcd).e;
+    e = h[0] === Infinity ? h : [2 * h[0], 2 * h[1]];
+  } else e = dbinomExponent(a, b, xd, xcd).e;
   // (a deviance beyond the doubles, from a shape near the largest double: the density is 0, where the double-double sums
   // below were NaN: dbeta(0.998, 55.1, 6.3e307))
   if (e[0] === Infinity) return d0(log);
   // With m = ab/(a+b), log(denom)/2 = log(2 pi m)/2 and log(ab/(a+b)) - log(denom)/2 = log(m/(2 pi))/2
-  const m = (a * b) / (a + b);
+  const lo = Math.min(a, b);
+  const hi = Math.max(a, b);
+  const m = sumOverflows ? lo / (1 + lo / hi) : (a * b) / (a + b);
+  const logSum = sumOverflows ? Math.log(hi) + Math.log1p(lo / hi) : Math.log(a + b);
   if (!log && e[0] < 700 && x > 1e-290 && xcd[0] > 1e-290) {
     // f = exp(-E) sqrt(m/(2 pi)) / (x (1 - x)) on the linear scale: no logarithms are needed, and the factors after
     // exp(-E) cost a few roundings whatever the size of log x (in the log form, log x near -700 alone would carry
@@ -56,7 +67,7 @@ function dbetaCore(x: number, a: number, b: number, log: boolean): number {
   const lc =
     m > 1e-290 && m < 1e290
       ? 0.5 * Math.log(m / (2 * Math.PI))
-      : 0.5 * (Math.log(a) + Math.log(b) - Math.log(a + b) - Math.log(2 * Math.PI));
+      : 0.5 * (Math.log(a) + Math.log(b) - logSum - Math.log(2 * Math.PI));
   const t = ddAdd(ddNeg(ddAdd(e, lxx)), [lc, 0]);
   return log ? t[0] + t[1] : Math.exp(t[0]) * (1 + t[1]);
 }
