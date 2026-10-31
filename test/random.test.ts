@@ -14,6 +14,14 @@ const callOrSummary = (a: Args): number[] => (isLong(a) ? summary(call(a)) : cal
 // with a relative tolerance. The number of uniforms consumed (next) and discrete values must match exactly
 // (docs/differences-from-r.md)
 const CONTINUOUS = 1e-12;
+// BTPE (n min(p, 1 - p) >= 30): R's final test adds the Stirling corrections of ix! and (n - ix)! instead of subtracting
+// them, so some acceptances differ and the stream with them (review 48, RNG-001)
+const btpeStream = (a: Args): string | undefined => {
+  if (a.size === undefined || a.prob === undefined || Array.isArray(a.size) || Array.isArray(a.prob)) return undefined;
+  const size = Number(a.size);
+  const p = Number(a.prob);
+  return size * Math.min(p, 1 - p) >= 30 ? "rbinom by BTPE: R's Stirling corrections have the wrong sign" : undefined;
+};
 randomSuite([
   ...["rbasic", "rgamma", "rchisq", "rbeta"].map((name) => ({ name, call: callOrSummary, isSummary: isLong, tolerance: CONTINUOUS })),
   {
@@ -25,7 +33,8 @@ randomSuite([
     knownDifference: (a: Args, actual: number[]) =>
       a.fn === "rlogis" && Number(a.scale) < 0 && actual.every(Number.isNaN) ? "rlogis with a negative scale: NaN, R draws" : undefined,
   },
-  ...["rpois", "rbinom", "rrank", "rsample", "rmultinom", "rhyper"].map((name) => ({ name, call: callOrSummary, isSummary: isLong })),
+  ...["rpois", "rrank", "rsample", "rmultinom", "rhyper"].map((name) => ({ name, call: callOrSummary, isSummary: isLong })),
+  { name: "rbinom", call: callOrSummary, isSummary: isLong, streamDifference: btpeStream },
   {
     name: "rnbinom",
     call: callOrSummary,

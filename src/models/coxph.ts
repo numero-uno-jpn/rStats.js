@@ -14,7 +14,8 @@ import { pchisq } from "../distributions/chisq.js";
 import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
 import { numberLevels } from "../internal/levels.js";
-import { ldexp, mean } from "../internal/summary.js";
+import { ldexp } from "../internal/summary.js";
+import { mergeTiedTimes } from "./tiedTimes.js";
 import { Warnings } from "./glmFamily.js";
 import { maxOf } from "../internal/extremes.js";
 
@@ -128,33 +129,6 @@ const isMissingLabel = (v: GroupLabel | null | undefined): boolean =>
 
 const compareLabels = (a: GroupLabel, b: GroupLabel): number =>
   typeof a === "number" && typeof b === "number" ? a - b : String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0;
-
-/** Times within sqrt(eps) (absolutely or relative to the mean absolute distinct time) merged to the smaller one */
-function mergeTiedTimes(time: readonly number[]): number[] {
-  const tol = Math.sqrt(2 ** -52);
-  const distinct = Array.from(new Set(time.filter((t) => Number.isFinite(t)))).sort((a, b) => a - b);
-  if (distinct.length < 2) return time.slice();
-  // the mean of |time| without overflow (a plain sum of times near 1e308 was Infinity, so every relative gap was 0 and
-  // distinct times were merged: coxph gave a coefficient of 0); a gap that overflows is Infinity, a distinct time
-  const meanAbs = mean(distinct.map(Math.abs));
-  const cuts = [distinct[0]!];
-  for (let k = 0; k + 1 < distinct.length; k++) {
-    const gap = distinct[k + 1]! - distinct[k]!;
-    if (!(gap <= tol || gap / meanAbs <= tol)) cuts.push(distinct[k + 1]!);
-  }
-  return time.map((t) => {
-    if (!Number.isFinite(t)) return t;
-    // the largest cut point not above t
-    let lo = 0;
-    let hi = cuts.length - 1;
-    while (lo < hi) {
-      const mid = (lo + hi + 1) >> 1;
-      if (cuts[mid]! <= t) lo = mid;
-      else hi = mid - 1;
-    }
-    return cuts[lo]!;
-  });
-}
 
 /** The data of the fit, sorted by stratum and time */
 interface SortedData {

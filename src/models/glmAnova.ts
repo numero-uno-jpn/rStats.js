@@ -162,7 +162,11 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
     list.forEach((f, i) => {
       if (i === 0 || df[i] === 0) return;
       const [small, large] = df[i]! > 0 ? [list[i - 1]!, f] : [f, list[i - 1]!];
-      if (!nestedColumns(small.model.x, large.model.x)) untested.add(i);
+      // nested as affine models: the columns of the smaller model and the difference of the offsets both in the column
+      // space of the larger one (two fits with other offsets are not nested even when their columns are)
+      const d = small.model.offset.map((o, r) => o - large.model.offset[r]!);
+      const smallX = d.some((v) => v !== 0) ? small.model.x.map((row, r) => [...row, d[r]!]) : small.model.x;
+      if (!nestedColumns(smallX, large.model.x)) untested.add(i);
     });
     if (test === "Rao") {
       const fr = list.map((f) => ({ dfRes: f.dfResidual, dev: f.deviance, fit: asIrls(f), x: f.model.x, intercept: f.model.intercept }));

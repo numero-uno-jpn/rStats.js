@@ -101,6 +101,8 @@ export function binomTest(
     if (!isCount(x[0]) || !isCount(x[1])) throw new RangeError("'x' must be nonnegative and integer");
     xs = Math.round(x[0]);
     ns = Math.round(x[0]) + Math.round(x[1]);
+    // no trials: neither the estimate nor the test is defined (R returns a p-value of 1), as for binomTest(0, 0)
+    if (ns === 0) throw new RangeError("'n' must be a positive integer >= 'x'");
   } else {
     if (typeof n !== "number") throw new TypeError("'n' is required when 'x' is a single number");
     if (!isCount(x)) throw new RangeError("'x' must be nonnegative and integer");
@@ -108,6 +110,14 @@ export function binomTest(
     if (!(isCount(n) && Math.round(n) >= xs && n > 0)) throw new RangeError("'n' must be a positive integer >= 'x'");
     ns = Math.round(n);
   }
+  return binomTestCounts(xs, ns, options);
+}
+
+/**
+ * The exact binomial test of xs successes in ns trials, without the check of ns > 0 (poissonTest compares two counts
+ * of 0 as R does: p-value 1, interval [0, 1])
+ */
+export function binomTestCounts(xs: number, ns: number, options: BinomTestOptions = {}): BinomTestResult {
   const p = options.p ?? 0.5;
   if (!(p >= 0 && p <= 1)) throw new RangeError("'p' must be a single number between 0 and 1");
   const alternative = matchAlternative(options.alternative);

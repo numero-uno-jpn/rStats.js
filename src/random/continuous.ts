@@ -80,8 +80,12 @@ export function rnorm(n: number, options: { mean?: number; sd?: number } = {}): 
  * @category Random numbers
  */
 export function rexp(n: number, options: { rate?: number } = {}): number[] {
-  const scale = 1 / (options.rate ?? 1);
+  const rate = options.rate ?? 1;
+  const scale = 1 / rate;
   return generate(n, () => {
+    // a positive rate below about 5.6e-309 has 1 / rate = Infinity: the variate itself (R gives NaN), which overflows
+    // unless the exponential variate is small
+    if (scale === Infinity && rate > 0) return expRand() / rate;
     if (!Number.isFinite(scale) || scale <= 0) return scale === 0 ? 0 : NaN;
     return scale * expRand();
   });

@@ -12,6 +12,7 @@
 // here (observed behaviour).
 
 import { pnorm, qnorm } from "../../distributions/normal.js";
+import { scaleToUnit } from "../../internal/summary.js";
 
 /** Polynomial c[0] + c[1] x + c[2] x^2 + ... */
 function poly(c: readonly number[], x: number): number {
@@ -80,7 +81,10 @@ export function swilkCoefficients(n: number): Float64Array {
  * r^2 = sum a_i^2 sum (x_i - mean)^2, so that it keeps its relative accuracy when W is close to 1 (the p-value
  * depends on log(1 - W)). The data are scaled by their range first.
  */
-export function swilkOneMinusW(sorted: readonly number[]): number {
+export function swilkOneMinusW(data: readonly number[]): number {
+  // divided by a power of 2 first (exact, so the ratios to the range are unchanged): the range of finite data can
+  // overflow (shapiroTest([-1e308, 0, 1e308]) was NaN)
+  const sorted = scaleToUnit([data]).groups[0]!;
   const n = sorted.length;
   const a = swilkCoefficients(n);
   const range = sorted[n - 1]! - sorted[0]!;

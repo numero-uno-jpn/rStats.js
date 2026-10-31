@@ -397,6 +397,9 @@ export function refit(
   const fam = makeFamily(model.familySpec);
   const start = "start" in control ? control.start : model.start;
   const prep = prepareResponse(fam, model.yGiven, model.priorGiven, start !== undefined || control.etastart !== undefined, warnings);
+  // no observation carries information (R stops with an internal error); the fit came out with rank p and negative
+  // residual degrees of freedom
+  if (!prep.weights.some((w) => w > 0)) throw new RangeError("all weights are zero");
   const offset = control.extraOffset === undefined ? model.offset : model.offset.map((o, i) => o + control.extraOffset![i]!);
   const x = model.x.map((r) => cols.map((j) => r[j]!));
   const fit = irls(

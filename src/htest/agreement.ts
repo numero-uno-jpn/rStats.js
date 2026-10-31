@@ -92,6 +92,7 @@ export function kappa2(ratings: readonly (readonly number[])[], options: Kappa2O
   if (ratings.some((r) => r.length !== 2)) throw new TypeError("'ratings' must be a matrix with two columns");
   const rows = ratings.filter((r) => !r.some(Number.isNaN));
   const n = rows.length;
+  if (n === 0) throw new RangeError("no complete rating pairs");
   const first = rows.map((r) => formatR(r[0]!));
   const second = rows.map((r) => formatR(r[1]!));
   // the levels of both raters together, sorted as strings (by code point, as in R's C locale)

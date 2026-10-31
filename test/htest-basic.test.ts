@@ -181,6 +181,11 @@ if (hasFixture("binomTest"))
       return typeof x === "number" ? binomTest(x, arg.num(a.n)!, o) : binomTest(x as [number, number], o);
     },
     tolerance: 1e-12,
+    // no trials defines no test: an error, as binomTest(0, 0) (R returns a p-value of 1 for c(0, 0); review 48)
+    substitute: (c) =>
+      JSON.stringify(c.args.x) === '["0","0"]'
+        ? { expected: { error: "'n' must be a positive integer >= 'x'" }, reason: "binom.test(c(0, 0)): R returns p = 1" }
+        : undefined,
   });
 if (hasFixture("poissonTest"))
   htestSuite({

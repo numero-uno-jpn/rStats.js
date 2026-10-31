@@ -218,6 +218,10 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `qr.solve(qr(matrix(c(1, 2, 2, 4), 2), LAPACK = TRUE), c(3, 6))` (ランク落ちの LAPACK の分解) | (8, -2.5)。LAPACK の分解のランクは常に min(n, p) | "singular matrix in qrSolve"。abs(R_kk) <= tol abs(R_11) (tol は 1e-7) をランク落ちとする |
 | `kappa(matrix(c(1, 2, 2, 4), 2), exact = TRUE, norm = "1")` (厳密に特異、2 以外のノルム) | "system is exactly singular" | Inf。ノルム "2" と同じ (計算上特異な行列は R と同じく止まる) |
 | `anova(lm(y ~ x2), lm(y ~ x1 + x3))` や、入れ子でない glm の `anova()` (どちらのモデルも他方の特別な場合でない) | F 検定 (例では F 1110、p 4.6e-7)、glm では尤度比検定 | 検定しない。F、p 値、検定の列は NaN (`lmerAnova` と同じ)。入れ子かどうかは、パラメータの少ないモデルの列が他方の列空間に入るかを QR のランクで判定する |
+| offset の違う glm の `anova()` (`glm(y ~ 1, poisson)` と `glm(y ~ x, poisson, offset = log(y) - x/2)`) | 尤度比検定 (p = 0.000417) | 検定しない (NaN)。列と同じく、offset の差も大きいモデルの列空間に入るときだけ入れ子とする |
+| `shapiro.test(c(-1e308, 0, 1e308))` (範囲が溢れる) | NaN | W = 1。`shapiro.test(c(-1, 0, 1))` と同じ (先にデータを 2 の冪で割る) |
+| polycor の `polyserial(x * 1e200, y, std.err = TRUE)` (平方和が溢れる) | rho 0、chisq NaN | x のときと同じ値 (レビューの例では rho 0.589) |
+| `rexp(n, rate = 1e-310)` (正の rate で 1 / rate が溢れる) | 警告付きの NaN (乱数は引かない) | 乱数 `exp_rand() / rate` (指数乱数がおよそ 0.018 未満でなければ Inf)。1 個につき指数乱数を 1 個引く |
 | `summary(glm(...), dispersion = -1)` (`glmAnova`、`glmPredict`、`glmRstandard`、`glmCooksDistance` も) | 標準誤差が NaN (警告あり) | エラー。dispersion は 0 以上の有限値 (0 なら R と同じく標準誤差 0) |
 | `pwr.chisq.test(w = 1e200, N = 100, df = 3)`、`pwr.f2.test(f2 = 1e308)`、`pwr.anova.test(f = 1e200)` (非心度が溢れる) | NaN | 検出力の極限 1。`powerAnovaTest` は、積だけが溢れる場合は between.var / within.var を先に計算する |
 | `ES.w1(c(0.5, 0.5, 0), c(0.5, 0.5, 0))` や、空の行・列がある `ES.w2` (両方の確率が 0 のセル) | NaN (0 / 0) | そのセルは 0 を足す (ここでは 0)。p0 = 0 < p1 は R と同じく Inf |
@@ -277,7 +281,9 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   二項 `glm` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`pwrChisqTest` の `df <= 0`、
   非有限または NaN の許容誤差 (`optim` の `reltol`、`uniroot`、`optimize`、`integrate`、`qr`、`chol`、
   `solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value supplied
-  by optim" で止まり、負の値は受け付ける)。
+  by optim" で止まり、負の値は受け付ける)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
+  `poissonTest` は事象数 0 どうしの比較を R どおり行う)、`factanal`・`omega` の `covmat` で、正方・有限・対称 (R の
+  `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)。
 - **検出力と効果量の関数**は、既知の量の NaN (pwr はたいてい "missing value where TRUE/FALSE needed" で止まる。
   以前は NaN を返していた)、`pwrRTest` の [-1, 1] の外の相関、`esH`・`esW1`・`esW2` の [0, 1] の外の確率 (R は NaN)、
   `esW2` の空や不整形の行列 (R は 0)、`powerPropTest` の n <= 0 (R は n = 0 で検出力を返し、負なら NaN)、`pwrTTest` の
@@ -330,6 +336,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   得られます。離散値、`sample`、消費する一様乱数の個数は完全に一致します。連続値は 1e-13 程度
   (最大 1e-12) まで一致します。`Math.log`、`Math.exp`、`Math.pow`、`Math.tan` の最後のビットが
   V8 と glibc で異なるためです。
+- **n min(p, 1 - p) >= 30 (アルゴリズム BTPE) の `rbinom` は、R の乱数列と一致しません。** R の rbinom.c の最後の受理判定は、
+  log ix! と log (n - ix)! の Stirling 補正を、引くべきところで足しています (n = 60 で確率比の対数が最大 0.013 ずれる)。
+  rStats.js は正しい符号を使うので、受理・棄却が変わる抽出があり、そこから先の乱数列が R とずれます
+  (`set.seed(439); rbinom(1, 10000, 0.5)` は R が 5023、rStats.js が 4879)。`rmultinom` の二項乱数も同じコードを通ります。
 - 基準は x86_64 版の R です。arm64 版は積和演算を融合 (FMA) するため、`qnorm` の最後のビット、
   ひいては正規乱数の値が変わります。`set.seed(42); rnorm(3)[2]` は x86_64 で -0.56469817139608869、
   arm64 で -0.5646981713960888 です。JavaScript には FMA がないので、rStats.js は x86_64 の R と

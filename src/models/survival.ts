@@ -14,6 +14,7 @@ import { levelText, numberLevels } from "../internal/levels.js";
 import { eigen } from "../linalg/eigen.js";
 import { solve } from "../linalg/solve.js";
 import { midpoint } from "../internal/extremes.js";
+import { mergeTiedTimes } from "./tiedTimes.js";
 
 /**
  * Options for {@link survdiff}.
@@ -141,8 +142,11 @@ function prepare(
     );
     labels.forEach((l, k) => index.set(l, k));
   }
-  const obs = keep.map((i) => ({
-    time: time[i]!,
+  // times within rounding error are one time, as R's timefix = TRUE (1 and 1 + 1e-9 were two times, so a subject
+  // censored at 1 left the risk set before the event at 1 + 1e-9)
+  const merged = mergeTiedTimes(keep.map((i) => time[i]!));
+  const obs = keep.map((i, k) => ({
+    time: merged[k]!,
     event: status[i] === 1,
     group: group === undefined ? 0 : index.get(group[i] as GroupLabel)!,
   }));

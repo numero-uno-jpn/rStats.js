@@ -61,6 +61,11 @@ export interface RandomSpec {
    * when the uniform drawn next is R's, so the stream stays R's
    */
   knownDifference?: (args: RandomCase["args"], actual: number[]) => string | undefined;
+  /**
+   * Cases where R's stream cannot be kept, because R's algorithm accepts or rejects differently (docs/differences-from-r.md):
+   * a reason when the case is one of them. Its values and the uniform drawn next may then differ from R's
+   */
+  streamDifference?: (args: RandomCase["args"]) => string | undefined;
 }
 
 export function randomSuite(specs: RandomSpec[]): void {
@@ -93,6 +98,13 @@ export function randomSuite(specs: RandomSpec[]): void {
           if (num(c.next) !== next) ok = false;
           else if (!ok) {
             const reason = spec.knownDifference?.(c.args, actual);
+            if (reason !== undefined) {
+              known.set(reason, (known.get(reason) ?? 0) + 1);
+              continue;
+            }
+          }
+          if (!ok) {
+            const reason = spec.streamDifference?.(c.args);
             if (reason !== undefined) {
               known.set(reason, (known.get(reason) ?? 0) + 1);
               continue;

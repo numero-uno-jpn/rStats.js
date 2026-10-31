@@ -5,6 +5,7 @@
 // with its Barzilai-Borwein step and non-monotone line search, and the general factor comes from a one-factor
 // minres analysis of the factor correlations.
 
+import { checkCovmat } from "../internal/covmat.js";
 import { eigen } from "../linalg/eigen.js";
 import { solve } from "../linalg/solve.js";
 import { svd } from "../linalg/svd.js";
@@ -277,6 +278,7 @@ export function omega(x: readonly (readonly number[])[] | null, options: OmegaOp
   if (!Number.isInteger(q) || q < 1) throw new RangeError("'nfactors' must be a positive integer");
   let R: Matrix;
   if (options.covmat !== undefined) {
+    checkCovmat(options.covmat);
     R = toCorrelation(options.covmat);
   } else {
     if (x === null) throw new TypeError("neither 'x' nor 'covmat' supplied");

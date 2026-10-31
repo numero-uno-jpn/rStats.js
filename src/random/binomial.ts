@@ -23,6 +23,28 @@ function stirlingTail(z: number): number {
   return (13860 - (462 - (132 - (99 - 140 / z2) / z2) / z2) / z2) / z / 166320;
 }
 
+/**
+ * log(f(ix) / f(m)) for the binomial probabilities f with n trials and success probability p = 1 - q, m the integer
+ * mode, by Stirling's formula (the final test of BTPE). The corrections of log m! and log (n - m)! enter with a plus
+ * sign and those of log ix! and log (n - ix)! with a minus sign; R's rbinom.c adds all four (an error of up to about
+ * 0.02 in the log near n p = 30), which changes some acceptances and so the stream from R's
+ */
+export function btpeLogRatio(n: number, p: number, q: number, m: number, ix: number): number {
+  const x1 = ix + 1;
+  const f1 = m + 1;
+  const z = n + 1 - m;
+  const w = n - ix + 1;
+  return (
+    (m + 0.5) * Math.log(f1 / x1) +
+    (n - m + 0.5) * Math.log(z / w) +
+    (ix - m) * Math.log((w * p) / (x1 * q)) +
+    stirlingTail(f1) +
+    stirlingTail(z) -
+    stirlingTail(x1) -
+    stirlingTail(w)
+  );
+}
+
 /** One binomial variate (nin trials, success probability pp) */
 export function rbinom1(nin: number, pp: number): number {
   if (!Number.isFinite(nin)) return NaN;
@@ -128,23 +150,8 @@ export function rbinom1(nin: number, pp: number): number {
         const alv = Math.log(v);
         if (alv < ynorm - amaxp) break;
         if (alv <= ynorm + amaxp) {
-          // Final test using Stirling's formula (M is the integer mode m)
-          const x1 = ix + 1;
-          const f1 = m + 1;
-          const z = n + 1 - m;
-          const w = n - ix + 1;
-          if (
-            alv <=
-            xm * Math.log(f1 / x1) +
-              (n - m + 0.5) * Math.log(z / w) +
-              (ix - m) * Math.log((w * p) / (x1 * q)) +
-              stirlingTail(f1) +
-              stirlingTail(z) +
-              stirlingTail(x1) +
-              stirlingTail(w)
-          ) {
-            break;
-          }
+          // Final test using Stirling's formula
+          if (alv <= btpeLogRatio(n, p, q, m, ix)) break;
         }
       }
     }
@@ -155,6 +162,10 @@ export function rbinom1(nin: number, pp: number): number {
 
 /**
  * Random numbers from the binomial distribution. Equivalent to R's `rbinom()`.
+ *
+ * For `size * min(prob, 1 - prob) >= 30` (algorithm BTPE) the stream can depart from R's: R's final acceptance test has
+ * two Stirling corrections with the wrong sign, and here the signs are right (`setSeed(439); rbinom(1, 10000, 0.5)` is
+ * 4879, R 5023). Below 30 (inversion) the stream is R's.
  *
  * @param n Number of values to generate (fractions are truncated, as in R).
  * @param size Number of trials.

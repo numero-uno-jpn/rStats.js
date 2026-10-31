@@ -224,6 +224,10 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qr.solve(qr(matrix(c(1, 2, 2, 4), 2), LAPACK = TRUE), c(3, 6))` (a LAPACK decomposition of deficient rank) | (8, -2.5): the rank of a LAPACK decomposition is always min(n, p) | "singular matrix in qrSolve": abs(R_kk) <= tol abs(R_11) (tol 1e-7) counts as deficient rank |
 | `kappa(matrix(c(1, 2, 2, 4), 2), exact = TRUE, norm = "1")` (exactly singular, a norm other than 2) | "system is exactly singular" | Inf, as with norm "2" (a computationally singular matrix still stops, as in R) |
 | `anova(lm(y ~ x2), lm(y ~ x1 + x3))` and `anova()` of glm fits that are not nested (neither model is a special case of the other) | an F test (F 1110, p 4.6e-7 in the example), or a likelihood ratio test for glm | no test: F, the p-value and the test columns are NaN, as `lmerAnova` (nested: the columns of the model with fewer parameters lie in the column space of the other, judged by the QR rank) |
+| `anova()` of glm fits with different offsets (`glm(y ~ 1, poisson)` and `glm(y ~ x, poisson, offset = log(y) - x/2)`) | a likelihood ratio test (p = 0.000417) | no test (NaN): the fits are nested only when the difference of the offsets also lies in the column space of the larger model, as for the columns |
+| `shapiro.test(c(-1e308, 0, 1e308))` (the range overflows) | NaN | W = 1, as `shapiro.test(c(-1, 0, 1))` (the data divided by a power of 2 first) |
+| polycor's `polyserial(x * 1e200, y, std.err = TRUE)` (the sum of squares overflows) | rho 0, chisq NaN | the values for x (rho 0.589 in the review example) |
+| `rexp(n, rate = 1e-310)` (positive rate, 1 / rate overflows) | NaN, with a warning, drawing nothing | the variates `exp_rand() / rate` (Inf unless the exponential variate is below about 0.018), one exponential variate each |
 | `summary(glm(...), dispersion = -1)` (also `glmAnova`, `glmPredict`, `glmRstandard`, `glmCooksDistance`) | NaN standard errors, with a warning | an error: the dispersion must be a non-negative finite number (0 gives standard errors of 0, as R) |
 | `pwr.chisq.test(w = 1e200, N = 100, df = 3)`, `pwr.f2.test(f2 = 1e308)`, `pwr.anova.test(f = 1e200)` (the noncentrality overflows) | NaN | 1, the limit of the power; `powerAnovaTest` takes between.var / within.var first where only the product overflows |
 | `ES.w1(c(0.5, 0.5, 0), c(0.5, 0.5, 0))` and `ES.w2` with an empty row or column (cells with both probabilities 0) | NaN (0 / 0) | such a cell adds 0 (0 here); p0 = 0 < p1 still gives Inf, as R |
@@ -285,7 +289,10 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   fewer than 2 subjects or raters in `icc` and `kappamFleiss`, `df <= 0` in `pwrChisqTest`, and
   a non-finite or NaN tolerance (`optim`'s `reltol`, `uniroot`, `optimize`, `integrate`, `qr`,
   `chol`, `solve`, `coxph`, `glm`), and a temperature `temp` that is not positive and finite in
-  `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one).
+  `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one),
+  `binomTest([0, 0])` (no trials; R returns a p-value of 1 for `binom.test(c(0, 0))`, while `poissonTest` compares two
+  counts of 0 as R), and a `covmat` in `factanal` and `omega` that is not square, finite and symmetric (as R's
+  `isSymmetric`) with a positive diagonal (R's `factanal` analyses an asymmetric matrix).
 - **The power and effect-size functions** reject NaN for a known quantity (pwr mostly stops with "missing value
   where TRUE/FALSE needed"; NaN was returned), a correlation outside [-1, 1] in `pwrRTest`, probabilities outside
   [0, 1] in `esH`, `esW1` and `esW2` (R: NaN), an empty or ragged matrix in `esW2` (R: 0), n <= 0 in `powerPropTest`
@@ -339,6 +346,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `set.seed(seed)`. Discrete values, `sample` and the number of uniform draws consumed match
   exactly; continuous values agree to about 1e-13 (at most 1e-12), because the last bits of
   `Math.log`, `Math.exp`, `Math.pow` and `Math.tan` differ between V8 and glibc.
+- **`rbinom` with n min(p, 1 - p) >= 30 (algorithm BTPE) is not R's stream.** The final acceptance test of R's
+  rbinom.c adds the Stirling corrections of log ix! and log (n - ix)! where they are to be subtracted (an error of up
+  to 0.013 in the log of the probability ratio at n = 60); rStats.js uses the right signs, so some draws are accepted
+  or rejected differently and the stream departs from R's from there (`set.seed(439); rbinom(1, 10000, 0.5)`: R
+  5023, rStats.js 4879). The binomial draws of `rmultinom` go through the same code.
 - The reference is the x86_64 build of R. The arm64 build fuses multiply-adds (FMA), which
   changes the last bit of `qnorm` and therefore of normal variates: `set.seed(42); rnorm(3)[2]`
   is -0.56469817139608869 on x86_64 and -0.5646981713960888 on arm64. JavaScript has no FMA, so

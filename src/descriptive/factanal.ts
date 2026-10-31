@@ -3,6 +3,7 @@
 // likelihood criterion by L-BFGS-B (this library's optim), the loadings come from the eigendecomposition of the
 // scaled correlation matrix, and the rotations are Kaiser's varimax (normalised) and Hendrickson and White's promax.
 
+import { checkCovmat } from "../internal/covmat.js";
 import { pchisq } from "../distributions/chisq.js";
 import { eigen } from "../linalg/eigen.js";
 import { qr, qrCoef } from "../linalg/qr.js";
@@ -196,6 +197,7 @@ export function factanal(x: readonly (readonly number[])[] | null, factors: numb
   let nObs: number;
   if (options.covmat !== undefined) {
     if (scores !== "none") throw new RangeError("requested scores without an 'x' matrix");
+    checkCovmat(options.covmat);
     cv = options.covmat.map((r) => r.slice());
     nObs = options.nObs ?? NaN;
   } else {

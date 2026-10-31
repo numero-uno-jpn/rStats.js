@@ -10,7 +10,7 @@
 import { dpois1, ppois1 } from "../distributions/poisson.js";
 import { qgamma1 } from "../distributions/gamma.js";
 import { firstTrue, lastTrue } from "../internal/discrete.js";
-import { binomTest } from "./binomTest.js";
+import { binomTestCounts } from "./binomTest.js";
 import { checkConfLevel, checkConfLevelOpen, isCount, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /**
@@ -109,10 +109,10 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
     const [x1, x2] = counts as [number, number];
     const [T1, T2] = T as [number, number];
     const n = x1 + x2;
-    // NaN (rejected by binomTest, as in R) when both r T1 and T2 are 0. The [successes, failures] form also takes
-    // a total of 0 (p-value 1, interval [0, 1]), where binomTest(0, 0) is an error as in R
+    // NaN (rejected by binomTest, as in R) when both r T1 and T2 are 0. Two counts of 0 give p-value 1 and the
+    // interval [0, 1] as in R, where binomTest([0, 0]) and binomTest(0, 0) are errors
     const p0 = (r * T1) / (r * T1 + T2);
-    const b = binomTest([x1, x2], { p: p0, alternative, confLevel });
+    const b = binomTestCounts(Math.round(x1), Math.round(x1) + Math.round(x2), { p: p0, alternative, confLevel });
     const toRatio = (p: number): number => (p / (1 - p)) * (T2 / T1);
     return {
       method: "Comparison of Poisson rates",

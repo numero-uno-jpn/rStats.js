@@ -18,7 +18,7 @@ import { pbvnorm } from "../distributions/bvnorm.js";
 import { dnorm, pnorm, qnorm } from "../distributions/normal.js";
 import { pearsonDD } from "./cor.js";
 import { numberLevels } from "../internal/levels.js";
-import { mean, sum, variance } from "../internal/summary.js";
+import { mean, scaleToUnit, sum, variance } from "../internal/summary.js";
 import { optimize } from "../numerics/integrate.js";
 import { solve } from "../linalg/solve.js";
 import { formatR } from "./core/simulate.js";
@@ -125,7 +125,10 @@ const normalInterval = (lo: number, hi: number): number =>
   lo > 0 ? pnorm(lo, { lowerTail: false }) - pnorm(hi, { lowerTail: false }) : pnorm(hi) - pnorm(lo);
 
 /** v standardised to mean 0 and sample standard deviation 1 */
-function standardise(v: readonly number[]): number[] {
+function standardise(data: readonly number[]): number[] {
+  // divided by a power of 2 first (exact; the standardised values do not depend on it): the sum of squares of values
+  // around 1e200 overflowed, and polyserial gave rho = 2e-9 instead of 0.589
+  const v = scaleToUnit([data]).groups[0]!;
   const m = mean(v);
   const centred = v.map((x) => x - m);
   const sd = Math.sqrt(variance(centred));
