@@ -215,8 +215,11 @@ export function quadeTest(formula: string, data: DataFrame): QuadeTestResult;
 export function quadeTest(y: readonly (readonly number[])[] | string, data?: DataFrame): QuadeTestResult {
   if (typeof y === "string") return quadeTest(blockData(y, data!));
   const rows = completeRows(y);
-  // as in R, b counts all blocks, including those dropped for a missing value
-  const b = y.length;
+  // b is the number of complete blocks, those the statistic is computed from. R's quade.test (4.5.2) counts the
+  // blocks dropped for a missing value as well (in B = sum S_j^2 / b, in (b - 1) B / (A - B) and in the degrees of
+  // freedom), so that its result for data with an incomplete block differs from that for the same data without the
+  // block (F 10 against 25 in docs/differences-from-r.md); here the two agree
+  const b = rows.length;
   const k = y[0]?.length ?? 0;
   if (rows.length < 2 || k < 2) throw new RangeError("'y' must have at least two complete rows and two columns");
   const q = rank(rows.map((r) => maxOf(r) - minOf(r)));

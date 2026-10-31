@@ -201,7 +201,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` は double の最大値)、double の最大値に近い符号の異なる値の対応のある `t.test` | -Inf か NaN (正規化の前に偏差や差がオーバーフロー) | 約 -2.3969、相関は -1。対応のある検定は他の尺度と同じ結果 |
 | `t.test(x, mu = 1e100)` | 区間が [0, 0] (mu + (t ± q) stdErr の形で計算) | x の平均を中心とする区間 (mu に依存しない。mu が無限大のとき R は NaN) |
 | 応答が 1e±200 程度での car の `Anova` (型 II・III)、`predict(lm)` の標準誤差と区間、gaussian の `glm` とその `summary`・`residuals`・`rstandard`・`cooks.distance`・`predict`・`anova`・`confint`、DescTools の `CoefVar` と `MeanAD` | Inf、0、NaN、"residual sum of squares is 0"、または "no valid set of coefficients has been found" | 尺度によらず同じ結果 (応答を 2 の冪で正規化。glm は gaussian と定数分散の quasi の identity link) |
-| `pnorm(1e308, -1e308, 1.7e308)`、`qnorm(0.9, -1e308, 1.7e308)`、および `plogis`/`qlogis`、`pcauchy`/`qcauchy`、extraDistr の `plaplace`/`qlaplace`/`dlaplace` で、結果は範囲内なのに x − location や scale z が溢れる場合 | 1、Inf、0、-Inf (予想。要確認) | 0.8803、1.1786e308 (引き算や積の前に、x と location を半分に、または location と scale を 2 の冪で割る) |
+| `pnorm(1e308, -1e308, 1.7e308)`、`qnorm(0.9, -1e308, 1.7e308)`、および `plogis`/`qlogis`、`pcauchy`/`qcauchy`、extraDistr の `plaplace`/`qlaplace`/`dlaplace` で、結果は範囲内なのに x − location や scale z が溢れる場合 | 1、Inf、0、-Inf (pnorm 1、dnorm 0、qnorm Inf を R 4.5.2 で確認) | 0.8803、1.1786e308 (引き算や積の前に、x と location を半分に、または location と scale を 2 の冪で割る) |
+| 欠測値のあるブロック (行) を含む `quade.test(y)`。例: `y <- rbind(c(10,12,15), c(11,14,16), c(12,NA,17), c(13,15,18), c(14,16,20))` | F = 10、df (2, 8)、p = 0.00666。除いたブロックも b に数える (B = ΣS_j^2 / b、(b − 1) B / (A − B)、df (b − 1)(k − 1)) ので、同じデータの `quade.test(y[-3, ])` (F = 25、df (2, 6)、p = 0.00123) と結果が違う。R のバグ (4.5.2 で実行して確認) | 完全なブロックだけでの検定: F = 25、df (2, 6)、p = 0.00123 (ブロックを除いたデータと同じ) |
 | 行数は同じだが使った行や応答が異なる lmer の当てはめの `anova()` | 尤度比検定を返す | エラー (lme4 は行数だけを比べる) |
 
 ## 意図的な違い

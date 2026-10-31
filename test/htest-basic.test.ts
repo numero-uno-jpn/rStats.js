@@ -235,9 +235,33 @@ const rSuites: [string, (a: Record<string, HTestArg>) => object, number][] = [
   ["kruskalTest", (a) => kruskalTest(rGroups(a)), 1e-12],
   ["onewayTest", (a) => onewayTest(rGroups(a), defined({ varEqual: arg.bool(a.varEqual) })), 1e-12],
   ["friedmanTest", (a) => friedmanTest(arg.mat(a.y)!), 1e-12],
-  ["quadeTest", (a) => quadeTest(arg.mat(a.y)!), 1e-12],
 ];
 for (const [name, call, tolerance] of rSuites) if (hasFixture(name)) htestSuite({ name, call, tolerance });
+// R's quade.test counts the blocks dropped for a missing value in b (a bug: the result then differs from that for the
+// data without those blocks). rStats.js uses the complete blocks, so these cases are compared with the result for the
+// matrix of complete rows, which R's answer for that matrix matches
+if (hasFixture("quadeTest")) {
+  htestSuite({
+    name: "quadeTest",
+    call: (a) => quadeTest(arg.mat(a.y)!),
+    tolerance: 1e-12,
+    substitute: (c) => {
+      const y = arg.mat(c.args.y)!;
+      const complete = y.filter((r) => r.every((v) => !Number.isNaN(v)));
+      if (complete.length === y.length || complete.length < 2) return undefined;
+      const r = quadeTest(complete);
+      return {
+        expected: {
+          ...c.expected,
+          statistic: String(r.statistic),
+          parameter: r.parameter.map(String),
+          pValue: String(r.pValue),
+        },
+        reason: "R's quade.test counts the dropped incomplete blocks (compared with the complete rows alone)",
+      };
+    },
+  });
+}
 if (hasFixture("shapiroTest"))
   htestSuite({
     name: "shapiroTest",
@@ -512,5 +536,18 @@ describe("moodTest with ties", () => {
       checked++;
     }
     expect(checked).toBeGreaterThanOrEqual(25);
+  });
+});
+
+describe("quadeTest with an incomplete block", () => {
+  // R 4.5.2: quade.test(y[-3, ]) gives F = 25, df (2, 6), p = 0.001229956; quade.test(y) gives F = 10, df (2, 8),
+  // p = 0.00666389, as it counts the dropped block in b
+  const y = [[10, 12, 15], [11, 14, 16], [12, NaN, 17], [13, 15, 18], [14, 16, 20]];
+  it("equals the test on the complete blocks", () => {
+    const r = quadeTest(y);
+    expect(r.statistic).toBeCloseTo(25, 12);
+    expect(r.parameter).toEqual([2, 6]);
+    expect(r.pValue).toBeCloseTo(0.001229956, 9);
+    expect(r).toEqual(quadeTest(y.filter((_, i) => i !== 2)));
   });
 });
