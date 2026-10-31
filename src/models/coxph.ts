@@ -14,7 +14,7 @@ import { pchisq } from "../distributions/chisq.js";
 import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
 import { numberLevels } from "../internal/levels.js";
-import { mean } from "../internal/summary.js";
+import { ldexp, mean } from "../internal/summary.js";
 import { Warnings } from "./glmFamily.js";
 import { maxOf } from "../internal/extremes.js";
 
@@ -526,15 +526,23 @@ export function coxph(
     }
   }
 
-  // back to the original scale
-  const internal = beta.map((b, j) => b * scales[j]!);
-  const u = ev.score.map((v, j) => v / scales[j]!);
-  const variance = inverse.map((row, i) => row.map((v, j) => v * scales[i]! * scales[j]!));
+  // back to the original scale. Each column's scale s_j is split as s~_j 2^e_j (s~_j in [1, 2)): the coefficients,
+  // the variance and the score are first formed in units of 2^e_j, where they stay in range whatever the units of the
+  // covariates, and scaled back by powers of 2 only for the output. Unitless quantities (z, the Wald test, the check
+  // for infinite coefficients) are computed in these units: the same bits as in the original units when nothing
+  // overflows, and the Wald test's Cholesky pivots are not dropped because the covariates have different units
+  const expo = scales.map((s) => Math.floor(Math.log2(s)));
+  const mant = scales.map((s, j) => ldexp(s, -expo[j]!));
+  const coefUnit = beta.map((b, j) => b * mant[j]!);
+  const uUnit = ev.score.map((v, j) => v / mant[j]!);
+  const varUnit = inverse.map((row, i) => row.map((v, j) => v * mant[i]! * mant[j]!));
+  const internal = coefUnit.map((c, j) => ldexp(c, expo[j]!));
+  const variance = varUnit.map((row, i) => row.map((v, j) => ldexp(v, expo[i]! + expo[j]!)));
 
   // 6. output
   const coefficients = internal.slice();
   if (iterMax > 0 && Math.abs(rank) < p) {
-    for (let j = 0; j < p; j++) if (variance[j]![j] === 0) coefficients[j] = NaN;
+    for (let j = 0; j < p; j++) if (inverse[j]![j] === 0) coefficients[j] = NaN;
   }
   let centre = 0;
   for (let j = 0; j < p; j++) centre += internal[j]! * means[j]!;
@@ -545,9 +553,10 @@ export function coxph(
   });
   const warnings = new Warnings();
   if (iterMax > 1) {
-    const infinity = variance.map((_, j) => {
+    // abs(u' var) in units of 2^-e_j
+    const infinity = varUnit.map((_, j) => {
       let s = 0;
-      for (let i = 0; i < p; i++) s += u[i]! * variance[i]![j]!;
+      for (let i = 0; i < p; i++) s += uUnit[i]! * varUnit[i]![j]!;
       return Math.abs(s);
     });
     if (ranOut) {
@@ -559,7 +568,7 @@ export function coxph(
       const flagged: number[] = [];
       for (let j = 0; j < p; j++) {
         const f = infinity[j]!;
-        if (!Number.isFinite(u[j]!) || (f > eps && f > tolerInf * Math.abs(internal[j]!))) flagged.push(j + 1);
+        if (!Number.isFinite(uUnit[j]!) || (ldexp(f, expo[j]!) > eps && f > tolerInf * Math.abs(coefUnit[j]!))) flagged.push(j + 1);
       }
       if (flagged.length > 0) {
         warnings.add(`Loglik converged before variable  ${flagged.join(",")} ; coefficient may be infinite. `);
@@ -570,19 +579,21 @@ export function coxph(
   // 7. tests and the summary
   const used = coefficients.map((c, j) => (Number.isNaN(c) ? -1 : j)).filter((j) => j >= 0);
   const k = used.length;
-  const b = used.map((j) => coefficients[j]! - (init === undefined ? 0 : init[j]!));
+  // (in units of 2^e_j)
+  const b = used.map((j) => coefUnit[j]! - (init === undefined ? 0 : ldexp(init[j]!, -expo[j]!)));
   let wald = 0;
   if (k === 1) {
-    wald = (b[0]! * b[0]!) / variance[used[0]!]![used[0]!]!;
+    wald = (b[0]! * b[0]!) / varUnit[used[0]!]![used[0]!]!;
   } else if (k > 1) {
-    const v = used.map((i) => used.map((j) => variance[i]![j]!));
+    const v = used.map((i) => used.map((j) => varUnit[i]![j]!));
     cholFactor(v, tolerChol);
     const y = cholSolve(v, b);
     for (let i = 0; i < k; i++) wald += b[i]! * y[i]!;
   }
   const q = qnorm((1 + confLevel) / 2);
-  const se = variance.map((row, j) => Math.sqrt(row[j]!));
-  const z = coefficients.map((c, j) => c / se[j]!);
+  const seUnit = varUnit.map((row, j) => Math.sqrt(row[j]!));
+  const se = seUnit.map((v, j) => ldexp(v, expo[j]!));
+  const z = coefficients.map((c, j) => (Number.isNaN(c) ? c : coefUnit[j]!) / seUnit[j]!);
   const pz = z.map((v) => pchisq(v * v, 1, { lowerTail: false }));
   const lower = coefficients.map((c, j) => Math.exp(c - q * se[j]!));
   const upper = coefficients.map((c, j) => Math.exp(c + q * se[j]!));
