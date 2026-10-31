@@ -150,7 +150,12 @@ export function aovStrataFit(
   const n = y.length;
   const warnings = [...dt.warnings, ...de.warnings.filter((w) => !dt.warnings.includes(w))];
   const pe = de.colNames.length;
-  const qe = pe > 0 ? qr(de.x) : undefined;
+  // each column of the error model divided by its own power of 2 (exact): the strata depend only on the space the
+  // columns span, but the double-double decomposition squares them (a covariate around 1e-200 in Error() underflowed
+  // and gave other strata); columns of 0 and 1 are unchanged
+  const ecols = de.colNames.map((_, j) => scaleToUnit([de.x.map((r) => r[j]!)]).groups[0]!);
+  const ex = de.x.map((_, i) => ecols.map((c) => c[i]!));
+  const qe = pe > 0 ? qr(ex) : undefined;
   const re = qe?.rank ?? 0;
   if (re < pe) warnings.push("Error() model is singular");
   const kept = qe?.pivot.slice(0, re) ?? [];
@@ -162,7 +167,7 @@ export function aovStrataFit(
   // the response scaled by 2^-k (exact, src/internal/summary.ts), so that its sums of squares stay in range
   const { groups: scaledY, k: yScale } = scaleToUnit([y]);
   const { fit, qtv } = ddLeastSquaresMulti(
-    kept.map((j) => toDD(de.x.map((r) => r[j]!))),
+    kept.map((j) => toDD(ecols[j]!)),
     toDD(scaledY[0]!),
     tcols,
   );
