@@ -102,7 +102,8 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
   const my = wy.reduce((a, [w, v]) => a + w * v, 0) / sw;
   const tss = wy.reduce((a, [w, v]) => a + w * (v - my) ** 2, 0);
   if (!(rss >= Math.sqrt(2.220446049250313e-16) * tss) || rss === 0) throw new Error("residual sum of squares is 0 (within rounding error)");
-  const warnings: string[] = [];
+  // the fit's warnings (from its model matrix and summary) first, as for aov with Error(); R gives them when fitting
+  const warnings: string[] = [...fit.warnings];
   const nTerms = fit.termLabels.length;
   if (type === 2 && nTerms === 0 && fit.intercept) {
     warnings.push("the model contains only an intercept: Type III test substituted");

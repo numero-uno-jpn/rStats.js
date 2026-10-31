@@ -443,7 +443,8 @@ function anovaEffectSize(model: AnovaEffectSizeModel, kind: Kind, options: EtaSq
     colNames: ci === null ? [column] : [column, "CI", "CI_low", "CI_high"],
     rowNames: terms.map((t) => t.name),
     table: terms.map((t) => (ci === null ? [value(t)] : withInterval(value(t), t.df, dfe, ci, alt))),
-    warnings: [],
+    // the warnings of the table (and so of the fit it came from), as for models with error strata
+    warnings: Array.isArray(given.warnings) ? [...given.warnings] : [],
   };
 }
 

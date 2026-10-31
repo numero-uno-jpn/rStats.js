@@ -148,6 +148,13 @@ function comparisonTable(fits: readonly LmFormulaResult[]): AnovaTable {
   };
 }
 
+/** Warning lists joined, each message once, in order of first appearance */
+function mergeWarnings(...lists: readonly (readonly string[] | undefined)[]): string[] {
+  const out: string[] = [];
+  for (const l of lists) for (const w of l ?? []) if (!out.includes(w)) out.push(w);
+  return out;
+}
+
 /**
  * Analysis of variance of linear models fitted from a formula. Equivalent to R's `anova()`. With one fit, the table of sequential (type I) sums
  * of squares, equivalent to R's `anova(fit)`: one row per term (the intercept left out), in the order of the model,
@@ -174,7 +181,14 @@ export function anova(fit: LmFormulaResult, ...fits: LmFormulaResult[]): AnovaTa
       throw new TypeError("anova() needs fits from lm() or aov() with a formula");
     }
   }
-  if (all.length === 1) return sequentialTable(fit);
+  if (all.length === 1) {
+    const t = sequentialTable(fit);
+    // (a new object keeps the registered table of the sums of squares as fitted)
+    const out = { ...t, warnings: mergeWarnings(fit.warnings, t.warnings) };
+    const scaled = scaledTables.get(t);
+    if (scaled !== undefined) scaledTables.set(out, scaled);
+    return out;
+  }
   if (all.some((f) => f.rows.length !== fit.rows.length)) throw new Error("models were not all fitted to the same size of dataset");
   // F tests compare residual sums of squares of the same observations: the same rows, response values and weights (R
   // compares only the number of rows; lmerAnova checks the same)
@@ -190,7 +204,7 @@ export function anova(fit: LmFormulaResult, ...fits: LmFormulaResult[]): AnovaTa
     warnings.push(`models with response ${removed.map((r) => `‘${r}’`).join(", ")} removed because response differs from model 1`);
   }
   const tab = same.length === 1 ? sequentialTable(fit) : comparisonTable(same);
-  tab.warnings = [...warnings, ...tab.warnings];
+  tab.warnings = mergeWarnings(...all.map((f) => f.warnings), warnings, tab.warnings);
   return tab;
 }
 
@@ -241,8 +255,10 @@ export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | Ao
     throw new TypeError("aovSummary() needs a fit from aov() with a formula");
   }
   const t = sequentialTable(fit as LmFormulaResult);
+  // the fit's warnings and those of the table, once each (as for aov with Error(); R gives them when fitting)
+  const warnings = mergeWarnings((fit as LmFormulaResult).warnings, t.warnings);
   if ((fit as LmFormulaResult).dfResidual > 0) {
-    const out = { ...t, warnings: [] };
+    const out = { ...t, warnings };
     const scaled = scaledTables.get(t);
     if (scaled !== undefined) scaledTables.set(out, scaled);
     return out;
@@ -251,6 +267,6 @@ export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | Ao
     colNames: t.colNames.slice(0, 3),
     rowNames: t.rowNames.slice(0, -1),
     table: t.table.slice(0, -1).map((r) => r.slice(0, 3)),
-    warnings: [],
+    warnings,
   };
 }

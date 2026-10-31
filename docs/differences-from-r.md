@@ -382,8 +382,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   the column first. Contrasts are `contr.treatment` (default), `contr.sum` and `contr.helmert` (and `contr.poly` in
   `lmer`). A
   formula that cannot be parsed throws "invalid formula: ..." instead of R's parse error.
-- **Warnings of an `aov` fit with `Error()`** (such as "Error() model is singular") are carried to its `aovSummary`
-  and to the effect sizes computed from the fit or the summary (R gives them when fitting only).
+- **The warnings of a fit** (`lm`, `aov` with or without `Error()`; such as "Error() model is singular" or an
+  absent variable named in `contrasts`) are carried to `anova` (of all the fits compared), car's `Anova`, `aovSummary`
+  and the effect sizes computed from them, each message once (R gives them when fitting only).
 - **`dunnTest`** ranks the values as numbers. dunn.test 1.4.2 given a character group vector ranks them as text
   (so 10.06 before 8.88); with a factor it ranks them as numbers, which is what `dunnTest` reproduces.
 - **`aovEz` messages that R completes with a printout of the data** (ids removed for missing
