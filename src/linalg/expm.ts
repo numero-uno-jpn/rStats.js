@@ -77,12 +77,17 @@ export function expm(x: MatrixInput, options: ExpmOptions = {}): number[][] {
   const method = options.method ?? "Higham08.b";
   if (!METHODS.includes(method)) throw new RangeError(`unknown method: ${String(method)}`);
   const order = options.order ?? 8;
-  if (!Number.isInteger(order) || order < 1) throw new RangeError("order must be a positive integer");
+  // order is used by these four methods only (the Higham08 methods ignore it, as in R)
+  const usesOrder = method === "Pade" || method === "PadeO" || method === "Taylor" || method === "TaylorO";
+  if (usesOrder && !(Number.isInteger(order) && order >= 1)) throw new RangeError("order must be a positive integer");
   const A = toMat(x);
   requireSquare(A);
   const n = A.nrow;
   if (n === 0) return [];
+  // exp of the one entry, NaN and infinite ones included (as R)
   if (n === 1) return [[Math.exp(A.data[0]!)]];
+  // (the Padé and Taylor methods returned NaN silently; the Higham08 methods stopped later with other messages)
+  for (const v of A.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
   if (method === "Taylor" || method === "TaylorO") return fromMat(taylorScaled(A, order));
   if (method === "Pade" || method === "PadeO") return fromMat(padeScaled(A, order));
   let perm: ReturnType<typeof gebal> | undefined;

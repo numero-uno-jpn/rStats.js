@@ -206,6 +206,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 自由度が無限大の非心 `rt(n, Inf, ncp = 1)`、`rf(n, Inf, 10, ncp = 2)`、`rf(n, 10, Inf, ncp = 2)` | NaN ("NAs produced"。非心でない `rt(n, Inf)`、`rf(n, Inf, 10)` は値を返す) | 極限の分布。t は N(ncp, 1)、F は無限大の自由度の側のカイ二乗/自由度を 1 とする (X / df1、df2 / Y、または 1)。R と同じ乱数を引くので、呼び出し後の乱数の状態も R と同じ |
 | `rf(n, 0, 10, ncp = 2)` (非心、df1 = 0)、`rsignrank(n, Inf)` | 乱数次第で Inf か NaN (df1 = 0 で割る。非心でない `rf` は NaN)。Inf の整数への変換は未定義 | NaN (F は df1, df2 > 0 が必要。R と同じ乱数を引くので、呼び出し後の乱数の状態は R と同じ)。乱数を引かずに NaN |
 | expm の `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | 全要素 NaN (2 乗の段階で Inf × 0) | diag(Inf, 1)。溢れた要素は有限の巨大な値を表すので、厳密な 0 との積は 0。1-ノルムが溢れる行列でも無限ループしない |
+| expm の `expm(matrix(c(0, 0, 1, 0), 2), method = "Pade", order = 0)` ("Taylor"、"PadeO"、"TaylorO" も) | 単位行列 (正しくは [[1, 1], [0, 1]]) | エラー。これらの方法では order は正の整数 (Higham08 系は R と同じく order を無視する)。NaN や無限大を含む 2 × 2 以上の行列は、どの方法でもエラー (Padé・Taylor 系は NaN を返していた) |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
 | `rgeom(n, 5e-324)` (約 5.6e-309 未満の prob)、p < 1 の `rnbinom(n, Inf, prob = p)` | NA。約 9e307 (size = MAX / 2 での値) か NA | Infinity。値は double の最大値を超える (rgeom は 1e-15 未満の確率を除いて。rnbinom は確率がすべて無限遠にあり、dnbinom・qnbinom と整合)。同じ乱数を引くので、乱数の状態は R と同じ |
