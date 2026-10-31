@@ -18,6 +18,13 @@
 // Where the largest entry of a pass falls below 2^760 (tables of the lower tail only, for large m and n), the table is
 // multiplied by 2^200 (exact) and its scale kept, as for signrank: P[W = 0] = 1 / C(2100, 1050), about 1e-630,
 // underflowed at the fixed scale (dwilcox(0, 1050, 1050, log = TRUE) was -Inf).
+//
+// Above the center of each pass the entries drift far from their true values (the cumulative sums amplify the
+// errors pass after pass); the drift cancels in the final values as long as the entries stay representable, but beyond
+// about m = n = 510 they overflow near the center. The entries below the first that overflows keep their accuracy
+// (each depends only on those below it), so the table ends there and reading beyond it is a RangeError. Copying the
+// lower side onto the upper one (the passes are symmetric) breaks the cancellation and loses accuracy (3.5e-8 at the
+// center for m = n = 400); a method stable for large samples near the center remains to be found.
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
@@ -27,6 +34,8 @@ import { qnorm } from "./normal.js";
 
 /** Scale 2^STORE_SCALE applied to the coefficients (small enough that the 2^27 factor of Veltkamp splitting does not overflow) */
 const STORE_SCALE = 960;
+/** Largest table entry the passes can take (2^27 + 1 times it, in Veltkamp splitting, must not overflow) */
+const MAX_ENTRY = 2 ** 996;
 /** Maximum table length (computations needing more throw RangeError; about 800 MB for the three arrays during construction) */
 const MAX_LEN = 2 ** 25;
 
@@ -52,6 +61,8 @@ interface ProbTable {
    * cannot have touched; for a cumulative probability the bound is (s + 1) times this. 0 if no entry lost digits
    */
   minTrusted: number;
+  /** Number of entries (from s = 0) that kept their accuracy (see buildTable); len unless the passes broke down */
+  valid: number;
 }
 
 /**
@@ -73,8 +84,10 @@ function buildTable(m: number, n: number, J: number): ProbTable {
   let scale = STORE_SCALE;
   // scale at the first pass where an entry lost digits
   let lossScale = NaN;
+  // entries from end on broke down (see below) and are no longer computed
+  let end = J + 1;
   for (let i = 1; i <= m; i++) {
-    const top = Math.min(J, i * n);
+    let top = Math.min(end - 1, i * n);
     // Multiply by i / (n + i) (double-double; i is an integer, so the product splits exactly)
     const d = n + i;
     let t = SPLITTER * i;
@@ -86,6 +99,16 @@ function buildTable(m: number, n: number, J: number): ProbTable {
     for (let j = 0; j <= top; j++) {
       const a = H[j]!;
       if (a === 0) continue;
+      // Above the center of a pass the entries are far off the true (small) values: the errors of the cumulative sums
+      // grow pass after pass, and cancel only in the final values, as long as they stay representable (m = n = 500,
+      // the table to the center: up to 2^990.7, the results within 1e-15 of the exact ones). Beyond 2^996 the splitting
+      // below overflows and the values become NaN (m = n >= 550 near the center). Each entry depends only on those
+      // below it, so the entries below j keep their accuracy: the table ends there (reading beyond it is an error)
+      if (!(Math.abs(a) <= MAX_ENTRY)) {
+        end = j;
+        top = j - 1;
+        break;
+      }
       // (a + L[j]) × i
       const ph = a * i;
       t = SPLITTER * a;
@@ -112,7 +135,7 @@ function buildTable(m: number, n: number, J: number): ProbTable {
     for (let j = i; j <= top; j++) ddAddInto(H, L, j, j - i, 1);
     // The coefficients of a pass are unimodal: keep the largest within range (exact powers of 2)
     const center = Math.min(top, Math.floor((i * n) / 2));
-    while (H[center]! > 0 && H[center]! < RESCALE_BELOW) {
+    while (center >= 0 && H[center]! > 0 && H[center]! < RESCALE_BELOW) {
       const f = 2 ** RESCALE_STEP;
       for (let j = 0; j <= top; j++) {
         H[j]! *= f;
@@ -124,9 +147,14 @@ function buildTable(m: number, n: number, J: number): ProbTable {
   const cum = new Float64Array(J + 1);
   let ch = 0;
   let cl = 0;
-  for (let j = 0; j <= J; j++) {
+  for (let j = 0; j < end; j++) {
     // (ch, cl) += (H[j], L[j])
     const a = H[j]!;
+    // (the last pass, which no multiplication checks)
+    if (!(Math.abs(a) <= MAX_ENTRY)) {
+      end = j;
+      break;
+    }
     const s = ch + a;
     const bb = s - ch;
     let e = ch - (s - bb) + (a - bb);
@@ -140,7 +168,7 @@ function buildTable(m: number, n: number, J: number): ProbTable {
   const minTrusted = Number.isNaN(lossScale)
     ? 0
     : 2 ** Math.min(1023, -1022 + 113 + Math.ceil(Math.log2(m * (J + 1))) + scale - lossScale);
-  return { m, n, len: J + 1, prob: H, cum, scale, minTrusted };
+  return { m, n, len: J + 1, prob: H, cum, scale, minTrusted, valid: end };
 }
 
 /** (H[j], L[j]) += sign × (H[k], L[k]) */
@@ -195,7 +223,14 @@ function store(key: string, t: ProbTable, old: ProbTable | undefined): ProbTable
  */
 function tableValue(m: number, n: number, s: number, cum: boolean): [number, ProbTable] {
   if (m > n) [m, n] = [n, m];
-  const read = (t: ProbTable): number => (cum ? t.cum : t.prob)[s]!;
+  const read = (t: ProbTable): number => {
+    if (s >= t.valid) {
+      throw new RangeError(
+        `wilcox: the exact distribution for m = ${m}, n = ${n} cannot be computed accurately at ${s} (from ${t.valid} on, near the center of large samples)`,
+      );
+    }
+    return (cum ? t.cum : t.prob)[s]!;
+  };
   const trusted = (t: ProbTable, v: number): boolean =>
     s === t.len - 1 || v >= (cum ? (s + 1) * t.minTrusted : t.minTrusted);
   let t = table(m, n, s);
@@ -313,7 +348,8 @@ export function qwilcox1(p: number, m: number, n: number, lowerTail: boolean, lo
  *
  * Unlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.
  *
- * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated.
+ * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated, or that the table
+ * loses its accuracy (near the center for m = n >= 550 or so; the tails stay available).
  *
  * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param m - Size of the first sample.
@@ -339,7 +375,8 @@ export function dwilcox<T extends Vectorizable>(x: T, m: number, n: number, opti
  *
  * Unlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.
  *
- * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated.
+ * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated, or that the table
+ * loses its accuracy (near the center for m = n >= 550 or so; the tails stay available).
  *
  * @param q - Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param m - Size of the first sample.
@@ -365,7 +402,8 @@ export function pwilcox<T extends Vectorizable>(q: T, m: number, n: number, opti
  *
  * Unlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.
  *
- * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated.
+ * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated, or that the table
+ * loses its accuracy (near the center for m = n >= 550 or so; the tails stay available).
  *
  * @param p - Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param m - Size of the first sample.

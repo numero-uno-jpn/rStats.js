@@ -372,9 +372,14 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         has(P, "mu") ? productAtMost([x, 0], r, (r - 1) * P.mu!) : productAtMost(ddAdd([r - 1, 0], [x, 0]), p, r - 1);
       let mode = 0;
       if (r > 1) {
-        mode = Math.max(0, Math.floor(((r - 1) * q) / p) - 1);
-        while (ok(mode + 1)) mode++;
-        while (mode > 0 && !ok(mode)) mode--;
+        const guess = Math.floor(((r - 1) * q) / p);
+        // Beyond 2^53 the integers are not all doubles (mode + 1 = mode, and the search did not end): the rounded value
+        if (!(guess < 2 ** 53)) mode = guess;
+        else {
+          mode = Math.max(0, guess - 1);
+          while (ok(mode + 1)) mode++;
+          while (mode > 0 && !ok(mode)) mode--;
+        }
       }
       return make(
         (r * q) / p,

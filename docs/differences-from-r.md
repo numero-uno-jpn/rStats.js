@@ -166,7 +166,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qcauchy(1e-320, 0, 1e-300)` | inaccurate (πp is subnormal) | correct value, computed as scale/p/π |
 | `qlogis(1e-320, lower.tail = FALSE)` | Inf | 736.83 |
 | `plogis(-745)` and other subnormal answers | 0 | 5e-324 |
-| `pwilcox(q, 500, 500)` | uses several GB and runs out of memory | computed (memory grows with mn/2) |
+| `pwilcox(q, 500, 500)` | uses several GB and runs out of memory | computed (memory grows with mn/2). Beyond about m = n = 510 the entries near the center lose their accuracy (the passes of the table amplify errors above their centers): a RangeError there, from 1.7 sd below the center at 520 to 18 sd at 1050 (the tails stay available; unequal sizes with a small m, such as 100 and 20000, reach the center) |
 | `dwilcox(3, Inf, 5)`, `dsignrank(3, Inf)` | allocation error or crash | NaN |
 | `qsignrank(p, 1100)`, `qhyper(0.5, 1e15, 1e15, 1e15)` | does not finish | computed (`qhyper` takes about ten seconds at this size) |
 | `qtukey(1e-10, 20, 10)` | NaN | finite answer |
