@@ -23,6 +23,7 @@ import { termsOf, type FormulaNode, type ParsedFormula } from "./formula.js";
 import type { LmFormulaOptions } from "./lm.js";
 import type { DataFrame } from "./modelFrame.js";
 import { design } from "./modelMatrix.js";
+import { scaledTables } from "./scaledTables.js";
 
 /**
  * The table of one error stratum, as `summary(aov(...))` prints it.
@@ -70,9 +71,10 @@ function stratumTable(
   labels: readonly string[],
   columnSS: readonly number[],
   k: number,
-): AovStratum {
-  // zy is the response scaled by 2^-k: F and p come from it, the sums of squares are scaled back by 2^2k
-  const back = (v: number): number => ldexp(v, 2 * k);
+): [AovStratum, AovStratum] {
+  // zy is the response scaled by 2^-k: F and p come from it, the sums of squares are scaled back by 2^2k (the second
+  // table keeps them as fitted, for the effect sizes: see scaledTables.ts)
+  const scaleBack = (v: number): number => ldexp(v, 2 * k);
   const dim = zy.length;
   const kept = zcols.flatMap((c, j) => (ddSumSquares(c)[0] > STRATUM_TOL * columnSS[j]! ? [j] : []));
   let rank = 0;
@@ -96,21 +98,24 @@ function stratumTable(
   const rss = ddSumSquares(qty, rank)[0];
   const rows = terms.filter((r) => r.term !== 0);
   const rowNames = rows.map((r) => labels[r.term - 1]!);
-  if (rdf > 0) {
-    const rms = rss / rdf;
-    const table = rows.map(({ df, ss }) => {
-      const f = ss[0] / df / rms;
-      return [df, back(ss[0]), back(ss[0] / df), f, pf1(f, df, rdf, false, false)];
-    });
-    table.push([rdf, back(rss), back(rms), NaN, NaN]);
-    return { stratum: `Error: ${name}`, colNames: ["Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)"], rowNames: [...rowNames, "Residuals"], table };
-  }
-  return {
-    stratum: `Error: ${name}`,
-    colNames: ["Df", "Sum Sq", "Mean Sq"],
-    rowNames,
-    table: rows.map(({ df, ss }) => [df, back(ss[0]), back(ss[0] / df)]),
+  const build = (back: (v: number) => number): AovStratum => {
+    if (rdf > 0) {
+      const rms = rss / rdf;
+      const table = rows.map(({ df, ss }) => {
+        const f = ss[0] / df / rms;
+        return [df, back(ss[0]), back(ss[0] / df), f, pf1(f, df, rdf, false, false)];
+      });
+      table.push([rdf, back(rss), back(rms), NaN, NaN]);
+      return { stratum: `Error: ${name}`, colNames: ["Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)"], rowNames: [...rowNames, "Residuals"], table };
+    }
+    return {
+      stratum: `Error: ${name}`,
+      colNames: ["Df", "Sum Sq", "Mean Sq"],
+      rowNames,
+      table: rows.map(({ df, ss }) => [df, back(ss[0]), back(ss[0] / df)]),
+    };
   };
+  return [build(scaleBack), build((v) => v)];
 }
 
 /**
@@ -170,7 +175,7 @@ export function aovStrataFit(
     g.idx.push(k);
   });
   if (n > re) groups.push({ name: "Within", idx: Array.from({ length: n - re }, (_, i) => re + i) });
-  const strata = groups.map((g) =>
+  const both = groups.map((g) =>
     stratumTable(
       g.name,
       g.idx.map((i) => fit.qty[i]!),
@@ -181,5 +186,8 @@ export function aovStrataFit(
       yScale,
     ),
   );
-  return { formula, multistratum: true, strata, rows: dt.frame.rows, warnings };
+  const strata = both.map((b) => b[0]);
+  const result: AovStrataFit = { formula, multistratum: true, strata, rows: dt.frame.rows, warnings };
+  scaledTables.set(result, both.map((b) => b[1]));
+  return result;
 }

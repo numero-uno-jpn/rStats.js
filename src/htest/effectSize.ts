@@ -14,8 +14,10 @@ import { anova, aovSummary, type AnovaTable, type AovStrataSummary } from "../mo
 import type { AovEzResult } from "../models/aovEz.js";
 import type { AovStrataFit } from "../models/aovStrata.js";
 import type { LmFormulaResult } from "../models/lm.js";
+import { scaledTables } from "../models/scaledTables.js";
 import { uniroot } from "../numerics/integrate.js";
 import { lgamma } from "../special/gamma.js";
+import { lgammaDiff } from "../special/lgammaDiff.js";
 import { matchChoice } from "./power.js";
 import type { Alternative, Sample } from "./types.js";
 
@@ -68,9 +70,13 @@ const NA_WARNING = "Missing values detected. NAs dropped.";
 /** Brent's method run until the bracket is as narrow as doubles allow */
 const EXACT = { tol: 0, maxiter: 5000 };
 
-/** Hedges' correction J(df) = Γ(df/2) / (sqrt(df/2) Γ((df − 1)/2)) */
-function hedgesJ(df: number): number {
-  return Math.exp(lgamma(df / 2) - Math.log(Math.sqrt(df / 2)) - lgamma((df - 1) / 2));
+/** Hedges' correction J(df) = Γ(df/2) / (sqrt(df/2) Γ((df − 1)/2)) (exported for the tests) */
+export function hedgesJ(df: number): number {
+  if (df === Infinity) return 1;
+  // log J = lgamma((df - 1)/2 + 1/2) - lgamma((df - 1)/2) - log(df/2)/2, the difference of the lgammas formed directly
+  // (two lgammas near df log df cancel: J was 0.99997 at df = 1e10, 1.28 at 1e14, as effectsize's, where it is
+  // 1 - 3/(4 df - 1) to within 1e-20)
+  return Math.exp(lgammaDiff(0.5, (df - 1) / 2) - 0.5 * Math.log(df / 2));
 }
 
 /** The noncentrality parameter with pt(t, df, ncp) = p (pt decreases in ncp) */
@@ -353,7 +359,10 @@ function observedTerms(gen: boolean | readonly string[], terms: readonly Term[])
 /** The noncentrality limits of an F value: ncp ≥ 0 with pf(F, df1, df2, ncp) = p (pf decreases in ncp), 0 if none */
 function ncpOfF(f: number, df1: number, df2: number, p: number): number {
   const g = (ncp: number): number => (pf(f, df1, df2, { ncp }) as number) - p;
-  if (!(g(0) > 0)) return 0;
+  // (NaN is no root of 0: it was taken as one)
+  const g0 = g(0);
+  if (Number.isNaN(g0)) return NaN;
+  if (!(g0 > 0)) return 0;
   if (f === Infinity) return Infinity;
   return uniroot(g, 0, Math.max(10, f * df1 * 4), { ...EXACT, extendInt: "downX" }).root;
 }
@@ -374,13 +383,22 @@ function withInterval(es: number, df: number, dfe: number, ci: number, alt: Alte
   return [es, ci, ciLow, ciHigh];
 }
 
+/** The sums of squares of rows divided by one power of 2, the largest in [1, 2) (exact; the effect sizes are ratios) */
+function normalizeSS(rows: { ss: number }[]): void {
+  const k = scaleToUnit([rows.map((r) => r.ss)]).k;
+  if (k !== 0) for (const r of rows) r.ss = ldexp(r.ss, -k);
+}
+
 const NEEDS = "needs a table of anova() or Anova(), a fit from lm() or aov() with a formula, its aovSummary(), or a result of aovEz()";
 
 function anovaEffectSize(model: AnovaEffectSizeModel, kind: Kind, options: EtaSquaredOptions): AnovaEffectSizeTable {
   if (typeof model !== "object" || model === null) throw new TypeError(NEEDS);
   if (isStrataFit(model) || isStrataSummary(model) || isEz(model)) return strataEffectSize(model, kind, options);
-  const tab = isFit(model) ? anova(model) : model;
-  if (!Array.isArray(tab.colNames) || !Array.isArray(tab.table)) throw new TypeError(NEEDS);
+  const given = isFit(model) ? anova(model) : model;
+  if (!Array.isArray(given.colNames) || !Array.isArray(given.table)) throw new TypeError(NEEDS);
+  // the sums of squares as fitted where the table has them (those returned can overflow: scaledTables.ts)
+  const scaled = scaledTables.get(given);
+  const tab = scaled !== undefined && !Array.isArray(scaled) ? scaled : given;
   const ci = options.ci === undefined ? 0.95 : options.ci;
   checkCi(ci);
   const alt = matchChoice(options.alternative ?? "greater", ["two.sided", "less", "greater"] as const);
@@ -388,8 +406,11 @@ function anovaEffectSize(model: AnovaEffectSizeModel, kind: Kind, options: EtaSq
   const iSS = tab.colNames.indexOf("Sum Sq");
   if (iDf < 0 || iSS < 0) throw new TypeError("the table needs the columns 'Df' and 'Sum Sq'");
   const rows = tab.rowNames.map((name, i) => ({ name, df: tab.table[i]![iDf]!, ss: tab.table[i]![iSS]! })).filter((r) => r.name !== "(Intercept)");
+  normalizeSS(rows);
   const res = rows.find((r) => r.name === "Residuals");
   if (res === undefined) throw new TypeError("the table has no row 'Residuals'");
+  // (a saturated model: the effect sizes were 0 / 0 rounding noise, as effectsize's "No residuals data found")
+  if (!(res.df > 0)) throw new Error("the model has no residual degrees of freedom: the effect sizes are not defined");
   const terms = rows.filter((r) => r !== res);
   const dfe = res.df;
   const sse = res.ss;
@@ -439,12 +460,21 @@ function strataEffectSize(model: StrataModel, kind: Kind, options: EtaSquaredOpt
   let subject: Stratum;
   let rows: { term: Term; stratum: Stratum }[];
   if (ez) {
-    const s = ezStrata(model);
+    const sc = scaledTables.get(model);
+    const s = ezStrata(sc !== undefined && !Array.isArray(sc) ? { ...model, univariate: sc } : model);
     ({ strata, subject } = s);
     rows = s.order.map((term) => ({ term, stratum: s.strata.find((st) => st.terms.includes(term))! }));
   } else {
-    ({ strata, subject } = summaryStrata(isStrataFit(model) ? aovSummary(model) : model));
+    const summary = isStrataFit(model) ? aovSummary(model) : model;
+    const sc = scaledTables.get(summary);
+    ({ strata, subject } = summaryStrata(Array.isArray(sc) ? { ...summary, strata: sc.map((t, i) => ({ ...summary.strata[i]!, ...t })) } : summary));
     rows = strata.flatMap((stratum) => stratum.terms.map((term) => ({ term, stratum })));
+  }
+  // one power of 2 for all sums of squares (their sums can overflow; the effect sizes are ratios of them)
+  const k = scaleToUnit([[...strata.flatMap((st) => st.terms.map((t) => t.ss)), ...strata.map((st) => st.sse)]]).k;
+  for (const st of strata) {
+    st.sse = ldexp(st.sse, -k);
+    for (const t of st.terms) t.ss = ldexp(t.ss, -k);
   }
   const allTerms = strata.flatMap((st) => st.terms);
   const sseAll = strata.reduce((a, st) => a + st.sse, 0);

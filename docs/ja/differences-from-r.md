@@ -214,6 +214,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `summary(glm(...), dispersion = -1)` (`glmAnova`、`glmPredict`、`glmRstandard`、`glmCooksDistance` も) | 標準誤差が NaN (警告あり) | エラー。dispersion は 0 以上の有限値 (0 なら R と同じく標準誤差 0) |
 | `pwr.chisq.test(w = 1e200, N = 100, df = 3)`、`pwr.f2.test(f2 = 1e308)`、`pwr.anova.test(f = 1e200)` (非心度が溢れる) | NaN | 検出力の極限 1。`powerAnovaTest` は、積だけが溢れる場合は between.var / within.var を先に計算する |
 | `ES.w1(c(0.5, 0.5, 0), c(0.5, 0.5, 0))` や、空の行・列がある `ES.w2` (両方の確率が 0 のセル) | NaN (0 / 0) | そのセルは 0 を足す (ここでは 0)。p0 = 0 < p1 は R と同じく Inf |
+| df が非常に大きい effectsize の `hedges_g` (Hedges の J を、df log df ほどの 2 つの lgamma の差で計算) | df = 1e10 で J が 0.99997 (相対誤差 3e-5)、1e14 で 1.28、1e16 で 1e-14。1e6 でも 3e-10 ずれる | lgamma の差を直接計算する (`lgammaDiff`)。大きな df では丸めの範囲で 1 - 3/(4 df - 1) |
+| 1e154 程度のデータの aov の effectsize の `eta_squared`・`omega_squared`・`epsilon_squared` (`Error()` 付きと afex の `aov_ez` も) | NaN (平方和が溢れる) | 単位を変えた同じデータと同じ値。当てはめたときの平方和 (応答を 2 の冪で割ったもの) を使い、比をとる前に共通の 2 の冪で割る |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
 | `rgeom(n, 5e-324)` (約 5.6e-309 未満の prob)、p < 1 の `rnbinom(n, Inf, prob = p)` | NA。約 9e307 (size = MAX / 2 での値) か NA | Infinity。値は double の最大値を超える (rgeom は 1e-15 未満の確率を除いて。rnbinom は確率がすべて無限遠にあり、dnbinom・qnbinom と整合)。同じ乱数を引くので、乱数の状態は R と同じ |

@@ -23,6 +23,7 @@ import { lm } from "./lm.js";
 import { mauchlyPValue, sphericityW } from "./mauchly.js";
 import { compareCodePoints, type DataFrame } from "./modelFrame.js";
 import { modelMatrix, type ContrastName } from "./modelMatrix.js";
+import { scaledTables } from "./scaledTables.js";
 
 /**
  * An effect size of {@link aovEz}: generalized (`"ges"`) or partial (`"pes"`) eta squared.
@@ -301,12 +302,15 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
       return [{ name, ss: ss!, numDf: df!, errSS: fit.rss, denDf: rdf, f: f!, p: p! }];
     });
     const ssCol = tab.colNames.indexOf("Sum Sq");
-    return {
+    const result: AovEzResult = {
       anova: anovaTable(rows, new Map([[0, fit.rss]]), es, observed, unscale),
       univariate: { colNames: tab.colNames, rowNames: tab.rowNames, table: tab.table.map((r) => r.map((v, j) => (j === ssCol ? unscale(v) : v))) },
       within,
       warnings,
     };
+    // (tab has the sums of squares as fitted: scaledTables.ts)
+    scaledTables.set(result, { colNames: tab.colNames, rowNames: tab.rowNames, table: tab.table });
+    return result;
   }
 
   function withinAnalysis(): AovEzResult {
@@ -354,6 +358,8 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
       );
     };
     const uni: number[][] = [];
+    // (the same rows with the sums of squares as fitted, for the effect sizes: scaledTables.ts)
+    const uniScaled: number[][] = [];
     const uniNames: string[] = [];
     const corr: number[][] = [];
     const sph: number[][] = [];
@@ -421,6 +427,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
         const pval = pf1(f, numDf, denDf, false, false);
         const name = wt === 0 ? blabs[bi]! : bt === 0 ? wlabs[wt]! : `${blabs[bi]}:${wlabs[wt]}`;
         uni.push([unscale(ss), numDf, unscale(errSS), denDf, f, pval]);
+        uniScaled.push([ss, numDf, errSS, denDf, f, pval]);
         uniNames.push(name);
         errorSS.set(wt, errSS);
         let row: Row = { name, ss, numDf, errSS, denDf, f, p: pval };
@@ -454,6 +461,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
       out.corrections = { colNames: ["GG eps", "Pr(>F[GG])", "HF eps", "Pr(>F[HF])"], rowNames: corrNames, table: corr };
       out.sphericity = { colNames: ["Test statistic", "p-value"], rowNames: [...corrNames], table: sph };
     }
+    scaledTables.set(out, { colNames: out.univariate.colNames, rowNames: uniNames, table: uniScaled });
     return out;
   }
 }

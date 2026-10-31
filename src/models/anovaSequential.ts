@@ -10,6 +10,7 @@ import { ldexp, scaleToUnit } from "../internal/summary.js";
 import type { AovStrataFit, AovStratum } from "./aovStrata.js";
 import type { LmFormulaResult } from "./lm.js";
 import { nestedColumns } from "./estimable.js";
+import { scaledTables } from "./scaledTables.js";
 
 /**
  * An analysis of variance table, in the form of R's printed table.
@@ -106,12 +107,14 @@ function sequentialTable(fit: LmFormulaResult): AnovaTable {
     return [df, back(ss), back(ss / df), f, upperF(f, df, rdf)];
   });
   table.push([rdf, back(rss), rdf === 0 ? NaN : back(rms), NaN, NaN]);
-  return {
-    colNames: ["Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)"],
-    rowNames: [...names, "Residuals"],
-    table,
-    warnings: perfect ? ["ANOVA F-tests on an essentially perfect fit are unreliable"] : [],
-  };
+  const colNames = ["Df", "Sum Sq", "Mean Sq", "F value", "Pr(>F)"];
+  const rowNames = [...names, "Residuals"];
+  const result: AnovaTable = { colNames, rowNames, table, warnings: perfect ? ["ANOVA F-tests on an essentially perfect fit are unreliable"] : [] };
+  // the sums of squares as fitted, for the effect sizes (scaledTables.ts)
+  const asFitted = rows.map(({ df, ss }) => [df, ss]);
+  asFitted.push([rdf, rss]);
+  scaledTables.set(result, { colNames: ["Df", "Sum Sq"], rowNames, table: asFitted });
+  return result;
 }
 
 function comparisonTable(fits: readonly LmFormulaResult[]): AnovaTable {
@@ -228,13 +231,21 @@ export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | Ao
 export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | AovStrataSummary {
   if (typeof fit === "object" && fit !== null && (fit as AovStrataFit).multistratum === true) {
     const f = fit as AovStrataFit;
-    return { strata: f.strata.filter((s) => s.stratum !== "Error: (Intercept)").map((s) => ({ ...s })), warnings: [] };
+    const summary: AovStrataSummary = { strata: f.strata.filter((s) => s.stratum !== "Error: (Intercept)").map((s) => ({ ...s })), warnings: [] };
+    const scaled = scaledTables.get(f);
+    if (Array.isArray(scaled)) scaledTables.set(summary, scaled.filter((_, i) => f.strata[i]!.stratum !== "Error: (Intercept)"));
+    return summary;
   }
   if (typeof fit !== "object" || fit === null || !Array.isArray((fit as Partial<LmFormulaResult>).effects)) {
     throw new TypeError("aovSummary() needs a fit from aov() with a formula");
   }
   const t = sequentialTable(fit as LmFormulaResult);
-  if ((fit as LmFormulaResult).dfResidual > 0) return { ...t, warnings: [] };
+  if ((fit as LmFormulaResult).dfResidual > 0) {
+    const out = { ...t, warnings: [] };
+    const scaled = scaledTables.get(t);
+    if (scaled !== undefined) scaledTables.set(out, scaled);
+    return out;
+  }
   return {
     colNames: t.colNames.slice(0, 3),
     rowNames: t.rowNames.slice(0, -1),
