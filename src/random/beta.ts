@@ -79,6 +79,15 @@ export function rbeta1(aa: number, bb: number): number {
     beta = Math.sqrt((alpha - 2) / (2 * a * b - alpha));
     gamma = a + 1 / beta;
   }
+  if (!(2 * a * b < Infinity)) {
+    // Shapes so large that 2ab overflows (both above about 1e154): the constants above are 0, Infinity or NaN and the
+    // loop below leaves after one pass with w = Infinity (R returns 0 or 1). The distribution is then concentrated at
+    // its mean aa / (aa + bb), with a standard deviation below 1e-77, so the mean is the draw to double precision; the
+    // two uniforms of R's single pass are drawn, so the stream stays R's
+    unifRand();
+    unifRand();
+    return aa >= bb ? 1 / (1 + bb / aa) : aa / bb / (1 + aa / bb);
+  }
   let r: number, t: number;
   do {
     const u1 = unifRand();
@@ -117,5 +126,11 @@ export function rbeta(n: number, shape1: number, shape2: number, options: { ncp?
   // Noncentral beta: as in R, generate n draws X ~ noncentral χ²(2 shape1, ncp), then n draws Y ~ χ²(2 shape2), and return X / (X + Y)
   const x = rchisq(n, 2 * shape1, { ncp });
   const y = rchisq(n, 2 * shape2);
-  return x.map((xi, i) => xi / (xi + y[i]!));
+  // With both shapes 0, X = Y = 0 (always for ncp = 0, for a Poisson count 0 otherwise) is the Beta(0, 0) component of
+  // the mixture: 0 or 1 with probability 1/2 each, decided by a uniform as the central rbeta does (R returns 0 / 0 =
+  // NaN without a draw, so the stream differs from R's only there)
+  return x.map((xi, i) => {
+    if (xi === 0 && y[i] === 0 && shape1 === 0 && shape2 === 0) return unifRand() < 0.5 ? 0 : 1;
+    return xi / (xi + y[i]!);
+  });
 }

@@ -208,6 +208,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | expm の `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | 全要素 NaN (2 乗の段階で Inf × 0) | diag(Inf, 1)。溢れた要素は有限の巨大な値を表すので、厳密な 0 との積は 0。1-ノルムが溢れる行列でも無限ループしない |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
+| `rbeta(n, 1e308, 1e308)` など、約 1e154 を超える形状 (2ab が溢れる) | 0 (Algorithm BB の定数が溢れる) | 平均 a / (a + b)。分布は 1e-77 以内に集中している。同じ一様乱数を引くので、乱数の状態は R と同じ |
+| `rbeta(n, 0, 0, ncp = 0)` (ncp > 0 でも Poisson の回数 0 の成分) | NaN (0 / 0) | 確率 1/2 ずつ 0 か 1 (Beta(0, 0))。非心でない `rbeta(n, 0, 0)` と同じ。ここで一様乱数を 1 個引く (R は引かない) |
 | `dhyper(1, 1e308, 1e308, 1)`、`phyper`、`qhyper`、`rhyper(n, 1e308, 1e308, 1)` (m + n が溢れる) | NaN。rhyper はすべて 0 | 0.5、0.5、…。k / (m + n) が 2^-60 未満なら超幾何分布は倍精度で二項分布 Bin(k, m / (m + n)) と同じなので、それを使う (m / (m + n) は和を作らずに計算) |
 | `dnbinom(0, size = 1e308, mu = 1e308)` | 1 | 0 (= 0.5^1e308。和が溢れるときは size と mu の比から p と q を求める) |
 | `qt(0.5, 10, ncp = Inf)` | NaN (p によっては Inf)。ただし `pt(t, 10, ncp = Inf)` はすべての有限の t で 0 | Inf。確率はすべて +∞ にある (ncp = -Inf なら -Inf)。df = Inf の場合と同じ |
@@ -352,6 +354,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   のときは GG で補正)。Mauchly 検定は正則なときだけです。出せないものは警告します。
 - **`Anova` (型 II・III)** は、残差平方和が応答の全平方和 (中心化・重み付き) の sqrt(eps) 倍未満のとき "residual sum of squares
   is 0 (within rounding error)" とします。car は sqrt(eps) そのものと比べるので、単位に依存します。
+- **`nextRNGStream`** は、`setRandomSeed` が復元できる L'Ecuyer-CMRG の種別コード 10407 と 407 だけを受け付けます (R は末尾が 07 の
+  どのコードも受け付ける)。
 - **分布を定義しないパラメータの乱数**は、R が乱数を引くか 0 を返すところで NaN を返します: 負 (または NaN) の shape と scale 0 の
   `rgamma`・`rweibull`、負の scale の `rlogis`。R が引く一様乱数は同じく引くので、呼び出し後の乱数の状態は R と同じです。
 - **`setRandomSeed`** は、Mersenne-Twister の状態で、位置が負または整数でないもの、状態語が 32 ビット整数でないものを拒否します。R は負の

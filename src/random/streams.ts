@@ -22,7 +22,9 @@ function mulMod(a: number, b: number, m: number): number {
 
 function jump(state: ArrayLike<number>, a1: number[], a2: number[]): Int32Array {
   const code = state[0]!;
-  if (!Number.isInteger(code) || code % 100 !== 7) throw new RangeError("the state must be a .Random.seed of L'Ecuyer-CMRG (kind code ending in 07)");
+  // the kind codes setRandomSeed takes for L'Ecuyer-CMRG (R accepts any code ending in 07, such as 7, which would give a
+  // state setRandomSeed cannot restore)
+  if (code !== 10407 && code !== 407) throw new RangeError("the state must be a .Random.seed of L'Ecuyer-CMRG (kind code 10407 or 407)");
   const s = checkState(state);
   const out = new Int32Array(7);
   out[0] = code;

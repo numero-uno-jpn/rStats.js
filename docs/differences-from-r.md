@@ -214,6 +214,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | expm's `expm(matrix(c(1e308, 0, 0, 0), 2), method = "Higham08")` | NaN in every entry (Inf * 0 in the squaring) | diag(Inf, 1): an overflowed entry stands for a finite value, so its product with an exact 0 is 0; a matrix whose 1-norm overflows no longer loops forever |
 | `coxph(Surv(time, status) ~ x)` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the fit, with the subject at risk at every event time (the same as for a censoring time beyond the last event) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (every column is taken as dependent) |
+| `rbeta(n, 1e308, 1e308)` and other shapes above about 1e154 (2ab overflows) | 0 (Algorithm BB's constants overflow) | the mean a / (a + b), to which the distribution is concentrated within 1e-77; the same uniforms are drawn, so the stream is R's |
+| `rbeta(n, 0, 0, ncp = 0)` (and the Poisson-0 component for ncp > 0) | NaN (0 / 0) | 0 or 1 with probability 1/2 each (Beta(0, 0)), as the central `rbeta(n, 0, 0)`; one uniform is drawn there, where R draws none |
 | `dhyper(1, 1e308, 1e308, 1)`, `phyper`, `qhyper`, `rhyper(n, 1e308, 1e308, 1)` (m + n overflows) | NaN; rhyper 0 throughout | 0.5, 0.5, ...: with k / (m + n) below 2^-60 the hypergeometric is the binomial Bin(k, m / (m + n)) to double precision, which is used there (m / (m + n) formed without the sum) |
 | `dnbinom(0, size = 1e308, mu = 1e308)` | 1 | 0 (= 0.5^1e308; p and q from the ratio of size and mu when their sum overflows) |
 | `qt(0.5, 10, ncp = Inf)` | NaN (or Inf, depending on p), although `pt(t, 10, ncp = Inf)` is 0 at every finite t | Inf: all the probability is at +∞ (-Inf for ncp = -Inf), as for df = Inf |
@@ -366,6 +368,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`Anova` (types II and III)** reports "residual sum of squares is 0 (within rounding error)" when the residual sum
   of squares is below sqrt(eps) times the total (centred, weighted) sum of squares of the response; car compares it
   with sqrt(eps) itself, which depends on the units.
+- **`nextRNGStream`** takes only the L'Ecuyer-CMRG kind codes 10407 and 407, those `setRandomSeed` restores (R takes any
+  code ending in 07).
 - **Random generators with parameters that define no distribution** give NaN where R draws or returns 0: `rgamma`
   and `rweibull` with a negative (or NaN) shape and scale 0, `rlogis` with a negative scale. The uniforms R draws are
   drawn as well, so the stream after the call is R's.
