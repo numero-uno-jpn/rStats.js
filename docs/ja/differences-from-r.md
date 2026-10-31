@@ -219,6 +219,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `qnorm(0.5, 3, Inf)`、`qlnorm(0.5, 0, Inf)`、`qlogis(0.5, 3, Inf)` (尺度が無限大のときの中央値) | NaN (Inf × 0)。ほかの p では極限の値 (±Inf、`qlnorm` では 0 と Inf) を返し、`pnorm(3, 3, Inf)` は 0.5 | 位置パラメータ (3、`qlnorm` では exp(meanlog) = 1)。極限の値 |
 | `dbeta(0.5, 1e308, 1e308)` など、形状の和が溢れる場合 | NaN | 1.128e154 (log は 354.72)。半分の形状で指数を求めて 2 倍する (偏差は同次) |
 | `qcauchy(p, 3, Inf)` | すべての p で NaN。ただし `dcauchy`・`pcauchy` は極限の値 0 と 0.5 を返す | 中央値より下・中央値・上で -Inf、3、Inf。`qnorm`・`qlogis` と同じ |
+| `lm(y ~ x, weights = rep(1e308, n))` (重み付きの平方和が double の範囲を超える) | R² NaN、F NaN | 重みを一律に何倍しても同じ値 (テストの例で R² 0.982)。sigma は倍率の平方根に比例する。平方和は重みを 2 の冪で割って作る |
 | `integrate(f, 0, -Inf)`、`integrate(f, Inf, 1)`、`integrate(f, Inf, -Inf)`、`integrate(f, Inf, Inf)` | (0, Inf)、(-Inf, 1)、(-Inf, Inf)、(-Inf, Inf) での積分。無限大の端点の符号を見ない | (-Inf, 0)、(1, Inf)、(-Inf, Inf) での積分の符号を反転したもの、および 0 |
 | upper − lower が溢れる `integrate`・`optimize`・`uniroot` (`uniroot(function(x) x, c(-1e308, 1e308))`) | `integrate` は "roundoff error was detected"。`optimize`・`uniroot` は警告 ("Inf replaced by maximum positive value") | x / 2 の座標で、半分にした区間で解く (`uniroot` は 0。以前ここでは -Inf を返し、`optimize` は終わらなかった) |
 | f(1) と f(2) が同符号で、その積がアンダーフローする `uniroot(f, c(1, 2), extendInt = "yes")` (1e-300 (x − 5)) | "f() values at end points not of opposite sign" | ほかの同符号の値と同じく区間を広げる (5) |
@@ -515,6 +516,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `ls_means`、`difflsmeans`、`step` は実装していません。
 - **`lmerContest` の `joint: false`** は、L の行ごとの右辺 (`rhs: [1, 0, 2]`) を受け付け、各行をそれぞれの値に対して
   検定します。lmerTest はそこでエラーになります。
+- **`lmerContest` の無限大の L と rhs** はエラーです (lmerTest は L が無限大なら NaN の行、rhs が無限大なら F が Inf で p が
+  0)。NaN は lmerTest の NA と同じく NaN の結果になります。`level` は lmerTest と同じく 0 より大きく 1 より小さい値です。
 - **当てはめどうしの比較** (`lmerAnova([fit1, fit2])`): REML の当てはめは、最尤法の厳密な最適点へ当てはめ直します
   (lme4 の当てはめ直しはその手前で止まります)。どの当てはめも、同じデータのオブジェクトに対する `lmer` の結果で
   なければなりません。

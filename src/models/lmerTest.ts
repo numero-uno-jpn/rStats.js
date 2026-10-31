@@ -417,6 +417,8 @@ function contrastRows(L: readonly number[] | readonly (readonly number[])[], p: 
   for (const row of rows) {
     if (!Array.isArray(row) || row.some((v) => typeof v !== "number")) throw new TypeError("L must be an array of numbers or an array of rows");
     if (row.length !== p) throw new TypeError(`each contrast must have ${p} values (one per fixed effect), not ${row.length}`);
+    // an infinite contrast tests nothing (it gave an empty table silently); NaN gives NaN results, as lmerTest's NA
+    if (row.some((v) => v === Infinity || v === -Infinity)) throw new RangeError("L must not contain infinite values");
   }
   return rows;
 }
@@ -465,12 +467,15 @@ export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (re
   const p = internals.structure.xColNames.length;
   const rows = contrastRows(L, p);
   const level = options.level ?? 0.95;
-  if (typeof level !== "number" || !(level >= 0 && level <= 1)) throw new RangeError("level must be a number between 0 and 1");
+  // 0 and 1 give an interval of width 0 or with infinite ends; lmerTest stops on them ("level > 0 is not TRUE")
+  if (typeof level !== "number" || !(level > 0 && level < 1)) throw new RangeError("level must be a number between 0 and 1");
   const rhsOption = options.rhs ?? 0;
   const rhs = typeof rhsOption === "number" ? new Array<number>(rows.length).fill(rhsOption) : [...rhsOption];
   if (rhs.length !== rows.length || rhs.some((v) => typeof v !== "number")) {
     throw new TypeError(`rhs must be a number or have one value per contrast (${rows.length})`);
   }
+  // (lmerTest gives F Inf and p 0 for an infinite rhs; NaN gives NaN results, as for L)
+  if (rhs.some((v) => v === Infinity || v === -Infinity)) throw new RangeError("rhs must not contain infinite values");
   const warnings = new Warnings();
   const s = lmerSatterthwaite(fit);
   s.warnings.forEach((w) => warnings.add(w));

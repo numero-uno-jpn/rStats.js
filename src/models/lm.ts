@@ -18,6 +18,7 @@ import { chol2inv } from "../linalg/chol.js";
 import type { MatrixInput } from "../linalg/matrix.js";
 import { qr, qrCoef, qrResid, type QR } from "../linalg/qr.js";
 import { ldexp, norm2, scaleToUnit } from "../internal/summary.js";
+import { maxOf } from "../internal/extremes.js";
 import { ddAdd, ddDiv, ddMul, ddMulNum, ddSub, type DD } from "../special/dd.js";
 import { ddLeastSquares, ddSqrtWeights, ddSumSquares } from "./ddLeastSquares.js";
 import type { Sample } from "../htest/types.js";
@@ -347,12 +348,19 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   const Yw = sw === undefined ? Y : Y.map((v, i) => v * sw[i]!);
   const q = qr(Xw);
   const rank = q.rank;
-  const pf = precise ? preciseFit(Xall, Yall, Wall, fitRows, q, intercept) : undefined;
+  // The sums of squares are formed with the weights divided by 2^kw (kw even, the largest weight then in [1, 4)):
+  // rss, mss and the residual variance below are those of the scaled weights, and sigma, the standard errors, rss and
+  // the effects are scaled back (exact powers of 2, so the values are the same wherever nothing overflows). The sums
+  // with weights near 1e308 overflowed: R^2 and F were NaN, and sigma too in the formula interface, as R's
+  const maxW = W === undefined ? 1 : maxOf(W);
+  const kw = Number.isFinite(maxW) ? 2 * Math.floor(Math.floor(Math.log2(maxW)) / 2) : 0;
+  const scaleW = (v: number): number => ldexp(v, -kw);
+  const pf = precise ? preciseFit(Xall, Yall, Wall?.map(scaleW), fitRows, q, intercept) : undefined;
   const coefficients = pf?.coefficients ?? qrCoef(q, Yw);
   const residuals: number[] = pf?.residuals ?? [];
   const fittedValues: number[] = pf?.fittedValues ?? [];
   const dfResidual = n - rank;
-  const w = W ?? new Array<number>(n).fill(1);
+  const w = W?.map(scaleW) ?? new Array<number>(n).fill(1);
   let rss = pf?.rss ?? 0;
   if (pf === undefined) {
     // residuals from Q (the part of Q'y beyond the rank), so a saturated model has residuals of exactly 0, as in R
@@ -375,7 +383,7 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   }
   const fitted = fittedValues.filter((_, i) => fitRow[i]);
   const resvar = rss / dfResidual;
-  const sigma = Math.sqrt(resvar);
+  const sigma = ldexp(Math.sqrt(resvar), kw / 2);
 
   // (R'R)^-1 of the leading rank x rank block, in pivot order
   const Rr = q.qr.slice(0, rank).map((row) => row.slice(0, rank));
@@ -383,7 +391,7 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   const piv = q.pivot.slice(0, rank);
   const order = piv.map((col, k) => [col, k] as const).sort((a, b) => a[0] - b[0]);
   const estimate = order.map(([col]) => coefficients[col]!);
-  const stdError = order.map(([, k]) => Math.sqrt(covUnscaled[k]![k]! * resvar));
+  const stdError = order.map(([, k]) => Math.sqrt(ldexp(covUnscaled[k]![k]!, kw) * resvar));
   const tValue = estimate.map((e, i) => e / stdError[i]!);
   const pValue = tValue.map((t) => 2 * pt1(-Math.abs(t), dfResidual, true, false));
 
@@ -402,7 +410,7 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   };
   const dfInt = intercept ? 1 : 0;
   const numdf = rank - dfInt;
-  const core: LmCore = { result, fitRows, effects: pf?.effects ?? [], rss };
+  const core: LmCore = { result, fitRows, effects: (pf?.effects ?? []).map((e) => ldexp(e, kw / 2)), rss: ldexp(rss, kw) };
   // nothing beyond the intercept: R^2 = 0 and no F test, as in summary.lm
   if (numdf === 0) return core;
   let mss = 0;

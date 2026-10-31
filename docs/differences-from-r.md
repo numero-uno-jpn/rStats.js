@@ -225,6 +225,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qnorm(0.5, 3, Inf)`, `qlnorm(0.5, 0, Inf)`, `qlogis(0.5, 3, Inf)` (the median with an infinite scale) | NaN (Inf * 0), although the other p give the limits (±Inf; 0 and Inf for `qlnorm`) and `pnorm(3, 3, Inf)` is 0.5 | the location (3; exp(meanlog) = 1 for `qlnorm`), the limit |
 | `dbeta(0.5, 1e308, 1e308)` and other shapes whose sum overflows | NaN | 1.128e154 (log 354.72): the exponent from the halved shapes, doubled (the deviances are homogeneous) |
 | `qcauchy(p, 3, Inf)` | NaN for every p, although `dcauchy` and `pcauchy` give the limits 0 and 0.5 | -Inf, 3 and Inf below, at and above the median, as `qnorm` and `qlogis` |
+| `lm(y ~ x, weights = rep(1e308, n))` (weighted sums of squares beyond the doubles) | R² NaN, F NaN | the values for any common scale of the weights (R² 0.982 for the example in the tests); sigma grows as the square root of the scale. The sums of squares are formed with the weights divided by a power of 2 |
 | `integrate(f, 0, -Inf)`, `integrate(f, Inf, 1)`, `integrate(f, Inf, -Inf)`, `integrate(f, Inf, Inf)` | the integral over (0, Inf), (-Inf, 1), (-Inf, Inf) and (-Inf, Inf): the sign of an infinite limit is not used | minus the integrals over (-Inf, 0), (1, Inf) and (-Inf, Inf), and 0 |
 | `integrate`, `optimize` and `uniroot` where upper − lower overflows (`uniroot(function(x) x, c(-1e308, 1e308))`) | `integrate`: "roundoff error was detected"; `optimize` and `uniroot`: warnings ("Inf replaced by maximum positive value") | solved in x / 2 on the halved interval (`uniroot` 0, which was -Inf here before; `optimize` did not return) |
 | `uniroot(f, c(1, 2), extendInt = "yes")` with f(1) and f(2) of the same sign whose product underflows (1e-300 (x − 5)) | "f() values at end points not of opposite sign" | extended as for other values of the same sign (5) |
@@ -549,6 +550,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `lmerAnova`); `ranova`, `ls_means`, `difflsmeans` and `step` are not implemented.
 - **`lmerContest` with `joint: false`** accepts a right-hand side per row of L (`rhs: [1, 0, 2]`), each row tested
   against its own value; lmerTest gives an error there.
+- **`lmerContest` with an infinite L or rhs** is an error (lmerTest gives a row of NaN for an infinite L, and F Inf with
+  p 0 for an infinite rhs); NaN gives NaN results, as lmerTest's NA. `level` must be strictly between 0 and 1, as in
+  lmerTest.
 - **Comparing fits** (`lmerAnova([fit1, fit2])`): the REML fits are refitted by maximum likelihood to the exact ML
   optimum (lme4's refit stops near it); the fits must be results of `lmer` on the same data object.
 
