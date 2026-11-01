@@ -64,12 +64,12 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/nbeta.ts` | 一部監査・問題未検出 | #145 | `557cdff4132642faad75bcd95ddbbfeca8a90eec` | — | R 4.5.2由来d/p/qnbeta fixture、mpmath tail fixture、既存regression testを閲覧（未実行） | Poisson混合のbeta kernel/隣接項比/shape丸め補正、leftTailLog、極端shape用chisq/gamma/w/integral method、数値積分のmode探索・tail remainder、density端点、quantile端点・narrow quantile、noncentral F変換fPair/fOdds・tiny q・Chernoff bound・df2→∞極限を追跡。具体的入力: `pbeta(1e-7,3,5,{ncp:2e7,logP:true})`、`dbeta(1.4930968104424972e-218,4.994551015409567e-269,1.00296357719376e-118,{ncp:4.248780725227059})`、`qbeta(1.2066869150839893e-270,0.031616179278943515,0.2793791077635366,{ncp:0.6460099483845458,lowerTail:false})`、`pf(2.5e300,1828,0.165,{ncp:3.7e307})`。既存test/nbeta.test.tsの特殊ケースを照合。ソースレビュー上の新規再現不具合なし。Vitest/package runtime/R実行なし。
 | `src/distributions/nchisq.ts` | 一部監査・問題未検出 | #146 | `557cdff4132642faad75bcd95ddbbfeca8a90eec` | — | R 4.5.2由来dnchisq/pnchisq/qnchisq fixture、mpmath由来巨大tail fixture、既存regression testを閲覧（未実行） | Poisson-gamma mixture、subnormal x/2補正、Chernoff far-tail bound、Bessel Hankel/Debye asymptotic、Bessel series、log-domain tail integration、df=0 atom境界、quantile Patnaik開始値・narrow spread・double searchを追跡。具体的入力: `dchisq(0,0,{ncp:1})`、`pchisq(0,0,{ncp:1,lowerTail:true,logP:true})`、`dchisq(2.0001e9,1e6,{ncp:2e9,log:true})`、`qchisq(5.7285590455359545e-12,5.345349749112763,{ncp:1})`。df=0のx=0密度はR fixtureもInfinityであることを照合。新規再現不具合なし。Vitest/package runtime/R実行なし。
 | `src/distributions/negbinomial.ts` | 一部監査・問題未検出 | #147 | `557cdff4132642faad75bcd95ddbbfeca8a90eec` | — | R 4.5.2由来d/p/qnbinomおよびmu parameterization fixture、mpmath fixture、既存testを閲覧（未実行） | `prob`/`mu`排他指定、fromMuのoverflow回避double-double比、Loader density、subnormal size補正、x>2^53 CDF補正、upperSeries、Cornish-Fisher/gamma開始値、Newton/secant refine、離散quantile探索、size/mu=0/Inf境界を追跡。具体的入力: `dnbinom(58,3.94e-315,{prob:0.125,log:true})`、`pnbinom(1e16,1e16,{prob:0.5})`、`qnbinom(2.2e-284,2.7e37,{prob:1.9e-279})`、`dnbinom(3,5,{mu:4})`。既知の巨大整数・subnormal対応分岐を確認。新規再現不具合なし。Vitest/package runtime/R実行なし。
-| `src/distributions/normal.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/nt.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/pareto.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/normal.ts` | 問題あり | #148 | `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6` | [#33](https://github.com/numero-uno-jpn/rStats.js/issues/33) | R 4.5.2由来のpnorm/qnorm fixtureを参照（未実行） | pnormStdのlower-tail logP経路で `a*a` が先にoverflowすることを確認。`pnorm(-1.5e154,{logP:true})` では `a²/2=1.125e308` が有限なのに `(a*a)/2` がInfinityとなり、有限のlog probabilityを`-Infinity`にする。`dnorm1`の`0.5*z*z`は左結合で同じ入力ではこの問題を起こさないため対象外。ソース演算順序とbinary64範囲による確認。Vitest/package runtime/R実行なし。 |
+| `src/distributions/nt.ts` | 一部監査・問題未検出 | #149 | `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6` | — | R 4.5.2由来d/p/qnt fixture、mpmath由来積分fixture、既存回帰テストを閲覧（未実行） | w=log(U/a)変数変換、gammaLogのsubnormal a近似、integrandのdouble-double経路、peak探索、trapezoidのstep halving/打切り、formula A/B切替、Laplace法の誤差条件、far-tail power law、nearZero、巨大df極限、非心度±Inf、qntの符号判定とlog-tail反転を追跡。具体的入力: `pt(-30.268742563306827,100100312298908620,{ncp:2.475805900718761,logP:true})`、`dt(2.3074923907795758e54,100100312298908620,{ncp:2.475805900718761,log:true})`、`pt(0.001,2e-6,{ncp:40,logP:true})`、`qt(1.4426402575659767e-62,5.449761356942939e-96,{ncp:48.87598483697083})`。既存test/nt.test.tsの極端な自由度・非心度ケースと照合。新たな再現不具合は確定せず。Vitest/package runtime/R実行なし。 |
+| `src/distributions/pareto.ts` | 一部監査・問題未検出 | #150 | `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6` | — | extraDistr由来d/p/qpareto fixtureとmpmath fixtureを閲覧（未実行） | a=Infinityの点質量極限、x=bの密度端点、x<b/±Inf、ratioのdouble-doubleとlogRatioDD切替、a*e補正の適用条件、subnormal tail log、qparetoのexp overflow後のbとの積を追跡。具体的入力: `dpareto(1.1e-263,{a:1640,b:7.8e-264,log:true})`、`ppareto(318.7041047333832,{a:1.040734e-317,b:1,logP:true})`、`qpareto(0.5,{a:1e308,b:1e-308})`。既知回帰値の背景とソース分岐を確認。新たな再現不具合は確定せず。Vitest/package runtime/R実行なし。 |
 | `src/distributions/poisson.ts` | 問題未検出 | #104 | `1dfe5fed11b61ba734bbf1b6b99df58c2ede61bb` | — | Rと同じ（R 4.5.2由来fixture・mpmath独立fixtureあり。今回R実行なし） | `dpois1`/`ppois1`/`qpois1`、`dpoisRaw`・`gammaInc`・`discreteQuantile` の連携を追跡。lambda=0/∞、q・xの支持域端点、NaN/Inf、非整数q、上下尾・logP、2^53超の補正、巨大lambda/subnormal tail、分位点境界と探索停止を確認。R fixture dpois 1,448件・ppois 2,896件・qpois 1,696件、および mpmath ppois 1,474件・qpois 250件を閲覧。CHANGELOGの `ppois(1e16,1e16)` の2^53超補正、lambda>1e6の5〜40σ tail精度改善、`qpois` lambda≈1e20の非終了修正を照合。fixture/Vitest/package runtime/R実行なし。 |
-| `src/distributions/signrank.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/summary.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/signrank.ts` | 一部監査・問題未検出 | #151 | `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6` | — | R由来dsignrank/psignrank/qsignrank fixtureと既存property regressionを閲覧（未実行） | nのhalf-even丸め、x/qの整数化規則、支持域端点、subset-sum DPの降順更新、2^900スケーリング、minTrustedによる精度判定、low table再構築、Kahan累積、対称性を使った小さいtail直接計算、log確率、LRU cache budget、MAX_LEN拒否、離散quantile探索を追跡。具体的入力: `dsignrank(0,1100)`、`psignrank(40,10,{lowerTail:false})`、`qsignrank(0.025,10)`、`dsignrank(20,1100)`。中心まで拡張済みのテーブルから低位確率を読む既知回帰条件も確認。新たな再現不具合は確定せず。Vitest/package runtime/R実行なし。 |
+| `src/distributions/summary.ts` | 問題あり | #152 | `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6` | [#34](https://github.com/numero-uno-jpn/rStats.js/issues/34) | R関数ではないためR直接照合対象外。Pareto分布の閉形式とa→∞極限を期待値根拠に使用 | 全分布switchのパラメータ検証、モーメント存在境界、中央値/最頻値の定義、central moment積分の収束判定、raw moment log fallback、巨大shapeでのoverflow回避経路を追跡。Pareto枝で `distSummary("pareto",{a:1e308,b:1e308})` は、平均・分散・sd・歪度・尖度の中間積がoverflowし、有限の極限値をInfinity/NaNにする。数学的期待値はmean≈1e308、variance≈1、sd≈1、skewness≈2、excess kurtosis≈6。追加確認入力: `distSummary("norm",{sd:1e200})`、`distSummary("lnorm",{meanlog:0,sdlog:1e-200})`、`distSummary("hyper",{m:0,n:0,k:0})`。ソース演算順序と分布の閉形式で確認。Vitest/package runtime/R実行なし。 |
 | `src/distributions/t.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/triangular.ts` | 問題未検出 | #97 | `6077b7d90cf06effb6e9ba4d08e6414b64c790a2` | — | Rと同じ（通常ケースは extraDistr の比較fixtureあり。今回R実行なし） | 三角分布の解析式、固定数値の既存extraDistr/mpmath fixture、端点モード・幅overflow/underflowの既存テストをソース照合。Vitest・Rは未実行。 |
 | `src/distributions/tukey.ts` | 未監査 | — | `—` | — | — | — |
@@ -904,3 +904,40 @@ Repository: `numero-uno-jpn/rStats.js`
 - Reviewed exclusive `prob`/`mu` parameterization, overflow-safe double-double `fromMu`, Loader density, subnormal size correction, x>2^53 CDF correction, `upperSeries`, Cornish-Fisher/gamma starting values, Newton/secant refinement, discrete quantile search, and size/mu=0/Infinity boundaries.
 - Exact probes considered: `dnbinom(58,3.94e-315,{prob:0.125,log:true})`, `pnbinom(1e16,1e16,{prob:0.5})`, `qnbinom(2.2e-284,2.7e37,{prob:1.9e-279})`, and `dnbinom(3,5,{mu:4})`. R 4.5.2 fixtures, mpmath fixtures and existing tests inspected, not executed.
 - Result: `一部監査・問題未検出`. No Vitest, package runtime, or fresh R execution.
+
+
+## Audit #148 — `src/distributions/normal.ts`
+
+- Repository HEAD: `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6`; source blob `9980fecf2366042da09273ba8c86de07d34dcaa3`.
+- Reviewed `scaledExpNegHalfSq`, `lowerTailProb`, `pnormStd`, `pnorm1`, `qnorm1`, `ndtriLogRefined`, `dnorm1`, and the tiny-sd density path. Checked NaN/±Inf, sd=0/negative, standardization overflow, lower/upper tail and logP behavior, and subnormal sd.
+- Confirmed defect: `pnorm(-1.5e154,{logP:true})`. In `pnormStd`, `(a*a)/2` overflows to Infinity although the mathematical `a²/2=1.125e308` is finite. The finite log probability is approximately `-1.125e308 - log(1.5e154) - log(sqrt(2π))`. Note: `dnorm1` uses left-associative `0.5*z*z`, which does not share this intermediate-overflow defect at the same input; it is not included in the finding. Issue #33 created.
+- Result: `問題あり`. Source-level IEEE-754 arithmetic proof; no Vitest, package runtime, or fresh R execution.
+
+## Audit #149 — `src/distributions/nt.ts`
+
+- Repository HEAD: `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6`; source blob `85763973f3f7a82d46ceee19a4dd0f8d8c275814`.
+- Reviewed the full noncentral-t implementation: log-gamma transformation, double-double integrands, peak search, trapezoid refinement and truncation, formula A/B switching, Laplace expansion and its error gate, far-tail power law, near-zero shortcut, huge-df limits, noncentrality infinities, and quantile sign/tail inversion.
+- Exact regression inputs inspected: `pt(-30.268742563306827,100100312298908620,{ncp:2.475805900718761,logP:true})`; `dt(2.3074923907795758e54,100100312298908620,{ncp:2.475805900718761,log:true})`; `pt(0.001,2e-6,{ncp:40,logP:true})`; `qt(1.4426402575659767e-62,5.449761356942939e-96,{ncp:48.87598483697083})`. Existing `test/nt.test.ts` and R/mpmath fixtures inspected, not executed.
+- Result: `一部監査・問題未検出`. No new reproducible defect confirmed; no Vitest, package runtime, or fresh R execution.
+
+## Audit #150 — `src/distributions/pareto.ts`
+
+- Repository HEAD: `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6`; source blob `fe44325a34f8ba48a1a8f1e6069852825310bf03`.
+- Reviewed support endpoints, `a=Infinity` point-mass limit, double-double ratio and log-ratio fallback, subnormal-shape tail logs, density product fallback, lower/upper tail complement, and quantile overflow handling.
+- Exact probes inspected: `dpareto(1.1e-263,{a:1640,b:7.8e-264,log:true})`; `ppareto(318.7041047333832,{a:1.040734e-317,b:1,logP:true})`; `qpareto(0.5,{a:1e308,b:1e-308})`. Existing extraDistr and mpmath fixtures inspected, not executed.
+- Result: `一部監査・問題未検出`. No new reproducible defect confirmed; no Vitest, package runtime, or fresh R execution.
+
+## Audit #151 — `src/distributions/signrank.ts`
+
+- Repository HEAD: `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6`; source blob `fb0dfa41c1a99f41e7e8d5d5dfb7896fc7de4afb`.
+- Reviewed n rounding/validation, support endpoints, descending subset-sum DP, periodic power-of-two rescaling, `minTrusted` error bound, low-table rebuild, Kahan cumulative sums, symmetry-based smaller-tail evaluation, log probabilities, LRU cache budget, MAX_LEN guard, and discrete quantile search.
+- Exact probes inspected: `dsignrank(0,1100)`; `psignrank(40,10,{lowerTail:false})`; `qsignrank(0.025,10)`; `dsignrank(20,1100)`. Existing property regression includes n=1100 low-rank values after centre-table construction; fixture and test source inspected, not executed.
+- Result: `一部監査・問題未検出`. No new reproducible defect confirmed; no Vitest, package runtime, or fresh R execution.
+
+## Audit #152 — `src/distributions/summary.ts`
+
+- Repository HEAD: `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6`; source blob `5db8355953de9a5d314c16564fa58d6f523a7922`.
+- Reviewed all distribution branches, parameter validation, existence thresholds for moments, mode/median conventions, central-moment quadrature, convergence acceptance, raw-moment log fallback, and overflow/underflow scaling paths.
+- Confirmed defect: `distSummary("pareto",{a:1e308,b:1e308})`. The formulas for mean, variance, standard deviation, skewness and kurtosis form large powers/products before cancellation, causing Infinity/NaN although the mathematical values are finite: mean≈1e308, variance≈1, sd≈1, skewness≈2, excess kurtosis≈6. Issue #34 created.
+- Additional exact probes inspected: `distSummary("norm",{sd:1e200})`; `distSummary("lnorm",{meanlog:0,sdlog:1e-200})`; `distSummary("hyper",{m:0,n:0,k:0})`. R direct comparison is not applicable because this is not an R function; the Pareto closed forms and limit a→∞ provide the expected values. No Vitest/package runtime execution.
+- Result: `問題あり`. Source-level algebra and IEEE-754 range proof.
