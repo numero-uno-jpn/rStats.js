@@ -51,13 +51,13 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/cauchy.ts` | 問題あり | #98 | `6a3eedcc2d465be8e7bbb614884e1a95ea22180d` | [#25](https://github.com/numero-uno-jpn/rStats.js/issues/25) | Rでは未確認 | `dcauchy(1.1e308, { location: 0, scale: 1e308 })`。Cauchy密度の閉形式を安全な演算順序で評価した値は約 `1.44031622707598e-309`。現行の `y / (Math.PI * scale)` は `Math.PI * scale` がInfinityとなり0。log密度経路のexp値でも照合。JS式の独立ハーネスで再現、Vitest/R未実行。 |
 | `src/distributions/chisq.ts` | 問題あり | #100 | `94e98787221087403c05cdb46f69f55c0760823b` | [#26](https://github.com/numero-uno-jpn/rStats.js/issues/26) | Rと同じ（負の自由度は無効。今回R実行なし） | `df=-Number.MIN_VALUE`（-5e-324）は `df<0` だが `df/2` が `-0` に丸められる。`chisq.ts` が先に `df/2` を渡し、gamma側では `shape<0` が偽・`shape===0` が真となり、`dchisq(0,df)=Infinity`、`dchisq(1,df)=0`、`pchisq(1,df)=1`、`qchisq(0.5,df)=0` 相当のshape=0経路に入る。IEEE-754の丸めと `gamma.ts` の分岐をソース追跡。package/Vitest/R未実行。 |
 | `src/distributions/exponential.ts` | 問題あり | #102 | `1aaef113968bfa70a39ed2c501e3b65238763409` | [#27](https://github.com/numero-uno-jpn/rStats.js/issues/27) | Rも誤り | `pexp(1e-20, { rate: 1e-300, logP: true })`。現行値 -736.8272408909739、数学的期待値 ln(1e-320) = -736.8272297580946。`mulDD`/`twoProd` の subnormal 積で残差が失われ、`logOneMinusExpNeg` が丸め済み積を対数化する。既存 known-violation が同じR値を記録。高精度Decimal計算とソース追跡。実行/Vitest/今回のR照合なし。
-| `src/distributions/f.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/f.ts` | 問題あり | #138 | `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26` | [#32](https://github.com/numero-uno-jpn/rStats.js/issues/32) | Rとの実行比較なし。F分布の df2→∞ 極限（χ²(df1)/df1）を期待値の根拠にした | `df(1, 1, 1e308)`。`m<2` 密度式の係数 `2 * (m+n) * p` で `2*(m+n)` が先にInfinityへoverflowし、係数が0になる。df2→∞での密度期待値は `exp(-0.5)/sqrt(2π) ≈ 0.24197072451914337`。ソース演算順序と極限式で確定。Vitest/package runtime/R実行なし。中心Fの密度・CDF・quantileの境界と特殊df経路をソース追跡。
 | `src/distributions/gamma.ts` | 一部監査・問題未検出 | #120 | `e9ba1c35ef88e77e84a392562bb7f62378fcbf7f` | — | R 4.5.2 qgamma fixtureを閲覧（未実行） | #120でqgammaの初期値選択、tiny quantileの対数計算、Wilson–Hilferty/DiDonato–Morris分岐、invertContinuousとの接続を確認。3286件のqgamma fixtureを閲覧、未実行。 |
 | `src/distributions/geometric.ts` | 問題未検出 | #103 | `fe88f1b31ddb3a69cef524aeb9aa5dd08509e0a8` | — | Rと同じ（通常 fixture は R 4.5.2 由来。今回R実行なし） | `dgeom1`/`pgeom1`/`qgeom1`、`probPair`/`qPow` の通常・subnormal・巨大整数経路、支持域・入力検証、上下尾・logP、離散分位点の境界補正をソース追跡。R 4.5.2由来の d/p/qgeom fixture（計6112ケース）を閲覧。CHANGELOGの `pgeom(1e290, 5e-324)` と `pgeom(8.7e299, 1.1e-300)` の修正記録も照合。fixture/Vitest/package runtime/R実行なし。 |
-| `src/distributions/hypergeometric.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/invgamma.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/kumaraswamy.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/laplace.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/hypergeometric.ts` | 一部監査・問題未検出 | #139 | `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26` | — | R 4.5.2由来の dhyper/phyper/qhyper fixture と既存テストを閲覧（未実行） | `support=[max(0,k-n),min(k,m)]`、half-even丸め、整数外x/q、退化支持、`binomialLimit`、Loader式の確率質量、左右tail比の単調性・打切り条件、2^53超のCDF/quantile拒否を追跡。具体的な端点入力: `dhyper(0,0,5,3)`、`phyper(-1,10,10,5)`、`qhyper(0.5,10,10,5)`。`m+n` overflow時の `hyperParams` 検証と、`dhyper` 側に `MAX_EXACT` guardがない点は極端な整数領域で追加実行検証が必要。再現不具合は確定せず。Vitest/package runtime/R実行なし。
+| `src/distributions/invgamma.ts` | 一部監査・問題未検出 | #140 | `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26` | — | R 4.5.2/extraDistr由来fixtureとmpmath fixtureを閲覧（未実行） | `X=1/Y` の変換、z=beta/xのdouble-double補正、subnormal zの対数密度、CDF上下尾符号、logP補正、tiny gamma quantile経路、alpha/betaのNaN/0/Inf境界を追跡。具体的入力: `dinvgamma(1e-300,2,{beta:1e-300})`、`pinvgamma(1e-300,2,{beta:1e-300,lowerTail:false,logP:true})`、`qinvgamma(1e-300,2,{beta:1e-300})`。alpha=Infinityは点質量0の極限として特別扱いされるが、`pinvgamma(0,Infinity)`の境界値はその極限解釈と不整合の可能性があり、R/extraDistrの契約確認を要するため不具合認定せず。Vitest/package runtime/R実行なし。
+| `src/distributions/kumaraswamy.ts` | 一部監査・問題未検出 | #141 | `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26` | — | extraDistr由来fixture・mpmath fixtureを閲覧（未実行） | 密度のx=0/1端点、a=Infinityの退化極限、b有限条件、`1-x^a`のexpm1/log1p、subnormal `x^a`、`b*log(1-x^a)`、下側log確率の小確率展開、逆関数のlogP/極小a経路とreciprocal補正を追跡。具体的入力: `dkumar(1-Number.EPSILON,2.6e-300,0.29)`、`pkumar(0.2,0.42,1.85e-317,{logP:true})`、`qkumar(4.8e-52,9.9e-314,2.5)`。既知の安定化分岐が各ケースをカバーすることを確認。Vitest/package runtime/R実行なし。
+| `src/distributions/laplace.ts` | 一部監査・問題未検出 | #142 | `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26` | — | extraDistr由来fixture・mpmath fixtureを閲覧（未実行） | `standardizeDD`による差分overflow回避、mu/sigmaのNaN/Inf/0境界、密度の2*sigma overflow、subnormal expの除算、CDFの左右tail/log1p、分位点のlog-tailとlocationScaleを追跡。具体的入力: `dlaplace(Number.MAX_VALUE,{mu:-Number.MAX_VALUE,sigma:1,log:true})`、`plaplace(Infinity,{mu:0,sigma:1})`、`qlaplace(1e-320,{mu:1,sigma:2})`、`dlaplace(0,{mu:0,sigma:1e308})`。ソース上の演算経路で新規不具合を確定せず。Vitest/package runtime/R実行なし。
 | `src/distributions/logistic.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/lognormal.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/multinomial.ts` | 問題あり | #96 | `ac5d64a614debaa2922754bd257f2b8286619518` | [#24](https://github.com/numero-uno-jpn/rStats.js/issues/24) | Rでは未確認 | 中央二項確率の解析式と Stirling 漸近、IEEE-754 中間積の独立計算。実パッケージ実行・R比較なし。 |
@@ -832,3 +832,40 @@ Repository: `numero-uno-jpn/rStats.js`
 - Exact fixture inputs inspected (not executed): `setSeed(1); runif(10)`; `RNGkind({kind:"L'Ecuyer-CMRG",sampleKind:"Rounding"}); setSeed(42); runif(3)`; `setSeed(3); sampleInt(4500000000000000,{size:5,replace:true})`; `setSeed(24); rlogis(10,{location:0,scale:-1})`. Fixtures `rngRounding.json`, `rngLecuyer.json`, `rngStreams.json`, `rbasic.json`, and existing `random-kinds.test.ts` inspected, not executed.
 - Known compatibility differences: negative-scale `rlogis` output differs from R; BTPE `rbinom` can consume a different stream due to the already-documented Stirling-correction difference; invalid L'Ecuyer state handling throws rather than R's clock reseed. No additional defect established.
 - Result: `既知差異あり・追加問題未検出`. No Vitest, standalone harness, or fresh R execution.
+
+## Audit #138 — `src/distributions/f.ts`
+
+- Repository HEAD: `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26`; source blob `094283354cd63404a50217cab344a676004f66d5`.
+- Reviewed central F density/CDF/quantile, finite/infinite degrees-of-freedom limits, double-double ratio formation, tiny-tail beta transforms, small-shape log-density, quantile asymptotics, and Newton derivative.
+- Confirmed defect: for `m < 2`, the density coefficient computes `2 * (m + n) * p` in an order that overflows even though the mathematical product is finite. Exact reproduction: `df(1, 1, 1e308)`. Here `2 * (m+n)` becomes `Infinity`, so the coefficient becomes zero. As df2 tends to infinity, F(1,df2) converges to chi-square(1), whose density at 1 is `exp(-0.5)/sqrt(2*pi) ≈ 0.24197072451914337`. Issue #32 created.
+- Result: `問題あり`. Source-level arithmetic proof; no package runtime, Vitest, or fresh R execution.
+
+## Audit #139 — `src/distributions/hypergeometric.ts`
+
+- Repository HEAD: `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26`; source blob `557f15ed94b73d98cc3606838441c05fcf94dca3`.
+- Reviewed parameter validation and half-even rounding, support endpoints, binomial-limit approximation, Loader probability decomposition, double-double exponent assembly, direct lower/upper tail summation via adjacent-probability ratios, stopping bound, and discrete quantile bracketing.
+- Exact source probes considered: `dhyper(0,0,5,3)`, `phyper(-1,10,10,5)`, `qhyper(0.5,10,10,5)`, plus values near the mean and support endpoints. Existing `test/hyper.test.ts` and R 4.5.2 fixtures `dhyper.json`, `phyper.json`, `qhyper.json` inspected, not executed.
+- Review lead: `hyperParams` forms `m+n` directly and `dhyper1` lacks the `MAX_EXACT` guard present in `phyper1/qhyper1`. Extremely large finite population counts therefore deserve a dedicated executable probe; no output defect was established in this source-only pass.
+- Result: `一部監査・問題未検出`. No Vitest, package runtime, or R execution.
+
+## Audit #140 — `src/distributions/invgamma.ts`
+
+- Repository HEAD: `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26`; source blob `942dc8bfc3a11295a8f7ac3f8df2decf757dac28`.
+- Reviewed inverse-gamma/gamma reciprocal transform, double-double z=beta/x and first-order correction, subnormal-z log-density path, lower/upper CDF correction signs, log-probability correction, tiny gamma quantile inversion, and alpha/beta boundary validation.
+- Exact source probes considered: `dinvgamma(1e-300,2,{beta:1e-300})`, `pinvgamma(1e-300,2,{beta:1e-300,lowerTail:false,logP:true})`, `qinvgamma(1e-300,2,{beta:1e-300})`, and `pinvgamma(0,Infinity,{beta:1})`. The last input raises a contract question: alpha=Infinity is described as a point-mass limit at zero, while the q<=0 check returns the generic lower-tail zero boundary before the alpha=Infinity branch. This was not classified as a defect without confirming the intended R/extraDistr infinite-shape contract.
+- Existing R/extraDistr and mpmath fixtures inspected, not executed.
+- Result: `一部監査・問題未検出（alpha=Inf境界は仕様確認待ち）`. No Vitest, package runtime, or fresh R execution.
+
+## Audit #141 — `src/distributions/kumaraswamy.ts`
+
+- Repository HEAD: `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26`; source blob `ae73aa5f4ac85b344ea32f626854693a50409563`.
+- Reviewed density endpoint behavior, a=Infinity limit, b validation, expm1/log1p evaluation of 1-x^a, subnormal powers, double-double log-density summation, lower-tail small-probability expansion, log-tail handling, inverse quantile branches, and reciprocal correction.
+- Exact probes considered: `dkumar(1-Number.EPSILON,2.6e-300,0.29)`, `pkumar(0.2,0.42,1.85e-317,{logP:true})`, and `qkumar(4.8e-52,9.9e-314,2.5)`. These correspond to difficult near-one, subnormal-shape, and reciprocal-overflow paths documented in source comments. Existing extraDistr/mpmath fixtures inspected, not executed.
+- Result: `一部監査・問題未検出`. No Vitest, package runtime, or R execution.
+
+## Audit #142 — `src/distributions/laplace.ts`
+
+- Repository HEAD: `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26`; source blob `782524ad81cfd416c0582e8f6b6b31170d3db88f`.
+- Reviewed location/scale validation, infinite-location limit, double-double standardization, density denominator overflow when 2*sigma exceeds the largest double, subnormal exponential division, CDF smaller-side selection and log1p complement, and quantile tail conversion/locationScale.
+- Exact probes considered: `dlaplace(Number.MAX_VALUE,{mu:-Number.MAX_VALUE,sigma:1,log:true})`, `plaplace(Infinity,{mu:0,sigma:1})`, `qlaplace(1e-320,{mu:1,sigma:2})`, and `dlaplace(0,{mu:0,sigma:1e308})`. Existing extraDistr/mpmath fixtures inspected, not executed.
+- Result: `一部監査・問題未検出`. No Vitest, package runtime, or R execution.
