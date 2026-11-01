@@ -77,11 +77,11 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/weibull.ts` | 問題未検出 | #161 | `e18cb49f91c4d5667c40323080d741b3d2696738` | — | R 4.5.2由来d/p/qweibull fixtureを閲覧（未実行）。コメント内のR互換性・既知回帰例も確認 | `logU` のsubnormal/overflow ratio fallback、double-double指数形成、shape<1/＝1/>1のx=0密度、scale/shape Infinityの分岐、pweibullの下尾log小確率・上尾log、qweibullのlogP極小確率特別経路、scaleとの積でのunderflow回避を追跡。具体入力: `dweibull(1.9e-255,6.6e306,{scale:98.6})`、`pweibull(1e-5,1000,{logP:true})`、`qweibull(-720.6,1,{scale:1.36e257,logP:true})`、`dweibull(0,0.5,{scale:2})`、`pweibull(Infinity,2)`。新規の再現不具合は確定せず。Vitest/package runtime/R実行なし。 |
 | `src/distributions/wilcox.ts` | 問題あり | #162 | `e18cb49f91c4d5667c40323080d741b3d2696738` | [#37](https://github.com/numero-uno-jpn/rStats.js/issues/37) | Rと同じ分布の整数support。今回R実行なし。`2^53`境界の不具合はJS Numberの整数表現限界に起因 | `wilcoxParams` のhalf-even丸め・正整数条件・mn上限、qの`floor(q+1e-7)`、対称性、q-binomial係数のdouble-double再帰、rescale/minTrusted/cache/valid prefix、CDF上下尾、discrete quantileを追跡。具体的な境界再現: `const m=3,n=3002399751580331,q=2**53;`。厳密な整数積は`9007199254740993`だがbinary64の`m*n`は`9007199254740992`へ丸められ、検証条件`m*n > 2**53`を通過する。その後`pwilcox1`の`x >= m*n`が真となり、`pwilcox(q,m,n,{lowerTail:false,logP:true})`を`-Infinity`で返す。しかしqは真のsupport上端より1小さく、上側確率は端点質量`1/choose(m+n,m)>0`（logは約`-105.1`）。Issue #37。ほかに`dwilcox(0,1050,1050,{log:true})`のscale救済、中心部で精度保証できない場合のRangeError境界も確認。既存wilcox fixture/test sourceを閲覧、実行なし。 |
 | `src/entries/descriptive.ts` | 問題未検出 | #172 | `e22826429f71e15fb26749fbc3bb1dc7430ccdb4` | — | re-export barrel。実装本体とのexport対応を静的確認（R実行対象外） | `descriptive` entryの全re-exportについてsource path、named exports、option/type exports、grouping/dataFrame/pivotの公開経路を照合。具体確認: `import * as d from "./entries/descriptive.js"` に相当するexport表と、`src/descriptive/{basic,quantile,rank,cov,table,missing,hist,moments,dataFrames,pivot}.ts` および`src/data/grouping.ts`のexport宣言を比較。欠落/重複/存在しないsymbolの再現可能な問題は確認せず。barrel単体に数値アルゴリズムなし。TypeScript build/package runtime未実行。 |
-| `src/entries/distributions.ts` | 未監査 | — | `—` | — | — | — |
-| `src/entries/linalg.ts` | 未監査 | — | `—` | — | — | — |
-| `src/entries/mixed.ts` | 未監査 | — | `—` | — | — | — |
-| `src/entries/numerics.ts` | 未監査 | — | `—` | — | — | — |
-| `src/entries/special.ts` | 未監査 | — | `—` | — | — | — |
+| `src/entries/distributions.ts` | 問題未検出 | #173 | `c06da849afc7406f4f2a37e6387a4febab3306d8` | — | package exports / bundle AREAS / implementation module pathsを静的照合 | d/p/q分布、追加分布、乱数関数、RNG state/stream、型exportを各実装moduleへ追跡。具体確認: `dnorm/pnorm/qnorm`→normal、`dhyper/phyper/qhyper`→hypergeometric、`distSummary`→summary、`setSeed/RNGkind`→rng、`sample`→sample、`r2dtable`→r2dtable。`package.json`の`./distributions`、`scripts/bundle.mjs`のAREASと一致。barrel内の独自演算なし。export名/パスに明白な不整合なし。TypeScript build/runtime未実行。 |
+| `src/entries/linalg.ts` | 問題未検出 | #174 | `c06da849afc7406f4f2a37e6387a4febab3306d8` | — | package exports / bundle AREAS / implementation module pathsを静的照合 | crossprod/backsolve、norm、chol/chol2inv、QR family、solve/det/rcond、SVD、kappa/ginv、eigen、Schur、expm、matrix operations、LU/prcompと各型exportを追跡。具体確認: `qrQ/qrR/qrCoef/qrSolve`→qr、`determinant/rcond`→solve、`matMul/kronecker/seq`→ops、`prcomp/lu`→lu。`MatrixInput/VectorOrMatrix`型のmatrix module参照を確認。`package.json`の`./linalg`とbundle entryに一致。barrel内の独自演算なし。型チェック/build/runtime未実行。 |
+| `src/entries/mixed.ts` | 問題未検出 | #175 | `c06da849afc7406f4f2a37e6387a4febab3306d8` | — | package exports / bundle AREAS / model module pathsを静的照合 | `lmer`とLmerResult/Options等の型、`lmerContest/lmerSummary`と検定表型、`lmerAnova`と単一fit/複数fitのANOVA・比較型を各model moduleへ追跡。具体確認: `lmer`→models/lmer、`lmerSummary`→models/lmerTest、`lmerAnova`→models/lmerAnova。root `src/index.ts`にはstar exportされないが、`package.json`に`./mixed`が明示され、bundle AREASにも`mixed`が含まれるため、独立サブパス公開として整合。barrelの欠落とは判定しない。build/runtime未実行。 |
+| `src/entries/numerics.ts` | 問題未検出 | #176 | `c06da849afc7406f4f2a37e6387a4febab3306d8` | — | implementation moduleのexport宣言とpackage/bundle entryを静的照合 | `integrate/optimize/uniroot`とoptions/result型を`numerics/integrate.ts`へ、approx/spline familyをinterp、ode/OdeFunc/OdeOptionsをode、grad/hessian/jacobian/DerivOptionsをderiv、optim/optimHessと型をoptimへ追跡。特に`optimize`と`uniroot`がファイル名と異なる`integrate.ts`からexportされる点は実装上の意図どおり、同ファイルに3関数すべてのexport宣言を確認。`package.json`の`./numerics`とbundle AREASに一致。数値本体の全域精度監査は別対象。build/runtime未実行。 |
+| `src/entries/special.ts` | 問題未検出 | #177 | `c06da849afc7406f4f2a37e6387a4febab3306d8` | — | special implementation module pathsとpackage/bundle entryを静的照合 | gamma/lgamma、beta/lbeta、choose/factorial、digamma/trigamma/psigamma、Bessel I/K/J/Y、erf/erfc、gammainc/erfinv/erfcinv/perm、log1pmx/lgamma1p/log1mexp/log1pexpと型を各special moduleへ追跡。具体確認: `RCompatibleOptions`→rCompatible、`BesselOptions`→besselIK、`GammaincResult`→extra。`package.json`の`./special`とbundle AREASに一致。barrel内の独自数値演算なし。build/runtime未実行。 |
 | `src/entries/tests.ts` | 未監査 | — | `—` | — | — | — |
 | `src/htest/agreement.ts` | 未監査 | — | `—` | — | — | — |
 | `src/htest/ansariTest.ts` | 未監査 | — | `—` | — | — | — |
@@ -1088,3 +1088,39 @@ Repository: `numero-uno-jpn/rStats.js`
 - Reviewed the descriptive entry-point's re-export list against the implementation modules for basic summaries, quantile/MAD, rank, covariance/correlation, table/cut/findInterval, missing values, hist/ecdf, moments, grouping, data-frame helpers and pivot operations. Checked named function and option/type exports for missing or duplicate symbols.
 - No missing, duplicate or nonexistent re-export was found. This file is a barrel and contains no numerical algorithms.
 - Static source comparison only; TypeScript build/package runtime/R execution not run.
+
+
+## Audit #173 — `src/entries/distributions.ts`
+
+- Repository HEAD: `c06da849afc7406f4f2a37e6387a4febab3306d8`; source blob `7b44e94c54982bdc6aba93f6e5a1aacac8afd8e9`.
+- Reviewed the distribution and random-number re-export surface: d/p/q families, extra distributions, density/tail option types, noncentral option, vectorization types, RNG state and kind selection, streams, continuous/discrete random generators, sampling, rank distributions and contingency-table sampling.
+- Cross-checked representative symbol-to-module paths: `dnorm/pnorm/qnorm` → normal; hypergeometric d/p/q → hypergeometric; `distSummary` → summary; `setSeed/RNGkind` → rng; `sample` → sample; `r2dtable` → r2dtable. The `package.json` `./distributions` subpath and `scripts/bundle.mjs` area entry agree. No barrel-level computation or obvious export-path mismatch found.
+- Static inspection only; no TypeScript build or package runtime.
+
+## Audit #174 — `src/entries/linalg.ts`
+
+- Repository HEAD: `c06da849afc7406f4f2a37e6387a4febab3306d8`; source blob `e32c849b2f9d1dd45c08e6ef70dfe5d1c107ac8f`.
+- Reviewed exports for cross/triangular solves, norms, Cholesky, QR and its accessors/solvers, determinant/condition/solve, SVD, generalized inverse, eigen, Schur, matrix exponential, matrix operations, LU and PCA; checked their module paths and associated public types.
+- Representative path checks: `qrQ/qrR/qrCoef/qrSolve` → qr; `determinant/rcond` → solve; `matMul/kronecker/seq` → ops; `prcomp/lu` → lu; `MatrixInput/VectorOrMatrix` → matrix. The `./linalg` package subpath and bundler entry agree. No barrel-level computation or obvious export-path mismatch found.
+- Static inspection only; no TypeScript build or package runtime.
+
+## Audit #175 — `src/entries/mixed.ts`
+
+- Repository HEAD: `c06da849afc7406f4f2a37e6387a4febab3306d8`; source blob `fbf3809001ad16f39e28f2b9fb1205e7b4a2f7a8`.
+- Reviewed the public mixed-model surface: `lmer` and result/options/random-effect types; `lmerContest` and `lmerSummary` with their t/F/summary types; `lmerAnova` with one-fit ANOVA and multiple-fit comparison types.
+- Representative path checks: `lmer` → models/lmer; `lmerSummary` → models/lmerTest; `lmerAnova` → models/lmerAnova. This entry is intentionally not star-exported from root `src/index.ts`, but `package.json` declares `./mixed` and the bundler's AREAS includes `mixed`; it is therefore an independently published subpath, not a missing root export.
+- No obvious export-path mismatch found. Static inspection only; no TypeScript build or package runtime.
+
+## Audit #176 — `src/entries/numerics.ts`
+
+- Repository HEAD: `c06da849afc7406f4f2a37e6387a4febab3306d8`; source blob `b1264f23844b400756e935cceee2d36fb0bde88c`.
+- Reviewed integration/minimization/root-finding exports and option/result types, interpolation and spline exports, ODE exports, numerical derivatives, and general optimization.
+- Representative path checks: `integrate/optimize/uniroot` and their types → numerics/integrate; `approx/spline/splinefun` → numerics/interp; `ode` → numerics/ode; `grad/hessian/jacobian` → numerics/deriv; `optim/optimHess` → optim/optim. In particular, `optimize` and `uniroot` being re-exported from a file named `integrate.ts` is correct: that module explicitly exports all three functions. The `./numerics` package subpath and bundle entry agree.
+- Numerical algorithms were not fully audited as part of this entry-point review. Static inspection only; no TypeScript build or package runtime.
+
+## Audit #177 — `src/entries/special.ts`
+
+- Repository HEAD: `c06da849afc7406f4f2a37e6387a4febab3306d8`; source blob `23585b6d3c282b3c43852a684e5914017b3a700d`.
+- Reviewed gamma/beta, combinatorics, polygamma, Bessel, error functions, extra special functions, logarithmic helper functions and public option/result types.
+- Representative path checks: `RCompatibleOptions` → rCompatible; `BesselOptions` → besselIK; `GammaincResult` → extra. The `./special` package subpath and bundle entry agree. No barrel-level computation or obvious export-path mismatch found.
+- Static inspection only; no TypeScript build or package runtime.
