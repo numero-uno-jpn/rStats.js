@@ -125,7 +125,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/integrate/quadpack.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/covmat.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/ddexp.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/discrete.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/discrete.ts` | 問題あり | #106 | `a8ed86222a9c91b7dfea90b990244a81c1170194` | — | Rでは未確認 | `firstTrue()` の指数探索で `lo + step` が Infinity にオーバーフローすると、`Number.MAX_VALUE` を評価せず Infinity を返す。再現: `firstTrue(x => x >= 1.6e308, 1e308, Infinity)`。期待: `1.6e308`（有限かつ述語成立する最小の表現可能整数値）。実測: `Infinity`。Node.jsでソース関数を同一転記して実行、評価回数1024。原因: stepが 8.98846567431158e307 の時点で `lo+step` が Infinity となり、その後の二分探索も Infinity で停止。`discreteQuantile()` には同様の overflow 時 `Number.MAX_VALUE` を試すガードがあるが、`firstTrue()` にはない。修正案: step/j のオーバーフロー時に `Number.MAX_VALUE` を上限候補として評価し、述語成立なら有限区間を二分探索する。 |
 | `src/internal/dpq.ts` | 問題未検出 | #105 | `c9000fd10b357980c675d98bc3a851446fff48ba` | — | Rと同じ（Rの `lower.tail` / `log.p` / `log` の端点・尾部変換仕様に対応。今回R実行なし） | `dt0`/`dt1` の lowerTail×logP 4組、`d0` の log/非log、`quantileBoundaries` の線形p/logP両形式の端点・範囲外値、`smallerTail` の0.5境界・上側変換・極小確率をソース追跡。具体値: p={0,1,0.25,0.5,0.75,1e-300}; logP値={0,-Infinity,-0.25,-1,-1000,1}; lowerTail={true,false}; 期待値は確率の補数・対数恒等式から導出。CHANGELOG Unreleased と 0.15.3 の数値安定性修正を確認。実行/Vitest/package runtime/R実行なし。 |
 | `src/internal/extremes.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/fround.ts` | 未監査 | — | `—` | — | — | — |
@@ -372,3 +372,17 @@ Repository: `numero-uno-jpn/rStats.js`
 - Reproduction inputs (literal values): linear `p = [0, 1, 0.25, 0.5, 0.75, 1e-300]`; log `p = [0, -Infinity, -0.25, -1, -1000, 1]`; `lowerTail = [true, false]`; `logP = [true, false]`; `log = [true, false]`. `smallerTail` の期待値は `p=0.75` で補数 `0.25`、`p=0.25` で元の下側確率 `0.25`、log確率 `-0.25` の上側変換で `log(1-exp(-0.25))`。
 - R relationship: `Rと同じ`（Rの `lower.tail` / `log.p` / `log` の端点・尾部変換仕様に対応。今回R実行なし）。
 - Scope/limitations: `src/internal/dpq.ts` の関数本体と契約コメントを確認。CHANGELOG Unreleased と 0.15.3 の数値安定性修正を確認。独立実行ハーネス、Vitest、package runtime、R実行なし。したがって状態は `問題未検出` とし、`問題なし確認済` とはしない。
+
+
+## Audit #106
+
+- Repository HEAD: `bd1abcb7e80997ab9bf1a965a30b93a86ac24c24`
+- `src/internal/discrete.ts` blob SHA: `a8ed86222a9c91b7dfea90b990244a81c1170194`
+- Result: `firstTrue()` に境界値バグを1件発見。指数探索中に `lo + step` が `Infinity` へオーバーフローした場合、`Number.MAX_VALUE` を確認せず、二分探索も `Infinity` で停止する。
+- Reproduction (literal): `firstTrue(x => x >= 1.6e308, 1e308, Infinity)`.
+- Expected: `1.6e308`（この入力に対する最小の表現可能な整数値であり、述語を満たす）。Actual: `Infinity`。
+- Execution: Node.jsで `src/internal/discrete.ts` の `firstTrue()` 本体を同一転記して実行。結果 `Infinity`、述語評価回数1024、最後に有限だった指数ステップ `8.98846567431158e307`。次の `lo + step` は `Infinity` となり、有限のしきい値を飛び越す。
+- Cross-check: 同じファイルの `discreteQuantile()` は `good === Infinity && hi === Infinity` の場合に `Number.MAX_VALUE` を評価する特別処理を持つが、`firstTrue()` には同等の処理がない。
+- Proposed fix: 指数ステップまたは候補点が `Infinity` に達した場合、`Number.MAX_VALUE` を評価点として試す。述語が成立すれば `[fails, Number.MAX_VALUE]` を二分探索し、成立しなければ `hi`（Infinity）を返す。実際の整数サポートの上限・契約も併せて確認する。
+- R relationship: `Rでは未確認`。内部探索関数単体の境界不具合であり、R実行なし。
+- Scope/limitations: `discreteQuantile()` / `firstTrue()` / `lastTrue()` のソースレビュー。`firstTrue()` の再現はNode.jsで実施。Vitest全体、呼び出し元統合、R比較は未実施。
