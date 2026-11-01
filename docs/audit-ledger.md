@@ -71,7 +71,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/signrank.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/summary.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/t.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/triangular.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/triangular.ts` | 問題未検出 | #97 | `6077b7d90cf06effb6e9ba4d08e6414b64c790a2` | — | Rと同じ（通常ケースは extraDistr の比較fixtureあり。今回R実行なし） | 三角分布の解析式、固定数値の既存extraDistr/mpmath fixture、端点モード・幅overflow/underflowの既存テストをソース照合。Vitest・Rは未実行。 |
 | `src/distributions/tukey.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/uniform.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/weibull.ts` | 未監査 | — | `—` | — | — | — |
@@ -262,3 +262,15 @@ Repository: `numero-uno-jpn/rStats.js`
 - R relationship: `Rでは未確認`.
 - Evidence: source path analysis, IEEE-754 arithmetic, central-binomial Stirling approximation. Full package/Vitest/R execution not performed.
 - Issue: [#24](https://github.com/numero-uno-jpn/rStats.js/issues/24) (`area:distributions`, `priority:medium`, `bug`). Both files share one root cause and are tracked by one Issue.
+
+## Audit #97
+
+- Target: `src/distributions/triangular.ts`
+- Repository HEAD: `6077b7d90cf06effb6e9ba4d08e6414b64c790a2`
+- File blob SHA: `1cfca6585cf8bad66c282af3b6973fbb8086f288`
+- Result: `問題未検出` (source and existing test/fixture review; not a proof of absence).
+- Scope: density/CDF/quantile; endpoint modes `c=a` and `c=b`; interval-width overflow and subnormal width; tail/log-probability branches; inverse-transform branches around the mode.
+- Reproduction/test inputs inspected: `wide={a:-1e308,b:1e308,c:0}`; `narrow={a:0,b:2.362486118430361e-229,c:2.362486118430361e-229}`; `qtriang(2.5e-182,{a:0,b:141,c:0})`; and fixed `near1={a:51.80896011403241,b:54.36503630721428,c:52.30157068741966}` with `q=54.365036307212875`.
+- Expected-value basis: triangular closed forms; the existing test explicitly checks scale invariance, endpoint-mode inverse CDF, finite probabilities and density scaling. `ptriang`/`qtriang` fixtures generated from R 4.5.2 / extraDistr, density fixtures additionally include mpmath. Fixture contents were reviewed, not executed.
+- R relationship: `Rと同じ` for ordinary fixture cases by fixture provenance; no fresh R execution in this audit.
+- Verification limits: source-level formula/path inspection and existing test/fixture review only. No isolated runtime harness, full Vitest run, or fresh R comparison.
