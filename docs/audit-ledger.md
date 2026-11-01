@@ -126,7 +126,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/internal/covmat.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/ddexp.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/discrete.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/dpq.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/dpq.ts` | 問題未検出 | #105 | `c9000fd10b357980c675d98bc3a851446fff48ba` | — | Rと同じ（Rの `lower.tail` / `log.p` / `log` の端点・尾部変換仕様に対応。今回R実行なし） | `dt0`/`dt1` の lowerTail×logP 4組、`d0` の log/非log、`quantileBoundaries` の線形p/logP両形式の端点・範囲外値、`smallerTail` の0.5境界・上側変換・極小確率をソース追跡。具体値: p={0,1,0.25,0.5,0.75,1e-300}; logP値={0,-Infinity,-0.25,-1,-1000,1}; lowerTail={true,false}; 期待値は確率の補数・対数恒等式から導出。CHANGELOG Unreleased と 0.15.3 の数値安定性修正を確認。実行/Vitest/package runtime/R実行なし。 |
 | `src/internal/extremes.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/fround.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/integer.ts` | 未監査 | — | `—` | — | — | — |
@@ -362,3 +362,13 @@ Repository: `numero-uno-jpn/rStats.js`
 - Expected-value basis: Poisson PMF (e^{-\lambda}\lambda^x/x!\), CDF via (Q(\lfloor q\rfloor+1,\lambda)\), the (2^{53})-safe identity (P(X\le x)=Q(x,\lambda)+P(X=x)\), and the discrete quantile definition as the smallest integer whose CDF reaches the requested probability. Existing R and independent mpmath fixtures plus documented regression cases were used as corroboration.
 - R relationship: `Rと同じ` for ordinary behavior based on R 4.5.2 fixture provenance; mpmath fixtures independently support selected tail values. No fresh R execution this round.
 - Verification limits: source/branch/arithmetic review and fixture/CHANGELOG inspection only. No isolated runtime harness, fixture execution, full Vitest run, or fresh R comparison; status remains `問題未検出`, not `問題なし確認済`.
+
+
+## Audit #105
+
+- Repository HEAD: `c9000fd10b357980c675d98bc3a851446fff48ba`
+- `src/internal/dpq.ts` blob SHA: `543eb6ceb3de7627a7562b035a931a88da424aa7`
+- Result: ソース確認範囲では問題未検出。`dt0`/`dt1` の4通りは確率0/1の lower/upper-tail・log/non-log 表現と一致。`d0` は密度0の通常値0・log値−Infinity。`quantileBoundaries` は線形確率の0/1端点、範囲外値、およびlog確率の0/−Infinity端点を lowerTail に応じて左右端へ写像する。`smallerTail` は p ≤ 1/2 では指定尾部を維持し、p > 1/2 では `1-p` または `-expm1(logP)` に切り替えるため、補数の桁落ちを避ける設計。
+- Reproduction inputs (literal values): linear `p = [0, 1, 0.25, 0.5, 0.75, 1e-300]`; log `p = [0, -Infinity, -0.25, -1, -1000, 1]`; `lowerTail = [true, false]`; `logP = [true, false]`; `log = [true, false]`. `smallerTail` の期待値は `p=0.75` で補数 `0.25`、`p=0.25` で元の下側確率 `0.25`、log確率 `-0.25` の上側変換で `log(1-exp(-0.25))`。
+- R relationship: `Rと同じ`（Rの `lower.tail` / `log.p` / `log` の端点・尾部変換仕様に対応。今回R実行なし）。
+- Scope/limitations: `src/internal/dpq.ts` の関数本体と契約コメントを確認。CHANGELOG Unreleased と 0.15.3 の数値安定性修正を確認。独立実行ハーネス、Vitest、package runtime、R実行なし。したがって状態は `問題未検出` とし、`問題なし確認済` とはしない。
