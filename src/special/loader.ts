@@ -72,6 +72,8 @@ const TAIL_IN_DOUBLE = 0.12;
  * When x and M are close, it is computed by the series in v = (x - M)/(x + M) (Loader 2000).
  */
 export function bd0dd(x: number, M: DD): DD {
+  // the limit at x = 0, as bd0 (log(0) made it NaN)
+  if (x === 0) return M;
   // bd0 is homogeneous of degree 1: from about 1e300 the splitting in the double-double products overflows (x + M
   // enters them), so scale x and M by 2^-64 (exactly, unless the smaller one would become subnormal; its quotient is
   // then far out and the logarithms are taken separately below) and the result back (pgamma(9.9e299, 1e300) was NaN)

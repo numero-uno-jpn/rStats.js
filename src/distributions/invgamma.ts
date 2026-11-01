@@ -35,7 +35,8 @@ const MAX_ALPHA_CORRECTED = 1e15;
 export function dinvgamma1(x: number, alpha: number, beta: number, log: boolean): number {
   if (Number.isNaN(x) || !valid(alpha, beta)) return NaN;
   if (x <= 0 || x === Infinity) return d0(log);
-  if (alpha === Infinity) return NaN;
+  // alpha = Inf: all the mass at 0 (the limit pinvgamma and qinvgamma take), so the density at x > 0 is 0 (it was NaN)
+  if (alpha === Infinity) return d0(log);
   const [z, zl] = standardizeDD(beta, 0, x);
   if (z === Infinity) return d0(log);
   if (z < MIN_NORMAL) {

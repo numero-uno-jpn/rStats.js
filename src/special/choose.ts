@@ -11,6 +11,7 @@
 // rounding of a double log into a relative error of 1e-13.
 
 import { nonInt, roundHalfEven } from "../internal/integer.js";
+import { ldexp } from "../internal/summary.js";
 import { lbeta, lbetaDD } from "./beta.js";
 import { ddAdd, ddDiv, ddLog, ddMul, twoSum, type DD } from "./dd.js";
 import { gamma, lgamma, lgamma1p, sinpi } from "./gamma.js";
@@ -44,6 +45,17 @@ function fallingRatio(n: number, k: number): DD {
 }
 
 /** log B(a, b) (a, b > 0): double-double where lbetaDD is accurate, else lbeta (whose value is then large) */
+/** n (n - 1) ... (n - k + 1) / k! where the product overflows on the way, in the coordinates 2^-s with 2^s near abs(n) */
+function fallingRatioScaled(n: number, k: number): number {
+  const s = Math.floor(Math.log2(Math.abs(n)));
+  let r: DD = [1, 0];
+  for (let j = 0; j < k; j++) {
+    const t = twoSum(n, -j);
+    r = ddDiv(ddMul(r, [ldexp(t[0], -s), ldexp(t[1], -s)]), [j + 1, 0]);
+  }
+  return ldexp(r[0] + r[1], s * k);
+}
+
 function logBeta(a: number, b: number): DD {
   return Math.min(a, b) >= 1 && Math.max(a, b) < 2 ** 52 ? lbetaDD(a, b) : [lbeta(a, b), 0];
 }
@@ -121,10 +133,9 @@ export function choose(n: number, k: number, options?: RCompatibleOptions): numb
     const r = fallingRatio(n, k);
     const v = r[0] + r[1];
     if (Number.isFinite(v)) return isInt(n) || snap ? Math.round(v) : v;
-    // Overflow (the double-double steps then give NaN): the plain product overflows too
-    let p = 1;
-    for (let j = 0; j < k; j++) p = (p * (n - j)) / (j + 1);
-    return p;
+    // The product overflows on the way (n (n - 1) at n = 1.5e154 while choose(n, 2) = 1.125e308; the double-double steps
+    // then give NaN): the factors n - j divided by 2^s (exact), and the result scaled back by 2^(s k)
+    return fallingRatioScaled(n, k);
   }
   if (rc) {
     n = rSnap(n, k);

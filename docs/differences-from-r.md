@@ -81,6 +81,9 @@ The comparison values for these come from mpmath (100 to 800 digits) rather than
 
 - **`choose` and `lchoose`** with a non-integer n and large k: R is off by up to 2.6e-10
   (`choose(10.3, 1e5)`).
+- **`choose`** with small k near overflow: R multiplies n by (n - 1)/2 and so on, two roundings per step, and
+  `choose(1.5e154, 2)` is 1.125e308, 0.91 ulp from the exact value; rStats.js gives 1.1250000000000002e308 (0.09
+  ulp), from the product in double-double (taken in the coordinates n / 2^s where it overflows on the way).
 - **`factorial`** near overflow: `factorial(170)` is off by 1.2e-13 in R.
 - **`dmultinom`** with large counts: R sums `lgamma` values and loses digits (2.8e-6 relative for
   a count of 1e9; rStats.js multiplies binomial probabilities).
