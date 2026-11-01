@@ -277,7 +277,9 @@ export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOption
     confInt = [target - qnorm(confLevel) * se, Infinity];
   } else {
     pValue = 2 * pnorm(-Math.abs(z));
-    const half = qnorm(1 - (1 - confLevel) / 2) * se;
+    // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+    const a2 = (1 - confLevel) / 2;
+    const half = (a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm(1 - (1 - confLevel) / 2)) * se;
     confInt = [target - half, target + half];
   }
   confInt = [ldexp(confInt[0], k), ldexp(confInt[1], k)];

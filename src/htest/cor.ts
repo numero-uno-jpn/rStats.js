@@ -413,7 +413,9 @@ function corTestSamples(x: Sample, y: Sample, options: CorTestOptions): CorTestR
       if (alternative === "less") ci = [-1, end(sigma * qnorm(confLevel))];
       else if (alternative === "greater") ci = [end(-sigma * qnorm(confLevel)), 1];
       else {
-        const c = sigma * qnorm((1 + confLevel) / 2);
+        // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+        const a2 = (1 - confLevel) / 2;
+        const c = sigma * (a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm((1 + confLevel) / 2));
         ci = [end(-c), end(c)];
       }
       result.confInt = ci;

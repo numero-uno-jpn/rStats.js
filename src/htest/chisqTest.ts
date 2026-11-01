@@ -200,7 +200,9 @@ function chisqCounts(x: Counts | readonly Counts[], options: ChisqTestOptions): 
 /** Number of replicates, checked when a simulation is run */
 function replicates(options: ChisqTestOptions): number {
   const B = options.B ?? 2000;
-  if (!(B >= 0 && B < 2 ** 31)) throw new RangeError("'B' must be a non-negative number");
+  // a fractional B ran more simulations than B + 1 counts (R divides by B + 1 as well): p-values above 1 (B = 2.1 gave
+  // 1.33, R 1.29)
+  if (!(Number.isInteger(B) && B >= 0 && B < 2 ** 31)) throw new RangeError("'B' must be a non-negative integer");
   return B;
 }
 
@@ -252,6 +254,9 @@ function goodnessOfFit(x: number[], options: ChisqTestOptions): ChisqTestResult 
   let pValue: number;
   if (options.simulatePValue ?? false) {
     const B = replicates(options);
+    // a fractional total cannot be drawn as a sample: the columns of draws then outnumbered B and the p-value exceeded
+    // 1 (c(3.5, 4, 5) with B = 2 gave 1.33; R too)
+    if (!Number.isInteger(n)) throw new RangeError("the simulation needs counts summing to an integer");
     method += simulatedMethod(B);
     df = NaN;
     pValue = monteCarloP(simulateGoodnessOfFit(n, p, E, B), stat, B);

@@ -7,9 +7,10 @@
 // - Densities are formed in logs from the accurate log dhyper (evaluated every 16 points, exact ratios in
 //   between) and normalised with double-double sums, so the root
 //   search sees accurate function values; at psi = 1 the tails are the central hypergeometric distribution function
-// - Roots are found with R's uniroot conventions (Brent, tolerance eps^0.25; src/internal/uniroot.ts): if the root
-//   lies below 1, on psi in [0, 1]; otherwise on s = 1/psi in [eps, 1]. R's estimate and limits are where this
-//   iteration stops (1e-6 to 1e-2 from the true roots), so the brackets and tolerance are part of the result
+// - Roots are found on the log scale of psi to the precision of the doubles (logScaleRoot, src/internal/uniroot.ts).
+//   R solves on psi in [0, 1] or 1/psi in [eps, 1] with the absolute tolerance eps^0.25 and stops 1e-6 to 1e-2 from
+//   the true roots (0.7% for the 95% upper limit of [[3, 1], [1, 3]], 6% at 99%, and the end 1/eps at 99.99%); the
+//   values here are the roots (review 58)
 // - The two-sided p-value is the sum of probabilities of tables whose probability is at most (1 + 1e-7) times the
 //   observed one (R's convention); for or = 0 or Inf the distribution is a point mass at the end of the support
 // - Counts are made integer by rounding half to even (R rounds with a warning)
@@ -36,7 +37,7 @@ import { dhyper1, phyper1 } from "../distributions/hypergeometric.js";
 import { roundHalfEven } from "../internal/integer.js";
 import { logFactorialTable, rcont2 } from "../random/r2dtable.js";
 import { lfactorial } from "../special/choose.js";
-import { uniroot } from "../internal/uniroot.js";
+import { logScaleRoot } from "../internal/uniroot.js";
 import { ddAdd, ddLog, ddNeg, ddSub, type DD } from "../special/dd.js";
 import { simulatedMethod } from "./core/simulate.js";
 import { matchAlternative, type Alternative, type HTest, type Counts } from "./types.js";
@@ -102,8 +103,8 @@ export interface FisherTestResult extends Omit<HTest, "statistic" | "statisticNa
  * ```ts
  * const r = fisherTest([[3, 1], [1, 3]]);
  * r.pValue;   // 0.4857142857142857
- * r.estimate; // 6.408308867005792 (conditional MLE of the odds ratio)
- * r.confInt;  // [0.2117329153055031, 621.9337505454175]
+ * r.estimate; // 6.408319658199675 (conditional MLE of the odds ratio; R: 6.408309)
+ * r.confInt;  // [0.2117355954465785, 626.2435305888127] (R: 0.2117329, 621.93)
  * ```
  *
  * @category Hypothesis tests
@@ -255,12 +256,9 @@ class OddsRatioDistribution {
   }
 }
 
-/**
- * Root of f, monotone in the odds ratio psi: searched for as psi in [0, 1] when it lies below 1, otherwise as
- * s = 1/psi in [eps, 1] (uniroot with its default tolerance in both cases)
- */
+/** Root of f, monotone in the odds ratio psi, to the precision of the doubles (on the log scale, see logScaleRoot) */
 function oddsRatioRoot(f: (psi: number) => number, belowOne: boolean): number {
-  return belowOne ? uniroot(f, 0, 1) : 1 / uniroot((s) => f(1 / s), Number.EPSILON, 1);
+  return logScaleRoot(f, belowOne);
 }
 
 function fisher2x2(t: number[][], options: FisherTestOptions, method: string): FisherTestResult {

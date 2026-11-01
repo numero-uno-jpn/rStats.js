@@ -146,7 +146,9 @@ export function glmConfint(
     return Math.sign(b - B[j]!) * Math.sqrt(Math.max(stat / dispersion, 0));
   };
 
-  const cut = [qnorm((1 - level) / 2), qnorm((1 + level) / 2)] as const;
+  // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+  const a2 = (1 - level) / 2;
+  const cut = [qnorm(a2), a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm((1 + level) / 2)] as const;
   const lower = parm.map(() => NaN);
   const upper = parm.map(() => NaN);
   parm.forEach((j, k) => {

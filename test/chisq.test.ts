@@ -45,6 +45,12 @@ htestSuite({
     return { ...r, next: runif(1)[0] };
   },
   tolerance: 1e-12,
+  // a goodness-of-fit simulation with counts summing to a fraction is an error: R draws more simulations than it
+  // counts in the p-value, which can exceed 1 (review 58)
+  substitute: (c) =>
+    c.args.simulatePValue === true && !Array.isArray((c.args.x as unknown[])[0]) && !Number.isInteger(counts(c.args.x).reduce((s: number, v) => s + (v as number), 0))
+      ? { expected: { error: "the simulation needs counts summing to an integer" }, reason: "goodness-of-fit simulation with a fractional total" }
+      : undefined,
 });
 
 /** Factor vector: labels, with null for R's NA */

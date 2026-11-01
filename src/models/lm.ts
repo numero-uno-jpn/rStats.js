@@ -440,6 +440,15 @@ export interface ConfintOptions {
 }
 
 /**
+ * The t quantile at (1 + level) / 2. For alpha = (1 - level) / 2 below 1e-8 the upper probability itself: 1 - alpha
+ * loses its digits and rounds to 1 below 1.1e-16 (review 58)
+ */
+function tQuantile(level: number, df: number): number {
+  const a2 = (1 - level) / 2;
+  return a2 < 1e-8 ? qt1(a2, df, false, false) : qt1((1 + level) / 2, df, true, false);
+}
+
+/**
  * Confidence intervals for the coefficients of a linear model (NaN for aliased columns), for an `lm` fit.
  * Equivalent to R's `confint()`.
  *
@@ -464,7 +473,7 @@ export function confint(
   const level = options.level ?? 0.95;
   // R's confint gives NaN limits for a level outside (0, 1) and predict an interval of some other coverage; an error
   if (!(level > 0 && level < 1)) throw new RangeError("'level' must be between 0 and 1");
-  const t = qt1((1 + level) / 2, fit.dfResidual, true, false);
+  const t = tQuantile(level, fit.dfResidual);
   const { estimate, stdError } = fit.coefTable;
   const lower = fit.coefficients.map(() => NaN);
   const upper = fit.coefficients.map(() => NaN);
@@ -552,7 +561,7 @@ export function predict(
   if (interval === "none") return { fit: values, seFit, ...extra };
   const level = options.level ?? 0.95;
   if (!(level > 0 && level < 1)) throw new RangeError("'level' must be between 0 and 1");
-  const t = qt1((1 + level) / 2, fit.dfResidual, true, false);
+  const t = tQuantile(level, fit.dfResidual);
   const half = seFit.map((s) => t * (interval === "prediction" ? Math.hypot(s, fit.sigma) : s));
   return { fit: values, seFit, lwr: values.map((v, i) => v - half[i]!), upr: values.map((v, i) => v + half[i]!), ...extra };
 }

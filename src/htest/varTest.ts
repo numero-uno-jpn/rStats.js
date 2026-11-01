@@ -101,7 +101,9 @@ export function varTest(x: Sample | string, y: Sample | DataFrame, options: VarT
   } else {
     pValue = Math.min(1, 2 * Math.min(lower, upper));
     const beta = (1 - confLevel) / 2;
-    confInt = [estimate / qf1(1 - beta, dfx, dfy, true, false), estimate / qf1(beta, dfx, dfy, true, false)];
+    // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+    const fHigh = beta < 1e-8 ? qf1(beta, dfx, dfy, false, false) : qf1(1 - beta, dfx, dfy, true, false);
+    confInt = [estimate / fHigh, estimate / qf1(beta, dfx, dfy, true, false)];
   }
   return {
     method: "F test to compare two variances",

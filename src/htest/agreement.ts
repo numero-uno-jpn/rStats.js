@@ -268,7 +268,9 @@ export function icc(ratings: readonly (readonly number[])[], options: IccOptions
   const ssTotal = variance(rows.flat()) * (n * k - 1);
   const mse = (ssTotal - msr * (n - 1) - msc * (k - 1)) / ((n - 1) * (k - 1));
   const upper = (F: number, d1: number, d2: number): number => pf1(F, d1, d2, false, false);
-  const q = (d1: number, d2: number): number => qf1(1 - alpha / 2, d1, d2, true, false);
+  // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+  const q = (d1: number, d2: number): number =>
+    alpha / 2 < 1e-8 ? qf1(alpha / 2, d1, d2, false, false) : qf1(1 - alpha / 2, d1, d2, true, false);
   const df1 = n - 1;
   if (model === "oneway" || type === "consistency") {
     const ms = model === "oneway" ? msw : mse;

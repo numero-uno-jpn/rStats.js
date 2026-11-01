@@ -194,7 +194,7 @@ if (hasFixture("poissonTest"))
     tolerance: 1e-12,
     // a time base of 0 defines no rate: an error (R returns NaN or Infinity for the estimate and the interval; review 57)
     substitute: (c) =>
-      (Array.isArray(c.args.T) ? c.args.T : [c.args.T]).includes("0")
+      ([] as unknown[]).concat(c.args.T).includes("0")
         ? { expected: { error: "'T' must be positive" }, reason: "poisson.test with T = 0: R returns NaN or Infinity" }
         : undefined,
   });
@@ -307,8 +307,10 @@ if (hasFixture("mantelhaenTest"))
         defined({ correct: arg.bool(a.correct), exact: arg.bool(a.exact), ...rAlt(a) }),
       ),
     tolerance: 1e-12,
-    // the exact test's estimate and limits are roots found by uniroot, in R as here
-    fieldTolerance: { estimate: 1e-4, confInt: 1e-4 },
+    // the exact test's estimate and limits: R's stop where uniroot's absolute tolerance eps^0.25 does (1e-6 to several
+    // percent off); the roots here are to the precision of the doubles (review 58). The asymptotic test as R
+    knownDifference: (a, field) =>
+      a.exact === true && (field === "estimate" || field === "confInt") ? "R's uniroot tolerance on the exact estimate and limits" : undefined,
   });
 /** A p-value R forms as 1 - P (P near 1) is good to about 1e-16 absolutely; within 1e-15 the difference is R's */
 const oneMinusP = (_a: unknown, field: string, expected: number, actual: number): string | undefined =>

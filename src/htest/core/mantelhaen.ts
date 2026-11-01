@@ -6,11 +6,12 @@
 // odds ratio (Mantel and Haenszel, JNCI 22, 1959; Birch, JRSS B 26, 1964), so their sum S has the density
 // d0(s) psi^s / sum_t d0(t) psi^t, where d0 is the convolution of the K central hypergeometric densities. The
 // conditional MLE of psi is the noncentrality whose mean equals the observed S, and the confidence limits are the
-// noncentralities at which a one-sided probability equals alpha; the roots are found with uniroot on psi in [0, 1] or
-// on 1/psi in [eps, 1], as for fisher.test's 2 x 2 tables (src/htest/fisherTest.ts).
+// noncentralities at which a one-sided probability equals alpha; the roots are found on the log scale of psi to the
+// precision of the doubles, as for fisherTest's 2 x 2 tables (src/htest/fisherTest.ts; R's uniroot conventions stop
+// 1e-6 to 1e-2 from the roots).
 
 import { dhyper1 } from "../../distributions/hypergeometric.js";
-import { uniroot } from "../../internal/uniroot.js";
+import { logScaleRoot } from "../../internal/uniroot.js";
 import { ddAdd, type DD } from "../../special/dd.js";
 
 /** One 2 x 2 stratum as [[a, b], [c, d]] counts */
@@ -115,7 +116,8 @@ export class ConvolvedNoncentralHyper {
  * t = 1/psi in [eps, 1]
  */
 function oddsRoot(f: (psi: number) => number, belowOne: boolean): number {
-  return belowOne ? uniroot(f, 0, 1) : 1 / uniroot((t) => f(1 / t), Number.EPSILON, 1);
+  // on the log scale to the precision of the doubles (R's uniroot conventions stopped 1e-6 to 1e-2 off; review 58)
+  return logScaleRoot(f, belowOne);
 }
 
 /** The conditional maximum likelihood estimate of the common odds ratio given the observed sum s */

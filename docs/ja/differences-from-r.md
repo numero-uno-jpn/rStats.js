@@ -100,6 +100,7 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | 平均が大きく散らばりが小さいデータ (1e8 + 1e-3 のノイズ) の分散と相関 | 分散が 1.4e-11、`cor` が 2e-10 ずれる | double-double で総和 |
 | 1e200 前後の値の分散 | 二乗がオーバーフロー: 分散 Inf、t = 0、p = 1 | 偏差を 2 のべき乗でスケーリングし、有限の結果 |
 | 1e-200 前後の値の相関 | アンダーフローして NA | 有限の結果 (同上) |
+| `fisher.test` (2 x 2) と `mantelhaen.test(exact = TRUE)` の条件付き最尤推定値と信頼限界 | psi の [0, 1] か 1/psi の [eps, 1] で、絶対許容誤差 eps^0.25 の uniroot を使う。[[3, 1], [1, 3]] では推定値が 1.7e-6、95% の限界が 1.3e-5 と 0.7% (626.24 が 621.93)、99% の上限が 6% ずれ、99.99% の限界は区間の端 1/eps (3.2e5 が 4.5e15) | psi の対数の座標で、double の精度まで根を求める (限界で片側確率が alpha、推定値で平均が度数に一致する) |
 | 完全相関 (たとえば `1:5` とそれ自身) | r = 1 − 2 ulp。1 − r² が桁落ちし、t と p が大きくずれる (p が 0 でなく 4e-24。1e-4 のノイズがあると p 値が 14% ずれる) | r と 1 − r² を double-double で計算 |
 | Kendall の正確検定の上側の裾 | 1 − (下側の裾) として計算: n = 30 の完全相関で 3.8e-33 でなく 5.6e-16 | 上側の裾を直接合計 |
 | Spearman、n = 2 の完全相関 | S = 2.2e-16 (0 であるべき) | 0 |
@@ -154,6 +155,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `binom.test(0, 1e20)`、`poisson.test(0, r = 1e20)` (2^53 を超えるカウント) | エラー "result would be too long a vector" | p 値を返す (二分法は中点が端点に丸まったところで止める。以前は終わらなかった) |
 | `poisson.test(c(5, 5), T = c(1e308, 1e308))`、`T = c(1e-308, 1e-308)` | p 値 0 (p0 = r T1 / (r T1 + T2) = 0)、期待度数 NaN。率比 NaN | p 値 1、期待度数 5、率比 1 (和が溢れる・正規の範囲を下回るときは T2 / T1 の比で計算する) |
 | `binom.test(5, 10, conf.level = 1 - 1e-16)` と `poisson.test` (alpha が 1e-8 未満) | 上限を 1 - alpha から求め、桁が落ちる (1 - 1e-16 では 1 と Inf) | 上限を上側確率 alpha そのものから求める (0.99981、52.549)。alpha が 1e-8 以上なら R と同じ |
+| `var.test`、`prop.test`、`mantelhaen.test`、`t.test`、ICC、`cor.test`、一元配置の対比、lm の `confint`・`predict`、glm のプロファイル区間、`coxph`、`survfit` の区間も同じ (alpha が 1e-8 未満) | 1 - alpha や (1 + level) / 2 が 1 に丸まり、限界が 0・NaN・Inf | 上側確率 alpha を分位点関数に渡す |
+| 度数が 1e150 前後の `mantelhaen.test` (度数の積が溢れる) | 統計量と p 値が NaN (分散で Inf / Inf) | その場合だけ比を先に作る。釣り合った表では統計量 0、p 値 1 |
 | `qbinom(-1e10, 1e5, 0.01, log.p = TRUE)` | 37 (探索が途中で止まる) | 0 (F(0) ≈ e^-1005 は e^-1e10 を超える) |
 | `qt(1e-320, 2)` (非正規化数の p) | -Inf | -7.0711e159 (閉じた式 −sqrt(1/(2p)) と一致) |
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (真の答えを丸めると 1) |
@@ -304,7 +307,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   by optim" で止まり、負の値は受け付ける)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
   `poissonTest` は事象数 0 どうしの比較を R どおり行う)、`factanal`・`omega` の `covmat` で、正方・有限・対称 (R の
   `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)、`poissonTest` の観察時間
-  `T` が 0 (R は推定値と区間に NaN や Inf を返す)、`binomTest`・`poissonTest` でカウントの合計が溢れるもの (R は NaN かエラー)、`grad`・`jacobian`・
+  `T` が 0 (R は推定値と区間に NaN や Inf を返す)、`binomTest`・`poissonTest` でカウントの合計が溢れるもの (R は NaN かエラー)、`chisqTest` のシミュレーションで整数でない `B` や、合計が整数でない適合度検定の度数 (R の p 値は 1 を超えることがある)、`mantelhaenTest(exact: true)` の小数の度数 (R は結果を返す)、`grad`・`jacobian`・
   `hessian` の 0 の刻み `eps` や、有限でない `d`・`eps`・`zeroTol` (numDeriv の "simple" 法は `eps = 0` で NaN を返す。`d = 0` は
   numDeriv でもエラー)。
 - **検出力と効果量の関数**は、既知の量の NaN (pwr はたいてい "missing value where TRUE/FALSE needed" で止まる。

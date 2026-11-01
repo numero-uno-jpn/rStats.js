@@ -92,6 +92,10 @@ export function mantelhaenTest(
   checkConfLevelOpen(confLevel);
 
   if (I === 2 && J === 2) {
+    // the exact conditional distribution is over integer tables (R takes fractional counts and returns a result)
+    if (exact && strata.some((t) => t.some((r) => r.some((v) => !Number.isInteger(v))))) {
+      throw new RangeError("the exact test needs integer counts");
+    }
     const tables = strata.map((t) => [[t[0]![0]!, t[0]![1]!], [t[1]![0]!, t[1]![1]!]] as const);
     return exact ? exact2x2xK(tables, alternative, confLevel) : asymptotic2x2xK(tables, totals, alternative, correct, confLevel);
   }
@@ -121,12 +125,17 @@ function asymptotic2x2xK(
     const c1 = a + c;
     const c2 = b + d;
     sa += a;
-    se += (r1 * c1) / t;
-    sv += (r1 * r2 * c1 * c2) / (t * t * (t - 1));
+    // products of counts near 1e150 overflow (the variance was Infinity / Infinity = NaN; R too): the ratios first there
+    const e = (r1 * c1) / t;
+    se += Number.isFinite(e) ? e : (r1 / t) * c1;
+    const v = (r1 * r2 * c1 * c2) / (t * t * (t - 1));
+    sv += Number.isFinite(v) ? v : (r1 / t) * (r2 / t) * (c1 / (t - 1)) * c2;
     const P = (a + d) / t;
     const Q = (b + c) / t;
-    const R = (a * d) / t;
-    const S = (b * c) / t;
+    const ad = (a * d) / t;
+    const bc = (b * c) / t;
+    const R = Number.isFinite(ad) ? ad : (a / t) * d;
+    const S = Number.isFinite(bc) ? bc : (b / t) * c;
     sR += R;
     sS += S;
     sPR += P * R;
@@ -146,7 +155,9 @@ function asymptotic2x2xK(
   if (alternative === "less") confInt = [0, estimate * Math.exp(qnorm(confLevel) * sd)];
   else if (alternative === "greater") confInt = [estimate * Math.exp(qnorm(confLevel, { lowerTail: false }) * sd), Infinity];
   else {
-    const z = qnorm((1 + confLevel) / 2);
+    // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+    const a2 = (1 - confLevel) / 2;
+    const z = a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm((1 + confLevel) / 2);
     confInt = [estimate * Math.exp(-z * sd), estimate * Math.exp(z * sd)];
   }
   return {

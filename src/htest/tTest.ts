@@ -201,7 +201,8 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
   } else {
     pValue = 2 * pt1(-Math.abs(tstat), df, true, false);
     const alpha = 1 - confLevel;
-    const c = qt1(1 - alpha / 2, df, true, false);
+    // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+    const c = alpha / 2 < 1e-8 ? qt1(alpha / 2, df, false, false) : qt1(1 - alpha / 2, df, true, false);
     confInt = [centre - half(c), centre + half(c)];
   }
   confInt = [ldexp(confInt[0], k), ldexp(confInt[1], k)];

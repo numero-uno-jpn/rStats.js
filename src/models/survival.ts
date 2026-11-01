@@ -315,7 +315,9 @@ export function survfit(time: readonly number[], status: readonly number[], opti
   if (!(confInt > 0 && confInt < 1)) throw new RangeError("'confInt' must be between 0 and 1");
   const { obs, labels } = prepare(time, status, group);
   const names = group === undefined ? ["all"] : labels;
-  const z = qnorm(1 - (1 - confInt) / 2);
+  // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+  const a2 = (1 - confInt) / 2;
+  const z = a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm(1 - (1 - confInt) / 2);
   const out: SurvfitResult = {
     strata: [], time: [], nRisk: [], nEvent: [], nCensor: [], surv: [], stdErr: [], lower: [], upper: [],
     median: [], medianRows: names,

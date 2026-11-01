@@ -150,7 +150,9 @@ export function propTest(
   // ---- confidence interval ----
   let confInt: [number, number] | undefined;
   if (k === 1 || (k === 2 && !pGiven)) {
-    const z = qnorm(alternative === "two.sided" ? (1 + confLevel) / 2 : confLevel);
+    // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+    const a2 = (1 - confLevel) / 2;
+    const z = alternative === "two.sided" && a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm(alternative === "two.sided" ? (1 + confLevel) / 2 : confLevel);
     if (k === 1) {
       const nn = ns[0]!;
       const z2 = z * z;

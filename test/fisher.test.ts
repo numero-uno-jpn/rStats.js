@@ -21,6 +21,9 @@ htestSuite({
   // (the "internal consistency" tests below check against enumeration)
   knownDifference: (a, field, expected, actual) => {
     const x = arg.mat(a.x)!;
+    // R's estimate and limits stop where uniroot's absolute tolerance eps^0.25 on psi or 1/psi does (1e-6 to several
+    // percent off); the roots here are to the precision of the doubles, checked in test/review58.test.ts (review 58)
+    if (field === "estimate" || field === "confInt") return "R's uniroot tolerance on the conditional MLE and the limits";
     if (field !== "pValue" || x.length < 3 || x[0]!.length < 3) return undefined;
     return Math.abs(actual - expected) <= 1e-10 * expected ? "rounding error of R's FEXACT for 3x3 or larger tables (within relative 1e-10)" : undefined;
   },
@@ -43,6 +46,8 @@ htestSuite({
     return { ...r, next: runif(1)[0] };
   },
   tolerance: 1e-12,
+  // (2 x 2 tables: the estimate and limits are the roots, as in the suite above)
+  knownDifference: (_a, field) => (field === "estimate" || field === "confInt" ? "R's uniroot tolerance on the conditional MLE and the limits" : undefined),
 });
 
 /** Computes the p-value by enumerating all tables with fixed margins (checks the network pruning; small tables only) */

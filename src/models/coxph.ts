@@ -564,7 +564,9 @@ export function coxph(
     const y = cholSolve(v, b);
     for (let i = 0; i < k; i++) wald += b[i]! * y[i]!;
   }
-  const q = qnorm((1 + confLevel) / 2);
+  // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+  const a2 = (1 - confLevel) / 2;
+  const q = a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm((1 + confLevel) / 2);
   const seUnit = varUnit.map((row, j) => Math.sqrt(row[j]!));
   const se = seUnit.map((v, j) => ldexp(v, expo[j]!));
   const z = coefficients.map((c, j) => (Number.isNaN(c) ? c : coefUnit[j]!) / seUnit[j]!);
