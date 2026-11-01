@@ -188,7 +188,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/optim/localmin.ts` | 未監査 | — | `—` | — | — | — |
 | `src/optim/optim.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/as241.ts` | 未監査 | — | `—` | — | — | — |
-| `src/random/beta.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/beta.ts` | 問題あり | #122 | `10357380b3019e5ea6089224e3a0d4152702e639` | [#30](https://github.com/numero-uno-jpn/rStats.js/issues/30) | RのCheng BB/BC法を参照。極端な片側巨大shapeでRとの一致より分布の正しさに問題 | `rbeta(5,1.1,1e308)` はオーバーフロー分岐で全値を平均約1.1e-308に固定。理論CV≈0.953。ソースと分布式による確認。Vitest・R・simulation未実行。 |
 | `src/random/binomial.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/common.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/continuous.ts` | 未監査 | — | `—` | — | — | — |
@@ -699,3 +699,16 @@ Repository: `numero-uno-jpn/rStats.js`
 - Algorithm review: GS (shape<1) and GD (shape>=1) formula/constants, squeeze and quotient acceptances, double-exponential rejection, normal/exponential/uniform dependencies, MT open-interval fixups, scale multiplication, and finite/infinite parameter early returns were compared with R's `rgamma.c`. No additional reproducible algorithm defect established by source comparison. This is not a distributional/statistical validation.
 - Exact deterministic reproduction inputs are listed above; no RNG seed is needed because this defect is in the deterministic parameter-validation branch and consumes no random values.
 - No Vitest, package runtime, statistical simulation, or fresh R execution was performed. R expectations were confirmed by direct comparison with the R source implementation; no fixture values were executed.
+
+
+## Audit #122
+
+- Repository HEAD before ledger update: `10357380b3019e5ea6089224e3a0d4152702e639`.
+- Primary source: `src/random/beta.ts` blob `5371b478626066c291432ec2df4529953520f520`. Related sources: `src/random/gamma.ts` blob `76f1bbfcf99c0ead3efff7887131e7e142511f33`; `src/random/rng.ts` blob `f527fd7018642205ef5870df8fcab8fc9e02aff1`; `src/random/common.ts` blob `be016a36e9f09f580462d2bf93e30ed6bad527c1`.
+- Test/fixture inspected: `test/random.test.ts` blob `f849a51e7b3c89c639641cf0a231fc9989dcff81`; `test/helpers/random.ts` blob `d9c9fae276354b0ed1c63a0ea6c588efe99ca8e9`; `test/fixtures/rbeta.json` blob `866acacf6513f6a0406424961fd5176c73ad1e5d`. Fixture: R 4.5.2, x86_64 Linux, 47 cases; central shape grid 0.1, 0.5, 1, 2, 5, 50; special shapes 0/Inf/negative; one ncp=1.5 case; three 20,000-draw summary cases. Inspected, not executed.
+- Result: `問題あり`. The BB algorithm's large-product shortcut tests only whether `2*a*b` overflows, not whether both shape parameters are large. For `a=1.1,b=1e308`, the branch consumes two uniforms and returns the mean for every variate. Exact deterministic reproduction: `setSeed(12); rbeta(5, 1.1, 1e308)`; source-level result is five copies of approximately `1.1e-308` (seed does not affect values in this branch, only stream state).
+- Mathematical check: Beta(a,b) coefficient of variation is `sqrt(b / (a*(a+b+1)))`; at a=1.1,b=1e308 it tends to `1/sqrt(1.1) ≈ 0.953462589`. Thus the distribution is not concentrated at its mean and the constant shortcut is invalid. For large b and moderate a, `b*X` tends to Gamma(a,1), suggesting a scale-aware alternative. R's central `rbeta.c` uses Cheng BB/BC too; this audit evaluates mathematical distribution fidelity, not exact R parity in this extreme region.
+- R source cross-check: Fossies R 4.6.1 `src/nmath/rbeta.c` confirms the Cheng BB/BC structure and the same overflow-sensitive BB expression; see web citation in report. The local implementation adds its own mean shortcut for overflow. The R source is not treated as an independent correctness oracle for this extreme case.
+- Additional review: BC and BB rejection inequalities, constants, symmetry, parameter cache, endpoint/special-value handling, and noncentral-beta construction via noncentral chi-square/gamma mixtures were source-reviewed. No second concrete defect established. R's `ncp=0` path remains separate from omitted ncp as expected by the random generator design.
+- Issue filed: [#30](https://github.com/numero-uno-jpn/rStats.js/issues/30).
+- No Vitest, package runtime, statistical simulation, or fresh R execution. The result is a deterministic source-level finding plus analytic distributional proof; fixture cases were only inspected.
