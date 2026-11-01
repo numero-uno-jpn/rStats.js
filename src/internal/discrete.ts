@@ -89,8 +89,17 @@ export function discreteQuantile(problem: DiscreteQuantileProblem): number {
     y = good;
     step *= 2;
     good = y + step;
-    // Past the largest double (the step was stuck at Infinity before): the quantile lies beyond the doubles
-    if (good === Infinity) return hi;
+    if (good === Infinity && hi === Infinity) {
+      // The step overflowed: the quantile may still lie below the largest double (a threshold at 1.7e308 searched from
+      // 1 gave Infinity), so test that before concluding it lies beyond the doubles. (With a finite hi, the loop ends
+      // and the search below runs up to hi)
+      const top = Number.MAX_VALUE;
+      const atTop = ok(top);
+      if (nan) return NaN;
+      if (!atTop) return hi;
+      good = top;
+      break;
+    }
   }
   if (good > hi) good = hi;
   const r = bisect(y, good, ok, () => nan);
