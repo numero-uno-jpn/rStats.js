@@ -471,7 +471,7 @@ export function dbinomRawSplit(x: number, nmx: number, p: number, q: number, log
  * The rounding error of p^x is amplified x times (1e-11 at x = 1e5), so where p is formed as 1 - (smaller side),
  * pass that difference exactly in double-double.
  */
-export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean): number {
+export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean, size?: number): number {
   const zero = log ? -Infinity : 0;
   const one = log ? 0 : 1;
   const nn = twoSum(x, nmx); // n in double-double
@@ -499,7 +499,8 @@ export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean):
   }
   if (x < 0 || nmx < 0) return zero;
   // E = stirlerr(x) + stirlerr(n-x) - stirlerr(n) + bd0(x, np) + bd0(n-x, nq)
-  const e = binomialExponent(x, nmx, nn, p, q);
+  // (the given n when n - x was rounded: see exactBinomialExponent)
+  const e = size !== undefined && (nn[0] !== size || nn[1] !== 0) ? exactBinomialExponent(x, size, p, q) : binomialExponent(x, nmx, nn, p, q);
   // Denominator 2 pi x (n - x) / n. Beyond 2e307 for x (n - x) / n, 2 pi x overflowed (dbinom(8e307, 1.6e308, 0.5)
   // and dmultinom of such counts were 0; issue #24): as in dpoisRawCore, pi x (n - x) / (8 n) and the value divided by 4
   const big = x * (nmx / n) > 2e307;
@@ -526,6 +527,67 @@ export function dbinomExponent(x: number, nmx: number, p: DD, q: DD): { e: DD; l
  * The exponent E = bd0(x, np) + bd0(n - x, nq) + stirlerr(x) + stirlerr(n - x) - stirlerr(n) in double-double;
  * [Infinity, 0] where a deviance overflows (the double-double sums made it NaN: dbeta(0.998, 55.1, 6.3e307))
  */
+/**
+ * The exponent of dbinomRawDD for the given n (an integer double) where n - x is not a double (n beyond 2^53): n
+ * rebuilt as x + fl(n - x) was up to an ulp off, which at n near 1e308 is 1e137 standard deviations (dbinom(4e307,
+ * 1.6e308, 0.25) was 0 for 7.3e-155), and even double-double n q is off by 1e276 there. The deviations are formed
+ * exactly instead: with p a double, d1 = x - n p from the exact product, and d2 = (n - x) - n q = -d1 (q = 1 - p
+ * exactly); with q a double the roles swap. Otherwise as binomialExponent
+ */
+function exactBinomialExponent(x: number, n: number, p: DD, q: DD): DD {
+  const xd: DD = [x, 0];
+  const rest = twoSum(n, -x);
+  // the exact product n r (n scaled by 2^-64 above 1e299, where the splitting overflows; exact, and back)
+  const times = (r: number): DD => {
+    if (n < 1e299) return twoProd(n, r);
+    const t = twoProd(n * 2 ** -64, r);
+    return [t[0] * 2 ** 64, t[1] * 2 ** 64];
+  };
+  let d1: DD;
+  let d2: DD;
+  if (p[1] === 0) {
+    d1 = ddSub(xd, times(p[0]));
+    d2 = ddNeg(d1);
+  } else if (q[1] === 0) {
+    d2 = ddSub(rest, times(q[0]));
+    d1 = ddNeg(d2);
+  } else {
+    return binomialExponent(x, rest[0], twoSum(x, rest[0]), p, q);
+  }
+  const b1 = bd0FromDeviance(xd, ddSub(xd, d1), d1);
+  const b2 = bd0FromDeviance(rest, ddSub(rest, d2), d2);
+  if (!Number.isFinite(b1[0] + b2[0])) return [Infinity, 0];
+  return ddAdd(ddAdd(b1, b2), twoSum(stirlerr(x) + stirlerr(rest[0]), -stirlerr(n)));
+}
+
+/**
+ * bd0(x, M) = x log(x/M) + M - x with x, M and d = x - M given in double-double (d exact where M is not): the series of
+ * bd0ddOps for a small |d|, else x log(x/M) - d. Homogeneous of degree 1, so computed times 2^-64 above 1e299
+ */
+function bd0FromDeviance(x: DD, M: DD, d: DD): DD {
+  if (Math.max(x[0], M[0]) > 1e299) {
+    const s = 2 ** -64;
+    return scaleUp(bd0FromDeviance([x[0] * s, x[1] * s], [M[0] * s, M[1] * s], [d[0] * s, d[1] * s]));
+  }
+  if (Math.abs(d[0]) < 0.1 * (x[0] + M[0])) {
+    const v = ddDiv(d, ddAdd(x, M));
+    let s = ddMul(d, v);
+    let ej = ddMul(v, [2 * x[0], 2 * x[1]]);
+    const v2 = ddMul(v, v);
+    for (let j = 1; j < 1000; j++) {
+      ej = ddMul(ej, v2);
+      const t = ddDivNum(ej, 2 * j + 1);
+      const s1 = ddAdd(s, t);
+      if (Math.abs(t[0]) <= 1e-33 * Math.abs(s1[0]) || (s1[0] === s[0] && s1[1] === s[1])) return s1;
+      s = s1;
+    }
+    return s;
+  }
+  const ratio = x[0] / M[0];
+  const lr = ratio > 1e-290 && ratio < 1e290 ? ddLog(ddDiv(x, M)) : ddSub(ddLog(x), ddLog(M));
+  return ddSub(ddMul(lr, x), d);
+}
+
 function binomialExponent(x: number, nmx: number, nn: DD, p: DD, q: DD): DD {
   const d1 = bd0Prod(x, nn, p);
   const d2 = bd0Prod(nmx, nn, q);

@@ -30,7 +30,7 @@ export function dbinom1(x: number, size: number, prob: number, log: boolean): nu
   if (xr > n) return d0(log);
   const pd: DD = prob <= 0.5 ? [prob, 0] : twoSum(1, -(1 - prob));
   const qd: DD = prob <= 0.5 ? twoSum(1, -prob) : [1 - prob, 0];
-  return dbinomRawDD(xr, n - xr, pd, qd, log);
+  return dbinomRawDD(xr, n - xr, pd, qd, log, n);
 }
 
 /** P[X <= x] (lower) / P[X > x] (!lower). x an integer, 0 <= x < n */
