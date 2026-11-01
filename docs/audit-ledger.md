@@ -199,7 +199,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/mt.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/poisson.ts` | 一部監査・問題未検出 | #123 | `cf352aaf46ae22782a09d7c054fd3716a370d7a6` | — | R本体 `src/nmath/rpois.c` のAhrens–Dieter法と主要分岐・定数を照合 | λ=0, 0.1, 1, 5, 9.99, 10, 15, 50, 100, 1e4, 1e7, Inf, -1, NaN。32 fixture cases (R 4.5.2) inspected only. No new reproducible defect; source review only, no Vitest/runtime/R/simulation. Extreme λ beyond fixture and precision/overflow behavior not exhaustively validated. |
 | `src/random/r2dtable.ts` | 一部監査・問題未検出 | #127 | `8ccc84fc49823aa54db9eb23da7d7b3df00033f0` | — | — | — |
-| `src/random/rank.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/rank.ts` | 一部監査・問題未検出 | #129 | `6f8c6930b3c84d99f07d6fe7c0bc0622569ae526` | — | R 4.5.2 rsignrank/rwilcox fixture を閲覧（未実行） | 符号付き順位和の独立Bernoulli符号化、順位和の部分Fisher–Yates抽出、half-even整数化、0/負値/NaN/Inf/上限、R RNG stream消費をソース照合。R 4.5.2 fixture 10ケースを閲覧。Vitest・package runtime・R実行なし。 |
 | `src/random/rng.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/sample.ts` | 一部監査・問題未検出 | #128 | `b2a2a714b624fdd7f8e422e7a5210000a759d710` | — | — | — |
 | `src/random/streams.ts` | 未監査 | — | `—` | — | — | — |
@@ -750,3 +750,15 @@ Repository: `numero-uno-jpn/rStats.js`
 - Fixture inspected: `test/fixtures/rsample.json` blob `5dd1a59eaf2f04f054f483f76b9902b15a896521`, R 4.5.2 x86_64, 25 cases. Includes uniform permutations, large n, replacement, weighted replacement, weighted no-replacement, 300-candidate alias sampling, and 300-candidate weighted no-replacement. Fixture values and next-uniform states inspected, not executed. Test registration in `test/random-kinds.test.ts` inspected, not executed.
 - No independent reproducible defect established. Extreme dynamic-range weights can normalize to zero in binary64 (e.g. `[1e308, 1e-300, 1e-300]`), an inherent precision limitation; no evidence of a separate algorithmic defect was established in this pass.
 - Result: `一部監査・問題未検出`. No new Issue. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution.
+
+
+## Audit #129
+
+- Repository HEAD before ledger update: `6f8c6930b3c84d99f07d6fe7c0bc0622569ae526`.
+- Target: `src/random/rank.ts`, blob `4cfe69d81a9a6509c9dbac95b3000a2adfb57433`.
+- Dependencies: `src/random/rng.ts` blob `f527fd7018642205ef5870df8fcab8fc9e02aff1`; `src/random/common.ts` blob `be016a36e9f09f580462d2bf93e30ed6bad527c1`; `src/internal/integer.ts` used by half-even rounding.
+- Algorithm review: `rsignrank` forms the statistic as independent Bernoulli(1/2) choices of ranks 1..n; `rwilcox` uses partial Fisher–Yates to choose n ranks from 0..m+n-1, then subtracts n(n-1)/2. This matches R's `rwilcox` C implementation and its uniform-index sampling pattern. `rsignrank` matches the R definition `i * floor(unif_rand()+0.5)`.
+- Validation review: nonfinite/NaN inputs, half-even rounding, negative and zero sample sizes, m+n integer allocation ceiling, zero-sized sample, and generated count validation through `generate`. No independent reproducible defect established in the supported/ordinary parameter range.
+- Exact reproducible fixture inputs inspected (not executed): `setSeed(27); rsignrank(10, 5)` expected `[4,0,15,7,10,2,0,7,9,6]`; `setSeed(28); rwilcox(10, 3, 4)` expected `[9,6,5,5,5,3,10,4,2,7]`; `setSeed(28); rwilcox(10, 0, 5)` expected ten zeros. Fixture `test/fixtures/rrank.json`, blob `31fe6958bf457cfad61ee626440e0afc00f06dc4`, identifies R 4.5.2 x86_64 and contains 10 cases; values and post-draw uniform states inspected, not executed.
+- Related exact rank distribution fixtures and tests were inspected for context (`test/rank.test.ts`), but the target here is random generation, not `dsignrank`/`dwilcox`.
+- Result: `一部監査・問題未検出`. No new Issue filed. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution.
