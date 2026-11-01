@@ -553,3 +553,24 @@ Repository: `numero-uno-jpn/rStats.js`
 - Tests: inspected the R-fixture comparison test, missing-row test, flat-median test, and invalid-argument test. The fixture generator covers `log`, `plain`, `log-log`, grouped and ungrouped curves, and `conf.int=0.9`; tests and fixtures were not executed.
 - R relationship: the source/oracle contract was compared with official R documentation for `survfit_confint`; no fresh R execution.
 - Verification limits: source and formula review only. No package runtime, Vitest, fixture execution, standalone numerical harness, or fresh R comparison. No Issue filed.
+
+
+## Audit #116
+
+- Repository HEAD before ledger update: `9fe68d7d311739d68421b3f39f5a6f360312669f`.
+- Source: `src/models/survival.ts` blob `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de`.
+- Related material: `test/survival.test.ts` blob `fb067569319a07e0c60944beab502623ab5d7be2`; `oracle/survival.R` blob `708fad768c3b0375e11cb91d47377476019148ac`; `oracle/survival-behaviour.md` blob `20dfbfd0101928a4c9c976b1417cd827a92c58bc`; `test/fixtures/survival.json` blob `2e3bb7b95bb567b12526c94cce94aec04513ba54` (R version 4.5.2).
+- R implementation cross-check: fetched `cran/survival` tag `3.8-3`, `R/print.survfit.R` blob `1426b7dab3c4917c4b4adee27909dd7cff1809e5`. Its `minmin()` uses `keep = !is.na(y) & y < (0.5+tolerance)`; when the first retained value is within tolerance of 0.5 and a later value is lower, it returns the midpoint between the first retained time and the first lower value. This agrees with the intended midpoint behavior in `curveMedian()` for the monotone KM and confidence curves examined. The fixture's expected median for the p stratum is 2.5, with lower limit 1 and upper limit NA; for q it is 5, lower limit 2 and upper limit NA.
+- Result: `問題未検出`; no new defect established in the targeted median/median-CI pass.
+- Median rule: `curveMedian()` skips NaN values, finds the first value below `0.5 + sqrt(eps)`, returns the crossing time when it is clearly below 0.5, and uses the midpoint to the next event when it is within the tolerance band. The R source uses the same tolerance and midpoint convention, locating the first subsequent value below the first retained value. For the ordinary KM curve, this corresponds to the next event time; censors leave the curve unchanged.
+- Exact fixture-derived input (values are literal; source/fixture inspection only, not executed in this audit):
+  ```ts
+  const time = [1, 2, 3, 4, 1, 2, 2, 5, 6, 6];
+  const status = [1, 1, 1, 1, 1, 1, 0, 1, 1, 1];
+  const group = ["p", "p", "p", "p", "q", "q", "q", "q", "q", "q"];
+  // R 4.5.2 fixture, conf.type="log":
+  // median rows: p=[2.5, 1, NA], q=[5, 2, NA].
+  ```
+- A caution during source comparison: an older rendered web mirror of `print.survfit.R` exposed stale/garbled conditional text. The repository's target release tag `3.8-3` was fetched directly and used instead. The earlier tentative claim that a signed comparison caused a mismatch was withdrawn; it was based on that stale rendering and is not an audit finding.
+- Tests: inspected the test that checks the 0.5 flat-stretch midpoint and the fixture-comparison harness; neither was executed. No package runtime, Vitest, fixture execution, or fresh R execution.
+- Limitations: source-level comparison only. The targeted pass did not exhaustively enumerate non-monotone confidence-bound sequences or every IEEE-754 value adjacent to 0.5. No Issue filed.
