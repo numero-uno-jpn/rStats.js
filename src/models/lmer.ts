@@ -523,6 +523,46 @@ function localMinimum(
  * its boundary points with one whole term removed (see the header); a clearly better one is the start of a new local
  * minimisation, until none is.
  */
+/**
+ * The exponent e_k of 2 of each element of θ (internal; issue #11): that of the largest |value| of the column of Z of
+ * its row in the term (over the levels). With the columns of Z divided by c_i = 2^e_i, Λ' = C Λ: θ'_k = c_i θ_k, the
+ * blocks stay lower triangular with the same signs, and the model (and its criterion) is the same
+ */
+export function thetaColumnExponents(s: MixedModelStructure): { theta: number[]; z: number[] } {
+  const theta = new Array<number>(s.theta.length).fill(0);
+  const z = new Array<number>(s.z.length).fill(0);
+  for (const t of s.terms) {
+    const nc = t.columns.length;
+    const levels = s.groups[t.group]!.levels.length;
+    const e = Array.from({ length: nc }, (_, i) => {
+      let top = 0;
+      for (let l = 0; l < levels; l++) for (const v of s.z[t.zOffset + l * nc + i]!.values) top = Math.max(top, Math.abs(v));
+      return top > 0 && Number.isFinite(top) ? Math.floor(Math.log2(top)) : 0;
+    });
+    for (let l = 0; l < levels; l++) for (let i = 0; i < nc; i++) z[t.zOffset + l * nc + i] = e[i]!;
+    let k = t.thetaOffset;
+    for (let j = 0; j < nc; j++) for (let i = j; i < nc; i++) theta[k++] = e[i]!;
+  }
+  return { theta, z };
+}
+
+/**
+ * The minimiser over θ, computed on Z with its columns divided by powers of 2 (thetaColumnExponents) and returned in
+ * the units of the given Z: a column of x times 1e6 (or 1e-5) made θ of the slope 1e-6 (1e5) and the minimisation, whose
+ * steps and tolerances do not tell the elements apart, failed (issue #11; lme4 stops elsewhere with a warning)
+ */
+function minimiseCriterionScaled(s: MixedModelStructure, reml: boolean, criterion: MixedCriterion): number[] {
+  const e = thetaColumnExponents(s);
+  if (e.z.every((v) => v === 0)) return minimiseCriterion(s, reml, criterion);
+  // (both Z and the terms' left-hand side matrices, from which the criterion forms its products)
+  const scaled: MixedModelStructure = {
+    ...s,
+    z: s.z.map((col, j) => ({ rows: col.rows, values: col.values.map((v) => ldexp(v, -e.z[j]!)) })),
+    terms: s.terms.map((t) => ({ ...t, matrix: t.matrix.map((row) => row.map((v, i) => ldexp(v, -e.z[t.zOffset + i]!))) })),
+  };
+  return minimiseCriterion(scaled, reml, criterion).map((v, k) => ldexp(v, -e.theta[k]!));
+}
+
 function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: MixedCriterion): number[] {
   /** The θ indices of each term's block (its whole lower triangle) */
   const blocks = s.terms.map((t) => {
@@ -695,7 +735,7 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
   // ky = 0 and nothing changes (issue #9)
   const ky = ycMax > 2 ** 500 || ycMax < 2 ** -500 ? Math.floor(Math.log2(ycMax)) : 0;
   const sScaled: MixedModelStructure = ky === 0 ? s : { ...s, y: yc.map((v) => ldexp(v, -ky)) };
-  const theta = minimiseCriterion(sScaled, reml, criterion);
+  const theta = minimiseCriterionScaled(sScaled, reml, criterion);
 
   const r = profiledDeviance(sScaled, theta, reml, { rxInverse: true });
   const up = (v: number): number => ldexp(v, ky);
