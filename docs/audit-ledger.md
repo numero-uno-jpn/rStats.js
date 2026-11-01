@@ -201,7 +201,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/r2dtable.ts` | 一部監査・問題未検出 | #127 | `8ccc84fc49823aa54db9eb23da7d7b3df00033f0` | — | — | — |
 | `src/random/rank.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/rng.ts` | 未監査 | — | `—` | — | — | — |
-| `src/random/sample.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/sample.ts` | 一部監査・問題未検出 | #128 | `b2a2a714b624fdd7f8e422e7a5210000a759d710` | — | — | — |
 | `src/random/streams.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/besselIK.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/besselJY.ts` | 未監査 | — | `—` | — | — | — |
@@ -769,4 +769,17 @@ Repository: `numero-uno-jpn/rStats.js`
 - Exact fixed inputs reviewed (not executed): `setSeed(1); r2dtable(1, [3, 2], [2, 3])`; `setSeed(42); r2dtable(5, [0, 6, 4], [5, 0, 5])`; `setSeed(2024); r2dtable(5, [12, 5, 7, 7], [9, 11, 11])`; `setSeed(1); r2dtable(1, [0, 0], [0, 0])`; coercion check `r2dtable(1, [3.9, 2.1], [2.9, 3.1])`.
 - Fixture inspected: `test/fixtures/r2dtable.json` blob `c12c8b89aebf9ef0c3839070980dfbb6e49ce22e`, R 4.5.2 x86_64, 73 cases. Includes 2x2 through 8x4 tables, zero margins, zero grand total, totals up to 300,000, multiple seeds, and n=200; fixed output and next-uniform states inspected, not executed. Test registration in `test/random.test.ts` inspected, not executed.
 - No independent algorithmic defect established. Resource note: the allowed maximum grand total of 2,147,483,647 would require a Float64Array with over 2 billion entries (roughly 16 GiB before other allocations); practical allocation may fail well below this guard, but it is a resource ceiling rather than a demonstrated statistical result error.
+- Result: `一部監査・問題未検出`. No new Issue. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution.
+
+
+## Audit #128
+
+- Repository HEAD before ledger update: `6faa7e1c6e67c99e454a7abf48e7f1dc2dc01446`.
+- Target: `src/random/sample.ts`, blob `b2a2a714b624fdd7f8e422e7a5210000a759d710`.
+- Dependencies inspected: `src/random/rng.ts` blob `f527fd7018642205ef5870df8fcab8fc9e02aff1` (including `unifIndex`, sample-kind selection), `src/internal/extremes.ts` blob `00fbd46179043e90fc6678a777fbd9b5540dd7c6`.
+- Algorithm review: uniform sampling with and without replacement; large-n duplicate rejection; partial Fisher-Yates; weighted sampling with replacement via cumulative probabilities and Walker alias above 200 substantial weights; weighted sampling without replacement by cumulative mass; descending heapsort and permutation; probability normalization and overflow rescaling; Rounding vs Rejection sample.kind stream use; sample(array) mapping and 0-based sampleInt output.
+- Validation review: n/size truncation and bounds, empty population, size > population, prob length/finite/nonnegative/positive weights, insufficient positive weights without replacement, n limit with weights, large n constraints, zero size, n=1, and arrays with zero weights.
+- Exact fixed inputs reviewed (not executed): `setSeed(30); sampleInt(5, { size: 20, replace: true, prob: [0.1, 0.2, 0.3, 0.2, 0.2] })`; `setSeed(30); sampleInt(5, { size: 5, replace: false, prob: [0.1, 0.2, 0.3, 0.2, 0.2] })`; `setSeed(31); sampleInt(5, { size: 3, replace: false, prob: [3, 0, 1, 1, 5] })`; `setSeed(32); sampleInt(300, { size: 50, replace: true, prob: [0.8966972001362592, 0.26550866314209998, 0.37212389963679016, 0.57285336335189641, 0.90820778999477625, 0.2016819310374558, 0.898389684684?] })` (the full 300-element weight vector is preserved in `test/fixtures/rsample.json` and was not copied here; the first three fixed vectors above are complete reproducible inputs).
+- Fixture inspected: `test/fixtures/rsample.json` blob `5dd1a59eaf2f04f054f483f76b9902b15a896521`, R 4.5.2 x86_64, 25 cases. Includes uniform permutations, large n, replacement, weighted replacement, weighted no-replacement, 300-candidate alias sampling, and 300-candidate weighted no-replacement. Fixture values and next-uniform states inspected, not executed. Test registration in `test/random-kinds.test.ts` inspected, not executed.
+- No independent reproducible defect established. Extreme dynamic-range weights can normalize to zero in binary64 (e.g. `[1e308, 1e-300, 1e-300]`), an inherent precision limitation; no evidence of a separate algorithmic defect was established in this pass.
 - Result: `一部監査・問題未検出`. No new Issue. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution.
