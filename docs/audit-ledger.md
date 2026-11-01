@@ -178,7 +178,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/models/modelFrame.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/modelMatrix.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/scaledTables.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/survival.ts` | 問題あり | #109 | `6b9fabe470c0a994e48cd612bcd3e30aaa580aa1` | [#28](https://github.com/numero-uno-jpn/rStats.js/issues/28) | Rでは未確認（R実行なし。既存fixture/testを閲覧） | `pseudoQuadratic()` の固有値採用基準 `lambda > 1e-10 * max(lambda)` が `solve()` の既定特異判定 `rcond < Number.EPSILON` より著しく粗く、fallbackで正の固有方向を過剰に捨てうることを確認。固定再現: `V=[[1,0,0],[0,1e-12,0],[0,0,1e-17]]`, `u=[0,1e-6,1e-8]`。閾値1e-10では `chisq=0, df=1`、数値的に解像可能な固有値1と1e-12を残す一般化逆行列なら `chisq=1, df=2`。ただし、このスペクトルを実際に生成する `survdiff(time,status,group)` データは未構成。ソース/数式の検討と対角行列の算術確認のみ。Vitest/package runtime/R実行なし。 |
+| `src/models/survival.ts` | 条件付き問題あり（実データ未再現） | #109–110 | `6b9fabe470c0a994e48cd612bcd3e30aaa580aa1` | [#28](https://github.com/numero-uno-jpn/rStats.js/issues/28) | Rでは未確認（R実行なし） | #109で `pseudoQuadratic()` の固定固有値閾値 `1e-10 * max(lambda)` と `solve()` の既定tol=`Number.EPSILON` の不整合を指摘。#110で `survdiff()` のリスク集合構造を解析：正の期待イベント数を持つ各群は最初のイベント時点で必ずリスク集合に属する。最初のイベント数 d がリスク集合総数 N 未満なら、その時点の分散寄与 `w²*d*(N-d)/(N*(N-1)) * (diag(r)-r*r'/N)` は、使用群のうち1群を除いた部分行列上で正定値。最初の時点で d=N なら全リスク対象が同時イベントとなり、以後のイベントはなく、V=0かつO-E=0。従って通常の入力では `pseudoQuadratic()` が準特異行列の正の小固有値を切り捨てる経路は実証できず、実際のtime/status/group再現なし。Issue #28は補助関数の閾値方針上の懸念として保持し、survdiffの実害は未確定。Vitest/package runtime/R実行なし。 |
 | `src/models/tiedTimes.ts` | 問題未検出 | #107 | `206adeeae033f983cc1e2c17b3ba568bd40f3667` | — | Rと同じ（R `survival::aeqSurv()` の既定規則と一致。今回R実行なし） | `mergeTiedTimes()` の有限時刻抽出、distinct sort、`sqrt(2^-52)` の絶対差または平均絶対時刻で規格化した相対差によるtie判定、最小cut pointへの写像、Infinity保持を確認。入力例: `[1,1+1e-9,1+1e-7]`。最初のgapは絶対許容差以下でmerge、次のgapは許容差を超えて別時刻を維持する。絶対差基準は小さい時刻での過剰mergeに見えるが、R `aeqSurv.R` の `dy <= tolerance || dy/mean(abs(y)) <= tolerance` と一致するため仕様上の不具合ではない。R公式説明・ソースおよび oracle の記述を照合。実行/Vitest/package runtime/R実行なし。 |
 | `src/numerics/deriv.ts` | 未監査 | — | `—` | — | — | — |
 | `src/numerics/integrate.ts` | 未監査 | — | `—` | — | — | — |
@@ -440,3 +440,18 @@ Repository: `numero-uno-jpn/rStats.js`
 - Tests: inspected `test/survival.test.ts`, including the R fixture comparison harness and missing-data/median edge tests. The test file references fixture `survival`; neither it nor any solve/eigen test was executed. No package runtime or Vitest run.
 - R relationship: `Rでは未確認`; no fresh R execution or integrated R comparison. Existing tests/oracle were inspected only.
 - Verification limits: source-level control-flow review and exact arithmetic on a diagonal PSD matrix. No package runtime, Vitest, or R execution. Status for `survival.ts` is `問題あり` because the helper-level cutoff defect is deterministic; end-to-end reachability remains to be established.
+
+
+
+## Audit #110
+
+- Repository HEAD: `550b7110092eb4be63f8076b9a1e8a831bbca22c`
+- Source: `src/models/survival.ts` blob `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de`; related `src/linalg/solve.ts` and `src/linalg/eigen.ts` were considered from audits #108–109.
+- Result: no integrated `survdiff(time,status,group)` reproduction of the #109 near-singular positive-eigenvalue cutoff issue was established. The concern remains a helper-level numerical-rank policy issue (Issue [#28](https://github.com/numero-uno-jpn/rStats.js/issues/28)); actual impact on ordinary `survdiff()` inputs is unconfirmed.
+- Structural argument:
+  1. Let `t1` be the earliest event time. Any group with positive expected event count has at least one subject who experiences an event at some time `tj >= t1`; that subject is therefore in the risk set at `t1`. Thus every group included in the contrast calculation has a positive risk count `r_g` at the first event time.
+  2. If the first event count `d < N` (where `N` is the total risk set), its variance contribution has positive scalar `d*(N-d)/(N*(N-1))` because `rho` weight at the first event is `KM^rho = 1`. The matrix `diag(r)-r*r'/N` is positive definite on the reduced contrast coordinates after dropping one group, since all used groups have positive risk counts. Later event-time contributions are positive semidefinite, so the accumulated reduced covariance matrix is positive definite in exact arithmetic.
+  3. If `d = N` at the first event time, all subjects still at risk fail at that time. No later event is possible; groups censored before that time have zero expected count and are excluded. For the included groups, `O=E`, `V=0`, and the pseudo-quadratic form has rank 0 and statistic 0. The eigenvalue cutoff does not alter this result.
+- Exact fixed input already used in #107 and reviewed again: `time=[1,2,3,4,5,6]`, `status=[1,1,0,1,1,1]`, `group=["a","b","a","b","a","b"]`. No package execution was performed, so no numeric result is claimed for this round.
+- Consequence: the near-singular spectrum in #109 (`V=diag(1,1e-12,1e-17)`) is a valid helper-level counterexample to the fixed cutoff, but has not been shown to be realizable by `survdiff()` risk-set accumulation. A finite dataset with an extreme condition number sufficient to trigger the `solve()` fallback was not found. The fallback appears to serve principally the all-fail-at-once zero-variance case for ordinary data.
+- Verification limits: source/formula proof review only. No generated-data search, package runtime, Vitest, fixture execution, or fresh R execution. The result is not a claim that the complete survival implementation has no defects.
