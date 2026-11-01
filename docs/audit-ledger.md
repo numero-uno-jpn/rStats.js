@@ -194,7 +194,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/continuous.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/extra.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/gamma.ts` | 問題あり | #121 | `9a6b479fa51c0e16a8313c9c2518c75130c84004` | [#29](https://github.com/numero-uno-jpn/rStats.js/issues/29) | R本体 `src/nmath/rgamma.c` と不一致 | `rgamma(1,-1,{scale:0})` と `rgamma(1,0,{scale:-1})`。Rは両方0、現行はNaN。負値判定がゼロ判定より先。ソース照合で確定。Vitest・package runtime・今回のR実行なし。 |
-| `src/random/hyper.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/hyper.ts` | 一部監査・問題未検出 | #126 | `df63732522e39556a07f79edbb5a287f7348fa87` | — | — | — |
 | `src/random/lecuyer.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/mt.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/poisson.ts` | 一部監査・問題未検出 | #123 | `cf352aaf46ae22782a09d7c054fd3716a370d7a6` | — | R本体 `src/nmath/rpois.c` のAhrens–Dieter法と主要分岐・定数を照合 | λ=0, 0.1, 1, 5, 9.99, 10, 15, 50, 100, 1e4, 1e7, Inf, -1, NaN。32 fixture cases (R 4.5.2) inspected only. No new reproducible defect; source review only, no Vitest/runtime/R/simulation. Extreme λ beyond fixture and precision/overflow behavior not exhaustively validated. |
@@ -746,3 +746,15 @@ Repository: `numero-uno-jpn/rStats.js`
 - Exact deterministic inputs reviewed (not executed): `setSeed(34); rmultinom(3, 10, [0.2, 0.5, 0.3])`; `setSeed(34); rmultinom(2, 100, [1, 0, 3, 6])`; `setSeed(17); rmultinom(5, 2_000_000_000, [1e-17, 1, 1])`. The third case can inherit #124's tiny-probability inversion defect in the first conditional binomial draw; this is not a separate defect in the multinomial allocation logic.
 - Test fixture inspected: `test/fixtures/rmultinom.json` blob `bc0d8f9fff0fe01792f2a6c5e5908b3a99bd26e4`, R 4.5.2 x86_64, 2 fixed-seed cases; fixture values and following RNG draws inspected, not executed. Test registration in `test/random.test.ts` inspected, not executed.
 - Result: `一部監査・新規問題未検出（既知の #31 影響あり）`. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution. No new Issue filed.
+
+
+## Audit #126
+
+- Repository HEAD before ledger update: `b86a11e0740af32387cbb2b1d49b3fc1703aca66`.
+- Target: `src/random/hyper.ts`, blob `df63732522e39556a07f79edbb5a287f7348fa87`.
+- Dependencies inspected: `src/random/rng.ts` blob `f527fd7018642205ef5870df8fcab8fc9e02aff1`, `src/random/common.ts` blob `be016a36e9f09f580462d2bf93e30ed6bad527c1`, `src/random/binomial.ts` blob `61b55752b90870ca08cb302b2a90fbfc2462979c`, `src/distributions/hypergeometric.ts` blob `557f15ed94b73d98cc3606838441c05fcf94dca3`.
+- Algorithm review: HIN inversion for mode near lower support; H2PE central rectangle and exponential tails with squeeze/final Stirling acceptance; complement-of-draw and white/black swap transformations; cache rebuild conditions; degenerate support; half-even integer coercion; invalid inputs; large-parameter fallback through `qhyper1` (and `rbinom1` for one draw).
+- Fixed inputs inspected (not executed): `setSeed(36); rhyper(20, 5, 5, 3)`; `setSeed(36); rhyper(20, 10, 7, 8)`; `setSeed(36); rhyper(20, 3000000000, 2000000000, 7)`; boundary checks `rhyper(3, 0, 5, 2)`, `rhyper(3, 5, 0, 2)`, `rhyper(3, 5, 5, 0)`, `rhyper(3, 5, 5, 10)`, and invalid `rhyper(1, 5, 5, 11)`.
+- Fixture inspected: `test/fixtures/rhyper.json` blob `39ca835db17abaf839fa97848fa7fbf4eeead82c`, R 4.5.2, 19 cases. Includes support boundaries, half-integer parameter rounding, populations larger than INT_MAX, and larger simulation summaries. Fixture values and post-draw RNG states inspected, not executed.
+- Current R docs describe rhyper as corrected Kachitvichyanukul–Schmeiser HIN/H2PE. R-devel July 2026 discussion records a 32-bit overflow defect when m+n exceeds INT_MAX and its fix (svn rev 90223). This TypeScript implementation uses JS numbers for N when both parameters are below INT_MAX, and routes larger individual parameters to qhyper1, so the specific signed-int overflow is not reproduced by the reviewed path.
+- Result: `一部監査・問題未検出`. No new Issue filed. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution.
