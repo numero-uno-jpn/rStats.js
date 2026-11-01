@@ -61,18 +61,25 @@ export function dcauchy1(x: number, location: number, scale: number, log: boolea
     // (the density was 0 and its log -Infinity: dcauchy(1.79e308, { location: -1.1e307, scale: 2.7e296 }))
     const y = scale / ah / 2;
     if (log) return -(LOG_PI + Math.log(scale)) - 2 * (Math.log(ah) + Math.LN2 - Math.log(scale)) - Math.log1p(y * y);
-    return (y / (Math.PI * scale)) * (y / (1 + y * y));
+    return overPiScale(y, scale) * (y / (1 + y * y));
   }
   const az = Math.abs(z);
   if (scale < MIN_NORMAL) return tinyScaleDensity(x - location, scale, az, log);
   if (az <= 1) {
     if (log) return -(LOG_PI + Math.log(scale)) - Math.log1p(z * z);
-    return 1 / (Math.PI * scale * (1 + z * z));
+    // (π scale overflows above 5.7e307: then 1/π first; the density was 0, R's too; issue #25)
+    return Number.isFinite(Math.PI * scale) ? 1 / (Math.PI * scale * (1 + z * z)) : 1 / Math.PI / scale / (1 + z * z);
   }
   // With y = 1/z, f = y^2 / (π scale (1 + y^2))
   const y = 1 / az;
   if (log) return -(LOG_PI + Math.log(scale)) - 2 * Math.log(az) - Math.log1p(y * y);
-  return (y / (Math.PI * scale)) * (y / (1 + y * y));
+  return overPiScale(y, scale) * (y / (1 + y * y));
+}
+
+/** y / (π scale), with 1/π first where π scale overflows (above 5.7e307 the density was 0, R's too; issue #25) */
+function overPiScale(y: number, scale: number): number {
+  const ps = Math.PI * scale;
+  return Number.isFinite(ps) ? y / ps : y / Math.PI / scale;
 }
 
 /**
