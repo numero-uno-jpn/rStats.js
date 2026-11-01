@@ -139,6 +139,18 @@ export function log1mExp(x: number): number {
   return x > -Math.LN2 ? Math.log(-Math.expm1(x)) : Math.log1p(-Math.exp(x));
 }
 
+/** log(e^a + e^b) */
+export function logAddExp(a: number, b: number): number {
+  const m = Math.max(a, b);
+  if (m === -Infinity) return -Infinity;
+  return m + Math.log1p(Math.exp(Math.min(a, b) - m));
+}
+
+/** log(e^a - e^b) for a >= b */
+export function logSubExp(a: number, b: number): number {
+  return b === -Infinity ? a : a + log1mExp(b - a);
+}
+
 /** Log of the lower probability 1 - exp(-t) (t double-double, t > 0). For large t, exp(-t) includes the low-order part of t */
 export function logOneMinusExpNeg(t: DD): number {
   return t[0] > Math.LN2 ? Math.log1p(-expNeg(t)) : Math.log(-Math.expm1(-(t[0] + t[1])));

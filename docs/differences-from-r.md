@@ -155,6 +155,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | Case | R | rStats.js |
 |---|---|---|
 | `pbinom(36, 1e5, 0.01, log.p = TRUE)` | -Inf (internal underflow, with a warning) | -851.68… |
+| `pbinom(1e16, 2e16, 0.5)` (beyond 2^53, x + 1 rounds to x) | 0.5 (the symmetric I_p(x, x)) | 0.5000000028209479 = 1/2 + dbinom/2 (I_p(x + 1, n - x) = I_p(x, n - x) - (n - x)/n dbinom(x); NaN where n - x rounds as well). `ppois` takes the same identity there, as R's values do |
 | `qbinom(-1e10, 1e5, 0.01, log.p = TRUE)` | 37 (search stops early) | 0 (F(0) ≈ e^-1005 exceeds e^-1e10) |
 | `qt(1e-320, 2)` (subnormal p) | -Inf | -7.0711e159 (matches the closed form −sqrt(1/(2p))) |
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (the true answer rounds to 1) |

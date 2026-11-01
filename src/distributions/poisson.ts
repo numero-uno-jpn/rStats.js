@@ -8,6 +8,7 @@ import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions
 import { discreteQuantile } from "../internal/discrete.js";
 import { gammaInc } from "../special/igam.js";
 import { dpoisRaw } from "../special/loader.js";
+import { logAddExp, logSubExp } from "../internal/ddexp.js";
 import { qnorm } from "./normal.js";
 import { nonInt } from "../internal/integer.js";
 
@@ -29,7 +30,18 @@ export function ppois1(q: number, lambda: number, lowerTail: boolean, logP: bool
   if (lambda === 0) return dt1(lowerTail, logP);
   if (!Number.isFinite(q)) return dt1(lowerTail, logP);
   const x = Math.floor(q + 1e-7);
-  return gammaInc(x + 1, lambda, !lowerTail, logP);
+  if (x + 1 !== x) return gammaInc(x + 1, lambda, !lowerTail, logP);
+  // Beyond 2^53, x + 1 rounds to x and Q(x + 1, lambda) became Q(x, lambda): ppois(1e16, 1e16) was 0.4999999987, below
+  // 1/2 (R: 0.5000000027), and qpois(0.5, 1e16) 2 above the median 1e16. Without x + 1:
+  // P[X <= x] = Q(x, lambda) + dpois(x, lambda), P[X > x] = P(x, lambda) - dpois(x, lambda)
+  if (!logP) {
+    const t = gammaInc(x, lambda, !lowerTail, false);
+    const d = dpoisRaw(x, lambda, false);
+    return lowerTail ? t + d : t - d;
+  }
+  const lt = gammaInc(x, lambda, !lowerTail, true);
+  const ld = dpoisRaw(x, lambda, true);
+  return lowerTail ? logAddExp(lt, ld) : logSubExp(lt, ld);
 }
 
 export function qpois1(p: number, lambda: number, lowerTail: boolean, logP: boolean): number {
@@ -46,7 +58,8 @@ export function qpois1(p: number, lambda: number, lowerTail: boolean, logP: bool
     p,
     lowerTail,
     logP,
-    cdf: (y, l, lg) => gammaInc(y + 1, lambda, !l, lg),
+    // (through ppois1, which also holds beyond 2^53 where y + 1 rounds to y)
+    cdf: (y, l, lg) => ppois1(y, lambda, l, lg),
     y0: Number.isFinite(y0) ? y0 : lambda,
     lo: 0,
     hi: Infinity,

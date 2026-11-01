@@ -10,6 +10,7 @@ import { discreteQuantile } from "../internal/discrete.js";
 import { betaInc } from "../special/incbet.js";
 import { dbinomRawDD } from "../special/loader.js";
 import { twoSum, type DD } from "../special/dd.js";
+import { logAddExp, logSubExp } from "../internal/ddexp.js";
 import { qnorm } from "./normal.js";
 import { nonInteger } from "./poisson.js";
 
@@ -35,7 +36,19 @@ export function dbinom1(x: number, size: number, prob: number, log: boolean): nu
 /** P[X <= x] (lower) / P[X > x] (!lower). x an integer, 0 <= x < n */
 function pbinomRaw(x: number, n: number, prob: number, lower: boolean, log: boolean): number {
   // P[X <= x] = 1 - I_p(x + 1, n - x)
-  return betaInc(x + 1, n - x, prob, 1 - prob, !lower, log);
+  if (x + 1 !== x) return betaInc(x + 1, n - x, prob, 1 - prob, !lower, log);
+  // Beyond 2^53, x + 1 rounds to x (pbinom(1e16, 2e16, 0.5) was 0.5, the symmetric I_p(x, x); R too). Without x + 1:
+  // I_p(x + 1, n - x) = I_p(x, n - x) - (n - x)/n dbinom(x; n, p). With n - x itself rounded, no parameters are right
+  const [b, err] = twoSum(n, -x);
+  if (err !== 0) return NaN;
+  if (!log) {
+    const t = betaInc(x, b, prob, 1 - prob, !lower, false);
+    const wd = (b / n) * dbinom1(x, n, prob, false);
+    return lower ? t + wd : t - wd;
+  }
+  const lt = betaInc(x, b, prob, 1 - prob, !lower, true);
+  const lwd = Math.log(b / n) + dbinom1(x, n, prob, true);
+  return lower ? logAddExp(lt, lwd) : logSubExp(lt, lwd);
 }
 
 export function pbinom1(q: number, size: number, prob: number, lowerTail: boolean, logP: boolean): number {

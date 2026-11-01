@@ -149,6 +149,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | ケース | R | rStats.js |
 |---|---|---|
 | `pbinom(36, 1e5, 0.01, log.p = TRUE)` | -Inf (内部でアンダーフロー、警告あり) | -851.68… |
+| `pbinom(1e16, 2e16, 0.5)` (2^53 を超え、x + 1 が丸めで x になる) | 0.5 (対称な I_p(x, x)) | 0.5000000028209479 = 1/2 + dbinom/2 (I_p(x + 1, n - x) = I_p(x, n - x) - (n - x)/n dbinom(x)。n - x も丸めでずれる場合は NaN)。`ppois` もこの範囲で同じ恒等式を使う (R の値と一致) |
 | `qbinom(-1e10, 1e5, 0.01, log.p = TRUE)` | 37 (探索が途中で止まる) | 0 (F(0) ≈ e^-1005 は e^-1e10 を超える) |
 | `qt(1e-320, 2)` (非正規化数の p) | -Inf | -7.0711e159 (閉じた式 −sqrt(1/(2p)) と一致) |
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (真の答えを丸めると 1) |
