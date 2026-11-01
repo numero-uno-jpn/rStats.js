@@ -189,7 +189,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/optim/optim.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/as241.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/beta.ts` | 問題あり | #122 | `10357380b3019e5ea6089224e3a0d4152702e639` | [#30](https://github.com/numero-uno-jpn/rStats.js/issues/30) | RのCheng BB/BC法を参照。極端な片側巨大shapeでRとの一致より分布の正しさに問題 | `rbeta(5,1.1,1e308)` はオーバーフロー分岐で全値を平均約1.1e-308に固定。理論CV≈0.953。ソースと分布式による確認。Vitest・R・simulation未実行。 |
-| `src/random/binomial.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/binomial.ts` | 問題あり | #124 | `92437f63fa655aa541de9ba9b6ae51c0bad0af5b` | — | Inversion/BTPE source review; tiny-p q^n cancellation defect confirmed by binary64 arithmetic | `n=2_000_000_000, p=1e-17`: q rounds to 1, qn=1, every inversion draw returns 0 although P(X≥1)≈2e-8. Issue #31. BTPE formula compared with current R source; fixtures R 4.5.2 inspected only. No Vitest/runtime/R execution. |
 | `src/random/common.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/continuous.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/extra.ts` | 未監査 | — | `—` | — | — | — |
@@ -723,3 +723,15 @@ Repository: `numero-uno-jpn/rStats.js`
 - Result: `一部監査・問題未検出`. No reproducible defect established in the reviewed Ahrens–Dieter implementation. Boundary validation rejects nonfinite/negative λ without consuming RNG; λ=0 returns 0 without consuming RNG, matching fixture expectations. Small-mean cumulative table resets when λ changes; large-mean constants recalculate when λ changes; transitions and cached-parameter logic were source-reviewed.
 - Exact fixed inputs reviewed (not executed): `setSeed(1); rpois(30,9.99)`; `setSeed(1); rpois(30,10)`; `setSeed(1); rpois(30,15)`; `setSeed(1); rpois(30,1e7)`; `setSeed(42); rpois(30,0/Infinity/-1/NaN)` (each call is a separate seeded test).
 - Extreme finite λ beyond the fixtures, representability at very large means, and statistical distributional behavior were not exhaustively tested. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution. No issue filed.
+
+
+## Audit #124
+
+- Repository HEAD before ledger update: `92437f63fa655aa541de9ba9b6ae51c0bad0af5b`.
+- Primary source: `src/random/binomial.ts` blob `61b55752b90870ca08cb302b2a90fbfc2462979c`. Related source: `src/distributions/binomial.ts` blob `2f90ac1e001443b0704f33e76585cb2868497724`; `src/random/rng.ts` blob `f527fd7018642205ef5870df8fcab8fc9e02aff1`; `src/random/common.ts` blob `be016a36e9f09f580462d2bf93e30ed6bad527c1`.
+- Confirmed defect: in `rbinom1()` small-mean inversion (`np < 30`), `qn = powInt(q, n)` is numerically unsafe when positive `p` is small enough that binary64 rounds `q=1-p` to exactly 1. Then `qn=1`; because `unifRand()` is in (0,1), first `u < f` test always returns `ix=0`. Literal input: `setSeed(17); rbinom(5, 2_000_000_000, 1e-17)`. Here `np=2e-8), true `P(X>=1)≈2e-8), while source path deterministically returns zero for every draw regardless of seed. Arithmetic/source proof; not executed.
+- Suggested correction: for small p compute `qn = Math.exp(n * Math.log1p(-p))`, consistent with current R source's cancellation-safe branch.
+- GitHub Issue [#31](https://github.com/numero-uno-jpn/rStats.js/issues/31) created.
+- BTPE path reviewed: setup constants, triangular/parallelogram/exponential-tail regions, squeeze bounds, direct probability ratio and Stirling final test; probability reflection `pp > 0.5`; integer/invalid/boundary parameter handling; cache key; `rn >= INT_MAX` dispatch to `qbinom(unifRand(), ...)`. No additional distributional defect established in this source review.
+- R source comparison: current `src/nmath/rbinom.c` identifies PR#19049 (2026-04) correcting two Stirling-term signs. The TypeScript `btpeLogRatio()` uses the corrected plus-plus-minus-minus signs. Existing fixtures are generated with R 4.5.2 and test helper labels BTPE stream differences based on the older R implementation; the current R behavior has since changed. Treat the old fixture's BTPE stream mismatch as a versioned RNG-stream difference, not by itself as a distributional bug. The source comments in `src/random/binomial.ts` and `test/random.test.ts` that characterize current R as still having wrong signs are now stale and should be revised separately.
+- Tests/fixtures inspected: `test/random.test.ts` blob `f849a51e7b3c89c639641cf0a231fc9989dcff81`; `test/helpers/random.ts` blob `d9c9fae276354b0ed1c63a0ea6c588efe99ca8e9`; `test/fixtures/rbinom.json` blob `2284fd5c788e718a8f452d6f368a452e9130ceab` (R 4.5.2, x86_64, 75 cases). Inspected only, not executed. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution.
