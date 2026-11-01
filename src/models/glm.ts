@@ -500,6 +500,8 @@ export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: G
   if (n === 0) throw new RangeError("0 (non-NA) cases");
   const priorGiven = wGiven === undefined ? new Array<number>(n).fill(1) : wGiven.filter((_, i) => keep[i]);
   if (priorGiven.some((v) => v < 0)) throw new RangeError("negative weights not allowed");
+  // (R: "NA/NaN/Inf in 'x'" from the weighted least squares step; here the error of the QR on a matrix with Inf)
+  if (priorGiven.some((v) => !Number.isFinite(v))) throw new RangeError("non-finite weights not allowed");
   const offset = oGiven === undefined ? new Array<number>(n).fill(0) : oGiven.filter((_, i) => keep[i]);
   // as R ("NA/NaN/Inf in 'y'" there, from the working response); an infinite offset gave coefficients of 0
   if (offset.some((v) => !Number.isFinite(v))) throw new RangeError("the offset must be finite");
@@ -626,7 +628,8 @@ function unscaledResult(scaled: GlmResult, k: number, model: GlmModel): GlmResul
     linearPredictors: scaled.linearPredictors.map(up),
     deviance: ldexp(scaled.deviance, 2 * k),
     nullDeviance: ldexp(scaled.nullDeviance, 2 * k),
-    aic: scaled.aic + 2 * scaled.y.length * k * Math.LN2,
+    // (n log of the deviance scaled by 2^-2k, n the rows of positive weight as in familyAic)
+    aic: scaled.aic + 2 * scaled.priorWeights.filter((v) => v > 0).length * k * Math.LN2,
     y: scaled.y.map(up),
     residuals: scaled.residuals.map(up),
     model,
@@ -825,7 +828,8 @@ function residualsOf(fit: GlmResult, type: GlmResidualType): number[] {
     case "pearson":
       return y.map((v, i) => ((v - mu[i]!) * Math.sqrt(w[i]!)) / Math.sqrt(fam.variance(mu[i]!)));
     case "deviance":
-      if (fit.dfResidual <= 0) return y.map(() => 0);
+      // from each row's contribution also without residual degrees of freedom (R's residuals.glm gives 0 there, even
+      // for a fit that has not converged: deviance 0.34 with residuals 0); their squares sum to the deviance
       return y.map((v, i) =>
         w[i] === 0 ? 0 : Math.sign(v - mu[i]!) * Math.sqrt(Math.max(fam.devContribution(v, mu[i]!, w[i]!), 0)),
       );

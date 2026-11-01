@@ -448,11 +448,18 @@ export function prepareResponse(fam: Family, y: number[] | number[][], prior: nu
 export function familyAic(fam: Family, y: number[], mu: number[], w: number[], size: number[] | undefined, dev: number, warnings: Warnings): number {
   const n = y.length;
   let s = 0;
+  // Rows of weight 0 are not in the likelihood: left out of every sum (R's gaussian AIC took their log(0) = -Inf and
+  // counted them in n, so it was Inf; 0 times an infinite log density was NaN elsewhere)
   switch (fam.family) {
     case "gaussian": {
       let slw = 0;
-      for (const wi of w) slw += Math.log(wi);
-      return n * (Math.log((2 * Math.PI * dev) / n) + 1) + 2 - slw;
+      let nPos = 0;
+      for (const wi of w) {
+        if (!(wi > 0)) continue;
+        slw += Math.log(wi);
+        nPos++;
+      }
+      return nPos * (Math.log((2 * Math.PI * dev) / nPos) + 1) + 2 - slw;
     }
     case "binomial": {
       const m = size !== undefined && size.some((v) => v > 1) ? size : w;
@@ -464,6 +471,7 @@ export function familyAic(fam: Family, y: number[], mu: number[], w: number[], s
     }
     case "poisson":
       for (let i = 0; i < n; i++) {
+        if (!(w[i]! > 0)) continue;
         if (nonInteger(y[i]!)) warnings.add(`non-integer x = ${y[i]!.toFixed(6)}`);
         s += w[i]! * dpois1(y[i]!, mu[i]!, true);
       }
@@ -472,13 +480,14 @@ export function familyAic(fam: Family, y: number[], mu: number[], w: number[], s
       let sw = 0;
       for (const wi of w) sw += wi;
       const disp = dev / sw;
-      for (let i = 0; i < n; i++) s += w[i]! * dgamma1(y[i]!, 1 / disp, mu[i]! * disp, true);
+      for (let i = 0; i < n; i++) if (w[i]! > 0) s += w[i]! * dgamma1(y[i]!, 1 / disp, mu[i]! * disp, true);
       return -2 * s + 2;
     }
     case "inverse.gaussian": {
       let sw = 0;
       let sly = 0;
       for (let i = 0; i < n; i++) {
+        if (!(w[i]! > 0)) continue;
         sw += w[i]!;
         sly += w[i]! * Math.log(y[i]!);
       }

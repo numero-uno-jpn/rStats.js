@@ -173,6 +173,18 @@ htestSuite({
     const c = caseOf(a);
     const err = Math.abs(actual - expected) / Math.abs(expected);
     const yv = fit.y;
+    // rows of weight 0 in a gaussian fit: R's AIC takes their log(0) and counts them (Inf); rStats.js leaves them out,
+    // which is the AIC of the fit without those rows (review 65)
+    if (field === "aic" && Number.isNaN(expected) === false && expected === Infinity && fit.family === "gaussian") {
+      const keep = fit.priorWeights.map((v) => v > 0);
+      const { x, y, options } = glmArgs(a);
+      const sub = glm(
+        x.filter((_, i) => keep[i]),
+        (y as number[]).filter((_, i) => keep[i]),
+        defined({ ...options, weights: options.weights?.filter((_, i) => keep[i]), offset: options.offset?.filter((_, i) => keep[i]) }),
+      );
+      if (keep.includes(false) && Math.abs(actual - sub.aic) <= 1e-12 * Math.abs(sub.aic)) return "rows of weight 0: the gaussian AIC without them (R: Inf)";
+    }
     // a perfect fit: R's deviance is rounding residue (here |y - mu| <= 4 eps |y|), and so is the gaussian AIC, which
     // is n log of it
     if (fit.dfResidual === 0 && field === "aic") {
