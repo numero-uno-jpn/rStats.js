@@ -30,11 +30,11 @@ Repository: `numero-uno-jpn/rStats.js`
 
 | ファイル | 状態 | 監査回 | Repository HEAD SHA | Issue | Rとの関係 | 期待値の根拠・検証範囲 |
 |---|---|---:|---|---|
-| `src/api-reference.ts` | 未監査 | — | `—` | — | — | — |
-| `src/data/grouping.ts` | 未監査 | — | `—` | — | — | — |
-| `src/descriptive/basic.ts` | 未監査 | — | `—` | — | — | — |
-| `src/descriptive/cov.ts` | 未監査 | — | `—` | — | — | — |
-| `src/descriptive/dataFrames.ts` | 未監査 | — | `—` | — | — | — |
+| `src/api-reference.ts` | 問題未検出 | #153 | `1e94b1e295f5a57aeb02a43e029117a9d67b0282` | — | 該当なし（Typedoc用のexport barrel。統計関数ではない） | 5行のexport宣言のみを確認。`index.js` と `entries/mixed.js` の再export、build対象外の設定コメントを確認。アルゴリズム・数値演算・入力処理は存在しない。機能的な不具合は認めず。 |
+| `src/data/grouping.ts` | 問題あり | #154 | `1e94b1e295f5a57aeb02a43e029117a9d67b0282` | [#35](https://github.com/numero-uno-jpn/rStats.js/issues/35) | R 4.5.2由来のtapply/split/aggregate fixtureを閲覧（未実行）。`__proto__` はRとの直接照合ではなくJS object property semantics | factor levelsの15桁同一化・型混在拒否・欠損ラベル・column-major cross-classification・空cell、tapplyのscalar/non-scalar結果、splitのdrop/separator衝突、aggregate formulaの`.`/cbind/演算子展開、NA除外、複数値funの列展開を追跡。通常例: `tapply([1,2,3,4],["b","a","b","a"],v=>v.length)`、`split([1,2,3],["b","a","b"])`、`aggregate("y ~ g",{y:[1,2,3,4],g:["b","a","b","a"]},v=>v.reduce((a,b)=>a+b,0))`。確認した不具合: data-frame formのaggregateで `by` の列名 `__proto__` が `out[name]=...` により own propertyとして生成されずprototype setterに消費される。Issue #35。さらに巨大なcross productは`size`が配列上限を超えた場合にnative RangeErrorとなるが、独立した欠陥とはせず。fixture/test source閲覧、実行なし。 |
+| `src/descriptive/basic.ts` | 一部監査・問題未検出 | #155 | `1e94b1e295f5a57aeb02a43e029117a9d67b0282` | — | R 4.5.2由来descriptive fixturesを閲覧（未実行）。文書化された数値安定化差異は既知仕様として区別 | sum/prod/mean(trim)/weightedMean/variance/sd/median/range/cumsum/cumprod/cummax/cummin/diffを追跡。naRm、空配列、NaN/±Inf、±0、subnormal、巨大値と小さいspread、積のmantissa/exponent分離、累積演算後のoverflowからの回復、trim境界、lag/differences整数条件を確認。具体入力: `sum([1e308,1e308,-1e308])`、`prod([1e308,1e-308])`、`weightedMean([1e308,-1e308],[1,1])`、`median([-Number.MAX_VALUE,Number.MAX_VALUE])`、`sd([1e-200,-1e-200])`、`cumsum([1e308,1e308,-1e308])`、`cumprod([1e308,1e308,1e-308])`、`diff([Number.MAX_VALUE,-Number.MAX_VALUE])`。`test/descriptive.test.ts` のR fixture suitesと既知差異除外条件を閲覧。ソース上で新規の再現不具合は確定せず。Vitest/package runtime/R実行なし。 |
+| `src/descriptive/cov.ts` | 問題あり | #156 | `1e94b1e295f5a57aeb02a43e029117a9d67b0282` | [#36](https://github.com/numero-uno-jpn/rStats.js/issues/36) | R 4.5.2由来cov/cor fixtureを閲覧（未実行）。ragged arrayはR matrixでは表現できないため入力形状validation問題 | matrix/vector dispatch、method/use abbreviation、everything/all.obs/complete.obs/na.or.complete/pairwise.complete.obs、pairwise rank、kendall covariance/tau-b、Pearson DD、n<2、complete rowsなし、matrix diagonalの特別処理を追跡。通常入力例: `cov([[1,2],[2,4],[3,5],[4,9]])`、`cor([1,2,3,4],[2,4,5,9],{method:"spearman"})`、`cov([[1,NaN],[2,3],[3,4]],{use:"pairwise.complete.obs"})`。確認した不具合: `isMatrix` は先頭行だけを見てmatrix判定し、`columns` は先頭行の列数で後続行を変換するため、`cov([[1,2],[3,4,5]])` は余分な5を黙って捨て、`cov([[1,2],[3]])` はundefinedを数値計算へ渡してNaNを生成する。全行の長さ検証がない。Issue #36。`test/descriptive.test.ts` とcov fixtureを閲覧、実行なし。 |
+| `src/descriptive/dataFrames.ts` | 問題あり | #157 | `1e94b1e295f5a57aeb02a43e029117a9d67b0282` | [#35](https://github.com/numero-uno-jpn/rStats.js/issues/35) | R 4.5.2由来merge/subset/rbind/cbind fixtureを閲覧（未実行）。__proto__ behavior is JavaScript-specific | rowCount/column gather and type preservation, 15-digit numeric key text, missing-key matching, one/multi-key join, Cartesian many-to-many matches, allX/allY, sort order via Shell sort, suffix collision, subset filtering, rbind common-type coercion, cbind row count, fromRows/toRows and special property namesを追跡。具体例: `merge({id:[3,1,2],v:[10,20,30]},{id:[1,2,2,4],w:[0.5,1.5,2.5,3.5]})`、`subset({y:[5,NaN,7],g:["a","b","a"]},row=>row.y>4,{select:["g"]})`、`rbindFrames([{x:[1],g:[true]},{g:[false],x:[2]}])`、`fromRows([{id:"a",score:5},{id:"b"}])`。確認した不具合: `split` のdata-frame branchで `rowsOf` が列名を `out[name]=...` で設定するため、JSON.parseで作ったown `__proto__` 列が結果から失われ、通常objectのprototype setterに消費される。Issue #35。既存 `test/dataFrames.test.ts` / `test/fixtures/dataFrames.json` のR由来fixtureを閲覧、実行なし。 |
 | `src/descriptive/factanal.ts` | 未監査 | — | `—` | — | — | — |
 | `src/descriptive/hist.ts` | 未監査 | — | `—` | — | — | — |
 | `src/descriptive/missing.ts` | 未監査 | — | `—` | — | — | — |
@@ -941,3 +941,41 @@ Repository: `numero-uno-jpn/rStats.js`
 - Confirmed defect: `distSummary("pareto",{a:1e308,b:1e308})`. The formulas for mean, variance, standard deviation, skewness and kurtosis form large powers/products before cancellation, causing Infinity/NaN although the mathematical values are finite: mean≈1e308, variance≈1, sd≈1, skewness≈2, excess kurtosis≈6. Issue #34 created.
 - Additional exact probes inspected: `distSummary("norm",{sd:1e200})`; `distSummary("lnorm",{meanlog:0,sdlog:1e-200})`; `distSummary("hyper",{m:0,n:0,k:0})`. R direct comparison is not applicable because this is not an R function; the Pareto closed forms and limit a→∞ provide the expected values. No Vitest/package runtime execution.
 - Result: `問題あり`. Source-level algebra and IEEE-754 range proof.
+
+
+## Audit #153 — `src/api-reference.ts`
+
+- Repository HEAD: `1e94b1e295f5a57aeb02a43e029117a9d67b0282`; source blob `dc66d56aca691ba312c6f10a50e742e7921e2e69`.
+- Five-line Typedoc entry point only; re-exports `./index.js` and `./entries/mixed.js`, explicitly excluded from build. No runtime algorithm or input handling.
+- Result: `問題未検出` (documentation/export barrel only). No build or typecheck executed.
+
+## Audit #154 — `src/data/grouping.ts`
+
+- Repository HEAD: `1e94b1e295f5a57aeb02a43e029117a9d67b0282`; source blob `9bfc9a90424acc9766c599026273a2902e50dfe8`.
+- Reviewed factor level canonicalisation (15-digit R text), mixed-type validation, missing labels, column-major cross-classification, empty cells, tapply scalar/non-scalar outputs, split drop/name collision handling, aggregate formula parsing (`.`, `cbind`, RHS operators), NA row filtering and multi-value result naming.
+- Exact probes: `tapply([1,2,3,4],["b","a","b","a"],v=>v.length)`; `split([1,2,3],["b","a","b"])`; `aggregate("y ~ g",{y:[1,2,3,4],g:["b","a","b","a"]},v=>v.reduce((a,b)=>a+b,0))`.
+- Confirmed issue: data-frame aggregate with grouping column named `__proto__` loses that output column because `aggregateRows` writes user-controlled names using ordinary `out[name] = ...`. Issue #35 also covers the same unsafe assignment in `dataFrames.ts`'s `rowsOf`.
+- Cross-product size overflow can produce native RangeError for an enormous factor product; not independently classified. R 4.5.2 grouping fixtures and tests inspected, not executed. No Vitest/package runtime/R execution.
+
+## Audit #155 — `src/descriptive/basic.ts`
+
+- Repository HEAD: `1e94b1e295f5a57aeb02a43e029117a9d67b0282`; source blob `e12c8f8c91152f8d617cd05bf07ce512ef00856a`.
+- Reviewed sum, product, mean/trim, weighted mean, variance, sd, median, range, cumulative sums/products/extrema and diff. Focus: NaN/naRm, empty vectors, ±Inf, signed zero, subnormals, extreme magnitudes, DD accumulation, exponent-scaled products, recovery after an intermediate output overflows, trim boundary, and lag/differences integer validation.
+- Exact probes: `sum([1e308,1e308,-1e308])`; `prod([1e308,1e-308])`; `weightedMean([1e308,-1e308],[1,1])`; `median([-Number.MAX_VALUE,Number.MAX_VALUE])`; `sd([1e-200,-1e-200])`; `cumsum([1e308,1e308,-1e308])`; `cumprod([1e308,1e308,1e-308])`; `diff([Number.MAX_VALUE,-Number.MAX_VALUE])`.
+- Existing `test/descriptive.test.ts` R-derived suites and documented R-vs-rStats numeric stability exceptions inspected. No new reproducible defect confirmed. Tests and R not executed.
+
+## Audit #156 — `src/descriptive/cov.ts`
+
+- Repository HEAD: `1e94b1e295f5a57aeb02a43e029117a9d67b0282`; source blob `9366b9c3fa7b01e198844711ea86dbe56a796fc0`.
+- Reviewed vector/matrix dispatch, method/use abbreviations, everything/all.obs/complete.obs/na.or.complete/pairwise.complete.obs, pairwise Spearman ranking, Kendall covariance/tau-b, Pearson DD, n<2, no complete rows, and correlation-matrix diagonal handling.
+- Exact probes: `cov([[1,2],[2,4],[3,5],[4,9]])`; `cor([1,2,3,4],[2,4,5,9],{method:"spearman"})`; `cov([[1,NaN],[2,3],[3,4]],{use:"pairwise.complete.obs"})`.
+- Confirmed issue: `isMatrix` checks only the first row; `columns` uses its width for every row. Thus `cov([[1,2],[3,4,5]])` silently ignores 5, while `cov([[1,2],[3]])` passes undefined into numeric routines and yields NaN. Validate every row width. Issue #36.
+- Existing `test/descriptive.test.ts` and R-derived covariance fixtures inspected, not executed. Ragged arrays are a JS shape-validation case, not a representable R matrix. No Vitest/package runtime/R execution.
+
+## Audit #157 — `src/descriptive/dataFrames.ts`
+
+- Repository HEAD: `1e94b1e295f5a57aeb02a43e029117a9d67b0282`; source blob `739034185d1cd747e57efbd5a6aeac026f9f9673`.
+- Reviewed row-count validation, gather/type preservation, R 15-digit key text, missing-key matching, one/multi-key joins, many-to-many Cartesian matches, allX/allY, Shell-sort row ordering, suffix collisions, subset, rbind common-type coercion, cbind dimensions, and fromRows/toRows.
+- Exact probes: `merge({id:[3,1,2],v:[10,20,30]},{id:[1,2,2,4],w:[0.5,1.5,2.5,3.5]})`; `subset({y:[5,NaN,7],g:["a","b","a"]},row=>row.y>4,{select:["g"]})`; `rbindFrames([{x:[1],g:[true]},{g:[false],x:[2]}])`; `fromRows([{id:"a",score:5},{id:"b"}])`.
+- Confirmed issue: data-frame `split` uses `rowsOf`, which assigns input column names with `out[name] = ...`. An own `__proto__` column (e.g. supplied through JSON.parse) is consumed by the ordinary object's prototype setter and omitted from the result. Shared issue #35 with `grouping.ts` aggregate output.
+- Existing `test/dataFrames.test.ts` and `test/fixtures/dataFrames.json` (R 4.5.2) inspected, not executed. No Vitest/package runtime/R execution.
