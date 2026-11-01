@@ -455,3 +455,15 @@ Repository: `numero-uno-jpn/rStats.js`
 - Exact fixed input already used in #107 and reviewed again: `time=[1,2,3,4,5,6]`, `status=[1,1,0,1,1,1]`, `group=["a","b","a","b","a","b"]`. No package execution was performed, so no numeric result is claimed for this round.
 - Consequence: the near-singular spectrum in #109 (`V=diag(1,1e-12,1e-17)`) is a valid helper-level counterexample to the fixed cutoff, but has not been shown to be realizable by `survdiff()` risk-set accumulation. A finite dataset with an extreme condition number sufficient to trigger the `solve()` fallback was not found. The fallback appears to serve principally the all-fail-at-once zero-variance case for ordinary data.
 - Verification limits: source/formula proof review only. No generated-data search, package runtime, Vitest, fixture execution, or fresh R execution. The result is not a claim that the complete survival implementation has no defects.
+
+## Audit #111
+
+- Repository HEAD: `4ae0b199fd45855b11011fdb2fb9260e7a7525d5`
+- Source: `src/models/coxph.ts` blob `2e3bc2355f92336b7433ae8c4e812c6d0441faba`.
+- Related material inspected: `test/coxph.test.ts`, `oracle/coxph-behaviour.md`, `oracle/coxph.R`.
+- Result: `問題未検出`; this targeted pass did not establish a new reproducible defect.
+- Scope: Efron/Breslow tied-event log-likelihood, score and information contributions; integer case weights; weighted centring/scaling; stratum-specific risk sets; generalized Cholesky rank handling and aliased columns; Newton-Raphson, step halving, non-convergence and infinite-coefficient warnings; output-scale restoration and Wald/likelihood-ratio/score summaries.
+- Literal fixed inputs reviewed (not executed): tied-event example `time=[1,1,2,2,3,3]`, `status=[1,1,0,1,1,0]`, `x=[[0],[1],[2],[3],[4],[5]]`; integer weights `[2,1,1,3,1,2]`; strata `["a","b","a","b","a","b"]`; collinear matrix `[[1,2,3],[2,1,3],[3,1,4],[1,3,4],[2,3,5],[3,2,5]]` where column 3 is column 1 plus column 2.
+- Expected-value basis: the repository's `oracle/coxph-behaviour.md` (describing survival 3.8-3 behavior), the R-generated `oracle/coxph.R` fixture generator, analytic partial-likelihood formulas, and the existing fixture comparison test. The oracle specifies the weighted Efron steps as `d` row-level substeps with `dw/d` and `D2/d`; the implementation follows that convention.
+- Tests: inspected `test/coxph.test.ts` and the fixture generator. They were not executed. No package runtime, Vitest, isolated harness, or fresh R execution.
+- Limitations: extreme-magnitude weight and covariate examples were reviewed algebraically only; no numeric runtime verification was performed. Status is `問題未検出`, not `問題なし確認済`.
