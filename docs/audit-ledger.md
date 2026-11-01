@@ -20,6 +20,7 @@ Repository: `numero-uno-jpn/rStats.js`
 - `問題未検出` はソース確認だけ、または限定的な検証で問題が見つからなかった場合に使う。`問題なし確認済` は具体的な検証範囲と根拠が記録されている場合に限る。
 - 同じ根本原因から生じる複数の症状は、同一 Issue にまとめる。
 - Issue には領域ラベル・重要度ラベルを付け、再現入力、期待値の根拠、Rとの関係、検証範囲を記録する。
+- 監査台帳にも `Rとの関係` と `期待値の根拠・検証範囲` を必須列として設ける。未監査ファイルは `—` とする。
 
 ## Bootstrap note
 
@@ -27,7 +28,7 @@ Repository: `numero-uno-jpn/rStats.js`
 
 ## Source files
 
-| ファイル | 状態 | 監査回 | Repository HEAD SHA | Issue |
+| ファイル | 状態 | 監査回 | Repository HEAD SHA | Issue | Rとの関係 | 期待値の根拠・検証範囲 |
 |---|---|---:|---|---|
 | `src/api-reference.ts` | 未監査 | — | `—` | — |
 | `src/data/grouping.ts` | 未監査 | — | `—` | — |
@@ -43,10 +44,10 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/descriptive/quantile.ts` | 未監査 | — | `—` | — |
 | `src/descriptive/rank.ts` | 未監査 | — | `—` | — |
 | `src/descriptive/table.ts` | 未監査 | — | `—` | — |
-| `src/distributions/arcsine.ts` | 未監査 | — | `—` | — |
+| `src/distributions/arcsine.ts` | 問題未検出 | #95 | `058fff6bf6d780aec1f369ca7520bbc50ef11471` | — | Rでは未確認（base R・extraDistrに対応関数なし） | 密度・CDF・分位点の解析式と mpmath 1.4.1 の領域別fixtureを照合対象として確認。実行未確認。
 | `src/distributions/beta.ts` | 未監査 | — | `—` | — |
 | `src/distributions/binomial.ts` | 未監査 | — | `—` | — |
-| `src/distributions/bvnorm.ts` | 問題あり | #94 | `05e52efbc8f54e505da82fb10555834a02666e46` | [#23](https://github.com/numero-uno-jpn/rStats.js/issues/23) |
+| `src/distributions/bvnorm.ts` | 問題あり | #94 | `05e52efbc8f54e505da82fb10555834a02666e46` | [#23](https://github.com/numero-uno-jpn/rStats.js/issues/23) | Rでは未確認 | 完全負相関の恒等式 `Y=-X` による解析値。独立CDF計算。
 | `src/distributions/cauchy.ts` | 未監査 | — | `—` | — |
 | `src/distributions/chisq.ts` | 未監査 | — | `—` | — |
 | `src/distributions/exponential.ts` | 未監査 | — | `—` | — |
@@ -239,3 +240,14 @@ Repository: `numero-uno-jpn/rStats.js`
 - R relationship: `Rでは未確認`（R/mvtnorm 実行環境なし）。
 - Verification: ソース経路の追跡と標準正規CDFの独立計算。Vitest全体・Rとの実行比較は未実施。
 - Issue: [#23](https://github.com/numero-uno-jpn/rStats.js/issues/23) (`area:distributions`, `priority:high`, `bug`).
+
+## Audit #95
+
+- Target: `src/distributions/arcsine.ts`
+- Repository HEAD: `058fff6bf6d780aec1f369ca7520bbc50ef11471`
+- File blob SHA: `907b0a4b3b55ca8f4b21325dca7de651fb8f420b`
+- Result: source inspection did not identify a confirmed defect; status is `問題未検出`, not `問題なし確認済`.
+- Scope: `darcsine1()`, `parcsine1()`, `qarcsine1()`; interval endpoints, finite-width overflow scaling, near-endpoint tails, log-probability branches, mirrored upper-tail handling, and density endpoint singularities.
+- Expected-value basis reviewed: analytic arcsine formulas (`f(x)=1/(π√((x-a)(b-x)))`, `F(x)=(2/π)asin(√z)`, quantile via `sin²(πp/2)`), plus repository mpmath 1.4.1 region fixtures `darcsine_regions.mpmath.json`, `parcsine_regions.mpmath.json`, and `qarcsine_regions.mpmath.json`. Fixtures were inspected but not executed.
+- R relationship: `Rでは未確認`; source documentation says base R and extraDistr have no corresponding arcsine distribution functions.
+- Verification limits: source-level reasoning and fixture review only; no isolated runtime harness, full Vitest run, or R comparison. Therefore not marked `問題なし確認済`.
