@@ -1577,7 +1577,7 @@ Repository: `numero-uno-jpn/rStats.js`
 - 判定: 問題あり; [#56](https://github.com/numero-uno-jpn/rStats.js/issues/56).
 - kappa exact norm2のmax/min singular ratio、exact other normのnorm*solve、QR/direct LINPACK dtrco、triangular norm I、ginvのtol cutoff/SVD factor reconstructionを追跡。再現1: `const a=1.7e308; kappa([[a,a],[a,-a]],{exact:true})`。真の特異値は両方`sqrt(2)*a`で条件数1だが、svd scale-back後に両方InfinityとなりInfinity/Infinity=NaN。再現2: `ginv([[1.7e308,1.7e308],[1.7e308,-1.7e308]])`。真の逆行列は各要素±`2.941176470588235e-309`だが、d[0]=Infinityからcut=Infinityとなり全singular componentをskip、ゼロ行列を返す。既存SVD invariant testはscale 1/1e150/1e-150で、この有限入力・spectral norm overflowは未カバー。Issue #56。
 - Moore-Penrose inverseの定義、2-norm condition numberの特異値比、SVDの2冪scale-backを照合（実行なし）。
-- ソース blob: `098014dac2578986f16d98f5935d62cc2f73b7a1`。
+- 関連依存 `src/linalg/svd.ts` も全文確認（blob `b2c4040c56db6cffd9b29f1ccf71106529b4aa46`）。ソース blob: `098014dac2578986f16d98f5935d62cc2f73b7a1`。
 - 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
 
 ### #239 `src/linalg/lu.ts`
