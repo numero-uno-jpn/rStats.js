@@ -54,6 +54,10 @@ export function pexp1(q: number, rate: number, lowerTail: boolean, logP: boolean
   const t = mulDD(rate, q);
   if (Number.isNaN(t[0])) return NaN;
   if (t[0] === Infinity) return dt1(lowerTail, logP);
+  // log(1 - exp(-t)) for t = rate q below the normal range: log rate + log q + log((1 - e^-t)/t), the last -t/2 to the
+  // double. The rounded subnormal product had lost its digits (pexp(1e-20, { rate: 1e-300, logP: true }) was
+  // -736.8272408909739 for log(1e-320) = -736.8272297580946, as R; issue #27)
+  if (lowerTail && logP && t[0] < 2 ** -1022 && t[0] > 0) return Math.log(rate) + Math.log(q) + Math.log1p(-t[0] / 2);
   return expTail(t, lowerTail, logP);
 }
 

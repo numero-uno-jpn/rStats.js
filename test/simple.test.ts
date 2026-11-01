@@ -54,6 +54,13 @@ fixtureSuite({
   name: "pexp",
   tolerance: 1e-14,
   call: (a) => pexp(num(a.q), { rate: num(a.rate), ...tail(a) }),
+  // the log of the lower tail for a subnormal rate q: R takes the log of the rounded product, rStats.js log rate +
+  // log q (issue #27)
+  knownDifference: (a, _e, x) => {
+    const [q, rate] = [num(a.q), num(a.rate)];
+    if (!(bool(a.logP) && bool(a.lowerTail) && rate * q < 2 ** -1022)) return undefined;
+    return relativeError(x, Math.log(rate) + Math.log(q)) <= 1e-14 ? "subnormal rate q: log rate + log q, R logs the rounded product" : undefined;
+  },
 });
 fixtureSuite({
   name: "qexp",

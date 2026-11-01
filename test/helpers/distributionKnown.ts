@@ -68,20 +68,6 @@ export const knownViolations: KnownViolation[] = [
       { params: { min: 0, max: 6.99009352385927e156 }, x: [1.0757294338307116e-159] },
     ],
   },
-  {
-    family: "exp",
-    property: ["density", "roundtrip"],
-    match: (v) =>
-      (fnOf(v) === "dexp" && v.params.rate! * v.x < 2 ** -1022) || (fnOf(v) === "qexp" && v.params.rate! * valueOf(v) < 2 ** -1022),
-    reason:
-      "pexp's log for subnormal rate x loses digits (log(-expm1(-rate x)) of the rounded product, not log(rate) + " +
-      "log(x)): pexp(9.530984706928441e-97, { rate: 4.936871737348155e-227, logP: true }); so the round trip of a qexp " +
-      "whose answer has a subnormal rate x cannot be confirmed (qexp(7.747165377e-315, { rate: 1.1939971855464353e-219 }) " +
-      "is 6.4884285076530645e-96, -log1p(-p) / rate = 6.4884285076530641e-96 to mpmath, where pexp is the same at " +
-      "x (1 ∓ 1e-14)). Kept to match R, which computes it so (fixtures: pexp(1e-20, 1e-300, log.p = TRUE) is " +
-      "-736.8272408909739, -736.8272297580946 exactly; pexp(1e-300, 1e-300, log.p = TRUE) is -Inf)",
-    examples: [{ params: { rate: 4.936871737348155e-227 }, x: [9.530984706928441e-97] }],
-  },
   // ---- Weibull, arcsine, triangular, Pareto, Kumaraswamy, inverse gamma ----
   // ---- χ², gamma, t, beta, F (central) ----
   {
