@@ -492,3 +492,32 @@ Repository: `numero-uno-jpn/rStats.js`
 - Callers: `coxph()` applies merging to its non-missing observations before its stable stratum/time ordering; `survfit()` and `survdiff()` share the same helper before time grouping. The helper retains original row order in its returned array and does not mutate its readonly input.
 - Tests: no `test/tiedTimes.test.ts` exists. The relevant survival and Cox fixture-comparison tests and oracle generators were inspected, not executed. No package runtime, Vitest, standalone harness, or fresh R execution.
 - Limitations: exact last-bit behavior for inputs engineered precisely at the relative-tolerance boundary was not independently compared between JavaScript and R. The audit establishes source-level equivalence of the rule, not a runtime proof of all IEEE-754 boundary cases. No Issue filed.
+
+
+## Audit #114
+
+- Repository HEAD before ledger update: `701c2632c295f1d44381267bf2d304f58c5632bd`
+- Source: `src/models/survival.ts` blob `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de`; related `src/models/tiedTimes.ts` blob `229af071501c8dbc7bdcc0c03d503346ed227713`.
+- Related material inspected: `test/survival.test.ts`, `oracle/survival.R`, `oracle/survival-behaviour.md), and the R `survival::Surv()` source.
+- Result: `問題未検出` for this focused pass; no new defect established in row filtering, sorting, tie-grouping, and risk-set decrement.
+- Input validation: lengths are checked before row iteration; rows with NaN time/status or missing group are omitted; status values remaining in the analysis must be exactly 0 or 1. The R `Surv()` implementation converts invalid numeric status values to NA with a warning, whereas this API deliberately rejects them with RangeError (and the existing test asserts rejection for status 2). This is a documented/API-level strictness difference, not silently labelled an implementation bug. Missing rows are filtered before status validation, consistent with complete-case omission for the actual analysis.
+- Infinite times: `-Infinity` and event-at-`+Infinity` are rejected; right-censored `+Infinity` is intentionally accepted as a subject remaining at risk through all finite times. This is an extension beyond the comment's stated R behavior (R's default `timefix` path rejects infinite survival times); it does not corrupt finite-time risk sets in the inspected code. At `+Infinity`, the row contributes no event and is removed only after the final time group.
+- Ordering and risk sets: merged times are attached to their original rows; observations are sorted by merged time; all event and censor rows at the same merged time are counted together; risk counts are decremented only after processing the entire time block. `survfit()` filters this globally sorted list per stratum, preserving within-stratum order. `survdiff()` decrements per-group and pooled risk sets by the complete leaving count after the block. Opposite-sign extreme finite time subtraction can overflow to ±Infinity in the comparator but retains the correct sign; equal +Infinity comparisons return NaN, which stable sorting treats as equal.
+- Exact literal cases reviewed (not executed):
+  ```ts
+  // Same-time event and censor: both are at risk at t=1.
+  const time1 = [1, 1, 2, 3];
+  const status1 = [1, 0, 1, 0];
+
+  // A right-censored subject at +Infinity remains in every finite risk set.
+  const time2 = [1, 2, Infinity];
+  const status2 = [1, 0, 0];
+
+  // Invalid status on a complete row is rejected; missing rows are omitted.
+  const time3 = [1, 2, NaN, 4];
+  const status3 = [1, 2, 1, NaN];
+  const group3 = ["a", "a", "a", "a"];
+  ```
+- R comparison: the oracle documents events-before-censors at tied times and complete-case omission. The R source confirms that numeric status values outside 0/1 are converted to NA with a warning, unlike this API's explicit strict validation. No fresh R execution.
+- Tests: inspected the survival fixture comparison harness, missing-row test, median edge test, and invalid-argument test; no test or fixture was executed. No package runtime, Vitest, standalone harness, or fresh R run.
+- Limitations: no direct runtime comparison of +Infinity-censor handling against R; this is intentionally an extension and is noted as such. The audit is limited to right-censored single-event data handled by these APIs, not counting-process or multi-state Surv data. No Issue filed.
