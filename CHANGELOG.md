@@ -7,6 +7,77 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+Fixes from 68 rounds of an external numerical review and from GitHub issues #8 to #20. Each case is described, with
+R's value and rStats.js's, in [differences from R](docs/differences-from-r.md) and in the review logs
+(`review_fix_log_*.md`). Where R itself is wrong, rStats.js now returns the mathematically right value.
+
+### Breaking
+
+- Inputs that define no result are errors (R returns NaN or a meaningless value): `mcnemarTest` on a table without
+  discordant pairs, the signed rank `wilcoxTest` with only zero differences, `varTest` with two constant samples,
+  `chisqTest`'s simulation with fractional counts, a non-integer `B` or goodness-of-fit counts not summing to an
+  integer, `mantelhaenTest(exact: true)` with fractional counts, `dunnettTest`, `tukeyTest` and `glhtDunnett` with a
+  pooled within-group variance of 0 (or no residual degrees of freedom), `pAdjust` with `n = Infinity`, `glm` with
+  infinite weights ("non-finite weights not allowed"), and `table` with a `useNA` other than `"no"`, `"ifany"` and
+  `"always"` (R's match.arg error).
+- `glm` halves an IRLS step that increases the deviance (by `epsilon` relative or more, glm2's rule). R's `glm.fit`
+  accepts such steps and can stop at a false convergence: a binomial fit with all weights 1000 returned coefficients
+  of 1e15 and a deviance of 144175 (the maximum is 4956), and the glm2 example (binomial, `start = -1.81`) a
+  coefficient of 2.25e15 instead of log 3.
+- The links of `glm` are exact beyond R's clamps: logit beyond |η| = 30, log below `exp(η) = eps`, probit, cauchit,
+  cloglog and power at the ends (R clamps η or μ to the values at eps and the derivatives to eps), kept within (0, 1)
+  by the least double and the largest double below 1; the cloglog link is `log(-log1p(-mu))`. Fits that reach these
+  ends (separated data in particular) change. `glm` also warns when the linear predictor still moves at convergence
+  ("the data may be separated").
+- `optim(method = "CG")` tries the minimum of the parabola through the start of the line search and the accepted point;
+  R's cgmin always tries the midpoint. CG's path, results and counts now differ from R's (a quadratic of 3 variables:
+  8 function evaluations instead of 46).
+- `fisherTest` (2 × 2) and `mantelhaenTest(exact: true)`: the conditional MLE and the confidence limits are the roots to
+  full precision (R's uniroot stops up to several percent off, at the end 1/eps for a 99.99% limit).
+- `jonckheereTest`'s normal approximation with ties uses the permutation variance with the ties (Hollander & Wolfe);
+  clinfun and DescTools use the variance without ties.
+- `dunnTest`'s step-wise adjustments give tied p-values the same adjusted value (dunn.test's depend on the order of the
+  groups); without ties as dunn.test.
+- `glm`'s AIC leaves out the rows of weight 0 (R's gaussian AIC was Inf), and deviance residuals without residual
+  degrees of freedom come from each row's contribution (R returns 0, also for a fit that has not converged).
+- `glmSummary` names the statistics "z value" whenever the dispersion is not estimated (as R; a given dispersion was
+  named "t value").
+
+### Fixed
+
+- Distributions: point masses and overflowing shapes of the beta family, `ppois`, `pbinom` and `pnbinom` beyond 2^53,
+  `phyper` and `qhyper` beyond 2^53, the discrete quantile search near the largest double, the location-scale
+  families near the ends of the range, noncentral distributions, `wilcox` and `signrank` tails, and `distSummary` of a
+  hypergeometric point mass (populations of 0 or 1 gave NaN moments).
+- Special functions: Bessel functions at subnormal and huge arguments and orders, `gamma` near its edges, `choose` near
+  overflow.
+- Random numbers: R's rounding of integer parameters, NaN for invalid parameters with R's stream kept, infinite draws of
+  `rgeom` and `rnbinom`, `r2dtable`'s limits, noncentral `rt` and `rf` with infinite df.
+- Descriptive statistics: moments, `sd`, `scale`, `cv` and `prcomp` scaled before centring (no overflow where the
+  deviations do), `omega`'s convergence warning.
+- Hypothesis tests: tail probabilities computed directly (`ksTest`'s exact p-value for D ≥ 1/2: 2.0e-20 where it was
+  0), intervals at confidence levels next to 1, `binomTest` and `poissonTest` at large counts, `quadeTest` and
+  `flignerTest` at any scale, McNemar's pairs without discordant counts, `survdiff` with a singular variance.
+- Linear models and ANOVA: standard errors independent of the units of x and of the weights (`lm` with a column of
+  1e-200 or weights below 1e-308), `aov` with `Error()` and large covariates, `anova` and `glmAnova` test only nested
+  fits (judged on the rows of positive weight), warnings of the fits carried to the tables, `mauchlyTest` checks.
+- `glm`: hat values follow the rows of the last QR (a working weight that underflowed shifted them), the null deviance
+  with weights of 1e308, `glmPredict`'s standard errors where the squares overflow, Rao's score test with the smaller
+  model's intercept (as R), profile intervals of `glmConfint` whose restricted fits cycled in the last bits (NaN
+  limits), `glmAnova` warns about a model that has not converged, `glmRstandard` keeps small residuals of a rank-0 fit.
+- `lmer` and lmerTest: a response of 1e200 times ordinary data fits (#9), random slopes at any units of x (#11),
+  Satterthwaite's degrees of freedom independent of the units of the response and of x (#10; a response times 1e6 made
+  the df of x 7.4e8 instead of 31), a response with a large constant added is no longer taken for an exact fit (#12),
+  and `lmerAnova` compares the fixed effects of fits as column spaces (#8).
+- `coxph`: a column dropped by the Cholesky factorisation no longer enters the solution (#13), tests in units of each
+  covariate's scale, times near 1e308.
+- Linear algebra: `eigen`, `svd`, `schur` and `expm` at the ends of the range, triangular solves, `determinant`,
+  `matMul`, `rcond`, `qrSolve` and `kappa` on singular matrices.
+- Numerical methods: `integrate`, `optimize` and `uniroot` on intervals whose width overflows, `seq`, `approx` and
+  `spline` near overflow, `barylag` with nodes of any scale (#14).
+
 ## 0.15.3 - 2026-10-29
 
 ### Fixed
