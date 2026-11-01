@@ -521,3 +521,35 @@ Repository: `numero-uno-jpn/rStats.js`
 - R comparison: the oracle documents events-before-censors at tied times and complete-case omission. The R source confirms that numeric status values outside 0/1 are converted to NA with a warning, unlike this API's explicit strict validation. No fresh R execution.
 - Tests: inspected the survival fixture comparison harness, missing-row test, median edge test, and invalid-argument test; no test or fixture was executed. No package runtime, Vitest, standalone harness, or fresh R run.
 - Limitations: no direct runtime comparison of +Infinity-censor handling against R; this is intentionally an extension and is noted as such. The audit is limited to right-censored single-event data handled by these APIs, not counting-process or multi-state Surv data. No Issue filed.
+
+
+## Audit #115
+
+- Repository HEAD before ledger update: `943ab43f447193a639a7ff8ecc9e23378309595a`.
+- Source: `src/models/survival.ts` blob `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de`.
+- Related source: `src/distributions/normal.ts` blob `9980fecf2366042da09273ba8c86de07d34dcaa3`; `src/internal/summary.ts` blob `e4fc3bd652af3a00cf05b44389ddf58e590c4830` (reviewed as a possible numerical-support dependency; no dependency defect established).
+- Related material inspected: `test/survival.test.ts` blob `fb067569319a07e0c60944beab502623ab5d7be2`, `oracle/survival.R` blob `708fad768c3b0375e11cb91d47377476019148ac`, and `oracle/survival-behaviour.md` blob `20dfbfd0101928a4c9c976b1417cd827a92c58bc`. Also consulted R `survfit_confint` documentation (R-devel).
+- Result: `問題未検出`; no new reproducible defect established in the inspected `survfit()` paths. This is not a full runtime certification.
+- Kaplan–Meier / Greenwood: for each distinct time, all events and censors are counted while the full time block remains at risk; `S *= 1 - d/n`; Greenwood accumulates `d/[n(n-d)]` for `d<n`, and becomes `Infinity` when `d=n`. The standard error is `S*sqrt(Greenwood)`. At `d=n`, `S=0`, so `stdErr=NaN`; this agrees with the repository oracle's stated R behavior.
+- Confidence intervals: `log` uses `S*exp(±z*sigma)` and returns NaN at `S=0`; `plain` uses `S ± z*S*sigma`, clips finite results to [0,1], and propagates NaN when `0*Infinity` occurs; `log-log` returns NaN at `S=0` or `S=1`, otherwise applies the log(-log(S)) transformation. These boundary behaviors agree with the repository oracle and R's documented `survfit_confint` semantics. The `confInt` validation excludes NaN, infinities, 0, and 1. The quantile calculation switches to the upper-tail form for very small alpha/2 to avoid loss of precision in `1 - alpha/2`; `qnorm` supports the upper-tail calculation.
+- Median: `curveMedian()` uses the oracle's `sqrt(Number.EPSILON)` tolerance around 0.5. If the curve reaches 0.5 on a flat interval, it returns the midpoint between the time it reached 0.5 and the next event time; otherwise it returns the first crossing below 0.5. The same rule is applied independently to the lower and upper confidence curves. The existing flat-stretch test covers a censoring time within the plateau.
+- Exact literal boundary cases reviewed (source/arithmetic review only; not executed):
+  ```ts
+  // All subjects fail at the same time: S=0, Greenwood=Infinity.
+  const timeAllFail = [1, 1, 1];
+  const statusAllFail = [1, 1, 1];
+
+  // No events: S=1, Greenwood=0; log/plain intervals stay at 1,
+  // while log-log limits are NaN at the boundary.
+  const timeNoEvents = [1, 2, 3];
+  const statusNoEvents = [0, 0, 0];
+
+  // S reaches 0.5 at t=3, is censored at t=4, and next event is t=5.
+  // Median is the midpoint (3+5)/2 = 4.
+  const timeHalfPlateau = [1, 2, 3, 4, 5, 6];
+  const statusHalfPlateau = [1, 1, 1, 0, 1, 1];
+  ```
+- Extreme-count reasoning: the risk/event counts are derived from JavaScript array lengths, so practical array-size limits are far below the integer precision limit of IEEE-754 doubles. Products such as `n*(n-d)` therefore cannot overflow for realizable JS arrays. No separate defect was found in this path.
+- Tests: inspected the R-fixture comparison test, missing-row test, flat-median test, and invalid-argument test. The fixture generator covers `log`, `plain`, `log-log`, grouped and ungrouped curves, and `conf.int=0.9`; tests and fixtures were not executed.
+- R relationship: the source/oracle contract was compared with official R documentation for `survfit_confint`; no fresh R execution.
+- Verification limits: source and formula review only. No package runtime, Vitest, fixture execution, standalone numerical harness, or fresh R comparison. No Issue filed.
