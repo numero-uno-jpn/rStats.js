@@ -202,7 +202,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/rank.ts` | 一部監査・問題未検出 | #129 | `6f8c6930b3c84d99f07d6fe7c0bc0622569ae526` | — | R 4.5.2 rsignrank/rwilcox fixture を閲覧（未実行） | 符号付き順位和の独立Bernoulli符号化、順位和の部分Fisher–Yates抽出、half-even整数化、0/負値/NaN/Inf/上限、R RNG stream消費をソース照合。R 4.5.2 fixture 10ケースを閲覧。Vitest・package runtime・R実行なし。 |
 | `src/random/rng.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/sample.ts` | 一部監査・問題未検出 | #128 | `b2a2a714b624fdd7f8e422e7a5210000a759d710` | — | — | — |
-| `src/random/streams.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/streams.ts` | 一部監査・問題未検出 | #131 | `b6d645d063aee7a2793eaec9e8e78fad80d2acd9` | — | R 4.5.2 parallel stream fixture・行列冪のテスト定義を閲覧（未実行） | L'Ecuyer-CMRGの2^76/2^127 jump行列、modular multiplication、signed seed layout、state validationを確認。BigIntで遷移行列を再計算する既存テストとR 4.5.2 fixtureを閲覧。Vitest・独立実行なし。 |
 | `src/special/besselIK.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/besselJY.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/besselSeries.ts` | 未監査 | — | `—` | — | — | — |
@@ -773,4 +773,15 @@ Repository: `numero-uno-jpn/rStats.js`
 - Exact fixture inputs inspected (not executed): `setSeed(1); rinvgamma(10, 3, { beta: 2 })`; `setSeed(1); rkumar(10, 2, 3)`; `setSeed(1); rpareto(10, { a: 2, b: 1.5 })`; `setSeed(1); rtriang(10, { a: 0, b: 3, c: 1 })`; `setSeed(1); rlaplace(10, { mu: 1, sigma: 2 })`; invalid no-draw case `setSeed(7); rpareto(3, { a: 0, b: 1 })`.
 - Fixture: `test/fixtures/rextradist.json`, blob `1b830949954493506f09f7b1d267d189a5d1aaaf`, R 4.5.2 x86_64, 20 cases. Includes seeds 1, 42, 20261024, boundary/invalid cases and post-draw RNG states; inspected, not executed.
 - Result: `一部監査・問題未検出`. No reproducible algorithmic defect established. No Issue filed. No Vitest, package runtime, distributional simulation, or fresh R execution.
+
+
+
+## Audit #131
+
+- Repository HEAD before ledger update: `b6d645d063aee7a2793eaec9e8e78fad80d2acd9`.
+- Target: `src/random/streams.ts`, blob `63359251f6081a7658ebf27e105e6a0ed7c789cb`; dependency `src/random/lecuyer.ts` blob `7bd112bb422a4e4b8dd2bbcf3badaa4da4efe4c3`.
+- Algorithm review: 2^76 substream and 2^127 stream transition matrices for both MRG32k3a components; 3×3 row-major matrix application; modular multiplication by splitting the second operand into 16-bit halves; preservation of R kind code and signed 32-bit state representation; rejection of non-L'Ecuyer codes and invalid state vectors.
+- Exact test inputs inspected (not executed): `RNGkind({ kind: "L'Ecuyer-CMRG" }); setSeed(1); nextRNGStream(getRandomSeed())`; corresponding `nextRNGSubStream`; repeated jump sequence `stream → stream → stream`; mixed sequence `stream → substream → stream`. Fixture `test/fixtures/rngStreams.json`, blob `1355f6e7efe30f8e1d01b6ba1843ff75b6c502ec`, R 4.5.2 x86_64, includes resulting seven-word states, first five uniforms and next uniform.
+- The existing `test/random-kinds.test.ts` independently reconstructs each transition matrix by BigInt repeated squaring from the published MRG32k3a recurrence and compares the jump outputs. Test source was inspected but not executed. Arithmetic bound check: each split product and intermediate modular sum remains below 2^53, so integer arithmetic is exactly representable in binary64.
+- Result: `一部監査・問題未検出`. No matrix/layout defect established by source review. No Issue filed. No Vitest, standalone harness, or fresh R execution.
 
