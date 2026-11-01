@@ -157,7 +157,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/models/aovEz.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/aovStrata.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/carAnova.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/coxph.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/coxph.ts` | 問題未検出 | #107 | `206adeeae033f983cc1e2c17b3ba568bd40f3667` | — | Rと同じ（`survival` 3.8系の `coxph` の仕様記述・R由来fixtureを照合。今回R実行なし） | `coxph()` の欠損除外、status/weight/strata、重み付き中心化・スケーリング、Efron/Breslow ties、層別リスク集合、Newton-Raphsonのstep halving・収束判定、一般化Cholesky・共線性、係数/SE/CI/Wald/LR/score統計をソース追跡。具体例: `time=[5,3,8,1,9,4]`, `status=[1,1,0,1,0,1]`, `x=[[1.2],[0.3],[-0.5],[2],[0.7],[0.1]]`; tiesは`efron`/`breslow`、weightsは正整数のみ。`test/coxph.test.ts` と `oracle/coxph-behaviour.md`、R生成スクリプトの重いties・weights・strata・aliased列・単一event・monotone likelihoodケースを閲覧。実行/Vitest/package runtime/R実行なし。 |
 | `src/models/ddLeastSquares.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/ddMatrix.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/estimable.ts` | 未監査 | — | `—` | — | — | — |
@@ -178,8 +178,8 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/models/modelFrame.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/modelMatrix.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/scaledTables.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/survival.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/tiedTimes.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/survival.ts` | 問題未検出 | #107 | `206adeeae033f983cc1e2c17b3ba568bd40f3667` | — | Rと同じ（`survival` 3.8系の `survfit`/`survdiff` の仕様記述・R由来fixtureを照合。今回R実行なし） | `survfit()` の同時event/censor処理、risk set、Kaplan–Meier積、Greenwood分散、3種CI、median/CI median；`survdiff()` のrho=0/1/0.5、 pooled KMの直前値、weighted O/E・variance、positive-expected groups、singular variance fallbackをソース追跡。固定例: `survfit([1,2,2,3,4],[1,1,0,1,0])`；`survdiff([1,2,3,4,5,6],[1,1,0,1,1,1],["a","b","a","b","a","b"])`。`test/survival.test.ts` と `oracle/survival-behaviour.md`、R生成fixtureの2/3群・ties・lung・median=0.5・rho=0/1/0.5・CI変換を閲覧。実行/Vitest/package runtime/R実行なし。 |
+| `src/models/tiedTimes.ts` | 問題未検出 | #107 | `206adeeae033f983cc1e2c17b3ba568bd40f3667` | — | Rと同じ（R `survival::aeqSurv()` の既定規則と一致。今回R実行なし） | `mergeTiedTimes()` の有限時刻抽出、distinct sort、`sqrt(2^-52)` の絶対差または平均絶対時刻で規格化した相対差によるtie判定、最小cut pointへの写像、Infinity保持を確認。入力例: `[1,1+1e-9,1+1e-7]`。最初のgapは絶対許容差以下でmerge、次のgapは許容差を超えて別時刻を維持する。絶対差基準は小さい時刻での過剰mergeに見えるが、R `aeqSurv.R` の `dy <= tolerance || dy/mean(abs(y)) <= tolerance` と一致するため仕様上の不具合ではない。R公式説明・ソースおよび oracle の記述を照合。実行/Vitest/package runtime/R実行なし。 |
 | `src/numerics/deriv.ts` | 未監査 | — | `—` | — | — | — |
 | `src/numerics/integrate.ts` | 未監査 | — | `—` | — | — | — |
 | `src/numerics/interp.ts` | 未監査 | — | `—` | — | — | — |
@@ -386,3 +386,20 @@ Repository: `numero-uno-jpn/rStats.js`
 - Proposed fix: 指数ステップまたは候補点が `Infinity` に達した場合、`Number.MAX_VALUE` を評価点として試す。述語が成立すれば `[fails, Number.MAX_VALUE]` を二分探索し、成立しなければ `hi`（Infinity）を返す。実際の整数サポートの上限・契約も併せて確認する。
 - R relationship: `Rでは未確認`。内部探索関数単体の境界不具合であり、R実行なし。
 - Scope/limitations: `discreteQuantile()` / `firstTrue()` / `lastTrue()` のソースレビュー。`firstTrue()` の再現はNode.jsで実施。Vitest全体、呼び出し元統合、R比較は未実施。
+
+
+## Audit #107
+
+- Repository HEAD: `206adeeae033f983cc1e2c17b3ba568bd40f3667`
+- Targets:
+  - `src/models/coxph.ts` blob `2e3bc2355f92336b7433ae8c4e812c6d0441faba`
+  - `src/models/survival.ts` blob `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de`
+  - `src/models/tiedTimes.ts` blob `229af071501c8dbc7bdcc0c03d503346ed227713`
+- Result: inspected paths did not establish a confirmed defect; all three files are `問題未検出`, not `問題なし確認済`.
+- `tiedTimes`: the apparent absolute-tolerance concern was checked against R `survival::aeqSurv()`. R's published implementation uses exactly `dy <= tolerance || dy / mean(abs(y)) <= tolerance`, with `tolerance = sqrt(.Machine$double.eps)`; the absolute-gap behavior is intentional and the implementation follows it. Exact input considered: `[1, 1 + 1e-9, 1 + 1e-7]`; the first gap is merged by the absolute criterion and the second remains distinct.
+- `survfit`: traced same-time event/censor handling (all subjects remain at risk at the event time), risk-set decrement after the time group, Kaplan–Meier product, Greenwood accumulation, log/plain/log-log intervals, and median/median-limit rule. Literal example reviewed: `time=[1,2,2,3,4]`, `status=[1,1,0,1,0]`.
+- `survdiff`: traced pooled KM weight immediately before each event time, observed/expected counts, squared weights in the variance, positive-expected group selection, and singular-submatrix fallback. Literal example reviewed: `time=[1,2,3,4,5,6]`, `status=[1,1,0,1,1,1]`, `group=["a","b","a","b","a","b"]`, with `rho=0`, and the fixture's `rho=1` and `rho=0.5` cases.
+- `coxph`: traced row filtering, status and weight validation, weighted centring/scaling, Efron/Breslow tie contributions, stratum-specific risk sets, Newton–Raphson step halving and convergence, generalized Cholesky handling of aliased columns, coefficient/variance and summary statistics. Literal example reviewed: `time=[5,3,8,1,9,4]`, `status=[1,1,0,1,0,1]`, `x=[[1.2],[0.3],[-0.5],[2],[0.7],[0.1]]`.
+- Expected-value basis: repository `oracle/coxph-behaviour.md` and `oracle/survival-behaviour.md`, the R-generated `coxph` and `survival` fixtures, analytic Cox partial-likelihood/Kaplan–Meier/Greenwood/log-rank formulas, and R `survival::aeqSurv()` documentation/source. The fixture files and tests were inspected, not executed.
+- R relationship: `Rと同じ` for the inspected contract and fixture provenance; no fresh R execution.
+- Verification limits: source-level path/formula review and existing test/oracle/fixture inspection only. No isolated runtime harness, fixture execution, full Vitest run, or R comparison. No Issue created.
