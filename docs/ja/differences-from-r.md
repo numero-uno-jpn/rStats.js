@@ -173,6 +173,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 二乗が溢れる `predict(glm, newdata, se.fit = TRUE)` (newdata 1e155) | se.fit が Inf | 最大の値で割ってからノルムを作る: 1.07e154 |
 | x の列が 1 から遠い (x の 1e-200 倍や 1e200 倍) `summary(lm)`、`summary(glm)`、`confint(glm)` | 標準誤差が Inf か 0 ((R'R)^-1 が溢れるか 0 に落ちる)、t が 0 か Inf、p が 1 か 0。プロファイル区間も求まらない | 逆行列の前に R の列を 2 の冪で割る。t、p、区間は x そのものと同じ (尺度を戻さない共分散は、範囲外なら今まで通り Inf か 0) |
 | 重み 1e308 か、重み 0 の行に無限大の応答がある `glm` (gaussian、切片あり) | null deviance が NaN (重みの和が溢れる、0 × Inf) | 5e306 と 4.67。重みを 2 の冪で割り、重み 0 の行を除く |
+| 応答がふつうのデータの 1e200 倍 (や 1e-200 倍) の `lmer` | lme4 は固定効果は正しいが sigma が Inf (罰則つき二乗和が溢れる) | 当てはめでは応答を 2 の冪で割る。theta はもとのデータと同じ。固定効果・sigma・分散成分・ランダム効果・残差は倍率を戻し、対数尤度は −(n または n − p) log c だけずれる |
 | すべての重みが 1e-308 未満の `lm` | 標準誤差 Inf (5e-324 で NaN)、t 0、p 1 | 重み 1 と同じ値 ((R'R)^-1 を、重みを 2 の冪で割った尺度で作る) |
 | 大きい方のモデルが実質的に完全適合する `anova(fit1, fit2)` (y = 1 + x + z が厳密に成り立つ) | 警告なしで F 2.6e30、p 4e-16 (1 つのモデルの表は警告する) | 同じ値に警告 "ANOVA F-tests on an essentially perfect fit are unreliable" を付ける |
 | `p.adjust(p, "BY", n = Inf)`、`"holm"` で `n = Inf` | "result would be too long a vector"、すべて 1 | エラー (n は有限)。BY で n が 1e6 を超えると調和数を漸近展開で求める |

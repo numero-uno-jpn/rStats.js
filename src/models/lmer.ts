@@ -686,20 +686,30 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
   const yc = original.y.map((y, i) => y - original.x[i]!.reduce((sum, v, k) => sum + v * beta0[k]!, 0));
   // a response in the column space of X: the criterion is −∞ for every θ (no estimate)
   const maxAbs = (v: readonly number[]): number => v.reduce((m, x) => Math.max(m, Math.abs(x)), 0);
-  if (maxAbs(yc) <= EXACT_FIT * maxAbs(original.y)) throw new Error(EXACT_FIT_ERROR);
+  const ycMax = maxAbs(yc);
+  if (ycMax <= EXACT_FIT * maxAbs(original.y)) throw new Error(EXACT_FIT_ERROR);
   const s: MixedModelStructure = { ...original, y: yc };
-  const theta = minimiseCriterion(s, reml, criterion);
+  // A response whose squares overflow or underflow (|y − X β₀| beyond 2^±500; 1e200 made the penalised sum of squares
+  // Infinity and the minimisation fail, R's sigma Inf) is fitted divided by 2^ky (exact): θ does not depend on it, and
+  // β, b, σ and the residuals scale back by 2^ky, the variances by 4^ky, the criteria shift by 2 n ky log 2. Otherwise
+  // ky = 0 and nothing changes (issue #9)
+  const ky = ycMax > 2 ** 500 || ycMax < 2 ** -500 ? Math.floor(Math.log2(ycMax)) : 0;
+  const sScaled: MixedModelStructure = ky === 0 ? s : { ...s, y: yc.map((v) => ldexp(v, -ky)) };
+  const theta = minimiseCriterion(sScaled, reml, criterion);
 
-  const r = profiledDeviance(s, theta, reml, { rxInverse: true });
-  const fixef = r.beta.map((b, k) => b + beta0[k]!);
+  const r = profiledDeviance(sScaled, theta, reml, { rxInverse: true });
+  const up = (v: number): number => ldexp(v, ky);
+  const fixef = r.beta.map((b, k) => up(b) + beta0[k]!);
   const twoPi = 2 * Math.PI;
-  const deviance = r.logDetL + n * (1 + Math.log((twoPi * r.prss) / n));
-  const REMLcrit = r.logDetL + r.logDetRX + (n - p) * (1 + Math.log((twoPi * r.prss) / (n - p)));
+  const logScale = 2 * ky * Math.LN2;
+  const deviance = r.logDetL + n * (1 + Math.log((twoPi * r.prss) / n) + logScale);
+  const REMLcrit = r.logDetL + r.logDetRX + (n - p) * (1 + Math.log((twoPi * r.prss) / (n - p)) + logScale);
+  // (σ² of the scaled response; the variances below are 4^ky times what is formed from it)
   const sigma2 = r.prss / (reml ? n - p : n);
-  const sigma = Math.sqrt(sigma2);
+  const sigma = up(Math.sqrt(sigma2));
 
-  const vcov = r.rxInverse!.map((row) => row.map((v) => sigma2 * v));
-  const stdError = vcov.map((row, i) => Math.sqrt(row[i]!));
+  const vcov = r.rxInverse!.map((row) => row.map((v) => ldexp(sigma2 * v, 2 * ky)));
+  const stdError = r.rxInverse!.map((row, i) => up(Math.sqrt(sigma2 * row[i]!)));
   // (a standard error of 0 gives ±Infinity or NaN, as R's division does: not guarded on purpose)
   const tValue = fixef.map((b, i) => b / stdError[i]!);
 
@@ -709,10 +719,11 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
     const t: number[][] = Array.from({ length: nc }, () => new Array<number>(nc).fill(0));
     let k = term.thetaOffset;
     for (let j = 0; j < nc; j++) for (let i = j; i < nc; i++) t[i]![j] = theta[k++]!;
-    const cov = t.map((ti) => t.map((tj) => sigma2 * ti.reduce((sum, v, m) => sum + v * tj[m]!, 0)));
-    const sd = cov.map((row, i) => Math.sqrt(row[i]!));
+    const covScaled = t.map((ti) => t.map((tj) => sigma2 * ti.reduce((sum, v, m) => sum + v * tj[m]!, 0)));
+    const sdScaled = covScaled.map((row, i) => Math.sqrt(row[i]!));
+    const sd = sdScaled.map(up);
     // (a column with variance 0 has the correlations 0/0 = NaN with the others, as lme4's VarCorr: not a bug)
-    const corr = cov.map((row, i) => row.map((v, j) => (i === j ? 1 : v / (sd[i]! * sd[j]!))));
+    const corr = covScaled.map((row, i) => row.map((v, j) => (i === j ? 1 : v / (sdScaled[i]! * sdScaled[j]!))));
     return { group: s.groups[term.group]!.name, columns: [...term.columns], sd, corr };
   });
 
@@ -725,7 +736,7 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
       values: g.levels.map((_, l) =>
         terms.flatMap((t) => {
           const nc = t.columns.length;
-          return t.columns.map((_, j) => r.b[t.zOffset + l * nc + j]!);
+          return t.columns.map((_, j) => up(r.b[t.zOffset + l * nc + j]!));
         }),
       ),
     };
@@ -733,16 +744,18 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
 
   // the residuals from y − X β₀ (the more accurate), the fitted values with the whole fixed effects
   const fitted = s.x.map((xi) => xi.reduce((sum, v, k) => sum + v * fixef[k]!, 0));
-  const residuals = s.x.map((xi, i) => yc[i]! - xi.reduce((sum, v, k) => sum + v * r.beta[k]!, 0));
+  // (the residuals on the scaled response, scaled back)
+  const residuals = s.x.map((xi, i) => sScaled.y[i]! - xi.reduce((sum, v, k) => sum + v * r.beta[k]!, 0));
   s.z.forEach((col, j) => {
     const bj = r.b[j]!;
     if (bj !== 0) {
       col.rows.forEach((i, k) => {
-        fitted[i]! += col.values[k]! * bj;
+        fitted[i]! += col.values[k]! * up(bj);
         residuals[i]! -= col.values[k]! * bj;
       });
     }
   });
+  if (ky !== 0) residuals.forEach((v, i) => (residuals[i] = up(v)));
 
   const logLik = -(reml ? REMLcrit : deviance) / 2;
   const df = p + theta.length + 1;
