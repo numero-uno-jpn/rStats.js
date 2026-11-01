@@ -187,20 +187,20 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/optim/lbfgsb.ts` | 未監査 | — | `—` | — | — | — |
 | `src/optim/localmin.ts` | 未監査 | — | `—` | — | — | — |
 | `src/optim/optim.ts` | 未監査 | — | `—` | — | — | — |
-| `src/random/as241.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/as241.ts` | 一部監査・問題未検出 | #135 | `77d0da9eaa12609d445d0433e4d3ac0d84f50600` | — | AS241係数とnorm fixtureをソース照合（未実行） | Wichura AS241の中心域/裾域分岐、係数順序、Horner評価、符号反転を確認。RのnormRandが生成するp範囲との整合を確認。独立数値実験・Vitest未実行。
 | `src/random/beta.ts` | 問題あり | #122 | `10357380b3019e5ea6089224e3a0d4152702e639` | [#30](https://github.com/numero-uno-jpn/rStats.js/issues/30) | RのCheng BB/BC法を参照。極端な片側巨大shapeでRとの一致より分布の正しさに問題 | `rbeta(5,1.1,1e308)` はオーバーフロー分岐で全値を平均約1.1e-308に固定。理論CV≈0.953。ソースと分布式による確認。Vitest・R・simulation未実行。 |
 | `src/random/binomial.ts` | 問題あり | #124 | `92437f63fa655aa541de9ba9b6ae51c0bad0af5b` | — | Inversion/BTPE source review; tiny-p q^n cancellation defect confirmed by binary64 arithmetic | `n=2_000_000_000, p=1e-17`: q rounds to 1, qn=1, every inversion draw returns 0 although P(X≥1)≈2e-8. Issue #31. BTPE formula compared with current R source; fixtures R 4.5.2 inspected only. No Vitest/runtime/R execution. |
-| `src/random/common.ts` | 未監査 | — | `—` | — | — | — |
-| `src/random/continuous.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/common.ts` | 一部監査・問題未検出 | #136 | `77d0da9eaa12609d445d0433e4d3ac0d84f50600` | — | random fixture群と呼出し側の契約をソース確認（未実行） | generateのn有限/非負・小数切捨て・0件時の乱数非消費、powIntの負指数/NaN/Infinity/二乗法を確認。powIntは32-bit bitwise shiftを使うため2^31以上の指数で安全でない可能性があるが、実呼出し箇所と到達可能性を確定できず不具合認定せず。Vitest未実行。
+| `src/random/continuous.ts` | 既知差異あり・追加問題未検出 | #134 | `77d0da9eaa12609d445d0433e4d3ac0d84f50600` | — | R 4.5.2 rbasic/rother fixtureを閲覧（未実行） | runif/rnorm/rexp/rlnorm/rlogis/rcauchy/rweibullの変換式、無効値・0/Inf時の乱数消費、overflow幅の補間を確認。rlogis(scale<0)は実装NaNに対しR fixtureは符号反転値を返す既知差異。Vitest未実行。
 | `src/random/extra.ts` | 一部監査・問題未検出 | #130 | `75095a2c450c18de77f8ceacc259b90bd246a288` | — | extraDistr R 4.5.2 fixture を閲覧（未実行） | inverse-gamma/gamma変換、Kumaraswamy・Pareto逆関数、三角分布の2様本順序統計量法、Laplace指数・符号、arcsine逆関数、無効引数時の乱数消費と極端な有限端点をソース確認。R 4.5.2 fixture 20ケースを閲覧。Vitest・package runtime・R実行なし。 |
 | `src/random/gamma.ts` | 問題あり | #121 | `9a6b479fa51c0e16a8313c9c2518c75130c84004` | [#29](https://github.com/numero-uno-jpn/rStats.js/issues/29) | R本体 `src/nmath/rgamma.c` と不一致 | `rgamma(1,-1,{scale:0})` と `rgamma(1,0,{scale:-1})`。Rは両方0、現行はNaN。負値判定がゼロ判定より先。ソース照合で確定。Vitest・package runtime・今回のR実行なし。 |
 | `src/random/hyper.ts` | 一部監査・問題未検出 | #126 | `df63732522e39556a07f79edbb5a287f7348fa87` | — | — | — |
 | `src/random/lecuyer.ts` | 一部監査・問題未検出 | #132 | `ff8994e573a5d1731aaf1e26d633ee907cc1bdcf` | — | R 4.5.2 L'Ecuyer fixtureを閲覧（未実行） | MRG32k3aのseed expansion・2つのmodular recurrence・uniform mapping・signed/unsigned seed復元と範囲検証を確認。fixture内の複数seed・RNG state・後続uniformを閲覧。Vitest・package runtime・R実行なし。 |
-| `src/random/mt.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/mt.ts` | 一部監査・問題未検出 | #133 | `77d0da9eaa12609d445d0433e4d3ac0d84f50600` | — | R 4.5.2 rbasic fixtureを閲覧（未実行） | MT19937 twist/tempering、R set.seedの50回LCG初期化、32-bit unsigned演算、[0,1)から(0,1)へのfixup、626要素stateの復元と境界を確認。seed=1/42/-7/123456789のrunif/rnorm/rexp値を閲覧。Vitest未実行。
 | `src/random/poisson.ts` | 一部監査・問題未検出 | #123 | `cf352aaf46ae22782a09d7c054fd3716a370d7a6` | — | R本体 `src/nmath/rpois.c` のAhrens–Dieter法と主要分岐・定数を照合 | λ=0, 0.1, 1, 5, 9.99, 10, 15, 50, 100, 1e4, 1e7, Inf, -1, NaN。32 fixture cases (R 4.5.2) inspected only. No new reproducible defect; source review only, no Vitest/runtime/R/simulation. Extreme λ beyond fixture and precision/overflow behavior not exhaustively validated. |
 | `src/random/r2dtable.ts` | 一部監査・問題未検出 | #127 | `8ccc84fc49823aa54db9eb23da7d7b3df00033f0` | — | — | — |
 | `src/random/rank.ts` | 一部監査・問題未検出 | #129 | `6f8c6930b3c84d99f07d6fe7c0bc0622569ae526` | — | R 4.5.2 rsignrank/rwilcox fixture を閲覧（未実行） | 符号付き順位和の独立Bernoulli符号化、順位和の部分Fisher–Yates抽出、half-even整数化、0/負値/NaN/Inf/上限、R RNG stream消費をソース照合。R 4.5.2 fixture 10ケースを閲覧。Vitest・package runtime・R実行なし。 |
-| `src/random/rng.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/rng.ts` | 既知差異あり・追加問題未検出 | #137 | `77d0da9eaa12609d445d0433e4d3ac0d84f50600` | — | R 4.5.2 rngRounding/rngLecuyer/rngStreams/rbasic fixtureと既存テストを閲覧（未実行） | RNGkind切替時のseed消費、sampleKind維持、state kind code、rbits/unifIndexの棄却抽出、normRandの2-uniform精度、expRand SA法を確認。既知差異：rbinom BTPEのstream差、rlogis負scale、Rの無効状態時の再seed動作。独立実行なし。
 | `src/random/sample.ts` | 一部監査・問題未検出 | #128 | `b2a2a714b624fdd7f8e422e7a5210000a759d710` | — | — | — |
 | `src/random/streams.ts` | 一部監査・問題未検出 | #131 | `b6d645d063aee7a2793eaec9e8e78fad80d2acd9` | — | R 4.5.2 parallel stream fixture・行列冪のテスト定義を閲覧（未実行） | L'Ecuyer-CMRGの2^76/2^127 jump行列、modular multiplication、signed seed layout、state validationを確認。BigIntで遷移行列を再計算する既存テストとR 4.5.2 fixtureを閲覧。Vitest・独立実行なし。 |
 | `src/special/besselIK.ts` | 未監査 | — | `—` | — | — | — |
@@ -795,3 +795,40 @@ Repository: `numero-uno-jpn/rStats.js`
 - Exact inputs inspected (not executed): `RNGkind({ kind: "L'Ecuyer-CMRG" }); setSeed(1); runif(10)`; same with seeds `42`, `2024`, `2147483647`, and `-2147483647`; restoration with `setRandomSeed([10407, 1, 2, 3, 4, 5, 6]); runif(5)`. The `test/fixtures/rngLecuyer.json` fixture identifies R 4.5.2 x86_64 and records uniforms, resulting states and next-uniform values. The fixture was inspected, not executed.
 - Result: `一部監査・問題未検出`. No recurrence, modulus, seed-expansion, or state-layout defect established by source review. The implementation deliberately throws for invalid states where R may reseed from the clock; this is a documented API behavior difference, not treated as a random-number algorithm defect. No Issue filed. No Vitest, standalone harness, or fresh R execution.
 
+
+
+## Audit #133 — `src/random/mt.ts`
+
+- Repository HEAD: `77d0da9eaa12609d445d0433e4d3ac0d84f50600`; source blob `a27a644a591ab2286227aa5db1b05b16fa149300`.
+- Reviewed MT19937 state length 624, twist loop split at N-M=227, wraparound dependency, tempering shifts/masks, R's 50-step 69069 LCG seed expansion, unsigned 32-bit wrap, uniform endpoint fixup, and .Random.seed import/export.
+- Exact fixture inputs inspected (not executed): `setSeed(1); runif(10)`, `setSeed(42); runif(10)`, `setSeed(-7); runif(10)`, `setSeed(123456789); runif(10)`. R 4.5.2 fixture `test/fixtures/rbasic.json` blob `fafabb128e79ef73b5c5c923a8b223f84ebe490e`; associated expected sequences and next-uniform values inspected.
+- Result: `一部監査・問題未検出`. No MT recurrence or state conversion defect established. Vitest and independent execution not run.
+
+## Audit #134 — `src/random/continuous.ts`
+
+- Repository HEAD: `77d0da9eaa12609d445d0433e4d3ac0d84f50600`; source blob `5ad76e5676b4bf27c36b288f8e48ac3821bfd92a`.
+- Reviewed `runif`, `rnorm1/rnorm`, `rexp`, `rlnorm`, `rlogis`, `rcauchy`, `rweibull`: parameter guards, transform formulas, scale/rate zero and infinity, nonfinite location/mean, overflow-width interpolation, and RNG stream consumption.
+- Exact inputs inspected (not executed): `setSeed(1); runif(5,{min:0,max:1})`; `setSeed(1); runif(5,{min:-3,max:5})`; `setSeed(2); rnorm(5,{mean:5,sd:Infinity})`; `setSeed(3); rexp(5,{rate:Infinity})`; `setSeed(24); rlogis(10,{location:0,scale:-1})`; `setSeed(26); rweibull(10,0,{scale:1})`. R 4.5.2 fixtures `rbasic.json` and `rother.json` inspected.
+- Known discrepancy confirmed by fixture: for `rlogis` with negative scale, the implementation returns NaN after consuming a uniform, whereas R returns the finite values with their signs reversed. The test suite explicitly classifies this as a known difference. Not filed as a new issue in this pass because it is already recorded in test behavior; it remains a compatibility gap.
+- Result: `既知差異あり・追加問題未検出`. No Vitest or fresh R execution.
+
+## Audit #135 — `src/random/as241.ts`
+
+- Repository HEAD: `77d0da9eaa12609d445d0433e4d3ac0d84f50600`; source blob `3e7d42b5c0d867cc1bfe06f2f335d83994dbd7c3`.
+- Reviewed Wichura AS 241 coefficient arrays A-F, Horner polynomial evaluation order, central region `|p-0.5| <= 0.425`, tail transformation `sqrt(-log(min(p,1-p)))`, branch boundary r=5, and sign restoration. Compared domain with `normRand` construction, whose p stays away from 0 and 1.
+- Result: `一部監査・問題未検出`. No coefficient/order/branch defect established by source review. No independent high-precision computation or Vitest execution.
+
+## Audit #136 — `src/random/common.ts`
+
+- Repository HEAD: `77d0da9eaa12609d445d0433e4d3ac0d84f50600`; source blob `be016a36e9f09f580462d2bf93e30ed6bad527c1`.
+- Reviewed `generate` finite/nonnegative n validation, truncation, zero-length behavior and lazy callback invocation; reviewed `powInt` for NaN, infinities, zero/negative exponents and exponentiation by squaring.
+- Potential concern: `powInt` uses signed 32-bit bitwise operators (`n & 1`, `n >>= 1`), so exponents at or above 2^31 are not handled safely and can fail to terminate. However, repository call sites and reachable exponent bounds were not exhaustively resolved in this pass; therefore this is recorded as a review lead, not a confirmed defect. Exact probe input for a future isolated harness: `powInt(0.5, 2147483648)` (do not execute synchronously; current loop may not terminate).
+- Result: `一部監査・問題未検出（powIntの巨大指数は要追跡）`. No Vitest or isolated execution.
+
+## Audit #137 — `src/random/rng.ts`
+
+- Repository HEAD: `77d0da9eaa12609d445d0433e4d3ac0d84f50600`; source blob `f527fd7018642205ef5870df8fcab8fc9e02aff1`.
+- Reviewed global generator selection, seed initialization, kind code mapping, RNGkind's previous-kind return and seed handoff, state import/export, Rejection/Rounding index generation, 16-bit chunked rbits, two-uniform normal inversion input, and Ahrens-Dieter exponential algorithm SA.
+- Exact fixture inputs inspected (not executed): `setSeed(1); runif(10)`; `RNGkind({kind:"L'Ecuyer-CMRG",sampleKind:"Rounding"}); setSeed(42); runif(3)`; `setSeed(3); sampleInt(4500000000000000,{size:5,replace:true})`; `setSeed(24); rlogis(10,{location:0,scale:-1})`. Fixtures `rngRounding.json`, `rngLecuyer.json`, `rngStreams.json`, `rbasic.json`, and existing `random-kinds.test.ts` inspected, not executed.
+- Known compatibility differences: negative-scale `rlogis` output differs from R; BTPE `rbinom` can consume a different stream due to the already-documented Stirling-correction difference; invalid L'Ecuyer state handling throws rather than R's clock reseed. No additional defect established.
+- Result: `既知差異あり・追加問題未検出`. No Vitest, standalone harness, or fresh R execution.
