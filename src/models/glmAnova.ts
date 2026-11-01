@@ -72,7 +72,9 @@ function rowOf(model: GlmModel, cols: number[], warnings: Warnings): Row {
 }
 
 /** Score statistic of the smaller model's fit against the larger model's matrix */
-const rao = (small: Row, large: Row) => scoreStatistic(large.x, small.fit.workingResiduals, small.fit.workingWeights, large.intercept);
+// (the intercept of the smaller model, as R's anova.glmlist: with the larger one's, the residuals of a model without
+// intercept were centred, removing what the added intercept explains; review 64)
+const rao = (small: Row, large: Row) => scoreStatistic(large.x, small.fit.workingResiduals, small.fit.workingWeights, small.intercept);
 
 /**
  * Analysis of deviance, for one `glm` fit (the sequential table, each column of `x` added in order) or for several
@@ -164,9 +166,12 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
       const [small, large] = df[i]! > 0 ? [list[i - 1]!, f] : [f, list[i - 1]!];
       // nested as affine models: the columns of the smaller model and the difference of the offsets both in the column
       // space of the larger one (two fits with other offsets are not nested even when their columns are)
+      // on the rows of positive weight only: rows of weight 0 are not in the likelihoods (one of them made the columns
+      // of nested models look otherwise; review 64)
+      const active = (rows: readonly (readonly number[])[]) => rows.filter((_, r) => small.priorWeights[r]! > 0 && large.priorWeights[r]! > 0);
       const d = small.model.offset.map((o, r) => o - large.model.offset[r]!);
-      const smallX = d.some((v) => v !== 0) ? small.model.x.map((row, r) => [...row, d[r]!]) : small.model.x;
-      if (!nestedColumns(smallX, large.model.x)) untested.add(i);
+      const smallX = d.some((v, r) => v !== 0 && small.priorWeights[r]! > 0) ? small.model.x.map((row, r) => [...row, d[r]!]) : small.model.x;
+      if (!nestedColumns(active(smallX), active(large.model.x))) untested.add(i);
     });
     if (test === "Rao") {
       const fr = list.map((f) => ({ dfRes: f.dfResidual, dev: f.deviance, fit: asIrls(f), x: f.model.x, intercept: f.model.intercept }));

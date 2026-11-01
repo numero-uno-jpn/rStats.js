@@ -169,6 +169,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 有限なデータの範囲や偏差が溢れる `quade.test`・`fligner.test` (-1e308〜1e308 と -9e307〜9e307 の行) | どちらも Inf で同順位になり、尺度を変えると結果が変わる | その場合は共通の 2 の冪で割ってから計算し、どの尺度でも同じ結果 |
 | 不一致の度数がない組を含む r x r 表の `mcnemar.test` | 統計量と p 値が NaN | その組の寄与を 0 にする (自由度は変えない) |
 | 二乗が溢れる `predict(glm, newdata, se.fit = TRUE)` (newdata 1e155) | se.fit が Inf | 最大の値で割ってからノルムを作る: 1.07e154 |
+| x の列が 1 から遠い (x の 1e-200 倍や 1e200 倍) `summary(lm)`、`summary(glm)`、`confint(glm)` | 標準誤差が Inf か 0 ((R'R)^-1 が溢れるか 0 に落ちる)、t が 0 か Inf、p が 1 か 0。プロファイル区間も求まらない | 逆行列の前に R の列を 2 の冪で割る。t、p、区間は x そのものと同じ (尺度を戻さない共分散は、範囲外なら今まで通り Inf か 0) |
+| 重み 1e308 か、重み 0 の行に無限大の応答がある `glm` (gaussian、切片あり) | null deviance が NaN (重みの和が溢れる、0 × Inf) | 5e306 と 4.67。重みを 2 の冪で割り、重み 0 の行を除く |
 | すべての重みが 1e-308 未満の `lm` | 標準誤差 Inf (5e-324 で NaN)、t 0、p 1 | 重み 1 と同じ値 ((R'R)^-1 を、重みを 2 の冪で割った尺度で作る) |
 | 大きい方のモデルが実質的に完全適合する `anova(fit1, fit2)` (y = 1 + x + z が厳密に成り立つ) | 警告なしで F 2.6e30、p 4e-16 (1 つのモデルの表は警告する) | 同じ値に警告 "ANOVA F-tests on an essentially perfect fit are unreliable" を付ける |
 | `p.adjust(p, "BY", n = Inf)`、`"holm"` で `n = Inf` | "result would be too long a vector"、すべて 1 | エラー (n は有限)。BY で n が 1e6 を超えると調和数を漸近展開で求める |
@@ -244,7 +246,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `rcond(matrix(c(1e308, 0, 1e308, 1e308), 2))` など、ノルムが溢れる行列 (`triangular = TRUE` と `solve` の条件数の検査も) | `dgecon` のエラー -5 (`triangular = TRUE` では 0)。この行列の `solve` は computationally singular (rcond = 0) で止まる | 0.3。2 の冪で割った行列と同じ値 (逆条件数は尺度によらない)。`solve` は (0, 1e-308) を返す |
 | `qr.solve(qr(matrix(c(1, 2, 2, 4), 2), LAPACK = TRUE), c(3, 6))` (ランク落ちの LAPACK の分解) | (8, -2.5)。LAPACK の分解のランクは常に min(n, p) | "singular matrix in qrSolve"。abs(R_kk) <= tol abs(R_11) (tol は 1e-7) をランク落ちとする |
 | `kappa(matrix(c(1, 2, 2, 4), 2), exact = TRUE, norm = "1")` (厳密に特異、2 以外のノルム) | "system is exactly singular" | Inf。ノルム "2" と同じ (計算上特異な行列は R と同じく止まる) |
-| `anova(lm(y ~ x2), lm(y ~ x1 + x3))` や、入れ子でない glm の `anova()` (どちらのモデルも他方の特別な場合でない) | F 検定 (例では F 1110、p 4.6e-7)、glm では尤度比検定 | 検定しない。F、p 値、検定の列は NaN (`lmerAnova` と同じ)。入れ子かどうかは、パラメータの少ないモデルの列が他方の列空間に入るかを QR のランクで判定する |
+| `anova(lm(y ~ x2), lm(y ~ x1 + x3))` や、入れ子でない glm の `anova()` (どちらのモデルも他方の特別な場合でない) | F 検定 (例では F 1110、p 4.6e-7)、glm では尤度比検定 | 検定しない。F、p 値、検定の列は NaN (`lmerAnova` と同じ)。入れ子かどうかは、パラメータの少ないモデルの列が他方の列空間に入るかを、正の重みの行で QR のランクで判定する (重み 0 の行は尤度に入らない) |
 | offset の違う glm の `anova()` (`glm(y ~ 1, poisson)` と `glm(y ~ x, poisson, offset = log(y) - x/2)`) | 尤度比検定 (p = 0.000417) | 検定しない (NaN)。列と同じく、offset の差も大きいモデルの列空間に入るときだけ入れ子とする |
 | `shapiro.test(c(-1e308, 0, 1e308))` (範囲が溢れる) | NaN | W = 1。`shapiro.test(c(-1, 0, 1))` と同じ (先にデータを 2 の冪で割る) |
 | polycor の `polyserial(x * 1e200, y, std.err = TRUE)` (平方和が溢れる) | rho 0、chisq NaN | x のときと同じ値 (レビューの例では rho 0.589) |

@@ -9,7 +9,7 @@
 
 import { pt1 } from "../distributions/t.js";
 import { pnorm } from "../distributions/normal.js";
-import { chol2inv } from "../linalg/chol.js";
+import { chol2invColumns } from "../internal/scaledInverse.js";
 import type { MatrixInput } from "../linalg/matrix.js";
 import { qr, qrCoef, qrQy, type QR } from "../linalg/qr.js";
 import type { Sample } from "../htest/types.js";
@@ -563,11 +563,16 @@ function fitModel(model: GlmModel): GlmResult {
     nullDeviance = nf.deviance;
     if (!nf.converged) warnings.add("fitting to calculate the null deviance did not converge -- increase 'maxit'?");
   } else if (intercept) {
+    // the weights divided by a power of 2 (the mean unchanged; their sum overflowed for weights of 1e308), and rows of
+    // weight 0 left out (0 times an infinite response was NaN); R gave NaN for both
+    const kw = Math.floor(Math.log2(maxOf(w)));
     let sw = 0;
     let swy = 0;
     for (let i = 0; i < n; i++) {
-      sw += w[i]!;
-      swy += w[i]! * yy[i]!;
+      if (!(w[i]! > 0)) continue;
+      const wi = ldexp(w[i]!, -kw);
+      sw += wi;
+      swy += wi * yy[i]!;
     }
     const m = swy / sw;
     nullDeviance = withWarnings(warnings, () => totalDeviance(fam, yy, yy.map(() => m), w));
@@ -575,7 +580,7 @@ function fitModel(model: GlmModel): GlmResult {
 
   const nOk = n - w.filter((v) => v === 0).length;
   const aic = familyAic(fam, yy, fit.mu, w, size, fit.deviance, warnings) + 2 * fit.rank;
-  return {
+  return withUsedRows(fit.used, {
     coefficients: fit.coefficients,
     fittedValues: fit.mu,
     linearPredictors: fit.eta,
@@ -597,7 +602,7 @@ function fitModel(model: GlmModel): GlmResult {
     warnings: warnings.list,
     qr: fit.qr,
     model,
-  };
+  });
 }
 
 /** Whether the family's fit scales with the response: gaussian, or quasi with constant variance, on the identity link */
@@ -627,7 +632,18 @@ function unscaledResult(scaled: GlmResult, k: number, model: GlmModel): GlmResul
     model,
   };
   Object.defineProperty(out, "scaled", { value: scaled, enumerable: false });
-  return out;
+  return withUsedRows(USED_ROWS.get(scaled), out);
+}
+
+/**
+ * The rows of the last least squares step of a fit (irls's used): its working weights, squares of the square roots
+ * that went into the QR, may underflow to 0 for a row in it, so they do not tell (the hat values of the rows after it
+ * were shifted by one)
+ */
+const USED_ROWS = new WeakMap<GlmResult, boolean[]>();
+function withUsedRows(used: boolean[] | undefined, fit: GlmResult): GlmResult {
+  if (used !== undefined) USED_ROWS.set(fit, used);
+  return fit;
 }
 
 /**
@@ -700,11 +716,13 @@ export interface GlmSummary {
   warnings: string[];
 }
 
-/** (R'R)^-1 of the leading rank x rank block of the last QR, in pivot order */
-function unscaledCovariance(fit: GlmResult): number[][] {
-  if (fit.qr === undefined || fit.rank === 0) return [];
-  const Rr = fit.qr.qr.slice(0, fit.rank).map((row) => row.slice(0, fit.rank));
-  return chol2inv(Rr);
+/**
+ * (R'R)^-1 of the leading rank x rank block of the last QR, in pivot order, as inv_jk 2^(-e_j - e_k) (columns far from
+ * 1 divided by powers of 2 first: chol2invColumns)
+ */
+function unscaledCovariance(fit: GlmResult): { inv: number[][]; e: number[] } {
+  if (fit.qr === undefined || fit.rank === 0) return { inv: [], e: [] };
+  return chol2invColumns(fit.qr.qr.slice(0, fit.rank).map((row) => row.slice(0, fit.rank)));
 }
 
 /**
@@ -738,10 +756,12 @@ export function glmSummary(given: GlmResult, options: GlmSummaryOptions = {}): G
   const fam = familyOf(fit);
   const estimated = options.dispersion === undefined && !fam.fixedDispersion;
   const dispersion = options.dispersion === undefined ? dispersionOf(fit, warnings) : ldexp(checkDispersion(options.dispersion), -2 * k);
-  const covUnscaled = unscaledCovariance(fit);
+  const { inv, e } = unscaledCovariance(fit);
+  // (Infinity or 0 where the covariance itself is out of range; the standard errors scale back from the scaled columns)
+  const covUnscaled = inv.map((r, j) => r.map((v, k) => ldexp(v, -e[j]! - e[k]!)));
   const piv = fit.qr === undefined ? [] : fit.qr.pivot.slice(0, fit.rank);
   const estimate = piv.map((j) => fit.coefficients[j]!);
-  const stdError = covUnscaled.map((r, k) => Math.sqrt(r[k]! * dispersion));
+  const stdError = inv.map((r, k) => ldexp(Math.sqrt(r[k]! * dispersion), -e[k]!));
   const statistic = estimate.map((e, k) => e / stdError[k]!);
   const zTest = !estimated;
   const pValue = statistic.map((t) =>
@@ -838,7 +858,7 @@ export function glmHatvalues(fit: GlmResult): number[] {
   }
   // rows of the last least squares step, in order
   let k = 0;
-  const usedRows = fit.weights.map((v) => v > 0);
+  const usedRows = USED_ROWS.get(fit) ?? fit.weights.map((v) => v > 0);
   fit.priorWeights.forEach((w, i) => {
     const hi = usedRows[i] ? (h[k++] ?? 0) : 0;
     if (w > 0) out.push(hi > 1 - 10 * EPS ? 1 : hi);

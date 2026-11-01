@@ -14,7 +14,7 @@
 
 import { pf1 } from "../distributions/f.js";
 import { pt1, qt1 } from "../distributions/t.js";
-import { chol2inv } from "../linalg/chol.js";
+import { chol2invColumns } from "../internal/scaledInverse.js";
 import type { MatrixInput } from "../linalg/matrix.js";
 import { qr, qrCoef, qrResid, type QR } from "../linalg/qr.js";
 import { ldexp, norm2, scaleToUnit } from "../internal/summary.js";
@@ -388,12 +388,13 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   // (R'R)^-1 of the leading rank x rank block, in pivot order, for the weights divided by 2^kw (R scaled by 2^-kw/2,
   // exact): (R'R)^-1 of the given weights overflowed for weights below 1e-308, making the standard errors Infinity
   // (R too), though they do not depend on a common factor of the weights
+  // (and the columns far from 1 divided by powers of 2 too, review 64: a column of 1e-200 made a standard error Infinity)
   const Rr = q.qr.slice(0, rank).map((row) => row.slice(0, rank).map((v) => ldexp(v, -kw / 2)));
-  const covUnscaled = rank > 0 ? chol2inv(Rr) : [];
+  const { inv: covUnscaled, e: colScale } = rank > 0 ? chol2invColumns(Rr) : { inv: [], e: [] };
   const piv = q.pivot.slice(0, rank);
   const order = piv.map((col, k) => [col, k] as const).sort((a, b) => a[0] - b[0]);
   const estimate = order.map(([col]) => coefficients[col]!);
-  const stdError = order.map(([, k]) => Math.sqrt(covUnscaled[k]![k]! * resvar));
+  const stdError = order.map(([, k]) => ldexp(Math.sqrt(covUnscaled[k]![k]! * resvar), -colScale[k]!));
   const tValue = estimate.map((e, i) => e / stdError[i]!);
   const pValue = tValue.map((t) => 2 * pt1(-Math.abs(t), dfResidual, true, false));
 
