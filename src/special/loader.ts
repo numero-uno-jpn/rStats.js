@@ -500,13 +500,16 @@ export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean):
   if (x < 0 || nmx < 0) return zero;
   // E = stirlerr(x) + stirlerr(n-x) - stirlerr(n) + bd0(x, np) + bd0(n-x, nq)
   const e = binomialExponent(x, nmx, nn, p, q);
-  // Denominator 2 pi x (n - x) / n
-  return expNegDD(
+  // Denominator 2 pi x (n - x) / n. Beyond 2e307 for x (n - x) / n, 2 pi x overflowed (dbinom(8e307, 1.6e308, 0.5)
+  // and dmultinom of such counts were 0; issue #24): as in dpoisRawCore, pi x (n - x) / (8 n) and the value divided by 4
+  const big = x * (nmx / n) > 2e307;
+  const value = expNegDD(
     e,
     log,
     () => LN_2PI + Math.log(x) + Math.log(nmx) - Math.log(n),
-    () => 2 * Math.PI * x * (nmx / n),
+    big ? (): number => (Math.PI / 8) * (x * (nmx / n)) : (): number => 2 * Math.PI * x * (nmx / n),
   );
+  return big && !log ? value / 4 : value;
 }
 
 /**
