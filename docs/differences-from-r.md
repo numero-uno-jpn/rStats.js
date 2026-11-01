@@ -108,6 +108,7 @@ affected.
 | Correlation of values around 1e-200 | underflow, NA | finite result (as above) |
 | `fisher.test` (2 x 2) and `mantelhaen.test(exact = TRUE)`: the conditional MLE and the confidence limits | uniroot on psi in [0, 1] or 1/psi in [eps, 1] with the absolute tolerance eps^0.25: for [[3, 1], [1, 3]] the estimate is 1.7e-6 off, the 95% limits 1.3e-5 and 0.7% (621.93 for 626.24), the 99% upper limit 6%, and the 99.99% limit the end 1/eps (4.5e15 for 3.2e5) | the roots on the log scale of psi to the precision of the doubles (the tail equals alpha at the limits, the mean equals the count at the estimate) |
 | clinfun's `jonckheere.test` and DescTools' `JonckheereTerpstraTest` with ties (normal approximation) | the null variance without ties (sum n_i m_i (n_i + m_i + 1) / 12), too large: p = 0.0086 for c(1, 1, 2, 2, 3, 3) in three groups | the permutation variance with the ties (Hollander & Wolfe): p = 0.0061; without ties as the packages |
+| dunn.test's step-wise adjustments (`holm`, `hs`, `hochberg`, `bh`, `by`) with tied p-values | ties ranked in the order of the comparisons: the same p-value gets different adjusted values (1, 0.828, 0.414 with `holm`), which change when the groups are relabelled | a run of ties takes the rank of its first, the one the stopping rule decides on: the same value whatever the order, the same decisions; without ties as dunn.test |
 | Perfect correlation (e.g. `1:5` with itself) | r = 1 − 2 ulp; 1 − r² cancels, so t and p are far off (p = 4e-24 instead of 0; with noise of 1e-4 the p-value is off by 14%) | r and 1 − r² in double-double |
 | Kendall's exact upper tail | computed as 1 − (lower tail): 5.6e-16 instead of 3.8e-33 for perfect correlation with n = 30 | upper tail summed directly |
 | Spearman, perfect correlation with n = 2 | S = 2.2e-16 (should be 0) | 0 |
@@ -167,6 +168,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `ks.test(x, "punif", exact = TRUE)` with D >= 1/2 and a tiny p-value (D = 0.9, n = 20, 50, 99) | 0, 8.9e-16, 2.0e-15 (1 - P(D < d) loses the digits) | 2.0e-20, 2.0e-50, 2.05e-99: P(D >= d) = 2 P(D+ >= d) for d >= 1/2, a sum of positive terms |
 | `quade.test`, `fligner.test` with ranges or deviations of finite data that overflow (rows -1e308 to 1e308 and -9e307 to 9e307) | tied as Inf: the result changes when the data are rescaled | the data divided by a common power of 2 there: the same result at any scale |
 | `mcnemar.test` on an r x r table where a pair of cells has no discordant counts | statistic and p-value NaN | that pair adds 0 (df unchanged) |
+| `anova(fit1, fit2)` where the larger model fits essentially perfectly (y = 1 + x + z exactly) | F 2.6e30 and p 4e-16 without a warning (the table of one fit warns) | the same values with the warning "ANOVA F-tests on an essentially perfect fit are unreliable" |
 | `p.adjust(p, "BY", n = Inf)`; `"holm"` with `n = Inf` | "result would be too long a vector"; every p-value 1 | an error (n must be finite); BY with a large finite n uses the expansion of the harmonic number beyond 1e6 |
 | `qbinom(-1e10, 1e5, 0.01, log.p = TRUE)` | 37 (search stops early) | 0 (F(0) ≈ e^-1005 exceeds e^-1e10) |
 | `qt(1e-320, 2)` (subnormal p) | -Inf | -7.0711e159 (matches the closed form −sqrt(1/(2p))) |
@@ -326,7 +328,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   `chisqTest`'s simulation (R's p-value can exceed 1 there), fractional counts in `mantelhaenTest(exact: true)` (R
   returns a result), a table without discordant pairs in `mcnemarTest`, only zero differences in the signed rank
   `wilcoxTest`, two constant samples in `varTest`, fractional counts in `chisqTest`'s simulation of tables (R returns
-  NaN or truncates the margins), and a step `eps` of 0 or a
+  NaN or truncates the margins), groups that are all constant in `dunnettTest`, `tukeyTest` and `glhtDunnett` (a
+  pooled variance of 0: R's p-values are 0 in `TukeyHSD` and PMCMRplus, 1 in multcomp's `glht`), and a step `eps` of 0 or a
   non-finite `d`, `eps` or `zeroTol` in `grad`, `jacobian` and `hessian` (numDeriv's "simple" method gives NaN for
   `eps = 0`; `d = 0` is an error there too).
 - **The power and effect-size functions** reject NaN for a known quantity (pwr mostly stops with "missing value

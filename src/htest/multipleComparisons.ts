@@ -176,6 +176,10 @@ function pooled(d: Layout): { m: number[]; s2: number; df: number; k: number } {
   const gm = groupMoments(d.groups);
   let df = 0;
   for (const n of gm.n) if (n > 1) df += n - 1;
+  // No inference without a residual variance (the statistics were +-Infinity, or NaN for equal means). The sum of
+  // squares is double-double, so it is exactly 0 only when every group is constant
+  if (df === 0) throw new RangeError("no residual degrees of freedom");
+  if (gm.ssWithin === 0) throw new RangeError("the pooled within-group variance is 0");
   return { m: gm.mean, s2: gm.ssWithin / df, df: d.N - d.k, k: gm.k };
 }
 
@@ -483,7 +487,8 @@ export interface DunnTestResult {
 /**
  * Dunn's test of all pairs of mean ranks. Equivalent to `dunn.test::dunn.test(x, g, method, altp)` in R. The step-wise
  * adjustments multiply (or transform) each p-value by the factor of its rank and cap it at 1, without enforcing
- * monotonicity, as dunn.test does (unlike `pAdjust`).
+ * monotonicity, as dunn.test does (unlike `pAdjust`). Equal p-values share the rank of the first of them in the
+ * ordering, so they get the same adjusted value (dunn.test ranks ties in the order of the comparisons).
  *
  * @example
  * ```ts
@@ -515,15 +520,18 @@ export function dunnTest(x: Sample, g: readonly GroupLabel[], options: DunnTestO
   return { chi2, Z, P, PAdjusted: dunnAdjust(P, method), comparisons };
 }
 
-/** dunn.test's adjustments: each value by the factor of its rank, capped at 1 */
+/** dunn.test's adjustments: each value by the factor of its rank (tied values: the same rank), capped at 1 */
 function dunnAdjust(P: readonly number[], method: DunnTestMethod): number[] {
   const m = P.length;
   const sidakLike = (p: number, e: number): number => Math.min(1, -Math.expm1(e * Math.log1p(-p)));
-  // i = 1..m: rank among the increasing (or decreasing) values, ties in the order of the comparisons
+  // i = 1..m: rank among the increasing (or decreasing) values. Tied values share the first rank of their run
+  // (dunn.test ranks them in the order of the comparisons, so equal p-values got different adjusted values that
+  // depended on the order of the groups). The first of a run is the one the stopping rule decides on, step-down
+  // (increasing) or step-up (decreasing), so the decisions are those of dunn.test
   const ranks = (decreasing: boolean): number[] => {
     const order = P.map((_, k) => k).sort((a, b) => (decreasing ? P[b]! - P[a]! : P[a]! - P[b]!) || a - b);
     const r = new Array<number>(m);
-    order.forEach((k, pos) => (r[k] = pos + 1));
+    order.forEach((k, pos) => (r[k] = pos > 0 && P[k] === P[order[pos - 1]!] ? r[order[pos - 1]!]! : pos + 1));
     return r;
   };
   switch (method) {

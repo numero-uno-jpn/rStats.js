@@ -129,6 +129,13 @@ function comparisonTable(fits: readonly LmFormulaResult[]): AnovaTable {
     if (d < rdf[big]!) big = i;
   });
   const scale = rss[big]! / rdf[big]!;
+  // the warning of the sequential table on an essentially perfect fit of the model that gives the scale (R: none)
+  let fss = 0;
+  fits[big]!.fittedValues.forEach((f, i) => {
+    const w = fits[big]!.weights?.[i] ?? 1;
+    if (w !== 0) fss += w * ldexp(f, -k) ** 2;
+  });
+  const perfect = rss[big]! < 1e-10 * fss;
   const table = fits.map((_, i) => {
     if (i === 0) return [rdf[0]!, back(rss[0]!), NaN, NaN, NaN, NaN];
     const df = rdf[i - 1]! - rdf[i]!;
@@ -144,7 +151,7 @@ function comparisonTable(fits: readonly LmFormulaResult[]): AnovaTable {
     colNames: ["Res.Df", "RSS", "Df", "Sum of Sq", "F", "Pr(>F)"],
     rowNames: fits.map((_, i) => String(i + 1)),
     table,
-    warnings: [],
+    warnings: perfect ? ["ANOVA F-tests on an essentially perfect fit are unreliable"] : [],
   };
 }
 
