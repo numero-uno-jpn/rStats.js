@@ -197,7 +197,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/hyper.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/lecuyer.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/mt.ts` | 未監査 | — | `—` | — | — | — |
-| `src/random/poisson.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/poisson.ts` | 一部監査・問題未検出 | #123 | `cf352aaf46ae22782a09d7c054fd3716a370d7a6` | — | R本体 `src/nmath/rpois.c` のAhrens–Dieter法と主要分岐・定数を照合 | λ=0, 0.1, 1, 5, 9.99, 10, 15, 50, 100, 1e4, 1e7, Inf, -1, NaN。32 fixture cases (R 4.5.2) inspected only. No new reproducible defect; source review only, no Vitest/runtime/R/simulation. Extreme λ beyond fixture and precision/overflow behavior not exhaustively validated. |
 | `src/random/r2dtable.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/rank.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/rng.ts` | 未監査 | — | `—` | — | — | — |
@@ -712,3 +712,14 @@ Repository: `numero-uno-jpn/rStats.js`
 - Additional review: BC and BB rejection inequalities, constants, symmetry, parameter cache, endpoint/special-value handling, and noncentral-beta construction via noncentral chi-square/gamma mixtures were source-reviewed. No second concrete defect established. R's `ncp=0` path remains separate from omitted ncp as expected by the random generator design.
 - Issue filed: [#30](https://github.com/numero-uno-jpn/rStats.js/issues/30).
 - No Vitest, package runtime, statistical simulation, or fresh R execution. The result is a deterministic source-level finding plus analytic distributional proof; fixture cases were only inspected.
+
+
+## Audit #123
+
+- Repository HEAD before ledger update: `cf352aaf46ae22782a09d7c054fd3716a370d7a6`.
+- Primary source: `src/random/poisson.ts` blob `9f6f9657e84c2110bb08640b1f846c345bd2ff2f`. Related source: `src/random/rng.ts` blob `f527fd7018642205ef5870df8fcab8fc9e02aff1`; `src/random/common.ts` blob `be016a36e9f09f580462d2bf93e30ed6bad527c1`.
+- R reference: `src/nmath/rpois.c`, Ahrens–Dieter (1982) algorithm PD; source reviewed via official/CRAN R source reference. Small-mean inversion table and large-mean normal rejection method match the TypeScript structure. Compared constants A0–A7, thresholds (10, 0.458, 35, -0.6744, 1.8, 1.1484), immediate/squeeze/quotient/hat acceptance, factorial branch, and parameter-cache update rules.
+- Test/fixture inspected: `test/random.test.ts` blob `f849a51e7b3c89c639641cf0a231fc9989dcff81`; `test/helpers/random.ts` blob `d9c9fae276354b0ed1c63a0ea6c588efe99ca8e9`; `test/fixtures/rpois.json` blob `5a6e749d4a299ce6259f8cfd9d8a44d92c4be666`. Fixture metadata R 4.5.2, x86_64 Linux, 32 cases: λ=0, 0.1, 1, 5, 9.99, 10, 15, 50, 100, 1e4, 1e7, Inf, -1, NaN; includes 20,000-draw summaries at λ=3,12,40,1000 and verifies next RNG draw. Inspected, not executed.
+- Result: `一部監査・問題未検出`. No reproducible defect established in the reviewed Ahrens–Dieter implementation. Boundary validation rejects nonfinite/negative λ without consuming RNG; λ=0 returns 0 without consuming RNG, matching fixture expectations. Small-mean cumulative table resets when λ changes; large-mean constants recalculate when λ changes; transitions and cached-parameter logic were source-reviewed.
+- Exact fixed inputs reviewed (not executed): `setSeed(1); rpois(30,9.99)`; `setSeed(1); rpois(30,10)`; `setSeed(1); rpois(30,15)`; `setSeed(1); rpois(30,1e7)`; `setSeed(42); rpois(30,0/Infinity/-1/NaN)` (each call is a separate seeded test).
+- Extreme finite λ beyond the fixtures, representability at very large means, and statistical distributional behavior were not exhaustively tested. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution. No issue filed.
