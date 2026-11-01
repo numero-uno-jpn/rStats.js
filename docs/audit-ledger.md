@@ -30,204 +30,204 @@ Repository: `numero-uno-jpn/rStats.js`
 
 | ファイル | 状態 | 監査回 | Repository HEAD SHA | Issue | Rとの関係 | 期待値の根拠・検証範囲 |
 |---|---|---:|---|---|
-| `src/api-reference.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/data/grouping.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/basic.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/cov.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/dataFrames.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/factanal.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/hist.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/missing.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/moments.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/omega.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/pivot.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/quantile.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/rank.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/descriptive/table.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/arcsine.ts` | 問題未検出 | #95 | `058fff6bf6d780aec1f369ca7520bbc50ef11471` | — | Rでは未確認（base R・extraDistrに対応関数なし） | 密度・CDF・分位点の解析式と mpmath 1.4.1 の領域別fixtureを照合対象として確認。実行未確認。
-| `src/distributions/beta.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/binomial.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/bvnorm.ts` | 問題あり | #94 | `05e52efbc8f54e505da82fb10555834a02666e46` | [#23](https://github.com/numero-uno-jpn/rStats.js/issues/23) | Rでは未確認 | 完全負相関の恒等式 `Y=-X` による解析値。独立CDF計算。
-| `src/distributions/cauchy.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/chisq.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/exponential.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/f.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/gamma.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/geometric.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/hypergeometric.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/invgamma.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/kumaraswamy.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/laplace.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/logistic.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/lognormal.ts` | 未監査 | — | `—` | — | | — | — |
+| `src/api-reference.ts` | 未監査 | — | `—` | — | — | — |
+| `src/data/grouping.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/basic.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/cov.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/dataFrames.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/factanal.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/hist.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/missing.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/moments.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/omega.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/pivot.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/quantile.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/rank.ts` | 未監査 | — | `—` | — | — | — |
+| `src/descriptive/table.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/arcsine.ts` | 問題未検出 | #95 | `058fff6bf6d780aec1f369ca7520bbc50ef11471` | — | Rでは未確認（base R・extraDistrに対応関数なし） | 密度・CDF・分位点の解析式と mpmath 1.4.1 の領域別fixtureを照合対象として確認。実行未確認。 |
+| `src/distributions/beta.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/binomial.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/bvnorm.ts` | 問題あり | #94 | `05e52efbc8f54e505da82fb10555834a02666e46` | [#23](https://github.com/numero-uno-jpn/rStats.js/issues/23) | Rでは未確認 | 完全負相関の恒等式 `Y=-X` による解析値。独立CDF計算。 |
+| `src/distributions/cauchy.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/chisq.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/exponential.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/f.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/gamma.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/geometric.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/hypergeometric.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/invgamma.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/kumaraswamy.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/laplace.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/logistic.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/lognormal.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/multinomial.ts` | 問題あり | #96 | `ac5d64a614debaa2922754bd257f2b8286619518` | [#24](https://github.com/numero-uno-jpn/rStats.js/issues/24) | Rでは未確認 | 中央二項確率の解析式と Stirling 漸近、IEEE-754 中間積の独立計算。実パッケージ実行・R比較なし。 |
-| `src/distributions/nbeta.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/nchisq.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/negbinomial.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/normal.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/nt.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/pareto.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/poisson.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/signrank.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/summary.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/t.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/triangular.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/tukey.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/uniform.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/weibull.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/distributions/wilcox.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/entries/descriptive.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/entries/distributions.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/entries/linalg.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/entries/mixed.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/entries/numerics.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/entries/special.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/entries/tests.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/agreement.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/ansariTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/aov.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/binomTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/brunnerMunzelTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/chisqTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/cor.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/core/ansari.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/core/kolmogorov.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/core/mantelhaen.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/core/shapiro.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/core/simulate.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/core/smirnov.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/dunnett.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/effectSize.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/fisherTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/groups.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/ksTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/leveneTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/mantelhaenTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/mcnemarTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/multipleComparisons.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/normalityTests.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/onewayTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/pAdjust.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/pairwise.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/poissonTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/polycor.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/power.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/propTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/pwr.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/rankTests.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/tTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/testFormula.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/trendTests.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/types.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/varTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/htest/wilcoxTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/index.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/integrate/quadpack.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/covmat.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/ddexp.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/discrete.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/dpq.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/extremes.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/fround.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/integer.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/invert.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/levels.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/noncentral.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/poissonMixture.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/scaledInverse.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/seq.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/summary.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/uniroot.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/internal/vectorize.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/balance.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/basic.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/chol.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/eigen.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/expm.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/kappa.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/lu.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/matrix.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/norm.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/ops.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/qr.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/schur.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/solve.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/linalg/svd.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/anovaSequential.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/aovEz.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/aovStrata.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/carAnova.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/coxph.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/ddLeastSquares.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/ddMatrix.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/estimable.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/formula.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/glm.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/glmAnova.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/glmConfint.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/glmFamily.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/lm.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/lmer.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/lmerAnova.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/lmerHypotheses.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/lmerTest.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/mauchly.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/mixedDerivatives.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/mixedDeviance.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/mixedStructure.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/modelFrame.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/modelMatrix.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/scaledTables.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/survival.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/models/tiedTimes.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/numerics/deriv.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/numerics/integrate.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/numerics/interp.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/numerics/ode.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/optim/lbfgsb.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/optim/localmin.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/optim/optim.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/as241.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/beta.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/binomial.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/common.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/continuous.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/extra.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/gamma.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/hyper.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/lecuyer.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/mt.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/poisson.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/r2dtable.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/rank.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/rng.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/sample.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/random/streams.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/besselIK.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/besselJY.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/besselSeries.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/beta.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/choose.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/constants.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/dd.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/erf.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/extra.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/gamma.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/igam.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/igamAsympCoeff.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/igami.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/incbet.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/incbetLargeA.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/incbetPrefactor.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/incbetTemme.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/lgammaDiff.ts` | 未監査 | — | `—` | — | | — | — |
+| `src/distributions/nbeta.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/nchisq.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/negbinomial.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/normal.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/nt.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/pareto.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/poisson.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/signrank.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/summary.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/t.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/triangular.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/tukey.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/uniform.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/weibull.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/wilcox.ts` | 未監査 | — | `—` | — | — | — |
+| `src/entries/descriptive.ts` | 未監査 | — | `—` | — | — | — |
+| `src/entries/distributions.ts` | 未監査 | — | `—` | — | — | — |
+| `src/entries/linalg.ts` | 未監査 | — | `—` | — | — | — |
+| `src/entries/mixed.ts` | 未監査 | — | `—` | — | — | — |
+| `src/entries/numerics.ts` | 未監査 | — | `—` | — | — | — |
+| `src/entries/special.ts` | 未監査 | — | `—` | — | — | — |
+| `src/entries/tests.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/agreement.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/ansariTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/aov.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/binomTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/brunnerMunzelTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/chisqTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/cor.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/core/ansari.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/core/kolmogorov.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/core/mantelhaen.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/core/shapiro.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/core/simulate.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/core/smirnov.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/dunnett.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/effectSize.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/fisherTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/groups.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/ksTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/leveneTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/mantelhaenTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/mcnemarTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/multipleComparisons.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/normalityTests.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/onewayTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/pAdjust.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/pairwise.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/poissonTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/polycor.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/power.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/propTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/pwr.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/rankTests.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/tTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/testFormula.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/trendTests.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/types.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/varTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/wilcoxTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/index.ts` | 未監査 | — | `—` | — | — | — |
+| `src/integrate/quadpack.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/covmat.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/ddexp.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/discrete.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/dpq.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/extremes.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/fround.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/integer.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/invert.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/levels.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/noncentral.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/poissonMixture.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/scaledInverse.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/seq.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/summary.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/uniroot.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/vectorize.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/balance.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/basic.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/chol.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/eigen.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/expm.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/kappa.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/lu.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/matrix.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/norm.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/ops.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/qr.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/schur.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/solve.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/svd.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/anovaSequential.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/aovEz.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/aovStrata.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/carAnova.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/coxph.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/ddLeastSquares.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/ddMatrix.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/estimable.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/formula.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/glm.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/glmAnova.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/glmConfint.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/glmFamily.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/lm.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/lmer.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/lmerAnova.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/lmerHypotheses.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/lmerTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/mauchly.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/mixedDerivatives.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/mixedDeviance.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/mixedStructure.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/modelFrame.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/modelMatrix.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/scaledTables.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/survival.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/tiedTimes.ts` | 未監査 | — | `—` | — | — | — |
+| `src/numerics/deriv.ts` | 未監査 | — | `—` | — | — | — |
+| `src/numerics/integrate.ts` | 未監査 | — | `—` | — | — | — |
+| `src/numerics/interp.ts` | 未監査 | — | `—` | — | — | — |
+| `src/numerics/ode.ts` | 未監査 | — | `—` | — | — | — |
+| `src/optim/lbfgsb.ts` | 未監査 | — | `—` | — | — | — |
+| `src/optim/localmin.ts` | 未監査 | — | `—` | — | — | — |
+| `src/optim/optim.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/as241.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/beta.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/binomial.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/common.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/continuous.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/extra.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/gamma.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/hyper.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/lecuyer.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/mt.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/poisson.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/r2dtable.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/rank.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/rng.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/sample.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/streams.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/besselIK.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/besselJY.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/besselSeries.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/beta.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/choose.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/constants.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/dd.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/erf.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/extra.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/gamma.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/igam.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/igamAsympCoeff.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/igami.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/incbet.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/incbetLargeA.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/incbetPrefactor.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/incbetTemme.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/lgammaDiff.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/loader.ts` | 問題あり | #96 | `ac5d64a614debaa2922754bd257f2b8286619518` | [#24](https://github.com/numero-uno-jpn/rStats.js/issues/24) | Rでは未確認 | 中央二項確率の解析式と Stirling 漸近、IEEE-754 中間積の独立計算。実パッケージ実行・R比較なし。 |
-| `src/special/log1p.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/log1pmx.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/ndtri.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/polevl.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/psigamma.ts` | 未監査 | — | `—` | — | | — | — |
-| `src/special/rCompatible.ts` | 未監査 | — | `—` | — | | — | — |
+| `src/special/log1p.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/log1pmx.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/ndtri.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/polevl.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/psigamma.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/rCompatible.ts` | 未監査 | — | `—` | — | — | — |
 
 ## Audit #94
 
