@@ -58,12 +58,12 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/invgamma.ts` | 一部監査・問題未検出 | #140 | `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26` | — | R 4.5.2/extraDistr由来fixtureとmpmath fixtureを閲覧（未実行） | `X=1/Y` の変換、z=beta/xのdouble-double補正、subnormal zの対数密度、CDF上下尾符号、logP補正、tiny gamma quantile経路、alpha/betaのNaN/0/Inf境界を追跡。具体的入力: `dinvgamma(1e-300,2,{beta:1e-300})`、`pinvgamma(1e-300,2,{beta:1e-300,lowerTail:false,logP:true})`、`qinvgamma(1e-300,2,{beta:1e-300})`。alpha=Infinityは点質量0の極限として特別扱いされるが、`pinvgamma(0,Infinity)`の境界値はその極限解釈と不整合の可能性があり、R/extraDistrの契約確認を要するため不具合認定せず。Vitest/package runtime/R実行なし。
 | `src/distributions/kumaraswamy.ts` | 一部監査・問題未検出 | #141 | `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26` | — | extraDistr由来fixture・mpmath fixtureを閲覧（未実行） | 密度のx=0/1端点、a=Infinityの退化極限、b有限条件、`1-x^a`のexpm1/log1p、subnormal `x^a`、`b*log(1-x^a)`、下側log確率の小確率展開、逆関数のlogP/極小a経路とreciprocal補正を追跡。具体的入力: `dkumar(1-Number.EPSILON,2.6e-300,0.29)`、`pkumar(0.2,0.42,1.85e-317,{logP:true})`、`qkumar(4.8e-52,9.9e-314,2.5)`。既知の安定化分岐が各ケースをカバーすることを確認。Vitest/package runtime/R実行なし。
 | `src/distributions/laplace.ts` | 一部監査・問題未検出 | #142 | `f6d0a8e51cbd301536a2e29a3d6b110a814c6e26` | — | extraDistr由来fixture・mpmath fixtureを閲覧（未実行） | `standardizeDD`による差分overflow回避、mu/sigmaのNaN/Inf/0境界、密度の2*sigma overflow、subnormal expの除算、CDFの左右tail/log1p、分位点のlog-tailとlocationScaleを追跡。具体的入力: `dlaplace(Number.MAX_VALUE,{mu:-Number.MAX_VALUE,sigma:1,log:true})`、`plaplace(Infinity,{mu:0,sigma:1})`、`qlaplace(1e-320,{mu:1,sigma:2})`、`dlaplace(0,{mu:0,sigma:1e308})`。ソース上の演算経路で新規不具合を確定せず。Vitest/package runtime/R実行なし。
-| `src/distributions/logistic.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/lognormal.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/logistic.ts` | 一部監査・問題未検出 | #143 | `557cdff4132642faad75bcd95ddbbfeca8a90eec` | — | R 4.5.2由来のd/p/qlogis fixtureを閲覧（未実行） | `dlogis1`のscale・subnormal density・log density、`plogis1`の符号と小さい側のtail選択、`qlogis1`のlogit・上下尾反転・scale=0/負/Inf、`standardizeDD`/`locationScale`接続を追跡。具体的入力: `dlogis(-745,{scale:1})`、`dlogis(-3.5667e-316,{scale:4.81926e-319})`、`plogis(1e300,{location:-1e300,scale:1e300,lowerTail:false,logP:true})`、`qlogis(1e-320,{scale:1e-300})`。再現不具合を確定せず。Vitest/package runtime/R実行なし。
+| `src/distributions/lognormal.ts` | 一部監査・問題未検出 | #144 | `557cdff4132642faad75bcd95ddbbfeca8a90eec` | — | R 4.5.2由来のd/pl/q lnorm fixtureとmpmath由来の分布要約fixtureを閲覧（未実行） | `dlnorm1`のx<=0、sdlog=0、NaN/Inf、subnormal density、whole-exponent補正、`zOf`/`halfSquare`、`plnorm1`のnormal tail、`qlnorm1`のquantile refinement・巨大sdlog branchを追跡。具体的入力: `dlnorm(1e-100,{meanlog:-100,sdlog:3})`、`dlnorm(2e-105,{meanlog:1.53,sdlog:6.36})`、`plnorm(1e-300,{meanlog:0,sdlog:1,logP:true})`、`qlnorm(1e-30,{meanlog:0,sdlog:9e307})`。Rとの既知丸め差を新規不具合と誤認しないよう区別。新規再現不具合なし。Vitest/package runtime/R実行なし。
 | `src/distributions/multinomial.ts` | 問題あり | #96 | `ac5d64a614debaa2922754bd257f2b8286619518` | [#24](https://github.com/numero-uno-jpn/rStats.js/issues/24) | Rでは未確認 | 中央二項確率の解析式と Stirling 漸近、IEEE-754 中間積の独立計算。実パッケージ実行・R比較なし。 |
-| `src/distributions/nbeta.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/nchisq.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/negbinomial.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/nbeta.ts` | 一部監査・問題未検出 | #145 | `557cdff4132642faad75bcd95ddbbfeca8a90eec` | — | R 4.5.2由来d/p/qnbeta fixture、mpmath tail fixture、既存regression testを閲覧（未実行） | Poisson混合のbeta kernel/隣接項比/shape丸め補正、leftTailLog、極端shape用chisq/gamma/w/integral method、数値積分のmode探索・tail remainder、density端点、quantile端点・narrow quantile、noncentral F変換fPair/fOdds・tiny q・Chernoff bound・df2→∞極限を追跡。具体的入力: `pbeta(1e-7,3,5,{ncp:2e7,logP:true})`、`dbeta(1.4930968104424972e-218,4.994551015409567e-269,1.00296357719376e-118,{ncp:4.248780725227059})`、`qbeta(1.2066869150839893e-270,0.031616179278943515,0.2793791077635366,{ncp:0.6460099483845458,lowerTail:false})`、`pf(2.5e300,1828,0.165,{ncp:3.7e307})`。既存test/nbeta.test.tsの特殊ケースを照合。ソースレビュー上の新規再現不具合なし。Vitest/package runtime/R実行なし。
+| `src/distributions/nchisq.ts` | 一部監査・問題未検出 | #146 | `557cdff4132642faad75bcd95ddbbfeca8a90eec` | — | R 4.5.2由来dnchisq/pnchisq/qnchisq fixture、mpmath由来巨大tail fixture、既存regression testを閲覧（未実行） | Poisson-gamma mixture、subnormal x/2補正、Chernoff far-tail bound、Bessel Hankel/Debye asymptotic、Bessel series、log-domain tail integration、df=0 atom境界、quantile Patnaik開始値・narrow spread・double searchを追跡。具体的入力: `dchisq(0,0,{ncp:1})`、`pchisq(0,0,{ncp:1,lowerTail:true,logP:true})`、`dchisq(2.0001e9,1e6,{ncp:2e9,log:true})`、`qchisq(5.7285590455359545e-12,5.345349749112763,{ncp:1})`。df=0のx=0密度はR fixtureもInfinityであることを照合。新規再現不具合なし。Vitest/package runtime/R実行なし。
+| `src/distributions/negbinomial.ts` | 一部監査・問題未検出 | #147 | `557cdff4132642faad75bcd95ddbbfeca8a90eec` | — | R 4.5.2由来d/p/qnbinomおよびmu parameterization fixture、mpmath fixture、既存testを閲覧（未実行） | `prob`/`mu`排他指定、fromMuのoverflow回避double-double比、Loader density、subnormal size補正、x>2^53 CDF補正、upperSeries、Cornish-Fisher/gamma開始値、Newton/secant refine、離散quantile探索、size/mu=0/Inf境界を追跡。具体的入力: `dnbinom(58,3.94e-315,{prob:0.125,log:true})`、`pnbinom(1e16,1e16,{prob:0.5})`、`qnbinom(2.2e-284,2.7e37,{prob:1.9e-279})`、`dnbinom(3,5,{mu:4})`。既知の巨大整数・subnormal対応分岐を確認。新規再現不具合なし。Vitest/package runtime/R実行なし。
 | `src/distributions/normal.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/nt.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/pareto.ts` | 未監査 | — | `—` | — | — | — |
@@ -869,3 +869,38 @@ Repository: `numero-uno-jpn/rStats.js`
 - Reviewed location/scale validation, infinite-location limit, double-double standardization, density denominator overflow when 2*sigma exceeds the largest double, subnormal exponential division, CDF smaller-side selection and log1p complement, and quantile tail conversion/locationScale.
 - Exact probes considered: `dlaplace(Number.MAX_VALUE,{mu:-Number.MAX_VALUE,sigma:1,log:true})`, `plaplace(Infinity,{mu:0,sigma:1})`, `qlaplace(1e-320,{mu:1,sigma:2})`, and `dlaplace(0,{mu:0,sigma:1e308})`. Existing extraDistr/mpmath fixtures inspected, not executed.
 - Result: `一部監査・問題未検出`. No Vitest, package runtime, or R execution.
+
+## Audit #143 — `src/distributions/logistic.ts`
+
+- Repository HEAD: `557cdff4132642faad75bcd95ddbbfeca8a90eec`; source blob `76cd8b85c520932b5980baa16cc3d4ce483eb872`.
+- Reviewed `dlogis1` scale validation, double-double standardization, subnormal exponential/scale division, `plogis1` tail-side selection and log probabilities, and `qlogis1` endpoint handling, logit stability, zero/negative/infinite scale.
+- Exact probes considered: `dlogis(-745,{scale:1})`, `dlogis(-3.5667e-316,{scale:4.81926e-319})`, `plogis(1e300,{location:-1e300,scale:1e300,lowerTail:false,logP:true})`, and `qlogis(1e-320,{scale:1e-300})`. R 4.5.2 d/p/qlogis fixtures inspected, not executed.
+- Result: `一部監査・問題未検出`. No Vitest, package runtime, or fresh R execution.
+
+## Audit #144 — `src/distributions/lognormal.ts`
+
+- Repository HEAD: `557cdff4132642faad75bcd95ddbbfeca8a90eec`; source blob `2d955d68f6d973a4108450c6b1ae7fa3eb1fc204`.
+- Reviewed `zOf` scaling, double-double half-square, `pnormDD` tail selection, quantile Newton refinement, density endpoint/degenerate/nonfinite branches, whole-exponent subnormal density, and huge-sdlog quantile path.
+- Exact probes considered: `dlnorm(1e-100,{meanlog:-100,sdlog:3})`, `dlnorm(2e-105,{meanlog:1.53,sdlog:6.36})`, `plnorm(1e-300,{meanlog:0,sdlog:1,logP:true})`, and `qlnorm(1e-30,{meanlog:0,sdlog:9e307})`. R 4.5.2 d/p/q lnorm fixtures and mpmath summary fixture inspected, not executed. The source explicitly preserves one R-compatible density underflow behavior that differs from the mathematical exact value; it was not newly classified as a bug.
+- Result: `一部監査・問題未検出`. No Vitest, package runtime, or fresh R execution.
+
+## Audit #145 — `src/distributions/nbeta.ts`
+
+- Repository HEAD: `557cdff4132642faad75bcd95ddbbfeca8a90eec`; source blob `5c51760f6e136b80a77b4284da39c25b0ab8ed86`.
+- Reviewed Poisson-mixture beta kernel, adjacent-term ratio and shape-rounding correction, left-tail series, extreme-parameter method selection (`chisq`/`gamma`/`w`/`integral`), log-domain integration and endpoint remainder, density endpoint limits, quantile endpoint/narrow-spread logic, and noncentral-F transform, tiny-q approximation, Chernoff bound and df2→∞ limit.
+- Exact probes considered: `pbeta(1e-7,3,5,{ncp:2e7,logP:true})`, `dbeta(1.4930968104424972e-218,4.994551015409567e-269,1.00296357719376e-118,{ncp:4.248780725227059})`, `qbeta(1.2066869150839893e-270,0.031616179278943515,0.2793791077635366,{ncp:0.6460099483845458,lowerTail:false})`, and `pf(2.5e300,1828,0.165,{ncp:3.7e307})`. Existing `test/nbeta.test.ts` and R/mpmath fixtures inspected, not executed.
+- Result: `一部監査・問題未検出`. No Vitest, package runtime, or fresh R execution.
+
+## Audit #146 — `src/distributions/nchisq.ts`
+
+- Repository HEAD: `557cdff4132642faad75bcd95ddbbfeca8a90eec`; source blob `9549791940c425d508057b7286329b396ca36c6f`.
+- Reviewed Poisson-gamma mixture, subnormal x/2 correction, Chernoff far-tail bound, Bessel Hankel/Debye asymptotics, Bessel series, log-domain tail integration, df=0 atom boundary, and quantile Patnaik start/narrow-spread/double-search behavior.
+- Exact probes considered: `dchisq(0,0,{ncp:1})`, `pchisq(0,0,{ncp:1,lowerTail:true,logP:true})`, `dchisq(2.0001e9,1e6,{ncp:2e9,log:true})`, and `qchisq(5.7285590455359545e-12,5.345349749112763,{ncp:1})`. Existing `test/nchisq.test.ts`, R 4.5.2 fixtures and mpmath fixture inspected, not executed. The df=0, x=0 density is Infinity in the R fixture too, so it was not misreported as a defect despite the point-mass component.
+- Result: `一部監査・問題未検出`. No Vitest, package runtime, or fresh R execution.
+
+## Audit #147 — `src/distributions/negbinomial.ts`
+
+- Repository HEAD: `557cdff4132642faad75bcd95ddbbfeca8a90eec`; source blob `6bf9bf9b9d8b05aa4828e33c4b2fb9b3ed5171c7`.
+- Reviewed exclusive `prob`/`mu` parameterization, overflow-safe double-double `fromMu`, Loader density, subnormal size correction, x>2^53 CDF correction, `upperSeries`, Cornish-Fisher/gamma starting values, Newton/secant refinement, discrete quantile search, and size/mu=0/Infinity boundaries.
+- Exact probes considered: `dnbinom(58,3.94e-315,{prob:0.125,log:true})`, `pnbinom(1e16,1e16,{prob:0.5})`, `qnbinom(2.2e-284,2.7e37,{prob:1.9e-279})`, and `dnbinom(3,5,{mu:4})`. R 4.5.2 fixtures, mpmath fixtures and existing tests inspected, not executed.
+- Result: `一部監査・問題未検出`. No Vitest, package runtime, or fresh R execution.
