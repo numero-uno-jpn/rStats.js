@@ -571,6 +571,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   (successes, failures). Each column is one term: `glmAnova` adds the columns one by one (rows
   `"x1"`, `"x2"`, ...), so a factor coded as several columns is several rows of the table. Coefficient
   indices (`parm` of `glmConfint`) are 0-based, intercept first.
+- **`glmAnova` warns about a model that has not converged** ("model k has not converged: its deviance is not that of
+  the maximum likelihood fit"); the table is R's. R's `anova` tests such fits without a word.
 - **`glmConfint` computes the exact profile likelihood limits.** R's `confint` for a glm moves each
   coefficient on a grid of steps of about 1/5 of its standard error and interpolates a spline through
   the signed roots of the likelihood ratio (or score) statistic; its limits are up to 4.5e-4 standard

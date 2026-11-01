@@ -262,6 +262,7 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
     let q: QR | undefined;
     let used: boolean[] = w.map(() => false);
     let sqrtW: number[] = [];
+    const recent: number[][] = [];
     const tol = Math.min(1e-7, epsilon / 1000);
 
     for (iter = 1; iter <= maxit; iter++) {
@@ -359,6 +360,15 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
           converged = true;
           break;
         }
+        // back to one of the last 16 iterates: a cycle in the last bits (of 2 to 5 iterates seen; rounding of the
+        // working response, far larger than 8 eps times a coefficient near 0), as close to the maximum as the doubles
+        // go (the profiles of glmConfint went to maxit, unconverged, and gave a NaN limit; review 66)
+        if (recent.some((r) => r.every((v, j) => v === coef[j]))) {
+          converged = true;
+          break;
+        }
+        recent.push(coef.slice());
+        if (recent.length > 16) recent.shift();
       } else if (Math.abs(dev - devPrevious) / (Math.abs(dev) + 0.1) < epsilon) {
         converged = true;
         // The deviance settles while the linear predictor still moves by about 1 per iteration when the data are

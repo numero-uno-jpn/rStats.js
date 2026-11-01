@@ -184,6 +184,10 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
     ref = list.reduce((a, b) => (b.dfResidual < a.dfResidual ? b : a));
   }
 
+  // (R tests fits that have not converged without a word in the table; review 66)
+  list.forEach((f, i) => {
+    if (!f.converged) warnings.add(`model ${i + 1} has not converged: its deviance is not that of the maximum likelihood fit`);
+  });
   const summaryWarnings = new Warnings();
   const dispersion = options.dispersion ?? glmDispersion(ref, summaryWarnings);
   summaryWarnings.list.forEach((m) => warnings.add(m));
