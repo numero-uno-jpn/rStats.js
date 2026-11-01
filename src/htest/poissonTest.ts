@@ -71,6 +71,25 @@ function twoSidedP(x: number, m: number): number {
   return Math.min(1, ppois1(j, m, true, false) + ppois1(x - 1, m, false, false));
 }
 
+const MIN_NORMAL = 2 ** -1022;
+
+/** n r T1 / (T1 + r T2), with the ratio T2 / T1 where the products overflow or fall below the normal range */
+function expectedCount1(n: number, r: number, T1: number, T2: number): number {
+  const den = T1 + r * T2;
+  const v = (n * r * T1) / den;
+  if (Number.isFinite(v) && Number.isFinite(den) && den >= MIN_NORMAL) return v;
+  return (n * r) / (1 + r * (T2 / T1));
+}
+
+/** (x1 / T1) / (x2 / T2), as (x1 / x2) (T2 / T1) where the rates overflow or fall below the normal range */
+function rateRatio(x1: number, x2: number, T1: number, T2: number): number {
+  const r1 = x1 / T1;
+  const r2 = x2 / T2;
+  const v = r1 / r2;
+  if (x2 === 0 || (Number.isFinite(r1) && Number.isFinite(r2) && r2 >= MIN_NORMAL && (r1 === 0 || r1 >= MIN_NORMAL))) return v;
+  return (x1 / x2) * (T2 / T1);
+}
+
 /**
  * Exact test of a Poisson rate, or comparison of two Poisson rates. Equivalent to R's `poisson.test()`.
  *
@@ -94,8 +113,9 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
   const Traw = options.T ?? 1;
   const T = typeof Traw === "number" ? new Array<number>(k).fill(Traw) : Array.from(Traw);
   if (T.length !== k) throw new RangeError("'x' and 'T' have incompatible length");
-  // as in R, a time base or rate of 0 is accepted (the counts then have mean 0 under the null hypothesis)
-  if (!T.every((t) => Number.isFinite(t) && t >= 0)) throw new RangeError("'T' must be nonnegative");
+  // a time base of 0 defines no rate (R accepts it and returns NaN or Infinity for the estimate and the interval); a
+  // rate r of 0 is accepted, as in R (the counts then have mean 0 under the null hypothesis)
+  if (!T.every((t) => Number.isFinite(t) && t > 0)) throw new RangeError("'T' must be positive");
   const r = options.r ?? 1;
   if (!(Number.isFinite(r) && r >= 0)) throw new RangeError("'r' must be a single positive number");
   const alternative = matchAlternative(options.alternative);
@@ -109,9 +129,14 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
     const [x1, x2] = counts as [number, number];
     const [T1, T2] = T as [number, number];
     const n = x1 + x2;
-    // NaN (rejected by binomTest, as in R) when both r T1 and T2 are 0. Two counts of 0 give p-value 1 and the
-    // interval [0, 1] as in R, where binomTest([0, 0]) and binomTest(0, 0) are errors
-    const p0 = (r * T1) / (r * T1 + T2);
+    // (two counts whose sum overflows: R stops; binomTest would have n = Infinity)
+    if (n === Infinity) throw new RangeError("'x' must be finite, nonnegative, and integer");
+    // Two counts of 0 give p-value 1 and the interval [0, 1] as in R, where binomTest([0, 0]) and binomTest(0, 0) are
+    // errors. Where r T1 + T2 overflows or is not a normal number, the ratio of the time bases instead
+    // (T = c(1e308, 1e308) gave p0 = 0 and a p-value of 0; R too)
+    const a = r * T1;
+    const den = a + T2;
+    const p0 = Number.isFinite(den) && den >= MIN_NORMAL && (a === 0 || a >= MIN_NORMAL) ? a / den : 1 / (1 + T2 / T1 / r);
     const b = binomTestCounts(Math.round(x1), Math.round(x1) + Math.round(x2), { p: p0, alternative, confLevel });
     const toRatio = (p: number): number => (p / (1 - p)) * (T2 / T1);
     return {
@@ -120,12 +145,12 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
       statistic: x1,
       statisticName: "count1",
       // R reports sum(x) r T1 / (T1 + r T2) here (r on the other time base than in the binomial probability)
-      parameter: (n * r * T1) / (T1 + r * T2),
+      parameter: expectedCount1(n, r, T1, T2),
       parameterName: "expected count1",
       pValue: b.pValue,
       confInt: [toRatio(b.confInt[0]), toRatio(b.confInt[1])],
       confLevel,
-      estimate: x1 / T1 / (x2 / T2),
+      estimate: rateRatio(x1, x2, T1, T2),
       estimateNames: "rate ratio",
       nullValue: r,
       nullValueName: "rate ratio",
@@ -141,7 +166,9 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
   else pValue = twoSidedP(xv, m);
 
   const lower = (alpha: number): number => (xv === 0 ? 0 : qgamma1(alpha, xv, 1, true, false));
-  const upper = (alpha: number): number => qgamma1(1 - alpha, xv + 1, 1, true, false);
+  // (for alpha below 1e-8 the upper probability itself, as in binomTest: 1 - alpha rounds to 1 below 1.1e-16)
+  const upper = (alpha: number): number =>
+    alpha < 1e-8 ? qgamma1(alpha, xv + 1, 1, false, false) : qgamma1(1 - alpha, xv + 1, 1, true, false);
   let ci: [number, number];
   if (alternative === "less") ci = [0, upper(1 - confLevel)];
   else if (alternative === "greater") ci = [lower(1 - confLevel), Infinity];

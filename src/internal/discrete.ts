@@ -141,6 +141,8 @@ export function firstTrue(pred: (i: number) => boolean, lo: number, hi: number):
   }
   while (j - fails > 1) {
     const mid = fails + Math.floor((j - fails) / 2);
+    // beyond 2^53 the midpoint can round to an end, which then never moved (binomTest(0, 1e20) did not return)
+    if (mid === fails || mid === j) break;
     if (pred(mid)) j = mid;
     else fails = mid;
   }
@@ -158,6 +160,7 @@ export function lastTrue(pred: (i: number) => boolean, lo: number, hi: number): 
   let fails = hi; // smallest integer known not to hold
   while (fails - j > 1) {
     const mid = j + Math.floor((fails - j) / 2);
+    if (mid === fails || mid === j) break; // (as in firstTrue)
     if (pred(mid)) j = mid;
     else fails = mid;
   }

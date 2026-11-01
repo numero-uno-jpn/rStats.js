@@ -102,7 +102,8 @@ export function binomTest(
     xs = Math.round(x[0]);
     ns = Math.round(x[0]) + Math.round(x[1]);
     // no trials: neither the estimate nor the test is defined (R returns a p-value of 1), as for binomTest(0, 0)
-    if (ns === 0) throw new RangeError("'n' must be a positive integer >= 'x'");
+    // no trials, or a total that overflows (binomTest([1e308, 1e308]) gave NaN; a scalar n = Infinity is rejected too)
+    if (ns === 0 || ns === Infinity) throw new RangeError("'n' must be a positive integer >= 'x'");
   } else {
     if (typeof n !== "number") throw new TypeError("'n' is required when 'x' is a single number");
     if (!isCount(x)) throw new RangeError("'x' must be nonnegative and integer");
@@ -130,7 +131,10 @@ export function binomTestCounts(xs: number, ns: number, options: BinomTestOption
   else pValue = twoSidedP(xs, ns, p);
 
   const lower = (alpha: number): number => (xs === 0 ? 0 : qbeta1(alpha, xs, ns - xs + 1, true, false));
-  const upper = (alpha: number): number => (xs === ns ? 1 : qbeta1(1 - alpha, xs + 1, ns - xs, true, false));
+  // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits, and is 1 below 1.1e-16, which gave
+  // the limit 1 at confLevel = 0.9999999999999999)
+  const upper = (alpha: number): number =>
+    xs === ns ? 1 : alpha < 1e-8 ? qbeta1(alpha, xs + 1, ns - xs, false, false) : qbeta1(1 - alpha, xs + 1, ns - xs, true, false);
   let confInt: [number, number];
   if (alternative === "less") confInt = [0, upper(1 - confLevel)];
   else if (alternative === "greater") confInt = [lower(1 - confLevel), 1];

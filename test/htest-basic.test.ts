@@ -192,6 +192,11 @@ if (hasFixture("poissonTest"))
     name: "poissonTest",
     call: (a) => poissonTest(arg.vec(a.x)!, defined({ T: arg.vec(a.T), r: arg.num(a.r), ...rAlt(a) })),
     tolerance: 1e-12,
+    // a time base of 0 defines no rate: an error (R returns NaN or Infinity for the estimate and the interval; review 57)
+    substitute: (c) =>
+      (Array.isArray(c.args.T) ? c.args.T : [c.args.T]).includes("0")
+        ? { expected: { error: "'T' must be positive" }, reason: "poisson.test with T = 0: R returns NaN or Infinity" }
+        : undefined,
   });
 if (hasFixture("varTest"))
   htestSuite({

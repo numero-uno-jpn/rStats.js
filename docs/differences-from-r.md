@@ -157,6 +157,9 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `pbinom(36, 1e5, 0.01, log.p = TRUE)` | -Inf (internal underflow, with a warning) | -851.68… |
 | `pbinom(1e16, 2e16, 0.5)` (beyond 2^53, x + 1 rounds to x) | 0.5 (the symmetric I_p(x, x)) | 0.5000000028209479 = 1/2 + dbinom/2 (I_p(x + 1, n - x) = I_p(x, n - x) - (n - x)/n dbinom(x); NaN where n - x rounds as well). `ppois` takes the same identity there, as R's values do |
 | `pnbinom(1e16, 1e16, 0.5)` (beyond 2^53, x + 1 rounds) | 0.5 | 0.5000000028209479 = 1/2 + dnbinom (I_p(size, x + 1) = I_p(size, x) + dnbinom(x)); `qnbinom(0.5, 1e16, 0.5)` is 1e16 as in R. Where the term is not resolved against a deep upper tail, the rounded x + 1 is used (one unit of x is below the resolution there) |
+| `binom.test(0, 1e20)`, `poisson.test(0, r = 1e20)` (counts beyond 2^53) | error "result would be too long a vector" | a p-value (the bisections stop where their midpoint rounds to an end; they did not return before) |
+| `poisson.test(c(5, 5), T = c(1e308, 1e308))`, `T = c(1e-308, 1e-308)` | p-value 0 (p0 = r T1 / (r T1 + T2) = 0), expected count NaN; rate ratio NaN | p-value 1, expected count 5, rate ratio 1 (the ratio T2 / T1 where the sums overflow or fall below the normal range) |
+| `binom.test(5, 10, conf.level = 1 - 1e-16)` and `poisson.test` (alpha below 1e-8) | the upper limit from 1 - alpha, which loses its digits (1 and Inf at 1 - 1e-16) | the upper limit from the upper probability alpha itself (0.99981, 52.549); levels with alpha >= 1e-8 as R |
 | `qbinom(-1e10, 1e5, 0.01, log.p = TRUE)` | 37 (search stops early) | 0 (F(0) ≈ e^-1005 exceeds e^-1e10) |
 | `qt(1e-320, 2)` (subnormal p) | -Inf | -7.0711e159 (matches the closed form −sqrt(1/(2p))) |
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (the true answer rounds to 1) |
@@ -309,7 +312,9 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one),
   `binomTest([0, 0])` (no trials; R returns a p-value of 1 for `binom.test(c(0, 0))`, while `poissonTest` compares two
   counts of 0 as R), and a `covmat` in `factanal` and `omega` that is not square, finite and symmetric (as R's
-  `isSymmetric`) with a positive diagonal (R's `factanal` analyses an asymmetric matrix), and a step `eps` of 0 or a
+  `isSymmetric`) with a positive diagonal (R's `factanal` analyses an asymmetric matrix), a time base `T` of 0 in
+  `poissonTest` (R returns NaN or Inf for the estimate and the interval), counts whose total overflows in `binomTest`
+  and `poissonTest` (R: NaN or an error), and a step `eps` of 0 or a
   non-finite `d`, `eps` or `zeroTol` in `grad`, `jacobian` and `hessian` (numDeriv's "simple" method gives NaN for
   `eps = 0`; `d = 0` is an error there too).
 - **The power and effect-size functions** reject NaN for a known quantity (pwr mostly stops with "missing value

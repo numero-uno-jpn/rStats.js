@@ -151,6 +151,9 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `pbinom(36, 1e5, 0.01, log.p = TRUE)` | -Inf (内部でアンダーフロー、警告あり) | -851.68… |
 | `pbinom(1e16, 2e16, 0.5)` (2^53 を超え、x + 1 が丸めで x になる) | 0.5 (対称な I_p(x, x)) | 0.5000000028209479 = 1/2 + dbinom/2 (I_p(x + 1, n - x) = I_p(x, n - x) - (n - x)/n dbinom(x)。n - x も丸めでずれる場合は NaN)。`ppois` もこの範囲で同じ恒等式を使う (R の値と一致) |
 | `pnbinom(1e16, 1e16, 0.5)` (2^53 を超え、x + 1 が丸めでずれる) | 0.5 | 0.5000000028209479 = 1/2 + dnbinom (I_p(size, x + 1) = I_p(size, x) + dnbinom(x))。`qnbinom(0.5, 1e16, 0.5)` は R と同じく 1e16。極端な上側の裾で項が裾に対して分解できない場合は、丸めた x + 1 を使う (そこでは x の 1 の違いが結果の分解能より小さい) |
+| `binom.test(0, 1e20)`、`poisson.test(0, r = 1e20)` (2^53 を超えるカウント) | エラー "result would be too long a vector" | p 値を返す (二分法は中点が端点に丸まったところで止める。以前は終わらなかった) |
+| `poisson.test(c(5, 5), T = c(1e308, 1e308))`、`T = c(1e-308, 1e-308)` | p 値 0 (p0 = r T1 / (r T1 + T2) = 0)、期待度数 NaN。率比 NaN | p 値 1、期待度数 5、率比 1 (和が溢れる・正規の範囲を下回るときは T2 / T1 の比で計算する) |
+| `binom.test(5, 10, conf.level = 1 - 1e-16)` と `poisson.test` (alpha が 1e-8 未満) | 上限を 1 - alpha から求め、桁が落ちる (1 - 1e-16 では 1 と Inf) | 上限を上側確率 alpha そのものから求める (0.99981、52.549)。alpha が 1e-8 以上なら R と同じ |
 | `qbinom(-1e10, 1e5, 0.01, log.p = TRUE)` | 37 (探索が途中で止まる) | 0 (F(0) ≈ e^-1005 は e^-1e10 を超える) |
 | `qt(1e-320, 2)` (非正規化数の p) | -Inf | -7.0711e159 (閉じた式 −sqrt(1/(2p)) と一致) |
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (真の答えを丸めると 1) |
@@ -300,7 +303,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   `solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value supplied
   by optim" で止まり、負の値は受け付ける)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
   `poissonTest` は事象数 0 どうしの比較を R どおり行う)、`factanal`・`omega` の `covmat` で、正方・有限・対称 (R の
-  `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)、`grad`・`jacobian`・
+  `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)、`poissonTest` の観察時間
+  `T` が 0 (R は推定値と区間に NaN や Inf を返す)、`binomTest`・`poissonTest` でカウントの合計が溢れるもの (R は NaN かエラー)、`grad`・`jacobian`・
   `hessian` の 0 の刻み `eps` や、有限でない `d`・`eps`・`zeroTol` (numDeriv の "simple" 法は `eps = 0` で NaN を返す。`d = 0` は
   numDeriv でもエラー)。
 - **検出力と効果量の関数**は、既知の量の NaN (pwr はたいてい "missing value where TRUE/FALSE needed" で止まる。
