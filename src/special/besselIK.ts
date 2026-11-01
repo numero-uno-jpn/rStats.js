@@ -208,6 +208,11 @@ interface Scaled {
 /** m * 2^e2 * e^y, with y split into exact steps of 700 (e^(x/k) would turn the rounding of x/k into an error of x ε) */
 function mulExp(m: number, e2: number, y: number): number {
   if (m === 0 || !Number.isFinite(m)) return m;
+  // a result far out of range is 0 or Infinity at once: the steps of 700 below took |y| / 700 turns (besselI(1e12, 0)
+  // did not return), and none at all ended once 700 was below the spacing of y (y = -2e308)
+  const log2 = Math.log2(Math.abs(m)) + e2 + y * Math.LOG2E;
+  if (log2 < -1100) return m * 0;
+  if (log2 > 1100) return m * Infinity;
   let v = m;
   let e = e2;
   const step = y > 0 ? 700 : -700;
@@ -256,7 +261,9 @@ function iPos(v: number, x: number): Scaled {
     num *= mu - 25;
     denom *= ez * 3;
     s -= num / denom;
-    return { m: s / Math.sqrt(2 * x * Math.PI), e2: 0, ex: 1 };
+    // (2 x pi overflows for x above 2.8e307: besselI(1e308, 0, scaled) was 0; the square roots apart there)
+    const r = Number.isFinite(2 * x * Math.PI) ? Math.sqrt(2 * x * Math.PI) : Math.sqrt(2 * Math.PI) * Math.sqrt(x);
+    return { m: s / r, e2: 0, ex: 1 };
   }
   // Wronskian I_v K_(v+1) + I_(v+1) K_v = 1/x with fv = I_(v+1) / I_v; K is scaled by e^x, so I comes out scaled by e^-x
   const { k, k1, exp2 } = kScaled(v, x);
@@ -278,7 +285,9 @@ function kPos(v: number, x: number): Scaled {
   const t4 = (t3 * (mu - 49)) / (4 * ez);
   const s = 1 + t1 + t2 + t3;
   if (Math.abs(t4) < EPS * Math.abs(s)) {
-    return { m: (s * Math.sqrt(Math.PI)) / Math.sqrt(2 * x), e2: 0, ex: -1 };
+    // (2 x overflows for x above 9e307: besselK(1e308, 0, scaled) was 0)
+    const m = Number.isFinite(2 * x) ? (s * Math.sqrt(Math.PI)) / Math.sqrt(2 * x) : (s * Math.sqrt(Math.PI / 2)) / Math.sqrt(x);
+    return { m, e2: 0, ex: -1 };
   }
   const { k, exp2 } = kScaled(v, x);
   return { m: k, e2: exp2, ex: -1 };

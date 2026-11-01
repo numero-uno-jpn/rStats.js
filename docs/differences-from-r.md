@@ -186,6 +186,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `besselK(1000, 1000)`, `lfactorial(1e-300)`, `besselI(1e-300, 1)` | 0 | 1.2981802514667e-233, -5.77e-301, 5e-301 |
 | `besselJ(1e6, 0)` | 0 | 3.3104301373987376e-4 |
 | `besselY(1e6, -2.75)` | -4.1e-4 | -2.8030753997749413e-5 |
+| `besselJ(1e308, 0)`, `besselY(1e308, 0)`, `besselI(1e308, 0, expon.scaled = TRUE)` (pi x or 2 pi x overflows) | 0, with the warning "value out of range" for J | -2.4706564120790082e-155, 7.5866879552418034e-155, 3.989422804014327e-155 (the square roots taken apart) |
 | `gamma(171.6243769563027)` (the largest double whose Γ is finite) | Inf | 1.79769313486223e308 |
 | `gamma(-171.5)`, `gamma(-172.5)`, … down to `gamma(-177.5)` (subnormal results) | 0 | 1.9316265431712e-310, -1.1197835032888e-312, …, 5e-324 |
 | `lbeta(1e308, 1e308)` (a + b overflows) | -Inf | -1.3862943611198915e308 |

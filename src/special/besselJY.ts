@@ -313,7 +313,8 @@ function asymAmplitude(v: number, x: number): number {
   s += (mu - 1) / (2 * txq);
   s += (3 * (mu - 1) * (mu - 9)) / (txq * txq * 8);
   s += (15 * (mu - 1) * (mu - 9) * (mu - 25)) / (txq * txq * txq * 8 * 6);
-  return Math.sqrt((s * 2) / (Math.PI * x));
+  // pi x overflows for x above 5.7e307 (besselJ(1e308, 0) was -0): the square roots apart
+  return Number.isFinite(Math.PI * x) ? Math.sqrt((s * 2) / (Math.PI * x)) : Math.sqrt((s * 2) / Math.PI) / Math.sqrt(x);
 }
 
 /** Phase of J and Y for large x less (x - pi (v/2 + 1/4)) (A&S 9.2.29) */
@@ -379,7 +380,7 @@ function largeOrder(v: number, x: number, needY: boolean): { j: number; y: Pow2 
 function besselJYPos(v: number, x: number, needY: boolean): { j: number; y: Pow2 } {
   const n = Math.round(v);
   const u = v - n; // -1/2 < u <= 1/2
-  const W = 2 / (x * Math.PI); // Wronskian
+  const W = Number.isFinite(x * Math.PI) ? 2 / (x * Math.PI) : 2 / Math.PI / x; // Wronskian
   if (v > LARGE_ORDER) {
     const big = largeOrder(v, x, needY);
     if (big !== undefined) return big;
