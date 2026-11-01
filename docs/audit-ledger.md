@@ -574,3 +574,30 @@ Repository: `numero-uno-jpn/rStats.js`
 - A caution during source comparison: an older rendered web mirror of `print.survfit.R` exposed stale/garbled conditional text. The repository's target release tag `3.8-3` was fetched directly and used instead. The earlier tentative claim that a signed comparison caused a mismatch was withdrawn; it was based on that stale rendering and is not an audit finding.
 - Tests: inspected the test that checks the 0.5 flat-stretch midpoint and the fixture-comparison harness; neither was executed. No package runtime, Vitest, fixture execution, or fresh R execution.
 - Limitations: source-level comparison only. The targeted pass did not exhaustively enumerate non-monotone confidence-bound sequences or every IEEE-754 value adjacent to 0.5. No Issue filed.
+
+
+## Audit #117
+
+- Repository HEAD before ledger update: `708721f9b62c55aa8fe1c75f4bcdc8a93ffeaea1`.
+- Source: `src/models/survival.ts` blob `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de`; focused on `survdiff()` multi-group contrasts, expected-count filtering, degrees of freedom, covariance rank, rho weights, and p-value.
+- Related material: `test/survival.test.ts` blob `fb067569319a07e0c60944beab502623ab5d7be2`; `oracle/survival-behaviour.md` blob `20dfbfd0101928a4c9c976b1417cd827a92c58bc`; `src/distributions/chisq.ts` blob `f9463e9674d80dc480143cc56976763288cf6559`; `src/distributions/gamma.ts` blob `e9ba1c35ef88e77e84a392562bb7f62378fcbf7f`; `src/linalg/solve.ts` blob `6e423f1c2969b896c1715f5af95864c6f59dea24`.
+- Result: `問題未検出` for this focused pass. No new defect established in multi-group df selection, rho weighting, or upper-tail p-value dispatch. The previously recorded helper-level eigenvalue-threshold concern (#28) remains separately qualified; this audit does not upgrade it to a reproducible `survdiff()` defect.
+- Group/df handling: labels are sorted; groups with `expected <= 0` are omitted from the contrast; the first remaining group is the reference; the contrast matrix is the corresponding `k-1` principal submatrix. The degrees of freedom are `used.length - 1` on the regular path, and the eigen-rank returned by `pseudoQuadratic()` only on the solve-failure path. This matches the repository oracle's specified first-`k-1` contrast convention. Fewer than two groups with positive expected count yields statistic 0 and df 0; p-value is intentionally NaN.
+- Covariance rank reasoning: for the earliest event time, pooled KM immediately before that event is 1, hence `w=1` for every finite `rho`. If the first event count is `d < N`, its covariance contribution has positive scalar `d(N-d)/(N(N-1))` times `diag(r)-rr'/N`, where every group later having positive expected count has a positive risk count in this first risk set. After dropping one group, this contribution is positive definite; later event-time contributions are positive semidefinite. If `d=N`, all subjects still at risk fail at that time, so there can be no later events; groups with positive expected count have `O=E` and zero variance. This supports the earlier #110 structural analysis: an exactly singular nontrivial contrast matrix is not expected from ordinary finite right-censored input. Numerical ill-conditioning remains theoretically possible; no concrete input reaching the fallback was established.
+- R relationship: official `survival::survdiff` documentation describes the G-rho family with event weights `S(t-)^rho`, rho=0 log-rank and rho=1 Peto–Peto; its result includes the chi-square p-value. The repository implementation uses pooled KM before the event block, squares the weight in the covariance, and passes the selected df to the upper chi-square tail. Source: R survival 3.8-3 documentation (web citation in audit report).
+- Exact deterministic inputs reviewed (formula/source inspection only; not executed):
+  ```ts
+  // Three groups, with event/censor ties and events at multiple times.
+  const time = [1, 1, 2, 3, 4, 5];
+  const status = [1, 0, 1, 1, 0, 1];
+  const group = ["a", "b", "b", "c", "a", "c"];
+  const rhoValues = [0, 1, -1];
+
+  // Group c is censored before the first event and therefore has exp=0;
+  // it is omitted from the tested contrasts.
+  const timeZeroExpected = [0, 1, 2];
+  const statusZeroExpected = [0, 1, 1];
+  const groupZeroExpected = ["c", "a", "b"];
+  ```
+- Tests: inspected the survival fixture comparison harness and existing missing-row/invalid-argument tests. The fixture includes `survdiff` comparisons for its recorded rho values; neither tests nor fixtures were executed. No package runtime, Vitest, standalone harness, or fresh R execution.
+- Limitations: source/formula review only; no generated-data search for a finite-precision covariance that triggers `solve()` failure, no runtime comparison of p-values, and no fresh R execution. No Issue filed.
