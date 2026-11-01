@@ -220,9 +220,10 @@ const MAX_RESTARTS = 50;
 /**
  * The response is fitted exactly by the fixed effects when its least-squares residuals are below this × max |y|: a
  * few times the rounding error of the residuals, so that a response with a large mean and a small spread (around
- * 1e12 with residuals of 0.1, say) is not taken for an exact fit
+ * 1e12 with residuals of 0.1, say) is not taken for an exact fit. (64 eps rejected 1e16 plus values 0 to 180, whose
+ * residuals of about 90 are 40 ulps; issue #12)
  */
-const EXACT_FIT = 64 * Number.EPSILON;
+const EXACT_FIT = 16 * Number.EPSILON;
 const EXACT_FIT_ERROR =
   "lmer: the response is fitted exactly by the fixed effects (a constant response, for example), so the residual variance is 0";
 
