@@ -399,8 +399,11 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       if (!([m, n, k].every((v) => Number.isInteger(v) && v >= 0) && k <= m + n)) return NAN;
       const N = m + n;
       const mo = Math.floor(((k + 1) * (m + 1)) / (N + 2));
-      const mean = (k * m) / N;
-      const variance = ((mean * (n / N)) * (N - k)) / (N - 1);
+      // a point mass (k = 0, m = 0, n = 0 or k = N) has variance 0 and the mean k m / N, 0 for N = 0 (the formulas gave
+      // 0/0 for N = 0 and N = 1; issue #19)
+      const point = k === 0 || m === 0 || n === 0 || k === N;
+      const mean = N === 0 ? 0 : (k * m) / N;
+      const variance = point ? 0 : ((mean * (n / N)) * (N - k)) / (N - 1);
       let skewness: number;
       let kurt: number;
       if (k === 0 || m === 0 || n === 0 || k === N) {
