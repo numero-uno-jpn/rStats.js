@@ -193,7 +193,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/common.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/continuous.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/extra.ts` | 未監査 | — | `—` | — | — | — |
-| `src/random/gamma.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/gamma.ts` | 問題あり | #121 | `9a6b479fa51c0e16a8313c9c2518c75130c84004` | [#29](https://github.com/numero-uno-jpn/rStats.js/issues/29) | R本体 `src/nmath/rgamma.c` と不一致 | `rgamma(1,-1,{scale:0})` と `rgamma(1,0,{scale:-1})`。Rは両方0、現行はNaN。負値判定がゼロ判定より先。ソース照合で確定。Vitest・package runtime・今回のR実行なし。 |
 | `src/random/hyper.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/lecuyer.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/mt.ts` | 未監査 | — | `—` | — | — | — |
@@ -687,3 +687,15 @@ Repository: `numero-uno-jpn/rStats.js`
   ```
 - `test/gamma.test.ts` uses fixture comparison tolerance 1e-14 and a backward pgamma check for qgamma. Test definitions and fixture data inspected only; no Vitest, package runtime, standalone harness, high-precision comparison, or fresh R execution.
 - Limitations: no direct numerical verification at logTarget=-700, at b branch thresholds in `igami.ts`, at subnormal quantile boundary, or around inversion iteration/adjacent-double termination. A qgamma backward check against the same local pgamma implementation would not independently certify correctness. No Issue filed.
+
+
+## Audit #121
+
+- Repository HEAD before ledger update: `9a6b479fa51c0e16a8313c9c2518c75130c84004`.
+- Primary source: `src/random/gamma.ts` blob `76f1bbfcf99c0ead3efff7887131e7e142511f33`. Related sources inspected: `src/random/rng.ts` blob `f527fd7018642205ef5870df8fcab8fc9e02aff1`; `src/random/mt.ts` blob `a27a644a591ab2286227aa5db1b05b16fa149300`; `src/random/common.ts` blob `be016a36e9f09f580462d2bf93e30ed6bad527c1`; `src/random/continuous.ts` blob `5ad76e5676b4bf27c36b288f8e48ac3821bfd92a`.
+- Test inspected: `test/random.test.ts` blob `f849a51e7b3c89c639641cf0a231fc9989dcff81`. It routes `rgamma` through the random fixture suite with seed/stream comparisons and continuous tolerance 1e-12; test/fixtures were not executed.
+- Result: `問題あり`. Confirmed parameter-boundary mismatch in `rgamma1()`: current code returns NaN for negative shape with zero scale, and for zero shape with negative scale. R's `src/nmath/rgamma.c` checks `a <= 0 || scale <= 0`, then returns 0 when `scale == 0 || a == 0` before returning NaN for other invalid combinations. Reproductions: `rgamma(1, -1, { scale: 0 })` and `rgamma(1, 0, { scale: -1 })`; expected R output `[0]`, current branch yields `[NaN]`.
+- Issue filed: [#29](https://github.com/numero-uno-jpn/rStats.js/issues/29).
+- Algorithm review: GS (shape<1) and GD (shape>=1) formula/constants, squeeze and quotient acceptances, double-exponential rejection, normal/exponential/uniform dependencies, MT open-interval fixups, scale multiplication, and finite/infinite parameter early returns were compared with R's `rgamma.c`. No additional reproducible algorithm defect established by source comparison. This is not a distributional/statistical validation.
+- Exact deterministic reproduction inputs are listed above; no RNG seed is needed because this defect is in the deterministic parameter-validation branch and consumes no random values.
+- No Vitest, package runtime, statistical simulation, or fresh R execution was performed. R expectations were confirmed by direct comparison with the R source implementation; no fixture values were executed.
