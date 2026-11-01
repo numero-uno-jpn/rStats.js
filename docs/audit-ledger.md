@@ -128,27 +128,27 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/internal/discrete.ts` | 問題あり | #221 | `467080a00d97d2c069779452bd5eb30b93047b7b` | [#53](https://github.com/numero-uno-jpn/rStats.js/issues/53) | Rとの照合なし。整数supportの単調predicate search契約とNumber.MAX_VALUE境界を検証 | discreteQuantileのlinear/log probability slack、lower/upper tail反転、p≈1の小さい補尾比較、y0丸め/clamp、2^53 spacing、doubling/bisection、NaN CDF propagation、firstTrue/lastTrueを確認。既知の#106指摘を再検証し、firstTrueのoverflowを確認。再現: `firstTrue(x => x >= 1.6e308,1e308,Infinity)` はInfinityを返すが有限閾値1.6e308が存在。Nodeで現行アルゴリズムを実行。discreteQuantileにはNumber.MAX_VALUE guardがあるのにfirstTrueにはない。firstTrueはbinomTestのtwo-sidedPから使用されるが、提示した極端な直接入力でのhelper契約不具合であり、public binomTestで同じ大きさの不具合が到達可能かは未確認。Issue #53。
 | `src/internal/dpq.ts` | 問題未検出 | #120 | `543eb6ceb3de7627a7562b035a931a88da424aa7` | — | Rと同じ（lower.tail/log.pの仕様） | #120でsmallerTailのp>1/2時の尾部反転、linearTarget保持、logP時のexpm1補数を再確認。qgamma 3286件のR 4.5.2 fixtureを閲覧、未実行。 |
 | `src/internal/extremes.ts` | 問題未検出 | #222 | `467080a00d97d2c069779452bd5eb30b93047b7b` | — | Math.max/Math.min IEEE-754 semanticsおよびsafe midpointの算術から判定（R関数比較対象外） | maxOf/minOfの空配列、NaN、±Infinity、±0、疎配列、ArrayLike/typed array大容量と、midpointの同符号overflow・異符号極値・subnormal tieを確認。入力: `maxOf([])`; `minOf([])`; `maxOf([NaN,2])`; `minOf([-0,0])`; `midpoint(Number.MAX_VALUE,Number.MAX_VALUE)`; `midpoint(-Number.MAX_VALUE,Number.MAX_VALUE)`; `midpoint(Number.MAX_VALUE,0.9*Number.MAX_VALUE)`; `midpoint(Number.MIN_VALUE,0)`。空配列の±Infinity、NaN伝播、signed-zeroはMath.max/minと一致。midpointは通常式でoverflowした場合のみ半値和へfallbackし、有限な真の平均を保つ。新規再現欠陥なし。
-| `src/internal/fround.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/integer.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/invert.ts` | 一部監査・問題未検出 | #120 | `54aeaa15ec93053e2dd5fd19fc640a9fbf243a76` | — | R 4.5.2 qgamma fixtureを閲覧（未実行） | 正値領域log変換、上下尾残差の符号、bracket付きNewton/Halley、収束・stuck判定、polish/bisectXをgamma quantile呼出し条件でソース追跡。実行・高精度比較なし。 |
-| `src/internal/levels.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/noncentral.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/poissonMixture.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/scaledInverse.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/seq.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/summary.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/uniroot.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/vectorize.ts` | 未監査 | — | `—` | — | — | — |
-| `src/linalg/balance.ts` | 未監査 | — | `—` | — | — | — |
-| `src/linalg/basic.ts` | 未監査 | — | `—` | — | — | — |
-| `src/linalg/chol.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/fround.ts` | 問題未検出 | #223 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | IEEE-754 binary64のroundingとR `round`/`zapsmall`の仕様記述をソース照合（実行なし） | half-even、負数、負のゼロ、subnormal、digits=-308/323境界、15桁早期return、zapsmallのNaN/Inf混在を確認。入力: `roundR(2.5)`; `roundR(-2.5)`; `roundR(1.25,1)`; `roundR(-1.25,1)`; `roundR(Number.MIN_VALUE,323)`; `roundR(1e308,-308)`; `zapsmall([[1e308,1e-308],[NaN,Infinity]])`。桁数丸め・二進浮動小数の候補距離・tie-even処理に再現可能な誤りなし。 |
+| `src/internal/integer.ts` | 問題未検出 | #224 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | Rの整数引数半整数処理と相対許容差の仕様コメントを照合（実行なし） | `roundHalfEven`の±0.5/±1.5/±2.5、2^53以上の表現可能整数、`nonInt`の1e-9相対slack、NaN/±Infを確認。入力: `nonInt(2+1.1e-9)`; `nonInt(2+2e-9)`; `nonInt(2**53)`; `nonInt(Infinity)`; `nonInt(NaN)`; `roundHalfEven(-1.5)`; `roundHalfEven(2.5)`。非有限値は別途parameter validationを担う呼出元で扱われる。新規再現欠陥なし。 |
+| `src/internal/invert.ts` | 問題未検出 | #225 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | 連続分布quantileのlog-tail Newton/Halley、R quantile契約、gamma/t/beta/Fの呼出経路をソース照合（R/Vitest未実行） | 正値supportのu=log(x)変換、±Infinity bracket、residual符号、linearTarget/logTarget切替、Halley比率guard、stuck/converged判定、positive polish、subnormal xでのbitwise bisectionを追跡。入力例: `qgamma(1e-300,2)`相当の深い下側tail、`qgamma(1-1e-15,2)`相当の上側tail、`qbeta(3.8e-277,27.9,1.5e299)`、`qchisq(1.5e-233,6.3e234)`に対応する内部経路を確認。有限の符号反対端点で`lo+(hi-lo)/2`がoverflowする理論余地はあるが、今回追跡した公開分布のbracket遷移では誤答を再現できずIssue化せず。 |
+| `src/internal/levels.ts` | 問題未検出 | #226 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | R factor/as.characterの15 significant digits仕様と既存numberLevels testsを照合（実行なし） | sort→formatR→同一文字列level統合、-0正規化、NaN保持、非数値label不変、±Infの文字表記を確認。入力: `numberLevels([0.1+0.2,0.3,1e15,1e15+1,-0,0,NaN,Infinity,-Infinity])`; `levelText(1/3)`。`test/numberLevels.test.ts`は0.1+0.2/0.3、1e15/1e15+1の統合とTukeyHSD/pairwise row/col namesを固定。新規再現欠陥なし。 |
+| `src/internal/noncentral.ts` | 問題未検出 | #227 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | IEEE-754 ordered-double search、非心分布quantileのbracket、Gauss-Kronrod適応積分の呼出元をソース照合（実行なし） | doubleKey/keyDoubleの負数・-0・subnormal・±Inf順序、searchDoublesのfail/pass bracket、narrowQuantile、quadratureControl、kronrodAdaptiveの区間分割と停止条件を追跡。入力: `searchDoubles(1,0,2,x=>x>=1.5)`相当の境界、負側の隣接double、非心χ²の`qchisq(5.7285590455359545e-12,5.345349749112763,{ncp:1})`に対応するsteep-CDF search。kronrodAdaptiveは今回の公開呼出元では非負の有限offset区間で使用され、極端な符号反対有限端点のmidpoint overflowは到達しない。新規再現欠陥なし。 |
+| `src/internal/poissonMixture.ts` | 問題未検出 | #228 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | 非心χ²/βのPoisson mixture定義、正項和・再帰・tail truncation boundをソースと既存回帰テストで照合（実行なし） | scaled double-double mantissa/exponent、fromValue/refresh、Poisson startSearch、argmax/farEdge、lower/upper recurrence、geometric remainder bound、MAX_TERMS safety cap、log/linear tail補数を追跡。入力: `pchisq(2.0003e9,3e5,{ncp:2e9})`; `dchisq(2.0001e9,1e6,{ncp:2e9,log:true})`; `pbeta(1e-7,3,5,{ncp:2e7,logP:true})`。大きいncpでは公開呼出元がBessel/Debyeまたはintegral等へ切替える条件も確認。MAX_TERMSの上限に達した場合の一般的な完全性は安全弁の制約として残るが、現行公開経路で誤答となる再現入力は確認できず。 |
+| `src/internal/scaledInverse.ts` | 問題未検出 | #229 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | Cholesky標準誤差計算の列別2冪スケーリングとchol2invをソース照合（実行なし） | upper triangleの各列max、2^-400/2^400閾値、subnormal/巨大列のexponent、inverseの`2^(-e_j-e_k)`復元側の呼出契約を確認。入力: `[[1e-200,2e-200],[0,1e-200]]`; `[[1e200,2e200],[0,1e200]]`; `[[1,2],[0,1]]`。列単位の正確な2冪スケールで逆行列を求める設計に再現可能な誤りなし。 |
+| `src/internal/seq.ts` | 問題未検出 | #230 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | R `seq(from,to,length.out)`のfractional lengthと両端固定仕様、内部呼出元を照合（実行なし） | n=0/1/2/fractional、to-from overflow、同値端点、最後の端点上書きを確認。入力: `seqLength(-1e308,1e308,3)`; `seqLength(0,1,2.5)`; `seqLength(4,4,5)`; `seqLength(0,1,1)`。有限差分overflow時のhalf-coordinate branchは中間値を有限に保つ。負/NaN lengthの明示validationはないが内部生成格子の呼出元は有効な長さを与え、公開APIではないため新規不具合登録なし。 |
+| `src/internal/summary.ts` | 問題未検出 | #231 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | R mean/var/cov semantics、double-double accumulatorと2冪scaleの算術をソース照合（実行なし） | wideSumのoverflow切替/再scale、meanDD補正、centered/scaleToUnit、variance/covariance、Satterthwaite df、rank/tieCounts、completePairs、squareOver/productOver、norm2を確認。入力: `sum([1e308,1e308,-1e308])`; `mean([1e308,1e308,-1e308])`; `standardDeviation([-1e308,-1e308,-1e308,-1e308,1.5e308])`; `productOver(1e-308,1e-308,1e-308)`; `norm2([1e200,1e200])`; `norm2([1e-200,1e-200])`。ldexpの非常に大きな任意指数に対する一般的な限界は確認したが、全呼出元で使う指数範囲（最大でも2*1023等）では中間overflowを再現せず。新規再現欠陥なし。 |
+| `src/internal/uniroot.ts` | 問題未検出 | #232 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | R uniroot toleranceとFisher exact CI等の内部odds-ratio rootの単調性をソース照合（実行なし） | wrapperのtol/maxIter/fLower/fUpper転送、logScaleRootのu=log(psi) bracket doubling、psi=0/Infinity端点、belowOne方向、f(1)=0、符号反転時のendpoint順を確認。入力: `logScaleRoot(psi=>psi-0.25,true)`; `logScaleRoot(psi=>psi-4,false)`; `logScaleRoot(psi=>psi-1,true)`。expのunderflow/overflow端点とrootの表現可能範囲の扱いに再現可能な不具合なし。 |
+| `src/internal/vectorize.ts` | 問題未検出 | #233 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | 分布関数のscalar/Array/Float64Array shape-preserving契約をソース照合（実行なし） | numberはscalar return、readonly number[]は通常array map、Float64Arrayはtyped-array mapを確認。入力: `2`; `[0,1,2]`; `new Float64Array([0,1,2])`; `new Float64Array([])`。empty typed array、戻り型、要素ごとのf適用に誤りなし。 |
+| `src/linalg/balance.ts` | 問題未検出 | #234 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | LAPACK 3.12.0 dgebal/dgebakのpermutation/scaling手順とexpm/eigenの利用箇所を照合（実行なし） | scaled nrm2、isolated row/column permutation、ilo/ihi更新、power-of-two scalingのsfmin/sfmax guard、similarity transform、gebakのscale/逆permutationを確認。入力: `[[1,0,0],[0,2,3],[0,4,5]]`; `[[1,1e200],[1e-200,2]]`; `[[3]]`; `[]`。n=1/0とreducible matrixのindex処理、極端な有限要素のnorm overflowを検討。呼出元expm/eigenのfinite validationと合わせ、誤った固有vector復元を再現できず。 |
+| `src/linalg/basic.ts` | 問題未検出 | #235 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | R crossprod/tcrossprod/backsolve/forwardsolve契約とLAPACK dtrsmのsolve順序を照合（既存test/linalg.test.tsを閲覧、実行なし） | vector/matrix RHS shape、k validation、upper/lower、transposeの4経路、exact-zero diagonal、zero RHS/zero coefficient skip、crossprod symmetric mirror、dimension mismatchを確認。入力: `crossprod([[1,2],[3,4]])`; `tcrossprod([[1,2],[3,4]])`; `backsolve([[2,1],[0,4]],[4,8])`; `forwardsolve([[2,0],[1,4]],[4,10])`; `backsolve([[1e-308,0],[0,2]],[1,2])`。既存のfixtureと極端なzero/scaleのsource traceで新規再現欠陥なし。 |
+| `src/linalg/chol.ts` | 問題未検出 | #236 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | LAPACK dpotf2/dpstf2/dpotriのCholesky/pivot/rank semanticsとR chol/ chol2inv契約を照合（既存test/chol.test.ts閲覧、実行なし） | upper-only入力、非正pivot、NaN伝播、pivot最大対角選択、tol負値のn*eps*maxdiag、rank stop、permutation swap、chol2inv size/zero diagonal、potri triangular inverseを追跡。入力: `chol([[4,2],[2,3]])`; `chol([[1,1],[1,1]],{pivot:true})`; `chol([[1,0],[0,0]],{pivot:true})`; `chol2inv([[2,1],[0,1]])`; subnormal/巨大対角ケース。fixture外のNaN/Inf境界もコード上確認し、新規再現欠陥なし。 |
 | `src/linalg/eigen.ts` | 問題未検出 | #108 | `f71ec0729230db3d5e20c5ab746325ec77345a9a` | — | Rと同じ（Rの `eigen()` 契約、既存のR由来fixture・比較基準を確認。今回R実行なし） | 対称行列の自動判定（相対差・絶対差フォールバック）、下三角採用、Householder三重対角化、implicit QL、固有値降順・固有ベクトル列の対応、非対称行列のbalancing/Hessenberg/Francis double-shift QR、複素共役ペアの並び・位相正規化、onlyValues、NaN/Inf拒否、2の冪スケーリングと逆スケーリングを追跡。固定例: `[[2,1],[1,2]]`（固有値 `[3,1]`）、`[[0,-1],[1,0]]`（固有値 `±i`）、`[[1e308,1e308],[1e308,-1e308]]`（中間演算のスケーリング）、`[[1e-60,2e-60],[3e-60,4e-60]]`（R `isSymmetric` の絶対差フォールバック）。既存 `test/eigen.test.ts` の対称/非対称fixture比較、固有値・固有ベクトル許容差と列整列のテスト構造を閲覧。fixture/Vitest/package runtime/R実行なし。 |
-| `src/linalg/expm.ts` | 未監査 | — | `—` | — | — | — |
-| `src/linalg/kappa.ts` | 未監査 | — | `—` | — | — | — |
-| `src/linalg/lu.ts` | 未監査 | — | `—` | — | — | — |
-| `src/linalg/matrix.ts` | 未監査 | — | `—` | — | — | — |
-| `src/linalg/norm.ts` | 未監査 | — | `—` | — | — | — |
-| `src/linalg/ops.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/expm.ts` | 問題未検出 | #237 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | Higham 2005 scaling-and-squaring Padé係数、expm packageのTaylor/Padé variants、balancing復元をソースと既存test/expm.test.tsで照合（実行なし） | 0x0/1x1 special case、非有限値、Padé degree thresholds、overflowing oneNormのlog2復元、ldexp scaling、Pade13 powers、LU solve、repeated squaringの0*Inf handling、Higham08.b similarity unbalance、Taylor/Pade order validationとCGSを確認。入力: `expm([[0,1],[0,0]])`; `expm([[0,-1],[1,0]])`; `expm([[1e308,0],[0,0]])`; `expm([[0,1],[0,0]],{method:"Taylor",order:1})`。既存fixtureは6 methodのR比較を持つ。高精度極端値の新規誤答は再現できず。 |
+| `src/linalg/kappa.ts` | 問題あり | #238 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | [#56](https://github.com/numero-uno-jpn/rStats.js/issues/56) | Moore-Penrose inverseの定義、2-norm condition numberの特異値比、SVDの2冪scale-backを照合（実行なし） | kappa exact norm2のmax/min singular ratio、exact other normのnorm*solve、QR/direct LINPACK dtrco、triangular norm I、ginvのtol cutoff/SVD factor reconstructionを追跡。再現1: `const a=1.7e308; kappa([[a,a],[a,-a]],{exact:true})`。真の特異値は両方`sqrt(2)*a`で条件数1だが、svd scale-back後に両方InfinityとなりInfinity/Infinity=NaN。再現2: `ginv([[1.7e308,1.7e308],[1.7e308,-1.7e308]])`。真の逆行列は各要素±`2.941176470588235e-309`だが、d[0]=Infinityからcut=Infinityとなり全singular componentをskip、ゼロ行列を返す。既存SVD invariant testはscale 1/1e150/1e-150で、この有限入力・spectral norm overflowは未カバー。Issue #56。 |
+| `src/linalg/lu.ts` | 問題未検出 | #239 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | LAPACK dgetrf partial pivoting、R Matrix::lu、prcompのscale/SVD/rank semanticsをソースとtest/matrix-ops.test.tsで照合（実行なし） | first-maximum pivot tie、rectangular L/U shape、zero pivot、subnormal pivot reciprocal fallback、P orientation、prcomp center/scale、rank truncation、tol drop、extreme scale fallbackを確認。入力: `lu([[1,2],[3,4]])`; `lu([[0,1],[2,3]])`; `lu([[1,2,3],[4,5,6]])`; `prcomp([[1,2],[2,1],[3,4],[4,3]],{rank:1})`; extreme finite scale and zero-variance columns。新規再現欠陥なし。 |
+| `src/linalg/matrix.ts` | 問題未検出 | #240 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | matrix row-array/column-major conversion、rectangular/zero dimensions、SVD rangeExponent呼出契約をソース照合（実行なし） | toMat row-length validation、Float64Array row support、toMatOrColumn vector handling、empty array ambiguity、transpose indexing、fromMat shape、rangeExponentのsubnormal/large finite casesを確認。入力: `toMat([[1,2],[3,4]])`; `toMat([[1],[2,3]])` (ragged error); `toMat([new Float64Array([1,2]),new Float64Array([3,4])])`; `toMat([])`; `rangeExponent([Number.MIN_VALUE,0])`; `rangeExponent([1e308])`。0-row matrixが0x0に制限される仕様もコメントに明記され、shape corruptionの新規再現なし。 |
+| `src/linalg/norm.ts` | 問題未検出 | #241 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | R norm typesとLAPACK dlange/dlassq definitionsをソース照合（既存test/linalg.test.ts閲覧、実行なし） | O/1/I/F/E/M/2のcase handling、NaN propagation、Inf handling、Frobenius scale-before-square、spectral norm SVD path、empty dimensionを確認。入力: `norm([[1,-2],[3,4]])`; `norm([[1,-2],[3,4]],{type:"I"})`; `norm([[1e200,1e200]],{type:"F"})`; `norm([[1e-200,1e-200]],{type:"F"})`; `norm([[NaN,1]],{type:"F"})`; `norm([[Infinity]],{type:"2"})`; `norm([],{type:"2"})`。各normのoverflow/underflow/NaN/Inf処理に新規再現欠陥なし。 |
+| `src/linalg/ops.ts` | 問題あり | #242 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | [#55](https://github.com/numero-uno-jpn/rStats.js/issues/55) | R base `diag` documentation (vector with explicit dimensions becomes diagonal matrix; values recycled/truncated)およびnumber[][] return contractを照合（R実行なし） | elementwiseのcolumn-major recycling、outer/t、diag scalar/vector/matrix overload、cbind/rbind frame handling、matrix dimensions/byrow、kronecker、seq by/lengthOut/colonを確認。再現: `diag([], {nrow:2,ncol:2})`。values=[]のまま対角構築ループで`values[i % values.length]`を参照し、i%0はNaN、空配列のNaN property indexはundefinedとなるため`[[undefined,0],[0,undefined]]`を返す。number[][]のnumeric contractを破る。R docsは追加引数ありのvectorをdiag valuesとして扱い、diagonal values are recycled/truncatedと説明。既存test/matrix-ops.test.tsのdiag fixtureは空vector/positive dimensionsを含まない。Issue #55。 |
 | `src/linalg/qr.ts` | 未監査 | — | `—` | — | — | — |
 | `src/linalg/schur.ts` | 未監査 | — | `—` | — | — | — |
 | `src/linalg/solve.ts` | 問題未検出 | #109 | `6b9fabe470c0a994e48cd612bcd3e30aaa580aa1` | — | Rでは未確認（R実行・新規照合なし） | LU partial pivoting、exact singular判定、`gecon()` の1-norm reciprocal condition estimate、既定tol=`Number.EPSILON`、極端な大きさのpower-of-two scaling、NaN/Inf時のcondition check skipを追跡。`pseudoQuadratic()` との判定基準不整合を確認するための関連監査。`solve()` 単体の不具合は今回確定せず。Vitest/package runtime/R実行なし。 |
@@ -1464,3 +1464,146 @@ Repository: `numero-uno-jpn/rStats.js`
 - 入力: `maxOf([])`; `minOf([])`; `maxOf([NaN,2])`; `minOf([-0,0])`; `midpoint(Number.MAX_VALUE,Number.MAX_VALUE)`; `midpoint(-Number.MAX_VALUE,Number.MAX_VALUE)`; `midpoint(Number.MAX_VALUE,0.9*Number.MAX_VALUE)`; `midpoint(Number.MIN_VALUE,0)`。max/minはMath.max/minと同じ空配列・NaN伝播を保ち、midpointは和のoverflow時に半値和へfallbackする。新規再現欠陥なし。
 - Rとの関係: Math.max/min semanticsおよびIEEE-754算術から判定。Vitest/package runtime/R未実行。
 - ソース blob: `00fbd46179043e90fc6678a777fbd9b5540dd7c6`。
+
+
+## Audit #223-#242
+
+### #223 `src/internal/fround.ts`
+- 判定: 問題未検出。
+- half-even、負数、負のゼロ、subnormal、digits=-308/323境界、15桁早期return、zapsmallのNaN/Inf混在を確認。入力: `roundR(2.5)`; `roundR(-2.5)`; `roundR(1.25,1)`; `roundR(-1.25,1)`; `roundR(Number.MIN_VALUE,323)`; `roundR(1e308,-308)`; `zapsmall([[1e308,1e-308],[NaN,Infinity]])`。桁数丸め・二進浮動小数の候補距離・tie-even処理に再現可能な誤りなし。
+- IEEE-754 binary64のroundingとR `round`/`zapsmall`の仕様記述をソース照合（実行なし）。
+- ソース blob: `8e42f6ab4bc1d61fcd7687129efdc57edc942224`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #224 `src/internal/integer.ts`
+- 判定: 問題未検出。
+- `roundHalfEven`の±0.5/±1.5/±2.5、2^53以上の表現可能整数、`nonInt`の1e-9相対slack、NaN/±Infを確認。入力: `nonInt(2+1.1e-9)`; `nonInt(2+2e-9)`; `nonInt(2**53)`; `nonInt(Infinity)`; `nonInt(NaN)`; `roundHalfEven(-1.5)`; `roundHalfEven(2.5)`。非有限値は別途parameter validationを担う呼出元で扱われる。新規再現欠陥なし。
+- Rの整数引数半整数処理と相対許容差の仕様コメントを照合（実行なし）。
+- ソース blob: `007ee293d3df0d02b4a2a38cc72a2479c5a5e4f0`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #225 `src/internal/invert.ts`
+- 判定: 問題未検出。
+- 正値supportのu=log(x)変換、±Infinity bracket、residual符号、linearTarget/logTarget切替、Halley比率guard、stuck/converged判定、positive polish、subnormal xでのbitwise bisectionを追跡。入力例: `qgamma(1e-300,2)`相当の深い下側tail、`qgamma(1-1e-15,2)`相当の上側tail、`qbeta(3.8e-277,27.9,1.5e299)`、`qchisq(1.5e-233,6.3e234)`に対応する内部経路を確認。有限の符号反対端点で`lo+(hi-lo)/2`がoverflowする理論余地はあるが、今回追跡した公開分布のbracket遷移では誤答を再現できずIssue化せず。
+- 連続分布quantileのlog-tail Newton/Halley、R quantile契約、gamma/t/beta/Fの呼出経路をソース照合（R/Vitest未実行）。
+- ソース blob: `54aeaa15ec93053e2dd5fd19fc640a9fbf243a76`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #226 `src/internal/levels.ts`
+- 判定: 問題未検出。
+- sort→formatR→同一文字列level統合、-0正規化、NaN保持、非数値label不変、±Infの文字表記を確認。入力: `numberLevels([0.1+0.2,0.3,1e15,1e15+1,-0,0,NaN,Infinity,-Infinity])`; `levelText(1/3)`。`test/numberLevels.test.ts`は0.1+0.2/0.3、1e15/1e15+1の統合とTukeyHSD/pairwise row/col namesを固定。新規再現欠陥なし。
+- R factor/as.characterの15 significant digits仕様と既存numberLevels testsを照合（実行なし）。
+- ソース blob: `949b2f498a93c9c17bc50a4f2e74c1eef86a0d22`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #227 `src/internal/noncentral.ts`
+- 判定: 問題未検出。
+- doubleKey/keyDoubleの負数・-0・subnormal・±Inf順序、searchDoublesのfail/pass bracket、narrowQuantile、quadratureControl、kronrodAdaptiveの区間分割と停止条件を追跡。入力: `searchDoubles(1,0,2,x=>x>=1.5)`相当の境界、負側の隣接double、非心χ²の`qchisq(5.7285590455359545e-12,5.345349749112763,{ncp:1})`に対応するsteep-CDF search。kronrodAdaptiveは今回の公開呼出元では非負の有限offset区間で使用され、極端な符号反対有限端点のmidpoint overflowは到達しない。新規再現欠陥なし。
+- IEEE-754 ordered-double search、非心分布quantileのbracket、Gauss-Kronrod適応積分の呼出元をソース照合（実行なし）。
+- ソース blob: `0a7c75dcdcc9bcf9a4b3bbd75ed613e5c6046ad7`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #228 `src/internal/poissonMixture.ts`
+- 判定: 問題未検出。
+- scaled double-double mantissa/exponent、fromValue/refresh、Poisson startSearch、argmax/farEdge、lower/upper recurrence、geometric remainder bound、MAX_TERMS safety cap、log/linear tail補数を追跡。入力: `pchisq(2.0003e9,3e5,{ncp:2e9})`; `dchisq(2.0001e9,1e6,{ncp:2e9,log:true})`; `pbeta(1e-7,3,5,{ncp:2e7,logP:true})`。大きいncpでは公開呼出元がBessel/Debyeまたはintegral等へ切替える条件も確認。MAX_TERMSの上限に達した場合の一般的な完全性は安全弁の制約として残るが、現行公開経路で誤答となる再現入力は確認できず。
+- 非心χ²/βのPoisson mixture定義、正項和・再帰・tail truncation boundをソースと既存回帰テストで照合（実行なし）。
+- ソース blob: `f0c6a1cf85875cf87f5174c0fcc5575e31db5746`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #229 `src/internal/scaledInverse.ts`
+- 判定: 問題未検出。
+- upper triangleの各列max、2^-400/2^400閾値、subnormal/巨大列のexponent、inverseの`2^(-e_j-e_k)`復元側の呼出契約を確認。入力: `[[1e-200,2e-200],[0,1e-200]]`; `[[1e200,2e200],[0,1e200]]`; `[[1,2],[0,1]]`。列単位の正確な2冪スケールで逆行列を求める設計に再現可能な誤りなし。
+- Cholesky標準誤差計算の列別2冪スケーリングとchol2invをソース照合（実行なし）。
+- ソース blob: `49d36a1a12389587eadf8976acd76bbd90e1081d`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #230 `src/internal/seq.ts`
+- 判定: 問題未検出。
+- n=0/1/2/fractional、to-from overflow、同値端点、最後の端点上書きを確認。入力: `seqLength(-1e308,1e308,3)`; `seqLength(0,1,2.5)`; `seqLength(4,4,5)`; `seqLength(0,1,1)`。有限差分overflow時のhalf-coordinate branchは中間値を有限に保つ。負/NaN lengthの明示validationはないが内部生成格子の呼出元は有効な長さを与え、公開APIではないため新規不具合登録なし。
+- R `seq(from,to,length.out)`のfractional lengthと両端固定仕様、内部呼出元を照合（実行なし）。
+- ソース blob: `7475913bf7aaa85ca90a1a52dcf620990cd18e00`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #231 `src/internal/summary.ts`
+- 判定: 問題未検出。
+- wideSumのoverflow切替/再scale、meanDD補正、centered/scaleToUnit、variance/covariance、Satterthwaite df、rank/tieCounts、completePairs、squareOver/productOver、norm2を確認。入力: `sum([1e308,1e308,-1e308])`; `mean([1e308,1e308,-1e308])`; `standardDeviation([-1e308,-1e308,-1e308,-1e308,1.5e308])`; `productOver(1e-308,1e-308,1e-308)`; `norm2([1e200,1e200])`; `norm2([1e-200,1e-200])`。ldexpの非常に大きな任意指数に対する一般的な限界は確認したが、全呼出元で使う指数範囲（最大でも2*1023等）では中間overflowを再現せず。新規再現欠陥なし。
+- R mean/var/cov semantics、double-double accumulatorと2冪scaleの算術をソース照合（実行なし）。
+- ソース blob: `e4fc3bd652af3a00cf05b44389ddf58e590c4830`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #232 `src/internal/uniroot.ts`
+- 判定: 問題未検出。
+- wrapperのtol/maxIter/fLower/fUpper転送、logScaleRootのu=log(psi) bracket doubling、psi=0/Infinity端点、belowOne方向、f(1)=0、符号反転時のendpoint順を確認。入力: `logScaleRoot(psi=>psi-0.25,true)`; `logScaleRoot(psi=>psi-4,false)`; `logScaleRoot(psi=>psi-1,true)`。expのunderflow/overflow端点とrootの表現可能範囲の扱いに再現可能な不具合なし。
+- R uniroot toleranceとFisher exact CI等の内部odds-ratio rootの単調性をソース照合（実行なし）。
+- ソース blob: `942f40b2944b7d97354dcaa095d22a8e07f60405`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #233 `src/internal/vectorize.ts`
+- 判定: 問題未検出。
+- numberはscalar return、readonly number[]は通常array map、Float64Arrayはtyped-array mapを確認。入力: `2`; `[0,1,2]`; `new Float64Array([0,1,2])`; `new Float64Array([])`。empty typed array、戻り型、要素ごとのf適用に誤りなし。
+- 分布関数のscalar/Array/Float64Array shape-preserving契約をソース照合（実行なし）。
+- ソース blob: `c53e29599f879b9b1a643af5b588664aaf0c598a`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #234 `src/linalg/balance.ts`
+- 判定: 問題未検出。
+- scaled nrm2、isolated row/column permutation、ilo/ihi更新、power-of-two scalingのsfmin/sfmax guard、similarity transform、gebakのscale/逆permutationを確認。入力: `[[1,0,0],[0,2,3],[0,4,5]]`; `[[1,1e200],[1e-200,2]]`; `[[3]]`; `[]`。n=1/0とreducible matrixのindex処理、極端な有限要素のnorm overflowを検討。呼出元expm/eigenのfinite validationと合わせ、誤った固有vector復元を再現できず。
+- LAPACK 3.12.0 dgebal/dgebakのpermutation/scaling手順とexpm/eigenの利用箇所を照合（実行なし）。
+- ソース blob: `b0796b3365f4f23a7a02efdb05628380f85cf284`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #235 `src/linalg/basic.ts`
+- 判定: 問題未検出。
+- vector/matrix RHS shape、k validation、upper/lower、transposeの4経路、exact-zero diagonal、zero RHS/zero coefficient skip、crossprod symmetric mirror、dimension mismatchを確認。入力: `crossprod([[1,2],[3,4]])`; `tcrossprod([[1,2],[3,4]])`; `backsolve([[2,1],[0,4]],[4,8])`; `forwardsolve([[2,0],[1,4]],[4,10])`; `backsolve([[1e-308,0],[0,2]],[1,2])`。既存のfixtureと極端なzero/scaleのsource traceで新規再現欠陥なし。
+- R crossprod/tcrossprod/backsolve/forwardsolve契約とLAPACK dtrsmのsolve順序を照合（既存test/linalg.test.tsを閲覧、実行なし）。
+- ソース blob: `e2e27e6506f3f3f13c73dd6742f1048333e2b782`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #236 `src/linalg/chol.ts`
+- 判定: 問題未検出。
+- upper-only入力、非正pivot、NaN伝播、pivot最大対角選択、tol負値のn*eps*maxdiag、rank stop、permutation swap、chol2inv size/zero diagonal、potri triangular inverseを追跡。入力: `chol([[4,2],[2,3]])`; `chol([[1,1],[1,1]],{pivot:true})`; `chol([[1,0],[0,0]],{pivot:true})`; `chol2inv([[2,1],[0,1]])`; subnormal/巨大対角ケース。fixture外のNaN/Inf境界もコード上確認し、新規再現欠陥なし。
+- LAPACK dpotf2/dpstf2/dpotriのCholesky/pivot/rank semanticsとR chol/ chol2inv契約を照合（既存test/chol.test.ts閲覧、実行なし）。
+- ソース blob: `5444cb2c0f790e8a231c515dead77c069d822e3a`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #237 `src/linalg/expm.ts`
+- 判定: 問題未検出。
+- 0x0/1x1 special case、非有限値、Padé degree thresholds、overflowing oneNormのlog2復元、ldexp scaling、Pade13 powers、LU solve、repeated squaringの0*Inf handling、Higham08.b similarity unbalance、Taylor/Pade order validationとCGSを確認。入力: `expm([[0,1],[0,0]])`; `expm([[0,-1],[1,0]])`; `expm([[1e308,0],[0,0]])`; `expm([[0,1],[0,0]],{method:"Taylor",order:1})`。既存fixtureは6 methodのR比較を持つ。高精度極端値の新規誤答は再現できず。
+- Higham 2005 scaling-and-squaring Padé係数、expm packageのTaylor/Padé variants、balancing復元をソースと既存test/expm.test.tsで照合（実行なし）。
+- ソース blob: `48da1a1d5e46371cff1404092bbb4d3d24551d26`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #238 `src/linalg/kappa.ts`
+- 判定: 問題あり; [#56](https://github.com/numero-uno-jpn/rStats.js/issues/56).
+- kappa exact norm2のmax/min singular ratio、exact other normのnorm*solve、QR/direct LINPACK dtrco、triangular norm I、ginvのtol cutoff/SVD factor reconstructionを追跡。再現1: `const a=1.7e308; kappa([[a,a],[a,-a]],{exact:true})`。真の特異値は両方`sqrt(2)*a`で条件数1だが、svd scale-back後に両方InfinityとなりInfinity/Infinity=NaN。再現2: `ginv([[1.7e308,1.7e308],[1.7e308,-1.7e308]])`。真の逆行列は各要素±`2.941176470588235e-309`だが、d[0]=Infinityからcut=Infinityとなり全singular componentをskip、ゼロ行列を返す。既存SVD invariant testはscale 1/1e150/1e-150で、この有限入力・spectral norm overflowは未カバー。Issue #56。
+- Moore-Penrose inverseの定義、2-norm condition numberの特異値比、SVDの2冪scale-backを照合（実行なし）。
+- ソース blob: `098014dac2578986f16d98f5935d62cc2f73b7a1`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #239 `src/linalg/lu.ts`
+- 判定: 問題未検出。
+- first-maximum pivot tie、rectangular L/U shape、zero pivot、subnormal pivot reciprocal fallback、P orientation、prcomp center/scale、rank truncation、tol drop、extreme scale fallbackを確認。入力: `lu([[1,2],[3,4]])`; `lu([[0,1],[2,3]])`; `lu([[1,2,3],[4,5,6]])`; `prcomp([[1,2],[2,1],[3,4],[4,3]],{rank:1})`; extreme finite scale and zero-variance columns。新規再現欠陥なし。
+- LAPACK dgetrf partial pivoting、R Matrix::lu、prcompのscale/SVD/rank semanticsをソースとtest/matrix-ops.test.tsで照合（実行なし）。
+- ソース blob: `457aeee39e56df3f80e654c389a245807ccad55`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #240 `src/linalg/matrix.ts`
+- 判定: 問題未検出。
+- toMat row-length validation、Float64Array row support、toMatOrColumn vector handling、empty array ambiguity、transpose indexing、fromMat shape、rangeExponentのsubnormal/large finite casesを確認。入力: `toMat([[1,2],[3,4]])`; `toMat([[1],[2,3]])` (ragged error); `toMat([new Float64Array([1,2]),new Float64Array([3,4])])`; `toMat([])`; `rangeExponent([Number.MIN_VALUE,0])`; `rangeExponent([1e308])`。0-row matrixが0x0に制限される仕様もコメントに明記され、shape corruptionの新規再現なし。
+- matrix row-array/column-major conversion、rectangular/zero dimensions、SVD rangeExponent呼出契約をソース照合（実行なし）。
+- ソース blob: `9d78a4c9ae28f2fcc55ea30b5a7297c7441f2eaf`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #241 `src/linalg/norm.ts`
+- 判定: 問題未検出。
+- O/1/I/F/E/M/2のcase handling、NaN propagation、Inf handling、Frobenius scale-before-square、spectral norm SVD path、empty dimensionを確認。入力: `norm([[1,-2],[3,4]])`; `norm([[1,-2],[3,4]],{type:"I"})`; `norm([[1e200,1e200]],{type:"F"})`; `norm([[1e-200,1e-200]],{type:"F"})`; `norm([[NaN,1]],{type:"F"})`; `norm([[Infinity]],{type:"2"})`; `norm([],{type:"2"})`。各normのoverflow/underflow/NaN/Inf処理に新規再現欠陥なし。
+- R norm typesとLAPACK dlange/dlassq definitionsをソース照合（既存test/linalg.test.ts閲覧、実行なし）。
+- ソース blob: `3ee6876b551eab0d51a0abf8b2c3a57680d54457`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+### #242 `src/linalg/ops.ts`
+- 判定: 問題あり; [#55](https://github.com/numero-uno-jpn/rStats.js/issues/55).
+- elementwiseのcolumn-major recycling、outer/t、diag scalar/vector/matrix overload、cbind/rbind frame handling、matrix dimensions/byrow、kronecker、seq by/lengthOut/colonを確認。再現: `diag([], {nrow:2,ncol:2})`。values=[]のまま対角構築ループで`values[i % values.length]`を参照し、i%0はNaN、空配列のNaN property indexはundefinedとなるため`[[undefined,0],[0,undefined]]`を返す。number[][]のnumeric contractを破る。R docsは追加引数ありのvectorをdiag valuesとして扱い、diagonal values are recycled/truncatedと説明。既存test/matrix-ops.test.tsのdiag fixtureは空vector/positive dimensionsを含まない。Issue #55。
+- R base `diag` documentation (vector with explicit dimensions becomes diagonal matrix; values recycled/truncated)およびnumber[][] return contractを照合（R実行なし）。
+- ソース blob: `29dc8503d43b50ee8a0173cf40084b87bd6d17d4`。
+- 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
