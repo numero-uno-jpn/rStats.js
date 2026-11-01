@@ -151,7 +151,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/linalg/ops.ts` | 未監査 | — | `—` | — | — | — |
 | `src/linalg/qr.ts` | 未監査 | — | `—` | — | — | — |
 | `src/linalg/schur.ts` | 未監査 | — | `—` | — | — | — |
-| `src/linalg/solve.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/solve.ts` | 問題未検出 | #109 | `6b9fabe470c0a994e48cd612bcd3e30aaa580aa1` | — | Rでは未確認（R実行・新規照合なし） | LU partial pivoting、exact singular判定、`gecon()` の1-norm reciprocal condition estimate、既定tol=`Number.EPSILON`、極端な大きさのpower-of-two scaling、NaN/Inf時のcondition check skipを追跡。`pseudoQuadratic()` との判定基準不整合を確認するための関連監査。`solve()` 単体の不具合は今回確定せず。Vitest/package runtime/R実行なし。 |
 | `src/linalg/svd.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/anovaSequential.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/aovEz.ts` | 未監査 | — | `—` | — | — | — |
@@ -178,7 +178,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/models/modelFrame.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/modelMatrix.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/scaledTables.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/survival.ts` | 問題未検出 | #107 | `206adeeae033f983cc1e2c17b3ba568bd40f3667` | — | Rと同じ（`survival` 3.8系の `survfit`/`survdiff` の仕様記述・R由来fixtureを照合。今回R実行なし） | `survfit()` の同時event/censor処理、risk set、Kaplan–Meier積、Greenwood分散、3種CI、median/CI median；`survdiff()` のrho=0/1/0.5、 pooled KMの直前値、weighted O/E・variance、positive-expected groups、singular variance fallbackをソース追跡。固定例: `survfit([1,2,2,3,4],[1,1,0,1,0])`；`survdiff([1,2,3,4,5,6],[1,1,0,1,1,1],["a","b","a","b","a","b"])`。`test/survival.test.ts` と `oracle/survival-behaviour.md`、R生成fixtureの2/3群・ties・lung・median=0.5・rho=0/1/0.5・CI変換を閲覧。実行/Vitest/package runtime/R実行なし。 |
+| `src/models/survival.ts` | 問題あり | #109 | `6b9fabe470c0a994e48cd612bcd3e30aaa580aa1` | [#28](https://github.com/numero-uno-jpn/rStats.js/issues/28) | Rでは未確認（R実行なし。既存fixture/testを閲覧） | `pseudoQuadratic()` の固有値採用基準 `lambda > 1e-10 * max(lambda)` が `solve()` の既定特異判定 `rcond < Number.EPSILON` より著しく粗く、fallbackで正の固有方向を過剰に捨てうることを確認。固定再現: `V=[[1,0,0],[0,1e-12,0],[0,0,1e-17]]`, `u=[0,1e-6,1e-8]`。閾値1e-10では `chisq=0, df=1`、数値的に解像可能な固有値1と1e-12を残す一般化逆行列なら `chisq=1, df=2`。ただし、このスペクトルを実際に生成する `survdiff(time,status,group)` データは未構成。ソース/数式の検討と対角行列の算術確認のみ。Vitest/package runtime/R実行なし。 |
 | `src/models/tiedTimes.ts` | 問題未検出 | #107 | `206adeeae033f983cc1e2c17b3ba568bd40f3667` | — | Rと同じ（R `survival::aeqSurv()` の既定規則と一致。今回R実行なし） | `mergeTiedTimes()` の有限時刻抽出、distinct sort、`sqrt(2^-52)` の絶対差または平均絶対時刻で規格化した相対差によるtie判定、最小cut pointへの写像、Infinity保持を確認。入力例: `[1,1+1e-9,1+1e-7]`。最初のgapは絶対許容差以下でmerge、次のgapは許容差を超えて別時刻を維持する。絶対差基準は小さい時刻での過剰mergeに見えるが、R `aeqSurv.R` の `dy <= tolerance || dy/mean(abs(y)) <= tolerance` と一致するため仕様上の不具合ではない。R公式説明・ソースおよび oracle の記述を照合。実行/Vitest/package runtime/R実行なし。 |
 | `src/numerics/deriv.ts` | 未監査 | — | `—` | — | — | — |
 | `src/numerics/integrate.ts` | 未監査 | — | `—` | — | — | — |
@@ -417,3 +417,26 @@ Repository: `numero-uno-jpn/rStats.js`
 - Tests: inspected `test/eigen.test.ts`, including symmetric and general eigen suites, R-generated expected values, vector column alignment, eigenvalue-gap and eigenvector-condition tolerances. Tests and fixtures were not executed.
 - R relationship: `Rと同じ` for documented result shape, ordering and comparison-contract review; no fresh R execution.
 - Verification limits: source-level algorithm and branch review plus test-structure inspection only. No standalone numerical harness, fixture execution, full Vitest run, or R comparison. No Issue created.
+
+
+
+## Audit #109
+
+- Repository HEAD: `6b9fabe470c0a994e48cd612bcd3e30aaa580aa1`
+- Sources:
+  - `src/models/survival.ts` blob `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de`
+  - `src/linalg/solve.ts` blob `6e423f1c2969b896c1715f5af95864c6f59dea24`
+  - `src/linalg/eigen.ts` blob `86ee78a9fd9f3edbbc35e86f3805ea910e15ff18` (reused from #108)
+- Result: `src/models/survival.ts` has a confirmed numerical-rank policy defect in `pseudoQuadratic()`; GitHub Issue [#28](https://github.com/numero-uno-jpn/rStats.js/issues/28). `src/linalg/solve.ts` was reviewed as a dependency and no independent defect was established (`問題未検出`).
+- Root cause: `survdiff()` first calls `solve(Vr,u)`. With default `tol = Number.EPSILON`, `solve()` rejects matrices whose estimated reciprocal condition number is below about `2.22e-16`. The fallback `pseudoQuadratic()`, however, discards every eigenvalue not greater than `1e-10 * max(eigenvalues)`. This cutoff can throw away positive modes that remain resolvable at double precision, so the fallback's reported statistic and degrees of freedom can be too small.
+- Exact deterministic helper-level input:
+  ```ts
+  const V = [[1, 0, 0], [0, 1e-12, 0], [0, 0, 1e-17]];
+  const u = [0, 1e-6, 1e-8];
+  ```
+  Eigenvalues are `[1, 1e-12, 1e-17]`; reciprocal condition number is `1e-17`, below `Number.EPSILON`. The current `1e-10` cutoff retains only the first mode and gives `chisq=0, df=1`. Retaining the first two modes (and discarding only the 1e-17 mode, below machine precision relative to the maximum) gives `chisq=1, df=2`. Retaining all exact positive modes gives `chisq=11, df=3`.
+- Important qualification: this is a deterministic reproduction of the fallback helper's numerical-rank policy, not yet an end-to-end `survdiff(time,status,group)` reproduction. A risk-set dataset producing this eigen-spectrum has not been constructed. The Issue explicitly records this limitation; an integrated regression case remains necessary.
+- `solve.ts` review: partial-pivoting LU, exact zero-pivot detection, 1-norm reciprocal-condition estimate via `gecon/lacn2`, default `Number.EPSILON` tolerance, power-of-two scaling for extreme magnitudes, and behavior for nonfinite matrices. No independent solve defect established in this pass.
+- Tests: inspected `test/survival.test.ts`, including the R fixture comparison harness and missing-data/median edge tests. The test file references fixture `survival`; neither it nor any solve/eigen test was executed. No package runtime or Vitest run.
+- R relationship: `Rでは未確認`; no fresh R execution or integrated R comparison. Existing tests/oracle were inspected only.
+- Verification limits: source-level control-flow review and exact arithmetic on a diagonal PSD matrix. No package runtime, Vitest, or R execution. Status for `survival.ts` is `問題あり` because the helper-level cutoff defect is deterministic; end-to-end reachability remains to be established.
