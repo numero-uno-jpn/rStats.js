@@ -52,7 +52,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/chisq.ts` | 問題あり | #100 | `94e98787221087403c05cdb46f69f55c0760823b` | [#26](https://github.com/numero-uno-jpn/rStats.js/issues/26) | Rと同じ（負の自由度は無効。今回R実行なし） | `df=-Number.MIN_VALUE`（-5e-324）は `df<0` だが `df/2` が `-0` に丸められる。`chisq.ts` が先に `df/2` を渡し、gamma側では `shape<0` が偽・`shape===0` が真となり、`dchisq(0,df)=Infinity`、`dchisq(1,df)=0`、`pchisq(1,df)=1`、`qchisq(0.5,df)=0` 相当のshape=0経路に入る。IEEE-754の丸めと `gamma.ts` の分岐をソース追跡。package/Vitest/R未実行。 |
 | `src/distributions/exponential.ts` | 問題あり | #102 | `1aaef113968bfa70a39ed2c501e3b65238763409` | [#27](https://github.com/numero-uno-jpn/rStats.js/issues/27) | Rも誤り | `pexp(1e-20, { rate: 1e-300, logP: true })`。現行値 -736.8272408909739、数学的期待値 ln(1e-320) = -736.8272297580946。`mulDD`/`twoProd` の subnormal 積で残差が失われ、`logOneMinusExpNeg` が丸め済み積を対数化する。既存 known-violation が同じR値を記録。高精度Decimal計算とソース追跡。実行/Vitest/今回のR照合なし。
 | `src/distributions/f.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/gamma.ts` | 一部監査・問題未検出 | #118 | `e9ba1c35ef88e77e84a392562bb7f62378fcbf7f` | — | R 4.5.2 fixtureを確認（未実行） | #118でrate/scale変換、dgamma/pgamma/qgammaの境界分岐・特殊値・tiny領域への入口をソース確認。fixtureのshape=0/Inf、subnormal p、log/upper-tailケースを閲覧。実行・全数値領域監査は未実施。 |
+| `src/distributions/gamma.ts` | 一部監査・問題未検出 | #120 | `e9ba1c35ef88e77e84a392562bb7f62378fcbf7f` | — | R 4.5.2 qgamma fixtureを閲覧（未実行） | #120でqgammaの初期値選択、tiny quantileの対数計算、Wilson–Hilferty/DiDonato–Morris分岐、invertContinuousとの接続を確認。3286件のqgamma fixtureを閲覧、未実行。 |
 | `src/distributions/geometric.ts` | 問題未検出 | #103 | `fe88f1b31ddb3a69cef524aeb9aa5dd08509e0a8` | — | Rと同じ（通常 fixture は R 4.5.2 由来。今回R実行なし） | `dgeom1`/`pgeom1`/`qgeom1`、`probPair`/`qPow` の通常・subnormal・巨大整数経路、支持域・入力検証、上下尾・logP、離散分位点の境界補正をソース追跡。R 4.5.2由来の d/p/qgeom fixture（計6112ケース）を閲覧。CHANGELOGの `pgeom(1e290, 5e-324)` と `pgeom(8.7e299, 1.1e-300)` の修正記録も照合。fixture/Vitest/package runtime/R実行なし。 |
 | `src/distributions/hypergeometric.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/invgamma.ts` | 未監査 | — | `—` | — | — | — |
@@ -126,11 +126,11 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/internal/covmat.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/ddexp.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/discrete.ts` | 問題あり | #106 | `a8ed86222a9c91b7dfea90b990244a81c1170194` | — | Rでは未確認 | `firstTrue()` の指数探索で `lo + step` が Infinity にオーバーフローすると、`Number.MAX_VALUE` を評価せず Infinity を返す。再現: `firstTrue(x => x >= 1.6e308, 1e308, Infinity)`。期待: `1.6e308`（有限かつ述語成立する最小の表現可能整数値）。実測: `Infinity`。Node.jsでソース関数を同一転記して実行、評価回数1024。原因: stepが 8.98846567431158e307 の時点で `lo+step` が Infinity となり、その後の二分探索も Infinity で停止。`discreteQuantile()` には同様の overflow 時 `Number.MAX_VALUE` を試すガードがあるが、`firstTrue()` にはない。修正案: step/j のオーバーフロー時に `Number.MAX_VALUE` を上限候補として評価し、述語成立なら有限区間を二分探索する。 |
-| `src/internal/dpq.ts` | 問題未検出 | #105 | `c9000fd10b357980c675d98bc3a851446fff48ba` | — | Rと同じ（Rの `lower.tail` / `log.p` / `log` の端点・尾部変換仕様に対応。今回R実行なし） | `dt0`/`dt1` の lowerTail×logP 4組、`d0` の log/非log、`quantileBoundaries` の線形p/logP両形式の端点・範囲外値、`smallerTail` の0.5境界・上側変換・極小確率をソース追跡。具体値: p={0,1,0.25,0.5,0.75,1e-300}; logP値={0,-Infinity,-0.25,-1,-1000,1}; lowerTail={true,false}; 期待値は確率の補数・対数恒等式から導出。CHANGELOG Unreleased と 0.15.3 の数値安定性修正を確認。実行/Vitest/package runtime/R実行なし。 |
+| `src/internal/dpq.ts` | 問題未検出 | #120 | `543eb6ceb3de7627a7562b035a931a88da424aa7` | — | Rと同じ（lower.tail/log.pの仕様） | #120でsmallerTailのp>1/2時の尾部反転、linearTarget保持、logP時のexpm1補数を再確認。qgamma 3286件のR 4.5.2 fixtureを閲覧、未実行。 |
 | `src/internal/extremes.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/fround.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/integer.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/invert.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/invert.ts` | 一部監査・問題未検出 | #120 | `54aeaa15ec93053e2dd5fd19fc640a9fbf243a76` | — | R 4.5.2 qgamma fixtureを閲覧（未実行） | 正値領域log変換、上下尾残差の符号、bracket付きNewton/Halley、収束・stuck判定、polish/bisectXをgamma quantile呼出し条件でソース追跡。実行・高精度比較なし。 |
 | `src/internal/levels.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/noncentral.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/poissonMixture.ts` | 未監査 | — | `—` | — | — | — |
@@ -215,7 +215,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/special/gamma.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/igam.ts` | 一部監査・問題未検出 | #119 | `b06dd71a2f60ebe59d92e8759b0b6af7aebc2620` | — | R 4.5.2由来pgamma fixtureを閲覧（未実行） | #119で下側級数、上側連分数/Lentz、Temme漸近、巨大x・極小shapeの特別経路をソース追跡。境界と分岐点の固定入力を整理。fixture/Vitest/独立数値計算は未実行。全域精度は未認証。 |
 | `src/special/igamAsympCoeff.ts` | 未監査 | — | `—` | — | — | — |
-| `src/special/igami.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/igami.ts` | 一部監査・問題未検出 | #120 | `008fc2b262eaa649093211a40e9d7fdd83facdcf` | — | R 4.5.2 qgamma fixtureを閲覧（未実行） | DiDonato–Morris Eq. 21–36のshape<1/≥1分岐、p/q反転、近似初期値の補正、級数補助を確認。初期値を最終解と誤認せずNewton反復へ渡す構成。実行なし。 |
 | `src/special/incbet.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/incbetLargeA.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/incbetPrefactor.ts` | 未監査 | — | `—` | — | — | — |
@@ -661,3 +661,29 @@ Repository: `numero-uno-jpn/rStats.js`
   ```
 - Tests: inspected fixture-driven gamma tests and R 4.5.2 pgamma/qgamma fixtures; neither executed. No Vitest, package runtime, standalone harness, mpmath/MPFR comparison, or fresh R execution.
 - Limitations: no numerical evaluation of branch-boundary continuity, no high-precision grid around `SMALL`, `LARGE`, `SMALLRATIO`, `LARGERATIO`, `HUGE_A`, `A_SUB`, or `1e20`; no adversarial search for convergence-limit failures. No Issue filed.
+
+## Audit #120
+
+- Repository HEAD before ledger update: `c652319c2b1b4d474183ee24d85cc05afc1cc686`.
+- Sources: `src/distributions/gamma.ts` blob `e9ba1c35ef88e77e84a392562bb7f62378fcbf7f`; `src/special/igami.ts` blob `008fc2b262eaa649093211a40e9d7fdd83facdcf`; `src/internal/invert.ts` blob `54aeaa15ec93053e2dd5fd19fc640a9fbf243a76`; `src/internal/dpq.ts` blob `543eb6ceb3de7627a7562b035a931a88da424aa7`.
+- Related `src/special/igam.ts` was cross-read as the CDF evaluator (blob `b06dd71a2f60ebe59d92e8759b0b6af7aebc2620`); primary deep audit of that file is #119.
+- Test/fixture: `test/gamma.test.ts` blob `db75474bb21ad3531f9ae071cffa359023e1af37`; `test/fixtures/qgamma.json` blob `47d054f6330d83ab05bb9d66576f229abe8cc72f`. Fixture metadata: R 4.5.2; 3286 cases, of which 1240 use logP, 1643 upper-tail, 186 linear p > 0.999999999999, 186 p < 1e-300, and 310 logP < -700. These were inspected, not executed.
+- Result: `一部監査・問題未検出`. No new reproducible defect established in qgamma's initial approximation, tail conversion, or safeguarded inversion by source review.
+- `smallerTail()`: for linear p > 1/2, uses exact representable `1-p`; for logP > log(1/2), uses `-expm1(p)`; carries the linear target where available to reduce log-target rounding error.
+- `findInverseGamma()`: reviewed DiDonato–Morris Eq. 21–25 for a<1 and Eq. 31–36 for a>=1, including p/q symmetry, branch boundaries b=0.1/0.15/0.35/0.45/0.6, and the a>=500 near-mean shortcut. This is only a starting approximation; all these paths feed the safeguarded inversion except the explicit subnormal quantile formula.
+- `qgammaStd()`: reviewed tiny-quantile log formula, deep-tail Wilson–Hilferty seed for shape>1 and log target<=-700, DiDonato–Morris seed above that threshold, lower/upper deep-tail asymptotic seeds, and final multiplication by scale.
+- `invertContinuous()`: reviewed positive-support transformation u=log(x), signed residual/bracket updates for both tails, Newton/Halley step safeguard, 200-iteration cap, best-residual return, Newton polishing in x, and adjacent-double bisection fallback for extreme concentration.
+- Exact deterministic inputs considered (branch/logic review only; not executed):
+  ```ts
+  const cases = [
+    { p: 0.5, shape: 0.5, scale: 1, lowerTail: true, logP: false },
+    { p: 1e-300, shape: 2, scale: 1, lowerTail: true, logP: false },
+    { p: -1000, shape: 2, scale: 1, lowerTail: true, logP: true },
+    { p: -1000, shape: 2, scale: 1, lowerTail: false, logP: true },
+    { p: 1 - 2 ** -52, shape: 100, scale: 1, lowerTail: true, logP: false },
+    { p: 0.25, shape: 1e-310, scale: 1, lowerTail: true, logP: false },
+    { p: 0.75, shape: 1e6, scale: 1, lowerTail: false, logP: false },
+  ];
+  ```
+- `test/gamma.test.ts` uses fixture comparison tolerance 1e-14 and a backward pgamma check for qgamma. Test definitions and fixture data inspected only; no Vitest, package runtime, standalone harness, high-precision comparison, or fresh R execution.
+- Limitations: no direct numerical verification at logTarget=-700, at b branch thresholds in `igami.ts`, at subnormal quantile boundary, or around inversion iteration/adjacent-double termination. A qgamma backward check against the same local pgamma implementation would not independently certify correctness. No Issue filed.
