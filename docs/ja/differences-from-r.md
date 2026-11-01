@@ -108,6 +108,8 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | 残差自由度のない `residuals(glm, "deviance")` | すべての行で 0。収束していない当てはめでも 0 (deviance 0.34 で残差 0) | 各行の寄与から計算する。二乗和が deviance になる (収束した飽和モデルでは丸めの残り) |
 | log リンクで eta < −36 の `glm` | `pmax(exp(eta), eps)`。平均 e^-100 が 2.2e-16 になる | 最小の double まで exp(eta) |
 | 分離したデータの `glm` (x = 1..6 で y = 0, 0, 0, 1, 1, 1 の binomial、度数 0 を含む飽和 Poisson) | 収束と報告し、係数 (−165, 47) は反復が止まった位置にすぎない。警告はせいぜい "fitted probabilities numerically 0 or 1 occurred" | `converged` は同じ。警告 "the linear predictor was still changing at convergence: the data may be separated (no finite maximum likelihood estimates)" を付ける (最後のステップで eta が 0.1 より大きく動いた)。厳密な logit リンクでは係数はさらに先まで進む |
+| Cholesky 分解で落とされる、ほぼ共線な列 (x2 = x1 + 1e-6 e) のある `coxph` | survival の cholesky2 がその列の残差の積を残し、chsolve2 と chinv2 がそれを使う。係数と分散が、その列を除いた当てはめと 4e-12 ずれる | 落とした列を 0 にする。その列を除いた当てはめとビット一致 |
+| `optim(method = "CG")` | cgmin は放物線を作る前に始点の値を受け入れた値で上書きするので、試す点がいつも受け入れたステップの中点になる (3 変数の二次関数で関数の評価 46 回、値 5.6e-14。(-1.2, 1) からの Rosenbrock は maxit 100 で値 3.1) | 始点と受け入れた点を通る放物線の最小点を試す (評価 8 回、値 1.8e-25。Rosenbrock は 5.3e-8)。経路は R と違う |
 | IRLS のステップで deviance が増える `glm` (すべての重みが 1000 の binomial の `y ~ x`) | `glm.fit` はそのステップを受け入れる。deviance は 7564、89255、144175 と進んでそこで止まり、係数 1e15 で「収束」(最大は 4956) | deviance が相対 epsilon (既定 1e-8) 以上増えるあいだステップを半分にする (glm2 の規則)。重み 1 と同じ最大に届く。警告 "step size truncated due to increasing deviance" |
 | 同順位の p 値がある dunn.test の段階的な調整 (`holm`、`hs`、`hochberg`、`bh`、`by`) | 同順位を比較の順に順位付けし、同じ p 値に違う調整値が付く (`holm` で 1、0.828、0.414)。群のラベルを付け替えると変わる | 同順位の組には、停止規則が判定に使う組の最初の順位を付ける。並び順によらず同じ値で、判定は同じ。同順位がなければ dunn.test と同じ |
 | 同順位のある clinfun の `jonckheere.test` と DescTools の `JonckheereTerpstraTest` (正規近似) | 同順位のない帰無分散 (sum n_i m_i (n_i + m_i + 1) / 12) を使い、大きすぎる。3 群の c(1, 1, 2, 2, 3, 3) で p = 0.0086 | 同順位を入れた並べ替え分布の分散 (Hollander & Wolfe)。p = 0.0061。同順位がなければパッケージと同じ |
@@ -176,6 +178,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 応答がふつうのデータの 1e200 倍 (や 1e-200 倍) の `lmer` | lme4 は固定効果は正しいが sigma が Inf (罰則つき二乗和が溢れる) | 当てはめでは応答を 2 の冪で割る。theta はもとのデータと同じ。固定効果・sigma・分散成分・ランダム効果・残差は倍率を戻し、対数尤度は −(n または n − p) log c だけずれる |
 | x の単位が違う `lmer(y ~ x + (x \| g))` (x の 3e5 倍、1e6 倍、1e-5 倍) | lme4 は別の点に止まり、収束の警告を出す (Issue #11 のデータで REML 基準 101、正しくは 65.9。`autoscale = TRUE` を勧める) | theta の最適化を、Z の列を 2 の冪で割って行い、theta を戻す。x の単位によらず同じ当てはめ |
 | 応答の単位が違う (1e6 倍や 1e-6 倍) lmerTest の Satterthwaite の自由度 | 1e6 倍で x の自由度が 31 から 7.4e8 (1e-6 倍で 0.19) になり、固有値の警告が出る。(theta, sigma) のヘッセ行列を絶対値 1e-8 で切るため | 尺度をそろえた座標 (theta は Z の列で、sigma は推定値に近い 2 の冪で割る) でヘッセ行列を切る。自由度・t・F・p はもとのデータと同じ |
+| 節点が 1e200 (や 1e-200) 規模の pracma の `barylag` | 節点の差の積が溢れる (0 に落ちる)。重みがすべて 0 になり、結果は NaN | 積を指数つきで持ち、重みを共通の 2 の冪でそろえる。0.5e200 での (x / 1e200)^2 は 0.25 |
 | すべての重みが 1e-308 未満の `lm` | 標準誤差 Inf (5e-324 で NaN)、t 0、p 1 | 重み 1 と同じ値 ((R'R)^-1 を、重みを 2 の冪で割った尺度で作る) |
 | 大きい方のモデルが実質的に完全適合する `anova(fit1, fit2)` (y = 1 + x + z が厳密に成り立つ) | 警告なしで F 2.6e30、p 4e-16 (1 つのモデルの表は警告する) | 同じ値に警告 "ANOVA F-tests on an essentially perfect fit are unreliable" を付ける |
 | `p.adjust(p, "BY", n = Inf)`、`"holm"` で `n = Inf` | "result would be too long a vector"、すべて 1 | エラー (n は有限)。BY で n が 1e6 を超えると調和数を漸近展開で求める |

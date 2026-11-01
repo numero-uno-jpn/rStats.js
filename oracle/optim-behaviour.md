@@ -16,7 +16,9 @@ listed here, and the results must follow R's (the same iterations, so the same c
    parameters**; for L-BFGS-B the steps are cut at the bounds (then divided by the actual width).
 3. Several tests compare `10 + x == 10 + y` (in double precision) to decide that a step changed nothing.
 4. In CG, after an accepted step the "previous" function value is overwritten before the quadratic interpolation, so
-   the interpolation denominator is `−2 g·t s` (see CG). Reproduce it.
+   the interpolation denominator is `−2 g·t s` (see CG) and the trial point is always the midpoint of the step.
+   rStats.js does not reproduce this (issue #15, the owner's decision): it uses the value at the start of the line
+   search, so the trial point is the minimum of the parabola, and CG's path and counts differ from R's.
 5. R's own constants: SANN's `e − 1` is the 8-digit `1.7182818`; the line-search constants are 1e-4 (acceptance),
    0.2 (step reduction) and 10 (rule 3); CG's step growth 1.7.
 6. Defaults: maxit 500 (Nelder-Mead), 10000 (SANN), 100 otherwise; reltol sqrt(eps); abstol −Inf; L-BFGS-B factr 1e7,
@@ -78,8 +80,8 @@ for each i and j ≤ i: `B_ij += (D2 t_i t_j − (Bc)_i t_j − t_i (Bc)_j) / D1
 previous gradient c and direction t: type 1 (Fletcher-Reeves) `G1 = Σ g²`, `G2 = Σ c²`; type 2 (Polak-Ribière) `G1 = Σ
 g(g − c)`, `G2 = Σ c²`; type 3 (Beale-Sorenson) `G1 = Σ g(g − c)`, `G2 = Σ t(g − c)`; then c ← g. If G1 > tol: `G3 =
 G1/G2` (1 if G2 ≤ 0), `t ← G3 t − g`, `gradproj = t·g`; line search from `s = oldstep` as in BFGS (acceptance updates
-f_min to the accepted f); then if some coordinate changed: `newstep = 2 (f − f_min − gradproj s)` (rule 4: f_min
-already equals f, so this is `−2 gradproj s`), and if it is positive, `newstep = −((gradproj × s) × s) / newstep` (left to right), try `x +
+f_min to the accepted f); then if some coordinate changed: `newstep = 2 (f − f_min − gradproj s)` (rule 4: in R f_min
+already equals f, so this is `−2 gradproj s`; rStats.js uses the f_min of the start of the line search), and if it is positive, `newstep = −((gradproj × s) × s) / newstep` (left to right), try `x +
 newstep t`: keep it if lower, else go back to `x + s t`. `oldstep = min(1, 1.7 s)` (s the last step tried; when G1 ≤ tol there was no line search and s is the previous
 one). There is no check that t is a descent direction. In the gradient loop, for each i in order, the type's terms
 use the previous `c_i` (and `t_i`) before `c_i ← g_i`, and `x_i` is set to the current point in the same loop. The

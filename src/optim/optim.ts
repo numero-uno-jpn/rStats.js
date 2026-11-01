@@ -481,6 +481,7 @@ function conjugateGradients(s: Scaled, start: readonly number[], type: number, a
         dir[i] = dir[i]! * beta - grad[i]!;
         slope += dir[i]! * grad[i]!;
       }
+      const atStart = best;
       const search = backtrack(s, from, dir, slope, best, firstStep, point, value);
       fnEvals += search.evals;
       value = search.value;
@@ -488,8 +489,10 @@ function conjugateGradients(s: Scaled, start: readonly number[], type: number, a
       const step = search.step;
       if (moved) {
         best = value;
-        // minimum of the parabola through the start (value and slope) and the accepted point
-        let curvature = 2 * (value - best - slope * step);
+        // minimum of the parabola through the start (value and slope) and the accepted point. (R's cgmin forms it after
+        // setting the start's value to the accepted one, so the curvature is -2 slope step and the trial point always
+        // the midpoint; issue #15)
+        let curvature = 2 * (value - atStart - slope * step);
         if (curvature > 0) {
           curvature = -((slope * step * step) / curvature);
           for (let i = 0; i < n; i++) point[i] = from[i]! + curvature * dir[i]!;
@@ -582,7 +585,9 @@ const METHODS: readonly OptimMethod[] = ["Nelder-Mead", "BFGS", "CG", "L-BFGS-B"
 
 /**
  * General-purpose minimisation of `fn` from the starting point `par`. Equivalent to R's `optim()`. The same methods
- * with the same iterations, so the same results and counts.
+ * with the same iterations, so the same results and counts, except CG: after an accepted step it tries the minimum of
+ * the parabola through the start and the accepted point, where R's cgmin always tries the midpoint (so CG's path,
+ * results and counts differ from R's).
  *
  * @example
  * ```ts

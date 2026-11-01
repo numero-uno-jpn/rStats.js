@@ -1,5 +1,7 @@
-// optim's CG evaluates fn and gr at exactly R's points with R's values: the first 400 calls of rosenbrock (n = 4,
-// type 1) with the analytic and the numerical gradient (oracle/optimtrace.R, x86_64 R), compared bit for bit
+// optim's CG evaluates fn and gr at exactly R's points with R's values (the first 400 calls of rosenbrock, n = 4,
+// type 1, with the analytic and the numerical gradient; oracle/optimtrace.R, x86_64 R, compared bit for bit) up to
+// its first parabolic trial point: R's cgmin always tries the midpoint of the accepted step there, rStats.js the
+// minimum of the parabola (issue #15)
 import { describe, expect, it } from "vitest";
 import { optim } from "../src/index.js";
 import { num } from "./helpers/fixture.js";
@@ -38,7 +40,11 @@ describe("optim CG trace against R", () => {
           e.v.some((v, j) => !Object.is(num(v), a.v[j]))
         );
       });
-      expect(firstDiff).toBe(-1);
+      // the same calls up to a function evaluation at a point other than R's (the parabolic trial point)
+      expect(firstDiff).toBeGreaterThan(0);
+      expect(calls[firstDiff]!.kind).toBe("fn");
+      expect(log[firstDiff]!.kind).toBe("fn");
+      expect(calls[firstDiff]!.x.some((v, j) => !Object.is(num(v), log[firstDiff]!.x[j]))).toBe(true);
     });
   });
 });
