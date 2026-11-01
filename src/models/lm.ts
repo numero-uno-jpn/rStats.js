@@ -385,13 +385,15 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   const resvar = rss / dfResidual;
   const sigma = ldexp(Math.sqrt(resvar), kw / 2);
 
-  // (R'R)^-1 of the leading rank x rank block, in pivot order
-  const Rr = q.qr.slice(0, rank).map((row) => row.slice(0, rank));
+  // (R'R)^-1 of the leading rank x rank block, in pivot order, for the weights divided by 2^kw (R scaled by 2^-kw/2,
+  // exact): (R'R)^-1 of the given weights overflowed for weights below 1e-308, making the standard errors Infinity
+  // (R too), though they do not depend on a common factor of the weights
+  const Rr = q.qr.slice(0, rank).map((row) => row.slice(0, rank).map((v) => ldexp(v, -kw / 2)));
   const covUnscaled = rank > 0 ? chol2inv(Rr) : [];
   const piv = q.pivot.slice(0, rank);
   const order = piv.map((col, k) => [col, k] as const).sort((a, b) => a[0] - b[0]);
   const estimate = order.map(([col]) => coefficients[col]!);
-  const stdError = order.map(([, k]) => Math.sqrt(ldexp(covUnscaled[k]![k]!, kw) * resvar));
+  const stdError = order.map(([, k]) => Math.sqrt(covUnscaled[k]![k]! * resvar));
   const tValue = estimate.map((e, i) => e / stdError[i]!);
   const pValue = tValue.map((t) => 2 * pt1(-Math.abs(t), dfResidual, true, false));
 

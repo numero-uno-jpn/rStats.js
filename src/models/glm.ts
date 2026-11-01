@@ -327,6 +327,28 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
         boundary = true;
         dev = totalDeviance(fam, y, mu, w);
       }
+      // A step that increases the deviance is halved until it does not, as glm2's glm.fit2 (R's glm.fit accepts it:
+      // binomial with weights 1000 went from 7564 to 89255 and stopped at 144175 with coefficients of 1e15,
+      // "converged", where the maximum is 4956)
+      // (an increase of 1e-10 at least: with a tiny epsilon, as the profiles of glmConfint iterate, rounding of the
+      // deviance near the maximum is no increase to correct)
+      const rise = Math.max(epsilon, 1e-10);
+      if (previous !== undefined && iter > 1 && (dev - devPrevious) / (0.1 + Math.abs(dev)) >= rise) {
+        warnings.add("step size truncated due to increasing deviance");
+        let halvings = 0;
+        while ((dev - devPrevious) / (0.1 + Math.abs(dev)) >= rise && halvings < maxit) {
+          halvings++;
+          coef = coef.map((v, j) => (v + previous![j]!) / 2);
+          eta = linearPredictor(x, coef, offset);
+          mu = eta.map((e) => fam.linkinv(e));
+          dev = totalDeviance(fam, y, mu, w);
+        }
+        if ((dev - devPrevious) / (0.1 + Math.abs(dev)) >= rise) {
+          warnings.add("inner loop 3; cannot correct step size");
+          converged = false;
+          break;
+        }
+      }
       if (inp.untilCoefficients) {
         const scale = maxOf(coef.map(Math.abs));
         if (previous !== undefined && coef.every((v, j) => Math.abs(v - previous![j]!) <= 8 * EPS * scale)) {

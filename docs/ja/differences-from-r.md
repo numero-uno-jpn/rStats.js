@@ -101,6 +101,7 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | 1e200 前後の値の分散 | 二乗がオーバーフロー: 分散 Inf、t = 0、p = 1 | 偏差を 2 のべき乗でスケーリングし、有限の結果 |
 | 1e-200 前後の値の相関 | アンダーフローして NA | 有限の結果 (同上) |
 | `fisher.test` (2 x 2) と `mantelhaen.test(exact = TRUE)` の条件付き最尤推定値と信頼限界 | psi の [0, 1] か 1/psi の [eps, 1] で、絶対許容誤差 eps^0.25 の uniroot を使う。[[3, 1], [1, 3]] では推定値が 1.7e-6、95% の限界が 1.3e-5 と 0.7% (626.24 が 621.93)、99% の上限が 6% ずれ、99.99% の限界は区間の端 1/eps (3.2e5 が 4.5e15) | psi の対数の座標で、double の精度まで根を求める (限界で片側確率が alpha、推定値で平均が度数に一致する) |
+| IRLS のステップで deviance が増える `glm` (すべての重みが 1000 の binomial の `y ~ x`) | `glm.fit` はそのステップを受け入れる。deviance は 7564、89255、144175 と進んでそこで止まり、係数 1e15 で「収束」(最大は 4956) | deviance が相対 epsilon (既定 1e-8) 以上増えるあいだステップを半分にする (glm2 の規則)。重み 1 と同じ最大に届く。警告 "step size truncated due to increasing deviance" |
 | 同順位の p 値がある dunn.test の段階的な調整 (`holm`、`hs`、`hochberg`、`bh`、`by`) | 同順位を比較の順に順位付けし、同じ p 値に違う調整値が付く (`holm` で 1、0.828、0.414)。群のラベルを付け替えると変わる | 同順位の組には、停止規則が判定に使う組の最初の順位を付ける。並び順によらず同じ値で、判定は同じ。同順位がなければ dunn.test と同じ |
 | 同順位のある clinfun の `jonckheere.test` と DescTools の `JonckheereTerpstraTest` (正規近似) | 同順位のない帰無分散 (sum n_i m_i (n_i + m_i + 1) / 12) を使い、大きすぎる。3 群の c(1, 1, 2, 2, 3, 3) で p = 0.0086 | 同順位を入れた並べ替え分布の分散 (Hollander & Wolfe)。p = 0.0061。同順位がなければパッケージと同じ |
 | 完全相関 (たとえば `1:5` とそれ自身) | r = 1 − 2 ulp。1 − r² が桁落ちし、t と p が大きくずれる (p が 0 でなく 4e-24。1e-4 のノイズがあると p 値が 14% ずれる) | r と 1 − r² を double-double で計算 |
@@ -162,6 +163,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | D >= 1/2 で p 値が極小の `ks.test(x, "punif", exact = TRUE)` (D = 0.9、n = 20・50・99) | 0、8.9e-16、2.0e-15 (1 - P(D < d) で桁が落ちる) | 2.0e-20、2.0e-50、2.05e-99。d >= 1/2 では P(D >= d) = 2 P(D+ >= d) を正の項の和で求める |
 | 有限なデータの範囲や偏差が溢れる `quade.test`・`fligner.test` (-1e308〜1e308 と -9e307〜9e307 の行) | どちらも Inf で同順位になり、尺度を変えると結果が変わる | その場合は共通の 2 の冪で割ってから計算し、どの尺度でも同じ結果 |
 | 不一致の度数がない組を含む r x r 表の `mcnemar.test` | 統計量と p 値が NaN | その組の寄与を 0 にする (自由度は変えない) |
+| すべての重みが 1e-308 未満の `lm` | 標準誤差 Inf (5e-324 で NaN)、t 0、p 1 | 重み 1 と同じ値 ((R'R)^-1 を、重みを 2 の冪で割った尺度で作る) |
 | 大きい方のモデルが実質的に完全適合する `anova(fit1, fit2)` (y = 1 + x + z が厳密に成り立つ) | 警告なしで F 2.6e30、p 4e-16 (1 つのモデルの表は警告する) | 同じ値に警告 "ANOVA F-tests on an essentially perfect fit are unreliable" を付ける |
 | `p.adjust(p, "BY", n = Inf)`、`"holm"` で `n = Inf` | "result would be too long a vector"、すべて 1 | エラー (n は有限)。BY で n が 1e6 を超えると調和数を漸近展開で求める |
 | `qbinom(-1e10, 1e5, 0.01, log.p = TRUE)` | 37 (探索が途中で止まる) | 0 (F(0) ≈ e^-1005 は e^-1e10 を超える) |
