@@ -50,7 +50,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/bvnorm.ts` | 問題あり | #94 | `05e52efbc8f54e505da82fb10555834a02666e46` | [#23](https://github.com/numero-uno-jpn/rStats.js/issues/23) | Rでは未確認 | 完全負相関の恒等式 `Y=-X` による解析値。独立CDF計算。 |
 | `src/distributions/cauchy.ts` | 問題あり | #98 | `6a3eedcc2d465be8e7bbb614884e1a95ea22180d` | [#25](https://github.com/numero-uno-jpn/rStats.js/issues/25) | Rでは未確認 | `dcauchy(1.1e308, { location: 0, scale: 1e308 })`。Cauchy密度の閉形式を安全な演算順序で評価した値は約 `1.44031622707598e-309`。現行の `y / (Math.PI * scale)` は `Math.PI * scale` がInfinityとなり0。log密度経路のexp値でも照合。JS式の独立ハーネスで再現、Vitest/R未実行。 |
 | `src/distributions/chisq.ts` | 問題あり | #100 | `94e98787221087403c05cdb46f69f55c0760823b` | [#26](https://github.com/numero-uno-jpn/rStats.js/issues/26) | Rと同じ（負の自由度は無効。今回R実行なし） | `df=-Number.MIN_VALUE`（-5e-324）は `df<0` だが `df/2` が `-0` に丸められる。`chisq.ts` が先に `df/2` を渡し、gamma側では `shape<0` が偽・`shape===0` が真となり、`dchisq(0,df)=Infinity`、`dchisq(1,df)=0`、`pchisq(1,df)=1`、`qchisq(0.5,df)=0` 相当のshape=0経路に入る。IEEE-754の丸めと `gamma.ts` の分岐をソース追跡。package/Vitest/R未実行。 |
-| `src/distributions/exponential.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/exponential.ts` | 問題あり | #102 | `1aaef113968bfa70a39ed2c501e3b65238763409` | [#27](https://github.com/numero-uno-jpn/rStats.js/issues/27) | Rも誤り | `pexp(1e-20, { rate: 1e-300, logP: true })`。現行値 -736.8272408909739、数学的期待値 ln(1e-320) = -736.8272297580946。`mulDD`/`twoProd` の subnormal 積で残差が失われ、`logOneMinusExpNeg` が丸め済み積を対数化する。既存 known-violation が同じR値を記録。高精度Decimal計算とソース追跡。実行/Vitest/今回のR照合なし。
 | `src/distributions/f.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/gamma.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/geometric.ts` | 未監査 | — | `—` | — | — | — |
@@ -325,3 +325,15 @@ Repository: `numero-uno-jpn/rStats.js`
 - Evidence: inspected the existing mpmath 1.4.1 `test/fixtures/audit_pbinom.mpmath.json` cases and the `qbinom` fixture. The `floor(q + 1e-7)` operation was reviewed as the discrete-CDF rounding convention, not treated as a defect.
 - R relationship: `Rでは未確認`; no fresh R execution or source comparison was performed.
 - Verification limits: source and fixture inspection only; fixtures, Vitest, and the package runtime were not executed. No issue was created.
+
+
+## Audit #102
+
+- Repository HEAD SHA: `1aaef113968bfa70a39ed2c501e3b65238763409`
+- Source: `src/distributions/exponential.ts` (blob `5370e52ae3428099245fb643c7721cbb7a748b3c`)
+- Result: `問題あり`; GitHub Issue [#27](https://github.com/numero-uno-jpn/rStats.js/issues/27).
+- Reproduction: `pexp(1e-20, { rate: 1e-300, logP: true })` returns `-736.8272408909739`; mathematical reference is `ln(1e-320) = -736.8272297580946188857572654989965...`.
+- Root cause: `pexp1` forms `t = mulDD(rate, q)`; the product is subnormal, so `twoProd` cannot retain its residual. `logOneMinusExpNeg` then logs the rounded product, magnifying its relative rounding error. The existing `test/helpers/distributionKnown.ts` explicitly records this discrepancy as retained for R compatibility.
+- Expected-value basis: exponential CDF `log(1-exp(-rate*q))`; at `rate*q = 1e-320`, this is indistinguishable from `log(1e-320)` at the shown precision. Independent high-precision Decimal calculation.
+- R relationship: `Rも誤り`; the R-derived fixture/known-violation records the same inaccurate value. No fresh R execution.
+- Verification limits: source and fixture/known-violation inspection plus independent high-precision calculation; no package runtime or Vitest execution.
