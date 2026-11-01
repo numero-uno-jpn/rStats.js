@@ -79,6 +79,8 @@ export function pAdjust(
   const lp = idx.length;
   const n = opts.n ?? lp;
   if (!(n >= lp)) throw new RangeError("n must be at least the number of non-NaN p-values");
+  // (an infinite number of comparisons: BY's harmonic sum never ended, and holm gave 1 for every p-value; R stops)
+  if (n === Infinity) throw new RangeError("n must be finite");
   if (n <= 1) return all;
   const pv = idx.map((i) => all[i]!);
   const adj = adjust(pv, method, n);
@@ -134,8 +136,14 @@ function adjust(p: readonly number[], method: PAdjustMethod, n: number): number[
       if (method === "BY") {
         const acc = wideSum();
         const m = Math.floor(n);
-        for (let k = 1; k <= m; k++) wideSumAdd(acc, 1 / k, m);
-        q = wideSumValue(acc);
+        if (m <= 1e6) {
+          for (let k = 1; k <= m; k++) wideSumAdd(acc, 1 / k, m);
+          q = wideSumValue(acc);
+        } else {
+          // the asymptotic expansion of the harmonic number (error below 1/(252 m^6)): the sum took m steps
+          const m2 = m * m;
+          q = Math.log(m) + 0.5772156649015329 + 1 / (2 * m) - 1 / (12 * m2) + 1 / (120 * m2 * m2);
+        }
       }
       const o = order(p, true);
       let m = Infinity;

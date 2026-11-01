@@ -112,7 +112,14 @@ export function ksTest(
     const exact = options.exact ?? (n < 100 && !ties);
     let pValue: number;
     if (alternative === "two.sided") {
-      pValue = exact ? 1 - pkolmogorovExact(n, statistic) : pkolmogorovLimit(Math.sqrt(n) * statistic, false);
+      // For D >= 1/2 the two one-sided exceedances cannot both occur, so P(D >= d) = 2 P(D+ >= d) exactly, a sum of
+      // positive terms: 1 - P(D < d) lost all digits of small p-values (D = 0.9 gave 0 at n = 20 for 2e-20, and 3e-15
+      // at n = 99 for 2e-99; R too)
+      pValue = exact
+        ? statistic >= 0.5
+          ? Math.min(1, 2 * pkolmogorovOneSidedUpper(n, statistic))
+          : 1 - pkolmogorovExact(n, statistic)
+        : pkolmogorovLimit(Math.sqrt(n) * statistic, false);
     } else {
       pValue = exact ? pkolmogorovOneSidedUpper(n, statistic) : Math.exp(-2 * n * statistic * statistic);
     }

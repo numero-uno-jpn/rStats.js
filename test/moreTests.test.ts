@@ -48,6 +48,13 @@ htestSuite({
         throw new Error(`unknown function ${String(a.fn)}`);
     }
   },
+  // the normal approximation with ties: the null variance with the ties here, without them in clinfun and DescTools
+  // (review 59; the variance is checked against an enumeration in test/review59.test.ts)
+  knownDifference: (a, field) => {
+    if (field !== "pValue" || (a.fn !== "jonckheere.test" && a.fn !== "JonckheereTerpstraTest")) return undefined;
+    const x = arg.vec(a.x)!.filter(Number.isFinite);
+    return new Set(x).size < x.length ? "Jonckheere-Terpstra with ties: the packages use the variance without ties" : undefined;
+  },
 });
 
 describe("moreTests options and errors", () => {

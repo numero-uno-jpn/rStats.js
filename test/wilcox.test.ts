@@ -42,4 +42,16 @@ htestSuite({
     }
     return undefined;
   },
+  // a signed rank test with only zero differences ranks nothing: an error (R returns a p-value of NaN; review 59)
+  substitute: (c) => {
+    const x = arg.vec(c.args.x) ?? [];
+    const y = arg.vec(c.args.y);
+    const mu = arg.num(c.args.mu) ?? 0;
+    const paired = arg.bool(c.args.paired) ?? false;
+    if (y !== undefined && !paired) return undefined;
+    const d = x.map((v, i) => (y === undefined ? v : v - y[i]!) - mu).filter((v) => !Number.isNaN(v));
+    return d.length > 0 && d.every((v) => v === 0)
+      ? { expected: { error: "no non-zero differences for the signed rank test" }, reason: "signed rank test with only zero differences: R returns NaN" }
+      : undefined;
+  },
 });

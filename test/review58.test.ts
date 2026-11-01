@@ -94,8 +94,8 @@ describe("review 58", () => {
     setSeed(1);
     expect(() => chisqTest([3, 4, 5], { simulatePValue: true, B: 2.1 })).toThrow(/'B' must be/);
     expect(() => chisqTest([3.5, 4, 5], { simulatePValue: true, B: 2 })).toThrow(/summing to an integer/);
-    setSeed(1);
-    expect(chisqTest([[3.5, 4], [5, 2]], { simulatePValue: true, B: 2 }).pValue).toBeLessThanOrEqual(1);
+    // (fractional tables are errors in the simulation as well since round 59)
+    expect(() => chisqTest([[3.5, 4], [5, 2]], { simulatePValue: true, B: 2 })).toThrow(/integer counts/);
     const frac = [[[0.5, 1.5], [1.5, 0.5]], [[0.5, 1.5], [1.5, 0.5]]];
     expect(() => mantelhaenTest(frac, { exact: true })).toThrow(/integer counts/);
     expect(Number.isFinite(mantelhaenTest(frac).pValue)).toBe(true);

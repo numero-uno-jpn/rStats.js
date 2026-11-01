@@ -107,6 +107,7 @@ affected.
 | Variance of values around 1e200 | squares overflow: variance Inf, t = 0, p = 1 | deviations rescaled by powers of two; finite result |
 | Correlation of values around 1e-200 | underflow, NA | finite result (as above) |
 | `fisher.test` (2 x 2) and `mantelhaen.test(exact = TRUE)`: the conditional MLE and the confidence limits | uniroot on psi in [0, 1] or 1/psi in [eps, 1] with the absolute tolerance eps^0.25: for [[3, 1], [1, 3]] the estimate is 1.7e-6 off, the 95% limits 1.3e-5 and 0.7% (621.93 for 626.24), the 99% upper limit 6%, and the 99.99% limit the end 1/eps (4.5e15 for 3.2e5) | the roots on the log scale of psi to the precision of the doubles (the tail equals alpha at the limits, the mean equals the count at the estimate) |
+| clinfun's `jonckheere.test` and DescTools' `JonckheereTerpstraTest` with ties (normal approximation) | the null variance without ties (sum n_i m_i (n_i + m_i + 1) / 12), too large: p = 0.0086 for c(1, 1, 2, 2, 3, 3) in three groups | the permutation variance with the ties (Hollander & Wolfe): p = 0.0061; without ties as the packages |
 | Perfect correlation (e.g. `1:5` with itself) | r = 1 − 2 ulp; 1 − r² cancels, so t and p are far off (p = 4e-24 instead of 0; with noise of 1e-4 the p-value is off by 14%) | r and 1 − r² in double-double |
 | Kendall's exact upper tail | computed as 1 − (lower tail): 5.6e-16 instead of 3.8e-33 for perfect correlation with n = 30 | upper tail summed directly |
 | Spearman, perfect correlation with n = 2 | S = 2.2e-16 (should be 0) | 0 |
@@ -163,6 +164,10 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `binom.test(5, 10, conf.level = 1 - 1e-16)` and `poisson.test` (alpha below 1e-8) | the upper limit from 1 - alpha, which loses its digits (1 and Inf at 1 - 1e-16) | the upper limit from the upper probability alpha itself (0.99981, 52.549); levels with alpha >= 1e-8 as R |
 | The same for the intervals of `var.test`, `prop.test`, `mantelhaen.test`, `t.test`, the ICC, `cor.test`, the one-way contrasts, `confint` and `predict` of lm, glm's profile intervals, `coxph` and `survfit` (alpha below 1e-8) | 1 - alpha or (1 + level) / 2 rounds to 1: limits 0, NaN or Inf | the upper probability alpha passed to the quantile function |
 | `mantelhaen.test` with counts near 1e150 (products of counts overflow) | statistic and p-value NaN (Inf / Inf in the variance) | the ratios formed first there: statistic 0 and p-value 1 for balanced tables |
+| `ks.test(x, "punif", exact = TRUE)` with D >= 1/2 and a tiny p-value (D = 0.9, n = 20, 50, 99) | 0, 8.9e-16, 2.0e-15 (1 - P(D < d) loses the digits) | 2.0e-20, 2.0e-50, 2.05e-99: P(D >= d) = 2 P(D+ >= d) for d >= 1/2, a sum of positive terms |
+| `quade.test`, `fligner.test` with ranges or deviations of finite data that overflow (rows -1e308 to 1e308 and -9e307 to 9e307) | tied as Inf: the result changes when the data are rescaled | the data divided by a common power of 2 there: the same result at any scale |
+| `mcnemar.test` on an r x r table where a pair of cells has no discordant counts | statistic and p-value NaN | that pair adds 0 (df unchanged) |
+| `p.adjust(p, "BY", n = Inf)`; `"holm"` with `n = Inf` | "result would be too long a vector"; every p-value 1 | an error (n must be finite); BY with a large finite n uses the expansion of the harmonic number beyond 1e6 |
 | `qbinom(-1e10, 1e5, 0.01, log.p = TRUE)` | 37 (search stops early) | 0 (F(0) ≈ e^-1005 exceeds e^-1e10) |
 | `qt(1e-320, 2)` (subnormal p) | -Inf | -7.0711e159 (matches the closed form −sqrt(1/(2p))) |
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (the true answer rounds to 1) |
@@ -319,7 +324,9 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   `poissonTest` (R returns NaN or Inf for the estimate and the interval), counts whose total overflows in `binomTest`
   and `poissonTest` (R: NaN or an error), a fractional `B`, or goodness-of-fit counts summing to a fraction, in
   `chisqTest`'s simulation (R's p-value can exceed 1 there), fractional counts in `mantelhaenTest(exact: true)` (R
-  returns a result), and a step `eps` of 0 or a
+  returns a result), a table without discordant pairs in `mcnemarTest`, only zero differences in the signed rank
+  `wilcoxTest`, two constant samples in `varTest`, fractional counts in `chisqTest`'s simulation of tables (R returns
+  NaN or truncates the margins), and a step `eps` of 0 or a
   non-finite `d`, `eps` or `zeroTol` in `grad`, `jacobian` and `hessian` (numDeriv's "simple" method gives NaN for
   `eps = 0`; `d = 0` is an error there too).
 - **The power and effect-size functions** reject NaN for a known quantity (pwr mostly stops with "missing value

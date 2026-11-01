@@ -86,6 +86,8 @@ export function varTest(x: Sample | string, y: Sample | DataFrame, options: VarT
   if (dfy < 1) throw new Error("not enough 'y' observations");
   // scaled by a power of 2 (exact) so that the variances stay in range; the statistic does not depend on the units
   const [vx, vy] = groupMoments([xs, ys]).variance as [number, number];
+  // both variances 0: the ratio is 0 / 0 (R returns NaN); one of them 0 gives the limit 0 or Infinity as before
+  if (vx === 0 && vy === 0) throw new RangeError("both samples have zero variance");
   const estimate = vx / vy;
   const statistic = estimate / ratio;
   const lower = pf1(statistic, dfx, dfy, true, false);

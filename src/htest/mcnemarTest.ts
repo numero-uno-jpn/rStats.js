@@ -72,13 +72,19 @@ export function mcnemarTest(
     statistic = squareOver(Math.abs(b - c) - 1, b + c);
   } else {
     statistic = 0;
+    // a pair of cells with no discordant counts adds nothing (0 / 0 made the statistic NaN; R too); with none at all
+    // there is nothing to test
+    let terms = 0;
     for (let i = 0; i < r; i++) {
       for (let j = i + 1; j < r; j++) {
         const a = table[i]![j]!;
         const b = table[j]![i]!;
+        if (a + b === 0) continue;
         statistic += squareOver(a - b, a + b);
+        terms++;
       }
     }
+    if (terms === 0) throw new RangeError("the table has no discordant pairs");
   }
   const df = (r * (r - 1)) / 2;
   return {

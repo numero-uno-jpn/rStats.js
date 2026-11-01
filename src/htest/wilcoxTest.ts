@@ -253,6 +253,8 @@ function signedRank(
   const zeroes = x.some((v) => v === 0);
   if (zeroes) x = x.filter((v) => v !== 0);
   const n = x.length;
+  // only zero differences: nothing to rank (R returns a p-value of NaN)
+  if (n === 0) throw new RangeError("no non-zero differences for the signed rank test");
   const exact = exactOpt ?? n < 50;
   const r = rank(x.map(Math.abs));
   const ties = tieCounts(r).length > 0;

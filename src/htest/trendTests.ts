@@ -147,6 +147,25 @@ function orderedGroups(x: Sample, g: readonly GroupLabel[], levels: readonly Gro
 }
 
 /**
+ * The null variance of JT under ties (Hollander & Wolfe): the variance of the permutation distribution given the
+ * group sizes n_i and the sizes t_j of the groups of tied values. The packages (clinfun, DescTools) use the variance
+ * without ties there, which is too large (review 59)
+ */
+function tiedVariance(groupSizes: readonly number[], all: readonly number[]): number {
+  const counts = new Map<number, number>();
+  for (const v of all) counts.set(v, (counts.get(v) ?? 0) + 1);
+  const t = [...counts.values()];
+  const N = all.length;
+  const s1 = (a: readonly number[], f: (v: number) => number): number => a.reduce((acc, v) => acc + f(v), 0);
+  const first =
+    (N * (N - 1) * (2 * N + 5) - s1(groupSizes, (v) => v * (v - 1) * (2 * v + 5)) - s1(t, (v) => v * (v - 1) * (2 * v + 5))) / 72;
+  const second =
+    N < 3 ? 0 : (s1(groupSizes, (v) => v * (v - 1) * (v - 2)) * s1(t, (v) => v * (v - 1) * (v - 2))) / (36 * N * (N - 1) * (N - 2));
+  const third = (s1(groupSizes, (v) => v * (v - 1)) * s1(t, (v) => v * (v - 1))) / (8 * N * (N - 1));
+  return first + second + third;
+}
+
+/**
  * Jonckheere-Terpstra test of equal distributions against ordered alternatives. Equivalent to
  * `DescTools::JonckheereTerpstraTest()` in R. Computes `JonckheereTerpstraTest(x, g, alternative, exact)` (with `g`
  * an ordered factor) or, with `variant: "clinfun"`, clinfun's `jonckheere.test(x, g, alternative)` (whose
@@ -212,7 +231,7 @@ export function jonckheereTest(x: Sample, g: readonly GroupLabel[], options: Jon
     });
   } else {
     const mean = sizes.reduce((a, [ni, mi]) => a + ni * mi, 0) / 2;
-    const variance = sizes.reduce((a, [ni, mi]) => a + (ni * mi * (ni + mi + 1)) / 12, 0);
+    const variance = ties ? tiedVariance(groups.map((gi) => gi.length), all) : sizes.reduce((a, [ni, mi]) => a + (ni * mi * (ni + mi + 1)) / 12, 0);
     const z = (jt - mean) / Math.sqrt(variance);
     lower = pnorm(z);
     upper = 1 - lower;

@@ -341,7 +341,9 @@ function contingency(x: number[][], options: ChisqTestOptions): ChisqTestResult 
   const simulate = (options.simulatePValue ?? false) && sr.every((v) => v > 0) && sc.every((v) => v > 0);
   const yates = !simulate && correct && nr === 2 && nc === 2 ? Math.min(0.5, ...diff.flat().map(Math.abs)) : 0;
   if (simulate) {
-    // counts are integers for the simulation (R's C code takes the margins as integers)
+    // counts are integers for the simulation: the simulated tables have integer margins, and fractional observed
+    // counts would be compared with them (R truncates the margins and runs it)
+    if (x.some((r) => r.some((v) => !Number.isInteger(v)))) throw new RangeError("the simulation needs integer counts");
     const B = replicates(options);
     method += simulatedMethod(B);
     stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => squareOver(d, E[i]![j]!))));

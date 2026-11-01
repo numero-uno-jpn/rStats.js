@@ -20,7 +20,7 @@
 import { pf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
-import { rank, tieCounts, variance } from "../internal/summary.js";
+import { rank, scaleToUnit, tieCounts, variance } from "../internal/summary.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { completeRows, median, toGroups, type GroupLabel } from "./groups.js";
 import { blockData, kSampleData, twoGroupData } from "./testFormula.js";
@@ -222,7 +222,13 @@ export function quadeTest(y: readonly (readonly number[])[] | string, data?: Dat
   const b = rows.length;
   const k = y[0]?.length ?? 0;
   if (rows.length < 2 || k < 2) throw new RangeError("'y' must have at least two complete rows and two columns");
-  const q = rank(rows.map((r) => maxOf(r) - minOf(r)));
+  let ranges = rows.map((r) => maxOf(r) - minOf(r));
+  // ranges of finite data that overflow (-1e308 to 1e308 and -9e307 to 9e307 both gave Infinity, tied; R too): the data
+  // divided by a common power of 2 first, which keeps their order
+  if (ranges.some((v) => v === Infinity) && rows.every((r) => r.every(Number.isFinite))) {
+    ranges = scaleToUnit(rows).groups.map((r) => maxOf(r) - minOf(r));
+  }
+  const q = rank(ranges);
   const colS = new Array<number>(k).fill(0);
   let A = 0;
   rows.forEach((row, i) => {
@@ -298,10 +304,17 @@ export function flignerTest(x: Sample | readonly Sample[] | string, g?: readonly
   const groups = toGroups(x, g as readonly GroupLabel[] | undefined, "error");
   const k = groups.length;
   if (k < 2) throw new RangeError("all observations are in the same group");
-  const centred = groups.flatMap((grp) => {
-    const m = median(grp);
-    return grp.map((v) => Math.abs(v - m));
-  });
+  const deviations = (gs: readonly (readonly number[])[]): number[] =>
+    gs.flatMap((grp) => {
+      const m = median(grp);
+      return grp.map((v) => Math.abs(v - m));
+    });
+  let centred = deviations(groups);
+  // deviations of finite data that overflow (1e308 from medians of -1e308 and -9e307 both gave Infinity, tied; R too):
+  // all groups divided by one common power of 2 first, which keeps the order of the deviations across groups
+  if (centred.some((v) => v === Infinity) && groups.every((grp) => grp.every(Number.isFinite))) {
+    centred = deviations(scaleToUnit(groups).groups);
+  }
   const n = centred.length;
   const r = rank(centred);
   const a = r.map((v) => qnorm((1 + v / (n + 1)) / 2));
