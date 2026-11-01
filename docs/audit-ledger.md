@@ -122,12 +122,12 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/htest/varTest.ts` | 問題未検出 | #215 | `4a000f0c939846bd2886c7f429734acd06664b99` | — | R 4.5.2 `stats::var.test` source/docs、Bartlett公式を照合（未実行）。両群定数時のthrowは既存review59で明示した仕様差 | F比・ratio帰無値・df・片側/両側tail・confInt quantile・finite-only除外・共通2冪scale、formula group extraction、Bartlett pooled variance/log variance/correction factor/dfを確認。入力: `varTest([1,3,2,5,4],[2,9,4,12,7,1])`; `varTest([1,1,1],[1,2,4])` (一方のみ分散0); `varTest([1,1,1],[2,2,2])` (両方0、既存review59で意図的にthrow); `varTest([1,2,3],[4,5,6],{alternative:"greater"})`; `bartlettTest([[1,3,2,5],[2,9,4,12,7],[3,3.5,4,2]])`; singleton/empty groups。Rの分散比と境界tailに沿う実装で、新規再現欠陥なし。
 | `src/htest/wilcoxTest.ts` | 問題あり | #216 | `4a000f0c939846bd2886c7f429734acd06664b99` | [#49](https://github.com/numero-uno-jpn/rStats.js/issues/49) | R 4.5.2+ `stats::wilcox.test` source/docsのsigned-rank/rank-sum、tie correction、zero-SD branchを照合（未実行） | signed-rank/rank-sum statistic、exact/normal切替、ties/zeroes、continuity correction、one-/two-sided tail、exact Walsh averages/pair differences、normal CI root/clamping、confLevel/tolRoot、paired complete cases、Inf handlingを確認。再現: `wilcoxTest([1],[1])` および `wilcoxTest([1,1],[1,1],{exact:false})`。全同値の2群ではW−E(W)=0かつtie-corrected variance=0。現行はz=0/0=NaNを`normalP`へ渡しpValue=NaN。Rの`.wilcox_test_two_pval_asymp`は`z == 0 && STAT$sd == 0`を特別扱いしp.value=1を返す。Issue #49。ほか`wilcoxTest([1,2,3],[4,5,6],{exact:false})`; `wilcoxTest([1,2,3],[2,3,4],{exact:true,confInt:true})`; `wilcoxTest([1,2,3],[2,4,6],{paired:true})`; `wilcoxTest([0,0,0])` (all-zero signed rankは既存仕様差としてerror)。
 | `src/index.ts` | 問題未検出 | #217 | `4a000f0c939846bd2886c7f429734acd06664b99` | — | 該当なし（公開APIのre-export barrel） | 10行のexport宣言を確認。special/distributions/tests/linalg/descriptive/numericsのentry barrelを再exportし、実装・演算・入力変換を行わない。併せて`src/entries/tests.ts`で`wilcoxTest`、`varTest`、`bartlettTest`、`propTrendTest`、`jonckheereTest`の公開exportを確認。循環参照・重複exportの疑いなし。
-| `src/integrate/quadpack.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/covmat.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/ddexp.ts` | 未監査 | — | `—` | — | — | — |
-| `src/internal/discrete.ts` | 問題あり | #106 | `a8ed86222a9c91b7dfea90b990244a81c1170194` | — | Rでは未確認 | `firstTrue()` の指数探索で `lo + step` が Infinity にオーバーフローすると、`Number.MAX_VALUE` を評価せず Infinity を返す。再現: `firstTrue(x => x >= 1.6e308, 1e308, Infinity)`。期待: `1.6e308`（有限かつ述語成立する最小の表現可能整数値）。実測: `Infinity`。Node.jsでソース関数を同一転記して実行、評価回数1024。原因: stepが 8.98846567431158e307 の時点で `lo+step` が Infinity となり、その後の二分探索も Infinity で停止。`discreteQuantile()` には同様の overflow 時 `Number.MAX_VALUE` を試すガードがあるが、`firstTrue()` にはない。修正案: step/j のオーバーフロー時に `Number.MAX_VALUE` を上限候補として評価し、述語成立なら有限区間を二分探索する。 |
+| `src/integrate/quadpack.ts` | 問題あり | #218 | `467080a00d97d2c069779452bd5eb30b93047b7b` | [#51](https://github.com/numero-uno-jpn/rStats.js/issues/51) | QUADPACK dqk21/dqagse source、R 4.5.2 integrate docs/sourceと比較。上流QUADPACK/Rも同じmidpoint式を使う既知の数値限界だが、有限入力の数学的誤積分として記録 | K21/G10 nodes/weights、resabs/resasc、error rescaling、dqk15i無限区間変換、Wynn epsilon table、dqpsrt ordering、adaptive bisection、roundoff/divergence ier、limit/tolerance境界、reverse boundsを追跡。再現: `integrate(x => 1/x, 1e308, 1.1e308)`。`0.5*(a+b)` がInfinity、`0.5*(b-a)` は有限となり、全21 nodesがInfinity、f=1/xは全点0、結果0/abserr0/ier0。高精度の正解は0.09531017980432482。Nodeで式を再現。既存quadpack fixtureはSciPy通常域の結果・ier/nevalを比較するが、同符号巨大有限境界は含まれない。適応分割側も`0.5*(alist+blist)`で同じ脆弱性。Issue #51。
+| `src/internal/covmat.ts` | 問題未検出 | #219 | `467080a00d97d2c069779452bd5eb30b93047b7b` | — | R `isSymmetric`相当の100ε相対判定とfactanal/omegaのcovmat契約をソース確認（未実行） | 空/非正方/非有限/非正対角/非対称/許容誤差内対称/極端スケールを確認。入力: `checkCovmat([[1,0.5],[0.5,1]])`; `checkCovmat([[1,0.5],[0.5000000000001,1]])`; `checkCovmat([[1,0],[0,Number.MIN_VALUE]])`; `checkCovmat([[1,0],[0,0]])`; `checkCovmat([[1,2],[2,1]])`。全行長と有限値を先に検証し、scaleToUnitで2冪正規化してからisSymmetricを適用するため巨大/極小値の和のoverflow/underflowを回避。正定値性まではこのhelperの責務ではなく、呼出元のfactor model/solverへ委ねる。新規再現欠陥なし。
+| `src/internal/ddexp.ts` | 問題あり | #220 | `467080a00d97d2c069779452bd5eb30b93047b7b` | [#52](https://github.com/numero-uno-jpn/rStats.js/issues/52); [#54](https://github.com/numero-uno-jpn/rStats.js/issues/54) | Rのlocation-scale quantile/density契約とIEEE-754 exact-product semanticsを検討（R実行なし）。log-sum-expは数学的恒等式 | ddExpの±708/709.8切替、LN2 range reduction/Taylor/repeated squaring、standardizeDDのoverflow/subnormal recursion、divideTail、logRatioDD、mulDD threshold、expNeg/expNegOverのsubnormal scaling、log1mExp/logAddExp/logSubExp、logOneMinusExpNeg、locationScale/affine cancellationを確認。Issue #52再現: `locationScale(-1,1e308,1e-308)`。現行`mulDD`はoperand>1e300でfinite productのlow partを捨てるため-1.1102230246251565e-16。exact binary64 product+(-1)は約-7.969431103331108e-17。Issue #54再現: `logAddExp(Infinity,Infinity)` はInfinity-Infinityを指数部で計算しNaN、期待Infinity。両方の原因は別個。
+| `src/internal/discrete.ts` | 問題あり | #221 | `467080a00d97d2c069779452bd5eb30b93047b7b` | [#53](https://github.com/numero-uno-jpn/rStats.js/issues/53) | Rとの照合なし。整数supportの単調predicate search契約とNumber.MAX_VALUE境界を検証 | discreteQuantileのlinear/log probability slack、lower/upper tail反転、p≈1の小さい補尾比較、y0丸め/clamp、2^53 spacing、doubling/bisection、NaN CDF propagation、firstTrue/lastTrueを確認。既知の#106指摘を再検証し、firstTrueのoverflowを確認。再現: `firstTrue(x => x >= 1.6e308,1e308,Infinity)` はInfinityを返すが有限閾値1.6e308が存在。Nodeで現行アルゴリズムを実行。discreteQuantileにはNumber.MAX_VALUE guardがあるのにfirstTrueにはない。firstTrueはbinomTestのtwo-sidedPから使用されるが、提示した極端な直接入力でのhelper契約不具合であり、public binomTestで同じ大きさの不具合が到達可能かは未確認。Issue #53。
 | `src/internal/dpq.ts` | 問題未検出 | #120 | `543eb6ceb3de7627a7562b035a931a88da424aa7` | — | Rと同じ（lower.tail/log.pの仕様） | #120でsmallerTailのp>1/2時の尾部反転、linearTarget保持、logP時のexpm1補数を再確認。qgamma 3286件のR 4.5.2 fixtureを閲覧、未実行。 |
-| `src/internal/extremes.ts` | 未監査 | — | `—` | — | — | — |
+| `src/internal/extremes.ts` | 問題未検出 | #222 | `467080a00d97d2c069779452bd5eb30b93047b7b` | — | Math.max/Math.min IEEE-754 semanticsおよびsafe midpointの算術から判定（R関数比較対象外） | maxOf/minOfの空配列、NaN、±Infinity、±0、疎配列、ArrayLike/typed array大容量と、midpointの同符号overflow・異符号極値・subnormal tieを確認。入力: `maxOf([])`; `minOf([])`; `maxOf([NaN,2])`; `minOf([-0,0])`; `midpoint(Number.MAX_VALUE,Number.MAX_VALUE)`; `midpoint(-Number.MAX_VALUE,Number.MAX_VALUE)`; `midpoint(Number.MAX_VALUE,0.9*Number.MAX_VALUE)`; `midpoint(Number.MIN_VALUE,0)`。空配列の±Infinity、NaN伝播、signed-zeroはMath.max/minと一致。midpointは通常式でoverflowした場合のみ半値和へfallbackし、有限な真の平均を保つ。新規再現欠陥なし。
 | `src/internal/fround.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/integer.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/invert.ts` | 一部監査・問題未検出 | #120 | `54aeaa15ec93053e2dd5fd19fc640a9fbf243a76` | — | R 4.5.2 qgamma fixtureを閲覧（未実行） | 正値領域log変換、上下尾残差の符号、bracket付きNewton/Halley、収束・stuck判定、polish/bisectXをgamma quantile呼出し条件でソース追跡。実行・高精度比較なし。 |
@@ -1423,3 +1423,44 @@ Repository: `numero-uno-jpn/rStats.js`
 - `src/entries/tests.ts`も確認し、今回対象の`wilcoxTest`、`varTest`、`bartlettTest`、`propTrendTest`、`jonckheereTest`がtests entryから公開されていることを確認。循環・欠落exportの疑いなし。
 - 検証範囲: source inspection only。Vitest/package runtime/R未実行。
 - ソース blob: `325df03e925e9cda87ff608af8d1d6ca071ea08d`。
+
+
+## Audit #218-#222
+
+### #218 `src/integrate/quadpack.ts`
+- 判定: 問題あり; [Issue #51](https://github.com/numero-uno-jpn/rStats.js/issues/51)。
+- dqk21 K21/G10 quadrature、error estimate resabs/resasc、dqk15i無限区間写像、dqelg Wynn epsilon、dqpsrt error ordering、adaptive subdivision、roundoff/divergence flags、reverse intervalを追跡。
+- 再現: `integrate(x => 1/x, 1e308, 1.1e308)`。wrapperでは`upper-lower`が有限なのでdqagseの通常経路に入る。一方dqk21の`centr=0.5*(a+b)`はInfinityにoverflowし、halfwidthは約`4.999999999999998e306`で有限。全quadrature nodesがInfinityになり`1/Infinity=0`を返すため、初回ruleがresult=0、abserr=0、ier=0として終了する。正しい積分値は高精度で`0.09531017980432482`。Nodeで算術経路を再現。adaptive subdivisionの`0.5*(alist+blist)`も同じ危険を持つ。
+- 既存`test/integrate/quadpack.test.ts`はSciPyの通常域fixtureでresult/abserr/neval/ier/lastを照合するが、この巨大な同符号有限境界は含まない。
+- Rとの関係: R integrate docsは有限区間でadaptive Gauss–Kronrodを使うと説明。QUADPACK dqk21原典も同じ`0.5*(a+b)`を使うため上流Rにも同様の制約があるが、数学的には正しい有限積分を返さないため数値堅牢性欠陥として記録。Vitest/package integrate/R未実行。
+- ソース blob: `3aef9054b78a50c5ab55ed22008db69c56535d4c`。
+
+### #219 `src/internal/covmat.ts`
+- 判定: 問題未検出。
+- 空行列、非正方、各行長、NaN/±Inf、対角<=0、非対称、100ε内の近似対称、極端スケールを確認。
+- 入力: `checkCovmat([[1,0.5],[0.5,1]])`; `checkCovmat([[1,0.5],[0.5000000000001,1]])`; `checkCovmat([[1,0],[0,Number.MIN_VALUE]])`; `checkCovmat([[1,0],[0,0]])`; `checkCovmat([[1,2],[2,1]])`。全値有限を検証した後、scaleToUnitで2冪スケーリングしisSymmetricを適用するため、極端な値での和のoverflow/underflowを避ける。正定値性をここで判定しないのは、このhelperの明示的な契約（square/finite/symmetric/positive diagonal）外で、呼出元が後続のfactor analysisで扱う。新規再現欠陥なし。
+- Rとの関係: R isSymmetric相当の許容差とfactanal/omega covmat前処理をソースで確認。Vitest/package runtime/R未実行。
+- ソース blob: `a042245164638b0c486c769de2c2a9a0eed622cd`。
+
+### #220 `src/internal/ddexp.ts`
+- 判定: 問題あり; [Issue #52](https://github.com/numero-uno-jpn/rStats.js/issues/52)、[Issue #54](https://github.com/numero-uno-jpn/rStats.js/issues/54)。
+- ddExpのexp range reduction/Taylor/repeated squaringとsubnormal/overflow境界、standardizeDDのfinite difference/overflow recursion、divideTail、logRatioDD、mulDD、expNeg/expNegOver、log1mExp/logAddExp/logSubExp/logOneMinusExpNeg、locationScale/affineを確認。
+- Issue #52再現: `locationScale(-1,1e308,1e-308)`。mulDDがoperand>1e300の場合にfinite productのerror termを捨て、丸め積0.9999999999999999を-1へ加えるため現行値-1.1102230246251565e-16。binary64入力のexact productは約0.9999999999999999203056889666889であり、exact sumの期待値は約-7.969431103331108e-17。約39%の相対誤差。special/dd.tsのtwoProdにはscaled residual fallbackがあるがmulDDは利用していない。
+- Issue #54再現: `logAddExp(Infinity,Infinity)` は`m=Infinity`後に`Infinity-Infinity`を計算しNaN。log(e^a+e^b)の期待値はInfinity。
+- Rとの関係: location-scale distributionの数値契約とlog-sum-expの恒等式から期待値を判断。Vitest/package runtime/R未実行。
+- ソース blob: `bee2ddfcd5de4228f56aad0b1647690c275e78c0`。
+
+### #221 `src/internal/discrete.ts`
+- 判定: 問題あり; [Issue #53](https://github.com/numero-uno-jpn/rStats.js/issues/53)。既存の監査#106で見つかった問題を再確認し、GitHub Issueとして登録。
+- discreteQuantileのlinear/log slack、upper/lower-tailの反転、pが1に近い場合の補尾比較、y0 clamp、2^53を超えるdouble spacing、CDF NaN propagation、firstTrue/lastTrueの探索を確認。
+- 再現: `firstTrue(x => x >= 1.6e308,1e308,Infinity)`。指数探索中に`lo+step`がInfinityとなり、そのままInfinityを候補にして二分探索が終了するためInfinityを返す。有限閾値1.6e308が存在するため期待値は1.6e308。Node.jsで現行コードと同じ関数を実行し再現。
+- `discreteQuantile`には同様のstep overflow時に`Number.MAX_VALUE`を試す処理があるが、`firstTrue`にはない。firstTrueはbinomTestのtwo-sidedPから呼ばれる。ただしこの極端な直接入力が公開binomTest経由で到達可能かは未確認で、Issueにもその制約を記載。
+- Rとの関係: Rとの照合なし。内部単調predicate searchの契約とIEEE-754上限から判定。Vitest/package runtime/R未実行。
+- ソース blob: `a8ed86222a9c91b7dfea90b990244a81c1170194`。
+
+### #222 `src/internal/extremes.ts`
+- 判定: 問題未検出。
+- maxOf/minOfのempty/NaN/±Infinity/±0/sparse/ArrayLike semanticsと、midpointの同符号overflow・異符号極値・subnormal境界を確認。
+- 入力: `maxOf([])`; `minOf([])`; `maxOf([NaN,2])`; `minOf([-0,0])`; `midpoint(Number.MAX_VALUE,Number.MAX_VALUE)`; `midpoint(-Number.MAX_VALUE,Number.MAX_VALUE)`; `midpoint(Number.MAX_VALUE,0.9*Number.MAX_VALUE)`; `midpoint(Number.MIN_VALUE,0)`。max/minはMath.max/minと同じ空配列・NaN伝播を保ち、midpointは和のoverflow時に半値和へfallbackする。新規再現欠陥なし。
+- Rとの関係: Math.max/min semanticsおよびIEEE-754算術から判定。Vitest/package runtime/R未実行。
+- ソース blob: `00fbd46179043e90fc6678a777fbd9b5540dd7c6`。
