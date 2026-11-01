@@ -107,11 +107,11 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/htest/multipleComparisons.ts` | 問題未検出 | #200 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | — | R/SciPy fixtures・sourceを閲覧（未実行）。 | Dunn tie correction/adjustment、Dunnett familywise tails、Steel U rank/sign、DSCF variance、Games-Howell Welch/Satterthwaite、Tukey-Kramer、Dunn altp/stepwise ties。入力: 3群例 [1.2,2.3,1.8,2.9,3.1,3.6,4.0,4.4,5.2]; all-tied groups; two-group single-step; zero pooled SS; unequal n; tied adjusted p; extreme values。R PMCMRplus/dunn.test/multcomp fixtures閲覧。Vitest/R未実行。 |
 | `src/htest/normalityTests.ts` | 問題あり | #201 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | [#46](https://github.com/numero-uno-jpn/rStats.js/issues/46) | R/SciPy fixtures・sourceを閲覧（未実行）。 | AD/CVM/Lilliefors/Shapiro-Francia/Pearsonの統計量・近似p値・df・警告境界。Pearsonで `pnorm(z)===1` のときclass=`k+1`となり、`c<=k`で観測値を除外。再現: `const x=[...Array(99).fill(0),1e6]; pearsonTest(x)`。n=100、k=13、outlier z=9.9、counts合計99。最終binに含める必要あり。重要度medium。nortest 1.0-4 source/fixtures閲覧。Vitest/R未実行。 |
 | `src/htest/onewayTest.ts` | 問題未検出 | #202 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | — | R/SciPy fixtures・sourceを閲覧（未実行）。 | Classical F/Welch F、Satterthwaite df、群サイズ、zero variance、power-of-two scaling、formula interaction/missing、Shapiro-Wilk n=3/5000/5001、NaN/Inf/constant。入力: 例の3群 [2.9,3.0,2.5,2.6,3.2], [3.8,2.7,4.0,2.4], [2.8,3.4,3.7,2.2,2.0]; varEqual true/false; singleton; constant groups; [-1e308,0,1e308]; formula with two factors; shapiroTest([1,2,3])。Welch zero varianceのNaNはR比較未了で未認定。R/SciPy fixtures閲覧。Vitest/R未実行。 |
-| `src/htest/pAdjust.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/pairwise.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/poissonTest.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/polycor.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/power.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/pAdjust.ts` | 問題未検出 | #203 | `a281c1fc348643b86370be97d94d35a18e1b8983` | — | R 4.5.2 `stats::p.adjust` の実装・仕様と照合（ソース/fixture閲覧、R実行なし）。Hommel n=2 special-caseは有効p値でHochbergと同値 | Holm/Hochbergの単調累積、BH/BY逆順cummin、BY調和数のdouble-double/大n漸近、HommelのSimes反復、NaN位置保持、n>lengthの未観測p扱い、略称/alias、空・単一・±Inf・範囲外pを確認。入力: `pAdjust([0.01,0.02,0.03,0.04,0.05])`; `pAdjust([NaN,0.01,0.2],{method:"BY",n:5})`; `pAdjust([0.01,0.2],{method:"hommel",n:5})`; `pAdjust([0.2,0.8],{method:"hommel"})`; `pAdjust([], {method:"hommel",n:3})`。Hommelの非整数n拒否・空ベクトルはRと異なると明記済み。大nのBY近似は境界付近を追加runtime比較する余地はあるが、再現欠陥なし。Vitest/package runtime/R未実行。`test/padjust.test.ts` とR p.adjust source/fixtureを閲覧。 |
+| `src/htest/pairwise.ts` | 問題あり | #204 | `a281c1fc348643b86370be97d94d35a18e1b8983` | [#44](https://github.com/numero-uno-jpn/rStats.js/issues/44) | R 4.5.2 `pairwise.*` / `factor()` semanticsと照合（ソース/fixture閲覧、R実行なし） | byLevelのgroup coercion/order、NaN応答除外（pairedは位置対応を保持）、pooled SD/df、paired/non-pooled t、Wilcoxon各pair、proportion pairs、下三角の比較順とpAdjust一括適用を追跡。確認した不具合: `numberLevels()`は数値だけ正規化し文字列を残すため、Mapが数値`2`と文字列`"2"`を別群として扱い、表示ラベルが重複。再現: `const x=[1,2,10,11,20,21,30,31]; const g=[2,2,"2","2",10,10,"10","10"]; pairwiseTTest(x,g)`。R factor coercionでは文字列levels `"10"`,`"2"`の2群だが現行は4群。`pairwiseWilcoxTest`も同じ`byLevel()`を使う。既存Issue #44に同一根本原因として追記済み。その他の通常/edge casesは既存 `test/htest-basic.test.ts` fixtureで比較設計を閲覧。Vitest/package runtime/R未実行。 |
+| `src/htest/poissonTest.ts` | 問題未検出 | #205 | `a281c1fc348643b86370be97d94d35a18e1b8983` | — | R 4.5.2 `stats::poisson.test` fixtures/契約を閲覧（実行なし）。T=0はRがNaN/Infを返すが、この実装は明示的に拒否する仕様差を既存testで許容 | 1標本 exact two-sided probability-ordering、Poisson mode/tie、far-tail integer search、less/greater tails、Garwood gamma CI、2標本conditional binomial mapping、rate ratio/expected countのoverflow/underflow回避、x1+x2 overflow、T/r/confLevel validationを追跡。入力: `poissonTest(0,{T:1,r:0})`; `poissonTest(1,{T:1,r:1})`; `poissonTest([11,23],{T:[800,3011]})`; `poissonTest([0,0],{T:[1,1]})`; `poissonTest(517,{T:25.864,r:9.0104,alternative:"greater"})`; `poissonTest(1,{T:0})`（現行はRangeError、Rはrate/CIのNaN/Inf。`test/htest-basic.test.ts`で意図的なsubstituteとして記録）。two-sided modeの整数mにおけるm-1/m同率を確認。新規の再現可能な計算欠陥は確定せず。Vitest/package runtime/R未実行。 |
+| `src/htest/polycor.ts` | 問題未検出 | #206 | `a281c1fc348643b86370be97d94d35a18e1b8983` | — | R 4.5.2 `polycor` / `mvtnorm` fixturesを閲覧（実行なし）。MLのreferenceはR optimizerの途中停止値ではなくfixtureのexact maximum | polychor table/vector dispatch・矩形形状・非負有限count、zero-margin除去、category coercion、marginal thresholds、pbvnorm rectangle probability、rho bound、polyserial ad-hoc estimate、standardisation、ML analytic gradient/Hessian/Newton/step-halving、boundary ridge、inverse Hessian、chisq/dfを追跡。入力: `polychor([[20,8,1],[5,30,9],[2,6,25]])`; `polychor([[50,0],[0,50]],{ML:true,stdErr:true})`; `polychor([[0,50],[50,0]],{stdErr:true})`; `polyserial([0.2,-1.1,0.8,1.5,-0.3,0.1,-0.9,2.0],[1,1,2,3,2,2,1,2],{ML:true,stdErr:true})`; zero-margin `polychor([[3,4],[0,0]])`; ragged table rejection. `test/polycor.test.ts`と`test/polycorML.test.ts`のfixture、pbvnorm境界testを閲覧。極端な非有限連続値/極端に希少なカテゴリは追加runtime検証候補だが不具合未認定。Vitest/package runtime/R未実行。 |
+| `src/htest/power.ts` | 問題未検出 | #207 | `a281c1fc348643b86370be97d94d35a18e1b8983` | — | R 4.5.2 `power.t.test` / `power.prop.test` / `power.anova.test` fixtureと照合（実行なし）。Rのnoncentral pt/pf・uniroot精度差は既存known-differenceとして区別 | exactly-one-unknown判定、既定値、sigLevel/power/sd/variance/proportion/tol validation、one/two/paired t df・ncp・strict tail、proportion pooled variance/strict tail、ANOVA lambda/df、未知量root bracketとdelta=0/betweenVar=0非識別を追跡。入力: `powerTTest({n:20,delta:1})`; `powerTTest({delta:0.5,power:0.8})`; `powerTTest({n:20,delta:0,alternative:"two.sided",strict:true})`; `powerPropTest({n:50,p1:0.5,p2:0.75})`; `powerPropTest({n:30,p1:0.9,p2:1,power:0.8,strict:true})`（不可能条件/警告・root boundary）; `powerAnovaTest({groups:4,n:5,betweenVar:1,withinVar:3})`; `powerAnovaTest({groups:4,n:5,betweenVar:0,withinVar:3})`。連続値n/groupsのroot resultをintegerに丸めないのはR仕様。非識別量の専用RangeErrorも確認。`test/powerStats.test.ts`およびR fixture/known differencesを閲覧。Vitest/package runtime/R未実行。 |
 | `src/htest/propTest.ts` | 未監査 | — | `—` | — | — | — |
 | `src/htest/pwr.ts` | 未監査 | — | `—` | — | — | — |
 | `src/htest/rankTests.ts` | 未監査 | — | `—` | — | — | — |
@@ -1322,3 +1322,36 @@ Repository: `numero-uno-jpn/rStats.js`
 - Classical F/Welch F、Satterthwaite df、群サイズ、zero variance、power-of-two scaling、formula interaction/missing、Shapiro-Wilk n=3/5000/5001、NaN/Inf/constant。入力: 例の3群 [2.9,3.0,2.5,2.6,3.2], [3.8,2.7,4.0,2.4], [2.8,3.4,3.7,2.2,2.0]; varEqual true/false; singleton; constant groups; [-1e308,0,1e308]; formula with two factors; shapiroTest([1,2,3])。Welch zero varianceのNaNはR比較未了で未認定。R/SciPy fixtures閲覧。Vitest/R未実行。
 - ソース blob: f98a4ccac5bcdb527f738aca3479aa6eaf600a8a。
 
+
+## Audit #203-#207
+
+### #203 `src/htest/pAdjust.ts`
+- 判定: 問題未検出。
+- Holm/Hochberg/BH/BY/Hommelの各アルゴリズム、NaN除外と元位置復元、nによる未観測p値の扱い、BY調和数の小規模直接和/大規模漸近展開、Hommel反復を確認。入力: `pAdjust([0.01,0.02,0.03,0.04,0.05])`; `pAdjust([NaN,0.01,0.2],{method:"BY",n:5})`; `pAdjust([0.01,0.2],{method:"hommel",n:5})`; `pAdjust([0.2,0.8],{method:"hommel"})`; `pAdjust([],{method:"hommel",n:3})`。n=2 HommelはR sourceでHochbergに置換されるが、通常の有効p値では現行Hommel計算と一致する。Hommelの非整数n拒否・空pの挙動は既知仕様差。新規の再現欠陥なし。
+- Rとの関係: R 4.5.2 `stats::p.adjust` source/fixtureを閲覧（未実行）。
+- 検証範囲: `test/padjust.test.ts` とR sourceを閲覧。Vitest/package runtime/R未実行。
+
+### #204 `src/htest/pairwise.ts`
+- 判定: 問題あり; [#44](https://github.com/numero-uno-jpn/rStats.js/issues/44)へ同一根本原因として追記。
+- `byLevel()`の混在ラベル処理で数値だけ`numberLevels()`により正規化し、文字列はそのままMap keyにするため、数値`2`と文字列`"2"`が別群となる。再現: `const x=[1,2,10,11,20,21,30,31]; const g=[2,2,"2","2",10,10,"10","10"]; pairwiseTTest(x,g)`。現行4群・重複表示ラベル、R factor coercionでは2群`"10"`,`"2"`。`pairwiseWilcoxTest()`も同じhelperを使用。群構成・比較数・補正p値が変わるため統計結果に影響。
+- その他: pooled SD/df、paired positional matching、non-pooled t、Wilcoxon per-pair、proportion pair、alternative direction/lower triangle/pAdjust orderingを追跡。
+- Rとの関係: R factor coercionと`pairwise.t.test` lower triangle/alternative contractを照合（未実行）。
+- 検証範囲: `test/htest-basic.test.ts`、`src/htest/groups.ts`、`src/internal/levels.ts`を閲覧。Vitest/package runtime/R未実行。
+
+### #205 `src/htest/poissonTest.ts`
+- 判定: 問題未検出。
+- 1標本のprobability-ordering two-sided p値、Poisson modeの整数時同率、tail search、Garwood CI、2標本のconditional binomial、rate ratio/expected countのスケーリング、overflowとzero countを確認。入力: `poissonTest(0,{T:1,r:0})`; `poissonTest(1,{T:1,r:1})`; `poissonTest([11,23],{T:[800,3011]})`; `poissonTest([0,0],{T:[1,1]})`; `poissonTest(517,{T:25.864,r:9.0104,alternative:"greater"})`; `poissonTest(1,{T:0})`。T=0はRがNaN/Infを返す一方、現行は拒否するが、`test/htest-basic.test.ts`で明示的に既知の仕様差として扱っているため新規不具合とはしない。
+- Rとの関係: R 4.5.2 `stats::poisson.test` fixturesを閲覧（未実行）。
+- 検証範囲: `test/htest-basic.test.ts`のSciPy/R fixtureおよびsubstitute条件、binomTest呼出しを閲覧。Vitest/package runtime/R未実行。
+
+### #206 `src/htest/polycor.ts`
+- 判定: 問題未検出。
+- table/vector dispatch、ragged table、zero marginal除去、thresholds、pbvnorm、rho境界、polyserial standardisation、ML gradient/Hessian/Newton/step-halving、flat ridge boundary、inverse Hessian、chi-square/dfを追跡。入力: `polychor([[20,8,1],[5,30,9],[2,6,25]])`; `polychor([[50,0],[0,50]],{ML:true,stdErr:true})`; `polychor([[0,50],[50,0]],{stdErr:true})`; `polyserial([0.2,-1.1,0.8,1.5,-0.3,0.1,-0.9,2.0],[1,1,2,3,2,2,1,2],{ML:true,stdErr:true})`; `polychor([[3,4],[0,0]])`。極端な非有限連続値や希少カテゴリはruntime追加候補だが、現時点で再現欠陥は認定せず。
+- Rとの関係: R 4.5.2 polycor/mvtnorm fixtureを閲覧。ML比較はR optimizer途中値でなくexact maximum referenceを採用（未実行）。
+- 検証範囲: `test/polycor.test.ts`、`test/polycorML.test.ts`、pbvnorm境界テストを閲覧。Vitest/package runtime/R未実行。
+
+### #207 `src/htest/power.ts`
+- 判定: 問題未検出。
+- exactly-one-unknown、validation、one/two/paired t df/ncp/strict tail、proportion pooled variance/strict tail、ANOVA noncentrality/df、root search、非識別パラメータを追跡。入力: `powerTTest({n:20,delta:1})`; `powerTTest({delta:0.5,power:0.8})`; `powerTTest({n:20,delta:0,strict:true})`; `powerPropTest({n:50,p1:0.5,p2:0.75})`; `powerPropTest({n:30,p1:0.9,p2:1,power:0.8,strict:true})`; `powerAnovaTest({groups:4,n:5,betweenVar:1,withinVar:3})`; `powerAnovaTest({groups:4,n:5,betweenVar:0,withinVar:3})`。Rのnoncentral pt/pf精度とuniroot root差は既存known-differenceとして区別。n/groupsを連続値で返すのはR仕様。
+- Rとの関係: R 4.5.2 power.t.test/prop.test/anova.test fixtureを閲覧（未実行）。
+- 検証範囲: `test/powerStats.test.ts`とoracle fixture/known differencesを閲覧。Vitest/package runtime/R未実行。
