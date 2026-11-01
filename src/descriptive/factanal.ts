@@ -134,11 +134,16 @@ const transpose = (A: readonly (readonly number[])[]): number[][] => A[0]!.map((
 /** Varimax rotation (normalised, eps 1e-5, at most 1000 iterations); also used by omega */
 export function varimax(L: readonly (readonly number[])[]): { loadings: number[][]; rotmat: number[][] } {
   const k = L[0]!.length;
-  const p = L.length;
   const len = L.map((r) => Math.sqrt(sumOnce(r.map((v) => v * v))));
-  const X = L.map((r, i) => r.map((v) => v / len[i]!));
-  const Xt = transpose(X);
+  // Rows of zero loadings have no Kaiser normalisation (0/0) and say nothing about the rotation: the rotation is that
+  // of the other rows (as R's varimax of them), and they stay 0. R's varimax and factanal failed on them ("infinite or
+  // missing values in 'x'" in the SVD; issue #21)
+  const kept = L.flatMap((_, i) => (len[i]! > 0 ? [i] : []));
+  const X = kept.map((i) => L[i]!.map((v) => v / len[i]!));
+  const p = X.length;
   let T: number[][] = Array.from({ length: k }, (_, i) => Array.from({ length: k }, (_, j) => (i === j ? 1 : 0)));
+  if (p === 0) return { loadings: L.map((r) => r.slice()), rotmat: T };
+  const Xt = transpose(X);
   let total = 0;
   for (let it = 0; it < 1000; it++) {
     const Z = matMul(X, T);
@@ -156,7 +161,9 @@ export function varimax(L: readonly (readonly number[])[]): { loadings: number[]
     if (total < previous * (1 + 1e-5)) break;
   }
   const Z = matMul(X, T);
-  return { loadings: Z.map((r, i) => r.map((v) => v * len[i]!)), rotmat: T };
+  const loadings = L.map((r) => r.map(() => 0));
+  kept.forEach((i, a) => (loadings[i] = Z[a]!.map((v) => v * len[i]!)));
+  return { loadings, rotmat: T };
 }
 
 /** Promax rotation (m = 4) */

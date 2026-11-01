@@ -179,6 +179,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | x の単位が違う `lmer(y ~ x + (x \| g))` (x の 3e5 倍、1e6 倍、1e-5 倍) | lme4 は別の点に止まり、収束の警告を出す (Issue #11 のデータで REML 基準 101、正しくは 65.9。`autoscale = TRUE` を勧める) | theta の最適化を、Z の列を 2 の冪で割って行い、theta を戻す。x の単位によらず同じ当てはめ |
 | 応答の単位が違う (1e6 倍や 1e-6 倍) lmerTest の Satterthwaite の自由度 | 1e6 倍で x の自由度が 31 から 7.4e8 (1e-6 倍で 0.19) になり、固有値の警告が出る。(theta, sigma) のヘッセ行列を絶対値 1e-8 で切るため | 尺度をそろえた座標 (theta は Z の列で、sigma は推定値に近い 2 の冪で割る) でヘッセ行列を切る。自由度・t・F・p はもとのデータと同じ |
 | 節点が 1e200 (や 1e-200) 規模の pracma の `barylag` | 節点の差の積が溢れる (0 に落ちる)。重みがすべて 0 になり、結果は NaN | 積を指数つきで持ち、重みを共通の 2 の冪でそろえる。0.5e200 での (x / 1e200)^2 は 0.25 |
+| 負荷量がすべて 0 の行 (ほかと無相関の変数) がある `varimax` と `factanal` (varimax・promax) | "infinite or missing values in 'x'"。Kaiser の正規化でその行を 0 で割る | ほかの行の回転 (R でそれらの行だけを varimax したものと同じ)。0 の行は 0 のまま |
 | すべての重みが 1e-308 未満の `lm` | 標準誤差 Inf (5e-324 で NaN)、t 0、p 1 | 重み 1 と同じ値 ((R'R)^-1 を、重みを 2 の冪で割った尺度で作る) |
 | 大きい方のモデルが実質的に完全適合する `anova(fit1, fit2)` (y = 1 + x + z が厳密に成り立つ) | 警告なしで F 2.6e30、p 4e-16 (1 つのモデルの表は警告する) | 同じ値に警告 "ANOVA F-tests on an essentially perfect fit are unreliable" を付ける |
 | `p.adjust(p, "BY", n = Inf)`、`"holm"` で `n = Inf` | "result would be too long a vector"、すべて 1 | エラー (n は有限)。BY で n が 1e6 を超えると調和数を漸近展開で求める |
