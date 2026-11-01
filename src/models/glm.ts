@@ -204,6 +204,9 @@ function totalDeviance(fam: Family, y: number[], mu: number[], w: number[]): num
 }
 
 /** Iteratively reweighted least squares (glm-behaviour.md, "Fitting") */
+/** The change of the linear predictor in the last iteration above which a converged fit is reported separated */
+const SEPARATION_STEP = 0.1;
+
 export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
   const { x, p, y, w, offset, fam, epsilon, maxit } = inp;
   const n = y.length;
@@ -296,6 +299,7 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
       }
       coef = b.map((v) => (Number.isNaN(v) ? 0 : v));
       boundary = false;
+      const etaBefore = eta;
       eta = linearPredictor(x, coef, offset);
       mu = eta.map((e) => fam.linkinv(e));
       dev = totalDeviance(fam, y, mu, w);
@@ -357,6 +361,14 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
         }
       } else if (Math.abs(dev - devPrevious) / (Math.abs(dev) + 0.1) < epsilon) {
         converged = true;
+        // The deviance settles while the linear predictor still moves by about 1 per iteration when the data are
+        // separated (R reports such fits converged, with finite coefficients that only depend on maxit and epsilon).
+        // At a maximum the last step is far smaller; eta has no units, so the test does not depend on those of x
+        let moved = 0;
+        for (let i = 0; i < n; i++) if (used[i]) moved = Math.max(moved, Math.abs(eta[i]! - etaBefore[i]!));
+        if (moved > SEPARATION_STEP) {
+          warnings.add("glm.fit: the linear predictor was still changing at convergence: the data may be separated (no finite maximum likelihood estimates)");
+        }
         break;
       }
       devPrevious = dev;

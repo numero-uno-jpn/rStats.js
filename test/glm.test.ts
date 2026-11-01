@@ -64,6 +64,11 @@ function run(a: HTestCase["args"]): Record<string, unknown> {
 }
 
 const EPS = 2 ** -52;
+const SEPARATED = "glm.fit: the linear predictor was still changing at convergence: the data may be separated (no finite maximum likelihood estimates)";
+// Fits without a finite maximum likelihood estimate, which R reports converged without saying so (review 62): the
+// completely separated y = 0, 0, 0, 1, 1, 1 on x = 1..6, and 0, 0, 0, 0, 1, 0, 1, 1 on x = 1..8 with an alternating
+// second column (-93.6 + 23.4 x1 - 69.9 x2 separates them)
+const SEPARATED_CASES = new Set([119, 121]);
 const fixture = loadHTestFixture("glm");
 
 /** The fixture case of the arguments the suite passes (its own copy of the fixture) */
@@ -151,8 +156,20 @@ htestSuite({
   call: run,
   tolerance: 1e-12,
   floor,
+  substitute: (c, cases) => {
+    if (!SEPARATED_CASES.has(cases.indexOf(c))) return undefined;
+    const warnings = [...(c.expected.warnings as string[])];
+    warnings.unshift(SEPARATED);
+    return { expected: { ...c.expected, warnings }, reason: "separated data: the warning that the estimates may not exist" };
+  },
   knownDifference: (a, field, expected, actual) => {
     const fit = fitOf(a);
+    // separated data: R stopped where the logit link is clamped (|eta| about 36), rStats.js goes on with the exact
+    // link; the values are where the iterations stop in both (some hat values round to 1, so rstandard and Cook's
+    // distance are NaN there)
+    if (fit.warnings.includes(SEPARATED) && [...SEPARATED_CASES].some((k) => JSON.stringify(fixture.cases[k]!.args) === JSON.stringify(a))) {
+      return "separated data: the values are where the iterations stop (R's logit link clamps |eta| > 30)";
+    }
     const c = caseOf(a);
     const err = Math.abs(actual - expected) / Math.abs(expected);
     const yv = fit.y;

@@ -66,9 +66,20 @@ function run(a: HTestCase["args"]): Record<string, unknown> {
   return { colNames: tab.colNames, rowNames: tab.rowNames, table: tab.table, warnings };
 }
 
+// A saturated Poisson fit with a count of 0 has no finite maximum likelihood estimate (its mean goes to 0); R reports
+// it converged without saying so (review 62)
+const SEPARATED_CASES = new Set([48]);
+
 htestSuite({
   name: "glmAnova",
   call: run,
+  substitute: (c, cases) =>
+    SEPARATED_CASES.has(cases.indexOf(c))
+      ? {
+          expected: { ...c.expected, warnings: ["glm.fit: the linear predictor was still changing at convergence: the data may be separated (no finite maximum likelihood estimates)"] },
+          reason: "no finite estimate: the warning that the data may be separated",
+        }
+      : undefined,
   tolerance: 1e-12,
   floor: { table: tableFloors },
 });

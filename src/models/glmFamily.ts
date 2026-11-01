@@ -170,8 +170,10 @@ function namedLink(name: GlmLinkName): LinkFunctions {
       return {
         name,
         link: Math.log,
-        linkinv: (e) => Math.max(Math.exp(e), EPS),
-        muEta: (e) => Math.max(Math.exp(e), EPS),
+        // exp(eta) down to the least double (R: pmax(exp(eta), eps), so a mean of e^-100 was 2.2e-16); never 0, so
+        // the variance stays positive
+        linkinv: (e) => Math.max(Math.exp(e), Number.MIN_VALUE),
+        muEta: (e) => Math.max(Math.exp(e), Number.MIN_VALUE),
         etaOk: anyEta,
       };
     case "inverse":
@@ -196,12 +198,19 @@ function namedLink(name: GlmLinkName): LinkFunctions {
       return {
         name,
         link: logit,
+        // R's C code clamps |eta| > 30 to the values at eps, a jump (1 - 9.4e-14 at 30, 1 - 2.2e-16 just beyond) that
+        // kept fits from their solution. Beyond 30 the exact values (as R's formula within), down to the least double
+        // and up to the largest double below 1: mu is never 0 or 1, so the variance stays positive
         linkinv: (e) => {
-          const t = e < -30 ? EPS : e > 30 ? 1 / EPS : Math.exp(e);
-          return t / (1 + t);
+          if (e > 30) return Math.min(1 / (1 + Math.exp(-e)), 1 - 2 ** -53);
+          const t = Math.exp(e);
+          return Math.max(t / (1 + t), Number.MIN_VALUE);
         },
         muEta: (e) => {
-          if (Math.abs(e) > 30) return EPS;
+          if (Math.abs(e) > 30) {
+            const z = Math.exp(-Math.abs(e));
+            return Math.max(z / ((1 + z) * (1 + z)), Number.MIN_VALUE);
+          }
           const t = Math.exp(e);
           return t / ((1 + t) * (1 + t));
         },
