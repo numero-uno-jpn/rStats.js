@@ -18,7 +18,8 @@ import { pt1, qt1 } from "../distributions/t.js";
 import { eigen } from "../linalg/eigen.js";
 import { ginv } from "../linalg/kappa.js";
 import { Warnings } from "./glmFamily.js";
-import { checkOptions, lmerInternals, logicalOption, type LmerResult } from "./lmer.js";
+import { ldexp } from "../internal/summary.js";
+import { checkOptions, lmerInternals, logicalOption, thetaColumnExponents, type LmerResult } from "./lmer.js";
 import { varparDerivatives } from "./mixedDerivatives.js";
 import type { MixedModelStructure } from "./mixedStructure.js";
 
@@ -44,6 +45,11 @@ export interface LmerSatterthwaite {
   vcov: number[][];
   jacobian: number[][][];
   warnings: string[];
+  /**
+   * The quantities above are those of the response divided by 2^scale (0 unless its squares overflow or underflow; issue
+   * #9): estimates, standard errors and right-hand sides are scaled by it in the tests, sums of squares by 4^scale
+   */
+  scale: number;
 }
 
 const satterthwaiteByFit = new WeakMap<LmerResult, LmerSatterthwaite>();
@@ -95,9 +101,23 @@ export function satterthwaiteAt(
   reml: boolean,
   beta0: readonly number[] = [],
 ): LmerSatterthwaite {
-  const d = varparDerivatives(structure, theta, reml);
+  // a response whose squares overflow or underflow: the derivatives of the response divided by 2^scale (as lmer fits it)
+  let top = 0;
+  for (const v of structure.y) top = Math.max(top, Math.abs(v));
+  const scale = top > 2 ** 500 || top < 2 ** -500 ? Math.floor(Math.log2(top)) : 0;
+  const st = scale === 0 ? structure : { ...structure, y: structure.y.map((v) => ldexp(v, -scale)) };
+  const d = varparDerivatives(st, theta, reml);
   const m = d.varpar.length;
-  const e = eigen(d.hessian, { symmetric: true });
+  // The Hessian in coordinates of comparable scale, D H D: θ_k times 2^e_k (the columns of Z of its row; see
+  // thetaColumnExponents) and σ over a power of 2 near σ̂. Its eigenvalues are cut at the tolerance there, A' = 2 H'⁺
+  // and A = D A' D. In (θ, σ) themselves the curvature in σ scales as 1/σ² and that in θ with the columns of Z, so the
+  // absolute cut dropped directions by the units alone (response × 1e6: the df of x 7.4e8 for 31, as lmerTest's;
+  // issue #10)
+  const sigmaHat = d.varpar[m - 1]!;
+  const kSigma = sigmaHat > 0 && Number.isFinite(sigmaHat) ? Math.round(Math.log2(sigmaHat)) : 0;
+  const ex = [...thetaColumnExponents(structure).theta.map((v) => -v), kSigma];
+  const hScaled = d.hessian.map((row, i) => row.map((v, j) => ldexp(v, ex[i]! + ex[j]!)));
+  const e = eigen(hScaled, { symmetric: true });
   const values = e.values;
   const vectors = e.vectors!;
   const vcovVarpar = Array.from({ length: m }, () => new Array<number>(m).fill(0));
@@ -108,16 +128,18 @@ export function satterthwaiteAt(
       for (let j = 0; j < m; j++) vcovVarpar[i]![j]! += vi * vectors[j]![k]!;
     }
   });
+  vcovVarpar.forEach((row, i) => row.forEach((v, j) => (row[j] = ldexp(v, ex[i]! + ex[j]!))));
   return {
     varpar: d.varpar,
     hessian: d.hessian,
     hessianEigenvalues: values,
     vcovVarpar,
-    beta: d.beta.map((b, k) => b + (beta0[k] ?? 0)),
+    beta: d.beta.map((b, k) => b + ldexp(beta0[k] ?? 0, -scale)),
     sigma: d.varpar[m - 1]!,
     vcov: d.vcov,
     jacobian: d.jacobian,
     warnings: hessianWarnings(values),
+    scale,
   };
 }
 
@@ -145,14 +167,15 @@ export interface TRow {
 /** l'β̂ − rhs over its standard error, with Satterthwaite's degrees of freedom 2 var² / (g'Ag), g_k = l'J_k l */
 export function tTestOf(s: LmerSatterthwaite, l: readonly number[], rhs: number, beta: readonly number[] = s.beta): TRow {
   if (l.some(Number.isNaN) || Number.isNaN(rhs)) return { estimate: NaN, stdError: NaN, df: NaN, tValue: NaN, pValue: NaN };
+  // (in the units of the scaled response, the estimate and the standard error scaled back; see LmerSatterthwaite.scale)
   const estimate = dot(l, beta);
   const variance = quadraticForm(l, s.vcov);
   const stdError = Math.sqrt(variance);
   const g = s.jacobian.map((j) => quadraticForm(l, j));
   const df = (2 * variance * variance) / quadraticForm(g, s.vcovVarpar);
-  const tValue = (estimate - rhs) / stdError;
+  const tValue = (estimate - ldexp(rhs, -s.scale)) / stdError;
   const pValue = 2 * pt1(Math.abs(tValue), df, false, false);
-  return { estimate, stdError, df, tValue, pValue };
+  return { estimate: ldexp(estimate, s.scale), stdError: ldexp(stdError, s.scale), df, tValue, pValue };
 }
 
 /** One row of an F table (internal): lmerTest's `Sum Sq`, `Mean Sq`, `NumDF`, `DenDF`, `F value`, `Pr(>F)` */
@@ -167,7 +190,7 @@ export interface LmerFRow {
 
 function fRowOf(s: LmerSatterthwaite, f: number, numDF: number, denDF: number): LmerFRow {
   const s2 = s.sigma * s.sigma;
-  return { sumSq: f * s2 * numDF, meanSq: f * s2, numDF, denDF, F: f, pValue: pf1(f, numDF, denDF, false, false) };
+  return { sumSq: ldexp(f * s2 * numDF, 2 * s.scale), meanSq: ldexp(f * s2, 2 * s.scale), numDF, denDF, F: f, pValue: pf1(f, numDF, denDF, false, false) };
 }
 
 /** The denominator degrees of freedom of a joint test from those of its rotated contrasts (exported for the tests) */
@@ -195,12 +218,14 @@ export function lmerFTest(fit: LmerResult, L: readonly (readonly number[])[], rh
 export function fTestOf(s: LmerSatterthwaite, L: readonly (readonly number[])[], rhs: readonly number[] | undefined, warnings: Warnings): LmerFRow | undefined {
   const r = L.length;
   if (r === 0) return undefined;
-  const right = rhs ?? new Array<number>(r).fill(0);
+  // (the right-hand side in the units of the scaled response: tTestOf scales its own, the joint test below uses these)
+  const given = rhs ?? new Array<number>(r).fill(0);
+  const right = given.map((v) => ldexp(v, -s.scale));
   if (r === 1) {
     // A contrast of rank 0 (L V L' = 0, such as a row of zeros) has no hypothesis to test, as for several rows below
     const l = L[0]!;
     if (!l.some(Number.isNaN) && !(l.reduce((sum, v, j) => sum + v * l.reduce((t, w, k) => t + s.vcov[j]![k]! * w, 0), 0) > 0)) return undefined;
-    const t = tTestOf(s, l, right[0]!);
+    const t = tTestOf(s, l, given[0]!);
     return fRowOf(s, t.tValue * t.tValue, 1, t.df);
   }
   if (L.some((row) => row.some(Number.isNaN)) || right.some(Number.isNaN)) return fRowOf(s, NaN, NaN, NaN);
