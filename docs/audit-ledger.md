@@ -117,11 +117,11 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/htest/rankTests.ts` | 問題未検出 | #210 | `6b5fa401398cf4b4ba9d0362a80df5f2424af58f` | — | R 4.5.2 rank tests / SciPy reference fixturesを閲覧（未実行） | Kruskal-Wallis tie correction、Friedman within-block ranks/ties/complete rows、Cochran Q binary validation、Quade range ranks/A-B residual and all-tie special case、Fligner median deviations/rank-normal scores/variance、Mood average tied position scores/exact score variance、NaN/Inf handling、formula adaptersを追跡。入力: `kruskalTest([[2,2],[2,2]])`; `friedmanTest([[1,1,1],[2,2,2]])`; `cochranQTest([[1,1,0],[0,0,0],[1,0,1]])`; `quadeTest([[1,2,3],[2,3,1],[3,1,2]])`; `flignerTest([[0,0],[1,1],[2,2]])`; `moodTest([0,1,2],[2,1,0])`; extreme finite range (-1e308,1e308). Degenerate tie cases can yield NaN by zero variance/tie correction, consistent with rank-test mathematical degeneracy; Quade's incomplete-row behavior is a documented deliberate difference from R's quade.test quirk and is covered by substitute fixture. No new reproducible defect. Vitest/package runtime/R未実行。 |
 | `src/htest/tTest.ts` | 問題未検出 | #211 | `6b5fa401398cf4b4ba9d0362a80df5f2424af58f` | — | R 4.5.2 `stats::t.test` source/fixtureを閲覧（未実行） | one-sample/Welch/pooled/paired、NaN pairwise removal、sample-size minima、Satterthwaite df、pooled SS、scaleToUnit/pairedDifferences、mu scaling、essentially-constant threshold、one/two-sided tails、confidence endpoints、confLevel 0/1を確認。入力: `tTest([5.1,4.9,5.6,5.8,6.0,5.4],{mu:5})`; `tTest([1,2,3,4,5],[3,4,5,6,8])`; `tTest([1,2,3],[2,4,6],{paired:true})`; `tTest([1],[2,3],{varEqual:true})`; `tTest([1e-200,2e-200,3e-200])`; `tTest([1,2,3],{mu:Infinity})`。Infinite mu is not rejected by R (it checks NA, not finite); test fixture records interval NaN as known difference. No new reproducible defect. Vitest/package runtime/R未実行。 |
 | `src/htest/testFormula.ts` | 問題未検出 | #212 | `f451809365f16c00924a0bfe90a72c9b25317b04` | — | R 4.5.2 formula methods source/contractと照合（未実行） | splitTilde, Pair(a,b), twoSampleData one/paired/two group validation, kSampleData, groupFactor/presentLevels, oneway interaction codes/stride, blockData complete unreplicated matrix, correlationData selectionを確認。correlationDataはrhsVariablesが2つあるか検証するだけだが、R cor.test.formulaもmodel.frame列数が2かを確認し、model.frameは元の2変数を評価してinteractionを追加列に展開しないため、`~ x * y` / `~ x:y`も2列なら受理される。初回に作成したIssue #48はR model.frame semanticsを誤認したfalse positiveとして訂正・close済み。再現確認用: `const data={x:[1,2,3,4,5],y:[5,4,3,2,1]}; corTest("~ x * y",data)`。その他のPair/interaction formula edgeは既存fixtureを閲覧。Vitest/package runtime/R未実行。 |
-| `src/htest/trendTests.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/types.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/varTest.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/wilcoxTest.ts` | 未監査 | — | `—` | — | — | — |
-| `src/index.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/trendTests.ts` | 問題あり | #213 | `4a000f0c939846bd2886c7f429734acd06664b99` | [#50](https://github.com/numero-uno-jpn/rStats.js/issues/50) | R 4.5.2 `stats::prop.trend.test` sourceの`lm(freq ~ score)`とmodel-frameの既定欠損除外を照合。DescToolsのJT定義・exact上限・tie varianceもsource/docsで照合（未実行） | propTrendTestのweighted regression、p=0/1、score NaN/Inf、length mismatch、constant score、整数カウント境界を確認。JonckheereのJT pair count、exact時のMann–Whitney分布convolution、tiedVariance、alternative方向、levels、空群、DescTools/clinfunの欠損・Inf差を追跡。再現: `propTrendTest([1,2,3,4],[10,10,10,10],[1,NaN,3,4])` は現行NaN。Rは`lm(freq ~ score)`のmodel frameで2行目をna.omitし、有限の統計量/p値を返す。Issue #50。ほか`propTrendTest([15,10,8,4],[30,30,30,30])`; `jonckheereTest([1,2,2,3,4,5],[1,1,2,2,3,3],{alternative:"increasing"})`; `jonckheereTest([1,2,3,4],[1,1,2,2],{exact:true})`; `jonckheereTest([1,1,2,2,3,3],[1,1,2,2,3,3],{alternative:"increasing"})`。
+| `src/htest/types.ts` | 問題未検出 | #214 | `4a000f0c939846bd2886c7f429734acd06664b99` | — | R `match.arg`の一意prefix、各テストのconfidence level境界と照合（未実行） | Alternative/Sample/Counts/HTest型、`matchAlternative`の空・曖昧・一意prefix、closed/open confLevel validator、`isCount`の有限・非負・絶対許容差を確認。入力: `matchAlternative("t")`; `matchAlternative("two")`; `matchAlternative("")`; `isCount(1)`; `isCount(0.00000005)`; `isCount(0.0000002)`; `checkConfLevel(0)`; `checkConfLevelOpen(0)`。count toleranceは明示コメントどおり絶対値1e-7の意図的な許容。型定義とvalidation helperに新規の再現欠陥なし。
+| `src/htest/varTest.ts` | 問題未検出 | #215 | `4a000f0c939846bd2886c7f429734acd06664b99` | — | R 4.5.2 `stats::var.test` source/docs、Bartlett公式を照合（未実行）。両群定数時のthrowは既存review59で明示した仕様差 | F比・ratio帰無値・df・片側/両側tail・confInt quantile・finite-only除外・共通2冪scale、formula group extraction、Bartlett pooled variance/log variance/correction factor/dfを確認。入力: `varTest([1,3,2,5,4],[2,9,4,12,7,1])`; `varTest([1,1,1],[1,2,4])` (一方のみ分散0); `varTest([1,1,1],[2,2,2])` (両方0、既存review59で意図的にthrow); `varTest([1,2,3],[4,5,6],{alternative:"greater"})`; `bartlettTest([[1,3,2,5],[2,9,4,12,7],[3,3.5,4,2]])`; singleton/empty groups。Rの分散比と境界tailに沿う実装で、新規再現欠陥なし。
+| `src/htest/wilcoxTest.ts` | 問題あり | #216 | `4a000f0c939846bd2886c7f429734acd06664b99` | [#49](https://github.com/numero-uno-jpn/rStats.js/issues/49) | R 4.5.2+ `stats::wilcox.test` source/docsのsigned-rank/rank-sum、tie correction、zero-SD branchを照合（未実行） | signed-rank/rank-sum statistic、exact/normal切替、ties/zeroes、continuity correction、one-/two-sided tail、exact Walsh averages/pair differences、normal CI root/clamping、confLevel/tolRoot、paired complete cases、Inf handlingを確認。再現: `wilcoxTest([1],[1])` および `wilcoxTest([1,1],[1,1],{exact:false})`。全同値の2群ではW−E(W)=0かつtie-corrected variance=0。現行はz=0/0=NaNを`normalP`へ渡しpValue=NaN。Rの`.wilcox_test_two_pval_asymp`は`z == 0 && STAT$sd == 0`を特別扱いしp.value=1を返す。Issue #49。ほか`wilcoxTest([1,2,3],[4,5,6],{exact:false})`; `wilcoxTest([1,2,3],[2,3,4],{exact:true,confInt:true})`; `wilcoxTest([1,2,3],[2,4,6],{paired:true})`; `wilcoxTest([0,0,0])` (all-zero signed rankは既存仕様差としてerror)。
+| `src/index.ts` | 問題未検出 | #217 | `4a000f0c939846bd2886c7f429734acd06664b99` | — | 該当なし（公開APIのre-export barrel） | 10行のexport宣言を確認。special/distributions/tests/linalg/descriptive/numericsのentry barrelを再exportし、実装・演算・入力変換を行わない。併せて`src/entries/tests.ts`で`wilcoxTest`、`varTest`、`bartlettTest`、`propTrendTest`、`jonckheereTest`の公開exportを確認。循環参照・重複exportの疑いなし。
 | `src/integrate/quadpack.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/covmat.ts` | 未監査 | — | `—` | — | — | — |
 | `src/internal/ddexp.ts` | 未監査 | — | `—` | — | — | — |
@@ -1383,3 +1383,43 @@ Repository: `numero-uno-jpn/rStats.js`
 - 判定: 問題未検出。
 - splitTilde、Pair(a,b)のpaired formula、twoSampleData、kSampleData、groupFactor、oneway interaction coding、blockData complete block、correlationData selectionを確認。correlationDataはrhsVariablesが2つあるか検証するだけだが、R cor.test.formulaもmodel.frame列数が2かを確認し、model.frameは元の2変数を評価してinteractionを追加列に展開しないため、`~ x * y` / `~ x:y`も2列なら受理される。初回に作成したIssue #48はR model.frame semanticsを誤認したfalse positiveとして訂正・close済み。再現確認用: `const data={x:[1,2,3,4,5],y:[5,4,3,2,1]}; corTest("~ x * y",data)`。新規再現欠陥なし。
 - Rとの関係: R 4.5.2 cor.test.formula source/docsを照合。Vitest/package runtime/R未実行。
+
+
+## Audit #213-#217
+
+### #213 `src/htest/trendTests.ts`
+- 判定: 問題あり; [Issue #50](https://github.com/numero-uno-jpn/rStats.js/issues/50)。
+- `propTrendTest`のweighted regression、overall pooled proportion/weights、score missing/Inf、length mismatch、constant scores、zero/all-success boundaryを確認。
+- 再現: `propTrendTest([1,2,3,4],[10,10,10,10],[1,NaN,3,4])`。現行はmissing scoreを回帰計算に含めるため`sBar/fBar/sxy/sxx`がNaNとなり、statistic/pValueともNaN。R `stats::prop.trend.test`は`lm(freq ~ score)`のmodel frame既定`na.action=na.omit`で欠損score行を除外する（ただし全体のpooled pとweightsは先に全x/nから計算）。Issue #50。
+- Jonckheere: JT pair count/tie=0.5、exact時のMann–Whitney distribution convolution、no-tie variance、Hollander–Wolfe tied variance、one-/two-sided direction、explicit levels、DescTools/clinfunのInf/exact-option差を確認。入力: `propTrendTest([15,10,8,4],[30,30,30,30])`; `jonckheereTest([1,2,2,3,4,5],[1,1,2,2,3,3],{alternative:"increasing"})`; `jonckheereTest([1,2,3,4],[1,1,2,2],{exact:true})`; `jonckheereTest([1,1,2,2,3,3],[1,1,2,2,3,3],{alternative:"increasing"})`。ほかに再現可能な欠陥は確認せず。
+- Rとの関係: R 4.5.2 `prop.trend.test` source、DescTools JT docs/sourceを閲覧。Vitest/package runtime/R未実行。
+- ソース blob: `960dfab4ddf09579c3aa4c79556695c034280a0a`。
+
+### #214 `src/htest/types.ts`
+- 判定: 問題未検出。
+- `Alternative`、`Sample`、`Counts`、`HTest`の型契約、`matchAlternative`の空文字/曖昧prefix/一意prefix、closed/open confLevel validator、`isCount`の有限・非負・整数近似を確認。
+- 入力: `matchAlternative("t")`; `matchAlternative("two")`; `matchAlternative("")`; `isCount(1)`; `isCount(0.00000005)`; `isCount(0.0000002)`; `checkConfLevel(0)`; `checkConfLevelOpen(0)`。count許容差1e-7は明示された絶対toleranceであり、意図的仕様。新規の再現欠陥なし。
+- Rとの関係: R `match.arg`のunique partial matching、関連テストのconf.level契約を照合。Vitest/package runtime/R未実行。
+- ソース blob: `2f2c91709552db7fa6820030ff2af112e1aceb81`。
+
+### #215 `src/htest/varTest.ts`
+- 判定: 問題未検出。
+- F variance ratio、ratio帰無値、df、tail p-values、confidence quantiles、finite-only sample filtering、共通power-of-two scaling、formula grouping、Bartlett pooled variance/log correctionを確認。
+- 入力: `varTest([1,3,2,5,4],[2,9,4,12,7,1])`; `varTest([1,1,1],[1,2,4])` (一方のvariance 0); `varTest([1,1,1],[2,2,2])` (両variance 0); `varTest([1,2,3],[4,5,6],{alternative:"greater"})`; `bartlettTest([[1,3,2,5],[2,9,4,12,7],[3,3.5,4,2]])`; singleton/empty groups。両群定数時のthrowは既存`test/review59.test.ts`で意図的に固定されている仕様差。新規再現欠陥なし。
+- Rとの関係: R 4.5.2 `stats::var.test` source/docs、Bartlett formulaを照合。Vitest/package runtime/R未実行。
+- ソース blob: `c7ec22cdff413f22705b5ca7462a3230405cc147`。
+
+### #216 `src/htest/wilcoxTest.ts`
+- 判定: 問題あり; [Issue #49](https://github.com/numero-uno-jpn/rStats.js/issues/49)。
+- signed-rank/rank-sum statistic、exact/normal切替、tie/zero処理、continuity correction、片側/両側tail、exact Walsh averages/pair differences、normal CI root/clamping、confLevel/tolRoot、paired complete cases、Infを含む順位を確認。
+- 再現: `wilcoxTest([1],[1])`; `wilcoxTest([1,1],[1,1],{exact:false})`。同値のみの2群ではrank sumのcentered statistic=0、tie-corrected variance=0となり、現行はz=0/0=NaNからpValue=NaNを返す。R `.wilcox_test_two_pval_asymp`は同条件を明示的にguardしp.value=1を返す。Issue #49。
+- 追加入力: `wilcoxTest([1,2,3],[4,5,6],{exact:false})`; `wilcoxTest([1,2,3],[2,3,4],{exact:true,confInt:true})`; `wilcoxTest([1,2,3],[2,4,6],{paired:true})`; `wilcoxTest([0,0,0])`。all-zero signed-rankは既存fixtureの仕様差（現行throw、RはNaN p-value）として区別。
+- Rとの関係: R `stats::wilcox.test` source/docsを照合。Vitest/package runtime/R未実行。
+- ソース blob: `53d836e84e5d2626207ceda1e1615ffefc4ad6b4`。
+
+### #217 `src/index.ts`
+- 判定: 問題未検出。
+- 10行の公開API barrel。special/distributions/tests/linalg/descriptive/numericsのentry moduleを再exportするだけで、数値演算・validation・data mutationなし。
+- `src/entries/tests.ts`も確認し、今回対象の`wilcoxTest`、`varTest`、`bartlettTest`、`propTrendTest`、`jonckheereTest`がtests entryから公開されていることを確認。循環・欠落exportの疑いなし。
+- 検証範囲: source inspection only。Vitest/package runtime/R未実行。
+- ソース blob: `325df03e925e9cda87ff608af8d1d6ca071ea08d`。
