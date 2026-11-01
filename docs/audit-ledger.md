@@ -467,3 +467,14 @@ Repository: `numero-uno-jpn/rStats.js`
 - Expected-value basis: the repository's `oracle/coxph-behaviour.md` (describing survival 3.8-3 behavior), the R-generated `oracle/coxph.R` fixture generator, analytic partial-likelihood formulas, and the existing fixture comparison test. The oracle specifies the weighted Efron steps as `d` row-level substeps with `dw/d` and `D2/d`; the implementation follows that convention.
 - Tests: inspected `test/coxph.test.ts` and the fixture generator. They were not executed. No package runtime, Vitest, isolated harness, or fresh R execution.
 - Limitations: extreme-magnitude weight and covariate examples were reviewed algebraically only; no numeric runtime verification was performed. Status is `問題未検出`, not `問題なし確認済`.
+
+## Audit #112
+
+- Repository HEAD before ledger update: `879c6876c14b28baab9c51adced6a5c44dbf7e7b`
+- Source: `src/models/coxph.ts` blob `2e3bc2355f92336b7433ae8c4e812c6d0441faba`; focused on `evaluate()` weighted Efron/Breslow tied-event accumulation.
+- Related material: `oracle/coxph-behaviour.md`, `oracle/coxph.R`, `test/coxph.test.ts), and the official survival `coxph` documentation (case weights and Efron ties).
+- Initial concern: the Efron step count is the number of tied event rows (`deaths`), not the sum of their integer case weights. This initially looked inconsistent with replication weights.
+- Resolution: `問題未検出`. The official `survival::coxph` documentation explicitly notes that with Efron ties, fitting weighted data does not give exactly the same coefficients as physically replicating each row by its case weight; the weighted fit is a distinct weighted Efron approximation. The repository oracle's weighted formula also defines `d` as the number of event rows, `dw` as their total weight, then performs `d` substeps each weighted `dw/d`. The implementation uses exactly this convention: `steps = deaths`, `stepWeight = deathWeight / steps`, and adds `deathRisk / deaths` per Efron substep.
+- Literal fixed example (formula inspection only, not executed): `time=[1,1,2]`, `status=[1,1,0]`, `x=[[0],[1],[2]]), `weights=[2,1,1]`, `beta=[0]`. At the tied event time, total risk weight is 4 and tied-death risk weight is 3. The weighted Efron calculation uses two substeps, each with event weight 1.5 and risk denominator increments of 1.5, not three replication substeps. This difference is expected under the documented weighted Efron approximation.
+- Tests/fixtures: inspected the R fixture generator's integer-weight Efron and Breslow cases and the test comparison code; neither the fixture test nor Vitest was executed. No package runtime or fresh R execution.
+- Conclusion: no issue filed; the apparent discrepancy is a false positive resolved by the documented R semantics. This is a narrow audit of weighted tied-event evaluation, not a claim that all of `coxph()` is defect-free.
