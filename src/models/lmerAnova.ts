@@ -7,6 +7,7 @@
 // fits by maximum likelihood with lmer's own minimiser (the exact ML optimum).
 
 import { pgamma1 } from "../distributions/gamma.js";
+import { nestedColumns } from "./estimable.js";
 import { Warnings } from "./glmFamily.js";
 import { checkOptions, lmerInternals, lmerWithCriterion, logicalOption, type LmerResult } from "./lmer.js";
 import { fixedEffectsDescription, lmerHypotheses, type HypothesisType, type LmerHypotheses } from "./lmerHypotheses.js";
@@ -226,9 +227,11 @@ function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): 
   // A likelihood ratio test needs the smaller fit to be a special case of the larger one (lme4 gives a p-value for any
   // pair): its fixed-effect columns among the larger fit's, and each of its random-effect terms within a term of the
   // same grouping factor there ((1 | g) + (0 + x | g) within (1 + x | g), not the converse). Otherwise no test (AIC
-  // and BIC still compare the fits)
+  // and BIC still compare the fits). The fixed effects are compared as column spaces (the fits use the same rows of the
+  // same data): by their names, the same factor in other contrasts (contr.sum against contr.treatment) looked not
+  // nested and was not tested (issue #8)
   const nestedIn = (small: LmerResult, large: LmerResult): boolean =>
-    small.fixefNames.every((c) => large.fixefNames.includes(c)) &&
+    nestedColumns(lmerInternals(small).structure.x, lmerInternals(large).structure.x) &&
     small.varCorr.every((t) => large.varCorr.some((u) => u.group === t.group && t.columns.every((c) => u.columns.includes(c))));
   const nested = order.map((i, k) => k > 0 && nestedIn(fits[order[k - 1]!]!, fits[i]!));
   const Chisq = ll.map((v, k) => (k === 0 || !nested[k] ? NaN : 2 * Math.max(0, v - ll[k - 1]!)));
