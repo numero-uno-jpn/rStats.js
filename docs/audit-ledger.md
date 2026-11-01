@@ -102,11 +102,11 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/htest/groups.ts` | 問題あり | #195 | `489b31e26ff16939cef159a9de0baf0168f09738` | [#44](https://github.com/numero-uno-jpn/rStats.js/issues/44) | R 4.5.2 factor coercion semanticsを確認。混在するnumeric/character labelsはcharacterへcoerceされてからlevels化される。 | list-form/x,g-form、NaN response/label pair drop、all-missing label、emptyGroups drop/error、numberLevels 15-digit collisions、label sorting、median midpoint、completeRows shapeを追跡。確認した不具合: `labelledGroups` はMap keyを元のnumber|stringの型付き値で保持するため、number 2とstring "2"を別groupにする一方、`levelText` は双方を同じ"2"に表示する。具体入力: `onewayTest([1,2,10,11,20,21,30,31],[2,2,"2","2",10,10,"10","10"])`。現在4群（重複表示名）となるが、R factor coercionでは2群（"10","2"）。Issue #44（bug、重要度medium、群構成と検定結果に影響）。追加入力: `median([-1e308,1e308])`; `median([1.7e308,1.79e308])`; `median([-Infinity,Infinity])`; all-NaN list groups. Vitest/package runtime/R実行なし。 |
 | `src/htest/ksTest.ts` | 問題未検出（警告差異あり） | #196 | `489b31e26ff16939cef159a9de0baf0168f09738` | — | R 4.5.2 ks.test fixture、R patched documentation/sourceおよびSciPy 1.18.1 fixtureを閲覧（未実行）。 | one-sample D+/D-、continuous CDF callback range validation、tiesによるexact default切替、two-sided tailの1-P cancellation回避、two-sample pooled ECDFのtie-run endpoint、greater/less符号、exact threshold n<100/mn<10000、formula twoGroupDataを追跡。具体入力: `ksTest([0,0,1],q=>q<=0?0:q>=1?1:q)`; `ksTest([0,0,1],q=>q<=0?0:q>=1?1:q,{exact:true})`; `ksTest([1,2],[3,4],{alternative:"greater"})`; `ksTest([1,2],[1,3],{exact:true})`; `ksTest([1,2],q=>NaN)`; `ksTest([NaN,NaN],[1,2])`。default one-sample exact判定はtiesを除外。明示exact:trueではRも連続分布のties警告を出した上でexact経路を実行するため、数値経路の差は確認せず。Rはties警告を出すがrStats.js resultはwarningを返さない点を互換性メモとして記録。新規計算不具合なし。Vitest/package runtime/R実行なし。 |
 | `src/htest/leveneTest.ts` | 問題未検出 | #197 | `489b31e26ff16939cef159a9de0baf0168f09738` | — | R 4.5.2 car::leveneTest fixture（median/mean center）を閲覧（未実行）。 | center default median/mean、sorted factor labels、pairwise missing removal、all-missing groups drop、absolute deviation scaling、oneway ANOVA df/F/pを追跡。具体入力: `leveneTest([4.2,5.1,6.3,5.8,7.9,8.4,6.6,7.0,5.5],["a","a","a","b","b","b","c","c","c"])`; 同じ入力 `{center:"mean"}`; 欠損ペア `leveneTest([1,2,NaN,4,5,6],["a","a","a","b","b","b"])`; empty factor group; singleton群; constant groups; `[-1e308,1e308,-1e308,1e308]` scale stress; ±Infinity. No new confirmed defect; zero residual df/constant deviations produce degenerate ANOVA values and are retained as boundary cases pending runtime comparison. Vitest/package runtime/R実行なし。 |
-| `src/htest/mantelhaenTest.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/mcnemarTest.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/multipleComparisons.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/normalityTests.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/onewayTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/htest/mantelhaenTest.ts` | 問題未検出 | #198 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | — | R/SciPy fixtures・sourceを閲覧（未実行）。 | 2x2xKのasymptotic/exact、Yates補正、OR/CI、conditional MLE、I×J×K covariance/solve。入力: `mantelhaenTest([[[10,5],[4,12]],[[8,6],[5,9]]])`; zero-margin stratum; total=1; exact fractional counts; structural-zero general table。R 4.5.2/SciPy fixtures閲覧。singular Vは実行比較未了で未認定。Vitest/R未実行。 |
+| `src/htest/mcnemarTest.ts` | 問題あり | #199 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | [#45](https://github.com/numero-uno-jpn/rStats.js/issues/45) | R/SciPy fixtures・sourceを閲覧（未実行）。 | square table、2x2 correction、r>2 symmetry sum、df、discordant zero、paired crossTable/missing/levels。再現: `mcnemarTest([1,1,"1","1",2,2,"2","2"],[1,"1",1,"1",2,"2","2",2])`。number 1とstring "1"が別levelだがR factorでは文字列化され同一levelとなる。4 levels vs 2 levelsでtable/dfが変わる。重要度medium。R 4.5.2 fixtures閲覧。Vitest/R未実行。 |
+| `src/htest/multipleComparisons.ts` | 問題未検出 | #200 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | — | R/SciPy fixtures・sourceを閲覧（未実行）。 | Dunn tie correction/adjustment、Dunnett familywise tails、Steel U rank/sign、DSCF variance、Games-Howell Welch/Satterthwaite、Tukey-Kramer、Dunn altp/stepwise ties。入力: 3群例 [1.2,2.3,1.8,2.9,3.1,3.6,4.0,4.4,5.2]; all-tied groups; two-group single-step; zero pooled SS; unequal n; tied adjusted p; extreme values。R PMCMRplus/dunn.test/multcomp fixtures閲覧。Vitest/R未実行。 |
+| `src/htest/normalityTests.ts` | 問題あり | #201 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | [#46](https://github.com/numero-uno-jpn/rStats.js/issues/46) | R/SciPy fixtures・sourceを閲覧（未実行）。 | AD/CVM/Lilliefors/Shapiro-Francia/Pearsonの統計量・近似p値・df・警告境界。Pearsonで `pnorm(z)===1` のときclass=`k+1`となり、`c<=k`で観測値を除外。再現: `const x=[...Array(99).fill(0),1e6]; pearsonTest(x)`。n=100、k=13、outlier z=9.9、counts合計99。最終binに含める必要あり。重要度medium。nortest 1.0-4 source/fixtures閲覧。Vitest/R未実行。 |
+| `src/htest/onewayTest.ts` | 問題未検出 | #202 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | — | R/SciPy fixtures・sourceを閲覧（未実行）。 | Classical F/Welch F、Satterthwaite df、群サイズ、zero variance、power-of-two scaling、formula interaction/missing、Shapiro-Wilk n=3/5000/5001、NaN/Inf/constant。入力: 例の3群 [2.9,3.0,2.5,2.6,3.2], [3.8,2.7,4.0,2.4], [2.8,3.4,3.7,2.2,2.0]; varEqual true/false; singleton; constant groups; [-1e308,0,1e308]; formula with two factors; shapiroTest([1,2,3])。Welch zero varianceのNaNはR比較未了で未認定。R/SciPy fixtures閲覧。Vitest/R未実行。 |
 | `src/htest/pAdjust.ts` | 未監査 | — | `—` | — | — | — |
 | `src/htest/pairwise.ts` | 未監査 | — | `—` | — | — | — |
 | `src/htest/poissonTest.ts` | 未監査 | — | `—` | — | — | — |
@@ -1293,3 +1293,32 @@ Repository: `numero-uno-jpn/rStats.js`
 - No new confirmed defect. Zero residual df and constant deviations produce degenerate ANOVA outputs and remain boundary candidates for runtime comparison.
 - Rとの関係: R 4.5.2 car::leveneTest median/mean fixtures inspected (not executed).
 - 検証範囲: `test/moreTests.test.ts`, `test/fixtures/moreTests.json`, `src/htest/aov.ts`, `src/internal/summary.ts` and group helpers inspected. No Vitest/package runtime/R execution.
+
+
+## Audit #198-#202
+
+### #198 `src/htest/mantelhaenTest.ts`
+- 判定: 問題未検出; —。
+- 2x2xKのasymptotic/exact、Yates補正、OR/CI、conditional MLE、I×J×K covariance/solve。入力: `mantelhaenTest([[[10,5],[4,12]],[[8,6],[5,9]]])`; zero-margin stratum; total=1; exact fractional counts; structural-zero general table。R 4.5.2/SciPy fixtures閲覧。singular Vは実行比較未了で未認定。Vitest/R未実行。
+- ソース blob: 669a040db7481c9aad8d0da633a4e73f333b2488。
+
+### #199 `src/htest/mcnemarTest.ts`
+- 判定: 問題あり; [#45](https://github.com/numero-uno-jpn/rStats.js/issues/45)。
+- square table、2x2 correction、r>2 symmetry sum、df、discordant zero、paired crossTable/missing/levels。再現: `mcnemarTest([1,1,"1","1",2,2,"2","2"],[1,"1",1,"1",2,"2","2",2])`。number 1とstring "1"が別levelだがR factorでは文字列化され同一levelとなる。4 levels vs 2 levelsでtable/dfが変わる。重要度medium。R 4.5.2 fixtures閲覧。Vitest/R未実行。
+- ソース blob: 3d702e0af51a8c81e81405c0e0422cce6e8b9bf8。
+
+### #200 `src/htest/multipleComparisons.ts`
+- 判定: 問題未検出; —。
+- Dunn tie correction/adjustment、Dunnett familywise tails、Steel U rank/sign、DSCF variance、Games-Howell Welch/Satterthwaite、Tukey-Kramer、Dunn altp/stepwise ties。入力: 3群例 [1.2,2.3,1.8,2.9,3.1,3.6,4.0,4.4,5.2]; all-tied groups; two-group single-step; zero pooled SS; unequal n; tied adjusted p; extreme values。R PMCMRplus/dunn.test/multcomp fixtures閲覧。Vitest/R未実行。
+- ソース blob: 2ff2f52544fd07e8d160ca7e8a785e3a8b874f8c。
+
+### #201 `src/htest/normalityTests.ts`
+- 判定: 問題あり; [#46](https://github.com/numero-uno-jpn/rStats.js/issues/46)。
+- AD/CVM/Lilliefors/Shapiro-Francia/Pearsonの統計量・近似p値・df・警告境界。Pearsonで `pnorm(z)===1` のときclass=`k+1`となり、`c<=k`で観測値を除外。再現: `const x=[...Array(99).fill(0),1e6]; pearsonTest(x)`。n=100、k=13、outlier z=9.9、counts合計99。最終binに含める必要あり。重要度medium。nortest 1.0-4 source/fixtures閲覧。Vitest/R未実行。
+- ソース blob: 981edc067292842d8f3b0472205a97f525bcd66b。
+
+### #202 `src/htest/onewayTest.ts`
+- 判定: 問題未検出; —。
+- Classical F/Welch F、Satterthwaite df、群サイズ、zero variance、power-of-two scaling、formula interaction/missing、Shapiro-Wilk n=3/5000/5001、NaN/Inf/constant。入力: 例の3群 [2.9,3.0,2.5,2.6,3.2], [3.8,2.7,4.0,2.4], [2.8,3.4,3.7,2.2,2.0]; varEqual true/false; singleton; constant groups; [-1e308,0,1e308]; formula with two factors; shapiroTest([1,2,3])。Welch zero varianceのNaNはR比較未了で未認定。R/SciPy fixtures閲覧。Vitest/R未実行。
+- ソース blob: f98a4ccac5bcdb527f738aca3479aa6eaf600a8a。
+
