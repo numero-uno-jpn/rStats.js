@@ -43,7 +43,11 @@ const upperPhi = (x: number): number => pnorm(x, { lowerTail: false });
 /** P(X > h, Y > k) for the standard bivariate normal with correlation r (h, k finite) */
 function upperOrthant(h: number, k: number, r: number): number {
   if (r === 1) return upperPhi(Math.max(h, k));
-  if (r === -1) return Math.max(0, upperPhi(h) - pnorm(-k));
+  // r = -1: Y = -X, so P(h < X < -k) (this was Φ(k) − Φ(h); issue #23), from the tails on the side of h for accuracy
+  if (r === -1) {
+    if (h >= -k) return 0;
+    return h >= 0 ? upperPhi(h) - upperPhi(-k) : pnorm(-k) - pnorm(h);
+  }
   const { x, w } = RULES[Math.abs(r) < 0.3 ? 0 : Math.abs(r) < 0.75 ? 1 : 2]!;
   const hk = h * k;
   if (Math.abs(r) < 0.925) {
