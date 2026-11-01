@@ -904,7 +904,8 @@ export function glmRstandard(given: GlmResult, options: GlmSummaryOptions = {}):
   const h = glmHatvalues(fit);
   const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(checkDispersion(options.dispersion), -2 * k);
   const r = residualsOf(fit, "deviance").filter((_, i) => fit.priorWeights[i]! > 0);
-  const small = 100 * EPS * median(r.map(Math.abs));
+  // residuals below 100 eps times their median are taken as 0 only with columns, as R's lm.influence (rank 0 keeps them)
+  const small = fit.rank > 0 ? 100 * EPS * median(r.map(Math.abs)) : 0;
   return r.map((v, i) => {
     const s = (Math.abs(v) < small ? 0 : v) / Math.sqrt(disp * (1 - h[i]!));
     return Number.isFinite(s) ? s : NaN;
