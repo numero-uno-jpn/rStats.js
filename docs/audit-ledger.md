@@ -149,28 +149,28 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/linalg/matrix.ts` | 問題未検出 | #240 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | matrix row-array/column-major conversion、rectangular/zero dimensions、SVD rangeExponent呼出契約をソース照合（実行なし） | toMat row-length validation、Float64Array row support、toMatOrColumn vector handling、empty array ambiguity、transpose indexing、fromMat shape、rangeExponentのsubnormal/large finite casesを確認。入力: `toMat([[1,2],[3,4]])`; `toMat([[1],[2,3]])` (ragged error); `toMat([new Float64Array([1,2]),new Float64Array([3,4])])`; `toMat([])`; `rangeExponent([Number.MIN_VALUE,0])`; `rangeExponent([1e308])`。0-row matrixが0x0に制限される仕様もコメントに明記され、shape corruptionの新規再現なし。 |
 | `src/linalg/norm.ts` | 問題未検出 | #241 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | — | R norm typesとLAPACK dlange/dlassq definitionsをソース照合（既存test/linalg.test.ts閲覧、実行なし） | O/1/I/F/E/M/2のcase handling、NaN propagation、Inf handling、Frobenius scale-before-square、spectral norm SVD path、empty dimensionを確認。入力: `norm([[1,-2],[3,4]])`; `norm([[1,-2],[3,4]],{type:"I"})`; `norm([[1e200,1e200]],{type:"F"})`; `norm([[1e-200,1e-200]],{type:"F"})`; `norm([[NaN,1]],{type:"F"})`; `norm([[Infinity]],{type:"2"})`; `norm([],{type:"2"})`。各normのoverflow/underflow/NaN/Inf処理に新規再現欠陥なし。 |
 | `src/linalg/ops.ts` | 問題あり | #242 | `7475ea2b46bae71fe7fec11a2c20dfeee89590a0` | [#55](https://github.com/numero-uno-jpn/rStats.js/issues/55) | R base `diag` documentation (vector with explicit dimensions becomes diagonal matrix; values recycled/truncated)およびnumber[][] return contractを照合（R実行なし） | elementwiseのcolumn-major recycling、outer/t、diag scalar/vector/matrix overload、cbind/rbind frame handling、matrix dimensions/byrow、kronecker、seq by/lengthOut/colonを確認。再現: `diag([], {nrow:2,ncol:2})`。values=[]のまま対角構築ループで`values[i % values.length]`を参照し、i%0はNaN、空配列のNaN property indexはundefinedとなるため`[[undefined,0],[0,undefined]]`を返す。number[][]のnumeric contractを破る。R docsは追加引数ありのvectorをdiag valuesとして扱い、diagonal values are recycled/truncatedと説明。既存test/matrix-ops.test.tsのdiag fixtureは空vector/positive dimensionsを含まない。Issue #55。 |
-| `src/linalg/qr.ts` | 未監査 | — | `—` | — | — | — |
-| `src/linalg/schur.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/qr.ts` | 問題あり | #243 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | [#57](https://github.com/numero-uno-jpn/rStats.js/issues/57) | R `dqrdc2.f` の cancellation norm recompute rule と `qr()` tolerance rank semantics をソース比較。Vitest未実行。 | LINPACK `linpackQR()` の全処理、LAPACK `geqp3/larfg/larf`、Q/Qᵀ/coef/resid/fitted/Q/R/X/solve の呼出経路を追跡。再現: `qr([[0.3,0.3],[0,3.00000003e-8],[0,0]])`。既定tol=1e-7で元列norm≈0.3000000000000015、rank閾値≈3.000000000000015e-8、真の残差norm=3.00000003e-8だが、`1-(0.3/0.3000000000000015)^2≈9.992007221626409e-15` を旧式downdateし、推定norm≈2.9988008435812903e-8に過小評価してrank=1へ誤分類。R `dqrdc2` はt<1e-6でnorm再計算するためrank=2。既存 `test/qr.test.ts` はR fixture比較だが、この閾値直上のcancelケースなし。Issue #57。 |
+| `src/linalg/schur.ts` | 問題未検出 | #244 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | 実Schur分解の直交相似変換、2x2複素固有値block標準化、R Matrix::Schur契約と `test/schur.test.ts` を照合（実行なし）。 | Hessenberg reduction、Francis double-shift QR、exceptional shift、deflation、2x2 `lanv2`、固有値の符号順、Q/T再構成を追跡。入力: `[[0,-1],[1,0]]`; `[[4,0.5,2],[1,3,1],[2,1,5]]`; `[[1,1e-300],[0,1]]`; `[[1e300,0],[0,-1e300]]`; `[[0,0],[0,0]]`。有限入力の2x2/複素対/スケール・零行列境界に新規再現不具合なし。 |
 | `src/linalg/solve.ts` | 問題未検出 | #109 | `6b9fabe470c0a994e48cd612bcd3e30aaa580aa1` | — | Rでは未確認（R実行・新規照合なし） | LU partial pivoting、exact singular判定、`gecon()` の1-norm reciprocal condition estimate、既定tol=`Number.EPSILON`、極端な大きさのpower-of-two scaling、NaN/Inf時のcondition check skipを追跡。`pseudoQuadratic()` との判定基準不整合を確認するための関連監査。`solve()` 単体の不具合は今回確定せず。Vitest/package runtime/R実行なし。 |
-| `src/linalg/svd.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/anovaSequential.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/aovEz.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/aovStrata.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/carAnova.ts` | 未監査 | — | `—` | — | — | — |
+| `src/linalg/svd.ts` | 問題未検出 | #245 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | SVD bidiagonal reduction/QR iteration、R `svd` のnu/nv shape、既存 `test/svd.test.ts` と scale-invariance testsを照合（実行なし）。 | 入力shape tall/wide/square、rank deficient、zero matrix、singular value tie、nu/nv=0/全列/範囲超過、subnormal・極端なscale、singular vector sign/orderを確認。入力: `[[1,2,3],[2,4,6]]`; `[[0,0],[0,0],[0,0]]`; `[[1,0],[0,1],[0,0]]`; `[[1e-300,0],[0,1e-300]]`; `[[1e300,0],[0,1e300]]`; `svd([[1,2],[3,4]],{nu:0,nv:0})`。既知のスケールバック後の特異値overflowは先行Issue #56の `kappa/ginv` 消費側で追跡済み。SVD単体の新規再現不具合なし。 |
+| `src/models/anovaSequential.ts` | 問題未検出 | #246 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | R `anova.lm` sequential SS、`anova.glm`/`aovSummary`の自由度とperfect-fit行動をソース・既存test/anova.test.tsで照合（実行なし）。 | pivot/assignによる項順、rank欠損、intercept除外、dfResidual=0、RSSのscale back、weights=0、複数モデルのresponse/rows/weights一致、nestedColumns、perfect-fit警告を確認。入力: `y=[1,2,3,4], x=[[1],[2],[3],[4]]`; saturated `y=[1,2],x=[[1],[2]]`; weighted `weights=[1,0,1,1]`; 非nested列空間比較。負のSS/df時のNaN処理とresidual row形状に新規再現不具合なし。 |
+| `src/models/aovEz.ts` | 問題未検出 | #247 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | afex `aov_ez`/car univariate ANOVA、GG/HF/Mauchly、long-to-wide aggregationの既存fixture/test/aovEz.test.tsを照合（実行なし）。 | ID/factor coercionとlevel重複、IDの複数between条件、欠損response/欠損cell/空cell、重複観測mean集約、within factor order、between factor sorted order、type II/III、observed effect-size分母、response scaleを追跡。入力: `id=['s1','s1','s2','s2','s3','s3','s4','s4']`, `W=['a','b','a','b','a','b','a','b']`, `y=[4.1,5.0,3.8,4.9,4.4,5.6,4.0,4.7]`; missing cellを作る1 subject除外例; 1セル複数行平均例; `y=[1e200,-1e200,...]`のscale経路。新規再現不具合なし。 |
+| `src/models/aovStrata.ts` | 問題未検出 | #248 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | R `aov(...+Error())` strata、contr.helmert error design、summary(aov)と既存test/aovStrata.test.tsを照合（実行なし）。 | Error()の複数項/特異Error matrix、intercept stratum、Within residual stratum、treatment column projection threshold、double-double Q coordinates、rank 0/df0/weights拒否、scaled SSを追跡。入力: `y=[4,5,6,7,8,9,5,6]`, `id=['a','a','b','b','c','c','d','d']`, `W=['x','y','x','y','x','y','x','y']`; Error factorの重複列/空項; 1e-200・1e200 covariate scale。新規再現不具合なし。 |
+| `src/models/carAnova.ts` | 問題未検出 | #249 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | car `Anova()` type II/III sums of squares、partial F、aliased columns、contrastsと既存test/carAnova.test.tsを照合（実行なし）。 | hypothesis row construction、nested/containing terms、intercept/no-intercept、factor contrast、df/rank、perfect fit、residual scaleとeffect-size bookkeepingを確認。入力: `y=[4.2,5.1,6.3,5.8,7.9,8.4,6.6,7.0]`, `A=['a','a','b','b','a','a','b','b']`, `B=['p','q','p','q','p','q','p','q']`; aliased `A:B`; unbalanced cell cases。新規再現不具合なし。 |
 | `src/models/coxph.ts` | 問題未検出 | #107 | `206adeeae033f983cc1e2c17b3ba568bd40f3667` | — | Rと同じ（`survival` 3.8系の `coxph` の仕様記述・R由来fixtureを照合。今回R実行なし） | `coxph()` の欠損除外、status/weight/strata、重み付き中心化・スケーリング、Efron/Breslow ties、層別リスク集合、Newton-Raphsonのstep halving・収束判定、一般化Cholesky・共線性、係数/SE/CI/Wald/LR/score統計をソース追跡。具体例: `time=[5,3,8,1,9,4]`, `status=[1,1,0,1,0,1]`, `x=[[1.2],[0.3],[-0.5],[2],[0.7],[0.1]]`; tiesは`efron`/`breslow`、weightsは正整数のみ。`test/coxph.test.ts` と `oracle/coxph-behaviour.md`、R生成スクリプトの重いties・weights・strata・aliased列・単一event・monotone likelihoodケースを閲覧。実行/Vitest/package runtime/R実行なし。 |
-| `src/models/ddLeastSquares.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/ddMatrix.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/estimable.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/formula.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/glm.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/glmAnova.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/glmConfint.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/glmFamily.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/lm.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/lmer.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/lmerAnova.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/lmerHypotheses.ts` | 未監査 | — | `—` | — | — | — |
-| `src/models/lmerTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/models/ddLeastSquares.ts` | 問題未検出 | #250 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | Double-double Householder least-squares, orthonormal Q coordinates and rank/pivot semanticsをソース照合（実行なし）。 | DD dot/Householder norm/reflector tau、rank0、n=0、multiple RHS、列数>行数、zero column、subnormal residual、back substitutionを確認。入力: columns `[[1,0,0],[0,1,0]]`, response `[[1,2],[3,4],[5,6]]`; zero columns `[[0,0,0]]`; nearly dependent columns `[[1,1],[0,1e-30],[0,0]]`; values ±1e200/1e-200。独立列の内部契約範囲で新規再現不具合なし。 |
+| `src/models/ddMatrix.ts` | 問題未検出 | #251 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | DD matrix multiply/transpose/inverse/trace/Cholesky handoffと `ddLeastSquares` consumersをソース照合（実行なし）。 | 0x0/1x1/rectangular、dimension mismatch internal contract、near-singular pivots、DD low component cancellation、positive-definite inverse、trace、transpose symmetryを確認。入力: `[[4,2],[2,3]]`; `[[1,1],[1,1+1e-30]]`; `[[1e-200,0],[0,1e200]]`; empty matrix。内部呼出元の対称正定値・dimension条件下で新規再現不具合なし。 |
+| `src/models/estimable.ts` | 問題未検出 | #252 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | R `predict.lm` non-estimable rows/column-space criterion、`nestedColumns`のrank logicをソース照合（実行なし）。 | rank0/empty rows、full rank、aliased columns、row-space residual、threshold境界、NaN/Inf、small/large matrix scalingを確認。入力: `q=qr([[1,0],[0,0],[0,1]])`; rows `[1,0]`, `[0,1]`, `[0,1e-8]`; nested matrices `[[1,0],[0,1]]` と `[[1,0,1],[0,1,1]]`。列空間包含判定とnon-estimableの新規再現不具合なし。 |
+| `src/models/formula.ts` | 問題未検出 | #253 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | R formula operator algebra/terms ordering/Error() and random-effect bar parsing; existing test/formulaTests.test.ts and model-matrix callersを照合（実行なし）。 | tokenizer names/numeric constants/backtick limitation、unary +/-、0/1 intercept toggling、`+ - : * / ^ %in%` precedence/expansion、duplicate terms、parentheses、Error() extraction、`|`/`||` grouping、nested random termsを追跡。入力: `y ~ 0 + A*B`; `y ~ A/B/C`; `y ~ (A+B)^2`; `y ~ A - A + B`; `y ~ x + Error(id/W)`; `y ~ x + (1+x|g)`; `y ~ (1|g/h)`。構文サポート範囲内で新規再現不具合なし。 |
+| `src/models/glm.ts` | 問題未検出 | #254 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | R `glm.fit` IRLS、rank-deficient QR、family init、deviance/weights, residuals, hatvalues, Cook's distance and predict semanticsを既存test/glm.test.tsで照合（実行なし）。 | NA除外、Inf検出、weights=0、offset、intercept/no-intercept、start/etastart/mustart、step-halving/boundary/separation、rank0/alias、df0、working weights/residuals、hatvalue index alignment、newdata non-estimability、response/link predictionを追跡。入力: `x=[1,2,3,4,5,6]`, `y=[0,0,1,0,1,1]`, binomial; weights `[1,0,1,1,1,1]`; offsets `[0,0,0,0,0,0]`; duplicated predictors `[[1,1],[2,2],[3,3]]`; all-zero weights。新規再現不具合なし。 |
+| `src/models/glmAnova.ts` | 問題未検出 | #255 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | R `anova.glm` sequential/model comparison Chisq/LRT/Rao/F/Cp, nested affine models and dispersionをソース・既存test/glmAnova.test.tsで照合（実行なし）。 | response/prior weight identity、offset difference in large model space、non-nested comparison suppression、df sign/order、score statistic centering, fixed/estimated dispersion, dfResidual=0, Cp, scaled Gaussian devianceを確認。入力: binomial `y=[0,0,1,0,1,1]`, `x=[1,2,3,4,5,6]`; models with offsets `[0,0,0,0,0,0]` vs `[1,0,0,0,0,0]`; nested and reversed model order。新規再現不具合なし。 |
+| `src/models/glmConfint.ts` | 問題未検出 | #256 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | R profile likelihood and Rao score coefficient intervals, bracketing and Brent/uniroot tolerance; existing test/glmConfint.test.tsを照合（実行なし）。 | aliased parm、duplicate/out-of-range indices、confidence levels near 0/1, profile refit convergence, LRT/Rao, zero/NaN/Inf SE, doubling to 2^30 SE, uniroot bracket/tol and scalingを確認。入力: example binomial `x=[1,2,3,4,5,6]`, `y=[0,0,1,0,1,1]`; `parm=[0,1]`; `level=0.9`; `test='Rao'`; near-extreme levels `1e-12` and `1-1e-12`。新規再現不具合なし。 |
+| `src/models/glmFamily.ts` | 問題未検出 | #257 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | R family/link functions and family initialize/deviance/AIC semantics; edge values checked against source formulas and existing glm fixtures (R executionなし)。 | log/logit/probit/cauchit/cloglog/inverse/sqrt/1/mu^2/power links、eta/mu domain、underflow/overflow clamps、binomial one-/two-column counts、fractional count warning、zero weights、Poisson/Gamma/inverse Gaussian/quasi deviance and AICを確認。入力: `makeFamily('binomial','logit')` at eta ±1000; `prepareResponse` for `[[2,8],[8,2]]`; Poisson y `[0,1,1e308]`; Gamma y `[1e-200,1,1e200]`; power lambda `1e-320`。極端power lambdaは有限でも逆数がInfinityとなる入力契約上の制約を確認したが、公開GLMでの再現誤答は確定せずIssue化せず。 |
+| `src/models/lm.ts` | 問題未検出 | #258 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | R `lm.fit/lm.wfit`, summary/confint/predict, formula fit and matrix fit semantics; existing test/lm.test.ts and ANOVA callersを照合（実行なし）。 | weighted/unweighted, zero/negative/NaN/Inf weights, rank-deficiency/alias, no-intercept, exact fit/df0, response/weight scaling, covariance and prediction SE, confidence/prediction intervals, non-estimable rowsを確認。入力: `x=[1,2,3,4,5]`, `y=[2.1,3.9,6.2,7.8,10.1]`; duplicated predictors; weights `[1,0,1,1,1]`; constant response; newdata `[1e155]`。新規再現不具合なし。 |
+| `src/models/lmer.ts` | 問題未検出 | #259 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | lme4 REML/ML profiled criterion, sparse derivatives, trust-region optimization, theta scaling, singular boundary and result reconstruction; existing test/lmer.test.ts inspected (not executed)。 | exact fixed-effects fit guard, beta0 centering, response 2^k scaling, random-effects term blocks, diagonal boundary release/negative curvature, Hessian eigen cut, trust-region radius/restarts, σ/REML df, VarCorr correlations, ranef/fitted/residuals, empty random termsを追跡。入力: `y=[9.8,10.4,10.1,12.3,12.9,12.0,8.1,7.6,8.4]`, `g=['a','a','a','b','b','b','c','c','c']`; exact `y=[1,2,3], x=[1,2,3]`; response scales 1e200 and 1e-200。今回の入力群で新規再現不具合なし。 |
+| `src/models/lmerAnova.ts` | 問題未検出 | #260 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | lmerTest Type I/II/III tables and lme4 likelihood-ratio comparisons, nested fixed/random effects and same-data requirementsをソース・test/lmerCompare.test.tsで照合（実行なし）。 | same data identity/snapshot/rows/response, REML refit, npar sort, nested fixed column spaces, random term containment, zero df, duplicate names, Chisq truncation and type hypothesis mappingを確認。入力: nested `y ~ x + (1|g)` vs `y ~ x + (1+x|g)`; nonnested random structures; contrasts treatment vs sum; model names duplicate; REML/ML mixed. 新規再現不具合なし。 |
+| `src/models/lmerHypotheses.ts` | 問題未検出 | #261 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | lmerTest Type I/II/III hypothesis construction, treatment/full-dummy mapping, Doolittle, missing cells and aliased columns; existing test/lmerHypotheses.test.ts inspected (not executed)。 | factor/numeric interaction column order, no intercept, empty terms, missing full-dummy cells, treatment/sum/helmert/poly contrasts, `ginv` mapping, zapsmall, term containment, Doolittle normalized diagonal and rank cutoffを追跡。入力: `y ~ A*B + (1|g)` with unbalanced A×B; numeric predictor scales 1e-6/1e6; aliased columns; empty cells. 新規再現不具合なし。 |
+| `src/models/lmerTest.ts` | 問題あり | #262 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | [#58](https://github.com/numero-uno-jpn/rStats.js/issues/58) | Satterthwaite t/F contrast tests and scale invariance of hypothesis Lβ=rhs; existing test/lmerTest.test.ts checks proportional rows but not extreme scaling (実行なし)。 | Hessian eigen cutoff, scaled parameter covariance, Jacobian, tTestOf quadratic form, fTestOf L V L', rank-deficient L, RHS projection, jointDenDF, confidence intervals and contest input validationを追跡。再現: docs fixture data `y=[3.1,4.0,5.2,6.8,7.1,8.3,2.2,3.5,3.9,5.9,6.1,7.4]`, `x=[1,2,3,1,2,3,1,2,3,1,2,3]`, `g=['a','a','a','b','b','b','c','c','c','d','d','d']`; `fit=lmer('y ~ x + (1 | g)',data)`; compare `lmerContest(fit,[0,1],{joint:false,confint:false})` and `[0,1e160]`. Same hypothesis under scalar multiplication, but `quadraticForm(l,vcov)` overflows (~1e320 scale), stdError becomes Infinity, tValue collapses to 0, df can be NaN. Joint F path also forms `L V L'` unscaled. Issue #58。 |
 | `src/models/mauchly.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/mixedDerivatives.ts` | 未監査 | — | `—` | — | — | — |
 | `src/models/mixedDeviance.ts` | 未監査 | — | `—` | — | — | — |
@@ -1607,3 +1607,125 @@ Repository: `numero-uno-jpn/rStats.js`
 - R base `diag` documentation (vector with explicit dimensions becomes diagonal matrix; values recycled/truncated)およびnumber[][] return contractを照合（R実行なし）。
 - ソース blob: `29dc8503d43b50ee8a0173cf40084b87bd6d17d4`。
 - 検証: ソースコード読解と静的な算術追跡。Vitest/npm package runtime/Rは実行していない。
+
+## Audit #243-#262
+
+### #243
+- LINPACK norm downdate cancellation causes a rank decision on the wrong side of tol.
+- Input: `qr([[0.3,0.3],[0,3.00000003e-8],[0,0]])`; default tol 1e-7; true residual norm 3.00000003e-8 > original norm × tol ≈3.000000000000015e-8, but current downdate gives ≈2.9988008435812903e-8 and reports rank 1; R `dqrdc2` recomputes below t=1e-6 and retains rank 2. Issue #57.
+- Source blob: `e19b546d8cee1a82e90e3b5f1f8cfee2e88717c5`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #244
+- Schur Hessenberg/Francis/2x2 block logic reviewed; no new reproducible defect.
+- Inputs: `[[0,-1],[1,0]]`, `[[4,0.5,2],[1,3,1],[2,1,5]]`, `[[1,1e-300],[0,1]]`, `[[1e300,0],[0,-1e300]]`, zero 2x2.
+- Source blob: `72838c9df6896ef921d1ec296bd5b93d4624ec4f`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #245
+- SVD reduction/iteration, tall/wide, rank deficiency, nu/nv and scaling reviewed; no new defect. Existing downstream singular-value scale-back concern remains tracked in Issue #56.
+- Inputs: `[[1,2,3],[2,4,6]]`, zero 3x2, `[[1e-300,0],[0,1e-300]]`, `[[1e300,0],[0,1e300]]`, `svd([[1,2],[3,4]],{nu:0,nv:0})`.
+- Source blob: `b2c4040c56db6cffd9b29f1ccf71106529b4aa46`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #246
+- Sequential ANOVA SS, rank/assign order, df=0, weights, scaled RSS and nested model comparison reviewed; no new defect.
+- Inputs: `y=[1,2,3,4]`, `x=[[1],[2],[3],[4]]`; saturated `y=[1,2],x=[[1],[2]]`; weights `[1,0,1,1]`.
+- Source blob: `fb1bf352f9106fd3e79c9d03ee40773318b4e26c`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #247
+- afex aov_ez aggregation, missing cells/subjects, type II/III, GG/HF and effect sizes reviewed; no new defect.
+- Inputs: id `['s1','s1','s2','s2','s3','s3','s4','s4']`, W `['a','b','a','b','a','b','a','b']`, y `[4.1,5.0,3.8,4.9,4.4,5.6,4.0,4.7]`; missing cell and duplicate observation cases.
+- Source blob: `5337523c4fe1358f6b74b3a67b201406710084fa`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #248
+- Error() strata QR projection, singular error design, within residual stratum and zero df reviewed; no new defect.
+- Inputs: y `[4,5,6,7,8,9,5,6]`, id `['a','a','b','b','c','c','d','d']`, W `['x','y','x','y','x','y','x','y']`; 1e-200/1e200 covariate scale.
+- Source blob: `b34c319610712397b87a4064057c338541027846`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #249
+- car Anova type II/III hypothesis and SS logic reviewed; no new defect.
+- Inputs: y `[4.2,5.1,6.3,5.8,7.9,8.4,6.6,7.0]`, A `['a','a','b','b','a','a','b','b']`, B `['p','q','p','q','p','q','p','q']`; aliased interaction/unbalanced cells.
+- Source blob: `0b2fc663a6e4e933cc86fb80e7f67dcc4f84a4b8`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #250
+- Double-double Householder least-squares, multiple RHS and rank/zero-column handling reviewed; no new defect.
+- Inputs: columns `[[1,0,0],[0,1,0]]`, RHS `[[1,2],[3,4],[5,6]]`; zero column; residual 1e-30 and ±1e200/1e-200.
+- Source blob: `fc016e33c6cedbffc9b079f7bde8a28d08cb5eb2`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #251
+- DD matrix multiply/transpose/inverse/trace and Cholesky dependencies reviewed; no new defect.
+- Inputs: `[[4,2],[2,3]]`; `[[1,1],[1,1+1e-30]]`; `[[1e-200,0],[0,1e200]]`; empty matrix.
+- Source blob: `58a467279e72cfa863aadfcb4a23e2e5f5130bcc`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #252
+- Estimability and nested column-space tests, rank0/alias and tolerance reviewed; no new defect.
+- Inputs: `[[1,0],[0,0],[0,1]]` with new rows `[1,0]`, `[0,1]`, `[0,1e-8]`; nested 2x2 vs 2x3 design.
+- Source blob: `01bb4704f17c7d8aed407922a94cc5457207eeba`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #253
+- Formula parser/tokenizer, operator precedence and formula expansion, Error/random-effects bars reviewed; no new defect.
+- Inputs: `y ~ 0 + A*B`; `y ~ A/B/C`; `y ~ (A+B)^2`; `y ~ A - A + B`; `y ~ x + Error(id/W)`; `y ~ x + (1+x|g)`.
+- Source blob: `2dff14125553b5a7a41fb58339faaf03588cd2ed`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #254
+- GLM IRLS, family init, missing/weights/offset, rank, separation, residuals and prediction reviewed; no new defect.
+- Inputs: binomial x `[1,2,3,4,5,6]`, y `[0,0,1,0,1,1]`; weights `[1,0,1,1,1,1]`; duplicate predictor columns; all-zero weights.
+- Source blob: `852ea8204a73cfc10a2807017f7a4f116e71f331`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #255
+- GLM ANOVA Chisq/LRT/Rao/F/Cp, nested affine models, offsets and dispersion reviewed; no new defect.
+- Inputs: binomial y `[0,0,1,0,1,1]`, x `[1,2,3,4,5,6]`; offsets all zero vs `[1,0,0,0,0,0]`; reversed and nonnested model order.
+- Source blob: `f84fe8f7b86b86c5a696da60157dc8b15c3caf22`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #256
+- Profile likelihood/Rao confidence intervals, bracket doubling, aliased parameters and uniroot tolerances reviewed; no new defect.
+- Inputs: binomial x `[1,2,3,4,5,6]`, y `[0,0,1,0,1,1]`; parm `[0,1]`; level `0.9`; Rao; levels `1e-12` and `1-1e-12`.
+- Source blob: `fc79e536f9b642a2ae860c813f0fcf45ebbdca14`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #257
+- GLM family/link domains, inverse links, boundary clamps, variance/deviance/AIC and binomial counts reviewed; no new defect.
+- Inputs: binomial logit eta ±1000; two-column counts `[[2,8],[8,2]]`; Poisson y `[0,1,1e308]`; Gamma y `[1e-200,1,1e200]`; power lambda `1e-320`.
+- Source blob: `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #258
+- LM weighted/unweighted QR, alias, df=0, response/weight scaling, covariance and prediction reviewed; no new defect.
+- Inputs x `[1,2,3,4,5]`, y `[2.1,3.9,6.2,7.8,10.1]`; duplicated predictors; weights `[1,0,1,1,1]`; constant response; newdata `[1e155]`.
+- Source blob: `95e161942a868624c1606925bfe00a1725ccc9f0`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #259
+- Lmer sparse REML/ML criterion, trust-region optimizer, theta scaling, boundary/singularity and result reconstruction reviewed; no new defect.
+- Inputs y `[9.8,10.4,10.1,12.3,12.9,12.0,8.1,7.6,8.4]`, g `['a','a','a','b','b','b','c','c','c']`; exact fixed fit y `[1,2,3]`, x `[1,2,3]`; response scales 1e200/1e-200.
+- Source blob: `86b47afc85f643ae904cc4c884ff8d109b3a42e2`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #260
+- Lmer ANOVA type I/II/III, REML refit, nested fixed/random effects, same-data and df edge cases reviewed; no new defect.
+- Inputs: `y ~ x + (1|g)` vs `y ~ x + (1+x|g)`; treatment vs sum contrasts; duplicated model names; REML/ML comparison.
+- Source blob: `c4572e0357a314f8699b2e814a09585ee6c12fb4`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #261
+- Lmer hypothesis matrices, type II/III contrast coding, full dummy cells, alias and Doolittle scaling reviewed; no new defect.
+- Inputs: `y ~ A*B + (1|g)` unbalanced A×B; numeric predictor scales 1e-6/1e6; aliased columns; empty cells.
+- Source blob: `ca9ee25511b1f8c0b6324b562d6742124e029514`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
+
+### #262
+- Satterthwaite t/F tests, quadratic forms, RHS and joint contrast scaling reviewed; confirmed scale-invariance defect. Issue #58.
+- Fixture data y `[3.1,4.0,5.2,6.8,7.1,8.3,2.2,3.5,3.9,5.9,6.1,7.4]`, x `[1,2,3,1,2,3,1,2,3,1,2,3]`, g `['a','a','a','b','b','b','c','c','c','d','d','d']`; compare contrast `[0,1]` and `[0,1e160]` for `lmer('y ~ x + (1 | g)',data)`. `quadraticForm(l,vcov)` overflows at scale 1e320, SE becomes Infinity and t statistic/df are invalid although the hypothesis is identical. Issue #58.
+- Source blob: `70a682c1c77b70d30b68259b5023ce1d6295cd4d`.
+- Verification: full source and relevant helper/caller paths read; existing test files inspected. Vitest, npm package runtime and R were not executed.
