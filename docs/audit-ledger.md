@@ -82,11 +82,11 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/entries/mixed.ts` | 問題未検出 | #175 | `c06da849afc7406f4f2a37e6387a4febab3306d8` | — | package exports / bundle AREAS / model module pathsを静的照合 | `lmer`とLmerResult/Options等の型、`lmerContest/lmerSummary`と検定表型、`lmerAnova`と単一fit/複数fitのANOVA・比較型を各model moduleへ追跡。具体確認: `lmer`→models/lmer、`lmerSummary`→models/lmerTest、`lmerAnova`→models/lmerAnova。root `src/index.ts`にはstar exportされないが、`package.json`に`./mixed`が明示され、bundle AREASにも`mixed`が含まれるため、独立サブパス公開として整合。barrelの欠落とは判定しない。build/runtime未実行。 |
 | `src/entries/numerics.ts` | 問題未検出 | #176 | `c06da849afc7406f4f2a37e6387a4febab3306d8` | — | implementation moduleのexport宣言とpackage/bundle entryを静的照合 | `integrate/optimize/uniroot`とoptions/result型を`numerics/integrate.ts`へ、approx/spline familyをinterp、ode/OdeFunc/OdeOptionsをode、grad/hessian/jacobian/DerivOptionsをderiv、optim/optimHessと型をoptimへ追跡。特に`optimize`と`uniroot`がファイル名と異なる`integrate.ts`からexportされる点は実装上の意図どおり、同ファイルに3関数すべてのexport宣言を確認。`package.json`の`./numerics`とbundle AREASに一致。数値本体の全域精度監査は別対象。build/runtime未実行。 |
 | `src/entries/special.ts` | 問題未検出 | #177 | `c06da849afc7406f4f2a37e6387a4febab3306d8` | — | special implementation module pathsとpackage/bundle entryを静的照合 | gamma/lgamma、beta/lbeta、choose/factorial、digamma/trigamma/psigamma、Bessel I/K/J/Y、erf/erfc、gammainc/erfinv/erfcinv/perm、log1pmx/lgamma1p/log1mexp/log1pexpと型を各special moduleへ追跡。具体確認: `RCompatibleOptions`→rCompatible、`BesselOptions`→besselIK、`GammaincResult`→extra。`package.json`の`./special`とbundle AREASに一致。barrel内の独自数値演算なし。build/runtime未実行。 |
-| `src/entries/tests.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/agreement.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/ansariTest.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/aov.ts` | 未監査 | — | `—` | — | — | — |
-| `src/htest/binomTest.ts` | 未監査 | — | `—` | — | — | — |
+| `src/entries/tests.ts` | 問題未検出 | #178 | `b1f99b610908221c1380f18c8edf4b3bb8551e5e` | — | 該当なし（API re-export barrel） | 静的なexport/path照合。TypeScript build・package runtime・Vitest・R実行なし。 |
+| `src/htest/agreement.ts` | 問題未検出 | #179 | `b1f99b610908221c1380f18c8edf4b3bb8551e5e` | — | irr::kappa2/kappam.fleiss/icc および psych::alpha/partial.r のR由来fixtureを閲覧（未実行）。 | 具体入力: `kappa2([[1,1],[2,2],[3,2],[1,1],[2,3],[3,3]])`; `kappa2([[1,1],[1,1]],{weight:"equal"})`（単一カテゴリの退化ケース）; `kappamFleiss([[1,1,2],[2,2,2],[3,3,2],[1,1,1],[2,3,3]])`; `icc([[9,2,5,8],[6,1,3,2],[8,4,6,8],[7,1,2,6],[10,5,6,9],[6,2,4,7]],{model:"twoway",type:"agreement"})`; `cronbachAlpha([[1,2,2],[2,3,3],[3,3,4],[4,5,4],[2,2,3]])`; `partialR([[1,2,3],[2,1,5],[3,5,4],[4,3,8],[5,6,7]],0,1)`. `test/agreement.test.ts` と `test/fixtures/agreement.json` の24ケースを閲覧。ソース・fixture確認のみ。Vitest/R実行なし。 |
+| `src/htest/ansariTest.ts` | 問題未検出 | #180 | `b1f99b610908221c1380f18c8edf4b3bb8551e5e` | — | R 4.5.2 ansari.test fixtureおよびmpmath exact-distribution fixturesを閲覧（未実行）。 | 具体入力: `ansariTest([-2,-1,1,2],[-4,-3,3,4],{confInt:true})`; `ansariTest([1,2,3,4],[2,4,6,8],{exact:true})`; `ansariTest([1,1,2],[2,3,3],{exact:true,confInt:true})`（tiesでnormal branchへ移る条件）; `ansariTest("y ~ g",{y:[1,2,3,4],g:["a","a","b","b"]})`. `test/htest-core/ansari.test.ts`、`test/fixtures/ansariTest.json`（173 cases）、`test/fixtures/ansariTestConfInt.json`（183 cases）を閲覧。ソース・fixture確認のみ。Vitest/R実行なし。 |
+| `src/htest/aov.ts` | 問題未検出 | #181 | `b1f99b610908221c1380f18c8edf4b3bb8551e5e` | — | R 4.5.2 aov/TukeyHSDおよびBSDA::z.test由来fixtureを閲覧（未実行）。 | 具体入力: `aov([[2.9,3.0,2.5,2.6,3.2],[3.8,2.7,4.0,2.4],[2.8,3.4,3.7,2.2,2.0]])`; `aov("y ~ g",{y:[4.2,5.1,6.3,5.8,7.9,8.4],g:["a","a","b","b","c","c"]})`; `TukeyHSD([1.2,2.3,1.8,2.9,3.1,3.6,4.0,4.4,5.2],["a","a","a","b","b","b","c","c","c"])`; `zTest([5.1,4.9,5.6,5.8,6.0],{mu:5,sigmaX:0.5})`; extreme probe `zTest([1e308,1e308,1e308],{sigmaX:1e308})`. `test/anova.test.ts` と `test/fixtures/aovOneway.json` を閲覧。ソース・fixture確認のみ。Vitest/R実行なし。 |
+| `src/htest/binomTest.ts` | 問題未検出 | #182 | `b1f99b610908221c1380f18c8edf4b3bb8551e5e` | — | R 4.5.2 binom.test fixtureおよびSciPy由来の独立比較fixtureを閲覧（未実行）。 | 具体入力: `binomTest(682,925,{p:0.75})`; `binomTest([3,7],{p:0.5})`; `binomTest(0,10,{p:0})`; `binomTest(10,10,{p:1})`; `binomTest(0,2000,{p:0.5})`; `binomTest(1,5,{p:0.5,alternative:"greater",confLevel:0.5872345434452184})`. `test/fixtures/binomTest.json`（166 cases）と `test/fixtures/htest_binomTest.scipy.json` を閲覧。二側確率の探索は平均の両側で単調な区間だけを二分探索する構造を確認。ソース・fixture確認のみ。Vitest/R実行なし。 |
 | `src/htest/brunnerMunzelTest.ts` | 未監査 | — | `—` | — | — | — |
 | `src/htest/chisqTest.ts` | 未監査 | — | `—` | — | — | — |
 | `src/htest/cor.ts` | 未監査 | — | `—` | — | — | — |
@@ -1124,3 +1124,44 @@ Repository: `numero-uno-jpn/rStats.js`
 - Reviewed gamma/beta, combinatorics, polygamma, Bessel, error functions, extra special functions, logarithmic helper functions and public option/result types.
 - Representative path checks: `RCompatibleOptions` → rCompatible; `BesselOptions` → besselIK; `GammaincResult` → extra. The `./special` package subpath and bundle entry agree. No barrel-level computation or obvious export-path mismatch found.
 - Static inspection only; no TypeScript build or package runtime.
+
+
+
+## Audit #178 — `src/entries/tests.ts`
+
+- Repository HEAD: `b1f99b610908221c1380f18c8edf4b3bb8551e5e`; source blob: `52e4980e22ee14739c2801c965c7d348aa6a3175`.
+- Hypothesis-test/model public entry-point exports, named option/result types, model and agreement helpers; compared re-export paths with implementation files and package subpath/bundle configuration. No missing or duplicate export path identified; barrel contains no numerical algorithm.
+- Rとの関係: 該当なし（API re-export barrel）
+- 検証範囲: 静的なexport/path照合。TypeScript build・package runtime・Vitest・R実行なし。
+
+
+## Audit #179 — `src/htest/agreement.ts`
+
+- Repository HEAD: `b1f99b610908221c1380f18c8edf4b3bb8551e5e`; source blob: `435f225cc5d16a9d17207c2ebd1b7fd18bdb0386`.
+- kappa2 weighted/unweighted contingency construction, missing-pair filtering, string-sorted levels and null variance; kappamFleiss/Conger exact, category coding and variance; ICC one-way/two-way consistency/agreement, single/average units, r0, Satterthwaite df and CI; Cronbach alpha/raw-standardised/G6/alpha-drop; partial correlation and inverse-correlation solve. Shape, missing/infinite and minimum-dimension guards reviewed. No new reproducible defect confirmed.
+- Rとの関係: irr::kappa2/kappam.fleiss/icc および psych::alpha/partial.r のR由来fixtureを閲覧（未実行）。
+- 検証範囲: 具体入力: `kappa2([[1,1],[2,2],[3,2],[1,1],[2,3],[3,3]])`; `kappa2([[1,1],[1,1]],{weight:"equal"})`（単一カテゴリの退化ケース）; `kappamFleiss([[1,1,2],[2,2,2],[3,3,2],[1,1,1],[2,3,3]])`; `icc([[9,2,5,8],[6,1,3,2],[8,4,6,8],[7,1,2,6],[10,5,6,9],[6,2,4,7]],{model:"twoway",type:"agreement"})`; `cronbachAlpha([[1,2,2],[2,3,3],[3,3,4],[4,5,4],[2,2,3]])`; `partialR([[1,2,3],[2,1,5],[3,5,4],[4,3,8],[5,6,7]],0,1)`. `test/agreement.test.ts` と `test/fixtures/agreement.json` の24ケースを閲覧。ソース・fixture確認のみ。Vitest/R実行なし。
+
+
+## Audit #180 — `src/htest/ansariTest.ts`
+
+- Repository HEAD: `b1f99b610908221c1380f18c8edf4b3bb8551e5e`; source blob: `9f13bb6d406d4f36761a562aed8bb17c0ce52db4`.
+- Ansari-Bradley score/rank construction, NaN removal, ties and exact-selection threshold; exact lower/upper/two-sided tails and centre; tied normal variance; ratio-of-scales CI exact candidate ratios and normal uniroot range/tolerance; formula dispatch and one-sided CI shaping. No new reproducible defect confirmed.
+- Rとの関係: R 4.5.2 ansari.test fixtureおよびmpmath exact-distribution fixturesを閲覧（未実行）。
+- 検証範囲: 具体入力: `ansariTest([-2,-1,1,2],[-4,-3,3,4],{confInt:true})`; `ansariTest([1,2,3,4],[2,4,6,8],{exact:true})`; `ansariTest([1,1,2],[2,3,3],{exact:true,confInt:true})`（tiesでnormal branchへ移る条件）; `ansariTest("y ~ g",{y:[1,2,3,4],g:["a","a","b","b"]})`. `test/htest-core/ansari.test.ts`、`test/fixtures/ansariTest.json`（173 cases）、`test/fixtures/ansariTestConfInt.json`（183 cases）を閲覧。ソース・fixture確認のみ。Vitest/R実行なし。
+
+
+## Audit #181 — `src/htest/aov.ts`
+
+- Repository HEAD: `b1f99b610908221c1380f18c8edf4b3bb8551e5e`; source blob: `9ce3aa388e5d2200fd75c751d6c69660d0e11648`.
+- aov overload dispatch (one-way samples/groups vs formula/Error strata), one-way SS/MS/F/df and zero residual df, Tukey-Kramer pair order/SE/CI/adjusted p, and zTest argument overloads, known-SD validation, NaN filtering, minimum sample size, closed confidence-level endpoints, tail and CI quantiles, scaling for extreme magnitudes. No new reproducible defect confirmed.
+- Rとの関係: R 4.5.2 aov/TukeyHSDおよびBSDA::z.test由来fixtureを閲覧（未実行）。
+- 検証範囲: 具体入力: `aov([[2.9,3.0,2.5,2.6,3.2],[3.8,2.7,4.0,2.4],[2.8,3.4,3.7,2.2,2.0]])`; `aov("y ~ g",{y:[4.2,5.1,6.3,5.8,7.9,8.4],g:["a","a","b","b","c","c"]})`; `TukeyHSD([1.2,2.3,1.8,2.9,3.1,3.6,4.0,4.4,5.2],["a","a","a","b","b","b","c","c","c"])`; `zTest([5.1,4.9,5.6,5.8,6.0],{mu:5,sigmaX:0.5})`; extreme probe `zTest([1e308,1e308,1e308],{sigmaX:1e308})`. `test/anova.test.ts` と `test/fixtures/aovOneway.json` を閲覧。ソース・fixture確認のみ。Vitest/R実行なし。
+
+
+## Audit #182 — `src/htest/binomTest.ts`
+
+- Repository HEAD: `b1f99b610908221c1380f18c8edf4b3bb8551e5e`; source blob: `4e514e3164c1f852b325a5a04b099effc73d218c`.
+- Binomial count/scalar and [successes,failures] overloads, count and n validation, p endpoints 0/1, alternative matching, two-sided probability-ordering criterion with relative slack and monotone opposite-tail binary search, exact lower/upper tails, Clopper-Pearson beta-quantile limits, confidence-level endpoints and underflow-sensitive upper-tail quantile branch. No new reproducible defect confirmed.
+- Rとの関係: R 4.5.2 binom.test fixtureおよびSciPy由来の独立比較fixtureを閲覧（未実行）。
+- 検証範囲: 具体入力: `binomTest(682,925,{p:0.75})`; `binomTest([3,7],{p:0.5})`; `binomTest(0,10,{p:0})`; `binomTest(10,10,{p:1})`; `binomTest(0,2000,{p:0.5})`; `binomTest(1,5,{p:0.5,alternative:"greater",confLevel:0.5872345434452184})`. `test/fixtures/binomTest.json`（166 cases）と `test/fixtures/htest_binomTest.scipy.json` を閲覧。二側確率の探索は平均の両側で単調な区間だけを二分探索する構造を確認。ソース・fixture確認のみ。Vitest/R実行なし。
