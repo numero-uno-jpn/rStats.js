@@ -48,7 +48,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/beta.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/binomial.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/bvnorm.ts` | 問題あり | #94 | `05e52efbc8f54e505da82fb10555834a02666e46` | [#23](https://github.com/numero-uno-jpn/rStats.js/issues/23) | Rでは未確認 | 完全負相関の恒等式 `Y=-X` による解析値。独立CDF計算。 |
-| `src/distributions/cauchy.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/cauchy.ts` | 問題あり | #98 | `6a3eedcc2d465be8e7bbb614884e1a95ea22180d` | [#25](https://github.com/numero-uno-jpn/rStats.js/issues/25) | Rでは未確認 | `dcauchy(1.1e308, { location: 0, scale: 1e308 })`。Cauchy密度の閉形式を安全な演算順序で評価した値は約 `1.44031622707598e-309`。現行の `y / (Math.PI * scale)` は `Math.PI * scale` がInfinityとなり0。log密度経路のexp値でも照合。JS式の独立ハーネスで再現、Vitest/R未実行。 |
 | `src/distributions/chisq.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/exponential.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/f.ts` | 未監査 | — | `—` | — | — | — |
@@ -274,3 +274,16 @@ Repository: `numero-uno-jpn/rStats.js`
 - Expected-value basis: triangular closed forms; the existing test explicitly checks scale invariance, endpoint-mode inverse CDF, finite probabilities and density scaling. `ptriang`/`qtriang` fixtures generated from R 4.5.2 / extraDistr, density fixtures additionally include mpmath. Fixture contents were reviewed, not executed.
 - R relationship: `Rと同じ` for ordinary fixture cases by fixture provenance; no fresh R execution in this audit.
 - Verification limits: source-level formula/path inspection and existing test/fixture review only. No isolated runtime harness, full Vitest run, or fresh R comparison.
+
+## Audit #98
+
+- Target: `src/distributions/cauchy.ts`, `dcauchy1()`.
+- Repository HEAD: `6a3eedcc2d465be8e7bbb614884e1a95ea22180d`
+- File blob SHA: `6cb203fa576c3a71798c554feef638f69f08a2c5`
+- Result: confirmed defect; `|z| > 1` non-log density branch overflows `Math.PI * scale` for large finite scales, returning 0 when the true density is representable.
+- Exact reproduction: `dcauchy(1.1e308, { location: 0, scale: 1e308 })`; `z ≈ 1.1`.
+- Expected: approximately `1.44031622707598e-309`, from `((1 / Math.PI) / scale) / (1 + z*z)` and the closed-form Cauchy density.
+- Actual: `0`, because `Math.PI * 1e308` is `Infinity` in the current non-log branch. The log branch gives `-711.1339310435451`; exponentiating gives approximately `1.440316227076037e-309`.
+- R relationship: `Rでは未確認` (no fresh R runtime comparison).
+- Verification: exact source expression evaluated in an isolated JavaScript arithmetic harness; existing Cauchy fixture reviewed and found not to include this large-scale case. Full package/Vitest execution not performed.
+- Issue: [#25](https://github.com/numero-uno-jpn/rStats.js/issues/25) (`bug`, `area:distributions`, `priority:medium`).
