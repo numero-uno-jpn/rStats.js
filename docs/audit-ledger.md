@@ -192,7 +192,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/binomial.ts` | 問題あり | #124 | `92437f63fa655aa541de9ba9b6ae51c0bad0af5b` | — | Inversion/BTPE source review; tiny-p q^n cancellation defect confirmed by binary64 arithmetic | `n=2_000_000_000, p=1e-17`: q rounds to 1, qn=1, every inversion draw returns 0 although P(X≥1)≈2e-8. Issue #31. BTPE formula compared with current R source; fixtures R 4.5.2 inspected only. No Vitest/runtime/R execution. |
 | `src/random/common.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/continuous.ts` | 未監査 | — | `—` | — | — | — |
-| `src/random/extra.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/extra.ts` | 一部監査・問題未検出 | #130 | `75095a2c450c18de77f8ceacc259b90bd246a288` | — | extraDistr R 4.5.2 fixture を閲覧（未実行） | inverse-gamma/gamma変換、Kumaraswamy・Pareto逆関数、三角分布の2様本順序統計量法、Laplace指数・符号、arcsine逆関数、無効引数時の乱数消費と極端な有限端点をソース確認。R 4.5.2 fixture 20ケースを閲覧。Vitest・package runtime・R実行なし。 |
 | `src/random/gamma.ts` | 問題あり | #121 | `9a6b479fa51c0e16a8313c9c2518c75130c84004` | [#29](https://github.com/numero-uno-jpn/rStats.js/issues/29) | R本体 `src/nmath/rgamma.c` と不一致 | `rgamma(1,-1,{scale:0})` と `rgamma(1,0,{scale:-1})`。Rは両方0、現行はNaN。負値判定がゼロ判定より先。ソース照合で確定。Vitest・package runtime・今回のR実行なし。 |
 | `src/random/hyper.ts` | 一部監査・問題未検出 | #126 | `df63732522e39556a07f79edbb5a287f7348fa87` | — | — | — |
 | `src/random/lecuyer.ts` | 未監査 | — | `—` | — | — | — |
@@ -762,3 +762,15 @@ Repository: `numero-uno-jpn/rStats.js`
 - Exact reproducible fixture inputs inspected (not executed): `setSeed(27); rsignrank(10, 5)` expected `[4,0,15,7,10,2,0,7,9,6]`; `setSeed(28); rwilcox(10, 3, 4)` expected `[9,6,5,5,5,3,10,4,2,7]`; `setSeed(28); rwilcox(10, 0, 5)` expected ten zeros. Fixture `test/fixtures/rrank.json`, blob `31fe6958bf457cfad61ee626440e0afc00f06dc4`, identifies R 4.5.2 x86_64 and contains 10 cases; values and post-draw uniform states inspected, not executed.
 - Related exact rank distribution fixtures and tests were inspected for context (`test/rank.test.ts`), but the target here is random generation, not `dsignrank`/`dwilcox`.
 - Result: `一部監査・問題未検出`. No new Issue filed. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution.
+
+
+## Audit #130
+
+- Repository HEAD before ledger update: `75095a2c450c18de77f8ceacc259b90bd246a288`.
+- Target: `src/random/extra.ts`, blob `2e5d69e49dab41d9ae05164075051c7beb8e0dd5`.
+- Dependencies inspected: `src/random/gamma.ts` (`rgamma1`), `src/random/rng.ts` (`unifRand`, `expRand`), `src/internal/extremes.ts` (`midpoint`), and the quantile functions for Kumaraswamy, Pareto, and arcsine distributions.
+- Algorithm review: inverse-gamma via reciprocal of Gamma(shape=alpha, scale=1/beta); Kumaraswamy/Pareto via inverse CDF at 1-U; triangular via independent minimum/maximum of two uniforms and mode-weighted interpolation; Laplace via exponential magnitude plus independent sign; arcsine via inverse CDF at U. Checked stream consumption (2 uniforms for rtriang; expRand plus sign uniform for rlaplace; invalid parameters consume none), support constraints, default arguments, finite endpoints, and wide finite triangular intervals where b-a overflows.
+- Exact fixture inputs inspected (not executed): `setSeed(1); rinvgamma(10, 3, { beta: 2 })`; `setSeed(1); rkumar(10, 2, 3)`; `setSeed(1); rpareto(10, { a: 2, b: 1.5 })`; `setSeed(1); rtriang(10, { a: 0, b: 3, c: 1 })`; `setSeed(1); rlaplace(10, { mu: 1, sigma: 2 })`; invalid no-draw case `setSeed(7); rpareto(3, { a: 0, b: 1 })`.
+- Fixture: `test/fixtures/rextradist.json`, blob `1b830949954493506f09f7b1d267d189a5d1aaaf`, R 4.5.2 x86_64, 20 cases. Includes seeds 1, 42, 20261024, boundary/invalid cases and post-draw RNG states; inspected, not executed.
+- Result: `一部監査・問題未検出`. No reproducible algorithmic defect established. No Issue filed. No Vitest, package runtime, distributional simulation, or fresh R execution.
+
