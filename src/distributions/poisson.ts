@@ -30,18 +30,26 @@ export function ppois1(q: number, lambda: number, lowerTail: boolean, logP: bool
   if (lambda === 0) return dt1(lowerTail, logP);
   if (!Number.isFinite(q)) return dt1(lowerTail, logP);
   const x = Math.floor(q + 1e-7);
-  if (x + 1 !== x) return gammaInc(x + 1, lambda, !lowerTail, logP);
-  // Beyond 2^53, x + 1 rounds to x and Q(x + 1, lambda) became Q(x, lambda): ppois(1e16, 1e16) was 0.4999999987, below
+  if (x + 1 - x === 1) return gammaInc(x + 1, lambda, !lowerTail, logP);
+  // Beyond 2^53, x + 1 rounds (to x, or up to x + 2) and Q(x + 1, lambda) became Q(x, lambda): ppois(1e16, 1e16) was 0.4999999987, below
   // 1/2 (R: 0.5000000027), and qpois(0.5, 1e16) 2 above the median 1e16. Without x + 1:
   // P[X <= x] = Q(x, lambda) + dpois(x, lambda), P[X > x] = P(x, lambda) - dpois(x, lambda)
+  let v: number;
+  let term: number;
   if (!logP) {
     const t = gammaInc(x, lambda, !lowerTail, false);
-    const d = dpoisRaw(x, lambda, false);
-    return lowerTail ? t + d : t - d;
+    term = dpoisRaw(x, lambda, false);
+    v = lowerTail ? t + term : t - term;
+  } else {
+    const lt = gammaInc(x, lambda, !lowerTail, true);
+    term = dpoisRaw(x, lambda, true);
+    v = lowerTail ? logAddExp(lt, term) : logSubExp(lt, term);
   }
-  const lt = gammaInc(x, lambda, !lowerTail, true);
-  const ld = dpoisRaw(x, lambda, true);
-  return lowerTail ? logAddExp(lt, ld) : logSubExp(lt, ld);
+  if (Number.isNaN(term)) return NaN;
+  // The upper tail as a difference: where dpois is not resolved against it (deep tails, where both logs round to the
+  // same value), one unit of x is below the resolution of the result, and the rounded x + 1 serves (round 55)
+  if (lowerTail || (logP ? Number.isFinite(v) : v > 0)) return v;
+  return gammaInc(x + 1, lambda, !lowerTail, logP);
 }
 
 export function qpois1(p: number, lambda: number, lowerTail: boolean, logP: boolean): number {

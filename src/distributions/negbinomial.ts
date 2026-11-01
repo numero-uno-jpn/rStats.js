@@ -8,6 +8,7 @@
 // (for n ≫ mu, rounding 1 - p gives q a large relative error). size = Inf is the Poisson distribution.
 // Quantiles use an integer search from a Cornish-Fisher starting value.
 
+import { logAddExp, logSubExp } from "../internal/ddexp.js";
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { discreteQuantile } from "../internal/discrete.js";
@@ -59,6 +60,9 @@ function fromProb(size: number, prob: number): Params {
 /** P[X = x] (x a nonnegative integer, 0 < size < ∞, 0 < p < 1) */
 function dnbinomRaw(x: number, par: Params, log: boolean): number {
   const { size, pd, qd } = par;
+  // size + x (the trials of the binomial density below) overflows: not computed (it gave 0, and NaN with log; the
+  // density, 2.8e-155 at size = x = 1e308, would not agree with pnbinom there, as recorded in round 22)
+  if (!Number.isFinite(size + x)) return NaN;
   const b = dbinomRawDD(size, x, pd, qd, log);
   if (x === 0) return b;
   const r = size / (size + x);
@@ -72,6 +76,25 @@ const MIN_NORMAL = 2 ** -1022;
 
 /** P[X <= x] (lower) / P[X > x] (!lower) (x a nonnegative integer) */
 function pnbinomRaw(x: number, par: Params, lower: boolean, log: boolean): number {
+  if (x + 1 - x !== 1) {
+    // Beyond 2^53, x + 1 rounds (to x, or up to x + 2) and I_p(size, x + 1) became I_p(size, x) (pnbinom(1e16, 1e16, 0.5) was 0.5; R too).
+    // Without x + 1: I_p(size, x + 1) = I_p(size, x) + dnbinom(x)
+    let v: number;
+    let term: number;
+    if (!log) {
+      const t = betaIncDD(par.size, x, par.pd, par.qd, lower, false);
+      term = dnbinomRaw(x, par, false);
+      v = lower ? t + term : t - term;
+    } else {
+      const lt = betaIncDD(par.size, x, par.pd, par.qd, lower, true);
+      term = dnbinomRaw(x, par, true);
+      v = lower ? logAddExp(lt, term) : logSubExp(lt, term);
+    }
+    if (Number.isNaN(term)) return NaN;
+    // The upper tail as a difference: where dnbinom is not resolved against it (both logs near -3.5e48, or the plain
+    // difference cancels), one unit of x is below the resolution of the result, and the rounded parameter below serves
+    if (lower || (log ? Number.isFinite(v) : v > 0)) return v;
+  }
   const up = upperSeries(x, par);
   if (up !== undefined) {
     // The upper tail (the smaller side) was computed directly by the series

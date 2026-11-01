@@ -128,7 +128,9 @@ fixtureSuite({
 describe("pnbinom with q beyond 2^53", () => {
   const cases: [number, number, { prob?: number; mu?: number }, boolean, number][] = [
     [100010668931481120, 1e7, { prob: 1e-10 }, true, -1.0000000000051135],
-    [100020289663207340, 1e7, { prob: 1e-10 }, true, -1.3449942879141902],
+    // (the reference was for the decimal 100020289663207340; the double is 100020289663207344, and the upper tail at 4
+    // units further is lower by 4 dnbinom / P = 1.58e-13 in the log: -1.3449942879141902 + log1p(-4 d / P))
+    [100020289663207340, 1e7, { prob: 1e-10 }, true, -1.34499428791434796],
     [6612540300287293000, 1e-10, { mu: 1e6 }, true, -690.77552789821303],
     [6612540300287293000, 1e-10, { mu: 1e6 }, false, 1.0000000000006706e-300],
   ];

@@ -36,19 +36,27 @@ export function dbinom1(x: number, size: number, prob: number, log: boolean): nu
 /** P[X <= x] (lower) / P[X > x] (!lower). x an integer, 0 <= x < n */
 function pbinomRaw(x: number, n: number, prob: number, lower: boolean, log: boolean): number {
   // P[X <= x] = 1 - I_p(x + 1, n - x)
-  if (x + 1 !== x) return betaInc(x + 1, n - x, prob, 1 - prob, !lower, log);
-  // Beyond 2^53, x + 1 rounds to x (pbinom(1e16, 2e16, 0.5) was 0.5, the symmetric I_p(x, x); R too). Without x + 1:
+  if (x + 1 - x === 1) return betaInc(x + 1, n - x, prob, 1 - prob, !lower, log);
+  // Beyond 2^53, x + 1 rounds (to x, or up to x + 2) (pbinom(1e16, 2e16, 0.5) was 0.5, the symmetric I_p(x, x); R too). Without x + 1:
   // I_p(x + 1, n - x) = I_p(x, n - x) - (n - x)/n dbinom(x; n, p). With n - x itself rounded, no parameters are right
   const [b, err] = twoSum(n, -x);
   if (err !== 0) return NaN;
+  let v: number;
+  let term: number;
   if (!log) {
     const t = betaInc(x, b, prob, 1 - prob, !lower, false);
-    const wd = (b / n) * dbinom1(x, n, prob, false);
-    return lower ? t + wd : t - wd;
+    term = (b / n) * dbinom1(x, n, prob, false);
+    v = lower ? t + term : t - term;
+  } else {
+    const lt = betaInc(x, b, prob, 1 - prob, !lower, true);
+    term = Math.log(b / n) + dbinom1(x, n, prob, true);
+    v = lower ? logAddExp(lt, term) : logSubExp(lt, term);
   }
-  const lt = betaInc(x, b, prob, 1 - prob, !lower, true);
-  const lwd = Math.log(b / n) + dbinom1(x, n, prob, true);
-  return lower ? logAddExp(lt, lwd) : logSubExp(lt, lwd);
+  if (Number.isNaN(term)) return NaN;
+  // The upper tail as a difference: where the term is not resolved against it (deep tails, where both logs round to the
+  // same value), one unit of x is below the resolution of the result, and the rounded x + 1 serves (round 55)
+  if (lower || (log ? Number.isFinite(v) : v > 0)) return v;
+  return betaInc(x + 1, b, prob, 1 - prob, !lower, log);
 }
 
 export function pbinom1(q: number, size: number, prob: number, lowerTail: boolean, logP: boolean): number {
