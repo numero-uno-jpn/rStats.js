@@ -195,7 +195,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/extra.ts` | 一部監査・問題未検出 | #130 | `75095a2c450c18de77f8ceacc259b90bd246a288` | — | extraDistr R 4.5.2 fixture を閲覧（未実行） | inverse-gamma/gamma変換、Kumaraswamy・Pareto逆関数、三角分布の2様本順序統計量法、Laplace指数・符号、arcsine逆関数、無効引数時の乱数消費と極端な有限端点をソース確認。R 4.5.2 fixture 20ケースを閲覧。Vitest・package runtime・R実行なし。 |
 | `src/random/gamma.ts` | 問題あり | #121 | `9a6b479fa51c0e16a8313c9c2518c75130c84004` | [#29](https://github.com/numero-uno-jpn/rStats.js/issues/29) | R本体 `src/nmath/rgamma.c` と不一致 | `rgamma(1,-1,{scale:0})` と `rgamma(1,0,{scale:-1})`。Rは両方0、現行はNaN。負値判定がゼロ判定より先。ソース照合で確定。Vitest・package runtime・今回のR実行なし。 |
 | `src/random/hyper.ts` | 一部監査・問題未検出 | #126 | `df63732522e39556a07f79edbb5a287f7348fa87` | — | — | — |
-| `src/random/lecuyer.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/lecuyer.ts` | 一部監査・問題未検出 | #132 | `ff8994e573a5d1731aaf1e26d633ee907cc1bdcf` | — | R 4.5.2 L'Ecuyer fixtureを閲覧（未実行） | MRG32k3aのseed expansion・2つのmodular recurrence・uniform mapping・signed/unsigned seed復元と範囲検証を確認。fixture内の複数seed・RNG state・後続uniformを閲覧。Vitest・package runtime・R実行なし。 |
 | `src/random/mt.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/poisson.ts` | 一部監査・問題未検出 | #123 | `cf352aaf46ae22782a09d7c054fd3716a370d7a6` | — | R本体 `src/nmath/rpois.c` のAhrens–Dieter法と主要分岐・定数を照合 | λ=0, 0.1, 1, 5, 9.99, 10, 15, 50, 100, 1e4, 1e7, Inf, -1, NaN。32 fixture cases (R 4.5.2) inspected only. No new reproducible defect; source review only, no Vitest/runtime/R/simulation. Extreme λ beyond fixture and precision/overflow behavior not exhaustively validated. |
 | `src/random/r2dtable.ts` | 一部監査・問題未検出 | #127 | `8ccc84fc49823aa54db9eb23da7d7b3df00033f0` | — | — | — |
@@ -784,4 +784,14 @@ Repository: `numero-uno-jpn/rStats.js`
 - Exact test inputs inspected (not executed): `RNGkind({ kind: "L'Ecuyer-CMRG" }); setSeed(1); nextRNGStream(getRandomSeed())`; corresponding `nextRNGSubStream`; repeated jump sequence `stream → stream → stream`; mixed sequence `stream → substream → stream`. Fixture `test/fixtures/rngStreams.json`, blob `1355f6e7efe30f8e1d01b6ba1843ff75b6c502ec`, R 4.5.2 x86_64, includes resulting seven-word states, first five uniforms and next uniform.
 - The existing `test/random-kinds.test.ts` independently reconstructs each transition matrix by BigInt repeated squaring from the published MRG32k3a recurrence and compares the jump outputs. Test source was inspected but not executed. Arithmetic bound check: each split product and intermediate modular sum remains below 2^53, so integer arithmetic is exactly representable in binary64.
 - Result: `一部監査・問題未検出`. No matrix/layout defect established by source review. No Issue filed. No Vitest, standalone harness, or fresh R execution.
+
+
+
+## Audit #132
+
+- Repository HEAD before ledger update: `ff8994e573a5d1731aaf1e26d633ee907cc1bdcf`.
+- Target: `src/random/lecuyer.ts`, blob `7bd112bb422a4e4b8dd2bbcf3badaa4da4efe4c3`.
+- Algorithm review: MRG32k3a moduli M1=4294967087 and M2=4294944443; 50-step LCG seed scrambling and rejection of seed words >=M2; component recurrences and state shift order; combined output (p1-p2 mod M1)/(M1+1); exact integer arithmetic bounds (<2^53); import/export of six state words with R's signed Int32 representation; all-zero first component and out-of-range state rejection.
+- Exact inputs inspected (not executed): `RNGkind({ kind: "L'Ecuyer-CMRG" }); setSeed(1); runif(10)`; same with seeds `42`, `2024`, `2147483647`, and `-2147483647`; restoration with `setRandomSeed([10407, 1, 2, 3, 4, 5, 6]); runif(5)`. The `test/fixtures/rngLecuyer.json` fixture identifies R 4.5.2 x86_64 and records uniforms, resulting states and next-uniform values. The fixture was inspected, not executed.
+- Result: `一部監査・問題未検出`. No recurrence, modulus, seed-expansion, or state-layout defect established by source review. The implementation deliberately throws for invalid states where R may reseed from the clock; this is a documented API behavior difference, not treated as a random-number algorithm defect. No Issue filed. No Vitest, standalone harness, or fresh R execution.
 
