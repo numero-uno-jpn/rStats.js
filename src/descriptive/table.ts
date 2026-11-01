@@ -67,6 +67,8 @@ export function table(
   counts: number[];
 } {
   const useNA = options.useNA ?? "no";
+  // (as R's match.arg; any other value was taken as "no", silently dropping the count of missing values; issue #18)
+  if (useNA !== "no" && useNA !== "ifany" && useNA !== "always") throw new RangeError("'arg' should be one of “no”, “ifany”, “always”");
   const xs = numberLevels(Array.from(x));
   const map = new Map<number, number>();
   let nas = 0;
