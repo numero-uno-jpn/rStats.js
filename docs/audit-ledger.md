@@ -52,7 +52,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/chisq.ts` | 問題あり | #100 | `94e98787221087403c05cdb46f69f55c0760823b` | [#26](https://github.com/numero-uno-jpn/rStats.js/issues/26) | Rと同じ（負の自由度は無効。今回R実行なし） | `df=-Number.MIN_VALUE`（-5e-324）は `df<0` だが `df/2` が `-0` に丸められる。`chisq.ts` が先に `df/2` を渡し、gamma側では `shape<0` が偽・`shape===0` が真となり、`dchisq(0,df)=Infinity`、`dchisq(1,df)=0`、`pchisq(1,df)=1`、`qchisq(0.5,df)=0` 相当のshape=0経路に入る。IEEE-754の丸めと `gamma.ts` の分岐をソース追跡。package/Vitest/R未実行。 |
 | `src/distributions/exponential.ts` | 問題あり | #102 | `1aaef113968bfa70a39ed2c501e3b65238763409` | [#27](https://github.com/numero-uno-jpn/rStats.js/issues/27) | Rも誤り | `pexp(1e-20, { rate: 1e-300, logP: true })`。現行値 -736.8272408909739、数学的期待値 ln(1e-320) = -736.8272297580946。`mulDD`/`twoProd` の subnormal 積で残差が失われ、`logOneMinusExpNeg` が丸め済み積を対数化する。既存 known-violation が同じR値を記録。高精度Decimal計算とソース追跡。実行/Vitest/今回のR照合なし。
 | `src/distributions/f.ts` | 未監査 | — | `—` | — | — | — |
-| `src/distributions/gamma.ts` | 未監査 | — | `—` | — | — | — |
+| `src/distributions/gamma.ts` | 一部監査・問題未検出 | #118 | `e9ba1c35ef88e77e84a392562bb7f62378fcbf7f` | — | R 4.5.2 fixtureを確認（未実行） | #118でrate/scale変換、dgamma/pgamma/qgammaの境界分岐・特殊値・tiny領域への入口をソース確認。fixtureのshape=0/Inf、subnormal p、log/upper-tailケースを閲覧。実行・全数値領域監査は未実施。 |
 | `src/distributions/geometric.ts` | 問題未検出 | #103 | `fe88f1b31ddb3a69cef524aeb9aa5dd08509e0a8` | — | Rと同じ（通常 fixture は R 4.5.2 由来。今回R実行なし） | `dgeom1`/`pgeom1`/`qgeom1`、`probPair`/`qPow` の通常・subnormal・巨大整数経路、支持域・入力検証、上下尾・logP、離散分位点の境界補正をソース追跡。R 4.5.2由来の d/p/qgeom fixture（計6112ケース）を閲覧。CHANGELOGの `pgeom(1e290, 5e-324)` と `pgeom(8.7e299, 1.1e-300)` の修正記録も照合。fixture/Vitest/package runtime/R実行なし。 |
 | `src/distributions/hypergeometric.ts` | 未監査 | — | `—` | — | — | — |
 | `src/distributions/invgamma.ts` | 未監査 | — | `—` | — | — | — |
@@ -601,3 +601,33 @@ Repository: `numero-uno-jpn/rStats.js`
   ```
 - Tests: inspected the survival fixture comparison harness and existing missing-row/invalid-argument tests. The fixture includes `survdiff` comparisons for its recorded rho values; neither tests nor fixtures were executed. No package runtime, Vitest, standalone harness, or fresh R execution.
 - Limitations: source/formula review only; no generated-data search for a finite-precision covariance that triggers `solve()` failure, no runtime comparison of p-values, and no fresh R execution. No Issue filed.
+
+
+## Audit #118
+
+- Repository HEAD before ledger update: `485683a17ddfe32ba421de0f86aef69aed1fec6b`.
+- Primary source: `src/distributions/gamma.ts` blob `e9ba1c35ef88e77e84a392562bb7f62378fcbf7f`.
+- Related source: `src/special/loader.ts` blob `798b92185091204205e77d1e8e81e4591e7d78c3`; `src/special/igam.ts` blob `b06dd71a2f60ebe59d92e8759b0b6af7aebc2620`; `src/internal/invert.ts` blob `54aeaa15ec93053e2dd5fd19fc640a9fbf243a76`; `src/internal/dpq.ts` blob `543eb6ceb3de7627a7562b035a931a88da424aa7`; `src/special/gamma.ts` blob `f630bdd496fc204dd24b6b04603c7b511a5cb107`.
+- Tests/fixtures inspected: `test/gamma.test.ts` blob `db75474bb21ad3531f9ae071cffa359023e1af37`; `test/fixtures/dgamma.json` blob `da6fa106d4b824cb620dd14b0d2b7d930c98482a`; `test/fixtures/pgamma.json` blob `bbfde310b6ca200dcbfab9cb5fa5557c0eb123f8`; `test/fixtures/qgamma.json` blob `47d054f6330d83ab05bb9d66576f229abe8cc72f`; fixture metadata identifies R 4.5.2.
+- Result: `一部監査・問題未検出`. This pass focused on parameter conversion and boundary/special-value handling in `dgamma1`, `pgamma1`, and `qgamma1`, plus the handoff to incomplete-gamma and quantile inversion routines. No reproducible defect was established. This is not a full numerical certification of gamma distribution functions.
+- Parameter conversion: `gammaScale()` uses default scale 1, accepts either rate or scale, and checks the combined form via `abs(rate*scale-1)<1e-15`. Zero/subnormal rate can produce infinite scale; downstream branches explicitly handle this limit. No independent defect was demonstrated in the inspected cases.
+- Density boundaries: NaN propagation, negative x, shape 0, x=0 with shape below/equal/above 1, subnormal standardized x, log-density cancellation fallback, shape Infinity, and scale Infinity were traced. The Poisson-core special cases support the observed shape-Infinity limits in the R fixture, including x=Infinity.
+- CDF boundaries: q=Infinity is handled before q/scale to avoid Inf/Inf; shape 0, shape Infinity, q<=0, subnormal x/scale, lower/upper tails, and log probabilities are routed explicitly. Tiny lower-tail probabilities are assembled from `log(x)-log(scale)` in double-double arithmetic; upper-tail complements use `expm1`/ `log1p` paths in the small-x branch.
+- Quantile boundaries: range/endpoints are handled by `quantileBoundaries()`; shape 0, shape Infinity, and scale Infinity have explicit branches. For subnormal quantiles, `logTinyGammaQuantile()` works in log space; otherwise `invertContinuous()` uses a safeguarded bracket and log-CDF residuals. No concrete inconsistency was established from source review.
+- Exact deterministic inputs reviewed (source/fixture inspection only; not executed):
+  ```ts
+  // Boundary density and CDF cases
+  const x = [0, -1, 1e-320, 1, Infinity, NaN];
+  const shapes = [0, 0.5, 1, 2, Infinity];
+  const scale = 1;
+
+  // Tiny lower-tail quantile cases from the R 4.5.2 fixture
+  const p = 9.9998886718268301e-321;
+  const qShapes = [0.5, 1, 1.5, 2, 3, 10, 100, 1e6];
+  const qScale = 1;
+
+  // Scale conversion at the subnormal-rate boundary
+  const rates = [5e-324, 1e-308, 1, 1e308];
+  ```
+- Tests: inspected fixture-driven tests at tolerance `1e-14`, including log density, all tail/logP combinations, and inverse-CDF backward checks. Inspected R 4.5.2 fixture cases for shape 0/Infinity and subnormal p. Tests and fixtures were not executed. No package runtime, Vitest, standalone harness, or fresh R execution.
+- Limitations: only boundary/dispatch and numerical-stability pathways were reviewed. The full incomplete-gamma series/continued-fraction/asymptotic implementations, all quantile convergence regimes, and broad random/high-precision comparisons remain for separate audits. No Issue filed.
