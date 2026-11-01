@@ -198,7 +198,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/lecuyer.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/mt.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/poisson.ts` | 一部監査・問題未検出 | #123 | `cf352aaf46ae22782a09d7c054fd3716a370d7a6` | — | R本体 `src/nmath/rpois.c` のAhrens–Dieter法と主要分岐・定数を照合 | λ=0, 0.1, 1, 5, 9.99, 10, 15, 50, 100, 1e4, 1e7, Inf, -1, NaN。32 fixture cases (R 4.5.2) inspected only. No new reproducible defect; source review only, no Vitest/runtime/R/simulation. Extreme λ beyond fixture and precision/overflow behavior not exhaustively validated. |
-| `src/random/r2dtable.ts` | 未監査 | — | `—` | — | — | — |
+| `src/random/r2dtable.ts` | 一部監査・問題未検出 | #127 | `8ccc84fc49823aa54db9eb23da7d7b3df00033f0` | — | — | — |
 | `src/random/rank.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/rng.ts` | 未監査 | — | `—` | — | — | — |
 | `src/random/sample.ts` | 未監査 | — | `—` | — | — | — |
@@ -758,3 +758,15 @@ Repository: `numero-uno-jpn/rStats.js`
 - Fixture inspected: `test/fixtures/rhyper.json` blob `39ca835db17abaf839fa97848fa7fbf4eeead82c`, R 4.5.2, 19 cases. Includes support boundaries, half-integer parameter rounding, populations larger than INT_MAX, and larger simulation summaries. Fixture values and post-draw RNG states inspected, not executed.
 - Current R docs describe rhyper as corrected Kachitvichyanukul–Schmeiser HIN/H2PE. R-devel July 2026 discussion records a 32-bit overflow defect when m+n exceeds INT_MAX and its fix (svn rev 90223). This TypeScript implementation uses JS numbers for N when both parameters are below INT_MAX, and routes larger individual parameters to qhyper1, so the specific signed-int overflow is not reproduced by the reviewed path.
 - Result: `一部監査・問題未検出`. No new Issue filed. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution.
+
+
+## Audit #127
+
+- Repository HEAD before ledger update: `cd3524756e9b5a883af0e9358e23272a8fee2cc3`.
+- Target: `src/random/r2dtable.ts`, blob `8ccc84fc49823aa54db9eb23da7d7b3df00033f0`.
+- Algorithm review: Patefield AS 159 conditional hypergeometric cells, mode calculation, upward/downward probability ratios, cumulative-probability restart when rounding leaves a residual, last column/last row margin completion, zero remaining subtable branch, column-major internal storage and row-array public output.
+- Validation review: truncation of n and margins as R integer coercion; finite/range checks; at least two rows/columns; nonnegative margins; equal grand totals; maximum total guard; zero-total tables; n=0 behavior.
+- Exact fixed inputs reviewed (not executed): `setSeed(1); r2dtable(1, [3, 2], [2, 3])`; `setSeed(42); r2dtable(5, [0, 6, 4], [5, 0, 5])`; `setSeed(2024); r2dtable(5, [12, 5, 7, 7], [9, 11, 11])`; `setSeed(1); r2dtable(1, [0, 0], [0, 0])`; coercion check `r2dtable(1, [3.9, 2.1], [2.9, 3.1])`.
+- Fixture inspected: `test/fixtures/r2dtable.json` blob `c12c8b89aebf9ef0c3839070980dfbb6e49ce22e`, R 4.5.2 x86_64, 73 cases. Includes 2x2 through 8x4 tables, zero margins, zero grand total, totals up to 300,000, multiple seeds, and n=200; fixed output and next-uniform states inspected, not executed. Test registration in `test/random.test.ts` inspected, not executed.
+- No independent algorithmic defect established. Resource note: the allowed maximum grand total of 2,147,483,647 would require a Float64Array with over 2 billion entries (roughly 16 GiB before other allocations); practical allocation may fail well below this guard, but it is a resource ceiling rather than a demonstrated statistical result error.
+- Result: `一部監査・問題未検出`. No new Issue. No Vitest, package runtime, Monte Carlo simulation, or fresh R execution.
