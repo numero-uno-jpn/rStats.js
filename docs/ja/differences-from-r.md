@@ -350,6 +350,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 |---|---|---|
 | `qbeta` の答えがアンダーフローする (たとえば `qbeta(0.5, 1e-10, 2.5)`) | 2^-1024 (5.56e-309) | 0 |
 | `qf` の答えがオーバーフローする (たとえば `qf(-1e-300, 1, 1, log.p = TRUE)`) | 2^1023 付近の有限値 | Inf |
+| df = -5e-324 (最小の負の非正規化数) の `dchisq`・`pchisq`・`qchisq` | df / 2 が -0 に丸められ、0 の 1 点分布になる。Inf、0、1、0 | NaN (負の df は定義されない) |
 | size が整数でない `qbinom` (たとえば 2.5) | `pbinom` の NaN で探索し、意味のない値 (-0 を含む) を返す | NaN (`dbinom`、`pbinom` と同じ) |
 | max − min がオーバーフローする一様分布 (min = -1e308、max = 1e308) | Inf / 0 / NaN | 両端を半分にして計算 (`dunif` は 5e-309、`punif(-1)` は 0.5、`qunif(0.5)` は 0) |
 | 重みは有限だが合計がオーバーフローする `dmultinom` (`dmultinom(c(1, 1), prob = c(1e308, 1e308))`) | 0 (log は -Inf) | 0.5 (log は -0.693)。重みを 2 の冪で割ってから合計する |

@@ -33,7 +33,9 @@ export function dchisq<T extends Vectorizable>(
 ): VectorResult<T> {
   const { log = false, ncp } = options;
   if (ncp !== undefined) return vectorize(x, (v) => dnchisq1(v, df, ncp, log));
-  return vectorize(x, (v) => dgamma1(v, df / 2, 2, log));
+  // (df < 0 is invalid: df / 2 of -5e-324 rounded to -0, the point mass at 0, as in R; issue #26)
+  const half = df < 0 ? NaN : df / 2;
+  return vectorize(x, (v) => dgamma1(v, half, 2, log));
 }
 
 /**
@@ -61,7 +63,8 @@ export function pchisq<T extends Vectorizable>(
 ): VectorResult<T> {
   const { lowerTail = true, logP = false, ncp } = options;
   if (ncp !== undefined) return vectorize(q, (v) => pnchisq1(v, df, ncp, lowerTail, logP));
-  return vectorize(q, (v) => pgamma1(v, df / 2, 2, lowerTail, logP));
+  const half = df < 0 ? NaN : df / 2;
+  return vectorize(q, (v) => pgamma1(v, half, 2, lowerTail, logP));
 }
 
 /**
@@ -89,5 +92,6 @@ export function qchisq<T extends Vectorizable>(
 ): VectorResult<T> {
   const { lowerTail = true, logP = false, ncp } = options;
   if (ncp !== undefined) return vectorize(p, (v) => qnchisq1(v, df, ncp, lowerTail, logP));
-  return vectorize(p, (v) => qgamma1(v, df / 2, 2, lowerTail, logP));
+  const half = df < 0 ? NaN : df / 2;
+  return vectorize(p, (v) => qgamma1(v, half, 2, lowerTail, logP));
 }
