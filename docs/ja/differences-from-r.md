@@ -102,6 +102,8 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | 1e-200 前後の値の相関 | アンダーフローして NA | 有限の結果 (同上) |
 | `fisher.test` (2 x 2) と `mantelhaen.test(exact = TRUE)` の条件付き最尤推定値と信頼限界 | psi の [0, 1] か 1/psi の [eps, 1] で、絶対許容誤差 eps^0.25 の uniroot を使う。[[3, 1], [1, 3]] では推定値が 1.7e-6、95% の限界が 1.3e-5 と 0.7% (626.24 が 621.93)、99% の上限が 6% ずれ、99.99% の限界は区間の端 1/eps (3.2e5 が 4.5e15) | psi の対数の座標で、double の精度まで根を求める (限界で片側確率が alpha、推定値で平均が度数に一致する) |
 | logit リンクで \|eta\| が 30 を超える `glm` | C コードが逆リンクと微分を eps の値でクリップする (30 で 1 − 9.4e-14、すぐ先で 1 − 2.2e-16 に跳ぶ)。x = 1、2 で度数 (1e15, 1)、(1, 2) の binomial は deviance 2139 で止まり、収束しない (解は eta = log 1e15) | 30 の先も厳密な値。1 未満の最大の double と最小の double で止める。deviance 0.013 (1 − y = 1/(1e15 + 1) の表現で決まる)。30 以内は R と同じ |
+| 端の値での probit・cauchit・cloglog・power リンクの `glm` | `make.link` が eta (または mu) を eps の値で、微分を eps でクリップする。Phi(−10) = 7.6e-24、1 − exp(−e^-40) = 4.2e-18、平均 1e-16 (power 0.5) が 2.2e-16 に、−1e9 での cauchit の微分 3.2e-19 も 2.2e-16 になる | 厳密な値。最小の double と 1 未満の最大の double で (0, 1) に収める。R の範囲内は R と同じ |
+| 小さな平均での cloglog リンク `log(-log(1 - mu))` | 1 − mu が 1 に丸まり、mu = 1e-20 で −Inf (`glm` は "NA/NaN/Inf in 'y'" で止まる) | `log(-log1p(-mu))` で有限 |
 | log リンクで eta < −36 の `glm` | `pmax(exp(eta), eps)`。平均 e^-100 が 2.2e-16 になる | 最小の double まで exp(eta) |
 | 分離したデータの `glm` (x = 1..6 で y = 0, 0, 0, 1, 1, 1 の binomial、度数 0 を含む飽和 Poisson) | 収束と報告し、係数 (−165, 47) は反復が止まった位置にすぎない。警告はせいぜい "fitted probabilities numerically 0 or 1 occurred" | `converged` は同じ。警告 "the linear predictor was still changing at convergence: the data may be separated (no finite maximum likelihood estimates)" を付ける (最後のステップで eta が 0.1 より大きく動いた)。厳密な logit リンクでは係数はさらに先まで進む |
 | IRLS のステップで deviance が増える `glm` (すべての重みが 1000 の binomial の `y ~ x`) | `glm.fit` はそのステップを受け入れる。deviance は 7564、89255、144175 と進んでそこで止まり、係数 1e15 で「収束」(最大は 4956) | deviance が相対 epsilon (既定 1e-8) 以上増えるあいだステップを半分にする (glm2 の規則)。重み 1 と同じ最大に届く。警告 "step size truncated due to increasing deviance" |
@@ -166,6 +168,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | D >= 1/2 で p 値が極小の `ks.test(x, "punif", exact = TRUE)` (D = 0.9、n = 20・50・99) | 0、8.9e-16、2.0e-15 (1 - P(D < d) で桁が落ちる) | 2.0e-20、2.0e-50、2.05e-99。d >= 1/2 では P(D >= d) = 2 P(D+ >= d) を正の項の和で求める |
 | 有限なデータの範囲や偏差が溢れる `quade.test`・`fligner.test` (-1e308〜1e308 と -9e307〜9e307 の行) | どちらも Inf で同順位になり、尺度を変えると結果が変わる | その場合は共通の 2 の冪で割ってから計算し、どの尺度でも同じ結果 |
 | 不一致の度数がない組を含む r x r 表の `mcnemar.test` | 統計量と p 値が NaN | その組の寄与を 0 にする (自由度は変えない) |
+| 二乗が溢れる `predict(glm, newdata, se.fit = TRUE)` (newdata 1e155) | se.fit が Inf | 最大の値で割ってからノルムを作る: 1.07e154 |
 | すべての重みが 1e-308 未満の `lm` | 標準誤差 Inf (5e-324 で NaN)、t 0、p 1 | 重み 1 と同じ値 ((R'R)^-1 を、重みを 2 の冪で割った尺度で作る) |
 | 大きい方のモデルが実質的に完全適合する `anova(fit1, fit2)` (y = 1 + x + z が厳密に成り立つ) | 警告なしで F 2.6e30、p 4e-16 (1 つのモデルの表は警告する) | 同じ値に警告 "ANOVA F-tests on an essentially perfect fit are unreliable" を付ける |
 | `p.adjust(p, "BY", n = Inf)`、`"holm"` で `n = Inf` | "result would be too long a vector"、すべて 1 | エラー (n は有限)。BY で n が 1e6 を超えると調和数を漸近展開で求める |

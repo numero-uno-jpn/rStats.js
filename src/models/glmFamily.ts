@@ -12,8 +12,6 @@ import { dnorm, pnorm, qnorm } from "../distributions/normal.js";
 import { dpois1, nonInteger } from "../distributions/poisson.js";
 import { roundHalfEven } from "../internal/integer.js";
 
-const EPS = 2 ** -52;
-
 /**
  * Names of the families of R's stats.
  *
@@ -162,6 +160,9 @@ function logit(m: number): number {
 
 const LINK_NAMES: readonly string[] = ["logit", "probit", "cauchit", "cloglog", "identity", "log", "sqrt", "1/mu^2", "inverse"];
 
+/** A probability kept within (0, 1): the least double and the largest double below 1 at the ends */
+const inUnit = (p: number): number => Math.min(Math.max(p, Number.MIN_VALUE), 1 - 2 ** -53);
+
 function namedLink(name: GlmLinkName): LinkFunctions {
   switch (name) {
     case "identity":
@@ -216,34 +217,34 @@ function namedLink(name: GlmLinkName): LinkFunctions {
         },
         etaOk: anyEta,
       };
-    case "probit": {
-      const c = -qnorm(EPS);
+    // probit, cauchit and cloglog: R clamps eta (or mu) to the values at eps and the derivative to eps (Phi(-10) =
+    // 7.6e-24 was 2.2e-16); here the exact values, kept within (0, 1) by the least double and the largest double
+    // below 1 as logit. Within R's range the same values
+    case "probit":
       return {
         name,
         link: (m) => qnorm(m),
-        linkinv: (e) => pnorm(Math.min(Math.max(e, -c), c)),
-        muEta: (e) => Math.max(dnorm(e), EPS),
+        linkinv: (e) => inUnit(pnorm(e)),
+        muEta: (e) => Math.max(dnorm(e), Number.MIN_VALUE),
         etaOk: anyEta,
       };
-    }
-    case "cauchit": {
-      const c = -qcauchy1(EPS, 0, 1, true, false);
+    case "cauchit":
       return {
         name,
         link: (m) => qcauchy1(m, 0, 1, true, false),
-        linkinv: (e) => pcauchy1(Math.min(Math.max(e, -c), c), 0, 1, true, false),
-        muEta: (e) => Math.max(dcauchy1(e, 0, 1, false), EPS),
+        linkinv: (e) => inUnit(pcauchy1(e, 0, 1, true, false)),
+        muEta: (e) => Math.max(dcauchy1(e, 0, 1, false), Number.MIN_VALUE),
         etaOk: anyEta,
       };
-    }
     case "cloglog":
       return {
         name,
-        link: (m) => Math.log(-Math.log(1 - m)),
-        linkinv: (e) => Math.min(Math.max(-Math.expm1(-Math.exp(e)), EPS), 1 - EPS),
+        // log1p: 1 - mu rounded to 1 for small means (log(-log(1 - 1e-20)) was -Infinity, R too)
+        link: (m) => Math.log(-Math.log1p(-m)),
+        linkinv: (e) => inUnit(-Math.expm1(-Math.exp(e))),
         muEta: (e) => {
           const t = Math.min(e, 700);
-          return Math.max(Math.exp(t) * Math.exp(-Math.exp(t)), EPS);
+          return Math.max(Math.exp(t) * Math.exp(-Math.exp(t)), Number.MIN_VALUE);
         },
         etaOk: anyEta,
       };
@@ -261,8 +262,9 @@ function powerLink(lambda: number): LinkFunctions {
   return {
     name: `mu^${Math.round(lambda * 1000) / 1000}`,
     link: (m) => m ** lambda,
-    linkinv: (e) => Math.max(e ** inv, EPS),
-    muEta: (e) => Math.max(inv * e ** (inv - 1), EPS),
+    // (R: pmax(..., eps), so a mean of 1e-16 was 2.2e-16)
+    linkinv: (e) => Math.max(e ** inv, Number.MIN_VALUE),
+    muEta: (e) => Math.max(inv * e ** (inv - 1), Number.MIN_VALUE),
     etaOk: positive,
   };
 }

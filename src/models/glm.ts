@@ -759,7 +759,8 @@ export function glmSummary(given: GlmResult, options: GlmSummaryOptions = {}): G
     stdError: stdError.map(up),
     statistic,
     pValue,
-    statisticName: fam.fixedDispersion ? "z value" : "t value",
+    // (z whenever the dispersion is not estimated, as R: a given dispersion was named "t value")
+    statisticName: zTest ? "z value" : "t value",
     covUnscaled,
     covScaled: covUnscaled.map((r) => r.map((v) => up2(v * dispersion))),
     dfResidual: fit.dfResidual,
@@ -971,6 +972,11 @@ export function glmPredict(
       for (let k = 0; k < i; k++) s -= R![k]![i]! * z[k]!;
       z[i] = s / R![i]![i]!;
       ss += z[i]! * z[i]!;
+    }
+    // the squares overflowed (newdata 1e155: Infinity, R too) or underflowed: the norm of z divided by its largest
+    if (!(ss >= 2 ** -1022 && ss < Infinity)) {
+      const top = z.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+      if (top > 0 && Number.isFinite(top)) return top * Math.sqrt(z.reduce((t, v) => t + (v / top) ** 2, 0)) * Math.sqrt(disp);
     }
     return Math.sqrt(ss) * Math.sqrt(disp);
   });
