@@ -252,6 +252,10 @@ function cholFactor(m: number[][], tol: number): number {
     if (!Number.isFinite(pivot) || pivot < limit) {
       m[i]![i] = 0;
       if (pivot < -8 * limit) nonNegative = false;
+      // the column dropped as a whole: its residual cross-products below were left (as survival's cholesky2) and the
+      // forward substitution of cholSolve and cholInverse used them, so a nearly aliased column still entered the
+      // solution and the variance (by about the tolerance; issue #13). With them 0 the fit is that without the column
+      for (let j = i + 1; j < p; j++) m[j]![i] = 0;
       continue;
     }
     rank++;
