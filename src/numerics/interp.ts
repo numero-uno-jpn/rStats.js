@@ -630,11 +630,26 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
   const lo = minOf(X);
   const hi = maxOf(X);
   if (xs.some((v) => v < lo || v > hi)) throw new RangeError("Some interpolation points outside the nodes.");
-  const w = X.map((a, j) => {
+  // The weights 1 / prod (x_j - x_k), each product kept as m 2^e (renormalised beyond 2^±500), then all of them by one
+  // common power of 2 (which leaves the interpolant unchanged): the products of nodes of 1e200 overflowed and every
+  // weight was 0, the result NaN (pracma's too; issue #14). Without renormalisation the weights are as before
+  const parts = X.map((a, j) => {
     let p = 1;
-    for (let k = 0; k < n; k++) if (k !== j) p *= a - X[k]!;
-    return 1 / p;
+    let e = 0;
+    for (let k = 0; k < n; k++) {
+      if (k === j) continue;
+      p *= a - X[k]!;
+      const m = Math.abs(p);
+      if (m > 2 ** 500 || (m < 2 ** -500 && m > 0)) {
+        const f = Math.floor(Math.log2(m));
+        p = ldexp(p, -f);
+        e += f;
+      }
+    }
+    return { p, e };
   });
+  const shift = parts.reduce((s, q) => Math.max(s, -q.e), -Infinity);
+  const w = parts.map((q) => ldexp(1 / q.p, -q.e - shift));
   return xs.map((v) => {
     let num = 0;
     let den = 0;
