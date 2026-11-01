@@ -213,7 +213,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/special/erf.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/extra.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/gamma.ts` | 未監査 | — | `—` | — | — | — |
-| `src/special/igam.ts` | 未監査 | — | `—` | — | — | — |
+| `src/special/igam.ts` | 一部監査・問題未検出 | #119 | `b06dd71a2f60ebe59d92e8759b0b6af7aebc2620` | — | R 4.5.2由来pgamma fixtureを閲覧（未実行） | #119で下側級数、上側連分数/Lentz、Temme漸近、巨大x・極小shapeの特別経路をソース追跡。境界と分岐点の固定入力を整理。fixture/Vitest/独立数値計算は未実行。全域精度は未認証。 |
 | `src/special/igamAsympCoeff.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/igami.ts` | 未監査 | — | `—` | — | — | — |
 | `src/special/incbet.ts` | 未監査 | — | `—` | — | — | — |
@@ -631,3 +631,33 @@ Repository: `numero-uno-jpn/rStats.js`
   ```
 - Tests: inspected fixture-driven tests at tolerance `1e-14`, including log density, all tail/logP combinations, and inverse-CDF backward checks. Inspected R 4.5.2 fixture cases for shape 0/Infinity and subnormal p. Tests and fixtures were not executed. No package runtime, Vitest, standalone harness, or fresh R execution.
 - Limitations: only boundary/dispatch and numerical-stability pathways were reviewed. The full incomplete-gamma series/continued-fraction/asymptotic implementations, all quantile convergence regimes, and broad random/high-precision comparisons remain for separate audits. No Issue filed.
+
+
+## Audit #119
+
+- Repository HEAD before ledger update: `71dedbac8b2db4dc3611072f69abccd748aaaf36`.
+- Primary source: `src/special/igam.ts` blob `b06dd71a2f60ebe59d92e8759b0b6af7aebc2620`.
+- Related source: `src/special/igamAsympCoeff.ts` blob `303c31a00d04790f242125345c8a1d6e984b0774`; `src/special/loader.ts` blob `798b92185091204205e77d1e8e81e4591e7d78c3`; `src/special/gamma.ts` blob `f630bdd496fc204dd24b6b04603c7b511a5cb107`; `src/internal/dpq.ts` blob `543eb6ceb3de7627a7562b035a931a88da424aa7`.
+- Tests/fixtures inspected: `test/gamma.test.ts` blob `db75474bb21ad3531f9ae071cffa359023e1af37`; `test/fixtures/pgamma.json` blob `bbfde310b6ca200dcbfab9cb5fa5557c0eb123f8`; `test/fixtures/qgamma.json` blob `47d054f6330d83ab05bb9d66576f229abe8cc72f`. Fixtures identify R 4.5.2. No dedicated `test/igam.test.ts` file at the inspected path.
+- Result: `一部監査・問題未検出`. No reproducible error was established in the inspected branch dispatch or formula structure. This is not a proof of full-domain accuracy.
+- Lower-tail series: `igamSeriesSum` sums positive terms and stops on relative term size; for large a and x > 0.97a it switches to a double-double recurrence with a geometric remainder bound. The final prefactor is based on Loader's `dpoisRaw`, with log-domain fallback when the linear prefactor is subnormal.
+- Upper-tail continued fraction: the ordinary convergent recurrence rescales all four recurrence values when the numerator exceeds `BIG`; for x > 1e20 it switches to modified Lentz ratios to avoid overflow. Initial denominator is positive in the dispatch region x>=a; zero intermediate denominators are guarded by `tiny`.
+- Small-x complementary series: `igamcSeries` uses alternating terms and `expm1` for the leading cancellation, with `lgamma1p(a)` to retain precision for tiny a. Direct-tail selection computes the smaller side and uses `log1p` or `expm1` when constructing the complement.
+- Temme asymptotics: reviewed the sign of eta, lower/upper correction sign, coefficient table dimensions (25×25), term truncation, and the separate `temmeTail` representation using `bd0dd` and `erfcx`. The region split is explicit: xsf-like central region, near-mean large-a region, and `a>1e299` far-asymptotic region. No sign or branch contradiction was found by formula inspection.
+- Special branches: reviewed a=0, x=0, negative inputs, NaN/Infinity, a<1e-300 upper-tail scaling, and x > 1e15*max(a,1) large-x approximation. The large-x branch is taken before the continued fraction to avoid its initial product overflow.
+- Exact deterministic inputs reviewed (source-level branch selection only; not executed):
+  ```ts
+  const cases = [
+    { a: 10, x: 5 },           // lower series
+    { a: 10, x: 20 },          // upper continued fraction
+    { a: 100, x: 100 },        // central Temme region
+    { a: 1000, x: 999.5 },     // large-a near-mean Temme region
+    { a: 1e14, x: 0.99e14 },   // large-a series / long-tail convergence regime
+    { a: 1e300, x: 1e300 },    // huge-a far asymptotic
+    { a: 2, x: 1e21 },         // large-x asymptotic
+    { a: 1e-310, x: 1 },       // tiny-shape upper-tail scaling
+  ];
+  const tails = [true, false]; // lower P and upper Q
+  ```
+- Tests: inspected fixture-driven gamma tests and R 4.5.2 pgamma/qgamma fixtures; neither executed. No Vitest, package runtime, standalone harness, mpmath/MPFR comparison, or fresh R execution.
+- Limitations: no numerical evaluation of branch-boundary continuity, no high-precision grid around `SMALL`, `LARGE`, `SMALLRATIO`, `LARGERATIO`, `HUGE_A`, `A_SUB`, or `1e20`; no adversarial search for convergence-limit failures. No Issue filed.
