@@ -5,7 +5,7 @@
 // table the continuity correction replaces |n_12 - n_21| by |n_12 - n_21| - 1.
 
 import { pgamma1 } from "../distributions/gamma.js";
-import { squareOver } from "../internal/summary.js";
+import { ldexp, squareOver } from "../internal/summary.js";
 import { compareLabels, factorLabels } from "./groups.js";
 import type { HTest } from "./types.js";
 
@@ -69,7 +69,7 @@ export function mcnemarTest(
   if (useCorrection) {
     const b = table[0]![1]!;
     const c = table[1]![0]!;
-    statistic = squareOver(Math.abs(b - c) - 1, b + c);
+    statistic = pairTerm(Math.abs(b - c) - 1, b, c);
   } else {
     statistic = 0;
     // a pair of cells with no discordant counts adds nothing (0 / 0 made the statistic NaN; R too); with none at all
@@ -80,7 +80,7 @@ export function mcnemarTest(
         const a = table[i]![j]!;
         const b = table[j]![i]!;
         if (a + b === 0) continue;
-        statistic += squareOver(a - b, a + b);
+        statistic += pairTerm(a - b, a, b);
         terms++;
       }
     }
@@ -95,6 +95,17 @@ export function mcnemarTest(
     parameterName: "df",
     pValue: pgamma1(statistic, df / 2, 2, false, false),
   };
+}
+
+/**
+ * d^2 / (a + b) for a pair of nonnegative finite cells. Where a + b overflows, the same quotient with d in units of
+ * 2^520 and the cells in units of 2^1040: (d 2^-520)^2 / (a 2^-1040 + b 2^-1040), which neither overflows nor needs
+ * scaling back, and the scaling is exact (both cells exceed 2^969 there, as |d| <= the largest double). Elsewhere the
+ * plain quotient, unchanged
+ */
+function pairTerm(d: number, a: number, b: number): number {
+  const s = a + b;
+  return s < Infinity ? squareOver(d, s) : squareOver(ldexp(d, -520), ldexp(a, -1040) + ldexp(b, -1040));
 }
 
 /**
