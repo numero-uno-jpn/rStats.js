@@ -221,6 +221,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `fisher.test` on a 3 × 5 table with n = 179 | FEXACT error 7 with the default workspace | 0.2023726720757 (0.65 s) |
 | `wilcox.test(exact = TRUE)` with very large n (e.g. 3000) | `psignrank` gives NaN | computed |
 | `wilcox.test(x, y)` (normal approximation) with every value tied, e.g. `wilcox.test(1, 1)` | p = NaN two-sided (0 / 0; R 4.6 returns 1) | 1 (W always equals its expectation), for every alternative |
+| `kappa(exact = TRUE)` and MASS's `ginv` of a matrix whose singular values exceed the largest double (`a * matrix(c(1, 1, 1, -1), 2)` with a = 1.7e308) | NaN (Inf / Inf) and the zero matrix (the cut-off tol × Inf drops every component) | 1 and the inverse (±2.9e-309): ratios and the cut-off on the scaled singular values |
 | `psigamma(x, deriv)` for x < 0 and deriv ≥ 6 | NaN (not implemented in R) | computed (`psigamma(-1.5, 10)` = -156.229596593233) |
 | `trigamma(1e-300)`, `psigamma(1e-100, 3)` and other results that overflow | NaN | ±Inf |
 | `besselI(1000, 1000)` | Inf | 2.7234536469108428e229 |

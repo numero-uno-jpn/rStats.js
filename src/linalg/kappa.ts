@@ -22,7 +22,8 @@ import { fromMat, newMat, toMat, transpose, type Mat, type MatrixInput } from ".
 import { norm, type NormType } from "./norm.js";
 import { qr, qrR } from "./qr.js";
 import { rcond, solve } from "./solve.js";
-import { svd } from "./svd.js";
+import { svdScaled } from "./svd.js";
+import { ldexp } from "../internal/summary.js";
 import { maxOf, minOf } from "../internal/extremes.js";
 
 /**
@@ -77,7 +78,8 @@ export function kappa(z: MatrixInput, options: KappaOptions = {}): number {
     // The default norm is "2" if exact, "1" if estimated
     const nrm = options.norm === undefined ? "2" : normalize(options.norm);
     if (nrm === "2") {
-      const d = svd(z, { nu: 0, nv: 0 }).d;
+      // the ratio of the scaled singular values (those of a matrix around 1e308 can overflow: Inf / Inf)
+      const d = svdScaled(z, { nu: 0, nv: 0 }).d;
       const min = minOf(d);
       return min === 0 ? Infinity : maxOf(d) / min;
     }
@@ -233,7 +235,9 @@ function asum(z: Float64Array): number {
 export function ginv(x: MatrixInput, options: { tol?: number } = {}): number[][] {
   const tol = options.tol ?? Math.sqrt(Number.EPSILON);
   const a = toMat(x);
-  const { d, u, v } = svd(x);
+  // in the units of the scaled singular values d (x 2^-s), the result scaled by 2^-s at the end: singular values that
+  // overflow made the cut-off Inf and the result 0
+  const { d, u, v, s } = svdScaled(x);
   const n = a.nrow;
   const p = a.ncol;
   const out: Mat = newMat(p, n);
@@ -246,5 +250,6 @@ export function ginv(x: MatrixInput, options: { tol?: number } = {}): number[][]
       for (let i = 0; i < p; i++) out.data[i + j * p]! += v![i]![k]! * ujk;
     }
   }
+  if (s !== 0) out.data = out.data.map((t) => ldexp(t, -s));
   return fromMat(out);
 }

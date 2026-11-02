@@ -60,6 +60,15 @@ export interface SvdResult {
  * @category Linear algebra
  */
 export function svd(x: MatrixInput, options: SvdOptions = {}): SvdResult {
+  const r = svdScaled(x, options);
+  return { ...r, d: r.d.map((v) => ldexp(v, r.s)) };
+}
+
+/**
+ * The SVD with the singular values of x 2^-s: x = U diag(d 2^s) V'. For ratios and cut-offs of the singular values
+ * of a matrix of extreme magnitude, whose values themselves can overflow or underflow (kappa, ginv)
+ */
+export function svdScaled(x: MatrixInput, options: SvdOptions = {}): SvdResult & { s: number } {
   const a = toMat(x);
   for (const v of a.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
   const k = Math.min(a.nrow, a.ncol);
@@ -70,11 +79,11 @@ export function svd(x: MatrixInput, options: SvdOptions = {}): SvdResult {
   }
   // If wide, transpose and swap U and V
   const wide = a.nrow < a.ncol;
-  // A matrix of extreme magnitude is scaled by a power of 2 (exact) and the singular values scaled back
+  // A matrix of extreme magnitude is scaled by a power of 2 (exact); svd scales the singular values back
   const s = rangeExponent(a.data);
   const as = s === 0 ? a : { ...a, data: a.data.map((v) => ldexp(v, -s)) };
   const r = decompose(wide ? transpose(as) : as, wide ? nv : nu, wide ? nu : nv);
-  const out: SvdResult = { d: Array.from(r.d, (v) => ldexp(v, s)) };
+  const out: SvdResult & { s: number } = { d: Array.from(r.d), s };
   const [U, V] = wide ? [r.v, r.u] : [r.u, r.v];
   if (nu > 0) out.u = fromMat(firstColumns(U!, nu));
   if (nv > 0) out.v = fromMat(firstColumns(V!, nv));
