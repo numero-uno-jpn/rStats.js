@@ -18,7 +18,8 @@
 // Difference from R: with lapack: true, results for matrices containing NaN or Inf are not necessarily the same as R
 // (R does not raise an error either and returns meaningless values).
 
-import { fromMat, isMatrixInput, newMat, toMat, toMatOrColumn, type Mat, type MatrixInput, type VectorOrMatrix } from "./matrix.js";
+import { ldexp } from "../internal/summary.js";
+import { decompositionExponent, fromMat, isMatrixInput, newMat, rangeExponent, toMat, toMatOrColumn, type Mat, type MatrixInput, type VectorOrMatrix } from "./matrix.js";
 
 /**
  * Options for {@link qr}.
@@ -87,7 +88,20 @@ export interface QR {
 export function qr(x: MatrixInput, options: QROptions = {}): QR {
   const a = toMat(x);
   if (options.lapack) {
-    const { tau, pivot } = geqp3(a);
+    const a0 = a.data.slice();
+    let { tau, pivot } = geqp3(a);
+    // Where the decomposition of a finite matrix overflowed (entries near 1e308), it is made again of the matrix divided
+    // by a power of 2 (as in svd; the whole matrix, since the pivoting compares the columns' norms), and R scaled back;
+    // the Householder vectors and tau have no units (#130). A finite result is kept as it is
+    if (a0.every(Number.isFinite) && !(a.data.every(Number.isFinite) && tau.every(Number.isFinite))) {
+      const k = decompositionExponent(a0);
+      if (k !== 0) {
+        const m = a.nrow;
+        for (let i = 0; i < a0.length; i++) a.data[i] = ldexp(a0[i]!, -k);
+        ({ tau, pivot } = geqp3(a));
+        for (let j = 0; j < a.ncol; j++) for (let i = 0; i <= Math.min(j, m - 1); i++) a.data[i + j * m] = ldexp(a.data[i + j * m]!, k);
+      }
+    }
     // One Householder scalar per reflection: min(nrow, ncol) elements, as in R
     const qraux = Array.from(tau);
     return { qr: fromMat(a), rank: Math.min(a.nrow, a.ncol), qraux, pivot: pivot.map((v) => v - 1), useLapack: true };
@@ -97,7 +111,28 @@ export function qr(x: MatrixInput, options: QROptions = {}): QR {
   // a negative tolerance has no meaning (R accepts it, and no column is then ever dependent); Infinity takes every
   // column as dependent (rank 0)
   if (!(tol >= 0)) throw new RangeError("'tol' must be a non-negative number");
-  const { qraux, pivot, rank } = linpackQR(a, tol);
+  const a0 = a.data.slice();
+  let { qraux, pivot, rank, transformed } = linpackQR(a, tol);
+  // Where the decomposition overflowed (sums of products of entries near 1e308: qr(matrix(1e308, 2, 2)) had rank 2 and
+  // -Inf in R, as in R, and lm on such a predictor gave NaN coefficients), it is made again with each column outside
+  // [2^-256, 2^256] divided by the power of 2 of its largest entry (exact). LINPACK's tests are relative to each column,
+  // so the pivoting and the rank are those of the exact decomposition; the upper triangle (R) and the norms kept in
+  // qraux for columns not transformed are scaled back, the Householder vectors and the other qraux have no units (#130).
+  // A finite result is kept as it is
+  if (!(a.data.every(Number.isFinite) && qraux.every(Number.isFinite))) {
+    const n = a.nrow;
+    const e = Array.from({ length: a.ncol }, (_, j) => rangeExponent(a0.subarray(j * n, (j + 1) * n)));
+    if (e.some((v) => v !== 0)) {
+      for (let j = 0; j < a.ncol; j++) for (let i = 0; i < n; i++) a.data[i + j * n] = ldexp(a0[i + j * n]!, -e[j]!);
+      ({ qraux, pivot, rank, transformed } = linpackQR(a, tol));
+      for (let j = 0; j < a.ncol; j++) {
+        const ej = e[pivot[j]! - 1]!;
+        if (ej === 0) continue;
+        for (let i = 0; i <= Math.min(j, n - 1); i++) a.data[i + j * n] = ldexp(a.data[i + j * n]!, ej);
+        if (!transformed[j]) qraux[j] = ldexp(qraux[j]!, ej);
+      }
+    }
+  }
   return { qr: fromMat(a), rank, qraux: Array.from(qraux), pivot: pivot.map((v) => v - 1), useLapack: false };
 }
 
@@ -115,12 +150,13 @@ function nrm2(d: Float64Array, start: number, n: number): number {
 }
 
 /** LINPACK-style Householder transformations with R's limited pivoting. Overwrites a in compact form */
-function linpackQR(A: Mat, tol: number): { qraux: Float64Array; pivot: number[]; rank: number } {
+function linpackQR(A: Mat, tol: number): { qraux: Float64Array; pivot: number[]; rank: number; transformed: Uint8Array } {
   const n = A.nrow;
   const p = A.ncol;
   const a = A.data;
   const qraux = new Float64Array(p);
   const orig = new Float64Array(p); // original norms (used for the test; 1 if 0)
+  const transformed = new Uint8Array(p); // 1 where qraux holds a Householder vector's leading element (not a norm)
   const pivot = Array.from({ length: p }, (_, j) => j + 1);
   for (let j = 0; j < p; j++) {
     qraux[j] = nrm2(a, j * n, n);
@@ -165,9 +201,10 @@ function linpackQR(A: Mat, tol: number): { qraux: Float64Array; pivot: number[];
       else qraux[j]! *= Math.sqrt(tt);
     }
     qraux[l] = a[cl + l]!;
+    transformed[l] = 1;
     a[cl + l] = -nrmxl;
   }
-  return { qraux, pivot, rank: Math.min(k, n) };
+  return { qraux, pivot, rank: Math.min(k, n), transformed };
 }
 
 /** Column-pivoted Householder QR (dlaqp2, the unblocked version of dgeqp3). Returns tau and pivot */
