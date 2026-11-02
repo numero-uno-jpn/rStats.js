@@ -3657,3 +3657,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 決定的な新規不具合は確認できず。特に、順位比較で有限値差が±Infinityにoverflowしても比較符号は保たれ、同値はindex tie-break後の明示的等値判定でまとめられる。Quade/Flignerの有限データで生じる差・range overflowは共通2冪scale経路で回避される。全同値など分散ゼロとなる退化入力についてはR 4.5.2との実行時照合なしに新規不具合とは断定しない。
 - 再現入力（すべて決定的・乱数なし）: `kruskalTest([[1,1],[1,1]])`; `kruskalTest([[1],[2],[3]])`; `kruskalTest([1e308,-1e308,0,1], ["a","a","b","b"])`; `friedmanTest([[1,1,1],[2,2,2],[3,3,3]])`; `friedmanTest([[1,2,3],[2,3,1],[3,1,2],[NaN,2,3]])`; `cochranQTest([[1,1,0],[1,0,0],[0,0,1]])`; `quadeTest([[-1e308,1e308,0],[ -9e307,9e307,1],[0,1,2]])`; `flignerTest([[-1e308,1e308,0],[ -9e307,9e307,1]])`; `moodTest([-1e308,0,1e308],[1,2,3],{alternative:"greater"})`。
 - Test suite path was not located from the repository's current tree/search in this pass; no test files were claimed as executed. Vitest, package runtime, and R 4.5.2 were not executed. Static source audit only. No source code changed and no Issue opened.
+
+
+## Audit #603 — Noncentral beta CDF/quantile, extreme-tail integration and inversion audit
+
+- 対象: `src/distributions/nbeta.ts` SHA `5c51760f6e136b80a77b4284da39c25b0ab8ed86`、`src/internal/noncentral.ts` SHA `0a7c75dcdcc9bcf9a4b3bbd75ed613e5c6046ad7`、`src/internal/invert.ts`（取得時の内容を静的確認）、`test/nbeta.test.ts` SHA `b92e2218f99be7492e9a1cc620acde52808ce070`、`oracle/nbeta.R` SHA `92667593121461c49c6f9f5be4698cdb62cb5a64`。
+- 対象範囲: `pnbeta1` の支持域端点・不正パラメータ検査・central fallback、`qnbeta1` のlog-tail変換・0/1非表現端点判定・初期値・narrow quantile・Newton/bisection・double lattice探索、`integralLog` のmode探索・積分端点・左裾power-law補正、`gammaExpansion` / `wExpansion` の適用条件と相対補正、`searchDoubles` の符号付きdouble順序を追跡。
+- 既存Issue「dnbeta log density overflows at x=1 when a + ncp/2 exceeds Number.MAX_VALUE」および「Noncentral beta density drops the dominant j=0 term when a shape is subnormal」は既知の別件として除外し、重複Issueは作成していない。
+- 新規の確定的不具合は確認できず。CDFの端点処理とquantileの端点判定はlower/upper tailの不等号が整合。qnbetaの探索はlog確率を直接解き、極端に狭い分布ではdouble latticeへフォールバックする構造を確認。漸近展開は相対補正が1e-3未満の場合のみ採用し、積分経路ではlog-domainと小さいy側のpower-law尾を明示的に扱う。
+- 再現入力（すべて決定的・乱数なし）: `pbeta(0.5, 2, 3, {ncp: 0})`; `pbeta(0, 0, 2, {ncp: 1})`; `pbeta(1, -1, 2, {ncp: 1})`; `pbeta(1e-300, 0.5, 3, {ncp: 1000, lowerTail: false, logP: true})`; `qbeta(1e-300, 0.5, 3, {ncp: 1000})`; `qbeta(Math.log(1e-300), 0.5, 3, {ncp: 1000, logP: true})`; `qbeta(1e-100, 79.32204890240992, 0.09403994879604119, {ncp: 1.245630132105305e22})`; `qbeta(1e-43, 79.32204890240992, 0.09403994879604119, {ncp: 1.245630132105305e22, lowerTail: false})`。
+- 既存の `test/nbeta.test.ts` と `oracle/nbeta.R` のテスト設計・fixture生成条件を閲覧。Vitest、R 4.5.2、実際の関数実行は未実施。したがって数値差の実行時検証は未完了。静的ソース監査のみ。ソースコード変更なし。監査台帳のみ更新。
