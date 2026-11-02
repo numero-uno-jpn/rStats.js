@@ -11,7 +11,7 @@ import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions
 import { discreteQuantile } from "../internal/discrete.js";
 import { nonInt, roundHalfEven } from "../internal/integer.js";
 import { bd0dd, dbinomExponent } from "../special/loader.js";
-import { ddAdd, ddDiv, ddLog, ddMul, ddNeg, ddSub, twoProd, type DD } from "../special/dd.js";
+import { ddAdd, ddDiv, ddLog, ddMul, ddNeg, ddSub, twoProd, twoSum, type DD } from "../special/dd.js";
 import { qnorm } from "./normal.js";
 import { dbinom1, pbinom1, qbinom1 } from "./binomial.js";
 
@@ -64,6 +64,15 @@ function logForm(f: ExpForm): number {
   return -f.e[0] - f.e[1] - 0.5 * f.logDenom;
 }
 
+/**
+ * Whether m + n is exact in double precision. Beyond 2^53 it may round (1 + 1e16 to 1e16: k = 1e16 was taken for the
+ * whole population and dhyper(0, 1, 1e16, 1e16) was 1 for 1e-16; issue #118), and the probabilities inside the support
+ * are then NaN, as for the other integers beyond 2^53 (the ends, 0 and 1, and the binomial limit still answer)
+ */
+function exactTotal(m: number, n: number): boolean {
+  return twoSum(m, n)[1] === 0;
+}
+
 /** Support [lo, hi] */
 function support(m: number, n: number, k: number): [number, number] {
   return [Math.max(0, k - n), Math.min(k, m)];
@@ -81,7 +90,9 @@ export function dhyper1(x: number, m: number, n: number, k: number, log: boolean
   x = roundHalfEven(x);
   const [lo, hi] = support(m, n, k);
   if (x < lo || x > hi) return d0(log);
-  if (k === 0 || k === m + n) return log ? 0 : 1;
+  if (k === 0) return log ? 0 : 1;
+  if (!exactTotal(m, n)) return NaN;
+  if (k === m + n) return log ? 0 : 1;
   const f = hyperForm(x, m, n, k);
   return log ? logForm(f) : evalForm(f, 1);
 }
@@ -179,7 +190,7 @@ export function phyper1(q: number, m: number, n: number, k: number, lowerTail: b
   const [lo, hi] = support(m, n, k);
   if (x < lo) return dt0(lowerTail, logP);
   if (x >= hi) return dt1(lowerTail, logP);
-  if (hi > MAX_EXACT) return NaN;
+  if (hi > MAX_EXACT || !exactTotal(m, n)) return NaN;
   return phyperRaw(x, m, n, k, lowerTail, logP);
 }
 
@@ -200,7 +211,7 @@ export function qhyper1(p: number, m: number, n: number, k: number, lowerTail: b
   const b = quantileBoundaries(p, lo, hi, lowerTail, logP);
   if (b !== undefined) return b;
   if (lo === hi) return lo;
-  if (hi > MAX_EXACT) return NaN;
+  if (hi > MAX_EXACT || !exactTotal(m, n)) return NaN;
   const N = m + n;
   const mu = (k * m) / N;
   const sigma = Math.sqrt((((k * m) / N) * (n / N) * (N - k)) / Math.max(N - 1, 1));

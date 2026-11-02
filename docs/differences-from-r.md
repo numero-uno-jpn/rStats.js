@@ -566,7 +566,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `qnbinom`, p being `pgeom(112064)`).
 - **`phyper` and `qhyper`** whose support reaches beyond 2^53 are NaN: the tail sums step through the integers one by
   one, which no longer move there (`phyper(5e16, 1e17, 1e17, 1e17)` did not return). Below 2^53 the time grows as
-  sqrt(m + n), about 40 s at 1e16.
+  sqrt(m + n), about 40 s at 1e16. Likewise `dhyper`, `phyper` and `qhyper` inside the support are NaN where m + n
+  is not exact in double precision (`dhyper(0, 1, 1e16, 1e16)`: the population 1 + 1e16 rounds to k = 1e16, and R
+  gives 1, 0 for x = 1, 0); the ends of the support and the binomial limit (k / (m + n) below 2^-60) still answer.
 - **`dwilcox`, `pwilcox` and `qwilcox`** with mn beyond 2^53 are NaN: the statistic ranges over 0..mn, whose
   integers are not all doubles there (as `phyper` above). The table was built in min(m, n) passes even for one
   entry (`dwilcox(0, 1e12, 1e12)` would have taken about 50 minutes).
