@@ -4018,3 +4018,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - `fPair` の tiny/huge m q分岐、`fOdds` のk underflow、`pnfTiny` のfirst-term approximationは既存テストの回帰入力と整合。open Issueのfinite m/n ratio underflow問題以外に、新しい確定バグは特定できず。
 - **新規確定バグなし。Issue追加なし。ソース変更なし。** 既知Issueは重複回避。
 - **検証制限**: GitHubソース・既存テストの静的追跡のみ。Vitest/package runtime/R/高精度数値計算は未実施。
+
+
+## Audit #641 — 非心t分布の積分・Laplace・極端quantile
+
+- 対象: `src/distributions/nt.ts` SHA `85763973f3f7a82d46ceee19a4dd0f8d8c275814`、`src/internal/noncentral.ts` SHA `0a7c75dcdcc9bcf9a4b3bbd75ed613e5c6046ad7`、`test/nt.test.ts` SHA `256fd766b66bbb636d57a89a0549d3f6ccb1e297`。
+- 監査範囲: formula A/Bの切替、`gammaLog` のsubnormal shape近似、`findPeak` のNewton/bracket、double-double `ddExp/expm1mx/logPhiDD`、trapezoidの左右tail停止・step halving、adaptive Kronrodの深さ/総bisect上限、Laplaceの導関数・補正誤差条件、farLimit/farTailsのpower-law、nearZero、huge-df正規/Student-t極限、qnt1の符号判定・far-tail直接反転・invertContinuousを確認。
+- 既存open Issueを照合し、今回の候補を新規登録しないことを確認: (1) `farLimit` overflow時の非心t quantile、(2) 巨大有限ncpでLaplaceの二乗スケールがoverflow、(3) representableなquantileを709.78 cutoffでInfinityと誤判定、(4) cohensD/hedgesGの初期bracketが大きなtでcollapse。これらは既存Issueで報告済み。
+- 決定的境界入力として `pt(0, 1e-320, { ncp: 40, logP: true })`、`dt(1e200, 2e5, { ncp: 1e200, log: true })`、`qt(-1419.565225786768, 2, { lowerTail: false, logP: true })`、`pt(1e308, 2, { ncp: 1e300, lowerTail: false, logP: true })`、`qt(0.9, 2, { ncp: 1e299 })`、`qt(0.5, 1e201, { ncp: 1e100 })` を検討。実行結果ではなく、既存Issueの再現条件・分岐・式との静的照合。
+- trapezoidの各方向は100000 nodeか|z|>40でbounded、refinementは6段階、Laplace/peak searchは300〜400反復、Kronrodはdepth 40とglobal bisection budgetでbounded。新たなnon-terminating loopは認めず。
+- **新規確定バグなし。Issue追加なし。ソース変更なし。** 既知4件は重複回避。
+- **検証制限**: GitHubソース・既存テストの静的追跡のみ。Vitest/package runtime/R/mpmathは未実施。
