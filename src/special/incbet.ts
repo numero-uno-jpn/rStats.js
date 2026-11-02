@@ -900,9 +900,33 @@ function subShapeTail(t: [number, number], s: number, small: boolean): [number, 
   return [Math.log1p(-v), 1 - v];
 }
 
+/**
+ * [log, linear] for both shapes below SUB_SHAPE: I_x(a, b) = b/(a + b) and 1 - I_x(a, b) = a/(a + b) to double precision
+ * for every x in (0, 1). From the series, I_x(a, b) = x^a b/(a + b) Γ(a+b+1)/(Γ(a+1) Γ(b+1)) (1 + a S) with abs(S) at most
+ * about -log(1 - x) (below 37 for a double x below 1) and abs(a log x) at most 745 a, so the relative error is below
+ * 1e-297; the upper tail likewise from I_{1-x}(b, a). The series overflowed in 1/a and the prefactor a b/(a + b) underflowed
+ * to 0 there (pbeta(0.5, 5e-324, 5e-324) was NaN, pbeta(0.5, 1e-322, 1e-315) -Infinity). R (toms708) takes the same limit
+ * below 1e-3 ε. The shapes are scaled exactly by 2^1000 into the normal range and a + b is kept in double-double (a = b
+ * gives 1/2 exactly)
+ */
+function bothSubShape(a: number, b: number, lower: boolean, wantLog: boolean): [number, number] {
+  const sa = a * 2 ** 1000;
+  const sb = b * 2 ** 1000;
+  const sum = twoSum(sa, sb);
+  const ratio = (u: number): number => {
+    const r = ddDiv([u, 0], sum);
+    return r[0] + r[1];
+  };
+  const v = ratio(lower ? sb : sa);
+  if (!wantLog) return [NaN, v];
+  return [v > 0.5 ? Math.log1p(-ratio(lower ? sa : sb)) : Math.log(v), v];
+}
+
 function betaIncUncapped(a: number, b: number, xd: DD, xcd: DD, lower: boolean, wantLog: boolean): [number, number] {
   if (xd[0] <= 0) return lower ? [-Infinity, 0] : [0, 1];
   if (xcd[0] <= 0) return lower ? [0, 1] : [-Infinity, 0];
+
+  if (a < SUB_SHAPE && b < SUB_SHAPE) return bothSubShape(a, b, lower, wantLog);
 
   // The tail of the order of a shape below SUB_SHAPE (1 - I_x(a, b) for a tiny a, I_x(a, b) for a tiny b), from
   // that at SUB_SHAPE scaled (see there), and the other tail as 1 minus it
