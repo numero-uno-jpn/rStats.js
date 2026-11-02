@@ -4137,3 +4137,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - power.t.test / power.prop.test / power.anova.test と pwr.t/t2n/2p/2p2n/p/norm/r/chisq/anova/f2、Cohen effect-size helpersを確認。特にtwo-sided/one-sidedの符号、strict two-sided追加tail、unknown quantity root interval、df/ncp式、p1/p2境界、r=±1、chisq df、ANOVA lambdaのoverflow fallbackを追跡。今回以外の独立した確定バグは未確認。
 - 多重比較側のGames-Howell/Tukey/Dunn/Steel/Dunnettのグループ数・df・tail/adjustment経路も確認。Steelは対象パッケージの既知エラー挙動を再現する設計。Issue #154のBY積overflowとは別問題。
 - **新規Issue #155、ソース変更なし。** 期待powerは式からの決定的計算。Vitest/package runtime/R実行は未実施。
+
+
+## Audit #653 — GLM family/link functions and IRLS-facing numerical contracts
+
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5`、`src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`、`test/glm.test.ts` SHA `63aaa9ade1f6d9239ccf4c8f625978db208385fa`。
+- **新規Issue #156**: [power-link muEta returns NaN when reciprocal exponent overflows](https://github.com/numero-uno-jpn/rStats.js/issues/156)。再現 `makeFamily({ family: "quasi", link: { power: Number.MIN_VALUE } }).muEta(0.5)`。lambdaは有限正数として受理されるが、`1/lambda` がInfinity、`0.5**Infinity` が0、積がInfinity*0=NaNとなる。導関数はbinary64で表現できないほど小さい正値なので、power linkの他のlink derivative同様の正値floor `Number.MIN_VALUE` が期待される。静的IEEE-754追跡。
+- Named linksのdomain、inverse/1-mu²のsingularity、logit/probit/cauchit/cloglogの端点clamp、sqrt、power(lambda)、quasi variance/deviance、binomial two-column response、zero prior weights、starting means、AICを確認。GLM IRLSのworking weights/residuals、deviance, step halving, boundary/convergence state、profile CIとanova経路も部分確認。
+- 二列binomialで `size=s+f` がoverflowする極端な有限カウント、prior*sizeのoverflow、quasi devianceのlog domain等を境界検討。別個の公開入力で期待値が確定する追加バグは現時点で特定せず。
+- **新規Issue #156、ソース変更なし。** Vitest/package runtime/R実行は未実施。
