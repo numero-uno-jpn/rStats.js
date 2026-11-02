@@ -68,6 +68,9 @@ export function localMin(f: (x: number) => number, lower: number, upper: number,
     }
     // f must not be evaluated too close to x
     const u = Math.abs(d) >= tol1 ? x + d : d >= 0 ? x + tol1 : x - tol1; // x + sign(tol1, d)
+    // a step that rounds to 0 (tol1 = 0 among the subnormals, for a tol whose third underflows: the bracket stayed
+    // [5e-324, 1e-323] for x² on [-1, 1] at tol 5e-324, where R does not return either) cannot narrow the bracket
+    if (u === x) break;
     const fu = f(u);
     evaluations++;
     // update a, b, v, w and x

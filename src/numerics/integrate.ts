@@ -150,7 +150,8 @@ export function optimize(
 } {
   const maximum = options.maximum ?? false;
   const tol = options.tol ?? TOL;
-  if (!(tol >= 0 && tol < Infinity)) throw new RangeError("'tol' must be a non-negative finite number");
+  // (a positive tol, as in R: with tol = 0 the search stopped narrowing among the subnormals, see localMin)
+  if (!(tol > 0 && tol < Infinity)) throw new RangeError("'tol' must be a positive finite number");
   // R checks the ends before calling f, lower first
   if (!Number.isFinite(lower)) throw new RangeError("invalid 'xmin' value");
   if (!Number.isFinite(upper)) throw new RangeError("invalid 'xmax' value");

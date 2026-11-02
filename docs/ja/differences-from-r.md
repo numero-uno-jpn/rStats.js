@@ -239,6 +239,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `scale(c(1e200, 2e200, 3e200))`、`scale(c(1e-200, 2e-200, 3e-200))` | scale が Inf または 0、標準化値が 0 または ±Inf | -1, 0, 1 (二乗和をスケーリング) |
 | `runif(n, -1e308, 1e308)` | Inf (max - min が溢れる) | 範囲内の値 |
 | 1e308 規模の行列の `kappa()` (例 `1e308 * matrix(c(1, 0, 1, 1), 2)`。既定の QR の推定、`method = "direct", triangular = TRUE`、`exact = TRUE, norm = "1"`) | エラー ("NA/NaN/Inf in foreign function call")、Inf、エラー ("computationally singular") | 元の行列の条件数 (3.33、3.33、4)。先に行列を 2 の冪で割る |
+| `optimize(function(x) x^2, c(-1, 1), tol = 5e-324)` (tol/3 がアンダーフローする tol) | 返らない (サブノーマルの間でステップが 0 に丸まる) | 0 (ステップで点が動かなくなったところで終える) |
 | `seq(1, 2, by = Inf)` | NaN | 1 |
 | `seq(-1e308, 1e308, by = 5e307)` | 中央の値が -1.9958e292 | 0 (端点の差が溢れるので、半分にした端点の値を 2 倍する) |
 | `matrix(c(1, 3, 2, 4), 2) * 1e-60` のような小さな非対称行列の `eigen()` | 対称とみなす (平均 \|a\| <= 100 eps で `isSymmetric` が絶対差で比べる) ため固有値が誤る | 対称判定をどの尺度でも相対的に行う (`isSymmetric()` 自体は R と同じ) |
