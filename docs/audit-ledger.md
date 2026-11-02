@@ -3934,3 +3934,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - Rとの関係: 期待値0.5はRとの比較に依存しない数学的対称性から導出。R実行は未実施。
 - その他の監査経路では、p-seriesの項比が最終的にx以下へ収束する領域条件、continued fractionのdouble-double係数と最大反復数、Temme展開の適用域 `m >= 25, |tau| <= 1`、large-a展開の `y/u/b` 適用域と正項再帰を静的に確認。今回、Issue #148以外の新規確定バグは見つからなかった。
 - **検証制限**: GitHub上のソースと既存テストの静的追跡のみ。package runtime、Vitest、R 4.5.2での実測は未実施。Issue #148の再現はソース経路からの確定的推論であり、実行結果を取得したとは主張しない。
+
+
+## Audit #633 — Gamma差分ヘルパーの到達可能性とdigamma/polygamma境界
+
+- 対象: `src/special/lgammaDiff.ts` SHA `22ddcc50b01890dafbbb49a1a1aa7ac2c840dfee`、`src/special/incbetPrefactor.ts`、`src/special/gamma.ts` SHA `f630bdd496fc204dd24b6b04603c7b511a5cb107`、`src/special/psigamma.ts` SHA `6318724165a556417c0644172c9e80d4735c3b4e`、`src/special/constants.ts`、`test/gamma.test.ts` SHA `db75474bb21ad3531f9ae071cffa359023e1af37`、`test/psigamma.test.ts` SHA `eeeb4bb3aece8c27cc5527c16b5cadb0540d8b98`。
+- 前回の候補 `lgammaDiff(a,b)` における `a/b` overflowをcall siteまで追跡。実際の呼び出し元は `incbetPrefactor.ts` の `smallShapeG` のみ。`l < 1` の枝では `b=1+l`、`l >= 1` の枝では `b=l)、いずれも `a=s<1` なので `a/b <= 1`。従って `b` がsubnormalとなる入力は公開APIからこの関数へ到達しない。前回の「極端な引数比でoverflowする可能性」は到達不能な仮定であり、バグとして扱わない。
+- gammaの正負大引数、負整数pole、MAXGAM近傍、MAXLGM、subnormal近傍のlgamma、lgamma1pのTaylor切替、Stirling補正とdouble-double指数合成を確認。polygammaは正引数のHurwitz zeta scaled sum、q>1e8の漸近分岐、直接項の停止条件、Euler-Maclaurin補正、負引数のreflection/cot導関数、deriv=0..100とpole/infinity処理を確認。
+- 決定的境界入力として `gamma(Number.MIN_VALUE)`、`lgamma(Number.MIN_VALUE)`、`lgamma(-Number.MIN_VALUE)`、`psigamma(Number.MIN_VALUE, 100)`、`psigamma(1e8, 100)`、`psigamma(1e8 + 2, 100)`、`psigamma(-0.5, 100)`、`psigamma(-Infinity, 3)` を検討。これらのうちsubnormal gamma/lgammaとpole/infinityの期待動作は実装コメント・既存テストの仕様と整合。psigammaの高次・大q境界については漸近式とスケーリングを静的確認し、追加の確定バグを特定できず。
+- **新規確定バグなし。Issue追加なし。ソース変更なし。** GitHubソース・既存テストの静的監査のみ。Vitest/package runtime/R実行は未実施。
