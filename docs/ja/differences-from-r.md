@@ -410,13 +410,13 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 0 < q / s < 1 の `pgamma(q, Inf, scale = s)`、つまり 0 < q < 2 の `pchisq(q, Inf)` (質量がすべて +Inf にある) | NaN | 極限値: 下側 0、上側 1 (ほかの有限の q で R が返す値と同じ) |
 | `df(0, df1, Inf, ncp, log = TRUE)` | 線形の値の対数にならない (ncp = 0 で −1.386。線形の値は 1) | 線形の値の対数 |
 | 答えが丸めで 0 になる、df2 = Inf の `qf` | 2e-130 のような意味のない値。log p = -1e-300 で Inf | 分布関数で確認した値 |
-| 整数 k の少し下の q (k − 1e-7 ≤ q < k − 1e-9 max(1, k)) の `pgeom`・`pnbinom`・`ppois`・`pbinom`・`phyper`・`pwilcox`・`psignrank` と `ansari.test` の正確分布 (`pgeom(0.99999999, 0.5)`) | floor(q + 1e-7) = k なので P[X ≤ k] (0.75)。密度関数はこの q を整数でないとみなす (`dgeom` は 0) | P[X ≤ k − 1] (0.5)。q 以下の最大の整数 |
-| 同じ関数で k > 100 かつ k − 1e-9 k ≤ q < k − 1e-7 (`ppois(1000 - 5e-7, 1000)`) | floor(q + 1e-7) = k − 1 で 0.4958。`dpois` はこの q で k の密度を返す | P[X ≤ k] (0.5084)。密度関数と同じく q を整数 k とみなす |
+| 整数 k の少し下の q (k − 1e-7 ≤ q < k − 1e-9 max(1, k)。k < 100 の場合だけ) の `pgeom`・`pnbinom`・`ppois`・`pbinom`・`phyper`・`pwilcox`・`psignrank` と `ansari.test` の正確分布 (`pgeom(0.99999999, 0.5)`) | floor(q + 1e-7) = k なので P[X ≤ k] (0.75)。密度関数はこの q を整数でないとみなす (`dgeom` は 0) | P[X ≤ k − 1] (0.5)。q 以下の最大の整数 |
 | 小数部分が 0.5 以上の q の `psignrank` (`psignrank(0.6, 4)`) | q + 1e-7 を最も近い整数に丸める: P[V ≤ 1] = 0.125 | ほかの分布関数と同じく P[V ≤ floor(q)] = 0.0625 |
 
 離散分布の分布関数は、P[X ≤ q] を q 以下の最大の整数 k の P[X ≤ k] とします。整数から
-1e-9 max(1, |q|) 以内の q はその整数とみなします (計算で作った 2.9999999999999996 は 3)。これは `dpois`・`dgeom`・
-`dnbinom`・`dhyper`・`dwilcox`・`dsignrank` が x を整数かどうか判定する規則と同じです。それ以外の q は
+min(1e-7, 1e-9 max(1, |q|)) 以内の q はその整数とみなします (計算で作った 2.9999999999999996 は 3)。q < 100 では、これは
+`dpois`・`dgeom`・`dnbinom`・`dhyper`・`dwilcox`・`dsignrank` が x を整数かどうか判定する規則と同じです。q ≥ 100 では幅を
+R と同じ 1e-7 にとどめ、1000 − 5e-7 のような q を整数とみなしません (`ppois(1000 - 5e-7, 1000)` は R と同じく P[X ≤ 999])。それ以外の q は
 floor(q) です。R は floor の前に 1e-7 を足す (`psignrank` では最も近い整数に丸める) ため、分布関数が整数の
 1e-7 手前で段を上がり、密度関数と食い違います。変わるのは整数から 1e-7 以内の q だけで、`psignrank` だけは
 小数部分が 0.5 以上のすべての q が変わります (Issue #145・#146)。25 回目のレビューでは `pbinom` の

@@ -51,9 +51,19 @@ Scripts: scratchpad `dz.R`, `dz.ts`, `big145.R`, `big145.ts`.
 
 ## Proposed addition to HANDOFF.md (policy section; HANDOFF.md itself is not edited here)
 
-> - **離散分布の分布関数の q (#145・#146、ユーザー判断で 25 回目の判断を覆す):** P[X ≤ q] は q 以下の最大の整数 k の P[X ≤ k]。整数から 1e-9·max(1, |q|) 以内の q (d 関数の `nonInt` と同じ判定) はその整数、それ以外は floor(q) (`countAtMost`、`src/internal/integer.ts`)。R の floor(q + 1e-7) (psignrank は round(q + 1e-7)) はやめた。pgeom・pnbinom (prob・mu)・ppois・pbinom・phyper・pwilcox・psignrank・ansari の正確分布。R と違うのは [k − 1e-7, k − 1e-9·max(1, k)) と、k > 100 の [k − 1e-9 k, k − 1e-7) (こちらは k とみなす)、psignrank の小数部分 0.5 以上。psignrank の fixture は `knownDifference`。分位点の探索の結果は変わらない
+> - **離散分布の分布関数の q (#145・#146、ユーザー判断で 25 回目の判断を覆す):** P[X ≤ q] は q 以下の最大の整数 k の P[X ≤ k]。整数から min(1e-7, 1e-9·max(1, |q|)) 以内の q はその整数 (q < 100 では d 関数の `nonInt` と同じ判定。q ≥ 100 では R と同じ 1e-7 にとどめる)、それ以外は floor(q) (`countAtMost`、`src/internal/integer.ts`)。R の floor(q + 1e-7) (psignrank は round(q + 1e-7)) はやめた。pgeom・pnbinom (prob・mu)・ppois・pbinom・phyper・pwilcox・psignrank・ansari の正確分布。R と違うのは k < 100 の [k − 1e-7, k − 1e-9·max(1, k)) と、psignrank の小数部分 0.5 以上。psignrank の fixture は `knownDifference`。分位点の探索の結果は変わらない
 
 (In the table of quick rules in "共通基盤", `countAtMost` could also be listed under `src/internal/discrete.ts` or a new `src/internal/integer.ts` entry.)
+
+## Follow-up: the slack capped at 1e-7 (user decision)
+
+With `nonInt`'s slack alone, 1e-9 max(1, |q|) is wider than R's 1e-7 above q = 100, so q in [k - 1e-9 k, k - 1e-7) counted as k:
+`ppois(1000 - 5e-7, 1000)` was P[X <= 1000] = 0.5084, while the right value (and R's) is P[X <= 999] = 0.4958. 1000 - 5e-7 is
+about 4e6 ulp from 1000, not a rounding error. The user chose to cap the slack: a q within min(1e-7, 1e-9 max(1, |q|)) of an
+integer is that integer. Below q = 100 nothing changes; at and above it the rule agrees with R's floor(q + 1e-7) (for q within
+1e-7 above an integer both give the integer). The docs row for k > 100 was removed and the paragraph rewritten (English and ja).
+`test/issue145.test.ts` adds q = k - 5e-7, k - 2e-7, k - 5e-8 for k = 100, 101, 150 and `ppois(1000 - 5e-7, 1000)`; the latter
+fails before the follow-up. Whole suite: 287 files, 2630 passed / 38 skipped; tsc no errors.
 
 ## Recorded as out of scope
 

@@ -74,6 +74,21 @@ describe("issues #145, #146: q just below an integer", () => {
     }
   });
 
+  it.each(cases)("%s: above q = 100 the slack stays at R's 1e-7", (_name, p) => {
+    for (const k of [100, 101, 150]) {
+      for (const l of [true, false]) {
+        expect(p(k - 5e-7, l)).toBe(p(k - 1, l));
+        expect(p(k - 2e-7, l)).toBe(p(k - 1, l));
+        expect(p(k - 5e-8, l)).toBe(p(k, l));
+      }
+    }
+  });
+
+  it("ppois(1000 - 5e-7, 1000) is P[X <= 999], as in R (0.4958)", () => {
+    expect(ppois(1000 - 5e-7, 1000)).toBe(ppois(999, 1000));
+    expect(ppois(1000 - 5e-8, 1000)).toBe(ppois(1000, 1000));
+  });
+
   it("psignrank takes the floor, not the nearest integer (R: psignrank(0.6, 4) = P[V <= 1])", () => {
     expect(psignrank(0.6, 4)).toBe(0.0625);
     expect(psignrank(0.6, 4)).toBe(psignrank(0, 4));
