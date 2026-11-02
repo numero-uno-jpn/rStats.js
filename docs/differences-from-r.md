@@ -74,6 +74,7 @@ reference, the case passes as "more accurate than R".
 | `dcauchy(1e-10, scale = 5e-324)` | 0 | 1.5726597949504821e-304 (mpmath) | same as truth |
 | `log(dlogis(-3.5667197e-316, scale = 4.81926e-319))` | -7.1442431635500565 | -7.1442419008923714 (mpmath) | same as truth |
 | `dnbinom(57, 3.941094207e-315, 0.1246, log = TRUE)` | -735.57086040999684 | -735.57086038617797 (mpmath) | same as truth |
+| `dnbinom(1, 1e-200, mu = 1e200, log = TRUE)` (size / (size + mu) below the doubles) | -Inf | -460.51701859880914 (Rmpfr) | same as truth |
 | `qexp(-720.6156070081367, 7.378938265185878e-258, log.p = TRUE)` | 1.4880736486358194e-56 | 1.4880736486357560e-56 (mpmath) | 1.4880736486357558e-56 |
 | `qweibull(-720.6156070081367, 1, 1.3552e257, log.p = TRUE)` | 1.4880642941554512e-56 | 1.4880642941553880e-56 (mpmath) | same as truth |
 

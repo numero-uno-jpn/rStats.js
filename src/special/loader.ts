@@ -405,14 +405,28 @@ function scaleUp(r: DD): DD {
  * 1e-290, down to 0 by underflow, as with tiny shapes: pbeta(5.8e-295, 2.8e-193, 3.5e-153) threw a TypeError), its
  * logarithm is taken as log n + log p
  */
-function bd0Prod(x: number, nn: DD, p: DD): DD {
+function bd0Prod(x: number, nn: DD, p: DD, k = 0): DD {
   const s = nn[0] > 1e299 ? 2 ** -64 : 1;
-  const ms = ddMul([nn[0] * s, nn[1] * s], p);
-  const M: DD = [ms[0] / s, ms[1] / s];
+  // (p is p 2^k for k > 0, a probability below the doubles: issue #95)
+  let M: DD;
+  if (k === 0) {
+    const ms = ddMul([nn[0] * s, nn[1] * s], p);
+    M = [ms[0] / s, ms[1] / s];
+  } else {
+    M = shiftedProduct(nn, p, k);
+  }
   if (M[0] >= 1e-290) return bd0dd(x, M);
-  const lr = ddSub(ddLog([x, 0]), ddAdd(ddLog(nn), ddLog(p)));
-  return ddAdd(ddMulNum(lr, x), twoSum(nn[0] * p[0], -x));
+  const lr = ddSub(ddLog([x, 0]), ddAdd(ddLog(nn), logShifted(p, k)));
+  return ddAdd(ddMulNum(lr, x), twoSum(k === 0 ? nn[0] * p[0] : M[0], -x));
 }
+
+/** v 2^e (exact where the result is normal; v 2^e can overflow for v times 2^1100 when e is positive) */
+const pow2 = (v: number, e: number): number => v * 2 ** Math.trunc(e / 2) * 2 ** (e - Math.trunc(e / 2));
+
+const LN2_DD: DD = [0.6931471805599453, 2.3190468138462996e-17];
+
+/** log(p 2^-k) for a double-double p */
+const logShifted = (p: DD, k: number): DD => (k === 0 ? ddLog(p) : ddSub(ddLog(p), ddMulNum(LN2_DD, k)));
 
 /** Double-precision version of bd0 */
 export function bd0(x: number, M: number): number {
@@ -447,6 +461,19 @@ function mulLarge(nn: DD, v: DD): DD {
  * exp of a double-double log probability; 0 far below the subnormals, where the low part can exceed 1 and the first
  * order correction would give -0
  */
+const NO_SHIFT: readonly [number, number] = [0, 0];
+
+/**
+ * n v 2^-k (mulLarge for k = 0). For k > 0, v is up to 2^78 and n v alone could overflow: n is brought to [1, 2) by
+ * its power of 2 first (exactly), and the product, far below 1 then, may underflow to 0
+ */
+function shiftedProduct(nn: DD, v: DD, k: number): DD {
+  if (k === 0) return mulLarge(nn, v);
+  const e = Math.floor(Math.log2(nn[0]));
+  const r = ddMul([pow2(nn[0], -e), pow2(nn[1], -e)], v);
+  return [pow2(r[0], e - k), pow2(r[1], e - k)];
+}
+
 const expLogDD = (l: DD): number => (l[0] < -2000 ? 0 : Math.exp(l[0]) * (1 + l[1]));
 
 /**
@@ -471,7 +498,18 @@ export function dbinomRawSplit(x: number, nmx: number, p: number, q: number, log
  * The rounding error of p^x is amplified x times (1e-11 at x = 1e5), so where p is formed as 1 - (smaller side),
  * pass that difference exactly in double-double.
  */
-export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean, size?: number): number {
+export function dbinomRawDD(
+  x: number,
+  nmx: number,
+  p: DD,
+  q: DD,
+  log: boolean,
+  size?: number,
+  shift: readonly [number, number] = NO_SHIFT,
+): number {
+  // shift: p and q are given times 2^shift[0] and 2^shift[1] (a probability below the doubles, kept as a normal
+  // number: dnbinom(1, 1e-200, { mu: 1e200 }) was 0; issue #95). [0, 0] otherwise
+  const [kp, kq] = shift;
   const zero = log ? -Infinity : 0;
   const one = log ? 0 : 1;
   const nn = twoSum(x, nmx); // n in double-double
@@ -480,27 +518,27 @@ export function dbinomRawDD(x: number, nmx: number, p: DD, q: DD, log: boolean, 
   if (q[0] === 0) return nmx === 0 ? one : zero;
   if (x === 0) {
     if (n === 0) return one;
-    if (p[0] < 0.1) {
+    if (kp > 0 || p[0] < 0.1) {
       // n log q = -bd0(n, n q) - n p
-      const e = ddAdd(bd0Prod(n, nn, q), mulLarge(nn, p));
+      const e = ddAdd(bd0Prod(n, nn, q, kq), shiftedProduct(nn, p, kp));
       return log ? -e[0] - e[1] : expLogDD([-e[0], -e[1]]);
     }
-    const lq = ddLog(q);
-    const lc = mulLarge(nn, lq);
+    const lc = mulLarge(nn, logShifted(q, kq));
     return log ? lc[0] + lc[1] : expLogDD(lc);
   }
   if (nmx === 0) {
-    if (q[0] < 0.1) {
-      const e = ddAdd(bd0Prod(n, nn, p), mulLarge(nn, q));
+    if (kq > 0 || q[0] < 0.1) {
+      const e = ddAdd(bd0Prod(n, nn, p, kp), shiftedProduct(nn, q, kq));
       return log ? -e[0] - e[1] : expLogDD([-e[0], -e[1]]);
     }
-    const lc = mulLarge(nn, ddLog(p));
+    const lc = mulLarge(nn, logShifted(p, kp));
     return log ? lc[0] + lc[1] : expLogDD(lc);
   }
   if (x < 0 || nmx < 0) return zero;
   // E = stirlerr(x) + stirlerr(n-x) - stirlerr(n) + bd0(x, np) + bd0(n-x, nq)
   // (the given n when n - x was rounded: see exactBinomialExponent)
-  const e = size !== undefined && (nn[0] !== size || nn[1] !== 0) ? exactBinomialExponent(x, size, p, q) : binomialExponent(x, nmx, nn, p, q);
+  const e =
+    size !== undefined && (nn[0] !== size || nn[1] !== 0) ? exactBinomialExponent(x, size, p, q) : binomialExponent(x, nmx, nn, p, q, kp, kq);
   // Denominator 2 pi x (n - x) / n. Beyond 2e307 for x (n - x) / n, 2 pi x overflowed (dbinom(8e307, 1.6e308, 0.5)
   // and dmultinom of such counts were 0; issue #24): as in dpoisRawCore, pi x (n - x) / (8 n) and the value divided by 4
   const big = x * (nmx / n) > 2e307;
@@ -588,9 +626,9 @@ function bd0FromDeviance(x: DD, M: DD, d: DD): DD {
   return ddSub(ddMul(lr, x), d);
 }
 
-function binomialExponent(x: number, nmx: number, nn: DD, p: DD, q: DD): DD {
-  const d1 = bd0Prod(x, nn, p);
-  const d2 = bd0Prod(nmx, nn, q);
+function binomialExponent(x: number, nmx: number, nn: DD, p: DD, q: DD, kp = 0, kq = 0): DD {
+  const d1 = bd0Prod(x, nn, p, kp);
+  const d2 = bd0Prod(nmx, nn, q, kq);
   if (!Number.isFinite(d1[0] + d2[0])) return [Infinity, 0];
   return ddAdd(ddAdd(d1, d2), twoSum(stirlerr(x) + stirlerr(nmx), -stirlerr(nn[0])));
 }

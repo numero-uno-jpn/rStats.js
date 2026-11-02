@@ -39,6 +39,8 @@ interface Params {
   size: number;
   pd: DD;
   qd: DD;
+  /** p and q are given times 2^shift[0] and 2^shift[1] (dnbinom with mu only; see fromMuDensity) */
+  shift?: readonly [number, number];
 }
 
 function fromMu(size: number, mu: number): Params {
@@ -53,17 +55,32 @@ function fromMu(size: number, mu: number): Params {
   return big ? { size, pd: one, qd: other } : { size, pd: other, qd: one };
 }
 
+/**
+ * fromMu for the density: where the smaller of p and q falls below the normal range (0 for a ratio below 2^-1074:
+ * dnbinom(1, 1e-200, { mu: 1e200 }) was 0 for 1e-200, dnbinom(1, MAX, { mu: MIN, log: true }) -Inf for -744.44;
+ * issue #95), it is kept times 2^1100 (from size 2^550 / ((size + mu) 2^-550), exact powers of 2), a normal number,
+ * and dbinomRawDD takes the shift. Otherwise as fromMu
+ */
+function fromMuDensity(size: number, mu: number): Params {
+  const par = fromMu(size, mu);
+  const pSmall = par.pd[0] < MIN_NORMAL;
+  if (!pSmall && !(par.qd[0] < MIN_NORMAL)) return par;
+  const s = twoSum(size, mu);
+  const scaled = ddDiv([(pSmall ? size : mu) * 2 ** 550, 0], [s[0] * 2 ** -550, s[1] * 2 ** -550]);
+  return pSmall ? { ...par, pd: scaled, shift: [1100, 0] } : { ...par, qd: scaled, shift: [0, 1100] };
+}
+
 function fromProb(size: number, prob: number): Params {
   return { size, ...probPair(prob) };
 }
 
 /** P[X = x] (x a nonnegative integer, 0 < size < ∞, 0 < p < 1) */
 function dnbinomRaw(x: number, par: Params, log: boolean): number {
-  const { size, pd, qd } = par;
+  const { size, pd, qd, shift } = par;
   // size + x (the trials of the binomial density below) overflows: not computed (it gave 0, and NaN with log; the
   // density, 2.8e-155 at size = x = 1e308, would not agree with pnbinom there, as recorded in round 22)
   if (!Number.isFinite(size + x)) return NaN;
-  const b = dbinomRawDD(size, x, pd, qd, log);
+  const b = dbinomRawDD(size, x, pd, qd, log, undefined, shift);
   if (x === 0) return b;
   const r = size / (size + x);
   if (r >= MIN_NORMAL) return log ? b + Math.log(r) : b * r;
@@ -271,7 +288,7 @@ export function dnbinomMu1(x: number, size: number, mu: number, log: boolean): n
   if (mu === Infinity) return d0(log);
   if (size === Infinity) return dpoisRaw(n, mu, log);
   if (mu === 0) return n === 0 ? (log ? 0 : 1) : d0(log);
-  return dnbinomRaw(n, fromMu(size, mu), log);
+  return dnbinomRaw(n, fromMuDensity(size, mu), log);
 }
 
 export function pnbinomMu1(q: number, size: number, mu: number, lowerTail: boolean, logP: boolean): number {
