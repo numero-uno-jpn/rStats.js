@@ -155,7 +155,12 @@ export function optimize(
   if (!Number.isFinite(lower)) throw new RangeError("invalid 'xmin' value");
   if (!Number.isFinite(upper)) throw new RangeError("invalid 'xmax' value");
   if (!(lower < upper)) throw new RangeError("'xmin' not less than 'xmax'");
-  const fn = maximum ? (x: number) => -f(x) : f;
+  // as R, the search sees NaN and +Inf as the largest double and -Inf as the most negative (R warns, "NA/NaN replaced
+  // by maximum positive value"; the library does not report warnings); objective is f itself
+  const fn = (x: number): number => {
+    const v = maximum ? -f(x) : f(x);
+    return Number.isNaN(v) || v === Infinity ? Number.MAX_VALUE : v === -Infinity ? -Number.MAX_VALUE : v;
+  };
   // upper - lower or upper + lower overflows (both finite): search over u = x/2 on (lower/2, upper/2) with tol/2 (the
   // search did not return: optimize((x / 1e308)^2, -1e308, 1e308), and with the midpoint 0.5 (a + b) = Infinity,
   // optimize((x / 1e308 - 1.05)^2, 1e308, 1.1e308); R too)

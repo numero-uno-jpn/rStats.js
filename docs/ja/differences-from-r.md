@@ -821,6 +821,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   動きます (差分商は関数の丸めを |f| / h 倍にする)。
 - **`uniroot`** は区間を広げなかったとき `initIt` を NaN (R の NA) で返し、`maxiter` に達しても
   警告しません (そのとき `iter` は R と同じく `maxiter`)。
+- **`optimize`** は、R と同じく、関数の値の NaN と +Inf を最大の double、-Inf を最小の double として探します。
+  R の警告 ("NA/NaN replaced by maximum positive value" など) は出しません。`objective` はその点の関数の値そのもの
+  です (R と同じく NaN や -Inf)。
 
 ## 未対応
 

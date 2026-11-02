@@ -884,6 +884,9 @@ By default rStats.js returns what R returns;
   difference quotient magnifies the function's rounding by |f| / h).
 - **`uniroot`** returns `initIt` as NaN when the interval was not extended (R's NA) and does not
   warn when `maxiter` is reached (`iter` is then `maxiter`, as in R).
+- **`optimize`** searches with NaN and +Inf values of the function as the largest double and -Inf as the most
+  negative, as R does, without R's warnings ("NA/NaN replaced by maximum positive value" and the like); `objective`
+  is the function's own value there (NaN or -Inf, as in R).
 
 ## Not supported
 
