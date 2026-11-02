@@ -81,7 +81,9 @@ export function hedgesJ(df: number): number {
 
 /** The noncentrality parameter with pt(t, df, ncp) = p (pt decreases in ncp) */
 function ncpOfT(t: number, df: number, p: number): number {
-  return uniroot((ncp) => pt(t, df, { ncp }) - p, t - 1, t + 1, { ...EXACT, extendInt: "downX" }).root;
+  // (where t ± 1 both round to t, a step of 1 to 2 ulp of t: the empty interval [t, t] was an error; issue #143)
+  const h = t - 1 < t + 1 ? 1 : Math.abs(t) * Number.EPSILON;
+  return uniroot((ncp) => pt(t, df, { ncp }) - p, t - h, t + h, { ...EXACT, extendInt: "downX" }).root;
 }
 
 function standardizedDifference(x: Sample, y: Sample | undefined, options: CohensDOptions, adjust: boolean): CohensDResult {
