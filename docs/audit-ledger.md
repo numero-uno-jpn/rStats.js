@@ -4029,3 +4029,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - trapezoidの各方向は100000 nodeか|z|>40でbounded、refinementは6段階、Laplace/peak searchは300〜400反復、Kronrodはdepth 40とglobal bisection budgetでbounded。新たなnon-terminating loopは認めず。
 - **新規確定バグなし。Issue追加なし。ソース変更なし。** 既知4件は重複回避。
 - **検証制限**: GitHubソース・既存テストの静的追跡のみ。Vitest/package runtime/R/mpmathは未実施。
+
+
+## Audit #642 — Central Student-t density / CDF / quantile and normal-limit branches
+
+- 対象: `src/distributions/t.ts` SHA `78247f0318768944233dc6e92874409b23e432b8`、`src/distributions/normal.ts` SHA `8a6db705befe4a4ea30785bdb4806cf18a59cbc6`、`src/distributions/nt.ts`、`test/pnorm.test.ts` SHA `4132f9b4faf248f2a0e566d02c344a36ea4ff0f3`、`test/qnorm.test.ts` SHA `3e4f2d567782d5522658f4ff3cf7f8db5f531ead`、`test/locationScaleExtremes.test.ts` SHA `40cfbea8db0116924cadfe5f25530f48ca367cac`。
+- 監査範囲: `dtCore` のLoader表現とlarge-x log1p分岐、tiny-df密度/尾部近似、`betaArgs` の共通スケーリング、upper-tail incomplete beta first-term近似、small/large df normal limit、`qt1` tail asymptotic start/Cornish-Fisher fallback/Newton反転、normalのstandardize/affine、pnormのerfcx tail、qnormのndtriExp + Newton correction、極小sd density scalingを確認。
+- 既知open Issue「location-scale quantiles return finite median limits for infinite scale instead of R's NaN」を確認。今回のt/normal計算に重複する新規報告はなし。非心tの709.78 cutoff問題はAudit #641で既存Issueとして記録済み。
+- 決定的境界入力として `dt(0, Number.MIN_VALUE)`、`dt(1e300, 1e-20, { log: true })`、`pt(1e308, 1e-300, { lowerTail: false, logP: true })`、`qt(-1e-300, 1e-300, { logP: true })`、`qt(-1419.565225786768, 2, { lowerTail: false, logP: true })`、`pnorm(-1.5e154, { logP: true })`、`dnorm(4.85e-319, { sd: 1.7e-322 })`、`qnorm(-1e308, { logP: true })` を検討。式・分岐の静的追跡であり、実行結果ではない。
+- `dtTinyDf` の `u>=1e150` 分岐で先に `sqrt(n)/|x|` がunderflowする場合、最終密度もbinary64で0となる範囲に限られる。central t upper-tailの `x<=1e-250` はlog-domainのfirst-termへ移り、`betaArgs` の積スケーリングは通常経路でのsquare overflowを避ける。新規の確定バグを特定できず。
+- **新規確定バグなし。Issue追加なし。ソース変更なし。**
+- **検証制限**: GitHubソース・既存テストの静的追跡のみ。Vitest/package runtime/R実行は未実施。
