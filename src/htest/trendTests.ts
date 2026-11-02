@@ -34,7 +34,8 @@ export interface PropTrendTestResult extends Omit<HTest, "alternative"> {
  *
  * @param x Numbers of events.
  * @param n Numbers of trials.
- * @param score Scores of the groups. Default `1, 2, ..., k`.
+ * @param score Scores of the groups. Default `1, 2, ..., k`. A group with a NaN score is left out of the regression
+ *   (as R's `lm` omits it), but its counts stay in the pooled proportion and the weights, as in R.
  *
  * @example
  * ```ts
@@ -54,16 +55,19 @@ export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTe
   const p = xs.reduce((a, v) => a + v, 0) / ns.reduce((a, v) => a + v, 0);
   const w = ns.map((v) => v / (p * (1 - p)));
   const f = xs.map((v, i) => v / ns[i]!);
-  const sw = w.reduce((a, v) => a + v, 0);
-  const sBar = w.reduce((a, wi, i) => a + wi * s[i]!, 0) / sw;
-  const fBar = w.reduce((a, wi, i) => a + wi * f[i]!, 0) / sw;
+  // the weighted regression of f on the scores, over the groups with a score
+  const rows = s.flatMap((v, i) => (Number.isNaN(v) ? [] : [i]));
+  if (rows.length === 0) throw new RangeError("no non-missing scores");
+  const sw = rows.reduce((a, i) => a + w[i]!, 0);
+  const sBar = rows.reduce((a, i) => a + w[i]! * s[i]!, 0) / sw;
+  const fBar = rows.reduce((a, i) => a + w[i]! * f[i]!, 0) / sw;
   let sxy = 0;
   let sxx = 0;
-  w.forEach((wi, i) => {
+  for (const i of rows) {
     const ds = s[i]! - sBar;
-    sxy += wi * ds * (f[i]! - fBar);
-    sxx += wi * ds * ds;
-  });
+    sxy += w[i]! * ds * (f[i]! - fBar);
+    sxx += w[i]! * ds * ds;
+  }
   const statistic = (sxy * sxy) / sxx;
   return {
     method: "Chi-squared Test for Trend in Proportions",
