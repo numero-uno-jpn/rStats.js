@@ -3708,3 +3708,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - #606で見つけた `farLimit` overflow→`findPeak` のsigma=0とは別の、分位点関数 `qnt1` の独立した障害経路。
 - テストコードを確認したが、Vitest・R・実関数の実行は未実施。上記分位点は解析的極限による期待値であり、実測値ではない。静的ソース監査のみ。ソースコード変更なし。
 - GitHub Issue: https://github.com/numero-uno-jpn/rStats.js/issues/136
+
+
+## Audit #610 — Noncentral t far-tail switch continuity review
+
+- 対象: `src/distributions/nt.ts` SHA `85763973f3f7a82d46ceee19a4dd0f8d8c275814`; `test/nt.test.ts` の既存回帰テストも確認。
+- `farLimit(a, delta)` の前後で、CDFの `pntBoth` → `farTails`、密度の `integrate(pdf)` → `T0) での密度×べき乗外挿、分位点の `hi=T0` / べき乗直接解の切替を追跡。
+- `farTails` は境界の far tail を `f0) とし、`k=2a(log|t|-log T0)` で `f0 exp(-k)` に接続する。反対側のtailも `n0 + f0(1-exp(-k))` として接続する。境界で `k→0` としたとき、CDF両側の値は `pntBoth(T0)` の値に一致する。密度外挿も境界で倍率1となる。分位点の直接解は対象tailが境界値より小さい場合に限って使用し、その他は `hi=T0` で数値反転する。
+- 今回確認した有限範囲では、切替式そのものに独立した不連続・符号誤りは確認できなかった。#606/#609の積分器の極端値不安定性、および#608/#136のfarLimitオーバーフロー分岐は既知事項として除外し、重複Issueは作成しない。
+- 再現・境界確認用の値: `a=1`, `delta=0`, `T0=1e10*10*Math.SQRT2`; 境界の直前・一致・直後の `t` を `T0` とその隣接浮動小数点数で比較する想定。今回は実行していない。
+- Vitest/Rは未実施。静的な式の追跡のみ。ソースコード変更なし。
