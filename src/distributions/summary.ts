@@ -491,12 +491,15 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const e = Math.floor(Math.log2(Math.max(Math.abs(a), Math.abs(b), Math.abs(c))));
       const [as, bs, cs] = [a, b, c].map((v) => ldexp(v, -e)) as [number, number, number];
       const qs = as * as + bs * bs + cs * cs - as * bs - as * cs - bs * cs;
+      // the skewness is scale-free: from the scaled parameters where the cubes of the parameters' scale could
+      // overflow or underflow (the largest outside [2^-300, 2^300]); inside, the products are in range
+      const [sa, sb, sc, sq] = e >= -300 && e < 300 ? [a, b, c, q] : [as, bs, cs, qs];
       return make(
         Number.isFinite(a + b + c) ? (a + b + c) / 3 : a / 3 + b / 3 + c / 3,
         q / 18,
         qtriang(0.5, { a, b, c }),
         c,
-        (Math.SQRT2 * (a + b - 2 * c) * (2 * a - b - c) * (a - 2 * b + c)) / (5 * q ** 1.5),
+        (Math.SQRT2 * (sa + sb - 2 * sc) * (2 * sa - sb - sc) * (sa - 2 * sb + sc)) / (5 * sq ** 1.5),
         -0.6,
         ldexp(Math.sqrt(qs / 18), e),
       );

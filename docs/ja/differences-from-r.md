@@ -255,7 +255,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 値に "\r" を含む複数キー、または `NA` と文字列 "NA" での `merge()` | 異なるキーの行が結合される (キーを "\r" で連結するため) | 等しいキーだけを結合 |
 | 小数の `B` での `fisher.test`/`chisq.test(simulate.p.value = TRUE)` | 整数部分しかシミュレーションしないのに B + 1 で割る | 実際の回数 + 1 で割る |
 | `JonckheereTerpstraTest` (DescTools) の両側 p 値 | 1 を超えることがある | 最大 1 |
-| distSummary の `unif(-1e308, 1e308)` の平均、`beta(1e150, 1e150)` の分散 | Inf、0 | 0、1.25e-151 |
+| distSummary の `unif(-1e308, 1e308)` の平均、`beta(1e150, 1e150)` の分散、`triang(-1e308, 1e308, 0)` と `triang(0, 3e120, 1e120)` の歪度 | Inf、0、NaN、NaN | 0、1.25e-151、0、0.3054 (歪度は 2 の冪で割ったパラメータから) |
 | 小さな単位の共変量 x (x * 1e-4) での `aov(y ~ x + w + Error(id/w))` | x の行が消える (層への射影の平方和が 1e-5 を超える列だけを採用するため) | x の尺度によらず同じ表 (しきい値は列自身の平方和の 1e-14 倍。以前の 1e-5 × 列の平均二乗では、主に被験者間で変動する共変量の小さな被験者内成分も落ちていた) |
 | 1e-200 や 1e155 程度のデータでの `t.test`、`oneway.test`、`var.test`、`bartlett.test`、PMCMRplus の `tukeyTest`/`gamesHowellTest`、`pairwise.t.test` | "data are essentially constant" か NaN (分散が 0 にアンダーフロー、またはその二乗がオーバーフロー) | 尺度によらず同じ結果 (データを 2 の冪で正規化。丸め誤差なし) |
 | 1e±150 程度のデータでの `t.test`、`gamesHowellTest`、`cohensD`、ICC の二元配置の限界の Welch 自由度 | NaN (標準誤差の 4 乗) | 尺度によらず同じ自由度 |
