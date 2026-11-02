@@ -3550,3 +3550,8 @@ SVD本体は対角入力の長さ1 Householder identity pathで小特異値を�
 - Examined the rounded Padé degree thresholds against Higham's tabulated bounds. The slight upward rounding at degree 3/9 boundaries is a potential accuracy-margin concern, but no concrete input with error beyond the project's tolerance was established; it is not filed as a confirmed defect.
 - Reviewed `test/expm.test.ts`: its fixture compares all six methods against R with relative tolerance `1e-12`; tests were read but not executed.
 - No new issue and no source change. Vitest, package runtime, and R were not executed.
+
+
+## Audit #590 — QR Householder overflow
+
+Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308,1e308]])`. The first column norm is finite, but the unscaled Householder dot product overflows to `-Infinity`, corrupting the second column and potentially reporting rank 2 for an exact rank-one matrix. Expected first R diagonal is `-sqrt(2)*1e308`, finite. Scaling the input by `1e-308` avoids the overflow. Opened Issue #130. Existing Issues #57 and #71 are distinct. Reviewed `test/qr.test.ts`; no tests were executed. Source blob `b04cbd9b8fbc3fdf1cc48b07b0ca44ef9eeb2f2f`.
