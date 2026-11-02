@@ -4155,3 +4155,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 既存Issue #147（df=0 densityのsubnormal scaling exponent誤り）と#150（巨大Poisson indexでCDF lower sumが停止しない）を再確認。#64は#150と同じ根因の既存報告。重複登録なし。#147のCDF側subnormalHalfも点質量を含むためdensityとは異なる漸近構造だが、今回の静的確認でdouble上の独立再現可能な誤差は確定できず、Issue追加せず。
 - `gammaKernel` のsmall/huge-y ratio scaling、tiny-shape gamma increment、Poisson mixture density peak、Bessel Hankel/Debye切替、double-double root差、subnormal-half変換、Chernoff tail bound、quantileのnarrow-spread/double-searchを追跡。sumLowerの巨大index進行不能は既知#150。sumUpperのMAX_TERMS上限とpeak restartも確認。新規の独立確定バグは#157以外に特定せず。
 - **新規Issue #157、ソース変更なし。** Vitest/package runtime/R比較は未実施。数値根拠はIEEE-754 overflow条件と非心カイ二乗の平均・分散式による決定的導出。
+
+
+## Audit #655 — Noncentral beta / noncentral F transformations and extreme-tail paths
+
+- 対象: `src/distributions/nbeta.ts` SHA `5c51760f6e136b80a77b4284da39c25b0ab8ed86`。非心betaのPoisson mixture、left-tail log series、extreme-parameter method selection、gamma/w expansions、integral tails、density、quantile、非心Fの `fPair`/`fOdds`/Chernoff bound/quantile経路を確認。
+- **新規Issue #158**: [pnf1 fPair loses the beta transform when large m*q is comparable to n](https://github.com/numero-uno-jpn/rStats.js/issues/158)。決定的再現 `pf(1e200, 1e100, 1e300, { ncp: 1e300 })`。m*q=n=1e300で、正しいbeta変換はx=1/2、1-x=1/2。ところが `fPair()` の `mq >= 1e290` fallbackは `zc=n/m/q` をそのまま1-xとして返し、x=0、1-x=1を生成する。fallbackは `mq >> n` を保証しないため、非心Fの分布中心付近の入力でも変換が壊れる。平均・分散から、分子χ²(m,λ)と分母χ²(n)はともに相対変動約2e-150/1.4e-150で、q=λ/m=1e200の下側確率は約0.5。ソース制御フローと変換式の静的確認。Vitest/runtime/R未実施。
+- 既存Issue #63（正のsubnormal ncp/2が0になるleftTailLogのNaN）、#96（dnbeta endpoint log densityのa+mu overflow）、#114（subnormal shapeでj=0密度成分を落とす）を確認し、#158とは根因が異なる。非心F側の `dnfCore`/`pnfTiny` の比率対数問題は既存Issue #135と重複するため新規登録しない。
+- 非心betaのshape端点・a/b極小/巨大、`mu*rho` とshape sum overflow、`Math.log(s/b)` の比率形成、density peak・Poisson mixture、F変換のunderflow/overflow、Chernoff gridとqF quantileの有限端点判定を確認。独立した確定バグは#158以外に追加特定せず。
+- **新規Issue #158、ソース変更なし。** `docs/audit-ledger.md` 追記。Vitest/package runtime/R/高精度数値照合は未実施。
