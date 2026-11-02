@@ -23,6 +23,7 @@ import { pgamma1 } from "../distributions/gamma.js";
 import { logFactorialTable, rcont2 } from "../random/r2dtable.js";
 import { sampleInt } from "../random/sample.js";
 import { productOver, squareOver } from "../internal/summary.js";
+import { compareCodePoints } from "../models/modelFrame.js";
 import { ddAdd, type DD } from "../special/dd.js";
 import { simulatedMethod } from "./core/simulate.js";
 import type { HTest, Counts } from "./types.js";
@@ -154,9 +155,6 @@ export function chisqTest(
   return chisqCounts(x as Counts | readonly Counts[], (yOrOptions as ChisqTestOptions | undefined) ?? {});
 }
 
-/** Code-point order (the C locale) */
-const byCodePoint = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
-
 function chisqFactors(x: Factor, y: Factor, options: ChisqTestOptions): ChisqTestFactorsResult {
   if (x.length !== y.length) throw new RangeError("'x' and 'y' must have the same length");
   const missing = (v: unknown): boolean => v === null || v === undefined;
@@ -172,8 +170,8 @@ function chisqFactors(x: Factor, y: Factor, options: ChisqTestOptions): ChisqTes
       ys.push(w!);
     }
   });
-  const rowLevels = [...new Set(xs)].sort(byCodePoint);
-  const colLevels = [...new Set(ys)].sort(byCodePoint);
+  const rowLevels = [...new Set(xs)].sort(compareCodePoints);
+  const colLevels = [...new Set(ys)].sort(compareCodePoints);
   if (rowLevels.length < 2 || colLevels.length < 2) throw new RangeError("'x' and 'y' must have at least 2 levels");
   const ri = new Map(rowLevels.map((v, i) => [v, i]));
   const ci = new Map(colLevels.map((v, i) => [v, i]));
