@@ -44,6 +44,8 @@ scratchpad の `la3.ts` (結果を書き出す) と `la3cmp.mjs` (比べる)。n
 
 ## 判断待ち: eigen([[1, 1e200], [1e-200, 2]]) (#129 の範囲外の記録)
 
+**Update (2026-11-03): fixed with option A** (eigen alone brings a large matrix down to 2^459; the zero eigenvectors of [0, 1e200; 1e-200, 0] came from an overflowing sum of squares in the normalisation, also fixed). See review_fix_log_eigen_scaling.md.
+
 review_fix_log_issue129.md の範囲外の記録 1 は「同じ原因なので一緒に直る」想定だったが、**案 B では直らない**。
 
 | 行列 | 真の値 | R 4.5.2 | 修正前 | 案 B (このコミット) | 目標 2^459 (試作) |

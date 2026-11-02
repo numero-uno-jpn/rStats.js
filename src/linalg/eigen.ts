@@ -87,8 +87,10 @@ export function eigen(x: MatrixInput, options: EigenOptions = {}): EigenResult {
   if (a.nrow === 0) throw new RangeError("the matrix has zero dimension");
   for (const v of a.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
   // A matrix of extreme magnitude is scaled by a power of 2 (exact) and the eigenvalues scaled back, so that the
-  // iterations neither overflow nor underflow; other matrices are used as given
-  const k = decompositionExponent(a.data);
+  // iterations neither overflow nor underflow; other matrices are used as given. A large matrix is brought down only to
+  // 2^459, as dgeev does, so that entries down to 2^-1481 of the largest stay normal for the balancing that follows:
+  // at 2^256, [1, 1e200; 1e-200, 2] had 1e-200 subnormal (eigenvalues 2.609, 0.391; and 2, 1 when brought down to 1)
+  const k = decompositionExponent(a.data, 459);
   const as = k === 0 ? a : { ...a, data: a.data.map((v) => ldexp(v, -k)) };
   // The automatic symmetry test is made on the matrix normalised by a power of 2 near its largest |a_ij|, so that it
   // is relative at every scale: R's (all.equal) falls back to an absolute difference when mean |a_ij| <= 100 eps, and
@@ -398,7 +400,14 @@ function normalizeVectors(re: Mat, im: Mat): void {
         k = i;
       }
     }
-    const norm = Math.sqrt(ss);
+    // where the sum of squares overflows or leaves the normal range (gebak can scale a component by 2^664 or more:
+    // [0, 1e200; 1e-200, 0] gave 6.1e199 and a zero vector), the norm is taken relative to the largest modulus
+    let norm = Math.sqrt(ss);
+    if (big > 0 && !(ss >= 2 ** -1022 && ss < Infinity)) {
+      let rs = 0;
+      for (let i = 0; i < n; i++) rs += (Math.hypot(re.data[o + i]!, im.data[o + i]!) / big) ** 2;
+      norm = big * Math.sqrt(rs);
+    }
     if (norm === 0) continue;
     // Multiplying by (cr - i ci) / (|v_k| norm) makes v_k a positive real
     const cr = re.data[o + k]! / big / norm;
