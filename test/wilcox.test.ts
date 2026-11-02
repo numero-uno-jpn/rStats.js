@@ -32,7 +32,13 @@ htestSuite({
   // true root (a Walsh average or difference) is 0, the root search stops at a small value around 1e-5 that
   // relative error cannot measure. Use the data scale as the floor
   floor: { confInt: dataScale, estimate: dataScale },
-  knownDifference: (_a, field, expected, actual) => {
+  knownDifference: (a, field, expected, actual) => {
+    // two samples with every value tied: W always equals its expectation, p = 1 (R 4.5.2: 0 / 0 = NaN; issue #49)
+    if (field === "pValue" && Number.isNaN(expected) && actual === 1 && !(arg.bool(a.paired) ?? false)) {
+      const mu = arg.num(a.mu) ?? 0;
+      const all = [...(arg.vec(a.x) ?? []).map((v) => v - mu), ...(arg.vec(a.y) ?? [])].filter((v) => !Number.isNaN(v));
+      if (arg.vec(a.y) !== undefined && all.every((v) => v === all[0])) return "two samples with every value tied: p = 1 (R gives NaN)";
+    }
     // R's psignrank(0, 3) is 0.12500000000000003 (1 ulp above 1/8), so for a one-sided interval the
     // achievable confidence level rounded to 2 significant digits is 1 - 0.13 = 0.87. rStats.js uses the exact
     // 1/8 and gets 1 - 0.12 = 0.88 (ties round to even; R also gives 0.88 when it is exactly 1/8, as in the

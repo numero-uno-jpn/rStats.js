@@ -214,6 +214,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `qhyper(1 - 1e-15, 1e4, 1e5, 5000)` | 5000 | 617 (定義どおり) |
 | n = 179 の 3 × 5 表に対する `fisher.test` | 既定の workspace で FEXACT error 7 | 0.2023726720757 (0.65 秒) |
 | 非常に大きな n (たとえば 3000) での `wilcox.test(exact = TRUE)` | `psignrank` が NaN を返す | 計算できる |
+| `wilcox.test(x, y)` (正規近似) で、すべての値が同じ場合 (`wilcox.test(1, 1)` など) | 両側の p が NaN (0 / 0。R 4.6 は 1 を返す) | 1 (W はいつも期待値に等しい)。どの alternative でも |
 | x < 0 で deriv ≥ 6 の `psigamma(x, deriv)` | NaN (R では未実装) | 計算できる (`psigamma(-1.5, 10)` = -156.229596593233) |
 | `trigamma(1e-300)`、`psigamma(1e-100, 3)` など結果がオーバーフローするもの | NaN | ±Inf |
 | `besselI(1000, 1000)` | Inf | 2.7234536469108428e229 |

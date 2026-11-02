@@ -462,10 +462,9 @@ function rankSum(
     }
   } else {
     method = `Wilcoxon rank sum test${correct ? " with continuity correction" : ""}`;
-    pValue = normalP(
-      (dz - correction(dz, alternative, correct)) / sigma,
-      alternative,
-    );
+    // all values tied: W always equals its expectation, so p = 1 (R 4.5.2: 0 / 0 = NaN two-sided; R 4.6 returns 1)
+    const allTied = xs.every((v) => v === y[0]) && y.every((v) => v === y[0]);
+    pValue = allTied ? 1 : normalP((dz - correction(dz, alternative, correct)) / sigma, alternative);
   }
 
   const result: WilcoxTestResult = {
