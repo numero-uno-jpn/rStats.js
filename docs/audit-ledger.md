@@ -2748,3 +2748,23 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Issue: [#101](https://github.com/numero-uno-jpn/rStats.js/issues/101).
 - Rとの関係: R Coreの現行Cソースとのアルゴリズム照合。R側の出力は公開C実装をbinary64で追跡して算出し、この監査ではR実行ファイルによる直接照合は未実施。
 - 検証範囲: ソース静的解析と独立binary64計算のみ。Vitest/package runtime/R実行なし。ソース変更なし。
+
+
+## Audit #519 — `roundR()` negative-digit scaling (same root cause as #518)
+
+- Revisited `src/internal/fround.ts` (blob `8e42f6ab4bc1d61fcd7687129efdc57edc942224`) after Audit #518, focusing on negative decimal places and reciprocal scaling.
+- Confirmed a second exact manifestation of the same `powerOf10` mismatch: for negative `dig`, JS computes `1 / powerOf10(-dig)`, where the positive power is built by repeated multiplication. R's `R_pow_di(10., dig)` computes the positive integer power by exponentiation by squaring and then takes its reciprocal.
+- Exact reproduction:
+  ```ts
+  roundR(3.720925911927848e25, -25);
+  // current: 3.9999999999999995e25
+  // R R_pow_di path: 4e25
+
+  roundR(-3.720925911927848e25, -25);
+  // current: -3.9999999999999995e25
+  // R path: -4e25
+  ```
+  Input binary64: `0x1.ec75dfa8b17cbp+84`. For (10^{25}), repeated multiplication gives `0x1.08b2a2c280290p+83`, while the R squaring algorithm gives `0x1.08b2a2c280291p+83`; their reciprocals lead to different sides of the integer boundary after scaling.
+- This is **not a separate issue**: it is the negative-digit manifestation of Audit #518's root cause and is recorded in the existing Issue #101 discussion: https://github.com/numero-uno-jpn/rStats.js/issues/101.
+- Rとの関係: `src/nmath/fround.c` and `src/main/arithmetic.c` current R Core source inspected; the R path was simulated with binary64 operations, not run in an R executable.
+- 検証範囲: exact binary64 reproduction and static C/TypeScript algorithm comparison. No Vitest, package runtime, or R execution. No source changes.
