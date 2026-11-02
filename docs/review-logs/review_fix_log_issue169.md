@@ -39,6 +39,15 @@ R と違う値 (R は 0 か、当てはめられない) なので、docs の「R
 - 真の距離が double の範囲を超える場合 (重み 4e306、dispersion 1 の 6 行目、真の値 3.6e308) は、今までどおり有限性の検査で NaN (R の式なら Inf)。Inf にするかは別の判断
 - binomial の当てはめは重み 3e307 程度から「no valid set of coefficients has been found」で落ちる (6 行の例。deviance の和の溢れと思われる。未調査、#168 と同種の可能性)
 
+## Addendum (2026-11-03): the issue's example after #168
+
+After the working-weight fix of #168 (option A1; review_fix_log_issue168.md) the issue's example was checked again.
+
+- `glm([[], []], [0, 1e308], { family: "poisson" })` still does not fit, now with "no valid set of coefficients has been found: please supply starting values" (was "the matrix contains NaN or infinite values"). The working weights no longer overflow; the first step goes to the weighted mean of the working response, eta = log(1e308) for both rows, where the deviance contribution 2 mu of the row with y = 0 is 2e308 = Infinity, and without starting values there is nothing to halve back to. R 4.5.2 stops with "NA/NaN/Inf in 'x'" (also with `start = 708`).
+- With `start: [700]` the halving cannot bring the deviance back to a finite value either ("inner loop 1; cannot correct step size").
+- With `start: [708]` the fit converges in 4 iterations to the coefficient 708.5030614632992 (mean 5.000000008465465e307; the maximum likelihood mean is 5e307), hat values 0.4999999999999999, Pearson residuals -7.071067817851462e153 and 7.071067793907514e153, and `glmCooksDistance(fit, { dispersion: 1e308 })` = [1.0000000016930923, 0.9999999949207209]: finite, about 1 as the issue expects, and equal to the formula with r and the dispersion in units of 2^600 (the issue's own computation). With dispersion 1: [1.0000000016930923e308, 9.99999994920721e307].
+- Recorded for later: a first step whose deviance overflows (a count of 0 next to 1e308) stops the fit without starting values. The deviance is finite at the maximum (1.386e308), so this is the size of the deviance, not of the weights; not changed here.
+
 ## close comment
 
 Fixed in <commit of #169, see git log --grep='#169'>: where (r/(1 - h))^2 h/(dispersion p) is not finite, or h/(dispersion p) falls below the normal range, glmCooksDistance now computes it with the residual and the dispersion in units of powers of 2, scaled back once at the end; elsewhere the bits are unchanged. The issue's Poisson example does not fit yet (the working weights overflow, #168), so the reproduction is a binomial fit with prior weights 1.5e306, xs = (1, 2, 3, 4, 5, 38), y = (1, 1, 1, 0, 0, 1): the high-leverage row (h = 0.977) has r/(1 - h) = 1.6e154, and its distance is now 1.353207492516757e308 (was NaN). With dispersion 1e308, where h/(dispersion p) is subnormal, the distances were all 0 (as in R), now 1.4e-309 ... 9.0e-307, the distances for dispersion 1 divided by 1e308. Recorded in docs/differences-from-r.md. Test: test/issue169.test.ts. Recorded for later: the issue's example once #168 is settled; a true distance beyond the largest double is still NaN. (Not pushed yet.)

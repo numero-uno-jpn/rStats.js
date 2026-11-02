@@ -203,6 +203,59 @@ function totalDeviance(fam: Family, y: number[], mu: number[], w: number[]): num
   return d;
 }
 
+const MIN_NORMAL = 2 ** -1022;
+
+/** Whether v is 0 or a finite number of the normal range */
+const inRange = (v: number): boolean => v === 0 || (Math.abs(v) >= MIN_NORMAL && Math.abs(v) < Infinity);
+
+/**
+ * The square root of the working weight, sqrt(w muEta^2 / V(mu)). Where a part of that form (muEta^2, V, w muEta^2) or
+ * the result is outside the normal range although the weight is not (a poisson mean beyond 1.34e154 squared muEta to
+ * Infinity, an inverse.gaussian V of mu^3 overflowed or underflowed, a muEta of 1e-160 squared to 0: #165-#168), as
+ * sqrt(w) |c| mu^((2a - p)/2) from muEta = c mu^a and V = mu^p. Otherwise, and for the links and variances not of
+ * that form (the binomial ones), the same bits as R's form. (Not sqrt(w) |muEta| / sqrt(V) for those: a binomial
+ * mean at its clamp 1 - 2^-53 has V far above mu (1 - mu) while muEta keeps falling, so that form gave rows at an
+ * infinite linear predictor a weight, and the working response Infinity, where R's form gives them the weight 0)
+ */
+function sqrtWeight(fam: Family, w: number, me: number, mu: number): number {
+  const v = fam.variance(mu);
+  const me2 = me ** 2;
+  const s = Math.sqrt((w * me2) / v);
+  if (s > 0 && s < Infinity && inRange(me2) && me2 !== 0 && inRange(v) && v !== 0 && inRange(w * me2)) return s;
+  if (fam.muPower !== undefined && fam.varPower !== undefined && mu > 0) {
+    const { c, a } = fam.muPower;
+    return Math.sqrt(w) * Math.abs(c) * mu ** ((2 * a - fam.varPower) / 2);
+  }
+  return s;
+}
+
+/**
+ * The working residual (y - mu) / muEta; where muEta is not finite or below the normal range (the inverse link's
+ * -1/eta^2 overflowed for a Gamma mean of 1e308, #159), as ((y - mu)/c)/mu^(a/2)/mu^(a/2) from muEta = c mu^a
+ */
+function workingResidual(fam: Family, y: number, mu: number, me: number): number {
+  const r = (y - mu) / me;
+  if (Math.abs(me) >= MIN_NORMAL && Math.abs(me) < Infinity) return r;
+  if (fam.muPower !== undefined && mu > 0) {
+    const { c, a } = fam.muPower;
+    const h = mu ** (a / 2);
+    return (y - mu) / c / h / h;
+  }
+  return r;
+}
+
+/**
+ * The Pearson residual (y - mu) sqrt(w) / sqrt(V(mu)); where V is outside the normal range or the result is not finite,
+ * as ((y - mu)/h) sqrt(w)/h with h = mu^(p/4) from V = mu^p
+ */
+function pearsonResidual(fam: Family, y: number, mu: number, w: number): number {
+  const v = fam.variance(mu);
+  const r = ((y - mu) * Math.sqrt(w)) / Math.sqrt(v);
+  if ((Number.isFinite(r) && inRange(v) && v !== 0) || fam.varPower === undefined || !(mu > 0)) return r;
+  const h = mu ** (fam.varPower / 4);
+  return (((y - mu) / h) * Math.sqrt(w)) / h;
+}
+
 /** Iteratively reweighted least squares (glm-behaviour.md, "Fitting") */
 /** The change of the linear predictor in the last iteration above which a converged fit is reported separated */
 const SEPARATION_STEP = 0.1;
@@ -222,7 +275,7 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
       const mu = eta.map((e) => fam.linkinv(e));
       if (!mu.every((m) => fam.muOk(m))) throw new Error("invalid fitted means in empty model");
       const me = eta.map((e) => fam.muEta(e));
-      const ww = mu.map((m, i) => Math.sqrt((w[i]! * me[i]! ** 2) / fam.variance(m)) ** 2);
+      const ww = mu.map((m, i) => sqrtWeight(fam, w[i]!, me[i]!, m) ** 2);
       return {
         coefficients: [],
         eta,
@@ -237,7 +290,7 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
         qr: undefined,
         used: w.map((v) => v > 0),
         workingWeights: ww,
-        workingResiduals: y.map((v, i) => (v - mu[i]!) / me[i]!),
+        workingResiduals: y.map((v, i) => workingResidual(fam, v, mu[i]!, me[i]!)),
       };
     }
 
@@ -271,7 +324,8 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
         if (!(w[i]! > 0)) continue;
         const v = fam.variance(mu[i]!);
         if (Number.isNaN(v)) throw new Error("NAs in V(mu)");
-        if (v === 0) throw new Error("0s in V(mu)");
+        // (not where V = mu^p underflowed for a positive mean: an inverse.gaussian mean of 1e-200, #166)
+        if (v === 0 && !(fam.varPower !== undefined && mu[i]! > 0)) throw new Error("0s in V(mu)");
         if (Number.isNaN(me[i]!)) throw new Error("NAs in d(mu)/d(eta)");
       }
       used = w.map((v, i) => v > 0 && me[i] !== 0);
@@ -286,9 +340,9 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
       const zw: number[] = [];
       const xw: number[][] = [];
       for (const i of rows) {
-        const s = Math.sqrt((w[i]! * me[i]! ** 2) / fam.variance(mu[i]!));
+        const s = sqrtWeight(fam, w[i]!, me[i]!, mu[i]!);
         sqrtW[i] = s;
-        zw.push(((eta[i]! - offset[i]!) + (y[i]! - mu[i]!) / me[i]!) * s);
+        zw.push(((eta[i]! - offset[i]!) + workingResidual(fam, y[i]!, mu[i]!, me[i]!)) * s);
         xw.push(x[i]!.map((v) => v * s));
       }
       q = qr(xw, { tol });
@@ -404,7 +458,7 @@ export function irls(inp: IrlsInput, warnings: Warnings): IrlsFit {
       qr: q,
       used,
       workingWeights: sqrtW.map((s) => s * s),
-      workingResiduals: y.map((v, i) => (v - mu[i]!) / me[i]!),
+      workingResiduals: y.map((v, i) => workingResidual(fam, v, mu[i]!, me[i]!)),
     };
   });
 }
@@ -586,7 +640,17 @@ function fitModel(model: GlmModel): GlmResult {
       sw += wi;
       swy += wi * yy[i]!;
     }
-    const m = swy / sw;
+    let m = swy / sw;
+    if (!Number.isFinite(m)) {
+      // the weighted sum of the response overflowed (a poisson response of 1e308, #168): with the response divided by a
+      // power of 2 as well
+      let ymax = 0;
+      for (let i = 0; i < n; i++) if (w[i]! > 0) ymax = Math.max(ymax, Math.abs(yy[i]!));
+      const ky = Math.floor(Math.log2(ymax));
+      let swy2 = 0;
+      for (let i = 0; i < n; i++) if (w[i]! > 0) swy2 += ldexp(w[i]!, -kw) * ldexp(yy[i]!, -ky);
+      m = ldexp(swy2 / sw, ky);
+    }
     nullDeviance = withWarnings(warnings, () => totalDeviance(fam, yy, yy.map(() => m), w));
   } else nullDeviance = withWarnings(warnings, () => totalDeviance(fam, yy, offset.map((o) => fam.linkinv(o)), w));
 
@@ -836,7 +900,7 @@ function residualsOf(fit: GlmResult, type: GlmResidualType): number[] {
     case "working":
       return fit.residuals.slice();
     case "pearson":
-      return y.map((v, i) => ((v - mu[i]!) * Math.sqrt(w[i]!)) / Math.sqrt(fam.variance(mu[i]!)));
+      return y.map((v, i) => pearsonResidual(fam, v, mu[i]!, w[i]!));
     case "deviance":
       // from each row's contribution also without residual degrees of freedom (R's residuals.glm gives 0 there, even
       // for a fit that has not converged: deviance 0.34 with residuals 0); their squares sum to the deviance

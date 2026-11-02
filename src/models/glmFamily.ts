@@ -78,6 +78,11 @@ export interface LinkFunctions {
   muEta(eta: number): number;
   /** Whether a linear predictor is in the domain of the inverse link */
   etaOk(eta: number): boolean;
+  /**
+   * d mu/d eta = c mu^a for mu > 0 (identity, log, inverse, sqrt, 1/mu^2 and the power links): the working weights
+   * and residuals in that form where the direct one overflows or underflows (see irls in glm.ts)
+   */
+  muPower?: { c: number; a: number };
 }
 
 /** A family resolved to its functions (the counterpart of R's family object). */
@@ -91,6 +96,8 @@ export interface Family extends LinkFunctions {
   devContribution(y: number, mu: number, w: number): number;
   /** Whether the dispersion is fixed at 1 (binomial and poisson) */
   fixedDispersion: boolean;
+  /** The variance function is mu^varPower (gaussian 0, poisson 1, Gamma 2, inverse.gaussian 3 and their quasi) */
+  varPower?: number;
 }
 
 const ALLOWED: Record<GlmFamilyName, readonly string[]> = {
@@ -166,7 +173,7 @@ const inUnit = (p: number): number => Math.min(Math.max(p, Number.MIN_VALUE), 1 
 function namedLink(name: GlmLinkName): LinkFunctions {
   switch (name) {
     case "identity":
-      return { name, link: (m) => m, linkinv: (e) => e, muEta: () => 1, etaOk: anyEta };
+      return { name, link: (m) => m, linkinv: (e) => e, muEta: () => 1, etaOk: anyEta, muPower: { c: 1, a: 0 } };
     case "log":
       return {
         name,
@@ -176,6 +183,7 @@ function namedLink(name: GlmLinkName): LinkFunctions {
         linkinv: (e) => Math.max(Math.exp(e), Number.MIN_VALUE),
         muEta: (e) => Math.max(Math.exp(e), Number.MIN_VALUE),
         etaOk: anyEta,
+        muPower: { c: 1, a: 1 },
       };
     case "inverse":
       return {
@@ -184,9 +192,10 @@ function namedLink(name: GlmLinkName): LinkFunctions {
         linkinv: (e) => 1 / e,
         muEta: (e) => -1 / (e * e),
         etaOk: (e) => Number.isFinite(e) && e !== 0,
+        muPower: { c: -1, a: 2 },
       };
     case "sqrt":
-      return { name, link: Math.sqrt, linkinv: (e) => e * e, muEta: (e) => 2 * e, etaOk: positive };
+      return { name, link: Math.sqrt, linkinv: (e) => e * e, muEta: (e) => 2 * e, etaOk: positive, muPower: { c: 2, a: 0.5 } };
     case "1/mu^2":
       return {
         name,
@@ -194,6 +203,7 @@ function namedLink(name: GlmLinkName): LinkFunctions {
         linkinv: (e) => 1 / sqrtWarn(e),
         muEta: (e) => -1 / (2 * e ** 1.5),
         etaOk: positive,
+        muPower: { c: -0.5, a: 3 },
       };
     case "logit":
       return {
@@ -267,6 +277,8 @@ function powerLink(lambda: number): LinkFunctions {
     linkinv: (e) => Math.max(e === 1 ? 1 : e ** inv, Number.MIN_VALUE),
     muEta: (e) => powerMuEta(e, lambda, inv),
     etaOk: positive,
+    // (eta^(1/lambda - 1) = mu^(1 - lambda); none where 1/lambda overflows)
+    ...(Number.isFinite(inv) ? { muPower: { c: inv, a: 1 - lambda } } : {}),
   };
 }
 
@@ -284,27 +296,34 @@ function powerMuEta(e: number, lambda: number, inv: number): number {
   return Math.max(Math.exp(inv * Math.log(e) - Math.log(lambda) - Math.log(e)), Number.MIN_VALUE);
 }
 
-function quasiVariance(v: QuasiVariance): { variance: (mu: number) => number; muOk: (mu: number) => boolean; dev: Family["devContribution"] } {
+function quasiVariance(v: QuasiVariance): {
+  variance: (mu: number) => number;
+  muOk: (mu: number) => boolean;
+  dev: Family["devContribution"];
+  varPower?: number;
+} {
   switch (v) {
     case "constant":
-      return { variance: () => 1, muOk: () => true, dev: (y, mu, w) => w * (y - mu) ** 2 };
+      return { variance: () => 1, muOk: () => true, dev: (y, mu, w) => w * (y - mu) ** 2, varPower: 0 };
     case "mu(1-mu)":
       return { variance: (m) => m * (1 - m), muOk: (m) => m > 0 && m < 1, dev: binomialDev };
     case "mu":
       return {
         variance: (m) => m,
         muOk: (m) => m > 0,
+        varPower: 1,
         dev: (y, mu, w) => 2 * w * ((y === 0 ? 0 : y * logWarn(y / mu)) - (y - mu)),
       };
     case "mu^2":
       return {
         variance: (m) => m * m,
         muOk: (m) => m > 0,
+        varPower: 2,
         // log(y/mu) for every y != 0 (NaN for a negative y, as in R), log(1/mu) for y = 0
         dev: (y, mu, w) => Math.max(-2 * w * (logWarn(y !== 0 ? y / mu : 1 / mu) - (y - mu) / mu), 0),
       };
     case "mu^3":
-      return { variance: (m) => m * m * m, muOk: (m) => m > 0, dev: inverseGaussianDev };
+      return { variance: (m) => m * m * m, muOk: (m) => m > 0, dev: inverseGaussianDev, varPower: 3 };
     default:
       throw new RangeError(`'variance' "${String(v)}" is invalid: possible values are "mu(1-mu)", "mu", "mu^2", "mu^3" and "constant"`);
   }
@@ -350,7 +369,7 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
   const base = { ...lf, family: name, varianceName: undefined as QuasiVariance | undefined, fixedDispersion: false };
   switch (name) {
     case "gaussian":
-      return { ...base, variance: () => 1, muOk: () => true, devContribution: (y, mu, w) => w * (y - mu) ** 2 };
+      return { ...base, varPower: 0, variance: () => 1, muOk: () => true, devContribution: (y, mu, w) => w * (y - mu) ** 2 };
     case "binomial":
     case "quasibinomial":
       return {
@@ -365,6 +384,7 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
       return {
         ...base,
         fixedDispersion: name === "poisson",
+        varPower: 1,
         variance: (m) => m,
         muOk: (m) => Number.isFinite(m) && m > 0,
         // (a row with y = 0 takes no logarithm, so a negative mean there does not warn, as in R)
@@ -373,6 +393,7 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
     case "Gamma":
       return {
         ...base,
+        varPower: 2,
         variance: (m) => m * m,
         muOk: (m) => Number.isFinite(m) && m > 0,
         devContribution: (y, mu, w) => -2 * w * ((y === 0 ? 0 : logWarn(y / mu)) - (y - mu) / mu),
@@ -380,11 +401,24 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
     case "inverse.gaussian":
       // the mean of an inverse Gaussian is positive (R's validmu accepts any mean, and a negative one turns the
       // working weights NaN); a step to an invalid mean is halved
-      return { ...base, variance: (m) => m * m * m, muOk: (m) => Number.isFinite(m) && m > 0, devContribution: inverseGaussianDev };
+      return {
+        ...base,
+        varPower: 3,
+        variance: (m) => m * m * m,
+        muOk: (m) => Number.isFinite(m) && m > 0,
+        devContribution: inverseGaussianDev,
+      };
     case "quasi": {
       const vname = spec.variance ?? "constant";
       const q = quasiVariance(vname);
-      return { ...base, varianceName: vname, variance: q.variance, muOk: q.muOk, devContribution: q.dev };
+      return {
+        ...base,
+        varianceName: vname,
+        variance: q.variance,
+        muOk: q.muOk,
+        devContribution: q.dev,
+        ...(q.varPower === undefined ? {} : { varPower: q.varPower }),
+      };
     }
   }
 }
