@@ -69,6 +69,10 @@ export function dmultinom(x: readonly number[], prob: readonly number[], options
   for (let k = K - 1; k >= 0; k--) ns[k] = ns[k + 1]! + x[k]!;
   // A category with probability 0 and a positive count makes the probability 0
   for (let k = 0; k < K; k++) if (prob[k] === 0 && x[k]! > 0) return log ? -Infinity : 0;
+  // A total of the counts that overflows (each count finite) is NaN on both scales, as dnbinom where size + x overflows
+  // (reviews 22 and 55) and dhyper's m + n: the integer range beyond 2^53. (The linear value was 0, the log NaN; the
+  // true value of dmultinom([1e308, 1e308], [0.5, 0.5]) is 5.64e-155; issue #152)
+  if (N === Infinity) return NaN;
   // The scaled weights are used only where the sum of the weights from k on overflows: a weight that the scaling takes
   // to 0 (or into the subnormals) is not lost from the later ratios. Where nothing overflows this is ps itself
   const psOrig = scale === 0 ? ps : suffixSums(prob);
