@@ -4191,3 +4191,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 根因: `prepareResponse()` が `size = success + failure` を直接計算しInfinityにする。続く `yy = success / size` は0、`weights = prior * size` はInfinity、`mustart = (size * yy + 0.5) / (size + 1)` は `Infinity * 0` によりNaN。IRLSは有効な開始値を得られずfitを開始できない。少なくとも成功率と初期平均は0.5を維持すべき。総試行数がbinary64で表現できない場合の尤度重みのスケーリングまたは明示的な範囲エラーは別途設計が必要だが、比率自体を0に壊すのは誤り。
 - 既存Issue検索: "two-column binomial glm overflow"、"prepareResponse binomial counts"、"binomial GLM size overflow"で重複なし。#152はmultinomial密度の総カウントoverflowであり、GLM初期化のこの不具合とは別。
 - **新規Issueを登録。** ソース変更なし。ソース静的追跡とIEEE-754演算解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #659 — Binomial deviance cancellation near a perfect fit
+
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5` の `binomialDev()`。binomialのdeviance・残差・IRLS deviance比較で使われる二項逸脱度寄与を確認。
+- 決定的再現: `makeFamily("binomial").devContribution(0.5, 0.5 + 2 ** -52, 1)`。乱数なし。観測比率と予測確率は隣接するbinary64近傍。
+- 現行式 `2*w*(y*log(y/mu)+(1-y)*log((1-y)/(1-mu)))` は、ほぼ等大反対符号の二項を直接加算するため、真の小さな正の逸脱度が丸め誤差に埋もれ、約 `-1.9721522630525295e-31` の負値を返す。y=1/2、mu=1/2+dの正確な式は `-log(4*mu*(1-mu)) = -log(1-4*d*d) ≈ 4*d*d`。d=2^-52で期待値は約 `+1.9721522630525295e-31`。
+- 負の寄与はtotal devianceとIRLSのdeviance比較を汚染する。deviance residual側では負値を0にclampするため、診断出力では問題が隠れる。相殺に強いbd0型計算式が必要。
+- 既存Issue検索: "binomial deviance cancellation close probabilities"、"binomialDev negative deviance"、"glm deviance precision close y mu"で重複なし。
+- **新規Issueを登録。ソース変更なし。** 静的ソース追跡とbinary64数値解析のみ。Vitest/package runtime/R照合未実施。
