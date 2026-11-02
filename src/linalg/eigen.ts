@@ -112,36 +112,42 @@ function normalized(a: Mat): Mat {
   return f === 1 ? a : { ...a, data: a.data.map((v) => v * f) };
 }
 
-/** Same test as R's isSymmetric (all.equal(A, t(A), tolerance = 100 ε)) */
+/**
+ * Same test as R's isSymmetric (all.equal(A, t(A), tolerance = 100 ε)): the mean absolute difference over the entries
+ * that differ from their transposes (all.equal's countEQ = FALSE leaves the equal ones out; counting them, as the
+ * diagonal, diluted the scale: [[4, 1], [1 + 1e-13, 4]] passed, issue #99), relative to their mean absolute value
+ * when that exceeds the tolerance, absolute otherwise
+ */
 export function isSymmetric(a: Mat): boolean {
   const n = a.nrow;
-  let diff = 0;
-  let size = 0;
-  for (let j = 0; j < n; j++) {
-    for (let i = 0; i < n; i++) {
-      diff += Math.abs(a.data[i + j * n]! - a.data[j + i * n]!);
-      size += Math.abs(a.data[i + j * n]!);
-    }
-  }
-  if (size === Infinity) {
-    // R's mean accumulates in long double and does not overflow here: divide by the largest |a_ij| (a power of 2,
-    // exact), which leaves the relative difference unchanged
+  const sums = (f: number): { diff: number; size: number; count: number; mx: number } => {
+    let diff = 0;
+    let size = 0;
+    let count = 0;
     let mx = 0;
-    for (const v of a.data) mx = Math.max(mx, Math.abs(v));
-    const f = 2 ** -Math.floor(Math.log2(mx));
-    diff = 0;
-    size = 0;
     for (let j = 0; j < n; j++) {
       for (let i = 0; i < n; i++) {
-        diff += Math.abs(a.data[i + j * n]! * f - a.data[j + i * n]! * f);
-        size += Math.abs(a.data[i + j * n]! * f);
+        const t = a.data[i + j * n]!;
+        const c = a.data[j + i * n]!;
+        if (t === c) continue;
+        diff += Math.abs(t * f - c * f);
+        size += Math.abs(t * f);
+        count++;
+        mx = Math.max(mx, Math.abs(t));
       }
     }
+    return { diff, size, count, mx };
+  };
+  let { diff, size, count, mx } = sums(1);
+  if (count === 0) return true;
+  if (!Number.isFinite(diff) || !Number.isFinite(size)) {
+    // R's mean accumulates in long double and does not overflow here: divide by the largest of these |a_ij| (a power
+    // of 2, exact); the means are then large, so the test is the relative one, which this leaves unchanged
+    ({ diff, size } = sums(2 ** -Math.floor(Math.log2(mx))));
   }
   const tol = 100 * Number.EPSILON;
-  const N = n * n;
-  const xn = size / N;
-  const xy = diff / N;
+  const xn = size / count;
+  const xy = diff / count;
   return (Number.isFinite(xn) && xn > tol ? xy / xn : xy) <= tol;
 }
 
