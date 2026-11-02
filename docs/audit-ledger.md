@@ -3748,3 +3748,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 決定的な再現・境界入力（乱数なし）: `dt(-1e-150,1e-300,{ncp:-3,log:true})`; `dt(7.46357687432739e-94,2.830371717661936e-187,{ncp:38.166735104830046,log:true})`; `pt(0.001,2e-6,{ncp:40,logP:true})`; `pt(-59193519471.86663,1.9146506048870366e-245,{ncp:-1.8387038943733192})`; `qt(1.4426402575659767e-62,5.449761356942939e-96,{ncp:48.87598483697083})`; 追加境界候補 `dt(Number.MIN_VALUE,Number.MIN_VALUE,{ncp:1e200,log:true})`, `pt(Number.MIN_VALUE,Number.MIN_VALUE,{ncp:1e200,logP:true})`, `pt(1e-300,2e-300,{ncp:1e150,logP:true})`, `dt(1e-300,2e-300,{ncp:-1e150,log:true})`。
 - 既存 `test/nt.test.ts` は tiny-df fixture、subnormal近傍のdf、極小t・大ncp、density log値、最大doubleを超えるquantileを明示的に含む。Vitest/Rは未実施。静的ソース監査のみで、追加候補の実行時戻り値は未確認。
 - Issue追加なし。ソースコード変更なし。監査台帳のみ更新。
+
+
+## Audit #614 — Noncentral t symmetry, complementary tails and quantile sign audit
+
+- 対象: `src/distributions/nt.ts` SHA `85763973f3f7a82d46ceee19a4dd0f8d8c275814`（`farTails`, `nearZero`, `pntBoth`, `pntRaw`, `dntRaw`, `dnt1`, `pnt1`, `qnt1`）、`test/nt.test.ts` SHA `256fd766b66bbb636d57a89a0549d3f6ccb1e297`。
+- 監査範囲: CDFの `lowerTail` / `upperTail` の積分選択、`side=t<delta` の中央値側判定、`v.lin>0.5` による積分側反転、`1-v` / `log1p(-v)` 補完、`farTails` の正負t別裾と反対裾の増分、`nearZero` の `Φ(±delta)`、密度の `z=tS-delta`、far-tail密度外挿、`qnt1` の `smallerTail`・符号決定・反転CDF callbackを追跡。
+- 恒等式 `F(t;df,delta)=1-F(-t;df,-delta)` と `f(t;df,delta)=f(-t;df,-delta)` に照らし、通常積分、formula-B、nearZero、far-tail、巨大df近似の分岐を静的に確認。新規の確定的不具合は確認できず。等号 `t===delta` でも両方の反転呼出しが同じ分岐ラベルを選ぶが、各呼出しで `tail(false)` が反転後の下側積分を表し、補完関係は保たれる。farTailsも符号反転時に `s` と `farLower` が同時に反転し、基準点の裾を同じ確率に対応させる。
+- 分位点は `P[T<=0]=Φ(-delta)` と対象tailの比較で符号を決め、`cdfY` で負側のとき上下tailを入れ替える。これらのcallback変換は分布の反転対称性と整合する。far-tailのべき乗外挿と巨大dfの対称裾近似にも今回新規の符号不整合を確認できなかった。
+- 決定的な確認入力（乱数なし）: `pt(2.5,7, {ncp:1.2})` と `1-pt(-2.5,7,{ncp:-1.2})`; `pt(0,0.25,{ncp:3,logP:true})` と `pt(0,0.25,{ncp:-3,lowerTail:false,logP:true})`; `dt(1e12,0.2,{ncp:4,log:true})` と `dt(-1e12,0.2,{ncp:-4,log:true})`; `qt(0.9,5,{ncp:2})` と `-qt(0.1,5,{ncp:-2})`; `qt(0.9,5,{ncp:2,lowerTail:false})` と `-qt(0.9,5,{ncp:-2,lowerTail:false})`; 境界 `t=delta) の `pt(2,8,{ncp:2})` と `1-pt(-2,8,{ncp:-2})`; far-limit前後の `T0=1e10*(Math.abs(1.2)+10)*Math.sqrt(7/2+1)` と `T0*(1-Number.EPSILON)`, `T0`, `T0*(1+Number.EPSILON)`。
+- 上記はソースから導いた再現・回帰候補であり、Vitest/Rおよび実関数の実行は未実施。数値差の実測を行ったとは主張しない。既存 `test/nt.test.ts` はfixtureと一部の上下裾補完回帰を含むが、正負非心度の対称性を直接比較する専用テストは確認できなかった。
+- Issue追加なし。ソースコード変更なし。監査台帳のみ更新。
