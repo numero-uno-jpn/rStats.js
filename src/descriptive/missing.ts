@@ -4,6 +4,7 @@
 // or `NaN` (in a numeric column); a row is complete when no column of any argument is missing there.
 
 import type { DataFrame } from "../models/modelFrame.js";
+import { addColumn } from "./dataFrames.js";
 
 /**
  * A vector: numbers (`NaN` missing), or strings, booleans or numbers with `null` for a missing value.
@@ -75,7 +76,8 @@ export function naOmit(x: MissingVector | DataFrame): (number | string | boolean
   const out: Record<string, readonly (number | string | boolean | null)[] | Float64Array> = {};
   for (const [name, column] of Object.entries(x)) {
     const kept = Array.from(column as ArrayLike<number | string | boolean | null>).filter((_, i) => keep[i]);
-    out[name] = column instanceof Float64Array ? Float64Array.from(kept as number[]) : kept;
+    // (addColumn: a column named "__proto__" stays an own column; issue #35)
+    addColumn(out as DataFrame, name, column instanceof Float64Array ? Float64Array.from(kept as number[]) : kept);
   }
   return out;
 }

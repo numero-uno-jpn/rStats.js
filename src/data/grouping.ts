@@ -12,6 +12,7 @@ import { formatR } from "../htest/core/simulate.js";
 import { numberLevels } from "../internal/levels.js";
 import { expandRhs, formulaVariables, parseFormula } from "../models/formula.js";
 import { compareCodePoints, type DataFrame } from "../models/modelFrame.js";
+import { addColumn } from "../descriptive/dataFrames.js";
 
 /** A group label: a number, string or boolean; `null` (and `NaN`) is a missing label */
 type Label = number | string | boolean | null;
@@ -191,7 +192,8 @@ export interface SplitOptions {
 function rowsOf(data: DataFrame, rows: readonly number[]): DataFrame {
   const out: DataFrame = {};
   for (const [name, col] of Object.entries(data)) {
-    out[name] = col instanceof Float64Array ? Float64Array.from(rows, (i) => col[i]!) : rows.map((i) => col[i]!);
+    // (addColumn: a column named "__proto__" stays an own column; issue #35)
+    addColumn(out, name, col instanceof Float64Array ? Float64Array.from(rows, (i) => col[i]!) : rows.map((i) => col[i]!));
   }
   return out;
 }
@@ -323,15 +325,19 @@ function aggregateRows(
   // The labels of each group's first row (-0 as 0), as R keeps them
   groupNames.forEach((name, j) => {
     const col = groupCols[j]!;
-    out[name] = cells.map((c) => {
-      const v = col[c.rows[0]!]!;
-      return v === 0 ? 0 : v;
-    });
+    addColumn(
+      out,
+      name,
+      cells.map((c) => {
+        const v = col[c.rows[0]!]!;
+        return v === 0 ? 0 : v;
+      }),
+    );
   });
   // A result column whose name is already taken (by a grouping column or another result) would overwrite it
   const setColumn = (name: string, v: number[]): void => {
     if (Object.hasOwn(out, name)) throw new RangeError(`duplicate column name '${name}' in the result`);
-    out[name] = v;
+    addColumn(out, name, v);
   };
   valueNames.forEach((name, j) => {
     const col = valueCols[j]!;
