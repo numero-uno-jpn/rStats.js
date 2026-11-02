@@ -147,6 +147,8 @@ function leftTailLog(a: number, b: number, ncp: number, xd: DD, xcd: DD): number
   const rho = xd[0] * Math.max(1, (a + b) / (a + 1));
   if (a > 1e15 || b > 1e15) return undefined;
   if (mu * rho > 100) return rho <= 1e-16 ? -mu + betaIncDD(a, b, xd, xcd, true, true) : undefined;
+  // (λ/2 underflows to 0 for a subnormal λ: only the j = 0 term, I_x(a, b), is left)
+  if (mu === 0) return betaIncDD(a, b, xd, xcd, true, true);
   const lmu = Math.log(mu);
   let max = -Infinity;
   const terms: number[] = [];
