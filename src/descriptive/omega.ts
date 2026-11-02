@@ -143,13 +143,51 @@ function minres(S0: readonly (readonly number[])[], q: number, warnings: string[
       return h + v - S[i]![i]!;
     });
   };
-  const fit = optim(s.map((v) => 1 - v), objective, {
-    gr: gradient,
-    method: "L-BFGS-B",
-    lower: 0.005,
-    upper: Math.max(maxOf(s), 1),
-    control: { fnscale: 1, parscale: new Array<number>(p).fill(0.01) },
-  });
+  // The objective's own derivative, from the first-order perturbation of the eigen pairs of S* (diagonal 1 - psi):
+  // de_k = -v_ik^2, dv_k = -sum_{l != k} v_l v_il v_ik / (e_k - e_l); W the off-diagonal residual, B = V'WV
+  const trueGradient = (psi: number[]): number[] => {
+    const E = eigen(S.map((r, i) => r.map((v, j) => (i === j ? 1 - psi[i]! : v))), { symmetric: true });
+    const e = E.values;
+    const V = E.vectors!;
+    const live = e.map((v) => v >= EPS);
+    const et = e.map((v) => (v < EPS ? 100 * EPS : v));
+    const W = S.map((r, i) =>
+      r.map((v, j) => {
+        if (i === j) return 0;
+        let m = 0;
+        for (let k = 0; k < q; k++) m += et[k]! * V[i]![k]! * V[j]![k]!;
+        return v - m;
+      }),
+    );
+    const WV = matMul(W, V);
+    const B = (k: number, l: number): number => {
+      let b = 0;
+      for (let i = 0; i < p; i++) b += V[i]![k]! * WV[i]![l]!;
+      return b;
+    };
+    const g = new Array<number>(p).fill(0);
+    for (let k = 0; k < q; k++) {
+      const add = (l: number, r: number): void => {
+        if (r === 0) return;
+        const b = r * B(k, l);
+        for (let i = 0; i < p; i++) g[i]! += b * V[i]![k]! * V[i]![l]!;
+      };
+      if (live[k]) add(k, 1);
+      for (let l = k + 1; l < q; l++) add(l, 2 * (live[k] && live[l] ? 1 : (et[k]! - et[l]!) / (e[k]! - e[l]!)));
+      for (let l = q; l < p; l++) add(l, (2 * et[k]!) / (e[k]! - e[l]!));
+    }
+    return g;
+  };
+  const lower = 0.005;
+  const bounds = { method: "L-BFGS-B" as const, lower, upper: Math.max(maxOf(s), 1) };
+  const parscale = new Array<number>(p).fill(0.01);
+  let fit = optim(s.map((v) => 1 - v), objective, { gr: gradient, ...bounds, control: { fnscale: 1, parscale } });
+  // psych's gradient is that of the residual sum of squares with the diagonal (zero where the off-diagonal objective
+  // is stationary), so its minimum is the objective's in the interior; with a uniqueness at the lower bound the two
+  // part, and the fit stops short of the minimum (#83). Go on from there with the objective's own gradient
+  if (fit.par.some((v) => v === lower)) {
+    fit = optim(fit.par, objective, { gr: trueGradient, ...bounds, control: { fnscale: 1, parscale, factr: 1e3 } });
+  }
   // psych's fa goes on from the last point without a word when optim does not converge; the loadings, omegas and G6
   // then come from uniquenesses that are not a minimum, so say so (the values are kept, as psych's)
   if (fit.convergence !== 0) {

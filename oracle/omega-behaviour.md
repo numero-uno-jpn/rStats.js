@@ -16,7 +16,9 @@ step 5). Where this file and a fixture seem to disagree, report it.
 3. Items with a negative general loading are **flipped** (the correlation matrix and the first k + 1 columns of the
    Schmid-Leiman matrix), and every statistic is computed after the flip.
 4. The minres objective and its gradient do not match (the gradient is not the objective's derivative); use them
-   as given, since the L-BFGS-B iterations must be R's.
+   as given, since the L-BFGS-B iterations must be R's. (rStats.js's own decision, #83: where that fit ends with a
+   uniqueness at the lower bound, the two minima part and the fit stops short; it goes on from there with the
+   objective's own gradient, `factr` 1e3. Without a uniqueness at the bound nothing changes.)
 5. GPArotation's oblimin uses a Barzilai-Borwein step with a non-monotone line search; the stopping rule is on the
    projected gradient (`s < 1e-5`).
 
