@@ -3913,3 +3913,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 境界仕様の照合: `dnf1(m=Infinity,n<Infinity,ncp>0)` のx>0でcentral reciprocal-gamma limitを使う経路、x=0でNaNとなる経路はdnf fixtureと整合。pnf/qnfのm=Infinity時のNaNもfixture上のR互換仕様と整合。df2=Infinityではnoncentral chi-square limitを使用し、既存fixturesにあるtiny-tail quantileもその経路で扱う。
 - 数値順序の確認: `qf1` のupper-tail early-Infinity判定は近似log quantileだけで決めず、`pfRaw(Number.MAX_VALUE,...)` とtargetを比較してから返すため、709.78とlog(Number.MAX_VALUE)の差だけで有限quantileをInfinityにする構造ではない。
 - **今回の追加監査で新規確定バグなし。Issue追加なし。ソース変更なし。** ソース・fixture静的閲覧のみ。Vitest/package runtime/R 4.5.2は未実施。
+
+
+## Audit #631 — Noncentral beta Poisson mixture, subnormal shapes, and tail/quantile paths
+
+- 対象: `src/distributions/nbeta.ts` SHA `5c51760f6e136b80a77b4284da39c25b0ab8ed86`（`betaKernel`、`betaKernelIncLog`、`pnbetaRaw`、`leftTailLog`、`densitySum`、`method`、`integralLog`、`dnbeta1`、`pnbeta1`、`qnbeta1`）、`src/internal/poissonMixture.ts` SHA `f0c6a1cf85875cf87f5174c0fcc5575e31db5746`、`src/internal/noncentral.ts`、`src/special/incbet.ts`、`src/distributions/beta.ts`、`test/nbeta.test.ts` SHA `b92e2218f99be7492e9a1cc620acde52808ce070`。
+- 監査範囲: Poisson mixtureの上下tail開始点・再帰方向・正項加算・打切り条件、density peakからの上下方向加算、scaled mantissa/exponentとrefresh、beta incrementの比率とdouble-double補正、subnormal x/1-x/shapeのlog経路、left-tailの別系列、chisq/gamma/w/integral method選択、integralのmode探索・両側積分・左端power tail補正、CDF tail補完、quantileの端点・初期値・narrow search・double searchを追跡。
+- 既知Issueとの照合: open Issue「Noncentral beta density drops the dominant j=0 term when a shape is subnormal」は `betaKernelIncLog()` 内の `Math.log1p(s / b)` が `s / b` のoverflowでj=0 incrementを消す問題。今回も該当経路を確認したが、同じ原因・再現条件であり重複Issueは作成しない。別途、`negligibleNcp()` の `mu * max(1,r)` がoverflow/underflowする境界、`mu=ncp/2` が0へunderflowするsubnormal ncp、shapeの和・比のoverflow、xと1-xがsubnormalとなる領域を追跡した。
+- 追加の決定的入力（乱数なし）: `dbeta(0.5, 0.75, Number.MIN_VALUE, { ncp: 0.1, log: true })`（既知Issueのj=0欠落経路の再確認）、`pbeta(1 - 2 ** -53, 79.32204890240992, 0.09403994879604119, { ncp: 1.245630132105305e22, logP: true })`（巨大ncp・右端近傍の既存回帰ケース）、`pbeta(1e-7, 3, 5, { ncp: 2e7, logP: true })`（left-tail log seriesの既存参照ケース）。これらのコードパスと既存テストの期待値を確認し、今回の新規Issueとはしなかった。
+- Poisson mixtureの開始点と再帰は、lower tailで `P_j=P_{j+1}+d_j` を加算し、upper tailで `Q_{j+1}=Q_j+d_j` を加算する向きになっている。densityはjStarから上下に走査する。subnormal incrementはlog経由のScaled表現へ退避し、指数差を別保持するため、単純なlinear underflowだけで項を失う構造ではない。ただし既知Issueの `betaKernelIncLog` overflowはこの退避経路自体で発生する。
+- **今回の追加監査で新規確定バグなし。Issue追加なし。ソース変更なし。** GitHub上のソース・テストの静的追跡のみ。Vitest/package runtime/R 4.5.2は未実施。
