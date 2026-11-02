@@ -2985,3 +2985,24 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Rとの関係: R Core `qnbinom_mu.c` forms `Q=1+mu/size`, `P=mu/size` rather than forming the underflowing success probability. R's shared discrete search also starts from the Cornish-Fisher value. This avoids this particular parameter-loss route, though no R executable was run.
 - Issue: created [new GitHub issue](issue URL returned by GitHub) with deterministic inputs, mathematical reference, source trace, and remediation direction.
 - 検証範囲: complete `fromMu()`, qnbinom small-probability gamma seed and discrete search, CDF/PMF dispatch, double-double division limits, and R Core source comparison. No package runtime, Vitest, or R execution. No source code changed.
+
+
+## Audit #532 — `src/distributions/negbinomial.ts` quantile seed, continuous refinement, and integer search
+
+- Source blob: `src/distributions/negbinomial.ts` `6bf9bf9b9d8b05aa4828e33c4b2fb9b3ed5171c7`; dependencies: `src/internal/discrete.ts`, `src/distributions/gamma.ts`, `src/distributions/normal.ts`. Compared with current R Core `src/nmath/qnbinom.c` and `qDiscrete_search.h`.
+- Reviewed the small-`prob` gamma-limit seed `qgamma(p,size)/(-log(q))`, Cornish-Fisher seed for larger `prob`, `refineContinuous()` Newton/secant steps, switch to smaller tail, and final monotone discrete search. The `y0=Infinity` early return is consistent with a quantile exceeding finite binary64 range when a positive finite gamma quantile is divided by a subnormal `-log(q)`; the zero-gamma case is not incorrectly classified as overflow.
+- Reviewed cases where `prob` rounds close to 1 while `qd` retains the small complement, where `1/prob` overflows for subnormal `prob`, and where the `mu` parameterization feeds the same seed. The gamma branch is selected for small `prob`, avoiding the unused infinite Cornish-Fisher moments. `refineContinuous()` operates on the real extension of the beta CDF and density before the final integer search; the final result remains determined by the discrete CDF.
+- Exact deterministic inputs traced:
+  ```ts
+  qnbinom(0.5, 1, { prob: Number.MIN_VALUE });
+  qnbinom(-1000, 1, { prob: Number.MIN_VALUE, lowerTail: false, logP: true });
+  qnbinom(-1000, 1, { prob: Number.MIN_VALUE, lowerTail: true, logP: true });
+  qnbinom(0.5, 0.5, { prob: 0.01 });
+  qnbinom(0.5, 1e300, { prob: 0.5 });
+  qnbinom(0.5, 1e300, { mu: 1e300 });
+  qnbinom(0.5, Number.MIN_VALUE, { mu: Number.MAX_VALUE });
+  ```
+  The final input is already tracked by new Issue #103 (parameter conversion underflow), not duplicated here.
+- Result: no additional independent reproducible quantile-seed/refinement/search defect established. Existing #103 is a parameter conversion defect rather than a separate quantile algorithm defect. No new issue.
+- Rとの関係: R Core uses Cornish-Fisher plus `q_DISCRETE_BODY()`; the TypeScript implementation adds a gamma-limit seed and continuous refinement but preserves the final monotone discrete search contract. Source comparison only; no R executable was run.
+- 検証範囲: complete `quantileRaw()`, `refineContinuous()`, public `qnbinom1()`/`qnbinomMu1()` boundary ordering, gamma/normal seed calls, discrete search, and R Core source comparison. No package runtime, Vitest, or R execution. No source code changed.
