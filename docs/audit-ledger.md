@@ -201,7 +201,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/r2dtable.ts` | 問題あり | #127, #502 | `8ccc84fc49823aa54db9eb23da7d7b3df00033f0` | [#93](https://github.com/numero-uno-jpn/rStats.js/issues/93) | R 4.5.x `r2dtable.R` の `as.integer(n)` 変換順序と `coerce.c::IntegerFromReal` を比較。Patefield AS 159 のセル確率・更新比・uniform消費順は `rcont.c` とソース照合。 | `n` の範囲検証を整数化より先に行うため、Rが受理する `n=-0.5`（Rでは0に切り捨て）と `n=2147483647.5`（RではINT_MAXに切り捨て）を拒否。具体例: `r2dtable(-0.5,[1,1],[1,1])`。Rは空リスト、JSは `RangeError("invalid argument 'n'")`。既存 `r2dtable.json` はn=0,1,5,200等の整数のみ。Issue #93。fixture/source閲覧のみ、Vitest/package runtime/R実行なし。 |
 | `src/random/rank.ts` | 一部監査・問題未検出 | #129 | `6f8c6930b3c84d99f07d6fe7c0bc0622569ae526` | — | R 4.5.2 rsignrank/rwilcox fixture を閲覧（未実行） | 符号付き順位和の独立Bernoulli符号化、順位和の部分Fisher–Yates抽出、half-even整数化、0/負値/NaN/Inf/上限、R RNG stream消費をソース照合。R 4.5.2 fixture 10ケースを閲覧。Vitest・package runtime・R実行なし。 |
 | `src/random/rng.ts` | 既知差異あり・追加監査済み・追加問題未検出 | #137, #392, #395, #495 | `f527fd7018642205ef5870df8fcab8fc9e02aff1` | — | R 4.5.2 rngRounding/rngLecuyer/rngStreams/rbasic fixtureと既存テストを閲覧（未実行）。RNGkind切替・seed/state復元・`rbits`/`unifIndex`に加え、`normRand`の2-uniform合成、`expRand`のAhrens–Dieter SA法をR 4.5.2 `snorm.c`/`sexp.c`と再照合。 | 既知差異：rbinom BTPEのstream差、rlogis負scale、Rの無効状態時の再seed動作。`normRand`は2回のuniformを順番どおり消費し、`trunc(2^27*u1)+u2` を `2^27` で割る処理がRのInversion分岐と一致。`expRand`のdoubling・Q判定・追加uniform最小値抽出・draw順もRのSA法と一致。Q表16値はJS binary64でRの16定数と全件一致し、最終値は厳密に1。MT/L'Ecuyerのuniform端点はともに(0,1)内。具体fixture: `setSeed(1); rnorm(20); runif(1)` next=`0.82094629411585629`; `setSeed(1); rexp(20); runif(1)` next=`0.10794362588785589`; `setSeed(3); rexp(5,{rate:1}); runif(1)` next=`0.60439405404031277`。fixture閲覧のみ、実行なし。 |
-| `src/random/sample.ts` | 一部監査・問題未検出 | #128 | `b2a2a714b624fdd7f8e422e7a5210000a759d710` | — | — | — |
+| `src/random/sample.ts` | 問題あり | #128, #396, #399, #503 | `b2a2a714b624fdd7f8e422e7a5210000a759d710` | [#94](https://github.com/numero-uno-jpn/rStats.js/issues/94) | R 4.5.x `random.c::do_sample` の `asVecSize`/`asInteger` と `builtin.c::asVecSize`/`coerce.c::IntegerFromReal` を比較。sample kind、weighted selectionの主要経路は既存監査 #396/#399 の確認を踏襲。 | `sampleInt1` は `size<0` を整数化前に検査するが、Rは一様抽出で `asVecSize(size)`、重み付き抽出で `asInteger(size)` により先に整数化する。`sampleInt(5,{size:-0.5})` はRでsize=0の空ベクトル、JSでRangeError。重み付き `sampleInt(5,{size:-0.5,prob:[1,1,1,1,1]})` もRは空ベクトル、JSはRangeError。`sample()` も同じ `sampleInt1` を通る。既存 `rsample.json` は整数sizeのみ。Issue #94。fixture/source閲覧のみ、Vitest/package runtime/R実行なし。 |
 | `src/random/streams.ts` | 追加監査済み・問題未検出 | #131, #497 | `63359251f6081a7658ebf27e105e6a0ed7c789cb` | — | 2^76/2^127 jump行列、`mulMod`のbinary64安全性、state validation、stream/substreamの連続適用を再監査。BigIntによる独立行列累乗で4行列定数を照合。 | `A1^2^76`, `A1^2^127`, `A2^2^76`, `A2^2^127`を漸化式行列から独立計算し、実装定数と全36要素が一致。`mulMod(a,b,m)`では`a,b<m<2^32`、`hi<=65535`のため各積・和は2^49未満、行列内の累積も2m未満でbinary64整数精度内。`t|0`はInt32Arrayの符号付きstate格納と一致。R 4.5.2 `rngStreams.json`のseed 1/42/123456789、stream/substreamの混在・反復fixtureを閲覧（未実行）。無効kind code、短いstate、無効なmodulus word、first component all-zeroを検証する既存テストも確認。新規不具合なし。Vitest/R実行なし。 |
 | `src/special/besselIK.ts` | 問題未検出 | #277 | `66fd0dbb53c64d7aa52c27ce6b96f640482e6dac` | — | Modified Bessel I/K series, Temme, continued fractions, Wronskian, recurrence, scaled exponent and large-order log boundsを追跡。 | `besselI/K(x,nu)` with x `0`, `Number.MIN_VALUE`, `1e-310`, `1`, `1e308`, `Infinity`; nu `0`, `±0.5`, `1`, `1000`, `1e12`; scaled/unscaled, integer/negative noninteger orders and recurrence limitsを確認。Vitest/package runtime/R未実行。 |
 | `src/special/besselJY.ts` | 問題未検出 | #278 | `72fbd7798357b583eb92556d320998fb85c9ce3c` | — | J/Y power series, asymptotic Hankel expansions, order recurrence, Wronskian and negative-order reflectionを追跡。 | `besselJ/Y(x,nu)` with x `0`, `Number.MIN_VALUE`, `1e-300`, `1`, `100`, `1e308`, `Infinity`; nu `0`, `±0.5`, `±1`, `1000`, `1e12`; near-integer reflection, large-order range bounds and asymptotic transitionを確認。Vitest/package runtime/R未実行。 |
@@ -2511,3 +2511,26 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Confirmed defect filed as GitHub Issue [#93](https://github.com/numero-uno-jpn/rStats.js/issues/93).
 - Source and fixture review only; no Vitest, package runtime, or R process was executed. No source code changed.
 - Repository HEAD at audit: `48b90d0d76de00abe5f5e18221892240c048b836`.
+
+
+## Audit #503 — `src/random/sample.ts` size coercion and weighted-sampling boundary
+
+- Continued the earlier partial audit of `sampleInt()` / `sample()`, checking argument conversion order against R 4.5.x and rechecking the shared sampling branches. Found one confirmed R-compatibility defect in `size` conversion.
+- In `sampleInt1()`, the code rejects `size < 0` before `const k = Math.trunc(size)`. R 4.5.x `src/main/random.c::do_sample` converts size first: uniform sampling uses `asVecSize(sk)`, then checks `k < 0`; weighted sampling uses `asInteger(sk)`, then checks `k < 0`. Both conversion paths truncate toward zero.
+- Concrete reproductions:
+  ```js
+  sampleInt(5, { size: -0.5 });
+  // rStats.js: RangeError("size must be a non-negative number")
+  // R 4.5.x: sample.int(5, size = -0.5) returns integer(0)
+
+  sampleInt(5, { size: -0.5, prob: [1, 1, 1, 1, 1] });
+  // rStats.js: RangeError("size must be a non-negative number")
+  // R 4.5.x: weighted path converts asInteger(-0.5) to 0 and returns integer(0)
+  ```
+  The same applies to `size=-0.1` and `size=-0.9`; `size=-1.1` converts to -1 and is rejected in R. `sample()` inherits the same defect because it calls `sampleInt1(x.length, options)`.
+- R source: `src/main/random.c` blob `9a86fad9f7715b3b4dee587037c365b2e82d1013`; `src/main/builtin.c::asVecSize` blob `3176bcc595a2705b0d810a5f23e1d477296ed2fe`; `src/main/coerce.c::IntegerFromReal` blob `ca7c584759d8d371360bbeb5c62af2c49bef4508`; `src/library/base/R/sample.R` blob `3b7346203bfffc9dc98595beaa6b44c6db203738`; `src/main/sort.c::revsort` blob `f69412b6854c885794e64f3b01a7198b16d9dfda` (heapsort/tie order rechecked).
+- Existing `test/fixtures/rsample.json` blob `5dd1a59eaf2f04f054f483f76b9902b15a896521` contains integer sizes and no negative fractional size. Test dispatcher `test/helpers/randomCall.ts` blob `15a91dd9519ed393179422d1853107307a8b228e` passes fixture sizes directly to `sampleInt`.
+- The replacement/no-replacement, rejection/rounding index, weighted cumulative selection, Walker alias threshold/partition, heapsort order, probability normalization, and large-n Set sampling paths were reviewed against R source and prior audit coverage (#396/#399); no additional independent defect was isolated in this pass.
+- Confirmed defect filed as GitHub Issue [#94](https://github.com/numero-uno-jpn/rStats.js/issues/94).
+- Source and fixture review only; no Vitest, package runtime, or R process was executed. No source code changed.
+- Repository HEAD at audit: `f75245031c41aa5a58eeaac8bc809ee8dbce5a37`.
