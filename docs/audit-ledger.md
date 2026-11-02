@@ -3688,3 +3688,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - df=0かつncp>0のx=0密度は、点質量と連続成分の区別が必要で、oracle側もx=0の一般ケースをNAとしているため、Rとの仕様差を確定できず不具合認定から除外。df=0,ncp=0の点質量は既存テストで明示的に扱われている。
 - 再現・境界入力（決定的、乱数なし）: `pnchisq1(0, 0, 1, true, false)`（df=0の原点質量 exp(-1/2)）；`pnchisq1(Number.MIN_VALUE, 0.5, 24.3, true, true)`（subnormal x補正経路）；`dnchisq1(3e307, 0.5, 2.2e-320, true)`（gammaKernel huge-y scalingの既知回帰条件）；`dnchisq1(1.79e308, 3, 1e308, true)`（Hankel漸近・平方根差）；`pnchisq1(1e308, 3.3e268, 6.9e307, true, false)`（Debye漸近とオーバーフロー回避）；`qnchisq1(Math.log(1e-300), 1e6, 2e9, true, true)`（log-tail quantile）。
 - 既存のfixture生成コードとテスト群を閲覧したが、Vitest・R 4.5.2・関数の実行は未実施。したがって数値fixtureとの実測比較は未完了。静的監査のみ。ソースコード変更なし。監査台帳のみ更新。
+
+
+## Audit #606/#607 — Noncentral t extreme-scale follow-up
+
+- Rechecked `src/distributions/nt.ts` (SHA `85763973f3f7a82d46ceee19a4dd0f8d8c275814`), `test/nt.test.ts` (SHA `256fd766b66bbb636d57a89a0549d3f6ccb1e297`) and `src/internal/invert.ts`.
+- Confirmed statically that finite `t=1e308`, `df=2`, `ncp=1e308` can overflow `farLimit`, then overflow the curvature in `logIntegrand`, yielding `sigma=0` in `findPeak`; `trapezoid` consequently receives a zero Jacobian. Analytic df=2 limiting values: CDF tends to `exp(-1)` and density to `2*exp(-1)/t`, both nonzero.
+- Quantile follow-up: `qnt1` can also enter the far-tail branch with `T0=Infinity` when `farLimit` overflows; `farTailLog(s*T0, ...)` then does not satisfy `abs(t)>T0` (`Infinity > Infinity` is false) and falls through to `pntBoth` with an infinite argument. This is a further unvalidated risk, not separately reported as a confirmed bug pending exact reachable probability/side conditions.
+- Existing tests include huge-df, tiny-df and tail cases, but no fixture for the above `1e308`/`df=2` configuration. Vitest and R execution not performed. Static source analysis only; no source changes.
+- Issue creation and ledger write were blocked by GitHub connector safety checks in the prior attempt; this entry records the finding and the limitation.
