@@ -19,11 +19,19 @@ function binaryExponent(x: number): number {
   return bits - 1074;
 }
 
-/** 10^k for an integer k >= 0, by repeated multiplication in double arithmetic */
+/**
+ * 10^k for an integer k >= 0 by squaring, as R's round forms it (k multiplications by 10 rounded differently from 10^23
+ * on and moved the result: round(0x1.0b7fa925827cbp-287, 100) and round(0x1.ec75dfa8b17cbp+84, -25); issue #101)
+ */
 function powerOf10(k: number): number {
   let p = 1;
-  for (let i = 0; i < k; i++) p *= 10;
-  return p;
+  let b = 10;
+  for (let n = k; ; ) {
+    if (n & 1) p *= b;
+    n >>= 1;
+    if (n === 0) return p;
+    b *= b;
+  }
 }
 
 /** The nearest integer, ties to even (C's nearbyint in the default rounding mode); the sign of x is kept */
