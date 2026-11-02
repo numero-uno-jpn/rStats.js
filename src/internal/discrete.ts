@@ -136,8 +136,12 @@ export function firstTrue(pred: (i: number) => boolean, lo: number, hi: number):
     }
     if (pred(j)) break;
     fails = j;
+    if (j === Number.MAX_VALUE) return hi + 1;
     step *= 2;
     j = lo + step;
+    // past the largest double (hi = Infinity): try it once; Infinity was taken as the bound (a finite threshold gave
+    // Infinity, and a predicate false everywhere never stopped)
+    if (j === Infinity) j = Number.MAX_VALUE;
   }
   while (j - fails > 1) {
     const mid = fails + Math.floor((j - fails) / 2);
