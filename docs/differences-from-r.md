@@ -229,6 +229,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `pf(2e-323, 0.0121, Inf)` (q df1 below the normal range) | 0 | 0.01091389160021212 |
 | `qf(-385.76, 1.05, 1.14e264, ncp = 1.65e262, log.p = TRUE)` | Inf, with a warning | 1.5704712908151466e262 (the noncentral χ² limit) |
 | `pf(2.5e300, 1827.5, 0.165, ncp = 3.66e307)` | NaN, with warnings | 7.4814091599854485e-292 |
+| `qchisq(0.5, 1e308, ncp = 1e308)`, `qchisq(0.5, 1e308, ncp = 7e307)` (df + ncp overflows, or the quantile is near the largest double; issue #157) | NaN, with a warning (also `qchisq(0.5, 5e307, ncp = 5e307)`) | Infinity (mean 2e308, standard deviation 2.4e154: the quantile is beyond the doubles), 1.7000000000000001e308 (the distribution function steps from 0 to 1 at that double). The bracket stops at the largest double; if the target is not reached there the quantile is Infinity |
 | `beta(1e-310, 1e-310)` (B(a, a) > 2/a overflows) | NaN, with warnings | Inf |
 | `qhyper(1 - 1e-15, 1e4, 1e5, 5000)` | 5000 | 617 (by definition) |
 | `fisher.test` on a 3 × 5 table with n = 179 | FEXACT error 7 with the default workspace | 0.2023726720757 (0.65 s) |

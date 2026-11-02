@@ -84,6 +84,8 @@ function validParams(df: number, ncp: number): boolean {
  * A value near 1, and its log, are built from the small value of the other side
  */
 function pnchisqBoth(x: number, df: number, ncp: number, lower: boolean): { lin: number; log: number } {
+  // the end point (the asymptotic forms do not end for x = Infinity: qchisq's bracket reached it; issue #157)
+  if (x === Infinity) return lower ? { lin: 1, log: 0 } : { lin: 0, log: -Infinity };
   const mu = ncp / 2;
   // The series has too many terms (or gammaInc is slow for its huge shapes): integrate an asymptotic form of the density
   const method = asymptoticMethod(df, besselArg(x, ncp));
@@ -669,17 +671,21 @@ export function qnchisq1(p: number, df: number, ncp: number, lowerTail: boolean,
     const h = 2 / (9 * nu);
     x0 = c * nu * (1 - h + qnorm(logTarget, { lowerTail: lower, logP: true }) * Math.sqrt(h)) ** 3;
   } else x0 = c * qgamma1(logTarget, nu / 2, 2, lower, true);
-  if (!(x0 > 0) || !Number.isFinite(x0)) x0 = df + ncp;
+  // (df + ncp overflows where the quantile can lie beyond the doubles; issue #157)
+  if (!(x0 > 0) || !Number.isFinite(x0)) x0 = Math.min(df + ncp, Number.MAX_VALUE);
   const passes = (x: number): boolean => (lower ? cdf(x, true).log >= logTarget : cdf(x, false).log <= logTarget);
   const narrowSpread = Math.sqrt(2 * (df + 2 * ncp)) < 1e-10 * (df + ncp);
   const narrow = narrowSpread ? narrowQuantile(x0, Number.MAX_VALUE, passes) : undefined;
   if (narrow !== undefined) return narrow;
   // Bracket by doubling the upper end (the distribution function is expensive for very large x)
   let lo = 0;
-  let hi = Math.max(x0, df + ncp, 1);
+  // up to the largest double: not passing the target there, the quantile is beyond it (issue #157: Infinity was
+  // reached and the distribution function did not end)
+  let hi = Math.min(Math.max(x0, df + ncp, 1), Number.MAX_VALUE);
   for (let i = 0; i < 2000 && !passes(hi); i++) {
+    if (hi === Number.MAX_VALUE) return Infinity;
     lo = hi;
-    hi *= 2;
+    hi = Math.min(hi * 2, Number.MAX_VALUE);
   }
   const x = invertContinuous({
     logTarget,
