@@ -226,7 +226,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/special/log1pmx.ts` | 問題あり・追加監査済み | #294, #546 | `2645eccad6849a9c217899b99e71e58d6e7055f8` | [#106](https://github.com/numero-uno-jpn/rStats.js/issues/106) (open) | xsf/Cephes級数、直接log1p-x経路、subnormalでの収束判定を再監査。 | 入力: `log1pmx(0)`, `log1pmx(Number.MIN_VALUE)`, `log1pmx(1e-200)`, `log1pmx(-1e-200)`, `log1pmx(±0.5)`, `log1pmx(-1)`, `log1pmx(Infinity)`, NaN。x=0およびx² underflow時、term=res=0で`0<0`がfalseとなりn=2..499の498反復を全実行。`igam.ts:temmeEta`でx=aならsigma=0となり到達可能。非zero極小xの符号付きゼロも+0に丸まる。Issue #106。Vitest/package runtime/R実行なし。 |
 | `src/special/ndtri.ts` | 問題未検出 | #295 | `a053252d5cbafbbb22f395fc4c2034da9c2ee5e9` | — | xsf/Cephes ndtri/ndtri_exp係数、裾切替、qnorm経路をソース照合（実行なし） | p=0/1/範囲外/NaN、exp(-2)/exp(-32)切替、subnormal、upper-tail complement、logp=-MAX_VALUEを確認。具体入力: `ndtri(5e-324)`, `ndtri(1-Number.EPSILON/2)`, `ndtriExp(-Number.MAX_VALUE)`, `ndtriExp(-Infinity)`。Vitest/package runtime/R実行なし。 |
 | `src/special/polevl.ts` | 問題未検出・追加監査済み | #296, #545 | `165b2c81afea8cb58b56f67264dafdf22810f089` | — | Horner評価の係数順序、空/単項配列、非有限x、係数配列の内部呼び出し契約を再監査。 | 入力: `polevl(2,[1,2,3])`, `polevl(0,[1,2,3])`, `polevl(-2,[1,2,3])`, `p1evl(2,[2,3])`, `p1evl(0,[2,3])`, `polevl(±Infinity,[1,2])`, `p1evl(NaN,[1])`。両関数はCephes定義通りのHorner順序。実呼び出し元の係数配列は非空固定配列。空配列は内部契約外で、利用側で発生しない。新規再現バグなし。Vitest/package runtime/R実行なし。 |
-| `src/special/psigamma.ts` | 問題未検出 | #297 | `6318724165a556417c0644172c9e80d4735c3b4e` | — | digamma/trigamma/psigamma反射、Hurwitz zeta Euler–Maclaurin、負根Taylor展開をR/mpmath fixtureと照合（実行なし） | deriv丸め/0〜100、負整数pole、±Inf/NaN、半整数cot、巨大負数、subnormal正数、漸近打切りを確認。具体入力: `psigamma(-0.5,100)`, `psigamma(-0.5040830082644554,100)`, `psigamma(1e-300,2)`, `psigamma(1e17,20)`。Vitest/package runtime/R実行なし。 |
+| `src/special/psigamma.ts` | 問題未検出・追加監査済み | #297, #548 | `6318724165a556417c0644172c9e80d4735c3b4e` | — | digamma近負根Taylor、Hurwitz zeta Euler–Maclaurin、正のxのscaled polygamma、負x反射とcot導関数多項式を再監査。 | 入力: `digamma(NEGROOT)`, `digamma(-0.5)`, `digamma(-34.5)`, `trigamma(±0.5)`, `psigamma(0.5,100)`, `psigamma(1e308,100)`, `psigamma(1e-154,1)`, `psigamma(-0.5,100)`, `psigamma(-1.5,100)`, `psigamma(-Infinity,1,{rCompatible:false})`, deriv=-0.5/100.5/101。cotDerivPoly(100)の最大係数は約1e168で有限、π^101を掛けても係数自体はoverflowしない。Hurwitz zetaのq<=1e8直接和・EM切替、q>1e8漸近項、subnormal/overflowを追跡。新規再現バグなし。Vitest/package runtime/R実行なし。 |
 | `src/special/rCompatible.ts` | 問題未検出 | #298 | `feaa578359e0a3315eedc20a6da93a1f60285eb9` | — | RCompatibleOptions型と全利用側のdefault/false分岐を静的照合（実行なし） | 型定義のみでruntime logicなし。具体例: `trigamma(-Infinity)`と`trigamma(-Infinity,{rCompatible:false})`、`psigamma(-Infinity,3)`と同false指定。test/psigamma.test.tsを閲覧。Vitest/package runtime/R実行なし。 |
 
 ## Audit #94
@@ -3226,3 +3226,8 @@ The open-issue list was cross-checked against the recently re-audited source fil
 ## Audit #547 — choose.ts
 
 `lchoose(Number.MIN_VALUE,2,{rCompatible:false})` は、係数がDD中間計算でunderflowして0になるため、有限であるべき対数を`-Infinity`と返す。`Number.MIN_VALUE=2^-1074`なので期待値は`-1075*ln(2)≈-745.1332191019411`。同じ問題は負の最小subnormalでも起きる。Issue [#107](https://github.com/numero-uno-jpn/rStats.js/issues/107)を作成。ソース追跡のみでruntime/Vitest/R未実行。
+
+
+## Audit #548 — psigamma.ts
+
+Digamma、trigamma、任意次数polygammaを再監査。負根近傍Taylor、Hurwitz zetaのEuler–Maclaurin補正、正の引数のスケーリング、負引数の反射式、cot導関数多項式の次数100までを追跡した。今回、新規の再現可能な数値不具合は確定せず。ソース追跡のみでVitest/package runtime/R実行なし。
