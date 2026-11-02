@@ -15,7 +15,9 @@ describe("review 23", () => {
   it("a weight that the rescaling takes to 0", () => {
     expect(dmultinom([1, 1, 0], [1e308, 1e308, 5e-324])).toBe(0.5); // R 4.5.2: 0
     expect(dmultinom([1, 1, 1], [1e308, 1e308, 5e-324])).toBe(0);
-    expect(dmultinom([1, 1, 1], [1e308, 1e308, 5e-324], { log: true })).toBe(-Infinity);
+    // log 3! (1/2)(1/2) p_3, p_3 = 5e-324 / 2e308 (the log was -Infinity until issue #68)
+    const lp = Math.log(1.5) + Math.log(5e-324) - Math.LN2 - Math.log(1e308);
+    expect(Math.abs(dmultinom([1, 1, 1], [1e308, 1e308, 5e-324], { log: true }) / lp - 1)).toBeLessThanOrEqual(1e-15);
   });
   it("weights with a sum in range are used as given", () => {
     expect(dmultinom([1, 1], [1e308, 1e307])).toBe(0.1652892561983471); // R 4.5.2: 0.16528925619834709

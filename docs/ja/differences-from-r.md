@@ -361,6 +361,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | size が整数でない `qbinom` (たとえば 2.5) | `pbinom` の NaN で探索し、意味のない値 (-0 を含む) を返す | NaN (`dbinom`、`pbinom` と同じ) |
 | max − min がオーバーフローする一様分布 (min = -1e308、max = 1e308) | Inf / 0 / NaN | 両端を半分にして計算 (`dunif` は 5e-309、`punif(-1)` は 0.5、`qunif(0.5)` は 0) |
 | 重みは有限だが合計がオーバーフローする `dmultinom` (`dmultinom(c(1, 1), prob = c(1e308, 1e308))`) | 0 (log は -Inf) | 0.5 (log は -0.693)。重みを 2 の冪で割ってから合計する |
+| ある区分の重みの割合が double の範囲より小さい `dmultinom` (`dmultinom(c(1, 0, 0), prob = c(5e-324, 1, 1), log = TRUE)`) | -Inf | -745.133 (log 5e-324 − log 2)。その区分の項を割合の log から作る |
 | size = Inf の `dnbinom` | prob < 1 で -1.2e308 のような有限の対数確率。prob = 1 で log P[X = 0] が NaN | -Inf と 0 |
 | size = Inf かつ prob < 1 の `qnbinom` | p によって Inf または NaN | 常に Inf (質量は X = ∞ にある。p = 0 と 1 は R と同じ) |
 | 答えが 2^53 を超える `qnbinom` | 分布関数が目標に届かない答え (目標 −32 に対して log p が −31.85) | 目標を満たす答え |

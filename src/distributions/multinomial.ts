@@ -7,6 +7,7 @@
 // error of x_k ε (1e-9 at x_k = 1e7).
 // Summing lgamma terms instead loses digits to cancellation for large counts.
 
+import { lchoose } from "../special/choose.js";
 import { dbinomRawDD } from "../special/loader.js";
 import { ddAdd, ddDiv, type DD } from "../special/dd.js";
 import { ldexp } from "../internal/summary.js";
@@ -54,28 +55,48 @@ export function dmultinom(x: readonly number[], prob: readonly number[], options
   // Suffix sums of the weights (double-double) and the counts
   let w = prob;
   let ps = suffixSums(w);
+  // the weights are divided by 2^scale (0 unless their sum overflows)
+  let scale = 0;
   if (ps[0]![0] === Infinity) {
     // Finite weights whose sum overflows: divided by 2^s >= K, which only the ratios matter for (exact unless a
     // weight becomes subnormal; one that becomes 0 is below 1e-600 of the largest); weights with a sum in range are
     // used as given
-    const s = Math.ceil(Math.log2(K));
-    w = prob.map((p) => ldexp(p, -s));
+    scale = Math.ceil(Math.log2(K));
+    w = prob.map((p) => ldexp(p, -scale));
     ps = suffixSums(w);
   }
   const ns = new Array<number>(K + 1).fill(0);
   for (let k = K - 1; k >= 0; k--) ns[k] = ns[k + 1]! + x[k]!;
   // A category with probability 0 and a positive count makes the probability 0
-  for (let k = 0; k < K; k++) if (w[k] === 0 && x[k]! > 0) return log ? -Infinity : 0;
+  for (let k = 0; k < K; k++) if (prob[k] === 0 && x[k]! > 0) return log ? -Infinity : 0;
+  // The scaled weights are used only where the sum of the weights from k on overflows: a weight that the scaling takes
+  // to 0 (or into the subnormals) is not lost from the later ratios. Where nothing overflows this is ps itself
+  const psOrig = scale === 0 ? ps : suffixSums(prob);
+  const logDD = (d: DD): number => Math.log(d[0]) + d[1] / d[0];
   let logSum = 0;
   let prodLin = 1;
   for (let k = 0; k < K; k++) {
-    if (w[k] === 0) continue;
-    const rest = ps[k + 1]!;
-    if (rest[0] === 0) break; // the remaining counts all fall here: probability 1
-    const q: DD = ddDiv([w[k]!, 0], ps[k]!);
-    const qc: DD = ddDiv(rest, ps[k]!);
+    if (prob[k] === 0) continue;
+    const restOrig = psOrig[k + 1]!;
+    if (restOrig[0] === 0) break; // the remaining counts all fall here: probability 1
+    const scaled = !(psOrig[k]![0] < Infinity);
+    const sum = scaled ? ps[k]! : psOrig[k]!;
+    const sc = scaled ? scale : 0;
+    const q: DD = ddDiv([scaled ? w[k]! : prob[k]!, 0], sum);
+    const qc: DD = ddDiv(scaled ? ps[k + 1]! : restOrig, sum);
     const xk = x[k]!;
     const nmx = ns[k + 1]!;
+    if (q[0] < 2 ** -1022 || qc[0] < 2 ** -1022) {
+      // q or 1 - q below the normal range (dmultinom([1, 0, 0], [5e-324, 1, 1], { log: true }) was -Infinity,
+      // -745.13 to the double; R gives -Infinity too): the term from the log of the small one, log(1 - r) = -r (to r²)
+      const small = q[0] < 2 ** -1022;
+      const lr = (small ? Math.log(prob[k]!) : logDD(restOrig)) - sc * Math.LN2 - logDD(sum);
+      const [xr, xo] = small ? [xk, nmx] : [nmx, xk];
+      const term = lchoose(xk + nmx, xk, { rCompatible: false }) + (xr === 0 ? 0 : xr * lr) - xo * Math.exp(lr);
+      if (log) logSum += term;
+      else prodLin *= Math.exp(term);
+      continue;
+    }
     if (log) logSum += dbinomRawDD(xk, nmx, q, qc, true);
     else prodLin *= dbinomRawDD(xk, nmx, q, qc, false);
   }

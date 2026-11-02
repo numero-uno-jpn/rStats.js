@@ -376,6 +376,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qbinom` with non-integer size (e.g. 2.5) | searches with NaN from `pbinom` and returns meaningless values (including -0) | NaN (as `dbinom` and `pbinom`) |
 | Uniform with overflowing max − min (min = -1e308, max = 1e308) | Inf / 0 / NaN | computed with both ends halved (`dunif` 5e-309, `punif(-1)` 0.5, `qunif(0.5)` 0) |
 | `dmultinom` with finite weights whose sum overflows (`dmultinom(c(1, 1), prob = c(1e308, 1e308))`) | 0 (log -Inf) | 0.5 (log -0.693): the weights are divided by a power of 2 before they are summed |
+| `dmultinom` where a category's share of the weights is below the double range (`dmultinom(c(1, 0, 0), prob = c(5e-324, 1, 1), log = TRUE)`) | -Inf | -745.133 (log 5e-324 - log 2): the term of that category from the log of its share |
 | `dnbinom` with size = Inf | finite log probabilities such as -1.2e308 for prob < 1; NaN for log P[X = 0] with prob = 1 | -Inf and 0 |
 | `qnbinom` with size = Inf and prob < 1 | Inf or NaN depending on p | always Inf (the mass is at X = ∞; p = 0 and 1 as in R) |
 | `qnbinom` answer above 2^53 | an answer whose distribution function misses the target (log p −31.85 for a target of −32) | an answer that meets the target |
