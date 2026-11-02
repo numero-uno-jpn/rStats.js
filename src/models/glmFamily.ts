@@ -318,7 +318,12 @@ function binomialDev(y: number, mu: number, w: number): number {
 }
 
 function inverseGaussianDev(y: number, mu: number, w: number): number {
-  return (w * (y - mu) ** 2) / (y * mu * mu);
+  const den = y * mu * mu;
+  const r = (w * (y - mu) ** 2) / den;
+  if (Number.isFinite(r) && !(Math.abs(den) < 2 ** -1022)) return r;
+  // ((y - mu)² or y mu² overflows, or y mu² is below the normal range: as ((y - mu)/mu)²/y)
+  const d = (y - mu) / mu;
+  return w * ((d * d) / y);
 }
 
 /** Resolves a family name or specification (and a link given separately) to its functions */
