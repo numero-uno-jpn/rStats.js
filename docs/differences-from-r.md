@@ -60,6 +60,7 @@ reference, the case passes as "more accurate than R".
 | `dt(1, 10, ncp = 1e9, log = TRUE)` | -Inf | -4.5454545454545436e17 (Rmpfr) | same as truth |
 | `qt(1e-300, 1e-300, ncp = 1e4)` | 18961.503816218225 | 2.4637413705646497e-146 (mpmath) | 2.463741370564455e-146 |
 | `qt(1e-300, 1e-100, ncp = 1e4)` | 1.8961503816217974e104 | 3.3196830107614348e-48 (mpmath) | 3.3196830107614347e-48 |
+| `qt(-1419.5258582683982, 2, ncp = 0.5, lower.tail = FALSE, log.p = TRUE)` | Inf | 1.7976931348623157e308 (P[T > t] = c/t², c = (1 + δ²) Φ(δ) + δ φ(δ)) | 1.7976931348622732e308 |
 | `dchisq(1e4, 5, ncp = 10, log = TRUE)` | -2975.1 | -4688.08 | same as truth |
 | `dchisq(1e-300, 0, ncp = 1)` | 0 | 0.1516 | same as truth |
 | `df(1e10, 5, Inf, ncp = 0, log = TRUE)` | -1.25e11 | -2.5e10 | same as truth |

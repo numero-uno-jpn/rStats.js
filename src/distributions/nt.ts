@@ -1178,7 +1178,7 @@ export function qnt1(p: number, df0: number, ncp: number, lowerTail: boolean, lo
     const lT0 = farTailLog(s * T0, df / 2, ncp);
     if (logTarget < lT0) {
       const ly = Math.log(T0) + (lT0 - logTarget) / df;
-      return ly > 709.78 ? s * Infinity : s * Math.exp(ly);
+      return s * Math.exp(ly); // (Infinity where the quantile is beyond the largest double)
     }
     hi = T0;
   } else if (df < 1e-3 && cdfY(Number.MAX_VALUE, true, true) < logTarget) {
