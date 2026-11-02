@@ -4182,3 +4182,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 重複確認: "empty model" + Gamma working weights、Gamma offset + NaN、working weights + Gamma overflowのIssue検索で該当なし。#159が根因を包含するため追記コメントのみ。
 - GLMの入力前処理、二列binomial responseのsize/比例値/初期平均、p=0分岐、通常IRLS、null deviance、AIC、summary/diagnosticの主要呼び出し経路を再確認。有限の二列カウント合計がbinary64上限を超える場合は内部size/weightがInfinity化する境界を確認したが、有限表現不能な総試行数に対する期待API契約・スケーリング方針が未確定のため、独立バグとして登録しない。
 - **既存Issue #159へ追加再現、ソース変更なし。** ソース静的追跡とIEEE-754演算解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #658 — Two-column binomial GLM count-total overflow
+
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5` の `prepareResponse()`、呼び出し元 `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`。
+- 決定的再現: `glm([0, 1], [[1e308, 1e308], [1e308, 1e308]], { family: "binomial" })`。乱数なし。各成功数・失敗数は有限・非負で、各観測の成功率は厳密に0.5。
+- 根因: `prepareResponse()` が `size = success + failure` を直接計算しInfinityにする。続く `yy = success / size` は0、`weights = prior * size` はInfinity、`mustart = (size * yy + 0.5) / (size + 1)` は `Infinity * 0` によりNaN。IRLSは有効な開始値を得られずfitを開始できない。少なくとも成功率と初期平均は0.5を維持すべき。総試行数がbinary64で表現できない場合の尤度重みのスケーリングまたは明示的な範囲エラーは別途設計が必要だが、比率自体を0に壊すのは誤り。
+- 既存Issue検索: "two-column binomial glm overflow"、"prepareResponse binomial counts"、"binomial GLM size overflow"で重複なし。#152はmultinomial密度の総カウントoverflowであり、GLM初期化のこの不具合とは別。
+- **新規Issueを登録。** ソース変更なし。ソース静的追跡とIEEE-754演算解析のみ。Vitest/package runtime/R照合未実施。
