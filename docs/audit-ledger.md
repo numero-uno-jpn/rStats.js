@@ -4097,3 +4097,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 既存Issue #119に同一根因の逆向きtail再現を追記: `pbvnorm([1e200, 1e200], [Infinity, Infinity], 0.5)`。期待値0。h=k=1e200で `hk=h*k` と `hs=(h*h+k*k)/2` がともにInfinityとなり、Sheppard integrandの `sn*hk-hs` がInfinity-Infinity=NaN。quadrature sumと最終矩形確率へ伝播。既存#119は `[-1e200,-1e200]` lower-boundで期待値1となる逆方向ケースを報告済み。
 - quadrature nodesは固定6/12/20点、Newton root iterationは最大100回。近完全相関の `a=sqrt((1-r)(1+r))` は相関端点を先に分岐し、rho=±1の退化式も確認。追加の独立した確定バグなし。
 - **Issue #119へ追加再現をコメント。新規Issueなし。ソース変更なし。** 検証はIEEE-754/source pathと数学的境界の静的追跡のみ。Vitest/package runtime/mvtnorm/Rは未実施。
+
+
+## Audit #649 — Arcsine / Lognormal / Inverse-gamma / Kumaraswamy / Triangular / Uniform
+
+- 対象: `src/distributions/arcsine.ts` SHA `907b0a4b3b55ca8f4b21325dca7de651fb8f420b`、`lognormal.ts` SHA `2d955d68f6d973a4108450c6b1ae7fa3eb1fc204`、`invgamma.ts` SHA `942dc8bfc3a11295a8f7ac3f8df2decf757dac28`、`kumaraswamy.ts` SHA `ae73aa5f4ac85b344ea32f626854693a50409563`、`triangular.ts` SHA `1cfca6585cf8bad66c282af3b6973fbb8086f288`、`uniform.ts` SHA `62834a501bf92c899d79f98336b2b91a8cda1458`。
+- 監査範囲: support/endpointと退化parameter、有限端点間の幅overflow時のhalving、subnormalなtail・density、log-domain式、quantileの反対側tail利用、double-double補正、shape/scaleの極端値、probability境界とlogP変換を確認。
+- Arcsine: `b-a` overflow時のhalving、近端tailの `sqrt(d/w)`、qbetaへの対称反転を確認。Lognormal: `zOf` の巨大sdlog scaling、`halfSquare` の巨大z、tail erfcx、quantileのNewton補正と巨大指数のexp境界を確認。Inverse-gamma: beta/x subnormal時のgamma upper-tailへの変換、alpha→Infinity limit、density Jacobian、tiny gamma quantile逆変換を確認。Kumaraswamy: `x^a` underflow、`1-x^a` cancellation、a/b極小・巨大時のdensity/CDF/quantile分岐を確認。Triangular: endpoint/mode、width overflow、ratio-based tails、subnormal log tail、quantileの両側式を確認。Uniform: width overflow時のhalving、両側直接比、log probability、degenerate/invalid supportを確認。
+- 既存open Issue #120（lognormal distSummaryのtiny sdlogによるvariance underflow）はdistribution本体ではなくsummary moment計算の問題で、重複なし。#119のbivariate normal逆向きtail追加再現はAudit #648でコメント済み。
+- 検討した決定的境界値: `darcsine(0, { a: -1e308, b: 1e308 })`、`parcsine(-1e308, { a: -1e308, b: 1e308, lowerTail: false, logP: true })`、`qlnorm(-1000, { logP: true, sdlog: 1e300 })`、`dinvgamma(1e308, 1e-300, { beta: 1e-300, log: true })`、`pkumar(0.2, 1e-300, 1e308, { logP: true })`、`qkumar(-1000, 1e-300, 1e308, { logP: true })`、`dtriang(3.1e-190, { a: 0, b: 1.24e133, c: 5.58e132, log: true })`、`qunif(0.5, { min: -1e308, max: 1e308 })`。これは式と分岐の静的検討用入力で、実行結果ではない。
+- **新規確定バグなし。Issue追加なし。ソース変更なし。**
+- **検証制限**: GitHubソースと既存Issueの静的追跡のみ。Vitest/package runtime/R/extraDistrは未実施。
