@@ -3973,3 +3973,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 決定的境界入力として `bd0(0, Number.MIN_VALUE)`、`bd0(1e300, 1e300 * (1 + 2 ** -52))`、`stirlerr(Number.MIN_VALUE)`、`stirlerr(Infinity)`、`dpoisRaw(Number.MIN_VALUE, Number.MIN_VALUE, true)`、`dpoisRaw(1e308, 1, true)`、`dbinomRawDD(0, 1e308, [Number.MIN_VALUE, 0], [1, 0], true)`、`dbinomRawDD(1e308, 1e308, [0.5, 0], [0.5, 0], true)` を検討。いずれもソース上のdomain・scaled演算・log/linear分岐と照合し、新規の確定不具合は確認できなかった。
 - **新規確定バグなし。Issue追加なし。ソース変更なし。** #149はAudit #634で登録済み。
 - **検証制限**: GitHubソースの静的追跡のみ。Vitest/package runtime/R実行は未実施。
+
+
+## Audit #637 — Double-double primitives and exponential building blocks
+
+- 対象: `src/special/dd.ts` SHA `2edeba6b0c0f5e7714d3d1416e4d6f9da5b17c2f`、`src/internal/ddexp.ts` SHA `14e46651c7ff1d1a6269ab50eded32183465172d`、`src/special/log1pmx.ts` SHA `2645eccad6849a9c217899b99e71e58d6e7055f8`、`test/helpers/precision.ts` SHA `1114ac1d951b03ed2c5d4867dbb38d726801663b`。
+- 監査範囲: `twoSum/twoProd` と `prodErrScaled` のVeltkamp分割・subnormal/overflow復元、`ddAdd/ddSub/ddMul/ddMulNum` の正規化と誤差項、`ddDiv/ddDivNum` の商残差2段補正、`ddLog` のsubnormal正規化・128点テーブルindex・atanh多項式、`ddExp` のln2 range reduction・Taylor・再二乗・overflow/underflow、`standardizeDD/divideTail` の極小/極大スケーリング、`expNeg/expNegOver` のsubnormal終端処理、`log1mExp/logAddExp/logSubExp` の端点処理を確認。
+- 既知のopen Issue「ddDiv loses the double-double quotient remainder for subnormal divisors」を確認。決定的再現は `ddDiv([Number.MIN_VALUE, 0], [3 * Number.MIN_VALUE, 0])` および `ddDivNum([Number.MIN_VALUE, 0], 3 * Number.MIN_VALUE)`。厳密商は1/3で、loは約 `1.8503717077085942e-17` が必要だが、商残差がsubnormal格子未満にunderflowしてlo=0となる。これは既存Issueで報告済みのため重複登録しない。Issue本文のとおり、公開分布関数での差分影響は未立証。
+- 追加の決定的境界入力: `ddLog([Number.MIN_VALUE, 0])`、`ddLog([Number.MAX_VALUE, 0])`、`twoProd(Number.MIN_VALUE, 1.2345678901234567e308)`、`ddExp([709.78, 0])`、`ddExp([-708.1, 0])`、`standardizeDD(1e308, -1e308, 1e308)`、`expNegOver([745, 0], Number.MIN_VALUE)`。スケーリング・端点分岐を静的追跡し、別の確定バグは特定できず。
+- **新規確定バグなし。Issue追加なし。ソース変更なし。** 既知ddDiv問題は重複回避。
+- **検証制限**: GitHubソースと既存Issue本文の静的確認のみ。TypeScript runtime/Vitest/MPFR/Rは未実施。
