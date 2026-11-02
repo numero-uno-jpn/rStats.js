@@ -2804,3 +2804,34 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Result: no new independent defect established. No Issue filed.
 - Rとの関係: implementation intent is R `factor()`/numeric `as.character()` compatibility; reviewed the local 15-digit formatter and documented examples. No R executable or independent R formatter comparison was run in this pass.
 - 検証範囲: complete `levels.ts` and `formatR()` source review, ECMAScript sorting/Map semantics, and explicit edge-input tracing. No Vitest, package runtime, or R execution. No source code changed.
+
+
+## Audit #523 — `src/internal/discrete.ts` initial bracketing overflow bypasses the finite-maximum guard
+
+- Source blob: `src/internal/discrete.ts` `a8ed86222a9c91b7dfea90b990244a81c1170194`.
+- Confirmed control-flow defect in `discreteQuantile()`: when the initial `good = y + step0` overflows directly to `Infinity`, and the monotone predicate is true at `Infinity`, the `while (good <= hi && !ok(good))` body is skipped. The `Number.MAX_VALUE` fallback is located inside that body, so it is bypassed. `bisect(y, Infinity, ...)` cannot form a finite midpoint and returns `Infinity` even when the predicate first becomes true at the largest finite double.
+- Exact deterministic reproduction data:
+  ```ts
+  const M = Number.MAX_VALUE; // 1.7976931348623157e+308
+  const ulp = 2 ** 971;       // 1.99584030953472e+292
+  const y0 = M - ulp;         // 1.7976931348623155e+308
+  const step0 = Math.max(1, Math.abs(y0) * Number.EPSILON);
+  // step0 = 3.9916806190694387e+292; y0 + step0 === Infinity
+
+  discreteQuantile({
+    p: 0.5,
+    lowerTail: true,
+    logP: false,
+    cdf: (y) => y >= M ? 1 : 0,
+    y0,
+    lo: 0,
+    hi: Infinity
+  });
+  // Current control flow: Infinity
+  // Expected first representable satisfying point: Number.MAX_VALUE
+  ```
+- This is the same overflow/bracketing family as existing Issue #53 (`firstTrue()` can return Infinity with a finite threshold); no duplicate Issue was created. Issue #53's current description says `discreteQuantile()` has an overflow guard, but this audit finds that the guard does not cover an initial `good` that is already Infinity. An attempt to add a detailed comment to #53 was blocked by the GitHub write tool, so this additional reproduction is preserved here in the ledger.
+- Affected public path likely includes `qpois1()` and `qnbinom1()`, both of which call `discreteQuantile()` with `hi: Infinity`; exact public-distribution runtime reachability was not established in this pass. The helper-level monotone-predicate contract reproduction is deterministic.
+- Suggested remediation: when the initial upper candidate is `Infinity` and `hi === Infinity`, test `Number.MAX_VALUE` before bisection, mirroring the existing later-overflow branch; if it satisfies the predicate, use it as the finite good endpoint.
+- Rとの関係: R's `qDiscrete_search.h` uses a coarse stepping search and returns the previous finite point when the next increment overflows to a satisfying endpoint. The R source was inspected; no R executable was run and no exact public qpois output is claimed.
+- 検証範囲: complete `discrete.ts` source review, direct IEEE-754 arithmetic for the exact values above, and R Core search-source comparison. No Vitest, package runtime, or R execution. No source code changed.
