@@ -191,7 +191,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/beta.ts` | 問題あり | #122 | `10357380b3019e5ea6089224e3a0d4152702e639` | [#30](https://github.com/numero-uno-jpn/rStats.js/issues/30) | RのCheng BB/BC法を参照。極端な片側巨大shapeでRとの一致より分布の正しさに問題 | `rbeta(5,1.1,1e308)` はオーバーフロー分岐で全値を平均約1.1e-308に固定。理論CV≈0.953。ソースと分布式による確認。Vitest・R・simulation未実行。 |
 | `src/random/binomial.ts` | 問題あり | #124 | `92437f63fa655aa541de9ba9b6ae51c0bad0af5b` | — | Inversion/BTPE source review; tiny-p q^n cancellation defect confirmed by binary64 arithmetic | `n=2_000_000_000, p=1e-17`: q rounds to 1, qn=1, every inversion draw returns 0 although P(X≥1)≈2e-8. Issue #31. BTPE formula compared with current R source; fixtures R 4.5.2 inspected only. No Vitest/runtime/R execution. |
 | `src/random/common.ts` | 追加監査済み・問題未検出 | #136, #491 | `be016a36e9f09f580462d2bf93e30ed6bad527c1` | — | `powInt` の唯一の呼出し元 `src/random/binomial.ts:rbinom1` を追跡。`rn >= INT_MAX` は `qbinom` 経路へ分岐するため、`powInt(q,n)` に渡る指数は整数 `0 <= n <= 2147483646`。32-bit shift はこの到達可能域で安全。RNG/`sample` 呼出し経路も確認。 | `generate(0, f)` は callback を呼ばず、負/NaN/±Infのnを拒否し、有限非負小数は `Math.trunc`。`powInt` は負指数・NaN・±Infの基礎値を確認し、実呼出しの上限でbitwise shiftを検証。具体例: `rbinom(1, 2147483646, 1e-8)` はBTPEではなく平均約21.47のinversion候補、`rbinom(1, 2147483647, 1e-8)` は`qbinom`経路で`powInt`を呼ばない。ソース上の呼出し制約から新規不具合なし。Vitest/package runtime/Rは未実行。 |
-| `src/random/continuous.ts` | 既知差異あり・追加問題未検出 | #134 | `77d0da9eaa12609d445d0433e4d3ac0d84f50600` | — | R 4.5.2 rbasic/rother fixtureを閲覧（未実行） | runif/rnorm/rexp/rlnorm/rlogis/rcauchy/rweibullの変換式、無効値・0/Inf時の乱数消費、overflow幅の補間を確認。rlogis(scale<0)は実装NaNに対しR fixtureは符号反転値を返す既知差異。Vitest未実行。
+| `src/random/continuous.ts` | 問題あり・既知差異あり | #134, #499 | `5ad76e5676b4bf27c36b288f8e48ac3821bfd92a` | [#91](https://github.com/numero-uno-jpn/rStats.js/issues/91) | runif/rnorm/rexp/rlnorm/rlogis/rcauchy/rweibullの式・端値・乱数消費を追加確認。R 4.5.x `src/nmath/rweibull.c` と比較。 | `rweibull()`はshapeの妥当性を先に判定するため、`scale===0`でもshape<=0/NaNではNaNを返す。R 4.5.xは不正引数分岐内で先に`scale==0`を判定し0を返す。具体例 `setSeed(26); rweibull(1,-1,{scale:0})` および shape=NaN, scale=0。両者ともuniform消費なし。既存rother fixtureはshape=2,scale=0のみでこの組合せを未カバー。既知差異 `rlogis(scale<0)` も維持。Issue #91。fixture閲覧・ソース追跡のみ、Vitest/R実行なし。 |
 | `src/random/extra.ts` | 一部監査・問題未検出 | #130 | `75095a2c450c18de77f8ceacc259b90bd246a288` | — | extraDistr R 4.5.2 fixture を閲覧（未実行） | inverse-gamma/gamma変換、Kumaraswamy・Pareto逆関数、三角分布の2様本順序統計量法、Laplace指数・符号、arcsine逆関数、無効引数時の乱数消費と極端な有限端点をソース確認。R 4.5.2 fixture 20ケースを閲覧。Vitest・package runtime・R実行なし。 |
 | `src/random/gamma.ts` | 問題あり | #121 | `9a6b479fa51c0e16a8313c9c2518c75130c84004` | [#29](https://github.com/numero-uno-jpn/rStats.js/issues/29) | R本体 `src/nmath/rgamma.c` と不一致 | `rgamma(1,-1,{scale:0})` と `rgamma(1,0,{scale:-1})`。Rは両方0、現行はNaN。負値判定がゼロ判定より先。ソース照合で確定。Vitest・package runtime・今回のR実行なし。 |
 | `src/random/hyper.ts` | 追加監査済み・問題未検出 | #126, #492 | `df63732522e39556a07f79edbb5a287f7348fa87` | — | HIN/H2PEと大規模パラメータ時の`qhyper1`/Bernoulli切替を確認。R 4.5.2のrhyper fixtureを閲覧。R側で報告された`m+n`がINT_MAXを超える場合の整数overflow経路と比較し、JS側のNおよび中間計算はNumberで保持されるため同じint32 wrapは生じない。 | `m=n=1073741824, k=20`（N=2147483648）では通常H2PE経路、mode=10、variance≈4.9999999558、d=3.5、xl=7、xr=14となり、全setup値が有限。`m=n=1073741824, k=18`ではmode=9でHIN経路。support端点・全成功/全失敗・k=1のBernoulli・個別引数>=INT_MAXのqhyper経路、HINのscale、H2PE 3領域・accept recurrence/squeeze・cache再構築を確認。新規の独立再現不具合なし。Vitest/package runtime/R未実行。 |
@@ -2427,3 +2427,26 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - GitHub Issue: [#90](https://github.com/numero-uno-jpn/rStats.js/issues/90).
 - No source code changed.
 - Repository HEAD at audit: `18236c5928d1f7c97e4298e6bc463eace49b578b`.
+
+
+## Audit #499 — `src/random/continuous.ts` Weibull zero-scale invalid-shape boundary
+
+- Focused follow-up to #134, checking parameter-validation order and RNG consumption in the continuous variate generators. A concrete R compatibility defect was found in `rweibull()`.
+- Current TypeScript first evaluates `if (!(shape > 0) || !(scale >= 0)) return NaN;`. Consequently, invalid shapes short-circuit before the later `scale === 0` point-mass return.
+- R 4.5.x `src/nmath/rweibull.c` checks `!R_FINITE(shape) || !R_FINITE(scale) || shape <= 0. || scale <= 0.`; inside that invalid-parameter branch it returns 0 whenever `scale == 0.`, before returning NaN. Thus invalid shape combined with zero scale returns 0 in R, including negative, zero, NaN, or infinite shape (subject to the source's scale check).
+- Concrete reproductions (source-derived; package runtime not executed):
+  ```js
+  setSeed(26);
+  rweibull(1, -1, { scale: 0 }); // rStats.js: NaN; R 4.5.x: 0
+
+  setSeed(26);
+  rweibull(1, NaN, { scale: 0 }); // rStats.js: NaN; R 4.5.x: 0
+  ```
+  The same ordering mismatch applies to `shape = 0` and `scale = -0`. Neither R nor the current JS branch consumes a uniform for these zero-scale cases, so this defect does not advance the RNG stream.
+- Existing `test/fixtures/rother.json` includes `shape=2, scale=0` (expected zeros and unchanged next-uniform) but has no invalid-shape/zero-scale combination; this explains why the boundary is not represented by the current fixture.
+- R source: `wch/r-source`, branch `R-4-5-branch`, `src/nmath/rweibull.c`, blob `0fdd4dbe504369252f59aaf59f607cb65d9c5451`. Current implementation blob: `continuous.ts` `5ad76e5676b4bf27c36b288f8e48ac3821bfd92a`; fixture `rother.json` `3837f01bab08c0722d4d4a43f256af2af64b7cda`; test harness `random.test.ts` `f849a51e7b3c89c639641cf0a231fc9989dcff81`.
+- Other continuous transforms reviewed at the boundary level: `runif` equal endpoints and overflow-width weighted interpolation; `rnorm1` zero SD and non-finite mean; `rexp` reciprocal-rate zero/infinity handling; `rlnorm` non-finite meanlog; `rlogis` and `rcauchy` zero/non-finite scale/location. No additional new defect confirmed in this focused pass. Existing known difference: negative logistic scale returns NaN while consuming the same uniform as R.
+- Reviewed fixture text only; no Vitest, package runtime, or R process was executed.
+- GitHub Issue: [#91](https://github.com/numero-uno-jpn/rStats.js/issues/91).
+- No source code changed.
+- Repository HEAD at audit: `ef82574614d280de2e22387766ff370135ddc0ea`.
