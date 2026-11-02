@@ -3006,3 +3006,19 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Result: no additional independent reproducible quantile-seed/refinement/search defect established. Existing #103 is a parameter conversion defect rather than a separate quantile algorithm defect. No new issue.
 - Rとの関係: R Core uses Cornish-Fisher plus `q_DISCRETE_BODY()`; the TypeScript implementation adds a gamma-limit seed and continuous refinement but preserves the final monotone discrete search contract. Source comparison only; no R executable was run.
 - 検証範囲: complete `quantileRaw()`, `refineContinuous()`, public `qnbinom1()`/`qnbinomMu1()` boundary ordering, gamma/normal seed calls, discrete search, and R Core source comparison. No package runtime, Vitest, or R execution. No source code changed.
+
+
+## Audit #533 — `dnbinomMu1()` size-zero boundary differs from R
+
+- Reviewed the complete boundary ordering for `dnbinom1()`, `pnbinom1()`, `qnbinom1()`, and their `mu)-parameterized counterparts. Compared against R Core `src/nmath/dnbinom.c`, `pnbinom.c`, `qnbinom.c`, and `qnbinom_mu.c`.
+- Found a compatibility defect in `dnbinomMu1()`: when `size === 0` and the observation is positive, it returns `d0(log)` for every `mu > 0`. R Core's `dnbinom_mu()` returns NaN for positive integer observations at `size = 0`, including finite positive `mu`; only the `x == 0 && size == 0` case takes the point-mass shortcut.
+- Exact reproduction:
+  ```ts
+  dnbinom(1, 0, { mu: 1 });        // current: 0; R: NaN
+  dnbinom(2, 0, { mu: 1 });        // current: 0; R: NaN
+  dnbinom(1, 0, { mu: Infinity }); // current: 0; R source formula: NaN
+  ```
+  For the finite case, R's positive-`x` path evaluates the size-zero limiting arithmetic and produces NaN. This is a source-level comparison; no R runtime was executed.
+- Created Issue #104: https://github.com/numero-uno-jpn/rStats.js/issues/104
+- Other boundary paths reviewed: `pnbinom` size-zero point mass, `qnbinom` size-zero return 0, `size = Infinity` Poisson limit for the `mu) parameterization, `prob = 1), `mu = 0), and NaN/Infinity argument ordering. No additional independent defect established.
+- Validation: source inspection and deterministic input tracing only. No package runtime, Vitest, or R execution. No source code changed.
