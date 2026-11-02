@@ -417,6 +417,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   rStats.js draws G from Gamma(m) for the smaller shape m and returns G / (G + B), which is the beta variate to double
   precision, so the stream departs from R's from there. With both shapes above 1e32 the mean is returned with R's
   stream, as R.
+- **`rbinom` with p below 1.1e-16** (where 1 - p rounds to 1): R's inversion starts from (1 - p)^n = 1, so every draw
+  is 0 although a success has probability n p (up to 1e-7); rStats.js starts from exp(n log1p(-p)). Both use one
+  uniform per draw, so the stream stays R's; a uniform above exp(n log1p(-p)) gives 1 where R gives 0.
 - The reference is the x86_64 build of R. The arm64 build fuses multiply-adds (FMA), which
   changes the last bit of `qnorm` and therefore of normal variates: `set.seed(42); rnorm(3)[2]`
   is -0.56469817139608869 on x86_64 and -0.5646981713960888 on arm64. JavaScript has no FMA, so

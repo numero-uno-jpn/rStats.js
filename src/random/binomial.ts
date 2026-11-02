@@ -67,7 +67,8 @@ export function rbinom1(nin: number, pp: number): number {
     psave = pp;
     nsave = n;
     if (np < 30) {
-      qn = powInt(q, n);
+      // (q = 1 - p rounds to 1 below p = 1.1e-16, and q^n to 1: every draw was 0, as in R 4.5.2; issue #31)
+      qn = q === 1 && p > 0 ? Math.exp(n * Math.log1p(-p)) : powInt(q, n);
       small = true;
     } else {
       small = false;
