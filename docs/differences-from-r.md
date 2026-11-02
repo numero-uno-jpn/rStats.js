@@ -245,6 +245,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `scale(c(1e200, 2e200, 3e200))`, `scale(c(1e-200, 2e-200, 3e-200))` | scale Inf or 0, scaled values 0 or ±Inf | -1, 0, 1 (the sum of squares rescaled) |
 | `runif(n, -1e308, 1e308)` | Inf (max - min overflows) | values in the range |
 | `seq(1, 2, by = Inf)` | NaN | 1 |
+| `seq(-1e308, 1e308, by = 5e307)` | the middle value -1.9958e292 | 0 (the ends' difference overflows: the values are those of the halved ends, doubled) |
 | `eigen()` of a small nonsymmetric matrix such as `matrix(c(1, 3, 2, 4), 2) * 1e-60` | treated as symmetric (`isSymmetric` compares absolutely when mean \|a\| <= 100 eps): wrong eigenvalues | the symmetry test made relative at every scale (`isSymmetric()` itself is R's) |
 | `merge()` on several keys whose values contain "\r", or `NA` against the text "NA" | rows with different keys matched (the keys are pasted with "\r") | matched only on equal keys |
 | `fisher.test`/`chisq.test(simulate.p.value = TRUE)` with a fractional `B` | divides by B + 1 though only the integer part of B is simulated | divides by the number simulated plus 1 |

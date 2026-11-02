@@ -484,18 +484,23 @@ export function seq(from?: number, to?: number, options: SeqOptions = {}): numbe
     if (by === undefined) return colon(from ?? 1, to ?? 1);
     const a = from ?? 1;
     const b = to ?? 1;
-    const del = b - a;
+    // Finite ends whose difference overflows: in half coordinates, doubled (exact scalings, so the values round as
+    // they would without the overflow; seq(-1e308, 1e308, { by: 1e308 }) was an error, R gives -1e308, 0, 1e308)
+    const half = !Number.isFinite(b - a);
+    const f = half ? 0.5 : 1;
+    const del = b * f - a * f;
     if (del === 0 && b === 0) return [b];
-    const n = del / by;
+    const n = del / (by * f);
     if (!Number.isFinite(n)) {
       if (by === 0 && del === 0) return [a];
       throw new RangeError("invalid '(to - from)/by'");
     }
     if (n < 0) throw new RangeError("wrong sign in 'by' argument");
-    if (Math.abs(del) / Math.max(Math.abs(b), Math.abs(a)) < 100 * Number.EPSILON) return [a];
+    if (Math.abs(del) / Math.max(Math.abs(b * f), Math.abs(a * f)) < 100 * Number.EPSILON) return [a];
     const k = Math.trunc(n + 1e-10);
+    const at = half ? (i: number) => 2 * (a / 2 + i * (by / 2)) : (i: number) => a + i * by;
     // the last value may overshoot `to` by rounding: hold it at `to`
-    return Array.from({ length: k + 1 }, (_, i) => (i === 0 ? a : by > 0 ? Math.min(a + i * by, b) : Math.max(a + i * by, b)));
+    return Array.from({ length: k + 1 }, (_, i) => (i === 0 ? a : by > 0 ? Math.min(at(i), b) : Math.max(at(i), b)));
   }
 
   if (!Number.isFinite(lengthOut) || lengthOut < 0) throw new RangeError("'length.out' must be a non-negative number");
@@ -506,6 +511,13 @@ export function seq(from?: number, to?: number, options: SeqOptions = {}): numbe
     const a = from ?? b - (len - 1);
     if (len <= 2) return [a, b].slice(0, len);
     if (a === b) return new Array<number>(len).fill(a);
+    if (!Number.isFinite(b - a)) {
+      // finite ends whose difference overflows: in half coordinates, doubled (as seqLength in src/internal/seq.ts;
+      // the interior values were NaN)
+      const h = a / 2;
+      const halfStep = (b / 2 - h) / (len - 1);
+      return Array.from({ length: len }, (_, i) => (i === 0 ? a : i === len - 1 ? b : 2 * (h + i * halfStep)));
+    }
     const step = (b - a) / (len - 1);
     return Array.from({ length: len }, (_, i) => (i === 0 ? a : i === len - 1 ? b : a + i * step));
   }
