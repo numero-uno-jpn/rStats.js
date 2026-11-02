@@ -2792,3 +2792,15 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Result: no new independent defect established. No Issue filed.
 - Rとの関係: direct comparison with current R Core `nmath.h` and `dhyper.c`; no R executable was run.
 - 検証範囲: complete source file, principal distribution call sites, and R C macro comparison. No Vitest, package runtime, or R execution. No source code changed.
+
+
+## Audit #522 — `src/internal/levels.ts` numeric factor-level canonicalization
+
+- Source blob: `src/internal/levels.ts` `949b2f498a93c9c17bc50a4f2e74c1eef86a0d22`; formatter dependency `src/htest/core/simulate.ts` blob `add88d8966ad2c2be9a3ef97b8b73c6988334055`.
+- Reviewed numeric deduplication and ordering, signed-zero normalization, NaN filtering, infinities, 15-significant-digit text collisions, Map key semantics, and the assumption that equal formatted values are contiguous after numeric sorting. Reviewed `formatR()`'s fixed/scientific selection and its 15-digit conversion.
+- Concrete inputs traced: `numberLevels([0.1 + 0.2, 0.3])`; `numberLevels([1e15, 1e15 + 1])`; `numberLevels([-0, 0])`; `numberLevels([NaN, NaN, Infinity, -Infinity])`; `numberLevels([1e-4, 1.2e-4, 1.2345678901234567])`; and `numberLevels([Number.MIN_VALUE, 2 * Number.MIN_VALUE])`. These are static branch probes, not claimed runtime outputs.
+- The numeric sort comparator can return NaN for equal infinities (`Infinity - Infinity)); ECMAScript sort treats a NaN comparator result as +0, which is the required equality ordering for those equal values. NaNs are removed before sorting and signed zero is normalized before Set/Map handling.
+- `formatR(Infinity)` returns JavaScript's `"Infinity"` internally rather than R's `"Inf"`; this does not create a numeric-level collision defect because all positive infinities share the same internal key and `levelText()` separately emits R's `"Inf"` for label text. No observable failure was established from this distinction in the reviewed paths.
+- Result: no new independent defect established. No Issue filed.
+- Rとの関係: implementation intent is R `factor()`/numeric `as.character()` compatibility; reviewed the local 15-digit formatter and documented examples. No R executable or independent R formatter comparison was run in this pass.
+- 検証範囲: complete `levels.ts` and `formatR()` source review, ECMAScript sorting/Map semantics, and explicit edge-input tracing. No Vitest, package runtime, or R execution. No source code changed.
