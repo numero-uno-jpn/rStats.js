@@ -2779,3 +2779,16 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Result: no new independent defect established in candidate-distance comparison or half-even tie handling. Decimal midpoints can have unequal computed `du` and `dd` because the source values and subtractions are binary64; this is not a JS/R divergence because R uses the same arithmetic sequence. The distinct scaling mismatch from repeated multiplication remains covered by Issue #101 and is not duplicated.
 - Rとの関係: current R Core C source inspected directly; the relevant candidate comparison is algorithmically identical. No R executable was run.
 - 検証範囲: complete `fround.ts` static review, R C source comparison, and binary64 range reasoning. No Vitest, package runtime, or R execution. No source code changed.
+
+
+## Audit #521 — `src/internal/integer.ts` R-compatible integer tolerance and half-even coercion
+
+- Source blob: `src/internal/integer.ts` `007ee293d3df0d02b4a2a38cc72a2479c5a5e4f0`.
+- Reviewed `nonInt()` and `roundHalfEven()` for exact positive/negative half-integers, signed zero, subnormal inputs, values around the binary64 integer-precision boundary, NaN, and infinities. Traced their use in `dhyper`, `dnbinom`, and `dpois` callers to check whether non-finite values are subsequently rejected.
+- Compared the tolerance expression against current R Core `src/nmath/nmath.h`: R defines `R_nonint(x)` as `fabs(x - R_forceint(x)) > 1e-9 * fmax2(1., fabs(x))`, and `R_forceint` uses `nearbyint(x)` when available. The TypeScript `nonInt()` uses the same tolerance and a half-even implementation. The R comment records this tolerance as introduced in R 4.4.0.
+- Compared the half-even implementation with `nearbyint`: the `Math.round` adjustment corrects only exact half cases whose rounded result is odd; negative halves and negative zero are handled consistently with ties-to-even. For magnitudes where binary64 cannot represent fractional parts, both implementations naturally receive integral values.
+- Concrete boundary inputs traced: `nonInt(2 + 1.1e-9)`; `nonInt(2 + 2e-9)`; `nonInt(1e9 + 0.5)`; `nonInt(1e12 + 100)`; `nonInt(Number.MIN_VALUE)`; `nonInt(-0.5)`; `roundHalfEven(4.5)`; `roundHalfEven(5.5)`; `roundHalfEven(-4.5)`; `roundHalfEven(-5.5)`; `roundHalfEven(-0.5)`; `roundHalfEven(Number.MAX_VALUE)`; `roundHalfEven(Infinity)`; and `roundHalfEven(NaN)`. These are source-level edge probes, not claimed runtime outputs.
+- The apparently large tolerance for large-magnitude values (e.g. `1e9 + 0.5`) is not a TypeScript divergence: it follows the same relative tolerance explicitly used by R 4.4.0 and later. Call sites reviewed either reject non-finite inputs explicitly or pass through the same integer-parameter validation path.
+- Result: no new independent defect established. No Issue filed.
+- Rとの関係: direct comparison with current R Core `nmath.h` and `dhyper.c`; no R executable was run.
+- 検証範囲: complete source file, principal distribution call sites, and R C macro comparison. No Vitest, package runtime, or R execution. No source code changed.
