@@ -24,6 +24,11 @@
 // the rounding (laplace); for a small ν (a < 1e-5) formula B is used at any t, and a t so near 0 that P is Φ(-δ) to
 // the double is given that value (nearZero). The smaller tail is computed, the larger is 1 - (smaller).
 //
+// Far tails of a large δ (a log beyond about 1e9, or |δ| > 2^32), where the logs of the integrand in double precision
+// no longer place its peak: Laplace's method with the derivatives scaled and t S - δ in double-double (laplaceWide),
+// the trapezoidal sum with the logs in double-double where the expansion is not accurate enough, the integral of the
+// ratio to Φ(-δ) where the peak is broad (integrateShifted), and for t >> sqrt(ν) an expansion over Z (zTail).
+//
 // For accuracy, the node w and, on top of it, e^(w/2), the exponent a (e^w - 1 - w) and the normal argument
 // t S - δ are formed in double-double (rounding in each is amplified hundreds of times in the tails). Nodes
 // where the rounding effect is estimated to be at most eps times the peak value are computed in double
@@ -109,6 +114,16 @@ interface Problem {
   kind: Kind;
   /** log C_a */
   logC: number;
+  /**
+   * kind cdf or pdf only: the log of the integrand is taken less log Φ(-δ) (cdf) or log φ(δ) (pdf), and the result is
+   * returned with it added back (integrateShifted)
+   */
+  shift?: number;
+  /**
+   * With shift, kind cdf: the integrand is |ρ - 1| in place of the ratio ρ = Φ(t S - δ)/Φ(-δ) (integrateShifted, for a
+   * tiny a)
+   */
+  complement?: boolean;
 }
 
 /** Below this x = a e^w, P(a, x) = x^a / Γ(1 + a) (1 + O(x)) is taken from log x = log a + w (x may underflow) */
@@ -175,13 +190,26 @@ function logIntegrand(pr: Problem, w: number): [number, number, number] {
   let L = pr.logC - a * m;
   let d1 = -a * Math.expm1(w);
   let d2 = -a * ew;
+  if (pr.shift !== undefined && w > 700) {
+    // (a e^w from its log, where e^w overflows: for a subnormal a the peak of integrateShifted is near w = 723)
+    const aew = Math.exp(Math.log(a) + w);
+    L = pr.logC - (aew - a * (1 + w));
+    d1 = -(aew - a);
+    d2 = -aew;
+  }
   if (pr.kind === "cdf") {
     const r = millsInv(z);
-    L += pnorm(z, { logP: true });
+    if (pr.complement) {
+      // log |ρ - 1| and its derivative (the second is left to bracketedPeak)
+      const lr = logPhiRatio(tS, delta);
+      // (e^lr / (e^lr - 1) is 1 where both overflow)
+      return [L + logAbsExpm1(lr), d1 + (tS / 2) * r * (lr > 40 ? 1 : Math.exp(lr) / Math.expm1(lr)), NaN];
+    }
+    L += pr.shift === undefined ? pnorm(z, { logP: true }) : logPhiRatio(tS, delta);
     d1 += (tS / 2) * r;
     d2 += (tS / 4) * r - (tS / 2) * (tS / 2) * r * (z + r);
   } else {
-    L += w / 2 - 0.5 * z * z - LN_SQRT_2PI;
+    L += pr.shift === undefined ? w / 2 - 0.5 * z * z - LN_SQRT_2PI : w / 2 + tS * (delta - tS / 2);
     d1 += 0.5 - (z * tS) / 2;
     d2 += -(tS * tS) / 4 - (z * tS) / 4;
   }
@@ -225,8 +253,9 @@ function logPhiDD(zd: DD): DD {
   const z = zd[0];
   const corr = zd[1] * millsInv(z);
   if (z > -5) return twoSum(pnorm(z, { logP: true }), corr);
-  const zz = ddMul(zd, zd);
-  return ddAdd([-zz[0] / 2, -zz[1] / 2], [Math.log(0.5 * erfcxNonNegative(-z * Math.SQRT1_2)), 0]);
+  // (z²/2 as z (z/2), the same to the bit: z² alone overflows from |z| = 1.34e154, z²/2 from 1.9e154)
+  const zh = ddMul(zd, [zd[0] / 2, zd[1] / 2]);
+  return ddAdd([-zh[0], -zh[1]], [Math.log(0.5 * erfcxNonNegative(-z * Math.SQRT1_2)), 0]);
 }
 
 /**
@@ -270,10 +299,23 @@ function integrand(pr: Problem, w: DD, log: boolean, peak = Infinity): DD {
     const g = x > X_TINY ? gammaInc(a, x, lower, false) : Math.exp(gammaLog(a, w[0] + w[1], lower)[0]);
     return [(t / 2) * (S[0] + S[1]) * Math.exp(-0.5 * zz[0] - LN_SQRT_2PI) * (1 - zz[1] / 2) * g, 0];
   }
-  // a (e^w - 1 - w); (a tiny a reaches e^w near the overflow threshold, where the splitting in ddMulNum overflows)
+  // a (e^w - 1 - w); (a tiny a reaches e^w near the overflow threshold, where the splitting in ddMulNum overflows;
+  // in integrateShifted beyond it, from the log of a e^w)
   const m = expm1mx(w, ew);
-  const E = m[0] < 1e290 ? ddMulNum(m, a) : twoSum(a * m[0], a * m[1]);
+  const E =
+    pr.shift !== undefined && w[0] > 700
+      ? twoSum(Math.exp(Math.log(a) + w[0] + w[1]), -a * (1 + w[0]))
+      : m[0] < 1e290
+        ? ddMulNum(m, a)
+        : twoSum(a * m[0], a * m[1]);
   if (!(E[0] < Infinity)) return [log ? -Infinity : 0, 0];
+  if (pr.shift !== undefined) {
+    // (integrateShifted: the log less log Φ(-δ) or log φ(δ), of a moderate size)
+    const y = ddMulNum(S, t)[0];
+    const lr = pr.kind === "cdf" ? logPhiRatio(y, delta) : y * (delta - y / 2);
+    const l = ddAdd([pr.logC - E[0], -E[1]], [pr.complement ? logAbsExpm1(lr) : lr, 0]);
+    return pr.kind === "cdf" ? l : ddAdd(l, [w[0] / 2, w[1] / 2]);
+  }
   const zd = ddAdd(ddMulNum(S, t), [-delta, 0]);
   const z = zd[0];
   if (pr.kind === "cdf") {
@@ -303,6 +345,7 @@ function trapezoid(
   offset: number,
   odd: boolean,
   peak: number,
+  offsetLow?: number,
 ): number {
   // If odd, only the odd-indexed nodes (the points added by halving the step)
   let sum = 0;
@@ -312,6 +355,7 @@ function trapezoid(
     const d = (sigma / 2) * (z - Math.expm1(-z));
     const v = integrand(pr, twoSum(w0, d), log, peak);
     const jac = (sigma / 2) * (1 + ez);
+    if (offsetLow !== undefined) return Math.exp(v[0] - offset + (v[1] - offsetLow)) * jac;
     return log ? Math.exp(v[0] - offset) * (1 + v[1]) * jac : v[0] * jac;
   };
   const start = odd ? 1 : 0;
@@ -348,9 +392,27 @@ interface Value {
 }
 
 function integrate(pr: Problem, needLog: boolean): Value {
+  // Far tails of a large δ (LOG_LARGE, D_LARGE): over z for a large t (zTail; the density is symmetric under
+  // (t, δ) -> (-t, -δ), and for the distribution function a negative δ is the upper tail), otherwise laplaceWide below
+  const large = farLogEstimate(pr) > LOG_LARGE || Math.abs(pr.delta) > D_LARGE;
+  if (large && pr.t * pr.delta > 0 && Math.abs(pr.t) / Math.sqrt(2 * pr.a) >= T_Z) {
+    return zTail(pr.a, Math.abs(pr.t), Math.abs(pr.delta), pr.kind === "pdf" ? "pdf" : pr.delta > 0 ? "lower" : "upper");
+  }
   if (pr.a > A_LAPLACE) {
     const v = laplace(pr);
     if (v !== undefined) return v;
+  }
+  // (for the distribution function a negative δ here is the upper tail near 1, whose logs are of a moderate size)
+  if (large && !(pr.kind === "cdf" && pr.delta < 0)) {
+    const sharp = { w: NaN, sigma: NaN };
+    const v = laplaceWide(pr, sharp);
+    if (v !== undefined) return v;
+    // A sharp peak (L'' <= -1e5) where the expansion is not accurate enough (u at the peak is of order -10: log Φ(u)
+    // is not yet nearly quadratic): its log there is at most about 1e17 (beyond, the expansion's error is below the
+    // rounding), so the trapezoidal sum with the logs of the nodes and of the peak in double-double resolves it. A
+    // broad peak: integrateShifted
+    if (!Number.isNaN(sharp.w)) return integrateCore(pr, true, { w: sharp.w, sigma: sharp.sigma, L: NaN }, true);
+    return integrateShifted(pr);
   }
   if (pr.kind === "cdf") {
     // (for a tiny a the density of w is spread over w down to about -1/a, and the peak of formula A is not found;
@@ -383,6 +445,20 @@ function integrate(pr: Problem, needLog: boolean): Value {
     return integrateCore(pr, needLog, pk);
   }
   return integrateCore(pr, needLog);
+}
+
+/**
+ * -log of the far tail (cdf, δ > 0 and t below it) or of the density far from the centre, roughly: the minimum over
+ * S of (t S - δ)²/2 + a S², δ²/2 / (1 + t²/(2a)) for t δ > 0, and δ²/2 otherwise (within a factor of about 2 where
+ * it is large). The peak of the integrand itself (findPeak) is no guide: where Φ(t S - δ) is a steep step, formula A's
+ * peak is not found, and its value can be that of a node far in the left tail of Φ
+ */
+function farLogEstimate(pr: Problem): number {
+  const { a, t, delta, kind } = pr;
+  if (kind === "cdf" && !(delta > 0)) return 0;
+  const d = Math.abs(delta);
+  const h = t * delta > 0 ? d / Math.hypot(1, t / Math.sqrt(2 * a)) : d;
+  return (h * h) / 2;
 }
 
 /**
@@ -494,6 +570,8 @@ function laplace(pr: Problem): Value | undefined {
   const { u, v, f, L2 } = p;
   const ew = Math.exp(w);
   if (!(w > -1390 && L2 >= 1e5)) return undefined;
+  // (the peak beyond the bracket, for a large δ: pt(1e9, 1e6, ncp 1e20) was -3.9e38, its log is -5e27; laplaceWide)
+  if (p.d1 > 0 && 50 - w < 1e-9) return undefined;
   const r3 = (-a * ew + f[2]) / L2;
   const r4 = (-a * ew + f[3]) / L2;
   const c1 = r4 / L2 / 8 + (5 * r3 * r3) / L2 / 24;
@@ -520,6 +598,275 @@ function laplace(pr: Problem): Value | undefined {
   return 1 / (L2 * L2) + q ** 6 <= 1e-17 * Math.max(1, Math.abs(value.log)) ? value : undefined;
 }
 
+/**
+ * laplace where the log of the integrand is beyond LOG_LARGE (a large δ, at any a): there the peak can lie beyond
+ * w = 50 (S* is about t δ/(t² + 2a) for t > 0), and v = t S, v² and a e^w can overflow while the answer is finite. The
+ * derivatives d1, L2 and f are formed in units of 2^(2k), with 2^k about max(|v|, sqrt(a e^w)) / 2^400, and u from v
+ * in double-double (where t² >> a, u = v - δ is a small part of δ)
+ */
+function laplaceWide(pr: Problem, sharp: { w: number; sigma: number }): Value | undefined {
+  const { a, t, delta, kind } = pr;
+  const cdf = kind === "cdf";
+  const la = Math.log(a);
+  const at = (w: number) => {
+    const lg2 = Math.max(Math.log2(Math.abs(t)) + w / 2 / Math.LN2, (la + w) / 2 / Math.LN2);
+    const k = Math.max(0, Math.ceil(lg2) - 400);
+    // (beyond the double range of v the derivatives are not formed: the peak is below there)
+    if (lg2 > 1100) {
+      const f: [number, number, number, number] = [NaN, NaN, NaN, NaN];
+      return { u: NaN, v: NaN, vs: NaN, sk: 1, k, f, d1: NaN, L2: NaN, aew: NaN };
+    }
+    const sk = 2 ** -k;
+    const vs = t * Math.exp(w / 2 - k * Math.LN2);
+    const v = vs / sk;
+    const u = Math.abs(w) < 1 ? t - delta + t * Math.expm1(w / 2) : v - delta;
+    // a e^w 2^-2k (from its log where e^w overflows: a subnormal a puts the peak near w = 735)
+    const direct = k === 0 && w < 700;
+    const aew = direct ? a * Math.exp(w) : Math.exp(la + w - 2 * k * Math.LN2);
+    const v2 = vs * vs;
+    let f: [number, number, number, number];
+    if (cdf) {
+      const [l1, l2, l3, l4] = logPhiDerivs(u);
+      const l1v = l1 * sk * vs;
+      const l3v = (l3 / sk) * vs;
+      const l4v2 = (((l4 / sk) * vs) / sk) * vs;
+      f = [
+        l1v / 2,
+        (l2 * v2 + l1v) / 4,
+        (l3v * v2 + 3 * l2 * v2 + l1v) / 8,
+        (l4v2 * v2 + 6 * l3v * v2 + 7 * l2 * v2 + l1v) / 16,
+      ];
+    } else {
+      const uv = u * sk * vs;
+      f = [0.5 * sk * sk - uv / 2, -(v2 + uv) / 4, -(3 * v2 + uv) / 8, -(7 * v2 + uv) / 16];
+    }
+    const d1 = (direct ? -a * Math.expm1(w) : -(aew - a * sk * sk)) + f[0];
+    return { u, v, vs, sk, k, f, d1, L2: aew - f[1], aew };
+  };
+  // w*: as in laplace, over w up to 1418 (e^(w/2) up to the overflow threshold), from the estimate of the peak; a d1
+  // that is not formed (beyond the double range) moves the upper end down. Where L' is about -a e^w Newton's steps are
+  // about 1 long, so a step that does not halve the one before last is replaced by bisection (as in rtsafe)
+  let lo = -1400;
+  let hi = 1418;
+  let w = 0;
+  if (t > 0 && delta > 0) {
+    const w0 = 2 * Math.log(delta / (t + (2 * a) / t));
+    if (w0 > lo && w0 < hi) w = w0;
+  }
+  let p = at(w);
+  let dx = hi - lo;
+  let dxOld = dx;
+  for (let i = 0; i < 400 && hi - lo > 4e-16 * Math.max(1, Math.abs(w)); i++) {
+    if (Number.isNaN(p.d1) || Number.isNaN(p.L2)) {
+      hi = w;
+      w = (lo + hi) / 2;
+      p = at(w);
+      continue;
+    }
+    const step = p.d1 / p.L2;
+    if ((Math.abs(step) * Math.sqrt(p.L2)) / p.sk < 1e-9) break;
+    if (p.d1 > 0) lo = w;
+    else if (p.d1 < 0) hi = w;
+    else break;
+    const next = w + step;
+    if (next > lo && next < hi && Math.abs(2 * step) <= Math.abs(dxOld)) {
+      dxOld = dx;
+      dx = step;
+      w = next;
+    } else {
+      dxOld = dx;
+      dx = (hi - lo) / 2;
+      w = lo + dx;
+    }
+    p = at(w);
+  }
+  const { u, vs, sk, k, f, L2, aew } = p;
+  if (!(w > -1390 && (k > 0 || L2 >= 1e5)) || !Number.isFinite(L2)) return undefined;
+  // (the peak, for the trapezoidal sum where the expansion is not accurate enough)
+  sharp.w = w;
+  sharp.sigma = Math.min(sk / Math.sqrt(L2), 10);
+  const r3 = (-aew + f[2]) / L2;
+  const r4 = (-aew + f[3]) / L2;
+  const c1 = ((r4 / L2 / 8 + (5 * r3 * r3) / L2 / 24) * sk) * sk;
+  // log(L2/a) (L2 here in units of 2^(2k)), without cancellation near w = 0
+  let lr: number;
+  if (k === 0 && w < 700) {
+    const x = Math.expm1(w) - f[1] / a;
+    lr = Math.abs(x) < 0.5 ? Math.log1p(x) : Math.log(Math.exp(w) - f[1] / a);
+  } else lr = Math.log(L2) + 2 * k * Math.LN2 - la;
+  // a (e^w - 1 - w), with a e^w from its log beyond the overflow of e^w (it may still overflow: the log is then -Inf)
+  const aE = w > 700 ? Math.exp(la + w) - a * (1 + w) : a * expm1mxNum(w);
+  const rest = -0.5 * lr - stirlerr(a) + Math.log1p(c1) - aE;
+  const ud =
+    Math.abs(w) < 1
+      ? ddAdd(twoSum(t, -delta), twoProd(t, Math.expm1(w / 2)))
+      : ddAdd(ddMulNum(ddExp([w / 2, 0]), t), [-delta, 0]);
+  let value: Value;
+  if (cdf) {
+    const l = logPhiDD(ud);
+    const log = l[0] + (l[1] + rest);
+    value = { lin: log < -745 ? 0 : pnorm(ud[0]) * (1 + ud[1] * millsInv(ud[0])) * Math.exp(rest), log };
+  } else {
+    // (u²/2 as u (u/2): u² alone overflows from |u| = 1.34e154, u²/2 from 1.9e154)
+    const uh = ddMul(ud, [ud[0] / 2, ud[1] / 2]);
+    const log = -uh[0] + (rest + w / 2 - LN_SQRT_2PI - uh[1]);
+    value = { lin: log < -745 ? 0 : Math.exp(log), log };
+  }
+  const q = cdf ? Math.abs(vs) / 2 / (Math.sqrt(L2) * Math.max(1, -u)) : 0;
+  const inv = (sk * sk) / L2;
+  return inv * inv + q ** 6 <= 1e-17 * Math.max(1, Math.abs(value.log)) ? value : undefined;
+}
+
+/**
+ * Beyond this far log estimate (farLogEstimate), the double-precision log of the integrand has an absolute error (eps
+ * times it) that no longer locates the peak of the trapezoidal sum (the sum overflowed or vanished from an estimate of
+ * about 5e11 on: pt(5, 3, ncp 1e7) gave a log of +Infinity, pt(1, 10, ncp 1e9) NaN). There the integral is taken by
+ * zTail, laplaceWide or, where the peak is broad, with Φ(-δ) (φ(δ) for the density) taken out (integrateShifted)
+ */
+const LOG_LARGE = 2 ** 30;
+
+/**
+ * Beyond this |δ| the logs of the integrand reach δ²/2 at some nodes even where the answer is moderate (the old
+ * integral gave pt(1.6e15, 0.5, ncp 1e20) a log of +Infinity and pt(7.9e17, 1e5, ncp 1e20) -δ²/2). There the far log
+ * estimate is below LOG_LARGE only for t/sqrt(2a) above 2^16, where zTail applies
+ */
+const D_LARGE = 2 ** 32;
+
+/**
+ * From this t/sqrt(2a) on (t δ > 0, beyond LOG_LARGE) the integrals are taken over z = Z (zTail). In w the peak narrows
+ * as t grows: placing it on the nearest double leaves an error of about L'' ulp(w)²/2, w² eps t²/(8a) relative to the
+ * log (180 eps at t/sqrt(2a) = 2^26, w = 27, where pt(t, 3, ncp 1e14) stepped by 0.1 in 1e12); here it is below
+ * eps/500 for any w. The terms zTail leaves out are about 64 a⁴/t⁶ in the log, far below eps |log| from here on
+ */
+const T_Z = 2 ** 12;
+
+/**
+ * The tails and the density for t/sqrt(2a) >= T_Z, t δ > 0 (here both positive), over z = Z (formula B):
+ *   P[T <= t] = Φ(-δ) + ∫ φ(z) Q(a, x(z)) dz,  P[T > t] = ∫ φ(z) P(a, x(z)) dz,
+ *   f(t) = 2/(t Γ(a)) ∫ φ(z) x(z)^a e^(-x(z)) dz,
+ * x(z) = a ((δ + z)/t)² = x0 (1 + 2z/δ + z²/δ²), x0 = a (δ/t)² (the integrals over z > -δ). With g = log Q, log P or
+ * a log x - x, and its derivatives in log x, g1 = x g', g2 = x² g'' (these do not overflow for a tiny a, where g' is
+ * about 1/(x log(1/x))), the integral is e^g(x0) E[e^(b Z + k Z²/2)] = e^g(x0) exp(b²/(2(1 - k))) / sqrt(1 - k),
+ * b = 2 g1/δ, k = (4 g2 + 2 g1)/δ² (g to second order in z). The terms left out are about 64 a⁴/t⁶ in the log, and
+ * z below -δ (cut off) lies some δ beyond the peak at z = b (|b| is at most about 2a δ/t², below δ 2^-23)
+ */
+function zTail(a: number, t: number, delta: number, kind: "lower" | "upper" | "pdf"): Value {
+  const y = delta / t;
+  const x0 = a * y * y;
+  if (!Number.isFinite(x0)) {
+    // (x0 beyond the double range: Q and the density are 0 to the double, P is 1)
+    const log = kind === "upper" ? 0 : kind === "lower" ? pnorm(-delta, { logP: true }) : -Infinity;
+    return { lin: Math.exp(log), log };
+  }
+  let base: number;
+  let g1: number;
+  let g2: number;
+  if (kind === "pdf") {
+    base = Math.LN2 - lgamma1p(a) + Math.log(a) - Math.log(t) + a * Math.log(x0) - x0;
+    g1 = a - x0;
+    g2 = -a;
+  } else {
+    const upper = kind === "upper";
+    base = gammaInc(a, x0, upper, true);
+    if (!upper && x0 > 1e4 * (a + 1)) {
+      // Q = h S, h = x^(a-1) e^-x / Γ(a), S = Σ (a-1)...(a-k)/x^k: x d log Q/dx = -x/S, and x² d²log Q/dx² = x² S'/S²
+      // (from the logs of h and Q, which are both about -x, the derivative would keep an error of eps x)
+      let term = 1;
+      let sum = 1;
+      let dsum = 0;
+      for (let j = 1; j < 20; j++) {
+        term *= (a - j) / x0;
+        sum += term;
+        dsum -= j * term;
+        if (Math.abs(term) < 1e-20) break;
+      }
+      g1 = -x0 / sum;
+      g2 = (dsum * x0) / (sum * sum);
+    } else {
+      // x d log G/dx = ∓x^a e^-x / (Γ(a) G) for G = Q, P, and x² d²log G/dx² = g1 (a - 1 - x - g1)
+      const h = Math.exp(dpoisRaw(a, x0, true) + Math.log(a) - base);
+      g1 = upper ? h : -h;
+      g2 = g1 * (a - 1 - x0 - g1);
+    }
+  }
+  const b = (2 * g1) / delta;
+  const k = (4 * g2 + 2 * g1) / delta / delta;
+  const logI = base + (b * b) / (2 * (1 - k)) - 0.5 * Math.log1p(-k);
+  const log = kind === "lower" ? logAddExp(pnorm(-delta, { logP: true }), logI) : logI;
+  return { lin: log < -745 ? 0 : Math.exp(log), log };
+}
+
+/** log |e^x - 1| (x beyond 40: x, to 1e-17) */
+function logAbsExpm1(x: number): number {
+  return x > 40 ? x : Math.log(Math.abs(Math.expm1(x)));
+}
+
+/** log Φ(y - δ) - log Φ(-δ), where both are far in the left tail as the difference of the exponents and erfcx */
+function logPhiRatio(y: number, delta: number): number {
+  const z1 = y - delta;
+  if (z1 < -5 && delta > 5) {
+    return y * (delta - y / 2) + Math.log(erfcxNonNegative(-z1 * Math.SQRT1_2) / erfcxNonNegative(delta * Math.SQRT1_2));
+  }
+  return pnorm(z1, { logP: true }) - pnorm(-delta, { logP: true });
+}
+
+/**
+ * The integral beyond LOG_LARGE where Laplace's method does not apply (a broad peak: t S small beside δ), as Φ(-δ) times
+ * E[Φ(t S - δ)/Φ(-δ)] (the density: φ(δ) times E[S φ(t S - δ)/φ(δ)]): the log of the ratio, log Φ(t S - δ) - log Φ(-δ)
+ * or t S (δ - t S/2), is of a moderate size there, and the trapezoidal sum of formula A finds its peak
+ */
+function integrateShifted(pr: Problem): Value {
+  const shift = pr.kind === "cdf" ? pnorm(-pr.delta, { logP: true }) : -(pr.delta * (pr.delta / 2)) - LN_SQRT_2PI;
+  if (shift === -Infinity) return { lin: 0, log: -Infinity };
+  const { a, t, delta } = pr;
+  // log λ, λ = |t δ|: for t δ < 0 the ratio is about e^(-λ S) (with S for the density), and the peak, at S = (2a + m)/λ
+  // (m = 0, 1 for the distribution function and the density), falls out of the range of w (S below e^-700) from
+  // λ = e^690 on. There the integral is the Laplace transform of the density of S near 0, 2 a^a/Γ(a) S^(2a-1):
+  // E[S^m e^(-λ S)] = 2 a^a Γ(2a + m) / (Γ(a) λ^(2a + m)), to relative order (2a + m)/λ (also beside 1/sqrt(a), the scale
+  // on which the density of S departs from its power, and the departure of the ratio from e^(-λ S), of order m/δ²)
+  const lLam = Math.log(Math.abs(t)) + Math.log(Math.abs(delta));
+  if (t * delta < 0 && lLam > 690) {
+    const p = pr.kind === "cdf" ? 2 * a : 2 * a + 1;
+    const log = shift + Math.LN2 + a * Math.log(a) - (lgamma1p(a) - Math.log(a)) + (lgamma1p(p) - Math.log(p)) - p * lLam;
+    return { lin: log < -745 ? 0 : Math.exp(log), log };
+  }
+  if (!(pr.kind === "cdf" && a < A_TINY)) {
+    const sp = { ...pr, shift };
+    return integrateCore(sp, true, bracketedPeak(sp));
+  }
+  // For a tiny a most of the probability of S lies near 0, spread over w down to about -1/a, where ρ is 1: the integral
+  // is 1 ∓ E[|ρ - 1|] (t < 0, t > 0), whose integrand peaks where t S δ is of order 1
+  const sp = { ...pr, shift, complement: true };
+  const lc = integrateCore(sp, true, bracketedPeak(sp)).log;
+  const log = shift + (t < 0 ? Math.log1p(-Math.exp(lc)) : logAddExp(0, lc));
+  return { lin: log < -745 ? 0 : Math.exp(log), log };
+}
+
+/**
+ * The peak of the log integrand by bisection on the sign of L' (the peak of integrateShifted is broad, so 1e-12 in w is
+ * ample). findPeak's Newton steps stall where L falls steeply over the range: for a large negative t S, L' is about
+ * t S δ / 2 at w = 0, and its steps of 1e-14 were taken for convergence
+ */
+function bracketedPeak(pr: Problem): { w: number; sigma: number; L: number } {
+  let lo = -1400;
+  let hi = 1418;
+  for (let i = 0; i < 200 && hi - lo > 1e-12 * Math.max(1, Math.abs(lo)); i++) {
+    const m = (lo + hi) / 2;
+    const d1 = logIntegrand(pr, m)[1];
+    // (a d1 that is not formed lies beyond the double range on that side)
+    if (d1 > 0 || (Number.isNaN(d1) && m < 0)) lo = m;
+    else hi = m;
+  }
+  const w = (lo + hi) / 2;
+  let [L, , d2] = logIntegrand(pr, w);
+  if (Number.isNaN(d2)) {
+    // (L'' from the differences of L')
+    const h = 1e-4;
+    d2 = (logIntegrand(pr, w + h)[1] - logIntegrand(pr, w - h)[1]) / (2 * h);
+  }
+  return { w, sigma: d2 < 0 ? Math.min(1 / Math.sqrt(-d2), 10) : 1, L };
+}
+
 function logAddExp(x: number, y: number): number {
   if (x === -Infinity) return y;
   if (y === -Infinity) return x;
@@ -527,23 +874,30 @@ function logAddExp(x: number, y: number): number {
 }
 
 /** Linear value and log of the integral (the log may be NaN unless needLog) */
-function integrateCore(pr: Problem, needLog: boolean, peak?: { w: number; sigma: number; L: number }): Value {
+function integrateCore(
+  pr: Problem,
+  needLog: boolean,
+  peak?: { w: number; sigma: number; L: number },
+  ddOffset = false,
+): Value {
   const { w, sigma, L } = peak ?? findPeak(pr);
   // With a peak value this small the linear answer underflows to 0 (even after multiplying by the width)
   if (!needLog && L < -800) return { lin: 0, log: NaN };
   // If summing linearly would overflow or underflow, subtract the peak value L before summing
-  const useLog = L < -650 || L > 650;
-  const offset = useLog ? L : 0;
+  const useLog = L < -650 || L > 650 || pr.shift !== undefined || ddOffset;
+  // (with ddOffset, the log of the peak in double-double: subtracted from the nodes' in double-double)
+  const off: DD = ddOffset ? integrand(pr, [w, 0], true) : [useLog ? L : 0, 0];
+  const offset = off[0];
   // Peak value (approximate) used by the fast-path test
   const peakVal = useLog ? 0 : Math.exp(L);
   // Convergence test: halving the step roughly squares the error, so if the difference is below this the finer
   // value is accurate enough. In deep tails (summed on the log scale) the node values themselves carry an error
   // of about eps |L|, so stop there
-  const tol = useLog ? Math.max(1e-15, 2e-16 * Math.abs(L)) : 1e-15;
+  const tol = useLog && !ddOffset ? Math.max(1e-15, 2e-16 * Math.abs(L)) : 1e-15;
   let h = 0.5;
-  let s = trapezoid(pr, w, sigma, h, useLog, offset, false, peakVal) * h;
+  let s = trapezoid(pr, w, sigma, h, useLog, offset, false, peakVal, ddOffset ? off[1] : undefined) * h;
   for (let level = 0; level < 6; level++) {
-    const odd = trapezoid(pr, w, sigma, h / 2, useLog, offset, true, peakVal) * (h / 2);
+    const odd = trapezoid(pr, w, sigma, h / 2, useLog, offset, true, peakVal, ddOffset ? off[1] : undefined) * (h / 2);
     const s2 = s / 2 + odd;
     h /= 2;
     const conv = Math.abs(s2 - s) <= tol * Math.abs(s2);
@@ -551,6 +905,15 @@ function integrateCore(pr: Problem, needLog: boolean, peak?: { w: number; sigma:
     if (conv) break;
   }
   if (!useLog) return { lin: s, log: Math.log(s) };
+  if (pr.shift !== undefined) {
+    // (only beyond LOG_LARGE, where the linear value is 0; with complement, E|ρ - 1| itself, without the shift)
+    const log = (pr.complement ? 0 : pr.shift) + offset + Math.log(s);
+    return { lin: log < -745 ? 0 : Math.exp(log), log };
+  }
+  if (ddOffset) {
+    const log = offset + (off[1] + Math.log(s));
+    return { lin: log < -745 ? 0 : Math.exp(log), log };
+  }
   // exp(offset) s: take exp of offset first and multiply (exp(offset + log s) would have an error |offset| times larger)
   const lin = offset > -700 ? Math.exp(offset) * s : Math.exp(offset + 700) * s * Math.exp(-700);
   return { lin, log: offset + Math.log(s) };
@@ -609,7 +972,16 @@ function farTails(t: number, a: number, delta: number, lower: boolean): Value {
 function nearZero(t: number, a: number, delta: number): boolean {
   // (|t|/sqrt(a) first, and sqrt(y1) as a hypot: y1/a overflowed for a below about 1e-300 with a large δ, and at t = 0
   // the test was NaN, false, so that the integral was taken at t = 0 and gave NaN to qt)
-  return (Math.abs(t) / Math.sqrt(a)) * Math.hypot(Math.SQRT2 * delta, Math.sqrt(4 * a + 800)) * (Math.abs(delta) + 2) <= 1e-17;
+  const r = (Math.abs(t) / Math.sqrt(a)) * Math.hypot(Math.SQRT2 * delta, Math.sqrt(4 * a + 800)) * (Math.abs(delta) + 2);
+  if (Number.isFinite(r)) return r <= 1e-17;
+  // (a factor overflowed, or |t|/sqrt(a) underflowed against it, at δ near the overflow threshold: by logs)
+  const l =
+    Math.log(Math.abs(t)) -
+    0.5 * Math.log(a) +
+    0.5 * Math.LN2 +
+    Math.log(Math.hypot(delta, Math.sqrt(2 * a + 400))) +
+    Math.log(Math.abs(delta) + 2);
+  return l <= Math.log(1e-17);
 }
 
 /** Linear value and log of P[T <= t] (lower) / P[T > t] (the log may be NaN unless needLog) */

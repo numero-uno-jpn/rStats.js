@@ -2928,6 +2928,161 @@ const NT: Entry[] = [
       },
     ],
   },
+  // ---- Issue #66: the far tails of a large δ ----
+  {
+    where: "distributions/nt.ts:397, :406",
+    fns: "pt, dt, qt with ncp",
+    condition: "far log estimate δ²/2 / (1 + t²/(2a)) (t δ > 0; δ²/2 otherwise) > 2^30 (LOG_LARGE)",
+    methods: "integral | laplaceWide, the trapezoidal sum in double-double, integrateShifted",
+    point: "δ at the estimate 2^30 for t = 0.5, 5 and -2 at df = 1 and 3 (log tails, log density)",
+    cases: () => {
+      const est = (t: number, df: number, d: number): number => {
+        const h = t * d > 0 ? Math.abs(d) / Math.hypot(1, t / Math.sqrt(df)) : Math.abs(d);
+        return (h * h) / 2;
+      };
+      const points: [number, number][] = [
+        [0.5, 1],
+        [5, 3],
+        [-2, 1],
+        [-2, 3],
+      ];
+      return points.flatMap(([t, df]): Case[] => {
+        const ab = flipPoint((d) => est(t, df, d) > 2 ** 30, 1e4, 1e6);
+        return [
+          ...pPairs(`pt(${t}, ${df}, ncp δ)`, (d, tl) => pt(t, df, { ncp: d, ...tl }), ab, { tails: TAILS.slice(2) }),
+          pair(`dt(${t}, ${df}, ncp δ, log)`, (d) => dt(t, df, { ncp: d, log: true }), ab),
+        ];
+      });
+    },
+  },
+  {
+    where: "distributions/nt.ts:397",
+    fns: "pt, dt, qt with ncp",
+    condition: "|δ| > 2^32 (D_LARGE) where the far log estimate is below 2^30 (there t/sqrt(2a) >= 2^16)",
+    methods: "integral | zTail",
+    point: "δ = 2^32 at t = 1e6, df = 1 (log tails, log density), and the mirror t = -1e6, ncp -δ",
+    cases: () => [
+      ...pPairs("pt(1e6, 1, ncp δ)", (d, tl) => pt(1e6, 1, { ncp: d, ...tl }), up(2 ** 32), { tails: TAILS.slice(2) }),
+      pair("dt(1e6, 1, ncp δ, log)", (d) => dt(1e6, 1, { ncp: d, log: true }), up(2 ** 32)),
+      ...pPairs("pt(-1e6, 1, ncp -δ)", (d, tl) => pt(-1e6, 1, { ncp: -d, ...tl }), up(2 ** 32), { tails: TAILS.slice(2) }),
+    ],
+  },
+  {
+    where: "distributions/nt.ts:398",
+    fns: "pt, dt, qt with ncp",
+    condition: "t δ > 0 and |t|/sqrt(2a) >= 2^12 (T_Z), beyond LOG_LARGE or D_LARGE",
+    methods: "laplaceWide (or the old Laplace's method, or the integral) | zTail (over z)",
+    point: "t = 2^12 sqrt(df) at df = 1, 3, 100 and ncp 1e14, 1e20 (log tails, log density)",
+    cases: () =>
+      [1, 3, 100].flatMap((df) =>
+        [1e14, 1e20].flatMap((d): Case[] => {
+          const ab = flipPoint((t) => t / Math.sqrt(df) >= 4096, 4000 * Math.sqrt(df), 4200 * Math.sqrt(df));
+          return [
+            ...pPairs(`pt(t, ${df}, ncp ${d})`, (t, tl) => pt(t, df, { ncp: d, ...tl }), ab, { tails: TAILS.slice(2) }),
+            pair(`dt(t, ${df}, ncp ${d}, log)`, (t) => dt(t, df, { ncp: d, log: true }), ab),
+          ];
+        }),
+      ),
+  },
+  {
+    where: "distributions/nt.ts:574",
+    fns: "pt, dt, qt with ncp",
+    condition: "a > 1e5 and Laplace's Newton iteration stopped at the end of its bracket, w = 50, with L' > 0 (the peak beyond)",
+    methods: "laplace | laplaceWide",
+    point: "sweeps of log pt(1e3, 1e6, ncp δ) and log dt over δ where the peak, about 2 log(δ/(t + 2a/t)), crosses w = 50",
+    cases: () => {
+      const d0 = Math.exp(25) * (1e3 + 1e6 / 1e3);
+      const xs = grid(d0 * 0.98, d0 * 0.001, 41);
+      return [
+        { kind: "sweep", label: "log pt(1e3, 1e6, ncp δ)", f: (d) => pt(1e3, 1e6, { ncp: d, logP: true }), xs },
+        { kind: "sweep", label: "log dt(1e3, 1e6, ncp δ)", f: (d) => dt(1e3, 1e6, { ncp: d, log: true }), xs },
+      ];
+    },
+  },
+  {
+    where: "distributions/nt.ts:613",
+    fns: "pt, dt, qt with ncp",
+    condition: "laplaceWide: max(|t| S, sqrt(a e^w)) above 2^400 (the derivatives in units of 2^(2k))",
+    methods: "unscaled | scaled",
+    point: "sweeps of log pt(1, 1, ncp δ) and log dt over δ around 2^401 (the peak at t S = δ t²/(t² + 1) = δ/2)",
+    cases: () => {
+      const d0 = 2 ** 401;
+      const xs = grid(d0 * 0.9, d0 * 0.005, 41);
+      return [
+        { kind: "sweep", label: "log pt(1, 1, ncp δ)", f: (d) => pt(1, 1, { ncp: d, logP: true }), xs },
+        { kind: "sweep", label: "log dt(1, 1, ncp δ)", f: (d) => dt(1, 1, { ncp: d, log: true }), xs },
+      ];
+    },
+  },
+  {
+    where: "distributions/nt.ts:771",
+    fns: "pt, qt with ncp",
+    condition: "zTail, lower tail: x0 = a (δ/t)² > 1e4 (a + 1)",
+    methods: "derivatives of log Q from the logs of the density and of Q | from the asymptotic series of Q",
+    point: "t where x0 = 2.5e4 at df = 3, ncp 1e14 (log lower tail)",
+    cases: () => {
+      const ab = flipPoint(
+        (t) => {
+          const y = 1e14 / t;
+          return 1.5 * y * y > 2.5e4;
+        },
+        7e11,
+        8.5e11,
+      );
+      return [pair("log pt(t, 3, ncp 1e14)", (t) => pt(t, 3, { ncp: 1e14, logP: true }), ab)];
+    },
+  },
+  {
+    where: "distributions/nt.ts:833",
+    fns: "pt, qt with ncp",
+    condition: "integrateShifted (a broad peak beyond LOG_LARGE), distribution function: a < 1e-5",
+    methods: "the integral of the ratio to Φ(-δ) | 1 ∓ the integral of |ratio - 1|",
+    point: "df = 2e-5 at t = -1e-3 and -1, ncp 1e5 (log tails)",
+    cases: () =>
+      [-1e-3, -1].flatMap((t) =>
+        pPairs(`pt(${t}, df, ncp 1e5)`, (df, tl) => pt(t, df, { ncp: 1e5, ...tl }), down(2e-5), { tails: TAILS.slice(2) }),
+      ),
+  },
+  {
+    where: "distributions/nt.ts:828",
+    fns: "pt, dt with ncp",
+    condition: "integrateShifted: log |t δ| > 690 for t δ < 0",
+    methods: "trapezoidal sum of the ratio | Laplace transform of the density of S near 0",
+    point: "-",
+    skip:
+      "within the integration range (|t| <= T0 = 1e10 (|δ| + 10) sqrt(a + 1)) only for |δ| above about 1e145, where the " +
+      "log is about -δ²/2 <= -5e289 and the change of method moves it far below its rounding",
+  },
+  {
+    where: "distributions/nt.ts:414",
+    fns: "pt, dt, qt with ncp",
+    condition: "laplaceWide's neglected terms above 1e-17 |log| at a sharp peak (L'' <= -1e5)",
+    methods: "laplaceWide | trapezoidal sum with the logs in double-double",
+    point: "-",
+    skip:
+      "decided by the error bound, not a fixed boundary; the sum is checked against Rmpfr in test/issue66.test.ts " +
+      "(pt(29955.4, 1, ncp 1e10)) and the far tails swept for monotony there",
+  },
+  {
+    where: "distributions/nt.ts:193, :306, :624; :801; :807",
+    fns: "pt, dt, qt with ncp",
+    condition: "w > 700 (a e^w from its log); x > 40 in log |e^x - 1|; y - δ < -5 and δ > 5 in logPhiRatio",
+    methods: "direct | the same quantity in another form",
+    point: "-",
+    skip:
+      "per node, forms of the same quantity: a e^w and e^(log a + w); log(e^x - 1) and x differ by e^-x <= 4e-18; " +
+      "log Φ(y - δ) - log Φ(-δ) as a difference and as y (δ - y/2) + log of an erfcx ratio (an identity)",
+  },
+  {
+    where: "distributions/nt.ts:615; :976",
+    fns: "pt, dt, qt with ncp",
+    condition: "laplaceWide: log2 of t S beyond 1100; nearZero: the product not finite",
+    methods: "- | the bracket shrinks; the same comparison by logs",
+    point: "-",
+    skip:
+      "beyond the double range of t S no derivative is formed and no result is taken from there; nearZero's comparison " +
+      "by logs is the same comparison where its product overflows (or |t|/sqrt(a) underflows against an infinite factor)",
+  },
 ];
 
 // ---- distributions/t.ts, nt.ts: the ends of df ----
