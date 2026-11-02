@@ -4006,3 +4006,15 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 推奨方向: 単位刻みできないPoisson indexの領域を混合和へ入れる前に検出し、漸近/積分法などへ振り分ける。単なるiteration capはhang防止のみで正しい確率値を保証しない。
 - 併せて `startSearch` のbracketing/bisectionと `sumUpper` のbounded loop、`sumLower` のtermination条件、`mixtureDensity` の上下walkを確認。新たな別件の確定バグは今回追加していない。
 - **検証制限**: GitHubソースの静的追跡とPythonでのIEEE-754数値確認のみ。TypeScript runtime/Vitest/R実行は未実施。
+
+
+## Audit #640 — 非心Beta / 非心Fの混合・極端値・積分経路
+
+- 対象: `src/distributions/nbeta.ts` SHA `5c51760f6e136b80a77b4284da39c25b0ab8ed86`、`src/distributions/nchisq.ts` SHA `9549791940c425d508057b7286329b396ca36c6f`、`src/internal/noncentral.ts` SHA `0a7c75dcdcc9bcf9a4b3bbd75ed613e5c6046ad7`、`test/nbeta.test.ts` SHA `b92e2218f99be7492e9a1cc620acde52808ce070`、`test/nf.test.ts` SHA `1ccbb8948196fbef5e66e7ec405e17b5be187378`。
+- 監査範囲: 非心Beta/Fのmethod選択（mixture/chisq/gamma/w/integral）、Poisson mixtureから積分法への閾値 `MU_MIXTURE=1e6`、farLeftLogの主項近似、leftTailLogの1000項上限、gamma/w cumulant expansionの適用判定、log-y積分のmode search・両側積分・power-law端点補正、fPair/fOddsのunderflow/overflow分岐、非心FのChernoff boundとquantile極端域を確認。
+- 既知open Issueを再確認: (1) 非心Beta密度でshapeがsubnormalの際にdominant j=0項を落とす問題、(2) 非心F tiny-tailで有限m/nがunderflowし `-Infinity` になる問題。いずれも既存Issueであり、重複登録しない。
+- 決定的境界入力として `dbeta(0.5, 1e-320, 2, { ncp: 1 })`、`pbeta(1e-100, 2, 3, { ncp: 2e7, logP: true })`、`pf(1e-250, 1e-220, 1e100, { ncp: 1e3, logP: true })`、`pf(1e300, 1e200, 2, { ncp: 20, lowerTail: false, logP: true })`、`qbeta(1e-250, 2, 3, { ncp: 1e20 })`、`qf(1e-200, 2, 3, { ncp: 1e20 })` を式・分岐上で検討。実行結果ではない。
+- mixture経路は `mu>1e6` で積分法へ切り替わり、Poisson indexが2^53を超える経路を避ける。既知Issue #150のsumLower hangは、非心χ²の別経路（Audit #639）であり、非心Beta/Fではmethod切替で到達しない。far-left seriesは最大1000項でbounded、積分のgolden-section/左右区間も各300/200反復、adaptive quadratureはdepth 40と全体300 bisectでbounded。
+- `fPair` の tiny/huge m q分岐、`fOdds` のk underflow、`pnfTiny` のfirst-term approximationは既存テストの回帰入力と整合。open Issueのfinite m/n ratio underflow問題以外に、新しい確定バグは特定できず。
+- **新規確定バグなし。Issue追加なし。ソース変更なし。** 既知Issueは重複回避。
+- **検証制限**: GitHubソース・既存テストの静的追跡のみ。Vitest/package runtime/R/高精度数値計算は未実施。
