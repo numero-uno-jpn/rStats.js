@@ -211,8 +211,9 @@ export function pearsonTest(x: Sample, options: PearsonTestOptions = {}): Normal
   if (!(Number.isInteger(k) && k - 1 - (adjust ? 2 : 0) > 0)) throw new RangeError("'nClasses' must be an integer leaving positive degrees of freedom");
   const counts = new Array<number>(k).fill(0);
   for (const z of standardized(xs)) {
-    const c = Math.floor(1 + k * pnorm(z));
-    if (c >= 1 && c <= k) counts[c - 1]!++;
+    // a value whose pnorm rounds to 1 belongs to the last class (nortest drops it: tabulate ignores the class k + 1)
+    const c = Math.min(k, Math.floor(1 + k * pnorm(z)));
+    if (c >= 1) counts[c - 1]!++;
   }
   const e = n / k;
   const statistic = counts.reduce((a, c) => a + (c - e) ** 2 / e, 0);

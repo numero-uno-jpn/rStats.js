@@ -144,6 +144,7 @@ affected.
 | Studentized-range p-values of post-hoc tests (Steel-Dwass, Games-Howell, Tukey) | R's `ptukey`, about 8 digits (off by up to 3.4e-8 in the tests) | full precision |
 | irr's kappa p-values | formed as 2 (1 − Φ(|z|)), losing small ones (2.2e-16 instead of 1.7e-16) | 2 Φ(−|z|) |
 | polycor's maximum-likelihood estimates and standard errors (`ML = TRUE`, `std.err = TRUE`) | Nelder-Mead or BFGS stops early and the Hessian is taken by finite differences: off by up to 1e-3 relative; on strongly associated tables the two-step BFGS runs past 1 and reports 0.9999 with an infinite variance | the exact maximum (within 4e-15 of 160-bit values) and the analytic Hessian |
+| nortest's `pearson.test` with a value whose `pnorm` rounds to 1 (an outlier about 8.3 sd or more above the mean) | the value falls in class k + 1, which `tabulate` drops: the counts sum to less than n (1176.13 for 99 zeros and 1e6) | counted in the last class: 1174.26 |
 
 ### Distributions outside base R
 
