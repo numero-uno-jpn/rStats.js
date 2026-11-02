@@ -35,3 +35,5 @@ GitHub Issue #95。ユーザー判断: dnbinom だけ直す (pnbinom・qnbinom �
 ## 範囲外として記録 (ユーザー判断)
 
 - pnbinom・qnbinom の同じ比: `fromMu` の p か q が 0 になり、不完全ベータ関数が端点として扱う。issue の `pnbinom(0, MAX, mu = MIN, lowerTail: false, logP: true)` は −Inf のまま (真値 −744.44、R も −Inf)。`pnbinom(1, 1e-200, mu = 1e200, logP: true)` も −Inf (真値はほぼ 0)。直すには分布関数を対数の級数などで組み直す必要があり、q 側で size が mu よりはるかに大きい場合は Poisson に近い和を扱う必要もある
+
+**追記 (Issue #103):** 上の pnbinom・qnbinom は #103 で直した (`betaIncTinyX` に比の正確な log を渡す。q 側も同じ)。`pnbinom(0, MAX, mu = MIN, lowerTail: false, logP: true)` は −744.44 になった。

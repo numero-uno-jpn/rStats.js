@@ -13,10 +13,10 @@ import { vectorize, type Vectorizable, type VectorResult } from "../internal/vec
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { discreteQuantile } from "../internal/discrete.js";
 import { nonInt } from "../internal/integer.js";
-import { betaIncDD } from "../special/incbet.js";
+import { betaIncDD, betaIncTinyX } from "../special/incbet.js";
 import { prefactorParts } from "../special/incbetPrefactor.js";
 import { dbinomRawDD, dpoisRaw } from "../special/loader.js";
-import { ddAdd, ddDiv, ddMul, twoSum, type DD } from "../special/dd.js";
+import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, ddSub, twoSum, type DD } from "../special/dd.js";
 import { qnorm } from "./normal.js";
 import { qgamma1 } from "./gamma.js";
 import { ppois1, qpois1 } from "./poisson.js";
@@ -91,8 +91,28 @@ function dnbinomRaw(x: number, par: Params, log: boolean): number {
 
 const MIN_NORMAL = 2 ** -1022;
 
+const LN2_DD: DD = [0.6931471805599453, 2.3190468138462996e-17];
+
+/** A probability kept times 2^k (fromMuDensity): its value (0 below the doubles) and its log in double-double */
+function unshift(v: DD, k: number): { value: number; log: DD } {
+  return { value: v[0] * 2 ** -(k / 2) * 2 ** -(k / 2), log: ddSub(ddLog(v), ddMulNum(LN2_DD, k)) };
+}
+
 /** P[X <= x] (lower) / P[X > x] (!lower) (x a nonnegative integer) */
 function pnbinomRaw(x: number, par: Params, lower: boolean, log: boolean): number {
+  if (par.shift !== undefined) {
+    // p or q below the normal range (it was 0, and the incomplete beta took its end: pnbinom(0, MIN, { mu: MAX }) was 0
+    // for 1, qnbinom(0.5, ...) Infinity for 0; issue #103): I_p(size, x + 1) by the series for x below DBL_MIN, from
+    // the exact log of p (or of q, the other tail); (x + 1) p < 4 there, as the series needs
+    const [kp, kq] = par.shift;
+    // (the quantile search may ask for x = Infinity when its first step from the largest double overflows)
+    if (x === Infinity) return lower ? (log ? 0 : 1) : log ? -Infinity : 0;
+    const r =
+      kp > 0
+        ? (({ value, log: lp }) => betaIncTinyX(par.size, x + 1, value, lp, lower, log))(unshift(par.pd, kp))
+        : (({ value, log: lq }) => betaIncTinyX(x + 1, par.size, value, lq, !lower, log))(unshift(par.qd, kq));
+    return log ? r[0] : r[1];
+  }
   if (x + 1 - x !== 1) {
     // Beyond 2^53, x + 1 rounds (to x, or up to x + 2) and I_p(size, x + 1) became I_p(size, x) (pnbinom(1e16, 1e16, 0.5) was 0.5; R too).
     // Without x + 1: I_p(size, x + 1) = I_p(size, x) + dnbinom(x)
@@ -165,10 +185,18 @@ function upperSeries(x: number, par: Params): number | undefined {
 }
 
 function quantileRaw(p: number, par: Params, lowerTail: boolean, logP: boolean): number {
-  // Starting value from the Cornish-Fisher expansion
-  const prob = par.pd[0] + par.pd[1];
+  // Starting value from the Cornish-Fisher expansion (p or q kept times 2^k: scaled back, 0 below the doubles; #103)
+  const [kp, kq] = par.shift ?? [0, 0];
+  const prob = kp > 0 ? unshift(par.pd, kp).value : par.pd[0] + par.pd[1];
+  const qv = kq > 0 ? unshift(par.qd, kq).value : par.qd[0] + par.qd[1];
+  if (kp > 0) {
+    // X p is nearly gamma (shape = size): y0 = g / p from the logs (p may be 0 here)
+    const g = qgamma1(p, par.size, 1, lowerTail, logP);
+    const y0 = g > 0 ? Math.min(Math.exp(Math.log(g) - unshift(par.pd, kp).log[0]), Number.MAX_VALUE) : 0;
+    return discreteQuantile({ p, lowerTail, logP, cdf: (y, l, lg) => pnbinomRaw(y, par, l, lg), y0, lo: 0, hi: Infinity });
+  }
   const Q = 1 / prob;
-  const P = (par.qd[0] + par.qd[1]) * Q;
+  const P = qv * Q;
   const mu = par.size * P;
   const sigma = Math.sqrt(par.size * P * Q);
   const gamma = (Q + P) / sigma;
@@ -178,7 +206,7 @@ function quantileRaw(p: number, par: Params, lowerTail: boolean, logP: boolean):
     // this is a much closer starting value than Cornish-Fisher, reducing distribution-function evaluations
     // -log q = log(1 + p/q) (taking log of a rounded q loses digits for small p)
     const g = qgamma1(p, par.size, 1, lowerTail, logP);
-    y0 = g / Math.log1p(prob / (par.qd[0] + par.qd[1]));
+    y0 = g / Math.log1p(prob / qv);
     // A finite gamma quantile divided by a tiny -log q beyond the doubles: so is the quantile (the distribution
     // function cannot be evaluated out there; qnbinom(2.2e-284, 2.7e37, { prob: 1.9e-279 }) threw a TypeError)
     if (y0 === Infinity && g > 0 && Number.isFinite(g)) return Infinity;
@@ -297,7 +325,7 @@ export function pnbinomMu1(q: number, size: number, mu: number, lowerTail: boole
   if (q < 0) return dt0(lowerTail, logP);
   if (size === 0 || mu === 0 || !Number.isFinite(q)) return dt1(lowerTail, logP);
   if (size === Infinity) return ppois1(q, mu, lowerTail, logP);
-  return pnbinomRaw(Math.floor(q + 1e-7), fromMu(size, mu), lowerTail, logP);
+  return pnbinomRaw(Math.floor(q + 1e-7), fromMuDensity(size, mu), lowerTail, logP);
 }
 
 export function qnbinomMu1(p: number, size: number, mu: number, lowerTail: boolean, logP: boolean): number {
@@ -311,7 +339,7 @@ export function qnbinomMu1(p: number, size: number, mu: number, lowerTail: boole
   if (mu === Infinity) return quantileBoundaries(p, 0, Infinity, lowerTail, logP) ?? NaN;
   const b = quantileBoundaries(p, 0, Infinity, lowerTail, logP);
   if (b !== undefined) return b;
-  return quantileRaw(p, fromMu(size, mu), lowerTail, logP);
+  return quantileRaw(p, fromMuDensity(size, mu), lowerTail, logP);
 }
 
 /** Accept exactly one of prob and mu (as in R, giving both or neither is an error) */

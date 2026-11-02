@@ -23,7 +23,10 @@ describe("review 56", () => {
 
   it("the public quantile functions near the top of the doubles as before", () => {
     expect(qpois(0.5, 1.5e308)).toBe(1.5e308);
-    expect(qnbinom(0.5, 1, { mu: 1.5e308 })).toBe(1.039720770839915e308);
+    // (p = 1 / (1 + 1.5e308) is subnormal, from #103 taken from its exact log: the least double at or above the exact
+    // threshold, 1.0397207708399153110e308 for the search's 1/2 (1 - 8 eps) (Rmpfr); 1.039720770839915e308 before,
+    // one double below it)
+    expect(qnbinom(0.5, 1, { mu: 1.5e308 })).toBe(1.0397207708399155e308);
     expect(qgeom(0.5, 5e-309)).toBe(1.3862943611198907e308);
     expect(qnbinom(0.9, 1, { prob: 1e-308 })).toBe(Infinity); // the quantile is about 2.3e308
   });
