@@ -194,15 +194,18 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const s2 = sdlog * sdlog;
       const em1 = Math.expm1(s2);
       const w = Math.exp(s2);
+      // sqrt(em1): sdlog itself where s2 is below 1e-280 (em1 / s2 is 1 to double precision; s2 underflowed to 0 or onto
+      // the subnormals and took the sd and skewness with it: 0 for sdlog = 1e-200; issue #120)
+      const rootEm1 = s2 < 1e-280 ? sdlog : Math.sqrt(em1);
       return make(
         Math.exp(meanlog + s2 / 2),
         em1 * Math.exp(2 * meanlog + s2),
         Math.exp(meanlog),
         Math.exp(meanlog - s2),
-        (w + 2) * Math.sqrt(em1),
+        (w + 2) * rootEm1,
         // w^4 + 2 w^3 + 3 w^2 - 6 with w = 1 + em1, expanded in em1 (the w form cancels for small sdlog)
         em1 * (16 + em1 * (15 + em1 * (6 + em1))),
-        Math.sqrt(em1) * Math.exp(meanlog + s2 / 2),
+        rootEm1 * Math.exp(meanlog + s2 / 2),
       );
     }
     case "unif": {
