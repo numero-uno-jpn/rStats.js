@@ -3983,3 +3983,15 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 追加の決定的境界入力: `ddLog([Number.MIN_VALUE, 0])`、`ddLog([Number.MAX_VALUE, 0])`、`twoProd(Number.MIN_VALUE, 1.2345678901234567e308)`、`ddExp([709.78, 0])`、`ddExp([-708.1, 0])`、`standardizeDD(1e308, -1e308, 1e308)`、`expNegOver([745, 0], Number.MIN_VALUE)`。スケーリング・端点分岐を静的追跡し、別の確定バグは特定できず。
 - **新規確定バグなし。Issue追加なし。ソース変更なし。** 既知ddDiv問題は重複回避。
 - **検証制限**: GitHubソースと既存Issue本文の静的確認のみ。TypeScript runtime/Vitest/MPFR/Rは未実施。
+
+
+## Audit #638 — ddDiv既知不具合の公開分布への到達性
+
+- 対象: `src/special/incbet.ts` SHA `59a4ebdf385c69124e68fae6d16159bfd6709a24`、`src/special/incbetLargeA.ts` SHA `9eabe133979cd41a00a904c61cb60ed6b35b6693`、`src/special/loader.ts` SHA `c85075fbce1fb3ff6933cbdb5c50477de3d25abf`、`src/distributions/gamma.ts`。
+- Audit #637で確認した `ddDiv/ddDivNum` のsubnormal除数時の低位商喪失について、実際の呼び出し元を追跡。
+- incomplete betaのcontinued fractionは、subnormal shapeでは `pseries` または `subShapeTail` が先に適用される。continued fractionに到達するには両frameのseries条件を満たさず、かつlarge-A展開にも入らない必要があり、係数分母 `a(a+1)`、`(a+1)(a+2)` はsubnormalにはならない。二つ目のframe変換 `x/(1-x)` も `x<1` のbinary64入力で `1-x` が最小でも約 `2^-53` であり、subnormal divisorではない。
+- Loaderの `bd0dd` 近接分岐は `ddDiv(d, x+M)` を使うが、x,Mがsubnormalのときdevience自体がsubnormal未満となり、低位商誤差が残差に及ぼす影響はbinary64出力に現れない。Gamma密度のtiny-x経路は `x/scale < DBL_MIN` でLoaderを迂回する。
+- `incbetLargeA.ts` の `upperGammaScaled` は `u>=0.3` の適用域であり、分母はnormal。large-A展開の `ddDiv` も大きいshape/normal scaleに限定される。
+- 以上から、既知ddDiv問題の公開分布関数への影響は、この呼び出し経路調査では確認できず。元Issueの「公開出力差分は未立証」という状態を維持する。Issue重複なし。
+- **新規確定バグなし。ソース変更なし。** 既知IssueはAudit #637で記録済み。
+- **検証制限**: ソースの分岐条件と式による静的到達性確認のみ。Vitest/package runtime/Rは未実施。
