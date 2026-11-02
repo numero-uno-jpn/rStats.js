@@ -57,7 +57,8 @@ function prodErrScaled(a: number, b: number): number {
   t = SPLITTER * y;
   const yh = t - (t - y);
   const yl = y - yh;
-  return scale2(scale2(xh * yh - p + xh * yl + xl * yh + xl * yl, ka), kb);
+  // scaled back by 2^(ka + kb) at once: 2^ka first underflowed the error of 1e-320 * 1e308 to 0 before 2^kb (#62)
+  return scale2(xh * yh - p + xh * yl + xl * yh + xl * yl, ka + kb);
 }
 
 /** [p, e] satisfying a * b = p + e exactly (Veltkamp splitting) */
