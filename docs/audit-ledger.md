@@ -3923,3 +3923,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 追加の決定的入力（乱数なし）: `dbeta(0.5, 0.75, Number.MIN_VALUE, { ncp: 0.1, log: true })`（既知Issueのj=0欠落経路の再確認）、`pbeta(1 - 2 ** -53, 79.32204890240992, 0.09403994879604119, { ncp: 1.245630132105305e22, logP: true })`（巨大ncp・右端近傍の既存回帰ケース）、`pbeta(1e-7, 3, 5, { ncp: 2e7, logP: true })`（left-tail log seriesの既存参照ケース）。これらのコードパスと既存テストの期待値を確認し、今回の新規Issueとはしなかった。
 - Poisson mixtureの開始点と再帰は、lower tailで `P_j=P_{j+1}+d_j` を加算し、upper tailで `Q_{j+1}=Q_j+d_j` を加算する向きになっている。densityはjStarから上下に走査する。subnormal incrementはlog経由のScaled表現へ退避し、指数差を別保持するため、単純なlinear underflowだけで項を失う構造ではない。ただし既知Issueの `betaKernelIncLog` overflowはこの退避経路自体で発生する。
 - **今回の追加監査で新規確定バグなし。Issue追加なし。ソース変更なし。** GitHub上のソース・テストの静的追跡のみ。Vitest/package runtime/R 4.5.2は未実施。
+
+
+## Audit #632 — Incomplete beta function: both shapes positive-subnormal
+
+- 対象: `src/special/incbet.ts` SHA `59a4ebdf385c69124e68fae6d16159bfd6709a24`、`src/special/incbetPrefactor.ts` SHA `bf49427ee0d86f326b25dbb3841c4f355ca6444c`、`src/special/incbetTemme.ts` SHA `cf22538af050c12366e0e0a19ab40ddcd09c7db6`、`src/special/incbetLargeA.ts` SHA `9eabe133979cd41a00a904c61cb60ed6b35b6693`、`src/distributions/beta.ts` SHA `bd639c0fdaa40df7e6579ffa0b76a67c6d738e97`、`test/beta.test.ts` SHA `319ce81d026f279b528f948d146d4c0c858c7321`、`test/nbeta.test.ts` SHA `b92e2218f99be7492e9a1cc620acde52808ce070`。
+- 監査範囲: incomplete betaのseries / complement series / continued fraction / opposite-frame tail、double-double係数、continued-fraction rescalingと停止条件、Loader・small-shape・huge-shape prefactor、subnormal x専用series、両shape tinyの場合の分岐、Temme一様漸近展開、large-a/small-b漸近展開とgamma-tail再帰、CDFの線形値/log値・上下tail補完、beta quantileのat-half判定と左右探索を追跡。
+- **新規Issue #148**: `pbeta(0.5, Number.MIN_VALUE, Number.MIN_VALUE)` がNaNとなるソース経路を確認。対称性により正しい値は厳密に0.5。両shapeが `SUB_SHAPE` 未満かつ `SUB_OTHER` 以下なので `subShapeTail` の近似分岐を通らず、p-seriesへ入る。`1/a` がInfinityとなって級数本体がスキップされ、`prefactorParts` の係数 `s/(1+s/l)` は半最小subnormalとして0へ丸められる。linear pathの `Infinity * 0` がNaNとなり、log pathでも `log(Infinity) + log(0)` がNaNとなる。Issue: https://github.com/numero-uno-jpn/rStats.js/issues/148
+- 追加の決定的入力: `pbeta(0.5, Number.MIN_VALUE, Number.MIN_VALUE)`（対称性の厳密な不変条件）、`pbeta(0.5, Number.MIN_VALUE, Number.MIN_VALUE, { logP: true })`（同じlog経路）、既存テスト中の巨大非心度・subnormal形状・tiny tail回帰ケースを再読。乱数なし。
+- Rとの関係: 期待値0.5はRとの比較に依存しない数学的対称性から導出。R実行は未実施。
+- その他の監査経路では、p-seriesの項比が最終的にx以下へ収束する領域条件、continued fractionのdouble-double係数と最大反復数、Temme展開の適用域 `m >= 25, |tau| <= 1`、large-a展開の `y/u/b` 適用域と正項再帰を静的に確認。今回、Issue #148以外の新規確定バグは見つからなかった。
+- **検証制限**: GitHub上のソースと既存テストの静的追跡のみ。package runtime、Vitest、R 4.5.2での実測は未実施。Issue #148の再現はソース経路からの確定的推論であり、実行結果を取得したとは主張しない。
