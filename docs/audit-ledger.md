@@ -46,7 +46,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/descriptive/table.ts` | 問題未検出 | #171 | `e22826429f71e15fb26749fbc3bb1dc7430ccdb4` | — | R 4.5.2由来table/cut/findInterval fixtureを閲覧（未実行）。bin boundaryをソース比較 | `tabulate` truncation/nbins/NaN/±Inf/large bin、table numberLevelsと15-digit grouping/useNA、unique NaN/-0、cut generated/vector breaks・duplicate/NaN・right/includeLowest、findInterval sorted validation/duplicate endpoints/empty vec/rightmostClosed/allInside/leftOpenを追跡。具体入力: `tabulate([1.9,2.9,0,-1,NaN])`、`table([1,1+Number.EPSILON,NaN],{useNA:"always"})`、`unique([-0,0,NaN,NaN])`、`cut([0,1,2],[0,1,2],{right:false,includeLowest:true})`、`findInterval([-Infinity,0,1,Infinity],[0,1],{leftOpen:true,rightmostClosed:true})`、`findInterval([1],[])`。既存 `test/descriptive.test.ts` とR由来table fixtureを閲覧。巨大nbinsはメモリ/実行環境依存のため再現欠陥として扱わず。新規の再現可能な欠陥は確定せず。Vitest/package runtime/R実行なし。 |
 | `src/distributions/arcsine.ts` | 問題未検出 | #95 | `058fff6bf6d780aec1f369ca7520bbc50ef11471` | — | Rでは未確認（base R・extraDistrに対応関数なし） | 密度・CDF・分位点の解析式と mpmath 1.4.1 の領域別fixtureを照合対象として確認。実行未確認。 |
 | `src/distributions/beta.ts` | 問題未検出 | #99 | `9cb145a85e8153ea0712e2fd38b65885e5a016e5` | — | Rと同じ（通常 fixture は R 4.5.2 由来。今回R実行なし） | `dbeta1`/`pbeta1`/`qbeta1` の支持域端点、shape=0/∞の点質量、shape=1、上下尾・logP、巨大shape・極小shape・subnormal x、分位点の左右反転と極集中分布への経路をソース追跡。`test/beta.test.ts` と CHANGELOG の具体例（例: `pbeta(1.5e-236, 9220.5, 2.6e301)`、`qbeta(3.8e-277, 27.9, 1.5e299)`）を確認。fixture/テストは閲覧のみで実行せず、独立runtime harness・全Vitest・R比較なし。 |
-| `src/distributions/binomial.ts` | 問題未検出 | #101 | `8e360c3fb4481da28f2e8eba5fb8d9918af3263f` | — | Rでは未確認 | `dbinom1`/`pbinom1`/`qbinom1` の入力検証、支持域端点、prob=0/1、非整数qの `floor(q + 1e-7)`、2^53超の補正経路、上下尾・logP、離散分位点探索をソース追跡。mpmath由来の `audit_pbinom` fixtureと既存 `qbinom` fixtureを閲覧。fixture/Vitest/package runtime/R実行なし。
+| `src/distributions/binomial.ts` | 問題未検出 | #101, #320, #526 | `2f90ac1e001443b0704f33e76585cb2868497724` | — | R Core `pbinom.c` と比較。通常域は同じ `pbeta(p, x+1, n-x)` 恒等式。2^53超の補正はJS独自。 | `dbinom1`/`pbinom1`/`qbinom1` の入力検証、支持域端点、prob=0/1、非整数qの `floor(q + 1e-7)`、2^53超の補正、上下尾の差し引きとlogP経路を追跡。具体入力はAudit #526参照。Vitest/package runtime/R実行なし。
 | `src/distributions/bvnorm.ts` | 問題あり | #94 | `05e52efbc8f54e505da82fb10555834a02666e46` | [#23](https://github.com/numero-uno-jpn/rStats.js/issues/23) | Rでは未確認 | 完全負相関の恒等式 `Y=-X` による解析値。独立CDF計算。 |
 | `src/distributions/cauchy.ts` | 問題あり | #98 | `6a3eedcc2d465be8e7bbb614884e1a95ea22180d` | [#25](https://github.com/numero-uno-jpn/rStats.js/issues/25) | Rでは未確認 | `dcauchy(1.1e308, { location: 0, scale: 1e308 })`。Cauchy密度の閉形式を安全な演算順序で評価した値は約 `1.44031622707598e-309`。現行の `y / (Math.PI * scale)` は `Math.PI * scale` がInfinityとなり0。log密度経路のexp値でも照合。JS式の独立ハーネスで再現、Vitest/R未実行。 |
 | `src/distributions/chisq.ts` | 問題あり | #100 | `94e98787221087403c05cdb46f69f55c0760823b` | [#26](https://github.com/numero-uno-jpn/rStats.js/issues/26) | Rと同じ（負の自由度は無効。今回R実行なし） | `df=-Number.MIN_VALUE`（-5e-324）は `df<0` だが `df/2` が `-0` に丸められる。`chisq.ts` が先に `df/2` を渡し、gamma側では `shape<0` が偽・`shape===0` が真となり、`dchisq(0,df)=Infinity`、`dchisq(1,df)=0`、`pchisq(1,df)=1`、`qchisq(0.5,df)=0` 相当のshape=0経路に入る。IEEE-754の丸めと `gamma.ts` の分岐をソース追跡。package/Vitest/R未実行。 |
@@ -2868,3 +2868,27 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Result: no new independent, reproducible defect established; no Issue filed. Existing Issue #101 and earlier binomial-distribution audits are not duplicated.
 - Rとの関係: current R Core minlike algorithm inspected directly. No R executable was run.
 - 検証範囲: complete `binomTest.ts`, relevant `dbinom1()`/`pbinom1()` paths, R minlike source, monotonicity/mode derivation, and deterministic binary64 edge analysis. No Vitest, package runtime, or R execution. No source code changed.
+
+
+## Audit #526 — `src/distributions/binomial.ts` CDF incomplete-beta mapping and upper-tail subtraction
+
+- Source blob: `src/distributions/binomial.ts` `2f90ac1e001443b0704f33e76585cb2868497724`; supporting `src/special/incbet.ts` `59a4ebdf385c69124e68fae6d16159bfd6709a24`, `src/special/loader.ts` (current file fetched during this audit), and `src/internal/ddexp.ts` `bee2ddfcd5de4228f56aad0b1647690c275e78c0`.
+- Reviewed `pbinom1()` input/endpoint handling and `pbinomRaw()` for both ordinary and beyond-2^53 paths, lower/upper tails, linear/log probabilities, cancellation fallback, and the incomplete-beta frame selection. Also reviewed the relevant `betaIncUncapped()`/core path for direct-tail selection and log construction.
+- Compared with current R Core `src/nmath/pbinom.c`: R validates finite `n,p`, forces integer `n`, handles `x<0`, applies `floor(x + 1e-7)`, handles `n<=x`, and delegates to `pbeta(p, x+1, n-x, !lower_tail, log_p)`. The JS ordinary path uses the same beta identity. The JS additional correction for cases where `x+1` is not representable is algebraically consistent with `I_p(x+1,b)=I_p(x,b)-(b/n) dbinom(x;n,p)`; if the upper-tail subtraction loses positivity or its log is unresolved, it recomputes the direct `I_p(x+1,b)) tail.
+- The `x+1-x === 1` branch deliberately uses the ordinary beta parameters; when `x+1` is not a distinct double, the correction branch computes `b=n-x` with `twoSum` and returns NaN if the difference has a nonzero low component. This avoids silently passing a rounded shape parameter into the beta function. At very large n with x small, the ordinary branch can still round `n-x` to n, as R's direct implementation does; the omitted unit is below the relative resolution of that shape parameter in this regime. No incorrect representable result was isolated from this distinction.
+- Exact deterministic probes traced:
+  ```ts
+  pbinom1(-1, 10, 0.5, true, false);
+  pbinom1(10, 10, 0.5, true, false);
+  pbinom1(0, 10, 0.5, true, false); // P(X <= 0)
+  pbinom1(0, 10, 0.5, false, false); // P(X > 0)
+  pbinom1(0, 10, 0.5, false, true); // log P(X > 0)
+  pbinom1(1, 1e308, 1e-308, true, false);
+  pbinom1(2 ** 53, 2 ** 53 + 2, 0.5, false, true);
+  pbinom1(1e16, 2e16, 0.5, true, false);
+  pbinom1(1e16, 2e16, 0.5, false, true);
+  ```
+  These are deterministic source-level edge probes; no runtime outputs are asserted.
+- Result: no new independent, reproducible defect established; no Issue filed. Existing binomial and incomplete-beta audit records are not duplicated.
+- Rとの関係: direct comparison with current R Core `pbinom.c` and `pbeta.c`; R's ordinary CDF mapping is the same. R executable was not run.
+- 検証範囲: complete `pbinom1()`/`pbinomRaw()` review, relevant incomplete-beta tail-selection and log paths, Loader PMF correction identity, R Core source comparison, and deterministic boundary analysis. No Vitest, package runtime, or R execution. No source code changed.
