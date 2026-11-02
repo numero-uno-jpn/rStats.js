@@ -2768,3 +2768,14 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - This is **not a separate issue**: it is the negative-digit manifestation of Audit #518's root cause and is recorded in the existing Issue #101 discussion: https://github.com/numero-uno-jpn/rStats.js/issues/101.
 - Rとの関係: `src/nmath/fround.c` and `src/main/arithmetic.c` current R Core source inspected; the R path was simulated with binary64 operations, not run in an R executable.
 - 検証範囲: exact binary64 reproduction and static C/TypeScript algorithm comparison. No Vitest, package runtime, or R execution. No source changes.
+
+
+## Audit #520 — `src/internal/fround.ts` candidate-distance comparison and half-even boundary follow-up
+
+- Repository HEAD before this audit: `d706236ca31d172032e783695b9adbd129a7e1a2`; source blob: `8e42f6ab4bc1d61fcd7687129efdc57edc942224`.
+- Re-reviewed the complete `roundR()` candidate construction and tie decision, focusing on `xd`, `xu`, `du = xu - ax`, `dd = ax - xd`, and `i10 % 2`. Also checked the current R Core `src/nmath/fround.c` and `src/main/arithmetic.c` source. R's `fround()` uses the same candidate formulas, the same binary64 distance subtraction/comparison order, and the same exact-tie parity rule (expressed as `fmod(i10, 2.) == 1`). `R_pow_di()` uses exponentiation by squaring, consistent with the already-filed #101 discrepancy.
+- Boundary probes traced at source level: `roundR(1.25, 1)` (decimal midpoint with even lower candidate); `roundR(1.35, 1)` (decimal midpoint whose binary64 distance subtractions need not be exactly equal); `roundR(-1.25, 1)` (sign symmetry); `roundR(2.5, 0)` and `roundR(-3.5, 0)` (integer half-even); `roundR(1.234567890123456, 0)` (large-magnitude integer rounding); and `roundR(1.234567890123456e-308, 323)` (the high-digit scaling branch). These are branch probes, not claimed runtime outputs.
+- The `i10` parity test is not exposed to the >2^53 integer-parity failure in the active rounding region: the preceding `l10x + dig > DBL_DIG` shortcut bounds the scaled magnitude to approximately 15 decimal digits, well below the binary64 consecutive-integer limit. The exponent-derived `l10x` is coarse, but its maximum slack does not raise this bound near 2^53.
+- Result: no new independent defect established in candidate-distance comparison or half-even tie handling. Decimal midpoints can have unequal computed `du` and `dd` because the source values and subtractions are binary64; this is not a JS/R divergence because R uses the same arithmetic sequence. The distinct scaling mismatch from repeated multiplication remains covered by Issue #101 and is not duplicated.
+- Rとの関係: current R Core C source inspected directly; the relevant candidate comparison is algorithmically identical. No R executable was run.
+- 検証範囲: complete `fround.ts` static review, R C source comparison, and binary64 range reasoning. No Vitest, package runtime, or R execution. No source code changed.
