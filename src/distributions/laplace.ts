@@ -35,7 +35,9 @@ export function dlaplace1(x: number, mu: number, sigma: number, log: boolean): n
   if (log) return -a[0] - a[1] - (twoSigma < Infinity ? Math.log(twoSigma) : Math.LN2 + Math.log(sigma));
   // (from exp(-|z|) below the normal range the quotient is formed without rounding it there: see expNegOver)
   const e = expNeg(a);
-  if (twoSigma === Infinity) return (e >= MIN_NORMAL ? e / sigma : expNegOver(a, sigma)) / 2;
+  // (the factor 1/2 on e first, exactly: (e / sigma) / 2 rounded twice onto the subnormals, an ulp off at x = sigma / 2
+  // for sigma = 1.447e308; issue #110. Below 2 MIN_NORMAL the quotient is below e^-708 / 1.8e308, 0 either way)
+  if (twoSigma === Infinity) return e >= 2 * MIN_NORMAL ? e / 2 / sigma : expNegOver(a, sigma) / 2;
   return e >= MIN_NORMAL ? e / twoSigma : expNegOver(a, twoSigma);
 }
 
