@@ -9,7 +9,7 @@
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { discreteQuantile } from "../internal/discrete.js";
-import { nonInt, roundHalfEven } from "../internal/integer.js";
+import { countAtMost, nonInt, roundHalfEven } from "../internal/integer.js";
 import { bd0dd, dbinomExponent } from "../special/loader.js";
 import { ddAdd, ddDiv, ddLog, ddMul, ddNeg, ddSub, twoProd, twoSum, type DD } from "../special/dd.js";
 import { qnorm } from "./normal.js";
@@ -186,7 +186,7 @@ export function phyper1(q: number, m: number, n: number, k: number, lowerTail: b
   if (params === undefined) return NaN;
   [m, n, k] = params;
   if (binomialLimit(m, n, k)) return pbinom1(q, k, whiteFraction(m, n), lowerTail, logP);
-  const x = Math.floor(q + 1e-7);
+  const x = countAtMost(q);
   const [lo, hi] = support(m, n, k);
   if (x < lo) return dt0(lowerTail, logP);
   if (x >= hi) return dt1(lowerTail, logP);

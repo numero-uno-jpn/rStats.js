@@ -8,7 +8,7 @@
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { log1mExp } from "../internal/ddexp.js";
-import { nonInt } from "../internal/integer.js";
+import { countAtMost, nonInt } from "../internal/integer.js";
 import { FUZZ_LINEAR, FUZZ_LOG } from "../internal/discrete.js";
 import { dbinomRawDD } from "../special/loader.js";
 import { ddAdd, ddDiv, ddLog, ddMul, ddMulNum, twoSum, type DD } from "../special/dd.js";
@@ -69,7 +69,7 @@ export function pgeom1(q: number, prob: number, lowerTail: boolean, logP: boolea
   if (badProb(prob)) return NaN;
   if (q < 0) return dt0(lowerTail, logP);
   if (!Number.isFinite(q) || prob === 1) return dt1(lowerTail, logP);
-  return pgeomRaw(Math.floor(q + 1e-7), prob, lowerTail, logP);
+  return pgeomRaw(countAtMost(q), prob, lowerTail, logP);
 }
 
 export function qgeom1(p: number, prob: number, lowerTail: boolean, logP: boolean): number {

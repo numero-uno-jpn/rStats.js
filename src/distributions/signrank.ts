@@ -9,7 +9,7 @@
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { discreteQuantile } from "../internal/discrete.js";
-import { nonInt, roundHalfEven } from "../internal/integer.js";
+import { countAtMost, nonInt, roundHalfEven } from "../internal/integer.js";
 import { qnorm } from "./normal.js";
 
 /** Threshold at which counts are multiplied by 2^-SCALE_STEP to keep them from growing too large */
@@ -212,8 +212,9 @@ export function psignrank1(q: number, n: number, lowerTail: boolean, logP: boole
   if (Number.isNaN(q) || Number.isNaN(n)) return NaN;
   n = signrankN(n);
   if (Number.isNaN(n)) return NaN;
-  // R rounds q + 1e-7 to the nearest integer (psignrank(3.6, 5) is P[V <= 4])
-  const x = roundHalfEven(q + 1e-7);
+  // R rounds q + 1e-7 to the nearest integer (psignrank(3.6, 5) is P[V <= 4], although V <= 3.6 is V <= 3). The
+  // largest count not above q, as the other discrete distribution functions (#145, #146)
+  const x = countAtMost(q);
   const total = (n * (n + 1)) / 2;
   if (x < 0) return dt0(lowerTail, logP);
   if (x >= total) return dt1(lowerTail, logP);

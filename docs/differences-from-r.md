@@ -423,6 +423,19 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `pgamma(q, Inf, scale = s)` with 0 < q / s < 1, so `pchisq(q, Inf)` with 0 < q < 2 (all mass at +Inf) | NaN | the limits: lower tail 0, upper tail 1 (as R gives for every other finite q) |
 | `df(0, df1, Inf, ncp, log = TRUE)` | not the log of the linear value (−1.386 with ncp = 0, where the linear value is 1) | log of the linear value |
 | `qf` with df2 = Inf when the answer rounds to 0 | meaningless values such as 2e-130; Inf for log p = -1e-300 | value checked with the distribution function |
+| `pgeom`, `pnbinom`, `ppois`, `pbinom`, `phyper`, `pwilcox`, `psignrank` and the exact `ansari.test` distribution with q just below an integer k: k − 1e-7 ≤ q < k − 1e-9 max(1, k) (`pgeom(0.99999999, 0.5)`) | floor(q + 1e-7) = k, so P[X ≤ k] (0.75), although the density treats q as non-integer (`dgeom` is 0 there) | P[X ≤ k − 1] (0.5): the largest count not above q |
+| The same functions with k > 100 and k − 1e-9 k ≤ q < k − 1e-7 (`ppois(1000 - 5e-7, 1000)`) | floor(q + 1e-7) = k − 1: 0.4958, while `dpois` there is the density at k | P[X ≤ k] (0.5084): q counts as the integer the density takes it for |
+| `psignrank` with a fractional part of 0.5 or more (`psignrank(0.6, 4)`) | rounds q + 1e-7 to the nearest integer: P[V ≤ 1] = 0.125 | P[V ≤ floor(q)] = 0.0625, as the other distribution functions |
+
+The distribution functions of the discrete distributions take P[X ≤ q] as P[X ≤ k] with k the largest
+count not above q. A q within 1e-9 max(1, |q|) of an integer counts as that integer (a computed
+2.9999999999999996 is 3), which is the rule by which `dpois`, `dgeom`, `dnbinom`, `dhyper`, `dwilcox` and
+`dsignrank` decide whether x is an integer; any other q gives floor(q). R adds 1e-7 before the floor
+(before rounding to the nearest integer in `psignrank`), so its distribution functions step 1e-7 before
+the integer and do not agree with its densities. Only q within 1e-7 of an integer is affected, apart from
+`psignrank`, where any q with a fractional part of 0.5 or more changes (issues #145 and #146). Review 25 had
+kept R's floor(q + 1e-7) for `pbinom` as R's own behaviour; that decision was reversed for the sake of
+correct values and agreement with the densities.
 
 For very flat `qnbinom` cases (size = 1e-10, p = 1 − 1e-10 and similar) the rounding width of p
 contains dozens of integers, so the answer can differ from R by dozens; both answers are checked
@@ -779,8 +792,8 @@ also from R's source. They are listed because they are easy to get wrong.
 - Beta point masses are checked in the order q ≥ 1, then parameters 0 or ∞, then q ≤ 0.
 - `df(Inf, df1, df2)` is NaN for df1 < 2 and 0 otherwise.
 - Hypergeometric and rank distributions round parameters half to even. `dhyper` returns NaN for
-  non-integer m, n, k; `phyper` and `qhyper` round them. `psignrank` uses round(q + 1e-7), the
-  others floor(q + 1e-7). Signrank/wilcox n and m are rounded and give NaN if ≤ 0.
+  non-integer m, n, k; `phyper` and `qhyper` round them. Signrank/wilcox n and m are rounded and
+  give NaN if ≤ 0. (How q is taken to a count differs from R; see the deliberate differences.)
 - Non-central beta `pbeta` returns 0 or 1 for x ≤ 0 or x ≥ 1 even with invalid parameters.
   Non-central chi-squared and beta with ncp = Inf give NaN (`qchisq` returns values only at the
   end points). `pf(·, Inf, df2, ncp)` is NaN; `df(·, Inf, df2, ncp)` ignores ncp;

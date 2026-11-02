@@ -10,7 +10,7 @@ import { gammaInc } from "../special/igam.js";
 import { dpoisRaw } from "../special/loader.js";
 import { logAddExp, logSubExp } from "../internal/ddexp.js";
 import { qnorm } from "./normal.js";
-import { nonInt } from "../internal/integer.js";
+import { countAtMost, nonInt } from "../internal/integer.js";
 
 /** Whether x is not an integer (relative tolerance 1e-9 as in R; see src/internal/integer.ts) */
 export const nonInteger = nonInt;
@@ -29,7 +29,7 @@ export function ppois1(q: number, lambda: number, lowerTail: boolean, logP: bool
   if (q < 0) return dt0(lowerTail, logP);
   if (lambda === 0) return dt1(lowerTail, logP);
   if (!Number.isFinite(q)) return dt1(lowerTail, logP);
-  const x = Math.floor(q + 1e-7);
+  const x = countAtMost(q);
   if (x + 1 - x === 1) return gammaInc(x + 1, lambda, !lowerTail, logP);
   // Beyond 2^53, x + 1 rounds (to x, or up to x + 2) and Q(x + 1, lambda) became Q(x, lambda): ppois(1e16, 1e16) was 0.4999999987, below
   // 1/2 (R: 0.5000000027), and qpois(0.5, 1e16) 2 above the median 1e16. Without x + 1:

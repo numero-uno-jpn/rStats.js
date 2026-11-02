@@ -12,7 +12,7 @@ import { logAddExp, logSubExp } from "../internal/ddexp.js";
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { discreteQuantile } from "../internal/discrete.js";
-import { nonInt } from "../internal/integer.js";
+import { countAtMost, nonInt } from "../internal/integer.js";
 import { betaIncDD, betaIncTinyX } from "../special/incbet.js";
 import { prefactorParts } from "../special/incbetPrefactor.js";
 import { dbinomRawDD, dpoisRaw } from "../special/loader.js";
@@ -285,7 +285,7 @@ export function pnbinom1(q: number, size: number, prob: number, lowerTail: boole
   if (size < 0 || !(prob > 0) || prob > 1 || size === Infinity) return NaN;
   if (q < 0) return dt0(lowerTail, logP);
   if (size === 0 || prob === 1 || !Number.isFinite(q)) return dt1(lowerTail, logP);
-  return pnbinomRaw(Math.floor(q + 1e-7), fromProb(size, prob), lowerTail, logP);
+  return pnbinomRaw(countAtMost(q), fromProb(size, prob), lowerTail, logP);
 }
 
 export function qnbinom1(p: number, size: number, prob: number, lowerTail: boolean, logP: boolean): number {
@@ -325,7 +325,7 @@ export function pnbinomMu1(q: number, size: number, mu: number, lowerTail: boole
   if (q < 0) return dt0(lowerTail, logP);
   if (size === 0 || mu === 0 || !Number.isFinite(q)) return dt1(lowerTail, logP);
   if (size === Infinity) return ppois1(q, mu, lowerTail, logP);
-  return pnbinomRaw(Math.floor(q + 1e-7), fromMuDensity(size, mu), lowerTail, logP);
+  return pnbinomRaw(countAtMost(q), fromMuDensity(size, mu), lowerTail, logP);
 }
 
 export function qnbinomMu1(p: number, size: number, mu: number, lowerTail: boolean, logP: boolean): number {

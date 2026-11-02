@@ -8,6 +8,7 @@
 // (counts overflow: C(100, 50) = 1e29), and tail probabilities are sums of positive terms.
 
 import { choose } from "../../special/choose.js";
+import { countAtMost } from "../../internal/integer.js";
 
 /** Probability function of the statistic, indexed by value - min (cached per (m, n)) */
 interface AnsariDist {
@@ -67,7 +68,7 @@ function ansariDist(m: number, n: number): AnsariDist {
 export function pansariExact(q: number, m: number, n: number, lowerTail = true): number {
   if (Number.isNaN(q) || !(m >= 1) || !(n >= 1) || m !== Math.floor(m) || n !== Math.floor(n)) return NaN;
   const { min, probs } = ansariDist(m, n);
-  const k = Math.floor(q + 1e-7) - min; // index of the largest value <= q
+  const k = countAtMost(q) - min; // index of the largest value <= q
   let s = 0;
   if (lowerTail) {
     for (let i = 0; i <= Math.min(k, probs.length - 1); i++) s += probs[i]!;

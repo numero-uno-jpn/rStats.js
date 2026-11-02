@@ -29,7 +29,7 @@
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
 import { d0, dt0, dt1, quantileBoundaries, type DensityOptions, type TailOptions } from "../internal/dpq.js";
 import { discreteQuantile } from "../internal/discrete.js";
-import { nonInt, roundHalfEven } from "../internal/integer.js";
+import { countAtMost, nonInt, roundHalfEven } from "../internal/integer.js";
 import { qnorm } from "./normal.js";
 
 /** Scale 2^STORE_SCALE applied to the coefficients (small enough that the 2^27 factor of Veltkamp splitting does not overflow) */
@@ -317,7 +317,7 @@ export function pwilcox1(q: number, m: number, n: number, lowerTail: boolean, lo
   const params = wilcoxParams(m, n);
   if (params === undefined) return NaN;
   [m, n] = params;
-  const x = Math.floor(q + 1e-7);
+  const x = countAtMost(q);
   if (x < 0) return dt0(lowerTail, logP);
   if (x >= m * n) return dt1(lowerTail, logP);
   return pwilcoxRaw(x, m, n, lowerTail, logP);

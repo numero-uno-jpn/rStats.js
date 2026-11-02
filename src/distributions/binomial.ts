@@ -13,6 +13,7 @@ import { twoSum, type DD } from "../special/dd.js";
 import { logAddExp, logSubExp } from "../internal/ddexp.js";
 import { qnorm } from "./normal.js";
 import { nonInteger } from "./poisson.js";
+import { countAtMost } from "../internal/integer.js";
 
 function badParams(size: number, prob: number): boolean {
   return nonInteger(size) || size < 0 || !Number.isFinite(size) || prob < 0 || prob > 1;
@@ -64,7 +65,7 @@ export function pbinom1(q: number, size: number, prob: number, lowerTail: boolea
   if (badParams(size, prob)) return NaN;
   const n = Math.round(size);
   if (q < 0) return dt0(lowerTail, logP);
-  const x = Math.floor(q + 1e-7);
+  const x = countAtMost(q);
   if (n <= x) return dt1(lowerTail, logP);
   if (prob === 0) return dt1(lowerTail, logP);
   if (prob === 1) return dt0(lowerTail, logP);
