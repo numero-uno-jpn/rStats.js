@@ -193,7 +193,7 @@ describe("integer parameters of the random generators, as R's R_forceint", () =>
       const t = Int32Array.from(s) as unknown as number[];
       const u = Array.from(t);
       u[1] = mti;
-      expect(() => R.setRandomSeed(u)).toThrow("non-negative integer");
+      expect(() => R.setRandomSeed(u)).toThrow("non-negative 32-bit integer");
     }
     const u = Array.from(s);
     u[1] = 1000; // past N: the next draw regenerates, as in R

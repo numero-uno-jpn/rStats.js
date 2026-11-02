@@ -515,9 +515,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **Random generators with parameters that define no distribution** give NaN where R draws or returns 0: `rgamma`
   and `rweibull` with a negative (or NaN) shape and scale 0, `rlogis` with a negative scale. The uniforms R draws are
   drawn as well, so the stream after the call is R's.
-- **`setRandomSeed`** refuses a Mersenne-Twister state whose position is negative or not an integer, or whose words are
-  not 32-bit integers. R takes a negative position as given, and its first draw then reads the position slot itself as a
-  state word. A position past 624 regenerates on the next draw, as in R.
+- **`setRandomSeed`** refuses a Mersenne-Twister state whose position is negative, not an integer or above 2^31 − 1
+  (which R's integer `.Random.seed` cannot hold either), or whose words are not 32-bit integers. R takes a negative
+  position as given, and its first draw then reads the position slot itself as a state word. A position of 0 or past
+  624 regenerates on the next draw, as in R.
 - **`rwilcox`** throws "m + n must be at most 2147483647" where R's allocation of the ranks fails.
 - **Comparisons of fits** (`anova(fit1, fit2)` for lm, `glmAnova` with several fits) require the same rows, response
   values and weights; R compares only the number of rows (and for glm drops fits with another response formula).

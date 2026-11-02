@@ -48,7 +48,8 @@ export class MersenneTwister {
   /** One 32-bit unsigned integer */
   nextUint32(): number {
     const mt = this.mt;
-    if (this.mti >= N) {
+    // (mti is 0 here only when a state with position 0 was set: R regenerates for it, as for 624; issue #90)
+    if (this.mti >= N || this.mti === 0) {
       if (this.mti === N + 1) this.sgenrand(4357);
       let kk = 0;
       let y: number;
@@ -91,11 +92,14 @@ export class MersenneTwister {
 
   setRandomSeed(state: ArrayLike<number>): void {
     if (state.length !== N + 2) throw new RangeError(`the random seed state must have ${N + 2} integers`);
-    // the position must be an integer from 0 (a position past N makes the next draw regenerate, as in R). R takes a
-    // negative one as given and its first draw then reads that slot itself as a state word; a corrupted state is
-    // refused here instead of producing numbers from it
+    // the position must be an integer from 0 to 2^31 - 1, as R's integer .Random.seed holds it (getRandomSeed returns it
+    // in an Int32Array). 0, and a position past N, make the next draw regenerate, as in R. R takes a negative one as
+    // given and its first draw then reads that slot itself as a state word; a corrupted state is refused here instead
+    // of producing numbers from it
     const mti = state[1]!;
-    if (!Number.isInteger(mti) || mti < 0) throw new RangeError("the position in the random seed state must be a non-negative integer");
+    if (!Number.isInteger(mti) || mti < 0 || mti > 2 ** 31 - 1) {
+      throw new RangeError("the position in the random seed state must be a non-negative 32-bit integer");
+    }
     for (let i = 0; i < N; i++) {
       const v = state[i + 2]!;
       // 32-bit words, as R's integer .Random.seed holds them (signed or unsigned); others were reduced modulo 2^32
