@@ -55,6 +55,7 @@ function isMatrix(x: Input): x is readonly (readonly number[])[] {
 function columns(x: Input): number[][] {
   if (!isMatrix(x)) return [Array.from(x as Sample)];
   const ncol = x[0]!.length;
+  if (x.some((r) => !Array.isArray(r) || r.length !== ncol)) throw new TypeError("all rows of the matrix must have the same length");
   return Array.from({ length: ncol }, (_, j) => x.map((r) => r[j]!));
 }
 
