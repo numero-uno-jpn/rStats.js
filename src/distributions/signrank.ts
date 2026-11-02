@@ -172,7 +172,9 @@ function toProb(v: number, t: CountTable, log: boolean): number {
 function signrankN(n: number): number {
   if (!Number.isFinite(n)) return NaN;
   n = roundHalfEven(n);
-  return n <= 0 ? NaN : n;
+  // The statistic ranges over 0..n(n + 1)/2: beyond 2^53 its values are not all doubles (NaN, as wilcox), and the
+  // rounded n(n + 1)/2 was taken as the end of the support. n(n + 1)/2 <= 2^53 exactly when n < 2^27
+  return n <= 0 || n >= 2 ** 27 ? NaN : n;
 }
 
 export function dsignrank1(x: number, n: number, log: boolean): number {

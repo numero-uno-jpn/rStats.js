@@ -513,6 +513,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`dwilcox`・`pwilcox`・`qwilcox`** は、mn が 2^53 を超えると NaN です。統計量は 0..mn の整数をとり、そこでは整数がすべては
   double で表せません (上の `phyper` と同じ)。表は、項が 1 つでも min(m, n) 回の段で作るので、`dwilcox(0, 1e12, 1e12)` は
   50 分ほどかかるところでした。
+  判定は厳密な積で行います。m = 3、n = 3002399751580331 (mn = 2^53 + 1 で、double では 2^53 に丸まる) も NaN です。
+  同じく **`dsignrank`・`psignrank`・`qsignrank`** は、n(n + 1)/2 が 2^53 を超える n ≥ 2^27 で NaN です (R の `psignrank(5, 134217733)` は 2 分で終わらなかった)。
 - **`omega`** は、minres の当てはめ (L-BFGS-B) が収束しないとき警告を出します ("minres did not converge ...")。psych の `fa` は
   何も言わずに最後の点から先へ進みます。値は同じです。
 - **`mauchlyTest`** は、`y` に欠測値がある行と `group` が欠測の行を除きます (`lm(y ~ group)` と同じ)。無限大はエラーです。

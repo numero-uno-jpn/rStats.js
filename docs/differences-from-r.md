@@ -544,6 +544,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`dwilcox`, `pwilcox` and `qwilcox`** with mn beyond 2^53 are NaN: the statistic ranges over 0..mn, whose
   integers are not all doubles there (as `phyper` above). The table was built in min(m, n) passes even for one
   entry (`dwilcox(0, 1e12, 1e12)` would have taken about 50 minutes).
+  The bound is on the exact product: m = 3, n = 3002399751580331 (mn = 2^53 + 1, which rounds to 2^53) is NaN too.
+  Likewise **`dsignrank`, `psignrank` and `qsignrank`** are NaN for n >= 2^27, where n(n + 1)/2 exceeds 2^53 (R's
+  `psignrank(5, 134217733)` did not finish in two minutes).
 - **`omega`** adds a warning when the minres fit (L-BFGS-B) does not converge ("minres did not converge ...");
   psych's `fa` goes on from the last point silently. The values are the same.
 - **`mauchlyTest`** drops the rows of `y` with a missing value and those with a missing `group` (as `lm(y ~ group)`);

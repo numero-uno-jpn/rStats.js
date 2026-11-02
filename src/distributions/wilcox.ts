@@ -277,8 +277,10 @@ function wilcoxParams(m: number, n: number): [number, number] | undefined {
   n = roundHalfEven(n);
   // The statistic ranges over 0..mn: beyond 2^53 its values are not all doubles (NaN, as other integer supports past
   // 2^53). This also bounds the smaller of m and n by 2^26.5, the number of passes of the table (dwilcox(0, 1e12,
-  // 1e12) ran 1e12 of them for a table of one entry)
-  return m <= 0 || n <= 0 || m * n > 2 ** 53 ? undefined : [m, n];
+  // 1e12) ran 1e12 of them for a table of one entry). An exact product of 2^53 + 1 rounds down to 2^53 (and would be
+  // taken as the end of the support), so a rounded 2^53 is checked exactly
+  if (m <= 0 || n <= 0 || m * n > 2 ** 53) return undefined;
+  return m * n === 2 ** 53 && BigInt(m) * BigInt(n) !== 2n ** 53n ? undefined : [m, n];
 }
 
 export function dwilcox1(x: number, m: number, n: number, log: boolean): number {
