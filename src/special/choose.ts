@@ -187,8 +187,9 @@ export function lchoose(n: number, k: number, options?: RCompatibleOptions): num
       const l = ddLog(r[0] < 0 ? [-r[0], -r[1]] : r);
       return l[0] + l[1];
     }
-    if (v === 0) return -Infinity;
-    // Out of range: sum of logs (the result is large in magnitude, so its rounding is relatively small)
+    // Out of range: sum of logs (the result is large in magnitude, so its rounding is relatively small). v = 0 also comes
+    // here: a coefficient below the doubles has a finite log (lchoose(MIN, 2) was -Infinity for -745.13; issue #107),
+    // and an exact zero has a factor n - j = 0, whose log makes the sum -Infinity
     let s = -lgamma(k + 1);
     for (let j = 0; j < k; j++) s += Math.log(Math.abs(n - j));
     return s;
