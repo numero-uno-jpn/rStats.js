@@ -31,7 +31,12 @@ import { midpoint } from "../internal/extremes.js";
  */
 export function rinvgamma(n: number, alpha: number, options: { beta?: number } = {}): number[] {
   const { beta = 1 } = options;
-  return generate(n, () => (alpha > 0 && beta > 0 && Number.isFinite(alpha) && Number.isFinite(beta) ? 1 / rgamma1(alpha, 1 / beta) : NaN));
+  // alpha = Inf is the limit 0, as qinvgamma (extraDistr's 1/rgamma: no uniform drawn); beta = Inf is NaN, as the
+  // density, distribution and quantile functions, also without a draw (extraDistr: Inf; issue #92)
+  return generate(n, () => {
+    if (!(alpha > 0 && beta > 0) || beta === Infinity) return NaN;
+    return alpha === Infinity ? 0 : 1 / rgamma1(alpha, 1 / beta);
+  });
 }
 
 /**
@@ -46,7 +51,13 @@ export function rinvgamma(n: number, alpha: number, options: { beta?: number } =
  * @category Random numbers
  */
 export function rkumar(n: number, a: number, b: number): number[] {
-  return generate(n, () => (a > 0 && b > 0 && Number.isFinite(a) && Number.isFinite(b) ? qkumar1(1 - unifRand(), a, b, true, false) : NaN));
+  // a = Inf is the limit 1, as qkumar; b = Inf is NaN, as dkumar, pkumar and qkumar, after the uniform extraDistr draws
+  // (it gives 0; issue #92)
+  return generate(n, () => {
+    if (!(a > 0 && b > 0)) return NaN;
+    const u = unifRand();
+    return b === Infinity ? NaN : qkumar1(1 - u, a, b, true, false);
+  });
 }
 
 /**
@@ -62,7 +73,13 @@ export function rkumar(n: number, a: number, b: number): number[] {
  */
 export function rpareto(n: number, options: { a?: number; b?: number } = {}): number[] {
   const { a = 1, b = 1 } = options;
-  return generate(n, () => (a > 0 && b > 0 && Number.isFinite(a) && Number.isFinite(b) ? qpareto1(1 - unifRand(), a, b, true, false) : NaN));
+  // a = Inf is the limit b, as qpareto; b = Inf is NaN, as dpareto, ppareto and qpareto, after the uniform extraDistr
+  // draws (it gives Inf; issue #92)
+  return generate(n, () => {
+    if (!(a > 0 && b > 0)) return NaN;
+    const u = unifRand();
+    return b === Infinity ? NaN : qpareto1(1 - u, a, b, true, false);
+  });
 }
 
 /**

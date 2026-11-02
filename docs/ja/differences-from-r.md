@@ -396,7 +396,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   b = 1e308) は、半分にした尺度で計算します。無限大の形や位置の母数は極限として
   扱います。extraDistr の式はその端で NaN や外れた値を返します (`qkumar(0, Inf, 1)` は extraDistr で 1、
   ここでは 0)。`qinvgamma` は `dinvgamma`・`pinvgamma` と同じく alpha <= 0 で NaN を返します (extraDistr の
-  `qinvgamma` は alpha を確かめません)。
+  `qinvgamma` は alpha を確かめません)。乱数は分位関数に合わせます。無限大の形の母数 a・alpha は極限
+  (`rkumar` は 1、`rpareto` は b、`rinvgamma` は 0。extraDistr と同じ) で、`rkumar`・`rpareto` の b と
+  `rinvgamma` の beta が無限大なら、密度・分布・分位関数と同じく NaN です (extraDistr は 0 か Inf)。乱数は
+  extraDistr と同じ数だけ引きます。
 - **`distSummary`** の決まり: 存在しないモーメントは NaN、無限のモーメントは Infinity。離散分布で等しい
   最大が 2 つあれば大きい方を最頻値とし、密度の最大が一意でなければ NaN です。
 
