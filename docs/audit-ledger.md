@@ -4128,3 +4128,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - pAdjustのHolm/Hochberg/BH/BY/Bonferroni/none/Hommel、NaN除外、n>observed count、harmonic sumのlarge-n漸近、Hommel O(n²)のループ境界を確認。今回のBY積順序以外に確定バグなし。
 - tTestのone/two/paired、Welch/pooled、dfとSE、CI tail選択、mu scaling、formula row selectionを確認。effectSizeのCohen's d/Hedges g、J correction、noncentral-t CI、ANOVA eta/omega/epsilon squaredのSS normalization、F inversion、strata model mappingを確認。corのPearson/Spearman/Kendall、tie correction、exact/approximation branch、small-n conditionsを確認。既知のKendall n=2 exact:false Issueを重複回避。
 - **新規Issue #154、ソース変更なし。** 検証はソース追跡とIEEE-754 arithmeticのみ。Vitest/package runtime/R実行は未実施。
+
+
+## Audit #652 — Power calculations (power.* / pwr.*)
+
+- 対象: `src/htest/power.ts` SHA `5950a5e498272e8ae0b5a581e849477eb287c349`、`src/htest/pwr.ts` SHA `a9f7c6f320272cfb00ed2704084507bc16861367`、`test/pwr.test.ts` SHA `5f3eb608f9a928dd8954d2d0d134469ed3fd7dd4`、`test/powerStats.test.ts` SHA `4c16fb0818a7b41e327794a179d2dae61c710260`。
+- **新規Issue #155**: [pwr2p2nTest overflows n1*n2 when computing effective sample size](https://github.com/numero-uno-jpn/rStats.js/issues/155)。再現 `pwr2p2nTest({ n1: 1e200, n2: 1e200, h: 1e-100 })`。現行のeffective n式 `(n1*n2)/(n1+n2)` は積がInfinityになり、normal shiftもInfinity、power=1へ。真のeffective nは `5e199`、shiftは `0.7071067811865476`。two-sided alpha=.05の正規近似powerは約 `0.10895461755061553`。各入力は有限で現行validationを通る。乱数なし、実行未実施。
+- power.t.test / power.prop.test / power.anova.test と pwr.t/t2n/2p/2p2n/p/norm/r/chisq/anova/f2、Cohen effect-size helpersを確認。特にtwo-sided/one-sidedの符号、strict two-sided追加tail、unknown quantity root interval、df/ncp式、p1/p2境界、r=±1、chisq df、ANOVA lambdaのoverflow fallbackを追跡。今回以外の独立した確定バグは未確認。
+- 多重比較側のGames-Howell/Tukey/Dunn/Steel/Dunnettのグループ数・df・tail/adjustment経路も確認。Steelは対象パッケージの既知エラー挙動を再現する設計。Issue #154のBY積overflowとは別問題。
+- **新規Issue #155、ソース変更なし。** 期待powerは式からの決定的計算。Vitest/package runtime/R実行は未実施。
