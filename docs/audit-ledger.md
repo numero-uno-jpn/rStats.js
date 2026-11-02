@@ -2293,3 +2293,13 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - #80 was confirmed to duplicate #38 (same ragged-matrix acceptance in `scale())); #80 has been closed with reason `duplicate`. #38 remains canonical.
 - #75 was confirmed to duplicate #51 (same finite-interval midpoint overflow); #75 has been closed with reason `duplicate`. #51 remains canonical.
 - Earlier audit rows and the cross-reference section were corrected so they no longer treat closed duplicate reports as independent open defects.
+
+
+## Audit #490 — CI regression and Bessel reference validation
+
+- Inspected GitHub Actions CI runs 41391671801, 41391762016 and 41391887874. All three show the same sole Vitest failure in `test/review47.test.ts:80`: expected `4.440892098500626e-16 < 4e-16` for `besselY(1e-310,0.5)`. The test shards report 2,301 passing, 1 failing and 34 skipped; the other test shard passes. `npm run typecheck` passed, and the browser job passed in the completed runs.
+- Recomputed the reference using 100-decimal-digit mpmath with the *exact binary64 value* of JavaScript's `1e-310` (not the decimal real (10^{-310})). Exact input: `9.999999999999969449327502897691969360577315247038115033484093633830613278269072129706249093585174034e-311`. High-precision (Y_{1/2}(x)): `-7.9788456080286657467538749900419960196720176367417900358749714491336331839763167e154`; correctly rounded binary64: `-7.978845608028666e154`. The CI error against the test's current expected value is exactly the reported (2^{-51}); the correctly rounded value agrees with the exact-binary64 high-precision result to below half an ulp. This is a test-reference/input-representation mismatch, not a Bessel implementation defect for this input.
+- **Confirmed Issue #89**: update the reference in `test/review47.test.ts` to the exact-binary64 reference (or construct the input from the same decimal value used to generate the reference). No source-code modification was made.
+- Source blobs: `test/review47.test.ts` `9e5eef21c5d508b3852bc1450475ab7c2de91b70`; `src/special/besselJY.ts` `72fbd7798357b583eb92556d320998fb85c9ce3c`; `src/special/besselSeries.ts` `ab0d8df401ba07f397f1fef22742a4c6674c4937`.
+- CI runs: https://github.com/numero-uno-jpn/rStats.js/actions/runs/41391671801 ; https://github.com/numero-uno-jpn/rStats.js/actions/runs/41391762016 ; https://github.com/numero-uno-jpn/rStats.js/actions/runs/41391887874
+- GitHub Issue: #89 — https://github.com/numero-uno-jpn/rStats.js/issues/89
