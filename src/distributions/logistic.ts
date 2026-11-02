@@ -35,7 +35,10 @@ export function dlogis1(x: number, location: number, scale: number, log: boolean
   // the quotient by expNegOver, and for a subnormal scale the division by it last (dlogis(-3.5667e-316, { scale:
   // 4.81926e-319 }) was 1.3e-6 off)
   if (e < MIN_NORMAL) return expNegOver(a, scale);
-  return scale >= MIN_NORMAL ? e / (scale * (1 + e) * (1 + e)) : e / ((1 + e) * (1 + e)) / scale;
+  // (the division by scale last also where the denominator overflows: dlogis(0, { scale: 1.28e308 }) was 0 for
+  // 1.95e-309; issue #109)
+  const d = scale * (1 + e) * (1 + e);
+  return scale >= MIN_NORMAL && d < Infinity ? e / d : e / ((1 + e) * (1 + e)) / scale;
 }
 
 export function plogis1(q: number, location: number, scale: number, lowerTail: boolean, logP: boolean): number {
