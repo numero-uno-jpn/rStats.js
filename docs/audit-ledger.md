@@ -3738,3 +3738,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 境界・再現確認用の決定的入力（乱数なし）: `hugeDfRatio(1e92, 1e200)`（比の切替近傍）、`hugeDfRatio(1e154, 1e308)`（t²が単独overflowし得るが比は有限）、`hugeDfTailLog(1e154, 1e308)`（大きな有限log裾の演算順序）、`hugeDfTailLog(1e160, 1e308)`（裾logがbinary64下限を超える領域）、`hugeDfTailQuantile(-Math.LN2, 1e308)`（最も中央寄りのtail）、`hugeDfTailQuantile(-1e308, 1e200)`（量子点が最大doubleを超える領域）、`pt(-4.05e269, 3.586e307, {ncp:1, logP:true})`（非心度が中心裾近似許容条件に入らない既知の巨大df回帰周辺）。
 - `test/nt.test.ts` には巨大dfのLaplace回帰ケースがあるが、今回のhelper境界値を直接網羅する専用テストは確認できなかった。Vitest/Rは未実施。静的ソース監査のみ。実行時の戻り値を確認したとは主張しない。
 - Issue追加なし。既知の#606/#609/#608/#136/#137の極端値問題とは別に、今回の共有巨大df helper自体の新規独立不具合は確定できなかった。ソースコード変更なし。
+
+
+## Audit #613 — Noncentral t tiny-df, subnormal-shape and formula-B audit
+
+- 対象: `src/distributions/nt.ts` SHA `85763973f3f7a82d46ceee19a4dd0f8d8c275814`（`A_TINY`, `A_SUB`, `halvable`, `nearZero`, `shapeTimesExp`, `gammaLog`, `integrate`, `pntBoth`, `qnt1`, `dntRaw`）、`src/special/igam.ts` SHA `b06dd71a2f60ebe59d92e8759b0b6af7aebc2620`、`src/special/gamma.ts` SHA `f630bdd496fc204dd24b6b04603c7b511a5cb107`、`test/nt.test.ts` SHA `256fd766b66bbb636d57a89a0549d3f6ccb1e297`。
+- 監査範囲: `df/2` のsubnormal丸め、`A_TINY=1e-5` のformula-B切替、`A_SUB=1e-300` 未満の上側不完全ガンマ関数スケーリング、`gammaLog` の `x <= 1e-300` 漸近式、`shapeTimesExp` のw境界、`nearZero` の巨大delta/極小t、formula-Bの符号・補完・log差、`qnt1` のgamma quantile初期値と最大double超え判定、密度log積分を追跡。
+- 新規の確定的不具合は確認できず。`halvable(Number.MIN_VALUE)` が最小正subnormalの半減で0になることを避ける。極小shapeのQ(a,x)は `Q(A_SUB,x)*(a/A_SUB)` としてlog域で補正し、`gammaLog` はxがdouble範囲未満の領域で `a*(log(x)-lgamma1p(a)/a)` を用いる。formula Bは小自由度でP側積分の誤差を避け、Q側の小補正を加減する構造。今回の静的追跡で独立した符号誤り・不正な端点処理は確認できなかった。
+- 決定的な再現・境界入力（乱数なし）: `dt(-1e-150,1e-300,{ncp:-3,log:true})`; `dt(7.46357687432739e-94,2.830371717661936e-187,{ncp:38.166735104830046,log:true})`; `pt(0.001,2e-6,{ncp:40,logP:true})`; `pt(-59193519471.86663,1.9146506048870366e-245,{ncp:-1.8387038943733192})`; `qt(1.4426402575659767e-62,5.449761356942939e-96,{ncp:48.87598483697083})`; 追加境界候補 `dt(Number.MIN_VALUE,Number.MIN_VALUE,{ncp:1e200,log:true})`, `pt(Number.MIN_VALUE,Number.MIN_VALUE,{ncp:1e200,logP:true})`, `pt(1e-300,2e-300,{ncp:1e150,logP:true})`, `dt(1e-300,2e-300,{ncp:-1e150,log:true})`。
+- 既存 `test/nt.test.ts` は tiny-df fixture、subnormal近傍のdf、極小t・大ncp、density log値、最大doubleを超えるquantileを明示的に含む。Vitest/Rは未実施。静的ソース監査のみで、追加候補の実行時戻り値は未確認。
+- Issue追加なし。ソースコード変更なし。監査台帳のみ更新。
