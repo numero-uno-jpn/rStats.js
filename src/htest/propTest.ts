@@ -12,7 +12,7 @@
 
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
-import { squareOver } from "../internal/summary.js";
+import { ldexp, squareOver } from "../internal/summary.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /**
@@ -127,7 +127,7 @@ export function propTest(
   }
 
   // ---- Pearson's chi-squared on the k x 2 table of successes and failures ----
-  const pooled = xs.reduce((a, b) => a + b, 0) / ns.reduce((a, b) => a + b, 0);
+  const pooled = pooledProportion(xs, ns);
   let statistic = 0;
   if (!capped) {
     for (let i = 0; i < k; i++) {
@@ -195,4 +195,16 @@ export function propTest(
     result.confLevel = confLevel;
   }
   return result;
+}
+
+/**
+ * sum(x) / sum(n). Where the total of the trials overflows (each n is finite), both totals in units of 2^s with
+ * 2^s >= the number of groups, so that neither can overflow; the common power of 2 cancels in the ratio. Elsewhere the
+ * plain ratio, unchanged
+ */
+function pooledProportion(xs: readonly number[], ns: readonly number[]): number {
+  const total = ns.reduce((a, b) => a + b, 0);
+  if (total < Infinity) return xs.reduce((a, b) => a + b, 0) / total;
+  const s = Math.ceil(Math.log2(ns.length));
+  return xs.reduce((a, b) => a + ldexp(b, -s), 0) / ns.reduce((a, b) => a + ldexp(b, -s), 0);
 }
