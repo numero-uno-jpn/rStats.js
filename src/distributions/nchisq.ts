@@ -95,7 +95,12 @@ function pnchisqBoth(x: number, df: number, ncp: number, lower: boolean): { lin:
     const x2 = 2 * (x / 2);
     const e = Math.expm1((df / 2) * lt);
     const lo = pnchisqBoth(x2, df, ncp, true);
-    if (lower) return { lin: lo.lin * (1 + e), log: lo.log + (df / 2) * lt };
+    if (lower) {
+      // (a factor beyond the doubles, for a large df, times a probability that underflowed to 0 made NaN: from the log;
+      // issue #115)
+      const l = lo.log + (df / 2) * lt;
+      return { lin: 1 + e < Infinity ? lo.lin * (1 + e) : Math.exp(l), log: l };
+    }
     const up = pnchisqBoth(x2, df, ncp, false);
     const r = (lo.lin * e) / up.lin;
     return Number.isFinite(r) ? { lin: up.lin - lo.lin * e, log: up.log + Math.log1p(-r) } : up;
@@ -169,7 +174,10 @@ function dnchisqRaw(x: number, df: number, ncp: number, log: boolean): number {
   if (lt !== undefined) {
     // the density at x2 times (x/x2)^(k/2 - 1) (subnormalHalf)
     const x2 = 2 * (x / 2);
-    return log ? dnchisqRaw(x2, df, ncp, true) + (a - 1) * lt : dnchisqRaw(x2, df, ncp, false) * Math.exp((a - 1) * lt);
+    if (log) return dnchisqRaw(x2, df, ncp, true) + (a - 1) * lt;
+    // (where the factor overflows, for a large df, the density at x2 has underflowed to 0: from the log; issue #115)
+    const f = Math.exp((a - 1) * lt);
+    return f < Infinity ? dnchisqRaw(x2, df, ncp, false) * f : Math.exp(dnchisqRaw(x2, df, ncp, true) + (a - 1) * lt);
   }
   // The ratio of terms w_j g_j is mu y / (j (a + j - 1)) = (z/2)² / (j (a + j - 1)); the peak is at the j where it
   // equals 1, the positive root of j² + (a - 1) j - (z/2)² (written without cancellation for a > 1)
