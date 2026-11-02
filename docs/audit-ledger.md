@@ -4069,3 +4069,15 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - Hypergeometricの `m+n` overflow/丸め問題は既存Issue #118に同一の追加overflow再現が明記されているため重複登録しない。#118は `dhyper(5e307, 1e308, 1e308, 1e308, { log: true })` も扱う。phyper/qhyperの `MAX_EXACT=2^53` 制限、binomialLimit近似、tailSumの整数walkを追跡。
 - Geometricの `qPow` 大引数分岐（2^64スケーリングとsubnormal pのlog1p近似）、CDFのupper-tail直接計算、quantileのDD log比とjump slackを確認。Signrank/Wilcoxのtable recurrence、rescaling、minTrusted、cache budget、MAX_LEN、MAX_EXACT/support制約を確認。反復/配列長は上限付きで、追加の確定バグは特定できず。
 - **新規Issue #152、ソース変更なし。** #118は既知重複。検証はソース静的追跡と中心二項漸近式のみ。Vitest/package runtime/R実行は未実施。
+
+
+## Audit #646 — Logistic / Laplace / Weibullのclose済みIssue再検証
+
+- 対象: `src/distributions/logistic.ts` SHA `76cd8b85c520932b5980baa16cc3d4ce483eb872`、`src/distributions/laplace.ts` SHA `782524ad81cfd416c0582e8f6b6b31170d3db88f`、`src/distributions/weibull.ts` SHA `f1c3e76bce8a68f936169e4a2e261b13e937b047`。前回予告したCauchyは#555で監査済み、Paretoは#574/#645で監査済み。
+- 重要: close済みIssue #109/#110/#111をdefault branchの現行ソースで再確認したところ、いずれも報告された式が残存し、再現条件も成立する。各Issueを**再open**し、現行source SHAと再検証結果を本文末尾へ追記。
+  - #109 logistic: `dlogis(6.41493903021196e307,{scale:1.282987806042392e308})`。z=0.5、e=0.6065306597126334。現行式 `e/(scale*(1+e)*(1+e))` は分母overflowで0。log density -710.8935541918609をexpすると1.831690925625393e-309。Python binary64演算で現行式とlog値の差を再確認。
+  - #110 Laplace: `dlaplace(7.2357573010898871e307,{sigma:1.4471514602179774e308})`。現行 `(e/sigma)/2` は2.095601864718686e-309。Fractionによるbinary64入力の厳密有理値を一度だけ丸めた値は2.09560186471869e-309。1 subnormal ULP差。
+  - #111 Weibull: `shape=2**52`, `scale=shape-0.5`, `x=scale`。現行 `Math.log(shape/scale)-1` は-0.9999999999999998。Decimal 100桁でexact binary64 operandsから評価し、正しい丸めは-0.9999999999999999。
+- 各ソースの最終変更commitはIssue作成日より前で、現在の該当コードにも修正は見つからなかった。issue close状態だけでは修正済みと見なさず、現行blobと再現式を必ず照合する必要があることを確認。
+- **新規Issueなし。既存Issue #109/#110/#111を再open。** Cauchy/Paretoに新しい問題なし。
+- **検証**: source-level path確認、Python binary64 arithmetic、Fraction exact rational、Decimal 100-digit。Vitest/package runtime/Rは未実施。
