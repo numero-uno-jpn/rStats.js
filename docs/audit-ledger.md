@@ -4051,3 +4051,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - open Issue「location-scale quantiles return finite median limits for infinite scale instead of R's NaN」を確認。これはRとの仕様差として既知であり、今回の数値誤差バグとして重複登録しない。
 - **新規確定バグなし。Issue追加なし。ソース変更なし。**
 - **検証制限**: GitHubソース・既存fixture/testの静的追跡のみ。Vitest/package runtime/R/mpmath実行は未実施。
+
+
+## Audit #644 — Binomial / Poisson / Negative-binomial discrete tails and large counts
+
+- 対象: `src/distributions/binomial.ts` SHA `09ccfb35cb3ef73351b6cd3b32ccb42e5d85eb85`、`src/distributions/poisson.ts` SHA `8bac99d8cfb238c1d682278c145798d0c44abc0b`、`src/distributions/negbinomial.ts` SHA `6bf9bf9b9d8b05aa4828e33c4b2fb9b3ed5171c7`、`test/dbinomHuge.test.ts` SHA `7540dcb12b538a96e225ea291d06a8c6e0af9f61`。
+- **新規Issue #151**: [dnbinom returns NaN when finite size + x overflows](https://github.com/numero-uno-jpn/rStats.js/issues/151)。再現入力 `dnbinom(1e308, 1e308, { prob: 0.5 })`、同log版、`dnbinom(1e308, 1e308, { mu: 1e308 }))。`dnbinomRaw()` が `size + x` のoverflowを検出してNaNを返すが、確率質量は有限で表現可能。size=x=N, prob=1/2では `P[X=N] = N/(2N) P[Binomial(2N,1/2)=N] ~ 1/(2 sqrt(pi N)))。N=1e308で期待値は約 `2.820947917738782e-155)、logは約 `-355.8636164445677`。決定的入力・閉形式漸近式で確認。実行は未実施。
+- binomial/Poissonでは、x+1が2^53超で表現できないときのincomplete beta/gamma補正、upper-tail差分のcancel fallback、Loaderのlarge-count処理、離散quantile探索を確認。negative-binomialでは `fromMu` のsize+mu overflow比率、`upperSeries` の条件・最大100万項、`pnbinomRaw` の2^53超補正、`refineContinuous` の8反復、prob/mu各parameterizationの端点を確認。
+- 追加の境界検討: `pbinom(1e16, 2e16, 0.5)`、`ppois(1e16, 1e16)`、`qpois(0.5, 1e16)`、`pnbinom(1e16, 1e16, { prob: 0.5 })`、`dnbinom(1e308, 1e308, { mu: 1e308, log: true })`。このうち最後の密度overflowはIssue #151。その他に新規確定バグなし。
+- **新規Issue #151、ソース変更なし。** Vitest/package runtime/R実行は未実施。Issue #151の期待値は中心二項分布の漸近式で算出。
