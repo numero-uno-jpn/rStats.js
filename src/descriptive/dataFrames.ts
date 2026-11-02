@@ -193,8 +193,10 @@ function keyColumns(frame: DataFrame, names: readonly string[]): Column[] {
 
 /**
  * Join two data frames on key columns. Equivalent to R's `merge()`. For data frames: every pair of rows of x and y
- * with equal keys (missing keys match each other), and with `allX` / `allY` the rows without a match. Columns: the keys
- * (named as in x), x's other columns, y's other columns; a non-key name present in both gets the suffixes. Rows are
+ * with equal keys (missing keys match each other; key columns of different types are compared in their common type,
+ * as R's match: text, or numbers with TRUE as 1), and with `allX` / `allY` the rows without a match. Columns: the
+ * keys (named as in x; in the common type when rows only in y are kept), x's other columns, y's other columns; a
+ * non-key name present in both gets the suffixes. Rows are
  * ordered by the key unless `sort` is false (several keys: as text joined with "\r" unless `allX` or `allY`, as R
  * does); without key columns, the cross join (x varying fastest).
  *
@@ -234,16 +236,30 @@ export function merge(x: DataFrame, y: DataFrame, options: MergeOptions = {}): D
   if (byX.length === 0) {
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) pairs.push([i, j]);
   } else {
+    // Each key column of x and y compared in their common type, as R's match: text if either holds text, numbers
+    // (TRUE as 1) if numbers meet logicals (merge({ id: [1] }, { id: ["1"] }) matched nothing, #82)
+    const common = keysX.map((cx, k) => {
+      const kinds = new Set([...cx, ...keysY[k]!].filter((v) => !isMissing(v)).map((v) => typeof v));
+      if (kinds.has("string")) return (v: number | string | boolean) => (typeof v === "string" ? v : valueText(v));
+      if (kinds.has("number") && kinds.has("boolean")) return (v: number | string | boolean) => (typeof v === "boolean" ? Number(v) : v);
+      return (v: number | string | boolean) => v;
+    });
+    const commonAt = (cols: readonly Column[], k: number, i: number): Key => {
+      const v = valueAt(cols[k]!, i);
+      return isMissing(v) ? MISSING_KEY : common[k]!(v as number | string | boolean);
+    };
     const keyOf =
       byX.length === 1
-        ? (cols: readonly Column[], i: number): Key => {
-            const v = valueAt(cols[0]!, i);
-            return isMissing(v) ? MISSING_KEY : (v as number | string | boolean);
-          }
+        ? (cols: readonly Column[], i: number): Key => commonAt(cols, 0, i)
         : // Matched on the values' text, as R, but encoded unambiguously: R pastes them with "\r", so that a key
           // containing "\r", or "NA" against a missing value, matches a different key
           (cols: readonly Column[], i: number): Key =>
-            JSON.stringify(cols.map((c) => (isMissing(valueAt(c, i)) ? null : valueText(valueAt(c, i)))));
+            JSON.stringify(
+              cols.map((_, k) => {
+                const v = commonAt(cols, k, i);
+                return v === MISSING_KEY ? null : valueText(v);
+              }),
+            );
     const kx = Array.from({ length: nx }, (_, i) => keyOf(keysX, i));
     const ky = Array.from({ length: ny }, (_, j) => keyOf(keysY, j));
     const inY = new Set(ky);
@@ -265,13 +281,19 @@ export function merge(x: DataFrame, y: DataFrame, options: MergeOptions = {}): D
     if (allY) for (const j of sy.alone) pairs.push([-1, j]);
   }
 
+  // The key columns of the result (in the order of pairs): x's values, and y's for the rows only in y; those rows
+  // bring the columns to their common type, as R's rbind of the two sides does (x's type otherwise)
+  const yOnly = pairs.some(([i]) => i < 0);
+  const keyCols = keysX.map((cx, k) => {
+    const cy = keysY[k]!;
+    const col = gather([cx, cy], pairs.map(([i, j]) => (i >= 0 ? [cx, i] : [cy, j])));
+    return yOnly ? commonType(col) : col;
+  });
+
   // Rows sorted stably by the key
   let order = pairs.map((_, r) => r);
   if (sort && byX.length > 0) {
-    const keyValue = (r: number, k: number): DataValue => {
-      const [i, j] = pairs[r]!;
-      return i >= 0 ? valueAt(keysX[k]!, i) : valueAt(keysY[k]!, j);
-    };
+    const keyValue = (r: number, k: number): DataValue => valueAt(keyCols[k]!, r);
     if (byX.length > 1 && !allX && !allY) {
       const text = pairs.map((_, r) => byX.map((_, k) => valueText(keyValue(r, k))).join("\r"));
       order.sort((a, b) => compareCodePoints(text[a]!, text[b]!));
@@ -288,11 +310,7 @@ export function merge(x: DataFrame, y: DataFrame, options: MergeOptions = {}): D
   const sorted = order.map((r) => pairs[r]!);
 
   const out: DataFrame = {};
-  byX.forEach((n, k) => {
-    const cx = keysX[k]!;
-    const cy = keysY[k]!;
-    addColumn(out, n, gather([cx, cy], sorted.map(([i, j]) => (i >= 0 ? [cx, i] : [cy, j]))));
-  });
+  byX.forEach((n, k) => addColumn(out, n, pick(keyCols[k]!, order)));
   for (const n of restX) {
     const c = x[n]!;
     addColumn(out, nameX(n), gather([c], sorted.map(([i]) => (i >= 0 ? [c, i] : null))));

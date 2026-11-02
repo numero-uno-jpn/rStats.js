@@ -34,7 +34,11 @@ in its header and `oracle/_anova.R`; numeric columns are written as number strin
 ## merge, step by step
 
 1. Key of a row: with one key column, its value; with several, the values joined with `"\r"` as text (numbers as R's
-   `as.character`: up to 15 significant digits, `"NA"` for a missing value).
+   `as.character`: up to 15 significant digits, `"NA"` for a missing value). A key column of x and the matching one
+   of y are first brought to their common type, as R's `match` and `rbind` do: text if either holds text (numbers as
+   `as.character`, so 0.1 + 0.2 matches "0.3"), numbers if numbers meet logicals (TRUE as 1); a missing value stays
+   missing (it does not match the text "NA"). The result's key column has x's type, or the common type when rows
+   only in y are kept (`all.y`), and is sorted in that type (`"1", "10", "2", "9"`).
 2. `common` = the x keys (in x's row order, duplicates kept) that occur among the y keys. For each x row, `ix` = the
    position (1-based) of the first element of `common` equal to its key, 0 if none; the same for each y row (`iy`,
    positions in the same `common`).
