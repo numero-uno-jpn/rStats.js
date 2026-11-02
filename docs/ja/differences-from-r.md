@@ -291,6 +291,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 共変量 x が 1e-200 や 1e200 程度の `aov(y ~ x + W + Error(id))`、共変量 z が 1e-200 程度の `Error(z)` | x はすべての層から消える (2 乗がアンダーフローする)。z は正しい | 単位を変えた同じデータと同じ表。処置と誤差モデルの各列を、列ごとの 2 の冪で割る (層は列が張る空間だけで決まる) |
 | 残差自由度が次元より少ない `mauchly.test` (`mauchly.test(lm(cbind(c(1, 3), c(2, 7)) ~ 1))`) | NaN、または W = 0 で p = 1、または W 2e-17 で p 9e-4 (共分散はデータによらず特異) | エラー。検定には残差自由度が足りない |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
+| 共変量が 1e308 規模かサブノーマルの `coxph(Surv(time, status) ~ x)` (x の 2^1020 倍、2^1022 倍、2^-1060 倍) | 2^1020 倍で se 0、2^1022 倍と 2^-1060 倍で "Loglik converged before variable 1; coefficient may be infinite" (中心化・尺度化の和が溢れる) | x の当てはめと同じ検定と対数尤度、係数と se は 2^-k 倍 (2^-1060 倍では double の範囲外で -Inf と Inf) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
 | `rgeom(n, 5e-324)` (約 5.6e-309 未満の prob)、p < 1 の `rnbinom(n, Inf, prob = p)` | NA。約 9e307 (size = MAX / 2 での値) か NA | Infinity。値は double の最大値を超える (rgeom は 1e-15 未満の確率を除いて。rnbinom は確率がすべて無限遠にあり、dnbinom・qnbinom と整合)。同じ乱数を引くので、乱数の状態は R と同じ |
 | `rbeta(n, 1e308, 1e308)` など、約 1e154 を超える形状 (2ab が溢れる) | 0 (Algorithm BB の定数が溢れる) | 平均 a / (a + b)。分布は 1e-77 以内に集中している。同じ一様乱数を引くので、乱数の状態は R と同じ |

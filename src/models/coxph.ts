@@ -14,7 +14,7 @@ import { pchisq } from "../distributions/chisq.js";
 import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
 import { numberLevels } from "../internal/levels.js";
-import { ldexp } from "../internal/summary.js";
+import { ldexp, scaleToUnit } from "../internal/summary.js";
 import { mergeTiedTimes } from "./tiedTimes.js";
 import { Warnings } from "./glmFamily.js";
 import { maxOf } from "../internal/extremes.js";
@@ -416,22 +416,36 @@ export function coxph(
   const sortedW = order.map((k) => w[k]!);
   const xs = order.map((k) => x[keep[k]!]!.slice());
   const means = new Array<number>(p).fill(0);
+  // the scale of column j is scales[j] 2^-shift[j]
   const scales = new Array<number>(p).fill(1);
+  const shift = new Array<number>(p).fill(0);
   const exempt = new Set(nocenter);
   for (let j = 0; j < p; j++) {
     if (xs.every((row) => exempt.has(row[j]!))) continue;
-    let sum = 0;
-    for (let k = 0; k < n; k++) sum += sortedW[k]! * xs[k]![j]!;
-    const m = sum / totalWeight;
-    let absSum = 0;
-    for (let k = 0; k < n; k++) {
-      xs[k]![j]! -= m;
-      absSum += sortedW[k]! * Math.abs(xs[k]![j]!);
+    const column = xs.map((row) => row[j]!);
+    const centreScale = (col: readonly number[]): { m: number; s: number; d: number[]; ok: boolean } => {
+      let sum = 0;
+      for (let k = 0; k < n; k++) sum += sortedW[k]! * col[k]!;
+      const m = sum / totalWeight;
+      let absSum = 0;
+      const d = col.map((v, k) => {
+        absSum += sortedW[k]! * Math.abs(v - m);
+        return v - m;
+      });
+      const s = absSum === 0 ? 1 : totalWeight / absSum;
+      return { m, s, d, ok: Number.isFinite(m) && s >= 2 ** -1022 && s < Infinity };
+    };
+    let fit = centreScale(column);
+    // the sums overflow for covariates around 1e308, and the scale for subnormal ones (#87; the column became 0 or
+    // NaN): then in the units 2^c of the column's largest value, where the scaled column (x - m) s is the same
+    if (!fit.ok) {
+      const { groups, k: c } = scaleToUnit([column]);
+      fit = centreScale(groups[0]!);
+      shift[j] = c;
     }
-    const s = absSum === 0 ? 1 : totalWeight / absSum;
-    for (let k = 0; k < n; k++) xs[k]![j]! *= s;
-    means[j] = m;
-    scales[j] = s;
+    for (let k = 0; k < n; k++) xs[k]![j] = fit.d[k]! * fit.s;
+    means[j] = ldexp(fit.m, shift[j]!);
+    scales[j] = fit.s;
   }
   const data: SortedData = {
     time: order.map((k) => mergedTime[k]!),
@@ -443,7 +457,7 @@ export function coxph(
   const efron = ties === "efron";
 
   // 3.-5. Newton-Raphson on the scaled coefficients
-  let beta = init === undefined ? new Array<number>(p).fill(0) : init.map((v, j) => v / scales[j]!);
+  let beta = init === undefined ? new Array<number>(p).fill(0) : init.map((v, j) => ldexp(v / scales[j]!, shift[j]!));
   let ev = evaluate(data, beta, efron);
   const loglik: [number, number] = [ev.loglik, ev.loglik];
   let factor = ev.info.map((row) => row.slice());
@@ -509,8 +523,9 @@ export function coxph(
   // covariates, and scaled back by powers of 2 only for the output. Unitless quantities (z, the Wald test, the check
   // for infinite coefficients) are computed in these units: the same bits as in the original units when nothing
   // overflows, and the Wald test's Cholesky pivots are not dropped because the covariates have different units
-  const expo = scales.map((s) => Math.floor(Math.log2(s)));
-  const mant = scales.map((s, j) => ldexp(s, -expo[j]!));
+  const scaleExpo = scales.map((s) => Math.floor(Math.log2(s)));
+  const mant = scales.map((s, j) => ldexp(s, -scaleExpo[j]!));
+  const expo = scaleExpo.map((e, j) => e - shift[j]!);
   const coefUnit = beta.map((b, j) => b * mant[j]!);
   const uUnit = ev.score.map((v, j) => v / mant[j]!);
   const varUnit = inverse.map((row, i) => row.map((v, j) => v * mant[i]! * mant[j]!));
