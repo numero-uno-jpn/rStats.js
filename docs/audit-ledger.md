@@ -3759,3 +3759,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 決定的な確認入力（乱数なし）: `pt(2.5,7, {ncp:1.2})` と `1-pt(-2.5,7,{ncp:-1.2})`; `pt(0,0.25,{ncp:3,logP:true})` と `pt(0,0.25,{ncp:-3,lowerTail:false,logP:true})`; `dt(1e12,0.2,{ncp:4,log:true})` と `dt(-1e12,0.2,{ncp:-4,log:true})`; `qt(0.9,5,{ncp:2})` と `-qt(0.1,5,{ncp:-2})`; `qt(0.9,5,{ncp:2,lowerTail:false})` と `-qt(0.9,5,{ncp:-2,lowerTail:false})`; 境界 `t=delta) の `pt(2,8,{ncp:2})` と `1-pt(-2,8,{ncp:-2})`; far-limit前後の `T0=1e10*(Math.abs(1.2)+10)*Math.sqrt(7/2+1)` と `T0*(1-Number.EPSILON)`, `T0`, `T0*(1+Number.EPSILON)`。
 - 上記はソースから導いた再現・回帰候補であり、Vitest/Rおよび実関数の実行は未実施。数値差の実測を行ったとは主張しない。既存 `test/nt.test.ts` はfixtureと一部の上下裾補完回帰を含むが、正負非心度の対称性を直接比較する専用テストは確認できなかった。
 - Issue追加なし。ソースコード変更なし。監査台帳のみ更新。
+
+
+## Audit #615 — Noncentral t trapezoidal integrator convergence and truncation audit
+
+- 対象: `src/distributions/nt.ts` SHA `85763973f3f7a82d46ceee19a4dd0f8d8c275814`（`trapezoid`, `integrateCore`, `integrate`, `findPeak`, `integrand`, `logIntegrand`）、`test/nt.test.ts` SHA `256fd766b66bbb636d57a89a0549d3f6ccb1e297`。
+- 監査範囲: 変数変換 `w=w*+(sigma/2)(z+1-exp(-z))` とJacobian、左右別のnode列、`z=±40` 打切り、3点連続の相対寄与停止、100000 node上限、初期h=0.5から最大6回の半減、台形和の再利用 `s2=s/2+odd`、線形/log積分の切替、収束許容差、ピーク幅推定を追跡。
+- 台形則の半減更新式は複合台形則の標準的なネスト更新と一致する。odd列は新規追加点のみを加え、既存偶数点の和を半分にする。左右の積分は同じ変換・Jacobianを使う。停止判定は各側で3点連続の寄与が現在の累積和の1e-19以下となった場合で、log積分時もピークoffsetを引いた線形和で比較する。今回の静的追跡で独立した確定的不具合は確認できなかった。
+- 境界・再現確認用の決定的入力（乱数なし）: `dt(0,1, {ncp:0})`; `pt(0,1,{ncp:0})`; `pt(12,5,{ncp:0,logP:true})`; `pt(-12,5,{ncp:0,lowerTail:false,logP:true})`; `dt(1e4,3,{ncp:-8,log:true})`; `pt(1e6,0.2,{ncp:4,logP:true})`; `pt(-1e6,0.2,{ncp:-4,lowerTail:false,logP:true})`; 左右端打切りが異なる形状の候補 `dt(0.1,0.02,{ncp:30,log:true})` と `dt(0.1,0.02,{ncp:-30,log:true})`。これらは実行済み結果ではなく静的監査からの回帰候補。
+- `test/nt.test.ts` は巨大dfのLaplace法およびtiny-df formula-Bのfixtureを持つが、trapezoidの刻み半減ごとの収束、左右打切り、`z=40`端点を直接検証する専用テストは見当たらない。Vitest/R未実施。静的ソース監査のみ。
+- Issue追加なし。ソースコード変更なし。監査台帳のみ更新。
