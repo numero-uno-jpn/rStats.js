@@ -42,6 +42,18 @@ function scale2(x: number, k: number): number {
 }
 
 /**
+ * The power of 2 that brings a divisor below 1 to [1, 2) when the numerator is below 2^-900, 0 otherwise (or when the
+ * numerator would overflow). The remainders of the division, about |a| eps and |a| eps^2, fell below the subnormals
+ * there and the low part of the quotient was lost (ddDiv([MIN], [3 MIN]) gave [1/3, 0], ddDiv([1e-300], [3e-300]) a
+ * low part of 8.4e-20 for 1.85e-17; issue #105); the scaling by 2^k is exact and leaves the quotient unchanged
+ */
+function tinyDivisionShift(a: number, b: number): number {
+  if (!(Math.abs(a) < 2 ** -900) || !(Math.abs(b) < 1) || b === 0) return 0;
+  const k = -Math.floor(Math.log2(Math.abs(b)));
+  return Number.isFinite(scale2(a, k)) ? k : 0;
+}
+
+/**
  * The rounding error a * b - fl(a * b) for operands so large that Veltkamp splitting overflows: each operand is
  * scaled near 1 by a power of 2 (exact), and the error of the scaled product scaled back
  */
@@ -168,6 +180,9 @@ export function ddMulNum(a: DD, b: number): DD {
 
 export function ddDiv(a: DD, b: DD): DD {
   if (!ddEnabled) return [a[0] / b[0], 0];
+  // (written by hand, as the prodErrScaled lines: a tiny numerator over a divisor below 1, both times 2^k first)
+  const k = tinyDivisionShift(a[0], b[0]);
+  if (k !== 0) return ddDiv([scale2(a[0], k), scale2(a[1], k)], [scale2(b[0], k), scale2(b[1], k)]);
   const q1 = a[0] / b[0];
   // A sum, product or quotient beyond the double range has no error term (the steps below would make it NaN)
   if (!Number.isFinite(q1)) return [q1, 0];
@@ -244,6 +259,9 @@ export function ddDiv(a: DD, b: DD): DD {
 
 export function ddDivNum(a: DD, b: number): DD {
   if (!ddEnabled) return [a[0] / b, 0];
+  // (by hand, as in ddDiv)
+  const k = tinyDivisionShift(a[0], b);
+  if (k !== 0) return ddDivNum([scale2(a[0], k), scale2(a[1], k)], scale2(b, k));
   const q1 = a[0] / b;
   // A sum, product or quotient beyond the double range has no error term (the steps below would make it NaN)
   if (!Number.isFinite(q1)) return [q1, 0];
