@@ -3678,3 +3678,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 再現入力（すべて決定的・乱数なし）: `const m=1e-200, n=1e200, q=1e100, ncp=1; m/n === 0; Math.log(m/n) === -Infinity`; public APIで `pf(q,m,n,{ncp,logP:true})` と `df(q,m,n,{ncp,log:true})`。内部経路は `pnf1(q,m,n,ncp,true,true)` と `dnfCore(q,m,n,ncp,true)`。
 - その他の端点・極限・Chernoff bound・quantile初期値経路では静的に確定できる別の新規不具合は確認できず。既存Issue「F density and CDF use an invalid p≈1 fallback when n exceeds a large m*x」は重複回避のため別件として扱い、今回のIssueに混ぜていない。
 - テスト設計とoracle fixtureは閲覧したが、Vitest・R 4.5.2・実際の関数実行は未実施。Issue #135はソース上のIEEE-754中間値と数式からの静的確定。ソースコード変更なし。監査台帳のみ更新。
+
+
+## Audit #605 — Noncentral chi-square mixture, asymptotic tails and quantile audit
+
+- 対象: `src/distributions/nchisq.ts` SHA `9549791940c425d508057b7286329b396ca36c6f`、`src/internal/invert.ts`（取得内容を静的確認）、`src/internal/noncentral.ts`（`negligibleNcp`, `searchDoubles`, quadrature関連）、`src/internal/poissonMixture.ts`（呼出契約を確認）、`test/nchisq.test.ts` SHA `764a104ca667e8b0d4309574cce3f72ab6806ed6`、`oracle/nchisq.R` と `oracle/_noncentral.R`。
+- 監査範囲: Poisson混合の重み・gamma increment recurrence・density mixture peak、df=0の点質量、subnormal x/2補正、tiny shapeのlog密度、Bessel Hankel/Debye漸近、二重精度平方根差、Chernoff tail bound、log-tail CDF、Patnaik初期値、quantile bracketingとdouble lattice探索。
+- 新規の確定的不具合は確認できず。既存Issue「pnchisq and dnchisq return NaN when subnormal correction multiplies zero by infinity」は既知の別件として扱い、重複Issueは作成していない。特にsubnormalHalfの `expm1((df/2)*lt)` と上下裾補正、`gammaKernel` のtiny shape経路、`chisqTailBound` の境界式、`invertContinuous` の無限上端からの探索を数式・分岐条件で確認。
+- df=0かつncp>0のx=0密度は、点質量と連続成分の区別が必要で、oracle側もx=0の一般ケースをNAとしているため、Rとの仕様差を確定できず不具合認定から除外。df=0,ncp=0の点質量は既存テストで明示的に扱われている。
+- 再現・境界入力（決定的、乱数なし）: `pnchisq1(0, 0, 1, true, false)`（df=0の原点質量 exp(-1/2)）；`pnchisq1(Number.MIN_VALUE, 0.5, 24.3, true, true)`（subnormal x補正経路）；`dnchisq1(3e307, 0.5, 2.2e-320, true)`（gammaKernel huge-y scalingの既知回帰条件）；`dnchisq1(1.79e308, 3, 1e308, true)`（Hankel漸近・平方根差）；`pnchisq1(1e308, 3.3e268, 6.9e307, true, false)`（Debye漸近とオーバーフロー回避）；`qnchisq1(Math.log(1e-300), 1e6, 2e9, true, true)`（log-tail quantile）。
+- 既存のfixture生成コードとテスト群を閲覧したが、Vitest・R 4.5.2・関数の実行は未実施。したがって数値fixtureとの実測比較は未完了。静的監査のみ。ソースコード変更なし。監査台帳のみ更新。
