@@ -98,7 +98,13 @@ function incCorrection(a: number, b: number, j: number, xd: DD): [number, number
 function betaKernelIncLog(s: number, b: number, xd: DD, xcd: DD): DD | number {
   if (!(xd[0] > 0 && xcd[0] > 0)) return -Infinity;
   const l = ddAdd(ddMulNum(ddLog(xd), s), ddMulNum(ddLog(xcd), b));
-  if (s < 1 && b < 1) return ddAdd(l, [-(lgamma1p(s) + lgamma1p(b) - lgamma1p(s + b) + Math.log1p(s / b)), 0]);
+  if (s < 1 && b < 1) {
+    // log(1 + s / b), also where s / b overflows for a subnormal b (it was Infinity and the term 0: the j = 0 term of
+    // dbeta(0.5, 0.75, 5e-324, ncp = 0.1) was dropped, 3.7 off in the log; issue #114)
+    const q = s / b;
+    const lq = q < Infinity ? Math.log1p(q) : Math.log(s) - Math.log(b) + Math.log1p(b / s);
+    return ddAdd(l, [-(lgamma1p(s) + lgamma1p(b) - lgamma1p(s + b) + lq), 0]);
+  }
   return ddAdd(ddAdd(l, ddNeg(lbetaDD(s, b))), [-Math.log(s), 0]);
 }
 
