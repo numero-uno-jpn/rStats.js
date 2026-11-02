@@ -328,6 +328,9 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 - **Indices are 0-based.** `sampleInt(n)` returns values in 0..n-1 (R's `sample.int()` minus 1,
   from the same random stream), and the `pivot` of `qr()` and `chol(x, { pivot: true })` is
   0-based. `sample(array, ...)` returns elements, as in R.
+- **`cor` of a matrix** has NaN on the diagonal where the correlation of a column with itself is undefined: a constant
+  column (0/0), or, with `use: "everything"`, a column with a missing value. R puts 1 on the whole diagonal whatever
+  the column holds (`cor(cbind(c(1, 1, 1), c(1, 2, 3)))` has 1 at [1, 1]). Elsewhere the diagonal is 1, as in R.
 - **Distribution parameters are scalars**; they are not recycled as vectors. The first argument
   may be a number, an array or a `Float64Array`. Use `map` for vector parameters; random draws made
   one at a time after `setSeed` consume R's stream in the same order as R's recycling, so the

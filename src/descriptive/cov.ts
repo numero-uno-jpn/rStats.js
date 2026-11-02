@@ -109,10 +109,16 @@ function compute(x: Input, y: Input | undefined, options: CovOptions, correlatio
     return covariance(u, v);
   };
   const out = px.map((a) => py.map((b) => entry(a, b)));
-  // as in R, the correlation matrix of x alone has 1 on the diagonal, whatever the column holds, unless fewer than 2
-  // observations are used (then it is all NaN)
+  // the correlation matrix of x alone has 1 on the diagonal (a computed 0.9999999999999998 made 1, as in R) where the
+  // correlation of a column with itself is defined; it stays NaN for a constant column (0/0) and, with "everything", for
+  // a column with a missing value (R puts 1 there too, whatever the column holds). With fewer than 2 observations
+  // used, all is NaN
   const used = keepRows === undefined ? n : keepRows.filter(Boolean).length;
-  if (correlation && y === undefined && use !== "pairwise.complete.obs" && used >= 2) out.forEach((r, i) => (r[i] = 1));
+  if (correlation && y === undefined && use !== "pairwise.complete.obs" && used >= 2) {
+    out.forEach((r, i) => {
+      if (!Number.isNaN(r[i]!)) r[i] = 1;
+    });
+  }
   return (y === undefined ? false : !isMatrix(x) && !isMatrix(y)) ? out[0]![0]! : out;
 }
 

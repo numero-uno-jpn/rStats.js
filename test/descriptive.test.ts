@@ -148,13 +148,16 @@ function underflow(limit: number): (a: A) => string | undefined {
   };
 }
 
-const known: Record<string, (a: A) => string | undefined> = {
+const known: Record<string, (a: A, expected: number, actual: number) => string | undefined> = {
   weightedMean: overflow(1e300),
   var: largeMean,
   // the variance overflows or underflows where sd is in range (R: Inf or 0)
   sd: (a) => largeMean(a) ?? overflow(1e150)(a) ?? underflow(1e-150)(a),
   cov: largeMean,
-  corMatrix: largeMean,
+  // a diagonal whose correlation is undefined (a constant column, or one with a NaN under "everything"): R puts 1,
+  // rStats.js NaN (issue #78, docs/differences-from-r.md)
+  corMatrix: (a, e, v) =>
+    largeMean(a) ?? (e === 1 && Number.isNaN(v) ? "an undefined correlation of a column with itself: R 1, rStats.js NaN" : undefined),
   skewness: (a) => largeMean(a) ?? overflow(1e75)(a) ?? underflow(1e-150)(a),
   kurtosis: (a) => largeMean(a) ?? overflow(1e75)(a) ?? underflow(1e-150)(a),
   // the variance of data around 1e200 overflows in R (sd Inf); the CV has no units, rStats.js scales first
@@ -172,7 +175,7 @@ for (const [name, call, tolerance] of suites) {
     call,
     tolerance: tolerance ?? 1e-14,
     ...(floors[name] === undefined ? {} : { floor: floors[name] }),
-    ...(k === undefined ? {} : { knownDifference: (a: A) => k(a) }),
+    ...(k === undefined ? {} : { knownDifference: (a: A, _f: string, e: number, v: number) => k(a, e, v) }),
   });
 }
 
