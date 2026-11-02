@@ -4146,3 +4146,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - Named linksのdomain、inverse/1-mu²のsingularity、logit/probit/cauchit/cloglogの端点clamp、sqrt、power(lambda)、quasi variance/deviance、binomial two-column response、zero prior weights、starting means、AICを確認。GLM IRLSのworking weights/residuals、deviance, step halving, boundary/convergence state、profile CIとanova経路も部分確認。
 - 二列binomialで `size=s+f` がoverflowする極端な有限カウント、prior*sizeのoverflow、quasi devianceのlog domain等を境界検討。別個の公開入力で期待値が確定する追加バグは現時点で特定せず。
 - **新規Issue #156、ソース変更なし。** Vitest/package runtime/R実行は未実施。
+
+
+## Audit #654 — Noncentral chi-square density, CDF and quantile extreme-scale paths
+
+- 対象: `src/distributions/nchisq.ts` SHA `9549791940c425d508057b7286329b396ca36c6f`、`src/internal/poissonMixture.ts`（現行実装の混合和・開始index・反復制御）。
+- **新規Issue #157**: [qchisq noncentral quantile fails when finite df + ncp overflows](https://github.com/numero-uno-jpn/rStats.js/issues/157)。決定的再現 `qchisq(0.5, 1e308, { ncp: 1e308 })`。df/ncpはいずれも有限・非負でvalidationを通るが、Patnaik初期値の `df + 2*ncp` と `df+ncp` がoverflowし、`c`/ `nu` がNaN。fallbackの `x0=df+ncp` とbracketの `hi` はInfinityとなる。内部predicateは公開 `pnchisq1` のInfinity endpoint処理を通らず `pnchisqBoth(Infinity,...)` からDebye積分へ進み、非有限中間値となる。分布平均は2e308、標準偏差は約2.45e154で、中央値は有限double上限を約4e153標準偏差超えるため、返すべきquantileはInfinity。ソース制御フローとモーメント式の静的確認。
+- 既存Issue #147（df=0 densityのsubnormal scaling exponent誤り）と#150（巨大Poisson indexでCDF lower sumが停止しない）を再確認。#64は#150と同じ根因の既存報告。重複登録なし。#147のCDF側subnormalHalfも点質量を含むためdensityとは異なる漸近構造だが、今回の静的確認でdouble上の独立再現可能な誤差は確定できず、Issue追加せず。
+- `gammaKernel` のsmall/huge-y ratio scaling、tiny-shape gamma increment、Poisson mixture density peak、Bessel Hankel/Debye切替、double-double root差、subnormal-half変換、Chernoff tail bound、quantileのnarrow-spread/double-searchを追跡。sumLowerの巨大index進行不能は既知#150。sumUpperのMAX_TERMS上限とpeak restartも確認。新規の独立確定バグは#157以外に特定せず。
+- **新規Issue #157、ソース変更なし。** Vitest/package runtime/R比較は未実施。数値根拠はIEEE-754 overflow条件と非心カイ二乗の平均・分散式による決定的導出。
