@@ -4040,3 +4040,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - `dtTinyDf` の `u>=1e150` 分岐で先に `sqrt(n)/|x|` がunderflowする場合、最終密度もbinary64で0となる範囲に限られる。central t upper-tailの `x<=1e-250` はlog-domainのfirst-termへ移り、`betaArgs` の積スケーリングは通常経路でのsquare overflowを避ける。新規の確定バグを特定できず。
 - **新規確定バグなし。Issue追加なし。ソース変更なし。**
 - **検証制限**: GitHubソース・既存テストの静的追跡のみ。Vitest/package runtime/R実行は未実施。
+
+
+## Audit #643 — Normal CDF/quantile, inverse-normal and error-function tails
+
+- 対象: `src/special/ndtri.ts` SHA `a053252d5cbafbbb22f395fc4c2034da9c2ee5e9`、`src/special/erf.ts` SHA `f72136920c3138354d5d6cd4a342055e590e0fad`、`src/special/polevl.ts` SHA `165b2c81afea8cb58b56f67264dafdf22810f089`、`src/distributions/normal.ts` SHA `8a6db705befe4a4ea30785bdb4806cf18a59cbc6`、`src/internal/ddexp.ts` SHA `14e46651c7ff1d1a6269ab50eded32183465172d`、`test/erf.test.ts` SHA `10c82052f3e6fd1e555766fd2bed8010a066923a`、`test/qnorm.test.ts` SHA `3e4f2d567782d5522658f4ff3cf7f8db5f531ead`、`test/extremeAccuracy.test.ts` SHA `ac9e40428d3cb917d50c17e835869572de01729b`。
+- 監査範囲: `ndtri` の中央/2段tail rational approximation、`tailFromZ` のz→0/Infinity、`ndtriExp` のlog probability経路（-2、-2048、-DBL_MAX、-0、-Infinity近傍）、`erf/erfc/erfcx` のx=1/8/1e8切替とsubnormal exp、Horner評価、`pnormStd` のlower/upper tailとlog1p、`ndtriLogRefined` のNewton補正、`standardizeValue/standardizeDD/affine/locationScale` のoverflow/subnormal scaling、`ddExp/expNegOver` の指数範囲を確認。
+- 決定的境界入力として `qnorm(-5e-324, { logP: true })`、`qnorm(-Number.MAX_VALUE, { logP: true })`、`pnorm(-1.5e154, { logP: true })`、`erfc(27)`、`erfc(27.3)`、`erfcx(1e8)`、`erfcx(1e8 + 2)`、`dnorm(4.85e-319, { sd: 1.7e-322 })`、`qnorm(0.9, { mean: -1e308, sd: 1.7e308 })` を検討。既存テストのfixture/mpmath比較と式を静的に照合したもので、今回の実行結果ではない。
+- `ndtriExp` の `y<-2` では `sqrt(-2y)` のoverflowを `sqrt(2)*sqrt(-y)` に分解し、`y	o-infty) は正しく負Infinityへ向かう。erfcのsubnormal結果は `exp(-700)` を最後に掛ける。erfcxのx>1e8漸近打切り誤差は先頭補正 `1/(2x²)) 以下で約5e-17。standardize/affineのscaled branchesは既存の極端値回帰と整合。
+- open Issue「location-scale quantiles return finite median limits for infinite scale instead of R's NaN」を確認。これはRとの仕様差として既知であり、今回の数値誤差バグとして重複登録しない。
+- **新規確定バグなし。Issue追加なし。ソース変更なし。**
+- **検証制限**: GitHubソース・既存fixture/testの静的追跡のみ。Vitest/package runtime/R/mpmath実行は未実施。
