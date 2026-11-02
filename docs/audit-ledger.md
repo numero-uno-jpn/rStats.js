@@ -2835,3 +2835,23 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Suggested remediation: when the initial upper candidate is `Infinity` and `hi === Infinity`, test `Number.MAX_VALUE` before bisection, mirroring the existing later-overflow branch; if it satisfies the predicate, use it as the finite good endpoint.
 - Rとの関係: R's `qDiscrete_search.h` uses a coarse stepping search and returns the previous finite point when the next increment overflows to a satisfying endpoint. The R source was inspected; no R executable was run and no exact public qpois output is claimed.
 - 検証範囲: complete `discrete.ts` source review, direct IEEE-754 arithmetic for the exact values above, and R Core search-source comparison. No Vitest, package runtime, or R execution. No source code changed.
+
+
+## Audit #524 — `firstTrue()` cannot represent its documented `hi + 1` sentinel above the safe-integer range
+
+- Source blob: `src/internal/discrete.ts` `a8ed86222a9c91b7dfea90b990244a81c1170194`.
+- Follow-up review of `firstTrue()` and `lastTrue()` call sites in `src/htest/binomTest.ts`. `lastTrue()` is called with the finite nonnegative interval `[0, floor(n*p)]`; its midpoint arithmetic does not encounter the negative-to-positive overflow scenario. `firstTrue()` is called with `[ceil(n*p), n]`.
+- Distinct helper-contract edge case: the documented no-match return is `hi + 1`, but for sufficiently large finite `hi`, adding one is not representable. Exact input:
+  ```ts
+  const hi = 2 ** 54; // 18014398509481984
+  hi + 1 === hi;      // true in binary64
+
+  firstTrue(() => false, 0, hi);
+  // Current result: 18014398509481984 (hi)
+  // Documented no-match sentinel: hi + 1, but that value collapses to hi.
+  ```
+- This is a representability limitation in the helper's sentinel contract, separate from the finite-threshold-to-Infinity overflow path already recorded under Audit #523 and existing Issue #53. The helper comment already warns that neighbouring integers are not representable beyond 2^53; the sentinel return contract should likewise state that no distinct `hi + 1` can be returned in this range, or use a nonnumeric result for no match.
+- The binomial-test caller's monotone predicate is expected to qualify at the upper endpoint in its relevant branch, so this pass did not establish a separate incorrect `binomTest()` result from this sentinel limitation. No duplicate Issue was filed.
+- Concrete call-site probes reviewed: `binomTest(0, 1, { p: 0.5 })` (small lower endpoint); `binomTest(1, 2, { p: 0.5 })` (mean boundary); and helper probe `firstTrue(() => false, 0, 2 ** 54)`. These are static input traces, not claimed runtime outputs.
+- Rとの関係: R's binomial-test search uses finite integer increments but its double representation has the same fundamental limitation beyond 2^53; no R executable was run.
+- 検証範囲: complete `firstTrue()`/`lastTrue()` review, `binomTest.ts` caller analysis, and binary64 integer-spacing reasoning. No Vitest, package runtime, or R execution. No source code changed.
