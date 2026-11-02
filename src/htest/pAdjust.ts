@@ -145,11 +145,16 @@ function adjust(p: readonly number[], method: PAdjustMethod, n: number): number[
           q = Math.log(m) + 0.5772156649015329 + 1 / (2 * m) - 1 / (12 * m2) + 1 / (120 * m2 * m2);
         }
       }
+      // q n overflows for n above about 2.5e305 (BY): then the same products in units of 2^10 (q < 2^10), which
+      // round the same way (the values are far above the subnormal range: n p >= 1e305 Number.MIN_VALUE)
+      const qn = q * n;
+      const unit = Number.isFinite(qn) ? 1 : 1024;
+      const qnu = Number.isFinite(qn) ? qn : q * (n / 1024);
       const o = order(p, true);
       let m = Infinity;
       o.forEach((j, k) => {
         const i = lp - k;
-        m = Math.min(m, ((q * n) / i) * p[j]!);
+        m = Math.min(m, (qnu / i) * p[j]! * unit);
         out[j] = Math.min(1, m);
       });
       return out;
