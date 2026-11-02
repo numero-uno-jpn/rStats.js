@@ -4108,3 +4108,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 検討した決定的境界値: `darcsine(0, { a: -1e308, b: 1e308 })`、`parcsine(-1e308, { a: -1e308, b: 1e308, lowerTail: false, logP: true })`、`qlnorm(-1000, { logP: true, sdlog: 1e300 })`、`dinvgamma(1e308, 1e-300, { beta: 1e-300, log: true })`、`pkumar(0.2, 1e-300, 1e308, { logP: true })`、`qkumar(-1000, 1e-300, 1e308, { logP: true })`、`dtriang(3.1e-190, { a: 0, b: 1.24e133, c: 5.58e132, log: true })`、`qunif(0.5, { min: -1e308, max: 1e308 })`。これは式と分岐の静的検討用入力で、実行結果ではない。
 - **新規確定バグなし。Issue追加なし。ソース変更なし。**
 - **検証制限**: GitHubソースと既存Issueの静的追跡のみ。Vitest/package runtime/R/extraDistrは未実施。
+
+
+## Audit #650 — Descriptive summaries, moments, ranks, quantiles and shared accumulators
+
+- 対象: `src/descriptive/basic.ts` SHA `e12c8f8c91152f8d617cd05bf07ce512ef00856a`、`moments.ts` SHA `740c02eaceadd6f1454ecd7564bcd6f09f563b5b`、`cov.ts` SHA `5f3a3fb7563fef50743ad1edc519d6b802c258fb`、`quantile.ts` SHA `7fe14be52f404d0565fc5ec0cd4d953d155c2b6a`、`missing.ts` SHA `b8f76310ab34fa96c85876f0d5c6e7e0795950f8`、`rank.ts` SHA `316d4778675095a5b4eb9da60846c375ddad79cb`、`src/internal/summary.ts` SHA `e4fc3bd652af3a00cf05b44389ddf58e590c4830`。
+- 監査範囲: sum/prod/mean/trimmed mean/weighted mean/variance/sd/median/range/cumsum/cumprod/cummin/cummax/diff、skewness/kurtosisのtype 1–3補正、geometric mean/modes/meanAD/cv/scale、Pearson/Spearman/Kendall cov/corとuse別NA行選択、quantile type 1–9、fivenum/mad、completeCases/naOmit、rank tie/NA policy、WideSum/meanDD/centered/crossSum/groupMoments/pairedDifferences/satterthwaiteDf/squareOver/productOver/norm2を確認。
+- 決定的境界入力として `weightedMean([1e308, -1e308], [1, 1])`、`weightedMean([1e308, 1e308], [1, -1])`、`scale([[-1e308], [1e308]])`、`quantile([-Infinity, Infinity], [0, 0.5, 1])`、`mad([-1e308, 1e308], { center: 0 })`、`rank([Infinity, Infinity, -Infinity, -Infinity])`、`cov([[1, NaN], [2, 3]], { use: "na.or.complete" })`、`diff([Number.MAX_VALUE, -Number.MAX_VALUE])` を静的に検討。実行結果ではない。
+- Issue #120（lognormal distSummaryのtiny sdlogによるvariance underflow）はdistribution summaryの別問題として確認。現監査対象の記述統計コードとの重複はない。各種配列の空/単一要素、定数列、NaN、±Infinity、符号付きゼロ、n=2/3/4補正境界も確認。
+- `weightedMean` は有限入力の積/和overflow後にscaled retryし、zero weightsはnumeratorから除外。`meanDD` はoverflow sumをpower-of-two scale後に平均。quantileの9種のindex formulaは整数位置fuzzとequal-infinity neighborを扱う。cov/corはpairwise missing rowsとSpearman再rankを別処理。追加の確定バグは特定できず。
+- **新規確定バグなし。Issue追加なし。ソース変更なし。**
+- **検証制限**: GitHubソースの静的追跡のみ。Vitest/package runtime/Rとの実値照合は未実施。
