@@ -3892,3 +3892,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 監査範囲: nのhalf-even丸めとn<2^27制約、x/qのR force-integer tolerance、q+1e-7の丸め、support endpoint、symmetry index、subset-sum DP descending update、2^900 rescaling、trustLog2/minTrustedの誤差保証、main/low tableのLRU cache、low-table rebuild、Kahan累積、subnormal probabilityのlog reconstruction、discreteQuantile tail switchingとbisect stopping。
 - 追加入力（乱数なし）: `psignrank(0.99999999,1)`; `psignrank(0.99999999,2)`; `psignrank(1.00000001,2)`; `psignrank(-0.00000001,2)`; `psignrank(3.6,5)`; `dsignrank(0.5,5)`; `dsignrank(1e-8,5)`; `qsignrank(-1000,1100,{logP:true})`; `psignrank(605549,1100,{lowerTail:false,logP:true})`。`psignrank`のq+1e-7はRのsigned-rank実装でのinteger rounding仕様に一致し、geometric/negative-binomial CDFの誤ったfloor補正とは区別される。DP更新は降順のため各rankを一度だけ使用し、対称性index `total-x-1` は `P(V>x)=P(V≤total-x-1)` と一致する。
 - 追加監査で新規確定バグなし。Issue追加なし。ソース変更なし。ソース・fixture静的閲覧のみで、Vitest/package runtime/R 4.5.2実行なし。
+
+
+## Audit #629 — Noncentral chi-square zero-df subnormal density scaling
+
+- 対象: `src/distributions/nchisq.ts` SHA `9549791940c425d508057b7286329b396ca36c6f`（`dnchisq1`、`dnchisqRaw`、`subnormalHalf`、`gammaKernel`）、`src/internal/noncentral.ts`（`negligibleNcp`）、`test/nchisq.test.ts` SHA `764a104ca667e8b0d4309574cce3f72ab6806ed6`。
+- **確定バグ Issue #147**: 非心カイ二乗分布で df=0 の連続密度に、subnormal補正の指数 `df/2 - 1 = -1` を適用している。df=0ではj=0項はx=0のatomであり、x>0の連続密度の先頭項はj=1（自由度2の中央カイ二乗）なので、x→0+で密度は有限定数に近づき、x^-1には比例しない。
+- 再現入力（乱数なし）: `const x = 3 * Number.MIN_VALUE; const df = 0; const ncp = 1;`。IEEE-754で `x/2` は `2 * Number.MIN_VALUE` に丸められ、`x2 = 2*(x/2) = 4*Number.MIN_VALUE`。現行subnormal補正は `lt=log(x/x2)=log(3/4)` とし、`exp((df/2-1)*lt)=4/3` を掛ける。一方、Poisson mixtureの連続密度は `exp(-1/2)*(1/2)*f_2(0)=exp(-1/2)/4` に近づき、x=3MINと4MINの差で4/3倍には変化しない。したがって `dnchisq(3*Number.MIN_VALUE,0,{ncp:1})` は隣接subnormal点に対して誤った倍率となる。
+- 既存Issue #115は大dfでの `0 * Infinity` によるNaNであり、本件はdf=0での指数そのものの誤り。別経路・別条件。
+- 監査範囲: densityのdf=0/df<2/df=2境界、Poisson mixtureのj=0 atomとj≥1連続項、tiny-shape gamma kernel、subnormalHalfによるCDF/density scaling、asymptotic branch選択、Chernoff negligible-tail判定、quantile初期値とnarrow-spread/searchDoublesへの分岐を静的追跡。今回、独立して確定できた不具合は上記1件。
+- Issue: https://github.com/numero-uno-jpn/rStats.js/issues/147 （open）。
+- 静的IEEE-754演算追跡とPoisson mixtureの極限式による検証。Vitest/package runtime/R 4.5.2は未実施。ソースコード変更なし。監査台帳のみ更新。
