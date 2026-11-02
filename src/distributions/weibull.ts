@@ -48,6 +48,11 @@ function mulLarge(a: DD, s: number): DD {
 
 /** log(a / b) for positive finite a, b, also when a / b over- or underflows */
 function logRatio(a: number, b: number): number {
+  // a and b within 2^-20 of each other: log1p of their exact difference (log(a / b) took the rounding of the ratio,
+  // half an ulp of 1, for its value of the order of the difference: dweibull(2^52 - 0.5, 2^52, { scale: 2^52 - 0.5,
+  // log: true }) was an ulp off, as R; issue #111). Elsewhere as R
+  const d = a - b;
+  if (Math.abs(d) <= b * 2 ** -20) return Math.log1p(d / b);
   const r = a / b;
   return r >= MIN_NORMAL && r < Infinity ? Math.log(r) : Math.log(a) - Math.log(b);
 }
