@@ -13,7 +13,7 @@
 // - NaN or Inf is an error, as in eigen
 
 import { orthes, hqr2 } from "./eigen.js";
-import { fromMat, newMat, rangeExponent, requireSquare, toMat, type MatrixInput } from "./matrix.js";
+import { decompositionExponent, fromMat, newMat, requireSquare, toMat, type MatrixInput } from "./matrix.js";
 import { ldexp } from "../internal/summary.js";
 
 /**
@@ -60,7 +60,7 @@ export function schur(x: MatrixInput): SchurResult {
   // scaled by a power of 2 as in eigen and svd (exact): T and the eigenvalues are scaled back, Q has no units. With
   // entries near 1e308, sums in the reduction overflowed: schur([[1e308, 0], [1e308, 1e308]]) lost T's off-diagonal
   // entry, and a 3 x 3 matrix did not converge
-  const k = rangeExponent(A.data);
+  const k = decompositionExponent(A.data);
   const H = { nrow: n, ncol: n, data: k === 0 ? A.data.slice() : A.data.map((v) => ldexp(v, -k)) };
   const V = newMat(n, n);
   const d = new Float64Array(n);

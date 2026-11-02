@@ -11,7 +11,7 @@
 // - Triangular solves use plain substitution rather than dlatrs (which rescales to avoid overflow),
 //   so values may differ from R for matrices on the verge of overflow
 
-import { fromMat, isMatrixInput, newMat, rangeExponent, requireSquare, toMat, toMatOrColumn, transpose, type Mat, type MatrixInput, type VectorOrMatrix } from "./matrix.js";
+import { decompositionExponent, fromMat, isMatrixInput, newMat, requireSquare, toMat, toMatOrColumn, transpose, type Mat, type MatrixInput, type VectorOrMatrix } from "./matrix.js";
 import { ldexp } from "../internal/summary.js";
 import { infNorm, oneNorm } from "./norm.js";
 import { qr, qrR } from "./qr.js";
@@ -206,9 +206,9 @@ export function lacn2(n: number, apply: (kase: 1 | 2, x: Float64Array) => void):
   return temp > est ? temp : est;
 }
 
-/** A copy of a finite matrix divided by a power of 2 (exact) when its largest entry is outside [2^-256, 2^256], else undefined */
+/** A copy of a finite matrix divided by a power of 2 (exact; see decompositionExponent) when its largest entry is outside [2^-256, 2^256], else undefined */
 export function scaledCopy(A: Mat): Mat | undefined {
-  const k = rangeExponent(A.data);
+  const k = decompositionExponent(A.data);
   return k === 0 ? undefined : { ...A, data: A.data.map((v) => ldexp(v, -k)) };
 }
 
@@ -342,7 +342,7 @@ export function solve(a: MatrixInput, b?: VectorOrMatrix, options: SolveOptions 
   // the reciprocal condition number does not depend on the scale: for a matrix outside [2^-256, 2^256] it comes from a
   // copy divided by a power of 2 (the 1-norm of finite entries near 1e308 overflowed and the check was skipped)
   const scaled = finite ? scaledCopy(A) : undefined;
-  const k = scaled === undefined ? 0 : rangeExponent(A.data);
+  const k = scaled === undefined ? 0 : decompositionExponent(A.data);
   const anorm = oneNorm(A);
   const anormScaled = scaled === undefined ? NaN : oneNorm(scaled);
   // (overwrites the copy with its LU)

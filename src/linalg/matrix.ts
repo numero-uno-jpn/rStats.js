@@ -98,3 +98,15 @@ export function rangeExponent(data: ArrayLike<number>): number {
   if (mx === 0 || (mx >= 2 ** -256 && mx <= 2 ** 256)) return 0;
   return Math.floor(Math.log2(mx));
 }
+
+/**
+ * The power of 2 to divide a matrix by before a decomposition (eigen, schur, svd, and the condition estimates of
+ * rcond, solve and kappa): 0 within [2^-256, 2^256]; a smaller matrix is brought up near 1, a larger one only down to
+ * [2^256, 2^257), the top of the range used as given (#127, #131, #132). Bringing it down to 1 put every entry below
+ * 2 of a matrix near 1e308 into the subnormal range: svd(diag(1e308, 1e-15)) gave 8.9e-16 and ginv's 1/d overflowed.
+ * Division by a power of 2 is exact, so a matrix whose result was finite and correct gives the same bits
+ */
+export function decompositionExponent(data: ArrayLike<number>): number {
+  const k = rangeExponent(data);
+  return k > 0 ? Math.max(0, k - 256) : k;
+}

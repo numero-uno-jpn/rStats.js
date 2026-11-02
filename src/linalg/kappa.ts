@@ -18,10 +18,10 @@
 //   either case and rejects any other with R's message
 // ginv is the Moore-Penrose generalised inverse via the SVD; singular values at most largest singular value × tol are treated as 0.
 
-import { fromMat, newMat, toMat, transpose, type Mat, type MatrixInput } from "./matrix.js";
+import { fromMat, newMat, rangeExponent, toMat, transpose, type Mat, type MatrixInput } from "./matrix.js";
 import { norm, type NormType } from "./norm.js";
 import { qr, qrR } from "./qr.js";
-import { rcond, scaledCopy, solve } from "./solve.js";
+import { rcond, solve } from "./solve.js";
 import { svdScaled } from "./svd.js";
 import { ldexp } from "../internal/summary.js";
 import { maxOf, minOf } from "../internal/extremes.js";
@@ -82,7 +82,10 @@ export function kappa(z: MatrixInput, options: KappaOptions = {}): number {
   const zm0 = toMat(z);
   let zm = zm0;
   if (zm0.data.every(Number.isFinite)) {
-    const scaled = scaledCopy(zm0);
+    // (brought near 1, not only down to 2^256 as in the decompositions (decompositionExponent): LINPACK's triangular
+    // estimate depends on the scale, and kept its values for the matrices it already scaled)
+    const e = rangeExponent(zm0.data);
+    const scaled = e === 0 ? undefined : { ...zm0, data: zm0.data.map((v) => ldexp(v, -e)) };
     if (scaled !== undefined && scaled.data.every((v, i) => v === 0 ? zm0.data[i] === 0 : Math.abs(v) >= 2 ** -1022)) zm = scaled;
   }
   const zs: MatrixInput = zm === zm0 ? z : fromMat(zm);
@@ -253,14 +256,28 @@ export function ginv(x: MatrixInput, options: { tol?: number } = {}): number[][]
   const p = a.ncol;
   const out: Mat = newMat(p, n);
   const cut = Math.max(tol * (d[0] ?? 0), 0);
+  // a singular value whose reciprocal overflows (d below 2^-1024 in the scaled units) is inverted as 1/(d 2^600) and
+  // its terms are added in the original units, ldexp(…, 600 - s), after the others: ginv(diag(1e308, 1e-80), tol = 0)
+  // gave NaN and Inf (0 × Inf), for 1e80 (#127). The other terms are computed as before
+  const extra: Array<[number, number]> = [];
   for (let k = 0; k < d.length; k++) {
     if (!(d[k]! > cut)) continue;
     const inv = 1 / d[k]!;
+    if (!Number.isFinite(inv)) {
+      extra.push([k, 1 / ldexp(d[k]!, 600)]);
+      continue;
+    }
     for (let j = 0; j < n; j++) {
       const ujk = u![j]![k]! * inv;
       for (let i = 0; i < p; i++) out.data[i + j * p]! += v![i]![k]! * ujk;
     }
   }
   if (s !== 0) out.data = out.data.map((t) => ldexp(t, -s));
+  for (const [k, inv] of extra) {
+    for (let j = 0; j < n; j++) {
+      const ujk = u![j]![k]! * inv;
+      for (let i = 0; i < p; i++) out.data[i + j * p]! += ldexp(v![i]![k]! * ujk, 600 - s);
+    }
+  }
   return fromMat(out);
 }

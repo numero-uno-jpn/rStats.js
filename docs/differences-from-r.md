@@ -741,7 +741,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `tql2`, `orthes` and `hqr2` (R uses LAPACK's `dgesdd`, `dsyevr` and `dgeev`). Values agree to
   rounding. The general `eigen` balances the matrix first as `dgeev` does (`dgebal`). `eigen`, `svd` and `schur`
   scale a matrix whose largest entry is outside [2^-256, 2^256] by a power of 2 before the decomposition (exact),
-  so that its sums neither overflow nor underflow.
+  so that its sums neither overflow nor underflow: a small matrix up to near 1, a large one down only to 2^256, so
+  that entries down to 2^-1278 of the largest stay in the normal range. R's LAPACK scales down to about 2^459, so
+  smaller entries keep more bits in R: `svd(diag(c(1e308, 1e-80)))` gives 1e-80 in R and 9.9999999999995e-81 here
+  (and `ginv(..., tol = 0)` 1e80 and 1.00000000000005e80); an entry below 2^-1331 of the largest
+  (`diag(c(1e308, 1e-308))`) becomes 0 in both.
 - **`rcond` of triangular matrices** solves by plain substitution instead of `dlatrs` (which
   rescales to avoid overflow), so matrices on the edge of overflow may give a different value.
 - **`chol`** propagates NaN on the diagonal instead of failing (R's OpenBLAS does the same; the

@@ -20,7 +20,7 @@
 
 import { ldexp } from "../internal/summary.js";
 import { gebak, gebal } from "./balance.js";
-import { fromMat, newMat, rangeExponent, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
+import { decompositionExponent, fromMat, newMat, requireSquare, toMat, type Mat, type MatrixInput } from "./matrix.js";
 
 /**
  * Options for {@link eigen}.
@@ -88,7 +88,7 @@ export function eigen(x: MatrixInput, options: EigenOptions = {}): EigenResult {
   for (const v of a.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
   // A matrix of extreme magnitude is scaled by a power of 2 (exact) and the eigenvalues scaled back, so that the
   // iterations neither overflow nor underflow; other matrices are used as given
-  const k = rangeExponent(a.data);
+  const k = decompositionExponent(a.data);
   const as = k === 0 ? a : { ...a, data: a.data.map((v) => ldexp(v, -k)) };
   // The automatic symmetry test is made on the matrix normalised by a power of 2 near its largest |a_ij|, so that it
   // is relative at every scale: R's (all.equal) falls back to an absolute difference when mean |a_ij| <= 100 eps, and
