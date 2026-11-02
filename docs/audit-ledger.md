@@ -2686,3 +2686,21 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Filed non-duplicate Issue #97: https://github.com/numero-uno-jpn/rStats.js/issues/97
 - Suggested remediation: use a safe own-property definition helper consistently for all data-frame output columns (or a null-prototype output object if compatible with the public API), and add regression tests for split and aggregate.
 - Source/test inspection and language-semantics trace only; no package runtime or Vitest execution was performed. No source code changed.
+
+
+## Audit #515 — `src/internal/seq.ts` invalid `length.out` values silently become empty sequences
+
+- Source blob: `7475913bf7aaa85ca90a1a52dcf620990cd18e00`.
+- Confirmed defect: `seqLength()` applies `Math.ceil(n)` and passes the result to `Array.from({ length: len })` without validating it. ECMAScript's array-like length conversion maps negative values and `NaN` to zero, so invalid length requests silently return `[]`.
+- Concrete reproductions:
+  ```ts
+  seqLength(0, 10, -1);   // actual: []
+  seqLength(0, 10, -0.1); // actual: []
+  seqLength(0, 10, NaN);  // actual: []
+  seqLength(0, 10, 0);    // valid empty result, if zero length is supported
+  seqLength(0, 10, 2.1);  // documented ceil behavior: length 3
+  ```
+- This loses the distinction between invalid negative/NaN length requests and a legitimate zero-length sequence. The function explicitly claims compatibility with R's `seq(from, to, length.out = n)`; negative and NaN `length.out` are invalid in R.
+- Filed non-duplicate Issue #98: https://github.com/numero-uno-jpn/rStats.js/issues/98
+- Suggested remediation: validate `n` before allocation, reject non-finite and negative values deliberately, preserve documented positive fractional rounding, and test negative, NaN, zero, and positive fractional lengths.
+- Static source and ECMAScript length-coercion analysis only; no R runtime, package runtime, or Vitest execution was performed. No source code changed.
