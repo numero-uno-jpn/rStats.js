@@ -1171,6 +1171,13 @@ export function qnt1(p: number, df0: number, ncp: number, lowerTail: boolean, lo
     }
     return log ? last.log : last.lin;
   };
+  // Where the normal start is beyond 1e300 or not finite (ncp near the largest double, or a huge ncp^2 / df), the
+  // quantile can lie beyond the largest double for any df: if the target is not reached there, it is ±Infinity. (The
+  // solver broke down outside the doubles and returned 1 for qt(0.9, 2, ncp = 1e308); issue #136)
+  if (!(Math.abs(x0) <= 1e300)) {
+    const lMax = cdfY(Number.MAX_VALUE, lowerY, true);
+    if (lowerY ? lMax < logTarget : lMax > logTarget) return s * Infinity;
+  }
   // In the far tail, if the target is smaller than the probability at |t| = T0, solve directly with the power law
   const T0 = farLimit(df / 2, ncp);
   let hi = Infinity;

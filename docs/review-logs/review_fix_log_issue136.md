@@ -1,19 +1,22 @@
-# Issue #136 対応ログ: 非心 t の分位点で farLimit が溢れる (issue の例は再現しない。近い入力の誤答は判断待ち)
+# Issue #136 log: noncentral t quantile where farLimit overflows (the issue's example does not reproduce; a quantile beyond the largest double was wrong)
 
-GitHub Issue #136。夜間の自律対応。判定: issue の例は再現しない。ただし確認中に、同じ関数の近い入力 (分位点が最大の double を超える場合) で誤答を見つけた。**判断待ち** (コードの変更なし)。
+GitHub Issue #136. Checked overnight (no change; the nearby wrong answers were left for a decision in commit `a44741a`, then in Japanese). On the morning of 2026-11-03 the user chose option A (the check at the largest double, for every df when ncp is large). The plan was approved.
 
-## 計画
+## Plan
 
-- 意図: issue の主張 (`qt(0.9, 2, { ncp: 1e299 })` で `farLimit` が Inf に溢れ、分位点の反転が壊れる) を確かめる
-- 方法: issue の例と、p・df・ncp を変えた例を npx tsx で計算し、pt で戻して p に一致するか、df = 2 の解析的な近似 ncp / sqrt(−log p) (ncp が大きいときの P(T ≤ t) ≈ exp(−ncp²/t²)) と比べる。R 4.5.2 の qt も見る
-- 選んだ理由: 有限の正しい値が返れば変えない。誤答が見つかったら、直し方を選ぶ判断が要るかを見る
+- Intent: the issue says that `qt(0.9, 2, { ncp: 1e299 })` breaks because `farLimit` overflows to Infinity. Check the claim, and fix the wrong answers found nearby: where the quantile exceeds the largest double (1.797e308), qt returned 1 or another wrong finite value instead of Infinity.
+- Method (overnight): compute the issue's example and variants with npx tsx, map them back with pt, and compare with the df = 2 limit ncp / sqrt(-log p) (for a large ncp, P(T <= t) is about exp(-ncp^2 / t^2)) and with R 4.5.2.
+- Method (fix): `qnt1` (`src/distributions/nt.ts`) checked whether the distribution function at Number.MAX_VALUE reaches the target only for df < 1e-3 on the near side. Now, wherever the normal starting value x0 is beyond 1e300 or not finite, it checks for every df and on both sides. That covers ncp near the largest double and a huge ncp^2 / df; for ncp > 1.3e154, ncp^2 overflows. If the target is not reached at the largest double (lower side: log P[T <= MAX] < target; far side: log P[T > MAX] > target), the quantile is s Infinity. Otherwise the code goes on as before.
+- Why: user decision (option A). Here R is right (Inf) and rStats.js was wrong. The check is local, and its condition limits the extra evaluation of pt to huge starting values. Where it does not return, the path is unchanged, so finite answers keep their bits. Option B (check the result afterwards) needed a tolerance and could hide other faults.
 
-## 確認 (main `f389330`)
+## Check (main `f389330` overnight, `9e44863` for the fix; R 4.5.2)
 
-| 呼び出し | 近似 ncp/sqrt(−log p) | R 4.5.2 | rStats.js | pt(rStats.js の値) |
+The issue's example and its neighbours were already finite and correct:
+
+| Call | Limit ncp/sqrt(-log p) | R 4.5.2 | rStats.js | pt(rStats.js value) |
 |---|---|---|---|---|
-| qt(0.9, 2, ncp = 1e299) (issue の例) | 3.080782624761102e299 | Inf (誤り) | 3.0807826247611014e299 | 0.9 |
-| qt(0.1, 2, ncp = 1e299) | 6.5901022898226085e298 | 9.48075190810903e153 (誤り) | 6.5901022898226085e298 | 0.09999999999999998 |
+| qt(0.9, 2, ncp = 1e299) (the issue's example) | 3.080782624761102e299 | Inf (wrong) | 3.0807826247611014e299 | 0.9 |
+| qt(0.1, 2, ncp = 1e299) | 6.5901022898226085e298 | 9.48075190810903e153 (wrong) | 6.5901022898226085e298 | 0.09999999999999998 |
 | qt(0.5, 2, ncp = 1e299) | 1.2011224087864499e299 | | 1.2011224087864497e299 | 0.4999999999999999 |
 | qt(0.9, 1, ncp = 1e299) | | Inf | 7.957896561090548e299 | 0.9 |
 | qt(0.9, 10, ncp = 1e299) | | | 1.433674141138895e299 | 0.9 |
@@ -21,37 +24,36 @@ GitHub Issue #136。夜間の自律対応。判定: issue の例は再現しな�
 | qt(0.1, 2, ncp = 1e308) | 6.590102289822609e307 | 9.4807519081087683e153 | 6.590102289822609e307 | 0.09999999999999998 |
 | qt(0.9, 2, ncp = 5e307) | 1.5403913123805511e308 | | 1.5403913123805503e308 | 0.9 |
 
-issue の例は有限の正しい値を返す (2 ms)。`farLimit(1, 1e299)` は issue のとおり Inf になり、p = 0.9 (小さい方の裾は上側) では `qnt1` の `!lowerY` の枝で `farTailLog(Infinity, …)` が `pntBoth(Infinity, …)` に落ちる。しかしその値は上側の log 確率 −Inf で、「目標がそれより小さいなら冪の裾で解く」の判定は偽になり、上限 hi = T0 = Inf のまま通常の解法で正しく解ける (冪の裾の近道を使わないだけ)。R はこの規模で Inf か誤った値を返す。
+`farLimit(1, 1e299)` does overflow to Infinity as the issue says. For p = 0.9 (the smaller tail is the upper one), the `!lowerY` branch of `qnt1` calls `farTailLog(Infinity, ...)`, which falls to `pntBoth(Infinity, ...)`. That gives an upper log probability of -Infinity. The test "the target is below it, so solve with the power law" is then false, and the ordinary solver, with upper bound hi = T0 = Infinity, finds the quantile. Only the power-law shortcut is skipped.
 
-### 見つけた誤答 (判断待ち)
+Quantiles beyond the largest double (wrong before, fixed):
 
-分位点の真値が最大の double (1.797e308) を超える場合に、Inf でなく 1 などの誤った有限値を返す。
-
-| 呼び出し | 近似 | R 4.5.2 | rStats.js | pt(rStats.js の値) |
+| Call | Limit | R 4.5.2 | Before | After |
 |---|---|---|---|---|
-| qt(0.9, 2, ncp = 6e307) | 1.85e308 (> 最大の double) | Inf | **1** | 0 |
-| qt(0.9, 2, ncp = 1e308) | 3.08e308 | Inf | **1** | 0 |
-| qt(0.95, 2, ncp = 5e307) | 2.2e308 | | **1** | 0 |
-| qt(0.5, 2, ncp = 1.5e308) | 1.80e308 | Inf | **2.2844135865397565e222** | 0 |
-| qt(0.9, 1, ncp = 1e308) | | Inf | **1** | 0 |
-| qt(0.99, 10, ncp = 1e308) | | Inf | **1** | 0 |
+| qt(0.9, 2, ncp = 6e307) | 1.85e308 | Inf | 1 (pt 0) | Inf |
+| qt(0.9, 2, ncp = 1e308) | 3.08e308 | Inf | 1 | Inf |
+| qt(0.95, 2, ncp = 5e307) | 2.2e308 | Inf | 1 | Inf |
+| qt(0.5, 2, ncp = 1.5e308) | 1.80e308 | Inf | 2.2844135865397565e222 | Inf |
+| qt(0.9, 1, ncp = 1e308) | | Inf | 1 | Inf |
+| qt(0.99, 10, ncp = 1e308) | | Inf | 1 | Inf |
+| qt(1e-300, 2, ncp = 1e299, lower = FALSE) | | Inf | 1 | Inf |
+| qt(0.5, 0.01, ncp = 1e299) | | Inf | 2.2844135865397565e222 | Inf |
+| qt(0.1, 2, ncp = -1e308) | | -Inf | -1 | -Inf |
 
-pt(1.7e308, 2, ncp = 1e308) = 0.7074977984184172 < 0.9 なので、qt(0.9, …) は Inf が正しい (R も Inf)。
+pt(1.7e308, 2, ncp = 1e308) = 0.7074977984184172 < 0.9, so qt(0.9, ...) is Inf.
 
-原因: `qnt1` (`src/distributions/nt.ts` 1184 行目) は、最大の double での分布関数が目標に届かないときに s × Inf を返す検査を `df < 1e-3` のときだけ行う (近い裾が 1 − c |t|^(−2a) でしか増えない小さな a の場合のコメント)。ncp が最大の double に近いと、df が大きくても分位点が最大の double を超え、その後の解法が区間の外で崩れて 1 などを返す。
+- Sweep (scratchpad `s136.ts`): 20 ncp (-1e308 to 1.7e308, including 0.5, 10, 1e5 and 1e150 to 2e154 around the overflow of ncp^2) x 10 df (1e-5 to 1e10) x 8 p x both tails, 3200 quantiles before and after. 353 changed, all to ±Infinity, and all from wrong values: 1 or -1 (313), 2.2844135865397565e222 (24) and 2.718281828459045 (16, ncp = 1.7e308 with df <= 0.01). No finite answer changed, and none of those wrong values remains.
+- R gives Inf here, so the fixed values agree with R; nothing is added to the docs.
 
-## 判断待ち
+## Fix
 
-R が正しく (Inf) rStats.js が誤る範囲なので、直すこと自体は方針に沿う。ただし #136 の issue の例とは別の入力で、修正は `qnt1` の分岐 (通常の範囲の経路の手前) に触れるので、朝の判断を待つ。
+- `src/distributions/nt.ts` (`qnt1`): before the far-tail branch, where abs(x0) is not <= 1e300, compare the log distribution function at Number.MAX_VALUE with the target on the side being solved, and return s Infinity if the target lies beyond it.
 
-- 案 A (推奨): 1184 行目の検査を、`lowerY` の側ではすべての df で行う (`cdfY(Number.MAX_VALUE, true, true) < logTarget` なら s × Inf)。ただし毎回 pntBoth を 1 回余分に呼ぶので、ncp が大きいとき (例: |ncp| > 1e300 か、正規近似の x0 が溢れる・1e300 を超えるとき) だけ行う。利点: 局所的、通常の範囲のビットは変わらない (条件で分ける場合)。欠点: 条件の閾値の選び方 (分位点が最大の double を超えうるのは |ncp| ≳ 1.797e308 × sqrt(−log p) / … で、p が 1 に近いと ncp 1e307 でも超える。安全には x0 が非有限か 1e300 超、または |ncp| > 1e290 程度)
-- 案 B: 解法の後で、得た y が pt で目標と合わない (区間の外で崩れた) とき Inf にする。利点: どの経路にも効く。欠点: 「合わない」の判定の許容幅が要り、別の不具合を隠しうる
-- 案 C: この issue は再現しないとして閉じ、見つけた誤答は別の issue として扱う (修正は案 A)
+## Tests
 
-推奨: 案 A を #136 の続きとして直す (issue の題「large finite ncp で非心 t の分位点が壊れる」に当たる)。テストは上の表の 6 件 (Inf) と、issue の例を含む有限の 8 件 (修正前と同じビット)。
+- `test/issue136.test.ts`: the nine Infinity cases above (with pt at 1.7e308 below 0.9), a far-tail quantile that stays finite (9.999999999749997e303), and the eight finite quantiles of the first table with their bits from before. With src stashed, the Infinity test fails and the finite one passes.
+- Whole suite `npx vitest run`: 276 files, 2570 passed / 38 skipped, 0 failed. `npx tsc --noEmit -p .`: no errors.
 
 ## close comment
 
-(案 C、または直さない場合の文面。案 A で直すときは修正のコミットに合わせて書き直す。)
-
-Not reproducible as described: qt(0.9, 2, ncp = 1e299) returns 3.0807826247611014e299, and pt at that value is 0.9 (the analytic limit ncp / sqrt(-log p) for df = 2 is 3.080782624761102e299; R 4.5.2 returns Inf). farLimit(1, 1e299) does overflow and farTailLog(Infinity, ...) falls to pntBoth(Infinity, ...), as the issue traces, but that gives the upper log probability -Infinity, so the power-law shortcut is skipped and the ordinary solver, with the upper bound Infinity, finds the quantile. The lower quantile qt(0.1, 2, ncp = 1e299) is also correct (6.5901022898226085e298; R gives 9.48e153). While checking, a different failure was found: where the quantile exceeds the largest double (qt(0.9, 2, ncp = 1e308), true value about 3.1e308), qt returns 1 instead of Inf; this is recorded in review_fix_log_issue136.md and will be handled separately. (Not pushed yet.)
+The issue's example was already right: qt(0.9, 2, ncp = 1e299) returns 3.0807826247611014e299, and pt at that value is 0.9 (the df = 2 limit ncp / sqrt(-log p) is 3.080782624761102e299; R 4.5.2 returns Inf). farLimit(1, 1e299) does overflow, and farTailLog(Infinity, ...) falls to pntBoth(Infinity, ...) as traced, but that gives the upper log probability -Infinity, so the power-law shortcut is skipped and the ordinary solver finds the quantile. Checking it led to a related failure, fixed in <commit of #136, see git log --grep='#136'>. Where the quantile exceeds the largest double, qt returned 1 or another wrong finite value: qt(0.9, 2, ncp = 1e308) gave 1 (true value about 3.1e308; R gives Inf), and qt(0.5, 2, ncp = 1.5e308) gave 2.28e222. qnt1 checked the distribution function at the largest double only for df < 1e-3. Wherever the normal starting value is beyond 1e300 or not finite, it now checks for every df on the side being solved, and returns ±Infinity when the target is not reached there, as R does. In a sweep of 3200 quantiles (ncp up to ±1.7e308, df 1e-5 to 1e10), 353 wrong values (1, -1, 2.28e222, e) became ±Infinity and no finite answer changed. Test: test/issue136.test.ts. (Not pushed yet.)
