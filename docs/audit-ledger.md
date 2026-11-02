@@ -3943,3 +3943,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - gammaの正負大引数、負整数pole、MAXGAM近傍、MAXLGM、subnormal近傍のlgamma、lgamma1pのTaylor切替、Stirling補正とdouble-double指数合成を確認。polygammaは正引数のHurwitz zeta scaled sum、q>1e8の漸近分岐、直接項の停止条件、Euler-Maclaurin補正、負引数のreflection/cot導関数、deriv=0..100とpole/infinity処理を確認。
 - 決定的境界入力として `gamma(Number.MIN_VALUE)`、`lgamma(Number.MIN_VALUE)`、`lgamma(-Number.MIN_VALUE)`、`psigamma(Number.MIN_VALUE, 100)`、`psigamma(1e8, 100)`、`psigamma(1e8 + 2, 100)`、`psigamma(-0.5, 100)`、`psigamma(-Infinity, 3)` を検討。これらのうちsubnormal gamma/lgammaとpole/infinityの期待動作は実装コメント・既存テストの仕様と整合。psigammaの高次・大q境界については漸近式とスケーリングを静的確認し、追加の確定バグを特定できず。
 - **新規確定バグなし。Issue追加なし。ソース変更なし。** GitHubソース・既存テストの静的監査のみ。Vitest/package runtime/R実行は未実施。
+
+
+## Audit #634 — `perm()` with infinite n and finite large k
+
+- 対象: `src/special/extra.ts` SHA `f4da727f23f20c049946c5c962f54ac270678e26`、`src/special/erf.ts` SHA `f72136920c3138354d5d6cd4a342055e590e0fad`、`test/specialextra.test.ts` SHA `8958d99a306c3c729b08a43496166b0982853614`。
+- **新規Issue #149**: `perm(Infinity, 1001)` がNaNになる。有限の正のkを固定すると `Gamma(n+1)/Gamma(n-k+1) ~ n^k` なのでn→+Infinityで期待値は+Infinity。現在は `perm()` の非有限値分岐から `permLgamma()` に入り、両方の `lgammaSign(Infinity)` がInfinityとなって差が `Infinity-Infinity=NaN`。有限非整数k>1000でも同経路。Issue: https://github.com/numero-uno-jpn/rStats.js/issues/149
+- 決定的再現入力: `perm(Infinity, 1001)`、`perm(Infinity, 1000.5)`。境界対照として `perm(Infinity, 0)` はk<=1000のfalling factorial経路で1、`perm(Infinity, 1)` はInfinityとなる。乱数なし。
+- 推奨修正方向: `n===Infinity` かつ有限 `k>0` をlog-gamma比より前に処理してInfinityとする。k=0は1を維持し、n=k=Infinityは別途未定義扱い。
+- 併せて `gammainc` のgamma overflow領域とsmall-tail経路、`erfinv/erfcinv` の端点・subnormal確率、`erf/erfc/erfcx` のx=0,1,8,27付近・大引数切替を確認。今回それ以外に新規確定バグなし。
+- **検証制限**: ソースと既存テストの静的追跡のみ。Vitest/package runtime/R実行は未実施。
