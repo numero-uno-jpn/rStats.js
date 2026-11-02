@@ -345,6 +345,18 @@ function hymanCoef(x: readonly number[], y: readonly number[]): { b: number[]; c
   return { b, c, d };
 }
 
+/**
+ * The exponent k by which the sorted knots are divided when their range overflows (all finite, x_max - x_min
+ * infinite), else 0. The spline is then built in x / 2^k, where the spacings are finite, and evaluated at u / 2^k; a
+ * derivative of order d is brought back by 2^(-d k) (both exact for normal numbers). R gives 0, NaN or wrong values
+ * there (issue #125; spline, review 50).
+ */
+function knotScale(x: readonly number[]): number {
+  const n = x.length;
+  if (n < 2 || !x.every(Number.isFinite) || Number.isFinite(x[n - 1]! - x[0]!)) return 0;
+  return Math.floor(Math.log2(maxOf(x.map(Math.abs))));
+}
+
 /** Regularized data and coefficients of a b/c/d spline. */
 function cubicSpline(x: Sample, y: Sample, method: SplineMethod, ties: Ties): Cubic {
   const pts = regularize(x, y, ties);
@@ -462,12 +474,9 @@ export function spline(
 } {
   const { method = "fmm", ties = "mean" } = options;
   let sp = cubicSpline(x, y, method, ties);
-  // knots whose spacing overflows (x from -1e308 to 1e308; R gives NaN): the spline in x / 2^k, evaluated at xout / 2^k
-  let k = 0;
-  if (sp.x.some((v, i) => i > 0 && !Number.isFinite(v - sp.x[i - 1]!)) && sp.x.every(Number.isFinite)) {
-    k = Math.floor(Math.log2(maxOf(sp.x.map(Math.abs))));
-    sp = cubicSpline(Array.from(x, (v) => ldexp(v, -k)), y, method, ties);
-  }
+  // knots whose range overflows (x from -1e308 to 1e308; R gives NaN): the spline in x / 2^k, evaluated at xout / 2^k
+  const k = knotScale(sp.x);
+  if (k !== 0) sp = cubicSpline(Array.from(x, (v) => ldexp(v, -k)), y, method, ties);
   let xout: number[];
   if (options.xout !== undefined) xout = Array.from(options.xout);
   else {
@@ -510,14 +519,24 @@ export interface SplinefunOptions {
  */
 export function splinefun(x: Sample, y: Sample, options: SplinefunOptions = {}): (xq: Sample, deriv?: number) => number[] {
   const { method = "fmm", ties = "mean" } = options;
+  // knots whose range overflows: built in x / 2^k (see knotScale), as spline
   if (method === "monoH.FC") {
-    const pts = regularize(x, y, ties);
+    let pts = regularize(x, y, ties);
     if (pts.x.length === 0) throw new RangeError("zero non-NA points");
+    const k = knotScale(pts.x);
+    if (k !== 0) pts = regularize(Array.from(x, (v) => ldexp(v, -k)), y, ties);
+    // the slopes in units of 1 / 2^k
     const m = fritschCarlsonSlopes(pts.x, pts.y);
-    return (xq, deriv = 0) => evalHermite(pts.x, pts.y, m, xq, deriv);
+    return (xq, deriv = 0) => evalHermite(pts.x, pts.y, m, k, k, xq, deriv);
   }
-  const sp = cubicSpline(x, y, method, ties);
-  return (xq, deriv = 0) => evalCubic(sp, xq, deriv);
+  let sp = cubicSpline(x, y, method, ties);
+  const k = knotScale(sp.x);
+  if (k === 0) return (xq, deriv = 0) => evalCubic(sp, xq, deriv);
+  sp = cubicSpline(Array.from(x, (v) => ldexp(v, -k)), y, method, ties);
+  return (xq, deriv = 0) => {
+    const d = checkDeriv(deriv);
+    return evalCubic(sp, Array.from(xq, (v) => ldexp(v, -k)), d).map((v) => ldexp(v, -d * k));
+  };
 }
 
 /**
@@ -549,12 +568,26 @@ function fritschCarlsonSlopes(x: readonly number[], y: readonly number[]): numbe
   return m;
 }
 
-/** Evaluates the cubic Hermite spline (or a derivative) with values y and slopes m at x; linear outside the data. */
-function evalHermite(x: readonly number[], y: readonly number[], m: readonly number[], xq: Sample, deriv0: number): number[] {
+/**
+ * Evaluates the cubic Hermite spline (or a derivative) with values y and slopes at x; linear outside the data. The
+ * knots x are those divided by 2^k and the slopes are m 2^-e (k = e = 0 in the ordinary range, where this is the plain
+ * formula): splinefunH keeps the given slopes (e = 0), monoH.FC its slopes in the divided coordinate (e = k), so that
+ * neither is rescaled where it could overflow or lose bits.
+ */
+function evalHermite(
+  x: readonly number[],
+  y: readonly number[],
+  m: readonly number[],
+  k: number,
+  e: number,
+  xq: Sample,
+  deriv0: number,
+): number[] {
   const deriv = checkDeriv(deriv0);
   const n = x.length;
-  return Array.from(xq, (u) => {
-    if (Number.isNaN(u)) return NaN;
+  return Array.from(xq, (u0) => {
+    if (Number.isNaN(u0)) return NaN;
+    const u = k === 0 ? u0 : ldexp(u0, -k);
     // i = number of knots <= u
     let lo = 0;
     let hi = n;
@@ -565,8 +598,8 @@ function evalHermite(x: readonly number[], y: readonly number[], m: readonly num
     }
     const i = lo;
     if (i === 0 || i === n) {
-      const k = i === 0 ? 0 : n - 1;
-      return deriv === 0 ? y[k]! + m[k]! * (u - x[k]!) : deriv === 1 ? m[k]! : 0;
+      const j = i === 0 ? 0 : n - 1;
+      return deriv === 0 ? y[j]! + ldexp(m[j]! * (u - x[j]!), k - e) : deriv === 1 ? ldexp(m[j]!, -e) : 0;
     }
     const x0 = x[i - 1]!;
     const h = x[i]! - x0;
@@ -576,15 +609,17 @@ function evalHermite(x: readonly number[], y: readonly number[], m: readonly num
     const y1 = y[i]!;
     const m0 = m[i - 1]!;
     const m1 = m[i]!;
-    const delta = (y1 - y0) / h;
+    // the secant in the units of the slopes
+    const delta = ldexp((y1 - y0) / h, e - k);
     switch (deriv) {
       case 0: {
+        // h m_i in the original units
         const h01 = t * t * (3 - 2 * t);
-        return y0 * (1 - h01) + h * m0 * (t * t1 * t1) + y1 * h01 + h * m1 * (t * t * t1);
+        return y0 * (1 - h01) + ldexp(h * m0, k - e) * (t * t1 * t1) + y1 * h01 + ldexp(h * m1, k - e) * (t * t * t1);
       }
-      case 1: return delta * (-6 * t * t1) + m0 * (t1 * (3 * t - 1)) + m1 * (t * (3 * t - 2));
-      case 2: return (delta * (6 - 12 * t) + m0 * (6 * t - 4) + m1 * (6 * t - 2)) / h;
-      default: return (-12 * delta + 6 * m0 + 6 * m1) / (h * h);
+      case 1: return ldexp(delta * (-6 * t * t1) + m0 * (t1 * (3 * t - 1)) + m1 * (t * (3 * t - 2)), -e);
+      case 2: return ldexp((delta * (6 - 12 * t) + m0 * (6 * t - 4) + m1 * (6 * t - 2)) / h, -e - k);
+      default: return ldexp((-12 * delta + 6 * m0 + 6 * m1) / (h * h), -e - 2 * k);
     }
   });
 }
@@ -611,7 +646,10 @@ export function splinefunH(x: Sample, y: Sample, m: Sample): (xq: Sample, deriv?
   const M = order.map((i) => m[i]!);
   for (let i = 1; i < n; i++)
     if (!(X[i]! - X[i - 1]! > 0)) throw new RangeError("'x' must be *strictly* increasing (non - NA)");
-  return (xq, deriv = 0) => evalHermite(X, Y, M, xq, deriv);
+  // knots whose range overflows: x / 2^k (see knotScale), the slopes as given
+  const k = knotScale(X);
+  const Xs = k === 0 ? X : X.map((v) => ldexp(v, -k));
+  return (xq, deriv = 0) => evalHermite(Xs, Y, M, k, 0, xq, deriv);
 }
 
 /**

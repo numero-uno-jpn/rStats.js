@@ -296,6 +296,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `matrix(c(1e308, 1e308), 1) %*% matrix(c(1e308, -1e308))` (積は溢れるが和は溢れない) | NaN | 0 (そうした要素は、2 の冪で割った因子から積和を取り直す) |
 | `optimize(function(x) (x / 1e308 - 1.05)^2, c(1e308, 1.1e308))` (lower + upper が溢れる) | 終わらない (中点が Inf) | 1.05e308 (x/2 の座標で探す) |
 | `approx(c(-1e308, 1e308), c(0, 1), n = 3)`、`approx(c(0, 1), c(-1e308, 1e308), xout = 0.5)`、`spline(c(-1e308, 1e308), c(0, 1), n = 3)` (有限な値の差が溢れる) | y が 0, 0, 1。Inf。spline は 0, 0, NaN | 0, 0.5, 1。0。0, 0.5, 1 (差を半分の座標で取る。spline は x / 2^k で作る) |
+| `splinefun(c(-1e308, 1e308), c(0, 1))(0)` (全方式)、`splinefun(c(-1.5e308, 0, 1.5e308), c(0, 1, 0), method = "periodic")(0)`、`splinefunH(c(-1e308, 1e308), c(0, 1), c(0, 0))(0)` (節点の範囲が溢れる。issue #125) | 0 (fmm、natural)、NaN (hyman、monoH.FC、splinefunH)。periodic は 0 | 0.5。periodic は 1 (x / 2^k で作り、d 階の導関数は 2^(-d k) 倍で戻す。splinefunH は与えた傾きをそのまま使う)。`spline` も同じ条件 (隣の間隔だけでなく範囲) で判定する |
 | `rbeta(n, 1e308, 1e308, ncp = 0)` (2 shape が溢れる) | NaN | 0.5 (χ² 乱数を半分にして作る。引く乱数は R と同じ) |
 | `rgeom(n, 1e-309)`、`rnbinom(n, 1, prob = 1e-309)`、`rnbinom(n, 0.5, mu = 1e308)` ((1 - p) / p や mu / size が溢れる) | NA または NaN (その後の乱数を引かない) | 乱数の値 (`set.seed(4)` なら 1.716e308 など)。指数乱数や尺度 1 のガンマ乱数に 1 - p を掛けて p で割る。平均そのものが溢れるときだけ Inf。Poisson の段の乱数は引くので、R と乱数列がずれるのはこの場合だけ |
 | `rmultinom(n, size, c(0.5, 0.5, 1e-16))` (確率の和が double で 1 になる) | 2 番目の区分が残りをすべて取り (p = 1)、3 番目は引かれない | 2 番目は 0.5 / (0.5 + 1e-16) の二項乱数 (後ろの区分の確率を後ろから足した和で割る)。R と乱数列がずれるのはこうした場合だけ |
