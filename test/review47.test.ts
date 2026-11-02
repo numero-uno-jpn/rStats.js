@@ -77,7 +77,7 @@ describe("review 47", () => {
     expect(relErr(besselY(MIN, 0.3), -1.1505957125059705e97)).toBeLessThan(1e-15); // NaN before
     expect(relErr(besselJ(MIN, -0.3), 9.3085148507228119e96)).toBeLessThan(1e-15); // NaN before
     expect(relErr(besselJ(MIN, 0.3), 9.2215966252391492e-98)).toBeLessThan(1e-15); // 0 before
-    expect(relErr(besselY(1e-310, 0.5), -7.9788456080286627e154)).toBeLessThan(4e-16); // 2e-14 before
+    expect(relErr(besselY(1e-310, 0.5), -7.9788456080286627e154)).toBeLessThan(1e-15); // 2e-14 before; Math.pow(2, -0.5) is 1 ulp low on Node 22
   });
 });
 
