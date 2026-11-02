@@ -221,7 +221,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/special/incbetPrefactor.ts` | 問題未検出 | #290 | `bf49427ee0d86f326b25dbb3841c4f355ca6444c` | — | small-shape/huge-shape prefactor、lgammaRatioHugeの打切り誤差、smallShapeGの分岐、log1m、mulBigのスケーリングを追跡。 | `prefactorParts(a,b,x,1-x)` の `min(a,b)=[5e-324,1e-300,0.999999,1]`, `max(a,b)=[0.5,1,2^52,1e308]`、xと1-xをそれぞれsubnormal/0.5/1近傍に設定。`HUGE_SHAPE=2^52`, `HUGE_SHAPE_MAX_SMALL=100` と境界の不等号を確認。Vitest未実行。 |
 | `src/special/incbetTemme.ts` | 問題未検出 | #291 | `cf22538af050c12366e0e0a19ab40ddcd09c7db6` | — | Temme一様漸近展開の変数変換、Taylor係数生成、1/m展開、central/tail形式の切替、a+b overflow時のhalvingとDD devianceを追跡。 | `betaIncTemme(a,b,x,1-x,tail)` の `(a,b)=[(25,25),(100,50),(50,100),(1e308,1e308),(1e308,50)]`、xをmeanの両側と `|tau|=1` 近傍に設定。`TEMME_MIN_M=25`, `TAU_MAX=1`, `Y_SWITCH=1.5`, `KMAX=12` の境界を確認。`test/beta.test.ts` のpbeta fixture経由を確認。Vitest未実行。 |
 | `src/special/lgammaDiff.ts` | 問題未検出 | #292 | `22ddcc50b01890dafbbb49a1a1aa7ac2c840dfee` | — | lgamma(b+a)-lgamma(b)のrecurrenceでbを15超へ移す手順、Stirling差分expm1級数、DD主項、呼び出し元のshape制約を追跡。 | `lgammaDiffDD(a,b)` の呼び出し側条件を確認し、`a=[0,5e-324,1e-300,0.5,1,100]`, `b=[1e-300,0.5,1,15,15+EPS,1e8,1e308]` を境界検討。`incbetPrefactor.smallShapeG` は小shape/巨大shape分岐で入力比を制御し、`incbet` のpseriesComplementはtail selection下で使用される。単体runtime未実行。 |
-| `src/special/loader.ts` | 問題あり | #96 | `ac5d64a614debaa2922754bd257f2b8286619518` | [#24](https://github.com/numero-uno-jpn/rStats.js/issues/24) | Rでは未確認 | 中央二項確率の解析式と Stirling 漸近、IEEE-754 中間積の独立計算。実パッケージ実行・R比較なし。 |
+| `src/special/loader.ts` | 問題あり・追加監査済み | #96, #534 | `798b92185091204205e77d1e8e81e4591e7d78c3` | [#24](https://github.com/numero-uno-jpn/rStats.js/issues/24) | Rとの実行比較なし。Loader (2000) の deviance/Stirling 式と IEEE-754 の範囲・丸めをソース照合 | `stirlerr` の半整数表・n<1式・15/35/80/500切替と再帰、`bd0dd` の近接級数/遠距離式/2^-64 scaling、`bd0Prod` の極小np対数経路、`dbinomRawDD` の端点・DD確率・分母、`dpoisRawCore` のlambda/x極端比と巨大x分母を追加確認。具体入力: `stirlerr(0.5)`, `stirlerr(15)`, `stirlerr(15+Number.EPSILON*4)`, `stirlerr(500)`, `stirlerr(500+Number.EPSILON*256)`, `bd0dd(0,[1e308,0])`, `bd0dd(1e308,[1e308,0])`, `bd0dd(1e-300,[1e-320,0])`, `dbinomRawDD(8e307,8e307,[0.5,0],[0.5,0],false)`, `dpoisRaw(1e308,1e308,true)`, `dpoisRaw(1e308,1e308,false)`, `dpoisRaw(0,Number.MIN_VALUE,true)`。既知Issue #24の分母 `2*Math.PI*x` overflowは現行ソースにも残存し、独立Issue化せず。新規の再現可能な不具合は確定せず。数式・分岐のソース追跡のみ。Vitest/package runtime/R実行なし。
 | `src/special/log1p.ts` | 問題未検出 | #293 | `dc2f13d6617f0ce76986a8b88f353c45819d378f` | — | Rmath C API/DPQと内部ddexp/gamma/log1pmx呼出契約をソース照合（実行なし） | log1pmx/lgamma1p/log1mexp/log1pexpのNaN・±Inf・±0・pole、-37/18/33.3切替、x=0/subnormal/ln2境界を確認。具体入力: `log1mexp(5e-324)`, `log1pexp(-37)`, `log1pexp(33.3)`, `lgamma1p(-1)`。`test/log1p.test.ts`とRmpfr fixture閲覧。新規不具合なし。Vitest/package runtime/R実行なし。 |
 | `src/special/log1pmx.ts` | 問題未検出 | #294 | `2645eccad6849a9c217899b99e71e58d6e7055f8` | — | xsf/Cephes級数・直接log1p-x経路をソース照合（実行なし） | 交代級数、500項上限、相対停止条件、±0.5/-1/下側定義域、±Inf/NaN/subnormalを確認。具体入力: `log1pmx(0)`, `log1pmx(5e-324)`, `log1pmx(-0.5)`, `log1pmx(-1)`, `log1pmx(Infinity)`。x=0の余分反復は上限内で結果0。新規機能不具合なし。Vitest/package runtime/R実行なし。 |
 | `src/special/ndtri.ts` | 問題未検出 | #295 | `a053252d5cbafbbb22f395fc4c2034da9c2ee5e9` | — | xsf/Cephes ndtri/ndtri_exp係数、裾切替、qnorm経路をソース照合（実行なし） | p=0/1/範囲外/NaN、exp(-2)/exp(-32)切替、subnormal、upper-tail complement、logp=-MAX_VALUEを確認。具体入力: `ndtri(5e-324)`, `ndtri(1-Number.EPSILON/2)`, `ndtriExp(-Number.MAX_VALUE)`, `ndtriExp(-Infinity)`。Vitest/package runtime/R実行なし。 |
@@ -3022,3 +3022,31 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Created Issue #104: https://github.com/numero-uno-jpn/rStats.js/issues/104
 - Other boundary paths reviewed: `pnbinom` size-zero point mass, `qnbinom` size-zero return 0, `size = Infinity` Poisson limit for the `mu) parameterization, `prob = 1), `mu = 0), and NaN/Infinity argument ordering. No additional independent defect established.
 - Validation: source inspection and deterministic input tracing only. No package runtime, Vitest, or R execution. No source code changed.
+
+
+## Audit #534 — `src/special/loader.ts` Loader deviance, Stirling error, and Poisson/binomial density edge paths
+
+- Source blob: `src/special/loader.ts` `798b92185091204205e77d1e8e81e4591e7d78c3`; related double-double primitives in `src/special/dd.ts`. Repository HEAD at audit start: `ac7a0ab9623a3c09ddbf3c9a4f9d1744f3bcf432`.
+- Reviewed the complete `stirlerr()`/Stirling-series selection, half-integer lookup table, recurrence for fractional arguments up to 15, `bd0dd()` generated double-double near-mean series, `bd0ddOps()` fallback, `farDeviance()`/2^-64 scaling, `bd0Prod()` small-product logarithmic path, `dbinomRawDD()` endpoint and denominator paths, and `dpoisRawCore()` extreme-ratio and large-x paths.
+- The Stirling truncation thresholds (15, 35, 80, 500) retain enough terms for the absolute error in the probability exponent to remain below binary64 output resolution at each transition. The half-integer table covers exactly k/2 for k=1..30; non-half-integers in (0,1) use the lgamma1p identity, and fractional values in [1,15] use the recurrence to the asymptotic region.
+- The near-mean deviance uses v=(x-M)/(x+M) and the positive odd-power series; the `TAIL_IN_DOUBLE` condition bounds the omitted low-part effect before summing the tail in ordinary double precision. The large-argument scaling is homogeneous and the far branch avoids forming an overflowing quotient by subtracting logarithms when the ratio is outside the normal safe interval. No sign or endpoint inconsistency was found for the positive internal-domain inputs.
+- The Poisson endpoint shortcuts were traced for lambda=0, x=0, x<0, x=Infinity, lambda=Infinity, tiny lambda, and x/lambda ratios beyond the normal range. The large-x denominator branch algebraically preserves 1/sqrt(2*pi*x) without forming the overflowing product 2*pi*x.
+- Existing defect retained: `dbinomRawDD(8e307,8e307,[0.5,0],[0.5,0],false)` reaches the already-tracked `2 * Math.PI * x * (nmx / n)` denominator ordering and returns zero although the central-binomial probability is representable. This is Issue [#24](https://github.com/numero-uno-jpn/rStats.js/issues/24); it was not duplicated.
+- Exact deterministic source-level probes (not runtime outputs):
+  ```ts
+  stirlerr(0.5);
+  stirlerr(15);
+  stirlerr(15 + Number.EPSILON * 4);
+  stirlerr(500);
+  stirlerr(500 + Number.EPSILON * 256);
+  bd0dd(0, [1e308, 0]);
+  bd0dd(1e308, [1e308, 0]);
+  bd0dd(1e-300, [1e-320, 0]);
+  dbinomRawDD(8e307, 8e307, [0.5, 0], [0.5, 0], false);
+  dpoisRaw(1e308, 1e308, true);
+  dpoisRaw(1e308, 1e308, false);
+  dpoisRaw(0, Number.MIN_VALUE, true);
+  ```
+- Result: no new independent, reproducible defect established; no new Issue filed. Existing Issue #24 remains the known Loader denominator overflow.
+- Rとの関係: Loader (2000) formulas and current Rmath-style deviance/Stirling identities were assessed mathematically; no R executable or independent R source/runtime comparison was performed in this pass.
+- 検証範囲: complete `loader.ts` source review, formula/branch analysis, deterministic binary64 edge-input tracing, and consistency check against existing Issue #24. No Vitest, package runtime, or R execution. No source code changed.
