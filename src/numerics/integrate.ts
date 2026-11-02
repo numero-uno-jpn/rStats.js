@@ -101,7 +101,9 @@ export function integrate(f: (x: number) => number, lower: number, upper: number
     // (-1e308, 1e308), and 1/x over (1e308, 1.1e308) was 0 with every node at Inf)
     if (Number.isFinite(2 * Math.max(Math.abs(lower), Math.abs(upper)))) r = dqagse(g, lower, upper, absTol, relTol, limit);
     else {
-      const h = dqagse((u) => g(2 * u), lower * 0.5, upper * 0.5, absTol * 0.5, relTol, limit);
+      // (a positive absTol kept positive: MIN halved to 0 made the input invalid; issue #122)
+      const halfTol = absTol > 0 ? Math.max(absTol * 0.5, Number.MIN_VALUE) : absTol * 0.5;
+      const h = dqagse((u) => g(2 * u), lower * 0.5, upper * 0.5, halfTol, relTol, limit);
       r = { ...h, result: 2 * h.result, abserr: 2 * h.abserr };
     }
   } else if (Number.isFinite(lower)) r = dqagie(g, lower, 1, absTol, relTol, limit);
