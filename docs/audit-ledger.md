@@ -196,7 +196,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/gamma.ts` | 問題あり | #121 | `9a6b479fa51c0e16a8313c9c2518c75130c84004` | [#29](https://github.com/numero-uno-jpn/rStats.js/issues/29) | R本体 `src/nmath/rgamma.c` と不一致 | `rgamma(1,-1,{scale:0})` と `rgamma(1,0,{scale:-1})`。Rは両方0、現行はNaN。負値判定がゼロ判定より先。ソース照合で確定。Vitest・package runtime・今回のR実行なし。 |
 | `src/random/hyper.ts` | 追加監査済み・問題未検出 | #126, #492 | `df63732522e39556a07f79edbb5a287f7348fa87` | — | HIN/H2PEと大規模パラメータ時の`qhyper1`/Bernoulli切替を確認。R 4.5.2のrhyper fixtureを閲覧。R側で報告された`m+n`がINT_MAXを超える場合の整数overflow経路と比較し、JS側のNおよび中間計算はNumberで保持されるため同じint32 wrapは生じない。 | `m=n=1073741824, k=20`（N=2147483648）では通常H2PE経路、mode=10、variance≈4.9999999558、d=3.5、xl=7、xr=14となり、全setup値が有限。`m=n=1073741824, k=18`ではmode=9でHIN経路。support端点・全成功/全失敗・k=1のBernoulli・個別引数>=INT_MAXのqhyper経路、HINのscale、H2PE 3領域・accept recurrence/squeeze・cache再構築を確認。新規の独立再現不具合なし。Vitest/package runtime/R未実行。 |
 | `src/random/lecuyer.ts` | 追加監査済み・問題未検出（R文書と実装の端状態差異を記録） | #132, #496 | `7bd112bb422a4e4b8dd2bbcf3badaa4da4efe4c3` | — | MRG32k3aのseed expansion・2つのmodular recurrence・uniform mapping・signed/unsigned seed復元と範囲検証を再監査。R 4.5.2 `RNG.c` の `RNG_Init` / `FixupSeeds` と比較。 | 50回LCG scramble後、6個のstate wordを`x < M2`まで再抽出する処理はRと一致。再帰式の最大整数積（`1403580*(M1-1)=6028329902567880`、`1370589*(M2-1)=5886603607816338`等）は2^53未満で、JS Numberでも整数精度を維持。具体fixture: seed 1/42/0/-7/±2147483647のL'Ecuyer runif/rnorm/rexp、`[10407,1,2,3,0,0,0]`のstate復元。最後の3語が全ゼロの状態はRマニュアルの注意事項に反するが、R 4.5.2 `FixupSeeds` は`notallzero`を第1組からリセットせず実際に受理し、fixtureもこの挙動を記録するため、JS側の受理はR互換。fixture閲覧のみ、実行なし。 |
-| `src/random/mt.ts` | 一部監査・問題未検出 | #133 | `77d0da9eaa12609d445d0433e4d3ac0d84f50600` | — | R 4.5.2 rbasic fixtureを閲覧（未実行） | MT19937 twist/tempering、R set.seedの50回LCG初期化、32-bit unsigned演算、[0,1)から(0,1)へのfixup、626要素stateの復元と境界を確認。seed=1/42/-7/123456789のrunif/rnorm/rexp値を閲覧。Vitest未実行。
+| `src/random/mt.ts` | 問題あり | #133, #498 | `a27a644a591ab2286227aa5db1b05b16fa149300` | [#90](https://github.com/numero-uno-jpn/rStats.js/issues/90) | R 4.5.2 `RNG.c::FixupSeeds` と照合。MTのtwist/tempering・seed初期化は既存範囲を再確認。Rはmti<=0を624に補正するが、JSは0をそのまま使う。 | `setRandomSeed([10403,0,...Array(624).fill(1)])` はJSで受理され、次の`runif(1)`はmt[0]=1を直接読み`2^-32`。Rは`mti<=0`を624に補正してtwistし、同じall-ones stateから最初のuniformは約`0.4630094114691019`。さらに`mti=4294967296`もJSで受理されるが、`getRandomSeed()`のInt32Arrayで0にwrapし、snapshot/restore後のstreamが変わる。`mti=2147483648`はsnapshotで-2147483648となり復元不能。正のmti=625等はRも次回drawでtwistするため許容。Issue #90。source-level再現、Vitest/package runtime/R実行なし。 |
 | `src/random/poisson.ts` | 追加監査済み・問題未検出 | #123, #493 | `9f6f9657e84c2110bb08640b1f846c345bd2ff2f` | — | R 4.5.2 `rpois` fixture 32ケースを再確認。R本体 `src/nmath/rpois.c` とCase A/B、Step U/T/C/N/I/S/P/F/Q/E/Hの条件・乱数消費順序を逐次照合。 | 小λ側の`pp[36]`累積表とキャッシュ、λ=10境界、μ変更・再訪時の`muprev/muprev2/newBigMu`、大λ側の`bigL`即時受理、squeeze/quotient/hat受理、指数乱数と符号付き一様乱数を確認。具体入力: `rpois(1, Number.MIN_VALUE)`、`rpois(1, 9.999999999999998)`、`rpois(1, 10)`、`rpois(1, 10.000000000000002)`、`rpois(1, 2**53)`、`rpois(1, 1e154)`、`rpois(1, Number.MAX_VALUE)`、および同一seedでλ=5→0→5、λ=20→10→20のキャッシュ遷移。全分岐はR C実装と一致し、JS Number演算で新規の整数wrap経路なし。新規再現不具合なし。Vitest/package runtime/R/Monte Carlo未実行。 |
 | `src/random/r2dtable.ts` | 一部監査・問題未検出 | #127 | `8ccc84fc49823aa54db9eb23da7d7b3df00033f0` | — | — | — |
 | `src/random/rank.ts` | 一部監査・問題未検出 | #129 | `6f8c6930b3c84d99f07d6fe7c0bc0622569ae526` | — | R 4.5.2 rsignrank/rwilcox fixture を閲覧（未実行） | 符号付き順位和の独立Bernoulli符号化、順位和の部分Fisher–Yates抽出、half-even整数化、0/負値/NaN/Inf/上限、R RNG stream消費をソース照合。R 4.5.2 fixture 10ケースを閲覧。Vitest・package runtime・R実行なし。 |
@@ -2397,3 +2397,33 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - R reference: `parallel::nextRNGStream()` and `parallel::nextRNGSubStream()` use the 2^127 and 2^76 jumps respectively; the source matrices agree with the L'Ecuyer transition recurrences.
 - GitHub Issue: none. No source code changed.
 - Repository HEAD at audit: `4a8773713aa8782ff0432533c2d346702083f5ad`.
+
+
+## Audit #498 — `src/random/mt.ts` state-position normalization and serialization bounds
+
+- Re-read MT19937 state initialization, twist/tempering, `getRandomSeed()`, and `setRandomSeed()`. The main newly confirmed defect is in the MT position word (`mti`), not in the generator recurrence.
+- R 4.5.2 `src/main/RNG.c::FixupSeeds()` sets the Mersenne-Twister position to 624 whenever `I1 <= 0`. The TypeScript rejects negative positions but accepts zero and uses it directly. Therefore a state that R normalizes to a fresh-block position instead reads the first supplied MT word without twisting. The source comment claiming that R takes a negative one as given is inaccurate against the current R implementation.
+- Concrete reproduction A (source-derived, not package-runtime executed):
+  ```js
+  const state = [10403, 0, ...Array(624).fill(1)];
+  setRandomSeed(state);
+  runif(1);
+  ```
+  JS accepts `mti=0`, reads `mt[0]=1`, tempers it to 1, and returns exactly `2^-32 = 2.3283064365386963e-10`. R changes the position to 624 and twists the all-ones state first; the first twisted word is 419999967, which tempers to 1988610280, giving `0.4630094114691019`. This is an R-compatibility defect.
+- A second manifestation is the unbounded upper position check. `setRandomSeed()` accepts any non-negative integer, but `getRandomSeed()` serializes `mti` into an `Int32Array`. Concrete reproduction B:
+  ```js
+  const state = [10403, 4294967296, ...Array(624).fill(1)];
+  setRandomSeed(state);             // accepted: mti = 2^32
+  const snapshot = getRandomSeed();
+  snapshot[1];                      // 0: Int32Array wrap
+  setRandomSeed(snapshot);
+  runif(1);                         // reads mt[0] without twisting
+  ```
+  The accepted original position is >=624 and would twist before drawing, whereas the round-tripped position is 0 and does not. For `mti=2147483648`, the snapshot instead contains `-2147483648` and cannot be restored by the current validator. These are manifestations of the same missing signed-32-bit bound on the position field.
+- Expected validation/compatibility: normalize `mti <= 0` to 624 as R does (or document an intentional divergence), and reject `mti > 2147483647` before changing generator state. Keep positive `mti > 624` within signed 32-bit range valid; R preserves such positions and the next draw regenerates the block.
+- Existing test/fixture context: `test/random.test.ts` checks ordinary seed-state round trips and R seed initialization, but does not cover MT positions 0 or above INT32_MAX. `test/random-kinds.test.ts` checks invalid L'Ecuyer state, not these MT boundaries. No Vitest, package runtime, or R process was run.
+- Source blobs: `mt.ts` `a27a644a591ab2286227aa5db1b05b16fa149300`; `rng.ts` `f527fd7018642205ef5870df8fcab8fc9e02aff1`; `random.test.ts` `f849a51e7b3c89c639641cf0a231fc9989dcff81`; `random-kinds.test.ts` `7023ddbb5e24cab4f85e53fea68895be8dbe29a9`; `rbasic.json` `fafabb128e79ef73b5c5c923a8b223f84ebe490e`.
+- R source reference: R 4.5.2 `src/main/RNG.c::FixupSeeds()` MT branch (`if (I1 <= 0) I1 = 624`) and `MT_genrand()` twist path.
+- GitHub Issue: [#90](https://github.com/numero-uno-jpn/rStats.js/issues/90).
+- No source code changed.
+- Repository HEAD at audit: `18236c5928d1f7c97e4298e6bc463eace49b578b`.
