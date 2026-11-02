@@ -5,8 +5,8 @@
 // table the continuity correction replaces |n_12 - n_21| by |n_12 - n_21| - 1.
 
 import { pgamma1 } from "../distributions/gamma.js";
-import { numberLevels } from "../internal/levels.js";
 import { squareOver } from "../internal/summary.js";
+import { compareLabels, factorLabels } from "./groups.js";
 import type { HTest } from "./types.js";
 
 /**
@@ -99,16 +99,16 @@ export function mcnemarTest(
 
 /**
  * Cross-tabulation of two paired samples of category codes (pairs with a missing value dropped), as R tabulates two
- * factors: the rows are the levels of x and the columns those of y, each sorted (numbers numerically, strings as R
- * sorts factor levels in the C locale). As in R, both must have the same number of levels, at least 2; the levels
- * are matched by position, not by value.
+ * factors: the rows are the levels of x and the columns those of y, each sorted (numbers numerically, strings by code
+ * point as R sorts factor levels in the C locale; a sample mixing numbers and strings is all text, as R coerces it). As
+ * in R, both must have the same number of levels, at least 2; the levels are matched by position, not by value.
  */
 function crossTable(x: readonly (number | string)[], y: readonly (number | string)[]): number[][] {
   if (x.length !== y.length) throw new RangeError("'x' and 'y' must have the same length");
   const keep: [number | string, number | string][] = [];
-  // numeric values with the same 15-digit text are one level, as in R's factor()
-  const xl = numberLevels(x);
-  const yl = numberLevels(y);
+  // numeric values with the same 15-digit text are one level, and mixed samples are text, as in R's factor()
+  const xl = factorLabels(x);
+  const yl = factorLabels(y);
   for (let i = 0; i < x.length; i++) {
     const a = xl[i]!;
     const b = yl[i]!;
@@ -116,10 +116,7 @@ function crossTable(x: readonly (number | string)[], y: readonly (number | strin
     if (typeof b === "number" && Number.isNaN(b)) continue;
     keep.push([a, b]);
   }
-  const levelsOf = (v: (number | string)[]): (number | string)[] =>
-    Array.from(new Set(v)).sort((a, b) =>
-      typeof a === "number" && typeof b === "number" ? a - b : String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
-    );
+  const levelsOf = (v: (number | string)[]): (number | string)[] => Array.from(new Set(v)).sort(compareLabels);
   const lx = levelsOf(keep.map((p) => p[0]));
   const ly = levelsOf(keep.map((p) => p[1]));
   if (lx.length < 2 || lx.length !== ly.length) {
