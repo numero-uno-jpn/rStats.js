@@ -4060,3 +4060,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - binomial/Poissonでは、x+1が2^53超で表現できないときのincomplete beta/gamma補正、upper-tail差分のcancel fallback、Loaderのlarge-count処理、離散quantile探索を確認。negative-binomialでは `fromMu` のsize+mu overflow比率、`upperSeries` の条件・最大100万項、`pnbinomRaw` の2^53超補正、`refineContinuous` の8反復、prob/mu各parameterizationの端点を確認。
 - 追加の境界検討: `pbinom(1e16, 2e16, 0.5)`、`ppois(1e16, 1e16)`、`qpois(0.5, 1e16)`、`pnbinom(1e16, 1e16, { prob: 0.5 })`、`dnbinom(1e308, 1e308, { mu: 1e308, log: true })`。このうち最後の密度overflowはIssue #151。その他に新規確定バグなし。
 - **新規Issue #151、ソース変更なし。** Vitest/package runtime/R実行は未実施。Issue #151の期待値は中心二項分布の漸近式で算出。
+
+
+## Audit #645 — Geometric / Hypergeometric / Multinomial / Rank-sum discrete distributions
+
+- 対象: `src/distributions/geometric.ts` SHA `dfde963375d347292c88306f151aaa3a8a66612b`、`src/distributions/hypergeometric.ts` SHA `557f15ed94b73d98cc3606838441c05fcf94dca3`、`src/distributions/multinomial.ts` SHA `5062beb4a7b75d3f2afae82fb732aefee2937b76`、`src/distributions/signrank.ts` SHA `5af960306c0d9ed5a3dd5f65039b42b0298df355`、`src/distributions/wilcox.ts` SHA `9211337d654f8c583d245e6b72b574f58ac8b2bd`。
+- **新規Issue #152**: [dmultinom returns NaN when the finite category counts have an overflowing total](https://github.com/numero-uno-jpn/rStats.js/issues/152)。再現 `dmultinom([1e308, 1e308], [0.5, 0.5])` とlog版。N=2e308はbinary64でInfinityになるが、等確率2カテゴリの中心多項確率は中心二項質量で `1/sqrt(pi*1e308) ≈ 5.641895835477564e-155`、logは約 `-355.17046926400775`。実装は総数Nとsuffix countを通常加算し、`dbinomRawDD` の二項試行総数もoverflowするためNaN。決定的入力・中心二項漸近式で確認、runtime未実施。
+- Hypergeometricの `m+n` overflow/丸め問題は既存Issue #118に同一の追加overflow再現が明記されているため重複登録しない。#118は `dhyper(5e307, 1e308, 1e308, 1e308, { log: true })` も扱う。phyper/qhyperの `MAX_EXACT=2^53` 制限、binomialLimit近似、tailSumの整数walkを追跡。
+- Geometricの `qPow` 大引数分岐（2^64スケーリングとsubnormal pのlog1p近似）、CDFのupper-tail直接計算、quantileのDD log比とjump slackを確認。Signrank/Wilcoxのtable recurrence、rescaling、minTrusted、cache budget、MAX_LEN、MAX_EXACT/support制約を確認。反復/配列長は上限付きで、追加の確定バグは特定できず。
+- **新規Issue #152、ソース変更なし。** #118は既知重複。検証はソース静的追跡と中心二項漸近式のみ。Vitest/package runtime/R実行は未実施。
