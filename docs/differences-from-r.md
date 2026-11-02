@@ -412,6 +412,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   to 0.013 in the log of the probability ratio at n = 60); rStats.js uses the right signs, so some draws are accepted
   or rejected differently and the stream departs from R's from there (`set.seed(439); rbinom(1, 10000, 0.5)`: R
   5023, rStats.js 4879). The binomial draws of `rmultinom` go through the same code.
+- **`rbeta` with one huge shape and one up to 1e32 (2ab overflows) is not R's stream.** R returns the mean there
+  (`set.seed(12); rbeta(5, 1.1, 1e308)` is 1.1e-308 five times, though the coefficient of variation is 0.95);
+  rStats.js draws G from Gamma(m) for the smaller shape m and returns G / (G + B), which is the beta variate to double
+  precision, so the stream departs from R's from there. With both shapes above 1e32 the mean is returned with R's
+  stream, as R.
 - The reference is the x86_64 build of R. The arm64 build fuses multiply-adds (FMA), which
   changes the last bit of `qnorm` and therefore of normal variates: `set.seed(42); rnorm(3)[2]`
   is -0.56469817139608869 on x86_64 and -0.5646981713960888 on arm64. JavaScript has no FMA, so

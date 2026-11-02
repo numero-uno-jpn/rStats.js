@@ -81,10 +81,17 @@ export function rbeta1(aa: number, bb: number): number {
     gamma = a + 1 / beta;
   }
   if (!(2 * a * b < Infinity)) {
-    // Shapes so large that 2ab overflows (both above about 1e154): the constants above are 0, Infinity or NaN and the
-    // loop below leaves after one pass with w = Infinity (R returns 0 or 1). The distribution is then concentrated at
-    // its mean aa / (aa + bb), with a standard deviation below 1e-77, so the mean is the draw to double precision; the
-    // two uniforms of R's single pass are drawn, so the stream stays R's
+    // 2ab overflows: the constants above are 0, Infinity or NaN. The larger shape B is then above 1e154 / min, and
+    // G_B / B = 1 + O(B^-1/2) to far below double precision, so X = G_m / (G_m + B) for the smaller shape m. With m up
+    // to 1e32 G_m is drawn (rbeta(5, 1.1, 1e308) gave 1.1e-308 five times, the mean, as R; issue #30: the draws differ
+    // from R's there). Beyond, both are so large that the mean is the draw to double precision (a relative standard
+    // deviation below 1e-16); the two uniforms of R's single pass are drawn, so the stream stays R's
+    const m = Math.min(aa, bb);
+    if (m <= 1e32) {
+      const big = Math.max(aa, bb);
+      const r = rgamma1(m, 1) / big;
+      return aa <= bb ? r / (1 + r) : 1 / (1 + r);
+    }
     unifRand();
     unifRand();
     return aa >= bb ? 1 / (1 + bb / aa) : aa / bb / (1 + aa / bb);
