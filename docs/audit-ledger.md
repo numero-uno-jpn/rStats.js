@@ -2738,3 +2738,13 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Filed non-duplicate Issue #100: https://github.com/numero-uno-jpn/rStats.js/issues/100
 - Suggested remediation: special-case positive infinite `digits` before the shared-precision calculation (return a copy of the input matrix); add tests for finite and infinite entries, including `-Infinity` and NaN.
 - Static source analysis and R NEWS comparison only. No Vitest, package runtime, or R process was executed. No source code changed.
+
+
+## Audit #518 — `src/internal/fround.ts`
+
+- Repository HEAD: `144d85bcade194c1c6c4cf2dae30a1e6304bb135`; source blob: `8e42f6ab4bc1d61fcd7687129efdc57edc942224`.
+- Reviewed `roundR` validation/early returns, fractional and negative digit handling, half-even integer rounding, binary exponent estimation, the 15-significant-digit shortcut, positive/negative decimal scaling, the >308 digit branch, candidate-distance comparison and `zapsmall` matrix-wide precision selection. Also checked R Core source: `src/nmath/fround.c` and `src/main/arithmetic.c`.
+- Confirmed defect: `powerOf10(k)` uses repeated multiplication, while R's `fround` calls `R_pow_di(10., dig)`, whose implementation uses exponentiation by squaring. For (k=100), the binary64 results differ: current JS `1.0000000000000006e+100`, R algorithm `1.0000000000000002e+100`. This changes an actual rounded value. Exact reproduction: `roundR(4.202163187357369e-87, 100)` currently returns `4.202163187357397e-87`; following R's `R_pow_di` path returns `4.202163187357399e-87`. Input binary64 hex: `0x1.0b7fa925827cbp-287`; the significant-digit shortcut does not trigger (`log10(|x|)+100 ≈ 13.7549062)).
+- Issue: [#101](https://github.com/numero-uno-jpn/rStats.js/issues/101).
+- Rとの関係: R Coreの現行Cソースとのアルゴリズム照合。R側の出力は公開C実装をbinary64で追跡して算出し、この監査ではR実行ファイルによる直接照合は未実施。
+- 検証範囲: ソース静的解析と独立binary64計算のみ。Vitest/package runtime/R実行なし。ソース変更なし。
