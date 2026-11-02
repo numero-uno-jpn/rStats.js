@@ -134,8 +134,8 @@ function margins(v: readonly number[], name: string): number[] {
  */
 export function r2dtable(n: number, r: readonly number[], c: readonly number[]): number[][][] {
   // as R's as.integer(n): infinite values and values beyond the integer range are NA there, an error (an infinite n
-  // ran the loop below forever)
-  if (!(Number.isFinite(n) && n >= 0 && n <= 2147483647)) throw new RangeError("invalid argument 'n'");
+  // ran the loop below forever); the truncation comes first, so -0.5 is 0 and 2147483647.5 is 2147483647 (#93)
+  if (!(Number.isFinite(n) && n > -1 && n < 2 ** 31)) throw new RangeError("invalid argument 'n'");
   const count = Math.trunc(n);
   const rows = margins(r, "r");
   const cols = margins(c, "c");
