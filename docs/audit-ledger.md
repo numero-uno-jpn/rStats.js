@@ -3728,3 +3728,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - フォールバックの `logIntegrand()` も `tS*tS` を計算し、曲率が `-Infinity` となると `sigma=0`、台形積分のヤコビアン消失に至る。既存#606/#609と広い意味で同じ極端値の二乗オーバーフローだが、大自由度Laplace入口を通る別の実行経路としてIssue #137を作成。
 - Issue: https://github.com/numero-uno-jpn/rStats.js/issues/137
 - Vitest/R未実施。静的ソース追跡のみであり、実行時の戻り値は未確認。ソースコード変更なし。
+
+
+## Audit #612 — Huge-df t/noncentral-t limit helpers and switch boundaries
+
+- 対象: `src/distributions/nt.ts` SHA `85763973f3f7a82d46ceee19a4dd0f8d8c275814`（`HUGE_DF`, `hugeDfRatio`, `hugeDfTailLog`, `hugeDfTailQuantile`, `hugeDfTail`, `hugeDfCentral`, `dnt1`, `pnt1`, `qnt1`）、`src/distributions/t.ts` SHA `78247f0318768944233dc6e92874409b23e432b8`（中央t側の共有呼出し経路）、`test/nt.test.ts` SHA `256fd766b66bbb636d57a89a0549d3f6ccb1e297`。
+- 監査範囲: `df > 1e200` の正規近似と中心裾近似の切替、`t/sqrt(df)` のoverflow/underflow、`log1p(y)/y` の小y級数、巨大yでの対数表現、裾確率のlower/upper符号、分位点の `expm1` と巨大指数経路、`hugeDfCentral` の非心度許容条件、密度/CDF/quantileの各分岐を静的追跡。
+- 新規の確定的不具合は確認できず。特に `hugeDfTailLog` は `t²` を先に形成せず `0.5*|t| * (|t|*g)` と演算順序を分け、`u>1e8` では `log(u)` を使う。小さい `y` では `log1p(y)/y` の級数を用いる。`hugeDfTailQuantile` は小さい `r` で `expm1(r)` を使い、`r>=700` では対数域の指数に切り替える。これらの経路で、今回静的に確定できる中間値の不正なoverflow/underflowは見つからなかった。
+- 境界・再現確認用の決定的入力（乱数なし）: `hugeDfRatio(1e92, 1e200)`（比の切替近傍）、`hugeDfRatio(1e154, 1e308)`（t²が単独overflowし得るが比は有限）、`hugeDfTailLog(1e154, 1e308)`（大きな有限log裾の演算順序）、`hugeDfTailLog(1e160, 1e308)`（裾logがbinary64下限を超える領域）、`hugeDfTailQuantile(-Math.LN2, 1e308)`（最も中央寄りのtail）、`hugeDfTailQuantile(-1e308, 1e200)`（量子点が最大doubleを超える領域）、`pt(-4.05e269, 3.586e307, {ncp:1, logP:true})`（非心度が中心裾近似許容条件に入らない既知の巨大df回帰周辺）。
+- `test/nt.test.ts` には巨大dfのLaplace回帰ケースがあるが、今回のhelper境界値を直接網羅する専用テストは確認できなかった。Vitest/Rは未実施。静的ソース監査のみ。実行時の戻り値を確認したとは主張しない。
+- Issue追加なし。既知の#606/#609/#608/#136/#137の極端値問題とは別に、今回の共有巨大df helper自体の新規独立不具合は確定できなかった。ソースコード変更なし。
