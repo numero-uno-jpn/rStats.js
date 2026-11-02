@@ -503,7 +503,8 @@ export function seq(from?: number, to?: number, options: SeqOptions = {}): numbe
     return Array.from({ length: k + 1 }, (_, i) => (i === 0 ? a : by > 0 ? Math.min(at(i), b) : Math.max(at(i), b)));
   }
 
-  if (!Number.isFinite(lengthOut) || lengthOut < 0) throw new RangeError("'length.out' must be a non-negative number");
+  // rounded up first, as R: a length in (-1, 0) is 0 (#98)
+  if (!Number.isFinite(lengthOut) || lengthOut <= -1) throw new RangeError("'length.out' must be a non-negative number");
   const len = Math.ceil(lengthOut);
   if (len === 0) return [];
   if (by === undefined) {

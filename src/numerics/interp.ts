@@ -129,7 +129,9 @@ export function approx(
   let xout: number[];
   if (options.xout !== undefined) xout = Array.from(options.xout);
   else {
-    if (n <= 0) throw new RangeError("'approx' requires n >= 1");
+    // (NaN and Infinity were an empty result and a JavaScript array error; issue #98)
+    if (!Number.isFinite(n) && !Number.isNaN(n)) throw new RangeError("'length.out' must be a finite number");
+    if (!(n > 0)) throw new RangeError("'approx' requires n >= 1");
     xout = seqLength(pts.x[0]!, pts.x[nx - 1]!, n);
   }
   const X = pts.x;
@@ -472,7 +474,9 @@ export function spline(
     // n, xmin and xmax refer to the regularized data
     const nk = sp.x.length;
     const n = options.n ?? 3 * nk;
-    if (n <= 0) throw new RangeError("'spline' requires n >= 1");
+    // (NaN and Infinity were an empty result and a JavaScript array error, as in approx; issue #98)
+    if (!Number.isFinite(n)) throw new RangeError("'length.out' must be a finite number");
+    if (!(n > 0)) throw new RangeError("'spline' requires n >= 1");
     xout = seqLength(options.xmin ?? ldexp(sp.x[0]!, k), options.xmax ?? ldexp(sp.x[nk - 1]!, k), n);
   }
   return { x: xout, y: evalCubic(sp, k === 0 ? xout : xout.map((v) => ldexp(v, -k)), 0) };

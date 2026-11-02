@@ -4,6 +4,8 @@
  */
 export function seqLength(from: number, to: number, n: number): number[] {
   const len = Math.ceil(n);
+  // (a length that is not finite or rounds up to a negative number was an empty array; issue #98)
+  if (!Number.isFinite(n) || len < 0) throw new RangeError("'length.out' must be a non-negative number");
   if (len === 1) return [from];
   let out: number[];
   if (Number.isFinite(to - from) || !Number.isFinite(from) || !Number.isFinite(to)) {
