@@ -21,7 +21,7 @@
 import { fromMat, newMat, toMat, transpose, type Mat, type MatrixInput } from "./matrix.js";
 import { norm, type NormType } from "./norm.js";
 import { qr, qrR } from "./qr.js";
-import { rcond, solve } from "./solve.js";
+import { rcond, scaledCopy, solve } from "./solve.js";
 import { svdScaled } from "./svd.js";
 import { ldexp } from "../internal/summary.js";
 import { maxOf, minOf } from "../internal/extremes.js";
@@ -74,6 +74,18 @@ export interface KappaOptions {
  * @category Linear algebra
  */
 export function kappa(z: MatrixInput, options: KappaOptions = {}): number {
+  // scale-free: a finite matrix outside [2^-256, 2^256] is divided by a power of 2 first, as in rcond (the condition
+  // number does not change; for entries near 1e308 the norms overflowed: Infinity from the triangular estimate and the
+  // exact 1- and inf-norms, NaN through the QR). Matrices in range are used as given, and so is one whose smallest
+  // nonzero entry would leave the normal range (diag(1e-200, 1, 1e200): its condition number of 1e400 still stops
+  // solve, as in R, instead of the entry 1e-200 becoming 0)
+  const zm0 = toMat(z);
+  let zm = zm0;
+  if (zm0.data.every(Number.isFinite)) {
+    const scaled = scaledCopy(zm0);
+    if (scaled !== undefined && scaled.data.every((v, i) => v === 0 ? zm0.data[i] === 0 : Math.abs(v) >= 2 ** -1022)) zm = scaled;
+  }
+  const zs: MatrixInput = zm === zm0 ? z : fromMat(zm);
   if (options.exact) {
     // The default norm is "2" if exact, "1" if estimated
     const nrm = options.norm === undefined ? "2" : normalize(options.norm);
@@ -87,25 +99,24 @@ export function kappa(z: MatrixInput, options: KappaOptions = {}): number {
     // one still stops, as in R (its inverse has no accurate norm)
     let inverse: number[][];
     try {
-      inverse = solve(z);
+      inverse = solve(zs);
     } catch (e) {
       if (e instanceof Error && e.message.startsWith("the system is exactly singular")) return Infinity;
       throw e;
     }
-    return norm(z, { type: nrm }) * norm(inverse, { type: nrm });
+    return norm(zs, { type: nrm }) * norm(inverse, { type: nrm });
   }
   // Through a triangular factor, only "I" itself is the infinity norm; any other norm becomes the 1-norm (as in R)
   const triNorm = options.norm === "I" ? "I" : "O";
   if ((options.method ?? "qr") === "direct") {
-    if (options.triangular) return 1 / triangularEstimate(toMat(z), (options.uplo ?? "U") === "U", triNorm);
+    if (options.triangular) return 1 / triangularEstimate(zm, (options.uplo ?? "U") === "U", triNorm);
     const t = options.norm ?? "O";
     const u = t.toUpperCase();
     if (u !== "1" && u !== "O" && u !== "I") throw new RangeError(`argument type[1]='${t}' must be one of '1','O', or 'I'`);
     return 1 / rcond(z, { norm: u === "I" ? "I" : "O" });
   }
   // If wide, transpose before the QR decomposition (from R's output)
-  const zm = toMat(z);
-  const zz = zm.nrow < zm.ncol ? fromMat(transpose(zm)) : z;
+  const zz = zm.nrow < zm.ncol ? fromMat(transpose(zm)) : zs;
   return 1 / triangularEstimate(toMat(qrR(qr(zz))), true, triNorm);
 }
 

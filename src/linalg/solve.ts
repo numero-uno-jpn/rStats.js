@@ -207,7 +207,7 @@ export function lacn2(n: number, apply: (kase: 1 | 2, x: Float64Array) => void):
 }
 
 /** A copy of a finite matrix divided by a power of 2 (exact) when its largest entry is outside [2^-256, 2^256], else undefined */
-function scaledCopy(A: Mat): Mat | undefined {
+export function scaledCopy(A: Mat): Mat | undefined {
   const k = rangeExponent(A.data);
   return k === 0 ? undefined : { ...A, data: A.data.map((v) => ldexp(v, -k)) };
 }
