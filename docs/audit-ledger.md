@@ -4298,3 +4298,56 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 対象: `src/models/glmFamily.ts` のGamma `variance(mu)=mu^2`、`src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の通常IRLS variance validation/working-weight式。
 - 既存Issue **#159**へ追加コメント: `glm([[0], [1]], [1e-200, 1e-200], { family: "Gamma", link: "log" })`。有限正responseと有限starting eta/muだが、`mu*mu` が0へunderflowしIRLSが `"0s in V(mu)"` をthrowする。一方log linkの導関数もmuなので、working weight `w*mu^2/mu^2` は厳密にw=1で有限。#159の大平均側overflow再現に対し、小平均側underflow再現を同じGamma working-weight安定性Issueに追加した。Comment ID 6581620399。
 - **既存Issue #159へ追加再現。新規Issueは作成せず。** ソース変更なし。静的ソース追跡とIEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #671 — scoreStatistic residual-square scaling
+- 対象: `src/models/glmConfint.ts` SHA `fc79e536f9b642a2ae860c813f0fcf45ebbdca14`。
+- Issue [#172](https://github.com/numero-uno-jpn/rStats.js/issues/172)。再現: `scoreStatistic([[0],[0]],[1e200,-1e200],[1e-200,1e-200],false)`。期待値0、重み付き平方和2e200。実装はr²を先に計算してInfinityとなり、sqrt(weight)でscaleするQR残差側との不整合で統計量がInfinity。静的IEEE-754解析のみ。
+
+
+## Audit #672 — scoreStatistic weighted-center overflow
+- 対象: `src/models/glmConfint.ts` SHA `fc79e536f9b642a2ae860c813f0fcf45ebbdca14`。
+- Issue [#173](https://github.com/numero-uno-jpn/rStats.js/issues/173)。再現: `scoreStatistic([[1],[1]],[1,1],[1e308,1e308],true)`。定数残差をinterceptに回帰するscoreは0だが、sw/swrの直接加算がInfinityとなりcentreがNaN。静的IEEE-754解析のみ。
+
+
+## Audit #673 — glmPredict dot-product cancellation
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`。
+- Issue [#174](https://github.com/numero-uno-jpn/rStats.js/issues/174)。再現: `glm([[1,0],[0,1],[1,1]],[2,-2,0],{family:"gaussian"})` の後 `glmPredict(fit,{newdata:[[1e308,1e308]]})`。係数(0,2,-2)の正確なdot productは0だが、個別積が+Infinity/-InfinityとなりNaN。静的解析のみ。
+
+
+## Audit #674 — glmPredict standard-error norm scaling
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`。
+- Issue [#175](https://github.com/numero-uno-jpn/rStats.js/issues/175)。再現: `glm([[0,0],[1,0],[0,1],[1,1]],[0,1,1,2],{family:"gaussian"})` の後 `glmPredict(fit,{newdata:[[1e308,1e308]],dispersion:1e-300})`。R^-T xのnormは未scaleでoverflowするが、sqrt(dispersion)を掛けた最終SEは約1e158で有限。実装fallbackはdispersionを掛ける前にnormをoverflow。静的解析のみ。
+
+
+## Audit #675 — Gamma dispersion accumulator overflow
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`。
+- Issue [#176](https://github.com/numero-uno-jpn/rStats.js/issues/176)。再現: `y=Array(99).fill(1e-6).concat([5000])`、100行の空x、Gamma/log、weights全て2e304、start `[Math.log(50.00000099)])。working residual平方和×weightは約1.98e308だが、dfResidual=99で割ったdispersionは約2e306で有限。dispersionOfは合計後に除算するためInfinity。静的IRLS/IEEE-754解析のみ。
+
+
+## Audit #676 — Gaussian AIC zero-weight contract
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5`、oracle SHA `ce89d80649fd61cfc6100484757e8d8d67e60db7`。
+- Issue [#177](https://github.com/numero-uno-jpn/rStats.js/issues/177)。再現: `glm([[],[],[]],[1,2,100],{family:"gaussian",weights:[1,1,0]})`。oracleはGaussian AICで全行のlog(weight)を含め、zero weightなら+Infinityと規定。実装はzero weightをskipして有限値を返す。静的ソース/oracle比較のみ。
+
+
+## Audit #677 — glmAnova reduced-model start mismatch
+- 対象: `src/models/glmAnova.ts` SHA `f84fe8f7b86b86c5a696da60157dc8b15c3caf22`、`src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`。
+- Issue [#178](https://github.com/numero-uno-jpn/rStats.js/issues/178)。再現: `glm([[0,0],[1,0],[0,1],[1,1]],[1,2,3,4],{family:"poisson",start:[0,0,0]})` の後 `glmAnova(fit)`。2項のsequential ANOVAで2列のreduced modelをrefitする際、rowOfが元の3係数startをそのまま渡し、IRLSのstart長validationで失敗。静的制御フロー解析のみ。
+
+
+## Audit #678 — glmConfint tiny confidence level
+- 対象: `src/models/glmConfint.ts` SHA `fc79e536f9b642a2ae860c813f0fcf45ebbdca14`。
+- Issue [#179](https://github.com/numero-uno-jpn/rStats.js/issues/179)。再現: `glm([[],[],[],[]],[0,1,0,1],{family:"binomial"})` の後 `glmConfint(fit,{level:1e-20})`。1-levelが1へ丸められa2=0.5、qnorm cutoffが0となり、非zeroの極小CIをestimateへcollapse。静的binary64解析のみ。
+
+
+## Audit #679 — glmAnova Cp zero-rank intermediate overflow
+- 対象: `src/models/glmAnova.ts` SHA `f84fe8f7b86b86c5a696da60157dc8b15c3caf22`。
+- Issue [#188](https://github.com/numero-uno-jpn/rStats.js/issues/188)。再現: `glm([[]],[1e154],{family:"gaussian",link:"log",intercept:false})` の後 `glmAnova(fit,{test:"Cp"})`。n=1、dfResidual=1、rank=0、dispersion約1e308。Cp penaltyは0だが、実装は2*dispersionを先にoverflowさせInfinity*0=NaN。静的解析のみ。
+
+
+## Audit #680 — Gaussian AIC logarithm intermediate overflow
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5`。
+- Issue [#189](https://github.com/numero-uno-jpn/rStats.js/issues/189)。再現: `glm([[]],[1e154],{family:"gaussian",link:"log",intercept:false})`。deviance約1e308は有限だが、Gaussian AICの `2*pi*dev` がlogより前にInfinityとなる。log(2*pi*dev)+3自体は約714で有限。静的IEEE-754解析のみ。
+
+
+- 重複整理: 初回登録で作成された正規Issueは #172〜#179、#188、#189。後続の再試行で重複した #180〜#187 はすべてGitHubで `closed / duplicate` とした。ソース変更なし。今回の10件すべてpackage runtime/Vitest/Rとの実行照合は未実施。
