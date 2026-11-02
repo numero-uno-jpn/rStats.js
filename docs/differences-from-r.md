@@ -62,7 +62,8 @@ reference, the case passes as "more accurate than R".
 | `qt(1e-300, 1e-100, ncp = 1e4)` | 1.8961503816217974e104 | 3.3196830107614348e-48 (mpmath) | 3.3196830107614347e-48 |
 | `qt(-1419.5258582683982, 2, ncp = 0.5, lower.tail = FALSE, log.p = TRUE)` | Inf | 1.7976931348623157e308 (P[T > t] = c/t², c = (1 + δ²) Φ(δ) + δ φ(δ)) | 1.7976931348622732e308 |
 | `dchisq(1e4, 5, ncp = 10, log = TRUE)` | -2975.1 | -4688.08 | same as truth |
-| `dchisq(1e-300, 0, ncp = 1)` | 0 | 0.1516 | same as truth |
+| `dchisq(1e-300, 0, ncp = 1)`, `dchisq(1.5e-323, 0, ncp = 1)` | 0 | 0.1516 | same as truth |
+| `dchisq(1.5e-323, 2e-323, ncp = 1)` (subnormal x and df) | 0.6065306597126334 | 0.55598643806991397 (Rmpfr) | 0.5559864380699139 |
 | `df(1e10, 5, Inf, ncp = 0, log = TRUE)` | -1.25e11 | -2.5e10 | same as truth |
 | `qchisq(-1e10, 5, ncp = 1, lower.tail = FALSE, log.p = TRUE)` | 2.29e10 | 2.00e10 (checked with the distribution function) | same as truth |
 | `dbeta(1.05e-231, 0.194, 141.1, ncp = 1.39e-303)` (a noncentral density at a tiny ncp) | 9.3999238814454927e185 | 9.399923881445698e185 (mpmath) | same as truth (the central density) |

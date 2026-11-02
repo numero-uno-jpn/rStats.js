@@ -174,10 +174,18 @@ function dnchisqRaw(x: number, df: number, ncp: number, log: boolean): number {
   if (lt !== undefined) {
     // the density at x2 times (x/x2)^(k/2 - 1) (subnormalHalf)
     const x2 = 2 * (x / 2);
-    if (log) return dnchisqRaw(x2, df, ncp, true) + (a - 1) * lt;
+    // The j = 1 component (power y^a) is not negligible against j = 0 (y^(a - 1)) where a is not large against mu y:
+    // their ratio at x2 is rho = a/(mu y2), and the density at x is that at x2 times r^(a - 1) (rho + r)/(rho + 1),
+    // r = x/x2. For df = 0 (no j = 0 term, rho = 0) the factor is r^a = 1. Where rho > 2^60 the change is below
+    // double precision and the factor is r^(a - 1) alone (issue #147)
+    const rho = a / (x2 / 2) / mu;
+    const mix = rho < 2 ** 60 ? Math.log1p((x - x2) / x2 / (rho + 1)) : 0;
+    if (log) return dnchisqRaw(x2, df, ncp, true) + (a - 1) * lt + mix;
     // (where the factor overflows, for a large df, the density at x2 has underflowed to 0: from the log; issue #115)
-    const f = Math.exp((a - 1) * lt);
-    return f < Infinity ? dnchisqRaw(x2, df, ncp, false) * f : Math.exp(dnchisqRaw(x2, df, ncp, true) + (a - 1) * lt);
+    const f = Math.exp((a - 1) * lt + mix);
+    return f < Infinity
+      ? dnchisqRaw(x2, df, ncp, false) * f
+      : Math.exp(dnchisqRaw(x2, df, ncp, true) + (a - 1) * lt + mix);
   }
   // The ratio of terms w_j g_j is mu y / (j (a + j - 1)) = (z/2)² / (j (a + j - 1)); the peak is at the j where it
   // equals 1, the positive root of j² + (a - 1) j - (z/2)² (written without cancellation for a > 1)
