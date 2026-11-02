@@ -282,6 +282,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `kappa(matrix(c(1, 2, 2, 4), 2), exact = TRUE, norm = "1")` (厳密に特異、2 以外のノルム) | "system is exactly singular" | Inf。ノルム "2" と同じ (計算上特異な行列は R と同じく止まる) |
 | `anova(lm(y ~ x2), lm(y ~ x1 + x3))` や、入れ子でない glm の `anova()` (どちらのモデルも他方の特別な場合でない) | F 検定 (例では F 1110、p 4.6e-7)、glm では尤度比検定 | 検定しない。F、p 値、検定の列は NaN (`lmerAnova` と同じ)。入れ子かどうかは、パラメータの少ないモデルの列が他方の列空間に入るかを、正の重みの行で QR のランクで判定する (重み 0 の行は尤度に入らない) |
 | offset の違う glm の `anova()` (`glm(y ~ 1, poisson)` と `glm(y ~ x, poisson, offset = log(y) - x/2)`) | 尤度比検定 (p = 0.000417) | 検定しない (NaN)。列と同じく、offset の差も大きいモデルの列空間に入るときだけ入れ子とする |
+| `cooks.distance(glm(y ~ x, binomial), dispersion = 1e308)`、(r / (1 - h))^2 が溢れる Cook の距離 (事前の重み 1.5e306 の binomial の当てはめ。R は当てはめられない) | すべての行で 0 (h / (dispersion p) がアンダーフロー) | 1.4e-309、…、9.0e-307 (dispersion 1 の距離を 1e308 で割った値) と 1.35e308。二乗が溢れるか h / (dispersion p) が正規化数の下に落ちるときは、残差と dispersion を 2 の冪を単位にして計算する |
 | `shapiro.test(c(-1e308, 0, 1e308))` (範囲が溢れる) | NaN | W = 1。`shapiro.test(c(-1, 0, 1))` と同じ (先にデータを 2 の冪で割る) |
 | polycor の `polyserial(x * 1e200, y, std.err = TRUE)` (平方和が溢れる) | rho 0、chisq NaN | x のときと同じ値 (レビューの例では rho 0.589) |
 | `rexp(n, rate = 1e-310)` (正の rate で 1 / rate が溢れる) | 警告付きの NaN (乱数は引かない) | 乱数 `exp_rand() / rate` (指数乱数がおよそ 0.018 未満でなければ Inf)。1 個につき指数乱数を 1 個引く |

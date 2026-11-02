@@ -930,9 +930,26 @@ export function glmCooksDistance(given: GlmResult, options: GlmSummaryOptions = 
   const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(checkDispersion(options.dispersion), -2 * k);
   const r = residualsOf(fit, "pearson").filter((_, i) => fit.priorWeights[i]! > 0);
   return r.map((v, i) => {
-    const c = (v / (1 - h[i]!)) ** 2 * (h[i]! / (disp * fit.rank));
+    const q = h[i]! / (disp * fit.rank);
+    let c = (v / (1 - h[i]!)) ** 2 * q;
+    // Where the square overflows, or h/(dispersion p) falls below the normal range (a large dispersion), with the residual
+    // and the dispersion in units of powers of 2 (cookScaled). Otherwise the same bits as before
+    if (!Number.isFinite(c) || q < 2 ** -1022) c = cookScaled(v, h[i]!, disp, fit.rank);
     return Number.isFinite(c) ? c : NaN;
   });
+}
+
+/**
+ * Cook's distance (r/(1 - h))^2 h/(d p) with r = 2^er r' and d = 2^ed d' (r', d' in [1, 2)), scaled back once at the end:
+ * the square of r/(1 - h) overflowed although the distance is finite (a binomial fit with prior weights 4e306 and
+ * dispersion 100: r/(1 - h) = 2.7e154 for a distance of 3.6e306, which was NaN)
+ */
+function cookScaled(r: number, h: number, d: number, p: number): number {
+  if (!Number.isFinite(r) || !(d > 0 && Number.isFinite(d))) return NaN;
+  const er = r === 0 ? 0 : Math.floor(Math.log2(Math.abs(r)));
+  const ed = Math.floor(Math.log2(d));
+  const u = ldexp(r, -er) / (1 - h);
+  return ldexp(u * u * (h / (ldexp(d, -ed) * p)), 2 * er - ed);
 }
 
 /**
