@@ -561,7 +561,15 @@ export function pwr2p2nTest(options: Pwr2p2nTestOptions = {}): Pwr2p2nTestResult
   if (!isUnknown(n2) && !(n2 >= 2)) throw new RangeError("number of observations in the second group must be at least 2");
   const alt = matchChoice(options.alternative, ALTERNATIVES);
   if (alt === "two.sided" && !isUnknown(h)) h = Math.abs(h);
-  const powerOf = (h: number, n1: number, n2: number, sig: number): number => normalPower(h * Math.sqrt((n1 * n2) / (n1 + n2)), sig, alt);
+  // the effective size n1 n2 / (n1 + n2); where the product overflows (finite sizes above about 1e154) as
+  // a / (1 + a/b) with a <= b (the same bits elsewhere; pwr gives power 1 there)
+  const effectiveN = (n1: number, n2: number): number => {
+    const prod = n1 * n2;
+    if (Number.isFinite(prod) || !Number.isFinite(n1) || !Number.isFinite(n2)) return prod / (n1 + n2);
+    const a = Math.min(n1, n2);
+    return a / (1 + a / Math.max(n1, n2));
+  };
+  const powerOf = (h: number, n1: number, n2: number, sig: number): number => normalPower(h * Math.sqrt(effectiveN(n1, n2)), sig, alt);
   if (isUnknown(power)) power = powerOf(h!, n1!, n2!, sigLevel!);
   else {
     const target = power;
