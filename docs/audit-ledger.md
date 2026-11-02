@@ -3963,3 +3963,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - upper tailの `a < A_SUB` は `Q(a,x) ≈ (a/A_SUB)Q(A_SUB,x)` に切り替え、subnormal aで直接級数が小さい積を失う経路を回避する。continued fractionはx>aの呼び出し条件で初期b=x+1-aが正かつ1以上となり、Lentzの初期逆数がpoleになる条件は公開経路では生じない。Temmeの適用域もa>20かつ近中心域、far-tailはa>200の狭域またはa>1e299に限定される。
 - **新規確定バグなし。Issue追加なし。ソース変更なし。** #149は前項Audit #634で登録済み。
 - **検証制限**: GitHubソース・既存fixture/testの静的追跡のみ。Vitest/package runtime/R実行は未実施。
+
+
+## Audit #636 — Loader基盤: bd0 / stirlerr / dpoisRaw / dbinomRaw
+
+- 対象: `src/special/loader.ts` SHA `c85075fbce1fb3ff6933cbdb5c50477de3d25abf`、`src/special/dd.ts`、`src/special/log1pmx.ts` SHA `2645eccad6849a9c217899b99e71e58d6e7055f8`。関連するgamma・beta・Poisson・binomial分布から呼び出される共通数値基盤を追跡。
+- 監査範囲: stirlerrのhalf-integer table/series/recurrence、bd0ddの近接v-series・far logarithmic branch・2^-64 scaling・double-double disabled branch、bd0Prodのtiny product fallback、farDeviance/scaleUp、expNegDDのsubnormal終端処理、dbinomRawDDのx=0/n-x=0/p=0/q=0・exactBinomialExponent・巨大nのdeviance、dpoisRawCoreのlambda=0・lambda/x極端比・subnormal・巨大x/lambdaを確認。
+- 既知Issue: `log1pmx(0)` またはx² underflowでシリーズを498回走る問題はopen Issueとして既に存在。重複登録しない。
+- 決定的境界入力として `bd0(0, Number.MIN_VALUE)`、`bd0(1e300, 1e300 * (1 + 2 ** -52))`、`stirlerr(Number.MIN_VALUE)`、`stirlerr(Infinity)`、`dpoisRaw(Number.MIN_VALUE, Number.MIN_VALUE, true)`、`dpoisRaw(1e308, 1, true)`、`dbinomRawDD(0, 1e308, [Number.MIN_VALUE, 0], [1, 0], true)`、`dbinomRawDD(1e308, 1e308, [0.5, 0], [0.5, 0], true)` を検討。いずれもソース上のdomain・scaled演算・log/linear分岐と照合し、新規の確定不具合は確認できなかった。
+- **新規確定バグなし。Issue追加なし。ソース変更なし。** #149はAudit #634で登録済み。
+- **検証制限**: GitHubソースの静的追跡のみ。Vitest/package runtime/R実行は未実施。
