@@ -4404,3 +4404,56 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 
 
 - Issue登録結果: 新規の正規Issue #191〜#200を10件登録。#190は同じrcond所見の登録重複として `closed / duplicate` に整理。ソース変更なし。今回の10件はすべて静的ソース追跡・IEEE-754解析のみで、package runtime/Vitest/R照合は未実施。
+
+
+## Audit #691 — weightedMean denominator overflow bypasses its recovery path
+- 対象: `src/descriptive/basic.ts` SHA `e12c8f8c91152f8d617cd05bf07ce512ef00856a` の `weightedMean()`。
+- Issue [#201](https://github.com/numero-uno-jpn/rStats.js/issues/201)。再現データ: `weightedMean([1e-308, 2e-308, 1e308], [1e308, 1e308, 0])`。正weightの積和は3、weight合計は2e308でInfinityだが、正しい加重平均は1.5e-308。現在は3/Infinity=0が有限値となり、非有限quotientだけを条件にしたscaled fallbackに入らず0を返す。静的ソース・IEEE-754解析のみ。
+
+
+## Audit #692 — pwrF2Test finite noncentrality lost to df-sum overflow
+- 対象: `src/htest/pwr.ts` SHA `a9f7c6f320272cfb00ed2704084507bc16861367` の `pwrF2Test()`。
+- Issue [#202](https://github.com/numero-uno-jpn/rStats.js/issues/202)。再現: `pwrF2Test({u:1e308,v:1e308,f2:1e-308})`。u,vはそれぞれ有限だがu+vがInfinityとなり、真のncpは約2なのにInfinityとしてpower=1へ短絡される。静的IEEE-754解析のみ。
+
+
+## Audit #693 — TukeyHSD confidence-level validation missing
+- 対象: `src/htest/aov.ts` SHA `9ce3aa388e5d2200fd75c751d6c69660d0e11648` の `TukeyHSD()`。
+- Issue [#203](https://github.com/numero-uno-jpn/rStats.js/issues/203)。再現: `TukeyHSD([[1,2,3],[2,3,4]], {confLevel:1.2})` および `confLevel:NaN`。open-interval検証なしでqtukeyへ渡し、NaNの信頼限界・調整p値を含む結果を正常返却する。他の検定関数と同様、計算前にconfLevelを検証すべき。静的ソース追跡のみ。
+
+
+## Audit #694 — ES.w1 / ES.w2 zero-over-zero reference behavior mismatch
+- 対象: `src/htest/pwr.ts` SHA `a9f7c6f320272cfb00ed2704084507bc16861367` の `esW1()` / `esW2()`。
+- Issue [#204](https://github.com/numero-uno-jpn/rStats.js/issues/204)。再現: `esW1([0,1],[0,1])`、`esW2([[0,0],[0,1]])`。現実装はnull/alternativeとも0のセルをskipして0を返すが、CRAN pwrの参照式は該当セルで0/0を評価し、sumをNaNにする。R互換を掲げるeffect-size関数の結果不一致。参照式: pwr `ES.w1` / `ES.w2`。静的ソース比較のみ。
+
+
+## Audit #695 — eigen global scaling underflows representable eigenvalues
+- 対象: `src/linalg/eigen.ts` SHA `3e4a152063336048ae11876326e5b44d12023577`。
+- Issue [#205](https://github.com/numero-uno-jpn/rStats.js/issues/205)。再現: `eigen([[1e308,0],[0,1e-308]], {symmetric:true,onlyValues:true}).values`。最大要素に合わせた共通2冪scaleで小さい対角要素が0へunderflowし、scale backしても小さい固有値1e-308を復元できない。対角行列で明確に再現する。静的IEEE-754解析のみ。
+
+
+## Audit #696 — crossprod / tcrossprod lack the matMul rescaled-dot fallback
+- 対象: `src/linalg/ops.ts` SHA `29ffd657b2cb314c736daff3303cb24640a324c4`。
+- Issue [#206](https://github.com/numero-uno-jpn/rStats.js/issues/206)。再現: `crossprod([[1e200,1e200],[1e200,-1e200]])` および `tcrossprod([[1e200,1e200],[1e200,-1e200]])`。対角の平方和はoverflowしてよいが、非対角の厳密な内積は1e400-1e400=0。現行は中間積±Infinityの和NaNを返す。matMulにあるrescaledDot相当の保護が両関数にない。静的IEEE-754解析のみ。
+
+
+## Audit #697 — unbalanced expm scaling erases a small but essential matrix entry
+- 対象: `src/linalg/expm.ts` SHA `ee5694d507b2da8245c9a391a0983f328f416f26`。
+- Issue [#207](https://github.com/numero-uno-jpn/rStats.js/issues/207)。再現: `expm([[0,1e308],[1e-308,0]], {method:"Higham08"})`。A²=Iなのでexp(A)=cosh(1)I+sinh(1)Aで、全成分が有限。unbalanced Higham08の共通scale(約2^-1021)で下左要素1e-308が0へunderflowし、Padé近似が別のnilpotent行列に対して実行される。静的IEEE-754解析のみ。
+
+
+## Audit #698 — matMul rescaledDot loses a tiny residual after dominant cancellation
+- 対象: `src/linalg/ops.ts` SHA `29ffd657b2cb314c736daff3303cb24640a324c4` の `rescaledDot()`。
+- Issue [#208](https://github.com/numero-uno-jpn/rStats.js/issues/208)。再現データ: `matMul([[1e308,1e308,1e-308]], [[1e308],[-1e308],[1e308]])`。厳密な積和は+1e616-1e616+1=1。overflow fallbackは各ベクトルを最大指数で一括scaleするため、最後の1e-308要素が0へunderflowし、支配項の相殺後に残る1を失って0を返す。指数ビン分割等の加算が必要。静的IEEE-754解析のみ。
+
+
+## Audit #699 — ansariTest exact estimate midpoint overflows
+- 対象: `src/htest/ansariTest.ts` SHA `9f13bb6d406d4f36761a562aed8bb17c0ce52db4` の `exactInterval()`。
+- Issue [#209](https://github.com/numero-uno-jpn/rStats.js/issues/209)。再現: `ansariTest([1e308], [1,1.01], {confInt:true,exact:true})`。exact candidate ratiosは約9.90e307と1e308で、平均は有限だが和がNumber.MAX_VALUEを超える。`(above+below)/2` のためestimateがInfinityになり得る。安定midpoint関数を使うべき。静的IEEE-754解析のみ。
+
+
+## Audit #700 — wilcoxTest null-location subtraction manufactures ties
+- 対象: `src/htest/wilcoxTest.ts` SHA `e40880f46edb938f5ad4814187de0f2d27058eb0` のone-sample signed-rank経路。
+- Issue [#210](https://github.com/numero-uno-jpn/rStats.js/issues/210)。再現: `wilcoxTest([1e308,1.1e308,1.2e308], {mu:-1e308})`。真の正差は順に約2e308,2.1e308,2.2e308で順位は1,2,3、signed-rank sum=6、exact two-sided p=0.25。現行の直接減算で全てInfinityとなり人工的な同順位が発生し、exact branchが無効化される。静的IEEE-754解析のみ。
+
+
+- Issue登録結果: 正規の新規Issue #201〜#210を10件登録。今回の監査対象にソース変更なし。全件静的ソース追跡・IEEE-754解析または参照式比較であり、package runtime/Vitest/R実行照合は未実施。
