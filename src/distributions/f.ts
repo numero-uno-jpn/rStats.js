@@ -2,8 +2,8 @@
 //
 // The density uses the relation to the binomial probability. With p = m x/(n + m x) and q = n/(n + m x),
 //   m >= 2: f(x) = m q / 2 * dbinom((m-2)/2; (m+n-2)/2, p)
-//   m <  2: f(x) = m/(n + m x) * m n / (2 (m + n) p) * dbinom(m/2; (m+n)/2, p)
-// (both derived by rewriting the F density in terms of Gamma functions).
+// (derived by rewriting the F density in terms of Gamma functions); m < 2 (or n < 2) is computed from the log of the
+// density with the small-shape prefactor (fLogDensity).
 // The distribution function is P[F <= x] = I_p(m/2, n/2); quantiles use Newton's method in u = log x.
 
 import { vectorize, type Vectorizable, type VectorResult } from "../internal/vectorize.js";
@@ -86,15 +86,11 @@ function fDensity(x: number, m: number, n: number, log: boolean): number {
   // A small df: Loader's form loses about ε |log(df/2)| / 2 in its exponent (incbetPrefactor.ts), and the factor m^2 n
   // below underflowed (df(6.6e-112, 3.2e-173, 1868) was -Infinity on the log scale, NaN at x = 4.6e-157)
   if (Math.min(m, n) / 2 < SMALL_SHAPE) return fromLog(fLogDensity(m, n, ddLog(pd), ddLog(qd)), log);
-  const p = pd[0];
+  // (m >= 2 here: SMALL_SHAPE is 1, so df1 < 2 took the branch above; R's form for df1 < 2, whose 2 (m + n) overflowed
+  // for df2 near 1e308, was never reached and is gone; issue #32)
   const q = qd[0];
-  if (m >= 2) {
-    const c = (m * q) / 2;
-    const v = dbinomRawDD((m - 2) / 2, n / 2, pd, qd, log);
-    return log ? Math.log(c) + v : c * v;
-  }
-  const c = ((m / (n + m * x)) * m * n) / (2 * (m + n) * p);
-  const v = dbinomRawDD(m / 2, n / 2, pd, qd, log);
+  const c = (m * q) / 2;
+  const v = dbinomRawDD((m - 2) / 2, n / 2, pd, qd, log);
   return log ? Math.log(c) + v : c * v;
 }
 
