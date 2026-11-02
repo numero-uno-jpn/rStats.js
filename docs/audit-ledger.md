@@ -2916,3 +2916,15 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Suggested remediation: apply R-compatible half-even integer coercion to `size` before sign validation and before subsequent calculations, or change the documented compatibility contract consistently. Do not use ordinary `Math.round()` without the tie-to-even correction.
 - Rとの関係: directly compared with current R Core `qbinom.c`, which calls `R_forceint(n)` before the negative-size check; `R_forceint`/nearbyint semantics were also reviewed in Audit #521. No R executable was run.
 - 検証範囲: complete `qbinom1()` control flow, `badParams()`, endpoint handling, `discreteQuantile()` interaction, current R Core source comparison, and deterministic concrete inputs above. No Vitest, package runtime, or R execution. No source code changed.
+
+
+## Audit #528 — qbinom Cornish–Fisher seed and bounded search
+
+- Sources: `src/distributions/binomial.ts` blob `2f90ac1e001443b0704f33e76585cb2868497724`; `src/internal/discrete.ts` blob `a8ed86222a9c91b7dfea90b990244a81c1170194`; `src/internal/dpq.ts` blob `543eb6ceb3de7627a7562b035a931a88da424aa7`; `src/distributions/normal.ts` blob `9980fecf2366042da09273ba8c86de07d34dcaa3`. Compared with current R Core `qbinom.c` and `qDiscrete_search.h`.
+- Reviewed `mu=n*prob`, `sigma=sqrt(n*prob*(1-prob))`, skewness `(1-2*prob)/sigma`, qnorm tail selection, Cornish–Fisher seed, fallback, and lower/upper-tail search predicate. Formula and operation order match R's `q_DISCRETE_BODY()`.
+- For finite n, the search is bounded by [0,n], clamps the rounded seed to support, and uses the corresponding binomial CDF predicate. The #523 overflow defect concerns an infinite upper bound and does not apply to qbinom's finite `hi:n`.
+- Extreme arithmetic: variance can underflow to zero for tiny `prob`, and `z*z` can overflow for extreme finite log probabilities. In either case the resulting nonfinite seed is replaced by finite `mu`; this affects search efficiency, not the bounded predicate's correctness. The callback returns the exact support endpoint probability for `y>=n`.
+- Concrete source-level probes (not runtime outputs): `qbinom1(0.5,10,Number.MIN_VALUE,true,false)`; `qbinom1(0.5,10,1-Number.EPSILON/2,true,false)`; `qbinom1(-10000,100,0.5,true,true)`; `qbinom1(-10000,100,0.5,false,true)`; `qbinom1(0.5,Number.MAX_VALUE,0.5,true,false)`; `qbinom1(0.5,2**53,0.5,true,false)`; `qbinom1(0.5,100,0.5,true,false)`.
+- Inspected existing `test/fixtures/auditq_qbinom.mpmath.json` cases covering both tails, linear/log probabilities, tiny probabilities, skewness, and large n; tests were not executed.
+- Result: no new independent reproducible defect in the Cornish–Fisher seed or finite-support search. #102 (size coercion) and #523 (unbounded search) are not duplicated.
+- R comparison: current R Core source inspected directly; no R executable was run. No Vitest or package runtime was run; no source code changed.
