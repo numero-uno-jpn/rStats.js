@@ -11,7 +11,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 Fixes from 68 rounds of an external numerical review and from GitHub issues #8 to #20. Each case is described, with
 R's value and rStats.js's, in [differences from R](docs/differences-from-r.md) and in the review logs
-(`review_fix_log_*.md`). Where R itself is wrong, rStats.js now returns the mathematically right value.
+(`docs/review-logs/review_fix_log_*.md`). Where R itself is wrong, rStats.js now returns the mathematically right value.
 
 ### Breaking
 
