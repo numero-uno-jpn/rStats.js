@@ -329,14 +329,16 @@ function labelText(v: DataValue): string {
   return v as string;
 }
 
-/** An option given once for all value columns or by value column */
+/** An option given once for all value columns or by value column (own properties only: a column named toString or
+ * __proto__ has no setting unless one is given) */
 function perColumn<T>(
   option: T | Readonly<Record<string, T>> | undefined,
   isSingle: (o: T | Readonly<Record<string, T>>) => o is T,
   name: string,
 ): T | undefined {
   if (option === undefined) return undefined;
-  return isSingle(option) ? option : option[name];
+  if (isSingle(option)) return option;
+  return Object.hasOwn(option, name) ? option[name] : undefined;
 }
 
 /**
