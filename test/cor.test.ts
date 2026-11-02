@@ -22,4 +22,11 @@ htestSuite({
       }),
     ),
   tolerance: 1e-12,
+  knownDifference: (a, field, expected) =>
+    a.method === "kendall" &&
+    arg.vec(a.x)!.length === 2 &&
+    Number.isNaN(expected) &&
+    (field === "statistic" || field === "pValue")
+      ? "R's Kendall variance for n = 2 takes 0/0 in the second tie term, which is 0 (issue #134)"
+      : undefined,
 });

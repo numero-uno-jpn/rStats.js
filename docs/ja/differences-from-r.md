@@ -184,6 +184,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | D >= 1/2 で p 値が極小の `ks.test(x, "punif", exact = TRUE)` (D = 0.9、n = 20・50・99) | 0、8.9e-16、2.0e-15 (1 - P(D < d) で桁が落ちる) | 2.0e-20、2.0e-50、2.05e-99。d >= 1/2 では P(D >= d) = 2 P(D+ >= d) を正の項の和で求める |
 | 有限なデータの範囲や偏差が溢れる `quade.test`・`fligner.test` (-1e308〜1e308 と -9e307〜9e307 の行) | どちらも Inf で同順位になり、尺度を変えると結果が変わる | その場合は共通の 2 の冪で割ってから計算し、どの尺度でも同じ結果 |
 | 不一致の度数がない組を含む r x r 表の `mcnemar.test` | 統計量と p 値が NaN | その組の寄与を 0 にする (自由度は変えない) |
+| `cor.test(c(1, 2), c(1, 2), method = "kendall", exact = FALSE)` (n = 2) | 統計量と p 値が NaN: 分散の 2 つ目の同順位の項が 0 / 0 (分母に n − 2 = 0) | z = 1、p = 0.3173: その項を 0 にする (同順位の組はどれも 2 個以下) |
 | 二乗が溢れる `predict(glm, newdata, se.fit = TRUE)` (newdata 1e155) | se.fit が Inf | 最大の値で割ってからノルムを作る: 1.07e154 |
 | x の列が 1 から遠い (x の 1e-200 倍や 1e200 倍) `summary(lm)`、`summary(glm)`、`confint(glm)` | 標準誤差が Inf か 0 ((R'R)^-1 が溢れるか 0 に落ちる)、t が 0 か Inf、p が 1 か 0。プロファイル区間も求まらない | 逆行列の前に R の列を 2 の冪で割る。t、p、区間は x そのものと同じ (尺度を戻さない共分散は、範囲外なら今まで通り Inf か 0) |
 | 重み 1e308 か、重み 0 の行に無限大の応答がある `glm` (gaussian、切片あり) | null deviance が NaN (重みの和が溢れる、0 × Inf) | 5e306 と 4.67。重みを 2 の冪で割り、重み 0 の行を除く |

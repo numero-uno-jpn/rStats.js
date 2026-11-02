@@ -453,9 +453,11 @@ function corTestSamples(x: Sample, y: Sample, options: CorTestOptions): CorTestR
     const a2 = (t: number): number => t * (t - 1);
     const a3 = (t: number): number => t * (t - 1) * (t - 2);
     const a5 = (t: number): number => t * (t - 1) * (2 * t + 5);
+    // For n = 2 every tie group has t <= 2, so the sums of t (t - 1) (t - 2)
+    // are 0 and the second term is 0 (its denominator is also 0: R gives 0/0).
     const varS =
       (n * (n - 1) * (2 * n + 5) - v(a5, k.tx) - v(a5, k.ty)) / 18 +
-      (v(a3, k.tx) * v(a3, k.ty)) / (9 * n * (n - 1) * (n - 2)) +
+      (n < 3 ? 0 : (v(a3, k.tx) * v(a3, k.ty)) / (9 * n * (n - 1) * (n - 2))) +
       (v(a2, k.tx) * v(a2, k.ty)) / (2 * n * (n - 1));
     const s = continuity ? Math.sign(k.s) * (Math.abs(k.s) - 1) : k.s;
     const z = s / Math.sqrt(varS);
