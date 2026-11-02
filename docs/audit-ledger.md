@@ -4201,3 +4201,93 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 負の寄与はtotal devianceとIRLSのdeviance比較を汚染する。deviance residual側では負値を0にclampするため、診断出力では問題が隠れる。相殺に強いbd0型計算式が必要。
 - 既存Issue検索: "binomial deviance cancellation close probabilities"、"binomialDev negative deviance"、"glm deviance precision close y mu"で重複なし。
 - **新規Issueを登録。ソース変更なし。** 静的ソース追跡とbinary64数値解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #660 — Poisson deviance cancellation near a perfect fit
+
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5` のPoisson/quasipoisson deviance、およびquasi variance `"mu"` の同型式。
+- **新規Issue #162**: [Poisson deviance becomes negative near an exact fit because of cancellation](https://github.com/numero-uno-jpn/rStats.js/issues/162)。
+- 決定的再現: `makeFamily("poisson").devContribution(1, 1 + 2 ** -52, 1)`。現行式 `2*(y*log(y/mu)-(y-mu))` は一次項同士の相殺で約 `-9.860761315262648e-32` を返す。一方、正確な式 `2*(d-log1p(d))`（d=2^-52）は約 `+4.930380657631323e-32`。逸脱度が負となり、総devianceとIRLSのdeviance比較を破壊する。quasi variance `"mu"` にも同根因がある。
+- 既存Issue検索: Poisson deviance cancellation / small difference / near perfect fitで重複なし。
+- **新規Issue #162登録。** ソース変更なし。IEEE-754決定的演算の静的解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #661 — Gamma deviance cancellation near a perfect fit
+
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5` のGamma devianceとquasi variance `"mu^2"`。
+- **新規Issue #163**: [Gamma deviance loses relative accuracy near a perfect fit](https://github.com/numero-uno-jpn/rStats.js/issues/163)。
+- 決定的再現: `makeFamily("Gamma").devContribution(1, 1 + 2 ** -52, 1)`。現行式 `-2*(log(y/mu)-(y-mu)/mu)` は約 `1.9721522630525295e-31`。正確な式 `2*(log1p(d)-d/(1+d))` は約 `4.930380657631322e-32`。小さな逸脱度の相対誤差が大きく、quasi `"mu^2"` でも同じ相殺式が使われる。
+- 既存Issue検索: Gamma deviance cancellation / close mean / small differenceで重複なし。
+- **新規Issue #163登録。** ソース変更なし。IEEE-754決定的演算の静的解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #662 — Inverse-Gaussian deviance overflow
+
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5` の `inverseGaussianDev()`。inverse.gaussianおよびquasi variance `"mu^3"` で共有。
+- **新規Issue #164**: [Inverse-Gaussian deviance overflows for a finite, representable result](https://github.com/numero-uno-jpn/rStats.js/issues/164)。
+- 決定的再現: `makeFamily("inverse.gaussian").devContribution(1e-308, 1e308, 1)`。y, muは有限正数。現行の `(y-mu)**2` はInfinityにoverflowするが、分母 `y*mu*mu` は左から評価すると約 `1e308`。解析的な比は約 `1e308` で有限。大きな差を先に二乗する演算順序が原因。
+- 既存Issue検索: inverse Gaussian deviance overflow / numerical stabilityで重複なし。
+- **新規Issue #164登録。** ソース変更なし。静的なIEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #663 — Inverse-Gaussian working-weight overflow at large finite means
+
+- 対象: `src/models/glmFamily.ts` のinverse-Gaussian `variance(mu)=mu^3`、`src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の `irls()` p=0経路と通常IRLS。
+- **新規Issue #165**: [Inverse-Gaussian GLM working weight becomes NaN when a finite large mean overflows V(mu)](https://github.com/numero-uno-jpn/rStats.js/issues/165)。
+- 決定的再現: `glm([[]], [1e200], { family: "inverse.gaussian", link: "log", intercept: false, offset: [Math.log(1e200)] })`。有限の正応答・offsetでmu≈1e200、devianceは0。log linkでは導関数mu、数学的working weightは `mu^2/mu^3=1/mu≈1e-200`。しかしmu³とmu²の中間値がInfinityとなり、p=0分岐でInfinity/Infinity→NaN。通常IRLSにも同じ比率形成がある。
+- 既存Issue検索: inverse Gaussian variance overflow / working weight large meanで重複なし。
+- **新規Issue #165登録。** ソース変更なし。静的な式・IEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #664 — Inverse-Gaussian working-weight underflow at small finite means
+
+- 対象: `src/models/glmFamily.ts` のinverse-Gaussian `variance(mu)=mu^3`、`src/models/glm.ts` のIRLS variance validation。
+- **新規Issue #166**: [Inverse-Gaussian GLM rejects small finite means when V(mu) underflows](https://github.com/numero-uno-jpn/rStats.js/issues/166)。
+- 決定的再現: `glm([[0], [1]], [1e-200, 1e-200], { family: "inverse.gaussian", link: "log" })`。初期muは有限正数1e-200、etaも有限。mu³はbinary64で0へunderflowするためIRLSが `"0s in V(mu)"` をthrowする。一方、log linkのworking weightは `mu²/mu³=1/mu=1e200` で有限。分散そのものをbinary64で表現できないこととworking weightが計算不能であることを混同している。
+- 既存Issue検索: inverse Gaussian small mean / variance underflowで重複なし。
+- **新規Issue #166登録。** ソース変更なし。静的な式・IEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #665 — Poisson working-weight underflow at subnormal means
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の `irls()` p=0 working-weight式。Poisson familyの `variance(mu)=mu` とlog-link derivative `mu` を追跡。
+- **新規Issue #167**: [Poisson GLM loses a representable subnormal working weight for tiny means](https://github.com/numero-uno-jpn/rStats.js/issues/167)。
+- 決定的再現: `glm([[]], [0], { family: "poisson", intercept: false, offset: [Math.log(1e-320)] })`。mu≈1e-320は正のsubnormalで、数学的working weight `mu²/mu=mu` も約1e-320として表現可能。現行式はmu²を先に計算して0へunderflowさせ、その後0/mu=0を返す。正しいworking weightをゼロに失う。
+- 既存Issue検索: Poisson tiny mean / subnormal working weightで重複なし。
+- **新規Issue #167登録。** ソース変更なし。静的な式・IEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #666 — Poisson null-deviance weighted-mean overflow
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` のintercept付きnull deviance算出。
+- **新規Issue #168**: [Poisson null deviance becomes NaN when the finite weighted mean sum overflows](https://github.com/numero-uno-jpn/rStats.js/issues/168)。
+- 決定的再現: `glm([[], []], [1e308, 1e308], { family: "poisson" })`。各responseは有限かつ同一で、full fitの平均は1e308、devianceは0となるべき。null mean計算は重みをpower-of-twoでscaleするが、`swy += wi * yy[i]` のresponse側はscaleしないためswyがInfinity、mもInfinityとなる。Poisson devianceにInfinity/Infinity相当の不定演算が入りnullDevianceがNaNとなる。
+- 既存Issue検索: GLM null deviance / weighted mean / overflowで重複なし。
+- **新規Issue #168登録。** ソース変更なし。静的な制御フローとIEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #667 — Cook's distance intermediate-square overflow
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の `glmCooksDistance()`。
+- **新規Issue #169**: [glmCooksDistance overflows an intermediate square although Cook's distance is finite](https://github.com/numero-uno-jpn/rStats.js/issues/169)。
+- 決定的再現データ: `glm([[], []], [0, 1e308], { family: "poisson" })` に対し `glmCooksDistance(fit, { dispersion: 1e308 })`。intercept-only Poisson fitの平均は約5e307、各hat valueは約0.5、Pearson residual絶対値は約7.07e153。Cook式の数学的値は約1だが、実装は先に `(v/(1-h))**2` を計算し、約2e308へoverflow。その後の小さい因子との積はInfinityとなり、最終的にNaNへ変換される。因子の順序またはスケーリングが必要。
+- 既存Issue検索: Cook distance overflow / finite dispersionで重複なし。
+- **新規Issue #169登録。** ソース変更なし。式の静的追跡とIEEE-754範囲解析のみ。GLM runtime/Vitest/R照合未実施。
+
+
+## Audit #668 — Deviance residuals for zero residual degrees of freedom
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の `residualsOf()` と `oracle/glm-behaviour.md` のResiduals仕様。
+- **新規Issue #170**: [Deviance residuals should be zero when residual degrees of freedom are zero](https://github.com/numero-uno-jpn/rStats.js/issues/170)。
+- 決定的再現: `glm([0, 1], [1, 10], { family: "poisson", maxit: 1 })`。2観測・2列（interceptとpredictor）でrank=2、dfResidual=0。初期平均y+0.1からの1回のIRLS更新後、平均は約1.0044107879と10.0004934197で、devianceは正。現行 `residualsOf(fit,"deviance")` は行ごとの逸脱度平方根を返す（第1行は約-0.0044043）。一方、リポジトリのR互換仕様はdf.residual=0なら未収束fitも含め全deviance residualsを0と明記している。
+- 既存Issue検索: saturated GLM / df.residual zero / deviance residualsで重複なし。
+- **新規Issue #170登録。** ソース変更なし。仕様と実装の静的比較、決定的IRLS式の解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #669 — Supplied dispersion incorrectly changes GLM coefficient tests to z tests
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の `glmSummary()`、`oracle/glm-behaviour.md` のsummary.glm仕様。
+- **新規Issue #171**: [glmSummary uses normal z tests for supplied dispersion in non-fixed-dispersion families](https://github.com/numero-uno-jpn/rStats.js/issues/171)。
+- 決定的再現: `const fit = glm([0,1,2,3], [1,2,3,4], { family: "Gamma", link: "log" }); glmSummary(fit, { dispersion: 1 })`。現行コードは `estimated = options.dispersion === undefined && !fam.fixedDispersion`、続いて `zTest = !estimated` とするため、dispersionを指定したGamma fitをz検定に切り替え、`pnorm` と `"z value"` を返す。リポジトリ仕様ではbinomial/Poisson以外はdfResidual自由度のStudent t検定（`pt`）であり、dispersion引数は標準誤差の分散値を置き換えるだけで参照分布を変更しない。
+- 既存Issue検索: glmSummary dispersion argument / t statistic / z statisticで重複なし。
+- **新規Issue #171登録。** ソース変更なし。実装とリポジトリ内仕様の静的比較のみ。Vitest/package runtime/R照合未実施。
