@@ -22,7 +22,7 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import { logFactorialTable, rcont2 } from "../random/r2dtable.js";
 import { sampleInt } from "../random/sample.js";
-import { productOver, squareOver } from "../internal/summary.js";
+import { ldexp, productOver, squareOver } from "../internal/summary.js";
 import { compareCodePoints } from "../models/modelFrame.js";
 import { ddAdd, type DD } from "../special/dd.js";
 import { simulatedMethod } from "./core/simulate.js";
@@ -243,10 +243,17 @@ function goodnessOfFit(x: number[], options: ChisqTestOptions): ChisqTestResult 
   } else if (Math.abs(ddSum(p) - 1) > Math.sqrt(Number.EPSILON)) {
     throw new RangeError("probabilities must sum to 1");
   }
-  const E = p.map((v) => n * v);
+  // where the total overflows (each count finite), the counts in units of 2^s, 2^s >= k and s even, so that their total
+  // cannot overflow; the statistic is scaled back by 2^s and the residuals by 2^(s/2). With s = 0 (the total finite)
+  // the values are those of the plain counts
+  const s = n < Infinity ? 0 : 2 * Math.ceil(Math.log2(k) / 2);
+  const xs = s === 0 ? x : x.map((v) => ldexp(v, -s));
+  const ns = s === 0 ? n : ddSum(xs);
+  const Es = p.map((v) => ns * v);
+  const E = s === 0 ? Es : Es.map((e) => ldexp(e, s));
   checkExpected(E);
-  const V = p.map((v, i) => E[i]! * (1 - v));
-  const stat = ddSum(x.map((v, i) => squareOver(v - E[i]!, E[i]!)));
+  const Vs = p.map((v, i) => Es[i]! * (1 - v));
+  const stat = ldexp(ddSum(xs.map((v, i) => squareOver(v - Es[i]!, Es[i]!))), s);
   let method = "Chi-squared test for given probabilities";
   let df = k - 1;
   let pValue: number;
@@ -268,8 +275,8 @@ function goodnessOfFit(x: number[], options: ChisqTestOptions): ChisqTestResult 
     pValue,
     observed: x,
     expected: E,
-    residuals: x.map((v, i) => (v - E[i]!) / Math.sqrt(E[i]!)),
-    stdres: x.map((v, i) => (v - E[i]!) / Math.sqrt(V[i]!)),
+    residuals: xs.map((v, i) => ldexp((v - Es[i]!) / Math.sqrt(Es[i]!), s / 2)),
+    stdres: xs.map((v, i) => ldexp((v - Es[i]!) / Math.sqrt(Vs[i]!), s / 2)),
   };
 }
 
