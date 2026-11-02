@@ -122,19 +122,23 @@ export function qtriang1(p: number, a: number, b: number, c: number, lowerTail: 
   // put x at the mode: qtriang(1.6e-8, { a: 0, b: 1.03e-316, c: 8.7e-317, lowerTail: false }))
   const cl = (c - a) / w;
   const cr = (b - c) / w;
+  // For a mode at an end the distance from it is w times the tail given (c = a: the lower one), which was 0 where that
+  // tail, exp(p), underflows: w exp(p / 2)^2 then, exp(p / 2) being normal (qtriang(-1000, { a: 0, b: 1e308, c: 0,
+  // logP: true }) was 0 for 2.5e-127; issue #121)
+  const tinyTail = logP && pv < 2 ** -1022;
   let x: number;
   if (cl > 0 && lower <= cl) {
     const t = lower / cl;
     x =
       t <= 0.5
         ? a + (lowerTail ? sqrtP : Math.sqrt(lower)) * Math.sqrt(w) * Math.sqrt(c - a)
-        : c - ((c - a) * ((upper - cr) / cl)) / (1 + Math.sqrt(t));
+        : c - (cr === 0 && !lowerTail && tinyTail ? w * sqrtP * sqrtP : (c - a) * ((upper - cr) / cl)) / (1 + Math.sqrt(t));
   } else {
     const t = upper / cr;
     x =
       t <= 0.5
         ? b - (lowerTail ? Math.sqrt(upper) : sqrtP) * Math.sqrt(w) * Math.sqrt(b - c)
-        : c + ((b - c) * ((lower - cl) / cr)) / (1 + Math.sqrt(t));
+        : c + (cl === 0 && lowerTail && tinyTail ? w * sqrtP * sqrtP : (b - c) * ((lower - cl) / cr)) / (1 + Math.sqrt(t));
   }
   // Rounding must not take x out of the support
   return Math.min(Math.max(x, a), b);
