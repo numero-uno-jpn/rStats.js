@@ -299,7 +299,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `qcauchy(p, 3, Inf)` | すべての p で NaN。ただし `dcauchy`・`pcauchy` は極限の値 0 と 0.5 を返す | 中央値より下・中央値・上で -Inf、3、Inf。`qnorm`・`qlogis` と同じ |
 | `lm(y ~ x, weights = rep(1e308, n))` (重み付きの平方和が double の範囲を超える) | R² NaN、F NaN | 重みを一律に何倍しても同じ値 (テストの例で R² 0.982)。sigma は倍率の平方根に比例する。平方和は重みを 2 の冪で割って作る |
 | `integrate(f, 0, -Inf)`、`integrate(f, Inf, 1)`、`integrate(f, Inf, -Inf)`、`integrate(f, Inf, Inf)` | (0, Inf)、(-Inf, 1)、(-Inf, Inf)、(-Inf, Inf) での積分。無限大の端点の符号を見ない | (-Inf, 0)、(1, Inf)、(-Inf, Inf) での積分の符号を反転したもの、および 0 |
-| upper − lower が溢れる `integrate`・`optimize`・`uniroot` (`uniroot(function(x) x, c(-1e308, 1e308))`) | `integrate` は "roundoff error was detected"。`optimize`・`uniroot` は警告 ("Inf replaced by maximum positive value") | x / 2 の座標で、半分にした区間で解く (`uniroot` は 0。以前ここでは -Inf を返し、`optimize` は終わらなかった) |
+| upper − lower が溢れる `integrate`・`optimize`・`uniroot` (`uniroot(function(x) x, c(-1e308, 1e308))`) と、中点が溢れる `integrate` (`integrate(function(x) 1/x, 1e308, 1.1e308)`) | `integrate` は "roundoff error was detected" (中点が溢れる場合は、節点がすべて Inf になり、0 と誤差 0)。`optimize`・`uniroot` は警告 ("Inf replaced by maximum positive value") | x / 2 の座標で、半分にした区間で解く (`uniroot` は 0。以前ここでは -Inf を返し、`optimize` は終わらなかった) |
 | f(1) と f(2) が同符号で、その積がアンダーフローする `uniroot(f, c(1, 2), extendInt = "yes")` (1e-300 (x − 5)) | "f() values at end points not of opposite sign" | ほかの同符号の値と同じく区間を広げる (5) |
 | 重み 0 の観測の逸脱度の寄与が 0 × Inf になる `glm` (poisson、y = 1e308) | 逸脱度が NaN | その観測は 0 を足す (逸脱度残差も 0) |
 | x = 0 の `coxph(Surv(1, 1) ~ x)` など、対数尤度が 0 のまま変わらない当てはめ | "Ran out of iterations and did not converge" (判定 1 − 0/0 が NaN) | 収束 (対数尤度が変わらなければ収束とする) |

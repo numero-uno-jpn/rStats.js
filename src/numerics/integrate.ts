@@ -96,9 +96,10 @@ export function integrate(f: (x: number) => number, lower: number, upper: number
   }
   let r: QuadResult;
   if (Number.isFinite(lower) && Number.isFinite(upper)) {
-    // b - a overflows (both finite): x = 2u, the integral of f(2u) over (a/2, b/2) doubled (it ended in "roundoff error"
-    // for a density spread over (-1e308, 1e308))
-    if (Number.isFinite(upper - lower)) r = dqagse(g, lower, upper, absTol, relTol, limit);
+    // b - a or a midpoint of the subintervals (up to 2 max(|a|, |b|)) overflows (both finite): x = 2u, the integral of
+    // f(2u) over (a/2, b/2) doubled, with the same nodes (it ended in "roundoff error" for a density spread over
+    // (-1e308, 1e308), and 1/x over (1e308, 1.1e308) was 0 with every node at Inf)
+    if (Number.isFinite(2 * Math.max(Math.abs(lower), Math.abs(upper)))) r = dqagse(g, lower, upper, absTol, relTol, limit);
     else {
       const h = dqagse((u) => g(2 * u), lower * 0.5, upper * 0.5, absTol * 0.5, relTol, limit);
       r = { ...h, result: 2 * h.result, abserr: 2 * h.abserr };
