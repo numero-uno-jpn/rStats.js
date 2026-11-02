@@ -290,13 +290,18 @@ export function diag(x: Operand, options: DiagOptions = {}): number[] | number[]
     nrow = dimArg(options.nrow, "nrow") ?? v.length;
   }
   const ncol = dimArg(options.ncol, "ncol") ?? nrow;
+  // as R: no values for a diagonal of positive length (i % 0 put undefined on it)
+  if (values.length === 0 && Math.min(nrow, ncol) > 0) throw new RangeError("'x' must have positive length");
   const out = Array.from({ length: nrow }, () => new Array<number>(ncol).fill(0));
   for (let i = 0; i < Math.min(nrow, ncol); i++) out[i]![i] = values[i % values.length]!;
   return nrow === 0 ? [] : out;
 }
 
 /** Columns of an operand for binding: a matrix's columns, or a vector (scalar) as one column of `n` values */
-function bindParts(args: readonly Operand[], byColumn: boolean): Matrix {
+function bindParts(all: readonly Operand[], byColumn: boolean): Matrix {
+  // as R, vectors of length 0 are left out when anything else is given (recycling them put undefined in the result)
+  const given = (a: Operand): boolean => isMatrix(a) || asVector(a).length > 0;
+  const args = all.some(given) ? all.filter(given) : all;
   const parts = args.map((a) => (isMatrix(a) ? (byColumn ? t(a) : a.map((r) => [...r])) : [asVector(a)]));
   // the common length: the matrices' rows (cbind) or columns (rbind), else the longest vector
   const mats = args.filter(isMatrix);
