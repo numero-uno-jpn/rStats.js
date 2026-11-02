@@ -4089,3 +4089,11 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - **新規Issue #153**: [ptukey upper-tail log approximation overflows for huge finite nmeans](https://github.com/numero-uno-jpn/rStats.js/issues/153)。決定的再現 `ptukey(101, 1e200, Infinity, { lowerTail: false, logP: true })`。`validParams` は有限kを受理。q=101では線形upper-tailはrangeCdfC(w>60)で0となりlog fallbackへ進む。w>100の`logRangeCdfC`は `Math.log(k * (k - 1)) + logPhiC(w / sqrt(2))` を計算するが、k=1e200で積がInfinityとなりlog tailが+Infinity。結果として公開ptukeyは上側log確率に正Infinity、linear probabilityにInfinity、lower log tailにNaNを返す経路。正しい漸近log upper tailは `log(k)+log(k-1)+logPhiC(101/sqrt(2))`。mpmath 50桁で約 `-1634.4036442253523511699617027852`（有限・負）を確認。線形確率は0へunderflow、lower tailは1へ丸められる。
 - Tukeyのinner/outer integral、log-domain fallback、Chebyshev cache range、df=Infinity limit、small-tail selection、quantileのlog-q Brent inversionを確認。Clenshaw-Curtis pieces、peak search、golden-section、Brent、cache subdivisionは上限付き。既存Issue重複なし。fixture testはRmpfr 160-bit oracleとの比較で、Rのptukey約8桁精度をそのままoracleにしていない。実行は未実施。
 - **新規Issue #153、ソース変更なし。** Python mpmathによる漸近log-tail確認とソース制御フロー追跡。Vitest/package runtime/R/本体ptukey実行は未実施。
+
+
+## Audit #648 — Bivariate normal rectangle probabilities
+
+- 対象: `src/distributions/bvnorm.ts` SHA `64ee087010121cef571a4dc5b227e8430dc4fe11`。Gauss-Legendre rule生成、Sheppard積分（|rho|<0.925）、近完全相関の特異項除去・Taylor remainder、rho=±1の退化分布、無限bound、矩形の反射と4 orthant inclusion-exclusionを確認。
+- 既存Issue #119に同一根因の逆向きtail再現を追記: `pbvnorm([1e200, 1e200], [Infinity, Infinity], 0.5)`。期待値0。h=k=1e200で `hk=h*k` と `hs=(h*h+k*k)/2` がともにInfinityとなり、Sheppard integrandの `sn*hk-hs` がInfinity-Infinity=NaN。quadrature sumと最終矩形確率へ伝播。既存#119は `[-1e200,-1e200]` lower-boundで期待値1となる逆方向ケースを報告済み。
+- quadrature nodesは固定6/12/20点、Newton root iterationは最大100回。近完全相関の `a=sqrt((1-r)(1+r))` は相関端点を先に分岐し、rho=±1の退化式も確認。追加の独立した確定バグなし。
+- **Issue #119へ追加再現をコメント。新規Issueなし。ソース変更なし。** 検証はIEEE-754/source pathと数学的境界の静的追跡のみ。Vitest/package runtime/mvtnorm/Rは未実施。
