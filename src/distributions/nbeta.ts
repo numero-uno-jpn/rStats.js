@@ -713,8 +713,15 @@ function fPair(q: number, m: number, n: number): [DD, DD] {
     const d = ddAdd(mq, [n, 0]);
     return [ddDiv(mq, d), ddDiv([n, 0], d)];
   }
+  // m q is 1e290 or more (or overflows): 1 - x = zc where zc = n/(m q) is below the double-double precision
   const zc = n / m / q;
-  return [twoSum(1, -zc), [zc, 0]];
+  if (zc < 2 ** -106) return [twoSum(1, -zc), [zc, 0]];
+  // otherwise (n comparable to m q: zc = 1 gave x = 0 for 1/2; issue #158) x = 1/(1 + r), 1 - x = r/(1 + r),
+  // r = n/(m q) divided by the larger of m and q first (n/max(m, q) is then within the double range)
+  const [big, small] = m >= q ? [m, q] : [q, m];
+  const r = ddDiv(ddDiv([n, 0], [big, 0]), [small, 0]);
+  const d = ddAdd(r, [1, 0]);
+  return [ddDiv([1, 0], d), ddDiv(r, d)];
 }
 
 /** The Odds of x = m q/(n + m q): k = n/(m q), from its logs where it is out of the double range */
