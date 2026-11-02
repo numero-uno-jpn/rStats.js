@@ -162,6 +162,8 @@ export function pkolmogorovLimit(x: number, lowerTail = true): number {
       s += t;
       if (t <= 1e-17 * (s + first)) break;
     }
+    // the series underflows below x = 0.0407; there sqrt(2 pi) / x overflows for subnormal x (Inf * 0)
+    if (first + s === 0) return lowerTail ? 0 : 1;
     const k = (Math.sqrt(2 * Math.PI) / x) * (first + s);
     return lowerTail ? k : 1 - k;
   }
