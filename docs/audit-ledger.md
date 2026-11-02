@@ -2263,3 +2263,24 @@ Repository: `numero-uno-jpn/rStats.js`
 - #482 `expm()` unsafe `order`: a repository-wide open-issue cross-check found that new Issue #84 duplicated existing Issue #72 (same `Number.isInteger` acceptance of unsafe integer orders and non-progressing `j--` loops). Closed #84 with GitHub state reason `duplicate`; #72 remains canonical. The audit #380-#386 entry now points to #72.
 - #483 finite-interval integration midpoint overflow: cross-check found that new Issue #85 duplicated existing Issue #51 and overlapped wrapper-level Issue #75. Closed #85 with state reason `duplicate`; #51 remains canonical for the QUADPACK midpoint and #75 records the wrapper-level manifestation. The audit #387-#394 entry now points to #51.
 - This correction is intentional: the source findings remain valid, but the new duplicate issues are not counted as independent discoveries. The current distinct issue additions from this continuation are #70, #71, #86, #87 and #88; issues #72 and #51 were already present.
+
+
+## Audit #484 — cross-reference of pre-existing open issues
+
+The open-issue list was cross-checked against the recently re-audited source files. The following are pre-existing findings and remain open; “no new issue” in the corresponding audit row means no *additional* defect beyond these known reports:
+
+- #383 `kappa.ts`: existing #56 (exact kappa/ginv scale invariance under singular-value overflow) and #73 (direct triangular condition estimate overflow).
+- #377 `qr.ts`: existing #57 (LINPACK QR norm downdate near rank tolerance); new, separate response-NaN corruption is #71.
+- #357 `dd.ts` / #384 `ddexp.ts`: existing #52 (double-double product error lost for large operands), #54 (logAddExp(+Inf,+Inf)) and #62 (scaled product residual underflow).
+- #360 `invert.ts` / #361 `discrete.ts`: existing #53 (firstTrue can return Infinity below a finite threshold).
+- #388 `integrate.ts` / #387 `quadpack.ts`: existing #51 and #75 cover the finite-interval midpoint overflow; the newly opened #85 was closed as a duplicate of #51.
+- #392 `optim.ts` / #393 `localmin.ts`: existing #61 (non-finite objective stalls localMin), #74 (zero tolerance can stall optimize) and #76 (infinite maxit can stall SANN).
+- #411 `grouping.ts`: existing #44 (mixed numeric/string labels are not coerced as R factor labels).
+- #414 `dataFrames.ts`: existing #82 (merge key type coercion differs from R).
+- #416 `hist.ts`: existing #81 (pretty break construction overflow for wide finite ranges/large n).
+- #418 `moments.ts`: existing #80 (scale accepts ragged matrices).
+- #419 `omega.ts`: existing #83 (minres objective and gradient mismatch).
+- #420 `pivot.ts`: existing #39 (pivotWider reads inherited valuesFill/valuesFn properties).
+- #413 `cov.ts`: existing #78 (cor diagonal overwritten to 1 when undefined) and #79 (ragged cov/cor matrices accepted).
+- #447 `lmerTest.ts`: existing #58 (lmerContest contrast-rescaling invariance/variance overflow).
+- These existing issues were not re-opened or duplicated. The new distinct issues from this continuation remain #70, #71, #86, #87 and #88; #72 and #51 were already open before this continuation.
