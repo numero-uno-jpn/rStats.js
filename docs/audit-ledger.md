@@ -4173,3 +4173,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - **新規Issue #159**: [Gamma GLM inverse-link IRLS weight becomes NaN for large finite means](https://github.com/numero-uno-jpn/rStats.js/issues/159)。決定的再現 `glm([[], []], [1e308, 1e308], { family: "Gamma" })`。intercept-only、正の有限response、default inverse link。初期 `eta=1e-308`、`mu=1e308`。inverse linkの `muEta=-1/(eta*eta)` はeta² underflowで-Infinity、Gamma variance `mu²` はInfinity。IRLSの `sqrt((w*muEta²)/variance)` はInfinity/InfinityでNaN。一方、式を整理すれば `sqrt(w*mu^4/mu²)=mu*sqrt(w)=1e308` で有限。working response×sqrt weightも1となり、定数応答の正確なfitはmean 1e308、deviance 0。IEEE-754演算順序と解析式で確認。Vitest/package runtime/R未実施。
 - IRLSのstarting mean、offset、zero prior weights、deviance step halving、separation判定、QR rank/alias、null deviance、AIC、dispersion、summary covariance、residuals、hatvalues、Cook's distance、prediction SEのコード経路を追加確認。今回以外の独立確定バグは追加特定せず。#159はfamily/link-specific weight ratioを共通IRLSで直接形成する数値不安定性で、#156のpower-link単体導関数とは別根因。
 - **新規Issue #159、既存Issue #156へ追加再現。ソース変更なし。** docs/audit-ledger.md追記。GitHubソース静的追跡・IEEE-754演算解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #657 — GLM zero-column IRLS branch and extreme finite Gamma means
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`、`src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5`。Audit #656で確認したIRLS通常経路に加え、`irls()` の `p === 0`（説明変数なし・offsetのみ）専用経路を追跡。
+- 既存Issue **#159**へ追加再現をコメント: `glm([[]], [1e308], { family: "Gamma", intercept: false, offset: [1e-308] })`。Gamma既定inverse linkで `eta=1e-308`、`mu=y=1e308`。`muEta=-1/(eta*eta)=-Infinity`、`variance(mu)=mu*mu=Infinity`。p=0分岐の `sqrt((w*me**2)/variance)**2` はNaNを返すが、代数的に整理した平方根working weightは `sqrt(w)/eta=1e308`（有限）、その二乗working weightはInfinity（NaNではない）。適合平均は応答と一致しdeviance=0。通常のQR経路とは別の分岐でも同一の不安定な比率式が使われるため、#159に集約し新規Issueは作成しない。
+- 重複確認: "empty model" + Gamma working weights、Gamma offset + NaN、working weights + Gamma overflowのIssue検索で該当なし。#159が根因を包含するため追記コメントのみ。
+- GLMの入力前処理、二列binomial responseのsize/比例値/初期平均、p=0分岐、通常IRLS、null deviance、AIC、summary/diagnosticの主要呼び出し経路を再確認。有限の二列カウント合計がbinary64上限を超える場合は内部size/weightがInfinity化する境界を確認したが、有限表現不能な総試行数に対する期待API契約・スケーリング方針が未確定のため、独立バグとして登録しない。
+- **既存Issue #159へ追加再現、ソース変更なし。** ソース静的追跡とIEEE-754演算解析のみ。Vitest/package runtime/R照合未実施。
