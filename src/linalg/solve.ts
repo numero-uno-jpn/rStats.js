@@ -342,24 +342,65 @@ export function solve(a: MatrixInput, b?: VectorOrMatrix, options: SolveOptions 
   // the reciprocal condition number does not depend on the scale: for a matrix outside [2^-256, 2^256] it comes from a
   // copy divided by a power of 2 (the 1-norm of finite entries near 1e308 overflowed and the check was skipped)
   const scaled = finite ? scaledCopy(A) : undefined;
+  const k = scaled === undefined ? 0 : rangeExponent(A.data);
   const anorm = oneNorm(A);
+  const anormScaled = scaled === undefined ? NaN : oneNorm(scaled);
+  // (overwrites the copy with its LU)
+  const scaledLU = scaled === undefined ? undefined : getrf(scaled);
   const { ipiv, info } = getrf(A);
   if (info > 0) throw new Error(`the system is exactly singular: U[${info}, ${info}] = 0`);
   const tol = options.tol ?? Number.EPSILON;
   if (Number.isNaN(tol)) throw new RangeError("'tol' must not be NaN");
   // Matrices containing NaN or Inf are not checked (dgecon returns an error, which R ignores and returns the solution)
   if (tol > 0 && finite) {
-    let rc: number;
-    if (scaled === undefined) rc = gecon(A, anorm, true);
-    else {
-      const anormScaled = oneNorm(scaled);
-      // (entries far below the largest can underflow in the copy and make it exactly singular: condition 0)
-      rc = getrf(scaled).info > 0 ? 0 : gecon(scaled, anormScaled, true);
-    }
+    // (entries far below the largest can underflow in the copy and make it exactly singular: condition 0)
+    const rc = scaled === undefined ? gecon(A, anorm, true) : scaledLU!.info > 0 ? 0 : gecon(scaled, anormScaled, true);
     if (rc < tol) throw new Error(`the system is computationally singular: reciprocal condition number = ${rc.toPrecision(6)}`);
   }
-  getrs(A, ipiv, B);
+  // Where the elimination of the finite matrix overflowed (U not finite), the solution comes from the LU of the copy
+  // divided by 2^k (see solveScaled). Otherwise the LU of the matrix itself, as before, and again through solveScaled
+  // where the substitution overflowed for a finite right-hand side (with the copy's LU, or the matrix's own for k = 0)
+  const viaCopy = scaled !== undefined && scaledLU!.info === 0;
+  if (viaCopy && !A.data.every(Number.isFinite)) solveScaled(scaled, scaledLU!.ipiv, k, B);
+  else {
+    const B0 = finite && B.data.every(Number.isFinite) ? B.data.slice() : undefined;
+    getrs(A, ipiv, B);
+    if (B0 !== undefined && !B.data.every(Number.isFinite) && A.data.every(Number.isFinite)) {
+      B.data.set(B0);
+      if (viaCopy) solveScaled(scaled, scaledLU!.ipiv, k, B);
+      else solveScaled(A, ipiv, 0, B);
+    }
+  }
   return b !== undefined && !isMatrixInput(b) ? Array.from(B.data) : fromMat(B);
+}
+
+/**
+ * Solve A X = B, overwriting B, from the LU of S = A / 2^k: X = (S^-1 B) / 2^k, so the elimination in S does not overflow
+ * where that of A did (solve(1e308 * [[1, 1], [1, -1]], c(1, 0)) was c(1e-308, 0), for 5e-309 twice: -1e308 - 1e308
+ * overflowed in U). Each column of S^-1 B is scaled back once at the end (one rounding, also into the subnormal range).
+ * Where that column overflows before the scaling back (B large as well), it is solved again with B's column divided by
+ * the power of 2 of its largest entry
+ */
+function solveScaled(S: Mat, ipiv: Int32Array, k: number, B: Mat): void {
+  const n = S.nrow;
+  const col = newMat(n, 1);
+  for (let c = 0; c < B.ncol; c++) {
+    const o = c * n;
+    const b = B.data.subarray(o, o + n);
+    col.data.set(b);
+    getrs(S, ipiv, col);
+    let m = 0;
+    if (!col.data.every(Number.isFinite) && b.every(Number.isFinite)) {
+      let mx = 0;
+      for (const v of b) mx = Math.max(mx, Math.abs(v));
+      if (mx > 0) {
+        m = Math.floor(Math.log2(mx));
+        for (let i = 0; i < n; i++) col.data[i] = ldexp(b[i]!, -m);
+        getrs(S, ipiv, col);
+      }
+    }
+    for (let i = 0; i < n; i++) b[i] = ldexp(col.data[i]!, m - k);
+  }
 }
 
 /**
