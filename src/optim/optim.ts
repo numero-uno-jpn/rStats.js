@@ -613,7 +613,10 @@ export function optim(par: readonly number[], fn: (par: number[]) => number, opt
   const parscale = recycle(control.parscale, n, 1);
   const fnscale = control.fnscale ?? 1;
   const ndeps = recycle(control.ndeps, n, 1e-3);
-  const maxit = control.maxit ?? (method === "Nelder-Mead" ? 500 : method === "SANN" ? 10000 : 100);
+  const maxit0 = control.maxit ?? (method === "Nelder-Mead" ? 500 : method === "SANN" ? 10000 : 100);
+  // R's as.integer: truncated, and an error beyond the integer range (Infinity kept SANN's loop running forever)
+  if (!(Math.abs(maxit0) <= 2147483647)) throw new RangeError("'maxit' is not an integer");
+  const maxit = Math.trunc(maxit0);
   const reltol = control.reltol ?? Math.sqrt(2 ** -52);
   const abstol = control.abstol ?? -Infinity;
   if (!(reltol >= 0 && reltol < Infinity)) throw new RangeError("'reltol' must be a non-negative finite number");
