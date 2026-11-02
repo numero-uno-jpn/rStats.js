@@ -2945,3 +2945,25 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Rとの関係: current R Core `dnbinom.c` inspected. It has a small-x/large-size expansion and Loader density path rather than the TypeScript early rejection. R source explicitly comments on this overflow regime.
 - Related issue: existing [#65](https://github.com/numero-uno-jpn/rStats.js/issues/65). Added a comment with R-source comparison, both parameterizations, and corrected the asymptotic log estimate in the issue body (the prior estimate there was numerically inconsistent).
 - 検証範囲: complete `dnbinomRaw()` entry and both public parameterization paths, R Core source comparison, deterministic IEEE-754 overflow trace, and local normal approximation. No package runtime, Vitest, or R executable was run. No source code changed.
+
+
+## Audit #530 — `src/distributions/negbinomial.ts` CDF tail identity and small-shape upper-series
+
+- Source blob: `src/distributions/negbinomial.ts` `6bf9bf9b9d8b05aa4828e33c4b2fb9b3ed5171c7`; compared with current R Core `src/nmath/pnbinom.c` and `pbeta` parameterization.
+- Reviewed the ordinary mapping `P[X <= x] = I_prob(size, floor(x+1e-7)+1)`, the complementary upper tail, log/linear modes, and the beyond-2^53 correction `I_p(size,x+1)=I_p(size,x)+P(X=x)`. The subtraction identity for the upper tail and the `logSubExp` branch have the correct sign and inclusivity.
+- Reviewed `upperSeries()` for `size<=1`, `q>=0.95`: positive-term recurrence, double-double term/sum, prefactor construction via `prefactorParts`, stopping bound using `term < 1e-18 * sum * p`, and fallback when the series is not usable or exceeds 1/2. The ratio `(A+B+k)/(A+1+k)*q` increases toward q for B<=1; bounding the remaining geometric tail by `term/p` is conservative. The 1e6 iteration cap routes to the incomplete-beta fallback.
+- Exact deterministic inputs traced:
+  ```ts
+  pnbinom1(0, 0.5, 0.5, true, false);
+  pnbinom1(0, 5.6e-245, 0.125, false, true);
+  pnbinomMu1(1545, 5.6e-245, 4.6e-241, false, false);
+  pnbinomMu1(1545, 5.6e-245, 4.6e-241, false, true);
+  pnbinom1(1e16, 1e16, 0.5, true, false);
+  pnbinom1(1e16, 1e16, 0.5, false, true);
+  pnbinom1(-1, 2, 0.5, true, false);
+  pnbinom1(Infinity, 2, 0.5, false, true);
+  ```
+  The tiny-shape/mu case is also explicitly documented in source comments as the motivation for the specialized series and its prefactor path. Existing `audit_pnbinom.mpmath.json` fixture cases were inspected for lower/upper and log/linear outputs; no tests were executed.
+- Result: no new independent reproducible defect established in CDF tail mapping or the small-shape series. Existing #65 concerns PMF overflow and is not duplicated.
+- Rとの関係: current R Core `pnbinom.c` uses the same incomplete-beta identity and endpoint ordering; no R executable was run.
+- 検証範囲: complete `pnbinomRaw()` and `upperSeries()` control flow, relevant double-double identities, tail/log arithmetic, R Core source comparison, and existing fixture inspection. No Vitest, package runtime, or R execution. No source code changed.
