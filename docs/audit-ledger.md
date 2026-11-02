@@ -3697,3 +3697,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - Quantile follow-up: `qnt1` can also enter the far-tail branch with `T0=Infinity` when `farLimit` overflows; `farTailLog(s*T0, ...)` then does not satisfy `abs(t)>T0` (`Infinity > Infinity` is false) and falls through to `pntBoth` with an infinite argument. This is a further unvalidated risk, not separately reported as a confirmed bug pending exact reachable probability/side conditions.
 - Existing tests include huge-df, tiny-df and tail cases, but no fixture for the above `1e308`/`df=2` configuration. Vitest and R execution not performed. Static source analysis only; no source changes.
 - Issue creation and ledger write were blocked by GitHub connector safety checks in the prior attempt; this entry records the finding and the limitation.
+
+
+## Audit #608 — Noncentral t quantile with overflowing farLimit
+
+- 対象: `src/distributions/nt.ts` SHA `85763973f3f7a82d46ceee19a4dd0f8d8c275814`、`test/nt.test.ts` SHA `256fd766b66bbb636d57a89a0549d3f6ccb1e297`、`src/internal/invert.ts`。
+- 新規不具合候補をIssue #136として登録: `Noncentral t quantile fails when farLimit overflows for large finite ncp`。
+- 決定的入力: `qt(0.9, 2, { ncp: 1e299 })`。df=2では `S=sqrt(V/2)` の生存関数が `exp(-s²)`。大きな正の非心度で `T=(Z+ncp)/S` のCDFは正のtで `exp(-ncp²/t²)` に近づき、90%分位点は `ncp/sqrt(-log(0.9)) ≈ 3.0805e299`。有限かつbinary64で表現可能。
+- 原因経路: `farLimit(1,1e299)=1e10*(1e299+10)*sqrt(2)` がInfinity。`qnt1` は `T0=Infinity` で `farTailLog(s*T0,...)` を呼ぶ。`farTailLog` 内の `Infinity > Infinity` はfalseとなり、`pntBoth(Infinity,...)` にフォールスルーする。通常の有限境界での裾評価・べき乗則による逆算ができない。
+- #606で見つけた `farLimit` overflow→`findPeak` のsigma=0とは別の、分位点関数 `qnt1` の独立した障害経路。
+- テストコードを確認したが、Vitest・R・実関数の実行は未実施。上記分位点は解析的極限による期待値であり、実測値ではない。静的ソース監査のみ。ソースコード変更なし。
+- GitHub Issue: https://github.com/numero-uno-jpn/rStats.js/issues/136
