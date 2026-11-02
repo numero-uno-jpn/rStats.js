@@ -383,7 +383,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qbeta` answer underflows (e.g. `qbeta(0.5, 1e-10, 2.5)`) | 2^-1024 (5.56e-309) | 0 |
 | `qf` answer overflows (e.g. `qf(-1e-300, 1, 1, log.p = TRUE)`) | a finite value near 2^1023 | Inf |
 | `dchisq`, `pchisq` and `qchisq` with df = -5e-324 (the least negative subnormal) | df / 2 rounds to -0, the point mass at 0: Inf, 0, 1, 0 | NaN (a negative df is invalid) |
-| `qbinom` with non-integer size (e.g. 2.5) | searches with NaN from `pbinom` and returns meaningless values (including -0) | NaN (as `dbinom` and `pbinom`) |
+| `qbinom` with non-integer size (e.g. 2.5) | rounds size to an integer (half to even: 10.5 is 10, 11.5 is 12), while `dbinom`, `pbinom` and `rbinom` give NaN for it | NaN (as `dbinom` and `pbinom`) |
 | Uniform with overflowing max − min (min = -1e308, max = 1e308) | Inf / 0 / NaN | computed with both ends halved (`dunif` 5e-309, `punif(-1)` 0.5, `qunif(0.5)` 0) |
 | `dmultinom` with finite weights whose sum overflows (`dmultinom(c(1, 1), prob = c(1e308, 1e308))`) | 0 (log -Inf) | 0.5 (log -0.693): the weights are divided by a power of 2 before they are summed |
 | `dmultinom` where a category's share of the weights is below the double range (`dmultinom(c(1, 0, 0), prob = c(5e-324, 1, 1), log = TRUE)`) | -Inf | -745.133 (log 5e-324 - log 2): the term of that category from the log of its share |
