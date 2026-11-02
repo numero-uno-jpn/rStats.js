@@ -45,7 +45,14 @@ function zOf(x: number, meanlog: number, sdlog: number): DD {
 
 /** z^2 / 2 in double-double */
 function halfSquare(z: DD): DD {
-  if (Math.abs(z[0]) > 1e150) return [(z[0] * z[0]) / 2, 0];
+  if (Math.abs(z[0]) > 1e150) {
+    // z times 2^-512 (exact) so that the splitting in ddMul does not overflow, and the square back by 2^1024 / 2 (the
+    // low part of z was dropped here: an ulp off where z^2 / 2 is finite; issue #112)
+    const t: DD = [z[0] * 2 ** -512, z[1] * 2 ** -512];
+    const s = ddMul(t, t);
+    const hi = s[0] * 2 ** 1023;
+    return Number.isFinite(hi) ? [hi, s[1] * 2 ** 1023] : [hi, 0];
+  }
   const s = ddMul(z, z);
   return [s[0] / 2, s[1] / 2];
 }
