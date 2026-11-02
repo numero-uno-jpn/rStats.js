@@ -463,14 +463,20 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
     case "pareto": {
       const { a = 1, b = 1 } = P;
       if (!(a > 0 && Number.isFinite(a) && b > 0 && Number.isFinite(b))) return NAN;
+      // Each moment from the closed form, or where an intermediate product overflows (a b, b² a, a³, 2 (1 + a), b √a:
+      // a = b = 1e308 gave mean Inf, variance NaN, kurtosis NaN; issue #34) from ratios in which the powers cancel
+      const orElse = (v: number, alt: () => number): number => (Number.isFinite(v) ? v : alt());
+      const r = b / (a - 1);
       return make(
-        a > 1 ? (a * b) / (a - 1) : Infinity,
-        a > 2 ? (b * b * a) / ((a - 1) ** 2 * (a - 2)) : a > 1 ? Infinity : NaN,
+        a > 1 ? orElse((a * b) / (a - 1), () => b * (a / (a - 1))) : Infinity,
+        a > 2 ? orElse((b * b * a) / ((a - 1) ** 2 * (a - 2)), () => r * r * (a / (a - 2))) : a > 1 ? Infinity : NaN,
         b * Math.pow(2, 1 / a),
         b,
-        a > 3 ? ((2 * (1 + a)) / (a - 3)) * Math.sqrt((a - 2) / a) : NaN,
-        a > 4 ? (6 * (a ** 3 + a * a - 6 * a - 2)) / (a * (a - 3) * (a - 4)) : NaN,
-        a > 2 ? (b * Math.sqrt(a)) / ((a - 1) * Math.sqrt(a - 2)) : undefined,
+        a > 3 ? orElse(((2 * (1 + a)) / (a - 3)) * Math.sqrt((a - 2) / a), () => 2 * ((1 + a) / (a - 3)) * Math.sqrt((a - 2) / a)) : NaN,
+        a > 4
+          ? orElse((6 * (a ** 3 + a * a - 6 * a - 2)) / (a * (a - 3) * (a - 4)), () => (6 * (1 + 1 / a - 6 / (a * a) - 2 / a ** 3)) / ((1 - 3 / a) * (1 - 4 / a)))
+          : NaN,
+        a > 2 ? orElse((b * Math.sqrt(a)) / ((a - 1) * Math.sqrt(a - 2)), () => r * Math.sqrt(a / (a - 2))) : undefined,
       );
     }
     case "triang": {
