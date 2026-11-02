@@ -66,6 +66,7 @@ reference, the case passes as "more accurate than R".
 | `qchisq(-1e10, 5, ncp = 1, lower.tail = FALSE, log.p = TRUE)` | 2.29e10 | 2.00e10 (checked with the distribution function) | same as truth |
 | `dbeta(1.05e-231, 0.194, 141.1, ncp = 1.39e-303)` (a noncentral density at a tiny ncp) | 9.3999238814454927e185 | 9.399923881445698e185 (mpmath) | same as truth (the central density) |
 | `df(2.86e-257, 0.0275, 3, ncp = 5e-324)` | 1.3617011778446392e251 | 1.3617011778446561e251 (mpmath) | 1.3617011778446567e251 (the central density) |
+| `df(1e100, 1e-200, 1e200, ncp = 1, log = TRUE)` (df1/df2 underflows) | Inf | -462.40331295992905 (the χ² limit, R's dchisq) | same as truth |
 | `qf(1.89e-13, 0.0885, 6.01e302)` | 4.6113445353195029e-287 | 4.6113445353197333e-287 (mpmath, the χ² limit) | 4.611344535319733e-287 |
 | `pbeta(0.973, 0.130, 8.15e-322, log.p = TRUE)` | -736.93128475074695 | -736.93155014878607 (mpmath) | same as truth |
 | `dchisq(1.005e-308, 294.4, ncp = 2.91e304, log = TRUE)` | -1.0243631212370614e307 | -1.4537765239560228e304 (−λ/2; the rest is of order 1e5) | same as truth |

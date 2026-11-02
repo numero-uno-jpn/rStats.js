@@ -726,11 +726,24 @@ function fOdds(q: number, m: number, n: number, xd: DD, xcd: DD): Odds {
   return { k, lk, l1mx: lk - Math.log1p(k) };
 }
 
+/** log(m/n), from the logs where the ratio is below the normal range (m/n underflows for finite positive m, n) */
+function logRatio(m: number, n: number): number {
+  const r = m / n;
+  return r >= 2 ** -1022 ? Math.log(r) : Math.log(m) - Math.log(n);
+}
+
+/** Whether x = m q/(n + m q) is below 1e-306 (the tiny-q series), with m q/n from its log where m/n underflows */
+function tinyFx(q: number, m: number, n: number): boolean {
+  const r = m / n;
+  if (r >= 2 ** -1022) return r * q < 1e-306;
+  return logRatio(m, n) + Math.log(q) < Math.log(1e-306);
+}
+
 function dnfCore(q: number, m: number, n: number, ncp: number, log: boolean): number {
-  if ((m / n) * q < 1e-306) {
+  if (tinyFx(q, m, n)) {
     // First term of the series: f(q) ≈ exp(-λ/2) (m q / n)^a / (B(a, b) q)
     const a = m / 2;
-    const l = -ncp / 2 + a * (Math.log(m / n) + Math.log(q)) - lbeta(a, n / 2) - Math.log(q);
+    const l = -ncp / 2 + a * (logRatio(m, n) + Math.log(q)) - lbeta(a, n / 2) - Math.log(q);
     return log ? l : Math.exp(l);
   }
   const [xd, xcd] = fPair(q, m, n);
@@ -743,13 +756,13 @@ function dnfCore(q: number, m: number, n: number, ncp: number, log: boolean): nu
  */
 function pnfTiny(q: number, m: number, n: number, ncp: number, lower: boolean, log: boolean): number {
   const a = m / 2;
-  const l = -ncp / 2 + a * (Math.log(m / n) + Math.log(q)) - Math.log(a) - lbeta(a, n / 2);
+  const l = -ncp / 2 + a * (logRatio(m, n) + Math.log(q)) - Math.log(a) - lbeta(a, n / 2);
   if (lower) return log ? l : Math.exp(l);
   return log ? Math.log1p(-Math.exp(l)) : -Math.expm1(l);
 }
 
 export function pnfRaw(q: number, m: number, n: number, ncp: number, lower: boolean, log: boolean): number {
-  if ((m / n) * q < 1e-306) return pnfTiny(q, m, n, ncp, lower, log);
+  if (tinyFx(q, m, n)) return pnfTiny(q, m, n, ncp, lower, log);
   const [xd, xcd] = fPair(q, m, n);
   return pnbetaRaw(m / 2, n / 2, ncp, xd, xcd, lower, log, fOdds(q, m, n, xd, xcd));
 }
@@ -788,7 +801,7 @@ export function pnf1(q: number, m: number, n: number, ncp: number, lowerTail: bo
   if (q === Infinity) return dt1(lowerTail, logP);
   if (m === Infinity) return NaN;
   if (n === Infinity) return pnchisq1(q * m, m, ncp, lowerTail, logP);
-  if ((m / n) * q < 1e-306) return pnfTiny(q, m, n, ncp, lowerTail, logP);
+  if (tinyFx(q, m, n)) return pnfTiny(q, m, n, ncp, lowerTail, logP);
   if (ncp === 0) return pf1(q, m, n, lowerTail, logP);
   const neg = negligibleTail(fTailBound(q, m, n, ncp), lowerTail, logP);
   if (neg !== undefined) return neg;
