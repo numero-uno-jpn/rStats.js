@@ -2928,3 +2928,20 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Inspected existing `test/fixtures/auditq_qbinom.mpmath.json` cases covering both tails, linear/log probabilities, tiny probabilities, skewness, and large n; tests were not executed.
 - Result: no new independent reproducible defect in the Cornish–Fisher seed or finite-support search. #102 (size coercion) and #523 (unbounded search) are not duplicated.
 - R comparison: current R Core source inspected directly; no R executable was run. No Vitest or package runtime was run; no source code changed.
+
+
+## Audit #529 — `src/distributions/negbinomial.ts` PMF overflow guard (existing Issue #65)
+
+- Source blob: `src/distributions/negbinomial.ts` `6bf9bf9b9d8b05aa4828e33c4b2fb9b3ed5171c7`; compared with current R Core `src/nmath/dnbinom.c`.
+- Reconfirmed existing defect already tracked by Issue #65; no duplicate issue created. `dnbinomRaw()` immediately returns NaN when `size + x` overflows, although both operands and the mathematical PMF can be finite. Both prob and mu parameterizations reach this guard.
+- Exact inputs:
+  ```ts
+  dnbinom(1e308, 1e308, { prob: 0.5 });
+  dnbinom(1e308, 1e308, { mu: 1e308 });
+  dnbinom(1e308, 1e308, { prob: 0.5, log: true });
+  dnbinom(1e308, 1e308, { mu: 1e308, log: true });
+  ```
+  In each case `size + x === Infinity`, so current source returns NaN. At the mean for size=x=1e308, prob=0.5, a local normal approximation gives variance approximately 2e308, PMF approximately `2.8209479177387814e-155`, and log PMF approximately `-355.8636164445677`. This is an asymptotic reference, not an executed result.
+- Rとの関係: current R Core `dnbinom.c` inspected. It has a small-x/large-size expansion and Loader density path rather than the TypeScript early rejection. R source explicitly comments on this overflow regime.
+- Related issue: existing [#65](https://github.com/numero-uno-jpn/rStats.js/issues/65). Added a comment with R-source comparison, both parameterizations, and corrected the asymptotic log estimate in the issue body (the prior estimate there was numerically inconsistent).
+- 検証範囲: complete `dnbinomRaw()` entry and both public parameterization paths, R Core source comparison, deterministic IEEE-754 overflow trace, and local normal approximation. No package runtime, Vitest, or R executable was run. No source code changed.
