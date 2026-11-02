@@ -4119,3 +4119,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - `weightedMean` は有限入力の積/和overflow後にscaled retryし、zero weightsはnumeratorから除外。`meanDD` はoverflow sumをpower-of-two scale後に平均。quantileの9種のindex formulaは整数位置fuzzとequal-infinity neighborを扱う。cov/corはpairwise missing rowsとSpearman再rankを別処理。追加の確定バグは特定できず。
 - **新規確定バグなし。Issue追加なし。ソース変更なし。**
 - **検証制限**: GitHubソースの静的追跡のみ。Vitest/package runtime/Rとの実値照合は未実施。
+
+
+## Audit #651 — Hypothesis tests, effect sizes and p-value adjustments
+
+- 対象: `src/htest/effectSize.ts` SHA `2f1b77d5012396b88d1c36365045bf3c7b314e1d`、`cor.ts` SHA `4ed4868b5441752c2b4581e85d2e9b2c0b015101`、`tTest.ts` SHA `0442511bfdd24bede27433c5e32d520d2f073d83`、`pAdjust.ts` SHA `4469db93ce6c2d245832708b8b375080fc041843`。
+- **新規Issue #154**: [pAdjust BY overflows q*n before multiplying by tiny p-values](https://github.com/numero-uno-jpn/rStats.js/issues/154)。決定的再現 `pAdjust([Number.MIN_VALUE], { method: "BY", n: 1e306 })`。BYの調整式は `min(1, H_n*n*p))。harmonic asymptoticは `H_n≈705.1682541210796`。現行演算順 `((q*n)/i)*p[j]` はq*nがInfinityになるが、同じ積を `q*(n*p)` の順で計算すれば約 `3.4839940889907547e-15`。有限で表現可能な調整済みp値を1と誤る。乱数なし。IEEE-754の決定的な中間overflow。
+- pAdjustのHolm/Hochberg/BH/BY/Bonferroni/none/Hommel、NaN除外、n>observed count、harmonic sumのlarge-n漸近、Hommel O(n²)のループ境界を確認。今回のBY積順序以外に確定バグなし。
+- tTestのone/two/paired、Welch/pooled、dfとSE、CI tail選択、mu scaling、formula row selectionを確認。effectSizeのCohen's d/Hedges g、J correction、noncentral-t CI、ANOVA eta/omega/epsilon squaredのSS normalization、F inversion、strata model mappingを確認。corのPearson/Spearman/Kendall、tie correction、exact/approximation branch、small-n conditionsを確認。既知のKendall n=2 exact:false Issueを重複回避。
+- **新規Issue #154、ソース変更なし。** 検証はソース追跡とIEEE-754 arithmeticのみ。Vitest/package runtime/R実行は未実施。
