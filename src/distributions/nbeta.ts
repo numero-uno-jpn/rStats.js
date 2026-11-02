@@ -602,7 +602,10 @@ export function dnbeta1(x: number, a: number, b: number, ncp: number, log: boole
     // The density of component j at x = 1 is a + j when b = 1; averaging over the weights gives a + λ/2
     if (b > 1) return log ? -Infinity : 0;
     if (b < 1) return Infinity;
-    return log ? Math.log(a + mu) : a + mu;
+    const s = a + mu;
+    if (!log) return s;
+    // the sum may overflow where its log does not (dnbeta(1, 1.5e308, 1, 1.5e308, log) was Infinity for 710.007; #96)
+    return Number.isFinite(s) ? Math.log(s) : Math.log(a / 2 + mu / 2) + Math.LN2;
   }
   if (negligibleNcp(mu, x * ((a + b) / a))) return dbeta1(x, a, b, log);
   return dnbetaCore(x, a, b, ncp, log);
