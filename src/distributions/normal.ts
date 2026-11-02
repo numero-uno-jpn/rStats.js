@@ -58,7 +58,9 @@ function pnormStd(t: number, logP: boolean): number {
   if (!logP) return t <= 0 ? lowerTailProb(t) : 1 - lowerTailProb(-t);
   if (t > -1) return Math.log1p(-lowerTailProb(-t));
   const a = -t;
-  return Math.log(0.5 * erfcxNonNegative(a * SQRT1_2)) - (a * a) / 2;
+  // (a / 2) a, not (a a) / 2: the same value, without the overflow of a a above 1.34e154 (pnorm(-1.5e154, { logP: true })
+  // was -Infinity for -1.125e308; issue #33)
+  return Math.log(0.5 * erfcxNonNegative(a * SQRT1_2)) - (a / 2) * a;
 }
 
 function pnorm1(q: number, mean: number, sd: number, lowerTail: boolean, logP: boolean): number {
