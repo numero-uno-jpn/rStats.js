@@ -271,6 +271,7 @@ export function scale(
   const rows: number[][] =
     x.length > 0 && Array.isArray(x[0]) ? (x as readonly (readonly number[])[]).map((r) => [...r]) : Array.from(x as Sample, (v) => [v]);
   const nc = rows[0]?.length ?? 0;
+  if (rows.some((r) => r.length !== nc)) throw new TypeError("all rows of the matrix must have the same length");
   const col = (j: number): number[] => rows.map((r) => r[j]!);
   const result: { scaled: number[][]; center?: number[]; scale?: number[] } = { scaled: rows };
   const given = rows.map((r) => r.slice());
