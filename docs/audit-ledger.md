@@ -4351,3 +4351,56 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 
 
 - 重複整理: 初回登録で作成された正規Issueは #172〜#179、#188、#189。後続の再試行で重複した #180〜#187 はすべてGitHubで `closed / duplicate` とした。ソース変更なし。今回の10件すべてpackage runtime/Vitest/Rとの実行照合は未実施。
+
+
+## Audit #681 — rcond inverse-norm overflow for a nonsingular matrix
+- 対象: `src/linalg/solve.ts` SHA `d8df21ba08caaa996d1db3f2659e9a71a431d668`。
+- Issue [#191](https://github.com/numero-uno-jpn/rStats.js/issues/191)。再現: `rcond([[1, 0], [0, 1e-310]])`。行列は非特異で、1-norm reciprocal condition numberは約1e-310として表現可能。逆行列ノルム自体は1e310でoverflowし、`gecon()` が非有限の `ainvnm` を0へ変換するため、非特異行列を特異行列同様に報告する。静的制御フロー・IEEE-754解析のみ。
+
+
+## Audit #682 — zTest sample-estimate underflow under sigma-dominated scaling
+- 対象: `src/htest/aov.ts` SHA `9ce3aa388e5d2200fd75c751d6c69660d0e11648` の `zTest()`。
+- Issue [#192](https://github.com/numero-uno-jpn/rStats.js/issues/192)。再現: `zTest([1e-308, 2e-308, 3e-308], { sigmaX: 1e308 }).estimate`。既知sigmaを含む共通scaleにより標本値が0へunderflowし、平均2e-308を0として返す。検定統計量のscaleと単位付き推定値のscaleを分離すべき。静的IEEE-754解析のみ。
+
+
+## Audit #683 — lm zero-weight row response overflow during active-response scaling
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0` の `fitLm()` / `fitLmUnit()`。
+- Issue [#193](https://github.com/numero-uno-jpn/rStats.js/issues/193)。再現: `lm([[], []], [1e-308, 1e308], { weights: [1, 0] })`。scale exponentは正weight行の1e-308だけから決まり、zero-weight行の有限response 1e308にも同じ倍率を適用してInfinity化する。zero-weight行の残差は約1e308として有限であるべきだが、戻り値がInfinityとなる。matrix/formula両経路に影響。静的IEEE-754解析のみ。
+
+
+## Audit #684 — lm formula WLS positive-weight underflow before square root
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0`、`src/internal/summary.ts` の `ldexp()` / `ddSqrtWeights()` 呼び出し経路。
+- Issue [#194](https://github.com/numero-uno-jpn/rStats.js/issues/194)。再現: `lm("y ~ 0 + a + b", { y:[1,2], a:[1,0], b:[0,1], w:[1e308,1e-308] }, { weights:"w" })`。identity designで両weightは正なので係数[1,2]・rank2が必要。formulaのprecise pathはweight自体を約2^-1022倍してから平方根を取るため、第二weightが0へunderflowし、その列の情報を失う。sqrt(weight)を先にscaleする必要。静的IEEE-754解析のみ。
+
+
+## Audit #685 — lm prediction dot-product overflow and cancellation
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0` の `predict()`。
+- Issue [#195](https://github.com/numero-uno-jpn/rStats.js/issues/195)。再現: `const fit = lm([[1,0],[0,1],[1,1]],[2,-2,0],{intercept:false}); predict(fit,[[1e308,1e308]]).fit`。係数2,-2による数学的内積は0だが、個々の積が±Infinityとなり和がNaN。scale/compensated dot productが必要。静的IEEE-754解析のみ。
+
+
+## Audit #686 — lm prediction standard-error triangular-solve overflow
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0`、`src/internal/summary.ts` の `norm2()`。
+- Issue [#196](https://github.com/numero-uno-jpn/rStats.js/issues/196)。再現: `const fit = lm([1e-200,2e-200,3e-200],[1e-200,2e-200,4e-200],{intercept:false}); predict(fit,[1e200]).seFit`。R^-T xの成分は約1e400で先にInfinityとなるが、残差標準誤差は約1e-200で、最終SEは約1e200として有限。norm2の後にsigmaを掛けるだけでは途中overflowを回復できない。scaled triangular solveが必要。静的IEEE-754解析のみ。
+
+
+## Audit #687 — powerTTest noncentrality intermediate overflow
+- 対象: `src/htest/power.ts` SHA `5950a5e498272e8ae0b5a581e849477eb287c349` の `powerTTest()`。
+- Issue [#197](https://github.com/numero-uno-jpn/rStats.js/issues/197)。再現: `powerTTest({ n:10, delta:1e308, sd:1e308 })`。true ncpはsqrt(10/2)=sqrt(5)で有限だが、`sqrt(n/ts)*delta` を先に形成してInfinityとなり、後からsdで割っても回復しない。powerを1へ誤飽和させる。比率を先に取る等のscaled productが必要。静的IEEE-754解析のみ。
+
+
+## Audit #688 — pwr2p2nTest harmonic sample-size product overflow
+- 対象: `src/htest/pwr.ts` SHA `a9f7c6f320272cfb00ed2704084507bc16861367` の `pwr2p2nTest()`。
+- Issue [#198](https://github.com/numero-uno-jpn/rStats.js/issues/198)。再現: `pwr2p2nTest({ h:1e-100, n1:1e200, n2:1e200 })`。`n1*n2` がInfinityとなるが、`sqrt(n1*n2/(n1+n2))` の数学的値は約7.071e99で有限、hを掛けた効果は約0.707。現行実装はpowerを1へ誤飽和させる。積を作らない比率式が必要。静的IEEE-754解析のみ。
+
+
+## Audit #689 — lm weighted QR overflow under a common weight multiplier
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0`、`src/linalg/qr.ts` の `nrm2()`。
+- Issue [#199](https://github.com/numero-uno-jpn/rStats.js/issues/199)。再現: `lm([0.7e308,0.8e308,0.9e308],[1,2,3],{weights:[2,2,2]})`。有限な設計列のunweighted normは約1.39e308だが、共通weightのsqrt(2)を掛けると約1.97e308へoverflowする。全weightへの同一正定数乗算はWLS係数を変えないため、weightの共通scaleをさらに正規化してQR前のoverflowを防ぐべき。静的IEEE-754解析のみ。
+
+
+## Audit #690 — pwrAnovaTest noncentrality product overflow
+- 対象: `src/htest/pwr.ts` SHA `a9f7c6f320272cfb00ed2704084507bc16861367` の `pwrAnovaTest()`。
+- Issue [#200](https://github.com/numero-uno-jpn/rStats.js/issues/200)。再現: `pwrAnovaTest({ k:1e160, n:1e160, f:1e-160 })`。現行の左結合 `k*n*f**2` は先にk*nがInfinityとなるが、数学的なnoncentralityは1。中間値overflowを理由にpower=1と短絡するため、有限の数学的効果を無限大と誤認する。dfの極端域も含め、noncentrality計算をscaled productで扱う必要。静的IEEE-754解析のみ。
+
+
+- Issue登録結果: 新規の正規Issue #191〜#200を10件登録。#190は同じrcond所見の登録重複として `closed / duplicate` に整理。ソース変更なし。今回の10件はすべて静的ソース追跡・IEEE-754解析のみで、package runtime/Vitest/R照合は未実施。
