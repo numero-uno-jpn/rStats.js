@@ -2663,3 +2663,26 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Concrete source-trace inputs: `esH(0,1)`; `esW1([0,0],[0,0])`; `esW1([0,1],[0.2,0.8])`; `esW2([[0,0],[0,0]])`; `pwrTTest({n:2,d:0,sigLevel:0.05})`; `pwrTTest({n:20,d:0.5,alternative:"less"})`; `pwrT2nTest({n1:2,n2:2,d:0})`; `pwr2pTest({n:1,h:0})`; `pwrRTest({n:4,r:0})`; `pwrChisqTest({df:1,w:0,N:1})`; `pwrAnovaTest({k:2,n:2,f:0})`; and `pwrF2Test({u:1,v:1,f2:0})`. These are branch/contract probes traced against the current source; no numerical runtime output is claimed.
 - Reviewed the existing `test/pwr.test.ts` R-oracle comparison harness and its explicit known-difference annotations for R's noncentral-t/noncentral-F precision. No new independent defect was established and no duplicate Issue was filed.
 - Source and test inspection only. No Vitest, package runtime, or R process was executed. No source code changed.
+
+
+## Audit #514 — `src/data/grouping.ts` unsafe output-column assignment for `__proto__`
+
+- Repository HEAD before this audit: `95758791dd47786fc0bf4f8a0c9e62c56231f0cd`; source blob: `9bfc9a90424acc9766c599026273a2902e50dfe8`; test blob: `e4d9f65aef100b10275d787e7ccba8073f44126d`.
+- Confirmed defect: output data frames are initialized as ordinary `{}` objects and populated by assignment using caller-controlled column names. The special own-property name `"__proto__"` invokes the legacy prototype setter rather than defining an own enumerable property, losing the column and changing the returned frame's prototype.
+- Affected code paths: `rowsOf()` lines 191–196 (`split(dataFrame, ...)`); grouping-column construction in `aggregateRows()` lines 323–329; and summary `setColumn()` lines 331–354. The latter has an `Object.hasOwn` duplicate check but still uses unsafe assignment for the new column.
+- Concrete reproduction data:
+  ```ts
+  const data: Record<string, number[]> = {};
+  Object.defineProperty(data, "__proto__", { value: [10, 20], enumerable: true, configurable: true });
+  const result = split(data, ["a", "b"]);
+  // Each result frame should own "__proto__"; rowsOf() instead changes its prototype.
+
+  const by: Record<string, string[]> = {};
+  Object.defineProperty(by, "__proto__", { value: ["a", "b"], enumerable: true, configurable: true });
+  const aggregated = aggregate({ y: [1, 2] }, by, (v) => v.length);
+  // The grouping column "__proto__" is absent as an own property.
+  ```
+- Classification: reproducible correctness/data-loss bug for valid JavaScript data-frame column names; not described as a JSON-only remote prototype-pollution vulnerability. The repository already uses `Object.defineProperty` in `addColumn()` in `src/descriptive/dataFrames.ts` to handle this property safely.
+- Filed non-duplicate Issue #97: https://github.com/numero-uno-jpn/rStats.js/issues/97
+- Suggested remediation: use a safe own-property definition helper consistently for all data-frame output columns (or a null-prototype output object if compatible with the public API), and add regression tests for split and aggregate.
+- Source/test inspection and language-semantics trace only; no package runtime or Vitest execution was performed. No source code changed.
