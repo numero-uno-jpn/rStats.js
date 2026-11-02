@@ -2704,3 +2704,22 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Filed non-duplicate Issue #98: https://github.com/numero-uno-jpn/rStats.js/issues/98
 - Suggested remediation: validate `n` before allocation, reject non-finite and negative values deliberately, preserve documented positive fractional rounding, and test negative, NaN, zero, and positive fractional lengths.
 - Static source and ECMAScript length-coercion analysis only; no R runtime, package runtime, or Vitest execution was performed. No source code changed.
+
+
+## Audit #516 — covariance-matrix symmetry check can lose subnormal entries
+
+- Reviewed `src/internal/covmat.ts` (blob `a042245164638b0c486c769de2c2a9a0eed622cd`), `src/linalg/eigen.ts` (`86ee78a9fd9f3edbbc35e86f3805ea910e15ff18`), `src/linalg/matrix.ts` (`9d78a4c9ae28f2fcc55ea30b5a7297c7441f2eaf`), and `src/internal/summary.ts` (`e4fc3bd652af3a00cf05b44389ddf58e590c4830`).
+- Confirmed defect: `checkCovmat()` applies `scaleToUnit(S)` to the entire matrix before `isSymmetric()`. For a matrix with a sufficiently wide dynamic range, a nonzero subnormal off-diagonal entry underflows to zero, erasing asymmetry before validation.
+- Exact reproduction data:
+  ```ts
+  const S = [
+    [1e308, Number.MIN_VALUE],
+    [0,     1]
+  ];
+  checkCovmat(S); // currently does not throw
+  ```
+  `Number.MIN_VALUE` is `5e-324`. The maximum magnitude is about `1e308`, so the scaling exponent is `1023`. Scaling the upper-right entry by `2^-1023` produces zero. `isSymmetric()` therefore receives a matrix whose off-diagonal entries are both zero, although the original matrix is asymmetric.
+- This violates the documented finite/symmetric/positive-diagonal validation contract and can let downstream consumers accept a matrix whose triangles disagree.
+- Filed non-duplicate Issue #99: https://github.com/numero-uno-jpn/rStats.js/issues/99
+- Suggested direction: use a scale-safe pairwise comparison that cannot erase a small transposed entry through global scaling; add regression tests for the exact matrix and its transpose.
+- Static source and IEEE-754 path analysis only. No Vitest, package runtime, R process, or independent numerical execution was performed. No source code changed.
