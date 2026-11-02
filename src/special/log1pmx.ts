@@ -7,6 +7,9 @@ import { MACHEP } from "./constants.js";
 /** log(1 + x) - x. Uses a series for small |x| to avoid cancellation */
 export function log1pmx(x: number): number {
   if (Math.abs(x) < 0.5) {
+    // (added for rStats.js) x^2 = 0, x = 0 included: every term is 0 and the series gave +0 only after its 498 steps,
+    // as the test |term| < eps |res| is then 0 < 0 (issue #106)
+    if (x * x === 0) return 0;
     let xfac = x;
     let res = 0;
     for (let n = 2; n < 500; n++) {
