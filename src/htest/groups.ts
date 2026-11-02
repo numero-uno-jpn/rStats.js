@@ -2,9 +2,11 @@
 // of group labels (R's x, g form). Pairs with a missing value or label are dropped, and groups are kept in order
 // of the sorted labels (as R orders factor levels). Numeric labels with the same 15-digit text are one group, as in
 // R's factor() (src/internal/levels.ts); the group's label is the smallest of them, written as R writes it
-// ("1e+15", "0.333333333333333").
+// ("1e+15", "0.333333333333333"). When the labels mix numbers and strings, all are text, as R coerces such a vector
+// to character (2 and "2" are one group); levels are then ordered by code point.
 
 import { levelText, numberLevels } from "../internal/levels.js";
+import { compareCodePoints } from "../models/modelFrame.js";
 import type { Sample } from "./types.js";
 import { midpoint } from "../internal/extremes.js";
 
@@ -14,6 +16,21 @@ import { midpoint } from "../internal/extremes.js";
  * @category Hypothesis tests
  */
 export type GroupLabel = number | string;
+
+/**
+ * Labels as R's factor() takes them: numbers with the same 15-digit text as one (numberLevels), and all as text when
+ * any label is a string (R coerces a mixed vector to character). NaN stays missing
+ */
+export function factorLabels(g: readonly GroupLabel[]): GroupLabel[] {
+  const gs = numberLevels(g);
+  if (!gs.some((l) => typeof l === "string")) return gs;
+  return gs.map((l) => (typeof l === "number" && !Number.isNaN(l) ? levelText(l) : l));
+}
+
+/** Order of levels (of one type after factorLabels): numbers numerically, strings by code point (C locale) */
+export function compareLabels(a: GroupLabel, b: GroupLabel): number {
+  return typeof a === "number" && typeof b === "number" ? a - b : compareCodePoints(String(a), String(b));
+}
 
 /** Groups with their labels: the sorted labels (x, g form) or the 1-based positions in the list (list form) */
 export interface LabelledGroups {
@@ -47,7 +64,7 @@ export function labelledGroups(
   }
   const xs = Array.from(x as Sample);
   if (xs.length !== g.length) throw new RangeError("'x' and 'g' must have the same length");
-  const gs = numberLevels(g);
+  const gs = factorLabels(g);
   const byLabel = new Map<GroupLabel, number[]>();
   for (let i = 0; i < xs.length; i++) {
     const v = xs[i]!;
@@ -57,9 +74,7 @@ export function labelledGroups(
     if (arr === undefined) byLabel.set(l, (arr = []));
     arr.push(v);
   }
-  const labels = Array.from(byLabel.keys()).sort((a, b) =>
-    typeof a === "number" && typeof b === "number" ? a - b : String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
-  );
+  const labels = Array.from(byLabel.keys()).sort(compareLabels);
   return { labels: labels.map(levelText), groups: labels.map((l) => byLabel.get(l)!) };
 }
 

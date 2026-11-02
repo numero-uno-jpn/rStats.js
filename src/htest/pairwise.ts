@@ -7,9 +7,9 @@
 // freedom; the other comparisons are the two-sample tests themselves.
 
 import { pt1 } from "../distributions/t.js";
-import { levelText, numberLevels } from "../internal/levels.js";
+import { levelText } from "../internal/levels.js";
 import { groupMoments } from "../internal/summary.js";
-import type { GroupLabel } from "./groups.js";
+import { compareLabels, factorLabels, type GroupLabel } from "./groups.js";
 import { pAdjust, type PAdjustMethod } from "./pAdjust.js";
 import { propTest } from "./propTest.js";
 import { tTest } from "./tTest.js";
@@ -49,13 +49,13 @@ export interface PairwiseOptions {
   alternative?: Alternative | "two" | "l" | "g";
 }
 
-/** Group a sample by labels: levels sorted (numbers numerically, strings in code-unit order), values in input order */
+/** Group a sample by labels: levels sorted (numbers numerically, strings by code point), values in input order */
 function byLevel(x: Sample, g: readonly GroupLabel[], dropNaN: boolean): { levels: GroupLabel[]; groups: number[][] } {
   const xs = Array.from(x);
   if (xs.length !== g.length) throw new RangeError("'x' and 'g' must have the same length");
   const map = new Map<GroupLabel, number[]>();
-  // numeric labels with the same 15-digit text are one level, as in R's factor()
-  const gs = numberLevels(g);
+  // numeric labels with the same 15-digit text are one level, and mixed labels are text, as in R's factor()
+  const gs = factorLabels(g);
   for (let i = 0; i < xs.length; i++) {
     const l = gs[i]!;
     if (typeof l === "number" && Number.isNaN(l)) continue;
@@ -64,9 +64,7 @@ function byLevel(x: Sample, g: readonly GroupLabel[], dropNaN: boolean): { level
     if (arr === undefined) map.set(l, (arr = []));
     arr.push(xs[i]!);
   }
-  const levels = Array.from(map.keys()).sort((a, b) =>
-    typeof a === "number" && typeof b === "number" ? a - b : String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
-  );
+  const levels = Array.from(map.keys()).sort(compareLabels);
   return { levels, groups: levels.map((l) => map.get(l)!) };
 }
 
