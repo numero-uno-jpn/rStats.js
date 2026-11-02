@@ -456,6 +456,15 @@ export function prepareResponse(fam: Family, y: number[] | number[][], prior: nu
     }
     if (rows.some((r) => r[0]! < 0 || r[1]! < 0)) throw new RangeError("counts must be nonnegative");
     const size = rows.map((r) => r[0]! + r[1]!);
+    // Finite counts whose total overflows: the proportion could be formed (s/2 over s/2 + f/2), but the binomial size,
+    // the prior weight that the deviance, the AIC and the covariance are proportional to, is not a double (R stops with
+    // "cannot find valid starting values", the proportion 0 and the starting mean NaN; #160)
+    const over = rows.findIndex((r, i) => Number.isFinite(r[0]!) && Number.isFinite(r[1]!) && !Number.isFinite(size[i]!));
+    if (over >= 0) {
+      throw new RangeError(
+        `the total of successes and failures overflows in row ${over + 1} (${formatG(rows[over]![0]!)} + ${formatG(rows[over]![1]!)}): the binomial size must be a finite double`,
+      );
+    }
     const yy = rows.map((r, i) => (size[i] === 0 ? 0 : r[0]! / size[i]!));
     const weights = prior.map((w, i) => w * size[i]!);
     const mustart = yy.map((v, i) => (size[i]! * v + 0.5) / (size[i]! + 1));
