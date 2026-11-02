@@ -124,6 +124,11 @@ export function pbvnorm(lower: readonly [number, number] | readonly number[], up
   let [a1, a2] = lower as [number, number];
   let [b1, b2] = upper as [number, number];
   if ([a1, a2, b1, b2].some(Number.isNaN)) return NaN;
+  // A bound beyond ±40 is taken as infinite (before the reflection below, which then decides as for infinite bounds):
+  // Φ(-40) is 3.7e-350, far below half the least subnormal, so the probability moves by less than the doubles resolve.
+  // Huge finite bounds overflowed h k and h^2 (Inf - Inf, 0 * Inf) and made the rectangle NaN (pbvnorm([-1e200, -1e200],
+  // [Inf, Inf], 0.5) for 1; issue #119)
+  [a1, a2, b1, b2] = [a1, a2, b1, b2].map((v) => (v > 40 ? Infinity : v < -40 ? -Infinity : v)) as [number, number, number, number];
   if (!(a1 < b1 && a2 < b2)) return 0;
   // reflect a rectangle in the lower half into the upper half
   if (a1 + b1 + a2 + b2 < 0) [a1, a2, b1, b2] = [-b1, -b2, -a1, -a2];
