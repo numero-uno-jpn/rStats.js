@@ -153,7 +153,10 @@ export function perm(n: number, k: number): number {
   if (Number.isNaN(n) || Number.isNaN(k) || n < 0 || k < 0) return NaN;
   const intK = k === Math.floor(k);
   if (n === Math.floor(n) && intK && k > n) return 0;
-  if (!Number.isFinite(n) || !Number.isFinite(k)) return permLgamma(n, k);
+  // the limit n -> Infinity of a product ~ n^k for a fixed finite k (lgamma would give Infinity - Infinity);
+  // both infinite is indeterminate
+  if (n === Infinity) return k === Infinity ? NaN : k === 0 ? 1 : Infinity;
+  if (!Number.isFinite(k)) return permLgamma(n, k);
   if (intK && k <= 1000) return fallingFactorial(n, k);
   return gammaRatio(n, k);
 }
@@ -237,7 +240,7 @@ function lgammaDD(z: number): DD {
   return ddAdd(ddAdd(e, LS2PI_DD), [stirlerr(z), 0]);
 }
 
-/** Gamma(n + 1) / Gamma(n - k + 1) from lgamma (infinite n or k) */
+/** Gamma(n + 1) / Gamma(n - k + 1) from lgamma (finite n, infinite k) */
 function permLgamma(n: number, k: number): number {
   const num = lgammaSign(n + 1);
   const den = lgammaSign(n - k + 1);
