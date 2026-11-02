@@ -143,14 +143,8 @@ export function pretty(x: Sample, options: PrettyOptions = {}): number[] {
 
   // Step 6: the sequence, with values that are zero up to rounding set to 0
   if (k <= 0) return [L];
-  let out: number[];
-  if (Number.isFinite(U - L)) out = seqLength(L, U, k + 1);
-  else {
-    // U - L overflows: step by U/k - L/k instead
-    const step = U / k - L / k;
-    out = Array.from({ length: k + 1 }, (_, i) => L + i * step);
-    out[k] = U;
-  }
+  // seqLength works in half coordinates when U - L overflows (L + i (U/k - L/k) overflowed at interior points, #81)
+  const out = seqLength(L, U, k + 1);
   const delta = U / k - L / k;
   return out.map((v) => (Math.abs(v) < 1e-14 * delta ? 0 : v));
 }
