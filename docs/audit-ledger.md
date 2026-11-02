@@ -192,7 +192,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/binomial.ts` | 問題あり | #124 | `92437f63fa655aa541de9ba9b6ae51c0bad0af5b` | — | Inversion/BTPE source review; tiny-p q^n cancellation defect confirmed by binary64 arithmetic | `n=2_000_000_000, p=1e-17`: q rounds to 1, qn=1, every inversion draw returns 0 although P(X≥1)≈2e-8. Issue #31. BTPE formula compared with current R source; fixtures R 4.5.2 inspected only. No Vitest/runtime/R execution. |
 | `src/random/common.ts` | 追加監査済み・問題未検出 | #136, #491 | `be016a36e9f09f580462d2bf93e30ed6bad527c1` | — | `powInt` の唯一の呼出し元 `src/random/binomial.ts:rbinom1` を追跡。`rn >= INT_MAX` は `qbinom` 経路へ分岐するため、`powInt(q,n)` に渡る指数は整数 `0 <= n <= 2147483646`。32-bit shift はこの到達可能域で安全。RNG/`sample` 呼出し経路も確認。 | `generate(0, f)` は callback を呼ばず、負/NaN/±Infのnを拒否し、有限非負小数は `Math.trunc`。`powInt` は負指数・NaN・±Infの基礎値を確認し、実呼出しの上限でbitwise shiftを検証。具体例: `rbinom(1, 2147483646, 1e-8)` はBTPEではなく平均約21.47のinversion候補、`rbinom(1, 2147483647, 1e-8)` は`qbinom`経路で`powInt`を呼ばない。ソース上の呼出し制約から新規不具合なし。Vitest/package runtime/Rは未実行。 |
 | `src/random/continuous.ts` | 問題あり・既知差異あり | #134, #499 | `5ad76e5676b4bf27c36b288f8e48ac3821bfd92a` | [#91](https://github.com/numero-uno-jpn/rStats.js/issues/91) | runif/rnorm/rexp/rlnorm/rlogis/rcauchy/rweibullの式・端値・乱数消費を追加確認。R 4.5.x `src/nmath/rweibull.c` と比較。 | `rweibull()`はshapeの妥当性を先に判定するため、`scale===0`でもshape<=0/NaNではNaNを返す。R 4.5.xは不正引数分岐内で先に`scale==0`を判定し0を返す。具体例 `setSeed(26); rweibull(1,-1,{scale:0})` および shape=NaN, scale=0。両者ともuniform消費なし。既存rother fixtureはshape=2,scale=0のみでこの組合せを未カバー。既知差異 `rlogis(scale<0)` も維持。Issue #91。fixture閲覧・ソース追跡のみ、Vitest/R実行なし。 |
-| `src/random/extra.ts` | 一部監査・問題未検出 | #130 | `75095a2c450c18de77f8ceacc259b90bd246a288` | — | extraDistr R 4.5.2 fixture を閲覧（未実行） | inverse-gamma/gamma変換、Kumaraswamy・Pareto逆関数、三角分布の2様本順序統計量法、Laplace指数・符号、arcsine逆関数、無効引数時の乱数消費と極端な有限端点をソース確認。R 4.5.2 fixture 20ケースを閲覧。Vitest・package runtime・R実行なし。 |
+| `src/random/extra.ts` | 問題あり | #130, #500 | `2e5d69e49dab41d9ae05164075051c7beb8e0dd5` | [#92](https://github.com/numero-uno-jpn/rStats.js/issues/92) | extraDistrのR/C++実装と正の無限大パラメータの処理を比較。rinvgammaのR wrapper→base R rgamma、rkumar/rparetoのC++ RNG関数まで追跡。 | `Number.isFinite` による前段rejectで、extraDistrが受理する`+Inf`をNaNとして乱数消費なしにする。`rkumar(1,2,Infinity)`はRで0・1 uniform消費、JSでNaN・0消費。`rpareto(1,{a:2,b:Infinity})`はRで+Inf・1 uniform消費、JSでNaN・0消費。`rinvgamma(1,3,{beta:Infinity})`はRで+Inf、JSでNaN。`rinvgamma(1,Infinity,{beta:1})`はRで0、JSでNaN。既存fixtureは有限パラメータ中心。Issue #92。fixture閲覧・ソース追跡のみ、Vitest/R実行なし。 |
 | `src/random/gamma.ts` | 問題あり | #121 | `9a6b479fa51c0e16a8313c9c2518c75130c84004` | [#29](https://github.com/numero-uno-jpn/rStats.js/issues/29) | R本体 `src/nmath/rgamma.c` と不一致 | `rgamma(1,-1,{scale:0})` と `rgamma(1,0,{scale:-1})`。Rは両方0、現行はNaN。負値判定がゼロ判定より先。ソース照合で確定。Vitest・package runtime・今回のR実行なし。 |
 | `src/random/hyper.ts` | 追加監査済み・問題未検出 | #126, #492 | `df63732522e39556a07f79edbb5a287f7348fa87` | — | HIN/H2PEと大規模パラメータ時の`qhyper1`/Bernoulli切替を確認。R 4.5.2のrhyper fixtureを閲覧。R側で報告された`m+n`がINT_MAXを超える場合の整数overflow経路と比較し、JS側のNおよび中間計算はNumberで保持されるため同じint32 wrapは生じない。 | `m=n=1073741824, k=20`（N=2147483648）では通常H2PE経路、mode=10、variance≈4.9999999558、d=3.5、xl=7、xr=14となり、全setup値が有限。`m=n=1073741824, k=18`ではmode=9でHIN経路。support端点・全成功/全失敗・k=1のBernoulli・個別引数>=INT_MAXのqhyper経路、HINのscale、H2PE 3領域・accept recurrence/squeeze・cache再構築を確認。新規の独立再現不具合なし。Vitest/package runtime/R未実行。 |
 | `src/random/lecuyer.ts` | 追加監査済み・問題未検出（R文書と実装の端状態差異を記録） | #132, #496 | `7bd112bb422a4e4b8dd2bbcf3badaa4da4efe4c3` | — | MRG32k3aのseed expansion・2つのmodular recurrence・uniform mapping・signed/unsigned seed復元と範囲検証を再監査。R 4.5.2 `RNG.c` の `RNG_Init` / `FixupSeeds` と比較。 | 50回LCG scramble後、6個のstate wordを`x < M2`まで再抽出する処理はRと一致。再帰式の最大整数積（`1403580*(M1-1)=6028329902567880`、`1370589*(M2-1)=5886603607816338`等）は2^53未満で、JS Numberでも整数精度を維持。具体fixture: seed 1/42/0/-7/±2147483647のL'Ecuyer runif/rnorm/rexp、`[10407,1,2,3,0,0,0]`のstate復元。最後の3語が全ゼロの状態はRマニュアルの注意事項に反するが、R 4.5.2 `FixupSeeds` は`notallzero`を第1組からリセットせず実際に受理し、fixtureもこの挙動を記録するため、JS側の受理はR互換。fixture閲覧のみ、実行なし。 |
@@ -2450,3 +2450,31 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - GitHub Issue: [#91](https://github.com/numero-uno-jpn/rStats.js/issues/91).
 - No source code changed.
 - Repository HEAD at audit: `ef82574614d280de2e22387766ff370135ddc0ea`.
+
+
+## Audit #500 — `src/random/extra.ts` positive-infinity parameter handling
+
+- Re-audited the random wrappers against the CRAN extraDistr source, including the C++ RNG functions and R wrapper for inverse gamma. Found a compatibility difference for positive infinite parameters.
+- `rkumar()` and `rpareto()` require `Number.isFinite(a/b)` before calling the quantile helpers. The underlying `qkumar1/qpareto1` also reject infinite `b`. In contrast, extraDistr's `rng_kumar()` and `rng_pareto()` reject NaN and non-positive parameters but do not reject positive infinity:
+  - `rng_kumar(2, +Inf)` consumes one uniform and evaluates `pow(1 - pow(u, 0), 1/2) = 0`; rStats.js returns NaN and consumes no uniform.
+  - `rng_pareto(2, +Inf)` consumes one uniform and evaluates `+Inf / pow(u, 1/2) = +Inf`; rStats.js returns NaN and consumes no uniform.
+- `rinvgamma()` similarly requires finite `alpha` and `beta`. extraDistr's R wrapper is `1 / rgamma(n, alpha, beta)`, where the third positional argument is the gamma rate. R 4.5.x `rgamma()` returns 0 for scale=0 (beta=+Inf), so the inverse-gamma draw is +Inf; for alpha=+Inf and finite beta, `rgamma()` returns +Inf and the inverse is 0. rStats.js rejects both inputs and returns NaN. These cases consume no uniforms in either implementation.
+- Concrete reproductions (source-derived; not package-runtime executed):
+  ```js
+  setSeed(1);
+  rkumar(1, 2, Infinity);                  // JS NaN, 0 uniforms; extraDistr 0, 1 uniform
+  setSeed(1);
+  rpareto(1, { a: 2, b: Infinity });       // JS NaN, 0 uniforms; extraDistr +Inf, 1 uniform
+  setSeed(1);
+  rinvgamma(1, 3, { beta: Infinity });     // JS NaN; extraDistr +Inf
+  setSeed(1);
+  rinvgamma(1, Infinity, { beta: 1 });     // JS NaN; extraDistr 0
+  ```
+- Reviewed `test/fixtures/rextradist.json`: current cases cover finite parameter values, valid shape with zero triangular scale, and invalid zero/negative Pareto/Laplace parameters; they do not cover positive infinite parameters for these functions.
+- Source blobs: `extra.ts` `2e5d69e49dab41d9ae05164075051c7beb8e0dd5`; `gamma.ts` `76f1bbfcf99c0ead3efff7887131e7e142511f33`; `kumaraswamy.ts` `ae73aa5f4ac85b344ea32f626854693a50409563`; `pareto.ts` `fe44325a34f8ba48a1a8f1e6069852825310bf03`; `rextradist.json` `1b830949954493506f09f7b1d267d189a5d1aaaf`.
+- Reference source blobs: CRAN extraDistr `kumaraswamy-distribution.cpp` `0e20af5f1e69c87cb6f3a2618903e05d4452b218`; `pareto-distribution.cpp` `fd21d1d94cb934a19ce4fefa6ef685e90b4d2f4d`; `inverse-gamma-distribution.R` wrapper `rinvgamma <- function(n, alpha, beta = 1) 1/rgamma(n, alpha, beta)`; R 4.5.x `src/nmath/rgamma.c` source for zero-scale and infinite-shape branches.
+- Other reviewed algorithms: inverse-gamma reciprocal gamma scaling, Kumaraswamy/Pareto inverse transforms, triangular two-uniform min/max interpolation including overflow-width halving, Laplace exponential-plus-sign ordering, and arcsine inverse transform. No additional confirmed defect in this pass.
+- Reviewed fixtures and source only; no Vitest, package runtime, or R process was executed.
+- GitHub Issue: [#92](https://github.com/numero-uno-jpn/rStats.js/issues/92).
+- No source code changed.
+- Repository HEAD at audit: `02eff2d04ebd455944138775d77b4e4548f97a9f`.
