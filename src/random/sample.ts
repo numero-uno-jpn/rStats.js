@@ -54,7 +54,8 @@ function sampleInt1(n: number, options: SampleOptions): number[] {
   const { replace = false, prob } = options;
   const sizeGiven = options.size !== undefined;
   const size = sizeGiven ? options.size! : n;
-  if (!Number.isFinite(size) || size < 0) throw new RangeError("size must be a non-negative number");
+  // truncated first, as R: a size in (-1, 0) is 0 (#94)
+  if (!Number.isFinite(size) || size <= -1) throw new RangeError("size must be a non-negative number");
   const k = Math.trunc(size);
   if (n === 0 && k > 0) throw new RangeError("cannot take a sample from an empty population");
 
