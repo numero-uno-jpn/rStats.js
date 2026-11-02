@@ -485,7 +485,11 @@ function logRangeCdf(w: number, k: number): number {
  * (the range exceeds w essentially only when a single pair differs by more than w; the correction is below e^-833)
  */
 function logRangeCdfC(w: number, k: number): number {
-  if (w > 100) return Math.log(k * (k - 1)) + logPhiC(w / Math.SQRT2);
+  if (w > 100) {
+    // the number of pairs overflows above k ≈ 1.3e154: the sum of the logs only then (the same bits below)
+    const pairs = k * (k - 1);
+    return (Number.isFinite(pairs) ? Math.log(pairs) : Math.log(k) + Math.log(k - 1)) + logPhiC(w / Math.SQRT2);
+  }
   const lf = (z: number): number => {
     const lP = logPhi(z);
     const lt = logPhiShift(z, w) - lP; // log(a / P)
