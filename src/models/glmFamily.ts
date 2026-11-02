@@ -263,10 +263,25 @@ function powerLink(lambda: number): LinkFunctions {
     name: `mu^${Math.round(lambda * 1000) / 1000}`,
     link: (m) => m ** lambda,
     // (R: pmax(..., eps), so a mean of 1e-16 was 2.2e-16)
-    linkinv: (e) => Math.max(e ** inv, Number.MIN_VALUE),
-    muEta: (e) => Math.max(inv * e ** (inv - 1), Number.MIN_VALUE),
+    // (1 ** Infinity is NaN in JavaScript, where 1/lambda overflows)
+    linkinv: (e) => Math.max(e === 1 ? 1 : e ** inv, Number.MIN_VALUE),
+    muEta: (e) => powerMuEta(e, lambda, inv),
     etaOk: positive,
   };
+}
+
+/**
+ * d mu/d eta = eta^(1/lambda - 1)/lambda of the power link. Where that form is not finite (1/lambda overflows, or
+ * eta^(1/lambda - 1) overflows against a tiny 1/lambda), as eta^(1/lambda)/(lambda eta), or from its logs
+ */
+function powerMuEta(e: number, lambda: number, inv: number): number {
+  const r = inv * e ** (inv - 1);
+  if (r < Infinity) return Math.max(r, Number.MIN_VALUE);
+  if (e === 1) return inv;
+  const a = e ** inv;
+  const b = lambda * e;
+  if (a > 0 && a < Infinity && b >= 2 ** -1022 && b < Infinity) return Math.max(a / b, Number.MIN_VALUE);
+  return Math.max(Math.exp(inv * Math.log(e) - Math.log(lambda) - Math.log(e)), Number.MIN_VALUE);
 }
 
 function quasiVariance(v: QuasiVariance): { variance: (mu: number) => number; muOk: (mu: number) => boolean; dev: Family["devContribution"] } {

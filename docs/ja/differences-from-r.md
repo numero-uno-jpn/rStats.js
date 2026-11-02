@@ -112,6 +112,7 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | rate × q が非正規化数の `pexp(q, rate, log.p = TRUE)` (`pexp(1e-20, 1e-300, log.p = TRUE)`) | 非正規化数に丸めた積の対数: -736.8272408909739 (1.1e-5 ずれる) | log rate + log q: -736.8272297580946 |
 | 端の値での probit・cauchit・cloglog・power リンクの `glm` | `make.link` が eta (または mu) を eps の値で、微分を eps でクリップする。Phi(−10) = 7.6e-24、1 − exp(−e^-40) = 4.2e-18、平均 1e-16 (power 0.5) が 2.2e-16 に、−1e9 での cauchit の微分 3.2e-19 も 2.2e-16 になる | 厳密な値。最小の double と 1 未満の最大の double で (0, 1) に収める。R の範囲内は R と同じ |
 | 小さな平均での cloglog リンク `log(-log(1 - mu))` | 1 − mu が 1 に丸まり、mu = 1e-20 で −Inf (`glm` は "NA/NaN/Inf in 'y'" で止まる) | `log(-log1p(-mu))` で有限 |
+| 1/lambda が範囲外の power リンクの微分 (`power(5e-324)$mu.eta(0.5)`、`power(.Machine$double.xmax)$mu.eta(5e-324)`) | NaN (Inf × 0) と Inf (eta^-1 が溢れる) | 最小の double (微分は double の範囲より小さい) と 1.1258999068426242e15 (eta^(1/lambda)/(lambda eta)) |
 | 重み 0 の行がある gaussian `glm` の `AIC` | Inf。family の `aic` がその行の重みの log(0) を取り、n にも数える | その行は尤度に入れない (すべての family)。その行を除いた当てはめの AIC と同じ (重み 1, 1, 1, 0 で 5.84) |
 | 残差自由度のない `residuals(glm, "deviance")` | すべての行で 0。収束していない当てはめでも 0 (deviance 0.34 で残差 0) | 各行の寄与から計算する。二乗和が deviance になる (収束した飽和モデルでは丸めの残り) |
 | log リンクで eta < −36 の `glm` | `pmax(exp(eta), eps)`。平均 e^-100 が 2.2e-16 になる | 最小の double まで exp(eta) |
