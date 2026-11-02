@@ -3995,3 +3995,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 以上から、既知ddDiv問題の公開分布関数への影響は、この呼び出し経路調査では確認できず。元Issueの「公開出力差分は未立証」という状態を維持する。Issue重複なし。
 - **新規確定バグなし。ソース変更なし。** 既知IssueはAudit #637で記録済み。
 - **検証制限**: ソースの分岐条件と式による静的到達性確認のみ。Vitest/package runtime/Rは未実施。
+
+
+## Audit #639 — Poisson mixture loop progress beyond the binary64 integer limit
+
+- 対象: `src/internal/poissonMixture.ts` SHA `f0c6a1cf85875cf87f5174c0fcc5575e31db5746`、`src/distributions/nchisq.ts` SHA `9549791940c425d508057b7286329b396ca36c6f`、`src/special/igam.ts`、`src/special/loader.ts`。
+- **新規Issue #150**: [pchisq can hang when the Poisson mixture index exceeds 2^53](https://github.com/numero-uno-jpn/rStats.js/issues/150)。`pchisq(2 ** -1030, 2, { ncp: 1e308 })` で、`mu=ncp/2=5e307`。Chernoff境界は分母が約0.0087となりsがInfinityへoverflowして適用不能、Bessel引数は約0.0932で漸近法の閾値未満、入力qは2の冪なのでsubnormalHalfも適用されない。従ってPoisson mixtureのlower sumに到達する。
+- `upperStart(mu)` は `startSearch(mu, 1)` を経てPoisson mode近傍のindexを返す。indexは5e307近傍で2^53を大幅に超え、binary64では `j - 1 === j`。そのため `sumLower()` の `for (let j = J; j >= 0; j--)` が進捗せず、同関数にはMAX_TERMSの上限もない。Issue本文に再現式、分岐経路、IEEE-754の直接判定を記載。
+- 対照となる整数精度境界: `const j = 5e307; j - 1 === j` はtrue。再現呼び出し自体はnon-terminatingの疑いがあるため実行していない。TypeScript/Vitest実行なし。
+- 推奨方向: 単位刻みできないPoisson indexの領域を混合和へ入れる前に検出し、漸近/積分法などへ振り分ける。単なるiteration capはhang防止のみで正しい確率値を保証しない。
+- 併せて `startSearch` のbracketing/bisectionと `sumUpper` のbounded loop、`sumLower` のtermination条件、`mixtureDensity` の上下walkを確認。新たな別件の確定バグは今回追加していない。
+- **検証制限**: GitHubソースの静的追跡とPythonでのIEEE-754数値確認のみ。TypeScript runtime/Vitest/R実行は未実施。
