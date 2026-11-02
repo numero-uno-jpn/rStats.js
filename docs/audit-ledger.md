@@ -4291,3 +4291,10 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 決定的再現: `const fit = glm([0,1,2,3], [1,2,3,4], { family: "Gamma", link: "log" }); glmSummary(fit, { dispersion: 1 })`。現行コードは `estimated = options.dispersion === undefined && !fam.fixedDispersion`、続いて `zTest = !estimated` とするため、dispersionを指定したGamma fitをz検定に切り替え、`pnorm` と `"z value"` を返す。リポジトリ仕様ではbinomial/Poisson以外はdfResidual自由度のStudent t検定（`pt`）であり、dispersion引数は標準誤差の分散値を置き換えるだけで参照分布を変更しない。
 - 既存Issue検索: glmSummary dispersion argument / t statistic / z statisticで重複なし。
 - **新規Issue #171登録。** ソース変更なし。実装とリポジトリ内仕様の静的比較のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #670 — Gamma IRLS small-mean variance underflow (additional reproduction)
+
+- 対象: `src/models/glmFamily.ts` のGamma `variance(mu)=mu^2`、`src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の通常IRLS variance validation/working-weight式。
+- 既存Issue **#159**へ追加コメント: `glm([[0], [1]], [1e-200, 1e-200], { family: "Gamma", link: "log" })`。有限正responseと有限starting eta/muだが、`mu*mu` が0へunderflowしIRLSが `"0s in V(mu)"` をthrowする。一方log linkの導関数もmuなので、working weight `w*mu^2/mu^2` は厳密にw=1で有限。#159の大平均側overflow再現に対し、小平均側underflow再現を同じGamma working-weight安定性Issueに追加した。Comment ID 6581620399。
+- **既存Issue #159へ追加再現。新規Issueは作成せず。** ソース変更なし。静的ソース追跡とIEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
