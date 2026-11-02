@@ -91,10 +91,11 @@ export function logRatioDD(a: number, b: number): DD {
   return ddSub(ddLog([a, 0]), ddLog([b, 0]));
 }
 
-/** a b as double-double. Only the double product when Veltkamp splitting would overflow (above 1e300) or for non-finite values */
+/**
+ * a b as double-double: twoProd, which keeps the error term of a finite product also where Veltkamp splitting would
+ * overflow (it splits the operands scaled by powers of 2); only the double product when that is not finite
+ */
 export function mulDD(a: number, b: number): DD {
-  const p = a * b;
-  if (!Number.isFinite(p) || Math.abs(a) > 1e300 || Math.abs(b) > 1e300) return [p, 0];
   return twoProd(a, b);
 }
 
