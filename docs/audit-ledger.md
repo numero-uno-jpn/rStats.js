@@ -3903,3 +3903,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 監査範囲: densityのdf=0/df<2/df=2境界、Poisson mixtureのj=0 atomとj≥1連続項、tiny-shape gamma kernel、subnormalHalfによるCDF/density scaling、asymptotic branch選択、Chernoff negligible-tail判定、quantile初期値とnarrow-spread/searchDoublesへの分岐を静的追跡。今回、独立して確定できた不具合は上記1件。
 - Issue: https://github.com/numero-uno-jpn/rStats.js/issues/147 （open）。
 - 静的IEEE-754演算追跡とPoisson mixtureの極限式による検証。Vitest/package runtime/R 4.5.2は未実施。ソースコード変更なし。監査台帳のみ更新。
+
+
+## Audit #630 — Central and noncentral F distribution limits and extreme ratios
+
+- 対象: `src/distributions/f.ts` SHA `12d20ccd20e09d1b4e4bdf1015553503d03b3872`（`fLogDensity`、`fRatios`、`fDensity`、`pfTiny`、`pfRaw`、`qf1`、`pChisqLimit`、`qChisqLimit`）、`src/distributions/nbeta.ts` SHA `5c51760f6e136b80a77b4284da39c25b0ab8ed86`（`dnbetaCore`、`pnbetaRaw`、`extremeTail`、`extremeDensityLog`、`integralLog`、`dnf1`、`pnf1`、`qnf1`）、`test/nf.test.ts` SHA `1ccbb8948196fbef5e66e7ec405e17b5be187378`、dnf/pnf/qnf fixtures。
+- 監査範囲: m*xのoverflow/underflowと2^600 scaling、p/qがDBL_MIN以下になるときのlog-ratio経路、small-shape beta prefactor、m/nのoverflow/underflow、df1/df2=Infinityの極限、x=0/InfinityのR互換境界、central Fのbeta変換、df2=Infinityのchi-square/gamma極限、quantileのtail近似・最大/最小double境界、noncentral Fのmixture/chisq/gamma/w/integral method selection、Chernoff bound、tiny-tail近似、quantileの端点確認を静的追跡。
+- 既知不具合との照合: Issue #116（fRatiosがundefinedのときのp≈1仮定の誤用）、#135（noncentral Fのm/n underflow）は別条件として再確認。いずれも今回新規発見として重複登録しない。
+- 境界仕様の照合: `dnf1(m=Infinity,n<Infinity,ncp>0)` のx>0でcentral reciprocal-gamma limitを使う経路、x=0でNaNとなる経路はdnf fixtureと整合。pnf/qnfのm=Infinity時のNaNもfixture上のR互換仕様と整合。df2=Infinityではnoncentral chi-square limitを使用し、既存fixturesにあるtiny-tail quantileもその経路で扱う。
+- 数値順序の確認: `qf1` のupper-tail early-Infinity判定は近似log quantileだけで決めず、`pfRaw(Number.MAX_VALUE,...)` とtargetを比較してから返すため、709.78とlog(Number.MAX_VALUE)の差だけで有限quantileをInfinityにする構造ではない。
+- **今回の追加監査で新規確定バグなし。Issue追加なし。ソース変更なし。** ソース・fixture静的閲覧のみ。Vitest/package runtime/R 4.5.2は未実施。
