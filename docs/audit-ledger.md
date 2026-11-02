@@ -3718,3 +3718,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 今回確認した有限範囲では、切替式そのものに独立した不連続・符号誤りは確認できなかった。#606/#609の積分器の極端値不安定性、および#608/#136のfarLimitオーバーフロー分岐は既知事項として除外し、重複Issueは作成しない。
 - 再現・境界確認用の値: `a=1`, `delta=0`, `T0=1e10*10*Math.SQRT2`; 境界の直前・一致・直後の `t` を `T0` とその隣接浮動小数点数で比較する想定。今回は実行していない。
 - Vitest/Rは未実施。静的な式の追跡のみ。ソースコード変更なし。
+
+
+## Audit #611 — Noncentral t Laplace overflow at huge finite noncentrality
+
+- 対象: `src/distributions/nt.ts` SHA `85763973f3f7a82d46ceee19a4dd0f8d8c275814`。Laplace法の大自由度領域における微分・補正項を監査。
+- 確定的な入力候補: `const df=200002, ncp=1e200, a=df/2;` `const T0=1e10*(Math.abs(ncp)+10)*Math.sqrt(a+1);`（有限値、約 `3.1623e217`）。`dt(T0,df,{ncp,log:true})` および `pt(T0,df,{ncp,lowerTail:false,logP:true})`。
+- `T0` ちょうどではfar-tail外挿の厳密な `>` 条件に入らず、Laplace法が試行される。`laplace()` の密度微分は `v=t*exp(w/2)` の `v*v`、`u*v` を計算する。密度ピーク付近では `v` が約 `1e200`、`u=v-delta` はほぼ0となり、v自体は有限でもv²がInfinityになる。曲率・高階微分と `r3/r4` の比が不定値となり、補正 `c1` とLaplace結果がNaNとなって通常積分へフォールバックする。
+- フォールバックの `logIntegrand()` も `tS*tS` を計算し、曲率が `-Infinity` となると `sigma=0`、台形積分のヤコビアン消失に至る。既存#606/#609と広い意味で同じ極端値の二乗オーバーフローだが、大自由度Laplace入口を通る別の実行経路としてIssue #137を作成。
+- Issue: https://github.com/numero-uno-jpn/rStats.js/issues/137
+- Vitest/R未実施。静的ソース追跡のみであり、実行時の戻り値は未確認。ソースコード変更なし。
