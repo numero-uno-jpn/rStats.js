@@ -2892,3 +2892,27 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Result: no new independent, reproducible defect established; no Issue filed. Existing binomial and incomplete-beta audit records are not duplicated.
 - Rとの関係: direct comparison with current R Core `pbinom.c` and `pbeta.c`; R's ordinary CDF mapping is the same. R executable was not run.
 - 検証範囲: complete `pbinom1()`/`pbinomRaw()` review, relevant incomplete-beta tail-selection and log paths, Loader PMF correction identity, R Core source comparison, and deterministic boundary analysis. No Vitest, package runtime, or R execution. No source code changed.
+
+
+## Audit #527 — `src/distributions/binomial.ts` `qbinom1()` rejects non-integer `size` instead of applying R's `R_forceint()`
+
+- Source blob: `src/distributions/binomial.ts` `2f90ac1e001443b0704f33e76585cb2868497724`; shared validation helper `badParams()` is in the same file. R comparison: current `wch/r-source/src/nmath/qbinom.c`.
+- Confirmed R-compatibility defect. TypeScript's `qbinom1()` checks raw `size < 0` before endpoint handling, then calls `badParams(size, prob)`, which rejects `nonInteger(size)`. R Core instead executes `n = R_forceint(n)` (round-to-nearest, ties-to-even) before checking `n < 0`. Thus R accepts non-integer finite `size` by rounding it, while the TypeScript function returns NaN.
+- Exact deterministic reproductions:
+  ```ts
+  qbinom1(0.5, 10.2, 0.3, true, false);
+  // Current TypeScript: NaN (badParams rejects non-integer size)
+  // R: equivalent to qbinom(0.5, size = 10, prob = 0.3)
+
+  qbinom1(0.5, -0.1, 0.3, true, false);
+  // Current TypeScript: NaN (raw size < 0 and non-integer)
+  // R: R_forceint(-0.1) is -0; accepted as size 0, result 0
+
+  // Tie-to-even contrast:
+  // R_forceint(10.5) = 10; R_forceint(11.5) = 12.
+  ```
+- The endpoint handling does not resolve the mismatch: for interior probabilities the later `badParams()` rejects non-integer `size`; for negative values between -0.5 and 0, the initial raw-sign check also rejects values R rounds to negative zero.
+- Existing-issue search for `qbinom non-integer size rounding`, `binomial size noninteger`, and `qbinom` found no matching issue. Created GitHub Issue #102: https://github.com/numero-uno-jpn/rStats.js/issues/102.
+- Suggested remediation: apply R-compatible half-even integer coercion to `size` before sign validation and before subsequent calculations, or change the documented compatibility contract consistently. Do not use ordinary `Math.round()` without the tie-to-even correction.
+- Rとの関係: directly compared with current R Core `qbinom.c`, which calls `R_forceint(n)` before the negative-size check; `R_forceint`/nearbyint semantics were also reviewed in Audit #521. No R executable was run.
+- 検証範囲: complete `qbinom1()` control flow, `badParams()`, endpoint handling, `discreteQuantile()` interaction, current R Core source comparison, and deterministic concrete inputs above. No Vitest, package runtime, or R execution. No source code changed.
