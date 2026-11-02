@@ -54,7 +54,16 @@ function fRatios(x: number, m: number, n: number): [DD, DD] | undefined {
   // (pf(1e301, 1.4e-312, 6.72, { lowerTail: false }) was 1, 1.77e-311 expected; qf there did not return)
   const S = 2 ** 600;
   let mx = x > 1e290 ? twoProd(m * S, x / S) : m > 1e290 ? twoProd(m / S, x * S) : twoProd(m, x);
-  if (!(Number.isFinite(mx[0]) && Number.isFinite(mx[1]) && Math.abs(mx[0]) < 1e290)) return undefined;
+  if (!(Number.isFinite(mx[0]) && Number.isFinite(mx[1]) && Math.abs(mx[0]) < 1e290)) {
+    // m x and n both divided by 2^600 (exactly): a huge m x is not always far above n, and the callers' p ≈ 1 gave
+    // pf(1e150, 1e150, 1e308) the wrong tail (lower -Inf for 0 in logs; issue #116). Where m x is still huge or n falls
+    // below 1e-290 there, m x is far above n and the callers' p ≈ 1, q ≈ n/(m x) holds
+    const mxS = twoProd(Math.max(m, x) / S, Math.min(m, x));
+    const nS = n / S;
+    if (!(Number.isFinite(mxS[0]) && Number.isFinite(mxS[1]) && Math.abs(mxS[0]) < 1e290) || !(nS >= 1e-290)) return undefined;
+    const dS = ddAdd(mxS, [nS, 0]);
+    return [ddDiv(mxS, dS), ddDiv([nS, 0], dS)];
+  }
   let nn = n;
   if (x > 0 && mx[0] < 1e-290 && n < 1e127) {
     mx = m < x ? twoProd(m * S, x) : twoProd(m, x * S);
