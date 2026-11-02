@@ -17,6 +17,7 @@ import { pf1 } from "../distributions/f.js";
 import { pt1, qt1 } from "../distributions/t.js";
 import { eigen } from "../linalg/eigen.js";
 import { ginv } from "../linalg/kappa.js";
+import { rangeExponent } from "../linalg/matrix.js";
 import { Warnings } from "./glmFamily.js";
 import { ldexp } from "../internal/summary.js";
 import { checkOptions, lmerInternals, logicalOption, thetaColumnExponents, type LmerResult } from "./lmer.js";
@@ -165,8 +166,13 @@ export interface TRow {
 }
 
 /** l'β̂ − rhs over its standard error, with Satterthwaite's degrees of freedom 2 var² / (g'Ag), g_k = l'J_k l */
-export function tTestOf(s: LmerSatterthwaite, l: readonly number[], rhs: number, beta: readonly number[] = s.beta): TRow {
-  if (l.some(Number.isNaN) || Number.isNaN(rhs)) return { estimate: NaN, stdError: NaN, df: NaN, tValue: NaN, pValue: NaN };
+export function tTestOf(s: LmerSatterthwaite, l0: readonly number[], rhs0: number, beta: readonly number[] = s.beta): TRow {
+  if (l0.some(Number.isNaN) || Number.isNaN(rhs0)) return { estimate: NaN, stdError: NaN, df: NaN, tValue: NaN, pValue: NaN };
+  // a contrast of extreme magnitude (1e160, 1e-200) divided by 2^k with its rhs: the test does not depend on it, and
+  // l'Vl overflowed or underflowed (#58); the estimate and the standard error are scaled back by 2^k
+  const k = rangeExponent(l0);
+  const l = k === 0 ? l0 : l0.map((v) => ldexp(v, -k));
+  const rhs = ldexp(rhs0, -k);
   // (in the units of the scaled response, the estimate and the standard error scaled back; see LmerSatterthwaite.scale)
   const estimate = dot(l, beta);
   const variance = quadraticForm(l, s.vcov);
@@ -175,7 +181,7 @@ export function tTestOf(s: LmerSatterthwaite, l: readonly number[], rhs: number,
   const df = (2 * variance * variance) / quadraticForm(g, s.vcovVarpar);
   const tValue = (estimate - ldexp(rhs, -s.scale)) / stdError;
   const pValue = 2 * pt1(Math.abs(tValue), df, false, false);
-  return { estimate: ldexp(estimate, s.scale), stdError: ldexp(stdError, s.scale), df, tValue, pValue };
+  return { estimate: ldexp(estimate, s.scale + k), stdError: ldexp(stdError, s.scale + k), df, tValue, pValue };
 }
 
 /** One row of an F table (internal): lmerTest's `Sum Sq`, `Mean Sq`, `NumDF`, `DenDF`, `F value`, `Pr(>F)` */
@@ -215,11 +221,16 @@ export function lmerFTest(fit: LmerResult, L: readonly (readonly number[])[], rh
 }
 
 /** {@link lmerFTest} with the Satterthwaite quantities given (internal) */
-export function fTestOf(s: LmerSatterthwaite, L: readonly (readonly number[])[], rhs: readonly number[] | undefined, warnings: Warnings): LmerFRow | undefined {
-  const r = L.length;
+export function fTestOf(s: LmerSatterthwaite, L0: readonly (readonly number[])[], rhs: readonly number[] | undefined, warnings: Warnings): LmerFRow | undefined {
+  const r = L0.length;
   if (r === 0) return undefined;
+  // L of extreme magnitude and its rhs divided by one power of 2 (the test does not depend on it; the same factor for
+  // every row keeps the eigenvectors of L V L', and with them the rotated contrasts and the df). L V L' overflowed or
+  // underflowed (#58)
+  const k = rangeExponent(L0.flat());
+  const L = k === 0 ? L0 : L0.map((row) => row.map((v) => ldexp(v, -k)));
   // (the right-hand side in the units of the scaled response: tTestOf scales its own, the joint test below uses these)
-  const given = rhs ?? new Array<number>(r).fill(0);
+  const given = (rhs ?? new Array<number>(r).fill(0)).map((v) => ldexp(v, -k));
   const right = given.map((v) => ldexp(v, -s.scale));
   if (r === 1) {
     // A contrast of rank 0 (L V L' = 0, such as a row of zeros) has no hypothesis to test, as for several rows below

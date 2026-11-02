@@ -222,6 +222,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `wilcox.test(exact = TRUE)` with very large n (e.g. 3000) | `psignrank` gives NaN | computed |
 | `wilcox.test(x, y)` (normal approximation) with every value tied, e.g. `wilcox.test(1, 1)` | p = NaN two-sided (0 / 0; R 4.6 returns 1) | 1 (W always equals its expectation), for every alternative |
 | `kappa(exact = TRUE)` and MASS's `ginv` of a matrix whose singular values exceed the largest double (`a * matrix(c(1, 1, 1, -1), 2)` with a = 1.7e308) | NaN (Inf / Inf) and the zero matrix (the cut-off tol × Inf drops every component) | 1 and the inverse (±2.9e-309): ratios and the cut-off on the scaled singular values |
+| lmerTest's `contest` with a contrast of extreme magnitude (`c(0, 1e160)`, `c(0, 1e-200)`, `diag(2) * 1e160`) | standard error Inf or 0, t 0 or Inf, df and p NaN; "infinite or missing values in 'x'" or no rows for the joint test | the test of the contrast itself (L and rhs divided by a power of 2), the estimate and the standard error in the contrast's units |
 | `psigamma(x, deriv)` for x < 0 and deriv ≥ 6 | NaN (not implemented in R) | computed (`psigamma(-1.5, 10)` = -156.229596593233) |
 | `trigamma(1e-300)`, `psigamma(1e-100, 3)` and other results that overflow | NaN | ±Inf |
 | `besselI(1000, 1000)` | Inf | 2.7234536469108428e229 |

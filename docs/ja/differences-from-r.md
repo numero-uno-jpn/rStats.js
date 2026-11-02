@@ -216,6 +216,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 非常に大きな n (たとえば 3000) での `wilcox.test(exact = TRUE)` | `psignrank` が NaN を返す | 計算できる |
 | `wilcox.test(x, y)` (正規近似) で、すべての値が同じ場合 (`wilcox.test(1, 1)` など) | 両側の p が NaN (0 / 0。R 4.6 は 1 を返す) | 1 (W はいつも期待値に等しい)。どの alternative でも |
 | 特異値が最大の double を超える行列の `kappa(exact = TRUE)` と MASS の `ginv` (a = 1.7e308 で `a * matrix(c(1, 1, 1, -1), 2)`) | NaN (Inf / Inf) と零行列 (閾値 tol × Inf ですべての成分を捨てる) | 1 と逆行列 (±2.9e-309)。比と閾値を縮めた特異値で求める |
+| 極端な大きさの対比 (`c(0, 1e160)`、`c(0, 1e-200)`、`diag(2) * 1e160`) での lmerTest の `contest` | 標準誤差が Inf か 0、t が 0 か Inf、df と p が NaN。同時検定は "infinite or missing values in 'x'" か空の表 | 対比そのものの検定 (L と rhs を 2 の冪で割る)。推定値と標準誤差は対比の単位 |
 | x < 0 で deriv ≥ 6 の `psigamma(x, deriv)` | NaN (R では未実装) | 計算できる (`psigamma(-1.5, 10)` = -156.229596593233) |
 | `trigamma(1e-300)`、`psigamma(1e-100, 3)` など結果がオーバーフローするもの | NaN | ±Inf |
 | `besselI(1000, 1000)` | Inf | 2.7234536469108428e229 |
