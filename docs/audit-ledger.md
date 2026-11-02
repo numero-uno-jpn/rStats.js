@@ -4081,3 +4081,11 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 各ソースの最終変更commitはIssue作成日より前で、現在の該当コードにも修正は見つからなかった。issue close状態だけでは修正済みと見なさず、現行blobと再現式を必ず照合する必要があることを確認。
 - **新規Issueなし。既存Issue #109/#110/#111を再open。** Cauchy/Paretoに新しい問題なし。
 - **検証**: source-level path確認、Python binary64 arithmetic、Fraction exact rational、Decimal 100-digit。Vitest/package runtime/Rは未実施。
+
+
+## Audit #647 — Studentized range (Tukey) upper-tail log overflow
+
+- 対象: `src/distributions/tukey.ts` SHA `d9d8b47fdd9203b21f4bb88f6056314618dee354`、`test/tukey.test.ts` SHA `40920f07133a8b207a4ab35c5465cccb73b2b368`、`test/tukey-quantile.test.ts` SHA `b06c8b7d842bfb3812b5859bd16abbc3c713de61`。
+- **新規Issue #153**: [ptukey upper-tail log approximation overflows for huge finite nmeans](https://github.com/numero-uno-jpn/rStats.js/issues/153)。決定的再現 `ptukey(101, 1e200, Infinity, { lowerTail: false, logP: true })`。`validParams` は有限kを受理。q=101では線形upper-tailはrangeCdfC(w>60)で0となりlog fallbackへ進む。w>100の`logRangeCdfC`は `Math.log(k * (k - 1)) + logPhiC(w / sqrt(2))` を計算するが、k=1e200で積がInfinityとなりlog tailが+Infinity。結果として公開ptukeyは上側log確率に正Infinity、linear probabilityにInfinity、lower log tailにNaNを返す経路。正しい漸近log upper tailは `log(k)+log(k-1)+logPhiC(101/sqrt(2))`。mpmath 50桁で約 `-1634.4036442253523511699617027852`（有限・負）を確認。線形確率は0へunderflow、lower tailは1へ丸められる。
+- Tukeyのinner/outer integral、log-domain fallback、Chebyshev cache range、df=Infinity limit、small-tail selection、quantileのlog-q Brent inversionを確認。Clenshaw-Curtis pieces、peak search、golden-section、Brent、cache subdivisionは上限付き。既存Issue重複なし。fixture testはRmpfr 160-bit oracleとの比較で、Rのptukey約8桁精度をそのままoracleにしていない。実行は未実施。
+- **新規Issue #153、ソース変更なし。** Python mpmathによる漸近log-tail確認とソース制御フロー追跡。Vitest/package runtime/R/本体ptukey実行は未実施。
