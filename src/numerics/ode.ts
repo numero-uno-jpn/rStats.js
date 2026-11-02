@@ -66,7 +66,19 @@ export function ode(y: readonly number[], times: readonly number[], func: OdeFun
       const k2 = deriv(t + h / 2, axpy(state, h / 2, k1));
       const k3 = deriv(t + h / 2, axpy(state, h / 2, k2));
       const k4 = deriv(t + h, axpy(state, h, k3));
-      state = state.map((v, i) => v + (h / 6) * (k1[i]! + 2 * k2[i]! + 2 * k3[i]! + k4[i]!));
+      // h/6 times the weighted sum, as deSolve. Where h/6 falls below the normal range or the sum overflows (2 k2 for a
+      // slope near the largest double), the sum divided by 4 (exact weights, no overflow), times h (a small h first
+      // brought into the normal range by 2^60, exactly), over 1.5: ode([0], [0, MIN], () => [1]) stayed at 0, and a
+      // slope of 1e308 over h = 1e-308 gave Infinity for 1 (issue #124)
+      const h6 = h / 6;
+      const plain = h === 0 || Math.abs(h6) >= 2 ** -1022;
+      const scale = Math.abs(h) < 1 ? 2 ** 60 : 1;
+      state = state.map((v, i) => {
+        const inc = h6 * (k1[i]! + 2 * k2[i]! + 2 * k3[i]! + k4[i]!);
+        if (plain && Number.isFinite(inc)) return v + inc;
+        const quarter = k1[i]! / 4 + k2[i]! / 2 + k3[i]! / 2 + k4[i]! / 4;
+        return v + ((h * scale * quarter) / 1.5) / scale;
+      });
     }
     out.push([times[j]!, ...state]);
   }
