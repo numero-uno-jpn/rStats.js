@@ -7,7 +7,9 @@
 // - Columns are processed left to right. Before processing a column, if its remaining norm is below its original norm × tol
 //   (always, for a column whose original norm is 0), it is moved to the right end and the rest shift left. rank drops by the number moved
 // - Columns moved to the right end are still transformed when their turn comes (only the column at the last row is left unprocessed)
-// - Remaining norms are updated after each transformation by the LINPACK method, and recomputed when cancellation occurs
+// - Remaining norms are updated after each transformation by the LINPACK method, and recomputed when cancellation occurs:
+//   when 1 - (|x|/norm)^2 is below 1e-6, as R's output shows (the rule from issue #57; LINPACK's own test missed the
+//   cancellation near the rank tolerance and dropped an independent column)
 // - rank = min(number of columns - number moved, number of rows). The public pivot is 0-based to suit JS (internally 1-based)
 // lapack: true is the same column-pivoted decomposition as the LAPACK 3.12.0 reference SRC/dgeqp3.f
 // (dlaqp2.f, dlarfg.f, dlarf.f). rank is always min(rows, cols) (as in R; rank is not determined).
@@ -118,12 +120,10 @@ function linpackQR(A: Mat, tol: number): { qraux: Float64Array; pivot: number[];
   const p = A.ncol;
   const a = A.data;
   const qraux = new Float64Array(p);
-  const work = new Float64Array(p); // norms used for updating (replaced when recomputed)
   const orig = new Float64Array(p); // original norms (used for the test; 1 if 0)
   const pivot = Array.from({ length: p }, (_, j) => j + 1);
   for (let j = 0; j < p; j++) {
     qraux[j] = nrm2(a, j * n, n);
-    work[j] = qraux[j]!;
     orig[j] = qraux[j] === 0 ? 1 : qraux[j]!;
   }
   const col = new Float64Array(n);
@@ -133,15 +133,13 @@ function linpackQR(A: Mat, tol: number): { qraux: Float64Array; pivot: number[];
     // Move columns whose norm has become small to the right end (shifting the rest left)
     while (l < k && qraux[l]! < orig[l]! * tol) {
       col.set(a.subarray(l * n, (l + 1) * n));
-      const [q0, w0, o0, p0] = [qraux[l]!, work[l]!, orig[l]!, pivot[l]!];
+      const [q0, o0, p0] = [qraux[l]!, orig[l]!, pivot[l]!];
       a.copyWithin(l * n, (l + 1) * n, p * n);
       a.set(col, (p - 1) * n);
       qraux.copyWithin(l, l + 1);
-      work.copyWithin(l, l + 1);
       orig.copyWithin(l, l + 1);
       pivot.copyWithin(l, l + 1);
       qraux[p - 1] = q0;
-      work[p - 1] = w0;
       orig[p - 1] = o0;
       pivot[p - 1] = p0;
       k--;
@@ -162,16 +160,9 @@ function linpackQR(A: Mat, tol: number): { qraux: Float64Array; pivot: number[];
       t /= a[cl + l]!;
       for (let i = l; i < n; i++) a[cj + i]! += t * a[cl + i]!;
       if (qraux[j] === 0) continue;
-      let tt = 1 - (Math.abs(a[cj + l]!) / qraux[j]!) ** 2;
-      tt = Math.max(tt, 0);
-      const t2 = tt;
-      tt = 1 + 0.05 * tt * (qraux[j]! / work[j]!) ** 2;
-      if (tt !== 1) {
-        qraux[j]! *= Math.sqrt(t2);
-      } else {
-        qraux[j] = nrm2(a, cj + l + 1, n - l - 1);
-        work[j] = qraux[j]!;
-      }
+      const tt = Math.max(1 - (Math.abs(a[cj + l]!) / qraux[j]!) ** 2, 0);
+      if (tt < 1e-6) qraux[j] = nrm2(a, cj + l + 1, n - l - 1);
+      else qraux[j]! *= Math.sqrt(tt);
     }
     qraux[l] = a[cl + l]!;
     a[cl + l] = -nrmxl;
