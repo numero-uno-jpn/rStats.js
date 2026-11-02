@@ -4164,3 +4164,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 既存Issue #63（正のsubnormal ncp/2が0になるleftTailLogのNaN）、#96（dnbeta endpoint log densityのa+mu overflow）、#114（subnormal shapeでj=0密度成分を落とす）を確認し、#158とは根因が異なる。非心F側の `dnfCore`/`pnfTiny` の比率対数問題は既存Issue #135と重複するため新規登録しない。
 - 非心betaのshape端点・a/b極小/巨大、`mu*rho` とshape sum overflow、`Math.log(s/b)` の比率形成、density peak・Poisson mixture、F変換のunderflow/overflow、Chernoff gridとqF quantileの有限端点判定を確認。独立した確定バグは#158以外に追加特定せず。
 - **新規Issue #158、ソース変更なし。** `docs/audit-ledger.md` 追記。Vitest/package runtime/R/高精度数値照合は未実施。
+
+
+## Audit #656 — GLM power-link derivative and Gamma inverse-link IRLS scaling
+
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5`、`src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`。
+- 既存Issue **#156**へ追加再現をコメント: `makeFamily({ family: "quasi", link: { power: Number.MAX_VALUE } }).muEta(Number.MIN_VALUE)`。現行式では `inv=1/Number.MAX_VALUE≈5.562684646268003e-309`、`inv-1` は-1へ丸められ、`Number.MIN_VALUE ** -1` がInfinityへoverflowして結果Infinity。解析的な導関数 `inv * eta ** (inv-1) ≈ inv/eta` は約1.125899906842624e15で有限。元の#156は逆にlambda=Number.MIN_VALUEでinvがInfinityとなりNaNを生じるため、両端の異なる中間値overflowとして同Issueに追記。Issue comment ID 6580163912。
+- **新規Issue #159**: [Gamma GLM inverse-link IRLS weight becomes NaN for large finite means](https://github.com/numero-uno-jpn/rStats.js/issues/159)。決定的再現 `glm([[], []], [1e308, 1e308], { family: "Gamma" })`。intercept-only、正の有限response、default inverse link。初期 `eta=1e-308`、`mu=1e308`。inverse linkの `muEta=-1/(eta*eta)` はeta² underflowで-Infinity、Gamma variance `mu²` はInfinity。IRLSの `sqrt((w*muEta²)/variance)` はInfinity/InfinityでNaN。一方、式を整理すれば `sqrt(w*mu^4/mu²)=mu*sqrt(w)=1e308` で有限。working response×sqrt weightも1となり、定数応答の正確なfitはmean 1e308、deviance 0。IEEE-754演算順序と解析式で確認。Vitest/package runtime/R未実施。
+- IRLSのstarting mean、offset、zero prior weights、deviance step halving、separation判定、QR rank/alias、null deviance、AIC、dispersion、summary covariance、residuals、hatvalues、Cook's distance、prediction SEのコード経路を追加確認。今回以外の独立確定バグは追加特定せず。#159はfamily/link-specific weight ratioを共通IRLSで直接形成する数値不安定性で、#156のpower-link単体導関数とは別根因。
+- **新規Issue #159、既存Issue #156へ追加再現。ソース変更なし。** docs/audit-ledger.md追記。GitHubソース静的追跡・IEEE-754演算解析のみ。Vitest/package runtime/R照合未実施。
