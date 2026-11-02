@@ -730,6 +730,16 @@ export function qrSolve(a: MatrixInput | QR, b?: VectorOrMatrix, options: { tol?
   if (b === undefined && n !== p) throw new TypeError("only square matrices can be inverted");
   const y = b ?? Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
   const res = qrCoef(q, y);
-  const zero = (v: number) => (Number.isNaN(v) ? 0 : v);
-  return isMatrixInput(y) ? (res as number[][]).map((r) => r.map(zero)) : (res as number[]).map(zero);
+  // The coefficients of the columns the decomposition leaves out (pivot[min(n, p)..], those of a wide matrix) are 0;
+  // a NaN from the solve itself (a NaN in the response) stays (R's res[is.na(res)] <- 0 makes it 0: qr.solve of the
+  // identity with b = (NaN, 1) is (0, 0))
+  const unused = new Set(q.pivot.slice(Math.min(n, p)));
+  if (isMatrixInput(y)) {
+    const m = res as number[][];
+    for (const j of unused) m[j]!.fill(0);
+    return m;
+  }
+  const v = res as number[];
+  for (const j of unused) v[j] = 0;
+  return v;
 }

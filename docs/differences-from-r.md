@@ -694,6 +694,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 ### Linear algebra
 
 - **Matrices** are passed as arrays of rows; a 0-row matrix is treated as 0 × 0.
+- **`qrSolve`** keeps a NaN of the solution (from a NaN in the response); only the coefficients of the columns the
+  decomposition leaves out (of a wide matrix) are 0. R's `qr.solve` sets every NA and NaN to 0 (`qr.solve` of the
+  identity with b = (NaN, 1) is (0, 0)).
 - **Eigenvectors and singular vectors** may have the opposite sign from R; both are correct.
   Complex eigenvectors are scaled so that the component with the largest modulus is real and
   positive (R's `dgeev` only makes that component real). Vectors for repeated eigenvalues or
