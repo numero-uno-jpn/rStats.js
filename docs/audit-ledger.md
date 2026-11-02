@@ -2967,3 +2967,21 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Result: no new independent reproducible defect established in CDF tail mapping or the small-shape series. Existing #65 concerns PMF overflow and is not duplicated.
 - Rとの関係: current R Core `pnbinom.c` uses the same incomplete-beta identity and endpoint ordering; no R executable was run.
 - 検証範囲: complete `pnbinomRaw()` and `upperSeries()` control flow, relevant double-double identities, tail/log arithmetic, R Core source comparison, and existing fixture inspection. No Vitest, package runtime, or R execution. No source code changed.
+
+
+## Audit #531 — `src/distributions/negbinomial.ts` `fromMu()` underflow erases success probability
+
+- Source blob: `src/distributions/negbinomial.ts` `6bf9bf9b9d8b05aa4828e33c4b2fb9b3ed5171c7`; support: `src/special/dd.ts` `ddDiv()`, `src/special/incbet.ts` `betaIncDD()`, `src/internal/discrete.ts` `discreteQuantile()`. Compared quantile logic with R Core `src/nmath/qnbinom_mu.c` and `qDiscrete_search.h`.
+- New defect: `fromMu()` forms `pd = size/(size+mu)` using double-double division, but double-double still cannot represent values below the least positive binary64 subnormal. If the exact ratio is below `Number.MIN_VALUE`, it becomes `[0,0]`, and the pair `(pd,qd)` no longer represents the input distribution. The CDF/PMF then use an artificial success probability of zero; the quantile's gamma starting-value path and integer search inherit the corrupted CDF.
+- Exact reproduction:
+  ```ts
+  const size = Number.MIN_VALUE; // 5e-324
+  const mu = Number.MAX_VALUE;   // 1.7976931348623157e+308
+  pnbinom(0, size, { mu });      // should round to 1
+  qnbinom(0.5, size, { mu });    // should be 0
+  dnbinom(0, size, { mu });      // should round to 1
+  ```
+  The exact log mass at zero is approximately `size * (log(size)-log(mu)) ≈ -7.19e-321`; hence the mass rounds to 1 and the median is 0. The exact success probability is about `2.75e-632`, below `Number.MIN_VALUE`, so `ddDiv` necessarily returns a zero high/low pair. Source-level control-flow finding; no runtime output is claimed.
+- Rとの関係: R Core `qnbinom_mu.c` forms `Q=1+mu/size`, `P=mu/size` rather than forming the underflowing success probability. R's shared discrete search also starts from the Cornish-Fisher value. This avoids this particular parameter-loss route, though no R executable was run.
+- Issue: created [new GitHub issue](issue URL returned by GitHub) with deterministic inputs, mathematical reference, source trace, and remediation direction.
+- 検証範囲: complete `fromMu()`, qnbinom small-probability gamma seed and discrete search, CDF/PMF dispatch, double-double division limits, and R Core source comparison. No package runtime, Vitest, or R execution. No source code changed.
