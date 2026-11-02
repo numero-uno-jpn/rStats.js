@@ -2723,3 +2723,18 @@ The open-issue list was cross-checked against the recently re-audited source fil
 - Filed non-duplicate Issue #99: https://github.com/numero-uno-jpn/rStats.js/issues/99
 - Suggested direction: use a scale-safe pairwise comparison that cannot erase a small transposed entry through global scaling; add regression tests for the exact matrix and its transpose.
 - Static source and IEEE-754 path analysis only. No Vitest, package runtime, R process, or independent numerical execution was performed. No source code changed.
+
+
+## Audit #517 — `src/internal/fround.ts` `zapsmall()` produces NaNs for `digits = Infinity` with infinite matrix entries
+
+- Source blob: `src/internal/fround.ts` `8e42f6ab4bc1d61fcd7687129efdc57edc942224`.
+- Confirmed defect: `zapsmall()` calculates `d = Math.max(0, digits - Math.log10(mx))` when `mx > 0`. For `digits === Infinity` and `mx === Infinity`, this is `NaN`. It then calls `roundR(v, NaN)` for every matrix entry; `roundR()` explicitly returns `NaN` when `digits` is NaN, so the entire result becomes NaN.
+- Exact reproduction:
+  ```ts
+  zapsmall([[1, Infinity]], Infinity);
+  // current result: [[NaN, NaN]]
+  ```
+- R's R 4.6.0/4.6.1 NEWS documents this exact border case (`zapsmall(x, digits=Inf)` with an `Inf` entry) as fixed to return `x`, not all NaNs. This establishes a compatibility defect against current R; no claim is made about older R versions' behaviour.
+- Filed non-duplicate Issue #100: https://github.com/numero-uno-jpn/rStats.js/issues/100
+- Suggested remediation: special-case positive infinite `digits` before the shared-precision calculation (return a copy of the input matrix); add tests for finite and infinite entries, including `-Infinity` and NaN.
+- Static source analysis and R NEWS comparison only. No Vitest, package runtime, or R process was executed. No source code changed.
