@@ -143,7 +143,8 @@ export function log1mExp(x: number): number {
 /** log(e^a + e^b) */
 export function logAddExp(a: number, b: number): number {
   const m = Math.max(a, b);
-  if (m === -Infinity) return -Infinity;
+  // both ends: -Inf + -Inf and Inf + Inf (Inf - Inf in the shift would be NaN)
+  if (m === -Infinity || m === Infinity) return m;
   return m + Math.log1p(Math.exp(Math.min(a, b) - m));
 }
 
