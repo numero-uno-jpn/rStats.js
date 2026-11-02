@@ -14,11 +14,10 @@ describe("issue #160", () => {
     expect(() => glm([0, 1], [[1, 2], [1.5e308, 5e307]], { family: "quasibinomial" })).toThrow(/overflows in row 2/);
   });
 
-  it("fits totals in range as before", () => {
-    // values of the implementation before the fix
+  it("fits totals in range", () => {
+    // the proportions 1/2 and 1/3: logits 0 and -log 2 (the last bits depend on the deviance's rounding, #161)
     const fit = glm([0, 1], [[1e300, 1e300], [1e300, 2e300]], { family: "binomial" });
-    expect(fit.coefficients).toEqual(BEFORE);
+    expect(Math.abs(fit.coefficients[0]!)).toBeLessThan(1e-15);
+    expect(Math.abs(fit.coefficients[1]! + Math.LN2)).toBeLessThan(1e-15);
   });
 });
-
-const BEFORE = [1.6724474962166484e-16, -0.6931471805599456];

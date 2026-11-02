@@ -11,6 +11,8 @@ import { dgamma1 } from "../distributions/gamma.js";
 import { dnorm, pnorm, qnorm } from "../distributions/normal.js";
 import { dpois1, nonInteger } from "../distributions/poisson.js";
 import { roundHalfEven } from "../internal/integer.js";
+import { bd0 } from "../special/loader.js";
+import { log1pmx } from "../special/log1p.js";
 
 /**
  * Names of the families of R's stats.
@@ -312,7 +314,7 @@ function quasiVariance(v: QuasiVariance): {
         variance: (m) => m,
         muOk: (m) => m > 0,
         varPower: 1,
-        dev: (y, mu, w) => 2 * w * ((y === 0 ? 0 : y * logWarn(y / mu)) - (y - mu)),
+        dev: poissonDev,
       };
     case "mu^2":
       return {
@@ -320,7 +322,7 @@ function quasiVariance(v: QuasiVariance): {
         muOk: (m) => m > 0,
         varPower: 2,
         // log(y/mu) for every y != 0 (NaN for a negative y, as in R), log(1/mu) for y = 0
-        dev: (y, mu, w) => Math.max(-2 * w * (logWarn(y !== 0 ? y / mu : 1 / mu) - (y - mu) / mu), 0),
+        dev: (y, mu, w) => (nearMean(y, mu) ? gammaNear(y, mu, w) : Math.max(-2 * w * (logWarn(y !== 0 ? y / mu : 1 / mu) - (y - mu) / mu), 0)),
       };
     case "mu^3":
       return { variance: (m) => m * m * m, muOk: (m) => m > 0, dev: inverseGaussianDev, varPower: 3 };
@@ -329,8 +331,41 @@ function quasiVariance(v: QuasiVariance): {
   }
 }
 
-/** (R computes this deviance in compiled code, so a mean outside (0, 1) gives NaN without "NaNs produced") */
+/**
+ * Whether y is within 10% of the mean (abs(y - mu) < 0.1 mu, so mu > 0), where the first-order terms of the poisson,
+ * binomial and Gamma deviances cancel: the direct forms lose about 2 eps / abs(t) relative (t = (y - mu)/mu; 1e-10 at
+ * t = 1e-3, and the sign at t = 2^-52, #161-#163), so there they are formed as bd0 (and log1pmx), as R's dpois_raw
+ * and dbinom_raw switch to bd0 for abs(x - np) < 0.1 (x + np). Beyond 10% the direct forms are good to about 20 ulp
+ * and kept, with R's bits
+ */
+const nearMean = (y: number, mu: number): boolean => Math.abs(y - mu) < 0.1 * mu;
+
+/** The Gamma deviance -2 w (log(y/mu) - (y - mu)/mu) = -2 w log1pmx(t), t = (y - mu)/mu, for y near mu */
+const gammaNear = (y: number, mu: number, w: number): number => -2 * w * log1pmx((y - mu) / mu);
+
+/**
+ * bd0(M + d, M) = (M + d) log(1 + d/M) - d = M (s log1p(s) + log1pmx(s)) with s = d/M, for abs(s) < 0.1: d is exact
+ * where M + d is not
+ */
+function bd0Shift(M: number, d: number): number {
+  const s = d / M;
+  return M * (s * Math.log1p(s) + log1pmx(s));
+}
+
+/** The poisson deviance 2 w (y log(y/mu) - (y - mu)); 2 w bd0(y, mu) for y near mu (nearMean) */
+function poissonDev(y: number, mu: number, w: number): number {
+  if (nearMean(y, mu)) return 2 * w * bd0(y, mu);
+  return 2 * w * ((y === 0 ? 0 : y * logWarn(y / mu)) - (y - mu));
+}
+
+/**
+ * (R computes this deviance in compiled code, so a mean outside (0, 1) gives NaN without "NaNs produced"). For y
+ * within 10% of mu and of 1 - mu (as nearMean), 2 w (bd0(y, mu) + bd0(1 - y, 1 - mu)), the second term from the exact
+ * difference mu - y (bd0Shift): 1 - y is rounded for y < 1/2 (1 - 0.3 by 5.6e-17), which is 1e-13 of the deviance at
+ * y = 0.3, mu = 0.3003
+ */
 function binomialDev(y: number, mu: number, w: number): number {
+  if (Math.abs(y - mu) < 0.1 * Math.min(mu, 1 - mu)) return 2 * w * (bd0(y, mu) + bd0Shift(1 - mu, mu - y));
   const a = y === 0 ? 0 : y * Math.log(y / mu);
   const b = y === 1 ? 0 : (1 - y) * Math.log((1 - y) / (1 - mu));
   return 2 * w * (a + b);
@@ -388,7 +423,7 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
         variance: (m) => m,
         muOk: (m) => Number.isFinite(m) && m > 0,
         // (a row with y = 0 takes no logarithm, so a negative mean there does not warn, as in R)
-        devContribution: (y, mu, w) => (y > 0 ? 2 * w * (y * logWarn(y / mu) - (y - mu)) : 2 * w * mu),
+        devContribution: (y, mu, w) => (y > 0 ? poissonDev(y, mu, w) : 2 * w * mu),
       };
     case "Gamma":
       return {
@@ -396,7 +431,7 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
         varPower: 2,
         variance: (m) => m * m,
         muOk: (m) => Number.isFinite(m) && m > 0,
-        devContribution: (y, mu, w) => -2 * w * ((y === 0 ? 0 : logWarn(y / mu)) - (y - mu) / mu),
+        devContribution: (y, mu, w) => (nearMean(y, mu) ? gammaNear(y, mu, w) : -2 * w * ((y === 0 ? 0 : logWarn(y / mu)) - (y - mu) / mu)),
       };
     case "inverse.gaussian":
       // the mean of an inverse Gaussian is positive (R's validmu accepts any mean, and a negative one turns the
