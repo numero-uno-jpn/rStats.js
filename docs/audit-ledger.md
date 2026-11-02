@@ -3667,3 +3667,14 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規の確定的不具合は確認できず。CDFの端点処理とquantileの端点判定はlower/upper tailの不等号が整合。qnbetaの探索はlog確率を直接解き、極端に狭い分布ではdouble latticeへフォールバックする構造を確認。漸近展開は相対補正が1e-3未満の場合のみ採用し、積分経路ではlog-domainと小さいy側のpower-law尾を明示的に扱う。
 - 再現入力（すべて決定的・乱数なし）: `pbeta(0.5, 2, 3, {ncp: 0})`; `pbeta(0, 0, 2, {ncp: 1})`; `pbeta(1, -1, 2, {ncp: 1})`; `pbeta(1e-300, 0.5, 3, {ncp: 1000, lowerTail: false, logP: true})`; `qbeta(1e-300, 0.5, 3, {ncp: 1000})`; `qbeta(Math.log(1e-300), 0.5, 3, {ncp: 1000, logP: true})`; `qbeta(1e-100, 79.32204890240992, 0.09403994879604119, {ncp: 1.245630132105305e22})`; `qbeta(1e-43, 79.32204890240992, 0.09403994879604119, {ncp: 1.245630132105305e22, lowerTail: false})`。
 - 既存の `test/nbeta.test.ts` と `oracle/nbeta.R` のテスト設計・fixture生成条件を閲覧。Vitest、R 4.5.2、実際の関数実行は未実施。したがって数値差の実行時検証は未完了。静的ソース監査のみ。ソースコード変更なし。監査台帳のみ更新。
+
+
+## Audit #604 — Noncentral F extreme degrees-of-freedom and tiny-ratio audit
+
+- 対象: `src/distributions/nbeta.ts` SHA `5c51760f6e136b80a77b4284da39c25b0ab8ed86`（`pnfTiny`, `pnf1`, `pnfRaw`, `dnfCore`, `dnf1`, `qnf1`, `qnfRaw`, `fPair`, `fOdds`, `fChernoffLog`）、`src/internal/noncentral.ts`（`negligibleNcp`, `searchDoubles`）、既存 `test/nbeta.test.ts` SHA `b92e2218f99be7492e9a1cc620acde52808ce070` と `oracle/nbeta.R` SHA `92667593121461c49c6f9f5be4698cdb62cb5a64`。
+- 監査範囲: df1/df2の0・Infinity・subnormal近傍、ncp=0/正値、qの0・Infinity・極小・極大、Fからbetaへの変換、tiny-ratio近似、Chernoff tail bound、df2→Infinityの非心χ²極限、Patnaik初期値、log-tail quantile inversionを追跡。
+- **新規不具合を1件確認し Issue #135 を作成**: `pnfTiny()` と `dnfCore()` が `Math.log(m / n)` を使用。m,nが正の有限値でも比がアンダーフローして0になるとlogが-∞となり、有限であるべきlog CDF/log densityを-∞にする。再現入力 `m=1e-200, n=1e200, q=1e100, ncp=1`。このとき `m/n` は0に丸められる一方、数学的な比は1e-400で、`log(m)-log(n)` は有限。変換beta引数は約1e-300、a=m/2=5e-201であり、a log(x)は約-3.45e-198。非心混合のj=0成分だけでも重みexp(-0.5)で、CDFは0ではない。dnfCoreも `negligibleNcp` がfalseとなりtiny-ratio分岐へ入る（`n/m` がInfinityとなり判定積がInfinity）。修正案はlog比を `Math.log(m) - Math.log(n)` として計算すること。
+- Issue: https://github.com/numero-uno-jpn/rStats.js/issues/135 （open）。
+- 再現入力（すべて決定的・乱数なし）: `const m=1e-200, n=1e200, q=1e100, ncp=1; m/n === 0; Math.log(m/n) === -Infinity`; public APIで `pf(q,m,n,{ncp,logP:true})` と `df(q,m,n,{ncp,log:true})`。内部経路は `pnf1(q,m,n,ncp,true,true)` と `dnfCore(q,m,n,ncp,true)`。
+- その他の端点・極限・Chernoff bound・quantile初期値経路では静的に確定できる別の新規不具合は確認できず。既存Issue「F density and CDF use an invalid p≈1 fallback when n exceeds a large m*x」は重複回避のため別件として扱い、今回のIssueに混ぜていない。
+- テスト設計とoracle fixtureは閲覧したが、Vitest・R 4.5.2・実際の関数実行は未実施。Issue #135はソース上のIEEE-754中間値と数式からの静的確定。ソースコード変更なし。監査台帳のみ更新。
