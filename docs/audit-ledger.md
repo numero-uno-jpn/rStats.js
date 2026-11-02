@@ -3953,3 +3953,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 推奨修正方向: `n===Infinity` かつ有限 `k>0` をlog-gamma比より前に処理してInfinityとする。k=0は1を維持し、n=k=Infinityは別途未定義扱い。
 - 併せて `gammainc` のgamma overflow領域とsmall-tail経路、`erfinv/erfcinv` の端点・subnormal確率、`erf/erfc/erfcx` のx=0,1,8,27付近・大引数切替を確認。今回それ以外に新規確定バグなし。
 - **検証制限**: ソースと既存テストの静的追跡のみ。Vitest/package runtime/R実行は未実施。
+
+
+## Audit #635 — Regularized incomplete gamma: series, continued fraction, Temme and extreme tails
+
+- 対象: `src/special/igam.ts` SHA `b06dd71a2f60ebe59d92e8759b0b6af7aebc2620`、`src/special/extra.ts` SHA `f4da727f23f20c049946c5c962f54ac270678e26`、`src/special/erf.ts` SHA `f72136920c3138354d5d6cd4a342055e590e0fad`、`test/gamma.test.ts` SHA `db75474bb21ad3531f9ae071cffa359023e1af37`、`test/specialextra.test.ts` SHA `8958d99a306c3c729b08a43496166b0982853614`。
+- 監査範囲: lower seriesとdouble-double seriesの項比・停止条件、upper continued fractionの収束判定・rescaling、large-x用Lentz法、small-x upper-tail series、Temme central/near-central asymptotic、far-tail asymptotic、subnormal shapeのA_SUB近似、log/linear両tailの補完、gammaincの非正則化積とsmall-tail直接計算、erf/erfc/erfcxのrational近似・大引数cutoff、erfinv/erfcinvの端点とsubnormal確率。
+- 境界検討入力: `gammaInc(Number.MIN_VALUE, Number.MIN_VALUE, false, true)`（subnormal shapeのupper-tail scaling）、`gammaInc(1e299, 1e298, true, true)`（極大shapeでx≪a）、`gammaInc(1e299, 1e308, false, true)`（極大shapeでx≫a）、`gammaInc(1e6, 1e6, true, true)`（Temme近傍）、`erfcinv(Number.MIN_VALUE)`、`erfinv(1 - 2 ** -52)`、`erfcxNonNegative(1e8)`。いずれも実行結果ではなく、ソースの分岐・漸近式と既存のmpmath/R fixture coverageを静的に照合。
+- upper tailの `a < A_SUB` は `Q(a,x) ≈ (a/A_SUB)Q(A_SUB,x)` に切り替え、subnormal aで直接級数が小さい積を失う経路を回避する。continued fractionはx>aの呼び出し条件で初期b=x+1-aが正かつ1以上となり、Lentzの初期逆数がpoleになる条件は公開経路では生じない。Temmeの適用域もa>20かつ近中心域、far-tailはa>200の狭域またはa>1e299に限定される。
+- **新規確定バグなし。Issue追加なし。ソース変更なし。** #149は前項Audit #634で登録済み。
+- **検証制限**: GitHubソース・既存fixture/testの静的追跡のみ。Vitest/package runtime/R実行は未実施。
