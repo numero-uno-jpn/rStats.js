@@ -46,8 +46,8 @@ export interface ExpmOptions {
    */
   method?: ExpmMethod;
   /**
-   * Degree of the Padé approximant or the Taylor polynomial (a positive integer), used only by `"Pade"`, `"Taylor"`,
-   * `"PadeO"` and `"TaylorO"`. Default: 8.
+   * Degree of the Padé approximant or the Taylor polynomial (a positive integer up to 2147483647, R's integer range),
+   * used only by `"Pade"`, `"Taylor"`, `"PadeO"` and `"TaylorO"`. Default: 8.
    */
   order?: number;
 }
@@ -79,7 +79,10 @@ export function expm(x: MatrixInput, options: ExpmOptions = {}): number[][] {
   const order = options.order ?? 8;
   // order is used by these four methods only (the Higham08 methods ignore it, as in R)
   const usesOrder = method === "Pade" || method === "PadeO" || method === "Taylor" || method === "TaylorO";
-  if (usesOrder && !(Number.isInteger(order) && order >= 1)) throw new RangeError("order must be a positive integer");
+  // (up to R's integer range, beyond which R's expm fails too: from 2^53 on, the loops j = order, ..., 1 did not end)
+  if (usesOrder && !(Number.isInteger(order) && order >= 1 && order <= 2147483647)) {
+    throw new RangeError("order must be a positive integer at most 2147483647");
+  }
   const A = toMat(x);
   requireSquare(A);
   const n = A.nrow;
