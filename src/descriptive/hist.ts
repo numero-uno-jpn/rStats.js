@@ -32,11 +32,14 @@ export interface PrettyOptions {
    * towards 0 to an integer (as in R); `NaN`, a negative value or one greater than `n` is an error.
    */
   minN?: number;
-  /** Factor applied to the cell when the range is very small. Default `0.75`. */
+  /** Factor applied to the cell when the range is very small. Default `0.75`. Must be finite and positive (as in R). */
   shrinkSml?: number;
-  /** Bias towards larger units. Default `1.5`. */
+  /** Bias towards larger units. Default `1.5`. Must be finite and non-negative (as in R). */
   highUBias?: number;
-  /** Bias towards 5 over 2 times a power of 10. Default `0.5 + 1.5 * highUBias`. */
+  /**
+   * Bias towards 5 over 2 times a power of 10. Default `0.5 + 1.5 * highUBias`. Must be finite and non-negative (as
+   * in R).
+   */
   u5Bias?: number;
 }
 
@@ -63,9 +66,14 @@ export function pretty(x: Sample, options: PrettyOptions = {}): number[] {
     throw new RangeError("invalid 'min.n' argument");
   }
   const minN = Math.trunc(minNGiven);
+  // R's checks (after n and min.n): shrink.sml finite and positive, the biases finite and non-negative. A NaN or
+  // non-positive shrink.sml left the unit NaN, and the search for a finite multiple of it did not end (#330)
   const shrink = options.shrinkSml ?? 0.75;
+  if (!Number.isFinite(shrink) || shrink <= 0) throw new RangeError("invalid 'shrink.sml' argument");
   const h = options.highUBias ?? 1.5;
+  if (!Number.isFinite(h) || h < 0) throw new RangeError("invalid 'high.u.bias' argument");
   const h5 = options.u5Bias ?? 0.5 + 1.5 * h;
+  if (!Number.isFinite(h5) || h5 < 0) throw new RangeError("invalid 'u5.bias' argument");
   let lo = Infinity;
   let up = -Infinity;
   for (const v of finite) {
