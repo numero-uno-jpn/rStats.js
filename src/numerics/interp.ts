@@ -371,7 +371,9 @@ function hymanCoef(x: readonly number[], y: readonly number[]): { b: number[]; c
     const sm = slope[i === 0 ? 0 : i - 1]!;
     const sp = slope[i === n - 1 ? n - 2 : i]!;
     const t = Math.min(Math.abs(sm), Math.abs(sp));
-    const nonneg = sm * sp > 0 ? sp > 0 : b[i]! >= 0;
+    // the signs compared, not the product sm sp > 0 (the same where it is finite and nonzero): the product of two
+    // small secants underflowed to 0 and the fmm slope chose the sign, negative for increasing data (issue #398)
+    const nonneg = (sm > 0 && sp > 0) || (sm < 0 && sp < 0) ? sp > 0 : b[i]! >= 0;
     b[i] = nonneg ? Math.min(Math.max(0, b[i]!), 3 * t) : Math.max(Math.min(0, b[i]!), -3 * t);
   }
   for (let i = 0; i < n - 1; i++) {
