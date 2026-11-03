@@ -167,6 +167,9 @@ export function mauchlyTest(y: MatrixInput, options: MauchlyTestOptions = {}): M
   const pp = U.length;
   // X spanning M leaves nothing to test (W was 1 and the p-value NaN; R stops with "'a' is 0-diml")
   if (pp === 0) throw new RangeError("X spans M: the test has no dimensions");
+  // one dimension is spherical whatever the data: W is 1 and the chi-squared df pp (pp + 1) / 2 - 1 is 0, so there is
+  // nothing to test (R returns W 1 and p 1, #342)
+  if (pp === 1) throw new RangeError("one tested dimension: sphericity holds trivially and the test has no degrees of freedom");
   // with fewer residual degrees of freedom than dimensions the covariance is singular whatever the data, and the test
   // is not defined (W was rounding noise, even negative, and p NaN or 1, as R's); n >= pp also keeps the correction's
   // rho positive

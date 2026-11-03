@@ -15,6 +15,12 @@ const KNOWN: KnownDifference[] = [
   { case: 8, table: "pValue", row: "pValue", col: "", reason: `the p-value at R's W (${R_W("4.0e-12")})` },
 ];
 
+/**
+ * Cases where rStats.js deliberately throws: one tested dimension (two measurements, X = ~1) is spherical whatever the
+ * data, with chi-squared df 0; R returns W 1 and p 1 (#342)
+ */
+const REJECTED = new Map([[9, "one tested dimension"]]);
+
 const fixture = loadAnovaFixture("mauchlyTest");
 
 describe("mauchlyTest", () => {
@@ -29,6 +35,11 @@ describe("mauchlyTest", () => {
         ...(a.M === undefined ? {} : { M: a.M as string }),
         ...(a.X === undefined ? {} : { X: a.X as string }),
       };
+      const rejected = REJECTED.get(index);
+      if (rejected !== undefined) {
+        expect(() => mauchlyTest(y, options)).toThrow(rejected);
+        return;
+      }
       let r;
       try {
         r = mauchlyTest(y, options);
@@ -48,7 +59,8 @@ describe("mauchlyTest", () => {
   it("rejects an X that is not inside M", () => {
     const y = [[1, 2.5, 3.1], [2, 2.2, 4.0], [1.5, 3.1, 2.9], [2.2, 2.8, 3.7], [1.1, 2.0, 3.3]];
     const idata = { W: ["a", "b", "c"], V: [1, 4, 2] };
-    expect(() => mauchlyTest(y, { idata, M: "~W", X: "~V" })).not.toThrow();
+    // X inside M (the one remaining dimension is rejected for another reason, #342)
+    expect(() => mauchlyTest(y, { idata, M: "~W", X: "~V" })).toThrow("one tested dimension");
     expect(() => mauchlyTest(y, { idata, M: "~1", X: "~V" })).toThrow("X does not define a subspace of M");
   });
 });

@@ -344,6 +344,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 1e154 程度のデータの aov の effectsize の `eta_squared`・`omega_squared`・`epsilon_squared` (`Error()` 付きと afex の `aov_ez` も) | NaN (平方和が溢れる) | 単位を変えた同じデータと同じ値。当てはめたときの平方和 (応答を 2 の冪で割ったもの) を使い、比をとる前に共通の 2 の冪で割る |
 | 共変量 x が 1e-200 や 1e200 程度の `aov(y ~ x + W + Error(id))`、共変量 z が 1e-200 程度の `Error(z)` | x はすべての層から消える (2 乗がアンダーフローする)。z は正しい | 単位を変えた同じデータと同じ表。処置と誤差モデルの各列を、列ごとの 2 の冪で割る (層は列が張る空間だけで決まる) |
 | 残差自由度が次元より少ない `mauchly.test` (`mauchly.test(lm(cbind(c(1, 3), c(2, 7)) ~ 1))`) | NaN、または W = 0 で p = 1、または W 2e-17 で p 9e-4 (共分散はデータによらず特異) | エラー。検定には残差自由度が足りない |
+| 検定する次元が 1 の `mauchly.test` (`X = ~1` で測定が 2 回、または `M` が `X` より 1 次元だけ大きい) | データによらず W = 1、p = 1 (1 次元は常に球面性を満たす。χ² の自由度 p (p + 1) / 2 - 1 が 0) | エラー。検定する次元が 1 で、検定の自由度がない (issue #342) |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | 共変量が 1e308 規模かサブノーマルの `coxph(Surv(time, status) ~ x)` (x の 2^1020 倍、2^1022 倍、2^-1060 倍) | 2^1020 倍で se 0、2^1022 倍と 2^-1060 倍で "Loglik converged before variable 1; coefficient may be infinite" (中心化・尺度化の和が溢れる) | x の当てはめと同じ検定と対数尤度、係数と se は 2^-k 倍 (2^-1060 倍では double の範囲外で -Inf と Inf) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
