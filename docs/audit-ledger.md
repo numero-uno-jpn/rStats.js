@@ -5280,3 +5280,11 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規Issue [#400](https://github.com/numero-uno-jpn/rStats.js/issues/400)。再現: `const f = splinefunH([0, 1e200], [0, 0], [1e200, 1e200]); f([1e100])`。t=1e-100、h=1e200、両傾き1e200。各 `h*m_i` は1e400でInfinityになるが、Hermite基底を掛けた各項は約1e300と-1e200で、最終値は約1e300と有限。実装は先に `h*m_i` を計算してから小さい基底係数を掛けるため、Infinityと-Infinityの和でNaNとなる。
 - #399は第三微分の `h*h`、本件は第0微分の `h*m_i` と基底係数の積順序の問題。#380/#125とも異なる。
 - ソース制御フローとIEEE-754範囲計算による静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
+
+
+## Audit #887 — splinefunH first derivative overflows a finite secant before basis weighting
+
+- 対象: `src/numerics/interp.ts` SHA `aecc2664337b329edc1005fc6e2d9fbf0c706ed3` の `evalHermite()` 第1微分経路。
+- 新規Issue [#401](https://github.com/numero-uno-jpn/rStats.js/issues/401)。再現: `const f = splinefunH([0, 1e-200], [0, 1e200], [0, 0]); f([1e-300], 1)`。座標・値・傾きは有限。t=1e-100、有限な差分1e200をh=1e-200で割ったsecantは1e400でInfinityとなるが、Hermite基底係数を掛けた微分は `(1e200/1e-200)*(6t-6t²)≈6e300` で有限。実装はsecantを先に作り、後から小さい基底係数を掛けるため+Infinityを返す。
+- #380はordinate subtraction自体のoverflow。本件は差分は有限で、その商だけがoverflowする。#399の第3微分分母、#400の値計算のh*m積とも別経路。
+- Hermite多項式の直接微分とIEEE-754範囲計算による静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
