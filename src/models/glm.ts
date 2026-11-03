@@ -1118,7 +1118,12 @@ export function glmPredict(
     // the squares overflowed (newdata 1e155: Infinity, R too) or underflowed: the norm of z divided by its largest
     if (!(ss >= 2 ** -1022 && ss < Infinity)) {
       const top = z.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
-      if (top > 0 && Number.isFinite(top)) return top * Math.sqrt(z.reduce((t, v) => t + (v / top) ** 2, 0)) * Math.sqrt(disp);
+      if (top > 0 && Number.isFinite(top)) {
+        const norm = Math.sqrt(z.reduce((t, v) => t + (v / top) ** 2, 0));
+        const value = top * norm * Math.sqrt(disp);
+        // the norm of z beyond the doubles, brought back by a small dispersion (#175)
+        return Number.isFinite(value) ? value : top * (norm * Math.sqrt(disp));
+      }
     }
     return Math.sqrt(ss) * Math.sqrt(disp);
   });
