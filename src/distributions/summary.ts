@@ -366,7 +366,8 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
     case "nbinom": {
       const r = P.size ?? NaN;
       if (!(r > 0 && Number.isFinite(r))) return NAN;
-      const p = has(P, "mu") ? r / (r + P.mu!) : (P.prob ?? NaN);
+      // (where size + mu overflows, from the halved parameters: size = mu = 1e308 gave p = 0 and NaN throughout; issue #236)
+      const p = has(P, "mu") ? (Number.isFinite(r + P.mu!) ? r / (r + P.mu!) : r / 2 / (r / 2 + P.mu! / 2)) : (P.prob ?? NaN);
       if (!(p > 0 && p <= 1)) return NAN;
       const q = 1 - p;
       const opts = has(P, "mu") ? { mu: P.mu! } : { prob: p };
