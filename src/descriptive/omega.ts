@@ -290,7 +290,7 @@ function oblimin(A: Matrix): { loadings: Matrix; phi: Matrix; converged: boolean
  * `option = "equal"`, `flip = TRUE`).
  *
  * @param x The data matrix (array of rows, NaN for missing values: correlations of pairwise complete observations),
- *   or `null` with `options.covmat`.
+ *   or `null` with `options.covmat`. At least 2 variables.
  * @param options See {@link OmegaOptions}.
  *
  * @example
@@ -323,6 +323,9 @@ export function omega(x: readonly (readonly number[])[] | null, options: OmegaOp
     R = cor(x as number[][], undefined, { use: "pairwise.complete.obs" }) as Matrix;
   }
   const p = R.length;
+  // reliability of one item is not defined: psych stops ("'x' must be an array of at least two dimensions"); here
+  // omegaLim was Infinity and alpha NaN (#261)
+  if (p < 2) throw new RangeError(`omega needs at least 2 variables (got ${p})`);
   // psych stops on a subscript out of bounds there; the cause is said instead
   if (q > p) throw new RangeError(`'nfactors' (${q}) must not exceed the number of variables (${p})`);
   const warnings: string[] = [];
