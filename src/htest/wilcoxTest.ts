@@ -250,6 +250,11 @@ function signedRank(
 ): WilcoxTestResult {
   const { alternative, mu, correct } = ctx;
   let x = x0.map((v) => v - mu);
+  // A finite observation whose difference from mu overflows: the differences in half units (x / 2 - mu / 2). Then
+  // abs(mu) >= 2^970, so each half difference is exactly half the rounded difference (a subnormal x / 2 rounds far
+  // below the spacing of mu / 2) and the ranks, signs and zeros are those of the differences
+  const halved = x.some((v, i) => !Number.isFinite(v) && Number.isFinite(x0[i]!));
+  if (halved) x = x0.map((v) => v / 2 - mu / 2);
   const zeroes = x.some((v) => v === 0);
   if (zeroes) x = x.filter((v) => v !== 0);
   const n = x.length;
@@ -295,7 +300,8 @@ function signedRank(
   };
   if (!ctx.confInt) return result;
   // The interval is on the original scale (add mu back to the data with zero differences removed)
-  const xo = x.map((v) => v + mu);
+  // (with half units, the observations other than mu themselves)
+  const xo = halved ? x0.filter((v) => v !== mu) : x.map((v) => v + mu);
   const ci = useExact
     ? signedRankExactCI(xo, ctx)
     : signedRankNormalCI(xo, ctx);
@@ -431,6 +437,45 @@ function rankSumStat(
   return [W, W - (nx * ny) / 2, sigma];
 }
 
+/**
+ * rankSumStat for x_i - d given in half units h_i = x_i / 2 - d / 2 (used where a finite x_i - d overflows, so
+ * abs(d) >= 2^970), with whether there are ties. y stays in its own units: h_i is compared with y_j / 2, which is exact
+ * except for a subnormal y_j, and there h_i is 0 (compared with y_j itself) or of magnitude above 2^900, so the order
+ * is that of the differences. Halving y would merge neighbouring subnormals
+ */
+function rankSumHalf(h: readonly number[], y: readonly number[]): [number, number, number, boolean] {
+  const nx = h.length;
+  const ny = y.length;
+  const N = nx + ny;
+  // sign of 2 h - v (h in half units, v in units)
+  const cmpHalf = (hv: number, v: number): number => {
+    const w = hv === 0 || !Number.isFinite(hv) || !Number.isFinite(v) ? v : v / 2;
+    return hv < w ? -1 : hv > w ? 1 : 0;
+  };
+  const cmp = (a: number, b: number): number => {
+    if (a < nx && b < nx) return h[a]! < h[b]! ? -1 : h[a]! > h[b]! ? 1 : 0;
+    if (a >= nx && b >= nx) return y[a - nx]! < y[b - nx]! ? -1 : y[a - nx]! > y[b - nx]! ? 1 : 0;
+    return a < nx ? cmpHalf(h[a]!, y[b - nx]!) : -cmpHalf(h[b]!, y[a - nx]!);
+  };
+  const idx = Array.from({ length: N }, (_, i) => i);
+  idx.sort((a, b) => cmp(a, b) || a - b);
+  let s = 0;
+  let ties = 0;
+  let i = 0;
+  while (i < N) {
+    let j = i;
+    while (j + 1 < N && cmp(idx[j + 1]!, idx[i]!) === 0) j++;
+    const avg = (i + j + 2) / 2;
+    for (let k = i; k <= j; k++) if (idx[k]! < nx) s += avg;
+    const t = j - i + 1;
+    ties += t * t * t - t;
+    i = j + 1;
+  }
+  const W = s - (nx * (nx + 1)) / 2;
+  const sigma = Math.sqrt(((nx * ny) / 12) * (N + 1 - ties / (N * (N - 1))));
+  return [W, W - (nx * ny) / 2, sigma, ties > 0];
+}
+
 function rankSum(
   x: number[],
   y: number[],
@@ -440,10 +485,19 @@ function rankSum(
   const { alternative, mu, correct } = ctx;
   const nx = x.length;
   const ny = y.length;
-  const xs = x.map((v) => v - mu);
+  let xs = x.map((v) => v - mu);
   const exact = exactOpt ?? (nx < 50 && ny < 50);
-  const ties = tieCounts([...xs, ...y]).length > 0;
-  const [W, dz, sigma] = rankSumStat(xs, y);
+  // A finite x_i - mu that overflows: ranked from x / 2 - mu / 2 against y (see rankSumHalf)
+  const halved = xs.some((v, i) => !Number.isFinite(v) && Number.isFinite(x[i]!));
+  let ties: boolean;
+  let W: number, dz: number, sigma: number;
+  if (halved) {
+    xs = x.map((v) => v / 2 - mu / 2);
+    [W, dz, sigma, ties] = rankSumHalf(xs, y);
+  } else {
+    ties = tieCounts([...xs, ...y]).length > 0;
+    [W, dz, sigma] = rankSumStat(xs, y);
+  }
 
   let pValue: number;
   let method: string;
@@ -463,7 +517,8 @@ function rankSum(
   } else {
     method = `Wilcoxon rank sum test${correct ? " with continuity correction" : ""}`;
     // all values tied: W always equals its expectation, so p = 1 (R 4.5.2: 0 / 0 = NaN two-sided; R 4.6 returns 1)
-    const allTied = xs.every((v) => v === y[0]) && y.every((v) => v === y[0]);
+    // (never with half units: an overflowing difference equals no y)
+    const allTied = !halved && xs.every((v) => v === y[0]) && y.every((v) => v === y[0]);
     pValue = allTied ? 1 : normalP((dz - correction(dz, alternative, correct)) / sigma, alternative);
   }
 
