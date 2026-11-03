@@ -179,7 +179,19 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
     const p0 = Number.isFinite(den) && den >= MIN_NORMAL && (a === 0 || a >= MIN_NORMAL) ? a / den : 1 / (1 + T2 / T1 / r);
     const b = binomTestCounts(Math.round(x1), Math.round(x1) + Math.round(x2), { p: p0, alternative, confLevel });
     // (a limit p of 0 is the ratio 0, also where T2 / T1 overflows: 0 Inf was NaN; issue #325)
-    const toRatio = (p: number): number => (p === 0 ? 0 : (p / (1 - p)) * (T2 / T1));
+    // Where T2 / T1 overflows, the odds p / (1 - p) and T2 / T1 from their mantissas with the powers of 2 applied last
+    // (a subnormal limit p for a count of about MAX_VALUE: T = (1e-12, MAX_VALUE) gave [Inf, Inf] for [2.5e10, 5.6e12];
+    // issue #482)
+    const t21 = T2 / T1;
+    const toRatio = (p: number): number => {
+      if (p === 0) return 0;
+      const odds = p / (1 - p);
+      if (Number.isFinite(t21) || odds === Infinity) return odds * t21;
+      const [fo, eo] = frexp(odds);
+      const [f1, e1] = frexp(T1);
+      const [f2, e2] = frexp(T2);
+      return ldexp((fo * f2) / f1, eo + e2 - e1);
+    };
     return {
       method: "Comparison of Poisson rates",
       alternative,
