@@ -323,7 +323,7 @@ function quasiVariance(v: QuasiVariance): {
         muOk: (m) => m > 0,
         varPower: 2,
         // log(y/mu) for every y != 0 (NaN for a negative y, as in R), log(1/mu) for y = 0
-        dev: (y, mu, w) => (nearMean(y, mu) ? gammaNear(y, mu, w) : Math.max(-2 * w * (logWarn(y !== 0 ? y / mu : 1 / mu) - (y - mu) / mu), 0)),
+        dev: (y, mu, w) => (nearMean(y, mu) ? gammaNear(y, mu, w) : Math.max(gammaFar(y, mu, w, y !== 0 ? y / mu : 1 / mu), 0)),
       };
     case "mu^3":
       return { variance: (m) => m * m * m, muOk: (m) => m > 0, dev: inverseGaussianDev, varPower: 3 };
@@ -387,6 +387,23 @@ function poissonFarScaled(y: number, mu: number, w: number): number {
   const q = y / mu;
   const L = q >= 2 ** -1022 && q < Infinity ? Math.log(q) : Math.log(y) - Math.log(mu);
   return weightedScaled(w, ys * L - (ys - ms), e);
+}
+
+/**
+ * The Gamma deviance -2 w (log q - (y - mu)/mu) beyond 10% of the mean (q = y/mu; R's q for y = 0 is 1 for Gamma, 1/mu
+ * for quasi mu^2). Where y/mu overflows or underflows, or 2 w does (y = 1e308, mu = 1e-308, w = 1e-320 gave NaN, #372):
+ * 2 w (r - 1 - log r) with r = y/mu as m 2^E (m from y and mu brought to [1, 2)), log r = log m + E log 2, and for
+ * E > 0 in units of 2^E, the weight's exponent taken out
+ */
+function gammaFar(y: number, mu: number, w: number, q: number): number {
+  const D = logWarn(q) - (y - mu) / mu;
+  const r = -2 * w * D;
+  if (!outOfRange(y, mu, w, D, r)) return r;
+  const ey = exponentOf(y);
+  const E = ey - exponentOf(mu);
+  const m = ldexp(y, -ey) / ldexp(mu, -(ey - E));
+  const L = Math.log(m) + E * Math.LN2;
+  return E > 0 ? weightedScaled(w, m - ldexp(1 + L, -E), E) : weightedScaled(w, ldexp(m, E) - 1 - L, 0);
 }
 
 /** The poisson deviance 2 w (y log(y/mu) - (y - mu)); 2 w bd0(y, mu) for y near mu (nearMean) */
@@ -471,7 +488,7 @@ export function makeFamily(family: GlmFamilyName | GlmFamilySpec, link?: GlmLink
         varPower: 2,
         variance: (m) => m * m,
         muOk: (m) => Number.isFinite(m) && m > 0,
-        devContribution: (y, mu, w) => (nearMean(y, mu) ? gammaNear(y, mu, w) : -2 * w * ((y === 0 ? 0 : logWarn(y / mu)) - (y - mu) / mu)),
+        devContribution: (y, mu, w) => (nearMean(y, mu) ? gammaNear(y, mu, w) : gammaFar(y, mu, w, y === 0 ? 1 : y / mu)),
       };
     case "inverse.gaussian":
       // the mean of an inverse Gaussian is positive (R's validmu accepts any mean, and a negative one turns the
