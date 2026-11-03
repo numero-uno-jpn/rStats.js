@@ -66,6 +66,16 @@ function linearAt(X: readonly number[], Y: readonly number[], i: number, v: numb
   return Y[i]! + dy * t;
 }
 
+/**
+ * (y1 - y0) / h; where the difference of finite y overflows, 2 ((y1 / 2 - y0 / 2) / h), the same quotient rounded
+ * once (halving such large values is exact), so that a finite slope is not Infinity (#380)
+ */
+function secant(y0: number, y1: number, h: number): number {
+  const dy = y1 - y0;
+  if (!Number.isFinite(dy) && Number.isFinite(y0) && Number.isFinite(y1)) return 2 * ((y1 / 2 - y0 / 2) / h);
+  return dy / h;
+}
+
 /** Step value (1 - f) y_i + f y_{i+1}; a term with weight 0 is dropped, so an infinite y there does not give NaN. */
 function stepAt(Y: readonly number[], i: number, f: number): number {
   const term = (w: number, yv: number): number => (w === 0 ? 0 : w * yv);
@@ -211,7 +221,7 @@ function fmmCoef(x: readonly number[], y: readonly number[]): { b: number[]; c: 
   const d = new Array<number>(n).fill(0);
   if (n < 2) return { b, c, d };
   if (n < 3) {
-    b[0] = (y[1]! - y[0]!) / (x[1]! - x[0]!);
+    b[0] = secant(y[0]!, y[1]!, x[1]! - x[0]!);
     b[1] = b[0];
     return { b, c, d };
   }
@@ -641,7 +651,7 @@ function evalHermite(
     const m0 = m[i - 1]!;
     const m1 = m[i]!;
     // the secant in the units of the slopes
-    const delta = ldexp((y1 - y0) / h, e - k);
+    const delta = ldexp(secant(y0, y1, h), e - k);
     switch (deriv) {
       case 0: {
         // h m_i in the original units
@@ -808,7 +818,7 @@ function hermiteTable(
       else {
         const num = col[i + 1]! - col[i]!;
         const den = z[i + k]! - z[i]!;
-        const r = num / den;
+        const r = secant(col[i]!, col[i + 1]!, den);
         const finite = Number.isFinite(col[i + 1]!) && Number.isFinite(col[i]!);
         if (finite && num !== 0 && den !== 0 && !(Math.abs(r) >= 2 ** -1022 && Math.abs(r) < Infinity)) lost = true;
         next.push(r);
