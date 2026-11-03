@@ -5429,3 +5429,10 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - R's `stats/R/r2dtable.R` compares `sum(r)` and `sum(c)` before calling `as.integer`. Current JS truncates first and compares the converted sums.
 - Additional repro: `r2dtable(1,[0.5,1],[0,1])` is accepted by current JS after both sides truncate to total 1, but R rejects because raw totals are 1.5 and 1. Column-side analogue: `r2dtable(1,[0,1],[0.5,1])`.
 - Added to existing [#413](https://github.com/numero-uno-jpn/rStats.js/issues/413), not filed as a duplicate issue.
+
+
+### Audit #898 extension — negative fractional n/size also truncate in R's wrapper
+
+- R `do_rmultinom()` calls `n = asInteger(sn)` and `size = asInteger(ssize)` before checking either for negative values.
+- Additional repros: `rmultinom(-0.5,2,[0.5,0.5])` and `rmultinom(1,-0.5,[0.5,0.5])` are rejected by current JS raw-negative checks but R converts each value to 0 and accepts.
+- Added to existing [#412](https://github.com/numero-uno-jpn/rStats.js/issues/412), not filed as duplicate issues.
