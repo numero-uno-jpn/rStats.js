@@ -415,6 +415,16 @@ function poissonDev(y: number, mu: number, w: number): number {
 }
 
 /**
+ * The binomial deviance near the mean where 2 w overflows or the unweighted deviance underflows (mu = 1e-300, y one ulp
+ * above, w = 1e308 gave Inf times 0 = NaN, #373): bd0 is homogeneous of degree 1, so the first term is formed with y
+ * and mu in units of 2^e (e from mu, exact) and the second in the same units, the weight's exponent taken out
+ */
+function binomialNearScaled(y: number, mu: number, w: number): number {
+  const e = exponentOf(mu);
+  return weightedScaled(w, bd0(ldexp(y, -e), ldexp(mu, -e)) + ldexp(bd0Shift(1 - mu, mu - y), -e), e);
+}
+
+/**
  * (R computes this deviance in compiled code, so a mean outside (0, 1) gives NaN without "NaNs produced"). For y
  * within 10% of mu and of 1 - mu (as nearMean), 2 w (bd0(y, mu) + bd0(1 - y, 1 - mu)), the second term from the exact
  * difference mu - y (bd0Shift): 1 - y is rounded for y < 1/2 (1 - 0.3 by 5.6e-17), which is 1e-13 of the deviance at
@@ -422,7 +432,11 @@ function poissonDev(y: number, mu: number, w: number): number {
  * 1.1e-16, where the contribution 2 w mu was 0, R too), a relative error of about eps/(2 mu); from mu = 0.1 on, R's bits
  */
 function binomialDev(y: number, mu: number, w: number): number {
-  if (Math.abs(y - mu) < 0.1 * Math.min(mu, 1 - mu)) return 2 * w * (bd0(y, mu) + bd0Shift(1 - mu, mu - y));
+  if (Math.abs(y - mu) < 0.1 * Math.min(mu, 1 - mu)) {
+    const D = bd0(y, mu) + bd0Shift(1 - mu, mu - y);
+    const r = 2 * w * D;
+    return outOfRange(y, mu, w, D, r) ? binomialNearScaled(y, mu, w) : r;
+  }
   const a = y === 0 ? 0 : y * Math.log(y / mu);
   const b = y === 1 ? 0 : y === 0 && mu < 0.1 ? -Math.log1p(-mu) : (1 - y) * Math.log((1 - y) / (1 - mu));
   return 2 * w * (a + b);
