@@ -382,7 +382,7 @@ export function ecdf(x: Sample): (q: number) => number {
     let lo = 0;
     let hi = n;
     while (lo < hi) {
-      const mid = (lo + hi) >> 1;
+      const mid = Math.floor((lo + hi) / 2); // not >> 1, which wraps beyond 2^31 elements (issue #332)
       if (s[mid]! <= q) lo = mid + 1;
       else hi = mid;
     }
