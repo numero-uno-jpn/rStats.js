@@ -342,7 +342,7 @@ function rawAlphaOf(C: readonly (readonly number[])[], keep: readonly number[]):
  * and alpha with each item dropped. Equivalent to `psych::alpha()` in R. It gives the `total` row and
  * `alpha.drop$raw_alpha` of `alpha(x)` with its defaults (no missing values, no reversed items).
  *
- * @param x - An n × k matrix (array of rows): k items observed on n subjects.
+ * @param x - An n × k matrix (array of rows): k ≥ 2 items observed on n ≥ 2 subjects.
  *
  * @example
  * ```ts
@@ -355,6 +355,8 @@ export function cronbachAlpha(x: readonly (readonly number[])[]): CronbachAlphaR
   const k = columnsOf(x, "x").length;
   requireComplete(x, "x");
   if (k < 2) throw new RangeError("'x' needs at least two items");
+  // the sample covariances divide by n - 1
+  if (x.length < 2) throw new RangeError("'x' needs at least two subjects");
   // the covariances of the data scaled by one power of 2 (exact): raw alpha is a ratio of them
   const C = cov(scaleToUnit(x).groups) as number[][];
   const R = cor(x) as number[][];
