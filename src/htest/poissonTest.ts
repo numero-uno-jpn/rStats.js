@@ -10,6 +10,7 @@
 import { dpois1, ppois1 } from "../distributions/poisson.js";
 import { qgamma1 } from "../distributions/gamma.js";
 import { firstTrue, lastTrue } from "../internal/discrete.js";
+import { ldexp } from "../internal/summary.js";
 import { binomTestCounts } from "./binomTest.js";
 import { checkConfLevel, checkConfLevelOpen, isCount, matchAlternative, type Alternative, type HTest } from "./types.js";
 
@@ -73,12 +74,37 @@ function twoSidedP(x: number, m: number): number {
 
 const MIN_NORMAL = 2 ** -1022;
 
-/** n r T1 / (T1 + r T2), with the ratio T2 / T1 where the products overflow or fall below the normal range */
+/** [f, e] with v = f 2^e, f in [1, 2) up to the rounding of log2 (v > 0 finite, subnormal v included; exact) */
+function frexp(v: number): [number, number] {
+  const s = v < 2 ** -1000 ? 600 : 0;
+  const e = Math.floor(Math.log2(v * 2 ** s));
+  return [v * 2 ** s * 2 ** -e, e - s];
+}
+
+/**
+ * n r T1 / (T1 + r T2), with the ratio T2 / T1 where the products overflow or fall below the normal range. Where that
+ * overflows too (n r, or r T2 / T1; #223: n = 1e308, r = 2, T = (1, 1e308) gave Inf / Inf), from the mantissas of n, r,
+ * T1 and T2 with their powers of 2 applied last
+ */
 function expectedCount1(n: number, r: number, T1: number, T2: number): number {
   const den = T1 + r * T2;
   const v = (n * r * T1) / den;
   if (Number.isFinite(v) && Number.isFinite(den) && den >= MIN_NORMAL) return v;
-  return (n * r) / (1 + r * (T2 / T1));
+  const nr = n * r;
+  const den1 = 1 + r * (T2 / T1);
+  // (n or r of 0: 0, as R's n r T1 / (T1 + r T2); 0 r (T2 / T1) here was 0 Inf = NaN)
+  if (n === 0 || r === 0) return 0;
+  if (Number.isFinite(nr) && Number.isFinite(den1)) return nr / den1;
+  const [fn, en] = frexp(n);
+  const [fr, er] = frexp(r);
+  const [f1, e1] = frexp(T1);
+  const [f2, e2] = frexp(T2);
+  // T1 / (T1 + r T2) = f1 / (f1 + f 2^-d) = 2^d f1 / (2^d f1 + f), with f = fr f2 in [1, 4) and d = e1 - er - e2; the
+  // power of 2 goes on the term it makes smaller (2^-d for d >= 0, 2^d otherwise), so g is in (0, 2) and fn fr g < 8
+  const f = fr * f2;
+  const d = e1 - er - e2;
+  const g = d >= 0 ? f1 / (f1 + ldexp(f, -d)) : f1 / (ldexp(f1, d) + f);
+  return ldexp(fn * fr * g, en + er + Math.min(d, 0));
 }
 
 /** (x1 / T1) / (x2 / T2), as (x1 / x2) (T2 / T1) where the rates overflow or fall below the normal range */

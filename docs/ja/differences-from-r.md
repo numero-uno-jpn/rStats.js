@@ -346,6 +346,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 小さな単位の説明変数を含む lmerTest の `anova(fit, type = 1)` (type 2 も)。例: `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | x1 の type I の F が type II の F になる (13.96 が 14.45)。Doolittle 分解のピボットと要素を、データの単位のまま 1e-6 と比べるため。lmerTest のバグ (R 4.5.2 で実行して確認) | 単位によらず同じ検定 (分解を、対角を 1 に正規化した交差積行列で行う) |
 | 行数は同じだが使った行や応答が異なる lmer の当てはめの `anova()` | 尤度比検定を返す | エラー (lme4 は行数だけを比べる) |
 | `power.t.test(n = 10, delta = 1e308, sd = 1e308)` など、非心度は有限だが sqrt(n / ts) × delta が溢れる delta・sd | 検出力 1 (非心度が Inf) | 0.56198。delta = sd = 1 と同じ検出力 (積が溢れるときだけ比 delta / sd を先に作る) |
+| `poisson.test(c(1e308, 0), r = 2, T = c(1, 1e308))` と `poisson.test(c(1e300, 0), r = 2, T = c(1e-10, 1e308))` (n r T1 と r T2 / T1 が溢れる場合の期待度数) | NaN (bgrat の警告つき)。0 | 1。1e-18。n r T1 / (T1 + r T2) を n、r、T1、T2 の仮数で計算し、2 の冪を最後に掛ける |
 
 ## 意図的な違い
 
