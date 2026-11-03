@@ -4947,3 +4947,44 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #812 — jonckheereTest returns a finite p-value when only one ordered group remains
 - 対象: `src/htest/trendTests.ts` SHA `5dcd1d74fbe03a551c66a352b68b004d73cd52fb` の `orderedGroups()` / `jonckheereTest()`。
 - Issue [#322](https://github.com/numero-uno-jpn/rStats.js/issues/322)。再現: `jonckheereTest([1,2,3],["a","a","a"])`。orderedGroupsが1群を返すが群数検証がなく、群間比較が0回でJT=0。exact分布dist=[1]のまま両側tailが1となり、比較不能な1群設計にp=1を返す。欠損処理後に2群以上を要求すべき。静的ソース解析。実行テストなし。
+
+
+## Audit #813 — poissonTest greater-tail boundary loses the observed mass above 2^53
+- 対象: `src/htest/poissonTest.ts` SHA `61c2c6a882fc0672e73fe45b5a547b2494b4e444` の1標本 `poissonTest()`。
+- Issue [#323](https://github.com/numero-uno-jpn/rStats.js/issues/323)。再現: `const x = 2 ** 53; poissonTest(x, { r: x, T: 1, alternative: "greater" })`。`x - 1` がbinary64でxに丸められ、`P[X >= x]` の代わりに `P[X > x]` を計算し、観測点の確率質量を欠落させる。二側検定の上側tailでも同じ境界式を使う。静的ソース/IEEE-754解析。実行テストなし。
+
+## Audit #814 — binomTest greater-tail boundary loses the observed mass above 2^53
+- 対象: `src/htest/binomTest.ts` SHA `4e514e3164c1f852b325a5a04b099effc73d218c` と `src/distributions/binomial.ts` SHA `51f90bf317b121ff2a105d7deadb8ab2b4f553dc`。
+- Issue [#324](https://github.com/numero-uno-jpn/rStats.js/issues/324)。再現: `const x = 2 ** 53; binomTest(x, 2 ** 54, { p: 0.5, alternative: "greater" })`。`xs - 1` がxsに丸められ、`P[X >= xs]` ではなく `P[X > xs]` を返す。平均点の確率質量(約3.3e-9)が欠落する。静的ソース/IEEE-754解析。実行テストなし。
+
+## Audit #815 — poissonTest rate-ratio fallback forms 0 × Infinity
+- 対象: `src/htest/poissonTest.ts` SHA `61c2c6a882fc0672e73fe45b5a547b2494b4e444` の `rateRatio()`。
+- Issue [#325](https://github.com/numero-uno-jpn/rStats.js/issues/325)。再現: `poissonTest([0, 1], { T: [Number.MIN_VALUE, 1e308] })`。第2群rateがsubnormalでfallbackに入り、`(x1/x2) * (T2/T1)` が `0 * Infinity` となってNaNを返すが、真のrate ratioは厳密に0。静的ソース/IEEE-754解析。実行テストなし。
+
+## Audit #816 — poissonTest expected-count fallback forms 0 × Infinity
+- 対象: `src/htest/poissonTest.ts` SHA `61c2c6a882fc0672e73fe45b5a547b2494b4e444` の `expectedCount1()`。
+- Issue [#326](https://github.com/numero-uno-jpn/rStats.js/issues/326)。再現: `poissonTest([1, 0], { r: 0, T: [Number.MIN_VALUE, 1e308] })`。直接計算の分母がsubnormalのためfallbackに入り、`1 + r * (T2/T1)` が `1 + 0 * Infinity = NaN`。帰無仮説rate ratioが0なので期待count1は0であるべきだが、parameterがNaNになる。静的ソース/IEEE-754解析。実行テストなし。
+
+## Audit #817 — pgeom loses one trial when q + 1 is not representable
+- 対象: `src/distributions/geometric.ts` SHA `852ad0a4361468ca591d281f6ac104e769eeb1be` の `pgeom1()` / `upper()`。
+- Issue [#327](https://github.com/numero-uno-jpn/rStats.js/issues/327)。再現: `pgeom(2 ** 53, 0.5, { lowerTail: false, logP: true })`。`x+1` がxに丸められ、上側tailの指数が本来の `q^(x+1)` ではなく `q^x` となる。log確率でln(2)の差(確率2倍)が現れる。静的ソース/IEEE-754解析。実行テストなし。
+
+## Audit #818 — ppois gives the wrong side of 0.5 at a large Poisson mean
+- 対象: `src/distributions/poisson.ts` SHA `3c470e0755b167bd5a63a03f1f43072a04d90139` の `ppois1()` / `qpois1()`。
+- Issue [#328](https://github.com/numero-uno-jpn/rStats.js/issues/328)。再現: `ppois(1e16, 1e16)`; `qpois(0.5, 1e16)`。`ppois` は約0.4999999987を返すが、Rでは約0.5000000027で0.5の反対側になる。結果として中央値のqpoisもずれる。差は現行ソースコメントにも記録されている。静的ソース確認。今回の実行/R比較なし。
+
+## Audit #819 — flignerTest ranks a NaN deviation created by infinite observations
+- 対象: `src/htest/rankTests.ts` SHA `e40c83f8cb535b12f41e0161875114ce1021807c`、`src/htest/groups.ts` SHA `d301964444f718a185397404de28343cc08138c5`、`src/internal/summary.ts` SHA `e4fc3bd652af3a00cf05b44389ddf58e590c4830`。
+- Issue [#329](https://github.com/numero-uno-jpn/rStats.js/issues/329)。再現: `flignerTest([1, Infinity, 2, 3], ["a", "a", "b", "b"])`。第1群のmedianがInfinityとなり、`Infinity - Infinity` 由来のNaN偏差が発生する。flignerTestはそのままrank()へ渡すが、rank()の前提はNaNを含まない入力であり、NaNが通常の順位として扱われ、誤った有限統計量/p値を作る。静的ソース/JS比較意味解析。実行テストなし。
+
+## Audit #820 — pretty can loop forever when shrinkSml is zero
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5` の `pretty()`。
+- Issue [#330](https://github.com/numero-uno-jpn/rStats.js/issues/330)。再現: `pretty([0, 0], { shrinkSml: 0 })`。小range分岐でcが0、unit uも0、s=floor(0/0+rho)=NaNとなる。`while (!Number.isFinite(s*u)) s++` はNaNを増分してもNaNのため永久に終了しない。非正のshrinkSmlを事前拒否し、NaN状態のループを防ぐべき。静的制御フロー解析。非終了呼び出しは実行していない。
+
+## Audit #821 — ecdf binary search overflows a signed 32-bit midpoint
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5` の `ecdf()`。
+- Issue [#332](https://github.com/numero-uno-jpn/rStats.js/issues/332)。再現条件: 長さ `2**31 + 1` のFloat64Arrayを作成し、`ecdf(x)(0)` を評価する。`(lo + hi) >> 1` はsigned 32-bitへ変換されるためmidが負値となり、二分探索が誤った境界で終了する。通常の算術midpointへ変更するか、長さ上限を設けるべき。静的制御フロー解析。巨大配列は確保していない。
+
+## Audit #822 — hist cellOf binary search overflows a signed 32-bit midpoint
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5` の `hist()` / `cellOf()`。
+- Issue [#333](https://github.com/numero-uno-jpn/rStats.js/issues/333)。再現条件: 2^31を超える長さの厳密増加break配列を明示してhist()へ渡す。`(a + b) >> 1` がsigned 32-bitへ変換され、midが負値となり、cell searchが正しいbinを返さない。通常の算術midpointへ変更するか、明示break配列にも安全な長さ上限を設けるべき。静的制御フロー解析。巨大配列は確保していない。
