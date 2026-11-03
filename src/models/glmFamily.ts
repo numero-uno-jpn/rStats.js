@@ -558,7 +558,10 @@ export function familyAic(fam: Family, y: number[], mu: number[], w: number[], s
         slw += Math.log(wi);
         nPos++;
       }
-      return nPos * (Math.log((2 * Math.PI * dev) / nPos) + 1) + 2 - slw;
+      // log(2 pi dev / n) as log(2 pi) + log(dev / n) only where 2 pi dev overflows although dev is finite (#189)
+      const q = (2 * Math.PI * dev) / nPos;
+      const logQ = q === Infinity && dev < Infinity ? Math.log(2 * Math.PI) + Math.log(dev / nPos) : Math.log(q);
+      return nPos * (logQ + 1) + 2 - slw;
     }
     case "binomial": {
       const m = size !== undefined && size.some((v) => v > 1) ? size : w;

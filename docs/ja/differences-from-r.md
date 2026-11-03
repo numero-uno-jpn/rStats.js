@@ -349,6 +349,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `poisson.test(c(1e308, 0), r = 2, T = c(1, 1e308))` と `poisson.test(c(1e300, 0), r = 2, T = c(1e-10, 1e308))` (n r T1 と r T2 / T1 が溢れる場合の期待度数) | NaN (bgrat の警告つき)。0 | 1。1e-18。n r T1 / (T1 + r T2) を n、r、T1、T2 の仮数で計算し、2 の冪を最後に掛ける |
 | y が 1e-6 を 99 個と 5000 の `summary(glm(y ~ 1, Gamma("log"), weights = rep(2e304, 100)))` など、分散パラメータは有限だが Pearson 残差の重みつき平方和が溢れる当てはめ (`glmAnova`・`glmPredict`・`glmRstandard`・`glmCooksDistance` も) | dispersion が Inf | 2.0e306。和が溢れるときだけ、各項を (sqrt(w) r)^2 とし、残差とその積を 2 の冪で割って和を取り、残差自由度で割ってから指数を戻す |
 | `anova(glm(1e154 ~ 0, gaussian("log")), test = "Cp")` など、分散パラメータが double の最大値の半分を超える、パラメータのないモデルの Cp | Cp が NaN (2 × dispersion が溢れて 0 を掛ける) | 残差逸脱度の 1e308。罰則を 2 (n − df) × dispersion の順に計算する (R の順で溢れない範囲では同じビット) |
+| y = 1e154 の `AIC(glm(y ~ 0, gaussian("log")))` など、逸脱度は有限だが 2 pi × 逸脱度が溢れる gaussian の当てはめ | Inf (`log(2 * pi * dev / n)`) | 真の値 714.034。2 pi × dev が溢れるときだけ log(2 pi) + log(dev / n)。それ以外は R の式 |
 
 ## 意図的な違い
 

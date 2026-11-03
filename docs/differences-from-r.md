@@ -355,6 +355,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `poisson.test(c(1e308, 0), r = 2, T = c(1, 1e308))` and `poisson.test(c(1e300, 0), r = 2, T = c(1e-10, 1e308))` (the expected count, where n r T1 and r T2 / T1 overflow) | NaN (with bgrat warnings); 0 | 1; 1e-18: n r T1 / (T1 + r T2) from the mantissas of n, r, T1 and T2, their powers of 2 applied last |
 | `summary(glm(y ~ 1, Gamma("log"), weights = rep(2e304, 100)))` with y 99 times 1e-6 and once 5000, and other fits whose weighted sum of squared Pearson residuals overflows while the dispersion does not (also `glmAnova`, `glmPredict`, `glmRstandard`, `glmCooksDistance`) | dispersion Inf | 2.0e306: where the sum overflows, each term as (sqrt(w) r)^2 with the residuals and the products divided by powers of 2, and the exponents added back after the division by the residual degrees of freedom |
 | `anova(glm(1e154 ~ 0, gaussian("log")), test = "Cp")` and other Cp of a model without parameters whose dispersion exceeds half the largest double | Cp NaN (2 × dispersion overflows, times 0) | 1e308, the residual deviance: the penalty as 2 (n − df) × dispersion (the same bits wherever R's order does not overflow) |
+| `AIC(glm(y ~ 0, gaussian("log")))` with y = 1e154, and other gaussian fits whose 2 pi × deviance overflows while the deviance does not | Inf (`log(2 * pi * dev / n)`) | 714.034 (the true value): log(2 pi) + log(dev / n) where 2 pi × dev overflows; R's form elsewhere |
 
 ## Deliberate differences
 
