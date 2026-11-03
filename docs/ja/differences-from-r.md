@@ -529,7 +529,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`brunnerMunzelTest`** は、lawstat の `alpha` の代わりに `confLevel` を受け取ります
   (`confLevel = 1 - alpha`)。また、lawstat の結果にはない `alternative` のフィールドを返します。空の標本は
   "not enough 'x' observations" (または 'y') で例外を投げます。lawstat は意味のない数値を返します。順位を
-  `n1 + 1:n2` で取り出しており、`1:0` が `c(1, 0)` になるためです。
+  `n1 + 1:n2` で取り出しており、`1:0` が `c(1, 0)` になるためです。値が 1 個の標本も同じ例外を投げます。lawstat は
+  統計量・自由度・区間が NaN になります (分散の推定で n − 1 = 0 で割るため。issue #320)。
 - **`pAdjust`** の Hommel 法は、`n` が整数でないと例外を投げます (R は値を返します)。また、空の `p`
   で n > 0 のときは空の配列を返します (R は 1 を返します)。
 - **`fisherTest` (2 × 2) と `mantelhaenTest(exact: true)` の正確検定**は、度数の台の値の個数が 2^24 を超えると、何も確保

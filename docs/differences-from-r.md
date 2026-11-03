@@ -555,7 +555,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`brunnerMunzelTest`** takes `confLevel` where lawstat takes `alpha` (`confLevel = 1 - alpha`),
   and returns an `alternative` field, which lawstat's result lacks. An empty sample throws "not
   enough 'x' observations" (or 'y'); lawstat returns meaningless numbers, because it indexes the
-  ranks with `n1 + 1:n2` and `1:0` is `c(1, 0)`.
+  ranks with `n1 + 1:n2` and `1:0` is `c(1, 0)`. A sample of one value throws the same error; lawstat returns a
+  NaN statistic, df and interval (its variance estimate divides by n - 1 = 0; issue #320).
 - **`pAdjust`** with the Hommel method throws when `n` is not an integer (R returns a value), and
   returns an empty array for an empty `p` with n > 0 (R returns 1).
 - **The exact tests of `fisherTest` (2 × 2) and `mantelhaenTest(exact: true)`** throw a RangeError when the

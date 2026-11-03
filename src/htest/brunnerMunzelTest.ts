@@ -35,9 +35,10 @@ export interface BrunnerMunzelTestOptions {
  * Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal
  * variances or shapes. Equivalent to `lawstat::brunner.munzel.test()` in R. `NaN` values are dropped.
  *
- * `estimate` is the estimated relative effect and `confInt` its two-sided interval (not clipped to [0, 1]). When a
- * sample has one value, or when the variance estimates are 0 (for example completely separated samples), the
- * statistic, degrees of freedom and p-value are `NaN` or ±Infinity, as in lawstat.
+ * `estimate` is the estimated relative effect and `confInt` its two-sided interval (not clipped to [0, 1]). Each
+ * sample needs at least 2 values (lawstat returns NaN for a sample of one). When the variance estimates are 0 (for
+ * example completely separated samples), the statistic, degrees of freedom and p-value are `NaN` or ±Infinity, as in
+ * lawstat.
  *
  * @example
  * ```ts
@@ -54,8 +55,9 @@ export function brunnerMunzelTest(x: Sample, y: Sample, options: BrunnerMunzelTe
   const ys = Array.from(y).filter((v) => !Number.isNaN(v));
   const n1 = xs.length;
   const n2 = ys.length;
-  if (n1 < 1) throw new RangeError("not enough 'x' observations");
-  if (n2 < 1) throw new RangeError("not enough 'y' observations");
+  // S_i^2 divides by n_i - 1 (lawstat returns NaN for a sample of one)
+  if (n1 < 2) throw new RangeError("not enough 'x' observations");
+  if (n2 < 2) throw new RangeError("not enough 'y' observations");
   const alternative = matchAlternative(options.alternative);
   const confLevel = options.confLevel ?? 0.95;
   checkConfLevel(confLevel);

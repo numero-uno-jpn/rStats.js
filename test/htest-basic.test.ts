@@ -352,6 +352,16 @@ if (hasFixture("brunnerMunzelTest"))
         defined({ alternative: arg.str<Alternative>(a.alternative), confLevel: arg.num(a.confLevel) }),
       ),
     tolerance: 1e-12,
+    // #320: a sample of one value is an error (the variance estimate divides by n - 1 = 0)
+    substitute: (c) => {
+      const size = (v: HTestArg): number => arg.vec(v)!.filter((e) => !Number.isNaN(e)).length;
+      const x = size(c.args.x!);
+      if (x !== 1 && size(c.args.y!) !== 1) return undefined;
+      return {
+        expected: { error: `not enough '${x === 1 ? "x" : "y"}' observations` },
+        reason: "lawstat returns NaN for a sample of one value",
+      };
+    },
   });
 /** Arguments without the empty lists that R's NULL becomes in the repeated cases of oracle/ansariconf.R */
 const present = (args: Record<string, HTestArg>): Record<string, HTestArg> =>
