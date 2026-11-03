@@ -14,6 +14,13 @@
 
 import { unifRand } from "./rng.js";
 
+/**
+ * The largest grand total for which the table of log factorials (total + 1 doubles, 128 MB at the limit) is built:
+ * r2dtable and the simulated p-values of chisqTest and fisherTest (#285, #286, #336); the same 2^24 as the exact
+ * supports of fisherTest and mantelhaenTest (#232)
+ */
+export const MAX_TABLE_TOTAL = 2 ** 24;
+
 /** log k! for k = 0..n, accumulated as sums of logs (the table AS 159 uses) */
 export function logFactorialTable(n: number): Float64Array {
   const f = new Float64Array(n + 1);
@@ -122,7 +129,8 @@ function margins(v: readonly number[], name: string): number[] {
  * @param r Row totals (non-negative integers, at least two).
  * @param c Column totals (non-negative integers, at least two), with the same sum as `r`.
  * @returns An array of `n` tables, each `r.length` rows of `c.length` counts.
- * @throws RangeError for invalid arguments or totals that differ.
+ * @throws RangeError for invalid arguments or totals that differ, and (when n >= 1) for a grand total above 2^24
+ *   (16777216; R allows up to 2147483647), as the table of log factorials has total + 1 entries.
  *
  * @example
  * ```ts
@@ -147,6 +155,9 @@ export function r2dtable(n: number, r: readonly number[], c: readonly number[]):
   // no table asked for: the margins are checked (as R) but the table of log factorials, total + 1 entries, is not
   // built (16 GB for a total of 2e9) (#219)
   if (count === 0) return [];
+  // the table of log factorials is limited to 2^24 + 1 entries (128 MB); R builds it for any total up to 2147483647
+  // (8 GB for r2dtable(1, c(5e8, 5e8), c(5e8, 5e8))) (#336)
+  if (total > MAX_TABLE_TOTAL) throw new RangeError("the sum of 'r' must be at most 16777216 (2^24) to generate tables");
   const fact = logFactorialTable(total);
   const out = new Int32Array(rows.length * cols.length);
   const tables: number[][][] = [];

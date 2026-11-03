@@ -581,6 +581,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   total count exceeds 2^27 (134217728 draws, tens of seconds), before drawing. Below that the draws are made n at a
   time from the same uniforms as R's `sample.int`, so the p-values match R; R draws all B n at once and accepts any
   size it can allocate (`chisq.test(c(1e9, 1e9), simulate.p.value = TRUE, B = 1)` asks for 2e9 draws; issue #287).
+- **`r2dtable` and the simulated p-values of `chisqTest` (contingency tables) and `fisherTest`** throw a RangeError
+  when tables are to be generated and the grand total exceeds 2^24 (16777216), because Patefield's algorithm uses a
+  table of log factorials with total + 1 entries (128 MB at the limit; the same 2^24 as the exact tests above).
+  R builds the table for any total up to 2147483647 (8 GB for `r2dtable(1, c(5e8, 5e8), c(5e8, 5e8))`).
+  `r2dtable(0, ...)` builds no table and still accepts totals up to 2147483647, as R (issues #285, #286, #336).
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)

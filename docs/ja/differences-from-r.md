@@ -547,6 +547,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   抽出、数十秒) を超えると、抽出の前に RangeError を投げます。それ以下では R の `sample.int` と同じ一様乱数で n 個ずつ
   引くので、p 値は R と一致します。R は B n 個をまとめて引き、確保できる限り受け付けます
   (`chisq.test(c(1e9, 1e9), simulate.p.value = TRUE, B = 1)` は 2e9 回の抽出。issue #287)。
+- **`r2dtable` と、`chisqTest` (分割表) と `fisherTest` のシミュレーションの p 値**は、表を作るときに総数が 2^24
+  (16777216) を超えると RangeError を投げます。Patefield の方法が総数 + 1 個の対数階乗の表を使うためです (上限で
+  128 MB。上の正確検定と同じ 2^24)。R は総数 2147483647 まで表を作ります (`r2dtable(1, c(5e8, 5e8), c(5e8, 5e8))` は
+  8 GB)。`r2dtable(0, ...)` は表を作らないので、R と同じく総数 2147483647 まで受け付けます (issue #285、#286、#336)。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。
