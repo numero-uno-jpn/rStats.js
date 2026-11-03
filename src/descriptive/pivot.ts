@@ -61,9 +61,9 @@ export type PivotSummary = (values: DataValue[]) => DataValue;
  * @category Data frames
  */
 export interface PivotWiderOptions {
-  /** The column (or columns) whose values name the new columns. Default `"name"`. */
+  /** The column (or columns) whose values name the new columns (at least one). Default `"name"`. */
   namesFrom?: string | readonly string[];
-  /** The column (or columns) whose values fill the new columns. Default `"value"`. */
+  /** The column (or columns) whose values fill the new columns (at least one). Default `"value"`. */
   valuesFrom?: string | readonly string[];
   /**
    * The columns that identify a row of the result. Default: every column not in `namesFrom` or `valuesFrom`, in the
@@ -376,13 +376,20 @@ function perColumn<T>(
 export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): DataFrame {
   const namesVary = varyArg("names_vary", options.namesVary);
   const n = rowCount(data);
-  const namesFrom = nameList(options.namesFrom ?? "name");
-  const valuesFrom = nameList(options.valuesFrom ?? "value");
+  // As tidyr: names_from, then values_from, each existing and not empty; then id_cols
+  const selection = (v: string | readonly string[], arg: string): string[] => {
+    const names = nameList(v);
+    requireColumns(data, names);
+    if (names.length === 0) throw new Error(`\`${arg}\` must select at least one column.`);
+    return names;
+  };
+  const namesFrom = selection(options.namesFrom ?? "name", "names_from");
+  const valuesFrom = selection(options.valuesFrom ?? "value", "values_from");
   const idCols =
     options.idCols === undefined
       ? Object.keys(data).filter((c) => !namesFrom.includes(c) && !valuesFrom.includes(c))
       : nameList(options.idCols);
-  requireColumns(data, [...idCols, ...namesFrom, ...valuesFrom]);
+  requireColumns(data, idCols);
   const prefix = options.namesPrefix ?? "";
   const sep = options.namesSep ?? "_";
 
