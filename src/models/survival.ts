@@ -271,22 +271,20 @@ function pseudoQuadratic(V: number[][], u: number[]): { chisq: number; df: numbe
 }
 
 /**
- * The median of a curve over the rows of a stratum: the first time at which it falls below 0.5, or, if it equals 0.5
- * (within sqrt(eps)) there, the midpoint between that time and the next event time. NaN if it never goes below
- * 0.5 + sqrt(eps).
+ * The median of a curve over the rows of a stratum, as survival's survmean (minmin): of the points that are not NaN
+ * and lie below 0.5 + sqrt(eps), the first time, or, if the curve equals 0.5 (within sqrt(eps)) there and a later such
+ * point is lower, the midpoint between that time and the time of the first lower point. NaN if there is no such point.
  */
-function curveMedian(time: readonly number[], nEvent: readonly number[], curve: readonly number[]): number {
+function curveMedian(time: readonly number[], curve: readonly number[]): number {
   const tol = Math.sqrt(Number.EPSILON);
-  for (let i = 0; i < curve.length; i++) {
-    const c = curve[i]!;
-    if (!(c < 0.5 + tol)) continue;
-    if (c > 0.5 - tol) {
-      for (let j = i + 1; j < curve.length; j++) if (nEvent[j]! > 0) return midpoint(time[i]!, time[j]!);
-      return time[i]!;
-    }
-    return time[i]!;
+  const first = curve.findIndex((c) => c < 0.5 + tol);
+  if (first < 0) return NaN;
+  const c1 = curve[first]!;
+  if (Math.abs(c1 - 0.5) < tol) {
+    // a NaN point compares false and is skipped, as R drops it before looking for a lower one
+    for (let j = first + 1; j < curve.length; j++) if (curve[j]! < c1) return midpoint(time[first]!, time[j]!);
   }
-  return NaN;
+  return time[first]!;
 }
 
 /**
@@ -373,11 +371,10 @@ export function survfit(time: readonly number[], status: readonly number[], opti
       i = j;
     }
     const tt = out.time.slice(start);
-    const ev = out.nEvent.slice(start);
     out.median.push([
-      curveMedian(tt, ev, out.surv.slice(start)),
-      curveMedian(tt, ev, out.lower.slice(start)),
-      curveMedian(tt, ev, out.upper.slice(start)),
+      curveMedian(tt, out.surv.slice(start)),
+      curveMedian(tt, out.lower.slice(start)),
+      curveMedian(tt, out.upper.slice(start)),
     ]);
   });
   return out;
