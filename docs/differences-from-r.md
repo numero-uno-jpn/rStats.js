@@ -592,8 +592,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   are far below them). `ksTest(exact: true)` (one sample, two-sided, D < 1/2): the matrix of size m = 2 floor(n D) + 1
   is raised to the n-th power, and m^3 times the number of matrix products may be at most 2^33 (m 781 at n 1023, 3.6 s).
   `ansariTest(exact: true)` (no ties): the distribution keeps 2 (m + 1) (floor((N + 1)^2 / 4) + 1) doubles (N = m + n),
-  at most 2^24, and N times half that many steps, at most 2^32 (m = n = 202, 5.3 s). The hint is to use `exact: false`.
-  R computes these however long it takes (issues #307, #308).
+  at most 2^24, and N times half that many steps, at most 2^32 (m = n = 202, 5.3 s). `corTest(method: "kendall",
+  exact: true)` (no ties): n at most 1290 (about n^3 / 2 steps, 4.9 s; the same number as the Spearman exact limit).
+  The hint is to use `exact: false`. R computes these however long it takes (issues #307, #308, #316).
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)

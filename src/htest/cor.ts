@@ -64,7 +64,8 @@ export interface CorTestOptions extends CorOptions {
   /**
    * Compute an exact p-value (Kendall and Spearman). Default: as in R, exact when there are
    * no ties and n < 50 (Kendall) or n <= 1290 (Spearman). With ties the approximation is
-   * always used.
+   * always used. Kendall's exact distribution takes about n^3 / 2 steps: for n above 1290 (about 5 s)
+   * `exact: true` without ties is a RangeError (R computes it however long it takes).
    */
   exact?: boolean;
   /** Confidence level of the interval (Pearson only; the interval needs at least 4 pairs). Default `0.95`. */
@@ -212,6 +213,9 @@ export function kendall(x: readonly number[], y: readonly number[]): KendallStat
   const tau = n < 2 || px === pairs || py === pairs ? NaN : px === 0 && py === 0 ? s / pairs : s / Math.sqrt((pairs - px) * (pairs - py));
   return { s, tau, ties: tx.length > 0 || ty.length > 0, tx, ty };
 }
+
+/** Largest n for Kendall's exact p-value (#316) */
+const MAX_KENDALL_EXACT_N = 1290;
 
 /**
  * Probability that a permutation of n distinct elements has at most c inversions. The inversion
@@ -439,6 +443,11 @@ function corTestSamples(x: Sample, y: Sample, options: CorTestOptions): CorTestR
     if (Number.isNaN(k.tau)) return { ...base, statistic: NaN, statisticName: "T", pValue: NaN };
     const exact = options.exact ?? n < 50;
     if (exact && !k.ties) {
+      // the two runs of kendallCdf below take n (q + 1) + n (total - q + 1) steps, about n^3 / 2: limited to n <= 1290
+      // (the same number as the Spearman exact limit; about 5 s), checked before they allocate (#316)
+      if (n > MAX_KENDALL_EXACT_N) {
+        throw new RangeError(`the exact distribution of T for n = ${n} takes too long (at most ${MAX_KENDALL_EXACT_N}): use exact: false`);
+      }
       const total = (n * (n - 1)) / 2;
       const q = (k.s + total) / 2;
       // P(T <= q) and P(T >= q) = P(T <= total - q)
