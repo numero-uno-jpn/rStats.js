@@ -350,6 +350,33 @@ export interface PowerAnovaTestResult {
 }
 
 /**
+ * Above this, both degrees of freedom of an F test are huge enough for {@link fPowerHugeDf} (pwrF2Test, pwrAnovaTest,
+ * powerAnovaTest). (1e16: the exact path pf(qf(...)) already loses about 1e-8 of the power there, from the critical
+ * value's few significant digits beyond 1, and up to 1e-5 just below 1e20; the approximation's error O(df^-1/2) is
+ * below that.)
+ */
+const HUGE_DF = 1e16;
+
+/** Whether an F test's power is taken from the normal approximation (df1 finite, both above 1e16) */
+export const hugeDf = (df1: number, df2: number): boolean => df1 > HUGE_DF && df1 < Infinity && df2 > HUGE_DF;
+
+/**
+ * The power P[F > qf(sig)] of an F test with noncentrality ncp where both degrees of freedom exceed 1e16 (df2 may be
+ * Infinity). There the critical value 1 + O(df^-1/2) keeps only a few significant digits beyond 1 in doubles (and
+ * rounds to 1 for the largest), so that pf(qf(...)) loses the test; F = (χ²(df1, λ)/df1) / (χ²_df2/df2) is normal
+ * instead, with mean 1 + μ, μ = λ/df1, and variance 2 (1 + 2μ)/df1 + 2 (1 + μ)²/df2 (2/df1 + 2/df2 under the null),
+ * to within O(df1^-1/2) in the power (about 1e-8 at 1e16, 1e-10 at 1e20).
+ * The standard deviation is formed as a hypot so that (1 + μ)² does not overflow.
+ */
+export function fPowerHugeDf(df1: number, df2: number, ncp: number, sig: number): number {
+  const z = qnorm(sig, { lowerTail: false }) as number;
+  const mu = ncp / df1;
+  const sd0 = Math.sqrt(2 / df1 + 2 / df2);
+  const sd1 = Math.hypot(Math.sqrt((2 * (1 + 2 * mu)) / df1), Math.sqrt(2 / df2) * (1 + mu));
+  return pnorm((z * sd0 - mu) / sd1, { lowerTail: false }) as number;
+}
+
+/**
  * a b c / d for finite a, b, d > 0 and c >= 0, each factor scaled to [1, 2) by a power of 2 and the exponents added
  * back at the end, so that no partial product overflows or underflows unless the result does
  */
@@ -396,7 +423,11 @@ export function powerAnovaTest(options: PowerAnovaTestOptions = {}): PowerAnovaT
     const df1 = groups - 1;
     const df2 = (n - 1) * groups;
     // (a noncentrality beyond the doubles: the limit 1)
-    return lambda === Infinity ? 1 : pf(qf(sig, df1, df2, { lowerTail: false }), df1, df2, { ncp: lambda, lowerTail: false });
+    if (lambda === Infinity) return 1;
+    // (both degrees of freedom above 1e16: the normal approximation, as in pwrAnovaTest; the critical value is 1 to a
+    // few digits, and groups 1e200, n 1e200, between 1e8, within 1e308 gave 0.760 for 0.174. R gives NaN there)
+    if (hugeDf(df1, df2)) return fPowerHugeDf(df1, df2, lambda, sig);
+    return pf(qf(sig, df1, df2, { lowerTail: false }), df1, df2, { ncp: lambda, lowerTail: false });
   };
   if (isUnknown(power)) power = powerOf(groups!, n!, betweenVar!, withinVar!, sigLevel!);
   else {
