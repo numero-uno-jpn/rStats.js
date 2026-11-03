@@ -42,6 +42,9 @@ export interface OdeOptions {
 export function ode(y: readonly number[], times: readonly number[], func: OdeFunc, parms: readonly number[] = [], options: OdeOptions = {}): number[][] {
   const method = options.method ?? "rk4";
   if (method !== "euler" && method !== "rk2" && method !== "rk4") throw new RangeError(`unknown method '${String(method)}'`);
+  // an infinite or NaN time gives an infinite or NaN step, and the state became NaN even with a zero derivative
+  // (Infinity * 0) (#360)
+  if (!times.every(Number.isFinite)) throw new RangeError("'times' must be finite values");
   const p = [...parms];
   const n = y.length;
   const deriv = (t: number, s: number[]): number[] => {
