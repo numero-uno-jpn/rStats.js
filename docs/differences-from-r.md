@@ -627,6 +627,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   ID(s)"), an infinite response is an error, and rows with a missing id or factor value are dropped. When the error
   SSP matrix of a within-subject term is singular, a warning says that its p-values are uncorrected (afex prints none).
   A within-subject factor with one level is an error, as a between-subject one is (afex returns an empty table).
+- **`aovEz` with a factor name repeated** in `between` or `within`, or given in both, is an error ("duplicated factor
+  names in 'between': A", "factors in both 'between' and 'within': A"). afex's `aov_ez` drops a repeat silently
+  (`between = c("A", "A")` is the one-factor table) and stops with "No observations remain after removing missing
+  values" for a name in both. A repeated name is a slip (another factor meant), so it is not fitted as a smaller model.
 - **`aovEz` with a singular error SSP matrix** (for example fewer subjects than measurements): car gives no
   sphericity corrections ("Singular error SSP matrix"). rStats.js judges each on its own condition: the
   Greenhouse-Geisser epsilon tr(A)^2 / (p tr(A^2)) is defined for any nonzero A and is given; Huynh-Feldt only when

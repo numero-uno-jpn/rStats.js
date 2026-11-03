@@ -588,6 +588,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`aovEz` の欠測値**: 応答が `null` か `NaN` ならその id を除きます (afex の "Missing values for ... ID(s)")。応答の
   無限大はエラーです。id や因子が欠測の行は除きます。被験者内の項の誤差 SSP 行列が特異なときは、その p 値が未補正である
   ことを警告します (afex は何も出しません)。被験者内因子が 1 水準なら、被験者間因子と同じくエラーです (afex は空の表を返します)。
+- **`aovEz` で `between` や `within` に同じ因子名が重複するとき、または両方に同じ名前があるとき**はエラーです
+  ("duplicated factor names in 'between': A"、"factors in both 'between' and 'within': A")。afex の `aov_ez` は重複を
+  黙って除き (`between = c("A", "A")` は 1 因子の表)、両方にある名前では "No observations remain after removing
+  missing values" で止まります。重複した名前は打ち間違い (別の因子のつもり) なので、小さいモデルとして当てはめません。
 - **誤差 SSP 行列が特異なときの `aovEz`** (被験者数が測定数より少ない場合など): car は球面性の補正を出しません
   ("Singular error SSP matrix")。rStats.js は補正ごとに条件を判定します。Greenhouse-Geisser の ε = tr(A)^2 / (p tr(A^2))
   は 0 でない A なら定義できるので出します。Huynh-Feldt は d - p GG > 0 のときだけ出します (それ以外は NaN。`correction: "HF"`

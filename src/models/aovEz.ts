@@ -185,6 +185,13 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
   const between = list(options.between);
   const within = list(options.within);
   if (between.length === 0 && within.length === 0) throw new Error("Either between or within need to be non-NULL!");
+  // A repeated name is an error, not one factor (afex drops repeats silently; #296)
+  for (const [name, names] of [["between", between], ["within", within]] as const) {
+    const repeated = names.filter((n, i) => names.indexOf(n) !== i);
+    if (repeated.length > 0) throw new Error(`duplicated factor names in '${name}': ${[...new Set(repeated)].join(", ")}`);
+  }
+  const both = between.filter((n) => within.includes(n));
+  if (both.length > 0) throw new Error(`factors in both 'between' and 'within': ${both.join(", ")}`);
   const type = options.type ?? 3;
   if (type !== 2 && type !== 3) throw new RangeError(`invalid type (${String(type)}): use 2 or 3`);
   const correction = options.correction ?? "GG";
