@@ -717,7 +717,16 @@ function evalHermite(
         const d = Number.isFinite(dy) ? scaledProduct([dy, -6 * t * t1], [h], -k) : scaledProduct([y1 / 2 - y0 / 2, -6 * t * t1], [h], 1 - k);
         return d + ldexp(m0 * (t1 * (3 * t - 1)) + m1 * (t * (3 * t - 2)), -e);
       }
-      case 2: return ldexp((delta * (6 - 12 * t) + m0 * (6 * t - 4) + m1 * (6 * t - 2)) / h, -e - k);
+      case 2: {
+        if (Number.isFinite(delta) || !Number.isFinite(y0) || !Number.isFinite(y1)) {
+          return ldexp((delta * (6 - 12 * t) + m0 * (6 * t - 4) + m1 * (6 * t - 2)) / h, -e - k);
+        }
+        // the secant overflows before the small basis factor (y1 - y0 = 1e200 over h = 1e-200 at t = 1/2 gave
+        // Inf * 0 = NaN for 0, R too; issue #466): as the first derivative (#401), (y1 - y0) times the factor over h^2
+        const dy = y1 - y0;
+        const d = Number.isFinite(dy) ? scaledProduct([dy, 6 - 12 * t], [h, h], -2 * k) : scaledProduct([y1 / 2 - y0 / 2, 6 - 12 * t], [h, h], 1 - 2 * k);
+        return d + ldexp((m0 * (6 * t - 4) + m1 * (6 * t - 2)) / h, -e - k);
+      }
       default: {
         const num = -12 * delta + 6 * m0 + 6 * m1;
         const hh = h * h;
