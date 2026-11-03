@@ -413,7 +413,10 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   二項 `glm` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`kappa2` の欠測のない組が 2 未満 (irr の `kappa2` は z と p が NaN。issue #309)、`tTest` で平均が 0 のときも含めて標準誤差が 0 (0 だけの標本や、対の差がすべて 0。"data are essentially constant"。R の判定はそこで `0 < 0` になり、t が NaN か ±Inf の結果を返す。issue #314)、`adTest`・`cvmTest`・`lillieTest`・`sfTest`・`pearsonTest` の無限の観測値 (nortest の `pearson.test(c(1:7, Inf))` は空の分類から P = 8、p = 0.0183 を返し、`sf.test` は NaN。ほかはエラー。issue #304)、`flignerTest` で中央値が無限の群 (偏差が Inf − Inf になる。R はその NaN を最後の順位にし、`fligner.test(c(1, Inf, 2, 3), c("a", "a", "b", "b"))` は 2.476、p 0.116。issue #329)、`pwrChisqTest` の `df <= 0`、
   非有限または NaN の許容誤差 (`optim` の `reltol`、`uniroot`、`optimize`、`integrate`、`qr`、`chol`、
   `solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value supplied
-  by optim" で止まり、負の値は受け付ける)、`optim`・`optimHess` の無限大の `fnscale` (R の `optim` は開始値をそのまま value NaN、convergence 0 で返し、`optimHess` は NaN を返す。Issue #248)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
+  by optim" で止まり、負の値は受け付ける)、`optim`・`optimHess` の無限大の `fnscale` (R の `optim` は開始値をそのまま value NaN、convergence 0 で返し、`optimHess` は NaN を返す。Issue #248)、
+  `optim` (BFGS・CG・L-BFGS-B)・`optimHess` の解析的な勾配 `gr` の NaN・無限大の成分 (数値の勾配の検査と同じく "non-finite
+  value of the gradient [i] supplied by 'gr'"。R は `gr` を確かめず、NaN の勾配では 1 歩も動かずに開始値を convergence 0
+  で返し、`optimHess` は NaN の行列を返す。Issue #355)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
   `poissonTest` は事象数 0 どうしの比較を R どおり行う)、`factanal`・`omega` の `covmat` で、正方・有限・対称 (R の
   `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)、`poissonTest` の観察時間
   `T` が 0 (R は推定値と区間に NaN や Inf を返す)、`binomTest`・`poissonTest` でカウントの合計が溢れるもの (R は NaN かエラー)、`chisqTest` のシミュレーションで整数でない `B` や、合計が整数でない適合度検定の度数 (R の p 値は 1 を超えることがある)、`fisherTest` のシミュレーションで整数でない `B` (R は trunc(B) 個の表をシミュレーションし、B + 1 で割る。issue #278)、`mantelhaenTest(exact: true)` の小数の度数 (R は結果を返す)、`mcnemarTest` で不一致の組がない表、符号付き順位の `wilcoxTest` で差がすべて 0、`varTest` で両群とも定数、`chisqTest` の分割表のシミュレーションで小数の度数 (R は NaN を返すか、周辺度数を切り捨てる)、`dunnettTest`・`tukeyTest`・`glhtDunnett` で全群が定数 (プールした分散が 0。R の p 値は `TukeyHSD` と PMCMRplus で 0、multcomp の `glht` で 1)、`grad`・`jacobian`・

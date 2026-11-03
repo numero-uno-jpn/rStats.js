@@ -158,6 +158,11 @@ class Scaled {
       finitePar(p);
       const gx = this.gr(this.unscale(p));
       if (gx.length !== n) throw new RangeError(`gradient in optim evaluated to length ${gx.length} not ${n}`);
+      // as the numerical gradient's check: R does not check gr, and a NaN component returned the start as converged
+      // (convergence 0) without a step (#355)
+      for (let i = 0; i < n; i++) {
+        if (!Number.isFinite(gx[i])) throw new Error(`non-finite value of the gradient [${i + 1}] supplied by 'gr'`);
+      }
       return gx.map((v, i) => (v * parscale[i]!) / fnscale);
     }
     const x = this.unscale(p);
