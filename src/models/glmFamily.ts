@@ -11,6 +11,7 @@ import { dgamma1 } from "../distributions/gamma.js";
 import { dnorm, pnorm, qnorm } from "../distributions/normal.js";
 import { dpois1, nonInteger } from "../distributions/poisson.js";
 import { roundHalfEven } from "../internal/integer.js";
+import { ldexp } from "../internal/summary.js";
 import { bd0 } from "../special/loader.js";
 import { log1pmx } from "../special/log1p.js";
 
@@ -352,10 +353,48 @@ function bd0Shift(M: number, d: number): number {
   return M * (s * Math.log1p(s) + log1pmx(s));
 }
 
+/** floor(log2 abs(x)) for a finite nonzero x (one too large just below a power of 2, which the scalings allow) */
+const exponentOf = (x: number): number => Math.floor(Math.log2(Math.abs(x)));
+
+/**
+ * 2 w D 2^e for a deviance D formed in units of 2^e: w is brought to [1, 2) by its power of 2 first, so that neither
+ * w D nor D 2^e overflows or underflows on the way (#371)
+ */
+function weightedScaled(w: number, D: number, e: number): number {
+  if (w === 0) return 0;
+  const ew = exponentOf(w);
+  return ldexp(2 * ldexp(w, -ew) * D, ew + e);
+}
+
+/**
+ * Whether a deviance 2 w D of positive finite y != mu and finite w >= 0 left the doubles on the way: D or the
+ * product is not finite, or D is below the normal range (where a large weight would bring back its lost bits)
+ */
+const outOfRange = (y: number, mu: number, w: number, D: number, r: number): boolean =>
+  !(Number.isFinite(r) && Math.abs(D) >= 2 ** -1022) &&
+  y > 0 && y < Infinity && mu > 0 && mu < Infinity && w >= 0 && w < Infinity && y !== mu;
+
+/**
+ * The poisson deviance beyond 10% of the mean, where y/mu, y log(y/mu) or the product with w left the doubles
+ * (y = 1e308, mu = 1e-308, w = 1e-320 gave Infinity, #371): y and mu in units of 2^e (e from the larger), the
+ * logarithm of the ratio from the logarithms where the ratio itself is out of range (then abs(log) > 708, so their
+ * rounding is below 1e-15 of it)
+ */
+function poissonFarScaled(y: number, mu: number, w: number): number {
+  const e = exponentOf(Math.max(y, mu));
+  const ys = ldexp(y, -e);
+  const ms = ldexp(mu, -e);
+  const q = y / mu;
+  const L = q >= 2 ** -1022 && q < Infinity ? Math.log(q) : Math.log(y) - Math.log(mu);
+  return weightedScaled(w, ys * L - (ys - ms), e);
+}
+
 /** The poisson deviance 2 w (y log(y/mu) - (y - mu)); 2 w bd0(y, mu) for y near mu (nearMean) */
 function poissonDev(y: number, mu: number, w: number): number {
   if (nearMean(y, mu)) return 2 * w * bd0(y, mu);
-  return 2 * w * ((y === 0 ? 0 : y * logWarn(y / mu)) - (y - mu));
+  const D = (y === 0 ? 0 : y * logWarn(y / mu)) - (y - mu);
+  const r = 2 * w * D;
+  return outOfRange(y, mu, w, D, r) ? poissonFarScaled(y, mu, w) : r;
 }
 
 /**
