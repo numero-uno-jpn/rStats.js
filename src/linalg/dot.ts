@@ -45,6 +45,14 @@ export function rescaledDot(u: readonly number[], v: readonly number[], s: numbe
   }
   let sum = 0n;
   for (let k = 0; k < mantissas.length; k++) sum += mantissas[k]! << BigInt(exponents[k]! - low);
+  return roundScaled(sum, low);
+}
+
+/**
+ * sum * 2^low rounded once to the nearest double (ties to even, subnormals and overflow to Infinity included).
+ * Callers whose sum is not exact pass it with a sticky last bit (at least 2 bits below the last kept one)
+ */
+export function roundScaled(sum: bigint, low: number): number {
   if (sum === 0n) return 0;
   const negative = sum < 0n;
   const a = negative ? -sum : sum;

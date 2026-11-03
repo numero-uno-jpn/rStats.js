@@ -22,6 +22,7 @@ import {
   wideSumValue,
 } from "../internal/summary.js";
 import { ddMul, type DD } from "../special/dd.js";
+import { roundScaled, splitDouble } from "../linalg/dot.js";
 import type { Sample } from "../htest/types.js";
 
 /**
@@ -177,6 +178,10 @@ export function weightedMean(x: Sample, w: Sample, options: NaRmOptions = {}): n
   const sw = sumOf(ws);
   const m = sumOf(prods) / sw;
   if ((Number.isFinite(m) && Number.isFinite(sw)) || !xs.every(Number.isFinite) || !ws.every(Number.isFinite)) return m;
+  // Exact quotient where the scaling below would lose a weight: signed weights whose sum cancels to far below the
+  // largest weight (1e-308 next to 1e308 and -1e308 became 0 when divided by 2^1024, so the mean was 0 / 0, #334)
+  const exact = exactWeightedMean(xs, ws);
+  if (exact !== undefined) return exact;
   // Finite values whose products or sums overflow (R returns Inf, NaN, or 0 where only the sum of the weights
   // overflows, #201): the values of nonzero weight and the weights divided by powers of 2 that bring their largest
   // absolute values into [1, 2), so that neither the products nor the sums overflow, and small values are not lost to
@@ -187,6 +192,45 @@ export function weightedMean(x: Sample, w: Sample, options: NaRmOptions = {}): n
   const scaled: number[] = [];
   for (let i = 0, j = 0; i < xs.length; i++) if (ws[i] !== 0) scaled.push(sx![j++]! * sws![i]!);
   return ldexp(sumOf(scaled) / sumOf(sws!), k);
+}
+
+/**
+ * sum(x w) / sum(w) for finite x and w, each sum exact in BigInt (the products as integer mantissas times powers of
+ * 2) and the quotient rounded once. undefined where the sum of the weights is exactly 0 (no mean)
+ */
+function exactWeightedMean(xs: readonly number[], ws: readonly number[]): number | undefined {
+  const num: [bigint, number][] = [];
+  const den: [bigint, number][] = [];
+  for (let i = 0; i < xs.length; i++) {
+    if (ws[i] === 0) continue;
+    const [mw, ew] = splitDouble(ws[i]!);
+    den.push([mw, ew]);
+    if (xs[i] === 0) continue;
+    const [mx, ex] = splitDouble(xs[i]!);
+    num.push([mx * mw, ex + ew]);
+  }
+  const exactSum = (terms: [bigint, number][]): [bigint, number] => {
+    let low = 0;
+    for (const [, e] of terms) low = Math.min(low, e);
+    let s = 0n;
+    for (const [m, e] of terms) s += m << BigInt(e - low);
+    return [s, low];
+  };
+  let [n, ln] = exactSum(num);
+  let [d, ld] = exactSum(den);
+  if (d === 0n) return undefined;
+  if (n === 0n) return 0;
+  if (d < 0n) {
+    n = -n;
+    d = -d;
+  }
+  // n / d 2^(ln - ld): the integer quotient with at least 66 bits, its last bit set where it is not exact
+  const negative = n < 0n;
+  const a = negative ? -n : n;
+  const shift = Math.max(0, d.toString(2).length - a.toString(2).length + 66);
+  let q = (a << BigInt(shift)) / d;
+  if (q * d !== a << BigInt(shift)) q |= 1n;
+  return roundScaled(negative ? -q : q, ln - ld - shift);
 }
 
 /**
