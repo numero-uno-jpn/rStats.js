@@ -36,7 +36,8 @@ export interface PropTrendTestResult extends Omit<HTest, "alternative"> {
  * @param x Numbers of events.
  * @param n Numbers of trials.
  * @param score Scores of the groups. Default `1, 2, ..., k`. A group with a NaN score is left out of the regression
- *   (as R's `lm` omits it), but its counts stay in the pooled proportion and the weights, as in R.
+ *   (as R's `lm` omits it), but its counts stay in the pooled proportion and the weights, as in R. Other scores must
+ *   be finite.
  *
  * @example
  * ```ts
@@ -60,6 +61,8 @@ export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTe
   // the weighted regression of f on the scores, over the groups with a score
   const rows = s.flatMap((v, i) => (Number.isNaN(v) ? [] : [i]));
   if (rows.length === 0) throw new RangeError("no non-missing scores");
+  // An infinite score made the centred scores Inf - Inf and the statistic NaN (R's lm: "NA/NaN/Inf in 'x'"; #317)
+  if (rows.some((i) => !Number.isFinite(s[i]!))) throw new RangeError("non-missing scores must be finite");
   const { sw, sxy, sxx } = trendRegression(w, f, s, rows);
   let statistic = squareOver(sxy, sxx);
   if (!(sumN < Infinity) || (p > 0 && p < 1 && !(sw < Infinity && Math.abs(sxy) < Infinity && sxx < Infinity))) {
