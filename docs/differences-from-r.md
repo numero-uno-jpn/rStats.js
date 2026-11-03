@@ -540,6 +540,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   ranks with `n1 + 1:n2` and `1:0` is `c(1, 0)`.
 - **`pAdjust`** with the Hommel method throws when `n` is not an integer (R returns a value), and
   returns an empty array for an empty `p` with n > 0 (R returns 1).
+- **The exact tests of `fisherTest` (2 × 2) and `mantelhaenTest(exact: true)`** throw a RangeError when the
+  support of the count has more than 2^24 values (`fisherTest`: min(a, d) + min(b, c) + 1; `mantelhaenTest`: 1 plus
+  that sum over the strata, with the hint to use `exact: false`), before anything is allocated. R allocates the whole
+  support whatever its size: `fisher.test(matrix(1e7, 2, 2))` (2e7 + 1 values) took 45 s, and counts of 1e9 would
+  take 16 GB per array.
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)

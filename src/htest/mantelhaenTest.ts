@@ -225,9 +225,21 @@ function asymptotic2x2xK(
   };
 }
 
+/**
+ * Largest support (number of values of S) of the exact test: 2^24 values take a few hundred MB (one large stratum
+ * near 2^24 takes about 40 s; several large strata take longer, as the convolution grows with the product of their
+ * spreads); R allocates every stratum's support whatever its size (counts of 1e9 would take 16 GB per stratum)
+ */
+const MAX_SUPPORT = 2 ** 24;
 
 /** Exact conditional test on 2 x 2 x K tables: S = sum of the (1, 1) cells given all margins */
 function exact2x2xK(tables: readonly Stratum[], alternative: Alternative, confLevel: number): MantelhaenTestResult {
+  // the support of S has 1 + sum (min(a, d) + min(b, c)) values (each stratum's support and every partial
+  // convolution are no longer); checked before any of them is allocated
+  const size = tables.reduce((acc, [[a, b], [c, d]]) => acc + Math.min(a, d) + Math.min(b, c), 1);
+  if (size > MAX_SUPPORT) {
+    throw new RangeError(`the exact distribution of S has ${size} values, more than 2^24: use exact: false`);
+  }
   const h = new ConvolvedNoncentralHyper(tables);
   const s = tables.reduce((acc, t) => acc + t[0][0], 0);
   let pValue: number;

@@ -170,6 +170,12 @@ const SLACK = 1 + 1e-7;
 /** Spacing of the points at which the central log density is evaluated directly */
 const ANCHOR = 16;
 
+/**
+ * Largest support (number of values of the (1, 1) cell) of the exact 2 x 2 distribution: 2^24 values take about
+ * 12 s and 0.4 GB; R allocates the whole support whatever its size (counts of 1e9 would take 16 GB per array)
+ */
+const MAX_SUPPORT = 2 ** 24;
+
 /** Double-double sum of v[from..to] (inclusive, clipped to the array) */
 function accurateSum(v: Float64Array, from: number, to: number): number {
   let acc: DD = [0, 0];
@@ -269,6 +275,11 @@ function fisher2x2(t: number[][], options: FisherTestOptions, method: string): F
   if (!(confLevel > 0 && confLevel < 1)) throw new RangeError("confLevel must be a single number between 0 and 1");
   const [[a, b], [c, d]] = t as [[number, number], [number, number]];
   const x = a;
+  // the support lo..hi has min(a, d) + min(b, c) + 1 values; checked before it is allocated
+  const size = Math.min(a, d) + Math.min(b, c) + 1;
+  if (size > MAX_SUPPORT) {
+    throw new RangeError(`the exact distribution of the 2 x 2 table has ${size} values, more than 2^24`);
+  }
   const dist = new OddsRatioDistribution(a + c, b + d, a + b);
   const { lo, hi } = dist;
 

@@ -517,6 +517,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `n1 + 1:n2` で取り出しており、`1:0` が `c(1, 0)` になるためです。
 - **`pAdjust`** の Hommel 法は、`n` が整数でないと例外を投げます (R は値を返します)。また、空の `p`
   で n > 0 のときは空の配列を返します (R は 1 を返します)。
+- **`fisherTest` (2 × 2) と `mantelhaenTest(exact: true)` の正確検定**は、度数の台の値の個数が 2^24 を超えると、何も確保
+  する前に RangeError を投げます (`fisherTest` は min(a, d) + min(b, c) + 1、`mantelhaenTest` は層ごとの同じ和に 1 を
+  足したもので、`exact: false` を案内します)。R は大きさによらず台全体を確保します。`fisher.test(matrix(1e7, 2, 2))`
+  (2e7 + 1 個) は 45 秒かかり、度数 1e9 では配列 1 本が 16 GB になります。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。
