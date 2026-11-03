@@ -71,7 +71,19 @@ export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTe
   // One distinct score (all equal, or one group with a score) leaves no slope: sxx = sxy = 0 and the statistic 0 / 0
   // (R's NA; NaN before, #318)
   if (rows.every((i) => s[i] === s[rows[0]!])) throw new RangeError("at least 2 distinct non-missing scores are needed");
-  const { sw, sxy, sxx } = trendRegression(w, f, s, rows);
+  let sc = s;
+  let { sw, sxy, sxx } = trendRegression(w, f, sc, rows);
+  if (!(sxx >= 2 ** -1022 && sxx < Infinity && Math.abs(sxy) < Infinity)) {
+    // Scores far from 1 (0 and 1e200, or 0 and 2^-700): sxx overflowed or underflowed, and the statistic was 0 or
+    // Infinity. The statistic does not change when the scores are multiplied by a constant, so it is formed from the
+    // scores divided by a power of 2 that brings the largest into [1, 2) (#389). Otherwise the same bits as before
+    const scaled = scaleToUnit([rows.map((i) => s[i]!)]);
+    if (scaled.k !== 0) {
+      sc = s.slice();
+      rows.forEach((i, j) => (sc[i] = scaled.groups[0]![j]!));
+      ({ sw, sxy, sxx } = trendRegression(w, f, sc, rows));
+    }
+  }
   let statistic = squareOver(sxy, sxx);
   if (!(sumN < Infinity) || (p > 0 && p < 1 && !(sw < Infinity && Math.abs(sxy) < Infinity && sxx < Infinity))) {
     // The totals or the weights overflow although the counts are finite: the pooled proportion from the counts
@@ -82,7 +94,7 @@ export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTe
       k,
     } = scaleToUnit([xs, ns]);
     const pu = xu!.reduce((a, v) => a + v, 0) / nu!.reduce((a, v) => a + v, 0);
-    const u = trendRegression(nu!, f, s, rows);
+    const u = trendRegression(nu!, f, sc, rows);
     statistic = ldexp((u.sxy / pu) * (u.sxy / u.sxx / (1 - pu)), k);
   }
   return {
