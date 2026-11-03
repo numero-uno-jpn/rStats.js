@@ -162,7 +162,9 @@ function adjust(p: readonly number[], method: PAdjustMethod, n: number): number[
       return out;
     }
     case "hommel":
-      return hommel(p, n);
+      // as R, Hochberg's method for n = 2 (the same values for p in [0, 1]; p outside it are taken as they are, where
+      // the Hommel loop gave [-2, 0.3] for [-2, 0.3], R [-4, 0.3]; #471)
+      return n === 2 ? adjust(p, "hochberg", n) : hommel(p, n);
   }
 }
 
