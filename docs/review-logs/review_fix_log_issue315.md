@@ -53,15 +53,11 @@ GitHub Issue #315. Session 12.
 - `test/issue315.test.ts`: the errors for df 1 (both functions, samples and labels) and the df 2 value of `tukeyTest`. With `src/` stashed, the df 1 test fails.
 - `anova`, `issue203`, `jstat-replacement`, `mcompPMCMR`, `numberLevels`, `review60`, `scaleInvariance`, `scaleInvarianceAll`, `errors`: pass.
 
-### Pending decision (gamesHowellTest)
+### gamesHowellTest (user decision 24)
 
-`gamesHowellTest` takes a Welch-Satterthwaite df for each pair, at least min(n_i, n_j) - 1, so with groups of 2 it is between 1 and 2 and `ptukey` gives NaN for that pair: `gamesHowellTest([1, 2, 3, 7, 5, 6], ["a", "a", "b", "b", "c", "c"])` has p NaN for b-a and c-b and 0.0539910002769191 for c-a (PMCMRplus: NaN, NaN, 0.053991). The df is fractional and per pair, so a whole-test error is a different rule from the one decided.
+`gamesHowellTest` takes a Welch-Satterthwaite df for each pair, at least min(n_i, n_j) - 1, so with groups of 2 it is between 1 and 2 and `ptukey` gives NaN for that pair: `gamesHowellTest([1, 2, 3, 7, 5, 6], ["a", "a", "b", "b", "c", "c"])` has p NaN for b-a and c-b and 0.0539910002769191 for c-a (PMCMRplus: NaN, NaN, 0.053991). The df is fractional and per pair, so a whole-test error would reject the pairs that are computable.
 
-1. RangeError when any pair has df < 2. Pro: no silent NaN. Con: rejects the pairs that are computable (c-a above).
-2. Keep NaN for those pairs, as PMCMRplus (now). Pro: the other pairs stay. Con: NaN without explanation.
-3. Extend `ptukey` to df in [1, 2) (the later improvement above). Pro: correct values. Con: work, Rmpfr references.
-
-Recommendation: 2 now (record), 3 with the later improvement.
+User decision (2026-11-03): keep NaN for those pairs, as PMCMRplus (no code change; recorded here). It is to be fixed when `ptukey` is extended to df in [1, 2) (the later improvement above).
 
 ## Out of scope (recorded)
 
