@@ -5318,3 +5318,10 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規Issue [#404](https://github.com/numero-uno-jpn/rStats.js/issues/404)。再現: `expm([[0, Number.MIN_VALUE], [0, 0]], { method: "Taylor", order: 1 })`。A²=0なので厳密な指数は I+A であり、右上要素は `Number.MIN_VALUE` のまま表現可能。だが `n1*nInf` が0へunderflowして `p=5`、`N=32` となり、Taylor最初の更新で `Number.MIN_VALUE/32` が0へ丸められる。その後は単位行列を5回二乗し、右上要素0のまま返す。
 - 既存 [#207](https://github.com/numero-uno-jpn/rStats.js/issues/207) は unbalanced `Higham08` のPadé経路における大きなdynamic rangeのglobal scaling問題。本件は `Taylor` の `scaledPair()/taylorScaled()` 経路で、全要素がsubnormalのnilpotent行列に対する別の再現条件・別実装経路。
 - IEEE-754のbinary64演算とソース制御フローによる静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
+
+## Audit #890 — Taylor matrix exponential loses a representable subnormal entry during scaling
+
+- 対象: `src/linalg/expm.ts` SHA `d1a756098e4e7423149a906c8a4b916e47c66a6d` の `scalingExponent()` / `scaledPair()` / `taylorScaled()`。
+- 新規Issue [#404](https://github.com/numero-uno-jpn/rStats.js/issues/404)。再現: `expm([[0, Number.MIN_VALUE], [0, 0]], { method: "Taylor", order: 1 })`。A²=0なので厳密な指数は I+A であり、右上要素は `Number.MIN_VALUE` のまま表現可能。だが `n1*nInf` が0へunderflowして `p=5`、`N=32` となり、Taylor最初の更新で `Number.MIN_VALUE/32` が0へ丸められる。その後は単位行列を5回二乗し、右上要素0のまま返す。
+- 既存 [#207](https://github.com/numero-uno-jpn/rStats.js/issues/207) は unbalanced `Higham08` のPadé経路における大きなdynamic rangeのglobal scaling問題。本件は `Taylor` の `scaledPair()/taylorScaled()` 経路で、全要素がsubnormalのnilpotent行列に対する別の再現条件・別実装経路。
+- IEEE-754のbinary64演算とソース制御フローによる静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
