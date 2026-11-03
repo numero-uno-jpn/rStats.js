@@ -177,7 +177,9 @@ export function sfTest(x: Sample): NormalityTestResult {
   const q = xs.map((_, k) => qnorm((k + 1 - 3 / 8) / (n + 1 / 4)));
   // the values scaled by a power of 2 (exact) first, so that the squared covariance stays in range (W has no units)
   const xu = scaleToUnit([xs]).groups[0]!;
-  const w = covariance(xu, q) ** 2 / (variance(xu) * variance(q));
+  // a squared correlation: the three moments are rounded separately, so the quotient can exceed 1 by an ulp for data
+  // almost affine in the scores, where log(1 - W) was NaN (#384); at most 1, as R's cor()
+  const w = Math.min(covariance(xu, q) ** 2 / (variance(xu) * variance(q)), 1);
   const u = Math.log(n);
   const v = Math.log(u);
   const mu = -1.2725 + 1.0521 * (v - u);
