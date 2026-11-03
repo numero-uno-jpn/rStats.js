@@ -83,6 +83,21 @@ function make(
 const MIN_NORMAL = 2 ** -1022;
 
 /**
+ * v = f(x_1, ..., x_n), a product of powers x_i^d_i (given as [x_i, d_i]) and factors of moderate size. Where v left
+ * the normal range and the x_i are finite and non-zero, f again at x_i 2^-e_i (each in [1, 2)), multiplied back by
+ * 2^(sum d_i e_i): the same roundings as f where the result is normal, but no intermediate power overflows or
+ * underflows (the variance (max - min)^2 / 12 of unif(0, 2e154) was Infinity for 3.3e307; issue #376)
+ */
+function rescaled(v: number, f: (...x: number[]) => number, ...powers: [number, number][]): number {
+  if ((v >= MIN_NORMAL && v < Infinity) || !powers.every(([x]) => Number.isFinite(x) && x !== 0)) return v;
+  const e = powers.map(([x]) => Math.floor(Math.log2(Math.abs(x))));
+  return ldexp(
+    f(...powers.map(([x], i) => ldexp(x, -e[i]!))),
+    powers.reduce((k, [, d], i) => k + d * e[i]!, 0),
+  );
+}
+
+/**
  * Variance, skewness and excess kurtosis from the central moments E[(X - mean)^n], integrated numerically from the
  * density on each side of the mean (no cancellation inside either part): the textbook route through the raw moments
  * cancels badly when the spread is small against the mean (Weibull with a large shape loses 9 digits of the kurtosis
@@ -319,7 +334,8 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const { min = 0, max = 1 } = P;
       if (!(Number.isFinite(min) && Number.isFinite(max) && min < max)) return NAN;
       const m = Number.isFinite(max - min) ? min + (max - min) / 2 : midpoint(min, max);
-      return make(m, (max - min) ** 2 / 12, m, NaN, 0, -1.2, (max / 2 - min / 2) * (2 / Math.sqrt(12)));
+      const w = max - min;
+      return make(m, rescaled(w ** 2 / 12, (x) => x ** 2 / 12, [w, 2]), m, NaN, 0, -1.2, (max / 2 - min / 2) * (2 / Math.sqrt(12)));
     }
     case "exp": {
       const { rate = 1 } = P;
@@ -489,7 +505,8 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
     case "logis": {
       const { location = 0, scale = 1 } = P;
       if (!(Number.isFinite(location) && scale > 0 && Number.isFinite(scale))) return NAN;
-      return make(location, (scale * scale * Math.PI * Math.PI) / 3, location, location, 0, 1.2, (scale * Math.PI) / Math.sqrt(3));
+      const v = (scale * scale * Math.PI * Math.PI) / 3;
+      return make(location, rescaled(v, (x) => (x * x * Math.PI * Math.PI) / 3, [scale, 2]), location, location, 0, 1.2, (scale * Math.PI) / Math.sqrt(3));
     }
     case "binom": {
       const n = P.size ?? NaN;
@@ -761,7 +778,8 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       if (!(Number.isFinite(a) && Number.isFinite(b) && a < b)) return NAN;
       // symmetric: the median is the mean (qarcsine(0.5) rounds to 1e-16 of the width); b - a may overflow
       const mean = Number.isFinite(b - a) ? a + (b - a) / 2 : midpoint(a, b);
-      return make(mean, (b - a) ** 2 / 8, mean, NaN, 0, -1.5, (b / 2 - a / 2) / Math.SQRT2);
+      const w = b - a;
+      return make(mean, rescaled(w ** 2 / 8, (x) => x ** 2 / 8, [w, 2]), mean, NaN, 0, -1.5, (b / 2 - a / 2) / Math.SQRT2);
     }
   }
   throw new RangeError(`unknown distribution '${String(distribution)}'`);
