@@ -524,6 +524,18 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
           while (mode > 0 && !ok(mode)) mode--;
         }
       }
+      const mu = P.mu;
+      if (mu !== undefined && mu > 0 && mu / r < 2 ** -26) {
+        // With mu far below size, q = 1 - p keeps only the digits of p's rounding (size 1e10, mu 1 gave a mean 8e-8
+        // off; size 1e100, mu 1e30 a mean 0 and NaN skewness): the moments directly in mu and t = mu / size, as
+        // mu (1 + t), (1 + 2t) / sqrt(mu (1 + t)) and 6 / size + 1 / (mu (1 + t)) (issue #236 follow-up 2). The
+        // products of the closed forms overflow or underflow (size 1e308 with mu 1), these do not.
+        const t = mu / r;
+        const variance = mu + mu * t;
+        // (sqrt(mu) sqrt(1 + t) where the variance is subnormal)
+        const sd = variance >= MIN_NORMAL ? Math.sqrt(variance) : Math.sqrt(mu) * Math.sqrt(1 + t);
+        return make(mu, variance, qnbinom(0.5, r, opts), mode, (1 + 2 * t) / sd, 6 / r + 1 / variance, sd);
+      }
       return make(
         (r * q) / p,
         (r * q) / (p * p),

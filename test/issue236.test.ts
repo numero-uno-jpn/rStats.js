@@ -70,16 +70,91 @@ describe("issue #236 follow-up: nbinom with mu far below size", () => {
 
 describe("issue #236 follow-up: unchanged values", () => {
   it("keeps the summary where the search ended before", () => {
-    // values before the fix
+    // mode and median as before the fix; the moments are those of follow-up 2 (mu / size = 1e-10 < 2^-26: before
+    // it, the mean was 10000011930.633959, 1.2e-6 off)
     expect(distSummary("nbinom", { size: 1e20, mu: 1e10 })).toEqual({
-      mean: 10000011930.633959,
-      variance: 10000011931.633963,
-      sd: 100000.05965815202,
+      mean: 10000000000,
+      variance: 10000000001,
+      sd: 100000.000005,
       median: 10000000000,
       mode: 10000000000,
-      skewness: 0.000009999994036188359,
-      kurtosis: 9.999988074380274e-11,
+      skewness: 0.000010000000001500001,
+      kurtosis: 1.0000000005e-10,
     });
     expect(distSummary("nbinom", { size: 1e100, mu: 2.5 }).mode).toBe(2);
+  });
+});
+
+// Follow-up 2: with mu / size below 2^-26, q = 1 - p kept only the rounding of p, so the moments were off (size 1e10,
+// mu 1: mean 1.0000000828) or 0 and NaN (size 1e20 and beyond with mu 1). They are now formed directly in mu and
+// t = mu / size; the expected values are the Rmpfr values of the closed forms rounded to double (within 0.5 ulp).
+describe("issue #236 follow-up 2: moments with mu / size below 2^-26", () => {
+  it("gives the moments for size 1e10, mu 1", () => {
+    expect(distSummary("nbinom", { size: 1e10, mu: 1 })).toEqual({
+      mean: 1,
+      variance: 1.0000000001,
+      sd: 1.00000000005,
+      median: 1,
+      mode: 0,
+      skewness: 1.00000000015,
+      kurtosis: 1.0000000005,
+    });
+  });
+
+  it("gives finite moments where q rounded to 0", () => {
+    for (const size of [1e20, 1e308]) {
+      expect(distSummary("nbinom", { size, mu: 1 })).toEqual({ mean: 1, variance: 1, sd: 1, median: 1, mode: 1, skewness: 1, kurtosis: 1 });
+    }
+    expect(distSummary("nbinom", { size: 1e100, mu: 1e30 })).toEqual({
+      mean: 1e30,
+      variance: 1e30,
+      sd: 1e15,
+      median: 1e30,
+      mode: 1e30,
+      skewness: 1e-15,
+      kurtosis: 9.999999999999999e-31,
+    });
+    // the closed forms' products underflow and overflow here
+    expect(distSummary("nbinom", { size: 1e300, mu: 1e-300 })).toEqual({
+      mean: 1e-300,
+      variance: 1e-300,
+      sd: 1e-150,
+      median: 0,
+      mode: 0,
+      skewness: 1e150,
+      kurtosis: 9.999999999999999e299,
+    });
+  });
+
+  it("keeps the values at and above 2^-26 and for mu = 0", () => {
+    // values before the fix
+    expect(distSummary("nbinom", { size: 1e10, mu: 150 })).toEqual({
+      mean: 150.0000002281563,
+      variance: 150.00000247815632,
+      sd: 12.247448815086198,
+      median: 150,
+      mode: 149,
+      skewness: 0.08164965986779363,
+      kurtosis: 0.0066666671565263885,
+    });
+    expect(distSummary("nbinom", { size: 2 ** 26, mu: 1 })).toEqual({
+      mean: 0.9999999999999998,
+      variance: 1.000000014901161,
+      sd: 1.0000000074505804,
+      median: 1,
+      mode: 0,
+      skewness: 1.0000000223517418,
+      kurtosis: 1.0000000745058064,
+    });
+    // a point mass at 0
+    expect(distSummary("nbinom", { size: 1e10, mu: 0 })).toEqual({
+      mean: 0,
+      variance: 0,
+      sd: 0,
+      median: 0,
+      mode: 0,
+      skewness: NaN,
+      kurtosis: NaN,
+    });
   });
 });
