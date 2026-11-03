@@ -662,7 +662,13 @@ function evalHermite(
       }
       case 1: return ldexp(delta * (-6 * t * t1) + m0 * (t1 * (3 * t - 1)) + m1 * (t * (3 * t - 2)), -e);
       case 2: return ldexp((delta * (6 - 12 * t) + m0 * (6 * t - 4) + m1 * (6 * t - 2)) / h, -e - k);
-      default: return ldexp((-12 * delta + 6 * m0 + 6 * m1) / (h * h), -e - 2 * k);
+      default: {
+        const num = -12 * delta + 6 * m0 + 6 * m1;
+        const hh = h * h;
+        // h^2 outside the normal range (h = 1e200: num / Inf was 0 for 1.2e-199; issue #399): divided by h twice
+        if (!(hh >= 2 ** -1022 && hh < Infinity)) return ldexp(num / h / h, -e - 2 * k);
+        return ldexp(num / hh, -e - 2 * k);
+      }
     }
   });
 }
