@@ -145,7 +145,9 @@ export function modelFrame(data: DataFrame, names: readonly string[], options: M
     if (cols[i]!.length !== n) throw new RangeError(`variable lengths differ (found for '${v}')`);
   });
   if (w !== undefined && w.length !== n) throw new RangeError("variable lengths differ (found for '(weights)')");
-  const conv = names.map((v, i) => convert(v, cols[i]!, options.levels?.[v]));
+  // own properties only: a column named toString has no given levels unless they are given
+  const { levels } = options;
+  const conv = names.map((v, i) => convert(v, cols[i]!, levels !== undefined && Object.hasOwn(levels, v) ? levels[v] : undefined));
   let weights: number[] | undefined;
   if (w !== undefined) {
     weights = Array.from(w as ArrayLike<unknown>, (x) => {
