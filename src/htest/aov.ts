@@ -20,7 +20,7 @@ import { lmFormulaFit, type LmFormulaOptions, type LmFormulaResult } from "../mo
 import type { DataFrame } from "../models/modelFrame.js";
 import { design } from "../models/modelMatrix.js";
 import { labelledGroups, toGroups, type GroupLabel } from "./groups.js";
-import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
+import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /**
  * Result of {@link aov}: the one-way ANOVA table, rows "between groups" and "residuals".
@@ -120,7 +120,7 @@ function aovOneway(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): Ao
  * @category Multiple comparisons
  */
 export interface TukeyHSDOptions {
-  /** Family-wise confidence level. Default `0.95`. */
+  /** Family-wise confidence level in [0, 1] (a RangeError otherwise). Default `0.95`. */
   confLevel?: number;
 }
 
@@ -181,6 +181,8 @@ export function TukeyHSD(
   const k = groups.length;
   if (k < 2) throw new RangeError("contrasts can be applied only to factors with 2 or more levels");
   const confLevel = options.confLevel ?? 0.95;
+  // R accepts 0 and 1 (limits diff and ±Inf) but returns NaN limits outside [0, 1]: that is rejected
+  checkConfLevel(confLevel);
   const N = groups.reduce((a, s) => a + s.length, 0);
   const df = N - k;
   // means and MSE of the data scaled by 2^-e (groupMoments): the differences and limits are scaled back

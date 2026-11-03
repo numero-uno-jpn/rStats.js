@@ -395,7 +395,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   NaN or truncates the margins), groups that are all constant in `dunnettTest`, `tukeyTest` and `glhtDunnett` (a
   pooled variance of 0: R's p-values are 0 in `TukeyHSD` and PMCMRplus, 1 in multcomp's `glht`), and a step `eps` of 0 or a
   non-finite `d`, `eps` or `zeroTol` in `grad`, `jacobian` and `hessian` (numDeriv's "simple" method gives NaN for
-  `eps = 0`; `d = 0` is an error there too).
+  `eps = 0`; `d = 0` is an error there too), and a `confLevel` outside [0, 1] or NaN in `TukeyHSD` (R returns NaN
+  limits; 0 and 1 are accepted as in R).
 - **The power and effect-size functions** reject NaN for a known quantity (pwr mostly stops with "missing value
   where TRUE/FALSE needed"; NaN was returned), a correlation outside [-1, 1] in `pwrRTest`, probabilities outside
   [0, 1] in `esH`, `esW1` and `esW2` (R: NaN), an empty or ragged matrix in `esW2` (R: 0), n <= 0 in `powerPropTest`
