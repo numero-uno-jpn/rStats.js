@@ -498,6 +498,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | signrank with n = Inf, wilcox with m = Inf | crashes | NaN |
 | Non-central `qbeta` with an infinite parameter (e.g. shape2 = Inf) | 0, 0.5 or 1 from a search on NaN | NaN |
 | `qchisq(p, 0, ncp = 0)` (all mass at 0) | NaN or Inf | 0 |
+| `qgamma` and `pgamma` (log upper tail) where q / scale exceeds the largest double and the answer is finite, which needs a shape of about 1e307 and above, or about 1e290 with q / scale just beyond the largest double (`qgamma(-1e308, 1e308, scale = 1e-308, lower.tail = FALSE, log.p = TRUE)`, true value about 3.146; `pgamma(1.8, 1e308, scale = 1e-308, lower.tail = FALSE, log.p = TRUE)`, about -2e307) | Inf, -Inf | NaN (not computed: the standardized x is beyond the doubles; a wrong 1.797 and -Inf before, issue #368). With scale >= 1 the quantile is Inf, as in R |
 | `pgamma(Inf, shape, rate = r)` with a subnormal r (below about 5.6e-309, so 1 / r overflows) | NaN | 1 (P[X ≤ Inf] = 1 by definition) |
 | `pgamma(q, Inf, scale = s)` with 0 < q / s < 1, so `pchisq(q, Inf)` with 0 < q < 2 (all mass at +Inf) | NaN | the limits: lower tail 0, upper tail 1 (as R gives for every other finite q) |
 | `df(0, df1, Inf, ncp, log = TRUE)` | not the log of the linear value (−1.386 with ncp = 0, where the linear value is 1) | log of the linear value |

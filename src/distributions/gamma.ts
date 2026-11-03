@@ -169,7 +169,21 @@ export function pgamma1(q: number, shape: number, scale: number, lowerTail: bool
     return logP ? Math.log1p(-e) : 1 - e;
   }
   if (x <= 0) return dt0(lowerTail, logP);
+  if (x === Infinity && !lowerTail && logP && scale < Infinity && overflowLogUpperFinite(q, shape, scale)) return NaN;
   return gammaInc(shape, x, lowerTail, logP);
+}
+
+/**
+ * Whether log Q(shape, q / scale) may be finite although q / scale overflows (#368). The other tails are right there
+ * (P = 1, Q = 0 and log P = 0 to double precision: q / scale exceeds even the largest shape by far more than its
+ * standard deviation), and so is log Q = -Inf where its leading term shape (r - 1 - log r), r = q / (shape scale),
+ * overflows. Where that term is finite (a shape of about 1e290 and above) log Q is finite, but gammaInc sees only
+ * x = Inf and returns -Inf: such values are NaN, not computed (user decision, 2026-11-03)
+ */
+function overflowLogUpperFinite(q: number, shape: number, scale: number): boolean {
+  const ps = shape * scale;
+  const r = ps >= MIN_NORMAL ? q / ps : Math.exp(Math.log(q) - Math.log(scale) - Math.log(shape));
+  return shape * (r - 1 - Math.log(r)) < Infinity;
 }
 
 /**
@@ -235,6 +249,13 @@ export function qgammaStd(p: number, shape: number, lowerTail: boolean, logP: bo
     hi: Infinity,
     positive: true,
   });
+  // The standardized quantile beyond the largest double (#368): the search stops at Number.MAX_VALUE, and x * scale
+  // was MAX_VALUE times scale (qgamma(-1e308, 1e308, scale 1e-308, upper, log) 1.797, the true value about 3.146). With
+  // scale >= 1 the quantile is Inf; below 1 it may be finite but is not computed here: NaN (user decision, 2026-11-03)
+  if (x >= 2 ** 1000) {
+    const atMax = gammaInc(shape, Number.MAX_VALUE, lower, true);
+    if (lower ? atMax < logTarget : atMax > logTarget) return scale >= 1 ? Infinity : NaN;
+  }
   return x * scale;
 }
 

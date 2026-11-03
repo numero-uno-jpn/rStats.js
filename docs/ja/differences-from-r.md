@@ -470,6 +470,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | n = Inf の signrank、m = Inf の wilcox | クラッシュ | NaN |
 | パラメータが無限大の非心 `qbeta` (たとえば shape2 = Inf) | NaN 上の探索から 0、0.5、1 | NaN |
 | `qchisq(p, 0, ncp = 0)` (質量がすべて 0 にある) | NaN または Inf | 0 |
+| `qgamma` と `pgamma` (上側の log) で q / scale が double の最大値を超え、答えは有限な場合。shape が約 1e307 以上 (q / scale が最大値をわずかに超えるだけなら約 1e290 以上) で起きる (`qgamma(-1e308, 1e308, scale = 1e-308, lower.tail = FALSE, log.p = TRUE)` の真の値は約 3.146、`pgamma(1.8, 1e308, scale = 1e-308, lower.tail = FALSE, log.p = TRUE)` は約 -2e307) | Inf、-Inf | NaN (計算しない。標準化した x が double の範囲の外にある。以前は誤った 1.797 と -Inf、issue #368)。scale >= 1 なら分位点は R と同じく Inf |
 | r が非正規化数 (約 5.6e-309 未満で、1 / r が溢れる) の `pgamma(Inf, shape, rate = r)` | NaN | 1 (定義により P[X ≤ Inf] = 1) |
 | 0 < q / s < 1 の `pgamma(q, Inf, scale = s)`、つまり 0 < q < 2 の `pchisq(q, Inf)` (質量がすべて +Inf にある) | NaN | 極限値: 下側 0、上側 1 (ほかの有限の q で R が返す値と同じ) |
 | `df(0, df1, Inf, ncp, log = TRUE)` | 線形の値の対数にならない (ncp = 0 で −1.386。線形の値は 1) | 線形の値の対数 |
