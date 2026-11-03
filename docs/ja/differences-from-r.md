@@ -723,7 +723,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   リストの列も作ります)。
 - **`pivotLonger` と `pivotWider`** はデータフレームを返します。tidyr の警告は任意の `onWarning` コールバックに
   渡します。`pivotWider` で 1 つのセルに複数の行が当たるとエラーにします (tidyr は警告を出してリストの列を作り
-  ます)。`valuesFn` で要約してください。正規表現 (`namesSep`、`namesPattern`) は JavaScript のものです。
+  ます)。`valuesFn` で要約してください。`pivotLonger` で、名前 (`namesTransform` の後) が同じキーに同じ `".value"`
+  の列を 2 回与えるとエラーにします (tidyr はそれぞれに行を作ります。issue #444)。正規表現 (`namesSep`、
+  `namesPattern`) は JavaScript のものです。
 - **`merge` と `cbind`** は列の名前が重なるとエラーにします。R は許しますが、列のオブジェクトでは同じ名前の列を
   2 つ持てないためです。
 

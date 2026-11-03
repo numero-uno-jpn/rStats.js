@@ -777,7 +777,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   every group (R would also make list columns).
 - **`pivotLonger` and `pivotWider`** return the data frame; tidyr's warnings go to the optional `onWarning`
   callback. A cell that several rows fill is an error in `pivotWider` (tidyr warns and makes a list column):
-  summarise them with `valuesFn`. Regular expressions (`namesSep`, `namesPattern`) are JavaScript's.
+  summarise them with `valuesFn`. In `pivotLonger`, names (after `namesTransform`) that give one `".value"` column
+  twice for the same key are an error (tidyr makes a row for each; issue #444). Regular expressions (`namesSep`,
+  `namesPattern`) are JavaScript's.
 - **`merge` and `cbind`** throw on a duplicated column name, which R allows but an object of columns cannot hold.
 
 ### Linear models

@@ -32,7 +32,8 @@ export interface PivotLongerOptions {
   namesPattern?: string;
   /**
    * Functions applied to the parts, by `namesTo` column (the part as a string; missing parts stay missing). Own
-   * properties only: a `namesTo` column named toString has no transform unless one is given.
+   * properties only: a `namesTo` column named toString has no transform unless one is given. The transform of
+   * `".value"` gives the names of the value columns, and must return strings.
    */
   namesTransform?: Readonly<Record<string, (part: string) => DataValue>>;
   /** The name of the value column (without `".value"` in `namesTo`). Default `"value"`. */
@@ -174,6 +175,14 @@ function separated(names: readonly string[], sep: string, count: number, warning
   return parts;
 }
 
+/** The transform of a `namesTo` column (own properties only: toString has no transform unless one is given, #436) */
+function ownTransform(
+  transforms: PivotLongerOptions["namesTransform"],
+  to: string,
+): ((part: string) => DataValue) | undefined {
+  return transforms !== undefined && Object.hasOwn(transforms, to) ? transforms[to] : undefined;
+}
+
 /** The parts of each name, one per element of `namesTo` */
 function nameParts(
   names: readonly string[],
@@ -246,6 +255,7 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataF
   } else {
     const keyIndex = new Map<string, number>();
     const valueIndex = new Map<string, LongValue>();
+    const valueTransform = ownTransform(options.namesTransform, ".value");
     parts.forEach((p, c) => {
       const key = p.filter((_, j) => j !== valuePosition);
       const id = JSON.stringify(key);
@@ -256,7 +266,13 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataF
         keys.push(key);
         for (const v of values) v.sources.push(null);
       }
-      const name = p[valuePosition] ?? "NA";
+      // the transform of ".value" names the value columns, as tidyr (missing parts stay missing)
+      const part = p[valuePosition] ?? null;
+      const transformed = part === null || valueTransform === undefined ? part : valueTransform(part);
+      if (transformed !== null && typeof transformed !== "string") {
+        throw new Error(`the transform of \`.value\` must give strings, not ${typeof transformed}`);
+      }
+      const name = transformed ?? "NA";
       let value = valueIndex.get(name);
       if (value === undefined) {
         value = { name, sources: keys.map(() => null) };
@@ -289,8 +305,7 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataF
   for (const name of allNames) if (!cols.includes(name)) addColumn(out, name, pick(data[name]!, inputRows));
   namesTo.forEach((to, j) => {
     if (j === valuePosition) return;
-    const transforms = options.namesTransform;
-    const transform = transforms !== undefined && Object.hasOwn(transforms, to) ? transforms[to] : undefined;
+    const transform = ownTransform(options.namesTransform, to);
     const part = (k: number): DataValue => {
       const p = keys[k]![j < valuePosition || valuePosition < 0 ? j : j - 1]!;
       return p === null || transform === undefined ? p : transform(p);
