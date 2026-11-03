@@ -85,7 +85,12 @@ export function ode(y: readonly number[], times: readonly number[], func: OdeFun
         const inc = h6 * (k1[i]! + 2 * k2[i]! + 2 * k3[i]! + k4[i]!);
         if (plain && Number.isFinite(inc)) return v + inc;
         const quarter = k1[i]! / 4 + k2[i]! / 2 + k3[i]! / 2 + k4[i]! / 4;
-        return v + ((h * scale * quarter) / 1.5) / scale;
+        const scaled = h * scale * quarter;
+        if (Number.isFinite(scaled) || !Number.isFinite(quarter)) return v + scaled / 1.5 / scale;
+        // the scaled product overflows for a large slope (ode([0], [0, 0.5], () => [1e308]) was Infinity for 5e307,
+        // #394): there h quarter is far above the normal range and needs no scale; where it overflows too, with h / 2
+        const p = h * quarter;
+        return v + (Number.isFinite(p) ? p / 1.5 : 2 * (((h / 2) * quarter) / 1.5));
       });
     }
     out.push([times[j]!, ...state]);
