@@ -175,7 +175,10 @@ export function hessian(func: (x: number[]) => number, x: readonly number[], opt
     const a: number[] = [];
     let h = h0[i]!;
     for (let k = 0; k < r; k++) {
-      a.push((func(shifted(xs, i, h)) - 2 * f0 + func(shifted(xs, i, -h))) / h ** 2);
+      const num = func(shifted(xs, i, h)) - 2 * f0 + func(shifted(xs, i, -h));
+      // where h^2 overflows (h beyond 1.3e154), divided by h twice: a finite curvature was 0 or NaN (issue #214)
+      const h2 = h ** 2;
+      a.push(Number.isFinite(h2) ? num / h2 : num / h / h);
       h /= 2;
     }
     diag.push(extrapolate(a));
@@ -190,7 +193,11 @@ export function hessian(func: (x: number[]) => number, x: readonly number[], opt
       for (let k = 0; k < r; k++) {
         const up = shifted(shifted(xs, i, hi), j, hj);
         const down = shifted(shifted(xs, i, -hi), j, -hj);
-        a.push((func(up) - 2 * f0 + func(down) - diag[i]! * hi ** 2 - diag[j]! * hj ** 2) / (2 * hi * hj));
+        const num = func(up) - 2 * f0 + func(down);
+        const den = 2 * hi * hj;
+        if (Number.isFinite(den) && Number.isFinite(hi ** 2) && Number.isFinite(hj ** 2)) a.push((num - diag[i]! * hi ** 2 - diag[j]! * hj ** 2) / den);
+        // where a squared step or 2 hi hj overflows, every term divided by hi hj first (issue #214)
+        else a.push((num / hi / hj - diag[i]! * (hi / hj) - diag[j]! * (hj / hi)) / 2);
         hi /= 2;
         hj /= 2;
       }
