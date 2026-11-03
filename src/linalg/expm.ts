@@ -215,7 +215,8 @@ function pade(A: Mat): Mat {
 
 /**
  * Exponent p of the scaling by N = 2^p (Shapira and Firth): with nu = sqrt(|A|_1 |A|_inf), L >= 1 the smallest with
- * 2^L >= nu, p = L + 4
+ * 2^L >= nu, p = L + 4. Where A / 2^p would take a nonzero entry below the normal range (2^-1022), the floor L >= 1
+ * is dropped (p >= 0 only), keeping 2^L >= nu, that is |A / N| <= 2^-4 (rStats.js, #404; R loses the entry)
  */
 function scalingExponent(A: Mat): number {
   const n1 = oneNorm(A);
@@ -224,7 +225,13 @@ function scalingExponent(A: Mat): number {
   const nu = n1 * nInf < Infinity ? Math.sqrt(n1 * nInf) : Math.sqrt(n1) * Math.sqrt(nInf);
   let L = 1;
   while (2 ** L < nu) L++;
-  return L + 4;
+  const p = L + 4;
+  if (!A.data.some((v) => v !== 0 && Math.abs(ldexp(v, -p)) < 2 ** -1022)) return p;
+  // The product of the norms underflows: nu from the logs
+  if (nu === 0 || n1 * nInf < 2 ** -1000) return Math.max(0, Math.ceil((Math.log2(n1) + Math.log2(nInf)) / 2) + 4);
+  let L2 = L;
+  while (L2 > -4 && 2 ** (L2 - 1) >= nu) L2--;
+  return Math.max(0, L2 + 4);
 }
 
 /**
