@@ -181,13 +181,17 @@ function tPower(nu: number, ncp: number, sig: number, alt: Alternative): number 
   return ptNcp(q, nu, ncp, false) + ptNcp(-q, nu, ncp, true);
 }
 
+/**
+ * The upper critical value qnorm(1 - a): for a < 1e-8 the quantile of the upper tail a (1 - a loses digits, and rounds to
+ * 1 below 1.1e-16: sigLevel 1e-20 gave a power of 1e-30 for 2.7e-13), as for the confidence levels close to 1 elsewhere
+ */
+const upperCritical = (a: number): number => (a < 1e-8 ? (qnorm(a, { lowerTail: false }) as number) : (qnorm(1 - a) as number));
+
 /** The power of a normal test with shift `es * scale`, by pwr's rejection regions */
 function normalPower(shift: number, sig: number, alt: Alternative): number {
-  if (alt === "greater") return pnorm((qnorm(1 - sig) as number) - shift, { lowerTail: false }) as number;
+  if (alt === "greater") return pnorm(upperCritical(sig) - shift, { lowerTail: false }) as number;
   if (alt === "less") return pnorm((qnorm(sig) as number) - shift) as number;
-  return (
-    (pnorm((qnorm(1 - sig / 2) as number) - shift, { lowerTail: false }) as number) + (pnorm((qnorm(sig / 2) as number) - shift) as number)
-  );
+  return (pnorm(upperCritical(sig / 2) - shift, { lowerTail: false }) as number) + (pnorm((qnorm(sig / 2) as number) - shift) as number);
 }
 
 /** Above this, both degrees of freedom of an F test are huge enough for {@link fPowerHugeDf} */
