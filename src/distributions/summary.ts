@@ -157,7 +157,16 @@ function central(
     return left.result + right.result;
   });
   const v = c[0]!;
-  return { variance: v, skewness: c[1]! / v ** 1.5, kurtosis: c[2]! / (v * v) - 3, ok };
+  // (as in expShape: v^1.5 and v^2 underflow where v is small, kumar(1e-220, 1) had skewness and kurtosis Infinity;
+  // issue #386)
+  const d3 = v ** 1.5;
+  const d4 = v * v;
+  return {
+    variance: v,
+    skewness: d3 >= MIN_NORMAL ? c[1]! / d3 : c[1]! / v / Math.sqrt(v),
+    kurtosis: (d4 >= MIN_NORMAL ? c[2]! / d4 : c[2]! / v / v) - 3,
+    ok,
+  };
 }
 
 /** Shapes above this (Weibull's k, Kumaraswamy's a) go through expShape(); at 100 central() is still within 2e-14 */
