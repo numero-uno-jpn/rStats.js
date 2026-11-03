@@ -29,9 +29,10 @@ export interface AnovaOptions {
 /**
  * The sum of the squared effects of the columns `added` after the columns `base`, and the number of added columns
  * that are not aliased (the decrease of the residual sum of squares and the increase of the rank), for the response
- * scaled by 2^-k (src/internal/summary.ts)
+ * scaled by 2^-k (src/internal/summary.ts) and the weights by 2^-kw (kw even, so that their square roots are scaled
+ * exactly)
  */
-function addedSS(fit: LmFormulaResult, base: number[], added: number[], k: number): { ss: number; df: number } {
+function addedSS(fit: LmFormulaResult, base: number[], added: number[], k: number, kw = 0): { ss: number; df: number } {
   const cols = [...base, ...added];
   if (cols.length === 0) return { ss: 0, df: 0 };
   const rows = fit.y.flatMap((_, i) => (fit.weights === undefined || fit.weights[i] !== 0 ? [i] : []));
@@ -39,7 +40,7 @@ function addedSS(fit: LmFormulaResult, base: number[], added: number[], k: numbe
   const sw = rows.map((i) => (fit.weights === undefined ? 1 : Math.sqrt(fit.weights[i]!)));
   const q = qr(rows.map((i, k) => cols.map((j) => fit.x[i]![j]! * sw[k]!)));
   // the effects in double-double
-  const swd = ddSqrtWeights(fit.weights === undefined ? undefined : rows.map((i) => fit.weights![i]!), rows.length);
+  const swd = ddSqrtWeights(fit.weights === undefined ? undefined : rows.map((i) => ldexp(fit.weights![i]!, -kw)), rows.length);
   const kept = q.pivot.slice(0, q.rank);
   const { qty } = ddLeastSquares(
     kept.map((c) => rows.map((i, k) => ddMulNum(swd[k]!, fit.x[i]![cols[c]!]!))),
@@ -93,15 +94,30 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
   // sums of squares of the response scaled by 2^-k: F and p from them, the Sum Sq column scaled back
   const k = responseScale([fit]);
   const rss = scaledRss([fit], k)[0]!;
-  const back = (v: number): number => ldexp(v, 2 * k);
+
   if (rdf === 0) throw new Error("residual df = 0");
   // car compares the residual sum of squares with sqrt(eps) in the units of the data, which depends on them; here it
   // is compared with sqrt(eps) times the total (weighted, centred) sum of squares of the response
   const wy = fit.y.flatMap((v, i) => ((fit.weights?.[i] ?? 1) === 0 ? [] : [[fit.weights?.[i] ?? 1, ldexp(v, -k)] as const]));
-  const sw = wy.reduce((a, [w]) => a + w, 0);
-  const my = wy.reduce((a, [w, v]) => a + w * v, 0) / sw;
-  const tss = wy.reduce((a, [w, v]) => a + w * (v - my) ** 2, 0);
-  if (!(rss >= Math.sqrt(2.220446049250313e-16) * tss) || rss === 0) throw new Error("residual sum of squares is 0 (within rounding error)");
+  // Where a sum over the weights overflows (the total of the weights of 1e308, #347), the weights are divided by an
+  // even power of 2 2^kw: the sums of squares are then in units of 2^(2k + kw). kw is 0 otherwise (the same bits)
+  const evenWeightExponent = (): number => {
+    const e = Math.floor(Math.log2(wy.reduce((a, [w]) => Math.max(a, w), 0)));
+    return e - (((e % 2) + 2) % 2);
+  };
+  const weightedTss = (kw: number): number => {
+    const ws = wy.map(([w, v]) => [ldexp(w, -kw), v] as const);
+    const sw = ws.reduce((a, [w]) => a + w, 0);
+    const my = ws.reduce((a, [w, v]) => a + w * v, 0) / sw;
+    return Number.isFinite(sw) && Number.isFinite(my) ? ws.reduce((a, [w, v]) => a + w * (v - my) ** 2, 0) : NaN;
+  };
+  let kw = 0;
+  let tss = weightedTss(0);
+  if (!Number.isFinite(tss)) {
+    kw = evenWeightExponent();
+    tss = weightedTss(kw);
+  }
+  if (!(ldexp(rss, -kw) >= Math.sqrt(2.220446049250313e-16) * tss) || rss === 0) throw new Error("residual sum of squares is 0 (within rounding error)");
   // the fit's warnings (from its model matrix and summary) first, as for aov with Error(); R gives them when fitting
   const warnings: string[] = [...fit.warnings];
   const nTerms = fit.termLabels.length;
@@ -112,33 +128,45 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
   const columnsOf = (terms: Set<number>): number[] => fit.assign.flatMap((a, j) => (terms.has(a) ? [j] : []));
   const allTerms = [...new Set(fit.assign)];
   const names: string[] = [];
-  const rows: { ss: number; df: number }[] = [];
-  if (type === 3) {
-    if (fit.coefficients.some((c) => Number.isNaN(c))) throw new Error("there are aliased coefficients in the model");
-    for (const t of allTerms) {
-      const added = columnsOf(new Set([t]));
-      const base = columnsOf(new Set(allTerms.filter((u) => u !== t)));
-      names.push(t === 0 ? "(Intercept)" : fit.termLabels[t - 1]!);
-      rows.push({ ss: addedSS(fit, base, added, k).ss, df: added.length });
+  let rows: { ss: number; df: number }[] = [];
+  const termRows = (kw: number): { ss: number; df: number }[] => {
+    names.length = 0;
+    const out: { ss: number; df: number }[] = [];
+    if (type === 3) {
+      if (fit.coefficients.some((c) => Number.isNaN(c))) throw new Error("there are aliased coefficients in the model");
+      for (const t of allTerms) {
+        const added = columnsOf(new Set([t]));
+        const base = columnsOf(new Set(allTerms.filter((u) => u !== t)));
+        names.push(t === 0 ? "(Intercept)" : fit.termLabels[t - 1]!);
+        out.push({ ss: addedSS(fit, base, added, k, kw).ss, df: added.length });
+      }
+    } else {
+      // the variables of each term (from the factors attribute)
+      const varsOf = (t: number): number[] => fit.factors.flatMap((codes, v) => (codes[t - 1]! > 0 ? [v] : []));
+      for (const t of allTerms) {
+        if (t === 0) continue;
+        const vt = varsOf(t);
+        const containing = allTerms.filter((u) => u !== 0 && u !== t && vt.every((v) => fit.factors[v]![u - 1]! > 0));
+        const base = columnsOf(new Set(allTerms.filter((u) => u !== t && !containing.includes(u))));
+        const r = addedSS(fit, base, columnsOf(new Set([t])), k, kw);
+        names.push(fit.termLabels[t - 1]!);
+        out.push(r);
+      }
     }
-  } else {
-    // the variables of each term (from the factors attribute)
-    const varsOf = (t: number): number[] => fit.factors.flatMap((codes, v) => (codes[t - 1]! > 0 ? [v] : []));
-    for (const t of allTerms) {
-      if (t === 0) continue;
-      const vt = varsOf(t);
-      const containing = allTerms.filter((u) => u !== 0 && u !== t && vt.every((v) => fit.factors[v]![u - 1]! > 0));
-      const base = columnsOf(new Set(allTerms.filter((u) => u !== t && !containing.includes(u))));
-      const r = addedSS(fit, base, columnsOf(new Set([t])), k);
-      names.push(fit.termLabels[t - 1]!);
-      rows.push(r);
-    }
+    return out;
+  };
+  rows = termRows(kw);
+  if (kw === 0 && fit.weights !== undefined && rows.some((r) => !Number.isFinite(r.ss))) {
+    kw = evenWeightExponent();
+    rows = termRows(kw);
   }
-  const rms = rss / rdf;
+  const back = (v: number): number => ldexp(v, 2 * k + kw);
+  const rssW = ldexp(rss, -kw);
+  const rms = rssW / rdf;
   const table = rows.map(({ ss, df }) => {
     const f = ss / df / rms;
     return [back(ss), df, f, pf1(f, df, rdf, false, false)];
   });
-  table.push([back(rss), rdf, NaN, NaN]);
+  table.push([back(rssW), rdf, NaN, NaN]);
   return { colNames: ["Sum Sq", "Df", "F value", "Pr(>F)"], rowNames: [...names, "Residuals"], table, warnings };
 }
