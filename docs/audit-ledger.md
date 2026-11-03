@@ -5288,3 +5288,11 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規Issue [#401](https://github.com/numero-uno-jpn/rStats.js/issues/401)。再現: `const f = splinefunH([0, 1e-200], [0, 1e200], [0, 0]); f([1e-300], 1)`。座標・値・傾きは有限。t=1e-100、有限な差分1e200をh=1e-200で割ったsecantは1e400でInfinityとなるが、Hermite基底係数を掛けた微分は `(1e200/1e-200)*(6t-6t²)≈6e300` で有限。実装はsecantを先に作り、後から小さい基底係数を掛けるため+Infinityを返す。
 - #380はordinate subtraction自体のoverflow。本件は差分は有限で、その商だけがoverflowする。#399の第3微分分母、#400の値計算のh*m積とも別経路。
 - Hermite多項式の直接微分とIEEE-754範囲計算による静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
+
+
+## Audit #888 — barylag node-product underflows before its renormalization check
+
+- 対象: `src/numerics/interp.ts` SHA `aecc2664337b329edc1005fc6e2d9fbf0c706ed3` の `barylag()` 重み構築。
+- 新規Issue [#402](https://github.com/numero-uno-jpn/rStats.js/issues/402)。再現: `barylag([0, 2**-250, 2**-249, 2**-600], [1,0,0,0], [Number.MIN_VALUE])`。最初のnodeの積は順に `-2^-250`、`2^-499`（厳密な閾値 `2^-500` より大きく、再正規化されない）、次に `-2^-1099` となりbinary64で0へunderflow。事後の `m>0` 条件では復旧できず、`1/p=Infinity`。問い合わせ点はnode 0に極めて近く、正しい補間値は有限で約1だが、分子・分母がともにInfinityとなりNaN。
+- 既存Issue #14は積のoverflowと重み再正規化。本件は再正規化前の積underflowで、別経路。
+- 2のべき乗の厳密な指数計算とソース制御フローによる静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
