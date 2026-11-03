@@ -430,7 +430,9 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   NaN or truncates the margins), groups that are all constant in `dunnettTest`, `tukeyTest` and `glhtDunnett` (a
   pooled variance of 0: R's p-values are 0 in `TukeyHSD` and PMCMRplus, 1 in multcomp's `glht`), and a step `eps` of 0 or a
   non-finite `d`, `eps` or `zeroTol` in `grad`, `jacobian` and `hessian` (numDeriv's "simple" method gives NaN for
-  `eps = 0`; `d = 0` is an error there too), and a `confLevel` outside [0, 1] or NaN in `TukeyHSD` (R returns NaN
+  `eps = 0`; `d = 0` is an error there too), a step d abs(x[i]) beyond the doubles (issue #213) or of 0 (x[i] = 0
+  with `zeroTol: 0`, issue #246) in the same three (numDeriv: an error from `grad`'s check of f, NaN from `jacobian` and
+  `hessian`), and a `confLevel` outside [0, 1] or NaN in `TukeyHSD` (R returns NaN
   limits; 0 and 1 are accepted as in R), fewer than 2 break points (after dropping NaN) in `cut` (R returns NA
   codes; one break is R's error "invalid number of intervals", and infinite breaks are accepted as in R), an
   infinite or NaN explicit break in `hist` (R returns a density of 0 for an infinite cell, with an infinite or NaN

@@ -415,7 +415,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)、`poissonTest` の観察時間
   `T` が 0 (R は推定値と区間に NaN や Inf を返す)、`binomTest`・`poissonTest` でカウントの合計が溢れるもの (R は NaN かエラー)、`chisqTest` のシミュレーションで整数でない `B` や、合計が整数でない適合度検定の度数 (R の p 値は 1 を超えることがある)、`mantelhaenTest(exact: true)` の小数の度数 (R は結果を返す)、`mcnemarTest` で不一致の組がない表、符号付き順位の `wilcoxTest` で差がすべて 0、`varTest` で両群とも定数、`chisqTest` の分割表のシミュレーションで小数の度数 (R は NaN を返すか、周辺度数を切り捨てる)、`dunnettTest`・`tukeyTest`・`glhtDunnett` で全群が定数 (プールした分散が 0。R の p 値は `TukeyHSD` と PMCMRplus で 0、multcomp の `glht` で 1)、`grad`・`jacobian`・
   `hessian` の 0 の刻み `eps` や、有限でない `d`・`eps`・`zeroTol` (numDeriv の "simple" 法は `eps = 0` で NaN を返す。`d = 0` は
-  numDeriv でもエラー)、`TukeyHSD` の [0, 1] の外か NaN の `confLevel` (R は区間の端に NaN を返す。0 と 1 は R と同じく受け付ける)、
+  numDeriv でもエラー)、同じ 3 関数で刻み d abs(x[i]) が double の範囲を超えるもの (Issue #213) や 0 になるもの (x[i] = 0 で `zeroTol: 0`。
+  Issue #246) (numDeriv は `grad` が f の値の検査でエラー、`jacobian` と `hessian` は NaN)、`TukeyHSD` の [0, 1] の外か NaN の `confLevel` (R は区間の端に NaN を返す。0 と 1 は R と同じく受け付ける)、
   `cut` で (NaN を除いて) 2 個未満の区切り (R は NA の区間番号を返す。1 個は R でもエラー "invalid number of intervals"。無限の区切りは
   R と同じく受け付ける)、`hist` の無限か NaN の区切り (R は無限の幅のセルに密度 0 と無限か NaN の中点を返す)、`approx` の 1・2 以外の
   `rule` (R は 3、0、1.5 など 1 以外の値をすべて rule 2 として扱う)。

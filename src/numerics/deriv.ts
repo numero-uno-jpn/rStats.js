@@ -54,7 +54,13 @@ function steps(x: readonly number[], options: DerivOptions, d0: number): Steps {
   if (!(Number.isFinite(zeroTol) && zeroTol >= 0)) throw new RangeError("'zeroTol' must be a non-negative finite number");
   const r = options.r ?? 4;
   if (!(Number.isInteger(r) && r >= 1)) throw new RangeError("'r' must be a positive integer");
-  return { eps, r, h0: x.map((v) => Math.abs(d * v) + (Math.abs(v) < zeroTol ? eps : 0)) };
+  const h0 = x.map((v) => Math.abs(d * v) + (Math.abs(v) < zeroTol ? eps : 0));
+  // a step that is not positive and finite defines no difference quotient: d abs(x[i]) overflowing (#213), or 0 for
+  // x[i] = 0 with zeroTol 0 (#246) (numDeriv: NaN from jacobian and hessian, an error from grad's check of f)
+  h0.forEach((h, i) => {
+    if (!(h > 0 && h < Infinity)) throw new RangeError(`the step for x[${i}] is ${h}: not a positive finite number`);
+  });
+  return { eps, r, h0 };
 }
 
 /** Richardson extrapolation of approximations at steps h, h/2, h/4, ... (errors in even powers of h) */

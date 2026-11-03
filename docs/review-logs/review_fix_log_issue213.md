@@ -1,6 +1,6 @@
 # Issue #213 log: grad, jacobian and hessian accept relative steps d x that overflow
 
-GitHub Issue #213. Session 11, judging of the issues classified C. Verdict: **Awaiting decision.** The issue's example (grad) already throws, as the triage found, but the same step gives a silent NaN in jacobian and hessian, which the issue also names. No code was changed.
+GitHub Issue #213. Session 11, judging of the issues classified C. Then user decision 6 (option A, with #246). Fixed: a step that is not positive and finite is an error in `grad`, `jacobian` and `hessian`.
 
 ## Plan
 
@@ -18,13 +18,25 @@ GitHub Issue #213. Session 11, judging of the issues classified C. Verdict: **Aw
 
 grad's error comes from the check of the function's values (f(+-Infinity) is NaN), not from a check of the step; jacobian and hessian have no such check and return NaN, as numDeriv does.
 
-## Options
+## Decision (user decision 6)
 
-- **A (recommended):** in `steps()`, throw a RangeError where a step d abs(x_i) (or the zero-coordinate step) is not finite, e.g. "the step d * abs(x) is not finite", for grad, jacobian and hessian alike (policy "meaningless input is an error": a step beyond the double range cannot be evaluated). numDeriv gives NaN for jacobian and hessian, so the docs record the difference.
-  - Pros: one check in the shared helper; a clear message; grad's behaviour is unchanged in substance. Cons: R difference for jacobian and hessian.
-- **B:** form the differences in scaled coordinates (x / 2^k, with f evaluated at 2^k times the shifted point) so that the step is finite.
-  - Pros: returns the derivative. Cons: f must be evaluated at x +- h anyway, which is beyond the double range; there is no point to evaluate, so this cannot work in general.
-- **C:** not planned: the same as numDeriv for all three.
+Option A of the judging, which was recommended (the others were B: scaled coordinates, which cannot work as f must be evaluated beyond the doubles; C: not planned). One check covers #246 (a step of 0). numDeriv gives NaN for jacobian and hessian, so the docs record the difference in the list of meaningless input that is an error.
+
+## Fix
+
+- `src/numerics/deriv.ts`, `steps()` (shared by the Richardson method of grad, jacobian and hessian): after the steps h0 = d abs(x[i]) (+ eps where abs(x[i]) < zeroTol) are formed, a step that is not positive and finite throws `RangeError("the step for x[i] is h: not a positive finite number")`. Finite positive steps are unchanged, so every result that was computed keeps its bits. A NaN coordinate now throws here as well (its step is NaN). The "simple" method does not use these steps and is unchanged.
+- `docs/differences-from-r.md` and `docs/ja/differences-from-r.md`: added to "Input that has no meaning is an error" next to the other numDeriv entries.
+
+| Call | before | after |
+|---|---|---|
+| `grad(x => x[0] / 1e308, [1e308], { d: 2 })` | RangeError "func returned NaN at step Infinity from x" | RangeError "the step for x[0] is Infinity: not a positive finite number" |
+| `jacobian(x => [x[0] / 1e308], [1e308], { d: 2 })` | [[NaN]] | the same RangeError |
+| `hessian(x => x[0] / 1e308, [1e308], { d: 2 })` | [[NaN]] | the same RangeError |
+
+## Tests
+
+- `test/issue213.test.ts`: the three calls throw the message above. With `src/` stashed, it fails (jacobian and hessian return NaN, grad's message differs).
+- `test/issue214.test.ts`, `test/numerics.test.ts`, `test/review49.test.ts` pass; `npx tsc --noEmit -p .`: no errors.
 
 ## Out of scope
 
@@ -32,4 +44,4 @@ grad's error comes from the check of the function's values (f(+-Infinity) is NaN
 
 ## close comment
 
-Awaiting a decision; see review_fix_log_issue213.md. (Not pushed yet.)
+Fixed in <commit of #213, see git log --grep='#213'>. grad already threw for the issue's call, but only from its check of the function's values (f at x +- Infinity is NaN); jacobian and hessian returned [[NaN]], as numDeriv does. The steps of the Richardson method are now checked where they are formed, for grad, jacobian and hessian alike: a step d abs(x[i]) that is not positive and finite throws RangeError "the step for x[0] is Infinity: not a positive finite number". The same check covers a step of 0 (x[i] = 0 with zeroTol 0, #246). Finite steps are unchanged. numDeriv returns NaN for jacobian and hessian here; the difference is recorded in docs/differences-from-r.md. A test was added: test/issue213.test.ts. (Not pushed yet.)
