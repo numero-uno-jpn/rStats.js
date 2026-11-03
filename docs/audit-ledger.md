@@ -4734,3 +4734,44 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
   powerAnovaTest({groups:1e200,n:1e200,betweenVar:1e8,withinVar:1e308});
   ```
   direct noncentrality expressionはInfinityになる。fallbackも `(groups-1)*n` を先に計算してInfinityとし、その後1e-300を掛けるためInfinityのまま。完全な数式上のnoncentralityは約1e100で有限なのに、関数はInfinity-ncpの極限power=1を返す。ratioを先に適用してもgroup*nが先にoverflowするため、指数スケーリング等が必要。静的算術解析。極端な自由度での分布評価は未実施。
+
+
+## Audit #763 — SVD accepts fractional or infinite vector counts after dimension clamping
+- 対象: `src/linalg/svd.ts` SHA `b3904ba3e70b5fac104e22a04bacb0f68af3c6bf`。
+- Issue [#273](https://github.com/numero-uno-jpn/rStats.js/issues/273)。再現: `svd([[1,0],[0,1]],{nu:2.5})` および `svd([[1,0],[0,1]],{nv:Infinity})`。行列次元で `Math.min` した後に整数検証するため、不正な指定が2へ切り詰められて受理される。元の指定値を先に有限非負整数として検証すべき。静的ソース解析。実行テストなし。
+
+## Audit #764 — seq accepts an infinite step and silently returns the starting value
+- 対象: `src/linalg/ops.ts` SHA `29ffd657b2cb314c736daff3303cb24640a324c4` の `seq()`。
+- Issue [#274](https://github.com/numero-uno-jpn/rStats.js/issues/274)。再現: `seq(1,10,{by:Infinity})` および `seq(1,10,{by:-Infinity})`。byの有限性を検証せず、`n=del/(by*f)` が0となり、`k=0`から開始値だけを返す。有限ステップを検証すべき。静的算術解析。実行テストなし。
+
+## Audit #765 — qansariExact accepts fractional sample sizes
+- 対象: `src/htest/core/ansari.ts` SHA `50932adf99cd27e98433c2a4ff7e40ced9055d14` の `qansariExact()`。
+- Issue [#275](https://github.com/numero-uno-jpn/rStats.js/issues/275)。再現: `qansariExact(0.5,1.5,2)`。`pansariExact()` と `dansariExact()` はm,nの整数性を検証するが、qansariExactはm,n>=1しか検証しない。分数sample sizeが配列長の暗黙変換と位置選択再帰へ流れ、無効な帰無分布を構築する。静的ソース解析。実行テストなし。
+
+## Audit #766 — qansariR returns the maximum quantile for NaN probability
+- 対象: `src/htest/core/ansari.ts` SHA `50932adf99cd27e98433c2a4ff7e40ced9055d14` の `qansariR()`。
+- Issue [#277](https://github.com/numero-uno-jpn/rStats.js/issues/277)。再現: `qansariR(NaN,2,2)`。pの検証がなく、比較 `s >= NaN` は常にfalseとなるため、累積確率の探索が一度も成立せず、最後のfallbackで最大統計量を返す。確率範囲を検証し、NaNを返すか一貫した例外にすべき。静的ソース解析。実行テストなし。
+
+## Audit #767 — pearsonTest clamps CDF-one observations into the last class
+- 対象: `src/htest/normalityTests.ts` SHA `5af37c355b8fd52a9168fe5edac16ac9a8bca83f` の `pearsonTest()`。
+- Issue [#276](https://github.com/numero-uno-jpn/rStats.js/issues/276)。再現: `const x=[...Array(99).fill(0),1e6]; pearsonTest(x)`。標準化外れ値は約9.95で `pnorm(z)` が1に丸められる。現行 `Math.min(k, floor(1+k*p))` はk+1を最終クラスkへ押し込み、nortest/Rの `findInterval` + `tabulate(...,nbins=k)` が落とす観測を加算する。静的ソース解析。実行/R比較なし。
+
+## Audit #768 — fisherTest truncates fractional Monte Carlo B but reports the untruncated value
+- 対象: `src/htest/fisherTest.ts` SHA `c90cc3b96af152c34f0a2396fad60ecda9d5d32a`。
+- Issue [#278](https://github.com/numero-uno-jpn/rStats.js/issues/278)。再現: `fisherTest([[8,2,1],[1,7,3],[2,1,9]],{simulatePValue:true,B:2.5})`。検証はBの整数性を確認せず、実際の反復回数は `Math.trunc(B)=2`、p値分母は3だが、method文字列は2.5 replicatesと報告する。chisqTestのB検証と同様に整数を要求すべき。静的ソース解析。実行テストなし。
+
+## Audit #769 — poissonTest rejects zero exposure despite documenting it as supported
+- 対象: `src/htest/poissonTest.ts` SHA `61c2c6a882fc0672e73fe45b5a547b2494b4e444`。
+- Issue [#279](https://github.com/numero-uno-jpn/rStats.js/issues/279)。再現: `poissonTest(0,{T:0})` および `poissonTest(1,{T:0})`。OptionsのTはnonnegativeと記載され、実装コメントもRがT=0を受け入れると説明する一方、検証は `t>0` を要求し、rate計算前に拒否する。静的ソース/契約整合性監査。実行/R比較なし。
+
+## Audit #770 — jonckheereTest loses upper-tail p-values by subtracting the lower tail from one
+- 対象: `src/htest/trendTests.ts` SHA `5dcd1d74fbe03a551c66a352b68b004d73cd52fb` の `jonckheereTest()`。
+- Issue [#280](https://github.com/numero-uno-jpn/rStats.js/issues/280)。再現: `x=Array.from({length:101},(_,i)=>i+1)`、`g=[...Array(34).fill(1),...Array(34).fill(2),...Array(33).fill(3)]`、`jonckheereTest(x,g,{alternative:"increasing"})`。101観測でnormal approximationとなり、完全な順序付けでzが大きく正になる。現行 `upper=1-pnorm(z)` は下側確率が1に丸まると0を返す。上側確率を直接 `pnorm(z,{lowerTail:false})` で計算すべき。静的数値解析。実行テストなし。
+
+## Audit #771 — cohensD and hedgesG ignore paired=true when y is missing
+- 対象: `src/htest/effectSize.ts` SHA `cfdbd3c1ccf7623b616ace1fe94c54f49e110df3` の `standardizedDifference()`。
+- Issue [#281](https://github.com/numero-uno-jpn/rStats.js/issues/281)。再現: `cohensD([1,2,3],undefined,{paired:true})` および `hedgesG([1,2,3],undefined,{paired:true})`。`ys===undefined || paired` の分岐内で、yがない場合はone-sample経路を選び、paired指定を無視してxをmuと比較する。paired=trueなら第二標本を要求すべき。静的ソース解析。実行テストなし。
+
+## Audit #772 — exact mantelhaenTest accepts unsafe counts and attempts impossible support allocation
+- 対象: `src/htest/mantelhaenTest.ts` SHA `669a040db7481c9aad8d0da633a4e73f333b2488`、`src/htest/core/mantelhaen.ts` SHA `4b5a26bfeefa86028d47ad56711bfb92e4556b12`。
+- Issue [#282](https://github.com/numero-uno-jpn/rStats.js/issues/282)。再現: `mantelhaenTest([[[1e20,1e20],[1e20,1e20]],[[1,1],[1,1]]],{exact:true})`。`Number.isInteger(1e20)` はtrueでexact分岐を通過するが、最初の層の超幾何分布support長は約1e20となり、`stratumDensity()` の `new Float64Array(hi-lo+1)` で割当不能となる。safe-integerとsupport長の事前制限が必要。静的ソース/配列長解析。実行テストなし。
