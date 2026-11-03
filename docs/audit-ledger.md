@@ -5272,3 +5272,11 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規Issue [#399](https://github.com/numero-uno-jpn/rStats.js/issues/399)。再現: `const f = splinefunH([0, 1e200], [0, 0], [1e200, 1e200]); f([5e199], 3)`。h=1e200は有限、分子 `-12*delta+6*m0+6*m1=1.2e201` も有限。正確な商は約 `1.2e-199` でnormal doubleとして表現可能だが、実装は `h*h` を先に計算してInfinityとし、結果を0にする。有限な最終結果を中間二乗のoverflowで失う。
 - #380のordinate差分overflow、#125のknot差overflowとは異なり、本件ではordinate差分は0、knot間隔も有限で、第三微分の分母二乗のみがoverflow。
 - ソース制御フローとIEEE-754範囲計算による静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
+
+
+## Audit #886 — splinefunH value overflows h times endpoint slope before basis weighting
+
+- 対象: `src/numerics/interp.ts` SHA `aecc2664337b329edc1005fc6e2d9fbf0c706ed3` の `evalHermite()` 第0微分経路。
+- 新規Issue [#400](https://github.com/numero-uno-jpn/rStats.js/issues/400)。再現: `const f = splinefunH([0, 1e200], [0, 0], [1e200, 1e200]); f([1e100])`。t=1e-100、h=1e200、両傾き1e200。各 `h*m_i` は1e400でInfinityになるが、Hermite基底を掛けた各項は約1e300と-1e200で、最終値は約1e300と有限。実装は先に `h*m_i` を計算してから小さい基底係数を掛けるため、Infinityと-Infinityの和でNaNとなる。
+- #399は第三微分の `h*h`、本件は第0微分の `h*m_i` と基底係数の積順序の問題。#380/#125とも異なる。
+- ソース制御フローとIEEE-754範囲計算による静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
