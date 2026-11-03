@@ -77,7 +77,8 @@ export interface KappaResult {
  * the one under the null hypothesis; the p-value is computed as 2 Φ(−|z|), so small p-values are more accurate than
  * irr's.
  *
- * @param ratings - An n × 2 matrix (array of rows): the ratings of the two raters for each subject.
+ * @param ratings - An n × 2 matrix (array of rows): the ratings of the two raters for each subject, with at least 2
+ *   complete rows.
  * @param options - See {@link Kappa2Options}.
  *
  * @example
@@ -93,6 +94,8 @@ export function kappa2(ratings: readonly (readonly number[])[], options: Kappa2O
   const rows = ratings.filter((r) => !r.some(Number.isNaN));
   const n = rows.length;
   if (n === 0) throw new RangeError("no complete rating pairs");
+  // the variance of kappa is 0 / 0 with one subject (irr returns z and p NaN)
+  if (n < 2) throw new RangeError("at least 2 complete rating pairs are needed");
   const first = rows.map((r) => formatR(r[0]!));
   const second = rows.map((r) => formatR(r[1]!));
   // the levels of both raters together, sorted as strings (by code point, as in R's C locale)

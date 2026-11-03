@@ -415,7 +415,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 - **Input that has no meaning is an error** where R returns a value: for example a known standard
   deviation <= 0 in `zTest`, an infinite probability in `chisqTest`, non-binary data in
   `cochranQTest`, negative counts in `propTrendTest`, `polychor` and two-column binomial `glm`,
-  fewer than 2 subjects or raters in `icc` and `kappamFleiss`, `df <= 0` in `pwrChisqTest`, and
+  fewer than 2 subjects or raters in `icc` and `kappamFleiss`, fewer than 2 complete rating pairs in `kappa2` (irr's
+  `kappa2` gives z and p NaN; issue #309), `df <= 0` in `pwrChisqTest`, and
   a non-finite or NaN tolerance (`optim`'s `reltol`, `uniroot`, `optimize`, `integrate`, `qr`,
   `chol`, `solve`, `coxph`, `glm`), and a temperature `temp` that is not positive and finite in
   `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one),

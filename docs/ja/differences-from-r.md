@@ -407,7 +407,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 
 - **意味のない入力はエラーにする** (R は値を返す場合でも)。たとえば `zTest` の 0 以下の既知標準偏差、
   `chisqTest` の無限大の確率、`cochranQTest` の二値でないデータ、`propTrendTest`・`polychor`・二列形式の
-  二項 `glm` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`pwrChisqTest` の `df <= 0`、
+  二項 `glm` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`kappa2` の欠測のない組が 2 未満 (irr の `kappa2` は z と p が NaN。issue #309)、`pwrChisqTest` の `df <= 0`、
   非有限または NaN の許容誤差 (`optim` の `reltol`、`uniroot`、`optimize`、`integrate`、`qr`、`chol`、
   `solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value supplied
   by optim" で止まり、負の値は受け付ける)、`optim`・`optimHess` の無限大の `fnscale` (R の `optim` は開始値をそのまま value NaN、convergence 0 で返し、`optimHess` は NaN を返す。Issue #248)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
