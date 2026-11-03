@@ -27,6 +27,7 @@ import {
 import { maxOf } from "../internal/extremes.js";
 import { ldexp, scaleToUnit } from "../internal/summary.js";
 import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
+import { rescaledDot } from "../linalg/dot.js";
 
 export type { GlmFamilyName, GlmFamilySpec, GlmLink, GlmLinkName, QuasiVariance } from "./glmFamily.js";
 
@@ -1091,7 +1092,14 @@ export function glmPredict(
     if (X.some((r) => r.length !== fit.coefficients.length)) throw new RangeError("newdata must have one column per predictor of the fit");
     const off = options.newoffset === undefined ? X.map(() => 0) : Array.from(options.newoffset, (v) => ldexp(v, -k));
     if (off.length !== X.length) throw new RangeError("newoffset must have one value per row of newdata");
-    eta = X.map((r, i) => r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0) + off[i]!);
+    const used = fit.coefficients.flatMap((b, j) => (Number.isNaN(b) ? [] : [j]));
+    eta = X.map((r, i) => {
+      const s = r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0);
+      // products of finite values may overflow while x'b is in range (2 * 1e308 - 2 * 1e308): the exact inner
+      // product, as predict for lm (#174)
+      const xb = Number.isFinite(s) ? s : rescaledDot(used.map((j) => r[j]!), used.map((j) => fit.coefficients[j]!), s);
+      return xb + off[i]!;
+    });
   }
   const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(checkDispersion(options.dispersion), -2 * k);
   const rank = fit.rank;
