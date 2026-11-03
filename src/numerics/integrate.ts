@@ -166,8 +166,10 @@ export function optimize(
   };
   // upper - lower or upper + lower overflows (both finite): search over u = x/2 on (lower/2, upper/2) with tol/2 (the
   // search did not return: optimize((x / 1e308)^2, -1e308, 1e308), and with the midpoint 0.5 (a + b) = Infinity,
-  // optimize((x / 1e308 - 1.05)^2, 1e308, 1.1e308); R too)
-  const x = Number.isFinite(upper - lower) && Number.isFinite(upper + lower)
+  // optimize((x / 1e308 - 1.05)^2, 1e308, 1.1e308); R too); also where an end is beyond Number.MAX_VALUE / 2, as the
+  // midpoint of a bracket narrowed near it overflows (optimize((x / 1e308 + 1.6)^2, -1.7e308, 1e306), #212)
+  // (2 lower and 2 upper finite imply that upper - lower and upper + lower are)
+  const x = Number.isFinite(2 * lower) && Number.isFinite(2 * upper)
     ? localMin(fn, lower, upper, tol).x
     : 2 * localMin((u) => fn(2 * u), lower * 0.5, upper * 0.5, tol * 0.5).x;
   return { optimum: x, objective: f(x) };
