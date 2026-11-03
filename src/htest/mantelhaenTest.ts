@@ -110,7 +110,7 @@ function stratumTotal(t: readonly (readonly number[])[]): number {
 
 /**
  * The even power of 2 to divide all counts by where the totals or sums over the strata overflow: the largest count
- * then below 2^1020 / (8 I J K), so that the totals and the sums over the strata are finite (#224). The
+ * then below 2^1020 / (8 I J K), so that the totals and the sums over the strata are finite (#224, #226). The
  * statistics are homogeneous in the counts (the count 1 in t - 1 becomes 2^-s), so they are scaled back exactly
  */
 function countExponent(strata: readonly (readonly (readonly number[])[])[]): number {
@@ -133,13 +133,8 @@ function scaledStrata<T extends readonly (readonly number[])[]>(strata: readonly
   return strata.map((t) => t.map((r) => r.map((v) => ldexp(v, -s))) as unknown as T);
 }
 
-function asymptotic2x2xK(
-  tables: readonly Stratum[],
-  totals: readonly number[],
-  alternative: Alternative,
-  correct: boolean,
-  confLevel: number,
-): MantelhaenTestResult {
+/** Sums over the strata of the 2 x 2 x K test, in units of 2^s counts (one = 2^-s is the count 1 in those units) */
+function sums2x2xK(tables: readonly Stratum[], totals: readonly number[], one: number) {
   let sa = 0;
   let se = 0;
   let sv = 0;
@@ -158,8 +153,8 @@ function asymptotic2x2xK(
     // products of counts near 1e150 overflow (the variance was Infinity / Infinity = NaN; R too): the ratios first there
     const e = (r1 * c1) / t;
     se += Number.isFinite(e) ? e : (r1 / t) * c1;
-    const v = (r1 * r2 * c1 * c2) / (t * t * (t - 1));
-    sv += Number.isFinite(v) ? v : (r1 / t) * (r2 / t) * (c1 / (t - 1)) * c2;
+    const v = (r1 * r2 * c1 * c2) / (t * t * (t - one));
+    sv += Number.isFinite(v) ? v : (r1 / t) * (r2 / t) * (c1 / (t - one)) * c2;
     const P = (a + d) / t;
     const Q = (b + c) / t;
     const ad = (a * d) / t;
@@ -172,15 +167,38 @@ function asymptotic2x2xK(
     sPSQR += P * S + Q * R;
     sQS += Q * S;
   });
+  return { sa, se, sv, sR, sS, sPR, sPSQR, sQS };
+}
+
+function asymptotic2x2xK(
+  tables: readonly Stratum[],
+  totals: readonly number[],
+  alternative: Alternative,
+  correct: boolean,
+  confLevel: number,
+): MantelhaenTestResult {
+  let sums = sums2x2xK(tables, totals, 1);
+  // a total or a sum over the strata overflows (finite counts near 1e308; NaN before, R fails, #226): all counts
+  // divided by an even power of 2, 2^s. The differences, variances and odds ratio terms are of degree 1 in the
+  // counts, so the statistic is 2^s times the scaled one, the estimate unchanged, and the sd of its log 2^(-s/2) times
+  let s = 0;
+  if (!totals.every(Number.isFinite) || !Object.values(sums).every(Number.isFinite)) {
+    s = countExponent(tables);
+    const scaled = scaledStrata(tables, s);
+    sums = sums2x2xK(scaled, scaled.map(stratumTotal), ldexp(1, -s));
+  }
+  const { sa, se, sv, sR, sS, sPR, sPSQR, sQS } = sums;
   const delta = sa - se;
-  const yates = correct && Math.abs(delta) >= 0.5 ? 0.5 : 0;
-  const statistic = squareOver(Math.abs(delta) - yates, sv);
+  // the correction 1/2 in the units of the sums
+  const half = ldexp(0.5, -s);
+  const yates = correct && Math.abs(delta) >= half ? half : 0;
+  const statistic = ldexp(squareOver(Math.abs(delta) - yates, sv), s);
   const pValue =
     alternative === "two.sided"
       ? pgamma1(statistic, 0.5, 2, false, false)
       : pnorm(Math.sign(delta) * Math.sqrt(statistic), { lowerTail: alternative === "less" });
   const estimate = sR / sS;
-  const sd = Math.sqrt(sPR / (2 * sR * sR) + sPSQR / (2 * sR * sS) + sQS / (2 * sS * sS));
+  const sd = ldexp(Math.sqrt(sPR / (2 * sR * sR) + sPSQR / (2 * sR * sS) + sQS / (2 * sS * sS)), -s / 2);
   let confInt: [number, number];
   if (alternative === "less") confInt = [0, estimate * Math.exp(qnorm(confLevel) * sd)];
   else if (alternative === "greater") confInt = [estimate * Math.exp(qnorm(confLevel, { lowerTail: false }) * sd), Infinity];
