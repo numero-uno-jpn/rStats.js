@@ -81,7 +81,8 @@ export function pAdjust(
   if (!(n >= lp)) throw new RangeError("n must be at least the number of non-NaN p-values");
   // (an infinite number of comparisons: BY's harmonic sum never ended, and holm gave 1 for every p-value; R stops)
   if (n === Infinity) throw new RangeError("n must be finite");
-  if (n <= 1) return all;
+  // no p-values to adjust (empty or all NaN): returned before hommel builds n - lp padding values (#306)
+  if (n <= 1 || lp === 0) return all;
   const pv = idx.map((i) => all[i]!);
   const adj = adjust(pv, method, n);
   const out = all.slice();
