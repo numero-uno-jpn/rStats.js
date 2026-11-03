@@ -511,10 +511,15 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       let mode = 0;
       if (r > 1) {
         const guess = Math.floor(((r - 1) * q) / p);
+        // With mu much smaller than size, q = 1 - p loses its digits (0 where p rounds to 1) and the guess is far below
+        // the mode, which the search then walked one by one (size 1e100, mu 1e30 did not end; issue #236 follow-up):
+        // there the guess from (r - 1) / r mu. The search ends at the same mode from either start.
+        const near = has(P, "mu") && guess < 2 ** 53 ? Math.floor(((r - 1) / r) * P.mu!) : guess;
         // Beyond 2^53 the integers are not all doubles (mode + 1 = mode, and the search did not end): the rounded value
         if (!(guess < 2 ** 53)) mode = guess;
+        else if (!(near < 2 ** 53)) mode = near;
         else {
-          mode = Math.max(0, guess - 1);
+          mode = Math.max(0, near - 1);
           while (ok(mode + 1)) mode++;
           while (mode > 0 && !ok(mode)) mode--;
         }

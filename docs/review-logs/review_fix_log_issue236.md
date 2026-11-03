@@ -33,8 +33,39 @@ The median stays NaN: qnbinom returns NaN for quantiles beyond 2^53 (the policy 
 
 - With mu much smaller than size, q = 1 - p loses digits, so the mean (r q / p) is not mu: `nbinom(size 1e308, mu 1)` has mean 0 and variance 0, `nbinom(size 1e308, mu 1e300)` mean 1.0000000039e300. negbinomial.ts forms p and q in double-double for this reason; distSummary does not. A fix (taking q = mu / (size + mu) directly, or the mean as mu) changes the bits of ordinary values, so it is left as a note.
 
+## Follow-up (session 11, user decision 5)
+
+### Plan
+
+- Intent: `distSummary("nbinom", { size: 1e100, mu: 1e30 })` did not end (before #236 as well). Located with a copy of summary.ts whose mode search throws after 1e6 steps and whose qnbinom is a counted copy: the mode search passed 1e6 steps; qnbinom was not reached. p = size / (size + mu) rounds to 1, q = 1 - p to 0, the guess (r - 1) q / p is 0, and the search walked up from 0 toward 1e30 one step at a time (beyond 2^53 it could never end, as mode + 1 = mode). The same happens wherever mu is far below size, for example size 1e30 or 1e100 with mu 1e10.
+- Method: with mu given and the old guess below 2^53, start from floor(((r - 1) / r) mu) instead (no overflow, a few ulps from the boundary). The search for the last x with x r <= (r - 1) mu ends at the same mode from any start, so every mode the old search reached is unchanged; where the new guess is 2^53 or more, it is the mode (the existing rule beyond 2^53). Guesses of 2^53 or more from q are kept as they were.
+- qnbinom itself is fine: `qnbinom(0.5, 1e100, { mu: 1e30 })` = 1e30 in 3 evaluations of the distribution function, and R's `qnbinom(0.5, size = 1e100, mu = 1e30)` is also 1e30 (0x1.93e5939a08ceap+99). No docs entry (distSummary is not an R function, qnbinom agrees with R).
+
+### Check
+
+| call | Before | After |
+|---|---|---|
+| `nbinom(size 1e100, mu 1e30)` | does not end (search past 1e6 steps) | mode 1e30, median 1e30 (R 1e30) |
+| `nbinom(size 1e30, mu 1e10)`, `(size 1e100, mu 1e10)` | does not end | mode 1e10, median 1e10, 3 steps |
+| `nbinom(size 1e100, mu 1e10 + 0.5)`, `(size 1e30, mu 123456.5)` | | mode and median 1e10 and 123456 (R's qnbinom the same) |
+| 20000 random (size, mu) from 1e-4 to 1e20 and small integers, all ending before | | all seven values the same bits (counted copies of both versions) |
+
+### Fix
+
+- `src/distributions/summary.ts`, `case "nbinom"`: the start of the mode search from (r - 1) / r mu with mu.
+
+### Tests
+
+- `test/issue236.test.ts`: the two follow-up blocks (the calls above, and values that were already reached). The calls that did not end before are left out of the stash check (`-t` on the unchanged block, which passes there); their old behavior was checked with the counted copy.
+- `npx vitest run`: 355 files passed (2822 tests passed, 38 skipped). `npx tsc --noEmit -p .`: no errors.
+
+### Out of scope
+
+- The other values for these parameters come from q = 1 - p as before: for size 1e100, mu 1e30 the mean, variance and sd are 0 and skewness and kurtosis NaN (the mean should be mu = 1e30). This is the note above (q losing its digits for mu much smaller than size), still left for a decision.
+- The mode test x r <= (r - 1) mu rounds r - 1 to r for size beyond 2^53, so for an integer mu (size 1e30, mu 1e10) the mode is mu, while floor(mu - mu / size) is mu - 1 (a tie only in exact arithmetic would make both modes). The same before the fix where the search ended (size 1e20, mu 1e10 gives 1e10); unchanged here.
+
 ## close comment
 
-Fixed in <commit of #236, see git log --grep='#236'>: where size + mu overflows, `distSummary("nbinom")` now forms p = size / (size + mu) from the halved parameters (exact at these magnitudes), so `distSummary("nbinom", { size: 1e308, mu: 1e308 })` is the summary for prob = 1/2: mean 1e308, mode 1e308, sd 1.414e154, variance Infinity (2e308 overflows). The median stays NaN, as `qnbinom` returns NaN for quantiles beyond 2^53 (the same for `prob: 0.5`). Values where the sum is finite are unchanged.
+Fixed in <commits of #236, see git log --grep='#236'>: where size + mu overflows, `distSummary("nbinom")` now forms p = size / (size + mu) from the halved parameters (exact at these magnitudes), so `distSummary("nbinom", { size: 1e308, mu: 1e308 })` is the summary for prob = 1/2: mean 1e308, mode 1e308, sd 1.414e154, variance Infinity (2e308 overflows). The median stays NaN, as `qnbinom` returns NaN for quantiles beyond 2^53 (the same for `prob: 0.5`). Values where the sum is finite are unchanged. A follow-up fixes `distSummary("nbinom", { size: 1e100, mu: 1e30 })`, which did not end: with mu far below size, q = 1 - p rounded to 0 and the mode search walked up from 0 one step at a time; it now starts at floor((size - 1) / size mu), so the mode and median are 1e30 (R's qnbinom also gives 1e30). Modes the search reached before are unchanged. The mean for such parameters is still formed from the rounded q (0 here), as noted in the log.
 
 Test: test/issue236.test.ts. (Not pushed yet.)

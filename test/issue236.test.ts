@@ -47,3 +47,39 @@ describe("issue #236", () => {
     expect(distSummary("nbinom", { size: 1, mu: Infinity }).mean).toBeNaN();
   });
 });
+
+// Follow-up: with mu far below size, q = 1 - p rounded to 0 and the mode search started at 0 and walked to mu one by one
+// (size 1e100, mu 1e30 did not end). Before the fix these tests do not end: the stash check leaves them out and a copy
+// with a loop counter showed the search passing 1e6 steps.
+describe("issue #236 follow-up: nbinom with mu far below size", () => {
+  it("ends for size 1e100, mu 1e30 with the mode and median at 1e30", () => {
+    const s = distSummary("nbinom", { size: 1e100, mu: 1e30 });
+    // mode floor(mu (size - 1) / size) and R's qnbinom(0.5, 1e100, mu = 1e30) round to 1e30
+    expect(s.mode).toBe(1e30);
+    expect(s.median).toBe(1e30);
+  });
+
+  it("finds the mode below 2^53 (R's qnbinom for the median)", () => {
+    // mode floor(mu - mu / size): 1e10 and 123456; qnbinom(0.5, ...) in R: 1e10 and 123456
+    const a = distSummary("nbinom", { size: 1e100, mu: 1e10 + 0.5 });
+    expect([a.mode, a.median]).toEqual([1e10, 1e10]);
+    const b = distSummary("nbinom", { size: 1e30, mu: 123456.5 });
+    expect([b.mode, b.median]).toEqual([123456, 123456]);
+  });
+});
+
+describe("issue #236 follow-up: unchanged values", () => {
+  it("keeps the summary where the search ended before", () => {
+    // values before the fix
+    expect(distSummary("nbinom", { size: 1e20, mu: 1e10 })).toEqual({
+      mean: 10000011930.633959,
+      variance: 10000011931.633963,
+      sd: 100000.05965815202,
+      median: 10000000000,
+      mode: 10000000000,
+      skewness: 0.000009999994036188359,
+      kurtosis: 9.999988074380274e-11,
+    });
+    expect(distSummary("nbinom", { size: 1e100, mu: 2.5 }).mode).toBe(2);
+  });
+});
