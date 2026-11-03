@@ -5,6 +5,8 @@
 
 import { expRand, normRand, unifRand } from "./rng.js";
 import { generate } from "./common.js";
+import { ddExp } from "../internal/ddexp.js";
+import { ddAdd, ddLog, ddMulNum } from "../special/dd.js";
 
 /**
  * Random numbers from the uniform distribution. Equivalent to R's `runif()`.
@@ -201,6 +203,11 @@ export function rweibull(n: number, shape: number, options: { scale?: number } =
     if (!Number.isFinite(shape) || !Number.isFinite(scale) || scale === 0) {
       return scale === 0 ? 0 : NaN;
     }
-    return scale * Math.pow(-Math.log(unifRand()), 1 / shape);
+    const e = -Math.log(unifRand());
+    const p = Math.pow(e, 1 / shape);
+    // for a small shape the power can overflow although the variate is in range for a small scale (R gives Inf): in
+    // logs then, double-double so that the large log keeps its digits
+    if (p !== Infinity) return scale * p;
+    return ddExp(ddAdd(ddLog([scale, 0]), ddMulNum(ddLog([e, 0]), 1 / shape)))[0];
   });
 }

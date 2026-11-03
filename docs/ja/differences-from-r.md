@@ -327,6 +327,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | polycor の `polyserial(x * 1e200, y, std.err = TRUE)` (平方和が溢れる) | rho 0、chisq NaN | x のときと同じ値 (レビューの例では rho 0.589) |
 | `rexp(n, rate = 1e-310)` (正の rate で 1 / rate が溢れる) | 警告付きの NaN (乱数は引かない) | 乱数 `exp_rand() / rate` (指数乱数がおよそ 0.018 未満でなければ Inf)。1 個につき指数乱数を 1 個引く |
 | `set.seed(7)` の後の `rnorm(1, mean = -1e308, sd = 1e308)` (sd Z は溢れるが mean + sd Z は溢れない。issue #396) | Inf | 1.2872471613405238e308 (mean + sd Z が有限でないときだけ、mean と sd を半分にして同じ和を作り 2 倍する。乱数は同じ) |
+| `set.seed(19)` の後の `rweibull(1, shape = 0.001, scale = 2^-1074)` ((-log u)^(1/shape) は溢れるが乱数の値は溢れない。issue #408) | Inf | 103020481.1280669 (冪が溢れるときだけ、scale (-log u)^(1/shape) を double-double の log から作る。一様乱数は同じ) |
 | `rcond(diag(c(1, 1e-310)))` など、逆行列のノルムが double の範囲を超える正則な行列 (`triangular = TRUE`、正方でない行列、`solve` の条件数の検査も) | 0 | 1e-310。推定の途中で逆行列との積が溢れたら、すべてのベクトルを 2 の冪で割って (厳密) 推定し直し、結果を戻す。それでも溢れるときだけ 0 |
 | `backsolve(diag(1e-308, 2), c(1, 2))`、`forwardsolve(..., transpose = TRUE)` (`solve` も) | NaN、Inf (溢れた成分との 0 * Inf)。`solve` は rcond = 0 で止まる | 1e308、Inf。溢れた成分は有限の値の代わりなので、厳密に 0 の係数は飛ばす |
 | `solve(1e308 * matrix(c(1, 1, 1, -1), 2), c(1, 0))` と逆行列 (消去で -1e308 - 1e308 が溢れる)、`solve(matrix(c(1, 1, 1, -1), 2), c(1.7e308, -1.7e308))` (代入で溢れる) | (1e-308, 0)、0 を含む逆行列。-Inf、Inf | (5e-309, 5e-309)、逆行列 (±5e-309)。(0, 1.7e308)。入力が有限で U か解が有限でないときは、行列を 2 の冪で割った複製 (条件数の検査と同じもの) の LU で解く。必要なら右辺も最大の要素の 2 の冪で割り、最後に 1 回で戻す |
