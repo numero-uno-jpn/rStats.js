@@ -13,6 +13,7 @@ import { pnorm } from "../distributions/normal.js";
 import { numberLevels } from "../internal/levels.js";
 import { mean, satterthwaiteDf, scaleToUnit, sum, variance } from "../internal/summary.js";
 import { solve } from "../linalg/solve.js";
+import { ddAdd, ddDivNum, ddMul, ddSub, type DD } from "../special/dd.js";
 import { formatR } from "./core/simulate.js";
 import { matchChoice } from "./power.js";
 import { checkConfLevelOpen } from "./types.js";
@@ -269,7 +270,11 @@ export function icc(ratings: readonly (readonly number[])[], options: IccOptions
   const msc = variance(cols.map((c) => mean(c))) * n;
   const msw = mean(rows.map((r) => variance(r)));
   const ssTotal = variance(rows.flat()) * (n * k - 1);
-  const mse = (ssTotal - msr * (n - 1) - msc * (k - 1)) / ((n - 1) * (k - 1));
+  // the residual sum of squares by subtraction; where it cancels to below 2^-20 of the total (or to 0 or less) it
+  // is formed directly from the residuals in double-double (#392: subject and rater effects of 1e8 with an
+  // interaction of 1 gave mse 0, ICC 1 and F Infinity)
+  const ssE = ssTotal - msr * (n - 1) - msc * (k - 1);
+  const mse = ssE > 2 ** -20 * ssTotal ? ssE / ((n - 1) * (k - 1)) : residualSumOfSquares(rows) / ((n - 1) * (k - 1));
   const upper = (F: number, d1: number, d2: number): number => pf1(F, d1, d2, false, false);
   // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
   const q = (d1: number, d2: number): number =>
@@ -408,4 +413,22 @@ export function partialR(x: readonly (readonly number[])[], i: number, j: number
     }
   }
   return P[0]![1]! / Math.sqrt(P[0]![0]! * P[1]![1]!);
+}
+
+/** The residual sum of squares of the two-way layout, sum (x - row mean - column mean + grand mean)^2, in double-double */
+function residualSumOfSquares(rows: readonly (readonly number[])[]): number {
+  const n = rows.length;
+  const k = rows[0]!.length;
+  const sumDD = (v: readonly number[]): DD => v.reduce<DD>((a, x) => ddAdd(a, [x, 0]), [0, 0]);
+  const rm = rows.map((r) => ddDivNum(sumDD(r), k));
+  const cm = rows[0]!.map((_, j) => ddDivNum(sumDD(rows.map((r) => r[j]!)), n));
+  const gm = ddDivNum(sumDD(rows.flat()), n * k);
+  let ss: DD = [0, 0];
+  rows.forEach((r, i) =>
+    r.forEach((x, j) => {
+      const e = ddAdd(ddSub(ddSub([x, 0], rm[i]!), cm[j]!), gm);
+      ss = ddAdd(ss, ddMul(e, e));
+    }),
+  );
+  return ss[0] + ss[1];
 }
