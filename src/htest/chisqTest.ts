@@ -24,7 +24,7 @@ import { logFactorialTable, MAX_TABLE_TOTAL, rcont2 } from "../random/r2dtable.j
 import { sampleIntReplaceDrawer } from "../random/sample.js";
 import { ldexp, productOver, squareOver } from "../internal/summary.js";
 import { compareCodePoints } from "../models/modelFrame.js";
-import { ddAdd, type DD } from "../special/dd.js";
+import { ddAdd, ddDiv, ddMul, ddSub, type DD } from "../special/dd.js";
 import { simulatedMethod } from "./core/simulate.js";
 import type { HTest, Counts } from "./types.js";
 
@@ -66,7 +66,8 @@ export interface ChisqTestResult extends Omit<HTest, "alternative"> {
   /**
    * Standardized residuals `(O - E) / sqrt(V)`, where `V` is
    * `E (1 - row proportion) (1 - column proportion)` for a contingency table and
-   * `n p (1 - p)` for goodness of fit.
+   * `n p (1 - p)` for goodness of fit. For a contingency table the complements are the other rows' and columns'
+   * sums over the total, and the residual and `V` are computed in double-double.
    */
   stdres: number[] | number[][];
 }
@@ -371,7 +372,6 @@ function contingency(x: number[][], options: ChisqTestOptions): ChisqTestResult 
   } else {
     stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => squareOver(d, E[i]![j]!))));
   }
-  const V = E.map((r, i) => r.map((e, j) => e * (1 - sr[i]! / n) * (1 - sc[j]! / n)));
   return {
     method,
     statistic: stat,
@@ -382,6 +382,79 @@ function contingency(x: number[][], options: ChisqTestOptions): ChisqTestResult 
     observed: x,
     expected: E,
     residuals: diff.map((r, i) => r.map((d, j) => d / Math.sqrt(E[i]![j]!))),
-    stdres: diff.map((r, i) => r.map((d, j) => d / Math.sqrt(V[i]![j]!))),
+    stdres: contingencyStdres(x, n, sr, sc, E, diff),
   };
+}
+
+/**
+ * Standardized residuals (O - E) / sqrt(E (1 - row proportion) (1 - column proportion)) of a contingency table
+ * (#382). The complements 1 - row proportion and 1 - column proportion are the sums of the other rows and columns
+ * over n, and the margins, E, O - E and the variance are in double-double, rounded once at the end: 1 - sr / n in
+ * double lost the small margins (2^52 and 0.1: 0 for the complement, so -Infinity; integer tables such as
+ * [[1e15, 7], [3, 11]] were off by 8e-4), and O - E with E rounded to double was 0 in the cell of 2^52. A total
+ * beyond the double range keeps the old formula
+ */
+function contingencyStdres(
+  x: readonly (readonly number[])[],
+  n: number,
+  sr: readonly number[],
+  sc: readonly number[],
+  E: readonly (readonly number[])[],
+  diff: readonly (readonly number[])[],
+): number[][] {
+  if (!Number.isFinite(n)) {
+    return diff.map((r, i) => r.map((d, j) => d / Math.sqrt(E[i]![j]! * (1 - sr[i]! / n) * (1 - sc[j]! / n))));
+  }
+  const srD = x.map((r) => ddSumOf(r));
+  const scD = x[0]!.map((_, j) => ddSumOf(x.map((r) => r[j]!)));
+  const nD = ddSumOfDD(srD);
+  const cr = othersSums(srD);
+  const cc = othersSums(scD);
+  const rowC = cr.map((c) => ddDiv(c, nD));
+  const colP = scD.map((c) => ddDiv(c, nD));
+  const colC = cc.map((c) => ddDiv(c, nD));
+  return x.map((r, i) =>
+    r.map((v, j) => {
+      const e = ddMul(srD[i]!, colP[j]!);
+      const d = ddSub([v, 0], e);
+      const dd = d[0] + d[1];
+      const V = ddMul(ddMul(e, rowC[i]!), colC[j]!);
+      const vv = V[0] + V[1];
+      if (vv >= MIN_NORMAL || dd === 0) return dd / Math.sqrt(vv);
+      // a variance below the normal range: divide by the square roots in turn
+      const ee = e[0] + e[1];
+      const rc = rowC[i]![0] + rowC[i]![1];
+      const ccj = colC[j]![0] + colC[j]![1];
+      return dd / Math.sqrt(ee) / Math.sqrt(rc) / Math.sqrt(ccj);
+    }),
+  );
+}
+
+const MIN_NORMAL = 2 ** -1022;
+
+function ddSumOf(x: readonly number[]): DD {
+  let s: DD = [0, 0];
+  for (const v of x) s = ddAdd(s, [v, 0]);
+  return s;
+}
+
+function ddSumOfDD(x: readonly DD[]): DD {
+  let s: DD = [0, 0];
+  for (const v of x) s = ddAdd(s, v);
+  return s;
+}
+
+/** For each i, the double-double sum of the entries other than x[i] (prefix and suffix sums) */
+function othersSums(x: readonly DD[]): DD[] {
+  const m = x.length;
+  const suffix: DD[] = new Array(m + 1);
+  suffix[m] = [0, 0];
+  for (let i = m - 1; i >= 0; i--) suffix[i] = ddAdd(x[i]!, suffix[i + 1]!);
+  const out: DD[] = [];
+  let prefix: DD = [0, 0];
+  for (let i = 0; i < m; i++) {
+    out.push(ddAdd(prefix, suffix[i + 1]!));
+    prefix = ddAdd(prefix, x[i]!);
+  }
+  return out;
 }
