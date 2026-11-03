@@ -407,7 +407,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 
 - **意味のない入力はエラーにする** (R は値を返す場合でも)。たとえば `zTest` の 0 以下の既知標準偏差、
   `chisqTest` の無限大の確率、`cochranQTest` の二値でないデータ、`propTrendTest`・`polychor`・二列形式の
-  二項 `glm` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`kappa2` の欠測のない組が 2 未満 (irr の `kappa2` は z と p が NaN。issue #309)、`tTest` で平均が 0 のときも含めて標準誤差が 0 (0 だけの標本や、対の差がすべて 0。"data are essentially constant"。R の判定はそこで `0 < 0` になり、t が NaN か ±Inf の結果を返す。issue #314)、`adTest`・`cvmTest`・`lillieTest`・`sfTest`・`pearsonTest` の無限の観測値 (nortest の `pearson.test(c(1:7, Inf))` は空の分類から P = 8、p = 0.0183 を返し、`sf.test` は NaN。ほかはエラー。issue #304)、`pwrChisqTest` の `df <= 0`、
+  二項 `glm` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`kappa2` の欠測のない組が 2 未満 (irr の `kappa2` は z と p が NaN。issue #309)、`tTest` で平均が 0 のときも含めて標準誤差が 0 (0 だけの標本や、対の差がすべて 0。"data are essentially constant"。R の判定はそこで `0 < 0` になり、t が NaN か ±Inf の結果を返す。issue #314)、`adTest`・`cvmTest`・`lillieTest`・`sfTest`・`pearsonTest` の無限の観測値 (nortest の `pearson.test(c(1:7, Inf))` は空の分類から P = 8、p = 0.0183 を返し、`sf.test` は NaN。ほかはエラー。issue #304)、`flignerTest` で中央値が無限の群 (偏差が Inf − Inf になる。R はその NaN を最後の順位にし、`fligner.test(c(1, Inf, 2, 3), c("a", "a", "b", "b"))` は 2.476、p 0.116。issue #329)、`pwrChisqTest` の `df <= 0`、
   非有限または NaN の許容誤差 (`optim` の `reltol`、`uniroot`、`optimize`、`integrate`、`qr`、`chol`、
   `solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value supplied
   by optim" で止まり、負の値は受け付ける)、`optim`・`optimHess` の無限大の `fnscale` (R の `optim` は開始値をそのまま value NaN、convergence 0 で返し、`optimHess` は NaN を返す。Issue #248)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。

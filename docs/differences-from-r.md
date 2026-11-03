@@ -420,7 +420,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   zero paired differences: "data are essentially constant"; R's guard is `0 < 0` there and it returns t NaN or ±Inf;
   issue #314), an infinite observation in `adTest`, `cvmTest`, `lillieTest`, `sfTest` and `pearsonTest` (nortest's
   `pearson.test(c(1:7, Inf))` returns P = 8, p = 0.0183 from an empty classification, `sf.test` NaN; the others stop;
-  issue #304), `df <= 0` in `pwrChisqTest`, and
+  issue #304), a group with an infinite median in `flignerTest` (its deviations are Inf - Inf; R ranks the NaN last:
+  `fligner.test(c(1, Inf, 2, 3), c("a", "a", "b", "b"))` gives 2.476, p 0.116; issue #329), `df <= 0` in `pwrChisqTest`, and
   a non-finite or NaN tolerance (`optim`'s `reltol`, `uniroot`, `optimize`, `integrate`, `qr`,
   `chol`, `solve`, `coxph`, `glm`), and a temperature `temp` that is not positive and finite in
   `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one),

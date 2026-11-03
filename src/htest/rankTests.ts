@@ -310,6 +310,9 @@ export function flignerTest(x: Sample | readonly Sample[] | string, g?: readonly
       return grp.map((v) => Math.abs(v - m));
     });
   let centred = deviations(groups);
+  // a group whose median is infinite (half its values infinite, or both infinities) has deviations Inf - Inf: no
+  // order, so no ranks (#329). An infinite value about a finite median ranks last, as in R
+  if (centred.some(Number.isNaN)) throw new RangeError("a group has an infinite median: its deviations are undefined");
   // deviations of finite data that overflow (1e308 from medians of -1e308 and -9e307 both gave Infinity, tied; R too):
   // all groups divided by one common power of 2 first, which keeps the order of the deviations across groups
   if (centred.some((v) => v === Infinity) && groups.every((grp) => grp.every(Number.isFinite))) {
