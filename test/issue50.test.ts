@@ -15,8 +15,9 @@ describe("issue #50", () => {
     expect(rel(b.pValue, 0.11959096225282952)).toBeLessThan(1e-13);
   });
 
-  it("is NaN with one score left (R: NA) and an error with none (R: 0 (non-NA) cases)", () => {
-    expect(propTrendTest([1, 2, 3, 4], [10, 10, 10, 10], [NaN, NaN, NaN, 4]).statistic).toBeNaN();
+  // one score left: NaN here before #318 (R: NA), now an error
+  it("is an error with one score left (R: NA) and with none (R: 0 (non-NA) cases)", () => {
+    expect(() => propTrendTest([1, 2, 3, 4], [10, 10, 10, 10], [NaN, NaN, NaN, 4])).toThrow("at least 2 distinct non-missing scores are needed");
     expect(() => propTrendTest([1, 2, 3, 4], [10, 10, 10, 10], [NaN, NaN, NaN, NaN])).toThrow("no non-missing scores");
   });
 
