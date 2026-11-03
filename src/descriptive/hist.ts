@@ -305,16 +305,19 @@ export function hist(x: Sample, options: HistOptions = {}): HistResult {
 }
 
 /**
- * count / (n (b - a)), R's density of the cell [a, b]. Where the width b - a of finite ends overflows (#228), from the
- * width ws = b / 2 - a / 2 divided by its power of 2, 2^e: count 2^-(e + 1) / (n ws 2^-e), the products by powers of 2
- * exact, so the density is rounded once (also where it is subnormal). Elsewhere R's expression, unchanged
+ * count / (n (b - a)), R's density of the cell [a, b]. Where n (b - a) overflows for finite ends (the width itself,
+ * #228, or only its product with n, #259), from the width ws (b - a, or b / 2 - a / 2 = (b - a) 2^-s with s = 1 where
+ * the width overflows) divided by its power of 2, 2^e: count 2^-(e + s) / (n ws 2^-e). The products by powers of 2 are
+ * exact (count is an integer below 2^53), so the density is rounded once (also where it is subnormal). Elsewhere R's
+ * expression, unchanged
  */
 function cellDensity(count: number, n: number, a: number, b: number): number {
   const w = b - a;
-  if (!(w === Infinity && Number.isFinite(a) && Number.isFinite(b))) return count / (n * w);
-  const ws = b / 2 - a / 2;
+  if (!(n * w === Infinity && Number.isFinite(a) && Number.isFinite(b))) return count / (n * w);
+  const s = w === Infinity ? 1 : 0;
+  const ws = s === 1 ? b / 2 - a / 2 : w;
   const e = Math.floor(Math.log2(ws));
-  return ldexp(count, -(e + 1)) / (n * ldexp(ws, -e));
+  return ldexp(count, -(e + s)) / (n * ldexp(ws, -e));
 }
 
 /** 0-based cell of `v` among the (shifted) breaks `f`, or -1 when it is in no cell */
