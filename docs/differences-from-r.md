@@ -662,6 +662,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   the column first. Contrasts are `contr.treatment` (default), `contr.sum` and `contr.helmert` (and `contr.poly` in
   `lmer`). A
   formula that cannot be parsed throws "invalid formula: ..." instead of R's parse error.
+  A variable name starts with a Unicode letter, a letter number (such as Ⅰ), `.` or a digit that is not ASCII
+  (`.` followed by an ASCII digit starts a number; `_` cannot start a name), and goes on with letters, numbers that are
+  not symbols, combining marks, `.` and `_` (`転帰 ~ 年齢` works). This is wider than R on Windows, which takes no
+  combining marks (`नमस्ते`, Thai with vowel signs, a decomposed é) and no character outside the BMP (`𝐀`, CJK
+  Extension B) in a name; R on Linux takes both.
 - **The warnings of a fit** (`lm`, `aov` with or without `Error()`; such as "Error() model is singular" or an
   absent variable named in `contrasts`) are carried to `anova` (of all the fits compared), car's `Anova`, `aovSummary`
   and the effect sizes computed from them, each message once (R gives them when fitting only).

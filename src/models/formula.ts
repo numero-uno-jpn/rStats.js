@@ -43,6 +43,14 @@ type Token =
 
 const invalid = (why: string): Error => new SyntaxError(`invalid formula: ${why}`);
 
+/**
+ * A syntactic name (#461): it starts with a letter, a letter number, `.` or a digit that is not ASCII (an ASCII digit,
+ * or `.` and an ASCII digit, starts a number; `_` cannot start a name), and goes on with letters, numbers that are not
+ * symbols, combining marks, `.` and `_`. The classes are Unicode properties: R on Windows takes the same letters and
+ * digits, but no combining marks and nothing outside the BMP (R on Linux takes both, from glibc's tables).
+ */
+const NAME = /^(?:[\p{L}\p{Nl}.]|(?![0-9])\p{Nd})[\p{L}\p{Nl}\p{Nd}\p{M}._]*/u;
+
 function tokenize(s: string, allowBars: boolean): Token[] {
   const out: Token[] = [];
   let i = 0;
@@ -58,10 +66,10 @@ function tokenize(s: string, allowBars: boolean): Token[] {
       i += m[0].length;
       continue;
     }
-    if (/[A-Za-z.]/.test(c)) {
-      const m = /^[A-Za-z.][A-Za-z0-9._]*/.exec(s.slice(i))!;
-      out.push({ kind: "name", text: m[0] });
-      i += m[0].length;
+    const name = NAME.exec(s.slice(i));
+    if (name !== null) {
+      out.push({ kind: "name", text: name[0] });
+      i += name[0].length;
       continue;
     }
     if (s.startsWith("%in%", i)) {
