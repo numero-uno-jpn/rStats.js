@@ -456,8 +456,28 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
     for (let i = 0; i < n; i++) rss += w[i]! * fitResiduals[i]! ** 2;
   }
   const fitted = fittedValues.filter((_, i) => fitRow[i]);
+  // The residual sum of squares for the weights divided by 2^kw is rss 2^rs. rs is 0 unless a positive weight falls
+  // below the normal range when divided by 2^kw (#388: weights 1e308 and 5e-324, the second row's contribution was
+  // lost and sigma 0): rss is then the sum of w r^2 with the original weights, each term formed as
+  // (w 2^(2a - ks)) (r 2^-a)^2 (a the exponent of r) so that nothing overflows, in units of 2^ks (ks even, from the
+  // largest term)
+  let rs = 0;
+  if (W !== undefined && W.some((v) => v !== 0 && ldexp(v, -kw) < MIN_NORMAL)) {
+    const terms = fitRows.flatMap((i, k) => {
+      const r = residuals[i]!;
+      return r === 0 ? [] : [{ w: W[k]!, r, a: Math.floor(Math.log2(Math.abs(r))) }];
+    });
+    if (terms.length > 0 && terms.every((t) => Number.isFinite(t.r))) {
+      const top = Math.max(...terms.map((t) => Math.log2(t.w) + 2 * t.a));
+      const ks = 2 * Math.floor(Math.floor(top) / 2);
+      let sum = 0;
+      for (const t of terms) sum += ldexp(t.w, 2 * t.a - ks) * ldexp(t.r, -t.a) ** 2;
+      rss = sum;
+      rs = ks - kw;
+    }
+  }
   const resvar = rss / dfResidual;
-  const sigma = ldexp(Math.sqrt(resvar), kw / 2);
+  const sigma = ldexp(Math.sqrt(resvar), (kw + rs) / 2);
 
   // (R'R)^-1 of the leading rank x rank block, in pivot order, for the weights divided by 2^kw (R scaled by 2^-kw/2,
   // exact): (R'R)^-1 of the given weights overflowed for weights below 1e-308, making the standard errors Infinity
@@ -471,7 +491,7 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   const piv = q.pivot.slice(0, rank);
   const order = piv.map((col, k) => [col, k] as const).sort((a, b) => a[0] - b[0]);
   const estimate = order.map(([col]) => coefficients[col]!);
-  const stdError = order.map(([, k]) => ldexp(Math.sqrt(covUnscaled[k]![k]! * resvar), -colScale[k]! - rShift));
+  const stdError = order.map(([, k]) => ldexp(Math.sqrt(covUnscaled[k]![k]! * resvar), rs / 2 - colScale[k]! - rShift));
   const tValue = estimate.map((e, i) => e / stdError[i]!);
   const pValue = tValue.map((t) => 2 * pt1(-Math.abs(t), dfResidual, true, false));
 
@@ -490,7 +510,7 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   };
   const dfInt = intercept ? 1 : 0;
   const numdf = rank - dfInt;
-  const core: LmCore = { result, fitRows, effects: (pf?.effects ?? []).map((e) => ldexp(e, kw / 2)), rss: ldexp(rss, kw) };
+  const core: LmCore = { result, fitRows, effects: (pf?.effects ?? []).map((e) => ldexp(e, kw / 2)), rss: ldexp(rss, kw + rs) };
   // nothing beyond the intercept: R^2 = 0 and no F test, as in summary.lm
   if (numdf === 0) return core;
   let mss = 0;
@@ -501,9 +521,9 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
     for (let i = 0; i < n; i++) m += (w[i]! * fitted[i]!) / sumw;
     for (let i = 0; i < n; i++) mss += w[i]! * (fitted[i]! - m) ** 2;
   } else for (let i = 0; i < n; i++) mss += w[i]! * fitted[i]! ** 2;
-  result.rSquared = mss / (mss + rss);
+  result.rSquared = mss / (mss + ldexp(rss, rs));
   result.adjRSquared = 1 - (1 - result.rSquared) * ((n - dfInt) / dfResidual);
-  const fValue = mss / numdf / resvar;
+  const fValue = ldexp(mss / numdf / resvar, -rs);
   result.fStatistic = { value: fValue, numdf, dendf: dfResidual };
   result.fPValue = pf1(fValue, numdf, dfResidual, false, false);
   return core;
