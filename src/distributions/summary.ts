@@ -483,9 +483,17 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         kurt = c[2]! / (c[0]! * c[0]!) - 3;
       } else {
         skewness = ((N - 2 * m) * Math.sqrt(N - 1) * (N - 2 * k)) / (Math.sqrt(k * m * n * (N - k)) * (N - 2));
-        kurt =
-          ((N - 1) * N * N * (N * (N + 1) - 6 * m * n - 6 * k * (N - k)) + 6 * k * m * n * (N - k) * (5 * N - 6)) /
-          (k * m * n * (N - k) * (N - 2) * (N - 3));
+        const num = (N - 1) * N * N * (N * (N + 1) - 6 * m * n - 6 * k * (N - k)) + 6 * k * m * n * (N - k) * (5 * N - 6);
+        const den = k * m * n * (N - k) * (N - 2) * (N - 3);
+        if (Number.isFinite(num) && Number.isFinite(den)) kurt = num / den;
+        else {
+          // the products overflow: numerator and denominator divided by N^5, in p = m / N, q = n / N, f = k / N and
+          // g = (N - k) / N (m = n = k = 1e150 gave NaN for about -1e-150; issue #244)
+          const pq = (m / N) * (n / N);
+          const fg = (k / N) * ((N - k) / N);
+          const a = 1 + 1 / N - 6 * pq - 6 * fg;
+          kurt = ((1 - 1 / N) * a + 6 * pq * fg * (5 - 6 / N)) / (k * pq * ((N - k) / N) * ((1 - 2 / N) * (1 - 3 / N)));
+        }
       }
       return make(mean, variance, qhyper(0.5, m, n, k), mo, skewness, kurt);
     }
