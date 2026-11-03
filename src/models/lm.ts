@@ -15,18 +15,20 @@
 import { pf1 } from "../distributions/f.js";
 import { pt1, qt1 } from "../distributions/t.js";
 import { chol2invColumns } from "../internal/scaledInverse.js";
-import type { MatrixInput } from "../linalg/matrix.js";
+import { rangeExponent, type MatrixInput } from "../linalg/matrix.js";
 import { qr, qrCoef, qrResid, type QR } from "../linalg/qr.js";
 import { ldexp, norm2, scaleToUnit } from "../internal/summary.js";
 import { maxOf } from "../internal/extremes.js";
 import { ddAdd, ddDiv, ddMul, ddMulNum, ddSub, type DD } from "../special/dd.js";
-import { ddLeastSquares, ddSqrtWeights, ddSumSquares } from "./ddLeastSquares.js";
+import { ddLeastSquares, ddSqrt, ddSqrtWeights, ddSumSquares } from "./ddLeastSquares.js";
 import type { Sample } from "../htest/types.js";
 import { parseFormula } from "./formula.js";
 import type { DataFrame } from "./modelFrame.js";
 import { design, type Design, type ModelMatrixOptions } from "./modelMatrix.js";
 import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
 import { rescaledDot } from "../linalg/dot.js";
+
+const MIN_NORMAL = 2 ** -1022;
 
 /**
  * Options for {@link lm}.
@@ -262,14 +264,32 @@ export interface LmCore {
 
 /**
  * The coefficients, fitted values, residuals, effects and sums of squares of a fit recomputed in double-double on the
- * columns kept by the double-precision decomposition q (its rank and pivoting decide what is aliased)
+ * columns kept by the double-precision decomposition q (its rank and pivoting decide what is aliased), with the
+ * weights divided by 2^kw (kw even)
  */
-function preciseFit(Xall: number[][], Yall: number[], Wall: number[] | undefined, fitRows: number[], q: QR, intercept: boolean) {
+function preciseFit(Xall: number[][], Yall: number[], WallGiven: number[] | undefined, kw: number, fitRows: number[], q: QR, intercept: boolean) {
   const rank = q.rank;
   const piv = q.pivot.slice(0, rank);
-  const sw = ddSqrtWeights(Wall === undefined ? undefined : fitRows.map((i) => Wall[i]!), fitRows.length);
-  const cols = piv.map((j) => fitRows.map((i, k) => ddMulNum(sw[k]!, Xall[i]![j]!)));
-  const { qty, coef } = ddLeastSquares(cols, fitRows.map((i, k) => ddMulNum(sw[k]!, Yall[i]!)));
+  const Wall = WallGiven?.map((v) => ldexp(v, -kw));
+  // sqrt(w 2^-kw); where w 2^-kw falls below the normal range, sqrt(w) 2^(-kw/2) (#194: with weights 1e308 and
+  // 1e-308, 1e-308 2^-1022 underflowed to 0 before the square root and the row was left out, its column aliased)
+  const sw = ddSqrtWeights(Wall === undefined ? undefined : fitRows.map((i) => Wall[i]!), fitRows.length).map((s, k) => {
+    if (WallGiven === undefined || Wall === undefined) return s;
+    const w = WallGiven[fitRows[k]!]!;
+    if (w === 0 || Wall[fitRows[k]!]! >= MIN_NORMAL) return s;
+    const r = ddSqrt([w, 0]);
+    return [ldexp(r[0], -kw / 2), ldexp(r[1], -kw / 2)] as DD;
+  });
+  // a column whose largest entry is outside [2^-256, 2^256] divided by its power of 2 (exact; Q'y does not change, the
+  // coefficient is divided back): its squares underflowed in the decomposition (#194, a column of 1e-308 sqrt(w)
+  // gave the norm 0 and NaN coefficients)
+  const cols = piv.map((j) => {
+    const c = fitRows.map((i, k) => ddMulNum(sw[k]!, Xall[i]![j]!));
+    const e = rangeExponent(c.map((d) => d[0]));
+    return { c: e === 0 ? c : c.map((d): DD => [ldexp(d[0], -e), ldexp(d[1], -e)]), e };
+  });
+  const { qty, coef: coefScaled } = ddLeastSquares(cols.map(({ c }) => c), fitRows.map((i, k) => ddMulNum(sw[k]!, Yall[i]!)));
+  const coef = coefScaled.map((b, k): DD => (cols[k]!.e === 0 ? b : [ldexp(b[0], -cols[k]!.e), ldexp(b[1], -cols[k]!.e)]));
   const coefficients = Xall[0]?.map(() => NaN) ?? [];
   piv.forEach((j, k) => (coefficients[j] = coef[k]![0]));
   // fitted values x'b of every row (aliased coefficients count as 0)
@@ -381,7 +401,7 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   const maxW = W === undefined ? 1 : maxOf(W);
   const kw = Number.isFinite(maxW) ? 2 * Math.floor(Math.floor(Math.log2(maxW)) / 2) : 0;
   const scaleW = (v: number): number => ldexp(v, -kw);
-  const pf = precise ? preciseFit(Xall, Yall, Wall?.map(scaleW), fitRows, q, intercept) : undefined;
+  const pf = precise ? preciseFit(Xall, Yall, Wall, kw, fitRows, q, intercept) : undefined;
   const coefficients = pf?.coefficients ?? qrCoef(q, Yw);
   const residuals: number[] = pf?.residuals ?? [];
   const fittedValues: number[] = pf?.fittedValues ?? [];
