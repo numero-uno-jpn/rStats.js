@@ -5242,3 +5242,9 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 
 - 対象: `src/linalg/basic.ts` SHA `27289d14624add617991541dffba05f791655d72` の `crossprod()` / `tcrossprod()`、および共通fallbackを使う `matMul()`。`src/linalg/dot.ts` SHA `eb7bb9b571c9d4879d33e4b661183a13fd410428`。
 - 新規Issue [#395](https://github.com/numero-uno-jpn/rStats.js/issues/395)。再現: `const x = Array(100).fill(1e-162); crossprod(x, x)`。入力doubleは `1e-162 = 0x1.ccb0536608d61p-539`。各積は個別に0へunderflowし、通常和は有限の0なので `Number.isFinite(s)` がtrueとなり、exact BigInt fallbackが呼ばれない。しかし実際のbinary64入力の積を厳密に合計して最後に丸めると `1e-322 = 0x0.0000000000014p-1022` となり、正のsubnormalとして表現可能。#208のfallback内で小さい残差を失う問題とは異なり、本件はfallbackに入らない問題。Python Fractionによる正確な有理数計算とsource control-flowで確認。package runtime、Vitest、R/BLAS比較は未実行。Rとの不一致は主張しない。
+
+
+## Audit #882 — rnorm finite affine result lost to intermediate overflow
+
+- 対象: `src/random/continuous.ts` SHA `5ad76e5676b4bf27c36b288f8e48ac3821bfd92a` の `rnorm1()` と、`src/random/rng.ts` / `src/random/mt.ts` / `src/random/as241.ts` の標準正規乱数生成経路。
+- 新規Issue [#396](https://github.com/numero-uno-jpn/rStats.js/issues/396)。再現: `setSeed(7); rnorm(1, { mean: -1e308, sd: 1e308 })`。seed 7のuniform列から `normRand()` は約2.287247161340524を生成するため、`sd * Z` がInfinityにoverflowする。一方、実際のbinary64入力値を厳密に計算した `mean + sd * Z` は有限で、正しく丸めると `1.2872471613405238e308`（`0x1.6e9ec2dfbf524p+1023`）。有限な平均が積のoverflowを相殺するケースで、計算順序によりInfinityを返す。Rとの互換性差異は主張せず、数値安定性の問題として登録。MT seed展開・`normRand()`・AS241のsource式を追跡し、正確有理数計算で期待値を確認。package runtime/Vitest未実行。
