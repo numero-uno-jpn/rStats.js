@@ -16,7 +16,10 @@ import { maxOf } from "../internal/extremes.js";
  * @category Random numbers
  */
 export interface SampleOptions {
-  /** Number of items to draw. Default: the number of candidates (a random permutation). */
+  /**
+   * Number of items to draw (truncated, as R; below 2^31 with `prob`). Default: the number of candidates (a random
+   * permutation).
+   */
   size?: number;
   /** Sample with replacement. Default `false`. */
   replace?: boolean;
@@ -60,6 +63,8 @@ function sampleInt1(n: number, options: SampleOptions): number[] {
   if (n === 0 && k > 0) throw new RangeError("cannot take a sample from an empty population");
 
   if (prob !== undefined) {
+    // R's weighted path takes size as an integer: 2^31 or more is rejected before any allocation or draw (#414)
+    if (k >= 2 ** 31) throw new RangeError("size must be less than 2^31 with prob");
     if (n >= 2 ** 31) throw new RangeError("n must be less than 2^31 with prob");
     if (prob.length !== n) throw new TypeError("prob must have length n");
     const p = fixupProb(prob, k, replace);
