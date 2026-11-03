@@ -238,8 +238,13 @@ function goodnessOfFit(x: number[], options: ChisqTestOptions): ChisqTestResult 
   if (p.some((v) => v < 0)) throw new RangeError("probabilities must be non-negative");
   if (p.some((v) => v === Infinity)) throw new RangeError("probabilities must be finite");
   if (options.rescaleP ?? false) {
-    const s = ddSum(p);
-    p = p.map((v) => v / s);
+    // where the total of the finite weights overflows, the weights in units of 2^e, 2^e >= k, first (each weight was
+    // divided by Inf and became 0: p = c(1e308, 1e308) gave statistic Inf, p-value 0; R too; issue #303)
+    const total = ddSum(p);
+    const e = total < Infinity ? 0 : Math.ceil(Math.log2(k));
+    const ps = e === 0 ? p : p.map((v) => ldexp(v, -e));
+    const s = e === 0 ? total : ddSum(ps);
+    p = ps.map((v) => v / s);
   } else if (Math.abs(ddSum(p) - 1) > Math.sqrt(Number.EPSILON)) {
     throw new RangeError("probabilities must sum to 1");
   }
