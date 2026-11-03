@@ -2,7 +2,7 @@
 //
 // Written for rStats.js from the textbook construction (McNemar, Psychometrika 12, 1947; no ported code):
 // sum over i < j of (n_ij - n_ji)^2 / (n_ij + n_ji), chi-squared with r (r - 1) / 2 degrees of freedom. For a 2 x 2
-// table the continuity correction replaces |n_12 - n_21| by |n_12 - n_21| - 1.
+// table the continuity correction replaces |n_12 - n_21| by max(0, |n_12 - n_21| - 1).
 
 import { pgamma1 } from "../distributions/gamma.js";
 import { ldexp, squareOver } from "../internal/summary.js";
@@ -69,7 +69,9 @@ export function mcnemarTest(
   if (useCorrection) {
     const b = table[0]![1]!;
     const c = table[1]![0]!;
-    statistic = pairTerm(Math.abs(b - c) - 1, b, c);
+    // the correction stops at 0: with fractional counts abs(b - c) can be below 1, and (abs(b - c) - 1)^2 would make the
+    // statistic larger than without it (R squares the negative difference; its chisq.test and prop.test clamp)
+    statistic = pairTerm(Math.max(0, Math.abs(b - c) - 1), b, c);
   } else {
     statistic = 0;
     // a pair of cells with no discordant counts adds nothing (0 / 0 made the statistic NaN; R too); with none at all
