@@ -27,6 +27,11 @@ htestSuite({
   // a power of 2 first, so these cases are compared with its result for the data scaled by 2^600 or 2^-600 (exact),
   // with the values in units scaled back. For nearly constant data around 1e300 that is R's own "essentially constant"
   substitute: (c) => {
+    // A standard error of 0 (samples of zeros, zero differences) is "data are essentially constant" also when the mean
+    // is 0; R's guard is 0 < 0 there and it returns t NaN or ±Inf (#314)
+    if (c.expected.stdErr === "0") {
+      return { expected: { error: "data are essentially constant" }, reason: "R returns NaN or ±Inf for a standard error of 0 with mean 0 (#314)" };
+    }
     const x = arg.vec(c.args.x)!;
     const y = arg.vec(c.args.y);
     const all = [...x, ...(y ?? [])];

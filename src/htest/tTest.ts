@@ -4,7 +4,8 @@
 // (equal_var = False is Welch) and ttest_rel (scipy/stats/_stats_py.py; SciPy commit a087e61,
 // BSD-3-Clause, see THIRD_PARTY_NOTICES.md). Defaults, confidence intervals and result names follow R's output.
 // - Welch is the default (scipy's default is equal variance)
-// - If the standard error is below 10 eps times the absolute mean, the data are treated as constant and an error is raised (as in R)
+// - If the standard error is below 10 eps times the absolute mean, the data are treated as constant and an error is raised (as in R),
+//   and also if it is 0 (R lets through samples of zeros with NaN results; #314)
 
 import { pt1, qt1 } from "../distributions/t.js";
 import { completePairs, dropNaN, ldexp, mean, pairedDifferences, satterthwaiteDf, scaleToUnit, variance } from "../internal/summary.js";
@@ -150,7 +151,8 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
   if (yv === undefined) {
     df = nx - 1;
     stdErr = Math.sqrt(vx / nx);
-    if (stdErr < 10 * Number.EPSILON * Math.abs(mx)) throw new Error("data are essentially constant");
+    // A standard error of 0 is constant data also when the mean is 0 (R's test 0 < 0 lets [0, 0] through to NaN; #314)
+    if (stdErr === 0 || stdErr < 10 * Number.EPSILON * Math.abs(mx)) throw new Error("data are essentially constant");
     tstat = (mx - muS) / stdErr;
     method = paired ? "Paired t-test" : "One Sample t-test";
     estimate = mx;
@@ -180,14 +182,14 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
       stdErr = Math.sqrt(sx + sy);
       df = satterthwaiteDf([sx, sy], [nx - 1, ny - 1]);
     }
-    if (stdErr < 10 * Number.EPSILON * Math.max(Math.abs(mx), Math.abs(my))) {
+    if (stdErr === 0 || stdErr < 10 * Number.EPSILON * Math.max(Math.abs(mx), Math.abs(my))) {
       throw new Error("data are essentially constant");
     }
     tstat = (mx - my - muS) / stdErr;
   }
 
   // The interval is centred on the estimate (R forms it as mu + (t ± q) stdErr, which cancels for a large mu). With a
-  // standard error of 0 its finite ends are NaN, as in R (t is ±Inf or NaN there)
+  // standard error of 0 its finite ends would be NaN, as in R (no longer reached: a standard error of 0 is an error above)
   const centre = typeof estimate === "number" ? estimate : estimate[0]! - estimate[1]!;
   const half = (q: number): number => (stdErr > 0 ? q * stdErr : NaN);
   let pValue: number;
