@@ -273,7 +273,11 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
         inRange
           ? (6 * ((a - b) ** 2 * (s + 1) - ab * (s + 2))) / (ab * (s + 2) * (s + 3))
           : (6 * ((pa - pb) ** 2 * ((s + 1) / (s + 2)) - pa * pb)) / (pa * pb * (s + 3)),
-        (Math.sqrt(pa) * Math.sqrt(pb)) / Math.sqrt(s + 1),
+        // (where a / s or b / s is below the normal range, the square roots taken before the ratios: beta(1e-308, 1e154)
+        // had sd 0 for 1e-308; issue #241)
+        pa >= MIN_NORMAL && pb >= MIN_NORMAL
+          ? (Math.sqrt(pa) * Math.sqrt(pb)) / Math.sqrt(s + 1)
+          : ((Math.sqrt(a) / Math.sqrt(s)) * (Math.sqrt(b) / Math.sqrt(s))) / Math.sqrt(s + 1),
       );
     }
     case "t": {
