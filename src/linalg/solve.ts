@@ -498,7 +498,10 @@ export interface RcondOptions {
   norm?: "O" | "1" | "I";
   /** Treat `x` as triangular and use only its triangle given by `uplo`. Default: `false`. */
   triangular?: boolean;
-  /** With `triangular: true`, use the upper (`"U"`) or lower (`"L"`) triangle. Default: `"U"`. */
+  /**
+   * With `triangular: true`, use the upper (`"U"`) or lower (`"L"`) triangle; any other value is an error for a
+   * square matrix (a non-square matrix uses R of its QR decomposition, as in R). Default: `"U"`.
+   */
   uplo?: "U" | "L";
 }
 
@@ -533,7 +536,12 @@ export function rcond(x: MatrixInput, options: RcondOptions = {}): number {
     const t = A.nrow < A.ncol ? transpose(A) : A;
     return trcon(toMat(qrR(qr(fromMat(t)))), true, one);
   }
-  if (options.triangular) return trcon(A, (options.uplo ?? "U") === "U", one);
+  if (options.triangular) {
+    // R: switch(uplo, U = ..., L = ..., stop(...)) for a square matrix only (any other value was taken as "L", #250)
+    const uplo = options.uplo ?? "U";
+    if (uplo !== "U" && uplo !== "L") throw new RangeError(`'uplo' must be "U" or "L"`);
+    return trcon(A, uplo === "U", one);
+  }
   const anorm = one ? oneNorm(A) : infNorm(A);
   A = { ...A, data: A.data.slice() };
   const { info } = getrf(A);
