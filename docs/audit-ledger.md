@@ -4638,3 +4638,49 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #742 — optim Brent ignores maxit
 - 対象: `src/optim/optim.ts` SHA `b0adf40e7b8433cd39111a835580a9a5b3b2108c`。
 - Issue [#252](https://github.com/numero-uno-jpn/rStats.js/issues/252)。再現: `optim([0],x=>(x[0]-0.123456789)**2,{method:"Brent",lower:-1,upper:1,control:{maxit:1}})`。Brent branchはmaxitをoptimize()に渡さず、localMin()にiteration capがないため、指定maxitを無視してtoleranceまで続行する。
+
+
+## Audit #743 — survfit log-log interval at survival 1 with zero standard error
+- 対象: `src/models/survival.ts` SHA `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de` の `survfit()`。
+- Issue [#253](https://github.com/numero-uno-jpn/rStats.js/issues/253)。再現: `survfit([1,2],[0,0],{confType:"log-log"})`。イベントなしでS=1、Greenwood SE=0なのに境界分岐がlower/upperをNaNにする。survival::survfit_confintはse=0ならpを返す。静的ソース解析。package/Vitest/R実行なし。
+
+## Audit #744 — survfit median tolerance creates a false 0.5 crossing
+- 対象: `src/models/survival.ts` SHA `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de` の `curveMedian()`。
+- Issue [#254](https://github.com/numero-uno-jpn/rStats.js/issues/254)。再現: `survfit([1,2,3],[1,0,1],{confType:"plain",confInt:0.45970860108863704})`。時刻1のlower CIは約0.50000001で真の0.5 crossingではないが、sqrt(eps)≈1.49e-8 toleranceでexact plateauとみなされ、次のevent時刻3との中点2を返す。真の最初のcrossingは時刻3。静的計算・ソース解析。実行テストなし。
+
+## Audit #745 — pivotLonger single namesTo does not validate regex captures
+- 対象: `src/descriptive/pivot.ts` SHA `7b7839d4c44daf2bc7c564493c376efb907ad8c1` の `nameParts()`。
+- Issue [#255](https://github.com/numero-uno-jpn/rStats.js/issues/255)。再現: `pivotLonger({id:[1],x1:[10],x2:[20]},{cols:["x1","x2"],namesTo:"time",namesPattern:"x[0-9]+"})`。単一namesToではregexのcapture group数を検証せず、capture groupなしなら全parsed namesがnull、複数なら先頭以外を黙って捨てる。multi-field pathはgroup数を検証する。静的ソース解析。実行テストなし。
+
+## Audit #746 — pivot ordering options silently accept unsupported values
+- 対象: `src/descriptive/pivot.ts` SHA `7b7839d4c44daf2bc7c564493c376efb907ad8c1` の `pivotLonger()` / `pivotWider()`。
+- Issue [#256](https://github.com/numero-uno-jpn/rStats.js/issues/256)。再現: `pivotLonger({id:[1],a:[10],b:[20]},{cols:["a","b"],colsVary:"slwest" as any})`、および `pivotWider({id:[1,1],time:["a","b"],value:[10,20]},{namesFrom:"time",valuesFrom:"value",namesVary:"slwest" as any})`。有効値はfastest/slowestだが、slowest以外をfastestとして処理し不正値を黙って受け入れる。静的ソース解析。実行テストなし。
+
+## Audit #747 — quantile clamps probabilities just outside [0,1]
+- 対象: `src/descriptive/quantile.ts` SHA `7fe14be52f404d0565fc5ec0cd4d953d155c2b6a` の `quantile()`。
+- Issue [#257](https://github.com/numero-uno-jpn/rStats.js/issues/257)。再現: `quantile([1,2,3],-1e-14)` または `quantile([1,2,3],1+1e-14)`。100*Number.EPSILON以内の範囲外確率を許容し、0/1にclampして端点を返す。確率契約[0,1]から外れる入力は拒否すべき。静的ソース解析。R/Vitest実行なし。
+
+## Audit #748 — histogram fuzz width overflows for finite opposite-sign data
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5` の `fuzzScale()` / `hist()`。
+- Issue [#258](https://github.com/numero-uno-jpn/rStats.js/issues/258)。再現: `hist([-1e308,1e308],{breaks:[-1e308,0,1e308]})`。br.length<=3でdataRange=hi-lo=Infinity、fuzz tauもInfinityとなり中間breakがInfinityに移動、期待counts [1,1]が[2,0]になる。有限入力のrange差を直接減算する問題。静的IEEE-754解析。実行テストなし。
+
+## Audit #749 — histogram density denominator overflows for finite bin width
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5` のdensity計算。
+- Issue [#259](https://github.com/numero-uno-jpn/rStats.js/issues/259)。再現: `hist([0,1e308],{breaks:[0,1e308]}).density`。count=2,n=2,width=1e308なので真のdensity=1e-308は表現可能だが、n*widthがInfinityとなり現行式count/(n*width)は0を返す。count/n/width等の順序なら保持可能。静的IEEE-754解析。実行テストなし。
+
+## Audit #750 — estimability test compares overflowed dot product and norms
+- 対象: `src/models/estimable.ts` SHA `01bb4704f17c7d8aed407922a94cc5457207eeba` の `nonEstimableRows()`。
+- Issue [#260](https://github.com/numero-uno-jpn/rStats.js/issues/260)。再現:
+  ```ts
+  const q = qr([[1,0,0,-1],[0,1,0,-1],[0,0,1,-1],[1,1,1,-3]]);
+  nonEstimableRows(q,3,[[1e308,1e308,1e308,1e308]]);
+  ```
+  null方向は[1,1,1,1]に比例し予測行は非直交だが、dotとnorm(x)がInfinityになりInfinity > Infinityがfalse、非estimableを見逃す。正規化してから内積・ノルム比較する必要がある。静的線形代数/IEEE-754解析。実行テストなし。
+
+## Audit #751 — omega accepts one item and returns undefined reliability statistics
+- 対象: `src/descriptive/omega.ts` SHA `0a402dc583bb209e94f6d151ae1c5f8e9e10813d` の `omega()`。
+- Issue [#261](https://github.com/numero-uno-jpn/rStats.js/issues/261)。再現: `omega([[1],[2],[3]],{nfactors:1})`。p=1,q=1を通し、alphaでp-1=0、omegaLimでVt-U=0となりNaN/Infinityを返す。単一項目ではinternal consistency reliabilityを定義できないため、少なくとも明示的に拒否する必要がある。静的ソース・数式解析。実行テストなし。
+
+## Audit #752 — tabulate skips the 2^31 size guard for inferred nbins
+- 対象: `src/descriptive/table.ts` SHA `d6a292d4eb9f040528219f8202e2ad962cfc13e0` の `tabulate()`。
+- Issue [#262](https://github.com/numero-uno-jpn/rStats.js/issues/262)。再現: `tabulate([2 ** 31])`。2^31以上を拒否するguardは明示的nbinsの分岐にしかなく、nbinsをbin最大値から推定した場合は巨大なArray.fill割当てへ進み、RangeErrorやメモリ枯渇を起こし得る。巨大割当ては実行していない。静的ソース解析。
