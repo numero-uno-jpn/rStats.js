@@ -4880,3 +4880,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #796 — pAdjust Hommel performs quadratic work for an empty p-value vector
 - 対象: `src/htest/pAdjust.ts` SHA `a9d8482a48313bc1c4874b7e2e8e3324fe3d36b3` の `pAdjust()` / `hommel()`。
 - Issue [#306](https://github.com/numero-uno-jpn/rStats.js/issues/306)。再現: `pAdjust([],{method:"hommel",n:2**32})`。非NaN p値が0件でも明示的nを受け入れ、Hommel経路がn個の1を配列確保しようとしてJSの配列長上限で失敗する。n=1e6でも出力が空なのにO(n²)ループを行う。非NaN p値が0件なら補正処理前に空結果を返すべき。静的ソース解析。巨大割当・実行テストなし。
+
+
+## Audit #797 — ksTest exact override bypasses the default matrix-size limit
+- 対象: `src/htest/ksTest.ts` SHA `b126cf4b2b6797201bb9d23c2e89421753d7ee3c` と `src/htest/core/kolmogorov.ts` SHA `7493b4af3b90843b8ad78eae718a6a1ac65f4ff3`。
+- Issue [#307](https://github.com/numero-uno-jpn/rStats.js/issues/307)。再現: `const x=Array.from({length:10000},(_,i)=>i+1); ksTest(x,()=>0.5,{exact:true})`。D=0.5でexactルーチンのm=10001となり、100,020,001要素(約800MB)の密行列を確保して行列累乗する。既定のn<100閾値は明示exact指定で迂回できるが、計算量/メモリの上限がない。実行可能性を事前評価し、上限超過を拒否または近似法へ切り替えるべき。静的ソース解析。巨大割当・実行テストなし。
+
+## Audit #798 — ansariTest exact override permits unbounded dynamic-programming storage
+- 対象: `src/htest/ansariTest.ts` SHA `9f13bb6d406d4f36761a562aed8bb17c0ce52db4` と `src/htest/core/ansari.ts` SHA `50932adf99cd27e98433c2a4ff7e40ced9055d14`。
+- Issue [#308](https://github.com/numero-uno-jpn/rStats.js/issues/308)。再現: `const x=Array.from({length:1000},(_,i)=>2*i+1); const y=Array.from({length:1000},(_,i)=>2*i+2); ansariTest(x,y,{exact:true})`。同順位がないためexact経路に入り、N=2000、maxSum≈1,001,000、P/Q各々が約1001×1,001,001個のFloat64要素(約8GB)を確保する。既定のm,n<50閾値をexact指定で迂回できるが、DP状態のメモリ/計算量上限がない。割当前に安全な状態数上限を設けるべき。静的ソース解析。巨大割当・実行テストなし。
