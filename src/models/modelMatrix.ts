@@ -235,7 +235,9 @@ export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOp
     const fv: FrameVariable = vars[v]!;
     const name = terms.variables[v]!;
     if (fv.kind === "numeric") return [{ name, values: fv.values }];
-    const contrast = code === 2 ? "indicators" : (options.allContrasts ?? options.contrasts?.[name] ?? "contr.treatment");
+    // own properties only: a factor named toString has the default contrast unless one is given
+    const given = options.contrasts !== undefined && Object.hasOwn(options.contrasts, name) ? options.contrasts[name] : undefined;
+    const contrast = code === 2 ? "indicators" : (options.allContrasts ?? given ?? "contr.treatment");
     const { m, names } = contrastMatrix(fv.levels, contrast);
     return names.map((cn, j) => ({ name: name + cn, values: fv.codes.map((c) => m[c]![j]!) }));
   };
