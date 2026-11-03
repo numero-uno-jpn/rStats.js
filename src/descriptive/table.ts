@@ -130,7 +130,7 @@ export interface CutOptions {
 /**
  * Interval numbers (1-based) of the values, or NaN outside the breaks. Equivalent to R's `cut(..., labels = FALSE)`.
  *
- * @param breaks The break points (NaN among them is dropped, as R does; fewer than 2 left give NaN codes), or a
+ * @param breaks The break points (NaN among them is dropped, as R does; fewer than 2 left are an error), or a
  *   number of intervals (at least 2): then equal intervals over the range of `x`, widened by 1/1000 of the range at
  *   each end, as R does. That range must be finite.
  *
@@ -167,7 +167,11 @@ export function cut(x: Sample, breaks: number | readonly number[], options: CutO
       br[0] = lo - dx / 1000;
       br[nb - 1] = hi + dx / 1000;
     }
-  } else br = breaks.filter((v) => !Number.isNaN(v)).sort((a, b) => a - b);
+  } else {
+    br = breaks.filter((v) => !Number.isNaN(v)).sort((a, b) => a - b);
+    // no interval to code: the error of one break (R gives NA codes for none, or one left after dropping NaN; #227)
+    if (br.length < 2) throw new RangeError("invalid number of intervals");
+  }
   if (new Set(br).size < br.length) throw new RangeError("'breaks' are not unique");
   return binCode(xs, br, right, includeLowest);
 }

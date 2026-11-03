@@ -5,7 +5,7 @@ import {
   kurtosis, mad, mean, meanAD, median, modes, prod, quantile, range, rank, scale, sd, skewness, sum, table, tabulate,
   unique, variance, weightedMean,
 } from "../src/index.js";
-import { arg, defined, htestSuite, type HTestArg } from "./helpers/htest.js";
+import { arg, defined, htestSuite, type HTestArg, type HTestSpec } from "./helpers/htest.js";
 
 type A = Record<string, HTestArg>;
 const x = (a: A): number[] => arg.vec(a.x) ?? [];
@@ -165,6 +165,16 @@ const known: Record<string, (a: A, expected: number, actual: number) => string |
   table: naAndNaN,
   unique: naAndNaN,
 };
+// Inputs without meaning that R accepts and rStats.js rejects (docs/differences-from-r.md)
+const substitutes: Record<string, NonNullable<HTestSpec["substitute"]>> = {
+  // fewer than 2 breaks left after dropping NaN: R gives NA codes, rStats.js the error of one break (#227)
+  cut: (c) => {
+    const b = arg.vec(c.args.breaks)!;
+    return b.length > 1 && b.filter((v) => !Number.isNaN(v)).length < 2
+      ? { expected: { error: "invalid number of intervals" }, reason: "cut with fewer than 2 breaks: R gives NA codes" }
+      : undefined;
+  },
+};
 // skewness and kurtosis near 0 come from cancellation (r - 3): measured absolutely
 const floors: Record<string, Record<string, number>> = { skewness: { value: 1 }, kurtosis: { value: 1 } };
 
@@ -176,6 +186,7 @@ for (const [name, call, tolerance] of suites) {
     tolerance: tolerance ?? 1e-14,
     ...(floors[name] === undefined ? {} : { floor: floors[name] }),
     ...(k === undefined ? {} : { knownDifference: (a: A, _f: string, e: number, v: number) => k(a, e, v) }),
+    ...(substitutes[name] === undefined ? {} : { substitute: substitutes[name] }),
   });
 }
 
