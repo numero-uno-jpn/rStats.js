@@ -98,9 +98,12 @@ export function rtriang(n: number, options: { a?: number; b?: number; c?: number
   const { a = -1, b = 1 } = options;
   const c = options.c ?? midpoint(a, b);
   return generate(n, () => {
-    if (!(Number.isFinite(a) && Number.isFinite(b) && a < b && a <= c && c <= b)) return NaN;
+    if (!(a < b && a <= c && c <= b)) return NaN;
     const u = unifRand();
     const v = unifRand();
+    // an infinite endpoint is NaN, as dtriang, ptriang and qtriang, after the two uniforms extraDistr draws (it gives
+    // Inf for b = Inf with a finite c, NaN otherwise; issue #428)
+    if (!(Number.isFinite(a) && Number.isFinite(b))) return NaN;
     // b - a overflows for a range wider than the largest double: then from the halves of a, b and c (exact), the
     // result doubled back (it lies in [a, b], so it is finite)
     const wide = !Number.isFinite(b - a);

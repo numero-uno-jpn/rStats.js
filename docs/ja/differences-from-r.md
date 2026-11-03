@@ -516,6 +516,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `rinvgamma` の beta が無限大なら、密度・分布・分位関数と同じく NaN です (extraDistr は 0 か Inf)。乱数は
   extraDistr と同じ数だけ引きます。`rlaplace` も同じく、無限大の mu は極限 mu (extraDistr と同じ)、sigma = Inf は
   `qlaplace` と同じく NaN です (extraDistr は符号に応じて -Inf か Inf)。extraDistr が引く指数乱数と一様乱数は引きます。
+  `rtriang` の端点が無限大なら `qtriang` と同じく NaN です (extraDistr は b = Inf で c が有限なら Inf)。extraDistr が
+  引く 2 個の一様乱数は引きます。
 - **`distSummary`** の決まり: 存在しないモーメントは NaN、無限のモーメントは Infinity。離散分布で等しい
   最大が 2 つあれば大きい方を最頻値とし、密度の最大が一意でなければ NaN です。
 
