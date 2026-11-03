@@ -70,11 +70,14 @@ const TOL = Number.EPSILON ** 0.25;
  * @category Numerical methods
  */
 export function integrate(f: (x: number) => number, lower: number, upper: number, options: IntegrateOptions = {}): IntegrateResult {
-  const limit = Math.trunc(options.subdivisions ?? 100);
+  const subdivisions = options.subdivisions ?? 100;
+  const limit = Math.trunc(subdivisions);
   const relTol = options.relTol ?? TOL;
   const absTol = options.absTol ?? relTol;
-  // infinite or negative tolerances are errors (R accepts an infinite one and returns the first, coarse estimate as converged)
-  if (!Number.isFinite(limit) || !Number.isFinite(relTol) || !Number.isFinite(absTol) || relTol < 0 || absTol < 0) {
+  // infinite or negative tolerances are errors (R accepts an infinite one and returns the first, coarse estimate as converged);
+  // subdivisions as R's as.integer: beyond the integer range it is NA and an error in R (2^32 reached the typed-array
+  // allocation, #369)
+  if (!(Math.abs(subdivisions) <= 2147483647) || !Number.isFinite(relTol) || !Number.isFinite(absTol) || relTol < 0 || absTol < 0) {
     throw new RangeError("invalid parameter values");
   }
   const stopOnError = options.stopOnError ?? true;
