@@ -8,6 +8,7 @@
 import { pf, qf } from "../distributions/f.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { pt, qt } from "../distributions/t.js";
+import { ldexp } from "../internal/summary.js";
 import { uniroot, type UnirootOptions } from "../numerics/integrate.js";
 
 const TOL = Number.EPSILON ** 0.25;
@@ -349,6 +350,17 @@ export interface PowerAnovaTestResult {
 }
 
 /**
+ * a b c / d for finite a, b, d > 0 and c >= 0, each factor scaled to [1, 2) by a power of 2 and the exponents added
+ * back at the end, so that no partial product overflows or underflows unless the result does
+ */
+function scaledProductOver(a: number, b: number, c: number, d: number): number {
+  if (c === 0) return 0;
+  const k = (v: number): number => Math.floor(Math.log2(v));
+  const [ka, kb, kc, kd] = [k(a), k(b), k(c), k(d)];
+  return ldexp((ldexp(a, -ka) * ldexp(b, -kb) * ldexp(c, -kc)) / ldexp(d, -kd), ka + kb + kc - kd);
+}
+
+/**
  * Power of the F test of a balanced one-way analysis of variance, or one of the other quantities for a given power.
  * Equivalent to R's `power.anova.test()`.
  *
@@ -373,9 +385,14 @@ export function powerAnovaTest(options: PowerAnovaTestOptions = {}): PowerAnovaT
   checkKnown(betweenVar, (v) => v >= 0 && v < Infinity, "'betweenVar' must be a nonnegative finite number");
   checkKnown(withinVar, isPositiveFinite, "'withinVar' must be a positive finite number");
   const powerOf = (groups: number, n: number, between: number, within: number, sig: number): number => {
-    // (the ratio first where the product with between overflows but the noncentrality is in range)
+    // (the ratio first where the product with between overflows but the noncentrality is in range; where
+    // (groups - 1) n itself overflows, from the four factors scaled by powers of 2: groups 3, n 1e308, between 1,
+    // within 1e308 gave the limit 1 for lambda = 2, and between 0 NaN for 0)
     let lambda = ((groups - 1) * n * between) / within;
-    if (lambda === Infinity) lambda = (groups - 1) * n * (between / within);
+    if (!(lambda < Infinity)) lambda = (groups - 1) * n * (between / within);
+    if (!(lambda < Infinity) && Number.isFinite(groups) && Number.isFinite(n)) {
+      lambda = scaledProductOver(groups - 1, n, between, within);
+    }
     const df1 = groups - 1;
     const df2 = (n - 1) * groups;
     // (a noncentrality beyond the doubles: the limit 1)
