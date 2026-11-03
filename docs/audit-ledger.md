@@ -5236,3 +5236,9 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 
 - 対象: `src/numerics/ode.ts` SHA `a9f499eade2fd6368e57e8d087220d6bcfdd23f2` の `ode()` RK4 update。
 - 新規Issue [#394](https://github.com/numero-uno-jpn/rStats.js/issues/394)。再現: `ode([0], [0, 0.5], () => [1e308], [], { method: "rk4" })`。4段の微分値はすべて有限の1e308、厳密解は5e307（有限）。通常式の重み付き和がoverflowするためfallbackへ進むが、fallbackは `h * 2^60 * quarter` の順で計算し、quarter=1.5e308自体が有限でも中間積がInfinityとなる。既存#124が扱ったsubnormal h/6と2*kのoverflowとは異なり、その修正fallback自身の積順序が原因。静的control-flow/IEEE-754解析。package runtime、Vitest、deSolve比較は未実行。
+
+
+## Audit #881 — dot products silently lose representable subnormal sums when each product underflows
+
+- 対象: `src/linalg/basic.ts` SHA `27289d14624add617991541dffba05f791655d72` の `crossprod()` / `tcrossprod()`、および共通fallbackを使う `matMul()`。`src/linalg/dot.ts` SHA `eb7bb9b571c9d4879d33e4b661183a13fd410428`。
+- 新規Issue [#395](https://github.com/numero-uno-jpn/rStats.js/issues/395)。再現: `const x = Array(100).fill(1e-162); crossprod(x, x)`。入力doubleは `1e-162 = 0x1.ccb0536608d61p-539`。各積は個別に0へunderflowし、通常和は有限の0なので `Number.isFinite(s)` がtrueとなり、exact BigInt fallbackが呼ばれない。しかし実際のbinary64入力の積を厳密に合計して最後に丸めると `1e-322 = 0x0.0000000000014p-1022` となり、正のsubnormalとして表現可能。#208のfallback内で小さい残差を失う問題とは異なり、本件はfallbackに入らない問題。Python Fractionによる正確な有理数計算とsource control-flowで確認。package runtime、Vitest、R/BLAS比較は未実行。Rとの不一致は主張しない。
