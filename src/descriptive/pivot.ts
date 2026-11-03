@@ -30,7 +30,10 @@ export interface PivotLongerOptions {
   namesSep?: string;
   /** A regular expression whose capture groups are the parts of the names. */
   namesPattern?: string;
-  /** Functions applied to the parts, by `namesTo` column (the part as a string; missing parts stay missing). */
+  /**
+   * Functions applied to the parts, by `namesTo` column (the part as a string; missing parts stay missing). Own
+   * properties only: a `namesTo` column named toString has no transform unless one is given.
+   */
   namesTransform?: Readonly<Record<string, (part: string) => DataValue>>;
   /** The name of the value column (without `".value"` in `namesTo`). Default `"value"`. */
   valuesTo?: string;
@@ -284,7 +287,8 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataF
   for (const name of allNames) if (!cols.includes(name)) addColumn(out, name, pick(data[name]!, inputRows));
   namesTo.forEach((to, j) => {
     if (j === valuePosition) return;
-    const transform = options.namesTransform?.[to];
+    const transforms = options.namesTransform;
+    const transform = transforms !== undefined && Object.hasOwn(transforms, to) ? transforms[to] : undefined;
     const part = (k: number): DataValue => {
       const p = keys[k]![j < valuePosition || valuePosition < 0 ? j : j - 1]!;
       return p === null || transform === undefined ? p : transform(p);
