@@ -188,6 +188,8 @@ export function TukeyHSD(
   // No residual variance without residual degrees of freedom (one value per group): the limits and p-values were NaN
   // (R's too). The message is tukeyTest's (#315)
   if (df === 0) throw new RangeError("no residual degrees of freedom");
+  // ptukey and qtukey (R's too) are defined from 2 df: with 1 the limits and p-values were NaN (#315)
+  if (df < 2) throw new RangeError("the studentized range needs at least 2 residual degrees of freedom");
   // means and MSE of the data scaled by 2^-e (groupMoments): the differences and limits are scaled back
   const { ssWithin: ssw, mean: means, k: e } = groupMoments(groups);
   const mse = ssw / df;

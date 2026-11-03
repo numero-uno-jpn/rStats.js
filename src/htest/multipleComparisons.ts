@@ -410,6 +410,8 @@ export function gamesHowellTest(x: Sample, g: readonly GroupLabel[]): PMCMRResul
 export function tukeyTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
   const d = layout(x, g);
   const { m, s2, df } = pooled(d);
+  // ptukey is defined from 2 df: with 1 the p-values were NaN (as TukeyHSD, #315)
+  if (df < 2) throw new RangeError("the studentized range needs at least 2 residual degrees of freedom");
   const q = lowerTable(d.k, (i, j) => (m[i]! - m[j]!) / Math.sqrt((s2 * (1 / d.n[i]! + 1 / d.n[j]!)) / 2));
   const p = q.map((row) => row.map((v) => (Number.isNaN(v) ? NaN : upperRange(v, d.k, df))));
   return allPairs(d, "Tukey's test", q, p, "single-step");
