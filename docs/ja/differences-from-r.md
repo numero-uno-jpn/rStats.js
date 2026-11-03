@@ -267,7 +267,6 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `seq(-1e308, 1e308, by = 5e307)` | 中央の値が -1.9958e292 | 0 (端点の差が溢れるので、半分にした端点の値を 2 倍する) |
 | `matrix(c(1, 3, 2, 4), 2) * 1e-60` のような小さな非対称行列の `eigen()` | 対称とみなす (平均 \|a\| <= 100 eps で `isSymmetric` が絶対差で比べる) ため固有値が誤る | 対称判定をどの尺度でも相対的に行う (`isSymmetric()` 自体は R と同じ) |
 | 値に "\r" を含む複数キー、または `NA` と文字列 "NA" での `merge()` | 異なるキーの行が結合される (キーを "\r" で連結するため) | 等しいキーだけを結合 |
-| 小数の `B` での `fisher.test`/`chisq.test(simulate.p.value = TRUE)` | 整数部分しかシミュレーションしないのに B + 1 で割る | 実際の回数 + 1 で割る |
 | `JonckheereTerpstraTest` (DescTools) の両側 p 値 | 1 を超えることがある | 最大 1 |
 | distSummary の `unif(-1e308, 1e308)` の平均、`beta(1e150, 1e150)` の分散、`triang(-1e308, 1e308, 0)` と `triang(0, 3e120, 1e120)` の歪度 | Inf、0、NaN、NaN | 0、1.25e-151、0、0.3054 (歪度は 2 の冪で割ったパラメータから) |
 | 小さな単位の共変量 x (x * 1e-4) での `aov(y ~ x + w + Error(id/w))` | x の行が消える (層への射影の平方和が 1e-5 を超える列だけを採用するため) | x の尺度によらず同じ表 (しきい値は列自身の平方和の 1e-14 倍。以前の 1e-5 × 列の平均二乗では、主に被験者間で変動する共変量の小さな被験者内成分も落ちていた) |
@@ -413,7 +412,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   by optim" で止まり、負の値は受け付ける)、`optim`・`optimHess` の無限大の `fnscale` (R の `optim` は開始値をそのまま value NaN、convergence 0 で返し、`optimHess` は NaN を返す。Issue #248)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
   `poissonTest` は事象数 0 どうしの比較を R どおり行う)、`factanal`・`omega` の `covmat` で、正方・有限・対称 (R の
   `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)、`poissonTest` の観察時間
-  `T` が 0 (R は推定値と区間に NaN や Inf を返す)、`binomTest`・`poissonTest` でカウントの合計が溢れるもの (R は NaN かエラー)、`chisqTest` のシミュレーションで整数でない `B` や、合計が整数でない適合度検定の度数 (R の p 値は 1 を超えることがある)、`mantelhaenTest(exact: true)` の小数の度数 (R は結果を返す)、`mcnemarTest` で不一致の組がない表、符号付き順位の `wilcoxTest` で差がすべて 0、`varTest` で両群とも定数、`chisqTest` の分割表のシミュレーションで小数の度数 (R は NaN を返すか、周辺度数を切り捨てる)、`dunnettTest`・`tukeyTest`・`glhtDunnett` で全群が定数 (プールした分散が 0。R の p 値は `TukeyHSD` と PMCMRplus で 0、multcomp の `glht` で 1)、`grad`・`jacobian`・
+  `T` が 0 (R は推定値と区間に NaN や Inf を返す)、`binomTest`・`poissonTest` でカウントの合計が溢れるもの (R は NaN かエラー)、`chisqTest` のシミュレーションで整数でない `B` や、合計が整数でない適合度検定の度数 (R の p 値は 1 を超えることがある)、`fisherTest` のシミュレーションで整数でない `B` (R は trunc(B) 個の表をシミュレーションし、B + 1 で割る。issue #278)、`mantelhaenTest(exact: true)` の小数の度数 (R は結果を返す)、`mcnemarTest` で不一致の組がない表、符号付き順位の `wilcoxTest` で差がすべて 0、`varTest` で両群とも定数、`chisqTest` の分割表のシミュレーションで小数の度数 (R は NaN を返すか、周辺度数を切り捨てる)、`dunnettTest`・`tukeyTest`・`glhtDunnett` で全群が定数 (プールした分散が 0。R の p 値は `TukeyHSD` と PMCMRplus で 0、multcomp の `glht` で 1)、`grad`・`jacobian`・
   `hessian` の 0 の刻み `eps` や、有限でない `d`・`eps`・`zeroTol` (numDeriv の "simple" 法は `eps = 0` で NaN を返す。`d = 0` は
   numDeriv でもエラー)、同じ 3 関数で刻み d abs(x[i]) が double の範囲を超えるもの (Issue #213) や 0 になるもの (x[i] = 0 で `zeroTol: 0`。
   Issue #246) (numDeriv は `grad` が f の値の検査でエラー、`jacobian` と `hessian` は NaN)、`TukeyHSD` の [0, 1] の外か NaN の `confLevel` (R は区間の端に NaN を返す。0 と 1 は R と同じく受け付ける)、`TukeyHSD` で各群の値が 1 個 (残差自由度が 0。R は区間の端と p 値に NaN を返す。issue #315)、

@@ -128,7 +128,8 @@ export function fisherTest(x: readonly Counts[], options: FisherTestOptions = {}
   const alternative = (options.alternative ?? "two.sided") as Alternative;
   if (options.simulatePValue ?? false) {
     const B = options.B ?? 2000;
-    if (!(B >= 0 && B < 2 ** 31)) throw new RangeError("'B' must be a non-negative number");
+    // a fractional B ran trunc(B) simulations but was reported as B (#278); an error, as in chisqTest
+    if (!(Number.isInteger(B) && B >= 0 && B < 2 ** 31)) throw new RangeError("'B' must be a non-negative integer");
     return { method: method + simulatedMethod(B), alternative, pValue: fisherSimulated(t, B) };
   }
   return { method, alternative, pValue: fisherRxC(t) };

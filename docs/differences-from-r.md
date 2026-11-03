@@ -273,7 +273,6 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `seq(-1e308, 1e308, by = 5e307)` | the middle value -1.9958e292 | 0 (the ends' difference overflows: the values are those of the halved ends, doubled) |
 | `eigen()` of a small nonsymmetric matrix such as `matrix(c(1, 3, 2, 4), 2) * 1e-60` | treated as symmetric (`isSymmetric` compares absolutely when mean \|a\| <= 100 eps): wrong eigenvalues | the symmetry test made relative at every scale (`isSymmetric()` itself is R's) |
 | `merge()` on several keys whose values contain "\r", or `NA` against the text "NA" | rows with different keys matched (the keys are pasted with "\r") | matched only on equal keys |
-| `fisher.test`/`chisq.test(simulate.p.value = TRUE)` with a fractional `B` | divides by B + 1 though only the integer part of B is simulated | divides by the number simulated plus 1 |
 | `JonckheereTerpstraTest` (DescTools) two-sided | can exceed 1 | at most 1 |
 | distSummary's mean of `unif(-1e308, 1e308)`, variance of `beta(1e150, 1e150)`, skewness of `triang(-1e308, 1e308, 0)` and `triang(0, 3e120, 1e120)` | Inf, 0, NaN, NaN | 0, 1.25e-151, 0, 0.3054 (the skewness from the parameters divided by a power of 2) |
 | `aov(y ~ x + w + Error(id/w))` with a covariate x in small units (x * 1e-4) | the x row disappears (a column is kept in a stratum when its projection's squared length exceeds 1e-5) | the same table at any scale of x (the threshold is 1e-14 times the column's own squared length; 1e-5 times its mean square, used before, also dropped the small within-subject part of a covariate that varies mostly between subjects) |
@@ -431,7 +430,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   `isSymmetric`) with a positive diagonal (R's `factanal` analyses an asymmetric matrix), a time base `T` of 0 in
   `poissonTest` (R returns NaN or Inf for the estimate and the interval), counts whose total overflows in `binomTest`
   and `poissonTest` (R: NaN or an error), a fractional `B`, or goodness-of-fit counts summing to a fraction, in
-  `chisqTest`'s simulation (R's p-value can exceed 1 there), fractional counts in `mantelhaenTest(exact: true)` (R
+  `chisqTest`'s simulation (R's p-value can exceed 1 there), a fractional `B` in `fisherTest`'s simulation (R simulates
+  trunc(B) tables and divides by B + 1; issue #278), fractional counts in `mantelhaenTest(exact: true)` (R
   returns a result), a table without discordant pairs in `mcnemarTest`, only zero differences in the signed rank
   `wilcoxTest`, two constant samples in `varTest`, fractional counts in `chisqTest`'s simulation of tables (R returns
   NaN or truncates the margins), groups that are all constant in `dunnettTest`, `tukeyTest` and `glhtDunnett` (a
