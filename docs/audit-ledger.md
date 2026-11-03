@@ -5458,3 +5458,9 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 対象: `src/random/extra.ts` SHA `85475681e3bc7dfadf7ef2562921e9038bd519a5` の `rkumar()`。
 - 新規Issue [#417](https://github.com/numero-uno-jpn/rStats.js/issues/417)。現行は `qkumar1(unifRand(),a,b)` = Q(U)。extraDistr C++ `rng_kumar` は `pow(1-pow(U,1/b),1/a)` = Q(1-U)。seed1,a=2,b=3で最初のuniform 0.2655086631421から、現行約0.3126433129、R式約0.5977235668。周辺分布は同じだがseeded stream valueが不一致。
 - extraDistr source確認、MT seed/uniformの数値再計算。runtime/Vitest/R実行なし。
+
+
+### Audit #896 extension — exact INT_MAX is not an R fallback case
+
+- R 4.6.1 `rhyper.c` uses `if (N > INT_MAX || kkin >= INT_MAX)`; JS currently uses `nn1in >= INT_MAX || nn2in >= INT_MAX || kkin >= INT_MAX`.
+- Additional repro: `setSeed(1); rhyper(1,2147483647,0,2)`. Here N equals INT_MAX and k is below INT_MAX. R reaches degenerate-support return without drawing; JS enters qhyper fallback and consumes a uniform. Added to existing [#410](https://github.com/numero-uno-jpn/rStats.js/issues/410), same threshold-predicate root cause.
