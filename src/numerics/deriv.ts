@@ -136,10 +136,16 @@ export function jacobian(func: (x: number[]) => readonly number[], x: readonly n
   const n = xs.length;
   const f0 = Array.from(func([...xs]));
   const J = f0.map(() => new Array<number>(n).fill(NaN));
+  // every evaluation must return as many values as f0: shorter ones gave NaN rows, longer ones were cut (issue #356)
+  const evaluate = (at: number[]): readonly number[] => {
+    const v = func(at);
+    if (v.length !== f0.length) throw new RangeError(`jacobian: func returned ${v.length} values at a shifted x, but ${f0.length} at x`);
+    return v;
+  };
   if (method(options) === "simple") {
     const eps = simpleEps(options);
     for (let j = 0; j < n; j++) {
-      const f1 = func(shifted(xs, j, eps));
+      const f1 = evaluate(shifted(xs, j, eps));
       f0.forEach((v, i) => (J[i]![j] = (f1[i]! - v) / eps));
     }
     return J;
@@ -149,8 +155,8 @@ export function jacobian(func: (x: number[]) => readonly number[], x: readonly n
     const a: number[][] = f0.map(() => []);
     let h = h0[j]!;
     for (let k = 0; k < r; k++) {
-      const fp = func(shifted(xs, j, h));
-      const fm = func(shifted(xs, j, -h));
+      const fp = evaluate(shifted(xs, j, h));
+      const fm = evaluate(shifted(xs, j, -h));
       f0.forEach((_, i) => a[i]!.push((fp[i]! - fm[i]!) / (2 * h)));
       h /= 2;
     }
