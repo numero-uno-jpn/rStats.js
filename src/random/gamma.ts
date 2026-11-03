@@ -11,6 +11,8 @@ import { gammaScale } from "../distributions/gamma.js";
 import { generate } from "./common.js";
 import { rpois1 } from "./poisson.js";
 import { rnorm1 } from "./continuous.js";
+import { ddExp } from "../internal/ddexp.js";
+import { ddAdd, ddDivNum, ddLog } from "../special/dd.js";
 
 const SQRT32 = 5.656854;
 const EXP_M1 = 0.36787944117144233; // exp(-1)
@@ -48,8 +50,9 @@ export function rgamma1(a: number, scale: number): number {
     // Algorithm GS
     const e = 1 + EXP_M1 * a;
     let x: number;
+    let p: number;
     for (;;) {
-      const p = e * unifRand();
+      p = e * unifRand();
       if (p >= 1) {
         x = -Math.log((e - p) / a);
         if (expRand() >= (1 - a) * Math.log(x)) break;
@@ -58,6 +61,9 @@ export function rgamma1(a: number, scale: number): number {
         if (expRand() >= x) break;
       }
     }
+    // x = p^(1/a) (p < 1) can fall below the normal range, or to 0, although a large scale brings the variate back
+    // into it (R gives 0): scale p^(1/a) from the logs in double-double then (the acceptance above is unchanged)
+    if (x < 2 ** -1022 && scale > 1) return ddExp(ddAdd(ddLog([scale, 0]), ddDivNum(ddLog([p, 0]), a)))[0];
     return scale * x;
   }
 
