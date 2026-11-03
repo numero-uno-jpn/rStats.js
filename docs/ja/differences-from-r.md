@@ -301,7 +301,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `sd(c(-1e308, -1e308, -1e308, -1e308, 1.5e308))` (分散が溢れる)、`sd(c(1e-200, 2e-200, 4e-200))` (分散がアンダーフローする)。そうしたデータの e1071 の `skewness`・`kurtosis` と変動係数 | Inf、0。NaN または 0 | 1.118e308、1.53e-200 (2^-k の座標の偏差から sd を作る)。積率と変動係数は、どの尺度でも同じ値 |
 | 同じデータの `scale(x)` と `prcomp(x)` (平均からの偏差 2e308 が溢れる) | `scale` は NaN、scale は Inf。`prcomp` は svd のエラー | `scale` は [-0.447, …, 1.789]、scale は 1.118e308。`prcomp` は sdev 1.118e308、範囲外のスコアは Inf (2^-k の座標で計算する) |
 | `determinant(diag(c(1e308, 1e308, 1e-308, 1e-308)), logarithm = FALSE)` | modulus が Inf (途中の積が溢れる) | 1 (積の 2 の冪の指数を別に持つ) |
-| `matrix(c(1e308, 1e308), 1) %*% matrix(c(1e308, -1e308))` (積は溢れるが和は溢れない) | NaN | 0 (そうした要素は、2 の冪で割った因子から積和を取り直す) |
+| `matrix(c(1e308, 1e308), 1) %*% matrix(c(1e308, -1e308))` と、`x <- matrix(c(1e200, 1e200, 1e200, -1e200), 2)` の `crossprod(x)`・`tcrossprod(x)` の非対角 (積は溢れるが和は溢れない) | NaN | 0 (そうした要素は、2 の冪で割った因子から積和を取り直す) |
 | `optimize(function(x) (x / 1e308 - 1.05)^2, c(1e308, 1.1e308))` (lower + upper が溢れる) | 終わらない (中点が Inf) | 1.05e308 (x/2 の座標で探す) |
 | `approx(c(-1e308, 1e308), c(0, 1), n = 3)`、`approx(c(0, 1), c(-1e308, 1e308), xout = 0.5)`、`spline(c(-1e308, 1e308), c(0, 1), n = 3)` (有限な値の差が溢れる) | y が 0, 0, 1。Inf。spline は 0, 0, NaN | 0, 0.5, 1。0。0, 0.5, 1 (差を半分の座標で取る。spline は x / 2^k で作る) |
 | `splinefun(c(-1e308, 1e308), c(0, 1))(0)` (全方式)、`splinefun(c(-1.5e308, 0, 1.5e308), c(0, 1, 0), method = "periodic")(0)`、`splinefunH(c(-1e308, 1e308), c(0, 1), c(0, 0))(0)` (節点の範囲が溢れる。issue #125) | 0 (fmm、natural)、NaN (hyman、monoH.FC、splinefunH)。periodic は 0 | 0.5。periodic は 1 (x / 2^k で作り、d 階の導関数は 2^(-d k) 倍で戻す。splinefunH は与えた傾きをそのまま使う)。`spline` も同じ条件 (隣の間隔だけでなく範囲) で判定する |

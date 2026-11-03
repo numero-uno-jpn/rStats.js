@@ -10,7 +10,7 @@ import type { Sample } from "../htest/types.js";
 import { cbindFrames, rbindFrames } from "../descriptive/dataFrames.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { maxOf } from "../internal/extremes.js";
-import { ldexp } from "../internal/summary.js";
+import { rescaledDot } from "./dot.js";
 
 /**
  * A vector (plain array) or a matrix (array of rows).
@@ -33,26 +33,6 @@ function checkRows(x: readonly (readonly number[])[]): number {
   const nc = x[0]!.length;
   if (x.some((r) => r.length !== nc)) throw new TypeError("all rows of the matrix must have the same length");
   return nc;
-}
-
-/**
- * The inner product of row and column j of b when the plain sum s is not finite: with finite factors, the products may
- * have overflowed while the sum is in range (1e308 * 1e308 + 1e308 * -1e308 gave NaN, R too). Each factor is divided
- * by 2^(the exponent of the largest in its vector) (exact), and the sum scaled back. Terms below 2^-1074 times the
- * largest product are lost in the division
- */
-function rescaledDot(row: readonly number[], b: readonly (readonly number[])[], j: number, s: number): number {
-  const col = b.map((r) => r[j]!);
-  if (!row.every(Number.isFinite) || !col.every(Number.isFinite)) return s;
-  const exponent = (v: readonly number[]): number => {
-    const m = maxOf(v.map(Math.abs));
-    return m === 0 ? 0 : Math.floor(Math.log2(m));
-  };
-  const ea = exponent(row);
-  const eb = exponent(col);
-  let t = 0;
-  for (let k = 0; k < row.length; k++) t += ldexp(row[k]!, -ea) * ldexp(col[k]!, -eb);
-  return ldexp(t, ea + eb);
 }
 
 /**
@@ -106,7 +86,7 @@ export function matMul(x: Operand, y: Operand): number[][] {
     for (let j = 0; j < p; j++) {
       let s = 0;
       for (let k = 0; k < n; k++) s += row[k]! * b[k]![j]!;
-      out[j] = Number.isFinite(s) ? s : rescaledDot(row, b, j, s);
+      out[j] = Number.isFinite(s) ? s : rescaledDot(row, b.map((r) => r[j]!), s);
     }
     return out;
   });

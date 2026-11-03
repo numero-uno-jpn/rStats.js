@@ -7,6 +7,7 @@
 // - Only the upper-left k x k triangle of r is used. Only the first k rows of the right-hand side are used
 // - A zero on the diagonal is an error (as in R, only when exactly 0)
 
+import { rescaledDot } from "./dot.js";
 import { fromMat, isMatrixInput, newMat, toMat, toMatOrColumn, type Mat, type MatrixInput, type VectorOrMatrix } from "./matrix.js";
 
 /**
@@ -38,7 +39,8 @@ export function crossprod(x: VectorOrMatrix, y?: VectorOrMatrix): number[][] {
       if (y === undefined && i > j) continue;
       let s = 0;
       for (let k = 0; k < n; k++) s += a.data[k + i * n]! * b.data[k + j * n]!;
-      out.data[i + j * a.ncol] = s;
+      // (products of finite entries may overflow while the sum is in range: as matMul)
+      out.data[i + j * a.ncol] = Number.isFinite(s) ? s : rescaledDot(column(a, i), column(b, j), s);
     }
   }
   if (y === undefined) mirrorUpper(out);
@@ -72,11 +74,21 @@ export function tcrossprod(x: VectorOrMatrix, y?: VectorOrMatrix): number[][] {
       if (y === undefined && i > j) continue;
       let s = 0;
       for (let k = 0; k < a.ncol; k++) s += a.data[i + k * a.nrow]! * b.data[j + k * b.nrow]!;
-      out.data[i + j * a.nrow] = s;
+      out.data[i + j * a.nrow] = Number.isFinite(s) ? s : rescaledDot(row(a, i), row(b, j), s);
     }
   }
   if (y === undefined) mirrorUpper(out);
   return fromMat(out);
+}
+
+/** Column j of a matrix */
+function column(m: Mat, j: number): number[] {
+  return Array.from(m.data.subarray(j * m.nrow, (j + 1) * m.nrow));
+}
+
+/** Row i of a matrix */
+function row(m: Mat, i: number): number[] {
+  return Array.from({ length: m.ncol }, (_, k) => m.data[i + k * m.nrow]!);
 }
 
 /** Copy the upper triangle of a square matrix to the lower triangle */
