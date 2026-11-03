@@ -14,7 +14,7 @@ import { IQR, quantile } from "./quantile.js";
 import { seqLength } from "../internal/seq.js";
 import type { Sample } from "../htest/types.js";
 import { midpoint, minOf } from "../internal/extremes.js";
-import { ldexp } from "../internal/summary.js";
+import { ldexp, scaleToUnit } from "../internal/summary.js";
 
 /**
  * Options for {@link pretty}.
@@ -200,8 +200,11 @@ function classCount(xs: readonly number[], rule: string): number {
     case "sturges":
       return Math.ceil(Math.log2(n) + 1);
     case "scott": {
-      const h = 3.5 * sd(xs) * n ** (-1 / 3);
-      return h > 0 ? Math.max(1, Math.ceil(r / h)) : 1;
+      const scott = (v: readonly number[]) => [range(v), 3.5 * sd(v) * n ** (-1 / 3)] as const;
+      let [[a, b], h] = scott(xs);
+      // the range or the width overflows (#230): both from the data divided by a power of 2 (the ratio is scale free)
+      if (!(Number.isFinite(b - a) && Number.isFinite(h))) [[a, b], h] = scott(scaleToUnit([xs]).groups[0]!);
+      return h > 0 ? Math.max(1, Math.ceil((b - a) / h)) : 1;
     }
     case "fd":
     case "freedman-diaconis": {
