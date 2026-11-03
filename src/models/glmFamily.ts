@@ -671,7 +671,15 @@ export function familyAic(fam: Family, y: number[], mu: number[], w: number[], s
         sw += w[i]!;
         sly += w[i]! * Math.log(y[i]!);
       }
-      return sw * (Math.log((2 * Math.PI * dev) / sw) + 1) + 3 * sly + 2;
+      // log(2 pi dev / sw) as log(2 pi) + log(dev / sw) only where 2 pi dev overflows although dev is finite (sw =
+      // 1e308, dev = 3e307 gave Inf, #479; as gaussian, #189), and as log(dev) - log(sw) where dev / sw overflows too
+      const q = (2 * Math.PI * dev) / sw;
+      const ratio = dev / sw;
+      const logQ =
+        q === Infinity && dev < Infinity
+          ? Math.log(2 * Math.PI) + (ratio < Infinity ? Math.log(ratio) : Math.log(dev) - Math.log(sw))
+          : Math.log(q);
+      return sw * (logQ + 1) + 3 * sly + 2;
     }
     default:
       return NaN;
