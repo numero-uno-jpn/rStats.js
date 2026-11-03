@@ -140,6 +140,8 @@ export function aovStrataFit(
   const dt = design(parsed, data, { ...options, dropUnusedLevels: true, contrastVariables }, treatmentRhs);
   const y = dt.y;
   if (y === undefined) throw new TypeError("the formula has no response");
+  // as R and the fit without Error() (#299: an infinite response gave NaN tables)
+  if (y.some((v) => !Number.isFinite(v))) throw new RangeError("NA/NaN/Inf in 'y'");
   const de = design({ response: parsed.response, rhs: errorRhs }, data, {
     ...(options.levels === undefined ? {} : { levels: options.levels }),
     allContrasts: "contr.helmert",
