@@ -87,6 +87,9 @@ function groupingOf(lists: readonly GroupingLabels[], names: readonly string[], 
   });
   const factors = lists.map((l, j) => factorOf(names[j]!, l));
   const size = factors.reduce((s, f) => s * f.levels.length, 1);
+  // R's tapply limit, before the per-cell arrays: 2^32 cells failed with V8's "Invalid array length", and from 2^31
+  // up the allocation was attempted (#363)
+  if (size >= 2 ** 31) throw new RangeError("total number of levels >= 2^31");
   const cells = new Array<number>(n);
   for (let i = 0; i < n; i++) {
     let cell = 0;
