@@ -117,6 +117,15 @@ function recycle(v: number | readonly number[] | undefined, n: number, dflt: num
   return Array.from({ length: n }, (_, i) => a[i % a.length]!);
 }
 
+/**
+ * R's check in fminfn and (with an analytic gradient) fmingr: every point at which fn or gr is evaluated must be
+ * finite. An infinite start trapped Nelder-Mead's simplex set-up, and an infinite gradient BFGS's and CG's line
+ * search, in loops that never ended (#354)
+ */
+function finitePar(p: readonly number[]): void {
+  for (const v of p) if (!Number.isFinite(v)) throw new Error("non-finite value supplied by optim");
+}
+
 /** The scaled problem: p = par / parscale, f(p) = fn(p * parscale) / fnscale */
 class Scaled {
   readonly n: number;
@@ -138,6 +147,7 @@ class Scaled {
   }
 
   f(p: readonly number[]): number {
+    finitePar(p);
     return this.fn(this.unscale(p)) / this.fnscale;
   }
 
@@ -145,6 +155,7 @@ class Scaled {
   g(p: readonly number[], lower?: readonly number[], upper?: readonly number[]): number[] {
     const { n, parscale, fnscale } = this;
     if (this.gr !== undefined) {
+      finitePar(p);
       const gx = this.gr(this.unscale(p));
       if (gx.length !== n) throw new RangeError(`gradient in optim evaluated to length ${gx.length} not ${n}`);
       return gx.map((v, i) => (v * parscale[i]!) / fnscale);
