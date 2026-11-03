@@ -171,8 +171,8 @@ function nameParts(
   if (namesTo.length === 1) {
     if (namesSep !== undefined) throw new Error("`names_sep` can't be used with a length 1 `names_to`.");
     if (namesPattern === undefined) return names.map((n) => [n]);
-    const re = new RegExp(namesPattern);
-    return names.map((n) => [re.exec(n)?.[1] ?? null]);
+    // exactly one capture group, as tidyr (no group gave null parts, a second group was ignored, #255)
+    return captures(names, namesPattern, 1);
   }
   if ((namesSep === undefined) === (namesPattern === undefined)) {
     throw new Error(
