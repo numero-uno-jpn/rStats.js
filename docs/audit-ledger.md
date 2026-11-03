@@ -5264,3 +5264,11 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規Issue [#398](https://github.com/numero-uno-jpn/rStats.js/issues/398)。再現: `const f = splinefun([0, 1, 5], [0, 2e-199, 4e-199], { method: "hyman" }); f([5], 1)`。secantは `[2e-199, 5e-200]`。終点では隣接secantがともに `5e-200` で正だが、その積 `2.5e-399` はbinary64で0へunderflowする。Hyman limiterの `sm * sp > 0` がfalseとなり、FMM由来の負の終点傾き約 `-1.3e-199` を符号反転せず残す。厳密増加データに対し、終点微分が負になる。
 - #397はmonoH.FCのdimensionless ratio overflow、本件は別のhyman limiterにおける隣接secant符号判定のunderflow。#125/#380とも原因が異なる。
 - FMM係数の数値追跡とIEEE-754積のunderflowを確認。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
+
+
+## Audit #885 — splinefunH third derivative loses a representable result when h squared overflows
+
+- 対象: `src/numerics/interp.ts` SHA `aecc2664337b329edc1005fc6e2d9fbf0c706ed3` の `evalHermite()` 第3微分経路。
+- 新規Issue [#399](https://github.com/numero-uno-jpn/rStats.js/issues/399)。再現: `const f = splinefunH([0, 1e200], [0, 0], [1e200, 1e200]); f([5e199], 3)`。h=1e200は有限、分子 `-12*delta+6*m0+6*m1=1.2e201` も有限。正確な商は約 `1.2e-199` でnormal doubleとして表現可能だが、実装は `h*h` を先に計算してInfinityとし、結果を0にする。有限な最終結果を中間二乗のoverflowで失う。
+- #380のordinate差分overflow、#125のknot差overflowとは異なり、本件ではordinate差分は0、knot間隔も有限で、第三微分の分母二乗のみがoverflow。
+- ソース制御フローとIEEE-754範囲計算による静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
