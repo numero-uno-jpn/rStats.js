@@ -174,6 +174,8 @@ export interface DesignOptions extends Omit<ModelMatrixOptions, "contrasts"> {
    * of the formula without the Error() term)
    */
   contrastVariables?: readonly string[];
+  /** Accept a response of any type, without `y` unless it is numeric (modelMatrix, as R's model.matrix) */
+  anyResponse?: boolean;
 }
 
 /**
@@ -264,8 +266,8 @@ export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOp
   const out: Design = { terms, frame, x, colNames, assign, warnings };
   if (terms.response >= 0) {
     const r = vars[terms.response]!;
-    if (r.kind !== "numeric") throw new TypeError("the response must be numeric");
-    out.y = r.values;
+    if (r.kind === "numeric") out.y = r.values;
+    else if (options.anyResponse !== true) throw new TypeError("the response must be numeric");
   }
   return out;
 }
@@ -277,7 +279,7 @@ export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOp
  * Rows with a missing value (`null`, or `NaN` in a numeric column) in any variable of the formula are dropped first.
  * Strings are factors of the values in the rows kept (sorted by code point), unless `levels` gives the levels, which
  * are then all kept even without a row (their columns are 0); booleans are factors with always the two levels FALSE
- * and TRUE; numbers are numeric.
+ * and TRUE; numbers are numeric. The response may be of any type: it only drops its rows with a missing value.
  *
  * @param formula A formula such as `"y ~ A * B"`, `"y ~ x + A - 1"` or `"~ A"`.
  * @param data The data frame: an object of columns.
@@ -292,7 +294,8 @@ export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOp
  * @category Linear models and ANOVA
  */
 export function modelMatrix(formula: string, data: DataFrame, options: ModelMatrixOptions = {}): ModelMatrixResult {
-  const d = design(parseFormula(formula), data, options);
+  // the response only drops the rows where it is missing: any type, as R's model.matrix (#453)
+  const d = design(parseFormula(formula), data, { ...options, anyResponse: true });
   return {
     colNames: d.colNames,
     assign: d.assign,
