@@ -440,7 +440,9 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   以前は NaN を返していた)、`pwrRTest` の [-1, 1] の外の相関、`esH`・`esW1`・`esW2` の [0, 1] の外の確率 (R は NaN)、
   `esW2` の空や不整形の行列 (R は 0)、`powerPropTest` の n <= 0 (R は n = 0 で検出力を返し、負なら NaN)、`pwrTTest` の
   n < 2 (pwr と同じ) をエラーにします。`delta = 0` で `sd` を、`betweenVar = 0` で `withinVar` を求めるときは、検出力が
-  それによらないことをエラーで伝えます (R は "lower < upper is not fulfilled")。`cohensD` は、無限大の値と、(群ごとに)
+  それによらないことをエラーで伝えます (R は "lower < upper is not fulfilled")。効果がないときに `n` を求める場合
+  (`powerTTest` の `delta = 0`、`powerPropTest` の `p1 = p2`、`powerAnovaTest` の `betweenVar = 0`) も同じです (R は
+  "no sign change found" か "f() values at end points not of opposite sign"。Issue #311)。`cohensD` は、無限大の値と、(群ごとに)
   2 個未満の観測をエラーにします (effectsize は NA)。
 
 ### 分布

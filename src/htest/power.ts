@@ -150,8 +150,11 @@ export function powerTTest(options: PowerTTestOptions = {}): PowerTTestResult {
   if (isUnknown(power)) power = powerOf(n!, delta!, sd!, sigLevel!);
   else {
     const target = power;
-    if (isUnknown(n)) n = solveFor((x) => powerOf(x, delta!, sd!, sigLevel!) - target, 2, 1e7, { tol, extendInt: "upX" });
-    else if (isUnknown(sd)) {
+    if (isUnknown(n)) {
+      // with delta = 0 the power does not depend on n (R and before #311: the search failed with "no sign change")
+      if (delta === 0) throw new RangeError("'n' cannot be determined when 'delta' is 0: the power does not depend on it");
+      n = solveFor((x) => powerOf(x, delta!, sd!, sigLevel!) - target, 2, 1e7, { tol, extendInt: "upX" });
+    } else if (isUnknown(sd)) {
       // with delta = 0 the power does not depend on sd (R: "lower < upper is not fulfilled"); with a negative delta (one
       // sided) the power rises towards sigLevel as sd grows, so the search runs over |delta| the other way
       if (delta === 0) throw new RangeError("'sd' cannot be determined when 'delta' is 0: the power does not depend on it");
@@ -280,8 +283,11 @@ export function powerPropTest(options: PowerPropTestOptions = {}): PowerPropTest
   if (isUnknown(power)) power = powerOf(n!, p1!, p2!, sigLevel!);
   else {
     const target = power;
-    if (isUnknown(n)) n = solveFor((x) => powerOf(x, p1!, p2!, sigLevel!) - target, 1, 1e7, { tol, extendInt: "upX" });
-    else if (isUnknown(p1)) {
+    if (isUnknown(n)) {
+      // with p1 = p2 the power does not depend on n (R and before #311: the search failed with "no sign change")
+      if (p1 === p2) throw new RangeError("'n' cannot be determined when 'p1' equals 'p2': the power does not depend on it");
+      n = solveFor((x) => powerOf(x, p1!, p2!, sigLevel!) - target, 1, 1e7, { tol, extendInt: "upX" });
+    } else if (isUnknown(p1)) {
       p1 = solveFor((x) => powerOf(n!, x, p2!, sigLevel!) - target, 0, p2!, { tol, extendInt: "yes" });
       if (p1 < 0) warnings.push("No p1 in [0, p2] can be found to achieve the desired power");
     } else if (isUnknown(p2)) {
@@ -433,7 +439,12 @@ export function powerAnovaTest(options: PowerAnovaTestOptions = {}): PowerAnovaT
   else {
     const target = power;
     if (isUnknown(groups)) groups = solveFor((x) => powerOf(x, n!, betweenVar!, withinVar!, sigLevel!) - target, 2, 100);
-    else if (isUnknown(n)) n = solveFor((x) => powerOf(groups!, x, betweenVar!, withinVar!, sigLevel!) - target, 2, 1e5);
+    else if (isUnknown(n)) {
+      // (with betweenVar = 0 the power does not depend on n; R and before #311: "f() values at end points not of
+      // opposite sign")
+      if (betweenVar === 0) throw new RangeError("'n' cannot be determined when 'betweenVar' is 0: the power does not depend on it");
+      n = solveFor((x) => powerOf(groups!, x, betweenVar!, withinVar!, sigLevel!) - target, 2, 1e5);
+    }
     else if (isUnknown(withinVar)) {
       // (with betweenVar = 0 the power does not depend on withinVar; R: "lower < upper is not fulfilled")
       if (betweenVar === 0) throw new RangeError("'withinVar' cannot be determined when 'betweenVar' is 0: the power does not depend on it");

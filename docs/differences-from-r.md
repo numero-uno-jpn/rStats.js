@@ -468,7 +468,9 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   where TRUE/FALSE needed"; NaN was returned), a correlation outside [-1, 1] in `pwrRTest`, probabilities outside
   [0, 1] in `esH`, `esW1` and `esW2` (R: NaN), an empty or ragged matrix in `esW2` (R: 0), n <= 0 in `powerPropTest`
   (R: a power for n = 0, NaN below), and n < 2 in `pwrTTest` (as pwr). Solving for `sd` with `delta = 0`, or for
-  `withinVar` with `betweenVar = 0`, says that the power does not depend on it (R: "lower < upper is not fulfilled").
+  `withinVar` with `betweenVar = 0`, says that the power does not depend on it (R: "lower < upper is not fulfilled");
+  so does solving for `n` with no effect (`delta = 0` in `powerTTest`, `p1 = p2` in `powerPropTest`, `betweenVar = 0`
+  in `powerAnovaTest`; R: "no sign change found" or "f() values at end points not of opposite sign", issue #311).
   `cohensD` rejects infinite values and fewer than 2 observations (per group) with a message (effectsize: NA).
 
 ### Distributions
