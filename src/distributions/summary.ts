@@ -299,14 +299,54 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const d2 = P.df2 ?? NaN;
       if (!(d1 > 0 && d2 > 0 && Number.isFinite(d1) && Number.isFinite(d2))) return NAN;
       const mean = d2 > 2 ? d2 / (d2 - 2) : NaN;
-      const variance = d2 > 4 ? (2 * d2 * d2 * (d1 + d2 - 2)) / (d1 * (d2 - 2) ** 2 * (d2 - 4)) : d2 > 2 ? Infinity : NaN;
-      const skewness = d2 > 6 ? ((2 * d1 + d2 - 2) * Math.sqrt(8 * (d2 - 4))) / ((d2 - 6) * Math.sqrt(d1 * (d1 + d2 - 2))) : NaN;
-      const kurtosis =
-        d2 > 8
-          ? (12 * (d1 * (5 * d2 - 22) * (d1 + d2 - 2) + (d2 - 4) * (d2 - 2) ** 2)) / (d1 * (d2 - 6) * (d2 - 8) * (d1 + d2 - 2))
-          : NaN;
-      // (the standard deviation from the square roots of the factors, where the variance overflows)
-      const sd = d2 > 4 ? (Math.SQRT2 * d2 * Math.sqrt(d1 + d2 - 2)) / (Math.sqrt(d1) * (d2 - 2) * Math.sqrt(d2 - 4)) : variance;
+      // Each closed form where its numerator and denominator are normal numbers (the same bits as before); otherwise
+      // from ratios that stay in range, with t = d1 + d2 - 2 halved (df1 = df2 = 1e200 gave variance NaN, sd 0 and
+      // skewness 0; 1e308 NaN throughout; issue #235)
+      const inRange = (x: number): boolean => x >= MIN_NORMAL && x < Infinity;
+      const t = d1 + d2 - 2;
+      const th = d1 / 2 + d2 / 2 - 1; // t / 2
+      const r = d2 / (d2 - 2);
+      const u = (d2 - 2) / d1; // t / d1 - 1
+      const w = (d2 - 2) / (d2 - 4);
+      let variance = d2 > 4 ? NaN : d2 > 2 ? Infinity : NaN;
+      let sd = variance;
+      if (d2 > 4) {
+        const num = 2 * d2 * d2 * t;
+        const den = d1 * (d2 - 2) ** 2 * (d2 - 4);
+        // 2 r^2 (t / d1) / (d2 - 4) with t / d1 = 1 + u; where u overflows, 2 r^2 (1 / (d2 - 4) + w / d1)
+        variance = inRange(num) && inRange(den) ? num / den : Number.isFinite(u) ? (2 * r * r * (1 + u)) / (d2 - 4) : 2 * r * r * (1 / (d2 - 4) + w / d1);
+        // (the standard deviation from the square roots of the factors, where the variance overflows)
+        const sNum = Math.SQRT2 * d2 * Math.sqrt(t);
+        const sDen = Math.sqrt(d1) * (d2 - 2) * Math.sqrt(d2 - 4);
+        sd =
+          inRange(sNum) && inRange(sDen)
+            ? sNum / sDen
+            : Number.isFinite(u)
+              ? Math.SQRT2 * r * (Math.sqrt(1 + u) / Math.sqrt(d2 - 4))
+              : Math.SQRT2 * r * (Math.sqrt(w) / Math.sqrt(d1));
+      }
+      let skewness = NaN;
+      if (d2 > 6) {
+        const num = (2 * d1 + d2 - 2) * Math.sqrt(8 * (d2 - 4));
+        const den = (d2 - 6) * Math.sqrt(d1 * t);
+        // (d1 + t) / sqrt(d1 t) = sqrt(d1 / t) + sqrt(t / d1)
+        const sq1 = Math.sqrt(d1);
+        const sqt = Math.sqrt(th) * Math.SQRT2;
+        const x = (Math.sqrt(8) * Math.sqrt(d2 - 4)) / (d2 - 6);
+        skewness = inRange(num) && inRange(den) ? num / den : (sq1 / sqt) * x + (sqt * x) / sq1;
+      }
+      let kurtosis = NaN;
+      if (d2 > 8) {
+        const num = 12 * (d1 * (5 * d2 - 22) * t + (d2 - 4) * (d2 - 2) ** 2);
+        const den = d1 * (d2 - 6) * (d2 - 8) * t;
+        // 12 ((5 d2 - 22) / ((d2 - 6)(d2 - 8)) + (d2 - 4)(d2 - 2)^2 / (d1 (d2 - 6)(d2 - 8) t))
+        kurtosis =
+          inRange(num) && inRange(den)
+            ? num / den
+            : 12 *
+              (((5 - 22 / d2) * (d2 / (d2 - 6))) / (d2 - 8) +
+                ((d2 - 4) / (d2 - 6)) * ((d2 - 2) / (d2 - 8)) * ((d2 / 2 - 1) / th / d1));
+      }
       return make(mean, variance, qf(0.5, d1, d2), d1 > 2 ? ((d1 - 2) / d1) * (d2 / (d2 + 2)) : 0, skewness, kurtosis, sd);
     }
     case "cauchy": {
