@@ -684,6 +684,12 @@ export function optim(par: readonly number[], fn: (par: number[]) => number, opt
       // L-BFGS-B
       const lo = lower.map((v, i) => v / parscale[i]!);
       const up = upper.map((v, i) => v / parscale[i]!);
+      // R's as.integer: truncated (1.5 indexed the workspace with fractions, 0.5 ran with m = 0.5); NaN and values
+      // beyond the integer range are NA (the latter with R's warning), which lbfgsb rejects as M .LE. 0, like any
+      // m <= 0 (passed as 0: a negative m gave negative workspace lengths) (#362)
+      const lmm0 = control.lmm ?? 5;
+      if (Math.abs(lmm0) > 2147483647) warnings.push("NAs introduced by coercion to integer range");
+      const lmm = Math.abs(lmm0) <= 2147483647 ? Math.max(Math.trunc(lmm0), 0) : 0;
       if (n === 0) {
         run = { par: [], value: s.f([]), fnEvals: 0, gradEvals: 0, code: 0 };
         message = "NOTHING TO DO";
@@ -697,7 +703,7 @@ export function optim(par: readonly number[], fn: (par: number[]) => number, opt
       let iterations = 0;
       const r = lbfgsb(
         n,
-        control.lmm ?? 5,
+        lmm,
         start,
         lo,
         up,
