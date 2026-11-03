@@ -20,7 +20,7 @@
 // - Two factor vectors: the table of the complete pairs, with the distinct values sorted by code point (C locale)
 
 import { pgamma1 } from "../distributions/gamma.js";
-import { logFactorialTable, rcont2 } from "../random/r2dtable.js";
+import { logFactorialTable, MAX_TABLE_TOTAL, rcont2 } from "../random/r2dtable.js";
 import { sampleIntReplaceDrawer } from "../random/sample.js";
 import { ldexp, productOver, squareOver } from "../internal/summary.js";
 import { compareCodePoints } from "../models/modelFrame.js";
@@ -312,6 +312,8 @@ function simulateTables(sr: readonly number[], sc: readonly number[], E: readonl
   const nr = sr.length;
   const nc = sc.length;
   const total = sr.reduce((a, b) => a + b, 0);
+  // the table of log factorials has total + 1 entries: limited as in r2dtable (#285)
+  if (total > MAX_TABLE_TOTAL) throw new RangeError("the simulation needs a total count of at most 16777216 (2^24)");
   const fact = logFactorialTable(total);
   const table = new Int32Array(nr * nc);
   const out = new Float64Array(Math.trunc(B));
