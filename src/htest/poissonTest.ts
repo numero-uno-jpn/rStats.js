@@ -113,6 +113,8 @@ function rateRatio(x1: number, x2: number, T1: number, T2: number): number {
   const r2 = x2 / T2;
   const v = r1 / r2;
   if (x2 === 0 || (Number.isFinite(r1) && Number.isFinite(r2) && r2 >= MIN_NORMAL && (r1 === 0 || r1 >= MIN_NORMAL))) return v;
+  // (x1 of 0: 0; 0 (T2 / T1) was 0 Inf = NaN for T = (5e-324, 1e308); issue #325)
+  if (x1 === 0) return 0;
   return (x1 / x2) * (T2 / T1);
 }
 
@@ -164,7 +166,8 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
     const den = a + T2;
     const p0 = Number.isFinite(den) && den >= MIN_NORMAL && (a === 0 || a >= MIN_NORMAL) ? a / den : 1 / (1 + T2 / T1 / r);
     const b = binomTestCounts(Math.round(x1), Math.round(x1) + Math.round(x2), { p: p0, alternative, confLevel });
-    const toRatio = (p: number): number => (p / (1 - p)) * (T2 / T1);
+    // (a limit p of 0 is the ratio 0, also where T2 / T1 overflows: 0 Inf was NaN; issue #325)
+    const toRatio = (p: number): number => (p === 0 ? 0 : (p / (1 - p)) * (T2 / T1));
     return {
       method: "Comparison of Poisson rates",
       alternative,
