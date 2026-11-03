@@ -392,17 +392,22 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const inRange = ab >= MIN_NORMAL && ab < Infinity;
       const pa = a / s;
       const pb = b / s;
+      // The closed forms also where a b is in range but their numerator or denominator is not (unbalanced or large
+      // shapes: (a - b)^2 and a b (s + 2)(s + 3) overflow, beta(1e-3, 1e155) had kurtosis NaN for 6000 and
+      // beta(1e100, 1e100) 0 for -3e-100; issue #385)
+      const direct = (num: number, den: number): number | undefined =>
+        inRange && (num === 0 || Math.abs(num) >= MIN_NORMAL) && Math.abs(num) < Infinity && den >= MIN_NORMAL && den < Infinity
+          ? num / den
+          : undefined;
       return make(
         pa,
         betaVariance(a, b, s),
         median,
         mode,
-        inRange
-          ? (2 * (b - a) * Math.sqrt(s + 1)) / ((s + 2) * Math.sqrt(ab))
-          : (2 * (pb - pa) * Math.sqrt(s + 1)) / ((s + 2) * Math.sqrt(pa * pb)),
-        inRange
-          ? (6 * ((a - b) ** 2 * (s + 1) - ab * (s + 2))) / (ab * (s + 2) * (s + 3))
-          : (6 * ((pa - pb) ** 2 * ((s + 1) / (s + 2)) - pa * pb)) / (pa * pb * (s + 3)),
+        direct(2 * (b - a) * Math.sqrt(s + 1), (s + 2) * Math.sqrt(ab)) ??
+          (2 * (pb - pa) * Math.sqrt(s + 1)) / ((s + 2) * Math.sqrt(pa * pb)),
+        direct(6 * ((a - b) ** 2 * (s + 1) - ab * (s + 2)), ab * (s + 2) * (s + 3)) ??
+          (6 * ((pa - pb) ** 2 * ((s + 1) / (s + 2)) - pa * pb)) / (pa * pb * (s + 3)),
         // (where a / s or b / s is below the normal range, the square roots taken before the ratios: beta(1e-308, 1e154)
         // had sd 0 for 1e-308; issue #241)
         pa >= MIN_NORMAL && pb >= MIN_NORMAL
