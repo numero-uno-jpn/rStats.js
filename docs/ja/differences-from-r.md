@@ -410,7 +410,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   二項 `glm` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`pwrChisqTest` の `df <= 0`、
   非有限または NaN の許容誤差 (`optim` の `reltol`、`uniroot`、`optimize`、`integrate`、`qr`、`chol`、
   `solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value supplied
-  by optim" で止まり、負の値は受け付ける)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
+  by optim" で止まり、負の値は受け付ける)、`optim`・`optimHess` の無限大の `fnscale` (R の `optim` は開始値をそのまま value NaN、convergence 0 で返し、`optimHess` は NaN を返す。Issue #248)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
   `poissonTest` は事象数 0 どうしの比較を R どおり行う)、`factanal`・`omega` の `covmat` で、正方・有限・対称 (R の
   `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)、`poissonTest` の観察時間
   `T` が 0 (R は推定値と区間に NaN や Inf を返す)、`binomTest`・`poissonTest` でカウントの合計が溢れるもの (R は NaN かエラー)、`chisqTest` のシミュレーションで整数でない `B` や、合計が整数でない適合度検定の度数 (R の p 値は 1 を超えることがある)、`mantelhaenTest(exact: true)` の小数の度数 (R は結果を返す)、`mcnemarTest` で不一致の組がない表、符号付き順位の `wilcoxTest` で差がすべて 0、`varTest` で両群とも定数、`chisqTest` の分割表のシミュレーションで小数の度数 (R は NaN を返すか、周辺度数を切り捨てる)、`dunnettTest`・`tukeyTest`・`glhtDunnett` で全群が定数 (プールした分散が 0。R の p 値は `TukeyHSD` と PMCMRplus で 0、multcomp の `glht` で 1)、`grad`・`jacobian`・

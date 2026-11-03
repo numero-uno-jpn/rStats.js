@@ -419,6 +419,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   a non-finite or NaN tolerance (`optim`'s `reltol`, `uniroot`, `optimize`, `integrate`, `qr`,
   `chol`, `solve`, `coxph`, `glm`), and a temperature `temp` that is not positive and finite in
   `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one),
+  an infinite `fnscale` in `optim` and `optimHess` (R's `optim` returns the start with value NaN and convergence 0, `optimHess` NaN; issue #248),
   `binomTest([0, 0])` (no trials; R returns a p-value of 1 for `binom.test(c(0, 0))`, while `poissonTest` compares two
   counts of 0 as R), and a `covmat` in `factanal` and `omega` that is not square, finite and symmetric (as R's
   `isSymmetric`) with a positive diagonal (R's `factanal` analyses an asymmetric matrix), a time base `T` of 0 in

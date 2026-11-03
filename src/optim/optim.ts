@@ -127,6 +127,9 @@ class Scaled {
     readonly fnscale: number,
     readonly ndeps: number[],
   ) {
+    // fn / +-Infinity is 0 or NaN everywhere: R returns the start with value NaN and convergence 0 (#248); NaN and 0
+    // fail at the initial value, as in R
+    if (fnscale === Infinity || fnscale === -Infinity) throw new RangeError("'fnscale' must not be infinite");
     this.n = parscale.length;
   }
 
