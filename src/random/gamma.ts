@@ -146,9 +146,12 @@ export function rchisq1(df: number): number {
   return rgamma1(df / 2, 2);
 }
 
-/** One noncentral χ² variate: Poisson mixture (χ² with df + 2 × Poisson(ncp/2) degrees of freedom) */
+/**
+ * One noncentral χ² variate: Poisson mixture (χ² with df + 2 × Poisson(ncp/2) degrees of freedom). df = Inf gives Inf
+ * after the Poisson (and χ²) variates, as R's rnchisq (which rejects only a NaN df); the central rchisq1 gives NaN there
+ */
 export function rnchisq1(df: number, ncp: number): number {
-  if (!Number.isFinite(df) || !Number.isFinite(ncp) || df < 0 || ncp < 0) return NaN;
+  if (Number.isNaN(df) || !Number.isFinite(ncp) || df < 0 || ncp < 0) return NaN;
   if (ncp === 0) return df === 0 ? 0 : rgamma1(df / 2, 2);
   let r = rpois1(ncp / 2);
   if (r > 0) r = rchisq1(2 * r);
