@@ -67,7 +67,7 @@ export interface PivotWiderOptions {
   valuesFrom?: string | readonly string[];
   /**
    * The columns that identify a row of the result. Default: every column not in `namesFrom` or `valuesFrom`, in the
-   * data's order; when given, the other columns are dropped.
+   * data's order; when given, the other columns are dropped (a column of `namesFrom` or `valuesFrom` is an error).
    */
   idCols?: string | readonly string[];
   /** Put before each new name. Default `""`. */
@@ -391,6 +391,12 @@ export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): Da
       ? Object.keys(data).filter((c) => !namesFrom.includes(c) && !valuesFrom.includes(c))
       : [...new Set(nameList(options.idCols))];
   requireColumns(data, idCols);
+  for (const c of idCols) {
+    const by = namesFrom.includes(c) ? "names_from" : valuesFrom.includes(c) ? "values_from" : null;
+    if (by !== null) {
+      throw new Error(`\`id_cols\` can't select a column already selected by \`${by}\`. Column \`${c}\` has already been selected.`);
+    }
+  }
   const prefix = options.namesPrefix ?? "";
   const sep = options.namesSep ?? "_";
 
