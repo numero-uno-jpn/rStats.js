@@ -320,11 +320,31 @@ function adaptive(
   smallStart: number,
   neval: (last: number) => number,
 ): QuadResult {
-  const alist = new Float64Array(limit + 1);
-  const blist = new Float64Array(limit + 1);
-  const rlist = new Float64Array(limit + 1);
-  const elist = new Float64Array(limit + 1);
-  const iord = new Int32Array(limit + 1);
+  // The work arrays (length limit + 1 in QUADPACK) start small and are doubled as subintervals are added, up to
+  // limit + 1: iteration L reads and writes indices up to L + 1 at most (the final sum reads rlist[L]), and the unused
+  // entries are 0 as in a full-length array, so the result is the same; a large subdivisions no longer allocates
+  // 36 (limit + 1) bytes up front (#369)
+  let cap = Math.min(limit + 1, 128);
+  let alist = new Float64Array(cap);
+  let blist = new Float64Array(cap);
+  let rlist = new Float64Array(cap);
+  let elist = new Float64Array(cap);
+  let iord = new Int32Array(cap);
+  const grow = (need: number): void => {
+    cap = Math.min(limit + 1, Math.max(need, 2 * cap));
+    const f64 = (old: Float64Array<ArrayBuffer>): Float64Array<ArrayBuffer> => {
+      const a = new Float64Array(cap);
+      a.set(old);
+      return a;
+    };
+    alist = f64(alist);
+    blist = f64(blist);
+    rlist = f64(rlist);
+    elist = f64(elist);
+    const io = new Int32Array(cap);
+    io.set(iord);
+    iord = io;
+  };
   let ier = 0;
   let last = 0;
   let result = 0;
@@ -376,6 +396,7 @@ function adaptive(
   let L = 1;
   for (L = 1; L < limit; L++) {
     last = L + 1;
+    if (cap < L + 2) grow(L + 2);
     // bisect the subinterval with the nrmax-th largest error estimate
     const a1 = alist[maxerr]!;
     const b1 = 0.5 * (alist[maxerr]! + blist[maxerr]!);

@@ -27,6 +27,33 @@ GitHub Issue #369. Session 12, group A1 (input checks to R's errors). Fixed here
 
 - Values from about 2^24 up to 2147483647 still allocate large typed arrays (up to about 68 GB at 2^31 - 1); a practical limit is B1's question.
 
+## Second part: the work arrays grow with the subintervals used (session 12, group B4)
+
+## Plan
+
+- User decision (2026-11-03, item 4): remove the allocation instead of a limit: QUADPACK's work arrays grow with the subintervals actually used, so subdivisions up to 2147483647 (R's integer range, the first part's check) is accepted without allocating 36 (subdivisions + 1) bytes up front. Values unchanged.
+- Choice: the five arrays (alist, blist, rlist, elist, iord) start at min(limit + 1, 128) entries and are doubled (at most to limit + 1) before iteration L when fewer than L + 2 exist. Iteration L touches indices up to L (dqpsrt's iord indices stay below `last`), and the final sum reads rlist[0..L]; entries not yet written are 0 as in a full-length typed array. dqpsrt still uses `limit` in its bounds, so the ordering is the same.
+
+## Check
+
+- Before (code reading, not run with a huge value): `integrate(x => x, 0, 1, { subdivisions: 2147483647 })` allocated four Float64Array and one Int32Array of 2^31 entries (about 77 GB) before the first rule evaluation. With 1e6 (run), a Float64Array of 1000001 entries was created for an integral that needs 1 subinterval.
+- After: the same call returns 0.5 with arrays of 128 entries. R allocates its iwork and work of the requested size (about 77 GB here; not run).
+- Values: sin(1/x) on (0, 1) (176 subintervals) and abs(sin 50x) exp(-x) on (0, Inf) (340 subintervals) give the same value, abs.error, subdivisions and ier as before (the arrays grow past 128 there). Existing integrate tests and fixtures pass.
+
+## Fix
+
+- `src/integrate/quadpack.ts` (`adaptive`): growing work arrays as above.
+- No docs: R accepts the same subdivisions and gives the same values.
+
+## Tests
+
+- `test/issue369.test.ts`: subdivisions 1e6 creates no Float64Array of 1000 entries or more (a Proxy on Float64Array; fails with src stashed: 1000001); subdivisions 2147483647 returns 0.5 (excluded from the stash run); the two integrals above with the values of the implementation before this change.
+- Test files using `integrate` pass; tsc no errors.
+
+## Out of scope (recorded)
+
+- Time: with a huge subdivisions an integrand that never converges can run for long (21 or 30 evaluations per subinterval); R is the same.
+
 ## close comment
 
-Partly fixed in <commit of #369, see git log --grep='#369'>: subdivisions is now taken as R's as.integer, so a value beyond the integer range (the issue's 2^32, or 1e300) is RangeError "invalid parameter values" before QUADPACK allocates anything (R 4.5.2 also stops: "NAs introduced by coercion to integer range", then "missing value where TRUE/FALSE needed"). Values in the integer range are unchanged. A practical limit below 2147483647 for the workspace is a separate decision and is not part of this change. A test was added: test/issue369.test.ts. (Not pushed yet.)
+Fixed in <commit of #369, see git log --grep='#369'>, in two parts. First, subdivisions is taken as R's as.integer, so a value beyond the integer range (the issue's 2^32, or 1e300) is RangeError "invalid parameter values" before QUADPACK runs (R 4.5.2 also stops: "NAs introduced by coercion to integer range", then "missing value where TRUE/FALSE needed"). Second, QUADPACK's work arrays now start small and grow with the subintervals actually used, so subdivisions up to 2147483647 no longer allocates 36 (subdivisions + 1) bytes up front (R allocates its workspace of that size): integrate(x => x, 0, 1, { subdivisions: 2147483647 }) returns 0.5. Values are unchanged (the same value, abs.error, subdivisions and ier). Tests: test/issue369.test.ts. (Not pushed yet.)
