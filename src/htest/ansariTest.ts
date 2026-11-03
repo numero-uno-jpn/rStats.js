@@ -219,7 +219,10 @@ function exactInterval(xs: readonly number[], ys: readonly number[], alternative
     if (v - qMed <= 0) below = Math.max(below, sigma[k]!);
     else above = Math.min(above, sigma[k]!);
   });
-  const estimate = below === -Infinity || above === Infinity ? NaN : (above + below) / 2;
+  // the midpoint as R's mean(c(u, l)); where the sum of two finite candidates overflows, from the halves (exact for
+  // them) (#209)
+  let estimate = below === -Infinity || above === Infinity ? NaN : (above + below) / 2;
+  if (estimate === Infinity) estimate = above / 2 + below / 2;
   return { confInt, estimate };
 }
 
