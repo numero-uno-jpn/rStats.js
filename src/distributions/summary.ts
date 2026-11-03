@@ -494,7 +494,7 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const s = si.ok ? si : fromLogRawMoments([1, 2, 3, 4].map((r) => lgamma(1 + r / k)) as [number, number, number, number]);
       return make(
         lam * mean,
-        lam * lam * s.variance,
+        rescaled(lam * lam * s.variance, (x) => x * x * s.variance, [lam, 2]),
         qweibull(0.5, k, { scale: lam }),
         k > 1 ? lam * Math.pow((k - 1) / k, 1 / k) : 0,
         s.skewness,
