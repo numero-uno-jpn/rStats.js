@@ -51,6 +51,21 @@ export function scoreStatistic(x: number[][], r: number[], v: number[], intercep
     sw += v[i]!;
     swr += v[i]! * r[i]!;
   }
+  if (intercept && !(Number.isFinite(sw) && Number.isFinite(swr))) {
+    // only where the sums overflow (#173): the weights divided by a power of 2 (2^k at most the largest weight)
+    let m = 0;
+    for (const i of rows) m = Math.max(m, v[i]!);
+    if (Number.isFinite(m)) {
+      const k = m > 1 ? Math.floor(Math.log2(m)) : 0;
+      sw = 0;
+      swr = 0;
+      for (const i of rows) {
+        const vi = ldexp(v[i]!, -k);
+        sw += vi;
+        swr += vi * r[i]!;
+      }
+    }
+  }
   const centre = intercept ? swr / sw : 0;
   let total = 0;
   for (const i of rows) total += v[i]! * (r[i]! - centre) ** 2;

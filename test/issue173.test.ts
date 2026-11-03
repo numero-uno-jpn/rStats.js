@@ -1,9 +1,11 @@
 // Issue #173: scoreStatistic's weighted centre with weights whose sum overflows. The helper is internal; through
 // glmAnova's Rao test the smaller fit with an intercept has residuals of weighted mean 0, and huge weights give the
-// statistic scaled as the weights (no NaN).
+// statistic scaled as the weights (no NaN). A direct call whose weights' sum overflows forms the centre from the
+// weights divided by a power of 2 (the guard of #172).
 import { describe, expect, it } from "vitest";
 import * as api from "../src/index.js";
 import { glm, glmAnova } from "../src/index.js";
+import { scoreStatistic } from "../src/models/glmConfint.js";
 
 const rao = (x: number[], y: number[], w: number) => {
   const weights = y.map(() => w);
@@ -24,5 +26,14 @@ describe("issue #173", () => {
     // 4.5 with weights 1
     expect(rao([1, 2, 3], y, 1)).toBeCloseTo(4.5, 12);
     expect(rao([1, 2, 3], y, 1e307) / 1e307).toBeCloseTo(4.5, 12);
+  });
+
+  it("a direct call whose weights' sum overflows gives the statistic scaled as the weights", () => {
+    const x = [[1], [2], [3]];
+    const r = [1e-100, 3e-100, 2e-100];
+    const w = 2 ** 1022; // sum 3 * 2^1022 overflows
+    expect(scoreStatistic(x, r, [w, w, w], true) / w).toBe(scoreStatistic(x, r, [1, 1, 1], true));
+    // the issue's call: the centre 1 (NaN before); the statistic is the rounding residue of an exact fit
+    expect(Number.isFinite(scoreStatistic([[1], [1]], [1, 1], [1e308, 1e308], true))).toBe(true);
   });
 });
