@@ -362,12 +362,13 @@ function poissonDev(y: number, mu: number, w: number): number {
  * (R computes this deviance in compiled code, so a mean outside (0, 1) gives NaN without "NaNs produced"). For y
  * within 10% of mu and of 1 - mu (as nearMean), 2 w (bd0(y, mu) + bd0(1 - y, 1 - mu)), the second term from the exact
  * difference mu - y (bd0Shift): 1 - y is rounded for y < 1/2 (1 - 0.3 by 5.6e-17), which is 1e-13 of the deviance at
- * y = 0.3, mu = 0.3003
+ * y = 0.3, mu = 0.3003. For y = 0 and mu < 0.1, -log(1 - mu) is -log1p(-mu): 1 - mu is rounded (to 1 for mu below
+ * 1.1e-16, where the contribution 2 w mu was 0, R too), a relative error of about eps/(2 mu); from mu = 0.1 on, R's bits
  */
 function binomialDev(y: number, mu: number, w: number): number {
   if (Math.abs(y - mu) < 0.1 * Math.min(mu, 1 - mu)) return 2 * w * (bd0(y, mu) + bd0Shift(1 - mu, mu - y));
   const a = y === 0 ? 0 : y * Math.log(y / mu);
-  const b = y === 1 ? 0 : (1 - y) * Math.log((1 - y) / (1 - mu));
+  const b = y === 1 ? 0 : y === 0 && mu < 0.1 ? -Math.log1p(-mu) : (1 - y) * Math.log((1 - y) / (1 - mu));
   return 2 * w * (a + b);
 }
 
