@@ -762,7 +762,12 @@ export function hermiteInterp(xi: Sample, yi: Sample, di: Sample, x: Sample): nu
   const D = Array.from(di);
   const n = X.length;
   if (Y.length !== n || D.length !== n) throw new RangeError("'xi', 'yi' and 'di' must have the same length");
-  const z = X.flatMap((v) => [v, v]);
+  // finite nodes whose range overflows: the polynomial in x / 2^k with 2^k near the largest node (see knotScale;
+  // derivatives times 2^k, exact), where the node separations are finite and the divided differences do not underflow
+  // (in x / 2 the second ones still fell to 0). hermiteInterp([-1e308, 1e308], [-1, 1], [0, 0], [0]) was -1 (issue #216)
+  const k0 = knotScale([...X].sort((a, b) => a - b));
+  const z = (k0 === 0 ? X : X.map((v) => ldexp(v, -k0))).flatMap((v) => [v, v]);
+  if (k0 !== 0) D.forEach((v, i) => (D[i] = ldexp(v, k0)));
   const m = 2 * n;
   // divided-difference table, column by column (in place)
   const q = Y.flatMap((v) => [v, v]);
@@ -779,7 +784,8 @@ export function hermiteInterp(xi: Sample, yi: Sample, di: Sample, x: Sample): nu
   }
   return Array.from(x, (v) => {
     let r = coef[m - 1]!;
-    for (let k = m - 2; k >= 0; k--) r = r * (v - z[k]!) + coef[k]!;
+    const u = k0 === 0 ? v : ldexp(v, -k0);
+    for (let k = m - 2; k >= 0; k--) r = r * (u - z[k]!) + coef[k]!;
     return r;
   });
 }
