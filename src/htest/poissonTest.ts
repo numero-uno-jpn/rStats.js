@@ -64,15 +64,24 @@ function twoSidedP(x: number, m: number): number {
     // smallest j >= max(x + 1, mode) with dpois(j) <= cut; densities decrease from the mode onwards (with m an
     // integer, m - 1 and m are equally likely, so starting at x + 1 picks up m when x = m - 1)
     const j = firstTrue(qualifies, Math.max(x + 1, mode), Infinity);
-    return Math.min(1, ppois1(x, m, true, false) + ppois1(j - 1, m, false, false));
+    return Math.min(1, ppois1(x, m, true, false) + atLeast(j, m));
   }
   // x > m: largest j <= min(x - 1, mode) with dpois(j) <= cut; densities increase from 0 up to the mode (j = -1
   // when none does)
   const j = lastTrue(qualifies, 0, Math.min(x - 1, mode));
-  return Math.min(1, ppois1(j, m, true, false) + ppois1(x - 1, m, false, false));
+  return Math.min(1, ppois1(j, m, true, false) + atLeast(x, m));
 }
 
 const MIN_NORMAL = 2 ** -1022;
+
+/**
+ * P[X >= x] under Poisson(m). Where x - 1 is not exact (x beyond 2^53), P[X > x] + dpois(x): ppois(x - 1, upper)
+ * rounded x - 1 and dropped or added a point mass (x = 2^53 + 2, m = x gave 0.5000000056047, true 0.5000000014012;
+ * issue #323)
+ */
+function atLeast(x: number, m: number): number {
+  return x - (x - 1) === 1 ? ppois1(x - 1, m, false, false) : ppois1(x, m, false, false) + dpois1(x, m, false);
+}
 
 /** [f, e] with v = f 2^e, f in [1, 2) up to the rounding of log2 (v > 0 finite, subnormal v included; exact) */
 function frexp(v: number): [number, number] {
@@ -191,7 +200,7 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
   const m = r * Tv;
   let pValue: number;
   if (alternative === "less") pValue = ppois1(xv, m, true, false);
-  else if (alternative === "greater") pValue = ppois1(xv - 1, m, false, false);
+  else if (alternative === "greater") pValue = atLeast(xv, m);
   else pValue = twoSidedP(xv, m);
 
   const lower = (alpha: number): number => (xv === 0 ? 0 : qgamma1(alpha, xv, 1, true, false));
