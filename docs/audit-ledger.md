@@ -5422,3 +5422,10 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規Issue [#414](https://github.com/numero-uno-jpn/rStats.js/issues/414)。再現: `sampleInt(2,{size:2147483648,replace:true,prob:[0.5,0.5]})`。現行は有限値として受け入れ、2,147,483,648要素の配列を作り、同数回の同期drawを開始する。R 4.6.1 `do_sample()` はweighted branchで `asInteger(sk)` を使用し、INT_MAX超過はNAとして拒否する。
 - 制限はweighted pathのみ。Rのuniform pathはlong-vector sizeを別経路で扱うため一律上限にしない。
 - R source branchとJS allocation/loopを静的確認。runtime/Vitest/R実行なし。
+
+
+### Audit #899 extension — raw margin-sum check also precedes coercion
+
+- R's `stats/R/r2dtable.R` compares `sum(r)` and `sum(c)` before calling `as.integer`. Current JS truncates first and compares the converted sums.
+- Additional repro: `r2dtable(1,[0.5,1],[0,1])` is accepted by current JS after both sides truncate to total 1, but R rejects because raw totals are 1.5 and 1. Column-side analogue: `r2dtable(1,[0,1],[0.5,1])`.
+- Added to existing [#413](https://github.com/numero-uno-jpn/rStats.js/issues/413), not filed as a duplicate issue.
