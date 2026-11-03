@@ -27,6 +27,7 @@ import { dkumar1, pkumar1, qkumar, qkumar1 } from "./kumaraswamy.js";
 import { qtriang } from "./triangular.js";
 import { ldexp } from "../internal/summary.js";
 import { midpoint } from "../internal/extremes.js";
+import { splitDouble } from "../linalg/dot.js";
 
 /**
  * Result of {@link distSummary}.
@@ -230,6 +231,15 @@ function floorProduct(a: number, b: number): number {
 function productAtMost(a: DD, b: number, c: number): boolean {
   const d = ddSub(ddMul(a, [b, 0]), [c, 0]);
   return d[0] + d[1] <= 0;
+}
+
+/** x r <= (r - 1) mu exactly, for integers x >= 0 and r and a finite mu >= 0 (mu = m 2^e in BigInt) */
+function exactModeTest(x: number, r: number, mu: number): boolean {
+  const [m, e] = splitDouble(mu);
+  const R = BigInt(r);
+  const lhs = BigInt(x) * R;
+  const rhs = (R - 1n) * m;
+  return e >= 0 ? lhs <= rhs << BigInt(e) : lhs << BigInt(-e) <= rhs;
 }
 
 const has = (o: Record<string, number | undefined>, k: string): boolean => o[k] !== undefined;
@@ -506,8 +516,15 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const q = 1 - p;
       const opts = has(P, "mu") ? { mu: P.mu! } : { prob: p };
       // P(x) >= P(x - 1) exactly when x p <= (r - 1)(1 - p), i.e. (x + r - 1) p <= r - 1 (with mu: x r <= (r - 1) mu)
+      // Beyond 2^53, r - 1 rounds to r (an integer mu passed as its own mode, floor(mu - mu / r) = mu - 1) and
+      // (r - 1) mu can overflow, the bound Infinity passing every step (size 4.3e305, mu 1.8e11 did not end): there
+      // the test in exact integers, as r is one (issue #236 follow-up 3)
       const ok = (x: number): boolean =>
-        has(P, "mu") ? productAtMost([x, 0], r, (r - 1) * P.mu!) : productAtMost(ddAdd([r - 1, 0], [x, 0]), p, r - 1);
+        has(P, "mu")
+          ? r > 2 ** 53
+            ? exactModeTest(x, r, P.mu!)
+            : productAtMost([x, 0], r, (r - 1) * P.mu!)
+          : productAtMost(ddAdd([r - 1, 0], [x, 0]), p, r - 1);
       let mode = 0;
       if (r > 1) {
         const guess = Math.floor(((r - 1) * q) / p);

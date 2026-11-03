@@ -108,8 +108,47 @@ Sweep (scratchpad `fix22_sweep.mts`): 26109 (size, mu) pairs, 20000 log-uniform 
 - Just above 2^-26 the old forms remain, with an error up to about 2^-53 / t relative: for size 1e100 with mu one ulp above size 2^-26, the mean is 3.8e7 ulp (8.5e-9) off, while just below it is exact. The threshold is the decision's; the step at it is this rounding of q.
 - The mode search does not end where (size - 1) mu overflows and the start floor((size - 1) / size mu) is below 2^53, for example `distSummary("nbinom", { size: 4.3258831225385124e305, mu: 180497287704.3662 })`: the bound (r - 1) mu of the test x r <= (r - 1) mu is Infinity, so every step passes. qnbinom is fine there (180497287704 at once). 31 of the 26109 sweep pairs, from about size mu > 1.8e308 with mu below 2^53; before this follow-up as well. The mode was to stay as in the first follow-up, so this is left as a note.
 
+## Follow-up 3 (session 11, user approval: the mode search where (size - 1) mu overflows)
+
+### Plan
+
+- Intent: the second Out of scope note of follow-up 2. The mode test x r <= (r - 1) mu formed the bound (r - 1) mu in double; where it overflows, the bound is Infinity and every step passes, so `distSummary("nbinom", { size: 4.3258831225385124e305, mu: 180497287704.3662 })` did not end. Where x r overflows too, the double-double difference is NaN and the step fails, so some overflowing cases ended at a wrong mode instead (size 1.7976931348623157e308 with mu 3.5: 1, exact 3).
+- The same test has the second note of the first follow-up: beyond 2^53, r - 1 rounds to r, so an integer mu passed as its own mode, while the exact mode floor(mu - mu / r) is mu - 1 (size 1e20, mu 1: mode 1, but P(1) / P(0) = r mu / (r + mu) < 1, so the mode is 0). The correct value is not in doubt (the exact floor), so it is fixed here as allowed.
+- Method: for size beyond 2^53 (with mu), the test x r <= (r - 1) mu in exact integers: r is an integer there and mu = m 2^e is split into a BigInt mantissa and exponent (`splitDouble`, now exported from `src/linalg/dot.ts`). This one branch covers both notes: (r - 1) mu can overflow only for size beyond 2^53, since the search runs only where the start floor((r - 1) / r mu) is below 2^53, so mu < 2^54 and r > 1.8e308 / 2^54. Instead of a scaled double bound (by a power of 2), the exact test also removes the rounding of r - 1. The search starts within a few steps of the mode, so the BigInt cost is a few products. For size up to 2^53 and with prob the code is the old one (the same bits).
+- Beyond 2^53 without overflow, the new test differs from the old only where the old one was wrong: the rounded bound fl((r - 1) mu) changes the outcome only at an integer mu (a non-integer mu below 2^53 has a fractional part of at least ulp(mu) > mu / r, so floor(mu - mu / r) = floor(mu)).
+
+### Check
+
+References: floor((r - 1) m 2^e / r) in BigInt (scratchpad `fix24_repro.mts`: the old and new searches with a cap of 1e6 steps, and the exact mode).
+
+| call | Before | After (= exact) |
+|---|---|---|
+| `nbinom(size 4.3258831225385124e305, mu 180497287704.3662)` | does not end (past 1e6 steps) | mode 180497287704, median 180497287704 |
+| `nbinom(size 1e300, mu 1e9)`, `(size 1e308, mu 1e10 + 0.5)` | does not end | 999999999, 1e10 |
+| `nbinom(size 1.7976931348623157e308, mu 3.5)` | 1 | 3 |
+| `nbinom(size 8.226426892117994e305, mu 518136.5)` | 218 | 518136 |
+| `nbinom(size 1e20, mu 1)`, `(size 1e308, mu 1)` | 1 | 0 |
+| `nbinom(size 1e20, mu 1e10)`, `(size 1e30, mu 1e10)` | 1e10 | 9999999999 |
+| `nbinom(size 2^53 + 2, mu 1e15)`, `(size 1e100, mu 1e10 + 0.5)`, `(size 1e30, mu 123456.5)`, `(size 1e100, mu 2.5)` | 999999999999999, 1e10, 123456, 2 | the same |
+
+400 random cases with size from 2^53.1 to 2^1023 and mu from 0.25 to 2^50 (a quarter integers, a quarter half-integers): the new mode equals the exact one in all 400; the old one did not end in 8, and differed in 62 (55 at an integer mu, 7 non-integer, all with (size - 1) mu overflowing). The other summary values do not use the test and are unchanged.
+
+### Fix
+
+- `src/distributions/summary.ts`, `case "nbinom"`: with mu and size beyond 2^53, the mode test `exactModeTest` (x r <= (r - 1) mu in BigInt).
+- `src/linalg/dot.ts`: `splitDouble` exported.
+
+### Tests
+
+- `test/issue236.test.ts`: a follow-up 3 block (the calls that did not end; the wrong finite modes and an integer mu). Changed expectations: the mode of size 1e20 with mu 1e10 (1e10 to 9999999999), and of size 1e20 and 1e308 with mu 1 (1 to 0). With `src/` stashed (the first test of the block left out with `-t`, as it does not end), three tests fail: the new one and the two with changed modes.
+- `npx vitest run`: 375 files passed (2867 tests passed, 38 skipped). `npx tsc --noEmit -p .`: no errors.
+
+### Out of scope
+
+- None new. With prob, the test (x + r - 1) p <= r - 1 rounds x + r - 1 for size beyond 2^53 in the same way; it was not part of this follow-up and was not examined.
+
 ## close comment
 
-Fixed in <commits of #236, see git log --grep='#236'>: where size + mu overflows, `distSummary("nbinom")` now forms p = size / (size + mu) from the halved parameters (exact at these magnitudes), so `distSummary("nbinom", { size: 1e308, mu: 1e308 })` is the summary for prob = 1/2: mean 1e308, mode 1e308, sd 1.414e154, variance Infinity (2e308 overflows). The median stays NaN, as `qnbinom` returns NaN for quantiles beyond 2^53 (the same for `prob: 0.5`). Values where the sum is finite are unchanged. A follow-up fixes `distSummary("nbinom", { size: 1e100, mu: 1e30 })`, which did not end: with mu far below size, q = 1 - p rounded to 0 and the mode search walked up from 0 one step at a time; it now starts at floor((size - 1) / size mu), so the mode and median are 1e30 (R's qnbinom also gives 1e30). Modes the search reached before are unchanged. A second follow-up forms the moments directly where mu / size < 2^-26, as the rounded q gave them wrong there: mean mu, variance mu + mu^2 / size, sd its square root, skewness (size + 2 mu) / sqrt(size mu (size + mu)) and excess kurtosis 6 / size + size / (mu (size + mu)), in t = mu / size so that nothing overflows. `distSummary("nbinom", { size: 1e10, mu: 1 })` had a mean of 1.0000000828; it is now 1. For size 1e20 and 1e308 with mu 1, and for size 1e100 with mu 1e30, the mean, variance and sd were 0 and the skewness and kurtosis NaN. The mean is now mu, and the other values are within 2.4 ulp of Rmpfr in a 12251-case sweep. Values with mu / size at or above 2^-26 have the same bits as before.
+Fixed in <commits of #236, see git log --grep='#236'>: where size + mu overflows, `distSummary("nbinom")` now forms p = size / (size + mu) from the halved parameters (exact at these magnitudes), so `distSummary("nbinom", { size: 1e308, mu: 1e308 })` is the summary for prob = 1/2: mean 1e308, mode 1e308, sd 1.414e154, variance Infinity (2e308 overflows). The median stays NaN, as `qnbinom` returns NaN for quantiles beyond 2^53 (the same for `prob: 0.5`). Values where the sum is finite are unchanged. A follow-up fixes `distSummary("nbinom", { size: 1e100, mu: 1e30 })`, which did not end: with mu far below size, q = 1 - p rounded to 0 and the mode search walked up from 0 one step at a time; it now starts at floor((size - 1) / size mu), so the mode and median are 1e30 (R's qnbinom also gives 1e30). Modes the search reached before are unchanged. A second follow-up forms the moments directly where mu / size < 2^-26, as the rounded q gave them wrong there: mean mu, variance mu + mu^2 / size, sd its square root, skewness (size + 2 mu) / sqrt(size mu (size + mu)) and excess kurtosis 6 / size + size / (mu (size + mu)), in t = mu / size so that nothing overflows. `distSummary("nbinom", { size: 1e10, mu: 1 })` had a mean of 1.0000000828; it is now 1. For size 1e20 and 1e308 with mu 1, and for size 1e100 with mu 1e30, the mean, variance and sd were 0 and the skewness and kurtosis NaN. The mean is now mu, and the other values are within 2.4 ulp of Rmpfr in a 12251-case sweep. Values with mu / size at or above 2^-26 have the same bits as before. A third follow-up makes the mode test x size <= (size - 1) mu exact (in integers) for size beyond 2^53: where (size - 1) mu overflowed, the bound was Infinity and `distSummary("nbinom", { size: 4.3258831225385124e305, mu: 180497287704.3662 })` did not end (now mode 180497287704), and for an integer mu, size - 1 rounded to size, so mu was its own mode instead of floor(mu - mu / size) = mu - 1 (size 1e20, mu 1: mode 1, now 0). Modes for size up to 2^53 are unchanged.
 
 Test: test/issue236.test.ts. (Not pushed yet.)

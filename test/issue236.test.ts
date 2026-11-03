@@ -70,14 +70,14 @@ describe("issue #236 follow-up: nbinom with mu far below size", () => {
 
 describe("issue #236 follow-up: unchanged values", () => {
   it("keeps the summary where the search ended before", () => {
-    // mode and median as before the fix; the moments are those of follow-up 2 (mu / size = 1e-10 < 2^-26: before
-    // it, the mean was 10000011930.633959, 1.2e-6 off)
+    // median as before the fix; the moments are those of follow-up 2 (mu / size = 1e-10 < 2^-26: before it, the mean
+    // was 10000011930.633959, 1.2e-6 off) and the mode that of follow-up 3 (1e10 before; exact floor(mu - mu / size))
     expect(distSummary("nbinom", { size: 1e20, mu: 1e10 })).toEqual({
       mean: 10000000000,
       variance: 10000000001,
       sd: 100000.000005,
       median: 10000000000,
-      mode: 10000000000,
+      mode: 9999999999,
       skewness: 0.000010000000001500001,
       kurtosis: 1.0000000005e-10,
     });
@@ -102,8 +102,9 @@ describe("issue #236 follow-up 2: moments with mu / size below 2^-26", () => {
   });
 
   it("gives finite moments where q rounded to 0", () => {
+    // (mode 0 since follow-up 3: P(1) / P(0) = size mu / (size + mu) < 1; it was 1 as size - 1 rounded to size)
     for (const size of [1e20, 1e308]) {
-      expect(distSummary("nbinom", { size, mu: 1 })).toEqual({ mean: 1, variance: 1, sd: 1, median: 1, mode: 1, skewness: 1, kurtosis: 1 });
+      expect(distSummary("nbinom", { size, mu: 1 })).toEqual({ mean: 1, variance: 1, sd: 1, median: 1, mode: 0, skewness: 1, kurtosis: 1 });
     }
     expect(distSummary("nbinom", { size: 1e100, mu: 1e30 })).toEqual({
       mean: 1e30,
@@ -156,5 +157,26 @@ describe("issue #236 follow-up 2: moments with mu / size below 2^-26", () => {
       skewness: NaN,
       kurtosis: NaN,
     });
+  });
+});
+
+// Follow-up 3: the mode test x size <= (size - 1) mu overflowed where (size - 1) mu > 1.8e308, so the bound was
+// Infinity and every step passed (size 4.3e305, mu 1.8e11 did not end), and beyond 2^53 size - 1 rounded to size, so an
+// integer mu was its own mode. For size beyond 2^53 the test is now exact in integers; the expected modes are
+// floor((size - 1) mu / size) in BigInt. The first test does not end before the fix (left out of the stash check).
+describe("issue #236 follow-up 3: the mode where size is beyond 2^53", () => {
+  it("ends where (size - 1) mu overflows", () => {
+    const s = distSummary("nbinom", { size: 4.3258831225385124e305, mu: 180497287704.3662 });
+    expect([s.mode, s.median]).toEqual([180497287704, 180497287704]);
+    expect(distSummary("nbinom", { size: 1e300, mu: 1e9 }).mode).toBe(999999999);
+    expect(distSummary("nbinom", { size: 1e308, mu: 1e10 + 0.5 }).mode).toBe(1e10);
+  });
+
+  it("gives the exact mode where the old search ended at a wrong value", () => {
+    // before: 1 and 218 (the overflowed bound gave NaN in some steps)
+    expect(distSummary("nbinom", { size: 1.7976931348623157e308, mu: 3.5 }).mode).toBe(3);
+    expect(distSummary("nbinom", { size: 8.226426892117994e305, mu: 518136.5 }).mode).toBe(518136);
+    // an integer mu: floor(mu - mu / size) = mu - 1 (before: mu)
+    expect(distSummary("nbinom", { size: 1e30, mu: 1e10 }).mode).toBe(9999999999);
   });
 });

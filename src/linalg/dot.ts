@@ -4,7 +4,7 @@
 // Written for rStats.js (no ported code).
 
 /** A finite double as an integer mantissa m and an exponent e with v = m * 2^e (subnormals included) */
-function splitDouble(v: number): [bigint, number] {
+export function splitDouble(v: number): [bigint, number] {
   const view = new DataView(new ArrayBuffer(8));
   view.setFloat64(0, v);
   const hi = view.getUint32(0);
