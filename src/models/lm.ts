@@ -374,6 +374,17 @@ function zeroWeightRows(core: LmCore, Xall: number[][], Yall: number[], Wall: nu
   return core;
 }
 
+/**
+ * The exponent qw of a QR decomposition of the model matrix of an lm fit with the weights divided by 2^qw (#199);
+ * absent for the decomposition with the weights given
+ */
+const QR_WEIGHT_EXPONENT = new WeakMap<QR, number>();
+
+/** Whether every entry of a decomposition is finite */
+function finiteQR(q: QR): boolean {
+  return q.qr.every((r) => r.every(Number.isFinite)) && q.qraux.every(Number.isFinite);
+}
+
 /** fitLm on a response already in [1, 2) in absolute value (or one whose scale needs no change) */
 function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined, intercept: boolean, precise: boolean): LmCore {
   if (Yall.length === 0) throw new RangeError("0 (non-NA) cases");
@@ -389,17 +400,31 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   if (Y.some((v) => !Number.isFinite(v))) throw new RangeError("NA/NaN/Inf in 'y'");
 
   const fitRows = Yall.flatMap((_, i) => (fitRow[i] ? [i] : []));
-  const sw = W?.map(Math.sqrt);
-  const Xw = sw === undefined ? X : X.map((r, i) => r.map((v) => v * sw[i]!));
-  const Yw = sw === undefined ? Y : Y.map((v, i) => v * sw[i]!);
-  const q = qr(Xw);
-  const rank = q.rank;
   // The sums of squares are formed with the weights divided by 2^kw (kw even, the largest weight then in [1, 4)):
   // rss, mss and the residual variance below are those of the scaled weights, and sigma, the standard errors, rss and
   // the effects are scaled back (exact powers of 2, so the values are the same wherever nothing overflows). The sums
   // with weights near 1e308 overflowed: R^2 and F were NaN, and sigma too in the formula interface, as R's
   const maxW = W === undefined ? 1 : maxOf(W);
   const kw = Number.isFinite(maxW) ? 2 * Math.floor(Math.floor(Math.log2(maxW)) / 2) : 0;
+  // The QR decomposition of the model matrix with rows scaled by sqrt(w), as R's. Where that is not finite and the
+  // largest weight is at least 1, it is the decomposition with the weights divided by 2^qw instead (qw = kw + 2, the
+  // largest weight then in [1/4, 1), so no entry of sqrt(w) x exceeds x): the coefficients and the residuals do not
+  // depend on a common factor of the weights (#199: x near 0.9e308 with weights 2, the column norm 1.97e308
+  // overflowed and the coefficients were -Inf and 1e-307, R NaN). `qr` of the result is then that decomposition,
+  // recorded in QR_WEIGHT_EXPONENT for predict
+  let qw = 0;
+  let sw = W?.map(Math.sqrt);
+  let Xw = sw === undefined ? X : X.map((r, i) => r.map((v) => v * sw![i]!));
+  let q = qr(Xw);
+  if (W !== undefined && Number.isFinite(maxW) && kw + 2 > 0 && !finiteQR(q)) {
+    qw = kw + 2;
+    sw = W.map((v) => ldexp(Math.sqrt(v), -qw / 2));
+    Xw = X.map((r, i) => r.map((v) => v * sw![i]!));
+    q = qr(Xw);
+    QR_WEIGHT_EXPONENT.set(q, qw);
+  }
+  const Yw = sw === undefined ? Y : Y.map((v, i) => v * sw![i]!);
+  const rank = q.rank;
   const scaleW = (v: number): number => ldexp(v, -kw);
   const pf = precise ? preciseFit(Xall, Yall, Wall, kw, fitRows, q, intercept) : undefined;
   const coefficients = pf?.coefficients ?? qrCoef(q, Yw);
@@ -411,7 +436,7 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   if (pf === undefined) {
     // residuals from Q (the part of Q'y beyond the rank), so a saturated model has residuals of exactly 0, as in R
     const rw = qrResid(q, Yw);
-    const fitResiduals = sw === undefined ? rw : rw.map((v, i) => v / sw[i]!);
+    const fitResiduals = sw === undefined ? rw : rw.map((v, i) => v / sw![i]!);
     // rows of weight 0: fitted values x'b (aliased coefficients count as 0), residuals y - fitted
     let k = 0;
     Yall.forEach((v, i) => {
@@ -435,12 +460,15 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   // exact): (R'R)^-1 of the given weights overflowed for weights below 1e-308, making the standard errors Infinity
   // (R too), though they do not depend on a common factor of the weights
   // (and the columns far from 1 divided by powers of 2 too, review 64: a column of 1e-200 made a standard error Infinity)
-  const Rr = q.qr.slice(0, rank).map((row) => row.slice(0, rank).map((v) => ldexp(v, -kw / 2)));
+  // (with the decomposition of the weights divided by 2^qw, #199, R is used as it is and the standard errors are divided
+  // by 2^((qw - kw) / 2): R times that factor could overflow)
+  const rShift = qw === 0 ? 0 : (qw - kw) / 2;
+  const Rr = q.qr.slice(0, rank).map((row) => row.slice(0, rank).map((v) => (qw === 0 ? ldexp(v, -kw / 2) : v)));
   const { inv: covUnscaled, e: colScale } = rank > 0 ? chol2invColumns(Rr) : { inv: [], e: [] };
   const piv = q.pivot.slice(0, rank);
   const order = piv.map((col, k) => [col, k] as const).sort((a, b) => a[0] - b[0]);
   const estimate = order.map(([col]) => coefficients[col]!);
-  const stdError = order.map(([, k]) => ldexp(Math.sqrt(covUnscaled[k]![k]! * resvar), -colScale[k]!));
+  const stdError = order.map(([, k]) => ldexp(Math.sqrt(covUnscaled[k]![k]! * resvar), -colScale[k]! - rShift));
   const tValue = estimate.map((e, i) => e / stdError[i]!);
   const pValue = tValue.map((t) => 2 * pt1(-Math.abs(t), dfResidual, true, false));
 
@@ -598,6 +626,8 @@ export function predict(
   const rank = fit.rank;
   const piv = fit.qr.pivot.slice(0, rank);
   const Rr = fit.qr.qr.slice(0, rank).map((row) => row.slice(0, rank));
+  // R from the weights divided by 2^qw (#199): z is 2^(qw/2) times that of the weights given
+  const qrHalf = -(QR_WEIGHT_EXPONENT.get(fit.qr) ?? 0) / 2;
   const used = fit.coefficients.flatMap((c, j) => (Number.isNaN(c) ? [] : [j]));
   const values = X.map((r) => {
     const s = r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0);
@@ -618,14 +648,16 @@ export function predict(
     const x = piv.map((j) => r[j]!);
     const n = norm2(forward(x));
     // sqrt(z'z) sigma, not sqrt(z'z sigma^2): sigma^2 can overflow or underflow where sigma does not
-    if ((n >= MIN_NORMAL && n < Infinity) || !x.every(Number.isFinite) || x.every((v) => v === 0)) return n * fit.sigma;
+    if ((n >= MIN_NORMAL && n < Infinity) || !x.every(Number.isFinite) || x.every((v) => v === 0)) {
+      return qrHalf === 0 || !(n > 0 && n < Infinity) ? n * fit.sigma : scaledProduct(n, fit.sigma, qrHalf);
+    }
     // z overflowed or fell below the normal range although x is finite (#196: x = 1e200 on a column of 1e-200 made z
     // about 1e400, Infinity before sigma 4e-201 was applied): z is linear in x, so solve with x divided by the power
     // of 2 of its largest entry (by 2^600 more if that still overflows) and multiply back with sigma in exponent form
     const e = Math.floor(Math.log2(maxOf(x.map(Math.abs))));
     for (const extra of [0, 600]) {
       const ns = norm2(forward(x.map((v) => ldexp(v, -(e + extra)))));
-      if (ns < Infinity) return ns === 0 ? ns * fit.sigma : scaledProduct(ns, fit.sigma, e + extra);
+      if (ns < Infinity) return ns === 0 ? ns * fit.sigma : scaledProduct(ns, fit.sigma, e + extra + qrHalf);
     }
     return n * fit.sigma;
   });
