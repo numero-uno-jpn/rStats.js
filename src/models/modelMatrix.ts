@@ -9,7 +9,6 @@
 import { parseFormula, termsOf, type FormulaNode, type ParsedFormula, type Terms } from "./formula.js";
 import { modelFrame, type DataFrame, type FrameVariable, type ModelFrame } from "./modelFrame.js";
 import type { Sample } from "../htest/types.js";
-import { qr, qrQ, qrR } from "../linalg/qr.js";
 
 /**
  * A contrast of a factor: R's `contr.treatment`, `contr.sum` or `contr.helmert`.
@@ -69,14 +68,6 @@ export interface ModelMatrixResult {
 export type DesignContrast = ContrastName | "contr.poly";
 
 /**
- * Number of levels from which contr.poly is built by the recurrence ({@link polyRecurrence}) instead of R's QR of the
- * powers. Below it the QR's elements are within 3e-13 of the exact values (and the bits are those of the earlier
- * versions); from 16 levels on its error grows (2e-12 at 16, 1e-10 at 20, and from 23 the high-degree columns are
- * other vectors altogether, in R as well), while the recurrence stays within 1e-15 (issue #351)
- */
-const POLY_RECURRENCE_LEVELS = 16;
-
-/**
  * The orthonormal polynomials of degrees 1..k-1 in the centred scores, as columns (one row per level): P_0 = 1/sqrt(k)
  * and P_d from x P_(d-1) orthogonalised twice against every earlier P (the Stieltjes three-term recurrence spans the
  * same space; the full re-orthogonalisation keeps its rounding from accumulating), normalised. The coefficient of the
@@ -102,18 +93,14 @@ function polyRecurrence(k: number): number[][] {
 }
 
 /**
- * contr.poly for k levels (scores 1..k): the orthonormal polynomials of degrees 1..k-1 in the scores, the columns
- * of Q of the QR decomposition of the powers 0..k-1 of the centred scores, each signed so that its coefficient of
- * the highest power is positive (Q diag(R), normalised). From {@link POLY_RECURRENCE_LEVELS} levels, by the recurrence.
+ * contr.poly for k levels (scores 1..k): the orthonormal polynomials of degrees 1..k-1 in the scores, each signed so
+ * that its coefficient of the highest power is positive. R takes Q of the QR of the powers 0..k-1 of the centred
+ * scores, which is ill-conditioned in doubles (elements off by 3e-13 at 14 levels, 1e-10 at 20, and from 23 levels
+ * the high-degree columns are other vectors altogether); this uses {@link polyRecurrence} for every k, within 1e-15
+ * of the exact values (issue #351).
  */
 function polyContrasts(k: number): number[][] {
-  if (k >= POLY_RECURRENCE_LEVELS) return polyRecurrence(k);
-  const mean = (k + 1) / 2;
-  const powers = Array.from({ length: k }, (_, i) => Array.from({ length: k }, (__, j) => (i + 1 - mean) ** j));
-  const d = qr(powers);
-  const q = qrQ(d);
-  const r = qrR(d);
-  return q.map((row) => row.slice(1).map((v, j) => (r[j + 1]![j + 1]! < 0 ? -v : v)));
+  return polyRecurrence(k);
 }
 
 /** A contrast matrix (one row per level) and its column names */

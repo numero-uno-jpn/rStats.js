@@ -13,7 +13,7 @@ function highestDegree(k: number): number[] {
   return c.map((v, i) => ((k - 1 - i) % 2 === 0 ? v : -v) / norm);
 }
 
-describe("issue #351: contr.poly by the recurrence from 16 levels", () => {
+describe("issue #351: contr.poly by the recurrence", () => {
   it("gives the highest-degree column for 23, 24 and 40 levels (was another vector: errors 0.89 to 0.96; R the same)", () => {
     for (const k of [16, 20, 23, 24, 40]) {
       const m = poly(k);
@@ -34,15 +34,16 @@ describe("issue #351: contr.poly by the recurrence from 16 levels", () => {
     }
   });
 
-  it("leaves 15 levels and fewer as before (the QR of the powers)", () => {
-    const m = poly(15);
-    expect(m[0]![0]).toBe(-0.4183300132670377);
-    expect(m[7]![13]).toBe(-0.5418576636386547);
-    expect(m[14]![13]).toBe(0.00015788393462670908);
+  it("gives 15 levels and fewer by the recurrence too (the QR was off by up to 2.8e-13 at 14 levels)", () => {
+    for (let k = 3; k <= 15; k++) {
+      const m = poly(k);
+      const exact = highestDegree(k);
+      m.forEach((row, i) => expect(Math.abs(row[k - 2]! - exact[i]!)).toBeLessThan(2e-15));
+    }
     expect(poly(3)).toEqual([
-      [-0.7071067811865477, 0.40824829046386313],
-      [-1.1102230246251565e-16, -0.816496580927726],
-      [0.7071067811865475, 0.4082482904638631],
+      [-0.7071067811865476, 0.408248290463863],
+      [0, -0.8164965809277259],
+      [0.7071067811865476, 0.408248290463863],
     ]);
   });
 });
