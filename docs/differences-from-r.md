@@ -875,6 +875,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   point.
 - **`solve`** with NaN or Inf in the matrix solves without the condition check (LAPACK 3.12's
   `dgecon` returns an error that R ignores); `rcond` of the same matrix throws.
+- **`lu`** of a matrix with NaN or an infinite value throws "the matrix contains NaN or infinite values", as `svd`,
+  `qr` and `eigen` do. `Matrix::lu` (LAPACK's `dgetrf`) returns factors with NaN or infinite values, which need not
+  give back the matrix: for `matrix(c(Inf, 1, 2, 3), 2)` the multiplier 1 / Inf is 0, so P L U has NaN (0 × Inf) where the matrix has 1.
 
 ### Numerical methods
 

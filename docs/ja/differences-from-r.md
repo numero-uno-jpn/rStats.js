@@ -808,6 +808,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   停止位置の対角にはその時点の残りの値が入ります。
 - **`solve`** は行列に NaN や Inf があると条件数のチェックなしで解きます (LAPACK 3.12 の `dgecon` は
   エラーを返しますが、R は無視します)。同じ行列の `rcond` は例外を投げます。
+- **`lu`** は NaN や無限大を含む行列で、`svd`・`qr`・`eigen` と同じく "the matrix contains NaN or infinite values" の
+  例外を投げます。`Matrix::lu` (LAPACK の `dgetrf`) は NaN や無限大を含む因子を返し、それは元の行列に戻るとは限りません
+  (`matrix(c(Inf, 1, 2, 3), 2)` では乗数 1 / Inf が 0 になり、P L U の、元の行列で 1 の位置が NaN (0 × Inf) になります)。
 
 ### 数値計算
 

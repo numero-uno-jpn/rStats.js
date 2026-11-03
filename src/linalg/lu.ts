@@ -33,7 +33,8 @@ export interface LuResult {
 
 /**
  * LU decomposition with partial (row) pivoting, `x = P L U`. Equivalent to R's `Matrix::lu()`. The factors are those
- * of `Matrix::expand(Matrix::lu(x))` (LAPACK's dgetrf).
+ * of `Matrix::expand(Matrix::lu(x))` (LAPACK's dgetrf). Throws on `NaN` or infinite values (`Matrix::lu` returns factors
+ * with NaN or infinite values).
  *
  * @example
  * ```ts
@@ -48,6 +49,8 @@ export function lu(x: MatrixInput): LuResult {
   const n = m === 0 ? 0 : x[0]!.length;
   const a = x.map((r) => {
     if (r.length !== n) throw new TypeError("all rows of the matrix must have the same length");
+    // the factors of a matrix with NaN or an infinite value do not give back x = P L U: an error, as svd, qr and eigen (#343)
+    if (!r.every(Number.isFinite)) throw new RangeError("the matrix contains NaN or infinite values");
     return Array.from(r);
   });
   const perm = Array.from({ length: m }, (_, i) => i);
