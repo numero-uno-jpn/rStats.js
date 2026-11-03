@@ -192,10 +192,10 @@ export function rbinom(n: number, size: number, prob: number): number[] {
  * with one draw per row (the transpose of R's result). The random stream is the same as R's.
  *
  * @param n Number of values to generate (fractions are truncated, as in R).
- * @param size Number of objects distributed into the K categories in each draw.
+ * @param size Number of objects distributed into the K categories in each draw (fractions are truncated, as in R).
  * @param prob Category weights of length K. They need not sum to 1 (they are divided by their sum).
- * @returns An array of `n` arrays, each of length K and summing to `size`.
- * @throws RangeError if `size` is not a non-negative integer, or `prob` has a negative or
+ * @returns An array of `n` arrays, each of length K and summing to the truncated `size`.
+ * @throws RangeError if the truncated `size` is negative or 2^31 or more, or `prob` has a negative or
  *   non-finite value, or no positive value.
  *
  * @example
@@ -207,10 +207,11 @@ export function rbinom(n: number, size: number, prob: number): number[] {
  * @category Random numbers
  */
 export function rmultinom(n: number, size: number, prob: readonly number[]): number[][] {
-  // as R, whose size is an integer: up to 2^31 - 1
-  if (!Number.isFinite(size) || size < 0 || Math.round(size) !== size || size > 2147483647) {
-    throw new RangeError("size must be a non-negative integer up to 2147483647");
+  // as R, whose size is an integer: up to 2^31 - 1, truncated first (a size in (-1, 0) is 0; #412)
+  if (!Number.isFinite(size) || size <= -1 || size >= 2147483648) {
+    throw new RangeError("size must be non-negative, truncated to an integer up to 2147483647");
   }
+  const total = Math.max(0, Math.trunc(size));
   let sum = 0;
   for (const v of prob) {
     if (!Number.isFinite(v) || v < 0) throw new RangeError("prob must contain non-negative finite numbers");
@@ -234,7 +235,7 @@ export function rmultinom(n: number, size: number, prob: readonly number[]): num
   for (let k = K - 1; k >= 0; k--) rest[k] = rest[k + 1]! + pr[k]!;
   const draw = (): number[] => {
     const out = new Array<number>(K).fill(0);
-    let left = size;
+    let left = total;
     let pTot = 1;
     for (let k = 0; k < K - 1; k++) {
       if (pr[k]) {
@@ -249,6 +250,7 @@ export function rmultinom(n: number, size: number, prob: readonly number[]): num
     out[K - 1] = left;
     return out;
   };
-  if (!Number.isFinite(n) || n < 0) throw new RangeError("n must be a non-negative finite number");
+  // truncated first, as R: an n in (-1, 0) is 0 (#412)
+  if (!Number.isFinite(n) || n <= -1) throw new RangeError("n must be a non-negative finite number");
   return Array.from({ length: Math.trunc(n) }, draw);
 }
