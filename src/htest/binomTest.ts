@@ -10,6 +10,7 @@
 import { dbinom1, pbinom1 } from "../distributions/binomial.js";
 import { qbeta1 } from "../distributions/beta.js";
 import { firstTrue, lastTrue } from "../internal/discrete.js";
+import { twoSum } from "../special/dd.js";
 import { checkConfLevelOpen, isCount, matchAlternative, type Alternative, type HTest } from "./types.js";
 
 /**
@@ -46,6 +47,17 @@ export interface BinomTestResult extends HTest {
 const SLACK = 1 + 1e-7;
 
 /**
+ * P[X >= x] under Binomial(n, p). Where x - 1 or n - (x - 1) is not exact (beyond 2^53), P[X > x] + dbinom(x):
+ * pbinom(x - 1, upper) took a rounded x - 1 or n - (x - 1) (x = 2^53, n = 2^54, p = 1/2 gave 0.5, true
+ * 0.5000000029724; issue #324)
+ */
+function atLeast(x: number, n: number, p: number): number {
+  const xm = x - 1;
+  if (x === 0 || (x - xm === 1 && twoSum(n, -xm)[1] === 0)) return pbinom1(xm, n, p, false, false);
+  return pbinom1(x, n, p, false, false) + dbinom1(x, n, p, false);
+}
+
+/**
  * Two-sided p-value: the total probability of the outcomes no more likely than x (within the relative slack). The
  * observed side is one tail of the distribution function; on the opposite side the qualifying outcomes are the most
  * extreme ones there, so their mass is again a tail probability. The density decreases from ceil(np) upwards and
@@ -63,13 +75,13 @@ function twoSidedP(x: number, n: number, p: number): number {
   if (x < mean) {
     // the first qualifying outcome above the mean; those from it to n qualify
     const j = firstTrue(qualifies, Math.ceil(mean), n);
-    const other = j > n ? 0 : pbinom1(j - 1, n, p, false, false);
+    const other = j > n ? 0 : atLeast(j, n, p);
     return Math.min(1, pbinom1(x, n, p, true, false) + other);
   }
   // the last qualifying outcome below the mean; those from 0 to it qualify
   const j = lastTrue(qualifies, 0, Math.floor(mean));
   const other = j < 0 ? 0 : pbinom1(j, n, p, true, false);
-  return Math.min(1, pbinom1(x - 1, n, p, false, false) + other);
+  return Math.min(1, atLeast(x, n, p) + other);
 }
 
 /**
@@ -127,7 +139,7 @@ export function binomTestCounts(xs: number, ns: number, options: BinomTestOption
 
   let pValue: number;
   if (alternative === "less") pValue = pbinom1(xs, ns, p, true, false);
-  else if (alternative === "greater") pValue = pbinom1(xs - 1, ns, p, false, false);
+  else if (alternative === "greater") pValue = atLeast(xs, ns, p);
   else pValue = twoSidedP(xs, ns, p);
 
   const lower = (alpha: number): number => (xs === 0 ? 0 : qbeta1(alpha, xs, ns - xs + 1, true, false));
