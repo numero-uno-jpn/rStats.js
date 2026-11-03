@@ -302,6 +302,12 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
     }
   }
 
+  // a column of a random-effects term not finite (#298: an infinite x in (x | g) reached the factorisation; R stops
+  // with "objective in x0 returns NA")
+  for (const t of terms) {
+    if (t.matrix.some((row) => row.some((v) => !Number.isFinite(v)))) throw new RangeError(`NA/NaN/Inf in the random-effects term (${t.label})`);
+  }
+
   // Z (level-major within each term), and Λ_θ, θ and its bounds
   const z: SparseColumn[] = [];
   const zColLevels: string[] = [];
