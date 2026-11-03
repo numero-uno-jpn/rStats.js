@@ -456,7 +456,15 @@ function inverseGaussianDev(y: number, mu: number, w: number): number {
   if (Number.isFinite(r) && !(Math.abs(den) < 2 ** -1022)) return r;
   // ((y - mu)² or y mu² overflows, or y mu² is below the normal range: as ((y - mu)/mu)²/y)
   const d = (y - mu) / mu;
-  return w * ((d * d) / y);
+  const v = w * ((d * d) / y);
+  if (Number.isFinite(v) || !(w > 0 && w < Infinity && y > 0 && y < Infinity && mu > 0 && mu < Infinity)) return v;
+  // (d, d² or d²/y overflows: y = 1e200, mu = 1e-200, w = 1e-300 gave Inf for 1e300, #480) w, y - mu, y and mu brought
+  // to [1, 2) by their powers of 2, which are added back last
+  const t = y - mu;
+  const [ew, et, ey, em] = [exponentOf(w), exponentOf(t), exponentOf(y), exponentOf(mu)];
+  const ft = ldexp(t, -et);
+  const fm = ldexp(mu, -em);
+  return ldexp(ldexp(w, -ew) * ((ft * ft) / (ldexp(y, -ey) * fm * fm)), ew + 2 * et - ey - 2 * em);
 }
 
 /** Resolves a family name or specification (and a link given separately) to its functions */
