@@ -272,7 +272,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `runif(n, -1e308, 1e308)` | Inf (max - min overflows) | values in the range |
 | `kappa()` of a matrix around 1e308 such as `1e308 * matrix(c(1, 0, 1, 1), 2)` (the default QR estimate, `method = "direct", triangular = TRUE`, `exact = TRUE, norm = "1"`) | error ("NA/NaN/Inf in foreign function call"), Inf, error ("computationally singular") | the condition number of the matrix itself (3.33, 3.33, 4): the matrix divided by a power of 2 first |
 | `optimize(function(x) x^2, c(-1, 1), tol = 5e-324)` (a tol whose third underflows) | does not return (the step rounds to 0 among the subnormals) | 0 (the search ends where a step no longer moves) |
-| `seq(1, 2, by = Inf)` | NaN | 1 |
+| `seq(1, 2, by = Inf)`; `seq(1, 2, by = -Inf)` (a step pointing away from `to`) | NaN; NaN | 1; error "wrong sign in 'by' argument" |
 | `seq(-1e308, 1e308, by = 5e307)` | the middle value -1.9958e292 | 0 (the ends' difference overflows: the values are those of the halved ends, doubled) |
 | `eigen()` of a small nonsymmetric matrix such as `matrix(c(1, 3, 2, 4), 2) * 1e-60` | treated as symmetric (`isSymmetric` compares absolutely when mean \|a\| <= 100 eps): wrong eigenvalues | the symmetry test made relative at every scale (`isSymmetric()` itself is R's) |
 | `merge()` on several keys whose values contain "\r", or `NA` against the text "NA" | rows with different keys matched (the keys are pasted with "\r") | matched only on equal keys |

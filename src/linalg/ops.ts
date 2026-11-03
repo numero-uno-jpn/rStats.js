@@ -475,7 +475,10 @@ export function seq(from?: number, to?: number, options: SeqOptions = {}): numbe
       if (by === 0 && del === 0) return [a];
       throw new RangeError("invalid '(to - from)/by'");
     }
-    if (n < 0) throw new RangeError("wrong sign in 'by' argument");
+    // an infinite `by` makes n a signed zero, which passes n < 0: its direction is checked against `to - from` (#274)
+    if (n < 0 || (!Number.isFinite(by) && del !== 0 && del > 0 !== by > 0)) {
+      throw new RangeError("wrong sign in 'by' argument");
+    }
     if (Math.abs(del) / Math.max(Math.abs(b * f), Math.abs(a * f)) < 100 * Number.EPSILON) return [a];
     const k = Math.trunc(n + 1e-10);
     const at = half ? (i: number) => 2 * (a / 2 + i * (by / 2)) : (i: number) => a + i * by;
