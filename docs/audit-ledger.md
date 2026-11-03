@@ -4988,3 +4988,44 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #822 — hist cellOf binary search overflows a signed 32-bit midpoint
 - 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5` の `hist()` / `cellOf()`。
 - Issue [#333](https://github.com/numero-uno-jpn/rStats.js/issues/333)。再現条件: 2^31を超える長さの厳密増加break配列を明示してhist()へ渡す。`(a + b) >> 1` がsigned 32-bitへ変換され、midが負値となり、cell searchが正しいbinを返さない。通常の算術midpointへ変更するか、明示break配列にも安全な長さ上限を設けるべき。静的制御フロー解析。巨大配列は確保していない。
+
+
+## Audit #823 — weightedMean loses a representable residual signed weight in overflow fallback
+- 対象: `src/descriptive/basic.ts` SHA `e12c8f8c91152f8d617cd05bf07ce512ef00856a` の `weightedMean()`。
+- Issue [#334](https://github.com/numero-uno-jpn/rStats.js/issues/334)。再現: `weightedMean([1e308, 1e308, 1e308], [1e308, -1e308, 1e-308])`。全xが同一なので数学的な加重平均は1e308、重み合計は1e-308。しかし積の合計がInfinity−InfinityでNaNとなりfallbackへ入り、最大重み1e308で割ると第3重み1e-616が0へunderflow。scaled numerator/denominatorがともに0となりNaNを返す。符号付き重みの相殺残差を保持するスケーリングが必要。静的IEEE-754解析。実行なし。
+
+## Audit #824 — phyper upper tail includes the observed mass when x + 1 rounds to x
+- 対象: `src/distributions/hypergeometric.ts` SHA `803e35e8c2ccc11ce9ce702fa1328b060230fb4d` の `phyperRaw()` / `directTail()`。
+- Issue [#335](https://github.com/numero-uno-jpn/rStats.js/issues/335)。再現: `const x = 2 ** 53; phyper(x, 2 ** 54, 2 ** 54, 2 ** 54, { lowerTail: false })`。`x+1` がxに丸められ、上側tailの開始点が本来のx+1ではなくxとなり、観測点の確率質量を誤って含める。母集団合計2^55、平均xは正確に表現可能で、欠落/余分な点質量も約8e-9と無視できない。静的IEEE-754解析。実行なし。
+
+## Audit #825 — r2dtable permits a grand total requiring a multi-gigabyte factorial table
+- 対象: `src/random/r2dtable.ts` SHA `3e5a15a95b5a73e04ec337d441a2976ecbf88583` の `r2dtable()` / `logFactorialTable()`。
+- Issue [#336](https://github.com/numero-uno-jpn/rStats.js/issues/336)。再現: `r2dtable(1, [500_000_000, 500_000_000], [500_000_000, 500_000_000])`。合計10億は現行上限2^31−1以下だが、`logFactorialTable(total)` が約10億要素のFloat64Array、約8GBを割り当てる。実用的なメモリ上限を設定し、確保前に拒否すべき。静的割当解析。巨大確保は実行していない。
+
+## Audit #826 — dmultinom silently rounds a finite total count above 2^53
+- 対象: `src/distributions/multinomial.ts` SHA `2e02ad50cbde5e22cbd0146701533dc94fa344f7` の `dmultinom()`。
+- Issue [#337](https://github.com/numero-uno-jpn/rStats.js/issues/337)。再現: `dmultinom([2 ** 53, 1], [0.5, 0.5], { size: 2 ** 53, log: true })`。厳密な度数合計は2^53+1だが、通常のnumber加算では2^53に丸められ、size検証を通過する。逐次二項分解でも後続カテゴリが合計から失われ、正しい対数確率 `log(N)-N*log(2)` に対して `log(N)` の項を欠く。有限だが整数として正確に表現できない合計を検出する必要。静的IEEE-754解析。実行なし。
+
+## Audit #827 — plaplace ignores infinite quantile endpoints when location is infinite
+- 対象: `src/distributions/laplace.ts` SHA `0d909d47a5569de221eca2f6ad4be46257a6c913` の `plaplace1()`。
+- Issue [#338](https://github.com/numero-uno-jpn/rStats.js/issues/338)。再現: `plaplace(-Infinity, { mu: -Infinity })` は現在1、`plaplace(Infinity, { mu: Infinity })` は現在0。有限のlocationに対してCDFの端点は常にF(−Inf)=0、F(+Inf)=1だが、無限locationの分岐がqを見ずに固定値を返すため端点条件を破る。qの端点処理を無限location分岐より先に行うべき。静的制御フロー解析。実行なし。
+
+## Audit #828 — tabulate skips the 2^31 bin limit when nbins is inferred
+- 対象: `src/descriptive/table.ts` SHA `d6a292d4eb9f040528219f8202e2ad962cfc13e0` の `tabulate()`。
+- Issue [#339](https://github.com/numero-uno-jpn/rStats.js/issues/339)。再現: `tabulate([2 ** 31])`。明示nbinsでは2^31以上を拒否するが、省略時は最大bin値からnbを推定した後に同じ上限検査を行わず、20億超の要素を持つ配列を割り当てようとする。推定後にも上限検査を適用すべき。静的割当解析。巨大確保は実行していない。
+
+## Audit #829 — cut and findInterval use signed 32-bit binary-search midpoints
+- 対象: `src/descriptive/table.ts` SHA `d6a292d4eb9f040528219f8202e2ad962cfc13e0` の `binCode()` / `findInterval()`。
+- Issue [#340](https://github.com/numero-uno-jpn/rStats.js/issues/340)。再現条件: 長さ2^31+1の厳密増加Float64Arrayをbreakpointとして `findInterval([0], vec)` に渡す。`(lo+hi)>>1` のsigned 32-bit変換によりmidが負値となり、二分探索の不変条件が崩れる。同じ式を使うcut()も影響する。算術midpointへ変更するか長さ上限を設けるべき。静的制御フロー解析。巨大配列は未確保。
+
+## Audit #830 — varimax overflows Kaiser row norms for finite large loadings
+- 対象: `src/descriptive/factanal.ts` SHA `78015f198496bfd2c28321c541ff970a5cea7b96` のexport関数 `varimax()`。
+- Issue [#341](https://github.com/numero-uno-jpn/rStats.js/issues/341)。再現: `varimax([[1e308, 0], [0, 1e308]])`。Kaiser行ノルム計算で有限値の二乗がInfinityとなり、正規化行がゼロになる。最後に0×Infinityを計算してNaN loadingsを返す。スケール付きsum-of-squaresでノルムを計算すべき。静的IEEE-754解析。実行なし。
+
+## Audit #831 — mauchlyTest accepts a one-dimensional contrast space
+- 対象: `src/models/mauchly.ts` SHA `0dae48405cd78c389dea9d31321ae7cd57b99d84` の `mauchlyTest()` / `mauchlyPValue()`。
+- Issue [#342](https://github.com/numero-uno-jpn/rStats.js/issues/342)。再現: `mauchlyTest([[1], [2], [4], [8]])`。既定Mが1次元のためpp=1、Wはデータによらず1、カイ二乗自由度はpp(pp+1)/2−1=0。それでも検定結果オブジェクトを返してしまい、意味のある球面性検定にならない。pp>=2を要求すべき。静的自由度解析。実行なし。
+
+## Audit #832 — lu returns non-finite factors instead of rejecting an infinite matrix
+- 対象: `src/linalg/lu.ts` SHA `457aeee39e56df3f80e654c389a245807ccad55d` の `lu()`。
+- Issue [#343](https://github.com/numero-uno-jpn/rStats.js/issues/343)。再現: `lu([[1, Infinity], [0, 1]])`。第1列の消去係数は0だが、後続更新で `1 - 0 * Infinity` がNaNとなり、分解成功のようにNaNを含む因子を返す。svd等と同様、非有限入力を消去前に拒否すべき。静的IEEE-754解析。実行なし。
