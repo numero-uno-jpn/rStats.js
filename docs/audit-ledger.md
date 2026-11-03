@@ -5296,3 +5296,11 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規Issue [#402](https://github.com/numero-uno-jpn/rStats.js/issues/402)。再現: `barylag([0, 2**-250, 2**-249, 2**-600], [1,0,0,0], [Number.MIN_VALUE])`。最初のnodeの積は順に `-2^-250`、`2^-499`（厳密な閾値 `2^-500` より大きく、再正規化されない）、次に `-2^-1099` となりbinary64で0へunderflow。事後の `m>0` 条件では復旧できず、`1/p=Infinity`。問い合わせ点はnode 0に極めて近く、正しい補間値は有限で約1だが、分子・分母がともにInfinityとなりNaN。
 - 既存Issue #14は積のoverflowと重み再正規化。本件は再正規化前の積underflowで、別経路。
 - 2のべき乗の厳密な指数計算とソース制御フローによる静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
+
+
+## Audit #889 — eigen global scaling underflows a representable small eigenvalue
+
+- 対象: `src/linalg/eigen.ts` SHA `d22d45d376ba2100506e52a142689af360db296d` の `eigen()` と `src/linalg/matrix.ts:decompositionExponent()`。
+- 新規Issue [#403](https://github.com/numero-uno-jpn/rStats.js/issues/403)。再現: `eigen([[1e308, 0], [0, 1e-308]], { symmetric: true }).values`。最大要素の指数1023に対し `decompositionExponent(...,459)` は約564を返す。全要素を2^564で割る前処理で、小さい対角要素 `1e-308 / 2^564` はbinary64最小正数未満となり0へunderflow。対角行列の真の固有値はともに表現可能な `[1e308, 1e-308]` だが、後段で0に2^564を掛けても復元できない。
+- #127/#131/#132の極端値スケーリング関連issueとは逆方向の損失であり、正確な対角行列で小さい表現可能固有値を消失する独立ケース。
+- ソース制御フローとbinary exponent範囲の静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
