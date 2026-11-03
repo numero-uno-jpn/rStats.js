@@ -8,9 +8,9 @@
 
 import { pf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
-import { ldexp } from "../internal/summary.js";
+import { ldexp, ldexpWide } from "../internal/summary.js";
 import { nestedColumns } from "./estimable.js";
-import { checkDispersion, glmDispersion, refit, scaledView, type GlmModel, type GlmResult, type IrlsFit } from "./glm.js";
+import { glmDispersion, refit, scaledDispersion, scaledView, type GlmModel, type GlmResult, type IrlsFit } from "./glm.js";
 import { makeFamily, Warnings } from "./glmFamily.js";
 import { scoreStatistic } from "./glmConfint.js";
 
@@ -106,14 +106,27 @@ export function glmAnova(fits: GlmResult | readonly GlmResult[], options: GlmAno
   const views = given.map(scaledView);
   const k = views.every((v) => v.k === views[0]!.k) ? views[0]!.k : 0;
   const list = k === 0 ? given : views.map((v) => v.fit);
-  const table = glmAnovaScaled(list, Array.isArray(fits) && list.length > 1, { ...options, ...(options.dispersion === undefined ? {} : { dispersion: ldexp(checkDispersion(options.dispersion), -2 * k) }) });
-  if (k === 0) return table;
+  // (a given dispersion is m 4^s; s != 0 only where its scaled value is out of range, #349: the statistics divided by
+  // it are then brought back by 4^-s, and Cp is formed in the original units below)
+  const user = options.dispersion === undefined ? undefined : scaledDispersion(options.dispersion, k);
+  const shift = user?.s ?? 0;
+  const table = glmAnovaScaled(list, Array.isArray(fits) && list.length > 1, { ...options, ...(user === undefined ? {} : { dispersion: user.m }) }, shift);
+  if (k === 0 && shift === 0) return table;
   const squared = new Set(["Deviance", "Resid. Dev", "Rao", "Cp"]);
   const cols = table.colNames.map((c) => squared.has(c));
-  return { ...table, table: table.table.map((r) => r.map((v, j) => (cols[j] ? ldexp(v, 2 * k) : v))) };
+  const scaledBack = table.table.map((r) => r.map((v, j) => (cols[j] ? ldexp(v, 2 * k) : v)));
+  if (shift !== 0 && table.colNames.includes("Cp")) {
+    // R's residual deviance + 2 dispersion (n - residual df), from the deviance scaled back and the given dispersion
+    const cp = table.colNames.indexOf("Cp");
+    const dev = table.colNames.indexOf("Resid. Dev");
+    const dfRes = table.colNames.indexOf("Resid. Df");
+    const n = list[0]!.model.x.length;
+    for (const r of scaledBack) r[cp] = r[dev]! + 2 * (n - r[dfRes]!) * options.dispersion!;
+  }
+  return { ...table, table: scaledBack };
 }
 
-function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: GlmAnovaOptions): GlmAnovaResult {
+function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: GlmAnovaOptions, shift = 0): GlmAnovaResult {
   const warnings = new Warnings();
   const first = list[0]!;
   const fam = makeFamily(first.model.familySpec);
@@ -203,7 +216,7 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
   const chisqP = (stat: number[]) =>
     rows.map((_, i) => {
       if (i === 0 || df[i] === 0 || untested.has(i)) return NaN;
-      const v = (stat[i]! / dispersion) * Math.sign(df[i]!);
+      const v = ldexpWide((stat[i]! / dispersion) * Math.sign(df[i]!), -2 * shift);
       return v < 0 || Number.isNaN(v) ? NaN : pchisqUpper(v, Math.abs(df[i]!));
     });
   let extra: number[][] = [];
@@ -217,7 +230,7 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
     if (fixed) warnings.add(`using F test with a '${fam.family}' family is inappropriate`);
     if (dfDispersion !== 0) {
       const F = rows.map((_, i) => {
-        const v = devDiff[i]! / df[i]! / dispersion;
+        const v = ldexpWide(devDiff[i]! / df[i]! / dispersion, -2 * shift);
         return i === 0 || df[i] === 0 || untested.has(i) || v < 0 ? NaN : v;
       });
       colNames.push("F", "Pr(>F)");

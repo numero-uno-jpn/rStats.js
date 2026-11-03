@@ -25,7 +25,7 @@ import {
   type GlmLink,
 } from "./glmFamily.js";
 import { maxOf } from "../internal/extremes.js";
-import { ldexp, scaleToUnit } from "../internal/summary.js";
+import { ldexp, ldexpWide, scaleToUnit } from "../internal/summary.js";
 import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
 import { rescaledDot } from "../linalg/dot.js";
 
@@ -831,6 +831,20 @@ export function checkDispersion(d: number): number {
 }
 
 /**
+ * A dispersion d given by the user, in the units of a fit computed on the response scaled by 2^-k (scaledView), as
+ * m 4^s: d 2^-2k with s = 0 where that is 0 or in the normal range (the old value, the same bits); where it underflows
+ * or overflows although d does not (k = 1023 for a response of 1e308, where d = 1 gave 0 and standard errors 0,
+ * #349), m is d brought to [1, 4) by an even power of 2, 4^h, and s = h - k, for the callers to apply 2^s and 4^s
+ * where the result is in range
+ */
+export function scaledDispersion(d: number, k: number): { m: number; s: number } {
+  const v = ldexp(checkDispersion(d), -2 * k);
+  if (v === 0 ? d === 0 : v >= 2 ** -1022 && v < Infinity) return { m: v, s: 0 };
+  const h = Math.floor(Math.floor(Math.log2(d)) / 2);
+  return { m: ldexp(d, -2 * h), s: h - k };
+}
+
+/**
  * Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates,
  * for a `glm` fit. Equivalent to R's `summary()`.
  *
@@ -851,14 +865,20 @@ export function glmSummary(given: GlmResult, options: GlmSummaryOptions = {}): G
   const warnings = new Warnings();
   const fam = familyOf(fit);
   const estimated = options.dispersion === undefined && !fam.fixedDispersion;
-  const dispersion = options.dispersion === undefined ? dispersionOf(fit, warnings) : ldexp(checkDispersion(options.dispersion), -2 * k);
+  const user = options.dispersion === undefined ? undefined : scaledDispersion(options.dispersion, k);
+  const dispersion = user === undefined ? dispersionOf(fit, warnings) : user.m;
+  // (a given dispersion is m 4^s; s != 0 only where its scaled value is out of range, #349)
+  const s = user?.s ?? 0;
   const { inv, e } = unscaledCovariance(fit);
   // (Infinity or 0 where the covariance itself is out of range; the standard errors scale back from the scaled columns)
   const covUnscaled = inv.map((r, j) => r.map((v, k) => ldexp(v, -e[j]! - e[k]!)));
   const piv = fit.qr === undefined ? [] : fit.qr.pivot.slice(0, fit.rank);
   const estimate = piv.map((j) => fit.coefficients[j]!);
   const stdError = inv.map((r, k) => ldexp(Math.sqrt(r[k]! * dispersion), -e[k]!));
-  const statistic = estimate.map((e, k) => e / stdError[k]!);
+  const statistic =
+    s === 0
+      ? estimate.map((e, k) => e / stdError[k]!)
+      : estimate.map((b, j) => ldexpWide(b / Math.sqrt(inv[j]![j]! * dispersion), e[j]! - s));
   const zTest = !estimated;
   const pValue = statistic.map((t) =>
     zTest ? 2 * pnorm(-Math.abs(t)) : fit.dfResidual > 0 ? 2 * pt1(-Math.abs(t), fit.dfResidual, true, false) : NaN,
@@ -870,15 +890,19 @@ export function glmSummary(given: GlmResult, options: GlmSummaryOptions = {}): G
   const up = (v: number): number => ldexp(v, k);
   const up2 = (v: number): number => ldexp(v, 2 * k);
   return {
-    dispersion: up2(dispersion),
+    dispersion: s === 0 ? up2(dispersion) : options.dispersion!,
     estimate: estimate.map(up),
-    stdError: stdError.map(up),
+    // (with s != 0 in the original units at once: sqrt(inv m) 2^(s + k - e))
+    stdError: s === 0 ? stdError.map(up) : inv.map((r, j) => ldexpWide(Math.sqrt(r[j]! * dispersion), s + k - e[j]!)),
     statistic,
     pValue,
     // (z whenever the dispersion is not estimated, as R: a given dispersion was named "t value")
     statisticName: zTest ? "z value" : "t value",
     covUnscaled,
-    covScaled: covUnscaled.map((r) => r.map((v) => up2(v * dispersion))),
+    covScaled:
+      s === 0
+        ? covUnscaled.map((r) => r.map((v) => up2(v * dispersion)))
+        : inv.map((r, j) => r.map((v, l) => ldexpWide(v * dispersion, 2 * (s + k) - e[j]! - e[l]!))),
     dfResidual: fit.dfResidual,
     warnings: warnings.list,
   };
@@ -985,12 +1009,13 @@ export function glmRstandard(given: GlmResult, options: GlmSummaryOptions = {}):
   // on the scaled fit (scaledView): the standardized residuals have no units
   const { fit, k } = scaledView(given);
   const h = glmHatvalues(fit);
-  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(checkDispersion(options.dispersion), -2 * k);
+  // (a given dispersion is m 4^s, s != 0 only where its scaled value is out of range, #349)
+  const { m: disp, s: shift } = options.dispersion === undefined ? { m: dispersionOf(fit), s: 0 } : scaledDispersion(options.dispersion, k);
   const r = residualsOf(fit, "deviance").filter((_, i) => fit.priorWeights[i]! > 0);
   // residuals below 100 eps times their median are taken as 0 only with columns, as R's lm.influence (rank 0 keeps them)
   const small = fit.rank > 0 ? 100 * EPS * median(r.map(Math.abs)) : 0;
   return r.map((v, i) => {
-    const s = (Math.abs(v) < small ? 0 : v) / Math.sqrt(disp * (1 - h[i]!));
+    const s = ldexpWide((Math.abs(v) < small ? 0 : v) / Math.sqrt(disp * (1 - h[i]!)), -shift);
     return Number.isFinite(s) ? s : NaN;
   });
 }
@@ -1010,7 +1035,8 @@ export function glmCooksDistance(given: GlmResult, options: GlmSummaryOptions = 
   // on the scaled fit (scaledView): Cook's distances have no units
   const { fit, k } = scaledView(given);
   const h = glmHatvalues(fit);
-  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(checkDispersion(options.dispersion), -2 * k);
+  // (a given dispersion is m 4^s, s != 0 only where its scaled value is out of range, #349)
+  const { m: disp, s: shift } = options.dispersion === undefined ? { m: dispersionOf(fit), s: 0 } : scaledDispersion(options.dispersion, k);
   const r = residualsOf(fit, "pearson").filter((_, i) => fit.priorWeights[i]! > 0);
   return r.map((v, i) => {
     const q = h[i]! / (disp * fit.rank);
@@ -1018,6 +1044,7 @@ export function glmCooksDistance(given: GlmResult, options: GlmSummaryOptions = 
     // Where the square overflows, or h/(dispersion p) falls below the normal range (a large dispersion), with the residual
     // and the dispersion in units of powers of 2 (cookScaled). Otherwise the same bits as before
     if (!Number.isFinite(c) || q < 2 ** -1022) c = cookScaled(v, h[i]!, disp, fit.rank);
+    if (shift !== 0) c = ldexpWide(c, -2 * shift);
     return Number.isFinite(c) ? c : NaN;
   });
 }
@@ -1101,7 +1128,10 @@ export function glmPredict(
       return xb + off[i]!;
     });
   }
-  const disp = options.dispersion === undefined ? dispersionOf(fit) : ldexp(checkDispersion(options.dispersion), -2 * k);
+  // (a given dispersion is m 4^s, s != 0 only where its scaled value is out of range: the standard errors are then
+  // brought back by 2^(k + s), #349)
+  const { m: disp, s: shift } = options.dispersion === undefined ? { m: dispersionOf(fit), s: 0 } : scaledDispersion(options.dispersion, k);
+  const upSe = (v: number): number => ldexp(v, k + shift);
   const rank = fit.rank;
   const piv = fit.qr === undefined ? [] : fit.qr.pivot.slice(0, rank);
   const R = fit.qr?.qr;
@@ -1132,10 +1162,10 @@ export function glmPredict(
   // as predict.lm, which R's predict.glm calls (only for new data: the fitted rows are estimable)
   const nonEstimable = options.newdata === undefined ? [] : nonEstimableRows(fit.qr, rank, X);
   const extra = nonEstimable.length > 0 ? { nonEstimable, warnings: [NON_ESTIMABLE_WARNING] } : {};
-  if (type === "link") return { fit: eta.map(up), seFit: se.map(up), ...extra };
+  if (type === "link") return { fit: eta.map(up), seFit: se.map(upSe), ...extra };
   return withWarnings(new Warnings(), () => ({
     fit: eta.map((e) => up(fam.linkinv(e))),
-    seFit: se.map((s, i) => up(s * Math.abs(fam.muEta(eta[i]!)))),
+    seFit: se.map((s, i) => upSe(s * Math.abs(fam.muEta(eta[i]!)))),
     ...extra,
   }));
 }
