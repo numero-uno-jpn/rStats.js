@@ -437,7 +437,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   `eps = 0`; `d = 0` is an error there too), a step d abs(x[i]) beyond the doubles (issue #213) or of 0 (x[i] = 0
   with `zeroTol: 0`, issue #246) in the same three (numDeriv: an error from `grad`'s check of f, NaN from `jacobian` and
   `hessian`), and a `confLevel` outside [0, 1] or NaN in `TukeyHSD` (R returns NaN
-  limits; 0 and 1 are accepted as in R), fewer than 2 break points (after dropping NaN) in `cut` (R returns NA
+  limits; 0 and 1 are accepted as in R), one value per group in `TukeyHSD` (no residual degrees of freedom; R returns
+  NaN limits and p-values; issue #315), fewer than 2 break points (after dropping NaN) in `cut` (R returns NA
   codes; one break is R's error "invalid number of intervals", and infinite breaks are accepted as in R), an
   infinite or NaN explicit break in `hist` (R returns a density of 0 for an infinite cell, with an infinite or NaN
   midpoint), and a `rule` other than 1 or 2 in `approx` (R takes every value other than 1, such as 3, 0 or 1.5, as

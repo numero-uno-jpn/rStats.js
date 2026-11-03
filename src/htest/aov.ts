@@ -185,6 +185,9 @@ export function TukeyHSD(
   checkConfLevel(confLevel);
   const N = groups.reduce((a, s) => a + s.length, 0);
   const df = N - k;
+  // No residual variance without residual degrees of freedom (one value per group): the limits and p-values were NaN
+  // (R's too). The message is tukeyTest's (#315)
+  if (df === 0) throw new RangeError("no residual degrees of freedom");
   // means and MSE of the data scaled by 2^-e (groupMoments): the differences and limits are scaled back
   const { ssWithin: ssw, mean: means, k: e } = groupMoments(groups);
   const mse = ssw / df;
