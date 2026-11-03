@@ -435,14 +435,21 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const a = P.alpha ?? NaN;
       const b = P.beta ?? 1;
       if (!(a > 0 && Number.isFinite(a) && b > 0 && Number.isFinite(b))) return NAN;
+      // Where b^2, (a - 1)^2 (a - 2), (a - 1) sqrt(a - 2) or (a - 3)(a - 4) leave the range, from r = b / (a - 1) and
+      // ratios of a (alpha = beta = 1e308 gave variance NaN, sd 0 and kurtosis NaN; issue #238)
+      const r = b / (a - 1);
+      const b2 = b * b;
+      const vDen = (a - 1) ** 2 * (a - 2);
+      const sdDen = (a - 1) * Math.sqrt(a - 2);
+      const kurt = (30 * a - 66) / ((a - 3) * (a - 4));
       return make(
-        a > 1 ? b / (a - 1) : Infinity,
-        a > 2 ? (b * b) / ((a - 1) ** 2 * (a - 2)) : a > 1 ? Infinity : NaN,
+        a > 1 ? r : Infinity,
+        a > 2 ? (b2 >= MIN_NORMAL && b2 < Infinity && vDen < Infinity ? b2 / vDen : r * (r / (a - 2))) : a > 1 ? Infinity : NaN,
         qinvgamma(0.5, a, { beta: b }),
         b / (a + 1),
         a > 3 ? (4 * Math.sqrt(a - 2)) / (a - 3) : NaN,
-        a > 4 ? (30 * a - 66) / ((a - 3) * (a - 4)) : NaN,
-        a > 2 ? b / ((a - 1) * Math.sqrt(a - 2)) : undefined,
+        a > 4 ? (kurt > 0 && kurt < Infinity ? kurt : ((30 - 66 / a) / (a - 3)) * (a / (a - 4))) : NaN,
+        a > 2 ? (sdDen < Infinity ? b / sdDen : r / Math.sqrt(a - 2)) : undefined,
       );
     }
     case "kumar": {
