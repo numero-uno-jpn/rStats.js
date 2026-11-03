@@ -4862,3 +4862,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #792 — lm accepts positive infinite weights in a zero-column model
 - 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0` のmatrix/formula weight validationと`fitLmUnit()`。
 - Issue [#302](https://github.com/numero-uno-jpn/rStats.js/issues/302)。再現: `lm([[],[],[]],[1,2,3],{intercept:false,weights:[Infinity,1,1]})`。weight検証は負値とNaNのみを扱い、+Infinityを保持する。列0本のモデルではQRのX finite checkを通り、無限重みがweighted residual/RSS/標準誤差へ流れ得る。保持する全weightにNumber.isFiniteを要求すべき。静的ソース解析。実行テストなし。
+
+
+## Audit #793 — chisqTest rescaleP overflows while normalizing finite probability weights
+- 対象: `src/htest/chisqTest.ts` SHA `8b0426c29232aa6d013befd6564e281fc705cc8d` の `goodnessOfFit()` / `ddSum()`。
+- Issue [#303](https://github.com/numero-uno-jpn/rStats.js/issues/303)。再現: `chisqTest([1,1],{p:[1e308,1e308],rescaleP:true})`。有限の重み合計がInfinityとなり、正規化で全確率が0になる。本来は[0.5,0.5]、期待度数[1,1]、統計量0、p=1。最大値で先にスケーリングしてから正規化すべき。静的IEEE-754/ソース解析。実行テストなし。
+
+## Audit #794 — normality tests return finite floor p-values for non-finite observations
+- 対象: `src/htest/normalityTests.ts` SHA `5af37c355b8fd52a9168fe5edac16ac9a8bca83f` の `standardized()` と `adTest()` / `cvmTest()` / `pearsonTest())。
+- Issue [#304](https://github.com/numero-uno-jpn/rStats.js/issues/304)。再現: `const x=[1,2,3,4,5,6,7,Infinity]; adTest(x); cvmTest(x); pearsonTest(x);`。非有限値があると標準化結果を全NaNにするが、AD/CvMの区分的p値計算が比較をすべてfalseとして固定下限p値(3.7e-24 / 7.37e-10)を返す。Pearsonは全クラス0件のまま統計量8、有限p値を計算する。NaN欠損を除外した後にInfinityを明示的に拒否すべき。静的ソース/IEEE-754解析。実行テストなし。
