@@ -720,6 +720,8 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
   if (options.contrasts !== undefined) modelOptions.contrasts = options.contrasts;
   if (options.levels !== undefined) modelOptions.levels = options.levels;
   const original = mixedModelStructure(formula, data, modelOptions);
+  // as R (#297: an infinite response passed the exact-fit check below as Infinity <= Infinity, or failed inside the QR)
+  if (original.y.some((v) => !Number.isFinite(v))) throw new RangeError("NA/NaN/Inf in 'y'");
   const n = original.y.length;
   const p = original.xColNames.length;
   // β₀, the least-squares coefficients of y on X, and the residuals y − X β₀ (see the header)
