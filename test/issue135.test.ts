@@ -20,7 +20,8 @@ describe("issue #135", () => {
     expect(rel(pf(1e-100, m, n, { ncp: 1, logP: true }), -0.49999999999999964)).toBeLessThan(1e-14);
     expect(rel(df(1e-100, m, n, { ncp: 1, log: true }), -231.45165647996456)).toBeLessThan(1e-14);
     // m q/n = 1e-100: P is 1 to double precision; the upper tail is about -m q/2
-    expect(pf(1e300, m, n, { ncp: 1, logP: true })).toBe(0);
+    // (-0 since #202, from the noncentral chi-squared limit taken for such a df2, as for df2 = Inf)
+    expect(Math.abs(pf(1e300, m, n, { ncp: 1, logP: true }) as number)).toBe(0);
     expect(rel(pf(1e300, m, n, { ncp: 1, logP: true, lowerTail: false }), -5e99)).toBeLessThan(1e-10);
     expect(rel(df(1e300, m, n, { ncp: 1, log: true }), -5e99)).toBeLessThan(1e-10);
     // ncp = 0 takes the same series (R's central pf: -1.151872204075315e-198)

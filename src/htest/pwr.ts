@@ -190,6 +190,27 @@ function normalPower(shift: number, sig: number, alt: Alternative): number {
   );
 }
 
+/** Above this, both degrees of freedom of an F test are huge enough for {@link fPowerHugeDf} */
+const HUGE_DF = 1e20;
+
+/** Whether an F test's power is taken from the normal approximation (df1 finite, both above 1e20) */
+const hugeDf = (df1: number, df2: number): boolean => df1 > HUGE_DF && df1 < Infinity && df2 > HUGE_DF;
+
+/**
+ * The power P[F > qf(sig)] of an F test with noncentrality ncp where both degrees of freedom exceed 1e20 (df2 may be
+ * Infinity). There the critical value 1 + O(df^-1/2) rounds to 1 or to a few ulps of it in doubles, so that
+ * pf(qf(...)) loses the test; F = (χ²(df1, λ)/df1) / (χ²_df2/df2) is normal instead, with mean 1 + μ, μ = λ/df1, and
+ * variance 2 (1 + 2μ)/df1 + 2 (1 + μ)²/df2 (2/df1 + 2/df2 under the null), to within O(df1^-1/2) < 1e-10 in the power.
+ * The standard deviation is formed as a hypot so that (1 + μ)² does not overflow.
+ */
+function fPowerHugeDf(df1: number, df2: number, ncp: number, sig: number): number {
+  const z = qnorm(sig, { lowerTail: false }) as number;
+  const mu = ncp / df1;
+  const sd0 = Math.sqrt(2 / df1 + 2 / df2);
+  const sd1 = Math.hypot(Math.sqrt((2 * (1 + 2 * mu)) / df1), Math.sqrt(2 / df2) * (1 + mu));
+  return pnorm((z * sd0 - mu) / sd1, { lowerTail: false }) as number;
+}
+
 /** Common options of the pwr functions */
 interface PwrCommon {
   /** Significance level. Default `0.05`. */
@@ -907,8 +928,14 @@ export function pwrF2Test(options: PwrF2TestOptions = {}): PwrF2TestResult {
   if (!isUnknown(v) && !(v >= 1)) throw new RangeError("degree of freedom v for denominator must be at least 1");
   // a noncentrality beyond the doubles: the power is its limit 1
   const powerOf = (u: number, v: number, f2: number, sig: number): number => {
-    const ncp = f2 * (u + v + 1);
-    return ncp === Infinity ? 1 : (pf(qf(sig, u, v, { lowerTail: false }) as number, u, v, { ncp, lowerTail: false }) as number);
+    let ncp = f2 * (u + v + 1);
+    // (where u + v overflows for finite degrees of freedom, from the halves: u = v = 1e308, f2 = 1e-308 gave the limit 1
+    // for the noncentrality 2)
+    if (!Number.isFinite(ncp) && Number.isFinite(u) && Number.isFinite(v) && Number.isFinite(f2)) ncp = 2 * (f2 * (u / 2 + v / 2 + 0.5));
+    if (ncp === Infinity) return 1;
+    // (both degrees of freedom above 1e20: the normal approximation, as the critical value rounds to 1; R gives NaN)
+    if (hugeDf(u, v)) return fPowerHugeDf(u, v, ncp, sig);
+    return pf(qf(sig, u, v, { lowerTail: false }) as number, u, v, { ncp, lowerTail: false }) as number;
   };
   if (isUnknown(power)) power = powerOf(u!, v!, f2!, sigLevel!);
   else {

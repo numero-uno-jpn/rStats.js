@@ -808,11 +808,23 @@ export function pnf1(q: number, m: number, n: number, ncp: number, lowerTail: bo
   if (q === Infinity) return dt1(lowerTail, logP);
   if (m === Infinity) return NaN;
   if (n === Infinity) return pnchisq1(q * m, m, ncp, lowerTail, logP);
+  if (n > 1e40 && hugeDf2(q, m, n, ncp)) return pnchisq1(q * m, m, ncp, lowerTail, logP);
   if (tinyFx(q, m, n)) return pnfTiny(q, m, n, ncp, lowerTail, logP);
   if (ncp === 0) return pf1(q, m, n, lowerTail, logP);
   const neg = negligibleTail(fTailBound(q, m, n, ncp), lowerTail, logP);
   if (neg !== undefined) return neg;
   return pnfRaw(q, m, n, ncp, lowerTail, logP);
+}
+
+/**
+ * Whether df2 = n is so large that W = χ²_n/n is 1 on the scale of P[F <= q] (both tails), so that the noncentral χ²
+ * limit (df2 = Inf) is the distribution function to the double: the criterion of qnfRaw, with |log p| that of the
+ * smaller tail of the limit at q. (The series in x = m q/(n + m q) gave pf(2.9957, 2, 1e308, ncp = 1, upper) -0.817
+ * for 0.13271; R's pnf takes the limit for every df2 > 1e8.)
+ */
+function hugeDf2(q: number, m: number, n: number, ncp: number): boolean {
+  const lp = -Math.min(pnchisq1(q * m, m, ncp, true, true), pnchisq1(q * m, m, ncp, false, true));
+  return n > 1e40 * (lp + 1) && n > 1e20 * (m + 2 * lp + 1e3 + 4 * Math.sqrt((m + ncp) * (lp + 1)));
 }
 
 /** Below this log a probability rounds to 0 in double precision (as in src/distributions/nchisq.ts) */
