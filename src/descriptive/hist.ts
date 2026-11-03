@@ -341,7 +341,7 @@ function cellOf(v: number, f: readonly number[], right: boolean, includeLowest: 
     let a = 1;
     let b = last;
     while (a < b) {
-      const m = (a + b) >> 1;
+      const m = Math.floor((a + b) / 2); // not >> 1, which wraps beyond 2^31 breaks (issue #333)
       if (v <= f[m]!) b = m;
       else a = m + 1;
     }
@@ -353,7 +353,7 @@ function cellOf(v: number, f: readonly number[], right: boolean, includeLowest: 
   let a = 0;
   let b = last - 1;
   while (a < b) {
-    const m = (a + b + 1) >> 1;
+    const m = Math.floor((a + b + 1) / 2);
     if (f[m]! <= v) a = m;
     else b = m - 1;
   }
