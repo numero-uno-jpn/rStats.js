@@ -185,7 +185,7 @@ export interface UnirootOptions {
   maxiter?: number;
   /**
    * Extend the interval when f has the same sign at both ends: `"yes"` (both ways), `"downX"` (f decreasing),
-   * `"upX"` (f increasing) or `"no"` (default).
+   * `"upX"` (f increasing) or `"no"` (default). A unique prefix is accepted and anything else is an error, as in R.
    */
   extendInt?: "no" | "yes" | "downX" | "upX";
   /** f(lower), when already known. */
@@ -213,6 +213,20 @@ export interface UnirootResult {
 }
 
 /**
+ * extendInt of uniroot, as R's match.arg(extendInt) against c("no", "yes", "downX", "upX"): the full name or a
+ * unique prefix; anything else is an error before f is evaluated (it was taken as "no", #247)
+ */
+function extendIntArg(e: unknown): "no" | "yes" | "downX" | "upX" {
+  if (e === undefined) return "no";
+  const choices = ["no", "yes", "downX", "upX"] as const;
+  if (typeof e === "string" && e.length > 0) {
+    const hit = choices.filter((v) => v.startsWith(e));
+    if (hit.length === 1) return hit[0]!;
+  }
+  throw new RangeError(`'extendInt' should be one of "no", "yes", "downX", "upX"`);
+}
+
+/**
  * A root of a function of one variable in an interval, by Brent's zeroin. Equivalent to R's `uniroot()`.
  *
  * @example
@@ -227,7 +241,7 @@ export function uniroot(f: (x: number) => number, lower: number, upper: number, 
   const maxiter = Math.trunc(options.maxiter ?? 1000);
   if (!(tol >= 0 && tol < Infinity)) throw new RangeError("'tol' must be a non-negative finite number");
   if (!(maxiter >= 1 && maxiter < Infinity)) throw new RangeError("'maxiter' must be a positive integer");
-  const extendInt = options.extendInt ?? "no";
+  const extendInt = extendIntArg(options.extendInt);
   if (!(lower < upper)) throw new RangeError("lower < upper  is not fulfilled");
   let fLo = options.fLower ?? f(lower);
   let fUp = options.fUpper ?? f(upper);
