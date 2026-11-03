@@ -14,6 +14,7 @@ import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm } from "../distributions/normal.js";
 import { dwilcox1 } from "../distributions/wilcox.js";
 import { levelText, numberLevels } from "../internal/levels.js";
+import { ldexp, scaleToUnit, squareOver } from "../internal/summary.js";
 import { compareCodePoints } from "../models/modelFrame.js";
 import type { GroupLabel } from "./groups.js";
 import { matchChoice } from "./power.js";
@@ -52,12 +53,44 @@ export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTe
   if (ns.length !== k || s.length !== k) throw new RangeError("'x', 'n' and 'score' must have the same length");
   if (ns.some((v) => !(v > 0 && v < Infinity))) throw new RangeError("elements of 'n' must be positive and finite");
   if (xs.some((v, i) => !(v >= 0 && v <= ns[i]!))) throw new RangeError("elements of 'x' must be between 0 and 'n'");
-  const p = xs.reduce((a, v) => a + v, 0) / ns.reduce((a, v) => a + v, 0);
+  const sumN = ns.reduce((a, v) => a + v, 0);
+  const p = xs.reduce((a, v) => a + v, 0) / sumN;
   const w = ns.map((v) => v / (p * (1 - p)));
   const f = xs.map((v, i) => v / ns[i]!);
   // the weighted regression of f on the scores, over the groups with a score
   const rows = s.flatMap((v, i) => (Number.isNaN(v) ? [] : [i]));
   if (rows.length === 0) throw new RangeError("no non-missing scores");
+  const { sw, sxy, sxx } = trendRegression(w, f, s, rows);
+  let statistic = squareOver(sxy, sxx);
+  if (!(sumN < Infinity) || (p > 0 && p < 1 && !(sw < Infinity && Math.abs(sxy) < Infinity && sxx < Infinity))) {
+    // The totals or the weights overflow although the counts are finite: the pooled proportion from the counts
+    // scaled by 2^-k, and the regression with the weights n_i 2^-k (the common factor 1 / (p (1 - p)) cancels in the
+    // means), the statistic sxy^2 / sxx / (p (1 - p)) multiplied back by 2^k
+    const {
+      groups: [xu, nu],
+      k,
+    } = scaleToUnit([xs, ns]);
+    const pu = xu!.reduce((a, v) => a + v, 0) / nu!.reduce((a, v) => a + v, 0);
+    const u = trendRegression(nu!, f, s, rows);
+    statistic = ldexp((u.sxy / pu) * (u.sxy / u.sxx / (1 - pu)), k);
+  }
+  return {
+    method: "Chi-squared Test for Trend in Proportions",
+    statistic,
+    statisticName: "X-squared",
+    parameter: 1,
+    parameterName: "df",
+    pValue: pgamma1(statistic, 0.5, 2, false, false),
+  };
+}
+
+/** Weighted sums of the regression of f on the scores s over the given rows: the total weight and the centred sums */
+function trendRegression(
+  w: readonly number[],
+  f: readonly number[],
+  s: readonly number[],
+  rows: readonly number[],
+): { sw: number; sxy: number; sxx: number } {
   const sw = rows.reduce((a, i) => a + w[i]!, 0);
   const sBar = rows.reduce((a, i) => a + w[i]! * s[i]!, 0) / sw;
   const fBar = rows.reduce((a, i) => a + w[i]! * f[i]!, 0) / sw;
@@ -68,15 +101,7 @@ export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTe
     sxy += w[i]! * ds * (f[i]! - fBar);
     sxx += w[i]! * ds * ds;
   }
-  const statistic = (sxy * sxy) / sxx;
-  return {
-    method: "Chi-squared Test for Trend in Proportions",
-    statistic,
-    statisticName: "X-squared",
-    parameter: 1,
-    parameterName: "df",
-    pValue: pgamma1(statistic, 0.5, 2, false, false),
-  };
+  return { sw, sxy, sxx };
 }
 
 /**
