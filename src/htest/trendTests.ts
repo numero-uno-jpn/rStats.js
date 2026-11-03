@@ -217,6 +217,9 @@ export function jonckheereTest(x: Sample, g: readonly GroupLabel[], options: Jon
   if (variant === "clinfun" && options.exact !== undefined) throw new TypeError("clinfun's jonckheere.test has no option 'exact'");
   // clinfun keeps only the pairs where both values are finite
   const groups = orderedGroups(x, g, options.levels, variant === "clinfun");
+  // with fewer than 2 nonempty groups there is no pair to compare (the packages' errors)
+  if (groups.filter((gi) => gi.length > 0).length < 2)
+    throw new RangeError(variant === "clinfun" ? "only one group has non-missing data" : "all observations are in the same group");
   const all = groups.flat();
   const nTotal = all.length;
   const ties = new Set(all).size < nTotal;
