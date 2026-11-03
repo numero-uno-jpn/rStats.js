@@ -157,8 +157,8 @@ export function pretty(x: Sample, options: PrettyOptions = {}): number[] {
  */
 export interface HistOptions {
   /**
-   * Break points, a number of cells (a suggestion for pretty), or a rule: `"Sturges"` (default), `"Scott"` or
-   * `"FD"` (Freedman-Diaconis).
+   * Break points (finite: an infinite or NaN one is an error), a number of cells (a suggestion for pretty), or a
+   * rule: `"Sturges"` (default), `"Scott"` or `"FD"` (Freedman-Diaconis).
    */
   breaks?: readonly number[] | number | "Sturges" | "Scott" | "FD" | "Freedman-Diaconis";
   /** Cells closed on the right, (a, b] (default `true`). */
@@ -264,6 +264,8 @@ export function hist(x: Sample, options: HistOptions = {}): HistResult {
   const spec = options.breaks ?? "Sturges";
   let br: number[];
   if (typeof spec !== "string" && typeof spec !== "number" && spec.length > 1) {
+    // an infinite cell has density 0 and an infinite or NaN midpoint (R returns them; #229)
+    if (!spec.every(Number.isFinite)) throw new RangeError("'breaks' are not finite");
     br = [...spec].sort((a, b) => a - b);
     if (br.some((v, i) => i > 0 && !(v > br[i - 1]!))) throw new RangeError("'breaks' are not strictly increasing");
   } else {

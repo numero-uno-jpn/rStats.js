@@ -404,8 +404,10 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   pooled variance of 0: R's p-values are 0 in `TukeyHSD` and PMCMRplus, 1 in multcomp's `glht`), and a step `eps` of 0 or a
   non-finite `d`, `eps` or `zeroTol` in `grad`, `jacobian` and `hessian` (numDeriv's "simple" method gives NaN for
   `eps = 0`; `d = 0` is an error there too), and a `confLevel` outside [0, 1] or NaN in `TukeyHSD` (R returns NaN
-  limits; 0 and 1 are accepted as in R), and fewer than 2 break points (after dropping NaN) in `cut` (R returns NA
-  codes; one break is R's error "invalid number of intervals", and infinite breaks are accepted as in R).
+  limits; 0 and 1 are accepted as in R), fewer than 2 break points (after dropping NaN) in `cut` (R returns NA
+  codes; one break is R's error "invalid number of intervals", and infinite breaks are accepted as in R), and an
+  infinite or NaN explicit break in `hist` (R returns a density of 0 for an infinite cell, with an infinite or NaN
+  midpoint).
 - **The power and effect-size functions** reject NaN for a known quantity (pwr mostly stops with "missing value
   where TRUE/FALSE needed"; NaN was returned), a correlation outside [-1, 1] in `pwrRTest`, probabilities outside
   [0, 1] in `esH`, `esW1` and `esW2` (R: NaN), an empty or ragged matrix in `esW2` (R: 0), n <= 0 in `powerPropTest`
