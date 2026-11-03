@@ -624,6 +624,25 @@ function fritschCarlsonSlopes(x: readonly number[], y: readonly number[]): numbe
     const beta = m[k + 1]! / Sk;
     const a = 2 * alpha + beta - 3;
     const b = alpha + 2 * beta - 3;
+    const inRange = Number.isFinite(alpha * (a + b)) && Number.isFinite(a * a) && Number.isFinite(alpha * alpha + beta * beta);
+    if (!inRange && Number.isFinite(m[k]!) && Number.isFinite(m[k + 1]!) && Number.isFinite(Sk)) {
+      // only where the ratios or their products overflow (secants 1e-200 and 1e200: beta = Inf, the test Inf < Inf
+      // false, and the spline overshot to -6.25e198; issue #397): alpha and beta divided by 2^g, the power of 2 of
+      // the larger. The test is homogeneous of degree 2 in (alpha, beta, 3) and the slopes of degree 0
+      const ex = (v: number): number => (v === 0 ? -Infinity : Math.floor(Math.log2(Math.abs(v))));
+      const g = Math.max(ex(m[k]!), ex(m[k + 1]!)) - ex(Sk);
+      const as = scaledProduct([m[k]!], [Sk], -g);
+      const bs = scaledProduct([m[k + 1]!], [Sk], -g);
+      const three = ldexpWide(3, -g);
+      const a2 = 2 * as + bs - three;
+      const b2 = as + 2 * bs - three;
+      if (a2 > 0 && b2 > 0 && as * (a2 + b2) < a2 * a2) {
+        const tau = (3 * Sk) / Math.sqrt(as * as + bs * bs);
+        m[k] = tau * as;
+        m[k + 1] = tau * bs;
+      }
+      continue;
+    }
     if (a > 0 && b > 0 && alpha * (a + b) < a * a) {
       const tau = (3 * Sk) / Math.sqrt(alpha * alpha + beta * beta);
       m[k] = tau * alpha;
