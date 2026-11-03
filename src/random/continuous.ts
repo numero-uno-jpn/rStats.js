@@ -37,7 +37,11 @@ export function runif(n: number, options: { min?: number; max?: number } = {}): 
 export function rnorm1(mean: number, sd: number): number {
   if (Number.isNaN(mean) || !Number.isFinite(sd) || sd < 0) return NaN;
   if (sd === 0 || !Number.isFinite(mean)) return mean;
-  return mean + sd * normRand();
+  const z = normRand();
+  const x = mean + sd * z;
+  // sd·Z can overflow although mean + sd·Z is in range (R gives ±Inf): the same sum halved (exact for such a large sd
+  // and a mean that matters), rounded once and doubled
+  return Number.isFinite(x) ? x : 2 * (mean / 2 + (sd / 2) * z);
 }
 
 /**
