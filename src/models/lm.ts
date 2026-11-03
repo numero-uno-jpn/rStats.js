@@ -536,6 +536,14 @@ export function confint(
   return { lower, upper };
 }
 
+/** a b 2^s, formed so that no intermediate step overflows or underflows (a > 0 finite) */
+function scaledProduct(a: number, b: number, s: number): number {
+  if (b === 0 || !Number.isFinite(b)) return a * b;
+  const ea = Math.floor(Math.log2(a));
+  const eb = Math.floor(Math.log2(Math.abs(b)));
+  return ldexp(ldexp(a, -ea) * ldexp(b, -eb), ea + eb + s);
+}
+
 /**
  * Options for {@link predict}.
  *
@@ -597,15 +605,29 @@ export function predict(
     return Number.isFinite(s) ? s : rescaledDot(used.map((j) => r[j]!), used.map((j) => fit.coefficients[j]!), s);
   });
   // se: || R^-T x_piv || sigma, by forward substitution with R^T
-  const seFit = X.map((r) => {
+  const forward = (x: readonly number[]): number[] => {
     const z = new Array<number>(rank).fill(0);
     for (let i = 0; i < rank; i++) {
-      let s = r[piv[i]!]!;
+      let s = x[i]!;
       for (let k = 0; k < i; k++) s -= Rr[k]![i]! * z[k]!;
       z[i] = s / Rr[i]![i]!;
     }
+    return z;
+  };
+  const seFit = X.map((r) => {
+    const x = piv.map((j) => r[j]!);
+    const n = norm2(forward(x));
     // sqrt(z'z) sigma, not sqrt(z'z sigma^2): sigma^2 can overflow or underflow where sigma does not
-    return norm2(z) * fit.sigma;
+    if ((n >= MIN_NORMAL && n < Infinity) || !x.every(Number.isFinite) || x.every((v) => v === 0)) return n * fit.sigma;
+    // z overflowed or fell below the normal range although x is finite (#196: x = 1e200 on a column of 1e-200 made z
+    // about 1e400, Infinity before sigma 4e-201 was applied): z is linear in x, so solve with x divided by the power
+    // of 2 of its largest entry (by 2^600 more if that still overflows) and multiply back with sigma in exponent form
+    const e = Math.floor(Math.log2(maxOf(x.map(Math.abs))));
+    for (const extra of [0, 600]) {
+      const ns = norm2(forward(x.map((v) => ldexp(v, -(e + extra)))));
+      if (ns < Infinity) return ns === 0 ? ns * fit.sigma : scaledProduct(ns, fit.sigma, e + extra);
+    }
+    return n * fit.sigma;
   });
   const interval = options.interval ?? "none";
   if (interval !== "none" && interval !== "confidence" && interval !== "prediction") throw new RangeError(`invalid 'interval': ${String(interval)}`);
