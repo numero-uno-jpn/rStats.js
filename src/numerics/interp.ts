@@ -14,7 +14,7 @@
 // R's documented and observed behaviour.
 // Each spline piece is y + b h + c h^2 + d h^3 with h the distance from its left knot.
 
-import { ldexp, mean } from "../internal/summary.js";
+import { ldexp, ldexpWide, mean } from "../internal/summary.js";
 import type { Sample } from "../htest/types.js";
 import { seqLength } from "../internal/seq.js";
 import { findInterval } from "../descriptive/table.js";
@@ -74,6 +74,28 @@ function secant(y0: number, y1: number, h: number): number {
   const dy = y1 - y0;
   if (!Number.isFinite(dy) && Number.isFinite(y0) && Number.isFinite(y1)) return 2 * ((y1 / 2 - y0 / 2) / h);
   return dy / h;
+}
+
+/**
+ * The product of finite numbers (nonzero ones in the denominator) times 2^s, each factor taken as m 2^f, so that
+ * nothing overflows or underflows before the result (rounded a few times, in the normal range). For terms whose plain
+ * product leaves the range.
+ */
+function scaledProduct(num: readonly number[], den: readonly number[], s: number): number {
+  let p = 1;
+  let e = s;
+  for (const v of num) {
+    if (v === 0) return 0 * p;
+    const f = Math.floor(Math.log2(Math.abs(v)));
+    p *= ldexp(v, -f);
+    e += f;
+  }
+  for (const v of den) {
+    const f = Math.floor(Math.log2(Math.abs(v)));
+    p /= ldexp(v, -f);
+    e -= f;
+  }
+  return ldexpWide(p, e);
 }
 
 /** Step value (1 - f) y_i + f y_{i+1}; a term with weight 0 is dropped, so an infinite y there does not give NaN. */
@@ -658,7 +680,13 @@ function evalHermite(
       case 0: {
         // h m_i in the original units
         const h01 = t * t * (3 - 2 * t);
-        return y0 * (1 - h01) + ldexp(h * m0, k - e) * (t * t1 * t1) + y1 * h01 + ldexp(h * m1, k - e) * (t * t * t1);
+        // a term whose h m overflows before the small basis factor (h = 1e200, m = 1e200 at t = 1e-100 gave
+        // Inf - Inf for 1e300; issue #400): the product of the three factors with their exponents apart
+        const term = (mi: number, b: number): number => {
+          const v = ldexp(h * mi, k - e) * b;
+          return Number.isFinite(v) || !Number.isFinite(mi) || !Number.isFinite(b) ? v : scaledProduct([h, mi, b], [], k - e);
+        };
+        return y0 * (1 - h01) + term(m0, t * t1 * t1) + y1 * h01 + term(m1, t * t * t1);
       }
       case 1: return ldexp(delta * (-6 * t * t1) + m0 * (t1 * (3 * t - 1)) + m1 * (t * (3 * t - 2)), -e);
       case 2: return ldexp((delta * (6 - 12 * t) + m0 * (6 * t - 4) + m1 * (6 * t - 2)) / h, -e - k);
