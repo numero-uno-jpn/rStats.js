@@ -1,7 +1,7 @@
 // Issue #202: pwrF2Test where u + v overflows, both degrees of freedom are huge, and the noncentral F with a huge df2
 // (review_fix_log_issue202.md).
 import { describe, expect, it } from "vitest";
-import { pf, pwrF2Test } from "../src/index.js";
+import { pf, pwrAnovaTest, pwrF2Test } from "../src/index.js";
 
 const rel = (a: number, b: number): number => Math.abs(a / b - 1);
 
@@ -29,6 +29,25 @@ describe("issue #202", () => {
     expect(rel(pf(3, 2, 1e308, { ncp: 1 }) as number, 0.8676985496397763)).toBeLessThan(1e-14);
     // ncp = 0 given: pchisq(6, 2, upper) = e^-3 (was -2.0)
     expect(rel(pf(3, 2, 1e308, { ncp: 0, lowerTail: false }) as number, Math.exp(-3))).toBeLessThan(1e-14);
+  });
+
+  it("takes the normal approximation where both degrees of freedom exceed 1e16 (was 1e20)", () => {
+    // References: the Davies sum of the characteristic function of X/u - c Y/v in Rmpfr (256 bits), with the
+    // critical value c solved in the same way (scratchpad fix19_ref.R). pf(qf(...)) was off by 1e-7 to 7e-6 here
+    // (the critical value keeps only a few digits beyond 1); the approximation's error is O(1/sqrt(df))
+    const cases: [number, number, number, number, number][] = [
+      // u, v, ncp, reference, tolerance
+      [1e17, 1e17, 632455532.0336759, 0.25951102181670718, 3e-9], // was 0.2595111267699508
+      [1e18, 1e18, 2e9, 0.25951102251739381, 1e-9], // was 0.2595108972704641
+      [1e19, 1e19, 6324555320.336759, 0.2595110227389704, 3e-10], // was 0.2595128173946687
+      [1e17, 1e30, 948683298.0505139, 0.68312904015435778, 2e-9], // was 0.6831358772676552
+      [1e18, 1e18, 1, 0.050000000051567823, 1e-16], // was 0.04999995999253302
+    ];
+    for (const [u, v, ncp, ref, tol] of cases) {
+      expect(Math.abs(pwrF2Test({ u, v, f2: ncp / (u + v + 1) }).power - ref)).toBeLessThan(tol);
+    }
+    // pwrAnovaTest, k = 1e20, n = 2 (df1 = df2 = 1e20, ncp 2e10): reference 0.25951102280903905; was 0.25951419851352897
+    expect(Math.abs(pwrAnovaTest({ k: 1e20, n: 2, f: 1e-5 }).power - 0.25951102280903905)).toBeLessThan(1e-10);
   });
 
   it("leaves the other cases as before", () => {

@@ -23,7 +23,8 @@ describe("issue #200", () => {
     expect(pwrAnovaTest({ k: 4, n: 20, f: 0.25 }).power).toBe(0.42039009037704295);
     expect(pwrAnovaTest({ k: 4, f: 0.25, power: 0.8 }).n).toBe(44.599274320396226);
     expect(pwrAnovaTest({ k: 3, n: 1e300, f: 1e-150 }).power).toBe(0.32152403656716777);
-    expect(pwrAnovaTest({ k: 1e20, n: 2, f: 1e-5 }).power).toBe(0.25951419851352897);
+    // (k = 1e20, n = 2 is above the threshold since it was lowered to 1e16: test/issue202.test.ts; k = 1e16 is not)
+    expect(pwrAnovaTest({ k: 1e16, n: 2, f: 1e-4 }).power).toBe(0.25951103333841163);
     // a noncentrality beyond the doubles keeps the limit 1
     expect(pwrAnovaTest({ k: 4, n: 20, f: 1e200 }).power).toBe(1);
     expect(pwrAnovaTest({ k: Infinity, n: 20, f: 0.1 }).power).toBe(1);

@@ -194,17 +194,22 @@ function normalPower(shift: number, sig: number, alt: Alternative): number {
   return (pnorm(upperCritical(sig / 2) - shift, { lowerTail: false }) as number) + (pnorm((qnorm(sig / 2) as number) - shift) as number);
 }
 
-/** Above this, both degrees of freedom of an F test are huge enough for {@link fPowerHugeDf} */
-const HUGE_DF = 1e20;
+/**
+ * Above this, both degrees of freedom of an F test are huge enough for {@link fPowerHugeDf}. (1e16: the exact path
+ * pf(qf(...)) already loses about 1e-8 of the power there, from the critical value's few significant digits beyond 1,
+ * and up to 1e-5 just below 1e20; the approximation's error O(df^-1/2) is below that.)
+ */
+const HUGE_DF = 1e16;
 
-/** Whether an F test's power is taken from the normal approximation (df1 finite, both above 1e20) */
+/** Whether an F test's power is taken from the normal approximation (df1 finite, both above 1e16) */
 const hugeDf = (df1: number, df2: number): boolean => df1 > HUGE_DF && df1 < Infinity && df2 > HUGE_DF;
 
 /**
- * The power P[F > qf(sig)] of an F test with noncentrality ncp where both degrees of freedom exceed 1e20 (df2 may be
- * Infinity). There the critical value 1 + O(df^-1/2) rounds to 1 or to a few ulps of it in doubles, so that
- * pf(qf(...)) loses the test; F = (χ²(df1, λ)/df1) / (χ²_df2/df2) is normal instead, with mean 1 + μ, μ = λ/df1, and
- * variance 2 (1 + 2μ)/df1 + 2 (1 + μ)²/df2 (2/df1 + 2/df2 under the null), to within O(df1^-1/2) < 1e-10 in the power.
+ * The power P[F > qf(sig)] of an F test with noncentrality ncp where both degrees of freedom exceed 1e16 (df2 may be
+ * Infinity). There the critical value 1 + O(df^-1/2) keeps only a few significant digits beyond 1 in doubles (and
+ * rounds to 1 for the largest), so that pf(qf(...)) loses the test; F = (χ²(df1, λ)/df1) / (χ²_df2/df2) is normal
+ * instead, with mean 1 + μ, μ = λ/df1, and variance 2 (1 + 2μ)/df1 + 2 (1 + μ)²/df2 (2/df1 + 2/df2 under the null),
+ * to within O(df1^-1/2) in the power (about 1e-8 at 1e16, 1e-10 at 1e20).
  * The standard deviation is formed as a hypot so that (1 + μ)² does not overflow.
  */
 function fPowerHugeDf(df1: number, df2: number, ncp: number, sig: number): number {
@@ -871,7 +876,7 @@ export function pwrAnovaTest(options: PwrAnovaTestOptions = {}): PwrAnovaTestRes
     if (!Number.isFinite(ncp) && Number.isFinite(k) && Number.isFinite(n) && Number.isFinite(f)) ncp = scaledProduct([k, n, f, f]);
     // (a noncentrality beyond the doubles: the limit 1)
     if (ncp === Infinity) return 1;
-    // (both degrees of freedom above 1e20: the normal approximation, as the critical value rounds to 1; R gives NaN)
+    // (both degrees of freedom above 1e16: the normal approximation, the critical value being 1 to a few digits; R NaN)
     if (hugeDf(df1, df2)) return fPowerHugeDf(df1, df2, ncp, sig);
     return pf(qf(sig, df1, df2, { lowerTail: false }) as number, df1, df2, { ncp, lowerTail: false }) as number;
   };
@@ -956,7 +961,7 @@ export function pwrF2Test(options: PwrF2TestOptions = {}): PwrF2TestResult {
     // for the noncentrality 2)
     if (!Number.isFinite(ncp) && Number.isFinite(u) && Number.isFinite(v) && Number.isFinite(f2)) ncp = 2 * (f2 * (u / 2 + v / 2 + 0.5));
     if (ncp === Infinity) return 1;
-    // (both degrees of freedom above 1e20: the normal approximation, as the critical value rounds to 1; R gives NaN)
+    // (both degrees of freedom above 1e16: the normal approximation, the critical value being 1 to a few digits; R NaN)
     if (hugeDf(u, v)) return fPowerHugeDf(u, v, ncp, sig);
     return pf(qf(sig, u, v, { lowerTail: false }) as number, u, v, { ncp, lowerTail: false }) as number;
   };
