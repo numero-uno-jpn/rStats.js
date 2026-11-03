@@ -5,7 +5,8 @@
 // R uses LAPACK's dgesdd (divide and conquer), so singular values agree to rounding error, while singular vectors
 // may differ in sign (orientation for repeated singular values).
 // Argument checks and result shapes follow observed R output.
-// - nu and nv default to min(rows, cols). Requests above the row or column count are truncated
+// - nu and nv default to min(rows, cols). A fraction is truncated toward zero and requests above the row or column
+//   count are reduced to it (Infinity is the count); negative values and NaN are errors
 // - Singular values in decreasing order. NaN or Inf is an error
 // - Singular vectors beyond min(rows, cols) (the remaining columns of U or V) are a basis of the orthogonal complement and do not match R
 
@@ -19,9 +20,9 @@ import { ldexp } from "../internal/summary.js";
  * @category Linear algebra
  */
 export interface SvdOptions {
-  /** Number of left singular vectors to compute. Default: `min(nrow, ncol)`. Values above the number of rows are reduced to it. */
+  /** Number of left singular vectors to compute. Default: `min(nrow, ncol)`. A fraction is truncated toward zero, and values above the number of rows (`Infinity` included) are reduced to it. Negative values and `NaN` are errors. */
   nu?: number;
-  /** Number of right singular vectors to compute. Default: `min(nrow, ncol)`. Values above the number of columns are reduced to it. */
+  /** Number of right singular vectors to compute. Default: `min(nrow, ncol)`. A fraction is truncated toward zero, and values above the number of columns (`Infinity` included) are reduced to it. Negative values and `NaN` are errors. */
   nv?: number;
 }
 
@@ -72,11 +73,14 @@ export function svdScaled(x: MatrixInput, options: SvdOptions = {}): SvdResult &
   const a = toMat(x);
   for (const v of a.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
   const k = Math.min(a.nrow, a.ncol);
-  const nu = Math.min(options.nu ?? k, a.nrow);
-  const nv = Math.min(options.nv ?? k, a.ncol);
-  for (const [name, v] of [["nu", nu], ["nv", nv]] as const) {
-    if (!Number.isInteger(v) || v < 0) throw new RangeError(`${name} must be a non-negative integer`);
-  }
+  // As R (seq_len): a non-negative request is truncated toward zero, then reduced to the dimension (Infinity is the
+  // dimension); a negative one or NaN is an error, whatever the matrix shape (#273)
+  const count = (name: string, v: number, dim: number) => {
+    if (Number.isNaN(v) || v < 0) throw new RangeError(`${name} must be a non-negative number`);
+    return Math.min(Math.trunc(v), dim);
+  };
+  const nu = count("nu", options.nu ?? k, a.nrow);
+  const nv = count("nv", options.nv ?? k, a.ncol);
   // If wide, transpose and swap U and V
   const wide = a.nrow < a.ncol;
   // A matrix of extreme magnitude is scaled by a power of 2 (exact); svd scales the singular values back
