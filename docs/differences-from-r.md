@@ -697,6 +697,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   position as given, and its first draw then reads the position slot itself as a state word. A position of 0 or past
   624 regenerates on the next draw, as in R.
 - **`rwilcox`** throws "m + n must be at most 2147483647" where R's allocation of the ranks fails.
+- **`rsignrank`** throws "n must be less than 2^27 (134217728)" for n >= 2^27 (after rounding), before drawing (#407).
+  It draws one uniform per rank, and 2^27 takes about 4 s (8 s with L'Ecuyer-CMRG); the bound is the domain of
+  `dsignrank`. R runs up to 2147483647 (about a minute) and gives 0 without drawing beyond its integer range.
 - **Comparisons of fits** (`anova(fit1, fit2)` for lm, `glmAnova` with several fits) require the same rows, response
   values and weights; R compares only the number of rows (and for glm drops fits with another response formula).
   `lmerAnova` checks the same.

@@ -30,6 +30,8 @@ export function rsignrank(nn: number, n: number): number[] {
     const k = roundHalfEven(n);
     if (k < 0) return NaN;
     if (k === 0) return 0;
+    // one uniform per rank: bounded to the domain of dsignrank (about 4 s here; R runs to 2147483647)
+    if (k >= 2 ** 27) throw new RangeError("n must be less than 2^27 (134217728)");
     let r = 0;
     // Choose the sign of rank i with a uniform
     for (let i = 1; i <= k; i++) r += i * Math.floor(unifRand() + 0.5);
