@@ -35,7 +35,7 @@
 
 import { dhyper1, phyper1 } from "../distributions/hypergeometric.js";
 import { roundHalfEven } from "../internal/integer.js";
-import { logFactorialTable, rcont2 } from "../random/r2dtable.js";
+import { logFactorialTable, MAX_TABLE_TOTAL, rcont2 } from "../random/r2dtable.js";
 import { lfactorial } from "../special/choose.js";
 import { logScaleRoot } from "../internal/uniroot.js";
 import { ddAdd, ddLog, ddNeg, ddSub, type DD } from "../special/dd.js";
@@ -150,7 +150,10 @@ function fisherSimulated(t: number[][], B: number): number {
   let acc: DD = [0, 0];
   for (const v of x.flat()) acc = ddAdd(acc, [-lfactorial(v), 0]);
   const threshold = acc[0] / (1 + 64 * Number.EPSILON);
-  const fact = logFactorialTable(sr.reduce((a, b) => a + b, 0));
+  const total = sr.reduce((a, b) => a + b, 0);
+  // the table of log factorials has total + 1 entries: limited as in r2dtable (#286)
+  if (total > MAX_TABLE_TOTAL) throw new RangeError("the simulation needs a total count of at most 16777216 (2^24)");
+  const fact = logFactorialTable(total);
   const table = new Int32Array(nr * nc);
   let count = 0;
   const reps = Math.trunc(B);
