@@ -62,6 +62,8 @@ export type DistName =
   | "binom" | "pois" | "geom" | "nbinom" | "hyper" | "invgamma" | "kumar" | "pareto" | "triang" | "laplace" | "arcsine";
 
 const NAN: DistSummary = { mean: NaN, variance: NaN, sd: NaN, median: NaN, mode: NaN, skewness: NaN, kurtosis: NaN };
+/** A point mass at 0: no skewness or kurtosis */
+const POINT_AT_0: DistSummary = { mean: 0, variance: 0, sd: 0, median: 0, mode: 0, skewness: NaN, kurtosis: NaN };
 
 /**
  * sdDirect: the standard deviation formed without the variance, used where the variance overflowed or lost digits
@@ -541,6 +543,8 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
     }
     case "pois": {
       const lambda = P.lambda ?? NaN;
+      // (lambda = 0 is the point mass at 0, as in dpois, ppois and qpois; issue #379)
+      if (lambda === 0) return POINT_AT_0;
       if (!(lambda > 0 && Number.isFinite(lambda))) return NAN;
       return make(lambda, lambda, qpois(0.5, lambda), Math.floor(lambda), 1 / Math.sqrt(lambda), 1 / lambda);
     }
@@ -561,6 +565,9 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
     }
     case "nbinom": {
       const r = P.size ?? NaN;
+      // (size = 0 is the point mass at 0, as in dnbinom, pnbinom and qnbinom, with a valid prob or mu; before p = size /
+      // (size + mu), which is 0 or 0/0 there; issue #379)
+      if (r === 0) return (has(P, "mu") ? P.mu! >= 0 && P.mu! < Infinity : P.prob! > 0 && P.prob! <= 1) ? POINT_AT_0 : NAN;
       if (!(r > 0 && Number.isFinite(r))) return NAN;
       // (where size + mu overflows, from the halved parameters: size = mu = 1e308 gave p = 0 and NaN throughout; issue #236)
       const p = has(P, "mu") ? (Number.isFinite(r + P.mu!) ? r / (r + P.mu!) : r / 2 / (r / 2 + P.mu! / 2)) : (P.prob ?? NaN);
