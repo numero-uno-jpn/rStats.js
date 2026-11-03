@@ -185,7 +185,7 @@ function binCode(xs: readonly number[], br: readonly number[], right: boolean, i
     let lo = 0;
     let hi = nb;
     while (lo < hi) {
-      const mid = (lo + hi) >> 1;
+      const mid = Math.floor((lo + hi) / 2); // not >> 1, which wraps beyond 2^31 breaks (issue #340)
       if (right ? br[mid]! < v : br[mid]! <= v) lo = mid + 1;
       else hi = mid;
     }
@@ -240,7 +240,7 @@ export function findInterval(x: Sample, vec: readonly number[], options: FindInt
     let lo = 0;
     let hi = n;
     while (lo < hi) {
-      const mid = (lo + hi) >> 1;
+      const mid = Math.floor((lo + hi) / 2); // not >> 1 (issue #340)
       if (leftOpen ? vec[mid]! < v : vec[mid]! <= v) lo = mid + 1;
       else hi = mid;
     }
