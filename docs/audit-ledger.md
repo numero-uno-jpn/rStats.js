@@ -4638,3 +4638,99 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #742 — optim Brent ignores maxit
 - 対象: `src/optim/optim.ts` SHA `b0adf40e7b8433cd39111a835580a9a5b3b2108c`。
 - Issue [#252](https://github.com/numero-uno-jpn/rStats.js/issues/252)。再現: `optim([0],x=>(x[0]-0.123456789)**2,{method:"Brent",lower:-1,upper:1,control:{maxit:1}})`。Brent branchはmaxitをoptimize()に渡さず、localMin()にiteration capがないため、指定maxitを無視してtoleranceまで続行する。
+
+
+## Audit #743 — survfit log-log interval at survival 1 with zero standard error
+- 対象: `src/models/survival.ts` SHA `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de` の `survfit()`。
+- Issue [#253](https://github.com/numero-uno-jpn/rStats.js/issues/253)。再現: `survfit([1,2],[0,0],{confType:"log-log"})`。イベントなしでS=1、Greenwood SE=0なのに境界分岐がlower/upperをNaNにする。survival::survfit_confintはse=0ならpを返す。静的ソース解析。package/Vitest/R実行なし。
+
+## Audit #744 — survfit median tolerance creates a false 0.5 crossing
+- 対象: `src/models/survival.ts` SHA `03183bdcb6437634a6ddfae1e1f3d98ff2cbc4de` の `curveMedian()`。
+- Issue [#254](https://github.com/numero-uno-jpn/rStats.js/issues/254)。再現: `survfit([1,2,3],[1,0,1],{confType:"plain",confInt:0.45970860108863704})`。時刻1のlower CIは約0.50000001で真の0.5 crossingではないが、sqrt(eps)≈1.49e-8 toleranceでexact plateauとみなされ、次のevent時刻3との中点2を返す。真の最初のcrossingは時刻3。静的計算・ソース解析。実行テストなし。
+
+## Audit #745 — pivotLonger single namesTo does not validate regex captures
+- 対象: `src/descriptive/pivot.ts` SHA `7b7839d4c44daf2bc7c564493c376efb907ad8c1` の `nameParts()`。
+- Issue [#255](https://github.com/numero-uno-jpn/rStats.js/issues/255)。再現: `pivotLonger({id:[1],x1:[10],x2:[20]},{cols:["x1","x2"],namesTo:"time",namesPattern:"x[0-9]+"})`。単一namesToではregexのcapture group数を検証せず、capture groupなしなら全parsed namesがnull、複数なら先頭以外を黙って捨てる。multi-field pathはgroup数を検証する。静的ソース解析。実行テストなし。
+
+## Audit #746 — pivot ordering options silently accept unsupported values
+- 対象: `src/descriptive/pivot.ts` SHA `7b7839d4c44daf2bc7c564493c376efb907ad8c1` の `pivotLonger()` / `pivotWider()`。
+- Issue [#256](https://github.com/numero-uno-jpn/rStats.js/issues/256)。再現: `pivotLonger({id:[1],a:[10],b:[20]},{cols:["a","b"],colsVary:"slwest" as any})`、および `pivotWider({id:[1,1],time:["a","b"],value:[10,20]},{namesFrom:"time",valuesFrom:"value",namesVary:"slwest" as any})`。有効値はfastest/slowestだが、slowest以外をfastestとして処理し不正値を黙って受け入れる。静的ソース解析。実行テストなし。
+
+## Audit #747 — quantile clamps probabilities just outside [0,1]
+- 対象: `src/descriptive/quantile.ts` SHA `7fe14be52f404d0565fc5ec0cd4d953d155c2b6a` の `quantile()`。
+- Issue [#257](https://github.com/numero-uno-jpn/rStats.js/issues/257)。再現: `quantile([1,2,3],-1e-14)` または `quantile([1,2,3],1+1e-14)`。100*Number.EPSILON以内の範囲外確率を許容し、0/1にclampして端点を返す。確率契約[0,1]から外れる入力は拒否すべき。静的ソース解析。R/Vitest実行なし。
+
+## Audit #748 — histogram fuzz width overflows for finite opposite-sign data
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5` の `fuzzScale()` / `hist()`。
+- Issue [#258](https://github.com/numero-uno-jpn/rStats.js/issues/258)。再現: `hist([-1e308,1e308],{breaks:[-1e308,0,1e308]})`。br.length<=3でdataRange=hi-lo=Infinity、fuzz tauもInfinityとなり中間breakがInfinityに移動、期待counts [1,1]が[2,0]になる。有限入力のrange差を直接減算する問題。静的IEEE-754解析。実行テストなし。
+
+## Audit #749 — histogram density denominator overflows for finite bin width
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5` のdensity計算。
+- Issue [#259](https://github.com/numero-uno-jpn/rStats.js/issues/259)。再現: `hist([0,1e308],{breaks:[0,1e308]}).density`。count=2,n=2,width=1e308なので真のdensity=1e-308は表現可能だが、n*widthがInfinityとなり現行式count/(n*width)は0を返す。count/n/width等の順序なら保持可能。静的IEEE-754解析。実行テストなし。
+
+## Audit #750 — estimability test compares overflowed dot product and norms
+- 対象: `src/models/estimable.ts` SHA `01bb4704f17c7d8aed407922a94cc5457207eeba` の `nonEstimableRows()`。
+- Issue [#260](https://github.com/numero-uno-jpn/rStats.js/issues/260)。再現:
+  ```ts
+  const q = qr([[1,0,0,-1],[0,1,0,-1],[0,0,1,-1],[1,1,1,-3]]);
+  nonEstimableRows(q,3,[[1e308,1e308,1e308,1e308]]);
+  ```
+  null方向は[1,1,1,1]に比例し予測行は非直交だが、dotとnorm(x)がInfinityになりInfinity > Infinityがfalse、非estimableを見逃す。正規化してから内積・ノルム比較する必要がある。静的線形代数/IEEE-754解析。実行テストなし。
+
+## Audit #751 — omega accepts one item and returns undefined reliability statistics
+- 対象: `src/descriptive/omega.ts` SHA `0a402dc583bb209e94f6d151ae1c5f8e9e10813d` の `omega()`。
+- Issue [#261](https://github.com/numero-uno-jpn/rStats.js/issues/261)。再現: `omega([[1],[2],[3]],{nfactors:1})`。p=1,q=1を通し、alphaでp-1=0、omegaLimでVt-U=0となりNaN/Infinityを返す。単一項目ではinternal consistency reliabilityを定義できないため、少なくとも明示的に拒否する必要がある。静的ソース・数式解析。実行テストなし。
+
+## Audit #752 — tabulate skips the 2^31 size guard for inferred nbins
+- 対象: `src/descriptive/table.ts` SHA `d6a292d4eb9f040528219f8202e2ad962cfc13e0` の `tabulate()`。
+- Issue [#262](https://github.com/numero-uno-jpn/rStats.js/issues/262)。再現: `tabulate([2 ** 31])`。2^31以上を拒否するguardは明示的nbinsの分岐にしかなく、nbinsをbin最大値から推定した場合は巨大なArray.fill割当てへ進み、RangeErrorやメモリ枯渇を起こし得る。巨大割当ては実行していない。静的ソース解析。
+
+
+## Audit #753 — normal-power upper critical value loses tiny alpha
+- 対象: `src/htest/pwr.ts` SHA `c6ca40a25ff10fcdedd005a115fc5e7a65943b34` の共有関数 `normalPower()`。
+- Issue [#263](https://github.com/numero-uno-jpn/rStats.js/issues/263)。再現: `pwrNormTest({d:0.3,n:50,sigLevel:1e-20})`。二側検定で `1 - sig/2` が1に丸まり、`qnorm(1)` がInfinity。上側棄却確率が0と評価され、powerを過小評価する。pwrPTest/pwr2pTest/pwr2p2nTestも共有関数を使う。静的IEEE-754解析。実行テストなし。
+
+## Audit #754 — esW1 squared difference underflows before division
+- 対象: `src/htest/pwr.ts` SHA `c6ca40a25ff10fcdedd005a115fc5e7a65943b34` の `esW1()`。
+- Issue [#264](https://github.com/numero-uno-jpn/rStats.js/issues/264)。再現: `esW1([1e-320,1],[1e-200,1])`。第一項の真の寄与は約1e-80、wは約1e-40だが、`(p1-p0)**2` が0へunderflowし結果0。差をsqrt(p0)で割ってから二乗するなどのスケーリングが必要。静的IEEE-754解析。実行テストなし。
+
+## Audit #755 — esW2 independence probability underflows to zero
+- 対象: `src/htest/pwr.ts` SHA `c6ca40a25ff10fcdedd005a115fc5e7a65943b34` の `esW2()`。
+- Issue [#265](https://github.com/numero-uno-jpn/rStats.js/issues/265)。再現: `esW2([[1e-200,0],[0,1]])`。周辺確率の積p00≈1e-400が0へunderflowし、実際の寄与は約1なのに `(p-p0)**2` も0となって0/0→NaN。期待wは約1。積・差・除算のスケーリングが必要。静的IEEE-754解析。実行テストなし。
+
+## Audit #756 — polychor grand total overflow corrupts thresholds
+- 対象: `src/htest/polycor.ts` SHA `6b98f70d655559b787ddc77f955964e37bf93ea3` の `thresholds()`。
+- Issue [#266](https://github.com/numero-uno-jpn/rStats.js/issues/266)。再現: `polychor([[8e307,8e307],[8e307,8e307]])`。各row/column sum=1.6e308は有限だがgrand total=3.2e308はInfinity。累積比1.6e308/Infinity=0となり、本来0のthresholdがqnorm(0)=-Infinityに変わる。全セル等確率のテーブルのrho=0を壊す。静的IEEE-754解析。実行テストなし。
+
+## Audit #757 — gebal norm-reduction test compares Infinity with Infinity
+- 対象: `src/linalg/balance.ts` SHA `b0796b3365f4f23a7a02efdb05628380f85cf284` の `gebal()`。
+- Issue [#267](https://github.com/numero-uno-jpn/rStats.js/issues/267)。再現:
+  ```ts
+  const A = toMat([[0,1.6e308],[6e307,0]]);
+  gebal("S", A);
+  ```
+  index0のc=6e307,r=1.6e308。f=2候補ではc=1.2e308,r=8e307となり、真の和は2.2e308から2.0e308へ9.1%減少する。しかし両和がInfinityとなり、`c+r >= 0.95*s` がInfinity>=Infinityでtrueとなってscaleを棄却する。静的IEEE-754/アルゴリズム解析。実行/LAPACK比較なし。
+
+## Audit #758 — McNemar continuity correction squares a negative corrected difference
+- 対象: `src/htest/mcnemarTest.ts` SHA `335b11309ae373f295ef383f92e66f02f99f1d48`。
+- Issue [#268](https://github.com/numero-uno-jpn/rStats.js/issues/268)。再現: `mcnemarTest([[0,1.5],[1,0]],{correct:true})`。b-c=0.5のため補正後の絶対差はmax(0,0.5-1)=0であるべきだが、現行は-0.5を二乗しstatistic=0.1を返す。table validationは非負有限値のみを要求し小数頻度を受け入れる。静的数式/ソース解析。実行/R比較なし。
+
+## Audit #759 — pwrRTest critical t square overflows at tiny alpha
+- 対象: `src/htest/pwr.ts` SHA `c6ca40a25ff10fcdedd005a115fc5e7a65943b34` の `pwrRTest()` 内 `upper()`。
+- Issue [#269](https://github.com/numero-uno-jpn/rStats.js/issues/269)。再現: `pwrRTest({n:4,r:0.5,sigLevel:1e-320})`。df=2の有限なcritical tは約1e160で、その二乗がInfinity。現行 `t**2/(t**2+df)` はInfinity/Infinity=NaNとなりcritical correlationとpowerがNaN。critical Fisher-zは `asinh(t/sqrt(df))` 等で直接安定計算できる。静的漸近/IEEE-754解析。実行テストなし。
+
+## Audit #760 — Bartlett test loses a group's variance before taking its logarithm
+- 対象: `src/htest/varTest.ts` SHA `c7ec22cdff413f22705b5ca7462a3230405cc147` の `bartlettTest()`。共通スケーリングは `src/internal/summary.ts` の `groupMoments()`。
+- Issue [#270](https://github.com/numero-uno-jpn/rStats.js/issues/270)。再現: `bartlettTest([[1e200,1.000000000000001e200],[0,1e-100]])`。共通スケールで第二群の偏差は約1e-300となり、二乗が0へunderflow。Bartlett統計は分散のlogを使うため、元の分散比がdouble範囲外でも統計量は有限に保てるが、現行はlog(0)=-Infinityからstatistic Infinity/p=0となる。静的スケール/数式解析。実行テストなし。
+
+## Audit #761 — propTrendTest pooled proportion overflows on finite counts
+- 対象: `src/htest/trendTests.ts` SHA `5dcd1d74fbe03a551c66a352b68b004d73cd52fb` の `propTrendTest()`。
+- Issue [#271](https://github.com/numero-uno-jpn/rStats.js/issues/271)。再現: `propTrendTest([5e307,5e307],[1e308,1e308])`。個々のイベント数・試行数は検証を通るが、native reduceで両総和がInfinityとなりpooled proportion=Infinity/Infinity=NaN。両群とも比率0.5なので正しいtrend statisticは0、p-valueは1。安定和または共通スケールが必要。静的IEEE-754解析。実行テストなし。
+
+## Audit #762 — powerAnovaTest overflow fallback still overflows before applying the variance ratio
+- 対象: `src/htest/power.ts` SHA `5950a5e498272e8ae0b5a581e849477eb287c349` の `powerAnovaTest()`。
+- Issue [#272](https://github.com/numero-uno-jpn/rStats.js/issues/272)。再現:
+  ```ts
+  powerAnovaTest({groups:1e200,n:1e200,betweenVar:1e8,withinVar:1e308});
+  ```
+  direct noncentrality expressionはInfinityになる。fallbackも `(groups-1)*n` を先に計算してInfinityとし、その後1e-300を掛けるためInfinityのまま。完全な数式上のnoncentralityは約1e100で有限なのに、関数はInfinity-ncpの極限power=1を返す。ratioを先に適用してもgroup*nが先にoverflowするため、指数スケーリング等が必要。静的算術解析。極端な自由度での分布評価は未実施。
