@@ -695,7 +695,8 @@ export function qrR(q: QR, options: { complete?: boolean } = {}): number[][] {
  *
  * @param q A QR decomposition from {@link qr}.
  * @param options `complete`: whether the default `ncol` is the number of rows (`true`) or `min(nrow, ncol)` (`false`, the default).
- *   `ncol`: the number of columns to return; columns beyond the original ones are taken from `Q` (as in R).
+ *   `ncol`: the number of columns to return, from 0 to `max(nrow, ncol)`; columns beyond the original ones are taken
+ *   from `Q` (as in R). A larger `ncol` is an error (R pads zero columns).
  * @returns The reconstructed matrix as an array of rows.
  *
  * @example
@@ -712,6 +713,8 @@ export function qrX(q: QR, options: { complete?: boolean; ncol?: number } = {}):
   const complete = options.complete ?? false;
   const ncol = options.ncol ?? (complete ? n : Math.min(n, p));
   if (!Number.isInteger(ncol) || ncol < 0) throw new RangeError(`invalid ncol (got ${ncol})`);
+  // Columns beyond max(n, p) are neither columns of x nor of an orthogonal completion (R pads them with zeros)
+  if (ncol > Math.max(n, p)) throw new RangeError(`ncol must be at most max(nrow, ncol of x) = ${Math.max(n, p)} (got ${ncol})`);
   const pivoted = d.pivot.some((v, j) => v !== j + 1);
   if (pivoted && ncol < p) throw new RangeError("ncol must be at least the number of columns because the decomposition is pivoted");
   // Multiply R (n x ncol; columns beyond p are identity columns) by Q

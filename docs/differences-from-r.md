@@ -1054,7 +1054,8 @@ also from R's source. They are listed because they are easy to get wrong.
   rows).
 - **`qrFitted`, `qrResid`:** with k = 0 they return y unchanged; a 1-row matrix has residual 0.
 - **`qrX`:** `ncol` defaults to min(rows, columns); with pivoted columns, an `ncol` smaller than
-  the number of columns is an error.
+  the number of columns is an error. An `ncol` above max(rows, columns) is an error (R pads zero
+  columns, which are neither columns of x nor of an orthogonal completion); `ncol` 0 gives an empty matrix as in R.
 - **`qrSolve`:** an error unless rank = min(rows, columns). For wide matrices the unused
   coefficients are 0. `b` may be omitted only for square matrices.
 - **`qr(x, { lapack: true })`:** `qraux` (tau) has min(rows, columns) elements, one
