@@ -394,7 +394,7 @@ export function expandRhs(
             const next = dedupe(nxt);
             // a fixed point (the same terms in the same order) stays one: the remaining steps change nothing, so a
             // large power ends after at most as many steps as there are variables (#294)
-            const same = next.length === cur.length && next.every((t, i) => keyOf(t) === keyOf(cur[i]));
+            const same = next.length === cur.length && next.every((t, i) => keyOf(t) === keyOf(cur[i]!));
             cur = next;
             if (same) break;
           }
