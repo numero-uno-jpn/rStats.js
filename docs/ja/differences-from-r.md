@@ -374,6 +374,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `anova(glm(1e154 ~ 0, gaussian("log")), test = "Cp")` など、分散パラメータが double の最大値の半分を超える、パラメータのないモデルの Cp | Cp が NaN (2 × dispersion が溢れて 0 を掛ける) | 残差逸脱度の 1e308。罰則を 2 (n − df) × dispersion の順に計算する (R の順で溢れない範囲では同じビット) |
 | y = 1e154 の `AIC(glm(y ~ 0, gaussian("log")))` など、逸脱度は有限だが 2 pi × 逸脱度が溢れる gaussian の当てはめ | Inf (`log(2 * pi * dev / n)`) | 真の値 714.034。2 pi × dev が溢れるときだけ log(2 pi) + log(dev / n)。それ以外は R の式 |
 | `prop.trend.test(c(5e307, 5e307), c(1e308, 1e308))` と `prop.trend.test(c(1, 0), c(1e300, 1e300))` (度数の合計や重み n / (p (1 - p)) が溢れる場合) | エラー "NA/NaN/Inf in 'x'" (lm.wfit) | 統計量 0 (p 値 1) と 1。プールした比率を 2 の冪で割った度数から求め、重み n_i 2^-k で回帰して、統計量に 2^k を掛けて戻す。それ以外は R の式 |
+| polycor の `polychor(matrix(8e307, 2, 2))` と `polychor(matrix(4e307, 2, 2))` (表の合計や対数尤度が溢れる場合) | 0.999859 ("Inf replaced by maximum positive value" の警告つき) | -1.67e-16 (すべて 1 の表と同じ値)。合計が 2^1000 以上のときだけ度数を 2 の冪で割る (rho と閾値は度数の単位によらない)。分散・カイ二乗・n は掛け戻す |
 
 ## 意図的な違い
 

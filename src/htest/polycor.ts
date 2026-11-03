@@ -18,7 +18,7 @@ import { pbvnorm } from "../distributions/bvnorm.js";
 import { dnorm, pnorm, qnorm } from "../distributions/normal.js";
 import { pearsonDD } from "./cor.js";
 import { numberLevels } from "../internal/levels.js";
-import { mean, scaleToUnit, sum, variance } from "../internal/summary.js";
+import { ldexp, mean, scaleToUnit, sum, variance } from "../internal/summary.js";
 import { optimize } from "../numerics/integrate.js";
 import { solve } from "../linalg/solve.js";
 import { formatR } from "./core/simulate.js";
@@ -470,6 +470,11 @@ export function polychor(
   }
   const { ML = false, stdErr = false } = options;
   const warnings: string[] = [];
+  // Where the total is 2^1000 or more (the log-likelihood, up to the total times 745, could overflow, and the total
+  // itself may), the counts are divided by a power of 2, 2^k: the thresholds and rho do not depend on the units of
+  // the counts, and the variances, the chi-square and n are multiplied back below
+  let k = 0;
+  if (!(sum(tab.map((row) => sum(row))) < 2 ** 1000)) ({ groups: tab, k } = scaleToUnit(tab));
   const rowSums = tab.map((r) => sum(r));
   const zeroRows = rowSums.filter((s) => s === 0).length;
   if (zeroRows > 0) {
@@ -523,21 +528,29 @@ export function polychor(
   const n = sum(tab.map((row) => sum(row)));
   // chisq = 2 (−ℓ + Σ n_ij log((n_ij + 1e-6)/n)) = 2 Σ [n log(1 + 1e-6/n) + n (ε − log(1 + ε))] + 2 n Σ_{empty} P
   const terms: number[] = [];
+  // with scaled counts, the terms n log(1 + 1e-6 / n) (absolute, about 1e-6 each) from the original counts
+  const fixed: number[] = [];
   for (let i = 0; i < r; i++) {
     for (let j = 0; j < c; j++) {
       const count = tab[i]![j]!;
       const prob = pbvnorm([fittedRow[i]!, fittedCol[j]!], [fittedRow[i + 1]!, fittedCol[j + 1]!], rho);
       if (count === 0) terms.push(n * prob);
-      else terms.push(count * Math.log1p(1e-6 / count), count * excessOverLog1p((n * prob) / count - 1));
+      else if (k === 0) terms.push(count * Math.log1p(1e-6 / count), count * excessOverLog1p((n * prob) / count - 1));
+      else {
+        const original = ldexp(count, k);
+        fixed.push(original * Math.log1p(1e-6 / original));
+        terms.push(count * excessOverLog1p((n * prob) / count - 1));
+      }
     }
   }
+  const variances = inverseNegHessian(at.hessian, bounded);
   return {
     rho,
     warnings,
-    var: inverseNegHessian(at.hessian, bounded),
-    chisq: 2 * sum(terms),
+    var: k === 0 ? variances : variances.map((row) => row.map((v) => ldexp(v, -k))),
+    chisq: k === 0 ? 2 * sum(terms) : ldexp(2 * sum(terms), k) + 2 * sum(fixed),
     df: r * c - r - c,
-    n,
+    n: ldexp(n, k),
     rowCuts: fittedRow.slice(1, r),
     colCuts: fittedCol.slice(1, c),
   };
