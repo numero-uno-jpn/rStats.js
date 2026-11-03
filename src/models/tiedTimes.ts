@@ -22,7 +22,7 @@ export function mergeTiedTimes(time: readonly number[]): number[] {
     let lo = 0;
     let hi = cuts.length - 1;
     while (lo < hi) {
-      const mid = (lo + hi + 1) >> 1;
+      const mid = Math.floor((lo + hi + 1) / 2); // not >> 1, which wraps beyond 2^31 times (issue #352)
       if (cuts[mid]! <= t) lo = mid;
       else hi = mid - 1;
     }
