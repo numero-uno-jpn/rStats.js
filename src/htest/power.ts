@@ -288,9 +288,13 @@ export function powerPropTest(options: PowerPropTestOptions = {}): PowerPropTest
       if (p1 === p2) throw new RangeError("'n' cannot be determined when 'p1' equals 'p2': the power does not depend on it");
       n = solveFor((x) => powerOf(x, p1!, p2!, sigLevel!) - target, 1, 1e7, { tol, extendInt: "upX" });
     } else if (isUnknown(p1)) {
+      // p1 is searched in [0, p2]: with p2 = 0 that is a point (R and before #312: "lower < upper is not fulfilled")
+      if (p2 === 0) throw new RangeError("'p1' cannot be determined when 'p2' is 0: no p1 in [0, p2] differs from p2");
       p1 = solveFor((x) => powerOf(n!, x, p2!, sigLevel!) - target, 0, p2!, { tol, extendInt: "yes" });
       if (p1 < 0) warnings.push("No p1 in [0, p2] can be found to achieve the desired power");
     } else if (isUnknown(p2)) {
+      // p2 is searched in [p1, 1]: with p1 = 1 that is a point (as for p1 above)
+      if (p1 === 1) throw new RangeError("'p2' cannot be determined when 'p1' is 1: no p2 in [p1, 1] differs from p1");
       p2 = solveFor((x) => powerOf(n!, p1!, x, sigLevel!) - target, p1, 1, { tol, extendInt: "yes" });
       if (p2 > 1) warnings.push("No p2 in [p1, 1] can be found to achieve the desired power");
     } else {

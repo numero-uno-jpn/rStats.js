@@ -470,7 +470,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   (R: a power for n = 0, NaN below), and n < 2 in `pwrTTest` (as pwr). Solving for `sd` with `delta = 0`, or for
   `withinVar` with `betweenVar = 0`, says that the power does not depend on it (R: "lower < upper is not fulfilled");
   so does solving for `n` with no effect (`delta = 0` in `powerTTest`, `p1 = p2` in `powerPropTest`, `betweenVar = 0`
-  in `powerAnovaTest`; R: "no sign change found" or "f() values at end points not of opposite sign", issue #311).
+  in `powerAnovaTest`; R: "no sign change found" or "f() values at end points not of opposite sign", issue #311), and solving `powerPropTest` for `p1` with `p2 = 0`
+  or for `p2` with `p1 = 1`, where the search interval is a point (R: "lower < upper is not fulfilled", issue #312).
   `cohensD` rejects infinite values and fewer than 2 observations (per group) with a message (effectsize: NA).
 
 ### Distributions
