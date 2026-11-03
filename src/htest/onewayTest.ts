@@ -107,6 +107,24 @@ export function onewayTest(
     }
     df2 = N - k;
     statistic = between / (k - 1) / (within / df2);
+  } else if (vi.some((v) => v === 0)) {
+    // a constant group z (#313): as its variance tends to 0, w_z -> Infinity, the weighted mean -> m_z, and
+    // F -> sum_{i != z} w_i (m_i - m_z)^2 / ((k - 1)(1 + 2 (k - 2) c)), c = sum_{i != z} 1 / (n_i - 1) / (k^2 - 1)
+    // (for k = 2 the square of Welch's t). With two or more constant groups the limit depends on how the variances
+    // tend to 0 (df2, and F for equal means), so the test is not defined
+    const zero = vi.flatMap((v, i) => (v === 0 ? [i] : []));
+    if (zero.length > 1) throw new RangeError("Welch's test is not defined with two or more constant groups");
+    const z = zero[0]!;
+    let c = 0;
+    let num = 0;
+    for (let i = 0; i < k; i++) {
+      if (i === z) continue;
+      c += 1 / (ni[i]! - 1);
+      num += (ni[i]! / vi[i]!) * (mi[i]! - mi[z]!) ** 2;
+    }
+    c /= k * k - 1;
+    statistic = num / ((k - 1) * (1 + 2 * (k - 2) * c));
+    df2 = 1 / (3 * c);
   } else {
     const wi = ni.map((n, i) => n / vi[i]!);
     const sw = wi.reduce((a, b) => a + b, 0);

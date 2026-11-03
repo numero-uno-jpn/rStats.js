@@ -243,10 +243,21 @@ const rGroups = (a: Record<string, HTestArg>): number[][] =>
   (a.groups as unknown as (string | string[])[]).map((g) => (Array.isArray(g) ? g : [g]).map(num));
 const rSuites: [string, (a: Record<string, HTestArg>) => object, number][] = [
   ["kruskalTest", (a) => kruskalTest(rGroups(a)), 1e-12],
-  ["onewayTest", (a) => onewayTest(rGroups(a), defined({ varEqual: arg.bool(a.varEqual) })), 1e-12],
   ["friedmanTest", (a) => friedmanTest(arg.mat(a.y)!), 1e-12],
 ];
 for (const [name, call, tolerance] of rSuites) if (hasFixture(name)) htestSuite({ name, call, tolerance });
+if (hasFixture("onewayTest")) {
+  htestSuite({
+    name: "onewayTest",
+    call: (a) => onewayTest(rGroups(a), defined({ varEqual: arg.bool(a.varEqual) })),
+    tolerance: 1e-12,
+    // R's Welch test is NaN with a constant group; rStats.js gives the limit as its variance tends to 0 (#313)
+    knownDifference: (a, field, expected, actual) =>
+      a.varEqual === undefined && Number.isNaN(expected) && Number.isFinite(actual) && (field === "statistic" || field === "parameter" || field === "pValue")
+        ? "Welch's test with one constant group: the limit (R NaN)"
+        : undefined,
+  });
+}
 // R's quade.test counts the blocks dropped for a missing value in b (a bug: the result then differs from that for the
 // data without those blocks). rStats.js uses the complete blocks, so these cases are compared with the result for the
 // matrix of complete rows, which R's answer for that matrix matches
