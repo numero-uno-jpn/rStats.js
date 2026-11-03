@@ -9,7 +9,8 @@
 // distribution, and the end point where the density diverges (gamma with shape < 1).
 
 import { dqagie, dqagse } from "../integrate/quadpack.js";
-import { ddAdd, ddMul, ddSub, type DD } from "../special/dd.js";
+import { ddAdd, ddLog, ddMul, ddMulNum, ddSub, twoProd, type DD } from "../special/dd.js";
+import { ddExp } from "../internal/ddexp.js";
 import { gamma as gammaFn, lgamma } from "../special/gamma.js";
 import { lbeta } from "../special/beta.js";
 import { gammaScale, qgamma } from "./gamma.js";
@@ -283,16 +284,36 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       // sqrt(em1): sdlog itself where s2 is below 1e-280 (em1 / s2 is 1 to double precision; s2 underflowed to 0 or onto
       // the subnormals and took the sd and skewness with it: 0 for sdlog = 1e-200; issue #120)
       const rootEm1 = s2 < 1e-280 ? sdlog : Math.sqrt(em1);
-      return make(
-        Math.exp(meanlog + s2 / 2),
-        em1 * Math.exp(2 * meanlog + s2),
+      const expHalf = Math.exp(meanlog + s2 / 2);
+      const variance = em1 * Math.exp(2 * meanlog + s2);
+      const result = make(
+        expHalf,
+        variance,
         Math.exp(meanlog),
         Math.exp(meanlog - s2),
         (w + 2) * rootEm1,
         // w^4 + 2 w^3 + 3 w^2 - 6 with w = 1 + em1, expanded in em1 (the w form cancels for small sdlog)
         em1 * (16 + em1 * (15 + em1 * (6 + em1))),
-        rootEm1 * Math.exp(meanlog + s2 / 2),
+        rootEm1 * expHalf,
       );
+      if (variance >= MIN_NORMAL && variance < Infinity) return result;
+      // The variance (and with it maybe the sd) out of the normal range: em1 or the exponential factor overflowed or
+      // underflowed although the product may be representable (meanlog 400, sdlog 1e-200 gave 0 * Inf = NaN; meanlog
+      // -500, sdlog 27 an infinite variance and sd for e^458 and e^229). Rebuilt from log sd = meanlog + s2 / 2 +
+      // log(em1) / 2 in double-double; the sd as before where both of its factors were accurate (issue #120)
+      const s2dd = twoProd(sdlog, sdlog);
+      const logEm1: DD =
+        s2 < 1e-280 ? ddMulNum(ddLog([sdlog, 0]), 2)
+        : s2 <= 1 ? ddLog([em1, 0])
+        : ddAdd(s2dd, [Math.log(-Math.expm1(-s2)), 0]);
+      const half = ddAdd(s2dd, logEm1);
+      const logSd = ddAdd([meanlog, 0], [half[0] / 2, half[1] / 2]);
+      const keepSd = Number.isFinite(rootEm1) && expHalf >= MIN_NORMAL && expHalf < Infinity;
+      return {
+        ...result,
+        variance: ddExp([2 * logSd[0], 2 * logSd[1]])[0],
+        sd: keepSd ? result.sd : ddExp(logSd)[0],
+      };
     }
     case "unif": {
       const { min = 0, max = 1 } = P;
