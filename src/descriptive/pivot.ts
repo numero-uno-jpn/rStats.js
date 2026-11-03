@@ -376,9 +376,10 @@ function perColumn<T>(
 export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): DataFrame {
   const namesVary = varyArg("names_vary", options.namesVary);
   const n = rowCount(data);
-  // As tidyr: names_from, then values_from, each existing and not empty; then id_cols
+  // As tidyr: names_from, then values_from, each existing and not empty; then id_cols. A name given twice is
+  // selected once, at its first place (as tidyselect)
   const selection = (v: string | readonly string[], arg: string): string[] => {
-    const names = nameList(v);
+    const names = [...new Set(nameList(v))];
     requireColumns(data, names);
     if (names.length === 0) throw new Error(`\`${arg}\` must select at least one column.`);
     return names;
@@ -388,7 +389,7 @@ export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): Da
   const idCols =
     options.idCols === undefined
       ? Object.keys(data).filter((c) => !namesFrom.includes(c) && !valuesFrom.includes(c))
-      : nameList(options.idCols);
+      : [...new Set(nameList(options.idCols))];
   requireColumns(data, idCols);
   const prefix = options.namesPrefix ?? "";
   const sep = options.namesSep ?? "_";
