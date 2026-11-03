@@ -498,7 +498,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   (extraDistr に無い) はベータ(1/2, 1/2) を (a, b) に移したものです。b − a が溢れる場合 (a = -1e308、
   b = 1e308) は、半分にした尺度で計算します。無限大の形や位置の母数は極限として
   扱います。extraDistr の式はその端で NaN や外れた値を返します (`qkumar(0, Inf, 1)` は extraDistr で 1、
-  ここでは 0)。`qinvgamma` は `dinvgamma`・`pinvgamma` と同じく alpha <= 0 で NaN を返します (extraDistr の
+  ここでは 0)。x と無限大の位置が同じ符号の無限大 (`plaplace(Inf, mu = Inf)`) では極限が定まらないので、
+  extraDistr と同じく NaN です。`qinvgamma` は `dinvgamma`・`pinvgamma` と同じく alpha <= 0 で NaN を返します (extraDistr の
   `qinvgamma` は alpha を確かめません)。乱数は分位関数に合わせます。無限大の形の母数 a・alpha は極限
   (`rkumar` は 1、`rpareto` は b、`rinvgamma` は 0。extraDistr と同じ) で、`rkumar`・`rpareto` の b と
   `rinvgamma` の beta が無限大なら、密度・分布・分位関数と同じく NaN です (extraDistr は 0 か Inf)。乱数は

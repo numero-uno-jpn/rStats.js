@@ -27,7 +27,11 @@ const valid = (mu: number, sigma: number): boolean => !Number.isNaN(mu) && sigma
 
 export function dlaplace1(x: number, mu: number, sigma: number, log: boolean): number {
   if (Number.isNaN(x) || !valid(mu, sigma)) return NaN;
-  if (!Number.isFinite(mu)) return log ? -Infinity : 0;
+  if (!Number.isFinite(mu)) {
+    // x and mu the same infinity: x - mu is Inf - Inf and the limit depends on the path (NaN, as in extraDistr; #338)
+    if (x === mu) return NaN;
+    return log ? -Infinity : 0;
+  }
   const z = standardizeDD(x, mu, sigma);
   const a: [number, number] = z[0] < 0 ? [-z[0], -z[1]] : [z[0], z[1]];
   // 2 sigma overflows for sigma above half the largest double: then the factor 1/2 is taken apart
@@ -44,6 +48,9 @@ export function dlaplace1(x: number, mu: number, sigma: number, log: boolean): n
 export function plaplace1(q: number, mu: number, sigma: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(q) || !valid(mu, sigma)) return NaN;
   if (!Number.isFinite(mu)) {
+    // q and mu the same infinity: the limit is 0 or 1 depending on which goes first (NaN, as in extraDistr, pnorm,
+    // plogis and pcauchy; #338)
+    if (q === mu) return NaN;
     const lower = mu === Infinity ? 0 : 1;
     const v = lowerTail ? lower : 1 - lower;
     return logP ? Math.log(v) : v;

@@ -528,7 +528,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `qarcsine` and `rarcsine` (not in extraDistr) are beta(1/2, 1/2) moved to (a, b); where b - a
   overflows (a = -1e308, b = 1e308) they are computed on the halved scale. An infinite
   shape or location is taken as the limit, where extraDistr's formulas give NaN or a stray value at
-  the edges (`qkumar(0, Inf, 1)` is 1 there, 0 here). `qinvgamma` returns NaN for alpha <= 0, as
+  the edges (`qkumar(0, Inf, 1)` is 1 there, 0 here). Where x and an infinite location are the same
+  infinity (`plaplace(Inf, mu = Inf)`) there is no limit and the value is NaN, as in extraDistr. `qinvgamma` returns NaN for alpha <= 0, as
   `dinvgamma` and `pinvgamma` do (extraDistr's `qinvgamma` does not check alpha). The random generators follow
   the quantile functions: an infinite shape a or alpha gives the limit (`rkumar` 1, `rpareto` b, `rinvgamma` 0, as
   extraDistr), and an infinite b of `rkumar` and `rpareto` or beta of `rinvgamma` is NaN, as the density,

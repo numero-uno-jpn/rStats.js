@@ -91,7 +91,8 @@ function differenceFrom(name: string, back?: (a: Args, x: number) => number) {
   if (!name.startsWith("q")) for (const c of loadReference(name).cases) ref.set(JSON.stringify(c.args), num(c.expected));
   return (a: Args, _expected: number, actual: number): string | undefined => {
     const src = name.endsWith("arcsine") ? "R's beta functions" : "extraDistr";
-    if (PARAMS.some((k) => a[k] === "Inf" || a[k] === "-Inf")) return "infinite parameter: the limit (extraDistr: NaN or a stray value at the edges)";
+    // (dlaplace and plaplace agree with extraDistr at infinite mu since #338: the limit, and NaN for q = mu = ±Inf)
+    if (name !== "dlaplace" && name !== "plaplace" && PARAMS.some((k) => a[k] === "Inf" || a[k] === "-Inf")) return "infinite parameter: the limit (extraDistr: NaN or a stray value at the edges)";
     if (name === "qinvgamma" && num(a.alpha) <= 0) return "alpha <= 0: NaN (extraDistr's qinvgamma does not check alpha)";
     if (back !== undefined) {
       // a quantile in a tail where extraDistr's 1 - p rounds: ours maps back to p
