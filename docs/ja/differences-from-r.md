@@ -323,6 +323,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `pwr.chisq.test(w = 1e200, N = 100, df = 3)`、`pwr.f2.test(f2 = 1e308)`、`pwr.anova.test(f = 1e200)` (非心度が溢れる) | NaN | 検出力の極限 1。`powerAnovaTest` は、積だけが溢れる場合は between.var / within.var を先に計算する |
 | `pwr.2p2n.test(h = 1e-100, n1 = 1e200, n2 = 1e200)` (n1 n2 が溢れる) | 1 | 0.10895461755061556。積が溢れる場合 (有限の標本サイズ) は、実効的な標本サイズ n1 n2 / (n1 + n2) を a / (1 + a / b) (a <= b) で作る |
 | `ES.w1(c(0.5, 0.5, 0), c(0.5, 0.5, 0))` や、空の行・列がある `ES.w2` (両方の確率が 0 のセル) | NaN (0 / 0) | そのセルは 0 を足す (ここでは 0)。p0 = 0 < p1 は R と同じく Inf |
+| `ES.w1(c(1e-320, 1), c(1e-200, 1))` ((p1 - p0)^2 がアンダーフローする。issue #264)、`ES.w1(c(0, 1), c(1e-300, 1))` | 0。NaN (0 / 0) | 1.0000055664551364e-40 (Rmpfr 1.00000556645513627e-40)。Inf (p0 = 0 < p1。差が大きいときと同じ)。差の 2 乗が正規化数の範囲より小さいときだけ、項を (d / sqrt(p0))^2 で計算する |
 | df が非常に大きい effectsize の `hedges_g` (Hedges の J を、df log df ほどの 2 つの lgamma の差で計算) | df = 1e10 で J が 0.99997 (相対誤差 3e-5)、1e14 で 1.28、1e16 で 1e-14。1e6 でも 3e-10 ずれる | lgamma の差を直接計算する (`lgammaDiff`)。大きな df では丸めの範囲で 1 - 3/(4 df - 1) |
 | effectsize の `cohens_d(c(1, 1 + eps), mu = -1)` (t = 2^54 で t ± 1 が t に丸まる) と `hedges_g` | `optim` のエラー "function cannot be evaluated at initial parameters" | d 1.27e16、区間 [3.99e14, 2.86e16] (非心度の探索を t ± (1〜2 ulp) から始める) |
 | 1e154 程度のデータの aov の effectsize の `eta_squared`・`omega_squared`・`epsilon_squared` (`Error()` 付きと afex の `aov_ez` も) | NaN (平方和が溢れる) | 単位を変えた同じデータと同じ値。当てはめたときの平方和 (応答を 2 の冪で割ったもの) を使い、比をとる前に共通の 2 の冪で割る |

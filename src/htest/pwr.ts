@@ -10,6 +10,7 @@ import { pchisq, qchisq } from "../distributions/chisq.js";
 import { pf, qf } from "../distributions/f.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { qt } from "../distributions/t.js";
+import { squareOver } from "../internal/summary.js";
 import { checkExactlyOne, isUnknown, matchChoice, ptNcp, solveFor } from "./power.js";
 import type { Alternative } from "./types.js";
 
@@ -98,8 +99,9 @@ export function esW1(p0: readonly number[], p1: readonly number[]): number {
   if (p0.length !== p1.length) throw new RangeError("'P0' and 'P1' must have the same length");
   if (![...p0, ...p1].every(isProbability)) throw new RangeError("'P0' and 'P1' must be probabilities in [0, 1]");
   let s = 0;
-  // a cell with p0 = p1 = 0 adds nothing (0 / 0 was NaN); p0 = 0 < p1 adds Inf, as pwr
-  for (let i = 0; i < p0.length; i++) if (p0[i] !== 0 || p1[i] !== 0) s += (p1[i]! - p0[i]!) ** 2 / p0[i]!;
+  // a cell with p0 = p1 = 0 adds nothing (0 / 0 was NaN); p0 = 0 < p1 adds Inf, as pwr. squareOver forms
+  // (d / sqrt(p0))^2 where d^2 underflows (esW1([1e-320, 1], [1e-200, 1]) gave 0 for 1e-40)
+  for (let i = 0; i < p0.length; i++) if (p0[i] !== 0 || p1[i] !== 0) s += squareOver(p1[i]! - p0[i]!, p0[i]!);
   return Math.sqrt(s);
 }
 
