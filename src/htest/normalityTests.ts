@@ -34,11 +34,17 @@ function sorted(x: Sample): number[] {
   return dropNaN(Array.from(x)).sort((a, b) => a - b);
 }
 
+/** Rejects infinite values (the sorted values without NaN: only the ends can be infinite) */
+function requireFinite(xs: readonly number[]): void {
+  if (xs.length > 0 && !(Number.isFinite(xs[0]!) && Number.isFinite(xs[xs.length - 1]!))) throw new RangeError("'x' must be finite");
+}
+
 /** The sorted values standardised by their mean and standard deviation */
 function standardized(xs: readonly number[]): number[] {
   // from the deviations of the values scaled by a power of 2 first (src/internal/summary.ts): no overflow or
-  // underflow at any scale; infinite values give NaN, as before
-  if (!xs.every(Number.isFinite)) return xs.map(() => NaN);
+  // underflow at any scale. An infinite value is an error, as in shapiroTest: its standardised values are NaN and
+  // the piecewise p-values fell through to a fixed tail value (#304)
+  requireFinite(xs);
   const z = standardize(xs);
   if (z.some(Number.isNaN)) throw new RangeError("all 'x' values are identical");
   return z;
@@ -166,6 +172,7 @@ export function sfTest(x: Sample): NormalityTestResult {
   const xs = sorted(x);
   const n = xs.length;
   if (n < 5 || n > 5000) throw new RangeError("sample size must be between 5 and 5000");
+  requireFinite(xs);
   if (xs[0] === xs[n - 1]) throw new RangeError("all 'x' values are identical");
   const q = xs.map((_, k) => qnorm((k + 1 - 3 / 8) / (n + 1 / 4)));
   // the values scaled by a power of 2 (exact) first, so that the squared covariance stays in range (W has no units)
