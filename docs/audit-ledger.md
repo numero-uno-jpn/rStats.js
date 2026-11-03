@@ -4820,3 +4820,45 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #782 — fisherTest rejects confidence levels at 0 and 1
 - 対象: `src/htest/fisherTest.ts` SHA `c90cc3b96af152c34f0a2396fad60ecda9d5d32a`。
 - Issue [#292](https://github.com/numero-uno-jpn/rStats.js/issues/292)。再現: `fisherTest([[3,1],[1,3]],{confLevel:0})` および `fisherTest([[3,1],[1,3]],{confLevel:1})`。2×2 branchは `0<confLevel<1` を要求するが、Rの `fisher.test()` は0と1を許容する。端点alphaのodds-ratio CIも極限値を返すべき。Rソース静的比較。実行テストなし。
+
+
+
+## Audit #783 — formula expansion rejects the valid degree-one power
+- 対象: `src/models/formula.ts` SHA `2dff14125553b5a7a41fb58339faaf03588cd2ed` の `expandRhs()`。
+- Issue [#293](https://github.com/numero-uno-jpn/rStats.js/issues/293)。再現: `termsOf(parseFormula("y ~ (a + b)^1"), ["y", "a", "b"])`。Rのformula powerは次数1なら主効果a,bを展開するが、現行は `p=Math.trunc(1)` の後に `p>=2` を要求して例外。静的ソース/式展開仕様の監査。実行/R比較なし。
+
+## Audit #784 — infinite formula power causes a non-terminating expansion loop
+- 対象: `src/models/formula.ts` SHA `2dff14125553b5a7a41fb58339faaf03588cd2ed` の `expandRhs()`。
+- Issue [#294](https://github.com/numero-uno-jpn/rStats.js/issues/294)。再現: `termsOf(parseFormula("y ~ (a + b)^1e999"), ["y", "a", "b"])`。数値トークン1e999はInfinityとなり、`Math.trunc(Infinity)` もInfinity。 `p>=2` を通過し、`for (k=1; k<p; k++)` が終了しない。指数の有限性と展開可能な上限をループ前に検証すべき。静的ソース解析。実行なし（非停止入力）。
+
+## Audit #785 — aovEz overwrites a between factor named y_
+- 対象: `src/models/aovEz.ts` SHA `5337523c4fe1358f6b74b3a67b201406710084fa` の `betweenOnly()`。
+- Issue [#295](https://github.com/numero-uno-jpn/rStats.js/issues/295)。再現: `aovEz(data,{id:"id",dv:"score",between:["y","y_"]})`（yとy_をそれぞれ2水準とする8 subjectの完全要因配置）。内部応答名がy_に固定され、`{...bdata,[dvName]:...}` で元のy_因子列を上書きする。要求された二因子モデルではなく、y_の因子情報を失った式をfitする。衝突しない内部名を選ぶべき。静的ソース解析。実行テストなし。
+
+## Audit #786 — aovEz silently collapses duplicate between-factor names
+- 対象: `src/models/aovEz.ts` SHA `5337523c4fe1358f6b74b3a67b201406710084fa` の `aovEz()` 入力処理と `betweenOnly()`。
+- Issue [#296](https://github.com/numero-uno-jpn/rStats.js/issues/296)。再現: `aovEz(data,{id:"id",dv:"score",between:["A","A"]})`。between配列の一意性を検証せず、式 `A * A` はterm deduplicationによりAだけになるため、二重指定が一因子モデルとして黙ってfitされる。between/within双方で重複変数名を拒否すべき。静的ソース解析。実行テストなし。
+
+## Audit #787 — lmer misclassifies an infinite response as an exact fixed-effects fit
+- 対象: `src/models/lmer.ts` SHA `86b47afc85f643ae904cc4c884ff8d109b3a42e2` の `lmerWithCriterion()`。
+- Issue [#297](https://github.com/numero-uno-jpn/rStats.js/issues/297)。再現: `lmer("y ~ 0 + (1 | g)",{y:[Infinity,1,2,3,4,5,6,7],g:["a","a","b","b","c","c","d","d"]})`。固定効果列が0本なので `yc=original.y`。 `ycMax=Infinity` と `maxAbs(original.y)=Infinity` から `Infinity <= EXACT_FIT * Infinity` がtrueとなり、非有限応答を「fixed effectsの列空間にある完全適合」と誤分類してEXACT_FIT_ERRORを投げる。有限性検証をexact-fit判定より前に行うべき。静的IEEE-754/制御フロー解析。実行テストなし。
+
+## Audit #788 — lmer does not validate infinite random-effect-only covariates
+- 対象: `src/models/mixedStructure.ts` SHA `40803660d304825257e6b57c034240b328a366e9` のrandom-effects `lhsDesign` 構築。
+- Issue [#298](https://github.com/numero-uno-jpn/rStats.js/issues/298)。再現: `lmer("y ~ 1 + (x | g)",{y:[1,2,3,4,5,6],x:[1,2,Infinity,4,5,6],g:["a","a","b","b","c","c"]})`。xはrandom-effect LHSにのみ現れ、固定効果QRのfinite checkを通らない。 `lhsDesign.x` にInfinityが残り、Z/sparse factorizationへ流れる。random-effect designも疎行列構築前に有限性検証すべき。静的ソース解析。実行テストなし。
+
+## Audit #789 — aov Error-strata path passes an infinite response into double-double least squares
+- 対象: `src/models/aovStrata.ts` SHA `b34c319610712397b87a4064057c338541027846`。
+- Issue [#299](https://github.com/numero-uno-jpn/rStats.js/issues/299)。再現: `aov("y ~ A + Error(id)",{id:["s1","s1","s2","s2","s3","s3","s4","s4"],A:["a","b","a","b","a","b","a","b"],y:[1,2,3,4,5,6,Infinity,8]})`。Error strata経路はmodel frameから取得したyをfinite checkせず `scaleToUnit([y])` と `ddLeastSquaresMulti()` に渡す。通常lm経路のようにNA/NaN/Inf in yを明示的に拒否すべき。静的ソース解析。実行テストなし。
+
+## Audit #790 — lmerHypotheses absolute ROW_ZERO threshold drops rescaled Type III terms
+- 対象: `src/models/lmerHypotheses.ts` SHA `ca9ee25511b1f8c0b6324b562d6742124e029514` のType III列選択。
+- Issue [#300](https://github.com/numero-uno-jpn/rStats.js/issues/300)。再現: `y ~ 0 + x + z + (1 | g)` でx,zをそれぞれ1e10倍した固定効果設計。 `L1=zapsmall(...)` は行列全体の最大値に対して相対的に丸めるため約1e-10の有効係数を保持するが、その後の `sum(abs(L1[,j])) > ROW_ZERO`（ROW_ZERO=1e-8）の絶対閾値で全列を落とし、Type III仮説が空になる。予測変数の単位変更だけで有効な効果検定が消えるため、相対閾値またはzapsmall結果のみを用いるべき。静的数値/ソース解析。実行テストなし。
+
+## Audit #791 — jointDenDF overflows the mean of equal large finite dfs
+- 対象: `src/models/lmerTest.ts` SHA `19b8d37ae6c5f9a042722c005d840e9ecf460d43` の `jointDenDF()`。
+- Issue [#301](https://github.com/numero-uno-jpn/rStats.js/issues/301)。再現: `jointDenDF([1e308,1e308])`。equal-df fast pathがreduceで先に加算しInfinityとなり、平均もInfinityを返す。正しい平均は有限の1e308。等値ケースなら共通値を返すか、各値を先にlengthで割って加算すべき。Issue #58のcontrast quadratic-form overflowとは別に、有限な入力dfだけで発生する平均演算のoverflow。静的IEEE-754解析。実行テストなし。
+
+## Audit #792 — lm accepts positive infinite weights in a zero-column model
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0` のmatrix/formula weight validationと`fitLmUnit()`。
+- Issue [#302](https://github.com/numero-uno-jpn/rStats.js/issues/302)。再現: `lm([[],[],[]],[1,2,3],{intercept:false,weights:[Infinity,1,1]})`。weight検証は負値とNaNのみを扱い、+Infinityを保持する。列0本のモデルではQRのX finite checkを通り、無限重みがweighted residual/RSS/標準誤差へ流れ得る。保持する全weightにNumber.isFiniteを要求すべき。静的ソース解析。実行テストなし。
