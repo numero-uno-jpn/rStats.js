@@ -158,13 +158,18 @@ export function parseFormula(formula: string, allowError = false, allowBars = fa
   return { response, rhs };
 }
 
-/** The `Error()` terms of a right-hand side (top-level summands) and the right-hand side without them. */
+/** The `Error()` terms of a right-hand side (summands, possibly in parentheses) and the right-hand side without them. */
 export function splitErrorTerms(rhs: FormulaNode): { treatment: FormulaNode | undefined; errors: FormulaNode[] } {
   const errors: FormulaNode[] = [];
   const strip = (n: FormulaNode): FormulaNode | undefined => {
     if (n.type === "Error") {
       errors.push(n.arg);
       return undefined;
+    }
+    if (n.type === "paren") {
+      // y ~ x + (Error(id)) and y ~ (x + Error(id)): parentheses do not hide the term, as R's terms()
+      const a = strip(n.arg);
+      return a === undefined ? undefined : { ...n, arg: a };
     }
     if (n.type === "binary" && n.op === "+") {
       const l = strip(n.left);
