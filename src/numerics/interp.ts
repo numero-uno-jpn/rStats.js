@@ -703,15 +703,19 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
   const lo = minOf(X);
   const hi = maxOf(X);
   if (xs.some((v) => v < lo || v > hi)) throw new RangeError("Some interpolation points outside the nodes.");
+  // finite nodes whose range overflows: the weights and differences in x / 2, where every difference is finite (the
+  // barycentric ratio does not change with the scale of x). barylag([-1e308, 1e308], [-1, 1], [0]) was NaN (issue #215)
+  const half = Number.isFinite(lo) && Number.isFinite(hi) && !Number.isFinite(hi - lo);
+  const Xc = half ? X.map((a) => a / 2) : X;
   // The weights 1 / prod (x_j - x_k), each product kept as m 2^e (renormalised beyond 2^±500), then all of them by one
   // common power of 2 (which leaves the interpolant unchanged): the products of nodes of 1e200 overflowed and every
   // weight was 0, the result NaN (pracma's too; issue #14). Without renormalisation the weights are as before
-  const parts = X.map((a, j) => {
+  const parts = Xc.map((a, j) => {
     let p = 1;
     let e = 0;
     for (let k = 0; k < n; k++) {
       if (k === j) continue;
-      p *= a - X[k]!;
+      p *= a - Xc[k]!;
       const m = Math.abs(p);
       if (m > 2 ** 500 || (m < 2 ** -500 && m > 0)) {
         const f = Math.floor(Math.log2(m));
@@ -730,7 +734,7 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
     const at = X.lastIndexOf(v);
     if (at >= 0) return Y[at]!;
     for (let j = 0; j < n; j++) {
-      const diff = v - X[j]!;
+      const diff = (half ? v / 2 : v) - Xc[j]!;
       const t = w[j]! / diff;
       num += t * Y[j]!;
       den += t;
