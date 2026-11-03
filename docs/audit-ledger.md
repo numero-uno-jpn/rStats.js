@@ -36,14 +36,14 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/descriptive/cov.ts` | 問題あり | #156 | `1e94b1e295f5a57aeb02a43e029117a9d67b0282` | [#36](https://github.com/numero-uno-jpn/rStats.js/issues/36) | R 4.5.2由来cov/cor fixtureを閲覧（未実行）。ragged arrayはR matrixでは表現できないため入力形状validation問題 | matrix/vector dispatch、method/use abbreviation、everything/all.obs/complete.obs/na.or.complete/pairwise.complete.obs、pairwise rank、kendall covariance/tau-b、Pearson DD、n<2、complete rowsなし、matrix diagonalの特別処理を追跡。通常入力例: `cov([[1,2],[2,4],[3,5],[4,9]])`、`cor([1,2,3,4],[2,4,5,9],{method:"spearman"})`、`cov([[1,NaN],[2,3],[3,4]],{use:"pairwise.complete.obs"})`。確認した不具合: `isMatrix` は先頭行だけを見てmatrix判定し、`columns` は先頭行の列数で後続行を変換するため、`cov([[1,2],[3,4,5]])` は余分な5を黙って捨て、`cov([[1,2],[3]])` はundefinedを数値計算へ渡してNaNを生成する。全行の長さ検証がない。Issue #36。`test/descriptive.test.ts` とcov fixtureを閲覧、実行なし。 |
 | `src/descriptive/dataFrames.ts` | 問題あり | #157 | `1e94b1e295f5a57aeb02a43e029117a9d67b0282` | [#35](https://github.com/numero-uno-jpn/rStats.js/issues/35) | R 4.5.2由来merge/subset/rbind/cbind fixtureを閲覧（未実行）。__proto__ behavior is JavaScript-specific | rowCount/column gather and type preservation, 15-digit numeric key text, missing-key matching, one/multi-key join, Cartesian many-to-many matches, allX/allY, sort order via Shell sort, suffix collision, subset filtering, rbind common-type coercion, cbind row count, fromRows/toRows and special property namesを追跡。具体例: `merge({id:[3,1,2],v:[10,20,30]},{id:[1,2,2,4],w:[0.5,1.5,2.5,3.5]})`、`subset({y:[5,NaN,7],g:["a","b","a"]},row=>row.y>4,{select:["g"]})`、`rbindFrames([{x:[1],g:[true]},{g:[false],x:[2]}])`、`fromRows([{id:"a",score:5},{id:"b"}])`。確認した不具合: `split` のdata-frame branchで `rowsOf` が列名を `out[name]=...` で設定するため、JSON.parseで作ったown `__proto__` 列が結果から失われ、通常objectのprototype setterに消費される。Issue #35。既存 `test/dataFrames.test.ts` / `test/fixtures/dataFrames.json` のR由来fixtureを閲覧、実行なし。 |
 | `src/descriptive/factanal.ts` | 問題未検出 | #163 | `0198fd8d1f738d5bce2a65ad0ddf27c77af26a0b` | — | R 4.5.2由来factanal fixtureを閲覧（未実行）。最適化・回転・スコア式はソース上の数理検討 | `checkCovmat`/data dispatch、p/factor/dof境界、相関標準化、初期独自性、L-BFGS-B objective/gradient、固有値によるloadings、varimax正規化・SVD直交回転・列符号/順序、promax QR/Gram inverse、回帰/Bartlett scores、nObsの尤度比統計量を追跡。具体入力: `const R=[[1,.72,.63],[.72,1,.56],[.63,.56,1]]; factanal(null,1,{covmat:R})`、`factanal([[1,2,3],[2,1,2],[3,5,4],[4,3,6],[5,4,5]],1,{scores:"regression"})`、同データで`{scores:"Bartlett",rotation:"none"}`、`factanal(null,1,{covmat:R,nObs:100})`。既存 `test/factanal.test.ts` とR由来fixtureの引数・期待値・異常系を閲覧。新規の再現可能な不具合は確定せず。Vitest/package runtime/R実行なし。 |
-| `src/descriptive/hist.ts` | 問題未検出 | #164 | `0198fd8d1f738d5bce2a65ad0ddf27c77af26a0b` | — | R 4.5.2由来hist/pretty/ecdf fixtureを閲覧（未実行）。極端な値とbreak境界はJS数値意味論で確認 | `pretty` finite-only filter、n/minN truncationとvalidation順、small-range/zero/tiny/subnormal/overflow range、1-2-5-10 unit selection、rho rounding、minN expansion、seqLength/overflow span、`hist` break vector/number/rule dispatch、1e6 cap、strict ordering、fuzz shift、right/includeLowestのbinary cell search、density/midpoint、`ecdf` NaN removal・±Infinity・lower-bound searchを追跡。具体入力: `pretty([0.3,9.6])`、`pretty([1e-300,1e-300])`、`pretty([-1e308,1e308])`、`hist([0,1,2,3],{breaks:[0,1,2,3],right:false})`、`hist([1,2,3],{breaks:[0,2,4]})`、`ecdf([-Infinity,0,Infinity])(0)`。既存 `test/pretty.test.ts` とhist/pretty fixtureを閲覧。新規の再現可能な不具合は確定せず。Vitest/package runtime/R実行なし。 |
+| `src/descriptive/hist.ts` | 問題あり・追加監査済み | #164, #718, #719, #720, #721 | `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5` | [#228](https://github.com/numero-uno-jpn/rStats.js/issues/228) (open); [#229](https://github.com/numero-uno-jpn/rStats.js/issues/229) (open); [#230](https://github.com/numero-uno-jpn/rStats.js/issues/230) (open); [#231](https://github.com/numero-uno-jpn/rStats.js/issues/231) (open) | `hist`のdensity denominator、explicit breaks finite validation、Scott/FD class-countの極端値演算を追加監査。 | #718: `hist([-1e308,1e308],{breaks:[-1e308,1e308]})`。幅差がInfinityとなりdensity=0だが、真のdensity約5e-309は表現可能なsubnormal。Issue #228。#719: `hist([0,1],{breaks:[-Infinity,Infinity]})`は非有限breaksを受け入れる。R hist.defaultは非有限breakpointsを拒否する。Issue #229。#720: `hist([-1e308,1e308],{breaks:"Scott"})`でrangeとScott widthがInfinityとなりInfinity/Infinity=NaN、break count validationでRangeError。scale-free比は有限で約0.51。Issue #230。#721: 同データのFD ruleでもrangeと2*IQRがInfinityとなりNaN、数学的bin数は2。Issue #231。いずれも静的式・IEEE-754/API契約解析のみ。 |
 | `src/descriptive/missing.ts` | 問題あり | #165 | `0198fd8d1f738d5bce2a65ad0ddf27c77af26a0b` | [#35](https://github.com/numero-uno-jpn/rStats.js/issues/35) | R 4.5.2由来complete.cases/na.omitの仕様を確認（今回R実行なし）。`__proto__` はJavaScript own-property semanticsに起因 | `isVector`/DataFrame dispatch、array/Float64Array、null/NaN欠損判定、複数引数の行数整合、zero-column/zero-row、complete-case mask、naOmitの型保持とFloat64Array復元を追跡。具体入力: `const x=JSON.parse('{"__proto__":[1,null],"v":[3,4]}'); completeCases(x); naOmit(x);`。completeCasesはown `__proto__`列をObject.values経由で欠損判定に含めるが、naOmitは出力を通常の`{}`に作り`out[name]=kept`とするため、`__proto__`がprototype setterとして扱われown列が消える。Issue #35へ同一根本原因の追加症状として追記。`test`に専用missing.ts fixture/testを確認できず。ソース意味論で確定、Vitest/package runtime/R実行なし。 |
 | `src/descriptive/moments.ts` | 問題あり | #166, #595 | `740c02eaceadd6f1454ecd7564bcd6f09f563b5b` | [#38](https://github.com/numero-uno-jpn/rStats.js/issues/38) | R 4.5.2/e1071/DescToolsの定義・fixtureを閲覧（未実行）。ragged rowsはR matrixでは表現できないためshape validationの問題 | `centralSums`のpower-of-two scaling・double-double mean・2/3/4次中心和、skewness/kurtosis type 1/2/3と最小標本数、geometricMeanの負数/zero/NaN、modesのties/±0、meanADのcenter、cv補正、scaleのcenter/scale指定・NaN・overflowed deviations・RMS救済を追跡。具体入力: `skewness([-1e308,1e308])`、`kurtosis([1e-200,2e-200,3e-200,4e-200])`、`geometricMean([1e308,1e-308])`、`meanAD([-1e308,1e308])`、`cv([-1,1])`、`scale([[1,2],[3,4]])`。確認した不具合: `scale`は行列入力の列数を先頭行だけで決め、後続行の長さを検証しない。`scale([[1,2],[3,4,5]],{center:false,scale:false})`は5を黙って無視し、`scale([[1,2],[3]],{center:true,scale:true})`はundefinedを平均/RMSへ混入させNaN列を返す。Issue #38。既存skewness/scale fixtureとscale invariance testsを閲覧。Vitest/package runtime/R実行なし。 |
 | `src/descriptive/omega.ts` | 問題未検出 | #167 | `0198fd8d1f738d5bce2a65ad0ddf27c77af26a0b` | — | psych::omega R fixtureを閲覧（未実行）。仕様oracleのコメントと実装経路を照合 | pairwise-complete correlation/covmat normalization、SMC pseudo-inverse rank threshold、minres objective/gradient/bounds/Heywood warning、principal loadings/eigen clipping、varimax、quartimin gradient、oblimin BB step/non-monotone line search/2000 iteration warning、2-factor identification rule、Schmid-Leiman general/group loadings、flip/key、omegaH/omegaLim/alpha/omegaTot/G6/ECV/group assignmentを追跡。具体入力: `const R=[[1,.52,.36,.36,.36,.36],[.52,1,.36,.36,.36,.36],[.36,.36,1,.52,.36,.36],[.36,.36,.52,1,.36,.36],[.36,.36,.36,.36,1,.52],[.36,.36,.36,.36,.52,1]]; omega(null,{covmat:R})`、`omega(null,{nfactors:1,covmat:R})`、`omega(null,{nfactors:2,covmat:R})`。既存 `test/omega.test.ts` とR fixtureの1/2/3-factor cases・known one-factor zero differencesを閲覧。新規の再現可能な不具合は確定せず。Vitest/package runtime/R実行なし。 |
 | `src/descriptive/pivot.ts` | 問題あり | #168 | `e22826429f71e15fb26749fbc3bb1dc7430ccdb4` | [#39](https://github.com/numero-uno-jpn/rStats.js/issues/39) | tidyr pivot fixture (R 4.5.2)を閲覧（未実行）。own-property境界はJavaScript仕様で確定 | `pivotLonger` の列選択/重複/regex captureとseparator、namesTo/.value、型統合、行順、valuesDropNa、namesTransform、Float64Array保持、警告重複排除、`pivotWider` のID/name組合せ・sort・重複セル・summary/fill・namesVary・生成列名を追跡。具体入力: `const d=JSON.parse('{"id":[1,2],"key":["a","b"],"__proto__":[5,6]}'); pivotWider(d,{namesFrom:"key",valuesFrom:"__proto__",idCols:["id"],valuesFill:{}})`。`perColumn()` が `option[name]` で継承プロパティまで読むため、指定していない`valuesFill`に`Object.prototype`が返り、欠損セルにオブジェクトが入る。`valuesFn`にも同じlookup問題。Issue #39。既存 `test/pivot.test.ts` とtidyr由来fixtureの全経路・型保持テストを閲覧。Vitest/package runtime/R実行なし。 |
 | `src/descriptive/quantile.ts` | 問題未検出 | #169 | `e22826429f71e15fb26749fbc3bb1dc7430ccdb4` | — | R 4.5.2由来quantile fixtureを閲覧（未実行）。9種のHyndman-Fan定義は式を直接確認 | type 1–9の位置式/fuzz、端点clamp、空標本・NaN/NA除去、同値±Infinity補間回避、IQR overflow意味、fivenum hinge/midpoint、MAD low/highと欠損数・center/constantを追跡。具体入力: `quantile([-Infinity,Infinity],0.25,{type:7})`、`quantile([1,2,3,4],0.5,{type:1})`、`quantile([1,2,3,4],NaN)`、`fivenum([-Number.MAX_VALUE,Number.MAX_VALUE])`、`mad([1,2,3,4],{low:true})`、`mad([1,2,3,4],{high:true})`。既存 `test/descriptive.test.ts` とR 4.5.2 quantile fixtureを閲覧。NaN probabilityはNaN返却、type7の異符号無限大補間はNaNとなる仕様上の演算。新規の再現可能な欠陥は確定せず。Vitest/package runtime/R実行なし。 |
 | `src/descriptive/rank.ts` | 問題未検出 | #170 | `e22826429f71e15fb26749fbc3bb1dc7430ccdb4` | — | R 4.5.2由来rank fixtureを閲覧（未実行）。ties randomは共通R RNGを利用 | NaN keep/first/last、±Infinityと同値tie、signed zero、全欠損/空、6 tiesMethod、naLast rank offset、random tieのuniform drawとstable fallbackを追跡。具体入力: `rank([Infinity,1,Infinity,-Infinity])`、`rank([NaN,3,NaN,1],{naLast:"first"})`、`rank([NaN,3,NaN,1],{naLast:"last"})`、`rank([-0,0,1])`、`setSeed(17); rank([2,1,2,1],{tiesMethod:"random"})`。sort comparatorはInfinity-InfinityのNaNを同順位として扱い、NaN入力は別処理。新規の再現可能な欠陥は確定せず。Vitest/package runtime/R実行なし。 |
-| `src/descriptive/table.ts` | 問題未検出 | #171 | `e22826429f71e15fb26749fbc3bb1dc7430ccdb4` | — | R 4.5.2由来table/cut/findInterval fixtureを閲覧（未実行）。bin boundaryをソース比較 | `tabulate` truncation/nbins/NaN/±Inf/large bin、table numberLevelsと15-digit grouping/useNA、unique NaN/-0、cut generated/vector breaks・duplicate/NaN・right/includeLowest、findInterval sorted validation/duplicate endpoints/empty vec/rightmostClosed/allInside/leftOpenを追跡。具体入力: `tabulate([1.9,2.9,0,-1,NaN])`、`table([1,1+Number.EPSILON,NaN],{useNA:"always"})`、`unique([-0,0,NaN,NaN])`、`cut([0,1,2],[0,1,2],{right:false,includeLowest:true})`、`findInterval([-Infinity,0,1,Infinity],[0,1],{leftOpen:true,rightmostClosed:true})`、`findInterval([1],[])`。既存 `test/descriptive.test.ts` とR由来table fixtureを閲覧。巨大nbinsはメモリ/実行環境依存のため再現欠陥として扱わず。新規の再現可能な欠陥は確定せず。Vitest/package runtime/R実行なし。 |
+| `src/descriptive/table.ts` | 問題あり・追加監査済み | #171, #715, #717 | `d6a292d4eb9f040528219f8202e2ad962cfc13e0` | [#225](https://github.com/numero-uno-jpn/rStats.js/issues/225) (open); [#227](https://github.com/numero-uno-jpn/rStats.js/issues/227) (open) | `tabulate`の非有限binからのnbins推定と`cut`の明示break vectorの最小長を再監査。 | #715: `tabulate([1,Infinity])`でnbins省略時、Math.trunc(Infinity)がInfinityとして残り、maxOfがInfinityを返すため出力配列長がInfinityとなりRangeError。有限bin 1と非count値Infinityから期待される`[1]`を生成できない。Issue #225。#717: `cut([0,1],[])`はbreak数の検証をせず`binCode()`へ進み`[NaN,NaN]`を返す。R cutは2つ以上のunique breakを要求する。Issue #227。静的control-flow/API契約確認のみ。 |
 | `src/distributions/arcsine.ts` | 問題未検出・追加監査済み | #95, #571, #575 | `907b0a4b3b55ca8f4b21325dca7de651fb8f420b` | — | darcsine/parcsine/qarcsineのwidth overflow、subnormal endpoint、sqrt/log tail、upper quantile mirrorを再監査。 | 入力: `darcsine(Number.MIN_VALUE,{a:0,b:Number.MAX_VALUE})`, `darcsine(0,{a:-Number.MAX_VALUE,b:Number.MAX_VALUE,log:true})`, `parcsine(Number.MIN_VALUE,{a:0,b:Number.MAX_VALUE,logP:true})`, `parcsine(Number.MAX_VALUE/2,{a:-MAX,b:MAX})`, `qarcsine(Number.MIN_VALUE,{a:0,b:Number.MAX_VALUE})`, `qarcsine(1-Number.EPSILON/2,{a:-MAX,b:MAX})`, `qarcsine(-744,{a:0,b:1e308,logP:true})`, `qarcsine(0.5,{a:-1e308,b:1e308})`。b-a overflow時のhalf scale、z<1e-20 direct sqrt、DD log distance、near endpoint log quantileとupper-tail mirrorを追跡。新規再現バグなし。Vitest/package runtime/R実行なし。 |
 | `src/distributions/beta.ts` | 問題未検出・追加監査済み | #99, #560 | `959f9a68947eae3813d0fa8ed001f39380677e76` | — | dbeta/pbeta/qbetaのpoint mass、direct log density、Loader binomial identity、集中分布step quantile、left/right reflectionを再監査。 | 入力: `dbeta(0.5,1,1)`, `dbeta(0.5,1,2,{log:true})`, `dbeta(2.7e-289,7.5e-126,7.6e-180,{log:true})`, `dbeta(0.5,1e308,1e308)`, `pbeta(-1,0,2)`, `pbeta(-1,0,0)`, `pbeta(0,0,2)`, `qbeta(0.3,1.3e32,1.3e32)`, `qbeta(1.47e-15,1.69e160,1.62e175,{lowerTail:false})`, `qbeta(8.7e-285,1.3e304,5.9)`。pbeta(q<0, shape 0/Inf)のR差はtest/beta.test.tsでdeliberate knownDifferenceとして明記され、支持域を優先する設計。pair()の補数DD、sum overflow、direct log、quantile concentration/reflectionを追跡。新規再現バグなし。Vitest/package runtime/R実行なし。 |
 | `src/distributions/binomial.ts` | 問題あり・追加監査済み | #101, #320, #526, #567 | `09ccfb35cb3ef73351b6cd3b32ccb42e5d85eb85` | [#117](https://github.com/numero-uno-jpn/rStats.js/issues/117) (open) | dbinom/pbinom/qbinomのlarge-n、x+1/n-x exactness、tail complement、logP差し引き、Cornish-Fisher初期値とdiscreteQuantileを再監査。 | #117: `pbinom(1,1e16,1-2**-53,{logP:true})`。x+1-x=1の高速branchに入りn-xを通常減算し、9999999999999999が1e16へ丸められる。x=1の厳密tailはq^(n-1)*(q+n*p)。80桁Decimal logは-367368005696770940.4129709667910、rounded b=nでは-367368005696770977.1497715364681、誤差約-36.7368005696771。Issue #117。その他2^53超の補正、logSubExp fallback、p=0/1、noninteger size/q、roundHalfEven endpointsを追跡。Vitest/package runtime/R実行なし。 |
@@ -52,7 +52,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/chisq.ts` | 問題未検出・追加監査済み | #100, #566 | `e63963bec9ce7f38341e362e691b1a9630f04fe5` | [#26](https://github.com/numero-uno-jpn/rStats.js/issues/26) (closed/fixed) | d/p/qchisqのdf sign/half rounding、ncp delegation、vectorization、shape=0/Inf境界を再監査。 | #26修正確認: `df=-Number.MIN_VALUE`は`df<0`でNaNにしてから半分化。追加境界: `df=Number.MIN_VALUE`は`df/2`が+0に丸まりgamma shape=0経路となるが、Rのdouble演算でも同じhalf rounding。log upper-tailなどの数学的極限とは異なるが既知のR-compatible underflow behaviorとして新規Issueにしない。入力: `dchisq(1,±Number.MIN_VALUE,{log:true})`, `pchisq(1,Number.MIN_VALUE,{lowerTail:false,logP:true})`, `qchisq(Number.MIN_VALUE,Number.MIN_VALUE,{lowerTail:false})`, `dchisq(0,0)`, `pchisq(1,Infinity)`, `qchisq(0.5,Infinity)`。ncp optionはnchisqに正しく委譲。Vitest/package runtime/R実行なし。 |
 | `src/distributions/exponential.ts` | 問題あり・追加監査済み | #102, #557 | `8c7f0f25039c237c39fbd5bf72e7329d874a2399` | [#27](https://github.com/numero-uno-jpn/rStats.js/issues/27) (closed; known R defect) | dexp/pexp/qexpのrate=0/Inf、rate*x overflow/subnormal、log-tail、expNegOverの極小rate経路を再監査。 | #27の既知R欠陥を再確認: `pexp(1e-20,{rate:1e-300,logP:true})`は丸め済みsubnormal積をlog化し数学値から約1.1131e-5ずれる。現在の特別経路はt[0]>0のsubnormal積のみ。追加境界: `pexp(1e-200,{rate:1e-200,logP:true})`（積underflow-to-zero）、`pexp(Infinity,{rate:0})`, `pexp(0,{rate:Infinity})`, `dexp(0,{rate:0})`, `dexp(0,{rate:Number.MAX_VALUE})`, `dexp(1e-300,{rate:1e300})`, `qexp(-720.6,{rate:7.4e-258,logP:true})`, `qexp(-Infinity,{rate:Number.MIN_VALUE,logP:true})`。underflow-to-zeroは#27と同系統でR互換挙動、独立Issue化せず。新規独立バグなし。Vitest/package runtime/R実行なし。 |
 | `src/distributions/f.ts` | 問題あり・追加監査済み | #138, #565 | `12d20ccd20e09d1b4e4bdf1015553503d03b3872` | [#32](https://github.com/numero-uno-jpn/rStats.js/issues/32) (closed/fixed); [#116](https://github.com/numero-uno-jpn/rStats.js/issues/116) (open) | dfDensity1/fDensityのsmall-shape・巨大積fallback、fRatios、pfTiny、qf endpoint/limit/quantile inversionを再監査。 | #32修正確認: m<2はLoader binomial形式でなく`fLogDensity`へ分岐。新規#116: `df(1e150,1e150,1e308,{log:true})`, `pf(1e150,1e150,1e308,{logP:true})`。mx=1e300がfRatiosの1e290 cutoffを超えundefined。fallbackはq=n/m/x=1e8としてp=1-q<0を生成するが、実際p=mx/(n+mx)≈1e-8,q≈1。dbinomRawDD/betaIncに不正な負のpを渡しNaN。Issue #116。その他fRatiosのsmall/large scaling、pfTiny、df2→Inf gamma limit、qf asymptotic endpointsを追跡。Vitest/package runtime/R実行なし。 |
-| `src/distributions/gamma.ts` | 問題あり・追加監査済み | #120, #300, #559 | `e9ba1c35ef88e77e84a392562bb7f62378fcbf7f` | [#113](https://github.com/numero-uno-jpn/rStats.js/issues/113) (open) | dgamma/pgamma/qgammaのshape/rate/scale境界、tiny-y、Poisson density変換、logOfLinear cancellation、tiny quantile/深い裾を再監査。 | #113: `scale=0.36787944117144228` (=nextDown(exp(-1))), `x=scale`, `shape=1`, `dgamma(x,1,{scale,log:true})`。厳密log密度は`-1-log(scale)=1.1711009840963589e-16`。logOfLinearの`f/scale`は`1+2^-52`に丸まり、Math.logは約`2.2204460492503128e-16`。近1比の除算丸めをlogで増幅。Issue #113。既存R互換差: `pgamma(Infinity,892.4,{rate:2.8e-316})`はdt1で1（R 4.5.2 NaN）とコメントに明記。その他shape=0/Inf、rate subnormal、tiny lower/upper log tail、qgamma深い裾とscale overflowを確認。Vitest/package runtime/R実行なし。 |
+| `src/distributions/gamma.ts` | 問題あり・追加監査済み | #120, #300, #559, #712 | `e9ba1c35ef88e77e84a392562bb7f62378fcbf7f` | [#113](https://github.com/numero-uno-jpn/rStats.js/issues/113) (open); [#222](https://github.com/numero-uno-jpn/rStats.js/issues/222) (open) | dgamma/pgamma/qgammaのshape/rate/scale境界、tiny-y、Poisson density変換、logOfLinear cancellation、rate/scale consistency toleranceを再監査。 | #712: `gammaScale({rate:1,scale:1+4*Number.EPSILON})`は積誤差が1e-15未満というだけで受理されるが、`1/rate`は厳密に1でありscaleは不一致。公開契約のrate/scale関係と検証許容差を明確化すべき。Issue #222。静的算術・validation traceのみ。 |
 | `src/distributions/geometric.ts` | 問題あり・追加監査済み | #103, #569, #626 | `dfde963375d347292c88306f151aaa3a8a66612b` | [#145](https://github.com/numero-uno-jpn/rStats.js/issues/145) (open) | dgeom/pgeom/qgeomのq^n巨大整数、probPair、subnormal prob、closed-form quantileとjump-boundary slackを再監査。 | 入力: `dgeom(0,Number.MIN_VALUE,{log:true})`, `pgeom(1e290,5e-324,{logP:true})`, `pgeom(8.7e299,1.1e-300)`, `qgeom(0.7500000000000866,0.5)`, `qgeom(0.9999999999,1e-10)`, `qgeom(0.5,Number.MIN_VALUE)`, `qgeom(-720.6,7.4e-258,{logP:true})`, `pgeom(-1,1)`, `qgeom(0.5,1)`. qPow's two-term log1p expansion only applies when p<2^-54; omitted relative correction is <~p²/3, far below binary64 rounding. DD log ratio, tie tolerance and endpoint ordering checked. 新規確定バグ #145: `pgeom(0.99999999,0.5)`。`Math.floor(q+1e-7)`によりq=0.99999999が1へ繰り上がり、真値0.5に対して0.75を返す。幾何分布CDFは非整数qに対しfloor(q)を使うべき。Issue #145。 Vitest/package runtime/R execution none. |
 | `src/distributions/hypergeometric.ts` | 問題あり・追加監査済み | #139, #301, #571 | `557f15ed94b73d98cc3606838441c05fcf94dca3` | [#118](https://github.com/numero-uno-jpn/rStats.js/issues/118) (open) | dhyper/phyper/qhyperのtotal population、binomialLimit、hyperFormのp/q、tail ratio recurrence、support/quantile boundsを再監査。 | #118: `dhyper(1,1,1e16,1e16)`, `dhyper(0,1,1e16,1e16)`, `phyper(0,1,1e16,1e16)`。m+n=10000000000000001が1e16へ丸められN-k=0,p=1,q=0となるが真の質量はP(X=0)=1/N≈1e-16、P(X=1)=1-1/N≈1。80桁Decimal log P0≈-36.8413614879047310443、log P1≈-1e-16。overflow再現`dhyper(5e307,1e308,1e308,1e308,{log:true})`でもN=Infinity,p=0,q=NaNだが真の密度は約1.13e-154。Issue #118。`phyper/qhyper`のhi>2^53 guardとbinomialLimitの小k経路も追跡。Vitest/package runtime/R実行なし。 |
 | `src/distributions/invgamma.ts` | 追加監査済み・問題未検出 | #140, #302 | `942dc8bfc3a11295a8f7ac3f8df2decf757dac28` | — | dinvgamma/pinvgamma/qinvgamma R/mpmath fixtures、gamma helperを閲覧（実行なし） | 逆数gamma変換、beta/x subnormal・overflow、double-double correctionのalpha=1e15切替、log密度補正、CDF tail反転、tiny quantile reciprocal、alpha=Inf境界を確認。具体入力: `dinvgamma(1e-300,2,{beta:1e-300})`, `pinvgamma(1e-300,2,{beta:1e-300,lowerTail:false,logP:true})`, `pinvgamma(0,Infinity,{beta:1})`, `pinvgamma(1e-300,Infinity,{beta:1})`, `qinvgamma(1e-300,2,{beta:1e-300})`。alpha=Infかつq=0でCDF=0はR 4.5.2 fixtureにも明示。新規再現不具合なし。 |
@@ -69,7 +69,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/distributions/pareto.ts` | 問題未検出・追加監査済み | #150, #501, #574 | `fe44325a34f8ba48a1a8f1e6069852825310bf03` | — | d/p/qparetoのratio DD, powNeg subnormal, a*e correction, lower-tail log, quantile log overflowを再監査。 | 入力: `dpareto(1.1e-263,{a:1640,b:7.8e-264,log:true})`, `dpareto(Number.MIN_VALUE,{a:1e308,b:Number.MIN_VALUE,log:true})`, `ppareto(318.7041047333832,{a:1.040734e-317,b:1,logP:true})`, `ppareto(1e308,{a:1e-308,b:1,lowerTail:false,logP:true})`, `qpareto(0.5,{a:1e308,b:1e-308})`, `qpareto(-1000,{a:1e-308,b:1e-308,logP:true})`, `qpareto(0.5,{a:Infinity,b:1})`。ratio high=1 low residual、powNeg fallback、log tail a*log(r) underflow、exp(t) overflow時log b救済を追跡。`b=Infinity`はvalid()で拒否し、extraDistrの有限scale parameter contract外。新規再現バグなし。Vitest/package runtime/R実行なし。 |
 | `src/distributions/poisson.ts` | 問題未検出・追加監査済み | #104, #568 | `8bac99d8cfb238c1d682278c145798d0c44abc0b` | — | dpois/ppois/qpoisの2^53超補正、gammaInc差分、lambda=0/Inf、q rounding、discreteQuantile停止を再監査。 | 入力: `dpois(0,0)`, `dpois(1,0)`, `dpois(1e16,1e16,{log:true})`, `ppois(1e16,1e16)`, `ppois(1e16,1e16,{lowerTail:false,logP:true})`, `ppois(1,1e16,{lowerTail:false,logP:true})`, `ppois(1e16+2,1e16)`, `qpois(0.5,1e16)`, `qpois(1e-300,1e-300)`, `qpois(0.5,Number.MIN_VALUE)`, `ppois(-1,Infinity)`, `ppois(Infinity,Infinity)`。x+1 rounding correction identity and upper-tail logSubExp fallback verified; no analogous n-x subtraction exists. lambda=Infinity q invalidity matches wrapper guard. New reproducible defect none. Vitest/package runtime/R execution none. |
 | `src/distributions/signrank.ts` | 追加監査済み・問題未検出 | #151, #628 | `3d9623ccac1dc46974fd7f01cbcbb44e931cfcb6` | — | R由来dsignrank/psignrank/qsignrank fixtureと既存property regressionを閲覧（未実行） | nのhalf-even丸め、x/qの整数化規則、支持域端点、subset-sum DPの降順更新、2^900スケーリング、minTrustedによる精度判定、low table再構築、Kahan累積、対称性を使った小さいtail直接計算、log確率、LRU cache budget、MAX_LEN拒否、離散quantile探索を追跡。具体的入力: `dsignrank(0,1100)`、`psignrank(40,10,{lowerTail:false})`、`qsignrank(0.025,10)`、`dsignrank(20,1100)`。中心まで拡張済みのテーブルから低位確率を読む既知回帰条件も確認。#628追加監査: n half-even境界と2^27上限、qのR互換`roundHalfEven(q+1e-7)`（geometric/negative-binomialのfloorバグとは異なりR signrank仕様に一致）、support反射、DPの降順更新、rescale trustLog2/minTrusted、cache growth/eviction、low-table rebuild、Kahan累積、subnormal probabilityのlog復元、discrete quantile比較のtail切替を再追跡。追加入力: `psignrank(0.99999999,1)`, `psignrank(0.99999999,2)`, `psignrank(1.00000001,2)`, `psignrank(-0.00000001,2)`, `psignrank(3.6,5)`, `dsignrank(0.5,5)`, `dsignrank(1e-8,5)`, `qsignrank(-1000,1100,{logP:true})`, `psignrank(605549,1100,{lowerTail:false,logP:true})`。R force-integerの挙動と一致する境界で、新たな再現不具合は確定せず。Vitest/package runtime/R実行なし。 |
-| `src/distributions/summary.ts` | 問題あり・追加監査済み | #152, #573, #625 | `cc61631c4213139f10157e3961e8a3b6f12f35b5` | [#34](https://github.com/numero-uno-jpn/rStats.js/issues/34) (closed/fixed); [#120](https://github.com/numero-uno-jpn/rStats.js/issues/120) (open); [#144](https://github.com/numero-uno-jpn/rStats.js/issues/144) (open) | 全分布summaryのモーメント存在境界、overflow fallback、central integration、small spread、巨大shapeを再監査。 | #34修正確認: Pareto momentsはdimensionless ratio fallbackを実装済み。新規#120: `distSummary("lnorm",{meanlog:0,sdlog:1e-200})`。s2=sdlog²が0にunderflowし、em1=expm1(s2)=0。真のvariance≈1e-400は0へroundされてよいが、sd≈1e-200とskewness≈3e-200は表現可能なのに現行0。`sdDirect`もsqrt(em1)から計算されるため救済できない。Issue #120。追加: `distSummary("unif",{min:-1e308,max:1e308})`, `distSummary("norm",{sd:1e200})`, `distSummary("beta",{shape1:1e308,shape2:1e308})`, `distSummary("pareto",{a:1e308,b:1e308})`, `distSummary("triang",{a:-1e308,b:1e308,c:0})`, `distSummary("exp",{rate:1e-200})`。その他の新規再現バグなし。 #625追加: `distSummary("triang",{a:-1e308,b:1e308,c:0})`。対称三角分布のskewnessは0だが、未scaleの`2*a-b-c`, `a-2*b+c`, `q`がoverflowし、`0 * -Infinity * -Infinity / Infinity`でNaN。sdDirect用のas/bs/cs/qs scalingは既に存在する。Issue #144。Vitest/package runtime/R実行なし。 |
+| `src/distributions/summary.ts` | 問題あり・追加監査済み | #152, #573, #625, #725, #726, #727, #728, #729, #730, #731, #732, #733, #734, #735, #739 | `21cc121671a9a9fac5b2e38a05772bb65d32515c` | [#34](https://github.com/numero-uno-jpn/rStats.js/issues/34) (closed/fixed); [#120](https://github.com/numero-uno-jpn/rStats.js/issues/120) (open); [#144](https://github.com/numero-uno-jpn/rStats.js/issues/144) (open); [#235](https://github.com/numero-uno-jpn/rStats.js/issues/235) (open); [#236](https://github.com/numero-uno-jpn/rStats.js/issues/236) (open); [#237](https://github.com/numero-uno-jpn/rStats.js/issues/237) (open); [#238](https://github.com/numero-uno-jpn/rStats.js/issues/238) (open); [#239](https://github.com/numero-uno-jpn/rStats.js/issues/239) (open); [#240](https://github.com/numero-uno-jpn/rStats.js/issues/240) (open); [#241](https://github.com/numero-uno-jpn/rStats.js/issues/241) (open); [#242](https://github.com/numero-uno-jpn/rStats.js/issues/242) (open); [#243](https://github.com/numero-uno-jpn/rStats.js/issues/243) (open); [#244](https://github.com/numero-uno-jpn/rStats.js/issues/244) (open); [#245](https://github.com/numero-uno-jpn/rStats.js/issues/245) (open); [#249](https://github.com/numero-uno-jpn/rStats.js/issues/249) (open) | 分布summaryの巨大・微小パラメータ域、parameterization contract、central moment scalingを追加監査。 | #733 triangular: a=1e308,b=1.0000000000000004e308,c=1.0000000000000002e308。対称triangleでskewness=0、sd≈8.15e291 finite、varianceはtrue overflowでInfinityだがraw qはInfinity-InfinityでNaN。Issue #243。#734 hyper: m=n=k=1e150でN=2e150、mean=5e149、variance≈1.25e149、excess kurtosis≈-1e-150だが高次積がoverflowしてNaN。Issue #244。#735 gamma: distSummary('gamma',{shape:2,rate:2,scale:1})がgammaScale()を通さず不一致rateを無視。Issue #245。#739 Kumaraswamy: a=b=1e308で集中幅O(1e-308)をquadrature/raw momentsが解像できず、sd≈1.28255e-308、skewness≈-1.13955、excess kurtosis≈2.4を失う。Issue #249。静的代数・漸近・IEEE-754解析のみ。Vitest/package runtime/R/QUADPACK未実施。 |
 | `src/distributions/t.ts` | 問題未検出・追加監査済み | #158, #563 | `78247f0318768944233dc6e92874409b23e432b8` | — | dt/pt/qtのtiny-df近似、巨大df正規極限、betaArgs scaling、subnormal x/tail、deep quantile初期値を再監査。 | 入力: `dt(0,5)`, `dt(1.5e154,1e308,{log:true})`, `dt(5*Number.MIN_VALUE,1e-20)`, `pt(-3.5e151,4.3e121,{logP:true})`, `pt(5*Number.MIN_VALUE,8000,{logP:true})`, `qt(0.499999999,1e-10,{lowerTail:false})`, `qt(1e-5,1e-310,{lowerTail:false})`, `qt(3.048e-196,0.633)`, `qt(0.5,Number.MIN_VALUE)`。dtCoreのx²/n overflow、dtTinyDfのu overflow、betaArgs共通スケーリング、pt upper-tail complement、qt tiny-df逆変換と最大有限double判定を追跡。新規再現バグなし。Vitest/package runtime/R実行なし。 |
 | `src/distributions/triangular.ts` | 問題あり・追加監査済み | #97, #576 | `1cfca6585cf8bad66c282af3b6973fbb8086f288` | [#121](https://github.com/numero-uno-jpn/rStats.js/issues/121) (open) | dtriang/ptriang/qtriangのendpoint mode、wide interval scaling、subnormal tails、logP quantile factorizationを再監査。 | #121: `qtriang(-1000,{a:0,b:1e308,c:0,logP:true})`、`qtriang(-1000,{a:-1e308,b:0,c:0,lowerTail:false,logP:true})`。`exp(-1000)=0`だが、modeがendpointなら距離は`w*exp(-1000)/2≈2.5379794487747284e-127`でfinite。`sqrtP=exp(p/2)`は復元するが、endpoint-mode near-peak branchはunderflow済みlower/upper=0を使用し端点に戻る。Issue #121。density endpoints、c=a/b、tails positive sum/logFar、width overflow、quantile sqrt-tail pathも確認。Vitest/package runtime/R実行なし。 |
 | `src/distributions/tukey.ts` | 追加監査済み・問題未検出 | #159, #617 | `e18cb49f91c4d5667c40323080d741b3d2696738` | — | studentized rangeのClenshaw–Curtis適応積分、内側range CDF/補数、outer gamma積分、log-tail、small-q漸近、quantile bracket/Brentを追加監査。 | `ptukey(2**-1000,2,2)`, `ptukey(Number.MIN_VALUE,2,2,{logP:true})`, `ptukey(60,3,2,{lowerTail:false,logP:true})`, `ptukey(100,3,2,{lowerTail:false,logP:true})`, `ptukey(1e150,3,2,{lowerTail:false,logP:true})`, `qtukey(-745,2,2,{logP:true})`, `qtukey(-1e6,2,2,{logP:true})`, `qtukey(1-Number.EPSILON,2,2)`, `ptukey(3,2,Infinity)`, `qtukey(0.95,2,Infinity)`。CC node nesting/weights, adaptive piece caps, Gaussian window correction, upper-tail complement, df→∞ branch, outer gamma log transform, solver overflow bracket and Brent update were source-traced. 新規確定バグなし。Vitest/package runtime/R実行なし。
@@ -92,7 +92,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/htest/cor.ts` | 問題あり | #185, #598 | `4ed4868b5441752c2b4581e85d2e9b2c0b015101` | [#40](https://github.com/numero-uno-jpn/rStats.js/issues/40), [#134](https://github.com/numero-uno-jpn/rStats.js/issues/134) | R 4.5.2 cor/cor.test fixture を閲覧（未実行）。Near-perfect correlation の期待値はRではなく高精度十進計算から算出。 | Pearson DDの端点clamp不具合は#40。追加監査でKendall normal approximationのn=2境界不具合を確認: `corTest([1,2],[1,2],{method:"kendall",exact:false})` では tie correction第2項が `0/(9*2*1*0)` となりvarS/z/pValueがNaN。tie補正項はn=2では0とすべきで、基本分散は1、z=1、両側p≈0.3173105079。Issue #134。`test/cor.test.ts` SHA `95ed4edf2429544c6f7b949e5e8516ad5bf64c52` はfixture駆動suiteのみでこの明示的n=2 exact:falseケースなし。静的追跡のみ、Vitest/R未実行。 |
 | `src/htest/core/ansari.ts` | 問題未検出 | #186 | `e014c17e1cc14604e869b32d32af72dc1a9d8f36` | — | Ansari-Bradley exact distribution のR 4.5.2由来fixtureおよび独立整数count/brute-force fixture生成根拠を閲覧（未実行）。 | `ansariDist` のsubset-position DP確率遷移、tail境界、qの相対fuzz、quantileのupper-tail反転とslack、count DP、chooseによる正規化、cache key/再利用を追跡。具体入力: `pansariExact(5,3,4,true)`; `pansariExact(5,3,4,false)`; `dansariExact(5,3,4)`; `qansariExact(0.5,3,4)`; `qansariR(0.5,3,4)`; 境界 `qansariExact(0,3,4)` と `qansariExact(1,3,4)`。非整数m/nを拒否しない内部quantile helperの入力検証差も確認したが、public `ansariTest` は実データ長から整数m/nを生成し、このhelperは公開entryからexportされないため、現行公開経路の不具合とは判定しない。CHANGELOG v0.7.0 のansari interval追加・ties fallback記述を確認。ソース・fixture確認のみ。Vitest/package runtime/R実行なし。 |
 | `src/htest/core/kolmogorov.ts` | 問題あり | #187 | `e014c17e1cc14604e869b32d32af72dc1a9d8f36` | [#41](https://github.com/numero-uno-jpn/rStats.js/issues/41) | Marsaglia-Tsang-Wang exact CDF、Kolmogorov limit、Birnbaum-Tingey one-sided tailの公開論文式およびmpmath/exact-rational fixtureを閲覧（未実行）。 | exact CDFの境界 `d<=1/(2n)`/`d>=1`、small-d閉形式、matrix H構成・power scaling、limitのsmall/large x級数とtail選択、one-sided upperの正項和・境界を追跡。確認した不具合: `pkolmogorovLimit` 156行で `x*x` がunderflowするほど小さい正のxでは、指数側が0となる一方で `sqrt(2π)/x` がInfinityとなり `Infinity*0=NaN`。具体入力: `pkolmogorovLimit(1e-200,true)` は下側tail 0、`pkolmogorovLimit(1e-200,false)` は上側tail 1が期待値だが、現行式はNaN。Issue #41（bug、領域: Kolmogorov numerical core、重要度: low）。CHANGELOGのKS追加/修正項目に当該small-x underflowの記録なし。ソース・fixtureとIEEE-754演算経路確認のみ。Vitest/package runtime/R実行なし。 |
-| `src/htest/core/mantelhaen.ts` | 問題未検出 | #188 | `974d8755ed5b84e78da93f66b02f7faac3535ffa` | — | exact conditional MHの独立整数count/rational fixtureを閲覧（未実行）。 | 各層のhypergeometric support、central density、convolutionのsupport offset、psi=0/Inf点質量、log-weight正規化、mean/CDF、conditional MLEと両側limit rootの単調方向を追跡。具体入力: `new ConvolvedNoncentralHyper([[[1,2],[3,4]],[[0,3],[2,2]]])` に対する `density(0)`, `density(1)`, `density(Infinity)`, `mean(1)`, `cdf(2,1,false)`; 完全退化層 `new ConvolvedNoncentralHyper([[[2,0],[0,0]],[[1,0],[0,1]]])`; 公開APIでexact fractional count拒否・K=1拒否・各層total=1拒否を確認。support幅0ではMLEが0、CIが[0,Infinity]になる識別不能ケースは認識したが、Rの契約確認なしに不具合認定せず。ソース・fixture確認のみ。Vitest/package runtime/R実行なし。 |
+| `src/htest/core/mantelhaen.ts` | 問題あり・追加監査済み | #188, #722 | `4b5a26bfeefa86028d47ad56711bfb92e4556b12` | [#232](https://github.com/numero-uno-jpn/rStats.js/issues/232) (open) | Exact conditional MHのsupport幅、convolution配列、allocation上限を再監査。 | #722: 2×2各セル1e9の層をexact:trueで渡すと、各層のhypergeometric supportは0..2,000,000,000。`stratumDensity()`が2,000,000,001個のFloat64（約16GB）を即時確保しようとする。入力は有限・非負・整数条件を通過する。OOM回避のため実行せず、静的allocation traceでIssue #232を登録。 |
 | `src/htest/core/shapiro.ts` | 問題未検出（要実行確認事項あり） | #189 | `974d8755ed5b84e78da93f66b02f7faac3535ffa` | — | SciPy AS R94 reference fixture、R 4.5.2 shapiro.test fixtureを閲覧（未実行）。 | n=3 exact式、n=4/5/6境界の係数補正、n=11/12 p値近似切替、n=5000上限、係数の反対称性・二乗和、1-Wの因数分解、range scale、log(1-W)の裾確率を追跡。具体入力: `[1,2,3]`; `[1,1,1]`（公開APIで同一値拒否）; `[-1e308,0,1e308]`（range overflow対策）; `[Number.MIN_VALUE,0,1]`; `Array.from(swilkCoefficients(20))`（内部生成係数を標本値とするnear-W=1ストレス）。係数ベクトルを入力した場合に1-Wの浮動小数点符号が0近傍で敏感になる可能性を独立SciPy相当計算で確認したが、rStats.jsのqnorm/JS runtimeで再現確認できていないためIssue化せず、要runtime testとして留保。公開wrapperは3<=n<=5000、有限値、同一値を検証。Vitest/package runtime/R実行なし。 |
 | `src/htest/core/simulate.ts` | 問題未検出 | #190 | `974d8755ed5b84e78da93f66b02f7faac3535ffa` | — | Rのas.character/pasteのB表記契約と呼出元chisqTest/fisherTestのsimulation fixtureを閲覧（未実行）。 | `formatR` のtoExponential(14)から15桁表現への選択、指数の符号・2桁padding、末尾0除去、±0/NaN/±Inf、`simulatedMethod` のmethod suffixを追跡。具体入力: `formatR(1)`, `formatR(1000)`, `formatR(1000000)`, `formatR(1e21)`, `formatR(1e-7)`, `formatR(-0)`, `formatR(Infinity)`; Bは呼出元で正整数検証されるため、fractional/negative Bは本helperの公開契約外。通常の整数Bに対するフォーマット不具合を確定せず。Vitest/package runtime/R実行なし。 |
 | `src/htest/core/smirnov.ts` | 問題未検出 | #191 | `974d8755ed5b84e78da93f66b02f7faac3535ffa` | — | exact integer lattice-path/brute-force fixtureおよびtwo-sample KSのR fixtureを閲覧（未実行）。 | rolling-row DPのpath survival recurrence、first-boundary-hitの重複計数回避、hypergeometric path weight、two-sided/greater/less符号、ties時のpooled-z change points、d境界・relative fuzz、m/n integer validationを追跡。具体入力: `psmirnovUpper(0,3,4)`; `psmirnovUpper(1,3,4)`; `psmirnovUpper(0.5,3,4,{alternative:"greater"})`; `psmirnovUpper(0.5,3,4,{alternative:"less"})`; ties `psmirnovUpper(0.5,2,2,{z:[1,1,2,3]})`; z length mismatch。DP recurrenceとboundary hitの確率解釈をfixture/brute-force test設計と照合し、新規再現不具合なし。公開ksTestはNaNを除去し、m,n>=1を保証。Vitest/package runtime/R実行なし。 |
@@ -102,14 +102,14 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/htest/groups.ts` | 問題あり | #195 | `489b31e26ff16939cef159a9de0baf0168f09738` | [#44](https://github.com/numero-uno-jpn/rStats.js/issues/44) | R 4.5.2 factor coercion semanticsを確認。混在するnumeric/character labelsはcharacterへcoerceされてからlevels化される。 | list-form/x,g-form、NaN response/label pair drop、all-missing label、emptyGroups drop/error、numberLevels 15-digit collisions、label sorting、median midpoint、completeRows shapeを追跡。確認した不具合: `labelledGroups` はMap keyを元のnumber|stringの型付き値で保持するため、number 2とstring "2"を別groupにする一方、`levelText` は双方を同じ"2"に表示する。具体入力: `onewayTest([1,2,10,11,20,21,30,31],[2,2,"2","2",10,10,"10","10"])`。現在4群（重複表示名）となるが、R factor coercionでは2群（"10","2"）。Issue #44（bug、重要度medium、群構成と検定結果に影響）。追加入力: `median([-1e308,1e308])`; `median([1.7e308,1.79e308])`; `median([-Infinity,Infinity])`; all-NaN list groups. Vitest/package runtime/R実行なし。 |
 | `src/htest/ksTest.ts` | 問題未検出（警告差異あり） | #196 | `489b31e26ff16939cef159a9de0baf0168f09738` | — | R 4.5.2 ks.test fixture、R patched documentation/sourceおよびSciPy 1.18.1 fixtureを閲覧（未実行）。 | one-sample D+/D-、continuous CDF callback range validation、tiesによるexact default切替、two-sided tailの1-P cancellation回避、two-sample pooled ECDFのtie-run endpoint、greater/less符号、exact threshold n<100/mn<10000、formula twoGroupDataを追跡。具体入力: `ksTest([0,0,1],q=>q<=0?0:q>=1?1:q)`; `ksTest([0,0,1],q=>q<=0?0:q>=1?1:q,{exact:true})`; `ksTest([1,2],[3,4],{alternative:"greater"})`; `ksTest([1,2],[1,3],{exact:true})`; `ksTest([1,2],q=>NaN)`; `ksTest([NaN,NaN],[1,2])`。default one-sample exact判定はtiesを除外。明示exact:trueではRも連続分布のties警告を出した上でexact経路を実行するため、数値経路の差は確認せず。Rはties警告を出すがrStats.js resultはwarningを返さない点を互換性メモとして記録。新規計算不具合なし。Vitest/package runtime/R実行なし。 |
 | `src/htest/leveneTest.ts` | 問題未検出 | #197 | `489b31e26ff16939cef159a9de0baf0168f09738` | — | R 4.5.2 car::leveneTest fixture（median/mean center）を閲覧（未実行）。 | center default median/mean、sorted factor labels、pairwise missing removal、all-missing groups drop、absolute deviation scaling、oneway ANOVA df/F/pを追跡。具体入力: `leveneTest([4.2,5.1,6.3,5.8,7.9,8.4,6.6,7.0,5.5],["a","a","a","b","b","b","c","c","c"])`; 同じ入力 `{center:"mean"}`; 欠損ペア `leveneTest([1,2,NaN,4,5,6],["a","a","a","b","b","b"])`; empty factor group; singleton群; constant groups; `[-1e308,1e308,-1e308,1e308]` scale stress; ±Infinity. No new confirmed defect; zero residual df/constant deviations produce degenerate ANOVA values and are retained as boundary cases pending runtime comparison. Vitest/package runtime/R実行なし。 |
-| `src/htest/mantelhaenTest.ts` | 問題未検出 | #198 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | — | R/SciPy fixtures・sourceを閲覧（未実行）。 | 2x2xKのasymptotic/exact、Yates補正、OR/CI、conditional MLE、I×J×K covariance/solve。入力: `mantelhaenTest([[[10,5],[4,12]],[[8,6],[5,9]]])`; zero-margin stratum; total=1; exact fractional counts; structural-zero general table。R 4.5.2/SciPy fixtures閲覧。singular Vは実行比較未了で未認定。Vitest/R未実行。 |
+| `src/htest/mantelhaenTest.ts` | 問題あり・追加監査済み | #198, #714, #716 | `669a040db7481c9aad8d0da633a4e73f333b2488` | [#224](https://github.com/numero-uno-jpn/rStats.js/issues/224) (open); [#226](https://github.com/numero-uno-jpn/rStats.js/issues/226) (open) | 2x2xK asymptotic/exactとI×J×K general covariance matrixのwide-count scalingを再監査。 | #714: 3×3の各セル1e103の同一stratumを2層渡すと、general()の`t*t*(t-1)`がInfinity、`f=0`、`vr*vc=Infinity`となり、共分散行列にNaN。均衡表の統計量は数学的に0。Issue #224。#716: `[[1e308,1e308],[1e308,1e308]]`を2層渡すと各層合計4e308がInfinityとなり、2x2xK branchのmargins/expected/varianceがNaN。均衡表の統計量は0。Issue #226。静的数式・IEEE-754解析のみ。 |
 | `src/htest/mcnemarTest.ts` | 問題あり | #199 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | [#45](https://github.com/numero-uno-jpn/rStats.js/issues/45) | R/SciPy fixtures・sourceを閲覧（未実行）。 | square table、2x2 correction、r>2 symmetry sum、df、discordant zero、paired crossTable/missing/levels。再現: `mcnemarTest([1,1,"1","1",2,2,"2","2"],[1,"1",1,"1",2,"2","2",2])`。number 1とstring "1"が別levelだがR factorでは文字列化され同一levelとなる。4 levels vs 2 levelsでtable/dfが変わる。重要度medium。R 4.5.2 fixtures閲覧。Vitest/R未実行。 |
 | `src/htest/multipleComparisons.ts` | 問題未検出 | #200 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | — | R/SciPy fixtures・sourceを閲覧（未実行）。 | Dunn tie correction/adjustment、Dunnett familywise tails、Steel U rank/sign、DSCF variance、Games-Howell Welch/Satterthwaite、Tukey-Kramer、Dunn altp/stepwise ties。入力: 3群例 [1.2,2.3,1.8,2.9,3.1,3.6,4.0,4.4,5.2]; all-tied groups; two-group single-step; zero pooled SS; unequal n; tied adjusted p; extreme values。R PMCMRplus/dunn.test/multcomp fixtures閲覧。Vitest/R未実行。 |
 | `src/htest/normalityTests.ts` | 問題あり | #201, #622 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | [#46](https://github.com/numero-uno-jpn/rStats.js/issues/46) | R/SciPy fixtures・sourceを閲覧（未実行）。 | AD/CVM/Lilliefors/Shapiro-Francia/Pearsonの統計量・近似p値・df・警告境界。Pearsonで `pnorm(z)===1` のときclass=`k+1`となり、`c<=k`で観測値を除外。再現: `const x=[...Array(99).fill(0),1e6]; pearsonTest(x)`。n=100、k=13、outlier z=9.9、counts合計99。最終binに含める必要あり。重要度medium。nortest 1.0-4 source/fixtures閲覧。Vitest/R未実行。 |
 | `src/htest/onewayTest.ts` | 問題未検出 | #202 | `8a97a5756c77d7d41ba872005f479f420a1dd851` | — | R/SciPy fixtures・sourceを閲覧（未実行）。 | Classical F/Welch F、Satterthwaite df、群サイズ、zero variance、power-of-two scaling、formula interaction/missing、Shapiro-Wilk n=3/5000/5001、NaN/Inf/constant。入力: 例の3群 [2.9,3.0,2.5,2.6,3.2], [3.8,2.7,4.0,2.4], [2.8,3.4,3.7,2.2,2.0]; varEqual true/false; singleton; constant groups; [-1e308,0,1e308]; formula with two factors; shapiroTest([1,2,3])。Welch zero varianceのNaNはR比較未了で未認定。R/SciPy fixtures閲覧。Vitest/R未実行。 |
 | `src/htest/pAdjust.ts` | 問題未検出 | #203 | `a281c1fc348643b86370be97d94d35a18e1b8983` | — | R 4.5.2 `stats::p.adjust` の実装・仕様と照合（ソース/fixture閲覧、R実行なし）。Hommel n=2 special-caseは有効p値でHochbergと同値 | Holm/Hochbergの単調累積、BH/BY逆順cummin、BY調和数のdouble-double/大n漸近、HommelのSimes反復、NaN位置保持、n>lengthの未観測p扱い、略称/alias、空・単一・±Inf・範囲外pを確認。入力: `pAdjust([0.01,0.02,0.03,0.04,0.05])`; `pAdjust([NaN,0.01,0.2],{method:"BY",n:5})`; `pAdjust([0.01,0.2],{method:"hommel",n:5})`; `pAdjust([0.2,0.8],{method:"hommel"})`; `pAdjust([], {method:"hommel",n:3})`。Hommelの非整数n拒否・空ベクトルはRと異なると明記済み。大nのBY近似は境界付近を追加runtime比較する余地はあるが、再現欠陥なし。Vitest/package runtime/R未実行。`test/padjust.test.ts` とR p.adjust source/fixtureを閲覧。 |
 | `src/htest/pairwise.ts` | 問題あり | #204 | `a281c1fc348643b86370be97d94d35a18e1b8983` | [#44](https://github.com/numero-uno-jpn/rStats.js/issues/44) | R 4.5.2 `pairwise.*` / `factor()` semanticsと照合（ソース/fixture閲覧、R実行なし） | byLevelのgroup coercion/order、NaN応答除外（pairedは位置対応を保持）、pooled SD/df、paired/non-pooled t、Wilcoxon各pair、proportion pairs、下三角の比較順とpAdjust一括適用を追跡。確認した不具合: `numberLevels()`は数値だけ正規化し文字列を残すため、Mapが数値`2`と文字列`"2"`を別群として扱い、表示ラベルが重複。再現: `const x=[1,2,10,11,20,21,30,31]; const g=[2,2,"2","2",10,10,"10","10"]; pairwiseTTest(x,g)`。R factor coercionでは文字列levels `"10"`,`"2"`の2群だが現行は4群。`pairwiseWilcoxTest`も同じ`byLevel()`を使う。既存Issue #44に同一根本原因として追記済み。その他の通常/edge casesは既存 `test/htest-basic.test.ts` fixtureで比較設計を閲覧。Vitest/package runtime/R未実行。 |
-| `src/htest/poissonTest.ts` | 問題未検出 | #205 | `a281c1fc348643b86370be97d94d35a18e1b8983` | — | R 4.5.2 `stats::poisson.test` fixtures/契約を閲覧（実行なし）。T=0はRがNaN/Infを返すが、この実装は明示的に拒否する仕様差を既存testで許容 | 1標本 exact two-sided probability-ordering、Poisson mode/tie、far-tail integer search、less/greater tails、Garwood gamma CI、2標本conditional binomial mapping、rate ratio/expected countのoverflow/underflow回避、x1+x2 overflow、T/r/confLevel validationを追跡。入力: `poissonTest(0,{T:1,r:0})`; `poissonTest(1,{T:1,r:1})`; `poissonTest([11,23],{T:[800,3011]})`; `poissonTest([0,0],{T:[1,1]})`; `poissonTest(517,{T:25.864,r:9.0104,alternative:"greater"})`; `poissonTest(1,{T:0})`（現行はRangeError、Rはrate/CIのNaN/Inf。`test/htest-basic.test.ts`で意図的なsubstituteとして記録）。two-sided modeの整数mにおけるm-1/m同率を確認。新規の再現可能な計算欠陥は確定せず。Vitest/package runtime/R未実行。 |
+| `src/htest/poissonTest.ts` | 問題あり・追加監査済み | #205, #713 | `61c2c6a882fc0672e73fe45b5a547b2494b4e444` | [#223](https://github.com/numero-uno-jpn/rStats.js/issues/223) (open) | R 4.5.2 `stats::poisson.test` fixtures/契約と2標本expected countのoverflow-safe式を再監査。 | #713: `poissonTest([1e308,0],{r:2,T:[1,1e308]}).parameter`。n*r*T1はInfinity、T1+r*T2もInfinity。fallback `(n*r)/(1+r*(T2/T1))` もInfinity/InfinityとなりNaNだが、数学的なexpected countは約1。Issue #223。1標本exact two-sided、mode/tie、far-tail search、Garwood CI、2標本conditional binomial、rate ratio、T/r/confLevel validationも再確認。静的IEEE-754解析のみ。 |
 | `src/htest/polycor.ts` | 問題未検出 | #206 | `a281c1fc348643b86370be97d94d35a18e1b8983` | — | R 4.5.2 `polycor` / `mvtnorm` fixturesを閲覧（実行なし）。MLのreferenceはR optimizerの途中停止値ではなくfixtureのexact maximum | polychor table/vector dispatch・矩形形状・非負有限count、zero-margin除去、category coercion、marginal thresholds、pbvnorm rectangle probability、rho bound、polyserial ad-hoc estimate、standardisation、ML analytic gradient/Hessian/Newton/step-halving、boundary ridge、inverse Hessian、chisq/dfを追跡。入力: `polychor([[20,8,1],[5,30,9],[2,6,25]])`; `polychor([[50,0],[0,50]],{ML:true,stdErr:true})`; `polychor([[0,50],[50,0]],{stdErr:true})`; `polyserial([0.2,-1.1,0.8,1.5,-0.3,0.1,-0.9,2.0],[1,1,2,3,2,2,1,2],{ML:true,stdErr:true})`; zero-margin `polychor([[3,4],[0,0]])`; ragged table rejection. `test/polycor.test.ts`と`test/polycorML.test.ts`のfixture、pbvnorm境界testを閲覧。極端な非有限連続値/極端に希少なカテゴリは追加runtime検証候補だが不具合未認定。Vitest/package runtime/R未実行。 |
 | `src/htest/power.ts` | 問題未検出 | #207 | `a281c1fc348643b86370be97d94d35a18e1b8983` | — | R 4.5.2 `power.t.test` / `power.prop.test` / `power.anova.test` fixtureと照合（実行なし）。Rのnoncentral pt/pf・uniroot精度差は既存known-differenceとして区別 | exactly-one-unknown判定、既定値、sigLevel/power/sd/variance/proportion/tol validation、one/two/paired t df・ncp・strict tail、proportion pooled variance/strict tail、ANOVA lambda/df、未知量root bracketとdelta=0/betweenVar=0非識別を追跡。入力: `powerTTest({n:20,delta:1})`; `powerTTest({delta:0.5,power:0.8})`; `powerTTest({n:20,delta:0,alternative:"two.sided",strict:true})`; `powerPropTest({n:50,p1:0.5,p2:0.75})`; `powerPropTest({n:30,p1:0.9,p2:1,power:0.8,strict:true})`（不可能条件/警告・root boundary）; `powerAnovaTest({groups:4,n:5,betweenVar:1,withinVar:3})`; `powerAnovaTest({groups:4,n:5,betweenVar:0,withinVar:3})`。連続値n/groupsのroot resultをintegerに丸めないのはR仕様。非識別量の専用RangeErrorも確認。`test/powerStats.test.ts`およびR fixture/known differencesを閲覧。Vitest/package runtime/R未実行。 |
 | `src/htest/propTest.ts` | 問題あり・追加監査済み | #208, #619 | `dc71b22c88d12984b50c59b89fdec3e9748e4a19` | [#47](https://github.com/numero-uno-jpn/rStats.js/issues/47); [#139](https://github.com/numero-uno-jpn/rStats.js/issues/139) (open) | R 4.5.2 prop.test仕様・existing fixtureを再確認。 | #619: no-p equality pathのpooled proportion `sum(x)/sum(n)`で有限の群別count合計がoverflowする。再現: `propTest([5e307,5e307],[1e308,1e308],{correct:false})`。各群の比率は0.5で一致するため期待statistic=0,p=1だが、分母sum(n)=Infinityとなりpooled=0、期待成功数0、`squareOver(5e307,0)=Infinity`となる。既存#47（fractional count validation）とは独立。`test/fixtures/propTest.json`（R 4.5.2）を閲覧。Vitest/package runtime/R実行なし。 |
@@ -152,7 +152,7 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/linalg/ops.ts` | 問題あり・追加監査済み | #242, #585, #594 | `fa5626725f1f8b3d6cd1d6d2a82e54629f00f540` | [#55](https://github.com/numero-uno-jpn/rStats.js/issues/55) (closed/fixed); [#70](https://github.com/numero-uno-jpn/rStats.js/issues/70) (open); [#133](https://github.com/numero-uno-jpn/rStats.js/issues/133) (open) | matMulのshape dispatch/rescaledDot、elementwise recycling、diag/cbind/rbind/matrix/kronecker/seqを再監査。 | #55修正確認。#70継続確認: `seq(-1e308,1e308,{lengthOut:3})`は差分overflow。新規#133: `matMul([1e308,1e308,1],[1e308,-1e308,1])`。通常dotは`+Infinity-Infinity+1`でNaNとなり`rescaledDot()`へ進むが、両ベクトルを`2^-1023`倍した後の最後の積は約`1.24e-616`で0にunderflow。大きな正負の積が相殺された後に残る厳密な値1を失い、0を返す経路を確認。既存#70とは別件。Vitest/package runtime/R実行なし。 |
 | `src/linalg/qr.ts` | 問題あり | #243, #590 | `b04cbd9b8fbc3fdf1cc48b07b0ca44ef9eeb2f2f` | [#57](https://github.com/numero-uno-jpn/rStats.js/issues/57), [#71](https://github.com/numero-uno-jpn/rStats.js/issues/71), [#130](https://github.com/numero-uno-jpn/rStats.js/issues/130) (open) | QR Householderの極端スケールを監査。 | #590: `qr([[1e308,1e308],[1e308,1e308]])` で内積が`-Infinity`へoverflowし、第2列を汚染。正しいrankは1だがrank 2となり得る。期待R対角は有限の`-sqrt(2)*1e308`。Issue #130。既存#57/#71は別件。 |
 | `src/linalg/schur.ts` | 問題あり・追加監査済み | #244, #593 | `72838c9df6896ef921d1ec296bd5b93d4624ec4f` | [#132](https://github.com/numero-uno-jpn/rStats.js/issues/132) (open) | 実Schur分解の直交相似変換、2x2複素固有値block標準化、R Matrix::Schur契約と `test/schur.test.ts` を照合（実行なし）。 | 既存の2x2/複素block/再構成検査に加え、極端な混合スケールの厳密対角行列を確認。入力 `[[1e308,0],[0,1e-308]]`。`rangeExponent=1023` により全要素を `2^-1023` 倍する前処理で、第二対角成分 `ldexp(1e-308,-1023)` が0へunderflow。`orthes`/`hqr2`へ渡る前に固有値が消失し、逆scaleしても復元不能。真の固有値は `[1e308,1e-308]`、対角行列なのでSchur formは入力のまま保てる。Issue #132を新規作成。ソースとIEEE-754経路を静的追跡。Vitest/package runtime/R実行なし。 |
-| `src/linalg/solve.ts` | 問題あり・追加監査済み | #109, #586 | `6e423f1c2969b896c1715f5af95864c6f59dea24` | [#128](https://github.com/numero-uno-jpn/rStats.js/issues/128) (open) | getrf/getrs/gecon/trsv/lacn2、scaled condition estimateと実factorizationのスケール差、determinantの指数保持を再監査。 | #128: `a=1e308; solve([[a,a],[a,-a]],[1,0])`。Aはwell-conditionedで条件数1、正解は`[5e-309,5e-309]`。`getrf`のtrailing update `-a + 1*(-a)=-2e308`が`-Infinity`へoverflow。geconはscaledCopyで正常判定するが実LUはunscaledのまま。`getrs`がrhs成分を-Infinityで割り0とし、`[1e-308,0]`相当の誤答。`solve(A)`の逆行列も誤る。Issue #128。Vitest/package runtime/R実行なし。 |
+| `src/linalg/solve.ts` | 問題あり・追加監査済み | #109, #586, #740, #741 | `d8df21ba08caaa996d1db3f2659e9a71a431d668` | [#128](https://github.com/numero-uno-jpn/rStats.js/issues/128) (open); [#250](https://github.com/numero-uno-jpn/rStats.js/issues/250) (open); [#251](https://github.com/numero-uno-jpn/rStats.js/issues/251) (open) | LU/condition estimateに加え、triangular rcond()のuplo validationとmatrix dimension contractを追加監査。 | #128: LU trailing update overflow（従来記録）。#740: rcond([[1,100],[0,1]],{triangular:true,uplo:'X' as any})はinvalid uploをlower branchとして扱い、identity相当のrcond=1。Issue #250。#741: rcond([[1,0,100],[0,1,0]],{triangular:true,uplo:'U'})は2×3 matrixをrejectせず、trcon()がnrow=2として先頭2列だけ処理し第3列を無視。Issue #251。静的branch・index解析のみ。Vitest/package runtime/R実行なし。 |
 | `src/linalg/svd.ts` | 問題あり・追加監査済み | #245, #584, #591 | `6192d8d18210f1e92f69cae227d58ab4469b5fe7` | [#127](https://github.com/numero-uno-jpn/rStats.js/issues/127) (consumer: ginv); [#131](https://github.com/numero-uno-jpn/rStats.js/issues/131) | svdScaled/svdValuesの共通2冪スケーリングが、極端な指数幅を持つ行列の小要素を入力段階で消失させる問題を追加確認。#127のginv reciprocal overflowとは別原因。 | #591: `svd([[1e308,0],[0,1e-308]])`。`rangeExponent`は最大要素から`s=1023`を選び、`ldexp(1e-308,-1023)`が0へunderflowするため、対角行列の本来有限な特異値`1e-308`を分解前に失う。`svdValues()`も同じscale経路。期待値は降順`[1e308,1e-308]`。`src/linalg/svd.ts`、`matrix.ts`、`summary.ts`、Householder helper、`test/svd.test.ts`を閲覧。Vitest/package runtime/R実行なし。
 | `src/models/anovaSequential.ts` | 問題未検出 | #246 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | R `anova.lm` sequential SS、`anova.glm`/`aovSummary`の自由度とperfect-fit行動をソース・既存test/anova.test.tsで照合（実行なし）。 | pivot/assignによる項順、rank欠損、intercept除外、dfResidual=0、RSSのscale back、weights=0、複数モデルのresponse/rows/weights一致、nestedColumns、perfect-fit警告を確認。入力: `y=[1,2,3,4], x=[[1],[2],[3],[4]]`; saturated `y=[1,2],x=[[1],[2]]`; weighted `weights=[1,0,1,1]`; 非nested列空間比較。負のSS/df時のNaN処理とresidual row形状に新規再現不具合なし。 |
 | `src/models/aovEz.ts` | 問題未検出 | #247 | `bd7e28abd7a5cc22350f41be4dd9595bad98f78b` | — | afex `aov_ez`/car univariate ANOVA、GG/HF/Mauchly、long-to-wide aggregationの既存fixture/test/aovEz.test.tsを照合（実行なし）。 | ID/factor coercionとlevel重複、IDの複数between条件、欠損response/欠損cell/空cell、重複観測mean集約、within factor order、between factor sorted order、type II/III、observed effect-size分母、response scaleを追跡。入力: `id=['s1','s1','s2','s2','s3','s3','s4','s4']`, `W=['a','b','a','b','a','b','a','b']`, `y=[4.1,5.0,3.8,4.9,4.4,5.6,4.0,4.7]`; missing cellを作る1 subject除外例; 1セル複数行平均例; `y=[1e200,-1e200,...]`のscale経路。新規再現不具合なし。 |
@@ -181,13 +181,13 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/models/scaledTables.ts` | 問題未検出 | #269 | `4f65d01b4bfa9007e772fcf7bfb251a5d68cc417` | — | 15行のWeakMap保管層を確認。scaled ANOVA tablesのidentity/lifetime contractに数値演算はない。 | `const result={}; scaledTables.set(result,{colNames:['SS'],rowNames:['x'],table:[[0.25]]}); scaledTables.get(result)` と別object identity、GC依存のWeakMap特性をソース確認。計算ロジックなし。Vitest/package runtime未実行。 |
 | `src/models/survival.ts` | 条件付き問題あり（実データ未再現） | #109–110 | `6b9fabe470c0a994e48cd612bcd3e30aaa580aa1` | [#28](https://github.com/numero-uno-jpn/rStats.js/issues/28) | Rでは未確認（R実行なし） | #109で `pseudoQuadratic()` の固定固有値閾値 `1e-10 * max(lambda)` と `solve()` の既定tol=`Number.EPSILON` の不整合を指摘。#110で `survdiff()` のリスク集合構造を解析：正の期待イベント数を持つ各群は最初のイベント時点で必ずリスク集合に属する。最初のイベント数 d がリスク集合総数 N 未満なら、その時点の分散寄与 `w²*d*(N-d)/(N*(N-1)) * (diag(r)-r*r'/N)` は、使用群のうち1群を除いた部分行列上で正定値。最初の時点で d=N なら全リスク対象が同時イベントとなり、以後のイベントはなく、V=0かつO-E=0。従って通常の入力では `pseudoQuadratic()` が準特異行列の正の小固有値を切り捨てる経路は実証できず、実際のtime/status/group再現なし。Issue #28は補助関数の閾値方針上の懸念として保持し、survdiffの実害は未確定。Vitest/package runtime/R実行なし。 |
 | `src/models/tiedTimes.ts` | 問題未検出 | #113 | `6222eb058ce9759e37c852a30a56582b57e18009` | — | Rと同じ（`survival::aeqSurv()` の tie判定・cut point写像と一致。今回R実行なし） | `mergeTiedTimes()` 全体、呼出元 `coxph.ts`/`survival.ts`、`summary.ts` の overflow-safe `mean()`、`test/survival.test.ts`・`test/coxph.test.ts`、`oracle/survival-behaviour.md` を確認。R `aeqSurv.R` の `dy <= tolerance || dy/mean(abs(y)) <= tolerance`、`cuts <- y[c(1,!tied)]`、`findInterval` による写像と実装のロジックは一致。固定例 `[0,1e-8,2e-8]` は隣接差が各 `1e-8` で閾値 `sqrt(2^-52)≈1.4901161193847656e-8` 以下のため全て最小値0へ統合され、両端差 `2e-8` が閾値を超えても連鎖統合される。これはRと同じ仕様。極端値 `[1e308,1.1e308]` はgap `1e307`、平均絶対値 `1.05e308`、相対差約0.095で統合されない。`[-Number.MAX_VALUE,Number.MAX_VALUE]` の差分overflowはInfinityとなり誤統合しない。subnormal・負値・±0・NaN/±Infinityの経路もソース確認。専用 `test/tiedTimes.test.ts` は存在せず、関連テストは閲覧のみ。実行/Vitest/package runtime/R実行なし。 |
-| `src/numerics/deriv.ts` | 問題あり・追加監査済み | #270, #579 | `7a339332c11e4b55e6f35fb8f120c7fd2c92311d` | [#123](https://github.com/numero-uno-jpn/rStats.js/issues/123) (open) | grad/jacobian/hessianのRichardson step sizing、浮動小数点格子、extrapolation、simple method、option validationを再監査。 | #123: `grad(x=>x[0],[1],{r:41})`。h0=1e-4、最後のh=h0/2^40≈9.094947017729283e-17。1+hは1へ丸め、1-hは0.9999999999999999へ丸め、最後のcentral quotientは約0.6103515625。量子化された差分をRichardson extrapolationに含めるため結果は約0.32944898034578934（真値1）。rは任意の正整数として受理され、stencilがx±hでdistinctか確認しない。Issue #123。追加: `grad(x=>x[0]**2,[0])`, `jacobian`, `hessian`のdimension 0/1、eps/d/zeroTol=0/±subnormal/Inf、simple forward差分、negative step、r=1/defaultを追跡。Vitest/package runtime/R実行なし。 |
-| `src/numerics/integrate.ts` | 問題あり | #271 | `ebafffb5a5862eea43c4b32e4456eed02ba51227` | [#61](https://github.com/numero-uno-jpn/rStats.js/issues/61) | R `optimize()` は内部wrapperでNaN/±Infを有限最大値へ置換するが、現行 `optimize()` は非有限値を直接 `localMin` に渡し、探索が停止しない。R `src/library/stats/src/optimize.c` と比較。 | `optimize(x => x >= 0.5 ? NaN : (x-0.2)**2,0,1)`。初期点 `0.3819660112501051` は有限、次点 `0.6180339887498949` はNaN。Brent updateが同じ点を再評価し続け、iteration capなしでhangする。Issue #61。integrate finite/infinite limits, reversed bounds, tolerances, uniroot endpoints/extensionもソース確認。Vitest/package runtime/R未実行。 |
-| `src/numerics/interp.ts` | 問題あり・追加監査済み | #272, #581 | `d9c76b9bb91a45caf0b04da7d56d9627bd711f57` | [#125](https://github.com/numero-uno-jpn/rStats.js/issues/125) (open) | approx、FMM/natural/periodic/Hyman、monoH.FC、splinefunH、barylag、global Hermiteのties・境界・wide knot scalingを再監査。 | #125: `splinefun([-1e308,1e308],[0,1])([0])`は0を返すが期待値0.5。`splinefunH([-1e308,1e308],[0,1],[0,0])([0])`も0。有限端点差がInfinityとなり、secant slope=0、evalCubic/evalHermiteが左値を返す。`spline()`にはpower-of-two scalingがあるがfunction variantsにない。Issue #125。追加: `approx`のties/NaN/Inf/constant f、spline n=1/2/3、periodic endpoint closure、hyman monotonicity、monoH.FC slope limiter、barylag repeated nodes and scaled weights、hermiteInterp repeated nodes、derivative 0..3を追跡。Vitest/package runtime/R実行なし。 |
-| `src/numerics/ode.ts` | 問題あり・追加監査済み | #273, #580 | `6d0a98f2caf7cd2e74f232c2c19fd9191397428e` | [#124](https://github.com/numero-uno-jpn/rStats.js/issues/124) (open) | Euler/Heun/RK4のstage時刻、step差分、state dimension、subnormal/overflow update、mutable callback契約を再監査。 | #124 reproduction A: `ode([0],[0,Number.MIN_VALUE],()=>[1],[],{method:"rk4"})`。h/6が0へunderflowし、真の増分MIN_VALUEを失う。reproduction B: `ode([0],[0,1e-308],()=>[1e308],[],{method:"rk4"})`。真の増分1だが`2*k2`/`2*k3`がInfinityとなりstate=Infinity。いずれも`(h/6)*(k1+2k2+2k3+k4)`の演算順序が原因。Issue #124に両再現を記載。Euler/RK2、逆向き/重複時刻、空/単一times、dimension mismatchも追跡。Vitest/package runtime/R実行なし。 |
+| `src/numerics/deriv.ts` | 問題あり・追加監査済み | #270, #579, #703, #704, #736 | `7a339332c11e4b55e6f35fb8f120c7fd2c92311d` | [#123](https://github.com/numero-uno-jpn/rStats.js/issues/123) (open); [#213](https://github.com/numero-uno-jpn/rStats.js/issues/213) (open); [#214](https://github.com/numero-uno-jpn/rStats.js/issues/214) (open); [#246](https://github.com/numero-uno-jpn/rStats.js/issues/246) (open) | grad/jacobian/hessianのRichardson step sizing、浮動小数点格子、extrapolation、zeroTol境界、step/denominator overflowを追加監査。 | #703/#704は従来記録を保持。#736: grad(x=>x[0]*x[0],[0],{zeroTol:0})でh0=abs(d*0)+(abs(0)<0?eps:0)=0となり、中央差分0/0でNaN、callback自体は有限なのにRangeError。jacobian/hessianも共有steps()の影響。Issue #246。静的control-flow・IEEE-754解析のみ。Vitest/package runtime未実施。 |
+| `src/numerics/integrate.ts` | 問題あり・追加監査済み | #271, #737 | `6df1afbeed34b40ab91e3f064f5af8aba7d02b56` | [#61](https://github.com/numero-uno-jpn/rStats.js/issues/61) (open); [#247](https://github.com/numero-uno-jpn/rStats.js/issues/247) (open) | integrate/optimize/unirootのlimits・tolerance・interval extension・option validationを追加監査。 | #61: optimize()が非有限値をfinite sentinelに置換せずNaN pointで停止しない既知Issue。#737: uniroot(x=>x*x-2,0,2,{extendInt:'bogus' as any})は有効bracketでrootを返しunsupported enumを無視。same-sign endpointsでは'no'扱い。extendIntをno/yes/downX/upXに検証すべき。静的option/control-flow解析のみ。Vitest/package runtime/R実行なし。 |
+| `src/numerics/interp.ts` | 問題あり・追加監査済み | #272, #581, #705, #706, #707, #708, #711 | `db6d98b09bf7483749d759fcf39b7fce38e05a1d` | [#125](https://github.com/numero-uno-jpn/rStats.js/issues/125) (open); [#215](https://github.com/numero-uno-jpn/rStats.js/issues/215) (open); [#216](https://github.com/numero-uno-jpn/rStats.js/issues/216) (open); [#221](https://github.com/numero-uno-jpn/rStats.js/issues/221) (open) | approx、FMM/natural/periodic/Hyman、monoH.FC、splinefunH、barylag、global Hermiteのties・境界・wide knot scaling・option validationを再監査。 | #705: `barylag([-1e308,1e308],[-1,1],[0])`で有限節点間の単一差分がInfinityとなり、weight rescaling前に破綻。Issue #215（既存#14の積overflowとは異なるsubtraction overflow）。#706: `hermiteInterp([-1e308,1e308],[-1,1],[0,0],[0])`でdivided-difference denominatorがInfinityとなり、中央値0でなく-1相当の誤値。Issue #216。#707/#708: barylag/hermiteInterpの重複節点は一意な補間問題を定義しないため、候補Issue #217/#218をnot_plannedでclose（有効入力の数値バグとしては扱わない）。#711: approxの不正methodはstepAtへfall throughし、rule=3等もrule=2扱い。Issue #221。静的ソース・IEEE-754・API contract確認のみ。 |
+| `src/numerics/ode.ts` | 問題あり・追加監査済み | #273, #580, #701 | `8683b9df7e690f62a2090ce8e91fe87074b317ee` | [#124](https://github.com/numero-uno-jpn/rStats.js/issues/124) (open); [#211](https://github.com/numero-uno-jpn/rStats.js/issues/211) (open) | Euler/Heun/RK4のstage時刻、step差分、state dimension、subnormal/overflow update、mutable callback契約を再監査。 | #124のRK4増分スケーリングとは別に、#701で有限時刻差のoverflowを確認。`ode([1],[-1e308,1e308],()=>[0],[],{method:"euler"})`ではh=Infinityとなり、`Infinity*0`で定数stateがNaNになる。Issue #211。静的IEEE-754解析のみ。 |
 | `src/optim/lbfgsb.ts` | 問題未検出・追加監査済み | #274, #583 | `fd14e53c5730a4162316a5cafe67d29526530b37` | — | L-BFGS-B 2.1 portのworkspace indexing、1-based offsets、active set、Cauchy point、subspace solve、line search、memory updateを再監査。 | 入力相当: 1D quadratic `f=(x-2)^2,g=2(x-2)` bounds [0,3], `m=1`; fixed variable `nbd=2,l=u`; lower-only/upper-only; initial projected gradient zero; uphill direction; line search `stpmin/stpmax` warnings; n=0/m=0/factr<0/invalid nbd。配列W/M/Kの最大offsetとFloat64Array長、head/itail wrap、sy/ss/wn/sndの列major index、dtrsl job=11→trans upper then job=1→upper solveを追跡。新規の再現可能な数値バグなし。wrapperのgradient nonfinite/scale validationは`optim.ts`側の別監査対象。Vitest/package runtime/R実行なし。 |
-| `src/optim/localmin.ts` | 問題あり・追加監査済み | #275, #582 | `3dfa016606ccc35da6f69bff24dcc1eb2232e264` | [#61](https://github.com/numero-uno-jpn/rStats.js/issues/61) (closed/fixed); [#126](https://github.com/numero-uno-jpn/rStats.js/issues/126) (open) | Brent localminのparabolic/golden step、stagnation、tol=0、非有限objective wrapperを再監査。 | #61修正確認: `optimize()` wrapperがNaN/+InfをMAX_VALUE、-Infを-MAX_VALUEに置換してlocalMinへ渡し、Rの検索動作に合わせる。新規#126: `optimize(x=>x*x,-1,1,{tol:0})`はminimizer=0付近でtol1=eps*|x|+tol/3が0へunderflow。terminal bracket `[5e-324,1e-323]`, xm=1e-323, tol1=0, d=0, u=x, fx=fu=0となり、更新が不変で無限ループ。tol=0はpublic validationで受理。Issue #126。Vitest/package runtime/R実行なし。 |
-| `src/optim/optim.ts` | 問題未検出 | #276 | `3bacfc992f3c178642b03380ccd8c7aca4bc6c1d` | — | Nelder-Mead/BFGS/CG/L-BFGS-B/SANN/Brent、scaled gradients, line search, stopping criteria and Hessianを追跡。固定bounds `lower===upper` では有限差分幅0となるが、R `optim.c` fmingr bounded branchも同じ除算・エラーになるため不具合扱いしない（Issue #60を誤検出としてclose）。 | Rosenbrock `f(x)=(1-x0)^2+100*(x1-x0*x0)^2`, start `[-1.2,1]`; bounds `[-2,-2]`/`[0.5,2]`; fixed coordinate `par=[1,2], lower=[1,-Inf], upper=[1,Inf]`; `ndeps=0`, maxit=0, pgtol/factr edgesをソース比較。Vitest/package runtime/R未実行。 |
+| `src/optim/localmin.ts` | 問題あり・追加監査済み | #275, #582, #702, #710 | `e91b4a827cb9589a4539b326cd48155ec3ce6988` | [#61](https://github.com/numero-uno-jpn/rStats.js/issues/61) (closed/fixed); [#126](https://github.com/numero-uno-jpn/rStats.js/issues/126) (open); [#212](https://github.com/numero-uno-jpn/rStats.js/issues/212) (open); [#220](https://github.com/numero-uno-jpn/rStats.js/issues/220) (open) | Brent localminのparabolic/golden step、stagnation、tol境界、非有限objective wrapper、極端な有限bracketを再監査。 | #702: `localMin(x=>(x/1e308-1.1)**2,1e308,1.7e308)`。`0.5*(a+b)`がInfinityとなり、探索中点が右側に固定され、左側にある真の最小値を見落とす。Issue #212。#710: `localMin(x=>x*x,-1,1,NaN)`はNaN trial/endpointを作りloopが進まない。`tol=Infinity`は初期点で即時終了する。正の有限tol検証が必要。Issue #220。静的制御フロー・IEEE-754解析のみ。 |
+| `src/optim/optim.ts` | 問題あり・追加監査済み | #276, #738, #742 | `b0adf40e7b8433cd39111a835580a9a5b3b2108c` | [#248](https://github.com/numero-uno-jpn/rStats.js/issues/248) (open); [#252](https://github.com/numero-uno-jpn/rStats.js/issues/252) (open) | Nelder-Mead/BFGS/CG/L-BFGS-B/SANN/Brentのcontrol validation、scaled problem、Brent iteration capを追加監査。 | #738: optim([1],x=>x[0]*x[0],{method:'BFGS',control:{parscale:0}})でscaled start=Infinity。fnscale=0はobjective division by zero、ndeps=0はzero-width finite difference。optim()/optimHess()のScaled構築前にcontrolsを検証しない。Issue #248。#742: optim([0],x=>(x[0]-0.123456789)**2,{method:'Brent',lower:-1,upper:1,control:{maxit:1}})。Brent branchはmaxitをoptimize()に渡さず、localMin()にはiteration capがない。Issue #252。静的call graph・control-flow解析のみ。Vitest/package runtime/R実行なし。 |
 | `src/random/as241.ts` | 追加監査済み・実装問題未検出（コメントの範囲表記に不正確さ） | #135, #494 | `3e7d42b5c0d867cc1bfe06f2f335d83994dbd7c3` | — | Wichura AS241の係数・中心域/裾域分岐・Horner評価・符号反転を再確認。`normRand()`からの入力範囲を`mt.ts`のuniform生成まで追跡。 | `normRand`は`p=(trunc(2^27*u1)+u2)/2^27`で、MTの最小正uniformは2^-32。従ってpは理論上2^-59程度まで下がり得て、コメントの「p > 2^-54」は厳密には保証されない。ただしAS241のr=sqrt(-ln(p))は約6.4以下で、実装の適用域r<=27に十分収まるため機能的不具合ではない。p∈(0,1)、q=±0.425境界、r=5境界、裾の符号・係数を確認。数値fixtureとR RNG経路を閲覧、実行なし。 |
 | `src/random/beta.ts` | 問題あり・既知Issueの再確認 | #122, #401, #406, #505 | `5371b478626066c291432ec2df4529953520f520` | [#30](https://github.com/numero-uno-jpn/rStats.js/issues/30) | Cheng BB/BCをR 4.5.x `rbeta.c` と比較。極端な片側巨大shapeのmean shortcut、BC/BB acceptance、shape cache、ncp chi-square mixtureを再確認。 | 既知Issue #30の条件が現行ソースにも残存。`setSeed(12); rbeta(5,1.1,1e308)` は `2*a*b` overflow shortcutにより5値とも約`1.1e-308`。理論CV≈0.95346で分布は平均に集中しない。追加の独立バグは確定せず。既存fixture 47ケース（中心shape最大50、ncp=1.5含む）を閲覧。Vitest/package runtime/R/Monte Carlo未実行。 |
 | `src/random/binomial.ts` | 問題あり | #124 | `92437f63fa655aa541de9ba9b6ae51c0bad0af5b` | — | Inversion/BTPE source review; tiny-p q^n cancellation defect confirmed by binary64 arithmetic | `n=2_000_000_000, p=1e-17`: q rounds to 1, qn=1, every inversion draw returns 0 although P(X≥1)≈2e-8. Issue #31. BTPE formula compared with current R source; fixtures R 4.5.2 inspected only. No Vitest/runtime/R execution. |
@@ -199,10 +199,10 @@ Repository: `numero-uno-jpn/rStats.js`
 | `src/random/lecuyer.ts` | 追加監査済み・問題未検出（R文書と実装の端状態差異を記録） | #132, #496 | `7bd112bb422a4e4b8dd2bbcf3badaa4da4efe4c3` | — | MRG32k3aのseed expansion・2つのmodular recurrence・uniform mapping・signed/unsigned seed復元と範囲検証を再監査。R 4.5.2 `RNG.c` の `RNG_Init` / `FixupSeeds` と比較。 | 50回LCG scramble後、6個のstate wordを`x < M2`まで再抽出する処理はRと一致。再帰式の最大整数積（`1403580*(M1-1)=6028329902567880`、`1370589*(M2-1)=5886603607816338`等）は2^53未満で、JS Numberでも整数精度を維持。具体fixture: seed 1/42/0/-7/±2147483647のL'Ecuyer runif/rnorm/rexp、`[10407,1,2,3,0,0,0]`のstate復元。最後の3語が全ゼロの状態はRマニュアルの注意事項に反するが、R 4.5.2 `FixupSeeds` は`notallzero`を第1組からリセットせず実際に受理し、fixtureもこの挙動を記録するため、JS側の受理はR互換。fixture閲覧のみ、実行なし。 |
 | `src/random/mt.ts` | 問題あり | #133, #498 | `a27a644a591ab2286227aa5db1b05b16fa149300` | [#90](https://github.com/numero-uno-jpn/rStats.js/issues/90) | R 4.5.2 `RNG.c::FixupSeeds` と照合。MTのtwist/tempering・seed初期化は既存範囲を再確認。Rはmti<=0を624に補正するが、JSは0をそのまま使う。 | `setRandomSeed([10403,0,...Array(624).fill(1)])` はJSで受理され、次の`runif(1)`はmt[0]=1を直接読み`2^-32`。Rは`mti<=0`を624に補正してtwistし、同じall-ones stateから最初のuniformは約`0.4630094114691019`。さらに`mti=4294967296`もJSで受理されるが、`getRandomSeed()`のInt32Arrayで0にwrapし、snapshot/restore後のstreamが変わる。`mti=2147483648`はsnapshotで-2147483648となり復元不能。正のmti=625等はRも次回drawでtwistするため許容。Issue #90。source-level再現、Vitest/package runtime/R実行なし。 |
 | `src/random/poisson.ts` | 追加監査済み・問題未検出 | #123, #493 | `9f6f9657e84c2110bb08640b1f846c345bd2ff2f` | — | R 4.5.2 `rpois` fixture 32ケースを再確認。R本体 `src/nmath/rpois.c` とCase A/B、Step U/T/C/N/I/S/P/F/Q/E/Hの条件・乱数消費順序を逐次照合。 | 小λ側の`pp[36]`累積表とキャッシュ、λ=10境界、μ変更・再訪時の`muprev/muprev2/newBigMu`、大λ側の`bigL`即時受理、squeeze/quotient/hat受理、指数乱数と符号付き一様乱数を確認。具体入力: `rpois(1, Number.MIN_VALUE)`、`rpois(1, 9.999999999999998)`、`rpois(1, 10)`、`rpois(1, 10.000000000000002)`、`rpois(1, 2**53)`、`rpois(1, 1e154)`、`rpois(1, Number.MAX_VALUE)`、および同一seedでλ=5→0→5、λ=20→10→20のキャッシュ遷移。全分岐はR C実装と一致し、JS Number演算で新規の整数wrap経路なし。新規再現不具合なし。Vitest/package runtime/R/Monte Carlo未実行。 |
-| `src/random/r2dtable.ts` | 問題あり | #127, #502 | `8ccc84fc49823aa54db9eb23da7d7b3df00033f0` | [#93](https://github.com/numero-uno-jpn/rStats.js/issues/93) | R 4.5.x `r2dtable.R` の `as.integer(n)` 変換順序と `coerce.c::IntegerFromReal` を比較。Patefield AS 159 のセル確率・更新比・uniform消費順は `rcont.c` とソース照合。 | `n` の範囲検証を整数化より先に行うため、Rが受理する `n=-0.5`（Rでは0に切り捨て）と `n=2147483647.5`（RではINT_MAXに切り捨て）を拒否。具体例: `r2dtable(-0.5,[1,1],[1,1])`。Rは空リスト、JSは `RangeError("invalid argument 'n'")`。既存 `r2dtable.json` はn=0,1,5,200等の整数のみ。Issue #93。fixture/source閲覧のみ、Vitest/package runtime/R実行なし。 |
+| `src/random/r2dtable.ts` | 問題あり・追加監査済み | #127, #502, #709 | `3e5a15a95b5a73e04ec337d441a2976ecbf88583` | [#93](https://github.com/numero-uno-jpn/rStats.js/issues/93) (open); [#219](https://github.com/numero-uno-jpn/rStats.js/issues/219) (open) | R 4.5.x `r2dtable.R` の整数変換、Patefield AS 159、zero-count allocationとgrand-total capを再監査。 | #709: `r2dtable(0,[1_000_000_000,1_000_000_000],[1_000_000_000,1_000_000_000])`は空配列を返すべきだが、count=0でも2,000,000,001要素のFloat64 factorial table（約16 GB）を確保しようとする。実行せず静的allocation traceで確認。Issue #219。 |
 | `src/random/rank.ts` | 追加監査済み・問題未検出 | #129, #504 | `4cfe69d81a9a6509c9dbac95b3000a2adfb57433` | — | R 4.5.x `signrank.c` / `wilcox.c` と `nmath.h::R_forceint` を再照合。`R_unif_index` を通じた乱数消費も `RNG.c` と確認。 | `rsignrank` の各rank独立符号付け、`rwilcox` のpartial Fisher–Yatesと最小順位和補正、half-to-even、NaN/負数/ゼロ/Inf、`m+n` allocation ceilingを確認。具体例: `setSeed(27); rsignrank(10,5)`、`setSeed(28); rwilcox(10,3,4)`、`setSeed(28); rwilcox(10,0,5)`。R 4.5.2 fixture 10ケースを閲覧。Rの `R_forceint` とJS `roundHalfEven` はtie-to-evenで一致し、RNG draw順も一致。追加の独立再現不具合なし。Vitest/package runtime/R実行なし。 |
 | `src/random/rng.ts` | 既知差異あり・追加監査済み・追加問題未検出 | #137, #392, #395, #495 | `f527fd7018642205ef5870df8fcab8fc9e02aff1` | — | R 4.5.2 rngRounding/rngLecuyer/rngStreams/rbasic fixtureと既存テストを閲覧（未実行）。RNGkind切替・seed/state復元・`rbits`/`unifIndex`に加え、`normRand`の2-uniform合成、`expRand`のAhrens–Dieter SA法をR 4.5.2 `snorm.c`/`sexp.c`と再照合。 | 既知差異：rbinom BTPEのstream差、rlogis負scale、Rの無効状態時の再seed動作。`normRand`は2回のuniformを順番どおり消費し、`trunc(2^27*u1)+u2` を `2^27` で割る処理がRのInversion分岐と一致。`expRand`のdoubling・Q判定・追加uniform最小値抽出・draw順もRのSA法と一致。Q表16値はJS binary64でRの16定数と全件一致し、最終値は厳密に1。MT/L'Ecuyerのuniform端点はともに(0,1)内。具体fixture: `setSeed(1); rnorm(20); runif(1)` next=`0.82094629411585629`; `setSeed(1); rexp(20); runif(1)` next=`0.10794362588785589`; `setSeed(3); rexp(5,{rate:1}); runif(1)` next=`0.60439405404031277`。fixture閲覧のみ、実行なし。 |
-| `src/random/sample.ts` | 問題あり | #128, #396, #399, #503 | `b2a2a714b624fdd7f8e422e7a5210000a759d710` | [#94](https://github.com/numero-uno-jpn/rStats.js/issues/94) | R 4.5.x `random.c::do_sample` の `asVecSize`/`asInteger` と `builtin.c::asVecSize`/`coerce.c::IntegerFromReal` を比較。sample kind、weighted selectionの主要経路は既存監査 #396/#399 の確認を踏襲。 | `sampleInt1` は `size<0` を整数化前に検査するが、Rは一様抽出で `asVecSize(size)`、重み付き抽出で `asInteger(size)` により先に整数化する。`sampleInt(5,{size:-0.5})` はRでsize=0の空ベクトル、JSでRangeError。重み付き `sampleInt(5,{size:-0.5,prob:[1,1,1,1,1]})` もRは空ベクトル、JSはRangeError。`sample()` も同じ `sampleInt1` を通る。既存 `rsample.json` は整数sizeのみ。Issue #94。fixture/source閲覧のみ、Vitest/package runtime/R実行なし。 |
+| `src/random/sample.ts` | 問題あり・追加監査済み | #128, #396, #399, #503, #723, #724 | `b7ec2fba79900308f7d4c1f745bf45e06be11821` | [#94](https://github.com/numero-uno-jpn/rStats.js/issues/94); [#233](https://github.com/numero-uno-jpn/rStats.js/issues/233) (open); [#234](https://github.com/numero-uno-jpn/rStats.js/issues/234) (open) | R `sample.kind` の weighted replacement alias table constructionと累積確率選択を追加監査。 | #723: `walkerSample()` queue overrun。`const prob=[...Array(199).fill(0.5/201),50.75/201,50.75/201]`で199個のsmall massを消費後、固定loopがlarge entry同士を誤pairし、residual massを1.0/1.0から1.25/0.75へ再配分。Issue #233。#724: `probSampleReplace()` と `probSampleNoReplace()` は降順weightの累積和を作るため、`const prob=[0.5,0.5,1e-16]`は累積配列`[0.5,1,1]`となり、第3カテゴリが到達不能。置換あり/なし双方で正のweightがゼロ確率化する。Issue #234。静的制御フロー・binary64算術traceのみ。Vitest/package runtime/R/Monte Carlo未実施。 |
 | `src/random/streams.ts` | 追加監査済み・問題未検出 | #131, #497 | `63359251f6081a7658ebf27e105e6a0ed7c789cb` | — | 2^76/2^127 jump行列、`mulMod`のbinary64安全性、state validation、stream/substreamの連続適用を再監査。BigIntによる独立行列累乗で4行列定数を照合。 | `A1^2^76`, `A1^2^127`, `A2^2^76`, `A2^2^127`を漸化式行列から独立計算し、実装定数と全36要素が一致。`mulMod(a,b,m)`では`a,b<m<2^32`、`hi<=65535`のため各積・和は2^49未満、行列内の累積も2m未満でbinary64整数精度内。`t|0`はInt32Arrayの符号付きstate格納と一致。R 4.5.2 `rngStreams.json`のseed 1/42/123456789、stream/substreamの混在・反復fixtureを閲覧（未実行）。無効kind code、短いstate、無効なmodulus word、first component all-zeroを検証する既存テストも確認。新規不具合なし。Vitest/R実行なし。 |
 | `src/special/besselIK.ts` | 問題未検出 | #277 | `66fd0dbb53c64d7aa52c27ce6b96f640482e6dac` | — | Modified Bessel I/K series, Temme, continued fractions, Wronskian, recurrence, scaled exponent and large-order log boundsを追跡。 | `besselI/K(x,nu)` with x `0`, `Number.MIN_VALUE`, `1e-310`, `1`, `1e308`, `Infinity`; nu `0`, `±0.5`, `1`, `1000`, `1e12`; scaled/unscaled, integer/negative noninteger orders and recurrence limitsを確認。Vitest/package runtime/R未実行。 |
 | `src/special/besselJY.ts` | 問題未検出 | #278 | `72fbd7798357b583eb92556d320998fb85c9ce3c` | — | J/Y power series, asymptotic Hankel expansions, order recurrence, Wronskian and negative-order reflectionを追跡。 | `besselJ/Y(x,nu)` with x `0`, `Number.MIN_VALUE`, `1e-300`, `1`, `100`, `1e308`, `Infinity`; nu `0`, `±0.5`, `±1`, `1000`, `1e12`; near-integer reflection, large-order range bounds and asymptotic transitionを確認。Vitest/package runtime/R未実行。 |
@@ -4201,3 +4201,440 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 負の寄与はtotal devianceとIRLSのdeviance比較を汚染する。deviance residual側では負値を0にclampするため、診断出力では問題が隠れる。相殺に強いbd0型計算式が必要。
 - 既存Issue検索: "binomial deviance cancellation close probabilities"、"binomialDev negative deviance"、"glm deviance precision close y mu"で重複なし。
 - **新規Issueを登録。ソース変更なし。** 静的ソース追跡とbinary64数値解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #660 — Poisson deviance cancellation near a perfect fit
+
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5` のPoisson/quasipoisson deviance、およびquasi variance `"mu"` の同型式。
+- **新規Issue #162**: [Poisson deviance becomes negative near an exact fit because of cancellation](https://github.com/numero-uno-jpn/rStats.js/issues/162)。
+- 決定的再現: `makeFamily("poisson").devContribution(1, 1 + 2 ** -52, 1)`。現行式 `2*(y*log(y/mu)-(y-mu))` は一次項同士の相殺で約 `-9.860761315262648e-32` を返す。一方、正確な式 `2*(d-log1p(d))`（d=2^-52）は約 `+4.930380657631323e-32`。逸脱度が負となり、総devianceとIRLSのdeviance比較を破壊する。quasi variance `"mu"` にも同根因がある。
+- 既存Issue検索: Poisson deviance cancellation / small difference / near perfect fitで重複なし。
+- **新規Issue #162登録。** ソース変更なし。IEEE-754決定的演算の静的解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #661 — Gamma deviance cancellation near a perfect fit
+
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5` のGamma devianceとquasi variance `"mu^2"`。
+- **新規Issue #163**: [Gamma deviance loses relative accuracy near a perfect fit](https://github.com/numero-uno-jpn/rStats.js/issues/163)。
+- 決定的再現: `makeFamily("Gamma").devContribution(1, 1 + 2 ** -52, 1)`。現行式 `-2*(log(y/mu)-(y-mu)/mu)` は約 `1.9721522630525295e-31`。正確な式 `2*(log1p(d)-d/(1+d))` は約 `4.930380657631322e-32`。小さな逸脱度の相対誤差が大きく、quasi `"mu^2"` でも同じ相殺式が使われる。
+- 既存Issue検索: Gamma deviance cancellation / close mean / small differenceで重複なし。
+- **新規Issue #163登録。** ソース変更なし。IEEE-754決定的演算の静的解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #662 — Inverse-Gaussian deviance overflow
+
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5` の `inverseGaussianDev()`。inverse.gaussianおよびquasi variance `"mu^3"` で共有。
+- **新規Issue #164**: [Inverse-Gaussian deviance overflows for a finite, representable result](https://github.com/numero-uno-jpn/rStats.js/issues/164)。
+- 決定的再現: `makeFamily("inverse.gaussian").devContribution(1e-308, 1e308, 1)`。y, muは有限正数。現行の `(y-mu)**2` はInfinityにoverflowするが、分母 `y*mu*mu` は左から評価すると約 `1e308`。解析的な比は約 `1e308` で有限。大きな差を先に二乗する演算順序が原因。
+- 既存Issue検索: inverse Gaussian deviance overflow / numerical stabilityで重複なし。
+- **新規Issue #164登録。** ソース変更なし。静的なIEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #663 — Inverse-Gaussian working-weight overflow at large finite means
+
+- 対象: `src/models/glmFamily.ts` のinverse-Gaussian `variance(mu)=mu^3`、`src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の `irls()` p=0経路と通常IRLS。
+- **新規Issue #165**: [Inverse-Gaussian GLM working weight becomes NaN when a finite large mean overflows V(mu)](https://github.com/numero-uno-jpn/rStats.js/issues/165)。
+- 決定的再現: `glm([[]], [1e200], { family: "inverse.gaussian", link: "log", intercept: false, offset: [Math.log(1e200)] })`。有限の正応答・offsetでmu≈1e200、devianceは0。log linkでは導関数mu、数学的working weightは `mu^2/mu^3=1/mu≈1e-200`。しかしmu³とmu²の中間値がInfinityとなり、p=0分岐でInfinity/Infinity→NaN。通常IRLSにも同じ比率形成がある。
+- 既存Issue検索: inverse Gaussian variance overflow / working weight large meanで重複なし。
+- **新規Issue #165登録。** ソース変更なし。静的な式・IEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #664 — Inverse-Gaussian working-weight underflow at small finite means
+
+- 対象: `src/models/glmFamily.ts` のinverse-Gaussian `variance(mu)=mu^3`、`src/models/glm.ts` のIRLS variance validation。
+- **新規Issue #166**: [Inverse-Gaussian GLM rejects small finite means when V(mu) underflows](https://github.com/numero-uno-jpn/rStats.js/issues/166)。
+- 決定的再現: `glm([[0], [1]], [1e-200, 1e-200], { family: "inverse.gaussian", link: "log" })`。初期muは有限正数1e-200、etaも有限。mu³はbinary64で0へunderflowするためIRLSが `"0s in V(mu)"` をthrowする。一方、log linkのworking weightは `mu²/mu³=1/mu=1e200` で有限。分散そのものをbinary64で表現できないこととworking weightが計算不能であることを混同している。
+- 既存Issue検索: inverse Gaussian small mean / variance underflowで重複なし。
+- **新規Issue #166登録。** ソース変更なし。静的な式・IEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #665 — Poisson working-weight underflow at subnormal means
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の `irls()` p=0 working-weight式。Poisson familyの `variance(mu)=mu` とlog-link derivative `mu` を追跡。
+- **新規Issue #167**: [Poisson GLM loses a representable subnormal working weight for tiny means](https://github.com/numero-uno-jpn/rStats.js/issues/167)。
+- 決定的再現: `glm([[]], [0], { family: "poisson", intercept: false, offset: [Math.log(1e-320)] })`。mu≈1e-320は正のsubnormalで、数学的working weight `mu²/mu=mu` も約1e-320として表現可能。現行式はmu²を先に計算して0へunderflowさせ、その後0/mu=0を返す。正しいworking weightをゼロに失う。
+- 既存Issue検索: Poisson tiny mean / subnormal working weightで重複なし。
+- **新規Issue #167登録。** ソース変更なし。静的な式・IEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #666 — Poisson null-deviance weighted-mean overflow
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` のintercept付きnull deviance算出。
+- **新規Issue #168**: [Poisson null deviance becomes NaN when the finite weighted mean sum overflows](https://github.com/numero-uno-jpn/rStats.js/issues/168)。
+- 決定的再現: `glm([[], []], [1e308, 1e308], { family: "poisson" })`。各responseは有限かつ同一で、full fitの平均は1e308、devianceは0となるべき。null mean計算は重みをpower-of-twoでscaleするが、`swy += wi * yy[i]` のresponse側はscaleしないためswyがInfinity、mもInfinityとなる。Poisson devianceにInfinity/Infinity相当の不定演算が入りnullDevianceがNaNとなる。
+- 既存Issue検索: GLM null deviance / weighted mean / overflowで重複なし。
+- **新規Issue #168登録。** ソース変更なし。静的な制御フローとIEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #667 — Cook's distance intermediate-square overflow
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の `glmCooksDistance()`。
+- **新規Issue #169**: [glmCooksDistance overflows an intermediate square although Cook's distance is finite](https://github.com/numero-uno-jpn/rStats.js/issues/169)。
+- 決定的再現データ: `glm([[], []], [0, 1e308], { family: "poisson" })` に対し `glmCooksDistance(fit, { dispersion: 1e308 })`。intercept-only Poisson fitの平均は約5e307、各hat valueは約0.5、Pearson residual絶対値は約7.07e153。Cook式の数学的値は約1だが、実装は先に `(v/(1-h))**2` を計算し、約2e308へoverflow。その後の小さい因子との積はInfinityとなり、最終的にNaNへ変換される。因子の順序またはスケーリングが必要。
+- 既存Issue検索: Cook distance overflow / finite dispersionで重複なし。
+- **新規Issue #169登録。** ソース変更なし。式の静的追跡とIEEE-754範囲解析のみ。GLM runtime/Vitest/R照合未実施。
+
+
+## Audit #668 — Deviance residuals for zero residual degrees of freedom
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の `residualsOf()` と `oracle/glm-behaviour.md` のResiduals仕様。
+- **新規Issue #170**: [Deviance residuals should be zero when residual degrees of freedom are zero](https://github.com/numero-uno-jpn/rStats.js/issues/170)。
+- 決定的再現: `glm([0, 1], [1, 10], { family: "poisson", maxit: 1 })`。2観測・2列（interceptとpredictor）でrank=2、dfResidual=0。初期平均y+0.1からの1回のIRLS更新後、平均は約1.0044107879と10.0004934197で、devianceは正。現行 `residualsOf(fit,"deviance")` は行ごとの逸脱度平方根を返す（第1行は約-0.0044043）。一方、リポジトリのR互換仕様はdf.residual=0なら未収束fitも含め全deviance residualsを0と明記している。
+- 既存Issue検索: saturated GLM / df.residual zero / deviance residualsで重複なし。
+- **新規Issue #170登録。** ソース変更なし。仕様と実装の静的比較、決定的IRLS式の解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #669 — Supplied dispersion incorrectly changes GLM coefficient tests to z tests
+
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の `glmSummary()`、`oracle/glm-behaviour.md` のsummary.glm仕様。
+- **新規Issue #171**: [glmSummary uses normal z tests for supplied dispersion in non-fixed-dispersion families](https://github.com/numero-uno-jpn/rStats.js/issues/171)。
+- 決定的再現: `const fit = glm([0,1,2,3], [1,2,3,4], { family: "Gamma", link: "log" }); glmSummary(fit, { dispersion: 1 })`。現行コードは `estimated = options.dispersion === undefined && !fam.fixedDispersion`、続いて `zTest = !estimated` とするため、dispersionを指定したGamma fitをz検定に切り替え、`pnorm` と `"z value"` を返す。リポジトリ仕様ではbinomial/Poisson以外はdfResidual自由度のStudent t検定（`pt`）であり、dispersion引数は標準誤差の分散値を置き換えるだけで参照分布を変更しない。
+- 既存Issue検索: glmSummary dispersion argument / t statistic / z statisticで重複なし。
+- **新規Issue #171登録。** ソース変更なし。実装とリポジトリ内仕様の静的比較のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #670 — Gamma IRLS small-mean variance underflow (additional reproduction)
+
+- 対象: `src/models/glmFamily.ts` のGamma `variance(mu)=mu^2`、`src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331` の通常IRLS variance validation/working-weight式。
+- 既存Issue **#159**へ追加コメント: `glm([[0], [1]], [1e-200, 1e-200], { family: "Gamma", link: "log" })`。有限正responseと有限starting eta/muだが、`mu*mu` が0へunderflowしIRLSが `"0s in V(mu)"` をthrowする。一方log linkの導関数もmuなので、working weight `w*mu^2/mu^2` は厳密にw=1で有限。#159の大平均側overflow再現に対し、小平均側underflow再現を同じGamma working-weight安定性Issueに追加した。Comment ID 6581620399。
+- **既存Issue #159へ追加再現。新規Issueは作成せず。** ソース変更なし。静的ソース追跡とIEEE-754範囲解析のみ。Vitest/package runtime/R照合未実施。
+
+
+## Audit #671 — scoreStatistic residual-square scaling
+- 対象: `src/models/glmConfint.ts` SHA `fc79e536f9b642a2ae860c813f0fcf45ebbdca14`。
+- Issue [#172](https://github.com/numero-uno-jpn/rStats.js/issues/172)。再現: `scoreStatistic([[0],[0]],[1e200,-1e200],[1e-200,1e-200],false)`。期待値0、重み付き平方和2e200。実装はr²を先に計算してInfinityとなり、sqrt(weight)でscaleするQR残差側との不整合で統計量がInfinity。静的IEEE-754解析のみ。
+
+
+## Audit #672 — scoreStatistic weighted-center overflow
+- 対象: `src/models/glmConfint.ts` SHA `fc79e536f9b642a2ae860c813f0fcf45ebbdca14`。
+- Issue [#173](https://github.com/numero-uno-jpn/rStats.js/issues/173)。再現: `scoreStatistic([[1],[1]],[1,1],[1e308,1e308],true)`。定数残差をinterceptに回帰するscoreは0だが、sw/swrの直接加算がInfinityとなりcentreがNaN。静的IEEE-754解析のみ。
+
+
+## Audit #673 — glmPredict dot-product cancellation
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`。
+- Issue [#174](https://github.com/numero-uno-jpn/rStats.js/issues/174)。再現: `glm([[1,0],[0,1],[1,1]],[2,-2,0],{family:"gaussian"})` の後 `glmPredict(fit,{newdata:[[1e308,1e308]]})`。係数(0,2,-2)の正確なdot productは0だが、個別積が+Infinity/-InfinityとなりNaN。静的解析のみ。
+
+
+## Audit #674 — glmPredict standard-error norm scaling
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`。
+- Issue [#175](https://github.com/numero-uno-jpn/rStats.js/issues/175)。再現: `glm([[0,0],[1,0],[0,1],[1,1]],[0,1,1,2],{family:"gaussian"})` の後 `glmPredict(fit,{newdata:[[1e308,1e308]],dispersion:1e-300})`。R^-T xのnormは未scaleでoverflowするが、sqrt(dispersion)を掛けた最終SEは約1e158で有限。実装fallbackはdispersionを掛ける前にnormをoverflow。静的解析のみ。
+
+
+## Audit #675 — Gamma dispersion accumulator overflow
+- 対象: `src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`。
+- Issue [#176](https://github.com/numero-uno-jpn/rStats.js/issues/176)。再現: `y=Array(99).fill(1e-6).concat([5000])`、100行の空x、Gamma/log、weights全て2e304、start `[Math.log(50.00000099)])。working residual平方和×weightは約1.98e308だが、dfResidual=99で割ったdispersionは約2e306で有限。dispersionOfは合計後に除算するためInfinity。静的IRLS/IEEE-754解析のみ。
+
+
+## Audit #676 — Gaussian AIC zero-weight contract
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5`、oracle SHA `ce89d80649fd61cfc6100484757e8d8d67e60db7`。
+- Issue [#177](https://github.com/numero-uno-jpn/rStats.js/issues/177)。再現: `glm([[],[],[]],[1,2,100],{family:"gaussian",weights:[1,1,0]})`。oracleはGaussian AICで全行のlog(weight)を含め、zero weightなら+Infinityと規定。実装はzero weightをskipして有限値を返す。静的ソース/oracle比較のみ。
+
+
+## Audit #677 — glmAnova reduced-model start mismatch
+- 対象: `src/models/glmAnova.ts` SHA `f84fe8f7b86b86c5a696da60157dc8b15c3caf22`、`src/models/glm.ts` SHA `852ea8204a73cfc10a2807017f7a4f116e71f331`。
+- Issue [#178](https://github.com/numero-uno-jpn/rStats.js/issues/178)。再現: `glm([[0,0],[1,0],[0,1],[1,1]],[1,2,3,4],{family:"poisson",start:[0,0,0]})` の後 `glmAnova(fit)`。2項のsequential ANOVAで2列のreduced modelをrefitする際、rowOfが元の3係数startをそのまま渡し、IRLSのstart長validationで失敗。静的制御フロー解析のみ。
+
+
+## Audit #678 — glmConfint tiny confidence level
+- 対象: `src/models/glmConfint.ts` SHA `fc79e536f9b642a2ae860c813f0fcf45ebbdca14`。
+- Issue [#179](https://github.com/numero-uno-jpn/rStats.js/issues/179)。再現: `glm([[],[],[],[]],[0,1,0,1],{family:"binomial"})` の後 `glmConfint(fit,{level:1e-20})`。1-levelが1へ丸められa2=0.5、qnorm cutoffが0となり、非zeroの極小CIをestimateへcollapse。静的binary64解析のみ。
+
+
+## Audit #679 — glmAnova Cp zero-rank intermediate overflow
+- 対象: `src/models/glmAnova.ts` SHA `f84fe8f7b86b86c5a696da60157dc8b15c3caf22`。
+- Issue [#188](https://github.com/numero-uno-jpn/rStats.js/issues/188)。再現: `glm([[]],[1e154],{family:"gaussian",link:"log",intercept:false})` の後 `glmAnova(fit,{test:"Cp"})`。n=1、dfResidual=1、rank=0、dispersion約1e308。Cp penaltyは0だが、実装は2*dispersionを先にoverflowさせInfinity*0=NaN。静的解析のみ。
+
+
+## Audit #680 — Gaussian AIC logarithm intermediate overflow
+- 対象: `src/models/glmFamily.ts` SHA `c6d8d8b8c47dda7ed96bef3043d90abb7c637bb5`。
+- Issue [#189](https://github.com/numero-uno-jpn/rStats.js/issues/189)。再現: `glm([[]],[1e154],{family:"gaussian",link:"log",intercept:false})`。deviance約1e308は有限だが、Gaussian AICの `2*pi*dev` がlogより前にInfinityとなる。log(2*pi*dev)+3自体は約714で有限。静的IEEE-754解析のみ。
+
+
+- 重複整理: 初回登録で作成された正規Issueは #172〜#179、#188、#189。後続の再試行で重複した #180〜#187 はすべてGitHubで `closed / duplicate` とした。ソース変更なし。今回の10件すべてpackage runtime/Vitest/Rとの実行照合は未実施。
+
+
+## Audit #681 — rcond inverse-norm overflow for a nonsingular matrix
+- 対象: `src/linalg/solve.ts` SHA `d8df21ba08caaa996d1db3f2659e9a71a431d668`。
+- Issue [#191](https://github.com/numero-uno-jpn/rStats.js/issues/191)。再現: `rcond([[1, 0], [0, 1e-310]])`。行列は非特異で、1-norm reciprocal condition numberは約1e-310として表現可能。逆行列ノルム自体は1e310でoverflowし、`gecon()` が非有限の `ainvnm` を0へ変換するため、非特異行列を特異行列同様に報告する。静的制御フロー・IEEE-754解析のみ。
+
+
+## Audit #682 — zTest sample-estimate underflow under sigma-dominated scaling
+- 対象: `src/htest/aov.ts` SHA `9ce3aa388e5d2200fd75c751d6c69660d0e11648` の `zTest()`。
+- Issue [#192](https://github.com/numero-uno-jpn/rStats.js/issues/192)。再現: `zTest([1e-308, 2e-308, 3e-308], { sigmaX: 1e308 }).estimate`。既知sigmaを含む共通scaleにより標本値が0へunderflowし、平均2e-308を0として返す。検定統計量のscaleと単位付き推定値のscaleを分離すべき。静的IEEE-754解析のみ。
+
+
+## Audit #683 — lm zero-weight row response overflow during active-response scaling
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0` の `fitLm()` / `fitLmUnit()`。
+- Issue [#193](https://github.com/numero-uno-jpn/rStats.js/issues/193)。再現: `lm([[], []], [1e-308, 1e308], { weights: [1, 0] })`。scale exponentは正weight行の1e-308だけから決まり、zero-weight行の有限response 1e308にも同じ倍率を適用してInfinity化する。zero-weight行の残差は約1e308として有限であるべきだが、戻り値がInfinityとなる。matrix/formula両経路に影響。静的IEEE-754解析のみ。
+
+
+## Audit #684 — lm formula WLS positive-weight underflow before square root
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0`、`src/internal/summary.ts` の `ldexp()` / `ddSqrtWeights()` 呼び出し経路。
+- Issue [#194](https://github.com/numero-uno-jpn/rStats.js/issues/194)。再現: `lm("y ~ 0 + a + b", { y:[1,2], a:[1,0], b:[0,1], w:[1e308,1e-308] }, { weights:"w" })`。identity designで両weightは正なので係数[1,2]・rank2が必要。formulaのprecise pathはweight自体を約2^-1022倍してから平方根を取るため、第二weightが0へunderflowし、その列の情報を失う。sqrt(weight)を先にscaleする必要。静的IEEE-754解析のみ。
+
+
+## Audit #685 — lm prediction dot-product overflow and cancellation
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0` の `predict()`。
+- Issue [#195](https://github.com/numero-uno-jpn/rStats.js/issues/195)。再現: `const fit = lm([[1,0],[0,1],[1,1]],[2,-2,0],{intercept:false}); predict(fit,[[1e308,1e308]]).fit`。係数2,-2による数学的内積は0だが、個々の積が±Infinityとなり和がNaN。scale/compensated dot productが必要。静的IEEE-754解析のみ。
+
+
+## Audit #686 — lm prediction standard-error triangular-solve overflow
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0`、`src/internal/summary.ts` の `norm2()`。
+- Issue [#196](https://github.com/numero-uno-jpn/rStats.js/issues/196)。再現: `const fit = lm([1e-200,2e-200,3e-200],[1e-200,2e-200,4e-200],{intercept:false}); predict(fit,[1e200]).seFit`。R^-T xの成分は約1e400で先にInfinityとなるが、残差標準誤差は約1e-200で、最終SEは約1e200として有限。norm2の後にsigmaを掛けるだけでは途中overflowを回復できない。scaled triangular solveが必要。静的IEEE-754解析のみ。
+
+
+## Audit #687 — powerTTest noncentrality intermediate overflow
+- 対象: `src/htest/power.ts` SHA `5950a5e498272e8ae0b5a581e849477eb287c349` の `powerTTest()`。
+- Issue [#197](https://github.com/numero-uno-jpn/rStats.js/issues/197)。再現: `powerTTest({ n:10, delta:1e308, sd:1e308 })`。true ncpはsqrt(10/2)=sqrt(5)で有限だが、`sqrt(n/ts)*delta` を先に形成してInfinityとなり、後からsdで割っても回復しない。powerを1へ誤飽和させる。比率を先に取る等のscaled productが必要。静的IEEE-754解析のみ。
+
+
+## Audit #688 — pwr2p2nTest harmonic sample-size product overflow
+- 対象: `src/htest/pwr.ts` SHA `a9f7c6f320272cfb00ed2704084507bc16861367` の `pwr2p2nTest()`。
+- Issue [#198](https://github.com/numero-uno-jpn/rStats.js/issues/198)。再現: `pwr2p2nTest({ h:1e-100, n1:1e200, n2:1e200 })`。`n1*n2` がInfinityとなるが、`sqrt(n1*n2/(n1+n2))` の数学的値は約7.071e99で有限、hを掛けた効果は約0.707。現行実装はpowerを1へ誤飽和させる。積を作らない比率式が必要。静的IEEE-754解析のみ。
+
+
+## Audit #689 — lm weighted QR overflow under a common weight multiplier
+- 対象: `src/models/lm.ts` SHA `95e161942a868624c1606925bfe00a1725ccc9f0`、`src/linalg/qr.ts` の `nrm2()`。
+- Issue [#199](https://github.com/numero-uno-jpn/rStats.js/issues/199)。再現: `lm([0.7e308,0.8e308,0.9e308],[1,2,3],{weights:[2,2,2]})`。有限な設計列のunweighted normは約1.39e308だが、共通weightのsqrt(2)を掛けると約1.97e308へoverflowする。全weightへの同一正定数乗算はWLS係数を変えないため、weightの共通scaleをさらに正規化してQR前のoverflowを防ぐべき。静的IEEE-754解析のみ。
+
+
+## Audit #690 — pwrAnovaTest noncentrality product overflow
+- 対象: `src/htest/pwr.ts` SHA `a9f7c6f320272cfb00ed2704084507bc16861367` の `pwrAnovaTest()`。
+- Issue [#200](https://github.com/numero-uno-jpn/rStats.js/issues/200)。再現: `pwrAnovaTest({ k:1e160, n:1e160, f:1e-160 })`。現行の左結合 `k*n*f**2` は先にk*nがInfinityとなるが、数学的なnoncentralityは1。中間値overflowを理由にpower=1と短絡するため、有限の数学的効果を無限大と誤認する。dfの極端域も含め、noncentrality計算をscaled productで扱う必要。静的IEEE-754解析のみ。
+
+
+- Issue登録結果: 新規の正規Issue #191〜#200を10件登録。#190は同じrcond所見の登録重複として `closed / duplicate` に整理。ソース変更なし。今回の10件はすべて静的ソース追跡・IEEE-754解析のみで、package runtime/Vitest/R照合は未実施。
+
+
+## Audit #691 — weightedMean denominator overflow bypasses its recovery path
+- 対象: `src/descriptive/basic.ts` SHA `e12c8f8c91152f8d617cd05bf07ce512ef00856a` の `weightedMean()`。
+- Issue [#201](https://github.com/numero-uno-jpn/rStats.js/issues/201)。再現データ: `weightedMean([1e-308, 2e-308, 1e308], [1e308, 1e308, 0])`。正weightの積和は3、weight合計は2e308でInfinityだが、正しい加重平均は1.5e-308。現在は3/Infinity=0が有限値となり、非有限quotientだけを条件にしたscaled fallbackに入らず0を返す。静的ソース・IEEE-754解析のみ。
+
+
+## Audit #692 — pwrF2Test finite noncentrality lost to df-sum overflow
+- 対象: `src/htest/pwr.ts` SHA `a9f7c6f320272cfb00ed2704084507bc16861367` の `pwrF2Test()`。
+- Issue [#202](https://github.com/numero-uno-jpn/rStats.js/issues/202)。再現: `pwrF2Test({u:1e308,v:1e308,f2:1e-308})`。u,vはそれぞれ有限だがu+vがInfinityとなり、真のncpは約2なのにInfinityとしてpower=1へ短絡される。静的IEEE-754解析のみ。
+
+
+## Audit #693 — TukeyHSD confidence-level validation missing
+- 対象: `src/htest/aov.ts` SHA `9ce3aa388e5d2200fd75c751d6c69660d0e11648` の `TukeyHSD()`。
+- Issue [#203](https://github.com/numero-uno-jpn/rStats.js/issues/203)。再現: `TukeyHSD([[1,2,3],[2,3,4]], {confLevel:1.2})` および `confLevel:NaN`。open-interval検証なしでqtukeyへ渡し、NaNの信頼限界・調整p値を含む結果を正常返却する。他の検定関数と同様、計算前にconfLevelを検証すべき。静的ソース追跡のみ。
+
+
+## Audit #694 — ES.w1 / ES.w2 zero-over-zero reference behavior mismatch
+- 対象: `src/htest/pwr.ts` SHA `a9f7c6f320272cfb00ed2704084507bc16861367` の `esW1()` / `esW2()`。
+- Issue [#204](https://github.com/numero-uno-jpn/rStats.js/issues/204)。再現: `esW1([0,1],[0,1])`、`esW2([[0,0],[0,1]])`。現実装はnull/alternativeとも0のセルをskipして0を返すが、CRAN pwrの参照式は該当セルで0/0を評価し、sumをNaNにする。R互換を掲げるeffect-size関数の結果不一致。参照式: pwr `ES.w1` / `ES.w2`。静的ソース比較のみ。
+
+
+## Audit #695 — eigen global scaling underflows representable eigenvalues
+- 対象: `src/linalg/eigen.ts` SHA `3e4a152063336048ae11876326e5b44d12023577`。
+- Issue [#205](https://github.com/numero-uno-jpn/rStats.js/issues/205)。再現: `eigen([[1e308,0],[0,1e-308]], {symmetric:true,onlyValues:true}).values`。最大要素に合わせた共通2冪scaleで小さい対角要素が0へunderflowし、scale backしても小さい固有値1e-308を復元できない。対角行列で明確に再現する。静的IEEE-754解析のみ。
+
+
+## Audit #696 — crossprod / tcrossprod lack the matMul rescaled-dot fallback
+- 対象: `src/linalg/ops.ts` SHA `29ffd657b2cb314c736daff3303cb24640a324c4`。
+- Issue [#206](https://github.com/numero-uno-jpn/rStats.js/issues/206)。再現: `crossprod([[1e200,1e200],[1e200,-1e200]])` および `tcrossprod([[1e200,1e200],[1e200,-1e200]])`。対角の平方和はoverflowしてよいが、非対角の厳密な内積は1e400-1e400=0。現行は中間積±Infinityの和NaNを返す。matMulにあるrescaledDot相当の保護が両関数にない。静的IEEE-754解析のみ。
+
+
+## Audit #697 — unbalanced expm scaling erases a small but essential matrix entry
+- 対象: `src/linalg/expm.ts` SHA `ee5694d507b2da8245c9a391a0983f328f416f26`。
+- Issue [#207](https://github.com/numero-uno-jpn/rStats.js/issues/207)。再現: `expm([[0,1e308],[1e-308,0]], {method:"Higham08"})`。A²=Iなのでexp(A)=cosh(1)I+sinh(1)Aで、全成分が有限。unbalanced Higham08の共通scale(約2^-1021)で下左要素1e-308が0へunderflowし、Padé近似が別のnilpotent行列に対して実行される。静的IEEE-754解析のみ。
+
+
+## Audit #698 — matMul rescaledDot loses a tiny residual after dominant cancellation
+- 対象: `src/linalg/ops.ts` SHA `29ffd657b2cb314c736daff3303cb24640a324c4` の `rescaledDot()`。
+- Issue [#208](https://github.com/numero-uno-jpn/rStats.js/issues/208)。再現データ: `matMul([[1e308,1e308,1e-308]], [[1e308],[-1e308],[1e308]])`。厳密な積和は+1e616-1e616+1=1。overflow fallbackは各ベクトルを最大指数で一括scaleするため、最後の1e-308要素が0へunderflowし、支配項の相殺後に残る1を失って0を返す。指数ビン分割等の加算が必要。静的IEEE-754解析のみ。
+
+
+## Audit #699 — ansariTest exact estimate midpoint overflows
+- 対象: `src/htest/ansariTest.ts` SHA `9f13bb6d406d4f36761a562aed8bb17c0ce52db4` の `exactInterval()`。
+- Issue [#209](https://github.com/numero-uno-jpn/rStats.js/issues/209)。再現: `ansariTest([1e308], [1,1.01], {confInt:true,exact:true})`。exact candidate ratiosは約9.90e307と1e308で、平均は有限だが和がNumber.MAX_VALUEを超える。`(above+below)/2` のためestimateがInfinityになり得る。安定midpoint関数を使うべき。静的IEEE-754解析のみ。
+
+
+## Audit #700 — wilcoxTest null-location subtraction manufactures ties
+- 対象: `src/htest/wilcoxTest.ts` SHA `e40880f46edb938f5ad4814187de0f2d27058eb0` のone-sample signed-rank経路。
+- Issue [#210](https://github.com/numero-uno-jpn/rStats.js/issues/210)。再現: `wilcoxTest([1e308,1.1e308,1.2e308], {mu:-1e308})`。真の正差は順に約2e308,2.1e308,2.2e308で順位は1,2,3、signed-rank sum=6、exact two-sided p=0.25。現行の直接減算で全てInfinityとなり人工的な同順位が発生し、exact branchが無効化される。静的IEEE-754解析のみ。
+
+
+- Issue登録結果: 正規の新規Issue #201〜#210を10件登録。今回の監査対象にソース変更なし。全件静的ソース追跡・IEEE-754解析または参照式比較であり、package runtime/Vitest/R実行照合は未実施。
+
+
+## Audit #701 — ode finite time-step subtraction overflow
+- 対象: `src/numerics/ode.ts` SHA `8683b9df7e690f62a2090ce8e91fe87074b317ee`。
+- Issue [#211](https://github.com/numero-uno-jpn/rStats.js/issues/211)。再現: `ode([1],[-1e308,1e308],()=>[0],[],{method:"euler"})`。両時刻は有限だが差分hがInfinityとなり、`1 + Infinity * 0`で不変であるべきstateがNaNになる。RK2/RK4にも同じstep生成が影響。Issue #124のRK4 weighted-increment scalingとは別の原因。静的IEEE-754解析のみ。
+
+## Audit #702 — localMin same-sign finite bracket midpoint overflow
+- 対象: `src/optim/localmin.ts` SHA `e91b4a827cb9589a4539b326cd48155ec3ce6988`。
+- Issue [#212](https://github.com/numero-uno-jpn/rStats.js/issues/212)。再現: `localMin(x=>(x/1e308-1.1)**2,1e308,1.7e308)`。a,bは有限で真の最小点1.1e308も区間内だが、`0.5*(a+b)`がInfinityとなり、Brentのgolden stepが区間右側へ偏って左側の最小点を探索しない。静的制御フロー・IEEE-754解析のみ。
+
+## Audit #703 — Richardson relative step product overflow
+- 対象: `src/numerics/deriv.ts` SHA `7a339332c11e4b55e6f35fb8f120c7fd2c92311d`。
+- Issue [#213](https://github.com/numero-uno-jpn/rStats.js/issues/213)。再現: `grad(x=>x[0]/1e308,[1e308],{d:2})`。dと座標は有限だが`d*x`がInfinityとなり、±Infinityでcentral differenceを評価して有限な導関数1e-308を失う。共通steps()を使うRichardson jacobian/hessianにも影響。静的IEEE-754解析のみ。
+
+## Audit #704 — Hessian finite-difference denominator overflow
+- 対象: `src/numerics/deriv.ts` SHA `7a339332c11e4b55e6f35fb8f120c7fd2c92311d`。
+- Issue [#214](https://github.com/numero-uno-jpn/rStats.js/issues/214)。再現: `hessian(x=>x[0]*x[0]/1e200,[1e100],{d:2e54,r:1})`。step h=2e154は有限、関数値も有限で真の二階微分2e-200は表現可能だが、`h**2`がInfinityとなり結果0。mixed partialの`2*hi*hj`にも同型の問題。静的式・IEEE-754解析のみ。
+
+## Audit #705 — barylag finite node-difference overflow
+- 対象: `src/numerics/interp.ts` SHA `db6d98b09bf7483749d759fcf39b7fce38e05a1d` の`barylag()`。
+- Issue [#215](https://github.com/numero-uno-jpn/rStats.js/issues/215)。再現: `barylag([-1e308,1e308],[-1,1],[0])`。単一の有限節点差がInfinityとなるため、積の2^500 rescalingに到達する前にweight生成が破綻する。既存Issue #14の「有限差分の積がoverflowする」ケースとは別に、差分そのもののoverflowを扱う必要。静的IEEE-754解析のみ。
+
+## Audit #706 — global Hermite divided differences overflow finite node spacing
+- 対象: `src/numerics/interp.ts` SHA `db6d98b09bf7483749d759fcf39b7fce38e05a1d` の`hermiteInterp()`。
+- Issue [#216](https://github.com/numero-uno-jpn/rStats.js/issues/216)。再現: `hermiteInterp([-1e308,1e308],[-1,1],[0,0],[0])`。節点は異なる有限値だが、divided-difference denominatorの差がInfinityとなる。Hermite条件から中央の値は0だが、現行tableは差分を失い誤値を返す。既存Issue #125のsplinefun/splinefunHとは別のglobal Hermite経路。静的数式解析のみ。
+
+## Audit #707 — barylag repeated-node input review (not planned)
+- 対象: `src/numerics/interp.ts` SHA `db6d98b09bf7483749d759fcf39b7fce38e05a1d` の`barylag()`。
+- 候補Issue #217は登録後に再評価し、重複節点では一意なLagrange補間多項式が定まらないため、有効入力に対する数値バグではないと判断。Issue #217を`closed / not_planned`。追加の有効入力バグとしては計上しない。
+
+## Audit #708 — hermiteInterp repeated-node input review (not planned)
+- 対象: `src/numerics/interp.ts` SHA `db6d98b09bf7483749d759fcf39b7fce38e05a1d` の`hermiteInterp()`。
+- 候補Issue #218は登録後に再評価し、同一節点に複数の値・導関数条件を与える入力は一意な補間問題を定義しないため、有効入力に対する数値バグではないと判断。Issue #218を`closed / not_planned`。追加の有効入力バグとしては計上しない。
+
+## Audit #709 — r2dtable zero-count allocation
+- 対象: `src/random/r2dtable.ts` SHA `3e5a15a95b5a73e04ec337d441a2976ecbf88583`。
+- Issue [#219](https://github.com/numero-uno-jpn/rStats.js/issues/219)。再現: `r2dtable(0,[1_000_000_000,1_000_000_000],[1_000_000_000,1_000_000_000])`。count=0で結果は空配列だが、関数は2,000,000,001要素のFloat64 factorial table（約16 GB）を先に確保する。大規模allocationを避けるため再現実行はしていない。静的allocation/control-flow解析のみ。
+
+## Audit #710 — localMin invalid tolerance nontermination
+- 対象: `src/optim/localmin.ts` SHA `e91b4a827cb9589a4539b326cd48155ec3ce6988`。
+- Issue [#220](https://github.com/numero-uno-jpn/rStats.js/issues/220)。再現: `localMin(x=>x*x,-1,1,NaN)`ではtol1/t2がNaNとなり、NaN trialがbracket endpointへ入り、その後の反復もNaNとなって終了条件を満たさない。`tol=Infinity`は初期点で直ちに終了し、目的関数の最小点を探索しない。有限正tolの検証が必要。静的制御フロー解析のみ。
+
+## Audit #711 — approx invalid method/rule silently changes semantics
+- 対象: `src/numerics/interp.ts` SHA `db6d98b09bf7483749d759fcf39b7fce38e05a1d` の`approx()`。
+- Issue [#221](https://github.com/numero-uno-jpn/rStats.js/issues/221)。再現: `approx([0,1],[0,1],{xout:[0.5],method:"linera"})`はlinearでなくstepAtへfall throughする。`rule:3`もrule=2相当として扱われる。R APIで定義されていないoption値を明示的に拒否せず、黙って異なる補間結果を返す。静的dispatch・API contract確認のみ。
+
+## Audit #712 — gammaScale reciprocal consistency tolerance
+- 対象: `src/distributions/gamma.ts` SHA `e9ba1c35ef88e77e84a392562bb7f62378fcbf7f` の`gammaScale()`。
+- Issue [#222](https://github.com/numero-uno-jpn/rStats.js/issues/222)。再現: `gammaScale({rate:1,scale:1+4*Number.EPSILON})`。積と1との差が1e-15未満というだけで、rate=1に対する厳密な逆数1ではないscaleを受理する。APIに記載されたrate/scale関係と許容差の方針を明確化する必要。静的算術・validation traceのみ。
+
+- Issue登録結果: 新規Issue #211〜#216、#219〜#222の計10件をopenで登録。候補#217/#218は重複節点という数学的に未定義な入力だったため、not_plannedでclose。今回もソースコード変更なし。すべて静的ソース追跡・IEEE-754/制御フロー解析であり、package runtime/Vitest/R実行照合は未実施。
+
+
+## Audit #713 — poissonTest expected-count fallback overflow
+- 対象: `src/htest/poissonTest.ts` SHA `61c2c6a882fc0672e73fe45b5a547b2494b4e444`。
+- Issue [#223](https://github.com/numero-uno-jpn/rStats.js/issues/223)。再現: `poissonTest([1e308,0],{r:2,T:[1,1e308]}).parameter`。真の期待countは約1だが、直接式・fallbackともInfinity/InfinityとなりNaN。静的IEEE-754解析のみ。
+
+## Audit #714 — mantelhaenTest general covariance overflow
+- 対象: `src/htest/mantelhaenTest.ts` SHA `669a040db7481c9aad8d0da633a4e73f333b2488`。
+- Issue [#224](https://github.com/numero-uno-jpn/rStats.js/issues/224)。再現: 3×3各セル1e103の同一表を2 strataで渡す。general()のt³ denominatorがInfinity、f=0となる一方vr*vcがInfinityとなり共分散行列にNaN。均衡表の統計量は0。静的数式解析のみ。
+
+## Audit #715 — tabulate inferred nbins with positive Infinity
+- 対象: `src/descriptive/table.ts` SHA `d6a292d4eb9f040528219f8202e2ad962cfc13e0`。
+- Issue [#225](https://github.com/numero-uno-jpn/rStats.js/issues/225)。再現: `tabulate([1,Infinity])`。InfinityがMath.trunc後も残り、nbins推定と配列長に伝播する。有限bin 1を数えた`[1]`が返らずRangeError。静的control-flow解析のみ。
+
+## Audit #716 — mantelhaenTest 2×2×K margin overflow
+- 対象: `src/htest/mantelhaenTest.ts` SHA `669a040db7481c9aad8d0da633a4e73f333b2488`。
+- Issue [#226](https://github.com/numero-uno-jpn/rStats.js/issues/226)。再現: `const tab=[[1e308,1e308],[1e308,1e308]]; mantelhaenTest([tab,tab]).statistic`。各cellは有限だが層合計4e308がInfinityになり、2×2×K asymptotic pathのmargin/expected/varianceがNaN。均衡表の統計量は0。静的IEEE-754解析のみ。
+
+## Audit #717 — cut empty explicit break vector
+- 対象: `src/descriptive/table.ts` SHA `d6a292d4eb9f040528219f8202e2ad962cfc13e0`。
+- Issue [#227](https://github.com/numero-uno-jpn/rStats.js/issues/227)。再現: `cut([0,1],[])`。明示breakの最小長を検証せずbinCodeへ進み、全観測をNaN codeにする。R cutの2個以上のunique break要求と不一致。静的API contract解析のみ。
+
+## Audit #718 — hist density loses a representable subnormal
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5`。
+- Issue [#228](https://github.com/numero-uno-jpn/rStats.js/issues/228)。再現: `hist([-1e308,1e308],{breaks:[-1e308,1e308]}).density`。有限端点差がInfinityとなりdensity=0だが、理論値約5e-309はsubnormalとして表現可能。静的式解析のみ。
+
+## Audit #719 — hist accepts non-finite explicit breakpoints
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5`。
+- Issue [#229](https://github.com/numero-uno-jpn/rStats.js/issues/229)。再現: `hist([0,1],{breaks:[-Infinity,Infinity]})`。strict-order checkは通過し、無限幅のbinとして受理する。R hist.defaultのfinite-break requirementと不一致。静的API contract解析のみ。
+
+## Audit #720 — hist Scott class-count overflow
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5`。
+- Issue [#230](https://github.com/numero-uno-jpn/rStats.js/issues/230)。再現: `hist([-1e308,1e308],{breaks:"Scott"})`。rangeとScott widthがInfinityになり、比がNaN。scale-freeな比は有限で約0.51、suggested intervalは1。静的式解析のみ。
+
+## Audit #721 — hist Freedman-Diaconis class-count overflow
+- 対象: `src/descriptive/hist.ts` SHA `7e5ab4c0db2d80ac9ab1bf1e94423cf800f829b5`。
+- Issue [#231](https://github.com/numero-uno-jpn/rStats.js/issues/231)。再現: `hist([-1e308,1e308],{breaks:"FD"})`。rangeと2*IQRがInfinityになり、比がNaN。scale-freeなFD countは約1.26、ceilingで2。静的式解析のみ。
+
+## Audit #722 — exact Mantel-Haenszel support allocation
+- 対象: `src/htest/core/mantelhaen.ts` SHA `4b5a26bfeefa86028d47ad56711bfb92e4556b12`。
+- Issue [#232](https://github.com/numero-uno-jpn/rStats.js/issues/232)。再現: 各cell=1e9の2×2 tableを2 strataでexact:true。各層のsupport 0..2,000,000,000のFloat64Array（約16GB）を無制限に確保しようとする。OOM回避のため実行せず、静的allocation traceのみ。
+
+- Issue登録結果: 新規Issue #223〜#232の10件をOpenで登録。ソースコード変更なし。今回の再現検証は静的ソース追跡・IEEE-754/数式・allocation解析であり、package runtime/Vitest/R実行照合は未実施。
+
+
+## Audit #723 — Walker alias queue overrun
+- 対象: `src/random/sample.ts` SHA `b7ec2fba79900308f7d4c1f745bf45e06be11821` の `walkerSample()`。
+- Issue [#233](https://github.com/numero-uno-jpn/rStats.js/issues/233)。再現: `const prob=[...Array(199).fill(0.5/201),50.75/201,50.75/201]`。n=201で全候補がalias methodの条件を満たす。199個のsmall mass=0.5と2個のlarge mass=50.75。small queueを消費した後も固定loopが1回余分に実行され、large entry同士をpairし、residual massを1.0/1.0から1.25/0.75へ誤再配分する。Walker alias tableの確率が入力weightsと一致しない。静的queue/control-flow・算術traceのみ。Vitest/package runtime/R実行なし。
+
+
+## Audit #724 — weighted cumulative probability loses trailing mass
+- 対象: `src/random/sample.ts` SHA `b7ec2fba79900308f7d4c1f745bf45e06be11821` の `probSampleReplace()`。
+- Issue [#234](https://github.com/numero-uno-jpn/rStats.js/issues/234)。再現: `const prob=[0.5,0.5,1e-16]`。正規化後の降順累積和はbinary64で`[0.5,1,1]`となり、`probSampleReplace()`の`rU<1`選択と`probSampleNoReplace()`の`rT<1`選択で第3カテゴリの区間がなくなる。置換あり/なし双方で入力weightが正でもカテゴリが到達不能。静的binary64/control-flow解析のみ。Vitest/package runtime/R/Monte Carlo未実施。
+
+
+## Audit #725 — F distribution summary moment overflow
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c` の `distSummary()` case `"f"`。
+- Issue [#235](https://github.com/numero-uno-jpn/rStats.js/issues/235)。再現: `distSummary("f",{df1:1e308,df2:1e308})`。df1=df2=Dのvarianceは `4*D*(D-1)/((D-2)^2*(D-4))` と整理でき、D=1e308で約4e-308、sd約2e-154、skewness約4.24e-154と表現可能。現行の直接積では分子・分母・sd/skewness中間値がInfinity/InfinityとなりNaN。静的代数簡約・IEEE-754 range解析のみ。Vitest/package runtime/R実行なし。
+
+
+## Audit #726 — negative-binomial summary parameter ratio overflow
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c` の `distSummary()` case `"nbinom"`。
+- Issue [#236](https://github.com/numero-uno-jpn/rStats.js/issues/236)。再現: `distSummary("nbinom",{size:1e308,mu:1e308})`。有限のsizeとmuの和がInfinityとなり、p=size/(size+mu)=0として不正入力扱いになる。正しいp=0.5、mean=1e308。静的IEEE-754 range解析のみ。Vitest/package runtime/R実行なし。
+
+
+## Audit #727 — hypergeometric summary product overflow
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c` の `distSummary()` case `"hyper"`。
+- Issue [#237](https://github.com/numero-uno-jpn/rStats.js/issues/237)。再現: `distSummary("hyper",{m:1e200,n:1e200,k:1e200})`。M=N=K=1e200、population total 2e200は有限。真のmean=5e199、variance≈1.25e199、skewness=0。現行mode numerator `(k+1)*(m+1)`とmean numerator `k*m`がInfinityへoverflowし、mean/modeがInfinity。静的式・IEEE-754 range解析のみ。Vitest/package runtime/R実行なし。
+
+
+## Audit #728 — inverse-gamma summary moment overflow
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c` の `distSummary()` case `"invgamma"`。
+- Issue [#238](https://github.com/numero-uno-jpn/rStats.js/issues/238)。再現: `distSummary("invgamma",{alpha:1e308,beta:1e308})`。mean≈1、variance≈1e-308、sd≈1e-154、skewness≈4e-154、excess kurtosis≈3e-307と有限だが、variance/kurtosis raw productsがInfinity/InfinityとなりNaN。静的代数・IEEE-754 range解析のみ。Vitest/package runtime/R実行なし。
+
+
+## Audit #729 — Kumaraswamy summary mode product overflow
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c` の `distSummary()` case `"kumar"`。
+- Issue [#239](https://github.com/numero-uno-jpn/rStats.js/issues/239)。再現: `distSummary("kumar",{a:1e200,b:1e200}).mode`。a*bがInfinityとなりmode ratioが0、mode=0。log mode≈-log(b)/a≈-4.6e-198なので真のmodeはbinary64で1。静的代数・IEEE-754解析のみ。
+
+## Audit #730 — Weibull summary narrow-shape concentration
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c` の `distSummary()` case `"weibull"`。
+- Issue [#240](https://github.com/numero-uno-jpn/rStats.js/issues/240)。再現: `distSummary("weibull",{shape:1e308,scale:1})`。Y=k(X−1)は反射Gumbelへ収束し、sd≈π/(√6 k)=1.28255e-308、skewness≈−1.13955、excess kurtosis≈2.4。分布幅1e-308はx≈1のbinary64格子で分解不能で、central integration/raw momentsがspreadを失う。漸近式・IEEE-754解析のみ。QUADPACK/runtime未実行。
+
+## Audit #731 — beta summary standard-deviation underflow
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c` の `distSummary()` case `"beta"`。
+- Issue [#241](https://github.com/numero-uno-jpn/rStats.js/issues/241)。再現: `distSummary("beta",{shape1:1e-308,shape2:1e154})`。a/s≈1e-462は0へunderflowするが、sd≈√a/b≈1e-308はsubnormalとして表現可能。現行sdDirectはunderflow済みpaのsqrtから0を返す。静的漸近式・IEEE-754解析のみ。
+
+## Audit #732 — triangular summary skewness underflow
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c` の `distSummary()` case `"triang"`。
+- Issue [#242](https://github.com/numero-uno-jpn/rStats.js/issues/242)。再現: `distSummary("triang",{a:0,b:1e-200,c:5e-201})`。対称分布でskewness=0だが、q=7.5e-401が0へunderflowし、現行skewness式が0/0でNaN。sdDirectはscaled qsを使うためsd≈2.041e-201を保持できる。静的代数・IEEE-754解析のみ。
+
+## Audit #733 — triangular summary large-offset overflow
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c`。
+- Issue [#243](https://github.com/numero-uno-jpn/rStats.js/issues/243)。再現: `distSummary("triang",{a:1e308,b:1.0000000000000004e308,c:1.0000000000000002e308})`。cはa,bの中点。対称triangleなのでskewness=0、sd≈8.15e291 finite、varianceはtrue overflowでInfinity。raw qはInfinity-InfinityでNaN、skewness numeratorもInfinity演算でNaN。scaled qsはsdのみに利用。
+
+## Audit #734 — hypergeometric summary kurtosis overflow
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c`。
+- Issue [#244](https://github.com/numero-uno-jpn/rStats.js/issues/244)。再現: `distSummary("hyper",{m:1e150,n:1e150,k:1e150})`。N=2e150、mean=5e149、variance≈1.25e149、balanced caseのexcess kurtosis≈-1e-150。k*m*n*(N-k)と高次積がInfinityとなりkurtosis NaN。
+
+## Audit #735 — gamma summary inconsistent rate/scale
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c`。
+- Issue [#245](https://github.com/numero-uno-jpn/rStats.js/issues/245)。再現: `distSummary("gamma",{shape:2,rate:2,scale:1})`。GammaParams契約は両方指定時scale=1/rate。gammaScale()を使うdensity/CDF/quantile/random pathは不一致をthrowするがsummaryはscaleが存在することだけを見てrateを無視し、shape2/scale1のmomentsを返す。
+
+## Audit #736 — derivative zero step at exact zero with zeroTol=0
+- 対象: `src/numerics/deriv.ts` SHA `7a339332c11e4b55e6f35fb8f120c7fd2c92311d`。
+- Issue [#246](https://github.com/numero-uno-jpn/rStats.js/issues/246)。再現: `grad(x=>x[0]*x[0],[0],{zeroTol:0})`。h0=abs(d*0)+(abs(0)<0?eps:0)=0、中央差分は0/0でNaNとなりRangeError。jacobian/hessianも共有steps()を使う。
+
+## Audit #737 — uniroot extendInt enum is not validated
+- 対象: `src/numerics/integrate.ts` SHA `6df1afbeed34b40ab91e3f064f5af8aba7d02b56`。
+- Issue [#247](https://github.com/numero-uno-jpn/rStats.js/issues/247)。再現: `uniroot(x=>x*x-2,0,2,{extendInt:"bogus" as any})`。有効bracketでrootを返しunsupported optionを黙って無視する。same-sign endpointsではno扱いとなる。
+
+## Audit #738 — optim scaled controls lack validation
+- 対象: `src/optim/optim.ts` SHA `b0adf40e7b8433cd39111a835580a9a5b3b2108c`。
+- Issue [#248](https://github.com/numero-uno-jpn/rStats.js/issues/248)。再現: `optim([1],x=>x[0]*x[0],{method:"BFGS",control:{parscale:0}})`でscaled coordinate=Infinity。fnscale=0はobjective division by zero、ndeps=0はzero-width finite difference。optim()/optimHess()のScaled構築前にcontrolsを検証しない。
+
+## Audit #739 — Kumaraswamy summary loses spread at huge shapes
+- 対象: `src/distributions/summary.ts` SHA `21cc121671a9a9fac5b2e38a05772bb65d32515c`。
+- Issue [#249](https://github.com/numero-uno-jpn/rStats.js/issues/249)。再現: `distSummary("kumar",{a:1e308,b:1e308})`。Xは1からO(1e-308)内に集中。Y=-A log(X)-log(A)はGumbelへ収束し、sd(X)≈π/(√6 A)=1.28255e-308、skewness≈-1.13955、excess kurtosis≈2.4。x座標quadratureが幅を解像せず、raw momentsも1+r/aが1に丸まってspreadを失う。
+
+## Audit #740 — rcond triangular invalid uplo falls through to lower
+- 対象: `src/linalg/solve.ts` SHA `d8df21ba08caaa996d1db3f2659e9a71a431d668`。
+- Issue [#250](https://github.com/numero-uno-jpn/rStats.js/issues/250)。再現: `rcond([[1,100],[0,1]],{triangular:true,uplo:"X" as any})`。uploがUでない場合にlower branchとして計算し、identity相当のrcond=1を返す。
+
+## Audit #741 — rcond triangular mode ignores rectangular columns
+- 対象: `src/linalg/solve.ts` SHA `d8df21ba08caaa996d1db3f2659e9a71a431d668`。
+- Issue [#251](https://github.com/numero-uno-jpn/rStats.js/issues/251)。再現: `rcond([[1,0,100],[0,1,0]],{triangular:true,uplo:"U"})`。2×3 matrixをrejectせず、trcon()はnrow=2をdimensionとして先頭2列のみ処理し、3列目を無視。
+
+## Audit #742 — optim Brent ignores maxit
+- 対象: `src/optim/optim.ts` SHA `b0adf40e7b8433cd39111a835580a9a5b3b2108c`。
+- Issue [#252](https://github.com/numero-uno-jpn/rStats.js/issues/252)。再現: `optim([0],x=>(x[0]-0.123456789)**2,{method:"Brent",lower:-1,upper:1,control:{maxit:1}})`。Brent branchはmaxitをoptimize()に渡さず、localMin()にiteration capがないため、指定maxitを無視してtoleranceまで続行する。
