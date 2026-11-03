@@ -61,6 +61,22 @@ export function scoreStatistic(x: number[][], r: number[], v: number[], intercep
   const res = qrResid(q, rows.map((i, k) => r[i]! * s[k]!));
   let rss = 0;
   for (const e of res) rss += e * e;
+  if (!Number.isFinite(total)) {
+    // only where v (r - centre)^2 overflows (#172): the total from sqrt(v) (r - centre), as the rss, both scaled by a
+    // power of 2 when those squares overflow too
+    const t = rows.map((i, k) => s[k]! * (r[i]! - centre));
+    let m = 0;
+    for (const e of t) m = Math.max(m, Math.abs(e));
+    for (const e of res) m = Math.max(m, Math.abs(e));
+    if (Number.isFinite(m)) {
+      const k = m > 1 ? Math.floor(Math.log2(m)) : 0;
+      let ts = 0;
+      for (const e of t) ts += ldexp(e, -k) ** 2;
+      let rs = 0;
+      for (const e of res) rs += ldexp(e, -k) ** 2;
+      return ldexp(ldexp(ts - rs, k), k);
+    }
+  }
   return total - rss;
 }
 
