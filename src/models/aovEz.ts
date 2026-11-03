@@ -294,7 +294,9 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
 
   /** Without within-subject factors (or a single within cell): lm on one value per subject and car's Anova */
   function betweenOnly(): AovEzResult {
-    const dvName = between.includes("y") ? "y_" : "y";
+    // a response name that is none of the between factors (with factors y and y_, "y_" replaced the factor y_, #295)
+    let dvName = "y";
+    while (between.includes(dvName)) dvName += "_";
     const frame: DataFrame = { ...bdata, [dvName]: Y.map((r) => r[0]![0]) };
     const fit = lm(`${dvName} ~ ${between.length > 0 ? between.join(" * ") : "1"}`, frame, { contrasts: sum, levels: blevelOpt });
     if (fit.rank < fit.coefNames.length) throw new Error(rankDeficient);
