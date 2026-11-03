@@ -707,6 +707,12 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   (R's rule on the relative change of the deviance stops while they can still move by about
   sqrt(epsilon)), and the dispersion from the converged fit. The limits agree with the exact references
   of the test fixture (computed in R from fits converged in the same way) to 1e-14 standard errors.
+  At a very small level (the cutoff below 2^-9, level below about 1.6e-3) the cutoff comes from the series of
+  sqrt(2) erfinv(level), and the limits from the inverse profile interpolated through the limits at z = 0, ±2^-9 and
+  ±2^-8, as the deviance difference cannot resolve a smaller z (its relative error is about epsilon D / z²); they are
+  within about 1e-10 relative of the exact ones (intercept-only binomial and Poisson fits). R gives [0, 0] at level
+  1e-20 (1 + level rounds to 1) and is 1.6e-4 relative off at 1e-10; rStats.js before #179 gave [-7.2e-10, 1.5e-8]
+  for ±1.2533e-10 there.
 - **Warnings** are returned, not emitted: `glm`'s result has R's warnings in `warnings` (each message
   once, in order of first appearance), including those of R's `dpois` in the Poisson AIC
   (`"non-integer x = 0.500000"`) and of `sqrt` in the `1/mu^2` link (`"NaNs produced"`).

@@ -148,40 +148,65 @@ export function glmConfint(
 
   // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
   const a2 = (1 - level) / 2;
-  const cut = [qnorm(a2), a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm((1 + level) / 2)] as const;
+  // the cutoff qnorm((1 + level) / 2) for a small level from the series of sqrt(2) erfinv(level) (relative error below 2e-18
+  // where it is used: it is below 2^-9 only for level below about 1.6e-3), as 1 + level loses the digits of level
+  const cSmall = Math.sqrt(Math.PI / 2) * level * (1 + (Math.PI / 12) * level ** 2 + ((7 * Math.PI ** 2) / 480) * level ** 4);
+  // below this cutoff the deviance difference of the profile cannot resolve z (its relative error is about
+  // epsilon D / z^2), so the limits come from the inverse profile b(z) interpolated through z = 0, +-C0, +-2 C0 (#179)
+  const C0 = 2 ** -9;
+  const tiny = cSmall < C0;
+  const cut = tiny ? ([-cSmall, cSmall] as const) : ([qnorm(a2), a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm((1 + level) / 2)] as const);
   const lower = parm.map(() => NaN);
   const upper = parm.map(() => NaN);
+  // the limit of coefficient j where the profile reaches the cutoff c (side 0: below the estimate, c < 0)
+  const limitAt = (j: number, c: number, side: 0 | 1): number => {
+    const dir = side === 0 ? -1 : 1;
+    unconverged = false;
+    let far = NaN;
+    let zFar = NaN;
+    for (let e = 0; e <= 30; e++) {
+      const b = B[j]! + dir * 2 ** e * se[j]!;
+      const z = zStat(j, b);
+      if (Math.abs(z) >= Math.abs(c)) {
+        far = b;
+        zFar = z;
+        break;
+      }
+    }
+    if (Number.isNaN(far) || unconverged) return NaN;
+    const f = (b: number) => (b === B[j] ? -c : zStat(j, b) - c);
+    const [lo, hi] = side === 0 ? [far, B[j]!] : [B[j]!, far];
+    const [fLo, fHi] = side === 0 ? [zFar - c, -c] : [-c, zFar - c];
+    let root: number;
+    try {
+      root = uniroot(f, lo, hi, { tol: 1e-14 * se[j]!, maxIter: 500, fLower: fLo, fUpper: fHi });
+    } catch (err) {
+      if (!unconverged) throw err;
+      root = NaN;
+    }
+    return unconverged ? NaN : root;
+  };
   parm.forEach((j, k) => {
     if (Number.isNaN(B[j]!)) return;
-    for (const side of [0, 1] as const) {
-      const dir = side === 0 ? -1 : 1;
-      unconverged = false;
-      let far = NaN;
-      let zFar = NaN;
-      for (let e = 0; e <= 30; e++) {
-        const b = B[j]! + dir * 2 ** e * se[j]!;
-        const z = zStat(j, b);
-        if (Math.abs(z) >= Math.abs(cut[side])) {
-          far = b;
-          zFar = z;
-          break;
-        }
-      }
-      if (Number.isNaN(far) || unconverged) continue;
-      const f = (b: number) => (b === B[j] ? -cut[side] : zStat(j, b) - cut[side]);
-      const [lo, hi] = side === 0 ? [far, B[j]!] : [B[j]!, far];
-      const [fLo, fHi] = side === 0 ? [zFar - cut[side], -cut[side]] : [-cut[side], zFar - cut[side]];
-      let root: number;
-      try {
-        root = uniroot(f, lo, hi, { tol: 1e-14 * se[j]!, maxIter: 500, fLower: fLo, fUpper: fHi });
-      } catch (err) {
-        if (!unconverged) throw err;
-        root = NaN;
-      }
-      if (unconverged) root = NaN;
-      if (side === 0) lower[k] = root;
-      else upper[k] = root;
+    if (!tiny) {
+      lower[k] = limitAt(j, cut[0], 0);
+      upper[k] = limitAt(j, cut[1], 1);
+      return;
     }
+    // the polynomial of degree 4 through (z, b(z) - b_j) at z = -2 C0, -C0, 0, C0, 2 C0 (Lagrange form)
+    const zs = [-2 * C0, -C0, 0, C0, 2 * C0];
+    const ds = [limitAt(j, -2 * C0, 0), limitAt(j, -C0, 0), B[j]!, limitAt(j, C0, 1), limitAt(j, 2 * C0, 1)].map((b) => b - B[j]!);
+    const at = (z: number): number => {
+      let v = 0;
+      for (let a = 0; a < 5; a++) {
+        let w = 1;
+        for (let b = 0; b < 5; b++) if (b !== a) w *= (z - zs[b]!) / (zs[a]! - zs[b]!);
+        v += w * ds[a]!;
+      }
+      return B[j]! + v;
+    };
+    lower[k] = at(cut[0]);
+    upper[k] = at(cut[1]);
   });
   return { lower: lower.map((v) => ldexp(v, k)), upper: upper.map((v) => ldexp(v, k)) };
 }
