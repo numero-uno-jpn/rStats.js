@@ -10,7 +10,7 @@ import { pchisq, qchisq } from "../distributions/chisq.js";
 import { pf, qf } from "../distributions/f.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { qt } from "../distributions/t.js";
-import { squareOver } from "../internal/summary.js";
+import { ldexp, squareOver } from "../internal/summary.js";
 import { checkExactlyOne, isUnknown, matchChoice, ptNcp, solveFor } from "./power.js";
 import type { Alternative } from "./types.js";
 
@@ -209,6 +209,19 @@ function fPowerHugeDf(df1: number, df2: number, ncp: number, sig: number): numbe
   const sd0 = Math.sqrt(2 / df1 + 2 / df2);
   const sd1 = Math.hypot(Math.sqrt((2 * (1 + 2 * mu)) / df1), Math.sqrt(2 / df2) * (1 + mu));
   return pnorm((z * sd0 - mu) / sd1, { lowerTail: false }) as number;
+}
+
+/** The product of finite factors, each scaled to [1, 2) by a power of 2 and the exponents added back at the end */
+function scaledProduct(xs: readonly number[]): number {
+  let v = 1;
+  let e = 0;
+  for (const x of xs) {
+    if (x === 0) return 0;
+    const k = Math.floor(Math.log2(Math.abs(x)));
+    v *= ldexp(x, -k);
+    e += k;
+  }
+  return ldexp(v, e);
 }
 
 /** Common options of the pwr functions */
@@ -848,9 +861,15 @@ export function pwrAnovaTest(options: PwrAnovaTestOptions = {}): PwrAnovaTestRes
   const powerOf = (k: number, n: number, f: number, sig: number): number => {
     const df1 = k - 1;
     const df2 = (n - 1) * k;
-    const ncp = k * n * f ** 2;
+    let ncp = k * n * f ** 2;
+    // (where k n overflows or f^2 underflows for finite factors, from the factors scaled by powers of 2: k = n = 1e160,
+    // f = 1e-160 gave the limit 1 for the noncentrality 1)
+    if (!Number.isFinite(ncp) && Number.isFinite(k) && Number.isFinite(n) && Number.isFinite(f)) ncp = scaledProduct([k, n, f, f]);
     // (a noncentrality beyond the doubles: the limit 1)
-    return ncp === Infinity ? 1 : (pf(qf(sig, df1, df2, { lowerTail: false }) as number, df1, df2, { ncp, lowerTail: false }) as number);
+    if (ncp === Infinity) return 1;
+    // (both degrees of freedom above 1e20: the normal approximation, as the critical value rounds to 1; R gives NaN)
+    if (hugeDf(df1, df2)) return fPowerHugeDf(df1, df2, ncp, sig);
+    return pf(qf(sig, df1, df2, { lowerTail: false }) as number, df1, df2, { ncp, lowerTail: false }) as number;
   };
   if (isUnknown(power)) power = powerOf(k!, n!, f!, sigLevel!);
   else {
