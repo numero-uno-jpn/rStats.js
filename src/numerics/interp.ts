@@ -762,14 +762,42 @@ export function hermiteInterp(xi: Sample, yi: Sample, di: Sample, x: Sample): nu
   const D = Array.from(di);
   const n = X.length;
   if (Y.length !== n || D.length !== n) throw new RangeError("'xi', 'yi' and 'di' must have the same length");
-  // finite nodes whose range overflows: the polynomial in x / 2^k with 2^k near the largest node (see knotScale;
-  // derivatives times 2^k, exact), where the node separations are finite and the divided differences do not underflow
-  // (in x / 2 the second ones still fell to 0). hermiteInterp([-1e308, 1e308], [-1, 1], [0, 0], [0]) was -1 (issue #216)
-  const k0 = knotScale([...X].sort((a, b) => a - b));
-  const z = (k0 === 0 ? X : X.map((v) => ldexp(v, -k0))).flatMap((v) => [v, v]);
-  if (k0 !== 0) D.forEach((v, i) => (D[i] = ldexp(v, k0)));
+  // the divided differences of order j scale as 1 / x^j: for large nodes they underflow (hermiteInterp([-1e200, 1e200],
+  // [-1, 1], [0, 0], [0.5e200]) was -1 for 0.6875, issue #216 follow-up), for tiny ones they overflow, and where the
+  // range of finite nodes overflows the separations are infinite and the quotients 0 (hermiteInterp([-1e308, 1e308],
+  // [-1, 1], [0, 0], [0]) was -1, issue #216). Only then (a quotient of finite, nonzero numbers that is not finite or
+  // below the normal range, or a range that overflows), the polynomial in x / 2^k with 2^k near the largest node
+  // (derivatives times 2^k, exact), where the nodes are of order 1. Otherwise the same bits as the unscaled table.
+  let k0 = knotScale([...X].sort((a, b) => a - b));
+  let table = k0 === 0 ? hermiteTable(X, Y, D) : undefined;
+  if (table?.lost && [X, Y, D].every((v) => v.every(Number.isFinite))) {
+    const k = Math.floor(Math.log2(maxOf(X.map(Math.abs))));
+    if (k !== 0) [k0, table] = [k, undefined];
+  }
+  if (table === undefined) table = hermiteTable(X.map((v) => ldexp(v, -k0)), Y, D.map((v) => ldexp(v, k0)));
+  const { z, coef } = table;
   const m = 2 * n;
-  // divided-difference table, column by column (in place)
+  return Array.from(x, (v) => {
+    let r = coef[m - 1]!;
+    const u = k0 === 0 ? v : ldexp(v, -k0);
+    for (let k = m - 2; k >= 0; k--) r = r * (u - z[k]!) + coef[k]!;
+    return r;
+  });
+}
+
+/**
+ * The divided-difference table of hermiteInterp on the doubled nodes; `lost` where a quotient of finite, nonzero
+ * numbers is not finite or falls below the normal range.
+ */
+function hermiteTable(
+  X: readonly number[],
+  Y: readonly number[],
+  D: readonly number[],
+): { z: number[]; coef: number[]; lost: boolean } {
+  const z = X.flatMap((v) => [v, v]);
+  const m = z.length;
+  let lost = false;
+  // divided-difference table, column by column
   const q = Y.flatMap((v) => [v, v]);
   const coef = [q[0]!];
   let col = q.slice();
@@ -777,15 +805,17 @@ export function hermiteInterp(xi: Sample, yi: Sample, di: Sample, x: Sample): nu
     const next: number[] = [];
     for (let i = 0; i < m - k; i++) {
       if (k === 1 && z[i + 1] === z[i]) next.push(D[i >> 1]!);
-      else next.push((col[i + 1]! - col[i]!) / (z[i + k]! - z[i]!));
+      else {
+        const num = col[i + 1]! - col[i]!;
+        const den = z[i + k]! - z[i]!;
+        const r = num / den;
+        const finite = Number.isFinite(col[i + 1]!) && Number.isFinite(col[i]!);
+        if (finite && num !== 0 && den !== 0 && !(Math.abs(r) >= 2 ** -1022 && Math.abs(r) < Infinity)) lost = true;
+        next.push(r);
+      }
     }
     coef.push(next[0]!);
     col = next;
   }
-  return Array.from(x, (v) => {
-    let r = coef[m - 1]!;
-    const u = k0 === 0 ? v : ldexp(v, -k0);
-    for (let k = m - 2; k >= 0; k--) r = r * (u - z[k]!) + coef[k]!;
-    return r;
-  });
+  return { z, coef, lost };
 }
