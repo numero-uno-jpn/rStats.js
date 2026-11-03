@@ -942,8 +942,9 @@ also from R's source. They are listed because they are easy to get wrong.
   (and used by the dispersion, the influence measures and the standard errors) are those of the last
   least squares step, computed from the means before the last update; the QR tolerance is
   min(1e-7, epsilon/1000), so with `epsilon: 1e-14` an exactly collinear column is no longer aliased.
-- **AIC:** the gaussian AIC sums log w over all rows, so a prior weight of 0 makes it infinite; the
-  binomial AIC rounds m y half to even, as R's `round`.
+- **AIC:** the binomial AIC rounds m y half to even, as R's `round`. Rows of prior weight 0 are left out of the
+  likelihood in every family, where R's gaussian AIC is infinite (see the row "`AIC` of a gaussian `glm` with rows of
+  weight 0" under "Where R is inaccurate and rStats.js is closer to the truth").
 - **`glmAnova`:** the refits of the sequential table use the same `start` as the fit, which has the
   wrong length for the smaller models (an error, as in R); the default test is `"Chisq"` when the
   dispersion is known and `"F"` otherwise (R 4.4.0 and later).
