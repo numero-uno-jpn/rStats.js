@@ -80,7 +80,10 @@ function stepAt(Y: readonly number[], i: number, f: number): number {
 export interface ApproxOptions {
   /** Points to interpolate at. Default: `n` equally spaced points over the range of `x`. */
   xout?: Sample;
-  /** `"linear"` (default) or `"constant"` (step function). */
+  /**
+   * `"linear"` (default) or `"constant"` (step function). A unique prefix is accepted and anything else is an
+   * error, as in R.
+   */
   method?: "linear" | "constant";
   /** Number of points when `xout` is not given. Default `50`. */
   n?: number;
@@ -94,6 +97,19 @@ export interface ApproxOptions {
   f?: number;
   /** How to merge equal x values. Default `"mean"`. */
   ties?: Ties;
+}
+
+/**
+ * The interpolation method of approx, as R's pmatch(method, c("linear", "constant")): the full name or a unique
+ * prefix; anything else is R's "invalid interpolation method" (it was taken as "constant", #221)
+ */
+function approxMethod(m: unknown): "linear" | "constant" {
+  if (m === undefined) return "linear";
+  if (typeof m === "string" && m.length > 0) {
+    const hit = (["linear", "constant"] as const).filter((v) => v.startsWith(m));
+    if (hit.length === 1) return hit[0]!;
+  }
+  throw new RangeError("invalid interpolation method");
 }
 
 /**
@@ -116,7 +132,8 @@ export function approx(
   /** The interpolated values, one per point of `x`. */
   y: number[];
 } {
-  const { method = "linear", n = 50, f = 0, rule = 1, ties = "mean" } = options;
+  const { n = 50, f = 0, rule = 1, ties = "mean" } = options;
+  const method = approxMethod(options.method);
   const pts = regularize(x, y, ties);
   const nx = pts.x.length;
   if (nx <= 1 && method === "linear") throw new RangeError("need at least two non-NA values to interpolate");
