@@ -4906,3 +4906,44 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #802 — powerPropTest sends zero-width endpoint intervals to uniroot
 - 対象: `src/htest/power.ts` SHA `5950a5e498272e8ae0b5a581e849477eb287c349` の `powerPropTest()` と `src/numerics/integrate.ts` の `uniroot()`。
 - Issue [#312](https://github.com/numero-uno-jpn/rStats.js/issues/312)。再現: `powerPropTest({n:50,p2:0,power:0.8})`; `powerPropTest({n:50,p1:1,power:0.8})`。確率0/1は入力検証を通るが、p1探索区間[0,p2]またはp2探索区間[p1,1]が一点となり、unirootのlower<upper検証で即時失敗する。解なしを事前判定し、対象の説明的な警告/エラーを返すべき。静的ソース解析。実行テストなし。
+
+
+## Audit #803 — onewayTest Welch path propagates a zero-variance group's infinite weight
+- 対象: `src/htest/onewayTest.ts` SHA `f98a4ccac5bcdb527f738aca3479aa6eaf600a8a` の `onewayTest()` Welch branch。
+- Issue [#313](https://github.com/numero-uno-jpn/rStats.js/issues/313)。再現: `onewayTest([[1,1,1],[2,3,4]])`。第一群の標本分散0から重みni/vi=Infinityとなり、重み正規化Infinity/InfinityがNaN。第二群は分散1なので全群定数のケースではない。Welch統計量の零分散極限を処理するか、明示的に入力/解析不可を通知すべき。静的ソース/数式解析。実行テストなし。
+
+## Audit #804 — tTest constant-data guard misses an exactly zero-valued sample
+- 対象: `src/htest/tTest.ts` SHA `0442511bfdd24bede27433c5e32d520d2f073d83` の `tTest()`。
+- Issue [#314](https://github.com/numero-uno-jpn/rStats.js/issues/314)。再現: `tTest([0,0])`; `tTest([0,0],[0,0])`; `tTest([1,1],[1,1],{paired:true})`。標準誤差0かつ平均0のときガードは `0 < 10*EPSILON*0` となりfalse。t=0/0でNaN統計量/p値を返す。SE===0を平均相対閾値と独立に扱うべき。静的ソース/数式解析。実行テストなし。
+
+## Audit #805 — TukeyHSD does not guard insufficient residual degrees of freedom
+- 対象: `src/htest/aov.ts` SHA `9ce3aa388e5d2200fd75c751d6c69660d0e11648` と `src/distributions/tukey.ts` SHA `dba1a8367d48376d11b39693737a9df82c185611`。
+- Issue [#315](https://github.com/numero-uno-jpn/rStats.js/issues/315)。再現: `TukeyHSD([[1],[2]])` (df=0)、`TukeyHSD([[1,2],[3]])` (df=1)。TukeyHSDは2群以上だけを確認し、df=N-kを検査せずqtukeyへ渡す。qtukeyのvalidParamsはdf>=2を要求するため、比較結果のCI/pAdjがNaNになる。残差自由度2以上を事前検証すべき。静的ソース解析。実行テストなし。
+
+## Audit #806 — corTest exact Kendall override has unbounded inversion-table allocation and work
+- 対象: `src/htest/cor.ts` SHA `7ba191007daff12c1e981c2dca1be6f006293e9c` の `corTestSamples()` / `kendallCdf()`。
+- Issue [#316](https://github.com/numero-uno-jpn/rStats.js/issues/316)。再現: `const n=10000; const x=Array.from({length:n},(_,i)=>i); const y=[...Array.from({length:n/2},(_,i)=>i+n/2),...Array.from({length:n/2},(_,i)=>i)]; corTest(x,y,{method:"kendall",exact:true})`。無同順位のためexactに入り、観測反転数の小さい側c≈24,995,000でFloat64Array(c+1)≈200MB、さらにn反復のDP更新。既定n<50をexact:trueで迂回でき、計算量/割当上限がない。事前に状態数と仕事量を評価すべき。静的ソース解析。巨大割当・実行テストなし。
+
+## Audit #807 — propTrendTest retains infinite scores in weighted regression
+- 対象: `src/htest/trendTests.ts` SHA `5dcd1d74fbe03a551c66a352b68b004d73cd52fb` の `propTrendTest()`。
+- Issue [#317](https://github.com/numero-uno-jpn/rStats.js/issues/317)。再現: `propTrendTest([1,2,3],[10,10,10],[1,Infinity,3])`。rows抽出はscoreのNaNのみを除外しInfinityを保持する。加重score平均がInfinity、中心化したInfinity-InfinityがNaNとなり統計量/p値へ伝播。非欠損scoreは有限値を要求すべき。静的ソース解析。実行テストなし。
+
+## Audit #808 — propTrendTest divides by zero when all retained scores are identical
+- 対象: `src/htest/trendTests.ts` SHA `5dcd1d74fbe03a551c66a352b68b004d73cd52fb` の `propTrendTest()`。
+- Issue [#318](https://github.com/numero-uno-jpn/rStats.js/issues/318)。再現: `propTrendTest([1,2,3],[10,10,10],[5,5,5])`。全scoreが5なので中心化scoreは全て0、sxx=0かつsxy=0、検定統計量0/0=NaN。少なくとも2つの異なる有限scoreがあることを検証すべき。静的ソース/数式解析。実行テストなし。
+
+## Audit #809 — propTrendTest creates infinite weights when the pooled proportion is 0 or 1
+- 対象: `src/htest/trendTests.ts` SHA `5dcd1d74fbe03a551c66a352b68b004d73cd52fb` の `propTrendTest()`。
+- Issue [#319](https://github.com/numero-uno-jpn/rStats.js/issues/319)。再現: `propTrendTest([0,0,0],[10,10,10])`; `propTrendTest([10,10,10],[10,10,10])`。pooled p=0または1で各重みni/(p(1-p))がInfinity。重み和もInfinityとなり、加重平均Infinity/InfinityからNaNが返る。境界比例を重み計算前に検出し、退化ケースとして明示的に扱うべき。静的ソース/数式解析。実行テストなし。
+
+## Audit #810 — brunnerMunzelTest accepts a singleton group despite its n−1 variance denominator
+- 対象: `src/htest/brunnerMunzelTest.ts` SHA `3809905d6b8726a9b01afaf75deb0cbeb3082cac` の `brunnerMunzelTest()`。
+- Issue [#320](https://github.com/numero-uno-jpn/rStats.js/issues/320)。再現: `brunnerMunzelTest([1],[2,3])`。各群最低1件のみを要求するが、placement variance helperは分散和をr.length-1で除す。n1=1で0除算となりNaNが統計量/自由度/p値へ伝播。各群2件以上を要求すべき。静的ソース/数式解析。実行テストなし。
+
+## Audit #811 — jonckheereTest exact override allows unbounded distribution convolution work
+- 対象: `src/htest/trendTests.ts` SHA `5dcd1d74fbe03a551c66a352b68b004d73cd52fb` の `jonckheereTest()` exact branch。
+- Issue [#321](https://github.com/numero-uno-jpn/rStats.js/issues/321)。再現: 3群各200件、値は `0..199`, `1000..1199`, `2000..2199`、群ラベル各200件のa/b/cとして `jonckheereTest(x,g,{exact:true})`。nTotal=600でもexact:trueが既定n<=100の制限を迂回する。最初の2つのMann-Whitney分布の長さは80,001と40,001で、畳み込みの二重ループだけで約32億回の演算。割当・計算量を事前見積もりして実行可能性を制限すべき。静的ソース解析。大規模計算は実行していない。注: 既存Issue #142は3群以上のexact分布が依存するMW統計量を独立として畳み込む数学的誤りを扱う。本Issueは同じexact経路の別問題である資源上限欠如。
+
+## Audit #812 — jonckheereTest returns a finite p-value when only one ordered group remains
+- 対象: `src/htest/trendTests.ts` SHA `5dcd1d74fbe03a551c66a352b68b004d73cd52fb` の `orderedGroups()` / `jonckheereTest()`。
+- Issue [#322](https://github.com/numero-uno-jpn/rStats.js/issues/322)。再現: `jonckheereTest([1,2,3],["a","a","a"])`。orderedGroupsが1群を返すが群数検証がなく、群間比較が0回でJT=0。exact分布dist=[1]のまま両側tailが1となり、比較不能な1群設計にp=1を返す。欠損処理後に2群以上を要求すべき。静的ソース解析。実行テストなし。
