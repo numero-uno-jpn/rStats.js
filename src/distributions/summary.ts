@@ -147,30 +147,76 @@ function central(
 const LARGE_SHAPE = 100;
 
 /**
+ * A piece of the base variable e of expShape() in a variable t on (0, upper): log e as a function of t, the density
+ * over t, and t as a function of log e. With mass (the piece's total probability), the integrand h(t) is taken as
+ * mass h(0) plus the integral of (h(t) - h(0)) w(t): for a density with an algebraic singularity at t = 0 that the
+ * quadrature cannot follow
+ */
+interface ExpPiece {
+  logE: (t: number) => number;
+  w: (t: number) => number;
+  upper: number;
+  tAt: (logE: number) => number;
+  mass?: number;
+}
+
+/**
  * Moments of X = c exp(Z / s) for a large shape s, through T = s expm1(log(e) / s) = s (X / c - 1), e the base
- * variable with density w on (0, upper) (Weibull: e ~ Exp(1), c = 1; Kumaraswamy: e = b W with W ~ Beta(1, b),
- * c = b^(-1/a)). X lies within O(1/s) of c, too narrow for the quadrature in x (and the raw moments Gamma(1 + r/k)
- * round to 1): k = 1e4 gave the skewness -3.03 for -1.139, k = 1e308 sd 0 and NaN (issues #240, #249). T has a spread
- * of order 1 for every shape. Returns E[T], the variance of T and the skewness and kurtosis (those of X), or undefined
+ * variable (Weibull: e ~ Exp(1), c = 1; Kumaraswamy: e = b W with W ~ Beta(1, b), c = b^(-1/a)), integrated over the
+ * pieces. X lies within O(1/s) of c, too narrow for the quadrature in x (and the raw moments Gamma(1 + r/k) round to
+ * 1): k = 1e4 gave the skewness -3.03 for -1.139, k = 1e308 sd 0 and NaN (issues #240, #249). T has a spread of
+ * order 1 for every shape. Returns E[T], the variance of T and the skewness and kurtosis (those of X), or undefined
  * where an integral did not converge
  */
-function expShape(s: number, w: (e: number) => number, upper: number): (Shape & { meanT: number }) | undefined {
+function expShape(s: number, pieces: readonly ExpPiece[]): (Shape & { meanT: number }) | undefined {
   const tol = 50 * Number.EPSILON;
-  const T = (e: number): number => s * Math.expm1(Math.log(e) / s);
-  const f = (e: number): number => {
-    const v = w(e);
-    return v === 0 ? 0 : T(e) * v;
+  // the integral of h w over all pieces, each split at tSplit(piece); undefined unless every part converged or the
+  // error estimates together are within 1e-8 of the sum (a part far smaller than the sum may stop at its round-off)
+  const over = (h: (p: number) => (t: number) => number, tSplit: (p: ExpPiece) => number): number | undefined => {
+    let sum = 0;
+    let err = 0;
+    let all = true;
+    pieces.forEach((p, i) => {
+      const hp = h(i);
+      const h0 = p.mass === undefined ? 0 : hp(0);
+      const f = (t: number): number => {
+        const v = p.w(t);
+        return v === 0 ? 0 : (p.mass === undefined ? hp(t) : hp(t) - h0) * v;
+      };
+      const t0 = tSplit(p);
+      for (const [lower, upper] of [[0, t0], [t0, p.upper]] as const) {
+        if (!(upper > lower)) continue;
+        const r = upper === Infinity ? dqagie(f, lower, 1, 0, tol, 200) : dqagse(f, lower, upper, 0, tol, 200);
+        sum += r.result;
+        err += r.abserr;
+        if (r.ier !== 0) all = false;
+      }
+      if (p.mass !== undefined) sum += p.mass * h0;
+    });
+    return all || err <= 1e-8 * Math.abs(sum) ? sum : undefined;
   };
-  const m = Math.min(1, upper / 2);
-  const left = dqagse(f, 0, m, 0, tol, 200);
-  const right = upper === Infinity ? dqagie(f, m, 1, 0, tol, 200) : dqagse(f, m, upper, 0, tol, 200);
-  if (!converged(left) || !converged(right)) return undefined;
-  const meanT = left.result + right.result;
-  if (!(meanT / s > -1)) return undefined;
-  // e where T = E[T]
-  const split = Math.min(Math.exp(s * Math.log1p(meanT / s)), upper);
-  const sh = central(T, w, meanT, split, 0, upper);
-  return sh.ok ? { ...sh, meanT } : undefined;
+  const Ts = pieces.map((p) => (t: number): number => s * Math.expm1(p.logE(t) / s));
+  const meanT = over((i) => Ts[i]!, (p) => Math.min(1, p.upper / 2));
+  if (meanT === undefined || !(meanT / s > -1)) return undefined;
+  // log e where T = E[T]: each piece's integrals are split there
+  const split = s * Math.log1p(meanT / s);
+  const [c2, c3, c4] = [2, 3, 4].map((n) =>
+    over(
+      (i) => (t) => (Ts[i]!(t) - meanT) ** n,
+      (p) => Math.min(Math.max(p.tAt(split), 0), p.upper),
+    ),
+  );
+  if (c2 === undefined || c3 === undefined || c4 === undefined) return undefined;
+  // (c2^1.5 and c2^2 underflow for b = 1e-300, where the skewness is -1.7e150)
+  const d3 = c2 ** 1.5;
+  const d4 = c2 * c2;
+  return {
+    variance: c2,
+    skewness: d3 >= MIN_NORMAL ? c3 / d3 : c3 / c2 / Math.sqrt(c2),
+    kurtosis: (d4 >= MIN_NORMAL ? c4 / d4 : c4 / c2 / c2) - 3,
+    ok: true,
+    meanT,
+  };
 }
 
 /** floor(a b) of the exact product (a b rounded to double may cross an integer) */
@@ -390,7 +436,7 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       if (!(k > 0 && Number.isFinite(k) && lam > 0 && Number.isFinite(lam))) return NAN;
       const mean = gammaFn(1 + 1 / k);
       // X^k ~ Exp(1)
-      const big = k > LARGE_SHAPE ? expShape(k, (e) => Math.exp(-e), Infinity) : undefined;
+      const big = k > LARGE_SHAPE ? expShape(k, [{ logE: Math.log, w: (e) => Math.exp(-e), upper: Infinity, tAt: Math.exp }]) : undefined;
       if (big !== undefined) {
         const sd = lam * (Math.sqrt(big.variance) / k);
         const median = qweibull(0.5, k, { scale: lam });
@@ -559,15 +605,39 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const a = P.a ?? NaN;
       const b = P.b ?? NaN;
       if (!(a > 0 && b > 0 && Number.isFinite(a) && Number.isFinite(b))) return NAN;
-      // mean b B(1 + 1/a, b)
-      const mean = b * Math.exp(lbeta(1 + 1 / a, b));
+      // X = c (b W)^(1/a) with c = b^(-1/a), W = X^a ~ Beta(1, b): for a > 100, the moments in T = a (X / c - 1) over
+      // e = b W, density (1 - e/b)^(b - 1) on (0, b). b >= 1: one piece in e (beyond 1500 the density is below
+      // e^-1500). b < 1: the density diverges at e = b, so (b/2, b) is taken in r = b - e, the density
+      // (r/b)^(b - 1) by its total 2^-b and the integral of the differences from r = 0 (in e alone, a = 150, b = 0.1
+      // lost 3e-10 of the kurtosis)
+      const inE = (upper: number): ExpPiece => ({
+        logE: Math.log,
+        w: (e) => (e >= b ? 0 : Math.exp((b - 1) * Math.log1p(-e / b))),
+        upper,
+        tAt: Math.exp,
+      });
+      const nearB: ExpPiece = {
+        logE: (r) => Math.log(b - r),
+        w: (r) => Math.exp((b - 1) * Math.log(r / b)),
+        upper: b / 2,
+        tAt: (le) => b - Math.exp(le),
+        mass: Math.pow(0.5, b),
+      };
+      const big = a > LARGE_SHAPE ? expShape(a, b >= 1 ? [inE(Math.min(b, 1500))] : [inE(b / 2), nearB]) : undefined;
+      const c = big === undefined ? NaN : Math.exp(-Math.log(b) / a);
+      // mean b B(1 + 1/a, b); for a > 100, c (1 + E[T] / a) (b B(1 + 1/a, b) was 1e-14 off at a = b = 1e100)
+      const mean = big === undefined ? b * Math.exp(lbeta(1 + 1 / a, b)) : c * (1 + big.meanT / a);
       // over the density, or over u = F(x) when the density diverges at 1 (b < 1: there the quantile is smooth)
       const si =
-        b < 1
-          ? central((u) => qkumar1(u, a, b, true, false), () => 1, mean, pkumar1(mean, a, b, true, false), 0, 1)
-          : shape((x) => dkumar1(x, a, b, false), mean, 0, 1);
+        big !== undefined
+          ? big
+          : b < 1
+            ? central((u) => qkumar1(u, a, b, true, false), () => 1, mean, pkumar1(mean, a, b, true, false), 0, 1)
+            : shape((x) => dkumar1(x, a, b, false), mean, 0, 1);
       // E[X^r] = b B(1 + r/a, b): used when the integrals do not converge
       const s = si.ok ? si : fromLogRawMoments([1, 2, 3, 4].map((r) => Math.log(b) + lbeta(1 + r / a, b)) as [number, number, number, number]);
+      // the sd in T's units (the variance of X underflows for a = 1e308: sd 1.28e-308)
+      const sd = big === undefined ? undefined : c * (Math.sqrt(big.variance) / a);
       let mode: number;
       // ((a - 1) / (a b - 1))^(1/a); where a b overflows (a b - 1 is a b there), as ((a - 1) / a)^(1/a) b^(-1/a)
       // (a = b = 1e200 gave 0 for 1; issue #239)
@@ -577,7 +647,7 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       }
       else if (a < 1 && b < 1) mode = NaN;
       else mode = a < 1 ? 0 : 1;
-      return make(mean, s.variance, qkumar(0.5, a, b), mode, s.skewness, s.kurtosis);
+      return make(mean, sd === undefined ? s.variance : sd * sd, qkumar(0.5, a, b), mode, s.skewness, s.kurtosis, sd);
     }
     case "pareto": {
       const { a = 1, b = 1 } = P;
