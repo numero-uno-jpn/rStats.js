@@ -4869,7 +4869,7 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - Issue [#303](https://github.com/numero-uno-jpn/rStats.js/issues/303)。再現: `chisqTest([1,1],{p:[1e308,1e308],rescaleP:true})`。有限の重み合計がInfinityとなり、正規化で全確率が0になる。本来は[0.5,0.5]、期待度数[1,1]、統計量0、p=1。最大値で先にスケーリングしてから正規化すべき。静的IEEE-754/ソース解析。実行テストなし。
 
 ## Audit #794 — normality tests return finite floor p-values for non-finite observations
-- 対象: `src/htest/normalityTests.ts` SHA `5af37c355b8fd52a9168fe5edac16ac9a8bca83f` の `standardized()` と `adTest()` / `cvmTest()` / `pearsonTest())。
+- 対象: `src/htest/normalityTests.ts` SHA `5af37c355b8fd52a9168fe5edac16ac9a8bca83f` の `standardized()` と `adTest()` / `cvmTest()` / `pearsonTest()`。
 - Issue [#304](https://github.com/numero-uno-jpn/rStats.js/issues/304)。再現: `const x=[1,2,3,4,5,6,7,Infinity]; adTest(x); cvmTest(x); pearsonTest(x);`。非有限値があると標準化結果を全NaNにするが、AD/CvMの区分的p値計算が比較をすべてfalseとして固定下限p値(3.7e-24 / 7.37e-10)を返す。Pearsonは全クラス0件のまま統計量8、有限p値を計算する。NaN欠損を除外した後にInfinityを明示的に拒否すべき。静的ソース/IEEE-754解析。実行テストなし。
 
 
