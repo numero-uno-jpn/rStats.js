@@ -21,7 +21,7 @@ import { pnorm, qnorm } from "../distributions/normal.js";
 import { rank } from "../internal/summary.js";
 import { uniroot } from "../internal/uniroot.js";
 import type { DataFrame } from "../models/modelFrame.js";
-import { pansariExact, qansariR } from "./core/ansari.js";
+import { checkAnsariExactSize, pansariExact, qansariR } from "./core/ansari.js";
 import { twoGroupData } from "./testFormula.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 import { maxOf, minOf } from "../internal/extremes.js";
@@ -34,7 +34,12 @@ import { maxOf, minOf } from "../internal/extremes.js";
 export interface AnsariTestOptions {
   /** Alternative hypothesis (unambiguous abbreviations accepted). Default `"two.sided"`. */
   alternative?: Alternative | "two" | "l" | "g";
-  /** Exact p-value. Default: exact when both samples have fewer than 50 values and there are no ties. */
+  /**
+   * Exact p-value. Default: exact when both samples have fewer than 50 values and there are no ties. The exact
+   * distribution keeps 2 (m + 1) (floor((m + n + 1)^2 / 4) + 1) doubles and makes m + n passes over half of them;
+   * beyond 2^24 doubles or 2^32 steps (m = n = 203, or m = 1 and n = 2047) it is a RangeError (R computes it however
+   * large).
+   */
   exact?: boolean;
   /** Compute a confidence interval for the ratio of scales and its estimate (R's `conf.int`). Default `false`. */
   confInt?: boolean;
@@ -99,6 +104,8 @@ export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: A
   let pValue: number;
   let ci: CIPart | undefined;
   if (exact && !ties) {
+    // (the exact distribution grows like m (m + n)^3: a RangeError before it is built when too large, #308)
+    checkAnsariExactSize(m, n);
     const upperFrom = (q: number): number => pansariExact(q - 1, m, n, false); // P(AB >= q)
     const lowerTo = (q: number): number => pansariExact(q, m, n, true); // P(AB <= q)
     if (alternative === "two.sided") {

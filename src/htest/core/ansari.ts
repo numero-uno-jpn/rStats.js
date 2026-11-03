@@ -18,6 +18,27 @@ interface AnsariDist {
 
 const cache = new Map<string, AnsariDist>();
 
+/** Largest number of doubles the two layers of ansariDist may hold (as #232's 2^24; 128 MB, #308) */
+const MAX_EXACT_SIZE = 2 ** 24;
+/** Largest work N (m + 1) (maxSum + 1) of ansariDist (m = n = 202 is about 5 s) */
+const MAX_EXACT_WORK = 2 ** 32;
+
+/**
+ * Throws a RangeError when the exact distribution for sample sizes m and n is too large to build: the two layers of
+ * ansariDist hold 2 (m + 1) (maxSum + 1) doubles (maxSum = floor((N + 1)^2 / 4), N = m + n) and the N passes take
+ * N (m + 1) (maxSum + 1) steps (m = n = 1000 asked for 16 GB). Checked before any allocation.
+ *
+ * @param m - Size of the first sample.
+ * @param n - Size of the second sample.
+ */
+export function checkAnsariExactSize(m: number, n: number): void {
+  const N = m + n;
+  const cells = (m + 1) * (Math.floor((N + 1) ** 2 / 4) + 1);
+  if (2 * cells > MAX_EXACT_SIZE || N * cells > MAX_EXACT_WORK) {
+    throw new RangeError(`the exact distribution for m = ${m} and n = ${n} is too large to compute: use exact: false`);
+  }
+}
+
 function ansariDist(m: number, n: number): AnsariDist {
   const key = `${m},${n}`;
   const hit = cache.get(key);

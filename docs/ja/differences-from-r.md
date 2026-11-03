@@ -555,7 +555,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   数秒より長くかかる大きさでは、何も確保する前に RangeError を投げます (上限は開発機での計測から決めました。`ksTest`
   の n < 100 などの既定の切り替えは、上限よりずっと小さい)。`ksTest(exact: true)` (1 標本、両側、D < 1/2) は大きさ
   m = 2 floor(n D) + 1 の行列を n 乗し、m^3 と行列の積の回数の積が 2^33 まで (n 1023 で m 781、3.6 秒) です。
-  `exact: false` を案内します。R は時間がかかっても計算します (issue #307)。
+  `ansariTest(exact: true)` (同順位なし) は分布に 2 (m + 1) (floor((N + 1)^2 / 4) + 1) 個 (N = m + n) の double を使い、
+  これが 2^24 まで、手数 (その半分の N 倍) が 2^32 まで (m = n = 202 で 5.3 秒) です。`exact: false` を案内します。
+  R は時間がかかっても計算します (issue #307、#308)。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。
