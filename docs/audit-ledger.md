@@ -5151,3 +5151,7 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #862 — Binomial near-mean deviance underflows before weighting
 - 対象: `src/models/glmFamily.ts` SHA `6d7dc129d990b8724501ac59d4015562abe3e20c` の `binomialDev()`。
 - Issue [#373](https://github.com/numero-uno-jpn/rStats.js/issues/373)。再現: `mu=1e-300`、`y=mu*(1+2**-52)`、`w=1e308`として`makeFamily("binomial").devContribution(y,mu,w)`。near-mean bd0は約4.93e-332でbinary64下限未満となり、weight適用前に0へunderflowするが、weighted devianceは約4.93e-24で表現可能。weightを含めたscaled near-mean formulaが必要。静的式/IEEE-754解析。実行なし。
+
+## Audit #863 — uniform summary variance overflows before division by 12
+- 対象: `src/distributions/summary.ts` SHA `ea70fb8834a59bf1c1f8239c8306f14d703b2856` の `distSummary("unif")`。
+- Issue [#376](https://github.com/numero-uno-jpn/rStats.js/issues/376)。再現: `distSummary("unif", { min: 0, max: 2e154 })`。実際のbinary64 `max` は `0x1.7dddf6b095ff1p+512`。実装の `(max - min) ** 2` は `Infinity` になるが、厳密な分散 `max²/12` は `3.3333333333333335796503045870548481569…e307`、正しく丸めたdoubleは `3.3333333333333337e307` (`0x1.7bbef5d3a60d6p+1021`) で有限。`sdDirect` は有限値を返すため variance/sd も不整合。`src/index.ts` → `src/entries/distributions.ts` から公開される `distSummary` で再現可能。静的IEEE-754/Fraction厳密計算。package runtime/Vitest/R未実行。Rでは未確認。極端な有限幅のみ。overflow-risk pathで式を切り替えれば通常入力の値を保てる見込み。過去のreview report / fix summaryのdistSummary No.80/81はunif平均・beta分散・triang skewness等で、本件のunif varianceは扱っていない。
