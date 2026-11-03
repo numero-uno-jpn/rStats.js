@@ -20,7 +20,7 @@ import { checkConfLevel, checkConfLevelOpen, isCount, matchAlternative, type Alt
  * @category Hypothesis tests
  */
 export interface PoissonTestOptions {
-  /** Time base(s): one per count, nonnegative. Default `1` (or `[1, 1]`). */
+  /** Time base(s): one per count, positive and finite (R accepts 0 and returns NaN or Inf; an error here). Default `1` (or `[1, 1]`). */
   T?: number | readonly number[];
   /** Hypothesized rate, or rate ratio for two samples (nonnegative). Default `1`. */
   r?: number;
