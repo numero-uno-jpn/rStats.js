@@ -316,7 +316,7 @@ function preciseFit(Xall: number[][], Yall: number[], Wall: number[] | undefined
  */
 export function fitLm(Xall: number[][], Yall: number[], Wall: number[] | undefined, intercept: boolean, precise = false): LmCore {
   const k = scaleToUnit([Yall.filter((_, i) => Wall === undefined || Wall[i]! !== 0)]).k;
-  if (k === 0) return fitLmUnit(Xall, Yall, Wall, intercept, precise);
+  if (k === 0) return zeroWeightRows(fitLmUnit(Xall, Yall, Wall, intercept, precise), Xall, Yall, Wall);
   const core = fitLmUnit(Xall, Yall.map((v) => ldexp(v, -k)), Wall, intercept, precise);
   const r = core.result;
   const back = (v: number): number => ldexp(v, k);
@@ -326,7 +326,32 @@ export function fitLm(Xall: number[][], Yall: number[], Wall: number[] | undefin
   r.sigma = back(r.sigma);
   r.coefTable.estimate = r.coefTable.estimate.map(back);
   r.coefTable.stdError = r.coefTable.stdError.map(back);
-  return { ...core, effects: core.effects.map(back), rss: ldexp(core.rss, 2 * k), yScale: k, rssScaled: core.rss };
+  return zeroWeightRows({ ...core, effects: core.effects.map(back), rss: ldexp(core.rss, 2 * k), yScale: k, rssScaled: core.rss }, Xall, Yall, Wall);
+}
+
+/**
+ * The rows of weight 0 whose fitted value or residual is not finite, taken again in the units of the response (#193):
+ * the response is scaled by the 2^-k of the rows in the fit, so a finite response or x'b of a row left out could
+ * overflow in the scaled units (y = (1e-308, 1e308), weights (1, 0): the residual 1e308 was Infinity). The fitted
+ * value is x'b from the coefficients (aliased ones count as 0), by the exact inner product where the plain sum is not
+ * finite (as predict, #195); the residual is y minus it. Rows with finite values keep their bits
+ */
+function zeroWeightRows(core: LmCore, Xall: number[][], Yall: number[], Wall: number[] | undefined): LmCore {
+  if (Wall === undefined) return core;
+  const r = core.result;
+  const used = r.coefficients.flatMap((c, j) => (Number.isNaN(c) ? [] : [j]));
+  Wall.forEach((w, i) => {
+    if (w !== 0) return;
+    let refit = false;
+    if (!Number.isFinite(r.fittedValues[i]!)) {
+      const x = Xall[i]!;
+      const s = used.reduce((t, j) => t + x[j]! * r.coefficients[j]!, 0);
+      r.fittedValues[i] = Number.isFinite(s) ? s : rescaledDot(used.map((j) => x[j]!), used.map((j) => r.coefficients[j]!), s);
+      refit = true;
+    }
+    if (refit || !Number.isFinite(r.residuals[i]!)) r.residuals[i] = Yall[i]! - r.fittedValues[i]!;
+  });
+  return core;
 }
 
 /** fitLm on a response already in [1, 2) in absolute value (or one whose scale needs no change) */
