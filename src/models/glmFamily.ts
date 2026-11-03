@@ -408,7 +408,15 @@ function gammaFar(y: number, mu: number, w: number, q: number): number {
 
 /** The poisson deviance 2 w (y log(y/mu) - (y - mu)); 2 w bd0(y, mu) for y near mu (nearMean) */
 function poissonDev(y: number, mu: number, w: number): number {
-  if (nearMean(y, mu)) return 2 * w * bd0(y, mu);
+  if (nearMean(y, mu)) {
+    const B = bd0(y, mu);
+    const r = 2 * w * B;
+    // (mu = 1e-300, y one ulp above, w = 1e308 gave Inf times 0 = NaN, #375): bd0 is homogeneous of degree 1, so in
+    // units of 2^e (e from mu, exact), the weight's exponent taken out
+    if (!outOfRange(y, mu, w, B, r)) return r;
+    const e = exponentOf(mu);
+    return weightedScaled(w, bd0(ldexp(y, -e), ldexp(mu, -e)), e);
+  }
   const D = (y === 0 ? 0 : y * logWarn(y / mu)) - (y - mu);
   const r = 2 * w * D;
   return outOfRange(y, mu, w, D, r) ? poissonFarScaled(y, mu, w) : r;
