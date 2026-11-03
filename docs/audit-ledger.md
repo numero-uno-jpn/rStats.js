@@ -5248,3 +5248,11 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 
 - 対象: `src/random/continuous.ts` SHA `5ad76e5676b4bf27c36b288f8e48ac3821bfd92a` の `rnorm1()` と、`src/random/rng.ts` / `src/random/mt.ts` / `src/random/as241.ts` の標準正規乱数生成経路。
 - 新規Issue [#396](https://github.com/numero-uno-jpn/rStats.js/issues/396)。再現: `setSeed(7); rnorm(1, { mean: -1e308, sd: 1e308 })`。seed 7のuniform列から `normRand()` は約2.287247161340524を生成するため、`sd * Z` がInfinityにoverflowする。一方、実際のbinary64入力値を厳密に計算した `mean + sd * Z` は有限で、正しく丸めると `1.2872471613405238e308`（`0x1.6e9ec2dfbf524p+1023`）。有限な平均が積のoverflowを相殺するケースで、計算順序によりInfinityを返す。Rとの互換性差異は主張せず、数値安定性の問題として登録。MT seed展開・`normRand()`・AS241のsource式を追跡し、正確有理数計算で期待値を確認。package runtime/Vitest未実行。
+
+
+## Audit #883 — monoH.FC slope-ratio overflow bypasses the monotonicity limiter
+
+- 対象: `src/numerics/interp.ts` SHA `aecc2664337b329edc1005fc6e2d9fbf0c706ed3` の `fritschCarlsonSlopes()` / `evalHermite()`。
+- 新規Issue [#397](https://github.com/numero-uno-jpn/rStats.js/issues/397)。再現: `const f = splinefun([0, 1, 2], [0, 1e-200, 1e200], { method: "monoH.FC" }); f([0.5])`。有限かつ単調増加のデータだが、secantsは `[1e-200, 1e200]`、中央初期傾きは約 `5e199`。第1区間で `alpha=1`、`beta≈5e399` がInfinityとなり、`a` / `b` もInfinity。limiter条件 `alpha * (a + b) < a * a` は `Infinity < Infinity` でfalseとなり、制限されない巨大な右端傾きがHermite基底の負係数に掛かるため、x=0.5で約 `-6.25e198` の大幅な範囲外overshootを生む。dimensionlessな判定・正規化の中間overflowが原因。
+- 既存Issue #125は有限knot間隔の差がoverflowする問題。本件は通常のknot `[0,1,2]` で、有限ordinate secant間の比がoverflowする別経路。
+- IEEE-754算術とソース制御フローによる静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
