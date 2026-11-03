@@ -182,6 +182,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `pbinom(36, 1e5, 0.01, log.p = TRUE)` | -Inf (内部でアンダーフロー、警告あり) | -851.68… |
 | `pbinom(1e16, 2e16, 0.5)` (2^53 を超え、x + 1 が丸めで x になる) | 0.5 (対称な I_p(x, x)) | 0.5000000028209479 = 1/2 + dbinom/2 (I_p(x + 1, n - x) = I_p(x, n - x) - (n - x)/n dbinom(x)。n - x も丸めでずれる場合は NaN)。`ppois` もこの範囲で同じ恒等式を使う (R の値と一致) |
 | `pnbinom(1e16, 1e16, 0.5)` (2^53 を超え、x + 1 が丸めでずれる) | 0.5 | 0.5000000028209479 = 1/2 + dnbinom (I_p(size, x + 1) = I_p(size, x) + dnbinom(x))。`qnbinom(0.5, 1e16, 0.5)` は R と同じく 1e16。極端な上側の裾で項が裾に対して分解できない場合は、丸めた x + 1 を使う (そこでは x の 1 の違いが結果の分解能より小さい) |
+| `pgeom(2^54, 1e-14, lower.tail = FALSE)` (2^53 を超え、x + 1 が丸めでずれる) | 0x1.13bd80f2f26d7p-260 (丸めた x + 1 を指数にした q^(x + 1)) | 0x1.13bd80f2f26d2p-260 (q^x q。正しく丸めた値は ...d1p-260。issue #327) |
 | `binom.test(0, 1e20)`、`poisson.test(0, r = 1e20)` (2^53 を超えるカウント) | エラー "result would be too long a vector" | p 値を返す (二分法は中点が端点に丸まったところで止める。以前は終わらなかった) |
 | `poisson.test(2^53 + 2, r = 2^53 + 2, alternative = "greater")` (2^53 を超え、x - 1 が丸めでずれる) | 0.50000000980826 (P[X >= x] を丸めた x - 1 の ppois(x - 1, upper) で計算) | 0.50000000140118 = P[X > x] + dpois(x)。真値は 1 次で 1/2 + 1/(3 sqrt(2 pi x))。両側の p 値の上側の裾も同じ (issue #323) |
 | `binom.test(2^53, 2^54, alternative = "greater")`、`binom.test(2^53 + 2, 2^54 + 4, alternative = "greater")` (2^53 を超え、x - 1 か n - (x - 1) が丸めでずれる) | 0.5、0.500000011889406 (丸めた引数の pbinom(x - 1, upper)) | 0.5000000029723516 = P[X > x] + dbinom(x) (真値 1/2 + dbinom(n/2)/2)。両側の p 値の上側の裾も同じ (issue #324) |

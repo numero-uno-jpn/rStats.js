@@ -50,10 +50,17 @@ export function dgeom1(x: number, prob: number, log: boolean): number {
   return log ? Math.log(prob) + qn : prob * qn;
 }
 
-/** P[X > x] = q^(x+1) (x a nonnegative integer) */
+/**
+ * P[X > x] = q^(x+1) (x a nonnegative integer). Where x + 1 is not exact (beyond 2^53), q^x q: x + 1 rounded to x or
+ * x + 2 and the tail was off by a factor q (relative 1e-14 for prob = 1e-14 at x = 2^54; issue #327)
+ */
 function upper(x: number, prob: number, log: boolean): number {
   const { pd, qd } = probPair(prob);
-  return qPow(x + 1, pd, qd, log);
+  if (x + 1 - x === 1) return qPow(x + 1, pd, qd, log);
+  const qx = qPow(x, pd, qd, log);
+  if (!log) return qx * (qd[0] + qd[1]);
+  const lq: DD = qd[0] === 1 ? [-pd[0], -(pd[0] * pd[0]) / 2] : ddLog(qd);
+  return qx + (lq[0] + lq[1]);
 }
 
 function pgeomRaw(x: number, prob: number, lowerTail: boolean, logP: boolean): number {
