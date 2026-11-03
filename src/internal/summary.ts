@@ -23,6 +23,8 @@
 //    See centered, groupMoments, pairedDifferences, standardize and scaleToUnit.
 
 import { ddAdd, ddDivNum, ddMul, ddSub, type DD } from "../special/dd.js";
+import { isDoubleDouble } from "../special/dd.js";
+import { roundScaled, splitDouble } from "../linalg/dot.js";
 
 /**
  * Running sum of finite values in double-double that does not overflow: its value is (s[0] + s[1]) 2^shift. shift
@@ -40,7 +42,8 @@ export function wideSum(): WideSum {
 /**
  * Power of 2 by which the sums of n finite values are scaled once they overflow: the scaled sum stays below 2^992,
  * so that it can also be divided in double-double (whose splitting overflows above about 2^996). Values below
- * 2^(shift - 1022) lose bits when scaled, which cannot matter next to a sum beyond the double range
+ * 2^(shift - 1022) lose bits when scaled, which matters only where the large values later cancel (sum() bounds such
+ * losses and then sums exactly, #374)
  */
 function overflowShift(n: number): number {
   return 32 + Math.ceil(Math.log2(Math.max(n, 1)));
@@ -286,9 +289,103 @@ export function satterthwaiteDf(w: readonly number[], df: readonly number[]): nu
  */
 export function sum(x: readonly number[]): number {
   if (!x.every(Number.isFinite)) return nonFiniteSum(x);
-  const acc = wideSum();
-  for (const v of x) wideSumAdd(acc, v, x.length);
-  return wideSumValue(acc);
+  if (!isDoubleDouble()) {
+    const acc = wideSum();
+    for (const v of x) wideSumAdd(acc, v, x.length);
+    return wideSumValue(acc);
+  }
+  // The steps of wideSumAdd (ddAdd of [v, 0]) written out, with a bound on what they lose (#374). The double-double
+  // keeps two components, so a third band of magnitudes is rounded away when it is added to the low one: with the
+  // bands later cancelling, sum([1e308, 1e100, 1, -1e308, -1e100]) was 0 and sum([1e20, 1e3, 1e-10, -1e20, -1e3])
+  // 1.0004e-10. The value is that of wideSumAdd; only where the lost amount could move it across a rounding boundary
+  // is the sum formed exactly instead (rare: the losses are zero or about 2^-106 of the partial sums)
+  const n = x.length;
+  let hi = 0;
+  let lo = 0;
+  let shift = 0;
+  let f = 1;
+  let lost = 0;
+  for (const x0 of x) {
+    let v = x0;
+    if (shift !== 0) {
+      v = x0 * f;
+      // (a value below 2^(shift - 1022) is rounded onto the subnormals when scaled)
+      if (v / f !== x0) lost += 2 ** -1074;
+    }
+    let s1 = hi + v;
+    let bb2 = s1 - hi;
+    let e3 = hi - (s1 - bb2) + (v - bb2);
+    let u7 = e3 + (lo + 0);
+    let s8 = s1 + u7;
+    let e9 = u7 - (s8 - s1);
+    let s11 = s8 + (e9 + 0);
+    let e12 = e9 + 0 - (s11 - s8);
+    if (shift === 0 && !(Number.isFinite(s1) && Number.isFinite(s11) && Number.isFinite(e12))) {
+      // the sum would overflow: from here on, the values scaled by 2^-shift (as wideSumAdd)
+      shift = overflowShift(n);
+      f = 2 ** -shift;
+      const h = hi * f;
+      const l = lo * f;
+      if (h / f !== hi) lost += 2 ** -1074;
+      if (l / f !== lo) lost += 2 ** -1074;
+      hi = h;
+      lo = l;
+      v = x0 * f;
+      if (v / f !== x0) lost += 2 ** -1074;
+      s1 = hi + v;
+      bb2 = s1 - hi;
+      e3 = hi - (s1 - bb2) + (v - bb2);
+      u7 = e3 + (lo + 0);
+      s8 = s1 + u7;
+      e9 = u7 - (s8 - s1);
+      s11 = s8 + (e9 + 0);
+      e12 = e9 + 0 - (s11 - s8);
+    }
+    // the rounding of u7 = e3 + lo is the step that loses; the next two are exact where |s1| >= |u7| or s1 = 0
+    const bb = u7 - e3;
+    lost += Math.abs(e3 - (u7 - bb) + (lo - bb));
+    if (Math.abs(u7) > Math.abs(s1) && s1 !== 0) lost += (Math.abs(u7) + Math.abs(s1)) * 2 ** -51;
+    hi = s11;
+    lo = e12;
+  }
+  const r = hi + lo;
+  if (lost > 0 && mayRoundOtherwise(hi, lo, r, lost * (1 + n * 2 ** -52), shift)) return exactSum(x);
+  return ldexp(r, shift);
+}
+
+/**
+ * Whether a true sum within lost of hi + lo (in units of 2^shift) may round to another double than r = fl(hi + lo):
+ * lost reaches the distance from hi + lo to the nearest rounding boundary of r (half the gap below a power of 2, as a
+ * bound). With shift != 0 also where scaling back may round again (a result near the subnormals)
+ */
+function mayRoundOtherwise(hi: number, lo: number, r: number, lost: number, shift: number): boolean {
+  if (!Number.isFinite(r)) return true;
+  const a = Math.abs(r);
+  if (shift !== 0 && a < 2 ** -1000) return true;
+  const offset = Math.abs(hi - r + lo); // exact: r = fl(hi + lo) with |lo| at most half an ulp of hi
+  let gap: number;
+  if (a < 2 ** -1022) gap = 2 ** -1074;
+  else {
+    const [m, e] = splitDouble(a);
+    gap = 2 ** e;
+    if (m === 1n << 52n) gap /= 2;
+  }
+  return lost >= gap / 2 - offset;
+}
+
+/** The sum of finite values formed exactly (integers times 2^-1074 in BigInt) and rounded once */
+function exactSum(x: readonly number[]): number {
+  let low = Infinity;
+  const parts: [bigint, number][] = [];
+  for (const v of x) {
+    if (v === 0) continue;
+    const p = splitDouble(v);
+    parts.push(p);
+    if (p[1] < low) low = p[1];
+  }
+  let acc = 0n;
+  for (const [m, e] of parts) acc += m << BigInt(e - low);
+  return roundScaled(acc, low);
 }
 
 /**

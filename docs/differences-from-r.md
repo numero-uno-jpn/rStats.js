@@ -102,6 +102,14 @@ The comparison values for these come from mpmath (100 to 800 digits) rather than
 - **Bessel functions** for large x or order: R is off by 1e-13 to 1e-11 at many points and far off
   at some (see the next section).
 
+### Sums
+
+- **`sum`** of values in three or more bands of magnitude that later cancel: R's long double keeps 64 bits and
+  rStats.js's double-double 106, so a band far below the others is rounded away. `sum(c(1e308, 1e100, 1, -1e308,
+  -1e100))` is -1e100 in R and `sum(c(1e20, 1e3, 1e-10, -1e20, -1e3))` -1000; the exact values are 1 and 1e-10.
+  rStats.js keeps a bound on what its double-double lost and, only where that could change the rounded result,
+  forms the sum exactly (BigInt) and rounds it once: 1 and 1e-10 (issue #374). Other sums are unchanged.
+
 ### Discrete quantiles with p extremely close to 1
 
 For calls such as `qpois(0.999999999999999, 1e5)`, where 1 − p is below 1e-12, R compares
