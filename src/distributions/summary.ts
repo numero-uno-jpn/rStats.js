@@ -565,22 +565,28 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const { a = -1, b = 1 } = P;
       const c = P.c ?? midpoint(a, b);
       if (!(Number.isFinite(a) && Number.isFinite(b) && a < b && a <= c && c <= b)) return NAN;
-      const q = a * a + b * b + c * c - a * b - a * c - b * c;
-      // (where q overflows or underflows: from the parameters divided by a power of 2)
+      // q = a² + b² + c² - ab - ac - bc as (b - a)(b - c) + (c - a)², whose terms are all non-negative: the
+      // expanded form cancels when the location is large against the width ((1e10, 1e10 + 1, 1e10 + 0.25) gave the
+      // variance 910 for 0.045) and overflows to Inf - Inf near the top of the range (issue #243). The skewness's
+      // numerator (a + b - 2c)(2a - b - c)(a - 2b + c) is (w - v)(u + v)(u + w) in the same differences
       const e = Math.floor(Math.log2(Math.max(Math.abs(a), Math.abs(b), Math.abs(c))));
-      const [as, bs, cs] = [a, b, c].map((v) => ldexp(v, -e)) as [number, number, number];
-      const qs = as * as + bs * bs + cs * cs - as * bs - as * cs - bs * cs;
-      // the skewness is scale-free: from the scaled parameters where the cubes of the parameters' scale could
-      // overflow or underflow (the largest outside [2^-300, 2^300]); inside, the products are in range
-      const [sa, sb, sc, sq] = e >= -300 && e < 300 ? [a, b, c, q] : [as, bs, cs, qs];
+      // from the parameters divided by 2^e where b - a overflows, the powers of the parameters' scale could
+      // overflow or underflow (the largest outside [2^-300, 2^300]) or those of the width could underflow (below
+      // 2^-290: q^1.5 fell onto the subnormals); otherwise the products are in range
+      const scaled = !Number.isFinite(b - a) || e < -300 || e >= 300 || b - a < 2 ** -290;
+      const [x, y, z] = scaled ? ([a, b, c].map((v) => ldexp(v, -e)) as [number, number, number]) : [a, b, c];
+      const u = y - x;
+      const v = z - x;
+      const w = y - z;
+      const q = u * w + v * v;
       return make(
         Number.isFinite(a + b + c) ? (a + b + c) / 3 : a / 3 + b / 3 + c / 3,
-        q / 18,
+        scaled ? ldexp(q / 18, 2 * e) : q / 18,
         qtriang(0.5, { a, b, c }),
         c,
-        (Math.SQRT2 * (sa + sb - 2 * sc) * (2 * sa - sb - sc) * (sa - 2 * sb + sc)) / (5 * sq ** 1.5),
+        (Math.SQRT2 * (w - v) * (u + v) * (u + w)) / (5 * q ** 1.5),
         -0.6,
-        ldexp(Math.sqrt(qs / 18), e),
+        scaled ? ldexp(Math.sqrt(q / 18), e) : Math.sqrt(q / 18),
       );
     }
     case "laplace": {
