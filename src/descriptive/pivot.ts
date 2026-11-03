@@ -157,14 +157,21 @@ function separated(names: readonly string[], sep: string, count: number, warning
   const extra: number[] = [];
   const short: number[] = [];
   const parts = names.map((name, i) => {
+    // The pieces between the matches, as tidyr (R's gregexpr(perl = TRUE) and regmatches(invert = TRUE)): after a
+    // zero-width match the search goes on one character later, and it stops once it reaches the end of the name
     const pieces: string[] = [];
     let start = 0;
-    for (const m of name.matchAll(re)) {
-      if (m[0].length === 0) continue;
-      pieces.push(name.slice(start, m.index));
-      start = m.index + m[0].length;
+    let prev = 0;
+    for (;;) {
+      re.lastIndex = start;
+      const m = re.exec(name);
+      if (m === null) break;
+      pieces.push(name.slice(prev, m.index));
+      prev = m.index + m[0].length;
+      start = m[0].length === 0 ? m.index + 1 : prev;
+      if (start >= name.length) break;
     }
-    pieces.push(name.slice(start));
+    pieces.push(name.slice(prev));
     if (pieces.length > count) extra.push(i + 1);
     if (pieces.length < count) short.push(i + 1);
     return Array.from({ length: count }, (_, j) => pieces[j] ?? null);

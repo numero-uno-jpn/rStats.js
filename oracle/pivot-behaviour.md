@@ -31,7 +31,9 @@ boolean, which selects in the data's order), `namesTo` (`"name"`; a string or an
      with one element: error `` `names_sep` can't be used with a length 1 `names_to`. ``;
    - several: exactly one of `namesSep` and `namesPattern` (else error `If you supply multiple names in `names_to`
      you must also supply one of `names_sep` or `names_pattern`.`, the backticks as in the fixture's style).
-     `namesSep`: split at each match of the separator into that many pieces; more pieces: the extra ones are
+     `namesSep`: split at each match of the separator into that many pieces (the matches as R's
+     `gregexpr(perl = TRUE)`: after a zero-width match the search resumes one character later, and stops at the end
+     of the name, so `(?=[A-Z])` splits `FooBar` into `"", Foo, Bar` and `""` splits `abc` into `"", a, b, c`); more pieces: the extra ones are
      dropped, with the warning `Expected <n> pieces. Additional pieces discarded in <k> rows [<i>, <j>].`; fewer: the
      missing ones are missing values (filled at the end), warning `Expected <n> pieces. Missing pieces filled with
      `NA` in <k> rows [<i>].` (i, j: 1-based positions among the selected columns; the fixture has the exact texts).
