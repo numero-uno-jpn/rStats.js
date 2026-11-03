@@ -1,6 +1,6 @@
 # Issue #246 log: zeroTol 0 gives a zero Richardson step at a coordinate equal to 0
 
-GitHub Issue #246. Session 11, judging of the issues classified C. Verdict: **Awaiting decision**, with #213. The issue's example (grad) already throws, as the triage found, but jacobian and hessian, which the issue also names, return NaN silently. No code was changed.
+GitHub Issue #246. Session 11, judging of the issues classified C. Then user decision 6 (option A, with #213). Fixed by #213's check: a step of 0 is an error in `grad`, `jacobian` and `hessian`.
 
 ## Plan
 
@@ -19,14 +19,21 @@ GitHub Issue #246. Session 11, judging of the issues classified C. Verdict: **Aw
 
 `zeroTol` is checked to be finite and non-negative; 0 is accepted and works for nonzero coordinates. grad's error comes from the check of the function's values (0 / 0 is NaN); jacobian and hessian have no such check, as numDeriv.
 
-## Options
+## Decision (user decision 6)
 
-- **A (recommended, the same as #213's A):** in `steps()`, throw a RangeError where a step is not positive and finite, e.g. "the step for x[i] is 0 (x[i] = 0 and zeroTol = 0)". grad, jacobian and hessian then agree; nonzero coordinates with zeroTol 0 keep working. numDeriv gives NaN for jacobian and hessian, so the docs record it.
-  - Pros: one check covering #213 and #246; a clear message. Cons: R difference for jacobian and hessian.
-- **B:** use eps for an exact 0 coordinate even when zeroTol is 0 (`abs(v) <= zeroTol`).
-  - Pros: returns the derivative ([0], [[0]], [[2]]). Cons: changes the meaning of zeroTol = 0 from numDeriv's (`abs(x) < zero.tol`), and grad's result from numDeriv's error to a value.
-- **C:** not planned: the same as numDeriv for all three.
+Option A of the judging, which was recommended and is #213's option A (the others were B: use eps for an exact 0 even with zeroTol 0, changing the meaning of zeroTol from numDeriv's; C: not planned). The code change is in #213's commit: `steps()` in `src/numerics/deriv.ts` throws where a step is not positive and finite, which covers the step 0 of x[i] = 0 with zeroTol 0. The docs entry (the list of meaningless input that is an error) was added there too, naming both issues.
+
+| Call | before | after |
+|---|---|---|
+| `grad(x => x[0] * x[0], [0], { zeroTol: 0 })` | RangeError "func returned NaN at step 0 from x" | RangeError "the step for x[0] is 0: not a positive finite number" |
+| `jacobian(x => [x[0] * x[0]], [0], { zeroTol: 0 })` | [[NaN]] | the same RangeError |
+| `hessian(x => x[0] * x[0], [0], { zeroTol: 0 })` | [[NaN]] | the same RangeError |
+| `grad(x => x[0] * x[0], [1], { zeroTol: 0 })` | 1.9999999999870133 | unchanged |
+
+## Tests
+
+- `test/issue246.test.ts`: the three calls throw, and the nonzero coordinate keeps its value. With `src/numerics/deriv.ts` from before #213's commit, the first block fails.
 
 ## close comment
 
-Awaiting a decision; see review_fix_log_issue246.md. (Not pushed yet.)
+Fixed in <commit of #213, see git log --grep='#213'> (the check added for #213), with a test in <commit of #246, see git log --grep='#246'>. grad already threw for x = 0 with zeroTol 0, but only from its check of the function's values (0 / 0 is NaN); jacobian and hessian returned [[NaN]], as numDeriv does. The steps of the Richardson method are now checked where they are formed: a step that is not positive and finite, here 0, throws RangeError "the step for x[0] is 0: not a positive finite number" in grad, jacobian and hessian alike. Nonzero coordinates with zeroTol 0 keep working (grad of x^2 at 1: 1.9999999999870133 as before). numDeriv returns NaN for jacobian and hessian; the difference is recorded in docs/differences-from-r.md. A test was added: test/issue246.test.ts. (Not pushed yet.)
