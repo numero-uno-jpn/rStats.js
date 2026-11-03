@@ -26,7 +26,7 @@ import { parseFormula } from "./formula.js";
 import type { DataFrame } from "./modelFrame.js";
 import { design, type Design, type ModelMatrixOptions } from "./modelMatrix.js";
 import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
-import { rescaledDot } from "../linalg/dot.js";
+import { checkDot, checkedDot } from "../linalg/dot.js";
 
 const MIN_NORMAL = 2 ** -1022;
 
@@ -366,7 +366,7 @@ function zeroWeightRows(core: LmCore, Xall: number[][], Yall: number[], Wall: nu
     if (!Number.isFinite(r.fittedValues[i]!)) {
       const x = Xall[i]!;
       const s = used.reduce((t, j) => t + x[j]! * r.coefficients[j]!, 0);
-      r.fittedValues[i] = Number.isFinite(s) ? s : rescaledDot(used.map((j) => x[j]!), used.map((j) => r.coefficients[j]!), s);
+      r.fittedValues[i] = checkDot(s, 0) ? checkedDot(used.map((j) => x[j]!), used.map((j) => r.coefficients[j]!), s) : s;
       refit = true;
     }
     if (refit || !Number.isFinite(r.residuals[i]!)) r.residuals[i] = Yall[i]! - r.fittedValues[i]!;
@@ -654,8 +654,9 @@ export function predict(
   const used = fit.coefficients.flatMap((c, j) => (Number.isNaN(c) ? [] : [j]));
   const values = X.map((r) => {
     const s = r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0);
-    // products of finite values may overflow while x'b is in range (2 * 1e308 - 2 * 1e308): the exact inner product
-    return Number.isFinite(s) ? s : rescaledDot(used.map((j) => r[j]!), used.map((j) => fit.coefficients[j]!), s);
+    // products of finite values may overflow while x'b is in range (2 * 1e308 - 2 * 1e308), or underflow while the
+    // sum is tiny (#395): the exact inner product
+    return checkDot(s, 0) ? checkedDot(used.map((j) => r[j]!), used.map((j) => fit.coefficients[j]!), s) : s;
   });
   // se: || R^-T x_piv || sigma, by forward substitution with R^T
   const forward = (x: readonly number[]): number[] => {

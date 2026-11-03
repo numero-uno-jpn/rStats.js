@@ -27,7 +27,7 @@ import {
 import { maxOf } from "../internal/extremes.js";
 import { ldexp, ldexpWide, scaleToUnit } from "../internal/summary.js";
 import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
-import { rescaledDot } from "../linalg/dot.js";
+import { checkDot, checkedDot } from "../linalg/dot.js";
 
 export type { GlmFamilyName, GlmFamilySpec, GlmLink, GlmLinkName, QuasiVariance } from "./glmFamily.js";
 
@@ -1123,8 +1123,8 @@ export function glmPredict(
     eta = X.map((r, i) => {
       const s = r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0);
       // products of finite values may overflow while x'b is in range (2 * 1e308 - 2 * 1e308): the exact inner
-      // product, as predict for lm (#174)
-      const xb = Number.isFinite(s) ? s : rescaledDot(used.map((j) => r[j]!), used.map((j) => fit.coefficients[j]!), s);
+      // product, as predict for lm (#174); also where products underflow while the sum is tiny (#395)
+      const xb = checkDot(s, 0) ? checkedDot(used.map((j) => r[j]!), used.map((j) => fit.coefficients[j]!), s) : s;
       return xb + off[i]!;
     });
   }

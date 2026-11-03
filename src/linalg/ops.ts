@@ -10,7 +10,7 @@ import type { Sample } from "../htest/types.js";
 import { cbindFrames, rbindFrames } from "../descriptive/dataFrames.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { maxOf } from "../internal/extremes.js";
-import { rescaledDot } from "./dot.js";
+import { checkDot, checkedDot } from "./dot.js";
 
 /**
  * A vector (plain array) or a matrix (array of rows).
@@ -81,12 +81,24 @@ export function matMul(x: Operand, y: Operand): number[][] {
   checkRows(a);
   // an inner dimension of 0 (an n x 0 matrix times an empty vector) gives n x 1 zeros, as R (b[0] was read)
   const p = b.length > 0 ? checkRows(b) : 1;
+  // the smallest nonzero |entry| of each column of b and row of a: tiny sums checked for underflow only (#395)
+  const minB = new Array<number>(p).fill(Infinity);
+  for (const r of b)
+    for (let j = 0; j < p; j++) {
+      const v = Math.abs(r[j]!);
+      if (v !== 0 && v < minB[j]!) minB[j] = v;
+    }
   return a.map((row) => {
+    let minRow = Infinity;
+    for (const t of row) {
+      const v = Math.abs(t);
+      if (v !== 0 && v < minRow) minRow = v;
+    }
     const out = new Array<number>(p).fill(0);
     for (let j = 0; j < p; j++) {
       let s = 0;
       for (let k = 0; k < n; k++) s += row[k]! * b[k]![j]!;
-      out[j] = Number.isFinite(s) ? s : rescaledDot(row, b.map((r) => r[j]!), s);
+      out[j] = checkDot(s, minRow * minB[j]!) ? checkedDot(row, b.map((r) => r[j]!), s) : s;
     }
     return out;
   });

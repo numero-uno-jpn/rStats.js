@@ -7,7 +7,7 @@
 // - Only the upper-left k x k triangle of r is used. Only the first k rows of the right-hand side are used
 // - A zero on the diagonal is an error (as in R, only when exactly 0)
 
-import { rescaledDot } from "./dot.js";
+import { checkDot, checkedDot } from "./dot.js";
 import { fromMat, isMatrixInput, newMat, toMat, toMatOrColumn, type Mat, type MatrixInput, type VectorOrMatrix } from "./matrix.js";
 
 /**
@@ -33,14 +33,16 @@ export function crossprod(x: VectorOrMatrix, y?: VectorOrMatrix): number[][] {
   if (a.nrow !== b.nrow) throw new TypeError(`non-conformable arguments (${a.nrow} and ${b.nrow} rows)`);
   const n = a.nrow;
   const out = newMat(a.ncol, b.ncol);
+  // the smallest nonzero |entry| of each column: the inner products of tiny sums checked for underflow only (#395)
+  const minA = minAbsColumns(a), minB = y === undefined ? minA : minAbsColumns(b);
   for (let j = 0; j < b.ncol; j++) {
     for (let i = 0; i < a.ncol; i++) {
       // When the result is symmetric (y omitted), compute only the upper triangle and copy it to the lower later
       if (y === undefined && i > j) continue;
       let s = 0;
       for (let k = 0; k < n; k++) s += a.data[k + i * n]! * b.data[k + j * n]!;
-      // (products of finite entries may overflow while the sum is in range: as matMul)
-      out.data[i + j * a.ncol] = Number.isFinite(s) ? s : rescaledDot(column(a, i), column(b, j), s);
+      // (products of finite entries may overflow while the sum is in range, or underflow: as matMul)
+      out.data[i + j * a.ncol] = checkDot(s, minA[i]! * minB[j]!) ? checkedDot(column(a, i), column(b, j), s) : s;
     }
   }
   if (y === undefined) mirrorUpper(out);
@@ -68,13 +70,14 @@ export function tcrossprod(x: VectorOrMatrix, y?: VectorOrMatrix): number[][] {
   const b = y === undefined ? a : toMatOrColumn(y);
   if (a.ncol !== b.ncol) throw new TypeError(`non-conformable arguments (${a.ncol} and ${b.ncol} columns)`);
   const out = newMat(a.nrow, b.nrow);
+  const minA = minAbsRows(a), minB = y === undefined ? minA : minAbsRows(b);
   for (let j = 0; j < b.nrow; j++) {
     for (let i = 0; i < a.nrow; i++) {
       // When the result is symmetric (y omitted), compute only the upper triangle and copy it to the lower later
       if (y === undefined && i > j) continue;
       let s = 0;
       for (let k = 0; k < a.ncol; k++) s += a.data[i + k * a.nrow]! * b.data[j + k * b.nrow]!;
-      out.data[i + j * a.nrow] = Number.isFinite(s) ? s : rescaledDot(row(a, i), row(b, j), s);
+      out.data[i + j * a.nrow] = checkDot(s, minA[i]! * minB[j]!) ? checkedDot(row(a, i), row(b, j), s) : s;
     }
   }
   if (y === undefined) mirrorUpper(out);
@@ -262,4 +265,29 @@ export function trsm(A: Mat, n: number, B: Mat, upper: boolean, trans: boolean):
       }
     }
   }
+}
+
+/** The smallest nonzero |entry| of each column (Infinity if none) */
+function minAbsColumns(m: Mat): number[] {
+  const out: number[] = [];
+  for (let c = 0; c < m.ncol; c++) {
+    let lo = Infinity;
+    for (let r = 0; r < m.nrow; r++) {
+      const v = Math.abs(m.data[r + c * m.nrow]!);
+      if (v !== 0 && v < lo) lo = v;
+    }
+    out.push(lo);
+  }
+  return out;
+}
+
+/** The smallest nonzero |entry| of each row (Infinity if none) */
+function minAbsRows(m: Mat): number[] {
+  const out = new Array<number>(m.nrow).fill(Infinity);
+  for (let c = 0; c < m.ncol; c++)
+    for (let r = 0; r < m.nrow; r++) {
+      const v = Math.abs(m.data[r + c * m.nrow]!);
+      if (v !== 0 && v < out[r]!) out[r] = v;
+    }
+  return out;
 }

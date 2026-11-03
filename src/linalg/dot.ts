@@ -1,5 +1,6 @@
-// The fallback for an inner product whose plain sum is not finite, shared by matMul (ops.ts), crossprod and
-// tcrossprod (basic.ts) and the matrix form of predict for lm (models/lm.ts).
+// The fallback for an inner product whose plain sum is not finite, or is tiny with products that underflowed (#395),
+// shared by matMul (ops.ts), crossprod and tcrossprod (basic.ts), the rows of weight 0 and predict for lm
+// (models/lm.ts) and predict for glm (models/glm.ts).
 //
 // Written for rStats.js (no ported code).
 
@@ -75,4 +76,36 @@ export function roundScaled(sum: bigint, low: number): number {
   // rounding up to 2^53 (or past 2^1024) is exact here and overflows to Infinity in the scaling
   const out = scaleExact(q, shift <= 0 ? low : last);
   return negative ? -out : out;
+}
+
+/**
+ * Below this |s| the products that underflowed may matter: each is off by up to 2^-1075, n of them by n 2^-1075,
+ * which is n 2^-54 ulp of s at 2^-969 = 2^-1022 2^53 and lost in the rounding of the sum above it
+ */
+const UNDERFLOW_SUM = 2 ** -969;
+const MIN_NORMAL = 2 ** -1022;
+
+/**
+ * Whether the plain sum s of an inner product is to be checked by checkedDot: s not finite, or |s| < 2^-969 and
+ * the product of the smallest nonzero |factors| (a lower bound of every nonzero product; 0 to always check) below
+ * 2^-1022. Otherwise s stands, with the bits of the plain sum
+ */
+export function checkDot(s: number, minProduct: number): boolean {
+  return !Number.isFinite(s) || (Math.abs(s) < UNDERFLOW_SUM && minProduct < MIN_NORMAL);
+}
+
+/**
+ * The plain sum s of the inner product of u and v, or the exact inner product (rescaledDot) where s is not finite,
+ * or where |s| < 2^-969 and a product of nonzero factors fell below 2^-1022 (#395: 100 products 1e-162 * 1e-162
+ * round to 0 each, for 1e-322; R gives 0 too). A sum that cancels in the normal range (1e16 + 1 - 1e16 = 0) keeps
+ * its plain value
+ */
+export function checkedDot(u: readonly number[], v: readonly number[], s: number): number {
+  if (!Number.isFinite(s)) return rescaledDot(u, v, s);
+  if (!(Math.abs(s) < UNDERFLOW_SUM)) return s;
+  for (let k = 0; k < u.length; k++) {
+    const a = u[k]!, b = v[k]!;
+    if (a !== 0 && b !== 0 && Math.abs(a * b) < MIN_NORMAL) return rescaledDot(u, v, s);
+  }
+  return s;
 }
