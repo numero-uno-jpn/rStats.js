@@ -286,6 +286,9 @@ export function jonckheereTest(x: Sample, g: readonly GroupLabel[], options: Jon
     const z = (jt - mean) / Math.sqrt(variance);
     lower = pnorm(z);
     upper = 1 - lower;
+    // 1 - pnorm loses the small upper tail (0 beyond z ~ 8.3); below 1e-8 take it directly,
+    // elsewhere the packages' expression (the same bits) (#280)
+    if (upper < 1e-8) upper = pnorm(z, { lowerTail: false });
   }
   const cap = variant === "clinfun" ? 0.5 : 1;
   const pValue = alternative === "increasing" ? upper : alternative === "decreasing" ? lower : Math.min(1, 2 * Math.min(upper, lower, cap)); // (DescTools can exceed 1)
