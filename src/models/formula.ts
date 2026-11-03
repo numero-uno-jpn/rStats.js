@@ -384,14 +384,19 @@ export function expandRhs(
           const a = L(n.left, negated);
           let e = n.right;
           while (e.type === "paren") e = e.arg;
-          // n is truncated towards zero (R's asInteger: ^2.5 is ^2)
+          // n is truncated towards zero (R's asInteger: ^2.5 is ^2; beyond the int range, as 1e999, NA and an error)
           const p = e.type === "num" ? Math.trunc(e.value) : NaN;
-          if (!(p >= 2)) throw new Error("invalid power in formula");
+          if (!(p >= 2 && p <= 2147483647)) throw new Error("invalid power in formula");
           let cur = a;
           for (let k = 1; k < p; k++) {
             const nxt: number[][] = [];
             for (const s of a) for (const t of cur) nxt.push(union(s, t));
-            cur = dedupe(nxt);
+            const next = dedupe(nxt);
+            // a fixed point (the same terms in the same order) stays one: the remaining steps change nothing, so a
+            // large power ends after at most as many steps as there are variables (#294)
+            const same = next.length === cur.length && next.every((t, i) => keyOf(t) === keyOf(cur[i]));
+            cur = next;
+            if (same) break;
           }
           return cur;
         }
