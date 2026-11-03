@@ -91,7 +91,10 @@ export interface ApproxOptions {
   yleft?: number;
   /** Value right of the data. Default: NaN (rule 1) or the last y (rule 2). */
   yright?: number;
-  /** Extrapolation rule (1: NaN, 2: the end value), for both sides or `[left, right]`. Default `1`. */
+  /**
+   * Extrapolation rule (1: NaN, 2: the end value), for both sides or `[left, right]`. Default `1`. Any other value is
+   * an error (R takes every value other than 1 as 2).
+   */
   rule?: number | readonly [number, number];
   /** For `"constant"`: the step value is (1 - f) y_left + f y_right, with f in [0, 1] (else an error, as in R). Default `0`. */
   f?: number;
@@ -110,6 +113,17 @@ function approxMethod(m: unknown): "linear" | "constant" {
     if (hit.length === 1) return hit[0]!;
   }
   throw new RangeError("invalid interpolation method");
+}
+
+/**
+ * The extrapolation rules [left, right] of approx: 1 or 2, given once or as a pair. Any other value (R takes every
+ * value other than 1 as rule 2, #221), NaN or more than two values (R's errors) is an error
+ */
+function approxRule(rule: unknown): [1 | 2, 1 | 2] {
+  const r = typeof rule === "number" ? [rule] : Array.isArray(rule) ? (rule as unknown[]) : [];
+  const ok = (v: unknown): v is 1 | 2 => v === 1 || v === 2;
+  if (r.length < 1 || r.length > 2 || !r.every(ok)) throw new RangeError("'rule' must be 1 or 2, or a pair of them");
+  return [r[0]!, r[r.length - 1]!] as [1 | 2, 1 | 2];
 }
 
 /**
@@ -134,13 +148,13 @@ export function approx(
 } {
   const { n = 50, f = 0, rule = 1, ties = "mean" } = options;
   const method = approxMethod(options.method);
+  const [ruleLeft, ruleRight] = approxRule(rule);
   const pts = regularize(x, y, ties);
   const nx = pts.x.length;
   if (nx <= 1 && method === "linear") throw new RangeError("need at least two non-NA values to interpolate");
   if (nx === 0) throw new RangeError("zero non-NA points");
   // As in R, f is checked only for the constant method
   if (method === "constant" && !(f >= 0 && f <= 1)) throw new RangeError("approx(): invalid f value");
-  const [ruleLeft, ruleRight] = typeof rule === "number" ? [rule, rule] : rule;
   const yleft = options.yleft ?? (ruleLeft === 1 ? NaN : pts.y[0]!);
   const yright = options.yright ?? (ruleRight === 1 ? NaN : pts.y[nx - 1]!);
   let xout: number[];

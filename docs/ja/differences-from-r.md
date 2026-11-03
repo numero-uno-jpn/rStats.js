@@ -390,7 +390,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   `hessian` の 0 の刻み `eps` や、有限でない `d`・`eps`・`zeroTol` (numDeriv の "simple" 法は `eps = 0` で NaN を返す。`d = 0` は
   numDeriv でもエラー)、`TukeyHSD` の [0, 1] の外か NaN の `confLevel` (R は区間の端に NaN を返す。0 と 1 は R と同じく受け付ける)、
   `cut` で (NaN を除いて) 2 個未満の区切り (R は NA の区間番号を返す。1 個は R でもエラー "invalid number of intervals"。無限の区切りは
-  R と同じく受け付ける)、`hist` の無限か NaN の区切り (R は無限の幅のセルに密度 0 と無限か NaN の中点を返す)。
+  R と同じく受け付ける)、`hist` の無限か NaN の区切り (R は無限の幅のセルに密度 0 と無限か NaN の中点を返す)、`approx` の 1・2 以外の
+  `rule` (R は 3、0、1.5 など 1 以外の値をすべて rule 2 として扱う)。
 - **検出力と効果量の関数**は、既知の量の NaN (pwr はたいてい "missing value where TRUE/FALSE needed" で止まる。
   以前は NaN を返していた)、`pwrRTest` の [-1, 1] の外の相関、`esH`・`esW1`・`esW2` の [0, 1] の外の確率 (R は NaN)、
   `esW2` の空や不整形の行列 (R は 0)、`powerPropTest` の n <= 0 (R は n = 0 で検出力を返し、負なら NaN)、`pwrTTest` の
