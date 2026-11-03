@@ -353,6 +353,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `anova()` of lmer fits of different rows of the data or different responses with the same number of rows | a likelihood ratio test | an error (lme4 compares only the number of rows) |
 | `power.t.test(n = 10, delta = 1e308, sd = 1e308)` and other delta, sd whose noncentrality is finite while sqrt(n / ts) × delta overflows | power 1 (the noncentrality Inf) | 0.56198, the power of delta = sd = 1 (the ratio delta / sd taken first where the product overflows) |
 | `poisson.test(c(1e308, 0), r = 2, T = c(1, 1e308))` and `poisson.test(c(1e300, 0), r = 2, T = c(1e-10, 1e308))` (the expected count, where n r T1 and r T2 / T1 overflow) | NaN (with bgrat warnings); 0 | 1; 1e-18: n r T1 / (T1 + r T2) from the mantissas of n, r, T1 and T2, their powers of 2 applied last |
+| `summary(glm(y ~ 1, Gamma("log"), weights = rep(2e304, 100)))` with y 99 times 1e-6 and once 5000, and other fits whose weighted sum of squared Pearson residuals overflows while the dispersion does not (also `glmAnova`, `glmPredict`, `glmRstandard`, `glmCooksDistance`) | dispersion Inf | 2.0e306: where the sum overflows, each term as (sqrt(w) r)^2 with the residuals and the products divided by powers of 2, and the exponents added back after the division by the residual degrees of freedom |
 
 ## Deliberate differences
 

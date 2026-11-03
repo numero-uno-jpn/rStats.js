@@ -752,7 +752,25 @@ function dispersionOf(fit: GlmResult, warnings?: Warnings): number {
   let s = 0;
   for (let i = 0; i < fit.weights.length; i++) if (fit.weights[i]! > 0) s += fit.weights[i]! * fit.residuals[i]! ** 2;
   if (fit.weights.some((v) => v === 0)) warnings?.add("observations with zero weight not used for calculating dispersion");
+  if (s === Infinity) return scaledPearsonMean(fit);
   return s / fit.dfResidual;
+}
+
+/**
+ * sum W r^2 / dfResidual where the plain sum overflows: each term as (sqrt(W) r)^2 with the residuals and then the
+ * products divided by powers of 2 (2^-kr, 2^-kb), so that the sum stays in range, and the exponents added back after
+ * the division (#176). Terms below 2^-1074 of the largest are lost, which cannot matter next to a sum beyond the
+ * double range
+ */
+function scaledPearsonMean(fit: GlmResult): number {
+  const rows: number[] = [];
+  for (let i = 0; i < fit.weights.length; i++) if (fit.weights[i]! > 0) rows.push(i);
+  if (!rows.every((i) => Number.isFinite(fit.weights[i]!) && Number.isFinite(fit.residuals[i]!))) return Infinity;
+  const r = scaleToUnit([rows.map((i) => fit.residuals[i]!)]);
+  const b = scaleToUnit([rows.map((i, j) => Math.sqrt(fit.weights[i]!) * Math.abs(r.groups[0]![j]!))]);
+  let s = 0;
+  for (const v of b.groups[0]!) s += v * v;
+  return ldexp(s / fit.dfResidual, 2 * (r.k + b.k));
 }
 
 /**

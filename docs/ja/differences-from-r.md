@@ -347,6 +347,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 行数は同じだが使った行や応答が異なる lmer の当てはめの `anova()` | 尤度比検定を返す | エラー (lme4 は行数だけを比べる) |
 | `power.t.test(n = 10, delta = 1e308, sd = 1e308)` など、非心度は有限だが sqrt(n / ts) × delta が溢れる delta・sd | 検出力 1 (非心度が Inf) | 0.56198。delta = sd = 1 と同じ検出力 (積が溢れるときだけ比 delta / sd を先に作る) |
 | `poisson.test(c(1e308, 0), r = 2, T = c(1, 1e308))` と `poisson.test(c(1e300, 0), r = 2, T = c(1e-10, 1e308))` (n r T1 と r T2 / T1 が溢れる場合の期待度数) | NaN (bgrat の警告つき)。0 | 1。1e-18。n r T1 / (T1 + r T2) を n、r、T1、T2 の仮数で計算し、2 の冪を最後に掛ける |
+| y が 1e-6 を 99 個と 5000 の `summary(glm(y ~ 1, Gamma("log"), weights = rep(2e304, 100)))` など、分散パラメータは有限だが Pearson 残差の重みつき平方和が溢れる当てはめ (`glmAnova`・`glmPredict`・`glmRstandard`・`glmCooksDistance` も) | dispersion が Inf | 2.0e306。和が溢れるときだけ、各項を (sqrt(w) r)^2 とし、残差とその積を 2 の冪で割って和を取り、残差自由度で割ってから指数を戻す |
 
 ## 意図的な違い
 
