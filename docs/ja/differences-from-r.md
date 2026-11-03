@@ -258,7 +258,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `besselK(1, 1e12)`、`besselY(1, 1e12)`、`besselY(10, 1e8)` (大きな次数で、結果が範囲を大きく超える) | エラー "cannot allocate vector of size 7450.6 Gb"、警告付きの NaN | Inf、-Inf、-Inf をすぐに返す (次数に比例する漸化式の前に、結果の対数の上界・下界で判定する) |
 | `besselK(1e8, 2e8)` | 0 | Inf |
 | タイがあり `exact` を指定しない (または `TRUE`) `ansari.test(conf.int = TRUE)` | エラー "object 'cint' not found" (両方の標本が 50 未満だと R は正確な方法の分岐に入り、タイがあると区間を飛ばす) | 正規近似の区間と推定値 (`exact: false` と同じ) |
-| `weighted.mean(c(1e308, 1e308), c(1, 1))` など和が溢れる場合。重みの和だけが溢れる `weighted.mean(c(1e-308, 2e-308), c(1e308, 1e308))`。符号付きの重みが打ち消し合う `weighted.mean(c(1e308, 1e308, 1e308), c(1e308, -1e308, 1e-308))` | Inf。0。NaN | 1e308。1.5e-308。1e308 (積の和と重みの和を厳密に求め、商を 1 回だけ丸める) |
+| `weighted.mean(c(1e308, 1e308), c(1, 1))` など和が溢れる場合。重みの和だけが溢れる `weighted.mean(c(1e-308, 2e-308), c(1e308, 1e308))`。符号付きの重みが打ち消し合う `weighted.mean(c(1e308, 1e308, 1e308), c(1e308, -1e308, 1e-308))`。積がアンダーフローする `weighted.mean(1e-200, 1e-200)` | Inf。0。NaN。0 | 1e308。1.5e-308。1e308。1e-200 (積の和と重みの和を厳密に求め、商を 1 回だけ丸める) |
 | `fivenum(c(1e308, 1e308))`、`hist(...)$mids`、Kaplan-Meier の中央値、`wilcox.test` の Hodges-Lehmann 推定値と midrange、三角分布の既定の最頻値、`splinefun` の `monoH.FC` の傾き (いずれも `(a + b) / 2`) | a + b が溢れると Inf | 中点 (a + b が溢れるときは a / 2 + b / 2) |
 | `hist(c(-1e308, 1e308), breaks = c(-1e308, 0, 1e308))$counts` (breaks が 3 個以下で、データの範囲が溢れる) | (2, 0) (数えるときのずらし幅 1e-7 × 範囲が Inf) | (1, 1): ずらし幅は範囲の半分から求めて 2 倍する |
 | `hist(c(-1e308, 1e308), breaks = "Scott")`、`breaks = "FD"` (有限のデータで範囲と Scott または Freedman-Diaconis の幅が溢れる) | エラー "invalid number of 'breaks'" (Inf / Inf) | breaks (-1e308, 0, 1e308): 区間数は、データを 2 の冪で割った範囲と幅から求める (FD は先に 5 桁に丸める) |

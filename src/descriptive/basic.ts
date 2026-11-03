@@ -174,12 +174,22 @@ export function weightedMean(x: Sample, w: Sample, options: NaRmOptions = {}): n
     ws = ws.filter((_, i) => keep[i]);
   }
   const prods: number[] = [];
-  for (let i = 0; i < xs.length; i++) if (ws[i] !== 0) prods.push(xs[i]! * ws[i]!);
+  // a product of nonzero factors below the normal range has lost bits (1e-200 * 1e-200 is 0, #364)
+  let lost = false;
+  for (let i = 0; i < xs.length; i++) {
+    if (ws[i] === 0) continue;
+    const p = xs[i]! * ws[i]!;
+    if (xs[i] !== 0 && Math.abs(p) < 2 ** -1022) lost = true;
+    prods.push(p);
+  }
   const sw = sumOf(ws);
   const m = sumOf(prods) / sw;
-  if ((Number.isFinite(m) && Number.isFinite(sw)) || !xs.every(Number.isFinite) || !ws.every(Number.isFinite)) return m;
-  // Exact quotient where the scaling below would lose a weight: signed weights whose sum cancels to far below the
-  // largest weight (1e-308 next to 1e308 and -1e308 became 0 when divided by 2^1024, so the mean was 0 / 0, #334)
+  if ((Number.isFinite(m) && Number.isFinite(sw) && !lost) || !xs.every(Number.isFinite) || !ws.every(Number.isFinite)) {
+    return m;
+  }
+  // Exact quotient where a product underflowed, or where the scaling below would lose a weight: signed weights whose
+  // sum cancels to far below the largest weight (1e-308 next to 1e308 and -1e308 became 0 when divided by 2^1024, so
+  // the mean was 0 / 0, #334)
   const exact = exactWeightedMean(xs, ws);
   if (exact !== undefined) return exact;
   // Finite values whose products or sums overflow (R returns Inf, NaN, or 0 where only the sum of the weights
