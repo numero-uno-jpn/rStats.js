@@ -586,6 +586,12 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   table of log factorials with total + 1 entries (128 MB at the limit; the same 2^24 as the exact tests above).
   R builds the table for any total up to 2147483647 (8 GB for `r2dtable(1, c(5e8, 5e8), c(5e8, 5e8))`).
   `r2dtable(0, ...)` builds no table and still accepts totals up to 2147483647, as R (issues #285, #286, #336).
+- **The exact p-values of `ksTest`, `ansariTest`, `corTest` (Kendall), `jonckheereTest` and the Hommel method of
+  `pAdjust`** throw a RangeError, before anything is allocated, where the computation would need more than a few
+  seconds (limits set from timings on the development machine; the default thresholds, such as n < 100 for `ksTest`,
+  are far below them). `ksTest(exact: true)` (one sample, two-sided, D < 1/2): the matrix of size m = 2 floor(n D) + 1
+  is raised to the n-th power, and m^3 times the number of matrix products may be at most 2^33 (m 781 at n 1023, 3.6 s);
+  the hint is to use `exact: false`. R computes these however long it takes (issue #307).
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)

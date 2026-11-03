@@ -63,6 +63,30 @@ function matPow(H: Float64Array, m: number, n: number): [Float64Array, number] {
   return [result!, re];
 }
 
+/** Largest work m^3 (number of matrix products) of pkolmogorovExact that ksTest accepts: about 4 s (#307) */
+const MAX_EXACT_WORK = 2 ** 33;
+
+/**
+ * Throws a RangeError when pkolmogorovExact(n, d) would need more than MAX_EXACT_WORK: the m x m matrix
+ * (m = 2 floor(n d) + 1) is raised to the n-th power with floor(log2 n) squarings and popcount(n) - 1 products, each
+ * m^3 multiply-adds (n 1e4 with d 0.4999 asked for an 800 MB matrix and hours of work). Checked before any allocation.
+ *
+ * @param n - Sample size.
+ * @param d - Value of the statistic.
+ */
+export function checkKolmogorovExactSize(n: number, d: number): void {
+  // the branches of pkolmogorovExact that use no matrix
+  if (Number.isNaN(d) || !(n >= 1) || n !== Math.floor(n) || d <= 1 / (2 * n) || d >= 1 || n * d < 1) return;
+  const m = 2 * Math.floor(n * d) + 1;
+  const bits = n.toString(2);
+  const products = Math.max(1, bits.length - 1 + (bits.split("1").length - 2));
+  if (m ** 3 * products > MAX_EXACT_WORK) {
+    throw new RangeError(
+      `the exact distribution of D for n = ${n} needs powers of a ${m} x ${m} matrix, too much work: use exact: false`,
+    );
+  }
+}
+
 /**
  * P(D_n < d), the exact distribution of the two-sided one-sample Kolmogorov-Smirnov statistic for a continuous
  * distribution (Marsaglia, Tsang and Wang 2003). The matrix has size 2 floor(n d) + 1, so the cost grows like

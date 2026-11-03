@@ -7,7 +7,7 @@
 // taken only where the pooled sorted values change; exact p-values (by default for m n < 10000, with or without ties)
 // by counting lattice paths, asymptotic ones as for one sample with n replaced by m n / (m + n).
 
-import { pkolmogorovExact, pkolmogorovLimit, pkolmogorovOneSidedUpper } from "./core/kolmogorov.js";
+import { checkKolmogorovExactSize, pkolmogorovExact, pkolmogorovLimit, pkolmogorovOneSidedUpper } from "./core/kolmogorov.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { psmirnovUpper } from "./core/smirnov.js";
 import { twoGroupData } from "./testFormula.js";
@@ -26,7 +26,9 @@ export interface KsTestOptions {
   alternative?: Alternative | "two" | "l" | "g";
   /**
    * Exact p-value. Default: exact for one sample of fewer than 100 values without ties, and for two samples with
-   * m n < 10000.
+   * m n < 10000. The exact two-sided one-sample p-value for D < 1/2 raises a matrix of size 2 floor(n D) + 1 to the
+   * n-th power; where that needs more than 2^33 multiply-adds (m 781 at n 1023, about 4 s) it is a RangeError (R
+   * computes it however long it takes).
    */
   exact?: boolean;
 }
@@ -111,6 +113,8 @@ export function ksTest(
     const ties = new Set(xs).size < n;
     const exact = options.exact ?? (n < 100 && !ties);
     let pValue: number;
+    // (the matrix of the exact distribution grows with n D: a RangeError before it is built when too large, #307)
+    if (exact && alternative === "two.sided" && statistic < 0.5) checkKolmogorovExactSize(n, statistic);
     if (alternative === "two.sided") {
       // For D >= 1/2 the two one-sided exceedances cannot both occur, so P(D >= d) = 2 P(D+ >= d) exactly, a sum of
       // positive terms: 1 - P(D < d) lost all digits of small p-values (D = 0.9 gave 0 at n = 20 for 2e-20, and 3e-15

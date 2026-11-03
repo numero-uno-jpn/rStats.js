@@ -551,6 +551,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   (16777216) を超えると RangeError を投げます。Patefield の方法が総数 + 1 個の対数階乗の表を使うためです (上限で
   128 MB。上の正確検定と同じ 2^24)。R は総数 2147483647 まで表を作ります (`r2dtable(1, c(5e8, 5e8), c(5e8, 5e8))` は
   8 GB)。`r2dtable(0, ...)` は表を作らないので、R と同じく総数 2147483647 まで受け付けます (issue #285、#286、#336)。
+- **`ksTest`・`ansariTest`・`corTest` (Kendall)・`jonckheereTest` の正確な p 値と、`pAdjust` の Hommel 法**は、計算に
+  数秒より長くかかる大きさでは、何も確保する前に RangeError を投げます (上限は開発機での計測から決めました。`ksTest`
+  の n < 100 などの既定の切り替えは、上限よりずっと小さい)。`ksTest(exact: true)` (1 標本、両側、D < 1/2) は大きさ
+  m = 2 floor(n D) + 1 の行列を n 乗し、m^3 と行列の積の回数の積が 2^33 まで (n 1023 で m 781、3.6 秒) です。
+  `exact: false` を案内します。R は時間がかかっても計算します (issue #307)。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。
