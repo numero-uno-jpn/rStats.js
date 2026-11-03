@@ -69,11 +69,45 @@ export interface ModelMatrixResult {
 export type DesignContrast = ContrastName | "contr.poly";
 
 /**
+ * Number of levels from which contr.poly is built by the recurrence ({@link polyRecurrence}) instead of R's QR of the
+ * powers. Below it the QR's elements are within 3e-13 of the exact values (and the bits are those of the earlier
+ * versions); from 16 levels on its error grows (2e-12 at 16, 1e-10 at 20, and from 23 the high-degree columns are
+ * other vectors altogether, in R as well), while the recurrence stays within 1e-15 (issue #351)
+ */
+const POLY_RECURRENCE_LEVELS = 16;
+
+/**
+ * The orthonormal polynomials of degrees 1..k-1 in the centred scores, as columns (one row per level): P_0 = 1/sqrt(k)
+ * and P_d from x P_(d-1) orthogonalised twice against every earlier P (the Stieltjes three-term recurrence spans the
+ * same space; the full re-orthogonalisation keeps its rounding from accumulating), normalised. The coefficient of the
+ * highest power stays positive (x P_(d-1) has P_(d-1)'s positive leading coefficient), as for the QR.
+ */
+function polyRecurrence(k: number): number[][] {
+  const mean = (k + 1) / 2;
+  const x = Array.from({ length: k }, (_, i) => i + 1 - mean);
+  const cols: number[][] = [new Array<number>(k).fill(1 / Math.sqrt(k))];
+  const dot = (a: readonly number[], b: readonly number[]): number => a.reduce((s, ai, i) => s + ai * b[i]!, 0);
+  for (let d = 1; d < k; d++) {
+    const v = cols[d - 1]!.map((c, i) => c * x[i]!);
+    for (let pass = 0; pass < 2; pass++) {
+      for (const q of cols) {
+        const c = dot(q, v);
+        for (let i = 0; i < k; i++) v[i]! -= c * q[i]!;
+      }
+    }
+    const norm = Math.sqrt(dot(v, v));
+    cols.push(v.map((vi) => vi / norm));
+  }
+  return x.map((_, i) => cols.slice(1).map((c) => c[i]!));
+}
+
+/**
  * contr.poly for k levels (scores 1..k): the orthonormal polynomials of degrees 1..k-1 in the scores, the columns
  * of Q of the QR decomposition of the powers 0..k-1 of the centred scores, each signed so that its coefficient of
- * the highest power is positive (Q diag(R), normalised).
+ * the highest power is positive (Q diag(R), normalised). From {@link POLY_RECURRENCE_LEVELS} levels, by the recurrence.
  */
 function polyContrasts(k: number): number[][] {
+  if (k >= POLY_RECURRENCE_LEVELS) return polyRecurrence(k);
   const mean = (k + 1) / 2;
   const powers = Array.from({ length: k }, (_, i) => Array.from({ length: k }, (__, j) => (i + 1 - mean) ** j));
   const d = qr(powers);
