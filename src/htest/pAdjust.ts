@@ -32,7 +32,7 @@ export interface PAdjustOptions {
   method?: PAdjustMethod | (string & {});
   /**
    * Number of comparisons. Default: the number of non-`NaN` p-values. Must not be smaller
-   * than that; must be an integer for `"hommel"`.
+   * than that; must be an integer and at most 65536 for `"hommel"`.
    */
   n?: number;
 }
@@ -51,7 +51,8 @@ function matchMethod(m: string): PAdjustMethod {
  *
  * `NaN` values are excluded from the adjustment and returned as `NaN` in place. If `n` is
  * 1 or less, the p-values are returned unchanged. Differences from R: with `"hommel"` a
- * non-integer `n` is an error, and an empty `p` always gives an empty result.
+ * non-integer `n` or an `n` above 65536 (O(n^2) work, about 6 s at the limit) is an error, and an empty `p` always
+ * gives an empty result.
  *
  * @param p p-values.
  * @param options See {@link PAdjustOptions}, or just the method name as a string.
@@ -165,12 +166,17 @@ function adjust(p: readonly number[], method: PAdjustMethod, n: number): number[
   }
 }
 
+/** Largest n of the Hommel method (#391) */
+const MAX_HOMMEL_N = 2 ** 16;
+
 /**
  * Hommel adjusted p-values (the hommel procedure of statsmodels multipletests).
  * The n - lp unobserved p are added as 1. O(n^2)
  */
 function hommel(p: readonly number[], n: number): number[] {
   if (!Number.isInteger(n)) throw new RangeError("n must be an integer for the hommel method");
+  // O(n^2) steps: n = 65536 takes about 6 s, 1e5 about 12 s (#391); checked before the padding is built
+  if (n > MAX_HOMMEL_N) throw new RangeError(`n must be at most ${MAX_HOMMEL_N} for the hommel method (O(n^2) work)`);
   const lp = p.length;
   const full = [...p, ...new Array<number>(n - lp).fill(1)];
   const o = order(full, false);
