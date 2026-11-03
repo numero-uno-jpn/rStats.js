@@ -216,14 +216,27 @@ export function pearsonTest(x: Sample, options: PearsonTestOptions = {}): Normal
   const k = options.nClasses ?? Math.ceil(2 * n ** (2 / 5));
   const adjust = options.adjust ?? true;
   if (!(Number.isInteger(k) && k - 1 - (adjust ? 2 : 0) > 0)) throw new RangeError("'nClasses' must be an integer leaving positive degrees of freedom");
-  const counts = new Array<number>(k).fill(0);
+  // R's tabulate(num, n.classes): beyond the integer range "attempt to make a table with >= 2^31 elements" (#305)
+  if (k > 2147483647) throw new RangeError("attempt to make a table with >= 2^31 elements");
+  const classes: number[] = [];
   for (const z of standardized(xs)) {
     // a value whose pnorm rounds to 1 belongs to the last class (nortest drops it: tabulate ignores the class k + 1)
     const c = Math.min(k, Math.floor(1 + k * pnorm(z)));
-    if (c >= 1) counts[c - 1]!++;
+    if (c >= 1) classes.push(c);
   }
+  classes.sort((a, b) => a - b);
+  // the sum over the classes 1..k in order, with the counts taken from the sorted class numbers: the same terms in
+  // the same order as summing a k-entry count array, without allocating it (#305)
   const e = n / k;
-  const statistic = counts.reduce((a, c) => a + (c - e) ** 2 / e, 0);
+  let statistic = 0;
+  for (let c = 1, i = 0; c <= k; c++) {
+    let count = 0;
+    while (i < classes.length && classes[i] === c) {
+      count++;
+      i++;
+    }
+    statistic = statistic + (count - e) ** 2 / e;
+  }
   const df = k - 1 - (adjust ? 2 : 0);
   return {
     method: "Pearson chi-square normality test",
