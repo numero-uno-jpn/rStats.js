@@ -220,7 +220,7 @@ export function gecon(LU: Mat, anorm: number, oneNormKind: boolean): number {
   if (!Number.isFinite(anorm)) throw new RangeError("the matrix contains NaN or infinite values (LAPACK dgecon returned error -5)");
   if (anorm === 0) return 0;
   const kase1 = oneNormKind ? 1 : 2;
-  const ainvnm = lacn2(n, (kase, x) => {
+  return condition(n, (ainvnm) => 1 / ainvnm / anorm, anorm, (kase, x) => {
     if (kase === kase1) {
       trsv(LU, false, false, true, x);
       trsv(LU, true, false, false, x);
@@ -229,9 +229,33 @@ export function gecon(LU: Mat, anorm: number, oneNormKind: boolean): number {
       trsv(LU, false, true, true, x);
     }
   });
-  // Overflow during the factorisation is treated as singular
-  if (!Number.isFinite(ainvnm)) return 0;
-  return ainvnm === 0 ? 0 : 1 / ainvnm / anorm;
+}
+
+/**
+ * The reciprocal condition number reciprocal(the lacn2 estimate of the norm of the inverse applied by solve), as dgecon
+ * and dtrcon, where no product with the inverse overflowed. Where one did (#191), the estimate was 0 or wrong: rcond(diag(1, 1e-310)) gave
+ * 0, R too, where the value is 1e-310 (the norm of the inverse is out of range, the reciprocal condition number is
+ * not); a 3 x 3 matrix with a row near 2^-1040 gave 0.28, the true value near 1e-313 (LAPACK's dgecon, scaling in
+ * dlatrs, gives 0). The estimate is then repeated for the inverse times 2^-m: every vector is multiplied by 2^-m
+ * (exact, the estimator is homogeneous) before the solve, with m bringing the norm of the scaled inverse to at most
+ * 2^512 for a reciprocal condition number of at least 2^-1075 (anorm in [2^e, 2^(e + 1)), m = 563 - e), and the result
+ * scaled back. Overflowing again (in the factorisation, or a reciprocal condition number below the range): 0
+ */
+function condition(n: number, reciprocal: (ainvnm: number) => number, anorm: number, solve: (kase: 1 | 2, x: Float64Array) => void): number {
+  const estimate = (m: number): number => {
+    let finite = true;
+    const est = lacn2(n, (kase, x) => {
+      if (m !== 0) for (let i = 0; i < n; i++) x[i] = ldexp(x[i]!, -m);
+      solve(kase, x);
+      if (finite && !x.every(Number.isFinite)) finite = false;
+    });
+    return finite ? est : NaN;
+  };
+  const ainvnm = estimate(0);
+  if (Number.isFinite(ainvnm)) return ainvnm === 0 ? 0 : reciprocal(ainvnm);
+  const m = 563 - Math.floor(Math.log2(anorm));
+  const scaled = estimate(m);
+  return Number.isFinite(scaled) && scaled !== 0 ? ldexp(reciprocal(scaled), -m) : 0;
 }
 
 /** Norm of a triangular matrix (dlantr, non-unit diagonal) */
@@ -255,9 +279,7 @@ export function trcon(T: Mat, upper: boolean, oneNormKind: boolean): number {
   // Return 0 even if the norm is NaN (same as dtrcon)
   if (!(anorm > 0)) return 0;
   const kase1 = oneNormKind ? 1 : 2;
-  const ainvnm = lacn2(n, (kase, x) => trsv(T, upper, kase !== kase1, false, x));
-  if (!Number.isFinite(ainvnm)) return 0;
-  return ainvnm === 0 ? 0 : 1 / anorm / ainvnm;
+  return condition(n, (ainvnm) => 1 / anorm / ainvnm, anorm, (kase, x) => trsv(T, upper, kase !== kase1, false, x));
 }
 
 /**

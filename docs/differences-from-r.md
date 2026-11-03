@@ -301,6 +301,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `shapiro.test(c(-1e308, 0, 1e308))` (the range overflows) | NaN | W = 1, as `shapiro.test(c(-1, 0, 1))` (the data divided by a power of 2 first) |
 | polycor's `polyserial(x * 1e200, y, std.err = TRUE)` (the sum of squares overflows) | rho 0, chisq NaN | the values for x (rho 0.589 in the review example) |
 | `rexp(n, rate = 1e-310)` (positive rate, 1 / rate overflows) | NaN, with a warning, drawing nothing | the variates `exp_rand() / rate` (Inf unless the exponential variate is below about 0.018), one exponential variate each |
+| `rcond(diag(c(1, 1e-310)))` and other nonsingular matrices whose inverse has a norm beyond the doubles (also `triangular = TRUE`, a non-square matrix, and `solve`'s condition check) | 0 | 1e-310: where a product with the inverse overflows in the estimate, it is repeated with every vector divided by a power of 2 (exact) and the result scaled back; 0 only if it overflows again |
 | `backsolve(diag(1e-308, 2), c(1, 2))`, `forwardsolve(..., transpose = TRUE)` (also `solve`) | NaN, Inf (0 * Inf from the overflowed component); `solve` stops with rcond = 0 | 1e308, Inf: coefficients of exactly 0 are skipped, as an overflowed component stands for a finite value |
 | `solve(1e308 * matrix(c(1, 1, 1, -1), 2), c(1, 0))` and the inverse (the elimination overflows: -1e308 - 1e308), and `solve(matrix(c(1, 1, 1, -1), 2), c(1.7e308, -1.7e308))` (the substitution overflows) | (1e-308, 0) and an inverse with 0; -Inf, Inf | (5e-309, 5e-309) and the inverse (±5e-309); (0, 1.7e308): where U or the solution is not finite for finite input, from the LU of the matrix divided by a power of 2 (the one the condition check uses), with the right-hand side divided by the power of 2 of its largest entry if needed, scaled back once at the end |
 | `prcomp(c(1e308, -1e308, 1e308, -1e308))$sdev` (the singular value overflows) | Inf | 1.1547005383792517e308 (the decomposition of the matrix divided by a power of 2) |
@@ -785,6 +786,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   (`diag(c(1e308, 1e-308))`) becomes 0 in both.
 - **`rcond` of triangular matrices** solves by plain substitution instead of `dlatrs` (which
   rescales to avoid overflow), so matrices on the edge of overflow may give a different value.
+  Where the substitution overflows (also in the estimate from the LU decomposition), the estimate
+  is repeated with the vectors divided by a power of 2 (see the table above); R gives 0 for the
+  matrices tried there.
 - **`chol`** propagates NaN on the diagonal instead of failing (R's OpenBLAS does the same; the
   reference `dpotf2` stops). With `pivot: true`, a rank-deficient matrix returns `rank` instead
   of a warning, and the diagonal at the stopping position holds the remaining value at that
