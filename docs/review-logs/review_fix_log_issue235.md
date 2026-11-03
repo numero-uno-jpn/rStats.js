@@ -29,7 +29,7 @@ distSummary is not an R function. References: Rmpfr at 400 bits on the exact dou
 
 The issue's expected skewness 4.24e-154 for df1 = df2 = 1e308 is not right: for equal D the skewness is 3 D sqrt(8 D) / (D sqrt(2 D^2)) = 6 / sqrt(D), 6e-154 (Rmpfr agrees). Its variance (4e-308) and sd (2e-154) are right.
 
-Unchanged bits in the ordinary range: a sweep of df1, df2 over 20 values each from 0.5 to 1e150 (400 pairs; with invgamma, beta, nbinom (mu), hypergeometric and kumar modes over similar grids), against main before this group (`6ec8f78`), differs only in 20 F pairs, all with df2 = 1e100 or 1e150 whose variance and kurtosis were NaN or 0 before (now the correct values, e.g. df1 = 10, df2 = 1e150: variance 0.19999999999999998, kurtosis 1.2000000000000002); in those the sd moves by an ulp because it is now sqrt(variance) instead of the direct form. Everything else is bit for bit the same.
+Unchanged bits in the ordinary range: a sweep of df1, df2 over 20 values each from 0.5 to 1e150 (400 pairs; with invgamma, beta, nbinom (mu, up to 1e10), hypergeometric and kumar modes over similar grids), against main before this group (`6ec8f78`), differs in the F summary only in 27 pairs, all with df1 or df2 of 1e100 or 1e150, whose variance, skewness or kurtosis was NaN or 0 before (now the correct values, e.g. df1 = 10, df2 = 1e150: variance 0.19999999999999998, kurtosis 1.2000000000000002); in some of them the sd moves by an ulp because it is now sqrt(variance) instead of the direct form. (The only other differences are two invgamma pairs fixed by #238: alpha 1e150 with beta 1e100 or 1e150 had variance 0.) Everything else is bit for bit the same.
 
 ## Fix
 

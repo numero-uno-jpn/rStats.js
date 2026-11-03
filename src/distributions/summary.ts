@@ -453,12 +453,19 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const k = P.k ?? NaN;
       if (!([m, n, k].every((v) => Number.isInteger(v) && v >= 0) && k <= m + n)) return NAN;
       const N = m + n;
-      const mo = Math.floor(((k + 1) * (m + 1)) / (N + 2));
+      // Where (k + 1)(m + 1) overflows, the floor of the exact quotient in integers, rounded to a double (beyond 2^53,
+      // as the nbinom mode); k m / N and the variance from the ratio m / N where the products overflow (m = n = k =
+      // 1e200 gave mean, variance and mode Infinity; issue #237)
+      const moProduct = (k + 1) * (m + 1);
+      const mo = Number.isFinite(moProduct)
+        ? Math.floor(moProduct / (N + 2))
+        : Number(((BigInt(k) + 1n) * (BigInt(m) + 1n)) / (BigInt(m) + BigInt(n) + 2n));
       // a point mass (k = 0, m = 0, n = 0 or k = N) has variance 0 and the mean k m / N, 0 for N = 0 (the formulas gave
       // 0/0 for N = 0 and N = 1; issue #19)
       const point = k === 0 || m === 0 || n === 0 || k === N;
-      const mean = N === 0 ? 0 : (k * m) / N;
-      const variance = point ? 0 : ((mean * (n / N)) * (N - k)) / (N - 1);
+      const mean = N === 0 ? 0 : Number.isFinite(k * m) ? (k * m) / N : k * (m / N);
+      const vPlain = ((mean * (n / N)) * (N - k)) / (N - 1);
+      const variance = point ? 0 : Number.isFinite(vPlain) ? vPlain : mean * (n / N) * ((N - k) / (N - 1));
       let skewness: number;
       let kurt: number;
       if (k === 0 || m === 0 || n === 0 || k === N) {
