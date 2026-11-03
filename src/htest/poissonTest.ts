@@ -91,14 +91,17 @@ function frexp(v: number): [number, number] {
 }
 
 /**
- * n r T1 / (T1 + r T2), with the ratio T2 / T1 where the products overflow or fall below the normal range. Where that
+ * n r T1 / (T1 + r T2), with the ratio T2 / T1 where the products overflow, fall below the normal range or underflow
+ * to 0. Where that
  * overflows too (n r, or r T2 / T1; #223: n = 1e308, r = 2, T = (1, 1e308) gave Inf / Inf), from the mantissas of n, r,
  * T1 and T2 with their powers of 2 applied last
  */
 function expectedCount1(n: number, r: number, T1: number, T2: number): number {
   const den = T1 + r * T2;
   const v = (n * r * T1) / den;
-  if (Number.isFinite(v) && Number.isFinite(den) && den >= MIN_NORMAL) return v;
+  // (a 0 from positive n and r is n r T1 underflowing, not the value: n = T2 = MAX_VALUE, r = T1 = MIN_VALUE gave 0
+  // for MIN_VALUE; issue #481)
+  if (Number.isFinite(v) && Number.isFinite(den) && den >= MIN_NORMAL && (v !== 0 || n === 0 || r === 0)) return v;
   const nr = n * r;
   const den1 = 1 + r * (T2 / T1);
   // (n or r of 0: 0, as R's n r T1 / (T1 + r T2); 0 r (T2 / T1) here was 0 Inf = NaN)
