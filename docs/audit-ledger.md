@@ -4871,3 +4871,12 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #794 — normality tests return finite floor p-values for non-finite observations
 - 対象: `src/htest/normalityTests.ts` SHA `5af37c355b8fd52a9168fe5edac16ac9a8bca83f` の `standardized()` と `adTest()` / `cvmTest()` / `pearsonTest())。
 - Issue [#304](https://github.com/numero-uno-jpn/rStats.js/issues/304)。再現: `const x=[1,2,3,4,5,6,7,Infinity]; adTest(x); cvmTest(x); pearsonTest(x);`。非有限値があると標準化結果を全NaNにするが、AD/CvMの区分的p値計算が比較をすべてfalseとして固定下限p値(3.7e-24 / 7.37e-10)を返す。Pearsonは全クラス0件のまま統計量8、有限p値を計算する。NaN欠損を除外した後にInfinityを明示的に拒否すべき。静的ソース/IEEE-754解析。実行テストなし。
+
+
+## Audit #795 — pearsonTest allocates an unbounded class array
+- 対象: `src/htest/normalityTests.ts` SHA `5af37c355b8fd52a9168fe5edac16ac9a8bca83f` の `pearsonTest()`。
+- Issue [#305](https://github.com/numero-uno-jpn/rStats.js/issues/305)。再現: `pearsonTest([1,2,3,4,5,6,7,8],{nClasses:2**31})`。整数/自由度の検証は通過し、2,147,483,648要素の配列をfillしようとする。巨大なクラス数に対する割当上限を設け、割当前に拒否すべき。静的ソース解析。巨大割当・実行テストなし。
+
+## Audit #796 — pAdjust Hommel performs quadratic work for an empty p-value vector
+- 対象: `src/htest/pAdjust.ts` SHA `a9d8482a48313bc1c4874b7e2e8e3324fe3d36b3` の `pAdjust()` / `hommel()`。
+- Issue [#306](https://github.com/numero-uno-jpn/rStats.js/issues/306)。再現: `pAdjust([],{method:"hommel",n:2**32})`。非NaN p値が0件でも明示的nを受け入れ、Hommel経路がn個の1を配列確保しようとしてJSの配列長上限で失敗する。n=1e6でも出力が空なのにO(n²)ループを行う。非NaN p値が0件なら補正処理前に空結果を返すべき。静的ソース解析。巨大割当・実行テストなし。
