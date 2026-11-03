@@ -226,7 +226,9 @@ function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: G
   } else if (test === "Cp") {
     const n = ref.model.x.length;
     colNames.push("Cp");
-    extra = [rows.map((r) => r.dev + 2 * dispersion * (n - r.dfRes))];
+    // R's 2 * dispersion * (n - df) reordered: the products by 2 are exact, so the bits are the same where 2 * dispersion
+    // does not overflow, and a penalty of 0 parameters is 0 instead of Inf * 0 = NaN (#188)
+    extra = [rows.map((r) => r.dev + 2 * (n - r.dfRes) * dispersion)];
   }
   const table = cells.map((r, i) => [...r, ...extra.map((col) => col[i]!)]);
   return { colNames, rowNames: rows.map((r) => r.name), table, warnings: warnings.list };
