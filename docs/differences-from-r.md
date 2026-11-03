@@ -706,6 +706,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 ### Linear models
 
 - **`lm` with every weight 0** throws "all weights are zero"; R returns NA coefficients.
+- **`lm` with an infinite weight** throws "non-finite weights not allowed" (as `glm`). R stops with
+  "NA/NaN/Inf in 'x'" when the model has columns, but a model with no columns (`y ~ 0`) returns the residuals
+  y and sigma Inf (issue #302).
 
 ### Generalized linear models
 

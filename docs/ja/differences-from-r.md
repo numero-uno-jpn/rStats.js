@@ -658,6 +658,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 ### 線形モデル
 
 - **重みがすべて 0 の `lm`** は "all weights are zero" で例外を投げます。R は NA の係数を返します。
+- **無限の重みを持つ `lm`** は "non-finite weights not allowed" で例外を投げます (`glm` と同じ)。R は列のあるモデルでは
+  "NA/NaN/Inf in 'x'" で止まりますが、列のないモデル (`y ~ 0`) では残差 y、sigma Inf を返します (issue #302)。
 
 ### 一般化線形モデル
 

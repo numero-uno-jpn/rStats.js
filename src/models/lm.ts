@@ -398,6 +398,9 @@ function fitLmUnit(Xall: number[][], Yall: number[], Wall: number[] | undefined,
   // As R's lm.fit and lm.wfit (on the rows of non-zero weight)
   if (X.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("NA/NaN/Inf in 'x'");
   if (Y.some((v) => !Number.isFinite(v))) throw new RangeError("NA/NaN/Inf in 'y'");
+  // an infinite weight (#302): R stops with "NA/NaN/Inf in 'x'" from the weighted columns, but with no columns returns
+  // the residuals y and sigma Inf; here an error in both cases (as glm)
+  if (W?.some((v) => !Number.isFinite(v))) throw new RangeError("non-finite weights not allowed");
 
   const fitRows = Yall.flatMap((_, i) => (fitRow[i] ? [i] : []));
   // The sums of squares are formed with the weights divided by 2^kw (kw even, the largest weight then in [1, 4)):
