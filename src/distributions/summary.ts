@@ -466,7 +466,12 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       // E[X^r] = b B(1 + r/a, b): used when the integrals do not converge
       const s = si.ok ? si : fromLogRawMoments([1, 2, 3, 4].map((r) => Math.log(b) + lbeta(1 + r / a, b)) as [number, number, number, number]);
       let mode: number;
-      if (a >= 1 && b >= 1) mode = a === 1 && b === 1 ? NaN : Math.pow((a - 1) / (a * b - 1), 1 / a);
+      // ((a - 1) / (a b - 1))^(1/a); where a b overflows (a b - 1 is a b there), as ((a - 1) / a)^(1/a) b^(-1/a)
+      // (a = b = 1e200 gave 0 for 1; issue #239)
+      if (a >= 1 && b >= 1) {
+        if (a === 1 && b === 1) mode = NaN;
+        else mode = Number.isFinite(a * b) ? Math.pow((a - 1) / (a * b - 1), 1 / a) : Math.pow((a - 1) / a, 1 / a) * Math.pow(b, -1 / a);
+      }
       else if (a < 1 && b < 1) mode = NaN;
       else mode = a < 1 ? 0 : 1;
       return make(mean, s.variance, qkumar(0.5, a, b), mode, s.skewness, s.kurtosis);
