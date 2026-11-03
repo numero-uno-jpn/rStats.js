@@ -240,11 +240,12 @@ function lmMatrix(x: MatrixInput | Sample, y: Sample, options: LmOptions): LmRes
   if (xr.length !== ys.length) throw new RangeError("variable lengths differ (found for 'x')");
   const wsAll = options.weights === undefined ? undefined : Array.from(options.weights);
   if (wsAll !== undefined && wsAll.length !== ys.length) throw new RangeError("variable lengths differ (found for '(weights)')");
-  if (wsAll?.some((w) => w < 0)) throw new RangeError("missing or negative weights not allowed");
   const keep = ys.map((v, i) => !Number.isNaN(v) && xr[i]!.every((t) => !Number.isNaN(t)) && (wsAll === undefined || !Number.isNaN(wsAll[i]!)));
+  const Wall = wsAll?.filter((_, i) => keep[i]);
+  // negative weights among the rows kept only, as the formula interface and R (#455)
+  if (Wall?.some((w) => w < 0)) throw new RangeError("missing or negative weights not allowed");
   const Xall = xr.filter((_, i) => keep[i]).map((r) => (intercept ? [1, ...r] : r));
   const Yall = ys.filter((_, i) => keep[i]);
-  const Wall = wsAll?.filter((_, i) => keep[i]);
   return fitLm(Xall, Yall, Wall, intercept).result;
 }
 
