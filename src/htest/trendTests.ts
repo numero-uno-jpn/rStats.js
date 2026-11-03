@@ -124,7 +124,9 @@ export interface JonckheereTestOptions {
   alternative?: JonckheereAlternative | (string & {});
   /**
    * The exact p-value (`"DescTools"` only). Default: exact when there are no ties and at most 100 observations. With
-   * ties the normal approximation is used anyway, with a warning.
+   * ties the normal approximation is used anyway, with a warning. The exact distribution is the convolution of the
+   * Mann-Whitney distributions; where it would have more than 2^24 values or take more than 2^32 multiply-adds
+   * (three groups of 215, about 8 s), `exact: true` is a RangeError (R computes it however long it takes).
    */
   exact?: boolean;
   /** `"DescTools"` (default: `JonckheereTerpstraTest`) or `"clinfun"` (`jonckheere.test`). */
@@ -145,6 +147,9 @@ export interface JonckheereTestResult extends Omit<HTest, "alternative"> {
   warnings: string[];
 }
 
+/** Largest length (as #232's 2^24) and number of multiply-adds (three groups of 215: about 8 s) of the exact JT distribution (#321) */
+const MAX_EXACT_LENGTH = 2 ** 24;
+const MAX_EXACT_WORK = 2 ** 32;
 const NOT_EXACT = "Sample size > 100 or data with ties \n p-value based on normal approximation. Specify nperm for permutation p-value";
 const TIES = "Sample data with ties \n p-value based on normal approximation. Specify nperm for permutation p-value.";
 
@@ -249,6 +254,17 @@ export function jonckheereTest(x: Sample, g: readonly GroupLabel[], options: Jon
   let lower: number;
   let upper: number;
   if (exact) {
+    // the length of the convolution and its multiply-adds, checked before anything is built (#321)
+    let len = 1;
+    let work = 0;
+    for (const [ni, mi] of sizes) {
+      if (ni === 0 || mi === 0) continue;
+      work += len * (ni * mi + 1);
+      len += ni * mi;
+    }
+    if (len > MAX_EXACT_LENGTH || work > MAX_EXACT_WORK) {
+      throw new RangeError(`the exact distribution of JT has ${len} values and needs ${work} steps, too many: use exact: false`);
+    }
     // the convolution of the Mann-Whitney distributions
     let dist = [1];
     for (const [ni, mi] of sizes) {

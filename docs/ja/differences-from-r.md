@@ -558,7 +558,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `ansariTest(exact: true)` (同順位なし) は分布に 2 (m + 1) (floor((N + 1)^2 / 4) + 1) 個 (N = m + n) の double を使い、
   これが 2^24 まで、手数 (その半分の N 倍) が 2^32 まで (m = n = 202 で 5.3 秒) です。`corTest(method: "kendall",
   exact: true)` (同順位なし) は n が 1290 まで (手数は約 n^3 / 2、4.9 秒。Spearman の正確検定の上限と同じ数) です。
-  `exact: false` を案内します。R は時間がかかっても計算します (issue #307、#308、#316)。
+  `jonckheereTest(exact: true)` (同順位なし) は Mann-Whitney の分布の畳み込みの値の個数が 2^24 まで、積和の回数が
+  2^32 まで (215 個ずつの 3 群で 8.5 秒) です。`exact: false` を案内します。R は時間がかかっても計算します
+  (issue #307、#308、#316、#321)。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。

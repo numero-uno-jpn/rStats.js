@@ -594,7 +594,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `ansariTest(exact: true)` (no ties): the distribution keeps 2 (m + 1) (floor((N + 1)^2 / 4) + 1) doubles (N = m + n),
   at most 2^24, and N times half that many steps, at most 2^32 (m = n = 202, 5.3 s). `corTest(method: "kendall",
   exact: true)` (no ties): n at most 1290 (about n^3 / 2 steps, 4.9 s; the same number as the Spearman exact limit).
-  The hint is to use `exact: false`. R computes these however long it takes (issues #307, #308, #316).
+  `jonckheereTest(exact: true)` (no ties): the convolution of the Mann-Whitney distributions may have at most 2^24
+  values and take at most 2^32 multiply-adds (three groups of 215, 8.5 s). The hint is to use `exact: false`. R computes
+  these however long it takes (issues #307, #308, #316, #321).
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)
