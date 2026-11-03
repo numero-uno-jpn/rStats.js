@@ -82,9 +82,17 @@ export interface PivotWiderOptions {
    * for each name. Any other value is an error, as in tidyr.
    */
   namesVary?: "fastest" | "slowest";
-  /** The value of a cell that no row fills, or such values by value column. Default: missing. */
+  /**
+   * The value of a cell that no row fills, or such values by value column. Default: missing. As in tidyr, it is cast
+   * to the type of the value column: a boolean becomes 0 or 1 in a numeric column, 0 and 1 become false and true in a
+   * boolean column (NaN missing); any other mix (a string with a number or a boolean) is an error.
+   */
   valuesFill?: DataValue | Readonly<Record<string, DataValue>>;
-  /** Summarises the values of each filled cell, or such functions by value column. */
+  /**
+   * Summarises the values of each filled cell, or such functions by value column. As in tidyr, the results for one
+   * value column take one common type: booleans become 0 and 1 if any result is a number; strings mixed with numbers
+   * or booleans are an error.
+   */
   valuesFn?: PivotSummary | Readonly<Record<string, PivotSummary>>;
 }
 
@@ -337,6 +345,24 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataF
 
 // ---- pivotWider ----
 
+const typeOfValue = (x: number | string | boolean): ValueType =>
+  typeof x === "number" ? "double" : typeof x === "string" ? "character" : "logical";
+
+/** valuesFill cast to the type of the value column, as vctrs' vec_cast (a missing fill goes with any type) */
+function castFill(fill: DataValue, type: ValueType | null): DataValue {
+  if (fill === null || type === null) return fill;
+  const from = typeOfValue(fill);
+  if (from === type) return fill;
+  if (type === "double" && from === "logical") return Number(fill);
+  if (type === "logical" && from === "double") {
+    const x = fill as number;
+    if (Number.isNaN(x)) return null;
+    if (x === 0 || x === 1) return x === 1;
+    throw new TypeError("Can't convert from `fill` <double> to <logical> due to loss of precision.");
+  }
+  throw new TypeError(`Can't convert \`fill\` <${from}> to <${type}>.`);
+}
+
 /** A value as an exact key (missing values are all one key) */
 const keyOf = (v: DataValue): string =>
   isMissing(v) ? "NA" : typeof v === "number" ? `n${v}` : typeof v === "string" ? `s${v}` : `b${String(v)}`;
@@ -448,26 +474,62 @@ export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): Da
     typeof o === "function";
   const isFill = (o: DataValue | Readonly<Record<string, DataValue>>): o is DataValue =>
     typeof o !== "object" || o === null;
-  const columnOf = (value: string, m: number): Column => {
-    const source = data[value]!;
-    const summary = perColumn(options.valuesFn, isSummary, value);
-    const fill = perColumn(options.valuesFill, isFill, value) ?? null;
-    const cells = ids.firsts.map((_, r): DataValue => {
-      const rows = cellRows[r * nNames + m]!;
-      if (rows.length === 0) return fill;
-      if (summary !== undefined) return summary(rows.map((i) => source[i]!));
-      return source[rows[0]!]!;
-    });
-    if (source instanceof Float64Array && cells.every((x) => x === null || typeof x === "number")) {
-      return Float64Array.from(cells, (x) => (x === null ? NaN : (x as number)));
-    }
-    return cells;
-  };
   for (const value of valuesFrom) {
     if (perColumn(options.valuesFn, isSummary, value) === undefined && cellRows.some((rows) => rows.length > 1)) {
       throw new Error(`values from '${value}' are not uniquely identified; use valuesFn to summarise them`);
     }
   }
+  // As tidyr: the filled cells of a value column (after valuesFn, called in order of first appearance of the cell)
+  // have one common type over all its new columns (numbers absorb booleans, strings combine with neither), and
+  // valuesFill is cast to that type (#437, #445)
+  const typed = new Map<string, { cells: DataValue[]; type: ValueType | null; fill: DataValue }>();
+  for (const value of valuesFrom) {
+    const source = data[value]!;
+    const summary = perColumn(options.valuesFn, isSummary, value);
+    const cells = new Array<DataValue>(cellRows.length).fill(null);
+    let type: ValueType | null = null;
+    if (summary === undefined) {
+      type = columnType(value, source);
+      cellRows.forEach((rows, c) => {
+        if (rows.length > 0) cells[c] = source[rows[0]!]!;
+      });
+    } else {
+      const done = new Uint8Array(cellRows.length);
+      let first = 0;
+      let k = 0;
+      for (let i = 0; i < n; i++) {
+        const c = ids.codes[i]! * nNames + labels.codes[i]!;
+        if (done[c] === 1) continue;
+        done[c] = 1;
+        k++;
+        const x = summary(cellRows[c]!.map((j) => source[j]!));
+        cells[c] = x;
+        if (x === null || x === undefined) continue;
+        const t = typeOfValue(x);
+        if (type === null || (type === "logical" && t === "double")) {
+          type = t;
+          first = k;
+        } else if (t !== type && (type === "character" || t === "character")) {
+          throw new TypeError(`Can't combine \`x[[${first}]]\` <${type}> and \`x[[${k}]]\` <${t}>.`);
+        }
+      }
+    }
+    const fill = castFill(perColumn(options.valuesFill, isFill, value) ?? null, type);
+    typed.set(value, { cells, type: type ?? (fill === null ? null : typeOfValue(fill)), fill });
+  }
+  const columnOf = (value: string, m: number): Column => {
+    const source = data[value]!;
+    const { cells, type, fill } = typed.get(value)!;
+    const col = ids.firsts.map((_, r): DataValue => {
+      const c = r * nNames + m;
+      const x = cellRows[c]!.length === 0 ? fill : cells[c]!;
+      return type === "double" && typeof x === "boolean" ? Number(x) : x;
+    });
+    if (source instanceof Float64Array && (type === "double" || type === null)) {
+      return Float64Array.from(col, (x) => (x === null ? NaN : (x as number)));
+    }
+    return col;
+  };
 
   const out: DataFrame = {};
   for (const c of idCols) addColumn(out, c, pick(data[c]!, ids.firsts));

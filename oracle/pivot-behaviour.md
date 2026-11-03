@@ -70,7 +70,16 @@ array of values, or an object: value column → function).
    value column) or missing. Several rows for one cell: without `valuesFn`, error `values from '<value column>' are
    not uniquely identified; use valuesFn to summarise them` (tidyr: a warning and a list column, its text in the
    fixture); with `valuesFn`, every filled cell holds the function's result for the values of its rows (in data
-   order), single ones included.
+   order), single ones included (called in order of first appearance of the cell).
+   Types (as tidyr): the filled cells of one value column, over all its new columns, take one common type: without
+   `valuesFn` the column's type (an array mixing types: error `column '<name>' mixes <a> and <b> values`); with it,
+   the results' common type (numbers absorb booleans, which become 0 and 1; a string with a number or boolean: error
+   ``Can't combine `x[[i]]` <a> and `x[[j]]` <b>.``, i and j the cells in order of first appearance, i the one that
+   set the type). `valuesFill` is then cast to that type (vctrs' `vec_cast`): a boolean to 0 or 1 in a number column;
+   0 and 1 to false and true and NaN to missing in a boolean column, another number: error ``Can't convert from
+   `fill` <double> to <logical> due to loss of precision.``; a string with a number or boolean either way: error
+   ``Can't convert `fill` <a> to <b>.``; a missing fill goes with any type (so does any fill when every cell is
+   missing: a JavaScript missing value has no type, where tidyr's NA is logical).
 5. Result: the id columns, then the value columns in the order of step 3.
 
 ## Accuracy
