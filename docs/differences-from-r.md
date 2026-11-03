@@ -545,6 +545,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   the quantile functions: an infinite shape a or alpha gives the limit (`rkumar` 1, `rpareto` b, `rinvgamma` 0, as
   extraDistr), and an infinite b of `rkumar` and `rpareto` or beta of `rinvgamma` is NaN, as the density,
   distribution and quantile functions (extraDistr returns 0 or Inf), drawing the uniforms extraDistr draws.
+  `rlaplace` likewise takes an infinite mu as the limit mu (as extraDistr) and is NaN for sigma = Inf, as
+  `qlaplace` (extraDistr returns -Inf or Inf by the sign), after the exponential and the uniform extraDistr draws.
 - **`distSummary`** follows these conventions: a moment that does not exist is NaN, an infinite
   one Infinity; the mode of a discrete distribution with two equal maxima is the larger, and NaN
   when the density has no unique maximum.

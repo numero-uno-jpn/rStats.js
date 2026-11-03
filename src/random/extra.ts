@@ -124,11 +124,13 @@ export function rtriang(n: number, options: { a?: number; b?: number; c?: number
  */
 export function rlaplace(n: number, options: { mu?: number; sigma?: number } = {}): number[] {
   const { mu = 0, sigma = 1 } = options;
+  // an infinite mu is the limit mu, as qlaplace; sigma = Inf is NaN, as dlaplace, plaplace and qlaplace, after the
+  // draws extraDistr makes (it gives -Inf or Inf by the sign; issue #425)
   return generate(n, () => {
-    if (!(Number.isFinite(mu) && sigma > 0 && Number.isFinite(sigma))) return NaN;
+    if (Number.isNaN(mu) || !(sigma > 0)) return NaN;
     const e = expRand();
     const s = unifRand() > 0.5 ? 1 : -1;
-    return mu + sigma * s * e;
+    return sigma === Infinity ? NaN : mu + sigma * s * e;
   });
 }
 
