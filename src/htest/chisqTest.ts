@@ -8,9 +8,8 @@
 //   for all cells, min(0.5, min |O - E|) (from R's output; scipy uses min(0.5, |O - E|) per cell).
 //   If that amount is 0, the result is labelled as uncorrected
 // - A matrix with a single row or column becomes a goodness-of-fit test
-// - Count checks depend on the shape: a matrix rejects negative, NaN and Inf; a vector (and a
-//   1-row or 1-column matrix) rejects only negative and NaN (Inf just makes the statistic NaN).
-//   Fractional counts are accepted in both cases
+// - Counts that are negative, NaN or Inf are errors in every shape (R lets Inf through in a vector or a 1-row or
+//   1-column matrix and returns NaN; docs, "Inputs without meaning"). Fractional counts are accepted
 // - Sums are taken in double-double (R's sum accumulates in extended precision)
 // - Simulated p-values (Hope 1968; R's documented behaviour): (1 + #{simulated statistics >= (1 - 64 eps) times the
 //   observed one}) / (B + 1). Goodness of fit draws the B samples of size n = sum(x) one at a time (the uniforms of
