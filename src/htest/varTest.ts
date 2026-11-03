@@ -13,6 +13,8 @@ import type { DataFrame } from "../models/modelFrame.js";
 import { kSampleData, samplesByLevel, twoGroupData } from "./testFormula.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
+const MIN_NORMAL = 2 ** -1022;
+
 /**
  * Options for {@link varTest}.
  *
@@ -184,7 +186,23 @@ export function bartlettTest(x: readonly Sample[] | string, data?: DataFrame): B
     sumInv += 1 / n[i]!;
   }
   pooled /= N;
-  const statistic = (N * Math.log(pooled) - sumLog) / (1 + (sumInv - 1 / N) / (3 * (k - 1)));
+  let logRatio = N * Math.log(pooled) - sumLog;
+  if (v.some((vi) => vi < MIN_NORMAL)) {
+    // A variance underflows (or is subnormal) on the common scale although the log ratio is finite: each group on
+    // its own scale 2^-e_i, log v_i = log w_i + 2 (e_i - E) log 2 relative to the largest exponent E (the E terms
+    // cancel, as sum n_i = N), and the log of the pooled variance by log-sum-exp
+    const own = samples.map((g) => {
+      const m = groupMoments([g]);
+      return { w: m.variance[0]!, e: m.k };
+    });
+    const top = Math.max(...own.map((o) => o.e));
+    const logs = own.map((o) => Math.log(o.w) + 2 * (o.e - top) * Math.LN2);
+    const terms = logs.map((l, i) => Math.log(n[i]!) + l);
+    const peak = Math.max(...terms);
+    const logPooled = peak + Math.log(terms.reduce((a, t) => a + Math.exp(t - peak), 0)) - Math.log(N);
+    logRatio = N * logPooled - logs.reduce((a, l, i) => a + n[i]! * l, 0);
+  }
+  const statistic = logRatio / (1 + (sumInv - 1 / N) / (3 * (k - 1)));
   const df = k - 1;
   return {
     method: "Bartlett test of homogeneity of variances",
