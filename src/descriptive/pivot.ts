@@ -38,7 +38,7 @@ export interface PivotLongerOptions {
   valuesDropNa?: boolean;
   /**
    * `"fastest"` (default): the pivoted columns vary within each input row; `"slowest"`: all rows for each column in
-   * turn.
+   * turn. Any other value is an error, as in tidyr.
    */
   colsVary?: "fastest" | "slowest";
   /** Called with each of tidyr's warnings, once per distinct warning, in order. Default: the warnings are dropped. */
@@ -75,7 +75,7 @@ export interface PivotWiderOptions {
   namesSort?: boolean;
   /**
    * With several `valuesFrom`: `"fastest"` (default) all names for each value column; `"slowest"` each value column
-   * for each name.
+   * for each name. Any other value is an error, as in tidyr.
    */
   namesVary?: "fastest" | "slowest";
   /** The value of a cell that no row fills, or such values by value column. Default: missing. */
@@ -85,6 +85,17 @@ export interface PivotWiderOptions {
 }
 
 const nameList = (v: string | readonly string[]): string[] => (typeof v === "string" ? [v] : [...v]);
+
+/**
+ * colsVary or namesVary, checked as tidyr's arg_match: exactly "fastest" or "slowest" (default "fastest"); anything
+ * else was taken as "fastest" (#256)
+ */
+function varyArg(arg: string, v: unknown): "fastest" | "slowest" {
+  if (v === undefined || v === null) return "fastest";
+  if (v === "fastest" || v === "slowest") return v;
+  if (typeof v !== "string") throw new Error(`\`${arg}\` must be a string or character vector.`);
+  throw new Error(`\`${arg}\` must be one of "fastest" or "slowest", not "${v}".`);
+}
 
 function requireColumns(data: DataFrame, names: readonly string[]): void {
   for (const n of names) if (!Object.hasOwn(data, n)) throw new Error(`Column \`${n}\` doesn't exist.`);
@@ -206,6 +217,7 @@ interface LongValue {
  * @category Data frames
  */
 export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataFrame {
+  const colsVary = varyArg("cols_vary", options.colsVary);
   const n = rowCount(data);
   const allNames = Object.keys(data);
   const cols = typeof options.cols === "function" ? allNames.filter(options.cols) : [...new Set(options.cols)];
@@ -254,7 +266,7 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataF
 
   // Rows of the result: [input row, key]
   let rows: [number, number][] = [];
-  if (options.colsVary === "slowest") {
+  if (colsVary === "slowest") {
     for (let k = 0; k < keys.length; k++) for (let i = 0; i < n; i++) rows.push([i, k]);
   } else {
     for (let i = 0; i < n; i++) for (let k = 0; k < keys.length; k++) rows.push([i, k]);
@@ -358,6 +370,7 @@ function perColumn<T>(
  * @category Data frames
  */
 export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): DataFrame {
+  const namesVary = varyArg("names_vary", options.namesVary);
   const n = rowCount(data);
   const namesFrom = nameList(options.namesFrom ?? "name");
   const valuesFrom = nameList(options.valuesFrom ?? "value");
@@ -418,7 +431,7 @@ export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): Da
   for (const c of idCols) addColumn(out, c, pick(data[c]!, ids.firsts));
   const columnName = (value: string, m: number): string =>
     valuesFrom.length === 1 ? nameText[m]! : `${value}${sep}${nameText[m]!}`;
-  if (options.namesVary === "slowest") {
+  if (namesVary === "slowest") {
     for (const m of nameOrder) for (const v of valuesFrom) addColumn(out, columnName(v, m), columnOf(v, m));
   } else {
     for (const v of valuesFrom) for (const m of nameOrder) addColumn(out, columnName(v, m), columnOf(v, m));
