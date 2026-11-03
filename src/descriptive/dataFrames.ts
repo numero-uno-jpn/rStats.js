@@ -284,9 +284,12 @@ export function merge(x: DataFrame, y: DataFrame, options: MergeOptions = {}): D
   // The key columns of the result (in the order of pairs): x's values, and y's for the rows only in y; those rows
   // bring the columns to their common type, as R's rbind of the two sides does (x's type otherwise)
   const yOnly = pairs.some(([i]) => i < 0);
+  const fromX = pairs.some(([i]) => i >= 0);
   const keyCols = keysX.map((cx, k) => {
     const cy = keysY[k]!;
-    const col = gather([cx, cy], pairs.map(([i, j]) => (i >= 0 ? [cx, i] : [cy, j])));
+    // a Float64Array when the columns the values come from are (x's alone without rows only in y, #449)
+    const sources = fromX || !yOnly ? (yOnly ? [cx, cy] : [cx]) : [cy];
+    const col = gather(sources, pairs.map(([i, j]) => (i >= 0 ? [cx, i] : [cy, j])));
     return yOnly ? commonType(col) : col;
   });
 
