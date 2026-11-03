@@ -138,7 +138,11 @@ export function powerTTest(options: PowerTTestOptions = {}): PowerTTestResult {
   const powerOf = (n: number, delta: number, sd: number, sig: number): number => {
     const nu = Math.max(1e-7, n - 1) * ts;
     const q = qt(sig / sides, nu, { lowerTail: false });
-    const ncp = (Math.sqrt(n / ts) * delta) / sd;
+    let ncp = (Math.sqrt(n / ts) * delta) / sd;
+    // sqrt(n / ts) * delta can overflow before the division by a large sd (#197); with the ratio delta / sd first the
+    // noncentrality is Infinity only where it is beyond the doubles itself (sqrt(n / ts) >= 1). Only there: elsewhere
+    // R's order, with its bits
+    if (!Number.isFinite(ncp)) ncp = Math.sqrt(n / ts) * (delta / sd);
     const p = ptNcp(q, nu, ncp, false);
     return strict && sides === 2 ? p + ptNcp(-q, nu, ncp, true) : p;
   };

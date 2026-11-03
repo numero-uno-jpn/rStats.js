@@ -351,6 +351,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `survdiff` or `survfit` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the subject at risk throughout (an event at `Inf` is an error) |
 | lmerTest's `anova(fit, type = 1)` (and type 2) with a predictor in small units, e.g. `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | the type I F of x1 becomes its type II F (14.45 instead of 13.96): the Doolittle factorisation compares pivots and entries with 1e-6 in the units of the data; a bug in lmerTest (R 4.5.2, checked by running it) | the same tests at any units (the factorisation on the cross-product matrix scaled to unit diagonal) |
 | `anova()` of lmer fits of different rows of the data or different responses with the same number of rows | a likelihood ratio test | an error (lme4 compares only the number of rows) |
+| `power.t.test(n = 10, delta = 1e308, sd = 1e308)` and other delta, sd whose noncentrality is finite while sqrt(n / ts) × delta overflows | power 1 (the noncentrality Inf) | 0.56198, the power of delta = sd = 1 (the ratio delta / sd taken first where the product overflows) |
 
 ## Deliberate differences
 
