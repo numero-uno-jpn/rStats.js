@@ -11,7 +11,8 @@ import type { Sample } from "../htest/types.js";
 import { maxOf, minOf } from "../internal/extremes.js";
 
 /**
- * Counts of the integers 1..nbins in `bin` (values truncated towards 0; others and NaN are not counted).
+ * Counts of the integers 1..nbins in `bin` (values truncated towards 0; others, NaN, infinite values and values
+ * beyond the integer range of R are not counted).
  * Equivalent to R's `tabulate()`. `nbins` defaults to max(1, bin) and is truncated towards 0, as R does.
  *
  * @example
@@ -23,7 +24,13 @@ import { maxOf, minOf } from "../internal/extremes.js";
  * @category Descriptive statistics
  */
 export function tabulate(bin: Sample, nbins?: number): number[] {
-  const b = Array.from(bin).map((v) => Math.trunc(v));
+  // as R's as.integer: truncated, and NA (here NaN) when infinite or outside the integer range, so such a value is
+  // not counted and does not set the default nbins (Infinity was an array of infinite length, 3e9 ran out of memory,
+  // #225)
+  const b = Array.from(bin, (v) => {
+    const t = Math.trunc(v);
+    return t >= -2147483647 && t <= 2147483647 ? t : NaN;
+  });
   if (nbins !== undefined) {
     if (Number.isNaN(nbins)) throw new RangeError("missing value where TRUE/FALSE needed");
     if (Math.trunc(nbins) < 0) throw new RangeError("invalid 'nbin' argument");
