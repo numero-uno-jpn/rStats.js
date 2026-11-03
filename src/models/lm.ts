@@ -26,6 +26,7 @@ import { parseFormula } from "./formula.js";
 import type { DataFrame } from "./modelFrame.js";
 import { design, type Design, type ModelMatrixOptions } from "./modelMatrix.js";
 import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
+import { rescaledDot } from "../linalg/dot.js";
 
 /**
  * Options for {@link lm}.
@@ -544,7 +545,12 @@ export function predict(
   const rank = fit.rank;
   const piv = fit.qr.pivot.slice(0, rank);
   const Rr = fit.qr.qr.slice(0, rank).map((row) => row.slice(0, rank));
-  const values = X.map((r) => r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0));
+  const used = fit.coefficients.flatMap((c, j) => (Number.isNaN(c) ? [] : [j]));
+  const values = X.map((r) => {
+    const s = r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]!) ? s : s + v * fit.coefficients[j]!), 0);
+    // products of finite values may overflow while x'b is in range (2 * 1e308 - 2 * 1e308): the exact inner product
+    return Number.isFinite(s) ? s : rescaledDot(used.map((j) => r[j]!), used.map((j) => fit.coefficients[j]!), s);
+  });
   // se: || R^-T x_piv || sigma, by forward substitution with R^T
   const seFit = X.map((r) => {
     const z = new Array<number>(rank).fill(0);
