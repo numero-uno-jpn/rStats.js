@@ -64,9 +64,13 @@ interface Row {
   intercept: boolean;
 }
 
-/** The working residuals and weights of the fit of the model with the given columns */
+/**
+ * The working residuals and weights of the fit of the model with the given columns. Without the fit's start: R's
+ * anova.glm passes object$start, which glm does not keep (NULL), and the fit's start has the length of all its columns
+ * (#178)
+ */
 function rowOf(model: GlmModel, cols: number[], warnings: Warnings): Row {
-  const { fit, w } = refit(model, cols, warnings);
+  const { fit, w } = refit(model, cols, warnings, { start: undefined });
   const nOk = w.filter((v) => v > 0).length;
   return { dfRes: nOk - fit.rank, dev: fit.deviance, fit, x: model.x.map((r) => cols.map((j) => r[j]!)), intercept: model.intercept };
 }
