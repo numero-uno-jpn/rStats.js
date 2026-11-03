@@ -661,7 +661,10 @@ export function pwrRTest(options: PwrRTestOptions = {}): PwrRTestResult {
   if (alt === "two.sided" && !isUnknown(r)) r = Math.abs(r);
   const upper = (n: number, r: number, sig: number, twoSided: boolean): number => {
     const t = qt(twoSided ? sig / 2 : sig, n - 2, { lowerTail: false }) as number;
-    const rc = Math.sqrt(t ** 2 / (t ** 2 + n - 2));
+    const den = t ** 2 + n - 2;
+    // (where t^2 + n - 2 overflows for a finite t, 1 / sqrt(1 + ((n - 2) / t) / t): Inf / Inf gave NaN, as
+    // pwrRTest({ n: 4, r: 0.5, sigLevel: 1e-320 }) with t = 7e159)
+    const rc = den === Infinity && Number.isFinite(t) ? 1 / Math.sqrt(1 + (n - 2) / t / t) : Math.sqrt(t ** 2 / den);
     const zr = Math.atanh(r) + r / (2 * (n - 1));
     const zrc = Math.atanh(rc);
     const p = pnorm((zr - zrc) * Math.sqrt(n - 3)) as number;
