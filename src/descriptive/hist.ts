@@ -234,12 +234,15 @@ function classCount(xs: readonly number[], rule: string): number {
   }
 }
 
-/** Reference cell size for the counting fuzz: median width (> 5 breaks), data range (<= 3), smallest positive width */
-function fuzzScale(br: readonly number[], dataRange: number): number {
+/**
+ * The counting fuzz, 1e-7 times a reference cell size: the median width (> 5 breaks), the data range [lo, hi] (<= 3)
+ * or the smallest positive width. Where the range of finite data overflows (#258), 2 (1e-7 (hi / 2 - lo / 2))
+ */
+function fuzz(br: readonly number[], lo: number, hi: number): number {
   const widths = br.slice(1).map((v, i) => v - br[i]!);
-  if (br.length > 5) return median(widths);
-  if (br.length <= 3) return dataRange;
-  return minOf(widths.filter((w) => w > 0));
+  if (br.length > 5) return 1e-7 * median(widths);
+  if (br.length <= 3) return hi - lo === Infinity ? 2 * (1e-7 * (hi / 2 - lo / 2)) : 1e-7 * (hi - lo);
+  return 1e-7 * minOf(widths.filter((w) => w > 0));
 }
 
 /**
@@ -278,7 +281,7 @@ export function hist(x: Sample, options: HistOptions = {}): HistResult {
 
   // Breaks moved by a small tolerance so that values on a break up to rounding fall on the intended side
   const [dlo, dhi] = n > 0 ? range(xs) : [0, 0];
-  const tau = 1e-7 * fuzzScale(br, dhi - dlo);
+  const tau = fuzz(br, dlo, dhi);
   const f = br.map((v, i) => {
     if (right) return i === 0 && includeLowest ? v - tau : v + tau;
     if (i < nb - 1) return v - tau;
