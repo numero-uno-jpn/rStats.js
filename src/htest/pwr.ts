@@ -131,11 +131,22 @@ export function esW2(p: readonly (readonly number[])[]): number {
     for (let i = 0; i < p.length; i++) {
       const p0 = rows[i]! * cols[j]!;
       // (a cell of an empty row or column, p0 = p = 0, adds nothing: 0 / 0 was NaN)
-      if (p0 !== 0 || p[i]![j] !== 0) s += (p[i]![j]! - p0) ** 2 / p0;
+      if (p0 === 0 && p[i]![j] === 0) continue;
+      if (p0 >= MIN_NORMAL) s += squareOver(p[i]![j]! - p0, p0);
+      else {
+        // (p0 below the normal range, with a row and column sum not 0: (p / sqrt(r c) - sqrt(r c))^2 from the square
+        // roots of the sums, as r c may round or underflow to 0; esW2([[1e-200, 0], [0, 1]]) gave NaN for 1)
+        const sr = Math.sqrt(rows[i]!);
+        const sc = Math.sqrt(cols[j]!);
+        const z = p[i]![j]! / sr / sc - sr * sc;
+        s += z * z;
+      }
     }
   }
   return Math.sqrt(s);
 }
+
+const MIN_NORMAL = 2 ** -1022;
 
 type Unknown = number | null | undefined;
 const isProbability = (v: number): boolean => v >= 0 && v <= 1;
