@@ -4,6 +4,7 @@
 // position >= rank), the vector with 1 at k and -R11^-1 R12[, k] on the first rank pivoted positions.
 
 import { qr, type QR } from "../linalg/qr.js";
+import { scaleToUnit } from "../internal/summary.js";
 
 /** The warning R gives when some rows are not estimable */
 export const NON_ESTIMABLE_WARNING = 'prediction from rank-deficient fit; attr(*, "non-estim") has doubtful cases';
@@ -34,10 +35,20 @@ export function nonEstimableRows(qr: QR | undefined, rank: number, X: readonly (
   }
   const tol = Math.sqrt(Number.EPSILON);
   const norm = (v: readonly number[]): number => Math.hypot(...v);
+  // the test does not depend on the units of x and v: each is divided by a power of 2 that brings its largest entry
+  // into [1, 2), so that the dot product and the product of the norms cannot overflow (with x of 1e308, both were
+  // Infinity and the row counted as estimable, #260). The division is exact, so where nothing overflowed or
+  // underflowed the comparison is the same
+  const unit = (v: readonly number[]): number[] => scaleToUnit([v]).groups[0]!;
+  const units = basis.map((v) => {
+    const u = unit(v);
+    return { u, n: norm(u) };
+  });
   const out: number[] = [];
-  X.forEach((x, r) => {
+  X.forEach((row, r) => {
+    const x = unit(row);
     const nx = norm(x);
-    if (basis.some((v) => Math.abs(x.reduce((s, xi, j) => s + xi * v[j]!, 0)) > tol * nx * norm(v))) out.push(r);
+    if (units.some(({ u, n }) => Math.abs(x.reduce((s, xi, j) => s + xi * u[j]!, 0)) > tol * nx * n)) out.push(r);
   });
   return out;
 }
