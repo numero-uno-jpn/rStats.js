@@ -822,19 +822,70 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
   const shift = parts.reduce((s, q) => Math.max(s, -q.e), -Infinity);
   const w = parts.map((q) => ldexp(1 / q.p, -q.e - shift));
   const finiteData = X.every(Number.isFinite) && Y.every(Number.isFinite);
+  // power of 2 of the largest |y_j|, so that the sum of the first form below does not overflow
+  const yTop = finiteData ? Y.reduce((s, y) => (y === 0 ? s : Math.max(s, Math.floor(Math.log2(Math.abs(y))))), -Infinity) : 0;
+  // The first barycentric form l(u) sum_j w_j y_j / (u - x_j), l(u) = prod_j (u - x_j), with every factor as m 2^f:
+  // l(u) as a mantissa and an exponent, the terms 1 / (p_j (u - x_j)) y_j over the powers of 2 of the largest term and
+  // of the largest |y_j|. undefined where a difference is 0 (u a node after halving)
+  const firstForm = (u: number): number | undefined => {
+    if (yTop === -Infinity) return 0;
+    let lm = 1;
+    let le = 0;
+    const terms: { r: number; x: number }[] = [];
+    for (let j = 0; j < n; j++) {
+      const d = u - Xc[j]!;
+      if (d === 0) return undefined;
+      const f = Math.floor(Math.log2(Math.abs(d)));
+      const dm = ldexp(d, -f);
+      lm *= dm;
+      const g = Math.floor(Math.log2(Math.abs(lm)));
+      lm = ldexp(lm, -g);
+      le += f + g;
+      const r = 1 / parts[j]!.p / dm;
+      if (!Number.isFinite(r) || r === 0) return undefined;
+      const fr = Math.floor(Math.log2(Math.abs(r)));
+      terms.push({ r: ldexp(r, -fr), x: fr - parts[j]!.e - f });
+    }
+    const top = terms.reduce((s, q) => Math.max(s, q.x), -Infinity);
+    let s = 0;
+    for (let j = 0; j < n; j++) s += ldexp(terms[j]!.r, terms[j]!.x - top) * ldexp(Y[j]!, -yTop);
+    if (s === 0) return 0;
+    const fs = Math.floor(Math.log2(Math.abs(s)));
+    return ldexpWide(lm * ldexp(s, -fs), le + top + yTop + fs);
+  };
   return xs.map((v) => {
     let num = 0;
     let den = 0;
     // at a node, its value; with repeated nodes, that of the last one (as pracma)
     const at = X.lastIndexOf(v);
     if (at >= 0) return Y[at]!;
+    let sumAbs = 0;
+    let sumAbsNum = 0;
     for (let j = 0; j < n; j++) {
       const diff = (half ? v / 2 : v) - Xc[j]!;
       const t = w[j]! / diff;
       num += t * Y[j]!;
       den += t;
+      sumAbs += Math.abs(t);
+      sumAbsNum += Math.abs(t * Y[j]!);
     }
     const r = num / den;
+    // The denominator lost to cancellation while the numerator did not: a rounded sum of the t_j is not below 2^-53
+    // of the largest |t_j| unless large terms cancelled exactly, leaving only terms below their rounding error. The
+    // nodes 0, 2^-250, 2^-249, 2^-600 at 2^-300 have t_0 = -2^300 and t_3 = 2^300 cancelling to den = 0, so y = x gave
+    // Infinity for 2^-300 (pracma NaN; issue #467). There the first form l(x) sum w_j y_j / (x - x_j) (no cancelling
+    // denominator). Data whose numerator cancels too (a constant) keep the second form, which reproduces them
+    if (
+      finiteData &&
+      Number.isFinite(sumAbs) &&
+      sumAbs > 0 &&
+      Math.abs(den) < ldexp(sumAbs, -100) &&
+      Number.isFinite(sumAbsNum) &&
+      Math.abs(num) >= ldexp(sumAbsNum, -26)
+    ) {
+      const first = firstForm(half ? v / 2 : v);
+      if (first !== undefined) return first;
+    }
     if (Number.isFinite(r) || !finiteData) return r;
     // only where the plain quotient is not finite for finite data: w_j / (x - x_j) overflowed (the nodes 0, 2^-250,
     // 2^-249, 2^-600 at 2^-1074 gave Inf / Inf; issue #402). The terms from the products m 2^e and the differences as
