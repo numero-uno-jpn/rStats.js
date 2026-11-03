@@ -14,6 +14,7 @@ import { IQR, quantile } from "./quantile.js";
 import { seqLength } from "../internal/seq.js";
 import type { Sample } from "../htest/types.js";
 import { midpoint, minOf } from "../internal/extremes.js";
+import { ldexp } from "../internal/summary.js";
 
 /**
  * Options for {@link pretty}.
@@ -280,9 +281,22 @@ export function hist(x: Sample, options: HistOptions = {}): HistResult {
   }
   if (total < n) throw new RangeError("some 'x' not counted; maybe 'breaks' do not span range of 'x'");
 
-  const density = counts.map((c, i) => c / (n * (br[i + 1]! - br[i]!)));
+  const density = counts.map((c, i) => cellDensity(c, n, br[i]!, br[i + 1]!));
   const mids = counts.map((_, i) => midpoint(br[i + 1]!, br[i]!));
   return { breaks: br, counts, density, mids };
+}
+
+/**
+ * count / (n (b - a)), R's density of the cell [a, b]. Where the width b - a of finite ends overflows (#228), from the
+ * width ws = b / 2 - a / 2 divided by its power of 2, 2^e: count 2^-(e + 1) / (n ws 2^-e), the products by powers of 2
+ * exact, so the density is rounded once (also where it is subnormal). Elsewhere R's expression, unchanged
+ */
+function cellDensity(count: number, n: number, a: number, b: number): number {
+  const w = b - a;
+  if (!(w === Infinity && Number.isFinite(a) && Number.isFinite(b))) return count / (n * w);
+  const ws = b / 2 - a / 2;
+  const e = Math.floor(Math.log2(ws));
+  return ldexp(count, -(e + 1)) / (n * ldexp(ws, -e));
 }
 
 /** 0-based cell of `v` among the (shifted) breaks `f`, or -1 when it is in no cell */

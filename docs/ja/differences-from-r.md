@@ -249,6 +249,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | タイがあり `exact` を指定しない (または `TRUE`) `ansari.test(conf.int = TRUE)` | エラー "object 'cint' not found" (両方の標本が 50 未満だと R は正確な方法の分岐に入り、タイがあると区間を飛ばす) | 正規近似の区間と推定値 (`exact: false` と同じ) |
 | `weighted.mean(c(1e308, 1e308), c(1, 1))` など和が溢れる場合。重みの和だけが溢れる `weighted.mean(c(1e-308, 2e-308), c(1e308, 1e308))` | Inf。0 | 1e308。1.5e-308 (値と重みを 2 の冪で割る) |
 | `fivenum(c(1e308, 1e308))`、`hist(...)$mids`、Kaplan-Meier の中央値、`wilcox.test` の Hodges-Lehmann 推定値と midrange、三角分布の既定の最頻値、`splinefun` の `monoH.FC` の傾き (いずれも `(a + b) / 2`) | a + b が溢れると Inf | 中点 (a + b が溢れるときは a / 2 + b / 2) |
+| `hist(c(-1e308, 1e308), breaks = c(-1e308, 1e308))$density` (区間の幅が溢れる) | 0 | 5e-309 (幅の半分を 2 の冪で割って計算し、丸めは 1 回) |
 | 1e150 程度のデータに対する e1071 の `skewness`、`kurtosis` | NaN (べき乗が溢れる) | 尺度によらない値 (偏差を 2 のべき乗でスケーリング) |
 | `scale(c(1e200, 2e200, 3e200))`、`scale(c(1e-200, 2e-200, 3e-200))` | scale が Inf または 0、標準化値が 0 または ±Inf | -1, 0, 1 (二乗和をスケーリング) |
 | `runif(n, -1e308, 1e308)` | Inf (max - min が溢れる) | 範囲内の値 |

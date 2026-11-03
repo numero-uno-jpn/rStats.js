@@ -255,6 +255,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `ansari.test(conf.int = TRUE)` with ties and `exact` unset (or `TRUE`) | error "object 'cint' not found" (with both samples below 50 values R takes the exact branch, which skips the interval with ties) | the normal-approximation interval and estimate, the same as with `exact: false` |
 | `weighted.mean(c(1e308, 1e308), c(1, 1))` and other sums that overflow; `weighted.mean(c(1e-308, 2e-308), c(1e308, 1e308))`, where only the sum of the weights overflows | Inf; 0 | 1e308; 1.5e-308 (the values and weights divided by powers of 2) |
 | `fivenum(c(1e308, 1e308))`, `hist(...)$mids`, the Kaplan-Meier median, the Hodges-Lehmann estimate and the midrange of `wilcox.test`, the default mode of the triangular distribution, the `monoH.FC` slopes of `splinefun` (all `(a + b) / 2`) | Inf when a + b overflows | the midpoint, as a / 2 + b / 2 when a + b overflows |
+| `hist(c(-1e308, 1e308), breaks = c(-1e308, 1e308))$density` (a cell whose width overflows) | 0 | 5e-309 (from half the width scaled by a power of 2, rounded once) |
 | e1071's `skewness`, `kurtosis` on data around 1e150 | NaN (the powers overflow) | the value at any scale (the deviations rescaled by a power of 2) |
 | `scale(c(1e200, 2e200, 3e200))`, `scale(c(1e-200, 2e-200, 3e-200))` | scale Inf or 0, scaled values 0 or ±Inf | -1, 0, 1 (the sum of squares rescaled) |
 | `runif(n, -1e308, 1e308)` | Inf (max - min overflows) | values in the range |
