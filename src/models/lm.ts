@@ -237,6 +237,8 @@ function lmMatrix(x: MatrixInput | Sample, y: Sample, options: LmOptions): LmRes
   const xr: number[][] =
     x.length > 0 && typeof x[0] !== "number" ? (x as MatrixInput).map((r) => Array.from(r)) : Array.from(x as Sample, (v) => [v]);
   const ys = Array.from(y);
+  // the shape of all the rows given, before the rows with a missing value are dropped (#463)
+  if (xr.some((r) => r.length !== xr[0]!.length)) throw new TypeError("all rows of the matrix must have the same length");
   if (xr.length !== ys.length) throw new RangeError("variable lengths differ (found for 'x')");
   const wsAll = options.weights === undefined ? undefined : Array.from(options.weights);
   if (wsAll !== undefined && wsAll.length !== ys.length) throw new RangeError("variable lengths differ (found for '(weights)')");

@@ -546,6 +546,8 @@ export function refit(
 export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: GlmOptions = {}): GlmResult {
   const intercept = options.intercept ?? true;
   const xr = toRows(x);
+  // the shape of all the rows given, before the rows with a missing value are dropped (#463)
+  if (xr.some((r) => r.length !== xr[0]!.length)) throw new TypeError("all rows of x must have the same length");
   const yIsMatrix = y.length > 0 && typeof y[0] !== "number";
   const yr: number[] | number[][] = yIsMatrix ? (y as MatrixInput).map((r) => Array.from(r)) : Array.from(y as Sample);
   const nAll = yr.length;
@@ -573,7 +575,6 @@ export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: G
   const nx = xr.length > 0 ? xr[0]!.length : 0;
   const columnNames = [...(intercept ? ["(Intercept)"] : []), ...Array.from({ length: nx }, (_, j) => `x${j + 1}`)];
   const p = columnNames.length;
-  if (X.some((r) => r.length !== p)) throw new TypeError("all rows of x must have the same length");
   const familySpec: GlmFamilySpec =
     typeof options.family === "object" ? { ...options.family } : { family: options.family ?? "gaussian" };
   if (options.link !== undefined) familySpec.link = options.link;
