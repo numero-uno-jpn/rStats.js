@@ -37,7 +37,7 @@ export interface PropTrendTestResult extends Omit<HTest, "alternative"> {
  * @param n Numbers of trials.
  * @param score Scores of the groups. Default `1, 2, ..., k`. A group with a NaN score is left out of the regression
  *   (as R's `lm` omits it), but its counts stay in the pooled proportion and the weights, as in R. Other scores must
- *   be finite.
+ *   be finite. With no events or only events (all proportions 0, or all 1) the test is not defined (an error, as in R).
  *
  * @example
  * ```ts
@@ -54,6 +54,11 @@ export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTe
   if (ns.length !== k || s.length !== k) throw new RangeError("'x', 'n' and 'score' must have the same length");
   if (ns.some((v) => !(v > 0 && v < Infinity))) throw new RangeError("elements of 'n' must be positive and finite");
   if (xs.some((v, i) => !(v >= 0 && v <= ns[i]!))) throw new RangeError("elements of 'x' must be between 0 and 'n'");
+  // With no events or only events the pooled proportion is 0 or 1, the weights n / (p (1 - p)) are infinite and every
+  // proportion is the same: no trend to test (R's lm: "NA/NaN/Inf in 'x'"; this returned NaN, #319)
+  if (xs.every((v) => v === 0) || xs.every((v, i) => v === ns[i]!)) {
+    throw new RangeError("all proportions are 0 or all are 1: the test for trend is not defined");
+  }
   const sumN = ns.reduce((a, v) => a + v, 0);
   const p = xs.reduce((a, v) => a + v, 0) / sumN;
   const w = ns.map((v) => v / (p * (1 - p)));
