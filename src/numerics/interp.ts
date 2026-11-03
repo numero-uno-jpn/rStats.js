@@ -727,7 +727,18 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
     let e = 0;
     for (let k = 0; k < n; k++) {
       if (k === j) continue;
-      p *= a - Xc[k]!;
+      const d = a - Xc[k]!;
+      const q = p * d;
+      if (p !== 0 && d !== 0 && Number.isFinite(d) && !(Math.abs(q) >= 2 ** -1022 && Math.abs(q) < Infinity)) {
+        // only where the product leaves the normal range (it underflowed to 0 before the check below: nodes 0,
+        // 2^-250, 2^-249, 2^-600 gave the weight 1/0 and NaN; issue #402): both factors as m 2^f, multiplied exactly
+        const fp = Math.floor(Math.log2(Math.abs(p)));
+        const fd = Math.floor(Math.log2(Math.abs(d)));
+        p = ldexp(p, -fp) * ldexp(d, -fd);
+        e += fp + fd;
+        continue;
+      }
+      p = q;
       const m = Math.abs(p);
       if (m > 2 ** 500 || (m < 2 ** -500 && m > 0)) {
         const f = Math.floor(Math.log2(m));
@@ -739,6 +750,7 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
   });
   const shift = parts.reduce((s, q) => Math.max(s, -q.e), -Infinity);
   const w = parts.map((q) => ldexp(1 / q.p, -q.e - shift));
+  const finiteData = X.every(Number.isFinite) && Y.every(Number.isFinite);
   return xs.map((v) => {
     let num = 0;
     let den = 0;
@@ -751,7 +763,26 @@ export function barylag(xi: Sample, yi: Sample, x: Sample): number[] {
       num += t * Y[j]!;
       den += t;
     }
-    return num / den;
+    const r = num / den;
+    if (Number.isFinite(r) || !finiteData) return r;
+    // only where the plain quotient is not finite for finite data: w_j / (x - x_j) overflowed (the nodes 0, 2^-250,
+    // 2^-249, 2^-600 at 2^-1074 gave Inf / Inf; issue #402). The terms from the products m 2^e and the differences as
+    // m 2^f, divided by the power of 2 of the largest term (which leaves the quotient unchanged)
+    const terms = parts.map((q, j) => {
+      const diff = (half ? v / 2 : v) - Xc[j]!;
+      const f = Math.floor(Math.log2(Math.abs(diff)));
+      return { r: 1 / q.p / ldexp(diff, -f), x: -q.e - f };
+    });
+    if (!terms.every((q) => Number.isFinite(q.r) && Number.isFinite(q.x))) return r;
+    const top = terms.reduce((s, q) => Math.max(s, q.x), -Infinity);
+    let num2 = 0;
+    let den2 = 0;
+    for (let j = 0; j < n; j++) {
+      const t = ldexp(terms[j]!.r, terms[j]!.x - top);
+      num2 += t * Y[j]!;
+      den2 += t;
+    }
+    return num2 / den2;
   });
 }
 
