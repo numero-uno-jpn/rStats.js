@@ -148,6 +148,9 @@ interface Evaluation {
   info: number[][];
 }
 
+/** Distance of eta from the shift of the risk sums beyond which exp would leave (or near) the doubles (e^709.8 overflows) */
+const SHIFT_LIMIT = 700;
+
 function evaluate(data: SortedData, beta: readonly number[], efron: boolean): Evaluation {
   const { time, event, weight, x, stratumEnd } = data;
   const n = time.length;
@@ -162,8 +165,31 @@ function evaluate(data: SortedData, beta: readonly number[], efron: boolean): Ev
   let riskXX = zeroMatrix();
   const deathX = zeros();
   const deathXX = zeroMatrix();
+  let deathRisk = 0;
+  // The risk sums (and the sums of the deaths at one time) are held as e^-shift times their values. shift stays 0,
+  // and the arithmetic is the plain one, unless a finite exp(eta) would overflow (or, with the sums still empty,
+  // underflow): then the sums are rescaled to the new shift, so a log partial likelihood that is finite is not lost
+  // to Inf (issue #367). The means and the information are ratios of the sums and do not depend on the shift
+  let shift = 0;
+  const rescale = (to: number): void => {
+    const f = Math.exp(shift - to);
+    riskSum *= f;
+    deathRisk *= f;
+    for (let i = 0; i < p; i++) {
+      riskX[i]! *= f;
+      deathX[i]! *= f;
+      const row = riskXX[i]!;
+      const drow = deathXX[i]!;
+      for (let l = 0; l <= i; l++) {
+        row[l]! *= f;
+        drow[l]! *= f;
+      }
+    }
+    shift = to;
+  };
   for (let k = n - 1; k >= 0; ) {
     if (stratumEnd[k]) {
+      shift = 0;
       riskSum = 0;
       riskX = zeros();
       riskXX = zeroMatrix();
@@ -171,14 +197,18 @@ function evaluate(data: SortedData, beta: readonly number[], efron: boolean): Ev
     const t = time[k]!;
     let deaths = 0;
     let deathWeight = 0;
-    let deathRisk = 0;
+    deathRisk = 0;
     let j = k;
     do {
       const xj = x[j]!;
       let eta = 0;
       for (let i = 0; i < p; i++) eta += beta[i]! * xj[i]!;
       const w = weight[j]!;
-      const r = Math.exp(eta) * w;
+      if (Number.isFinite(eta)) {
+        if (eta - shift > SHIFT_LIMIT) rescale(eta);
+        else if (eta - shift < -SHIFT_LIMIT && riskSum === 0 && deathRisk === 0) shift = eta;
+      }
+      const r = Math.exp(eta - shift) * w;
       if (!event[j]) {
         riskSum += r;
         for (let i = 0; i < p; i++) {
@@ -206,7 +236,7 @@ function evaluate(data: SortedData, beta: readonly number[], efron: boolean): Ev
       const stepWeight = deathWeight / steps;
       for (let s = 0; s < steps; s++) {
         riskSum += efron ? deathRisk / share : deathRisk;
-        loglik -= stepWeight * Math.log(riskSum);
+        loglik -= stepWeight * (Math.log(riskSum) + shift);
         for (let i = 0; i < p; i++) {
           riskX[i]! += efron ? deathX[i]! / share : deathX[i]!;
           const mean = riskX[i]! / riskSum;

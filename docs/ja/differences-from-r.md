@@ -366,6 +366,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 検定する次元が 1 の `mauchly.test` (`X = ~1` で測定が 2 回、または `M` が `X` より 1 次元だけ大きい) | データによらず W = 1、p = 1 (1 次元は常に球面性を満たす。χ² の自由度 p (p + 1) / 2 - 1 が 0) | エラー。検定する次元が 1 で、検定の自由度がない (issue #342) |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | 共変量が 1e308 規模かサブノーマルの `coxph(Surv(time, status) ~ x)` (x の 2^1020 倍、2^1022 倍、2^-1060 倍) | 2^1020 倍で se 0、2^1022 倍と 2^-1060 倍で "Loglik converged before variable 1; coefficient may be infinite" (中心化・尺度化の和が溢れる) | x の当てはめと同じ検定と対数尤度、係数と se は 2^-k 倍 (2^-1060 倍では double の範囲外で -Inf と Inf) |
+| 線形予測子が exp の範囲を超える初期値の `coxph(Surv(time, status) ~ x)` (x = 0, 1 や 0, 2 で `init = 1000`、`iter.max = 0`) | 対数尤度 -Inf (x = 0, 1) か "initial values lead to overflow or underflow of the exp function" | 有限の対数尤度 (-1000、-2000)。リスク集合の和を e^-m 倍で持ち、m は有限の exp(eta) が溢れるときだけ動かす。そのような飽和した値から反復すると、係数は NaN のまま (survival は NA) |
 | `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (すべての列を従属とみなす) |
 | `rgeom(n, 5e-324)` (約 5.6e-309 未満の prob)、p < 1 の `rnbinom(n, Inf, prob = p)` | NA。約 9e307 (size = MAX / 2 での値) か NA | Infinity。値は double の最大値を超える (rgeom は 1e-15 未満の確率を除いて。rnbinom は確率がすべて無限遠にあり、dnbinom・qnbinom と整合)。同じ乱数を引くので、乱数の状態は R と同じ |
 | `rbeta(n, 1e308, 1e308)` など、約 1e154 を超える形状 (2ab が溢れる) | 0 (Algorithm BB の定数が溢れる) | 平均 a / (a + b)。分布は 1e-77 以内に集中している。同じ一様乱数を引くので、乱数の状態は R と同じ |
