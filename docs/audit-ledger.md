@@ -4889,3 +4889,20 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #798 — ansariTest exact override permits unbounded dynamic-programming storage
 - 対象: `src/htest/ansariTest.ts` SHA `9f13bb6d406d4f36761a562aed8bb17c0ce52db4` と `src/htest/core/ansari.ts` SHA `50932adf99cd27e98433c2a4ff7e40ced9055d14`。
 - Issue [#308](https://github.com/numero-uno-jpn/rStats.js/issues/308)。再現: `const x=Array.from({length:1000},(_,i)=>2*i+1); const y=Array.from({length:1000},(_,i)=>2*i+2); ansariTest(x,y,{exact:true})`。同順位がないためexact経路に入り、N=2000、maxSum≈1,001,000、P/Q各々が約1001×1,001,001個のFloat64要素(約8GB)を確保する。既定のm,n<50閾値をexact指定で迂回できるが、DP状態のメモリ/計算量上限がない。割当前に安全な状態数上限を設けるべき。静的ソース解析。巨大割当・実行テストなし。
+
+
+## Audit #799 — kappa2 accepts a single complete rating pair
+- 対象: `src/htest/agreement.ts` SHA `435f225cc5d16a9d17207c2ebd1b7fd18bdb0386` の `kappa2()`。
+- Issue [#309](https://github.com/numero-uno-jpn/rStats.js/issues/309)。再現: `kappa2([[1,2]])`。n=1でunweighted kappaの点推定値は0だが、分散式は0となり、z統計量とp値がNaNになる。兄弟関数kappamFleiss/iccは2 subjects以上を要求する。2組以上の完全ペアを要求すべき。静的ソース/数式解析。実行テストなし。
+
+## Audit #800 — cronbachAlpha accepts a one-subject matrix
+- 対象: `src/htest/agreement.ts` SHA `435f225cc5d16a9d17207c2ebd1b7fd18bdb0386` の `cronbachAlpha()`。
+- Issue [#310](https://github.com/numero-uno-jpn/rStats.js/issues/310)。再現: `cronbachAlpha([[1,2]])`。項目数k>=2だけを検証し、被験者数nは検証しない。n=1では標本共分散/相関が分母n-1=0で未定義のままcov/cor/solveへ進む。完全データ2 subjects以上を先に要求すべき。静的ソース解析。実行テストなし。
+
+## Audit #801 — zero effect leaves power-versus-sample-size curves flat without a precheck
+- 対象: `src/htest/power.ts` SHA `5950a5e498272e8ae0b5a581e849477eb287c349` の `powerTTest()` / `powerPropTest()` / `powerAnovaTest()`。
+- Issue [#311](https://github.com/numero-uno-jpn/rStats.js/issues/311)。再現: `powerTTest({delta:0,sd:1,power:0.8})`; `powerPropTest({p1:0.5,p2:0.5,power:0.8})`; `powerAnovaTest({groups:3,betweenVar:0,withinVar:1,power:0.8})`。それぞれ効果差0によりnを変えてもpowerが一定で、指定powerへ達するrootが存在しないのにunirootを呼び、一般的なbracketing errorとなる。root探索前に効果0/識別不能を検出して説明的なエラーにすべき。静的ソース/数式解析。実行テストなし。
+
+## Audit #802 — powerPropTest sends zero-width endpoint intervals to uniroot
+- 対象: `src/htest/power.ts` SHA `5950a5e498272e8ae0b5a581e849477eb287c349` の `powerPropTest()` と `src/numerics/integrate.ts` の `uniroot()`。
+- Issue [#312](https://github.com/numero-uno-jpn/rStats.js/issues/312)。再現: `powerPropTest({n:50,p2:0,power:0.8})`; `powerPropTest({n:50,p1:1,power:0.8})`。確率0/1は入力検証を通るが、p1探索区間[0,p2]またはp2探索区間[p1,1]が一点となり、unirootのlower<upper検証で即時失敗する。解なしを事前判定し、対象の説明的な警告/エラーを返すべき。静的ソース解析。実行テストなし。
