@@ -340,7 +340,7 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
     case "exp": {
       const { rate = 1 } = P;
       if (!(rate > 0 && Number.isFinite(rate))) return NAN;
-      return make(1 / rate, 1 / (rate * rate), Math.LN2 / rate, 0, 2, 6, 1 / rate);
+      return make(1 / rate, rescaled(1 / (rate * rate), (x) => 1 / (x * x), [rate, -2]), Math.LN2 / rate, 0, 2, 6, 1 / rate);
     }
     case "gamma": {
       const k = P.shape ?? NaN;
