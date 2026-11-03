@@ -5304,3 +5304,9 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規Issue [#403](https://github.com/numero-uno-jpn/rStats.js/issues/403)。再現: `eigen([[1e308, 0], [0, 1e-308]], { symmetric: true }).values`。最大要素の指数1023に対し `decompositionExponent(...,459)` は約564を返す。全要素を2^564で割る前処理で、小さい対角要素 `1e-308 / 2^564` はbinary64最小正数未満となり0へunderflow。対角行列の真の固有値はともに表現可能な `[1e308, 1e-308]` だが、後段で0に2^564を掛けても復元できない。
 - #127/#131/#132の極端値スケーリング関連issueとは逆方向の損失であり、正確な対角行列で小さい表現可能固有値を消失する独立ケース。
 - ソース制御フローとbinary exponent範囲の静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
+
+
+### Audit #889 disposition — duplicate, not counted
+
+- 当初作成した [#403](https://github.com/numero-uno-jpn/rStats.js/issues/403) は、既存 [#132](https://github.com/numero-uno-jpn/rStats.js/issues/132) と同一の対角行列 `[[1e308, 0], [0, 1e-308]]` に対する global scaling による固有値消失であり、別の関数 `eigen()` でも根本原因・再現条件が同じだったため、duplicate としてcloseした。#131も同じ行列に対するSVD版。
+- よって #403 は新規発見件数に含めない。重複確認を Issue 作成前に十分行えなかった監査手順上の誤りとして記録。
