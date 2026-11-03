@@ -28,9 +28,15 @@ export interface AnovaTable {
   warnings: string[];
 }
 
-/** The exponent k that brings the responses of the fits (fitted values and residuals) into [1, 2) */
+/**
+ * The exponent k that brings the responses of the fits (fitted values and residuals) into [1, 2). Rows of weight 0
+ * are not in the fit and are left out (#350: a residual of 1e308 there made the sums of squares of the other rows
+ * underflow)
+ */
 export function responseScale(fits: readonly LmFormulaResult[]): number {
-  return scaleToUnit(fits.flatMap((f) => [f.fittedValues, f.residuals])).k;
+  const used = (f: LmFormulaResult, v: readonly number[]): number[] =>
+    f.weights === undefined ? Array.from(v) : v.filter((_, i) => f.weights![i] !== 0);
+  return scaleToUnit(fits.flatMap((f) => [used(f, f.fittedValues), used(f, f.residuals)])).k;
 }
 
 /**
