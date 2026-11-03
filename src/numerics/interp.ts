@@ -688,7 +688,16 @@ function evalHermite(
         };
         return y0 * (1 - h01) + term(m0, t * t1 * t1) + y1 * h01 + term(m1, t * t * t1);
       }
-      case 1: return ldexp(delta * (-6 * t * t1) + m0 * (t1 * (3 * t - 1)) + m1 * (t * (3 * t - 2)), -e);
+      case 1: {
+        if (Number.isFinite(delta) || !Number.isFinite(y0) || !Number.isFinite(y1)) {
+          return ldexp(delta * (-6 * t * t1) + m0 * (t1 * (3 * t - 1)) + m1 * (t * (3 * t - 2)), -e);
+        }
+        // the secant overflows before the small basis factor (y1 - y0 = 1e200 over h = 1e-200 at t = 1e-100 gave
+        // Inf for 6e300; issue #401): (y1 - y0) times the factor over h with the exponents apart, in the original units
+        const dy = y1 - y0;
+        const d = Number.isFinite(dy) ? scaledProduct([dy, -6 * t * t1], [h], -k) : scaledProduct([y1 / 2 - y0 / 2, -6 * t * t1], [h], 1 - k);
+        return d + ldexp(m0 * (t1 * (3 * t - 1)) + m1 * (t * (3 * t - 2)), -e);
+      }
       case 2: return ldexp((delta * (6 - 12 * t) + m0 * (6 * t - 4) + m1 * (6 * t - 2)) / h, -e - k);
       default: {
         const num = -12 * delta + 6 * m0 + 6 * m1;
