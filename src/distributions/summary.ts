@@ -593,7 +593,7 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       }
       return make(
         (r * q) / p,
-        (r * q) / (p * p),
+        rescaled((r * q) / (p * p), (x, y) => (x * q) / (y * y), [r, 1], [p, -2]),
         qnbinom(0.5, r, opts),
         mode,
         // (p = 1 is a point mass at 0: no skewness or kurtosis)
