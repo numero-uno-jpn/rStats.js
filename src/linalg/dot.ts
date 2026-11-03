@@ -91,7 +91,22 @@ const MIN_NORMAL = 2 ** -1022;
  * 2^-1022. Otherwise s stands, with the bits of the plain sum
  */
 export function checkDot(s: number, minProduct: number): boolean {
-  return !Number.isFinite(s) || (Math.abs(s) < UNDERFLOW_SUM && minProduct < MIN_NORMAL);
+  // <=: a bound rounded up to 2^-1022 may be the product of factors whose exact product is below it (#465)
+  return !Number.isFinite(s) || (Math.abs(s) < UNDERFLOW_SUM && minProduct <= MIN_NORMAL);
+}
+
+/**
+ * Whether the exact product of the nonzero finite a and b is below 2^-1022 in absolute value. The rounded product
+ * decides, except where it is 2^-1022 itself: the exact product may be just below (rounded up, #465:
+ * 2^-511 (2^-511 (1 - 2^-53)) = 2^-1022 - 2^-1075) or just above, and is compared exactly
+ */
+function productBelowMinNormal(a: number, b: number): boolean {
+  const p = Math.abs(a * b);
+  if (p !== MIN_NORMAL) return p < MIN_NORMAL;
+  const [ma, ea] = splitDouble(Math.abs(a));
+  const [mb, eb] = splitDouble(Math.abs(b));
+  const shift = -1022 - (ea + eb);
+  return shift > 0 && ma * mb < 1n << BigInt(shift);
 }
 
 /**
@@ -105,7 +120,7 @@ export function checkedDot(u: readonly number[], v: readonly number[], s: number
   if (!(Math.abs(s) < UNDERFLOW_SUM)) return s;
   for (let k = 0; k < u.length; k++) {
     const a = u[k]!, b = v[k]!;
-    if (a !== 0 && b !== 0 && Math.abs(a * b) < MIN_NORMAL) return rescaledDot(u, v, s);
+    if (a !== 0 && b !== 0 && productBelowMinNormal(a, b)) return rescaledDot(u, v, s);
   }
   return s;
 }
