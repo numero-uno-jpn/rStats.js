@@ -57,6 +57,11 @@ export function ode(y: readonly number[], times: readonly number[], func: OdeFun
   for (let j = 1; j < times.length; j++) {
     const t = times[j - 1]!;
     const h = times[j]! - t;
+    if (!Number.isFinite(h) && Number.isFinite(t) && Number.isFinite(times[j]!)) {
+      state = halvedStep(state, t, times[j]! / 2 - t / 2, method, deriv);
+      out.push([times[j]!, ...state]);
+      continue;
+    }
     const k1 = deriv(t, state);
     if (method === "euler") state = axpy(state, h, k1);
     else if (method === "rk2") {
@@ -83,4 +88,24 @@ export function ode(y: readonly number[], times: readonly number[], func: OdeFun
     out.push([times[j]!, ...state]);
   }
   return out;
+}
+
+// One step whose length h = 2 hh overflows although both times are finite (ode(y, c(-1e308, 1e308), ...)): the same
+// formulas with h k formed as hh k added twice, so a zero slope keeps the state (1 + Inf * 0 was NaN, issue #211). The
+// stage times are t + hh and (t + hh) + hh, the midpoint and the end.
+function halvedStep(state: number[], t: number, hh: number, method: "euler" | "rk2" | "rk4", deriv: (t: number, s: number[]) => number[]): number[] {
+  const twice = (s: number[], c: number, k: number[]): number[] => s.map((v, i) => v + c * k[i]! + c * k[i]!);
+  const mid = t + hh;
+  const end = mid + hh;
+  const k1 = deriv(t, state);
+  if (method === "euler") return twice(state, hh, k1);
+  if (method === "rk2") {
+    const k2 = deriv(end, twice(state, hh, k1));
+    return twice(state, hh, k1.map((v, i) => 0.5 * v + 0.5 * k2[i]!));
+  }
+  const k2 = deriv(mid, state.map((v, i) => v + hh * k1[i]!));
+  const k3 = deriv(mid, state.map((v, i) => v + hh * k2[i]!));
+  const k4 = deriv(end, twice(state, hh, k3));
+  // h/6 (k1 + 2 k2 + 2 k3 + k4) = (hh / 1.5) times the quarter-weighted sum, added twice
+  return twice(state, hh / 1.5, k1.map((v, i) => v / 4 + k2[i]! / 2 + k3[i]! / 2 + k4[i]! / 4));
 }
