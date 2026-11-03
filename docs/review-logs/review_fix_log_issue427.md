@@ -28,7 +28,7 @@ GitHub Issue #427. Session 13, judging of the issues classified C. Verdict: not 
 
 ## Out of scope (recorded)
 
-- The docs row does not say that rhyper draws a uniform there where R draws none (the rexp and rbeta rows say it). A clause such as "one uniform is drawn there, where R draws none" could be added to that row in `docs/differences-from-r.md` and `docs/ja/differences-from-r.md`; not done here (logs and tests only).
+- The docs row does not say that rhyper draws a uniform there where R draws none (the rexp and rbeta rows say it). A clause such as "one uniform is drawn there, where R draws none" could be added to that row in `docs/differences-from-r.md` and `docs/ja/differences-from-r.md`. Added by user decision (2026-11-04) in a follow-up commit.
 
 ## close comment
 

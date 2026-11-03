@@ -383,7 +383,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `rgeom(n, 5e-324)` (約 5.6e-309 未満の prob)、p < 1 の `rnbinom(n, Inf, prob = p)` | NA。約 9e307 (size = MAX / 2 での値) か NA | Infinity。値は double の最大値を超える (rgeom は 1e-15 未満の確率を除いて。rnbinom は確率がすべて無限遠にあり、dnbinom・qnbinom と整合)。同じ乱数を引くので、乱数の状態は R と同じ |
 | `rbeta(n, 1e308, 1e308)` など、約 1e154 を超える形状 (2ab が溢れる) | 0 (Algorithm BB の定数が溢れる) | 平均 a / (a + b)。分布は 1e-77 以内に集中している。同じ一様乱数を引くので、乱数の状態は R と同じ |
 | `rbeta(n, 0, 0, ncp = 0)` (ncp > 0 でも Poisson の回数 0 の成分) | NaN (0 / 0) | 確率 1/2 ずつ 0 か 1 (Beta(0, 0))。非心でない `rbeta(n, 0, 0)` と同じ。ここで一様乱数を 1 個引く (R は引かない) |
-| `dhyper(1, 1e308, 1e308, 1)`、`phyper`、`qhyper`、`rhyper(n, 1e308, 1e308, 1)` (m + n が溢れる) | NaN。rhyper はすべて 0 | 0.5、0.5、…。k / (m + n) が 2^-60 未満なら超幾何分布は倍精度で二項分布 Bin(k, m / (m + n)) と同じなので、それを使う (m / (m + n) は和を作らずに計算) |
+| `dhyper(1, 1e308, 1e308, 1)`、`phyper`、`qhyper`、`rhyper(n, 1e308, 1e308, 1)` (m + n が溢れる) | NaN。rhyper はすべて 0 | 0.5、0.5、…。k / (m + n) が 2^-60 未満なら超幾何分布は倍精度で二項分布 Bin(k, m / (m + n)) と同じなので、それを使う (m / (m + n) は和を作らずに計算)。rhyper は 1 個ごとに一様乱数を 1 個引く (R は引かない) |
 | `dnbinom(0, size = 1e308, mu = 1e308)` | 1 | 0 (= 0.5^1e308。和が溢れるときは size と mu の比から p と q を求める) |
 | `qt(0.5, 10, ncp = Inf)` | NaN (p によっては Inf)。ただし `pt(t, 10, ncp = Inf)` はすべての有限の t で 0 | Inf。確率はすべて +∞ にある (ncp = -Inf なら -Inf)。df = Inf の場合と同じ |
 | `pbeta(-1, 0, 2)`、`pbeta(-1, 0, 0)` (形状が無限大のときも) | 1、0.5。点質量を q <= 0 より先に判定するので、台より左で分布関数が正になる | 0 |
