@@ -4775,3 +4775,48 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 ## Audit #772 — exact mantelhaenTest accepts unsafe counts and attempts impossible support allocation
 - 対象: `src/htest/mantelhaenTest.ts` SHA `669a040db7481c9aad8d0da633a4e73f333b2488`、`src/htest/core/mantelhaen.ts` SHA `4b5a26bfeefa86028d47ad56711bfb92e4556b12`。
 - Issue [#282](https://github.com/numero-uno-jpn/rStats.js/issues/282)。再現: `mantelhaenTest([[[1e20,1e20],[1e20,1e20]],[[1,1],[1,1]]],{exact:true})`。`Number.isInteger(1e20)` はtrueでexact分岐を通過するが、最初の層の超幾何分布support長は約1e20となり、`stratumDensity()` の `new Float64Array(hi-lo+1)` で割当不能となる。safe-integerとsupport長の事前制限が必要。静的ソース/配列長解析。実行テストなし。
+
+
+## Audit #773 — pivoted Cholesky ignores the tolerance at the first pivot
+- 対象: `src/linalg/chol.ts` SHA `5444cb2c0f790e8a231c515dead77c069d822e3a` の `pstf2()`。
+- Issue [#283](https://github.com/numero-uno-jpn/rStats.js/issues/283)。再現: `chol([[1]],{pivot:true,tol:2})`。最大pivot=1はtol=2以下だが、`ajj <= dstop` 判定が `j>0` の分岐内にあるため最初のpivotを因数分解し、rank=1を返す。初回pivotにも停止条件を適用すべき。静的ソース解析。実行/LAPACK比較なし。
+
+## Audit #774 — Quade test uses complete-row count instead of original block count
+- 対象: `src/htest/rankTests.ts` SHA `e40c83f8cb535b12f41e0161875114ce1021807c` の `quadeTest()`。
+- Issue [#284](https://github.com/numero-uno-jpn/rStats.js/issues/284)。再現:
+  ```ts
+  quadeTest([[1,2,3],[2,4,3],[NaN,NaN,NaN]]);
+  ```
+  現行はcompleteRows後の2行をbとするが、Rのmatrix版は欠損行除去前のblock level数3をBの分母、F倍率、分母自由度に使う。Rの `quade.test` ソースと静的比較。実行/Rランタイム比較なし。
+
+## Audit #775 — chisqTest contingency simulation omits the grand-total allocation limit
+- 対象: `src/htest/chisqTest.ts` SHA `8b0426c29232aa6d013befd6564e281fc705cc8d`、`src/random/r2dtable.ts` SHA `3e5a15a95b5a73e04ec337d441a2976ecbf88583`。
+- Issue [#285](https://github.com/numero-uno-jpn/rStats.js/issues/285)。再現: `chisqTest([[1e9,1e9],[1e9,1e9]],{simulatePValue:true,B:1})`。各marginは2e9だがgrand totalは4e9。chisqTestの `simulateTables()` は上限検証なしで `logFactorialTable(total)` を呼び、32GB超のFloat64Array確保を試みる。公開 `r2dtable()` はtotal>2147483647を拒否する。静的ソース/メモリ量解析。実行なし。
+
+## Audit #776 — fisherTest simulation omits the grand-total allocation limit
+- 対象: `src/htest/fisherTest.ts` SHA `c90cc3b96af152c34f0a2396fad60ecda9d5d32a`、`src/random/r2dtable.ts` SHA `3e5a15a95b5a73e04ec337d441a2976ecbf88583`。
+- Issue [#286](https://github.com/numero-uno-jpn/rStats.js/issues/286)。再現: `fisherTest([[1e9,1e9],[1e9,1e9],[1e9,1e9]],{simulatePValue:true,B:1})`。個々のcellは32-bit上限内だがgrand totalは6e9。 `fisherSimulated()` が無制限に `logFactorialTable(total)` を作成しようとする。r2dtableの上限チェックを適用すべき。静的ソース/メモリ量解析。実行なし。
+
+## Audit #777 — chisqTest goodness-of-fit simulation materializes all B×n draws
+- 対象: `src/htest/chisqTest.ts` SHA `8b0426c29232aa6d013befd6564e281fc705cc8d`。
+- Issue [#287](https://github.com/numero-uno-jpn/rStats.js/issues/287)。再現: `chisqTest([1e9,1e9],{simulatePValue:true,B:1})`。 `simulateGoodnessOfFit()` は `sampleInt` に `size=Math.trunc(B*n)` を渡し、20億件のdraw配列を一括materializeする。実行可能なallocation上限またはstreaming方式が必要。静的allocation経路解析。実行なし。
+
+## Audit #778 — chisqTest factor overload rejects a single-level factor
+- 対象: `src/htest/chisqTest.ts` SHA `8b0426c29232aa6d013befd6564e281fc705cc8d` の `chisqFactors()`。
+- Issue [#288](https://github.com/numero-uno-jpn/rStats.js/issues/288)。再現: `chisqTest(["a","a","a","a"],["u","u","v","v"])`。factor vector版はrow/column level数が2未満だと拒否する一方、matrix版は1行/1列をgoodness-of-fitへ渡す。Rもfactor vectorからtableを作成後に同じ1次元処理へ進む。静的ソース/R実装比較。実行テストなし。
+
+## Audit #779 — binomTest rejects the zero-total two-count input
+- 対象: `src/htest/binomTest.ts` SHA `4e514e3164c1f852b325a5a04b099effc73d218c`。
+- Issue [#289](https://github.com/numero-uno-jpn/rStats.js/issues/289)。再現: `binomTest([0,0])`。tuple形式は成功数と失敗数からnを計算するが、ns===0で例外にする。Rの `binom.test(c(0,0))` は処理を続けp=1、CI=[0,1]、estimate=NaNを返す。scalar x,n形式のn>0制約とは分けるべき。Rソース静的比較。実行テストなし。
+
+## Audit #780 — binomTest rejects confidence levels at 0 and 1
+- 対象: `src/htest/binomTest.ts` SHA `4e514e3164c1f852b325a5a04b099effc73d218c` の `binomTestCounts()`。
+- Issue [#290](https://github.com/numero-uno-jpn/rStats.js/issues/290)。再現: `binomTest(3,10,{confLevel:0})` および `binomTest(3,10,{confLevel:1})`。 `checkConfLevelOpen()` は開区間を要求するが、Rの `binom.test()` は0と1を許容する閉区間検証。静的ソース比較。実行テストなし。
+
+## Audit #781 — chisqTest goodness-of-fit rejects Infinity contrary to its documented behavior
+- 対象: `src/htest/chisqTest.ts` SHA `8b0426c29232aa6d013befd6564e281fc705cc8d`。
+- Issue [#291](https://github.com/numero-uno-jpn/rStats.js/issues/291)。再現: `chisqTest([Infinity,1])`、`chisqTest([[Infinity,1]])`、`chisqTest([[1],[Infinity]])`。ファイル先頭コメントではvector/1行1列matrixのInfを許容しNaN統計量になると記載するが、`goodnessOfFit()` のguardが `v<Infinity` を要求して例外にする。多次元contingency tableの有限値検証とは分離すべき。Rソース静的比較。実行テストなし。
+
+## Audit #782 — fisherTest rejects confidence levels at 0 and 1
+- 対象: `src/htest/fisherTest.ts` SHA `c90cc3b96af152c34f0a2396fad60ecda9d5d32a`。
+- Issue [#292](https://github.com/numero-uno-jpn/rStats.js/issues/292)。再現: `fisherTest([[3,1],[1,3]],{confLevel:0})` および `fisherTest([[3,1],[1,3]],{confLevel:1})`。2×2 branchは `0<confLevel<1` を要求するが、Rの `fisher.test()` は0と1を許容する。端点alphaのodds-ratio CIも極限値を返すべき。Rソース静的比較。実行テストなし。
