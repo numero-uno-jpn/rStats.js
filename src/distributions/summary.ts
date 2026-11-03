@@ -12,7 +12,7 @@ import { dqagie, dqagse } from "../integrate/quadpack.js";
 import { ddAdd, ddMul, ddSub, type DD } from "../special/dd.js";
 import { gamma as gammaFn, lgamma } from "../special/gamma.js";
 import { lbeta } from "../special/beta.js";
-import { qgamma } from "./gamma.js";
+import { gammaScale, qgamma } from "./gamma.js";
 import { qchisq } from "./chisq.js";
 import { qbeta } from "./beta.js";
 import { qf } from "./f.js";
@@ -221,7 +221,14 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
     }
     case "gamma": {
       const k = P.shape ?? NaN;
-      const scale = has(P, "scale") ? P.scale! : 1 / (P.rate ?? 1);
+      // (rate and scale as dgamma: both only with scale = 1 / rate, otherwise invalid; the scale was taken and the rate
+      // ignored; issue #245)
+      let scale: number;
+      try {
+        scale = gammaScale({ ...(has(P, "rate") && { rate: P.rate! }), ...(has(P, "scale") && { scale: P.scale! }) });
+      } catch {
+        return NAN;
+      }
       if (!(k > 0 && Number.isFinite(k) && scale > 0 && Number.isFinite(scale))) return NAN;
       return make(k * scale, k * scale * scale, qgamma(0.5, k, { scale }), k >= 1 ? (k - 1) * scale : 0, 2 / Math.sqrt(k), 6 / k, Math.sqrt(k) * scale);
     }
