@@ -4,11 +4,13 @@
 //
 // Written for rStats.js from oracle/rm-tests-behaviour.md (no ported code; car's source was not read).
 
-import { mean, scaleToUnit } from "../internal/summary.js";
+import { ldexp, mean, scaleToUnit } from "../internal/summary.js";
 import { aov } from "./aov.js";
 import { labelledGroups, median, type GroupLabel } from "./groups.js";
 import { matchChoice } from "./power.js";
 import type { Sample } from "./types.js";
+
+const MIN_NORMAL = 2 ** -1022;
 
 /**
  * Options for {@link leveneTest}.
@@ -56,10 +58,24 @@ export function leveneTest(y: Sample, g: readonly GroupLabel[], options: LeveneT
   if (groups.length < 2) throw new RangeError("contrasts can be applied only to factors with 2 or more levels");
   // the absolute deviations of the data scaled by one power of 2 (exact), so that they cannot overflow; F does not
   // depend on the units
-  const deviations = scaleToUnit(groups).groups.map((s) => {
+  const deviationsOf = (s: readonly number[]): number[] => {
     const c = center === "median" ? median(s) : mean(s);
     return s.map((v) => Math.abs(v - c));
-  });
+  };
+  let deviations = scaleToUnit(groups).groups.map(deviationsOf);
+  const lost = (d: readonly number[], i: number): boolean =>
+    d.some((v) => v > 0 && v < MIN_NORMAL) || (d.every((v) => v === 0) && groups[i]!.some((v) => v !== groups[i]![0]));
+  if (deviations.some(lost)) {
+    // the deviations of a group fall below the normal range on the common scale (#393; as #270): each group's
+    // deviations on its own scale, then all on the scale of the largest deviation
+    const own = groups.map((s) => {
+      const r = scaleToUnit([s]);
+      return { d: deviationsOf(r.groups[0]!), k: r.k };
+    });
+    const top = Math.max(...own.map((o) => (o.d.some((v) => v > 0) ? Math.floor(Math.log2(Math.max(...o.d))) + o.k : -Infinity)));
+    const e = Number.isFinite(top) ? top : 0;
+    deviations = own.map((o) => o.d.map((v) => ldexp(v, o.k - e)));
+  }
   const r = aov(deviations);
   return {
     colNames: ["Df", "F value", "Pr(>F)"],

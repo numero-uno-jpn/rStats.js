@@ -8,7 +8,7 @@
 
 import { pf1, qf1 } from "../distributions/f.js";
 import { pgamma1 } from "../distributions/gamma.js";
-import { groupMoments } from "../internal/summary.js";
+import { groupMoments, ldexpWide } from "../internal/summary.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { kSampleData, samplesByLevel, twoGroupData } from "./testFormula.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
@@ -87,10 +87,20 @@ export function varTest(x: Sample | string, y: Sample | DataFrame, options: VarT
   if (dfx < 1) throw new Error("not enough 'x' observations");
   if (dfy < 1) throw new Error("not enough 'y' observations");
   // scaled by a power of 2 (exact) so that the variances stay in range; the statistic does not depend on the units
-  const [vx, vy] = groupMoments([xs, ys]).variance as [number, number];
+  let [vx, vy] = groupMoments([xs, ys]).variance as [number, number];
+  let exponent = 0;
+  if (!(vx >= MIN_NORMAL && vy >= MIN_NORMAL)) {
+    // a variance below the normal range on the common scale (#393; as #270): each sample on its own scale 2^-e,
+    // the ratio times 2^(2 (e_x - e_y)). varTest([1e308, 1e308], [0, 1e-100]) had both variances 0
+    const mx = groupMoments([xs]);
+    const my = groupMoments([ys]);
+    vx = mx.variance[0]!;
+    vy = my.variance[0]!;
+    exponent = 2 * (mx.k - my.k);
+  }
   // both variances 0: the ratio is 0 / 0 (R returns NaN); one of them 0 gives the limit 0 or Infinity as before
   if (vx === 0 && vy === 0) throw new RangeError("both samples have zero variance");
-  const estimate = vx / vy;
+  const estimate = exponent === 0 ? vx / vy : ldexpWide(vx / vy, exponent);
   const statistic = estimate / ratio;
   const lower = pf1(statistic, dfx, dfy, true, false);
   const upper = pf1(statistic, dfx, dfy, false, false);

@@ -72,6 +72,21 @@ export function ldexp(v: number, k: number): number {
   return v * 2 ** a * 2 ** (k - a);
 }
 
+/** v 2^k for any integer k (beyond the +-2046 of ldexp), in steps of at most 2^1000 */
+export function ldexpWide(v: number, k: number): number {
+  let x = v;
+  let r = k;
+  while (r > 1000) {
+    x *= 2 ** 1000;
+    r -= 1000;
+  }
+  while (r < -1000) {
+    x *= 2 ** -1000;
+    r += 1000;
+  }
+  return x * 2 ** r;
+}
+
 /** Sum of values that are not all finite, as in double arithmetic (NaN propagates, Inf and -Inf give NaN) */
 function nonFiniteSum(x: readonly number[]): number {
   let s = 0;

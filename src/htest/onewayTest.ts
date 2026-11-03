@@ -7,12 +7,14 @@
 // shapiro.test: W and its p-value from src/htest/core/shapiro.ts (Royston's AS R94).
 
 import { pf1 } from "../distributions/f.js";
-import { groupMoments } from "../internal/summary.js";
+import { groupMoments, ldexpWide } from "../internal/summary.js";
 import { swilkOneMinusW, swilkPValueFromOneMinusW } from "./core/shapiro.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { toGroups, type GroupLabel } from "./groups.js";
 import { onewayData } from "./testFormula.js";
 import type { HTest, Sample } from "./types.js";
+
+const MIN_NORMAL = 2 ** -1022;
 
 /**
  * Options for {@link onewayTest}.
@@ -85,7 +87,8 @@ export function onewayTest(
   else labels = g as readonly GroupLabel[] | undefined;
   // moments of the data scaled by a power of 2 (exact), so that the variances stay in range; the statistic has no
   // units
-  const gm = groupMoments(toGroups(x, labels));
+  const raw = toGroups(x, labels);
+  const gm = groupMoments(raw);
   const groups = gm.groups;
   const varEqual = options.varEqual ?? false;
   const k = groups.length;
@@ -97,6 +100,7 @@ export function onewayTest(
   const N = ni.reduce((a, b) => a + b, 0);
   let statistic: number;
   let df2: number;
+  let own: { mean: number; variance: number; k: number }[] | undefined;
   if (varEqual) {
     const m = gm.grandMean;
     let between = 0;
@@ -107,6 +111,36 @@ export function onewayTest(
     }
     df2 = N - k;
     statistic = between / (k - 1) / (within / df2);
+  } else if (vi.some((v) => !(v >= MIN_NORMAL)) && (own = ownScaleMoments(raw)) !== undefined) {
+    // A variance underflows (or is subnormal) on the common scale although no group is constant (#393; as #270 for
+    // bartlettTest): each group on its own scale 2^-k_i, the weights and the terms as a mantissa and a power of 2,
+    // and F in the pairwise form sum_{i<j} w_i w_j (m_i - m_j)^2 / sum w, with 1 - w_i / sum w = (the sum of the
+    // other weights) / sum w
+    const w = own.map((o, i) => splitPow2(ni[i]! / o.variance, -2 * o.k));
+    const top = Math.max(...w.map((x) => x.e));
+    const parts = w.map((x) => ldexpWide(x.m, x.e - top));
+    const sw = parts.reduce((s, v) => s + v, 0);
+    let c = 0;
+    for (let i = 0; i < k; i++) {
+      const others = parts.reduce((s, v, j) => (j === i ? s : s + v), 0);
+      c += (others / sw) ** 2 / (ni[i]! - 1);
+    }
+    c /= k * k - 1;
+    const terms: { m: number; e: number }[] = [];
+    for (let i = 0; i < k; i++) {
+      for (let j = i + 1; j < k; j++) {
+        // m_i - m_j in units of 2^max(k_i, k_j)
+        const [p, q] = own[i]!.k >= own[j]!.k ? [own[i]!, own[j]!] : [own[j]!, own[i]!];
+        const d = p.mean - ldexpWide(q.mean, q.k - p.k);
+        if (d === 0) continue;
+        const dd = splitPow2(d, p.k);
+        terms.push({ m: (w[i]!.m * w[j]!.m * dd.m * dd.m) / sw, e: w[i]!.e + w[j]!.e + 2 * dd.e - top });
+      }
+    }
+    const peak = Math.max(...terms.map((t) => t.e));
+    const sum = terms.reduce((s, t) => s + ldexpWide(t.m, t.e - peak), 0);
+    statistic = (terms.length === 0 ? 0 : ldexpWide(sum, peak)) / ((k - 1) * (1 + 2 * (k - 2) * c));
+    df2 = 1 / (3 * c);
   } else if (vi.some((v) => v === 0)) {
     // a constant group z (#313): as its variance tends to 0, w_z -> Infinity, the weighted mean -> m_z, and
     // F -> sum_{i != z} w_i (m_i - m_z)^2 / ((k - 1)(1 + 2 (k - 2) c)), c = sum_{i != z} 1 / (n_i - 1) / (k^2 - 1)
@@ -180,4 +214,33 @@ export function shapiroTest(x: Sample): Omit<HTest, "alternative"> {
     statisticName: "W",
     pValue: swilkPValueFromOneMinusW(w1, n),
   };
+}
+
+/**
+ * Each group's mean and variance on its own scale 2^-k (#393); undefined when a group is constant (its weight is
+ * infinite: #313)
+ */
+function ownScaleMoments(groups: readonly (readonly number[])[]): { mean: number; variance: number; k: number }[] | undefined {
+  const out: { mean: number; variance: number; k: number }[] = [];
+  for (const g of groups) {
+    const m = groupMoments([g]);
+    const variance = m.variance[0]!;
+    if (!(variance > 0)) return undefined;
+    out.push({ mean: m.mean[0]!, variance, k: m.k });
+  }
+  return out;
+}
+
+/** v 2^e (v finite and nonzero) as m 2^e' with abs(m) in [1, 2) */
+function splitPow2(v: number, e: number): { m: number; e: number } {
+  let f = Math.floor(Math.log2(Math.abs(v)));
+  let m = ldexpWide(v, -f);
+  if (Math.abs(m) >= 2) {
+    m /= 2;
+    f++;
+  } else if (Math.abs(m) < 1) {
+    m *= 2;
+    f--;
+  }
+  return { m, e: e + f };
 }
