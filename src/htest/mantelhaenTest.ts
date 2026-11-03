@@ -17,7 +17,7 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { solve } from "../linalg/solve.js";
-import { squareOver } from "../internal/summary.js";
+import { ldexp, productOver, squareOver } from "../internal/summary.js";
 import { ddAdd, type DD } from "../special/dd.js";
 import { ConvolvedNoncentralHyper, conditionalMLE, lowerLimit, upperLimit, type Stratum } from "./core/mantelhaen.js";
 import { checkConfLevelOpen, matchAlternative, type Alternative, type HTest } from "./types.js";
@@ -83,7 +83,7 @@ export function mantelhaenTest(
     if (t.length !== I || t.some((r) => r.length !== J)) throw new RangeError("all strata must have the same dimensions");
     if (t.some((r) => r.some((v) => !Number.isFinite(v) || v < 0))) throw new RangeError("all entries of 'x' must be nonnegative and finite");
   }
-  const totals = strata.map((t) => t.reduce((a, r) => a + r.reduce((b, v) => b + v, 0), 0));
+  const totals = strata.map(stratumTotal);
   if (totals.some((t) => t < 2)) throw new RangeError("sample size in each stratum must be > 1");
   const alternative = matchAlternative(options.alternative);
   const correct = options.correct ?? true;
@@ -101,6 +101,36 @@ export function mantelhaenTest(
   }
   // as in R, exact applies to 2 x 2 x K tables only and is ignored otherwise
   return general(strata, totals, I, J);
+}
+
+/** Sum of the counts of one stratum */
+function stratumTotal(t: readonly (readonly number[])[]): number {
+  return t.reduce((a, r) => a + r.reduce((b, v) => b + v, 0), 0);
+}
+
+/**
+ * The even power of 2 to divide all counts by where the totals or sums over the strata overflow: the largest count
+ * then below 2^1020 / (8 I J K), so that the totals and the sums over the strata are finite (#224). The
+ * statistics are homogeneous in the counts (the count 1 in t - 1 becomes 2^-s), so they are scaled back exactly
+ */
+function countExponent(strata: readonly (readonly (readonly number[])[])[]): number {
+  let m = 0;
+  let cells = 0;
+  for (const t of strata) {
+    for (const r of t) {
+      for (const v of r) {
+        m = Math.max(m, v);
+        cells++;
+      }
+    }
+  }
+  const s = Math.floor(Math.log2(m)) + 1 + Math.ceil(Math.log2(8 * cells)) - 1020;
+  return s <= 0 ? 0 : s + (s % 2);
+}
+
+/** The strata with every count divided by 2^s */
+function scaledStrata<T extends readonly (readonly number[])[]>(strata: readonly T[], s: number): T[] {
+  return strata.map((t) => t.map((r) => r.map((v) => ldexp(v, -s))) as unknown as T);
 }
 
 function asymptotic2x2xK(
@@ -219,32 +249,20 @@ function general(
   I: number,
   J: number,
 ): MantelhaenTestResult {
-  const p = (I - 1) * (J - 1);
-  const diff = new Array<number>(p).fill(0);
-  const V = Array.from({ length: p }, () => new Array<number>(p).fill(0));
-  strata.forEach((tab, k) => {
-    const t = totals[k]!;
-    const r = tab.map((row) => row.reduce((a, b) => a + b, 0));
-    const c = Array.from({ length: J }, (_, j) => tab.reduce((a, row) => a + row[j]!, 0));
-    const f = 1 / (t * t * (t - 1));
-    // cell (i, j) of the first I - 1 rows and J - 1 columns is element i + (I - 1) j (column-major, as in R)
-    for (let j = 0; j < J - 1; j++) {
-      for (let i = 0; i < I - 1; i++) {
-        const u = i + (I - 1) * j;
-        diff[u]! += tab[i]![j]! - (r[i]! * c[j]!) / t;
-        for (let jj = 0; jj < J - 1; jj++) {
-          for (let ii = 0; ii < I - 1; ii++) {
-            const vr = (i === ii ? t * r[i]! : 0) - r[i]! * r[ii]!;
-            const vc = (j === jj ? t * c[j]! : 0) - c[j]! * c[jj]!;
-            V[u]![ii + (I - 1) * jj]! += f * vr * vc;
-          }
-        }
-      }
-    }
-  });
+  let { diff, V } = generalSums(strata, totals, I, J, 1);
+  // a total or a sum over the strata overflows: all counts divided by 2^s (see countExponent); the differences and
+  // the covariance are of degree 1 in the counts, so the statistic is 2^s times the scaled one
+  let s = 0;
+  if (!totals.every(Number.isFinite) || !diff.every(Number.isFinite) || !V.every((row) => row.every(Number.isFinite))) {
+    s = countExponent(strata);
+    const scaled = scaledStrata(strata, s);
+    ({ diff, V } = generalSums(scaled, scaled.map(stratumTotal), I, J, ldexp(1, -s)));
+  }
+  const p = diff.length;
   const sol = solve(V, diff);
   let statistic = 0;
   for (let u = 0; u < p; u++) statistic += diff[u]! * sol[u]!;
+  statistic = ldexp(statistic, s);
   return {
     method: "Cochran-Mantel-Haenszel test",
     statistic,
@@ -253,4 +271,51 @@ function general(
     parameterName: "df",
     pValue: pgamma1(statistic, p / 2, 2, false, false),
   };
+}
+
+const MIN_NORMAL = 2 ** -1022;
+
+/**
+ * The differences n - m and the covariance V of the generalized statistic, summed over the strata, in units of 2^s
+ * counts (one = 2^-s is the count 1 in those units)
+ */
+function generalSums(
+  strata: readonly (readonly (readonly number[])[])[],
+  totals: readonly number[],
+  I: number,
+  J: number,
+  one: number,
+): { diff: number[]; V: number[][] } {
+  const p = (I - 1) * (J - 1);
+  const diff = new Array<number>(p).fill(0);
+  const V = Array.from({ length: p }, () => new Array<number>(p).fill(0));
+  strata.forEach((tab, k) => {
+    const t = totals[k]!;
+    const r = tab.map((row) => row.reduce((a, b) => a + b, 0));
+    const c = Array.from({ length: J }, (_, j) => tab.reduce((a, row) => a + row[j]!, 0));
+    const f = 1 / (t * t * (t - one));
+    // cell (i, j) of the first I - 1 rows and J - 1 columns is element i + (I - 1) j (column-major, as in R)
+    for (let j = 0; j < J - 1; j++) {
+      for (let i = 0; i < I - 1; i++) {
+        const u = i + (I - 1) * j;
+        // a product of margins near 1e154 overflows: formed from the margins scaled to [1, 2) there
+        const e = (r[i]! * c[j]!) / t;
+        diff[u]! += tab[i]![j]! - (Number.isFinite(e) ? e : productOver(r[i]!, c[j]!, t));
+        for (let jj = 0; jj < J - 1; jj++) {
+          for (let ii = 0; ii < I - 1; ii++) {
+            const vr = (i === ii ? t * r[i]! : 0) - r[i]! * r[ii]!;
+            const vc = (j === jj ? t * c[j]! : 0) - c[j]! * c[jj]!;
+            const v = f * vr * vc;
+            // t^2 (t - 1) or the product overflows from counts near 1e103 (0 times Infinity was NaN; R fails, #224):
+            // r_i (d_ii - r_ii / t) (d_jj - c_jj / t) c_j / (t - 1) there, each factor in range
+            V[u]![ii + (I - 1) * jj]! +=
+              Number.isFinite(v) && f >= MIN_NORMAL
+                ? v
+                : r[i]! * ((i === ii ? 1 : 0) - r[ii]! / t) * (((j === jj ? 1 : 0) - c[jj]! / t) * (c[j]! / (t - one)));
+          }
+        }
+      }
+    }
+  });
+  return { diff, V };
 }

@@ -185,6 +185,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `binom.test(5, 10, conf.level = 1 - 1e-16)` と `poisson.test` (alpha が 1e-8 未満) | 上限を 1 - alpha から求め、桁が落ちる (1 - 1e-16 では 1 と Inf) | 上限を上側確率 alpha そのものから求める (0.99981、52.549)。alpha が 1e-8 以上なら R と同じ |
 | `var.test`、`prop.test`、`mantelhaen.test`、`t.test`、ICC、`cor.test`、一元配置の対比、lm の `confint`・`predict`、glm のプロファイル区間、`coxph`、`survfit` の区間も同じ (alpha が 1e-8 未満) | 1 - alpha や (1 + level) / 2 が 1 に丸まり、限界が 0・NaN・Inf | 上側確率 alpha を分位点関数に渡す |
 | 度数が 1e150 前後の `mantelhaen.test` (度数の積が溢れる) | 統計量と p 値が NaN (分散で Inf / Inf) | その場合だけ比を先に作る。釣り合った表では統計量 0、p 値 1 |
+| 度数が 1e103 前後以上の I x J x K の `mantelhaen.test` (t^2 (t - 1) と共分散の積が溢れる)。例: すべてのセルが 1e103 | エラー "NA/NaN/Inf in foreign function call" (共分散で 0 × Inf) | その場合だけ共分散の各要素を r_i (d - r_ii / t) (d - c_jj / t) c_j / (t - 1) で作り、層の合計や層をまたぐ和が溢れるときは全度数を 2 の冪で割る。釣り合った表では統計量 0、それ以外も厳密な計算と 1 ulp 以内 |
 | D >= 1/2 で p 値が極小の `ks.test(x, "punif", exact = TRUE)` (D = 0.9、n = 20・50・99) | 0、8.9e-16、2.0e-15 (1 - P(D < d) で桁が落ちる) | 2.0e-20、2.0e-50、2.05e-99。d >= 1/2 では P(D >= d) = 2 P(D+ >= d) を正の項の和で求める |
 | 有限なデータの範囲や偏差が溢れる `quade.test`・`fligner.test` (-1e308〜1e308 と -9e307〜9e307 の行) | どちらも Inf で同順位になり、尺度を変えると結果が変わる | その場合は共通の 2 の冪で割ってから計算し、どの尺度でも同じ結果 |
 | `wilcox.test(c(1e308, 1.1e308, 1.2e308), mu = -1e308)` と 2 標本の `x - mu` (`mu` との差が溢れる有限なデータ) | 差がどれも Inf で同順位になり、正規近似で V = 6、p = 0.1489 (y = 1:3 に対して W = 9、p = 0.0636) | その場合だけ差を半分の単位 (x / 2 - mu / 2) で作り、真の差の順位を付ける。正確な p = 0.25 (W = 9 では 0.1) |
