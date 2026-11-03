@@ -13,6 +13,7 @@ import { pnorm } from "../distributions/normal.js";
 import { numberLevels } from "../internal/levels.js";
 import { mean, satterthwaiteDf, scaleToUnit, sum, variance } from "../internal/summary.js";
 import { solve } from "../linalg/solve.js";
+import { qr, qrResid } from "../linalg/qr.js";
 import { ddAdd, ddDivNum, ddMul, ddSub, type DD } from "../special/dd.js";
 import { formatR } from "./core/simulate.js";
 import { matchChoice } from "./power.js";
@@ -367,8 +368,24 @@ export function cronbachAlpha(x: readonly (readonly number[])[]): CronbachAlphaR
   const R = cor(x) as number[][];
   const items = Array.from({ length: k }, (_, i) => i);
   const sumR = sum(R.flat());
-  const Rinv = solve(R);
-  const smc = items.map((i) => 1 - 1 / Rinv[i]![i]!);
+  let smc: number[];
+  try {
+    const Rinv = solve(R);
+    smc = items.map((i) => 1 - 1 / Rinv[i]![i]!);
+  } catch (e) {
+    if (!R.flat().every(Number.isFinite)) throw e;
+    // A singular correlation matrix (a repeated item, an item that is the sum of others, or at least as many items as
+    // subjects): the SMC of item i is still the R^2 of lm(x_i ~ x_-i), here with R's QR (limited pivoting, tol 1e-7) on
+    // the data scaled by one power of 2. [[1, 1], [2, 2], [3, 3]] threw "exactly singular" (issue #468); psych's
+    // pseudo-inverse gives such items an SMC of 0 (G6 0.5), the R^2 is 1 (G6 1)
+    const xs = scaleToUnit(x).groups;
+    smc = items.map((i) => {
+      const y = xs.map((r) => r[i]!);
+      const res = qrResid(qr(xs.map((r) => [1, ...r.filter((_, j) => j !== i)])), y);
+      const m = mean(y);
+      return 1 - sum(res.map((v) => v * v)) / sum(y.map((v) => (v - m) ** 2));
+    });
+  }
   return {
     rawAlpha: rawAlphaOf(C, items),
     stdAlpha: ((1 - k / sumR) * k) / (k - 1),
