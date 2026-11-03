@@ -577,6 +577,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   that sum over the strata, with the hint to use `exact: false`), before anything is allocated. R allocates the whole
   support whatever its size: `fisher.test(matrix(1e7, 2, 2))` (2e7 + 1 values) took 45 s, and counts of 1e9 would
   take 16 GB per array.
+- **The goodness-of-fit simulation of `chisqTest` (`simulatePValue: true`)** throws a RangeError when B times the
+  total count exceeds 2^27 (134217728 draws, tens of seconds), before drawing. Below that the draws are made n at a
+  time from the same uniforms as R's `sample.int`, so the p-values match R; R draws all B n at once and accepts any
+  size it can allocate (`chisq.test(c(1e9, 1e9), simulate.p.value = TRUE, B = 1)` asks for 2e9 draws; issue #287).
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)

@@ -13,15 +13,15 @@
 //   Fractional counts are accepted in both cases
 // - Sums are taken in double-double (R's sum accumulates in extended precision)
 // - Simulated p-values (Hope 1968; R's documented behaviour): (1 + #{simulated statistics >= (1 - 64 eps) times the
-//   observed one}) / (B + 1). Goodness of fit draws the B samples of size n = sum(x) at once with sampleInt (R's
-//   sample.int with prob) and counts them n at a time; contingency tables are drawn with Patefield's algorithm
+//   observed one}) / (B + 1). Goodness of fit draws the B samples of size n = sum(x) one at a time (the uniforms of
+//   R's sample.int with prob) and counts them n at a time; contingency tables are drawn with Patefield's algorithm
 //   (src/random/r2dtable.ts). The statistic is then the uncorrected one, and the parameter is NaN (R's NA). Tables
 //   with a zero margin are not simulated (ordinary test), as in R
 // - Two factor vectors: the table of the complete pairs, with the distinct values sorted by code point (C locale)
 
 import { pgamma1 } from "../distributions/gamma.js";
 import { logFactorialTable, rcont2 } from "../random/r2dtable.js";
-import { sampleInt } from "../random/sample.js";
+import { sampleIntReplaceDrawer } from "../random/sample.js";
 import { ldexp, productOver, squareOver } from "../internal/summary.js";
 import { compareCodePoints } from "../models/modelFrame.js";
 import { ddAdd, type DD } from "../special/dd.js";
@@ -286,22 +286,20 @@ function goodnessOfFit(x: number[], options: ChisqTestOptions): ChisqTestResult 
 }
 
 /**
- * Statistics of B multinomial samples: B n categories drawn at once with probabilities p (sampleInt, R's
- * sample.int(k, B n, TRUE, prob = p)), laid out column by column in a matrix of floor(n) rows (recycled to fill the
- * last column, as R's matrix() does when n is not an integer) and counted per column
+ * Statistics of B multinomial samples: the B n categories of R's sample.int(k, B n, TRUE, prob = p), taken column by
+ * column of the n-row matrix, are drawn n at a time and counted (n is an integer here), without keeping the B n draws
+ * (#287): the same uniforms in the same order, so the same statistics. B n is limited to 2^27 draws (tens of seconds)
  */
 function simulateGoodnessOfFit(n: number, p: readonly number[], E: readonly number[], B: number): Float64Array {
   const k = p.length;
-  const draws = sampleInt(k, { size: Math.trunc(B * n), replace: true, prob: p });
-  const rows = Math.trunc(n);
-  if (draws.length === 0) return new Float64Array(0);
-  if (rows === 0) throw new RangeError("invalid 'nrow' value (too large or NA)");
-  const cols = Math.ceil(draws.length / rows);
-  const out = new Float64Array(cols);
+  if (B * n > 2 ** 27) throw new RangeError("the simulation needs B * sum(x) <= 2^27 (134217728) draws");
+  const draw = sampleIntReplaceDrawer(k, p);
+  if (B * n === 0) return new Float64Array(0);
+  const out = new Float64Array(B);
   const counts = new Float64Array(k);
-  for (let j = 0; j < cols; j++) {
+  for (let j = 0; j < B; j++) {
     counts.fill(0);
-    for (let i = 0; i < rows; i++) counts[draws[(j * rows + i) % draws.length]!]!++;
+    for (let i = 0; i < n; i++) counts[draw()]!++;
     let s = 0;
     for (let c = 0; c < k; c++) s += (counts[c]! - E[c]!) ** 2 / E[c]!;
     out[j] = s;

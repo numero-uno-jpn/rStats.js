@@ -64,9 +64,10 @@ function sampleInt1(n: number, options: SampleOptions): number[] {
     if (prob.length !== n) throw new TypeError("prob must have length n");
     const p = fixupProb(prob, k, replace);
     if (replace) {
-      let nc = 0;
-      for (let i = 0; i < n; i++) if (n * p[i]! > 0.1) nc++;
-      return nc > 200 ? walkerSample(p, k) : probSampleReplace(p, k);
+      const draw = replaceDrawer(p);
+      const out = new Array<number>(k);
+      for (let i = 0; i < k; i++) out[i] = draw();
+      return out;
     }
     if (k > n) throw new RangeError("cannot take a sample larger than the population when replace is false");
     return probSampleNoReplace(p, k);
@@ -100,6 +101,28 @@ function sampleInt1(n: number, options: SampleOptions): number[] {
     x[j] = x[--m]!;
   }
   return out;
+}
+
+/**
+ * One draw at a time from 0..n-1 with replacement and weights `prob`: the same draws, from the same uniforms, as
+ * consecutive elements of `sampleInt(n, { size, replace: true, prob })` (the method depends only on n and prob), with
+ * the same checks of n and prob. For simulations that count draws without keeping them (internal; #287)
+ */
+export function sampleIntReplaceDrawer(n: number, prob: readonly number[]): () => number {
+  if (!Number.isFinite(n) || n < 0 || n > 4.5e15) throw new RangeError("n must be a non-negative number up to 4.5e15");
+  n = Math.trunc(n);
+  if (n >= 2 ** 31) throw new RangeError("n must be less than 2^31 with prob");
+  if (prob.length !== n) throw new TypeError("prob must have length n");
+  const draw = replaceDrawer(fixupProb(prob, 0, true));
+  return () => draw() - 1;
+}
+
+/** The weighted draw with replacement (1-based): Walker's alias method with more than 200 large weights, as R */
+function replaceDrawer(p: Float64Array): () => number {
+  const n = p.length;
+  let nc = 0;
+  for (let i = 0; i < n; i++) if (n * p[i]! > 0.1) nc++;
+  return nc > 200 ? walkerDrawer(p) : probReplaceDrawer(p);
 }
 
 /**
@@ -200,19 +223,17 @@ function sortedByWeight(p: Float64Array): Int32Array {
   return perm;
 }
 
-function probSampleReplace(prob: Float64Array, k: number): number[] {
+function probReplaceDrawer(prob: Float64Array): () => number {
   const p = Float64Array.from(prob);
   const n = p.length;
   const perm = sortedByWeight(p);
   for (let i = 1; i < n; i++) p[i]! += p[i - 1]!;
-  const out = new Array<number>(k);
-  for (let i = 0; i < k; i++) {
+  return () => {
     const rU = unifRand();
     let j = 0;
     for (; j < n - 1; j++) if (rU <= p[j]!) break;
-    out[i] = perm[j]!;
-  }
-  return out;
+    return perm[j]!;
+  };
 }
 
 function probSampleNoReplace(prob: Float64Array, k: number): number[] {
@@ -239,8 +260,8 @@ function probSampleNoReplace(prob: Float64Array, k: number): number[] {
   return out;
 }
 
-/** Sampling with replacement by Walker's alias method */
-function walkerSample(p: Float64Array, k: number): number[] {
+/** Sampling with replacement by Walker's alias method (one draw per call) */
+function walkerDrawer(p: Float64Array): () => number {
   const n = p.length;
   const q = new Float64Array(n);
   const a = new Int32Array(n);
@@ -267,8 +288,7 @@ function walkerSample(p: Float64Array, k: number): number[] {
   // is n times one uniform; otherwise t is a uniform integer and u another uniform. The comparison is made on t + u
   // and q[t] + t, as R does (in doubles)
   const rounding = isRounding();
-  const out = new Array<number>(k);
-  for (let i = 0; i < k; i++) {
+  return () => {
     let t: number;
     let rU: number;
     if (rounding) {
@@ -278,7 +298,6 @@ function walkerSample(p: Float64Array, k: number): number[] {
       t = unifIndex(n);
       rU = t + unifRand();
     }
-    out[i] = rU < q[t]! + t ? t + 1 : a[t]! + 1;
-  }
-  return out;
+    return rU < q[t]! + t ? t + 1 : a[t]! + 1;
+  };
 }

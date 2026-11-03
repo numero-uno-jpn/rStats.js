@@ -543,6 +543,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   する前に RangeError を投げます (`fisherTest` は min(a, d) + min(b, c) + 1、`mantelhaenTest` は層ごとの同じ和に 1 を
   足したもので、`exact: false` を案内します)。R は大きさによらず台全体を確保します。`fisher.test(matrix(1e7, 2, 2))`
   (2e7 + 1 個) は 45 秒かかり、度数 1e9 では配列 1 本が 16 GB になります。
+- **`chisqTest` の適合度のシミュレーション (`simulatePValue: true`)** は、B と度数の合計の積が 2^27 (134217728 回の
+  抽出、数十秒) を超えると、抽出の前に RangeError を投げます。それ以下では R の `sample.int` と同じ一様乱数で n 個ずつ
+  引くので、p 値は R と一致します。R は B n 個をまとめて引き、確保できる限り受け付けます
+  (`chisq.test(c(1e9, 1e9), simulate.p.value = TRUE, B = 1)` は 2e9 回の抽出。issue #287)。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。
