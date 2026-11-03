@@ -194,8 +194,6 @@ function round5(v: number): number {
 /** Suggested number of classes for the data `xs` (finite values) by the named rule */
 function classCount(xs: readonly number[], rule: string): number {
   const n = xs.length;
-  const [lo, hi] = range(xs);
-  const r = hi - lo;
   switch (rule.toLowerCase()) {
     case "sturges":
       return Math.ceil(Math.log2(n) + 1);
@@ -208,14 +206,28 @@ function classCount(xs: readonly number[], rule: string): number {
     }
     case "fd":
     case "freedman-diaconis": {
+      // the range and the width from the data v and the data rounded to 5 significant digits vr
+      const fd = (v: readonly number[], vr: readonly number[]) => {
+        let h = 2 * IQR(vr);
+        for (let alpha = 1 / 8; h === 0 && alpha >= 1 / 512; alpha /= 2) {
+          const [qa, qb] = quantile(vr, [alpha, 1 - alpha]);
+          h = (qb! - qa!) / (1 - 2 * alpha);
+        }
+        if (h === 0) h = 3.5 * sd(v);
+        return [range(v), h] as const;
+      };
       const xr = xs.map(round5);
-      let h = 2 * IQR(xr);
-      for (let alpha = 1 / 8; h === 0 && alpha >= 1 / 512; alpha /= 2) {
-        const [qa, qb] = quantile(xr, [alpha, 1 - alpha]);
-        h = (qb! - qa!) / (1 - 2 * alpha);
+      let [[a, b], h] = fd(xs, xr);
+      // the range or the width overflows (#231): both from the data divided by a power of 2, the rounding to 5 digits
+      // (not scale free) done first
+      if (!(Number.isFinite(b - a) && Number.isFinite(h))) {
+        const { k } = scaleToUnit([xs]);
+        [[a, b], h] = fd(
+          xs.map((v) => ldexp(v, -k)),
+          xr.map((v) => ldexp(v, -k)),
+        );
       }
-      if (h === 0) h = 3.5 * sd(xs);
-      return h > 0 ? Math.ceil((r / h) * n ** (1 / 3)) : 1;
+      return h > 0 ? Math.ceil(((b - a) / h) * n ** (1 / 3)) : 1;
     }
     default:
       throw new RangeError("unknown 'breaks' algorithm");
