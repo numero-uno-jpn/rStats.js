@@ -5325,3 +5325,10 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規Issue [#404](https://github.com/numero-uno-jpn/rStats.js/issues/404)。再現: `expm([[0, Number.MIN_VALUE], [0, 0]], { method: "Taylor", order: 1 })`。A²=0なので厳密な指数は I+A であり、右上要素は `Number.MIN_VALUE` のまま表現可能。だが `n1*nInf` が0へunderflowして `p=5`、`N=32` となり、Taylor最初の更新で `Number.MIN_VALUE/32` が0へ丸められる。その後は単位行列を5回二乗し、右上要素0のまま返す。
 - 既存 [#207](https://github.com/numero-uno-jpn/rStats.js/issues/207) は unbalanced `Higham08` のPadé経路における大きなdynamic rangeのglobal scaling問題。本件は `Taylor` の `scaledPair()/taylorScaled()` 経路で、全要素がsubnormalのnilpotent行列に対する別の再現条件・別実装経路。
 - IEEE-754のbinary64演算とソース制御フローによる静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
+
+
+## Audit #891 — setSeed rejects the minimum signed 32-bit integer
+
+- 対象: `src/random/rng.ts` SHA `f527fd7018642205ef5870df8fcab8fc9e02aff1` の `setSeed()` 入力範囲チェック。
+- 新規Issue [#405](https://github.com/numero-uno-jpn/rStats.js/issues/405)。再現: `setSeed(-2147483648)`。現状は `Math.abs(s) > 2147483647` に該当して RangeError。API docは「32-bit integer」としているが、signed 32-bitの有効範囲は `[-2147483648, 2147483647]` であり、下端だけが誤って拒否される。負のseedは `>>> 0` でunsigned 32-bitへ変換されるため、境界値も受け入れられるべき。
+- 入力ガードとJavaScriptの整数範囲の静的検証。R実行・乱数列の照合は未実施。
