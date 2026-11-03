@@ -4748,13 +4748,13 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 対象: `src/htest/core/ansari.ts` SHA `50932adf99cd27e98433c2a4ff7e40ced9055d14` の `qansariExact()`。
 - Issue [#275](https://github.com/numero-uno-jpn/rStats.js/issues/275)。再現: `qansariExact(0.5,1.5,2)`。`pansariExact()` と `dansariExact()` はm,nの整数性を検証するが、qansariExactはm,n>=1しか検証しない。分数sample sizeが配列長の暗黙変換と位置選択再帰へ流れ、無効な帰無分布を構築する。静的ソース解析。実行テストなし。
 
+## Audit #767 — pearsonTest clamps CDF-one observations into the last class
+- 対象: `src/htest/normalityTests.ts` SHA `5af37c355b8fd52a9168fe5edac16ac9a8bca83f` の `pearsonTest()`。
+- Issue [#276](https://github.com/numero-uno-jpn/rStats.js/issues/276)。再現: `const x=[...Array(99).fill(0),1e6]; pearsonTest(x)`。標準化外れ値は約9.95で `pnorm(z)` が1に丸められる。現行 `Math.min(k, floor(1+k*p))` はk+1を最終クラスkへ押し込み、nortest/Rの `findInterval` + `tabulate(...,nbins=k)` が落とす観測を加算する。静的ソース解析。実行/R比較なし。
 ## Audit #766 — qansariR returns the maximum quantile for NaN probability
 - 対象: `src/htest/core/ansari.ts` SHA `50932adf99cd27e98433c2a4ff7e40ced9055d14` の `qansariR()`。
 - Issue [#277](https://github.com/numero-uno-jpn/rStats.js/issues/277)。再現: `qansariR(NaN,2,2)`。pの検証がなく、比較 `s >= NaN` は常にfalseとなるため、累積確率の探索が一度も成立せず、最後のfallbackで最大統計量を返す。確率範囲を検証し、NaNを返すか一貫した例外にすべき。静的ソース解析。実行テストなし。
 
-## Audit #767 — pearsonTest clamps CDF-one observations into the last class
-- 対象: `src/htest/normalityTests.ts` SHA `5af37c355b8fd52a9168fe5edac16ac9a8bca83f` の `pearsonTest()`。
-- Issue [#276](https://github.com/numero-uno-jpn/rStats.js/issues/276)。再現: `const x=[...Array(99).fill(0),1e6]; pearsonTest(x)`。標準化外れ値は約9.95で `pnorm(z)` が1に丸められる。現行 `Math.min(k, floor(1+k*p))` はk+1を最終クラスkへ押し込み、nortest/Rの `findInterval` + `tabulate(...,nbins=k)` が落とす観測を加算する。静的ソース解析。実行/R比較なし。
 
 ## Audit #768 — fisherTest truncates fractional Monte Carlo B but reports the untruncated value
 - 対象: `src/htest/fisherTest.ts` SHA `c90cc3b96af152c34f0a2396fad60ecda9d5d32a`。
