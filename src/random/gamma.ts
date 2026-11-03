@@ -247,10 +247,13 @@ export function rf(n: number, df1: number, df2: number, options: { ncp?: number 
   }
   // Noncentral F: as in R, generate n noncentral χ² variates first, then n χ² variates
   // An infinite df makes that χ² over its df 1 in the limit (for a finite ncp >= 0: mean (df + ncp) / df, variance
-  // (2 df + 4 ncp) / df^2): F is then X / df1, df2 / Y or 1 (R gives NaN). As R's rchisq with an infinite df draws no
-  // variates, leaving them out keeps the stream R's
-  const ncpOk = ncp !== undefined && ncp >= 0 && Number.isFinite(ncp);
-  const x = df1 === Infinity ? generate(n, () => (ncpOk ? 1 : NaN)) : rchisq(n, df1, { ncp }).map((v) => v / df1);
+  // (2 df + 4 ncp) / df^2): F is then X / df1, df2 / Y or 1 (R gives NaN). The variates R draws are drawn, so the
+  // stream stays R's: the noncentral χ² with df1 = Inf draws its Poisson mixture (R's value Inf, used here only for
+  // its draws and NaN), the central one with df2 = Inf draws none
+  const x =
+    df1 === Infinity
+      ? rchisq(n, df1, { ncp }).map((v) => (Number.isNaN(v) ? NaN : 1))
+      : rchisq(n, df1, { ncp }).map((v) => v / df1);
   const y = df2 === Infinity ? generate(n, () => 1) : rchisq(n, df2).map((v) => v / df2);
   // F needs df1 > 0 and df2 > 0 (the central branch gives NaN otherwise). R divides by df1 = 0 here and returns Inf or
   // NaN depending on the draw; NaN throughout, with the same variates drawn (so the stream stays R's)

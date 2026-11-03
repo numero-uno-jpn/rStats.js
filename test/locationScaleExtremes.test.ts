@@ -141,7 +141,9 @@ describe("noncentral rt and rf with an infinite df", () => {
   });
   it("rf takes chi-squared over an infinite df as 1", async () => {
     const R = await import("../src/index.js");
+    // the noncentral chi-squared with df1 = Inf draws its Poisson mixture first, as R (issue 420)
     R.setSeed(1);
+    R.rchisq(3, Infinity, { ncp: 2 });
     const y = R.rchisq(3, 10);
     R.setSeed(1);
     expect(R.rf(3, Infinity, 10, { ncp: 2 })).toEqual(y.map((v) => 1 / (v / 10)));
