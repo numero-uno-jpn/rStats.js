@@ -70,6 +70,7 @@ reference, the case passes as "more accurate than R".
 | `df(2.86e-257, 0.0275, 3, ncp = 5e-324)` | 1.3617011778446392e251 | 1.3617011778446561e251 (mpmath) | 1.3617011778446567e251 (the central density) |
 | `df(1e100, 1e-200, 1e200, ncp = 1, log = TRUE)` (df1/df2 underflows) | Inf | -462.40331295992905 (the χ² limit, R's dchisq) | same as truth |
 | `pf(1e290, 1, 1e290, ncp = 1, lower.tail = FALSE, log.p = TRUE)`, `df(..., log = TRUE)` (m q comparable to n beyond 1e290) | -Inf, NaN | -3.4657359027997265e289 (−n log(2)/2 to leading order; the central F's value) | -3.4657359027997267e289, the same |
+| `df(5e299, 2, 1e308, ncp = 1e300)` (a huge df2 with a huge noncentrality; issue #202) | NaN | about 3.98942279e-151 (the noncentral χ² limit 1e-150 / sqrt(2π) less the relative 2.5e-9 of χ²_df2/df2's spread) | 3.9894228040144464e-151 (the noncentral χ² limit, taken where pf takes it; before: 0) |
 | `qf(1.89e-13, 0.0885, 6.01e302)` | 4.6113445353195029e-287 | 4.6113445353197333e-287 (mpmath, the χ² limit) | 4.611344535319733e-287 |
 | `pbeta(0.973, 0.130, 8.15e-322, log.p = TRUE)` | -736.93128475074695 | -736.93155014878607 (mpmath) | same as truth |
 | `dchisq(1.005e-308, 294.4, ncp = 2.91e304, log = TRUE)` | -1.0243631212370614e307 | -1.4537765239560228e304 (−λ/2; the rest is of order 1e5) | same as truth |

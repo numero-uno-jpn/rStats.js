@@ -784,7 +784,9 @@ export function dnf1(x: number, m: number, n: number, ncp: number, log: boolean)
     if (n === Infinity) return x === 1 ? Infinity : log ? -Infinity : 0;
     return x === 0 ? NaN : dfDensity1(x, m, n, log);
   }
-  if (n === Infinity) {
+  // (df2 so large that χ²_n/n is 1 on the scale of the result, by pnf1's criterion: the noncentral χ² limit, as for
+  // df2 = Inf; the tiny-q first term in dnfCore gave df(3, 2, 1e308, ncp = 1) 0.6065 for 0.0956)
+  if (n === Infinity || (n > 1e40 && hugeDf2(x, m, n, ncp))) {
     // F = χ²_m(ncp) / m
     const v = dnchisq1(x * m, m, ncp, log);
     return log ? v + Math.log(m) : v * m;
@@ -818,9 +820,9 @@ export function pnf1(q: number, m: number, n: number, ncp: number, lowerTail: bo
 
 /**
  * Whether df2 = n is so large that W = χ²_n/n is 1 on the scale of P[F <= q] (both tails), so that the noncentral χ²
- * limit (df2 = Inf) is the distribution function to the double: the criterion of qnfRaw, with |log p| that of the
- * smaller tail of the limit at q. (The series in x = m q/(n + m q) gave pf(2.9957, 2, 1e308, ncp = 1, upper) -0.817
- * for 0.13271; R's pnf takes the limit for every df2 > 1e8.)
+ * limit (df2 = Inf) is the distribution function to the double (also taken for the density in dnf1): the criterion
+ * of qnfRaw, with |log p| that of the smaller tail of the limit at q. (The series in x = m q/(n + m q) gave
+ * pf(2.9957, 2, 1e308, ncp = 1, upper) -0.817 for 0.13271; R's pnf takes the limit for every df2 > 1e8.)
  */
 function hugeDf2(q: number, m: number, n: number, ncp: number): boolean {
   const lp = -Math.min(pnchisq1(q * m, m, ncp, true, true), pnchisq1(q * m, m, ncp, false, true));

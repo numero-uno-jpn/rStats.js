@@ -1,7 +1,7 @@
 // Issue #202: pwrF2Test where u + v overflows, both degrees of freedom are huge, and the noncentral F with a huge df2
-// (review_fix_log_issue202.md).
+// (pf and df; review_fix_log_issue202.md).
 import { describe, expect, it } from "vitest";
-import { pf, pwrAnovaTest, pwrF2Test } from "../src/index.js";
+import { df, pf, pwrAnovaTest, pwrF2Test } from "../src/index.js";
 
 const rel = (a: number, b: number): number => Math.abs(a / b - 1);
 
@@ -50,6 +50,16 @@ describe("issue #202", () => {
     expect(Math.abs(pwrAnovaTest({ k: 1e20, n: 2, f: 1e-5 }).power - 0.25951102280903905)).toBeLessThan(1e-10);
   });
 
+  it("takes the noncentral chi-squared limit of df for a huge df2, under pf's criterion", () => {
+    // Rmpfr: 2 dchisq(6, 2, ncp = 1) = 0.095592506831810265 (the Poisson mixture series at 200 bits); was 0.6065 from
+    // the tiny-q first term (R 0x1.878c02295d354p-4 = 0.095592506831804265)
+    expect(rel(df(3, 2, 1e308, { ncp: 1 }) as number, 0.095592506831810265)).toBeLessThan(1e-14);
+    const logDensity = df(3, 2, 1e308, { ncp: 1, log: true }) as number;
+    expect(Math.abs(logDensity - Math.log(0.095592506831810265))).toBeLessThan(1e-14);
+    // Rmpfr: 5 dchisq(2.5, 5, ncp = 0.5) = 0.66309975970533547; was 2.047 (R 0.66309975970528621)
+    expect(rel(df(0.5, 5, 1e308, { ncp: 0.5 }) as number, 0.66309975970533547)).toBeLessThan(1e-14);
+  });
+
   it("leaves the other cases as before", () => {
     expect(pwrF2Test({ u: 3, v: 60, f2: 0.15 }).power).toBe(0.7109605416866716);
     expect(pwrF2Test({ u: 3, f2: 0.15, power: 0.8 }).v).toBe(72.70582657950871);
@@ -59,5 +69,12 @@ describe("issue #202", () => {
     expect(pf(3, 2, 1e200, { ncp: 1, lowerTail: false })).toBe(0.13230145036022428);
     expect(pf(3, 2, 1e40, { ncp: 1, lowerTail: false })).toBe(0.13230145036022428);
     expect(pf(3, 2, 1e308, { lowerTail: false })).toBe(0.049787068367863944);
+    // df with df2 up to 1e40, at x = 0, at Infinity, and the central density
+    expect(df(3, 2, 1e40, { ncp: 1 })).toBe(0.09559250683180977);
+    expect(df(3, 2, 100, { ncp: 1 })).toBe(0.09542691489739202);
+    expect(df(1.5, 4, 30, { ncp: 2.5 })).toBe(0.35796007715889616);
+    expect(df(0, 2, 1e308, { ncp: 1 })).toBe(0.6065306597126334);
+    expect(df(Infinity, 2, 1e308, { ncp: 1 })).toBeNaN();
+    expect(df(3, 2, 1e308)).toBe(0.049787068367863944);
   });
 });

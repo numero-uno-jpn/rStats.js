@@ -72,6 +72,28 @@ The normal approximation was compared with the exact path where the latter still
 - Fix: `HUGE_DF = 1e16` and the comments in `src/htest/pwr.ts` (the approximation's error is now stated as O(df^-1/2), about 1e-8 at 1e16).
 - Tests: `test/issue202.test.ts` "takes the normal approximation where both degrees of freedom exceed 1e16" (the rows 1e17, 1e18, 1e19, (1e17, 1e30) and (1e18, ncp 1) against the reference, tolerances 3e-9 to 1e-16, and `pwrAnovaTest({k: 1e20, n: 2, f: 1e-5})` to 1e-10); it fails with `src/` stashed. `test/issue200.test.ts`: k = 1e20 moved out of "unchanged" (it is now above the threshold) and replaced by k = 1e16 (not above it: 0.25951103333841163, unchanged).
 - Docs: the #202 and #200 rows in `docs/differences-from-r.md` and `docs/ja/differences-from-r.md` (1e16, the errors above).
+- `npx vitest run`: 355 files passed (2813 tests passed, 38 skipped). `npx tsc --noEmit -p .`: no errors. (This line was added with follow-up 2.)
+
+## Follow-up 2: the density df with a huge df2 (user's decision, fifth round)
+
+- Plan: the second bullet of Out of scope above. The user decided that the noncentral `df` takes the noncentral χ² density limit under the same criterion as `pf` (`pnf1`). In `dnf1` the branch for df2 = Inf now also covers `n > 1e40 && hugeDf2(x, m, n, ncp)`, placed where `pnf1` has it (before x = 0, the central shortcut and `dnfCore`'s tiny-q first term, which is what went wrong: its first term is not small when x n/2 is not). x = 0 and x = Inf fail the criterion (|log p| is Inf) and keep their values. Values with df2 <= 1e40 keep their bits.
+- Check (R 4.5.2; Rmpfr: the Poisson mixture series of the noncentral χ² density at 200 bits):
+
+| Call | R | Rmpfr | Before | After |
+|---|---|---|---|---|
+| `df(3, 2, 1e308, ncp = 1)` | 0x1.878c02295d354p-4 = 0.095592506831804265 | 2 dchisq(6, 2, ncp = 1) = 0.095592506831810265 | 0.6065306597125976 | 0.09559250683181027 |
+| the same with `log = TRUE` | -2.347660842417099 | | -0.5000000000000591 | -2.3476608424170817 |
+| `df(0.5, 5, 1e308, ncp = 0.5)` | 0.66309975970528621 | 5 dchisq(2.5, 5, ncp = 0.5) = 0.66309975970533547 | 2.046893316607165 | 0.6630997597053354 |
+| `df(3, 2, df2, ncp = 1)`, df2 = 1e300 / 1e200 / 1e41 | 0.095592506831822419 (1e300), 0x1.878c02295d517p-4 (1e200) | 0.095592506831810265 | 0.09559250683181383 / 0.09559250683180841 / 0.09559250683180977 | 0.09559250683181027 |
+| `df(1e-300, 2, 1e308, ncp = 1)` | 0.60653065971260558 | e^-0.5 = 0.60653065971263342 | 0.6065306597126334 | 0.6065306597126335 (1 ulp; dnchisq at 2e-300) |
+| `df(5e299, 2, 1e308, ncp = 1e300)` | NaN | about 3.98942279e-151 (see Out of scope) | 0 | 3.9894228040144464e-151 |
+| `df(3, 2, 1e40 / 1e20 / 100, ncp = 1)`, `df(1.5, 4, 30, ncp = 2.5)`, `df(0, 2, 1e308, ncp = 1)`, `df(Inf, 2, 1e308, ncp = 1)`, central `df(3, 2, 1e308)`, `df(3, 2, 1e308, ncp = 0 or 1e-300)` | | | 0.09559250683180977, 0.09559250683181045, 0.09542691489739202, 0.35796007715889616, 0.6065306597126334, NaN, 0.049787068367863944, 0.049787068367863944 | unchanged |
+
+- Fix: `src/distributions/nbeta.ts` (`dnf1`, and the comment of `hugeDf2`).
+- Tests: `test/issue202.test.ts` "takes the noncentral chi-squared limit of df for a huge df2" (the first three rows against Rmpfr at 1e-14) fails with `src/` stashed; the unchanged values above were added to "leaves the other cases as before".
+- Docs: R's density for the first rows is correct (to 6e-14), so they have no row; `df(5e299, 2, 1e308, ncp = 1e300)` (R NaN) has a row after the `pf(1e290, 1, 1e290, ...)` row in `docs/differences-from-r.md` and `docs/ja/differences-from-r.md`.
+- `npx vitest run`: 355 files passed (2815 tests passed, 38 skipped). `npx tsc --noEmit -p .`: no errors.
+- Out of scope: `hugeDf2`'s criterion bounds the first-order effect of W = χ²_n/n but not the second, ½ var(W) (q m)² d²P/dy², which is about (m + ncp) |log p| / n relative. With ncp near n / 1e8 that is about 1e-9, not the double: for `df(5e299, 2, 1e308, ncp = 1e300)` the limit 1e-150/sqrt(2π) is high by about 2.5e-9 relative (½ (2/n) y^2/σ^2 with y = 1e300, σ^2 = 4e300), and `pf` there by the same order. The new value is still far closer than the old 0 (R NaN). A criterion with an ncp term (for example n > 1e20 (m + ncp) (|log p| + 1)) would leave such points to the series, whose behaviour there was not checked; not changed (the decision was to use pf's criterion). Also, the noncentral χ² density itself gives 2 dchisq(1e300, 2, ncp = 1e300) = 3.9894228040144464e-151 where 1/(sqrt(2π) 1e150) (1 + O(1e-300)) = 3.989422804014327e-151 (3e-14 relative); not looked into.
 
 ## close comment
 
@@ -81,6 +103,6 @@ Fixed in <commit of #202, see git log --grep='#202'>.
 
 While checking it, the noncentral `pf` with df2 = 1e308 was found to give negative probabilities (`pwrF2Test({u: 2, v: 1e308, f2: 1e-308})` was -0.817); `pf` now takes the noncentral chi-squared limit where df2 is too large to matter (the criterion already used by `qf`), giving 0.13271001423251663 (R 0.13271001423251644). `pf` with df2 up to 1e40, and powers with a degree of freedom up to 1e16 and df2 up to 1e40, are unchanged.
 
-Follow-up: the threshold of the normal approximation is now 1e16 instead of 1e20 (for `pwrF2Test` and `pwrAnovaTest`). Between 1e16 and 1e20 the exact path `pf(qf(...))` was off by up to 3e-6, as the critical value keeps only a few digits beyond 1 there; against a 256-bit reference the approximation is off by 2.3e-9 at u = v = 1e17 (the exact path 1.0e-7) and 7e-11 at 1e20 (3.2e-6). Documented in docs/differences-from-r.md; tests in test/issue202.test.ts.
+Follow-up: the threshold of the normal approximation is now 1e16 instead of 1e20 (for `pwrF2Test` and `pwrAnovaTest`). Between 1e16 and 1e20 the exact path `pf(qf(...))` was off by up to 3e-6, as the critical value keeps only a few digits beyond 1 there; against a 256-bit reference the approximation is off by 2.3e-9 at u = v = 1e17 (the exact path 1.0e-7) and 7e-11 at 1e20 (3.2e-6). The density `df` now takes the corresponding noncentral χ² density limit under the same criterion: `df(3, 2, 1e308, ncp = 1)` gave 0.6065 and now gives 0.09559250683181027 (2 dchisq(6, 2, ncp = 1) = 0.095592506831810265; R 0.095592506831804265); values with df2 up to 1e40 are unchanged. Documented in docs/differences-from-r.md; tests in test/issue202.test.ts.
 
 (Not pushed yet.)
