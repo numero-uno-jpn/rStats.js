@@ -143,6 +143,36 @@ function central(
   return { variance: v, skewness: c[1]! / v ** 1.5, kurtosis: c[2]! / (v * v) - 3, ok };
 }
 
+/** Shapes above this (Weibull's k, Kumaraswamy's a) go through expShape(); at 100 central() is still within 2e-14 */
+const LARGE_SHAPE = 100;
+
+/**
+ * Moments of X = c exp(Z / s) for a large shape s, through T = s expm1(log(e) / s) = s (X / c - 1), e the base
+ * variable with density w on (0, upper) (Weibull: e ~ Exp(1), c = 1; Kumaraswamy: e = b W with W ~ Beta(1, b),
+ * c = b^(-1/a)). X lies within O(1/s) of c, too narrow for the quadrature in x (and the raw moments Gamma(1 + r/k)
+ * round to 1): k = 1e4 gave the skewness -3.03 for -1.139, k = 1e308 sd 0 and NaN (issues #240, #249). T has a spread
+ * of order 1 for every shape. Returns E[T], the variance of T and the skewness and kurtosis (those of X), or undefined
+ * where an integral did not converge
+ */
+function expShape(s: number, w: (e: number) => number, upper: number): (Shape & { meanT: number }) | undefined {
+  const tol = 50 * Number.EPSILON;
+  const T = (e: number): number => s * Math.expm1(Math.log(e) / s);
+  const f = (e: number): number => {
+    const v = w(e);
+    return v === 0 ? 0 : T(e) * v;
+  };
+  const m = Math.min(1, upper / 2);
+  const left = dqagse(f, 0, m, 0, tol, 200);
+  const right = upper === Infinity ? dqagie(f, m, 1, 0, tol, 200) : dqagse(f, m, upper, 0, tol, 200);
+  if (!converged(left) || !converged(right)) return undefined;
+  const meanT = left.result + right.result;
+  if (!(meanT / s > -1)) return undefined;
+  // e where T = E[T]
+  const split = Math.min(Math.exp(s * Math.log1p(meanT / s)), upper);
+  const sh = central(T, w, meanT, split, 0, upper);
+  return sh.ok ? { ...sh, meanT } : undefined;
+}
+
 /** floor(a b) of the exact product (a b rounded to double may cross an integer) */
 function floorProduct(a: number, b: number): number {
   const [h, l] = ddMul([a, 0], [b, 0]);
@@ -359,6 +389,13 @@ export function distSummary(distribution: DistName, params: Record<string, numbe
       const lam = P.scale ?? 1;
       if (!(k > 0 && Number.isFinite(k) && lam > 0 && Number.isFinite(lam))) return NAN;
       const mean = gammaFn(1 + 1 / k);
+      // X^k ~ Exp(1)
+      const big = k > LARGE_SHAPE ? expShape(k, (e) => Math.exp(-e), Infinity) : undefined;
+      if (big !== undefined) {
+        const sd = lam * (Math.sqrt(big.variance) / k);
+        const median = qweibull(0.5, k, { scale: lam });
+        return make(lam * mean, sd * sd, median, lam * Math.pow((k - 1) / k, 1 / k), big.skewness, big.kurtosis, sd);
+      }
       // E[X^r] = Gamma(1 + r/k) for scale 1: used when the integrals do not converge (small shapes, heavy tails)
       const si = shape((x) => dweibull1(x, k, 1, false), mean, 0, Infinity);
       const s = si.ok ? si : fromLogRawMoments([1, 2, 3, 4].map((r) => lgamma(1 + r / k)) as [number, number, number, number]);
