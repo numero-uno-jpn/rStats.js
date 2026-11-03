@@ -5256,3 +5256,11 @@ Confirmed finite-input overflow in `src/linalg/qr.ts`: `qr([[1e308,1e308],[1e308
 - 新規Issue [#397](https://github.com/numero-uno-jpn/rStats.js/issues/397)。再現: `const f = splinefun([0, 1, 2], [0, 1e-200, 1e200], { method: "monoH.FC" }); f([0.5])`。有限かつ単調増加のデータだが、secantsは `[1e-200, 1e200]`、中央初期傾きは約 `5e199`。第1区間で `alpha=1`、`beta≈5e399` がInfinityとなり、`a` / `b` もInfinity。limiter条件 `alpha * (a + b) < a * a` は `Infinity < Infinity` でfalseとなり、制限されない巨大な右端傾きがHermite基底の負係数に掛かるため、x=0.5で約 `-6.25e198` の大幅な範囲外overshootを生む。dimensionlessな判定・正規化の中間overflowが原因。
 - 既存Issue #125は有限knot間隔の差がoverflowする問題。本件は通常のknot `[0,1,2]` で、有限ordinate secant間の比がoverflowする別経路。
 - IEEE-754算術とソース制御フローによる静的検証。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
+
+
+## Audit #884 — Hyman limiter loses adjacent-slope sign agreement when the product underflows
+
+- 対象: `src/numerics/interp.ts` SHA `aecc2664337b329edc1005fc6e2d9fbf0c706ed3` の `hymanCoef()` / `fmmCoef()` / `evalCubic()`。
+- 新規Issue [#398](https://github.com/numero-uno-jpn/rStats.js/issues/398)。再現: `const f = splinefun([0, 1, 5], [0, 2e-199, 4e-199], { method: "hyman" }); f([5], 1)`。secantは `[2e-199, 5e-200]`。終点では隣接secantがともに `5e-200` で正だが、その積 `2.5e-399` はbinary64で0へunderflowする。Hyman limiterの `sm * sp > 0` がfalseとなり、FMM由来の負の終点傾き約 `-1.3e-199` を符号反転せず残す。厳密増加データに対し、終点微分が負になる。
+- #397はmonoH.FCのdimensionless ratio overflow、本件は別のhyman limiterにおける隣接secant符号判定のunderflow。#125/#380とも原因が異なる。
+- FMM係数の数値追跡とIEEE-754積のunderflowを確認。package runtime、Vitest、R比較は未実行。Rとの互換性差異は主張しない。
