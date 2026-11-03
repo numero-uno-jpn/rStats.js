@@ -21,7 +21,7 @@ export interface PivotLongerOptions {
   cols: readonly string[] | ((name: string) => boolean);
   /**
    * The columns to make from the names, one per part of the names. `".value"` marks the part that names the value
-   * columns. Default `"name"`.
+   * columns. With `[]`, no columns are made from the names (namesSep and namesPattern are not used). Default `"name"`.
    */
   namesTo?: string | readonly string[];
   /** A regular expression whose match at the start of the names is removed. */
@@ -182,6 +182,8 @@ function nameParts(
   warnings: string[],
 ): (string | null)[][] {
   const { namesSep, namesPattern } = options;
+  // no names: no parts, and namesSep and namesPattern are not used (as tidyr's build_longer_spec)
+  if (namesTo.length === 0) return names.map(() => []);
   if (namesTo.length === 1) {
     if (namesSep !== undefined) throw new Error("`names_sep` can't be used with a length 1 `names_to`.");
     if (namesPattern === undefined) return names.map((n) => [n]);
