@@ -138,11 +138,15 @@ export interface MeanOptions extends NaRmOptions {
  */
 export function mean(x: Sample, options: MeanOptions = {}): number {
   const xs = values(x, options.naRm);
+  let trim = options.trim ?? 0;
+  // R tests `trim > 0 && n` with n the length after na.rm, before looking at missing values: a missing value in x
+  // (n >= 1) is an error too, only an empty x escapes (mean(c(1, NA), trim = NaN) stops in R)
+  if (Number.isNaN(trim) && (xs === undefined || xs.length > 0)) {
+    throw new RangeError("'trim' must be numeric of length one");
+  }
   if (xs === undefined) return NaN;
   const n = xs.length;
   if (n === 0) return NaN;
-  let trim = options.trim ?? 0;
-  if (Number.isNaN(trim)) throw new RangeError("'trim' must be numeric of length one");
   if (trim > 0 && n > 0) {
     if (trim >= 0.5) return median(xs);
     trim = Math.max(trim, 0);

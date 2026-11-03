@@ -23,7 +23,7 @@ GitHub Issue #464. Session 13, judging of the issues classified C. Verdict: not 
 
 ## Out of scope (recorded)
 
-- `mean([1, NaN], { trim: NaN })` (x with a missing value, no `naRm`) returns NaN, since `values()` returns early before the trim check; R 4.5.2's `mean(c(1, NA), trim = NaN)` stops with the same error as above. Not changed here; moving the check before the early return would match R.
+- `mean([1, NaN], { trim: NaN })` (x with a missing value, no `naRm`) returns NaN, since `values()` returns early before the trim check; R 4.5.2's `mean(c(1, NA), trim = NaN)` stops with the same error as above. Fixed in a follow-up commit by user decision (2026-11-03): the trim check now comes before the early return, so this is the same RangeError; a test is added to `test/issue464.test.ts`.
 
 ## close comment
 
