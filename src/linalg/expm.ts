@@ -6,7 +6,8 @@
 // 26 (2005) 1179-1193 (degrees 3, 5, 7, 9 and 13, the bounds on the 1-norm and the Padé coefficients);
 // the balancing is src/linalg/balance.ts (a port of LAPACK 3.12.0's SRC/dgebal.f, modified BSD).
 // - "Higham08.b" (default) balances first: dgebal with job "P" (permutation), then dgebal with job "S" (scaling) on
-//   the result, as two separate calls; "Higham08" does not balance
+//   the result, as two separate calls; "Higham08" does not balance, except with job "S" where the scaling by 2^-s
+//   below would take a nonzero entry below the normal range (rStats.js; R loses the entry)
 // - The Padé degree is chosen from the 1-norm of the (balanced) matrix; above 2.1, degree 13 with scaling by 2^-s
 // - X = (V - U)^-1 (V + U) is solved by LU decomposition as solve (which throws if V - U is computationally
 //   singular), then squared s times, and the balancing is undone
@@ -98,6 +99,12 @@ export function expm(x: MatrixInput, options: ExpmOptions = {}): number[][] {
   if (method === "Higham08.b") {
     perm = gebal("P", A);
     scaling = gebal("S", A);
+  } else if (lostInSquaringScale(A)) {
+    // "Higham08" does not balance, but where A / 2^s would lose a nonzero entry below the normal range (the coupling
+    // 1e-308 of [[0, 1e308], [1e-308, 0]] became 0, and the result that of a nilpotent matrix, R too), the
+    // exponential is taken of the matrix balanced by dgebal's job "S" (a diagonal similarity by powers of 2) and
+    // transformed back, as "Higham08.b" does
+    scaling = gebal("S", A);
   }
   const X = pade(A);
   const x_ = X.data;
@@ -141,6 +148,19 @@ function log2OneNorm(A: Mat, nu: number): number {
   return Math.log2(oneNorm({ ...A, data: A.data.map((v) => ldexp(v, -k)) })) + k;
 }
 
+/** The exponent s of the scaling A / 2^s before the Padé approximant of degree 13 (nu, the 1-norm of A, above 2.1) */
+function squaringExponent(A: Mat, nu: number): number {
+  return Math.max(0, Math.ceil(log2OneNorm(A, nu) - Math.log2(5.4)));
+}
+
+/** Whether the scaling A / 2^s of pade takes a nonzero entry of A below the normal range (2^-1022) */
+function lostInSquaringScale(A: Mat): boolean {
+  const nu = oneNorm(A);
+  if (nu <= 2.1) return false;
+  const s = squaringExponent(A, nu);
+  return s > 0 && A.data.some((v) => v !== 0 && Math.abs(ldexp(v, -s)) < 2 ** -1022);
+}
+
 /** Scaling and squaring with a Padé approximant: exp(A) for the (balanced) matrix A */
 function pade(A: Mat): Mat {
   const n = A.nrow;
@@ -168,7 +188,7 @@ function pade(A: Mat): Mat {
     // the norm's log from the matrix divided by a power of 2 when the column sums overflow (s was then Infinity, and
     // the squaring below never ended), and A / 2^s formed in two steps (1 / 2^s is 0 from s = 1024 on, which made
     // B = 0 and gave the identity instead of exp(A))
-    s = Math.max(0, Math.ceil(log2OneNorm(A, nu) - Math.log2(5.4)));
+    s = squaringExponent(A, nu);
     const B = { ...A, data: A.data.map((v) => ldexp(v, -s)) };
     const B2 = mul(B, B);
     const B4 = mul(B2, B2);
