@@ -286,6 +286,14 @@ export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOption
   }
   confInt = [ldexp(confInt[0], k), ldexp(confInt[1], k)];
   const twoSample = yv !== undefined;
+  // The reported means. Where the common scale, set by sigma, divides a nonzero value below the normal range (#192: x
+  // around 1e-308 with sigma 1e308 gave the mean 0), the mean of that sample in its own scale instead, but never scaled
+  // up: small data are averaged as they are, so that a subnormal mean is rounded once. Elsewhere the same bits
+  const reported = (v: number[], vS: number[]): number => {
+    if (!(k > 0 && v.some((t, j) => t !== 0 && Math.abs(vS[j]!) < 2 ** -1022))) return ldexp(meanDD(vS)[0], k);
+    const own = Math.max(scaleToUnit([v]).k, 0);
+    return ldexp(meanDD(own === 0 ? v : v.map((t) => ldexp(t, -own)))[0], own);
+  };
   return {
     method: twoSample ? "Two-sample z-Test" : "One-sample z-Test",
     alternative,
@@ -294,7 +302,7 @@ export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOption
     pValue,
     confInt,
     confLevel,
-    estimate: twoSample ? [ldexp(meanX, k), ldexp(meanY, k)] : ldexp(meanX, k),
+    estimate: twoSample ? [reported(xs, xS), reported(yv!, yS)] : reported(xs, xS),
     estimateNames: twoSample ? ["mean of x", "mean of y"] : "mean of x",
     nullValue: mu,
     nullValueName: twoSample ? "difference in means" : "mean",
