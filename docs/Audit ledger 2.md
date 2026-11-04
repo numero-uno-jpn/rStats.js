@@ -726,3 +726,23 @@ dlogis/plogis/qlogisのscale<=0/0/Infinity、±Infinity、差分overflow、subno
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、R oracleは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1009 — Cauchy distribution extreme tails and location-scale boundaries
+
+- 対象: `src/distributions/cauchy.ts` と location-scale / DD helpers
+- 監査時 HEAD: `c8ad712ea9c2f8b69c774246124fe92e0c119e5d`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1009_cauchy_distribution.md](review-logs/review_audit_1009_cauchy_distribution.md)
+
+### 要約
+
+dcauchy/pcauchy/qcauchyのscale境界、差分overflow、subnormal scale、tiny tail、frexp復元、locationScaleを静的に確認。Rのqcauchy.cの引数検査順と差異文書を照合し、scale=Infinityの意図的差異を誤検出しなかった。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
