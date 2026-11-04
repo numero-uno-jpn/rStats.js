@@ -325,7 +325,10 @@ export function createDistributionsTab(ctx) {
   /** distSummary of the distribution (where the loaded build has it) */
   function summaryTable(prm) {
     if (!lib.distSummary || !dist.summary) return null;
-    const s = lib.distSummary(dist.id, Object.fromEntries([...prm.pos, ...prm.opts]));
+    const params = Object.fromEntries([...prm.pos, ...prm.opts]);
+    // distSummary has no noncentral distributions (it rejects ncp; up to 0.16.0 it ignored it)
+    if (params.ncp !== undefined) return null;
+    const s = lib.distSummary(dist.id, params);
     const keys = ["mean", "variance", "sd", "median", "mode", "skewness", "kurtosis"];
     return h(
       "div",

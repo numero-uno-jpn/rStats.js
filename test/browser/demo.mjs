@@ -156,6 +156,7 @@ async function testDistributions(page) {
   await settle(page);
   check("pchisq ncp: R code", (await page.textContent(`${tid("dist-code-r")} code`)).includes("ncp = 2.5"));
   await noErrors(page, "pchisq ncp", tid("panel-distributions"));
+  check("pchisq ncp: no distSummary table (it has no noncentral distributions)", (await page.$(tid("dist-summary-table"))) === null);
   // invalid input is reported next to the form
   await page.fill(tid("dist-values"), "1, abc");
   await settle(page);
