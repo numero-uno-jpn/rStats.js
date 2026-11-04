@@ -109,6 +109,10 @@ The comparison values for these come from mpmath (100 to 800 digits) rather than
   -1e100))` is -1e100 in R and `sum(c(1e20, 1e3, 1e-10, -1e20, -1e3))` -1000; the exact values are 1 and 1e-10.
   rStats.js keeps a bound on what its double-double lost and, only where that could change the rounded result,
   forms the sum exactly (BigInt) and rounds it once: 1 and 1e-10 (issue #374). Other sums are unchanged.
+- **`mean`** of the same kind of values: R's `mean(c(1e308, 1e100, 1, -1e308, -1e100))` is -2.2e99 and
+  `mean(c(1e20, 1e3, 1e-10, -1e20, -1e3))` -360; the exact means are 0.2 and 2e-11. rStats.js applies the same bound
+  to its mean (and so to every statistic built on it) and, only where it could change the rounded mean, forms the mean
+  from the exact sum: 0.2 and 2.0000000000000002e-11 (issue #473). Other means are unchanged.
 
 ### Discrete quantiles with p extremely close to 1
 

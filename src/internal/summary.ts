@@ -42,8 +42,8 @@ export function wideSum(): WideSum {
 /**
  * Power of 2 by which the sums of n finite values are scaled once they overflow: the scaled sum stays below 2^992,
  * so that it can also be divided in double-double (whose splitting overflows above about 2^996). Values below
- * 2^(shift - 1022) lose bits when scaled, which matters only where the large values later cancel (sum() bounds such
- * losses and then sums exactly, #374)
+ * 2^(shift - 1022) lose bits when scaled, which matters only where the large values later cancel (sum() and
+ * meanDD() bound such losses and then sum exactly, #374 and #473)
  */
 function overflowShift(n: number): number {
   return 32 + Math.ceil(Math.log2(Math.max(n, 1)));
@@ -102,16 +102,79 @@ export function meanDD(x: readonly number[]): DD {
   const n = x.length;
   // With Inf present the double-double sum becomes NaN; the mean is the (infinite or NaN) sum divided by n
   if (!x.every(Number.isFinite)) return [nonFiniteSum(x) / n, 0];
-  const acc = wideSum();
-  for (const v of x) wideSumAdd(acc, v, n);
-  if (acc.shift !== 0) {
-    // The sum overflows a double: the mean of the values scaled by a power of 2, scaled back
-    const k = overflowShift(n);
-    const f = 2 ** -k;
-    const m = meanDD(x.map((v) => v * f));
-    return [ldexp(m[0], k), ldexp(m[1], k)];
+  if (!isDoubleDouble()) {
+    const acc = wideSum();
+    for (const v of x) wideSumAdd(acc, v, n);
+    return acc.shift !== 0 ? scaledMean(x) : meanFromSum(x, acc.s);
   }
-  const s = acc.s;
+  // The sum loses a third band of magnitudes as sum() did (#374): mean([1e308, 1e100, 1, -1e308, -1e100]) was 0 and
+  // mean([1e20, 1e3, 1e-10, -1e20, -1e3]) 2.0009e-11 (#473). With the bound on what the sum lost, the mean is formed
+  // exactly where that could move it across a rounding boundary; otherwise it has the bits of the double-double steps
+  const b = boundedSum(x);
+  const m = b.shift !== 0 ? scaledMean(x) : meanFromSum(x, [b.hi, b.lo]);
+  if (b.lost > 0 && mayMissMean(b, m, n)) return exactMean(x);
+  return m;
+}
+
+/** The mean of values whose sum overflows a double: the mean of the values scaled by a power of 2, scaled back */
+function scaledMean(x: readonly number[]): DD {
+  const k = overflowShift(x.length);
+  const f = 2 ** -k;
+  const m = meanDD(x.map((v) => v * f));
+  return [ldexp(m[0], k), ldexp(m[1], k)];
+}
+
+/**
+ * Whether the true mean may round to another double than m[0]: it lies within lost (1 + n 2^-52) / n of s / n for the
+ * double-double sum s = (hi + lo) 2^shift (plus the error of the division), and m lies within abs(m - s / n) of it.
+ * Computed in units of 2^shift; with shift != 0 also where m is near the subnormals there
+ */
+function mayMissMean(b: { hi: number; lo: number; shift: number; lost: number }, m: DD, n: number): boolean {
+  const r = m[0];
+  if (!Number.isFinite(r)) return true;
+  const rs = ldexp(r, -b.shift);
+  if (b.shift !== 0 && Math.abs(rs) < 2 ** -1000) return true;
+  const q = ddDivNum([b.hi, b.lo], n);
+  const d = ddSub([rs, ldexp(m[1], -b.shift)], q);
+  const bound =
+    ((b.lost * (1 + n * 2 ** -52)) / n + Math.abs(d[0] + d[1]) + Math.abs(q[0]) * 2 ** -100) * (1 + 2 ** -50);
+  return mayRoundOtherwise(rs, ldexp(m[1], -b.shift), rs, bound, 0);
+}
+
+/**
+ * The mean of finite values from their exact sum (integers times 2^-1074 in BigInt): the quotient by n to 128 bits
+ * beyond its leading bit, with a sticky bit for a remainder, rounded once for the high part and once more for the low
+ */
+function exactMean(x: readonly number[]): DD {
+  let low = Infinity;
+  const parts: [bigint, number][] = [];
+  for (const v of x) {
+    if (v === 0) continue;
+    const p = splitDouble(v);
+    parts.push(p);
+    if (p[1] < low) low = p[1];
+  }
+  let acc = 0n;
+  for (const [m, e] of parts) acc += m << BigInt(e - low);
+  if (acc === 0n) return [0, 0];
+  const nb = BigInt(x.length);
+  const extra = 128 + x.length.toString(2).length;
+  const num = acc << BigInt(extra);
+  let q = num / nb;
+  let e = low - extra;
+  if (num % nb !== 0n) {
+    q = 2n * q + (acc < 0n ? -1n : 1n);
+    e -= 1;
+  }
+  const hi = roundScaled(q, e);
+  if (!Number.isFinite(hi) || hi === 0) return [hi, 0];
+  const [mh, eh] = splitDouble(hi);
+  return [hi, roundScaled(q - (mh << BigInt(eh - e)), e)];
+}
+
+/** The double-double mean from the double-double sum s of x (finite, not overflowing): s / n corrected by the deviations */
+function meanFromSum(x: readonly number[], s: DD): DD {
+  const n = x.length;
   const m = ddDivNum(s, n);
   if (!Number.isFinite(m[0])) return [s[0] / n, 0];
   let t: DD = [0, 0];
@@ -294,11 +357,23 @@ export function sum(x: readonly number[]): number {
     for (const v of x) wideSumAdd(acc, v, x.length);
     return wideSumValue(acc);
   }
-  // The steps of wideSumAdd (ddAdd of [v, 0]) written out, with a bound on what they lose (#374). The double-double
-  // keeps two components, so a third band of magnitudes is rounded away when it is added to the low one: with the
-  // bands later cancelling, sum([1e308, 1e100, 1, -1e308, -1e100]) was 0 and sum([1e20, 1e3, 1e-10, -1e20, -1e3])
-  // 1.0004e-10. The value is that of wideSumAdd; only where the lost amount could move it across a rounding boundary
-  // is the sum formed exactly instead (rare: the losses are zero or about 2^-106 of the partial sums)
+  // The double-double keeps two components, so a third band of magnitudes is rounded away when it is added to the
+  // low one: with the bands later cancelling, sum([1e308, 1e100, 1, -1e308, -1e100]) was 0 and
+  // sum([1e20, 1e3, 1e-10, -1e20, -1e3]) 1.0004e-10 (#374). The value is that of wideSumAdd; only where the lost amount
+  // could move it across a rounding boundary is the sum formed exactly instead (rare: the losses are zero or about
+  // 2^-106 of the partial sums)
+  const { hi, lo, shift, lost } = boundedSum(x);
+  const r = hi + lo;
+  if (lost > 0 && mayRoundOtherwise(hi, lo, r, lost * (1 + x.length * 2 ** -52), shift)) return exactSum(x);
+  return ldexp(r, shift);
+}
+
+/**
+ * The double-double sum of finite values with the steps of wideSumAdd (ddAdd of [v, 0]) written out, so that its
+ * value (hi + lo) 2^shift has the same bits, and an upper bound `lost` (in units of 2^shift) on what those steps
+ * rounded away (#374)
+ */
+function boundedSum(x: readonly number[]): { hi: number; lo: number; shift: number; lost: number } {
   const n = x.length;
   let hi = 0;
   let lo = 0;
@@ -348,9 +423,7 @@ export function sum(x: readonly number[]): number {
     hi = s11;
     lo = e12;
   }
-  const r = hi + lo;
-  if (lost > 0 && mayRoundOtherwise(hi, lo, r, lost * (1 + n * 2 ** -52), shift)) return exactSum(x);
-  return ldexp(r, shift);
+  return { hi, lo, shift, lost };
 }
 
 /**
