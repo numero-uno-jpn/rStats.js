@@ -292,3 +292,25 @@ skewness/kurtosis の空標本・単一標本・定数列・type 2最小標本�
 - Rのscale定義を公式ドキュメント・実装と照合。
 - 静的監査のみ。Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #988 — hist / pretty / ecdf の境界条件を再確認
+
+- 対象: `src/descriptive/hist.ts`
+- 監査時 HEAD: `220e2952e33f07846c6dbe9f6f10905940e73e14`
+- 対象ソース blob: `b60c1aaceb351286a99ab8ef005a0019acd0e842`
+- 判定: 今回確認した範囲で新規不具合なし
+- 詳細: [review_audit_988_hist_pretty_ecdf_edges.md](review-logs/review_audit_988_hist_pretty_ecdf_edges.md)
+
+### 要約
+
+pretty の有限値抽出・同値範囲・ゼロ近傍・極端な尺度・n/minN検証・breaks拡張、hist の明示/自動breaks・right/includeLowest・fuzz・範囲外値・density overflow、ecdf の空標本・NaN/±Infinity・二分探索境界を確認。今回の範囲で新規不具合は確認できなかった。
+
+### 検証範囲・制約
+
+- `src/descriptive/hist.ts`、`test/descriptive.test.ts` を確認。
+- 関連Issue検索で同一原因の報告は確認できなかった。
+- 静的監査のみ。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
