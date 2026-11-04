@@ -791,7 +791,7 @@ export function dnf1(x: number, m: number, n: number, ncp: number, log: boolean)
     const v = dnchisq1(x * m, m, ncp, log);
     return log ? v + Math.log(m) : v * m;
   }
-  if (x === Infinity) return NaN; // R gives NaN at x = Inf when df2 is finite
+  if (x === Infinity) return log ? -Infinity : 0; // the density tends to 0 (R gives NaN at x = Inf when df2 is finite; #493)
   if (x === 0) {
     if (m < 2) return Infinity;
     if (m > 2) return log ? -Infinity : 0;

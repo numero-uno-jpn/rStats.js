@@ -251,6 +251,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (the true answer rounds to 1) |
 | `qbeta(2.25e-265, 5.68e-37, 5643.4, lower.tail = FALSE)` (a tiny shape) | 1, with a warning | 0.08797712670529832 |
 | `df(1.33e-322, 1.04, 206159)` and other subnormal x | NaN | 3.77e153 (from the log of m x / n) |
+| `df(Inf, df1, df2)` with df1 < 2 (`df(Inf, 1, 1)`, `df(Inf, Inf, 1)`) and `df(Inf, df1, finite, ncp)` | NaN | 0 (log -Inf): the density tends to 0 as x -> Inf for every df1 (issue #493) |
+| `df(x, Inf, df2)` where dgamma(1/x) or x^2 leaves the normal range: `df(1e-300, Inf, 5)`, `df(1e160, Inf, 1)` | NaN (0 / 0), 0 | 0, 3.9894228040143e-241 (Rmpfr ...433e-241): the linear density from its log there (issue #493) |
 | `pf(5.43e-319, 1.04, 206159)` (subnormal x) | 1.0014e-166 | 7.3742e-167 |
 | `dcauchy(1e300, log = TRUE)`, `pcauchy(-1e300, scale = 1e-300, log.p = TRUE)` | -Inf | -1382.69… |
 | `dweibull(1e-300, 3, log = TRUE)` | -Inf | -1380.45… |
@@ -1032,14 +1034,12 @@ also from R's source. They are listed because they are easy to get wrong.
 
 - Slack in discrete quantile searches: relative 8ε for linear p and 2ε for log p.
 - Beta point masses are checked in the order q ≥ 1, then parameters 0 or ∞, then q ≤ 0.
-- `df(Inf, df1, df2)` is NaN for df1 < 2 and 0 otherwise.
 - Hypergeometric and rank distributions round parameters half to even. `dhyper` returns NaN for
   non-integer m, n, k; `phyper` and `qhyper` round them. Signrank/wilcox n and m are rounded and
   give NaN if ≤ 0. (How q is taken to a count differs from R; see the deliberate differences.)
 - Non-central beta `pbeta` returns 0 or 1 for x ≤ 0 or x ≥ 1 even with invalid parameters.
   Non-central chi-squared and beta with ncp = Inf give NaN (`qchisq` returns values only at the
-  end points). `pf(·, Inf, df2, ncp)` is NaN; `df(·, Inf, df2, ncp)` ignores ncp;
-  `df(Inf, df1, finite, ncp)` is NaN.
+  end points). `pf(·, Inf, df2, ncp)` is NaN; `df(·, Inf, df2, ncp)` ignores ncp.
 - The gamma distributions (and so `dgamma`, `pgamma`, `qgamma`) with a rate below about 5.6e-309 (subnormal):
   scale = 1 / rate overflows to Inf, and the distribution is treated as lying at +Inf: `pgamma` and `dgamma`
   are 0 at every finite x and `qgamma` is Inf, as in R (some quantiles of the exact distribution would be finite,

@@ -15,7 +15,9 @@ fixtureSuite({
   tolerance: 1e-14,
   density: true,
   // R's df(0, df1, Inf, ncp, log = TRUE) does not match the log of the log = FALSE value (ours does)
-  knownDifference: (a, _e, x) => {
+  knownDifference: (a, e, x) => {
+    // Deliberate (#493): the density at x = Inf is 0 (R NaN for a finite df2)
+    if (num(a.x) === Infinity && Number.isNaN(e) && x === (bool(a.log) ? -Infinity : 0)) return "R's NaN at x = Inf: the density tends to 0";
     if (!(a.log === true && num(a.x) === 0 && num(a.df2) === Infinity)) return undefined;
     const lin = df(0, num(a.df1), Infinity, { ncp: num(a.ncp) });
     return Math.abs(x - Math.log(lin)) <= 1e-15 * Math.max(1, Math.abs(x)) ? "R's log density at x = 0 with df2 = Inf" : undefined;

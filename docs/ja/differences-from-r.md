@@ -245,6 +245,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (真の答えを丸めると 1) |
 | `qbeta(2.25e-265, 5.68e-37, 5643.4, lower.tail = FALSE)` (極小の shape) | 1 (警告つき) | 0.08797712670529832 |
 | `df(1.33e-322, 1.04, 206159)` など非正規化数の x | NaN | 3.77e153 (m x / n の log から計算) |
+| df1 < 2 の `df(Inf, df1, df2)` (`df(Inf, 1, 1)`、`df(Inf, Inf, 1)`) と `df(Inf, df1, finite, ncp)` | NaN | 0 (log は -Inf)。密度はどの df1 でも x -> Inf で 0 に近づく (issue #493) |
+| dgamma(1/x) か x^2 が正規化数の範囲を外れる `df(x, Inf, df2)`: `df(1e-300, Inf, 5)`、`df(1e160, Inf, 1)` | NaN (0 / 0)、0 | 0、3.9894228040143e-241 (Rmpfr は ...433e-241)。そこでは線形の密度を log から計算 (issue #493) |
 | `pf(5.43e-319, 1.04, 206159)` (非正規化数の x) | 1.0014e-166 | 7.3742e-167 |
 | `dcauchy(1e300, log = TRUE)`、`pcauchy(-1e300, scale = 1e-300, log.p = TRUE)` | -Inf | -1382.69… |
 | `dweibull(1e-300, 3, log = TRUE)` | -Inf | -1380.45… |
@@ -950,14 +952,12 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 
 - 離散分布の分位点探索の許容幅: 線形の p では相対 8ε、log p では 2ε。
 - ベータ分布の点質量は、q ≥ 1、次にパラメータが 0 または ∞、次に q ≤ 0 の順で調べます。
-- `df(Inf, df1, df2)` は df1 < 2 で NaN、それ以外で 0 です。
 - 超幾何分布と順位の分布は、パラメータを偶数丸め (half to even) します。`dhyper` は整数でない m, n, k
   に NaN を返し、`phyper` と `qhyper` はそれらを丸めます。signrank/wilcox の n と m は丸められ、
   ≤ 0 なら NaN になります。(q を整数に直す方法は R と違います。意図的な違いを参照)
 - 非心ベータの `pbeta` は、パラメータが不正でも x ≤ 0 または x ≥ 1 なら 0 または 1 を返します。
   ncp = Inf の非心カイ二乗分布と非心ベータ分布は NaN を返します (`qchisq` は端点でのみ値を返します)。
   `pf(·, Inf, df2, ncp)` は NaN です。`df(·, Inf, df2, ncp)` は ncp を無視します。
-  `df(Inf, df1, finite, ncp)` は NaN です。
 - rate が約 5.6e-309 未満 (非正規化数) のガンマ分布 (`dgamma`、`pgamma`、`qgamma`) では、scale = 1 / rate が
   Inf に溢れ、分布全体が +Inf にあるものとして扱います。有限の x では `pgamma` も `dgamma` も 0、`qgamma` は Inf
   で、R と同じです (正確な分布では有限になる分位点もあります。たとえば `qgamma(3.3e-160, 0.5, rate = 4.19e-319)`

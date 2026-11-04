@@ -19,7 +19,8 @@ import type { NoncentralOption } from "../internal/noncentral.js";
 import { dnf1, pnf1, qnf1 } from "./nbeta.js";
 import { betaQuantileGuess } from "./beta.js";
 
-const LOG_DBL_MIN = Math.log(2.2250738585072014e-308);
+const DBL_MIN = 2.2250738585072014e-308;
+const LOG_DBL_MIN = Math.log(DBL_MIN);
 
 /**
  * Log density in double-double from log p and log q (p = m x/(n + m x), q = 1 - p = n/(n + m x)), with a = m/2, b = n/2:
@@ -113,14 +114,21 @@ export function dfDensity1(x: number, m: number, n: number, log: boolean): numbe
     return Infinity;
   }
   if (!Number.isFinite(m) && !Number.isFinite(n)) return x === 1 ? Infinity : d0(log);
+  // The density tends to 0 as x -> Inf for every df1 and df2 (x^(-df2/2 - 1)). R gives NaN for df1 < 2 and for
+  // df1 = Inf with df2 < 2 (Inf / Inf in its forms; #493)
+  if (x === Infinity) return d0(log);
   if (!Number.isFinite(n)) return dgamma1(x, m / 2, 2 / m, log); // χ²_m / m
   if (!Number.isFinite(m)) {
     // n / χ²_n: 1/x follows a gamma distribution with shape n/2, scale 2/n
-    // At tiny x this is 0 / 0 = NaN (x^2 underflows), as R gives (df(1e-300, Inf, 5) is NaN); the log is finite
     const dens = dgamma1(1 / x, n / 2, 2 / n, log);
-    return log ? dens - 2 * Math.log(x) : dens / (x * x);
+    if (log) return dens - 2 * Math.log(x);
+    // Where the gamma density or x^2 leaves the normal range, the quotient is 0 / 0 = NaN (df(1e-300, Inf, 5); R the
+    // same), or 0 where the density underflows or x^2 overflows (df(1e160, Inf, 1) is 3.99e-241; R 0): from the log
+    // (#493). Elsewhere the quotient and its bits are kept
+    const x2 = x * x;
+    if (dens >= DBL_MIN && dens < Infinity && x2 >= DBL_MIN && x2 < Infinity) return dens / x2;
+    return Math.exp(dgamma1(1 / x, n / 2, 2 / n, true) - 2 * Math.log(x));
   }
-  if (!Number.isFinite(x)) return m < 2 ? NaN : d0(log); // R gives NaN at x = Inf when df1 < 2
   return fDensity(x, m, n, log);
 }
 

@@ -82,6 +82,16 @@ fixtureSuite({
   name: "df",
   tolerance: 1e-14,
   density: true,
+  // Deliberate (#493): the density at x = Inf is 0 for every df1 (R NaN for df1 < 2), and for df1 = Inf the linear
+  // density where R's quotient is 0 / 0 comes from the log (df(1e-300, Inf, 5) is 0; R NaN)
+  knownDifference: (a, e, x) => {
+    if (!Number.isNaN(e)) return undefined;
+    if (num(a.x) === Infinity && x === (bool(a.log) ? -Infinity : 0)) return "R's NaN at x = Inf: the density tends to 0";
+    if (num(a.df1) === Infinity && !bool(a.log) && x === Math.exp(df(num(a.x), Infinity, num(a.df2), { log: true }))) {
+      return "R's 0 / 0 for df1 = Inf: the density from its log";
+    }
+    return undefined;
+  },
   call: (a) => df(num(a.x), num(a.df1), num(a.df2), { log: bool(a.log) }),
 });
 fixtureSuite({

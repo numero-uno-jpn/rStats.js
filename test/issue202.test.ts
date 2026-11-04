@@ -74,7 +74,7 @@ describe("issue #202", () => {
     expect(df(3, 2, 100, { ncp: 1 })).toBe(0.09542691489739202);
     expect(df(1.5, 4, 30, { ncp: 2.5 })).toBe(0.35796007715889616);
     expect(df(0, 2, 1e308, { ncp: 1 })).toBe(0.6065306597126334);
-    expect(df(Infinity, 2, 1e308, { ncp: 1 })).toBeNaN();
+    expect(df(Infinity, 2, 1e308, { ncp: 1 })).toBe(0); // R NaN (#493)
     expect(df(3, 2, 1e308)).toBe(0.049787068367863944);
   });
 });

@@ -82,17 +82,6 @@ export const knownViolations: KnownViolation[] = [
       "1.1930862602789481e-234, 7.287200568987145e-276) is 0 (pf(5e-324, ...) is already about df2/(df1 + df2) = 6e-42)",
     examples: [{ params: { df1: 4.97780454911219e82, df2: 5.169046454871392e97 }, x: [1] }],
   },
-  ...["f", "nf"].map(
-    (family): KnownViolation => ({
-      family,
-      property: "range",
-      match: on(/^df$/, (_pr, x) => x === Infinity),
-      reason:
-        "df(Infinity, ...) is NaN, 0 expected: df(Infinity, 0.2569224787760626, 18695.725602202554) (for df1 < 2; with ncp " +
-        "for any df1). Kept to match R, which gives NaN there too (fixtures: df(Inf, 1.5, 1) and df(Inf, 3, 5, ncp = 0) are NaN)",
-      examples: [{ params: { df1: family === "nf" ? 3 : 0.2569224787760626, df2: 412.3959198056142, ...(family === "nf" ? { ncp: 0.32 } : {}) }, x: [Infinity] }],
-    }),
-  ),
   // ---- discrete ----
   {
     family: "nbinom(mu)",
@@ -157,17 +146,5 @@ export const knownViolations: KnownViolation[] = [
     match: on(/^[dpq]f$/, (pr) => pr.ncp === 0 && extreme(pr, ["df1", "df2"], 1e-10, 1e15)),
     reason: "ncp = 0 with extreme df: the central F (see the f entry above)",
     examples: [{ params: { df1: 1.5352254500141903e186, df2: 99.33785701936728, ncp: 0 }, x: [5.925999535882428e-161] }],
-  },
-
-
-  {
-    family: "f",
-    property: "range",
-    match: on(/^df$/, (pr) => pr.df1 === Infinity),
-    reason:
-      "df(4.42353856391398e-263, Infinity, 14.333573434318904) is NaN (df1 = Infinity at tiny x: 0 / 0 once x^2 " +
-      "underflows), 0 expected; df(1, Infinity, 14.33) is finite. Kept to match R, which gives NaN there too (fixtures: " +
-      "df(1e-300, Inf, 5) is NaN); the log density is finite",
-    examples: [{ params: { df1: Infinity, df2: 14.333573434318904 }, x: [4.42353856391398e-263] }],
   },
 ];
