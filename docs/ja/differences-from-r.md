@@ -295,6 +295,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `scale(c(1e200, 2e200, 3e200))`、`scale(c(1e-200, 2e-200, 3e-200))` | scale が Inf または 0、標準化値が 0 または ±Inf | -1, 0, 1 (二乗和をスケーリング) |
 | `runif(n, -1e308, 1e308)` | Inf (max - min が溢れる) | 範囲内の値 |
 | 1e308 規模の行列の `kappa()` (例 `1e308 * matrix(c(1, 0, 1, 1), 2)`。既定の QR の推定、`method = "direct", triangular = TRUE`、`exact = TRUE, norm = "1"`) | エラー ("NA/NaN/Inf in foreign function call")、Inf、エラー ("computationally singular") | 元の行列の条件数 (3.33、3.33、4)。先に行列を 2 の冪で割る |
+| `optimHess(0, function(x) 1e200 * x, function(x) 1e200, control = list(parscale = 1e200, fnscale = 1e300))` (解析的な勾配と `parscale` の積が溢れる。尺度を変えた勾配 1e100 は有限) | NaN (Inf - Inf) | 0 (そのときだけ勾配を先に `fnscale` で割る。issue #498)。`optim` の `gr` の尺度変換も同じ |
 | `optimize(function(x) x^2, c(-1, 1), tol = 5e-324)` (tol/3 がアンダーフローする tol) | 返らない (サブノーマルの間でステップが 0 に丸まる) | 0 (ステップで点が動かなくなったところで終える) |
 | `seq(1, 2, by = Inf)`; `seq(1, 2, by = -Inf)` (`to` と逆向きの刻み) | NaN; NaN | 1; エラー "wrong sign in 'by' argument" |
 | `seq(-1e308, 1e308, by = 5e307)` | 中央の値が -1.9958e292 | 0 (端点の差が溢れるので、半分にした端点の値を 2 倍する) |

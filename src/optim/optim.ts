@@ -163,7 +163,12 @@ class Scaled {
       for (let i = 0; i < n; i++) {
         if (!Number.isFinite(gx[i])) throw new Error(`non-finite value of the gradient [${i + 1}] supplied by 'gr'`);
       }
-      return gx.map((v, i) => (v * parscale[i]!) / fnscale);
+      // v·parscale can overflow where the scaled gradient is finite (1e200 · 1e200 / 1e300): only there divide by
+      // fnscale first (R's fmingr overflows to NaN; #498)
+      return gx.map((v, i) => {
+        const w = v * parscale[i]!;
+        return Number.isFinite(w) ? w / fnscale : (v / fnscale) * parscale[i]!;
+      });
     }
     const x = this.unscale(p);
     const slopes = new Array<number>(n);

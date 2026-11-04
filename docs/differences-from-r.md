@@ -301,6 +301,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `scale(c(1e200, 2e200, 3e200))`, `scale(c(1e-200, 2e-200, 3e-200))` | scale Inf or 0, scaled values 0 or ±Inf | -1, 0, 1 (the sum of squares rescaled) |
 | `runif(n, -1e308, 1e308)` | Inf (max - min overflows) | values in the range |
 | `kappa()` of a matrix around 1e308 such as `1e308 * matrix(c(1, 0, 1, 1), 2)` (the default QR estimate, `method = "direct", triangular = TRUE`, `exact = TRUE, norm = "1"`) | error ("NA/NaN/Inf in foreign function call"), Inf, error ("computationally singular") | the condition number of the matrix itself (3.33, 3.33, 4): the matrix divided by a power of 2 first |
+| `optimHess(0, function(x) 1e200 * x, function(x) 1e200, control = list(parscale = 1e200, fnscale = 1e300))` (an analytic gradient whose product with `parscale` overflows, the scaled gradient 1e100 being finite) | NaN (Inf - Inf) | 0 (the gradient divided by `fnscale` first there; issue #498). The same scaling of `gr` in `optim` |
 | `optimize(function(x) x^2, c(-1, 1), tol = 5e-324)` (a tol whose third underflows) | does not return (the step rounds to 0 among the subnormals) | 0 (the search ends where a step no longer moves) |
 | `seq(1, 2, by = Inf)`; `seq(1, 2, by = -Inf)` (a step pointing away from `to`) | NaN; NaN | 1; error "wrong sign in 'by' argument" |
 | `seq(-1e308, 1e308, by = 5e307)` | the middle value -1.9958e292 | 0 (the ends' difference overflows: the values are those of the halved ends, doubled) |
