@@ -86,6 +86,12 @@ export function ode(y: readonly number[], times: readonly number[], func: OdeFun
         if (plain && Number.isFinite(inc)) return v + inc;
         const quarter = k1[i]! / 4 + k2[i]! / 2 + k3[i]! / 2 + k4[i]! / 4;
         const scaled = h * scale * quarter;
+        // the quarter-weighted sum itself overflows for finite slopes (weights summing to 1.5: ode([0], [0, 0.5], () =>
+        // [1.7e308]) was Infinity for 8.5e307, #469): the sum divided by 8, 2 h eighth / 1.5
+        if (!Number.isFinite(quarter) && [k1[i]!, k2[i]!, k3[i]!, k4[i]!].every(Number.isFinite)) {
+          const eighth = k1[i]! / 8 + k2[i]! / 4 + k3[i]! / 4 + k4[i]! / 8;
+          return v + 2 * ((h * eighth) / 1.5);
+        }
         if (Number.isFinite(scaled) || !Number.isFinite(quarter)) return v + scaled / 1.5 / scale;
         // the scaled product overflows for a large slope (ode([0], [0, 0.5], () => [1e308]) was Infinity for 5e307,
         // #394): there h quarter is far above the normal range and needs no scale; where it overflows too, with h / 2
