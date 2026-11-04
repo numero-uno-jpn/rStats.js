@@ -15,7 +15,7 @@ import type { AovEzResult } from "../models/aovEz.js";
 import type { AovStrataFit } from "../models/aovStrata.js";
 import type { LmFormulaResult } from "../models/lm.js";
 import { scaledTables } from "../models/scaledTables.js";
-import { uniroot } from "../numerics/integrate.js";
+import { unirootCore as uniroot } from "../numerics/integrate.js";
 import { lgamma } from "../special/gamma.js";
 import { lgammaDiff } from "../special/lgammaDiff.js";
 import { matchChoice } from "./power.js";

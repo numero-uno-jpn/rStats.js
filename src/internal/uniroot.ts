@@ -1,8 +1,8 @@
 // Univariate root finding for internal callers (the confidence limits and estimates of fisherTest, wilcoxTest and
-// mantelhaenTest): a thin wrapper around the public uniroot (src/numerics/integrate.ts, Brent's method with R's
+// mantelhaenTest): a thin wrapper around the public uniroot's body unirootCore (src/numerics/integrate.ts, Brent's method with R's
 // conventions), returning just the root, and the root of an odds ratio on the log scale (logScaleRoot).
 
-import { uniroot as unirootFull } from "../numerics/integrate.js";
+import { unirootCore as unirootFull } from "../numerics/integrate.js";
 
 export interface UnirootOptions {
   /** Tolerance (interval width). Default is .Machine$double.eps^0.25, as in R's uniroot */

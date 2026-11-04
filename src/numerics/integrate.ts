@@ -242,6 +242,20 @@ function extendIntArg(e: unknown): "no" | "yes" | "downX" | "upX" {
  * @category Numerical methods
  */
 export function uniroot(f: (x: number) => number, lower: number, upper: number, options: UnirootOptions = {}): UnirootResult {
+  // R's "invalid 'tol' value" for tol <= 0 (tol = 0 was accepted, Brent's method then ran to maxiter or the doubles)
+  const tol = options.tol ?? TOL;
+  if (!(tol > 0 && tol < Infinity)) throw new RangeError("'tol' must be a positive finite number");
+  return unirootCore(f, lower, upper, options);
+}
+
+/**
+ * {@link uniroot} without the check of tol > 0: the internal callers that run Brent's method until the bracket is as
+ * narrow as the doubles allow (tol = 0, the noncentrality roots of src/htest/effectSize.ts) or whose tolerance is
+ * scaled by a standard error (src/internal/uniroot.ts)
+ *
+ * @internal
+ */
+export function unirootCore(f: (x: number) => number, lower: number, upper: number, options: UnirootOptions = {}): UnirootResult {
   const tol = options.tol ?? TOL;
   const maxiter = Math.trunc(options.maxiter ?? 1000);
   if (!(tol >= 0 && tol < Infinity)) throw new RangeError("'tol' must be a non-negative finite number");
