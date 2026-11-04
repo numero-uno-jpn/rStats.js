@@ -186,7 +186,7 @@ const nameList = (v: string | readonly string[]): string[] => (typeof v === "str
 /** The key columns named, each a column of the frame */
 function keyColumns(frame: DataFrame, names: readonly string[]): Column[] {
   return names.map((n) => {
-    if (!Object.hasOwn(frame, n)) throw new Error("'by' must specify a uniquely valid column");
+    if (!Object.hasOwn(frame, n)) throw new RangeError("'by' must specify a uniquely valid column");
     return frame[n]!;
   });
 }
@@ -220,7 +220,7 @@ export function merge(x: DataFrame, y: DataFrame, options: MergeOptions = {}): D
   const byY = options.byY === undefined ? byDefault : nameList(options.byY);
   const keysX = keyColumns(x, byX);
   const keysY = keyColumns(y, byY);
-  if (byX.length !== byY.length) throw new Error("'by.x' and 'by.y' specify different numbers of columns");
+  if (byX.length !== byY.length) throw new TypeError("'by.x' and 'by.y' specify different numbers of columns");
   const allX = options.allX ?? options.all ?? false;
   const allY = options.allY ?? options.all ?? false;
   const sort = options.sort ?? true;

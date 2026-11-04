@@ -105,12 +105,12 @@ const nameList = (v: string | readonly string[]): string[] => (typeof v === "str
 function varyArg(arg: string, v: unknown): "fastest" | "slowest" {
   if (v === undefined || v === null) return "fastest";
   if (v === "fastest" || v === "slowest") return v;
-  if (typeof v !== "string") throw new Error(`\`${arg}\` must be a string or character vector.`);
-  throw new Error(`\`${arg}\` must be one of "fastest" or "slowest", not "${v}".`);
+  if (typeof v !== "string") throw new TypeError(`\`${arg}\` must be a string or character vector.`);
+  throw new RangeError(`\`${arg}\` must be one of "fastest" or "slowest", not "${v}".`);
 }
 
 function requireColumns(data: DataFrame, names: readonly string[]): void {
-  for (const n of names) if (!Object.hasOwn(data, n)) throw new Error(`Column \`${n}\` doesn't exist.`);
+  for (const n of names) if (!Object.hasOwn(data, n)) throw new RangeError(`Column \`${n}\` doesn't exist.`);
 }
 
 // ---- pivotLonger ----
@@ -151,7 +151,7 @@ function commonType(data: DataFrame, sources: readonly string[]): ValueType | nu
 /** The matches of a regular expression (as a string) in each name: its capture groups, `null` if it does not match */
 function captures(names: readonly string[], pattern: string, count: number): (string | null)[][] {
   const groups = new RegExp(`${pattern}|`).exec("")!.length - 1;
-  if (groups !== count) throw new Error(`\`regex\` should define ${count} groups; ${groups} found.`);
+  if (groups !== count) throw new TypeError(`\`regex\` should define ${count} groups; ${groups} found.`);
   const re = new RegExp(pattern);
   return names.map((name) => {
     const m = re.exec(name);
@@ -221,13 +221,13 @@ function nameParts(
   // no names: no parts, and namesSep and namesPattern are not used (as tidyr's build_longer_spec)
   if (namesTo.length === 0) return names.map(() => []);
   if (namesTo.length === 1) {
-    if (namesSep !== undefined) throw new Error("`names_sep` can't be used with a length 1 `names_to`.");
+    if (namesSep !== undefined) throw new TypeError("`names_sep` can't be used with a length 1 `names_to`.");
     if (namesPattern === undefined) return names.map((n) => [n]);
     // exactly one capture group, as tidyr (no group gave null parts, a second group was ignored, #255)
     return captures(names, namesPattern, 1);
   }
   if ((namesSep === undefined) === (namesPattern === undefined)) {
-    throw new Error(
+    throw new TypeError(
       "If you supply multiple names in `names_to` you must also supply one of `names_sep` or `names_pattern`.",
     );
   }
@@ -263,10 +263,10 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataF
   const allNames = Object.keys(data);
   const cols = typeof options.cols === "function" ? allNames.filter(options.cols) : [...new Set(options.cols)];
   requireColumns(data, cols);
-  if (cols.length === 0) throw new Error("`cols` must select at least one column.");
+  if (cols.length === 0) throw new RangeError("`cols` must select at least one column.");
   const namesTo = nameList(options.namesTo ?? "name");
   const valuePosition = namesTo.indexOf(".value");
-  if (namesTo.lastIndexOf(".value") !== valuePosition) throw new Error('`names_to` may contain ".value" only once');
+  if (namesTo.lastIndexOf(".value") !== valuePosition) throw new RangeError('`names_to` may contain ".value" only once');
   const warnings: string[] = [];
 
   const prefix = options.namesPrefix === undefined ? null : new RegExp(`^(?:${options.namesPrefix})`);
@@ -297,7 +297,7 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataF
       const part = p[valuePosition] ?? null;
       const transformed = part === null || valueTransform === undefined ? part : valueTransform(part);
       if (transformed !== null && typeof transformed !== "string") {
-        throw new Error(`the transform of \`.value\` must give strings, not ${typeof transformed}`);
+        throw new TypeError(`the transform of \`.value\` must give strings, not ${typeof transformed}`);
       }
       const name = transformed ?? "NA";
       let value = valueIndex.get(name);
@@ -306,7 +306,7 @@ export function pivotLonger(data: DataFrame, options: PivotLongerOptions): DataF
         valueIndex.set(name, value);
         values.push(value);
       }
-      if (value.sources[k] !== null) throw new Error(`the names give the value column '${name}' twice for one key`);
+      if (value.sources[k] !== null) throw new RangeError(`the names give the value column '${name}' twice for one key`);
       value.sources[k] = cols[c]!;
     });
   }
@@ -443,7 +443,7 @@ export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): Da
   const selection = (v: string | readonly string[], arg: string): string[] => {
     const names = [...new Set(nameList(v))];
     requireColumns(data, names);
-    if (names.length === 0) throw new Error(`\`${arg}\` must select at least one column.`);
+    if (names.length === 0) throw new RangeError(`\`${arg}\` must select at least one column.`);
     return names;
   };
   const namesFrom = selection(options.namesFrom ?? "name", "names_from");
@@ -456,7 +456,7 @@ export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): Da
   for (const c of idCols) {
     const by = namesFrom.includes(c) ? "names_from" : valuesFrom.includes(c) ? "values_from" : null;
     if (by !== null) {
-      throw new Error(`\`id_cols\` can't select a column already selected by \`${by}\`. Column \`${c}\` has already been selected.`);
+      throw new RangeError(`\`id_cols\` can't select a column already selected by \`${by}\`. Column \`${c}\` has already been selected.`);
     }
   }
   const prefix = options.namesPrefix ?? "";
@@ -488,7 +488,7 @@ export function pivotWider(data: DataFrame, options: PivotWiderOptions = {}): Da
     typeof o !== "object" || o === null;
   for (const value of valuesFrom) {
     if (perColumn(options.valuesFn, isSummary, value) === undefined && cellRows.some((rows) => rows.length > 1)) {
-      throw new Error(`values from '${value}' are not uniquely identified; use valuesFn to summarise them`);
+      throw new RangeError(`values from '${value}' are not uniquely identified; use valuesFn to summarise them`);
     }
   }
   // As tidyr: the filled cells of a value column (after valuesFn, called in order of first appearance of the cell)

@@ -48,10 +48,12 @@ function except the mixed models, which are in `dist/mixed.js`.
   of equal-length columns. A missing value is `NaN` in a number array and `null` in a data frame column.
 - **Formulas** are strings: `lm("y ~ x + g", data)`, `tTest("score ~ arm", data)`.
 - **Indices** that functions return are 0-based.
-- **Errors:** a `TypeError` for an argument of the wrong type or shape, a `RangeError` for a value out of range, an
-  `Error` for a numerical failure. Input for which the result is not defined throws, also where R returns NaN; the
-  distribution functions (d/p/q/r) return NaN for invalid parameters, as R. A computation that would allocate more
-  than 2^24 values in one array or run for more than about 10 seconds throws a RangeError before it starts
-  ([limits](https://numero-uno-jpn.github.io/rStats.js/docs/performance.html#limits)).
+- **Errors:** a `TypeError` for an argument of the wrong type or shape (a formula of the wrong form for the function
+  included), a `RangeError` for a value out of range (a column that does not exist, an empty selection, an unknown
+  choice), an `Error` for a numerical failure and for input whose result is not defined (such as too few
+  observations), and a `SyntaxError` for a formula that cannot be parsed. Input for which the result is not defined
+  throws, also where R returns NaN; the distribution functions (d/p/q/r) return NaN for invalid parameters, as R. A
+  computation that would allocate more than 2^24 values in one array or run for more than about 10 seconds throws a
+  RangeError before it starts ([limits](https://numero-uno-jpn.github.io/rStats.js/docs/performance.html#limits)).
 - **Random numbers:** after `setSeed(42)`, `rnorm`, `runif`, `sample` and the others give R's numbers after
   `set.seed(42)`.

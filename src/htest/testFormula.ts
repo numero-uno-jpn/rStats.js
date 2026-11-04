@@ -72,17 +72,17 @@ export function twoSampleData(formula: string, data: DataFrame, oneSample: boole
   const pair = sides === undefined ? null : PAIR.exec(sides.lhs);
   if (pair !== null) {
     const { terms, rhsVariables } = plainTerms(`~${sides!.rhs}`, data);
-    if (!oneSample || !interceptOnly(terms, rhsVariables)) throw new Error(MISSING_OR_INCORRECT);
+    if (!oneSample || !interceptOnly(terms, rhsVariables)) throw new TypeError(MISSING_OR_INCORRECT);
     const frame = modelFrame(data, [pair[1]!, pair[2]!]);
     return { kind: "paired", x: numericValues(frame.variables[0]!, pair[1]!), y: numericValues(frame.variables[1]!, pair[2]!) };
   }
   const { terms, rhsVariables } = plainTerms(formula, data);
-  if (terms.response < 0) throw new Error(MISSING_OR_INCORRECT);
+  if (terms.response < 0) throw new TypeError(MISSING_OR_INCORRECT);
   const response = terms.variables[0]!;
   if (oneSample && interceptOnly(terms, rhsVariables)) {
     return { kind: "one", x: numericValues(modelFrame(data, [response]).variables[0]!, response) };
   }
-  if (rhsVariables.length !== 1 || terms.terms.length !== 1) throw new Error(MISSING_OR_INCORRECT);
+  if (rhsVariables.length !== 1 || terms.terms.length !== 1) throw new TypeError(MISSING_OR_INCORRECT);
   const frame = modelFrame(data, [response, rhsVariables[0]!], { dropUnusedLevels: true });
   const values = numericValues(frame.variables[0]!, response);
   const group = groupFactor(frame.variables[1]!);
@@ -98,15 +98,15 @@ export function twoSampleData(formula: string, data: DataFrame, oneSample: boole
 /** The two samples of a formula `y ~ g` whose group has two levels (var.test, ansari.test, mood.test, ks.test) */
 export function twoGroupData(formula: string, data: DataFrame): { x: number[]; y: number[] } {
   const d = twoSampleData(formula, data, false);
-  if (d.kind !== "two") throw new Error(MISSING_OR_INCORRECT);
+  if (d.kind !== "two") throw new TypeError(MISSING_OR_INCORRECT);
   return d;
 }
 
 /** The response and group of a formula `y ~ g` with one variable on the right (kruskal.test, fligner.test, bartlett.test) */
 export function kSampleData(formula: string, data: DataFrame): { values: number[]; group: GroupFactor } {
   const { terms, rhsVariables } = plainTerms(formula, data);
-  if (terms.response < 0) throw new Error(MISSING_OR_INCORRECT);
-  if (rhsVariables.length !== 1) throw new Error("'formula' should be of the form response ~ group");
+  if (terms.response < 0) throw new TypeError(MISSING_OR_INCORRECT);
+  if (rhsVariables.length !== 1) throw new TypeError("'formula' should be of the form response ~ group");
   const response = terms.variables[0]!;
   const frame = modelFrame(data, [response, rhsVariables[0]!], { dropUnusedLevels: true });
   return { values: numericValues(frame.variables[0]!, response), group: groupFactor(frame.variables[1]!) };
@@ -125,7 +125,7 @@ export function samplesByLevel(values: readonly number[], group: GroupFactor): n
  */
 export function onewayData(formula: string, data: DataFrame): { values: number[]; groups: number[] } {
   const { terms, rhsVariables } = plainTerms(formula, data);
-  if (terms.response < 0 || rhsVariables.length === 0) throw new Error(MISSING_OR_INCORRECT);
+  if (terms.response < 0 || rhsVariables.length === 0) throw new TypeError(MISSING_OR_INCORRECT);
   const response = terms.variables[0]!;
   const frame = modelFrame(data, [response, ...rhsVariables], { dropUnusedLevels: true });
   const factors = frame.variables.slice(1).map(groupFactor);
@@ -151,10 +151,10 @@ const INCORRECT_BLOCKS = "incorrect specification for 'formula'";
 export function blockData(formula: string, data: DataFrame): number[][] {
   const sides = splitTilde(formula);
   const parts = sides?.rhs.split("|");
-  if (sides === undefined || sides.lhs === "" || parts!.length !== 2) throw new Error(INCORRECT_BLOCKS);
+  if (sides === undefined || sides.lhs === "" || parts!.length !== 2) throw new TypeError(INCORRECT_BLOCKS);
   const one = (text: string): string => {
     const { terms, rhsVariables } = plainTerms(text, data);
-    if (rhsVariables.length !== 1 || terms.terms.length !== 1) throw new Error(INCORRECT_BLOCKS);
+    if (rhsVariables.length !== 1 || terms.terms.length !== 1) throw new TypeError(INCORRECT_BLOCKS);
     return rhsVariables[0]!;
   };
   const { terms } = plainTerms(`${sides.lhs} ~ 1`, data);
@@ -180,8 +180,8 @@ export function blockData(formula: string, data: DataFrame): number[][] {
 /** The two variables of cor.test's one-sided formula `~ x + z` */
 export function correlationData(formula: string, data: DataFrame): { x: number[]; y: number[] } {
   const { terms, rhsVariables } = plainTerms(formula, data);
-  if (terms.response >= 0) throw new Error("'formula' missing or invalid");
-  if (rhsVariables.length !== 2) throw new Error("invalid formula");
+  if (terms.response >= 0) throw new TypeError("'formula' missing or invalid");
+  if (rhsVariables.length !== 2) throw new TypeError("invalid formula");
   const frame = modelFrame(data, rhsVariables);
   return { x: numericValues(frame.variables[0]!, rhsVariables[0]!), y: numericValues(frame.variables[1]!, rhsVariables[1]!) };
 }

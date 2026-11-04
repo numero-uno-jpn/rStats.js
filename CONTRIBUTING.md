@@ -149,9 +149,11 @@ rStats.js is MIT licensed. To keep it that way:
   scripts/r-index.mjs > docs/r-functions.md` and `node scripts/r-index.mjs --ja > docs/ja/r-functions.md`
   (the Japanese descriptions are in `docs/ja/r-functions.json`, one per function; the test checks both pages).
   `npx typedoc@0.28.20` must report no warnings.
-- Errors: `TypeError` for wrong types or shapes, `RangeError` for values out of range, `Error`
-  for numerical failures. Messages are in English. When to throw instead of returning NaN, and the limits on memory
-  and time, are in [Design rules](#design-rules).
+- Errors: `TypeError` for wrong types or shapes (a formula of the wrong form for the function included),
+  `RangeError` for values out of range (a column that does not exist, an empty selection, an unknown choice), `Error`
+  for numerical failures and for input whose result is not defined (such as too few observations), and `SyntaxError`
+  for a formula that cannot be parsed. Messages are in English. When to throw instead of returning NaN, and the limits
+  on memory and time, are in [Design rules](#design-rules).
 
 ## Releasing
 

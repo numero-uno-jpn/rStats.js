@@ -9,6 +9,22 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ## Unreleased
 
+### Breaking
+
+- Argument errors that were a plain `Error` are a `TypeError` (wrong type or shape) or a `RangeError` (value out of
+  range), as the other functions (the messages are unchanged):
+  - `pivotLonger` and `pivotWider`: a `colsVary` or `namesVary` that is not a string, a `namesSep` with one
+    `namesTo`, several `namesTo` without `namesSep` or `namesPattern`, a `namesPattern` with the wrong number of
+    groups, and a `.value` transform that gives no string are TypeErrors; an unknown `colsVary` or `namesVary`, a
+    column that does not exist, an empty `cols`, `namesFrom` or `valuesFrom`, `.value` twice in `namesTo`, a value
+    column given twice for one key, `idCols` that overlap `namesFrom` or `valuesFrom`, and values not uniquely
+    identified without `valuesFn` are RangeErrors.
+  - `merge`: `byX` and `byY` of different lengths are a TypeError, a key that is not a column a RangeError.
+  - The formula forms of the tests (`tTest`, `wilcoxTest`, `varTest`, `ansariTest`, `moodTest`, `ksTest`,
+    `kruskalTest`, `flignerTest`, `bartlettTest`, `onewayTest`, `friedmanTest`, `quadeTest`, `corTest`): a formula of
+    the wrong form for the test is a TypeError. A grouping factor without exactly 2 levels and a block design that is
+    not unreplicated and complete stay an `Error` (data whose result is not defined).
+
 ### Added
 
 - The package can be loaded with `require()` (Node 22.12 and later load ES modules with `require`): each subpath of
