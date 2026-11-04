@@ -578,3 +578,23 @@ dbinom/pbinom/qbinomの無効値・支持域端・prob=0/1・size=0/Infinity・�
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、R oracleは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1002 — Normal distribution tails, quantiles and scaling
+
+- 対象: `src/distributions/normal.ts`, `src/special/erf.ts`, `src/special/ndtri.ts`, `src/internal/ddexp.ts`
+- 監査時 HEAD: `6ae5e29856a291aa2638b5917123d8406a737307`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1002_normal_tails_quantiles.md](review-logs/review_audit_1002_normal_tails_quantiles.md)
+
+### 要約
+
+pnormの±Inf/NaN/Inf-Inf/標準化overflow、lower/upper・log tail、erf/erfcx切替、qnormのlog確率・端点・Newton補正、dnormのsd=0/Infinity・tiny sd・subnormal経路を静的に確認。既知Issue #33対応の極端log-tail overflow回避も確認し、新規Issueは確定しなかった。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
