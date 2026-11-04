@@ -147,6 +147,7 @@ export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: A
     statistic,
     statisticName: "AB",
     pValue,
+    warnings: [],
   };
   if (ci !== undefined) {
     result.confInt = ci.confInt;

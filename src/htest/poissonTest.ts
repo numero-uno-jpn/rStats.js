@@ -212,6 +212,7 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
       estimateNames: "rate ratio",
       nullValue: r,
       nullValueName: "rate ratio",
+      warnings: [],
     };
   }
 
@@ -249,5 +250,6 @@ export function poissonTest(x: number | readonly number[], options: PoissonTestO
     estimateNames: "event rate",
     nullValue: r,
     nullValueName: "event rate",
+    warnings: [],
   };
 }

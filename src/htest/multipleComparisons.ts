@@ -479,6 +479,8 @@ export interface DunnTestResult {
   pAdjusted: number[];
   /** Labels of the comparisons, `"<label j> - <label i>"`, in the order (2,1), (3,1), (3,2), (4,1), ... */
   comparisons: string[];
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -516,7 +518,7 @@ export function dunnTest(x: Sample, g: readonly GroupLabel[], options: DunnTestO
   }
   const P = Z.map((z) => (altp ? 2 : 1) * upperNormal(Math.abs(z)));
   const PAdjusted = dunnAdjust(P, method);
-  return { chi2, Z, P, PAdjusted, zValue: Z, pValue: P, pAdjusted: PAdjusted, comparisons };
+  return { chi2, Z, P, PAdjusted, zValue: Z, pValue: P, pAdjusted: PAdjusted, comparisons, warnings: [] };
 }
 
 /** dunn.test's adjustments: each value by the factor of its rank (tied values: the same rank), capped at 1 */
@@ -601,6 +603,8 @@ export interface GlhtDunnettResult {
   pValue: number[];
   /** Residual degrees of freedom, N - k. */
   df: number;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -638,5 +642,5 @@ export function glhtDunnett(x: Sample, g: readonly GroupLabel[], options: GlhtDu
       ? pDunnettUpper(v, lambda, df, true)
       : pDunnettUpper(alternative === "greater" ? v : -v, lambda, df, false),
   );
-  return { names: idx.map((j) => `${d.labels[j]} - ${d.labels[0]}`), estimate, se, t, p, stdError: se, tValue: t, pValue: p, df };
+  return { names: idx.map((j) => `${d.labels[j]} - ${d.labels[0]}`), estimate, se, t, p, stdError: se, tValue: t, pValue: p, df, warnings: [] };
 }

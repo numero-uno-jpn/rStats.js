@@ -12,6 +12,6 @@ describe("kappa2 needs at least two complete rating pairs (#309)", () => {
   });
 
   it("keeps the values for two pairs (irr: kappa -1, z -1.41, p 0.157)", () => {
-    expect(kappa2([[1, 2], [2, 1]])).toEqual({ value: -1, statistic: -1.414213562373095, pValue: 0.15729920705028522 });
+    expect(kappa2([[1, 2], [2, 1]])).toEqual({ value: -1, statistic: -1.414213562373095, pValue: 0.15729920705028522, warnings: [] });
   });
 });

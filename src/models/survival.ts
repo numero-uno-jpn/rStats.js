@@ -58,6 +58,8 @@ export interface SurvdiffResult {
   pvalue: number;
   /** Alias of `pvalue`: the same value. */
   pValue: number;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -258,7 +260,7 @@ export function survdiff(
     }
   }
   const pvalue = df === 0 ? NaN : pchisq(chisq, df, { lowerTail: false });
-  return { n, groups: labels, obs: observed, exp: expected, var: V, chisq, df, pvalue, pValue: pvalue };
+  return { n, groups: labels, obs: observed, exp: expected, var: V, chisq, df, pvalue, pValue: pvalue, warnings: [] };
 }
 
 /**

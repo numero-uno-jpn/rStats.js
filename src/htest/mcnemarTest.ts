@@ -103,6 +103,7 @@ export function mcnemarTest(
     parameter: df,
     parameterName: "df",
     pValue: pgamma1(statistic, df / 2, 2, false, false),
+    warnings: [],
   };
 }
 

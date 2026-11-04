@@ -289,6 +289,7 @@ function goodnessOfFit(x: number[], options: ChisqTestOptions): ChisqTestResult 
     expected: E,
     residuals: xs.map((v, i) => ldexp((v - Es[i]!) / Math.sqrt(Es[i]!), s / 2)),
     stdres: xs.map((v, i) => ldexp((v - Es[i]!) / Math.sqrt(Vs[i]!), s / 2)),
+    warnings: [],
   };
 }
 
@@ -389,6 +390,7 @@ function contingency(x: number[][], options: ChisqTestOptions): ChisqTestResult 
     expected: E,
     residuals: diff.map((r, i) => r.map((d, j) => d / Math.sqrt(E[i]![j]!))),
     stdres: contingencyStdres(x, n, sr, sc, E, diff),
+    warnings: [],
   };
 }
 

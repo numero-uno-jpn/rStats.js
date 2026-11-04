@@ -138,6 +138,7 @@ export function varTest(x: Sample | string, y: Sample | DataFrame, options: VarT
     estimateNames: "ratio of variances",
     nullValue: ratio,
     nullValueName: "ratio of variances",
+    warnings: [],
   };
 }
 
@@ -226,5 +227,6 @@ export function bartlettTest(x: readonly Sample[] | string, data?: DataFrame): B
     parameter: df,
     parameterName: "df",
     pValue: pgamma1(statistic, df / 2, 2, false, false),
+    warnings: [],
   };
 }

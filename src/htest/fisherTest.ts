@@ -136,9 +136,9 @@ export function fisherTest(x: readonly Counts[], options: FisherTestOptions = {}
     // a fractional B ran trunc(B) simulations but was reported as B (#278); an error, as in chisqTest. B = 0 simulates
     // nothing (R's p = (1 + 0) / (0 + 1) = 1): an error too (#488)
     if (!(Number.isInteger(B) && B >= 1 && B < 2 ** 31)) throw new RangeError("'B' must be a positive integer");
-    return { method: method + simulatedMethod(B), alternative, pValue: fisherSimulated(t, B) };
+    return { method: method + simulatedMethod(B), alternative, pValue: fisherSimulated(t, B), warnings: [] };
   }
-  return { method, alternative, pValue: fisherRxC(t) };
+  return { method, alternative, pValue: fisherRxC(t), warnings: [] };
 }
 
 /** Monte Carlo p-value of an r x c table: tables with fixed margins drawn by Patefield's algorithm */
@@ -322,6 +322,7 @@ function fisher2x2(t: number[][], options: FisherTestOptions, method: string): F
     estimateNames: "odds ratio",
     nullValue: or,
     nullValueName: "odds ratio",
+    warnings: [],
   };
   if (!(options.confInt ?? true)) return result;
 

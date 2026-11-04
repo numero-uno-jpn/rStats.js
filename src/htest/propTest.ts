@@ -192,6 +192,7 @@ export function propTest(
     pValue,
     estimate: k === 1 ? phat[0]! : phat,
     estimateNames: names,
+    warnings: [],
   };
   if (p !== undefined) {
     result.nullValue = k === 1 ? p[0]! : p;

@@ -232,6 +232,7 @@ function asymptotic2x2xK(
     estimateNames: "common odds ratio",
     nullValue: 1,
     nullValueName: "common odds ratio",
+    warnings: [],
   };
 }
 
@@ -280,6 +281,7 @@ function exact2x2xK(tables: readonly Stratum[], alternative: Alternative, confLe
     estimateNames: "common odds ratio",
     nullValue: 1,
     nullValueName: "common odds ratio",
+    warnings: [],
   };
 }
 
@@ -310,6 +312,7 @@ function general(
     parameter: p,
     parameterName: "df",
     pValue: pgamma1(statistic, p / 2, 2, false, false),
+    warnings: [],
   };
 }
 

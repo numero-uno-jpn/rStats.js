@@ -83,7 +83,7 @@ export function adTest(x: Sample): NormalityTestResult {
   else if (aa < 0.6) pValue = Math.exp(0.9177 - 4.279 * aa - 1.38 * aa ** 2);
   else if (aa < 10) pValue = Math.exp(1.2937 - 5.709 * aa + 0.0186 * aa ** 2);
   else pValue = 3.7e-24;
-  return { method: "Anderson-Darling normality test", statistic: a, statisticName: "A", pValue };
+  return { method: "Anderson-Darling normality test", statistic: a, statisticName: "A", pValue, warnings: [] };
 }
 
 /**
@@ -158,7 +158,7 @@ export function lillieTest(x: Sample): NormalityTestResult {
     else if (kk <= 1.31) pValue = 6.198765 - 19.558097 * kk + 23.186922 * kk ** 2 - 12.234627 * kk ** 3 + 2.423045 * kk ** 4;
     else pValue = 0;
   }
-  return { method: "Lilliefors (Kolmogorov-Smirnov) normality test", statistic: d, statisticName: "D", pValue };
+  return { method: "Lilliefors (Kolmogorov-Smirnov) normality test", statistic: d, statisticName: "D", pValue, warnings: [] };
 }
 
 /**
@@ -190,7 +190,7 @@ export function sfTest(x: Sample): NormalityTestResult {
   const mu = -1.2725 + 1.0521 * (v - u);
   const sig = 1.0308 - 0.26758 * (v + 2 / u);
   const pValue = pnorm((Math.log(1 - w) - mu) / sig, { lowerTail: false });
-  return { method: "Shapiro-Francia normality test", statistic: w, statisticName: "W", pValue };
+  return { method: "Shapiro-Francia normality test", statistic: w, statisticName: "W", pValue, warnings: [] };
 }
 
 /**
@@ -251,5 +251,6 @@ export function pearsonTest(x: Sample, options: PearsonTestOptions = {}): Normal
     statistic,
     statisticName: "P",
     pValue: pgamma1(statistic, df / 2, 2, false, false),
+    warnings: [],
   };
 }

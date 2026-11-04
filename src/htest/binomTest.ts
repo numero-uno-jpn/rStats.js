@@ -175,5 +175,6 @@ export function binomTestCounts(xs: number, ns: number, options: BinomTestOption
     estimateNames: "probability of success",
     nullValue: p,
     nullValueName: "probability of success",
+    warnings: [],
   };
 }

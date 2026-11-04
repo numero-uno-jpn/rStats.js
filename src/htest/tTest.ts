@@ -244,6 +244,7 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
     nullValueName,
     stdErr,
     stdError: stdErr,
+    warnings: [],
   };
 }
 

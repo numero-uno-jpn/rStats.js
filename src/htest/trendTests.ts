@@ -136,6 +136,7 @@ export function propTrendTest(x: Sample, n: Sample, ...args: unknown[]): PropTre
     parameter: 1,
     parameterName: "df",
     pValue: pgamma1(statistic, 0.5, 2, false, false),
+    warnings: [],
   };
 }
 

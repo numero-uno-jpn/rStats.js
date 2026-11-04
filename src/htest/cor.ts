@@ -412,6 +412,7 @@ function corTestSamples(x: Sample, y: Sample, options: CorTestOptions): CorTestR
       estimateNames: "cor",
       nullValue: 0,
       nullValueName: "correlation",
+      warnings: [],
     };
     if (n > 3) {
       const z = atanhDD(r);
@@ -445,6 +446,7 @@ function corTestSamples(x: Sample, y: Sample, options: CorTestOptions): CorTestR
       estimateNames: "tau",
       nullValue: 0,
       nullValueName: "tau",
+      warnings: [],
     };
     if (Number.isNaN(k.tau)) return { ...base, statistic: NaN, statisticName: "T", pValue: NaN };
     const exact = options.exact ?? n < 50;
@@ -494,6 +496,7 @@ function corTestSamples(x: Sample, y: Sample, options: CorTestOptions): CorTestR
     estimateNames: "rho",
     nullValue: 0,
     nullValueName: "rho",
+    warnings: [],
   };
   if (Number.isNaN(rho[0])) return { ...base, pValue: NaN };
   const ties = tieCounts(xs).length > 0 || tieCounts(ys).length > 0;

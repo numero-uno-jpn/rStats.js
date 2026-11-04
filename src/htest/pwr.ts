@@ -294,6 +294,8 @@ export interface PwrTTestResult {
   note?: string;
   /** Description of the calculation. */
   method: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -330,7 +332,7 @@ export function pwrTTest(options: PwrTTestOptions = {}): PwrTTestResult {
   }
   const note = type === "paired" ? "n is number of *pairs*" : type === "two.sample" ? "n is number in *each* group" : undefined;
   const method = { "two.sample": "Two-sample", "one.sample": "One-sample", paired: "Paired" }[type] + " t test power calculation";
-  return { n: n!, d: d!, sigLevel: sigLevel!, power, alternative: alt, ...(note === undefined ? {} : { note }), method };
+  return { n: n!, d: d!, sigLevel: sigLevel!, power, alternative: alt, ...(note === undefined ? {} : { note }), method, warnings: [] };
 }
 
 /**
@@ -367,6 +369,8 @@ export interface PwrT2nTestResult {
   alternative: Alternative;
   /** Description of the calculation. */
   method: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -402,7 +406,7 @@ export function pwrT2nTest(options: PwrT2nTestOptions = {}): PwrT2nTestResult {
     else if (isUnknown(d)) d = solveFor((x) => powerOf(n1!, n2!, x, sigLevel!) - target, ...esInterval(alt, [1e-7, 10]));
     else sigLevel = solveFor((x) => powerOf(n1!, n2!, d!, x) - target, 1e-10, 1 - 1e-10);
   }
-  return { n1: n1!, n2: n2!, d: d!, sigLevel: sigLevel!, power, alternative: alt, method: "t test power calculation" };
+  return { n1: n1!, n2: n2!, d: d!, sigLevel: sigLevel!, power, alternative: alt, method: "t test power calculation", warnings: [] };
 }
 
 /**
@@ -437,6 +441,8 @@ export interface Pwr2pTestResult {
   method: string;
   /** A note on the sample sizes (absent for {@link pwrPTest}). */
   note?: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /** The normal-approximation tests: pwr.2p.test (scale sqrt(n/2)), pwr.p.test and pwr.norm.test (sqrt(n)) */
@@ -490,6 +496,7 @@ export function pwr2pTest(options: Pwr2pTestOptions = {}): Pwr2pTestResult {
     alternative: r.alternative,
     method: "Difference of proportion power calculation for binomial distribution (arcsine transformation)",
     note: "same sample sizes",
+    warnings: [],
   };
 }
 
@@ -515,6 +522,7 @@ export function pwrPTest(options: Pwr2pTestOptions = {}): Pwr2pTestResult {
     power: r.power,
     alternative: r.alternative,
     method: "proportion power calculation for binomial distribution (arcsine transformation)",
+    warnings: [],
   };
 }
 
@@ -548,6 +556,8 @@ export interface PwrNormTestResult {
   alternative: Alternative;
   /** Description of the calculation. */
   method: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -572,6 +582,7 @@ export function pwrNormTest(options: PwrNormTestOptions = {}): PwrNormTestResult
     power: r.power,
     alternative: r.alternative,
     method: "Mean power calculation for normal distribution with known variance",
+    warnings: [],
   };
 }
 
@@ -611,6 +622,8 @@ export interface Pwr2p2nTestResult {
   method: string;
   /** A note on the sample sizes. */
   note: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -662,6 +675,7 @@ export function pwr2p2nTest(options: Pwr2p2nTestOptions = {}): Pwr2p2nTestResult
     alternative: alt,
     method: "difference of proportion power calculation for binomial distribution (arcsine transformation)",
     note: "different sample sizes",
+    warnings: [],
   };
 }
 
@@ -695,6 +709,8 @@ export interface PwrRTestResult {
   alternative: Alternative;
   /** Description of the calculation. */
   method: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -753,6 +769,7 @@ export function pwrRTest(options: PwrRTestOptions = {}): PwrRTestResult {
     power,
     alternative: alt,
     method: "approximate correlation power calculation (arctangh transformation)",
+    warnings: [],
   };
 }
 
@@ -790,6 +807,8 @@ export interface PwrChisqTestResult {
   method: string;
   /** A note on the sample size. */
   note: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -828,7 +847,7 @@ export function pwrChisqTest(options: PwrChisqTestOptions): PwrChisqTestResult {
     else if (isUnknown(N)) N = solveFor((x) => powerOf(w!, x, sigLevel!) - target, 1 + 1e-10, 1e9);
     else sigLevel = solveFor((x) => powerOf(w!, N!, x) - target, 1e-10, 1 - 1e-10);
   }
-  return { w: w!, N: N!, df, sigLevel: sigLevel!, power, method: "Chi squared power calculation", note: "N is the number of observations" };
+  return { w: w!, N: N!, df, sigLevel: sigLevel!, power, method: "Chi squared power calculation", note: "N is the number of observations", warnings: [] };
 }
 
 /**
@@ -865,6 +884,8 @@ export interface PwrAnovaTestResult {
   note: string;
   /** Description of the calculation. */
   method: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -918,6 +939,7 @@ export function pwrAnovaTest(options: PwrAnovaTestOptions = {}): PwrAnovaTestRes
     power,
     note: "n is number in each group",
     method: "Balanced one-way analysis of variance power calculation",
+    warnings: [],
   };
 }
 
@@ -953,6 +975,8 @@ export interface PwrF2TestResult {
   power: number;
   /** Description of the calculation. */
   method: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -996,5 +1020,5 @@ export function pwrF2Test(options: PwrF2TestOptions = {}): PwrF2TestResult {
     else if (isUnknown(f2)) f2 = solveFor((x) => powerOf(u!, v!, x, sigLevel!) - target, 1e-7, 1e7);
     else sigLevel = solveFor((x) => powerOf(u!, v!, f2!, x) - target, 1e-10, 1 - 1e-10);
   }
-  return { u: u!, v: v!, f2: f2!, sigLevel: sigLevel!, power, method: "Multiple regression power calculation" };
+  return { u: u!, v: v!, f2: f2!, sigLevel: sigLevel!, power, method: "Multiple regression power calculation", warnings: [] };
 }

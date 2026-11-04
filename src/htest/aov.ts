@@ -167,6 +167,8 @@ export interface TukeyHSDResult {
   pAdj: number[];
   /** Alias of `pAdj`: the same array. */
   pAdjusted: number[];
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -217,7 +219,7 @@ export function TukeyHSD(
   const mse = ssw / df;
   const q = qtukey(confLevel, k, df);
   const pAdj: number[] = [];
-  const out: TukeyHSDResult = { names: [], i: [], j: [], diff: [], lwr: [], upr: [], pAdj, pAdjusted: pAdj };
+  const out: TukeyHSDResult = { names: [], i: [], j: [], diff: [], lwr: [], upr: [], pAdj, pAdjusted: pAdj, warnings: [] };
   for (let b = 0; b < k - 1; b++) {
     for (let a = b + 1; a < k; a++) {
       const diff = means[a]! - means[b]!;
@@ -336,5 +338,6 @@ export function zTest(x: Sample, y?: Sample | ZTestOptions, options: ZTestOption
     estimateNames: twoSample ? ["mean of x", "mean of y"] : "mean of x",
     nullValue: mu,
     nullValueName: twoSample ? "difference in means" : "mean",
+    warnings: [],
   };
 }

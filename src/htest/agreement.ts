@@ -74,6 +74,8 @@ export interface KappaResult {
   statistic?: number;
   /** Two-sided p-value of the z test (absent for Fleiss' exact kappa). */
   pValue?: number;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -130,7 +132,7 @@ export function kappa2(ratings: readonly (readonly number[])[], options: Kappa2O
   const v = Array.from({ length: c }, (_, s) => sum(a.map((ar, r) => ar * W[r]![s]!)));
   const variance0 = (terms((r, s) => a[r]! * b[s]! * (W[r]![s]! - (u[r]! + v[s]!)) ** 2) - pe * pe) / (n * (1 - pe) ** 2);
   const statistic = value / Math.sqrt(variance0);
-  return { value, statistic, pValue: twoSidedP(statistic) };
+  return { value, statistic, pValue: twoSidedP(statistic), warnings: [] };
 }
 
 /**
@@ -193,12 +195,12 @@ export function kappamFleiss(ratings: readonly (readonly number[])[], options: K
     pe -= sum(spread) / (m - 1);
   }
   const value = (po - pe) / (1 - pe);
-  if (exact) return { value };
+  if (exact) return { value, warnings: [] };
   const pq = sum(p.map((pj) => pj * (1 - pj)));
   const skew = sum(p.map((pj) => pj * (1 - pj) * (1 - pj - pj)));
   const variance0 = (2 / (pq * pq * n * m * (m - 1))) * (pq * pq - skew);
   const statistic = value / Math.sqrt(variance0);
-  return { value, statistic, pValue: twoSidedP(statistic) };
+  return { value, statistic, pValue: twoSidedP(statistic), warnings: [] };
 }
 
 /**
@@ -241,6 +243,8 @@ export interface IccResult {
   lbound: number;
   /** Upper confidence limit. */
   ubound: number;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -302,7 +306,7 @@ export function icc(ratings: readonly (readonly number[])[], options: IccOptions
       unit === "single"
         ? [(msr - ms) / (msr + (k - 1) * ms), (ratio * (1 - r0)) / (1 + (k - 1) * r0), (f: number) => (f - 1) / (f + k - 1)]
         : [(msr - ms) / msr, ratio * (1 - r0), (f: number) => 1 - 1 / f];
-    return { value, Fvalue, fValue: Fvalue, df1, df2, pValue: upper(Fvalue, df1, df2), lbound: bound(FL), ubound: bound(FU) };
+    return { value, Fvalue, fValue: Fvalue, df1, df2, pValue: upper(Fvalue, df1, df2), lbound: bound(FL), ubound: bound(FU), warnings: [] };
   }
   // two-way agreement: Satterthwaite's degrees of freedom v for the combination a MSc + b MSe
   const scale = unit === "single" ? k : 1;
@@ -325,7 +329,7 @@ export function icc(ratings: readonly (readonly number[])[], options: IccOptions
           (n * (FU * msr - mse)) / (k * msc + (k * n - k - n) * mse + n * FU * msr),
         ]
       : [(n * (msr - FL * mse)) / (FL * (msc - mse) + n * msr), (n * (FU * msr - mse)) / (msc - mse + n * FU * msr)];
-  return { value, Fvalue, fValue: Fvalue, df1, df2, pValue: upper(Fvalue, df1, df2), lbound, ubound };
+  return { value, Fvalue, fValue: Fvalue, df1, df2, pValue: upper(Fvalue, df1, df2), lbound, ubound, warnings: [] };
 }
 
 /**
@@ -344,6 +348,8 @@ export interface CronbachAlphaResult {
   averageR: number;
   /** Raw alpha of the items without each item in turn. */
   alphaDrop: number[];
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /** Raw alpha of the covariance matrix C restricted to the items `keep` */
@@ -403,6 +409,7 @@ export function cronbachAlpha(x: readonly (readonly number[])[]): CronbachAlphaR
     G6: 1 - (k - sum(smc)) / sumR,
     averageR: (sumR - k) / (k * (k - 1)),
     alphaDrop: items.map((i) => rawAlphaOf(C, items.filter((j) => j !== i))),
+    warnings: [],
   };
 }
 

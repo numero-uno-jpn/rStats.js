@@ -62,6 +62,8 @@ export interface HTest {
   nullValue?: number;
   /** Name of `nullValue` (R's `names(null.value)`), e.g. `"difference in means"`. */
   nullValueName?: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /** Like R's match.arg, abbreviations ("two", "l", "g") are also accepted */

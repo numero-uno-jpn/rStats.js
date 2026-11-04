@@ -151,6 +151,7 @@ export function ksTest(
       statistic,
       statisticName,
       pValue: Math.min(1, Math.max(0, pValue)),
+      warnings: [],
     };
   }
 
@@ -192,5 +193,6 @@ export function ksTest(
     statistic,
     statisticName,
     pValue: Math.min(1, Math.max(0, pValue)),
+    warnings: [],
   };
 }

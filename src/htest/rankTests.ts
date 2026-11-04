@@ -49,6 +49,7 @@ function chisqResult(method: string, name: string, statistic: number, df: number
     parameter: df,
     parameterName: "df",
     pValue: pgamma1(statistic, df / 2, 2, false, false),
+    warnings: [],
   };
 }
 
@@ -269,6 +270,7 @@ export function quadeTest(y: readonly (readonly number[])[] | string, data?: Dat
     parameter,
     parameterName: ["num df", "denom df"],
     pValue,
+    warnings: [],
   };
 }
 
@@ -421,5 +423,5 @@ export function moodTest(x: Sample | string, y: Sample | DataFrame, options: Moo
       : alternative === "greater"
         ? pnorm(zstat, { lowerTail: false })
         : 2 * pnorm(-Math.abs(zstat));
-  return { method: "Mood two-sample test of scale", alternative, statistic: zstat, statisticName: "Z", pValue };
+  return { method: "Mood two-sample test of scale", alternative, statistic: zstat, statisticName: "Z", pValue, warnings: [] };
 }

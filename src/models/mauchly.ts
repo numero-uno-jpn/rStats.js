@@ -53,6 +53,8 @@ export interface MauchlyTestResult {
   pValue: number;
   /** Name of the test (R's `method`). */
   method: "Mauchly's test of sphericity";
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 const upperChisq = (q: number, df: number): number => pgamma1(q, df / 2, 2, false, false);
@@ -181,5 +183,5 @@ export function mauchlyTest(y: MatrixInput, options: MauchlyTestOptions = {}): M
   // rho positive
   if (n < pp) throw new RangeError(`too few residual degrees of freedom for the test: ${n} for ${pp} dimension(s)`);
   const W = sphericityW(U);
-  return { statistic: W, statisticName: "W", pValue: mauchlyPValue(W, pp, n, k), method: "Mauchly's test of sphericity" };
+  return { statistic: W, statisticName: "W", pValue: mauchlyPValue(W, pp, n, k), method: "Mauchly's test of sphericity", warnings: [] };
 }

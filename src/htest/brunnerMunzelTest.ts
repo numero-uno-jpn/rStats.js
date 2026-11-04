@@ -106,5 +106,6 @@ export function brunnerMunzelTest(x: Sample, y: Sample, options: BrunnerMunzelTe
     confLevel,
     estimate,
     estimateNames: "P(X<Y)+.5*P(X=Y)",
+    warnings: [],
   };
 }

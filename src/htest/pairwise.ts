@@ -45,6 +45,8 @@ export interface PairwiseResult {
   colNames: string[];
   /** Adjustment method. */
   pAdjustMethod: PAdjustMethod | string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -101,6 +103,7 @@ function result(method: string, levels: GroupLabel[], pValue: number[][], adjust
     rowNames: levels.slice(1).map(levelText),
     colNames: levels.slice(0, -1).map(levelText),
     pAdjustMethod: adjust,
+    warnings: [],
   };
 }
 

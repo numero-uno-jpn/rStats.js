@@ -38,6 +38,8 @@ export interface LeveneTestResult {
   rowNames: string[];
   /** One array per row; NaN where car prints nothing. */
   table: number[][];
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -89,5 +91,6 @@ export function leveneTest(y: Sample, g: readonly GroupLabel[], options: LeveneT
       [r.df[0], r.fValue, r.pValue],
       [r.df[1], NaN, NaN],
     ],
+    warnings: [],
   };
 }

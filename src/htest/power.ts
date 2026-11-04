@@ -106,6 +106,8 @@ export interface PowerTTestResult {
   note?: string;
   /** Description of the calculation. */
   method: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 function checkSigLevel(sigLevel: number | null | undefined, message: string): void {
@@ -192,6 +194,7 @@ export function powerTTest(options: PowerTTestOptions = {}): PowerTTestResult {
     alternative,
     ...(note === undefined ? {} : { note }),
     method,
+    warnings: [],
   };
 }
 
@@ -368,6 +371,8 @@ export interface PowerAnovaTestResult {
   note: string;
   /** Description of the calculation. */
   method: string;
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /**
@@ -480,5 +485,6 @@ export function powerAnovaTest(options: PowerAnovaTestOptions = {}): PowerAnovaT
     power,
     note: "n is number in each group",
     method: "Balanced one-way analysis of variance power calculation",
+    warnings: [],
   };
 }

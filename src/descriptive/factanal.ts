@@ -87,6 +87,8 @@ export interface FactanalResult {
   objective: number;
   /** optim's counts of function and gradient evaluations */
   counts: [number, number];
+  /** R's warnings, each once, in R's order (an empty array when there are none). */
+  warnings: string[];
 }
 
 /** Sum rounded once (R's long double accumulation, here double-double); also used by omega */
@@ -279,6 +281,7 @@ export function factanal(x: readonly (readonly number[])[] | null, factors: numb
     converged: true,
     objective: fit.value,
     counts: fit.counts,
+    warnings: [],
   };
   if (scores !== "none") out.scores = factorScores(x!, S, psi, L, scores);
   if (rotmat !== undefined) out.rotmat = rotmat;

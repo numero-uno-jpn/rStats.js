@@ -306,6 +306,7 @@ function signedRank(
     pValue,
     nullValue: mu,
     nullValueName: paired ? "location shift" : "location",
+    warnings: [],
   };
   if (!ctx.confInt) return result;
   // The interval is on the original scale (add mu back to the data with zero differences removed)
@@ -548,6 +549,7 @@ function rankSum(
     pValue,
     nullValue: mu,
     nullValueName: "location shift",
+    warnings: [],
   };
   if (!ctx.confInt) return result;
   const ci = useExact ? rankSumExact(() => rankSumExactCI(x, y, ctx)) : rankSumNormalCI(x, y, ctx);

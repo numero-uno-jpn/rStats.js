@@ -192,6 +192,7 @@ export function onewayTest(
     parameter: [k - 1, df2],
     parameterName: ["num df", "denom df"],
     pValue: pf1(statistic, k - 1, df2, false, false),
+    warnings: [],
   };
 }
 
@@ -223,6 +224,7 @@ export function shapiroTest(x: Sample): Omit<HTest, "alternative"> {
     statistic: 1 - w1,
     statisticName: "W",
     pValue: swilkPValueFromOneMinusW(w1, n),
+    warnings: [],
   };
 }
 
