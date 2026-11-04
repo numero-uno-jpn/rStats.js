@@ -1021,3 +1021,23 @@ dgeom/pgeom/qgeomのprob境界、巨大整数、2^53超のx+1、subnormal prob�
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、R runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1023 — Wilcoxon signed-rank distribution
+
+- 対象: `src/distributions/signrank.ts`、discrete quantile / integer helpers、qnorm
+- 監査時 HEAD: `9e0cb3d58a585faf191d2a87728854d5dff2be3a`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1023_signrank_distribution.md](review-logs/review_audit_1023_signrank_distribution.md)
+
+### 要約
+
+dsignrank/psignrank/qsignrankのsubset-sum更新、rescale/minTrusted、LRU cache、low table再構築、対称tail、離散quantileを静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
