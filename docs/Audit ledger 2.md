@@ -746,3 +746,32 @@ dcauchy/pcauchy/qcauchyのscale境界、差分overflow、subnormal scale、tiny 
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、R oracleは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1010 — Beta distribution support boundaries and degenerate shapes
+
+- 対象: `src/distributions/beta.ts`、incomplete-beta / Loader / continuous quantile inversion
+- 監査時 HEAD: `796ea76ca11809c772893331c78669014fa2a3a1`
+- 判定: 新規不具合1件を確認しIssue登録
+- Issue: [#512 pbeta checks q < 0 before zero-shape point masses, reversing R's endpoint behavior](https://github.com/numero-uno-jpn/rStats.js/issues/512)
+- 詳細: [review_audit_1010_beta_distribution.md](review-logs/review_audit_1010_beta_distribution.md)
+
+### 要約
+
+dbeta/pbeta/qbetaの支持域端、zero/infinite shape、point mass、DD密度、incomplete-beta、左右半区間quantile inversionを静的に確認。pbetaはq<0をpoint massより先に判定し、Rと結果が異なる固定再現例を確認したためIssue #512に登録。
+
+### 再現入力
+
+```ts
+pbeta(-1, 0, 2); // current 0; R 1
+pbeta(-1, 0, 0); // current 0; R 0.5
+pbeta(-1, 0, 2, { lowerTail: false }); // current 1; R 0
+```
+
+### 検証範囲・制約
+
+- 固定入力による静的な制御フロー追跡。Rのpbeta.cソースを参照。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
