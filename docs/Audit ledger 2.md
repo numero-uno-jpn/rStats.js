@@ -598,3 +598,23 @@ pnormの±Inf/NaN/Inf-Inf/標準化overflow、lower/upper・log tail、erf/erfcx
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、R oracleは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1003 — Central Student t distribution
+
+- 対象: `src/distributions/t.ts` の central `dt/pt/qt` 経路と巨大df helper
+- 監査時 HEAD: `d12bf15ecfbe8b901c358b5e6dbc82b0103c75b0`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1003_central_t_distribution.md](review-logs/review_audit_1003_central_t_distribution.md)
+
+### 要約
+
+dt/pt/qtのdf・確率境界、±Infinity、tiny/huge df、x² overflow、beta引数のscale、log/linear tail、Newton反転を静的に確認。qtの確率端点をdf<=0検証より先に扱う順序はRのqt.cと一致することを確認し、誤検出を回避した。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Rソースの処理順を参照したが、Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
