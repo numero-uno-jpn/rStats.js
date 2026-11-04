@@ -76,7 +76,7 @@ Ahrens-Dieter、Box-Muller) も対象外です。古いコードの再現にし�
 
 ## サイズ
 
-バンドラを使う利用者には import した関数だけが入るので (`pnorm` だけなら gzip 後 1.2 KB)、関数を
+バンドラを使う利用者には import した関数だけが入るので (`pnorm` だけなら gzip 後 1.4 KB)、関数を
 増やしても利用者の負担にはなりません。CDN 用には、分野ごとのファイル (`dist/distributions.js`、
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
 `dist/mixed.js`) を esbuild のコード分割で作り (共通のコードは重複しない)、`mixed` 以外のすべてを含む

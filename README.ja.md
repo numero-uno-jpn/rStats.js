@@ -14,7 +14,7 @@ JavaScript とブラウザで使える、R と互換の統計関数のライブ�
   持つオブジェクトで渡します。`pt(q, df, { lowerTail: false })` は R の `pt(q, df, lower.tail = FALSE)` に
   当たります。結果は素のオブジェクトなので、そのまま `JSON.stringify` できます。
 - **どこでも動きます。** ESM のみで、依存パッケージはなく、Node 専用の API も使っていません。
-  tree-shaking が効きます (`pnorm` だけなら gzip で 1.2 KB)。
+  tree-shaking が効きます (`pnorm` だけなら gzip で 1.4 KB)。
 
 状態: **0.16.0。** R の stats パッケージの数値計算の中心
 (分布・記述統計・検定・線形モデル・特殊関数・数値計算・線形代数の基本) を、R と同じ結果でカバーすることを目指しています。残っている作業は
@@ -255,14 +255,14 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 
 | import するもの | gzip |
 |---|---|
-| `pnorm` | 1.2 KB |
-| `setSeed`, `rnorm` | 1.7 KB |
-| `solve` / `svd` / `eigen` | 1.7 / 2.0 / 4.5 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 12.8 / 15.9 / 27.5 KB |
-| `qbeta` / `pt` と `qt` | 41.4 / 35.9 KB |
-| `glm` と `glmSummary` / `glm` とそのすべての関数 | 30.1 / 42.7 KB |
-| `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 16.5 / 62.0 KB |
-| すべて (`/mixed` を除く) | 201.9 KB |
+| `pnorm` | 1.4 KB |
+| `setSeed`, `rnorm` | 1.8 KB |
+| `solve` / `svd` / `eigen` | 2.2 / 2.2 / 4.9 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 15.6 / 26.9 / 30.5 KB |
+| `qbeta` / `pt` と `qt` | 43.2 / 39.7 KB |
+| `glm` と `glmSummary` / `glm` とそのすべての関数 | 34.3 / 49.9 KB |
+| `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 17.6 / 67.1 KB |
+| すべて (`/mixed` を除く) | 240.4 KB |
 
 (`npm run size` で測れます。)
 
@@ -272,7 +272,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 できません。メインの入口には含めていません)。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` 以外のすべての関数を含む
-minify 済みの ES モジュール、gzip で 202 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
+minify 済みの ES モジュール、gzip で 241 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
 そのまま配信します。
 
 ```html
@@ -293,7 +293,7 @@ minify 済みの ES モジュール、gzip で 202 KB) を jsDelivr から読み
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
 `dist/mixed.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
 2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
-30 KB (`special`) から 159 KB (`tests`) です。
+37 KB (`numerics`) から 200 KB (`tests`) です。
 
 npm を元にしたほかの CDN も使えます。たとえば `https://esm.sh/@numero-uno-jpn/rstats` です。ビルド結果
 (`dist/`) は main ブランチにはなく、リリースのタグにも入っていますが、jsDelivr の GitHub 経由の配信

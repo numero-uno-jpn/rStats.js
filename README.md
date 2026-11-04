@@ -12,7 +12,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
   with camelCase keys: `pt(q, df, { lowerTail: false })` is R's `pt(q, df, lower.tail = FALSE)`.
   Results are plain objects that `JSON.stringify` cleanly.
 - **Runs anywhere.** ESM only, no dependencies, no Node-specific APIs, tree-shakable
-  (`pnorm` alone is 1.2 KB gzipped).
+  (`pnorm` alone is 1.4 KB gzipped).
 
 Status: **0.16.0.** The goal is to cover the numerical core of R's
 `stats` package (distributions, descriptive statistics, hypothesis tests, linear models, special
@@ -252,14 +252,14 @@ removed. Approximate sizes after minification and gzip:
 
 | Import | gzip |
 |---|---|
-| `pnorm` | 1.2 KB |
-| `setSeed`, `rnorm` | 1.7 KB |
-| `solve` / `svd` / `eigen` | 1.7 / 2.0 / 4.5 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 12.8 / 15.9 / 27.5 KB |
-| `qbeta` / `pt` and `qt` | 41.4 / 35.9 KB |
-| `glm` and `glmSummary` / `glm` with all its methods | 30.1 / 42.7 KB |
-| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 16.5 / 62.0 KB |
-| everything (except `/mixed`) | 201.9 KB |
+| `pnorm` | 1.4 KB |
+| `setSeed`, `rnorm` | 1.8 KB |
+| `solve` / `svd` / `eigen` | 2.2 / 2.2 / 4.9 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 15.6 / 26.9 / 30.5 KB |
+| `qbeta` / `pt` and `qt` | 43.2 / 39.7 KB |
+| `glm` and `glmSummary` / `glm` with all its methods | 34.3 / 49.9 KB |
+| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 17.6 / 67.1 KB |
+| everything (except `/mixed`) | 240.4 KB |
 
 (`npm run size` measures these.)
 
@@ -269,7 +269,7 @@ Each area is also a subpath export, for importing one area without the rest:
 (`lmer` and lmerTest's tests; this area is only available this way, not from the main entry point).
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function except those of `/mixed`, 202 KB gzipped) from jsDelivr, which serves each npm release:
+function except those of `/mixed`, 241 KB gzipped) from jsDelivr, which serves each npm release:
 
 ```html
 <script type="module">
@@ -289,7 +289,7 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js` and
 `dist/mixed.js` export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 30 KB (`special`) to 159 KB (`tests`) gzipped.
+transfers 37 KB (`numerics`) to 200 KB (`tests`) gzipped.
 
 Other npm-based CDNs work as well, for example `https://esm.sh/@numero-uno-jpn/rstats`. Release tags also contain
 the build output (`dist/`), which is not on the main branch, but jsDelivr's GitHub route

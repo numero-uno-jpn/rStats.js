@@ -87,27 +87,27 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 
 | import | minify 後 | gzip |
 |---|---|---|
-| `pnorm` | 2.3 KB | 1.2 KB |
-| `setSeed`、`rnorm` | 3.4 KB | 1.7 KB |
-| `solve` / `svd` / `eigen` | 3.8 / 4.5 / 11.5 KB | 1.7 / 2.0 / 4.5 KB |
-| `wilcoxTest` | 30.5 KB | 12.8 KB |
-| `fisherTest` | 33.1 KB | 15.9 KB |
-| `tTest` | 61.2 KB | 27.5 KB |
-| `qbeta` | 92.0 KB | 41.4 KB |
-| `pt`、`qt` | 78.4 KB | 35.9 KB |
-| `glm`、`glmSummary` / `glm` とすべてのメソッド | 70.5 / 98.6 KB | 30.1 / 42.7 KB |
-| すべて (`/mixed` を除く) | 533.1 KB | 201.9 KB |
-| `@numero-uno-jpn/rstats/distributions` (全体) | 207.4 KB | 82.1 KB |
-| `@numero-uno-jpn/rstats/tests` (全体) | 395.3 KB | 155.4 KB |
-| `@numero-uno-jpn/rstats/linalg` (全体) | 50.2 KB | 18.5 KB |
-| `@numero-uno-jpn/rstats/descriptive` (全体) | 44.8 KB | 16.7 KB |
-| `@numero-uno-jpn/rstats/numerics` (全体) | 48.7 KB | 20.9 KB |
-| `@numero-uno-jpn/rstats/special` (全体) | 59.3 KB | 27.3 KB |
-| `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / 全体 (lmerTest の検定を含む) | 42.5 / 145.9 KB | 16.5 / 62.0 KB |
+| `pnorm` | 2.8 KB | 1.4 KB |
+| `setSeed`、`rnorm` | 3.7 KB | 1.8 KB |
+| `solve` / `svd` / `eigen` | 5.3 / 4.9 / 12.4 KB | 2.2 / 2.2 / 4.9 KB |
+| `wilcoxTest` | 38.1 KB | 15.6 KB |
+| `fisherTest` | 60.0 KB | 26.9 KB |
+| `tTest` | 69.8 KB | 30.5 KB |
+| `qbeta` | 97.4 KB | 43.2 KB |
+| `pt`、`qt` | 88.6 KB | 39.7 KB |
+| `glm`、`glmSummary` / `glm` とすべてのメソッド | 83.6 / 119.0 KB | 34.3 / 49.9 KB |
+| すべて (`/mixed` を除く) | 641.2 KB | 240.4 KB |
+| `@numero-uno-jpn/rstats/distributions` (全体) | 235.8 KB | 93.1 KB |
+| `@numero-uno-jpn/rstats/tests` (全体) | 469.0 KB | 181.7 KB |
+| `@numero-uno-jpn/rstats/linalg` (全体) | 63.6 KB | 23.2 KB |
+| `@numero-uno-jpn/rstats/descriptive` (全体) | 55.8 KB | 20.5 KB |
+| `@numero-uno-jpn/rstats/numerics` (全体) | 62.2 KB | 25.4 KB |
+| `@numero-uno-jpn/rstats/special` (全体) | 66.3 KB | 29.7 KB |
+| `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / 全体 (lmerTest の検定を含む) | 45.5 / 157.4 KB | 17.6 / 67.1 KB |
 
 サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを
-`dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 30 KB
-(`special`) から 159 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
+`dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 37 KB
+(`numerics`) から 200 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
 ある検定には、formula とモデルフレームのコードが入ります。
 
 ## 上限
@@ -144,8 +144,8 @@ RangeError を投げます。正確な検定では、メッセージで回避の
 Apple M1 (Mac mini)、Node.js 24、`tsc` によるビルド、2026-10-26 (版 0.11.0)。分布関数と `tTest` は `npm run bench`
 (`scripts/bench.mjs`) で、1 回ずつ呼び出し、5 回の実行の最小値です。入力はライブラリ自身の `setSeed`/`runif` で生成するので、
 どのビルドにも同じ入力が渡ります。線形代数は、20 回 (n = 300 では 3 回) の呼び出しの平均の、5 回の実行の最小値です。R 4.5.2
-(arm64) は同じマシンのコンテナで、同じ種類の入力を R 自身の乱数で作って測りました。バンドルサイズと混合モデルは
-2026-10-27 (0.12.0 のコード。`lmer` と `lmerSummary` の当てはめは 0.15.0 のコードで測り直しました) に測りました。混合モデルの lme4 2.0.6 も同じコンテナです。
+(arm64) は同じマシンのコンテナで、同じ種類の入力を R 自身の乱数で作って測りました。バンドルサイズは
+2026-11-04 に 0.16.0 のコードで測りました (Windows 11、Node.js 26。サイズはマシンによりません)。混合モデルは 2026-10-27 (0.12.0 のコード。`lmer` と `lmerSummary` の当てはめは 0.15.0 のコードで測り直しました) に測りました。混合モデルの lme4 2.0.6 も同じコンテナです。
 
 ## 参考情報
 

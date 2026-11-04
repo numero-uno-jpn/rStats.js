@@ -81,7 +81,7 @@ old code.
 
 ## Size
 
-Users of a bundler only get the functions they import (`pnorm` alone is 1.2 KB gzipped), so
+Users of a bundler only get the functions they import (`pnorm` alone is 1.4 KB gzipped), so
 adding functions costs them nothing. For CDN use there is one file per area
 (`dist/distributions.js`, `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`,
 `dist/numerics.js`, `dist/special.js`, `dist/mixed.js`), built with esbuild's code splitting so that shared code is
