@@ -58,10 +58,10 @@ function steps(x: readonly number[], options: DerivOptions, d0: number): Steps {
   // steps would not end for a huge r
   if (r > 512) throw new RangeError("'r' must be at most 512");
   const h0 = x.map((v) => Math.abs(d * v) + (Math.abs(v) < zeroTol ? eps : 0));
-  // a step that is not positive and finite defines no difference quotient: d abs(x[i]) overflowing (#213), or 0 for
+  // a step of 0 or a non-finite step defines no difference quotient: d abs(x[i]) overflowing (#213), or 0 for
   // x[i] = 0 with zeroTol 0 (#246) (numDeriv: NaN from jacobian and hessian, an error from grad's check of f)
   h0.forEach((h, i) => {
-    if (!(h > 0 && h < Infinity)) throw new RangeError(`the step for x[${i}] is ${h}: not a positive finite number`);
+    if (!(Math.abs(h) > 0 && Math.abs(h) < Infinity)) throw new RangeError(`the step for x[${i}] is ${h}: not a nonzero finite number`);
   });
   return { eps, r, h0 };
 }

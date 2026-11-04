@@ -6,7 +6,7 @@ import { grad, hessian, jacobian } from "../src/index.js";
 
 describe("issue #246", () => {
   it("a step of 0 is an error for all three", () => {
-    const message = "the step for x[0] is 0: not a positive finite number";
+    const message = "the step for x[0] is 0: not a nonzero finite number";
     expect(() => grad((x) => x[0]! * x[0]!, [0], { zeroTol: 0 })).toThrow(message);
     expect(() => jacobian((x) => [x[0]! * x[0]!], [0], { zeroTol: 0 })).toThrow(message);
     expect(() => hessian((x) => x[0]! * x[0]!, [0], { zeroTol: 0 })).toThrow(message);
