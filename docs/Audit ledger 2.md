@@ -478,3 +478,23 @@ LINPACK/LAPACK QR、pivot/rank、Householder、qrCoef/qrSolve/qrResid/qrFitted/q
 - ソースと既存テスト/oracle harnessを静的確認。
 - Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #997 — SVD / eigen / Schur
+
+- 対象: `src/linalg/svd.ts`, `src/linalg/eigen.ts`, `src/linalg/schur.ts`
+- 監査時 HEAD: `203356623d253a5d1a50f75cf3bd35b840605420`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_997_svd_eigen_schur.md](review-logs/review_audit_997_svd_eigen_schur.md)
+
+### 要約
+
+SVDのwide/tall変換、nu/nv境界、Householder、bidiagonal QR、収束判定、singular value/vectorの並べ替えとscale復元を確認。eigenの対称性判定、スケーリング、対称/非対称QR、balancing、複素固有値・固有ベクトルを確認。Schurの複素共役2x2 block処理、lanv2標準化、Q/T回転整合性を確認。今回新規Issueは確定せず。
+
+### 検証範囲・制約
+
+- 既存SVD/Schur test harnessを静的に確認。
+- Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
