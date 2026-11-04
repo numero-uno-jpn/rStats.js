@@ -67,7 +67,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   1e-24 times the weighted sum of squares of the response, as `Anova`'s check of an exact fit) as 0, with the sums of
   squares of the terms at that level: F = Inf and p = 0 for groups without spread (`aov([[1, 1], [2, 2]])` gave F =
   3.4e64 from the residue of the QR, as R), and F = NaN where all values are equal (F = 0.6 or 1 from the residue).
-  The tables of other fits are unchanged to the bit.
+  The same holds in each stratum of a fit with `Error()` (the sum of squares of the whole response as the scale): F =
+  Inf or NaN where the Within stratum of `aov("y ~ g + Error(id)", d)` gave F = 2.9e33 from the residue. The tables
+  of other fits are unchanged to the bit.
 
 ### Fixed
 

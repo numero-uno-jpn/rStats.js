@@ -1,7 +1,7 @@
 // aov of samples (its aovSummary), TukeyHSD and zTest against R (oracle/anova.R; BSDA::z.test)
 import { describe, expect, it } from "vitest";
 import { anova, aov, aovSummary, lm, TukeyHSD, zTest } from "../src/index.js";
-import type { Alternative } from "../src/index.js";
+import type { Alternative, AovStrataFit } from "../src/index.js";
 import { num } from "./helpers/fixture.js";
 import { arg, defined, htestSuite, type HTestArg } from "./helpers/htest.js";
 
@@ -113,6 +113,18 @@ describe("aovSummary and anova on exact fits", () => {
     const t = aovSummary(aov([[0.1, 0.1, 0.1], [0.1, 0.1]])).table;
     expect(t[0]).toEqual([1, 0, 0, NaN, NaN]);
     expect(t[1]!.slice(0, 3)).toEqual([3, 0, 0]);
+  });
+  it("gives F = Inf and NaN in the strata of aov with Error()", () => {
+    const d = {
+      y: [1, 1, 2, 2, 1.1, 1.1, 2.1, 2.1, 0.9, 0.9, 1.9, 1.9],
+      g: ["a", "a", "b", "b", "a", "a", "b", "b", "a", "a", "b", "b"],
+      id: ["1", "1", "1", "1", "2", "2", "2", "2", "3", "3", "3", "3"],
+    };
+    const within = (y: number[]) => aovSummary(aov("y ~ g + Error(id)", { ...d, y }) as AovStrataFit).strata.find((s) => s.stratum === "Error: Within")!;
+    const w = within(d.y);
+    expect(w.table[0]!.slice(3)).toEqual([Infinity, 0]);
+    expect(w.table[1]!.slice(0, 3)).toEqual([8, 0, 0]);
+    expect(within(d.y.map(() => 0.1)).table[0]).toEqual([1, 0, 0, NaN, NaN]);
   });
   it("keeps the table of other data", () => {
     const t = aovSummary(lm("y ~ g", { y: [0.1, 0.1, 0.3, 0.3, 0.7], g: ["a", "a", "b", "b", "b"] })).table;

@@ -23,6 +23,7 @@ import { termsOf, type FormulaNode, type ParsedFormula } from "./formula.js";
 import type { LmFormulaOptions } from "./lm.js";
 import type { DataFrame } from "./modelFrame.js";
 import { design } from "./modelMatrix.js";
+import { rssWithinRounding } from "./anovaSequential.js";
 import { scaledTables } from "./scaledTables.js";
 
 /**
@@ -71,6 +72,7 @@ function stratumTable(
   labels: readonly string[],
   columnSS: readonly number[],
   k: number,
+  wy: readonly (readonly [number, number])[],
 ): [AovStratum, AovStratum] {
   // zy is the response scaled by 2^-k: F and p come from it, the sums of squares are scaled back by 2^2k (the second
   // table keeps them as fitted, for the effect sizes: see scaledTables.ts)
@@ -95,8 +97,16 @@ function stratumTable(
     row.ss = ddAdd(row.ss, ddMul(qty[k]!, qty[k]!));
   });
   const rdf = dim - rank;
-  const rss = ddSumSquares(qty, rank)[0];
-  const rows = terms.filter((r) => r.term !== 0);
+  let rss = ddSumSquares(qty, rank)[0];
+  let rows = terms.filter((r) => r.term !== 0);
+  // A residual sum of squares at the level of rounding (below 1e-24 times the sum of squares of the response wy, as in
+  // anova and Anova: rssWithinRounding) is the residue of an exact fit in the stratum: it is taken as 0 (F = Inf),
+  // with the sums of squares of the terms at that level (0 / 0: F = NaN). R keeps the residue (F = 2.9e33). Other
+  // strata keep their bits
+  if (rdf > 0 && rssWithinRounding(wy, rss)) {
+    rss = 0;
+    rows = rows.map((r) => (rssWithinRounding(wy, r.ss[0]) ? { ...r, ss: [0, 0] as DD } : r));
+  }
   const rowNames = rows.map((r) => labels[r.term - 1]!);
   const build = (back: (v: number) => number): AovStratum => {
     if (rdf > 0) {
@@ -173,6 +183,8 @@ export function aovStrataFit(
     toDD(scaledY[0]!),
     tcols,
   );
+  // the scaled response with weights 1, for the check of a residual sum of squares at the level of rounding
+  const wy = scaledY[0]!.map((v) => [1, v] as const);
   // the squared length of each treatment column (the scale of its threshold in stratumTable)
   const columnSS = tcols.map((c) => ddSumSquares(c)[0]);
   // the strata: positions of Q's columns by term of the error model, then the rest
@@ -194,6 +206,7 @@ export function aovStrataFit(
       dt.terms.termLabels,
       columnSS,
       yScale,
+      wy,
     ),
   );
   const strata = both.map((b) => b[0]);
