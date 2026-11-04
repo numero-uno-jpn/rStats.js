@@ -32,7 +32,13 @@ const names = Object.keys(scope);
  * Exports added since the last release. The public demo loads the released build from jsDelivr, so their examples
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
-const NOT_IN_DEMO_YET: string[] = ["setWarningHandler"];
+const NOT_IN_DEMO_YET: string[] = [];
+
+/**
+ * Exports that have no demo example: they return no value to compare with R's (an example evaluates to numbers).
+ * setWarningHandler only sets where R's warnings go; the results' `warnings` are shown by the tests' examples
+ */
+const NO_VALUE = ["setWarningHandler"];
 const fns = names.map((n) => scope[n]);
 
 /** Evaluates an example's js with every export in scope and flattens the result to numbers */
@@ -64,9 +70,10 @@ describe("demo examples", () => {
       .flatMap((m) => m[1]!.split(","))
       .map((s) => s.trim())
       .filter((s) => s && !s.startsWith("type "));
-    expect(exported.sort()).toEqual([...names].sort());
+    // (an export of several areas, such as setWarningHandler, counts once)
+    expect([...new Set(exported)].sort()).toEqual([...names].sort());
     const used = new Set(examples.flatMap((e) => e.js.match(/[A-Za-z_$][\w$]*/g) ?? []));
-    expect(exported.filter((n) => !used.has(n) && !NOT_IN_DEMO_YET.includes(n))).toEqual([]);
+    expect(exported.filter((n) => !used.has(n) && !NOT_IN_DEMO_YET.includes(n) && !NO_VALUE.includes(n))).toEqual([]);
   });
 
   for (const e of examples) {

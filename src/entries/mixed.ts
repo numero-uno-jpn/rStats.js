@@ -22,3 +22,5 @@ export {
 // Types used by the functions above, also exported from the root and the other subpaths
 export type { DataFrame } from "../models/modelFrame.js";
 export type { ContrastName } from "../models/modelMatrix.js";
+// The handler of R's warnings that the tests, models and fits return (also exported from the root and /distributions)
+export { setWarningHandler, type WarningHandler } from "../internal/warnings.js";

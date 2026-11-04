@@ -217,3 +217,5 @@ export {
 // Types used by the functions above, also exported from the root and the other subpaths
 export type { MatrixInput } from "../linalg/matrix.js";
 export type { QR } from "../linalg/qr.js";
+// The handler of R's warnings that the tests, models and fits return (also exported from the root and /distributions)
+export { setWarningHandler, type WarningHandler } from "../internal/warnings.js";

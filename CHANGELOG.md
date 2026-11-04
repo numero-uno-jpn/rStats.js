@@ -81,11 +81,13 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - `setWarningHandler(handler)` passes R's warnings to a function of the user's choice, as R prints them, such as
   ``setWarningHandler((message, source) => console.warn(`${source}: ${message}`))``: each call of a test, model or fit
   (and `pivotLonger` without `onWarning`) passes its warnings once it has its result, each distinct warning once, with
-  the name of the function called; a function that calls another, such as `etaSquared` of a fit, passes them once
-  under its own name. An error thrown by the handler propagates to the caller (as R's `options(warn = 2)`).
-  `setWarningHandler(null)`, the default, passes nothing; the previous handler is returned. The handler is kept on
-  `globalThis`, one setting for every copy of the library on a page. Exported from the root and
-  `rStats.js/distributions`, with the type `WarningHandler`.
+  the name of the function called; a function that calls another, such as `pairwiseWilcoxTest`, passes them once under
+  its own name. A fit's warnings are passed once, when it is fitted (`lm`, `glm`, `aov`, `lmer`, ...); a function
+  given a fit or a table (`anova`, `aovSummary`, `Anova`, `glmSummary`, `etaSquared`, `lmerSummary`, ...) keeps them
+  in its result's `warnings` but passes only those it adds. An error thrown by the handler propagates to the caller
+  (as R's `options(warn = 2)`). `setWarningHandler(null)`, the default, passes nothing; the previous handler is
+  returned. The handler is kept on `globalThis`, one setting for every copy of the library on a page. Exported from
+  the root, `rStats.js/distributions`, `rStats.js/tests` and `rStats.js/mixed`, with the type `WarningHandler`.
 
 ### Changed
 

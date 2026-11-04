@@ -258,6 +258,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `var.test()` | `varTest` | F test that the variances of two normal samples have a given ratio. |
 | `wilcox.test()` | `wilcoxTest` | Wilcoxon signed rank and rank sum tests. |
 | `BSDA::z.test()` | `zTest` | z test for the mean of one sample, or the difference of the means of two, with known standard deviations. |
+| (not in R) | `setWarningHandler` | Sets the function that receives R's warnings, and returns the one it replaces. |
 
 ## Linear algebra (`rStats.js/linalg`)
 
@@ -385,3 +386,4 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `lmerTest::contest()` | `lmerContest` | Tests of contrasts L β = rhs of the fixed effects of a linear mixed model fitted by `lmer`, with Satterthwaite's degrees of freedom. |
 | `lme4::lmer()` | `lmer` | Fit a linear mixed model by REML or maximum likelihood. |
 | `lmerTest::summary()` | `lmerSummary` | The coefficient table of a linear mixed model fitted by `lmer`, with Satterthwaite's degrees of freedom and the p-values of the t-tests: the `summary()` of a fit by lmerTest. |
+| (not in R) | `setWarningHandler` | Sets the function that receives R's warnings, and returns the one it replaces. |
