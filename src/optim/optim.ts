@@ -588,7 +588,7 @@ function annealing(s: Scaled, start: readonly number[], maxit: number, perTemper
  * @category Numerical methods
  */
 export function optimHess(par: readonly number[], fn: (par: number[]) => number, gr?: (par: number[]) => number[], control: OptimControl = {}): number[][] {
-  checkOptions(control, OPTIM_HESS_KEYS, "optimHess"); // generated: option-keys.mjs
+  checkOptions(control, OPTIM_HESS_KEYS, "optimHess", "control"); // generated: option-keys.mjs
   const n = par.length;
   const s = new Scaled(fn, gr, recycle(control.parscale, n, 1), control.fnscale ?? 1, recycle(control.ndeps, n, 1e-3));
   return hessianOf(s, par);

@@ -66,7 +66,8 @@ describe("the generated checks of unknown keys", () => {
       if (OWN_CHECK.has(fn.name)) continue;
       const text = sources.get(fn.file) ?? readFileSync(join(root, fn.file), "utf8");
       sources.set(fn.file, text);
-      if (!text.includes(`, "${fn.name}"); // generated: option-keys.mjs`)) missing.push(fn.name);
+      // (optimHess's line ends with the name its position has in the message: `, "optimHess", "control");`)
+      if (!new RegExp(`, "${fn.name}"(?:, "[\\w.]+")?\\); // generated: option-keys\\.mjs`).test(text)) missing.push(fn.name);
     }
     expect(missing).toEqual([]);
   });
@@ -120,7 +121,15 @@ describe("unknown keys of an options object", () => {
     expect(() => optim([0, 0], f, { control: { maxitt: 10 } } as never)).toThrow(unknown("optim", "control.maxitt"));
     expect(() => optim([0, 0], f, { contrl: { maxit: 10 } } as never)).toThrow(unknown("optim", "contrl"));
     expect(optim([0, 0], f, { control: { maxit: 1000 } }).convergence).toBe(0);
-    expect(() => optimHess([1, -2], f, undefined, { ndep: [1e-3, 1e-3] } as never)).toThrow(unknown("optimHess", "ndep"));
+    // optimHess's control is a position, named in the message as optim's control
+    expect(() => optimHess([1, -2], f, undefined, { ndep: [1e-3, 1e-3] } as never)).toThrow(unknown("optimHess", "control.ndep"));
+    expect(() => optimHess([1, -2], f, undefined, { maxitt: 10 } as never)).toThrow(
+      new RangeError(
+        "unknown option 'control.maxitt' for optimHess (known: maxit, reltol, abstol, parscale, fnscale, ndeps, alpha, beta, " +
+          "gamma, type, lmm, factr, pgtol, temp, tmax)",
+      ),
+    );
+    expect(optimHess([1, -2], f, undefined, { ndeps: [1e-3, 1e-3] })[0]![0]).toBeCloseTo(2, 6);
 
     const gx = [[1], [2], [3], [4], [5], [6]];
     const gy = [0, 0, 1, 0, 1, 1];

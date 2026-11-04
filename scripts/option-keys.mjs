@@ -10,8 +10,9 @@
 // imports of each file and a checkOptions line at the start of each function, both marked, and the marked code of an
 // earlier run taken out first. Run it after adding an exported function or changing an options type; --dry-run only
 // counts what would change. Functions with a check of their own (OWN_CHECK), a hand-written first statement that stays
-// before the checks (BEFORE_GENERATED), positions where the options and a data frame can both come (CONDITIONS) and
-// distSummary's keys per distribution (from the d functions) are set below.
+// before the checks (BEFORE_GENERATED), positions where the options and a data frame can both come (CONDITIONS), names
+// of positions in the message (POSITION_PATHS) and distSummary's keys per distribution (from the d functions) are set
+// below.
 //
 // The table has one entry per exported function that takes an options object somewhere: for each signature (each
 // overload), the parameters whose type is an object with fixed keys, with the keys (the members of a union, an
@@ -352,6 +353,14 @@ const CONDITIONS = {
   onewayTest: { 1: formulaOrOptions },
 };
 
+/**
+ * Options positions shown in the message under a name, as R's argument it stands for: optimHess(par, fn, gr, control)
+ * gives "unknown option 'control.maxitt' for optimHess", as optim's control does
+ */
+const POSITION_PATHS = {
+  optimHess: { 3: "control" },
+};
+
 /** Reasons of a parameter's kind that a plain object test cannot tell from the options */
 const NEEDS_CONDITION = new Set(["indexSignature", "result", "builtin", "anyOrUnknown", "typeParameter"]);
 
@@ -505,11 +514,13 @@ function planFunction(fn, body, taken) {
     }
     const name = constantFor(distinct > 1 ? `${base}_KEYS_${p}` : `${base}_KEYS`, pos.keys);
     const guard = condition ? `if (${condition}) ` : "";
-    lines.push(`${guard}checkOptions(${expr}, ${name}, ${JSON.stringify(fn.name)});`);
+    const named = POSITION_PATHS[fn.name]?.[p];
+    lines.push(`${guard}checkOptions(${expr}, ${name}, ${JSON.stringify(fn.name)}${named ? `, ${JSON.stringify(named)}` : ""});`);
     for (const [path, keys] of Object.entries(pos.nested)) {
       const nestedName = constantFor(`${base}_${constName(path.replace(/\./g, "_"))}_KEYS`, keys);
       imports.add("nestedOptions");
-      lines.push(`${guard}checkOptions(nestedOptions(${expr}, ${JSON.stringify(path)}), ${nestedName}, ${JSON.stringify(fn.name)}, ${JSON.stringify(path)});`);
+      const shown = named ? `${named}.${path}` : path;
+      lines.push(`${guard}checkOptions(nestedOptions(${expr}, ${JSON.stringify(path)}), ${nestedName}, ${JSON.stringify(fn.name)}, ${JSON.stringify(shown)});`);
     }
   }
   return { constants, lines, imports, problems };
