@@ -518,3 +518,23 @@ Choleskyのpivot/rank/tolerance、chol2inv、expm全6方式のスケーリング
 - Cholesky/expm test harnessを静的確認。
 - Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #999 — Matrix products / dot products / triangular solves / balancing
+
+- 対象: `src/linalg/basic.ts`, `src/linalg/dot.ts`, `src/linalg/ops.ts`, `src/linalg/balance.ts`
+- 監査時 HEAD: `9622e1a59bcb054f8b0fa89055f322f1bef5d95f`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_999_matrix_ops_dot_balance.md](review-logs/review_audit_999_matrix_ops_dot_balance.md)
+
+### 要約
+
+crossprod/tcrossprod、backsolve/forwardsolve、BigIntによるdot積の厳密再計算、matrix arithmeticとshape/recycling、balanceのpermutation・power-of-two scaling・back transformationを確認。通常範囲の桁落ちをむやみに再計算しないdot仕様、ゼロ内積次元の出力shape、ベクトルの行/列変換を確認し、新規Issueは確定しなかった。
+
+### 検証範囲・制約
+
+- matrix-ops test harnessを静的確認。
+- Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
