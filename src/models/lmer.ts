@@ -636,6 +636,10 @@ const LMER_UNSUPPORTED = ["weights", "offset", "subset", "naAction", "na.action"
  * differ in the 5th to 9th significant digit). Elements on the boundary are exactly 0, and the fit is then singular.
  * The computation is sparse (a sparse Cholesky factorisation, as in lme4), so many groups are handled quickly.
  *
+ * The functions that take the fit ({@link lmerSummary}, {@link lmerAnova}, {@link lmerContest} and the others) need
+ * the object `lmer` returned itself: a copy of it (`structuredClone`, `{ ...fit }`, JSON or `postMessage`) lacks the
+ * internal values they use and is a TypeError. The fields of a copy keep their values.
+ *
  * @param formula A formula such as `"Reaction ~ Days + (Days | Subject)"`.
  * @param data The data frame: an object of columns.
  * @param options `REML`, and `contrasts` and `levels` as in {@link lm} (see {@link LmerOptions} for the keys accepted).

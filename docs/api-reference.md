@@ -33,13 +33,22 @@ import { qbeta } from "@numero-uno-jpn/rstats/distributions";       // or one ar
 import { lmer } from "@numero-uno-jpn/rstats/mixed";                // mixed models: only from this area
 ```
 
-Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats/dist/rstats.js` is one ES module with every
-function except the mixed models, which are in `dist/mixed.js`.
+Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.16.0/dist/rstats.js` is one ES module with
+every function except the mixed models, which are in `dist/mixed.js`. Keep a version in the URL (an exact one, or a
+major version such as `@1` from 1.0.0 on): a URL without one follows every new release, breaking changes included.
+Use either `dist/rstats.js` or the per-area bundles (`dist/tests.js`, `dist/mixed.js`, ...) on one page: mixing them
+loads the common code twice, with two random number states.
 
 ## Conventions
 
 - **Names** are R's, with a dot becoming camelCase: `t.test` → `tTest`, `p.adjust` → `pAdjust`; functions of other
-  packages keep their names (`car::Anova` → `Anova`, `tidyr::pivot_longer` → `pivotLonger`).
+  packages keep their names (`car::Anova` → `Anova`, `tidyr::pivot_longer` → `pivotLonger`). Where R's name is a
+  reserved word of JavaScript or too general to export, the name says what the function computes: `variance` (`var`),
+  `cronbachAlpha` (psych's `alpha`), `modes` (DescTools' `Mode`), `geometricMean` (DescTools' `Gmean`), `cv`
+  (DescTools' `CoefVar`), `pbvnorm` (mvtnorm's `pmvnorm` in two dimensions), `glhtDunnett` (multcomp's `glht` with
+  Dunnett's contrasts). The methods of the models other than `lm` (R's `summary`, `predict`, `anova`, ... of a fit)
+  carry the model's name in front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`; the methods
+  without a prefix (`predict`, `confint`, `anova`) are those of `lm`.
 - **Arguments:** the required ones are positional; the optional ones go in one options object with R's names in
   camelCase: `pt(q, df, lower.tail = FALSE)` → `pt(q, df, { lowerTail: false })`. The optional arguments that R's
   usage passes by position are taken both ways: `glmResiduals`' type, `cohenES`' size, `outer`'s fun, `tabulate`'s
@@ -47,7 +56,9 @@ function except the mixed models, which are in `dist/mixed.js`.
   (`glmResiduals(fit, "pearson")` or `glmResiduals(fit, { type: "pearson" })`; giving one both ways is a RangeError).
   The exception is `optimHess(par, fn, gr, control)`, which takes `gr` and `control` by position only, as R: `control`
   is itself a plain object, which an options object after `gr` could not be told from.
-- **Results** are plain objects. Tests return R's `htest` fields in camelCase (`statistic`, `parameter`, `pValue`,
+- **Results** are plain objects. The functions that take a fit of `lmer` (`lmerSummary`, `lmerAnova`,
+  `lmerContest`, ...) need the object `lmer` returned itself, not a copy of it (`structuredClone`, `{ ...fit }`, JSON
+  or `postMessage`): it carries internal values that a copy loses, and a copy is a TypeError. Tests return R's `htest` fields in camelCase (`statistic`, `parameter`, `pValue`,
   `confInt`, `estimate`, `method`, ...), with R's names of the values in separate fields (`statisticName`, ...).
 - **Data:** a sample is an array of numbers (or a `Float64Array`), a matrix an array of rows, a data frame an object
   of equal-length columns. A missing value is `NaN` in a number array and `null` in a data frame column.

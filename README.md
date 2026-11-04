@@ -291,6 +291,11 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
 transfers 37 KB (`numerics`) to 200 KB (`tests`) gzipped.
 
+Use either `dist/rstats.js` or the per-area bundles on one page, not both: they are separate sets of modules, so a
+page that mixes them loads the common code twice and has two random number states (`setSeed` from one does not seed
+the generators of the other). The same holds for `dist/rstats.js` with `dist/mixed.js`, which brings its own copy
+of the common code.
+
 Other npm-based CDNs work as well, for example `https://esm.sh/@numero-uno-jpn/rstats`. Release tags also contain
 the build output (`dist/`), which is not on the main branch, but jsDelivr's GitHub route
 (`cdn.jsdelivr.net/gh/...`) does not serve tags from 0.12.0 on: with the test fixtures, the repository exceeds its
@@ -309,7 +314,24 @@ with a static server (for example `npx serve .`) and open `/demo/?src=local`.
 ## Versioning
 
 While the version is 0.x, a minor release may contain breaking changes; they are listed in the
-changelog. From 1.0.0 the project follows Semantic Versioning.
+changelog.
+
+From 1.0.0, rStats.js follows Semantic Versioning. The public API is what the package root and its subpaths export,
+with the documented names, arguments, options, result fields and their types.
+
+- **Major** (breaking): removing or renaming an export, an option or a result field; changing a default or the shape
+  of a result; throwing for an input that used to return a value, or changing the class of an error
+  (`TypeError`, `RangeError`, `SyntaxError`, `Error`); a tighter computation limit; dropping a Node.js version that
+  is still supported.
+- **Minor**: new functions, options, overloads or result fields; accepting an input that used to throw; a looser
+  computation limit; a value that changes because R (or the package followed) is wrong there and the new value is the
+  correct one, recorded in [docs/differences-from-r.md](docs/differences-from-r.md).
+- **Patch**: bug fixes, including values that move toward R or toward the exact result (changes in the last bits
+  are not breaking), and changes to documentation.
+- Not part of the API: error messages, the order of keys, the contents of `warnings` and `messages`, non-enumerable
+  or undocumented fields, and files under `dist/` other than the entry points and the `dist/*.js` bundles. Where a
+  new version of R changes its own values or random streams, rStats.js follows it in a minor version.
+- Code that switches on result fields should allow fields to be added.
 
 ## Contributing
 
