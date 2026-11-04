@@ -218,15 +218,10 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
     if (!Number.isFinite(v)) throw new RangeError(`the response '${options.dv}' must be finite`);
     return v;
   });
-  // The response scaled by 2^-k (exact), so that its cross-products stay in range; sums of squares are scaled back by
-  // 2^2k for output, and F, the epsilons and Mauchly's W do not depend on the units
-  const { groups: scaledDv, k: dvExp } = scaleToUnit([dvUsed]);
-  const dv = scaledDv[0]!;
-  const unscale = (v: number): number => ldexp(v, 2 * dvExp);
   const bcols = between.map((_, k) => numberLevels(used(keyCols[1 + k]!)));
   const wcols = within.map((_, k) => numberLevels(used(keyCols[1 + between.length + k]!)));
   const nrow = ids.length;
-  for (const c of [dv, ...bcols, ...wcols]) if (c.length !== nrow) throw new RangeError("the columns must have the same length");
+  for (const c of [dvUsed, ...bcols, ...wcols]) if (c.length !== nrow) throw new RangeError("the columns must have the same length");
   const blevels = bcols.map((c) => sortedLevels(c));
   const blabels = bcols.map((c) => c.map(label));
   const wlabels = wcols.map((c) => c.map(label));
@@ -259,6 +254,23 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
   const cellIndex = new Map(cells.map((c, k) => [JSON.stringify(c), k]));
   const present = new Set(ids.map((_, i) => cellKey(i)));
   if (cells.some((c) => !present.has(JSON.stringify(c)))) throw new Error("Empty cells in within-subjects design (i.e., bad data structure).");
+  // the ids removed in step 6: a cell without rows, or a missing response in one
+  const seen = new Map<string, Set<string>>();
+  const withNaN = new Set<string>();
+  ids.forEach((id, i) => {
+    let s = seen.get(id);
+    if (s === undefined) seen.set(id, (s = new Set()));
+    s.add(cellKey(i));
+    if (Number.isNaN(dvUsed[i])) withNaN.add(id);
+  });
+  const missing = idOrder.filter((id) => withNaN.has(id) || seen.get(id)!.size < cells.length);
+  // The response scaled by 2^-k (exact), so that its cross-products stay in range; sums of squares are scaled back by
+  // 2^2k for output, and F, the epsilons and Mauchly's W do not depend on the units. k is set by the ids kept: a
+  // removed id with an extreme response scaled the others into the subnormals (#508)
+  const removed = new Set(missing);
+  const dvExp = scaleToUnit([dvUsed.filter((_, i) => !removed.has(ids[i]!))]).k;
+  const dv = dvExp === 0 ? dvUsed : dvUsed.map((v) => ldexp(v, -dvExp));
+  const unscale = (v: number): number => ldexp(v, 2 * dvExp);
   // 5. the wide data (means of the rows of an id and a cell)
   const nc = cells.length;
   const sums = new Map<string, { s: DD[]; n: number[] }>();
@@ -274,8 +286,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
       "More than one observation per design cell, aggregating data using `fun_aggregate = mean`.\nTo turn off this warning, pass `fun_aggregate = mean` explicitly.",
     );
   }
-  // 6. ids that miss a cell (or have a missing response in one) are removed
-  const missing = idOrder.filter((id) => sums.get(id)!.n.some((v, k) => v === 0 || Number.isNaN(sums.get(id)!.s[k]![0])));
+  // 6. ids that miss a cell (or have a missing response in one) are removed (found above)
   if (missing.length > 0) {
     // the ids sorted as the levels of a factor; afex goes on with a printout of the data, which is not reproduced
     const sorted = [...missing].sort(compareCodePoints);
