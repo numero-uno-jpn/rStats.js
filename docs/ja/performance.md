@@ -110,6 +110,35 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 (`special`) から 159 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
 ある検定には、formula とモデルフレームのコードが入ります。
 
+## 上限
+
+1 本の配列に 2^24 個を超える値を確保する呼び出しや、開発機で 10 秒ほどを超えて走る呼び出しは、確保や計算の前に
+RangeError を投げます。正確な検定では、メッセージで回避の方法 (`use exact: false`) を示します。R はその多くを、時間が
+かかっても計算するか、メモリが足りなくなります。値と乱数の列を変えずに確保をなくせるものは、なくしました (m + n が 2^24
+を超える `rwilcox`、`chisqTest` の適合度のシミュレーション)。
+
+| 関数 | RangeError になる条件 |
+|---|---|
+| `fisherTest` (2 × 2)、`mantelhaenTest(exact: true)` | 度数の台が 2^24 個を超える。`mantelhaenTest` は合計が 2^53 以上のときも |
+| `ksTest(exact: true)` (1 標本) | 行列のべきに 2^33 回を超える積和が要る |
+| `ansariTest(exact: true)`、`jonckheereTest(exact: true)` | 分布に 2^24 個を超える値か 2^32 を超える手順が要る |
+| `corTest(method: "kendall", exact: true)` | n が 1290 を超える |
+| `pAdjust(method: "hommel")` | n が 65536 を超える |
+| `r2dtable`、`chisqTest` (分割表) と `fisherTest` のシミュレーションの p 値 | 総数が 2^24 を超える |
+| `chisqTest` の適合度のシミュレーション | `B` と総数の積が 2^27 を超える |
+| `dwilcox`、`pwilcox`、`qwilcox` (と 2 標本の正確な `wilcoxTest`) | 表の作成が 2^29 手順を超える |
+| `phyper` / `qhyper` | 和が 2^26 項を超える / 標準偏差が 2^21 を超える |
+| `besselJ`、`besselY`、`besselI`、`besselK` | 級数や漸化式が 2^25 から 2^31 の手順を超える、または double で分解できない位相 |
+| `rwilcox` / `rsignrank` | n が 2^24 を超える / n が 2^27 以上 |
+| 重み付きの `sample`、`sampleInt` | size が 2^31 以上 (R と同じ) |
+| `tapply`、`split`、`aggregate` | 分類のセルが 2^31 個以上 (R の上限と同じ) |
+| `expm` (Taylor と Padé の方法) | order × (n^3 + 64) が 2^31 を超える |
+| `grad`、`jacobian`、`hessian` (Richardson) | `r` が 512 を超える |
+
+時間と R の動作を含めた詳細は [R との違い](differences-from-r.md) (「意図的な違い」の仮説検定、乱数、分布) にあります。
+呼び出し側が求める出力の長さ (`seq`、`approx`、`spline`、`sampleInt`、`r*` 関数) や、`optim` の `maxit` のような反復の
+回数には上限がありません。時間はそれに比例して増えます。
+
 ## 測り方
 
 Apple M1 (Mac mini)、Node.js 24、`tsc` によるビルド、2026-10-26 (版 0.11.0)。分布関数と `tTest` は `npm run bench`

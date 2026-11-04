@@ -113,6 +113,37 @@ through `dist/chunks/`, so one area loaded from them transfers more: 30 KB (`spe
 chunks included. `pt` is large because the non-central t and the double-double building blocks come with it; the
 tests with a formula form bring the formula and model-frame code.
 
+## Limits
+
+A call that would allocate more than 2^24 values in one array, or run for more than about 10 seconds on the
+development machine, throws a RangeError before it allocates or computes. The exact tests name the way out in the
+message (`use exact: false`). R computes most of these however long they take, or runs out of memory. Where an
+allocation could be avoided without changing the values or the random stream, it was (`rwilcox` with m + n above
+2^24, the goodness-of-fit simulation of `chisqTest`).
+
+| Function | Throws when |
+|---|---|
+| `fisherTest` (2 × 2), `mantelhaenTest(exact: true)` | the support of the count has more than 2^24 values; `mantelhaenTest` also when the total reaches 2^53 |
+| `ksTest(exact: true)` (one sample) | the matrix power needs more than 2^33 multiply-adds |
+| `ansariTest(exact: true)`, `jonckheereTest(exact: true)` | the distribution needs more than 2^24 values or 2^32 steps |
+| `corTest(method: "kendall", exact: true)` | n is above 1290 |
+| `pAdjust(method: "hommel")` | n is above 65536 |
+| `r2dtable`; simulated p-values of `chisqTest` (tables) and `fisherTest` | the grand total is above 2^24 |
+| `chisqTest` goodness-of-fit simulation | `B` times the total count is above 2^27 |
+| `dwilcox`, `pwilcox`, `qwilcox` (and the exact two-sample `wilcoxTest`) | the table would take more than 2^29 steps |
+| `phyper` / `qhyper` | the sum would take more than 2^26 terms / the standard deviation is above 2^21 |
+| `besselJ`, `besselY`, `besselI`, `besselK` | a series or recurrence would take more than 2^25 to 2^31 steps, or a phase is beyond what doubles resolve |
+| `rwilcox` / `rsignrank` | n is above 2^24 / n is 2^27 or more |
+| weighted `sample`, `sampleInt` | the size is 2^31 or more (as R) |
+| `tapply`, `split`, `aggregate` | the cross-classification has 2^31 cells or more (R's limit too) |
+| `expm` (Taylor and Padé methods) | order × (n^3 + 64) is above 2^31 |
+| `grad`, `jacobian`, `hessian` (Richardson) | `r` is above 512 |
+
+The details, with timings and R's behaviour, are in [differences from R](differences-from-r.md) (Hypothesis tests,
+Random numbers and Distributions under "Deliberate differences"). There is no bound on the length of an output the
+caller asks for (`seq`, `approx`, `spline`, `sampleInt`, the `r*` functions) or on iteration counts such as `optim`'s
+`maxit`: their time grows in proportion.
+
 ## How this was measured
 
 Apple M1 (Mac mini), Node.js 24, the `tsc` build, 2026-10-26 (version 0.11.0). Distributions and `tTest`: `npm run

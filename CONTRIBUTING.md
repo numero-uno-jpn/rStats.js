@@ -34,8 +34,8 @@ npm run oracle -- <oracle name>     # e.g. npm run oracle -- gamma
 `scripts/oracle.sh` runs `Rscript` in a throw-away container (`docker run --rm --network none`).
 The image is `rstats-oracle` by default (override with `RSTATS_ORACLE_IMAGE`), built from
 `oracle/Dockerfile`: R 4.5.2 with the packages the oracles load (`jsonlite`, `Rmpfr`, `gmp`, `MASS`,
-`Matrix`, and for functions that R lacks `extraDistr`, `e1071`, `DescTools`, `pracma`, `deSolve`,
-`numDeriv`, `BSDA`, `lawstat`, `car`, `afex`), pinned to a dated package snapshot so that a rebuild gives the same versions.
+`Matrix`, and for functions that R lacks `extraDistr`, `lme4`, `car`, `afex` and the others listed in
+`oracle/Dockerfile`), pinned to a dated package snapshot so that a rebuild gives the same versions.
 Building needs network access; running the oracles does not.
 
 ```sh
@@ -81,6 +81,38 @@ search, build and run `node scripts/fuzz-distributions.mjs <seed> <iterations> [
 [output.json]` (options in its header): it runs each family in a worker thread, reports calls that do
 not return within 5 s, and writes the violations as JSON (`--known` leaves out the listed ones).
 
+## Design rules
+
+These rules settle what a function returns where R and the mathematics disagree or where an input has no answer.
+Follow them in new code and in fixes.
+
+1. **Input without a defined result is an error.** NaN or out-of-range arguments, a non-finite tolerance or step, and
+   degrees of freedom or a standard error that leave a test undefined throw an `Error` or `RangeError`, also where R
+   returns NaN or ±Inf (the test replaces R's expected value with the error and gives the reason). The distribution
+   functions (d/p/q/r) are the exception: they return NaN for invalid parameters, as R. A NaN in new data for a
+   prediction gives NaN in that row.
+2. **R's bits where R is right, the right value only where R is wrong.** A correct value comes before agreement with
+   R, but a fix is limited to the range where R (or the package) is wrong. Every value that differs from R is
+   recorded with its reason in [docs/differences-from-r.md](docs/differences-from-r.md) and its Japanese translation.
+3. **Fallbacks leave the ordinary range alone.** A different path is taken only where the original result is not
+   finite, out of range or has lost its digits, so results in the ordinary range keep their bits.
+4. **Limits on memory and time.** One array holds at most 2^24 values, and a call should finish within about 10
+   seconds. Beyond that, throw a RangeError before allocating (an exact test suggests `exact: false`) and list the
+   limit in the docs ([performance](docs/performance.md#limits)). Where an allocation can be avoided without changing
+   the values or the random stream, avoid it.
+5. **Random numbers follow R's stream.** Draw the same uniforms, as many as R (or extraDistr) draws, also where the
+   value is changed; where a parameter is infinite, `r` returns the limit that `q` gives.
+6. **Infinite scales are limits.** Where `d` and `p` return the limit for an infinite scale, `q` and `r` do too. A
+   scale of 0 behaves as in R.
+7. **Integers beyond 2^53.** An argument that must be an integer but is beyond 2^53, where doubles are no longer
+   exact integers, gives NaN (the documented exceptions are in differences-from-r).
+8. **Empty input as R.** A vector of length 0 gives what R gives.
+9. **Integer conversion as R.** An argument that must be an integer is truncated as R's `as.integer` does before it is
+   checked; the discrete distribution functions count the values at most q.
+10. **Other conventions.** At confidence levels so close to 1 that α/2 < 1e-8, the quantile is taken from the upper
+    tail. Nothing is printed: tests do not emit R's warnings, and fits return theirs in the result's `warnings`.
+    Computations scale their input by a power of 2 first where the values could overflow or underflow.
+
 ## Licensing rules
 
 rStats.js is MIT licensed. To keep it that way:
@@ -118,7 +150,8 @@ rStats.js is MIT licensed. To keep it that way:
   (the Japanese descriptions are in `docs/ja/r-functions.json`, one per function; the test checks both pages).
   `npx typedoc@0.28.20` must report no warnings.
 - Errors: `TypeError` for wrong types or shapes, `RangeError` for values out of range, `Error`
-  for numerical failures. Messages are in English.
+  for numerical failures. Messages are in English. When to throw instead of returning NaN, and the limits on memory
+  and time, are in [Design rules](#design-rules).
 
 ## Releasing
 
