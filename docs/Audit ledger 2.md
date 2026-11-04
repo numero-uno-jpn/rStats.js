@@ -815,3 +815,23 @@ dnt/pnt/qntのdf・ncp境界、±Infinity、最小subnormal df、巨大df極限�
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、R runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1013 — Noncentral beta and noncentral F distributions
+
+- 対象: `src/distributions/nbeta.ts` の `dnbeta1/pnbeta1/qnbeta1` と `dnf1/pnf1/qnf1`、Poisson mixture / extreme-parameter integral / noncentral chi-square / gamma helpers
+- 監査時 HEAD: `49434af8a1fcf418c097365fa6b3115f3e18f135`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1013_noncentral_beta_f.md](review-logs/review_audit_1013_noncentral_beta_f.md)
+
+### 要約
+
+noncentral beta/Fの端点、j=0 mixture成分、subnormal shape/ncp、DD変換、巨大df2のnoncentral-chi-square極限、Chernoff far-tail、quantile double-grid探索を静的に確認。既存 #63/#96/#114/#135/#158/#493とrandom APIの#420/#421を照合し、新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Rのpnbeta.c端点処理を参照。Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
