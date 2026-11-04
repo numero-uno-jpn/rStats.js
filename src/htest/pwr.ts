@@ -11,6 +11,7 @@ import { pf, qf } from "../distributions/f.js";
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { qt } from "../distributions/t.js";
 import { ldexp, squareOver } from "../internal/summary.js";
+import { optionalArgs } from "../internal/optionalArgs.js";
 import { checkExactlyOne, fPowerHugeDf, hugeDf, isUnknown, matchChoice, ptNcp, solveFor } from "./power.js";
 import type { Alternative } from "./types.js";
 
@@ -54,7 +55,18 @@ const COHEN: Record<CohenTest, [number, number, number]> = {
 };
 
 /**
- * Cohen's conventional effect sizes. Equivalent to `pwr::cohen.ES(test, size)` in R.
+ * Options for {@link cohenES}.
+ *
+ * @category Effect sizes and power
+ */
+export interface CohenESOptions {
+  /** The conventional size: `"small"` (default), `"medium"` or `"large"`. */
+  size?: "small" | "medium" | "large" | (string & {});
+}
+
+/**
+ * Cohen's conventional effect sizes. Equivalent to `pwr::cohen.ES(test, size)` in R. The size is the second argument
+ * or the option `size` (giving both is a RangeError).
  *
  * @example
  * ```ts
@@ -63,7 +75,18 @@ const COHEN: Record<CohenTest, [number, number, number]> = {
  *
  * @category Effect sizes and power
  */
-export function cohenES(test: CohenTest | (string & {}) = "p", size: "small" | "medium" | "large" | (string & {}) = "small"): CohenESResult {
+export function cohenES(test?: CohenTest | (string & {}), size?: "small" | "medium" | "large" | (string & {})): CohenESResult;
+/**
+ * Cohen's conventional effect sizes, with the size in the options: `cohenES("anov", { size: "medium" })`.
+ *
+ * @example
+ * ```ts
+ * cohenES("anov", { size: "medium" }).effectSize; // 0.25
+ * ```
+ */
+export function cohenES(test: CohenTest | (string & {}) | undefined, options: CohenESOptions): CohenESResult;
+export function cohenES(test: CohenTest | (string & {}) = "p", ...args: unknown[]): CohenESResult {
+  const size = optionalArgs<CohenESOptions>(["size"], args).size ?? "small";
   const t = matchChoice(test, ["p", "t", "r", "anov", "chisq", "f2"] as const);
   const s = matchChoice(size, ["small", "medium", "large"] as const);
   return { test: t, size: s, effectSize: COHEN[t][["small", "medium", "large"].indexOf(s)]!, method: "Conventional effect size from Cohen (1982)" };

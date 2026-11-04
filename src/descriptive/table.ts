@@ -9,11 +9,23 @@ import { numberLevels } from "../internal/levels.js";
 import { seqLength } from "../internal/seq.js";
 import type { Sample } from "../htest/types.js";
 import { maxOf, minOf } from "../internal/extremes.js";
+import { optionalArgs } from "../internal/optionalArgs.js";
+
+/**
+ * Options for {@link tabulate}.
+ *
+ * @category Descriptive statistics
+ */
+export interface TabulateOptions {
+  /** Number of bins. Default max(1, bin); truncated towards 0, as R does. */
+  nbins?: number;
+}
 
 /**
  * Counts of the integers 1..nbins in `bin` (values truncated towards 0; others, NaN, infinite values and values
  * beyond the integer range of R are not counted).
- * Equivalent to R's `tabulate()`. `nbins` defaults to max(1, bin) and is truncated towards 0, as R does.
+ * Equivalent to R's `tabulate()`. `nbins` defaults to max(1, bin) and is truncated towards 0, as R does; it is the
+ * second argument or the option `nbins` (giving both is a RangeError).
  *
  * @example
  * ```ts
@@ -23,7 +35,18 @@ import { maxOf, minOf } from "../internal/extremes.js";
  *
  * @category Descriptive statistics
  */
-export function tabulate(bin: Sample, nbins?: number): number[] {
+export function tabulate(bin: Sample, nbins?: number): number[];
+/**
+ * Counts of the integers 1..nbins in `bin`, with the number of bins in the options: `tabulate(bin, { nbins: 3 })`.
+ *
+ * @example
+ * ```ts
+ * tabulate([1, 2, 2, 5], { nbins: 3 }); // [1, 2, 0]
+ * ```
+ */
+export function tabulate(bin: Sample, options: TabulateOptions): number[];
+export function tabulate(bin: Sample, ...args: unknown[]): number[] {
+  const { nbins } = optionalArgs<TabulateOptions>(["nbins"], args);
   // as R's as.integer: truncated, and NA (here NaN) when infinite or outside the integer range, so such a value is
   // not counted and does not set the default nbins (Infinity was an array of infinite length, 3e9 ran out of memory,
   // #225)

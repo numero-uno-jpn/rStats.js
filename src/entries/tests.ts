@@ -48,6 +48,7 @@ export {
   type GlmSummary,
   type GlmSummaryOptions,
   type GlmResidualType,
+  type GlmResidualsOptions,
   type GlmPredictOptions,
   type GlmFamilyName,
   type GlmFamilySpec,
@@ -97,6 +98,7 @@ export {
   cohenES,
   type EffectSize,
   type CohenTest,
+  type CohenESOptions,
   type CohenESResult,
   type PwrTTestOptions,
   type PwrTTestResult,
@@ -172,6 +174,7 @@ export { leveneTest, type LeveneTestOptions, type LeveneTestResult } from "../ht
 export {
   propTrendTest,
   jonckheereTest,
+  type PropTrendTestOptions,
   type PropTrendTestResult,
   type JonckheereAlternative,
   type JonckheereTestOptions,

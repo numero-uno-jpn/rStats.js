@@ -51,6 +51,12 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   and `pValue` for `coxph`'s `se`, `z` and `p`; `stdError`, `tValue` and `pValue` for `glhtDunnett`'s `se`, `t` and
   `p`; `zValue`, `pValue` and `pAdjusted` for `dunnTest`'s `Z`, `P` and `PAdjusted`; `pAdjusted` for `TukeyHSD`'s
   `pAdj`; `stdError` for the `stdErr` of `tTest` and `survfit`; `fValue` for `icc`'s `Fvalue`.
+- The optional arguments taken by position as in R are also accepted in an options object (an overload), in place of
+  the argument or after it: `glmResiduals(fit, { type })`, `cohenES(test, { size })`, `outer(x, y, { fun })`,
+  `tabulate(bin, { nbins })`, `propTrendTest(x, n, { score })` and `s(xq, { deriv })` for the function `s` that
+  `splinefun` returns (its type is the new `SplineFunction`). Giving one both by position and in the options is a
+  RangeError. New types: `GlmResidualsOptions`, `CohenESOptions`, `OuterFun`, `OuterOptions`, `TabulateOptions`,
+  `PropTrendTestOptions`, `SplineFunction` and `SplineFunctionOptions`.
 
 ### Fixed
 

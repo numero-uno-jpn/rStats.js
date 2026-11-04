@@ -10,6 +10,7 @@ import type { Sample } from "../htest/types.js";
 import { cbindFrames, rbindFrames } from "../descriptive/dataFrames.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { maxOf } from "../internal/extremes.js";
+import { optionalArgs } from "../internal/optionalArgs.js";
 import { checkDot, checkedDot } from "./dot.js";
 
 /**
@@ -203,8 +204,26 @@ const OUTER_OPS: Record<string, (a: number, b: number) => number> = {
 };
 
 /**
+ * The operation of {@link outer}: `"*"`, `"+"`, `"-"`, `"/"`, `"^"` or a function of two numbers.
+ *
+ * @category Linear algebra
+ */
+export type OuterFun = "*" | "+" | "-" | "/" | "^" | ((a: number, b: number) => number);
+
+/**
+ * Options for {@link outer}.
+ *
+ * @category Linear algebra
+ */
+export interface OuterOptions {
+  /** The operation. Default `"*"`. */
+  fun?: OuterFun;
+}
+
+/**
  * Outer product of two vectors: the matrix of `fun(x[i], y[j])`. Equivalent to R's `outer()`. `fun` is `"*"`
- * (default), `"+"`, `"-"`, `"/"`, `"^"` or a function of two numbers.
+ * (default), `"+"`, `"-"`, `"/"`, `"^"` or a function of two numbers, given as the third argument or as the option
+ * `fun` (giving both is a RangeError).
  *
  * @example
  * ```ts
@@ -214,7 +233,18 @@ const OUTER_OPS: Record<string, (a: number, b: number) => number> = {
  *
  * @category Linear algebra
  */
-export function outer(x: Sample, y: Sample, fun: "*" | "+" | "-" | "/" | "^" | ((a: number, b: number) => number) = "*"): number[][] {
+export function outer(x: Sample, y: Sample, fun?: OuterFun): number[][];
+/**
+ * Outer product of two vectors, with the operation in the options: `outer(x, y, { fun: "+" })`.
+ *
+ * @example
+ * ```ts
+ * outer([1, 2], [1, 2, 3], { fun: "+" }); // [[2, 3, 4], [3, 4, 5]]
+ * ```
+ */
+export function outer(x: Sample, y: Sample, options: OuterOptions): number[][];
+export function outer(x: Sample, y: Sample, ...args: unknown[]): number[][] {
+  const fun = optionalArgs<OuterOptions>(["fun"], args).fun ?? "*";
   const f = typeof fun === "function" ? fun : OUTER_OPS[fun];
   if (f === undefined) throw new RangeError(`invalid fun "${String(fun)}"`);
   const u = Array.from(x);

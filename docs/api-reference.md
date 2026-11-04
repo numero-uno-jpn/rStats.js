@@ -41,7 +41,11 @@ function except the mixed models, which are in `dist/mixed.js`.
 - **Names** are R's, with a dot becoming camelCase: `t.test` → `tTest`, `p.adjust` → `pAdjust`; functions of other
   packages keep their names (`car::Anova` → `Anova`, `tidyr::pivot_longer` → `pivotLonger`).
 - **Arguments:** the required ones are positional; the optional ones go in one options object with R's names in
-  camelCase: `pt(q, df, lower.tail = FALSE)` → `pt(q, df, { lowerTail: false })`.
+  camelCase: `pt(q, df, lower.tail = FALSE)` → `pt(q, df, { lowerTail: false })`. The optional arguments that R's
+  usage passes by position are taken both ways: `glmResiduals`' type, `cohenES`' size, `outer`'s fun, `tabulate`'s
+  nbins, `propTrendTest`'s score and the deriv of the function `splinefun` returns (`glmResiduals(fit, "pearson")` or
+  `glmResiduals(fit, { type: "pearson" })`; giving one both ways is a RangeError). `optimHess` takes `gr` and
+  `control` by position only.
 - **Results** are plain objects. Tests return R's `htest` fields in camelCase (`statistic`, `parameter`, `pValue`,
   `confInt`, `estimate`, `method`, ...), with R's names of the values in separate fields (`statisticName`, ...).
 - **Data:** a sample is an array of numbers (or a `Float64Array`), a matrix an array of rows, a data frame an object

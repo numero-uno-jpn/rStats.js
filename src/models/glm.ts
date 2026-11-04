@@ -25,6 +25,7 @@ import {
   type GlmLink,
 } from "./glmFamily.js";
 import { maxOf } from "../internal/extremes.js";
+import { optionalArgs } from "../internal/optionalArgs.js";
 import { ldexp, ldexpWide, scaleToUnit } from "../internal/summary.js";
 import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
 import { checkDot, checkedDot } from "../linalg/dot.js";
@@ -917,8 +918,18 @@ export function glmSummary(given: GlmResult, options: GlmSummaryOptions = {}): G
 export type GlmResidualType = "deviance" | "pearson" | "working" | "response";
 
 /**
+ * Options for {@link glmResiduals}.
+ *
+ * @category Generalized linear models
+ */
+export interface GlmResidualsOptions {
+  /** Kind of residuals. Default `"deviance"`. */
+  type?: GlmResidualType;
+}
+
+/**
  * Residuals of a generalized linear model, one per row, for a `glm` fit (default `"deviance"`). Equivalent to R's
- * `residuals(fit, type)`.
+ * `residuals(fit, type)`. The kind is the second argument or the option `type` (giving both is a RangeError).
  *
  * @example
  * ```ts
@@ -929,7 +940,19 @@ export type GlmResidualType = "deviance" | "pearson" | "working" | "response";
  *
  * @category Generalized linear models
  */
-export function glmResiduals(fit: GlmResult, type: GlmResidualType = "deviance"): number[] {
+export function glmResiduals(fit: GlmResult, type?: GlmResidualType): number[];
+/**
+ * Residuals of a generalized linear model, with the kind in the options: `glmResiduals(fit, { type: "pearson" })`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmResiduals(fit, { type: "pearson" }); // [-0.21925, -0.40231, 1.3546, -1.3546, 0.40231, 0.21925]
+ * ```
+ */
+export function glmResiduals(fit: GlmResult, options: GlmResidualsOptions): number[];
+export function glmResiduals(fit: GlmResult, ...args: unknown[]): number[] {
+  const type = optionalArgs<GlmResidualsOptions>(["type"], args).type ?? "deviance";
   // of the scaled fit (scaledView), scaled back: for the families that are scaled, every kind has the response's units
   const v = scaledView(fit);
   return residualsOf(v.fit, type).map((r) => ldexp(r, v.k));

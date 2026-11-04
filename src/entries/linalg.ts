@@ -13,7 +13,7 @@ export { expm, type ExpmMethod, type ExpmOptions } from "../linalg/expm.js";
 export type { MatrixInput, VectorOrMatrix } from "../linalg/matrix.js";
 export {
   matMul, add, subtract, multiply, divide, outer, t, diag, cbind, rbind, matrix, kronecker, seq,
-  type Operand, type DiagOptions, type MatrixOptions, type SeqOptions,
+  type Operand, type DiagOptions, type MatrixOptions, type OuterFun, type OuterOptions, type SeqOptions,
 } from "../linalg/ops.js";
 export { lu, prcomp, type LuResult, type PrcompOptions, type PrcompResult } from "../linalg/lu.js";
 // Types used by the functions above, also exported from the root and the other subpaths

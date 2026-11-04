@@ -13,6 +13,7 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import { pnorm } from "../distributions/normal.js";
 import { dwilcox1 } from "../distributions/wilcox.js";
+import { optionalArgs } from "../internal/optionalArgs.js";
 import { levelText, numberLevels } from "../internal/levels.js";
 import { ldexp, scaleToUnit, squareOver } from "../internal/summary.js";
 import { compareCodePoints } from "../models/modelFrame.js";
@@ -31,7 +32,18 @@ export interface PropTrendTestResult extends Omit<HTest, "alternative"> {
 }
 
 /**
- * Chi-squared test for trend in proportions. Equivalent to R's `prop.trend.test(x, n, score)`.
+ * Options for {@link propTrendTest}.
+ *
+ * @category Hypothesis tests
+ */
+export interface PropTrendTestOptions {
+  /** Scores of the groups (as the third argument `score`). Default `1, 2, ..., k`. */
+  score?: Sample;
+}
+
+/**
+ * Chi-squared test for trend in proportions. Equivalent to R's `prop.trend.test(x, n, score)`. The scores are the
+ * third argument or the option `score` (giving both is a RangeError).
  *
  * @param x Numbers of events.
  * @param n Numbers of trials.
@@ -46,7 +58,19 @@ export interface PropTrendTestResult extends Omit<HTest, "alternative"> {
  *
  * @category Hypothesis tests
  */
-export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTestResult {
+export function propTrendTest(x: Sample, n: Sample, score?: Sample): PropTrendTestResult;
+/**
+ * Chi-squared test for trend in proportions, with the scores in the options:
+ * `propTrendTest(x, n, { score: [0, 1, 2, 4] })`.
+ *
+ * @example
+ * ```ts
+ * propTrendTest([15, 10, 8, 4], [30, 30, 30, 30], { score: [1, 2, 3, 4] }).statistic; // 9.573428850537288
+ * ```
+ */
+export function propTrendTest(x: Sample, n: Sample, options: PropTrendTestOptions): PropTrendTestResult;
+export function propTrendTest(x: Sample, n: Sample, ...args: unknown[]): PropTrendTestResult {
+  const { score } = optionalArgs<PropTrendTestOptions>(["score"], args);
   const xs = Array.from(x);
   const ns = Array.from(n);
   const k = xs.length;

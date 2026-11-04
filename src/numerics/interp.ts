@@ -17,6 +17,7 @@
 import { ldexp, ldexpWide, mean } from "../internal/summary.js";
 import type { Sample } from "../htest/types.js";
 import { seqLength } from "../internal/seq.js";
+import { optionalArgs } from "../internal/optionalArgs.js";
 import { findInterval } from "../descriptive/table.js";
 import { maxOf, midpoint, minOf } from "../internal/extremes.js";
 
@@ -569,20 +570,51 @@ export interface SplinefunOptions {
 }
 
 /**
+ * Options of the function that {@link splinefun} returns.
+ *
+ * @category Numerical methods
+ */
+export interface SplineFunctionOptions {
+  /** Order of the derivative, 0 to 3 (a fraction is truncated, as R does). Default `0`. */
+  deriv?: number;
+}
+
+/**
+ * The function that {@link splinefun} returns: the spline, or a derivative, at the points `xq`. The order of the
+ * derivative is the second argument or the option `deriv` (giving both is a RangeError).
+ *
+ * @category Numerical methods
+ */
+export interface SplineFunction {
+  /** The spline at `xq`, or its derivative of order `deriv` (0 to 3). */
+  (xq: Sample, deriv?: number): number[];
+  /** The spline at `xq`, with the order of the derivative in the options: `s(xq, { deriv: 1 })`. */
+  (xq: Sample, options: SplineFunctionOptions): number[];
+}
+
+/**
  * The cubic spline through the points, as a function of `x` and the order of derivative (0 to 3; a fraction is
  * truncated, as R does). Equivalent to R's `splinefun()`. Except that the third derivative of `"monoH.FC"` is the
- * exact one (see {@link splinefunH}).
+ * exact one (see {@link splinefunH}). The order of derivative is the second argument of the function or its option
+ * `deriv` ({@link SplineFunction}).
  *
  * @example
  * ```ts
  * const s = splinefun([1, 2, 3, 4], [1, 4, 9, 16]);
- * s([2.5]);    // [6.25]
- * s([2.5], 1); // [5]
+ * s([2.5]);              // [6.25]
+ * s([2.5], 1);           // [5]
+ * s([2.5], { deriv: 1 }); // [5]
  * ```
  *
  * @category Numerical methods
  */
-export function splinefun(x: Sample, y: Sample, options: SplinefunOptions = {}): (xq: Sample, deriv?: number) => number[] {
+export function splinefun(x: Sample, y: Sample, options: SplinefunOptions = {}): SplineFunction {
+  const f = splinefunOrder(x, y, options);
+  return (xq: Sample, ...args: unknown[]) => f(xq, optionalArgs<SplineFunctionOptions>(["deriv"], args).deriv ?? 0);
+}
+
+/** splinefun as a function of x and the order of derivative */
+function splinefunOrder(x: Sample, y: Sample, options: SplinefunOptions): (xq: Sample, deriv: number) => number[] {
   const { method = "fmm", ties = "mean" } = options;
   // knots whose range overflows: built in x / 2^k (see knotScale), as spline
   if (method === "monoH.FC") {
@@ -592,13 +624,13 @@ export function splinefun(x: Sample, y: Sample, options: SplinefunOptions = {}):
     if (k !== 0) pts = regularize(Array.from(x, (v) => ldexp(v, -k)), y, ties);
     // the slopes in units of 1 / 2^k
     const m = fritschCarlsonSlopes(pts.x, pts.y);
-    return (xq, deriv = 0) => evalHermite(pts.x, pts.y, m, k, k, xq, deriv);
+    return (xq, deriv) => evalHermite(pts.x, pts.y, m, k, k, xq, deriv);
   }
   let sp = cubicSpline(x, y, method, ties);
   const k = knotScale(sp.x);
-  if (k === 0) return (xq, deriv = 0) => evalCubic(sp, xq, deriv);
+  if (k === 0) return (xq, deriv) => evalCubic(sp, xq, deriv);
   sp = cubicSpline(Array.from(x, (v) => ldexp(v, -k)), y, method, ties);
-  return (xq, deriv = 0) => {
+  return (xq, deriv) => {
     const d = checkDeriv(deriv);
     return evalCubic(sp, Array.from(xq, (v) => ldexp(v, -k)), d).map((v) => ldexp(v, -d * k));
   };
