@@ -618,3 +618,23 @@ dt/pt/qtのdf・確率境界、±Infinity、tiny/huge df、x² overflow、beta�
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Rソースの処理順を参照したが、Vitest、Node、R oracleは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1004 — Central F distribution
+
+- 対象: `src/distributions/f.ts` の central `df/pf/qf` と incomplete-beta / gamma-limit / quantile inversion依存部
+- 監査時 HEAD: `3d3dac9a464fc0e8a934d938e827d3a2f1f63bbc`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1004_f_distribution.md](review-logs/review_audit_1004_f_distribution.md)
+
+### 要約
+
+df/pf/qfの支持域端、片側/両側無限df、tiny shape、m*x overflow/underflow、2^600 scaling、incomplete-betaのtail、gamma極限、quantileの0/Infinity判定を静的に確認。既存 #32/#116/#493 の修正経路が現行ソースに存在することを確認し、新規Issueは確定しなかった。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
