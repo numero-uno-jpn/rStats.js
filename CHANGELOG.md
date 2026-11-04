@@ -33,9 +33,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   instead of the one-way table, as R's `aov` always returns a fit; the table is `aovSummary(aov(x, g))` (rows `g` and
   `Residuals`), and the `AovResult` type is removed. The levels of `g` are the group labels in R's order, or the
   positions of the samples in the list (from 1). F and p agree with the old table to the last bit or within a few ulps
-  of rounding (the sums of squares now come from the QR of the fit), except where the residual sum of squares is
-  exactly 0: the old table gave F = Inf and p = 0 (and NaN when all values are equal), the fit leaves rounding residue
-  as R's does (a huge F and a tiny p).
+  of rounding (the sums of squares now come from the QR of the fit). Where the residual sum of squares is exactly 0,
+  the fit leaves rounding residue as R's does; the table takes it as 0, as the old table: F = Inf and p = 0, and NaN
+  when all values are equal (see Changed).
 - `steelTest` is removed. It only reproduced the errors of PMCMRplus 1.9.12's `steelTest`, which fails on every input,
   and never returned a value; Steel's many-to-one rank test is `manyOneUTest` (its normal approximation).
 
@@ -57,6 +57,14 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   `splinefun` returns (its type is the new `SplineFunction`). Giving one both by position and in the options is a
   RangeError. New types: `GlmResidualsOptions`, `CohenESOptions`, `OuterFun`, `OuterOptions`, `TabulateOptions`,
   `PropTrendTestOptions`, `SplineFunction` and `SplineFunctionOptions`.
+
+### Changed
+
+- `aovSummary` and the sequential table of `anova` take a residual sum of squares at the level of rounding (below
+  1e-24 times the weighted sum of squares of the response, as `Anova`'s check of an exact fit) as 0, with the sums of
+  squares of the terms at that level: F = Inf and p = 0 for groups without spread (`aov([[1, 1], [2, 2]])` gave F =
+  3.4e64 from the residue of the QR, as R), and F = NaN where all values are equal (F = 0.6 or 1 from the residue).
+  The tables of other fits are unchanged to the bit.
 
 ### Fixed
 

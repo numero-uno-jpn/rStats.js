@@ -60,6 +60,38 @@ export function scaledRss(fits: readonly LmFormulaResult[], k: number): number[]
 
 const MIN_NORMAL = 2 ** -1022;
 
+/** The weights and responses scaled by 2^-k of the rows of positive weight (rows of weight 0 are not in the fit) */
+export function weightedResponse(fit: LmFormulaResult, k: number): (readonly [number, number])[] {
+  return fit.y.flatMap((v, i) => ((fit.weights?.[i] ?? 1) === 0 ? [] : [[fit.weights?.[i] ?? 1, ldexp(v, -k)] as const]));
+}
+
+/**
+ * Where a sum over the weights overflows (the total of the weights of 1e308, #347), the weights are divided by an even
+ * power of 2 2^kw, this one: the sums of squares are then in units of 2^(2k + kw)
+ */
+export function evenWeightExponent(wy: readonly (readonly [number, number])[]): number {
+  const e = Math.floor(Math.log2(wy.reduce((a, [w]) => Math.max(a, w), 0)));
+  return e - (((e % 2) + 2) % 2);
+}
+
+/**
+ * Whether a residual sum of squares rss (of the response scaled by 2^-k, wy from {@link weightedResponse}) is 0
+ * within rounding error: below 1e-24 times the weighted, uncentred sum of squares of the response, residuals below
+ * 1e-12 of the response's size (the level of aovEz's dataSS). The sum takes the weights divided by 2^kw first, and
+ * by the even power of 2 of {@link evenWeightExponent} where it overflows. Also true for a NaN rss. Anova (car)
+ * throws on it, the sequential table of anova and aovSummary takes the sums of squares as 0
+ */
+export function rssWithinRounding(wy: readonly (readonly [number, number])[], rss: number, kw = 0): boolean {
+  const weightedSs = (kv: number): number => wy.reduce((a, [w, v]) => a + ldexp(w, -kv) * v * v, 0);
+  let kss = kw;
+  let ss = weightedSs(kss);
+  if (!Number.isFinite(ss)) {
+    kss = evenWeightExponent(wy);
+    ss = weightedSs(kss);
+  }
+  return !(ldexp(rss, -kss) >= 1e-24 * ss);
+}
+
 /**
  * Sequential sums of squares of the terms (intercept row included when the model has one) and the residuals, of the
  * response scaled by 2^-k (k returned): F and p-values come from these, the sums of squares are scaled back by 2^2k
@@ -105,7 +137,20 @@ function sequentialRows(fit: LmFormulaResult): { names: string[]; rows: { df: nu
 }
 
 function sequentialTable(fit: LmFormulaResult): AnovaTable {
-  const { names, rows, rdf, rss, k, perfect } = sequentialRows(fit);
+  const s = sequentialRows(fit);
+  const { names, rdf, k, perfect } = s;
+  let { rows, rss } = s;
+  // A residual sum of squares at the level of rounding (as Anova's, rssWithinRounding) is the residue of the QR of an
+  // exact fit: it is taken as 0 (F = Inf), with the sums of squares of the terms at that level (0 / 0: F = NaN, data
+  // all equal). R keeps the residue (F = 3.4e64 from 1 / 3e-65 for groups (1, 1) and (2, 2), F = 0.6 or 1 for equal
+  // data). Other fits keep their bits
+  if (rdf > 0) {
+    const wy = weightedResponse(fit, k);
+    if (rssWithinRounding(wy, rss)) {
+      rss = 0;
+      rows = rows.map((r) => (rssWithinRounding(wy, r.ss) ? { ...r, ss: 0 } : r));
+    }
+  }
   const rms = rss / rdf;
   const back = (v: number): number => ldexp(v, 2 * k);
   const table = rows.map(({ df, ss }) => {

@@ -13,7 +13,7 @@ import { ldexp } from "../internal/summary.js";
 import { qr } from "../linalg/qr.js";
 import { ddAdd, ddMul, ddMulNum, type DD } from "../special/dd.js";
 import { ddLeastSquares, ddSqrtWeights } from "./ddLeastSquares.js";
-import { responseScale, scaledRss, type AnovaTable } from "./anovaSequential.js";
+import { evenWeightExponent, responseScale, rssWithinRounding, scaledRss, weightedResponse, type AnovaTable } from "./anovaSequential.js";
 import type { LmFormulaResult } from "./lm.js";
 
 /**
@@ -100,13 +100,9 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
   // is 0 within rounding error below 1e-24 times the (weighted, uncentred) sum of squares of the response, residuals
   // below 1e-12 of the response's size (the level of aovEz's dataSS). sqrt(eps) times the centred total rejected data
   // with R^2 above 1 - 1.5e-8 that car computes (revision of review 4)
-  const wy = fit.y.flatMap((v, i) => ((fit.weights?.[i] ?? 1) === 0 ? [] : [[fit.weights?.[i] ?? 1, ldexp(v, -k)] as const]));
+  const wy = weightedResponse(fit, k);
   // Where a sum over the weights overflows (the total of the weights of 1e308, #347), the weights are divided by an
   // even power of 2 2^kw: the sums of squares are then in units of 2^(2k + kw). kw is 0 otherwise (the same bits)
-  const evenWeightExponent = (): number => {
-    const e = Math.floor(Math.log2(wy.reduce((a, [w]) => Math.max(a, w), 0)));
-    return e - (((e % 2) + 2) % 2);
-  };
   const weightedTss = (kw: number): number => {
     const ws = wy.map(([w, v]) => [ldexp(w, -kw), v] as const);
     const sw = ws.reduce((a, [w]) => a + w, 0);
@@ -116,19 +112,12 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
   let kw = 0;
   let tss = weightedTss(0);
   if (!Number.isFinite(tss)) {
-    kw = evenWeightExponent();
+    kw = evenWeightExponent(wy);
     tss = weightedTss(kw);
   }
   // (kw from the centred total as before, which the sums of squares of the terms use; the uncentred sum, at most
   // 16 times the total weight, takes its own even power of 2 where it overflows)
-  const weightedSs = (kv: number): number => wy.reduce((a, [w, v]) => a + ldexp(w, -kv) * v * v, 0);
-  let kss = kw;
-  let ss = weightedSs(kss);
-  if (!Number.isFinite(ss)) {
-    kss = evenWeightExponent();
-    ss = weightedSs(kss);
-  }
-  if (!(ldexp(rss, -kss) >= 1e-24 * ss) || rss === 0) throw new Error("residual sum of squares is 0 (within rounding error)");
+  if (rssWithinRounding(wy, rss, kw) || rss === 0) throw new Error("residual sum of squares is 0 (within rounding error)");
   // the fit's warnings (from its model matrix and summary) first, as for aov with Error(); R gives them when fitting
   const warnings: string[] = [...fit.warnings];
   const nTerms = fit.termLabels.length;
@@ -168,7 +157,7 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
   };
   rows = termRows(kw);
   if (kw === 0 && fit.weights !== undefined && rows.some((r) => !Number.isFinite(r.ss))) {
-    kw = evenWeightExponent();
+    kw = evenWeightExponent(wy);
     rows = termRows(kw);
   }
   const back = (v: number): number => ldexp(v, 2 * k + kw);

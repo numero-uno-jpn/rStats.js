@@ -1,5 +1,6 @@
 // aov of samples (its aovSummary), TukeyHSD and zTest against R (oracle/anova.R; BSDA::z.test)
-import { aov, aovSummary, TukeyHSD, zTest } from "../src/index.js";
+import { describe, expect, it } from "vitest";
+import { anova, aov, aovSummary, lm, TukeyHSD, zTest } from "../src/index.js";
 import type { Alternative } from "../src/index.js";
 import { num } from "./helpers/fixture.js";
 import { arg, defined, htestSuite, type HTestArg } from "./helpers/htest.js";
@@ -15,7 +16,8 @@ const labels = (a: A): (number | string)[] => {
 /**
  * R fits aov through a QR decomposition of the model matrix, which loses digits on data with a large mean and a
  * small spread (1e6 + 1e-3 noise: sums of squares off by 6e-8; the values here agree with 50-digit ones) and leaves
- * rounding residue when all values are equal (F = 1 from 1e-30 / 1e-30; the QR of the fit here leaves residue too)
+ * rounding residue when all values are equal (F = 1 from 1e-30 / 1e-30; here 0 / 0 = NaN, the residue of the QR of the
+ * fit taken as 0)
  */
 function qrRounding(a: A): string | undefined {
   const all = a.groups === undefined ? arg.vec(a.y)!.filter((v) => !Number.isNaN(v)) : groups(a).flat();
@@ -39,12 +41,12 @@ htestSuite({
     };
   },
   tolerance: 1e-12,
-  // a within-group sum of squares of exactly 0 is QR rounding residue, in R (F = 5.9e30 instead of Inf) and in the fit
-  // here (F = 1.4e63, from the QR of lm)
+  // within-group sums of squares that are 0 here are QR rounding residue in R (F = 5.9e30 instead of Inf); the residue
+  // of the QR of the fit here is taken as 0
   floor: { sumSq: 1e-10, meanSq: 1e-10 },
   knownDifference: (a, field, expected, actual) =>
-    (field === "fValue" && actual > 1e25 && expected > 1e25) || (field === "pValue" && actual < 1e-25 && expected < 1e-25)
-      ? "a residual sum of squares of exactly 0 is rounding residue of the QR (in R and here)"
+    (field === "fValue" && actual === Infinity && expected > 1e25) || (field === "pValue" && actual === 0 && expected < 1e-25)
+      ? "a residual sum of squares of exactly 0 is rounding residue in R"
       : qrRounding(a),
 });
 
@@ -94,4 +96,27 @@ htestSuite({
     if (field === "pValue" && Math.abs(actual - expected) <= 1e-15) return "BSDA forms the upper tail as 1 - pnorm(z)";
     return undefined;
   },
+});
+
+// A residual sum of squares at the level of rounding (the residue of the QR of an exact fit) is taken as 0: F = Inf, and
+// 0 / 0 = NaN where the sum of squares of the term is at that level too (R: F = 3.4e64 and 0.6 from the residue)
+describe("aovSummary and anova on exact fits", () => {
+  it("gives F = Inf and p = 0 for groups without spread", () => {
+    for (const t of [aovSummary(aov([[1, 1], [2, 2]])), anova(lm("y ~ g", { y: [1, 1, 2, 2], g: ["a", "a", "b", "b"] }))]) {
+      expect(t.table[0]).toEqual([1, 1, 1, Infinity, 0]);
+      expect(t.table[1]!.slice(0, 3)).toEqual([2, 0, 0]);
+      expect(t.warnings).toContain("ANOVA F-tests on an essentially perfect fit are unreliable");
+    }
+    expect(aovSummary(aov([[1e6, 1e6], [1e6 + 1, 1e6 + 1]])).table[0]!.slice(3)).toEqual([Infinity, 0]);
+  });
+  it("gives F = NaN for data all equal", () => {
+    const t = aovSummary(aov([[0.1, 0.1, 0.1], [0.1, 0.1]])).table;
+    expect(t[0]).toEqual([1, 0, 0, NaN, NaN]);
+    expect(t[1]!.slice(0, 3)).toEqual([3, 0, 0]);
+  });
+  it("keeps the table of other data", () => {
+    const t = aovSummary(lm("y ~ g", { y: [0.1, 0.1, 0.3, 0.3, 0.7], g: ["a", "a", "b", "b", "b"] })).table;
+    expect(t[0]![3]).toBeCloseTo(3.75, 12);
+    expect(t[1]![1]).toBeCloseTo(0.32 / 3, 14);
+  });
 });
