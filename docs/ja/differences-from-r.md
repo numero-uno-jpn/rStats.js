@@ -649,6 +649,14 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   RangeError に、`pwilcox(1e5, 3000, 3000)` は 2.8 秒です。m = n = 1e5 の q = 1e6 は 20 分ほどかかる見込みでした。
   `wilcoxTest` は正確な分布のエラーに "use exact: false" を付けます。R は 3 次元の表を作り、時間はもっとかかり
   (`pwilcox(2e4, 200, 200)` で 1.5 秒、ここでは 24 ms)、m = n = 500 ほどを超えるとメモリが足りなくなります (45・46 回目)。
+- **`seq`・`approx`・`spline`・`sampleInt` の出力の長さには上限を置きません** (`rnorm` などの乱数の関数と同じ)。長さは
+  呼び出し側の指定どおりで、時間とメモリは長さに比例します (`seq(0, 1e7)` で 0.46 秒、n = 1e7 の `approx`・`spline` で
+  2.7 秒・1.5 秒、`sampleInt(1e7)` で 4.9 秒。R の `sample.int(1e7)` は 5.05 秒)。JavaScript の配列に入らない長さ
+  (約 1.3e8 個) はエラーになります (`seq(0, 2e8, by: 1)` は 11.5 秒ほどかかってから "Invalid array length")。R は確保
+  できる長さなら受け付けます。
+- **`optim` の `maxit` には上限を置きません** (R と同じく 2147483647 までの整数)。時間は maxit 回の `fn` の評価に
+  比例します (SANN は必ず maxit 回評価し、軽い `fn` でも 2^31 で 20 分ほど。ほかの方法は収束すると止まる)。`integrate` の
+  `subdivisions`、`uniroot` の `maxiter` と同じく、時間の大半は呼び出し側の関数です。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。

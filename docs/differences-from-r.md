@@ -698,6 +698,14 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   takes 2.8 s, and m = n = 1e5 at q = 1e6 would take about 20 minutes. `wilcoxTest` adds "use exact: false" to the
   errors of its exact distribution. R builds a three-dimensional table, which takes longer (1.5 s at
   `pwilcox(2e4, 200, 200)`, where this takes 24 ms) and runs out of memory beyond about m = n = 500 (reviews 45, 46).
+- **No bound on the length of the output** of `seq`, `approx`, `spline` and `sampleInt` (as for `rnorm` and the other
+  random generators): the length is what the caller asks for, and time and memory grow in proportion to it
+  (`seq(0, 1e7)` 0.46 s, `approx` and `spline` with n = 1e7 2.7 s and 1.5 s, `sampleInt(1e7)` 4.9 s, R's
+  `sample.int(1e7)` 5.05 s). A length that JavaScript arrays cannot hold (about 1.3e8 elements) is an error
+  (`seq(0, 2e8, by: 1)` fails with "Invalid array length" after about 11.5 s). R accepts what it can allocate.
+- **No bound on `optim`'s `maxit`** (an integer up to 2147483647, as R): the time is about maxit evaluations of `fn`
+  (SANN always makes maxit evaluations, about 20 minutes at 2^31 even for a cheap `fn`; the other methods stop when they
+  converge). As with `integrate`'s `subdivisions` and `uniroot`'s `maxiter`, most of the time is the caller's function.
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)
