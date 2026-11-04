@@ -110,3 +110,37 @@ merge(
 ### 記録コミット
 
 c888d42a3f70f9a31ec019a27682248340c0075d（個別監査ログの追加）
+
+
+---
+
+## Audit #981 — wilcoxTest の mu 差し引き・加算による信頼区間データの精度喪失
+
+- 対象: src/htest/wilcoxTest.ts
+- 監査時 HEAD: 6a89d88316fc0b53d85a08a662cddb0bb973866a
+- 判定: signed-rank の信頼区間・Hodges–Lehmann 推定値における決定的な浮動小数点精度喪失
+- Issue: [#502](https://github.com/numero-uno-jpn/rStats.js/issues/502)
+- 詳細: [review_audit_981_wilcox_mu_roundtrip_precision.md](review-logs/review_audit_981_wilcox_mu_roundtrip_precision.md)
+
+### 要約
+
+signedRank() は検定統計量のために入力値 x0 から mu を減算する。信頼区間を計算する段階では元データを復元するために x.map(v => v + mu) を実行するが、binary64 の浮動小数点演算では (x - mu) + mu が元の x と一致する保証はない。その結果、Walsh averages と Hodges–Lehmann 推定値が入力値と異なるデータに基づいて計算される。
+
+```ts
+const x = [8841848152503256, 8841848152503264];
+const mu = -5054035322351469;
+wilcoxTest(x, { mu, confInt: true, exact: true });
+```
+
+このデータでは復元値が [8841848152503255, 8841848152503263] となり、両観測値が 1 ずつ小さくなる。期待される exact 区間は [8841848152503256, 8841848152503264]、Hodges–Lehmann 推定値は 8841848152503260。
+
+### 検証範囲・制約
+
+- signedRank() の差し引き、ゼロ除外、CI用データ再構築、Walsh averages の制御フローを確認。
+- 既存 Issue を検索し、同一原因の報告がないことを確認して Issue #502 を登録。
+- 再現用のbinary64値を演算経路から確認。Vitest・Rの実行は未実施。
+- ソースコード変更なし。
+
+### 記録コミット
+
+aa3cc3ae1b151c49421c94eff9f5dbf405f8b07b（個別監査ログの追加）
