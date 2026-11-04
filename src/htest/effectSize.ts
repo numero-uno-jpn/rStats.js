@@ -354,7 +354,7 @@ function ezStrata(m: AovEzResult): { strata: Stratum[]; subject: Stratum; order:
 function observedTerms(gen: boolean | readonly string[], terms: readonly Term[]): { isObserved: (name: string) => boolean; ssObserved: number } {
   const observed: readonly string[] = Array.isArray(gen) ? gen : [];
   const missing = observed.filter((o) => !terms.some((t) => word(o).test(t.name)));
-  if (missing.length > 0) throw new Error(`Observed variable not in data: ${missing.join(", ")}`);
+  if (missing.length > 0) throw new RangeError(`Observed variable not in data: ${missing.join(", ")}`);
   const isObserved = (name: string): boolean => observed.some((o) => word(o).test(name));
   return { isObserved, ssObserved: terms.reduce((a, t) => (isObserved(t.name) ? a + t.ss : a), 0) };
 }

@@ -7,8 +7,10 @@ import { describe, expect, it } from "vitest";
 import {
   aggregate,
   aovEz,
+  aov,
   cbind,
   corTest,
+  etaSquared,
   friedmanTest,
   kruskalTest,
   lm,
@@ -142,5 +144,10 @@ describe("data frames, grouping and model columns: argument errors", () => {
     throwsType(() => aovEz(long, { id: "id", dv: "score", between: ["A", "A"] }), RangeError, "duplicated factor names in 'between': A");
     throwsType(() => aovEz(long, { id: "id", dv: "score", between: "A", within: ["W", "W"] }), RangeError, "duplicated factor names in 'within': W");
     throwsType(() => aovEz(long, { id: "id", dv: "score", between: "A", within: "W", observed: "Q" }), RangeError, "Observed variable not in data: Q");
+  });
+
+  it("RangeError for an observed variable of etaSquared's generalized that is not a term", () => {
+    const fit = aov("y ~ g", { y: [4.2, 5.1, 6.3, 5.8, 7.9, 8.4], g: ["a", "a", "b", "b", "c", "c"] });
+    throwsType(() => etaSquared(fit, { generalized: ["Q"] }), RangeError, "Observed variable not in data: Q");
   });
 });

@@ -30,7 +30,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
     model functions such as `lm` and `glm` and their `weights`, the formula forms of the tests, `aovEz`) is a
     RangeError, and so are a factor given in both `between` and `within` of `aovEz`, a factor name repeated in
     `between` or `within` ("duplicated factor names in 'between': A") and an `observed` variable that is not a factor
-    ("Observed variable not in data: x").
+    ("Observed variable not in data: x"), the same error of `etaSquared`'s `generalized` included.
 - `aov(x, g)` and `aov(samples)` return the fit of the model `y ~ g` (an `LmFormulaResult`, as `aov("y ~ g", data)`)
   instead of the one-way table, as R's `aov` always returns a fit; the table is `aovSummary(aov(x, g))` (rows `g` and
   `Residuals`), and the `AovResult` type is removed. The levels of `g` are the group labels in R's order, or the
