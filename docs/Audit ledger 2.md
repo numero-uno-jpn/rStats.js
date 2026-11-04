@@ -418,3 +418,24 @@ covmat/data入力、p/q/dof、相関標準化、uniqueness最適化、ML objecti
 - `src/descriptive/factanal.ts`、`test/factanal.test.ts`、`oracle/factanal-behaviour.md`、`src/internal/covmat.ts` を確認。
 - 静的監査のみ。Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+---
+
+## Audit #994 — GLM core IRLS・family/link 境界の再監査
+
+- 対象: `src/models/glm.ts`, `src/models/glmFamily.ts`
+- 監査時 HEAD: `b4276a67a06e7f6a5ca6f4eab34fbb4a3f5b11fc`
+- 対象ソース blob: `2dfb7750111ba38d4a518ed6b37a81c5c9fc5727`, `80bfa28198a7d7efe6fd5c9ee1a03465d961d7be`
+- 判定: 今回確認した範囲で新規不具合なし
+- 詳細: [review_audit_994_glm_core_irls_family.md](review-logs/review_audit_994_glm_core_irls_family.md)
+
+### 要約
+
+IRLSの開始値・反復・step-halving・収束/分離警告、正weight行のQR選択、offset、null deviance、残差自由度、family response初期化、two-column binomial、各linkのdomain/逆関数/微分、deviance/AICを再監査。offsetの二重加算やzero-effective-weight行の自由度算入は確認されず、今回の範囲で独立した新規不具合は確定できなかった。既存のGLM数値安定性・AIC・zero-weight Issueと重複する疑義は新規登録しない。
+
+### 検証範囲・制約
+
+- `src/models/glm.ts`、`src/models/glmFamily.ts` の主要制御フローを静的に追跡。
+- 既存GLM/IRLS/binomial/offset/weight/link/family関連Issueを検索。
+- Vitest、Node、R実行は未実施。確証のない疑義はIssue化しない。
+- ソースコード変更なし。
