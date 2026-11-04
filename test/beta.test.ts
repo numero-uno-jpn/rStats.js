@@ -56,10 +56,7 @@ fixtureSuite({
   tolerance: 0,
   discreteCdf: (a, y, lg) => pbinom(y, num(a.size), num(a.prob), { lowerTail: bool(a.lowerTail), logP: lg ?? bool(a.logP) }),
   knownDifference: (a) => {
-    const n = num(a.size);
     const p = num(a.p);
-    const end = a.logP ? p === 0 || p === -Infinity : p === 0 || p === 1;
-    if (Number.isFinite(n) && n !== Math.round(n) && !end) return "size is not an integer";
     return !a.logP && p > 0.5 && 1 - p < 1e-12 ? "p is close to 1 and R's comparison is decided by rounding" : undefined;
   },
   call: (a) => qbinom(num(a.p), num(a.size), num(a.prob), tail(a)),

@@ -13,7 +13,7 @@ import { twoSum, type DD } from "../special/dd.js";
 import { logAddExp, logSubExp } from "../internal/ddexp.js";
 import { qnorm } from "./normal.js";
 import { nonInteger } from "./poisson.js";
-import { countAtMost } from "../internal/integer.js";
+import { countAtMost, roundHalfEven } from "../internal/integer.js";
 
 function badParams(size: number, prob: number): boolean {
   return nonInteger(size) || size < 0 || !Number.isFinite(size) || prob < 0 || prob > 1;
@@ -74,12 +74,13 @@ export function pbinom1(q: number, size: number, prob: number, lowerTail: boolea
 
 export function qbinom1(p: number, size: number, prob: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(p) || Number.isNaN(size) || Number.isNaN(prob)) return NaN;
-  if (!Number.isFinite(size) || !Number.isFinite(prob) || prob < 0 || prob > 1 || size < 0) return NaN;
-  // R returns the endpoints (p = 0, 1) first even for non-integer size. The upper end is size rounded half to even
-  const b = quantileBoundaries(p, 0, roundHalfEven(size), lowerTail, logP);
+  if (!Number.isFinite(size) || !Number.isFinite(prob)) return NaN;
+  // As R (R_forceint), a non-integer size is rounded half to even (10.5 is 10, -0.1 is -0), as in qhyper, qsignrank and
+  // qwilcox; dbinom and pbinom give NaN for it, as R
+  const n = roundHalfEven(size);
+  if (prob < 0 || prob > 1 || n < 0) return NaN;
+  const b = quantileBoundaries(p, 0, n, lowerTail, logP);
   if (b !== undefined) return b;
-  if (badParams(size, prob)) return NaN;
-  const n = Math.round(size);
   if (prob === 0 || n === 0) return 0;
   if (prob === 1) return n;
   const q = 1 - prob;
@@ -178,10 +179,4 @@ export function qbinom<T extends Vectorizable>(
 ): VectorResult<T> {
   const { lowerTail = true, logP = false } = options;
   return vectorize(p, (v) => qbinom1(v, size, prob, lowerTail, logP));
-}
-
-/** Round half to even (0.5 goes to the nearest even number; same as R's nearbyint) */
-function roundHalfEven(x: number): number {
-  const r = Math.round(x);
-  return Math.abs(x % 1) === 0.5 && r % 2 !== 0 ? r - 1 : r;
 }
