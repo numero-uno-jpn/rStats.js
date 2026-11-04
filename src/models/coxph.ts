@@ -14,7 +14,7 @@ import { pchisq } from "../distributions/chisq.js";
 import { qnorm } from "../distributions/normal.js";
 import type { GroupLabel } from "../htest/groups.js";
 import { numberLevels } from "../internal/levels.js";
-import { ldexp, scaleToUnit } from "../internal/summary.js";
+import { ldexp, mean, scaleToUnit } from "../internal/summary.js";
 import { mergeTiedTimes } from "./tiedTimes.js";
 import { Warnings } from "./glmFamily.js";
 import { maxOf } from "../internal/extremes.js";
@@ -356,6 +356,35 @@ const chisqTest = (statistic: number, df: number): CoxphTest => ({
   pValue: pchisq(statistic, df, { lowerTail: false }),
 });
 
+/** R's result for data without events (survival's coxph returns it before fitting), with summary(fit)'s values */
+function zeroEventResult(rows: readonly (readonly number[])[], p: number): CoxphResult {
+  const n = rows.length;
+  const nans = (): number[] => new Array<number>(p).fill(NaN);
+  const test = chisqTest(0, 0);
+  return {
+    coefficients: nans(),
+    var: Array.from({ length: p }, () => new Array<number>(p).fill(0)),
+    loglik: [0, 0],
+    score: 0,
+    wald: 0,
+    iter: 0,
+    means: Array.from({ length: p }, (_, j) => mean(rows.map((row) => row[j]!))),
+    n,
+    nevent: 0,
+    linearPredictors: new Array<number>(n).fill(0),
+    se: new Array<number>(p).fill(0),
+    z: nans(),
+    p: nans(),
+    lower: nans(),
+    upper: nans(),
+    logtest: test,
+    sctest: { ...test },
+    waldtest: { ...test },
+    rsq: { rsq: 0, maxrsq: 0 },
+    warnings: [],
+  };
+}
+
 /**
  * Cox proportional hazards regression. Equivalent to R's `survival::coxph()`. As
  * `coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, control)` for right-censored data, with the
@@ -426,6 +455,10 @@ export function coxph(
   if (w.some((v) => !Number.isInteger(v))) throw new RangeError("non-integer weights (robust variance) are not supported yet");
   let nevent = 0;
   for (const i of keep) nevent += status[i]!;
+  // no events: R's coxph returns before the fit (issue #472) with NA coefficients, a zero variance, zero log likelihood,
+  // score, Wald statistic and iterations, and the unweighted column means of all covariates (nocenter ignored); `init`
+  // is not an estimate here
+  if (nevent === 0) return zeroEventResult(keep.map((i) => x[i]!), p);
   const mergedTime = mergeTiedTimes(keep.map((i) => time[i]!));
   let stratumOf = new Array<number>(n).fill(0);
   if (strata !== undefined) {
