@@ -139,8 +139,8 @@ allocation could be avoided without changing the values or the random stream, it
 | `expm` (Taylor and Padé methods) | order × (n^3 + 64) is above 2^31 |
 | `grad`, `jacobian`, `hessian` (Richardson) | `r` is above 512 |
 
-The details, with timings and R's behaviour, are in [differences from R](differences-from-r.md) (Hypothesis tests,
-Random numbers and Distributions under "Deliberate differences"). There is no bound on the length of an output the
+The details, with timings and R's behaviour, are in [differences from R](differences-from-r.md) (Hypothesis tests
+and Random numbers under "Deliberate differences"). There is no bound on the length of an output the
 caller asks for (`seq`, `approx`, `spline`, `sampleInt`, the `r*` functions) or on iteration counts such as `optim`'s
 `maxit`: their time grows in proportion.
 

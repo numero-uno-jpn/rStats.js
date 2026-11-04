@@ -329,7 +329,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `coxph(Surv(time, status) ~ x1 + x2)` with covariates in very different units (x1 * 1e7 or x1 * 1e-6, x2 as is) | the Wald test drops a covariate (3.36 becomes 0.31 or 3.08: the Cholesky pivots of the variance in the original units fall below the relative tolerance); at x1 * 1e200 the standard error underflows to 0 (z Inf, p 0), at x1 * 1e-160 "infinite argument in coxph.wtest" | the same z, p and Wald test at any scale (the variance, z, the Wald test and the check for infinite coefficients formed in units of a power of 2 of each covariate's scale; the coefficients, the variance and the standard errors scaled back for output) |
 | `zTest` (BSDA's `z.test`), effectsize's `cohens_d`/`hedges_g`, irr's `icc`, psych's `alpha`, nortest's `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`, `aov`, `TukeyHSD`, car's `leveneTest`, `lm`, `anova`, `aov(... + Error())`, afex's `ges` on data around 1e±200 | NaN, 0, ±Inf or a different test result (squares of the data overflow or underflow) | the result at any scale (the data scaled by a power of 2 before the mean is subtracted; sums of squares, MSE, standard errors and intervals scaled back for output) |
 | `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` the largest double), and a paired `t.test` of values of opposite sign near the largest double | -Inf or NaN (the deviation, or the difference, overflows before any rescaling) | about -2.3969 and a correlation of -1; the paired test as at any other scale |
-| `t.test(x, mu = 1e100)`, and `t.test(1:4, mu = 1e6)` (mu far larger than the interval) | interval [0, 0]; [0.44573974329978228, 4.5542602567002177], 1.4e-10 off (formed as mu + (t ± q) stdErr; NaN for an infinite mu) | the interval about the estimate, which does not depend on mu: [0.44573974323947896, 4.5542602567605215]. Only where mu or t stdErr exceeds 16 times abs(estimate) + q stdErr, or R's end is not finite; elsewhere R's form and bits (revision of review 3) |
+| `t.test(x, mu = 1e100)`, and `t.test(1:4, mu = 1e6)` (mu far larger than the interval) | interval [0, 0]; [0.44573974329978228, 4.5542602567002177], 1.4e-10 off (formed as mu + (t ± q) stdErr; NaN for an infinite mu) | the interval about the estimate, which does not depend on mu: [0.44573974323947896, 4.5542602567605215]. Only where mu or t stdErr exceeds 16 times abs(estimate) + q stdErr, or R's end is not finite; elsewhere R's form and bits |
 | car's `Anova` (types II and III), `predict(lm)` standard errors and intervals, gaussian `glm` and `summary`, `residuals`, `rstandard`, `cooks.distance`, `predict`, `anova`, `confint` of it, DescTools' `CoefVar` and `MeanAD`, with the response around 1e±200 | Inf, 0 or NaN, "residual sum of squares is 0", or "no valid set of coefficients has been found" | the result at any scale (the response scaled by a power of 2; for glm on the gaussian family, or quasi with constant variance, on the identity link) |
 | `pnorm(1e308, -1e308, 1.7e308)`, `qnorm(0.9, -1e308, 1.7e308)`, and the same for `plogis`/`qlogis`, `pcauchy`/`qcauchy`, extraDistr's `plaplace`/`qlaplace`/`dlaplace`: x - location or scale z overflows although the result is in range | 1, Inf, 0 or -Inf (pnorm 1, dnorm 0, qnorm Inf confirmed in R 4.5.2) | 0.8803, 1.1786e308 (x and location halved, or location and scale divided by a power of 2, before the subtraction or product) |
 | `quade.test(y)` where a block (row) has a missing value, e.g. `y <- rbind(c(10,12,15), c(11,14,16), c(12,NA,17), c(13,15,18), c(14,16,20))` | F = 10, df (2, 8), p = 0.00666: the dropped block still counts in b (B = sum S_j^2 / b, (b - 1) B / (A - B), df (b - 1)(k - 1)), so the result differs from `quade.test(y[-3, ])` (F = 25, df (2, 6), p = 0.00123) for the same data; a bug in R (4.5.2, checked by running it) | the test on the complete blocks: F = 25, df (2, 6), p = 0.00123, as for the data without the block |
@@ -348,7 +348,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `cooks.distance(glm(y ~ x, binomial), dispersion = 1e308)`, and Cook's distances whose (r / (1 - h))^2 overflows (a binomial fit with prior weights 1.5e306, which R does not fit) | 0 for every row (h / (dispersion p) underflows) | 1.4e-309, ..., 9.0e-307 (the distances for dispersion 1 divided by 1e308) and 1.35e308: where the square overflows or h / (dispersion p) is below the normal range, the residual and the dispersion in units of powers of 2 |
 | `glm` where a part of the working weight w mu.eta(eta)^2 / V(mu) overflows or underflows although the weight does not: poisson `y = c(1e308, 1e308)`, Gamma (inverse link) `y = c(1e308, 1e308)`, inverse.gaussian (log link) with a mean of 1e200 or of 1e-200, a poisson mean of 1e-320 (offset `log(1e-320)`) | "NA/NaN/Inf in 'x'" (poisson, Gamma); working weight NaN (mean 1e200); converged at the clamped mean 2.2e-16 with deviance 2e200 (mean 1e-200); the mean and weight clamped to 2.2e-16 (1e-320) | the fits: log(1e308) = 709.196 with null deviance 0; 1e-308; the weight 1/mu = 1e-200; the mean 1e-200; the weight 1e-320. Where mu.eta^2, V(mu) or w mu.eta^2 is outside the normal range, the weight is sqrt(w) abs(c) mu^((2a - p)/2) from mu.eta = c mu^a and V = mu^p (identity, log, inverse, sqrt, 1/mu^2 and power links; variances 1, mu, mu^2, mu^3), and so the working and Pearson residuals; V = mu^p underflowing for a positive mean is no longer "0s in V(mu)"; the null model's mean divides the response by a power of 2 where its weighted sum overflows. The binomial links keep R's form. For the Gamma fit the working weight mu^2 = 1e616 itself is beyond the doubles: the weights are Inf, and the dispersion and standard errors NaN |
 | `shapiro.test(c(-1e308, 0, 1e308))` (the range overflows) | NaN | W = 1, as `shapiro.test(c(-1, 0, 1))` (the data divided by a power of 2 first) |
-| polycor's `polyserial(x * 1e200, y, std.err = TRUE)` (the sum of squares overflows) | rho 0, chisq NaN | the values for x (rho 0.589 in the review example) |
+| polycor's `polyserial(x * 1e200, y, std.err = TRUE)` (the sum of squares overflows) | rho 0, chisq NaN | the values for x (for example rho 0.589) |
 | `rexp(n, rate = 1e-310)` (positive rate, 1 / rate overflows) | NaN, with a warning, drawing nothing | the variates `exp_rand() / rate` (Inf unless the exponential variate is below about 0.018), one exponential variate each |
 | `rnorm(1, mean = -1e308, sd = 1e308)` after `set.seed(7)` (sd Z overflows, mean + sd Z does not; issue #396) | Inf | 1.2872471613405238e308 (only where mean + sd Z is not finite: the same sum with mean and sd halved, doubled; the same draws) |
 | `rweibull(1, shape = 0.001, scale = 2^-1074)` after `set.seed(19)` ((-log u)^(1/shape) overflows, the variate does not; issue #408) | Inf | 103020481.1280669 (only where the power overflows: scale (-log u)^(1/shape) from the logs in double-double; the same uniform) |
@@ -471,48 +471,60 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   apart); rStats.js has one `NaN`.
 - **`var` is called `variance`**, because `var` cannot be a name in JavaScript.
 
-- **Input that has no meaning is an error** where R returns a value: for example a known standard
-  deviation <= 0 in `zTest`, an infinite probability in `chisqTest`, non-binary data in
-  `cochranQTest`, negative counts in `propTrendTest`, `polychor` and two-column binomial `glm`,
-  fewer than 2 subjects or raters in `icc` and `kappamFleiss`, fewer than 2 complete rating pairs in `kappa2` (irr's
-  `kappa2` gives z and p NaN; issue #309), a standard error of 0 in `tTest` also when the mean is 0 (samples of zeros,
-  zero paired differences: "data are essentially constant"; R's guard is `0 < 0` there and it returns t NaN or ±Inf;
-  issue #314), an infinite observation in `adTest`, `cvmTest`, `lillieTest`, `sfTest` and `pearsonTest` (nortest's
-  `pearson.test(c(1:7, Inf))` returns P = 8, p = 0.0183 from an empty classification, `sf.test` NaN; the others stop;
-  issue #304), a group with an infinite median in `flignerTest` (its deviations are Inf - Inf; R ranks the NaN last:
-  `fligner.test(c(1, Inf, 2, 3), c("a", "a", "b", "b"))` gives 2.476, p 0.116; issue #329), fewer than 2 distinct scores in `propTrendTest` (all scores equal, or one group with a score: R's `prop.trend.test` gives NA; issue #318, which reverses the NaN of issue #50), `df <= 0` in `pwrChisqTest`, and
-  a non-finite or NaN tolerance (`optim`'s `reltol`, `uniroot`, `optimize`, `integrate`, `qr`,
-  `chol`, `solve`, `coxph`, `glm`), and a temperature `temp` that is not positive and finite in
-  `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one),
-  an infinite `fnscale` in `optim` and `optimHess` (R's `optim` returns the start with value NaN and convergence 0, `optimHess` NaN; issue #248),
-  a NaN or infinite component of an analytic gradient `gr` in `optim` (BFGS, CG, L-BFGS-B) and `optimHess`, "non-finite
-  value of the gradient [i] supplied by 'gr'" as the numerical gradient's check (R does not check `gr`: a NaN gradient
-  returns the start with convergence 0 without a step, and `optimHess` a NaN matrix; issue #355),
-  `binomTest([0, 0])` (no trials; R returns a p-value of 1 for `binom.test(c(0, 0))`, while `poissonTest` compares two
-  counts of 0 as R), and a `covmat` in `factanal` and `omega` that is not square, finite and symmetric (as R's
-  `isSymmetric`) with a positive diagonal (R's `factanal` analyses an asymmetric matrix), a time base `T` of 0 in
-  `poissonTest` (R returns NaN or Inf for the estimate and the interval), counts whose total overflows in `binomTest`
-  and `poissonTest` (R: NaN or an error), a fractional `B`, or goodness-of-fit counts summing to a fraction, in
-  `chisqTest`'s simulation (R's p-value can exceed 1 there), a fractional `B` in `fisherTest`'s simulation (R simulates
-  trunc(B) tables and divides by B + 1; issue #278), fractional counts in `mantelhaenTest(exact: true)` (R
-  returns a result), a table without discordant pairs in `mcnemarTest`, only zero differences in the signed rank
-  `wilcoxTest`, two constant samples in `varTest`, fractional counts in `chisqTest`'s simulation of tables (R returns
-  NaN or truncates the margins), groups that are all constant in `dunnettTest`, `tukeyTest` and `glhtDunnett` (a
-  pooled variance of 0: R's p-values are 0 in `TukeyHSD` and PMCMRplus, 1 in multcomp's `glht`), and in
-  `pairwiseTTest` with a pooled SD and `onewayTest` with `varEqual: true` (R's `pairwise.t.test` gives p 0, or NaN for
-  equal means, `oneway.test` F Inf and p 0; groups of one observation only: "no residual degrees of freedom", R NaN),
-  and a step `eps` of 0 or a
-  non-finite `d`, `eps` or `zeroTol` in `grad`, `jacobian` and `hessian` (numDeriv's "simple" method gives NaN for
-  `eps = 0`; `d = 0` is an error there too), a step d abs(x[i]) beyond the doubles (issue #213) or of 0 (x[i] = 0
-  with `zeroTol: 0`, issue #246) in the same three (numDeriv: an error from `grad`'s check of f, NaN from `jacobian` and
-  `hessian`), and a `confLevel` outside [0, 1] or NaN in `TukeyHSD` (R returns NaN
-  limits; 0 and 1 are accepted as in R), one value per group in `TukeyHSD` (no residual degrees of freedom; R returns
-  NaN limits and p-values; issue #315) and 1 residual degree of freedom in `TukeyHSD` and `tukeyTest` (the studentized
-  range distribution of `ptukey` and `qtukey`, as R's, starts at 2 df; R returns NaN, PMCMRplus NA; issue #315), fewer than 2 break points (after dropping NaN) in `cut` (R returns NA
-  codes; one break is R's error "invalid number of intervals", and infinite breaks are accepted as in R), an
-  infinite or NaN explicit break in `hist` (R returns a density of 0 for an infinite cell, with an infinite or NaN
-  midpoint), and a `rule` other than 1 or 2 in `approx` (R takes every value other than 1, such as 3, 0 or 1.5, as
-  rule 2).
+- **Input that has no meaning is an error** where R returns a value. The distribution functions (d/p/q/r) are not
+  affected: they return NaN for invalid parameters, as R.
+  - Hypothesis tests, counts and samples: a known standard deviation <= 0 in `zTest`, an infinite probability in
+    `chisqTest`, non-binary data in `cochranQTest`, negative counts in `propTrendTest` and `polychor`, fewer than 2
+    subjects or raters in `icc` and `kappamFleiss`, fewer than 2 complete rating pairs in `kappa2` (irr's `kappa2`
+    gives z and p NaN; issue #309), `binomTest([0, 0])` (no trials; R returns a p-value of 1 for
+    `binom.test(c(0, 0))`, while `poissonTest` compares two counts of 0 as R), a time base `T` of 0 in `poissonTest`
+    (R returns NaN or Inf for the estimate and the interval), counts whose total overflows in `binomTest` and
+    `poissonTest` (R: NaN or an error), fractional counts in `mantelhaenTest(exact: true)` (R returns a result), a
+    table without discordant pairs in `mcnemarTest`, only zero differences in the signed rank `wilcoxTest`, and two
+    constant samples in `varTest`.
+  - Undefined statistics: a standard error of 0 in `tTest` also when the mean is 0 (samples of zeros, zero paired
+    differences: "data are essentially constant"; R's guard is `0 < 0` there and it returns t NaN or ±Inf; issue
+    #314), an infinite observation in `adTest`, `cvmTest`, `lillieTest`, `sfTest` and `pearsonTest` (nortest's
+    `pearson.test(c(1:7, Inf))` returns P = 8, p = 0.0183 from an empty classification, `sf.test` NaN; the others
+    stop; issue #304), a group with an infinite median in `flignerTest` (its deviations are Inf - Inf; R ranks the NaN
+    last: `fligner.test(c(1, Inf, 2, 3), c("a", "a", "b", "b"))` gives 2.476, p 0.116; issue #329), fewer than 2
+    distinct scores in `propTrendTest` (all scores equal, or one group with a score: R's `prop.trend.test` gives NA;
+    issue #318, which reverses the NaN of issue #50), and `df <= 0` in `pwrChisqTest`.
+  - Pooled variances and degrees of freedom: groups that are all constant in `dunnettTest`, `tukeyTest` and
+    `glhtDunnett` (a pooled variance of 0: R's p-values are 0 in `TukeyHSD` and PMCMRplus, 1 in multcomp's `glht`),
+    and in `pairwiseTTest` with a pooled SD and `onewayTest` with `varEqual: true` (R's `pairwise.t.test` gives p 0,
+    or NaN for equal means, `oneway.test` F Inf and p 0; groups of one observation only: "no residual degrees of
+    freedom", R NaN); a `confLevel` outside [0, 1] or NaN in `TukeyHSD` (R returns NaN limits; 0 and 1 are accepted as
+    in R), one value per group in `TukeyHSD` (no residual degrees of freedom; R returns NaN limits and p-values; issue
+    #315) and 1 residual degree of freedom in `TukeyHSD` and `tukeyTest` (the studentized range distribution of
+    `ptukey` and `qtukey`, as R's, starts at 2 df; R returns NaN, PMCMRplus NA; issue #315).
+  - Simulations: a fractional `B`, or goodness-of-fit counts summing to a fraction, in `chisqTest`'s simulation (R's
+    p-value can exceed 1 there), a fractional `B` in `fisherTest`'s simulation (R simulates trunc(B) tables and
+    divides by B + 1; issue #278), and fractional counts in `chisqTest`'s simulation of tables (R returns NaN or
+    truncates the margins).
+  - Models: negative counts in a two-column binomial `glm`, and a `covmat` in `factanal` and `omega` that is not
+    square, finite and symmetric (as R's `isSymmetric`) with a positive diagonal (R's `factanal` analyses an
+    asymmetric matrix).
+  - Tolerances and numerical methods: a non-finite or NaN tolerance (`optim`'s `reltol`, `uniroot`, `optimize`,
+    `integrate`, `qr`, `chol`, `solve`, `coxph`, `glm`); a temperature `temp` that is not positive and finite in
+    `optim`'s SANN (R stops on 0 with "non-finite value supplied by optim" and accepts a negative one); an infinite
+    `fnscale` in `optim` and `optimHess` (R's `optim` returns the start with value NaN and convergence 0, `optimHess`
+    NaN; issue #248); a NaN or infinite component of an analytic gradient `gr` in `optim` (BFGS, CG, L-BFGS-B) and
+    `optimHess`, "non-finite value of the gradient [i] supplied by 'gr'" as the numerical gradient's check (R does not
+    check `gr`: a NaN gradient returns the start with convergence 0 without a step, and `optimHess` a NaN matrix;
+    issue #355); a step `eps` of 0 or a non-finite `d`, `eps` or `zeroTol` in `grad`, `jacobian` and `hessian`
+    (numDeriv's "simple" method gives NaN for `eps = 0`; `d = 0` is an error there too), and a step d abs(x[i])
+    beyond the doubles (issue #213) or of 0 (x[i] = 0 with `zeroTol: 0`, issue #246) in the same three (numDeriv: an
+    error from `grad`'s check of f, NaN from `jacobian` and `hessian`); a `rule` other than 1 or 2 in `approx` (R takes
+    every value other than 1, such as 3, 0 or 1.5, as rule 2).
+  - Breaks: fewer than 2 break points (after dropping NaN) in `cut` (R returns NA codes; one break is R's error
+    "invalid number of intervals", and infinite breaks are accepted as in R), and an infinite or NaN explicit break in
+    `hist` (R returns a density of 0 for an infinite cell, with an infinite or NaN midpoint).
+- **Computation limits.** A call that would allocate more than 2^24 values in one array, or run for more than about
+  10 seconds, throws a RangeError before it allocates or computes (exact tests suggest `exact: false`); R computes most
+  of these however long they take, or runs out of memory. The bounds are listed in
+  [performance.md](performance.md#limits) and described with R's behaviour under
+  [Hypothesis tests](#hypothesis-tests-1) and [Random numbers](#random-numbers) below.
 - **The power and effect-size functions** reject NaN for a known quantity (pwr mostly stops with "missing value
   where TRUE/FALSE needed"; NaN was returned), a correlation outside [-1, 1] in `pwrRTest`, probabilities outside
   [0, 1] in `esH`, `esW1` and `esW2` (R: NaN), an empty or ragged matrix in `esW2` (R: 0), n <= 0 in `powerPropTest`
@@ -556,7 +568,7 @@ count not above q. A q within min(1e-7, 1e-9 max(1, |q|)) of an integer counts a
 so that a q such as 1000 − 5e-7 (`ppois(1000 - 5e-7, 1000)` = P[X ≤ 999], as in R) is not counted as an integer. R adds 1e-7 before the floor
 (before rounding to the nearest integer in `psignrank`), so its distribution functions step 1e-7 before
 the integer and do not agree with its densities. Only q within 1e-7 of an integer is affected, apart from
-`psignrank`, where any q with a fractional part of 0.5 or more changes (issues #145 and #146). Review 25 had
+`psignrank`, where any q with a fractional part of 0.5 or more changes (issues #145 and #146). An earlier version had
 kept R's floor(q + 1e-7) for `pbinom` as R's own behaviour; that decision was reversed for the sake of
 correct values and agreement with the densities.
 
@@ -700,7 +712,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `qhyper` takes time proportional to m + n (0.7 s at m = n = k = 1e7). `rhyper`, which inverts `qhyper` for parameters beyond
   2147483647, has no bound.
 - **`besselJ`, `besselY`, `besselI` and `besselK`** throw a RangeError, before the computation, where the bounds on
-  the log of the result do not decide (they return Inf or 0 at once where the result is far out of range, review 47)
+  the log of the result do not decide (they return Inf or 0 at once where the result is far out of range)
   and a continued fraction or a recurrence would take more than a few seconds. J and Y: the continued fraction takes
   about x - nu terms for x above nu outside the asymptotic expansions, at most 2^25 (`besselJ(1e7, 2e5)`, 9.8e6 terms,
   takes 1.6 s; `besselJ(1e8, 2e6)` ran into the loop's limit of 1e8 terms before); near the turning point (x a little
@@ -709,10 +721,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   I and K: the forward recurrence of K takes about nu steps; beyond 2^28 steps, and where the continued fraction of
   I_(nu+1) / I_nu does not converge within 1e6 terms (x above about 5e10), orders above 1000 take Debye's uniform
   expansion (u1 to u4, relative error about eps times the exponent nu eta - x; `besselK(3e9, 3e8, expon.scaled =
-  TRUE)` gave Inf after 4.4 s before review 47, and a RangeError until #492). There a RangeError remains only where
+  TRUE)` first gave Inf after 4.4 s, and then a RangeError until #492). There a RangeError remains only where
   the terms of that exponent exceed 2^26 and the result is in range (unscaled I and K near x = 0.66 nu, nu above
   2^28). R's `besselJ` gives 0 with a warning from about nu = 1e6 on, and R's `besselY` is fast
-  there (reviews 47 and 52). In the asymptotic expansion for large x (x above about 90 nu), J and Y throw a
+  there. In the asymptotic expansion for large x (x above about 90 nu), J and Y throw a
   RangeError, before the computation, where the phase correction nu^2 / (2x) exceeds 2^26: formed in double its
   error is about 1e-16 times itself, and no digit of the result is left beyond about 1e13 (`besselJ(1e200, 1e154)`,
   5e107; below the bound the relative error is at most about 1e-9). R gives NaN with a warning there (every nu above
@@ -723,7 +735,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   for invalid parameters). `pwilcox(2e5, 3000, 3000)` (6e8 steps) took 5 s and throws, `pwilcox(1e5, 3000, 3000)`
   takes 2.8 s, and m = n = 1e5 at q = 1e6 would take about 20 minutes. `wilcoxTest` adds "use exact: false" to the
   errors of its exact distribution. R builds a three-dimensional table, which takes longer (1.5 s at
-  `pwilcox(2e4, 200, 200)`, where this takes 24 ms) and runs out of memory beyond about m = n = 500 (reviews 45, 46).
+  `pwilcox(2e4, 200, 200)`, where this takes 24 ms) and runs out of memory beyond about m = n = 500.
 - **No bound on the length of the output** of `seq`, `approx`, `spline` and `sampleInt` (as for `rnorm` and the other
   random generators): the length is what the caller asks for, and time and memory grow in proportion to it
   (`seq(0, 1e7)` 0.46 s, `approx` and `spline` with n = 1e7 2.7 s and 1.5 s, `sampleInt(1e7)` 4.9 s, R's

@@ -135,7 +135,7 @@ RangeError を投げます。正確な検定では、メッセージで回避の
 | `expm` (Taylor と Padé の方法) | order × (n^3 + 64) が 2^31 を超える |
 | `grad`、`jacobian`、`hessian` (Richardson) | `r` が 512 を超える |
 
-時間と R の動作を含めた詳細は [R との違い](differences-from-r.md) (「意図的な違い」の仮説検定、乱数、分布) にあります。
+時間と R の動作を含めた詳細は [R との違い](differences-from-r.md) (「意図的な違い」の仮説検定と乱数) にあります。
 呼び出し側が求める出力の長さ (`seq`、`approx`、`spline`、`sampleInt`、`r*` 関数) や、`optim` の `maxit` のような反復の
 回数には上限がありません。時間はそれに比例して増えます。
 

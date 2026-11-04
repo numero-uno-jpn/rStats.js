@@ -65,7 +65,7 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | `df(2.86e-257, 0.0275, 3, ncp = 5e-324)` | 1.3617011778446392e251 | 1.3617011778446561e251 (mpmath) | 1.3617011778446567e251 (中心分布の密度) |
 | `df(1e100, 1e-200, 1e200, ncp = 1, log = TRUE)` (df1/df2 がアンダーフロー) | Inf | -462.40331295992905 (χ² 極限、R の dchisq) | 真値と同じ |
 | `pf(1e290, 1, 1e290, ncp = 1, lower.tail = FALSE, log.p = TRUE)`、`df(..., log = TRUE)` (1e290 を超える m q が n と同じ規模) | -Inf、NaN | -3.4657359027997265e289 (主要項 −n log(2)/2。中心 F の値) | -3.4657359027997267e289、同じ |
-| `df(5e299, 2, 1e308, ncp = 1e300)` (巨大な df2 と巨大な非心度。issue #202) | NaN | 約 3.98942279e-151 (非心 χ² の極限 1e-150 / sqrt(2π) から、χ²_df2/df2 のばらつきによる相対 2.5e-9 を引いた値) | 3.9894228040144464e-151 (非心 χ² の極限。pf が極限を使う条件で使う。修正前は 0) |
+| `df(5e299, 2, 1e308, ncp = 1e300)` (巨大な df2 と巨大な非心度。Issue #202) | NaN | 約 3.98942279e-151 (非心 χ² の極限 1e-150 / sqrt(2π) から、χ²_df2/df2 のばらつきによる相対 2.5e-9 を引いた値) | 3.9894228040144464e-151 (非心 χ² の極限。pf が極限を使う条件で使う。修正前は 0) |
 | `qf(1.89e-13, 0.0885, 6.01e302)` | 4.6113445353195029e-287 | 4.6113445353197333e-287 (mpmath、χ² 極限) | 4.611344535319733e-287 |
 | `pbeta(0.973, 0.130, 8.15e-322, log.p = TRUE)` | -736.93128475074695 | -736.93155014878607 (mpmath) | 真値と同じ |
 | `dchisq(1.005e-308, 294.4, ncp = 2.91e304, log = TRUE)` | -1.0243631212370614e307 | -1.4537765239560228e304 (−λ/2。残りは 1e5 程度) | 真値と同じ |
@@ -103,11 +103,11 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
   rStats.js の double-double は 106 ビットを保つので、ほかよりずっと小さい帯は丸めで消えます。
   `sum(c(1e308, 1e100, 1, -1e308, -1e100))` は R で -1e100、`sum(c(1e20, 1e3, 1e-10, -1e20, -1e3))` は -1000 で、
   厳密な値は 1 と 1e-10 です。rStats.js は double-double が失った量の上界を数え、それが丸めた結果を変えうるときだけ
-  和を厳密に (BigInt で) 作って 1 回で丸めます: 1 と 1e-10 (issue #374)。それ以外の和は変わりません。
+  和を厳密に (BigInt で) 作って 1 回で丸めます: 1 と 1e-10 (Issue #374)。それ以外の和は変わりません。
 - **`mean`** で同じような値の場合: R の `mean(c(1e308, 1e100, 1, -1e308, -1e100))` は -2.2e99、
   `mean(c(1e20, 1e3, 1e-10, -1e20, -1e3))` は -360 で、厳密な平均は 0.2 と 2e-11 です。rStats.js は平均 (と、それを使う
   すべての統計量) にも同じ上界を使い、それが丸めた平均を変えうるときだけ厳密な和から平均を作ります:
-  0.2 と 2.0000000000000002e-11 (issue #473)。それ以外の平均は変わりません。
+  0.2 と 2.0000000000000002e-11 (Issue #473)。それ以外の平均は変わりません。
 
 ### p が 1 に極めて近い離散分布の分位点
 
@@ -128,7 +128,7 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | 端の値での probit・cauchit・cloglog・power リンクの `glm` | `make.link` が eta (または mu) を eps の値で、微分を eps でクリップする。Phi(−10) = 7.6e-24、1 − exp(−e^-40) = 4.2e-18、平均 1e-16 (power 0.5) が 2.2e-16 に、−1e9 での cauchit の微分 3.2e-19 も 2.2e-16 になる | 厳密な値。最小の double と 1 未満の最大の double で (0, 1) に収める。R の範囲内は R と同じ |
 | 小さな平均での cloglog リンク `log(-log(1 - mu))` | 1 − mu が 1 に丸まり、mu = 1e-20 で −Inf (`glm` は "NA/NaN/Inf in 'y'" で止まる) | `log(-log1p(-mu))` で有限 |
 | 1/lambda が範囲外の power リンクの微分 (`power(5e-324)$mu.eta(0.5)`、`power(.Machine$double.xmax)$mu.eta(5e-324)`) | NaN (Inf × 0) と Inf (eta^-1 が溢れる) | 最小の double (微分は double の範囲より小さい) と 1.1258999068426242e15 (eta^(1/lambda)/(lambda eta)) |
-| (y − mu)² か y mu² が範囲外のときの逆ガウス分布の deviance の寄与 (分散 `mu^3` の quasi も。`inverse.gaussian()$dev.resids(1e-308, 1e308, 1)`、`(0.5, 1e300, 1)`、`(1e-200, 2e-200, 1)`) | NaN か Inf | ((y − mu)/mu)²/y: 1e308、2、2.5e199。これも溢れるとき (`(1e200, 1e-200, 1e-300)`、`(1e200, 1e-50, 1e-300)`。R は Inf) は、w (y − mu)² / (y mu²) を w、y − mu、y、mu の仮数で計算し、2 の冪を最後に戻す: 1e300、1 (issue #480) |
+| (y − mu)² か y mu² が範囲外のときの逆ガウス分布の deviance の寄与 (分散 `mu^3` の quasi も。`inverse.gaussian()$dev.resids(1e-308, 1e308, 1)`、`(0.5, 1e300, 1)`、`(1e-200, 2e-200, 1)`) | NaN か Inf | ((y − mu)/mu)²/y: 1e308、2、2.5e199。これも溢れるとき (`(1e200, 1e-200, 1e-300)`、`(1e200, 1e-50, 1e-300)`。R は Inf) は、w (y − mu)² / (y mu²) を w、y − mu、y、mu の仮数で計算し、2 の冪を最後に戻す: 1e300、1 (Issue #480) |
 | 平均から 10% より離れたところで y/mu、y log(y/mu)、重みとの積が double の範囲を出るときの poisson の deviance の寄与 (quasipoisson と分散 `mu` の quasi も。`poisson()$dev.resids(1e308, 1e-308, 1e-320)`、`(1e308, 1e-10, 1e-10)`、`(3e-320, 1e-320, 1e308)`) | Inf | 2.83e-9、1.46e301、2.59e-12: y と mu を 2 の冪の単位で持ち、比が範囲外なら log(y/mu) を対数の差で作り、重みの指数を外に出す。それ以外は R の式とビット |
 | 平均から 10% より離れたところで y/mu が溢れるかアンダーフローするか、2 w が溢れるときの Gamma の deviance の寄与 (分散 `mu^2` の quasi も。`Gamma()$dev.resids(1e308, 1e-308, 1e-320)`、`(1e-308, 1e300, 1e-300)`、`(5, 2, 1e308)`) | NaN、Inf、Inf | 2e296、2.8e-297、1.17e308: r = y/mu を仮数と 2 の冪で持って 2 w (r - 1 - log r) とし、重みの指数を外に出す。それ以外は R の式とビット |
 | 平均が極小か、重みが double の最大の半分を超えるときの、平均に近いところの binomial の deviance の寄与 (quasibinomial と分散 `mu(1-mu)` の quasi も。y が 1e-300 の 1 ulp 上の `binomial()$dev.resids(y, 1e-300, 1e308)`、`(0.3, 0.3003, 1e308)`) | Inf (直接の式。この修正の前の rStats.js は NaN と Inf) | 2.748e-24、4.284e301: deviance か 2 w 倍が double の範囲を出るときだけ、y と mu を 2 の冪の単位にした bd0 で作り、重みの指数を外に出す。それ以外は以前と同じ |
@@ -177,7 +177,7 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | irr の κ の p 値 | 2 (1 − Φ(|z|)) で作るので、小さい値が桁落ちする (1.7e-16 でなく 2.2e-16) | 2 Φ(−|z|) |
 | polycor の最尤推定と標準誤差 (`ML = TRUE`、`std.err = TRUE`) | Nelder-Mead や BFGS が早めに止まり、ヘッセ行列は差分で求める: 相対で最大 1e-3 ずれる。関連の強い表では 2 段階推定の BFGS が 1 を越え、0.9999 と無限大の分散を返す | 尤度の厳密な最大値 (160 ビットの値と 4e-15 以内) と解析的なヘッセ行列 |
 | psych の `omega` (minres) で独自因子分散が下限 0.005 に張り付く場合 (Heywood) | `fa` は L-BFGS-B に、非対角の目的関数ではなく、対角を含めた残差の二乗和の勾配を渡す。2 つの最小は内点では一致するが下限では一致せず、最小より高い点で、多くは convergence 0 で止まる (テストの例では 0.5%〜3.4% 高く、独自因子分散は最大 0.05 ずれる) | その点から目的関数そのものの勾配で L-BFGS-B を続け (factr 1e3)、最小に届く。下限に張り付かなければ psych と同じビット |
-| 項目の相関行列が特異な場合の psych の `alpha` (同じ項目の重複、ほかの項目の和の項目、項目数が被験者数以上。issue #468) | G6 を `smc` から求める。擬似逆行列と [0, 1] への切り詰めで、残りの項目で完全に予測できる項目の SMC が 1 でなく 0 になる。同じ項目 2 つで G6 0.5、a = b と c で 0.712 (R² からは 0.956)、項目数が被験者数より多いと負の値 (以前の rStats.js はエラーで、raw・std の alpha も返さなかった) | 各 SMC を lm(x_i ~ x_-i) の R² (R の QR、tol 1e-7) で求める。G6 は 1 と 0.956。行列が特異でなければ以前どおり逆行列から求める (psych と同じ値。ただし項目がほぼ従属なときは、psych の `Pinv` が小さい特異値を切り捨てるので違う)。項目数が被験者数以上なら、中心化した項目は高々 n - 1 次元に入るので、どの項目も残りで完全に予測でき、G6 は常に 1 になる (標本の上では正しいが、情報はない) |
+| 項目の相関行列が特異な場合の psych の `alpha` (同じ項目の重複、ほかの項目の和の項目、項目数が被験者数以上。Issue #468) | G6 を `smc` から求める。擬似逆行列と [0, 1] への切り詰めで、残りの項目で完全に予測できる項目の SMC が 1 でなく 0 になる。同じ項目 2 つで G6 0.5、a = b と c で 0.712 (R² からは 0.956)、項目数が被験者数より多いと負の値 (以前の rStats.js はエラーで、raw・std の alpha も返さなかった) | 各 SMC を lm(x_i ~ x_-i) の R² (R の QR、tol 1e-7) で求める。G6 は 1 と 0.956。行列が特異でなければ以前どおり逆行列から求める (psych と同じ値。ただし項目がほぼ従属なときは、psych の `Pinv` が小さい特異値を切り捨てるので違う)。項目数が被験者数以上なら、中心化した項目は高々 n - 1 次元に入るので、どの項目も残りで完全に予測でき、G6 は常に 1 になる (標本の上では正しいが、情報はない) |
 | nortest の `pearson.test` で、`pnorm` が 1 に丸まる値 (平均より約 8.3 sd 以上大きい外れ値) がある場合 | その値は k + 1 番目の区間になり、`tabulate` が捨てる。計数の合計が n より小さくなる (0 が 99 個と 1e6 で 1176.13) | 最後の区間に数える: 1174.26 |
 
 ### R にない分布
@@ -206,10 +206,10 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `pbinom(36, 1e5, 0.01, log.p = TRUE)` | -Inf (内部でアンダーフロー、警告あり) | -851.68… |
 | `pbinom(1e16, 2e16, 0.5)` (2^53 を超え、x + 1 が丸めで x になる) | 0.5 (対称な I_p(x, x)) | 0.5000000028209479 = 1/2 + dbinom/2 (I_p(x + 1, n - x) = I_p(x, n - x) - (n - x)/n dbinom(x)。n - x も丸めでずれる場合は NaN)。`ppois` もこの範囲で同じ恒等式を使う (R の値と一致) |
 | `pnbinom(1e16, 1e16, 0.5)` (2^53 を超え、x + 1 が丸めでずれる) | 0.5 | 0.5000000028209479 = 1/2 + dnbinom (I_p(size, x + 1) = I_p(size, x) + dnbinom(x))。`qnbinom(0.5, 1e16, 0.5)` は R と同じく 1e16。極端な上側の裾で項が裾に対して分解できない場合は、丸めた x + 1 を使う (そこでは x の 1 の違いが結果の分解能より小さい) |
-| `pgeom(2^54, 1e-14, lower.tail = FALSE)` (2^53 を超え、x + 1 が丸めでずれる) | 0x1.13bd80f2f26d7p-260 (丸めた x + 1 を指数にした q^(x + 1)) | 0x1.13bd80f2f26d2p-260 (q^x q。正しく丸めた値は ...d1p-260。issue #327) |
+| `pgeom(2^54, 1e-14, lower.tail = FALSE)` (2^53 を超え、x + 1 が丸めでずれる) | 0x1.13bd80f2f26d7p-260 (丸めた x + 1 を指数にした q^(x + 1)) | 0x1.13bd80f2f26d2p-260 (q^x q。正しく丸めた値は ...d1p-260。Issue #327) |
 | `binom.test(0, 1e20)`、`poisson.test(0, r = 1e20)` (2^53 を超えるカウント) | エラー "result would be too long a vector" | p 値を返す (二分法は中点が端点に丸まったところで止める。以前は終わらなかった) |
-| `poisson.test(2^53 + 2, r = 2^53 + 2, alternative = "greater")` (2^53 を超え、x - 1 が丸めでずれる) | 0.50000000980826 (P[X >= x] を丸めた x - 1 の ppois(x - 1, upper) で計算) | 0.50000000140118 = P[X > x] + dpois(x)。真値は 1 次で 1/2 + 1/(3 sqrt(2 pi x))。両側の p 値の上側の裾も同じ (issue #323) |
-| `binom.test(2^53, 2^54, alternative = "greater")`、`binom.test(2^53 + 2, 2^54 + 4, alternative = "greater")` (2^53 を超え、x - 1 か n - (x - 1) が丸めでずれる) | 0.5、0.500000011889406 (丸めた引数の pbinom(x - 1, upper)) | 0.5000000029723516 = P[X > x] + dbinom(x) (真値 1/2 + dbinom(n/2)/2)。両側の p 値の上側の裾も同じ (issue #324) |
+| `poisson.test(2^53 + 2, r = 2^53 + 2, alternative = "greater")` (2^53 を超え、x - 1 が丸めでずれる) | 0.50000000980826 (P[X >= x] を丸めた x - 1 の ppois(x - 1, upper) で計算) | 0.50000000140118 = P[X > x] + dpois(x)。真値は 1 次で 1/2 + 1/(3 sqrt(2 pi x))。両側の p 値の上側の裾も同じ (Issue #323) |
+| `binom.test(2^53, 2^54, alternative = "greater")`、`binom.test(2^53 + 2, 2^54 + 4, alternative = "greater")` (2^53 を超え、x - 1 か n - (x - 1) が丸めでずれる) | 0.5、0.500000011889406 (丸めた引数の pbinom(x - 1, upper)) | 0.5000000029723516 = P[X > x] + dbinom(x) (真値 1/2 + dbinom(n/2)/2)。両側の p 値の上側の裾も同じ (Issue #324) |
 | `poisson.test(c(5, 5), T = c(1e308, 1e308))`、`T = c(1e-308, 1e-308)` | p 値 0 (p0 = r T1 / (r T1 + T2) = 0)、期待度数 NaN。率比 NaN | p 値 1、期待度数 5、率比 1 (和が溢れる・正規の範囲を下回るときは T2 / T1 の比で計算する) |
 | `binom.test(5, 10, conf.level = 1 - 1e-16)` と `poisson.test` (alpha が 1e-8 未満) | 上限を 1 - alpha から求め、桁が落ちる (1 - 1e-16 では 1 と Inf) | 上限を上側確率 alpha そのものから求める (0.99981、52.549)。alpha が 1e-8 以上なら R と同じ |
 | `var.test`、`prop.test`、`mantelhaen.test`、`t.test`、ICC、`cor.test`、一元配置の対比、lm の `confint`・`predict`、glm のプロファイル区間、`coxph`、`survfit` の区間も同じ (alpha が 1e-8 未満) | 1 - alpha や (1 + level) / 2 が 1 に丸まり、限界が 0・NaN・Inf | 上側確率 alpha を分位点関数に渡す |
@@ -233,8 +233,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 応答の単位が違う (1e6 倍や 1e-6 倍) lmerTest の Satterthwaite の自由度 | 1e6 倍で x の自由度が 31 から 7.4e8 (1e-6 倍で 0.19) になり、固有値の警告が出る。(theta, sigma) のヘッセ行列を絶対値 1e-8 で切るため | 尺度をそろえた座標 (theta は Z の列で、sigma は推定値に近い 2 の冪で割る) でヘッセ行列を切る。自由度・t・F・p はもとのデータと同じ |
 | 節点が 1e200 (や 1e-200) 規模の pracma の `barylag` | 節点の差の積が溢れる (0 に落ちる)。重みがすべて 0 になり、結果は NaN | 積を指数つきで持ち、重みを共通の 2 の冪でそろえる。0.5e200 での (x / 1e200)^2 は 0.25 |
 | pracma の `barylag(c(-1e308, 1e308), c(-1, 1), 0)` など、有限な節点の範囲が溢れる場合 | 節点の差が溢れて NaN | 重みと差を x / 2 の座標で作る (補間値は x の尺度によらない)。0 |
-| pracma の `barylag(c(0, 2^-250, 2^-249, 2^-600), c(1, 0, 0, 0), 2^-1074)` (節点の差の積 2^-1099 がアンダーフローし、重みを点との差で割った項が溢れる。issue #402) | NaN | 1 (範囲の外に出るときだけ、積を 2 つの因子それぞれ m 2^f にして掛け、商の項を m 2^e にして最大の項の 2 の冪で割る) |
-| pracma の `barylag(c(0, 2^-250, 2^-249, 2^-600), c(0, 2^-250, 2^-249, 2^-600), 2^-300)` (y = x。第 2 形の分母の項 -2^300 と 2^300 が厳密に打ち消して 0 になり、残りはその丸め誤差より小さい。issue #467) | NaN (以前の rStats.js は Infinity) | 2^-300 (分母が項の絶対値の和の 2^-100 倍より小さく、分子は自分の絶対値の和の 2^-26 倍以上残るときだけ、第 1 形 l(x) Σ w_j y_j / (x - x_j) を因子を m 2^e にして求める。定数のデータなど分子も打ち消す場合は第 2 形のまま) |
+| pracma の `barylag(c(0, 2^-250, 2^-249, 2^-600), c(1, 0, 0, 0), 2^-1074)` (節点の差の積 2^-1099 がアンダーフローし、重みを点との差で割った項が溢れる。Issue #402) | NaN | 1 (範囲の外に出るときだけ、積を 2 つの因子それぞれ m 2^f にして掛け、商の項を m 2^e にして最大の項の 2 の冪で割る) |
+| pracma の `barylag(c(0, 2^-250, 2^-249, 2^-600), c(0, 2^-250, 2^-249, 2^-600), 2^-300)` (y = x。第 2 形の分母の項 -2^300 と 2^300 が厳密に打ち消して 0 になり、残りはその丸め誤差より小さい。Issue #467) | NaN (以前の rStats.js は Infinity) | 2^-300 (分母が項の絶対値の和の 2^-100 倍より小さく、分子は自分の絶対値の和の 2^-26 倍以上残るときだけ、第 1 形 l(x) Σ w_j y_j / (x - x_j) を因子を m 2^e にして求める。定数のデータなど分子も打ち消す場合は第 2 形のまま) |
 | 負荷量がすべて 0 の行 (ほかと無相関の変数) がある `varimax` と `factanal` (varimax・promax) | "infinite or missing values in 'x'"。Kaiser の正規化でその行を 0 で割る | ほかの行の回転 (R でそれらの行だけを varimax したものと同じ)。0 の行は 0 のまま |
 | scale が 5.7e307 を超える `dcauchy` (`dcauchy(1.1e308, scale = 1e308)`) | 0。π × scale が溢れる | 非正規化数の密度 1.44e-309。その場合は 1/π を先に計算する |
 | すべての重みが 1e-308 未満の `lm` | 標準誤差 Inf (5e-324 で NaN)、t 0、p 1 | 重み 1 と同じ値 ((R'R)^-1 を、重みを 2 の冪で割った尺度で作る) |
@@ -245,8 +245,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `qbeta(-1e5, 1e-10, 100, lower.tail = FALSE, log.p = TRUE)` | NaN | 1 (真の答えを丸めると 1) |
 | `qbeta(2.25e-265, 5.68e-37, 5643.4, lower.tail = FALSE)` (極小の shape) | 1 (警告つき) | 0.08797712670529832 |
 | `df(1.33e-322, 1.04, 206159)` など非正規化数の x | NaN | 3.77e153 (m x / n の log から計算) |
-| df1 < 2 の `df(Inf, df1, df2)` (`df(Inf, 1, 1)`、`df(Inf, Inf, 1)`) と `df(Inf, df1, finite, ncp)` | NaN | 0 (log は -Inf)。密度はどの df1 でも x -> Inf で 0 に近づく (issue #493) |
-| dgamma(1/x) か x^2 が正規化数の範囲を外れる `df(x, Inf, df2)`: `df(1e-300, Inf, 5)`、`df(1e160, Inf, 1)` | NaN (0 / 0)、0 | 0、3.9894228040143e-241 (Rmpfr は ...433e-241)。そこでは線形の密度を log から計算 (issue #493) |
+| df1 < 2 の `df(Inf, df1, df2)` (`df(Inf, 1, 1)`、`df(Inf, Inf, 1)`) と `df(Inf, df1, finite, ncp)` | NaN | 0 (log は -Inf)。密度はどの df1 でも x -> Inf で 0 に近づく (Issue #493) |
+| dgamma(1/x) か x^2 が正規化数の範囲を外れる `df(x, Inf, df2)`: `df(1e-300, Inf, 5)`、`df(1e160, Inf, 1)` | NaN (0 / 0)、0 | 0、3.9894228040143e-241 (Rmpfr は ...433e-241)。そこでは線形の密度を log から計算 (Issue #493) |
 | `pf(5.43e-319, 1.04, 206159)` (非正規化数の x) | 1.0014e-166 | 7.3742e-167 |
 | `dcauchy(1e300, log = TRUE)`、`pcauchy(-1e300, scale = 1e-300, log.p = TRUE)` | -Inf | -1382.69… |
 | `dweibull(1e-300, 3, log = TRUE)` | -Inf | -1380.45… |
@@ -266,7 +266,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `pf(2e-323, 0.0121, Inf)` (q df1 が正規化数の範囲を下回る) | 0 | 0.01091389160021212 |
 | `qf(-385.76, 1.05, 1.14e264, ncp = 1.65e262, log.p = TRUE)` | Inf (警告つき) | 1.5704712908151466e262 (非心 χ² 極限) |
 | `pf(2.5e300, 1827.5, 0.165, ncp = 3.66e307)` | NaN (警告つき) | 7.4814091599854485e-292 |
-| `qchisq(0.5, 1e308, ncp = 1e308)`、`qchisq(0.5, 1e308, ncp = 7e307)` (df + ncp が溢れる、または分位点が最大の double の近く。issue #157) | NaN と警告 (`qchisq(0.5, 5e307, ncp = 5e307)` も) | Infinity (平均 2e308、標準偏差 2.4e154。分位点は double の範囲を超える)、1.7000000000000001e308 (分布関数がその double で 0 から 1 に飛ぶ)。括りの上端は最大の double で止め、そこで目標に届かなければ Infinity |
+| `qchisq(0.5, 1e308, ncp = 1e308)`、`qchisq(0.5, 1e308, ncp = 7e307)` (df + ncp が溢れる、または分位点が最大の double の近く。Issue #157) | NaN と警告 (`qchisq(0.5, 5e307, ncp = 5e307)` も) | Infinity (平均 2e308、標準偏差 2.4e154。分位点は double の範囲を超える)、1.7000000000000001e308 (分布関数がその double で 0 から 1 に飛ぶ)。括りの上端は最大の double で止め、そこで目標に届かなければ Infinity |
 | `beta(1e-310, 1e-310)` (B(a, a) > 2/a がオーバーフロー) | NaN (警告つき) | Inf |
 | `qhyper(1 - 1e-15, 1e4, 1e5, 5000)` | 5000 | 617 (定義どおり) |
 | n = 179 の 3 × 5 表に対する `fisher.test` | 既定の workspace で FEXACT error 7 | 0.2023726720757 (0.65 秒) |
@@ -302,8 +302,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `scale(c(1e200, 2e200, 3e200))`、`scale(c(1e-200, 2e-200, 3e-200))` | scale が Inf または 0、標準化値が 0 または ±Inf | -1, 0, 1 (二乗和をスケーリング) |
 | `runif(n, -1e308, 1e308)` | Inf (max - min が溢れる) | 範囲内の値 |
 | 1e308 規模の行列の `kappa()` (例 `1e308 * matrix(c(1, 0, 1, 1), 2)`。既定の QR の推定、`method = "direct", triangular = TRUE`、`exact = TRUE, norm = "1"`) | エラー ("NA/NaN/Inf in foreign function call")、Inf、エラー ("computationally singular") | 元の行列の条件数 (3.33、3.33、4)。先に行列を 2 の冪で割る |
-| `optimHess(0, function(x) 1e200 * x, function(x) 1e200, control = list(parscale = 1e200, fnscale = 1e300))` (解析的な勾配と `parscale` の積が溢れる。尺度を変えた勾配 1e100 は有限) | NaN (Inf - Inf) | 0 (そのときだけ勾配を先に `fnscale` で割る。issue #498)。`optim` の `gr` の尺度変換も同じ |
-| `optimHess(0, function(x) 0.5e-200 * x * x, function(x) 1e-200 * x, control = list(parscale = 1e200, ndeps = 1e200))` と `optimHess(0, function(x) 0.5e8 * x * x, function(x) 1e8 * x, control = list(parscale = 1e200, ndeps = 1e100))` (ヘッセ行列は表せるのに、分母 2 step parscale_i parscale_j か尺度を変えた勾配の差が溢れる) | 0 と Inf | 1e-200 と 1e8 (そのときだけ、各因子を 2 の冪でそろえて商を作る。issue #503) |
+| `optimHess(0, function(x) 1e200 * x, function(x) 1e200, control = list(parscale = 1e200, fnscale = 1e300))` (解析的な勾配と `parscale` の積が溢れる。尺度を変えた勾配 1e100 は有限) | NaN (Inf - Inf) | 0 (そのときだけ勾配を先に `fnscale` で割る。Issue #498)。`optim` の `gr` の尺度変換も同じ |
+| `optimHess(0, function(x) 0.5e-200 * x * x, function(x) 1e-200 * x, control = list(parscale = 1e200, ndeps = 1e200))` と `optimHess(0, function(x) 0.5e8 * x * x, function(x) 1e8 * x, control = list(parscale = 1e200, ndeps = 1e100))` (ヘッセ行列は表せるのに、分母 2 step parscale_i parscale_j か尺度を変えた勾配の差が溢れる) | 0 と Inf | 1e-200 と 1e8 (そのときだけ、各因子を 2 の冪でそろえて商を作る。Issue #503) |
 | `optimize(function(x) x^2, c(-1, 1), tol = 5e-324)` (tol/3 がアンダーフローする tol) | 返らない (サブノーマルの間でステップが 0 に丸まる) | 0 (ステップで点が動かなくなったところで終える) |
 | `seq(1, 2, by = Inf)`; `seq(1, 2, by = -Inf)` (`to` と逆向きの刻み) | NaN; NaN | 1; エラー "wrong sign in 'by' argument" |
 | `seq(-1e308, 1e308, by = 5e307)` | 中央の値が -1.9958e292 | 0 (端点の差が溢れるので、半分にした端点の値を 2 倍する) |
@@ -318,12 +318,12 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `mcnemar.test(matrix(c(0, 8e307, 1e308, 0), 2))` (不一致の組の和がオーバーフロー) | NaN | 2.22e306 (その組の項を、差は 2^520、セルは 2^1040 を単位として計算。尺度の変更は厳密で、戻す必要もない) |
 | `prop.test(c(6e307, 4e307), c(1e308, 1e308), correct = FALSE)` (試行数の合計がオーバーフロー) | Inf (プールした割合が 0) | 8e306 (プールした割合を、両方の合計を 2^s (2^s は群の数以上) を単位にして計算) |
 | `chisq.test(c(1e308, 1e308))` など、度数の合計がオーバーフローする適合度検定 | NaN (期待度数が Inf) | 統計量 0、期待度数 1e308 (度数を 2^s (2^s はセルの数以上、s は偶数) を単位にして計算し、期待度数と統計量は 2^s 倍、残差は 2^(s/2) 倍で戻す) |
-| `chisq.test(c(1, 1), p = c(1e308, 1e308), rescale.p = TRUE)` (有限の重みの合計が溢れる) | 統計量 Inf、p 値 0 (Inf で割った重みがすべて 0) | 統計量 0、p 値 1 (重みを 2^e (2^e はセルの数以上) を単位にしてから割る。issue #303) |
+| `chisq.test(c(1, 1), p = c(1e308, 1e308), rescale.p = TRUE)` (有限の重みの合計が溢れる) | 統計量 Inf、p 値 0 (Inf で割った重みがすべて 0) | 統計量 0、p 値 1 (重みを 2^e (2^e はセルの数以上) を単位にしてから割る。Issue #303) |
 | 応答の単位を変えた (1e-4 倍、1e±100 程度) afex の `aov_ez` と `mauchly.test` | 球面性の補正と Mauchly 検定が消える (car の固有値の絶対しきい値)、または W が NaN | 尺度によらず同じ ε と W (ランクは最大固有値とデータの平方和に対する相対値で判定。W は det(U / (trace(U)/p)) で計算) |
 | 単位が大きく違う共変量の `coxph(Surv(time, status) ~ x1 + x2)` (x1 を 1e7 倍や 1e-6 倍、x2 はそのまま) | Wald 検定で共変量が 1 つ落ちる (3.36 が 0.31 や 3.08 になる。元の単位の分散のコレスキー分解で、ピボットが相対許容幅を下回る)。x1 を 1e200 倍すると標準誤差がアンダーフローして 0 (z は Inf、p は 0)、1e-160 倍すると "infinite argument in coxph.wtest" | 尺度によらず同じ z、p、Wald 検定 (分散・z・Wald 検定・無限の係数の判定を、各共変量の尺度の 2 の冪を単位として計算する。係数・分散・標準誤差は出力の直前に元の単位に戻す) |
 | 1e±200 程度のデータでの `zTest` (BSDA の `z.test`)、effectsize の `cohens_d`/`hedges_g`、irr の `icc`、psych の `alpha`、nortest の `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`、`aov`、`TukeyHSD`、car の `leveneTest`、`lm`、`anova`、`aov(... + Error())`、afex の `ges` | NaN、0、±Inf、または異なる検定結果 (データの二乗がオーバーフロー・アンダーフロー) | 尺度によらず同じ結果 (平均を引く前にデータを 2 の冪で正規化。平方和、MSE、標準誤差、区間は出力時に単位を戻す) |
 | `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` は double の最大値)、double の最大値に近い符号の異なる値の対応のある `t.test` | -Inf か NaN (正規化の前に偏差や差がオーバーフロー) | 約 -2.3969、相関は -1。対応のある検定は他の尺度と同じ結果 |
-| `t.test(x, mu = 1e100)`、`t.test(1:4, mu = 1e6)` (mu が区間より桁違いに大きい) | 区間が [0, 0]。[0.44573974329978228, 4.5542602567002177] で 1.4e-10 ずれる (mu + (t ± q) stdErr の形で計算。mu が無限大なら NaN) | 推定値を中心とする区間 (mu に依存しない): [0.44573974323947896, 4.5542602567605215]。mu か t stdErr が abs(推定値) + q stdErr の 16 倍を超えるとき、または R の形の端が有限でないときだけ。それ以外は R の形で R と同じビット (review 3 の再修正) |
+| `t.test(x, mu = 1e100)`、`t.test(1:4, mu = 1e6)` (mu が区間より桁違いに大きい) | 区間が [0, 0]。[0.44573974329978228, 4.5542602567002177] で 1.4e-10 ずれる (mu + (t ± q) stdErr の形で計算。mu が無限大なら NaN) | 推定値を中心とする区間 (mu に依存しない): [0.44573974323947896, 4.5542602567605215]。mu か t stdErr が abs(推定値) + q stdErr の 16 倍を超えるとき、または R の形の端が有限でないときだけ。それ以外は R の形で R と同じビット |
 | 応答が 1e±200 程度での car の `Anova` (型 II・III)、`predict(lm)` の標準誤差と区間、gaussian の `glm` とその `summary`・`residuals`・`rstandard`・`cooks.distance`・`predict`・`anova`・`confint`、DescTools の `CoefVar` と `MeanAD` | Inf、0、NaN、"residual sum of squares is 0"、または "no valid set of coefficients has been found" | 尺度によらず同じ結果 (応答を 2 の冪で正規化。glm は gaussian と定数分散の quasi の identity link) |
 | `pnorm(1e308, -1e308, 1.7e308)`、`qnorm(0.9, -1e308, 1.7e308)`、および `plogis`/`qlogis`、`pcauchy`/`qcauchy`、extraDistr の `plaplace`/`qlaplace`/`dlaplace` で、結果は範囲内なのに x − location や scale z が溢れる場合 | 1、Inf、0、-Inf (pnorm 1、dnorm 0、qnorm Inf を R 4.5.2 で確認) | 0.8803、1.1786e308 (引き算や積の前に、x と location を半分に、または location と scale を 2 の冪で割る) |
 | 欠測値のあるブロック (行) を含む `quade.test(y)`。例: `y <- rbind(c(10,12,15), c(11,14,16), c(12,NA,17), c(13,15,18), c(14,16,20))` | F = 10、df (2, 8)、p = 0.00666。除いたブロックも b に数える (B = ΣS_j^2 / b、(b − 1) B / (A − B)、df (b − 1)(k − 1)) ので、同じデータの `quade.test(y[-3, ])` (F = 25、df (2, 6)、p = 0.00123) と結果が違う。R のバグ (4.5.2 で実行して確認) | 完全なブロックだけでの検定: F = 25、df (2, 6)、p = 0.00123 (ブロックを除いたデータと同じ) |
@@ -342,11 +342,11 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `cooks.distance(glm(y ~ x, binomial), dispersion = 1e308)`、(r / (1 - h))^2 が溢れる Cook の距離 (事前の重み 1.5e306 の binomial の当てはめ。R は当てはめられない) | すべての行で 0 (h / (dispersion p) がアンダーフロー) | 1.4e-309、…、9.0e-307 (dispersion 1 の距離を 1e308 で割った値) と 1.35e308。二乗が溢れるか h / (dispersion p) が正規化数の下に落ちるときは、残差と dispersion を 2 の冪を単位にして計算する |
 | 作業重み w mu.eta(eta)^2 / V(mu) の途中が、重みは範囲内なのに溢れるかアンダーフローする `glm`: poisson の `y = c(1e308, 1e308)`、Gamma (inverse リンク) の `y = c(1e308, 1e308)`、平均 1e200 か 1e-200 の inverse.gaussian (log リンク)、平均 1e-320 の poisson (offset `log(1e-320)`) | "NA/NaN/Inf in 'x'" (poisson、Gamma)。作業重み NaN (平均 1e200)。平均を 2.2e-16 に切り上げて収束、deviance 2e200 (平均 1e-200)。平均と重みを 2.2e-16 に切り上げる (1e-320) | 当てはまる: log(1e308) = 709.196 で null deviance 0、1e-308、重み 1/mu = 1e-200、平均 1e-200、重み 1e-320。mu.eta^2、V(mu)、w mu.eta^2 が正規化数の範囲の外のときだけ、mu.eta = c mu^a と V = mu^p から重みを sqrt(w) abs(c) mu^((2a - p)/2) で作る (identity・log・inverse・sqrt・1/mu^2・power リンク、分散 1・mu・mu^2・mu^3)。作業残差・Pearson 残差も同じ。正の平均で V = mu^p がアンダーフローしても "0s in V(mu)" にしない。null モデルの平均は、重み付きの和が溢れるときだけ応答も 2 の冪で割る。binomial のリンクは R の式のまま。Gamma の例では作業重み mu^2 = 1e616 そのものが double で表せないので、重みは Inf、dispersion と標準誤差は NaN |
 | `shapiro.test(c(-1e308, 0, 1e308))` (範囲が溢れる) | NaN | W = 1。`shapiro.test(c(-1, 0, 1))` と同じ (先にデータを 2 の冪で割る) |
-| polycor の `polyserial(x * 1e200, y, std.err = TRUE)` (平方和が溢れる) | rho 0、chisq NaN | x のときと同じ値 (レビューの例では rho 0.589) |
+| polycor の `polyserial(x * 1e200, y, std.err = TRUE)` (平方和が溢れる) | rho 0、chisq NaN | x のときと同じ値 (たとえば rho 0.589) |
 | `rexp(n, rate = 1e-310)` (正の rate で 1 / rate が溢れる) | 警告付きの NaN (乱数は引かない) | 乱数 `exp_rand() / rate` (指数乱数がおよそ 0.018 未満でなければ Inf)。1 個につき指数乱数を 1 個引く |
-| `set.seed(7)` の後の `rnorm(1, mean = -1e308, sd = 1e308)` (sd Z は溢れるが mean + sd Z は溢れない。issue #396) | Inf | 1.2872471613405238e308 (mean + sd Z が有限でないときだけ、mean と sd を半分にして同じ和を作り 2 倍する。乱数は同じ) |
-| `set.seed(19)` の後の `rweibull(1, shape = 0.001, scale = 2^-1074)` ((-log u)^(1/shape) は溢れるが乱数の値は溢れない。issue #408) | Inf | 103020481.1280669 (冪が溢れるときだけ、scale (-log u)^(1/shape) を double-double の log から作る。一様乱数は同じ) |
-| `set.seed(1)` の後の `rgamma(1, 0.001, scale = 2^1023)` と extraDistr の `rinvgamma(1, 0.001, 2^-1023)` (形状が 1 未満で、単位尺度の p^(1/shape) はアンダーフローするが尺度を掛けた値はしない。issue #409) | 0 と Inf | 1.5563963702389774e-268 と 6.4250985103907345e267 (p^(1/shape) が正規化数の範囲より下で scale > 1 のときだけ、scale p^(1/shape) を double-double の log から作る。乱数と採否は同じ) |
+| `set.seed(7)` の後の `rnorm(1, mean = -1e308, sd = 1e308)` (sd Z は溢れるが mean + sd Z は溢れない。Issue #396) | Inf | 1.2872471613405238e308 (mean + sd Z が有限でないときだけ、mean と sd を半分にして同じ和を作り 2 倍する。乱数は同じ) |
+| `set.seed(19)` の後の `rweibull(1, shape = 0.001, scale = 2^-1074)` ((-log u)^(1/shape) は溢れるが乱数の値は溢れない。Issue #408) | Inf | 103020481.1280669 (冪が溢れるときだけ、scale (-log u)^(1/shape) を double-double の log から作る。一様乱数は同じ) |
+| `set.seed(1)` の後の `rgamma(1, 0.001, scale = 2^1023)` と extraDistr の `rinvgamma(1, 0.001, 2^-1023)` (形状が 1 未満で、単位尺度の p^(1/shape) はアンダーフローするが尺度を掛けた値はしない。Issue #409) | 0 と Inf | 1.5563963702389774e-268 と 6.4250985103907345e267 (p^(1/shape) が正規化数の範囲より下で scale > 1 のときだけ、scale p^(1/shape) を double-double の log から作る。乱数と採否は同じ) |
 | `rcond(diag(c(1, 1e-310)))` など、逆行列のノルムが double の範囲を超える正則な行列 (`triangular = TRUE`、正方でない行列、`solve` の条件数の検査も) | 0 | 1e-310。推定の途中で逆行列との積が溢れたら、すべてのベクトルを 2 の冪で割って (厳密) 推定し直し、結果を戻す。それでも溢れるときだけ 0 |
 | `backsolve(diag(1e-308, 2), c(1, 2))`、`forwardsolve(..., transpose = TRUE)` (`solve` も) | NaN、Inf (溢れた成分との 0 * Inf)。`solve` は rcond = 0 で止まる | 1e308、Inf。溢れた成分は有限の値の代わりなので、厳密に 0 の係数は飛ばす |
 | `solve(1e308 * matrix(c(1, 1, 1, -1), 2), c(1, 0))` と逆行列 (消去で -1e308 - 1e308 が溢れる)、`solve(matrix(c(1, 1, 1, -1), 2), c(1.7e308, -1.7e308))` (代入で溢れる) | (1e-308, 0)、0 を含む逆行列。-Inf、Inf | (5e-309, 5e-309)、逆行列 (±5e-309)。(0, 1.7e308)。入力が有限で U か解が有限でないときは、行列を 2 の冪で割った複製 (条件数の検査と同じもの) の LU で解く。必要なら右辺も最大の要素の 2 の冪で割り、最後に 1 回で戻す |
@@ -365,14 +365,14 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `optimize(function(x) (x / 1e308 - 1.05)^2, c(1e308, 1.1e308))` (lower + upper が溢れる) | 終わらない (中点が Inf) | 1.05e308 (x/2 の座標で探す) |
 | `optimize(function(x) (x / 1e308 + 1.6)^2, c(-1.7e308, 1e306))` (lower + upper は有限だが、端点が `.Machine$double.xmax / 2` を超え、その近くまで狭めた区間の中点が溢れる。Issue #212) | 終わらない | -1.5999999916130706e308 (評価 38 回。端点が最大の double の半分を超えるときも x/2 の座標で探す) |
 | `approx(c(-1e308, 1e308), c(0, 1), n = 3)`、`approx(c(0, 1), c(-1e308, 1e308), xout = 0.5)`、`spline(c(-1e308, 1e308), c(0, 1), n = 3)` (有限な値の差が溢れる) | y が 0, 0, 1。Inf。spline は 0, 0, NaN | 0, 0.5, 1。0。0, 0.5, 1 (差を半分の座標で取る。spline は x / 2^k で作る) |
-| `splinefun(c(-1e308, 1e308), c(0, 1))(0)` (全方式)、`splinefun(c(-1.5e308, 0, 1.5e308), c(0, 1, 0), method = "periodic")(0)`、`splinefunH(c(-1e308, 1e308), c(0, 1), c(0, 0))(0)` (節点の範囲が溢れる。issue #125) | 0 (fmm、natural)、NaN (hyman、monoH.FC、splinefunH)。periodic は 0 | 0.5。periodic は 1 (x / 2^k で作り、d 階の導関数は 2^(-d k) 倍で戻す。splinefunH は与えた傾きをそのまま使う)。`spline` も同じ条件 (隣の間隔だけでなく範囲) で判定する |
-| `spline(c(0, 2), c(-1e308, 1e308), xout = 1)`、`splinefun(c(0, 2), c(-1e308, 1e308))(1)` (節点 2 個の fmm、natural)、`splinefunH(c(0, 2), c(-1e308, 1e308), c(0, 0))(1, deriv = 1)` (y の差が溢れる。issue #380) | Inf | 0。0。1.5e308 (割線の傾きを半分にした y から作る) |
-| `splinefun(c(0, 1, 5), c(0, 2e-199, 4e-199), method = "hyman")(5, deriv = 1)` (隣り合う 2 つの割線の積 2.5e-399 がアンダーフローする。issue #398) | -7e-200 (リミッタが fmm の傾きの符号を使い、増加するデータで負の微分になる) | 0 (割線の積ではなく符号どうしを比べる) |
-| `splinefunH(c(0, 1e200), c(0, 0), c(1e200, 1e200))(5e199, deriv = 3)` (h^2 が溢れる。issue #399) | 12 (R は 3 階微分を h で 1 回しか割らない。下の「3 次 Hermite スプラインの 3 階微分」を参照) | 1.2e-199 (h^2 が正規化数でないときだけ h で 2 回割る。以前は 0) |
-| `splinefunH(c(0, 1e200), c(0, 0), c(1e200, 1e200))(1e100)` (基底の因子 1e-100 を掛ける前に h m = 1e400 が溢れる。issue #400) | NaN | 1e300 (その項が有限でないときだけ、h、m、基底の因子を指数を分けて掛ける) |
-| `splinefunH(c(0, 1e-200), c(0, 1e200), c(0, 0))(1e-300, deriv = 1)` (基底の因子 6e-100 を掛ける前に割線 1e400 が溢れる。issue #401) | Inf | 6e300 (有限な y で割線が有限でないときだけ、差と基底の因子の積を h で割る計算を指数を分けて行う) |
-| `splinefunH(c(0, 1e-200), c(0, 1e200), c(0, 0))(5e-201, deriv = 2)` (基底の因子 6 - 12 t = 0 を掛ける前に割線 1e400 が溢れる。issue #466) | NaN | 0 (#401 の 1 階微分と同じく、差と基底の因子の積を h^2 で割る計算を指数を分けて行う) |
-| `splinefun(c(0, 1, 2), c(0, 1e-200, 1e200), method = "monoH.FC")(0.5)` (傾きと割線の比 5e399 が溢れ、Fritsch-Carlson の判定 `Inf < Inf` でリミッタが飛ばされる。issue #397) | -6.25e198 (単調でない) | 1.25e-201 (比やその積が溢れるときだけ、比を共通の 2 の冪で割って判定し、制限した傾きを作る) |
+| `splinefun(c(-1e308, 1e308), c(0, 1))(0)` (全方式)、`splinefun(c(-1.5e308, 0, 1.5e308), c(0, 1, 0), method = "periodic")(0)`、`splinefunH(c(-1e308, 1e308), c(0, 1), c(0, 0))(0)` (節点の範囲が溢れる。Issue #125) | 0 (fmm、natural)、NaN (hyman、monoH.FC、splinefunH)。periodic は 0 | 0.5。periodic は 1 (x / 2^k で作り、d 階の導関数は 2^(-d k) 倍で戻す。splinefunH は与えた傾きをそのまま使う)。`spline` も同じ条件 (隣の間隔だけでなく範囲) で判定する |
+| `spline(c(0, 2), c(-1e308, 1e308), xout = 1)`、`splinefun(c(0, 2), c(-1e308, 1e308))(1)` (節点 2 個の fmm、natural)、`splinefunH(c(0, 2), c(-1e308, 1e308), c(0, 0))(1, deriv = 1)` (y の差が溢れる。Issue #380) | Inf | 0。0。1.5e308 (割線の傾きを半分にした y から作る) |
+| `splinefun(c(0, 1, 5), c(0, 2e-199, 4e-199), method = "hyman")(5, deriv = 1)` (隣り合う 2 つの割線の積 2.5e-399 がアンダーフローする。Issue #398) | -7e-200 (リミッタが fmm の傾きの符号を使い、増加するデータで負の微分になる) | 0 (割線の積ではなく符号どうしを比べる) |
+| `splinefunH(c(0, 1e200), c(0, 0), c(1e200, 1e200))(5e199, deriv = 3)` (h^2 が溢れる。Issue #399) | 12 (R は 3 階微分を h で 1 回しか割らない。下の「3 次 Hermite スプラインの 3 階微分」を参照) | 1.2e-199 (h^2 が正規化数でないときだけ h で 2 回割る。以前は 0) |
+| `splinefunH(c(0, 1e200), c(0, 0), c(1e200, 1e200))(1e100)` (基底の因子 1e-100 を掛ける前に h m = 1e400 が溢れる。Issue #400) | NaN | 1e300 (その項が有限でないときだけ、h、m、基底の因子を指数を分けて掛ける) |
+| `splinefunH(c(0, 1e-200), c(0, 1e200), c(0, 0))(1e-300, deriv = 1)` (基底の因子 6e-100 を掛ける前に割線 1e400 が溢れる。Issue #401) | Inf | 6e300 (有限な y で割線が有限でないときだけ、差と基底の因子の積を h で割る計算を指数を分けて行う) |
+| `splinefunH(c(0, 1e-200), c(0, 1e200), c(0, 0))(5e-201, deriv = 2)` (基底の因子 6 - 12 t = 0 を掛ける前に割線 1e400 が溢れる。Issue #466) | NaN | 0 (#401 の 1 階微分と同じく、差と基底の因子の積を h^2 で割る計算を指数を分けて行う) |
+| `splinefun(c(0, 1, 2), c(0, 1e-200, 1e200), method = "monoH.FC")(0.5)` (傾きと割線の比 5e399 が溢れ、Fritsch-Carlson の判定 `Inf < Inf` でリミッタが飛ばされる。Issue #397) | -6.25e198 (単調でない) | 1.25e-201 (比やその積が溢れるときだけ、比を共通の 2 の冪で割って判定し、制限した傾きを作る) |
 | `rbeta(n, 1e308, 1e308, ncp = 0)` (2 shape が溢れる) | NaN | 0.5 (χ² 乱数を半分にして作る。引く乱数は R と同じ) |
 | `rgeom(n, 1e-309)`、`rnbinom(n, 1, prob = 1e-309)`、`rnbinom(n, 0.5, mu = 1e308)` ((1 - p) / p や mu / size が溢れる) | NA または NaN (その後の乱数を引かない) | 乱数の値 (`set.seed(4)` なら 1.716e308 など)。指数乱数や尺度 1 のガンマ乱数に 1 - p を掛けて p で割る。平均そのものが溢れるときだけ Inf。Poisson の段の乱数は引くので、R と乱数列がずれるのはこの場合だけ |
 | `rmultinom(n, size, c(0.5, 0.5, 1e-16))` (確率の和が double で 1 になる) | 2 番目の区分が残りをすべて取り (p = 1)、3 番目は引かれない | 2 番目は 0.5 / (0.5 + 1e-16) の二項乱数 (後ろの区分の確率を後ろから足した和で割る)。R と乱数列がずれるのはこうした場合だけ |
@@ -380,19 +380,19 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `pwr.chisq.test(w = 1e200, N = 100, df = 3)`、`pwr.f2.test(f2 = 1e308)`、`pwr.anova.test(f = 1e200)` (非心度が溢れる) | NaN | 検出力の極限 1。`powerAnovaTest` は、積だけが溢れる場合は between.var / within.var を先に計算する |
 | `pwr.2p2n.test(h = 1e-100, n1 = 1e200, n2 = 1e200)` (n1 n2 が溢れる) | 1 | 0.10895461755061556。積が溢れる場合 (有限の標本サイズ) は、実効的な標本サイズ n1 n2 / (n1 + n2) を a / (1 + a / b) (a <= b) で作る |
 | `ES.w1(c(0.5, 0.5, 0), c(0.5, 0.5, 0))` や、空の行・列がある `ES.w2` (両方の確率が 0 のセル) | NaN (0 / 0) | そのセルは 0 を足す (ここでは 0)。p0 = 0 < p1 は R と同じく Inf |
-| `ES.w1(c(1e-320, 1), c(1e-200, 1))` ((p1 - p0)^2 がアンダーフローする。issue #264)、`ES.w1(c(0, 1), c(1e-300, 1))` | 0。NaN (0 / 0) | 1.0000055664551364e-40 (Rmpfr 1.00000556645513627e-40)。Inf (p0 = 0 < p1。差が大きいときと同じ)。差の 2 乗が正規化数の範囲より小さいときだけ、項を (d / sqrt(p0))^2 で計算する |
-| `ES.w2(matrix(c(1e-200, 0, 0, 1), 2))` (独立のときのセルの確率 r c = 1e-400 がアンダーフローする。issue #265)、`ES.w2(matrix(c(1e-160, 1e-170, 1e-170, 1), 2))` (r c が非正規化数) | NaN (0 / 0)。1 | 1。0.9999999998999998 (Rmpfr 0.99999999989999997)。r c が正規化数の範囲より小さいとき (行和・列和は 0 でない) だけ、項を行和・列和の平方根から (p / sqrt(r c) - sqrt(r c))^2 で計算する |
-| `pwr.r.test(n = 4, r = 0.5, sig.level = 1e-320)` (t の臨界値 7.07e159 (自由度 2) の 2 乗が溢れる。issue #269) | NaN (R の `qt` もこの非正規化数の確率では Inf を返す) | 0。t が有限で t^2 + n - 2 が溢れるときだけ、臨界相関を 1 / sqrt(1 + ((n - 2) / t) / t) で計算し (ここでは 1)、検出力は 0 にアンダーフローする |
-| `power.anova.test(groups = 3, n = 1e308, between.var = 1, within.var = 1e308)` ((groups - 1) n が溢れる。非心度は 2。issue #272) と、そこで `between.var = 0` | NaN。NaN | 0.2255449157695638 (非心度 2・自由度 2 の R の `pchisq` は 0.22554491576956397。df2 は Inf)。0.05 (非心度 0)。比を先に計算しても (groups - 1) n between.var / within.var が有限でないときだけ、4 つの因子を 2 の冪でそろえて掛ける |
-| `power.anova.test(groups = 1e200, n = 1e200, between.var = 1e8, within.var = 1e308)` (df1 = 1e200、df2 = Inf、非心度 1e100。issue #272) と `power.anova.test(groups = 1e17, n = 2, between.var = sqrt(1e17) / 1e17, within.var = 1)` (両方の自由度が 1e16 を超える) | NaN。1 (pnchisq が収束しない警告つき) | 0.17418726161793208 (pnorm(qnorm(0.95) - 1 / sqrt(2), upper) = 0.1741872616179323 と O(1e-100) まで同じ。修正前は 0.760)。0.2595110241630547 (256 ビットの参照値は 0.25951102181670718。修正前は 0.2595111267699508)。両方の自由度が 1e16 を超えるとき (groups - 1 > 1e16) は、`pwr.anova.test`・`pwr.f2.test` (#200、#202) と同じく F の正規近似の検出力を返す |
-| `pwr.f2.test(u = 1e308, v = 1e308, f2 = 1e-308)` (u + v が溢れる。非心度は 2。issue #202) と `pwr.f2.test(u = 1e24, v = 1e24, f2 = 1e-12)` (両方の自由度が 1e16 を超える) | NaN。1 (pnchisq が収束しない警告つき) | 0.04999999999999999 (極限は 0.05 + 1e-155)。0.25951102284186195 (修正前は 0.2591899066123998、1e32 以上では 0)。有限の u + v が溢れるときだけ、非心度を 2 f2 (u / 2 + v / 2 + 0.5) で計算する。両方の自由度が 1e16 を超えると F の臨界値は double で 1 より先の桁が数桁しか残らない (約 1e33 より上では 1 に丸まる) ので、F の正規近似 (平均 1 + ncp / u、分散 2 (1 + 2 ncp / u) / u + 2 (1 + ncp / u)^2 / v) の検出力を返す。近似の誤差は O(1 / sqrt(u)) で、Rmpfr と比べて u = v = 1e17 で 2.3e-9、1e20 で 7e-11 (厳密な経路の pf(qf(...)) はそれぞれ 1e-7、3e-6 ずれていた。R はそこで 1 を返し、警告が出る) |
-| `pwr.anova.test(k = 1e160, n = 1e160, f = 1e-160)` (k n が溢れる。非心度は 1。issue #200)、`pwr.anova.test(k = 3, n = 1e308, f = 1e-154)`、`pwr.anova.test(k = 1e40, n = 2, f = 1e-10)` (両方の自由度が 1e16 を超える) | NaN。NaN。1 (pnchisq が収束しない警告つき) | 0.04999999999999999 (極限は 0.05 + 7e-82)。0.32152403656716766 (n = 1e300、f = 1e-150 の R の値は 0.3215240365671677)。0.259511022841444 (修正前は 0)。有限の値で k n f^2 が有限でないときだけ、4 つの因子を 2 の冪でそろえて掛ける。両方の自由度が 1e16 を超えるとき (k - 1 > 1e16) は、`pwr.f2.test` (#202) と同じく F の正規近似の検出力を返す |
+| `ES.w1(c(1e-320, 1), c(1e-200, 1))` ((p1 - p0)^2 がアンダーフローする。Issue #264)、`ES.w1(c(0, 1), c(1e-300, 1))` | 0。NaN (0 / 0) | 1.0000055664551364e-40 (Rmpfr 1.00000556645513627e-40)。Inf (p0 = 0 < p1。差が大きいときと同じ)。差の 2 乗が正規化数の範囲より小さいときだけ、項を (d / sqrt(p0))^2 で計算する |
+| `ES.w2(matrix(c(1e-200, 0, 0, 1), 2))` (独立のときのセルの確率 r c = 1e-400 がアンダーフローする。Issue #265)、`ES.w2(matrix(c(1e-160, 1e-170, 1e-170, 1), 2))` (r c が非正規化数) | NaN (0 / 0)。1 | 1。0.9999999998999998 (Rmpfr 0.99999999989999997)。r c が正規化数の範囲より小さいとき (行和・列和は 0 でない) だけ、項を行和・列和の平方根から (p / sqrt(r c) - sqrt(r c))^2 で計算する |
+| `pwr.r.test(n = 4, r = 0.5, sig.level = 1e-320)` (t の臨界値 7.07e159 (自由度 2) の 2 乗が溢れる。Issue #269) | NaN (R の `qt` もこの非正規化数の確率では Inf を返す) | 0。t が有限で t^2 + n - 2 が溢れるときだけ、臨界相関を 1 / sqrt(1 + ((n - 2) / t) / t) で計算し (ここでは 1)、検出力は 0 にアンダーフローする |
+| `power.anova.test(groups = 3, n = 1e308, between.var = 1, within.var = 1e308)` ((groups - 1) n が溢れる。非心度は 2。Issue #272) と、そこで `between.var = 0` | NaN。NaN | 0.2255449157695638 (非心度 2・自由度 2 の R の `pchisq` は 0.22554491576956397。df2 は Inf)。0.05 (非心度 0)。比を先に計算しても (groups - 1) n between.var / within.var が有限でないときだけ、4 つの因子を 2 の冪でそろえて掛ける |
+| `power.anova.test(groups = 1e200, n = 1e200, between.var = 1e8, within.var = 1e308)` (df1 = 1e200、df2 = Inf、非心度 1e100。Issue #272) と `power.anova.test(groups = 1e17, n = 2, between.var = sqrt(1e17) / 1e17, within.var = 1)` (両方の自由度が 1e16 を超える) | NaN。1 (pnchisq が収束しない警告つき) | 0.17418726161793208 (pnorm(qnorm(0.95) - 1 / sqrt(2), upper) = 0.1741872616179323 と O(1e-100) まで同じ。修正前は 0.760)。0.2595110241630547 (256 ビットの参照値は 0.25951102181670718。修正前は 0.2595111267699508)。両方の自由度が 1e16 を超えるとき (groups - 1 > 1e16) は、`pwr.anova.test`・`pwr.f2.test` (#200、#202) と同じく F の正規近似の検出力を返す |
+| `pwr.f2.test(u = 1e308, v = 1e308, f2 = 1e-308)` (u + v が溢れる。非心度は 2。Issue #202) と `pwr.f2.test(u = 1e24, v = 1e24, f2 = 1e-12)` (両方の自由度が 1e16 を超える) | NaN。1 (pnchisq が収束しない警告つき) | 0.04999999999999999 (極限は 0.05 + 1e-155)。0.25951102284186195 (修正前は 0.2591899066123998、1e32 以上では 0)。有限の u + v が溢れるときだけ、非心度を 2 f2 (u / 2 + v / 2 + 0.5) で計算する。両方の自由度が 1e16 を超えると F の臨界値は double で 1 より先の桁が数桁しか残らない (約 1e33 より上では 1 に丸まる) ので、F の正規近似 (平均 1 + ncp / u、分散 2 (1 + 2 ncp / u) / u + 2 (1 + ncp / u)^2 / v) の検出力を返す。近似の誤差は O(1 / sqrt(u)) で、Rmpfr と比べて u = v = 1e17 で 2.3e-9、1e20 で 7e-11 (厳密な経路の pf(qf(...)) はそれぞれ 1e-7、3e-6 ずれていた。R はそこで 1 を返し、警告が出る) |
+| `pwr.anova.test(k = 1e160, n = 1e160, f = 1e-160)` (k n が溢れる。非心度は 1。Issue #200)、`pwr.anova.test(k = 3, n = 1e308, f = 1e-154)`、`pwr.anova.test(k = 1e40, n = 2, f = 1e-10)` (両方の自由度が 1e16 を超える) | NaN。NaN。1 (pnchisq が収束しない警告つき) | 0.04999999999999999 (極限は 0.05 + 7e-82)。0.32152403656716766 (n = 1e300、f = 1e-150 の R の値は 0.3215240365671677)。0.259511022841444 (修正前は 0)。有限の値で k n f^2 が有限でないときだけ、4 つの因子を 2 の冪でそろえて掛ける。両方の自由度が 1e16 を超えるとき (k - 1 > 1e16) は、`pwr.f2.test` (#202) と同じく F の正規近似の検出力を返す |
 | df が非常に大きい effectsize の `hedges_g` (Hedges の J を、df log df ほどの 2 つの lgamma の差で計算) | df = 1e10 で J が 0.99997 (相対誤差 3e-5)、1e14 で 1.28、1e16 で 1e-14。1e6 でも 3e-10 ずれる | lgamma の差を直接計算する (`lgammaDiff`)。大きな df では丸めの範囲で 1 - 3/(4 df - 1) |
 | effectsize の `cohens_d(c(1, 1 + eps), mu = -1)` (t = 2^54 で t ± 1 が t に丸まる) と `hedges_g` | `optim` のエラー "function cannot be evaluated at initial parameters" | d 1.27e16、区間 [3.99e14, 2.86e16] (非心度の探索を t ± (1〜2 ulp) から始める) |
 | 1e154 程度のデータの aov の effectsize の `eta_squared`・`omega_squared`・`epsilon_squared` (`Error()` 付きと afex の `aov_ez` も) | NaN (平方和が溢れる) | 単位を変えた同じデータと同じ値。当てはめたときの平方和 (応答を 2 の冪で割ったもの) を使い、比をとる前に共通の 2 の冪で割る |
 | 共変量 x が 1e-200 や 1e200 程度の `aov(y ~ x + W + Error(id))`、共変量 z が 1e-200 程度の `Error(z)` | x はすべての層から消える (2 乗がアンダーフローする)。z は正しい | 単位を変えた同じデータと同じ表。処置と誤差モデルの各列を、列ごとの 2 の冪で割る (層は列が張る空間だけで決まる) |
 | 残差自由度が次元より少ない `mauchly.test` (`mauchly.test(lm(cbind(c(1, 3), c(2, 7)) ~ 1))`) | NaN、または W = 0 で p = 1、または W 2e-17 で p 9e-4 (共分散はデータによらず特異) | エラー。検定には残差自由度が足りない |
-| 検定する次元が 1 の `mauchly.test` (`X = ~1` で測定が 2 回、または `M` が `X` より 1 次元だけ大きい) | データによらず W = 1、p = 1 (1 次元は常に球面性を満たす。χ² の自由度 p (p + 1) / 2 - 1 が 0) | エラー。検定する次元が 1 で、検定の自由度がない (issue #342) |
+| 検定する次元が 1 の `mauchly.test` (`X = ~1` で測定が 2 回、または `M` が `X` より 1 次元だけ大きい) | データによらず W = 1、p = 1 (1 次元は常に球面性を満たす。χ² の自由度 p (p + 1) / 2 - 1 が 0) | エラー。検定する次元が 1 で、検定の自由度がない (Issue #342) |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | 共変量が 1e308 規模かサブノーマルの `coxph(Surv(time, status) ~ x)` (x の 2^1020 倍、2^1022 倍、2^-1060 倍) | 2^1020 倍で se 0、2^1022 倍と 2^-1060 倍で "Loglik converged before variable 1; coefficient may be infinite" (中心化・尺度化の和が溢れる) | x の当てはめと同じ検定と対数尤度、係数と se は 2^-k 倍 (2^-1060 倍では double の範囲外で -Inf と Inf) |
 | 線形予測子が exp の範囲を超える初期値の `coxph(Surv(time, status) ~ x)` (x = 0, 1 や 0, 2 で `init = 1000`、`iter.max = 0`) | 対数尤度 -Inf (x = 0, 1) か "initial values lead to overflow or underflow of the exp function" | 有限の対数尤度 (-1000、-2000)。リスク集合の和を e^-m 倍で持ち、m は有限の exp(eta) が溢れるときだけ動かす。そのような飽和した値から反復すると、係数は NaN のまま (survival は NA) |
@@ -412,16 +412,16 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | mvtnorm の `pmvnorm(c(-1e200, -1e200), c(Inf, Inf), corr = ...)` など、2 変量正規の巨大な有限の境界 (`pbvnorm`) | NaN | 1 (`c(1e200, 1e200)` では 0): ±40 を超える境界は無限とみなす (Φ(-40) = 3.7e-350) |
 | extraDistr の `qtriang(-1000, 0, 1e308, 0, log.p = TRUE)` (最頻値が端、exp(p) が double の範囲より下) | -Inf | 2.5379794487747283e-127 (w exp(p/2)^2 / 2) |
 | `dlogis(0, 0, 1.282987806042392e308)` などの x (scale (1 + e)^2 が溢れる) | 0、log でも -Inf | 1.95e-309 (log -710.83): 尺度での割り算を最後に |
-| 形状の和が溢れる場合の、平均から離れた裾 (`pbeta(0.1, 1e308, 1e308, log.p = TRUE)` など。`lower.tail = FALSE` も) | -Inf | -1.0216512475319813e308 (主要因子 x^a (1 - x)^b / (a B(a, b)) の log とビットまで一致、Rmpfr)。線形の値 0 と 1 は R と同じ。E >= 1e22 のとき、半分の形状で求めて 2 倍した偏差 E から -E とする (ほかの因子が log を動かす量は 1 ulp 未満)。ここは NaN だった (issue #491) |
-| 形状の和が溢れる場合の、平均付近の `qbeta` (`qbeta(0.5, 1e308, 1e308)` など)。`pbeta(0.4999999999999999, 1e308, 1e308, log.p = TRUE)` | NaN ("NaNs produced")。−3.98e276 | 0.5 (対称なベータ分布の中央値)。−4.93e276 = −a log(1 − 4 d^2)、d = 2^-53。不完全ベータ関数の一様漸近展開を半分の形状で計算し、偏差と m を 2 倍する (平均付近の pbeta はここで NaN だった) |
-| 小さい x の `pwilcox(x, 1050, 1050, log.p = TRUE)` など、確率が 1e-308 を下回る下側の裾 (`pwilcox(1000, 600, 600, log.p = TRUE)` も) | −Inf (確率を C(m + n, m) で割り、その値が溢れる) | −1451.558 (x = 0)、−752.510 (600 の場合)。確率の表を、最大の項が 2^760 を下回ったら 2 の冪で拡大する。dwilcox の log と同じ値 |
+| 形状の和が溢れる場合の、平均から離れた裾 (`pbeta(0.1, 1e308, 1e308, log.p = TRUE)` など。`lower.tail = FALSE` も) | -Inf | -1.0216512475319813e308 (主要因子 x^a (1 - x)^b / (a B(a, b)) の log とビットまで一致、Rmpfr)。線形の値 0 と 1 は R と同じ。E >= 1e22 のとき、半分の形状で求めて 2 倍した偏差 E から -E とする (ほかの因子が log を動かす量は 1 ulp 未満)。ここは NaN だった (Issue #491) |
+| 形状の和が溢れる場合の、平均付近の `qbeta` (`qbeta(0.5, 1e308, 1e308)` など)。`pbeta(0.4999999999999999, 1e308, 1e308, log.p = TRUE)` | NaN ("NaNs produced")。-3.98e276 | 0.5 (対称なベータ分布の中央値)。-4.93e276 = -a log(1 - 4 d^2)、d = 2^-53。不完全ベータ関数の一様漸近展開を半分の形状で計算し、偏差と m を 2 倍する (平均付近の pbeta はここで NaN だった) |
+| 小さい x の `pwilcox(x, 1050, 1050, log.p = TRUE)` など、確率が 1e-308 を下回る下側の裾 (`pwilcox(1000, 600, 600, log.p = TRUE)` も) | -Inf (確率を C(m + n, m) で割り、その値が溢れる) | -1451.558 (x = 0)、-752.510 (600 の場合)。確率の表を、最大の項が 2^760 を下回ったら 2 の冪で拡大する。dwilcox の log と同じ値 |
 | `qcauchy(p, 3, Inf)` | すべての p で NaN。ただし `dcauchy`・`pcauchy` は極限の値 0 と 0.5 を返す | 中央値より下・中央値・上で -Inf、3、Inf。`qnorm`・`qlogis` と同じ |
 | `lm(y ~ x, weights = rep(1e308, n))` (重み付きの平方和が double の範囲を超える) | R² NaN、F NaN | 重みを一律に何倍しても同じ値 (テストの例で R² 0.982)。sigma は倍率の平方根に比例する。平方和は重みを 2 の冪で割って作る |
 | `integrate(f, 0, -Inf)`、`integrate(f, Inf, 1)`、`integrate(f, Inf, -Inf)`、`integrate(f, Inf, Inf)` | (0, Inf)、(-Inf, 1)、(-Inf, Inf)、(-Inf, Inf) での積分。無限大の端点の符号を見ない | (-Inf, 0)、(1, Inf)、(-Inf, Inf) での積分の符号を反転したもの、および 0 |
 | upper − lower が溢れる `integrate`・`optimize`・`uniroot` (`uniroot(function(x) x, c(-1e308, 1e308))`) と、中点が溢れる `integrate` (`integrate(function(x) 1/x, 1e308, 1.1e308)`) | `integrate` は "roundoff error was detected" (中点が溢れる場合は、節点がすべて Inf になり、0 と誤差 0)。`optimize`・`uniroot` は警告 ("Inf replaced by maximum positive value") | x / 2 の座標で、半分にした区間で解く (`uniroot` は 0。以前ここでは -Inf を返し、`optimize` は終わらなかった) |
 | deSolve の `ode(1, c(-1e308, 1e308), function(t, y, p) list(0), NULL, method = "euler")` (`"rk4"`、`rkMethod("rk2")` も) など、有限な時刻の差が溢れる場合 | NaN (1 + Inf × 0) | 刻みの半分から組み立て、h k を (h/2) k の 2 回の加算にする。傾き 0 なら 1 |
 | numDeriv の `hessian(function(x) (x[1] / 1e100)^2 + x[1] / 1e100 * x[2] / 1e100, c(1e100, 1e100), method.args = list(d = 2e54))` など、刻みの 2 乗や 2 h_i h_j が溢れる場合 | 対角は 2.0007e-200 (最初の刻みの商が 0)、非対角は NaN | 2e-200 と 1e-200。刻みの積が溢れるときは、差を刻みで 1 つずつ割る |
-| numDeriv の `hessian(function(x) 1e-92 * x[1]^2, 0, method.args = list(eps = 1e200, r = 2))` と `hessian(function(x) 1e-92 * x[1] * x[2] + 0.5e-92 * x[1]^2, c(0, 0), method.args = list(eps = 1e200, r = 2))` (1e308 に近い有限の値の 2 階差分 f(x + h) - 2 f(x) + f(x - h) が溢れる) | NaN | 2e-92、対角・非対角とも 1e-92。そのときだけ、各項を刻みで割ってから足す (issue #504) |
+| numDeriv の `hessian(function(x) 1e-92 * x[1]^2, 0, method.args = list(eps = 1e200, r = 2))` と `hessian(function(x) 1e-92 * x[1] * x[2] + 0.5e-92 * x[1]^2, c(0, 0), method.args = list(eps = 1e200, r = 2))` (1e308 に近い有限の値の 2 階差分 f(x + h) - 2 f(x) + f(x - h) が溢れる) | NaN | 2e-92、対角・非対角とも 1e-92。そのときだけ、各項を刻みで割ってから足す (Issue #504) |
 | f(1) と f(2) が同符号で、その積がアンダーフローする `uniroot(f, c(1, 2), extendInt = "yes")` (1e-300 (x − 5)) | "f() values at end points not of opposite sign" | ほかの同符号の値と同じく区間を広げる (5) |
 | 重み 0 の観測の逸脱度の寄与が 0 × Inf になる `glm` (poisson、y = 1e308) | 逸脱度が NaN | その観測は 0 を足す (逸脱度残差も 0) |
 | x = 0 の `coxph(Surv(1, 1) ~ x)` など、対数尤度が 0 のまま変わらない当てはめ | "Ran out of iterations and did not converge" (判定 1 − 0/0 が NaN) | 収束 (対数尤度が変わらなければ収束とする) |
@@ -430,12 +430,12 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 小さな単位の説明変数を含む lmerTest の `anova(fit, type = 1)` (type 2 も)。例: `lmer(y ~ x1 + I(x2 * 1e-6) + (1 \| g))` | x1 の type I の F が type II の F になる (13.96 が 14.45)。Doolittle 分解のピボットと要素を、データの単位のまま 1e-6 と比べるため。lmerTest のバグ (R 4.5.2 で実行して確認) | 単位によらず同じ検定 (分解を、対角を 1 に正規化した交差積行列で行う) |
 | 行数は同じだが使った行や応答が異なる lmer の当てはめの `anova()` | 尤度比検定を返す | エラー (lme4 は行数だけを比べる) |
 | `power.t.test(n = 10, delta = 1e308, sd = 1e308)` など、非心度は有限だが sqrt(n / ts) × delta が溢れる delta・sd | 検出力 1 (非心度が Inf) | 0.56198。delta = sd = 1 と同じ検出力 (積が溢れるときだけ比 delta / sd を先に作る) |
-| `poisson.test(c(1e308, 0), r = 2, T = c(1, 1e308))` と `poisson.test(c(1e300, 0), r = 2, T = c(1e-10, 1e308))` (n r T1 と r T2 / T1 が溢れる場合の期待度数) | NaN (bgrat の警告つき)。0 | 1。1e-18。n r T1 / (T1 + r T2) を n、r、T1、T2 の仮数で計算し、2 の冪を最後に掛ける。n と r が正で n r T1 が 0 にアンダーフローする場合も同じ (最大・最小の double で `poisson.test(c(0, MAX), T = c(MIN, MAX), r = MIN)`: R は 0、rStats.js は `Number.MIN_VALUE`。issue #481) |
-| `poisson.test(c(1, MAX), T = c(1e-12, MAX))` (MAX は最大の double。T2 / T1 が溢れ、二項の限界が非正規化数の場合の区間) | [0, 5.571643e12] (R の `qbeta(0.025, 1, MAX)` が 0) | [2.5317807984e10, 5.571643390939e12]。T2 / T1 が溢れるときは (p / (1 - p)) (T2 / T1) をオッズ、T1、T2 の仮数で計算する (issue #482)。下側の二項の限界が非正規化数なので、下端は厳密な 2.53178079842899e10 と相対 1.5e-14 ほど違う |
+| `poisson.test(c(1e308, 0), r = 2, T = c(1, 1e308))` と `poisson.test(c(1e300, 0), r = 2, T = c(1e-10, 1e308))` (n r T1 と r T2 / T1 が溢れる場合の期待度数) | NaN (bgrat の警告つき)。0 | 1。1e-18。n r T1 / (T1 + r T2) を n、r、T1、T2 の仮数で計算し、2 の冪を最後に掛ける。n と r が正で n r T1 が 0 にアンダーフローする場合も同じ (最大・最小の double で `poisson.test(c(0, MAX), T = c(MIN, MAX), r = MIN)`: R は 0、rStats.js は `Number.MIN_VALUE`。Issue #481) |
+| `poisson.test(c(1, MAX), T = c(1e-12, MAX))` (MAX は最大の double。T2 / T1 が溢れ、二項の限界が非正規化数の場合の区間) | [0, 5.571643e12] (R の `qbeta(0.025, 1, MAX)` が 0) | [2.5317807984e10, 5.571643390939e12]。T2 / T1 が溢れるときは (p / (1 - p)) (T2 / T1) をオッズ、T1、T2 の仮数で計算する (Issue #482)。下側の二項の限界が非正規化数なので、下端は厳密な 2.53178079842899e10 と相対 1.5e-14 ほど違う |
 | y が 1e-6 を 99 個と 5000 の `summary(glm(y ~ 1, Gamma("log"), weights = rep(2e304, 100)))` など、分散パラメータは有限だが Pearson 残差の重みつき平方和が溢れる当てはめ (`glmAnova`・`glmPredict`・`glmRstandard`・`glmCooksDistance` も) | dispersion が Inf | 2.0e306。和が溢れるときだけ、各項を (sqrt(w) r)^2 とし、残差とその積を 2 の冪で割って和を取り、残差自由度で割ってから指数を戻す |
 | `anova(glm(1e154 ~ 0, gaussian("log")), test = "Cp")` など、分散パラメータが double の最大値の半分を超える、パラメータのないモデルの Cp | Cp が NaN (2 × dispersion が溢れて 0 を掛ける) | 残差逸脱度の 1e308。罰則を 2 (n − df) × dispersion の順に計算する (R の順で溢れない範囲では同じビット) |
 | y = 1e154 の `AIC(glm(y ~ 0, gaussian("log")))` など、逸脱度は有限だが 2 pi × 逸脱度が溢れる gaussian の当てはめ | Inf (`log(2 * pi * dev / n)`) | 真の値 714.034。2 pi × dev が溢れるときだけ log(2 pi) + log(dev / n)。それ以外は R の式 |
-| 事前の重みの和 sw で dev / sw が溢れる inverse Gaussian の AIC (`inverse.gaussian()$aic(1, NULL, 1, 1e-10, 1e308)`) | Inf (`log(dev / sum(wt) * 2 * pi)`) | 真の値 2.0000000735。2 pi × dev と dev / sw が溢れるときは log(2 pi) + log(dev) - log(sw)、2 pi × dev だけが溢れるときは log(2 pi) + log(dev / sw) (sw = 1e308、dev = 3e307 では R と同じく 1.634e308、R より 1 ulp 小さい。issue #479)。それ以外は R の式 |
+| 事前の重みの和 sw で dev / sw が溢れる inverse Gaussian の AIC (`inverse.gaussian()$aic(1, NULL, 1, 1e-10, 1e308)`) | Inf (`log(dev / sum(wt) * 2 * pi)`) | 真の値 2.0000000735。2 pi × dev と dev / sw が溢れるときは log(2 pi) + log(dev) - log(sw)、2 pi × dev だけが溢れるときは log(2 pi) + log(dev / sw) (sw = 1e308、dev = 3e307 では R と同じく 1.634e308、R より 1 ulp 小さい。Issue #479)。それ以外は R の式 |
 | `prop.trend.test(c(5e307, 5e307), c(1e308, 1e308))` と `prop.trend.test(c(1, 0), c(1e300, 1e300))` (度数の合計や重み n / (p (1 - p)) が溢れる場合) | エラー "NA/NaN/Inf in 'x'" (lm.wfit) | 統計量 0 (p 値 1) と 1。プールした比率を 2 の冪で割った度数から求め、重み n_i 2^-k で回帰して、統計量に 2^k を掛けて戻す。それ以外は R の式 |
 | polycor の `polychor(matrix(8e307, 2, 2))` と `polychor(matrix(4e307, 2, 2))` (表の合計や対数尤度が溢れる場合) | 0.999859 ("Inf replaced by maximum positive value" の警告つき) | -1.67e-16 (すべて 1 の表と同じ値)。合計が 2^1000 以上のときだけ度数を 2 の冪で割る (rho と閾値は度数の単位によらない)。分散・カイ二乗・n は掛け戻す |
 | `bartlett.test(list(c(1e200, 1.000000000000001e200), c(0, 1e-100)))`、`bartlett.test(list(c(1e200, 2e200, 4e200), c(1e-200, 2e-200, 4e-200)))` など、ある群の分散が最大の絶対値の二乗の約 2.2e-308 倍より小さい場合 | NaN | 874.084 (p 4.2e-192)、2945.09。共通の尺度で分散がアンダーフローするときだけ、各群の分散をその群の尺度で求め、分散とプールした分散 (log-sum-exp) の log を最大の尺度からの相対で計算する |
@@ -464,24 +464,53 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
   が、rStats.js には `NaN` が 1 つしかありません。
 - **`var` は `variance` という名前です。** JavaScript では `var` を名前に使えないためです。
 
-- **意味のない入力はエラーにする** (R は値を返す場合でも)。たとえば `zTest` の 0 以下の既知標準偏差、
-  `chisqTest` の無限大の確率、`cochranQTest` の二値でないデータ、`propTrendTest`・`polychor`・二列形式の
-  二項 `glm` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`kappa2` の欠測のない組が 2 未満 (irr の `kappa2` は z と p が NaN。issue #309)、`tTest` で平均が 0 のときも含めて標準誤差が 0 (0 だけの標本や、対の差がすべて 0。"data are essentially constant"。R の判定はそこで `0 < 0` になり、t が NaN か ±Inf の結果を返す。issue #314)、`adTest`・`cvmTest`・`lillieTest`・`sfTest`・`pearsonTest` の無限の観測値 (nortest の `pearson.test(c(1:7, Inf))` は空の分類から P = 8、p = 0.0183 を返し、`sf.test` は NaN。ほかはエラー。issue #304)、`flignerTest` で中央値が無限の群 (偏差が Inf − Inf になる。R はその NaN を最後の順位にし、`fligner.test(c(1, Inf, 2, 3), c("a", "a", "b", "b"))` は 2.476、p 0.116。issue #329)、`propTrendTest` で異なる score が 2 個未満 (score がすべて同じか、score のある群が 1 つ。R の `prop.trend.test` は NA。issue #318。issue #50 の NaN を改めた)、`pwrChisqTest` の `df <= 0`、
-  非有限または NaN の許容誤差 (`optim` の `reltol`、`uniroot`、`optimize`、`integrate`、`qr`、`chol`、
-  `solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value supplied
-  by optim" で止まり、負の値は受け付ける)、`optim`・`optimHess` の無限大の `fnscale` (R の `optim` は開始値をそのまま value NaN、convergence 0 で返し、`optimHess` は NaN を返す。Issue #248)、
-  `optim` (BFGS・CG・L-BFGS-B)・`optimHess` の解析的な勾配 `gr` の NaN・無限大の成分 (数値の勾配の検査と同じく "non-finite
-  value of the gradient [i] supplied by 'gr'"。R は `gr` を確かめず、NaN の勾配では 1 歩も動かずに開始値を convergence 0
-  で返し、`optimHess` は NaN の行列を返す。Issue #355)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は p 値 1 を返す。
-  `poissonTest` は事象数 0 どうしの比較を R どおり行う)、`factanal`・`omega` の `covmat` で、正方・有限・対称 (R の
-  `isSymmetric` と同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)、`poissonTest` の観察時間
-  `T` が 0 (R は推定値と区間に NaN や Inf を返す)、`binomTest`・`poissonTest` でカウントの合計が溢れるもの (R は NaN かエラー)、`chisqTest` のシミュレーションで整数でない `B` や、合計が整数でない適合度検定の度数 (R の p 値は 1 を超えることがある)、`fisherTest` のシミュレーションで整数でない `B` (R は trunc(B) 個の表をシミュレーションし、B + 1 で割る。issue #278)、`mantelhaenTest(exact: true)` の小数の度数 (R は結果を返す)、`mcnemarTest` で不一致の組がない表、符号付き順位の `wilcoxTest` で差がすべて 0、`varTest` で両群とも定数、`chisqTest` の分割表のシミュレーションで小数の度数 (R は NaN を返すか、周辺度数を切り捨てる)、`dunnettTest`・`tukeyTest`・`glhtDunnett` で全群が定数 (プールした分散が 0。R の p 値は `TukeyHSD` と PMCMRplus で 0、multcomp の `glht` で 1)、プールした SD の `pairwiseTTest` と `varEqual: true` の `onewayTest` で全群が定数 (R の `pairwise.t.test` は p 0 か、平均が等しければ NaN、`oneway.test` は F Inf と p 0。すべての群が 1 個だけなら "no residual degrees of freedom"、R は NaN)、`grad`・`jacobian`・
-  `hessian` の 0 の刻み `eps` や、有限でない `d`・`eps`・`zeroTol` (numDeriv の "simple" 法は `eps = 0` で NaN を返す。`d = 0` は
-  numDeriv でもエラー)、同じ 3 関数で刻み d abs(x[i]) が double の範囲を超えるもの (Issue #213) や 0 になるもの (x[i] = 0 で `zeroTol: 0`。
-  Issue #246) (numDeriv は `grad` が f の値の検査でエラー、`jacobian` と `hessian` は NaN)、`TukeyHSD` の [0, 1] の外か NaN の `confLevel` (R は区間の端に NaN を返す。0 と 1 は R と同じく受け付ける)、`TukeyHSD` で各群の値が 1 個 (残差自由度が 0。R は区間の端と p 値に NaN を返す。issue #315)、`TukeyHSD`・`tukeyTest` で残差自由度が 1 (`ptukey`・`qtukey` のスチューデント化範囲の分布は R と同じく自由度 2 から。R は NaN、PMCMRplus は NA。issue #315)、
-  `cut` で (NaN を除いて) 2 個未満の区切り (R は NA の区間番号を返す。1 個は R でもエラー "invalid number of intervals"。無限の区切りは
-  R と同じく受け付ける)、`hist` の無限か NaN の区切り (R は無限の幅のセルに密度 0 と無限か NaN の中点を返す)、`approx` の 1・2 以外の
-  `rule` (R は 3、0、1.5 など 1 以外の値をすべて rule 2 として扱う)。
+- **意味のない入力はエラーにする** (R は値を返す場合でも)。分布の関数 (d/p/q/r) は対象外で、R と同じく不正な母数に
+  NaN を返します。
+  - 検定・度数・標本: `zTest` の 0 以下の既知標準偏差、`chisqTest` の無限大の確率、`cochranQTest` の二値でないデータ、
+    `propTrendTest`・`polychor` の負の度数、`icc`・`kappamFleiss` の被験者・評価者が 2 未満、`kappa2` の欠測のない組が
+    2 未満 (irr の `kappa2` は z と p が NaN。Issue #309)、`binomTest([0, 0])` (試行が 0。R の `binom.test(c(0, 0))` は
+    p 値 1 を返す。`poissonTest` は事象数 0 どうしの比較を R どおり行う)、`poissonTest` の観察時間 `T` が 0 (R は推定値と
+    区間に NaN や Inf を返す)、`binomTest`・`poissonTest` でカウントの合計が溢れるもの (R は NaN かエラー)、
+    `mantelhaenTest(exact: true)` の小数の度数 (R は結果を返す)、`mcnemarTest` で不一致の組がない表、符号付き順位の
+    `wilcoxTest` で差がすべて 0、`varTest` で両群とも定数。
+  - 定義されない統計量: `tTest` で平均が 0 のときも含めて標準誤差が 0 (0 だけの標本や、対の差がすべて 0。"data are
+    essentially constant"。R の判定はそこで `0 < 0` になり、t が NaN か ±Inf の結果を返す。Issue #314)、`adTest`・
+    `cvmTest`・`lillieTest`・`sfTest`・`pearsonTest` の無限の観測値 (nortest の `pearson.test(c(1:7, Inf))` は空の分類から
+    P = 8、p = 0.0183 を返し、`sf.test` は NaN。ほかはエラー。Issue #304)、`flignerTest` で中央値が無限の群 (偏差が
+    Inf - Inf になる。R はその NaN を最後の順位にし、`fligner.test(c(1, Inf, 2, 3), c("a", "a", "b", "b"))` は 2.476、
+    p 0.116。Issue #329)、`propTrendTest` で異なる score が 2 個未満 (score がすべて同じか、score のある群が 1 つ。R の
+    `prop.trend.test` は NA。Issue #318。Issue #50 の NaN を改めた)、`pwrChisqTest` の `df <= 0`。
+  - プールした分散と自由度: `dunnettTest`・`tukeyTest`・`glhtDunnett` で全群が定数 (プールした分散が 0。R の p 値は
+    `TukeyHSD` と PMCMRplus で 0、multcomp の `glht` で 1)、プールした SD の `pairwiseTTest` と `varEqual: true` の
+    `onewayTest` で全群が定数 (R の `pairwise.t.test` は p 0 か、平均が等しければ NaN、`oneway.test` は F Inf と p 0。
+    すべての群が 1 個だけなら "no residual degrees of freedom"、R は NaN)、`TukeyHSD` の [0, 1] の外か NaN の `confLevel`
+    (R は区間の端に NaN を返す。0 と 1 は R と同じく受け付ける)、`TukeyHSD` で各群の値が 1 個 (残差自由度が 0。R は区間の
+    端と p 値に NaN を返す。Issue #315)、`TukeyHSD`・`tukeyTest` で残差自由度が 1 (`ptukey`・`qtukey` のスチューデント化
+    範囲の分布は R と同じく自由度 2 から。R は NaN、PMCMRplus は NA。Issue #315)。
+  - シミュレーション: `chisqTest` のシミュレーションで整数でない `B` や、合計が整数でない適合度検定の度数 (R の p 値は
+    1 を超えることがある)、`fisherTest` のシミュレーションで整数でない `B` (R は trunc(B) 個の表をシミュレーションし、
+    B + 1 で割る。Issue #278)、`chisqTest` の分割表のシミュレーションで小数の度数 (R は NaN を返すか、周辺度数を切り
+    捨てる)。
+  - モデル: 二列形式の二項 `glm` の負の度数、`factanal`・`omega` の `covmat` で、正方・有限・対称 (R の `isSymmetric` と
+    同じ判定)・対角が正のどれかを満たさないもの (R の `factanal` は非対称な行列も分析する)。
+  - 許容誤差と数値計算: 非有限または NaN の許容誤差 (`optim` の `reltol`、`uniroot`、`optimize`、`integrate`、`qr`、
+    `chol`、`solve`、`coxph`、`glm`)、`optim` の SANN で正の有限値でない温度 `temp` (R は 0 で "non-finite value
+    supplied by optim" で止まり、負の値は受け付ける)、`optim`・`optimHess` の無限大の `fnscale` (R の `optim` は開始値を
+    そのまま value NaN、convergence 0 で返し、`optimHess` は NaN を返す。Issue #248)、`optim` (BFGS・CG・L-BFGS-B)・
+    `optimHess` の解析的な勾配 `gr` の NaN・無限大の成分 (数値の勾配の検査と同じく "non-finite value of the gradient [i]
+    supplied by 'gr'"。R は `gr` を確かめず、NaN の勾配では 1 歩も動かずに開始値を convergence 0 で返し、`optimHess` は
+    NaN の行列を返す。Issue #355)、`grad`・`jacobian`・`hessian` の 0 の刻み `eps` や、有限でない `d`・`eps`・`zeroTol`
+    (numDeriv の "simple" 法は `eps = 0` で NaN を返す。`d = 0` は numDeriv でもエラー)、同じ 3 関数で刻み d abs(x[i]) が
+    double の範囲を超えるもの (Issue #213) や 0 になるもの (x[i] = 0 で `zeroTol: 0`。Issue #246) (numDeriv は `grad` が
+    f の値の検査でエラー、`jacobian` と `hessian` は NaN)、`approx` の 1・2 以外の `rule` (R は 3、0、1.5 など 1 以外の値を
+    すべて rule 2 として扱う)。
+  - 区切り: `cut` で (NaN を除いて) 2 個未満の区切り (R は NA の区間番号を返す。1 個は R でもエラー "invalid number of
+    intervals"。無限の区切りは R と同じく受け付ける)、`hist` の無限か NaN の区切り (R は無限の幅のセルに密度 0 と無限か
+    NaN の中点を返す)。
+- **計算量の上限。** 1 本の配列に 2^24 個を超える値を確保する呼び出しや、10 秒ほどを超えて走る呼び出しは、確保や計算の前に
+  RangeError を投げます (正確な検定では `exact: false` を案内します)。R はその多くを、時間がかかっても計算するか、メモリが
+  足りなくなります。上限の一覧は [performance.md](performance.md#上限) にあり、R の動作を含めた説明は下の
+  [仮説検定](#仮説検定-1) と [乱数](#乱数) にあります。
 - **検出力と効果量の関数**は、既知の量の NaN (pwr はたいてい "missing value where TRUE/FALSE needed" で止まる。
   以前は NaN を返していた)、`pwrRTest` の [-1, 1] の外の相関、`esH`・`esW1`・`esW2` の [0, 1] の外の確率 (R は NaN)、
   `esW2` の空や不整形の行列 (R は 0)、`powerPropTest` の n <= 0 (R は n = 0 で検出力を返し、負なら NaN)、`pwrTTest` の
@@ -510,7 +539,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | n = Inf の signrank、m = Inf の wilcox | クラッシュ | NaN |
 | パラメータが無限大の非心 `qbeta` (たとえば shape2 = Inf) | NaN 上の探索から 0、0.5、1 | NaN |
 | `qchisq(p, 0, ncp = 0)` (質量がすべて 0 にある) | NaN または Inf | 0 |
-| `qgamma` と `pgamma` (上側の log) で q / scale が double の最大値を超え、答えは有限な場合。shape が約 1e307 以上 (q / scale が最大値をわずかに超えるだけなら約 1e290 以上) で起きる (`qgamma(-1e308, 1e308, scale = 1e-308, lower.tail = FALSE, log.p = TRUE)` の真の値は約 3.146、`pgamma(1.8, 1e308, scale = 1e-308, lower.tail = FALSE, log.p = TRUE)` は約 -2e307) | Inf、-Inf | NaN (計算しない。標準化した x が double の範囲の外にある。以前は誤った 1.797 と -Inf、issue #368)。scale >= 1 なら分位点は R と同じく Inf |
+| `qgamma` と `pgamma` (上側の log) で q / scale が double の最大値を超え、答えは有限な場合。shape が約 1e307 以上 (q / scale が最大値をわずかに超えるだけなら約 1e290 以上) で起きる (`qgamma(-1e308, 1e308, scale = 1e-308, lower.tail = FALSE, log.p = TRUE)` の真の値は約 3.146、`pgamma(1.8, 1e308, scale = 1e-308, lower.tail = FALSE, log.p = TRUE)` は約 -2e307) | Inf、-Inf | NaN (計算しない。標準化した x が double の範囲の外にある。以前は誤った 1.797 と -Inf、Issue #368)。scale >= 1 なら分位点は R と同じく Inf |
 | r が非正規化数 (約 5.6e-309 未満で、1 / r が溢れる) の `pgamma(Inf, shape, rate = r)` | NaN | 1 (定義により P[X ≤ Inf] = 1) |
 | 0 < q / s < 1 の `pgamma(q, Inf, scale = s)`、つまり 0 < q < 2 の `pchisq(q, Inf)` (質量がすべて +Inf にある) | NaN | 極限値: 下側 0、上側 1 (ほかの有限の q で R が返す値と同じ) |
 | `df(0, df1, Inf, ncp, log = TRUE)` | 線形の値の対数にならない (ncp = 0 で −1.386。線形の値は 1) | 線形の値の対数 |
@@ -524,7 +553,7 @@ min(1e-7, 1e-9 max(1, |q|)) 以内の q はその整数とみなします (計�
 R と同じ 1e-7 にとどめ、1000 − 5e-7 のような q を整数とみなしません (`ppois(1000 - 5e-7, 1000)` は R と同じく P[X ≤ 999])。それ以外の q は
 floor(q) です。R は floor の前に 1e-7 を足す (`psignrank` では最も近い整数に丸める) ため、分布関数が整数の
 1e-7 手前で段を上がり、密度関数と食い違います。変わるのは整数から 1e-7 以内の q だけで、`psignrank` だけは
-小数部分が 0.5 以上のすべての q が変わります (Issue #145・#146)。25 回目のレビューでは `pbinom` の
+小数部分が 0.5 以上のすべての q が変わります (Issue #145・#146)。以前の版では `pbinom` の
 floor(q + 1e-7) を R と同じ処理として残しましたが、正しい値と密度関数との一致のためにこの判断を改めました。
 
 非常に平坦な `qnbinom` のケース (size = 1e-10、p = 1 − 1e-10 など) では、p の丸め幅に数十個の整数が
@@ -602,12 +631,12 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   NaN NaN、推定値 0 ("midrange")。mu = 1e16 と c(1, 2, 3, 4.5, 7) では [0, 8])。rStats.js は、戻した値の
   どれかが最大の観測値の 2^-26 倍より大きくずれるとき、観測値そのものを使います (同じデータの mu = 0 の
   区間と推定値。手法は mu との差で決まるまま)。(0.1 − 0.4) + 0.4 の 1 ulp のような小さな丸めでは R と
-  同じ値です (issue #502)。
+  同じ値です (Issue #502)。
 - **`brunnerMunzelTest`** は、lawstat の `alpha` の代わりに `confLevel` を受け取ります
   (`confLevel = 1 - alpha`)。また、lawstat の結果にはない `alternative` のフィールドを返します。空の標本は
   "not enough 'x' observations" (または 'y') で例外を投げます。lawstat は意味のない数値を返します。順位を
   `n1 + 1:n2` で取り出しており、`1:0` が `c(1, 0)` になるためです。値が 1 個の標本も同じ例外を投げます。lawstat は
-  統計量・自由度・区間が NaN になります (分散の推定で n − 1 = 0 で割るため。issue #320)。
+  統計量・自由度・区間が NaN になります (分散の推定で n − 1 = 0 で割るため。Issue #320)。
 - **`pAdjust`** の Hommel 法は、`n` が整数でないと例外を投げます (R は値を返します)。また、空の `p`
   で n > 0 のときは空の配列を返します (R は 1 を返します)。
 - **`fisherTest` (2 × 2) と `mantelhaenTest(exact: true)` の正確検定**は、度数の台の値の個数が 2^24 を超えると、何も確保
@@ -617,11 +646,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`chisqTest` の適合度のシミュレーション (`simulatePValue: true`)** は、B と度数の合計の積が 2^27 (134217728 回の
   抽出、数十秒) を超えると、抽出の前に RangeError を投げます。それ以下では R の `sample.int` と同じ一様乱数で n 個ずつ
   引くので、p 値は R と一致します。R は B n 個をまとめて引き、確保できる限り受け付けます
-  (`chisq.test(c(1e9, 1e9), simulate.p.value = TRUE, B = 1)` は 2e9 回の抽出。issue #287)。
+  (`chisq.test(c(1e9, 1e9), simulate.p.value = TRUE, B = 1)` は 2e9 回の抽出。Issue #287)。
 - **`r2dtable` と、`chisqTest` (分割表) と `fisherTest` のシミュレーションの p 値**は、表を作るときに総数が 2^24
   (16777216) を超えると RangeError を投げます。Patefield の方法が総数 + 1 個の対数階乗の表を使うためです (上限で
   128 MB。上の正確検定と同じ 2^24)。R は総数 2147483647 まで表を作ります (`r2dtable(1, c(5e8, 5e8), c(5e8, 5e8))` は
-  8 GB)。`r2dtable(0, ...)` は表を作らないので、R と同じく総数 2147483647 まで受け付けます (issue #285、#286、#336)。
+  8 GB)。`r2dtable(0, ...)` は表を作らないので、R と同じく総数 2147483647 まで受け付けます (Issue #285、#286、#336)。
 - **`ksTest`・`ansariTest`・`corTest` (Kendall)・`jonckheereTest` の正確な p 値と、`pAdjust` の Hommel 法**は、計算に
   数秒より長くかかる大きさでは、何も確保する前に RangeError を投げます (上限は開発機での計測から決めました。`ksTest`
   の n < 100 などの既定の切り替えは、上限よりずっと小さい)。`ksTest(exact: true)` (1 標本、両側、D < 1/2) は大きさ
@@ -632,7 +661,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   exact: true)` (同順位なし) は n が 1290 まで (手数は約 n^3 / 2、4.9 秒。Spearman の正確検定の上限と同じ数) です。
   `jonckheereTest(exact: true)` (同順位なし) は Mann-Whitney の分布の畳み込みの値の個数が 2^24 まで、積和の回数が
   2^32 まで (215 個ずつの 3 群で 8.5 秒) です。`exact: false` を案内します。`pAdjust(method: "hommel")` は n が
-  65536 まで (手数は O(n^2)、5.7 秒) です。R は時間がかかっても計算します (issue #307、#308、#316、#321、#391)。
+  65536 まで (手数は O(n^2)、5.7 秒) です。R は時間がかかっても計算します (Issue #307、#308、#316、#321、#391)。
 - **`expm` の `"Taylor"`・`"Pade"`・`"TaylorO"`・`"PadeO"`** は、n × n の行列で order と (n^3 + 64) の積が 2^31 を
   超えると、計算の前に RangeError を投げます。これらの方法は行列によらず order 回の行列の積を計算します (上限は 2 × 2
   で order 29826161、Taylor で約 5 秒、Padé で約 9 秒。50 × 50 で 17171、Padé で約 9 秒)。既定の order 8 は上限よりずっと
@@ -653,16 +682,16 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   1.8e-11 ずれる: 0.5000001784124118 に対し 0.5000001783941305)。R の `qhyper` は時間が m + n に比例します (m = n = k = 1e7 で 0.7 秒)。
   2147483647 を超えるパラメータで `qhyper` の逆関数を使う `rhyper` には上限がありません。
 - **`besselJ`・`besselY`・`besselI`・`besselK`** は、結果の対数の上界・下界で決まらず (結果が範囲を大きく超えるときは
-  すぐに Inf か 0 を返す。47 回目)、連分数か漸化式に数秒より長くかかる大きさでは、計算の前に RangeError を投げます。J と
+  すぐに Inf か 0 を返す)、連分数か漸化式に数秒より長くかかる大きさでは、計算の前に RangeError を投げます。J と
   Y: 漸近展開の外で x が nu より大きいとき、連分数は約 x - nu 項で、2^25 項までです (`besselJ(1e7, 2e5)` は 9.8e6 項で
   1.6 秒。`besselJ(1e8, 2e6)` は以前はループの上限 1e8 項まで回った)。転回点の近く (x が nu よりわずかに小さい) では
   漸化式が約 nu 回で、J は 2^31 回まで (1 回 5 ns ほど。`besselJ(1e8 - 1, 1e8)` は 0.5 秒)、Y が要るとき (`besselY` と、
   負の整数でない次数の `besselJ`) は 2^28 回まで (1 回 45 ns ほど) です。I と K: K の前進漸化式が約 nu 回です。2^28 回を
   超えるときと、I_(nu+1) / I_nu の連分数が 1e6 項で収束しないとき (x が約 5e10 より大きい) は、次数が 1000 を超えれば
   Debye の一様漸近展開 (u1〜u4。相対誤差は指数 nu eta - x の eps 倍ほど) で求めます (`besselK(3e9, 3e8, expon.scaled =
-  TRUE)` は 47 回目の前は 4.4 秒かけて Inf、#492 までは RangeError だった)。そこで RangeError が残るのは、この指数の
+  TRUE)` は当初 4.4 秒かけて Inf、その後 #492 までは RangeError だった)。そこで RangeError が残るのは、この指数の
   項が 2^26 を超え、結果が範囲内のときだけです (nu が 2^28 を超え、x が 0.66 nu に近いときの scaled でない I と K)。R の `besselJ` は nu = 1e6 ほどから警告付きで
-  0 を返し、R の `besselY` はそこでも速く計算します (47・52 回目)。x が大きい漸近展開 (x が nu の約 90 倍より大きい) では、
+  0 を返し、R の `besselY` はそこでも速く計算します。x が大きい漸近展開 (x が nu の約 90 倍より大きい) では、
   位相の補正 nu^2 / (2x) が 2^26 を超えると、J と Y は計算の前に RangeError を投げます。double で作るとこの補正の誤差は
   その約 1e-16 倍で、約 1e13 を超えると結果の桁が残りません (`besselJ(1e200, 1e154)` で 5e107。上限の下では相対誤差は
   1e-9 程度まで)。R はそこでは警告付きで NaN を返します (nu が 1e7 を超えるとすべて。#490)。
@@ -671,7 +700,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   分布関数は不正なパラメータで NaN を返す、のもう 1 つの例外です)。`pwilcox(2e5, 3000, 3000)` (6e8 手) は 5 秒かかっていて
   RangeError に、`pwilcox(1e5, 3000, 3000)` は 2.8 秒です。m = n = 1e5 の q = 1e6 は 20 分ほどかかる見込みでした。
   `wilcoxTest` は正確な分布のエラーに "use exact: false" を付けます。R は 3 次元の表を作り、時間はもっとかかり
-  (`pwilcox(2e4, 200, 200)` で 1.5 秒、ここでは 24 ms)、m = n = 500 ほどを超えるとメモリが足りなくなります (45・46 回目)。
+  (`pwilcox(2e4, 200, 200)` で 1.5 秒、ここでは 24 ms)、m = n = 500 ほどを超えるとメモリが足りなくなります。
 - **`seq`・`approx`・`spline`・`sampleInt` の出力の長さには上限を置きません** (`rnorm` などの乱数の関数と同じ)。長さは
   呼び出し側の指定どおりで、時間とメモリは長さに比例します (`seq(0, 1e7)` で 0.46 秒、n = 1e7 の `approx`・`spline` で
   2.7 秒・1.5 秒、`sampleInt(1e7)` で 4.9 秒。R の `sample.int(1e7)` は 5.05 秒)。JavaScript の配列に入らない長さ
@@ -808,11 +837,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`pivotLonger` と `pivotWider`** はデータフレームを返します。tidyr の警告は任意の `onWarning` コールバックに
   渡します。`pivotWider` で 1 つのセルに複数の行が当たるとエラーにします (tidyr は警告を出してリストの列を作り
   ます)。`valuesFn` で要約してください。`pivotLonger` で、名前 (`namesTransform` の後) が同じキーに同じ `".value"`
-  の列を 2 回与えるとエラーにします (tidyr はそれぞれに行を作ります。issue #444)。正規表現 (`namesSep`、
+  の列を 2 回与えるとエラーにします (tidyr はそれぞれに行を作ります。Issue #444)。正規表現 (`namesSep`、
   `namesPattern`) は JavaScript のものです。`namesSep` が長さ 0 で一致したあとは、stringr の `str_split` と同じく
   1 文字 (コードポイント) 先から探します。`"A😀B"` を `"(?=.)"` で分けると `""`、`"A"`、`"😀"`、`"B"` です。R 4.5.2 の
   tidyr 1.3.2 (`gregexpr(perl = TRUE)`) は絵文字の UTF-8 のバイトの途中から探し、`""`、`"A"`、`"😀"`、`""`、`""`、
-  `""`、`"B"` になります (issue #500)。
+  `""`、`"B"` になります (Issue #500)。
 - **`merge` と `cbind`** は列の名前が重なるとエラーにします。R は許しますが、列のオブジェクトでは同じ名前の列を
   2 つ持てないためです。
 
@@ -820,7 +849,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 
 - **重みがすべて 0 の `lm`** は "all weights are zero" で例外を投げます。R は NA の係数を返します。
 - **無限の重みを持つ `lm`** は "non-finite weights not allowed" で例外を投げます (`glm` と同じ)。R は列のあるモデルでは
-  "NA/NaN/Inf in 'x'" で止まりますが、列のないモデル (`y ~ 0`) では残差 y、sigma Inf を返します (issue #302)。
+  "NA/NaN/Inf in 'x'" で止まりますが、列のないモデル (`y ~ 0`) では残差 y、sigma Inf を返します (Issue #302)。
 
 ### 一般化線形モデル
 
@@ -1030,7 +1059,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   数えます (総数 n が整数でないときの、R の floor(n) 行の行列とその再利用も再現します)。
   `fisherTest` は先に空の行と列を除き、2 × 2 の表では `simulatePValue` を無視します。どちらの
   関数でも `B` は 1 以上の整数です。R は `B = 0` でシミュレーションをせずに p = (1 + 0) / (0 + 1) = 1 を返しますが、
-  データを使っていない値です (issue #488・#489)。
+  データを使っていない値です (Issue #488・#489)。
 - **`pAdjust`:** `n` の既定値は NaN でない値の個数で、それより小さい `n` はエラーです。[0, 1] の外の
   p 値も処理し、上端だけを 1 で抑えます。省略した手法名は大文字と小文字を区別します。
 
