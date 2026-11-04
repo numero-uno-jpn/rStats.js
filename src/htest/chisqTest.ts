@@ -199,8 +199,8 @@ function chisqCounts(x: Counts | readonly Counts[], options: ChisqTestOptions): 
 function replicates(options: ChisqTestOptions): number {
   const B = options.B ?? 2000;
   // a fractional B ran more simulations than B + 1 counts (R divides by B + 1 as well): p-values above 1 (B = 2.1 gave
-  // 1.33, R 1.29)
-  if (!(Number.isInteger(B) && B >= 0 && B < 2 ** 31)) throw new RangeError("'B' must be a non-negative integer");
+  // 1.33, R 1.29). B = 0 simulates nothing (R's p = (1 + 0) / (0 + 1) = 1): an error too (#489)
+  if (!(Number.isInteger(B) && B >= 1 && B < 2 ** 31)) throw new RangeError("'B' must be a positive integer");
   return B;
 }
 

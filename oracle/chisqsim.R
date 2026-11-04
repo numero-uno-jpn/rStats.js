@@ -52,7 +52,7 @@ for (x in tabs[c(1, 6)]) {
 # Zero row (R does not simulate when a margin is 0: ordinary test, NaN), 1-row table (goodness of fit)
 add(x = matrix(c(1, 0, 3, 0, 5, 0), 2), simulatePValue = TRUE, B = 50, seed = 11)
 add(x = matrix(c(1, 2, 3), 1), simulatePValue = TRUE, B = 50, seed = 12)
-# B = 0 (allowed) and invalid B
+# B = 0 (rStats.js: an error, issue #489; R gives p = 1) and invalid B
 add(x = matrix(c(12, 5, 7, 7), 2), simulatePValue = TRUE, B = 0, seed = 13)
 add(x = c(2, 3, 5), simulatePValue = TRUE, B = -1, seed = 13)
 add(x = c(2, 3, 5), simulatePValue = TRUE, B = NaN, seed = 13)
