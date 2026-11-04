@@ -64,10 +64,13 @@ function temmeIK(u: number, x: number): [number, number] {
   return [sum, (2 * sum1) / x];
 }
 
-/** fv = I_(v+1) / I_v by continued fraction (A&S 9.1.73, modified Lentz) */
-function cf1IK(v: number, x: number): number {
+/**
+ * fv = I_(v+1) / I_v by continued fraction (A&S 9.1.73, modified Lentz), and whether it converged within MAX_ITER
+ * terms (for x above about 5e10 it does not, #492)
+ */
+function cf1IK(v: number, x: number): [number, boolean] {
   // b_1 = Infinity would make the Lentz steps Infinity * 0 = NaN; the rest of the fraction is below (1/b_1)^2
-  if (!Number.isFinite((2 * (v + 1)) / x)) return x / 2 / (v + 1);
+  if (!Number.isFinite((2 * (v + 1)) / x)) return [x / 2 / (v + 1), true];
   const tiny = Math.sqrt(Number.MIN_VALUE * 2 ** 52); // sqrt(DBL_MIN)
   let C = tiny;
   let f = tiny;
@@ -81,9 +84,9 @@ function cf1IK(v: number, x: number): number {
     D = 1 / D;
     const delta = C * D;
     f *= delta;
-    if (Math.abs(delta - 1) <= 2 * EPS) break;
+    if (Math.abs(delta - 1) <= 2 * EPS) return [f, true];
   }
-  return f;
+  return [f, false];
 }
 
 /**
@@ -213,6 +216,46 @@ interface Scaled {
   e2: number;
   /** -1, 0 or 1: the power of e^x still to be applied to get the unscaled value */
   ex: -1 | 0 | 1;
+  /** Debye's expansion: a further factor e^y, y formed from terms of total size `size` (`what` names the call) */
+  debye?: { y: number; size: number; what: string };
+}
+
+/**
+ * Bound on the size of the terms of the exponent in Debye's expansion: formed in double, the exponent has an absolute
+ * error of a few eps times this size, and the value as much relative error (1.5e-8 at the bound; as for the phase of
+ * besselJ, MAX_ASYM_PHASE)
+ */
+const MAX_DEBYE_EXP = 2 ** 26;
+
+/**
+ * Debye's uniform expansion for large orders (DLMF 10.41.3, 10.41.4, with u1 to u4 of 10.41.10), v > 1000, z = x / v:
+ * I_v(x) = e^(v eta) / (sqrt(2 pi v) (1 + z^2)^(1/4)) sum u_k(t) / v^k and K_v(x) = sqrt(pi / (2v)) e^(-v eta) /
+ * (1 + z^2)^(1/4) sum (-1)^k u_k(t) / v^k, t = 1 / sqrt(1 + z^2). Used only where the recurrence of K would take more
+ * than MAX_K_STEPS steps or the continued fraction of I does not converge (#492); the omitted term u5 / v^5 is at
+ * most 2e-17 (abs(u5) <= 0.021 on [0, 1]). The exponent v eta - x = v / (s + z) - v log1p((1 + 1 / (s + z)) / z),
+ * s = sqrt(1 + z^2), is formed without forming v eta, which cancels against x (x = 1e308, v = 1e154: v eta - x = -0.5)
+ */
+function debyeIK(v: number, x: number, want: "I" | "K", what: string): Scaled {
+  const z = x / v;
+  const s = z > 1 ? z * Math.sqrt(1 + 1 / (z * z)) : Math.sqrt(1 + z * z);
+  const t = 1 / s;
+  const t2 = t * t;
+  const u1 = (t * (3 - 5 * t2)) / 24;
+  const u2 = (t2 * (81 + t2 * (-462 + t2 * 385))) / 1152;
+  const u3 = (t * t2 * (30375 + t2 * (-369603 + t2 * (765765 - t2 * 425425)))) / 414720;
+  const u4 =
+    (t2 * t2 * (4465125 + t2 * (-94121676 + t2 * (349922430 + t2 * (-446185740 + t2 * 185910725))))) / 39813120;
+  const w = 1 / v;
+  const sgn = want === "I" ? 1 : -1;
+  const sum = 1 + w * (sgn * u1 + w * (u2 + w * (sgn * u3 + w * u4)));
+  const p = s + z;
+  const a = v / p;
+  const b = v * Math.log1p((1 + 1 / p) / z);
+  // (2 pi v and v s overflow for the largest v and x: the square roots apart)
+  const root = Math.sqrt(v) * Math.sqrt(s);
+  const size = Math.abs(a) + Math.abs(b);
+  if (want === "I") return { m: sum / (Math.sqrt(2 * Math.PI) * root), e2: 0, ex: 1, debye: { y: a - b, size, what } };
+  return { m: (sum * Math.sqrt(Math.PI / 2)) / root, e2: 0, ex: -1, debye: { y: b - a, size, what } };
 }
 
 /** m * 2^e2 * e^y, with y split into exact steps of 700 (e^(x/k) would turn the rounding of x/k into an error of x ε) */
@@ -240,6 +283,19 @@ function mulExp(m: number, e2: number, y: number): number {
 /** The value e^(want x) * (unscaled value): want = 0 for the unscaled value, -1 for e^-x I, 1 for e^x K */
 function resolve(r: Scaled, x: number, want: -1 | 0 | 1): number {
   const ex = r.ex + want;
+  if (r.debye) {
+    const { y, size, what } = r.debye;
+    const value = mulExp(r.m, r.e2, ex * x + y);
+    // a result far out of range is 0 or Infinity whatever the error of its exponent
+    const total = size + Math.abs(ex) * x;
+    if (value !== 0 && Number.isFinite(value) && total > MAX_DEBYE_EXP) {
+      throw new RangeError(
+        `${what} has an exponent in Debye's expansion formed from terms of about ${total.toPrecision(3)}, ` +
+          `which double precision does not resolve (at most 2^26)`,
+      );
+    }
+    return value;
+  }
   return ex === 0 ? ldexp(r.m, r.e2) : mulExp(r.m, r.e2, ex * x);
 }
 
@@ -275,9 +331,13 @@ function iPos(v: number, x: number, name: string, nu: number): Scaled {
     const r = Number.isFinite(2 * x * Math.PI) ? Math.sqrt(2 * x * Math.PI) : Math.sqrt(2 * Math.PI) * Math.sqrt(x);
     return { m: s / r, e2: 0, ex: 1 };
   }
+  // Debye where the recurrence of K would be too long or the continued fraction does not converge (#492: it gave
+  // besselI(1e12, 2e5, scaled) 25% low without notice)
+  if (Math.round(v) > MAX_K_STEPS) return debyeIK(v, x, "I", `${name}: x = ${x}, nu = ${nu}`);
+  const [fv, converged] = cf1IK(v, x);
+  if (!converged && v > LARGE_ORDER) return debyeIK(v, x, "I", `${name}: x = ${x}, nu = ${nu}`);
   // Wronskian I_v K_(v+1) + I_(v+1) K_v = 1/x with fv = I_(v+1) / I_v; K is scaled by e^x, so I comes out scaled by e^-x
   const { k, k1, exp2 } = kScaled(v, x, name, nu);
-  const fv = cf1IK(v, x);
   return { m: 1 / (x * (k * fv + k1)), e2: -exp2, ex: 1 };
 }
 
@@ -299,6 +359,7 @@ function kPos(v: number, x: number, name: string, nu: number): Scaled {
     const m = Number.isFinite(2 * x) ? (s * Math.sqrt(Math.PI)) / Math.sqrt(2 * x) : (s * Math.sqrt(Math.PI / 2)) / Math.sqrt(x);
     return { m, e2: 0, ex: -1 };
   }
+  if (Math.round(v) > MAX_K_STEPS) return debyeIK(v, x, "K", `${name}: x = ${x}, nu = ${nu}`);
   const { k, exp2 } = kScaled(v, x, name, nu);
   return { m: k, e2: exp2, ex: -1 };
 }
@@ -344,7 +405,9 @@ export interface BesselOptions {
  *
  * For orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by
  * bounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): several seconds at
- * `nu = 1e8`, and a RangeError before the computation beyond 2^28 steps.
+ * `nu = 1e8`. Beyond 2^28 steps, and for `besselI` where its continued fraction does not converge (`x` above about
+ * 5e10), Debye's uniform expansion is used; a RangeError is thrown only where its exponent `nu eta - x` is formed from
+ * terms above 2^26 and the result is in range (near `x = 0.66 nu`, unscaled).
  *
  * @example
  * ```ts
@@ -398,7 +461,9 @@ export function besselI(x: number, nu: number, options: BesselOptions = {}): num
  *
  * For orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by
  * bounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): several seconds at
- * `nu = 1e8`, and a RangeError before the computation beyond 2^28 steps.
+ * `nu = 1e8`. Beyond 2^28 steps, and for `besselI` where its continued fraction does not converge (`x` above about
+ * 5e10), Debye's uniform expansion is used; a RangeError is thrown only where its exponent `nu eta - x` is formed from
+ * terms above 2^26 and the result is in range (near `x = 0.66 nu`, unscaled).
  *
  * @example
  * ```ts

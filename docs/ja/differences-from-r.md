@@ -287,6 +287,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `besselY(1e-310, 0)`、`besselY(5e-324, 0)` | -Inf | -454.49387560035387、-473.99907342300429 |
 | `besselK(1, 1e12)`、`besselY(1, 1e12)`、`besselY(10, 1e8)` (大きな次数で、結果が範囲を大きく超える) | エラー "cannot allocate vector of size 7450.6 Gb"、警告付きの NaN | Inf、-Inf、-Inf をすぐに返す (次数に比例する漸化式の前に、結果の対数の上界・下界で判定する) |
 | `besselK(1e8, 2e8)` | 0 | Inf |
+| `besselI(1e12, 2e5, expon.scaled = TRUE)`・`besselI(1e16, 1e7, expon.scaled = TRUE)` (I_(nu+1) / I_nu の連分数に 1e6 項より多く要る。#492) | 0 | 3.910426939755009e-7、3.969525474770118e-9 (Debye の一様漸近展開。Rmpfr との差は 1e-15 以内。修正前の rStats.js は連分数を 1e6 項で打ち切り、25%・99.8% 小さい値だった) |
+| `besselI(1e308, 1e154, expon.scaled = TRUE)`・`besselK(1e308, 1e154, expon.scaled = TRUE)` (#492) | 警告 ("ncalc ... Arg. out of range?" と "precision lost in result") のあと、Windows の R 4.5.2 は異常終了 (segmentation fault) | 2.419707245191434e-155、2.0663656770612464e-154 (Debye の一様漸近展開。Rmpfr との差は 5e-16 以内) |
 | `besselJ(1e200, 1e50)`・`besselY(1e200, 1e50)`・`besselJ(1e40, 1e17)` (x が大きい漸近展開。#490) | NaN と警告 "nu=1e+50 too large for bessel_j() algorithm" (nu が 1e7 を超えるとすべて) | 6.831382541998361e-102、-7.949547116811557e-101、-6.538328107498253e-22 (Rmpfr との差は 3e-16 以内。nu^2 の冪は溢れるときに比 nu / x の形、nu ≥ 2^52 では nu / 2 + 1/4 の 2 での剰余を nu の 4 での剰余から) |
 | タイがあり `exact` を指定しない (または `TRUE`) `ansari.test(conf.int = TRUE)` | エラー "object 'cint' not found" (両方の標本が 50 未満だと R は正確な方法の分岐に入り、タイがあると区間を飛ばす) | 正規近似の区間と推定値 (`exact: false` と同じ) |
 | `weighted.mean(c(1e308, 1e308), c(1, 1))` など和が溢れる場合。重みの和だけが溢れる `weighted.mean(c(1e-308, 2e-308), c(1e308, 1e308))`。符号付きの重みが打ち消し合う `weighted.mean(c(1e308, 1e308, 1e308), c(1e308, -1e308, 1e-308))`。積がアンダーフローする `weighted.mean(1e-200, 1e-200)` | Inf。0。NaN。0 | 1e308。1.5e-308。1e308。1e-200 (積の和と重みの和を厳密に求め、商を 1 回だけ丸める) |
@@ -651,8 +653,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   Y: 漸近展開の外で x が nu より大きいとき、連分数は約 x - nu 項で、2^25 項までです (`besselJ(1e7, 2e5)` は 9.8e6 項で
   1.6 秒。`besselJ(1e8, 2e6)` は以前はループの上限 1e8 項まで回った)。転回点の近く (x が nu よりわずかに小さい) では
   漸化式が約 nu 回で、J は 2^31 回まで (1 回 5 ns ほど。`besselJ(1e8 - 1, 1e8)` は 0.5 秒)、Y が要るとき (`besselY` と、
-  負の整数でない次数の `besselJ`) は 2^28 回まで (1 回 45 ns ほど) です。I と K: K の前進漸化式が約 nu 回で、2^28 回まで
-  です (`besselK(3e9, 3e8, expon.scaled = TRUE)` は 4.4 秒かけて Inf だった)。R の `besselJ` は nu = 1e6 ほどから警告付きで
+  負の整数でない次数の `besselJ`) は 2^28 回まで (1 回 45 ns ほど) です。I と K: K の前進漸化式が約 nu 回です。2^28 回を
+  超えるときと、I_(nu+1) / I_nu の連分数が 1e6 項で収束しないとき (x が約 5e10 より大きい) は、次数が 1000 を超えれば
+  Debye の一様漸近展開 (u1〜u4。相対誤差は指数 nu eta - x の eps 倍ほど) で求めます (`besselK(3e9, 3e8, expon.scaled =
+  TRUE)` は 47 回目の前は 4.4 秒かけて Inf、#492 までは RangeError だった)。そこで RangeError が残るのは、この指数の
+  項が 2^26 を超え、結果が範囲内のときだけです (nu が 2^28 を超え、x が 0.66 nu に近いときの scaled でない I と K)。R の `besselJ` は nu = 1e6 ほどから警告付きで
   0 を返し、R の `besselY` はそこでも速く計算します (47・52 回目)。x が大きい漸近展開 (x が nu の約 90 倍より大きい) では、
   位相の補正 nu^2 / (2x) が 2^26 を超えると、J と Y は計算の前に RangeError を投げます。double で作るとこの補正の誤差は
   その約 1e-16 倍で、約 1e13 を超えると結果の桁が残りません (`besselJ(1e200, 1e154)` で 5e107。上限の下では相対誤差は

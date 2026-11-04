@@ -293,6 +293,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `besselY(1e-310, 0)`, `besselY(5e-324, 0)` | -Inf | -454.49387560035387, -473.99907342300429 |
 | `besselK(1, 1e12)`, `besselY(1, 1e12)`, `besselY(10, 1e8)` (results far out of range at large orders) | error "cannot allocate vector of size 7450.6 Gb"; NaN with a warning | Inf, -Inf, -Inf at once (bounds on the log of the result decide before the recurrences of about nu steps) |
 | `besselK(1e8, 2e8)` | 0 | Inf |
+| `besselI(1e12, 2e5, expon.scaled = TRUE)`, `besselI(1e16, 1e7, expon.scaled = TRUE)` (the continued fraction of I_(nu+1) / I_nu needs more than 1e6 terms; #492) | 0 | 3.910426939755009e-7, 3.969525474770118e-9 (Debye's uniform expansion, Rmpfr to within 1e-15; before the fix rStats.js stopped the fraction at 1e6 terms and gave values 25% and 99.8% low) |
+| `besselI(1e308, 1e154, expon.scaled = TRUE)`, `besselK(1e308, 1e154, expon.scaled = TRUE)` (#492) | a warning ("ncalc ... Arg. out of range?" and "precision lost in result"), then R 4.5.2 on Windows crashed (segmentation fault) | 2.419707245191434e-155, 2.0663656770612464e-154 (Debye's uniform expansion, Rmpfr to within 5e-16) |
 | `besselJ(1e200, 1e50)`, `besselY(1e200, 1e50)`, `besselJ(1e40, 1e17)` (the asymptotic expansion for large x; #490) | NaN with the warning "nu=1e+50 too large for bessel_j() algorithm" (every nu above 1e7) | 6.831382541998361e-102, -7.949547116811557e-101, -6.538328107498253e-22 (Rmpfr to within 3e-16; the powers of nu^2 as ratios nu / x where they overflow, and nu / 2 + 1/4 modulo 2 from nu modulo 4 for nu >= 2^52) |
 | `ansari.test(conf.int = TRUE)` with ties and `exact` unset (or `TRUE`) | error "object 'cint' not found" (with both samples below 50 values R takes the exact branch, which skips the interval with ties) | the normal-approximation interval and estimate, the same as with `exact: false` |
 | `weighted.mean(c(1e308, 1e308), c(1, 1))` and other sums that overflow; `weighted.mean(c(1e-308, 2e-308), c(1e308, 1e308))`, where only the sum of the weights overflows; `weighted.mean(c(1e308, 1e308, 1e308), c(1e308, -1e308, 1e-308))`, signed weights that cancel; `weighted.mean(1e-200, 1e-200)`, where the product underflows | Inf; 0; NaN; 0 | 1e308; 1.5e-308; 1e308; 1e-200 (the sums of the products and of the weights formed exactly, and their quotient rounded once) |
@@ -700,8 +702,12 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   takes 1.6 s; `besselJ(1e8, 2e6)` ran into the loop's limit of 1e8 terms before); near the turning point (x a little
   below nu) the recurrence takes about nu steps, at most 2^31 for J (about 5 ns a step; `besselJ(1e8 - 1, 1e8)` takes
   0.5 s) and 2^28 where Y is needed (`besselY`, and `besselJ` of a negative non-integer order; about 45 ns a step).
-  I and K: the forward recurrence of K takes about nu steps, at most 2^28 (`besselK(3e9, 3e8, expon.scaled = TRUE)`
-  gave Inf after 4.4 s). R's `besselJ` gives 0 with a warning from about nu = 1e6 on, and R's `besselY` is fast
+  I and K: the forward recurrence of K takes about nu steps; beyond 2^28 steps, and where the continued fraction of
+  I_(nu+1) / I_nu does not converge within 1e6 terms (x above about 5e10), orders above 1000 take Debye's uniform
+  expansion (u1 to u4, relative error about eps times the exponent nu eta - x; `besselK(3e9, 3e8, expon.scaled =
+  TRUE)` gave Inf after 4.4 s before review 47, and a RangeError until #492). There a RangeError remains only where
+  the terms of that exponent exceed 2^26 and the result is in range (unscaled I and K near x = 0.66 nu, nu above
+  2^28). R's `besselJ` gives 0 with a warning from about nu = 1e6 on, and R's `besselY` is fast
   there (reviews 47 and 52). In the asymptotic expansion for large x (x above about 90 nu), J and Y throw a
   RangeError, before the computation, where the phase correction nu^2 / (2x) exceeds 2^26: formed in double its
   error is about 1e-16 times itself, and no digit of the result is left beyond about 1e13 (`besselJ(1e200, 1e154)`,

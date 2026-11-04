@@ -20,15 +20,20 @@ describe("review 47 (revision)", () => {
     quick(() => besselJ(1e8, -2e6 - 0.5), "(at most 2^25)");
   });
 
-  it("rejects recurrences beyond 2^31 steps (J) and 2^28 steps (Y, I, K) at once", () => {
+  it("rejects recurrences beyond 2^31 steps (J) and 2^28 steps (Y) at once", () => {
     // near the turning point, where the bounds on the log do not decide
     quick(() => besselJ(3e9 - 10, 3e9), "besselJ: x = 2999999990, nu = 3000000000 needs a recurrence of about 3000000000 steps (at most 2^31)");
     quick(() => besselY(3e8 - 1, 3e8), "besselY: x = 299999999, nu = 300000000 needs a recurrence of about 300000000 steps (at most 2^28)");
     // a negative non-integer order of J needs Y
     quick(() => besselJ(3e8 - 1, -3e8 - 0.25), "besselJ: x = 299999999, nu = -300000000.25 needs a recurrence of about 300000000 steps (at most 2^28)");
-    quick(() => besselI(3e9, 3e8, scaled), "besselI: x = 3000000000, nu = 300000000 needs a recurrence of about 300000000 steps (at most 2^28)");
-    quick(() => besselI(3e9, -3e8 - 0.25, scaled), "(at most 2^28)");
-    quick(() => besselK(3e9, 3e8, scaled), "besselK: x = 3000000000, nu = 300000000 needs a recurrence of about 300000000 steps (at most 2^28)");
+  });
+
+  it("I and K beyond 2^28 steps take Debye's expansion at once (issue 492)", () => {
+    const t = performance.now();
+    expect(besselI(3e9, 3e8, scaled)).toBe(0);
+    expect(besselI(3e9, -3e8 - 0.25, scaled)).toBe(0);
+    expect(besselK(3e9, 3e8, scaled)).toBe(Infinity);
+    expect(performance.now() - t).toBeLessThan(100);
   });
 
   it("keeps the results decided by the bounds on the log", () => {
