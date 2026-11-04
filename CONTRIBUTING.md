@@ -90,7 +90,8 @@ Follow them in new code and in fixes.
    degrees of freedom or a standard error that leave a test undefined throw an `Error` or `RangeError`, also where R
    returns NaN or ±Inf (the test replaces R's expected value with the error and gives the reason). The distribution
    functions (d/p/q/r) are the exception: they return NaN for invalid parameters, as R. A NaN in new data for a
-   prediction gives NaN in that row.
+   prediction gives NaN in that row. An options object with a key the function does not know is a RangeError (in the
+   distribution functions too), not ignored: a misspelt option would otherwise give a wrong result without a sign.
 2. **R's bits where R is right, the right value only where R is wrong.** A correct value comes before agreement with
    R, but a fix is limited to the range where R (or the package) is wrong. Every value that differs from R is
    recorded with its reason in [docs/differences-from-r.md](docs/differences-from-r.md) and its Japanese translation.
@@ -141,6 +142,12 @@ rStats.js is MIT licensed. To keep it that way:
   (`glmResiduals(fit, "pearson")`), it is taken both by position and in the options (an overload), and giving it both
   ways is a RangeError. The exception is `optimHess(par, fn, gr, control)`, which takes `gr` and `control` by
   position only, as R: `control` is itself a plain object, so an options object after `gr` could not be told from it.
+- A key of an options object that the function does not know is a RangeError (`checkOptions` in
+  `src/internal/checkOptions.ts`). The checks and their key lists are generated from the option types: after adding
+  an exported function or changing an options type, run `node scripts/option-keys.mjs --write` and commit what it
+  changes (`test/unknownOptions.test.ts` fails while the sources differ from its output). Do not edit the marked
+  generated lines by hand; positions where the options and a data frame can both come, and functions with a check of
+  their own, are set in the script.
 - Public API documentation (TSDoc on exported symbols), internal comments and the documents
   (`*.md` and `docs/`) are written in English. `docs/ja/` and the `*.ja.md` files are Japanese
   translations; the English documents are authoritative, and a change to one should be made in

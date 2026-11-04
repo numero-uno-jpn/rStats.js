@@ -55,7 +55,11 @@ loads the common code twice, with two random number states.
   nbins, `propTrendTest`'s score and the deriv of the functions `splinefun` and `splinefunH` return
   (`glmResiduals(fit, "pearson")` or `glmResiduals(fit, { type: "pearson" })`; giving one both ways is a RangeError).
   The exception is `optimHess(par, fn, gr, control)`, which takes `gr` and `control` by position only, as R: `control`
-  is itself a plain object, which an options object after `gr` could not be told from.
+  is itself a plain object, which an options object after `gr` could not be told from. A key the function does not
+  know is a RangeError, also in a nested object with fixed keys (`optim`'s `control`, `glm`'s `family` given as an
+  object): `pnorm(1, { lowertail: false })` throws "unknown option 'lowertail' for pnorm (known: mean, sd, lowerTail,
+  logP)" instead of ignoring the misspelt key. Objects whose keys are your data (data frames, `contrasts`, `levels`)
+  are not checked.
 - **Results** are plain objects. The functions that take a fit of `lmer` (`lmerSummary`, `lmerAnova`,
   `lmerContest`, ...) need the object `lmer` returned itself, not a copy of it (`structuredClone`, `{ ...fit }`, JSON
   or `postMessage`): it carries internal values that a copy loses, and a copy is a TypeError. Tests return R's `htest` fields in camelCase (`statistic`, `parameter`, `pValue`,

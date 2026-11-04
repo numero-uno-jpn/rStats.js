@@ -332,6 +332,9 @@ with the documented names, arguments, options, result fields and their types.
   or undocumented fields, and files under `dist/` other than the entry points and the `dist/*.js` bundles. Where a
   new version of R changes its own values or random streams, rStats.js follows it in a minor version.
 - Code that switches on result fields should allow fields to be added.
+- A key of an options object that the function does not know is a RangeError (also in a nested object such as
+  `optim`'s `control`), so a misspelt option cannot be ignored without a sign. A new option is therefore a minor
+  change: the key it adds was an error before.
 
 ## Contributing
 

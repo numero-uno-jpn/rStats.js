@@ -40,6 +40,15 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   when all values are equal (see Changed).
 - `steelTest` is removed. It only reproduced the errors of PMCMRplus 1.9.12's `steelTest`, which fails on every input,
   and never returned a value; Steel's many-to-one rank test is `manyOneUTest` (its normal approximation).
+- A key of an options object that the function does not know is a RangeError, where it was ignored: a misspelt key
+  such as `pnorm(q, { lowertail: false })` gave the lower tail without a sign ("unknown option 'lowertail' for pnorm
+  (known: mean, sd, lowerTail, logP)"). A key whose value is `undefined` counts. This holds for every exported function
+  that takes options, the nested objects with fixed keys included (`optim`'s and `optimHess`' `control`, `glm`'s
+  `family` and `link` given as objects, `coxph`'s and `factanal`'s `control`; "unknown option 'control.maxitt' for
+  optim"), for the `params` of `distSummary` (the parameters of the distribution's d function: `shape`, `rate` and
+  `scale` for `"gamma"`) and for the options of the function `splinefun` and `splinefunH` return. Objects whose keys
+  are the user's data (data frames, `contrasts`, `levels`) are not checked. `lmer`, `lmerSummary`, `lmerContest` and
+  `lmerAnova` keep their own check with R's message (an unknown key is a TypeError "unused argument (x)").
 
 ### Added
 
