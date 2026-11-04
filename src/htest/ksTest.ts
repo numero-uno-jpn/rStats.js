@@ -7,7 +7,13 @@
 // taken only where the pooled sorted values change; exact p-values (by default for m n < 10000, with or without ties)
 // by counting lattice paths, asymptotic ones as for one sample with n replaced by m n / (m + n).
 
-import { checkKolmogorovExactSize, pkolmogorovExact, pkolmogorovLimit, pkolmogorovOneSidedUpper } from "./core/kolmogorov.js";
+import {
+  checkKolmogorovExactSize,
+  pkolmogorovExact,
+  pkolmogorovExactUpper,
+  pkolmogorovLimit,
+  pkolmogorovOneSidedUpper,
+} from "./core/kolmogorov.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { psmirnovUpper } from "./core/smirnov.js";
 import { twoGroupData } from "./testFormula.js";
@@ -118,12 +124,18 @@ export function ksTest(
     if (alternative === "two.sided") {
       // For D >= 1/2 the two one-sided exceedances cannot both occur, so P(D >= d) = 2 P(D+ >= d) exactly, a sum of
       // positive terms: 1 - P(D < d) lost all digits of small p-values (D = 0.9 gave 0 at n = 20 for 2e-20, and 3e-15
-      // at n = 99 for 2e-99; R too)
-      pValue = exact
-        ? statistic >= 0.5
-          ? Math.min(1, 2 * pkolmogorovOneSidedUpper(n, statistic))
-          : 1 - pkolmogorovExact(n, statistic)
-        : pkolmogorovLimit(Math.sqrt(n) * statistic, false);
+      // at n = 99 for 2e-99; R too). For D < 1/2 and 2 P(D+ >= d) < 1e-2 (an upper bound of p), the upper tail as a sum of positive
+      // terms too (#483: 1e-22 was 3e-15 at n = 99, R 2e-15); 1 - P(D < d) where p may be larger (as R), or where the
+      // sum needs too much work
+      if (!exact) pValue = pkolmogorovLimit(Math.sqrt(n) * statistic, false);
+      else {
+        const bound = 2 * pkolmogorovOneSidedUpper(n, statistic);
+        if (statistic >= 0.5) pValue = Math.min(1, bound);
+        else {
+          const upper = bound < 1e-2 ? pkolmogorovExactUpper(n, statistic) : NaN;
+          pValue = Number.isNaN(upper) ? 1 - pkolmogorovExact(n, statistic) : upper;
+        }
+      }
     } else {
       pValue = exact ? pkolmogorovOneSidedUpper(n, statistic) : Math.exp(-2 * n * statistic * statistic);
     }

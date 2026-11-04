@@ -105,8 +105,9 @@ const calls: Record<string, [number, (a: Args) => Record<string, unknown>]> = {
 
 // Absolute floors per field: the error is measured relative to max(|expected|, floor)
 const floors: Record<string, Record<string, number>> = {
-  // the exact two-sided one-sample p-value is 1 - P(D < d), as in R, so it has absolute accuracy only (SciPy's kstwo
-  // computes the upper tail directly); its sensitivity to the last bit of D also reaches 1e-14 absolute at n near 100
+  // the exact two-sided one-sample p-value is 1 - P(D < d) (absolute accuracy only) where 2 P(D+ >= d) >= 1e-2, as in
+  // R; below, the upper tail directly (#483), as SciPy's kstwo. Its sensitivity to the last bit of D also reaches 1e-14
+  // absolute at n near 100
   ksTest: { pValue: 1e-2 },
 };
 
@@ -438,9 +439,10 @@ if (hasFixture("ksTest"))
     name: "ksTest",
     call: ksCall,
     tolerance: 1e-12,
-    // p-values formed as 1 - P(D < d), in R as here, have absolute accuracy only: the asymptotic ones and the exact
-    // two-sided one-sample ones (off by 1e-15 absolute at n = 80 and 90). The other exact p-values are compared
-    // relatively. Statistics near 0 are rounding residue of R's cumulative sums of 1/m and -1/n (here the
+    // p-values formed as 1 - P(D < d) have absolute accuracy only: the asymptotic ones and R's exact two-sided
+    // one-sample ones (off by 1e-15 absolute at n = 80 and 90; here those with 2 P(D+ >= d) < 1e-2 are formed as the
+    // upper tail directly, #483, and differ from R's by 8e-13 to 1.6e-11 relative in 5 cases). The other exact
+    // p-values are compared relatively. Statistics near 0 are rounding residue of R's cumulative sums of 1/m and -1/n (here the
     // differences of the empirical distribution functions are formed directly)
     floor: {
       pValue: (c) => {

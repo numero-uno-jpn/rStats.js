@@ -11,9 +11,14 @@
 // - One-sided statistic D_n^+ = sup (F_n(x) - F(x)) (Birnbaum and Tingey, Annals of Mathematical Statistics 22, 1951):
 //     P(D_n^+ >= d) = d sum_(j=0)^(floor(n (1 - d))) C(n, j) (1 - d - j/n)^(n-j) (d + j/n)^(j-1),
 //   whose terms are b(j; n, a) / a with a = d + j/n: binomial probabilities from Loader's dbinomRawDD.
+// - Upper tail P(D_n >= d) as a sum of positive terms (#483): the counting process of the sample is a Markov chain
+//   with binomial steps between the breakpoints i/n - d and j/n + d, and the probability leaving it across either
+//   boundary is added up (the first-passage form of the statistic, e.g. Durbin, "Distribution theory for tests based
+//   on the sample distribution function", SIAM 1973).
 
 import { ddAdd, ddDiv, twoProd, twoSum, type DD } from "../../special/dd.js";
 import { dbinomRawDD } from "../../special/loader.js";
+import { dbinom1 } from "../../distributions/binomial.js";
 
 /** pi^2 / 8 as a double-double */
 const PI2_8: DD = [1.2337005501361697, 7.831619385924639e-17];
@@ -228,4 +233,87 @@ export function pkolmogorovOneSidedUpper(n: number, d: number): number {
     s += dbinomRawDD(j, n - j, a, b, false) / (a[0] + a[1]);
   }
   return Math.min(d * s, 1);
+}
+
+/** Largest number of binomial terms of pkolmogorovExactUpper: about 4 s on the development machine (#483) */
+const MAX_CHAIN_WORK = 2 ** 28;
+
+/**
+ * P(D_n >= d), the upper tail of the two-sided one-sample statistic, as a sum of positive terms (#483), or NaN where
+ * that needs more than MAX_CHAIN_WORK terms. 1 - P(D_n < d) from pkolmogorovExact has absolute accuracy only (1e-22
+ * came out as 3e-15 at n = 99).
+ *
+ * N(t), the number of points at or below t, is a Markov chain: given N(t_k) = s, the count in (t_k, t_(k+1)] is
+ * Binomial(n - s, (t_(k+1) - t_k) / (1 - t_k)). D+ >= d when N(i/n - d) >= i for some i, D- >= d when
+ * N(j/n + d) <= j for some j (N(t-) = N(t) almost surely). Between the at most 2n breakpoints i/n - d and j/n + d the
+ * thresholds are constant, so the chain is stepped from one breakpoint to the next and the probability that leaves it
+ * across a threshold is added up. Each binomial row starts from dbinom1 at its mode and follows the ratio recurrence
+ * both ways until it underflows.
+ *
+ * @param n - Sample size, a positive integer.
+ * @param d - Value of the statistic, in (0, 1).
+ */
+export function pkolmogorovExactUpper(n: number, d: number): number {
+  const [hi, lo] = twoProd(n, d);
+  // floor(n d) of the exact n d = hi + lo
+  let nd = Math.floor(hi);
+  if (nd === hi && lo < 0) nd -= 1;
+  const pts: { t: number; up: boolean; i: number }[] = [];
+  for (let i = 0; i <= n; i++) {
+    const u = (i - hi - lo) / n;
+    if (u > 0 && u < 1) pts.push({ t: u, up: true, i });
+    const l = (i + hi + lo) / n;
+    if (l > 0 && l < 1) pts.push({ t: l, up: false, i });
+  }
+  // at most 2 nd + 1 live states per step, rows of about 100 terms before they underflow
+  if (pts.length * (2 * nd + 1) * Math.min(n + 1, 100) > MAX_CHAIN_WORK) return NaN;
+  pts.sort((a, b) => a.t - b.t);
+  let upper = nd + 1; // N >= upper has crossed the upper threshold
+  let alive = new Float64Array(n + 1);
+  let next = new Float64Array(n + 1);
+  alive[0] = 1;
+  let sLo = 0; // the live states lie in [sLo, upper - 1]
+  let t = 0;
+  let p = 0;
+  let work = 0;
+  for (const pt of pts) {
+    const q = (pt.t - t) / (1 - t);
+    if (q > 0) {
+      const odds = q / (1 - q);
+      next.fill(0);
+      for (let s = sLo; s < upper; s++) {
+        const a = alive[s]!;
+        if (a === 0) continue;
+        const m = n - s;
+        const c0 = Math.min(m, Math.floor((m + 1) * q));
+        const cu = upper - s; // c >= cu crosses
+        let v = dbinom1(c0, m, q, false);
+        for (let c = c0; c <= m && v !== 0; c++) {
+          if (c > c0) v = (v * (m - c + 1) * odds) / c;
+          if (c >= cu) p += a * v;
+          else next[s + c]! += a * v;
+          work++;
+        }
+        v = c0 > 0 ? dbinom1(c0 - 1, m, q, false) : 0;
+        for (let c = c0 - 1; c >= 0 && v !== 0; c--) {
+          if (c < c0 - 1) v = (v * (c + 1)) / ((m - c) * odds);
+          if (c >= cu) p += a * v;
+          else next[s + c]! += a * v;
+          work++;
+        }
+      }
+      if (work > 2 * MAX_CHAIN_WORK) return NaN;
+      [alive, next] = [next, alive];
+    }
+    t = pt.t;
+    if (pt.up) upper = pt.i + 1;
+    else {
+      for (let s = sLo; s <= pt.i; s++) {
+        p += alive[s]!;
+        alive[s] = 0;
+      }
+      sLo = Math.max(sLo, pt.i + 1);
+    }
+  }
+  return Math.min(p, 1);
 }
