@@ -19,12 +19,23 @@ case), so the test suite runs without R. Test inputs always include typical valu
    function has a large condition number where the distribution function is flat, so a tiny
    difference in p becomes a large difference in the answer and a relative comparison would be
    meaningless there. For discrete distributions, the answer must be the smallest integer that
-   satisfies the definition, which is checked with the distribution function.
+   satisfies the definition, which is checked with the distribution function, or
+4. for tests, models and some other functions, **matches a replaced expected value** where rStats.js
+   deliberately does not reproduce R's result: an input for which R returns NaN or ±Inf because
+   the result is not defined, where rStats.js throws, or an R error caused by a bug. The test
+   replaces R's expected value with the error or the right value (`substitute` in the test file)
+   and prints the reason with the count.
 
 Cases where rStats.js deliberately differs from R are excluded in the test file
 (`knownDifference`) with a written reason and listed in
 [differences-from-r.md](differences-from-r.md). The test output reports, for each fixture, how
 many cases matched R, matched the reference, passed by backward error and were excluded.
+
+The tolerance is a bound, not the aim. Where R is right, rStats.js aims at R's own bits: a
+different computation is used only where the result of the usual one is not finite, out of range
+or has lost its digits, so results in the ordinary range are not changed by a fix for the far
+range. Where R is wrong, rStats.js returns the right value, only in the range where R is wrong,
+and the difference is recorded in [differences-from-r.md](differences-from-r.md).
 
 Details of the comparison:
 
@@ -203,9 +214,10 @@ None are known in the tested ranges: every case matches R or a high-precision re
 the tolerance.
 
 Outside them, `besselJ` and `besselY` with orders in the thousands and x < ν have relative errors
-of about 1.0–1.5e-14 (for example 1.04e-14 for `besselY(3000, 3949)` and 9.9e-15 for
-`besselJ(1000, 1500)`), from rounding that accumulates over the many steps of the recurrence and
-the continued fractions.
+of up to about 1.5e-14 (for example 1.04e-14 for `besselY(3000, 3949)`, 9.9e-15 for
+`besselJ(1000, 1500)` and 1.5e-14 for `besselJ(2000, 2999)`; measured for 0.16.0 against Rmpfr at
+25 points with orders 1100 to 9000), from rounding that accumulates over the many steps of the
+recurrence and the continued fractions.
 
 R's `qnbinom` does not terminate for 13 inputs (e.g. `qnbinom(-1, 0.5, 1e-10, log.p = TRUE)`).
 `oracle/nbinom.R` limits each case to 2 seconds and drops those rows from the fixture.
