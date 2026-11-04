@@ -976,8 +976,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   [performance.md](performance.md)).
 
 - **Options are checked:** an option that R's `lmer` has but rStats.js does not support (`weights`, `offset`,
-  `subset`, `naAction`, `control`, `start`, ...) is an error, and so is an unknown key (`unused argument (reml)`; R
-  also writes the value). lmerTest's `summary`, `contest` and `anova` ignore unknown arguments (`summary` with a
+  `subset`, `naAction`, `control`, `start`, ...) is an error, and so is an unknown key (a RangeError, as in every
+  function; R's error is `unused argument (reml = FALSE)`). lmerTest's `summary`, `contest` and `anova` ignore unknown arguments (`summary` with a
   warning); `lmerSummary`, `lmerContest` and `lmerAnova` reject them. The logical options (`REML`, `joint`,
   `confint`, `refit`) take booleans and numbers (0 is false), as R does, but not strings (R accepts `"TRUE"`, `"F"`
   and the like).

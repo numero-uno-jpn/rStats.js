@@ -39,8 +39,8 @@ import { lmer } from "../src/entries/mixed.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
-/** The functions with a check of their own (R's messages; src/models/lmer.ts) */
-const OWN_CHECK = new Set(["lmer", "lmerSummary", "lmerContest", "lmerAnova"]);
+/** The function with a check of its own (its keys depend on the overload; src/models/lmerAnova.ts) */
+const OWN_CHECK = new Set(["lmerAnova"]);
 
 const unknown = (fn: string, key: string) => new RegExp(`^unknown option '${key.replace(/\./g, "\\.")}' for ${fn} \\(known: `);
 
@@ -165,9 +165,10 @@ describe("unknown keys of an options object", () => {
     expect(distSummary("nbinom", { size: 3, mu: 2 }).mean).toBeCloseTo(2, 14);
   });
 
-  it("keep lmer's own check (R's message, a TypeError)", () => {
+  it("are a RangeError in lmer too, after its Error for R's arguments it does not support", () => {
     const d = { y: [1, 2, 3, 4, 5, 6, 7, 8], g: ["a", "a", "b", "b", "c", "c", "d", "d"] };
-    expect(() => lmer("y ~ 1 + (1 | g)", d, { reml: false } as never)).toThrow(TypeError);
-    expect(() => lmer("y ~ 1 + (1 | g)", d, { reml: false } as never)).toThrow("unused argument (reml)");
+    expect(() => lmer("y ~ 1 + (1 | g)", d, { reml: false } as never)).toThrow(RangeError);
+    expect(() => lmer("y ~ 1 + (1 | g)", d, { reml: false } as never)).toThrow(unknown("lmer", "reml"));
+    expect(() => lmer("y ~ 1 + (1 | g)", d, { reml: false, weights: [1] } as never)).toThrow(new Error("lmer: argument 'weights' is not supported"));
   });
 });

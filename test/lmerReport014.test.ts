@@ -152,25 +152,33 @@ describe("lmer and lmerTest's functions: option checks (section 3)", () => {
     expect(() => lmer("y ~ x + (1 | g)", data, any({ weights: undefined }))).toThrow(new Error("lmer: argument 'weights' is not supported"));
   });
 
-  it("unknown keys: a TypeError listing them in key order", () => {
-    expect(() => lmer("y ~ x + (1 | g)", data, any({ reml: false }))).toThrow(new TypeError("unused argument (reml)"));
-    expect(() => lmer("y ~ x + (1 | g)", data, any({ reml: false, REML: true, foo: undefined }))).toThrow(new TypeError("unused arguments (reml, foo)"));
-    expect(() => lmerSummary(fit, any({ ddf: "lme4", type: "III" }))).toThrow(new TypeError("unused argument (type)"));
-    expect(() => lmerSummary(fit, any({ x: 1, y: 2 }))).toThrow(new TypeError("unused arguments (x, y)"));
-    expect(() => lmerContest(fit, [0, 1], any({ type: "III" }))).toThrow(new TypeError("unused argument (type)"));
+  it("unknown keys: a RangeError naming the first in key order, as in every function", () => {
+    expect(() => lmer("y ~ x + (1 | g)", data, any({ reml: false }))).toThrow(
+      new RangeError("unknown option 'reml' for lmer (known: REML, contrasts, levels)"),
+    );
+    expect(() => lmer("y ~ x + (1 | g)", data, any({ REML: true, reml: false, foo: undefined }))).toThrow(
+      new RangeError("unknown option 'reml' for lmer (known: REML, contrasts, levels)"),
+    );
+    // a value of undefined counts as given
+    expect(() => lmer("y ~ x + (1 | g)", data, any({ foo: undefined }))).toThrow(new RangeError("unknown option 'foo' for lmer (known: REML, contrasts, levels)"));
+    expect(() => lmerSummary(fit, any({ ddf: "lme4", type: "III" }))).toThrow(new RangeError("unknown option 'type' for lmerSummary (known: ddf)"));
+    expect(() => lmerSummary(fit, any({ x: 1, y: 2 }))).toThrow(new RangeError("unknown option 'x' for lmerSummary (known: ddf)"));
+    expect(() => lmerContest(fit, [0, 1], any({ type: "III" }))).toThrow(
+      new RangeError("unknown option 'type' for lmerContest (known: rhs, joint, confint, level)"),
+    );
     // the keys of the other form of lmerAnova are unknown
-    expect(() => lmerAnova(fit, any({ refit: false }))).toThrow(new TypeError("unused argument (refit)"));
-    expect(() => lmerAnova(fit, any({ names: ["a"], type: "I" }))).toThrow(new TypeError("unused argument (names)"));
-    expect(() => lmerAnova([fit0, fit], any({ type: "I" }))).toThrow(new TypeError("unused argument (type)"));
+    expect(() => lmerAnova(fit, any({ refit: false }))).toThrow(new RangeError("unknown option 'refit' for lmerAnova (known: type)"));
+    expect(() => lmerAnova(fit, any({ names: ["a"], type: "I" }))).toThrow(new RangeError("unknown option 'names' for lmerAnova (known: type)"));
+    expect(() => lmerAnova([fit0, fit], any({ type: "I" }))).toThrow(new RangeError("unknown option 'type' for lmerAnova (known: refit, names)"));
   });
 
   it("the options are checked before everything else", () => {
     // before the formula and the data are read
     expect(() => lmer("y ~ x", any(null), any({ weights: 1 }))).toThrow(new Error("lmer: argument 'weights' is not supported"));
-    expect(() => lmer("y ~ x", data, any({ foo: 1 }))).toThrow(new TypeError("unused argument (foo)"));
+    expect(() => lmer("y ~ x", data, any({ foo: 1 }))).toThrow(RangeError);
     expect(() => lmer("y ~ x + (1 | g)", data, any({ REML: "no" }))).toThrow(new TypeError("argument is not interpretable as logical"));
     // before the fit and the contrast
-    expect(() => lmerSummary(any({}), any({ foo: 1 }))).toThrow(new TypeError("unused argument (foo)"));
+    expect(() => lmerSummary(any({}), any({ foo: 1 }))).toThrow(RangeError);
     expect(() => lmerContest(any({}), any("L"), any({ ddf: "lme4" }))).toThrow(new Error("lmerContest: argument 'ddf' is not supported"));
     expect(() => lmerContest(any({}), any("L"), any({ joint: null }))).toThrow(new TypeError("argument is of length zero"));
     expect(() => lmerAnova(any({}), any({ ddf: "lme4" }))).toThrow(new Error("lmerAnova: argument 'ddf' is not supported"));

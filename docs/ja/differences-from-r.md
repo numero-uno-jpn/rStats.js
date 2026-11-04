@@ -917,8 +917,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   2.5〜3 倍です ([performance.md](performance.md) を参照)。
 
 - **options を確かめます:** R の `lmer` にあって rStats.js が対応していない引数 (`weights`、`offset`、`subset`、
-  `naAction`、`control`、`start` など) はエラーです。知らないキーもエラーです (`unused argument (reml)`。R は値も
-  書きます)。lmerTest の `summary`、`contest`、`anova` は知らない引数を無視しますが (`summary` は警告つき)、
+  `naAction`、`control`、`start` など) はエラーです。知らないキーもエラーです (ほかの関数と同じ RangeError。R の
+  エラーは `unused argument (reml = FALSE)`)。lmerTest の `summary`、`contest`、`anova` は知らない引数を無視しますが (`summary` は警告つき)、
   `lmerSummary`、`lmerContest`、`lmerAnova` はエラーにします。真偽値の引数 (`REML`、`joint`、`confint`、`refit`) は、
   R と同じく真偽値と数 (0 は false) を受け付けますが、文字列は受け付けません (R は `"TRUE"`、`"F"` なども受け付けます)。
 - **固定効果で完全に当てはまる応答** (切片のあるモデルで応答が一定、または固定効果の数が観測の数と同じ) はエラーです。

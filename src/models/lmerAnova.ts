@@ -7,6 +7,7 @@
 // fits by maximum likelihood with lmer's own minimiser (the exact ML optimum).
 
 import { pgamma1 } from "../distributions/gamma.js";
+import { checkOptions } from "../internal/checkOptions.js";
 import { nestedColumns } from "./estimable.js";
 import { Warnings } from "./glmFamily.js";
 import { checkLmerOptions, lmerInternals, lmerWithCriterion, logicalOption, type LmerResult } from "./lmer.js";
@@ -16,7 +17,7 @@ import type { DataFrame } from "./modelFrame.js";
 
 /**
  * Options of {@link lmerAnova} for one fit. R's `ddf` gives the Error `lmerAnova: argument 'ddf' is not supported`,
- * any other key the TypeError `unused argument (<key>)`.
+ * any other key a RangeError.
  *
  * @category Mixed models
  */
@@ -55,7 +56,7 @@ export interface LmerAnovaTable {
 
 /**
  * Options of {@link lmerAnova} for several fits. R's `modelNames` and `model.names` give the Error
- * `lmerAnova: argument '<key>' is not supported`, any other key the TypeError `unused argument (<key>)`.
+ * `lmerAnova: argument '<key>' is not supported`, any other key a RangeError.
  *
  * @category Mixed models
  */
@@ -298,9 +299,13 @@ export function lmerAnova(
   options?: LmerAnovaOptions | LmerCompareOptions,
 ): LmerAnovaTable | LmerCompareTable {
   if (Array.isArray(fit)) {
-    const checked = checkLmerOptions<LmerCompareOptions>("lmerAnova", options as LmerCompareOptions | undefined, ["refit", "names"], ["modelNames", "model.names"]);
+    checkLmerOptions("lmerAnova", options, ["modelNames", "model.names"]);
+    checkOptions(options, ["refit", "names"], "lmerAnova");
+    const checked = (options ?? {}) as LmerCompareOptions;
     // (the logical value is checked with the options, before the fits)
     return compareFits(fit, { ...checked, refit: logicalOption(checked.refit, true) });
   }
-  return anovaOfFit(fit as LmerResult, checkLmerOptions<LmerAnovaOptions>("lmerAnova", options as LmerAnovaOptions | undefined, ["type"], ["ddf"]));
+  checkLmerOptions("lmerAnova", options, ["ddf"]);
+  checkOptions(options, ["type"], "lmerAnova");
+  return anovaOfFit(fit as LmerResult, (options ?? {}) as LmerAnovaOptions);
 }
