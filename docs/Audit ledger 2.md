@@ -686,3 +686,23 @@ qexp(0, { rate: Infinity, lowerTail: false });
 - 固定入力による静的な制御フロー追跡。Rのqexp.cソースを参照。
 - Vitest、Node、R runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1007 — Weibull distribution endpoints and extreme scaling
+
+- 対象: `src/distributions/weibull.ts` と DD exponential / dpq helpers
+- 監査時 HEAD: `c512b64d8945499662a6e457c024bd9b85c81cc6`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1007_weibull_distribution.md](review-logs/review_audit_1007_weibull_distribution.md)
+
+### 要約
+
+dweibull/pweibull/qweibullのshape/scale端点、±Infinity、scale=Infinityの極限、subnormal/overflow、DD log・expm1/log1mExp、quantile境界を静的に確認。既存 #111/#408/#451 と仕様差文書を照合し、別領域の問題や意図的差異を重複Issue化しなかった。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
