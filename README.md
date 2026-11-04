@@ -33,12 +33,12 @@ Requires an ES2022 environment (current browsers, Node.js 22 or later, Deno, Bun
 ```ts
 import { pnorm, qnorm, pt, qbeta, dbinom } from "@numero-uno-jpn/rstats";
 
-pnorm(1.96);                                  // 0.9750021048517795
-qnorm([0.025, 0.975]);                        // [-1.9599639845400545, 1.959963984540054]
-pt(-40, 3);                                   // 1.7190340394579263e-5
-pt(2, 10, { lowerTail: false, logP: true });  // -3.3051415512324533 (log of the upper tail)
-qbeta(1e-10, 2, 3);                           // 4.082494015808333e-6
-dbinom(3, 10, 0.2);                           // 0.20132659200000003
+pnorm(1.96);                                  // ≈ 0.9750021049
+qnorm([0.025, 0.975]);                        // ≈ [-1.959963985, 1.959963985]
+pt(-40, 3);                                   // ≈ 1.719034039e-5
+pt(2, 10, { lowerTail: false, logP: true });  // ≈ -3.305141551 (log of the upper tail)
+qbeta(1e-10, 2, 3);                           // ≈ 4.082494016e-6
+dbinom(3, 10, 0.2);                           // ≈ 0.201326592
 ```
 
 The first argument may be a number, an array or a `Float64Array`; the result has the same shape.
@@ -66,11 +66,11 @@ runif(2);  // [0.31369782407981056, 0.9280126525616814]
 import { tTest, fisherTest, pAdjust } from "@numero-uno-jpn/rstats";
 
 const r = tTest([5.1, 4.9, 6.2, 5.8, 6.0, 5.5], [4.1, 4.5, 5.0, 4.8, 4.3]);
-r.pValue;    // 0.0035365308877675647 (Welch, the default in R)
-r.confInt;   // [0.4423253334608047, 1.6443413332058612]
+r.pValue;    // ≈ 0.003536530888 (Welch, the default in R)
+r.confInt;   // ≈ [0.4423253335, 1.644341333]
 r.method;    // "Welch Two Sample t-test"
 
-fisherTest([[3, 1], [1, 3]]).pValue;                     // 0.4857142857142857
+fisherTest([[3, 1], [1, 3]]).pValue;                     // ≈ 0.4857142857
 pAdjust([0.01, 0.02, 0.03, 0.04], { method: "BH" });    // ≈ [0.04, 0.04, 0.04, 0.04]
 ```
 
@@ -177,8 +177,8 @@ import { solve, qr, qrCoef, svd, eigen } from "@numero-uno-jpn/rstats";
 solve([[2, 1], [1, 3]]);            // [[0.6, -0.2], [-0.2, 0.4]]
 const q = qr([[1, 1], [1, 2], [1, 3]]);
 qrCoef(q, [1, 3, 4]);               // ≈ [-0.333, 1.5] (least squares)
-svd([[1, 4], [2, 5], [3, 6]]).d;    // [9.50803200069572, 0.7728696356734838]
-eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
+svd([[1, 4], [2, 5], [3, 6]]).d;    // ≈ [9.508032001, 0.7728696357]
+eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 ```
 
 ## What is included
@@ -195,10 +195,10 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`) |
 | Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), from `@numero-uno-jpn/rstats/mixed` |
 | More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest) |
-| Multiple comparisons | `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest` (PMCMRplus), `dunnTest` (dunn.test), `glhtDunnett` (multcomp) |
+| Multiple comparisons | `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest`, `steelTest` (PMCMRplus; `steelTest` reproduces the errors of PMCMRplus's `steelTest`, which fails on every input), `dunnTest` (dunn.test), `glhtDunnett` (multcomp) |
 | Survival analysis | `survdiff` (log-rank), `survfit` (Kaplan-Meier with intervals and median), `coxph` (Cox regression: Efron and Breslow ties, case weights, strata, the Wald, likelihood-ratio and score tests) |
 | Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor), `pbvnorm`, `factanal`, `omega` (McDonald's ω, psych) |
-| Data handling | `completeCases` (`complete.cases`), `naOmit` (`na.omit`), `subset`, `merge`, `rbind` and `cbind` of data frames, `tapply`, `split`, `aggregate`, `pivotLonger` and `pivotWider` (tidyr); formula forms of the tests (`tTest("y ~ g", data)`, `kruskalTest`, `friedmanTest("y ~ w \| b", data)`, `corTest("~ x + y", data)`, ...) |
+| Data handling | `completeCases` (`complete.cases`), `naOmit` (`na.omit`), `subset`, `merge`, `rbind` and `cbind` of data frames, `tapply`, `split`, `aggregate`, `pivotLonger` and `pivotWider` (tidyr), `fromRows` and `toRows` (a data frame from an array of row objects and back); formula forms of the tests (`tTest("y ~ g", data)`, `kruskalTest`, `friedmanTest("y ~ w \| b", data)`, `corTest("~ x + y", data)`, ...) |
 | Linear algebra | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` with `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS), `schur`, `expm` |
 | Numerical methods | `integrate`, `optimize`, `optim`, `optimHess`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
 
@@ -229,8 +229,16 @@ everyday use:
 - Indices are 0-based: `sampleInt(n)` returns `0..n-1` (R's `sample.int()` minus 1, from the
   same random stream), and pivots of `qr` and `chol` are 0-based.
 - Signs of eigenvectors and singular vectors may differ from R (both are correct).
-- Hypothesis tests do not emit R's warnings; all numeric fields and method names match. `glm` returns
-  R's warnings in its result (`warnings`).
+- Nothing is printed for R's warnings; all numeric fields and method names match. The models (`lm`, `glm`, `lmer`,
+  `aov`, `anova`, `Anova`, `aovEz`, `coxph`) and some tests, effect sizes and power calculations return R's warnings in
+  their result (`warnings`).
+- Input for which the result is not defined is an error, also where R returns NaN or a meaningless value (for
+  example `mcnemarTest` on a table without discordant pairs, or `lu` of a matrix with NaN). The distribution
+  functions (d/p/q/r) return NaN for invalid parameters, as R. See
+  [the general differences](docs/differences-from-r.md#general).
+- A computation that would allocate more than 2^24 values in one array or run for more than about 10 seconds throws
+  a RangeError before it starts; the exact tests suggest `exact: false`. R computes most of these however long they
+  take. See [Limits](docs/performance.md#limits).
 - Distribution parameters are not recycled as vectors.
 - `lmer` returns the exact optimum of its criterion, which lme4's optimiser approaches only to its tolerances, and
   does not emit lme4's convergence warnings.
@@ -266,7 +274,7 @@ function except those of `/mixed`, 202 KB gzipped) from jsDelivr, which serves e
 ```html
 <script type="module">
   import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.16.0/dist/rstats.js";
-  console.log(pnorm(1.96)); // 0.9750021048517795
+  console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```
 

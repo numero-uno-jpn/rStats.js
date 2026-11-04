@@ -35,12 +35,12 @@ ES2022 の環境が必要です (現行のブラウザ、Node.js 22 以降、Den
 ```ts
 import { pnorm, qnorm, pt, qbeta, dbinom } from "@numero-uno-jpn/rstats";
 
-pnorm(1.96);                                  // 0.9750021048517795
-qnorm([0.025, 0.975]);                        // [-1.9599639845400545, 1.959963984540054]
-pt(-40, 3);                                   // 1.7190340394579263e-5
-pt(2, 10, { lowerTail: false, logP: true });  // -3.3051415512324533 (log of the upper tail)
-qbeta(1e-10, 2, 3);                           // 4.082494015808333e-6
-dbinom(3, 10, 0.2);                           // 0.20132659200000003
+pnorm(1.96);                                  // ≈ 0.9750021049
+qnorm([0.025, 0.975]);                        // ≈ [-1.959963985, 1.959963985]
+pt(-40, 3);                                   // ≈ 1.719034039e-5
+pt(2, 10, { lowerTail: false, logP: true });  // ≈ -3.305141551 (上側確率の対数)
+qbeta(1e-10, 2, 3);                           // ≈ 4.082494016e-6
+dbinom(3, 10, 0.2);                           // ≈ 0.201326592
 ```
 
 最初の引数には数値・配列・`Float64Array` を渡せます。結果は同じ形で返ります。分布の母数はスカラーです。
@@ -52,7 +52,7 @@ import { setSeed, rnorm, RNGkind, getRandomSeed, setRandomSeed, nextRNGStream, r
 
 setSeed(42);
 rnorm(3);  // [1.3709584471466685, -0.5646981713960887, 0.3631284113373392]
-           // R: set.seed(42); rnorm(3) gives the same numbers (up to the last bit)
+           // R の set.seed(42); rnorm(3) と最後のビットまで同じ
 
 // R の既定以外の設定: RNGkind("L'Ecuyer-CMRG") と parallel::nextRNGStream、sample.kind = "Rounding"
 RNGkind({ kind: "L'Ecuyer-CMRG" });
@@ -69,11 +69,11 @@ R で `set.seed(42); rnorm(3)` とすると、最後のビットまで同じ数�
 import { tTest, fisherTest, pAdjust } from "@numero-uno-jpn/rstats";
 
 const r = tTest([5.1, 4.9, 6.2, 5.8, 6.0, 5.5], [4.1, 4.5, 5.0, 4.8, 4.3]);
-r.pValue;    // 0.0035365308877675647 (Welch, the default in R)
-r.confInt;   // [0.4423253334608047, 1.6443413332058612]
+r.pValue;    // ≈ 0.003536530888 (R の既定と同じ Welch の検定)
+r.confInt;   // ≈ [0.4423253335, 1.644341333]
 r.method;    // "Welch Two Sample t-test"
 
-fisherTest([[3, 1], [1, 3]]).pValue;                     // 0.4857142857142857
+fisherTest([[3, 1], [1, 3]]).pValue;                     // ≈ 0.4857142857
 pAdjust([0.01, 0.02, 0.03, 0.04], { method: "BH" });    // ≈ [0.04, 0.04, 0.04, 0.04]
 ```
 
@@ -90,11 +90,11 @@ const dose = [1, 2, 3, 4, 5, 6];
 const counts = [[1, 19], [4, 16], [9, 11], [13, 7], [18, 2], [19, 1]];
 const fit = glm(dose, counts, { family: "binomial" });   // R: glm(cbind(s, f) ~ dose, binomial)
 fit.coefficients;                                  // ≈ [-3.77413, 1.14807]
-glmSummary(fit).pValue;                            // ≈ [5.357e-8, 3.579e-9] (z tests)
+glmSummary(fit).pValue;                            // ≈ [5.357e-8, 3.579e-9] (z 検定)
 glmPredict(fit, { newdata: [3.5], type: "response" }); // { fit: ≈ [0.56073], seFit: ≈ [0.06140] }
-glmConfint(fit).lower;                             // ≈ [-5.27166, 0.80033] (profile likelihood)
+glmConfint(fit).lower;                             // ≈ [-5.27166, 0.80033] (プロファイル尤度)
 glmAnova(fit).table[1];                            // ≈ [1, 62.978, 4, 0.5196, 2.09e-15]
-fit.warnings;                                      // [] (R's warnings, such as non-convergence)
+fit.warnings;                                      // [] (収束しないなどの R の警告)
 ```
 
 ### formula による分散分析
@@ -179,9 +179,9 @@ import { solve, qr, qrCoef, svd, eigen } from "@numero-uno-jpn/rstats";
 
 solve([[2, 1], [1, 3]]);            // [[0.6, -0.2], [-0.2, 0.4]]
 const q = qr([[1, 1], [1, 2], [1, 3]]);
-qrCoef(q, [1, 3, 4]);               // ≈ [-0.333, 1.5] (least squares)
-svd([[1, 4], [2, 5], [3, 6]]).d;    // [9.50803200069572, 0.7728696356734838]
-eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
+qrCoef(q, [1, 3, 4]);               // ≈ [-0.333, 1.5] (最小二乗)
+svd([[1, 4], [2, 5], [3, 6]]).d;    // ≈ [9.508032001, 0.7728696357]
+eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 ```
 
 ## 含まれるもの
@@ -198,10 +198,10 @@ eigen([[2, 1], [1, 3]]).values;     // [3.618033988749895, 1.381966011250105]
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
 | 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)。`@numero-uno-jpn/rstats/mixed` から import する |
 | ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest) |
-| 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest` (PMCMRplus)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
+| 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest`、`steelTest` (PMCMRplus。`steelTest` は、どの入力でも失敗する PMCMRplus の `steelTest` のエラーを再現します)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
 | 生存時間解析 | `survdiff` (log-rank)、`survfit` (Kaplan-Meier。信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイの扱い、ケースの重み、層、Wald・尤度比・スコア検定) |
 | 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor)、`pbvnorm`、`factanal`、`omega` (McDonald の ω。psych) |
-| データの扱い | `completeCases` (`complete.cases`)、`naOmit` (`na.omit`)、`subset`、`merge`、データフレームの `rbind`・`cbind`、`tapply`、`split`、`aggregate`、`pivotLonger` と `pivotWider` (tidyr)。検定の formula 版 (`tTest("y ~ g", data)`、`kruskalTest`、`friedmanTest("y ~ w \| b", data)`、`corTest("~ x + y", data)` など) |
+| データの扱い | `completeCases` (`complete.cases`)、`naOmit` (`na.omit`)、`subset`、`merge`、データフレームの `rbind`・`cbind`、`tapply`、`split`、`aggregate`、`pivotLonger` と `pivotWider` (tidyr)、`fromRows` と `toRows` (行のオブジェクトの配列とデータフレームの相互の変換)。検定の formula 版 (`tTest("y ~ g", data)`、`kruskalTest`、`friedmanTest("y ~ w \| b", data)`、`corTest("~ x + y", data)` など) |
 | 線形代数 | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS)、`schur`、`expm` |
 | 数値計算 | `integrate`, `optimize`, `optim`, `optimHess`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
 
@@ -233,8 +233,15 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 - 添字は 0 から始まります。`sampleInt(n)` は `0..n-1` を返します (R の `sample.int()` から 1 を
   引いた値で、乱数の列は同じ)。`qr` と `chol` のピボットも 0 から始まります。
 - 固有ベクトルと特異ベクトルの符号が R と違うことがあります (どちらも正しい答えです)。
-- 検定は R の警告を出しません。数値の欄と手法の名前はすべて一致します。`glm` は R の警告を結果の
-  `warnings` で返します。
+- R の警告を表示することはありません。数値の欄と手法の名前はすべて一致します。モデル (`lm`、`glm`、`lmer`、
+  `aov`、`anova`、`Anova`、`aovEz`、`coxph`) と一部の検定・効果量・検出力の計算は、R の警告を結果の `warnings`
+  に入れて返します。
+- 結果が定義されない入力はエラーにします。R が NaN や意味のない値を返す場合も同じです (たとえば不一致の
+  組がない表の `mcnemarTest`、NaN を含む行列の `lu`)。分布の関数 (d/p/q/r) は、R と同じく不正な母数に NaN を返します。
+  [全般的な違い](docs/ja/differences-from-r.md#全般)を見てください。
+- 1 本の配列に 2^24 個を超える値を確保する計算や、10 秒ほどを超えて走る計算は、始める前に RangeError を
+  投げます。正確な検定では `exact: false` を案内します。R はその多くを、時間がかかっても計算します。
+  [上限](docs/ja/performance.md#上限)を見てください。
 - 分布の母数は、ベクトルとして使い回されません (リサイクルしない)。
 - `lmer` は基準の厳密な最適点を返します。lme4 の最適化はそこへ許容誤差の範囲でしか近づきません。
   また、lme4 の収束の警告は出しません。
@@ -271,7 +278,7 @@ minify 済みの ES モジュール、gzip で 202 KB) を jsDelivr から読み
 ```html
 <script type="module">
   import { pnorm } from "https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.16.0/dist/rstats.js";
-  console.log(pnorm(1.96)); // 0.9750021048517795
+  console.log(pnorm(1.96)); // ≈ 0.9750021049
 </script>
 ```
 

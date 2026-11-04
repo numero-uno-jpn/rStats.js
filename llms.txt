@@ -64,8 +64,14 @@ a CDN without a bundler, see the README section "Using it in the browser".
   are refitted by ML). Pass the object `lmer` returned (not a copy). Kenward-Roger is not available.
 - Indices are 0-based where R returns indices: `sampleInt(n)` returns `0..n-1` (R's
   `sample.int(n) - 1` from the same random stream), and the pivots of `qr` and `chol`.
-- Hypothesis tests do not emit R's warnings. `glm` returns R's warnings in its result
-  (`warnings`).
+- Nothing is printed for R's warnings. The models (`lm`, `glm`, `lmer`, `aov`, `anova`, `Anova`, `aovEz`,
+  `coxph`) and some tests, effect sizes and power calculations return them in their result (`warnings`).
+- Errors: input for which R returns NaN, NA or a meaningless value because the result is not defined (`mcnemarTest`
+  on a table without discordant pairs, a non-finite value where a finite one is needed, too few observations or
+  groups) throws an `Error` or `RangeError`; wrap such calls in `try`/`catch` where R code checks `is.na()` on the result. The
+  distribution functions (d/p/q/r) return NaN for invalid parameters, as R. A computation that would allocate more
+  than 2^24 values in one array or run for more than about 10 seconds (large exact tests, huge simulations) throws a
+  RangeError before it starts; for exact tests the message suggests `exact: false`.
 - Power calculations take one options object and solve for the quantity given as `null`:
   `power.t.test(delta = 0.5, power = 0.8)` → `powerTTest({ delta: 0.5, power: 0.8 })`, pwr's
   `pwr.anova.test(k = 3, f = 0.25, power = 0.8)` → `pwrAnovaTest({ k: 3, f: 0.25, power: 0.8 })`
@@ -95,15 +101,15 @@ a CDN without a bundler, see the README section "Using it in the browser".
 ```ts
 import { pnorm, pt, setSeed, rnorm, tTest, glm, glmSummary } from "@numero-uno-jpn/rstats";
 
-pnorm(1.96);                                  // 0.9750021048517795
-pt(2, 10, { lowerTail: false, logP: true });  // -3.3051415512324533
+pnorm(1.96);                                  // ≈ 0.9750021049
+pt(2, 10, { lowerTail: false, logP: true });  // ≈ -3.305141551
 
 setSeed(42);
 rnorm(3);  // [1.3709584471466685, -0.5646981713960887, 0.3631284113373392], as in R
 
 const r = tTest([5.1, 4.9, 6.2, 5.8, 6.0, 5.5], [4.1, 4.5, 5.0, 4.8, 4.3]);
-r.pValue;  // 0.0035365308877675647 (Welch, R's default)
-r.confInt; // [0.4423253334608047, 1.6443413332058612]
+r.pValue;  // ≈ 0.003536530888 (Welch, R's default)
+r.confInt; // ≈ [0.4423253335, 1.644341333]
 
 // R: glm(cbind(s, f) ~ dose, family = binomial)
 const fit = glm([1, 2, 3, 4, 5, 6], [[1, 19], [4, 16], [9, 11], [13, 7], [18, 2], [19, 1]], { family: "binomial" });
