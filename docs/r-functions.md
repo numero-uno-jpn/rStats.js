@@ -165,7 +165,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `anova()` | `glmAnova` | Analysis of deviance, for one `glm` fit or for several fits of the same data (`anova(fit1, fit2, ...)`). |
 | `ansari.test()` | `ansariTest` | Ansari-Bradley test that two samples differ in scale. |
 | `afex::aov_ez()` | `aovEz` | Repeated-measures, between-subjects and mixed analysis of variance from long data. |
-| `aov()` | `aov` | One-way analysis of variance. |
+| `aov()` | `aov` | Analysis of variance. |
 | `bartlett.test()` | `bartlettTest` | Bartlett's test that the variances of several normal samples are equal. |
 | `binom.test()` | `binomTest` | Exact test of a simple null hypothesis about the probability of success in Bernoulli trials. |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal variances or shapes. |

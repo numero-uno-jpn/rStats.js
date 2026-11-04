@@ -5,8 +5,8 @@
 // Written for rStats.js from oracle/rm-tests-behaviour.md (no ported code; car's source was not read).
 
 import { ldexp, mean, scaleToUnit } from "../internal/summary.js";
-import { aov } from "./aov.js";
-import { labelledGroups, median, type GroupLabel } from "./groups.js";
+import { onewayTable } from "./aov.js";
+import { labelledGroups, median, toGroups, type GroupLabel } from "./groups.js";
 import { matchChoice } from "./power.js";
 import type { Sample } from "./types.js";
 
@@ -76,7 +76,7 @@ export function leveneTest(y: Sample, g: readonly GroupLabel[], options: LeveneT
     const e = Number.isFinite(top) ? top : 0;
     deviations = own.map((o) => o.d.map((v) => ldexp(v, o.k - e)));
   }
-  const r = aov(deviations);
+  const r = onewayTable(toGroups(deviations));
   return {
     colNames: ["Df", "F value", "Pr(>F)"],
     rowNames: ["group", ""],

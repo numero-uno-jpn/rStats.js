@@ -31,7 +31,7 @@ export {
   pairwiseTTest, pairwiseWilcoxTest, pairwisePropTest,
   type PairwiseResult, type PairwiseOptions, type PairwiseTTestOptions, type PairwiseWilcoxTestOptions, type PairwisePropTestOptions,
 } from "../htest/pairwise.js";
-export { aov, TukeyHSD, zTest, type AovResult, type TukeyHSDOptions, type TukeyHSDResult, type ZTestOptions } from "../htest/aov.js";
+export { aov, TukeyHSD, zTest, type TukeyHSDOptions, type TukeyHSDResult, type ZTestOptions } from "../htest/aov.js";
 export type { GroupLabel } from "../htest/groups.js";
 export { lm, confint, predict, type LmOptions, type LmResult, type ConfintOptions, type PredictOptions } from "../models/lm.js";
 export {

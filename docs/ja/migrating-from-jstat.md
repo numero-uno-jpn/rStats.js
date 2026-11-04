@@ -95,8 +95,8 @@ import できます。
 | `jStat.range` | `range(x)` | R の `range` は `[min, max]` を返します。jStat は `max - min` を返します (`diff(range(x))`)。 |
 | `jStat.variance` | `variance(x)` | **既定が違います:** `variance` (R の `var`) は標本分散 (n − 1)、jStat の既定は母分散です。`jStat.variance(x, true)` が `variance(x)` です。 |
 | `jStat.stdev` | `sd(x)` | **既定が違います:** 標本標準偏差 (n − 1) です。 |
-| `jStat.pooledvariance` | `aov(groups).meanSq[1]` | 一元配置分散分析の残差平均平方です。 |
-| `jStat.pooledstdev` | `Math.sqrt(aov(groups).meanSq[1])` |  |
+| `jStat.pooledvariance` | `aovSummary(aov(groups)).table[1][2]` | 一元配置分散分析の残差平均平方です。 |
+| `jStat.pooledstdev` | `Math.sqrt(aovSummary(aov(groups)).table[1][2])` |  |
 | `jStat.deviation` | JS: `x.map((v) => v - m)` with `m = mean(x)` |  |
 | `jStat.meandev` | `meanAD(x)` | `DescTools::MeanAD` と同じです。 |
 | `jStat.meddev` | `mad(x, { constant: 1 })` | R の `mad` は既定で 1.4826 倍します。jStat はしません。 |
@@ -341,8 +341,8 @@ import できます。
 | `jStat.ztest` | `zTest(x, { mu, sigmaX })` | `BSDA::z.test` と同じです。jStat の片側 p 値は効果の向きを無視します。 |
 | `jStat.tscore` | `tTest(x, { mu }).statistic` | 符号が逆です: jStat の `tscore(value, x)` は (value − mean) / se です。 |
 | `jStat.ttest` | `tTest(x, { mu }).pValue` | jStat の 4 引数の形は `(t, n, sides)` と解釈されてしまいます。 |
-| `jStat.anovafscore` | `aov(groups).fValue` |  |
-| `jStat.anovaftest` | `aov(groups).pValue` | `onewayTest(groups, { varEqual: true })` でも得られます。 |
+| `jStat.anovafscore` | `aovSummary(aov(groups)).table[0][3]` |  |
+| `jStat.anovaftest` | `aovSummary(aov(groups)).table[0][4]` | `onewayTest(groups, { varEqual: true })` でも得られます。 |
 | `jStat.ftest` | `pf(f, df1, df2, { lowerTail: false })` |  |
 | `jStat.qscore` | `TukeyHSD(groups)` |  |
 | `jStat.qtest` | `ptukey(q, k, df, { lowerTail: false })` |  |
@@ -350,7 +350,7 @@ import できます。
 | `jStat.normalci` | `zTest(x, { sigmaX }).confInt` | jStat の配列の形は母標準偏差を使います。 |
 | `jStat.tci` | `tTest(x).confInt` |  |
 | `jStat.significant` | JS: `p < alpha` |  |
-| `jStat.fn.anovaftes` | `aov(groups).pValue` | jStat での綴りは `anovaftes` です (文書にあるインスタンスの `anovaftest()` は存在しません)。 |
+| `jStat.fn.anovaftes` | `aovSummary(aov(groups)).table[0][4]` | jStat での綴りは `anovaftes` です (文書にあるインスタンスの `anovaftest()` は存在しません)。 |
 | `jStat.fn.oneSidedDifferenceOfProportions` | `propTest([x1, x2], [n1, n2], { alternative: "greater", correct: false })` | プールした比率の z 検定は、連続性補正のないカイ二乗検定です。向きは `alternative` で選びます。 |
 | `jStat.fn.twoSidedDifferenceOfProportions` | `propTest([x1, x2], [n1, n2], { correct: false })` |  |
 

@@ -86,17 +86,26 @@ describe("formula interface", () => {
     g: ["a", "a", "b", "b", "c", "c", "a", "b"],
     id: ["s1", "s1", "s2", "s2", "s3", "s3", "s4", "s4"],
   };
-  it("keeps the one-way aov(x, g) and the matrix lm(x, y)", () => {
+  it("aov(x, g) is the fit of y ~ g, and the matrix lm(x, y) stays", () => {
     const r = aov([4.2, 5.1, 6.3, 5.8, 7.9, 8.4], ["a", "a", "b", "b", "c", "c"]);
-    expect(r.df).toEqual([2, 3]);
+    expect(r.formula).toBe("y ~ g");
+    expect(r.coefNames).toEqual(["(Intercept)", "gb", "gc"]);
+    expect(aovSummary(r).table.map((row) => row[0])).toEqual([2, 3]);
     const f = lm([1, 2, 3, 4], [2.1, 3.9, 6.2, 7.8]);
     expect(f.coefficients.length).toBe(2);
   });
-  it("gives the same table for aov(formula) as the one-way aov", () => {
+  it("gives the same fit for aov(x, g) as aov(formula)", () => {
     const one = aov(data.y, data.g);
     const t = aovSummary(aov("y ~ g", data) as LmFormulaResult);
     expect(t.rowNames).toEqual(["g", "Residuals"]);
-    expect(t.table[0]![3]).toBeCloseTo(one.fValue, 12);
+    expect(aovSummary(one)).toEqual(t);
+    expect(one.coefficients).toEqual((aov("y ~ g", data) as LmFormulaResult).coefficients);
+  });
+  it("names the levels of aov(x, g) by the labels in R's order, or by the positions of the samples", () => {
+    expect(aov([5, 4, 6, 7, 8, 9], [10, 10, 2, 2, 1, 1]).coefNames).toEqual(["(Intercept)", "g2", "g10"]);
+    // an empty sample has no level, as in TukeyHSD
+    expect(aov([[], [1, 2], [3, 5], [NaN, 4, 6]]).coefNames).toEqual(["(Intercept)", "g3", "g4"]);
+    expect(() => aov([[1, 2, 3]])).toThrow(RangeError);
   });
   it("accepts one Error() term in aov only", () => {
     expect((aov("y ~ g + Error(id)", data) as { multistratum?: boolean }).multistratum).toBe(true);

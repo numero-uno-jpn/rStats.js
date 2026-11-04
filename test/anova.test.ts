@@ -1,5 +1,5 @@
-// aov (one way), TukeyHSD and zTest against R (oracle/anova.R; BSDA::z.test)
-import { aov, TukeyHSD, zTest } from "../src/index.js";
+// aov of samples (its aovSummary), TukeyHSD and zTest against R (oracle/anova.R; BSDA::z.test)
+import { aov, aovSummary, TukeyHSD, zTest } from "../src/index.js";
 import type { Alternative } from "../src/index.js";
 import { num } from "./helpers/fixture.js";
 import { arg, defined, htestSuite, type HTestArg } from "./helpers/htest.js";
@@ -15,7 +15,7 @@ const labels = (a: A): (number | string)[] => {
 /**
  * R fits aov through a QR decomposition of the model matrix, which loses digits on data with a large mean and a
  * small spread (1e6 + 1e-3 noise: sums of squares off by 6e-8; the values here agree with 50-digit ones) and leaves
- * rounding residue when all values are equal (F = 1 from 1e-30 / 1e-30; here 0 / 0 = NaN)
+ * rounding residue when all values are equal (F = 1 from 1e-30 / 1e-30; the QR of the fit here leaves residue too)
  */
 function qrRounding(a: A): string | undefined {
   const all = a.groups === undefined ? arg.vec(a.y)!.filter((v) => !Number.isNaN(v)) : groups(a).flat();
@@ -27,13 +27,24 @@ function qrRounding(a: A): string | undefined {
 
 htestSuite({
   name: "aovOneway",
-  call: (a) => aov(groups(a)),
+  // aov of samples is the fit of y ~ g; its table is aovSummary
+  call: (a) => {
+    const t = aovSummary(aov(groups(a))).table;
+    return {
+      df: [t[0]![0], t[1]![0]],
+      sumSq: [t[0]![1], t[1]![1]],
+      meanSq: [t[0]![2], t[1]![2]],
+      fValue: t[0]![3],
+      pValue: t[0]![4],
+    };
+  },
   tolerance: 1e-12,
-  // within-group sums of squares that are 0 here are QR rounding residue in R (F = 5.9e30 instead of Inf)
+  // a within-group sum of squares of exactly 0 is QR rounding residue, in R (F = 5.9e30 instead of Inf) and in the fit
+  // here (F = 1.4e63, from the QR of lm)
   floor: { sumSq: 1e-10, meanSq: 1e-10 },
   knownDifference: (a, field, expected, actual) =>
-    (field === "fValue" && actual === Infinity && expected > 1e25) || (field === "pValue" && actual === 0 && expected < 1e-25)
-      ? "a residual sum of squares of exactly 0 is rounding residue in R"
+    (field === "fValue" && actual > 1e25 && expected > 1e25) || (field === "pValue" && actual < 1e-25 && expected < 1e-25)
+      ? "a residual sum of squares of exactly 0 is rounding residue of the QR (in R and here)"
       : qrRounding(a),
 });
 

@@ -7,6 +7,7 @@ import {
   adTest,
   anova,
   aov,
+  aovSummary,
   aovEz,
   bartlettTest,
   chisqTest,
@@ -84,7 +85,10 @@ describe("scale invariance", () => {
   });
   it("one-way analyses of means and variances", () => {
     const sc = (c: number): number[][] => three.map((s) => times(s, c));
-    expectScaleInvariant("aov", (c) => aov(sc(c)), { unitless: (r) => [r.fValue, r.pValue], squared: (r) => r.sumSq });
+    expectScaleInvariant("aov", (c) => aovSummary(aov(sc(c))).table, {
+      unitless: (t) => [t[0]![3]!, t[0]![4]!],
+      squared: (t) => [t[0]![1]!, t[1]![1]!],
+    });
     expectScaleInvariant("TukeyHSD", (c) => TukeyHSD(sc(c)), { unitless: (r) => r.pAdj, units: (r) => [...r.diff, ...r.lwr, ...r.upr] });
     expectScaleInvariant("levene", (c) => leveneTest(sc(c).flat(), g3), { unitless: (r) => r.table[0]!.slice(1) });
     expectScaleInvariant("oneway", (c) => onewayTest(sc(c)), { unitless: (r) => [r.statistic, r.pValue] });

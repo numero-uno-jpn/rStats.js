@@ -153,7 +153,7 @@
   "glmAnova": "1 つの `glm` の当てはめ、または同じデータへの複数の当てはめ (`anova(fit1, fit2, ...)`) の逸脱度分析",
   "ansariTest": "2 標本の尺度の違いについての Ansari-Bradley 検定",
   "aovEz": "long のデータからの反復測定・被験者間・混合計画の分散分析",
-  "aov": "一元配置分散分析",
+  "aov": "分散分析",
   "bartlettTest": "複数の正規標本の分散が等しいことについての Bartlett 検定",
   "binomTest": "ベルヌーイ試行の成功確率についての単純帰無仮説の正確検定",
   "brunnerMunzelTest": "2 標本の相対効果 P(X < Y) + P(X = Y)/2 が 1/2 であることについての Brunner-Munzel 検定 (等分散も分布の形が同じことも仮定しない)",

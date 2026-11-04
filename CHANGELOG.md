@@ -29,6 +29,13 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
     TypeError; a column named in a formula or option that does not exist ("object 'x' not found": `aggregate`, the
     model functions such as `lm` and `glm` and their `weights`, the formula forms of the tests, `aovEz`) is a
     RangeError, and so is a factor given in both `between` and `within` of `aovEz`.
+- `aov(x, g)` and `aov(samples)` return the fit of the model `y ~ g` (an `LmFormulaResult`, as `aov("y ~ g", data)`)
+  instead of the one-way table, as R's `aov` always returns a fit; the table is `aovSummary(aov(x, g))` (rows `g` and
+  `Residuals`), and the `AovResult` type is removed. The levels of `g` are the group labels in R's order, or the
+  positions of the samples in the list (from 1). F and p agree with the old table to the last bit or within a few ulps
+  of rounding (the sums of squares now come from the QR of the fit), except where the residual sum of squares is
+  exactly 0: the old table gave F = Inf and p = 0 (and NaN when all values are equal), the fit leaves rounding residue
+  as R's does (a huge F and a tiny p).
 - `steelTest` is removed. It only reproduced the errors of PMCMRplus 1.9.12's `steelTest`, which fails on every input,
   and never returned a value; Steel's many-to-one rank test is `manyOneUTest` (its normal approximation).
 

@@ -609,7 +609,7 @@
       "r": "{ x <- c(2.9, 3.0, 2.5, 2.6, 3.2, 3.8, 2.7, 4.0, 2.4, 2.8, 3.4, 3.7, 2.2, 2.0); g <- factor(c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3)); c(t(pairwise.t.test(x, g)$p.value), t(pairwise.wilcox.test(x, g)$p.value), t(pairwise.prop.test(c(83, 90, 129, 70), c(86, 93, 136, 82))$p.value)) }" },
     { "id": "aov-tukey", "tab": "tests",
       "title": { "en": "One-way ANOVA table and Tukey's HSD (differences and adjusted p)", "ja": "一元配置分散分析表と Tukey の HSD (差と調整済み p 値)" },
-      "js": "(g => [...(r => [...r.df, ...r.sumSq, ...r.meanSq, r.fValue, r.pValue])(aov(g)), ...(r => [...r.diff, ...r.pAdj])(TukeyHSD(g))])([[2.9, 3.0, 2.5, 2.6, 3.2], [3.8, 2.7, 4.0, 2.4], [2.8, 3.4, 3.7, 2.2, 2.0]])",
+      "js": "(g => [...(t => [t[0][0], t[1][0], t[0][1], t[1][1], t[0][2], t[1][2], t[0][3], t[0][4]])(aovSummary(aov(g)).table), ...(r => [...r.diff, ...r.pAdj])(TukeyHSD(g))])([[2.9, 3.0, 2.5, 2.6, 3.2], [3.8, 2.7, 4.0, 2.4], [2.8, 3.4, 3.7, 2.2, 2.0]])",
       "r": "{ g <- list(c(2.9, 3.0, 2.5, 2.6, 3.2), c(3.8, 2.7, 4.0, 2.4), c(2.8, 3.4, 3.7, 2.2, 2.0)); x <- unlist(g); f <- factor(rep(seq_along(g), lengths(g))); a <- aov(x ~ f); s <- summary(a)[[1]]; tk <- TukeyHSD(a)$f; c(s$Df, s$\"Sum Sq\", s$\"Mean Sq\", s$\"F value\"[1], s$\"Pr(>F)\"[1], tk[, \"diff\"], tk[, \"p adj\"]) }",
       "tol": 1e-05 },
     { "id": "lm", "tab": "tests",

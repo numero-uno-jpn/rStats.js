@@ -1,11 +1,12 @@
-// One-way analysis of variance (the table of R's summary(aov(y ~ g))), aov from a model formula (the fit of
-// src/models/lm.ts; its table is aovSummary in src/models/anovaSequential.ts), Tukey's honest significant differences (R's
-// TukeyHSD) and the z test with known standard deviations (as BSDA's z.test).
+// aov from a model formula or from samples (the fit of src/models/lm.ts, with samples as the model y ~ g; its table
+// is aovSummary in src/models/anovaSequential.ts), the one-way table that leveneTest uses, Tukey's honest significant
+// differences (R's TukeyHSD) and the z test with known standard deviations (as BSDA's z.test).
 //
-// Written for rStats.js from the textbook formulas. The sums of squares are accumulated in
-// double-double: between groups sum n_i (m_i - m)^2, within groups sum (x - m_i)^2, so a within sum that is exactly
-// 0 stays 0 (F = Inf; R's QR leaves rounding residue there). TukeyHSD uses the Tukey-Kramer standard error
-// sqrt(MSE / 2 (1/n_i + 1/n_j)) with the studentized range distribution for the interval and the adjusted p-value.
+// Written for rStats.js from the textbook formulas. The sums of squares of the one-way table and of TukeyHSD are
+// accumulated in double-double: between groups sum n_i (m_i - m)^2, within groups sum (x - m_i)^2, so a within sum
+// that is exactly 0 stays 0 (F = Inf; R's QR leaves rounding residue there). TukeyHSD uses the Tukey-Kramer standard
+// error sqrt(MSE / 2 (1/n_i + 1/n_j)) with the studentized range distribution for the interval and the adjusted
+// p-value.
 // zTest is the textbook z test (standard error sigma / sqrt(n), or sqrt(sigma_x^2/n_x + sigma_y^2/n_y) for two
 // samples, normal quantiles for the interval around the estimate); its input checks (at least 3 observations,
 // confLevel allowed in the closed [0, 1]) follow BSDA's documented/observed behaviour, with messages of our own.
@@ -19,45 +20,32 @@ import { aovStrataFit, type AovStrataFit } from "../models/aovStrata.js";
 import { lmFormulaFit, type LmFormulaOptions, type LmFormulaResult } from "../models/lm.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { design } from "../models/modelMatrix.js";
-import { labelledGroups, toGroups, type GroupLabel } from "./groups.js";
+import { labelledGroups, type GroupLabel } from "./groups.js";
 import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
 
 /**
- * Result of {@link aov}: the one-way ANOVA table, rows "between groups" and "residuals".
+ * Analysis of variance. Equivalent to R's `aov()`. From samples, one way: the fit of the model `y ~ g` (as
+ * `aov("y ~ g", data)`), with the values in a column `y` and the groups as a factor `g`; {@link aovSummary} gives the
+ * table of R's `summary(aov(y ~ g))`.
  *
- * @category Linear models and ANOVA
- */
-export interface AovResult {
-  /** Degrees of freedom `[k - 1, N - k]`. */
-  df: [number, number];
-  /** Sums of squares `[between, residual]`. */
-  sumSq: [number, number];
-  /** Mean squares `[between, residual]`. */
-  meanSq: [number, number];
-  /** F statistic. */
-  fValue: number;
-  /** p-value of the F test. */
-  pValue: number;
-}
-
-
-/**
- * One-way analysis of variance. Equivalent to R's `aov()`. Gives the table of R's `summary(aov(y ~ g))` for one
- * factor.
+ * The levels of `g` are the group labels (sorted as R orders factor levels), or the positions of the samples in the
+ * list (from 1) for an array of samples, as in {@link TukeyHSD}. Missing values are left out, and a sample left empty
+ * has no level.
  *
  * @param x An array of samples (groups), or one sample with group labels `g`.
  * @param g Group labels, parallel to `x`.
  *
  * @example
  * ```ts
- * const r = aov([[2.9, 3.0, 2.5, 2.6, 3.2], [3.8, 2.7, 4.0, 2.4], [2.8, 3.4, 3.7, 2.2, 2.0]]);
- * r.fValue; // 0.56007326007326
- * r.pValue; // 0.586632991041738
+ * const fit = aov([[2.9, 3.0, 2.5, 2.6, 3.2], [3.8, 2.7, 4.0, 2.4], [2.8, 3.4, 3.7, 2.2, 2.0]]);
+ * const t = aovSummary(fit);
+ * t.rowNames; // ["g", "Residuals"]
+ * t.table[0]; // [2, 0.44678571428571, 0.22339285714286, 0.56007326007326, 0.58663299104174]
  * ```
  *
  * @category Linear models and ANOVA
  */
-export function aov(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): AovResult;
+export function aov(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): LmFormulaResult;
 /**
  * Analysis of variance from a model formula, as R's `aov(formula, data)` (with `weights` and
  * `contrasts`): the same fit as {@link lm} with a formula; {@link aovSummary} gives the table of R's
@@ -78,9 +66,9 @@ export function aov(
   x: string | Sample | readonly Sample[],
   g?: readonly GroupLabel[] | DataFrame,
   options: LmFormulaOptions = {},
-): AovResult | LmFormulaResult | AovStrataFit {
+): LmFormulaResult | AovStrataFit {
   if (typeof x === "string") return aovFormula(x, g as DataFrame, options);
-  return aovOneway(x, g as readonly GroupLabel[] | undefined);
+  return aovGroups(x, g as readonly GroupLabel[] | undefined);
 }
 
 /** aov from a formula (without Error() strata) */
@@ -92,8 +80,29 @@ function aovFormula(formula: string, data: DataFrame, options: LmFormulaOptions)
   return lmFormulaFit(formula, design(parsed, data, { ...options, dropUnusedLevels: true }, treatment), true);
 }
 
-function aovOneway(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): AovResult {
-  const groups = toGroups(x, g);
+/** aov(x, g): the fit of y ~ g, with the groups as a factor whose levels are the group labels in order */
+function aovGroups(x: Sample | readonly Sample[], g?: readonly GroupLabel[]): LmFormulaResult {
+  const { labels, groups } = labelledGroups(x, g);
+  if (groups.length < 2) throw new RangeError("contrasts can be applied only to factors with 2 or more levels");
+  const y = groups.flat();
+  const gs = groups.flatMap((s, i) => s.map(() => labels[i]!));
+  return aovFormula("y ~ g", { y, g: gs }, { levels: { g: labels } }) as LmFormulaResult;
+}
+
+/** The one-way ANOVA table from groups (for leveneTest) */
+export interface OnewayTable {
+  df: [number, number];
+  sumSq: [number, number];
+  meanSq: [number, number];
+  fValue: number;
+  pValue: number;
+}
+
+/**
+ * The one-way ANOVA table of groups: the sums of squares of groupMoments (double-double, on the data scaled by a
+ * power of 2), so that a within sum that is exactly 0 stays 0
+ */
+export function onewayTable(groups: readonly (readonly number[])[]): OnewayTable {
   const k = groups.length;
   if (k < 2) throw new RangeError("contrasts can be applied only to factors with 2 or more levels");
   const N = groups.reduce((a, s) => a + s.length, 0);
