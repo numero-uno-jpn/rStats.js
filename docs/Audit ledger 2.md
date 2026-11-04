@@ -72,3 +72,41 @@ pivotLonger(
 ### 記録コミット
 
 09802991e274a70130f316172380be98deb8d171（個別監査ログの追加）
+
+---
+
+## Audit #970 — merge の allY 専用行でキー列の共通型が失われる
+
+- 対象: src/descriptive/dataFrames.ts
+- 監査時 HEAD: 35cfc32dab1fa9bf1e6ddc9e7b067c0eb26e83e4
+- 対象ソース blob: 55fe65c67d8a8a71077af562a24ad7d41f2bc3d5
+- 参照仕様: oracle/dataframes-behaviour.md（merge step 1）
+- 判定: allY かつ x 側に結果行がない場合のキー型不整合
+- Issue: [#501](https://github.com/numero-uno-jpn/rStats.js/issues/501)
+- 詳細: [review_audit_970_merge_allY_key_type.md](review-logs/review_audit_970_merge_allY_key_type.md)
+
+### 要約
+
+merge() で yOnly が true かつ fromX が false の場合、キー列は y 側の列 cy だけから gather される。その後 commonType() もその出力値だけを調べるため、x 側のキー列が文字列で y 側が数値でも、結果のキー列が数値のまま残る。仕様資料では all.y による y-only 行のキー列は x・y 両方のキー列の共通型とする。
+
+```ts
+merge(
+  { id: ["unmatched-x"] },
+  { id: [1], value: ["from-y"] },
+  { by: "id", allY: true },
+);
+```
+
+期待されるキー列は id: ["1"]（文字列）。現行ソース経路では id: [1]（数値）になる。
+
+### 検証範囲・制約
+
+- src/descriptive/dataFrames.ts、test/dataFrames.test.ts、oracle/dataframes-behaviour.md を確認。
+- yOnly && !fromX の分岐と commonType() の処理をソースから追跡。
+- 既存 Issue を検索。該当する同一原因の Issue は見つからなかった。
+- ソースレベルの解析のみ。Vitest、R 実行は未実施。
+- ソースコード変更なし。
+
+### 記録コミット
+
+c888d42a3f70f9a31ec019a27682248340c0075d（個別監査ログの追加）
