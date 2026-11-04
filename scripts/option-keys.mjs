@@ -357,7 +357,8 @@ const NEEDS_CONDITION = new Set(["indexSignature", "result", "builtin", "anyOrUn
 
 /**
  * The keys distSummary takes for a distribution: those of its d function (the parameters after x, then the keys of
- * the options without log), as distSummary("gamma", { shape, rate }) for dgamma(x, shape, { rate }).
+ * the options without log and ncp), as distSummary("gamma", { shape, rate }) for dgamma(x, shape, { rate }). The
+ * summaries are those of the central distributions: ncp (chisq, beta, t, f) is not read, so it is an unknown key.
  */
 function distSummaryKeys(fns) {
   const keys = {};
@@ -372,7 +373,7 @@ function distSummaryKeys(fns) {
     for (const sig of d.signatures) {
       const at = sig.kinds.indexOf("options");
       for (const p of sig.params.slice(1, at < 0 ? undefined : at)) if (!list.includes(p)) list.push(p);
-      for (const o of sig.options) for (const k of o.keys) if (k !== "log" && !list.includes(k)) list.push(k);
+      for (const o of sig.options) for (const k of o.keys) if (k !== "log" && k !== "ncp" && !list.includes(k)) list.push(k);
     }
     keys[name] = list;
   }

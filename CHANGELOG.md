@@ -46,7 +46,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   that takes options, the nested objects with fixed keys included (`optim`'s and `optimHess`' `control`, `glm`'s
   `family` and `link` given as objects, `coxph`'s and `factanal`'s `control`; "unknown option 'control.maxitt' for
   optim"), for the `params` of `distSummary` (the parameters of the distribution's d function: `shape`, `rate` and
-  `scale` for `"gamma"`) and for the options of the function `splinefun` and `splinefunH` return. Objects whose keys
+  `scale` for `"gamma"`; not `ncp` of `chisq`, `beta`, `t` and `f`, which was ignored, giving the summaries of the
+  central distribution) and for the options of the function `splinefun` and `splinefunH` return. Objects whose keys
   are the user's data (data frames, `contrasts`, `levels`) are not checked. In `lmer`, `lmerSummary`, `lmerContest`
   and `lmerAnova` an unknown key was a TypeError with R's message ("unused argument (reml)") and is now this
   RangeError too; an argument of R that they do not support (`lmer`'s `weights`, `lmerAnova`'s `ddf`, ...) is still

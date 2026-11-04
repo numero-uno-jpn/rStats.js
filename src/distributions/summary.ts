@@ -33,12 +33,12 @@ import { splitDouble } from "../linalg/dot.js";
 import { checkOptions } from "../internal/checkOptions.js";
 const DIST_SUMMARY_KEYS: Readonly<Record<string, readonly string[]>> = {
   arcsine: ["a", "b"],
-  beta: ["shape1", "shape2", "ncp"],
+  beta: ["shape1", "shape2"],
   binom: ["size", "prob"],
   cauchy: ["location", "scale"],
-  chisq: ["df", "ncp"],
+  chisq: ["df"],
   exp: ["rate"],
-  f: ["df1", "df2", "ncp"],
+  f: ["df1", "df2"],
   gamma: ["shape", "rate", "scale"],
   geom: ["prob"],
   hyper: ["m", "n", "k"],
@@ -51,7 +51,7 @@ const DIST_SUMMARY_KEYS: Readonly<Record<string, readonly string[]>> = {
   norm: ["mean", "sd"],
   pareto: ["a", "b"],
   pois: ["lambda"],
-  t: ["df", "ncp"],
+  t: ["df"],
   triang: ["a", "b", "c"],
   unif: ["min", "max"],
   weibull: ["shape", "scale"],
@@ -308,7 +308,8 @@ function betaVariance(a: number, b: number, s: number): number {
 /**
  * Mean, variance, standard deviation, median, mode, skewness and excess kurtosis of a distribution, given by the
  * name of its d/p/q/r functions and their parameters (with the same names and defaults; `gamma` takes `rate` or
- * `scale`, `nbinom` takes `prob` or `mu`). Invalid parameters give NaN throughout.
+ * `scale`, `nbinom` takes `prob` or `mu`). Invalid parameters give NaN throughout. The distributions are the central
+ * ones: `ncp` of `chisq`, `beta`, `t` and `f` is not taken (an unknown key, a RangeError).
  * Not an R function. R has no function for these summaries; the R references are closed forms checked against
  * numerical moments.
  *

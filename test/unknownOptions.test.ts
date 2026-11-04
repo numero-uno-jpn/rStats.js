@@ -163,6 +163,12 @@ describe("unknown keys of an options object", () => {
     expect(() => distSummary("gamma", { shape: 2, rte: 1 })).toThrow(unknown("distSummary", "rte"));
     expect(distSummary("gamma", { shape: 2, rate: 2 }).mean).toBe(1);
     expect(distSummary("nbinom", { size: 3, mu: 2 }).mean).toBeCloseTo(2, 14);
+    // the summaries are those of the central distributions: ncp is not taken (it was ignored)
+    expect(() => distSummary("chisq", { df: 3, ncp: 1 })).toThrow(new RangeError("unknown option 'ncp' for distSummary (known: df)"));
+    expect(() => distSummary("t", { df: 3, ncp: 0 })).toThrow(new RangeError("unknown option 'ncp' for distSummary (known: df)"));
+    expect(() => distSummary("f", { df1: 3, df2: 5, ncp: 1 })).toThrow(unknown("distSummary", "ncp"));
+    expect(() => distSummary("beta", { shape1: 2, shape2: 3, ncp: 1 })).toThrow(unknown("distSummary", "ncp"));
+    expect(distSummary("chisq", { df: 3 }).mean).toBe(3);
   });
 
   it("are a RangeError in lmer too, after its Error for R's arguments it does not support", () => {
