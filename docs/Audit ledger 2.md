@@ -224,3 +224,26 @@ zero-weight 行でのみ異なる列があると、正weight行上では nested 
 - `responseScale()` の #350 対応と `addedSS()` の正weight行フィルタを確認。
 - `nestedColumns()` が全行を使うこと、および正weight行上の列空間包含と全行上の非包含を線形代数的に確認。
 - GitHubへの直接cloneはDNS失敗。パッケージの公開API実行・Vitest未実施。重複Issue検索では同一原因を確認できず。
+
+
+---
+
+## Audit #985 — aov(Error()) の treatment/error 行対応を再確認
+
+- 対象: `src/models/aovStrata.ts`
+- 監査時 HEAD: `f0e0d0c3e92b32ebabae32000174d881087d0904`
+- 対象ソース blob: `2a7a37613d82b4aa15ae260b7baa791704faad5c`
+- 判定: 既存Issue #353 と同一原因。新規Issueなし
+- 既存Issue: [#353](https://github.com/numero-uno-jpn/rStats.js/issues/353)（closed / not_planned）
+- 詳細: [review_audit_985_aovstrata_rows_existing_issue.md](review-logs/review_audit_985_aovstrata_rows_existing_issue.md)
+
+### 要約
+
+`aovStrataFit()` は treatment design `dt` と Error design `de` を別々に構築する。Error() 変数だけに欠損がある場合、`dt.frame.rows` と `de.frame.rows` が異なり、処置応答と誤差モデルの行対応が崩れる。これは既存Issue #353 と同一原因であり、重複登録はしない。Issueが closed / not_planned である一方、現行ソースには同じ制御フローが残ることを記録。
+
+### 検証範囲・制約
+
+- `src/models/aovStrata.ts`、`src/models/modelMatrix.ts`、`src/models/modelFrame.ts` の行選択を確認。
+- Issue #353 の再現データと原因記述を現行ソースに照合。
+- 静的監査のみ。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
