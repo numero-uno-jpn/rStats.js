@@ -144,3 +144,26 @@ wilcoxTest(x, { mu, confInt: true, exact: true });
 ### 記録コミット
 
 aa3cc3ae1b151c49421c94eff9f5dbf405f8b07b（個別監査ログの追加）
+
+---
+
+## Audit #982 — Mauchly's test: contrast-space, rank and degenerate covariance recheck
+
+- 対象: `src/models/mauchly.ts`
+- 監査時 HEAD: `29415c4e5e4584a65068b1838f0968df91e795f6`
+- 対象ソース blob: `eeca9936cefa62a52e8a60a83ba042127c9ccd70`
+- 判定: 今回確認した範囲で新規不具合なし
+- 関連既存 Issue: [#342](https://github.com/numero-uno-jpn/rStats.js/issues/342)（1次元 contrast space。現行ソースでは `pp === 1` を拒否）
+- 詳細: [review_audit_982_mauchly_recheck.md](review-logs/review_audit_982_mauchly_recheck.md)
+
+### 要約
+
+欠損行除外後の群平均・残差自由度、double-doubleによる残差交差積、M/X のQR rank・部分空間包含判定、contrast spaceの次元、Mauchly's W と補正p値を再確認した。既存 #342 の修正が現行ソースに反映されていることを確認。旧 #59 はQR pivot順の誤認による誤検出として扱い、再オープンしない。新規Issueは作成しなかった。
+
+### 検証範囲・制約
+
+- `src/models/mauchly.ts` の入力検証、欠損除外、group residual、contrastCrossprod、sphericityW、mauchlyPValue をソース上で追跡。
+- #342 と #59 の既存記録を照合。
+- ソースレベルの静的監査のみ。Vitest、Node、R の実行は未実施。
+- ソースコード変更なし。
+
