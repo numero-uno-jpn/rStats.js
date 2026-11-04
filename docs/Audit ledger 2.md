@@ -458,3 +458,23 @@ IRLSの開始値・反復・step-halving・収束/分離警告、正weight行の
 - KM、Greenwood、CI3種、中央値、G-rho重み、同時event/censor、risk set、分散式、timefixを静的に確認。
 - R fixtureとoracleを照合。Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #996 — QR / matrix shape / matrix norms
+
+- 対象: `src/linalg/qr.ts`, `src/linalg/matrix.ts`, `src/linalg/norm.ts`
+- 監査時 HEAD: `f76c0f3d07a73a6fc0fc9f2d8fc18f4676cd6f17`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_996_qr_matrix_norm.md](review-logs/review_audit_996_qr_matrix_norm.md)
+
+### 要約
+
+LINPACK/LAPACK QR、pivot/rank、Householder、qrCoef/qrSolve/qrResid/qrFitted/qrQ/qrR/qrX、行列shape変換、norm各種のNaN/Inf・空行列・overflow/underflowを確認。既存のQR大規模値Householder overflow Issueは重複登録を回避。LAPACK QRのrank非検出やqrResid/qrFittedの制限は実装契約と整合し、未検証の疑義はIssue化しなかった。
+
+### 検証範囲・制約
+
+- ソースと既存テスト/oracle harnessを静的確認。
+- Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
