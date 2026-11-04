@@ -313,6 +313,15 @@ function asymAmplitude(v: number, x: number): number {
   s += (mu - 1) / (2 * txq);
   s += (3 * (mu - 1) * (mu - 9)) / (txq * txq * 8);
   s += (15 * (mu - 1) * (mu - 9) * (mu - 25)) / (txq * txq * txq * 8 * 6);
+  if (!Number.isFinite(s)) {
+    // 4 v^2 or (2x)^6 overflows (besselJ(1e200, 1e50) was NaN): the terms as products of
+    // (mu - c) / (2x)^2 = r^2 - c / (4 x^2), r = v / x
+    const r = v / x;
+    const c = (k: number) => r * r - k / (4 * x * x);
+    const c1 = c(1);
+    const c9 = c(9);
+    s = 1 + c1 / 2 + (3 * c1 * c9) / 8 + (15 * c1 * c9 * c(25)) / 48;
+  }
   // pi x overflows for x above 5.7e307 (besselJ(1e308, 0) was -0): the square roots apart
   return Number.isFinite(Math.PI * x) ? Math.sqrt((s * 2) / (Math.PI * x)) : Math.sqrt((s * 2) / Math.PI) / Math.sqrt(x);
 }
@@ -330,17 +339,51 @@ function asymPhaseMx(v: number, x: number): number {
   s += ((mu - 1) * (mu * mu - 114 * mu + 1073)) / (5 * denom);
   denom *= denomMult;
   s += ((mu - 1) * (5 * mu * mu * mu - 1535 * mu * mu + 54703 * mu - 375733)) / (14 * denom);
+  if (!Number.isFinite(s)) {
+    // The powers overflow: (mu - 1) / (4x) = v r - 1 / (4x) times polynomials in rho = mu / (4x)^2 = r^2 / 4
+    const r = v / x;
+    const a1 = v * r - 1 / (4 * x);
+    const rho = (r * r) / 4;
+    const q = 1 / (16 * x * x); // 1 / (4x)^2, 0 where it underflows
+    s = a1 / 2;
+    s += (a1 * (rho - 25 * q)) / 6;
+    s += (a1 * (rho * rho - 114 * rho * q + 1073 * q * q)) / 5;
+    s += (a1 * (5 * rho * rho * rho - 1535 * rho * rho * q + 54703 * rho * q * q - 375733 * q * q * q)) / 14;
+  }
   return s;
 }
 
+/**
+ * v / 2 + 1/4 modulo 2 for the phase pi (v/2 + 1/4): for v >= 2^52 the 1/4 rounds away in v / 2 + 0.25 (besselJ(1e40,
+ * 1e17) was 8.3 relative off), and v (an integer there) is reduced modulo 4 first, exactly. Below, v / 2 + 0.25 as
+ * before (the bits of ordinary orders)
+ */
+function quarterPhase(v: number): number {
+  return v >= 2 ** 52 ? (v % 4) / 2 + 0.25 : v / 2 + 0.25;
+}
+
+/**
+ * Bound on the phase correction of the asymptotic expansion, about nu^2 / (2x): formed in double, its absolute error
+ * is a few eps times itself, and the relative error of J and Y about 1e-16 times it (1.3e-9 at 5e7; no digit is left
+ * beyond about 1e13)
+ */
+const MAX_ASYM_PHASE = 2 ** 26;
+
 /** J_v and Y_v for large x (A&S 9.2.19), with the phase factored by addition formulas */
-function asymJY(v: number, x: number): { j: number; y: number } {
+function asymJY(v: number, x: number, name: string, nu: number): { j: number; y: number } {
+  const corr = (v * (v / x)) / 2;
+  if (corr > MAX_ASYM_PHASE) {
+    throw new RangeError(
+      `${name}: x = ${x}, nu = ${nu} has a phase correction nu^2 / (2x) of about ${corr.toPrecision(3)}, ` +
+        "which double precision does not resolve (at most 2^26)",
+    );
+  }
   const ampl = asymAmplitude(v, x);
   const phase = asymPhaseMx(v, x);
   const cx = Math.cos(x);
   const sx = Math.sin(x);
-  const ci = cospi(v / 2 + 0.25);
-  const si = sinpi(v / 2 + 0.25);
+  const ci = cospi(quarterPhase(v));
+  const si = sinpi(quarterPhase(v));
   const sp = Math.sin(phase);
   const cp = Math.cos(phase);
   const y = (sp * (cx * ci + sx * si) + cp * (sx * ci - cx * si)) * ampl;
@@ -414,13 +457,13 @@ function besselJYPos(v: number, x: number, needY: boolean, name: string, nu: num
   }
   if (Math.max(v, 1) < x * 0.011048543456039806) {
     // sqrt(forth root of epsilon)
-    const a = asymJY(v, x);
+    const a = asymJY(v, x, name, nu);
     return { j: a.j, y: { m: a.y, e2: 0 } };
   }
   if (x > 8) {
     const pq = hankelPQ(v, x);
     if (pq !== undefined) {
-      const modV = (v / 2 + 0.25) % 2;
+      const modV = quarterPhase(v) % 2;
       const sx = Math.sin(x);
       const cx = Math.cos(x);
       const sv = sinpi(modV);
@@ -500,7 +543,8 @@ function besselJYPos(v: number, x: number, needY: boolean, name: string, nu: num
  * with `x` (a continued fraction of about `x - nu` terms): about 15 ms at `x = 5e4`, `nu = 1000`, 1.6 s at `x = 1e7`,
  * `nu = 2e5`. Near the turning point (`x` a little below `nu`) a recurrence takes about `nu` steps. Beyond 2^25 terms
  * of the continued fraction or 2^31 steps of the recurrence (2^28 for a negative non-integer order, which needs Y) a
- * RangeError is thrown before the computation.
+ * RangeError is thrown before the computation. So it is in the asymptotic expansion (`x` above about `90 nu`) where
+ * the phase correction `nu^2 / (2x)` exceeds 2^26, which double precision does not resolve.
  *
  * @example
  * ```ts
@@ -540,7 +584,8 @@ export function besselJ(x: number, nu: number): number {
  * For orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by
  * bounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): about 2.4 s for
  * `besselY(0.9e8, 1e8)`. Beyond 2^28 steps, or 2^25 terms of the continued fraction for `x` above `nu` (as for
- * {@link besselJ}), a RangeError is thrown before the computation.
+ * {@link besselJ}), a RangeError is thrown before the computation, and likewise for a phase correction `nu^2 / (2x)`
+ * beyond 2^26 in the asymptotic expansion for large `x`.
  *
  * @example
  * ```ts

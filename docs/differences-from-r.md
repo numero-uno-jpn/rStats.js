@@ -293,6 +293,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `besselY(1e-310, 0)`, `besselY(5e-324, 0)` | -Inf | -454.49387560035387, -473.99907342300429 |
 | `besselK(1, 1e12)`, `besselY(1, 1e12)`, `besselY(10, 1e8)` (results far out of range at large orders) | error "cannot allocate vector of size 7450.6 Gb"; NaN with a warning | Inf, -Inf, -Inf at once (bounds on the log of the result decide before the recurrences of about nu steps) |
 | `besselK(1e8, 2e8)` | 0 | Inf |
+| `besselJ(1e200, 1e50)`, `besselY(1e200, 1e50)`, `besselJ(1e40, 1e17)` (the asymptotic expansion for large x; #490) | NaN with the warning "nu=1e+50 too large for bessel_j() algorithm" (every nu above 1e7) | 6.831382541998361e-102, -7.949547116811557e-101, -6.538328107498253e-22 (Rmpfr to within 3e-16; the powers of nu^2 as ratios nu / x where they overflow, and nu / 2 + 1/4 modulo 2 from nu modulo 4 for nu >= 2^52) |
 | `ansari.test(conf.int = TRUE)` with ties and `exact` unset (or `TRUE`) | error "object 'cint' not found" (with both samples below 50 values R takes the exact branch, which skips the interval with ties) | the normal-approximation interval and estimate, the same as with `exact: false` |
 | `weighted.mean(c(1e308, 1e308), c(1, 1))` and other sums that overflow; `weighted.mean(c(1e-308, 2e-308), c(1e308, 1e308))`, where only the sum of the weights overflows; `weighted.mean(c(1e308, 1e308, 1e308), c(1e308, -1e308, 1e-308))`, signed weights that cancel; `weighted.mean(1e-200, 1e-200)`, where the product underflows | Inf; 0; NaN; 0 | 1e308; 1.5e-308; 1e308; 1e-200 (the sums of the products and of the weights formed exactly, and their quotient rounded once) |
 | `fivenum(c(1e308, 1e308))`, `hist(...)$mids`, the Kaplan-Meier median, the Hodges-Lehmann estimate and the midrange of `wilcox.test`, the default mode of the triangular distribution, the `monoH.FC` slopes of `splinefun` (all `(a + b) / 2`) | Inf when a + b overflows | the midpoint, as a / 2 + b / 2 when a + b overflows |
@@ -701,7 +702,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   0.5 s) and 2^28 where Y is needed (`besselY`, and `besselJ` of a negative non-integer order; about 45 ns a step).
   I and K: the forward recurrence of K takes about nu steps, at most 2^28 (`besselK(3e9, 3e8, expon.scaled = TRUE)`
   gave Inf after 4.4 s). R's `besselJ` gives 0 with a warning from about nu = 1e6 on, and R's `besselY` is fast
-  there (reviews 47 and 52).
+  there (reviews 47 and 52). In the asymptotic expansion for large x (x above about 90 nu), J and Y throw a
+  RangeError, before the computation, where the phase correction nu^2 / (2x) exceeds 2^26: formed in double its
+  error is about 1e-16 times itself, and no digit of the result is left beyond about 1e13 (`besselJ(1e200, 1e154)`,
+  5e107; below the bound the relative error is at most about 1e-9). R gives NaN with a warning there (every nu above
+  1e7; #490).
 - **`dwilcox`, `pwilcox` and `qwilcox`** (and the exact p-values and intervals of the two-sample `wilcoxTest`) throw
   a RangeError, before the table is built, where it would take more than 2^29 steps: min(m, n) passes over the table
   of the smaller tail up to the value asked for (about 6 to 8 s; another exception to the NaN of distribution functions

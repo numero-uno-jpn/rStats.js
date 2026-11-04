@@ -287,6 +287,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `besselY(1e-310, 0)`、`besselY(5e-324, 0)` | -Inf | -454.49387560035387、-473.99907342300429 |
 | `besselK(1, 1e12)`、`besselY(1, 1e12)`、`besselY(10, 1e8)` (大きな次数で、結果が範囲を大きく超える) | エラー "cannot allocate vector of size 7450.6 Gb"、警告付きの NaN | Inf、-Inf、-Inf をすぐに返す (次数に比例する漸化式の前に、結果の対数の上界・下界で判定する) |
 | `besselK(1e8, 2e8)` | 0 | Inf |
+| `besselJ(1e200, 1e50)`・`besselY(1e200, 1e50)`・`besselJ(1e40, 1e17)` (x が大きい漸近展開。#490) | NaN と警告 "nu=1e+50 too large for bessel_j() algorithm" (nu が 1e7 を超えるとすべて) | 6.831382541998361e-102、-7.949547116811557e-101、-6.538328107498253e-22 (Rmpfr との差は 3e-16 以内。nu^2 の冪は溢れるときに比 nu / x の形、nu ≥ 2^52 では nu / 2 + 1/4 の 2 での剰余を nu の 4 での剰余から) |
 | タイがあり `exact` を指定しない (または `TRUE`) `ansari.test(conf.int = TRUE)` | エラー "object 'cint' not found" (両方の標本が 50 未満だと R は正確な方法の分岐に入り、タイがあると区間を飛ばす) | 正規近似の区間と推定値 (`exact: false` と同じ) |
 | `weighted.mean(c(1e308, 1e308), c(1, 1))` など和が溢れる場合。重みの和だけが溢れる `weighted.mean(c(1e-308, 2e-308), c(1e308, 1e308))`。符号付きの重みが打ち消し合う `weighted.mean(c(1e308, 1e308, 1e308), c(1e308, -1e308, 1e-308))`。積がアンダーフローする `weighted.mean(1e-200, 1e-200)` | Inf。0。NaN。0 | 1e308。1.5e-308。1e308。1e-200 (積の和と重みの和を厳密に求め、商を 1 回だけ丸める) |
 | `fivenum(c(1e308, 1e308))`、`hist(...)$mids`、Kaplan-Meier の中央値、`wilcox.test` の Hodges-Lehmann 推定値と midrange、三角分布の既定の最頻値、`splinefun` の `monoH.FC` の傾き (いずれも `(a + b) / 2`) | a + b が溢れると Inf | 中点 (a + b が溢れるときは a / 2 + b / 2) |
@@ -652,7 +653,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   漸化式が約 nu 回で、J は 2^31 回まで (1 回 5 ns ほど。`besselJ(1e8 - 1, 1e8)` は 0.5 秒)、Y が要るとき (`besselY` と、
   負の整数でない次数の `besselJ`) は 2^28 回まで (1 回 45 ns ほど) です。I と K: K の前進漸化式が約 nu 回で、2^28 回まで
   です (`besselK(3e9, 3e8, expon.scaled = TRUE)` は 4.4 秒かけて Inf だった)。R の `besselJ` は nu = 1e6 ほどから警告付きで
-  0 を返し、R の `besselY` はそこでも速く計算します (47・52 回目)。
+  0 を返し、R の `besselY` はそこでも速く計算します (47・52 回目)。x が大きい漸近展開 (x が nu の約 90 倍より大きい) では、
+  位相の補正 nu^2 / (2x) が 2^26 を超えると、J と Y は計算の前に RangeError を投げます。double で作るとこの補正の誤差は
+  その約 1e-16 倍で、約 1e13 を超えると結果の桁が残りません (`besselJ(1e200, 1e154)` で 5e107。上限の下では相対誤差は
+  1e-9 程度まで)。R はそこでは警告付きで NaN を返します (nu が 1e7 を超えるとすべて。#490)。
 - **`dwilcox`・`pwilcox`・`qwilcox`** (と 2 標本の `wilcoxTest` の正確な p 値・区間) は、表を作るのに 2^29 手を超えるときは、
   表を作る前に RangeError を投げます。手数は、求める値までの小さい側の裾の表の長さ × min(m, n) 段です (6〜8 秒ほど。
   分布関数は不正なパラメータで NaN を返す、のもう 1 つの例外です)。`pwilcox(2e5, 3000, 3000)` (6e8 手) は 5 秒かかっていて
