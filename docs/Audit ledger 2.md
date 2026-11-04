@@ -835,3 +835,23 @@ noncentral beta/Fの端点、j=0 mixture成分、subnormal shape/ncp、DD変換�
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Rのpnbeta.c端点処理を参照。Vitest、Node、R runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1014 — Log-normal distribution
+
+- 対象: `src/distributions/lognormal.ts`、normal CDF/quantile、DD log/exp、erfcx helpers
+- 監査時 HEAD: `7a069be38f70543a9b74f7548f984e1280cf002a`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1014_lognormal_distribution.md](review-logs/review_audit_1014_lognormal_distribution.md)
+
+### 要約
+
+dlnorm/plnorm/qlnormのx・sdlog・meanlog端点、非有限値、subnormal x、巨大sdlog、z² overflow、DD exponent、erfcx tail、quantile Newton補正を静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
