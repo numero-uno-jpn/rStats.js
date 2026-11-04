@@ -191,17 +191,73 @@ export function phyper1(q: number, m: number, n: number, k: number, lowerTail: b
   if (x < lo) return dt0(lowerTail, logP);
   if (x >= hi) return dt1(lowerTail, logP);
   if (hi > MAX_EXACT || !exactTotal(m, n)) return NaN;
+  const terms = phyperTerms(x, m, n, k, lo, hi);
+  if (terms > MAX_TERMS) {
+    throw new RangeError(
+      `phyper: m = ${m}, n = ${n}, k = ${k} needs about ${Math.round(terms)} terms at q = ${q} (at most 2^26)`,
+    );
+  }
   return phyperRaw(x, m, n, k, lowerTail, logP);
 }
+
+/** Variance of the hypergeometric distribution (N = m + n) */
+function hyperVariance(m: number, n: number, k: number, N: number): number {
+  return (((k * m) / N) * (n / N) * (N - k)) / Math.max(N - 1, 1);
+}
+
+/**
+ * Estimated number of terms of tailSum from start (lower: downwards), from the normal approximation: the terms fall
+ * below 2^-60 of the sum about where (v^2 - u^2) / (2 sigma^2) = 60 ln 2 (u, v: signed distances of start and of the
+ * last term past the mean in the direction of the sum), so about sqrt(u^2 + 83 sigma^2) - u terms, and at most the
+ * distance to the end of the support. (Counted with a copy of the loop for sigma up to 4e4: at most 1.02 times this.)
+ */
+function tailTerms(start: number, lower: boolean, mu: number, variance: number, lo: number, hi: number): number {
+  const u = lower ? mu - start : start - mu;
+  const w = Math.sqrt(u * u + 83 * variance);
+  return Math.min(u >= 0 ? (83 * variance) / (w + u) : w - u, lower ? start - lo : hi - start);
+}
+
+/**
+ * Estimated number of terms phyperRaw sums at x: the tail away from the mean, and the other one as well where the
+ * first may exceed 1/2, which needs x within 1 of the mean (the median of the distribution is that close to it)
+ */
+function phyperTerms(x: number, m: number, n: number, k: number, lo: number, hi: number): number {
+  const N = m + n;
+  const mu = (k * m) / N;
+  const variance = hyperVariance(m, n, k, N);
+  const lowerSide = x * N < k * m;
+  const start = lowerSide ? x : x + 1;
+  const far = tailTerms(start, lowerSide, mu, variance, lo, hi);
+  if (Math.abs(start - mu) >= 1) return far;
+  return far + tailTerms(lowerSide ? x + 1 : x, !lowerSide, mu, variance, lo, hi);
+}
+
+/**
+ * Bounds on the time of phyper and qhyper (the tail sums take about 80 to 170 ns per term on the development machine):
+ * phyper's estimated number of terms at most 2^26 (about 10 s; sigma about 7e6 at the center), qhyper's standard
+ * deviation at most 2^21 (its search calls the distribution function a few times, about 2.5 times 9.1 sigma terms)
+ */
+const MAX_TERMS = 2 ** 26;
+const MAX_QHYPER_SIGMA = 2 ** 21;
 
 /**
  * Largest upper end of the support for phyper and qhyper: the tail sums step through the integers one by one, which
  * beyond 2^53 no longer move (phyper(5e16, 1e17, 1e17, 1e17) did not return), so the answer is NaN there, as for
- * other integers beyond 2^53. Below it the time grows as sqrt(m + n) (about 40 s at 1e16, as R's)
+ * other integers beyond 2^53. Below it the time grows as the standard deviation, bounded by MAX_TERMS and
+ * MAX_QHYPER_SIGMA
  */
 const MAX_EXACT = 2 ** 53;
 
-export function qhyper1(p: number, m: number, n: number, k: number, lowerTail: boolean, logP: boolean): number {
+/** (limitTime false: without the bound on sigma, for rhyper's inversion, which is unchanged) */
+export function qhyper1(
+  p: number,
+  m: number,
+  n: number,
+  k: number,
+  lowerTail: boolean,
+  logP: boolean,
+  limitTime = true,
+): number {
   if ([p, m, n, k].some(Number.isNaN)) return NaN;
   const params = hyperParams(m, n, k);
   if (params === undefined) return NaN;
@@ -214,7 +270,12 @@ export function qhyper1(p: number, m: number, n: number, k: number, lowerTail: b
   if (hi > MAX_EXACT || !exactTotal(m, n)) return NaN;
   const N = m + n;
   const mu = (k * m) / N;
-  const sigma = Math.sqrt((((k * m) / N) * (n / N) * (N - k)) / Math.max(N - 1, 1));
+  const sigma = Math.sqrt(hyperVariance(m, n, k, N));
+  if (limitTime && sigma > MAX_QHYPER_SIGMA) {
+    throw new RangeError(
+      `qhyper: m = ${m}, n = ${n}, k = ${k} has a standard deviation of about ${sigma.toPrecision(3)} (at most 2^21)`,
+    );
+  }
   const z = qnorm(p, { lowerTail, logP });
   const y0 = mu + sigma * z;
   return discreteQuantile({

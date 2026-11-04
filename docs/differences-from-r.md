@@ -262,7 +262,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `plogis(-745)` and other subnormal answers | 0 | 5e-324 |
 | `pwilcox(q, 500, 500)` | uses several GB and runs out of memory | computed (memory grows with mn/2). Beyond about m = n = 510 the entries near the center lose their accuracy (the passes of the table amplify errors above their centers): a RangeError there, from 1.7 sd below the center at 520 to 18 sd at 1050 (the tails stay available; unequal sizes with a small m, such as 100 and 20000, reach the center) |
 | `dwilcox(3, Inf, 5)`, `dsignrank(3, Inf)` | allocation error or crash | NaN |
-| `qsignrank(p, 1100)`, `qhyper(0.5, 1e15, 1e15, 1e15)` | does not finish | computed (`qhyper` takes about ten seconds at this size) |
+| `qsignrank(p, 1100)`, `qhyper(0.5, 1e13, 1e13, 1e13)` | does not finish | computed (`qhyper` takes about 2.5 s at this size; beyond a standard deviation of 2^21 it throws a RangeError, see the limits under Hypothesis tests) |
 | `qtukey(1e-10, 20, 10)` | NaN | finite answer |
 | `qtukey(1.52e-287, 3, 4.67e10, nranges = 2, lower.tail = FALSE)` | NaN ("convergence failed") | 51.31849500218445 |
 | `ptukey(54.5, 3, Inf, nranges = 2, lower.tail = FALSE, log.p = TRUE)` (1 − W below the double range) | -Inf | -744.6488312090673 (log 2 + log(1 − W)) |
@@ -668,6 +668,19 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   extrapolation overflows and every result is NaN, also in numDeriv, and the extrapolation's O(r^2) steps do not end
   for a huge r. Up to 512 the values are unchanged (from about r = 20 on they lose accuracy, and with the default
   `d` they mean nothing from r = 41 on, where the smallest step is below half an ulp of x, as in numDeriv; issue #123).
+- **`phyper` and `qhyper`** throw a RangeError, before any sum, where the sums of the probabilities would take more
+  than a few seconds (an exception to the NaN that distribution functions return for invalid parameters: these are
+  valid). The sums step through the support one value at a time, as many values as a multiple of the standard
+  deviation sigma. `phyper`: the number of terms is estimated from the normal approximation, about
+  sqrt(u^2 + 83 sigma^2) - u for a tail that starts u past the mean (83 = 120 ln 2: the terms fall below 2^-60 of the
+  sum), both tails within 1 of the mean, and at most the distance to the end of the support; at most 2^26 (about 5 to
+  8 s; sigma about 3.7e6 at the center, 7.4e6 a little off it, more in the far tails). `qhyper`: sigma at most 2^21
+  (about 5 s; its search evaluates the distribution function a few times). With m = n = k, `phyper(5e14, 1e15, 1e15,
+  1e15)` (sigma 1.1e7, about 40 s before) throws and `phyper(5e12, 1e13, 1e13, 1e13)` takes 1.3 s. The ends of the
+  support, the binomial limit and p = 0 or 1 answer as before. R's `phyper` sums double terms with a looser stop
+  (1.0 s at the center of 1e15, and 1.8e-11 off at 1e13: 0.5000001783941305 for 0.5000001784124118), and its
+  `qhyper` takes time proportional to m + n (0.7 s at m = n = k = 1e7). `rhyper`, which inverts `qhyper` for parameters beyond
+  2147483647, has no bound.
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)
@@ -769,7 +782,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `qnbinom`, p being `pgeom(112064)`).
 - **`phyper` and `qhyper`** whose support reaches beyond 2^53 are NaN: the tail sums step through the integers one by
   one, which no longer move there (`phyper(5e16, 1e17, 1e17, 1e17)` did not return). Below 2^53 the time grows as
-  sqrt(m + n), about 40 s at 1e16. Likewise `dhyper`, `phyper` and `qhyper` inside the support are NaN where m + n
+  the standard deviation, with a bound (a RangeError, see the limits under Hypothesis tests). Likewise `dhyper`, `phyper` and `qhyper` inside the support are NaN where m + n
   is not exact in double precision (`dhyper(0, 1, 1e16, 1e16)`: the population 1 + 1e16 rounds to k = 1e16, and R
   gives 1, 0 for x = 1, 0); the ends of the support and the binomial limit (k / (m + n) below 2^-60) still answer.
 - **`dwilcox`, `pwilcox` and `qwilcox`** with mn beyond 2^53 are NaN: the statistic ranges over 0..mn, whose

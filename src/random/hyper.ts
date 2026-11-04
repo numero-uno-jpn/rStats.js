@@ -54,7 +54,7 @@ export function rhyper1(nn1in: number, nn2in: number, kkin: number): number {
     // Parameters beyond the integer range: Bernoulli for a single draw, otherwise invert via the quantile function
     // (the white fraction without forming nn1 + nn2, which overflows near the largest double: it was 0)
     if (kkin === 1) return rbinom1(kkin, whiteFraction(nn1in, nn2in));
-    return qhyper1(unifRand(), nn1in, nn2in, kkin, false, false);
+    return qhyper1(unifRand(), nn1in, nn2in, kkin, false, false, false);
   }
   const nn1 = nn1in;
   const nn2 = nn2in;
