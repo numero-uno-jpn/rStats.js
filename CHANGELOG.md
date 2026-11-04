@@ -53,6 +53,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   message ("unused argument (reml)") and is now this RangeError too; an argument of R that they do not support
   (`lmer`'s `weights`, `lmerAnova`'s `ddf`, ...) is still the Error "lmer: argument 'weights' is not supported",
   checked first.
+- `HTest` and the other results of the tests, effect sizes, power and agreement functions, and `factanal`'s, have a
+  required `warnings: string[]`: R's warnings, each once, in R's order, an empty array when there are none. Code that
+  builds such an object itself must add the field. The functions that had no `warnings` return an empty array (the
+  warnings R gives in the tests that lack them, such as `wilcoxTest`'s "cannot compute exact p-value with ties", are to
+  come).
 
 ### Added
 
@@ -73,6 +78,14 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   position only, as R (a positional `control` is itself a plain object). Giving one both by position and in the options is a
   RangeError. New types: `GlmResidualsOptions`, `CohenESOptions`, `OuterFun`, `OuterOptions`, `TabulateOptions`,
   `PropTrendTestOptions`, `SplineFunction` and `SplineFunctionOptions`.
+- `setWarningHandler(handler)` passes R's warnings to a function of the user's choice, as R prints them, such as
+  ``setWarningHandler((message, source) => console.warn(`${source}: ${message}`))``: each call of a test, model or fit
+  (and `pivotLonger` without `onWarning`) passes its warnings once it has its result, each distinct warning once, with
+  the name of the function called; a function that calls another, such as `etaSquared` of a fit, passes them once
+  under its own name. An error thrown by the handler propagates to the caller (as R's `options(warn = 2)`).
+  `setWarningHandler(null)`, the default, passes nothing; the previous handler is returned. The handler is kept on
+  `globalThis`, one setting for every copy of the library on a page. Exported from the root and
+  `rStats.js/distributions`, with the type `WarningHandler`.
 
 ### Changed
 
