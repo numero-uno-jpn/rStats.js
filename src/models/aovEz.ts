@@ -103,7 +103,7 @@ const ABS_RANK_TOL = 1e-24;
 
 function column(data: DataFrame, name: string): readonly unknown[] {
   const c = Object.prototype.hasOwnProperty.call(data, name) ? data[name] : undefined;
-  if (c === undefined) throw new Error(`object '${name}' not found`);
+  if (c === undefined) throw new RangeError(`object '${name}' not found`);
   return Array.from(c as ArrayLike<unknown>);
 }
 
@@ -191,7 +191,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
     if (repeated.length > 0) throw new Error(`duplicated factor names in '${name}': ${[...new Set(repeated)].join(", ")}`);
   }
   const both = between.filter((n) => within.includes(n));
-  if (both.length > 0) throw new Error(`factors in both 'between' and 'within': ${both.join(", ")}`);
+  if (both.length > 0) throw new RangeError(`factors in both 'between' and 'within': ${both.join(", ")}`);
   const type = options.type ?? 3;
   if (type !== 2 && type !== 3) throw new RangeError(`invalid type (${String(type)}): use 2 or 3`);
   const correction = options.correction ?? "GG";

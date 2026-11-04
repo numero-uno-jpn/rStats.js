@@ -263,7 +263,7 @@ export type AggregateValue = number | readonly number[] | Readonly<Record<string
 
 /** A summarised column as numbers (null is NaN) */
 function numericColumn(name: string, col: DataFrame[string] | undefined): number[] {
-  if (col === undefined) throw new Error(`object '${name}' not found`);
+  if (col === undefined) throw new RangeError(`object '${name}' not found`);
   if (!isLabelArray(col)) throw new TypeError(`column '${name}' must be an array`);
   return Array.from(col as ArrayLike<Label>, (v) => {
     if (v === null) return NaN;
@@ -274,7 +274,7 @@ function numericColumn(name: string, col: DataFrame[string] | undefined): number
 
 function labelColumn(data: DataFrame, name: string): GroupingLabels {
   const col = Object.prototype.hasOwnProperty.call(data, name) ? data[name] : undefined;
-  if (col === undefined) throw new Error(`object '${name}' not found`);
+  if (col === undefined) throw new RangeError(`object '${name}' not found`);
   if (!isLabelArray(col)) throw new TypeError(`column '${name}' must be an array`);
   return col;
 }

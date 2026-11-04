@@ -24,6 +24,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
     `kruskalTest`, `flignerTest`, `bartlettTest`, `onewayTest`, `friedmanTest`, `quadeTest`, `corTest`): a formula of
     the wrong form for the test is a TypeError. A grouping factor without exactly 2 levels and a block design that is
     not unreplicated and complete stay an `Error` (data whose result is not defined).
+  - Data frames and columns: a duplicate column name (`cbind`, `merge` with suffixes that collide, `aggregate`) and a
+    `select` of `subset` that is not a column are RangeErrors, and data frames with different names in `rbind` a
+    TypeError; a column named in a formula or option that does not exist ("object 'x' not found": `aggregate`, the
+    model functions such as `lm` and `glm` and their `weights`, the formula forms of the tests, `aovEz`) is a
+    RangeError, and so is a factor given in both `between` and `within` of `aovEz`.
 - `steelTest` is removed. It only reproduced the errors of PMCMRplus 1.9.12's `steelTest`, which fails on every input,
   and never returned a value; Steel's many-to-one rank test is `manyOneUTest` (its normal approximation).
 

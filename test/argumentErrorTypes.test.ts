@@ -1,8 +1,26 @@
-// The argument errors of pivotLonger, pivotWider, merge and the formula forms of the tests are TypeError (wrong type or
-// shape, including a formula of the wrong form) or RangeError (a value out of range: a column that does not exist, an
-// empty selection, an unknown choice). Input whose result is not defined stays an Error (CONTRIBUTING, Style).
+// The argument errors of pivotLonger, pivotWider, merge, the formula forms of the tests and the data frame and column
+// helpers (a duplicate column name, a column that does not exist, data frames with different names in rbind) are
+// TypeError (wrong type or shape, including a formula of the wrong form) or RangeError (a value out of range: a column
+// that does not exist, an empty selection, an unknown choice). Input whose result is not defined stays an Error
+// (CONTRIBUTING, Style).
 import { describe, expect, it } from "vitest";
-import { corTest, friedmanTest, kruskalTest, merge, onewayTest, pivotLonger, pivotWider, tTest, varTest } from "../src/index.js";
+import {
+  aggregate,
+  aovEz,
+  cbind,
+  corTest,
+  friedmanTest,
+  kruskalTest,
+  lm,
+  merge,
+  onewayTest,
+  pivotLonger,
+  pivotWider,
+  rbind,
+  subset,
+  tTest,
+  varTest,
+} from "../src/index.js";
 
 const throwsType = (f: () => unknown, type: ErrorConstructor, message: string) => {
   expect(f).toThrow(message);
@@ -89,6 +107,33 @@ describe("formula forms of the tests: a formula of the wrong form is a TypeError
       () => friedmanTest("y ~ g | h", { ...d, h: ["u", "u", "u", "u", "u", "v"] }),
       Error,
       "not an unreplicated complete block design",
+    );
+  });
+});
+
+describe("data frames, grouping and model columns: argument errors", () => {
+  const d = { id: [1, 2, 3, 4], g: ["a", "a", "b", "b"], y: [1, 2, 3, 5], w: [1, 1, 2, 2] };
+
+  it("RangeError for a duplicate column name or a column that does not exist", () => {
+    throwsType(() => cbind({ a: [1, 2] }, { a: [3, 4] }), RangeError, "duplicate column name 'a'");
+    throwsType(() => subset(d, [true, true, true, true], { select: ["nope"] }), RangeError, "undefined columns selected");
+    throwsType(() => aggregate("zz ~ g", d, (v) => v.length), RangeError, "object 'zz' not found");
+    throwsType(() => aggregate("y ~ zz", d, (v) => v.length), RangeError, "object 'zz' not found");
+    throwsType(() => lm("y ~ zz", d), RangeError, "object 'zz' not found");
+    throwsType(() => lm("y ~ g", d, { weights: "zz" }), RangeError, "object 'zz' not found");
+    throwsType(() => aovEz(d, { id: "id", dv: "zz", between: "g" }), RangeError, "object 'zz' not found");
+  });
+
+  it("TypeError for data frames with different names in rbind", () => {
+    throwsType(() => rbind({ a: [1], b: [2] }, { a: [3], c: [4] }), TypeError, "names do not match previous names");
+  });
+
+  it("RangeError for a factor in both between and within of aovEz", () => {
+    const long = { id: [1, 1, 2, 2], A: ["p", "p", "q", "q"], W: ["u", "v", "u", "v"], score: [1, 2, 3, 5] };
+    throwsType(
+      () => aovEz(long, { id: "id", dv: "score", between: ["A"], within: ["A", "W"] }),
+      RangeError,
+      "factors in both 'between' and 'within': A",
     );
   });
 });

@@ -58,7 +58,7 @@ export function pick(col: Column, rows: readonly number[]): Column {
 
 /** Adds a column to a result under construction; names must be unique */
 export function addColumn(out: DataFrame, name: string, col: Column): void {
-  if (Object.hasOwn(out, name)) throw new Error(`duplicate column name '${name}'`);
+  if (Object.hasOwn(out, name)) throw new RangeError(`duplicate column name '${name}'`);
   // defineProperty, so that a column named "__proto__" is an own column rather than setting the prototype
   Object.defineProperty(out, name, { value: col, enumerable: true, writable: true, configurable: true });
 }
@@ -365,7 +365,7 @@ export function subset(
   const select = options.select ?? names;
   const out: DataFrame = {};
   for (const c of select) {
-    if (!Object.hasOwn(data, c)) throw new Error("undefined columns selected");
+    if (!Object.hasOwn(data, c)) throw new RangeError("undefined columns selected");
     addColumn(out, c, pick(data[c]!, rows));
   }
   return out;
@@ -382,7 +382,7 @@ export function rbindFrames(frames: readonly DataFrame[]): DataFrame {
     rowCount(f);
     const other = Object.keys(f);
     if (other.length !== names.length || !names.every((n) => Object.hasOwn(f, n))) {
-      throw new Error("names do not match previous names");
+      throw new TypeError("names do not match previous names");
     }
   }
   const out: DataFrame = {};

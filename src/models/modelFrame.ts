@@ -130,14 +130,14 @@ export function modelFrame(data: DataFrame, names: readonly string[], options: M
   if (typeof data !== "object" || data === null) throw new TypeError("data must be an object of columns");
   const cols: Raw[] = names.map((v) => {
     const c = Object.prototype.hasOwnProperty.call(data, v) ? data[v] : undefined;
-    if (c === undefined) throw new Error(`object '${v}' not found`);
+    if (c === undefined) throw new RangeError(`object '${v}' not found`);
     if (!Array.isArray(c) && !(c instanceof Float64Array)) throw new TypeError(`column '${v}' must be an array`);
     return c;
   });
   let w: Raw | undefined;
   if (typeof options.weights === "string") {
     const c = Object.prototype.hasOwnProperty.call(data, options.weights) ? data[options.weights] : undefined;
-    if (c === undefined) throw new Error(`object '${options.weights}' not found`);
+    if (c === undefined) throw new RangeError(`object '${options.weights}' not found`);
     w = c;
   } else if (options.weights !== undefined) w = Array.from(options.weights);
   const n = cols.length > 0 ? cols[0]!.length : (w?.length ?? Object.values(data)[0]?.length ?? 0);
