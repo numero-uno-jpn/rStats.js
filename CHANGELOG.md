@@ -63,8 +63,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   exact p-value with ties" and, with `confInt`, "cannot compute exact confidence intervals with ties", where R stops
   but the normal-approximation interval is returned; "samples differ in location: cannot compute confidence set,
   returning NA", "cannot compute confidence set, returning NA", "cannot compute estimate, returning NA" and "cannot
-  compute asymptotic confidence set or estimator", where the interval or estimate is `NaN` or left out). The warnings
-  R gives in the other tests that lack them are to come.
+  compute asymptotic confidence set or estimator", where the interval or estimate is `NaN` or left out) and
+  `pairwiseWilcoxTest` (those of its comparisons, each once). The warnings R gives in the other tests that lack them
+  are to come.
 
 ### Added
 

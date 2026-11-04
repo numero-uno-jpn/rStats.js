@@ -7,7 +7,7 @@
 // For the cases where R stops with an error after its warnings, the comment says so; rStats.js returns a value there
 // and the warnings R gave before it stopped. To be replaced by the warnings recorded in the fixtures.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ansariTest, setWarningHandler, wilcoxTest, type WarningHandler } from "../src/index.js";
+import { ansariTest, pairwiseWilcoxTest, setWarningHandler, wilcoxTest, type WarningHandler } from "../src/index.js";
 
 const P_TIES = "cannot compute exact p-value with ties";
 const P_ZEROES = "cannot compute exact p-value with zeroes";
@@ -181,5 +181,29 @@ describe("ansariTest warnings (R's ansari.test)", () => {
       [P_TIES, "ansariTest"],
       [CI_TIES_2, "ansariTest"],
     ]);
+  });
+});
+
+describe("pairwiseWilcoxTest warnings (R's pairwise.wilcox.test: those of each wilcox.test, each once)", () => {
+  const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
+  const cases: [string, () => { warnings: string[] }, string[]][] = [
+    // pairwise.wilcox.test(c(1.2,2.3,1.8,2.9,3.1,3.6,4.0,4.4,5.2), g)
+    ["no ties", () => pairwiseWilcoxTest([1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2], g), []],
+    // pairwise.wilcox.test(c(1,2,2,3,4,5,5,6,7), g)  (R: the warning three times, once per pair)
+    ["ties in every pair", () => pairwiseWilcoxTest([1, 2, 2, 3, 4, 5, 5, 6, 7], g), [P_TIES]],
+    // pairwise.wilcox.test(c(1,2,3,3.5,4.5,5.5,5.5,6,7), g)
+    ["ties in one pair", () => pairwiseWilcoxTest([1, 2, 3, 3.5, 4.5, 5.5, 5.5, 6, 7], g), [P_TIES]],
+    // pairwise.wilcox.test(c(1,2,3,1,2.5,3.5,0.5,2,4), g, paired = TRUE)  (R: ties, zeroes, zeroes, ties)
+    ["paired, zeros and ties", () => pairwiseWilcoxTest([1, 2, 3, 1, 2.5, 3.5, 0.5, 2, 4], g, { paired: true }), [P_TIES, P_ZEROES]],
+  ];
+  it.each(cases)("%s", (_, f, expected) => {
+    expect(f().warnings).toEqual(expected);
+  });
+
+  it("passes the warnings to the handler once, under its own name", () => {
+    const handler = vi.fn<WarningHandler>();
+    setWarningHandler(handler);
+    pairwiseWilcoxTest([1, 2, 2, 3, 4, 5, 5, 6, 7], g);
+    expect(handler.mock.calls).toEqual([[P_TIES, "pairwiseWilcoxTest"]]);
   });
 });
