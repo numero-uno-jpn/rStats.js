@@ -875,3 +875,129 @@ dunif/punif/qunifの支持域端、非有限range、min=max、max-min overflow�
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Rのdunif.c、punif.cを参照。Vitest、Node、R runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1016 — Triangular distribution
+
+- 対象: `src/distributions/triangular.ts`、dpq boundary helpers、midpoint helper
+- 監査時 HEAD: `51ac0d01795fe301c6428debd788e4862e91f111`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1016_triangular_distribution.md](review-logs/review_audit_1016_triangular_distribution.md)
+
+### 要約
+
+dtriang/ptriang/qtriangのmode端点、支持域端、wide interval scaling、subnormal tail/log、lower/upper tail、tiny-tail quantile、rounding clampを静的に確認。既存#428はrandom generatorの別問題と分離し、新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、extraDistr runtimeは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1017 — Arcsine distribution
+
+- 対象: `src/distributions/arcsine.ts`、beta delegates、DD log/exp helpers
+- 監査時 HEAD: `828cc44e939f41519c394b10b1400de13b301214`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1017_arcsine_distribution.md](review-logs/review_audit_1017_arcsine_distribution.md)
+
+### 要約
+
+darcsine/parcsine/qarcsineの端点、巨大幅scale、subnormal tail、log確率、beta delegateの対称変換、quantileのupper-half補正を静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node runtimeは未実施。
+- ソースコード変更なし。
+
+---
+
+## Audit #1018 — Kumaraswamy distribution
+
+- 対象: `src/distributions/kumaraswamy.ts`、DD log/exp helpers
+- 監査時 HEAD: `828cc44e939f41519c394b10b1400de13b301214`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1018_kumaraswamy_distribution.md](review-logs/review_audit_1018_kumaraswamy_distribution.md)
+
+### 要約
+
+dkumar/pkumar/qkumarのsubnormal shape、a=Infinity退化極限、log1mPow/powOneMinus、極小log-tail、quantile逆数丸め補正を静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、extraDistr runtimeは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1019 — Pareto distribution
+
+- 対象: `src/distributions/pareto.ts`、DD ratio/log-ratio and exp helpers
+- 監査時 HEAD: `7cc39980e973802b889b22ec35f4c59fec351480`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1019_pareto_distribution.md](review-logs/review_audit_1019_pareto_distribution.md)
+
+### 要約
+
+dpareto/ppareto/qparetoの支持域端、a=Infinityのpoint-mass limit、DD比、a/bのoverflow/underflow、log-tail、log-domain quantileを静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、extraDistr runtimeは未実施。
+- ソースコード変更なし。
+
+---
+
+## Audit #1020 — Laplace distribution
+
+- 対象: `src/distributions/laplace.ts`、DD standardization / expNeg / locationScale helpers
+- 監査時 HEAD: `7cc39980e973802b889b22ec35f4c59fec351480`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1020_laplace_distribution.md](review-logs/review_audit_1020_laplace_distribution.md)
+
+### 要約
+
+dlaplace/plaplace/qlaplaceの±Infinity、sigma=Infinity極限、巨大sigma density、subnormal exp、lower/upper tail、locationScale quantileを静的に確認。既存#110/#338/#425を照合し、新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、extraDistr runtimeは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1021 — Studentized range distribution and Brent quantile solver
+
+- 対象: `src/distributions/tukey.ts`、Clenshaw-Curtis / Gauss-Legendre integration、log-tail、monotone root solver
+- 監査時 HEAD: `d0a7fa3022525b566baa0c32b87cf826341f047f`
+- 判定: 新規不具合1件を確認しIssue登録
+- Issue: [#513 Tukey quantile Brent solver rotates bracket values incorrectly during swap](https://github.com/numero-uno-jpn/rStats.js/issues/513)
+- 詳細: [review_audit_1021_tukey_brent.md](review-logs/review_audit_1021_tukey_brent.md)
+
+### 要約
+
+studentized rangeの適応積分、normal window、log-tail、underflow再積分、quantileのbracket探索を監査。Brent法のswap分岐で逐次代入により旧a/faが失われる問題を確認し、Issue #513に登録。runtimeでの数値影響は未測定。
+
+### 再現入口
+
+```ts
+const q = qtukey(0.95, 3, 12);
+const p = ptukey(q, 3, 12);
+```
+
+### 検証範囲・制約
+
+- 静的な制御フロー追跡。分岐がこの入力で実際に発火するかは未確認。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
