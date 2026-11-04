@@ -81,6 +81,7 @@ function members(t) {
 const objectIds = (t) =>
   members(t)
     .filter((m) => m.flags & TypeFlags.Object || (m.isIntersectionType() && !m.getTypes().some((x) => x.flags & TypeFlags.Primitive)))
+    .filter((m) => !checker.isArrayType(m) && !checker.isTupleType(m))
     .map((m) => m.id);
 
 /**
