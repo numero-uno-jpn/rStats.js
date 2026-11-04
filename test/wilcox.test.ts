@@ -10,6 +10,19 @@ function dataScale(c: HTestCase): number {
   return m;
 }
 
+/**
+ * A signed rank interval whose observations R loses in (x - mu) + mu: some observation is off by more than 2^-26 of
+ * the largest (rStats.js then takes the observations themselves; #502)
+ */
+function lostObservations(a: HTestCase["args"]): boolean {
+  const y = arg.vec(a.y);
+  if (!(arg.bool(a.confInt) ?? false) || (y !== undefined && !(arg.bool(a.paired) ?? false))) return false;
+  const mu = arg.num(a.mu) ?? 0;
+  const d = (arg.vec(a.x) ?? []).map((v, i) => (y === undefined ? v : v - y[i]!)).filter((v) => Number.isFinite(v) && v !== mu);
+  const big = Math.max(0, ...d.map(Math.abs));
+  return d.some((v) => Math.abs(v - mu + mu - v) > 2 ** -26 * big);
+}
+
 htestSuite({
   name: "wilcoxTest",
   call: (a) =>
@@ -46,6 +59,10 @@ htestSuite({
     if (field === "confLevel" && expected === 0.87 && actual === 0.88) {
       return "confidence level of the one-sided exact interval for n = 3 (R's psignrank(0, 3) is 1 ulp above 1/8)";
     }
+    // R forms the interval from (x - mu) + mu; where mu dwarfs the data (rnorm(12, 0, 1e-200) with mu 0.5 and 1) that
+    // loses the observations and R gives the interval NaN, the estimate 0 ("midrange"). rStats.js then takes the
+    // observations themselves: the interval of the same data with mu = 0 (#502)
+    if (["confInt", "confLevel", "estimate"].includes(field) && lostObservations(a)) return "observations lost in (x - mu) + mu: R's interval NaN, estimate 0";
     return undefined;
   },
   // a signed rank test with only zero differences ranks nothing: an error (R returns a p-value of NaN; review 59)
@@ -56,8 +73,12 @@ htestSuite({
     const paired = arg.bool(c.args.paired) ?? false;
     if (y !== undefined && !paired) return undefined;
     const d = x.map((v, i) => (y === undefined ? v : v - y[i]!) - mu).filter((v) => !Number.isNaN(v));
-    return d.length > 0 && d.every((v) => v === 0)
-      ? { expected: { error: "no non-zero differences for the signed rank test" }, reason: "signed rank test with only zero differences: R returns NaN" }
+    if (d.length > 0 && d.every((v) => v === 0)) {
+      return { expected: { error: "no non-zero differences for the signed rank test" }, reason: "signed rank test with only zero differences: R returns NaN" };
+    }
+    // R's "midrange" goes with its interval NaN (#502; the values are known differences above)
+    return lostObservations(c.args)
+      ? { expected: { ...c.expected, estimateNames: "(pseudo)median" }, reason: "observations lost in (x - mu) + mu: R's estimate is the midrange 0" }
       : undefined;
   },
 });

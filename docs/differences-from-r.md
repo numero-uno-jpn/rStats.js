@@ -626,6 +626,13 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`wilcoxTest`** with n = 3, one-sided exact interval: the achieved confidence level is 0.88.
   R reports 0.87 because its `psignrank(0, 3)` is 0.12500000000000003, 1 ulp above 1/8 (R itself
   reports 0.88 for the two-sided interval with n = 4).
+- **`wilcoxTest`**, signed rank interval where `mu` dwarfs the data: R forms the interval from
+  (x − mu) + mu, which loses the observations there (`wilcox.test(c(1, 2, 3, 4.5), mu = 1e17,
+  conf.int = TRUE)` gives the interval NaN NaN and the estimate 0, "midrange"; with mu = 1e16 and
+  c(1, 2, 3, 4.5, 7), [0, 8]). When some observation comes back off by more than 2^-26 of the
+  largest, rStats.js takes the observations themselves: the interval and estimate of the same data
+  with mu = 0 (the method still follows the differences from mu). Smaller rounding, such as the 1 ulp
+  of (0.1 − 0.4) + 0.4, keeps R's values (issue #502).
 - **`brunnerMunzelTest`** takes `confLevel` where lawstat takes `alpha` (`confLevel = 1 - alpha`),
   and returns an `alternative` field, which lawstat's result lacks. An empty sample throws "not
   enough 'x' observations" (or 'y'); lawstat returns meaningless numbers, because it indexes the

@@ -588,6 +588,12 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`wilcoxTest`** で n = 3、片側の正確な区間の場合、達成された信頼水準は 0.88 です。R は 0.87 と
   報告します。R の `psignrank(0, 3)` が 0.12500000000000003 で、1/8 より 1 ulp 大きいためです
   (R 自身も n = 4 の両側区間では 0.88 と報告します)。
+- **`wilcoxTest`** の符号付き順位の区間で `mu` がデータより桁違いに大きいとき: R は区間を (x − mu) + mu
+  から作るので、観測値が失われます (`wilcox.test(c(1, 2, 3, 4.5), mu = 1e17, conf.int = TRUE)` は区間
+  NaN NaN、推定値 0 ("midrange")。mu = 1e16 と c(1, 2, 3, 4.5, 7) では [0, 8])。rStats.js は、戻した値の
+  どれかが最大の観測値の 2^-26 倍より大きくずれるとき、観測値そのものを使います (同じデータの mu = 0 の
+  区間と推定値。手法は mu との差で決まるまま)。(0.1 − 0.4) + 0.4 の 1 ulp のような小さな丸めでは R と
+  同じ値です (issue #502)。
 - **`brunnerMunzelTest`** は、lawstat の `alpha` の代わりに `confLevel` を受け取ります
   (`confLevel = 1 - alpha`)。また、lawstat の結果にはない `alternative` のフィールドを返します。空の標本は
   "not enough 'x' observations" (または 'y') で例外を投げます。lawstat は意味のない数値を返します。順位を

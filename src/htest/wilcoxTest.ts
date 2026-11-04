@@ -301,7 +301,17 @@ function signedRank(
   if (!ctx.confInt) return result;
   // The interval is on the original scale (add mu back to the data with zero differences removed)
   // (with half units, the observations other than mu themselves)
-  const xo = halved ? x0.filter((v) => v !== mu) : x.map((v) => v + mu);
+  // R also adds mu back. Where mu dwarfs the data, (x - mu) + mu loses the observations (rnorm(n, 0, 1e-200) with
+  // mu = 0.5 gave R's interval NaN NaN and estimate 0): then the observations themselves, which are the same values
+  // (x - mu = 0 exactly where x = mu). The bound 2^-26 of the largest observation leaves the rounding of ordinary
+  // data, an ulp or two, to R's values (#502)
+  let xo = halved ? x0.filter((v) => v !== mu) : x.map((v) => v + mu);
+  if (!halved) {
+    const direct = x0.filter((v) => v !== mu);
+    let big = 0;
+    for (const v of direct) big = Math.max(big, Math.abs(v));
+    if (xo.some((v, i) => Math.abs(v - direct[i]!) > 2 ** -26 * big)) xo = direct;
+  }
   const ci = useExact
     ? signedRankExactCI(xo, ctx)
     : signedRankNormalCI(xo, ctx);
