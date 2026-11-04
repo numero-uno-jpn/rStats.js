@@ -570,7 +570,7 @@ export interface SplinefunOptions {
 }
 
 /**
- * Options of the function that {@link splinefun} returns.
+ * Options of the function that {@link splinefun} and {@link splinefunH} return.
  *
  * @category Numerical methods
  */
@@ -580,8 +580,8 @@ export interface SplineFunctionOptions {
 }
 
 /**
- * The function that {@link splinefun} returns: the spline, or a derivative, at the points `xq`. The order of the
- * derivative is the second argument or the option `deriv` (giving both is a RangeError).
+ * The function that {@link splinefun} and {@link splinefunH} return: the spline, or a derivative, at the points `xq`.
+ * The order of the derivative is the second argument or the option `deriv` (giving both is a RangeError).
  *
  * @category Numerical methods
  */
@@ -774,16 +774,18 @@ function evalHermite(
  * The cubic Hermite spline with values `y` and slopes `m` at the points `x`, as a function of `x` and the order of
  * derivative (0 to 3; a fraction is truncated, as R does); linear outside the data. Equivalent to R's `splinefunH()`.
  * Except for the third derivative: on [x_i, x_{i+1}] it is the exact (6 m_i + 6 m_{i+1} - 12 delta) / h^2, with
- * h = x_{i+1} - x_i and delta = (y_{i+1} - y_i) / h, where R divides by h only once (the two agree when h = 1).
+ * h = x_{i+1} - x_i and delta = (y_{i+1} - y_i) / h, where R divides by h only once (the two agree when h = 1). The
+ * order of derivative is the second argument of the function or its option `deriv` ({@link SplineFunction}).
  *
  * @example
  * ```ts
- * splinefunH([0, 2], [0, 0], [1, 1])([1], 3); // [3] (R: 6)
+ * splinefunH([0, 2], [0, 0], [1, 1])([1], 3);           // [3] (R: 6)
+ * splinefunH([0, 2], [0, 0], [1, 1])([1], { deriv: 3 }); // [3]
  * ```
  *
  * @category Numerical methods
  */
-export function splinefunH(x: Sample, y: Sample, m: Sample): (xq: Sample, deriv?: number) => number[] {
+export function splinefunH(x: Sample, y: Sample, m: Sample): SplineFunction {
   const n = x.length;
   if (y.length !== n || m.length !== n) throw new RangeError("'x', 'y' and 'm' must have the same length");
   const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => x[a]! - x[b]!);
@@ -795,7 +797,7 @@ export function splinefunH(x: Sample, y: Sample, m: Sample): (xq: Sample, deriv?
   // knots whose range overflows: x / 2^k (see knotScale), the slopes as given
   const k = knotScale(X);
   const Xs = k === 0 ? X : X.map((v) => ldexp(v, -k));
-  return (xq, deriv = 0) => evalHermite(Xs, Y, M, k, 0, xq, deriv);
+  return (xq: Sample, ...args: unknown[]) => evalHermite(Xs, Y, M, k, 0, xq, optionalArgs<SplineFunctionOptions>(["deriv"], args).deriv ?? 0);
 }
 
 /**

@@ -1,8 +1,8 @@
 // The optional arguments that R takes by position (glmResiduals' type, cohenES' size, outer's fun, tabulate's nbins,
-// propTrendTest's score, the deriv of splinefun's function) are also accepted in an options object: in place of the
-// argument, or after it. Giving one both ways is a RangeError.
+// propTrendTest's score, the deriv of the functions splinefun and splinefunH return) are also accepted in an options
+// object: in place of the argument, or after it. Giving one both ways is a RangeError.
 import { describe, expect, it } from "vitest";
-import { cohenES, glm, glmResiduals, outer, propTrendTest, splinefun, tabulate } from "../src/index.js";
+import { cohenES, glm, glmResiduals, outer, propTrendTest, splinefun, splinefunH, tabulate } from "../src/index.js";
 
 const both = (f: () => unknown, name: string) => expect(f).toThrow(new RangeError(`'${name}' is given both as an argument and in the options`));
 
@@ -55,5 +55,12 @@ describe("positional arguments or options", () => {
     // knots whose range overflows (the scaled path)
     const big = splinefun([1e307, 4e307, 9e307, 1.6e308], [1, 4, 9, 16]);
     expect(big([5e307], { deriv: 1 })).toEqual(big([5e307], 1));
+  });
+
+  it("splinefunH's function: deriv", () => {
+    const h = splinefunH([0, 1, 3], [0, 1, 2], [1, 0.75, 0.5]);
+    for (const deriv of [0, 1, 2, 3]) expect(h([0.5, 2, 4], { deriv })).toEqual(h([0.5, 2, 4], deriv));
+    expect(h([2], {})).toEqual(h([2]));
+    both(() => (h as (...a: unknown[]) => unknown)([2], 1, { deriv: 2 }), "deriv");
   });
 });

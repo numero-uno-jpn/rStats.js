@@ -140,7 +140,7 @@ interface Row {
 function anovaTable(rows: Row[], errorSS: ReadonlyMap<number, number>, es: AovEzEffectSize[], observed: string[], unscale: (v: number) => number): AovEzTable {
   const isObserved = (name: string): boolean => observed.some((o) => inTerm(o, name));
   for (const o of observed) {
-    if (!rows.some((r) => inTerm(o, r.name))) throw new Error(`Observed variable not in data: ${o}`);
+    if (!rows.some((r) => inTerm(o, r.name))) throw new RangeError(`Observed variable not in data: ${o}`);
   }
   const distinctError = [...errorSS.values()].reduce((s, v) => s + v, 0);
   const O = rows.reduce((s, r) => (isObserved(r.name) ? s + r.ss : s), 0);
@@ -188,7 +188,7 @@ export function aovEz(data: DataFrame, options: AovEzOptions): AovEzResult {
   // A repeated name is an error, not one factor (afex drops repeats silently; #296)
   for (const [name, names] of [["between", between], ["within", within]] as const) {
     const repeated = names.filter((n, i) => names.indexOf(n) !== i);
-    if (repeated.length > 0) throw new Error(`duplicated factor names in '${name}': ${[...new Set(repeated)].join(", ")}`);
+    if (repeated.length > 0) throw new RangeError(`duplicated factor names in '${name}': ${[...new Set(repeated)].join(", ")}`);
   }
   const both = between.filter((n) => within.includes(n));
   if (both.length > 0) throw new RangeError(`factors in both 'between' and 'within': ${both.join(", ")}`);

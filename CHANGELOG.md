@@ -28,7 +28,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
     `select` of `subset` that is not a column are RangeErrors, and data frames with different names in `rbind` a
     TypeError; a column named in a formula or option that does not exist ("object 'x' not found": `aggregate`, the
     model functions such as `lm` and `glm` and their `weights`, the formula forms of the tests, `aovEz`) is a
-    RangeError, and so is a factor given in both `between` and `within` of `aovEz`.
+    RangeError, and so are a factor given in both `between` and `within` of `aovEz`, a factor name repeated in
+    `between` or `within` ("duplicated factor names in 'between': A") and an `observed` variable that is not a factor
+    ("Observed variable not in data: x").
 - `aov(x, g)` and `aov(samples)` return the fit of the model `y ~ g` (an `LmFormulaResult`, as `aov("y ~ g", data)`)
   instead of the one-way table, as R's `aov` always returns a fit; the table is `aovSummary(aov(x, g))` (rows `g` and
   `Residuals`), and the `AovResult` type is removed. The levels of `g` are the group labels in R's order, or the
@@ -54,7 +56,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - The optional arguments taken by position as in R are also accepted in an options object (an overload), in place of
   the argument or after it: `glmResiduals(fit, { type })`, `cohenES(test, { size })`, `outer(x, y, { fun })`,
   `tabulate(bin, { nbins })`, `propTrendTest(x, n, { score })` and `s(xq, { deriv })` for the function `s` that
-  `splinefun` returns (its type is the new `SplineFunction`). Giving one both by position and in the options is a
+  `splinefun` or `splinefunH` returns (its type is the new `SplineFunction`). `optimHess` keeps `gr` and `control` by
+  position only, as R (a positional `control` is itself a plain object). Giving one both by position and in the options is a
   RangeError. New types: `GlmResidualsOptions`, `CohenESOptions`, `OuterFun`, `OuterOptions`, `TabulateOptions`,
   `PropTrendTestOptions`, `SplineFunction` and `SplineFunctionOptions`.
 

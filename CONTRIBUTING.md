@@ -139,7 +139,8 @@ rStats.js is MIT licensed. To keep it that way:
 - TypeScript, ESM, one function family per file. Optional arguments go in an options object
   with camelCase keys; names and numerical results follow R. Where R's usage passes an optional argument by position
   (`glmResiduals(fit, "pearson")`), it is taken both by position and in the options (an overload), and giving it both
-  ways is a RangeError.
+  ways is a RangeError. The exception is `optimHess(par, fn, gr, control)`, which takes `gr` and `control` by
+  position only, as R: `control` is itself a plain object, so an options object after `gr` could not be told from it.
 - Public API documentation (TSDoc on exported symbols), internal comments and the documents
   (`*.md` and `docs/`) are written in English. `docs/ja/` and the `*.ja.md` files are Japanese
   translations; the English documents are authoritative, and a change to one should be made in

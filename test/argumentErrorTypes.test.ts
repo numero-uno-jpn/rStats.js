@@ -136,4 +136,11 @@ describe("data frames, grouping and model columns: argument errors", () => {
       "factors in both 'between' and 'within': A",
     );
   });
+
+  it("RangeError for a repeated factor name and an observed variable that is not a factor of aovEz", () => {
+    const long = { id: [1, 1, 2, 2, 3, 3, 4, 4], A: ["p", "p", "p", "p", "q", "q", "q", "q"], W: ["u", "v", "u", "v", "u", "v", "u", "v"], score: [1, 2, 3, 5, 2, 4, 6, 7] };
+    throwsType(() => aovEz(long, { id: "id", dv: "score", between: ["A", "A"] }), RangeError, "duplicated factor names in 'between': A");
+    throwsType(() => aovEz(long, { id: "id", dv: "score", between: "A", within: ["W", "W"] }), RangeError, "duplicated factor names in 'within': W");
+    throwsType(() => aovEz(long, { id: "id", dv: "score", between: "A", within: "W", observed: "Q" }), RangeError, "Observed variable not in data: Q");
+  });
 });
