@@ -663,6 +663,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   whatever the matrix (the limit is order 29826161 for 2 × 2, about 5 s with Taylor and 9 s with Padé, and 17171 for
   50 × 50, about 9 s with Padé). The default order 8 is far below it. expm in R
   accepts any order up to 2147483647 (about 8 minutes for 2 × 2, about 13 days for 50 × 50 here).
+- **`grad`, `jacobian` and `hessian` with the method "Richardson"** throw "'r' must be at most 512" for r > 512,
+  before the steps (`jacobian` has evaluated the function at x only). From r = 513 on, the factor 4^512 of the
+  extrapolation overflows and every result is NaN, also in numDeriv, and the extrapolation's O(r^2) steps do not end
+  for a huge r. Up to 512 the values are unchanged (from about r = 20 on they lose accuracy, and with the default
+  `d` they mean nothing from r = 41 on, where the smallest step is below half an ulp of x, as in numDeriv; issue #123).
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)

@@ -22,7 +22,7 @@ export interface DerivOptions {
   d?: number;
   /** Coordinates with |x| below this get the step `eps`. Default `sqrt(2.220446e-16 / 7e-7)`. */
   zeroTol?: number;
-  /** Number of halvings of the step (Richardson iterations). Default `4`. */
+  /** Number of halvings of the step (Richardson iterations), at most 512. Default `4`. */
   r?: number;
 }
 
@@ -54,6 +54,9 @@ function steps(x: readonly number[], options: DerivOptions, d0: number): Steps {
   if (!(Number.isFinite(zeroTol) && zeroTol >= 0)) throw new RangeError("'zeroTol' must be a non-negative finite number");
   const r = options.r ?? 4;
   if (!(Number.isInteger(r) && r >= 1)) throw new RangeError("'r' must be a positive integer");
+  // from r = 513 on the extrapolation's 4^m overflows (m = 512) and every result is NaN, as in numDeriv; its O(r^2)
+  // steps would not end for a huge r
+  if (r > 512) throw new RangeError("'r' must be at most 512");
   const h0 = x.map((v) => Math.abs(d * v) + (Math.abs(v) < zeroTol ? eps : 0));
   // a step that is not positive and finite defines no difference quotient: d abs(x[i]) overflowing (#213), or 0 for
   // x[i] = 0 with zeroTol 0 (#246) (numDeriv: NaN from jacobian and hessian, an error from grad's check of f)

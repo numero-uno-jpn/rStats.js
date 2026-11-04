@@ -621,6 +621,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   で order 29826161、Taylor で約 5 秒、Padé で約 9 秒。50 × 50 で 17171、Padé で約 9 秒)。既定の order 8 は上限よりずっと
   小さい値です。R の expm は order 2147483647 まで受け付けます (rStats.js で 2 × 2 なら
   約 8 分、50 × 50 なら約 13 日かかる大きさ)。
+- **"Richardson" 法の `grad`・`jacobian`・`hessian`** は、r > 512 で刻みを作る前に "'r' must be at most 512" を投げます
+  (`jacobian` は x での関数の値だけを計算済み)。r = 513 からは外挿の係数 4^512 が溢れて結果はすべて NaN になり (numDeriv
+  も同じ)、外挿の O(r^2) の手数は巨大な r では終わりません。512 までは値を変えていません (r = 20 ほどから精度が
+  落ち、既定の `d` では最小の刻みが x の ulp の半分を下回る r = 41 から意味のない値になるのも numDeriv と同じ。Issue #123)。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。
