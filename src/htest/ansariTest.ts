@@ -20,6 +20,7 @@
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { ldexp, rank } from "../internal/summary.js";
 import { uniroot } from "../internal/uniroot.js";
+import { reported, Warnings } from "../internal/warnings.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { checkAnsariExactSize, pansariExact, qansariR } from "./core/ansari.js";
 import { twoGroupData } from "./testFormula.js";
@@ -59,7 +60,8 @@ export interface AnsariTestOptions {
  * estimate, both computed with the locations taken as 0 (exact without ties when both samples have fewer than 50
  * values, otherwise by the normal approximation, whose limits are roots found to a tolerance of 1e-4 as in R). Limits
  * that cannot be formed (the samples differ in location) are `NaN`. With ties and `exact` unset or `true`, R fails
- * ("object 'cint' not found"); rStats.js returns the normal-approximation interval, as with `exact: false`.
+ * ("object 'cint' not found"); rStats.js returns the normal-approximation interval, as with `exact: false`, and the
+ * warnings R gives before it stops.
  *
  * @example
  * ```ts
@@ -105,6 +107,10 @@ export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: A
   for (let i = 0; i < m; i++) statistic += a[i]!;
   const ties = new Set(r).size < N;
   const exact = options.exact ?? (m < 50 && n < 50 && !ties);
+  // R's exact, which does not look at the ties: with ties it takes the normal approximation, warns, and computes no
+  // interval (it then stops, "object 'cint' not found")
+  const exactR = options.exact ?? (m < 50 && n < 50);
+  const warnings = new Warnings();
 
   let pValue: number;
   let ci: CIPart | undefined;
@@ -120,7 +126,7 @@ export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: A
       pValue = Math.min(1, 2 * (statistic > centre ? upperFrom(statistic) : lowerTo(statistic)));
     } else if (alternative === "less") pValue = upperFrom(statistic);
     else pValue = lowerTo(statistic);
-    if (confInt) ci = exactInterval(xs, ys, alternative, confLevel);
+    if (confInt) ci = exactInterval(xs, ys, alternative, confLevel, warnings);
   } else {
     // mean and variance with the sum of the scores at its value without ties (N (N + 2) / 4 for even N,
     // (N + 1)^2 / 4 for odd N), and the sum of their squares as observed
@@ -139,7 +145,12 @@ export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: A
         : alternative === "less"
           ? pnorm(z, { lowerTail: false })
           : pnorm(z);
-    if (confInt) ci = normalInterval(xs, ys, alternative, confLevel);
+    // (the interval R does not compute, with ties and exactR, gives none of its warnings)
+    if (confInt) ci = normalInterval(xs, ys, alternative, confLevel, exactR ? new Warnings() : warnings);
+    if (exactR && ties) {
+      warnings.add("cannot compute exact p-value with ties");
+      if (confInt) warnings.add("cannot compute exact confidence intervals with ties");
+    }
   }
   const result: HTest = {
     method: "Ansari-Bradley test",
@@ -147,7 +158,7 @@ export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: A
     statistic,
     statisticName: "AB",
     pValue,
-    warnings: [],
+    warnings: warnings.list,
   };
   if (ci !== undefined) {
     result.confInt = ci.confInt;
@@ -157,7 +168,7 @@ export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: A
   }
   result.nullValue = 1;
   result.nullValueName = "ratio of scales";
-  return result;
+  return reported("ansariTest", result);
 }
 
 interface CIPart {
@@ -251,14 +262,24 @@ function shapeInterval(alternative: Alternative, a: number, limits: (alpha: numb
 }
 
 /** Exact interval and estimate from the candidate ratios x_i / y_j >= 0 */
-function exactInterval(xs: readonly number[], ys: readonly number[], alternative: Alternative, confLevel: number): CIPart {
+function exactInterval(
+  xs: readonly number[],
+  ys: readonly number[],
+  alternative: Alternative,
+  confLevel: number,
+  warnings: Warnings,
+): CIPart {
   const m = xs.length;
   const n = ys.length;
   const sigma: number[] = [];
   for (const x of xs) for (const y of ys) if (x / y >= 0) sigma.push(x / y);
   sigma.sort((p, q) => p - q);
   const L = sigma.length;
-  if (L === 0) return { confInt: shapeInterval(alternative, 1 - confLevel, () => [NaN, NaN]), estimate: NaN };
+  // (R then stops: "object 'absigma' not found")
+  if (L === 0) {
+    warnings.add("cannot compute confidence set, returning NA");
+    return { confInt: shapeInterval(alternative, 1 - confLevel, () => [NaN, NaN]), estimate: NaN };
+  }
   // AB between consecutive candidates, and at 2.01 times the largest
   const abs = sigma.map((v, k) => scaledStatistic(xs, ys, v + (k < L - 1 ? (sigma[k + 1]! - v) / 2 : v * 1.01)).ab);
   // the largest candidate with the smallest positive AB - q (or the smallest with the smallest AB - q >= 0)
@@ -274,7 +295,10 @@ function exactInterval(xs: readonly number[], ys: readonly number[], alternative
   const limits = (alpha: number): [number, number] => {
     const qLow = qansariR(alpha / 2, m, n);
     const qHigh = qansariR(1 - alpha / 2, m, n);
-    if (!abs.some((v) => v - qLow >= 0) || !abs.some((v) => v - qHigh > 0)) return [NaN, NaN];
+    if (!abs.some((v) => v - qLow >= 0) || !abs.some((v) => v - qHigh > 0)) {
+      warnings.add("samples differ in location: cannot compute confidence set, returning NA");
+      return [NaN, NaN];
+    }
     const lower = crossing(qLow, false, false);
     const upper = crossing(qHigh, true, true);
     // AB need not be monotone in s: if the limits come out in the wrong order, the quantiles are interchanged
@@ -302,6 +326,7 @@ function normalInterval(
   ys: readonly number[],
   alternative: Alternative,
   confLevel: number,
+  warnings: Warnings,
 ): CIPart | undefined {
   const m = xs.length;
   const n = ys.length;
@@ -338,23 +363,35 @@ function normalInterval(
     xs.filter((v) => v <= 0),
     ys.filter((v) => v < 0),
   );
-  if (ends.some((v) => !Number.isFinite(v))) return undefined;
+  if (ends.some((v) => !Number.isFinite(v))) {
+    warnings.add("cannot compute asymptotic confidence set or estimator");
+    return undefined;
+  }
   // no positive ratio puts the samples across each other (all x positive and all y negative, or the reverse): the
   // limits and the estimate cannot be formed, as in the exact path (R stops with "invalid 'xmin' value" after its
-  // "samples differ in location ... returning NA" warning) (#506)
-  if (ends.length === 0) return { confInt: shapeInterval(alternative, 1 - confLevel, () => [NaN, NaN]), estimate: NaN };
+  // "samples differ in location ... returning NA" warning) (#506). That warning is returned (not R's warnings of min and
+  // max of no values before it)
+  if (ends.length === 0) {
+    warnings.add("samples differ in location: cannot compute confidence set, returning NA");
+    return { confInt: shapeInterval(alternative, 1 - confLevel, () => [NaN, NaN]), estimate: NaN };
+  }
   const lo = minOf(ends);
   const hi = maxOf(ends);
   const root = (zq: number): number => uniroot((s) => z(s, zq), lo, hi, { tol: 1e-4 });
   const limits = (alpha: number): [number, number] => {
     const zLow = qnorm(alpha / 2);
     const zHigh = qnorm(alpha / 2, { lowerTail: false });
-    if (z(lo, zLow) > 0 || z(hi, zHigh) < 0) return [NaN, NaN];
+    if (z(lo, zLow) > 0 || z(hi, zHigh) < 0) {
+      warnings.add("samples differ in location: cannot compute confidence set, returning NA");
+      return [NaN, NaN];
+    }
     const u = root(zLow);
     const l = root(zHigh);
     return u <= l ? [u, l] : [l, u];
   };
   const confInt = shapeInterval(alternative, 1 - confLevel, limits);
-  const estimate = z(lo, 0) > 0 || z(hi, 0) < 0 ? NaN : root(0);
+  const noEstimate = z(lo, 0) > 0 || z(hi, 0) < 0;
+  if (noEstimate) warnings.add("cannot compute estimate, returning NA");
+  const estimate = noEstimate ? NaN : root(0);
   return { confInt, estimate };
 }

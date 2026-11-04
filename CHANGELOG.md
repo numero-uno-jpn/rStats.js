@@ -59,8 +59,12 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   those that now give R's warnings where they were silent: `wilcoxTest` ("cannot compute exact p-value with ties" or
   "with zeroes" and the same of the interval, when the exact method asked for or chosen by default cannot be used;
   "requested conf.level not achievable", where the interval's confidence level is lowered; "cannot compute confidence
-  interval when all observations are zero or tied", where the interval is `NaN`). The warnings R gives in the other
-  tests that lack them are to come.
+  interval when all observations are zero or tied", where the interval is `NaN`) and `ansariTest` ("cannot compute
+  exact p-value with ties" and, with `confInt`, "cannot compute exact confidence intervals with ties", where R stops
+  but the normal-approximation interval is returned; "samples differ in location: cannot compute confidence set,
+  returning NA", "cannot compute confidence set, returning NA", "cannot compute estimate, returning NA" and "cannot
+  compute asymptotic confidence set or estimator", where the interval or estimate is `NaN` or left out). The warnings
+  R gives in the other tests that lack them are to come.
 
 ### Added
 
