@@ -11,7 +11,7 @@
  * A function that receives R's warnings: the warning's text and the name of the function that gave it, once per
  * distinct warning of a call, after the call has computed its result.
  *
- * @category Other
+ * @category Hypothesis tests
  */
 export type WarningHandler = (message: string, source: string) => void;
 
@@ -51,7 +51,7 @@ function currentHandler(): WarningHandler | null {
  * seen; // ["optim: bounds can only be used with method L-BFGS-B (or Brent)"]
  * ```
  *
- * @category Other
+ * @category Hypothesis tests
  */
 export function setWarningHandler(handler: WarningHandler | null): WarningHandler | null {
   if (handler !== null && typeof handler !== "function") throw new TypeError("handler must be a function or null");
