@@ -37,3 +37,38 @@ hessian((x) => x[0]! * x[0]!, [0], { eps: -1e-4 });
 ### 記録コミット
 
 5d8d5a3c3d7832416484bcfbb138f1f236ba1a8d（個別監査ログの追加）
+
+---
+
+## Audit #969 — pivotLonger のゼロ幅区切りがサロゲートペアを分断する
+
+- 対象: src/descriptive/pivot.ts
+- 監査時 HEAD: c82481b17ee7095af372d00dca3fb766e748bf6e
+- 対象ソース blob: 350ef5eef8e463ef35deba603d19cf89ed511cb1
+- 判定: UTF-16 境界条件に起因する不具合
+- Issue: [#500](https://github.com/numero-uno-jpn/rStats.js/issues/500)
+- 詳細: [review_audit_969_pivotLonger_unicode_zero_width.md](review-logs/review_audit_969_pivotLonger_unicode_zero_width.md)
+
+### 要約
+
+pivotLonger() の separated() はゼロ幅正規表現に一致した後、start = m.index + 1 で検索位置を進める。JavaScript の正規表現インデックスと String.slice() は UTF-16 コード単位であるため、絵文字など BMP 外文字のサロゲートペアの途中に検索位置が移動し、1文字を2つの断片に分割し得る。R/PCRE の文字単位の処理では当該文字を保持する必要がある。
+
+```ts
+pivotLonger(
+  { "A😀B": [1] },
+  { cols: ["A😀B"], namesTo: ["p1", "p2", "p3", "p4", "p5"], namesSep: "(?=.)" },
+);
+```
+
+期待される名前パーツは ["", "A", "😀", "B", null]。現行 JS 実装では絵文字の上位・下位サロゲートが別々のパーツとなり、後続のパーツ位置がずれる。
+
+### 検証範囲・制約
+
+- src/descriptive/pivot.ts と test/pivot.test.ts を確認。
+- ゼロ幅一致後の UTF-16 コード単位による進行と slice の挙動をソースから確認。
+- ソースレベルの解析のみ。Vitest、R/tidyr の実行は未実施。
+- ソースコード変更なし。
+
+### 記録コミット
+
+09802991e274a70130f316172380be98deb8d171（個別監査ログの追加）
