@@ -795,3 +795,23 @@ central/noncentral chi-squareのdf/ncp境界、df=0原点のpoint mass、subnorm
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Rのdnchisq.c、pnchisq.c、qnchisq.cを参照。Vitest、Node、R runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1012 — Noncentral Student t distribution
+
+- 対象: `src/distributions/nt.ts`、normal/gamma special functions、adaptive integration、continuous quantile inversion
+- 監査時 HEAD: `243d341742abc41566ca9d617cb3b50f8d6ad058`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1012_noncentral_t.md](review-logs/review_audit_1012_noncentral_t.md)
+
+### 要約
+
+dnt/pnt/qntのdf・ncp境界、±Infinity、最小subnormal df、巨大df極限、far-tail power law、Laplace/台形積分、Mills ratio、gammaLogのsubnormal経路、quantile符号反転を静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
