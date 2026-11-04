@@ -200,3 +200,27 @@ aovEz(data, { id: "id", dv: "y", within: "W" });
 - 決定的な入力とIEEE-754の指数範囲に基づく静的解析。Vitest、Node、Rの実行は未実施。
 - ソースコード変更なし。
 
+
+---
+
+## Audit #984 — weighted model comparison の nested 判定が zero-weight 行を含む可能性（要実行確認）
+
+- 対象: `src/models/anovaSequential.ts` / `src/models/estimable.ts`
+- 監査時 HEAD: `97335b0b081369e24860725beb82777b4620de11`
+- 対象ソース blob: `a449e425fc88c7e51959c5d126c1ae3b433a5bf8` / `e917c393281dd0781e4d5bad24fff78bde0269f5`
+- 判定: 要確認。Issue未作成（公開API実行ができていないため）
+
+### 要約
+
+`comparisonTable()` は残差自由度を正weight行のみで計算する一方、nestedness判定に全行の `fit.x` を `nestedColumns()` へ渡す。
+zero-weight 行でのみ異なる列があると、正weight行上では nested なモデル比較を非nestedと誤判定し、F値・p値をNaNにする可能性がある。公開APIでの再現実行後にIssue化を判断する。
+
+### 再開時の再現候補
+
+`y=[0,1,1,4,999]`, `x=[0,1,2,3,4]`, `z=[0,1,2,3,100]`, `w=[0,0,1,1,0]`, `weights=[1,1,1,1,0]`。比較式は `y ~ x` と `y ~ z + w`。
+
+### 検証制約
+
+- `responseScale()` の #350 対応と `addedSS()` の正weight行フィルタを確認。
+- `nestedColumns()` が全行を使うこと、および正weight行上の列空間包含と全行上の非包含を線形代数的に確認。
+- GitHubへの直接cloneはDNS失敗。パッケージの公開API実行・Vitest未実施。重複Issue検索では同一原因を確認できず。
