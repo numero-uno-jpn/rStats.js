@@ -658,6 +658,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   values and take at most 2^32 multiply-adds (three groups of 215, 8.5 s). The hint is to use `exact: false`.
   `pAdjust(method: "hommel")`: n at most 65536 (O(n^2) steps, 5.7 s). R computes these however long it takes (issues
   #307, #308, #316, #321, #391).
+- **`expm` with the methods `"Taylor"`, `"Pade"`, `"TaylorO"` and `"PadeO"`** throws a RangeError, before any
+  computation, when order times (n^3 + 64) exceeds 2^31 for an n × n matrix: the methods make order matrix products
+  whatever the matrix (the limit is order 29826161 for 2 × 2, about 5 s with Taylor and 9 s with Padé, and 17171 for
+  50 × 50, about 9 s with Padé). The default order 8 is far below it. expm in R
+  accepts any order up to 2147483647 (about 8 minutes for 2 × 2, about 13 days for 50 × 50 here).
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)

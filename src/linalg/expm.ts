@@ -47,8 +47,9 @@ export interface ExpmOptions {
    */
   method?: ExpmMethod;
   /**
-   * Degree of the Padé approximant or the Taylor polynomial (a positive integer up to 2147483647, R's integer range),
-   * used only by `"Pade"`, `"Taylor"`, `"PadeO"` and `"TaylorO"`. Default: 8.
+   * Degree of the Padé approximant or the Taylor polynomial (a positive integer up to 2147483647, R's integer range,
+   * and with order * (n^3 + 64) at most 2^31 for an n x n matrix, a bound on the time), used only by `"Pade"`,
+   * `"Taylor"`, `"PadeO"` and `"TaylorO"`. Default: 8.
    */
   order?: number;
 }
@@ -90,6 +91,13 @@ export function expm(x: MatrixInput, options: ExpmOptions = {}): number[][] {
   if (n === 0) return [];
   // exp of the one entry, NaN and infinite ones included (as R)
   if (n === 1) return [[Math.exp(A.data[0]!)]];
+  // the loops make order matrix products of n^3 multiply-adds (plus a fixed cost per step): at most 2^31 in all,
+  // about 7 to 9 s on the development machine (order 29826161 at n = 2, 17171 at n = 50); the default 8 is far below
+  if (usesOrder && order * (n ** 3 + 64) > 2 ** 31) {
+    throw new RangeError(
+      `order = ${order} is too large for a ${n} x ${n} matrix: order * (n^3 + 64) must be at most 2^31`,
+    );
+  }
   // (the Padé and Taylor methods returned NaN silently; the Higham08 methods stopped later with other messages)
   for (const v of A.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
   if (method === "Taylor" || method === "TaylorO") return fromMat(taylorScaled(A, order));

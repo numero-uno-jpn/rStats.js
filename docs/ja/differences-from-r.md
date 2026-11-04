@@ -616,6 +616,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `jonckheereTest(exact: true)` (同順位なし) は Mann-Whitney の分布の畳み込みの値の個数が 2^24 まで、積和の回数が
   2^32 まで (215 個ずつの 3 群で 8.5 秒) です。`exact: false` を案内します。`pAdjust(method: "hommel")` は n が
   65536 まで (手数は O(n^2)、5.7 秒) です。R は時間がかかっても計算します (issue #307、#308、#316、#321、#391)。
+- **`expm` の `"Taylor"`・`"Pade"`・`"TaylorO"`・`"PadeO"`** は、n × n の行列で order と (n^3 + 64) の積が 2^31 を
+  超えると、計算の前に RangeError を投げます。これらの方法は行列によらず order 回の行列の積を計算します (上限は 2 × 2
+  で order 29826161、Taylor で約 5 秒、Padé で約 9 秒。50 × 50 で 17171、Padé で約 9 秒)。既定の order 8 は上限よりずっと
+  小さい値です。R の expm は order 2147483647 まで受け付けます (rStats.js で 2 × 2 なら
+  約 8 分、50 × 50 なら約 13 日かかる大きさ)。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。
