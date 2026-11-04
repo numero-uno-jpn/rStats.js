@@ -179,7 +179,9 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
     } else {
       const sx = vx / nx;
       const sy = vy / ny;
-      stdErr = Math.sqrt(sx + sy);
+      // as R, the standard error from the two standard errors (sqrt of the scaled variances is exact: the scale is
+      // 2^-2k)
+      stdErr = Math.sqrt(Math.sqrt(sx) ** 2 + Math.sqrt(sy) ** 2);
       df = satterthwaiteDf([sx, sy], [nx - 1, ny - 1]);
     }
     if (stdErr === 0 || stdErr < 10 * Number.EPSILON * Math.max(Math.abs(mx), Math.abs(my))) {
@@ -188,24 +190,30 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
     tstat = (mx - my - muS) / stdErr;
   }
 
-  // The interval is centred on the estimate (R forms it as mu + (t ± q) stdErr, which cancels for a large mu). With a
-  // standard error of 0 its finite ends would be NaN, as in R (no longer reached: a standard error of 0 is an error above)
+  // The ends are R's mu + (t ± q) stdErr (the same bits as R where its parts are). That cancels where mu or t stdErr is
+  // far larger than the interval itself (R's t.test(1:4, mu = 1e6) is 1.4e-10 off, mu = -1e300 gives [0, 0]; an
+  // infinite mu NaN): where either exceeds 16 times abs(estimate) + q stdErr, or the end is not finite, the end is the
+  // estimate -+ q stdErr instead (revision of review 3). (A standard error of 0 is an error above)
   const centre = typeof estimate === "number" ? estimate : estimate[0]! - estimate[1]!;
-  const half = (q: number): number => (stdErr > 0 ? q * stdErr : NaN);
+  const end = (q: number, sign: 1 | -1): number => {
+    const r = muS + (tstat + sign * q) * stdErr;
+    if (Number.isFinite(r) && Math.max(Math.abs(muS), Math.abs(tstat * stdErr)) <= 16 * (Math.abs(centre) + q * stdErr)) return r;
+    return centre + sign * q * stdErr;
+  };
   let pValue: number;
   let confInt: [number, number];
   if (alternative === "less") {
     pValue = pt1(tstat, df, true, false);
-    confInt = [-Infinity, centre + half(qt1(confLevel, df, true, false))];
+    confInt = [-Infinity, end(qt1(confLevel, df, true, false), 1)];
   } else if (alternative === "greater") {
     pValue = pt1(tstat, df, false, false);
-    confInt = [centre - half(qt1(confLevel, df, true, false)), Infinity];
+    confInt = [end(qt1(confLevel, df, true, false), -1), Infinity];
   } else {
     pValue = 2 * pt1(-Math.abs(tstat), df, true, false);
     const alpha = 1 - confLevel;
     // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
     const c = alpha / 2 < 1e-8 ? qt1(alpha / 2, df, false, false) : qt1(1 - alpha / 2, df, true, false);
-    confInt = [centre - half(c), centre + half(c)];
+    confInt = [end(c, -1), end(c, 1)];
   }
   confInt = [ldexp(confInt[0], k), ldexp(confInt[1], k)];
   estimate = typeof estimate === "number" ? ldexp(estimate, k) : estimate.map((v) => ldexp(v, k));
