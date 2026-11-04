@@ -852,7 +852,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   callback. A cell that several rows fill is an error in `pivotWider` (tidyr warns and makes a list column):
   summarise them with `valuesFn`. In `pivotLonger`, names (after `namesTransform`) that give one `".value"` column
   twice for the same key are an error (tidyr makes a row for each; issue #444). Regular expressions (`namesSep`,
-  `namesPattern`) are JavaScript's.
+  `namesPattern`) are JavaScript's. After a zero-width match of `namesSep` the split goes on one character (code
+  point) later, as stringr's `str_split`: `"A😀B"` with `"(?=.)"` gives `""`, `"A"`, `"😀"`, `"B"`; tidyr 1.3.2 on
+  R 4.5.2 (`gregexpr(perl = TRUE)`) goes on inside the UTF-8 bytes of the emoji and gives `""`, `"A"`, `"😀"`, `""`,
+  `""`, `""`, `"B"` (issue #500).
 - **`merge` and `cbind`** throw on a duplicated column name, which R allows but an object of columns cannot hold.
 
 ### Linear models

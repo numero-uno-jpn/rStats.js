@@ -159,6 +159,16 @@ function captures(names: readonly string[], pattern: string, count: number): (st
   });
 }
 
+/** The number of UTF-16 code units of the character at i: 2 for a surrogate pair, else 1 */
+function codePointLength(s: string, i: number): number {
+  const c = s.charCodeAt(i);
+  if (c >= 0xd800 && c <= 0xdbff && i + 1 < s.length) {
+    const d = s.charCodeAt(i + 1);
+    if (d >= 0xdc00 && d <= 0xdfff) return 2;
+  }
+  return 1;
+}
+
 /** The names split at the separator into `count` parts, and tidyr's warnings for names with more or fewer pieces */
 function separated(names: readonly string[], sep: string, count: number, warnings: string[]): (string | null)[][] {
   const re = new RegExp(sep, "g");
@@ -166,7 +176,9 @@ function separated(names: readonly string[], sep: string, count: number, warning
   const short: number[] = [];
   const parts = names.map((name, i) => {
     // The pieces between the matches, as tidyr (R's gregexpr(perl = TRUE) and regmatches(invert = TRUE)): after a
-    // zero-width match the search goes on one character later, and it stops once it reaches the end of the name
+    // zero-width match the search goes on one character later, and it stops once it reaches the end of the name. A
+    // character is a code point: a surrogate pair is passed whole, as stringr's str_split (#500; R's gregexpr went on
+    // inside the character's UTF-8 bytes and gave empty pieces)
     const pieces: string[] = [];
     let start = 0;
     let prev = 0;
@@ -176,7 +188,7 @@ function separated(names: readonly string[], sep: string, count: number, warning
       if (m === null) break;
       pieces.push(name.slice(prev, m.index));
       prev = m.index + m[0].length;
-      start = m[0].length === 0 ? m.index + 1 : prev;
+      start = m[0].length === 0 ? m.index + codePointLength(name, m.index) : prev;
       if (start >= name.length) break;
     }
     pieces.push(name.slice(prev));
