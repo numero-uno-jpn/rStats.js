@@ -149,7 +149,10 @@ function comparisonTable(fits: readonly LmFormulaResult[]): AnovaTable {
     // An F test needs the model with fewer parameters to be a special case of the other (R tests any pair: y ~ x2
     // against y ~ x1 + x3 gave F 1110); otherwise no test, as lmerAnova
     const [small, large] = df > 0 ? [fits[i - 1]!, fits[i]!] : [fits[i]!, fits[i - 1]!];
-    let f = df === 0 || !nestedColumns(small.x, large.x) ? NaN : ss / df / scale;
+    // on the rows of positive weight only (the fits share their weights): rows of weight 0 are not in the residual sums
+    // of squares, and one of them made nested columns look otherwise, as in glmAnova (#509)
+    const active = (x: readonly (readonly number[])[]) => x.filter((_, r) => (small.weights?.[r] ?? 1) !== 0);
+    let f = df === 0 || !nestedColumns(active(small.x), active(large.x)) ? NaN : ss / df / scale;
     if (f < 0) f = NaN;
     return [rdf[i]!, back(rss[i]!), df, back(ss), f, Number.isNaN(f) ? NaN : upperF(f, Math.abs(df), rdf[big]!)];
   });
