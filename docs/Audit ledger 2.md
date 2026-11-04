@@ -775,3 +775,23 @@ pbeta(-1, 0, 2, { lowerTail: false }); // current 1; R 0
 - 固定入力による静的な制御フロー追跡。Rのpbeta.cソースを参照。
 - Vitest、Node、R runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1011 — Central and noncentral chi-square distribution
+
+- 対象: `src/distributions/chisq.ts`, `src/distributions/nchisq.ts`、Poisson mixture / Bessel asymptotic / gamma-tail / quantile inversion helpers
+- 監査時 HEAD: `2343c76c176c25fa16f68b4a0a721ebee2814de6`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1011_chisq_distribution.md](review-logs/review_audit_1011_chisq_distribution.md)
+
+### 要約
+
+central/noncentral chi-squareのdf/ncp境界、df=0原点のpoint mass、subnormal x/2、Poisson mixture recurrence、Bessel Hankel/Debye切替、Chernoff far-tail、quantile bracketとdouble探索を静的に確認。既存 #26/#115/#147/#157 のガードを追跡し、新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Rのdnchisq.c、pnchisq.c、qnchisq.cを参照。Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
