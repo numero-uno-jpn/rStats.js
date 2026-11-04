@@ -7,6 +7,11 @@ import { distSummary } from "../src/index.js";
 
 const K = (a: number, b: number) => distSummary("kumar", { a, b });
 const rel = (x: number, y: number): number => Math.abs(x / y - 1);
+/** Each field within 4e-15 relative of the reference: the last bits differ between Node versions and libms */
+const expectClose = (got: object, want: Record<string, number>): void => {
+  expect(Object.keys(got).sort()).toEqual(Object.keys(want).sort());
+  for (const [k, v] of Object.entries(want)) expect(rel((got as Record<string, number>)[k]!, v), k).toBeLessThan(4e-15);
+};
 
 // a, b, sd, skewness, excess kurtosis
 const REF: [number, number, number, number, number][] = [
@@ -56,12 +61,12 @@ describe("issue #249", () => {
   });
 
   it("keeps the values for a up to 100", () => {
-    expect(K(100, 3)).toEqual({
+    expectClose(K(100, 3), {
       mean: 0.9819001437010861, variance: 0.0001290321287602092, sd: 0.011359230993346741, median: 0.9843396545662624,
       mode: 0.9890076253448646, skewness: -1.406422245384422, kurtosis: 3.1435878174730094,
     });
     // Linux's libm gives 9.445000209487072 (relative 1.1e-15), the Windows one 9.445000209487082
     expect(rel(K(100, 0.5).kurtosis, 9.445000209487082)).toBeLessThan(4e-15);
-    expect(K(50, 3).skewness).toBe(-1.3517442829455675);
+    expect(rel(K(50, 3).skewness, -1.3517442829455675)).toBeLessThan(4e-15);
   });
 });

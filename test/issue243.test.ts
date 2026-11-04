@@ -39,7 +39,9 @@ describe("issue #243", () => {
 
   it("keeps the skewness where the width is tiny and q^1.5 would be subnormal", () => {
     const x = 2 ** -299;
-    expect(T(x, x * (1 + 3 * Number.EPSILON), x * (1 + Number.EPSILON)).skewness).toBe(0.305441419328485);
+    // Node 22's Math.pow gives 0.30544141932848506 (1 ulp), Node 24 and later 0.305441419328485
+    const skewness = T(x, x * (1 + 3 * Number.EPSILON), x * (1 + Number.EPSILON)).skewness;
+    expect(Math.abs(skewness / 0.305441419328485 - 1)).toBeLessThan(4e-15);
   });
 
   it("keeps the values of the fixture's triangles", () => {

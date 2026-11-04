@@ -7,6 +7,11 @@ import { distSummary } from "../src/index.js";
 
 const W = (shape: number, scale = 1) => distSummary("weibull", { shape, scale });
 const rel = (x: number, y: number): number => Math.abs(x / y - 1);
+/** Each field within 4e-15 relative of the reference: the last bits differ between Node versions and libms */
+const expectClose = (got: object, want: Record<string, number>): void => {
+  expect(Object.keys(got).sort()).toEqual(Object.keys(want).sort());
+  for (const [k, v] of Object.entries(want)) expect(rel((got as Record<string, number>)[k]!, v), k).toBeLessThan(4e-15);
+};
 
 // shape, sd, skewness, excess kurtosis
 const REF: [number, number, number, number][] = [
@@ -47,11 +52,11 @@ describe("issue #240", () => {
   });
 
   it("keeps the values for shapes up to 100", () => {
-    expect(W(100)).toEqual({
+    expectClose(W(100), {
       mean: 0.994325851191506, variance: 0.00016030491620026098, sd: 0.012661157774874341, median: 0.9963415791820257,
       mode: 0.9998995016917583, skewness: -1.081073759807247, kurtosis: 2.1254458865865518,
     });
-    expect(W(50).skewness).toBe(-1.02485299116763);
-    expect(W(3.7, 2.5).kurtosis).toBe(-0.2775243017556308);
+    expect(rel(W(50).skewness, -1.02485299116763)).toBeLessThan(4e-15);
+    expect(rel(W(3.7, 2.5).kurtosis, -0.2775243017556308)).toBeLessThan(4e-15);
   });
 });

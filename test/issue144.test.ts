@@ -15,7 +15,8 @@ describe("issue #144", () => {
 
   it("does not depend on the scale", () => {
     const base = skew(0, 3, 1); // sqrt(2) (1)(-4)(-5) / (5 * 7^1.5)
-    expect(base).toBe(0.305441419328485);
+    // Node 22's Math.pow gives 0.30544141932848506 (1 ulp), Node 24 and later 0.305441419328485
+    expect(rel(base, 0.305441419328485)).toBeLessThan(4e-15);
     for (const k of [-1074 + 2, -1000, -700, -400, -301, 301, 400, 700, 1000, 1022]) {
       const s = 2 ** k;
       expect(rel(skew(0, 3 * s, s), base), `k = ${k}`).toBeLessThan(1e-15);
