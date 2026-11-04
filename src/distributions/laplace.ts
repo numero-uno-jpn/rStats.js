@@ -22,11 +22,14 @@ export interface LaplaceParams {
   sigma?: number;
 }
 
-const valid = (mu: number, sigma: number): boolean => !Number.isNaN(mu) && sigma > 0 && Number.isFinite(sigma);
-// an infinite mu is taken as the limit (the distribution moves out to that infinity), as extraDistr does
+const valid = (mu: number, sigma: number): boolean => !Number.isNaN(mu) && sigma > 0;
+// an infinite mu is taken as the limit (the distribution moves out to that infinity), as extraDistr does. sigma = Inf is
+// the limit too (review 24: density 0, probability 1/2 at every finite x, as extraDistr; the quantiles -Inf, mu and Inf),
+// except at an infinite x or mu, where it is not defined (NaN, as extraDistr)
 
 export function dlaplace1(x: number, mu: number, sigma: number, log: boolean): number {
   if (Number.isNaN(x) || !valid(mu, sigma)) return NaN;
+  if (sigma === Infinity) return Number.isFinite(x) && Number.isFinite(mu) ? (log ? -Infinity : 0) : NaN;
   if (!Number.isFinite(mu)) {
     // x and mu the same infinity: x - mu is Inf - Inf and the limit depends on the path (NaN, as in extraDistr; #338)
     if (x === mu) return NaN;
@@ -47,6 +50,7 @@ export function dlaplace1(x: number, mu: number, sigma: number, log: boolean): n
 
 export function plaplace1(q: number, mu: number, sigma: number, lowerTail: boolean, logP: boolean): number {
   if (Number.isNaN(q) || !valid(mu, sigma)) return NaN;
+  if (sigma === Infinity) return Number.isFinite(q) && Number.isFinite(mu) ? (logP ? -Math.LN2 : 0.5) : NaN;
   if (!Number.isFinite(mu)) {
     // q and mu the same infinity: the limit is 0 or 1 depending on which goes first (NaN, as in extraDistr, pnorm,
     // plogis and pcauchy; #338)
@@ -63,7 +67,8 @@ export function plaplace1(q: number, mu: number, sigma: number, lowerTail: boole
 }
 
 export function qlaplace1(p: number, mu: number, sigma: number, lowerTail: boolean, logP: boolean): number {
-  if (Number.isNaN(p) || !valid(mu, sigma)) return NaN;
+  if (Number.isNaN(p) || !valid(mu, sigma) || (sigma === Infinity && !Number.isFinite(mu))) return NaN;
+  // (sigma = Inf: locationScale gives -Inf below p = 1/2, mu at 1/2 and Inf above)
   const bd = quantileBoundaries(p, -Infinity, Infinity, lowerTail, logP);
   if (bd !== undefined) return bd;
   if (!Number.isFinite(mu)) return mu;

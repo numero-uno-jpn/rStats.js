@@ -1,7 +1,7 @@
 // Issue #425: rlaplace with an infinite mu or sigma follows qlaplace and draws what extraDistr draws, the rule of
 // issue 92 (review_fix_log_issue425.md). extraDistr 1.10 (set.seed(1)): rlaplace(1, Inf, 1) is Inf and
 // rlaplace(1, -Inf, 1) -Inf with 2 uniforms drawn (exponential and sign); rlaplace(1, 0, Inf) is -Inf with 2 drawn
-// (here NaN, as qlaplace, dlaplace and plaplace); sigma NaN or 0 is NA without a draw.
+// (here too, the limit of qlaplace since the review 24 revision); sigma NaN or 0 is NA without a draw.
 import { describe, expect, it } from "vitest";
 import { rlaplace, runif, setSeed } from "../src/index.js";
 
@@ -21,8 +21,8 @@ describe("issue #425", () => {
     expect(run(() => rlaplace(1, { mu: -Infinity, sigma: 1 }))).toEqual({ values: [-Infinity], drawn: 2 });
   });
 
-  it("gives NaN for sigma = Inf, after extraDistr's draws", () => {
-    expect(run(() => rlaplace(2, { mu: 0, sigma: Infinity }))).toEqual({ values: [NaN, NaN], drawn: 4 });
+  it("gives -Inf or Inf for sigma = Inf (NaN with mu = Inf too), after extraDistr's draws", () => {
+    expect(run(() => rlaplace(2, { mu: 0, sigma: Infinity }))).toEqual({ values: [-Infinity, Infinity], drawn: 4 });
     expect(run(() => rlaplace(2, { mu: Infinity, sigma: Infinity }))).toEqual({ values: [NaN, NaN], drawn: 4 });
   });
 

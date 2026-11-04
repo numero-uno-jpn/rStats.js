@@ -401,7 +401,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qt(0.5, 10, ncp = Inf)` | NaN (or Inf, depending on p), although `pt(t, 10, ncp = Inf)` is 0 at every finite t | Inf: all the probability is at +∞ (-Inf for ncp = -Inf), as for df = Inf |
 | `pbeta(-1, 0, 2)`, `pbeta(-1, 0, 0)` (and an infinite shape) | 1, 0.5: the point masses are checked before q <= 0, so the distribution function is positive left of its support | 0 |
 | `dweibull(x, shape, scale = Inf)` at a finite x > 0 | NaN (Inf * 0) | 0 (log -Inf), the limit |
-| `qnorm(0.5, 3, Inf)`, `qlnorm(0.5, 0, Inf)`, `qlogis(0.5, 3, Inf)` (the median with an infinite scale) | NaN (Inf * 0), although the other p give the limits (±Inf; 0 and Inf for `qlnorm`) and `pnorm(3, 3, Inf)` is 0.5 | the location (3; exp(meanlog) = 1 for `qlnorm`), the limit |
+| `qnorm(0.5, 3, Inf)`, `qlnorm(0.5, 0, Inf)`, `qlogis(0.5, 3, Inf)`, extraDistr's `qlaplace(0.5, 3, Inf)` (the median with an infinite scale) | NaN (Inf * 0), although the other p give the limits (±Inf; 0 and Inf for `qlnorm`) and `pnorm(3, 3, Inf)` is 0.5 | the location (3; exp(meanlog) = 1 for `qlnorm`), the limit |
 | `dbeta(0.5, 1e308, 1e308)` and other shapes whose sum overflows | NaN | 1.128e154 (log 354.72): the exponent from the halved shapes, doubled (the deviances are homogeneous) |
 | `dbeta(1, 1.5e308, 1, ncp = 1.5e308, log = TRUE)` (the density a + ncp/2 at x = 1 overflows, its log does not) | -Inf | 710.0071388583824 |
 | `dbeta(0.5, 0.75, 5e-324, ncp = 0.1, log = TRUE)` (a subnormal shape) | -Inf | -743.5986379456813: the j = 0 term of the mixture kept (log(1 + a/b) without forming a/b) |
@@ -567,8 +567,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   the quantile functions: an infinite shape a or alpha gives the limit (`rkumar` 1, `rpareto` b, `rinvgamma` 0, as
   extraDistr), and an infinite b of `rkumar` and `rpareto` or beta of `rinvgamma` is NaN, as the density,
   distribution and quantile functions (extraDistr returns 0 or Inf), drawing the uniforms extraDistr draws.
-  `rlaplace` likewise takes an infinite mu as the limit mu (as extraDistr) and is NaN for sigma = Inf, as
-  `qlaplace` (extraDistr returns -Inf or Inf by the sign), after the exponential and the uniform extraDistr draws.
+  `rlaplace` likewise takes an infinite mu as the limit mu (as extraDistr), and sigma = Inf as the limit -Inf or Inf by
+  the sign (as extraDistr and `qlaplace`; NaN when mu is infinite too), after the exponential and the uniform
+  extraDistr draws. The Laplace distribution with sigma = Inf is the limit, as the normal, logistic and Cauchy
+  distributions: density 0 and probability 1/2 at every finite x (as extraDistr), NaN at an infinite x or mu.
   `rtriang` with an infinite endpoint is NaN, as `qtriang` (extraDistr returns Inf for b = Inf with a finite c),
   after the two uniforms extraDistr draws.
 - **`distSummary`** follows these conventions: a moment that does not exist is NaN, an infinite

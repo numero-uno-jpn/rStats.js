@@ -395,7 +395,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `qt(0.5, 10, ncp = Inf)` | NaN (p によっては Inf)。ただし `pt(t, 10, ncp = Inf)` はすべての有限の t で 0 | Inf。確率はすべて +∞ にある (ncp = -Inf なら -Inf)。df = Inf の場合と同じ |
 | `pbeta(-1, 0, 2)`、`pbeta(-1, 0, 0)` (形状が無限大のときも) | 1、0.5。点質量を q <= 0 より先に判定するので、台より左で分布関数が正になる | 0 |
 | 有限の x > 0 での `dweibull(x, shape, scale = Inf)` | NaN (Inf × 0) | 0 (log は -Inf)。極限の値 |
-| `qnorm(0.5, 3, Inf)`、`qlnorm(0.5, 0, Inf)`、`qlogis(0.5, 3, Inf)` (尺度が無限大のときの中央値) | NaN (Inf × 0)。ほかの p では極限の値 (±Inf、`qlnorm` では 0 と Inf) を返し、`pnorm(3, 3, Inf)` は 0.5 | 位置パラメータ (3、`qlnorm` では exp(meanlog) = 1)。極限の値 |
+| `qnorm(0.5, 3, Inf)`、`qlnorm(0.5, 0, Inf)`、`qlogis(0.5, 3, Inf)`、extraDistr の `qlaplace(0.5, 3, Inf)` (尺度が無限大のときの中央値) | NaN (Inf × 0)。ほかの p では極限の値 (±Inf、`qlnorm` では 0 と Inf) を返し、`pnorm(3, 3, Inf)` は 0.5 | 位置パラメータ (3、`qlnorm` では exp(meanlog) = 1)。極限の値 |
 | `dbeta(0.5, 1e308, 1e308)` など、形状の和が溢れる場合 | NaN | 1.128e154 (log は 354.72)。半分の形状で指数を求めて 2 倍する (偏差は同次) |
 | `dbeta(1, 1.5e308, 1, ncp = 1.5e308, log = TRUE)` (x = 1 の密度 a + ncp/2 は溢れるが、その log は溢れない) | -Inf | 710.0071388583824 |
 | `dbeta(0.5, 0.75, 5e-324, ncp = 0.1, log = TRUE)` (サブノーマルの形状) | -Inf | -743.5986379456813: 混合の j = 0 の項を残す (a/b を作らずに log(1 + a/b)) |
@@ -534,7 +534,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   (`rkumar` は 1、`rpareto` は b、`rinvgamma` は 0。extraDistr と同じ) で、`rkumar`・`rpareto` の b と
   `rinvgamma` の beta が無限大なら、密度・分布・分位関数と同じく NaN です (extraDistr は 0 か Inf)。乱数は
   extraDistr と同じ数だけ引きます。`rlaplace` も同じく、無限大の mu は極限 mu (extraDistr と同じ)、sigma = Inf は
-  `qlaplace` と同じく NaN です (extraDistr は符号に応じて -Inf か Inf)。extraDistr が引く指数乱数と一様乱数は引きます。
+  符号に応じた極限 -Inf か Inf です (extraDistr、`qlaplace` と同じ。mu も無限大なら NaN)。extraDistr が引く指数乱数と
+  一様乱数は引きます。sigma = Inf の Laplace 分布は、正規・ロジスティック・コーシー分布と同じく極限として扱います。
+  有限の x で密度 0、確率 1/2 (extraDistr と同じ) で、x か mu が無限大なら NaN です。
   `rtriang` の端点が無限大なら `qtriang` と同じく NaN です (extraDistr は b = Inf で c が有限なら Inf)。extraDistr が
   引く 2 個の一様乱数は引きます。
 - **`distSummary`** の決まり: 存在しないモーメントは NaN、無限のモーメントは Infinity。離散分布で等しい
