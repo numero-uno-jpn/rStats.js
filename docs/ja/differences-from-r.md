@@ -659,8 +659,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   対比の取り方によりません。そのため、データの丸めだけからなる誤差 SSP 行列 (y = s_i + c_j で s_i = 0.3, 1.7, ... のような、
   小数の加法的なデータ) は 0 とみなし、どの尺度でも補正と Mauchly 検定を出しません。car も通常の尺度では出しませんが、
   固有値の絶対しきい値のため、同じデータを 1e100 倍すると W = Inf、p = 1 を返します。
-- **`Anova` (型 II・III)** は、残差平方和が応答の全平方和 (中心化・重み付き) の sqrt(eps) 倍未満のとき "residual sum of squares
-  is 0 (within rounding error)" とします。car は sqrt(eps) そのものと比べるので、単位に依存します。
+- **`Anova` (型 II・III)** は、残差平方和が応答の平方和 (重み付き、中心化しない) の 1e-24 倍未満 (残差が応答の大きさの 1e-12
+  未満で、丸めの水準) のとき "residual sum of squares is 0 (within rounding error)" とします。car は sqrt(eps) そのものと比べる
+  ので、単位に依存します (残差 0.01 の `y = 1000 x + e / 100` はどちらも表を返し、同じデータを 1e6 で割ると car だけエラー)。
 - **`nextRNGStream`** は、`setRandomSeed` が復元できる L'Ecuyer-CMRG の種別コード 10407 と 407 だけを受け付けます (R は末尾が 07 の
   どのコードも受け付ける)。
 - **分布を定義しないパラメータの乱数**は、R が乱数を引くか 0 を返すところで NaN を返します: 負 (または NaN) の shape と scale 0 の

@@ -97,7 +97,9 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
 
   if (rdf === 0) throw new Error("residual df = 0");
   // car compares the residual sum of squares with sqrt(eps) in the units of the data, which depends on them; here it
-  // is compared with sqrt(eps) times the total (weighted, centred) sum of squares of the response
+  // is 0 within rounding error below 1e-24 times the (weighted, uncentred) sum of squares of the response, residuals
+  // below 1e-12 of the response's size (the level of aovEz's dataSS). sqrt(eps) times the centred total rejected data
+  // with R^2 above 1 - 1.5e-8 that car computes (revision of review 4)
   const wy = fit.y.flatMap((v, i) => ((fit.weights?.[i] ?? 1) === 0 ? [] : [[fit.weights?.[i] ?? 1, ldexp(v, -k)] as const]));
   // Where a sum over the weights overflows (the total of the weights of 1e308, #347), the weights are divided by an
   // even power of 2 2^kw: the sums of squares are then in units of 2^(2k + kw). kw is 0 otherwise (the same bits)
@@ -117,7 +119,16 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
     kw = evenWeightExponent();
     tss = weightedTss(kw);
   }
-  if (!(ldexp(rss, -kw) >= Math.sqrt(2.220446049250313e-16) * tss) || rss === 0) throw new Error("residual sum of squares is 0 (within rounding error)");
+  // (kw from the centred total as before, which the sums of squares of the terms use; the uncentred sum, at most
+  // 16 times the total weight, takes its own even power of 2 where it overflows)
+  const weightedSs = (kv: number): number => wy.reduce((a, [w, v]) => a + ldexp(w, -kv) * v * v, 0);
+  let kss = kw;
+  let ss = weightedSs(kss);
+  if (!Number.isFinite(ss)) {
+    kss = evenWeightExponent();
+    ss = weightedSs(kss);
+  }
+  if (!(ldexp(rss, -kss) >= 1e-24 * ss) || rss === 0) throw new Error("residual sum of squares is 0 (within rounding error)");
   // the fit's warnings (from its model matrix and summary) first, as for aov with Error(); R gives them when fitting
   const warnings: string[] = [...fit.warnings];
   const nTerms = fit.termLabels.length;

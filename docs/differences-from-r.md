@@ -706,8 +706,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   y = s_i + c_j with s_i = 0.3, 1.7, ...) counts as 0: no corrections and no Mauchly test, at any scale. car gives none
   either at the usual scales, but its absolute threshold gives W = Inf with p = 1 at 1e100 times the same data.
 - **`Anova` (types II and III)** reports "residual sum of squares is 0 (within rounding error)" when the residual sum
-  of squares is below sqrt(eps) times the total (centred, weighted) sum of squares of the response; car compares it
-  with sqrt(eps) itself, which depends on the units.
+  of squares is below 1e-24 times the (weighted, uncentred) sum of squares of the response, residuals at the level of
+  rounding (below 1e-12 of the response's size); car compares it with sqrt(eps) itself, which depends on the units
+  (`y = 1000 x + e / 100` with residuals of 0.01 gives a table in both, the same data divided by 1e6 is an error in
+  car only).
 - **`nextRNGStream`** takes only the L'Ecuyer-CMRG kind codes 10407 and 407, those `setRandomSeed` restores (R takes any
   code ending in 07).
 - **Random generators with parameters that define no distribution** give NaN where R draws or returns 0: `rgamma`
