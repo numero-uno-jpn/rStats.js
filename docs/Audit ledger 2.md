@@ -855,3 +855,23 @@ dlnorm/plnorm/qlnormのx・sdlog・meanlog端点、非有限値、subnormal x、
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、R runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1015 — Uniform distribution
+
+- 対象: `src/distributions/uniform.ts`、dpq boundary helpers
+- 監査時 HEAD: `6e6229f9478ef3f722dbe8846153aaec6bdd2e10`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1015_uniform_distribution.md](review-logs/review_audit_1015_uniform_distribution.md)
+
+### 要約
+
+dunif/punif/qunifの支持域端、非有限range、min=max、max-min overflow、half scaling、upper-tail小確率保持、logP反転を静的に確認。Rのdunif.c/punif.cと照合し、densityとCDF/quantileの非有限range処理の違いが仕様どおりであることを確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Rのdunif.c、punif.cを参照。Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
