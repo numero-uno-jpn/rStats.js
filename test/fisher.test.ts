@@ -48,6 +48,10 @@ htestSuite({
   tolerance: 1e-12,
   // (2 x 2 tables: the estimate and limits are the roots, as in the suite above)
   knownDifference: (_a, field) => (field === "estimate" || field === "confInt" ? "R's uniroot tolerance on the conditional MLE and the limits" : undefined),
+  substitute: (c) =>
+    arg.num(c.args.B) === 0
+      ? { expected: { error: "'B' must be a positive integer" }, reason: "R runs no simulation for B = 0 and returns p = 1 (#488)" }
+      : undefined,
 });
 
 /** Computes the p-value by enumerating all tables with fixed margins (checks the network pruning; small tables only) */

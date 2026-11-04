@@ -33,7 +33,7 @@ for (x in tabs[c(1, 3)]) {
 # 2 x 2: simulate.p.value is ignored
 add(x = matrix(c(3, 1, 1, 3), 2), simulatePValue = TRUE, seed = 8)
 add(x = matrix(c(3, 1, 1, 3), 2), simulatePValue = TRUE, B = 100, alternative = "greater", seed = 8)
-# B = 0 (allowed) and invalid B
+# B = 0 (rStats.js: an error, issue #488; R gives p = 1) and invalid B
 add(x = matrix(c(1, 2, 3, 4, 5, 6), 2), simulatePValue = TRUE, B = 0, seed = 9)
 add(x = matrix(c(1, 2, 3, 4, 5, 6), 2), simulatePValue = TRUE, B = NaN, seed = 9)
 

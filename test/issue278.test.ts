@@ -10,8 +10,8 @@ describe("issue #278: fisherTest with a fractional B", () => {
   ];
 
   it("a fractional B is an error", () => {
-    expect(() => fisherTest(t, { simulatePValue: true, B: 2.5 })).toThrow("'B' must be a non-negative integer");
-    expect(() => fisherTest(t, { simulatePValue: true, B: NaN })).toThrow("'B' must be a non-negative integer");
+    expect(() => fisherTest(t, { simulatePValue: true, B: 2.5 })).toThrow("'B' must be a positive integer");
+    expect(() => fisherTest(t, { simulatePValue: true, B: NaN })).toThrow("'B' must be a positive integer");
   });
 
   it("an integer B is unchanged", () => {

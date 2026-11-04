@@ -1100,7 +1100,9 @@ also from R's source. They are listed because they are easy to get wrong.
   `chisqTest` uses the uncorrected statistic, does not simulate when a margin is 0 (the ordinary
   test), and for goodness of fit draws B n categories at once and counts them n at a time (with a
   non-integer total n, R's matrix of floor(n) rows, recycled, is reproduced). `fisherTest` drops
-  empty rows and columns first and ignores `simulatePValue` for 2 × 2 tables. `B: 0` gives p = 1.
+  empty rows and columns first and ignores `simulatePValue` for 2 × 2 tables. In `fisherTest`, `B` must be a positive
+  integer: R runs no simulation for `B = 0` and returns p = (1 + 0) / (0 + 1) = 1, a value computed from no data
+  (issue #488).
 - **`pAdjust`:** `n` defaults to the number of non-NaN values, and a smaller `n` is an error.
   p-values outside [0, 1] are processed, with only the upper end capped at 1. Abbreviated method
   names are case-sensitive.
