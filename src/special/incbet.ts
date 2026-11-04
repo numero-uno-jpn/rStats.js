@@ -27,7 +27,7 @@ import {
   SMALL_SHAPE,
   smallShapeG,
 } from "./incbetPrefactor.js";
-import { betaIncTemme, TEMME_MIN_M } from "./incbetTemme.js";
+import { betaIncOverflowSum, betaIncTemme, TEMME_MIN_M } from "./incbetTemme.js";
 import { betaIncLargeA, LARGE_A_MIN, SMALL_B_MAX } from "./incbetLargeA.js";
 
 const BIG = 4.503599627370496e15;
@@ -760,8 +760,8 @@ function pseriesOk(a: number, b: number, x: number): boolean {
  * { mu: 195.6 }) has 1 - x = 6.3e-286 against b/(a + b) = 8.5e-88, and the continued fraction above the mean was NaN)
  */
 function cfOk(a: number, b: number, x: DD, xc: DD): boolean {
-  if (x[0] <= 0.5) return x[0] <= a / (a + b);
-  // (b/(a + b) as 1/(1 + a/b) where a + b overflows)
+  // (a/(a + b) as 1/(1 + b/a) and b/(a + b) as 1/(1 + a/b) where a + b overflows: the ratio was 0, below every x; #491)
+  if (x[0] <= 0.5) return x[0] <= (a + b < Infinity ? a / (a + b) : 1 / (1 + b / a));
   return xc[0] >= (a + b < Infinity ? b / (a + b) : 1 / (1 + a / b));
 }
 
@@ -878,7 +878,8 @@ export function betaIncTinyX(a: number, b: number, x: number, lx: DD, lower: boo
  * pbeta(0.615, 2, 2.7e-158, { lowerTail: false }) was 1.0000000000000002), so it is capped at 1 (log at 0)
  */
 function betaIncCore(a: number, b: number, xd: DD, xcd: DD, lower: boolean, wantLog: boolean): [number, number] {
-  const r = betaIncUncapped(a, b, xd, xcd, lower, wantLog);
+  let r = betaIncUncapped(a, b, xd, xcd, lower, wantLog);
+  if (Number.isNaN(r[1]) || (wantLog && Number.isNaN(r[0]))) r = betaIncOverflowSum(a, b, xd, xcd, lower, wantLog) ?? r;
   return r[1] > 1 || r[0] > 0 ? [Math.min(r[0], 0), Math.min(r[1], 1)] : r;
 }
 

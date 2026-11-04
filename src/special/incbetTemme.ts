@@ -240,3 +240,24 @@ export function betaIncTemme(
   // (log1p(-0) would be -0)
   return [wantLog ? (small === 0 ? 0 : Math.log1p(-small)) : NaN, 1 - small];
 }
+
+/**
+ * Fallback where a + b overflows and the other methods gave NaN (the continued fraction and the prefactor form
+ * a + b; pbeta(0.1, 1e308, 1e308) was NaN; #491). The smaller tail is e^-E times a factor whose log is of the order of
+ * the logs of the shapes (below about 2000 in size), so where E >= 1e22 its log is -E to double precision and its
+ * linear value 0. E in the halved shapes, doubled, as in betaIncTemme. Undefined where a + b is finite or E < 1e22
+ */
+export function betaIncOverflowSum(a: number, b: number, xd: DD, xcd: DD, lower: boolean, wantLog: boolean): [number, number] | undefined {
+  if (Number.isFinite(a + b)) return undefined;
+  const ah = a / 2;
+  const bh = b / 2;
+  const rr = twoSum(ah, bh);
+  const rx = mulLarge(rr, xd);
+  const dx = ddSub(rx, [ah, 0]);
+  const eh = ddAdd(bd0dd(ah, rx), bd0dd(bh, mulLarge(rr, xcd)));
+  const E = 2 * (eh[0] + eh[1]);
+  if (!(E >= 1e22)) return undefined;
+  // The smaller tail is the lower one when x < p
+  if (lower === dx[0] + dx[1] < 0) return [wantLog ? -E : NaN, 0];
+  return [wantLog ? 0 : NaN, 1];
+}

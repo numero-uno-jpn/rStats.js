@@ -404,6 +404,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | mvtnorm の `pmvnorm(c(-1e200, -1e200), c(Inf, Inf), corr = ...)` など、2 変量正規の巨大な有限の境界 (`pbvnorm`) | NaN | 1 (`c(1e200, 1e200)` では 0): ±40 を超える境界は無限とみなす (Φ(-40) = 3.7e-350) |
 | extraDistr の `qtriang(-1000, 0, 1e308, 0, log.p = TRUE)` (最頻値が端、exp(p) が double の範囲より下) | -Inf | 2.5379794487747283e-127 (w exp(p/2)^2 / 2) |
 | `dlogis(0, 0, 1.282987806042392e308)` などの x (scale (1 + e)^2 が溢れる) | 0、log でも -Inf | 1.95e-309 (log -710.83): 尺度での割り算を最後に |
+| 形状の和が溢れる場合の、平均から離れた裾 (`pbeta(0.1, 1e308, 1e308, log.p = TRUE)` など。`lower.tail = FALSE` も) | -Inf | -1.0216512475319813e308 (主要因子 x^a (1 - x)^b / (a B(a, b)) の log とビットまで一致、Rmpfr)。線形の値 0 と 1 は R と同じ。E >= 1e22 のとき、半分の形状で求めて 2 倍した偏差 E から -E とする (ほかの因子が log を動かす量は 1 ulp 未満)。ここは NaN だった (issue #491) |
 | 形状の和が溢れる場合の、平均付近の `qbeta` (`qbeta(0.5, 1e308, 1e308)` など)。`pbeta(0.4999999999999999, 1e308, 1e308, log.p = TRUE)` | NaN ("NaNs produced")。−3.98e276 | 0.5 (対称なベータ分布の中央値)。−4.93e276 = −a log(1 − 4 d^2)、d = 2^-53。不完全ベータ関数の一様漸近展開を半分の形状で計算し、偏差と m を 2 倍する (平均付近の pbeta はここで NaN だった) |
 | 小さい x の `pwilcox(x, 1050, 1050, log.p = TRUE)` など、確率が 1e-308 を下回る下側の裾 (`pwilcox(1000, 600, 600, log.p = TRUE)` も) | −Inf (確率を C(m + n, m) で割り、その値が溢れる) | −1451.558 (x = 0)、−752.510 (600 の場合)。確率の表を、最大の項が 2^760 を下回ったら 2 の冪で拡大する。dwilcox の log と同じ値 |
 | `qcauchy(p, 3, Inf)` | すべての p で NaN。ただし `dcauchy`・`pcauchy` は極限の値 0 と 0.5 を返す | 中央値より下・中央値・上で -Inf、3、Inf。`qnorm`・`qlogis` と同じ |
