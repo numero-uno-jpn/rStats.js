@@ -9,7 +9,7 @@
 
 import { pf, qf } from "../distributions/f.js";
 import { pt } from "../distributions/t.js";
-import { completePairs, dropNaN, groupMoments, ldexp, mean, pairedDifferences, satterthwaiteDf, scaleToUnit, variance } from "../internal/summary.js";
+import { completePairs, dropNaN, groupMoments, ldexp, mean, pairedDifferences, satterthwaiteDfSe, scaleToUnit, variance } from "../internal/summary.js";
 import { anova, aovSummary, type AnovaTable, type AovStrataSummary } from "../models/anovaSequential.js";
 import type { AovEzResult } from "../models/aovEz.js";
 import type { AovStrataFit } from "../models/aovStrata.js";
@@ -139,8 +139,9 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
     } else {
       s = Math.sqrt((s1 ** 2 + s2 ** 2) / 2);
       h = (2 * (n2 * s1 ** 2 + n1 * s2 ** 2)) / (n1 * n2 * (s1 ** 2 + s2 ** 2));
-      se = Math.sqrt(s1 ** 2 / n1 + s2 ** 2 / n2);
-      df = satterthwaiteDf([s1 ** 2 / n1, s2 ** 2 / n2], [n1 - 1, n2 - 1]);
+      // effectsize's se = sqrt(se1^2 + se2^2) with se_i = sqrt(s_i^2 / n_i), and its df from them
+      se = Math.sqrt(Math.sqrt(s1 ** 2 / n1) ** 2 + Math.sqrt(s2 ** 2 / n2) ** 2);
+      df = satterthwaiteDfSe([s1 ** 2 / n1, s2 ** 2 / n2], [n1 - 1, n2 - 1]);
     }
   }
   const j = adjust ? hedgesJ(df) : 1;

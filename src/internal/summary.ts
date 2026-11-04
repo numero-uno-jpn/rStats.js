@@ -329,7 +329,8 @@ export function pairedDifferences(x: readonly number[], y: readonly number[]): {
 /**
  * Satterthwaite's degrees of freedom (sum w)^2 / sum(w^2 / df) of a sum of independent variance estimates w with
  * degrees of freedom df. The w are scaled by a power of 2 first (no rounding), so the squares neither overflow nor
- * underflow when the w do not; the ratio does not depend on the units of the data
+ * underflow when the w do not; the ratio does not depend on the units of the data. The form of irr's icc (the same
+ * order of operations); tTest, cohensD and gamesHowellTest use R's forms below and this only where those are not finite
  */
 export function satterthwaiteDf(w: readonly number[], df: readonly number[]): number {
   let m = 0;
@@ -343,6 +344,51 @@ export function satterthwaiteDf(w: readonly number[], df: readonly number[]): nu
     den += (a * a) / df[i]!;
   }
   return (num * num) / den;
+}
+
+/** An even exponent 2j with max abs(w) / 2^2j in [1, 4) (0 for all w 0 or a non-finite one): sqrt then scales exactly */
+function evenExponent(w: readonly number[]): number {
+  let m = 0;
+  for (const v of w) m = Math.max(m, Math.abs(v));
+  if (m === 0 || !Number.isFinite(m)) return 0;
+  const e = Math.floor(Math.log2(m));
+  return e - (((e % 2) + 2) % 2);
+}
+
+/**
+ * Welch's degrees of freedom in the form of R's t.test and effectsize: se^4 / sum(se_i^4 / df_i) with se_i = sqrt(w_i)
+ * and se = sqrt(sum se_i^2), on the w scaled by an even power of 2 (exact, also through sqrt, so the same bits as R
+ * wherever R's terms are in range, and no overflow). {@link satterthwaiteDf} where that is not finite and positive
+ * (revision of review 2)
+ */
+export function satterthwaiteDfSe(w: readonly number[], df: readonly number[]): number {
+  const k = evenExponent(w);
+  let s2 = 0;
+  let den = 0;
+  for (let i = 0; i < w.length; i++) {
+    const se = Math.sqrt(ldexp(w[i]!, -k));
+    s2 += se ** 2;
+    den += se ** 4 / df[i]!;
+  }
+  const r = Math.sqrt(s2) ** 4 / den;
+  return Number.isFinite(r) && r > 0 ? r : satterthwaiteDf(w, df);
+}
+
+/**
+ * Welch's degrees of freedom in the form of PMCMRplus's gamesHowellTest: A^2 / sum(s2_i^2 / (n_i^2 (n_i - 1))) with
+ * A = sum s2_i / n_i, for the group variances s2 and sizes n, scaled as {@link satterthwaiteDfSe} (revision of review 2)
+ */
+export function satterthwaiteDfPM(s2: readonly number[], n: readonly number[]): number {
+  const k = evenExponent(s2);
+  let a = 0;
+  let den = 0;
+  for (let i = 0; i < s2.length; i++) {
+    const v = ldexp(s2[i]!, -k);
+    a += v / n[i]!;
+    den += v ** 2 / (n[i]! ** 2 * (n[i]! - 1));
+  }
+  const r = a ** 2 / den;
+  return Number.isFinite(r) && r > 0 ? r : satterthwaiteDf(s2.map((v, i) => v / n[i]!), n.map((m) => m - 1));
 }
 
 

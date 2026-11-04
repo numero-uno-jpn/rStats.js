@@ -17,7 +17,7 @@
 
 import { pnorm } from "../distributions/normal.js";
 import { ptukey } from "../distributions/tukey.js";
-import { groupMoments, ldexp, rank, satterthwaiteDf, tieCounts } from "../internal/summary.js";
+import { groupMoments, ldexp, rank, satterthwaiteDfPM, tieCounts } from "../internal/summary.js";
 import { pDunnettUpper } from "./dunnett.js";
 import { labelledGroups, type GroupLabel } from "./groups.js";
 import { pAdjust, type PAdjustMethod } from "./pAdjust.js";
@@ -396,7 +396,7 @@ export function gamesHowellTest(x: Sample, g: readonly GroupLabel[]): PMCMRResul
   const w = gm.variance.map((v, i) => v / d.n[i]!);
   const q = lowerTable(d.k, (i, j) => ((m[i]! - m[j]!) / Math.sqrt(w[i]! + w[j]!)) * Math.SQRT2);
   const p = lowerTable(d.k, (i, j) => {
-    const df = satterthwaiteDf([w[i]!, w[j]!], [d.n[i]! - 1, d.n[j]! - 1]);
+    const df = satterthwaiteDfPM([gm.variance[i]!, gm.variance[j]!], [d.n[i]!, d.n[j]!]);
     return upperRange(q[i - 1]![j]!, d.k, df);
   });
   return allPairs(d, "Games-Howell test", q, p, "none");

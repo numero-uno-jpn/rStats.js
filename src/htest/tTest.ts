@@ -8,7 +8,7 @@
 //   and also if it is 0 (R lets through samples of zeros with NaN results; #314)
 
 import { pt1, qt1 } from "../distributions/t.js";
-import { completePairs, dropNaN, ldexp, mean, pairedDifferences, satterthwaiteDf, scaleToUnit, variance } from "../internal/summary.js";
+import { completePairs, dropNaN, ldexp, mean, pairedDifferences, satterthwaiteDfSe, scaleToUnit, variance } from "../internal/summary.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { twoSampleData } from "./testFormula.js";
 import { checkConfLevel, matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
@@ -182,7 +182,7 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
       // as R, the standard error from the two standard errors (sqrt of the scaled variances is exact: the scale is
       // 2^-2k)
       stdErr = Math.sqrt(Math.sqrt(sx) ** 2 + Math.sqrt(sy) ** 2);
-      df = satterthwaiteDf([sx, sy], [nx - 1, ny - 1]);
+      df = satterthwaiteDfSe([sx, sy], [nx - 1, ny - 1]);
     }
     if (stdErr === 0 || stdErr < 10 * Number.EPSILON * Math.max(Math.abs(mx), Math.abs(my))) {
       throw new Error("data are essentially constant");
