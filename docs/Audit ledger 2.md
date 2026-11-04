@@ -895,3 +895,42 @@ dtriang/ptriang/qtriangのmode端点、支持域端、wide interval scaling、su
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、extraDistr runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1017 — Arcsine distribution
+
+- 対象: `src/distributions/arcsine.ts`、beta delegates、DD log/exp helpers
+- 監査時 HEAD: `828cc44e939f41519c394b10b1400de13b301214`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1017_arcsine_distribution.md](review-logs/review_audit_1017_arcsine_distribution.md)
+
+### 要約
+
+darcsine/parcsine/qarcsineの端点、巨大幅scale、subnormal tail、log確率、beta delegateの対称変換、quantileのupper-half補正を静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node runtimeは未実施。
+- ソースコード変更なし。
+
+---
+
+## Audit #1018 — Kumaraswamy distribution
+
+- 対象: `src/distributions/kumaraswamy.ts`、DD log/exp helpers
+- 監査時 HEAD: `828cc44e939f41519c394b10b1400de13b301214`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1018_kumaraswamy_distribution.md](review-logs/review_audit_1018_kumaraswamy_distribution.md)
+
+### 要約
+
+dkumar/pkumar/qkumarのsubnormal shape、a=Infinity退化極限、log1mPow/powOneMinus、極小log-tail、quantile逆数丸め補正を静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、extraDistr runtimeは未実施。
+- ソースコード変更なし。
