@@ -96,6 +96,11 @@ export function mantelhaenTest(
     if (exact && strata.some((t) => t.some((r) => r.some((v) => !Number.isInteger(v))))) {
       throw new RangeError("the exact test needs integer counts");
     }
+    // from 2^53 on the counts are not exact integers and the loop over a stratum's support does not advance (x + 1
+    // rounds to x; #494); the total bounds every cell, margin and sum over the strata
+    if (exact && totals.reduce((a, t) => a + t, 0) > Number.MAX_SAFE_INTEGER) {
+      throw new RangeError("the exact test needs counts with a total below 2^53: use exact: false");
+    }
     const tables = strata.map((t) => [[t[0]![0]!, t[0]![1]!], [t[1]![0]!, t[1]![1]!]] as const);
     return exact ? exact2x2xK(tables, alternative, confLevel) : asymptotic2x2xK(tables, totals, alternative, correct, confLevel);
   }
