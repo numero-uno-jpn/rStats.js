@@ -560,7 +560,7 @@ function strataEffectSize(model: StrataModel, kind: Kind, options: EtaSquaredOpt
  */
 export function etaSquared(model: AnovaEffectSizeModel, options: EtaSquaredOptions = {}): AnovaEffectSizeTable {
   checkOptions(options, ETA_SQUARED_KEYS, "etaSquared"); // generated: option-keys.mjs
-  return reported("etaSquared", anovaEffectSize(model, "Eta2", options));
+  return reported("etaSquared", anovaEffectSize(model, "Eta2", options), model);
 }
 
 /**
@@ -577,7 +577,7 @@ export function etaSquared(model: AnovaEffectSizeModel, options: EtaSquaredOptio
  */
 export function omegaSquared(model: AnovaEffectSizeModel, options: AnovaEffectSizeOptions = {}): AnovaEffectSizeTable {
   checkOptions(options, OMEGA_SQUARED_KEYS, "omegaSquared"); // generated: option-keys.mjs
-  return reported("omegaSquared", anovaEffectSize(model, "Omega2", options));
+  return reported("omegaSquared", anovaEffectSize(model, "Omega2", options), model);
 }
 
 /**
@@ -594,5 +594,5 @@ export function omegaSquared(model: AnovaEffectSizeModel, options: AnovaEffectSi
  */
 export function epsilonSquared(model: AnovaEffectSizeModel, options: AnovaEffectSizeOptions = {}): AnovaEffectSizeTable {
   checkOptions(options, EPSILON_SQUARED_KEYS, "epsilonSquared"); // generated: option-keys.mjs
-  return reported("epsilonSquared", anovaEffectSize(model, "Epsilon2", options));
+  return reported("epsilonSquared", anovaEffectSize(model, "Epsilon2", options), model);
 }

@@ -174,5 +174,5 @@ export function Anova(fit: LmFormulaResult, options: AnovaOptions = {}): AnovaTa
     return [back(ss), df, f, pf1(f, df, rdf, false, false)];
   });
   table.push([back(rssW), rdf, NaN, NaN]);
-  return reported("Anova", { colNames: ["Sum Sq", "Df", "F value", "Pr(>F)"], rowNames: [...names, "Residuals"], table, warnings });
+  return reported("Anova", { colNames: ["Sum Sq", "Df", "F value", "Pr(>F)"], rowNames: [...names, "Residuals"], table, warnings }, fit);
 }

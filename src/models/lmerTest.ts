@@ -359,7 +359,7 @@ export function lmerSummary(fit: LmerResult, options?: LmerSummaryOptions): Lmer
   const names = [...internals.structure.xColNames];
   if (ddf === "lme4") {
     const { estimate, stdError, tValue } = fit.coefTable;
-    return reported("lmerSummary", { ddf, names, estimate: [...estimate], stdError: [...stdError], tValue: [...tValue], messages: [], warnings: [] });
+    return reported("lmerSummary", { ddf, names, estimate: [...estimate], stdError: [...stdError], tValue: [...tValue], messages: [], warnings: [] }, fit);
   }
   const s = lmerSatterthwaite(fit);
   const p = names.length;
@@ -374,7 +374,7 @@ export function lmerSummary(fit: LmerResult, options?: LmerSummaryOptions): Lmer
     pValue: rows.map((r) => r.pValue),
     messages: [],
     warnings: [...s.warnings],
-  });
+  }, fit);
 }
 
 /**
@@ -538,7 +538,7 @@ export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (re
       pValue: pick("pValue"),
       messages: [],
       warnings: warnings.list,
-    });
+    }, fit);
   }
   const tests = p === 0 ? [] : rows.map((row, i) => tTestOf(s, row, rhs[i]!));
   const out: LmerContestT = {
@@ -556,5 +556,5 @@ export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (re
     out.lower = tests.map((t, i) => t.estimate - t.stdError * quantiles[i]!);
     out.upper = tests.map((t, i) => t.estimate + t.stdError * quantiles[i]!);
   }
-  return reported("lmerContest", out);
+  return reported("lmerContest", out, fit);
 }

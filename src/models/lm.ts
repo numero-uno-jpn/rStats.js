@@ -703,10 +703,10 @@ export function predict(
   // R's predict.lm (rankdeficient = "warnif"): the rows that are not estimable from a rank-deficient fit
   const nonEstimable = nonEstimableRows(fit.qr, fit.rank, X);
   const extra = nonEstimable.length > 0 ? { nonEstimable, warnings: [NON_ESTIMABLE_WARNING] } : {};
-  if (interval === "none") return reported("predict", { fit: values, seFit, ...extra });
+  if (interval === "none") return reported("predict", { fit: values, seFit, ...extra }, fit);
   const level = options.level ?? 0.95;
   if (!(level > 0 && level < 1)) throw new RangeError("'level' must be between 0 and 1");
   const t = tQuantile(level, fit.dfResidual);
   const half = seFit.map((s) => t * (interval === "prediction" ? Math.hypot(s, fit.sigma) : s));
-  return reported("predict", { fit: values, seFit, lwr: values.map((v, i) => v - half[i]!), upr: values.map((v, i) => v + half[i]!), ...extra });
+  return reported("predict", { fit: values, seFit, lwr: values.map((v, i) => v - half[i]!), upr: values.map((v, i) => v + half[i]!), ...extra }, fit);
 }

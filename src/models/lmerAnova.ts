@@ -303,9 +303,9 @@ export function lmerAnova(
     checkOptions(options, ["refit", "names"], "lmerAnova");
     const checked = (options ?? {}) as LmerCompareOptions;
     // (the logical value is checked with the options, before the fits)
-    return reported("lmerAnova", compareFits(fit, { ...checked, refit: logicalOption(checked.refit, true) }));
+    return reported("lmerAnova", compareFits(fit, { ...checked, refit: logicalOption(checked.refit, true) }), ...fit);
   }
   checkLmerOptions("lmerAnova", options, ["ddf"]);
   checkOptions(options, ["type"], "lmerAnova");
-  return reported("lmerAnova", anovaOfFit(fit as LmerResult, (options ?? {}) as LmerAnovaOptions));
+  return reported("lmerAnova", anovaOfFit(fit as LmerResult, (options ?? {}) as LmerAnovaOptions), fit);
 }

@@ -117,7 +117,7 @@ export function glmAnova(fits: GlmResult | readonly GlmResult[], options: GlmAno
   const user = options.dispersion === undefined ? undefined : scaledDispersion(options.dispersion, k);
   const shift = user?.s ?? 0;
   const table = glmAnovaScaled(list, Array.isArray(fits) && list.length > 1, { ...options, ...(user === undefined ? {} : { dispersion: user.m }) }, shift);
-  if (k === 0 && shift === 0) return reported("glmAnova", table);
+  if (k === 0 && shift === 0) return reported("glmAnova", table, ...given);
   const squared = new Set(["Deviance", "Resid. Dev", "Rao", "Cp"]);
   const cols = table.colNames.map((c) => squared.has(c));
   const scaledBack = table.table.map((r) => r.map((v, j) => (cols[j] ? ldexp(v, 2 * k) : v)));
@@ -129,7 +129,7 @@ export function glmAnova(fits: GlmResult | readonly GlmResult[], options: GlmAno
     const n = list[0]!.model.x.length;
     for (const r of scaledBack) r[cp] = r[dev]! + 2 * (n - r[dfRes]!) * options.dispersion!;
   }
-  return reported("glmAnova", { ...table, table: scaledBack });
+  return reported("glmAnova", { ...table, table: scaledBack }, ...given);
 }
 
 function glmAnovaScaled(list: readonly GlmResult[], compare: boolean, options: GlmAnovaOptions, shift = 0): GlmAnovaResult {

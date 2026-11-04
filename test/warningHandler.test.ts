@@ -2,7 +2,7 @@
 // under the name of the function called (only the outer one when a public function calls another), and nowhere
 // without a handler; the handler's errors propagate; the setting lives on globalThis.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { anova, etaSquared, jonckheereTest, lm, optim, pivotLonger, setWarningHandler, type WarningHandler } from "../src/index.js";
+import { anova, aovSummary, etaSquared, jonckheereTest, lm, optim, pivotLonger, setWarningHandler, type WarningHandler } from "../src/index.js";
 import { reportWarnings, unreported } from "../src/internal/warnings.js";
 
 const KEY = Symbol.for("@numero-uno-jpn/rstats.warningHandler");
@@ -56,18 +56,37 @@ describe("setWarningHandler", () => {
   });
 
   it("a function that calls another passes the warnings once, under its own name", () => {
+    const fit = perfectFit();
+    const handler = vi.fn<WarningHandler>();
+    setWarningHandler(handler);
+    // etaSquared computes anova(fit) inside, whose table adds a warning to the fit's: only etaSquared passes it
+    const es = etaSquared(fit);
+    expect(es.warnings).toEqual([PERFECT_FIT, PERFECT]);
+    expect(handler.mock.calls).toEqual([[PERFECT, "etaSquared"]]);
+  });
+
+  it("a fit's warnings go to the handler once, when it is fitted; functions given the fit pass only theirs", () => {
     const handler = vi.fn<WarningHandler>();
     setWarningHandler(handler);
     const fit = perfectFit();
     expect(handler.mock.calls).toEqual([[PERFECT_FIT, "lm"]]);
     handler.mockClear();
-    // etaSquared computes anova(fit) inside, whose table has the fit's warning and its own; only etaSquared passes them
-    const es = etaSquared(fit);
-    expect(es.warnings).toEqual([PERFECT_FIT, PERFECT]);
-    expect(handler.mock.calls).toEqual([[PERFECT_FIT, "etaSquared"], [PERFECT, "etaSquared"]]);
+    // the results keep the fit's warnings, the handler gets only what anova and aovSummary add
+    const tab = anova(fit);
+    expect(tab.warnings).toEqual([PERFECT_FIT, PERFECT]);
+    expect(aovSummary(fit).warnings).toEqual([PERFECT_FIT, PERFECT]);
+    expect(handler.mock.calls).toEqual([[PERFECT, "anova"], [PERFECT, "aovSummary"]]);
     handler.mockClear();
-    expect(anova(fit).warnings).toEqual([PERFECT_FIT, PERFECT]);
-    expect(handler.mock.calls).toEqual([[PERFECT_FIT, "anova"], [PERFECT, "anova"]]);
+    // a table's warnings were passed by the call that made it
+    expect(etaSquared(tab).warnings).toEqual([PERFECT_FIT, PERFECT]);
+    expect(handler).not.toHaveBeenCalled();
+    // and over all of these calls, the fit's warning went to the handler once
+    const all = vi.fn<WarningHandler>();
+    setWarningHandler(all);
+    const again = perfectFit();
+    anova(again);
+    etaSquared(again);
+    expect(all.mock.calls.filter(([m]) => m === PERFECT_FIT)).toEqual([[PERFECT_FIT, "lm"]]);
   });
 
   it("calls inside unreported pass nothing, also after one threw", () => {

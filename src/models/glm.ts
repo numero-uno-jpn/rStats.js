@@ -923,7 +923,7 @@ export function glmSummary(given: GlmResult, options: GlmSummaryOptions = {}): G
         : inv.map((r, j) => r.map((v, l) => ldexpWide(v * dispersion, 2 * (s + k) - e[j]! - e[l]!))),
     dfResidual: fit.dfResidual,
     warnings: warnings.list,
-  });
+  }, given);
 }
 
 /**
@@ -1206,7 +1206,7 @@ export function glmPredict(
   // as predict.lm, which R's predict.glm calls (only for new data: the fitted rows are estimable)
   const nonEstimable = options.newdata === undefined ? [] : nonEstimableRows(fit.qr, rank, X);
   const extra = nonEstimable.length > 0 ? { nonEstimable, warnings: [NON_ESTIMABLE_WARNING] } : {};
-  if (type === "link") return reported("glmPredict", { fit: eta.map(up), seFit: se.map(upSe), ...extra });
+  if (type === "link") return reported("glmPredict", { fit: eta.map(up), seFit: se.map(upSe), ...extra }, given);
   return reported(
     "glmPredict",
     withWarnings(new Warnings(), () => ({
@@ -1214,5 +1214,6 @@ export function glmPredict(
       seFit: se.map((s, i) => upSe(s * Math.abs(fam.muEta(eta[i]!)))),
       ...extra,
     })),
+    given,
   );
 }
