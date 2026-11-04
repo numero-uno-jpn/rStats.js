@@ -397,3 +397,24 @@ aliased係数、full/restricted fit収束、offset移動、LRT/Rao、未収束�
 - `src/models/glmConfint.ts`、`src/models/glm.ts`、`src/internal/uniroot.ts`、`test/glmConfint.test.ts` を確認。
 - 静的監査のみ。Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #993 — factanal のML推定・回転・factor scoresを再確認
+
+- 対象: `src/descriptive/factanal.ts`
+- 監査時 HEAD: `61ec53024a32b811d2f8566374fce25313fcc44b`
+- 対象ソース blob: `78015f198496bfd2c28321c541ff970a5cea7b96`
+- 判定: 今回確認した範囲で新規不具合なし
+- 詳細: [review_audit_993_factanal_edge_review.md](review-logs/review_audit_993_factanal_edge_review.md)
+
+### 要約
+
+covmat/data入力、p/q/dof、相関標準化、uniqueness最適化、ML objective/gradient、収束、loadings順序・符号、varimax/pro­max、統計量、regression/Bartlett scoresを確認。nObs未指定時やdof<=0時のNaN、covmatでのscores拒否はAPI/Oracleと整合した。
+
+### 検証範囲・制約
+
+- `src/descriptive/factanal.ts`、`test/factanal.test.ts`、`oracle/factanal-behaviour.md`、`src/internal/covmat.ts` を確認。
+- 静的監査のみ。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
