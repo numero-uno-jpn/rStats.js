@@ -833,8 +833,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `ls_means`、`difflsmeans`、`step` は実装していません。
 - **`lmerContest` の `joint: false`** は、L の行ごとの右辺 (`rhs: [1, 0, 2]`) を受け付け、各行をそれぞれの値に対して
   検定します。lmerTest はそこでエラーになります。
-- **`lmerContest` の無限大の L と rhs** はエラーです (lmerTest は L が無限大なら NaN の行、rhs が無限大なら F が Inf で p が
-  0)。NaN は lmerTest の NA と同じく NaN の結果になります。`level` は lmerTest と同じく 0 より大きく 1 より小さい値です。
+- **`lmerContest` の NaN か無限大の L と rhs** はエラーです (lmerTest は L が無限大なら NaN の行、rhs が無限大なら F が Inf で
+  p が 0、L が NaN なら NA の行、rhs が NaN なら t (F) と p が NA)。`level` は lmerTest と同じく 0 より大きく 1 より小さい値です。
 - **当てはめどうしの比較** (`lmerAnova([fit1, fit2])`): REML の当てはめは、最尤法の厳密な最適点へ当てはめ直します
   (lme4 の当てはめ直しはその手前で止まります)。どの当てはめも、同じデータのオブジェクトに対する `lmer` の結果で
   なければなりません。当てはめの間にそのオブジェクトの値を変えた場合もエラーです。`lmerAnova` の仮説と当てはめ直しは、

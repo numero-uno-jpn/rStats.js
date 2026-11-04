@@ -898,8 +898,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `lmerAnova`); `ranova`, `ls_means`, `difflsmeans` and `step` are not implemented.
 - **`lmerContest` with `joint: false`** accepts a right-hand side per row of L (`rhs: [1, 0, 2]`), each row tested
   against its own value; lmerTest gives an error there.
-- **`lmerContest` with an infinite L or rhs** is an error (lmerTest gives a row of NaN for an infinite L, and F Inf with
-  p 0 for an infinite rhs); NaN gives NaN results, as lmerTest's NA. `level` must be strictly between 0 and 1, as in
+- **`lmerContest` with a NaN or infinite L or rhs** is an error (lmerTest gives a row of NaN for an infinite L, F Inf
+  with p 0 for an infinite rhs, a row of NA for NaN in L, and t (F) and p NA for a NaN rhs). `level` must be strictly between 0 and 1, as in
   lmerTest.
 - **Comparing fits** (`lmerAnova([fit1, fit2])`): the REML fits are refitted by maximum likelihood to the exact ML
   optimum (lme4's refit stops near it); the fits must be results of `lmer` on the same data object, unchanged

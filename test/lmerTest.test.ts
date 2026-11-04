@@ -521,9 +521,9 @@ describe("lmerTest: behaviour", () => {
     s.stdError.forEach((v, i) => expect(v).toBeCloseTo(fit.coefTable.stdError[i]!, 12));
     expect(() => lmerSummary(fit, { ddf: "Kenward-Roger" as "lme4" })).toThrow(RangeError);
     expect(() => lmerSummary({ ...fit })).toThrow(TypeError);
-    const nan = lmerContest(fit, [NaN, 1], { joint: false });
-    expect([nan.estimate[0], nan.df[0], nan.pValue[0], nan.lower![0]]).toEqual([NaN, NaN, NaN, NaN]);
-    expect(lmerContest(fit, [[NaN, 1]]).F).toEqual([NaN]);
+    // NaN in L is an error (revision of review 27; lmerTest gives a row of NA)
+    expect(() => lmerContest(fit, [NaN, 1], { joint: false })).toThrow(RangeError);
+    expect(() => lmerContest(fit, [[NaN, 1]])).toThrow(RangeError);
     expect(() => lmerContest(fit, [1, 0, 0])).toThrow(TypeError);
     expect(() => lmerContest(fit, [[1, 0], [1]])).toThrow(TypeError);
     expect(lmerContest(fit, [0, 1], { joint: false, confint: false }).lower).toBeUndefined();

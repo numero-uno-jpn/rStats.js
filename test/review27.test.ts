@@ -34,10 +34,10 @@ describe("review 27", () => {
     expect(() => lmerContest(fit, [0, 1], { joint: false, level: 1 })).toThrow("level must be a number between 0 and 1");
     expect(() => lmerContest(fit, [0, 1], { joint: false, level: 0 })).toThrow("level must be a number between 0 and 1");
     // an empty table was returned silently
-    expect(() => lmerContest(fit, [0, Infinity])).toThrow("L must not contain infinite values");
-    expect(() => lmerContest(fit, [[0, -Infinity]], { joint: false })).toThrow("L must not contain infinite values");
+    expect(() => lmerContest(fit, [0, Infinity])).toThrow("L must not contain NaN or infinite values");
+    expect(() => lmerContest(fit, [[0, -Infinity]], { joint: false })).toThrow("L must not contain NaN or infinite values");
     // F and the sum of squares were NaN, p 0
-    expect(() => lmerContest(fit, [0, 1], { rhs: Infinity })).toThrow("rhs must not contain infinite values");
+    expect(() => lmerContest(fit, [0, 1], { rhs: Infinity })).toThrow("rhs must not contain NaN or infinite values");
     expect(lmerContest(fit, [0, 1], { joint: false, level: 0.9 }).estimate[0]).toBeCloseTo(0.9894865131870085, 12);
   });
 });
