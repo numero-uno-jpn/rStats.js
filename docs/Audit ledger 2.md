@@ -314,3 +314,44 @@ pretty の有限値抽出・同値範囲・ゼロ近傍・極端な尺度・n/mi
 - 関連Issue検索で同一原因の報告は確認できなかった。
 - 静的監査のみ。Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #989 — omega の入力・Schmid-Leiman 境界条件を再確認
+
+- 対象: `src/descriptive/omega.ts`
+- 監査時 HEAD: `fd0e1a57ac39e2edbb0e6ae26c4a698bd50954ff`
+- 対象ソース blob: `e07f01ef3d54e489882ecd88dda6bc21bf2f3500`
+- 判定: 今回確認した範囲で新規不具合なし
+- 詳細: [review_audit_989_omega_edge_review.md](review-logs/review_audit_989_omega_edge_review.md)
+
+### 要約
+
+nfactors範囲、covmat検証、pairwise correlation、SMC擬似逆、minres、q=1/2/3+の一般因子、Schmid-Leimanのh2/u2/p2/com、flip、空グループを確認。q=1の厳密なゼロとRの丸め差異はテスト上も明示され、今回の範囲で新規不具合は確認できなかった。
+
+### 検証範囲・制約
+
+- `src/descriptive/omega.ts`、`test/omega.test.ts`、`oracle/omega-behaviour.md`、`src/internal/covmat.ts` を確認。
+- 静的監査のみ。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
+
+---
+
+## Audit #990 — coxph の欠損・層別・重み・Newton反復境界を再確認
+
+- 対象: `src/models/coxph.ts`
+- 監査時 HEAD: `fd0e1a57ac39e2edbb0e6ae26c4a698bd50954ff`
+- 対象ソース blob: `93829de198c811cb03b2f2ce8921d65ff273a2a2`
+- 判定: 今回確認した範囲で新規不具合なし
+- 詳細: [review_audit_990_coxph_edge_review.md](review-logs/review_audit_990_coxph_edge_review.md)
+
+### 要約
+
+入力検証、欠損除外、weights、Infinity時刻、層別境界、同時刻のイベント/打切り、Efron/Breslow、共変量の中心化/尺度化、ゼロイベント、Newton step halving、非収束時variance、aliased係数、summary検定を確認。重み付きEfron処理とstratum境界のrisk set管理はoracle記述と一致した。
+
+### 検証範囲・制約
+
+- `src/models/coxph.ts`、`test/coxph.test.ts`、`oracle/coxph-behaviour.md` を確認。
+- 静的監査のみ。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
