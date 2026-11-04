@@ -7,7 +7,7 @@ GitHub Issue #479. Session 13, group A2 (out of scope of #164, recorded there).
 - Intent: `familyAic` for inverse.gaussian computes log((2 pi dev) / sw); 2 pi dev overflows for a finite dev above MAX / (2 pi) although dev / sw and the AIC are finite.
 - Method: as the gaussian AIC of #189, only where 2 pi dev overflows and dev is finite, log(2 pi) + log(dev / sw); where dev / sw overflows as well (sw < 1), log(dev) - log(sw). R's order dev / sw × 2 pi was not taken: it would change the last bit of ordinary AICs, which keep their bits this way.
 
-## Reproduction (main `1e150d6`, R 4.5.2, Rmpfr)
+## Reproduction (main `d528fc0`, R 4.5.2, Rmpfr)
 
 | familyAic(inverse.gaussian, y, mu, w, dev) | R 4.5.2 | before | after | Rmpfr |
 |---|---|---|---|---|
