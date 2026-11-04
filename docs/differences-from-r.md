@@ -393,7 +393,6 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `coxph(Surv(time, status) ~ x)` with a time censored at `Inf` | "NA/NaN/Inf in foreign function call" | the fit, with the subject at risk at every event time (the same as for a censoring time beyond the last event) |
 | `coxph(Surv(time, status) ~ x)` with a covariate around 1e308 or subnormal (x times 2^1020, 2^1022 or 2^-1060) | se 0 at 2^1020; "Loglik converged before variable 1; coefficient may be infinite" at 2^1022 and 2^-1060 (the sums of the centring and scaling overflow) | the fit of x: the same tests and log likelihood, the coefficient and se times 2^-k (beyond the doubles at 2^-1060: -Inf and Inf) |
 | `coxph(Surv(time, status) ~ x)` at an initial value whose linear predictors exceed exp's range (x = 0, 1 or 0, 2 with `init = 1000`, `iter.max = 0`) | the log likelihood -Inf (x = 0, 1) or "initial values lead to overflow or underflow of the exp function" | the finite log likelihood (-1000, -2000): the risk sums are held as e^-m times their values, with m moved only where a finite exp(eta) would overflow. Iterating from such a saturated value still gives NaN coefficients (survival NA) |
-| `qr(x, tol = Inf)` | "NA/NaN/Inf in foreign function call" | rank 0 (every column is taken as dependent) |
 | `rgeom(n, 5e-324)` (prob below about 5.6e-309), `rnbinom(n, Inf, prob = p)` with p < 1 | NA; about 9e307 (the draw for size = MAX / 2) or NA | Infinity: the draws are beyond the largest double (for rgeom but with a probability below 1e-15; for rnbinom all the probability is at infinity, as dnbinom and qnbinom say). The same variates are drawn, so the stream is R's |
 | `rbeta(n, 1e308, 1e308)` and other shapes above about 1e154 (2ab overflows) | 0 (Algorithm BB's constants overflow) | the mean a / (a + b), to which the distribution is concentrated within 1e-77; the same uniforms are drawn, so the stream is R's |
 | `rbeta(n, 0, 0, ncp = 0)` (and the Poisson-0 component for ncp > 0) | NaN (0 / 0) | 0 or 1 with probability 1/2 each (Beta(0, 0)), as the central `rbeta(n, 0, 0)`; one uniform is drawn there, where R draws none |
@@ -723,7 +722,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `lmerAnova` checks the same.
 - **Confidence levels outside (0, 1)** are errors in `confint` and `predict` for lm (R gives NaN limits, or an interval
   of another coverage for a negative level) and in the effect sizes (`cohensD`, `etaSquared`, ..., as effectsize).
-- **`qr`** rejects a negative `tol` (R accepts it, and then no column is dependent); `tol: Infinity` gives rank 0.
+- **`qr`** rejects a negative `tol` (R accepts it, and then no column is dependent).
 - **`lmerAnova` comparing fits that differ in a variance component** uses the chi-squared distribution, as lme4: the
   null value 0 is on the boundary, so the p-value is conservative (the reference distribution is a mixture of
   chi-squared distributions, 0.5 chi2_0 + 0.5 chi2_1 for a single random intercept).

@@ -108,9 +108,9 @@ export function qr(x: MatrixInput, options: QROptions = {}): QR {
   }
   for (const v of a.data) if (!Number.isFinite(v)) throw new RangeError("the matrix contains NaN or infinite values");
   const tol = options.tol ?? 1e-7;
-  // a negative tolerance has no meaning (R accepts it, and no column is then ever dependent); Infinity takes every
-  // column as dependent (rank 0)
-  if (!(tol >= 0)) throw new RangeError("'tol' must be a non-negative number");
+  // a negative tolerance has no meaning (R accepts it, and no column is then ever dependent); Infinity is an error, as
+  // R's "NA/NaN/Inf in foreign function call" (it took every column as dependent, rank 0)
+  if (!(tol >= 0 && tol < Infinity)) throw new RangeError("'tol' must be a non-negative finite number");
   const a0 = a.data.slice();
   let { qraux, pivot, rank, transformed } = linpackQR(a, tol);
   // Where the decomposition overflowed (sums of products of entries near 1e308: qr(matrix(1e308, 2, 2)) had rank 2 and

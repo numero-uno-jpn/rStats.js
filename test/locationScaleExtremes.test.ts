@@ -227,9 +227,9 @@ describe("linear algebra, coxph and generators near the ends of the range", () =
     // with the censoring at 1e6 it gives 1.1475221865923
     expect(R.coxph([1, 2, Infinity, 4], [1, 1, 0, 1], x).coefficients[0]).toBeCloseTo(1.1475221865923, 12);
   });
-  it("qr with an infinite tolerance takes every column as dependent", async () => {
+  it("qr with an infinite tolerance is an error, as R (revision of review 13)", async () => {
     const R = await import("../src/index.js");
-    expect((R.qr([[1, 3], [2, 4]], { tol: Infinity }) as { rank: number }).rank).toBe(0);
+    expect(() => R.qr([[1, 3], [2, 4]], { tol: Infinity })).toThrow(RangeError);
   });
   it("rtriang on a range wider than the largest double, rmultinom's integer size", async () => {
     const R = await import("../src/index.js");
