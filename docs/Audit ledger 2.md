@@ -538,3 +538,23 @@ crossprod/tcrossprod、backsolve/forwardsolve、BigIntによるdot積の厳密�
 - matrix-ops test harnessを静的確認。
 - Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1000 — Root finding / noncentral distributions / Poisson mixtures
+
+- 対象: `src/internal/uniroot.ts`, `src/internal/dpq.ts`, `src/internal/noncentral.ts`, `src/internal/poissonMixture.ts`, `src/numerics/integrate.ts`
+- 監査時 HEAD: `f4d4a9597586cc0ea289f231626170aa9aaa281c`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1000_uniroot_noncentral_mixture.md](review-logs/review_audit_1000_uniroot_noncentral_mixture.md)
+
+### 要約
+
+Brent root findingのbracket/endpoint/tolerance、odds ratioのlog-scale root、dpqのlowerTail/logP境界とsmaller-tail切替、noncentral quantileのadjacent-double探索、adaptive GK15積分、Poisson mixtureのdouble-double表現・peak探索・tail truncation・上下方向再帰・log/linear出力を確認。今回、新規の再現可能な不具合は確定せず。
+
+### 検証範囲・制約
+
+- nchisq/nbeta/fisher/wilcox関連テストファイルとuniroot実装を静的確認。
+- Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
