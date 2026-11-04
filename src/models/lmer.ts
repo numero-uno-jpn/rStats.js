@@ -590,7 +590,7 @@ function minimiseCriterion(s: MixedModelStructure, reml: boolean, criterion: Mix
  * of R that are not supported (the first gives an Error) nor unknown (a TypeError listing all of them). A key whose
  * value is `undefined` counts as given. Returns the options as an object (`{}` when not given).
  */
-export function checkOptions<T extends object>(
+export function checkLmerOptions<T extends object>(
   fn: string,
   options: T | undefined,
   accepted: readonly string[],
@@ -717,7 +717,7 @@ export function lmerInternals(fit: LmerResult): LmerInternals {
  * test of the sparse computation fits with the dense reference implementation through it.
  */
 export function lmerWithCriterion(formula: string, data: DataFrame, options: LmerOptions | undefined, criterion: MixedCriterion): LmerResult {
-  const given = checkOptions("lmer", options, LMER_KEYS, LMER_UNSUPPORTED);
+  const given = checkLmerOptions("lmer", options, LMER_KEYS, LMER_UNSUPPORTED);
   const reml = logicalOption(given.REML, true);
   options = { ...given, REML: reml };
   const modelOptions: { contrasts?: Record<string, LmerContrastName>; levels?: Record<string, readonly string[]> } = {};

@@ -20,3 +20,16 @@ export function checkOptions(
     throw new RangeError(`unknown option '${name}' for ${fnName} (known: ${[...keys].join(", ")})`);
   }
 }
+
+/**
+ * The nested options object at `path` (keys joined by dots, as `"family.link"`) of `options`, or `undefined` where a
+ * step is not an object (a family given by name): what checkOptions is called with for a nested object.
+ */
+export function nestedOptions(options: unknown, path: string): unknown {
+  let v = options;
+  for (const key of path.split(".")) {
+    if (typeof v !== "object" || v === null) return undefined;
+    v = (v as Record<string, unknown>)[key];
+  }
+  return v;
+}

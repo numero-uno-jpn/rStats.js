@@ -9,7 +9,7 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import { nestedColumns } from "./estimable.js";
 import { Warnings } from "./glmFamily.js";
-import { checkOptions, lmerInternals, lmerWithCriterion, logicalOption, type LmerResult } from "./lmer.js";
+import { checkLmerOptions, lmerInternals, lmerWithCriterion, logicalOption, type LmerResult } from "./lmer.js";
 import { fixedEffectsDescription, lmerHypotheses, type HypothesisType, type LmerHypotheses } from "./lmerHypotheses.js";
 import { fTestOf, lmerSatterthwaite, type LmerFRow, type LmerSatterthwaite } from "./lmerTest.js";
 import type { DataFrame } from "./modelFrame.js";
@@ -298,9 +298,9 @@ export function lmerAnova(
   options?: LmerAnovaOptions | LmerCompareOptions,
 ): LmerAnovaTable | LmerCompareTable {
   if (Array.isArray(fit)) {
-    const checked = checkOptions<LmerCompareOptions>("lmerAnova", options as LmerCompareOptions | undefined, ["refit", "names"], ["modelNames", "model.names"]);
+    const checked = checkLmerOptions<LmerCompareOptions>("lmerAnova", options as LmerCompareOptions | undefined, ["refit", "names"], ["modelNames", "model.names"]);
     // (the logical value is checked with the options, before the fits)
     return compareFits(fit, { ...checked, refit: logicalOption(checked.refit, true) });
   }
-  return anovaOfFit(fit as LmerResult, checkOptions<LmerAnovaOptions>("lmerAnova", options as LmerAnovaOptions | undefined, ["type"], ["ddf"]));
+  return anovaOfFit(fit as LmerResult, checkLmerOptions<LmerAnovaOptions>("lmerAnova", options as LmerAnovaOptions | undefined, ["type"], ["ddf"]));
 }

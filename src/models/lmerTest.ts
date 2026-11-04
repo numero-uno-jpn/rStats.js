@@ -20,7 +20,7 @@ import { ginv } from "../linalg/kappa.js";
 import { rangeExponent } from "../linalg/matrix.js";
 import { Warnings } from "./glmFamily.js";
 import { ldexp } from "../internal/summary.js";
-import { checkOptions, lmerInternals, logicalOption, thetaColumnExponents, type LmerResult } from "./lmer.js";
+import { checkLmerOptions, lmerInternals, logicalOption, thetaColumnExponents, type LmerResult } from "./lmer.js";
 import { varparDerivatives } from "./mixedDerivatives.js";
 import type { MixedModelStructure } from "./mixedStructure.js";
 
@@ -346,7 +346,7 @@ export interface LmerSummary {
  * @category Mixed models
  */
 export function lmerSummary(fit: LmerResult, options?: LmerSummaryOptions): LmerSummary {
-  const ddf = checkOptions("lmerSummary", options, ["ddf"], []).ddf ?? "Satterthwaite";
+  const ddf = checkLmerOptions("lmerSummary", options, ["ddf"], []).ddf ?? "Satterthwaite";
   if (ddf !== "Satterthwaite" && ddf !== "lme4") throw new RangeError(`ddf must be "Satterthwaite" or "lme4", not ${JSON.stringify(ddf)}`);
   const internals = lmerInternals(fit);
   const names = [...internals.structure.xColNames];
@@ -498,7 +498,7 @@ export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (re
 export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (readonly number[])[], options: LmerContestOptions & { joint: false }): LmerContestT;
 export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (readonly number[])[], options?: LmerContestOptions): LmerContestF | LmerContestT;
 export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (readonly number[])[], options?: LmerContestOptions): LmerContestF | LmerContestT {
-  options = checkOptions("lmerContest", options, CONTEST_KEYS, CONTEST_UNSUPPORTED);
+  options = checkLmerOptions("lmerContest", options, CONTEST_KEYS, CONTEST_UNSUPPORTED);
   const joint = logicalOption(options.joint, true);
   const confint = logicalOption(options.confint, true);
   const internals = lmerInternals(fit);
