@@ -439,3 +439,419 @@ IRLSの開始値・反復・step-halving・収束/分離警告、正weight行の
 - 既存GLM/IRLS/binomial/offset/weight/link/family関連Issueを検索。
 - Vitest、Node、R実行は未実施。確証のない疑義はIssue化しない。
 - ソースコード変更なし。
+
+---
+
+## Audit #995 — survdiff の特異分散行列フォールバック
+
+- 対象: `src/models/survival.ts`, `src/models/tiedTimes.ts`
+- 監査時 HEAD: `53ee5d75c9ded25c1ab80dcd261470c84aacf290`
+- 判定: oracle仕様との不一致候補。Issue [#510](https://github.com/numero-uno-jpn/rStats.js/issues/510) 登録（R実行確認待ち）
+- 詳細: [review_audit_995_survdiff_singular_variance.md](review-logs/review_audit_995_survdiff_singular_variance.md)
+
+### 要約
+
+`survdiff()` は特異な `V_r` に対して直接solveが失敗すると一般化逆行列相当の `pseudoQuadratic()` にフォールバックする。oracleは選択群の分散部分行列を直接solveし、一般化逆行列を使わないと記載。再現データ `time=[1,1]`, `status=[1,1]`, `group=["a","b"]` では現行コードが `chisq=0, df=0, pvalue=NaN` を返す。Rでの正確な特異ケース挙動は未実行のためIssueでは確認待ちと明記。
+
+### 検証範囲・制約
+
+- KM、Greenwood、CI3種、中央値、G-rho重み、同時event/censor、risk set、分散式、timefixを静的に確認。
+- R fixtureとoracleを照合。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #996 — QR / matrix shape / matrix norms
+
+- 対象: `src/linalg/qr.ts`, `src/linalg/matrix.ts`, `src/linalg/norm.ts`
+- 監査時 HEAD: `f76c0f3d07a73a6fc0fc9f2d8fc18f4676cd6f17`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_996_qr_matrix_norm.md](review-logs/review_audit_996_qr_matrix_norm.md)
+
+### 要約
+
+LINPACK/LAPACK QR、pivot/rank、Householder、qrCoef/qrSolve/qrResid/qrFitted/qrQ/qrR/qrX、行列shape変換、norm各種のNaN/Inf・空行列・overflow/underflowを確認。既存のQR大規模値Householder overflow Issueは重複登録を回避。LAPACK QRのrank非検出やqrResid/qrFittedの制限は実装契約と整合し、未検証の疑義はIssue化しなかった。
+
+### 検証範囲・制約
+
+- ソースと既存テスト/oracle harnessを静的確認。
+- Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #997 — SVD / eigen / Schur
+
+- 対象: `src/linalg/svd.ts`, `src/linalg/eigen.ts`, `src/linalg/schur.ts`
+- 監査時 HEAD: `203356623d253a5d1a50f75cf3bd35b840605420`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_997_svd_eigen_schur.md](review-logs/review_audit_997_svd_eigen_schur.md)
+
+### 要約
+
+SVDのwide/tall変換、nu/nv境界、Householder、bidiagonal QR、収束判定、singular value/vectorの並べ替えとscale復元を確認。eigenの対称性判定、スケーリング、対称/非対称QR、balancing、複素固有値・固有ベクトルを確認。Schurの複素共役2x2 block処理、lanv2標準化、Q/T回転整合性を確認。今回新規Issueは確定せず。
+
+### 検証範囲・制約
+
+- 既存SVD/Schur test harnessを静的に確認。
+- Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #998 — Cholesky / matrix exponential / condition number / LU-PCA
+
+- 対象: `src/linalg/chol.ts`, `src/linalg/expm.ts`, `src/linalg/kappa.ts`, `src/linalg/lu.ts`
+- 監査時 HEAD: `042e4846cc08413101d5f6e7055bfc345eceb920`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_998_chol_expm_kappa_lu.md](review-logs/review_audit_998_chol_expm_kappa_lu.md)
+
+### 要約
+
+Choleskyのpivot/rank/tolerance、chol2inv、expm全6方式のスケーリング・balancing・order境界、kappaのexact/estimated・wide/triangular経路、LUの長方形行列・zero pivot、prcompのcenter/scale/rank/tol・大規模値fallbackを確認。既存Issueと重複するpivoted Cholesky初回pivot toleranceは再登録せず、今回の範囲で新規Issueは確定しなかった。
+
+### 検証範囲・制約
+
+- Cholesky/expm test harnessを静的確認。
+- Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #999 — Matrix products / dot products / triangular solves / balancing
+
+- 対象: `src/linalg/basic.ts`, `src/linalg/dot.ts`, `src/linalg/ops.ts`, `src/linalg/balance.ts`
+- 監査時 HEAD: `9622e1a59bcb054f8b0fa89055f322f1bef5d95f`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_999_matrix_ops_dot_balance.md](review-logs/review_audit_999_matrix_ops_dot_balance.md)
+
+### 要約
+
+crossprod/tcrossprod、backsolve/forwardsolve、BigIntによるdot積の厳密再計算、matrix arithmeticとshape/recycling、balanceのpermutation・power-of-two scaling・back transformationを確認。通常範囲の桁落ちをむやみに再計算しないdot仕様、ゼロ内積次元の出力shape、ベクトルの行/列変換を確認し、新規Issueは確定しなかった。
+
+### 検証範囲・制約
+
+- matrix-ops test harnessを静的確認。
+- Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1000 — Root finding / noncentral distributions / Poisson mixtures
+
+- 対象: `src/internal/uniroot.ts`, `src/internal/dpq.ts`, `src/internal/noncentral.ts`, `src/internal/poissonMixture.ts`, `src/numerics/integrate.ts`
+- 監査時 HEAD: `f4d4a9597586cc0ea289f231626170aa9aaa281c`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1000_uniroot_noncentral_mixture.md](review-logs/review_audit_1000_uniroot_noncentral_mixture.md)
+
+### 要約
+
+Brent root findingのbracket/endpoint/tolerance、odds ratioのlog-scale root、dpqのlowerTail/logP境界とsmaller-tail切替、noncentral quantileのadjacent-double探索、adaptive GK15積分、Poisson mixtureのdouble-double表現・peak探索・tail truncation・上下方向再帰・log/linear出力を確認。今回、新規の再現可能な不具合は確定せず。
+
+### 検証範囲・制約
+
+- nchisq/nbeta/fisher/wilcox関連テストファイルとuniroot実装を静的確認。
+- Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1001 — Binomial distribution boundary and tail paths
+
+- 対象: `src/distributions/binomial.ts` と dpq / discrete / integer / incomplete-beta / Loader 依存部
+- 監査時 HEAD: `51f8fc361962e8cd8ff7680bf37e812a7b57b488`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1001_binomial_boundaries.md](review-logs/review_audit_1001_binomial_boundaries.md)
+
+### 要約
+
+dbinom/pbinom/qbinomの無効値・支持域端・prob=0/1・size=0/Infinity・非整数丸め、2^53近傍のx+1非表現可能分岐、incomplete-betaとpmf補正、upper-tail/log-domain fallback、離散quantile探索を静的に確認。新規Issueは確定しなかった。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1002 — Normal distribution tails, quantiles and scaling
+
+- 対象: `src/distributions/normal.ts`, `src/special/erf.ts`, `src/special/ndtri.ts`, `src/internal/ddexp.ts`
+- 監査時 HEAD: `6ae5e29856a291aa2638b5917123d8406a737307`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1002_normal_tails_quantiles.md](review-logs/review_audit_1002_normal_tails_quantiles.md)
+
+### 要約
+
+pnormの±Inf/NaN/Inf-Inf/標準化overflow、lower/upper・log tail、erf/erfcx切替、qnormのlog確率・端点・Newton補正、dnormのsd=0/Infinity・tiny sd・subnormal経路を静的に確認。既知Issue #33対応の極端log-tail overflow回避も確認し、新規Issueは確定しなかった。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1003 — Central Student t distribution
+
+- 対象: `src/distributions/t.ts` の central `dt/pt/qt` 経路と巨大df helper
+- 監査時 HEAD: `d12bf15ecfbe8b901c358b5e6dbc82b0103c75b0`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1003_central_t_distribution.md](review-logs/review_audit_1003_central_t_distribution.md)
+
+### 要約
+
+dt/pt/qtのdf・確率境界、±Infinity、tiny/huge df、x² overflow、beta引数のscale、log/linear tail、Newton反転を静的に確認。qtの確率端点をdf<=0検証より先に扱う順序はRのqt.cと一致することを確認し、誤検出を回避した。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Rソースの処理順を参照したが、Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1004 — Central F distribution
+
+- 対象: `src/distributions/f.ts` の central `df/pf/qf` と incomplete-beta / gamma-limit / quantile inversion依存部
+- 監査時 HEAD: `3d3dac9a464fc0e8a934d938e827d3a2f1f63bbc`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1004_f_distribution.md](review-logs/review_audit_1004_f_distribution.md)
+
+### 要約
+
+df/pf/qfの支持域端、片側/両側無限df、tiny shape、m*x overflow/underflow、2^600 scaling、incomplete-betaのtail、gamma極限、quantileの0/Infinity判定を静的に確認。既存 #32/#116/#493 の修正経路が現行ソースに存在することを確認し、新規Issueは確定しなかった。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1005 — Gamma distribution density, CDF and quantile
+
+- 対象: `src/distributions/gamma.ts`、incomplete-gamma / inverse-gamma / invert / Loader / DD依存部
+- 監査時 HEAD: `71e2cec35e404a0d67513abf10f658a3f6088afc`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1005_gamma_distribution.md](review-logs/review_audit_1005_gamma_distribution.md)
+
+### 要約
+
+dgamma/pgamma/qgammaのshape/scale/rate境界、x/scaleのsubnormal・overflow、tiny shapeのDD log、Poisson関係式、tail補正、inverse gamma初期値と反転を静的に確認。既存 #245/#368 とRとの差異文書を照合し、意図的な仕様差をIssue化せず。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1006 — Exponential distribution and infinite-rate endpoints
+
+- 対象: `src/distributions/exponential.ts` と dpq / DD exponential helpers
+- 監査時 HEAD: `4d0429d487fcde0a8806707616a5f01c3aa376b6`
+- 判定: 新規不具合1件を確認しIssue登録
+- Issue: [#511 qexp returns infinite endpoints when rate = Infinity, unlike R's scale-zero result](https://github.com/numero-uno-jpn/rStats.js/issues/511)
+- 詳細: [review_audit_1006_exponential_endpoints.md](review-logs/review_audit_1006_exponential_endpoints.md)
+
+### 要約
+
+dexp/pexp/qexpのrate=0/Infinity、x/qの支持域端、DD積、subnormal・overflow、lower/upper・log tailを確認。qexpは一般的な確率境界をrate検査より先に返すため、rate=Infinityの端点でRと異なることを確認し、Issue #511に登録した。
+
+### 再現入力
+
+```ts
+qexp(1, { rate: Infinity });
+qexp(0, { rate: Infinity, lowerTail: false });
+```
+
+### 検証範囲・制約
+
+- 固定入力による静的な制御フロー追跡。Rのqexp.cソースを参照。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1007 — Weibull distribution endpoints and extreme scaling
+
+- 対象: `src/distributions/weibull.ts` と DD exponential / dpq helpers
+- 監査時 HEAD: `c512b64d8945499662a6e457c024bd9b85c81cc6`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1007_weibull_distribution.md](review-logs/review_audit_1007_weibull_distribution.md)
+
+### 要約
+
+dweibull/pweibull/qweibullのshape/scale端点、±Infinity、scale=Infinityの極限、subnormal/overflow、DD log・expm1/log1mExp、quantile境界を静的に確認。既存 #111/#408/#451 と仕様差文書を照合し、別領域の問題や意図的差異を重複Issue化しなかった。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1008 — Logistic distribution
+
+- 対象: `src/distributions/logistic.ts` と standardize / location-scale helpers
+- 監査時 HEAD: `abee37542a29c4ea31385eac3bc2427f627f264b`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1008_logistic_distribution.md](review-logs/review_audit_1008_logistic_distribution.md)
+
+### 要約
+
+dlogis/plogis/qlogisのscale<=0/0/Infinity、±Infinity、差分overflow、subnormal density、upper/lower・log tail、logitの端点を静的に確認。既存 #109/#415 とRのqlogis.cを照合し、random generatorの別問題を誤って重複登録しなかった。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1009 — Cauchy distribution extreme tails and location-scale boundaries
+
+- 対象: `src/distributions/cauchy.ts` と location-scale / DD helpers
+- 監査時 HEAD: `c8ad712ea9c2f8b69c774246124fe92e0c119e5d`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1009_cauchy_distribution.md](review-logs/review_audit_1009_cauchy_distribution.md)
+
+### 要約
+
+dcauchy/pcauchy/qcauchyのscale境界、差分overflow、subnormal scale、tiny tail、frexp復元、locationScaleを静的に確認。Rのqcauchy.cの引数検査順と差異文書を照合し、scale=Infinityの意図的差異を誤検出しなかった。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1010 — Beta distribution support boundaries and degenerate shapes
+
+- 対象: `src/distributions/beta.ts`、incomplete-beta / Loader / continuous quantile inversion
+- 監査時 HEAD: `796ea76ca11809c772893331c78669014fa2a3a1`
+- 判定: 新規不具合1件を確認しIssue登録
+- Issue: [#512 pbeta checks q < 0 before zero-shape point masses, reversing R's endpoint behavior](https://github.com/numero-uno-jpn/rStats.js/issues/512)
+- 詳細: [review_audit_1010_beta_distribution.md](review-logs/review_audit_1010_beta_distribution.md)
+
+### 要約
+
+dbeta/pbeta/qbetaの支持域端、zero/infinite shape、point mass、DD密度、incomplete-beta、左右半区間quantile inversionを静的に確認。pbetaはq<0をpoint massより先に判定し、Rと結果が異なる固定再現例を確認したためIssue #512に登録。
+
+### 再現入力
+
+```ts
+pbeta(-1, 0, 2); // current 0; R 1
+pbeta(-1, 0, 0); // current 0; R 0.5
+pbeta(-1, 0, 2, { lowerTail: false }); // current 1; R 0
+```
+
+### 検証範囲・制約
+
+- 固定入力による静的な制御フロー追跡。Rのpbeta.cソースを参照。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1011 — Central and noncentral chi-square distribution
+
+- 対象: `src/distributions/chisq.ts`, `src/distributions/nchisq.ts`、Poisson mixture / Bessel asymptotic / gamma-tail / quantile inversion helpers
+- 監査時 HEAD: `2343c76c176c25fa16f68b4a0a721ebee2814de6`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1011_chisq_distribution.md](review-logs/review_audit_1011_chisq_distribution.md)
+
+### 要約
+
+central/noncentral chi-squareのdf/ncp境界、df=0原点のpoint mass、subnormal x/2、Poisson mixture recurrence、Bessel Hankel/Debye切替、Chernoff far-tail、quantile bracketとdouble探索を静的に確認。既存 #26/#115/#147/#157 のガードを追跡し、新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Rのdnchisq.c、pnchisq.c、qnchisq.cを参照。Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1012 — Noncentral Student t distribution
+
+- 対象: `src/distributions/nt.ts`、normal/gamma special functions、adaptive integration、continuous quantile inversion
+- 監査時 HEAD: `243d341742abc41566ca9d617cb3b50f8d6ad058`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1012_noncentral_t.md](review-logs/review_audit_1012_noncentral_t.md)
+
+### 要約
+
+dnt/pnt/qntのdf・ncp境界、±Infinity、最小subnormal df、巨大df極限、far-tail power law、Laplace/台形積分、Mills ratio、gammaLogのsubnormal経路、quantile符号反転を静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1013 — Noncentral beta and noncentral F distributions
+
+- 対象: `src/distributions/nbeta.ts` の `dnbeta1/pnbeta1/qnbeta1` と `dnf1/pnf1/qnf1`、Poisson mixture / extreme-parameter integral / noncentral chi-square / gamma helpers
+- 監査時 HEAD: `49434af8a1fcf418c097365fa6b3115f3e18f135`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1013_noncentral_beta_f.md](review-logs/review_audit_1013_noncentral_beta_f.md)
+
+### 要約
+
+noncentral beta/Fの端点、j=0 mixture成分、subnormal shape/ncp、DD変換、巨大df2のnoncentral-chi-square極限、Chernoff far-tail、quantile double-grid探索を静的に確認。既存 #63/#96/#114/#135/#158/#493とrandom APIの#420/#421を照合し、新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Rのpnbeta.c端点処理を参照。Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #1014 — Log-normal distribution
+
+- 対象: `src/distributions/lognormal.ts`、normal CDF/quantile、DD log/exp、erfcx helpers
+- 監査時 HEAD: `7a069be38f70543a9b74f7548f984e1280cf002a`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1014_lognormal_distribution.md](review-logs/review_audit_1014_lognormal_distribution.md)
+
+### 要約
+
+dlnorm/plnorm/qlnormのx・sdlog・meanlog端点、非有限値、subnormal x、巨大sdlog、z² overflow、DD exponent、erfcx tail、quantile Newton補正を静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
