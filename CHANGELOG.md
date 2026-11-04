@@ -24,6 +24,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
     `kruskalTest`, `flignerTest`, `bartlettTest`, `onewayTest`, `friedmanTest`, `quadeTest`, `corTest`): a formula of
     the wrong form for the test is a TypeError. A grouping factor without exactly 2 levels and a block design that is
     not unreplicated and complete stay an `Error` (data whose result is not defined).
+- `steelTest` is removed. It only reproduced the errors of PMCMRplus 1.9.12's `steelTest`, which fails on every input,
+  and never returned a value; Steel's many-to-one rank test is `manyOneUTest` (its normal approximation).
 
 ### Added
 

@@ -247,7 +247,6 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `rstandard()` | `glmRstandard` | Standardized deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia test for normality. |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
-| `PMCMRplus::steelTest()` | `steelTest` | Steel's many-to-one rank test. |
 | `summary()` | `aovSummary` | The table of an analysis of variance fitted by `aov`. |
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |
 | `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |

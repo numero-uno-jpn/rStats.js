@@ -138,7 +138,6 @@ export {
   dunnettTest,
   gamesHowellTest,
   tukeyTest,
-  steelTest,
   manyOneUTest,
   dunnTest,
   glhtDunnett,

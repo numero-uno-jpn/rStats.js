@@ -33,8 +33,6 @@ const names = Object.keys(scope);
  * (with R results from `npm run demo:r`) are added when the next version is tagged; until then they are listed here
  */
 const NOT_IN_DEMO_YET: string[] = [];
-/** Exports that only reproduce R's errors (PMCMRplus 1.9.12's steelTest fails on every input), so no example can show a value */
-const NO_DEMO: string[] = ["steelTest"];
 const fns = names.map((n) => scope[n]);
 
 /** Evaluates an example's js with every export in scope and flattens the result to numbers */
@@ -68,7 +66,7 @@ describe("demo examples", () => {
       .filter((s) => s && !s.startsWith("type "));
     expect(exported.sort()).toEqual([...names].sort());
     const used = new Set(examples.flatMap((e) => e.js.match(/[A-Za-z_$][\w$]*/g) ?? []));
-    expect(exported.filter((n) => !used.has(n) && !NOT_IN_DEMO_YET.includes(n) && !NO_DEMO.includes(n))).toEqual([]);
+    expect(exported.filter((n) => !used.has(n) && !NOT_IN_DEMO_YET.includes(n))).toEqual([]);
   });
 
   for (const e of examples) {

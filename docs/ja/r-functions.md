@@ -247,7 +247,6 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `rstandard()` | `glmRstandard` | `glm` の当てはめの標準化逸脱度残差 (事前重みが 0 でない行について) |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia の正規性検定 |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk の正規性検定 |
-| `PMCMRplus::steelTest()` | `steelTest` | Steel の多対一順位検定 |
 | `summary()` | `aovSummary` | `aov` で当てはめた分散分析の表 |
 | `summary()` | `glmSummary` | `glm` で当てはめた一般化線形モデルの要約: 分散パラメータ、係数の表、推定値の共分散 |
 | `survival::survdiff()` | `survdiff` | 生存曲線の差の検定: Harrington と Fleming の G-rho 族 (`rho = 0` でログランク検定) |

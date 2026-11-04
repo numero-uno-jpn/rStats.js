@@ -7,7 +7,6 @@ import {
   kwAllPairsDunnTest,
   kwManyOneDunnTest,
   manyOneUTest,
-  steelTest,
   tukeyTest,
   type Alternative,
   type PMCMRResult,
@@ -26,15 +25,15 @@ const RANGE_P: Record<number, number[]> = {
   0: [2],
   2: [2, 3],
   3: [2],
-  17: [0, 4, 8],
-  19: [0, 3, 4, 7, 8],
-  20: [0, 4, 6],
-  34: [0, 4, 5, 8, 10, 12, 13],
-  36: [0, 4, 5, 8, 9, 10, 12, 13, 14, 15],
-  37: [4, 5, 8, 9, 10, 12, 13, 14, 15],
-  51: [2],
-  53: [0, 2, 3],
-  54: [0, 2, 3],
+  14: [0, 4, 8],
+  16: [0, 3, 4, 7, 8],
+  17: [0, 4, 6],
+  28: [0, 4, 5, 8, 10, 12, 13],
+  30: [0, 4, 5, 8, 9, 10, 12, 13, 14, 15],
+  31: [4, 5, 8, 9, 10, 12, 13, 14, 15],
+  42: [2],
+  44: [0, 2, 3],
+  45: [0, 2, 3],
 };
 const KNOWN: McompKnownDifference[] = Object.entries(RANGE_P).flatMap(([c, idx]) =>
   idx.map((index) => ({ case: Number(c), field: "pValue", index, reason: "R's ptukey is accurate to only about 8 digits" })),
@@ -58,8 +57,6 @@ function run(a: Record<string, unknown>): PMCMRResult {
       return gamesHowellTest(x, g);
     case "tukeyTest":
       return tukeyTest(x, g);
-    case "steelTest":
-      return steelTest(x, g, alt);
     case "manyOneUTest":
       return manyOneUTest(x, g, { ...alt, ...adj });
     default:

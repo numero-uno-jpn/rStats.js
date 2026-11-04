@@ -4,7 +4,7 @@ suppressPackageStartupMessages({library(PMCMRplus); library(dunn.test); library(
 # Multiple comparisons (ROADMAP: Steel-Dwass, Dunn, Dunnett, Steel). Fixtures, one case per row of `cases`:
 #   mcompPMCMR  (reference: the exact p-values of dunnettTest and of the single-step kwManyOneDunnTest and manyOneUTest, and the
 #               studentized-range p-values of dscfAllPairsTest, gamesHowellTest and tukeyTest to full precision)
-#               PMCMRplus: fn one of dscfAllPairsTest (Steel-Dwass-Critchlow-Fligner), steelTest (Steel's many-one),
+#               PMCMRplus: fn one of dscfAllPairsTest (Steel-Dwass-Critchlow-Fligner),
 #               kwAllPairsDunnTest, kwManyOneDunnTest, dunnettTest, gamesHowellTest, tukeyTest, manyOneUTest; args x (values), g
 #               (group labels), and p.adjust.method / alternative where given. Written: method, statistic and
 #               p.value (matrices as arrays of rows, NA for the empty cells), rowNames, colNames, p.adjust.method.
@@ -16,8 +16,8 @@ suppressPackageStartupMessages({library(PMCMRplus); library(dunn.test); library(
 #               the exact values follow from a one-dimensional integral, see ROADMAP), and PMCMRplus::pDunnett-free
 #               reference p-values computed by that integral ("reference").
 # The groups are given as labels; the first level (sorted) is the control for the many-one tests. PMCMRplus 1.9.12's
-# steelTest fails on every input here (two-sided is not allowed; balanced data: "'data' must be of a vector type";
-# unbalanced: "only valid for balanced designs"), so its cases record only these errors.
+# steelTest is not covered: it fails on every input (two-sided is not allowed; balanced data: "'data' must be of a
+# vector type"; unbalanced: "only valid for balanced designs"), and rStats.js does not export it.
 
 set.seed(20261120)
 mkg <- function(sizes, shifts, sd = 1) {
@@ -75,7 +75,7 @@ addp <- function(...) pcases[[length(pcases) + 1]] <<- list(...)
 for (d in datasets) {
   for (fn in c("dscfAllPairsTest", "kwAllPairsDunnTest", "gamesHowellTest", "tukeyTest")) addp(fn = fn, x = I(d$x), g = I(d$g))
   for (adj in c("holm", "bonferroni", "none", "BH")) addp(fn = "kwAllPairsDunnTest", x = I(d$x), g = I(d$g), p.adjust.method = adj)
-  for (fn in c("steelTest", "kwManyOneDunnTest", "dunnettTest")) for (alt in c("two.sided", "greater", "less"))
+  for (fn in c("kwManyOneDunnTest", "dunnettTest")) for (alt in c("two.sided", "greater", "less"))
     addp(fn = fn, x = I(d$x), g = I(d$g), alternative = alt)
 }
 # manyOneUTest (Steel's many-one rank test in its normal approximation: Wilcoxon-Mann-Whitney z of each group against

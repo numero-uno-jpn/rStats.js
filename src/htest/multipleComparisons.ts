@@ -1,5 +1,5 @@
 // Multiple comparisons after a one-way layout: PMCMRplus's dscfAllPairsTest, kwAllPairsDunnTest, kwManyOneDunnTest,
-// dunnettTest, gamesHowellTest, tukeyTest, steelTest and manyOneUTest, dunn.test's dunn.test and multcomp's Dunnett contrasts
+// dunnettTest, gamesHowellTest, tukeyTest and manyOneUTest, dunn.test's dunn.test and multcomp's Dunnett contrasts
 // (summary(glht(aov(y ~ g), mcp(g = "Dunnett")))).
 //
 // Written for rStats.js from the published statistics and the behaviour described in oracle/mcomp-behaviour.md (no
@@ -422,38 +422,6 @@ export function tukeyTest(x: Sample, g: readonly GroupLabel[]): PMCMRResult {
   const q = lowerTable(d.k, (i, j) => (m[i]! - m[j]!) / Math.sqrt((s2 * (1 / d.n[i]! + 1 / d.n[j]!)) / 2));
   const p = q.map((row) => row.map((v) => (Number.isNaN(v) ? NaN : upperRange(v, d.k, df))));
   return allPairs(d, "Tukey's test", q, p, "single-step");
-}
-
-/**
- * Steel's many-to-one rank test. Equivalent to `PMCMRplus::steelTest()` in R. It behaves as `steelTest()` of
- * PMCMRplus 1.9.12 does: that fails on every input, so this reproduces its errors. A two-sided
- * alternative is rejected (`'arg' should be one of “greater”, “less”`), unequal group sizes give `Steel's test is
- * only valid for balanced designs.`, and balanced data the error PMCMRplus raises internally.
- *
- * @throws Always.
- *
- * @example
- * ```ts
- * const x = [1.2, 2.3, 1.8, 2.9, 3.1, 3.6, 4.0, 4.4, 5.2];
- * const g = ["a", "a", "a", "b", "b", "b", "c", "c", "c"];
- * const message = (() => {
- *   try {
- *     steelTest(x, g, { alternative: "greater" });
- *   } catch (e) {
- *     return (e as Error).message;
- *   }
- * })();
- * message; // "'data' must be of a vector type, was 'NULL'"
- * ```
- *
- * @category Multiple comparisons
- */
-export function steelTest(x: Sample, g: readonly GroupLabel[], options: ManyOneTestOptions = {}): never {
-  const alternative = options.alternative === undefined ? "greater" : matchAlternative(options.alternative);
-  if (alternative === "two.sided") throw new RangeError("'arg' should be one of “greater”, “less”");
-  const d = layout(x, g);
-  if (d.n.some((v) => v !== d.n[0])) throw new RangeError("Steel's test is only valid for balanced designs.");
-  throw new Error("'data' must be of a vector type, was 'NULL'");
 }
 
 /**

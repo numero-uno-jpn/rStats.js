@@ -25,7 +25,7 @@ read their source. Fixtures `mcompPMCMR`, `mcompDunn`, `mcompDunnett` (`oracle/m
 ## API
 
 One function per test, with R's names in camelCase: `dscfAllPairsTest`, `kwAllPairsDunnTest`,
-`kwManyOneDunnTest`, `dunnettTest`, `gamesHowellTest`, `tukeyTest`, `steelTest`, `manyOneUTest` (PMCMRplus), `dunnTest`
+`kwManyOneDunnTest`, `dunnettTest`, `gamesHowellTest`, `tukeyTest`, `manyOneUTest` (PMCMRplus), `dunnTest`
 (dunn.test), `glhtDunnett(x, g, { alternative })` (multcomp's `summary(glht(aov(y ~ g), mcp(g = "Dunnett")))`).
 Arguments `(x, g, options)` like the other k-sample tests
 (`src/htest/groups.ts`); options `pAdjustMethod`, `alternative` as in R (`"two.sided"`, `"greater"`, `"less"`).
@@ -72,9 +72,9 @@ the tie term `C = Σ (t³ − t) / (12 (N − 1))` over the tie groups t of the 
   in the fixture): the multivariate normal with correlations `sqrt(λ_i λ_j)`, `λ_i = n_i/(n_i + n_1)` (as Dunnett's
   with df = ∞): two-sided `P(max |Z_i| ≥ |z|)`, greater `P(max Z_i ≥ z)`, less `P(min Z_i ≤ z)`. Method: R's string
   (`"Wilcoxon, Mann, Whittney U-test"`, a newline, a tab, `"for multiple comparisons with one control"`). No warnings.
-- **steelTest**: PMCMRplus 1.9.12 fails on every input of the fixture (errors recorded); reproduce those errors for
-  those inputs (`'arg' should be one of “greater”, “less”` for two-sided, `Steel's test is only valid for balanced
-  designs.` for unequal sizes, and for balanced data the error string of the fixture).
+- **steelTest** is not covered: PMCMRplus 1.9.12's fails on every input (`'arg' should be one of “greater”, “less”`
+  for two-sided, `Steel's test is only valid for balanced designs.` for unequal sizes, and an internal error for
+  balanced data), so there is nothing to match. Steel's many-one rank test is `manyOneUTest`.
 
 ## dunn.test: `dunnTest(x, g, { method, altp })`
 
