@@ -49,7 +49,7 @@ import {
   tTestOf,
   type LmerSatterthwaite,
 } from "../src/models/lmerTest.js";
-import { Warnings } from "../src/models/glmFamily.js";
+import { Warnings } from "../src/internal/warnings.js";
 import { anovaHypotheses, anovaRowsOf, lmerAnova } from "../src/models/lmerAnova.js";
 import { num } from "./helpers/fixture.js";
 import { dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";

@@ -49,3 +49,6 @@ export { sample, sampleInt, type SampleOptions } from "../random/sample.js";
 export { rhyper } from "../random/hyper.js";
 export { r2dtable } from "../random/r2dtable.js";
 export { rinvgamma, rkumar, rpareto, rtriang, rlaplace, rarcsine } from "../random/extra.js";
+
+// The handler of R's warnings that the tests, models and fits return
+export { setWarningHandler, type WarningHandler } from "../internal/warnings.js";

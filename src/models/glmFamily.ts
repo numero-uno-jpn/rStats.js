@@ -12,6 +12,7 @@ import { dnorm, pnorm, qnorm } from "../distributions/normal.js";
 import { dpois1, nonInteger } from "../distributions/poisson.js";
 import { roundHalfEven } from "../internal/integer.js";
 import { ldexp } from "../internal/summary.js";
+import { warn, type Warnings } from "../internal/warnings.js";
 import { bd0 } from "../special/loader.js";
 import { log1pmx } from "../special/log1p.js";
 
@@ -117,29 +118,9 @@ const ALLOWED: Record<GlmFamilyName, readonly string[]> = {
 const positive = (eta: number) => Number.isFinite(eta) && eta > 0;
 const anyEta = () => true;
 
-/** Collects warnings in order of first appearance, each once (as the fixtures list R's warnings) */
-export class Warnings {
-  readonly list: string[] = [];
-  add(message: string): void {
-    if (!this.list.includes(message)) this.list.push(message);
-  }
-}
-
-/** The warnings sink of the link functions that warn ("NaNs produced"); set while a fit runs */
-let currentWarnings: Warnings | undefined;
-export function withWarnings<T>(sink: Warnings, f: () => T): T {
-  const saved = currentWarnings;
-  currentWarnings = sink;
-  try {
-    return f();
-  } finally {
-    currentWarnings = saved;
-  }
-}
-
 /** Square root that warns as R's sqrt does when it produces NaN */
 function sqrtWarn(x: number): number {
-  if (x < 0) currentWarnings?.add("NaNs produced");
+  if (x < 0) warn("NaNs produced");
   return Math.sqrt(x);
 }
 
@@ -148,7 +129,7 @@ function sqrtWarn(x: number): number {
  * Used by the deviance contributions that R computes in R code (poisson, quasipoisson, Gamma, quasi "mu" and "mu^2")
  */
 function logWarn(x: number): number {
-  if (x < 0) currentWarnings?.add("NaNs produced");
+  if (x < 0) warn("NaNs produced");
   return Math.log(x);
 }
 

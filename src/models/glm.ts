@@ -17,14 +17,13 @@ import {
   familyAic,
   makeFamily,
   prepareResponse,
-  Warnings,
-  withWarnings,
   type Family,
   type GlmFamilyName,
   type GlmFamilySpec,
   type GlmLink,
 } from "./glmFamily.js";
 import { maxOf } from "../internal/extremes.js";
+import { reported, Warnings, withWarnings } from "../internal/warnings.js";
 import { optionalArgs } from "../internal/optionalArgs.js";
 import { ldexp, ldexpWide, scaleToUnit } from "../internal/summary.js";
 import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
@@ -615,7 +614,7 @@ export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: G
   // gaussian (and quasi with constant variance) on the identity link: fitted to the response scaled by a power of 2
   // (exact; src/internal/summary.ts), so that the deviance stays in range; see scaledView
   const k = !yIsMatrix && scalesWithResponse(familySpec) ? scaleToUnit([yGiven as number[]]).k : 0;
-  if (k === 0) return fitModel(model);
+  if (k === 0) return reported("glm", fitModel(model));
   const down = (v: number): number => ldexp(v, -k);
   const scaled = fitModel({
     ...model,
@@ -623,7 +622,7 @@ export function glm(x: MatrixInput | Sample, y: Sample | MatrixInput, options: G
     offset: offset.map(down),
     start: model.start?.map(down),
   });
-  return unscaledResult(scaled, k, { ...model, yScale: k });
+  return reported("glm", unscaledResult(scaled, k, { ...model, yScale: k }));
 }
 
 /** The fit of a model (the part of glm after its checks) */
@@ -908,7 +907,7 @@ export function glmSummary(given: GlmResult, options: GlmSummaryOptions = {}): G
   }
   const up = (v: number): number => ldexp(v, k);
   const up2 = (v: number): number => ldexp(v, 2 * k);
-  return {
+  return reported("glmSummary", {
     dispersion: s === 0 ? up2(dispersion) : options.dispersion!,
     estimate: estimate.map(up),
     // (with s != 0 in the original units at once: sqrt(inv m) 2^(s + k - e))
@@ -924,7 +923,7 @@ export function glmSummary(given: GlmResult, options: GlmSummaryOptions = {}): G
         : inv.map((r, j) => r.map((v, l) => ldexpWide(v * dispersion, 2 * (s + k) - e[j]! - e[l]!))),
     dfResidual: fit.dfResidual,
     warnings: warnings.list,
-  };
+  });
 }
 
 /**
@@ -1207,10 +1206,13 @@ export function glmPredict(
   // as predict.lm, which R's predict.glm calls (only for new data: the fitted rows are estimable)
   const nonEstimable = options.newdata === undefined ? [] : nonEstimableRows(fit.qr, rank, X);
   const extra = nonEstimable.length > 0 ? { nonEstimable, warnings: [NON_ESTIMABLE_WARNING] } : {};
-  if (type === "link") return { fit: eta.map(up), seFit: se.map(upSe), ...extra };
-  return withWarnings(new Warnings(), () => ({
-    fit: eta.map((e) => up(fam.linkinv(e))),
-    seFit: se.map((s, i) => upSe(s * Math.abs(fam.muEta(eta[i]!)))),
-    ...extra,
-  }));
+  if (type === "link") return reported("glmPredict", { fit: eta.map(up), seFit: se.map(upSe), ...extra });
+  return reported(
+    "glmPredict",
+    withWarnings(new Warnings(), () => ({
+      fit: eta.map((e) => up(fam.linkinv(e))),
+      seFit: se.map((s, i) => upSe(s * Math.abs(fam.muEta(eta[i]!)))),
+      ...extra,
+    })),
+  );
 }

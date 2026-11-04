@@ -11,6 +11,7 @@ import type { AovStrataFit, AovStratum } from "./aovStrata.js";
 import type { LmFormulaResult } from "./lm.js";
 import { nestedColumns } from "./estimable.js";
 import { scaledTables } from "./scaledTables.js";
+import { reported } from "../internal/warnings.js";
 
 /**
  * An analysis of variance table, in the form of R's printed table.
@@ -248,7 +249,7 @@ export function anova(fit: LmFormulaResult, ...fits: LmFormulaResult[]): AnovaTa
     const out = { ...t, warnings: mergeWarnings(fit.warnings, t.warnings) };
     const scaled = scaledTables.get(t);
     if (scaled !== undefined) scaledTables.set(out, scaled);
-    return out;
+    return reported("anova", out);
   }
   if (all.some((f) => f.rows.length !== fit.rows.length)) throw new Error("models were not all fitted to the same size of dataset");
   // F tests compare residual sums of squares of the same observations: the same rows, response values and weights (R
@@ -266,7 +267,7 @@ export function anova(fit: LmFormulaResult, ...fits: LmFormulaResult[]): AnovaTa
   }
   const tab = same.length === 1 ? sequentialTable(fit) : comparisonTable(same);
   tab.warnings = mergeWarnings(...all.map((f) => f.warnings), warnings, tab.warnings);
-  return tab;
+  return reported("anova", tab);
 }
 
 /**
@@ -310,7 +311,7 @@ export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | Ao
     const summary: AovStrataSummary = { strata: f.strata.filter((s) => s.stratum !== "Error: (Intercept)").map((s) => ({ ...s })), warnings: [...f.warnings] };
     const scaled = scaledTables.get(f);
     if (Array.isArray(scaled)) scaledTables.set(summary, scaled.filter((_, i) => f.strata[i]!.stratum !== "Error: (Intercept)"));
-    return summary;
+    return reported("aovSummary", summary);
   }
   if (typeof fit !== "object" || fit === null || !Array.isArray((fit as Partial<LmFormulaResult>).effects)) {
     throw new TypeError("aovSummary() needs a fit from aov() with a formula");
@@ -322,12 +323,12 @@ export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | Ao
     const out = { ...t, warnings };
     const scaled = scaledTables.get(t);
     if (scaled !== undefined) scaledTables.set(out, scaled);
-    return out;
+    return reported("aovSummary", out);
   }
-  return {
+  return reported("aovSummary", {
     colNames: t.colNames.slice(0, 3),
     rowNames: t.rowNames.slice(0, -1),
     table: t.table.slice(0, -1).map((r) => r.slice(0, 3)),
     warnings,
-  };
+  });
 }

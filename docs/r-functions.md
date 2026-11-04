@@ -153,6 +153,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | (not in R) | `parcsine` | Distribution function of the arcsine distribution on (a, b). |
 | (not in R) | `qarcsine` | Quantile function of the arcsine distribution on (a, b). |
 | (not in R) | `rarcsine` | Random numbers from the arcsine distribution on (a, b), by inversion. |
+| (not in R) | `setWarningHandler` | Sets the function that receives R's warnings, and returns the one it replaces. |
 
 ## Hypothesis tests and models (`rStats.js/tests`)
 

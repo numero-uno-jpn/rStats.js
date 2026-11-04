@@ -18,7 +18,7 @@ import { pt1, qt1 } from "../distributions/t.js";
 import { eigen } from "../linalg/eigen.js";
 import { ginv } from "../linalg/kappa.js";
 import { rangeExponent } from "../linalg/matrix.js";
-import { Warnings } from "./glmFamily.js";
+import { reported, Warnings } from "../internal/warnings.js";
 import { ldexp } from "../internal/summary.js";
 import { checkLmerOptions, lmerInternals, logicalOption, thetaColumnExponents, type LmerResult } from "./lmer.js";
 import { varparDerivatives } from "./mixedDerivatives.js";
@@ -359,12 +359,12 @@ export function lmerSummary(fit: LmerResult, options?: LmerSummaryOptions): Lmer
   const names = [...internals.structure.xColNames];
   if (ddf === "lme4") {
     const { estimate, stdError, tValue } = fit.coefTable;
-    return { ddf, names, estimate: [...estimate], stdError: [...stdError], tValue: [...tValue], messages: [], warnings: [] };
+    return reported("lmerSummary", { ddf, names, estimate: [...estimate], stdError: [...stdError], tValue: [...tValue], messages: [], warnings: [] });
   }
   const s = lmerSatterthwaite(fit);
   const p = names.length;
   const rows = names.map((_, i) => tTestOf(s, Array.from({ length: p }, (_, j) => (j === i ? 1 : 0)), 0));
-  return {
+  return reported("lmerSummary", {
     ddf,
     names,
     estimate: rows.map((r) => r.estimate),
@@ -374,7 +374,7 @@ export function lmerSummary(fit: LmerResult, options?: LmerSummaryOptions): Lmer
     pValue: rows.map((r) => r.pValue),
     messages: [],
     warnings: [...s.warnings],
-  };
+  });
 }
 
 /**
@@ -528,7 +528,7 @@ export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (re
   if (joint) {
     const row = p === 0 ? undefined : lmerFTest(fit, rows, rhs, warnings);
     const pick = (k: keyof LmerFRow): number[] => (row === undefined ? [] : [row[k]]);
-    return {
+    return reported("lmerContest", {
       joint: true,
       sumSq: pick("sumSq"),
       meanSq: pick("meanSq"),
@@ -538,7 +538,7 @@ export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (re
       pValue: pick("pValue"),
       messages: [],
       warnings: warnings.list,
-    };
+    });
   }
   const tests = p === 0 ? [] : rows.map((row, i) => tTestOf(s, row, rhs[i]!));
   const out: LmerContestT = {
@@ -556,5 +556,5 @@ export function lmerContest(fit: LmerResult, L: readonly number[] | readonly (re
     out.lower = tests.map((t, i) => t.estimate - t.stdError * quantiles[i]!);
     out.upper = tests.map((t, i) => t.estimate + t.stdError * quantiles[i]!);
   }
-  return out;
+  return reported("lmerContest", out);
 }

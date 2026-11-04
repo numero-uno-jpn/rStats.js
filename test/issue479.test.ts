@@ -1,7 +1,8 @@
 // Issue #479: the inverse Gaussian AIC where 2 pi deviance overflows although deviance / sum(w) is finite
 // (review_fix_log_issue479.md).
 import { describe, expect, it } from "vitest";
-import { familyAic, makeFamily, Warnings } from "../src/models/glmFamily.js";
+import { familyAic, makeFamily } from "../src/models/glmFamily.js";
+import { Warnings } from "../src/internal/warnings.js";
 
 const fam = makeFamily("inverse.gaussian");
 const aic = (y: number[], w: number[], dev: number): number => familyAic(fam, y, y, w, undefined, dev, new Warnings());

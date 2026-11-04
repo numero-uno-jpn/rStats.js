@@ -9,7 +9,7 @@
 import { pgamma1 } from "../distributions/gamma.js";
 import { checkOptions } from "../internal/checkOptions.js";
 import { nestedColumns } from "./estimable.js";
-import { Warnings } from "./glmFamily.js";
+import { reported, Warnings } from "../internal/warnings.js";
 import { checkLmerOptions, lmerInternals, lmerWithCriterion, logicalOption, type LmerResult } from "./lmer.js";
 import { fixedEffectsDescription, lmerHypotheses, type HypothesisType, type LmerHypotheses } from "./lmerHypotheses.js";
 import { fTestOf, lmerSatterthwaite, type LmerFRow, type LmerSatterthwaite } from "./lmerTest.js";
@@ -303,9 +303,9 @@ export function lmerAnova(
     checkOptions(options, ["refit", "names"], "lmerAnova");
     const checked = (options ?? {}) as LmerCompareOptions;
     // (the logical value is checked with the options, before the fits)
-    return compareFits(fit, { ...checked, refit: logicalOption(checked.refit, true) });
+    return reported("lmerAnova", compareFits(fit, { ...checked, refit: logicalOption(checked.refit, true) }));
   }
   checkLmerOptions("lmerAnova", options, ["ddf"]);
   checkOptions(options, ["type"], "lmerAnova");
-  return anovaOfFit(fit as LmerResult, (options ?? {}) as LmerAnovaOptions);
+  return reported("lmerAnova", anovaOfFit(fit as LmerResult, (options ?? {}) as LmerAnovaOptions));
 }
