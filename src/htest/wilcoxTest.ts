@@ -30,6 +30,7 @@ import {
   tieCounts,
 } from "../internal/summary.js";
 import { uniroot } from "../internal/uniroot.js";
+import { reported, Warnings } from "../internal/warnings.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { twoSampleData } from "./testFormula.js";
 import { matchAlternative, type Alternative, type HTest, type Sample } from "./types.js";
@@ -183,10 +184,9 @@ export function wilcoxTest(
     confInt,
     confLevel,
     tolRoot,
+    warnings: new Warnings(),
   };
-  return yv === undefined
-    ? signedRank(xs, exact, paired, ctx)
-    : rankSum(xs, yv, exact, ctx);
+  return reported("wilcoxTest", yv === undefined ? signedRank(xs, exact, paired, ctx) : rankSum(xs, yv, exact, ctx));
 }
 
 interface Context {
@@ -196,6 +196,8 @@ interface Context {
   confInt: boolean;
   confLevel: number;
   tolRoot: number;
+  /** R's warnings of the call, in R's order */
+  warnings: Warnings;
 }
 
 /** Continuity correction amount (two-sided: 0.5 in the direction of the statistic's sign) */
@@ -306,9 +308,23 @@ function signedRank(
     pValue,
     nullValue: mu,
     nullValueName: paired ? "location shift" : "location",
-    warnings: [],
+    warnings: ctx.warnings.list,
   };
-  if (!ctx.confInt) return result;
+  // R's warnings of the exact method it could not use (after those of the interval)
+  const exactWarnings = (): void => {
+    if (exact && ties) {
+      ctx.warnings.add("cannot compute exact p-value with ties");
+      if (ctx.confInt) ctx.warnings.add("cannot compute exact confidence interval with ties");
+    }
+    if (exact && zeroes) {
+      ctx.warnings.add("cannot compute exact p-value with zeroes");
+      if (ctx.confInt) ctx.warnings.add("cannot compute exact confidence interval with zeroes");
+    }
+  };
+  if (!ctx.confInt) {
+    exactWarnings();
+    return result;
+  }
   // The interval is on the original scale (add mu back to the data with zero differences removed)
   // (with half units, the observations other than mu themselves)
   // R also adds mu back. Where mu dwarfs the data, (x - mu) + mu loses the observations (rnorm(n, 0, 1e-200) with
@@ -325,6 +341,7 @@ function signedRank(
   const ci = useExact
     ? signedRankExactCI(xo, ctx)
     : signedRankNormalCI(xo, ctx);
+  exactWarnings();
   return { ...result, ...ci };
 }
 
@@ -375,9 +392,11 @@ function signedRankExactCI(x: readonly number[], ctx: Context): CIPart {
   const q = exactRank((p) => qsignrank1(p, n, true, false), alternative, a);
   const tail = psignrank1(q - 1, n, true, false);
   const achieved = alternative === "two.sided" ? 2 * tail : tail;
+  const notAchievable = achieved - a > a / 2;
+  if (notAchievable) ctx.warnings.add("requested conf.level not achievable");
   return {
     confInt: shape(alternative, walsh[q - 1]!, walsh[N - q]!),
-    confLevel: achieved - a > a / 2 ? 1 - signif2(achieved) : confLevel,
+    confLevel: notAchievable ? 1 - signif2(achieved) : confLevel,
     estimate: sortedMedian(walsh),
     estimateNames: "(pseudo)median",
   };
@@ -394,6 +413,8 @@ function signedRankNormalCI(x: readonly number[], ctx: Context): CIPart {
   const lo = minOf(x);
   const hi = maxOf(x);
   if (!Number.isFinite(lo) || !Number.isFinite(hi) || n === 1 || lo === hi) {
+    // R's statistic of x - lo has no non-zero values when all observations are equal (n = 1 included)
+    if (Number.isFinite(lo) && lo === hi) ctx.warnings.add("cannot compute confidence interval when all observations are zero or tied");
     return noInterval(alternative, midpoint(lo, hi), "midrange");
   }
   const stat = (d: number, corr: boolean): number => {
@@ -414,6 +435,7 @@ function signedRankNormalCI(x: readonly number[], ctx: Context): CIPart {
     a *= 2;
     enlarged = true;
   }
+  if (enlarged) ctx.warnings.add("requested conf.level not achievable");
   checkTolRoot(tolRoot);
   const crossing = (z: number): number =>
     uniroot((d) => stat(d, correct) - z, lo, hi, { tol: tolRoot, fLower: sLo - z, fUpper: sHi - z });
@@ -549,10 +571,14 @@ function rankSum(
     pValue,
     nullValue: mu,
     nullValueName: "location shift",
-    warnings: [],
+    warnings: ctx.warnings.list,
   };
-  if (!ctx.confInt) return result;
-  const ci = useExact ? rankSumExact(() => rankSumExactCI(x, y, ctx)) : rankSumNormalCI(x, y, ctx);
+  const ci = !ctx.confInt ? {} : useExact ? rankSumExact(() => rankSumExactCI(x, y, ctx)) : rankSumNormalCI(x, y, ctx);
+  // R's warnings of the exact method it could not use (after those of the interval)
+  if (exact && ties) {
+    ctx.warnings.add("cannot compute exact p-value with ties");
+    if (ctx.confInt) ctx.warnings.add("cannot compute exact confidence intervals with ties");
+  }
   return { ...result, ...ci };
 }
 
@@ -582,9 +608,11 @@ function rankSumExactCI(x: readonly number[], y: readonly number[], ctx: Context
   const q = exactRank((p) => qwilcox1(p, nx, ny, true, false), alternative, a);
   const tail = pwilcox1(q - 1, nx, ny, true, false);
   const achieved = alternative === "two.sided" ? 2 * tail : tail;
+  const notAchievable = achieved - a > a / 2;
+  if (notAchievable) ctx.warnings.add("Requested conf.level not achievable");
   return {
     confInt: shape(alternative, diffs[q - 1]!, diffs[M - q]!),
-    confLevel: achieved - a > a / 2 ? 1 - achieved : confLevel,
+    confLevel: notAchievable ? 1 - achieved : confLevel,
     estimate: sortedMedian(diffs),
     estimateNames: "difference in location",
   };

@@ -55,9 +55,12 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   checked first.
 - `HTest` and the other results of the tests, effect sizes, power and agreement functions, and `factanal`'s, have a
   required `warnings: string[]`: R's warnings, each once, in R's order, an empty array when there are none. Code that
-  builds such an object itself must add the field. The functions that had no `warnings` return an empty array (the
-  warnings R gives in the tests that lack them, such as `wilcoxTest`'s "cannot compute exact p-value with ties", are to
-  come).
+  builds such an object itself must add the field. The functions that had no `warnings` return an empty array, except
+  those that now give R's warnings where they were silent: `wilcoxTest` ("cannot compute exact p-value with ties" or
+  "with zeroes" and the same of the interval, when the exact method asked for or chosen by default cannot be used;
+  "requested conf.level not achievable", where the interval's confidence level is lowered; "cannot compute confidence
+  interval when all observations are zero or tied", where the interval is `NaN`). The warnings R gives in the other
+  tests that lack them are to come.
 
 ### Added
 
@@ -81,7 +84,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - `setWarningHandler(handler)` passes R's warnings to a function of the user's choice, as R prints them, such as
   ``setWarningHandler((message, source) => console.warn(`${source}: ${message}`))``: each call of a test, model or fit
   (and `pivotLonger` without `onWarning`) passes its warnings once it has its result, each distinct warning once, with
-  the name of the function called; a function that calls another, such as `pairwiseWilcoxTest`, passes them once under
+  the name of the function called (also the warnings the tests now give, such as `wilcoxTest`'s "cannot compute exact
+  p-value with ties"); a function that calls another, such as `pairwiseWilcoxTest`, passes them once under
   its own name. A fit's warnings are passed once, when it is fitted (`lm`, `glm`, `aov`, `lmer`, ...); a function
   given a fit or a table (`anova`, `aovSummary`, `Anova`, `glmSummary`, `etaSquared`, `lmerSummary`, ...) keeps them
   in its result's `warnings` but passes only those it adds. An error thrown by the handler propagates to the caller
