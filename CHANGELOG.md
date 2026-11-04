@@ -7,13 +7,81 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 0.16.0 - 2026-11-04
 
-Fixes from 68 rounds of an external numerical review and from GitHub issues #8 to #20. Each case is described, with
-R's value and rStats.js's, in [differences from R](docs/differences-from-r.md) and in the review logs
-(`docs/review-logs/review_fix_log_*.md`). Where R itself is wrong, rStats.js now returns the mathematically right value.
+Fixes from a numerical review and GitHub issues #8 to #513. Each case is described, with R's value and rStats.js's, in
+[differences from R](docs/differences-from-r.md) and in the review logs (`docs/review-logs/review_fix_log_*.md`).
+Where R itself is wrong, rStats.js now returns the mathematically right value; where R is right, the aim is R's bits.
+The rules behind these changes are listed under "Design rules" in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Breaking
+
+- More inputs that define no result are errors, also where R returns NaN, NA or a meaningless value (the distribution
+  functions keep returning NaN for invalid parameters, as R):
+  - Hypothesis tests: a simulation with `B = 0` or a fractional `B` in `chisqTest` and `fisherTest`; `TukeyHSD` and
+    `tukeyTest` with 0 or 1 residual degrees of freedom, and `TukeyHSD` with a NaN `confLevel` or one outside [0, 1];
+    `pairwiseTTest` (pooled SD) and `onewayTest(varEqual: true)` with a pooled within-group variance of 0, and the
+    Welch `onewayTest` with two or more constant groups; `mauchlyTest` with one tested dimension; `propTrendTest` with
+    no events or only events, fewer than two distinct scores or an infinite score; an infinite observation in `adTest`,
+    `cvmTest`, `lillieTest`, `sfTest` and `pearsonTest`; `flignerTest` with a group whose median is infinite;
+    `jonckheereTest` with fewer than 2 nonempty groups; `brunnerMunzelTest` with a sample of fewer than 2 values;
+    `cronbachAlpha` with one subject, `kappa2` with fewer than 2 complete pairs, `omega` with fewer than 2 variables;
+    `tTest` with a standard error of 0 also when the mean is 0; `powerTTest`, `powerPropTest` and `powerAnovaTest`
+    solving for n (or a proportion) where there is no effect.
+  - Models: `lm` with an infinite weight; `lmer` with a non-finite response or a non-finite column of a random-effects
+    term; `aov` with `Error()` and a non-finite response; `lmerContest` with NaN in `L` or `rhs`; `aovEz` with a factor
+    name given twice; `glm` with a two-column binomial response whose total overflows; a formula power beyond the
+    integer range (`y ~ (a + b)^1e999` did not return).
+  - Numerical methods: `uniroot` with `tol = 0` or an unknown `extendInt`; `optim` and `optimHess` with
+    `fnscale = ±Infinity`, a non-finite function value at an evaluated point or a non-finite analytic gradient;
+    `grad`, `jacobian` and `hessian` with a step that is not positive and finite, `r` above 512, or (`jacobian`)
+    results of differing lengths; `integrate` with `subdivisions` beyond the integer range; `ode` with a non-finite
+    time; `approx` with a `rule` other than 1 or 2 or an unknown `method`; `seq` with an infinite `by` pointing away
+    from `to`.
+  - Linear algebra: `lu` of a matrix with NaN or infinite values; `qr` and `qrSolve` with `tol = Infinity`; `qrX` with
+    `ncol` above the dimensions; `rcond` with a `uplo` other than `"U"` or `"L"`; `svd` with a negative or NaN `nu` or
+    `nv`.
+  - Descriptive statistics and data: `hist` with an infinite or NaN break; `cut` with fewer than 2 breaks; `pretty`
+    with invalid `shrinkSml`, `highUBias` or `u5Bias`; `mean` with `trim = NaN`; `tapply`, `split` and `aggregate`
+    with 2^31 cells or more; `pivotWider` and `pivotLonger` with tidyr's errors (an id column also selected as names
+    or values, an empty `namesFrom` or `valuesFrom`, `colsVary` and `namesVary` other than `"fastest"` or
+    `"slowest"`, a `namesPattern` with the wrong number of groups).
+- Computation limits: calls that would allocate more than 2^24 values in one array or run for more than about 10
+  seconds throw a RangeError before allocating or computing (exact tests point to `exact: false`). Before, they ran for
+  minutes, ran out of memory or did not return.
+  - Exact tests: `fisherTest` (2 × 2) and `mantelhaenTest(exact: true)` with a support above 2^24 values (and
+    `mantelhaenTest` with a total of 2^53 or more); `ksTest`'s exact one-sample p-value above 2^33 multiply-adds;
+    `ansariTest` and `jonckheereTest` above 2^24 values or 2^32 steps; `corTest(method: "kendall")` without ties for
+    n above 1290; `pAdjust(method: "hommel")` for n above 65536.
+  - Simulations and random numbers: `r2dtable` and the simulated p-values of `chisqTest` and `fisherTest` for tables
+    with a total above 2^24; `chisqTest`'s goodness-of-fit simulation above 2^27 draws (`B` times the total);
+    `rwilcox` with n above 2^24; `rsignrank` with n of 2^27 or more; weighted `sample` and `sampleInt` with a size of
+    2^31 or more.
+  - Distributions and special functions: `dwilcox`, `pwilcox` and `qwilcox` above 2^29 steps; `phyper` above 2^26
+    terms and `qhyper` with a standard deviation above 2^21; `besselJ`, `besselY`, `besselI` and `besselK` where the
+    series or recurrences would take more than 2^25 to 2^31 steps, or a phase that doubles cannot resolve.
+  - Linear algebra: `expm` with the Taylor and Padé methods where order × (n^3 + 64) exceeds 2^31.
+- Values that change in the ordinary range:
+  - Welch's degrees of freedom in `tTest`, `cohensD` and `gamesHowellTest`, and `tTest`'s interval ends and Welch
+    standard error, take R's (and the packages') forms and now match R's bits (they were 1 to 3 ulp off).
+  - `contr.poly` (the polynomial contrasts of `lmer`) with 15 levels or fewer comes from a recurrence that is within
+    5.8e-16 of the exact values; its last bits differ from R's, which were up to 2.8e-13 off.
+  - `chisqTest`'s standardized residuals (`stdres`) of a contingency table use exact complements of the margins
+    (R's form lost small margins); other tables change in the last bits.
+  - `distSummary` of the triangular distribution forms the variance and the skewness from differences without
+    cancellation.
+  - `Anova` takes a residual sum of squares below 1e-24 times the sum of squares of the response as 0 and returns the
+    table (car's behaviour) instead of an error.
+  - `pAdjust(method: "hommel")` with n = 2 is Hochberg's method, as R.
+  - `ksTest`'s exact two-sided one-sample p-value for D < 1/2 is summed from positive terms where it is below about
+    1e-2 (it had an absolute accuracy of 1e-15 only).
+  - `quadeTest` counts only the complete blocks (R counts the dropped ones as well).
+  - The Welch `onewayTest` with one constant group returns the limit as its variance tends to 0 (R: NaN).
+  - `cor` has NaN on the diagonal where a column's correlation with itself is undefined; group labels that mix
+    numbers and strings are strings, as R coerces them; `chisqTest` sorts the levels by code point; the two-sample
+    `wilcoxTest` with every value tied has p = 1.
+  - The Laplace distribution with `sigma = Infinity` is the limit (as the normal, logistic and Cauchy ones), and
+    `df(Infinity, ...)` is 0 (R: NaN); `qbinom` rounds a fractional `size` half to even, as R.
 
 - Inputs that define no result are errors (R returns NaN or a meaningless value): `mcnemarTest` on a table without
   discordant pairs, the signed rank `wilcoxTest` with only zero differences, `varTest` with two constant samples,
@@ -45,38 +113,65 @@ R's value and rStats.js's, in [differences from R](docs/differences-from-r.md) a
 - `glmSummary` names the statistics "z value" whenever the dispersion is not estimated (as R; a given dispersion was
   named "t value").
 
+### Added
+
+- Formula variable names may contain letters outside ASCII (`lm("転帰 ~ 年齢", ...)` was an error).
+- `modelMatrix` accepts a response of any type (it was "the response must be numeric"), as R's `model.matrix`.
+- `aov` accepts `Error()` terms in parentheses (`y ~ treatment + (Error(subject))`), as R.
+- `grad`, `jacobian` and `hessian` accept a negative step `eps`, as numDeriv.
+
+### Changed
+
+- `rwilcox` with m + n above 2^24 keeps only the swapped ranks instead of an array of m + n ranks (up to 8 GB), with the
+  same values and random stream.
+
 ### Fixed
 
-- Distributions: point masses and overflowing shapes of the beta family, `ppois`, `pbinom` and `pnbinom` beyond 2^53,
-  `phyper` and `qhyper` beyond 2^53, the discrete quantile search near the largest double, the location-scale
-  families near the ends of the range, noncentral distributions, `wilcox` and `signrank` tails, and `distSummary` of a
-  hypergeometric point mass (populations of 0 or 1 gave NaN moments).
-- Special functions: Bessel functions at subnormal and huge arguments and orders, `gamma` near its edges, `choose` near
-  overflow.
-- Random numbers: R's rounding of integer parameters, NaN for invalid parameters with R's stream kept, infinite draws of
-  `rgeom` and `rnbinom`, `r2dtable`'s limits, noncentral `rt` and `rf` with infinite df.
-- Descriptive statistics: moments, `sd`, `scale`, `cv` and `prcomp` scaled before centring (no overflow where the
-  deviations do), `omega`'s convergence warning.
-- Hypothesis tests: tail probabilities computed directly (`ksTest`'s exact p-value for D ≥ 1/2: 2.0e-20 where it was
-  0), intervals at confidence levels next to 1, `binomTest` and `poissonTest` at large counts, `quadeTest` and
-  `flignerTest` at any scale, McNemar's pairs without discordant counts, `survdiff` with a singular variance.
-- Linear models and ANOVA: standard errors independent of the units of x and of the weights (`lm` with a column of
-  1e-200 or weights below 1e-308), `aov` with `Error()` and large covariates, `anova` and `glmAnova` test only nested
-  fits (judged on the rows of positive weight), warnings of the fits carried to the tables, `mauchlyTest` checks.
+- Distributions (#19 to #493): point masses and overflowing shapes of the beta family, `ppois`, `pbinom` and `pnbinom`
+  beyond 2^53, `phyper` and `qhyper` beyond 2^53, the discrete quantile search near the largest double, the
+  location-scale families near the ends of the range, noncentral distributions, `wilcox` and `signrank` tails,
+  `distSummary` where its closed forms overflow or underflow (the beta, gamma, F, Weibull, Kumaraswamy, negative
+  binomial and hypergeometric families among others) and of a hypergeometric point mass (populations of 0 or 1 gave
+  NaN moments).
+- Special functions (#24 to #492): Bessel functions at subnormal and huge arguments and orders (Debye's expansion for
+  orders above 1000, the large-x expansion where its powers overflow), `gamma` near its edges, `choose` near overflow.
+- Random numbers (#30 to #428): R's rounding of integer parameters, NaN for invalid parameters with R's stream kept,
+  infinite draws of `rgeom` and `rnbinom`, `r2dtable`'s limits, noncentral `rt` and `rf` with infinite df, and `r`
+  functions at infinite parameters that return the limits of their `q` functions.
+- Descriptive statistics (#16 to #473): moments, `sd`, `scale`, `cv` and `prcomp` scaled before centring (no overflow
+  where the deviations do), `sum` and `mean` with values in three bands of magnitude that cancel, `weightedMean` with
+  products below the normal range, `hist`, `cut`, `ecdf` and `findInterval` with more than 2^31 values or breaks,
+  `omega`'s convergence warning.
+- Hypothesis tests (#41 to #507): tail probabilities computed directly (`ksTest`'s exact p-value for D ≥ 1/2: 2.0e-20
+  where it was 0), intervals at confidence levels next to 1, `binomTest` and `poissonTest` at large counts and beyond
+  2^53, `quadeTest` and `flignerTest` at any scale, `mcnemarTest` where a pair's counts overflow and its continuity
+  correction with fractional counts, `ansariTest`'s interval and estimate at the ends of the range, `wilcoxTest`'s
+  signed rank interval at a large `mu`, `survdiff` with a singular variance.
+- Linear models and ANOVA (#8 to #509): standard errors independent of the units of x and of the weights (`lm` with a
+  column of 1e-200 or weights below 1e-308), `aov` with `Error()` and large covariates, `anova` and `glmAnova` test
+  only nested fits (judged on the rows of positive weight), `aovEz` scaled on the kept subjects only, `predict` with
+  the exact inner product where the plain sum overflows, warnings of the fits carried to the tables, `mauchlyTest`
+  checks.
 - `glm`: hat values follow the rows of the last QR (a working weight that underflowed shifted them), the null deviance
   with weights of 1e308, `glmPredict`'s standard errors where the squares overflow, Rao's score test with the smaller
   model's intercept (as R), profile intervals of `glmConfint` whose restricted fits cycled in the last bits (NaN
-  limits), `glmAnova` warns about a model that has not converged, `glmRstandard` keeps small residuals of a rank-0 fit.
+  limits), `glmAnova` warns about a model that has not converged, `glmRstandard` keeps small residuals of a rank-0 fit,
+  deviances and AIC of the binomial, Poisson, Gamma and inverse Gaussian families where their terms overflow,
+  `glmPredict` with the exact inner product.
 - `lmer` and lmerTest: a response of 1e200 times ordinary data fits (#9), random slopes at any units of x (#11),
   Satterthwaite's degrees of freedom independent of the units of the response and of x (#10; a response times 1e6 made
   the df of x 7.4e8 instead of 31), a response with a large constant added is no longer taken for an exact fit (#12),
   and `lmerAnova` compares the fixed effects of fits as column spaces (#8).
 - `coxph`: a column dropped by the Cholesky factorisation no longer enters the solution (#13), tests in units of each
   covariate's scale, times near 1e308.
-- Linear algebra: `eigen`, `svd`, `schur` and `expm` at the ends of the range, triangular solves, `determinant`,
-  `matMul`, `rcond`, `qrSolve` and `kappa` on singular matrices.
-- Numerical methods: `integrate`, `optimize` and `uniroot` on intervals whose width overflows, `seq`, `approx` and
-  `spline` near overflow, `barylag` with nodes of any scale (#14).
+- Linear algebra (#55 to #465): `eigen`, `svd`, `schur`, `qr`, `solve` and `expm` at the ends of the range, triangular
+  solves, `determinant`, `matMul`, `crossprod` and `tcrossprod` with the exact inner product where the plain sum
+  overflows or falls below the normal range, `rcond`, `qrSolve` and `kappa` on singular matrices.
+- Numerical methods (#13 to #504): `integrate`, `optimize` and `uniroot` on intervals whose width overflows, `seq`,
+  `approx` and `spline` near overflow, `barylag` with nodes of any scale (#14), `splinefunH` and `hermiteInterp`
+  where differences overflow, `ode`, `optimHess` and `hessian` with large steps or values.
+- Data handling (#35 to #500): `pivotLonger` and `pivotWider` as tidyr (name transforms, separators after zero-width
+  matches, repeated columns), `merge` with key columns of different types.
 
 ## 0.15.3 - 2026-10-29
 
