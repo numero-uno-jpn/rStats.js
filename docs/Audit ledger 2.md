@@ -247,3 +247,48 @@ zero-weight 行でのみ異なる列があると、正weight行上では nested 
 - Issue #353 の再現データと原因記述を現行ソースに照合。
 - 静的監査のみ。Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #986 — cov/cor の欠損・定数列対角成分を再確認
+
+- 対象: `src/descriptive/cov.ts`
+- 監査時 HEAD: `a424c121644dc2dba660f63c8a271a0654e078c1`
+- 対象ソース blob: `574aaddc25d99f13ffac22f261962984d803c8df`
+- 判定: 今回確認した範囲で新規不具合なし
+- 関連既存Issue: #16（closed / not_planned）、#78（closed / completed）
+- 詳細: [review_audit_986_cov_cor_diagonal_recheck.md](review-logs/review_audit_986_cov_cor_diagonal_recheck.md)
+
+### 要約
+
+matrix-only の `cor()` の対角成分上書きを確認。現行コードは計算結果がNaNでない場合だけ1に置き換えるため、定数列や `use="everything"` の欠損列の未定義な自己相関は保持される。Issue #78 の無条件上書きは現行ソースで修正済み。pairwise complete のSpearman順位再計算も確認。
+
+### 検証範囲・制約
+
+- `src/descriptive/cov.ts`、`src/descriptive/rank.ts`、`src/htest/cor.ts` を確認。
+- Issue #16 / #78 と現行コードを照合。
+- 静的監査のみ。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
+
+
+---
+
+## Audit #987 — moment/shape summaries の境界条件を再確認
+
+- 対象: `src/descriptive/moments.ts`
+- 監査時 HEAD: `a424c121644dc2dba660f63c8a271a0654e078c1`
+- 対象ソース blob: `740c02eaceadd6f1454ecd7564bcd6f09f563b5b`
+- 判定: 今回確認した範囲で新規不具合なし
+- 詳細: [review_audit_987_moments_edge_recheck.md](review-logs/review_audit_987_moments_edge_recheck.md)
+
+### 要約
+
+skewness/kurtosis の空標本・単一標本・定数列・type 2最小標本数・type 3補正、geometricMean の負値/ゼロ、modes の空/全値一意、meanAD の中心指定、cv の小標本補正、scale の各center/scale組合せを確認。Rの `scale.default` のRMS分母 `max(1,n-1)` も公式定義と照合し、単一観測の処理は現行コードと整合。
+
+### 検証範囲・制約
+
+- `src/descriptive/moments.ts`、`src/descriptive/basic.ts`、`test/descriptive.test.ts`、`test/fixtures/scale.json` を確認。
+- Rのscale定義を公式ドキュメント・実装と照合。
+- 静的監査のみ。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
