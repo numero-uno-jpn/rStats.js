@@ -6,6 +6,7 @@
 // numbers; Brent is optimize(). Written for rStats.js from the specification (no R code was read or used).
 
 import { optimize } from "../numerics/integrate.js";
+import { ldexp, ldexpWide } from "../internal/summary.js";
 import { normRand, unifRand } from "../random/rng.js";
 import { lbfgsb } from "./lbfgsb.js";
 
@@ -592,7 +593,14 @@ function hessianOf(s: Scaled, par: readonly number[]): number[][] {
     p[i] = centre - step;
     const gradDown = s.g(p);
     p[i] = centre;
-    for (let j = 0; j < n; j++) hess[i]![j] = (fnscale * (gradUp[j]! - gradDown[j]!)) / (2 * step * parscale[i]! * parscale[j]!);
+    for (let j = 0; j < n; j++) {
+      const num = fnscale * (gradUp[j]! - gradDown[j]!);
+      const den = 2 * step * parscale[i]! * parscale[j]!;
+      const q = num / den;
+      // the difference or the product can overflow (or the product underflow) where the quotient is representable:
+      // only there form it from factors scaled by powers of 2 (R's optimhess overflows to 0 or Inf; #503)
+      hess[i]![j] = Number.isFinite(num) && Number.isFinite(den) && Number.isFinite(q) ? q : scaledQuotient(fnscale, gradUp[j]!, gradDown[j]!, step, parscale[i]!, parscale[j]!, q);
+    }
   }
   // symmetrise
   for (let i = 0; i < n; i++) {
@@ -603,6 +611,19 @@ function hessianOf(s: Scaled, par: readonly number[]): number[][] {
     }
   }
   return hess;
+}
+
+/**
+ * fnscale (up - down) / (2 step ps_i ps_j) with each factor scaled to [1, 2) by a power of 2 and the exponents added
+ * back at the end, so that no intermediate overflows or underflows. `direct` (the quotient as written) is kept when a
+ * factor is 0 or not finite
+ */
+function scaledQuotient(fnscale: number, up: number, down: number, step: number, pi: number, pj: number, direct: number): number {
+  const f = [up / 2 - down / 2, fnscale, step, pi, pj];
+  if (f.some((v) => v === 0 || !Number.isFinite(v))) return direct;
+  const e = f.map((v) => Math.floor(Math.log2(Math.abs(v))));
+  const m = f.map((v, k) => ldexp(v, -e[k]!));
+  return ldexpWide((m[0]! * m[1]!) / (m[2]! * m[3]! * m[4]!), e[0]! + e[1]! - e[2]! - e[3]! - e[4]!);
 }
 
 const METHODS: readonly OptimMethod[] = ["Nelder-Mead", "BFGS", "CG", "L-BFGS-B", "SANN", "Brent"];
