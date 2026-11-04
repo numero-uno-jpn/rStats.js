@@ -638,3 +638,23 @@ df/pf/qfの支持域端、片側/両側無限df、tiny shape、m*x overflow/unde
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、R oracleは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1005 — Gamma distribution density, CDF and quantile
+
+- 対象: `src/distributions/gamma.ts`、incomplete-gamma / inverse-gamma / invert / Loader / DD依存部
+- 監査時 HEAD: `71e2cec35e404a0d67513abf10f658a3f6088afc`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1005_gamma_distribution.md](review-logs/review_audit_1005_gamma_distribution.md)
+
+### 要約
+
+dgamma/pgamma/qgammaのshape/scale/rate境界、x/scaleのsubnormal・overflow、tiny shapeのDD log、Poisson関係式、tail補正、inverse gamma初期値と反転を静的に確認。既存 #245/#368 とRとの差異文書を照合し、意図的な仕様差をIssue化せず。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
