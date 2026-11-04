@@ -691,6 +691,13 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   I and K: the forward recurrence of K takes about nu steps, at most 2^28 (`besselK(3e9, 3e8, expon.scaled = TRUE)`
   gave Inf after 4.4 s). R's `besselJ` gives 0 with a warning from about nu = 1e6 on, and R's `besselY` is fast
   there (reviews 47 and 52).
+- **`dwilcox`, `pwilcox` and `qwilcox`** (and the exact p-values and intervals of the two-sample `wilcoxTest`) throw
+  a RangeError, before the table is built, where it would take more than 2^29 steps: min(m, n) passes over the table
+  of the smaller tail up to the value asked for (about 6 to 8 s; another exception to the NaN of distribution functions
+  for invalid parameters). `pwilcox(2e5, 3000, 3000)` (6e8 steps) took 5 s and throws, `pwilcox(1e5, 3000, 3000)`
+  takes 2.8 s, and m = n = 1e5 at q = 1e6 would take about 20 minutes. `wilcoxTest` adds "use exact: false" to the
+  errors of its exact distribution. R builds a three-dimensional table, which takes longer (1.5 s at
+  `pwilcox(2e4, 200, 200)`, where this takes 24 ms) and runs out of memory beyond about m = n = 500 (reviews 45, 46).
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)

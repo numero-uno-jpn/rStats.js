@@ -643,6 +643,12 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   負の整数でない次数の `besselJ`) は 2^28 回まで (1 回 45 ns ほど) です。I と K: K の前進漸化式が約 nu 回で、2^28 回まで
   です (`besselK(3e9, 3e8, expon.scaled = TRUE)` は 4.4 秒かけて Inf だった)。R の `besselJ` は nu = 1e6 ほどから警告付きで
   0 を返し、R の `besselY` はそこでも速く計算します (47・52 回目)。
+- **`dwilcox`・`pwilcox`・`qwilcox`** (と 2 標本の `wilcoxTest` の正確な p 値・区間) は、表を作るのに 2^29 手を超えるときは、
+  表を作る前に RangeError を投げます。手数は、求める値までの小さい側の裾の表の長さ × min(m, n) 段です (6〜8 秒ほど。
+  分布関数は不正なパラメータで NaN を返す、のもう 1 つの例外です)。`pwilcox(2e5, 3000, 3000)` (6e8 手) は 5 秒かかっていて
+  RangeError に、`pwilcox(1e5, 3000, 3000)` は 2.8 秒です。m = n = 1e5 の q = 1e6 は 20 分ほどかかる見込みでした。
+  `wilcoxTest` は正確な分布のエラーに "use exact: false" を付けます。R は 3 次元の表を作り、時間はもっとかかり
+  (`pwilcox(2e4, 200, 200)` で 1.5 秒、ここでは 24 ms)、m = n = 500 ほどを超えるとメモリが足りなくなります (45・46 回目)。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。

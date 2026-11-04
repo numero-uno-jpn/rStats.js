@@ -38,6 +38,11 @@ const STORE_SCALE = 960;
 const MAX_ENTRY = 2 ** 996;
 /** Maximum table length (computations needing more throw RangeError; about 800 MB for the three arrays during construction) */
 const MAX_LEN = 2 ** 25;
+/**
+ * Maximum work of a table, its length times the m passes (m <= n): about 10 to 15 ns per entry and pass on the
+ * development machine, so about 6 to 8 s (pwilcox(2e5, 3000, 3000) took 5 s; m = n = 1e5 at q = 1e6 about 20 minutes)
+ */
+const MAX_WORK = 2 ** 29;
 
 /** Where the largest entry of a pass falls below RESCALE_BELOW, the table is multiplied by 2^RESCALE_STEP */
 const RESCALE_BELOW = 2 ** 760;
@@ -77,6 +82,11 @@ let cached = 0;
 function buildTable(m: number, n: number, J: number): ProbTable {
   if (J + 1 > MAX_LEN) {
     throw new RangeError(`wilcox: m = ${m}, n = ${n} needs too large a table (${J + 1} entries)`);
+  }
+  if (m * (J + 1) > MAX_WORK) {
+    throw new RangeError(
+      `wilcox: m = ${m}, n = ${n} needs ${m * (J + 1)} steps for a table of ${J + 1} entries (at most 2^29)`,
+    );
   }
   const H = new Float64Array(J + 1);
   const L = new Float64Array(J + 1);
@@ -194,8 +204,10 @@ function table(m: number, n: number, J: number, low = false): ProbTable {
     return old;
   }
   const half = Math.floor((m * n) / 2);
-  // Growing a little at a time would cause repeated rebuilds, so double the size
-  const want = Math.min(half, Math.max(J, old === undefined ? 0 : 2 * old.len));
+  // Growing a little at a time would cause repeated rebuilds, so double the size (not beyond MAX_WORK, where s <= J
+  // alone is within it)
+  const grown = old === undefined ? 0 : Math.min(2 * old.len, Math.floor(MAX_WORK / m) - 1);
+  const want = Math.min(half, Math.max(J, grown));
   return store(key, buildTable(m, n, want), old);
 }
 
@@ -350,8 +362,9 @@ export function qwilcox1(p: number, m: number, n: number, lowerTail: boolean, lo
  *
  * Unlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.
  *
- * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated, or that the table
- * loses its accuracy (near the center for m = n >= 550 or so; the tails stay available).
+ * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated or would take more than
+ * 2^29 steps to build (min(m, n) times its length; about 6 to 8 s), or that the table loses its accuracy (near the
+ * center for m = n >= 550 or so; the tails stay available).
  *
  * @param x - Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param m - Size of the first sample.
@@ -377,8 +390,9 @@ export function dwilcox<T extends Vectorizable>(x: T, m: number, n: number, opti
  *
  * Unlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.
  *
- * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated, or that the table
- * loses its accuracy (near the center for m = n >= 550 or so; the tails stay available).
+ * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated or would take more than
+ * 2^29 steps to build (min(m, n) times its length; about 6 to 8 s), or that the table loses its accuracy (near the
+ * center for m = n >= 550 or so; the tails stay available).
  *
  * @param q - Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param m - Size of the first sample.
@@ -404,8 +418,9 @@ export function pwilcox<T extends Vectorizable>(q: T, m: number, n: number, opti
  *
  * Unlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.
  *
- * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated, or that the table
- * loses its accuracy (near the center for m = n >= 550 or so; the tails stay available).
+ * @throws RangeError if `m` and `n` are so large that the required table cannot be allocated or would take more than
+ * 2^29 steps to build (min(m, n) times its length; about 6 to 8 s), or that the table loses its accuracy (near the
+ * center for m = n >= 550 or so; the tails stay available).
  *
  * @param p - Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.
  * @param m - Size of the first sample.

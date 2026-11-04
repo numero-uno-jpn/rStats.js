@@ -504,16 +504,15 @@ function rankSum(
   const useExact = exact && !ties;
   if (useExact) {
     method = "Wilcoxon rank sum exact test";
-    if (alternative === "less") pValue = pwilcox1(W, nx, ny, true, false);
-    else if (alternative === "greater")
-      pValue = pwilcox1(W - 1, nx, ny, false, false);
-    else {
+    pValue = rankSumExact(() => {
+      if (alternative === "less") return pwilcox1(W, nx, ny, true, false);
+      if (alternative === "greater") return pwilcox1(W - 1, nx, ny, false, false);
       const p =
         W > (nx * ny) / 2
           ? pwilcox1(W - 1, nx, ny, false, false)
           : pwilcox1(W, nx, ny, true, false);
-      pValue = Math.min(1, 2 * p);
-    }
+      return Math.min(1, 2 * p);
+    });
   } else {
     method = `Wilcoxon rank sum test${correct ? " with continuity correction" : ""}`;
     // all values tied: W always equals its expectation, so p = 1 (R 4.5.2: 0 / 0 = NaN two-sided; R 4.6 returns 1)
@@ -532,8 +531,21 @@ function rankSum(
     nullValueName: "location shift",
   };
   if (!ctx.confInt) return result;
-  const ci = useExact ? rankSumExactCI(x, y, ctx) : rankSumNormalCI(x, y, ctx);
+  const ci = useExact ? rankSumExact(() => rankSumExactCI(x, y, ctx)) : rankSumNormalCI(x, y, ctx);
   return { ...result, ...ci };
+}
+
+/**
+ * f, with the RangeErrors of the exact distribution (a table too large or too long to build, or inaccurate near the
+ * center of large samples) pointing to exact: false
+ */
+function rankSumExact<T>(f: () => T): T {
+  try {
+    return f();
+  } catch (e) {
+    if (e instanceof RangeError && e.message.startsWith("wilcox:")) throw new RangeError(`${e.message}: use exact: false`);
+    throw e;
+  }
 }
 
 /** Exact interval from the order statistics of the differences x_i - y_j and their median as the estimate */
