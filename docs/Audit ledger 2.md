@@ -439,3 +439,22 @@ IRLSの開始値・反復・step-halving・収束/分離警告、正weight行の
 - 既存GLM/IRLS/binomial/offset/weight/link/family関連Issueを検索。
 - Vitest、Node、R実行は未実施。確証のない疑義はIssue化しない。
 - ソースコード変更なし。
+
+---
+
+## Audit #995 — survdiff の特異分散行列フォールバック
+
+- 対象: `src/models/survival.ts`, `src/models/tiedTimes.ts`
+- 監査時 HEAD: `53ee5d75c9ded25c1ab80dcd261470c84aacf290`
+- 判定: oracle仕様との不一致候補。Issue [#510](https://github.com/numero-uno-jpn/rStats.js/issues/510) 登録（R実行確認待ち）
+- 詳細: [review_audit_995_survdiff_singular_variance.md](review-logs/review_audit_995_survdiff_singular_variance.md)
+
+### 要約
+
+`survdiff()` は特異な `V_r` に対して直接solveが失敗すると一般化逆行列相当の `pseudoQuadratic()` にフォールバックする。oracleは選択群の分散部分行列を直接solveし、一般化逆行列を使わないと記載。再現データ `time=[1,1]`, `status=[1,1]`, `group=["a","b"]` では現行コードが `chisq=0, df=0, pvalue=NaN` を返す。Rでの正確な特異ケース挙動は未実行のためIssueでは確認待ちと明記。
+
+### 検証範囲・制約
+
+- KM、Greenwood、CI3種、中央値、G-rho重み、同時event/censor、risk set、分散式、timefixを静的に確認。
+- R fixtureとoracleを照合。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
