@@ -759,7 +759,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   (which R's integer `.Random.seed` cannot hold either), or whose words are not 32-bit integers. R takes a negative
   position as given, and its first draw then reads the position slot itself as a state word. A position of 0 or past
   624 regenerates on the next draw, as in R.
-- **`rwilcox`** throws "m + n must be at most 2147483647" where R's allocation of the ranks fails.
+- **`rwilcox`** throws "m + n must be at most 2147483647" where R's allocation of the ranks fails, and "n must be at
+  most 2^24 (16777216)" beyond that n, before drawing: it draws one uniform per rank of the second sample (3.4 s per
+  value at n = 2^24 + 5 before; 13 s at n = 2^24 with m = 1e9). R accepts n up to its integer range (4.8 s per value at
+  n = 1e7). Beyond 2^24 ranks in all (m + n), only the slots that the draws swapped are kept, in a Map, instead of an
+  array of all m + n ranks (up to 8 GB per value before), with the same uniforms and values as the array.
 - **`rsignrank`** throws "n must be less than 2^27 (134217728)" for n >= 2^27 (after rounding), before drawing (#407).
   It draws one uniform per rank, and 2^27 takes about 4 s (8 s with L'Ecuyer-CMRG); the bound is the domain of
   `dsignrank`. R runs up to 2147483647 (about a minute) and gives 0 without drawing beyond its integer range.

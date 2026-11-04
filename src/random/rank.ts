@@ -39,6 +39,29 @@ export function rsignrank(nn: number, n: number): number[] {
   });
 }
 
+/** Bound on n of rwilcox, and on the m + n ranks held in an array (beyond, the swapped ones in a Map) */
+const MAX_RWILCOX_N = 2 ** 24;
+
+/**
+ * The sum of n of the ranks 0..k-1 drawn without replacement, as the array version of rwilcox (the same uniforms and
+ * the same value) with only the slots that hold another rank than their own kept, in a Map: at most n - 1 of them, as
+ * the last draw updates none (an Int32Array of m + n, up to 8 GB, was filled for each value)
+ */
+function sparseRankSum(k: number, n: number): number {
+  const moved = new Map<number, number>();
+  let r = 0;
+  for (let i = 0; i < n; i++) {
+    const j = unifIndex(k);
+    r += moved.get(j) ?? j;
+    k--;
+    if (i === n - 1) break;
+    // x[j] = x[k]; the slot k is out of reach from now on
+    if (j !== k) moved.set(j, moved.get(k) ?? k);
+    moved.delete(k);
+  }
+  return r;
+}
+
 /**
  * Random numbers from the distribution of the Wilcoxon rank sum statistic.
  * Equivalent to R's `rwilcox()`.
@@ -47,6 +70,8 @@ export function rsignrank(nn: number, n: number): number[] {
  * @param m Number of observations in the first sample.
  * @param n Number of observations in the second sample.
  * @returns An array of `nn` values; `NaN` for invalid parameters.
+ * @throws RangeError if `m + n` exceeds 2147483647 or `n` exceeds 2^24 (one uniform is drawn per value of the second
+ * sample), before drawing.
  *
  * @example
  * ```ts
@@ -64,10 +89,13 @@ export function rwilcox(nn: number, m: number, n: number): number[] {
     const ny = roundHalfEven(n);
     if (mm < 0 || ny < 0) return NaN;
     if (mm === 0 || ny === 0) return 0;
-    // the m + n ranks are held in an array (R's allocation fails there too)
+    // R holds the m + n ranks in an array, whose allocation fails beyond its integer range
     if (!(mm + ny <= 2147483647)) throw new RangeError("m + n must be at most 2147483647");
+    // one uniform per rank drawn (about 3.5 s at 2^24), before drawing
+    if (ny > MAX_RWILCOX_N) throw new RangeError("n must be at most 2^24 (16777216)");
     // Choose n of 0..m+n-1 without replacement and subtract the minimum n(n-1)/2 from their sum
     let k = mm + ny;
+    if (k > MAX_RWILCOX_N) return sparseRankSum(k, ny) - (ny * (ny - 1)) / 2;
     const x = new Int32Array(k);
     for (let i = 0; i < k; i++) x[i] = i;
     let r = 0;
