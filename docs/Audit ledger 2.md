@@ -658,3 +658,31 @@ dgamma/pgamma/qgammaのshape/scale/rate境界、x/scaleのsubnormal・overflow�
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、R oracleは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1006 — Exponential distribution and infinite-rate endpoints
+
+- 対象: `src/distributions/exponential.ts` と dpq / DD exponential helpers
+- 監査時 HEAD: `4d0429d487fcde0a8806707616a5f01c3aa376b6`
+- 判定: 新規不具合1件を確認しIssue登録
+- Issue: [#511 qexp returns infinite endpoints when rate = Infinity, unlike R's scale-zero result](https://github.com/numero-uno-jpn/rStats.js/issues/511)
+- 詳細: [review_audit_1006_exponential_endpoints.md](review-logs/review_audit_1006_exponential_endpoints.md)
+
+### 要約
+
+dexp/pexp/qexpのrate=0/Infinity、x/qの支持域端、DD積、subnormal・overflow、lower/upper・log tailを確認。qexpは一般的な確率境界をrate検査より先に返すため、rate=Infinityの端点でRと異なることを確認し、Issue #511に登録した。
+
+### 再現入力
+
+```ts
+qexp(1, { rate: Infinity });
+qexp(0, { rate: Infinity, lowerTail: false });
+```
+
+### 検証範囲・制約
+
+- 固定入力による静的な制御フロー追跡。Rのqexp.cソースを参照。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
