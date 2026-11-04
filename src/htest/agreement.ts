@@ -221,6 +221,8 @@ export interface IccResult {
   value: number;
   /** F statistic of the test of ICC = r0. */
   Fvalue: number;
+  /** Alias of `Fvalue`: the same value. */
+  fValue: number;
   /** Numerator degrees of freedom of the F test. */
   df1: number;
   /** Denominator degrees of freedom of the F test. */
@@ -291,7 +293,7 @@ export function icc(ratings: readonly (readonly number[])[], options: IccOptions
       unit === "single"
         ? [(msr - ms) / (msr + (k - 1) * ms), (ratio * (1 - r0)) / (1 + (k - 1) * r0), (f: number) => (f - 1) / (f + k - 1)]
         : [(msr - ms) / msr, ratio * (1 - r0), (f: number) => 1 - 1 / f];
-    return { value, Fvalue, df1, df2, pValue: upper(Fvalue, df1, df2), lbound: bound(FL), ubound: bound(FU) };
+    return { value, Fvalue, fValue: Fvalue, df1, df2, pValue: upper(Fvalue, df1, df2), lbound: bound(FL), ubound: bound(FU) };
   }
   // two-way agreement: Satterthwaite's degrees of freedom v for the combination a MSc + b MSe
   const scale = unit === "single" ? k : 1;
@@ -314,7 +316,7 @@ export function icc(ratings: readonly (readonly number[])[], options: IccOptions
           (n * (FU * msr - mse)) / (k * msc + (k * n - k - n) * mse + n * FU * msr),
         ]
       : [(n * (msr - FL * mse)) / (FL * (msc - mse) + n * msr), (n * (FU * msr - mse)) / (msc - mse + n * FU * msr)];
-  return { value, Fvalue, df1, df2, pValue: upper(Fvalue, df1, df2), lbound, ubound };
+  return { value, Fvalue, fValue: Fvalue, df1, df2, pValue: upper(Fvalue, df1, df2), lbound, ubound };
 }
 
 /**

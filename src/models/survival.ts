@@ -51,6 +51,8 @@ export interface SurvdiffResult {
   df: number;
   /** Upper chi-squared tail on `df` degrees of freedom (NaN for df = 0: the data carry no information on the groups) */
   pvalue: number;
+  /** Alias of `pvalue`: the same value. */
+  pValue: number;
 }
 
 /**
@@ -94,6 +96,8 @@ export interface SurvfitResult {
   surv: number[];
   /** Standard error of S(t) (S times the standard error of log S) */
   stdErr: number[];
+  /** Alias of `stdErr`: the same array. */
+  stdError: number[];
   /** Lower limit of the pointwise confidence interval of S(t) */
   lower: number[];
   /** Upper limit of the pointwise confidence interval of S(t) */
@@ -248,7 +252,7 @@ export function survdiff(
     }
   }
   const pvalue = df === 0 ? NaN : pchisq(chisq, df, { lowerTail: false });
-  return { n, groups: labels, obs: observed, exp: expected, var: V, chisq, df, pvalue };
+  return { n, groups: labels, obs: observed, exp: expected, var: V, chisq, df, pvalue, pValue: pvalue };
 }
 
 /**
@@ -316,8 +320,9 @@ export function survfit(time: readonly number[], status: readonly number[], opti
   // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
   const a2 = (1 - confInt) / 2;
   const z = a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm(1 - (1 - confInt) / 2);
+  const stdErr: number[] = [];
   const out: SurvfitResult = {
-    strata: [], time: [], nRisk: [], nEvent: [], nCensor: [], surv: [], stdErr: [], lower: [], upper: [],
+    strata: [], time: [], nRisk: [], nEvent: [], nCensor: [], surv: [], stdErr, stdError: stdErr, lower: [], upper: [],
     median: [], medianRows: names,
   };
   names.forEach((name, g) => {

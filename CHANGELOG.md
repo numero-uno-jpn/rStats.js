@@ -46,6 +46,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - Each subpath exports the types its functions use, so they need no import from another subpath: `Sample` and
   `DataFrame` from `/descriptive` and `/linalg`, `Sample` from `/numerics`, `DataFrame` and `ContrastName` from
   `/mixed`, `MatrixInput` and `QR` from `/tests`.
+- Results whose fields keep the names of R or of a package get aliases with the names the other results use, as
+  ordinary fields with the same values (the old names stay): `pValue` for `survdiff`'s `pvalue`; `stdError`, `zValue`
+  and `pValue` for `coxph`'s `se`, `z` and `p`; `stdError`, `tValue` and `pValue` for `glhtDunnett`'s `se`, `t` and
+  `p`; `zValue`, `pValue` and `pAdjusted` for `dunnTest`'s `Z`, `P` and `PAdjusted`; `pAdjusted` for `TukeyHSD`'s
+  `pAdj`; `stdError` for the `stdErr` of `tTest` and `survfit`; `fValue` for `icc`'s `Fvalue`.
 
 ### Fixed
 

@@ -457,6 +457,12 @@ export interface DunnTestResult {
   P: number[];
   /** Adjusted p-values (no monotonicity step). */
   PAdjusted: number[];
+  /** Alias of `Z`: the same array. */
+  zValue: number[];
+  /** Alias of `P`: the same array. */
+  pValue: number[];
+  /** Alias of `PAdjusted`: the same array. */
+  pAdjusted: number[];
   /** Labels of the comparisons, `"<label j> - <label i>"`, in the order (2,1), (3,1), (3,2), (4,1), ... */
   comparisons: string[];
 }
@@ -494,7 +500,8 @@ export function dunnTest(x: Sample, g: readonly GroupLabel[], options: DunnTestO
     }
   }
   const P = Z.map((z) => (altp ? 2 : 1) * upperNormal(Math.abs(z)));
-  return { chi2, Z, P, PAdjusted: dunnAdjust(P, method), comparisons };
+  const PAdjusted = dunnAdjust(P, method);
+  return { chi2, Z, P, PAdjusted, zValue: Z, pValue: P, pAdjusted: PAdjusted, comparisons };
 }
 
 /** dunn.test's adjustments: each value by the factor of its rank (tied values: the same rank), capped at 1 */
@@ -571,6 +578,12 @@ export interface GlhtDunnettResult {
   t: number[];
   /** Simultaneous (single-step) p-values. */
   p: number[];
+  /** Alias of `se`: the same array. */
+  stdError: number[];
+  /** Alias of `t`: the same array. */
+  tValue: number[];
+  /** Alias of `p`: the same array. */
+  pValue: number[];
   /** Residual degrees of freedom, N - k. */
   df: number;
 }
@@ -609,5 +622,5 @@ export function glhtDunnett(x: Sample, g: readonly GroupLabel[], options: GlhtDu
       ? pDunnettUpper(v, lambda, df, true)
       : pDunnettUpper(alternative === "greater" ? v : -v, lambda, df, false),
   );
-  return { names: idx.map((j) => `${d.labels[j]} - ${d.labels[0]}`), estimate, se, t, p, df };
+  return { names: idx.map((j) => `${d.labels[j]} - ${d.labels[0]}`), estimate, se, t, p, stdError: se, tValue: t, pValue: p, df };
 }

@@ -71,6 +71,7 @@ htestSuite({
         estimate: back(r.estimate),
         nullValue: back(r.nullValue),
         stdErr: back(r.stdErr),
+        stdError: back(r.stdError),
       },
       reason,
     };

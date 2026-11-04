@@ -52,6 +52,8 @@ export interface TTestResult extends HTest {
   nullValue: number;
   /** Standard error of the mean (or difference), R's `stderr`. */
   stdErr: number;
+  /** Alias of `stdErr`: the same value. */
+  stdError: number;
 }
 
 
@@ -234,6 +236,7 @@ export function tTest(x: Sample | string, y?: Sample | TTestOptions | DataFrame,
     nullValue: mu,
     nullValueName,
     stdErr,
+    stdError: stdErr,
   };
 }
 

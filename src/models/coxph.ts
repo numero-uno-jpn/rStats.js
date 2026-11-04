@@ -103,6 +103,12 @@ export interface CoxphResult {
   z: number[];
   /** Two-sided p-values `Pr(>|z|)` */
   p: number[];
+  /** Alias of `se`: the same array. */
+  stdError: number[];
+  /** Alias of `z`: the same array. */
+  zValue: number[];
+  /** Alias of `p`: the same array. */
+  pValue: number[];
   /** Lower confidence limits of exp(coef) */
   lower: number[];
   /** Upper confidence limits of exp(coef) */
@@ -361,6 +367,9 @@ function zeroEventResult(rows: readonly (readonly number[])[], p: number): Coxph
   const n = rows.length;
   const nans = (): number[] => new Array<number>(p).fill(NaN);
   const test = chisqTest(0, 0);
+  const se = new Array<number>(p).fill(0);
+  const z = nans();
+  const pz = nans();
   return {
     coefficients: nans(),
     var: Array.from({ length: p }, () => new Array<number>(p).fill(0)),
@@ -372,9 +381,12 @@ function zeroEventResult(rows: readonly (readonly number[])[], p: number): Coxph
     n,
     nevent: 0,
     linearPredictors: new Array<number>(n).fill(0),
-    se: new Array<number>(p).fill(0),
-    z: nans(),
-    p: nans(),
+    se,
+    z,
+    p: pz,
+    stdError: se,
+    zValue: z,
+    pValue: pz,
     lower: nans(),
     upper: nans(),
     logtest: test,
@@ -670,6 +682,9 @@ export function coxph(
     se,
     z,
     p: pz,
+    stdError: se,
+    zValue: z,
+    pValue: pz,
     lower,
     upper,
     logtest: chisqTest(lr, k),

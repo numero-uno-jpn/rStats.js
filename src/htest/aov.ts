@@ -156,6 +156,8 @@ export interface TukeyHSDResult {
   upr: number[];
   /** p-values adjusted for the multiple comparisons. */
   pAdj: number[];
+  /** Alias of `pAdj`: the same array. */
+  pAdjusted: number[];
 }
 
 /**
@@ -203,7 +205,8 @@ export function TukeyHSD(
   const { ssWithin: ssw, mean: means, k: e } = groupMoments(groups);
   const mse = ssw / df;
   const q = qtukey(confLevel, k, df);
-  const out: TukeyHSDResult = { names: [], i: [], j: [], diff: [], lwr: [], upr: [], pAdj: [] };
+  const pAdj: number[] = [];
+  const out: TukeyHSDResult = { names: [], i: [], j: [], diff: [], lwr: [], upr: [], pAdj, pAdjusted: pAdj };
   for (let b = 0; b < k - 1; b++) {
     for (let a = b + 1; a < k; a++) {
       const diff = means[a]! - means[b]!;
