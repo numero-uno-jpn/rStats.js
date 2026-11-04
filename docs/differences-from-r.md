@@ -487,7 +487,10 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
   returns a result), a table without discordant pairs in `mcnemarTest`, only zero differences in the signed rank
   `wilcoxTest`, two constant samples in `varTest`, fractional counts in `chisqTest`'s simulation of tables (R returns
   NaN or truncates the margins), groups that are all constant in `dunnettTest`, `tukeyTest` and `glhtDunnett` (a
-  pooled variance of 0: R's p-values are 0 in `TukeyHSD` and PMCMRplus, 1 in multcomp's `glht`), and a step `eps` of 0 or a
+  pooled variance of 0: R's p-values are 0 in `TukeyHSD` and PMCMRplus, 1 in multcomp's `glht`), and in
+  `pairwiseTTest` with a pooled SD and `onewayTest` with `varEqual: true` (R's `pairwise.t.test` gives p 0, or NaN for
+  equal means, `oneway.test` F Inf and p 0; groups of one observation only: "no residual degrees of freedom", R NaN),
+  and a step `eps` of 0 or a
   non-finite `d`, `eps` or `zeroTol` in `grad`, `jacobian` and `hessian` (numDeriv's "simple" method gives NaN for
   `eps = 0`; `d = 0` is an error there too), a step d abs(x[i]) beyond the doubles (issue #213) or of 0 (x[i] = 0
   with `zeroTol: 0`, issue #246) in the same three (numDeriv: an error from `grad`'s check of f, NaN from `jacobian` and

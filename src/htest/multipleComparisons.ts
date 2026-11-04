@@ -176,11 +176,18 @@ function pooled(d: Layout): { m: number[]; s2: number; df: number; k: number } {
   const gm = groupMoments(d.groups);
   let df = 0;
   for (const n of gm.n) if (n > 1) df += n - 1;
-  // No inference without a residual variance (the statistics were +-Infinity, or NaN for equal means). The sum of
-  // squares is double-double, so it is exactly 0 only when every group is constant
-  if (df === 0) throw new RangeError("no residual degrees of freedom");
-  if (gm.ssWithin === 0) throw new RangeError("the pooled within-group variance is 0");
+  checkPooledVariance(df, gm.ssWithin);
   return { m: gm.mean, s2: gm.ssWithin / df, df: d.N - d.k, k: gm.k };
+}
+
+/**
+ * No inference without a residual variance (the statistics were +-Infinity, or NaN for equal means): the pooled
+ * comparisons here, pairwiseTTest with a pooled SD and onewayTest with equal variances. The sum of squares
+ * (groupMoments) is double-double, so it is exactly 0 only when every group is constant
+ */
+export function checkPooledVariance(df: number, ssWithin: number): void {
+  if (df === 0) throw new RangeError("no residual degrees of freedom");
+  if (ssWithin === 0) throw new RangeError("the pooled within-group variance is 0");
 }
 
 /**

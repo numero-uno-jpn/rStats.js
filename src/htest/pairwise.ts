@@ -10,6 +10,7 @@ import { pt1 } from "../distributions/t.js";
 import { levelText } from "../internal/levels.js";
 import { groupMoments } from "../internal/summary.js";
 import { compareLabels, factorLabels, type GroupLabel } from "./groups.js";
+import { checkPooledVariance } from "./multipleComparisons.js";
 import { pAdjust, type PAdjustMethod } from "./pAdjust.js";
 import { propTest } from "./propTest.js";
 import { tTest } from "./tTest.js";
@@ -140,6 +141,8 @@ export function pairwiseTTest(x: Sample, g: readonly GroupLabel[], options: Pair
     const means = gm.mean;
     let df = 0;
     for (const m of n) if (m > 1) df += m - 1;
+    // every group constant: an error, as tukeyTest (R's p-values 0, or NaN for equal means)
+    checkPooledVariance(df, gm.ssWithin);
     const sd = Math.sqrt(gm.ssWithin / df);
     compare = (i, j) => {
       const t = (means[i]! - means[j]!) / (sd * Math.sqrt(1 / n[i]! + 1 / n[j]!));

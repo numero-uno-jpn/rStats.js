@@ -11,6 +11,7 @@ import { groupMoments, ldexpWide } from "../internal/summary.js";
 import { swilkOneMinusW, swilkPValueFromOneMinusW } from "./core/shapiro.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { toGroups, type GroupLabel } from "./groups.js";
+import { checkPooledVariance } from "./multipleComparisons.js";
 import { onewayData } from "./testFormula.js";
 import type { HTest, Sample } from "./types.js";
 
@@ -110,6 +111,8 @@ export function onewayTest(
       within += (ni[i]! - 1) * vi[i]!;
     }
     df2 = N - k;
+    // every group constant: an error, as tukeyTest (R's F Inf and p 0, or NaN for equal means)
+    checkPooledVariance(df2, gm.ssWithin);
     statistic = between / (k - 1) / (within / df2);
   } else if (vi.some((v) => !(v >= MIN_NORMAL)) && (own = ownScaleMoments(raw)) !== undefined) {
     // A variance underflows (or is subnormal) on the common scale although no group is constant (#393; as #270 for
