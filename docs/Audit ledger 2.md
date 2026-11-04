@@ -1001,3 +1001,23 @@ const p = ptukey(q, 3, 12);
 - 静的な制御フロー追跡。分岐がこの入力で実際に発火するかは未確認。
 - Vitest、Node、R runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1022 — Geometric distribution and discrete quantile boundaries
+
+- 対象: `src/distributions/geometric.ts`、Loader binomial raw probability、DD arithmetic、discrete integer/fuzz helpers
+- 監査時 HEAD: `1e73a58c0fea50b34117f38cb1ad90d4d68382b9`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1022_geometric_distribution.md](review-logs/review_audit_1022_geometric_distribution.md)
+
+### 要約
+
+dgeom/pgeom/qgeomのprob境界、巨大整数、2^53超のx+1、subnormal prob、Loader DD累乗、upper-tail、logP、離散quantile jumpのfuzzを静的に確認。既存#327の補正を確認し、新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
