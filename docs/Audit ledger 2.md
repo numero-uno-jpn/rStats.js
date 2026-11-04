@@ -875,3 +875,23 @@ dunif/punif/qunifの支持域端、非有限range、min=max、max-min overflow�
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Rのdunif.c、punif.cを参照。Vitest、Node、R runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1016 — Triangular distribution
+
+- 対象: `src/distributions/triangular.ts`、dpq boundary helpers、midpoint helper
+- 監査時 HEAD: `51ac0d01795fe301c6428debd788e4862e91f111`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1016_triangular_distribution.md](review-logs/review_audit_1016_triangular_distribution.md)
+
+### 要約
+
+dtriang/ptriang/qtriangのmode端点、支持域端、wide interval scaling、subnormal tail/log、lower/upper tail、tiny-tail quantile、rounding clampを静的に確認。既存#428はrandom generatorの別問題と分離し、新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、extraDistr runtimeは未実施。
+- ソースコード変更なし。
