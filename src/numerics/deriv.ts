@@ -190,10 +190,14 @@ export function hessian(func: (x: number[]) => number, x: readonly number[], opt
     const a: number[] = [];
     let h = h0[i]!;
     for (let k = 0; k < r; k++) {
-      const num = func(shifted(xs, i, h)) - 2 * f0 + func(shifted(xs, i, -h));
+      const fp = func(shifted(xs, i, h));
+      const fm = func(shifted(xs, i, -h));
+      const num = fp - 2 * f0 + fm;
       // where h^2 overflows (h beyond 1.3e154), divided by h twice: a finite curvature was 0 or NaN (issue #214)
       const h2 = h ** 2;
-      a.push(Number.isFinite(h2) ? num / h2 : num / h / h);
+      // where the sum of finite values overflows (f(+-1e200) near 1e308), every term divided by h first (issue #504)
+      if (!Number.isFinite(num) && Number.isFinite(fp) && Number.isFinite(fm) && Number.isFinite(f0)) a.push((fp / h - 2 * (f0 / h) + fm / h) / h);
+      else a.push(Number.isFinite(h2) ? num / h2 : num / h / h);
       h /= 2;
     }
     diag.push(extrapolate(a));
@@ -208,9 +212,14 @@ export function hessian(func: (x: number[]) => number, x: readonly number[], opt
       for (let k = 0; k < r; k++) {
         const up = shifted(shifted(xs, i, hi), j, hj);
         const down = shifted(shifted(xs, i, -hi), j, -hj);
-        const num = func(up) - 2 * f0 + func(down);
+        const fu = func(up);
+        const fd = func(down);
+        const num = fu - 2 * f0 + fd;
         const den = 2 * hi * hj;
-        if (Number.isFinite(den) && Number.isFinite(hi ** 2) && Number.isFinite(hj ** 2)) a.push((num - diag[i]! * hi ** 2 - diag[j]! * hj ** 2) / den);
+        // where the sum of finite values overflows, every term divided by hi hj first (issue #504)
+        if (!Number.isFinite(num) && Number.isFinite(fu) && Number.isFinite(fd) && Number.isFinite(f0)) {
+          a.push((fu / hi / hj - 2 * (f0 / hi / hj) + fd / hi / hj - diag[i]! * (hi / hj) - diag[j]! * (hj / hi)) / 2);
+        } else if (Number.isFinite(den) && Number.isFinite(hi ** 2) && Number.isFinite(hj ** 2)) a.push((num - diag[i]! * hi ** 2 - diag[j]! * hj ** 2) / den);
         // where a squared step or 2 hi hj overflows, every term divided by hi hj first (issue #214)
         else a.push((num / hi / hj - diag[i]! * (hi / hj) - diag[j]! * (hj / hi)) / 2);
         hi /= 2;
