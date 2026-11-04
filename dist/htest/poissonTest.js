@@ -1,0 +1,224 @@
+// Exact Poisson tests (R's poisson.test): a rate against a hypothesized value, or the ratio of two rates.
+//
+// Written for rStats.js from the textbook construction and R's documented behaviour. One sample: the two-sided p-value
+// adds the probabilities of all counts no more likely than the observed one (relative slack 1e-7, as in binomTest), the
+// tail on the far side of the mode being located by a search over integers, and the interval is the exact (Garwood
+// 1936) one from gamma quantiles. Two samples: conditionally on the total, the first count is binomial with
+// probability r T1 / (r T1 + T2), so the test is binomTest's and its interval for p maps to the rate ratio through
+// p / (1 - p) T2 / T1.
+import { dpois1, ppois1 } from "../distributions/poisson.js";
+import { qgamma1 } from "../distributions/gamma.js";
+import { firstTrue, lastTrue } from "../internal/discrete.js";
+import { ldexp } from "../internal/summary.js";
+import { binomTestCounts } from "./binomTest.js";
+import { checkConfLevel, checkConfLevelOpen, isCount, matchAlternative } from "./types.js";
+const REL_ERR = 1 + 1e-7;
+/**
+ * Two-sided p-value of the count x under Poisson(m): the total probability of the counts whose probability is at most
+ * (1 + 1e-7) times that of x. The density is unimodal (increasing up to floor(m), decreasing after), so the observed
+ * side contributes the tail through x and the other side the tail beyond the first qualifying count j past the mode,
+ * located by doubling the step away from the mode (right side) and bisecting on integers.
+ */
+function twoSidedP(x, m) {
+    if (m === 0)
+        return x === 0 ? 1 : 0;
+    if (x === m)
+        return 1;
+    const cut = dpois1(x, m, false) * REL_ERR;
+    const qualifies = (i) => dpois1(i, m, false) <= cut;
+    const mode = Math.floor(m);
+    if (x < m) {
+        // smallest j >= max(x + 1, mode) with dpois(j) <= cut; densities decrease from the mode onwards (with m an
+        // integer, m - 1 and m are equally likely, so starting at x + 1 picks up m when x = m - 1)
+        const j = firstTrue(qualifies, Math.max(x + 1, mode), Infinity);
+        return Math.min(1, ppois1(x, m, true, false) + atLeast(j, m));
+    }
+    // x > m: largest j <= min(x - 1, mode) with dpois(j) <= cut; densities increase from 0 up to the mode (j = -1
+    // when none does)
+    const j = lastTrue(qualifies, 0, Math.min(x - 1, mode));
+    return Math.min(1, ppois1(j, m, true, false) + atLeast(x, m));
+}
+const MIN_NORMAL = 2 ** -1022;
+/**
+ * P[X >= x] under Poisson(m). Where x - 1 is not exact (x beyond 2^53), P[X > x] + dpois(x): ppois(x - 1, upper)
+ * rounded x - 1 and dropped or added a point mass (x = 2^53 + 2, m = x gave 0.5000000056047, true 0.5000000014012;
+ * issue #323)
+ */
+function atLeast(x, m) {
+    return x - (x - 1) === 1 ? ppois1(x - 1, m, false, false) : ppois1(x, m, false, false) + dpois1(x, m, false);
+}
+/** [f, e] with v = f 2^e, f in [1, 2) up to the rounding of log2 (v > 0 finite, subnormal v included; exact) */
+function frexp(v) {
+    const s = v < 2 ** -1000 ? 600 : 0;
+    const e = Math.floor(Math.log2(v * 2 ** s));
+    return [v * 2 ** s * 2 ** -e, e - s];
+}
+/**
+ * n r T1 / (T1 + r T2), with the ratio T2 / T1 where the products overflow, fall below the normal range or underflow
+ * to 0. Where that
+ * overflows too (n r, or r T2 / T1; #223: n = 1e308, r = 2, T = (1, 1e308) gave Inf / Inf), from the mantissas of n, r,
+ * T1 and T2 with their powers of 2 applied last
+ */
+function expectedCount1(n, r, T1, T2) {
+    const den = T1 + r * T2;
+    const v = (n * r * T1) / den;
+    // (a 0 from positive n and r is n r T1 underflowing, not the value: n = T2 = MAX_VALUE, r = T1 = MIN_VALUE gave 0
+    // for MIN_VALUE; issue #481)
+    if (Number.isFinite(v) && Number.isFinite(den) && den >= MIN_NORMAL && (v !== 0 || n === 0 || r === 0))
+        return v;
+    const nr = n * r;
+    const den1 = 1 + r * (T2 / T1);
+    // (n or r of 0: 0, as R's n r T1 / (T1 + r T2); 0 r (T2 / T1) here was 0 Inf = NaN)
+    if (n === 0 || r === 0)
+        return 0;
+    if (Number.isFinite(nr) && Number.isFinite(den1))
+        return nr / den1;
+    const [fn, en] = frexp(n);
+    const [fr, er] = frexp(r);
+    const [f1, e1] = frexp(T1);
+    const [f2, e2] = frexp(T2);
+    // T1 / (T1 + r T2) = f1 / (f1 + f 2^-d) = 2^d f1 / (2^d f1 + f), with f = fr f2 in [1, 4) and d = e1 - er - e2; the
+    // power of 2 goes on the term it makes smaller (2^-d for d >= 0, 2^d otherwise), so g is in (0, 2) and fn fr g < 8
+    const f = fr * f2;
+    const d = e1 - er - e2;
+    const g = d >= 0 ? f1 / (f1 + ldexp(f, -d)) : f1 / (ldexp(f1, d) + f);
+    return ldexp(fn * fr * g, en + er + Math.min(d, 0));
+}
+/** (x1 / T1) / (x2 / T2), as (x1 / x2) (T2 / T1) where the rates overflow or fall below the normal range */
+function rateRatio(x1, x2, T1, T2) {
+    const r1 = x1 / T1;
+    const r2 = x2 / T2;
+    const v = r1 / r2;
+    if (x2 === 0 || (Number.isFinite(r1) && Number.isFinite(r2) && r2 >= MIN_NORMAL && (r1 === 0 || r1 >= MIN_NORMAL)))
+        return v;
+    // (x1 of 0: 0; 0 (T2 / T1) was 0 Inf = NaN for T = (5e-324, 1e308); issue #325)
+    if (x1 === 0)
+        return 0;
+    return (x1 / x2) * (T2 / T1);
+}
+/**
+ * Exact test of a Poisson rate, or comparison of two Poisson rates. Equivalent to R's `poisson.test()`.
+ *
+ * @param x Number of events, or `[count1, count2]` to compare two rates.
+ * @param options See {@link PoissonTestOptions}.
+ *
+ * @example
+ * ```ts
+ * poissonTest(137, { T: 24.19893 }).pValue; // < 2.2e-16 (rate 1 against 5.66)
+ * poissonTest([11, 23], { T: [800, 3011] }).estimate; // rate ratio 1.80
+ * ```
+ *
+ * @category Hypothesis tests
+ */
+export function poissonTest(x, options = {}) {
+    const xs = typeof x === "number" ? [x] : Array.from(x);
+    if (xs.length < 1 || xs.length > 2)
+        throw new RangeError("incorrect length of 'x'");
+    if (!xs.every(isCount))
+        throw new RangeError("'x' must be finite, nonnegative, and integer");
+    const counts = xs.map(Math.round);
+    const k = counts.length;
+    const Traw = options.T ?? 1;
+    const T = typeof Traw === "number" ? new Array(k).fill(Traw) : Array.from(Traw);
+    if (T.length !== k)
+        throw new RangeError("'x' and 'T' have incompatible length");
+    // a time base of 0 defines no rate (R accepts it and returns NaN or Infinity for the estimate and the interval); a
+    // rate r of 0 is accepted, as in R (the counts then have mean 0 under the null hypothesis)
+    if (!T.every((t) => Number.isFinite(t) && t > 0))
+        throw new RangeError("'T' must be positive");
+    const r = options.r ?? 1;
+    if (!(Number.isFinite(r) && r >= 0))
+        throw new RangeError("'r' must be a single positive number");
+    const alternative = matchAlternative(options.alternative);
+    const confLevel = options.confLevel ?? 0.95;
+    // as in R, the one-sample interval takes the closed range (at 1 it is [0, Inf)); the two-sample one goes through
+    // binomTest, which needs 0 < confLevel < 1
+    if (k === 2)
+        checkConfLevelOpen(confLevel);
+    else
+        checkConfLevel(confLevel);
+    if (k === 2) {
+        const [x1, x2] = counts;
+        const [T1, T2] = T;
+        const n = x1 + x2;
+        // (two counts whose sum overflows: R stops; binomTest would have n = Infinity)
+        if (n === Infinity)
+            throw new RangeError("'x' must be finite, nonnegative, and integer");
+        // Two counts of 0 give p-value 1 and the interval [0, 1] as in R, where binomTest([0, 0]) and binomTest(0, 0) are
+        // errors. Where r T1 + T2 overflows or is not a normal number, the ratio of the time bases instead
+        // (T = c(1e308, 1e308) gave p0 = 0 and a p-value of 0; R too)
+        const a = r * T1;
+        const den = a + T2;
+        const p0 = Number.isFinite(den) && den >= MIN_NORMAL && (a === 0 || a >= MIN_NORMAL) ? a / den : 1 / (1 + T2 / T1 / r);
+        const b = binomTestCounts(Math.round(x1), Math.round(x1) + Math.round(x2), { p: p0, alternative, confLevel });
+        // (a limit p of 0 is the ratio 0, also where T2 / T1 overflows: 0 Inf was NaN; issue #325)
+        // Where T2 / T1 overflows, the odds p / (1 - p) and T2 / T1 from their mantissas with the powers of 2 applied last
+        // (a subnormal limit p for a count of about MAX_VALUE: T = (1e-12, MAX_VALUE) gave [Inf, Inf] for [2.5e10, 5.6e12];
+        // issue #482)
+        const t21 = T2 / T1;
+        const toRatio = (p) => {
+            if (p === 0)
+                return 0;
+            const odds = p / (1 - p);
+            if (Number.isFinite(t21) || odds === Infinity)
+                return odds * t21;
+            const [fo, eo] = frexp(odds);
+            const [f1, e1] = frexp(T1);
+            const [f2, e2] = frexp(T2);
+            return ldexp((fo * f2) / f1, eo + e2 - e1);
+        };
+        return {
+            method: "Comparison of Poisson rates",
+            alternative,
+            statistic: x1,
+            statisticName: "count1",
+            // R reports sum(x) r T1 / (T1 + r T2) here (r on the other time base than in the binomial probability)
+            parameter: expectedCount1(n, r, T1, T2),
+            parameterName: "expected count1",
+            pValue: b.pValue,
+            confInt: [toRatio(b.confInt[0]), toRatio(b.confInt[1])],
+            confLevel,
+            estimate: rateRatio(x1, x2, T1, T2),
+            estimateNames: "rate ratio",
+            nullValue: r,
+            nullValueName: "rate ratio",
+        };
+    }
+    const xv = counts[0];
+    const Tv = T[0];
+    const m = r * Tv;
+    let pValue;
+    if (alternative === "less")
+        pValue = ppois1(xv, m, true, false);
+    else if (alternative === "greater")
+        pValue = atLeast(xv, m);
+    else
+        pValue = twoSidedP(xv, m);
+    const lower = (alpha) => (xv === 0 ? 0 : qgamma1(alpha, xv, 1, true, false));
+    // (for alpha below 1e-8 the upper probability itself, as in binomTest: 1 - alpha rounds to 1 below 1.1e-16)
+    const upper = (alpha) => alpha < 1e-8 ? qgamma1(alpha, xv + 1, 1, false, false) : qgamma1(1 - alpha, xv + 1, 1, true, false);
+    let ci;
+    if (alternative === "less")
+        ci = [0, upper(1 - confLevel)];
+    else if (alternative === "greater")
+        ci = [lower(1 - confLevel), Infinity];
+    else {
+        const alpha = (1 - confLevel) / 2;
+        ci = [lower(alpha), upper(alpha)];
+    }
+    return {
+        method: "Exact Poisson test",
+        alternative,
+        statistic: xv,
+        statisticName: "number of events",
+        parameter: Tv,
+        parameterName: "time base",
+        pValue,
+        confInt: [ci[0] / Tv, ci[1] / Tv],
+        confLevel,
+        estimate: xv / Tv,
+        estimateNames: "event rate",
+        nullValue: r,
+        nullValueName: "event rate",
+    };
+}

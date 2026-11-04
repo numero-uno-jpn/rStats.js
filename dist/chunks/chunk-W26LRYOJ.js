@@ -1,0 +1,2 @@
+/*! rStats.js 0.16.0 | MIT License | includes code ported from SciPy, Boost.Math, statsmodels, LAPACK and others: see THIRD_PARTY_NOTICES.md at https://github.com/numero-uno-jpn/rStats.js */
+function e(n){let t=-1/0;for(let i=0;i<n.length;i++)t=Math.max(t,n[i]);return t}function r(n,t){let i=.5*(n+t);return Number.isFinite(i)||!Number.isFinite(n)||!Number.isFinite(t)?i:.5*n+.5*t}function m(n){let t=1/0;for(let i=0;i<n.length;i++)t=Math.min(t,n[i]);return t}export{e as a,r as b,m as c};

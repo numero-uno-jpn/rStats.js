@@ -1,0 +1,350 @@
+// Chi-squared test (R's chisq.test): goodness of fit and independence in contingency tables.
+//
+// The formulas for expected counts, degrees of freedom and the Yates continuity correction are the
+// same as scipy.stats chisquare, chi2_contingency and contingency.expected_freq
+// (scipy/stats/_stats_py.py, scipy/stats/contingency.py; SciPy commit a087e61, BSD-3-Clause, see
+// THIRD_PARTY_NOTICES.md). Defaults, input checks and result names follow observed R output.
+// - The continuity correction applies to 2x2 tables only. The amount subtracted is a single value
+//   for all cells, min(0.5, min |O - E|) (from R's output; scipy uses min(0.5, |O - E|) per cell).
+//   If that amount is 0, the result is labelled as uncorrected
+// - A matrix with a single row or column becomes a goodness-of-fit test
+// - Counts that are negative, NaN or Inf are errors in every shape (R lets Inf through in a vector or a 1-row or
+//   1-column matrix and returns NaN; docs, "Inputs without meaning"). Fractional counts are accepted
+// - Sums are taken in double-double (R's sum accumulates in extended precision)
+// - Simulated p-values (Hope 1968; R's documented behaviour): (1 + #{simulated statistics >= (1 - 64 eps) times the
+//   observed one}) / (B + 1). Goodness of fit draws the B samples of size n = sum(x) one at a time (the uniforms of
+//   R's sample.int with prob) and counts them n at a time; contingency tables are drawn with Patefield's algorithm
+//   (src/random/r2dtable.ts). The statistic is then the uncorrected one, and the parameter is NaN (R's NA). Tables
+//   with a zero margin are not simulated (ordinary test), as in R
+// - Two factor vectors: the table of the complete pairs, with the distinct values sorted by code point (C locale)
+import { pgamma1 } from "../distributions/gamma.js";
+import { logFactorialTable, MAX_TABLE_TOTAL, rcont2 } from "../random/r2dtable.js";
+import { sampleIntReplaceDrawer } from "../random/sample.js";
+import { ldexp, productOver, squareOver } from "../internal/summary.js";
+import { compareCodePoints } from "../models/modelFrame.js";
+import { ddAdd, ddDiv, ddMul, ddSub } from "../special/dd.js";
+import { simulatedMethod } from "./core/simulate.js";
+/** Sum (accumulated in double-double, then rounded; with Inf present, the double sum = ±Inf or NaN) */
+function ddSum(x) {
+    let s = [0, 0];
+    let plain = 0;
+    for (const v of x) {
+        s = ddAdd(s, [v, 0]);
+        plain += v;
+    }
+    return Number.isFinite(plain) ? s[0] : plain;
+}
+export function chisqTest(x, yOrOptions, maybeOptions) {
+    if (Array.isArray(yOrOptions))
+        return chisqFactors(x, yOrOptions, maybeOptions ?? {});
+    return chisqCounts(x, yOrOptions ?? {});
+}
+function chisqFactors(x, y, options) {
+    if (x.length !== y.length)
+        throw new RangeError("'x' and 'y' must have the same length");
+    const missing = (v) => v === null || v === undefined;
+    for (const v of [...x, ...y]) {
+        if (!missing(v) && typeof v !== "string")
+            throw new TypeError("factor values must be strings (or null for missing values)");
+    }
+    const xs = [];
+    const ys = [];
+    x.forEach((v, i) => {
+        const w = y[i];
+        if (!missing(v) && !missing(w)) {
+            xs.push(v);
+            ys.push(w);
+        }
+    });
+    const rowLevels = [...new Set(xs)].sort(compareCodePoints);
+    const colLevels = [...new Set(ys)].sort(compareCodePoints);
+    if (rowLevels.length < 2 || colLevels.length < 2)
+        throw new RangeError("'x' and 'y' must have at least 2 levels");
+    const ri = new Map(rowLevels.map((v, i) => [v, i]));
+    const ci = new Map(colLevels.map((v, i) => [v, i]));
+    const table = rowLevels.map(() => colLevels.map(() => 0));
+    xs.forEach((v, k) => table[ri.get(v)][ci.get(ys[k])]++);
+    const r = contingency(table, options);
+    return { ...r, rowLevels, colLevels };
+}
+function chisqCounts(x, options) {
+    const isMatrix = x.length > 0 && typeof x[0] !== "number";
+    if (isMatrix) {
+        const rows = x.map((r) => Array.from(r));
+        const nc = rows[0].length;
+        if (rows.some((r) => r.length !== nc))
+            throw new TypeError("all rows of the matrix must have the same length");
+        // A 1-row or 1-column matrix is treated as a vector
+        if (rows.length === 1)
+            return goodnessOfFit(rows[0], options);
+        if (nc === 1)
+            return goodnessOfFit(rows.map((r) => r[0]), options);
+        return contingency(rows, options);
+    }
+    return goodnessOfFit(Array.from(x), options);
+}
+/** Number of replicates, checked when a simulation is run */
+function replicates(options) {
+    const B = options.B ?? 2000;
+    // a fractional B ran more simulations than B + 1 counts (R divides by B + 1 as well): p-values above 1 (B = 2.1 gave
+    // 1.33, R 1.29). B = 0 simulates nothing (R's p = (1 + 0) / (0 + 1) = 1): an error too (#489)
+    if (!(Number.isInteger(B) && B >= 1 && B < 2 ** 31))
+        throw new RangeError("'B' must be a positive integer");
+    return B;
+}
+/** (1 + #{sims >= (1 - 64 eps) stat}) / (B + 1) */
+function monteCarloP(sims, stat, B) {
+    const threshold = (1 - 64 * Number.EPSILON) * stat;
+    let count = 0;
+    for (let i = 0; i < sims.length; i++)
+        if (sims[i] >= threshold)
+            count++;
+    // the simulations actually made (R divides by B + 1 with a fractional B, of which only the integer part is run)
+    return (1 + count) / (Math.trunc(B) + 1);
+}
+function pValueOf(stat, df) {
+    return Number.isNaN(stat) ? NaN : pgamma1(stat, df / 2, 2, false, false);
+}
+/**
+ * R warns when any expected count is below 5. When that check is undecidable because of NaN (no
+ * count below 5 but some NaN), R raises an error (e.g. p renormalised by a zero sum, Inf counts with zero probability)
+ */
+function checkExpected(E) {
+    if (!E.some((e) => e < 5) && E.some(Number.isNaN))
+        throw new RangeError("missing value where TRUE/FALSE needed (the expected counts contain NaN)");
+}
+function goodnessOfFit(x, options) {
+    const k = x.length;
+    // (R lets Infinity through and returns NaN)
+    if (x.some((v) => !(v >= 0 && v < Infinity)))
+        throw new RangeError("all entries of 'x' must be non-negative and finite");
+    if (k < 2)
+        throw new TypeError("'x' must have at least 2 elements");
+    const n = ddSum(x);
+    if (!(n > 0))
+        throw new RangeError("at least one entry of 'x' must be positive");
+    let p = options.p === undefined ? x.map(() => 1 / k) : Array.from(options.p);
+    if (p.length !== k)
+        throw new TypeError("'x' and 'p' must have the same number of elements");
+    if (p.some(Number.isNaN))
+        throw new RangeError("p contains missing values");
+    if (p.some((v) => v < 0))
+        throw new RangeError("probabilities must be non-negative");
+    if (p.some((v) => v === Infinity))
+        throw new RangeError("probabilities must be finite");
+    if (options.rescaleP ?? false) {
+        // where the total of the finite weights overflows, the weights in units of 2^e, 2^e >= k, first (each weight was
+        // divided by Inf and became 0: p = c(1e308, 1e308) gave statistic Inf, p-value 0; R too; issue #303)
+        const total = ddSum(p);
+        const e = total < Infinity ? 0 : Math.ceil(Math.log2(k));
+        const ps = e === 0 ? p : p.map((v) => ldexp(v, -e));
+        const s = e === 0 ? total : ddSum(ps);
+        p = ps.map((v) => v / s);
+    }
+    else if (Math.abs(ddSum(p) - 1) > Math.sqrt(Number.EPSILON)) {
+        throw new RangeError("probabilities must sum to 1");
+    }
+    // where the total overflows (each count finite), the counts in units of 2^s, 2^s >= k and s even, so that their total
+    // cannot overflow; the statistic is scaled back by 2^s and the residuals by 2^(s/2). With s = 0 (the total finite)
+    // the values are those of the plain counts
+    const s = n < Infinity ? 0 : 2 * Math.ceil(Math.log2(k) / 2);
+    const xs = s === 0 ? x : x.map((v) => ldexp(v, -s));
+    const ns = s === 0 ? n : ddSum(xs);
+    const Es = p.map((v) => ns * v);
+    const E = s === 0 ? Es : Es.map((e) => ldexp(e, s));
+    checkExpected(E);
+    const Vs = p.map((v, i) => Es[i] * (1 - v));
+    const stat = ldexp(ddSum(xs.map((v, i) => squareOver(v - Es[i], Es[i]))), s);
+    let method = "Chi-squared test for given probabilities";
+    let df = k - 1;
+    let pValue;
+    if (options.simulatePValue ?? false) {
+        const B = replicates(options);
+        // a fractional total cannot be drawn as a sample: the columns of draws then outnumbered B and the p-value exceeded
+        // 1 (c(3.5, 4, 5) with B = 2 gave 1.33; R too)
+        if (!Number.isInteger(n))
+            throw new RangeError("the simulation needs counts summing to an integer");
+        method += simulatedMethod(B);
+        df = NaN;
+        pValue = monteCarloP(simulateGoodnessOfFit(n, p, E, B), stat, B);
+    }
+    else
+        pValue = pValueOf(stat, df);
+    return {
+        method,
+        statistic: stat,
+        statisticName: "X-squared",
+        parameter: df,
+        parameterName: "df",
+        pValue,
+        observed: x,
+        expected: E,
+        residuals: xs.map((v, i) => ldexp((v - Es[i]) / Math.sqrt(Es[i]), s / 2)),
+        stdres: xs.map((v, i) => ldexp((v - Es[i]) / Math.sqrt(Vs[i]), s / 2)),
+    };
+}
+/**
+ * Statistics of B multinomial samples: the B n categories of R's sample.int(k, B n, TRUE, prob = p), taken column by
+ * column of the n-row matrix, are drawn n at a time and counted (n is an integer here), without keeping the B n draws
+ * (#287): the same uniforms in the same order, so the same statistics. B n is limited to 2^27 draws (tens of seconds)
+ */
+function simulateGoodnessOfFit(n, p, E, B) {
+    const k = p.length;
+    if (B * n > 2 ** 27)
+        throw new RangeError("the simulation needs B * sum(x) <= 2^27 (134217728) draws");
+    const draw = sampleIntReplaceDrawer(k, p);
+    if (B * n === 0)
+        return new Float64Array(0);
+    const out = new Float64Array(B);
+    const counts = new Float64Array(k);
+    for (let j = 0; j < B; j++) {
+        counts.fill(0);
+        for (let i = 0; i < n; i++)
+            counts[draw()]++;
+        let s = 0;
+        for (let c = 0; c < k; c++)
+            s += (counts[c] - E[c]) ** 2 / E[c];
+        out[j] = s;
+    }
+    return out;
+}
+/** Statistics of B random tables with the margins sr, sc (Patefield's algorithm), summed column by column */
+function simulateTables(sr, sc, E, B) {
+    const nr = sr.length;
+    const nc = sc.length;
+    const total = sr.reduce((a, b) => a + b, 0);
+    // the table of log factorials has total + 1 entries: limited as in r2dtable (#285)
+    if (total > MAX_TABLE_TOTAL)
+        throw new RangeError("the simulation needs a total count of at most 16777216 (2^24)");
+    const fact = logFactorialTable(total);
+    const table = new Int32Array(nr * nc);
+    const out = new Float64Array(Math.trunc(B));
+    for (let b = 0; b < out.length; b++) {
+        rcont2(sr, sc, fact, table);
+        let s = 0;
+        for (let j = 0; j < nc; j++) {
+            for (let i = 0; i < nr; i++) {
+                const e = E[i][j];
+                s += (table[i + j * nr] - e) ** 2 / e;
+            }
+        }
+        out[b] = s;
+    }
+    return out;
+}
+function contingency(x, options) {
+    const correct = options.correct ?? true;
+    const nr = x.length;
+    const nc = x[0].length;
+    const all = x.flat();
+    if (all.some((v) => !(v >= 0 && v < Infinity)))
+        throw new RangeError("all entries of 'x' must be non-negative and finite");
+    const n = ddSum(all);
+    if (!(n > 0))
+        throw new RangeError("at least one entry of 'x' must be positive");
+    const sr = x.map((r) => ddSum(r));
+    const sc = x[0].map((_, j) => ddSum(x.map((r) => r[j])));
+    const E = sr.map((a) => sc.map((b) => productOver(a, b, n)));
+    checkExpected(E.flat());
+    const diff = x.map((r, i) => r.map((v, j) => v - E[i][j]));
+    let method = "Pearson's Chi-squared test";
+    let stat;
+    let df = (nr - 1) * (nc - 1);
+    let pValue;
+    const simulate = (options.simulatePValue ?? false) && sr.every((v) => v > 0) && sc.every((v) => v > 0);
+    const yates = !simulate && correct && nr === 2 && nc === 2 ? Math.min(0.5, ...diff.flat().map(Math.abs)) : 0;
+    if (simulate) {
+        // counts are integers for the simulation: the simulated tables have integer margins, and fractional observed
+        // counts would be compared with them (R truncates the margins and runs it)
+        if (x.some((r) => r.some((v) => !Number.isInteger(v))))
+            throw new RangeError("the simulation needs integer counts");
+        const B = replicates(options);
+        method += simulatedMethod(B);
+        stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => squareOver(d, E[i][j]))));
+        df = NaN;
+        const sims = simulateTables(sr.map((v) => Math.trunc(v)), sc.map((v) => Math.trunc(v)), E, B);
+        pValue = monteCarloP(sims, stat, B);
+    }
+    else if (yates > 0) {
+        method += " with Yates' continuity correction";
+        stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => squareOver(Math.abs(d) - yates, E[i][j]))));
+    }
+    else {
+        stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => squareOver(d, E[i][j]))));
+    }
+    return {
+        method,
+        statistic: stat,
+        statisticName: "X-squared",
+        parameter: df,
+        parameterName: "df",
+        pValue: pValue ?? pValueOf(stat, df),
+        observed: x,
+        expected: E,
+        residuals: diff.map((r, i) => r.map((d, j) => d / Math.sqrt(E[i][j]))),
+        stdres: contingencyStdres(x, n, sr, sc, E, diff),
+    };
+}
+/**
+ * Standardized residuals (O - E) / sqrt(E (1 - row proportion) (1 - column proportion)) of a contingency table
+ * (#382). The complements 1 - row proportion and 1 - column proportion are the sums of the other rows and columns
+ * over n, and the margins, E, O - E and the variance are in double-double, rounded once at the end: 1 - sr / n in
+ * double lost the small margins (2^52 and 0.1: 0 for the complement, so -Infinity; integer tables such as
+ * [[1e15, 7], [3, 11]] were off by 8e-4), and O - E with E rounded to double was 0 in the cell of 2^52. A total
+ * beyond the double range keeps the old formula
+ */
+function contingencyStdres(x, n, sr, sc, E, diff) {
+    if (!Number.isFinite(n)) {
+        return diff.map((r, i) => r.map((d, j) => d / Math.sqrt(E[i][j] * (1 - sr[i] / n) * (1 - sc[j] / n))));
+    }
+    const srD = x.map((r) => ddSumOf(r));
+    const scD = x[0].map((_, j) => ddSumOf(x.map((r) => r[j])));
+    const nD = ddSumOfDD(srD);
+    const cr = othersSums(srD);
+    const cc = othersSums(scD);
+    const rowC = cr.map((c) => ddDiv(c, nD));
+    const colP = scD.map((c) => ddDiv(c, nD));
+    const colC = cc.map((c) => ddDiv(c, nD));
+    return x.map((r, i) => r.map((v, j) => {
+        const e = ddMul(srD[i], colP[j]);
+        const d = ddSub([v, 0], e);
+        const dd = d[0] + d[1];
+        const V = ddMul(ddMul(e, rowC[i]), colC[j]);
+        const vv = V[0] + V[1];
+        if (vv >= MIN_NORMAL || dd === 0)
+            return dd / Math.sqrt(vv);
+        // a variance below the normal range: divide by the square roots in turn
+        const ee = e[0] + e[1];
+        const rc = rowC[i][0] + rowC[i][1];
+        const ccj = colC[j][0] + colC[j][1];
+        return dd / Math.sqrt(ee) / Math.sqrt(rc) / Math.sqrt(ccj);
+    }));
+}
+const MIN_NORMAL = 2 ** -1022;
+function ddSumOf(x) {
+    let s = [0, 0];
+    for (const v of x)
+        s = ddAdd(s, [v, 0]);
+    return s;
+}
+function ddSumOfDD(x) {
+    let s = [0, 0];
+    for (const v of x)
+        s = ddAdd(s, v);
+    return s;
+}
+/** For each i, the double-double sum of the entries other than x[i] (prefix and suffix sums) */
+function othersSums(x) {
+    const m = x.length;
+    const suffix = new Array(m + 1);
+    suffix[m] = [0, 0];
+    for (let i = m - 1; i >= 0; i--)
+        suffix[i] = ddAdd(x[i], suffix[i + 1]);
+    const out = [];
+    let prefix = [0, 0];
+    for (let i = 0; i < m; i++) {
+        out.push(ddAdd(prefix, suffix[i + 1]));
+        prefix = ddAdd(prefix, x[i]);
+    }
+    return out;
+}

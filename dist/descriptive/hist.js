@@ -1,0 +1,358 @@
+// Histogram counts and pretty break points: R's hist (with plot = FALSE), pretty and ecdf.
+//
+// Written for rStats.js to reproduce R's documented behaviour and output. pretty picks a unit of 1, 2, 5 or 10 times
+// a power of ten close to range / n, preferring the larger units by the biases high.u.bias and u5.bias described in
+// R's ?pretty, then extends to integer multiples of the unit that cover the data (with a 1e-10 relative rounding
+// allowance) and keeps at least min.n cells; a range that is tiny relative to its magnitude gets a scale derived
+// from the magnitude instead. hist chooses the number of cells by Sturges' (1926), Scott's (1979) or Freedman and
+// Diaconis' (1981) rule, or as given, takes pretty break points over the data range, and counts after moving the
+// breaks by 1e-7 times a typical cell width, so that values lying on a break up to rounding fall on the intended side.
+// The order of floating-point operations follows R where the results are compared bit for bit.
+import { median, range, sd } from "./basic.js";
+import { IQR, quantile } from "./quantile.js";
+import { seqLength } from "../internal/seq.js";
+import { midpoint, minOf } from "../internal/extremes.js";
+import { ldexp, scaleToUnit } from "../internal/summary.js";
+/**
+ * About n + 1 equally spaced "round" values (1, 2 or 5 times a power of 10) covering the range of `x`. Equivalent to
+ * R's `pretty()`.
+ *
+ * @example
+ * ```ts
+ * pretty([0.3, 9.6]); // [0, 2, 4, 6, 8, 10]
+ * ```
+ *
+ * @category Descriptive statistics
+ */
+export function pretty(x, options = {}) {
+    const finite = Array.from(x).filter(Number.isFinite);
+    if (finite.length === 0)
+        return [];
+    // R converts n and minN to integers (truncating towards 0) and checks them in this order
+    const nGiven = options.n ?? 5;
+    if (Number.isNaN(nGiven) || Math.abs(nGiven) >= 2 ** 31 || Math.trunc(nGiven) < 0)
+        throw new RangeError("invalid 'n' argument");
+    const n = Math.trunc(nGiven);
+    const minNGiven = options.minN ?? Math.floor(nGiven / 3);
+    if (Number.isNaN(minNGiven) || Math.trunc(minNGiven) < 0 || Math.trunc(minNGiven) > n) {
+        throw new RangeError("invalid 'min.n' argument");
+    }
+    const minN = Math.trunc(minNGiven);
+    // R's checks (after n and min.n): shrink.sml finite and positive, the biases finite and non-negative. A NaN or
+    // non-positive shrink.sml left the unit NaN, and the search for a finite multiple of it did not end (#330)
+    const shrink = options.shrinkSml ?? 0.75;
+    if (!Number.isFinite(shrink) || shrink <= 0)
+        throw new RangeError("invalid 'shrink.sml' argument");
+    const h = options.highUBias ?? 1.5;
+    if (!Number.isFinite(h) || h < 0)
+        throw new RangeError("invalid 'high.u.bias' argument");
+    const h5 = options.u5Bias ?? 0.5 + 1.5 * h;
+    if (!Number.isFinite(h5) || h5 < 0)
+        throw new RangeError("invalid 'u5.bias' argument");
+    let lo = Infinity;
+    let up = -Infinity;
+    for (const v of finite) {
+        if (v < lo)
+            lo = v;
+        if (v > up)
+            up = v;
+    }
+    const d = up - lo;
+    // Step 1: the scale (target cell width)
+    let c;
+    let small;
+    if (d === 0 && up === 0) {
+        c = 1;
+        small = true;
+    }
+    else {
+        c = Math.max(Math.abs(lo), Math.abs(up));
+        const t = h5 >= 1.5 * h + 0.5 ? 1 / (1 + h) : 1.5 / (1 + h5);
+        const bound = (1 + t) * Math.max(1, n) * Number.EPSILON;
+        small = d < c * bound * 3;
+    }
+    if (small) {
+        if (c > 10)
+            c = 9 + c / 10;
+        c *= shrink;
+        if (minN > 1)
+            c /= minN;
+    }
+    else {
+        c = n > 1 ? d / n : d;
+        if (d === Infinity && n >= 2)
+            c = up / n - lo / n;
+    }
+    const tiny = 2 ** -20 * DBL_MIN;
+    if (c < tiny)
+        c = tiny;
+    else if (c > Number.MAX_VALUE / 1.25)
+        c = Number.MAX_VALUE / 1.25;
+    // Step 2: the unit, walking up b, 2b, 5b, 10b while the larger unit is close enough
+    const b = 10 ** Math.floor(Math.log10(c));
+    const steps = [
+        [2 * b, h],
+        [5 * b, h5],
+        [10 * b, h],
+    ];
+    let u = b;
+    for (const [next, w] of steps) {
+        if (next - c < w * (c - u))
+            u = next;
+        else
+            break;
+    }
+    // Step 3: integer multiples of the unit covering the data
+    const rho = 1e-10;
+    let s = Math.floor(lo / u + rho);
+    while (s * u > lo + rho * u)
+        s--;
+    while (!Number.isFinite(s * u))
+        s++;
+    let t = Math.ceil(up / u - rho);
+    while (t * u < up - rho * u)
+        t++;
+    while (!Number.isFinite(t * u))
+        t--;
+    // Step 4: at least minN cells
+    let k = Math.trunc(0.5 + t - s);
+    if (k < minN) {
+        const e = minN - k;
+        const half = Math.floor(e / 2);
+        const odd = e % 2;
+        if (lo === 0 && s === 0 && up !== 0)
+            t += e;
+        else if (up === 0 && t === 0 && lo !== 0)
+            s -= e;
+        else if (s >= 0) {
+            t += half;
+            s -= half + odd;
+        }
+        else {
+            s -= half;
+            t += half + odd;
+        }
+        k = minN;
+    }
+    // Step 5: end points (kept at the data ends when the multiples are within the rounding allowance)
+    const L = s * u < lo ? s * u : lo;
+    const U = t * u > up ? t * u : up;
+    // Step 6: the sequence, with values that are zero up to rounding set to 0
+    if (k <= 0)
+        return [L];
+    // seqLength works in half coordinates when U - L overflows (L + i (U/k - L/k) overflowed at interior points, #81)
+    const out = seqLength(L, U, k + 1);
+    const delta = U / k - L / k;
+    return out.map((v) => (Math.abs(v) < 1e-14 * delta ? 0 : v));
+}
+/** Smallest positive normal double */
+const DBL_MIN = 2.2250738585072014e-308;
+/** Rounding to 5 significant decimal digits (0 and non-finite values unchanged) */
+function round5(v) {
+    return v === 0 || !Number.isFinite(v) ? v : Number(v.toPrecision(5));
+}
+/** Suggested number of classes for the data `xs` (finite values) by the named rule */
+function classCount(xs, rule) {
+    const n = xs.length;
+    switch (rule.toLowerCase()) {
+        case "sturges":
+            return Math.ceil(Math.log2(n) + 1);
+        case "scott": {
+            const scott = (v) => [range(v), 3.5 * sd(v) * n ** (-1 / 3)];
+            let [[a, b], h] = scott(xs);
+            // the range or the width overflows (#230): both from the data divided by a power of 2 (the ratio is scale free)
+            if (!(Number.isFinite(b - a) && Number.isFinite(h)))
+                [[a, b], h] = scott(scaleToUnit([xs]).groups[0]);
+            return h > 0 ? Math.max(1, Math.ceil((b - a) / h)) : 1;
+        }
+        case "fd":
+        case "freedman-diaconis": {
+            // the range and the width from the data v and the data rounded to 5 significant digits vr
+            const fd = (v, vr) => {
+                let h = 2 * IQR(vr);
+                for (let alpha = 1 / 8; h === 0 && alpha >= 1 / 512; alpha /= 2) {
+                    const [qa, qb] = quantile(vr, [alpha, 1 - alpha]);
+                    h = (qb - qa) / (1 - 2 * alpha);
+                }
+                if (h === 0)
+                    h = 3.5 * sd(v);
+                return [range(v), h];
+            };
+            const xr = xs.map(round5);
+            let [[a, b], h] = fd(xs, xr);
+            // the range or the width overflows (#231): both from the data divided by a power of 2, the rounding to 5 digits
+            // (not scale free) done first
+            if (!(Number.isFinite(b - a) && Number.isFinite(h))) {
+                const { k } = scaleToUnit([xs]);
+                [[a, b], h] = fd(xs.map((v) => ldexp(v, -k)), xr.map((v) => ldexp(v, -k)));
+            }
+            return h > 0 ? Math.ceil(((b - a) / h) * n ** (1 / 3)) : 1;
+        }
+        default:
+            throw new RangeError("unknown 'breaks' algorithm");
+    }
+}
+/**
+ * The counting fuzz, 1e-7 times a reference cell size: the median width (> 5 breaks), the data range [lo, hi] (<= 3)
+ * or the smallest positive width. Where the range of finite data overflows (#258), 2 (1e-7 (hi / 2 - lo / 2))
+ */
+function fuzz(br, lo, hi) {
+    const widths = br.slice(1).map((v, i) => v - br[i]);
+    if (br.length > 5)
+        return 1e-7 * median(widths);
+    if (br.length <= 3)
+        return hi - lo === Infinity ? 2 * (1e-7 * (hi / 2 - lo / 2)) : 1e-7 * (hi - lo);
+    return 1e-7 * minOf(widths.filter((w) => w > 0));
+}
+/**
+ * Histogram counts. Equivalent to R's `hist(x, plot = FALSE)`. Break points (by default pretty points over the range
+ * with about Sturges' number of cells), counts, densities and cell midpoints. Non-finite values are dropped.
+ *
+ * @example
+ * ```ts
+ * hist([1, 2, 2, 3, 3, 3, 4]).counts; // [3, 3, 1] (for breaks [1, 2, 3, 4])
+ * ```
+ *
+ * @category Descriptive statistics
+ */
+export function hist(x, options = {}) {
+    const xs = Array.from(x).filter(Number.isFinite);
+    const n = xs.length;
+    const right = options.right ?? true;
+    let includeLowest = options.includeLowest ?? true;
+    const spec = options.breaks ?? "Sturges";
+    let br;
+    if (typeof spec !== "string" && typeof spec !== "number" && spec.length > 1) {
+        // an infinite cell has density 0 and an infinite or NaN midpoint (R returns them; #229)
+        if (!spec.every(Number.isFinite))
+            throw new RangeError("'breaks' are not finite");
+        br = [...spec].sort((a, b) => a - b);
+        if (br.some((v, i) => i > 0 && !(v > br[i - 1])))
+            throw new RangeError("'breaks' are not strictly increasing");
+    }
+    else {
+        includeLowest = true;
+        let k = typeof spec === "string" ? classCount(xs, spec) : typeof spec === "number" ? spec : spec[0];
+        if (!Number.isFinite(k) || k < 1)
+            throw new RangeError("invalid number of 'breaks'");
+        k = Math.min(k, 1e6);
+        const [lo, hi] = range(xs);
+        br = pretty([lo, hi], { n: k, minN: 1 });
+        for (let i = 1; i < br.length; i++) {
+            if (!(br[i] - br[i - 1] > 0))
+                throw new RangeError("'breaks' are not strictly increasing");
+        }
+    }
+    const nb = br.length;
+    // Breaks moved by a small tolerance so that values on a break up to rounding fall on the intended side
+    const [dlo, dhi] = n > 0 ? range(xs) : [0, 0];
+    const tau = fuzz(br, dlo, dhi);
+    const f = br.map((v, i) => {
+        if (right)
+            return i === 0 && includeLowest ? v - tau : v + tau;
+        if (i < nb - 1)
+            return v - tau;
+        return includeLowest ? v + tau : v - tau;
+    });
+    const counts = new Array(Math.max(0, nb - 1)).fill(0);
+    let total = 0;
+    for (const v of xs) {
+        const cell = cellOf(v, f, right, includeLowest);
+        if (cell >= 0) {
+            counts[cell]++;
+            total++;
+        }
+    }
+    if (total < n)
+        throw new RangeError("some 'x' not counted; maybe 'breaks' do not span range of 'x'");
+    const density = counts.map((c, i) => cellDensity(c, n, br[i], br[i + 1]));
+    const mids = counts.map((_, i) => midpoint(br[i + 1], br[i]));
+    return { breaks: br, counts, density, mids };
+}
+/**
+ * count / (n (b - a)), R's density of the cell [a, b]. Where n (b - a) overflows for finite ends (the width itself,
+ * #228, or only its product with n, #259), from the width ws (b - a, or b / 2 - a / 2 = (b - a) 2^-s with s = 1 where
+ * the width overflows) divided by its power of 2, 2^e: count 2^-(e + s) / (n ws 2^-e). The products by powers of 2 are
+ * exact (count is an integer below 2^53), so the density is rounded once (also where it is subnormal). Elsewhere R's
+ * expression, unchanged
+ */
+function cellDensity(count, n, a, b) {
+    const w = b - a;
+    if (!(n * w === Infinity && Number.isFinite(a) && Number.isFinite(b)))
+        return count / (n * w);
+    const s = w === Infinity ? 1 : 0;
+    const ws = s === 1 ? b / 2 - a / 2 : w;
+    const e = Math.floor(Math.log2(ws));
+    return ldexp(count, -(e + s)) / (n * ldexp(ws, -e));
+}
+/** 0-based cell of `v` among the (shifted) breaks `f`, or -1 when it is in no cell */
+function cellOf(v, f, right, includeLowest) {
+    const last = f.length - 1;
+    if (last < 1)
+        return -1;
+    if (right) {
+        if (v === f[0] && includeLowest)
+            return 0;
+        if (!(v > f[0] && v <= f[last]))
+            return -1;
+        // smallest j with v <= f[j]; the cell is j - 1
+        let a = 1;
+        let b = last;
+        while (a < b) {
+            const m = Math.floor((a + b) / 2); // not >> 1, which wraps beyond 2^31 breaks (issue #333)
+            if (v <= f[m])
+                b = m;
+            else
+                a = m + 1;
+        }
+        return a - 1;
+    }
+    if (v === f[last] && includeLowest)
+        return last - 1;
+    if (!(v >= f[0] && v < f[last]))
+        return -1;
+    // largest j with f[j] <= v; the cell is j
+    let a = 0;
+    let b = last - 1;
+    while (a < b) {
+        const m = Math.floor((a + b + 1) / 2);
+        if (f[m] <= v)
+            a = m;
+        else
+            b = m - 1;
+    }
+    return a;
+}
+/**
+ * Empirical distribution function of `x`: a function returning the fraction of values at or below its argument.
+ * Equivalent to R's `ecdf()`. `NaN` values are dropped.
+ *
+ * @example
+ * ```ts
+ * ecdf([3, 1, 2])(2); // 0.6666666666666666
+ * ```
+ *
+ * @category Descriptive statistics
+ */
+export function ecdf(x) {
+    const s = Array.from(x)
+        .filter((v) => !Number.isNaN(v))
+        .sort((a, b) => a - b);
+    const n = s.length;
+    if (n < 1)
+        throw new RangeError("'x' must have 1 or more non-missing values");
+    return (q) => {
+        if (Number.isNaN(q))
+            return NaN;
+        let lo = 0;
+        let hi = n;
+        while (lo < hi) {
+            const mid = Math.floor((lo + hi) / 2); // not >> 1, which wraps beyond 2^31 elements (issue #332)
+            if (s[mid] <= q)
+                lo = mid + 1;
+            else
+                hi = mid;
+        }
+        return lo / n;
+    };
+}

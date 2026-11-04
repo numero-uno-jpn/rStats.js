@@ -1,0 +1,174 @@
+// Beta random variates.
+//
+// Cheng (1978) "Generating beta variates with nonintegral shape parameters"
+// (Comm. ACM 21(4)): algorithm BB (min(a, b) > 1) and BC (min(a, b) <= 1).
+// These are the algorithms cited in R's ?rbeta, with the constants from the paper. The order in which uniforms
+// are consumed and the parameter handling follow observed R output.
+import { unifRand } from "./rng.js";
+import { generate } from "./common.js";
+import { rchisq, rgamma1 } from "./gamma.js";
+import { rpois1 } from "./poisson.js";
+/** The value of log(DBL_MAX) (1024 log 2) */
+const EXPMAX = 1024 * Math.LN2;
+let beta = 0, gamma = 0, delta = 0, k1 = 0, k2 = 0;
+let olda = -1, oldb = -1;
+/** v = beta log(u1 / (1 - u1)) and w = aa e^v (DBL_MAX on overflow) */
+function vw(u1, aa) {
+    const v = beta * Math.log(u1 / (1 - u1));
+    if (v <= EXPMAX) {
+        let w = aa * Math.exp(v);
+        if (!Number.isFinite(w))
+            w = Number.MAX_VALUE;
+        return [v, w];
+    }
+    return [v, Number.MAX_VALUE];
+}
+/** One beta variate (shape1 aa, shape2 bb) */
+export function rbeta1(aa, bb) {
+    if (Number.isNaN(aa) || Number.isNaN(bb) || aa < 0 || bb < 0)
+        return NaN;
+    if (!Number.isFinite(aa) && !Number.isFinite(bb))
+        return 0.5;
+    if (aa === 0 && bb === 0)
+        return unifRand() < 0.5 ? 0 : 1;
+    if (!Number.isFinite(aa) || bb === 0)
+        return 1;
+    if (!Number.isFinite(bb) || aa === 0)
+        return 0;
+    const qsame = olda === aa && oldb === bb;
+    if (!qsame) {
+        olda = aa;
+        oldb = bb;
+    }
+    const a = Math.min(aa, bb);
+    const b = Math.max(aa, bb);
+    const alpha = a + b;
+    let v, w;
+    if (a <= 1) {
+        // Algorithm BC
+        if (!qsame) {
+            beta = 1 / a;
+            delta = 1 + b - a;
+            k1 = (delta * (0.0138889 + 0.0416667 * a)) / (b * beta - 0.777778);
+            k2 = 0.25 + (0.5 + 0.25 / delta) * a;
+        }
+        for (;;) {
+            const u1 = unifRand();
+            const u2 = unifRand();
+            let z;
+            if (u1 < 0.5) {
+                const y = u1 * u2;
+                z = u1 * y;
+                if (0.25 * u2 + z - y >= k1)
+                    continue;
+            }
+            else {
+                z = u1 * u1 * u2;
+                if (z <= 0.25) {
+                    [v, w] = vw(u1, b);
+                    break;
+                }
+                if (z >= k2)
+                    continue;
+            }
+            [v, w] = vw(u1, b);
+            if (alpha * (Math.log(alpha / (a + w)) + v) - 1.3862944 >= Math.log(z))
+                break;
+        }
+        return aa === a ? a / (a + w) : w / (a + w);
+    }
+    // Algorithm BB
+    if (!qsame) {
+        beta = Math.sqrt((alpha - 2) / (2 * a * b - alpha));
+        gamma = a + 1 / beta;
+    }
+    if (!(2 * a * b < Infinity)) {
+        // 2ab overflows: the constants above are 0, Infinity or NaN. The larger shape B is then above 1e154 / min, and
+        // G_B / B = 1 + O(B^-1/2) to far below double precision, so X = G_m / (G_m + B) for the smaller shape m. With m up
+        // to 1e32 G_m is drawn (rbeta(5, 1.1, 1e308) gave 1.1e-308 five times, the mean, as R; issue #30: the draws differ
+        // from R's there). Beyond, both are so large that the mean is the draw to double precision (a relative standard
+        // deviation below 1e-16); the two uniforms of R's single pass are drawn, so the stream stays R's
+        const m = Math.min(aa, bb);
+        if (m <= 1e32) {
+            const big = Math.max(aa, bb);
+            const r = rgamma1(m, 1) / big;
+            return aa <= bb ? r / (1 + r) : 1 / (1 + r);
+        }
+        unifRand();
+        unifRand();
+        return aa >= bb ? 1 / (1 + bb / aa) : aa / bb / (1 + aa / bb);
+    }
+    let r, t;
+    do {
+        const u1 = unifRand();
+        const u2 = unifRand();
+        [v, w] = vw(u1, a);
+        const z = u1 * u1 * u2;
+        r = gamma * v - 1.3862944;
+        const s = a + r - w;
+        if (s + 2.609438 >= 5 * z)
+            break;
+        t = Math.log(z);
+        if (s > t)
+            break;
+    } while (r + alpha * Math.log(alpha / (b + w)) < t);
+    return aa !== a ? b / (b + w) : w / (b + w);
+}
+/** Half a noncentral chi-squared variate with 2 shape degrees of freedom (the draws of rnchisq1(2 shape, ncp)) */
+function halfNoncentralChisq(shape, ncp) {
+    if (!Number.isFinite(ncp) || ncp < 0)
+        return NaN;
+    if (ncp === 0)
+        return shape === 0 ? 0 : rgamma1(shape, 1);
+    let r = rpois1(ncp / 2);
+    if (r > 0)
+        r = rgamma1(r, 1);
+    if (shape > 0)
+        r += rgamma1(shape, 1);
+    return r;
+}
+/**
+ * Random numbers from the beta distribution. Equivalent to R's `rbeta()`.
+ *
+ * @param n Number of values to generate (fractions are truncated, as in R).
+ * @param shape1 First shape parameter.
+ * @param shape2 Second shape parameter.
+ * @param options.ncp Non-centrality parameter. If omitted, the central distribution is used.
+ * @returns An array of `n` values; `NaN` for invalid parameters.
+ *
+ * @example
+ * ```ts
+ * setSeed(1);
+ * rbeta(2, 2, 3); // [0.2550998, 0.4468707]
+ * ```
+ *
+ * @category Random numbers
+ */
+export function rbeta(n, shape1, shape2, options = {}) {
+    const { ncp } = options;
+    if (ncp === undefined)
+        return generate(n, () => rbeta1(shape1, shape2));
+    // Noncentral beta: as in R, generate n draws X ~ noncentral χ²(2 shape1, ncp), then n draws Y ~ χ²(2 shape2), and return X / (X + Y)
+    let x;
+    let y;
+    if (Number.isFinite(shape1) && Number.isFinite(shape2) && (!Number.isFinite(2 * shape1) || !Number.isFinite(2 * shape2))) {
+        // 2 shape overflows (rbeta(3, 1e308, 1e308, ncp = 0) was NaN, R too): X / 2 and Y / 2 as gamma variates, with the
+        // draws of R's rnchisq (rpois(ncp / 2) and a gamma for the Poisson count, then the gamma for the shape)
+        x = generate(n, () => halfNoncentralChisq(shape1, ncp));
+        y = generate(n, () => rgamma1(shape2, 1));
+    }
+    else {
+        x = rchisq(n, 2 * shape1, { ncp });
+        y = rchisq(n, 2 * shape2);
+    }
+    // With both shapes 0, X = Y = 0 (always for ncp = 0, for a Poisson count 0 otherwise) is the Beta(0, 0) component of
+    // the mixture: 0 or 1 with probability 1/2 each, decided by a uniform as the central rbeta does (R returns 0 / 0 =
+    // NaN without a draw, so the stream differs from R's only there)
+    return x.map((xi, i) => {
+        if (xi === 0 && y[i] === 0 && shape1 === 0 && shape2 === 0)
+            return unifRand() < 0.5 ? 0 : 1;
+        const yi = y[i];
+        // (the sum of two variates near 1e308 overflows: halved first)
+        return Number.isFinite(xi + yi) || !Number.isFinite(xi) || !Number.isFinite(yi) ? xi / (xi + yi) : xi / 2 / (xi / 2 + yi / 2);
+    });
+}

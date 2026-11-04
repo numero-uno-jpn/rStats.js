@@ -1,0 +1,174 @@
+// t-test (R's t.test): one-sample, two-sample (Welch / equal variance) and paired.
+//
+// The statistic and degrees-of-freedom formulas are the same as scipy.stats ttest_1samp, ttest_ind
+// (equal_var = False is Welch) and ttest_rel (scipy/stats/_stats_py.py; SciPy commit a087e61,
+// BSD-3-Clause, see THIRD_PARTY_NOTICES.md). Defaults, confidence intervals and result names follow R's output.
+// - Welch is the default (scipy's default is equal variance)
+// - If the standard error is below 10 eps times the absolute mean, the data are treated as constant and an error is raised (as in R),
+//   and also if it is 0 (R lets through samples of zeros with NaN results; #314)
+import { pt1, qt1 } from "../distributions/t.js";
+import { completePairs, dropNaN, ldexp, mean, pairedDifferences, satterthwaiteDfSe, scaleToUnit, variance } from "../internal/summary.js";
+import { twoSampleData } from "./testFormula.js";
+import { checkConfLevel, matchAlternative } from "./types.js";
+export function tTest(x, y, options = {}) {
+    if (typeof x === "string")
+        return tTestFormula(x, y, options);
+    // Also accept the form tTest(x, { mu: 1 })
+    let ys;
+    if (y !== undefined && !ArrayBuffer.isView(y) && !Array.isArray(y))
+        options = y;
+    else
+        ys = y;
+    const alternative = matchAlternative(options.alternative);
+    const mu = options.mu ?? 0;
+    const paired = options.paired ?? false;
+    const varEqual = options.varEqual ?? false;
+    const confLevel = options.confLevel ?? 0.95;
+    if (Number.isNaN(mu))
+        throw new RangeError("mu must be a number");
+    checkConfLevel(confLevel);
+    if (paired && ys === undefined)
+        throw new TypeError("y is required when paired is true");
+    // Work on the data scaled by 2^-k (exact; paired values before their differences are taken), so that neither the
+    // differences nor the variances and their squares leave the range. mu goes with them; the estimates, standard
+    // error and interval are scaled back at the end
+    let xs;
+    let yv;
+    let k;
+    if (paired) {
+        const [a, b] = completePairs(Array.from(x), Array.from(ys));
+        ({ d: xs, k } = pairedDifferences(a, b));
+    }
+    else {
+        const scaled = scaleToUnit(ys === undefined ? [dropNaN(Array.from(x))] : [dropNaN(Array.from(x)), dropNaN(Array.from(ys))]);
+        k = scaled.k;
+        xs = scaled.groups[0];
+        yv = scaled.groups[1];
+    }
+    const muS = ldexp(mu, -k);
+    let tstat;
+    let df;
+    let stdErr;
+    let estimate;
+    let estimateNames;
+    let method;
+    let nullValueName;
+    const nx = xs.length;
+    // With equal variances a two-sample test needs only 1 observation per sample (3 in all); otherwise 2 in each
+    const pooled = yv !== undefined && varEqual;
+    if (nx < 1 || (!pooled && nx < 2))
+        throw new Error("not enough 'x' observations");
+    const mx = mean(xs);
+    const vx = nx > 1 ? variance(xs) : NaN;
+    if (yv === undefined) {
+        df = nx - 1;
+        stdErr = Math.sqrt(vx / nx);
+        // A standard error of 0 is constant data also when the mean is 0 (R's test 0 < 0 lets [0, 0] through to NaN; #314)
+        if (stdErr === 0 || stdErr < 10 * Number.EPSILON * Math.abs(mx))
+            throw new Error("data are essentially constant");
+        tstat = (mx - muS) / stdErr;
+        method = paired ? "Paired t-test" : "One Sample t-test";
+        estimate = mx;
+        estimateNames = paired ? "mean difference" : "mean of x";
+        nullValueName = paired ? "mean difference" : "mean";
+    }
+    else {
+        const ny = yv.length;
+        if (ny < 1 || (!varEqual && ny < 2))
+            throw new Error("not enough 'y' observations");
+        if (varEqual && nx + ny < 3)
+            throw new Error("not enough observations");
+        const my = mean(yv);
+        const vy = ny > 1 ? variance(yv) : NaN;
+        method = `${varEqual ? "" : "Welch"} Two Sample t-test`;
+        estimate = [mx, my];
+        estimateNames = ["mean of x", "mean of y"];
+        nullValueName = "difference in means";
+        if (varEqual) {
+            df = nx + ny - 2;
+            // A sample of size 1 contributes nothing to the pooled sum of squares
+            let v = 0;
+            if (nx > 1)
+                v += (nx - 1) * vx;
+            if (ny > 1)
+                v += (ny - 1) * vy;
+            v /= df;
+            stdErr = Math.sqrt(v * (1 / nx + 1 / ny));
+        }
+        else {
+            const sx = vx / nx;
+            const sy = vy / ny;
+            // as R, the standard error from the two standard errors (sqrt of the scaled variances is exact: the scale is
+            // 2^-2k)
+            stdErr = Math.sqrt(Math.sqrt(sx) ** 2 + Math.sqrt(sy) ** 2);
+            df = satterthwaiteDfSe([sx, sy], [nx - 1, ny - 1]);
+        }
+        if (stdErr === 0 || stdErr < 10 * Number.EPSILON * Math.max(Math.abs(mx), Math.abs(my))) {
+            throw new Error("data are essentially constant");
+        }
+        tstat = (mx - my - muS) / stdErr;
+    }
+    // The ends are R's mu + (t ± q) stdErr (the same bits as R where its parts are). That cancels where mu or t stdErr is
+    // far larger than the interval itself (R's t.test(1:4, mu = 1e6) is 1.4e-10 off, mu = -1e300 gives [0, 0]; an
+    // infinite mu NaN): where either exceeds 16 times abs(estimate) + q stdErr, or the end is not finite, the end is the
+    // estimate -+ q stdErr instead (revision of review 3). (A standard error of 0 is an error above)
+    const centre = typeof estimate === "number" ? estimate : estimate[0] - estimate[1];
+    const end = (q, sign) => {
+        const r = muS + (tstat + sign * q) * stdErr;
+        if (Number.isFinite(r) && Math.max(Math.abs(muS), Math.abs(tstat * stdErr)) <= 16 * (Math.abs(centre) + q * stdErr))
+            return r;
+        return centre + sign * q * stdErr;
+    };
+    let pValue;
+    let confInt;
+    if (alternative === "less") {
+        pValue = pt1(tstat, df, true, false);
+        confInt = [-Infinity, end(qt1(confLevel, df, true, false), 1)];
+    }
+    else if (alternative === "greater") {
+        pValue = pt1(tstat, df, false, false);
+        confInt = [end(qt1(confLevel, df, true, false), -1), Infinity];
+    }
+    else {
+        pValue = 2 * pt1(-Math.abs(tstat), df, true, false);
+        const alpha = 1 - confLevel;
+        // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
+        const c = alpha / 2 < 1e-8 ? qt1(alpha / 2, df, false, false) : qt1(1 - alpha / 2, df, true, false);
+        confInt = [end(c, -1), end(c, 1)];
+    }
+    confInt = [ldexp(confInt[0], k), ldexp(confInt[1], k)];
+    estimate = typeof estimate === "number" ? ldexp(estimate, k) : estimate.map((v) => ldexp(v, k));
+    stdErr = ldexp(stdErr, k);
+    return {
+        method,
+        alternative,
+        statistic: tstat,
+        statisticName: "t",
+        parameter: df,
+        parameterName: "df",
+        pValue,
+        confInt,
+        confLevel,
+        estimate,
+        estimateNames,
+        nullValue: mu,
+        nullValueName,
+        stdErr,
+    };
+}
+/** t.test from a formula: the default form on the data the formula selects, with the estimates named after the levels */
+function tTestFormula(formula, data, options) {
+    if (options.paired !== undefined)
+        throw new Error("cannot use 'paired' in formula method");
+    const d = twoSampleData(formula, data, true);
+    if (d.kind === "one")
+        return tTest(d.x, options);
+    if (d.kind === "paired")
+        return tTest(d.x, d.y, { ...options, paired: true });
+    const [first, second] = d.levels;
+    return {
+        ...tTest(d.x, d.y, options),
+        estimateNames: [`mean in group ${first}`, `mean in group ${second}`],
+        nullValueName: `difference in means between group ${first} and group ${second}`,
+    };
+}

@@ -1,0 +1,196 @@
+// One-way analysis of means (R's oneway.test) and the Shapiro-Wilk normality test (R's shapiro.test).
+//
+// Written for rStats.js from the published formulas (no ported code). oneway.test: with equal variances the classical
+// F = (sum n_i (m_i - m)^2 / (k - 1)) / (sum (n_i - 1) s_i^2 / (N - k)); otherwise Welch's (Biometrika 38, 1951)
+// weighted statistic with w_i = n_i / s_i^2, F = sum w_i (m_i - m_w)^2 / ((k - 1)(1 + 2 (k - 2) c)),
+// c = sum (1 - w_i / sum w)^2 / (n_i - 1) / (k^2 - 1), on (k - 1, 1 / (3 c)) degrees of freedom.
+// shapiro.test: W and its p-value from src/htest/core/shapiro.ts (Royston's AS R94).
+import { pf1 } from "../distributions/f.js";
+import { groupMoments, ldexpWide } from "../internal/summary.js";
+import { swilkOneMinusW, swilkPValueFromOneMinusW } from "./core/shapiro.js";
+import { toGroups } from "./groups.js";
+import { checkPooledVariance } from "./multipleComparisons.js";
+import { onewayData } from "./testFormula.js";
+const MIN_NORMAL = 2 ** -1022;
+export function onewayTest(x, g, options = {}) {
+    if (typeof x === "string") {
+        const d = onewayData(x, g);
+        return onewayTest(d.values, d.groups, options);
+    }
+    let labels;
+    if (g !== undefined && !Array.isArray(g))
+        options = g;
+    else
+        labels = g;
+    // moments of the data scaled by a power of 2 (exact), so that the variances stay in range; the statistic has no
+    // units
+    const raw = toGroups(x, labels);
+    const gm = groupMoments(raw);
+    const groups = gm.groups;
+    const varEqual = options.varEqual ?? false;
+    const k = groups.length;
+    if (k < 2)
+        throw new RangeError("not enough groups");
+    const ni = groups.map((s) => s.length);
+    if (ni.some((n) => n < 2))
+        throw new RangeError("not enough observations");
+    const mi = gm.mean;
+    const vi = gm.variance;
+    const N = ni.reduce((a, b) => a + b, 0);
+    let statistic;
+    let df2;
+    let own;
+    if (varEqual) {
+        const m = gm.grandMean;
+        let between = 0;
+        let within = 0;
+        for (let i = 0; i < k; i++) {
+            between += ni[i] * (mi[i] - m) ** 2;
+            within += (ni[i] - 1) * vi[i];
+        }
+        df2 = N - k;
+        // every group constant: an error, as tukeyTest (R's F Inf and p 0, or NaN for equal means)
+        checkPooledVariance(df2, gm.ssWithin);
+        statistic = between / (k - 1) / (within / df2);
+    }
+    else if (vi.some((v) => !(v >= MIN_NORMAL)) && (own = ownScaleMoments(raw)) !== undefined) {
+        // A variance underflows (or is subnormal) on the common scale although no group is constant (#393; as #270 for
+        // bartlettTest): each group on its own scale 2^-k_i, the weights and the terms as a mantissa and a power of 2,
+        // and F in the pairwise form sum_{i<j} w_i w_j (m_i - m_j)^2 / sum w, with 1 - w_i / sum w = (the sum of the
+        // other weights) / sum w
+        const w = own.map((o, i) => splitPow2(ni[i] / o.variance, -2 * o.k));
+        const top = Math.max(...w.map((x) => x.e));
+        const parts = w.map((x) => ldexpWide(x.m, x.e - top));
+        const sw = parts.reduce((s, v) => s + v, 0);
+        let c = 0;
+        for (let i = 0; i < k; i++) {
+            const others = parts.reduce((s, v, j) => (j === i ? s : s + v), 0);
+            c += (others / sw) ** 2 / (ni[i] - 1);
+        }
+        c /= k * k - 1;
+        const terms = [];
+        for (let i = 0; i < k; i++) {
+            for (let j = i + 1; j < k; j++) {
+                // m_i - m_j in units of 2^max(k_i, k_j)
+                const [p, q] = own[i].k >= own[j].k ? [own[i], own[j]] : [own[j], own[i]];
+                const d = p.mean - ldexpWide(q.mean, q.k - p.k);
+                if (d === 0)
+                    continue;
+                const dd = splitPow2(d, p.k);
+                terms.push({ m: (w[i].m * w[j].m * dd.m * dd.m) / sw, e: w[i].e + w[j].e + 2 * dd.e - top });
+            }
+        }
+        const peak = Math.max(...terms.map((t) => t.e));
+        const sum = terms.reduce((s, t) => s + ldexpWide(t.m, t.e - peak), 0);
+        statistic = (terms.length === 0 ? 0 : ldexpWide(sum, peak)) / ((k - 1) * (1 + 2 * (k - 2) * c));
+        df2 = 1 / (3 * c);
+    }
+    else if (vi.some((v) => v === 0)) {
+        // a constant group z (#313): as its variance tends to 0, w_z -> Infinity, the weighted mean -> m_z, and
+        // F -> sum_{i != z} w_i (m_i - m_z)^2 / ((k - 1)(1 + 2 (k - 2) c)), c = sum_{i != z} 1 / (n_i - 1) / (k^2 - 1)
+        // (for k = 2 the square of Welch's t). With two or more constant groups the limit depends on how the variances
+        // tend to 0 (df2, and F for equal means), so the test is not defined
+        const zero = vi.flatMap((v, i) => (v === 0 ? [i] : []));
+        if (zero.length > 1)
+            throw new RangeError("Welch's test is not defined with two or more constant groups");
+        const z = zero[0];
+        let c = 0;
+        let num = 0;
+        for (let i = 0; i < k; i++) {
+            if (i === z)
+                continue;
+            c += 1 / (ni[i] - 1);
+            num += (ni[i] / vi[i]) * (mi[i] - mi[z]) ** 2;
+        }
+        c /= k * k - 1;
+        statistic = num / ((k - 1) * (1 + 2 * (k - 2) * c));
+        df2 = 1 / (3 * c);
+    }
+    else {
+        const wi = ni.map((n, i) => n / vi[i]);
+        const sw = wi.reduce((a, b) => a + b, 0);
+        let c = 0;
+        let mw = 0;
+        for (let i = 0; i < k; i++) {
+            c += (1 - wi[i] / sw) ** 2 / (ni[i] - 1);
+            mw += wi[i] * mi[i];
+        }
+        c /= k * k - 1;
+        mw /= sw;
+        let num = 0;
+        for (let i = 0; i < k; i++)
+            num += wi[i] * (mi[i] - mw) ** 2;
+        statistic = num / ((k - 1) * (1 + 2 * (k - 2) * c));
+        df2 = 1 / (3 * c);
+    }
+    return {
+        method: varEqual ? "One-way analysis of means" : "One-way analysis of means (not assuming equal variances)",
+        statistic,
+        statisticName: "F",
+        parameter: [k - 1, df2],
+        parameterName: ["num df", "denom df"],
+        pValue: pf1(statistic, k - 1, df2, false, false),
+    };
+}
+/**
+ * Shapiro-Wilk test of normality. Equivalent to R's `shapiro.test()`. `NaN` values are dropped; the sample size must
+ * be between 3 and 5000.
+ *
+ * @example
+ * ```ts
+ * const x = [2.1, 3.4, 1.9, 5.6, 4.4, 3.3, 2.8, 4.1, 3.9, 6.2];
+ * const r = shapiroTest(x);
+ * r.statistic; // 0.9586525103840963
+ * r.pValue;    // 0.7704047318146288
+ * ```
+ *
+ * @category Hypothesis tests
+ */
+export function shapiroTest(x) {
+    const xs = Array.from(x)
+        .filter((v) => !Number.isNaN(v))
+        .sort((a, b) => a - b);
+    const n = xs.length;
+    if (n < 3 || n > 5000)
+        throw new RangeError("sample size must be between 3 and 5000");
+    if (!Number.isFinite(xs[0]) || !Number.isFinite(xs[n - 1]))
+        throw new RangeError("'x' must be finite");
+    if (xs[n - 1] === xs[0])
+        throw new RangeError("all 'x' values are identical");
+    const w1 = swilkOneMinusW(xs);
+    return {
+        method: "Shapiro-Wilk normality test",
+        statistic: 1 - w1,
+        statisticName: "W",
+        pValue: swilkPValueFromOneMinusW(w1, n),
+    };
+}
+/**
+ * Each group's mean and variance on its own scale 2^-k (#393); undefined when a group is constant (its weight is
+ * infinite: #313)
+ */
+function ownScaleMoments(groups) {
+    const out = [];
+    for (const g of groups) {
+        const m = groupMoments([g]);
+        const variance = m.variance[0];
+        if (!(variance > 0))
+            return undefined;
+        out.push({ mean: m.mean[0], variance, k: m.k });
+    }
+    return out;
+}
+/** v 2^e (v finite and nonzero) as m 2^e' with abs(m) in [1, 2) */
+function splitPow2(v, e) {
+    let f = Math.floor(Math.log2(Math.abs(v)));
+    let m = ldexpWide(v, -f);
+    if (Math.abs(m) >= 2) {
+        m /= 2;
+        f++;
+    }
+    else if (Math.abs(m) < 1) {
+        m *= 2;
+        f--;
+    }
+    return { m, e: e + f };
+}

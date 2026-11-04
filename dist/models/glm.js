@@ -1,0 +1,948 @@
+// Generalized linear models with a matrix interface: R's glm (the fit of glm.fit), summary.glm, the four kinds of
+// residuals, hatvalues, rstandard, cooks.distance and predict (with standard errors).
+//
+// Written for rStats.js (no ported code) from oracle/glm-behaviour.md (a description of R's behaviour), R's help
+// pages (?glm, ?glm.control, ?summary.glm, ?predict.glm, ?influence.measures) and McCullagh and Nelder (1989),
+// Generalized Linear Models, 2nd ed., section 2.5 (iteratively reweighted least squares). The least squares steps use
+// the QR decomposition of src/linalg/qr.ts with R's limited pivoting and the tolerance min(1e-7, epsilon / 1000), so
+// that aliased columns are found as R finds them; their coefficients are NaN (R's NA).
+import { pt1 } from "../distributions/t.js";
+import { pnorm } from "../distributions/normal.js";
+import { chol2invColumns } from "../internal/scaledInverse.js";
+import { qr, qrCoef, qrQy } from "../linalg/qr.js";
+import { familyAic, makeFamily, prepareResponse, Warnings, withWarnings, } from "./glmFamily.js";
+import { maxOf } from "../internal/extremes.js";
+import { ldexp, ldexpWide, scaleToUnit } from "../internal/summary.js";
+import { NON_ESTIMABLE_WARNING, nonEstimableRows } from "./estimable.js";
+import { checkDot, checkedDot } from "../linalg/dot.js";
+const EPS = 2 ** -52;
+function deparseNames(names) {
+    const q = names.map((s) => `"${s}"`);
+    return q.length === 1 ? q[0] : `c(${q.join(", ")})`;
+}
+function linearPredictor(x, b, offset) {
+    return x.map((r, i) => {
+        let s = 0;
+        for (let j = 0; j < r.length; j++)
+            s += r[j] * b[j];
+        return s + offset[i];
+    });
+}
+function totalDeviance(fam, y, mu, w) {
+    let d = 0;
+    // an observation of weight 0 adds nothing (its contribution 0 * Inf was NaN for a poisson y of 1e308, as in R)
+    for (let i = 0; i < y.length; i++)
+        if (w[i] !== 0)
+            d += fam.devContribution(y[i], mu[i], w[i]);
+    return d;
+}
+const MIN_NORMAL = 2 ** -1022;
+/** Whether v is 0 or a finite number of the normal range */
+const inRange = (v) => v === 0 || (Math.abs(v) >= MIN_NORMAL && Math.abs(v) < Infinity);
+/**
+ * The square root of the working weight, sqrt(w muEta^2 / V(mu)). Where a part of that form (muEta^2, V, w muEta^2) or
+ * the result is outside the normal range although the weight is not (a poisson mean beyond 1.34e154 squared muEta to
+ * Infinity, an inverse.gaussian V of mu^3 overflowed or underflowed, a muEta of 1e-160 squared to 0: #165-#168), as
+ * sqrt(w) |c| mu^((2a - p)/2) from muEta = c mu^a and V = mu^p. Otherwise, and for the links and variances not of
+ * that form (the binomial ones), the same bits as R's form. (Not sqrt(w) |muEta| / sqrt(V) for those: a binomial
+ * mean at its clamp 1 - 2^-53 has V far above mu (1 - mu) while muEta keeps falling, so that form gave rows at an
+ * infinite linear predictor a weight, and the working response Infinity, where R's form gives them the weight 0)
+ */
+function sqrtWeight(fam, w, me, mu) {
+    const v = fam.variance(mu);
+    const me2 = me ** 2;
+    const s = Math.sqrt((w * me2) / v);
+    if (s > 0 && s < Infinity && inRange(me2) && me2 !== 0 && inRange(v) && v !== 0 && inRange(w * me2))
+        return s;
+    if (fam.muPower !== undefined && fam.varPower !== undefined && mu > 0) {
+        const { c, a } = fam.muPower;
+        return Math.sqrt(w) * Math.abs(c) * mu ** ((2 * a - fam.varPower) / 2);
+    }
+    return s;
+}
+/**
+ * The working residual (y - mu) / muEta; where muEta is not finite or below the normal range (the inverse link's
+ * -1/eta^2 overflowed for a Gamma mean of 1e308, #159), as ((y - mu)/c)/mu^(a/2)/mu^(a/2) from muEta = c mu^a
+ */
+function workingResidual(fam, y, mu, me) {
+    const r = (y - mu) / me;
+    if (Math.abs(me) >= MIN_NORMAL && Math.abs(me) < Infinity)
+        return r;
+    if (fam.muPower !== undefined && mu > 0) {
+        const { c, a } = fam.muPower;
+        const h = mu ** (a / 2);
+        return (y - mu) / c / h / h;
+    }
+    return r;
+}
+/**
+ * The Pearson residual (y - mu) sqrt(w) / sqrt(V(mu)); where V is outside the normal range or the result is not finite,
+ * as ((y - mu)/h) sqrt(w)/h with h = mu^(p/4) from V = mu^p
+ */
+function pearsonResidual(fam, y, mu, w) {
+    const v = fam.variance(mu);
+    const r = ((y - mu) * Math.sqrt(w)) / Math.sqrt(v);
+    if ((Number.isFinite(r) && inRange(v) && v !== 0) || fam.varPower === undefined || !(mu > 0))
+        return r;
+    const h = mu ** (fam.varPower / 4);
+    return (((y - mu) / h) * Math.sqrt(w)) / h;
+}
+/** Iteratively reweighted least squares (glm-behaviour.md, "Fitting") */
+/** The change of the linear predictor in the last iteration above which a converged fit is reported separated */
+const SEPARATION_STEP = 0.1;
+export function irls(inp, warnings) {
+    const { x, p, y, w, offset, fam, epsilon, maxit } = inp;
+    const n = y.length;
+    // As R, whose least-squares step (C_Cdqrls) stops on a non-finite value among the rows of positive weight
+    if (y.some((v, i) => w[i] > 0 && !Number.isFinite(v)))
+        throw new RangeError("NA/NaN/Inf in 'y'");
+    if (x.some((r, i) => w[i] > 0 && r.some((v) => !Number.isFinite(v))))
+        throw new RangeError("NA/NaN/Inf in 'x'");
+    return withWarnings(warnings, () => {
+        const allOk = (eta, mu) => eta.every((e) => fam.etaOk(e)) && mu.every((m) => fam.muOk(m));
+        if (p === 0) {
+            // a model without columns: the linear predictor is the offset
+            const eta = offset.slice();
+            if (!eta.every((e) => fam.etaOk(e)))
+                throw new Error("invalid linear predictor values in empty model");
+            const mu = eta.map((e) => fam.linkinv(e));
+            if (!mu.every((m) => fam.muOk(m)))
+                throw new Error("invalid fitted means in empty model");
+            const me = eta.map((e) => fam.muEta(e));
+            const ww = mu.map((m, i) => sqrtWeight(fam, w[i], me[i], m) ** 2);
+            return {
+                coefficients: [],
+                eta,
+                mu,
+                deviance: totalDeviance(fam, y, mu, w),
+                iter: 0,
+                converged: true,
+                // (true, not a mistake: R's glm.fit marks the empty model both converged and at the boundary; the warning
+                // "algorithm stopped at boundary value" is still not given, see finalWarnings)
+                boundary: true,
+                rank: 0,
+                qr: undefined,
+                used: w.map((v) => v > 0),
+                workingWeights: ww,
+                workingResiduals: y.map((v, i) => workingResidual(fam, v, mu[i], me[i])),
+            };
+        }
+        let eta;
+        let previous;
+        if (inp.start !== undefined) {
+            if (inp.start.length !== p) {
+                throw new RangeError(`length of 'start' should equal ${p} and correspond to initial coefs for ${deparseNames(inp.columnNames)}`);
+            }
+            previous = inp.start.slice();
+            eta = linearPredictor(x, previous, offset);
+        }
+        else if (inp.etastart !== undefined)
+            eta = inp.etastart.slice();
+        else
+            eta = inp.mustart.map((m) => fam.link(m));
+        let mu = eta.map((e) => fam.linkinv(e));
+        if (!allOk(eta, mu))
+            throw new Error("cannot find valid starting values: please specify some");
+        let devPrevious = totalDeviance(fam, y, mu, w);
+        let dev = devPrevious;
+        let converged = false;
+        let boundary = false;
+        let iter = 0;
+        let coef = new Array(p).fill(0);
+        let q;
+        let used = w.map(() => false);
+        let sqrtW = [];
+        const recent = [];
+        const tol = Math.min(1e-7, epsilon / 1000);
+        for (iter = 1; iter <= maxit; iter++) {
+            const me = eta.map((e) => fam.muEta(e));
+            for (let i = 0; i < n; i++) {
+                if (!(w[i] > 0))
+                    continue;
+                const v = fam.variance(mu[i]);
+                if (Number.isNaN(v))
+                    throw new Error("NAs in V(mu)");
+                // (not where V = mu^p underflowed for a positive mean: an inverse.gaussian mean of 1e-200, #166)
+                if (v === 0 && !(fam.varPower !== undefined && mu[i] > 0))
+                    throw new Error("0s in V(mu)");
+                if (Number.isNaN(me[i]))
+                    throw new Error("NAs in d(mu)/d(eta)");
+            }
+            used = w.map((v, i) => v > 0 && me[i] !== 0);
+            const rows = [];
+            for (let i = 0; i < n; i++)
+                if (used[i])
+                    rows.push(i);
+            if (rows.length === 0) {
+                warnings.add(`no observations informative at iteration ${iter}`);
+                converged = false;
+                break;
+            }
+            sqrtW = new Array(n).fill(0);
+            const zw = [];
+            const xw = [];
+            for (const i of rows) {
+                const s = sqrtWeight(fam, w[i], me[i], mu[i]);
+                sqrtW[i] = s;
+                zw.push(((eta[i] - offset[i]) + workingResidual(fam, y[i], mu[i], me[i])) * s);
+                xw.push(x[i].map((v) => v * s));
+            }
+            q = qr(xw, { tol });
+            const b = qrCoef(q, zw);
+            if (b.some((v, j) => q.pivot.indexOf(j) < q.rank && !Number.isFinite(v))) {
+                warnings.add(`non-finite coefficients at iteration ${iter}`);
+                converged = false;
+                break;
+            }
+            coef = b.map((v) => (Number.isNaN(v) ? 0 : v));
+            boundary = false;
+            const etaBefore = eta;
+            eta = linearPredictor(x, coef, offset);
+            mu = eta.map((e) => fam.linkinv(e));
+            dev = totalDeviance(fam, y, mu, w);
+            if (!Number.isFinite(dev)) {
+                if (previous === undefined)
+                    throw new Error("no valid set of coefficients has been found: please supply starting values");
+                warnings.add("step size truncated due to divergence");
+                let halvings = 0;
+                while (!Number.isFinite(dev)) {
+                    if (halvings >= maxit)
+                        throw new Error("inner loop 1; cannot correct step size");
+                    halvings++;
+                    coef = coef.map((v, j) => (v + previous[j]) / 2);
+                    eta = linearPredictor(x, coef, offset);
+                    mu = eta.map((e) => fam.linkinv(e));
+                    dev = totalDeviance(fam, y, mu, w);
+                }
+                boundary = true;
+            }
+            if (!allOk(eta, mu)) {
+                if (previous === undefined)
+                    throw new Error("no valid set of coefficients has been found: please supply starting values");
+                warnings.add("step size truncated: out of bounds");
+                let halvings = 0;
+                while (!allOk(eta, mu)) {
+                    if (halvings >= maxit)
+                        throw new Error("inner loop 2; cannot correct step size");
+                    halvings++;
+                    coef = coef.map((v, j) => (v + previous[j]) / 2);
+                    eta = linearPredictor(x, coef, offset);
+                    mu = eta.map((e) => fam.linkinv(e));
+                }
+                boundary = true;
+                dev = totalDeviance(fam, y, mu, w);
+            }
+            // A step that increases the deviance is halved until it does not, as glm2's glm.fit2 (R's glm.fit accepts it:
+            // binomial with weights 1000 went from 7564 to 89255 and stopped at 144175 with coefficients of 1e15,
+            // "converged", where the maximum is 4956)
+            // (an increase of 1e-10 at least: with a tiny epsilon, as the profiles of glmConfint iterate, rounding of the
+            // deviance near the maximum is no increase to correct)
+            const rise = Math.max(epsilon, 1e-10);
+            if (previous !== undefined && iter > 1 && (dev - devPrevious) / (0.1 + Math.abs(dev)) >= rise) {
+                warnings.add("step size truncated due to increasing deviance");
+                let halvings = 0;
+                while ((dev - devPrevious) / (0.1 + Math.abs(dev)) >= rise && halvings < maxit) {
+                    halvings++;
+                    coef = coef.map((v, j) => (v + previous[j]) / 2);
+                    eta = linearPredictor(x, coef, offset);
+                    mu = eta.map((e) => fam.linkinv(e));
+                    dev = totalDeviance(fam, y, mu, w);
+                }
+                if ((dev - devPrevious) / (0.1 + Math.abs(dev)) >= rise) {
+                    warnings.add("inner loop 3; cannot correct step size");
+                    converged = false;
+                    break;
+                }
+            }
+            if (inp.untilCoefficients) {
+                const scale = maxOf(coef.map(Math.abs));
+                if (previous !== undefined && coef.every((v, j) => Math.abs(v - previous[j]) <= 8 * EPS * scale)) {
+                    converged = true;
+                    break;
+                }
+                // back to one of the last 16 iterates: a cycle in the last bits (of 2 to 5 iterates seen; rounding of the
+                // working response, far larger than 8 eps times a coefficient near 0), as close to the maximum as the doubles
+                // go (the profiles of glmConfint went to maxit, unconverged, and gave a NaN limit; review 66)
+                if (recent.some((r) => r.every((v, j) => v === coef[j]))) {
+                    converged = true;
+                    break;
+                }
+                recent.push(coef.slice());
+                if (recent.length > 16)
+                    recent.shift();
+            }
+            else if (Math.abs(dev - devPrevious) / (Math.abs(dev) + 0.1) < epsilon) {
+                converged = true;
+                // The deviance settles while the linear predictor still moves by about 1 per iteration when the data are
+                // separated (R reports such fits converged, with finite coefficients that only depend on maxit and epsilon).
+                // At a maximum the last step is far smaller; eta has no units, so the test does not depend on those of x
+                let moved = 0;
+                for (let i = 0; i < n; i++)
+                    if (used[i])
+                        moved = Math.max(moved, Math.abs(eta[i] - etaBefore[i]));
+                if (moved > SEPARATION_STEP) {
+                    warnings.add("glm.fit: the linear predictor was still changing at convergence: the data may be separated (no finite maximum likelihood estimates)");
+                }
+                break;
+            }
+            devPrevious = dev;
+            previous = coef.slice();
+        }
+        if (iter > maxit)
+            iter = maxit;
+        let rank = p;
+        const coefficients = coef.slice();
+        if (q !== undefined) {
+            rank = q.rank;
+            for (let k = q.rank; k < p; k++)
+                coefficients[q.pivot[k]] = NaN;
+        }
+        const me = eta.map((e) => fam.muEta(e));
+        return {
+            coefficients,
+            eta,
+            mu,
+            deviance: dev,
+            iter,
+            converged,
+            boundary,
+            rank,
+            qr: q,
+            used,
+            workingWeights: sqrtW.map((s) => s * s),
+            workingResiduals: y.map((v, i) => workingResidual(fam, v, mu[i], me[i])),
+        };
+    });
+}
+function toRows(x) {
+    return x.length > 0 && typeof x[0] !== "number" ? x.map((r) => Array.from(r)) : Array.from(x, (v) => [v]);
+}
+/** After the fit: the warnings about convergence and fitted values at the boundary */
+function finalWarnings(fit, fam, warnings, empty) {
+    if (empty)
+        return;
+    if (!fit.converged)
+        warnings.add("glm.fit: algorithm did not converge");
+    if (fit.boundary)
+        warnings.add("glm.fit: algorithm stopped at boundary value");
+    if (fam.family === "binomial" && fit.mu.some((m) => m > 1 - 10 * EPS || m < 10 * EPS)) {
+        warnings.add("glm.fit: fitted probabilities numerically 0 or 1 occurred");
+    }
+    if (fam.family === "poisson" && fit.mu.some((m) => m < 10 * EPS))
+        warnings.add("glm.fit: fitted rates numerically 0 occurred");
+}
+/** Fits a model from its stored data, with the columns `cols` of the model matrix (all by default) */
+export function refit(model, cols, warnings, control = {}) {
+    const fam = makeFamily(model.familySpec);
+    const start = "start" in control ? control.start : model.start;
+    const prep = prepareResponse(fam, model.yGiven, model.priorGiven, start !== undefined || control.etastart !== undefined, warnings);
+    // no observation carries information (R stops with an internal error); the fit came out with rank p and negative
+    // residual degrees of freedom
+    if (!prep.weights.some((w) => w > 0))
+        throw new RangeError("all weights are zero");
+    const offset = control.extraOffset === undefined ? model.offset : model.offset.map((o, i) => o + control.extraOffset[i]);
+    const x = model.x.map((r) => cols.map((j) => r[j]));
+    const fit = irls({
+        x,
+        p: cols.length,
+        y: prep.y,
+        w: prep.weights,
+        offset,
+        fam,
+        epsilon: control.epsilon ?? model.epsilon,
+        maxit: control.maxit ?? model.maxit,
+        columnNames: cols.map((j) => model.columnNames[j]),
+        start,
+        etastart: control.etastart,
+        mustart: prep.mustart,
+        untilCoefficients: control.untilCoefficients,
+    }, warnings);
+    finalWarnings(fit, fam, warnings, cols.length === 0);
+    return { fit, fam, y: prep.y, w: prep.weights, size: prep.size, offset };
+}
+/**
+ * Fit a generalized linear model by iteratively reweighted least squares. Equivalent to R's
+ * `glm(y ~ x, family = ...)`. Or `y ~ x - 1` without intercept; the predictors are given as a matrix instead of a
+ * formula. Rows with a missing value (NaN) in `x`, `y`, the weights or the offset are dropped. Every family and link
+ * of R's `stats` is available; R's warnings are returned in `warnings`. See {@link glmSummary}, {@link glmResiduals},
+ * {@link glmPredict}, {@link glmConfint} and {@link glmAnova} for the methods.
+ *
+ * @param x Predictors: a matrix (array of rows, one column per predictor; rows of length 0 for a model with the
+ *   intercept only) or a vector (one predictor).
+ * @param y Response: a vector, or for the binomial families rows of (successes, failures).
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * fit.coefficients; // [-4.2491, 1.214]
+ * glmSummary(fit).pValue; // [0.20976, 0.18341]
+ * ```
+ *
+ * @category Generalized linear models
+ */
+export function glm(x, y, options = {}) {
+    const intercept = options.intercept ?? true;
+    const xr = toRows(x);
+    // the shape of all the rows given, before the rows with a missing value are dropped (#463)
+    if (xr.some((r) => r.length !== xr[0].length))
+        throw new TypeError("all rows of x must have the same length");
+    const yIsMatrix = y.length > 0 && typeof y[0] !== "number";
+    const yr = yIsMatrix ? y.map((r) => Array.from(r)) : Array.from(y);
+    const nAll = yr.length;
+    if (xr.length !== nAll)
+        throw new RangeError("variable lengths differ (found for 'x1')");
+    const wGiven = options.weights === undefined ? undefined : Array.from(options.weights);
+    if (wGiven !== undefined && wGiven.length !== nAll)
+        throw new RangeError("variable lengths differ (found for '(weights)')");
+    const oGiven = options.offset === undefined ? undefined : Array.from(options.offset);
+    if (oGiven !== undefined && oGiven.length !== nAll)
+        throw new RangeError("variable lengths differ (found for '(offset)')");
+    const keep = xr.map((r, i) => {
+        const yi = yr[i];
+        const yNa = Array.isArray(yi) ? yi.some((v) => Number.isNaN(v)) : Number.isNaN(yi);
+        return !yNa && r.every((v) => !Number.isNaN(v)) && !(wGiven !== undefined && Number.isNaN(wGiven[i])) && !(oGiven !== undefined && Number.isNaN(oGiven[i]));
+    });
+    const X = xr.filter((_, i) => keep[i]).map((r) => (intercept ? [1, ...r] : r));
+    const yGiven = yr.filter((_, i) => keep[i]);
+    const n = yGiven.length;
+    if (n === 0)
+        throw new RangeError("0 (non-NA) cases");
+    const priorGiven = wGiven === undefined ? new Array(n).fill(1) : wGiven.filter((_, i) => keep[i]);
+    if (priorGiven.some((v) => v < 0))
+        throw new RangeError("negative weights not allowed");
+    // (R: "NA/NaN/Inf in 'x'" from the weighted least squares step; here the error of the QR on a matrix with Inf)
+    if (priorGiven.some((v) => !Number.isFinite(v)))
+        throw new RangeError("non-finite weights not allowed");
+    const offset = oGiven === undefined ? new Array(n).fill(0) : oGiven.filter((_, i) => keep[i]);
+    // as R ("NA/NaN/Inf in 'y'" there, from the working response); an infinite offset gave coefficients of 0
+    if (offset.some((v) => !Number.isFinite(v)))
+        throw new RangeError("the offset must be finite");
+    const nx = xr.length > 0 ? xr[0].length : 0;
+    const columnNames = [...(intercept ? ["(Intercept)"] : []), ...Array.from({ length: nx }, (_, j) => `x${j + 1}`)];
+    const p = columnNames.length;
+    const familySpec = typeof options.family === "object" ? { ...options.family } : { family: options.family ?? "gaussian" };
+    if (options.link !== undefined)
+        familySpec.link = options.link;
+    const model = {
+        x: X,
+        columnNames,
+        yGiven,
+        priorGiven,
+        offset,
+        hasOffset: oGiven !== undefined,
+        intercept,
+        familySpec,
+        epsilon: options.epsilon ?? 1e-8,
+        // R loops over 1:maxit, so a fractional maxit runs (and reports) its integer part
+        maxit: Math.floor(options.maxit ?? 25),
+        start: options.start === undefined ? undefined : Array.from(options.start),
+    };
+    if (!(model.epsilon > 0 && model.epsilon < Infinity))
+        throw new RangeError("value of 'epsilon' must be > 0 and finite");
+    if (!(model.maxit > 0 && model.maxit < Infinity))
+        throw new RangeError("maximum number of iterations must be > 0");
+    // gaussian (and quasi with constant variance) on the identity link: fitted to the response scaled by a power of 2
+    // (exact; src/internal/summary.ts), so that the deviance stays in range; see scaledView
+    const k = !yIsMatrix && scalesWithResponse(familySpec) ? scaleToUnit([yGiven]).k : 0;
+    if (k === 0)
+        return fitModel(model);
+    const down = (v) => ldexp(v, -k);
+    const scaled = fitModel({
+        ...model,
+        yGiven: yGiven.map(down),
+        offset: offset.map(down),
+        start: model.start?.map(down),
+    });
+    return unscaledResult(scaled, k, { ...model, yScale: k });
+}
+/** The fit of a model (the part of glm after its checks) */
+function fitModel(model) {
+    const { x: X, offset, intercept } = model;
+    const n = X.length;
+    const p = model.columnNames.length;
+    const warnings = new Warnings();
+    const all = Array.from({ length: p }, (_, j) => j);
+    const { fit, fam, y: yy, w, size } = refit(model, all, warnings);
+    // null deviance: the constant weighted mean (with an intercept) or the inverse link of the offset
+    let nullDeviance;
+    if (intercept && model.hasOffset) {
+        const nullWarnings = new Warnings();
+        const nf = irls({ x: X.map(() => [1]), p: 1, y: yy, w, offset, fam, epsilon: model.epsilon, maxit: model.maxit, columnNames: ["(Intercept)"], mustart: fit.mu }, nullWarnings);
+        finalWarnings(nf, fam, nullWarnings, false);
+        nullWarnings.list.forEach((m) => warnings.add(m));
+        nullDeviance = nf.deviance;
+        if (!nf.converged)
+            warnings.add("fitting to calculate the null deviance did not converge -- increase 'maxit'?");
+    }
+    else if (intercept) {
+        // the weights divided by a power of 2 (the mean unchanged; their sum overflowed for weights of 1e308), and rows of
+        // weight 0 left out (0 times an infinite response was NaN); R gave NaN for both
+        const kw = Math.floor(Math.log2(maxOf(w)));
+        let sw = 0;
+        let swy = 0;
+        for (let i = 0; i < n; i++) {
+            if (!(w[i] > 0))
+                continue;
+            const wi = ldexp(w[i], -kw);
+            sw += wi;
+            swy += wi * yy[i];
+        }
+        let m = swy / sw;
+        if (!Number.isFinite(m)) {
+            // the weighted sum of the response overflowed (a poisson response of 1e308, #168): with the response divided by a
+            // power of 2 as well
+            let ymax = 0;
+            for (let i = 0; i < n; i++)
+                if (w[i] > 0)
+                    ymax = Math.max(ymax, Math.abs(yy[i]));
+            const ky = Math.floor(Math.log2(ymax));
+            let swy2 = 0;
+            for (let i = 0; i < n; i++)
+                if (w[i] > 0)
+                    swy2 += ldexp(w[i], -kw) * ldexp(yy[i], -ky);
+            m = ldexp(swy2 / sw, ky);
+        }
+        nullDeviance = withWarnings(warnings, () => totalDeviance(fam, yy, yy.map(() => m), w));
+    }
+    else
+        nullDeviance = withWarnings(warnings, () => totalDeviance(fam, yy, offset.map((o) => fam.linkinv(o)), w));
+    const nOk = n - w.filter((v) => v === 0).length;
+    const aic = familyAic(fam, yy, fit.mu, w, size, fit.deviance, warnings) + 2 * fit.rank;
+    return withUsedRows(fit.used, {
+        coefficients: fit.coefficients,
+        fittedValues: fit.mu,
+        linearPredictors: fit.eta,
+        deviance: fit.deviance,
+        nullDeviance,
+        aic,
+        rank: fit.rank,
+        dfResidual: nOk - fit.rank,
+        dfNull: nOk - (intercept ? 1 : 0),
+        iter: fit.iter,
+        converged: fit.converged,
+        boundary: fit.boundary,
+        y: yy,
+        priorWeights: w,
+        weights: fit.workingWeights,
+        residuals: fit.workingResiduals,
+        family: fam.family,
+        link: fam.name,
+        warnings: warnings.list,
+        qr: fit.qr,
+        model,
+    });
+}
+/** Whether the family's fit scales with the response: gaussian, or quasi with constant variance, on the identity link */
+function scalesWithResponse(spec) {
+    const link = spec.link ?? "identity";
+    if (link !== "identity")
+        return false;
+    return spec.family === "gaussian" || (spec.family === "quasi" && (spec.variance ?? "constant") === "constant");
+}
+/**
+ * The fit of the response in its own units from the fit of the response scaled by 2^-k: coefficients, means, linear
+ * predictors, the response and the working residuals times 2^k, deviances times 2^2k, and the gaussian AIC
+ * (n log(deviance / n) + ...) plus 2 n k log 2. The scaled fit stays with it (not enumerable), for scaledView
+ */
+function unscaledResult(scaled, k, model) {
+    const up = (v) => ldexp(v, k);
+    const out = {
+        ...scaled,
+        coefficients: scaled.coefficients.map(up),
+        fittedValues: scaled.fittedValues.map(up),
+        linearPredictors: scaled.linearPredictors.map(up),
+        deviance: ldexp(scaled.deviance, 2 * k),
+        nullDeviance: ldexp(scaled.nullDeviance, 2 * k),
+        // (n log of the deviance scaled by 2^-2k, n the rows of positive weight as in familyAic)
+        aic: scaled.aic + 2 * scaled.priorWeights.filter((v) => v > 0).length * k * Math.LN2,
+        y: scaled.y.map(up),
+        residuals: scaled.residuals.map(up),
+        model,
+    };
+    Object.defineProperty(out, "scaled", { value: scaled, enumerable: false });
+    return withUsedRows(USED_ROWS.get(scaled), out);
+}
+/**
+ * The rows of the last least squares step of a fit (irls's used): its working weights, squares of the square roots
+ * that went into the QR, may underflow to 0 for a row in it, so they do not tell (the hat values of the rows after it
+ * were shifted by one)
+ */
+const USED_ROWS = new WeakMap();
+function withUsedRows(used, fit) {
+    if (used !== undefined)
+        USED_ROWS.set(fit, used);
+    return fit;
+}
+/**
+ * The fit to compute with and its scale k: for a fit of a response scaled by 2^-k (see glm), that scaled fit, whose
+ * quantities with units are 2^-k (or 2^-2k) times the fit's; otherwise the fit itself with k = 0. The functions on a
+ * fit compute on it (statistics without units unchanged) and scale back only what has units
+ */
+export function scaledView(fit) {
+    const scaled = fit.scaled;
+    return scaled === undefined ? { fit, k: 0 } : { fit: scaled, k: fit.model.yScale ?? 0 };
+}
+/** The family object of a fit */
+export function familyOf(fit) {
+    return makeFamily(fit.model.familySpec);
+}
+/** Pearson dispersion of summary.glm (1 for binomial and poisson) */
+export function glmDispersion(fit, warnings) {
+    const v = scaledView(fit);
+    const d = dispersionOf(v.fit, warnings);
+    return familyOf(fit).fixedDispersion ? d : ldexp(d, 2 * v.k);
+}
+/** The dispersion of a fit in its own units (of the scaled fit for a scaled view) */
+function dispersionOf(fit, warnings) {
+    if (familyOf(fit).fixedDispersion)
+        return 1;
+    if (fit.dfResidual <= 0)
+        return NaN;
+    let s = 0;
+    for (let i = 0; i < fit.weights.length; i++)
+        if (fit.weights[i] > 0)
+            s += fit.weights[i] * fit.residuals[i] ** 2;
+    if (fit.weights.some((v) => v === 0))
+        warnings?.add("observations with zero weight not used for calculating dispersion");
+    if (s === Infinity)
+        return scaledPearsonMean(fit);
+    return s / fit.dfResidual;
+}
+/**
+ * sum W r^2 / dfResidual where the plain sum overflows: each term as (sqrt(W) r)^2 with the residuals and then the
+ * products divided by powers of 2 (2^-kr, 2^-kb), so that the sum stays in range, and the exponents added back after
+ * the division (#176). Terms below 2^-1074 of the largest are lost, which cannot matter next to a sum beyond the
+ * double range
+ */
+function scaledPearsonMean(fit) {
+    const rows = [];
+    for (let i = 0; i < fit.weights.length; i++)
+        if (fit.weights[i] > 0)
+            rows.push(i);
+    if (!rows.every((i) => Number.isFinite(fit.weights[i]) && Number.isFinite(fit.residuals[i])))
+        return Infinity;
+    const r = scaleToUnit([rows.map((i) => fit.residuals[i])]);
+    const b = scaleToUnit([rows.map((i, j) => Math.sqrt(fit.weights[i]) * Math.abs(r.groups[0][j]))]);
+    let s = 0;
+    for (const v of b.groups[0])
+        s += v * v;
+    return ldexp(s / fit.dfResidual, 2 * (r.k + b.k));
+}
+/**
+ * (R'R)^-1 of the leading rank x rank block of the last QR, in pivot order, as inv_jk 2^(-e_j - e_k) (columns far from
+ * 1 divided by powers of 2 first: chol2invColumns)
+ */
+function unscaledCovariance(fit) {
+    if (fit.qr === undefined || fit.rank === 0)
+        return { inv: [], e: [] };
+    return chol2invColumns(fit.qr.qr.slice(0, fit.rank).map((row) => row.slice(0, fit.rank)));
+}
+/**
+ * A dispersion given by the user: a non-negative finite number (a negative one gave NaN standard errors, as R's with a
+ * warning; 0 gives standard errors of 0, as R)
+ */
+export function checkDispersion(d) {
+    if (!(d >= 0 && d < Infinity))
+        throw new RangeError("'dispersion' must be a non-negative finite number");
+    return d;
+}
+/**
+ * A dispersion d given by the user, in the units of a fit computed on the response scaled by 2^-k (scaledView), as
+ * m 4^s: d 2^-2k with s = 0 where that is 0 or in the normal range (the old value, the same bits); where it underflows
+ * or overflows although d does not (k = 1023 for a response of 1e308, where d = 1 gave 0 and standard errors 0,
+ * #349), m is d brought to [1, 4) by an even power of 2, 4^h, and s = h - k, for the callers to apply 2^s and 4^s
+ * where the result is in range
+ */
+export function scaledDispersion(d, k) {
+    const v = ldexp(checkDispersion(d), -2 * k);
+    if (v === 0 ? d === 0 : v >= 2 ** -1022 && v < Infinity)
+        return { m: v, s: 0 };
+    const h = Math.floor(Math.floor(Math.log2(d)) / 2);
+    return { m: ldexp(d, -2 * h), s: h - k };
+}
+/**
+ * Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates,
+ * for a `glm` fit. Equivalent to R's `summary()`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * const s = glmSummary(fit);
+ * s.estimate; // [-4.2491, 1.214]
+ * s.stdError; // [3.3878, 0.91258]
+ * s.statisticName; // "z value"
+ * ```
+ *
+ * @category Generalized linear models
+ */
+export function glmSummary(given, options = {}) {
+    // computed on the scaled fit (scaledView); estimates, standard errors and the dispersion scaled back
+    const { fit, k } = scaledView(given);
+    const warnings = new Warnings();
+    const fam = familyOf(fit);
+    const estimated = options.dispersion === undefined && !fam.fixedDispersion;
+    const user = options.dispersion === undefined ? undefined : scaledDispersion(options.dispersion, k);
+    const dispersion = user === undefined ? dispersionOf(fit, warnings) : user.m;
+    // (a given dispersion is m 4^s; s != 0 only where its scaled value is out of range, #349)
+    const s = user?.s ?? 0;
+    const { inv, e } = unscaledCovariance(fit);
+    // (Infinity or 0 where the covariance itself is out of range; the standard errors scale back from the scaled columns)
+    const covUnscaled = inv.map((r, j) => r.map((v, k) => ldexp(v, -e[j] - e[k])));
+    const piv = fit.qr === undefined ? [] : fit.qr.pivot.slice(0, fit.rank);
+    const estimate = piv.map((j) => fit.coefficients[j]);
+    const stdError = inv.map((r, k) => ldexp(Math.sqrt(r[k] * dispersion), -e[k]));
+    const statistic = s === 0
+        ? estimate.map((e, k) => e / stdError[k])
+        : estimate.map((b, j) => ldexpWide(b / Math.sqrt(inv[j][j] * dispersion), e[j] - s));
+    const zTest = !estimated;
+    const pValue = statistic.map((t) => zTest ? 2 * pnorm(-Math.abs(t)) : fit.dfResidual > 0 ? 2 * pt1(-Math.abs(t), fit.dfResidual, true, false) : NaN);
+    if (estimated && fit.dfResidual === 0) {
+        stdError.fill(NaN);
+        statistic.fill(NaN);
+    }
+    const up = (v) => ldexp(v, k);
+    const up2 = (v) => ldexp(v, 2 * k);
+    return {
+        dispersion: s === 0 ? up2(dispersion) : options.dispersion,
+        estimate: estimate.map(up),
+        // (with s != 0 in the original units at once: sqrt(inv m) 2^(s + k - e))
+        stdError: s === 0 ? stdError.map(up) : inv.map((r, j) => ldexpWide(Math.sqrt(r[j] * dispersion), s + k - e[j])),
+        statistic,
+        pValue,
+        // (z whenever the dispersion is not estimated, as R: a given dispersion was named "t value")
+        statisticName: zTest ? "z value" : "t value",
+        covUnscaled,
+        covScaled: s === 0
+            ? covUnscaled.map((r) => r.map((v) => up2(v * dispersion)))
+            : inv.map((r, j) => r.map((v, l) => ldexpWide(v * dispersion, 2 * (s + k) - e[j] - e[l]))),
+        dfResidual: fit.dfResidual,
+        warnings: warnings.list,
+    };
+}
+/**
+ * Residuals of a generalized linear model, one per row, for a `glm` fit (default `"deviance"`). Equivalent to R's
+ * `residuals(fit, type)`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmResiduals(fit); // [-0.30644, -0.54776, 1.4436, -1.4436, 0.54776, 0.30644]
+ * glmResiduals(fit, "pearson"); // [-0.21925, -0.40231, 1.3546, -1.3546, 0.40231, 0.21925]
+ * ```
+ *
+ * @category Generalized linear models
+ */
+export function glmResiduals(fit, type = "deviance") {
+    // of the scaled fit (scaledView), scaled back: for the families that are scaled, every kind has the response's units
+    const v = scaledView(fit);
+    return residualsOf(v.fit, type).map((r) => ldexp(r, v.k));
+}
+function residualsOf(fit, type) {
+    const fam = familyOf(fit);
+    const { y, fittedValues: mu, priorWeights: w } = fit;
+    switch (type) {
+        case "response":
+            return y.map((v, i) => v - mu[i]);
+        case "working":
+            return fit.residuals.slice();
+        case "pearson":
+            return y.map((v, i) => pearsonResidual(fam, v, mu[i], w[i]));
+        case "deviance":
+            // from each row's contribution also without residual degrees of freedom (R's residuals.glm gives 0 there, even
+            // for a fit that has not converged: deviance 0.34 with residuals 0); their squares sum to the deviance
+            return y.map((v, i) => w[i] === 0 ? 0 : Math.sign(v - mu[i]) * Math.sqrt(Math.max(fam.devContribution(v, mu[i], w[i]), 0)));
+        default:
+            throw new RangeError(`unknown type of residuals "${String(type)}"`);
+    }
+}
+/**
+ * Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight, for a
+ * `glm` fit. Equivalent to R's `hatvalues()`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmHatvalues(fit); // [0.28361, 0.37762, 0.33877, 0.33877, 0.37762, 0.28361]
+ * ```
+ *
+ * @category Generalized linear models
+ */
+export function glmHatvalues(fit) {
+    const out = [];
+    const q = fit.qr;
+    let h = [];
+    if (q !== undefined && fit.rank > 0) {
+        const m = q.qr.length;
+        const e = Array.from({ length: m }, (_, i) => Array.from({ length: fit.rank }, (_, j) => (i === j ? 1 : 0)));
+        const Q = qrQy(q, e);
+        h = Q.map((r) => r.reduce((s, v) => s + v * v, 0));
+    }
+    // rows of the last least squares step, in order
+    let k = 0;
+    const usedRows = USED_ROWS.get(fit) ?? fit.weights.map((v) => v > 0);
+    fit.priorWeights.forEach((w, i) => {
+        const hi = usedRows[i] ? (h[k++] ?? 0) : 0;
+        if (w > 0)
+            out.push(hi > 1 - 10 * EPS ? 1 : hi);
+    });
+    return out;
+}
+function median(v) {
+    const s = v.slice().sort((a, b) => a - b);
+    const m = s.length >> 1;
+    return s.length % 2 === 1 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+/**
+ * Standardized deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. Equivalent to R's
+ * `rstandard()`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmRstandard(fit); // [-0.36205, -0.69432, 1.7753, -1.7753, 0.69432, 0.36205]
+ * ```
+ *
+ * @category Generalized linear models
+ */
+export function glmRstandard(given, options = {}) {
+    // on the scaled fit (scaledView): the standardized residuals have no units
+    const { fit, k } = scaledView(given);
+    const h = glmHatvalues(fit);
+    // (a given dispersion is m 4^s, s != 0 only where its scaled value is out of range, #349)
+    const { m: disp, s: shift } = options.dispersion === undefined ? { m: dispersionOf(fit), s: 0 } : scaledDispersion(options.dispersion, k);
+    const r = residualsOf(fit, "deviance").filter((_, i) => fit.priorWeights[i] > 0);
+    // residuals below 100 eps times their median are taken as 0 only with columns, as R's lm.influence (rank 0 keeps them)
+    const small = fit.rank > 0 ? 100 * EPS * median(r.map(Math.abs)) : 0;
+    return r.map((v, i) => {
+        const s = ldexpWide((Math.abs(v) < small ? 0 : v) / Math.sqrt(disp * (1 - h[i])), -shift);
+        return Number.isFinite(s) ? s : NaN;
+    });
+}
+/**
+ * Cook's distances, for the rows of non-zero prior weight, for a `glm` fit. Equivalent to R's `cooks.distance()`.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmCooksDistance(fit); // [0.013283, 0.078894, 0.71087, 0.71087, 0.078894, 0.013283]
+ * ```
+ *
+ * @category Generalized linear models
+ */
+export function glmCooksDistance(given, options = {}) {
+    // on the scaled fit (scaledView): Cook's distances have no units
+    const { fit, k } = scaledView(given);
+    const h = glmHatvalues(fit);
+    // (a given dispersion is m 4^s, s != 0 only where its scaled value is out of range, #349)
+    const { m: disp, s: shift } = options.dispersion === undefined ? { m: dispersionOf(fit), s: 0 } : scaledDispersion(options.dispersion, k);
+    const r = residualsOf(fit, "pearson").filter((_, i) => fit.priorWeights[i] > 0);
+    return r.map((v, i) => {
+        const q = h[i] / (disp * fit.rank);
+        let c = (v / (1 - h[i])) ** 2 * q;
+        // Where the square overflows, or h/(dispersion p) falls below the normal range (a large dispersion), with the residual
+        // and the dispersion in units of powers of 2 (cookScaled). Otherwise the same bits as before
+        if (!Number.isFinite(c) || q < 2 ** -1022)
+            c = cookScaled(v, h[i], disp, fit.rank);
+        if (shift !== 0)
+            c = ldexpWide(c, -2 * shift);
+        return Number.isFinite(c) ? c : NaN;
+    });
+}
+/**
+ * Cook's distance (r/(1 - h))^2 h/(d p) with r = 2^er r' and d = 2^ed d' (r', d' in [1, 2)), scaled back once at the end:
+ * the square of r/(1 - h) overflowed although the distance is finite (a binomial fit with prior weights 4e306 and
+ * dispersion 100: r/(1 - h) = 2.7e154 for a distance of 3.6e306, which was NaN)
+ */
+function cookScaled(r, h, d, p) {
+    if (!Number.isFinite(r) || !(d > 0 && Number.isFinite(d)))
+        return NaN;
+    const er = r === 0 ? 0 : Math.floor(Math.log2(Math.abs(r)));
+    const ed = Math.floor(Math.log2(d));
+    const u = ldexp(r, -er) / (1 - h);
+    return ldexp(u * u * (h / (ldexp(d, -ed) * p)), 2 * er - ed);
+}
+/**
+ * Predictions of a generalized linear model with their standard errors, for a `glm` fit. Equivalent to R's
+ * `predict(fit, newdata, type, se.fit = TRUE)`. Aliased columns are left out, as R does.
+ *
+ * @example
+ * ```ts
+ * const fit = glm([1, 2, 3, 4, 5, 6], [0, 0, 1, 0, 1, 1], { family: "binomial" });
+ * glmPredict(fit, { newdata: [7] }); // { fit: [4.2491], seFit: [3.3878] }
+ * glmPredict(fit, { newdata: [7], type: "response" }).fit; // [0.98592]
+ * ```
+ *
+ * @category Generalized linear models
+ */
+export function glmPredict(given, options = {}) {
+    // on the scaled fit (scaledView), with the new offset and the dispersion scaled alike; predictions and standard
+    // errors scaled back (the families that are scaled use the identity link)
+    const { fit, k } = scaledView(given);
+    const up = (v) => ldexp(v, k);
+    const fam = familyOf(fit);
+    let X;
+    let eta;
+    if (options.newdata === undefined) {
+        X = fit.model.x;
+        eta = fit.linearPredictors.slice();
+    }
+    else {
+        X = toRows(options.newdata).map((r) => (fit.model.intercept ? [1, ...r] : r));
+        if (X.some((r) => r.length !== fit.coefficients.length))
+            throw new RangeError("newdata must have one column per predictor of the fit");
+        const off = options.newoffset === undefined ? X.map(() => 0) : Array.from(options.newoffset, (v) => ldexp(v, -k));
+        if (off.length !== X.length)
+            throw new RangeError("newoffset must have one value per row of newdata");
+        const used = fit.coefficients.flatMap((b, j) => (Number.isNaN(b) ? [] : [j]));
+        eta = X.map((r, i) => {
+            const s = r.reduce((s, v, j) => (Number.isNaN(fit.coefficients[j]) ? s : s + v * fit.coefficients[j]), 0);
+            // products of finite values may overflow while x'b is in range (2 * 1e308 - 2 * 1e308): the exact inner
+            // product, as predict for lm (#174); also where products underflow while the sum is tiny (#395)
+            const xb = checkDot(s, 0) ? checkedDot(used.map((j) => r[j]), used.map((j) => fit.coefficients[j]), s) : s;
+            return xb + off[i];
+        });
+    }
+    // (a given dispersion is m 4^s, s != 0 only where its scaled value is out of range: the standard errors are then
+    // brought back by 2^(k + s), #349)
+    const { m: disp, s: shift } = options.dispersion === undefined ? { m: dispersionOf(fit), s: 0 } : scaledDispersion(options.dispersion, k);
+    const upSe = (v) => ldexp(v, k + shift);
+    const rank = fit.rank;
+    const piv = fit.qr === undefined ? [] : fit.qr.pivot.slice(0, rank);
+    const R = fit.qr?.qr;
+    // || R^-T x_piv ||, by forward substitution with R^T
+    const se = X.map((r) => {
+        const z = new Array(rank).fill(0);
+        let ss = 0;
+        for (let i = 0; i < rank; i++) {
+            let s = r[piv[i]];
+            for (let k = 0; k < i; k++)
+                s -= R[k][i] * z[k];
+            z[i] = s / R[i][i];
+            ss += z[i] * z[i];
+        }
+        // the squares overflowed (newdata 1e155: Infinity, R too) or underflowed: the norm of z divided by its largest
+        if (!(ss >= 2 ** -1022 && ss < Infinity)) {
+            const top = z.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+            if (top > 0 && Number.isFinite(top)) {
+                const norm = Math.sqrt(z.reduce((t, v) => t + (v / top) ** 2, 0));
+                const value = top * norm * Math.sqrt(disp);
+                // the norm of z beyond the doubles, brought back by a small dispersion (#175)
+                return Number.isFinite(value) ? value : top * (norm * Math.sqrt(disp));
+            }
+        }
+        return Math.sqrt(ss) * Math.sqrt(disp);
+    });
+    const type = options.type ?? "link";
+    if (type !== "link" && type !== "response")
+        throw new RangeError(`invalid 'type': ${String(type)}`);
+    // as predict.lm, which R's predict.glm calls (only for new data: the fitted rows are estimable)
+    const nonEstimable = options.newdata === undefined ? [] : nonEstimableRows(fit.qr, rank, X);
+    const extra = nonEstimable.length > 0 ? { nonEstimable, warnings: [NON_ESTIMABLE_WARNING] } : {};
+    if (type === "link")
+        return { fit: eta.map(up), seFit: se.map(upSe), ...extra };
+    return withWarnings(new Warnings(), () => ({
+        fit: eta.map((e) => up(fam.linkinv(e))),
+        seFit: se.map((s, i) => upSe(s * Math.abs(fam.muEta(eta[i])))),
+        ...extra,
+    }));
+}
