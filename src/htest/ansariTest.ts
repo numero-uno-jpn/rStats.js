@@ -18,7 +18,7 @@
 // returned as NaN (R's NA) follow R's documented and observed behaviour.
 
 import { pnorm, qnorm } from "../distributions/normal.js";
-import { rank } from "../internal/summary.js";
+import { ldexp, rank } from "../internal/summary.js";
 import { uniroot } from "../internal/uniroot.js";
 import type { DataFrame } from "../models/modelFrame.js";
 import { checkAnsariExactSize, pansariExact, qansariR } from "./core/ansari.js";
@@ -163,11 +163,68 @@ interface CIPart {
 function scaledStatistic(xs: readonly number[], ys: readonly number[], s: number): { ab: number; a: number[]; ties: boolean } {
   const m = xs.length;
   const N = m + ys.length;
-  const r = rankNaNLast(xs.map((v) => v / s).concat(ys));
+  const q = xs.map((v) => v / s);
+  // x / s can overflow to Infinity or fall below the normal range (to 0) for a finite s, tying distinct observations
+  // (R's ansari.test does the same): only there rank by a comparison of x / s that keeps the order (#507)
+  const lossy = s > 0 && s < Infinity && q.some((v, i) => Number.isFinite(xs[i]) && (!Number.isFinite(v) || (xs[i] !== 0 && Math.abs(v) < MIN_NORMAL)));
+  const r = lossy ? orderedRanks(xs.map((v) => key(v, s)).concat(ys.map((v) => key(v, 1)))) : rankNaNLast(q.concat(ys));
   const a = r.map((v) => Math.min(v, N - v + 1));
   let ab = 0;
   for (let i = 0; i < m; i++) ab += a[i]!;
   return { ab, a, ties: new Set(r).size < N };
+}
+
+const MIN_NORMAL = 2 ** -1022;
+
+/** Order key of v / d (d finite and positive) as sign, binary exponent and significand in [1, 2), with no overflow */
+type Key = [sign: number, exponent: number, significand: number];
+
+function key(v: number, d: number): Key {
+  if (v === 0) return [0, 0, 0];
+  const sign = v > 0 ? 1 : -1;
+  if (!Number.isFinite(v)) return [sign, Infinity, 1];
+  const [ev, mv] = split(Math.abs(v));
+  const [ed, md] = split(d);
+  let m = mv / md;
+  let e = ev - ed;
+  if (m < 1) {
+    m *= 2;
+    e -= 1;
+  }
+  return [sign, e, m];
+}
+
+/** [e, m] with a = m 2^e, m in [1, 2), for a finite positive a */
+function split(a: number): [number, number] {
+  let e = Math.floor(Math.log2(a));
+  let m = ldexp(a, -e);
+  if (m >= 2) {
+    m /= 2;
+    e += 1;
+  } else if (m < 1) {
+    m *= 2;
+    e -= 1;
+  }
+  return [e, m];
+}
+
+function compareKeys(a: Key, b: Key): number {
+  if (a[0] !== b[0]) return a[0] - b[0];
+  const c = a[1] !== b[1] ? a[1] - b[1] : a[2] - b[2];
+  return a[0] * c;
+}
+
+/** Average ranks of the keys */
+function orderedRanks(keys: readonly Key[]): number[] {
+  const idx = keys.map((_, i) => i).sort((i, j) => compareKeys(keys[i]!, keys[j]!));
+  const r = new Array<number>(keys.length);
+  for (let lo = 0; lo < idx.length; ) {
+    let hi = lo + 1;
+    while (hi < idx.length && compareKeys(keys[idx[lo]!]!, keys[idx[hi]!]!) === 0) hi++;
+    for (let k = lo; k < hi; k++) r[idx[k]!] = (lo + 1 + hi) / 2;
+    lo = hi;
+  }
+  return r;
 }
 
 /** Average ranks with NaN (0 / 0 at s = 0) ranked last in order of appearance, as R's rank(na.last = TRUE) */
