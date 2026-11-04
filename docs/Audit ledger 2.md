@@ -167,3 +167,36 @@ aa3cc3ae1b151c49421c94eff9f5dbf405f8b07b（個別監査ログの追加）
 - ソースレベルの静的監査のみ。Vitest、Node、R の実行は未実施。
 - ソースコード変更なし。
 
+---
+
+## Audit #983 — aovEz が後で除外する不完全被験者の値で応答スケールを決める
+
+- 対象: `src/models/aovEz.ts`
+- 監査時 HEAD: `41138101928a6b68ec026fcb8c3906fdf8f6974e`
+- 対象ソース blob: `14f22254dde32c0295d86e4bb0cd4ec24e238d6f`
+- 判定: 不完全被験者の極端値が完全データの交差積をアンダーフローさせる不具合
+- Issue: [#508](https://github.com/numero-uno-jpn/rStats.js/issues/508)
+- 詳細: [review_audit_983_aovez_incomplete_subject_scale.md](review-logs/review_audit_983_aovez_incomplete_subject_scale.md)
+
+### 要約
+
+`aovEz()` は `dvUsed` 全体に対して `scaleToUnit()` を実行してから、欠損response/cellを持つ被験者を step 6 で除外する。このため、後で解析から除外される被験者の有限極端値（例: `1e308`）がスケール指数を決め、残る完全被験者の通常値（1〜5）が約 `1e-308` に縮小される。その二乗・交差積がbinary64でアンダーフローし、error SSPを含む反復測定ANOVAの情報が失われる。既存 #350 はzero-weight行のスケール汚染であり、この被験者単位のcomplete-case除外経路とは別原因。新規Issue #508を登録。
+
+### 再現データ
+
+```ts
+const data = {
+  id: ["s1", "s1", "s2", "s2", "s3", "s3", "incomplete", "incomplete"],
+  W: ["a", "b", "a", "b", "a", "b", "a", "b"],
+  y: [1, 2, 2, 4, 3, 5, 1e308, null],
+};
+aovEz(data, { id: "id", dv: "y", within: "W" });
+```
+
+### 検証範囲・制約
+
+- `src/models/aovEz.ts`、`test/aovEz.test.ts`、`src/internal/summary.ts` の `scaleToUnit()` / `unitExponent()` を確認。
+- `aovEz`、missing response、incomplete subject、response scale、#350 を検索し重複を確認。
+- 決定的な入力とIEEE-754の指数範囲に基づく静的解析。Vitest、Node、Rの実行は未実施。
+- ソースコード変更なし。
+
