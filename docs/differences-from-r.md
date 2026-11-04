@@ -681,6 +681,16 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   (1.0 s at the center of 1e15, and 1.8e-11 off at 1e13: 0.5000001783941305 for 0.5000001784124118), and its
   `qhyper` takes time proportional to m + n (0.7 s at m = n = k = 1e7). `rhyper`, which inverts `qhyper` for parameters beyond
   2147483647, has no bound.
+- **`besselJ`, `besselY`, `besselI` and `besselK`** throw a RangeError, before the computation, where the bounds on
+  the log of the result do not decide (they return Inf or 0 at once where the result is far out of range, review 47)
+  and a continued fraction or a recurrence would take more than a few seconds. J and Y: the continued fraction takes
+  about x - nu terms for x above nu outside the asymptotic expansions, at most 2^25 (`besselJ(1e7, 2e5)`, 9.8e6 terms,
+  takes 1.6 s; `besselJ(1e8, 2e6)` ran into the loop's limit of 1e8 terms before); near the turning point (x a little
+  below nu) the recurrence takes about nu steps, at most 2^31 for J (about 5 ns a step; `besselJ(1e8 - 1, 1e8)` takes
+  0.5 s) and 2^28 where Y is needed (`besselY`, and `besselJ` of a negative non-integer order; about 45 ns a step).
+  I and K: the forward recurrence of K takes about nu steps, at most 2^28 (`besselK(3e9, 3e8, expon.scaled = TRUE)`
+  gave Inf after 4.4 s). R's `besselJ` gives 0 with a warning from about nu = 1e6 on, and R's `besselY` is fast
+  there (reviews 47 and 52).
 - **`kruskalTest` and `flignerTest` with a list of one sample** throw rStats.js's "all observations
   are in the same group" (R: "'x' must be a list with at least 2 elements").
 - **Character group labels** (`g` of `kruskalTest`, `aov`, `TukeyHSD`, the `pairwise*` tests, ...)

@@ -374,10 +374,33 @@ function largeOrder(v: number, x: number, needY: boolean): { j: number; y: Pow2 
 }
 
 /**
- * J_v(x) and Y_v(x) for v >= 0, x > 0 (Boost's bessel_jy without the reflection). Y is returned as y / yScale.
- * needY: whether Y is wanted (J alone allows a cheaper series)
+ * Bounds on the time where the bounds of largeOrder do not decide (on the development machine): the continued fraction
+ * cf1JY takes about x - v terms where it oscillates (x > v; about 0.16 to 0.4 us each in double-double), the backward
+ * recurrence for J about v steps (about 5 ns each) and the forward recurrence for Y about v steps (about 45 ns each)
  */
-function besselJYPos(v: number, x: number, needY: boolean): { j: number; y: Pow2 } {
+const MAX_CF1_TERMS = 2 ** 25;
+const MAX_J_STEPS = 2 ** 31;
+const MAX_Y_STEPS = 2 ** 28;
+
+/** RangeError before a continued fraction or a recurrence beyond the bounds above */
+function checkTime(name: string, x: number, nu: number, cf1Terms: number, steps: number, maxSteps: number): void {
+  if (cf1Terms > MAX_CF1_TERMS) {
+    throw new RangeError(
+      `${name}: x = ${x}, nu = ${nu} needs a continued fraction of about ${Math.round(cf1Terms)} terms (at most 2^25)`,
+    );
+  }
+  if (steps > maxSteps) {
+    const bound = maxSteps === MAX_J_STEPS ? "2^31" : "2^28";
+    throw new RangeError(`${name}: x = ${x}, nu = ${nu} needs a recurrence of about ${steps} steps (at most ${bound})`);
+  }
+}
+
+/**
+ * J_v(x) and Y_v(x) for v >= 0, x > 0 (Boost's bessel_jy without the reflection). Y is returned as y / yScale.
+ * needY: whether Y is wanted (J alone allows a cheaper series). name, nu: the caller and its order, for the bounds on
+ * the time
+ */
+function besselJYPos(v: number, x: number, needY: boolean, name: string, nu: number): { j: number; y: Pow2 } {
   const n = Math.round(v);
   const u = v - n; // -1/2 < u <= 1/2
   const W = Number.isFinite(x * Math.PI) ? 2 / (x * Math.PI) : 2 / Math.PI / x; // Wronskian
@@ -409,6 +432,7 @@ function besselJYPos(v: number, x: number, needY: boolean): { j: number; y: Pow2
     }
   }
   if (x <= 2) {
+    checkTime(name, x, nu, 0, n, MAX_Y_STEPS);
     const [yu, yu1] = temmeJY(u, x);
     const r = yForward(u, x, n, yu, yu1);
     const { fv } = cf1JY(v, x);
@@ -417,8 +441,10 @@ function besselJYPos(v: number, x: number, needY: boolean): { j: number; y: Pow2
     return { j, y: { m: r.y, e2: r.e2 } };
   }
   // x > 2: backward recurrence for J from CF1, then CF2 for the normalisation and Y_u
+  const direct = x >= v && v > 2;
+  checkTime(name, x, nu, x - v, direct ? 0 : n, needY ? MAX_Y_STEPS : MAX_J_STEPS);
   const { fv, sign: s } = cf1JY(v, x);
-  if (x >= v && v > 2) {
+  if (direct) {
     // Beyond the turning point CF2 converges at order v itself, so Steed's method is applied there directly. Boost
     // goes down to u = v - round(v) and back up by recurrence, whose error grows with the number of steps
     // (1.2e-13 relative to the amplitude for Y at v = 575, x = 2211)
@@ -471,7 +497,10 @@ function besselJYPos(v: number, x: number, needY: boolean): { j: number; y: Pow2
  * @returns J_nu(x).
  *
  * For `x` much larger than `nu` but below the range of the asymptotic expansion (`x < nu / 0.011`), the time grows
- * with `x` (a continued fraction of about `x` terms): about 15 ms at `x = 5e4`, `nu = 1000`.
+ * with `x` (a continued fraction of about `x - nu` terms): about 15 ms at `x = 5e4`, `nu = 1000`, 1.6 s at `x = 1e7`,
+ * `nu = 2e5`. Near the turning point (`x` a little below `nu`) a recurrence takes about `nu` steps. Beyond 2^25 terms
+ * of the continued fraction or 2^31 steps of the recurrence (2^28 for a negative non-integer order, which needs Y) a
+ * RangeError is thrown before the computation.
  *
  * @example
  * ```ts
@@ -493,10 +522,10 @@ export function besselJ(x: number, nu: number): number {
   }
   if (x === Infinity) return 0;
   if (!reflect) {
-    const j = besselJYPos(v, x, false).j;
+    const j = besselJYPos(v, x, false, "besselJ", nu).j;
     return nu < 0 && v % 2 === 1 ? -j : j; // J_-n = (-1)^n J_n
   }
-  const r = besselJYPos(v, x, true);
+  const r = besselJYPos(v, x, true, "besselJ", nu);
   return cospi(v) * r.j - ldexp(sinpi(v) * r.y.m, r.y.e2);
 }
 
@@ -510,7 +539,8 @@ export function besselJ(x: number, nu: number): number {
  *
  * For orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by
  * bounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): about 2.4 s for
- * `besselY(0.9e8, 1e8)`.
+ * `besselY(0.9e8, 1e8)`. Beyond 2^28 steps, or 2^25 terms of the continued fraction for `x` above `nu` (as for
+ * {@link besselJ}), a RangeError is thrown before the computation.
  *
  * @example
  * ```ts
@@ -531,7 +561,7 @@ export function besselY(x: number, nu: number): number {
     return cp > 0 ? -Infinity : Infinity;
   }
   if (x === Infinity) return 0;
-  const r = besselJYPos(v, x, true);
+  const r = besselJYPos(v, x, true, "besselY", nu);
   if (!reflect) return ldexp(r.y.m, r.y.e2);
   const cp = cospi(v);
   const sp = sinpi(v);

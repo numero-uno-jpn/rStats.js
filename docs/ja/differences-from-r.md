@@ -635,6 +635,14 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   と 1 は今までどおり値を返します。R の `phyper` は double の項をゆるい打ち切りで足します (1e15 の中央で 1.0 秒、1e13 で
   1.8e-11 ずれる: 0.5000001784124118 に対し 0.5000001783941305)。R の `qhyper` は時間が m + n に比例します (m = n = k = 1e7 で 0.7 秒)。
   2147483647 を超えるパラメータで `qhyper` の逆関数を使う `rhyper` には上限がありません。
+- **`besselJ`・`besselY`・`besselI`・`besselK`** は、結果の対数の上界・下界で決まらず (結果が範囲を大きく超えるときは
+  すぐに Inf か 0 を返す。47 回目)、連分数か漸化式に数秒より長くかかる大きさでは、計算の前に RangeError を投げます。J と
+  Y: 漸近展開の外で x が nu より大きいとき、連分数は約 x - nu 項で、2^25 項までです (`besselJ(1e7, 2e5)` は 9.8e6 項で
+  1.6 秒。`besselJ(1e8, 2e6)` は以前はループの上限 1e8 項まで回った)。転回点の近く (x が nu よりわずかに小さい) では
+  漸化式が約 nu 回で、J は 2^31 回まで (1 回 5 ns ほど。`besselJ(1e8 - 1, 1e8)` は 0.5 秒)、Y が要るとき (`besselY` と、
+  負の整数でない次数の `besselJ`) は 2^28 回まで (1 回 45 ns ほど) です。I と K: K の前進漸化式が約 nu 回で、2^28 回まで
+  です (`besselK(3e9, 3e8, expon.scaled = TRUE)` は 4.4 秒かけて Inf だった)。R の `besselJ` は nu = 1e6 ほどから警告付きで
+  0 を返し、R の `besselY` はそこでも速く計算します (47・52 回目)。
 - **標本が 1 つだけのリストを渡した `kruskalTest` と `flignerTest`** は、rStats.js のメッセージ
   "all observations are in the same group" で例外を投げます (R は "'x' must be a list with at least
   2 elements")。

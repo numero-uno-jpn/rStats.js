@@ -140,11 +140,21 @@ function ldexp(m: number, e: number): number {
 }
 
 /**
- * e^x K_v(x) as mantissa * 2^exp (v >= 0, x > 0), together with K_(v+1) for the Wronskian.
- * Forward recurrence K_(u+k+1) = 2 (u + k) / x K_(u+k) + K_(u+k-1) from u = v - round(v)
+ * Bound on the time of the forward recurrence of kScaled, where the bounds of besselI and besselK do not decide: about
+ * 35 ns per step on the development machine
  */
-function kScaled(v: number, x: number): { k: number; k1: number; exp2: number } {
+const MAX_K_STEPS = 2 ** 28;
+
+/**
+ * e^x K_v(x) as mantissa * 2^exp (v >= 0, x > 0), together with K_(v+1) for the Wronskian.
+ * Forward recurrence K_(u+k+1) = 2 (u + k) / x K_(u+k) + K_(u+k-1) from u = v - round(v).
+ * name, nu: the caller and its order, for the RangeError beyond MAX_K_STEPS
+ */
+function kScaled(v: number, x: number, name: string, nu: number): { k: number; k1: number; exp2: number } {
   const n = Math.round(v);
+  if (n > MAX_K_STEPS) {
+    throw new RangeError(`${name}: x = ${x}, nu = ${nu} needs a recurrence of about ${n} steps (at most 2^28)`);
+  }
   const u = v - n;
   let prev: number;
   let current: number;
@@ -233,8 +243,8 @@ function resolve(r: Scaled, x: number, want: -1 | 0 | 1): number {
   return ex === 0 ? ldexp(r.m, r.e2) : mulExp(r.m, r.e2, ex * x);
 }
 
-/** I_v(x) for v >= 0, x > 0, as I_v = m 2^e2 e^(ex x) */
-function iPos(v: number, x: number): Scaled {
+/** I_v(x) for v >= 0, x > 0, as I_v = m 2^e2 e^(ex x) (name, nu: as for kScaled) */
+function iPos(v: number, x: number, name: string, nu: number): Scaled {
   if (v === 0.5) {
     // e^-x I_1/2 = sqrt(2 / (pi x)) (1 - e^-2x) / 2; for tiny x it is sqrt(2x / pi), formed without 2 / (pi x), which
     // overflows (besselI(1e-310, 0.5) was Infinity)
@@ -266,13 +276,13 @@ function iPos(v: number, x: number): Scaled {
     return { m: s / r, e2: 0, ex: 1 };
   }
   // Wronskian I_v K_(v+1) + I_(v+1) K_v = 1/x with fv = I_(v+1) / I_v; K is scaled by e^x, so I comes out scaled by e^-x
-  const { k, k1, exp2 } = kScaled(v, x);
+  const { k, k1, exp2 } = kScaled(v, x, name, nu);
   const fv = cf1IK(v, x);
   return { m: 1 / (x * (k * fv + k1)), e2: -exp2, ex: 1 };
 }
 
-/** K_v(x) for v >= 0, x > 0, as K_v = m 2^e2 e^(ex x) */
-function kPos(v: number, x: number): Scaled {
+/** K_v(x) for v >= 0, x > 0, as K_v = m 2^e2 e^(ex x) (name, nu: as for kScaled) */
+function kPos(v: number, x: number, name: string, nu: number): Scaled {
   // A&S 9.7.2, four terms, where the first omitted term is below eps times the sum (as Boost limits the expansion
   // of I, but measured on the term itself). For v <= 4.5 the remainder is bounded by the first omitted term
   // (DLMF 10.40(ii), l >= v - 1/2); beyond, a small t4 needs x well above v^2, where the terms fall off fast.
@@ -289,7 +299,7 @@ function kPos(v: number, x: number): Scaled {
     const m = Number.isFinite(2 * x) ? (s * Math.sqrt(Math.PI)) / Math.sqrt(2 * x) : (s * Math.sqrt(Math.PI / 2)) / Math.sqrt(x);
     return { m, e2: 0, ex: -1 };
   }
-  const { k, exp2 } = kScaled(v, x);
+  const { k, exp2 } = kScaled(v, x, name, nu);
   return { m: k, e2: exp2, ex: -1 };
 }
 
@@ -334,7 +344,7 @@ export interface BesselOptions {
  *
  * For orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by
  * bounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): several seconds at
- * `nu = 1e8`.
+ * `nu = 1e8`, and a RangeError before the computation beyond 2^28 steps.
  *
  * @example
  * ```ts
@@ -370,10 +380,10 @@ export function besselI(x: number, nu: number, options: BesselOptions = {}): num
       if (iB.lo - 1 > kB.hi && certainRange(shifted(iB, LOG_LEFT)) === 1) return Infinity;
     }
   }
-  const i = resolve(iPos(v, x), x, want);
+  const i = resolve(iPos(v, x, "besselI", nu), x, want);
   if (!negNonInt) return i;
   // A&S 9.6.2: I_-v = I_v + (2/pi) sin(pi v) K_v, each term in the requested scaling
-  const k = kPos(v, x);
+  const k = kPos(v, x, "besselI", nu);
   return i + resolve({ ...k, m: (2 / Math.PI) * sinpi(v) * k.m }, x, want);
 }
 
@@ -388,7 +398,7 @@ export function besselI(x: number, nu: number, options: BesselOptions = {}): num
  *
  * For orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by
  * bounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): several seconds at
- * `nu = 1e8`.
+ * `nu = 1e8`, and a RangeError before the computation beyond 2^28 steps.
  *
  * @example
  * ```ts
@@ -409,5 +419,5 @@ export function besselK(x: number, nu: number, options: BesselOptions = {}): num
     const r = certainRange(shifted(logKBounds(v, x), scaled ? x : 0));
     if (r !== 0) return r > 0 ? Infinity : 0;
   }
-  return resolve(kPos(v, x), x, scaled ? 1 : 0);
+  return resolve(kPos(v, x, "besselK", nu), x, scaled ? 1 : 0);
 }
