@@ -706,3 +706,23 @@ dweibull/pweibull/qweibullのshape/scale端点、±Infinity、scale=Infinityの�
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、R oracleは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1008 — Logistic distribution
+
+- 対象: `src/distributions/logistic.ts` と standardize / location-scale helpers
+- 監査時 HEAD: `abee37542a29c4ea31385eac3bc2427f627f264b`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1008_logistic_distribution.md](review-logs/review_audit_1008_logistic_distribution.md)
+
+### 要約
+
+dlogis/plogis/qlogisのscale<=0/0/Infinity、±Infinity、差分overflow、subnormal density、upper/lower・log tail、logitの端点を静的に確認。既存 #109/#415 とRのqlogis.cを照合し、random generatorの別問題を誤って重複登録しなかった。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
