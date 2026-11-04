@@ -29,36 +29,45 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./distributions": {
       "types": "./dist/entries/distributions.d.ts",
-      "import": "./dist/entries/distributions.js"
+      "import": "./dist/entries/distributions.js",
+      "default": "./dist/entries/distributions.js"
     },
     "./tests": {
       "types": "./dist/entries/tests.d.ts",
-      "import": "./dist/entries/tests.js"
+      "import": "./dist/entries/tests.js",
+      "default": "./dist/entries/tests.js"
     },
     "./linalg": {
       "types": "./dist/entries/linalg.d.ts",
-      "import": "./dist/entries/linalg.js"
+      "import": "./dist/entries/linalg.js",
+      "default": "./dist/entries/linalg.js"
     },
     "./descriptive": {
       "types": "./dist/entries/descriptive.d.ts",
-      "import": "./dist/entries/descriptive.js"
+      "import": "./dist/entries/descriptive.js",
+      "default": "./dist/entries/descriptive.js"
     },
     "./numerics": {
       "types": "./dist/entries/numerics.d.ts",
-      "import": "./dist/entries/numerics.js"
+      "import": "./dist/entries/numerics.js",
+      "default": "./dist/entries/numerics.js"
     },
     "./special": {
       "types": "./dist/entries/special.d.ts",
-      "import": "./dist/entries/special.js"
+      "import": "./dist/entries/special.js",
+      "default": "./dist/entries/special.js"
     },
     "./mixed": {
       "types": "./dist/entries/mixed.d.ts",
-      "import": "./dist/entries/mixed.js"
-    }
+      "import": "./dist/entries/mixed.js",
+      "default": "./dist/entries/mixed.js"
+    },
+    "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",
   "files": [

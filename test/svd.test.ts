@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { ginv, kappa, norm, svd, type NormType } from "../src/index.js";
 import { num } from "./helpers/fixture.js";
 import { arg, defined, htestSuite, type HTestArg, type HTestCase } from "./helpers/htest.js";
@@ -70,4 +71,11 @@ htestSuite({
   tolerance: 1e-13,
   // The error of the pseudoinverse is proportional to the condition number over the singular values used
   floor: { value: condScaled("value", 1e-13, 1, 10) },
+});
+
+describe("svd result fields", () => {
+  it("has only d, u and v (the internal scale exponent is not exposed)", () => {
+    expect(Object.keys(svd([[1, 2], [3, 4]])).sort()).toEqual(["d", "u", "v"]);
+    expect(Object.keys(svd([[1, 2], [3, 4]], { nu: 0, nv: 0 })).sort()).toEqual(["d"]);
+  });
 });

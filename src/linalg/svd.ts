@@ -61,8 +61,8 @@ export interface SvdResult {
  * @category Linear algebra
  */
 export function svd(x: MatrixInput, options: SvdOptions = {}): SvdResult {
-  const r = svdScaled(x, options);
-  return { ...r, d: r.d.map((v) => ldexp(v, r.s)) };
+  const { s, ...r } = svdScaled(x, options);
+  return { ...r, d: r.d.map((v) => ldexp(v, s)) };
 }
 
 /**

@@ -26,3 +26,6 @@ export {
   pivotLonger, pivotWider,
   type PivotLongerOptions, type PivotWiderOptions, type PivotSummary,
 } from "../descriptive/pivot.js";
+// Types used by the functions above, also exported from the root and the other subpaths
+export type { Sample } from "../htest/types.js";
+export type { DataFrame } from "../models/modelFrame.js";

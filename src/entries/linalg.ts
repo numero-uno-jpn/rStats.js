@@ -16,3 +16,6 @@ export {
   type Operand, type DiagOptions, type MatrixOptions, type SeqOptions,
 } from "../linalg/ops.js";
 export { lu, prcomp, type LuResult, type PrcompOptions, type PrcompResult } from "../linalg/lu.js";
+// Types used by the functions above, also exported from the root and the other subpaths
+export type { Sample } from "../htest/types.js";
+export type { DataFrame } from "../models/modelFrame.js";

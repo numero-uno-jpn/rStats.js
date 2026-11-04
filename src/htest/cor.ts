@@ -41,7 +41,8 @@ export type CorMethod = "pearson" | "kendall" | "spearman";
 
 
 /**
- * Options for {@link cor}.
+ * The base of {@link CorTestOptions}: the options {@link corTest} shares with the coefficient. The options of the
+ * exported `cor` (descriptive statistics) are {@link CovOptions}.
  *
  * @category Hypothesis tests
  */

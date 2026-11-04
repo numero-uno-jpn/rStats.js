@@ -19,3 +19,6 @@ export {
   type LmerCompareOptions,
   type LmerCompareTable,
 } from "../models/lmerAnova.js";
+// Types used by the functions above, also exported from the root and the other subpaths
+export type { DataFrame } from "../models/modelFrame.js";
+export type { ContrastName } from "../models/modelMatrix.js";

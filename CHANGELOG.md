@@ -7,6 +7,21 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- The package can be loaded with `require()` (Node 22.12 and later load ES modules with `require`): each subpath of
+  `exports` has a `default` condition besides `import`, and `@numero-uno-jpn/rstats/package.json` is exported.
+- Each subpath exports the types its functions use, so they need no import from another subpath: `Sample` and
+  `DataFrame` from `/descriptive` and `/linalg`, `Sample` from `/numerics`, `DataFrame` and `ContrastName` from
+  `/mixed`, `MatrixInput` and `QR` from `/tests`.
+
+### Fixed
+
+- The result of `svd` no longer has the internal field `s` (the power-of-2 exponent of the singular values), which is
+  not part of `SvdResult`.
+
 ## 0.16.0 - 2026-11-04
 
 Fixes from a numerical review and GitHub issues #8 to #513. Each case is described, with R's value and rStats.js's, in

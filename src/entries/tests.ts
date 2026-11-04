@@ -212,3 +212,6 @@ export {
   type PolychorStdErrResult,
   type PolyserialStdErrResult,
 } from "../htest/polycor.js";
+// Types used by the functions above, also exported from the root and the other subpaths
+export type { MatrixInput } from "../linalg/matrix.js";
+export type { QR } from "../linalg/qr.js";
