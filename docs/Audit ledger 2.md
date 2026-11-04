@@ -498,3 +498,23 @@ SVDのwide/tall変換、nu/nv境界、Householder、bidiagonal QR、収束判定
 - 既存SVD/Schur test harnessを静的に確認。
 - Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #998 — Cholesky / matrix exponential / condition number / LU-PCA
+
+- 対象: `src/linalg/chol.ts`, `src/linalg/expm.ts`, `src/linalg/kappa.ts`, `src/linalg/lu.ts`
+- 監査時 HEAD: `042e4846cc08413101d5f6e7055bfc345eceb920`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_998_chol_expm_kappa_lu.md](review-logs/review_audit_998_chol_expm_kappa_lu.md)
+
+### 要約
+
+Choleskyのpivot/rank/tolerance、chol2inv、expm全6方式のスケーリング・balancing・order境界、kappaのexact/estimated・wide/triangular経路、LUの長方形行列・zero pivot、prcompのcenter/scale/rank/tol・大規模値fallbackを確認。既存Issueと重複するpivoted Cholesky初回pivot toleranceは再登録せず、今回の範囲で新規Issueは確定しなかった。
+
+### 検証範囲・制約
+
+- Cholesky/expm test harnessを静的確認。
+- Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
