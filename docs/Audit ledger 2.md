@@ -934,3 +934,42 @@ dkumar/pkumar/qkumarのsubnormal shape、a=Infinity退化極限、log1mPow/powOn
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、extraDistr runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1019 — Pareto distribution
+
+- 対象: `src/distributions/pareto.ts`、DD ratio/log-ratio and exp helpers
+- 監査時 HEAD: `7cc39980e973802b889b22ec35f4c59fec351480`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1019_pareto_distribution.md](review-logs/review_audit_1019_pareto_distribution.md)
+
+### 要約
+
+dpareto/ppareto/qparetoの支持域端、a=Infinityのpoint-mass limit、DD比、a/bのoverflow/underflow、log-tail、log-domain quantileを静的に確認。新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、extraDistr runtimeは未実施。
+- ソースコード変更なし。
+
+---
+
+## Audit #1020 — Laplace distribution
+
+- 対象: `src/distributions/laplace.ts`、DD standardization / expNeg / locationScale helpers
+- 監査時 HEAD: `7cc39980e973802b889b22ec35f4c59fec351480`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1020_laplace_distribution.md](review-logs/review_audit_1020_laplace_distribution.md)
+
+### 要約
+
+dlaplace/plaplace/qlaplaceの±Infinity、sigma=Infinity極限、巨大sigma density、subnormal exp、lower/upper tail、locationScale quantileを静的に確認。既存#110/#338/#425を照合し、新規Issueなし。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、extraDistr runtimeは未実施。
+- ソースコード変更なし。
