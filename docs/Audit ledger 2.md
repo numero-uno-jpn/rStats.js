@@ -973,3 +973,31 @@ dlaplace/plaplace/qlaplaceの±Infinity、sigma=Infinity極限、巨大sigma den
 - 固定入力の境界監査セットを作成し、実装経路を静的追跡。
 - Vitest、Node、extraDistr runtimeは未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1021 — Studentized range distribution and Brent quantile solver
+
+- 対象: `src/distributions/tukey.ts`、Clenshaw-Curtis / Gauss-Legendre integration、log-tail、monotone root solver
+- 監査時 HEAD: `d0a7fa3022525b566baa0c32b87cf826341f047f`
+- 判定: 新規不具合1件を確認しIssue登録
+- Issue: [#513 Tukey quantile Brent solver rotates bracket values incorrectly during swap](https://github.com/numero-uno-jpn/rStats.js/issues/513)
+- 詳細: [review_audit_1021_tukey_brent.md](review-logs/review_audit_1021_tukey_brent.md)
+
+### 要約
+
+studentized rangeの適応積分、normal window、log-tail、underflow再積分、quantileのbracket探索を監査。Brent法のswap分岐で逐次代入により旧a/faが失われる問題を確認し、Issue #513に登録。runtimeでの数値影響は未測定。
+
+### 再現入口
+
+```ts
+const q = qtukey(0.95, 3, 12);
+const p = ptukey(q, 3, 12);
+```
+
+### 検証範囲・制約
+
+- 静的な制御フロー追跡。分岐がこの入力で実際に発火するかは未確認。
+- Vitest、Node、R runtimeは未実施。
+- ソースコード変更なし。
