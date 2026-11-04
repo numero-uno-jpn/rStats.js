@@ -558,3 +558,23 @@ Brent root findingのbracket/endpoint/tolerance、odds ratioのlog-scale root、
 - nchisq/nbeta/fisher/wilcox関連テストファイルとuniroot実装を静的確認。
 - Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #1001 — Binomial distribution boundary and tail paths
+
+- 対象: `src/distributions/binomial.ts` と dpq / discrete / integer / incomplete-beta / Loader 依存部
+- 監査時 HEAD: `51f8fc361962e8cd8ff7680bf37e812a7b57b488`
+- 判定: 今回の確認範囲で新規不具合なし
+- 詳細: [review_audit_1001_binomial_boundaries.md](review-logs/review_audit_1001_binomial_boundaries.md)
+
+### 要約
+
+dbinom/pbinom/qbinomの無効値・支持域端・prob=0/1・size=0/Infinity・非整数丸め、2^53近傍のx+1非表現可能分岐、incomplete-betaとpmf補正、upper-tail/log-domain fallback、離散quantile探索を静的に確認。新規Issueは確定しなかった。
+
+### 検証範囲・制約
+
+- 固定入力の境界監査セットを作成し、実装経路を静的追跡。
+- Vitest、Node、R oracleは未実施。
+- ソースコード変更なし。
