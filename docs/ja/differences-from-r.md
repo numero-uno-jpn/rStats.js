@@ -967,8 +967,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 
 - **リンク:** lambda <= 0 の power リンクは log リンク (名前は `"log"`)、lambda = 1 は identity です。
   それ以外の power リンクの名前は `"mu^"` に lambda を小数 3 桁に丸めたものを続けたものです。逆リンク
-  とその導関数には R と同じ制限があります (|eta| > 30 の logit、log リンク、eps の分位点での probit と
-  cauchit、cloglog で eps = 2^-52)。
+  とその導関数には R の eps (2^-52) のクリップ (|eta| > 30 の logit、log リンク、eps の分位点での
+  probit と cauchit、cloglog、power) がありません。厳密な値を返し、最小の double と、確率では 1 未満の
+  最大の double で double の範囲に収めます (表の logit、probit・cauchit・cloglog・power、log リンクの行)。
 - **反復:** 逸脱度が有限でないときと、平均や線形予測子が範囲外のときのステップの半減は、どちらも
   boundary を設定し、boundary は最後の反復のものを表します。"no observations informative at
   iteration k" は警告で、収束しないまま反復を終えます。返す作業重み (分散パラメータ、影響の尺度、

@@ -1047,8 +1047,10 @@ also from R's source. They are listed because they are easy to get wrong.
 
 - **Links:** a power link with lambda <= 0 is the log link (named `"log"`) and with lambda = 1 the
   identity; other power links are named `"mu^"` with lambda rounded to 3 decimals. The inverse links
-  and their derivatives have R's clamps (eps = 2^-52 for logit beyond |eta| > 30, the log link,
-  probit and cauchit at the eps quantile, cloglog).
+  and their derivatives do not have R's eps (2^-52) clamps (logit beyond |eta| > 30, the log link,
+  probit and cauchit at the eps quantile, cloglog, power): they give the exact values, kept within
+  the doubles by the least double and, for probabilities, the largest double below 1 (see the
+  table: the logit, probit/cauchit/cloglog/power and log link rows).
 - **Iterations:** step halving after a non-finite deviance and after an invalid mean or linear
   predictor sets the boundary flag, which reports the last iteration; "no observations informative at
   iteration k" is a warning that ends the iterations without convergence. The working weights reported
