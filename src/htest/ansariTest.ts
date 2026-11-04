@@ -233,7 +233,7 @@ function exactInterval(xs: readonly number[], ys: readonly number[], alternative
   return { confInt, estimate };
 }
 
-/** Normal-approximation interval and estimate (undefined when the search range is not finite) */
+/** Normal-approximation interval and estimate (undefined when the search range is not finite, NaN when it is empty) */
 function normalInterval(
   xs: readonly number[],
   ys: readonly number[],
@@ -276,6 +276,10 @@ function normalInterval(
     ys.filter((v) => v < 0),
   );
   if (ends.some((v) => !Number.isFinite(v))) return undefined;
+  // no positive ratio puts the samples across each other (all x positive and all y negative, or the reverse): the
+  // limits and the estimate cannot be formed, as in the exact path (R stops with "invalid 'xmin' value" after its
+  // "samples differ in location ... returning NA" warning) (#506)
+  if (ends.length === 0) return { confInt: shapeInterval(alternative, 1 - confLevel, () => [NaN, NaN]), estimate: NaN };
   const lo = minOf(ends);
   const hi = maxOf(ends);
   const root = (zq: number): number => uniroot((s) => z(s, zq), lo, hi, { tol: 1e-4 });
