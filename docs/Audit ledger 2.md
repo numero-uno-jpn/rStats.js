@@ -355,3 +355,45 @@ nfactors範囲、covmat検証、pairwise correlation、SMC擬似逆、minres、q
 - `src/models/coxph.ts`、`test/coxph.test.ts`、`oracle/coxph-behaviour.md` を確認。
 - 静的監査のみ。Vitest、Node、R実行は未実施。
 - ソースコード変更なし。
+
+
+---
+
+## Audit #991 — glmAnova の逐次比較・nestedness 判定を再確認
+
+- 対象: `src/models/glmAnova.ts`
+- 監査時 HEAD: `d322bc6660c78ec07f49a645dc615f7da5101906`
+- 対象ソース blob: `3d681de41770cd9a354e568927eded47dc2b05c7`
+- 判定: 今回確認した範囲で新規不具合なし
+- 詳細: [review_audit_991_glmanova_nestedness_recheck.md](review-logs/review_audit_991_glmanova_nestedness_recheck.md)
+
+### 要約
+
+逐次/比較表、rank差、Rao、Chisq/LRT/F/Cp、dispersion、family/link、offsetを含むnestednessを確認。比較時のnestedness判定は両モデルのpositive-weight行だけを使い、Audit #984のzero-weight行候補と異なり除外漏れは見られなかった。
+
+### 検証範囲・制約
+
+- `src/models/glmAnova.ts`、`src/models/glm.ts`、`src/models/estimable.ts`、`test/glmAnova.test.ts` を確認。
+- 静的監査のみ。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
+
+---
+
+## Audit #992 — glmConfint の profile bracket・Rao/LRT 境界を再確認
+
+- 対象: `src/models/glmConfint.ts`
+- 監査時 HEAD: `d322bc6660c78ec07f49a645dc615f7da5101906`
+- 対象ソース blob: `9c0759d5a3124bef063030c5be76ae47c4cd869c`
+- 判定: 今回確認した範囲で新規不具合なし
+- 関連既存Issue: #179（tiny confidence levelでの区間崩壊。現行コードに専用処理あり）
+- 詳細: [review_audit_992_glmconfint_profile_recheck.md](review-logs/review_audit_992_glmconfint_profile_recheck.md)
+
+### 要約
+
+aliased係数、full/restricted fit収束、offset移動、LRT/Rao、未収束時NaN、bracket doubling、Brent法、極小levelの近似・補間を確認。既存 #179 の対策が現行ソースに反映されている。
+
+### 検証範囲・制約
+
+- `src/models/glmConfint.ts`、`src/models/glm.ts`、`src/internal/uniroot.ts`、`test/glmConfint.test.ts` を確認。
+- 静的監査のみ。Vitest、Node、R実行は未実施。
+- ソースコード変更なし。
