@@ -1039,8 +1039,20 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   dispersion at 1 in the quadrature deviance of these families, so its estimates are not maximum likelihood.
   `nAGQ > 1` is also an error for more than one scalar random-effects term, with lme4's two messages.
 - **`glmer` with the gaussian family and the identity link** (the default family) is a RangeError that tells to use
-  `lmer`; R warns that this shortcut is deprecated and returns the fit of `lmer`. A negative `nAGQ` is a RangeError
-  (R uses 0).
+  `lmer`; R warns that this shortcut is deprecated and returns the fit of `lmer`. A negative `nAGQ` (after the
+  truncation to an integer, so not −0.5, which is 0 as in R) is a RangeError (R uses 0).
+- **`glmer` fits where lme4's penalised IRLS fails:** an offset far from the data (`log(exposure)` such as
+  `log(0.01 x)`, or a constant offset of −4: R's `Downdated VtV is not positive definite`), started from glm.fit's
+  linear predictor without the offset where lme4's start fails; Gamma means beyond 1.3e154, whose squares overflowed
+  (the working weights from the powers of μ, as `glm`'s); and a Gamma response with the log link below 2^-40, which
+  meets lme4's lower bound 2^-52 of the mean (R: `pwrssUpdate did not converge in (maxit) iterations` for a response
+  times 1e-20, θ 0 and a slope of 0 for 1e-150), fitted with the response divided by a power of 2 and the offset
+  shifted, which is the same model: the fit is the response's as given, its intercept shifted by the log of the
+  scale. lme4's step-halving tolerance is applied relative to the penalised deviance (lme4's is absolute 1e-7).
+- **`glmer` with non-integer poisson counts** is a RangeError for `nAGQ` 0 and 1: R's `dpois` is 0 there, so the
+  Laplace log-likelihood is −Inf for every parameter, and R warns `non-integer x = ...` and returns its starting
+  values (θ = 1) with logLik −Inf. With `nAGQ > 1` the estimates are R's, with its warning, and `logLik` is −Inf
+  (the true log-likelihood; R leaves out that constant).
 - **The response of `glmer`:** `cbind(successes, failures)` is accepted on the left-hand side only, with two column
   names (not with expressions such as `cbind(s, n - s)`; any other function call stays an error); a string
   response is a factor for the binomial family (R: `response must be numeric or factor`), the first level being a
@@ -1056,6 +1068,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   returned (R fails when the fit dropped a row with a missing grouping value). The standard errors (`seFit`) are
   computed from the conditional covariance of the random and fixed effects and are correct where lme4's `se.fit` is
   wrong: with crossed or nested grouping factors (lme4 permutes the factor) and with `re.form` that drops a factor.
+  They are finite where only their sum of squares overflows (`newdata` of 1e200: Infinity in R), and a linear
+  predictor whose products overflow while they cancel is the exact inner product (NaN in R), as for `predict` of
+  lm and glm.
 
 ### Linear algebra
 

@@ -26,8 +26,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   the optimum in 110-bit arithmetic matched within 1e-9, the log-likelihood within 1e-12, standard errors within
   1e-9), which lme4 approaches to its own tolerances: its estimates differ in about the 4th to 6th significant digit
   and its standard errors, from a finite-difference Hessian of its approximate deviance, by up to about 1% (much more
-  for a small dispersion). Predictors shifted (years), rescaled (by up to 1e±300) or nearly collinear, large counts
-  and tiny prior weights give the same fit transformed, also where lme4 fails.
+  for a small dispersion). Predictors shifted (years), rescaled (by up to 1e±300) or nearly collinear, large counts,
+  prior weights from 2^-20 to 2^30, offsets far from the data (`log(exposure)`, constants) and Gamma responses beyond
+  1e154 or, with the log link, below lme4's bound 2^-52 of the mean give the same fit transformed, also where lme4
+  fails. Non-integer poisson counts are a RangeError for `nAGQ` 0 and 1 (the log-likelihood is −Inf everywhere; R
+  returns its starting values); `nAGQ` is truncated before its sign is checked (−0.5 is 0, as R).
   Adaptive Gauss-Hermite quadrature (`nAGQ` from 2 to 100) for a single scalar random-effects term such as `(1 | g)`
   (R's two errors otherwise), with the rule computed to rounding error, the binomial and poisson families only (for
   Gamma, inverse.gaussian and gaussian a RangeError: lme4 holds the dispersion at 1 there, so its estimates would not
@@ -45,8 +48,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   array of fits the likelihood-ratio comparison of glmer, lmer and glm fits together (lmer REML fits refitted by ML),
   with `lmerAnova`'s checks (same data object, rows and response; a glm fit: the same number of observations and
   response values), the same prior weights, and the test only where the smaller fit is nested in the larger (same
-  family, link and offset, its fixed-effects columns and random-effects terms within the larger fit's; R tests any
-  pair). For `nAGQ > 1` the log-likelihood of the fit includes the saturated model's constant, so fits with different
+  family, link and offset, its fixed-effects columns and random-effects terms within the larger fit's, compared on
+  the rows of positive weight; R tests any pair). For `nAGQ > 1` the log-likelihood of the fit includes the saturated model's constant, so fits with different
   `nAGQ` and glm fits are commensurate (R's differ by that constant; R refuses glm fits with `nAGQ > 1`).
 - **`glmerPredict` and `lmerPredict`**, lme4's `predict()` of glmer and lmer fits: at the fit's rows or at
   `newdata` (the fixed part built as the fit built X: its terms, contrasts, factor levels and dropped columns), with all
@@ -54,12 +57,19 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   the random-effects terms, `randomOnly`, `allowNewLevels` (a new level or a missing grouping value adds 0 for its
   term), `type` `"link"` or `"response"` (glmer), and `seFit`: the standard errors from the conditional covariance of
   (b, β) at θ̂, computed correctly where lme4's are wrong (crossed grouping factors whose sparse factor is permuted,
-  `reForm` subsets) or fail. glmer's offset: an offset given as a column name is read from `newdata`, one given as an
+  `reForm` subsets) or fail, and finite where only their sum of squares overflows (R: Infinity). glmer's offset: an offset given as a column name is read from `newdata`, one given as an
   array is replaced by `newoffset` (default 0, as R ignores glmer's `offset` argument in prediction). A missing value
   gives NaN for its row; a new level of a factor of the fixed part is the error `factor <name> has new level <value>`
   (R: `non-conformable arguments`), and a missing value there NaN (R: the same error). Without `newdata`, the rows of
   the fit (R fails there when the fit dropped a row with a missing grouping value). Matched to the predictions at the
   exact fit within 1e-8 (lmer within 1e-14).
+
+### Fixed
+
+- **`lmer` and `lmerSummary` with predictors beyond 2^±500** (times 1e-160): the standard errors were Infinity in the
+  fit and NaN (with NaN degrees of freedom and p-values) in `lmerSummary`, since the inverse of R_X'R_X overflowed. They
+  are now computed with those columns of X divided by their powers of 2 (an entry of `vcov` may still overflow, as
+  R's would, where the standard error does not); fits on ordinary scales are unchanged, bit for bit.
 
 ## 0.17.0 - 2026-11-05
 

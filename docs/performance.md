@@ -83,6 +83,22 @@ fits and single evaluations of the criterion.
 covariance of the fixed effects) adds, after the fit: 0.03 s (crossed 200 × 100), 0.25 s (500 × 200), 0.01 s
 (1000 subjects) and 0.04 s (5000 subjects), Node 24 on arm64.
 
+One fit of `glmer` (the Laplace approximation unless stated; data from a seeded generator, random intercepts of
+standard deviation 0.5 and one uniform predictor), Apple M1 (Mac mini), Node.js 24, the code of 2026-11-05 (after
+0.17.0). The deviance's gradient is analytic, so the cost grows about linearly with the rows; lme4 fits these in
+well under a second, since it stops its optimiser and penalised IRLS early (rStats.js's estimate is the exact
+optimum). There is no size limit: 100000 rows take about 13 s.
+
+| Model | n | rStats.js |
+|---|---|---|
+| poisson `y ~ x + (1 \| g)`, 100 groups | 20000 | 2.2 s |
+| binomial `y ~ x + (1 \| g)`, 200 groups | 20000 | 2.4 s |
+| binomial `y ~ x + (1 \| g)`, 500 groups, `nAGQ = 100` | 5000 | 4.7 s |
+| poisson `y ~ x + (1 \| g) + (1 \| h)`, 200 × 37 crossed | 4000 | 1.6 s |
+| poisson `y ~ x + (x \| g)`, 200 groups | 4000 | 1.6 s |
+| poisson with 9 predictors `+ (1 \| g)`, 200 groups | 4000 | 1.5 s |
+| poisson `y ~ x + (1 \| g)`, 1000 groups | 100000 | 12.9 s |
+
 ## Bundle size
 
 `npm run size` (`scripts/size.mjs`) bundles each import from the built `dist/` with esbuild, then minifies and gzips
