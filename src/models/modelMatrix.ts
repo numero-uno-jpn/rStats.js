@@ -159,6 +159,13 @@ export interface Design {
   /** The response's values (rows kept), if the formula has one */
   y?: number[];
   warnings: string[];
+  /**
+   * The rows of this model matrix for other values of the variables (prediction): one entry per variable of `frame`
+   * (`undefined` for those that no term with columns uses), a factor's codes indexing this frame's levels, a negative
+   * code (or NaN) for a missing value, which makes that row's columns of the variable NaN. The terms, codes and
+   * contrasts are this design's.
+   */
+  rowsOf: (variables: readonly (FrameVariable | undefined)[], nRows: number) => number[][];
 }
 
 /** Options of {@link design} */
@@ -230,45 +237,57 @@ export function design(parsed: ParsedFormula, data: DataFrame, options: DesignOp
       }
     }
   }
-  const columns: number[][] = [];
-  const colNames: string[] = [];
-  const assign: number[] = [];
-  if (terms.intercept) {
-    columns.push(new Array<number>(nr).fill(1));
-    colNames.push("(Intercept)");
-    assign.push(0);
-  }
-  const partsOf = (v: number, code: number): { name: string; values: number[] }[] => {
-    const fv: FrameVariable = vars[v]!;
-    const name = terms.variables[v]!;
-    if (fv.kind === "numeric") return [{ name, values: fv.values }];
-    // own properties only: a factor named toString has the default contrast unless one is given
-    const given = options.contrasts !== undefined && Object.hasOwn(options.contrasts, name) ? options.contrasts[name] : undefined;
-    const contrast = code === 2 ? "indicators" : (options.allContrasts ?? given ?? "contr.treatment");
-    const { m, names } = contrastMatrix(fv.levels, contrast);
-    return names.map((cn, j) => ({ name: name + cn, values: fv.codes.map((c) => m[c]![j]!) }));
-  };
-  terms.terms.forEach((t, j) => {
-    if (!used[j]) return;
-    let cur = partsOf(t[0]!, codes[j]![0]!);
-    for (let k = 1; k < t.length; k++) {
-      const next: typeof cur = [];
-      for (const p of partsOf(t[k]!, codes[j]![k]!)) {
-        for (const c of cur) next.push({ name: `${c.name}:${p.name}`, values: c.values.map((v, i) => v * p.values[i]!) });
+  /** The columns, their names and terms, for the variables `vs` (the frame's or others, with this frame's levels) */
+  const columnsOf = (vs: readonly (FrameVariable | undefined)[], rowCount: number): { columns: number[][]; colNames: string[]; assign: number[] } => {
+    const columns: number[][] = [];
+    const colNames: string[] = [];
+    const assign: number[] = [];
+    if (terms.intercept) {
+      columns.push(new Array<number>(rowCount).fill(1));
+      colNames.push("(Intercept)");
+      assign.push(0);
+    }
+    const partsOf = (v: number, code: number): { name: string; values: number[] }[] => {
+      const fv: FrameVariable = vars[v]!;
+      const values = vs[v]!;
+      const name = terms.variables[v]!;
+      if (fv.kind === "numeric") return [{ name, values: (values as { values: number[] }).values }];
+      // own properties only: a factor named toString has the default contrast unless one is given
+      const given = options.contrasts !== undefined && Object.hasOwn(options.contrasts, name) ? options.contrasts[name] : undefined;
+      const contrast = code === 2 ? "indicators" : (options.allContrasts ?? given ?? "contr.treatment");
+      const { m, names } = contrastMatrix(fv.levels, contrast);
+      const valueCodes = (values as { codes: number[] }).codes;
+      // (a missing value, in prediction only: NaN in every column of the variable)
+      return names.map((cn, j) => ({ name: name + cn, values: valueCodes.map((c) => m[c]?.[j] ?? NaN) }));
+    };
+    terms.terms.forEach((t, j) => {
+      if (!used[j]) return;
+      let cur = partsOf(t[0]!, codes[j]![0]!);
+      for (let k = 1; k < t.length; k++) {
+        const next: typeof cur = [];
+        for (const p of partsOf(t[k]!, codes[j]![k]!)) {
+          for (const c of cur) next.push({ name: `${c.name}:${p.name}`, values: c.values.map((v, i) => v * p.values[i]!) });
+        }
+        cur = next;
       }
-      cur = next;
-    }
-    for (const c of cur) {
-      columns.push(c.values);
-      colNames.push(c.name);
-      assign.push(j + 1);
-    }
-  });
+      for (const c of cur) {
+        columns.push(c.values);
+        colNames.push(c.name);
+        assign.push(j + 1);
+      }
+    });
+    return { columns, colNames, assign };
+  };
+  const { columns, colNames, assign } = columnsOf(vars, nr);
   const x = Array.from({ length: nr }, (_, i) => columns.map((c) => c[i]!));
+  const rowsOf = (vs: readonly (FrameVariable | undefined)[], rowCount: number): number[][] => {
+    const cols = columnsOf(vs, rowCount).columns;
+    return Array.from({ length: rowCount }, (_, i) => cols.map((c) => c[i]!));
+  };
   // (the warnings of terms() come first, those of model.matrix() after: the absent contrasts, then the response's term)
   const fromTerms = terms.warnings.filter((w) => !w.startsWith("problem with term"));
   const warnings = [...fromTerms, ...contrastWarnings, ...terms.warnings.filter((w) => !fromTerms.includes(w))];
-  const out: Design = { terms, frame, x, colNames, assign, warnings };
+  const out: Design = { terms, frame, x, colNames, assign, warnings, rowsOf };
   if (terms.response >= 0) {
     const r = vars[terms.response]!;
     if (r.kind === "numeric") out.y = r.values;

@@ -22,9 +22,9 @@
 
 import { formatR } from "../htest/core/simulate.js";
 import { qr } from "../linalg/qr.js";
-import { deparseFormula, expandRhs, parseFormula, splitBarTerms, termsOf, type FormulaNode } from "./formula.js";
+import { deparseFormula, expandRhs, parseFormula, splitBarTerms, termsOf, type FormulaNode, type ParsedFormula } from "./formula.js";
 import { presentLevels, type DataFrame, type FrameVariable } from "./modelFrame.js";
-import { design, type DesignContrast, type ModelMatrixOptions } from "./modelMatrix.js";
+import { design, type Design, type DesignContrast, type ModelMatrixOptions } from "./modelMatrix.js";
 
 /** A random-effects term of a mixed model, after the expansion of its grouping expression and of `||`. */
 export interface RandomEffectsTerm {
@@ -111,15 +111,6 @@ export interface MixedModelStructure {
 /** Options of {@link mixedModelStructure}: those of the fixed-effects model matrix (contr.poly accepted too). */
 export type MixedModelStructureOptions = Omit<ModelMatrixOptions, "contrasts"> & { contrasts?: Record<string, DesignContrast> };
 
-/** A random-effects term before the grouping factors are formed */
-interface ExpandedTerm {
-  lhs: FormulaNode;
-  /** The index of its bar term in the formula */
-  bar: number;
-  /** The variables of the grouping factor, in the order of its name */
-  groupVariables: string[];
-}
-
 /** The grouping factors of a grouping expression: the variables of each, in the order of the name */
 function groupingFactorsOf(group: FormulaNode): string[][] {
   const vars: string[] = [];
@@ -171,6 +162,89 @@ function asFactor(v: FrameVariable): { levels: string[]; codes: number[] } {
   return { levels, codes: v.values.map((x) => index.get(formatR(x))!) };
 }
 
+/** The fixed-effects part of a mixed model's formula on its data (see {@link fixedPartDesign}) */
+export interface FixedPartDesign {
+  /** The parsed formula */
+  parsed: ParsedFormula;
+  /** Its random-effects terms as written */
+  bars: Extract<FormulaNode, { type: "bar" }>[];
+  /** The model matrix of the fixed-effects part, on the model frame of every variable of the formula */
+  fixedDesign: Design;
+  /** The variables of that model frame, in its order (those of the fixed part first) */
+  variables: string[];
+  /** The options of the model frame of every model matrix of the structure */
+  frameOptions: { levels?: Record<string, readonly string[]>; dropUnusedLevels: true };
+  /** The option of a generalised model's response (any type) */
+  responseOptions: { anyResponse?: true };
+}
+
+/**
+ * The fixed-effects part of a mixed model (internal, also for prediction): the formula without the random-effects
+ * terms, `response ~ fixed part`, as lm codes it (the order of its variables names the interaction columns); its model
+ * frame has the variables of the whole formula too, so that every model matrix of the structure uses the same rows.
+ */
+export function fixedPartDesign(formula: string, data: DataFrame, options: MixedModelStructureOptions = {}, generalised = false): FixedPartDesign {
+  const parsed = parseFormula(formula, false, true, generalised);
+  if (parsed.response === undefined) throw new TypeError("the formula has no response");
+  const { fixed, bars } = splitBarTerms(parsed.rhs);
+  if (typeof data !== "object" || data === null) throw new TypeError("data must be an object of columns");
+  const frameOptions = {
+    ...(options.levels === undefined ? {} : { levels: options.levels }),
+    dropUnusedLevels: true as const,
+  };
+  // (if nothing is left of the right-hand side, the fixed part is `1`)
+  const fixedRhs: FormulaNode = fixed ?? { type: "num", value: 1, text: "1" };
+  const fixedFormula = { ...parsed, rhs: fixedRhs };
+  // the variables of the whole formula (in the model frame, those of the fixed part come first, in its order)
+  const allVariables = termsOf(parsed, Object.keys(data), fixedRhs).variables;
+  // (a contrast is for a variable of the fixed-effects part: a grouping variable alone counts as absent)
+  const contrastOptions = options.contrasts === undefined ? {} : { contrasts: options.contrasts };
+  // (a generalised model's response may be of any type: the family reads it)
+  const responseOptions = generalised ? { anyResponse: true as const } : {};
+  const fixedDesign = design(fixedFormula, data, { ...frameOptions, ...contrastOptions, ...responseOptions, extraVariables: allVariables }, fixedRhs);
+  const variables = [...fixedDesign.terms.variables, ...allVariables.filter((v) => !fixedDesign.terms.variables.includes(v))];
+  return { parsed, bars, fixedDesign, variables, frameOptions, responseOptions };
+}
+
+/** A random-effects term after the expansion of `||` and of its grouping expression (internal, also for prediction) */
+export interface ExpandedRandomTerm {
+  /** The left-hand side */
+  lhs: FormulaNode;
+  /** The index of its bar term in the formula */
+  bar: number;
+  /** The variables of the grouping factor, in the order of its name */
+  groupVariables: string[];
+}
+
+/**
+ * The random-effects terms `bars` of a formula expanded (internal): `(lhs || group)` split into one term per term of
+ * lhs, then each term by the grouping factors of its expression; `noColumns` is the first bar term (in the formula's
+ * order) that `||` leaves without columns.
+ */
+export function expandRandomTerms(
+  parsed: ParsedFormula,
+  columns: readonly string[],
+  bars: readonly Extract<FormulaNode, { type: "bar" }>[],
+): { expanded: ExpandedRandomTerm[]; noColumns: number | undefined } {
+  const expanded: ExpandedRandomTerm[] = [];
+  let noColumns: number | undefined;
+  bars.forEach((bar, barIndex) => {
+    let lhsList: FormulaNode[] = [bar.lhs];
+    if (bar.double) {
+      const lhsTerms = termsOf(parsed, columns, bar.lhs);
+      lhsList = lhsTerms.intercept ? [{ type: "num", value: 1, text: "1" }] : [];
+      for (const t of lhsTerms.terms) {
+        const term = t.map((v): FormulaNode => ({ type: "var", name: lhsTerms.variables[v]! })).reduce((l, r) => ({ type: "binary", op: ":", left: l, right: r }));
+        lhsList.push({ type: "binary", op: "+", left: { type: "num", value: 0, text: "0" }, right: term });
+      }
+      if (lhsList.length === 0) noColumns ??= barIndex;
+    }
+    const factors = groupingFactorsOf(bar.group);
+    for (const lhs of lhsList) for (const groupVariables of factors) expanded.push({ lhs, groupVariables, bar: barIndex });
+  });
+  return { expanded, noColumns };
+}
+
 /**
  * The structure of a linear mixed model `response ~ fixed part + (lhs | group) + ...`: the model frame, X, Z, the
  * layout of Λ_θ, the initial θ and its lower bounds, with lme4's checks, errors, messages and warnings
@@ -187,54 +261,18 @@ export function mixedModelStructure(
   options: MixedModelStructureOptions = {},
   generalised = false,
 ): MixedModelStructure {
-  const parsed = parseFormula(formula, false, true, generalised);
-  if (parsed.response === undefined) throw new TypeError("the formula has no response");
-  const { fixed, bars } = splitBarTerms(parsed.rhs);
-  if (typeof data !== "object" || data === null) throw new TypeError("data must be an object of columns");
-
-  // the fixed-effects part: the formula without the random-effects terms, `response ~ fixed part`, as lm codes it (the
-  // order of its variables names the interaction columns); its model frame has the variables of the whole formula too,
-  // so that every model matrix below uses the same rows
-  const frameOptions = {
-    ...(options.levels === undefined ? {} : { levels: options.levels }),
-    dropUnusedLevels: true,
-  };
-  // (if nothing is left of the right-hand side, the fixed part is `1`)
-  const fixedRhs: FormulaNode = fixed ?? { type: "num", value: 1, text: "1" };
-  const fixedFormula = { ...parsed, rhs: fixedRhs };
-  // the variables of the whole formula (in the model frame, those of the fixed part come first, in its order)
-  const allVariables = termsOf(parsed, Object.keys(data), fixedRhs).variables;
-  // (a contrast is for a variable of the fixed-effects part: a grouping variable alone counts as absent)
-  const contrastOptions = options.contrasts === undefined ? {} : { contrasts: options.contrasts };
-  // (a generalised model's response may be of any type: the family reads it)
-  const responseOptions = generalised ? { anyResponse: true } : {};
-  const fixedDesign = design(fixedFormula, data, { ...frameOptions, ...contrastOptions, ...responseOptions, extraVariables: allVariables }, fixedRhs);
+  const { parsed, bars, fixedDesign, variables, frameOptions, responseOptions } = fixedPartDesign(formula, data, options, generalised);
   const { frame } = fixedDesign;
   const n = frame.rows.length;
   // (glmer: no row left is an error about the first grouping factor, below)
   if (n === 0 && !generalised) throw new RangeError("0 (non-NA) cases");
   // (the model frame's errors, above, come before this check)
   if (bars.length === 0) throw new Error("No random effects terms specified in formula");
-  const variables = [...fixedDesign.terms.variables, ...allVariables.filter((v) => !fixedDesign.terms.variables.includes(v))];
 
-  // (lhs || group) split into one term per term of lhs, then each term expanded by its grouping factors
-  const expanded: ExpandedTerm[] = [];
+  const { expanded, noColumns: noColumnsOfBars } = expandRandomTerms(parsed, Object.keys(data), bars);
   /** The first bar term (in the formula's order) without columns */
-  let noColumns: number | undefined;
-  bars.forEach((bar, barIndex) => {
-    let lhsList: FormulaNode[] = [bar.lhs];
-    if (bar.double) {
-      const lhsTerms = termsOf(parsed, Object.keys(data), bar.lhs);
-      lhsList = lhsTerms.intercept ? [{ type: "num", value: 1, text: "1" }] : [];
-      for (const t of lhsTerms.terms) {
-        const term = t.map((v): FormulaNode => ({ type: "var", name: lhsTerms.variables[v]! })).reduce((l, r) => ({ type: "binary", op: ":", left: l, right: r }));
-        lhsList.push({ type: "binary", op: "+", left: { type: "num", value: 0, text: "0" }, right: term });
-      }
-      if (lhsList.length === 0) noColumns ??= barIndex;
-    }
-    const factors = groupingFactorsOf(bar.group);
-    for (const lhs of lhsList) for (const groupVariables of factors) expanded.push({ lhs, groupVariables, bar: barIndex });
-  });
+  let noColumns = noColumnsOfBars;
+
   // glmer without a row left: lme4 fails on the first grouping factor in the order of the terms after expansion and
   // before their reordering
   if (n === 0) throw new RangeError(`Invalid grouping factor specification, ${expanded[0]?.groupVariables.join(":") ?? ""}`);

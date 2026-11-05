@@ -207,7 +207,8 @@ export const VCOV_FALLBACK =
  * What a fit by {@link glmer} was made from and with (internal: not exported from the package), for the functions that
  * work on a fit beyond its result fields (glmerSummary, glmerAnova, prediction): the model's structure, the data object
  * (model comparison requires the same object) and its snapshot (prediction rebuilds the model from it), the options as
- * given (the weights and the offset as an array or a column name), and the estimate with R_X'R_X at it.
+ * given (the weights and the offset as an array or a column name), and the estimate with R_X'R_X, the random effects,
+ * the linear predictor and the means at it.
  */
 export interface GlmerInternals {
   /** The structure of the model (X, Z, the terms, the family, the response, prior weights and offset of the rows used) */
@@ -227,6 +228,14 @@ export interface GlmerInternals {
    * σ²; array of rows)
    */
   rxtrx: number[][];
+  /** The random effects b̂ = Λ_θ̂ û at the conditional mode, in the order of the columns of Z (a copy) */
+  b: number[];
+  /** The linear predictor η̂ at the mode, one per row used (a copy) */
+  eta: number[];
+  /** The fitted means μ̂ (lme4's inverse link), one per row used (a copy) */
+  mu: number[];
+  /** R's sigma (1 for binomial and poisson) */
+  sigma: number;
 }
 
 /** The internals of every result returned by {@link glmer}, keyed by the result object itself (a copy has none) */
@@ -632,7 +641,14 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
   if (options.weights !== undefined) given.weights = copyOf(options.weights);
   if (options.offset !== undefined) given.offset = copyOf(options.offset);
   const snapshot: DataFrame = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v.slice()]));
-  internalsByFit.set(result, { structure: s, data, snapshot, options: given, theta: [...theta], beta: [...fixef], rxtrx: r.rxtrx!.map((row) => [...row]) });
+  internalsByFit.set(result, { structure: s, data, snapshot, options: given, theta: [...theta],
+    beta: [...fixef],
+    rxtrx: r.rxtrx!.map((row) => [...row]),
+    b: [...r.b],
+    eta: [...eta],
+    mu: [...mu],
+    sigma,
+  });
   return result;
 }
 

@@ -387,6 +387,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `lmerTest::contest()` | `lmerContest` | lmer の当てはめの固定効果の対比 L β = rhs の検定 (Satterthwaite の自由度による F 検定または t 検定) |
 | `lme4::glmer()` | `glmer` | Laplace 近似 (nAGQ = 1)、適応的 Gauss-Hermite 求積 (nAGQ = 2〜100) または罰則付き IRLS の固定効果 (nAGQ = 0) による一般化線形混合モデルの当てはめ |
 | `lme4::lmer()` | `lmer` | REML または最尤法による線形混合モデルの当てはめ |
+| `lme4::predict()` | `glmerPredict` | glmer の当てはめの予測 (当てはめの行または新しいデータ、選んだ変量効果の項、リンクまたは応答の尺度、標準誤差つきも可) |
+| `lme4::predict()` | `lmerPredict` | lmer の当てはめの予測 (当てはめの行または新しいデータ、選んだ変量効果の項、標準誤差つきも可) |
 | `lme4::summary()` | `glmerSummary` | glmer の当てはめの要約 (p 値つきの係数表、固定効果の相関、尺度化残差の分位点、情報量規準、分散成分、群の数) |
 | `lmerTest::summary()` | `lmerSummary` | lmer の当てはめの係数表 (Satterthwaite の自由度と t 検定の p 値つき) |
 | (R にない) | `setWarningHandler` | R の警告を受け取る関数の設定 (前の関数を返す) |

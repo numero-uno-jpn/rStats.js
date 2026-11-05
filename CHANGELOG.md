@@ -30,7 +30,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   be maximum likelihood); its `logLik`, `AIC` and `BIC` are those of the log-likelihood, which R's leave out the
   constant of the saturated model for `nAGQ > 1` (they differ from R's by that constant), and its estimates match the
   exact optimum as for the Laplace approximation (lme4's AGQ fits are close: standard errors within about 4e-5).
-  Prediction for new data comes later.
+  Prediction for new data: `glmerPredict`.
 - **`glmerSummary`**, lme4's `summary()` of a glmer fit: the coefficient table with p-values from the normal
   distribution for every family (as lme4's, although it names the statistic `t value` for the families with a
   dispersion), the correlation of the fixed effects, the quartiles of the scaled Pearson residuals, `AIC`, `BIC`,
@@ -44,6 +44,18 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   family, link and offset, its fixed-effects columns and random-effects terms within the larger fit's; R tests any
   pair). For `nAGQ > 1` the log-likelihood of the fit includes the saturated model's constant, so fits with different
   `nAGQ` and glm fits are commensurate (R's differ by that constant; R refuses glm fits with `nAGQ > 1`).
+- **`glmerPredict` and `lmerPredict`**, lme4's `predict()` of glmer and lmer fits: at the fit's rows or at
+  `newdata` (the fixed part built as the fit built X: its terms, contrasts, factor levels and dropped columns), with all
+  (default), some (`reForm: "~ (1 | g)"`, also a term with fewer columns than the fit's) or none (`reForm: false`) of
+  the random-effects terms, `randomOnly`, `allowNewLevels` (a new level or a missing grouping value adds 0 for its
+  term), `type` `"link"` or `"response"` (glmer), and `seFit`: the standard errors from the conditional covariance of
+  (b, β) at θ̂, computed correctly where lme4's are wrong (crossed grouping factors whose sparse factor is permuted,
+  `reForm` subsets) or fail. glmer's offset: an offset given as a column name is read from `newdata`, one given as an
+  array is replaced by `newoffset` (default 0, as R ignores glmer's `offset` argument in prediction). A missing value
+  gives NaN for its row; a new level of a factor of the fixed part is the error `factor <name> has new level <value>`
+  (R: `non-conformable arguments`), and a missing value there NaN (R: the same error). Without `newdata`, the rows of
+  the fit (R fails there when the fit dropped a row with a missing grouping value). Matched to the predictions at the
+  exact fit within 1e-8 (lmer within 1e-14).
 
 ## 0.17.0 - 2026-11-05
 

@@ -376,6 +376,22 @@ Choices of the implementation of stage 3 (G15 implemented) where this document w
   a glm fit is not given (G12 makes their log-likelihoods commensurate).
 - `glmerSummary` and `glmerAnova` of one fit: a fit that is not the object returned by glmer is a TypeError.
 
+Choices of the implementation of stage 4 where this document was silent:
+
+- `glmerPredict`, `lmerPredict`: `newoffset` must be an array of numbers (TypeError); with an offset given as a
+  column name: RangeError `newoffset cannot be given: the fit's offset is the column '<name>', read from newdata`;
+  without `newdata`: RangeError `newoffset needs newdata (without it the fit's offset is used)`. A value of another
+  type in a numeric column of `newdata`: TypeError with the message of R's `predict` for lm (`variable 'x' was fitted
+  with type "numeric" but type "character" was supplied`); `newdata` that is not an object of columns: TypeError.
+- The columns of the fixed part and the offset column are required in `newdata` also with `randomOnly` (R builds the
+  model frame of `newdata` in any case). A factor slope of a selected term with a new level is the same RangeError as
+  in the fixed part. With several re.form terms, the missing columns of all of them are listed (each once).
+- glmer's se.fit with `R_X'R_X` not positive definite: NaN.
+- The comparison of a glmer and a glm fit (G15) is checked against R in the fixture glmerAnovaGlm
+  (`oracle/glmeranovaglm.R`: anova(glmer fit, glm fit) with the same fixed effects, binomial and poisson, Laplace;
+  references from the exact glmer optimum and glm's converged fit). R gives a test also for a glm fit with another
+  link (probit against logit); rStats.js gives none (step 5's rule).
+
 ## The fit and its results (stage 2c)
 
 ### What lme4 does (glmerControl's defaults)

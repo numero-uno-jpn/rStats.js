@@ -407,6 +407,12 @@ export interface LmerInternals {
   criterion: MixedCriterion;
   /** The estimate θ̂ (a copy, unaffected by changes to the result's `theta`) */
   theta: number[];
+  /** The fixed effects β̂ (a copy; prediction) */
+  fixef: number[];
+  /** The random effects b̂ = Λ_θ̂ û, in the order of the columns of Z (a copy; prediction) */
+  b: number[];
+  /** The residual standard deviation σ̂ (prediction) */
+  sigma: number;
 }
 
 /**
@@ -551,6 +557,18 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
     warnings: [...s.warnings],
   };
   const snapshot: DataFrame = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v.slice()]));
-  internalsByFit.set(result, { structure: s, beta0, data, snapshot, options, reml, criterion, theta: [...theta] });
+  internalsByFit.set(result, {
+    structure: s,
+    beta0,
+    data,
+    snapshot,
+    options,
+    reml,
+    criterion,
+    theta: [...theta],
+    fixef: [...fixef],
+    b: r.b.map(up),
+    sigma,
+  });
   return result;
 }

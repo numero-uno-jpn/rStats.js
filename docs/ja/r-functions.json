@@ -355,5 +355,7 @@
   "lmerContest": "lmer の当てはめの固定効果の対比 L β = rhs の検定 (Satterthwaite の自由度による F 検定または t 検定)",
   "lmerAnova": "lmer の当てはめの Type III, II, I の分散分析表 (Satterthwaite の自由度による F 検定)、または複数の当てはめの尤度比検定による比較",
   "glmerSummary": "glmer の当てはめの要約 (p 値つきの係数表、固定効果の相関、尺度化残差の分位点、情報量規準、分散成分、群の数)",
-  "glmerAnova": "glmer の当てはめの固定効果の項の分散分析表 (逐次 Wald 統計量)、または glmer, lmer, glm の当てはめの尤度比検定による比較"
+  "glmerAnova": "glmer の当てはめの固定効果の項の分散分析表 (逐次 Wald 統計量)、または glmer, lmer, glm の当てはめの尤度比検定による比較",
+  "glmerPredict": "glmer の当てはめの予測 (当てはめの行または新しいデータ、選んだ変量効果の項、リンクまたは応答の尺度、標準誤差つきも可)",
+  "lmerPredict": "lmer の当てはめの予測 (当てはめの行または新しいデータ、選んだ変量効果の項、標準誤差つきも可)"
 }
