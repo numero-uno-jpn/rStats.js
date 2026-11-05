@@ -57,6 +57,8 @@ export interface GlmerDeviance {
   b: number[];
   /** The conditional means μ (one per row used). */
   mu: number[];
+  /** The linear predictor η = o + Xβ + ZΛ_θ ũ at the mode (one per row used). */
+  eta: number[];
   /** The sum of the deviance residuals at μ. */
   devResid: number;
   /** ‖ũ‖². */
@@ -71,6 +73,11 @@ export interface GlmerDeviance {
   iterations: number;
   /** R's warnings of the evaluation (poisson's non-integer counts). */
   warnings: string[];
+  /**
+   * R_X'R_X = X'WX − X'WZΛ (Λ'Z'WZΛ + I)⁻¹ Λ'Z'WX with the working weights at the mode (array of rows), when asked
+   * for (`{ rx: true }`).
+   */
+  rxtrx?: number[][];
 }
 
 /** lme4's maximum number of step halvings */
@@ -94,8 +101,15 @@ const TOL_PWRSS = 1e-7;
  * @param beta The fixed effects (one per column of X) for nAGQ = 1; ignored for nAGQ = 0.
  * @param nAGQ 1: the deviance is a function of (θ, β), the mode is found for u; 0: a function of θ, the mode is found
  *   for u and β jointly.
+ * @param options `rx`: also return R_X'R_X at the mode (for the covariance of the fixed effects).
  */
-export function glmerDeviance(structure: GlmerStructure, theta: readonly number[], beta: readonly number[] | undefined, nAGQ: 0 | 1 = 1): GlmerDeviance {
+export function glmerDeviance(
+  structure: GlmerStructure,
+  theta: readonly number[],
+  beta: readonly number[] | undefined,
+  nAGQ: 0 | 1 = 1,
+  options: { rx?: boolean } = {},
+): GlmerDeviance {
   if (nAGQ !== 0 && nAGQ !== 1) throw new RangeError("nAGQ must be 0 or 1 here");
   if (theta.length !== structure.theta.length) throw new RangeError(`theta must have length ${structure.theta.length}, not ${theta.length}`);
   if (theta.some((v) => !Number.isFinite(v))) throw new RangeError("theta must be finite");
@@ -288,12 +302,31 @@ export function glmerDeviance(structure: GlmerStructure, theta: readonly number[
     const aic = familyAic(fam.glm, y, mu, w, structure.size, cur.devResid, warnings);
     let ussq = 0;
     for (const v of cur.u) ussq += v * v;
+    let rxtrx: number[][] | undefined;
+    if (options.rx === true) {
+      // X'WX − C'C with C = L⁻¹ Λ'Z'WX, L the factor at the weights of the mode (that of the last iteration)
+      const { ww } = weightsAt(cur.eta, cur.mu);
+      const c = Array.from({ length: p }, (_, k) => {
+        const col = lambdaTransposeTimes(sys, t, zTransposeTimes(sys, Float64Array.from(x, (row, i) => ww[i]! * row[k]!)));
+        solveL(sys, l, col);
+        return col;
+      });
+      rxtrx = Array.from({ length: p }, (_, k) =>
+        Array.from({ length: p }, (_, m) => {
+          let sum = 0;
+          for (let i = 0; i < n; i++) sum += ww[i]! * x[i]![k]! * x[i]![m]!;
+          for (let i = 0; i < q; i++) sum -= c[k]![i]! * c[m]![i]!;
+          return sum;
+        }),
+      );
+    }
     return {
       deviance: ldL2 + ussq + aic,
       beta: Array.from(cur.beta),
       u: Array.from(cur.u),
       b: Array.from(lambdaTimes(sys, t, cur.u)),
       mu,
+      eta: Array.from(cur.eta),
       devResid: cur.devResid,
       ussq,
       pdev: cur.devResid + ussq,
@@ -301,6 +334,7 @@ export function glmerDeviance(structure: GlmerStructure, theta: readonly number[
       aic,
       iterations,
       warnings: warnings.list,
+      ...(rxtrx === undefined ? {} : { rxtrx }),
     };
   });
 }
