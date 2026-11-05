@@ -1,7 +1,7 @@
 # rStats.js API reference
 
 rStats.js gives JavaScript the numerical core of R: probability distributions, random numbers that match R's
-`set.seed()`, descriptive statistics, hypothesis tests, linear, generalized linear and linear mixed models, survival
+`set.seed()`, descriptive statistics, hypothesis tests, linear, generalized linear and (generalized) linear mixed models, survival
 analysis, linear algebra and numerical methods. Function names and results follow R, and the functions are tested
 against R (to a relative 1e-14 for distributions and 1e-12 for tests and models; see
 [accuracy](https://numero-uno-jpn.github.io/rStats.js/docs/accuracy.html)) or against high-precision references
@@ -30,7 +30,7 @@ npm install @numero-uno-jpn/rstats
 import { pnorm, tTest, lm } from "@numero-uno-jpn/rstats";        // everything (tree-shaken by a bundler)
 import { qbeta } from "@numero-uno-jpn/rstats/distributions";       // or one area: distributions, tests,
                                                                      // descriptive, linalg, numerics, special
-import { lmer } from "@numero-uno-jpn/rstats/mixed";                // mixed models: only from this area
+import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed";        // mixed models: only from this area
 ```
 
 Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@0.17.0/dist/rstats.js` is one ES module with
@@ -47,7 +47,7 @@ loads the common code twice, with two random number states.
   `cronbachAlpha` (psych's `alpha`), `modes` (DescTools' `Mode`), `geometricMean` (DescTools' `Gmean`), `cv`
   (DescTools' `CoefVar`), `pbvnorm` (mvtnorm's `pmvnorm` in two dimensions), `glhtDunnett` (multcomp's `glht` with
   Dunnett's contrasts). The methods of the models other than `lm` (R's `summary`, `predict`, `anova`, ... of a fit)
-  carry the model's name in front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`; the methods
+  carry the model's name in front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`, `glmerSummary`, `glmerPredict`; the methods
   without a prefix (`predict`, `confint`, `anova`) are those of `lm`.
 - **Arguments:** the required ones are positional; the optional ones go in one options object with R's names in
   camelCase: `pt(q, df, lower.tail = FALSE)` → `pt(q, df, { lowerTail: false })`. The optional arguments that R's
@@ -60,8 +60,8 @@ loads the common code twice, with two random number states.
   object): `pnorm(1, { lowertail: false })` throws "unknown option 'lowertail' for pnorm (known: mean, sd, lowerTail,
   logP)" instead of ignoring the misspelt key. Objects whose keys are your data (data frames, `contrasts`, `levels`)
   are not checked.
-- **Results** are plain objects. The functions that take a fit of `lmer` (`lmerSummary`, `lmerAnova`,
-  `lmerContest`, ...) need the object `lmer` returned itself, not a copy of it (`structuredClone`, `{ ...fit }`, JSON
+- **Results** are plain objects. The functions that take a fit of `lmer` or `glmer` (`lmerSummary`, `lmerAnova`,
+  `lmerContest`, `glmerSummary`, `glmerPredict`, ...) need the object `lmer` or `glmer` returned itself, not a copy of it (`structuredClone`, `{ ...fit }`, JSON
   or `postMessage`): it carries internal values that a copy loses, and a copy is a TypeError. Tests return R's `htest` fields in camelCase (`statistic`, `parameter`, `pValue`,
   `confInt`, `estimate`, `method`, ...), with R's names of the values in separate fields (`statisticName`, ...).
 - **Data:** a sample is an array of numbers (or a `Float64Array`), a matrix an array of rows, a data frame an object

@@ -118,7 +118,7 @@ aovEz(long, { id: "id", dv: "y", within: "W" }).anova.table[0];
 // ≈ [1.735, 6.940, 0.21653, 35.876, 0.84607, 0.00026363] (num Df, den Df, MSE, F, ges, p; GG-corrected)
 ```
 
-### Linear mixed models
+### Mixed models
 
 `lmer` fits lme4's linear mixed models by REML or maximum likelihood. It is in its own area,
 `@numero-uno-jpn/rstats/mixed` (`dist/mixed.js` on a CDN), not in the single-file bundle.
@@ -151,6 +151,14 @@ components agree with lme4 to about 5 to 9 significant digits and the fixed effe
 `lmerSummary`, `lmerContest` and `lmerAnova` give lmerTest's t- and F-tests with Satterthwaite's degrees of freedom
 (computed with exact derivatives at that optimum; lmerTest differentiates numerically at lme4's) and the Type I,
 II and III ANOVA tables; `lmerAnova([fit1, fit2])` compares fits by likelihood-ratio tests, as lme4's `anova()`.
+
+`glmer` fits lme4's generalized linear mixed models (binomial, poisson, Gamma, inverse.gaussian and gaussian families
+with their links) by the Laplace approximation, or by adaptive Gauss-Hermite quadrature (`nAGQ` 2 to 100) for a
+single scalar random-effects term: `glmer("y ~ x + (1 | g)", d, { family: "poisson" })`. `glmerSummary` gives the
+coefficient table with p-values, `glmerAnova` the ANOVA table or the likelihood-ratio comparison of glmer, lmer and
+glm fits, and `glmerPredict` and `lmerPredict` the predictions (at new data, with some or none of the random
+effects, with standard errors). As for `lmer`, the estimates are the exact optimum; see the
+[differences](docs/differences-from-r.md#mixed-models) for the standard errors and `nAGQ > 1`.
 
 ### Effect sizes and power
 
@@ -193,7 +201,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Analysis of variance | `aov` and `aovSummary` with a formula (several factors, interactions, covariates, `Error()` strata), `anova` (`anova.lm`, sequential and model comparison), `Anova` (car: types II and III), `aovEz` (afex: repeated-measures and mixed designs, Greenhouse-Geisser and Huynh-Feldt corrections, generalized and partial eta squared), `mauchlyTest` (`mauchly.test`) |
 | Effect sizes and power | `cohensD`, `hedgesG` (effectsize, with exact confidence limits), `etaSquared`, `omegaSquared`, `epsilonSquared` (partial, generalized, from `anova` and `Anova` tables); `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`); `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`) |
-| Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), from `@numero-uno-jpn/rstats/mixed` |
+| Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), `glmer` (lme4: all glm families, Laplace approximation and adaptive Gauss-Hermite quadrature), `glmerSummary`, `glmerAnova`, `glmerPredict` and `lmerPredict`, from `@numero-uno-jpn/rstats/mixed` |
 | More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest) |
 | Multiple comparisons | `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest` (PMCMRplus), `dunnTest` (dunn.test), `glhtDunnett` (multcomp) |
 | Survival analysis | `survdiff` (log-rank), `survfit` (Kaplan-Meier with intervals and median), `coxph` (Cox regression: Efron and Breslow ties, case weights, strata, the Wald, likelihood-ratio and score tests) |
@@ -242,8 +250,9 @@ everyday use:
   a RangeError before it starts; the exact tests suggest `exact: false`. R computes most of these however long they
   take. See [Limits](docs/performance.md#limits).
 - Distribution parameters are not recycled as vectors.
-- `lmer` returns the exact optimum of its criterion, which lme4's optimiser approaches only to its tolerances, and
-  does not emit lme4's convergence warnings.
+- `lmer` and `glmer` return the exact optimum of their criterion, which lme4's optimiser approaches only to its
+  tolerances, and do not emit lme4's convergence warnings. For `nAGQ > 1`, `glmer`'s log-likelihood is the true one
+  (lme4 leaves out a constant).
 
 Full list: [docs/differences-from-r.md](docs/differences-from-r.md).
 
@@ -257,18 +266,19 @@ removed. Approximate sizes after minification and gzip:
 | `pnorm` | 1.6 KB |
 | `setSeed`, `rnorm` | 2.0 KB |
 | `solve` / `svd` / `eigen` | 2.4 / 2.4 / 5.1 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 16.2 / 27.7 / 30.8 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 16.4 / 27.7 / 31.0 KB |
 | `qbeta` / `pt` and `qt` | 43.5 / 40.0 KB |
 | `glm` and `glmSummary` / `glm` with all its methods | 35.0 / 50.9 KB |
-| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 17.9 / 67.5 KB |
-| everything (except `/mixed`) | 248.6 KB |
+| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 18.7 / 68.7 KB |
+| `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 41.4 / 59.4 KB |
+| everything (except `/mixed`) | 248.9 KB |
 
 (`npm run size` measures these.)
 
 Each area is also a subpath export, for importing one area without the rest:
 `@numero-uno-jpn/rstats/distributions`, `/tests` (hypothesis tests, `lm`, `confint` and
 `predict`, and `glm` with its methods), `/linalg`, `/descriptive`, `/numerics`, `/special` and `/mixed`
-(`lmer` and lmerTest's tests; this area is only available this way, not from the main entry point).
+(`lmer`, `glmer` and their methods; this area is only available this way, not from the main entry point).
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
 function except those of `/mixed`, 249 KB gzipped) from jsDelivr, which serves each npm release:

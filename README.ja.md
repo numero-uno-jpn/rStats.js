@@ -122,7 +122,7 @@ aovEz(long, { id: "id", dv: "y", within: "W" }).anova.table[0];
 // ≈ [1.735, 6.940, 0.21653, 35.876, 0.84607, 0.00026363] (num Df, den Df, MSE, F, ges, p。GG で補正)
 ```
 
-### 線形混合モデル
+### 混合モデル
 
 `lmer` は、lme4 の線形混合モデルを REML または最尤法で当てはめます。独立した分野
 `@numero-uno-jpn/rstats/mixed` (CDN では `dist/mixed.js`) にあり、1 ファイルにまとめたビルドには含めていません。
@@ -155,6 +155,13 @@ lmerAnova(fit).F;                // ≈ [91.942] (Type III。R: anova(fit))
 `lmerSummary`、`lmerContest`、`lmerAnova` は、lmerTest の Satterthwaite の自由度による t 検定と F 検定、
 Type I・II・III の分散分析表を返します (自由度はその最適点で厳密な導関数から求めます。lmerTest は lme4 の
 最適点で数値微分します)。`lmerAnova([fit1, fit2])` は、lme4 の `anova()` と同じく当てはめを尤度比検定で比べます。
+
+`glmer` は、lme4 の一般化線形混合モデル (二項、ポアソン、Gamma、inverse.gaussian、gaussian の族とそのリンク) を、
+ラプラス近似で、またスカラーの変量効果の項が 1 つなら適応的 Gauss-Hermite 求積 (`nAGQ` 2〜100) で当てはめます:
+`glmer("y ~ x + (1 | g)", d, { family: "poisson" })`。`glmerSummary` は p 値つきの係数表、`glmerAnova` は分散分析表
+または glmer・lmer・glm の当てはめの尤度比検定による比較、`glmerPredict` と `lmerPredict` は予測 (新しいデータ、
+一部または全部を除いた変量効果、標準誤差つきも可) を返します。`lmer` と同じく推定値は厳密な最適点です。標準誤差と
+`nAGQ > 1` については[違い](docs/ja/differences-from-r.md#混合モデル)を見てください。
 
 ### 効果量と検出力
 
@@ -196,7 +203,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | 分散分析 | formula で呼ぶ `aov` と `aovSummary` (多元、交互作用、共変量、`Error()` の層), `anova` (`anova.lm`。逐次の表とモデルの比較), `Anova` (car の Type II と III), `aovEz` (afex。反復測定と混合計画、Greenhouse-Geisser と Huynh-Feldt の補正、一般化 η² と偏 η²), `mauchlyTest` (`mauchly.test`) |
 | 効果量と検出力 | `cohensD`, `hedgesG` (effectsize。信頼区間は厳密な限界), `etaSquared`, `omegaSquared`, `epsilonSquared` (偏・一般化。`anova` と `Anova` の表から), `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`), `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
-| 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)。`@numero-uno-jpn/rstats/mixed` から import する |
+| 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)、`glmer` (lme4: glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、`glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`。`@numero-uno-jpn/rstats/mixed` から import する |
 | ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest) |
 | 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest` (PMCMRplus)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
 | 生存時間解析 | `survdiff` (log-rank)、`survfit` (Kaplan-Meier。信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイの扱い、ケースの重み、層、Wald・尤度比・スコア検定) |
@@ -245,8 +252,8 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
   投げます。正確な検定では `exact: false` を案内します。R はその多くを、時間がかかっても計算します。
   [上限](docs/ja/performance.md#上限)を見てください。
 - 分布の母数は、ベクトルとして使い回されません (リサイクルしない)。
-- `lmer` は基準の厳密な最適点を返します。lme4 の最適化はそこへ許容誤差の範囲でしか近づきません。
-  また、lme4 の収束の警告は出しません。
+- `lmer` と `glmer` は基準の厳密な最適点を返します。lme4 の最適化はそこへ許容誤差の範囲でしか近づきません。
+  また、lme4 の収束の警告は出しません。`nAGQ > 1` の `glmer` の対数尤度は真の値です (lme4 は定数を落とします)。
 
 すべての違いは [docs/ja/differences-from-r.md](docs/ja/differences-from-r.md) にあります。
 
@@ -260,17 +267,18 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `pnorm` | 1.6 KB |
 | `setSeed`, `rnorm` | 2.0 KB |
 | `solve` / `svd` / `eigen` | 2.4 / 2.4 / 5.1 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 16.2 / 27.7 / 30.8 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 16.4 / 27.7 / 31.0 KB |
 | `qbeta` / `pt` と `qt` | 43.5 / 40.0 KB |
 | `glm` と `glmSummary` / `glm` とそのすべての関数 | 35.0 / 50.9 KB |
-| `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 17.9 / 67.5 KB |
-| すべて (`/mixed` を除く) | 248.6 KB |
+| `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 18.7 / 68.7 KB |
+| `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 41.4 / 59.4 KB |
+| すべて (`/mixed` を除く) | 248.9 KB |
 
 (`npm run size` で測れます。)
 
 分野ごとにサブパスからも export しているので、1 つの分野だけを import することもできます。
 `@numero-uno-jpn/rstats/distributions`、`/tests` (検定、`lm`・`confint`・`predict`、`glm` とその関数)、`/linalg`、
-`/descriptive`、`/numerics`、`/special`、`/mixed` です (`/mixed` の `lmer` と lmerTest の検定は、この方法でしか import
+`/descriptive`、`/numerics`、`/special`、`/mixed` です (`/mixed` の `lmer`・`glmer` とその関数は、この方法でしか import
 できません。メインの入口には含めていません)。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` 以外のすべての関数を含む

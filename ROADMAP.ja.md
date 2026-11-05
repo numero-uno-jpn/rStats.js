@@ -40,7 +40,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 | 効果量と検出力 | effectsize の `cohens_d`、`hedges_g`、`eta_squared`、`omega_squared`、`epsilon_squared` (`anova` と `Anova` の表から。信頼区間は厳密な限界)、`power.t.test`、`power.prop.test`、`power.anova.test` と `pwr` の検出力の関数 |
 | ほかの検定 | `leveneTest` (car)、`propTrendTest` (`prop.trend.test`)、`jonckheereTest` (DescTools と clinfun)、`cochranQTest` (DescTools)、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (nortest) |
 | 多重比較 | PMCMRplus の `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest`、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp)。Dunnett 型の確率は厳密に計算する (R は乱数を使う) |
-| 混合モデル | lme4 の `lmer` を `lmer` として (REML と ML。相関のある変量効果と相関のない変量効果 `(x \| g)`・`(x \|\| g)`、交差と入れ子の群 `a/b`・`a:b`)。`fixef`、`vcov`、`coef(summary())` (p 値を除く)、`VarCorr`、`ranef`、`fitted`、`residuals`、`logLik`、`AIC`、`BIC`、`deviance`、`REMLcrit`、`isSingular` に当たる値。lmerTest の Satterthwaite の t 検定と F 検定 (`summary`、`contest`、Type I/II/III の `anova`) と、lme4 の複数の当てはめの `anova`。Bates ら (2015) の論文から、疎なコレスキー分解で実装。推定値は基準の厳密な最適点 (lme4 はその手前で止まる)。独立した分野 `@numero-uno-jpn/rstats/mixed` (`dist/mixed.js`) にあり、全部入りのファイルには含めない |
+| 混合モデル | lme4 の `lmer` を `lmer` として (REML と ML。相関のある変量効果と相関のない変量効果 `(x \| g)`・`(x \|\| g)`、交差と入れ子の群 `a/b`・`a:b`)。`fixef`、`vcov`、`coef(summary())` (p 値を除く)、`VarCorr`、`ranef`、`fitted`、`residuals`、`logLik`、`AIC`、`BIC`、`deviance`、`REMLcrit`、`isSingular` に当たる値。lmerTest の Satterthwaite の t 検定と F 検定 (`summary`、`contest`、Type I/II/III の `anova`) と、lme4 の複数の当てはめの `anova`。lme4 の `glmer` を `glmer` として (glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、その `summary`・`anova`・`predict` (`glmerSummary`・`glmerAnova`・`glmerPredict`) と `lmer` の `predict` (`lmerPredict`)。Bates ら (2015) の論文から、疎なコレスキー分解で実装。推定値は基準の厳密な最適点 (lme4 はその手前で止まる)。独立した分野 `@numero-uno-jpn/rstats/mixed` (`dist/mixed.js`) にあり、全部入りのファイルには含めない |
 | 生存時間解析 | `survival` パッケージの `survdiff` (log-rank と G-rho 族) と `survfit` (Kaplan-Meier。log・plain・log-log の信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイ、重み、層、summary の検定) |
 | 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor の 2 段階推定と最尤推定)、`pbvnorm`、`omega` (McDonald の ω。psych)。反復測定の計画の効果量 (`Error()` の層と `aovEz`) |
 | 最適化 | `factanal` (最尤法、varimax と promax)、`optim` の 6 つの手法すべて (Nelder-Mead、BFGS、CG、L-BFGS-B、SANN、Brent。R と同じ反復。ただし CG は、R が中点を試すところで放物線の最小点を試すので、経路が R と違う) と `optimHess` |
@@ -63,9 +63,10 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    誤差の上界から不要と分かる double-double の処理を省く ([docs/ja/performance.md](docs/ja/performance.md)
    を参照)。残り: double-double のままの連分数。どちらの展開も当てはまらないところ (a = 30、b = 20
    のような中程度のパラメータ。そこでは連分数は短い。および遠い裾) では、今も連分数を使う。
-2. **混合モデルの続き:** `glmer` (ラプラス近似) [lme4]。(lmerTest の Satterthwaite の検定と `lmer` の
-   分散分析表、lme4 の尤度比による比較は済み。) `mixed` の分野を全部入りの `dist/rstats.js` に含めるかどうかは、
-   `glmer` が済んでから決める。
+2. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。1.0.0 の後。
+   (`glmer` と `glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`、lmerTest の Satterthwaite の検定と `lmer` の
+   分散分析表、lme4 の尤度比による比較は済み。) `glmer` が済んだので、`mixed` の分野を全部入りの `dist/rstats.js` に
+   含めるかどうかを決められる。
 
 対象外: SciPy のうち R に対応するもののない部分 (`scipy.special` の大部分と、`scipy.stats` にしか
 ない分布)。構造方程式モデル (`lavaan`) も対象外です。それだけで 1 つのライブラリの規模があるためです。分布のパラメータのベクトルとしてのリサイクル
@@ -80,7 +81,7 @@ Ahrens-Dieter、Box-Muller) も対象外です。古いコードの再現にし�
 増やしても利用者の負担にはなりません。CDN 用には、分野ごとのファイル (`dist/distributions.js`、
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
 `dist/mixed.js`) を esbuild のコード分割で作り (共通のコードは重複しない)、`mixed` 以外のすべてを含む
-`dist/rstats.js` も残しています (lmer は最初のリリースなので、当面は全部入りのファイルに含めません)。
+`dist/rstats.js` も残しています (混合モデルは新しいので、当面は全部入りのファイルに含めません)。
 同じ分野はパッケージのサブパスとしても import できます (`@numero-uno-jpn/rstats/linalg` など)。
 大きさは `npm run size` で確かめられます。npm に公開した後は、export 単位でバンドルする CDN
 (`?exports=` を付けた esm.sh など) も選択肢になります。

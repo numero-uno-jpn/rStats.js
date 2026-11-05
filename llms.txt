@@ -1,7 +1,7 @@
 # rStats.js
 
 > R-compatible statistics for JavaScript and TypeScript: distributions, random numbers that match
-> R's `set.seed()`, descriptive statistics, hypothesis tests, `lm`, `glm` and lme4's `lmer`, special functions,
+> R's `set.seed()`, descriptive statistics, hypothesis tests, `lm`, `glm` and lme4's `lmer` and `glmer`, special functions,
 > numerical methods and linear algebra, with R's function names, defaults and numerical results.
 > Every function is tested against R 4.5.2. ESM only, no dependencies, runs in browsers, Node.js,
 > Deno and Bun.
@@ -10,7 +10,7 @@ Install with `npm install @numero-uno-jpn/rstats`. All functions are named expor
 `import { pnorm, tTest } from "@numero-uno-jpn/rstats"`, or `import * as rs from
 "@numero-uno-jpn/rstats"` and call `rs.tTest(x, y)`. Each area is also a subpath export
 (`/distributions`, `/tests`, `/linalg`, `/descriptive`, `/numerics`, `/special`). Mixed models are only in the
-subpath `/mixed`: `import { lmer } from "@numero-uno-jpn/rstats/mixed"` (not in the main entry point). For use from
+subpath `/mixed`: `import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed"` (not in the main entry point). For use from
 a CDN without a bundler, see the README section "Using it in the browser".
 
 ## Translating R code
@@ -62,6 +62,14 @@ a CDN without a bundler, see the README section "Using it in the browser".
   `anova(fit, type = "II")` → `lmerAnova(fit, { type: "II" })` (`{ terms, sumSq, meanSq, numDF, denDF, F, pValue }`,
   Type III by default); lme4's `anova(m1, m2)` → `lmerAnova([m1, m2], { names })` (likelihood-ratio tests; REML fits
   are refitted by ML). Pass the object `lmer` returned (not a copy). Kenward-Roger is not available.
+- Generalized linear mixed models: lme4's `glmer(y ~ x + (1 | g), data = d, family = poisson, nAGQ = 1)` →
+  `glmer("y ~ x + (1 | g)", d, { family: "poisson", nAGQ: 1 })` (families binomial, poisson, Gamma, inverse.gaussian,
+  gaussian with a link other than identity; `nAGQ` 2 to 100 for one scalar term, binomial and poisson only; a binomial
+  response may be `cbind(successes, failures)` on the left-hand side). `summary(fit)` → `glmerSummary(fit)`;
+  `anova(fit)` → `glmerAnova(fit)`, `anova(m1, m2)` → `glmerAnova([m1, m2], { names })` (glmer, lmer and glm fits);
+  `predict(fit, newdata, re.form, type, se.fit)` → `glmerPredict(fit, { newdata, reForm, type, seFit })` and
+  `lmerPredict(fit, ...)`. Pass the object `glmer` returned (not a copy). For `nAGQ > 1` the log-likelihood is the
+  true one (R leaves out a constant).
 - Indices are 0-based where R returns indices: `sampleInt(n)` returns `0..n-1` (R's
   `sample.int(n) - 1` from the same random stream), and the pivots of `qr` and `chol`.
 - R's warnings: every test, model and fit returns them in its result (`warnings: string[]`, R's text, each distinct
