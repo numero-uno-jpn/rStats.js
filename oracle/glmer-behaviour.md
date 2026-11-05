@@ -364,6 +364,18 @@ Choices of the specification of stages 3 and 4 (to be confirmed by the user; eac
   fit (R: an error when a dropped row had a missing grouping value); `re.form`'s unknown factors and columns with
   lme4's own messages; `seFit` by the formula, where lme4's se.fit is wrong (permuted factor, re.form subsets).
 
+Choices of the implementation of stage 3 (G15 implemented) where this document was silent:
+
+- `glmerAnova` with several fits: an array of glm fits only is the TypeError `glmerAnova needs at least one fit of
+  glmer or lmer (glmAnova compares glm fits)`; any other element that is not a result of glmer, lmer or glm is a
+  TypeError. A glm fit (recognised by its fields: glm keeps no record of its results) counts `nObs` as its rows used
+  (rows of prior weight 0 included, as glmer's), `npar` = rank (+1 for gaussian, Gamma and inverse.gaussian) and
+  `logLik` = npar − aic / 2 (R's `logLik.glm`). The data-object and row checks apply among the glmer and lmer fits;
+  the response is compared by the formulas' left-hand sides between them and by value (the response as the family
+  reads it) against a glm fit; the prior weights by value for every fit. R's error for a glmer fit with nAGQ > 1 and
+  a glm fit is not given (G12 makes their log-likelihoods commensurate).
+- `glmerSummary` and `glmerAnova` of one fit: a fit that is not the object returned by glmer is a TypeError.
+
 ## The fit and its results (stage 2c)
 
 ### What lme4 does (glmerControl's defaults)

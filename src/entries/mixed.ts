@@ -21,6 +21,8 @@ export {
   type LmerCompareTable,
 } from "../models/lmerAnova.js";
 export { glmer, type GlmerOptions, type GlmerResult } from "../models/glmer.js";
+export { glmerSummary, type GlmerSummary, type GlmerSummaryOptions } from "../models/glmerSummary.js";
+export { glmerAnova, type GlmerAnovaOptions, type GlmerAnovaTable } from "../models/glmerAnova.js";
 export type { GlmerFamilyName } from "../models/glmerFamily.js";
 // Types used by the functions above, also exported from the root and the other subpaths
 export type { DataFrame } from "../models/modelFrame.js";

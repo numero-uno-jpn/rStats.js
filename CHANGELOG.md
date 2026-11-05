@@ -30,7 +30,20 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   be maximum likelihood); its `logLik`, `AIC` and `BIC` are those of the log-likelihood, which R's leave out the
   constant of the saturated model for `nAGQ > 1` (they differ from R's by that constant), and its estimates match the
   exact optimum as for the Laplace approximation (lme4's AGQ fits are close: standard errors within about 4e-5).
-  `glmerSummary`, `glmerAnova` and `predict` for new data come later.
+  Prediction for new data comes later.
+- **`glmerSummary`**, lme4's `summary()` of a glmer fit: the coefficient table with p-values from the normal
+  distribution for every family (as lme4's, although it names the statistic `t value` for the families with a
+  dispersion), the correlation of the fixed effects, the quartiles of the scaled Pearson residuals, `AIC`, `BIC`,
+  `logLik`, −2 logLik (R's `-2*log(L)`), `df.resid`, the variance components, the numbers of groups and the fit's
+  messages and vcov warning.
+- **`glmerAnova`**, lme4's `anova()` for glmer fits: for one fit the table of the fixed-effects terms (`npar`,
+  sequential Wald sums of squares from R_X, mean squares and F = mean square / σ², no p-values, as lme4's); for an
+  array of fits the likelihood-ratio comparison of glmer, lmer and glm fits together (lmer REML fits refitted by ML),
+  with `lmerAnova`'s checks (same data object, rows and response; a glm fit: the same number of observations and
+  response values), the same prior weights, and the test only where the smaller fit is nested in the larger (same
+  family, link and offset, its fixed-effects columns and random-effects terms within the larger fit's; R tests any
+  pair). For `nAGQ > 1` the log-likelihood of the fit includes the saturated model's constant, so fits with different
+  `nAGQ` and glm fits are commensurate (R's differ by that constant; R refuses glm fits with `nAGQ > 1`).
 
 ## 0.17.0 - 2026-11-05
 

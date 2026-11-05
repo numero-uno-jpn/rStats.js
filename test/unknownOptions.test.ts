@@ -39,8 +39,8 @@ import { lmer } from "../src/entries/mixed.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
-/** The function with a check of its own (its keys depend on the overload; src/models/lmerAnova.ts) */
-const OWN_CHECK = new Set(["lmerAnova"]);
+/** The functions with a check of their own (their keys depend on the overload; src/models/lmerAnova.ts, glmerAnova.ts) */
+const OWN_CHECK = new Set(["lmerAnova", "glmerAnova"]);
 
 const unknown = (fn: string, key: string) => new RegExp(`^unknown option '${key.replace(/\./g, "\\.")}' for ${fn} \\(known: `);
 
