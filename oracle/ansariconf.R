@@ -58,4 +58,4 @@ for (a in cases) {
 ansari_fun <- function(a) htest_fields(call_with(ansari.test, list(x = a$x, y = a$y, alternative = a$alternative,
                                                                    exact = a$exact, conf.int = a$confInt,
                                                                    conf.level = a$confLevel)))
-write_htest_fixture("ansariTestConfInt", cases, ansari_fun)
+write_htest_fixture("ansariTestConfInt", cases, ansari_fun, warnings = TRUE)

@@ -161,4 +161,4 @@ write_htest_fixture("fisherTest", cases, function(a) {
   f$statistic <- NULL
   f$statisticName <- NULL
   f
-}, fisher_rxc_ref)
+}, fisher_rxc_ref, warnings = TRUE)

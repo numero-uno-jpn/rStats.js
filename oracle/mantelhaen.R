@@ -41,4 +41,4 @@ mh_fun <- function(a) {
   args <- list(x = a$x, alternative = a$alternative, conf.level = a$confLevel, correct = a$correct, exact = a$exact)
   htest_fields(call_with(mantelhaen.test, args))
 }
-write_htest_fixture("mantelhaenTest", cases, mh_fun)
+write_htest_fixture("mantelhaenTest", cases, mh_fun, warnings = TRUE)

@@ -57,16 +57,6 @@ glm_fit <- function(a, cols = seq_len(ncol(as.matrix(a$x)))) {
   do.call("glm", cl)
 }
 
-# Runs f, collecting the warning messages instead of printing them
-with_warnings <- function(f) {
-  w <- character(0)
-  v <- withCallingHandlers(f(), warning = function(cnd) {
-    w <<- c(w, conditionMessage(cnd))
-    invokeRestart("muffleWarning")
-  })
-  list(value = v, warnings = I(unique(w)))
-}
-
 # Simulation helpers for the oracles
 rinvgauss <- function(n, mu, lambda) {
   # Michael, Schucany and Haas (1976)

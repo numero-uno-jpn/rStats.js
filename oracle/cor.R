@@ -175,7 +175,7 @@ cor_ref <- function(a) {
   out
 }
 
-write_htest_fixture("corTest", cases, function(a) htest_fields(cor_test(a)), cor_ref)
+write_htest_fixture("corTest", cases, function(a) htest_fields(cor_test(a)), cor_ref, warnings = TRUE)
 
 # cor (correlation coefficient of two vectors)
 cor_cases <- list()

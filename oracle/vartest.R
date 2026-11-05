@@ -27,7 +27,7 @@ var_fun <- function(a) {
   args <- list(x = a$x, y = a$y, ratio = a$ratio, alternative = a$alternative, conf.level = a$confLevel)
   htest_fields(call_with(var.test, args))
 }
-write_htest_fixture("varTest", cases, var_fun)
+write_htest_fixture("varTest", cases, var_fun, warnings = TRUE)
 
 # bartlett.test takes a list of samples: write each group as an array
 arg_json_vector <- arg_json
@@ -48,7 +48,7 @@ add(groups = list(c(1, 3, 2, 5, Inf), c(2, 9, 4, 12, 7), c(3, 3.5, 4, 2, -Inf)))
 add(groups = list(c(1, 3, 2, 5), c(2, Inf)))
 add(groups = list())
 bartlett_fun <- function(a) htest_fields(bartlett.test(a$groups))
-write_htest_fixture("bartlettTest", cases, bartlett_fun)
+write_htest_fixture("bartlettTest", cases, bartlett_fun, warnings = TRUE)
 arg_json <- arg_json_vector
 
 cases <- list()
@@ -74,4 +74,4 @@ add(x = c(1, 2, 1, 2, 1, 2, 2, 1), y = c(5, 7, 5, 7, 7, 5, 7, 7))
 add(x = c(1, 2, 3, 1, 2, 3, 3, 1, 2, 2, 3, 1), y = c(1, 2, 3, 2, 3, 1, 1, 3, 2, 1, 3, 2), correct = FALSE)
 add(x = c(1, 1, 1), y = c(1, 2, 1))
 mcnemar_fun <- function(a) htest_fields(call_with(mcnemar.test, list(x = a$x, y = a$y, correct = a$correct)))
-write_htest_fixture("mcnemarTest", cases, mcnemar_fun)
+write_htest_fixture("mcnemarTest", cases, mcnemar_fun, warnings = TRUE)

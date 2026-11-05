@@ -46,4 +46,4 @@ pw_fun <- function(a) {
   list(method = r$method, pValue = num_or_vec(r$p.value), rowNames = I(rownames(r$p.value)),
        colNames = I(colnames(r$p.value)))
 }
-write_htest_fixture("pairwise", cases, pw_fun)
+write_htest_fixture("pairwise", cases, pw_fun, warnings = TRUE)

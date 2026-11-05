@@ -54,7 +54,7 @@ write_htest_fixture("TukeyHSD", cases, function(a) {
   lv <- c(pairs[1, 2], pairs[seq_len(k - 1), 1])
   list(names = I(rownames(r)), i = vec_out(match(pairs[, 1], lv)), j = vec_out(match(pairs[, 2], lv)),
        diff = vec_out(r[, "diff"]), lwr = vec_out(r[, "lwr"]), upr = vec_out(r[, "upr"]), pAdj = vec_out(r[, "p adj"]))
-})
+}, warnings = TRUE)
 arg_json <- arg_json_vector
 
 # BSDA::z.test: one sample, two samples (independent), with known standard deviations
@@ -75,4 +75,4 @@ add(x = I(c(1, 2, 3)), sigmaX = -1, alternative = "two.sided")
 add(x = I(c(4)), sigmaX = 2, alternative = "two.sided", confLevel = 0.95)
 write_htest_fixture("zTest", cases, function(a)
   htest_fields(call_with(BSDA::z.test, list(x = a$x, y = a$y, sigma.x = a$sigmaX, sigma.y = a$sigmaY, mu = a$mu,
-                                            alternative = a$alternative, conf.level = a$confLevel))))
+                                            alternative = a$alternative, conf.level = a$confLevel))), warnings = TRUE)

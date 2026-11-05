@@ -39,7 +39,7 @@ binom_fun <- function(a) {
   args <- list(x = a$x, n = a$n, p = a$p, alternative = a$alternative, conf.level = a$confLevel)
   htest_fields(call_with(binom.test, args))
 }
-write_htest_fixture("binomTest", cases, binom_fun)
+write_htest_fixture("binomTest", cases, binom_fun, warnings = TRUE)
 
 cases <- list()
 for (i in 1:80) {
@@ -90,4 +90,4 @@ pois_fun <- function(a) {
   r$p.value <- as.numeric(r$p.value)
   htest_fields(r)
 }
-write_htest_fixture("poissonTest", cases, pois_fun)
+write_htest_fixture("poissonTest", cases, pois_fun, warnings = TRUE)

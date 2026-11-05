@@ -56,15 +56,6 @@ tab_out <- function(tab) {
        table = lapply(seq_len(nrow(tab)), function(i) I(num2str(unname(unlist(tab[i, ]))))))
 }
 
-with_warnings <- function(f) {
-  w <- character(0)
-  v <- withCallingHandlers(f(), warning = function(cnd) {
-    w <<- c(w, conditionMessage(cnd))
-    invokeRestart("muffleWarning")
-  })
-  list(value = v, warnings = I(unique(w)))
-}
-
 # ---- exact least squares with big rationals ----
 
 q_of <- function(x) as.bigq(x)

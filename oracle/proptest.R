@@ -49,4 +49,4 @@ prop_fun <- function(a) {
   args <- list(x = a$x, n = a$n, p = a$p, alternative = a$alternative, conf.level = a$confLevel, correct = a$correct)
   htest_fields(call_with(prop.test, args))
 }
-write_htest_fixture("propTest", cases, prop_fun)
+write_htest_fixture("propTest", cases, prop_fun, warnings = TRUE)

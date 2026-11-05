@@ -156,4 +156,4 @@ write_htest_fixture("wilcoxTest", cases, function(a) {
     return(c(htest_fields(r), list(estimate = num2str(est))))
   }
   htest_fields(r)
-})
+}, warnings = TRUE)

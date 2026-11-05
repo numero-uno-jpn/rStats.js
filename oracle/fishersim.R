@@ -46,4 +46,4 @@ write_htest_fixture("fisherTestSim", cases, function(a) {
   f$statistic <- NULL
   f$statisticName <- NULL
   c(f, list("next" = num2str(nxt)))
-})
+}, warnings = TRUE)

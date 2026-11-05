@@ -48,4 +48,4 @@ write_htest_fixture("brunnerMunzelTest", cases, function(a) htest_fields(bm(a)),
   p <- switch(a$alternative %||% "two.sided",
               two.sided = 2 * pt(-abs(t), df), greater = pt(t, df), less = pt(t, df, lower.tail = FALSE))
   list(pValue = num2str(p))
-})
+}, warnings = TRUE)

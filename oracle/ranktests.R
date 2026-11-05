@@ -30,8 +30,8 @@ add(groups = list(c(1, 1), c(1, 1)))
 add(groups = list(c(1, 2, 3), numeric(0), c(4, 5, 7)))
 add(groups = list(c(1, 2, 3), c(NA, NA), c(4, 5, 7)))
 add(groups = list(c(1, 2, 3), numeric(0)))
-write_htest_fixture("kruskalTest", cases, function(a) htest_fields(kruskal.test(a$groups)))
-write_htest_fixture("flignerTest", cases, function(a) htest_fields(fligner.test(a$groups)))
+write_htest_fixture("kruskalTest", cases, function(a) htest_fields(kruskal.test(a$groups)), warnings = TRUE)
+write_htest_fixture("flignerTest", cases, function(a) htest_fields(fligner.test(a$groups)), warnings = TRUE)
 
 cases <- list()
 for (i in 1:100) {
@@ -49,7 +49,7 @@ oneway_fun <- function(a) {
   g <- factor(rep(seq_along(a$groups), lengths(a$groups)))
   htest_fields(oneway.test(y ~ g, var.equal = isTRUE(a$varEqual)))
 }
-write_htest_fixture("onewayTest", cases, oneway_fun)
+write_htest_fixture("onewayTest", cases, oneway_fun, warnings = TRUE)
 arg_json <- arg_json_vector
 
 cases <- list()
@@ -62,8 +62,8 @@ add(y = matrix(c(1, 2, 3, 1, 2, 3, 1, 2, 3), 3, byrow = TRUE))
 add(y = matrix(c(1, 1, 1, 2, 2, 2), 2, byrow = TRUE))
 add(y = matrix(c(1, 2, NA, 4, 5, 6, 7, 9, 8), 3, byrow = TRUE))
 add(y = matrix(1:3, 1))
-write_htest_fixture("friedmanTest", cases, function(a) htest_fields(friedman.test(a$y)))
-write_htest_fixture("quadeTest", cases, function(a) htest_fields(quade.test(a$y)))
+write_htest_fixture("friedmanTest", cases, function(a) htest_fields(friedman.test(a$y)), warnings = TRUE)
+write_htest_fixture("quadeTest", cases, function(a) htest_fields(quade.test(a$y)), warnings = TRUE)
 
 cases <- list()
 for (i in 1:100) {
@@ -78,7 +78,7 @@ for (alt in alts) {
 }
 add(x = 1, y = 2)
 write_htest_fixture("moodTest", cases, function(a)
-  htest_fields(call_with(mood.test, list(x = a$x, y = a$y, alternative = a$alternative))))
+  htest_fields(call_with(mood.test, list(x = a$x, y = a$y, alternative = a$alternative))), warnings = TRUE)
 
 cases <- list()
 for (n in c(3, 4, 5, 6, 7, 11, 12, 20, 50, 100, 500, 1000, 5000)) {
@@ -94,4 +94,4 @@ add(x = rnorm(30) * 1e-200)
 add(x = c(1, 1, 1, 1))
 add(x = c(1, 2))
 add(x = rnorm(5001))
-write_htest_fixture("shapiroTest", cases, function(a) htest_fields(shapiro.test(a$x)))
+write_htest_fixture("shapiroTest", cases, function(a) htest_fields(shapiro.test(a$x)), warnings = TRUE)

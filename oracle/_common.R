@@ -16,6 +16,17 @@ num2str <- function(x) {
   }, character(1), USE.NAMES = FALSE)
 }
 
+# Runs f, collecting the warning messages instead of printing them: list(value, warnings), the warnings each once in
+# the order R gave them
+with_warnings <- function(f) {
+  w <- character(0)
+  v <- withCallingHandlers(f(), warning = function(cnd) {
+    w <<- c(w, conditionMessage(cnd))
+    invokeRestart("muffleWarning")
+  })
+  list(value = v, warnings = I(unique(w)))
+}
+
 # grid: data.frame with one case per row. Column names become the keys of the fixture's args
 #       (use the JS argument names, e.g. lowerTail). Logical columns are written as booleans.
 # fun:  function taking one row of grid (a named list) and returning one R value

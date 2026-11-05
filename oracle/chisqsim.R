@@ -66,4 +66,4 @@ write_htest_fixture("chisqTestSim", cases, function(a) {
   f$alternative <- NULL
   c(f, list(observed = num_or_vec(unclass(r$observed)), expected = num_or_vec(r$expected),
             residuals = num_or_vec(r$residuals), stdres = num_or_vec(r$stdres), "next" = num2str(nxt)))
-})
+}, warnings = TRUE)

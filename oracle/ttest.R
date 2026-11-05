@@ -126,4 +126,4 @@ write_htest_fixture("tTest", cases, function(a) {
               paired = isTRUE(a$paired), var.equal = isTRUE(a$varEqual),
               conf.level = if (is.null(a$confLevel)) 0.95 else a$confLevel)
   c(htest_fields(r), list(stdErr = num2str(r$stderr)))
-}, t_ref)
+}, t_ref, warnings = TRUE)

@@ -56,10 +56,16 @@ htest_fields <- function(res) {
 #      Used to judge cases where R itself is inaccurate. Not called for cases where R raised an error.
 #      Unlike distribution reference values, computing means and variances with Rmpfr is fast, so it is done for every case
 # info: (optional) extra information written at the top of the fixture (e.g. LAPACK/BLAS versions for linear algebra)
-write_htest_fixture <- function(name, cases, fun, ref = NULL, info = NULL) {
+# warnings: TRUE to record R's warnings as the last expected field "warnings" (each once, in R's order; [] for none) of
+#      the cases without an error, leaving out those of DROPPED_HTEST_WARNINGS. FALSE (fixtures that are not tests):
+#      the warnings are dropped. scripts/fixture-warnings.mjs adds the same field to existing fixtures with the local R
+write_htest_fixture <- function(name, cases, fun, ref = NULL, info = NULL, warnings = FALSE) {
   lines <- vapply(cases, function(args) {
-    expected <- tryCatch(suppressWarnings(fun(args)),
-                         error = function(e) list(error = conditionMessage(e)))
+    expected <- tryCatch(if (warnings) {
+      r <- with_warnings(function() fun(args))
+      c(r$value, list(warnings = I(drop_htest_warnings(r$warnings))))
+    } else suppressWarnings(fun(args)),
+    error = function(e) list(error = conditionMessage(e)))
     out <- list(args = lapply(args, arg_json), expected = expected)
     if (!is.null(ref) && is.null(expected$error)) {
       r <- suppressWarnings(ref(args))
@@ -79,11 +85,21 @@ write_htest_fixture <- function(name, cases, fun, ref = NULL, info = NULL) {
     "  ]",
     "}"
   )
-  path <- file.path("/out", paste0(name, ".json"))
+  path <- file.path(HTEST_OUT, paste0(name, ".json"))
   writeLines(out, path)
   n_err <- sum(grepl('"expected":\\{"error"', lines))
   cat(sprintf("%s: %d cases (%d errors) -> %s (%s)\n", name, length(lines), n_err, path, R.version.string))
 }
+
+# Folder of the fixtures: /out in the container (scripts/oracle.sh); scripts/fixture-warnings.mjs --run sets it to
+# test/fixtures to run an oracle with the local R
+HTEST_OUT <- if (exists("HTEST_OUT")) HTEST_OUT else "/out"
+
+# Warnings that the tests do not reproduce: those of R's distribution functions about their own precision or
+# convergence (ptukey, pnbeta, pnt, qtukey, ...; R's ML_WARNING texts). Warnings that explain a NaN result
+# ("NaNs produced") are kept
+DROPPED_HTEST_WARNINGS <- "^(full precision may not have been achieved|convergence failed|underflow occurred|value out of range) in '"
+drop_htest_warnings <- function(w) w[!grepl(DROPPED_HTEST_WARNINGS, w)]
 
 # Pass only the non-NULL entries of the argument list to the R function
 call_with <- function(f, args) do.call(f, Filter(Negate(is.null), args))

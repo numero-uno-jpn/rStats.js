@@ -38,4 +38,4 @@ ks_fun <- function(a) {
   y <- if (is.null(a$cdf)) a$y else a$cdf
   htest_fields(call_with(ks.test, list(x = a$x, y = y, alternative = a$alternative, exact = a$exact)))
 }
-write_htest_fixture("ksTest", cases, ks_fun)
+write_htest_fixture("ksTest", cases, ks_fun, warnings = TRUE)

@@ -111,4 +111,4 @@ write_htest_fixture("chisqTest", cases, function(a) {
   f$alternative <- NULL  # chisq.test results have no alternative
   c(f, list(observed = num_or_vec(unclass(r$observed)), expected = num_or_vec(r$expected),
                           residuals = num_or_vec(r$residuals), stdres = num_or_vec(r$stdres)))
-})
+}, warnings = TRUE)

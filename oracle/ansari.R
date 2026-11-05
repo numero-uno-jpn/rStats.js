@@ -29,4 +29,4 @@ add(x = c(1, 2, NA, 4), y = c(3, 5, 6))
 add(x = numeric(0), y = c(1, 2))
 ansari_fun <- function(a) htest_fields(call_with(ansari.test, list(x = a$x, y = a$y, alternative = a$alternative,
                                                                    exact = a$exact)))
-write_htest_fixture("ansariTest", cases, ansari_fun)
+write_htest_fixture("ansariTest", cases, ansari_fun, warnings = TRUE)

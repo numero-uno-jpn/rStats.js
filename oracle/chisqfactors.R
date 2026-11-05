@@ -35,4 +35,4 @@ write_htest_fixture("chisqTestFactors", cases, function(a) {
   c(f, list(rowLevels = I(rownames(r$observed)), colLevels = I(colnames(r$observed)),
             observed = num_or_vec(unclass(r$observed)), expected = num_or_vec(r$expected),
             residuals = num_or_vec(r$residuals), stdres = num_or_vec(r$stdres)))
-})
+}, warnings = TRUE)
