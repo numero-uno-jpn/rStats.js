@@ -200,8 +200,52 @@ const GLMER_UNSUPPORTED = ["subset", "naAction", "na.action", "control", "verbos
 const OPTIMISATION_FAILED = "glmer: the minimisation of the deviance did not converge";
 
 const SINGULAR_MESSAGE = "boundary (singular) fit: see help('isSingular')";
-const VCOV_FALLBACK =
+export const VCOV_FALLBACK =
   "variance-covariance matrix computed from finite-difference Hessian is\nnot positive definite or contains NA values: falling back to var-cov estimated from RX";
+
+/**
+ * What a fit by {@link glmer} was made from and with (internal: not exported from the package), for the functions that
+ * work on a fit beyond its result fields (glmerSummary, glmerAnova, prediction): the model's structure, the data object
+ * (model comparison requires the same object) and its snapshot (prediction rebuilds the model from it), the options as
+ * given (the weights and the offset as an array or a column name), and the estimate with R_X'R_X at it.
+ */
+export interface GlmerInternals {
+  /** The structure of the model (X, Z, the terms, the family, the response, prior weights and offset of the rows used) */
+  structure: GlmerStructure;
+  /** The data frame given to glmer (the same object, not a copy: fits are compared on the same data object) */
+  data: DataFrame;
+  /** A copy of the columns of `data` at the time of the fit */
+  snapshot: DataFrame;
+  /** The options given to glmer (a copy; `weights` and `offset` as given, arrays copied) */
+  options: GlmerOptions;
+  /** The estimate θ̂ (a copy) */
+  theta: number[];
+  /** The fixed effects β̂ (a copy) */
+  beta: number[];
+  /**
+   * R_X'R_X = X'WX − X'WZΛ (Λ'Z'WZΛ + I)⁻¹ Λ'Z'WX at θ̂ with the Fisher weights at the conditional mode (not scaled by
+   * σ²; array of rows)
+   */
+  rxtrx: number[][];
+}
+
+/** The internals of every result returned by {@link glmer}, keyed by the result object itself (a copy has none) */
+const internalsByFit = new WeakMap<GlmerResult, GlmerInternals>();
+
+/** Whether an object is a result returned by {@link glmer} (internal) */
+export function isGlmerFit(fit: unknown): fit is GlmerResult {
+  return typeof fit === "object" && fit !== null && internalsByFit.has(fit as GlmerResult);
+}
+
+/**
+ * The internals of a fit (see {@link GlmerInternals}). Internal. Throws a TypeError for an object that is not a result
+ * returned by {@link glmer}.
+ */
+export function glmerInternals(fit: GlmerResult): GlmerInternals {
+  const internals = typeof fit === "object" && fit !== null ? internalsByFit.get(fit) : undefined;
+  if (internals === undefined) throw new TypeError("fit must be a result returned by glmer (not a copy of one)");
+  return internals;
+}
 
 /** Step of the 5-point differences of the gradient, relative to max(1, max |x|) */
 const GRADIENT_STEP = 1e-3;
@@ -552,7 +596,7 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
   // is added back, so that logLik is the log-likelihood (G12; R's logLik differs by it)
   const logLik = -(r.deviance + (nAGQ > 1 ? r.aic - r.devResid : 0)) / 2;
   const df = p + nTheta + (dispersionFamily ? 1 : 0);
-  return {
+  const result: GlmerResult = {
     formula,
     family: fam.family,
     link: fam.link,
@@ -583,6 +627,13 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
     messages,
     warnings: warnings.list,
   };
+  const copyOf = <T>(v: T): T => (Array.isArray(v) || v instanceof Float64Array ? (v.slice() as T) : v);
+  const given: GlmerOptions = { ...options };
+  if (options.weights !== undefined) given.weights = copyOf(options.weights);
+  if (options.offset !== undefined) given.offset = copyOf(options.offset);
+  const snapshot: DataFrame = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v.slice()]));
+  internalsByFit.set(result, { structure: s, data, snapshot, options: given, theta: [...theta], beta: [...fixef], rxtrx: r.rxtrx!.map((row) => [...row]) });
+  return result;
 }
 
 /** (Σ w (y − μ)² / V(μ) + ‖u‖²) / n at an evaluation: σ² of lme4's sigma for the families with a dispersion */

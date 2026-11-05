@@ -77,6 +77,10 @@ export interface MixedModelStructure {
   xColNames: string[];
   /** The fixed-effects model matrix X (array of rows). */
   x: number[][];
+  /** The term of each column of X (0 for the intercept, k for the k-th of `xTermLabels`), aliased columns dropped. */
+  xAssign: number[];
+  /** The labels of the terms of the fixed-effects part, in the formula's order (`"x"`, `"f"`, `"x:f"`). */
+  xTermLabels: string[];
   /** The random-effects terms, in their final order. */
   terms: RandomEffectsTerm[];
   /** The distinct grouping factors, in order of first use by the terms. */
@@ -387,6 +391,7 @@ export function mixedModelStructure(
   const messages: string[] = [];
   let x = fixedDesign.x;
   let xColNames = fixedDesign.colNames;
+  let xAssign = fixedDesign.assign;
   if (xColNames.length > 0) {
     const decomposition = qr(x);
     const aliased = new Set(decomposition.pivot.slice(decomposition.rank));
@@ -394,6 +399,7 @@ export function mixedModelStructure(
       const keep = xColNames.map((_, j) => j).filter((j) => !aliased.has(j));
       x = x.map((row) => keep.map((j) => row[j]!));
       xColNames = keep.map((j) => xColNames[j]!);
+      xAssign = keep.map((j) => xAssign[j]!);
       messages.push(
         `fixed-effect model matrix is rank deficient so dropping ${aliased.size} ${aliased.size === 1 ? "column / coefficient" : "columns / coefficients"}`,
       );
@@ -425,6 +431,8 @@ export function mixedModelStructure(
     y: fixedDesign.y ?? new Array<number>(n).fill(0),
     xColNames,
     x,
+    xAssign: [...xAssign],
+    xTermLabels: [...fixedDesign.terms.termLabels],
     terms,
     groups,
     q: z.length,

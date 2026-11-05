@@ -183,26 +183,103 @@ function sameFrame(a: DataFrame, b: DataFrame): boolean {
   });
 }
 
-function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): LmerCompareTable {
-  if (fits.length < 2) throw new TypeError("lmerAnova needs one fit, or an array of at least two fits to compare");
-  const internals = fits.map(lmerInternals);
+/**
+ * A fit in a likelihood-ratio comparison (internal): of lmer, glmer (src/models/glmerAnova.ts) or glm, with what the
+ * checks and the test of nesting need
+ */
+export interface ComparedModel {
+  /** The number of observations (R's nobs: rows used, rows of prior weight 0 included) */
+  nObs: number;
+  /** The number of parameters (the fit's df) */
+  df: number;
+  /** The fit's log-likelihood */
+  logLik: number;
+  /** Whether it is an lmer fit by REML */
+  reml: boolean;
+  /** The log-likelihood of the maximum-likelihood refit (lmer REML fits) */
+  refitLogLik?: () => number;
+  /** For lmer and glmer fits: the data object, its snapshot, the rows used and the formula's left-hand side */
+  mixed?: { data: DataFrame; snapshot: DataFrame; rows: readonly number[]; response: string };
+  /** The response as the family reads it, one per row used (compared by value where a fit has no formula) */
+  response: () => readonly number[];
+  /** The prior weights, one per row used (all 1 for lmer) */
+  weights: () => readonly number[];
+  /** The family and link (lmer: gaussian, identity) */
+  family: string;
+  link: string;
+  /** The offset, one per row used (all 0 without) */
+  offset: () => readonly number[];
+  /** The fixed-effects model matrix (array of rows) */
+  x: () => readonly (readonly number[])[];
+  /** The random-effects terms (grouping factor and columns; none for glm) */
+  randomTerms: readonly { group: string; columns: readonly string[] }[];
+}
+
+/** The model of an lmer fit in a comparison (internal) */
+export function comparedLmer(fit: LmerResult): ComparedModel {
+  const internals = lmerInternals(fit);
+  const { snapshot, data } = internals;
+  const lhs = fit.formula.slice(0, fit.formula.indexOf("~"));
+  const ones = (): number[] => new Array<number>(fit.nObs).fill(1);
+  return {
+    nObs: fit.nObs,
+    df: fit.df,
+    logLik: fit.logLik,
+    reml: fit.REML,
+    refitLogLik: () => lmerWithCriterion(fit.formula, snapshot, { ...internals.options, REML: false }, internals.criterion).logLik,
+    mixed: { data, snapshot, rows: fit.rows, response: lhs.replace(/\s+/g, "") },
+    // (the left-hand side of lmer's formula is a column name)
+    response: () => fit.rows.map((i) => Number(snapshot[lhs.trim()]?.[i] ?? NaN)),
+    weights: ones,
+    family: "gaussian",
+    link: "identity",
+    offset: () => new Array<number>(fit.nObs).fill(0),
+    x: () => internals.structure.x,
+    randomTerms: fit.varCorr,
+  };
+}
+
+/** Whether two vectors are equal element by element */
+function sameValues(a: readonly number[], b: readonly number[]): boolean {
+  return a.length === b.length && a.every((v, i) => v === b[i] || (Number.isNaN(v) && Number.isNaN(b[i]!)));
+}
+
+/**
+ * lme4's likelihood-ratio comparison of fits (internal; lmerAnova's and glmerAnova's): the checks that the fits are of
+ * the same observations, the names, the ML refits of REML fits, the rows sorted by the number of parameters and the
+ * test where the fit of the row before is nested in the row's. `fn` names the function in its error for fewer than
+ * two fits.
+ */
+export function compareModels(fn: string, models: readonly ComparedModel[], options: LmerCompareOptions): LmerCompareTable {
+  if (models.length < 2) throw new TypeError(`${fn} needs one fit, or an array of at least two fits to compare`);
   // (only the number of observations is compared, as lme4 does; the fits must also share the data object below)
-  if (fits.some((f) => f.nObs !== fits[0]!.nObs)) throw new Error("models were not all fitted to the same size of dataset");
-  if (internals.some((i) => i.data !== internals[0]!.data)) throw new Error("all models must be fit to the same data object");
-  // (the same object changed between the fits holds different data)
-  if (internals.some((i) => !sameFrame(i.snapshot, internals[0]!.snapshot))) throw new Error("all models must be fit to the same data object");
-  // A likelihood ratio compares likelihoods of the same observations: the same rows of the data and the same response
-  // (lme4 compares only the number of rows, and returns a test for fits of different rows or responses)
-  const sameRows = (r: readonly number[]): boolean => r.length === fits[0]!.rows.length && r.every((v, i) => v === fits[0]!.rows[i]);
-  if (fits.some((f) => !sameRows(f.rows))) throw new Error("models were not all fitted to the same rows of the data");
-  const response = (f: LmerResult): string => f.formula.slice(0, f.formula.indexOf("~")).replace(/\s+/g, "");
-  if (fits.some((f) => response(f) !== response(fits[0]!))) throw new Error("models were not all fitted to the same response");
+  if (models.some((f) => f.nObs !== models[0]!.nObs)) throw new Error("models were not all fitted to the same size of dataset");
+  const mixed = models.flatMap((m) => (m.mixed === undefined ? [] : [m.mixed]));
+  const first = mixed[0];
+  if (first !== undefined) {
+    if (mixed.some((i) => i.data !== first.data)) throw new Error("all models must be fit to the same data object");
+    // (the same object changed between the fits holds different data)
+    if (mixed.some((i) => !sameFrame(i.snapshot, first.snapshot))) throw new Error("all models must be fit to the same data object");
+    // A likelihood ratio compares likelihoods of the same observations: the same rows of the data and the same response
+    // (lme4 compares only the number of rows, and returns a test for fits of different rows or responses)
+    const sameRows = (r: readonly number[]): boolean => r.length === first.rows.length && r.every((v, i) => v === first.rows[i]);
+    if (mixed.some((i) => !sameRows(i.rows))) throw new Error("models were not all fitted to the same rows of the data");
+  }
+  // the response: by the formulas' left-hand sides between fits with a formula, by value against a fit without (glm)
+  const reference = models.find((m) => m.mixed !== undefined) ?? models[0]!;
+  const sameResponse = (m: ComparedModel): boolean =>
+    m.mixed !== undefined && reference.mixed !== undefined ? m.mixed.response === reference.mixed.response : sameValues(m.response(), reference.response());
+  if (models.some((m) => m !== reference && !sameResponse(m))) throw new Error("models were not all fitted to the same response");
+  // (the prior weights are part of the data: a binomial proportion with weights m and a 0/1 response differ)
+  if (models.some((m) => m !== reference && !sameValues(m.weights(), reference.weights()))) {
+    throw new Error("models were not all fitted with the same prior weights");
+  }
   const warnings = new Warnings();
   const messages: string[] = [];
-  let names = fits.map((_, i) => `MODEL${i + 1}`);
+  let names = models.map((_, i) => `MODEL${i + 1}`);
   if (options.names !== undefined) {
-    if (options.names.length !== fits.length || options.names.some((n) => typeof n !== "string")) {
-      throw new TypeError(`names must be ${fits.length} strings, one per fit`);
+    if (options.names.length !== models.length || options.names.some((n) => typeof n !== "string")) {
+      throw new TypeError(`names must be ${models.length} strings, one per fit`);
     }
     if (new Set(options.names).size === options.names.length) names = [...options.names];
     else warnings.add("failed to find model names, assigning generic names");
@@ -210,31 +287,31 @@ function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): 
   const refit = logicalOption(options.refit, true);
   let logLik: number[];
   if (refit) {
-    if (fits.some((f) => f.REML)) messages.push("refitting model(s) with ML (instead of REML)");
-    logLik = fits.map((f, i) => {
-      if (!f.REML) return f.logLik;
-      const { snapshot, options: o, criterion } = internals[i]!;
-      return lmerWithCriterion(f.formula, snapshot, { ...o, REML: false }, criterion).logLik;
-    });
+    if (models.some((f) => f.reml)) messages.push("refitting model(s) with ML (instead of REML)");
+    logLik = models.map((f) => (f.reml && f.refitLogLik !== undefined ? f.refitLogLik() : f.logLik));
   } else {
-    if (fits.some((f) => f.REML) && fits.some((f) => !f.REML)) warnings.add("some models fit with REML = TRUE, some not");
-    logLik = fits.map((f) => f.logLik);
+    if (models.some((f) => f.reml) && models.some((f) => !f.reml)) warnings.add("some models fit with REML = TRUE, some not");
+    logLik = models.map((f) => f.logLik);
   }
   // sorted by the number of parameters (stable)
-  const order = fits.map((_, i) => i).sort((a, b) => fits[a]!.df - fits[b]!.df || a - b);
-  const n = fits[0]!.nObs;
-  const npar = order.map((i) => fits[i]!.df);
+  const order = models.map((_, i) => i).sort((a, b) => models[a]!.df - models[b]!.df || a - b);
+  const n = models[0]!.nObs;
+  const npar = order.map((i) => models[i]!.df);
   const ll = order.map((i) => logLik[i]!);
   // A likelihood ratio test needs the smaller fit to be a special case of the larger one (lme4 gives a p-value for any
-  // pair): its fixed-effect columns among the larger fit's, and each of its random-effect terms within a term of the
-  // same grouping factor there ((1 | g) + (0 + x | g) within (1 + x | g), not the converse). Otherwise no test (AIC
-  // and BIC still compare the fits). The fixed effects are compared as column spaces (the fits use the same rows of the
-  // same data): by their names, the same factor in other contrasts (contr.sum against contr.treatment) looked not
-  // nested and was not tested (issue #8)
-  const nestedIn = (small: LmerResult, large: LmerResult): boolean =>
-    nestedColumns(lmerInternals(small).structure.x, lmerInternals(large).structure.x) &&
-    small.varCorr.every((t) => large.varCorr.some((u) => u.group === t.group && t.columns.every((c) => u.columns.includes(c))));
-  const nested = order.map((i, k) => k > 0 && nestedIn(fits[order[k - 1]!]!, fits[i]!));
+  // pair): the same family and link (an lmer fit is gaussian with the identity link) and the same offset, its
+  // fixed-effect columns among the larger fit's, and each of its random-effect terms within a term of the same grouping
+  // factor there ((1 | g) + (0 + x | g) within (1 + x | g), not the converse). Otherwise no test (AIC and BIC still
+  // compare the fits). The fixed effects are compared as column spaces (the fits use the same rows of the same data):
+  // by their names, the same factor in other contrasts (contr.sum against contr.treatment) looked not nested and was
+  // not tested (issue #8)
+  const nestedIn = (small: ComparedModel, large: ComparedModel): boolean =>
+    small.family === large.family &&
+    small.link === large.link &&
+    sameValues(small.offset(), large.offset()) &&
+    nestedColumns(small.x(), large.x()) &&
+    small.randomTerms.every((t) => large.randomTerms.some((u) => u.group === t.group && t.columns.every((c) => u.columns.includes(c))));
+  const nested = order.map((i, k) => k > 0 && nestedIn(models[order[k - 1]!]!, models[i]!));
   const Chisq = ll.map((v, k) => (k === 0 || !nested[k] ? NaN : 2 * Math.max(0, v - ll[k - 1]!)));
   const Df = npar.map((v, k) => (k === 0 ? NaN : v - npar[k - 1]!));
   const pValue = Chisq.map((x, k) => (k === 0 || Df[k] === 0 ? NaN : pgamma1(x, Df[k]! / 2, 2, false, false)));
@@ -251,6 +328,11 @@ function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): 
     messages,
     warnings: warnings.list,
   };
+}
+
+function compareFits(fits: readonly LmerResult[], options: LmerCompareOptions): LmerCompareTable {
+  if (fits.length < 2) throw new TypeError("lmerAnova needs one fit, or an array of at least two fits to compare");
+  return compareModels("lmerAnova", fits.map(comparedLmer), options);
 }
 
 /**
