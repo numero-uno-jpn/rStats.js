@@ -1,0 +1,35 @@
+/** log(x/2), also for subnormal x (log(Number.MIN_VALUE / 2) was -Infinity) */
+export declare function logHalf(x: number): number;
+/** (x/2)^v, also for subnormal x */
+export declare function powHalf(x: number, v: number): number;
+/**
+ * (x/2)^v / Gamma(v + 1) * sum, the leading factor of the power series of I_v and J_v times the series sum.
+ * For v >= 10 the factor is Loader's Poisson term dpois(v; x/2) e^(x/2), which is accurate where pow / gamma loses
+ * 1e-14 (v = 32) and exp(v log(x/2) - lgamma(v + 1)) loses 7e-14 (v = 500). When the factor or the result is
+ * subnormal the logs are combined and exp taken once, so that a subnormal result is not built from a subnormal
+ * factor (the log of a value near 1e-308 carries an absolute error of 700 ε, which a subnormal result can afford)
+ */
+export declare function seriesTimesPrefix(v: number, x: number, sum: number): number;
+/**
+ * Large orders. The recurrences in besselIK.ts and besselJY.ts take about v steps, which does not end for v = 1e12
+ * (besselK(1, 1e12)), while the result is far beyond the range of doubles. Above this order, bounds on the log of the
+ * result decide such cases first
+ */
+export declare const LARGE_ORDER = 1000;
+/** Bounds lo <= log y <= hi, with the sum of the sizes of the terms they were formed from (for the rounding margin) */
+export interface LogBounds {
+    lo: number;
+    hi: number;
+    size: number;
+}
+/**
+ * Bounds on log I_v(x) (v >= 0) from its power series (x/2)^v / Gamma(v + 1) sum (x^2/4)^k / (k! (v+1)_k): the terms
+ * are positive, and the sum is at most exp(x^2 / (4 (v + 1))). The lower bound is also the upper bound of
+ * log abs(J_v(x)) (DLMF 10.14.4)
+ */
+export declare function logISeriesBounds(v: number, x: number): LogBounds;
+/**
+ * 1 if a value whose log lies in [lo, hi] certainly overflows, -1 if it certainly rounds to 0, 0 otherwise. The bounds
+ * must clear the limits by a margin above the rounding of their terms
+ */
+export declare function certainRange(b: LogBounds): 1 | -1 | 0;
