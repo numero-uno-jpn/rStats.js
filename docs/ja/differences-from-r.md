@@ -957,7 +957,12 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`glmer` は厳密な最適点を返し、** 固定効果の共分散行列はその最適点での逸脱度の厳密なヘッセ行列から求めます。
   lme4 の最適化は固定効果で最大 3e-3 ほど手前で止まり、ヘッセ行列は、罰則つき IRLS が 1e-6 程度の摂動を与える
   逸脱度の差分で求めます。そのため標準誤差は最大 1.3% ほど違い (cbpp: lme4 は 0.3032、ここでは 0.3066)、lme4 が
-  収束しなかったと警告する場合はさらに大きく違います。
+  収束しなかったと警告する場合や、分散が小さい場合はさらに大きく違います (応答がモデルから相対 1e-4 以内にある
+  log リンクの Gamma の当てはめで、傾きの標準誤差はここでは 110 ビット演算のヘッセ行列と同じ 1.3565e-5、lme4 は
+  1.951e-5。1e-6 以内では、ここでは 1.357e-7、lme4 は 7.0e-6)。最小化は逸脱度の解析的な勾配を使い、固定効果の
+  共分散の計量で行うため、0 から遠くへずらした説明変数 (西暦年など) や尺度を変えた説明変数でも、変換したとおりの
+  同じ当てはめになります。lme4 では罰則つき IRLS が失敗することがあります (`x + 2000` の binomial: lme4 は
+  `(maxstephalfit) PIRLS step-halvings failed to reduce deviance in pwrssUpdate`)。
 - **`glmer` は lme4 の収束とモデルの警告を返しません** (`Model failed to converge ...`、`Model is nearly
   unidentifiable ...`、`Model failed to converge with max|grad| ...`)。`lmer` と同じです。データと応答の警告
   (例: `non-integer #successes in a binomial glm!`) と、共分散行列の代替計算の警告は返します。

@@ -1020,7 +1020,12 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   Hessian of the exact deviance at that optimum. lme4 stops its optimiser up to about 3e-3 away from the optimum in
   the fixed effects, and takes the Hessian by finite differences of a deviance that its penalised IRLS perturbs at
   the 1e-6 level, so its standard errors differ by up to about 1.3% (cbpp: 0.3032 in lme4, 0.3066 here), and much
-  more where lme4 warns that the model failed to converge.
+  more where lme4 warns that the model failed to converge or where the dispersion is small (a Gamma fit with log link
+  whose responses lie within 1e-4 of the model: the slope's standard error 1.3565e-5 here, as the Hessian in 110-bit
+  arithmetic gives, and 1.951e-5 in lme4; within 1e-6: 1.357e-7 here, 7.0e-6 in lme4). The minimisation uses the
+  analytic gradient and works in the metric of the fixed effects' covariance, so a predictor shifted far from 0 (years)
+  or rescaled gives the same fit transformed where lme4's penalised IRLS can fail (binomial with `x + 2000`:
+  `(maxstephalfit) PIRLS step-halvings failed to reduce deviance in pwrssUpdate` in lme4).
 - **`glmer` does not return lme4's convergence and model warnings** (`Model failed to converge ...`, `Model is
   nearly unidentifiable ...`, `Model failed to converge with max|grad| ...`), as for `lmer`. The warnings of the
   data and the response (for example `non-integer #successes in a binomial glm!`) and the fallback warning of the

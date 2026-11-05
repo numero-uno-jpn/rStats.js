@@ -77,7 +77,36 @@ export interface MinimiserProblem {
   rejectNonFinite: boolean;
   /** The message of the Error thrown when the minimisation does not converge */
   failure: string;
+  /**
+   * glmer's safeguards (lmer's minimisation is unchanged without them): a boundary sub-problem of
+   * {@link minimiseWithRestarts} that fails is left out of the comparison instead of failing the minimisation; a
+   * gradient that fails at a point of the differences of the Hessian is replaced by the one-sided difference; and
+   * steps rejected again and again at the smallest radius (the criterion cannot tell the trial from the point to
+   * rounding) end the minimisation there, converged if the gradient is below the tolerance (see localMinimum)
+   */
+  robust?: boolean;
 }
+
+/** The result of a local minimisation: the point, its criterion and whether it converged */
+export interface MinimiserResult {
+  theta: number[];
+  f: number;
+  /** false only with `bestOnFailure`: the best point reached before the minimisation failed */
+  converged: boolean;
+}
+
+/** The failure of a local minimisation, with the best point reached (internal) */
+class MinimisationFailure extends Error {
+  constructor(
+    message: string,
+    readonly best: { theta: number[]; f: number } | undefined,
+  ) {
+    super(message);
+  }
+}
+
+/** Rejected steps in a row at the smallest radius after which a robust minimisation stops (see localMinimum) */
+const MAX_STALLS = 3;
 
 /** Eigenvalues and eigenvectors of a small symmetric matrix by cyclic Jacobi rotations; vectors[k] is the k-th vector */
 export function symmetricEigen(a0: readonly (readonly number[])[]): { values: number[]; vectors: number[][] } {
@@ -162,8 +191,9 @@ function trustRegionStep(
   };
   const minValue = minOf(values);
   // the Newton step, if the Hessian is positive semidefinite, the gradient has no component along its null
-  // directions, and the step is inside the region
-  if (minValue > -zero && values.every((l, k) => l > zero || Math.abs(gt[k]!) <= gradientZero)) {
+  // directions, and the step is inside the region (≥: a Hessian of zeros, where zero is 0, is semidefinite; a flat
+  // criterion with a zero gradient, as glmer's in β where θ = 0 and the aic term is constant, is at a minimiser)
+  if (minValue >= -zero && values.every((l, k) => l > zero || Math.abs(gt[k]!) <= gradientZero)) {
     const p = combine(values.map((l, k) => (l > zero ? -gt[k]! / l : 0)));
     if (norm(p) <= radius) return { step: p, newton: true };
   }
@@ -198,13 +228,25 @@ function trustRegionStep(
  */
 export function localMinimum(problem: MinimiserProblem, start: readonly number[], held: ReadonlySet<number> = new Set()): { theta: number[]; f: number } {
   const { diagonal, settings } = problem;
-  const evaluate = problem.evaluate;
+  const robust = problem.robust === true;
 
   let theta = start.map((v, j) => (held.has(j) ? 0 : v));
+  /** The lowest point evaluated with a finite criterion and gradient (robust: reported with a failure) */
+  let best: { theta: number[]; f: number } | undefined;
+  const evaluate = (x: readonly number[]): { f: number; g: number[] } => {
+    const r = problem.evaluate(x);
+    if (robust && Number.isFinite(r.f) && r.g.every(Number.isFinite) && (best === undefined || r.f < best.f)) {
+      best = { theta: x.map((v) => (v === 0 ? 0 : v)), f: r.f };
+    }
+    return r;
+  };
+  const fail = (): never => {
+    throw robust ? new MinimisationFailure(problem.failure, best) : new Error(problem.failure);
+  };
   let { f, g } = evaluate(theta);
   // (glmer: an evaluation that fails where the search must go on is an error)
   const check = (): void => {
-    if (problem.rejectNonFinite && !Number.isFinite(f)) throw new Error(problem.failure);
+    if (problem.rejectNonFinite && !Number.isFinite(f)) fail();
   };
   check();
   /** Diagonal elements held at exactly 0 */
@@ -222,7 +264,7 @@ export function localMinimum(problem: MinimiserProblem, start: readonly number[]
   const hessian = (set: number[]): number[][] => {
     if (problem.hessian !== undefined) {
       const h = problem.hessian(theta, set, scaleOf());
-      if (h.some((row) => row.some((v) => !Number.isFinite(v)))) throw new Error(problem.failure);
+      if (h.some((row) => row.some((v) => !Number.isFinite(v)))) fail();
       return h;
     }
     const floor = settings.hessianStepFloor * scaleOf();
@@ -234,13 +276,27 @@ export function localMinimum(problem: MinimiserProblem, start: readonly number[]
       minus[j] = theta[j]! - h;
       const gp = evaluate(plus).g;
       const gm = evaluate(minus).g;
+      if (robust) {
+        // (glmer: where the gradient fails on one side, the one-sided difference with the gradient at θ)
+        const okP = set.every((i) => Number.isFinite(gp[i]!));
+        const okM = set.every((i) => Number.isFinite(gm[i]!));
+        if (!okP && !okM) fail();
+        if (!okP || !okM) return set.map((i) => (okP ? gp[i]! - g[i]! : g[i]! - gm[i]!) / h);
+      }
       return set.map((i) => (gp[i]! - gm[i]!) / (2 * h));
     });
     return set.map((_, a) => set.map((_, b) => (cols[a]![b]! + cols[b]![a]!) / 2));
   };
 
+  /** Rejected steps in a row taken at the smallest radius (robust) */
+  let stalls = 0;
   /** One trust-region iteration on the free elements; returns whether it converged */
   const iterate = (free: number[]): boolean => {
+    const radiusFloor = settings.stepTolerance * scaleOf();
+    const atFloor = radius <= radiusFloor;
+    // (robust: at the smallest radius with a small gradient, the point is the minimiser to the accuracy of the
+    // criterion: the steps there are at the level of the gradient's rounding and need not become Newton steps)
+    if (robust && atFloor && free.every((j) => Math.abs(g[j]!) <= gradientTolerance())) return true;
     const fresh = reusable === undefined || reusable.free.length !== free.length || reusable.free.some((j, a) => j !== free[a]);
     const h = fresh ? hessian(free) : reusable!.h;
     reusable = undefined;
@@ -253,23 +309,37 @@ export function localMinimum(problem: MinimiserProblem, start: readonly number[]
     const size = maxOf(step.map(Math.abs)) / scaleOf();
     const next = evaluate(trial);
     const length = norm(step);
+    const stalled = (): boolean => {
+      // (robust: a step rejected at the smallest radius cannot become smaller; after MAX_STALLS of them the point
+      // is the minimiser to the accuracy of the criterion if the gradient is small, and a failure otherwise)
+      if (!robust || !atFloor) return false;
+      stalls++;
+      if (stalls < MAX_STALLS) return false;
+      if (free.every((j) => Math.abs(g[j]!) <= gradientTolerance())) return true;
+      return fail();
+    };
     if (!Number.isFinite(next.f)) {
       if (!problem.rejectNonFinite) throw new Error(problem.failure);
       // (a failed evaluation counts as +Infinity: the step is rejected and the region shrinks)
       radius = Math.max(length / 4, settings.stepTolerance * scaleOf());
       previousNewton = Infinity;
-      return false;
+      return stalled();
     }
     const predicted = -(dot(gFree, step) + dot(step, h.map((row) => dot(row, step))) / 2);
-    // the actual reduction from the values, or, where they are equal to rounding, from the gradients (trapezoid)
-    const actual =
-      Math.abs(f - next.f) > 1e-10 * Math.abs(f) ? f - next.f : -(dot(gFree, step) + dot(free.map((j) => next.g[j]!), step)) / 2;
+    // the actual reduction from the values, or, where they are equal to rounding, from the gradients (trapezoid);
+    // robust (glmer): within 1e-8 max(1, |f|), as glmer's deviance is a sum of terms of order 1 where it is near 0
+    // and can be noisy at 1e-10 of its value (the aic term of a Gamma fit with a dispersion of 1e-16), while its
+    // analytic gradient is smooth
+    const roundingLevel = robust ? 1e-8 * Math.max(1, Math.abs(f)) : 1e-10 * Math.abs(f);
+    const actual = Math.abs(f - next.f) > roundingLevel ? f - next.f : -(dot(gFree, step) + dot(free.map((j) => next.g[j]!), step)) / 2;
     const ratio = predicted > 0 ? actual / predicted : actual >= 0 ? 1 : -1;
-    if (ratio > 0.1 || size <= settings.stepFloor) {
+    const accepted = ratio > 0.1 || size <= settings.stepFloor;
+    if (accepted) {
       theta = trial;
       f = next.f;
       g = next.g;
-    }
+      stalls = 0;
+    } else if (stalled()) return true;
     if (ratio < 0.25) radius = Math.max(length / 4, settings.stepTolerance * scaleOf());
     else if (ratio > 0.75 && length >= 0.99 * radius) radius *= 2;
     if (!newton) {
@@ -349,7 +419,7 @@ export function localMinimum(problem: MinimiserProblem, start: readonly number[]
     previousNewton = Infinity;
     reusable = undefined;
   }
-  throw new Error(problem.failure);
+  return fail();
 }
 
 /**
@@ -358,17 +428,43 @@ export function localMinimum(problem: MinimiserProblem, start: readonly number[]
  * the start of a new local minimisation, until none is (see src/models/lmer.ts). Returns the minimiser and its
  * criterion.
  */
-export function minimiseWithRestarts(problem: MinimiserProblem, start: readonly number[], blocks: readonly (readonly number[])[]): { theta: number[]; f: number } {
-  let best = localMinimum(problem, start);
+export function minimiseWithRestarts(
+  problem: MinimiserProblem,
+  start: readonly number[],
+  blocks: readonly (readonly number[])[],
+  options: { bestOnFailure?: boolean } = {},
+): MinimiserResult {
+  /** A local minimisation; robust: a failure as undefined (with the best point reached in `lastBest`) */
+  let lastBest: { theta: number[]; f: number } | undefined;
+  const local = (from: readonly number[], held?: ReadonlySet<number>): { theta: number[]; f: number } | undefined => {
+    if (problem.robust !== true) return localMinimum(problem, from, held);
+    try {
+      return localMinimum(problem, from, held);
+    } catch (e) {
+      if (!(e instanceof MinimisationFailure)) throw e;
+      lastBest = e.best;
+      return undefined;
+    }
+  };
+  const failed = (): MinimiserResult => {
+    if (options.bestOnFailure === true && lastBest !== undefined) return { ...lastBest, converged: false };
+    throw new Error(problem.failure);
+  };
+  const first = local(start);
+  if (first === undefined) return failed();
+  let best = first;
   for (let round = 0; round < MAX_RESTARTS; round++) {
     let candidate: { theta: number[]; f: number } | undefined;
     for (const block of blocks) {
       if (block.every((j) => best.theta[j] === 0)) continue;
-      const removed = localMinimum(problem, best.theta, new Set(block));
-      if (candidate === undefined || removed.f < candidate.f) candidate = removed;
+      // (robust: a boundary sub-problem that fails is left out; the comparison is with those that converge)
+      const removed = local(best.theta, new Set(block));
+      if (removed !== undefined && (candidate === undefined || removed.f < candidate.f)) candidate = removed;
     }
-    if (candidate === undefined || !(candidate.f < best.f - RESTART_THRESHOLD * Math.max(1, Math.abs(best.f)))) return best;
-    best = localMinimum(problem, candidate.theta);
+    if (candidate === undefined || !(candidate.f < best.f - RESTART_THRESHOLD * Math.max(1, Math.abs(best.f)))) return { ...best, converged: true };
+    const next = local(candidate.theta);
+    if (next === undefined) return failed();
+    best = next;
   }
   throw new Error(problem.failure);
 }

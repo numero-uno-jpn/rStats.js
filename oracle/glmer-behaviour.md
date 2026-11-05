@@ -474,6 +474,64 @@ minimisation an evaluation that fails (NaN, step halving that cannot reduce the 
 convergence) counts as +∞ (the step is rejected), since rStats.js's path differs from lme4's; if the minimisation
 cannot proceed at all, throw an Error.
 
+### The gradient (rStats.js)
+
+lme4 has no gradient (Nelder-Mead and bobyqa, its Hessian by differences). rStats.js differentiates its deviances
+exactly, by implicit differentiation through the conditional mode (src/models/glmerGradient.ts and, for nAGQ > 1,
+src/models/glmerDeviance.ts). Notation: `M = ZΛ_θ`, `η = o + Xβ + Mu`, `μ = μ(η)`; per row the Fisher weight
+`W_i = w_i μ'_i² / V(μ_i)`, its derivative `W'_i = dW_i/dη_i = w_i (2 μ'_i μ''_i / V − μ'_i³ V'(μ_i) / V²)`, the score
+`s_i = w_i (y_i − μ_i) μ'_i / V(μ_i)` (so that `∂d_i/∂η_i = −2 s_i`) and the observed weight `Ŵ_i = −∂s_i/∂η_i =
+W_i − w_i (y_i − μ_i)(μ''_i / V − μ'_i² V'(μ_i) / V²)` (`= W_i` for a canonical link); `A = M'WM + I`, `H = M'ŴM + I`
+(the Hessian of `pdev / 2` in `u`).
+
+- **nAGQ = 1.** `D(θ, β) = log det A + ‖u‖² + aic(μ)` at the mode `u(θ, β)`, which solves `F = M's(η) − u = 0`. So
+  `du = H⁻¹ ∂F` (`∂F` the explicit derivative at fixed `u`), and `D` depends on `η` directly through `aic` and
+  through `W` in `A`: `∂D/∂η_i = c_i = W'_i h_i + ∂aic/∂η_i`, `h_i = m_i' A⁻¹ m_i` (`m_i` the `i`-th row of `M`). One
+  adjoint solve `H v = M'c + 2u` replaces `du`; with `r = c − Ŵ M v`,
+  `∂D/∂β = X'r` and `∂D/∂θ_j = 2 tr(A⁻¹ Λ'Z'WZ ∂Λ/∂θ_j) + Σ_(a,b) [(Z'r)_a u_b + (Z's)_a v_b]`,
+  the sum over the entries `(a, b)` of `Λ_θ` that hold `θ_j`. The trace term is lmer's with `Z'WZ` in place of
+  `Z'Z`, from the selected inverse of `A`; `h_i` needs only the blocks of `A⁻¹` between the groups of one row, which
+  are on the pattern of `L`. `∂aic/∂μ_i` is that of glm's aic term (binomial with its rounded counts, poisson,
+  Gamma, inverse.gaussian and gaussian with the dispersion `dev / Σw` differentiated through `dev = Σ d_i`, with
+  `∂d_i/∂μ_i = −2 w_i (y_i − μ_i) / V(μ_i)`; for Gamma `∂aic/∂μ_i = −2 w_i (y_i − μ_i) / μ_i² · (a − 2a² ρ(a))`,
+  `a = Σw / dev`, `ρ(a) = ψ(a) − log a + 1/(2a)`, by its asymptotic series for `a ≥ 10`).
+- **nAGQ = 0.** `D(θ) = log det A + ‖u‖² + aic` at the joint mode `(u, β)` of `F = (M's − u, X's) = 0`: the same with
+  the bordered system `[H, M'ŴX; X'ŴM, X'ŴX] (v, v_β) = (M'c + 2u, X'c)` and `r = c − Ŵ (Mv + X v_β)`; the
+  gradient in θ only.
+- **nAGQ = K > 1** (one scalar term): each level `j` contributes `D_j = log L² − 2 log Σ_k ω_k exp(−P(v_k)/2)` with
+  `P(v) = Σ d_i(e_i + c_i v) + v²` over its rows (`e_i = o_i + x_i'β`, `c_i = z_i θ`), `L² = 1 + Σ W_i c_i²`, nodes
+  `v_k = u + z_k / L`, `ω_k = w_k exp(z_k² / 2)`, and `u` solving `Σ s_i c_i = u`. With `π_k` the normalised terms,
+  `P'(v) = 2v − 2 Σ s_i(v) c_i`, `κ = Σ π_k P'(v_k) z_k / (2L³)`, `H_j = 1 + Σ Ŵ_i c_i²`:
+  `∂D_j/∂e_i = (1/L² − κ) W'_i c_i² − 2 Σ π_k s_i(v_k) + A_u ∂u/∂e_i`, `∂u/∂e_i = −Ŵ_i c_i / H_j`;
+  `∂D_j/∂c_i = (1/L² − κ)(W'_i c_i² u + 2 W_i c_i) − 2 Σ π_k s_i(v_k) v_k + A_u ∂u/∂c_i`,
+  `∂u/∂c_i = (s_i − Ŵ_i c_i u) / H_j`; `A_u = (1/L² − κ) Σ W'_i c_i³ + Σ π_k P'(v_k)`. Then `∂/∂β = Σ (∂D/∂e_i) x_i`,
+  `∂/∂θ = Σ (∂D/∂c_i) z_i`; a row with `z_i = 0` enters through `−2 s_i` only.
+
+`μ''` is the derivative of the `muEta` in use (0 where lme4 clamps it at eps), `V'` that of lme4's variance (0 where
+the binomial one is clamped). The tests compare the gradient with central differences of the deviance at many points
+(test/glmerGradient.test.ts).
+
+**The minimisation** uses it (lmer's settings, a released element needing a derivative above 1e-10 max(1, |d|)):
+the Hessian of the Newton steps from central differences of the gradient, and that of vcov (G9) from 5-point
+differences of the gradient (step 1e-3 max(1, |x_j|)). X and Z are scaled by powers of 2 (exact): each column of X
+by its largest |value| (`β' = 2^f β`) as Z's (lmer's #11), so that predictors of any scale give the same steps and no
+cross-product overflows; the standard errors are `2^(−f_k)` times the root of the scaled diagonal (an entry of vcov may
+overflow where the standard error does not), the variance components from the scaled blocks of θ. β' is minimised as
+`z = R (β' − β_s)`, `R` the Cholesky factor of `R_X'R_X / φ` at the joint mode of phase 1 (`φ = Σ d_i / Σ w`, the
+dispersion of the aic term; 1 for binomial and poisson): the metric of its approximate covariance, invariant to
+shifting and rescaling the predictors (x + 2000 made the intercept and the slope correlated by −1). Safeguards (not
+lmer's): a boundary sub-problem that fails is left out of the comparison; phase 1 of nAGQ ≥ 1, which only gives the
+start, gives its best point where it fails (its region of evaluation may end before its minimum: Gamma with the
+identity link); a gradient that fails on one side of a Hessian difference is replaced by the one-sided difference; a
+point at the smallest trust radius (1e-13 max(1, max |x|)) with a gradient below the tolerance is the minimiser, and
+three rejected steps there with a larger gradient a failure (no stalling to the iteration limit); the actual
+reduction of a step within 1e-8 max(1, |d|) is taken from the gradients (the deviance can be noisy at 1e-10 of its
+value, as a Gamma fit with a dispersion of 1e-16 is); a zero gradient with a zero Hessian (a deviance flat in β at
+θ = 0 when the aic term is constant) is a minimiser. Where lme4's initial PIRLS fails at the initial θ only because
+of the scale of a column of Z (θ = 1 for a column of 1e160), the minimisation starts from θ' = 1 in the scaled units
+instead. Results: the fixture's largest errors fell from about 1e-8 to 5e-13 (parameters) and from 2e-7 to 7e-12
+(vcov); the fits of the audit that failed (A1, A2, A5, F1, F2, F3) agree with R or with the transformed fit.
+
 ### API
 
 ```ts

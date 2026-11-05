@@ -20,10 +20,14 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   of `fixef`, `coef(summary())` (estimates, standard errors, z values; p-values come with `glmerSummary`), `vcov`,
   `sigma`, `VarCorr`, `ranef`, `fitted`, `predict`, the deviance, Pearson, working and response residuals,
   `deviance`, `logLik`, `AIC`, `BIC` and `isSingular`, with lme4's checks, messages and warnings (not those of its
-  optimiser). The estimate is the exact minimiser of the Laplace deviance at the exact conditional mode (references
-  at the optimum in 110-bit arithmetic, matched within 1e-7, the log-likelihood within 1e-10, standard errors within
-  1e-6), which lme4 approaches to its own tolerances: its estimates differ in about the 4th to 6th significant digit
-  and its standard errors, from a finite-difference Hessian of its approximate deviance, by up to about 1%.
+  optimiser). The estimate is the exact minimiser of the Laplace deviance at the exact conditional mode, found with
+  the analytic gradient of the deviance (implicit differentiation through the conditional mode; lme4 has none), so
+  that thousands of rows with ten fixed effects fit in a second or two and 100000 rows in about 12 s (references at
+  the optimum in 110-bit arithmetic matched within 1e-9, the log-likelihood within 1e-12, standard errors within
+  1e-9), which lme4 approaches to its own tolerances: its estimates differ in about the 4th to 6th significant digit
+  and its standard errors, from a finite-difference Hessian of its approximate deviance, by up to about 1% (much more
+  for a small dispersion). Predictors shifted (years), rescaled (by up to 1e±300) or nearly collinear, large counts
+  and tiny prior weights give the same fit transformed, also where lme4 fails.
   Adaptive Gauss-Hermite quadrature (`nAGQ` from 2 to 100) for a single scalar random-effects term such as `(1 | g)`
   (R's two errors otherwise), with the rule computed to rounding error, the binomial and poisson families only (for
   Gamma, inverse.gaussian and gaussian a RangeError: lme4 holds the dispersion at 1 there, so its estimates would not
