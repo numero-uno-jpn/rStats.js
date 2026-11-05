@@ -65,8 +65,8 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    のような中程度のパラメータ。そこでは連分数は短い。および遠い裾) では、今も連分数を使う。
 2. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。1.0.0 の後。
    (`glmer` と `glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`、lmerTest の Satterthwaite の検定と `lmer` の
-   分散分析表、lme4 の尤度比による比較は済み。) `glmer` が済んだので、`mixed` の分野を全部入りの `dist/rstats.js` に
-   含めるかどうかを決められる。
+   分散分析表、lme4 の尤度比による比較は済み。) `mixed` の分野はパッケージのルートと全部入りの
+   `dist/rstats.js` には含めない (2026-11-05 に決定)。後で含めても互換性は崩れない。
 
 対象外: SciPy のうち R に対応するもののない部分 (`scipy.special` の大部分と、`scipy.stats` にしか
 ない分布)。構造方程式モデル (`lavaan`) も対象外です。それだけで 1 つのライブラリの規模があるためです。分布のパラメータのベクトルとしてのリサイクル
@@ -81,7 +81,7 @@ Ahrens-Dieter、Box-Muller) も対象外です。古いコードの再現にし�
 増やしても利用者の負担にはなりません。CDN 用には、分野ごとのファイル (`dist/distributions.js`、
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
 `dist/mixed.js`) を esbuild のコード分割で作り (共通のコードは重複しない)、`mixed` 以外のすべてを含む
-`dist/rstats.js` も残しています (混合モデルは新しいので、当面は全部入りのファイルに含めません)。
+`dist/rstats.js` も残しています (混合モデルは大きいので、全部入りのファイルに含めません。2026-11-05 に決定)。
 同じ分野はパッケージのサブパスとしても import できます (`@numero-uno-jpn/rstats/linalg` など)。
 大きさは `npm run size` で確かめられます。npm に公開した後は、export 単位でバンドルする CDN
 (`?exports=` を付けた esm.sh など) も選択肢になります。

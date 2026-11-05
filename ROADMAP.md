@@ -68,8 +68,9 @@ brackets.
    a = 30 and b = 20, where it is short, and the far tails).
 2. **Mixed models, continued:** `confint` (profile likelihood) and `simulate` of `lmer` and `glmer` fits [lme4], after
    1.0.0. (`glmer` with `glmerSummary`, `glmerAnova` and `glmerPredict`, `lmerPredict`, lmerTest's Satterthwaite tests
-   and the ANOVA tables of `lmer` fits, and lme4's likelihood-ratio comparison, are done.) `glmer` is done, so
-   whether the `mixed` area joins the single-file bundle `dist/rstats.js` can now be decided.
+   and the ANOVA tables of `lmer` fits, and lme4's likelihood-ratio comparison, are done.) The `mixed` area stays
+   out of the root export and the single-file bundle `dist/rstats.js` (decided 2026-11-05); adding it later would not
+   break compatibility.
 
 Out of scope: the parts of SciPy with no counterpart in R (most of `scipy.special` and the
 distributions that only `scipy.stats` has). Structural equation models (`lavaan`) are out of scope too: they are
@@ -86,8 +87,8 @@ Users of a bundler only get the functions they import (`pnorm` alone is 1.6 KB g
 adding functions costs them nothing. For CDN use there is one file per area
 (`dist/distributions.js`, `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`,
 `dist/numerics.js`, `dist/special.js`, `dist/mixed.js`), built with esbuild's code splitting so that shared code is
-not duplicated, and `dist/rstats.js` with everything except `mixed` (the mixed models are new, so they stay out
-of the single-file bundle for now). The same areas are subpath exports of the
+not duplicated, and `dist/rstats.js` with everything except `mixed` (the mixed models are large, so they stay out
+of the single-file bundle; decided 2026-11-05). The same areas are subpath exports of the
 package (`@numero-uno-jpn/rstats/linalg`, ...). `npm run size` reports the sizes. After
 publishing to npm, CDNs that bundle per export (such as esm.sh with `?exports=`) are a further
 option.
