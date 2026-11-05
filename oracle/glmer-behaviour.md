@@ -20,9 +20,8 @@ The work is done in stages; each stage has its own section and fixture:
   oracle `oracle/glmerdev.R` and its fixture `glmerDeviance`.
 - **Stage 2b**: the Laplace deviance at given parameters (internal, nothing exported), tested against
   `glmerDeviance`.
-- **Stage 2c**: the fit for the binomial and poisson families with `nAGQ = 1` (and `nAGQ = 0`), exported as `glmer`
-  from the area `mixed`.
-- **Stage 2d**: the other families (Gamma, inverse.gaussian, gaussian with a non-identity link).
+- **Stage 2c** (with 2d, merged): the fit and its results for all families with `nAGQ = 1` and `nAGQ = 0`, exported
+  as `glmer` from the area `mixed`, with the oracle `oracle/glmer.R` and its fixture `glmer`.
 - **Stage 2e**: adaptive Gauss-Hermite quadrature, `nAGQ > 1`.
 - **Stage 3**: `glmerSummary` and `glmerAnova`.
 - **Stage 4**: `predict`.
@@ -128,7 +127,7 @@ contributes nothing; binomial sets its `y` to 0). The offset enters the linear p
 `start`: a numeric vector (θ only) or a list with `theta` (or `par`) and `fixef` (or `beta`); they are only the
 starting point of the optimiser (stage 2c), never of the initial PIRLS below. `mustart` and `etastart` (one value per
 row) replace the starting means `μ0` (and, for `etastart`, the starting linear predictor) of the initial PIRLS; they
-only change where lme4's PIRLS starts. Whether the API offers them is decided in stage 2c.
+only change where lme4's PIRLS starts. The API does not offer them (G4).
 
 ### The structure and its checks
 
@@ -329,26 +328,210 @@ Choices of the implementation (stage 2b) where this document was silent:
 - The first step of nAGQ = 0 (from `η0 = o + g(μ0)`, which is not of the form `o + Xβ + Mu`) is halved only for a
   NaN `pdev`, towards `u = 0, β = 0`.
 
-## The fit (stage 2c; to be written)
+## The fit and its results (stage 2c)
 
-What the fit stage will need, briefly (lme4's defaults, `glmerControl()`):
+### What lme4 does (glmerControl's defaults)
 
-- **Two phases.** Phase 1 (`nAGQ0initStep = TRUE`): minimise the nAGQ = 0 deviance over `θ` with BOBYQA from the
-  initial θ (or `start`), lower bounds of the structure, no upper bounds. If `nAGQ = 0` this is the fit (followed by
-  the boundary check below). Otherwise phase 2 minimises the nAGQ deviance over `(θ, β)` jointly with Nelder-Mead,
-  starting from phase 1's θ and phase 1's PIRLS `β` (or `start`), with the lower bounds of θ and no bounds on β;
-  the deviance function's `lp0` is phase 1's final linear predictor. Nelder-Mead's initial steps are 0.02 for θ
-  and `0.2 × min(sd_j, 10)` for β (`sd_j` from `R_X` of phase 1's last PIRLS, the unscaled standard errors), with
-  `xt = 5e-4 ×` those.
-- **Boundary check** (`boundary.tol = 1e-5`): each element of θ within 1e-5 of its (lower) bound but not on it is set
-  to the bound if that lowers the deviance; then the deviance is evaluated at the final parameters.
-- **Results.** θ̂ and β̂ (for nAGQ ≥ 1 the optimiser's, for nAGQ = 0 phase 1's PIRLS `β`), `u` from the evaluation at
-  the final parameters, the deviance = the optimiser's minimum (`deviance(fit)`, `logLik`, `AIC`, `BIC` follow from
-  it; to be specified). lme4's convergence checks (derivatives by finite differences, "Model failed to converge
-  ...") are not reproduced, as for lmer.
-- As for lmer, the reference will be the exact minimiser of the exact-mode deviance of this file. lme4's own
-  deviance function is perturbed at the 1e-6 level by its PIRLS (above), so lme4's estimates may be farther from
-  the exact minimiser than for lmer; the fixture will record both.
+lme4 minimises the Laplace deviance of the previous sections in two phases; it is described here so that the
+differences from rStats.js are clear, not to be copied.
+
+1. **Initial PIRLS.** When the deviance function is built, the nAGQ = 0 PIRLS runs once at the structure's
+   **initial θ** (1 for diagonal elements, 0 otherwise; a `start` does not change this point) from the starting
+   means `μ0` (section "lme4's penalised IRLS", `lp0`). Its errors are glmer's errors, before any optimisation:
+   `PIRLS loop resulted in NaN value`, `(maxstephalfit) PIRLS step-halvings failed to reduce deviance in
+   pwrssUpdate`, `pwrssUpdate did not converge in (maxit) iterations`. The fixture's case with Gamma, the inverse
+   link and the data of glmerDeviance is such an error (`PIRLS loop resulted in NaN value`).
+2. **Phase 1** (`nAGQ0initStep = TRUE`): the nAGQ = 0 deviance (a function of θ only; β from the joint PIRLS) is
+   minimised over θ with BOBYQA (package minqa, its default control), from the initial θ or `start$theta`, with the
+   lower bounds of θ (0 for diagonal elements, −∞ otherwise) and no upper bounds. For `nAGQ = 0` this is the fit:
+   then a **boundary check** follows (`boundary.tol = 1e-5`): each element of θ within 1e-5 above its lower bound
+   (not on it) is set to the bound, one at a time, if that lowers the deviance; the deviance is evaluated again at
+   the final θ. For `nAGQ ≥ 1` phase 1 has no boundary check.
+3. **Phase 2** (`nAGQ ≥ 1` only): the nAGQ deviance is minimised over `(θ, β)` jointly with lme4's Nelder-Mead,
+   from phase 1's θ and the β of phase 1's last PIRLS (or `start$fixef`), with the lower bounds of θ and no bounds
+   on β; every evaluation's PIRLS starts from the linear predictor at the end of phase 1 (`lp0`). Nelder-Mead's
+   initial steps are 0.02 for each element of θ and `0.2 min(s_j, 10)` for β_j (`s_j` the square roots of the
+   diagonal of `(R_X'R_X)⁻¹` of phase 1's last PIRLS), its tolerance on the parameters `xt = 5e-4 ×` those steps.
+   Then, unless the result is singular (some diagonal element of θ below 1e-4), and if `n < 10000` and
+   `length(θ) + length(β) < 20`, lme4 computes the gradient and the **Hessian of the deviance in (θ, β) by central
+   differences with step 1e-4** at Nelder-Mead's result (`deriv12`), and runs its convergence checks on them. Then
+   the boundary check of step 2 (on the elements of θ only), and a final evaluation.
+4. The fitted model holds the state of the deviance function's **last evaluation** (at the final parameters):
+   `u`, `μ`, `η`, the weights and the factorisation; and `opt$fval`, the optimiser's value at the final parameters.
+
+lme4's deviance is perturbed at the 1e-6 level by its PIRLS (it stops at a relative change of 1e-7 and uses the
+weights of the previous iterate; "Accuracy" above), so Nelder-Mead stops 1e-6 to 1e-3 from the minimiser (fixture:
+θ up to 4.4e-4, β up to 2.7e-3 relative to the largest element, more where lme4 fails to converge) and, more importantly, **its finite-difference
+Hessian is noisy**: the standard errors of the fixed effects are off by up to 1.3% (cbpp: 0.3032 instead of
+0.3066), and in the fixture's case `y ~ x + (x | g)` (Gamma, log) lme4 warns that the model failed to converge and
+its standard errors are 0.004 instead of 0.26 and 0.16. The same central differences (step 1e-4 or 1e-3) of the
+exact deviance at the exact optimum agree with the exact Hessian to about 1e-7: the error is lme4's PIRLS, not the
+differences. With `nAGQ = 0` lme4 is much closer (1e-5).
+
+### The estimate of rStats.js
+
+**The estimate is the exact minimiser** of the Laplace deviance computed at the exact conditional mode (as
+`glmerDeviance` does), not lme4's early-stopped value (G6):
+
+- `nAGQ = 1`: `(θ̂, β̂)` minimises `d₁(θ, β)` subject to the lower bounds of θ (none on β).
+- `nAGQ = 0`: `θ̂` minimises `d₀(θ)`; `β̂` is the β of the joint mode at `θ̂`.
+
+**Boundary.** As for lmer: an element whose minimiser is on its bound is **exactly 0**. The Laplace deviance does
+not change when a column of a block `T_k` changes sign (`Λ_θ → Λ_θ D`, `u → D u` leave `b`, `‖u‖²` and
+`det(Λ'Z'WZΛ + I)` unchanged), so lmer's treatment applies as it is (`src/models/lmer.ts`, header comment: minimise
+θ without bounds, change the sign of a column whose diagonal element ends negative, set diagonal elements that go
+below 1e-4 max(1, max |θ|) to exactly 0 and hold them while the others converge, release one whose derivative is not
+0), β taking part as free elements. The fixture has three boundary optima: `y ~ x + (x | g)` (binomial; the last
+diagonal element), `y ~ x + (1 | g)` (poisson on data without a group effect, nAGQ 1 and 0) and inverse.gaussian
+with 1/mu^2.
+
+**Start and local minima.** First the nAGQ = 0 minimisation from the initial θ (or `start.theta`), as lme4's phase 1
+but to the exact minimiser; for `nAGQ = 0` that is the fit. For `nAGQ = 1`, the minimisation of `d₁` starts from that
+θ and the β of the joint mode there (or `start.fixef`). Then, as lmer, the boundary points of whole terms are
+compared (each term with a nonzero block removed in turn, held at 0, the rest minimised; restart from the best if
+lower by more than 1e-8 max(1, |d|)). In the fixture every reference is the minimum reached from lme4's estimate
+(none moved).
+
+**How.** Not prescribed, but the accuracy below needs a good gradient: the exact-mode deviance is accurate to about
+1e-14 (relative), so central differences of it give the gradient to about 1e-8 only (with Richardson extrapolation
+somewhat better), and some curvatures are small (Gamma, inverse link: `∂²d/∂θ² ≈ 0.43`). The analytic gradient is
+available by the implicit function theorem: with `φ` one parameter, the mode equation `G(ũ, φ) = M' s − ũ = 0`
+(nAGQ = 0: `(ũ, β̃)` and the joint equations) gives `dũ/dφ = H⁻¹ ∂G/∂φ` with `H = −∂G/∂u` (the observed
+Hessian of `pdev/2`, the Fisher one plus the term of `∂W`); then `d/dφ` of `ldL2 = log det(M'WM + I)` is
+`tr((M'WM + I)⁻¹ ∂(M'WM)/∂φ)` with `∂W_i = W_i'(η_i) ∂η_i` along `∂η = ∂(Xβ + ZΛ)/∂φ ũ + M dũ/dφ`, and `d/dφ`
+of `‖ũ‖² + aic` is its partial derivative at fixed `ũ` (for binomial and poisson `aic − Σd_i` does not depend on μ,
+so `‖u‖² + aic` is stationary in `u` at the mode) plus, for the families with a dispersion, `∂aic/∂D · dD/dφ` along
+`dũ/dφ`. Either way, finish with Newton steps on the free elements until the gradient is at rounding level.
+
+**Failures.** Before the minimisation, the initial PIRLS of lme4 (point 1 above) is run: the nAGQ = 0 PIRLS at the
+structure's initial θ from `μ0`, with lme4's step halving (the PIRLS of stage 2b does this as its nAGQ = 0
+evaluation); its errors are glmer's errors with lme4's messages (the fixture's error case). During the
+minimisation an evaluation that fails (NaN, step halving that cannot reduce the penalised deviance, no
+convergence) counts as +∞ (the step is rejected), since rStats.js's path differs from lme4's; if the minimisation
+cannot proceed at all, throw an Error.
+
+### API
+
+```ts
+glmer(formula: string, data: DataFrame, options?: GlmerOptions): GlmerResult
+```
+
+`GlmerOptions`: `family` (`"binomial" | "poisson" | "Gamma" | "inverse.gaussian" | "gaussian"`, default
+`"gaussian"`, which with the identity link is G3's error), `link` (the family's default), `weights` and `offset`
+(G7), `nAGQ` (0 or 1 in this stage; G5; greater than 1 is stage 2e), `start` (`{ theta?, fixef? }`), `contrasts` and
+`levels` as lmer. `start.theta` must have the length of θ (`starting value of 'par' has length not equal to 3`),
+`start.fixef` that of β (`starting value of 'fixef' has length not equal to 4`); with `nAGQ = 0`, `start.fixef` is
+R's error `'start' has invalid names "fixef"`; a diagonal element of `start.theta` below 0 is minqa's error
+`Starting values violate bounds`. All RangeErrors, in this order (checked in R). A start only chooses where the
+search begins.
+
+### The results
+
+`GlmerResult` mirrors `LmerResult` where the meaning is the same. With `n` the rows used, `p` the fixed effects,
+the exact optimum and, at it, the conditional mode `ũ` (and, nAGQ = 0, `β̂`), `η̂ = o + Xβ̂ + ZΛ_θ̂ ũ` (`o` the
+offset), `μ̂ = μ(η̂)` (lme4's links; no clamp is active in the fixture), the prior weights `w`, the deviance
+residuals `d_i` and the Fisher weights `W_i = w_i μ'(η̂_i)² / V(μ̂_i)`:
+
+| Field | Meaning (R) |
+|---|---|
+| `formula` | the formula |
+| `family`, `link`, `nAGQ` | new: the family, the link and nAGQ (0 or 1) |
+| `nObs`, `rows` | `nobs(fit)`: the rows used (rows with prior weight 0 included); their 0-based indices in `data` |
+| `theta` | `getME(fit, "theta")` |
+| `fixefNames`, `fixef` | the columns of X and β̂ (`fixef(fit)`) |
+| `coefTable` | `{ estimate, stdError, zValue }` from `coef(summary(fit))`; `zValue = estimate / stdError`, labelled `z value` by R for binomial and poisson and `t value` for the other families (the same quantity; glmerSummary, stage 3, adds `Pr(>\|z\|)`, which R gives for every family) |
+| `vcov` | `vcov(fit)`, below |
+| `vcovFrom` | new: `"hessian"` or `"RX"`, which of the two formulas below gave `vcov` |
+| `sigma` | `sigma(fit)`, below |
+| `varCorr` | `VarCorr(fit)`: as lmer but **not scaled by sigma**, for every family: `Σ_k = T_k T_k'`, `sd` the square roots of its diagonal, `corr` as lmer (NaN off the diagonal where an `sd` is 0) |
+| `ranef` | `ranef(fit)`: `b = Λ_θ̂ ũ`, laid out as lmer's (R's conditional variances, `condVar`, are not given, as for lmer) |
+| `fitted` | `fitted(fit)`: `μ̂` (for a binomial response the probability, also for `cbind`) |
+| `linearPredictor` | new: `predict(fit)` (link scale): `η̂`, offset included |
+| `residuals` | `residuals(fit)`, R's default type for glmer, the **deviance** residuals: `sqrt(max(0, d_i))` where `y_i > μ̂_i`, otherwise `−sqrt(max(0, d_i))` |
+| `pearsonResiduals` | new: `residuals(fit, "pearson")`: `sqrt(w_i) (y_i − μ̂_i) / sqrt(V(μ̂_i))` |
+| `workingResiduals` | new: `residuals(fit, "working")`: `(y_i − μ̂_i) / μ'(η̂_i)` |
+| `responseResiduals` | new: `residuals(fit, "response")`: `y_i − μ̂_i` (y the proportion for `cbind`) |
+| `deviance` | `deviance(fit)`: `Σ max(0, d_i)`, the sum of the squared deviance residuals. **Not −2 logLik** |
+| `logLik`, `df` | `logLik(fit)` = `−d/2` with `d` the minimum of the deviance optimised (`d₁(θ̂, β̂)`, or `d₀(θ̂)` for nAGQ = 0); `df = p + length(θ) + s`, `s` = 1 for Gamma, inverse.gaussian and gaussian (the dispersion), 0 for binomial and poisson |
+| `AIC`, `BIC` | `−2 logLik + 2 df`, `−2 logLik + log(nObs) df` |
+| `singular` | `isSingular(fit)`: a diagonal element of some `T_k` below 1e-4 |
+| `messages`, `warnings` | below |
+
+`LmerResult`'s `REML` and `REMLcrit` have no counterpart (R: `REMLcrit` and `deviance(fit, REML = TRUE)` are errors
+for a GLMM).
+
+**sigma.** 1 for binomial and poisson. For Gamma, inverse.gaussian and gaussian: `sqrt((Σ_i w_i (y_i − μ̂_i)² /
+V(μ̂_i) + ‖ũ‖²) / n)`, the sum of the squared Pearson residuals plus the squared length of `ũ`, over the number of
+rows (lme4's `sigmaML` from its penalised weighted residual sum of squares; not a usual dispersion estimate, but what
+R returns). It enters only `sigma` and the `"RX"` covariance.
+
+**vcov.** R's default (`use.hessian` = whether the Hessian exists):
+
+- `"hessian"` when `nAGQ ≥ 1`, the fit is not singular, `n < 10000` and `length(θ) + p < 20`: `vcov = 2 [H⁻¹]_ββ`
+  (symmetric), `H` the Hessian of the deviance `d₁` in `(θ, β)` at the optimum (all elements of θ, also the
+  off-diagonal ones) and `[·]_ββ` the block of β of its **inverse** (so the uncertainty of θ is taken into account).
+  No sigma factor (for Gamma and the others the dispersion is inside the deviance). rStats.js uses the exact Hessian
+  at the exact optimum (lme4: central differences with step 1e-4 at Nelder-Mead's result; see above). If `H` is not
+  positive definite (at an exact interior minimum it is, up to rounding), R warns `variance-covariance matrix
+  computed from finite-difference Hessian is\nnot positive definite or contains NA values: falling back to var-cov
+  estimated from RX` and uses the second formula: rStats.js does the same.
+- `"RX"` otherwise (nAGQ = 0, singular fits, larger problems): `vcov = sigma² (R_X'R_X)⁻¹` with `R_X'R_X = X'WX −
+  X'WZΛ (Λ'Z'WZΛ + I)⁻¹ Λ'Z'WX` at θ̂ and the Fisher weights `W` at the mode (lme4: those of its last PIRLS
+  iteration).
+
+For a singular fit the formula changes from one to the other, so near the boundary the standard errors jump; and
+since lme4 decides at Nelder-Mead's θ, its choice can differ from the reference's where the two disagree on
+singularity (not in the fixture). `stdError` = the square roots of the diagonal of `vcov`.
+
+**Messages.** The structure's messages (rank deficiency), then `boundary (singular) fit: see help('isSingular')` if
+the fit is singular **and** `n < 10000` and the number of optimised parameters (`length(θ) + p` for nAGQ = 1,
+`length(θ)` for nAGQ = 0) is below 20 (lme4 runs its convergence checks, which give this message, only then; lmer
+gives it always).
+
+**Warnings.** Those of the structure and the response (stage 2b; for example `non-integer #successes in a binomial
+glm!`), and those of the deviance evaluations that R would give (poisson's `non-integer x = ...`), each once. lme4's
+warnings about its optimiser and its convergence checks are **not reproduced** (as for lmer): `Model failed to
+converge with max|grad| = ...`, `Model failed to converge: degenerate  Hessian with ... negative eigenvalues`,
+`Model is nearly unidentifiable: very large eigenvalue\n - Rescale variables?`, `Model is nearly unidentifiable:
+large eigenvalue ratio\n - Rescale variables?`, `Hessian is numerically singular: ...`, `unable to evaluate scaled
+gradient`, `convergence code ... from Nelder_Mead`, and vcov's `variance-covariance matrix computed from
+finite-difference Hessian\nand from RX differ by >1e-04: consider 'use.hessian=TRUE'` (given only when
+`use.hessian = FALSE` is asked for). The one exception is the fallback warning of vcov above.
+
+### The fixture glmer (`oracle/glmer.R`)
+
+The comment at the top of the oracle describes the fields and how the reference was computed (double-precision
+search from lme4's estimate, then Newton's method in 110-bit arithmetic with the gradient from central differences
+of the 110-bit deviance; the gradient at the reference is below 1e-15, mostly about 1e-17; the Hessian for `vcov`
+in 110-bit arithmetic, accurate to about 1e-14). Arguments: `formula`, `data` (with `dataTypes`), `family`, `link`,
+optional `weights` and `offset`, `nAGQ` (`"1"` or `"0"`). `expected` holds lme4's values with `vcovFrom`, `messages`
+and `warnings`; `reference` the same fields at the exact optimum, where `messages` and `warnings` are what rStats.js
+must give (rules above), plus `devianceAtLme4` (the exact deviance at lme4's estimates), `gradient`, `newtonSteps`
+and `start` (information). 32 cases (one error): cbpp (two-column and proportion with weights, the same model;
+logit, probit, cloglog; nAGQ 0), 0/1 binomial (scalar, vector-valued on the boundary, crossed, nAGQ 0, a factor
+response written as strings (G2), missing values, non-integer prior weights with R's warning), poisson (log, sqrt,
+crossed, nAGQ 0, `||`, offset, weights, grouseticks of 1995 with `(1 | LOCATION/BROOD)`, an optimum on the boundary
+with nAGQ 1 and 0), Gamma (log: scalar, nAGQ 0, correlated vector-valued, weights; inverse; inverse on glmerdev's
+data: the error), inverse.gaussian (log; 1/mu^2 on the boundary), gaussian with the log link (nAGQ 1 and 0). The
+oracle takes about 5 minutes.
+
+**Accuracy required**, against `reference`:
+
+- `logLik`, `AIC`, `BIC`: relative 1e-10; `deviance` (Σ d_i, first order in the parameters): relative 1e-7.
+- `theta`, `fixef`, `sigma` (relative), `varCorr` (`sd`; `corr` absolute), `ranef` values, `fitted`,
+  `linearPredictor` and the four residual vectors: within 1e-7 × the largest absolute value of the reference
+  vector.
+- `vcov`, `stdError`, `zValue`: within 1e-6 × the largest absolute value (`"hessian"` needs the Hessian of the
+  deviance to about 1e-7; `"RX"` is as accurate as θ̂).
+- Elements of θ that are 0 in the reference exactly 0; `singular`, `vcovFrom`, `df`, `nObs`, the names and levels,
+  `messages` and `warnings` equal to the reference's; the error case: the error message.
+
+Against `expected` (lme4): `−2 logLik ≤ devianceAtLme4 + 1e-10 |devianceAtLme4|` (the reference satisfies it in
+every case; lme4's own `−2 logLik` is not comparable, its deviance being off by up to 5e-6), and the test log should
+print the largest difference from lme4 of each field. In the fixture they are: θ 2e-3 (4.4e-4 without the case
+where lme4 fails to converge), β 2.7e-3 (relative to the
+largest element), `logLik` 5e-6 (relative), standard errors 1.3% except the case where lme4 fails to converge (98%),
+the vectors `fitted` etc. 4e-3, `sigma` 8e-4.
 
 ## Adaptive Gauss-Hermite quadrature (stage 2e; to be written)
 
