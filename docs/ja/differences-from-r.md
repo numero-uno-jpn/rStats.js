@@ -954,6 +954,37 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **結合 F 検定の分母自由度**で、個々の自由度が無限大の項は、その極限 1 (ν/(ν − 2)) として扱います。すべて無限大なら
   無限大です (lmerTest の式では NaN になり、すべて無限大だとエラー)。
 
+- **`glmer` は厳密な最適点を返し、** 固定効果の共分散行列はその最適点での逸脱度の厳密なヘッセ行列から求めます。
+  lme4 の最適化は固定効果で最大 3e-3 ほど手前で止まり、ヘッセ行列は、罰則つき IRLS が 1e-6 程度の摂動を与える
+  逸脱度の差分で求めます。そのため標準誤差は最大 1.3% ほど違い (cbpp: lme4 は 0.3032、ここでは 0.3066)、lme4 が
+  収束しなかったと警告する場合はさらに大きく違います。
+- **`glmer` は lme4 の収束とモデルの警告を返しません** (`Model failed to converge ...`、`Model is nearly
+  unidentifiable ...`、`Model failed to converge with max|grad| ...`)。`lmer` と同じです。データと応答の警告
+  (例: `non-integer #successes in a binomial glm!`) と、共分散行列の代替計算の警告は返します。
+- **`nAGQ > 1` の `glmer` では、`logLik`・`AIC`・`BIC` は真の対数尤度です。** lme4 の求積による逸脱度は飽和モデルの
+  定数を落とします (ラプラス近似の逸脱度は落としません)。そのため lme4 の `logLik` はラプラス近似や `glm` のものと
+  比べられません (cbpp の `nAGQ = 2`: R は −50.06、ここでは対数尤度 −92.0)。推定値と共分散行列は R と同じです。
+  したがって `nAGQ` の違う当てはめの `glmerAnova` は R と違います (cbpp、ラプラス近似と `nAGQ = 5` で、
+  Chisq はここでは 0.084、R では 84.04)。
+- **`nAGQ > 1` の `glmer` で Gamma・inverse.gaussian・gaussian の族**は RangeError です。lme4 はこれらの族の求積の
+  逸脱度で分散を 1 に固定するため、推定値が最尤推定になりません。変量効果の項が複数のスカラーの場合も、lme4 の
+  2 つの文言でエラーです。
+- **gaussian 族で恒等リンクの `glmer`** (既定の族) は、`lmer` を使うよう伝える RangeError です。R はこの
+  書き方が非推奨だと警告して `lmer` の当てはめを返します。負の `nAGQ` は RangeError です (R は 0 として扱います)。
+- **`glmer` の応答:** `cbind(successes, failures)` は左辺だけで、列名 2 つに限り使えます (`cbind(s, n - s)` のような
+  式や、ほかの関数呼び出しはエラーのままです)。二項族の文字列の応答は因子として扱い (R のエラーは `response must be
+  numeric or factor`)、最初の水準を失敗とします (`levels` で順序を指定できます)。`weights` と `offset` は配列か列名です。
+- **`glmerAnova`** は glm の当てはめも glmer・lmer の当てはめと比べます (R も比べますが、`nAGQ > 1` の glmer と
+  glm の当てはめはエラーにします。ここでは真の対数尤度なので比べられます)。Chisq の検定は、族・リンク・オフセットが
+  同じ入れ子の当てはめだけに返します。R はどの組にも返し、例えば probit の glm と logit の glmer も比べます。
+  `lmerAnova` は lmer の当てはめだけを受け付けます。
+- **予測** (`glmerPredict`、`lmerPredict`): glmer の当てはめのオフセットが列名なら `newdata` から読み、配列なら
+  オプション `newoffset` (既定 0) に置き換えます。R は `glmer` の `offset` 引数を予測では無視して 0 を使います。
+  `newdata` の固定効果の因子に新しい水準があると RangeError です (`factor g has new level c`。R は
+  `non-conformable arguments`)。`newdata` がなければ当てはめの行を返します (R は、当てはめが群の欠測値の行を除いた
+  場合に失敗します)。標準誤差 (`seFit`) は変量効果と固定効果の条件つき共分散から求め、lme4 の `se.fit` が誤る場合でも
+  正しい値です。交差する群や入れ子の群 (lme4 は因子を並べ替えます) と、`re.form` が因子を落とす場合が該当します。
+
 ### 線形代数
 
 - **行列**は行の配列として渡します。0 行の行列は 0 × 0 として扱います。
@@ -1159,8 +1190,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - `kappa` の `inv_z`、複素行列、`EISPACK = TRUE` / `LINPACK = TRUE`。
 - `glm` の formula (説明変数は行列で渡します。[ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください)。
 - `lmer`: lme4 2.0 の共分散の構造 (`diag()`・`cs()`・`ar1()` の項)、`weights`、`offset`、`subset`、`na.action`
-  (欠測値のある行は常に除きます)、`start`、`control`。`predict`、`simulate`、`confint`、`profile`。lmerTest の
-  Kenward-Roger 法、`ranova`、`ls_means`、`step`。`glmer` と `nlmer` ([ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください)。
+  (欠測値のある行は常に除きます)、`start`、`control`。`simulate`、`confint`、`profile`。lmerTest の
+  Kenward-Roger 法、`ranova`、`ls_means`、`step`。
+- `glmer`: `subset`、`na.action` (欠測値のある行は常に除きます)、`control`、`mustart`、`etastart` (θ と固定効果の
+  `start` は使えます)、quasi 族。`simulate`、`confint`、`profile` ([ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください)。
+  `nlmer` ([ROADMAP.ja.md](../../ROADMAP.ja.md) を参照してください)。
 - numDeriv の複素数ステップ法 (`method = "complex"`。複素数の引数を受け取る関数が要る) と、`grad`・
   `jacobian` の `side` 引数。
 - deSolve の適応刻みの解法 (`lsoda`、`ode45` など)。`ode` は固定刻みの `euler`・`rk2`・`rk4` です。

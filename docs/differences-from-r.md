@@ -1016,6 +1016,42 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **The denominator df of a joint F test** takes the term ν/(ν − 2) of an infinite ν as its limit 1, and is infinite
   when every ν is (lmerTest's formula gives NaN there, and an error when every ν is infinite).
 
+- **`glmer` returns the exact optimum,** and its covariance matrix of the fixed effects is computed from the exact
+  Hessian of the exact deviance at that optimum. lme4 stops its optimiser up to about 3e-3 away from the optimum in
+  the fixed effects, and takes the Hessian by finite differences of a deviance that its penalised IRLS perturbs at
+  the 1e-6 level, so its standard errors differ by up to about 1.3% (cbpp: 0.3032 in lme4, 0.3066 here), and much
+  more where lme4 warns that the model failed to converge.
+- **`glmer` does not return lme4's convergence and model warnings** (`Model failed to converge ...`, `Model is
+  nearly unidentifiable ...`, `Model failed to converge with max|grad| ...`), as for `lmer`. The warnings of the
+  data and the response (for example `non-integer #successes in a binomial glm!`) and the fallback warning of the
+  covariance matrix are returned.
+- **`glmer` with `nAGQ > 1`: `logLik`, `AIC` and `BIC` are those of the true log-likelihood.** lme4's quadrature
+  deviance leaves out the constant of the saturated model (its Laplace deviance does not), so its `logLik`
+  is not comparable with the Laplace fit's or with `glm`'s (cbpp with `nAGQ = 2`: −50.06 in R,
+  the log-likelihood −92.0 here). The estimates and the covariance matrix are R's. `glmerAnova` of fits with
+  different `nAGQ` therefore differs from R's: cbpp, Laplace against `nAGQ = 5`, Chisq 0.084 here and 84.04 in R.
+- **`glmer` with `nAGQ > 1` for the Gamma, inverse.gaussian and gaussian families** is a RangeError. lme4 holds the
+  dispersion at 1 in the quadrature deviance of these families, so its estimates are not maximum likelihood.
+  `nAGQ > 1` is also an error for more than one scalar random-effects term, with lme4's two messages.
+- **`glmer` with the gaussian family and the identity link** (the default family) is a RangeError that tells to use
+  `lmer`; R warns that this shortcut is deprecated and returns the fit of `lmer`. A negative `nAGQ` is a RangeError
+  (R uses 0).
+- **The response of `glmer`:** `cbind(successes, failures)` is accepted on the left-hand side only, with two column
+  names (not with expressions such as `cbind(s, n - s)`; any other function call stays an error); a string
+  response is a factor for the binomial family (R: `response must be numeric or factor`), the first level being a
+  failure (`levels` sets the order). `weights` and `offset` are arrays or column names.
+- **`glmerAnova`** also compares glm fits with glmer and lmer fits (R compares them as well, and refuses a glm fit
+  with a glmer fit with `nAGQ > 1`; the true log-likelihood makes them comparable here). A Chisq test is given only
+  for nested fits of the same family, link and offset; R gives one for any pair, for example a probit glm against a
+  logit glmer. `lmerAnova` accepts lmer fits only.
+- **Prediction** (`glmerPredict`, `lmerPredict`): an offset of a glmer fit that was given as a column name is read
+  from `newdata`, one given as an array is replaced by the option `newoffset` (default 0); R ignores the `offset`
+  argument of `glmer` and uses 0 in `predict` for it. A new level of a factor of the fixed part in `newdata` is a
+  RangeError (`factor g has new level c`; R: `non-conformable arguments`). Without `newdata`, the fit's rows are
+  returned (R fails when the fit dropped a row with a missing grouping value). The standard errors (`seFit`) are
+  computed from the conditional covariance of the random and fixed effects and are correct where lme4's `se.fit` is
+  wrong: with crossed or nested grouping factors (lme4 permutes the factor) and with `re.form` that drops a factor.
+
 ### Linear algebra
 
 - **Matrices** are passed as arrays of rows; a 0-row matrix is treated as 0 × 0.
@@ -1244,9 +1280,11 @@ By default rStats.js returns what R returns;
 - `kappa`'s `inv_z`, complex matrices, and `EISPACK = TRUE` / `LINPACK = TRUE`.
 - Formulas for `glm` (the predictors are a matrix; see [ROADMAP.md](../ROADMAP.md)).
 - `lmer`: the covariance structures of lme4 2.0 (`diag()`, `cs()`, `ar1()` terms), `weights`, `offset`, `subset`,
-  `na.action` (rows with a missing value are always dropped), `start` and `control`; `predict`, `simulate`,
-  `confint` and `profile`; lmerTest's Kenward-Roger method, `ranova`, `ls_means` and `step`; `glmer` and `nlmer` (see
-  [ROADMAP.md](../ROADMAP.md)).
+  `na.action` (rows with a missing value are always dropped), `start` and `control`; `simulate`, `confint` and
+  `profile`; lmerTest's Kenward-Roger method, `ranova`, `ls_means` and `step`.
+- `glmer`: `subset`, `na.action` (rows with a missing value are always dropped), `control`, `mustart` and `etastart`
+  (`start` for theta and the fixed effects is available), the quasi families; `simulate`, `confint` and `profile`
+  (see [ROADMAP.md](../ROADMAP.md)). `nlmer` (see [ROADMAP.md](../ROADMAP.md)).
 - numDeriv's complex-step method (`method = "complex"`), which needs a function of a complex
   argument, and the `side` argument of `grad` and `jacobian`.
 - deSolve's adaptive solvers (`lsoda`, `ode45`, ...); `ode` has the fixed-step `euler`, `rk2`
