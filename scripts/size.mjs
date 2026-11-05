@@ -29,6 +29,8 @@ for (const a of areas) cases.push([`rStats.js/${a} (all of it)`, "*", fileURLToP
 const mixedEntry = fileURLToPath(new URL("../dist/entries/mixed.js", import.meta.url));
 cases.push(["lmer (from /mixed)", "lmer", mixedEntry]);
 cases.push(["lmer, lmerSummary, lmerContest, lmerAnova (from /mixed)", "lmer, lmerSummary, lmerContest, lmerAnova", mixedEntry]);
+cases.push(["glmer (from /mixed)", "glmer", mixedEntry]);
+cases.push(["glmer, glmerSummary, glmerAnova, glmerPredict (from /mixed)", "glmer, glmerSummary, glmerAnova, glmerPredict", mixedEntry]);
 
 const rows = [];
 for (const [label, names, from = dist] of cases) {

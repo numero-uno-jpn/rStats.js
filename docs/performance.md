@@ -93,20 +93,22 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `pnorm` | 3.1 KB | 1.6 KB |
 | `setSeed`, `rnorm` | 4.0 KB | 2.0 KB |
 | `solve` / `svd` / `eigen` | 5.6 / 5.2 / 12.7 KB | 2.4 / 2.4 / 5.1 KB |
-| `wilcoxTest` | 40.0 KB | 16.2 KB |
+| `wilcoxTest` | 40.4 KB | 16.4 KB |
 | `fisherTest` | 61.8 KB | 27.7 KB |
-| `tTest` | 70.4 KB | 30.8 KB |
+| `tTest` | 70.9 KB | 31.0 KB |
 | `qbeta` | 97.8 KB | 43.5 KB |
 | `pt`, `qt` | 89.0 KB | 40.0 KB |
 | `glm`, `glmSummary` / `glm` with all its methods | 85.0 / 121.3 KB | 35.0 / 50.9 KB |
-| everything (except `/mixed`) | 662.7 KB | 248.6 KB |
+| everything (except `/mixed`) | 663.3 KB | 248.9 KB |
 | `@numero-uno-jpn/rstats/distributions` (all of it) | 241.0 KB | 95.1 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 483.2 KB | 187.0 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 483.9 KB | 187.4 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 65.3 KB | 24.0 KB |
-| `@numero-uno-jpn/rstats/descriptive` (all of it) | 58.4 KB | 21.5 KB |
+| `@numero-uno-jpn/rstats/descriptive` (all of it) | 58.8 KB | 21.7 KB |
 | `@numero-uno-jpn/rstats/numerics` (all of it) | 64.6 KB | 26.3 KB |
 | `@numero-uno-jpn/rstats/special` (all of it) | 66.8 KB | 29.9 KB |
-| `@numero-uno-jpn/rstats/mixed`: `lmer` alone / all of it (with lmerTest's tests) | 46.1 / 158.5 KB | 17.9 / 67.5 KB |
+| `@numero-uno-jpn/rstats/mixed`: `lmer` alone / with lmerTest's tests | 48.6 / 161.8 KB | 18.7 / 68.7 KB |
+| `@numero-uno-jpn/rstats/mixed`: `glmer` alone / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 101.5 / 144.1 KB | 41.4 / 59.4 KB |
+| `@numero-uno-jpn/rstats/mixed` (all of it) | 208.8 KB | 85.2 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share code between areas
 through `dist/chunks/`, so one area loaded from them transfers more: 38 KB (`special`) to 206 KB (`tests`) gzipped,
