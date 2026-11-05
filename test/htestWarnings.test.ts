@@ -12,6 +12,7 @@ import {
   chisqTest,
   cohensD,
   corTest,
+  cronbachAlpha,
   fisherTest,
   hedgesG,
   ksTest,
@@ -490,5 +491,43 @@ describe("cohensD and hedgesG warnings (effectsize's cohens_d and hedges_g)", ()
       [TWO_VALUES, "hedgesG"],
       [NA, "hedgesG"],
     ]);
+  });
+});
+
+describe("cronbachAlpha warnings (psych::alpha's own warnings)", () => {
+  const NO_VARIANCE = "Item =  had no variance and was deleted but still is counted in the score";
+  const NEGATIVE =
+    "Some items were negatively correlated with the first principal component and probably \nshould be reversed.  \nTo do this, run the function again with the 'check.keys=TRUE' option";
+  const cases: [string, () => { warnings: string[] }, string[]][] = [
+    // alpha(rbind(c(1,2,3), c(2,3,3), c(3,3,4), c(4,5,4), c(2,2,3)))
+    ["positive items", () => cronbachAlpha([[1, 2, 3], [2, 3, 3], [3, 3, 4], [4, 5, 4], [2, 2, 3]]), []],
+    // alpha(rbind(c(1,5,5), c(1,4,4), c(1,3,2), c(1,1,1), c(1,2,4)))
+    ["a constant item", () => cronbachAlpha([[1, 5, 5], [1, 4, 4], [1, 3, 2], [1, 1, 1], [1, 2, 4]]), [NO_VARIANCE]],
+    // alpha(rbind(c(1,2,3,5,1), c(2,3,3,5,1), c(3,3,4,5,1), c(4,5,4,5,1), c(2,2,3,5,1)))  (R: the warning once per item)
+    [
+      "two constant items",
+      () => cronbachAlpha([[1, 2, 3, 5, 1], [2, 3, 3, 5, 1], [3, 3, 4, 5, 1], [4, 5, 4, 5, 1], [2, 2, 3, 5, 1]]),
+      [NO_VARIANCE],
+    ],
+    // alpha(rbind(c(1,2,4), c(2,1,3), c(3,4,1), c(4,3,2)))  (R also warns of smoothing and NaNs in other functions)
+    ["a negative item", () => cronbachAlpha([[1, 2, 4], [2, 1, 3], [3, 4, 1], [4, 3, 2]]), [NEGATIVE]],
+    // alpha(rbind(c(1,2,3,4), c(2,3,1,5), c(3,1,2,2)))
+    ["two negative items, fewer subjects than items", () => cronbachAlpha([[1, 2, 3, 4], [2, 3, 1, 5], [3, 1, 2, 2]]), [NEGATIVE]],
+    // alpha(rbind(c(1,3), c(2,2), c(3,1)))
+    ["two items correlated -1", () => cronbachAlpha([[1, 3], [2, 2], [3, 1]]), [NEGATIVE]],
+    // alpha(rbind(c(1,1), c(2,2), c(3,3)))
+    ["two items correlated 1", () => cronbachAlpha([[1, 1], [2, 2], [3, 3]]), []],
+    // alpha(rbind(c(1,1,5), c(2,2,5), c(3,2,5), c(4,1,5)))  (the other two uncorrelated: loadings 0 and 1)
+    ["uncorrelated items and a constant one", () => cronbachAlpha([[1, 1, 5], [2, 2, 5], [3, 2, 5], [4, 1, 5]]), [NO_VARIANCE]],
+  ];
+  it.each(cases)("%s", (_, f, expected) => {
+    expect(f().warnings).toEqual(expected);
+  });
+
+  it("passes the warning to the handler", () => {
+    const handler = vi.fn<WarningHandler>();
+    setWarningHandler(handler);
+    cronbachAlpha([[1, 3], [2, 2], [3, 1]]);
+    expect(handler.mock.calls).toEqual([[NEGATIVE, "cronbachAlpha"]]);
   });
 });

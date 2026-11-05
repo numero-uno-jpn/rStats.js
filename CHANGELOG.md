@@ -72,8 +72,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   one-sample Kolmogorov-Smirnov test", and "p-value will be approximate in the presence of ties" for two samples with
   the asymptotic p-value), `corTest` ("the standard deviation is zero" where x or y is constant, and "Cannot compute
   exact p-value with ties" for Kendall and Spearman). `cohensD` and `hedgesG` also give effectsize's "'y' is numeric
-  but has only 2 unique values. ..." where `y` has exactly 2 distinct values. The warnings R gives in the other tests
-  that lack them are to come.
+  but has only 2 unique values. ..." where `y` has exactly 2 distinct values. `cronbachAlpha` gives psych's own
+  warnings: "Item =  had no variance and was deleted but still is counted in the score" for a constant item and "Some
+  items were negatively correlated with the first principal component and probably should be reversed. ..." (as
+  psych's `principal`: the eigenvector of the largest eigenvalue of the correlations, signed so that its sum is not
+  negative). The warnings R gives in the other tests that lack them are to come.
 
 ### Added
 
