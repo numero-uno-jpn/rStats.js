@@ -76,6 +76,8 @@ function checkCi(ci: number | null): void {
 }
 
 const NA_WARNING = "Missing values detected. NAs dropped.";
+/** effectsize's warning where y has exactly 2 distinct values (not counting NA), as a grouping variable would */
+const TWO_VALUES_WARNING = "'y' is numeric but has only 2 unique values.\n  If this is a grouping variable, convert it to a factor.";
 /** Brent's method run until the bracket is as narrow as doubles allow */
 const EXACT = { tol: 0, maxiter: 5000 };
 
@@ -105,6 +107,7 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
   const xs = Array.from(x);
   const ys = y === undefined ? undefined : Array.from(y);
   const warnings: string[] = [];
+  if (ys !== undefined && new Set(dropNaN(ys)).size === 2) warnings.push(TWO_VALUES_WARNING);
   if (xs.some(Number.isNaN) || (ys?.some(Number.isNaN) ?? false)) warnings.push(NA_WARNING);
   // (an infinite value, or too few observations, ended in the root search of the interval: "lower < upper is not
   // fulfilled"; effectsize gives NA)
@@ -171,6 +174,9 @@ function standardizedDifference(x: Sample, y: Sample | undefined, options: Cohen
  * Cohen's d: the standardized difference of means of two samples (pooled or averaged standard deviation), of paired
  * samples, or of one sample against `mu`, with a confidence interval from the noncentral t distribution.
  * Equivalent to `effectsize::cohens_d()` in R.
+ *
+ * As effectsize, `warnings` has "'y' is numeric but has only 2 unique values. ..." where `y` has exactly 2 distinct
+ * values (a grouping variable is given as two samples here) and "Missing values detected. NAs dropped." for `NaN`.
  *
  * @example
  * ```ts

@@ -10,8 +10,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ansariTest,
   chisqTest,
+  cohensD,
   corTest,
   fisherTest,
+  hedgesG,
   ksTest,
   pairwisePropTest,
   pairwiseWilcoxTest,
@@ -451,5 +453,42 @@ describe("corTest warnings (R's cor.test)", () => {
     setWarningHandler(handler);
     corTest("~ a + b", { a: x, b: tied }, { method: "spearman" });
     expect(handler.mock.calls).toEqual([[TIES, "corTest"]]);
+  });
+});
+
+describe("cohensD and hedgesG warnings (effectsize's cohens_d and hedges_g)", () => {
+  const TWO_VALUES = "'y' is numeric but has only 2 unique values.\n  If this is a grouping variable, convert it to a factor.";
+  const NA = "Missing values detected. NAs dropped.";
+  const x = [5.1, 4.9, 6.2, 5.8];
+  const cases: [string, () => { warnings: string[] }, string[]][] = [
+    // cohens_d(c(5.1,4.9,6.2,5.8), c(4.1,4.5,3.9,5.0))
+    ["two samples", () => cohensD(x, [4.1, 4.5, 3.9, 5.0]), []],
+    // cohens_d(c(5.1,4.9,6.2,5.8), c(4,5,4,5))
+    ["y with 2 values", () => cohensD(x, [4, 5, 4, 5]), [TWO_VALUES]],
+    // cohens_d(c(5.1,4.9,6.2,5.8), c(4,5,4,NA))  (NA is not counted)
+    ["y with 2 values and NA", () => cohensD(x, [4, 5, 4, NaN]), [TWO_VALUES, NA]],
+    // cohens_d(c(5.1,NA,6.2,5.8), c(4,5,4,5))
+    ["NA in x, y with 2 values", () => cohensD([5.1, NaN, 6.2, 5.8], [4, 5, 4, 5]), [TWO_VALUES, NA]],
+    // cohens_d(c(5.1,4.9,6.2,5.8), c(4,5,4,5), paired = TRUE)
+    ["paired, y with 2 values", () => cohensD(x, [4, 5, 4, 5], { paired: true }), [TWO_VALUES]],
+    // cohens_d(c(1,2), c(4,5))
+    ["y of 2 values", () => cohensD([1, 2], [4, 5]), [TWO_VALUES]],
+    // cohens_d(c(5.1,4.9,6.2,5.8))
+    ["one sample", () => cohensD(x), []],
+    // hedges_g(c(5.1,4.9,6.2,5.8), c(4,5,4,5))
+    ["hedgesG, y with 2 values", () => hedgesG(x, [4, 5, 4, 5]), [TWO_VALUES]],
+  ];
+  it.each(cases)("%s", (_, f, expected) => {
+    expect(f().warnings).toEqual(expected);
+  });
+
+  it("passes the warnings to the handler", () => {
+    const handler = vi.fn<WarningHandler>();
+    setWarningHandler(handler);
+    hedgesG(x, [4, 5, 4, NaN]);
+    expect(handler.mock.calls).toEqual([
+      [TWO_VALUES, "hedgesG"],
+      [NA, "hedgesG"],
+    ]);
   });
 });

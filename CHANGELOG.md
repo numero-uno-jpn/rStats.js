@@ -71,8 +71,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   incorrect") and `pairwisePropTest` (that of its comparisons, once), `ksTest` ("ties should not be present for the
   one-sample Kolmogorov-Smirnov test", and "p-value will be approximate in the presence of ties" for two samples with
   the asymptotic p-value), `corTest` ("the standard deviation is zero" where x or y is constant, and "Cannot compute
-  exact p-value with ties" for Kendall and Spearman). The warnings R gives in the other tests that lack them are to
-  come.
+  exact p-value with ties" for Kendall and Spearman). `cohensD` and `hedgesG` also give effectsize's "'y' is numeric
+  but has only 2 unique values. ..." where `y` has exactly 2 distinct values. The warnings R gives in the other tests
+  that lack them are to come.
 
 ### Added
 
