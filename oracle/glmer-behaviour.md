@@ -109,7 +109,8 @@ The binomial response forms, with prior weights `w` (1 by default):
   prior weights become `w_i n_i`, starting means `(n y + 0.5)/(n + 1)`. In the formula the left-hand side is written
   `cbind(s, f)` (R evaluates it as a call; the columns may themselves be expressions in R, such as `size - inc`).
   rStats.js formulas do not support function calls; how the API lets the user give the two columns (for example
-  accepting `cbind(a, b)` with two column names as the one special left-hand side) is decided in stage 2c.
+  accepting `cbind(a, b)` with two column names as the one special left-hand side) was decided: G1 in "rStats.js's
+  choices".
 
 Non-integer poisson counts are accepted; the `aic` term then calls R's `dpois`, which warns `non-integer x =
 1.500000` (six decimals) for each such value at every evaluation; each distinct message is reported once.
@@ -292,6 +293,41 @@ element of the reference vector. Against `expected` (lme4): not checked tightly;
 differences, which in the fixture are: `deviance` 4.9e-6 (relative to max(1, |value|)), `aic` 6.8e-6, `ldL2` 6.0e-5,
 `u` and `b` 2.2e-4, `mu` 8.9e-5, `beta` (nAGQ = 0) 8.5e-6 (relative to the largest element). A check that the
 deviance is within 1e-4 (relative) and the vectors within 1e-3 of lme4's is a safe guard against gross errors.
+
+## rStats.js's choices
+
+Decided by the user (2026-11-05) where R's behaviour cannot or should not be copied; later stages follow them.
+
+- **G1 Two-column binomial response.** The left-hand side may be `cbind(a, b)` with two column names (successes,
+  failures), for the binomial family only (other families: R's error `can't handle matrix-valued responses: consider
+  using refit()`). It is the only function call accepted in a formula, and only there and only by glmer: `cbind` with
+  expressions (`cbind(s, n - s)`), any other function call, and `cbind` in lm, glm or lmer formulas stay syntax
+  errors. `.` on the right-hand side stands for the columns other than both of `cbind()`; a missing value in either
+  column drops the row. The proportion with prior weights is the other way to give a binomial response.
+- **G2 String response.** For the binomial family a string column is a factor (R: error `response must be numeric or
+  factor`): its levels ordered as lmer orders factor levels (by code point, or as the option `levels` gives them,
+  unused levels dropped), the first level failure (0), every other success (1). A boolean column is logical (TRUE is
+  1) for every family. Strings for the other families: `response must be numeric`.
+- **G3 gaussian with the identity link** (also the default family): a RangeError telling to use lmer (R warns that
+  this shortcut is deprecated and returns lmer's fit).
+- **G4 `mustart` and `etastart`** are not offered for now (starting values of θ and β are, in the fit); they can be
+  added later without breaking anything.
+- **G5 A negative `nAGQ`** is a RangeError (R uses 0). A non-integer is truncated as R does; above 100 is R's error.
+
+Choices of the implementation (stage 2b) where this document was silent:
+
+- The prior weights and the offset are arrays (one value per row of `data`; `null` or NaN missing, which drops the
+  row) or the name of a numeric column. An infinite offset (`the offset must be finite`) or weight (`non-finite
+  weights not allowed`) is an error, as in rStats.js's glm.
+- Order of the checks: the family (G3, quasi), `nAGQ`'s value, the lengths of weights and offset, the structure
+  (`No random effects terms specified in formula` before `Invalid grouping factor specification`), `nAGQ > 1` with
+  more than one scalar term, then the response in the order of "The response".
+- The aic term is that of rStats.js's glm (`familyAic`), equal to R's except that rows with prior weight 0 are left
+  out of the sums (for gaussian R's `− Σ log w_i` is then +Inf and its `N` counts them).
+- The initial PIRLS of lme4 (`lp0`) is not run when the structure is built: it belongs to the fit (stage 2c), whose
+  error there (`PIRLS loop resulted in NaN value`) is therefore not yet reproduced.
+- The first step of nAGQ = 0 (from `η0 = o + g(μ0)`, which is not of the form `o + Xβ + Mu`) is halved only for a
+  NaN `pdev`, towards `u = 0, β = 0`.
 
 ## The fit (stage 2c; to be written)
 

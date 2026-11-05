@@ -12,6 +12,10 @@
 // "Formulas with random-effects terms") are parsed only when asked for: `|` and `||` bind more loosely than every
 // other operator, `splitBarTerms` separates them from the fixed-effects part, and `deparseFormula` prints a node as
 // R deparses it (for the terms' labels).
+//
+// The two-column binomial response of generalised linear mixed models, `cbind(successes, failures) ~ ...`, is parsed
+// only when asked for, as the one function call allowed, on the left-hand side and with two column names (rStats.js's
+// choice G1 in oracle/glmer-behaviour.md; R evaluates any expression there).
 
 import { formatR } from "../htest/core/simulate.js";
 
@@ -29,8 +33,10 @@ export type FormulaNode =
 
 /** A parsed formula before expansion. */
 export interface ParsedFormula {
-  /** The response's name (undefined for `~ rhs`). */
+  /** The response's name (undefined for `~ rhs`); for `cbind(a, b) ~ rhs`, the first column `a`. */
   response: string | undefined;
+  /** The two columns of a response `cbind(a, b)` (only with `allowCbind`). */
+  responseColumns?: [string, string];
   /** The right-hand side. */
   rhs: FormulaNode;
 }
@@ -51,7 +57,7 @@ const invalid = (why: string): Error => new SyntaxError(`invalid formula: ${why}
  */
 const NAME = /^(?:[\p{L}\p{Nl}.]|(?![0-9])\p{Nd})[\p{L}\p{Nl}\p{Nd}\p{M}._]*/u;
 
-function tokenize(s: string, allowBars: boolean): Token[] {
+function tokenize(s: string, allowBars: boolean, allowComma = false): Token[] {
   const out: Token[] = [];
   let i = 0;
   while (i < s.length) {
@@ -83,7 +89,7 @@ function tokenize(s: string, allowBars: boolean): Token[] {
       i += text.length;
       continue;
     }
-    if ("~+-*/:^()".includes(c)) {
+    if ("~+-*/:^()".includes(c) || (allowComma && c === ",")) {
       out.push({ kind: "op", text: c });
       i++;
       continue;
@@ -104,10 +110,11 @@ const UNARY = 5;
  *
  * @param allowError Accept `Error(...)` terms (aov only).
  * @param allowBars Accept the random-effects terms `(lhs | group)` and `(lhs || group)` (mixed models only).
+ * @param allowCbind Accept the response `cbind(a, b)` with two column names (generalised linear mixed models only).
  */
-export function parseFormula(formula: string, allowError = false, allowBars = false): ParsedFormula {
+export function parseFormula(formula: string, allowError = false, allowBars = false, allowCbind = false): ParsedFormula {
   if (typeof formula !== "string") throw new TypeError("the formula must be a string");
-  const toks = tokenize(formula, allowBars);
+  const toks = tokenize(formula, allowBars, allowCbind);
   let pos = 0;
   const peek = (): Token => toks[pos]!;
   const next = (): Token => toks[pos++]!;
@@ -155,7 +162,20 @@ export function parseFormula(formula: string, allowError = false, allowBars = fa
   }
 
   let response: string | undefined;
-  if (!isOp(peek(), "~")) {
+  let responseColumns: [string, string] | undefined;
+  const t0 = toks[0]!;
+  if (allowCbind && t0.kind === "name" && t0.text === "cbind" && isOp(toks[1]!, "(")) {
+    // cbind(a, b) ~: two column names (a comma is a token only here; anywhere else it is unexpected)
+    const a = toks[2]!;
+    const b = toks[4]!;
+    const isName = (t: Token): boolean => t.kind === "name" && t.text !== "." && !/^\.[0-9]/.test(t.text);
+    if (!(isName(a) && isOp(toks[3]!, ",") && isName(b) && isOp(toks[5]!, ")") && isOp(toks[6]!, "~"))) {
+      throw invalid("the response cbind() must have two column names: cbind(successes, failures)");
+    }
+    responseColumns = [(a as { text: string }).text, (b as { text: string }).text];
+    response = responseColumns[0];
+    pos = 6;
+  } else if (!isOp(peek(), "~")) {
     const t = next();
     if (t.kind !== "name" || t.text === "." || !isOp(peek(), "~")) throw invalid("the response must be a variable name followed by '~'");
     response = t.text;
@@ -163,7 +183,7 @@ export function parseFormula(formula: string, allowError = false, allowBars = fa
   next(); // ~
   const rhs = expr(0);
   if (peek().kind !== "end") throw invalid("unexpected input after the formula");
-  return { response, rhs };
+  return responseColumns === undefined ? { response, rhs } : { response, responseColumns, rhs };
 }
 
 /** The `Error()` terms of a right-hand side (summands, possibly in parentheses) and the right-hand side without them. */
@@ -460,9 +480,12 @@ export function expandRhs(
  * @param rhs The right-hand side to expand (default: the parsed formula's).
  */
 export function termsOf(parsed: ParsedFormula, columns: readonly string[], rhs: FormulaNode | undefined = parsed.rhs): Terms {
-  const { response } = parsed;
-  const dot = columns.filter((c) => c !== response);
+  const { response, responseColumns } = parsed;
+  // (`.` stands for the columns that are not in the response, both of cbind(a, b))
+  const dot = columns.filter((c) => c !== response && !(responseColumns?.includes(c) ?? false));
+  // the response first; the second column of cbind(a, b) next, so that the model frame drops its missing rows too
   const variables: string[] = response === undefined ? [] : [response];
+  if (responseColumns !== undefined && responseColumns[1] !== response) variables.push(responseColumns[1]);
   collectVariables(parsed.rhs, dot, variables);
   const index = (name: string): number => variables.indexOf(name);
   const expanded = expandRhs(rhs, index, dot);

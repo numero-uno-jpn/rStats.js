@@ -13,6 +13,12 @@
 // level-major within each term, and Λ_θ is block diagonal with one lower-triangular block per level of each term,
 // whose parameters are its lower triangle in column-major order. Aliased columns of X (pivoted QR of lm, tolerance
 // 1e-7) are dropped with a message; predictors on very different scales give a warning.
+//
+// The structure of a generalised linear mixed model (lme4's glmer, oracle/glmer-behaviour.md, "The structure and its
+// checks") is the same with three differences in the checks: no row left is "Invalid grouping factor specification"
+// with the first grouping factor's name, a grouping factor may have as many levels as there are rows, and a term may
+// have as many random effects as there are rows. Its response may be of any type (or `cbind(a, b)`); the family
+// reads it (src/models/glmerStructure.ts).
 
 import { formatR } from "../htest/core/simulate.js";
 import { qr } from "../linalg/qr.js";
@@ -91,6 +97,11 @@ export interface MixedModelStructure {
   messages: string[];
   /** R's warnings (predictors on very different scales). */
   warnings: string[];
+  /**
+   * The response variables of the model frame (rows kept), for a generalised model only: one, or the two columns of
+   * `cbind(a, b)`. `y` is then the first one's values if it is numeric, zeros otherwise.
+   */
+  response?: FrameVariable[];
 }
 
 /** Options of {@link mixedModelStructure}: those of the fixed-effects model matrix (contr.poly accepted too). */
@@ -164,9 +175,15 @@ function asFactor(v: FrameVariable): { levels: string[]; codes: number[] } {
  * @param formula A formula such as `"y ~ x + (x | g)"`, `"y ~ (1 | a/b)"` or `"y ~ (x || g)"`.
  * @param data The data frame: an object of columns.
  * @param options The contrasts (fixed-effects part only) and the level order of factors.
+ * @param generalised The structure of a generalised model (glmer): its checks, a response of any type or `cbind(a, b)`.
  */
-export function mixedModelStructure(formula: string, data: DataFrame, options: MixedModelStructureOptions = {}): MixedModelStructure {
-  const parsed = parseFormula(formula, false, true);
+export function mixedModelStructure(
+  formula: string,
+  data: DataFrame,
+  options: MixedModelStructureOptions = {},
+  generalised = false,
+): MixedModelStructure {
+  const parsed = parseFormula(formula, false, true, generalised);
   if (parsed.response === undefined) throw new TypeError("the formula has no response");
   const { fixed, bars } = splitBarTerms(parsed.rhs);
   if (typeof data !== "object" || data === null) throw new TypeError("data must be an object of columns");
@@ -180,15 +197,18 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
   };
   // (if nothing is left of the right-hand side, the fixed part is `1`)
   const fixedRhs: FormulaNode = fixed ?? { type: "num", value: 1, text: "1" };
-  const fixedFormula = { response: parsed.response, rhs: fixedRhs };
+  const fixedFormula = { ...parsed, rhs: fixedRhs };
   // the variables of the whole formula (in the model frame, those of the fixed part come first, in its order)
   const allVariables = termsOf(parsed, Object.keys(data), fixedRhs).variables;
   // (a contrast is for a variable of the fixed-effects part: a grouping variable alone counts as absent)
   const contrastOptions = options.contrasts === undefined ? {} : { contrasts: options.contrasts };
-  const fixedDesign = design(fixedFormula, data, { ...frameOptions, ...contrastOptions, extraVariables: allVariables }, fixedRhs);
+  // (a generalised model's response may be of any type: the family reads it)
+  const responseOptions = generalised ? { anyResponse: true } : {};
+  const fixedDesign = design(fixedFormula, data, { ...frameOptions, ...contrastOptions, ...responseOptions, extraVariables: allVariables }, fixedRhs);
   const { frame } = fixedDesign;
   const n = frame.rows.length;
-  if (n === 0) throw new RangeError("0 (non-NA) cases");
+  // (glmer: no row left is an error about the first grouping factor, below)
+  if (n === 0 && !generalised) throw new RangeError("0 (non-NA) cases");
   // (the model frame's errors, above, come before this check)
   if (bars.length === 0) throw new Error("No random effects terms specified in formula");
   const variables = [...fixedDesign.terms.variables, ...allVariables.filter((v) => !fixedDesign.terms.variables.includes(v))];
@@ -211,6 +231,9 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
     const factors = groupingFactorsOf(bar.group);
     for (const lhs of lhsList) for (const groupVariables of factors) expanded.push({ lhs, groupVariables, bar: barIndex });
   });
+  // glmer without a row left: lme4 fails on the first grouping factor in the order of the terms after expansion and
+  // before their reordering
+  if (n === 0) throw new RangeError(`Invalid grouping factor specification, ${expanded[0]?.groupVariables.join(":") ?? ""}`);
 
   // the grouping factors (levels present, ordered by the levels of the first variable, then the second, ...)
   const factorCache = new Map<string, { levels: string[]; codes: number[] }>();
@@ -265,7 +288,7 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
       groups.push({ name: t.name, levels: t.factor.levels, codes: t.factor.codes });
     }
     // the left-hand side: treatment contrasts whatever the options say
-    const lhsDesign = design(parsed, data, frameOptions, t.lhs);
+    const lhsDesign = design(parsed, data, { ...frameOptions, ...responseOptions }, t.lhs);
     const nc = lhsDesign.colNames.length;
     if (nc === 0 && (noColumns === undefined || t.bar < noColumns)) noColumns = t.bar;
     const nLevels = t.factor.levels.length;
@@ -288,13 +311,21 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
     throw new Error(`lmer: the random-effects term '${deparseFormula(bar.lhs)} ${bar.double ? "||" : "|"} ${deparseFormula(bar.group)}' has no columns`);
   }
   if (groups.some((g) => g.levels.length < 2)) throw new RangeError("grouping factors must have > 1 sampled level");
-  const tooMany = groups.filter((g) => g.levels.length >= n).map((g) => g.name);
+  // (glmer: a grouping factor may have as many levels as there are rows, and a term as many random effects: there is
+  // no residual variance to identify)
+  const tooMany = generalised ? [] : groups.filter((g) => g.levels.length >= n).map((g) => g.name);
   if (tooMany.length > 0) {
     throw new RangeError(`number of levels of each grouping factor must be < number of observations (problems: ${tooMany.join(", ")})`);
   }
   for (const t of terms) {
     const effects = t.nLevels * t.columns.length;
-    if (n <= effects) {
+    if (generalised && n < effects) {
+      throw new RangeError(
+        `number of observations (=${n}) < number of random effects (=${effects}) for term (${t.label}); ` +
+          "the random-effects parameters are probably unidentifiable",
+      );
+    }
+    if (!generalised && n <= effects) {
       throw new RangeError(
         `number of observations (=${n}) <= number of random effects (=${effects}) for term (${t.label}); ` +
           "the random-effects parameters and the residual variance (or scale parameter) are probably unidentifiable",
@@ -389,9 +420,9 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
     );
   }
 
-  return {
+  const out: MixedModelStructure = {
     rows: frame.rows,
-    y: fixedDesign.y!,
+    y: fixedDesign.y ?? new Array<number>(n).fill(0),
     xColNames,
     x,
     terms,
@@ -405,4 +436,10 @@ export function mixedModelStructure(formula: string, data: DataFrame, options: M
     messages,
     warnings,
   };
+  if (generalised) {
+    // the response variables: the response, and the second column of cbind(a, b) (the frame's second variable)
+    const second = parsed.responseColumns !== undefined && parsed.responseColumns[1] !== parsed.responseColumns[0];
+    out.response = second ? [frame.variables[0]!, frame.variables[1]!] : parsed.responseColumns !== undefined ? [frame.variables[0]!, frame.variables[0]!] : [frame.variables[0]!];
+  }
+  return out;
 }

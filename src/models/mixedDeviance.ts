@@ -141,6 +141,11 @@ export interface SparseSystem {
    * at colStart[column] + (rows of the diagonal block from the column) + blockPatternOffset[b] + r (0 on the diagonal)
    */
   blockPatternOffset: Int32Array;
+  /**
+   * For each row i and each pair of terms k ≥ l, the block of Z'Z (its index in the sorted blocks) that the row adds
+   * to, at i nPairs + k (k + 1) / 2 + l: the weighted cross-product Z'WZ of glmer is formed with it
+   */
+  rowBlocks: Int32Array;
 }
 
 /** Steps of iterative refinement of the penalised least-squares solution */
@@ -149,7 +154,7 @@ const REFINEMENT_STEPS = 1;
 const systemCache = new WeakMap<MixedModelStructure, SparseSystem>();
 
 /** The groups of columns, the cross-products and the pattern of the factor of a structure (cached) */
-function sparseSystemOf(s: MixedModelStructure): SparseSystem {
+export function sparseSystemOf(s: MixedModelStructure): SparseSystem {
   const cached = systemCache.get(s);
   if (cached !== undefined) return cached;
   const n = s.y.length;
@@ -253,29 +258,14 @@ function sparseSystemOf(s: MixedModelStructure): SparseSystem {
     blockValueStart[at + 1] = blockValueStart[at]! + size;
   });
   for (let h = 0; h < nGroups; h++) blockStart[h + 1]! += blockStart[h]!;
-  const zz = new Float64Array(blockValueStart[nBlocks]!);
+  const rowBlocks = rowPairs.map((b) => position[b]!);
+  const zz = crossProductBlocks(s, termNc, blockValueStart, rowBlocks, undefined);
   const zx = new Float64Array(q * p);
   const zy = new Float64Array(q);
   const xy = new Float64Array(p);
   for (let i = 0; i < n; i++) {
     const xi = s.x[i]!;
     const yi = s.y[i]!;
-    for (let k = 0; k < nTerms; k++) {
-      const mk = s.terms[k]!.matrix[i]!;
-      const nck = termNc[k]!;
-      for (let l = 0; l <= k; l++) {
-        const ml = s.terms[l]!.matrix[i]!;
-        const ncl = termNc[l]!;
-        const at = position[rowPairs[i * nPairs + (k * (k + 1)) / 2 + l]!]!;
-        const base = blockValueStart[at]!;
-        // block (group of k, group of l): nck × ncl, column-major
-        for (let c = 0; c < ncl; c++) {
-          const v = ml[c]!;
-          if (v === 0) continue;
-          for (let r = 0; r < nck; r++) zz[base + r + c * nck]! += mk[r]! * v;
-        }
-      }
-    }
     for (let a = rowStart[i]!; a < rowStart[i + 1]!; a++) {
       const ja = rowCols[a]!;
       const va = rowValues[a]!;
@@ -371,13 +361,77 @@ function sparseSystemOf(s: MixedModelStructure): SparseSystem {
     rowListCol,
     rowListPos,
     blockPatternOffset,
+    rowBlocks,
   };
   systemCache.set(s, result);
   return result;
 }
 
+/**
+ * Z'WZ by blocks, in the layout of the system's Z'Z (W the diagonal matrix of the weights `w`; Z'Z without them),
+ * from the terms' left-hand side matrices and the block of each row and pair of terms
+ */
+function crossProductBlocks(
+  s: MixedModelStructure,
+  termNc: readonly number[],
+  blockValueStart: Int32Array,
+  rowBlocks: Int32Array,
+  w: ArrayLike<number> | undefined,
+): Float64Array {
+  const n = s.y.length;
+  const nTerms = s.terms.length;
+  const nPairs = (nTerms * (nTerms + 1)) / 2;
+  const zz = new Float64Array(blockValueStart[blockValueStart.length - 1]!);
+  for (let i = 0; i < n; i++) {
+    const wi = w === undefined ? 1 : w[i]!;
+    if (wi === 0) continue;
+    for (let k = 0; k < nTerms; k++) {
+      const mk = s.terms[k]!.matrix[i]!;
+      const nck = termNc[k]!;
+      for (let l = 0; l <= k; l++) {
+        const ml = s.terms[l]!.matrix[i]!;
+        const ncl = termNc[l]!;
+        const base = blockValueStart[rowBlocks[i * nPairs + (k * (k + 1)) / 2 + l]!]!;
+        // block (group of k, group of l): nck × ncl, column-major
+        for (let c = 0; c < ncl; c++) {
+          const v = w === undefined ? ml[c]! : wi * ml[c]!;
+          if (v === 0) continue;
+          for (let r = 0; r < nck; r++) zz[base + r + c * nck]! += mk[r]! * v;
+        }
+      }
+    }
+  }
+  return zz;
+}
+
+/** Z'WZ by blocks, in the layout of the system's Z'Z (glmer's working weights `w`, one per row) */
+export function weightedCrossProduct(sys: SparseSystem, s: MixedModelStructure, w: ArrayLike<number>): Float64Array {
+  return crossProductBlocks(s, sys.termNc, sys.blockValueStart, sys.rowBlocks, w);
+}
+
+/** Z v (n-vector) from the sparse Z, for a q-vector v */
+export function zTimes(sys: SparseSystem, v: ArrayLike<number>): Float64Array {
+  const out = new Float64Array(sys.n);
+  for (let i = 0; i < sys.n; i++) {
+    let sum = 0;
+    for (let c = sys.rowStart[i]!; c < sys.rowStart[i + 1]!; c++) sum += sys.rowValues[c]! * v[sys.rowCols[c]!]!;
+    out[i] = sum;
+  }
+  return out;
+}
+
+/** Z' v (q-vector) from the sparse Z, for an n-vector v */
+export function zTransposeTimes(sys: SparseSystem, v: ArrayLike<number>): Float64Array {
+  const zv = new Float64Array(sys.q);
+  for (let i = 0; i < sys.n; i++) {
+    const vi = v[i]!;
+    for (let c = sys.rowStart[i]!; c < sys.rowStart[i + 1]!; c++) zv[sys.rowCols[c]!]! += sys.rowValues[c]! * vi;
+  }
+  return zv;
+}
+
 /** The blocks T_k at θ (nc × nc, column-major, lower triangular) */
-function blocksOf(sys: SparseSystem, theta: readonly number[]): Float64Array[] {
+export function blocksOf(sys: SparseSystem, theta: readonly number[]): Float64Array[] {
   return sys.termTheta.map((idx) => Float64Array.from(idx, (t) => (t < 0 ? 0 : theta[t]!)));
 }
 
@@ -419,9 +473,12 @@ export function lambdaTransposeTimes(sys: SparseSystem, t: Float64Array[], m: Fl
   return out;
 }
 
-/** The blocks of A = Λ_θ' Z'Z Λ_θ + I (the layout of Z'Z), each T_g' Z'Z(g, h) T_h, the identity added on the diagonal */
-function blocksOfA(sys: SparseSystem, t: Float64Array[]): Float64Array {
-  const a = new Float64Array(sys.zz.length);
+/**
+ * The blocks of A = Λ_θ' Z'Z Λ_θ + I (the layout of Z'Z), each T_g' Z'Z(g, h) T_h, the identity added on the diagonal
+ * (with `zz`, Z'WZ by blocks instead of Z'Z: glmer's Λ_θ' Z'WZ Λ_θ + I)
+ */
+export function blocksOfA(sys: SparseSystem, t: Float64Array[], zz: Float64Array = sys.zz): Float64Array {
+  const a = new Float64Array(zz.length);
   const tmp = new Float64Array(64);
   for (let h = 0; h < sys.nGroups; h++) {
     const kc = sys.groupTerm[h]!;
@@ -433,14 +490,14 @@ function blocksOfA(sys: SparseSystem, t: Float64Array[]): Float64Array {
       const tr = t[kr]!;
       const base = sys.blockValueStart[b]!;
       if (ncr === 1 && ncc === 1) {
-        a[base] = tr[0]! * sys.zz[base]! * tc[0]!;
+        a[base] = tr[0]! * zz[base]! * tc[0]!;
       } else {
         // tmp = Z'Z(g, h) T_h (ncr × ncc), then T_g' tmp
         const work = tmp.length >= ncr * ncc ? tmp : new Float64Array(ncr * ncc);
         for (let c = 0; c < ncc; c++) {
           for (let r = 0; r < ncr; r++) {
             let sum = 0;
-            for (let m = c; m < ncc; m++) sum += sys.zz[base + r + m * ncr]! * tc[m + c * ncc]!;
+            for (let m = c; m < ncc; m++) sum += zz[base + r + m * ncr]! * tc[m + c * ncc]!;
             work[r + c * ncr] = sum;
           }
         }
@@ -459,7 +516,7 @@ function blocksOfA(sys: SparseSystem, t: Float64Array[]): Float64Array {
 }
 
 /** The values of the Cholesky factor L of A (A = L L', the pattern of the system), from the blocks of A */
-function factorise(sys: SparseSystem, a: Float64Array): Float64Array {
+export function factorise(sys: SparseSystem, a: Float64Array): Float64Array {
   const { q, colStart, colRows, rowListStart, rowListCol, rowListPos } = sys;
   const l = new Float64Array(colRows.length);
   const work = new Float64Array(q);
@@ -524,7 +581,7 @@ export function solveLt(sys: SparseSystem, l: Float64Array, v: Float64Array, off
 }
 
 /** Solves L x = v in place, with L = R' and R the upper-triangular factor (column-major, k × k) */
-function forwardSolve(r: Float64Array, k: number, v: Float64Array): void {
+export function forwardSolve(r: Float64Array, k: number, v: Float64Array): void {
   for (let i = 0; i < k; i++) {
     const ci = i * k;
     let sum = v[i]!;
@@ -534,7 +591,7 @@ function forwardSolve(r: Float64Array, k: number, v: Float64Array): void {
 }
 
 /** Solves R x = v in place, R upper triangular (column-major, k × k) */
-function backSolve(r: Float64Array, k: number, v: Float64Array): void {
+export function backSolve(r: Float64Array, k: number, v: Float64Array): void {
   for (let i = k - 1; i >= 0; i--) {
     const xi = (v[i]! /= r[i + i * k]!);
     const ci = i * k;
@@ -634,24 +691,9 @@ export function plsState(structure: MixedModelStructure, theta: readonly number[
   const t = blocksOf(sys, theta);
   const l = factorise(sys, blocksOfA(sys, t));
 
-  // Z v (from the sparse Z) and Λ'Z' v
-  const zTimes = (v: Float64Array): Float64Array => {
-    const out = new Float64Array(n);
-    for (let i = 0; i < n; i++) {
-      let sum = 0;
-      for (let c = sys.rowStart[i]!; c < sys.rowStart[i + 1]!; c++) sum += sys.rowValues[c]! * v[sys.rowCols[c]!]!;
-      out[i] = sum;
-    }
-    return out;
-  };
-  const zTransposeTimes = (v: Float64Array): Float64Array => {
-    const zv = new Float64Array(q);
-    for (let i = 0; i < n; i++) {
-      const vi = v[i]!;
-      for (let c = sys.rowStart[i]!; c < sys.rowStart[i + 1]!; c++) zv[sys.rowCols[c]!]! += sys.rowValues[c]! * vi;
-    }
-    return zv;
-  };
+  // Z v (from the sparse Z) and Z' v
+  const zTimesV = (v: Float64Array): Float64Array => zTimes(sys, v);
+  const zTransposeTimesV = (v: Float64Array): Float64Array => zTransposeTimes(sys, v);
   /** Solves A w = v in place */
   const solveA = (v: Float64Array): void => {
     solveL(sys, l, v);
@@ -671,12 +713,12 @@ export function plsState(structure: MixedModelStructure, theta: readonly number[
     solveLt(sys, l, w);
     const xk = Float64Array.from(structure.x, (row) => row[k]!);
     const residualOf = (): Float64Array => {
-      const fitted = zTimes(lambdaTimes(sys, t, w));
+      const fitted = zTimesV(lambdaTimes(sys, t, w));
       return xk.map((v, i) => v - fitted[i]!);
     };
     let e = residualOf();
     for (let step = 0; step < REFINEMENT_STEPS; step++) {
-      const g = lambdaTransposeTimes(sys, t, zTransposeTimes(e));
+      const g = lambdaTransposeTimes(sys, t, zTransposeTimesV(e));
       for (let i = 0; i < q; i++) g[i]! -= w[i]!;
       solveA(g);
       for (let i = 0; i < q; i++) w[i]! += g[i]!;
@@ -722,7 +764,7 @@ export function plsState(structure: MixedModelStructure, theta: readonly number[
 
   // the residual y − Xβ − ZΛu, from X and the sparse Z (not from the cross-products)
   const residual = (beta: Float64Array, bv: Float64Array): Float64Array => {
-    const zb = zTimes(bv);
+    const zb = zTimesV(bv);
     const res = new Float64Array(n);
     for (let i = 0; i < n; i++) {
       const xi = structure.x[i]!;
@@ -743,7 +785,7 @@ export function plsState(structure: MixedModelStructure, theta: readonly number[
   let res = residual(betav, bv);
   for (let step = 0; step < REFINEMENT_STEPS; step++) {
     // the gradient of the penalised residual sum of squares: (Λ'Z'res − u, X'res)
-    const du = lambdaTransposeTimes(sys, t, zTransposeTimes(res));
+    const du = lambdaTransposeTimes(sys, t, zTransposeTimesV(res));
     for (let i = 0; i < q; i++) du[i]! -= uv[i]!;
     const db = new Float64Array(p);
     for (let i = 0; i < n; i++) {
