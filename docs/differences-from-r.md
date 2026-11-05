@@ -1052,12 +1052,13 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`glmer` at response scales its Laplace criterion cannot resolve** is a RangeError (`... outside what the Laplace
   criterion can resolve ...`). lme4's criterion leaves out the dispersion, so for poisson, inverse.gaussian and
   gaussian it is not invariant to the scale of the response or of the prior weights. Where the information about the
-  random effects at the start (Σ W z² of a column of Z) is outside about 2^-40 to 2^40 and the fit fails, or a term
-  ends at θ = 0 on a criterion flat to rounding, the error replaces lme4's PIRLS messages, "did not converge", or a θ
-  of 0 that is no estimate (inverse.gaussian with the log link and a response of 1e200, whose optimum is near
-  θ = 1e100). For data on the scale of 1 to 10 this means poisson counts up to about 1e13 (prior weights up to about
-  2^35), inverse.gaussian with the log link up to about 1e13 and gaussian with the log link from about 1e-6 to 1e5.
-  Binomial and Gamma fits are not limited.
+  random effects at the start (Σ W z² of a column of Z) is above 2^40 (the penalised system then loses about 40 of
+  its 53 bits, and whether a fit converges depends on the platform's last bits), or below 2^-40 where the fit fails
+  or a term ends at θ = 0 on a criterion flat to rounding, the error replaces lme4's PIRLS messages, "did not
+  converge", or a θ of 0 that is no estimate (inverse.gaussian with the log link and a response of 1e200, whose
+  optimum is near θ = 1e100). For data on the scale of 1 to 10 this means poisson counts up to about 1e11 (prior
+  weights up to about 2^34), inverse.gaussian with the log link up to about 1e13 and gaussian with the log link from
+  about 1e-6 to 5e4. Gamma fits are not limited by the scale of the response.
 - **`glmer` with non-integer poisson counts** is a RangeError for `nAGQ` 0 and 1: R's `dpois` is 0 there, so the
   Laplace log-likelihood is −Inf for every parameter, and R warns `non-integer x = ...` and returns its starting
   values (θ = 1) with logLik −Inf. With `nAGQ > 1` the estimates are R's, with its warning, and `logLik` is −Inf

@@ -360,11 +360,11 @@ function metricFactor(m: readonly (readonly number[])[], phi: number): Float64Ar
  * The scale of the response: lme4's Laplace criterion leaves out the dispersion, so for the poisson,
  * inverse.gaussian and gaussian families it is not invariant to the scale of the response (or of the prior weights).
  * Where the information about the random effects at the start, Σ W z² of a column of Z (W the working weights at
- * the starting means), is outside about 2^-40 to 2^40 and the fit fails, or a term ends at θ = 0 on a criterion flat
- * to rounding, the result is a RangeError saying so. For data like the example below: poisson counts up to about
- * 1e13 (prior weights up to about 2^35), inverse.gaussian with the log link up to about 1e13, gaussian with the log
- * link up to about 1e5 and down to about 1e-6 fit; beyond, the RangeError.
- * Binomial and Gamma fits are not limited this way (Gamma's criterion is invariant; with the log link a tiny
+ * the starting means), is above 2^40 (the penalised system then loses about 40 of its 53 bits), or below 2^-40 and
+ * the fit fails or a term ends at θ = 0 on a criterion flat to rounding, the result is a RangeError saying so. For
+ * data like the example below: poisson counts up to about 1e11 (prior weights up to about 2^34), inverse.gaussian
+ * with the log link up to about 1e13, gaussian with the log link from about 1e-6 to 5e4 fit; beyond, the RangeError.
+ * Gamma fits are not limited by the scale of the response (its criterion is invariant; with the log link a tiny
  * response is rescaled).
  *
  * Adaptive Gauss-Hermite quadrature (`nAGQ > 1`) needs a single scalar random-effects term such as `(1 | g)`, with
@@ -451,12 +451,17 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
   const toScaled = (theta: readonly number[]): number[] => theta.map((v, k) => ldexp(v, exponents.theta[k]!));
   const fromScaled = (theta: readonly number[]): number[] => theta.map((v, k) => ldexp(v, -exponents.theta[k]!));
   // The scale of the response against the Laplace criterion (G21): the information about the random effects at the
-  // start, Σ W z² of the largest column of Z (startInformation), checked only where the fit fails or ends at θ = 0
+  // start, Σ W z² of the largest column of Z (startInformation). Above 2^40 it is an error at once: Λ'Z'WZΛ + I and
+  // the fixed effects' system then lose about log2 of it of their 53 bits, so that the criterion is resolved to
+  // 1e-4 or worse and whether the minimisation converges depends on the last bits of the platform's arithmetic
+  // (prior weights 2^40 fitted on Linux x86_64 and failed on arm64; the θ of weights 2^38 differed at 1e-6). Below
+  // 2^-40 it is checked where the fit fails or ends at θ = 0 (θ' far from 1 may still be resolved there)
   const information = startInformation(sc);
   const scaleError = (): RangeError =>
     new RangeError(
       `glmer: the scale of the response (or of the prior weights) is outside what the Laplace criterion can resolve: the information about the random effects at the start is ${information} (about 2^-40 to 2^40 is supported; lme4's Laplace criterion leaves out the dispersion, so for poisson, inverse.gaussian and gaussian it is not invariant to the scale of the response)`,
     );
+  if (information > MAX_INFORMATION) throw scaleError();
   const fit = (): GlmerResult => {
 
     // lme4's initial PIRLS (nAGQ = 0 at the initial θ, from the starting means): its errors are glmer's. Where it fails
@@ -746,7 +751,7 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
   } catch (e) {
     // (a failure of the penalised IRLS or of the minimisation where the information is extreme: lme4's messages, or
     // "did not converge", would blame the algorithm)
-    if (e instanceof Error && e.constructor === Error && !(information >= MIN_INFORMATION && information <= MAX_INFORMATION)) throw scaleError();
+    if (e instanceof Error && e.constructor === Error && !(information >= MIN_INFORMATION)) throw scaleError();
     throw e;
   }
   // A term at θ = 0 where the criterion is flat to rounding in θ (θ'² Σ W z² below 1e-10 of the deviance at θ' = 1:

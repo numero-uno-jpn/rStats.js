@@ -36,6 +36,8 @@ export const LMER_SETTINGS: MinimiserSettings = {
   releaseTolerance: 1e-12,
 };
 
+/** robust: a Newton step below this (relative to max(1, max |x|)) with a small gradient is convergence (see iterate) */
+const NOISE_STEP = 1e-8;
 /** Initial trust-region radius, relative to max(1, max |x|) */
 const INITIAL_RADIUS = 0.25;
 /** Eigenvalues of the Hessian below this times the largest are treated as 0 (the Hessian's own accuracy) */
@@ -307,6 +309,15 @@ export function localMinimum(problem: MinimiserProblem, start: readonly number[]
     const zero = EIGENVALUE_TOLERANCE * maxOf(eig.values.map(Math.abs));
     const gFree = free.map((j) => g[j]!);
     const { step, newton } = trustRegionStep(gFree, eig, radius, zero, gradientTolerance());
+    if (robust && !newton && eig.values.every((l) => l > zero) && free.every((j) => Math.abs(g[j]!) <= gradientTolerance())) {
+      // (robust: a small gradient with a positive definite Hessian whose full Newton step is below 1e-8 (relative to
+      // max(1, max |x|)) is the minimiser, although the trust radius has shrunk below that step: the criterion's
+      // noise (nearly collinear predictors: about 1e-12 of its value) rejected steps there, and the iteration would
+      // otherwise wander at that level until its limit, or not, by the last bits of the platform's arithmetic)
+      const gt = eig.vectors.map((v) => dot(v, gFree));
+      const newtonStep = eig.vectors[0]!.map((_, i) => eig.values.reduce((sum, l, k) => sum - (gt[k]! / l) * eig.vectors[k]![i]!, 0));
+      if (maxOf(newtonStep.map(Math.abs)) <= NOISE_STEP * scaleOf()) return true;
+    }
     const trial = theta.slice();
     free.forEach((j, a) => (trial[j] = theta[j]! + step[a]!));
     const size = maxOf(step.map(Math.abs)) / scaleOf();

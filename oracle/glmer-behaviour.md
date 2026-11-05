@@ -527,7 +527,10 @@ point at the smallest trust radius (1e-13 max(1, max |x|)) with a gradient below
 three rejected steps there with a larger gradient a failure (no stalling to the iteration limit); the actual
 reduction of a step within 1e-8 max(1, |d|) is taken from the gradients (the deviance can be noisy at 1e-10 of its
 value, as a Gamma fit with a dispersion of 1e-16 is); a zero gradient with a zero Hessian (a deviance flat in β at
-θ = 0 when the aic term is constant) is a minimiser. Where lme4's initial PIRLS fails at the initial θ only because
+θ = 0 when the aic term is constant) is a minimiser. A small gradient with a positive definite Hessian whose
+full Newton step is below 1e-8 max(1, max |x|) is a minimiser too, although the trust radius has shrunk below that
+step (the criterion's noise rejected steps there: nearly collinear predictors, whose fit otherwise converged or not
+by the last bits of the platform). Where lme4's initial PIRLS fails at the initial θ only because
 of the scale of a column of Z (θ = 1 for a column of 1e160), the minimisation starts from θ' = 1 in the scaled units
 instead. Results: the fixture's largest errors fell from about 1e-8 to 5e-13 (parameters) and from 2e-7 to 7e-12
 (vcov); the fits of the audit that failed (A1, A2, A5, F1, F2, F3) agree with R or with the transformed fit.
@@ -562,8 +565,10 @@ fails, so that ordinary fits keep their values:
 - *nAGQ* is truncated before its sign is checked (−0.5 is 0, rule 9).
 - *The scale of the response (G21).* lme4's criterion leaves out the dispersion, so for poisson, inverse.gaussian and
   gaussian its curvature in θ depends on the scale of the response and of the prior weights. With `I = max_j Σ_i W_i
-  z_ij²` (Z scaled as in the fit, W at the starting means), a fit that fails with `I` outside [2^-40, 2^40], or that
-  ends with a term at θ = 0 while `I < 1e-10 |−2 logLik|` (the criterion flat to rounding near θ' = 1), is the
+  z_ij²` (Z scaled as in the fit, W at the starting means), `I > 2^40` (at once: the penalised system loses about 40
+  of its 53 bits, and whether the fit converged depended on the platform's last bits), a fit that fails with
+  `I < 2^-40`, or one that ends with a term at θ = 0 while `I < 1e-10 |−2 logLik|` (the criterion flat to rounding
+  near θ' = 1), is the
   RangeError `glmer: the scale of the response (or of the prior weights) is outside what the Laplace criterion can
   resolve ...`. Ordinary fits never reach either test's error.
 

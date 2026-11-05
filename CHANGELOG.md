@@ -31,7 +31,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   1e154 or, with the log link, below lme4's bound 2^-52 of the mean give the same fit transformed, also where lme4
   fails. Non-integer poisson counts are a RangeError for `nAGQ` 0 and 1 (the log-likelihood is −Inf everywhere; R
   returns its starting values); `nAGQ` is truncated before its sign is checked (−0.5 is 0, as R). A response scale
-  that lme4's Laplace criterion cannot resolve (poisson counts beyond about 1e13, inverse.gaussian or gaussian with
+  that lme4's Laplace criterion cannot resolve (poisson counts beyond about 1e11, inverse.gaussian or gaussian with
   the log link far from 1) is a RangeError saying so, instead of a PIRLS message or a θ of 0 that is no estimate.
   Adaptive Gauss-Hermite quadrature (`nAGQ` from 2 to 100) for a single scalar random-effects term such as `(1 | g)`
   (R's two errors otherwise), with the rule computed to rounding error, the binomial and poisson families only (for

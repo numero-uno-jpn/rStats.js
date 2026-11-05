@@ -157,11 +157,14 @@ describe("glmer's numerical edges (audit findings, second fix)", () => {
     }
     expect(() => glmer("y ~ x + (1 | g)", { ...base, y: yg.map((v) => v * 1e200) }, IG)).toThrow(RangeError);
     // still fitted: inverse.gaussian times 1e12 (θ near 1.67e6, the √k of the plain fit's), poisson counts times
-    // 1e12, binomial prior weights 2^-50 (θ 0, as R's at 2^-20: the criterion is not flat relative to its tiny deviance)
+    // 1e10 (information 2^38.5; times 1e12, 2^45, is the error at once, as its fit depended on the platform's last
+    // bits), binomial prior weights 2^-50 (θ 0, as R's at 2^-20: the criterion is not flat relative to its tiny
+    // deviance)
     const ig = glmer("y ~ x + (1 | g)", { ...base, y: yg }, IG);
     const ig12 = glmer("y ~ x + (1 | g)", { ...base, y: yg.map((v) => v * 1e12) }, IG);
     expect(relative(ig12.theta[0]!, ig.theta[0]! * 1e6)).toBeLessThan(0.05);
-    expect(glmer("y ~ x + (1 | g)", { ...base, y: base.y.map((v) => v * 1e12) }, P).theta[0]).toBeCloseTo(0.58287, 4);
+    expect(glmer("y ~ x + (1 | g)", { ...base, y: base.y.map((v) => v * 1e10) }, P).theta[0]).toBeCloseTo(0.58288, 4);
+    expect(() => glmer("y ~ x + (1 | g)", { ...base, y: base.y.map((v) => v * 1e12) }, P)).toThrow(scale);
     expect(glmer("y ~ x + (1 | g)", { ...base, y: yb }, { ...B, weights: base.y.map(() => 2 ** -50) }).theta).toEqual([0]);
   });
 
