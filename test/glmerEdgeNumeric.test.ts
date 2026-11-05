@@ -165,6 +165,17 @@ describe("glmer's numerical edges (audit findings, second fix)", () => {
     expect(glmer("y ~ x + (1 | g)", { ...base, y: yb }, { ...B, weights: base.y.map(() => 2 ** -50) }).theta).toEqual([0]);
   });
 
+  it("G21: gaussian with the log link is not scale invariant in lme4's criterion: ×1e4 has its optimum at θ = 0", () => {
+    // lme4's Laplace weights μ'² / V = μ² leave out the dispersion, so scaling y by c scales W by c²: the optimum θ
+    // moves (×1: 0.6313 in R and here; ×1e3: 0.4498 in both). At ×1e4 lme4 stops at θ 0.4498 with −2 logLik
+    // 461.1302, while its own deviance function at θ = 0 with its β gives 447.3895: the boundary is the optimum
+    const G = { family: "gaussian", link: "log" } as const;
+    expect(glmer("y ~ x + (1 | g)", { ...base, y: yg }, G).theta[0]).toBeCloseTo(0.63125, 4);
+    const r = glmer("y ~ x + (1 | g)", { ...base, y: yg.map((v) => v * 1e4) }, G);
+    expect(r.theta).toEqual([0]);
+    expect(-2 * r.logLik).toBeLessThanOrEqual(447.3894995475116);
+  });
+
   it("logLik of a deviance of 0 is 0, not −0", () => {
     const r = glmer("y ~ x + (1 | g)", { ...base, y: yb }, { ...B, weights: base.y.map(() => 2 ** -10) });
     expect(Object.is(r.logLik, 0)).toBe(true);
