@@ -7,7 +7,13 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.0.0 - 2026-11-05
+
+The first stable version: from 1.0.0 the public API follows Semantic Versioning (see Versioning in the README), so
+breaking changes come only with a new major version. It adds the generalized linear mixed models of lme4's `glmer`,
+with `glmerSummary`, `glmerAnova` and predictions for both mixed models (`glmerPredict`, `lmerPredict`), in the area
+`@numero-uno-jpn/rstats/mixed`, which stays out of the root export and of `dist/rstats.js`; and fixes `lmer` and
+`lmerSummary` for predictors on extreme scales.
 
 ### Added
 

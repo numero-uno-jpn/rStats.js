@@ -118,9 +118,9 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 | `@numero-uno-jpn/rstats/descriptive` (全体) | 58.8 KB | 21.7 KB |
 | `@numero-uno-jpn/rstats/numerics` (全体) | 64.6 KB | 26.3 KB |
 | `@numero-uno-jpn/rstats/special` (全体) | 66.8 KB | 29.9 KB |
-| `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / lmerTest の検定も | 48.6 / 161.8 KB | 18.7 / 68.7 KB |
-| `@numero-uno-jpn/rstats/mixed`: `glmer` だけ / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 101.5 / 144.1 KB | 41.4 / 59.4 KB |
-| `@numero-uno-jpn/rstats/mixed` (全体) | 208.8 KB | 85.2 KB |
+| `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / lmerTest の検定も | 50.1 / 163.7 KB | 19.4 / 69.5 KB |
+| `@numero-uno-jpn/rstats/mixed`: `glmer` だけ / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 116.7 / 159.6 KB | 47.1 / 65.6 KB |
+| `@numero-uno-jpn/rstats/mixed` (全体) | 224.6 KB | 91.3 KB |
 
 サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを
 `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 38 KB
@@ -162,7 +162,7 @@ Apple M1 (Mac mini)、Node.js 24、`tsc` によるビルド、2026-10-26 (版 0.
 (`scripts/bench.mjs`) で、1 回ずつ呼び出し、5 回の実行の最小値です。入力はライブラリ自身の `setSeed`/`runif` で生成するので、
 どのビルドにも同じ入力が渡ります。線形代数は、20 回 (n = 300 では 3 回) の呼び出しの平均の、5 回の実行の最小値です。R 4.5.2
 (arm64) は同じマシンのコンテナで、同じ種類の入力を R 自身の乱数で作って測りました。バンドルサイズは
-2026-11-05 に 0.17.0 のコードで測りました (Windows 11、Node.js 26。サイズはマシンによりません)。混合モデルは 2026-10-27 (0.12.0 のコード。`lmer` と `lmerSummary` の当てはめは 0.15.0 のコードで測り直しました) に測りました。混合モデルの lme4 2.0.6 も同じコンテナです。
+2026-11-05 に 1.0.0 のコードで測りました (Node.js 24。サイズはマシンによりません)。混合モデルは 2026-10-27 (0.12.0 のコード。`lmer` と `lmerSummary` の当てはめは 0.15.0 のコードで測り直しました) に測りました。混合モデルの lme4 2.0.6 も同じコンテナです。
 
 ## 参考情報
 
