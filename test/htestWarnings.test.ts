@@ -11,9 +11,12 @@ import {
   ansariTest,
   chisqTest,
   fisherTest,
+  ksTest,
   pairwisePropTest,
   pairwiseWilcoxTest,
+  pnorm,
   propTest,
+  punif,
   setSeed,
   setWarningHandler,
   wilcoxTest,
@@ -341,5 +344,49 @@ describe("pairwisePropTest warnings (R's pairwise.prop.test: those of each prop.
     setWarningHandler(handler);
     pairwisePropTest([2, 5, 40], [10, 10, 50]);
     expect(handler.mock.calls).toEqual([[APPROX, "pairwisePropTest"]]);
+  });
+});
+
+describe("ksTest warnings (R's ks.test)", () => {
+  const ONE_TIES = "ties should not be present for the one-sample Kolmogorov-Smirnov test";
+  const TWO_TIES = "p-value will be approximate in the presence of ties";
+  const x = [0.61, -1.2, 0.33, 1.57, -0.42, 0.08, -0.85, 1.1];
+  const u = (q: number): number => punif(q);
+  const g = ["a", "a", "a", "a", "b", "b", "b", "b"];
+  const cases: [string, () => { warnings: string[] }, string[]][] = [
+    // ks.test(x, "pnorm")
+    ["one sample", () => ksTest(x, (q) => pnorm(q)), []],
+    // ks.test(c(0.2,0.2,0.8), "punif")
+    ["one sample, ties", () => ksTest([0.2, 0.2, 0.8], u), [ONE_TIES]],
+    // ks.test(c(0.2,0.2,0.8), "punif", exact = TRUE)
+    ["one sample, ties, exact true", () => ksTest([0.2, 0.2, 0.8], u, { exact: true }), [ONE_TIES]],
+    // ks.test(c(0.2,0.2,0.8), "punif", exact = FALSE)
+    ["one sample, ties, exact false", () => ksTest([0.2, 0.2, 0.8], u, { exact: false }), [ONE_TIES]],
+    // ks.test(x, c(0.9,2.1,1.4,2.8,1.7,0.4))
+    ["two samples", () => ksTest(x, [0.9, 2.1, 1.4, 2.8, 1.7, 0.4]), []],
+    // ks.test(c(1,2,3,4), c(2,5,6,7))  (exact by default: no warning)
+    ["two samples, ties, exact", () => ksTest([1, 2, 3, 4], [2, 5, 6, 7]), []],
+    // ks.test(c(1,2,3,4), c(2,5,6,7), exact = FALSE)
+    ["two samples, ties, exact false", () => ksTest([1, 2, 3, 4], [2, 5, 6, 7], { exact: false }), [TWO_TIES]],
+    // ks.test(c(1,2,3,4), c(2.5,5,6,7), exact = FALSE)
+    ["two samples, no ties, exact false", () => ksTest([1, 2, 3, 4], [2.5, 5, 6, 7], { exact: false }), []],
+    // ks.test(c(1:100, 3), 1:100)  (m n >= 10000: asymptotic by default)
+    [
+      "two samples, ties, m n >= 10000",
+      () => ksTest([...Array.from({ length: 100 }, (_, i) => i + 1), 3], Array.from({ length: 100 }, (_, i) => i + 1)),
+      [TWO_TIES],
+    ],
+    // ks.test(y ~ g, data.frame(y = c(1,2,3,4,2,5,6,7), g), exact = FALSE)
+    ["formula, ties, exact false", () => ksTest("y ~ g", { y: [1, 2, 3, 4, 2, 5, 6, 7], g }, { exact: false }), [TWO_TIES]],
+  ];
+  it.each(cases)("%s", (_, f, expected) => {
+    expect(f().warnings).toEqual(expected);
+  });
+
+  it("passes the warning to the handler once, also for the formula form", () => {
+    const handler = vi.fn<WarningHandler>();
+    setWarningHandler(handler);
+    ksTest("y ~ g", { y: [1, 2, 3, 4, 2, 5, 6, 7], g }, { exact: false });
+    expect(handler.mock.calls).toEqual([[TWO_TIES, "ksTest"]]);
   });
 });

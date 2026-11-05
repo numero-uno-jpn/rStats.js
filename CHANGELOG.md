@@ -68,8 +68,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   relative difference: 0.0625", with the text of R's `all.equal` of the counts and the rounded counts), `chisqTest`
   ("Chi-squared approximation may be incorrect" where an expected count is below 5 and the p-value is not simulated,
   and "cannot compute simulated p-value with zero marginals"), `propTest` ("Chi-squared approximation may be
-  incorrect") and `pairwisePropTest` (that of its comparisons, once). The warnings R gives in the other tests that
-  lack them are to come.
+  incorrect") and `pairwisePropTest` (that of its comparisons, once), `ksTest` ("ties should not be present for the
+  one-sample Kolmogorov-Smirnov test", and "p-value will be approximate in the presence of ties" for two samples with
+  the asymptotic p-value). The warnings R gives in the other tests that lack them are to come.
 
 ### Added
 
