@@ -7,7 +7,7 @@
 // For the cases where R stops with an error after its warnings, the comment says so; rStats.js returns a value there
 // and the warnings R gave before it stopped. To be replaced by the warnings recorded in the fixtures.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ansariTest, pairwiseWilcoxTest, setWarningHandler, wilcoxTest, type WarningHandler } from "../src/index.js";
+import { ansariTest, fisherTest, pairwiseWilcoxTest, setWarningHandler, wilcoxTest, type WarningHandler } from "../src/index.js";
 
 const P_TIES = "cannot compute exact p-value with ties";
 const P_ZEROES = "cannot compute exact p-value with zeroes";
@@ -205,5 +205,37 @@ describe("pairwiseWilcoxTest warnings (R's pairwise.wilcox.test: those of each w
     setWarningHandler(handler);
     pairwiseWilcoxTest([1, 2, 2, 3, 4, 5, 5, 6, 7], g);
     expect(handler.mock.calls).toEqual([[P_TIES, "pairwiseWilcoxTest"]]);
+  });
+});
+
+describe("fisherTest warnings (R's fisher.test: the rounding of the counts, with all.equal's text)", () => {
+  const ROUNDED = "'x' has been rounded to integer: Mean relative difference: ";
+  const cases: [string, () => { warnings: string[] }, string[]][] = [
+    // fisher.test(matrix(c(3.5,1,1,3), 2, byrow = TRUE))
+    ["one count rounded", () => fisherTest([[3.5, 1], [1, 3]]), [`${ROUNDED}0.1428571`]],
+    // fisher.test(matrix(c(2.5,1.2,0.7,3), 2, byrow = TRUE))
+    ["three counts rounded", () => fisherTest([[2.5, 1.2], [0.7, 3]]), [`${ROUNDED}0.2272727`]],
+    // fisher.test(matrix(c(3+1e-9,1,1,3), 2, byrow = TRUE))  (all.equal is TRUE)
+    ["a difference within the tolerance", () => fisherTest([[3 + 1e-9, 1], [1, 3]]), []],
+    // fisher.test(matrix(c(0.4,1,1,3), 2, byrow = TRUE))
+    ["rounded to 0", () => fisherTest([[0.4, 1], [1, 3]]), [`${ROUNDED}1`]],
+    // fisher.test(matrix(c(1000000.4,2,3,4), 2, byrow = TRUE))
+    ["a small relative difference", () => fisherTest([[1000000.4, 2], [3, 4]], { confInt: false }), [`${ROUNDED}3.999998e-07`]],
+    // fisher.test(matrix(c(10.3,1,1,3), 2, byrow = TRUE))
+    ["eight digits", () => fisherTest([[10.3, 1], [1, 3]]), [`${ROUNDED}0.02912621`]],
+    // fisher.test(matrix(c(1.5,2,3,4,5,6.25), 2, byrow = TRUE))
+    ["2 x 3", () => fisherTest([[1.5, 2, 3], [4, 5, 6.25]]), [`${ROUNDED}0.09677419`]],
+    // fisher.test(matrix(c(3,1,1,3), 2, byrow = TRUE))
+    ["integer counts", () => fisherTest([[3, 1], [1, 3]]), []],
+  ];
+  it.each(cases)("%s", (_, f, expected) => {
+    expect(f().warnings).toEqual(expected);
+  });
+
+  it("passes the warning to the handler", () => {
+    const handler = vi.fn<WarningHandler>();
+    setWarningHandler(handler);
+    fisherTest([[1.5, 2, 3], [4, 5, 6.25]]);
+    expect(handler.mock.calls).toEqual([[`${ROUNDED}0.09677419`, "fisherTest"]]);
   });
 });

@@ -64,8 +64,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   but the normal-approximation interval is returned; "samples differ in location: cannot compute confidence set,
   returning NA", "cannot compute confidence set, returning NA", "cannot compute estimate, returning NA" and "cannot
   compute asymptotic confidence set or estimator", where the interval or estimate is `NaN` or left out) and
-  `pairwiseWilcoxTest` (those of its comparisons, each once). The warnings R gives in the other tests that lack them
-  are to come.
+  `pairwiseWilcoxTest` (those of its comparisons, each once), `fisherTest` ("'x' has been rounded to integer: Mean
+  relative difference: 0.0625", with the text of R's `all.equal` of the counts and the rounded counts). The warnings R
+  gives in the other tests that lack them are to come.
 
 ### Added
 
