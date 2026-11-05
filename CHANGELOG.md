@@ -76,7 +76,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   warnings: "Item =  had no variance and was deleted but still is counted in the score" for a constant item and "Some
   items were negatively correlated with the first principal component and probably should be reversed. ..." (as
   psych's `principal`: the eigenvector of the largest eigenvalue of the correlations, signed so that its sum is not
-  negative). The warnings R gives in the other tests that lack them are to come.
+  negative).
 
 ### Added
 
