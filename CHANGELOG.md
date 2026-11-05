@@ -54,30 +54,36 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   (`lmer`'s `weights`, `lmerAnova`'s `ddf`, ...) is still the Error "lmer: argument 'weights' is not supported",
   checked first.
 - `HTest` and the other results of the tests, effect sizes, power and agreement functions, and `factanal`'s, have a
-  required `warnings: string[]`: R's warnings, each once, in R's order, an empty array when there are none. Code that
-  builds such an object itself must add the field. The functions that had no `warnings` return an empty array, except
-  those that now give R's warnings where they were silent: `wilcoxTest` ("cannot compute exact p-value with ties" or
-  "with zeroes" and the same of the interval, when the exact method asked for or chosen by default cannot be used;
-  "requested conf.level not achievable", where the interval's confidence level is lowered; "cannot compute confidence
-  interval when all observations are zero or tied", where the interval is `NaN`) and `ansariTest` ("cannot compute
-  exact p-value with ties" and, with `confInt`, "cannot compute exact confidence intervals with ties", where R stops
-  but the normal-approximation interval is returned; "samples differ in location: cannot compute confidence set,
-  returning NA", "cannot compute confidence set, returning NA", "cannot compute estimate, returning NA" and "cannot
-  compute asymptotic confidence set or estimator", where the interval or estimate is `NaN` or left out) and
-  `pairwiseWilcoxTest` (those of its comparisons, each once), `fisherTest` ("'x' has been rounded to integer: Mean
-  relative difference: 0.0625", with the text of R's `all.equal` of the counts and the rounded counts), `chisqTest`
-  ("Chi-squared approximation may be incorrect" where an expected count is below 5 and the p-value is not simulated,
-  and "cannot compute simulated p-value with zero marginals"), `propTest` ("Chi-squared approximation may be
-  incorrect") and `pairwisePropTest` (that of its comparisons, once), `ksTest` ("ties should not be present for the
-  one-sample Kolmogorov-Smirnov test", and "p-value will be approximate in the presence of ties" for two samples with
-  the asymptotic p-value), `corTest` ("the standard deviation is zero" where x or y is constant, "Cannot compute
-  exact p-value with ties" for Kendall and Spearman, and R's "NaNs produced" of Spearman's t approximation for 2 pairs,
-  whose p-value is `NaN`). `cohensD` and `hedgesG` also give effectsize's "'y' is numeric
-  but has only 2 unique values. ..." where `y` has exactly 2 distinct values. `cronbachAlpha` gives psych's own
-  warnings: "Item =  had no variance and was deleted but still is counted in the score" for a constant item and "Some
-  items were negatively correlated with the first principal component and probably should be reversed. ..." (as
-  psych's `principal`: the eigenvector of the largest eigenvalue of the correlations, signed so that its sum is not
-  negative).
+  required `warnings: string[]`: R's warnings, each once, in R's order, an empty array when there are none (not the
+  warnings of R's distribution functions about their own precision, nor those about R's argument types; those that
+  explain a `NaN` are included). Code that builds such an object itself must add the field. Nothing is printed unless
+  a handler is set (`setWarningHandler`, under Added). The functions that had no `warnings` return an empty array,
+  except 10 that now give R's warnings where they were silent, and `cohensD` and `hedgesG` give a new one:
+  - `wilcoxTest`: "cannot compute exact p-value with ties" or "with zeroes" and the same of the interval, when the
+    exact method asked for or chosen by default cannot be used; "requested conf.level not achievable", where the
+    interval's confidence level is lowered; "cannot compute confidence interval when all observations are zero or
+    tied", where the interval is `NaN`. `pairwiseWilcoxTest` returns those of its comparisons, each once.
+  - `ansariTest`: "cannot compute exact p-value with ties" and, with `confInt`, "cannot compute exact confidence
+    intervals with ties", where R stops but the normal-approximation interval is returned; "samples differ in
+    location: cannot compute confidence set, returning NA", "cannot compute confidence set, returning NA", "cannot
+    compute estimate, returning NA" and "cannot compute asymptotic confidence set or estimator", where the interval or
+    estimate is `NaN` or left out.
+  - `fisherTest`: "'x' has been rounded to integer: Mean relative difference: 0.0625", with the text of R's
+    `all.equal` of the counts and the rounded counts.
+  - `chisqTest`: "Chi-squared approximation may be incorrect" where an expected count is below 5 and the p-value is
+    not simulated, and "cannot compute simulated p-value with zero marginals". `propTest`: "Chi-squared approximation
+    may be incorrect"; `pairwisePropTest` returns it once.
+  - `ksTest`: "ties should not be present for the one-sample Kolmogorov-Smirnov test", and "p-value will be
+    approximate in the presence of ties" for two samples with the asymptotic p-value.
+  - `corTest`: "the standard deviation is zero" where x or y is constant, "Cannot compute exact p-value with ties"
+    for Kendall and Spearman, and R's "NaNs produced" of Spearman's t approximation for 2 pairs, whose p-value is
+    `NaN`.
+  - `cohensD` and `hedgesG`: effectsize's "'y' is numeric but has only 2 unique values. ..." where `y` has exactly 2
+    distinct values.
+  - `cronbachAlpha`: psych's own warnings, "Item =  had no variance and was deleted but still is counted in the
+    score" for a constant item and "Some items were negatively correlated with the first principal component and
+    probably should be reversed. ..." (as psych's `principal`: the eigenvector of the largest eigenvalue of the
+    correlations, signed so that its sum is not negative).
 
 ### Added
 
@@ -99,7 +105,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   RangeError. New types: `GlmResidualsOptions`, `CohenESOptions`, `OuterFun`, `OuterOptions`, `TabulateOptions`,
   `PropTrendTestOptions`, `SplineFunction` and `SplineFunctionOptions`.
 - `setWarningHandler(handler)` passes R's warnings to a function of the user's choice, as R prints them, such as
-  ``setWarningHandler((message, source) => console.warn(`${source}: ${message}`))``: each call of a test, model or fit
+  `setWarningHandler((message, source) => console.warn(source + ": " + message))`: each call of a test, model or fit
   (and `pivotLonger` without `onWarning`) passes its warnings once it has its result, each distinct warning once, with
   the name of the function called (also the warnings the tests now give, such as `wilcoxTest`'s "cannot compute exact
   p-value with ties"); a function that calls another, such as `pairwiseWilcoxTest`, passes them once under

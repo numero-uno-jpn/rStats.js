@@ -278,7 +278,7 @@ export function anova(fit: LmFormulaResult, ...fits: LmFormulaResult[]): AnovaTa
 export interface AovStrataSummary {
   /** The table of each stratum, in order, without the intercept stratum. */
   strata: AovStratum[];
-  /** Warnings of the summary (empty; the fit's warnings are in its own `warnings`). */
+  /** The fit's warnings (such as "Error() model is singular"), each once; R gives them when fitting. */
   warnings: string[];
 }
 

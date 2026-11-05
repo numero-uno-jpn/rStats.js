@@ -40,6 +40,9 @@ function currentHandler(): WarningHandler | null {
  * `warnings` but passes only the warnings it adds. An error thrown by the handler propagates to the caller. By default
  * there is no handler and nothing is printed.
  *
+ * To print the warnings as R does, set `(message, source) => console.warn(source + ": " + message)`. A handler that
+ * throws (`(message) => { throw new Error(message); }`) turns each warning into an error, as R's `options(warn = 2)`.
+ *
  * The handler is kept on `globalThis`, so it is one setting for every copy of the library loaded on a page.
  *
  * @param handler The function that receives the warnings, or `null` to stop passing them.
