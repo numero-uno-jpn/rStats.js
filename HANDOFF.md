@@ -1,12 +1,12 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-05 (セッション 15 の終わり)
+最終更新: 2026-11-05 (セッション 15 の終わり、0.17.0 を公開)
 
 ## まず読むこと (セッション 16 から)
 
-- **今の状態:** すべて push 済み (origin/main = `30fc5e9`)、CI (Node 22・24・browser) は通過、作業ツリーの未追跡は HANDOFF.md だけ (ユーザーの指示でコミットしない)。npm の公開版は 0.16.0 (2026-11-04)。open の Issue は 0 件。外部レビュー (ChatGPT) は終了
+- **今の状態:** すべて push 済み (origin/main = `84ecbd0`)、CI (Node 22・24・browser) は通過。**npm の公開版は 0.17.0 (2026-11-05)**: 手順 1〜3 (API の整理・知らないキーのエラー・検定の warnings) を glmer の前に公開した。tag `v0.17.0` (release のワークフローが dist 入りのコミットに移した)、jsDelivr とデモ (VERSION v0.17.0) で読めることを確かめた。公開の手順は「版のコミットを作る → tag だけ先にユーザーが push → npm でユーザーが approve → jsDelivr を確かめてから main を push」(デモが未公開の版を読みに行かない)。open の Issue は 0 件。外部レビュー (ChatGPT) は終了
 - **次にやること: 1.0.0 までの手順 4 の glmer** (lme4 のラプラス近似)。まず読み取り専用のエージェントに、lme4 の glmer の仕組み、既存の lmer (src/models/lmer*.ts) で使い回せるところ、R と比べる範囲 (oracle) を調べさせ、判断の要る点を出してから Plan モードで計画する。セッション 15 の終わりにユーザーに提案したところで止まっている (まだ始めていない)
-- **残りの手順:** 4 glmer → 5 mixed をルートと dist/rstats.js に入れるか決める → 6 1.0.0 のリリース (CHANGELOG の `## Unreleased` を 1.0.0 に、版を上げるのは release と同時、サイズの表を測り直す (pnorm は今 1.6 KB で README の 1.4 KB と違う)、release の手順は CONTRIBUTING の Releasing と memory の release-version-bump)
+- **残りの手順:** 4 glmer → 5 mixed をルートと dist/rstats.js に入れるか決める → 6 1.0.0 のリリース (CHANGELOG の `## Unreleased` を 1.0.0 に、版を上げるのは release と同時、サイズの表を測り直す (0.17.0 で測り直し済み)、release の手順は CONTRIBUTING の Releasing と memory の release-version-bump)
 - **別件 (後で直す):** cronbachAlpha で分散 0 の項目があると、R (psych::alpha) はその項目を除いて計算するが、rStats.js は除かずに rawAlpha 0.72・G6 NaN を返す (警告 "Item =  had no variance…" は付けた)
 - **進め方 (セッション 15 で定着):**
   - 大きな作業は、読み取り専用のエージェントで洗い出し → 判断の要る点をユーザーに聞く → Plan モード → 修正用のエージェントを順に (並行にしない) → 私が差分を確かめて報告 → push はユーザーの指示があってから → CI を `gh run watch` で確かめる
