@@ -7,7 +7,11 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 0.17.0 - 2026-11-05
+
+The API is cleaned up toward 1.0.0, which follows the mixed models of `glmer`: argument errors are a `TypeError` or
+a `RangeError`, a key of an options object that the function does not know is an error, and the results of the tests
+have a required `warnings` with R's warnings, which `setWarningHandler` can also pass to a function.
 
 ### Breaking
 
