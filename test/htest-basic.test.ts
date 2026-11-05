@@ -419,7 +419,12 @@ if (hasFixture("ansariTestConfInt"))
       };
       const twin = cases.find((d) => d.args.exact === false && key(d.args) === key(c.args));
       if (twin === undefined) throw new Error("no exact = FALSE case for an R 'cint' error");
-      return { expected: twin.expected, reason: "R's 'cint' error with ties: compared with exact = FALSE (docs/differences-from-r.md)" };
+      // the warnings are those R gives before it stops (its exact method cannot be used), not those of the twin's interval
+      const warnings = ["cannot compute exact p-value with ties", "cannot compute exact confidence intervals with ties"];
+      return {
+        expected: { ...twin.expected, warnings },
+        reason: "R's 'cint' error with ties: compared with exact = FALSE (docs/differences-from-r.md), with R's warnings before it stops",
+      };
     },
   });
 const ksCall = (a: Record<string, HTestArg>) => {

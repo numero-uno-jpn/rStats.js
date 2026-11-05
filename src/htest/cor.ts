@@ -22,7 +22,7 @@
 // - R's warnings: "the standard deviation is zero" where the correlation is NaN because x or y is constant (R's cor;
 //   for Pearson finite values, as R, whose sd of an infinite constant is NaN), and "Cannot compute exact p-value with
 //   ties" where the exact p-value is asked for or the default (Kendall n < 50; Spearman always, as R's exact = TRUE)
-//   but there are ties
+//   but there are ties, and "NaNs produced" of R's pt with 0 degrees of freedom (Spearman's t approximation, n = 2)
 // - confLevel is validated only for Pearson. The interval is only reported with 4 or more pairs
 // More accurate than R: the correlation coefficient, 1 - r^2 and the continuity-corrected rho are computed in double-double.
 // R's cor is off by about 1e-10 for data with a large mean (1e8 + small spread), and does not give 1 even for perfect correlation (1 - 2 ulp).
@@ -353,7 +353,8 @@ function spearmanTail(n: number, q: number, lower: boolean): number {
  *
  * As R, `warnings` has "the standard deviation is zero" where x or y is constant (the correlation is `NaN`), and
  * "Cannot compute exact p-value with ties" where Kendall's or Spearman's exact p-value is asked for or the default
- * but there are ties (the approximation is used).
+ * but there are ties (the approximation is used), and "NaNs produced" where Spearman's t approximation has 2 pairs
+ * (0 degrees of freedom: the p-value is `NaN`).
  *
  * @param x First sample.
  * @param y Second sample, of the same length as `x`.
@@ -532,11 +533,16 @@ function corTestSamples(x: Sample, y: Sample, options: CorTestOptions): CorTestR
     if (Math.abs(r[0]) >= 1) r = [Math.sign(r[0]), 0];
   }
   const t = tFromR(r, n - 2);
+  // n = 2: R's pt with 0 degrees of freedom gives NaN with its warning (R's rho of the two ranks is ±(1 - 2^-52), so
+  // its t is finite)
+  if (n === 2) base.warnings = [...base.warnings, NANS];
   return reported("corTest", { ...base, pValue: pFromT(t, n - 2, alternative) });
 }
 
 /** R's warning of cor where x or y is constant */
 const SD_ZERO = "the standard deviation is zero";
+/** R's warning of pt where the p-value is NaN (Spearman's t approximation with n = 2) */
+const NANS = "NaNs produced";
 /** R's warning where the exact p-value cannot be used because of ties */
 const TIES = "Cannot compute exact p-value with ties";
 

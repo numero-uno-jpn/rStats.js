@@ -37,7 +37,8 @@ const STRING_FIELDS = new Set([
   // levels of chisqTest's factors
   "rowLevels",
   "colLevels",
-  // R's warning messages (glm)
+  // R's warning messages (glm and the other fits; the tests, whose fixtures leave out the warnings of R's
+  // distribution functions about their own precision: DROPPED_HTEST_WARNINGS in oracle/_htest.R)
   "warnings",
 ]);
 
@@ -137,7 +138,8 @@ export function htestSuite(spec: HTestSpec): void {
         let c = c0;
         const sub = spec.substitute?.(c0, fixture.cases);
         if (sub !== undefined) {
-          c = { args: c0.args, expected: sub.expected };
+          // (the reference values stay: they are of the same arguments)
+          c = { ...c0, expected: sub.expected };
           reasons.set(sub.reason, (reasons.get(sub.reason) ?? 0) + 1);
         }
         let actual: Record<string, unknown>;

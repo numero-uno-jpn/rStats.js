@@ -76,9 +76,19 @@ htestSuite({
     if (d.length > 0 && d.every((v) => v === 0)) {
       return { expected: { error: "no non-zero differences for the signed rank test" }, reason: "signed rank test with only zero differences: R returns NaN" };
     }
-    // R's "midrange" goes with its interval NaN (#502; the values are known differences above)
+    // R's "midrange" and its warning that the observations are all tied go with its interval NaN (#502; the values are
+    // known differences above)
+    const tied = "cannot compute confidence interval when all observations are zero or tied";
+    const warnings = c.expected.warnings as string[] | undefined;
     return lostObservations(c.args)
-      ? { expected: { ...c.expected, estimateNames: "(pseudo)median" }, reason: "observations lost in (x - mu) + mu: R's estimate is the midrange 0" }
+      ? {
+          expected: {
+            ...c.expected,
+            estimateNames: "(pseudo)median",
+            ...(warnings === undefined ? {} : { warnings: warnings.filter((w) => w !== tied) }),
+          },
+          reason: "observations lost in (x - mu) + mu: R's estimate is the midrange 0 (and R warns that all are tied)",
+        }
       : undefined;
   },
 });

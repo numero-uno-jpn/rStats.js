@@ -70,8 +70,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   and "cannot compute simulated p-value with zero marginals"), `propTest` ("Chi-squared approximation may be
   incorrect") and `pairwisePropTest` (that of its comparisons, once), `ksTest` ("ties should not be present for the
   one-sample Kolmogorov-Smirnov test", and "p-value will be approximate in the presence of ties" for two samples with
-  the asymptotic p-value), `corTest` ("the standard deviation is zero" where x or y is constant, and "Cannot compute
-  exact p-value with ties" for Kendall and Spearman). `cohensD` and `hedgesG` also give effectsize's "'y' is numeric
+  the asymptotic p-value), `corTest` ("the standard deviation is zero" where x or y is constant, "Cannot compute
+  exact p-value with ties" for Kendall and Spearman, and R's "NaNs produced" of Spearman's t approximation for 2 pairs,
+  whose p-value is `NaN`). `cohensD` and `hedgesG` also give effectsize's "'y' is numeric
   but has only 2 unique values. ..." where `y` has exactly 2 distinct values. `cronbachAlpha` gives psych's own
   warnings: "Item =  had no variance and was deleted but still is counted in the score" for a constant item and "Some
   items were negatively correlated with the first principal component and probably should be reversed. ..." (as
