@@ -175,6 +175,11 @@ describe("glmerDeviance: evaluations and the forms of the response", () => {
       new RangeError("nAGQ > 1 is only available for models with a single, scalar random-effects term"),
     );
     expect(() => glmerStructure("cnt ~ x + (1 | g) + (1 | h)", data, { family: "poisson", nAGQ: 2 })).toThrow(RangeError);
+    // R's second message: several terms of one grouping factor, the first one scalar
+    const agq = new RangeError("AGQ only defined for a single scalar random-effects term");
+    expect(() => glmerStructure("cnt ~ x + (x || g)", data, { family: "poisson", nAGQ: 2 })).toThrow(agq);
+    expect(() => glmerStructure("cnt ~ x + (1 | g) + (x | g)", data, { family: "poisson", nAGQ: 2 })).toThrow(agq);
+    expect(() => glmerStructure("cnt ~ x + (x | g) + (1 | g)", data, { family: "poisson", nAGQ: 2 })).toThrow(/only available/);
   });
 
   it("glmer's checks of the structure", () => {

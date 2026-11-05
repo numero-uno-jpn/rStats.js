@@ -24,7 +24,13 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   at the optimum in 110-bit arithmetic, matched within 1e-7, the log-likelihood within 1e-10, standard errors within
   1e-6), which lme4 approaches to its own tolerances: its estimates differ in about the 4th to 6th significant digit
   and its standard errors, from a finite-difference Hessian of its approximate deviance, by up to about 1%.
-  Adaptive Gauss-Hermite quadrature (`nAGQ > 1`), `glmerSummary`, `glmerAnova` and `predict` for new data come later.
+  Adaptive Gauss-Hermite quadrature (`nAGQ` from 2 to 100) for a single scalar random-effects term such as `(1 | g)`
+  (R's two errors otherwise), with the rule computed to rounding error, the binomial and poisson families only (for
+  Gamma, inverse.gaussian and gaussian a RangeError: lme4 holds the dispersion at 1 there, so its estimates would not
+  be maximum likelihood); its `logLik`, `AIC` and `BIC` are those of the log-likelihood, which R's leave out the
+  constant of the saturated model for `nAGQ > 1` (they differ from R's by that constant), and its estimates match the
+  exact optimum as for the Laplace approximation (lme4's AGQ fits are close: standard errors within about 4e-5).
+  `glmerSummary`, `glmerAnova` and `predict` for new data come later.
 
 ## 0.17.0 - 2026-11-05
 

@@ -333,8 +333,21 @@ Choices of the specification of stage 2e:
 
 - `nAGQ > 1` with the wrong random-effects terms is checked at the structure (as in stage 2b), with R's two
   messages chosen by R's rule ("When it is allowed"); R checks them later (after phase 1).
-- The AGQ deviance of Gamma, inverse.gaussian and gaussian holds the dispersion at 1, as R's does (reproduced, not
-  corrected).
+- The AGQ deviance of Gamma, inverse.gaussian and gaussian holds the dispersion at 1, as R's does (reproduced in the
+  deviance at given parameters, not corrected; superseded for the fit by G13).
+
+Decided by the user (2026-11-05) for stage 2e:
+
+- **G12 The log-likelihood with `nAGQ > 1`** (binomial and poisson): `logLik`, `AIC` and `BIC` (and anything derived
+  from `logLik`) are the true log-likelihood, `−(D_K + c)/2` with the saturated model's constant `c = aic − Σ d_i`
+  (computed at the fitted means; it does not depend on μ for these families), not R's `−D_K/2`. The estimates, the
+  covariance matrix and every other field are R's. They differ from R's `logLik` by `−c/2` (0 for 0/1 data with
+  prior weights 1) and are comparable with the Laplace fit's and with glm's. To differences-from-r.
+- **G13 `nAGQ > 1` with Gamma, inverse.gaussian and gaussian** is a RangeError, `glmer: nAGQ > 1 is not available for
+  the <family> family (lme4 holds the dispersion at 1 there, so its estimates would not be maximum likelihood)`,
+  checked after the structure (its errors, the two messages of the random-effects terms included, come first). R
+  fits these models with the dispersion held at 1; the fixture glmerAgq's cases of these families are this error in
+  the tests. To differences-from-r.
 
 ## The fit and its results (stage 2c)
 

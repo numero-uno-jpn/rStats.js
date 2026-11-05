@@ -1,6 +1,7 @@
 // The Laplace deviance of a generalised linear mixed model (lme4's glmer) at given parameters: the conditional mode
 // of the spherical random effects by penalised iteratively reweighted least squares (PIRLS), the log determinant of
-// L_θ at the mode, and the family's aic term. Nothing is optimised here.
+// L_θ at the mode, and the family's aic term. Nothing is optimised here. At the end of the file: the Gauss-Hermite
+// rule and the adaptive Gauss-Hermite quadrature deviance of nAGQ > 1 (stage 2e), built on the mode of nAGQ = 1.
 //
 // Written for rStats.js (no ported code) from oracle/glmer-behaviour.md ("The Laplace deviance", stage 2a) and the
 // notation of D. Bates, M. Mächler, B. Bolker, S. Walker (2015), "Fitting Linear Mixed-Effects Models Using lme4",
@@ -337,4 +338,162 @@ export function glmerDeviance(
       ...(rxtrx === undefined ? {} : { rxtrx }),
     };
   });
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Adaptive Gauss-Hermite quadrature (nAGQ > 1; oracle/glmer-behaviour.md, "Adaptive Gauss-Hermite quadrature (stage
+// 2e)"): the rule for the standard normal density, computed here (no table), and the AGQ deviance at given (θ, β).
+
+/** A Gauss-Hermite rule for the standard normal density: nodes in increasing order and their weights (sum 1). */
+export interface GaussHermiteRule {
+  nodes: number[];
+  weights: number[];
+}
+
+const ruleCache = new Map<number, GaussHermiteRule>();
+
+/**
+ * The orthonormal Hermite polynomials h_j = He_j / √(j!) at x for j = 0..K by their recurrence
+ * h_(j+1) = (x h_j − √j h_(j−1)) / √(j+1): returns h_K, h_(K−1) and Σ_(j<K) h_j²
+ */
+function hermiteAt(x: number, k: number): { hk: number; hk1: number; sum: number } {
+  let prev = 0;
+  let cur = 1;
+  let sum = 0;
+  for (let j = 0; j < k; j++) {
+    sum += cur * cur;
+    const next = (x * cur - Math.sqrt(j) * prev) / Math.sqrt(j + 1);
+    prev = cur;
+    cur = next;
+  }
+  return { hk: cur, hk1: prev, sum };
+}
+
+/**
+ * The K-point Gauss-Hermite rule for the standard normal density (K = 1..100): the nodes are the zeros of the
+ * probabilists' Hermite polynomial He_K, the weights 1 / Σ_(j<K) He_j(z)² / j!. The positive zeros are bracketed by a
+ * scan of the sign of He_K (step 0.01, well below the smallest spacing of the zeros, about π / √(2K + 1) = 0.22 for
+ * K = 100), narrowed by bisection and finished by Newton's method (He_K' = K He_(K−1)); the negative nodes are their
+ * mirror images and the middle node of an odd rule is exactly 0, so the rule is symmetric as lme4's symmetrised table
+ * is. Cached per K.
+ */
+export function gaussHermiteRule(k: number): GaussHermiteRule {
+  const cached = ruleCache.get(k);
+  if (cached !== undefined) return cached;
+  if (!Number.isInteger(k) || k < 1 || k > 100) throw new RangeError("the number of quadrature points must be an integer from 1 to 100");
+  const positive: number[] = [];
+  // (the largest zero of He_K is below √(4K + 2))
+  const end = Math.sqrt(4 * k + 2) + 0.5;
+  const step = 0.01;
+  const valueAt = (x: number): number => hermiteAt(x, k).hk;
+  let a = k % 2 === 1 ? step / 2 : 0;
+  let fa = valueAt(a);
+  while (a < end && positive.length < Math.floor(k / 2)) {
+    const b = a + step;
+    const fb = valueAt(b);
+    if (fb === 0 || Math.sign(fa) !== Math.sign(fb)) {
+      // bisection to a bracket of 1e-6, then Newton's method to convergence
+      let lo = a;
+      let hi = b;
+      let flo = fa;
+      while (hi - lo > 1e-6) {
+        const mid = (lo + hi) / 2;
+        const fm = valueAt(mid);
+        if (Math.sign(fm) === Math.sign(flo)) {
+          lo = mid;
+          flo = fm;
+        } else hi = mid;
+      }
+      let z = (lo + hi) / 2;
+      for (let it = 0; it < 20; it++) {
+        const { hk, hk1 } = hermiteAt(z, k);
+        const dz = hk / (Math.sqrt(k) * hk1);
+        z -= dz;
+        if (Math.abs(dz) <= 1e-17 * Math.max(1, Math.abs(z))) break;
+      }
+      positive.push(z);
+    }
+    a = b;
+    fa = fb;
+  }
+  if (positive.length !== Math.floor(k / 2)) throw new Error(`gaussHermiteRule: found ${positive.length} positive zeros for K = ${k}`);
+  const weightOf = (z: number): number => 1 / hermiteAt(z, k).sum;
+  const nodes = [...positive.map((z) => -z).reverse(), ...(k % 2 === 1 ? [0] : []), ...positive];
+  const weights = nodes.map((z) => weightOf(Math.abs(z)));
+  const rule = { nodes, weights };
+  ruleCache.set(k, rule);
+  return rule;
+}
+
+/** The AGQ deviance and the conditional mode at given parameters. */
+export interface GlmerAgqDeviance extends GlmerDeviance {
+  /**
+   * The AGQ deviance devResid + ussq + ldL2 + quad (no aic term: lme4's likelihood relative to the saturated model,
+   * with the dispersion held at 1).
+   */
+  deviance: number;
+  /** −2 Σ_j log Σ_k w_k exp(z_k²/2 − Δ_jk/2), the quadrature's term. */
+  quad: number;
+  /** The conditional standard deviations σ_j = 1 / L_j of the levels. */
+  condSd: number[];
+}
+
+/**
+ * The adaptive Gauss-Hermite quadrature deviance D_K(θ, β) of a model with one scalar random-effects term, at the
+ * exact conditional mode (that of nAGQ = 1, {@link glmerDeviance}) with the rule of {@link gaussHermiteRule}
+ * (oracle/glmer-behaviour.md, "The deviance at given (θ, β)"). Internal: not exported from the package.
+ *
+ * @param structure The structure (one random-effects term with one column).
+ * @param theta θ (one value).
+ * @param beta The fixed effects.
+ * @param nAGQ The number of points K (2 to 100).
+ * @param options `rx`: also return R_X'R_X at the mode.
+ */
+export function glmerAgqDeviance(
+  structure: GlmerStructure,
+  theta: readonly number[],
+  beta: readonly number[],
+  nAGQ: number,
+  options: { rx?: boolean } = {},
+): GlmerAgqDeviance {
+  if (structure.terms.length !== 1 || structure.terms[0]!.columns.length !== 1) throw new RangeError("AGQ only defined for a single scalar random-effects term");
+  const rule = gaussHermiteRule(nAGQ);
+  const mode = glmerDeviance(structure, theta, beta, 1, options);
+  const fam = structure.family;
+  const { y, weights: w } = structure;
+  const th = theta[0]!;
+  // (the log weights plus z²/2, which stay below 0 for every K ≤ 100)
+  const logWeights = rule.nodes.map((z, k) => Math.log(rule.weights[k]!) + (z * z) / 2);
+  let ldL2 = 0;
+  let quad = 0;
+  const condSd = structure.z.map((col, j) => {
+    const uj = mode.u[j]!;
+    const c = col.values.map((v) => v * th);
+    // L_j² = 1 + Σ W_i c_i² with the Fisher weights at the mode
+    let l2 = 1;
+    col.rows.forEach((i, m) => {
+      if (w[i] === 0) return;
+      const me = fam.muEta(mode.eta[i]!);
+      l2 += ((w[i]! * me * me) / fam.variance(mode.mu[i]!)) * c[m]! * c[m]!;
+    });
+    ldL2 += Math.log(l2);
+    const sd = 1 / Math.sqrt(l2);
+    const d0 = col.rows.map((i) => fam.devResid(y[i]!, mode.mu[i]!, w[i]!));
+    let sum = 0;
+    rule.nodes.forEach((z, k) => {
+      let delta = 0;
+      if (z !== 0) {
+        const t = z * sd;
+        delta = t * (2 * uj + t);
+        col.rows.forEach((i, m) => {
+          if (c[m] === 0) return;
+          delta += fam.devResid(y[i]!, fam.linkinv(mode.eta[i]! + c[m]! * t), w[i]!) - d0[m]!;
+        });
+      }
+      sum += Math.exp(logWeights[k]! - delta / 2);
+    });
+    quad -= 2 * Math.log(sum);
+    return sd;
+  });
+  return { ...mode, deviance: mode.devResid + mode.ussq + ldL2 + quad, ldL2, quad, condSd };
 }

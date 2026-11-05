@@ -4,7 +4,7 @@
 //
 // Written for rStats.js (no ported code) from oracle/glmer-behaviour.md ("The model structure: what differs from
 // lmer", "The response", "Prior weights and offset", "The structure and its checks") and its section "rStats.js's
-// choices" (G1 to G5).
+// choices" (G1 to G5), with the two messages of nAGQ > 1 ("Adaptive Gauss-Hermite quadrature", "When it is allowed").
 
 import { Warnings, withWarnings } from "../internal/warnings.js";
 import type { GlmFamilyName, GlmFamilySpec, GlmLink } from "./glmFamily.js";
@@ -116,8 +116,13 @@ export function glmerStructure(formula: string, data: DataFrame, options: GlmerS
   const s = mixedModelStructure(formula, frameData, { ...(levels === undefined ? {} : { levels }), ...(contrasts === undefined ? {} : { contrasts }) }, true);
   const rows = kept === undefined ? s.rows : s.rows.map((i) => kept[i]!);
   const n = rows.length;
-  if (nAGQ > 1 && !(s.terms.length === 1 && s.terms[0]!.columns.length === 1)) {
-    throw new RangeError("nAGQ > 1 is only available for models with a single, scalar random-effects term");
+  // nAGQ > 1: exactly one term with one column, with R's two messages from its two checks (terms in lmer's order):
+  // several grouping factors or a first term with several columns, then several terms of one factor
+  if (nAGQ > 1) {
+    if (s.groups.length > 1 || s.terms[0]!.columns.length > 1) {
+      throw new RangeError("nAGQ > 1 is only available for models with a single, scalar random-effects term");
+    }
+    if (s.terms.length > 1) throw new RangeError("AGQ only defined for a single scalar random-effects term");
   }
 
   // the response, as lme4 reads it before the family's initialize

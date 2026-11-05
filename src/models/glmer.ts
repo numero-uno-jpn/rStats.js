@@ -1,18 +1,20 @@
-// Generalized linear mixed models fitted by the Laplace approximation or with the fixed effects from the penalised
-// IRLS (lme4's glmer with nAGQ = 1 or 0): the exact minimiser of the Laplace deviance computed at the exact
+// Generalized linear mixed models fitted by the Laplace approximation, by adaptive Gauss-Hermite quadrature or with the
+// fixed effects from the penalised IRLS (lme4's glmer with nAGQ = 1, > 1 or 0): the exact minimiser of the deviance
+// (Laplace or quadrature) computed at the exact
 // conditional mode, and the fit's results at it (fixed effects and their covariance, the variance components, the
 // conditional modes of the random effects, fitted values and the four kinds of residuals, log-likelihood and
 // information criteria).
 //
-// Written for rStats.js (no ported code) from oracle/glmer-behaviour.md ("The fit and its results (stage 2c)" and
-// "rStats.js's choices") and D. Bates, M. Mächler, B. Bolker, S. Walker (2015), "Fitting Linear Mixed-Effects Models
+// Written for rStats.js (no ported code) from oracle/glmer-behaviour.md ("The fit and its results (stage 2c)",
+// "Adaptive Gauss-Hermite quadrature (stage 2e)" and "rStats.js's choices") and D. Bates, M. Mächler, B. Bolker, S. Walker (2015), "Fitting Linear Mixed-Effects Models
 // Using lme4", Journal of Statistical Software 67(1). The structure comes from src/models/glmerStructure.ts, the
 // deviance at given parameters from src/models/glmerDeviance.ts and the minimiser from src/models/mixedMinimiser.ts
 // (lmer's, with its treatment of the boundary: see the header of src/models/lmer.ts).
 //
 // The estimate (G6) minimises d₀(θ) (nAGQ = 0; β from the joint mode) or d₁(θ, β) (nAGQ = 1), not lme4's
 // early-stopped values: first d₀ from the initial θ (or the start), as lme4's first phase; for nAGQ = 1 then d₁ from
-// that θ and the β of the joint mode there (or the start). Each minimisation compares its local minimum with the
+// that θ and the β of the joint mode there (or the start); for nAGQ = K > 1 the same with the AGQ deviance D_K(θ, β)
+// in place of d₁ (one scalar term; binomial and poisson only, G13). Each minimisation compares its local minimum with the
 // boundary points of whole terms, as lmer's. The gradient is from central differences of the deviance with
 // Richardson's extrapolation (5 points; step 1e-3 of max(1, max |x|)), accurate to about 1e-10 since the deviance at
 // the exact mode is accurate to about 1e-14 (relative); the Hessian of the Newton steps from second differences of
@@ -24,17 +26,20 @@
 // Before any of this, lme4's initial PIRLS (nAGQ = 0 at the structure's initial θ, from the family's starting means)
 // is run: its errors are glmer's errors, with lme4's messages.
 //
-// vcov (G9): 2 [H⁻¹]_ββ with H the Hessian of d₁ in (θ, β) at the optimum, when lme4 uses its Hessian (nAGQ ≥ 1, the
+// vcov (G9): 2 [H⁻¹]_ββ with H the Hessian of d₁ (or D_K) in (θ, β) at the optimum, when lme4 uses its Hessian (nAGQ ≥ 1, the
 // fit not singular, n < 10000, length(θ) + p < 20); H from central differences of the gradient with Richardson's
 // extrapolation (5 points, step 1e-2), accurate to about 1e-8. Otherwise, and with R's warning when H is not positive
 // definite, σ² (R_X'R_X)⁻¹ with the working weights at the mode.
+//
+// logLik for nAGQ > 1 (G12): R's is −D_K / 2, relative to the saturated model; here the saturated model's constant
+// is added back so that it is the log-likelihood, comparable with nAGQ = 1 and with glm.
 
 import { potf2, potri } from "../linalg/chol.js";
 import { ldexp } from "../internal/summary.js";
 import { reported, Warnings } from "../internal/warnings.js";
 import type { GlmLinkName } from "./glmFamily.js";
 import type { GlmerFamilyName } from "./glmerFamily.js";
-import { glmerDeviance, type GlmerDeviance } from "./glmerDeviance.js";
+import { glmerAgqDeviance, glmerDeviance, type GlmerDeviance } from "./glmerDeviance.js";
 import { glmerStructure, type GlmerStructure } from "./glmerStructure.js";
 import { checkLmerOptions, columnsOfTheta, thetaColumnExponents, type LmerContrastName, type LmerRanef, type LmerVarCorr } from "./lmer.js";
 import { minimiseWithRestarts, type MinimiserProblem, type MinimiserSettings } from "./mixedMinimiser.js";
@@ -74,8 +79,13 @@ export interface GlmerOptions {
   offset?: readonly (number | null)[] | Float64Array | string;
   /**
    * 1 (default): the Laplace approximation, the deviance minimised over θ and β; 0: over θ only, with β from the
-   * penalised IRLS (faster, less exact). A non-integer is truncated as in R; negative values are a RangeError (R
-   * uses 0), values above 1 (adaptive Gauss-Hermite quadrature) are not supported yet.
+   * penalised IRLS (faster, less exact); 2 to 100: adaptive Gauss-Hermite quadrature with that many points, more
+   * exact than the Laplace approximation. A non-integer is truncated as in R; negative values are a RangeError (R
+   * uses 0), above 100 R's error. Above 1 the model must have a single random-effects term with one column, such as
+   * `(1 | g)` (otherwise R's errors `nAGQ > 1 is only available for models with a single, scalar random-effects
+   * term` or `AGQ only defined for a single scalar random-effects term`), and the family must be binomial or
+   * poisson: for Gamma, inverse.gaussian and gaussian it is a RangeError, since lme4 holds the dispersion at 1 there
+   * and its estimates are not maximum likelihood (R fits them).
    */
   nAGQ?: number;
   /**
@@ -113,7 +123,7 @@ export interface GlmerResult {
   family: GlmerFamilyName;
   /** The link. */
   link: GlmLinkName;
-  /** 1 (the Laplace approximation) or 0 (β from the penalised IRLS). */
+  /** 1 (the Laplace approximation), 0 (β from the penalised IRLS) or the number of quadrature points (2 to 100). */
   nAGQ: number;
   /** Number of rows used (rows with prior weight 0 included; R's `nobs()`). */
   nObs: number;
@@ -165,7 +175,11 @@ export interface GlmerResult {
   responseResiduals: number[];
   /** The sum of the squared deviance residuals (R's `deviance()`; not −2 logLik). */
   deviance: number;
-  /** The log-likelihood of the Laplace approximation, −1/2 times the deviance minimised (R's `logLik()`). */
+  /**
+   * The log-likelihood: of the Laplace approximation, −1/2 times the deviance minimised (R's `logLik()`), or with
+   * nAGQ > 1 of the quadrature, including the constant of the saturated model that R's `logLik()` leaves out there
+   * (so that it is comparable with nAGQ = 1 and with glm).
+   */
   logLik: number;
   /** Degrees of freedom of the log-likelihood: the numbers of fixed effects and of θ, plus 1 for the families with a dispersion. */
   df: number;
@@ -282,8 +296,8 @@ function scaledStructure(s: GlmerStructure, ez: readonly number[]): GlmerStructu
 }
 
 /**
- * Fit a generalized linear mixed model by the Laplace approximation (`nAGQ = 1`, default) or with the fixed effects
- * from the penalised IRLS (`nAGQ = 0`). Equivalent to `lme4::glmer()` in R. With the quantities of its methods:
+ * Fit a generalized linear mixed model by the Laplace approximation (`nAGQ = 1`, default), by adaptive Gauss-Hermite
+ * quadrature (`nAGQ` from 2 to 100) or with the fixed effects from the penalised IRLS (`nAGQ = 0`). Equivalent to `lme4::glmer()` in R. With the quantities of its methods:
  * `fixef()`, `coef(summary())` (without p-values), `vcov()`, `sigma()`, `VarCorr()`, `ranef()`, `fitted()`,
  * `predict()`, `residuals()` of the four types, `deviance()`, `logLik()`, `AIC()`, `BIC()` and `isSingular()`.
  *
@@ -297,6 +311,13 @@ function scaledStructure(s: GlmerStructure, ez: readonly number[]): GlmerStructu
  * effects (lme4's optimiser and its penalised IRLS stop early, so lme4's values typically differ in the 4th to 6th
  * significant digit, its standard errors by up to about 1%). Elements of θ on the boundary are exactly 0, and the fit
  * is then singular. lme4's warnings about its optimiser and its convergence checks are not given.
+ *
+ * Adaptive Gauss-Hermite quadrature (`nAGQ > 1`) needs a single scalar random-effects term such as `(1 | g)`, with
+ * R's errors otherwise. It is offered for binomial and poisson only: for Gamma, inverse.gaussian and gaussian it is a
+ * RangeError, since lme4 holds the dispersion at 1 there, so that its estimates would not be maximum likelihood. Its
+ * `logLik`, `AIC` and `BIC` are those of the log-likelihood, unlike R's, which leave out the constant of the
+ * saturated model (`aic − Σ` deviance residuals) for nAGQ > 1: they differ from R's by that constant and are
+ * comparable with the Laplace fit's.
  *
  * @param formula A formula such as `"cbind(inc, notinc) ~ period + (1 | herd)"` or `"y ~ x + (1 | g)"`.
  * @param data The data frame: an object of columns.
@@ -338,8 +359,13 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
     ...(contrasts === undefined ? {} : { contrasts }),
     ...(levels === undefined ? {} : { levels }),
   });
-  if (s.nAGQ > 1) throw new RangeError("glmer: nAGQ > 1 (adaptive Gauss-Hermite quadrature) is not supported yet");
-  const nAGQ = s.nAGQ as 0 | 1;
+  const nAGQ = s.nAGQ;
+  if (nAGQ > 1 && s.family.family !== "binomial" && s.family.family !== "poisson") {
+    // (G13: R fits these, but its AGQ deviance holds the dispersion at 1, so its estimates are not maximum likelihood)
+    throw new RangeError(
+      `glmer: nAGQ > 1 is not available for the ${s.family.family} family (lme4 holds the dispersion at 1 there, so its estimates would not be maximum likelihood)`,
+    );
+  }
   const n = s.y.length;
   const p = s.xColNames.length;
   const nTheta = s.theta.length;
@@ -406,7 +432,7 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
   let thetaScaled = theta0;
   let beta: number[] | undefined;
   let vcovHessian: (() => number[][] | undefined) | undefined;
-  if (nAGQ === 1) {
+  if (nAGQ >= 1) {
     // β = β_s + s z, s the approximate standard errors from R_X of the joint mode at θ₀ (with the dispersion)
     const r0 = glmerDeviance(sc, theta0, undefined, 0, { rx: true });
     const betaStart = startFixef ?? r0.beta;
@@ -417,7 +443,9 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
       return Number.isFinite(v) && v > 0 ? v : 1;
     });
     const betaOf = (x: readonly number[]): number[] => betaStart.map((b, k) => b + unit[k]! * x[nTheta + k]!);
-    const d1 = (x: readonly number[]): number => safely(() => glmerDeviance(sc, x.slice(0, nTheta), betaOf(x), 1).deviance);
+    // d₁(θ, β), or the AGQ deviance D_K(θ, β) for nAGQ = K > 1
+    const d1 = (x: readonly number[]): number =>
+      safely(() => (nAGQ === 1 ? glmerDeviance(sc, x.slice(0, nTheta), betaOf(x), 1) : glmerAgqDeviance(sc, x.slice(0, nTheta), betaOf(x), nAGQ)).deviance);
     const best = minimiseWithRestarts(problemOf(d1, nTheta + p), [...theta0, ...new Array<number>(p).fill(0)], blocks).theta;
     thetaScaled = best.slice(0, nTheta);
     beta = betaOf(best);
@@ -446,7 +474,7 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
 
   // the fit at the estimate, on the given structure
   const theta = fromScaled(thetaScaled).map((v) => (v === 0 ? 0 : v));
-  const r = glmerDeviance(s, theta, beta, nAGQ, { rx: true });
+  const r = nAGQ > 1 ? glmerAgqDeviance(s, theta, beta!, nAGQ, { rx: true }) : glmerDeviance(s, theta, beta, nAGQ === 0 ? 0 : 1, { rx: true });
   const fixef = r.beta;
   const fam = s.family;
   const { y, weights: w } = s;
@@ -467,7 +495,7 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
 
   // (an absolute threshold on θ's diagonal elements, as lme4's isSingular with its default tolerance 1e-4)
   const singular = theta.some((v, j) => s.lower[j] === 0 && v < 1e-4);
-  const nParameters = nTheta + (nAGQ === 1 ? p : 0);
+  const nParameters = nTheta + (nAGQ >= 1 ? p : 0);
   // (lme4 gives the singular message from its convergence checks, which it runs only for these sizes)
   const checked = n < HESSIAN_MAX_N && nParameters < HESSIAN_MAX_PARAMETERS;
   const messages = [...s.messages];
@@ -519,7 +547,10 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
     };
   });
 
-  const logLik = -r.deviance / 2;
+  // nAGQ > 1 (binomial and poisson only, G13): the AGQ deviance has no aic term, so R's logLik is relative to the
+  // saturated model; here the saturated model's constant aic − Σ d_i (which does not depend on μ for these families)
+  // is added back, so that logLik is the log-likelihood (G12; R's logLik differs by it)
+  const logLik = -(r.deviance + (nAGQ > 1 ? r.aic - r.devResid : 0)) / 2;
   const df = p + nTheta + (dispersionFamily ? 1 : 0);
   return {
     formula,

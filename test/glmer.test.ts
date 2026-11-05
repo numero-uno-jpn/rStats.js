@@ -244,9 +244,9 @@ describe("glmer", () => {
       expect(fit({ start: { theta: [0] } }).theta[0]).toBeCloseTo(r.theta[0]!, 7);
     });
 
-    it("nAGQ: negative a RangeError (R uses 0), above 1 not supported yet, above 100 R's error", () => {
+    it("nAGQ: negative a RangeError (R uses 0), above 1 the quadrature (test/glmerAgq.test.ts), above 100 R's error", () => {
       expect(() => fit({ nAGQ: -1 })).toThrow(RangeError);
-      expect(() => fit({ nAGQ: 2 })).toThrow(new RangeError("glmer: nAGQ > 1 (adaptive Gauss-Hermite quadrature) is not supported yet"));
+      expect(fit({ nAGQ: 2.7 }).nAGQ).toBe(2);
       expect(() => fit({ nAGQ: 101 })).toThrow(new RangeError("nAGQ <= 100L is not TRUE"));
       // (truncated as in R)
       expect(fit({ nAGQ: 0.5 }).nAGQ).toBe(0);
