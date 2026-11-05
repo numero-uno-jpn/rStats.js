@@ -1,0 +1,69 @@
+# R 4.6.2 for the move of the oracles from R 4.5.2 to R 4.6 (image names rstats-oracle:4.6.2 and
+# rstats-oracle-amd64:4.6.2). The fixtures are still generated with oracle/Dockerfile (R 4.5.2); this file stands
+# beside it so that the two can be compared, and leaves that one untouched:
+#
+#   docker build -f oracle/Dockerfile.r46 -t rstats-oracle:4.6.2 oracle
+#   docker build --platform linux/amd64 -f oracle/Dockerfile.r46 -t rstats-oracle-amd64:4.6.2 oracle
+#   RSTATS_ORACLE_IMAGE=rstats-oracle:4.6.2 RSTATS_ORACLE_AMD64_IMAGE=rstats-oracle-amd64:4.6.2 npm run oracle -- <name>
+#
+# The same packages in the same layers as oracle/Dockerfile, from the same dated snapshot, so that a difference in
+# the results comes from R itself. rocker/r-ver 4.6 is built on Ubuntu 26.04 (resolute) and points to
+# __linux__/resolute/latest, so the snapshot is set for resolute.
+
+ARG R_VERSION=4.6.2
+FROM rocker/r-ver:${R_VERSION}
+
+ARG CRAN_SNAPSHOT=2026-10-23
+RUN set -e; \
+    PROFILE=/usr/local/lib/R/etc/Rprofile.site; \
+    sed -i "s|/cran/__linux__/resolute/[a-z0-9-]*|/cran/__linux__/resolute/${CRAN_SNAPSHOT}|g" "$PROFILE"; \
+    ACTUAL=$(Rscript -e 'cat(getOption("repos")[["CRAN"]])'); \
+    case "$ACTUAL" in \
+      *"${CRAN_SNAPSHOT}") echo "CRAN repository: $ACTUAL" ;; \
+      *) echo "failed to set the snapshot (expected ${CRAN_SNAPSHOT}, got $ACTUAL)"; exit 1 ;; \
+    esac
+ENV CRAN=https://p3m.dev/cran/__linux__/resolute/${CRAN_SNAPSHOT}
+
+# The binary packages expect the system libraries they link to; install.packages does not install them
+# (libmpfr for Rmpfr, libgmp for gmp, libuv for fs, which DescTools loads)
+RUN apt-get update && apt-get install -y --no-install-recommends libmpfr6 libgmp10 libuv1t64 \
+    && rm -rf /var/lib/apt/lists/*
+
+# jsonlite: fixture output. Rmpfr, gmp: high-precision references. MASS, Matrix: ginv, lu.
+# For functions that R itself lacks: extraDistr (distributions), e1071 (skewness, kurtosis),
+# DescTools (Gmean, Mode, MeanAD), pracma (interpolation, gammainc, erfinv), deSolve (ode),
+# numDeriv (grad, hessian), BSDA (z.test).
+RUN install2.r --error --skipinstalled \
+        jsonlite Rmpfr gmp MASS Matrix extraDistr e1071 DescTools pracma deSolve numDeriv BSDA \
+    && Rscript -e 'pk <- c("jsonlite", "Rmpfr", "gmp", "MASS", "Matrix", "extraDistr", "e1071", "DescTools", \
+                         "pracma", "deSolve", "numDeriv", "BSDA"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# lawstat (brunner.munzel.test), added for 0.8.0 in a layer of its own, so that the packages above stay the cached
+# ones the earlier fixtures were generated with
+RUN install2.r --error --skipinstalled lawstat \
+    && Rscript -e 'suppressPackageStartupMessages(library(lawstat)); cat("lawstat", as.character(packageVersion("lawstat")), "\n")'
+
+# car (Anova, types II and III) and afex (aov_ez: repeated measures with the Greenhouse-Geisser and Huynh-Feldt
+# corrections), added for the analysis of variance in a layer of their own, so that the layers above stay cached
+RUN install2.r --error --skipinstalled car afex \
+    && Rscript -e 'pk <- c("car", "afex", "lme4"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# effectsize (Cohen's d, Hedges' g, eta and omega squared with their intervals) and pwr (power calculations), added
+# for the effect sizes in a layer of their own
+RUN install2.r --error --skipinstalled effectsize pwr \
+    && Rscript -e 'pk <- c("effectsize", "pwr", "insight", "bayestestR", "parameters", "datawizard"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Packages for the later items of the roadmap, in a layer of their own: multiple comparisons (PMCMRplus, dunn.test,
+# multcomp), more tests (clinfun, nortest), agreement and reliability (irr, psych, GPArotation, polycor) and the
+# matrix exponential (expm). survival is one of R's recommended packages and already present.
+RUN install2.r --error --skipinstalled PMCMRplus dunn.test multcomp clinfun nortest irr psych GPArotation polycor expm \
+    && Rscript -e 'pk <- c("PMCMRplus", "dunn.test", "multcomp", "mvtnorm", "clinfun", "nortest", "irr", "psych", \
+                         "GPArotation", "polycor", "expm", "survival"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
