@@ -1,9 +1,10 @@
 // Generalised linear mixed models fitted by glmer against the fixture glmer (oracle/glmer.R; oracle/glmer-behaviour.md
-// "The fit and its results (stage 2c)", accuracy G11). Against the reference (every field at the exact optimum of the
-// Laplace deviance at the exact conditional mode, in 110-bit arithmetic): logLik, AIC, BIC relative 1e-10; deviance
-// (the sum of the deviance residuals) relative 1e-7; theta, fixef, varCorr sd, ranef values, fitted,
-// linearPredictor and the four residual vectors within 1e-7 × the largest absolute value of the reference vector;
-// sigma relative 1e-7; varCorr corr absolute 1e-7; vcov, stdError, zValue within 1e-6 × the largest absolute value;
+// "The fit and its results (stage 2c)"; G11's accuracy, tightened to lmer's with the analytic gradient (G19)). Against
+// the reference (every field at the exact optimum of the Laplace deviance at the exact conditional mode, in 110-bit
+// arithmetic): logLik, AIC, BIC and deviance (the sum of the deviance residuals) relative 1e-12; theta, fixef,
+// varCorr sd, ranef values, fitted, linearPredictor and the four residual vectors within 1e-9 × the largest absolute
+// value of the reference vector; sigma relative 1e-9; varCorr corr absolute 1e-9; vcov, stdError, zValue within 1e-9
+// × the largest absolute value;
 // elements of theta that are 0 in the reference exactly 0; singular, vcovFrom, df, nObs, the names and levels,
 // messages and warnings equal to the reference's; the error case: the error message. Against lme4 (expected): the
 // fit's −2 logLik no worse than the exact deviance at lme4's estimates (devianceAtLme4, + 1e-10 relative); the
@@ -17,9 +18,9 @@ import { num } from "./helpers/fixture.js";
 import { dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
 
 const fixture = loadAnovaFixture("glmer");
-const TOL_LOGLIK = 1e-10;
-const TOL = 1e-7;
-const TOL_VCOV = 1e-6;
+const TOL_LOGLIK = 1e-12;
+const TOL = 1e-9;
+const TOL_VCOV = 1e-9;
 const TOL_LME4 = 1e-10;
 
 interface FixtureVarCorr {
@@ -115,7 +116,7 @@ describe("glmer", () => {
         const x = num(ref[f] as string);
         const err = scaledError(r[f], x, Math.abs(x));
         note(worstRef, f, err);
-        if (!(err <= (f === "deviance" ? TOL : TOL_LOGLIK))) failures.push(`${where} ${f}: reference ${x}, got ${r[f]} (error ${err.toExponential(1)})`);
+        if (!(err <= TOL_LOGLIK)) failures.push(`${where} ${f}: reference ${x}, got ${r[f]} (error ${err.toExponential(1)})`);
         note(worstLme4, f, scaledError(r[f], num(e[f] as string), Math.abs(num(e[f] as string))));
       }
 

@@ -8,7 +8,7 @@
 // Against lme4: a guard of 1e-4 (relative) on the deviance, the largest differences printed.
 //
 // The fit, against the reference at the exact optimum of the AGQ deviance: as test/glmer.test.ts (logLik, AIC, BIC
-// relative 1e-10; deviance relative 1e-7; vectors 1e-7, vcov and SEs 1e-6 of the largest absolute value; zeros of θ
+// and deviance relative 1e-12; vectors, vcov and SEs 1e-9 of the largest absolute value, sigma 1e-9; zeros of θ
 // exactly 0; the rest equal), except that logLik, AIC and BIC are the true log-likelihood (G12): R's logLik minus
 // half the saturated model's constant aic − Σ d_i, computed here from the case's data by its formula, and the
 // Gamma, inverse.gaussian and gaussian cases are G13's RangeError.
@@ -214,7 +214,7 @@ describe("glmer with nAGQ > 1", () => {
         const got = r[f as "logLik"];
         const err = scaledError(got, x, Math.abs(x));
         note(worstRef, f, err);
-        if (!(err <= (f === "deviance" ? 1e-7 : 1e-10))) failures.push(`${where} ${f}: reference ${x}, got ${got} (error ${err.toExponential(1)})`);
+        if (!(err <= 1e-12)) failures.push(`${where} ${f}: reference ${x}, got ${got} (error ${err.toExponential(1)})`);
       }
       note(worstLme4, "logLik (R's scale)", scaledError(r.logLik + constant / 2, num(e.logLik as string), Math.abs(num(e.logLik as string))));
 
@@ -256,7 +256,7 @@ describe("glmer with nAGQ > 1", () => {
           failures.push(`${where} ${field}: length ${g.length}, expected ${x.length}`);
           continue;
         }
-        const tol = field === "stdError" || field === "zValue" || field === "vcov" ? 1e-6 : 1e-7;
+        const tol = 1e-9;
         g.forEach((v, i) => {
           const err = scaledError(v, x[i]!, maxAbs(x));
           note(worstRef, field, err);
@@ -270,7 +270,7 @@ describe("glmer with nAGQ > 1", () => {
       const sigmaRef = num(ref.sigma as string);
       const sigmaErr = scaledError(r.sigma, sigmaRef, Math.abs(sigmaRef));
       note(worstRef, "sigma", sigmaErr);
-      if (!(sigmaErr <= 1e-7)) failures.push(`${where} sigma: reference ${sigmaRef}, got ${r.sigma}`);
+      if (!(sigmaErr <= 1e-9)) failures.push(`${where} sigma: reference ${sigmaRef}, got ${r.sigma}`);
 
       const exact: [string, unknown, unknown][] = [
         ["singular", r.singular, ref.singular],

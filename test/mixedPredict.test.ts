@@ -1,7 +1,7 @@
 // Predictions of lmer and glmer fits against the fixture mixedPredict (oracle/mixedpredict.R; oracle/glmer-behaviour.md
 // "Prediction: glmerPredict and lmerPredict (stage 4)"). Against the reference (the predictions at the exact fit):
-// glmer (G11) fit within 1e-7 × the largest absolute value of the reference vector, seFit within 1e-6 × the largest;
-// lmer fit within 1e-9 × the largest, seFit 1e-8; NaN where the reference is NaN; errors and warnings equal. Against
+// glmer fit within 1e-9 × the largest absolute value of the reference vector (G11's 1e-7 tightened with the analytic
+// gradient), seFit within 1e-9 × the largest; lmer fit within 1e-9 × the largest, seFit 1e-8; NaN where the reference is NaN; errors and warnings equal. Against
 // lme4 (expected) the largest differences are printed, not checked (seFit not where lme4's is wrong:
 // reference.lme4SeDiffers). Also: the options and their errors, the offsets, fits that are not lmer's or glmer's.
 import { describe, expect, it } from "vitest";
@@ -84,8 +84,8 @@ describe("glmerPredict and lmerPredict", () => {
         }
         const refWarnings = (ref.warnings as string[] | null) ?? [];
         expect(got.warnings ?? [], `${where} warnings`).toEqual(refWarnings);
-        const fields: ["fit" | "seFit", number][] = [["fit", kind === "glmer" ? 1e-7 : 1e-9]];
-        if (ref.seFit !== undefined) fields.push(["seFit", kind === "glmer" ? 1e-6 : 1e-8]);
+        const fields: ["fit" | "seFit", number][] = [["fit", 1e-9]];
+        if (ref.seFit !== undefined) fields.push(["seFit", kind === "glmer" ? 1e-9 : 1e-8]);
         else if (got.seFit !== undefined) failures.push(`${where}: seFit given but not asked for`);
         for (const [field, tol] of fields) {
           const x = nums(ref[field]);

@@ -1,8 +1,8 @@
 // The ANOVA of glmer fits against the fixture glmerAnova (oracle/glmeranova.R; oracle/glmer-behaviour.md "glmerAnova
 // (stage 3)" and G15). One fit, against the reference (the table at the exact optimum, R_X and β̂ in 110-bit
-// arithmetic): sumSq, meanSq, F relative 1e-7, terms and npar equal. Several fits, against the reference (the exact
+// arithmetic): sumSq, meanSq, F relative 1e-9, terms and npar equal. Several fits, against the reference (the exact
 // optima; logLik by G12 for nAGQ > 1; no test where the fit before is not nested): logLik, AIC, BIC, deviance
-// relative 1e-10 (rows of lmer fits 1e-12), Chisq absolute 4e-10 max(1, |logLik|), pValue relative 1e-6, names, npar,
+// relative 1e-12 (rows of lmer fits too), Chisq absolute 1e-12 max(1, |logLik|), pValue relative 1e-9, names, npar,
 // Df and the NaN of Chisq and pValue equal, messages and warnings equal to R's; errors: the reference's (rStats.js's
 // own checks) or else R's message. Against lme4 (expected) the largest differences are printed. Also: glm fits in a
 // comparison (G15), against the fixture glmerAnovaGlm (oracle/glmeranovaglm.R: the exact glmer optimum and glm's
@@ -21,11 +21,11 @@ import { dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
 
 const fixture = loadAnovaFixture("glmerAnova");
 const glmFixture = loadAnovaFixture("glmerAnovaGlm");
-const TOL_TABLE = 1e-7;
-const TOL_LOGLIK = 1e-10;
+const TOL_TABLE = 1e-9;
+const TOL_LOGLIK = 1e-12;
 const TOL_LOGLIK_LMER = 1e-12;
-const TOL_CHISQ = 4e-10;
-const TOL_P = 1e-6;
+const TOL_CHISQ = 1e-12;
+const TOL_P = 1e-9;
 
 /** "NA" is NaN */
 const value = (s: string): number => (s === "NA" ? NaN : num(s));

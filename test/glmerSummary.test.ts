@@ -1,9 +1,9 @@
 // The summary of glmer fits against the fixture glmerSummary (oracle/glmersummary.R; oracle/glmer-behaviour.md
 // "glmerSummary (stage 3)", accuracy G11). Against the reference (the fields at the exact optimum, 110-bit
-// arithmetic; logLik, AIC, BIC, minus2LogLik by G12 for nAGQ > 1): logLik, AIC, BIC, minus2LogLik relative 1e-10;
-// estimate within 1e-7 × the largest absolute value; stdError, statistic within 1e-6 × the largest absolute value;
-// correlation absolute 1e-6; pValue relative 1e-6 max(1, statistic²) (absolute where the reference is below 1e-300);
-// residualQuantiles within 1e-7 × the largest absolute value; sigma relative 1e-7; statisticName, names, nGroups,
+// arithmetic; logLik, AIC, BIC, minus2LogLik by G12 for nAGQ > 1): logLik, AIC, BIC, minus2LogLik relative 1e-12;
+// estimate within 1e-9 × the largest absolute value; stdError, statistic within 1e-9 × the largest absolute value;
+// correlation absolute 1e-9; pValue relative 1e-9 max(1, statistic²) (absolute 1e-15 where the reference is below
+// 1e-300); residualQuantiles within 1e-9 × the largest absolute value; sigma relative 1e-9; statisticName, names, nGroups,
 // nObs, df, dfResidual, messages, warnings, family, link, nAGQ equal. Against lme4 (expected) the largest differences
 // are printed, not checked. Also: the options and a fit that is not glmer's.
 import { describe, expect, it } from "vitest";
@@ -16,9 +16,9 @@ import { num } from "./helpers/fixture.js";
 import { dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
 
 const fixture = loadAnovaFixture("glmerSummary");
-const TOL_LOGLIK = 1e-10;
-const TOL = 1e-7;
-const TOL_SE = 1e-6;
+const TOL_LOGLIK = 1e-12;
+const TOL = 1e-9;
+const TOL_SE = 1e-9;
 
 const nums = (v: unknown): number[] => (v as string[]).map((x) => num(x));
 const maxAbs = (v: readonly number[]): number => Math.max(0, ...v.map(Math.abs));
