@@ -301,6 +301,9 @@ export function localMinimum(problem: MinimiserProblem, start: readonly number[]
     const h = fresh ? hessian(free) : reusable!.h;
     reusable = undefined;
     const eig = symmetricEigen(h);
+    // (a Hessian with NaN, from a criterion whose products overflowed, has no step: the minimisation's failure, not
+    // the TypeError of an eigenvalue that is never the smallest)
+    if (!eig.values.every(Number.isFinite)) fail();
     const zero = EIGENVALUE_TOLERANCE * maxOf(eig.values.map(Math.abs));
     const gFree = free.map((j) => g[j]!);
     const { step, newton } = trustRegionStep(gFree, eig, radius, zero, gradientTolerance());

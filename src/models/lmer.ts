@@ -472,31 +472,31 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
   // β, b, σ and the residuals scale back by 2^ky, the variances by 4^ky, the criteria shift by 2 n ky log 2. Otherwise
   // ky = 0 and nothing changes (issue #9)
   const ky = ycMax > 2 ** 500 || ycMax < 2 ** -500 ? Math.floor(Math.log2(ycMax)) : 0;
-  const sScaled: MixedModelStructure = ky === 0 ? s : { ...s, y: yc.map((v) => ldexp(v, -ky)) };
+  const sResponse: MixedModelStructure = ky === 0 ? s : { ...s, y: yc.map((v) => ldexp(v, -ky)) };
+  // Columns of X beyond 2^±500 (predictors times 1e160 or 1e-160: X'X overflowed to NaN in the minimiser, or was
+  // subnormal and lost its digits, and (R_X'R_X)⁻¹ overflowed) are divided by their powers of 2 (exact; as Z's columns
+  // in issue #11): θ does not depend on it, β_k scales back by 2^-f_k, vcov by 2^(-f_a - f_b), and the REML criterion
+  // shifts by 2 Σ f log 2 (log det R_X'R_X). Otherwise f = 0 and nothing changes
+  const xScale = extremeColumnExponents(s.x, p);
+  const xScaled = xScale.some((e) => e !== 0);
+  const sScaled: MixedModelStructure = xScaled ? { ...sResponse, x: sResponse.x.map((row) => row.map((v, k) => ldexp(v, -xScale[k]!))) } : sResponse;
   const theta = minimiseCriterionScaled(sScaled, reml, criterion);
 
   const r = profiledDeviance(sScaled, theta, reml, { rxInverse: true });
   const up = (v: number): number => ldexp(v, ky);
-  const fixef = r.beta.map((b, k) => up(b) + beta0[k]!);
+  const fixef = r.beta.map((b, k) => (xScaled ? ldexp(up(b), -xScale[k]!) : up(b)) + beta0[k]!);
   const twoPi = 2 * Math.PI;
   const logScale = 2 * ky * Math.LN2;
+  const logDetRX = xScaled ? r.logDetRX + 2 * xScale.reduce((a, b) => a + b, 0) * Math.LN2 : r.logDetRX;
   const deviance = r.logDetL + n * (1 + Math.log((twoPi * r.prss) / n) + logScale);
-  const REMLcrit = r.logDetL + r.logDetRX + (n - p) * (1 + Math.log((twoPi * r.prss) / (n - p)) + logScale);
+  const REMLcrit = r.logDetL + logDetRX + (n - p) * (1 + Math.log((twoPi * r.prss) / (n - p)) + logScale);
   // (σ² of the scaled response; the variances below are 4^ky times what is formed from it)
   const sigma2 = r.prss / (reml ? n - p : n);
   const sigma = up(Math.sqrt(sigma2));
 
-  const vcov = r.rxInverse!.map((row) => row.map((v) => ldexp(sigma2 * v, 2 * ky)));
-  const stdError = r.rxInverse!.map((row, i) => up(Math.sqrt(sigma2 * row[i]!)));
-  // a column of X beyond 2^±500 (predictors times 1e-160): (R_X'R_X)⁻¹ overflowed, and the standard errors with it;
-  // they are taken from X with that column divided by its power of 2 at the same θ (an entry of vcov may overflow
-  // where the standard error does not). Otherwise nothing changes
-  const xScale = extremeColumnExponents(s.x, p);
-  if (xScale.some((e) => e !== 0) && stdError.some((v) => !Number.isFinite(v))) {
-    const rx = profiledDeviance({ ...sScaled, x: sScaled.x.map((row) => row.map((v, k) => ldexp(v, -xScale[k]!))) }, theta, reml, { rxInverse: true });
-    const sigma2x = rx.prss / (reml ? n - p : n);
-    rx.rxInverse!.forEach((row, i) => (stdError[i] = ldexp(Math.sqrt(sigma2x * row[i]!), ky - xScale[i]!)));
-  }
+  // (an entry of vcov may overflow where the standard error does not)
+  const vcov = r.rxInverse!.map((row, a) => row.map((v, b) => ldexp(sigma2 * v, 2 * ky - (xScaled ? xScale[a]! + xScale[b]! : 0))));
+  const stdError = r.rxInverse!.map((row, i) => (xScaled ? ldexp(up(Math.sqrt(sigma2 * row[i]!)), -xScale[i]!) : up(Math.sqrt(sigma2 * row[i]!))));
   // (a standard error of 0 gives ±Infinity or NaN, as R's division does: not guarded on purpose)
   const tValue = fixef.map((b, i) => b / stdError[i]!);
 
@@ -532,7 +532,7 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
   // the residuals from y − X β₀ (the more accurate), the fitted values with the whole fixed effects
   const fitted = s.x.map((xi) => xi.reduce((sum, v, k) => sum + v * fixef[k]!, 0));
   // (the residuals on the scaled response, scaled back)
-  const residuals = s.x.map((xi, i) => sScaled.y[i]! - xi.reduce((sum, v, k) => sum + v * r.beta[k]!, 0));
+  const residuals = sScaled.x.map((xi, i) => sScaled.y[i]! - xi.reduce((sum, v, k) => sum + v * r.beta[k]!, 0));
   s.z.forEach((col, j) => {
     const bj = r.b[j]!;
     if (bj !== 0) {
