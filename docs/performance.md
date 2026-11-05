@@ -90,26 +90,26 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 
 | Import | Minified | gzip |
 |---|---|---|
-| `pnorm` | 2.8 KB | 1.4 KB |
-| `setSeed`, `rnorm` | 3.7 KB | 1.8 KB |
-| `solve` / `svd` / `eigen` | 5.3 / 4.9 / 12.4 KB | 2.2 / 2.2 / 4.9 KB |
-| `wilcoxTest` | 38.1 KB | 15.6 KB |
-| `fisherTest` | 60.0 KB | 26.9 KB |
-| `tTest` | 69.8 KB | 30.5 KB |
-| `qbeta` | 97.4 KB | 43.2 KB |
-| `pt`, `qt` | 88.6 KB | 39.7 KB |
-| `glm`, `glmSummary` / `glm` with all its methods | 83.6 / 119.0 KB | 34.3 / 49.9 KB |
-| everything (except `/mixed`) | 641.2 KB | 240.4 KB |
-| `@numero-uno-jpn/rstats/distributions` (all of it) | 235.8 KB | 93.1 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 469.0 KB | 181.7 KB |
-| `@numero-uno-jpn/rstats/linalg` (all of it) | 63.6 KB | 23.2 KB |
-| `@numero-uno-jpn/rstats/descriptive` (all of it) | 55.8 KB | 20.5 KB |
-| `@numero-uno-jpn/rstats/numerics` (all of it) | 62.2 KB | 25.4 KB |
-| `@numero-uno-jpn/rstats/special` (all of it) | 66.3 KB | 29.7 KB |
-| `@numero-uno-jpn/rstats/mixed`: `lmer` alone / all of it (with lmerTest's tests) | 45.5 / 157.4 KB | 17.6 / 67.1 KB |
+| `pnorm` | 3.1 KB | 1.6 KB |
+| `setSeed`, `rnorm` | 4.0 KB | 2.0 KB |
+| `solve` / `svd` / `eigen` | 5.6 / 5.2 / 12.7 KB | 2.4 / 2.4 / 5.1 KB |
+| `wilcoxTest` | 40.0 KB | 16.2 KB |
+| `fisherTest` | 61.8 KB | 27.7 KB |
+| `tTest` | 70.4 KB | 30.8 KB |
+| `qbeta` | 97.8 KB | 43.5 KB |
+| `pt`, `qt` | 89.0 KB | 40.0 KB |
+| `glm`, `glmSummary` / `glm` with all its methods | 85.0 / 121.3 KB | 35.0 / 50.9 KB |
+| everything (except `/mixed`) | 662.7 KB | 248.6 KB |
+| `@numero-uno-jpn/rstats/distributions` (all of it) | 241.0 KB | 95.1 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 483.2 KB | 187.0 KB |
+| `@numero-uno-jpn/rstats/linalg` (all of it) | 65.3 KB | 24.0 KB |
+| `@numero-uno-jpn/rstats/descriptive` (all of it) | 58.4 KB | 21.5 KB |
+| `@numero-uno-jpn/rstats/numerics` (all of it) | 64.6 KB | 26.3 KB |
+| `@numero-uno-jpn/rstats/special` (all of it) | 66.8 KB | 29.9 KB |
+| `@numero-uno-jpn/rstats/mixed`: `lmer` alone / all of it (with lmerTest's tests) | 46.1 / 158.5 KB | 17.9 / 67.5 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share code between areas
-through `dist/chunks/`, so one area loaded from them transfers more: 37 KB (`numerics`) to 200 KB (`tests`) gzipped,
+through `dist/chunks/`, so one area loaded from them transfers more: 38 KB (`special`) to 206 KB (`tests`) gzipped,
 chunks included. `pt` is large because the non-central t and the double-double building blocks come with it; the
 tests with a formula form bring the formula and model-frame code.
 
@@ -150,7 +150,7 @@ Apple M1 (Mac mini), Node.js 24, the `tsc` build, 2026-10-26 (version 0.11.0). D
 bench` (`scripts/bench.mjs`), one call at a time, the minimum of 5 runs; its inputs come from the library's own
 `setSeed`/`runif`, so every build sees the same ones. Linear algebra: the minimum of 5 runs of the mean of 20 calls
 (3 for n = 300). R 4.5.2 (arm64) in the same machine's container, the same kind of inputs from R's own random
-numbers. The bundle sizes were measured on 2026-11-04 with the code of 0.16.0 (Windows 11, Node.js 26; the sizes do
+numbers. The bundle sizes were measured on 2026-11-05 with the code of 0.17.0 (Windows 11, Node.js 26; the sizes do
 not depend on the machine). The mixed models were measured on 2026-10-27 (the code of 0.12.0; the fits of `lmer` and
 `lmerSummary` again with the code of 0.15.0), with lme4 2.0.6 in the same container.
 
