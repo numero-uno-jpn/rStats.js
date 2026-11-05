@@ -522,9 +522,12 @@ try {
     await page.waitForSelector(`${tid("status")}[data-state="ready"]`, { timeout: 20000 });
     check("status shows the CDN source", (await page.getAttribute(tid("status"), "data-source")) === "cdn");
     // the demo loads dist/rstats.js and the mixed-models area dist/mixed.js
-    const exportCount = (
-      await Promise.all(["rstats.js", "mixed.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
-    ).reduce((n, m) => n + Object.keys(m).length, 0);
+    // names exported by both files (setWarningHandler) count once, as in the demo's merged library
+    const exportCount = new Set(
+      (
+        await Promise.all(["rstats.js", "mixed.js"].map((f) => import(new URL(`../../dist/${f}`, import.meta.url).href)))
+      ).flatMap((m) => Object.keys(m)),
+    ).size;
     check(`status mentions ${exportCount} functions`, (await page.textContent(tid("status"))).includes(String(exportCount)));
     for (const [name, fn] of [
       ["distributions", testDistributions],
