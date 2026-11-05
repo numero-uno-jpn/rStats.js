@@ -54,27 +54,56 @@ The full list is in the [README](README.md#what-is-included); known differences 
 
 ## Remaining
 
-In order of priority. The R function or package that each item is checked against is given in
-brackets.
+The priority is that a medical or psychological study can use the right method: exact methods for small samples,
+and effect measures with their confidence intervals, not only p-values. The list was drawn up against the methods of
+a statistics web application for medical and psychological research (2026-11-06). In order of priority; the R
+function or package that each item is checked against is given in brackets.
 
-1. **Speed:** done for now: the incomplete beta function with both parameters large uses Temme's
-   uniform asymptotic expansion (constant time instead of a continued fraction of length √(a + b)),
-   with one parameter large and the other small DiDonato and Morris's expansion (`pt` and `pf` with
-   large degrees of freedom, `pbeta(x, 1e6, 10)`, `pbinom` with x near 0 or n: about the time of a
-   typical `pbeta` instead of up to 30 times more), and the main d/p functions leave out the
-   double-double steps that an error bound shows to be unnecessary (see
-   [docs/performance.md](docs/performance.md)). Remaining: the continued fraction, which stays in
-   double-double and is still used where neither expansion applies (moderate parameters, such as
-   a = 30 and b = 20, where it is short, and the far tails).
-2. **Mixed models, continued:** `confint` (profile likelihood) and `simulate` of `lmer` and `glmer` fits [lme4], after
-   1.0.0. (`glmer` with `glmerSummary`, `glmerAnova` and `glmerPredict`, `lmerPredict`, lmerTest's Satterthwaite tests
-   and the ANOVA tables of `lmer` fits, and lme4's likelihood-ratio comparison, are done.) The `mixed` area stays
-   out of the root export and the single-file bundle `dist/rstats.js` (decided 2026-11-05); adding it later would not
-   break compatibility.
+1. **Contingency tables and proportions:** the mid-p version of Fisher's exact test and Boschloo's test for 2 × 2
+   tables [exact2x2, Exact]; confidence intervals for a proportion by method (Wilson, Clopper-Pearson,
+   Agresti-Coull, Jeffreys) [DescTools `BinomCI`]; the effect measures of a 2 × 2 table with their intervals: the
+   risk difference (Newcombe, Miettinen-Nurminen) [DescTools `BinomDiffCI`], the risk ratio [DescTools
+   `BinomRatioCI`] and the odds ratio (Wald, mid-p) [epitools]; the Stuart-Maxwell test [DescTools
+   `StuartMaxwellTest`], the G-test [DescTools `GTest`], Goodman and Kruskal's gamma [DescTools
+   `GoodmanKruskalGamma`] and the linear-by-linear association test [coin `lbl_test`].
+2. **Robust standard errors:** sandwich covariance matrices, HC0 to HC3 and clustered [sandwich `vcovHC`,
+   `vcovCL`], and the tests of the coefficients with them [lmtest `coeftest`], so that modified Poisson regression
+   (risk ratios), weighted regression after inverse probability weighting and difference-in-differences get correct
+   intervals; the robust variance and `cluster` of Cox regression [survival `coxph`].
+3. **Diagnostic accuracy and agreement of measurements:** ROC curves and the AUC with DeLong's interval and test
+   [pROC]; Bland-Altman analysis [BlandAltmanLeh]; Deming and Passing-Bablok regression [mcr]; equivalence tests
+   (two one-sided tests) [TOSTER]; the six forms of the intraclass correlation [psych `ICC`].
+4. **Survival analysis, continued:** the Nelson-Aalen estimate [`survfit`'s cumulative hazard]; the restricted mean
+   survival time [survRM2]; the test of proportional hazards [`cox.zph`]; time-dependent covariates in the (start,
+   stop] form [`coxph`]; competing risks: cumulative incidence, Gray's test and Fine-Gray regression [cmprsk];
+   accelerated failure time and Tobit models [`survreg`].
+5. **Sample size and power for trial designs:** equivalence, non-inferiority and superiority for means and
+   proportions, McNemar's test, survival (Schoenfeld, Freedman) and Simon's two-stage design [clinfun
+   `ph2simon`]; the reference for each is chosen when the item is taken up.
+6. **Meta-analysis:** fixed and random effects (DerSimonian-Laird, REML), Q and I², Egger's test [metafor].
+7. **Mixed models, continued:** `confint` (profile likelihood) and `simulate` of `lmer` and `glmer` fits [lme4]. The
+   `mixed` area stays out of the root export and the single-file bundle `dist/rstats.js` (decided 2026-11-05); adding
+   it later would not break compatibility.
+8. **Later, in no particular order:** ordinal logistic regression [MASS `polr`], nonlinear regression [`nls` and the
+   self-starting models], robust and quantile regression [MASS `rlm`, quantreg], GEE [geepack]; MANOVA [`manova`],
+   discriminant analysis [MASS `lda`], canonical correlation [`cancor`]; cluster analysis [`hclust`, `kmeans`];
+   multidimensional scaling and correspondence analysis [`cmdscale`, MASS `isoMDS`, ca]; Tamhane's T2 and Page's
+   test [PMCMRplus], Grubbs' test [outliers]; regularised regression [glmnet]; time series [`acf`, `arima`].
+
+Speed: done for now. The incomplete beta function with both parameters large uses Temme's uniform asymptotic
+expansion (constant time instead of a continued fraction of length √(a + b)), with one parameter large and the other
+small DiDonato and Morris's expansion (`pt` and `pf` with large degrees of freedom, `pbeta(x, 1e6, 10)`, `pbinom`
+with x near 0 or n: about the time of a typical `pbeta` instead of up to 30 times more), and the main d/p functions
+leave out the double-double steps that an error bound shows to be unnecessary (see
+[docs/performance.md](docs/performance.md)). Remaining: the continued fraction, which stays in double-double and is
+still used where neither expansion applies (moderate parameters, such as a = 30 and b = 20, where it is short, and
+the far tails).
 
 Out of scope: the parts of SciPy with no counterpart in R (most of `scipy.special` and the
-distributions that only `scipy.stats` has). Structural equation models (`lavaan`) are out of scope too: they are
-the size of a library of their own. Also out of scope:
+distributions that only `scipy.stats` has). Structural equation models (`lavaan`, including confirmatory factor
+analysis and multilevel SEM) are out of scope too: they are the size of a library of their own; for the same reason
+so are item response theory [mirt, ltm], latent class analysis [poLCA], multiple imputation [mice] and Gaussian
+mixture models [mclust]. Also out of scope:
 recycling distribution parameters as vectors (`rnorm(3, mean = c(0, 10, 100))`), since `map` does
 the same with R's results and random stream (see
 [docs/differences-from-r.md](docs/differences-from-r.md#general)). The other RNG kinds (Wichmann-Hill, Marsaglia-Multicarry, Super-Duper, Knuth-TAOCP) and normal kinds

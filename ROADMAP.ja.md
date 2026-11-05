@@ -54,22 +54,48 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 ## 残っていること
 
-優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
+優先するのは、医学・心理学の研究で正しい手法を使えることです。小標本で正確な方法と、p 値だけでなく効果の
+指標とその信頼区間を出せることを重視します。この一覧は、医学・心理学の研究向けの統計ウェブアプリの手法と
+照らし合わせて作りました (2026-11-06)。優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-1. **速度:** 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を
-   使い (長さ √(a + b) の連分数の代わりに定数時間)、一方のパラメータが大きく他方が小さいときは
-   DiDonato と Morris の展開を使う (自由度が大きい `pt` と `pf`、`pbeta(x, 1e6, 10)`、x が 0 または n
-   に近い `pbinom`。最大 30 倍かかっていたのが、典型的な `pbeta` 程度の時間になった)。主要な d/p 関数は、
-   誤差の上界から不要と分かる double-double の処理を省く ([docs/ja/performance.md](docs/ja/performance.md)
-   を参照)。残り: double-double のままの連分数。どちらの展開も当てはまらないところ (a = 30、b = 20
-   のような中程度のパラメータ。そこでは連分数は短い。および遠い裾) では、今も連分数を使う。
-2. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。1.0.0 の後。
-   (`glmer` と `glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`、lmerTest の Satterthwaite の検定と `lmer` の
-   分散分析表、lme4 の尤度比による比較は済み。) `mixed` の分野はパッケージのルートと全部入りの
-   `dist/rstats.js` には含めない (2026-11-05 に決定)。後で含めても互換性は崩れない。
+1. **分割表と比率:** 2 × 2 表の Fisher の正確検定の mid-p 版と Boschloo の検定 [exact2x2、Exact]。比率の信頼区間を
+   方法ごとに (Wilson、Clopper-Pearson、Agresti-Coull、Jeffreys) [DescTools `BinomCI`]。2 × 2 表の効果の指標と
+   その区間: リスク差 (Newcombe、Miettinen-Nurminen) [DescTools `BinomDiffCI`]、リスク比 [DescTools
+   `BinomRatioCI`]、オッズ比 (Wald、mid-p) [epitools]。Stuart-Maxwell 検定 [DescTools `StuartMaxwellTest`]、
+   G 検定 [DescTools `GTest`]、Goodman と Kruskal の γ [DescTools `GoodmanKruskalGamma`]、線形連関の検定 [coin
+   `lbl_test`]。
+2. **頑健な標準誤差:** サンドイッチ型の共分散行列 (HC0〜HC3 とクラスター) [sandwich `vcovHC`、`vcovCL`] と、
+   それによる係数の検定 [lmtest `coeftest`]。これで、修正ポアソン回帰 (リスク比)、逆確率重み付けの後の重み付き
+   回帰、差の差分析が正しい区間を持つ。Cox 回帰の robust 分散と `cluster` [survival `coxph`]。
+3. **診断の正確度と測定の一致:** ROC 曲線と AUC (DeLong の区間と検定) [pROC]。Bland-Altman 解析
+   [BlandAltmanLeh]。Deming 回帰と Passing-Bablok 回帰 [mcr]。同等性の検定 (2 つの片側検定) [TOSTER]。
+   級内相関係数の 6 つの形 [psych `ICC`]。
+4. **生存時間解析の続き:** Nelson-Aalen 推定量 [`survfit` の累積ハザード]。制限平均生存時間 [survRM2]。比例
+   ハザード性の検定 [`cox.zph`]。(start, stop] 形式の時間依存性変数 [`coxph`]。競合リスク: 累積発生率、Gray の
+   検定、Fine-Gray 回帰 [cmprsk]。加速故障時間モデルと Tobit モデル [`survreg`]。
+5. **試験デザインのサンプルサイズと検出力:** 平均と比率の同等性・非劣性・優越性、McNemar 検定、生存時間
+   (Schoenfeld、Freedman)、Simon の 2 段階デザイン [clinfun `ph2simon`]。照合先は項目に着手するときに決める。
+6. **メタアナリシス:** 固定効果とランダム効果 (DerSimonian-Laird、REML)、Q と I²、Egger の検定 [metafor]。
+7. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。
+   `mixed` の分野はパッケージのルートと全部入りの `dist/rstats.js` には含めない (2026-11-05 に決定)。後で含めても
+   互換性は崩れない。
+8. **その後 (順不同):** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰と
+   分位点回帰 [MASS `rlm`、quantreg]、GEE [geepack]。MANOVA [`manova`]、判別分析 [MASS `lda`]、正準相関
+   [`cancor`]。クラスタ分析 [`hclust`、`kmeans`]。多次元尺度法と対応分析 [`cmdscale`、MASS `isoMDS`、ca]。
+   Tamhane の T2 と Page の検定 [PMCMRplus]、Grubbs の検定 [outliers]。正則化回帰 [glmnet]。時系列 [`acf`、`arima`]。
+
+速度: 当面の作業は完了。両方のパラメータが大きい不完全ベータ関数は Temme の一様漸近展開を使い (長さ √(a + b)
+の連分数の代わりに定数時間)、一方のパラメータが大きく他方が小さいときは DiDonato と Morris の展開を使う (自由度が
+大きい `pt` と `pf`、`pbeta(x, 1e6, 10)`、x が 0 または n に近い `pbinom`。最大 30 倍かかっていたのが、典型的な
+`pbeta` 程度の時間になった)。主要な d/p 関数は、誤差の上界から不要と分かる double-double の処理を省く
+([docs/ja/performance.md](docs/ja/performance.md) を参照)。残り: double-double のままの連分数。どちらの展開も
+当てはまらないところ (a = 30、b = 20 のような中程度のパラメータ。そこでは連分数は短い。および遠い裾) では、
+今も連分数を使う。
 
 対象外: SciPy のうち R に対応するもののない部分 (`scipy.special` の大部分と、`scipy.stats` にしか
-ない分布)。構造方程式モデル (`lavaan`) も対象外です。それだけで 1 つのライブラリの規模があるためです。分布のパラメータのベクトルとしてのリサイクル
+ない分布)。構造方程式モデル (`lavaan`。確認的因子分析とマルチレベル SEM を含む) も対象外です。それだけで 1 つの
+ライブラリの規模があるためです。同じ理由で、項目反応理論 [mirt、ltm]、潜在クラス分析 [poLCA]、多重代入 [mice]、
+混合正規分布モデル [mclust] も対象外です。分布のパラメータのベクトルとしてのリサイクル
 (`rnorm(3, mean = c(0, 10, 100))`) も対象外です。`map` で R と同じ結果と乱数列が得られるためです
 ([docs/ja/differences-from-r.md](docs/ja/differences-from-r.md#全般) を参照)。ほかの RNG の種類
 (Wichmann-Hill、Marsaglia-Multicarry、Super-Duper、Knuth-TAOCP) と正規乱数の種類 (Kinderman-Ramberg、
