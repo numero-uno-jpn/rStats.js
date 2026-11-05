@@ -24,8 +24,10 @@ The work is done in stages; each stage has its own section and fixture:
   as `glmer` from the area `mixed`, with the oracle `oracle/glmer.R` and its fixture `glmer`.
 - **Stage 2e**: adaptive Gauss-Hermite quadrature, `nAGQ > 1`, with the oracles `oracle/glmeragqdev.R` (the
   deviance at given parameters, fixture `glmerAgqDeviance`) and `oracle/glmeragq.R` (the fit, fixture `glmerAgq`).
-- **Stage 3**: `glmerSummary` and `glmerAnova`.
-- **Stage 4**: `predict`.
+- **Stage 3**: `glmerSummary` and `glmerAnova`, with the oracles `oracle/glmersummary.R` (fixture `glmerSummary`)
+  and `oracle/glmeranova.R` (fixture `glmerAnova`).
+- **Stage 4**: `glmerPredict` and `lmerPredict`, with the oracle `oracle/mixedpredict.R` (fixture `mixedPredict`).
+  The three oracles share `oracle/_mixedexact.R` (exact lmer and glmer fits from `oracle/lmer.R` and `oracle/glmer.R`).
 
 ## Easy to get wrong
 
@@ -348,6 +350,19 @@ Decided by the user (2026-11-05) for stage 2e:
   checked after the structure (its errors, the two messages of the random-effects terms included, come first). R
   fits these models with the dispersion held at 1; the fixture glmerAgq's cases of these families are this error in
   the tests. To differences-from-r.
+
+Choices of the specification of stages 3 and 4 (to be confirmed by the user; each also in its section):
+
+- `glmerSummary`: `pValue` from the normal distribution for every family, as lme4 (although the statistic is named
+  `t value` for the families with a dispersion); `minus2LogLik` for R's `-2*log(L)`; the fit's messages repeated.
+- `glmerAnova` accepts glmer and lmer fits together, not glm fits. Besides `lmerAnova`'s own checks (rows,
+  response), the prior weights must be equal; the likelihood-ratio test is given only for nested fits, which needs
+  the same family, link and offset.
+- Prediction: the offset of `newdata` (a column name is read from `newdata`, an array is replaced by `newoffset`,
+  default 0); a new level of a factor of the fixed part is the RangeError `factor <name> has new level <value>` (R:
+  `non-conformable arguments`), a missing value there NaN (R: the same error); without `newdata`, the rows of the
+  fit (R: an error when a dropped row had a missing grouping value); `re.form`'s unknown factors and columns with
+  lme4's own messages; `seFit` by the formula, where lme4's se.fit is wrong (permuted factor, re.form subsets).
 
 ## The fit and its results (stage 2c)
 
@@ -734,6 +749,409 @@ gaussian (log 3); the errors `(1 | g) + (1 | h)`, `(x | g)` (message 1), `(x || 
 element, on 0/1 data whose β are about 0.01), standard errors 4e-5 (relative), `logLik` 1.1e-7 (relative), `fitted`
 3e-5, `sigma` 1e-5: lme4's AGQ fits are much closer than its Laplace fits.
 
-## glmerSummary and glmerAnova (stage 3; to be written)
+## glmerSummary (stage 3)
 
-## predict (stage 4; to be written)
+### What R gives
+
+`summary(fit)` of a glmer fit (lme4's `summary.merMod`) prints, in this order (checked in R):
+
+```
+Generalized linear mixed model fit by maximum likelihood (Laplace Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: cbind(incidence, size - incidence) ~ period + (1 | herd)
+   Data: cbpp
+
+      AIC       BIC    logLik -2*log(L)  df.resid
+    194.1     204.2     -92.0     184.1        51
+
+Scaled residuals:
+    Min      1Q  Median      3Q     Max
+-2.3816 -0.7889 -0.2026  0.5142  2.8791
+
+Random effects:
+ Groups Name        Variance Std.Dev.
+ herd   (Intercept) 0.4123   0.6421
+Number of obs: 56, groups:  herd, 15
+
+Fixed effects:
+            Estimate Std. Error z value Pr(>|z|)
+(Intercept)  -1.3983     0.2312  -6.048 1.47e-09 ***
+...
+Correlation of Fixed Effects:
+...
+```
+
+- **Title**: `Generalized linear mixed model fit by maximum likelihood (Laplace Approximation)` for `nAGQ = 1`,
+  `(Adaptive Gauss-Hermite Quadrature, nAGQ = K)` for any other `nAGQ`, also 0 (`nAGQ = 0`).
+- **AIC table**: `AIC`, `BIC`, `logLik` (those of the fit), `-2*log(L)` (−2 logLik: lme4's optimised deviance, not
+  `deviance(fit)`), `df.resid` = `nobs − df` (`df` the fit's `df`: p + length(θ) + 1 for the families with a
+  dispersion).
+- **Scaled residuals**: the five-number summary (R's `quantile`, type 7: minimum, quartiles, median, maximum) of the
+  Pearson residuals divided by `sigma(fit)` (`residuals(fit, "pearson", scaled = TRUE)`); R prints them after
+  `zapsmall(·, digits + 1)`, which only affects printing.
+- **Random effects**: `VarCorr(fit)` (unscaled, as `GlmerResult.varCorr`; R prints the variances and standard
+  deviations, and the correlations of vector-valued terms). No `Residual` row for any family. Then `Number of obs:`
+  and, per grouping factor in the order of the structure's grouping factors (`ranef`), its number of levels.
+- **Fixed effects**: `Estimate`, `Std. Error` (from `vcov(fit)`, the same as `GlmerResult.coefTable`: the Hessian or
+  RX rule of stage 2c), the ratio, and `Pr(>|z|)`. The third column is named **`z value` for binomial and poisson
+  and `t value` for Gamma, inverse.gaussian and gaussian** (lme4 names it after "the model has a scale"), but the
+  fourth column is **always `Pr(>|z|)` = `2 pnorm(−|ratio|)`**, the normal distribution, for every family (no
+  t distribution and no degrees of freedom: unlike `glm`'s summary, whose p-values for these families use the t
+  distribution with the residual degrees of freedom). With p = 0 there is no table.
+- **Correlation of Fixed Effects**: `cov2cor(vcov(fit))`, printed for 1 < p ≤ 12 (option `lme4.summary.cor.max`);
+  `summary(fit)$vcov` holds the matrix and its correlation for any p.
+- **Messages**: under `fit warnings:` the structure's messages (`fixed-effect model matrix is rank deficient so
+  dropping 1 column / coefficient`), then lme4's convergence messages and optimiser warnings from the fit
+  (`boundary (singular) fit: see help('isSingular')`, `Model failed to converge ...`, ...).
+- **Warnings**: `summary()` computes `vcov(fit)` again (twice), so the fallback warning of vcov (stage 2c, "vcov") is
+  given again by `summary()`; no other warning (`additional arguments ignored` for arguments other than
+  `correlation` and `use.hessian`).
+- Arguments: `correlation` (printing only) and `use.hessian` (`FALSE` forces the RX formula when the Hessian exists;
+  `TRUE` without a Hessian is an error).
+
+### API
+
+```ts
+glmerSummary(fit: GlmerResult, options?: GlmerSummaryOptions): GlmerSummary
+```
+
+It follows `lmerSummary` (a fit returned by `glmer`, not a copy: TypeError otherwise, as `lmerInternals`) and, for
+the coefficient table, `glmSummary` (`statistic`, `statisticName`, `pValue`). `GlmerSummaryOptions` has no key yet:
+`correlation`, `use.hessian` and `useHessian` give the Error `glmerSummary: argument '<key>' is not supported`
+(`checkLmerOptions`), any other key a RangeError. `GlmerSummary`:
+
+| Field | Meaning (R) |
+|---|---|
+| `family`, `link`, `nAGQ` | the fit's (R's `Family:` line and title) |
+| `names` | the fit's `fixefNames` (R's row names) |
+| `estimate`, `stdError` | the fit's `coefTable.estimate`, `coefTable.stdError` (copies) |
+| `statistic` | the fit's `coefTable.zValue` (R's third column) |
+| `statisticName` | `"z value"` for binomial and poisson, `"t value"` otherwise (as `GlmSummary.statisticName`) |
+| `pValue` | `2 pnorm(−|statistic|)` (R's `Pr(>|z|)`) for **every** family; NaN where the statistic is NaN |
+| `correlation` | p × p (array of rows): `vcov_ij / sqrt(vcov_ii vcov_jj)`, the diagonal exactly 1 (R's `cov2cor`, which sets it to 1); NaN off the diagonal where a variance is 0; `[]` for p = 0 |
+| `varCorr` | the fit's `varCorr` (a copy) |
+| `nGroups` | one `{ group, levels }` per grouping factor in the order of the fit's `ranef` (`levels` the number of levels; R's `ngrps(fit)`) |
+| `nObs` | the fit's `nObs` |
+| `logLik`, `AIC`, `BIC`, `df` | the fit's (G12 for nAGQ > 1: the true log-likelihood, so they differ from R's there, as the fit's do) |
+| `minus2LogLik` | −2 `logLik` (R's `-2*log(L)`; named so because `GlmerResult.deviance` is R's `deviance()`, the sum of the squared deviance residuals) |
+| `dfResidual` | `nObs − df` (R's `df.resid`, `df.residual(fit)`) |
+| `residualQuantiles` | `[min, 1Q, median, 3Q, max]` of `pearsonResiduals / sigma` (R's type-7 quantiles: for the sorted values `x_1 ≤ … ≤ x_n` and probability `P`, `h = (n − 1) P`, `x_(⌊h⌋+1) + (h − ⌊h⌋)(x_(⌊h⌋+2) − x_(⌊h⌋+1))`), not zapped |
+| `sigma` | the fit's `sigma` |
+| `messages` | the fit's `messages` (the rank-deficiency message, the singular message: R prints both in the summary); lme4's optimiser messages are not given (G10) |
+| `warnings` | the fit's vcov fallback warning (stage 2c) if the fit gave it, else none; as for every function given a fit it is kept in the result but not passed to the warning handler again (`reported(..., fit)`) |
+
+`lmerSummary` is unchanged (it is lmerTest's table). The title, the formula and the data name are not fields (the
+fit has the formula; the title follows from `nAGQ`).
+
+### The fixture glmerSummary (`oracle/glmersummary.R`)
+
+Each case is one glmer fit, with the arguments of the fixture glmer (`formula`, `data` with `dataTypes`, `family`,
+`link`, optional `weights` and `offset`, `nAGQ` as a string, from `"0"` to `"100"`). `expected`: R's
+`summary(fit)` (lme4's estimates), the fields above under their names, plus `methTitle` (information); `reference`:
+the same fields at the exact optimum, computed as the fixture glmer's reference (the oracle sources
+`oracle/_glmeragq.R`, so `oracle/glmer.R`'s search and 110-bit Newton's method and, for nAGQ > 1, the AGQ deviance
+of stage 2e), with logLik, AIC, BIC and `minus2LogLik` as G12 says for nAGQ > 1. The test fits the case with
+`glmer` and compares `glmerSummary(fit)` with `reference`.
+
+**Accuracy required** (G11), against `reference`: `logLik`, `AIC`, `BIC`, `minus2LogLik`: relative 1e-10;
+`estimate`: within 1e-7 × the largest absolute value; `stdError`, `statistic`, `correlation`: within 1e-6 × the
+largest absolute value of the vector (`correlation` absolute 1e-6); `pValue`: relative `1e-6 max(1, statistic²)`
+(the error of the statistic, relative 1e-6, is multiplied by about `statistic²` in the tail), or absolute where
+the reference is below 1e-300; `residualQuantiles`: within 1e-7 × the largest absolute value; `sigma`: relative
+1e-7; `statisticName`, `names`, `nGroups`, `nObs`, `df`, `dfResidual`, `messages`, `warnings` equal. Against
+`expected` (lme4): print the largest differences (they are those of the fixture glmer).
+
+## glmerAnova (stage 3)
+
+lme4's `anova()` (`anova.merMod`) does two different things: for one fit a table of the fixed-effects terms, for
+several fits a likelihood-ratio comparison. Both are as for lmer fits in lme4; rStats.js's `lmerAnova` gives
+lmerTest's table for one fit (with Satterthwaite's degrees of freedom), which does not exist for glmer, and lme4's
+comparison for several fits (`oracle/lmertest-behaviour.md`, section 3), which `glmerAnova` follows.
+
+### One fit: lme4's table of the fixed-effects terms
+
+`anova(fit)` (checked in R):
+
+```
+Analysis of Variance Table
+       npar Sum Sq Mean Sq F value
+period    3 25.313  8.4375  8.4375
+```
+
+Definition, with `R_X` the upper triangular Cholesky factor (positive diagonal) of `R_X'R_X = X'WX −
+X'WZΛ (Λ'Z'WZΛ + I)⁻¹ Λ'Z'WX` (stage 2c, "vcov", the `"RX"` formula: θ̂, the Fisher weights `W` at the conditional
+mode), X the fixed-effects matrix after aliased columns were dropped, in its column order, and β̂ the fit's fixed
+effects:
+
+- `c = R_X β̂` (p values, one per column of X), and for each term of the fixed part (in the order of the columns:
+  each column belongs to one term of the formula, the intercept to `(Intercept)`), `Sum Sq` = the sum of `c_j²` over
+  its columns, `npar` = its number of columns (after aliased columns were dropped; a term whose columns were all
+  dropped has no row), `Mean Sq = Sum Sq / npar`, `F value = Mean Sq / σ²` with σ the fit's `sigma` (1 for binomial
+  and poisson, so that `F value = Mean Sq` there).
+- The row of `(Intercept)` is removed; without an intercept the first factor has all its levels as columns (the row
+  has one more `npar`). An intercept-only model gives a table with no rows.
+- No p-values and no denominator degrees of freedom (lme4 removed them: "may not be F distributed").
+- These are sequential Wald statistics: `‖c_term‖²` is `β̂' R_X'R_X β̂` restricted to the term after the terms before
+  it, computed with the RX covariance (not with the Hessian covariance that `vcov` uses by default for nAGQ ≥ 1).
+- lme4 computes `R_X` with the weights of its last PIRLS iteration (stage 2a, "Accuracy"); the reference uses the
+  weights at the exact mode. For nAGQ = 0, β̂ is the β of the joint mode and `R_X` the same formula.
+- R's warning `additional arguments ignored` for other arguments is not reproduced (unknown option keys are
+  RangeErrors).
+
+### Several fits: the likelihood-ratio comparison
+
+`anova(fit1, fit2, ...)` (checked in R) is lme4's comparison of `oracle/lmertest-behaviour.md` (section 3) with:
+
+- **npar** = the fit's `df` (`p + length(θ) + 1` for Gamma, inverse.gaussian and gaussian, `p + length(θ)` for
+  binomial and poisson; lmer's `p + length(θ) + 1`). Rows sorted by npar (stable); `AIC`, `BIC`, `logLik`,
+  `-2*log(L)` = −2 logLik, `Chisq = 2 max(0, logLik_i − logLik_(i−1))`, `Df`, `Pr(>Chisq)` (NA where `Df` is 0),
+  as for lmer.
+- **Which fits.** Any mix of glmer and lmer fits in R (`anova(gg, lm1)`: the lmer REML fit is refitted by ML with the
+  message `refitting model(s) with ML (instead of REML)`; with `refit = FALSE` and an lmer REML fit, the warning
+  `some models fit with REML = TRUE, some not`; glmer fits are never refitted), and glm fits after a merMod fit
+  (`anova(glmerFit, glmFit)` compares logLik(glm); `anova(glmFit, glmerFit)` is `anova.glm` of the glm alone). A
+  comparison containing a glmer fit with `nAGQ > 1` and a glm fit is the error `GLMMs with nAGQ>1 have
+  log-likelihoods incommensurate with glm() objects`; glmer fits with different `nAGQ` are compared without a
+  message (R: cbpp with `nAGQ` 1 and 5, `logLik` −92.03 and −50.01, `Chisq` 84.04, `Df` 0).
+- **R's checks**: different numbers of observations: `models were not all fitted to the same size of dataset`
+  (first); the data objects: `all models must be fit to the same data object`; R does not compare families, links,
+  responses or weights (logit against probit: `Chisq` 0.0287 with `Df` 0).
+- Names: `model.names`, or the deparsed calls; duplicated: the warning `failed to find model names, assigning
+  generic names` and `MODEL1`, `MODEL2`, ...
+
+**G12** (rStats.js's choices): `logLik` of a fit with `nAGQ > 1` is the true log-likelihood (R's plus `−c/2`, c the
+saturated model's constant), so the table's `logLik`, `AIC`, `BIC`, `-2*log(L)` and `Chisq` for such fits differ
+from R's by that constant (0 for 0/1 responses with prior weights 1) and **comparisons across nAGQ are
+commensurate** here (cbpp with nAGQ 1 and 5: logLik −92.03 and about −92.0, not −50.01). The table uses each fit's
+`logLik` as the fit gives it.
+
+### API
+
+```ts
+glmerAnova(fit: GlmerResult, options?: GlmerAnovaOptions): GlmerAnovaTable
+glmerAnova(fits: readonly (GlmerResult | LmerResult)[], options?: LmerCompareOptions): LmerCompareTable
+```
+
+As `lmerAnova` (overloads by whether the first argument is an array; an array of fewer than two fits is the
+TypeError `glmerAnova needs one fit, or an array of at least two fits to compare`; a fit not returned by `glmer` or
+`lmer` a TypeError as `lmerInternals`). The implementation keeps for each glmer fit what `lmer` keeps for its fits
+(`LmerInternals`: the structure, the data object and its snapshot, the options), so a glmer internals map is
+needed.
+
+`GlmerAnovaOptions` has no key (R's `anova(fit)` has none): any key is a RangeError. `GlmerAnovaTable`:
+
+| Field | Meaning (R) |
+|---|---|
+| `terms` | the terms (R's row names), in the order of the columns of X, without `(Intercept)` |
+| `npar` | R's `npar` |
+| `sumSq`, `meanSq`, `F` | R's `Sum Sq`, `Mean Sq`, `F value` |
+| `messages`, `warnings` | none (empty) |
+
+For several fits, the options and the table are `LmerCompareOptions` (`refit`, default `true`, a logical option as
+in `lmerAnova`; `names`; R's `modelNames` and `model.names` give the Error `glmerAnova: argument '<key>' is not
+supported`) and `LmerCompareTable` (the same fields as `lmerAnova`'s comparison; `deviance` is −2 logLik there, as
+in `lmerAnova`). Rules, in this order:
+
+1. Each element a result of `glmer` or `lmer` (TypeError otherwise; a glm fit is not accepted: rStats.js's glm is
+   fitted to arrays, with no data object to compare, and lme4's own rule for glm is order-dependent; a choice to confirm, "rStats.js's choices").
+2. The checks of `lmerAnova` (its implementation, not only lme4's): `models were not all fitted to the same size of
+   dataset`, `all models must be fit to the same data object` (the same object, unchanged: the snapshot), `models
+   were not all fitted to the same rows of the data`, `models were not all fitted to the same response` (the
+   left-hand sides compared without spaces; `cbind(inc, notinc)` against `inc` differs). New for glmer: **the prior
+   weights** of the rows used must be equal (lmer fits have weights 1; a missing `weights` is all 1), else the Error
+   `models were not all fitted with the same prior weights` (a binomial proportion with weights m and a 0/1 response
+   are different data).
+3. Names as `lmerAnova` (the warning for duplicated names).
+4. `refit` (default `true`): every lmer REML fit is refitted by ML (`lmerAnova`'s way), with the message `refitting
+   model(s) with ML (instead of REML)` if there is one; glmer fits are used as they are. With `refit: false`, the
+   warning `some models fit with REML = TRUE, some not` when some lmer fits are REML and some fits (lmer ML or any
+   glmer fit) are not.
+5. The rows sorted by npar (stable), `AIC`, `BIC`, `logLik` (each fit's, G12), `deviance` = −2 logLik, `Df`, and
+   `Chisq` and `pValue` **only where the fit of the row before is nested in the fit of the row** (NaN otherwise,
+   `lmerAnova`'s rule, issue #8): the smaller fit nested in the larger when they have **the same family and link**
+   (an lmer fit counts as gaussian with the identity link, so it is never nested with a glmer fit), the same offset
+   (row by row; none = 0), its fixed-effects columns in the column space of the larger fit's (`nestedColumns`), and
+   each of its random-effects terms within a term of the same grouping factor of the larger fit. The same model with
+   different `nAGQ` is nested in itself (`Df` 0, so `pValue` NaN). R gives `Chisq` for every pair (logit against
+   probit above).
+
+### The fixture glmerAnova (`oracle/glmeranova.R`)
+
+Two kinds of cases. **One fit**: the arguments of the fixture glmer (`formula`, `data` with `dataTypes`, `family`,
+`link`, optional `weights`, `offset`, `nAGQ`); `expected`: R's `anova(fit)` as `{ terms, npar, sumSq, meanSq, F }`;
+`reference`: the same at the exact optimum (oracle/glmer.R's search and Newton's method; `R_X` and β̂ in 110-bit
+arithmetic at the exact mode). **Several fits**: `data` (with `dataTypes`), `models` (one `{ kind: "glmer" | "lmer",
+formula, family, link, weights, offset, nAGQ }` or `{ kind: "lmer", formula, REML }` per fit, in the order given),
+optional `names` and `refit`; `expected`: R's table (`names`, `npar`, `AIC`, `BIC`, `logLik`, `deviance`, `Chisq`,
+`Df`, `pValue`, `messages`, `warnings`) or `{ error }`; `reference`: the table from the exact optima (glmer: as
+above, logLik by G12; lmer: oracle/lmer.R's `optimum` of the ML criterion, the REML fits refitted by ML), with
+`Chisq` and `pValue` NaN ("NA") where the rule of step 5 gives no test, plus `nested` (one boolean per row,
+information). Errors of rStats.js's own checks (rows, response, weights) are in `reference.error` where R gives a
+table.
+
+**Accuracy required** against `reference`: one fit: `sumSq`, `meanSq`, `F` relative 1e-7 (first order in the
+parameters); several fits: `logLik`, `AIC`, `BIC`, `deviance` relative 1e-10 (lmer rows 1e-12), `Chisq` absolute
+`4e-10 max(1, |logLik|)`, `pValue` within the change that error of `Chisq` makes (relative 1e-6 is safe in the
+fixture), the rest equal.
+
+## Prediction: glmerPredict and lmerPredict (stage 4)
+
+lme4's `predict.merMod` serves both lmer and glmer fits (G14: `glmerPredict` and `lmerPredict`, the same rules).
+Everything in this section holds for both unless it names one; for lmer there is no offset, no prior weight and no
+link (`type` has no effect).
+
+### What R computes
+
+`predict(fit, newdata = NULL, re.form = NULL, random.only = FALSE, type = c("link", "response"),
+allow.new.levels = FALSE, na.action = na.pass, se.fit = FALSE)` (also `newparams` and `terms`, not offered). Checked
+in R for every point below.
+
+**No newdata, no re.form, no random.only**: the fitted values: lmer `fitted(fit)`; glmer the linear predictor
+`η̂ = o + Xβ̂ + Zb̂` (`GlmerResult.linearPredictor`) for `type = "link"` and the fitted means μ̂ (lme4's links with
+their clamps: `GlmerResult.fitted`) for `"response"`. One value per row used by the fit.
+
+**Otherwise** the prediction of a row is
+
+`η = [o + x'β̂ unless random.only] + [Σ over the random-effects terms selected by re.form of z_t' b_(t, level)]`
+
+and for glmer with `type = "response"` R's family `linkinv(η)` (R's family function, as `glm`'s, not lme4's clamped
+inverse link of stage 2a; they differ only where a clamp is active).
+
+- **Rows.** With `newdata`, one value per row of `newdata`. Without it (re.form or random.only given), one value per
+  row used by the fit, with the fit's X, offset and random-effects columns. (R takes the random part from the data
+  object again, so on data where a row with a missing grouping value was dropped by the fit, `predict(fit, re.form =
+  ~(1 | g))` and `predict(fit, random.only = TRUE)` are the error `NAs are not allowed in prediction data for
+  grouping variables unless allow.new.levels is TRUE`; rStats.js uses the rows of the fit and gives no error. To
+  differences-from-r.)
+- **The fixed part** `x'β̂`: the row of the fixed-effects model matrix built from `newdata` exactly as the fit built
+  X: the same terms, the same contrasts, the factor levels of the fit (its `levels` option included), the columns
+  that the fit dropped as aliased dropped (their values in `newdata` have no effect). The response is not needed (nor
+  either column of `cbind(s, f)`). Values of a numeric column used by the fixed part must be numbers; a missing value
+  (`null`, NaN) gives NaN for that row (R's `na.pass`: NA). A column of the fixed part absent from `newdata`: R's
+  error `object 'x' not found`.
+  - A value of a **factor of the fixed part that is not a level of the fit**: in R the error `non-conformable
+    arguments` (lme4 adds the new value as a level, so X gets an extra column). rStats.js: RangeError `factor <name>
+    has new level <value>` (the message of R's `predict` for lm), for the first such column in the order of the
+    formula's variables and its first new value in row order. A **missing value in a factor** of the fixed part is
+    the same error in R (lme4 adds NA as a level); rStats.js gives NaN for that row, as for a numeric column. To
+    differences-from-r.
+- **The offset** (glmer). Without `newdata`: the fit's offset (all offsets added, as in the fit). With `newdata`, R
+  evaluates only the `offset()` terms of the formula in `newdata` and **ignores glmer's `offset =` argument** (the
+  prediction is then without the offset: checked, `predict(p1, nd)` with `offset = lt` is `predict(p2, nd) − lt` for
+  `p2` with `offset(lt)` in the formula). rStats.js has no `offset()` in formulas; its `offset` option is an array
+  or a column name (G7). Rule: an offset given **as a column name** is read from that column of `newdata` (as R's
+  `offset(lt)` term; absent: R's `object 'lt' not found`; a missing value gives NaN); an offset given **as an array**
+  is replaced by the option `newoffset` (one number per row of `newdata`, default all 0, as R's ignored argument and
+  as `glmPredict`'s `newoffset`); `newoffset` with an offset given as a column name, or without `newdata`, is a
+  RangeError (`newoffset` must have one value per row of `newdata`: also a RangeError). `random.only` leaves the
+  offset out. (Decided here; see the report.)
+- **re.form**: NULL (default) all the fit's terms; `NA` or `~0`: none (the fixed part and offset only: "population
+  level"); a one-sided formula: only the random-effects terms written in it (its fixed part is ignored: `~ x + (1 |
+  g)` is `~ (1 | g)`). Each term of re.form is expanded as in the fit (`||`, `/`) and must use a grouping factor of
+  the fit (otherwise lme4's message `grouping factors specified in re.form that were not present in original model`;
+  R itself fails earlier with an internal message when the variable is not in the data) and only columns that the
+  fit has for that factor (the columns of `ranef` for that factor, which may come from several terms: `(1 | g) + (0 +
+  x | g)` in the fit allows `(x | g)` in re.form; otherwise `random effects specified in re.form that were not
+  present in original model x`, the missing column names joined by `, `). A term with fewer columns than the fit's
+  is allowed (`(1 | Subject)` for a fit with `(Days | Subject)`: only the intercepts of b). A formula with no
+  random-effects term other than `~0` (`~1`, `~x`) is R's error `No random effects terms specified in formula`.
+- **The random part** of a row: for each selected term t, its grouping factor's level in that row (from the
+  grouping columns of `newdata`, labelled as the fit labels them: numbers as R's `as.character`, interactions `g/h` as
+  `h:g` joined with `:`), and `z_t` the term's columns in that row (1 for the intercept, the covariate values, the
+  contrast columns of a factor slope); the term adds `z_t' b̂(level, t's columns)`.
+  - A **missing grouping value** (`null`): the error `NAs are not allowed in prediction data for grouping variables
+    unless allow.new.levels is TRUE`; with `allowNewLevels: true` the term adds 0.
+  - A **new level** (not a level of the fit's grouping factor): the error `new levels detected in newdata: <levels>`,
+    the new levels of the first grouping factor (in the order of the selected terms) that has some, each once, in
+    order of appearance in `newdata`, joined by `, `; if that string is longer than 60 characters it is cut to its
+    first 60 characters and everything from its last `,` on is replaced by `, ...` (R: `new levels detected in
+    newdata: newsubject1, newsubject2, newsubject3, newsubject4, ...`; no `, ...` if the 60 characters contain no
+    comma). With `allowNewLevels: true` the term adds 0 for those rows (the population level for that term only).
+  - A missing value of a covariate used by a selected term (`x` of `(x | g)`): NaN for that row (R: NA).
+  - Levels of the fit absent from `newdata` do not matter.
+- **random.only**: the random part only (no `x'β̂`, no offset; with re.form `NA` all values are 0); for glmer
+  `type = "response"` then applies `linkinv` to it (R does).
+- **type** for lmer: accepted (`"link"` or `"response"`) and without effect (R).
+
+**Standard errors (`se.fit = TRUE`, new in lme4 2.0).** R's definition: with the joint vector `(b, β)` of the
+random effects and the fixed effects, its "conditional covariance"
+
+`C = σ² A (K)⁻¹ A'`, `K = [Λ'Z'WZΛ + I, Λ'Z'WX; X'WZΛ, X'WX]`, `A = diag(Λ_θ̂, I_p)`
+
+(θ̂ fixed: the covariance of `(b̂ − b, β̂ − β)`, Henderson's mixed-model equations), with `W` = the prior weights
+(lmer: 1) and for glmer the Fisher weights at the conditional mode (those of `R_X`), σ = the fit's `sigma` (lmer:
+its σ̂, REML or ML; glmer: 1 for binomial and poisson, lme4's sigma for the others). For a prediction row, `v = (z,
+x)` with `z` the row's random-effects columns of the fit's Z (the columns of all the fit's levels; zeros for terms
+not selected by re.form, for new levels and for missing grouping values) and `x` its fixed-effects row (zeros with
+`random.only`): `se = sqrt(v' C v)`; for glmer with `type = "response"` multiplied by `|μ'(η)|` (R's family
+`mu.eta` at the row's η). The β block of C is the `"RX"` covariance `σ² (R_X'R_X)⁻¹`, not the Hessian one that
+`vcov` uses for nAGQ ≥ 1. For glmer R warns `se.fit computation uses an approximation to estimate the sampling
+distribution of the parameters` (lmer: no warning). R returns `list(fit, se.fit)`.
+
+lme4's own computation is **wrong or fails in three situations** (checked in R against the formula above): (1) it ignores the
+fill-reducing permutation of its sparse Cholesky factor, so for crossed grouping factors whose factor is permuted the
+whole C is wrong (binomial `y ~ x + (1 | a) + (1 | b)`: elements of C off by 1.3 where the largest is 1.6; for
+lmer's Penicillin the permutation happens to give the right C); (2) with a re.form that leaves out a grouping factor
+that comes first in the fit, it selects the wrong rows and columns of C (Penicillin, `re.form = ~(1 | sample)`: it
+gives the value of `~(1 | plate)`, 0.818 instead of 0.206). (3) it fails with `non-conformable arguments` when a
+re.form term has fewer columns than the fit's term (Gamma `(x | g)` with `re.form = ~(1 | g)`), and for some re.form
+subsets without newdata. With a single grouping factor and all its terms selected (or none), the two agree to the
+accuracy of lme4's fit; the permutation also affects lmer fits with crossed factors (the fixture's `y ~ x + (1 | g) +
+(1 | h)`: C off by 0.04). rStats.js computes the formula above at the exact fit. To
+differences-from-r.
+
+### API
+
+```ts
+glmerPredict(fit: GlmerResult, options?: GlmerPredictOptions): MixedPrediction
+lmerPredict(fit: LmerResult, options?: LmerPredictOptions): MixedPrediction
+```
+
+Named after `glmPredict` (options object, `newdata`, `type`, `newoffset`) and lm's `predict`. The fit must be the
+object returned by `glmer` / `lmer` (TypeError otherwise, as `lmerInternals`); predict needs the fit's structure
+(terms, factor levels, contrasts, dropped columns, offset as given), so the glmer internals of glmerAnova are needed
+here too. Options (each checked, in this order, before anything is computed):
+
+| Option | Meaning (R) |
+|---|---|
+| `newdata` | a `DataFrame` (columns as `data`; R's `newdata`); default: the fit's rows |
+| `reForm` | `undefined` or `null`: all terms (R's NULL); `false`, `"~0"` or `"~ 0"`: none (R's NA, `~0`); a string formula `"~ (1 | g)"`: those terms; anything else a TypeError |
+| `allowNewLevels` | logical option (as `refit`; default `false`; R's `allow.new.levels`) |
+| `randomOnly` | logical option (default `false`; R's `random.only`) |
+| `type` | glmer and lmer: `"link"` (default) or `"response"`; otherwise RangeError `invalid 'type': <value>` (as `glmPredict`) |
+| `seFit` | logical option (default `false`; R's `se.fit`) |
+| `newoffset` | glmer only: see "The offset" above |
+
+R's argument names (`re.form`, `allow.new.levels`, `random.only`, `se.fit`, `newparams`, `terms`, `na.action`,
+`naAction`) give the Error `<fn>: argument '<key>' is not supported` (`checkLmerOptions`), any other key a
+RangeError. Result `MixedPrediction`: `fit` (one number per row), `seFit` (only with `seFit: true`), `warnings`
+(only when there are some: glmer's se.fit warning above), as `glmPredict`'s optional fields.
+
+**Errors, in this order** (R's order where R has the error; rStats.js checks re.form against the fit before it
+looks at the data, which changes the order only for inputs with several errors): the options; `newoffset`; re.form
+(its syntax: the lmer formula parser's errors; `No random effects terms specified in formula`; the grouping factors;
+the columns); `newdata`'s columns used by the fixed part (missing column, new factor level); the grouping columns
+and covariates of the selected terms (missing column: `object '<name>' not found`); missing grouping values; new
+levels.
+
+### The fixture mixedPredict (`oracle/mixedpredict.R`)
+
+Each case is one fit and several predictions: `kind` (`"glmer"` or `"lmer"`), the fit's arguments (as the fixtures
+glmer and lmer: `formula`, `data` with `dataTypes`, glmer's `family`, `link`, `weights`, `offset` (here a column
+name or an array), `nAGQ`; lmer's `REML`), and `calls`, one object per prediction with the options above (as
+written for rStats.js: `newdata` with `newdataTypes`, `reForm`, `allowNewLevels`, `randomOnly`, `type`, `seFit`,
+`newoffset`; `refError`: rStats.js's error where R fails with another message, information for the test).
+`expected`: one entry per call, R's `{ fit, seFit, warnings }` or `{ error }` (lme4 at its own
+estimates; R is called with the equivalent arguments: an offset column as `offset(col)` in the formula, so that
+`predict()` reads it from `newdata`; with `newoffset`, R's prediction, which has no offset, plus `newoffset`); `reference`: one entry per call,
+the values at the exact fit (glmer: oracle/glmer.R's search, 110-bit Newton's method; lmer: oracle/lmer.R's
+`optimum`), the prediction by the definitions above in double precision from the exact θ̂, β̂, b̂, σ̂ and the weights
+at the exact mode (C formed and solved in double precision: accurate to about 1e-12 relative here), or `{ error }`
+with rStats.js's message where it differs from R's.
+
+**Accuracy required** against `reference`: glmer (G11): `fit` within 1e-7 × the largest absolute value of the
+reference vector (link scale; response scale likewise), `seFit` within 1e-6 × the largest; lmer: `fit` within 1e-9 ×
+the largest, `seFit` 1e-8 (σ̂ and C are first order in θ̂); NaN where the reference is NaN; errors and warnings equal.
+Against `expected`: print the largest differences (lme4's estimates); `reference.lme4SeDiffers` (per call with
+`seFit`) is true where lme4's se.fit differs by more than 1e-3 (relative) from the formula above evaluated at lme4's
+own estimates: lme4's two errors, where the test should not compare with lme4.
