@@ -47,6 +47,13 @@ R's messages are forced to English with `LANGUAGE=en`, so error messages recorde
 not depend on the locale. A new oracle must not reuse the name of an existing fixture
 (`write_fixture` overwrites it silently); check `git status` after running one.
 
+The fixtures of the hypothesis tests also record R's warnings of each case (`write_htest_fixture(..., warnings =
+TRUE)` in `oracle/_htest.R`). To add or update only these warnings without Docker and without changing the numbers,
+run the oracle's cases with the local R: `node scripts/fixture-warnings.mjs <oracle name> ...` (`--check` reports
+without writing; the fixture's arguments are passed to R exactly and its results are checked against the fixture),
+and `node scripts/fixture-warnings.mjs --run htestwarnings` for the oracle of warnings only. It needs `Rscript` on the
+`PATH` with the packages of the oracle.
+
 Fixtures for random numbers are generated with the x86_64 build of the image (`rstats-oracle-amd64`
 under `--platform linux/amd64`, oracles marked `# oracle-platform: amd64`), because the arm64 build
 differs in the last bit of some functions. Linear-algebra fixtures
@@ -111,8 +118,15 @@ Follow them in new code and in fixes.
 9. **Integer conversion as R.** An argument that must be an integer is truncated as R's `as.integer` does before it is
    checked; the discrete distribution functions count the values at most q.
 10. **Other conventions.** At confidence levels so close to 1 that α/2 < 1e-8, the quantile is taken from the upper
-    tail. Nothing is printed: tests do not emit R's warnings, and fits return theirs in the result's `warnings`.
-    Computations scale their input by a power of 2 first where the values could overflow or underflow.
+    tail. Every test, model and fit returns R's warnings in its result's `warnings`: R's text, each distinct warning
+    once, in the order R gives them, and an empty array when there are none. A warning that explains a NaN result
+    (`NaNs produced`) is included; the warnings of R's distribution functions about their own precision (`full
+    precision may not have been achieved`) and those about R's argument types (a group coerced to a factor) are not.
+    Nothing is printed by default: `setWarningHandler` sets a function that receives each warning of a call, with the
+    name of the function called, once the call has computed its result. A function that calls another
+    (`pairwiseWilcoxTest` calling `wilcoxTest`) passes the warnings once, under its own name, and a fit's warnings are
+    passed once, when it is fitted: `anova(fit)` or `etaSquared(fit)` keeps them in its result but passes only the
+    warnings it adds (`src/internal/warnings.ts`). Computations scale their input by a power of 2 first where the values could overflow or underflow.
 
 ## Licensing rules
 

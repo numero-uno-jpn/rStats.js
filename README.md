@@ -229,9 +229,11 @@ everyday use:
 - Indices are 0-based: `sampleInt(n)` returns `0..n-1` (R's `sample.int()` minus 1, from the
   same random stream), and pivots of `qr` and `chol` are 0-based.
 - Signs of eigenvectors and singular vectors may differ from R (both are correct).
-- Nothing is printed for R's warnings; all numeric fields and method names match. The models (`lm`, `glm`, `lmer`,
-  `aov`, `anova`, `Anova`, `aovEz`, `coxph`) and some tests, effect sizes and power calculations return R's warnings in
-  their result (`warnings`).
+- All numeric fields and method names match. R's warnings are not printed by default, but every test, model and fit
+  returns them in its result (`warnings`: R's text, each distinct warning once, `[]` when there are none). To print
+  them as R does, set a handler, which receives each warning of a call once with the name of the function called:
+  `setWarningHandler((message, source) => console.warn(source + ": " + message))`. A handler that throws plays the
+  part of R's `options(warn = 2)`, and `setWarningHandler(null)` stops it.
 - Input for which the result is not defined is an error, also where R returns NaN or a meaningless value (for
   example `mcnemarTest` on a table without discordant pairs, or `lu` of a matrix with NaN). The distribution
   functions (d/p/q/r) return NaN for invalid parameters, as R. See

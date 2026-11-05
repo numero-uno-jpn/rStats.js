@@ -233,9 +233,11 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 - 添字は 0 から始まります。`sampleInt(n)` は `0..n-1` を返します (R の `sample.int()` から 1 を
   引いた値で、乱数の列は同じ)。`qr` と `chol` のピボットも 0 から始まります。
 - 固有ベクトルと特異ベクトルの符号が R と違うことがあります (どちらも正しい答えです)。
-- R の警告を表示することはありません。数値の欄と手法の名前はすべて一致します。モデル (`lm`、`glm`、`lmer`、
-  `aov`、`anova`、`Anova`、`aovEz`、`coxph`) と一部の検定・効果量・検出力の計算は、R の警告を結果の `warnings`
-  に入れて返します。
+- 数値の欄と手法の名前はすべて一致します。R の警告は既定では表示しませんが、検定・モデル・当てはめはすべて、
+  結果の `warnings` に入れて返します (R の文言で、同じ警告は 1 回ずつ。なければ `[]`)。R のように表示するには
+  handler を設定します。handler は、呼び出しの警告を 1 つずつ、呼んだ関数の名前とともに受け取ります:
+  `setWarningHandler((message, source) => console.warn(source + ": " + message))`。handler の中で throw すれば
+  R の `options(warn = 2)` の代わりになり、`setWarningHandler(null)` で止まります。
 - 結果が定義されない入力はエラーにします。R が NaN や意味のない値を返す場合も同じです (たとえば不一致の
   組がない表の `mcnemarTest`、NaN を含む行列の `lu`)。分布の関数 (d/p/q/r) は、R と同じく不正な母数に NaN を返します。
   [全般的な違い](docs/ja/differences-from-r.md#全般)を見てください。

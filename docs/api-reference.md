@@ -75,5 +75,12 @@ loads the common code twice, with two random number states.
   throws, also where R returns NaN; the distribution functions (d/p/q/r) return NaN for invalid parameters, as R. A
   computation that would allocate more than 2^24 values in one array or run for more than about 10 seconds throws a
   RangeError before it starts ([limits](https://numero-uno-jpn.github.io/rStats.js/docs/performance.html#limits)).
+- **Warnings:** every test, model and fit returns R's warnings in its result's `warnings` (R's text, each distinct
+  warning once in R's order, `[]` when there are none; not the warnings of R's distribution functions about their
+  own precision or those about R's argument types). Nothing is printed by default: `setWarningHandler(handler)` sets
+  a function that receives each warning of a call once, with the name of the function called, after the result is
+  computed (`(message, source) => console.warn(source + ": " + message)` prints them as R does; a handler that
+  throws plays the part of R's `options(warn = 2)`). A function that calls another passes the warnings once under its
+  own name, and a fit's warnings are passed when it is fitted, not again by `anova(fit)` or `glmSummary(fit)`.
 - **Random numbers:** after `setSeed(42)`, `rnorm`, `runif`, `sample` and the others give R's numbers after
   `set.seed(42)`.
