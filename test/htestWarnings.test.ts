@@ -7,7 +7,18 @@
 // For the cases where R stops with an error after its warnings, the comment says so; rStats.js returns a value there
 // and the warnings R gave before it stopped. To be replaced by the warnings recorded in the fixtures.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ansariTest, fisherTest, pairwiseWilcoxTest, setWarningHandler, wilcoxTest, type WarningHandler } from "../src/index.js";
+import {
+  ansariTest,
+  chisqTest,
+  fisherTest,
+  pairwisePropTest,
+  pairwiseWilcoxTest,
+  propTest,
+  setSeed,
+  setWarningHandler,
+  wilcoxTest,
+  type WarningHandler,
+} from "../src/index.js";
 
 const P_TIES = "cannot compute exact p-value with ties";
 const P_ZEROES = "cannot compute exact p-value with zeroes";
@@ -237,5 +248,98 @@ describe("fisherTest warnings (R's fisher.test: the rounding of the counts, with
     setWarningHandler(handler);
     fisherTest([[1.5, 2, 3], [4, 5, 6.25]]);
     expect(handler.mock.calls).toEqual([[`${ROUNDED}0.09677419`, "fisherTest"]]);
+  });
+});
+
+const APPROX = "Chi-squared approximation may be incorrect";
+
+describe("chisqTest warnings (R's chisq.test)", () => {
+  const ZERO_MARGINALS = "cannot compute simulated p-value with zero marginals";
+  const cases: [string, () => { warnings: string[] }, string[]][] = [
+    // chisq.test(c(3,4,5))
+    ["goodness of fit, expected below 5", () => chisqTest([3, 4, 5]), [APPROX]],
+    // chisq.test(c(30,40,50))
+    ["goodness of fit", () => chisqTest([30, 40, 50]), []],
+    // chisq.test(c(10,10,1), p = c(0.45,0.45,0.1))
+    ["goodness of fit, given p", () => chisqTest([10, 10, 1], { p: [0.45, 0.45, 0.1] }), [APPROX]],
+    // set.seed(1); chisq.test(c(3,4,5), simulate.p.value = TRUE)
+    ["goodness of fit, simulated", () => (setSeed(1), chisqTest([3, 4, 5], { simulatePValue: true })), []],
+    // chisq.test(matrix(c(12,5,7,15), 2))
+    ["table", () => chisqTest([[12, 7], [5, 15]]), []],
+    // chisq.test(matrix(c(3,1,1,3), 2))
+    ["table, expected below 5", () => chisqTest([[3, 1], [1, 3]]), [APPROX]],
+    // set.seed(1); chisq.test(matrix(c(3,1,1,3), 2), simulate.p.value = TRUE)
+    ["table, simulated", () => (setSeed(1), chisqTest([[3, 1], [1, 3]], { simulatePValue: true })), []],
+    // chisq.test(matrix(c(30,0,10,0,20,0), 2), simulate.p.value = TRUE)
+    [
+      "table, simulated, zero margin",
+      () => chisqTest([[30, 10, 20], [0, 0, 0]], { simulatePValue: true }),
+      [ZERO_MARGINALS, APPROX],
+    ],
+    // chisq.test(c("a","b","a","b"), c("u","u","v","v"))
+    ["factors", () => chisqTest(["a", "b", "a", "b"], ["u", "u", "v", "v"]), [APPROX]],
+  ];
+  it.each(cases)("%s", (_, f, expected) => {
+    expect(f().warnings).toEqual(expected);
+  });
+
+  it("passes the warnings to the handler once", () => {
+    const handler = vi.fn<WarningHandler>();
+    setWarningHandler(handler);
+    chisqTest([[30, 10, 20], [0, 0, 0]], { simulatePValue: true });
+    expect(handler.mock.calls).toEqual([
+      [ZERO_MARGINALS, "chisqTest"],
+      [APPROX, "chisqTest"],
+    ]);
+  });
+});
+
+describe("propTest warnings (R's prop.test)", () => {
+  const cases: [string, () => { warnings: string[] }, string[]][] = [
+    // prop.test(3, 10)
+    ["one sample", () => propTest(3, 10), []],
+    // prop.test(2, 8)
+    ["one sample, expected below 5", () => propTest(2, 8), [APPROX]],
+    // prop.test(5, 10, p = 0.4, correct = FALSE)
+    ["one sample, given p, no correction", () => propTest(5, 10, { p: 0.4, correct: false }), [APPROX]],
+    // prop.test(c(15,25), c(50,50))
+    ["two samples", () => propTest([15, 25], [50, 50]), []],
+    // prop.test(c(2,5), c(10,10))
+    ["two samples, pooled expected below 5", () => propTest([2, 5], [10, 10]), [APPROX]],
+    // prop.test(matrix(c(2,6,5,5), 2, byrow = TRUE))
+    ["table", () => propTest([[2, 6], [5, 5]]), [APPROX]],
+    // prop.test(c(5,5), c(10,10), p = c(0.3,0.9))
+    ["given proportions", () => propTest([5, 5], [10, 10], { p: [0.3, 0.9] }), [APPROX]],
+    // prop.test(c(83,90,129,70), c(86,93,136,82))
+    ["four samples", () => propTest([83, 90, 129, 70], [86, 93, 136, 82]), []],
+  ];
+  it.each(cases)("%s", (_, f, expected) => {
+    expect(f().warnings).toEqual(expected);
+  });
+
+  it("passes the warning to the handler", () => {
+    const handler = vi.fn<WarningHandler>();
+    setWarningHandler(handler);
+    propTest(2, 8);
+    expect(handler.mock.calls).toEqual([[APPROX, "propTest"]]);
+  });
+});
+
+describe("pairwisePropTest warnings (R's pairwise.prop.test: those of each prop.test, each once)", () => {
+  const cases: [string, () => { warnings: string[] }, string[]][] = [
+    // pairwise.prop.test(c(15,25,40), c(50,50,50))
+    ["none", () => pairwisePropTest([15, 25, 40], [50, 50, 50]), []],
+    // pairwise.prop.test(c(2,5,40), c(10,10,50))  (R: the warning three times, once per pair)
+    ["every pair", () => pairwisePropTest([2, 5, 40], [10, 10, 50]), [APPROX]],
+  ];
+  it.each(cases)("%s", (_, f, expected) => {
+    expect(f().warnings).toEqual(expected);
+  });
+
+  it("passes the warning to the handler once, under its own name", () => {
+    const handler = vi.fn<WarningHandler>();
+    setWarningHandler(handler);
+    pairwisePropTest([2, 5, 40], [10, 10, 50]);
+    expect(handler.mock.calls).toEqual([[APPROX, "pairwisePropTest"]]);
   });
 });

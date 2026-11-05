@@ -262,7 +262,17 @@ export function pairwisePropTest(
   if (k < 2) throw new RangeError("too few groups");
   const adjust = options.pAdjustMethod ?? "holm";
   const correct = options.correct ?? true;
-  const pv = table(k, (i, j) => unreported(() => propTest([xs[i]!, xs[j]!], [ns[i]!, ns[j]!], { correct })).pValue, adjust);
+  // the comparisons' warnings ("Chi-squared approximation may be incorrect"), each once (R repeats them for each)
+  const warnings = new Warnings();
+  const pv = table(
+    k,
+    (i, j) => {
+      const r = unreported(() => propTest([xs[i]!, xs[j]!], [ns[i]!, ns[j]!], { correct }));
+      for (const w of r.warnings) warnings.add(w);
+      return r.pValue;
+    },
+    adjust,
+  );
   const levels = Array.from({ length: k }, (_, i) => i + 1);
-  return result("Pairwise comparison of proportions", levels, pv, adjust);
+  return reported("pairwisePropTest", result("Pairwise comparison of proportions", levels, pv, adjust, warnings.list));
 }
