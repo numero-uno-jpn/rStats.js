@@ -222,6 +222,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `wilcox.test(c(1e308, 1.1e308, 1.2e308), mu = -1e308)` と 2 標本の `x - mu` (`mu` との差が溢れる有限なデータ) | 差がどれも Inf で同順位になり、正規近似で V = 6、p = 0.1489 (y = 1:3 に対して W = 9、p = 0.0636) | その場合だけ差を半分の単位 (x / 2 - mu / 2) で作り、真の差の順位を付ける。正確な p = 0.25 (W = 9 では 0.1) |
 | 不一致の度数がない組を含む r x r 表の `mcnemar.test` | 統計量と p 値が NaN | その組の寄与を 0 にする (自由度は変えない) |
 | `cor.test(c(1, 2), c(1, 2), method = "kendall", exact = FALSE)` (n = 2) | 統計量と p 値が NaN: 分散の 2 つ目の同順位の項が 0 / 0 (分母に n − 2 = 0) | z = 1、p = 0.3173: その項を 0 にする (同順位の組はどれも 2 個以下) |
+| `cor.test(c(1e-300, 2e-300, 3e-300), c(1, 2, 3))` と `cor.test(rep(1e308, 4), 1:4)` (Pearson。平方和がアンダーフローする、平均が溢れる) | NaN と警告 "the standard deviation is zero"。警告なしの NaN | r = 1 (データを 2 の冪で正規化する)、警告なし。NaN と警告 "the standard deviation is zero" (x が定数) |
 | 二乗が溢れる `predict(glm, newdata, se.fit = TRUE)` (newdata 1e155) | se.fit が Inf | 最大の値で割ってからノルムを作る: 1.07e154 |
 | x の列が 1 から遠い (x の 1e-200 倍や 1e200 倍) `summary(lm)`、`summary(glm)`、`confint(glm)` | 標準誤差が Inf か 0 ((R'R)^-1 が溢れるか 0 に落ちる)、t が 0 か Inf、p が 1 か 0。プロファイル区間も求まらない | 逆行列の前に R の列を 2 の冪で割る。t、p、区間は x そのものと同じ (尺度を戻さない共分散は、範囲外なら今まで通り Inf か 0) |
 | 重み 1e308 か、重み 0 の行に無限大の応答がある `glm` (gaussian、切片あり) | null deviance が NaN (重みの和が溢れる、0 × Inf) | 5e306 と 4.67。重みを 2 の冪で割り、重み 0 の行を除く |
@@ -622,8 +623,14 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 
 ### 仮説検定
 
-- **警告は返しません** ("Chi-squared approximation may be incorrect" や "cannot compute exact p-value
-  with ties" など)。手法名と数値のフィールドはすべて R と一致します。
+- **警告** ("Chi-squared approximation may be incorrect" や "cannot compute exact p-value with ties" など) は、
+  結果の `warnings` に入れて返します (R の文言で、同じ警告は 1 回ずつ、R の順。なければ `[]`)。表示するのは
+  `setWarningHandler` で handler を設定したときだけです (既定では何も表示しません)。結果が NaN になる理由を
+  説明する警告 ("NaNs produced") は入れ、R の分布関数が自身の精度について出す警告 ("full precision may not have
+  been achieved in ...") と、R の引数の型についての警告は入れません。`cronbachAlpha` は psych の `alpha` 自身の
+  警告だけを返し、中で呼ぶ関数 (`principal`、`cor`) の警告は返しません。`pairwisePropTest` と
+  `pairwiseWilcoxTest` は同じ警告を 1 回だけ返します (R は組ごとに繰り返します)。手法名と数値のフィールドは
+  すべて R と一致します。
 - **`wilcoxTest`** で n = 3、片側の正確な区間の場合、達成された信頼水準は 0.88 です。R は 0.87 と
   報告します。R の `psignrank(0, 3)` が 0.12500000000000003 で、1/8 より 1 ulp 大きいためです
   (R 自身も n = 4 の両側区間では 0.88 と報告します)。
@@ -632,7 +639,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   NaN NaN、推定値 0 ("midrange")。mu = 1e16 と c(1, 2, 3, 4.5, 7) では [0, 8])。rStats.js は、戻した値の
   どれかが最大の観測値の 2^-26 倍より大きくずれるとき、観測値そのものを使います (同じデータの mu = 0 の
   区間と推定値。手法は mu との差で決まるまま)。(0.1 − 0.4) + 0.4 の 1 ulp のような小さな丸めでは R と
-  同じ値です (Issue #502)。
+  同じ値です (Issue #502)。R は区間が NaN になるとき "all observations are zero or tied" の警告も出しますが、
+  rStats.js は区間を計算するので出しません。
 - **`brunnerMunzelTest`** は、lawstat の `alpha` の代わりに `confLevel` を受け取ります
   (`confLevel = 1 - alpha`)。また、lawstat の結果にはない `alternative` のフィールドを返します。空の標本は
   "not enough 'x' observations" (または 'y') で例外を投げます。lawstat は意味のない数値を返します。順位を
@@ -733,7 +741,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   BMP の外の文字 (`𝐀`、CJK 拡張 B) を名前に含めません。Linux 版 R はどちらも含めます。
 - **当てはめの警告** (`lm`、`Error()` の有無によらない `aov`。"Error() model is singular" や、`contrasts` に指定した変数が式にない
   場合など) は、`anova` (比べるすべての当てはめのもの)、car の `Anova`、`aovSummary`、それらから計算した効果量の結果にも、
-  同じ警告を 1 回ずつ引き継ぎます (R は当てはめのときだけ警告を出します)。
+  同じ警告を 1 回ずつ引き継ぎます (R は当てはめのときだけ警告を出します。`setWarningHandler` で設定した handler にも、
+  当てはめのときに 1 回だけ渡します)。
 - **`dunnTest`** は値を数として順位づけます。dunn.test 1.4.2 は、群を文字列のベクトルで渡すと値を文字列として
   順位づけ (10.06 が 8.88 より前)、因子で渡すと数として順位づけます。`dunnTest` は後者を再現します。
 - **R がデータの表示で締めくくる `aovEz` のメッセージ** (欠測値で除いた id、被験者内の空のセル、
@@ -836,7 +845,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`aggregate`** が要約するのは数値の列で、関数はどの群でも 1 つの数か、同じ個数の値を返す必要があります (R は
   リストの列も作ります)。
 - **`pivotLonger` と `pivotWider`** はデータフレームを返します。tidyr の警告は任意の `onWarning` コールバックに
-  渡します。`pivotWider` で 1 つのセルに複数の行が当たるとエラーにします (tidyr は警告を出してリストの列を作り
+  渡します (ないときは、`pivotLonger` の警告は `setWarningHandler` の handler に渡します)。`pivotWider` で 1 つのセルに複数の行が当たるとエラーにします (tidyr は警告を出してリストの列を作り
   ます)。`valuesFn` で要約してください。`pivotLonger` で、名前 (`namesTransform` の後) が同じキーに同じ `".value"`
   の列を 2 回与えるとエラーにします (tidyr はそれぞれに行を作ります。Issue #444)。正規表現 (`namesSep`、
   `namesPattern`) は JavaScript のものです。`namesSep` が長さ 0 で一致したあとは、stringr の `str_split` と同じく
@@ -873,7 +882,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   小さい z を分解できないためです (相対誤差は約 epsilon D / z²)。限界は厳密な値と相対 1e-10 程度まで一致します
   (切片だけの binomial と Poisson の当てはめ)。R は level 1e-20 で [0, 0] (1 + level が 1 に丸まる)、1e-10 で
   相対 1.6e-4 ずれます。#179 の前の rStats.js は、そこで ±1.2533e-10 に対し [-7.2e-10, 1.5e-8] を返していました。
-- **警告**は出さずに返します。`glm` の結果の `warnings` に R の警告を入れます (各メッセージは 1 回、
+- **警告**は表示せずに返します (`setWarningHandler` で handler を設定したときは handler にも渡します)。`glm` の結果の `warnings` に R の警告を入れます (各メッセージは 1 回、
   最初に現れた順)。Poisson の AIC で R の `dpois` が出す警告 (`"non-integer x = 0.500000"`) と、
   `1/mu^2` リンクの `sqrt` の警告 (`"NaNs produced"`) も含みます。`glmSummary` と `glmAnova` は
   それぞれの警告を返します (`"observations with zero weight not used for calculating dispersion"`、

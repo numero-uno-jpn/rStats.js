@@ -228,6 +228,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `wilcox.test(c(1e308, 1.1e308, 1.2e308), mu = -1e308)`, and the two-sample `x - mu` (finite data whose difference from `mu` overflows) | the differences tie as Inf: V = 6 by the normal approximation, p = 0.1489 (W = 9, p = 0.0636 against y = 1:3) | the differences in half units (x / 2 - mu / 2) there, ranked as the true differences: the exact p = 0.25 (0.1 for W = 9) |
 | `mcnemar.test` on an r x r table where a pair of cells has no discordant counts | statistic and p-value NaN | that pair adds 0 (df unchanged) |
 | `cor.test(c(1, 2), c(1, 2), method = "kendall", exact = FALSE)` (n = 2) | statistic and p-value NaN: the second tie term of the variance is 0 / 0 (n − 2 = 0 in its denominator) | z = 1, p = 0.3173: that term is 0 (every tie group has at most 2 values) |
+| `cor.test(c(1e-300, 2e-300, 3e-300), c(1, 2, 3))` and `cor.test(rep(1e308, 4), 1:4)` (Pearson; the sums of squares underflow, the mean overflows) | NaN with the warning "the standard deviation is zero"; NaN without a warning | r = 1 (the data scaled by powers of 2) without a warning; NaN with the warning "the standard deviation is zero" (x is constant) |
 | `predict(glm, newdata, se.fit = TRUE)` where the squares overflow (newdata 1e155) | se.fit Inf | the norm formed from the values divided by the largest: 1.07e154 |
 | `summary(lm)`, `summary(glm)` and `confint(glm)` with a column of x far from 1 (x times 1e-200 or 1e200) | the standard error Inf or 0 ((R'R)^-1 overflows or underflows), t 0 or Inf, p 1 or 0; the profile interval fails | the columns of R divided by powers of 2 before the inverse: t, p and the interval as for x itself (the unscaled covariance is still Inf or 0 where it is out of range) |
 | `glm` (gaussian, with intercept) with weights of 1e308, or with an infinite response of weight 0 | null deviance NaN (the sum of the weights overflows; 0 times Inf) | 5e306 and 4.67: the weights divided by a power of 2, rows of weight 0 left out |
@@ -643,8 +644,13 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 
 ### Hypothesis tests
 
-- **Warnings are not returned** (such as "Chi-squared approximation may be incorrect" or "cannot
-  compute exact p-value with ties"). Method names and all numeric fields match R.
+- **Warnings** (such as "Chi-squared approximation may be incorrect" or "cannot compute exact p-value with ties")
+  are returned in each result's `warnings` (R's text, each once, in R's order; `[]` when there are none) and are
+  printed only through `setWarningHandler` (nothing by default). Those that explain a NaN result ("NaNs produced") are
+  included; those of R's distribution functions about their own precision ("full precision may not have been achieved
+  in ...") and R's warnings about argument types are not. `cronbachAlpha` returns psych's `alpha`'s own warnings, not
+  those of the functions it calls (`principal`, `cor`), and `pairwisePropTest` and `pairwiseWilcoxTest` give each
+  warning once (R repeats it for every pair). Method names and all numeric fields match R.
 - **`wilcoxTest`** with n = 3, one-sided exact interval: the achieved confidence level is 0.88.
   R reports 0.87 because its `psignrank(0, 3)` is 0.12500000000000003, 1 ulp above 1/8 (R itself
   reports 0.88 for the two-sided interval with n = 4).
@@ -654,7 +660,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   c(1, 2, 3, 4.5, 7), [0, 8]). When some observation comes back off by more than 2^-26 of the
   largest, rStats.js takes the observations themselves: the interval and estimate of the same data
   with mu = 0 (the method still follows the differences from mu). Smaller rounding, such as the 1 ulp
-  of (0.1 − 0.4) + 0.4, keeps R's values (issue #502).
+  of (0.1 − 0.4) + 0.4, keeps R's values (issue #502). Where its interval is NaN, R also warns "all observations
+  are zero or tied"; rStats.js computes the interval and does not.
 - **`brunnerMunzelTest`** takes `confLevel` where lawstat takes `alpha` (`confLevel = 1 - alpha`),
   and returns an `alternative` field, which lawstat's result lacks. An empty sample throws "not
   enough 'x' observations" (or 'y'); lawstat returns meaningless numbers, because it indexes the
@@ -770,7 +777,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   Extension B) in a name; R on Linux takes both.
 - **The warnings of a fit** (`lm`, `aov` with or without `Error()`; such as "Error() model is singular" or an
   absent variable named in `contrasts`) are carried to `anova` (of all the fits compared), car's `Anova`, `aovSummary`
-  and the effect sizes computed from them, each message once (R gives them when fitting only).
+  and the effect sizes computed from them, each message once (R gives them when fitting only; a handler set with
+  `setWarningHandler` receives them once too, from the fit).
 - **`dunnTest`** ranks the values as numbers. dunn.test 1.4.2 given a character group vector ranks them as text
   (so 10.06 before 8.88); with a factor it ranks them as numbers, which is what `dunnTest` reproduces.
 - **`aovEz` messages that R completes with a printout of the data** (ids removed for missing
@@ -888,7 +896,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`aggregate`** summarises numeric columns with a function returning a number or the same number of values for
   every group (R would also make list columns).
 - **`pivotLonger` and `pivotWider`** return the data frame; tidyr's warnings go to the optional `onWarning`
-  callback. A cell that several rows fill is an error in `pivotWider` (tidyr warns and makes a list column):
+  callback (without it, `pivotLonger`'s go to the handler of `setWarningHandler`). A cell that several rows fill is an error in `pivotWider` (tidyr warns and makes a list column):
   summarise them with `valuesFn`. In `pivotLonger`, names (after `namesTransform`) that give one `".value"` column
   twice for the same key are an error (tidyr makes a row for each; issue #444). Regular expressions (`namesSep`,
   `namesPattern`) are JavaScript's. After a zero-width match of `namesSep` the split goes on one character (code
@@ -927,8 +935,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   within about 1e-10 relative of the exact ones (intercept-only binomial and Poisson fits). R gives [0, 0] at level
   1e-20 (1 + level rounds to 1) and is 1.6e-4 relative off at 1e-10; rStats.js before #179 gave [-7.2e-10, 1.5e-8]
   for ±1.2533e-10 there.
-- **Warnings** are returned, not emitted: `glm`'s result has R's warnings in `warnings` (each message
-  once, in order of first appearance), including those of R's `dpois` in the Poisson AIC
+- **Warnings** are returned, not printed (unless a handler is set with `setWarningHandler`): `glm`'s result has R's
+  warnings in `warnings` (each message once, in order of first appearance), including those of R's `dpois` in the Poisson AIC
   (`"non-integer x = 0.500000"`) and of `sqrt` in the `1/mu^2` link (`"NaNs produced"`).
   `glmSummary` and `glmAnova` return their own (`"observations with zero weight not used for
   calculating dispersion"`, `"using F test with a 'binomial' family is inappropriate"`, and those of
@@ -956,7 +964,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   from the optimum in θ, so θ, the variance components (`VarCorr`), the standard errors and the random effects
   differ from lme4's in about the 5th to 9th significant digit; the fixed effects and the log-likelihood agree to
   more digits (the criterion is flat at the optimum). lme4's convergence warnings (`Model failed to converge ...`)
-  are not emitted.
+  are not returned.
 - **Local minima:** the criterion can have several local minima (for example crossed groups without a fixed
   intercept, where one term can take the place of the intercept). After the local minimisation, rStats.js compares
   the fit with the boundary points where one random-effects term is removed (its variances set to 0), minimised
