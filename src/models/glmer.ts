@@ -36,11 +36,12 @@
 // logLik for nAGQ > 1 (G12): R's is −D_K / 2, relative to the saturated model; here the saturated model's constant
 // is added back so that it is the log-likelihood, comparable with nAGQ = 1 and with glm.
 
+import { nonInteger } from "../distributions/poisson.js";
 import { potf2, potri } from "../linalg/chol.js";
 import { ldexp } from "../internal/summary.js";
 import { reported, Warnings } from "../internal/warnings.js";
-import type { GlmLinkName } from "./glmFamily.js";
-import type { GlmerFamilyName } from "./glmerFamily.js";
+import { familyAic, type GlmLinkName } from "./glmFamily.js";
+import { pearsonResidualOf, workingResidualOf, type GlmerFamilyName } from "./glmerFamily.js";
 import { glmerAgqDeviance, glmerDeviance, type GlmerDeviance } from "./glmerDeviance.js";
 import { glmerStructure, type GlmerStructure } from "./glmerStructure.js";
 import { checkLmerOptions, columnsOfTheta, thetaColumnExponents, type LmerContrastName, type LmerRanef, type LmerVarCorr } from "./lmer.js";
@@ -83,8 +84,8 @@ export interface GlmerOptions {
   /**
    * 1 (default): the Laplace approximation, the deviance minimised over θ and β; 0: over θ only, with β from the
    * penalised IRLS (faster, less exact); 2 to 100: adaptive Gauss-Hermite quadrature with that many points, more
-   * exact than the Laplace approximation. A non-integer is truncated as in R; negative values are a RangeError (R
-   * uses 0), above 100 R's error. Above 1 the model must have a single random-effects term with one column, such as
+   * exact than the Laplace approximation. A non-integer is truncated as in R (−0.5 is 0); negative values after that
+   * are a RangeError (R uses 0), above 100 R's error. Above 1 the model must have a single random-effects term with one column, such as
    * `(1 | g)` (otherwise R's errors `nAGQ > 1 is only available for models with a single, scalar random-effects
    * term` or `AGQ only defined for a single scalar random-effects term`), and the family must be binomial or
    * poisson: for Gamma, inverse.gaussian and gaussian it is a RangeError, since lme4 holds the dispersion at 1 there
@@ -413,13 +414,30 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
   const n = s.y.length;
   const p = s.xColNames.length;
   const nTheta = s.theta.length;
+  // Non-integer poisson counts: R's dpois is 0 there, so the aic term is +Infinity and the Laplace deviance infinite
+  // at every θ and β (R warns "non-integer x = ..." at each evaluation and returns its starting values with logLik
+  // −Inf): no estimate (rule 1). The quadrature deviance (nAGQ > 1) leaves the aic term out: R's estimates, with
+  // R's warning and the log-likelihood −Inf (G12)
+  const nonIntegerCount = s.family.family === "poisson" ? s.y.find((v, i) => s.weights[i]! > 0 && nonInteger(v)) : undefined;
+  if (nonIntegerCount !== undefined && nAGQ <= 1) {
+    throw new RangeError(
+      `glmer: the poisson response has a non-integer count (${nonIntegerCount}), where the log-likelihood is -Inf for every parameter: no estimate (R warns "non-integer x = ${nonIntegerCount.toFixed(6)}" and returns its starting values)`,
+    );
+  }
 
   // the computation is on X and Z with their columns divided by powers of 2 (exact; the same model): θ' = 2^e θ as
   // lmer's (thetaColumnExponents) and β' = 2^f β, so that the steps and tolerances suit predictors of any scale and
   // no cross-product of X or Z overflows (a predictor times 1e160 made X'WX overflow, times 1e-160 the vcov)
   const exponents = thetaColumnExponents(s);
   const xExponents = columnExponents(s.x, p);
-  const sc = scaledStructure(s, exponents.z, xExponents);
+  // a Gamma response with the log link below 2^-40 is fitted divided by 2^ky (see responseExponent): the same model
+  // with the offset shifted by −ky log 2, so that θ, β and b are those of the response as given
+  const ky = responseExponent(s);
+  const sy: GlmerStructure =
+    ky === 0
+      ? s
+      : { ...s, y: s.y.map((v) => ldexp(v, -ky)), mustart: s.mustart.map((v) => ldexp(v, -ky)), offset: s.offset.map((o) => o - ky * Math.LN2) };
+  const sc = scaledStructure(sy, exponents.z, xExponents);
   const toScaled = (theta: readonly number[]): number[] => theta.map((v, k) => ldexp(v, exponents.theta[k]!));
   const fromScaled = (theta: readonly number[]): number[] => theta.map((v, k) => ldexp(v, -exponents.theta[k]!));
 
@@ -490,7 +508,9 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
     const r = glmerDeviance(sc, x, undefined, 0, { gradient: true });
     return { deviance: r.deviance, gradient: r.gradient! };
   };
-  const theta0 = minimiseWithRestarts(problemOf(d0, nTheta), startTheta === undefined ? initialTheta : toScaled(startTheta), blocks, { bestOnFailure: nAGQ >= 1 }).theta;
+  const thetaStart = startTheta === undefined ? initialTheta : toScaled(startTheta);
+  // (non-integer counts with nAGQ > 1: d₀ is infinite everywhere, so the start, as R's first phase ends there)
+  const theta0 = nonIntegerCount !== undefined ? thetaStart : minimiseWithRestarts(problemOf(d0, nTheta), thetaStart, blocks, { bestOnFailure: nAGQ >= 1 }).theta;
 
   let thetaScaled = theta0;
   let betaScaled: number[] | undefined;
@@ -570,20 +590,21 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
   const bFit = r.b.map((v, j) => ldexp(v, -exponents.z[j]!));
   const fam = s.family;
   const { y, weights: w } = s;
-  const mu = r.mu;
-  const eta = r.eta;
+  // (the means and the linear predictor of the response as given: 2^ky μ, η + ky log 2)
+  const mu = ky === 0 ? r.mu : r.mu.map((m) => ldexp(m, ky));
+  const eta = ky === 0 ? r.eta : r.eta.map((e) => e + ky * Math.LN2);
 
   const devResid = y.map((yi, i) => fam.devResid(yi, mu[i]!, w[i]!));
   const residuals = devResid.map((d, i) => {
     const v = Math.sqrt(Math.max(0, d));
     return v === 0 ? 0 : y[i]! > mu[i]! ? v : -v;
   });
-  const pearsonResiduals = y.map((yi, i) => (Math.sqrt(w[i]!) * (yi - mu[i]!)) / Math.sqrt(fam.variance(mu[i]!)));
-  const workingResiduals = y.map((yi, i) => (yi - mu[i]!) / fam.muEta(eta[i]!));
+  const pearsonResiduals = y.map((yi, i) => pearsonResidualOf(fam, w[i]!, yi, mu[i]!));
+  const workingResiduals = y.map((yi, i) => workingResidualOf(fam, yi, eta[i]!, mu[i]!));
   const responseResiduals = y.map((yi, i) => yi - mu[i]!);
   const deviance = devResid.reduce((sum, d) => sum + Math.max(0, d), 0);
   const dispersionFamily = fam.family !== "binomial" && fam.family !== "poisson";
-  const sigma = dispersionFamily ? Math.sqrt(dispersionOf(s, r)) : 1;
+  const sigma = dispersionFamily ? Math.sqrt(dispersionOf(sy, r)) : 1;
 
   // (an absolute threshold on θ's diagonal elements, as lme4's isSingular with its default tolerance 1e-4)
   const singular = theta.some((v, j) => s.lower[j] === 0 && v < 1e-4);
@@ -650,7 +671,10 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
   // nAGQ > 1 (binomial and poisson only, G13): the AGQ deviance has no aic term, so R's logLik is relative to the
   // saturated model; here the saturated model's constant aic − Σ d_i (which does not depend on μ for these families)
   // is added back, so that logLik is the log-likelihood (G12; R's logLik differs by it)
-  const logLik = -(r.deviance + (nAGQ > 1 ? r.aic - r.devResid : 0)) / 2;
+  // (+ 0: a deviance of 0, binomial weights so small that the aic term is 0, gives logLik 0, as R prints, not −0)
+  // (a response divided by 2^ky: the aic term of the response as given; the rest of the deviance does not change)
+  const fitDeviance = ky === 0 ? r.deviance : r.ldL2 + r.ussq + familyAic(fam.glm, y, mu, w, s.size, r.devResid, new Warnings());
+  const logLik = -(fitDeviance + (nAGQ > 1 ? r.aic - r.devResid : 0)) / 2 + 0;
   const df = p + nTheta + (dispersionFamily ? 1 : 0);
   const result: GlmerResult = {
     formula,
@@ -699,12 +723,39 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
   return result;
 }
 
+/** Below this smallest response (of positive weight), a Gamma fit with the log link is fitted scaled (responseExponent) */
+const SMALL_GAMMA_RESPONSE = 2 ** -40;
+
+/**
+ * The power of 2 by which the response is divided for the fit: 0 except for the Gamma family with the log link and a
+ * response (of positive weight) below 2^-40, where lme4's lower bound of the mean, μ ≥ 2^-52, comes into reach (a
+ * response of 1e-20 makes lme4's penalised IRLS fail to converge, one of 1e-150 gives a fit with θ 0 and the slope
+ * 0). That model is exactly invariant under a scaling of the response, which shifts η by its log (the working weights
+ * w μ'² / V are w, the deviance residuals and the dispersion do not change): the response is brought to the middle
+ * of its range on the scale of powers of 2, and the fit is the same as the response's as given, without the bound
+ */
+function responseExponent(s: GlmerStructure): number {
+  if (s.family.family !== "Gamma" || s.family.link !== "log") return 0;
+  let low = Infinity;
+  let high = 0;
+  s.y.forEach((v, i) => {
+    if (!(s.weights[i]! > 0) || !(v > 0)) return;
+    low = Math.min(low, v);
+    high = Math.max(high, v);
+  });
+  if (!(low < SMALL_GAMMA_RESPONSE)) return 0;
+  return Math.floor((Math.floor(Math.log2(low)) + Math.floor(Math.log2(high))) / 2);
+}
+
 /** (Σ w (y − μ)² / V(μ) + ‖u‖²) / n at an evaluation: σ² of lme4's sigma for the families with a dispersion */
 function dispersionOf(s: GlmerStructure, r: GlmerDeviance): number {
   let sum = r.ussq;
   s.y.forEach((yi, i) => {
     const mu = r.mu[i]!;
-    sum += (s.weights[i]! * (yi - mu) ** 2) / s.family.variance(mu);
+    const v = s.family.variance(mu);
+    const term = (s.weights[i]! * (yi - mu) ** 2) / v;
+    // (the square of the Pearson residual where V or the square is out of range: a Gamma mean of 1e200)
+    sum += Number.isFinite(term) && Math.abs(v) >= 2 ** -1022 && v < Infinity ? term : pearsonResidualOf(s.family, s.weights[i]!, yi, mu) ** 2;
   });
   return sum / s.y.length;
 }

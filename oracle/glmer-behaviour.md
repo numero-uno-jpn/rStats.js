@@ -532,6 +532,35 @@ of the scale of a column of Z (θ = 1 for a column of 1e160), the minimisation s
 instead. Results: the fixture's largest errors fell from about 1e-8 to 5e-13 (parameters) and from 2e-7 to 7e-12
 (vcov); the fits of the audit that failed (A1, A2, A5, F1, F2, F3) agree with R or with the transformed fit.
 
+**Numerical edges of the penalised IRLS (rStats.js; audit A4, A6-A10, F1).** Each is taken only where lme4's way
+fails, so that ordinary fits keep their values:
+
+- *Start with an offset.* Where the nAGQ = 0 iteration from lme4's `η0 = o + g(μ0)` fails (an offset far from the
+  data, such as `log(exposure)` or a constant −4: `μ0 e^o` is far from `y`; lme4 fails with `Downdated VtV is not
+  positive definite`), it is run again from glm.fit's `η0 = g(μ0)` (the offset not added), which reaches the same
+  mode; where both fail, lme4's error.
+- *Step-halving tolerance.* lme4's `tolPwrss` 1e-7 is applied relative to `pdev` (an increase beyond 1e-7 pdev after
+  the halvings is the error `(maxstephalfit) ...`): absolute, the rounding of a pdev of 1e10 (prior weights 2^30) was
+  an error. A step that stops shrinking above 1e-10 while the decrease of `pdev` it predicts (`g'δ`) is below 1e-13
+  pdev ends the iteration (nearly collinear predictors: the steps wander along a direction in which `pdev` is flat).
+- *Working weights where `μ'²` or `V` overflow.* Where `μ' = c μ^a` and `V = μ^p` (not binomial), `W`, `s`, `W'`, `Ŵ`,
+  the Pearson and working residuals, the dispersion and the aic derivative are formed from the powers of μ (`W = w c²
+  μ^(2a−p)`, `s = w (y − μ) c μ^(a−p)`, `W' = w c³ (2a − p) μ^(3a−p−1)`, `Ŵ = W − w (y − μ) c² (a − p) μ^(2a−p−1)`)
+  where R's form overflows (glm's #159 #166): a Gamma mean beyond 1.3e154. (Poisson, inverse.gaussian and gaussian
+  with the log link are not invariant to the scale of the response, since lme4's Laplace weights leave out the
+  dispersion: counts beyond about 1e12 fail by the conditioning of `M'WM + I` against the fixed effects, not by
+  overflow.)
+- *lme4's bound μ ≥ 2^-52 of the log link.* A Gamma response with the log link whose smallest value (of positive
+  weight) is below 2^-40 is fitted divided by `2^ky`, `ky` the middle of the binary exponents of its smallest and
+  largest values, with the offset shifted by `−ky log 2`: the model is exactly invariant (W = w; the deviance residuals
+  and the dispersion unchanged), θ, β and b are those of the response as given, μ and η are scaled back and the aic
+  term is that of the response as given. lme4 fails (1e-20: `pwrssUpdate did not converge`) or gives θ 0 (1e-150).
+- *Non-integer poisson counts.* R's `dpois` is 0 there, so the aic term and the Laplace deviance are infinite at every
+  θ and β (R warns at each evaluation and returns its starting values with logLik −Inf): a RangeError for nAGQ 0 and
+  1. With nAGQ > 1 the quadrature deviance has no aic term: R's estimates (phase 1 is left at the start, as R's ends
+  there), its warning, and logLik −Inf (G12).
+- *nAGQ* is truncated before its sign is checked (−0.5 is 0, rule 9).
+
 ### API
 
 ```ts

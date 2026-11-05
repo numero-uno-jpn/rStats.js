@@ -182,3 +182,105 @@ export function glmerFamily(family: GlmFamilyName | GlmFamilySpec | undefined, l
     glm,
   };
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The products of μ' and V of a row where they leave the range of the doubles (as glm's working weights, #159 #165-#168
+// in src/models/glm.ts): a poisson mean beyond 1.34e154 squared μ' to Infinity, a Gamma mean beyond that V = μ², an
+// inverse.gaussian mean beyond 5.6e102 V = μ³. Where μ' = c μ^a and V = μ^p (the families other than binomial with the
+// links other than logit, probit, cauchit and cloglog; lme4's log link only above its clamp, which these means are),
+// the quantities are formed from the powers of μ instead, which are in range wherever the quantity is. Elsewhere, and
+// for every row whose parts are in range, R's form and bits.
+
+const MIN_NORMAL = 2 ** -1022;
+
+/** Whether v is a finite number of the normal range (not 0) */
+const normal = (v: number): boolean => Math.abs(v) >= MIN_NORMAL && Math.abs(v) < Infinity;
+
+/** c, a and p of μ' = c μ^a and V = μ^p, where the family and link have that form and μ > 0 */
+function powerForm(fam: GlmerFamily, mu: number): { c: number; a: number; p: number } | undefined {
+  const m = fam.glm.muPower;
+  const p = fam.glm.varPower;
+  if (m === undefined || p === undefined || fam.family === "binomial" || !(mu > 0)) return undefined;
+  return { c: m.c, a: m.a, p };
+}
+
+/** Whether μ' and V of a row are such that their squares and products stay in range (R's forms then) */
+function inRange(me: number, v: number): boolean {
+  return normal(me * me) && normal(v);
+}
+
+/** The working weight w μ'² / V(μ) of a row of prior weight w > 0 (as w c² μ^(2a − p) where that overflows) */
+export function workingWeight(fam: GlmerFamily, w: number, me: number, mu: number): number {
+  const v = fam.variance(mu);
+  const ww = (w * me * me) / v;
+  if (inRange(me, v) && Number.isFinite(ww)) return ww;
+  const f = powerForm(fam, mu);
+  return f === undefined ? ww : w * f.c * f.c * mu ** (2 * f.a - f.p);
+}
+
+/** The score w (y − μ) μ' / V(μ) of a row (as w (y − μ) c μ^(a − p) where that overflows) */
+export function workingScore(fam: GlmerFamily, w: number, y: number, me: number, mu: number): number {
+  const v = fam.variance(mu);
+  const s = (w * (y - mu) * me) / v;
+  if (inRange(me, v) && Number.isFinite(s)) return s;
+  const f = powerForm(fam, mu);
+  return f === undefined ? s : w * ((y - mu) * f.c * mu ** (f.a - f.p));
+}
+
+/**
+ * The weights of the gradient of a row of prior weight w > 0 (src/models/glmerGradient.ts rowWeights): W, dW/dη, the
+ * score s and the observed weight Ŵ = W − w (y − μ)(μ''/V − (μ'/V)² V'), in R's form, or from the powers of μ
+ * (dW/dη = w c³ (2a − p) μ^(3a − p − 1), Ŵ = W − w (y − μ) c² (a − p) μ^(2a − p − 1)) where that overflows
+ */
+export function gradientWeights(
+  fam: GlmerFamily,
+  w: number,
+  y: number,
+  eta: number,
+  mu: number,
+  canonical: boolean,
+): { ww: number; dww: number; score: number; observed: number } {
+  const me = fam.muEta(eta);
+  const me2 = fam.muEta2(eta);
+  const v = fam.variance(mu);
+  const dv = fam.varianceDerivative(mu);
+  const r = y - mu;
+  const ww = (w * me * me) / v;
+  // (the products in this order so that μ'² and μ'³ do not overflow before the division where V is large)
+  const dww = w * ((2 * me * me2) / v - ((me / v) * (me / v)) * me * dv);
+  const score = (w * r * me) / v;
+  const observed = canonical ? ww : ww - w * r * (me2 / v - (me / v) * (me / v) * dv);
+  if (inRange(me, v) && Number.isFinite(ww) && Number.isFinite(dww) && Number.isFinite(score) && Number.isFinite(observed)) {
+    return { ww, dww, score, observed };
+  }
+  const f = powerForm(fam, mu);
+  if (f === undefined) return { ww, dww, score, observed };
+  const { c, a, p } = f;
+  const wwPower = w * c * c * mu ** (2 * a - p);
+  return {
+    ww: wwPower,
+    dww: w * c * c * c * (2 * a - p) * mu ** (3 * a - p - 1),
+    score: w * (r * c * mu ** (a - p)),
+    observed: canonical ? wwPower : wwPower - w * (r * c * c * (a - p) * mu ** (2 * a - p - 1)),
+  };
+}
+
+/** The Pearson residual √w (y − μ) / √V(μ) (as ((y − μ)/h) √w / h, h = μ^(p/4), where V is out of range) */
+export function pearsonResidualOf(fam: GlmerFamily, w: number, y: number, mu: number): number {
+  const v = fam.variance(mu);
+  const r = (Math.sqrt(w) * (y - mu)) / Math.sqrt(v);
+  const f = powerForm(fam, mu);
+  if ((normal(v) && Number.isFinite(r)) || f === undefined) return r;
+  const h = mu ** (f.p / 4);
+  return (((y - mu) / h) * Math.sqrt(w)) / h;
+}
+
+/** The working residual (y − μ) / μ' (as ((y − μ)/c)/μ^(a/2)/μ^(a/2) where μ' is out of range) */
+export function workingResidualOf(fam: GlmerFamily, y: number, eta: number, mu: number): number {
+  const me = fam.muEta(eta);
+  const r = (y - mu) / me;
+  const f = powerForm(fam, mu);
+  if (normal(me) || f === undefined) return r;
+  const h = mu ** (f.a / 2);
+  return (y - mu) / f.c / h / h;
+}

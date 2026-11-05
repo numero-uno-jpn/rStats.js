@@ -22,13 +22,18 @@
 // on to the exact mode: until the Fisher step is below 1e-13 (relative to the largest element of u and β, at least
 // 1), or stops shrinking once below 1e-10 (rounding); the weights, the factor and the aic term are then those at the
 // mode. Every evaluation starts from the same point, whatever was evaluated before: u = 0 for nAGQ = 1; for
-// nAGQ = 0, the first step is lme4's first PIRLS step from the family's starting means (η0 = o + g(μ0)). A step that
+// nAGQ = 0, the first step is lme4's first PIRLS step from the family's starting means (η0 = o + g(μ0)), or, where
+// the iteration from there fails (an offset far from the data: lme4 fails too), glm.fit's (η0 = g(μ0)). A step that
 // makes pdev NaN or larger is halved (up to 20 times, towards the previous iterate; the first step of nAGQ = 0, which
-// has no previous pdev, only for NaN, towards u = 0, β = 0), with lme4's errors where that fails.
+// has no previous pdev, only for NaN, towards u = 0, β = 0), with lme4's errors where that fails (an increase beyond
+// 1e-7 relative to pdev, where lme4's tolerance is absolute). A step that stops shrinking while the decrease of pdev it
+// predicts is at the level of rounding (nearly collinear predictors) ends the iteration too. The working weights and
+// scores are formed from the powers of μ where μ'² or V overflow (src/models/glmerFamily.ts).
 
 import { potf2 } from "../linalg/chol.js";
 import { Warnings, withWarnings } from "../internal/warnings.js";
 import { familyAic } from "./glmFamily.js";
+import { workingScore, workingWeight } from "./glmerFamily.js";
 import type { GlmerStructure } from "./glmerStructure.js";
 import { laplaceGradient, rowWeights } from "./glmerGradient.js";
 import {
@@ -95,7 +100,13 @@ const MAX_ITERATIONS = 500;
 const STEP_TOLERANCE = 1e-13;
 /** Below this step, a step that does not shrink means rounding: the mode is reached */
 const ROUNDING_STEP = 1e-10;
-/** lme4's tolPwrss: an increase of pdev larger than this (absolute) after the halvings is an error */
+/** A step that does not shrink and predicts a decrease of pdev below this (relative) means rounding too */
+const FLAT_DECREASE = 1e-13;
+/**
+ * lme4's tolPwrss, here relative: an increase of pdev larger than this times pdev after the halvings is an error.
+ * (lme4's is absolute, which made the rounding of a pdev of 1e10, prior weights 2^30, an error: the deviance scales
+ * with the weights)
+ */
 const TOL_PWRSS = 1e-7;
 
 /**
@@ -170,9 +181,8 @@ export function glmerDeviance(
         const wi = w[i]!;
         if (wi === 0) continue;
         const me = fam.muEta(eta[i]!);
-        const v = fam.variance(mu[i]!);
-        ww[i] = (wi * me * me) / v;
-        score[i] = (wi * (y[i]! - mu[i]!) * me) / v;
+        ww[i] = workingWeight(fam, wi, me, mu[i]!);
+        score[i] = workingScore(fam, wi, y[i]!, me, mu[i]!);
       }
       return { ww, score };
     };
@@ -240,67 +250,100 @@ export function glmerDeviance(
     };
     const fixedBeta = Float64Array.from(beta ?? new Array<number>(p).fill(0));
 
-    // the starting point: u = 0 (nAGQ = 1); for nAGQ = 0, η0 = o + g(μ0), which is not of the form o + Xβ + Mu: the
-    // first step solves for (u, β) from it (base u = 0, β = 0)
-    let cur: Point;
-    let first = joint;
-    if (joint) {
-      const eta = Float64Array.from(structure.mustart, (m, i) => offset[i]! + fam.linkfun(m));
-      const mu = eta.map((e) => fam.linkinv(e));
-      cur = { u: new Float64Array(q), beta: new Float64Array(p), eta, mu, devResid: NaN, pdev: Infinity };
-    } else cur = pointAt(new Float64Array(q), fixedBeta);
-
-    let prevSize = Infinity;
-    let l: Float64Array | undefined;
-    let iterations = 0;
-    for (;;) {
-      if (iterations >= MAX_ITERATIONS) throw new Error("pwrssUpdate did not converge in (maxit) iterations");
-      const { ww, score } = weightsAt(cur.eta, cur.mu);
-      const system = systemAt(ww);
-      l = system.l;
-      // the right-hand side: (M's − u, X's); for the first step of nAGQ = 0 (from η0, base 0) (M'r, X'r) with
-      // r = W(η0 − o) + s, the working response times the weights
-      let rhs = score;
-      if (first) rhs = score.map((s, i) => s + ww[i]! * (cur.eta[i]! - offset[i]!));
-      const du = lambdaTransposeTimes(sys, t, zTransposeTimes(sys, rhs));
-      if (!first) for (let i = 0; i < q; i++) du[i]! -= cur.u[i]!;
-      const db = new Float64Array(p);
+    /**
+     * The iteration to the mode from its starting point: u = 0 (nAGQ = 1); for nAGQ = 0, η0 = o + g(μ0) (lme4's), or
+     * η0 = g(μ0) without the offset (glm.fit's) when `withOffset` is false; η0 is not of the form o + Xβ + Mu: the
+     * first step solves for (u, β) from it (base u = 0, β = 0)
+     */
+    const iterate = (withOffset: boolean): { cur: Point; l: Float64Array; iterations: number } => {
+      let cur: Point;
+      let first = joint;
       if (joint) {
-        for (let i = 0; i < n; i++) {
-          const xi = x[i]!;
-          const r = rhs[i]!;
-          for (let k = 0; k < p; k++) db[k]! += xi[k]! * r;
-        }
-      }
-      system.solve(du, db);
-      iterations++;
+        const eta = Float64Array.from(structure.mustart, (m, i) => (withOffset ? offset[i]! : 0) + fam.linkfun(m));
+        const mu = eta.map((e) => fam.linkinv(e));
+        cur = { u: new Float64Array(q), beta: new Float64Array(p), eta, mu, devResid: NaN, pdev: Infinity };
+      } else cur = pointAt(new Float64Array(q), fixedBeta);
 
-      const base = first ? { u: new Float64Array(q), beta: new Float64Array(p) } : cur;
-      if (!first) {
-        const size = Math.max(infNorm(du) / Math.max(1, infNorm(cur.u)), joint ? infNorm(db) / Math.max(1, infNorm(cur.beta)) : 0);
-        // the mode: the step is negligible, or has stopped shrinking at the level of rounding
-        if (size <= STEP_TOLERANCE || (size < ROUNDING_STEP && size >= prevSize)) break;
-        prevSize = size;
+      let prevSize = Infinity;
+      let l: Float64Array | undefined;
+      let iterations = 0;
+      for (;;) {
+        if (iterations >= MAX_ITERATIONS) throw new Error("pwrssUpdate did not converge in (maxit) iterations");
+        const { ww, score } = weightsAt(cur.eta, cur.mu);
+        const system = systemAt(ww);
+        l = system.l;
+        // the right-hand side: (M's − u, X's); for the first step of nAGQ = 0 (from η0, base 0) (M'r, X'r) with
+        // r = W(η0 − o) + s, the working response times the weights
+        let rhs = score;
+        if (first) rhs = score.map((s, i) => s + ww[i]! * (cur.eta[i]! - offset[i]!));
+        const du = lambdaTransposeTimes(sys, t, zTransposeTimes(sys, rhs));
+        if (!first) for (let i = 0; i < q; i++) du[i]! -= cur.u[i]!;
+        const db = new Float64Array(p);
+        if (joint) {
+          for (let i = 0; i < n; i++) {
+            const xi = x[i]!;
+            const r = rhs[i]!;
+            for (let k = 0; k < p; k++) db[k]! += xi[k]! * r;
+          }
+        }
+        const gu = du.slice();
+        const gb = db.slice();
+        system.solve(du, db);
+        iterations++;
+
+        const base = first ? { u: new Float64Array(q), beta: new Float64Array(p) } : cur;
+        if (!first) {
+          const size = Math.max(infNorm(du) / Math.max(1, infNorm(cur.u)), joint ? infNorm(db) / Math.max(1, infNorm(cur.beta)) : 0);
+          // the mode: the step is negligible, or has stopped shrinking at the level of rounding
+          if (size <= STEP_TOLERANCE || (size < ROUNDING_STEP && size >= prevSize)) break;
+          if (size >= prevSize) {
+            // a step that has stopped shrinking above that level, along a direction in which pdev is flat (nearly
+            // collinear columns of X: the steps wander along it, by the rounding of the solve, while pdev does not
+            // change): the mode is reached where the decrease of pdev that the step predicts, g'δ, is at the
+            // level of rounding of pdev (only here: the steps of an ordinary iteration shrink to the tolerance)
+            let decrease = 0;
+            for (let i = 0; i < q; i++) decrease += gu[i]! * du[i]!;
+            for (let k = 0; k < p; k++) decrease += gb[k]! * db[k]!;
+            if (decrease <= FLAT_DECREASE * Math.abs(cur.pdev)) break;
+          }
+          prevSize = size;
+        }
+        const candidate = (): Point => {
+          const u = base.u.map((v, i) => v + du[i]!);
+          const b = joint ? base.beta.map((v, k) => v + db[k]!) : fixedBeta;
+          return pointAt(u, b);
+        };
+        let next = candidate();
+        // step halving: for NaN, or (after the first step of nAGQ = 0) an increase beyond rounding
+        const pdevOld = cur.pdev;
+        const slack = Number.isFinite(pdevOld) ? 1e-13 * pdevOld : 0;
+        for (let k = 0; k < MAX_HALVINGS && (Number.isNaN(next.pdev) || next.pdev > pdevOld + slack); k++) {
+          for (let i = 0; i < q; i++) du[i]! /= 2;
+          for (let i = 0; i < p; i++) db[i]! /= 2;
+          next = candidate();
+        }
+        if (Number.isNaN(next.pdev)) throw new Error("PIRLS loop resulted in NaN value");
+        if (next.pdev - pdevOld > TOL_PWRSS * Math.abs(pdevOld)) throw new Error("(maxstephalfit) PIRLS step-halvings failed to reduce deviance in pwrssUpdate");
+        cur = next;
+        first = false;
       }
-      const candidate = (): Point => {
-        const u = base.u.map((v, i) => v + du[i]!);
-        const b = joint ? base.beta.map((v, k) => v + db[k]!) : fixedBeta;
-        return pointAt(u, b);
-      };
-      let next = candidate();
-      // step halving: for NaN, or (after the first step of nAGQ = 0) an increase beyond rounding
-      const pdevOld = cur.pdev;
-      const slack = Number.isFinite(pdevOld) ? 1e-13 * pdevOld : 0;
-      for (let k = 0; k < MAX_HALVINGS && (Number.isNaN(next.pdev) || next.pdev > pdevOld + slack); k++) {
-        for (let i = 0; i < q; i++) du[i]! /= 2;
-        for (let i = 0; i < p; i++) db[i]! /= 2;
-        next = candidate();
+      return { cur, l, iterations };
+    };
+
+    let mode: { cur: Point; l: Float64Array; iterations: number };
+    try {
+      mode = iterate(true);
+    } catch (e) {
+      // nAGQ = 0 with an offset far from the data (log(exposure), a constant −4: μ0 times e^o): lme4's start fails
+      // (lme4 fails there too), glm.fit's start η0 = g(μ0) leads to the same mode. Where both fail, lme4's error
+      if (!joint || !(e instanceof Error) || e.constructor !== Error || offset.every((o) => o === 0)) throw e;
+      try {
+        mode = iterate(false);
+      } catch {
+        throw e;
       }
-      if (Number.isNaN(next.pdev)) throw new Error("PIRLS loop resulted in NaN value");
-      if (next.pdev - pdevOld > TOL_PWRSS) throw new Error("(maxstephalfit) PIRLS step-halvings failed to reduce deviance in pwrssUpdate");
-      cur = next;
-      first = false;
     }
+    const { cur, l, iterations } = mode;
 
     // at the mode: the factor of the last iteration was formed with the weights at the mode
     let ldL2 = 0;
@@ -489,8 +532,7 @@ export function glmerAgqDeviance(
     let l2 = 1;
     col.rows.forEach((i, m) => {
       if (w[i] === 0) return;
-      const me = fam.muEta(mode.eta[i]!);
-      l2 += ((w[i]! * me * me) / fam.variance(mode.mu[i]!)) * c[m]! * c[m]!;
+      l2 += workingWeight(fam, w[i]!, fam.muEta(mode.eta[i]!), mode.mu[i]!) * c[m]! * c[m]!;
     });
     ldL2 += Math.log(l2);
     const sd = 1 / Math.sqrt(l2);
@@ -565,7 +607,7 @@ function gradientOfLevel(
       const e = eta[i]! + c[m]! * t;
       const mu = fam.linkinv(e);
       if (c[m] !== 0 && z !== 0) delta += fam.devResid(y[i]!, mu, w[i]!) - d0[m]!;
-      const s = (w[i]! * (y[i]! - mu) * fam.muEta(e)) / fam.variance(mu);
+      const s = workingScore(fam, w[i]!, y[i]!, fam.muEta(e), mu);
       sk[m] = s;
       sc += s * c[m]!;
     });

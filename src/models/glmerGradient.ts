@@ -19,7 +19,7 @@
 import { potf2 } from "../linalg/chol.js";
 import { roundHalfEven } from "../internal/integer.js";
 import { digamma } from "../special/psigamma.js";
-import type { GlmerFamily } from "./glmerFamily.js";
+import { gradientWeights, type GlmerFamily } from "./glmerFamily.js";
 import type { GlmerStructure } from "./glmerStructure.js";
 import {
   backSolve,
@@ -97,14 +97,26 @@ export function aicDerivative(
       for (const wi of w) sw += wi;
       const a = sw / dev;
       const factor = a - 2 * a * a * digammaRemainder(a);
-      for (let i = 0; i < n; i++) if (w[i]! > 0) out[i] = (-2 * w[i]! * (y[i]! - mu[i]!) * factor) / (mu[i]! * mu[i]!);
+      for (let i = 0; i < n; i++) {
+        if (!(w[i]! > 0)) continue;
+        const num = -2 * w[i]! * (y[i]! - mu[i]!) * factor;
+        const m2 = mu[i]! * mu[i]!;
+        // (divided by μ twice where μ² overflows: a mean of 1e200; the gradient multiplies by μ' again)
+        out[i] = m2 < Infinity ? num / m2 : num / mu[i]! / mu[i]!;
+      }
       return out;
     }
     case "inverse.gaussian": {
       // Σw (log(2π dev / Σw) + 1) + ...: Σw / dev times ∂dev/∂μ
       let sw = 0;
       for (const wi of w) if (wi > 0) sw += wi;
-      for (let i = 0; i < n; i++) if (w[i]! > 0) out[i] = (sw / dev) * ((-2 * w[i]! * (y[i]! - mu[i]!)) / (mu[i]! * mu[i]! * mu[i]!));
+      for (let i = 0; i < n; i++) {
+        if (!(w[i]! > 0)) continue;
+        const num = -2 * w[i]! * (y[i]! - mu[i]!);
+        const m3 = mu[i]! * mu[i]! * mu[i]!;
+        // (divided by μ three times where μ³ is out of range: a mean of 1e110 or 1e-110)
+        out[i] = (sw / dev) * (Math.abs(m3) >= 2 ** -1022 && m3 < Infinity ? num / m3 : num / mu[i]! / mu[i]! / mu[i]!);
+      }
       return out;
     }
     case "gaussian": {
@@ -136,16 +148,11 @@ export function rowWeights(s: GlmerStructure, eta: ArrayLike<number>, mu: ArrayL
   for (let i = 0; i < n; i++) {
     const wi = s.weights[i]!;
     if (wi === 0) continue;
-    const me = fam.muEta(eta[i]!);
-    const me2 = fam.muEta2(eta[i]!);
-    const v = fam.variance(mu[i]!);
-    const dv = fam.varianceDerivative(mu[i]!);
-    const r = s.y[i]! - mu[i]!;
-    ww[i] = (wi * me * me) / v;
-    // (the products in this order so that μ'² and μ'³ do not overflow before the division where V is large)
-    dww[i] = wi * ((2 * me * me2) / v - ((me / v) * (me / v)) * me * dv);
-    score[i] = (wi * r * me) / v;
-    observed[i] = canonical ? ww[i]! : ww[i]! - wi * r * (me2 / v - (me / v) * (me / v) * dv);
+    const g = gradientWeights(fam, wi, s.y[i]!, eta[i]!, mu[i]!, canonical);
+    ww[i] = g.ww;
+    dww[i] = g.dww;
+    score[i] = g.score;
+    observed[i] = g.observed;
   }
   return { ww, dww, observed, score };
 }

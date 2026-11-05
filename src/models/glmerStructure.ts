@@ -84,11 +84,13 @@ const isLogicalColumn = (data: DataFrame, name: string): boolean => {
 export function glmerStructure(formula: string, data: DataFrame, options: GlmerStructureOptions = {}): GlmerStructure {
   // the family first of all (quasi families; gaussian with the identity link, G3)
   const family = glmerFamily(options.family, options.link);
-  // nAGQ: an integer from 0 to 100 (R truncates; a negative value is an error here, G5, R uses 0)
+  // nAGQ: an integer from 0 to 100, truncated first as R's as.integer (rule 9: −0.5 is 0); negative after that an
+  // error here (G5; R uses 0)
   const nAGQgiven = options.nAGQ ?? 1;
   if (typeof nAGQgiven !== "number" || Number.isNaN(nAGQgiven)) throw new TypeError("nAGQ must be a number");
-  if (nAGQgiven < 0) throw new RangeError("nAGQ must be non-negative");
-  const nAGQ = Math.trunc(nAGQgiven);
+  // (+ 0: −0 becomes 0)
+  const nAGQ = Math.trunc(nAGQgiven) + 0;
+  if (nAGQ < 0) throw new RangeError("nAGQ must be non-negative");
   if (nAGQ > 100) throw new RangeError("nAGQ <= 100L is not TRUE");
   if (typeof data !== "object" || data === null) throw new TypeError("data must be an object of columns");
 
