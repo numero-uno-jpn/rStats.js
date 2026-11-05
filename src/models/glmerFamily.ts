@@ -30,6 +30,13 @@ export interface GlmerFamily {
   muEta(eta: number): number;
   /** The variance function, lme4's. */
   variance(mu: number): number;
+  /**
+   * d² mu / d eta², the derivative of {@link muEta} (0 where lme4 clamps muEta to a constant): for the analytic
+   * gradient of the deviance (src/models/glmerGradient.ts).
+   */
+  muEta2(eta: number): number;
+  /** dV / d mu, the derivative of {@link variance} (0 where lme4 clamps it). */
+  varianceDerivative(mu: number): number;
   /** The deviance residual of one observation with prior weight w. */
   devResid(y: number, mu: number, w: number): number;
   /** R's family object (glm's), for the checks of the response, the starting means and the aic term. */
@@ -71,6 +78,58 @@ function lme4Link(link: GlmLinkName): { linkinv: (eta: number) => number; muEta:
       return { linkinv: (e) => 1 / e, muEta: (e) => -1 / (e * e) };
     default:
       return undefined;
+  }
+}
+
+/**
+ * d² mu / d eta² of the inverse links of {@link lme4Link} and of R's sqrt and 1/mu^2: the derivative of the muEta in
+ * use, so 0 where that is clamped at eps (logit, cloglog, log)
+ */
+function linkSecondDerivative(link: GlmLinkName): (eta: number) => number {
+  switch (link) {
+    case "logit":
+      // mu' = mu (1 − mu), mu'' = mu' (1 − 2 mu) = −mu' tanh(eta / 2)
+      return (e) => {
+        const d = dlogis1(e, 0, 1, false);
+        return d < EPS ? 0 : -d * Math.tanh(e / 2);
+      };
+    case "probit":
+      return (e) => -e * dnorm(e);
+    case "cauchit":
+      return (e) => (-2 * e) / (Math.PI * (1 + e * e) * (1 + e * e));
+    case "cloglog":
+      return (e) => {
+        const d = Math.exp(e - Math.exp(e));
+        return d < EPS ? 0 : d * -Math.expm1(e);
+      };
+    case "log":
+      return (e) => (Math.exp(e) < EPS ? 0 : Math.exp(e));
+    case "identity":
+      return () => 0;
+    case "inverse":
+      return (e) => 2 / (e * e * e);
+    case "sqrt":
+      // (R's linkinv eta², muEta 2 eta)
+      return () => 2;
+    case "1/mu^2":
+      // (R's linkinv eta^(−1/2), muEta −eta^(−3/2) / 2)
+      return (e) => 0.75 / (e * e * Math.sqrt(e));
+  }
+}
+
+/** dV / d mu of lme4's variance functions (0 where the binomial one is clamped at eps) */
+function varianceDerivativeOf(family: GlmerFamilyName): (mu: number) => number {
+  switch (family) {
+    case "binomial":
+      return (m) => (m * (1 - m) < EPS ? 0 : 1 - 2 * m);
+    case "poisson":
+      return () => 1;
+    case "Gamma":
+      return (m) => 2 * m;
+    case "inverse.gaussian":
+      return (m) => 3 * m * m;
+    case "gaussian":
+      return () => 0;
   }
 }
 
@@ -117,6 +176,8 @@ export function glmerFamily(family: GlmFamilyName | GlmFamilySpec | undefined, l
     linkinv: own?.linkinv ?? glm.linkinv,
     muEta: own?.muEta ?? glm.muEta,
     variance: lme4Variance(name),
+    muEta2: linkSecondDerivative(linkName),
+    varianceDerivative: varianceDerivativeOf(name),
     devResid: glm.devContribution,
     glm,
   };

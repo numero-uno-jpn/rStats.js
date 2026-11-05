@@ -30,6 +30,7 @@ import { potf2 } from "../linalg/chol.js";
 import { Warnings, withWarnings } from "../internal/warnings.js";
 import { familyAic } from "./glmFamily.js";
 import type { GlmerStructure } from "./glmerStructure.js";
+import { laplaceGradient, rowWeights } from "./glmerGradient.js";
 import {
   backSolve,
   blocksOf,
@@ -79,6 +80,11 @@ export interface GlmerDeviance {
    * for (`{ rx: true }`).
    */
   rxtrx?: number[][];
+  /**
+   * The gradient of the deviance (src/models/glmerGradient.ts), when asked for (`{ gradient: true }`): with respect to
+   * (θ, β) for nAGQ = 1 (and nAGQ > 1), θ for nAGQ = 0.
+   */
+  gradient?: number[];
 }
 
 /** lme4's maximum number of step halvings */
@@ -102,14 +108,15 @@ const TOL_PWRSS = 1e-7;
  * @param beta The fixed effects (one per column of X) for nAGQ = 1; ignored for nAGQ = 0.
  * @param nAGQ 1: the deviance is a function of (θ, β), the mode is found for u; 0: a function of θ, the mode is found
  *   for u and β jointly.
- * @param options `rx`: also return R_X'R_X at the mode (for the covariance of the fixed effects).
+ * @param options `rx`: also return R_X'R_X at the mode (for the covariance of the fixed effects); `gradient`: also
+ *   return the gradient of the deviance.
  */
 export function glmerDeviance(
   structure: GlmerStructure,
   theta: readonly number[],
   beta: readonly number[] | undefined,
   nAGQ: 0 | 1 = 1,
-  options: { rx?: boolean } = {},
+  options: { rx?: boolean; gradient?: boolean } = {},
 ): GlmerDeviance {
   if (nAGQ !== 0 && nAGQ !== 1) throw new RangeError("nAGQ must be 0 or 1 here");
   if (theta.length !== structure.theta.length) throw new RangeError(`theta must have length ${structure.theta.length}, not ${theta.length}`);
@@ -321,6 +328,10 @@ export function glmerDeviance(
         }),
       );
     }
+    const gradient =
+      options.gradient === true
+        ? laplaceGradient({ structure, sys, t, l, u: cur.u, eta: cur.eta, mu: cur.mu, devResid: cur.devResid, joint })
+        : undefined;
     return {
       deviance: ldL2 + ussq + aic,
       beta: Array.from(cur.beta),
@@ -336,6 +347,7 @@ export function glmerDeviance(
       iterations,
       warnings: warnings.list,
       ...(rxtrx === undefined ? {} : { rxtrx }),
+      ...(gradient === undefined ? {} : { gradient }),
     };
   });
 }
@@ -447,18 +459,18 @@ export interface GlmerAgqDeviance extends GlmerDeviance {
  * @param theta θ (one value).
  * @param beta The fixed effects.
  * @param nAGQ The number of points K (2 to 100).
- * @param options `rx`: also return R_X'R_X at the mode.
+ * @param options `rx`: also return R_X'R_X at the mode; `gradient`: also the gradient in (θ, β).
  */
 export function glmerAgqDeviance(
   structure: GlmerStructure,
   theta: readonly number[],
   beta: readonly number[],
   nAGQ: number,
-  options: { rx?: boolean } = {},
+  options: { rx?: boolean; gradient?: boolean } = {},
 ): GlmerAgqDeviance {
   if (structure.terms.length !== 1 || structure.terms[0]!.columns.length !== 1) throw new RangeError("AGQ only defined for a single scalar random-effects term");
   const rule = gaussHermiteRule(nAGQ);
-  const mode = glmerDeviance(structure, theta, beta, 1, options);
+  const mode = glmerDeviance(structure, theta, beta, 1, { ...(options.rx === true ? { rx: true } : {}) });
   const fam = structure.family;
   const { y, weights: w } = structure;
   const th = theta[0]!;
@@ -466,6 +478,10 @@ export function glmerAgqDeviance(
   const logWeights = rule.nodes.map((z, k) => Math.log(rule.weights[k]!) + (z * z) / 2);
   let ldL2 = 0;
   let quad = 0;
+  // the gradient (options.gradient): ∂D_K/∂e_i and ∂D_K/∂c_i for the fixed part e_i = o_i + x_i'β and c_i = z_i θ of
+  // each row (see gradientOfLevel), then by the chain rule in β and θ; a row outside every level only through d_i
+  const grad = options.gradient === true ? { ...rowWeights(structure, mode.eta, mode.mu), ge: new Float64Array(y.length), gc: new Float64Array(y.length) } : undefined;
+  if (grad !== undefined) for (let i = 0; i < y.length; i++) grad.ge[i] = -2 * grad.score[i]!;
   const condSd = structure.z.map((col, j) => {
     const uj = mode.u[j]!;
     const c = col.values.map((v) => v * th);
@@ -493,7 +509,101 @@ export function glmerAgqDeviance(
       sum += Math.exp(logWeights[k]! - delta / 2);
     });
     quad -= 2 * Math.log(sum);
+    if (grad !== undefined) gradientOfLevel(structure, rule, logWeights, col.rows, c, uj, l2, mode.eta, grad);
     return sd;
   });
-  return { ...mode, deviance: mode.devResid + mode.ussq + ldL2 + quad, ldL2, quad, condSd };
+  let gradient: number[] | undefined;
+  if (grad !== undefined) {
+    // β: Σ ∂D/∂e_i x_i; θ: Σ ∂D/∂c_i z_i
+    const p = beta.length;
+    gradient = new Array<number>(1 + p).fill(0);
+    for (let i = 0; i < y.length; i++) for (let k = 0; k < p; k++) gradient[1 + k]! += grad.ge[i]! * structure.x[i]![k]!;
+    for (const col of structure.z) col.rows.forEach((i, m) => (gradient![0]! += grad.gc[i]! * col.values[m]!));
+  }
+  return { ...mode, deviance: mode.devResid + mode.ussq + ldL2 + quad, ldL2, quad, condSd, ...(gradient === undefined ? {} : { gradient }) };
+}
+
+/**
+ * The derivatives of one level's part of the AGQ deviance with respect to e_i = o_i + x_i'β and c_i = z_i θ of its
+ * rows (oracle/glmer-behaviour.md, "The gradient (rStats.js)"). The level's part is
+ *   D_j = log L² − 2 log Σ_k ω_k exp(−P(v_k) / 2),  v_k = u + z_k / L,  ω_k = w_k exp(z_k² / 2),
+ * with P(v) = Σ d_i(e_i + c_i v) + v², L² = 1 + Σ W_i c_i² at the mode u, which solves Σ s_i c_i = u. With π_k the
+ * normalised terms, P'(v) = 2v − 2 Σ s_i c_i, κ = Σ π_k P'(v_k) z_k / (2L³) and H = 1 + Σ Ŵ_i c_i²:
+ *   ∂D_j/∂e_i = (1/L² − κ) W'_i c_i² − 2 Σ_k π_k s_i(v_k) + A_u ∂u/∂e_i,     ∂u/∂e_i = −Ŵ_i c_i / H,
+ *   ∂D_j/∂c_i = (1/L² − κ)(W'_i c_i² u + 2 W_i c_i) − 2 Σ_k π_k s_i(v_k) v_k + A_u ∂u/∂c_i,  ∂u/∂c_i = (s_i − Ŵ_i c_i u) / H,
+ *   A_u = (1/L² − κ) Σ W'_i c_i³ + Σ_k π_k P'(v_k)  (the derivative in u at fixed e and c).
+ * Writes ge and gc of the level's rows.
+ */
+function gradientOfLevel(
+  structure: GlmerStructure,
+  rule: GaussHermiteRule,
+  logWeights: readonly number[],
+  rows: readonly number[],
+  c: readonly number[],
+  u: number,
+  l2: number,
+  eta: readonly number[],
+  grad: { ww: Float64Array; dww: Float64Array; observed: Float64Array; score: Float64Array; ge: Float64Array; gc: Float64Array },
+): void {
+  const fam = structure.family;
+  const { y, weights: w } = structure;
+  const lv = Math.sqrt(l2);
+  const nr = rows.length;
+  const d0 = rows.map((i) => fam.devResid(y[i]!, fam.linkinv(eta[i]!), w[i]!));
+  // the terms of each node: log of ω_k exp(−(P(v_k) − P(u)) / 2), P'(v_k), and the scores at the node
+  const nodes = rule.nodes.length;
+  const logTerm = new Float64Array(nodes);
+  const slope = new Float64Array(nodes);
+  const scores: Float64Array[] = [];
+  rule.nodes.forEach((z, k) => {
+    const t = z / lv;
+    let delta = t * (2 * u + t);
+    let sc = 0;
+    const sk = new Float64Array(nr);
+    rows.forEach((i, m) => {
+      if (w[i] === 0) return;
+      const e = eta[i]! + c[m]! * t;
+      const mu = fam.linkinv(e);
+      if (c[m] !== 0 && z !== 0) delta += fam.devResid(y[i]!, mu, w[i]!) - d0[m]!;
+      const s = (w[i]! * (y[i]! - mu) * fam.muEta(e)) / fam.variance(mu);
+      sk[m] = s;
+      sc += s * c[m]!;
+    });
+    logTerm[k] = logWeights[k]! - delta / 2;
+    slope[k] = 2 * (u + t) - 2 * sc;
+    scores.push(sk);
+  });
+  let top = -Infinity;
+  for (const v of logTerm) top = Math.max(top, v);
+  let total = 0;
+  const pi = logTerm.map((v) => Math.exp(v - top));
+  for (const v of pi) total += v;
+  let kappa = 0;
+  let slopeMean = 0;
+  rule.nodes.forEach((z, k) => {
+    pi[k]! /= total;
+    kappa += (pi[k]! * slope[k]! * z) / (2 * l2 * lv);
+    slopeMean += pi[k]! * slope[k]!;
+  });
+  const factor = 1 / l2 - kappa;
+  let h = 1;
+  let cubic = 0;
+  rows.forEach((i, m) => {
+    h += grad.observed[i]! * c[m]! * c[m]!;
+    cubic += grad.dww[i]! * c[m]! * c[m]! * c[m]!;
+  });
+  const au = factor * cubic + slopeMean;
+  rows.forEach((i, m) => {
+    let sMean = 0;
+    let svMean = 0;
+    rule.nodes.forEach((z, k) => {
+      const s = scores[k]![m]!;
+      sMean += pi[k]! * s;
+      svMean += pi[k]! * s * (u + z / lv);
+    });
+    const ci = c[m]!;
+    const wd = grad.dww[i]!;
+    grad.ge[i] = factor * wd * ci * ci - 2 * sMean + (au * -grad.observed[i]! * ci) / h;
+    grad.gc[i] = factor * (wd * ci * ci * u + 2 * grad.ww[i]! * ci) - 2 * svMean + (au * (grad.score[i]! - grad.observed[i]! * ci * u)) / h;
+  });
 }

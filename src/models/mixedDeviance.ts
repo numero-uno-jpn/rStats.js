@@ -1040,10 +1040,10 @@ function sparseGradient(
  * S_k = Σ over the levels G of term k of (Y Λ' Z'Z) on G's columns (nc_k × nc_k, column-major), for Y = A⁻¹ given by
  * its selected inverse `inv` (the layout of L's values) and Λ by its blocks `t` (see {@link sparseGradient}). Linear
  * in `inv` and in `t`, so that the derivatives of the sums (src/models/mixedDerivatives.ts) come from the derivative
- * of the selected inverse and of the blocks.
+ * of the selected inverse and of the blocks. With `zz` (Z'WZ by blocks, glmer's gradient), Λ'Z'WZ in place of Λ'Z'Z.
  */
-export function levelTraceSums(sys: SparseSystem, inv: Float64Array, t: Float64Array[]): Float64Array[] {
-  const { colStart, zz } = sys;
+export function levelTraceSums(sys: SparseSystem, inv: Float64Array, t: Float64Array[], zz: Float64Array = sys.zz): Float64Array[] {
+  const { colStart } = sys;
   const sums = sys.termNc.map((nc) => new Float64Array(nc * nc));
   let y = new Float64Array(16);
   let f = new Float64Array(16);
