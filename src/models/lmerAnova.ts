@@ -305,11 +305,16 @@ export function compareModels(fn: string, models: readonly ComparedModel[], opti
   // compare the fits). The fixed effects are compared as column spaces (the fits use the same rows of the same data):
   // by their names, the same factor in other contrasts (contr.sum against contr.treatment) looked not nested and was
   // not tested (issue #8)
+  // The offsets and the columns are compared on the rows of positive weight only (the fits share their weights): rows
+  // of weight 0 are not in the likelihoods, and one of them made nested columns look otherwise, as in glmAnova and
+  // anovaSequential (#509)
+  const positive = reference.weights().map((w) => w !== 0);
+  const counted = <T>(rows: readonly T[]): T[] => rows.filter((_, i) => positive[i]);
   const nestedIn = (small: ComparedModel, large: ComparedModel): boolean =>
     small.family === large.family &&
     small.link === large.link &&
-    sameValues(small.offset(), large.offset()) &&
-    nestedColumns(small.x(), large.x()) &&
+    sameValues(counted(small.offset()), counted(large.offset())) &&
+    nestedColumns(counted(small.x()), counted(large.x())) &&
     small.randomTerms.every((t) => large.randomTerms.some((u) => u.group === t.group && t.columns.every((c) => u.columns.includes(c))));
   const nested = order.map((i, k) => k > 0 && nestedIn(models[order[k - 1]!]!, models[i]!));
   const Chisq = ll.map((v, k) => (k === 0 || !nested[k] ? NaN : 2 * Math.max(0, v - ll[k - 1]!)));

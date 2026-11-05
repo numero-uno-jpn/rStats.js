@@ -126,8 +126,10 @@ export function glmerSummary(fit: GlmerResult, options?: GlmerSummaryOptions): G
   const { estimate, stdError, zValue } = fit.coefTable;
   const v = fit.vcov;
   const correlation = v.map((row, i) =>
-    // (R's cov2cor sets the diagonal to 1; a variance of 0 gives NaN off the diagonal, as R's 0/0)
-    row.map((c, j) => (i === j ? 1 : v[i]![i]! === 0 || v[j]![j]! === 0 ? NaN : c / Math.sqrt(v[i]![i]! * v[j]![j]!))),
+    // (R's cov2cor sets the diagonal to 1; a variance of 0 gives NaN off the diagonal, as R's 0/0; divided by each
+    // standard deviation in turn, as cov2cor multiplies by each 1/sd, since the product of two variances overflows
+    // or underflows for predictors of scale 1e120 or 1e-120)
+    row.map((c, j) => (i === j ? 1 : v[i]![i]! === 0 || v[j]![j]! === 0 ? NaN : c / Math.sqrt(v[i]![i]!) / Math.sqrt(v[j]![j]!))),
   );
   const scaled = fit.pearsonResiduals.map((r) => r / fit.sigma).sort((a, b) => a - b);
   const dispersionFamily = fit.family !== "binomial" && fit.family !== "poisson";

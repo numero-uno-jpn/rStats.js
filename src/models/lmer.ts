@@ -432,6 +432,18 @@ export function lmerInternals(fit: LmerResult): LmerInternals {
 }
 
 /**
+ * The exponent of 2 of each column of X whose largest |value| is beyond 2^±500, where the cross-products of X overflow
+ * or underflow; 0 for the other columns (internal: lmer's standard errors and lmerTest's quantities)
+ */
+export function extremeColumnExponents(x: readonly (readonly number[])[], p: number): number[] {
+  return Array.from({ length: p }, (_, k) => {
+    let top = 0;
+    for (const row of x) top = Math.max(top, Math.abs(row[k]!));
+    return top > 2 ** 500 || (top > 0 && top < 2 ** -500) ? Math.floor(Math.log2(top)) : 0;
+  });
+}
+
+/**
  * {@link lmer} with the criterion and its gradient given (internal: not exported from the package). The regression
  * test of the sparse computation fits with the dense reference implementation through it.
  */
@@ -476,6 +488,15 @@ export function lmerWithCriterion(formula: string, data: DataFrame, options: Lme
 
   const vcov = r.rxInverse!.map((row) => row.map((v) => ldexp(sigma2 * v, 2 * ky)));
   const stdError = r.rxInverse!.map((row, i) => up(Math.sqrt(sigma2 * row[i]!)));
+  // a column of X beyond 2^±500 (predictors times 1e-160): (R_X'R_X)⁻¹ overflowed, and the standard errors with it;
+  // they are taken from X with that column divided by its power of 2 at the same θ (an entry of vcov may overflow
+  // where the standard error does not). Otherwise nothing changes
+  const xScale = extremeColumnExponents(s.x, p);
+  if (xScale.some((e) => e !== 0) && stdError.some((v) => !Number.isFinite(v))) {
+    const rx = profiledDeviance({ ...sScaled, x: sScaled.x.map((row) => row.map((v, k) => ldexp(v, -xScale[k]!))) }, theta, reml, { rxInverse: true });
+    const sigma2x = rx.prss / (reml ? n - p : n);
+    rx.rxInverse!.forEach((row, i) => (stdError[i] = ldexp(Math.sqrt(sigma2x * row[i]!), ky - xScale[i]!)));
+  }
   // (a standard error of 0 gives ±Infinity or NaN, as R's division does: not guarded on purpose)
   const tValue = fixef.map((b, i) => b / stdError[i]!);
 

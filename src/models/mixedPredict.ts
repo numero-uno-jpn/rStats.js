@@ -15,11 +15,12 @@
 // v'Cv = σ² (‖c‖² + ‖R_X⁻ᵀ(x − C_X'c)‖²) with c = L⁻¹Λ'z.
 
 import { potf2 } from "../linalg/chol.js";
+import { checkDot, checkedDot } from "../linalg/dot.js";
 import { levelText } from "../internal/levels.js";
 import { Warnings, reported } from "../internal/warnings.js";
 import { deparseFormula, parseFormula, splitBarTerms, type FormulaNode, type ParsedFormula } from "./formula.js";
 import { glmerInternals, type GlmerResult } from "./glmer.js";
-import type { GlmerFamily } from "./glmerFamily.js";
+import { workingWeight, type GlmerFamily } from "./glmerFamily.js";
 import { checkLmerOptions, lmerInternals, logicalOption, type LmerResult } from "./lmer.js";
 import {
   blocksOf,
@@ -327,7 +328,20 @@ function predictModel(m: PredictionModel, options: GlmerPredictOptions): MixedPr
   });
   const p = s.xColNames.length;
   const fixedPart = x.map((row, i) => (randomOnly ? 0 : offset[i]! + row.reduce((sum, v, k) => sum + v * m.beta[k]!, 0)));
-  let eta = fixedPart.map((f, i) => f + random[i]!);
+  let eta = fixedPart.map((f, i) => {
+    const plain = f + random[i]!;
+    if (!checkDot(plain, 0)) return plain;
+    // products of finite values may overflow while η is in range (bx x + bz z with x = 1e308 and z cancelling it):
+    // the exact inner product of (offset, x, z) and (1, β, b), as predict for lm and glm (#174, #182, #195); also
+    // where products underflow while the sum is tiny (#395)
+    const factors = randomOnly ? [] : [1, ...x[i]!];
+    const coefficients = randomOnly ? [] : [offset[i]!, ...m.beta];
+    for (const { col, value } of zEntries[i]!) {
+      factors.push(value);
+      coefficients.push(m.b[col]!);
+    }
+    return checkedDot(factors, coefficients, plain);
+  });
   // no newdata, all terms, not random.only: the fit's own linear predictor and means (lme4's clamped inverse link)
   const fitted = newdata === undefined && (reForm === undefined || reForm === null) && !randomOnly ? m.fitted : undefined;
   if (fitted !== undefined) eta = [...fitted.eta];
@@ -353,6 +367,20 @@ function predictModel(m: PredictionModel, options: GlmerPredictOptions): MixedPr
       }
       forwardSolve(rx, p, d);
       for (let k = 0; k < p; k++) ss += d[k]! * d[k]!;
+      if (!(ss >= 2 ** -1022 && ss < Infinity)) {
+        // the squares overflowed (newdata 1e200: Infinity, R too) or underflowed: the norm divided by its largest
+        // element, σ applied before that element is multiplied back (σ 1e-200 times a norm 1e200), as glmPredict
+        // (#175, #196)
+        let top = 0;
+        for (const v of c) top = Math.max(top, Math.abs(v));
+        for (const v of d) top = Math.max(top, Math.abs(v));
+        if (top > 0 && Number.isFinite(top)) {
+          let scaled = 0;
+          for (const v of c) scaled += (v / top) ** 2;
+          for (const v of d) scaled += (v / top) ** 2;
+          return m.sigma * Math.sqrt(scaled) * top;
+        }
+      }
       return m.sigma * Math.sqrt(ss);
     });
   }
@@ -567,8 +595,7 @@ export function glmerPredict(fit: GlmerResult, options?: GlmerPredictOptions): M
         for (let i = 0; i < n; i++) {
           const wi = s.weights[i]!;
           if (wi === 0) continue;
-          const me = fam.muEta(internals.eta[i]!);
-          ww[i] = (wi * me * me) / fam.variance(internals.mu[i]!);
+          ww[i] = workingWeight(fam, wi, fam.muEta(internals.eta[i]!), internals.mu[i]!);
         }
         const l = factorise(sys, blocksOfA(sys, t, weightedCrossProduct(sys, s, ww)));
         const cx = new Float64Array(q * p);
