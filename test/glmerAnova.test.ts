@@ -5,7 +5,8 @@
 // relative 1e-10 (rows of lmer fits 1e-12), Chisq absolute 4e-10 max(1, |logLik|), pValue relative 1e-6, names, npar,
 // Df and the NaN of Chisq and pValue equal, messages and warnings equal to R's; errors: the reference's (rStats.js's
 // own checks) or else R's message. Against lme4 (expected) the largest differences are printed. Also: glm fits in a
-// comparison (G15), the options and the fits accepted.
+// comparison (G15), against the fixture glmerAnovaGlm (oracle/glmeranovaglm.R: the exact glmer optimum and glm's
+// converged fit, with the tolerances above) and on their own; the options and the fits accepted.
 import { describe, expect, it } from "vitest";
 import { dbinom } from "../src/index.js";
 import { glm } from "../src/models/glm.js";
@@ -19,6 +20,7 @@ import { num } from "./helpers/fixture.js";
 import { dataFrameOf, loadAnovaFixture } from "./helpers/anova.js";
 
 const fixture = loadAnovaFixture("glmerAnova");
+const glmFixture = loadAnovaFixture("glmerAnovaGlm");
 const TOL_TABLE = 1e-7;
 const TOL_LOGLIK = 1e-10;
 const TOL_LOGLIK_LMER = 1e-12;
@@ -143,6 +145,63 @@ describe("glmerAnova", () => {
     console.log(`glmerAnova: ${fixture.cases.length} cases; largest error against the reference: ${show(worstRef)}`);
     console.log(`glmerAnova: largest relative difference from lme4: ${show(worstLme4)}`);
     expect(failures, failures.slice(0, 30).join("\n")).toEqual([]);
+  });
+
+  // G15 against R: anova(glmer fit, glm fit) with the same fixed effects (fixture glmerAnovaGlm, oracle/glmeranovaglm.R)
+  it(`compares glm and glmer fits as R does (${glmFixture.r_version})`, () => {
+    const failures: string[] = [];
+    const worst = new Map<string, number>();
+    const note = (field: string, err: number): void => {
+      worst.set(field, Math.max(worst.get(field) ?? 0, Number.isNaN(err) ? Infinity : err));
+    };
+    glmFixture.cases.forEach((c, index) => {
+      const a = c.args;
+      const where = `case ${index} (${String(a.formula)} and glm ${String(a.glmFormula)}, ${String(a.glmLink)})`;
+      const data = dataFrameOf(a.data, a.dataTypes);
+      const m = glmer(a.formula as string, data, glmerOptionsOf(a));
+      const x = (a.glmX as string[][]).map(values);
+      const y = Array.isArray((a.glmY as unknown[])[0]) ? (a.glmY as string[][]).map(values) : values(a.glmY);
+      const g = glm(x, y, {
+        family: a.family as GlmerFamilyName,
+        link: a.glmLink as GlmLinkName,
+        ...(a.weights === undefined ? {} : { weights: values(a.weights) }),
+      });
+      const names = a.names as string[];
+      const t = glmerAnova([g, m], { names: [names[1]!, names[0]!] });
+      const ref = c.reference!;
+      const e = c.expected;
+      for (const [field, v, x] of [
+        ["names", t.names, ref.names],
+        ["npar", t.npar, values(ref.npar)],
+        ["Df", t.Df.map(String), values(ref.Df).map(String)],
+        ["messages", t.messages, e.messages],
+        ["warnings", t.warnings, e.warnings],
+      ] as [string, unknown, unknown][]) {
+        if (JSON.stringify(v) !== JSON.stringify(x)) failures.push(`${where} ${field}: ${JSON.stringify(v)}, expected ${JSON.stringify(x)}`);
+      }
+      for (const f of ["logLik", "AIC", "BIC", "deviance"] as const) {
+        const x = values(ref[f]);
+        t[f].forEach((v, i) => {
+          const err = scaledError(v, x[i]!, Math.abs(x[i]!));
+          note(f, err);
+          if (!(err <= TOL_LOGLIK)) failures.push(`${where} ${f}[${i}]: reference ${x[i]}, got ${v} (error ${err.toExponential(1)})`);
+        });
+      }
+      const chisqRef = values(ref.Chisq);
+      const pRef = values(ref.pValue);
+      const llRef = values(ref.logLik);
+      t.Chisq.forEach((v, i) => {
+        const err = scaledError(v, chisqRef[i]!, Math.max(1, Math.abs(llRef[i]!)));
+        note("Chisq (/ max(1, |logLik|))", err);
+        if (!(err <= TOL_CHISQ)) failures.push(`${where} Chisq[${i}]: reference ${chisqRef[i]}, got ${v}`);
+        const errP = scaledError(t.pValue[i]!, pRef[i]!, Math.abs(pRef[i]!));
+        note("pValue", errP);
+        if (!(errP <= TOL_P)) failures.push(`${where} pValue[${i}]: reference ${pRef[i]}, got ${t.pValue[i]}`);
+      });
+    });
+    const show = [...worst].map(([f, w]) => `${f} ${w.toExponential(1)}`).join(", ");
+    console.log(`glmerAnova with glm fits: ${glmFixture.cases.length} cases; largest error against the reference: ${show}`);
+    expect(failures, failures.join("\n")).toEqual([]);
   });
 
   // cbpp from the fixture: incidence of a disease by herd and period
