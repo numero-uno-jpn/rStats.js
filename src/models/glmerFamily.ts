@@ -10,7 +10,11 @@ import { dlogis1, plogis1 } from "../distributions/logistic.js";
 import { dnorm, pnorm } from "../distributions/normal.js";
 import { makeFamily, type Family, type GlmFamilyName, type GlmFamilySpec, type GlmLink, type GlmLinkName } from "./glmFamily.js";
 
-/** The families glmer fits. */
+/**
+ * The families that {@link glmer} fits (the glm families without the quasi ones).
+ *
+ * @category Mixed models
+ */
 export type GlmerFamilyName = "binomial" | "poisson" | "Gamma" | "inverse.gaussian" | "gaussian";
 
 /** A family of glmer resolved to its functions. */

@@ -7,6 +7,25 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Generalized linear mixed models:** `glmer`, lme4's `glmer()`, in the area `@numero-uno-jpn/rstats/mixed`, by the
+  Laplace approximation (`nAGQ = 1`, default) or with the fixed effects from the penalised IRLS (`nAGQ = 0`), for the
+  families binomial, poisson, Gamma, inverse.gaussian and gaussian (not with the identity link, which is `lmer`) with
+  their links and lme4's own inverse links and variance functions. A binomial response may be 0/1, booleans, strings
+  (the first level failure), proportions with `weights`, or `cbind(successes, failures)` with two column names;
+  `weights` and `offset` are arrays or column names; `start` (`theta`, `fixef`) as R's. The result has the quantities
+  of `fixef`, `coef(summary())` (estimates, standard errors, z values; p-values come with `glmerSummary`), `vcov`,
+  `sigma`, `VarCorr`, `ranef`, `fitted`, `predict`, the deviance, Pearson, working and response residuals,
+  `deviance`, `logLik`, `AIC`, `BIC` and `isSingular`, with lme4's checks, messages and warnings (not those of its
+  optimiser). The estimate is the exact minimiser of the Laplace deviance at the exact conditional mode (references
+  at the optimum in 110-bit arithmetic, matched within 1e-7, the log-likelihood within 1e-10, standard errors within
+  1e-6), which lme4 approaches to its own tolerances: its estimates differ in about the 4th to 6th significant digit
+  and its standard errors, from a finite-difference Hessian of its approximate deviance, by up to about 1%.
+  Adaptive Gauss-Hermite quadrature (`nAGQ > 1`), `glmerSummary`, `glmerAnova` and `predict` for new data come later.
+
 ## 0.17.0 - 2026-11-05
 
 The API is cleaned up toward 1.0.0, which follows the mixed models of `glmer`: argument errors are a `TypeError` or
