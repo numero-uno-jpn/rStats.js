@@ -143,6 +143,28 @@ describe("glmer's numerical edges (audit findings, second fix)", () => {
     expectVector(r.fixef, [b0, bx - bz / e, bz / e], 1e-6, "fixef");
   });
 
+  it("G21: a response scale the Laplace criterion cannot resolve is a RangeError, not θ = 0 or lme4's PIRLS message", () => {
+    const scale = /outside what the Laplace criterion can resolve/;
+    const IG = { family: "inverse.gaussian", link: "log" } as const;
+    // inverse.gaussian with the log link times 1e200 returned θ = 0 from a region flat to rounding (the optimum is
+    // near θ = 1e100); times 1e20 to 1e100 "did not converge"
+    for (const k of [1e20, 1e100, 1e200]) expect(() => glmer("y ~ x + (1 | g)", { ...base, y: yg.map((v) => v * k) }, IG)).toThrow(scale);
+    // poisson counts times 1e14 and 1e16, prior weights 2^40, gaussian with the log link times 1e10 and 1e-10
+    for (const k of [1e14, 1e16]) expect(() => glmer("y ~ x + (1 | g)", { ...base, y: base.y.map((v) => v * k) }, P)).toThrow(scale);
+    expect(() => glmer("y ~ x + (1 | g)", base, { ...P, weights: base.y.map(() => 2 ** 40) })).toThrow(scale);
+    for (const k of [1e10, 1e-10]) {
+      expect(() => glmer("y ~ x + (1 | g)", { ...base, y: yg.map((v) => v * k) }, { family: "gaussian", link: "log" })).toThrow(scale);
+    }
+    expect(() => glmer("y ~ x + (1 | g)", { ...base, y: yg.map((v) => v * 1e200) }, IG)).toThrow(RangeError);
+    // still fitted: inverse.gaussian times 1e12 (θ near 1.67e6, the √k of the plain fit's), poisson counts times
+    // 1e12, binomial prior weights 2^-50 (θ 0, as R's at 2^-20: the criterion is not flat relative to its tiny deviance)
+    const ig = glmer("y ~ x + (1 | g)", { ...base, y: yg }, IG);
+    const ig12 = glmer("y ~ x + (1 | g)", { ...base, y: yg.map((v) => v * 1e12) }, IG);
+    expect(relative(ig12.theta[0]!, ig.theta[0]! * 1e6)).toBeLessThan(0.05);
+    expect(glmer("y ~ x + (1 | g)", { ...base, y: base.y.map((v) => v * 1e12) }, P).theta[0]).toBeCloseTo(0.58287, 4);
+    expect(glmer("y ~ x + (1 | g)", { ...base, y: yb }, { ...B, weights: base.y.map(() => 2 ** -50) }).theta).toEqual([0]);
+  });
+
   it("logLik of a deviance of 0 is 0, not −0", () => {
     const r = glmer("y ~ x + (1 | g)", { ...base, y: yb }, { ...B, weights: base.y.map(() => 2 ** -10) });
     expect(Object.is(r.logLik, 0)).toBe(true);
@@ -203,10 +225,9 @@ describe("results of glmer and lmer at numerical edges (audit findings, second f
     const scaled = lmer("y ~ x + z + (1 | g)", { ...d, x: base.x.map((v) => v * k), z: z.map((v) => v * k) }, { REML: false });
     const ss = lmerSummary(scaled);
     const expected = plain.coefTable.stdError.map((v, i) => (i === 0 ? v : v / k));
-    // (the fit at 1e-160 itself agrees with the plain one to about 1e-6 only: its X'X is subnormal)
-    expectVector(scaled.coefTable.stdError.map((v, i) => v / expected[i]!), [1, 1, 1], 1e-5, "lmer stdError");
-    expectVector(ss.stdError.map((v, i) => v / expected[i]!), [1, 1, 1], 1e-5, "lmerSummary stdError");
-    expectVector(ss.df!, ps.df!, 1e-5, "df");
-    expectVector(ss.pValue!, ps.pValue!, 1e-5, "pValue");
+    expectVector(scaled.coefTable.stdError.map((v, i) => v / expected[i]!), [1, 1, 1], 1e-9, "lmer stdError");
+    expectVector(ss.stdError.map((v, i) => v / expected[i]!), [1, 1, 1], 1e-9, "lmerSummary stdError");
+    expectVector(ss.df!, ps.df!, 1e-9, "df");
+    expectVector(ss.pValue!, ps.pValue!, 1e-9, "pValue");
   });
 });

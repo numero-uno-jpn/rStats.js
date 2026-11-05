@@ -41,7 +41,7 @@ import { potf2, potri } from "../linalg/chol.js";
 import { ldexp } from "../internal/summary.js";
 import { reported, Warnings } from "../internal/warnings.js";
 import { familyAic, type GlmLinkName } from "./glmFamily.js";
-import { pearsonResidualOf, workingResidualOf, type GlmerFamilyName } from "./glmerFamily.js";
+import { pearsonResidualOf, workingResidualOf, workingWeight, type GlmerFamilyName } from "./glmerFamily.js";
 import { glmerAgqDeviance, glmerDeviance, type GlmerDeviance } from "./glmerDeviance.js";
 import { glmerStructure, type GlmerStructure } from "./glmerStructure.js";
 import { checkLmerOptions, columnsOfTheta, thetaColumnExponents, type LmerContrastName, type LmerRanef, type LmerVarCorr } from "./lmer.js";
@@ -357,6 +357,16 @@ function metricFactor(m: readonly (readonly number[])[], phi: number): Float64Ar
  * significant digit, its standard errors by up to about 1%). Elements of θ on the boundary are exactly 0, and the fit
  * is then singular. lme4's warnings about its optimiser and its convergence checks are not given.
  *
+ * The scale of the response: lme4's Laplace criterion leaves out the dispersion, so for the poisson,
+ * inverse.gaussian and gaussian families it is not invariant to the scale of the response (or of the prior weights).
+ * Where the information about the random effects at the start, Σ W z² of a column of Z (W the working weights at
+ * the starting means), is outside about 2^-40 to 2^40 and the fit fails, or a term ends at θ = 0 on a criterion flat
+ * to rounding, the result is a RangeError saying so. For data like the example below: poisson counts up to about
+ * 1e13 (prior weights up to about 2^35), inverse.gaussian with the log link up to about 1e13, gaussian with the log
+ * link up to about 1e5 and down to about 1e-6 fit; beyond, the RangeError.
+ * Binomial and Gamma fits are not limited this way (Gamma's criterion is invariant; with the log link a tiny
+ * response is rescaled).
+ *
  * Adaptive Gauss-Hermite quadrature (`nAGQ > 1`) needs a single scalar random-effects term such as `(1 | g)`, with
  * R's errors otherwise. It is offered for binomial and poisson only: for Gamma, inverse.gaussian and gaussian it is a
  * RangeError, since lme4 holds the dispersion at 1 there, so that its estimates would not be maximum likelihood. Its
@@ -440,288 +450,338 @@ function fitGlmer(formula: string, data: DataFrame, options: GlmerOptions): Glme
   const sc = scaledStructure(sy, exponents.z, xExponents);
   const toScaled = (theta: readonly number[]): number[] => theta.map((v, k) => ldexp(v, exponents.theta[k]!));
   const fromScaled = (theta: readonly number[]): number[] => theta.map((v, k) => ldexp(v, -exponents.theta[k]!));
+  // The scale of the response against the Laplace criterion (G21): the information about the random effects at the
+  // start, Σ W z² of the largest column of Z (startInformation), checked only where the fit fails or ends at θ = 0
+  const information = startInformation(sc);
+  const scaleError = (): RangeError =>
+    new RangeError(
+      `glmer: the scale of the response (or of the prior weights) is outside what the Laplace criterion can resolve: the information about the random effects at the start is ${information} (about 2^-40 to 2^40 is supported; lme4's Laplace criterion leaves out the dispersion, so for poisson, inverse.gaussian and gaussian it is not invariant to the scale of the response)`,
+    );
+  const fit = (): GlmerResult => {
 
-  // lme4's initial PIRLS (nAGQ = 0 at the initial θ, from the starting means): its errors are glmer's. Where it fails
-  // on columns of Z of extreme scale (θ = 1 for a column of 1e160 overflows), the minimisation starts from θ' = 1
-  // instead (θ = 1 in the units of the scaled columns, as lmer's), if the PIRLS succeeds there
-  let initialTheta = toScaled(s.theta);
-  try {
-    glmerDeviance(sc, initialTheta, undefined, 0);
-  } catch (e) {
-    if (exponents.theta.every((v) => v === 0)) throw e;
+    // lme4's initial PIRLS (nAGQ = 0 at the initial θ, from the starting means): its errors are glmer's. Where it fails
+    // on columns of Z of extreme scale (θ = 1 for a column of 1e160 overflows), the minimisation starts from θ' = 1
+    // instead (θ = 1 in the units of the scaled columns, as lmer's), if the PIRLS succeeds there
+    let initialTheta = toScaled(s.theta);
     try {
-      glmerDeviance(sc, s.theta, undefined, 0);
-    } catch {
-      throw e;
-    }
-    initialTheta = [...s.theta];
-  }
-
-  // the start, with R's errors in R's order (checked in R: the names first, then θ's length and bounds, then β's
-  // length)
-  const start = options.start;
-  if (start !== undefined && (typeof start !== "object" || start === null || Array.isArray(start))) {
-    throw new TypeError("start must be an object with theta and fixef");
-  }
-  const startTheta = numbersOption(start?.theta, "theta");
-  const startFixef = numbersOption(start?.fixef, "fixef");
-  if (nAGQ === 0 && startFixef !== undefined) throw new RangeError(`'start' has invalid names "fixef"`);
-  if (startTheta !== undefined && startTheta.length !== nTheta) throw new RangeError(`starting value of 'par' has length not equal to ${nTheta}`);
-  if (startTheta?.some((v, j) => s.lower[j] === 0 && v < 0)) throw new RangeError("Starting values violate bounds");
-  if (startFixef !== undefined && startFixef.length !== p) throw new RangeError(`starting value of 'fixef' has length not equal to ${p}`);
-
-  const diagonal = s.lower.map((b) => b === 0);
-  const columns = columnsOfTheta(s);
-  const blocks = s.terms.map((t) => {
-    const nc = t.columns.length;
-    return Array.from({ length: (nc * (nc + 1)) / 2 }, (_, i) => t.thetaOffset + i);
-  });
-
-  /** The deviance and its gradient, undefined where the evaluation fails */
-  const safely = (evaluate: () => { deviance: number; gradient: number[] }): { deviance: number; gradient: number[] } | undefined => {
-    try {
-      const r = evaluate();
-      return Number.isFinite(r.deviance) && r.gradient.every(Number.isFinite) ? r : undefined;
+      glmerDeviance(sc, initialTheta, undefined, 0);
     } catch (e) {
-      // (glmerDeviance's failures: lme4's PIRLS errors, plain Errors, and RangeErrors; anything else is a bug)
-      if (e instanceof RangeError || (e instanceof Error && e.constructor === Error)) return undefined;
-      throw e;
+      if (exponents.theta.every((v) => v === 0)) throw e;
+      try {
+        glmerDeviance(sc, s.theta, undefined, 0);
+      } catch {
+        throw e;
+      }
+      initialTheta = [...s.theta];
     }
+
+    // the start, with R's errors in R's order (checked in R: the names first, then θ's length and bounds, then β's
+    // length)
+    const start = options.start;
+    if (start !== undefined && (typeof start !== "object" || start === null || Array.isArray(start))) {
+      throw new TypeError("start must be an object with theta and fixef");
+    }
+    const startTheta = numbersOption(start?.theta, "theta");
+    const startFixef = numbersOption(start?.fixef, "fixef");
+    if (nAGQ === 0 && startFixef !== undefined) throw new RangeError(`'start' has invalid names "fixef"`);
+    if (startTheta !== undefined && startTheta.length !== nTheta) throw new RangeError(`starting value of 'par' has length not equal to ${nTheta}`);
+    if (startTheta?.some((v, j) => s.lower[j] === 0 && v < 0)) throw new RangeError("Starting values violate bounds");
+    if (startFixef !== undefined && startFixef.length !== p) throw new RangeError(`starting value of 'fixef' has length not equal to ${p}`);
+
+    const diagonal = s.lower.map((b) => b === 0);
+    const columns = columnsOfTheta(s);
+    const blocks = s.terms.map((t) => {
+      const nc = t.columns.length;
+      return Array.from({ length: (nc * (nc + 1)) / 2 }, (_, i) => t.thetaOffset + i);
+    });
+
+    /** The deviance and its gradient, undefined where the evaluation fails */
+    const safely = (evaluate: () => { deviance: number; gradient: number[] }): { deviance: number; gradient: number[] } | undefined => {
+      try {
+        const r = evaluate();
+        return Number.isFinite(r.deviance) && r.gradient.every(Number.isFinite) ? r : undefined;
+      } catch (e) {
+        // (glmerDeviance's failures: lme4's PIRLS errors, plain Errors, and RangeErrors; anything else is a bug)
+        if (e instanceof RangeError || (e instanceof Error && e.constructor === Error)) return undefined;
+        throw e;
+      }
+    };
+    /** The minimisation problem of a deviance of x (θ' first) with its analytic gradient */
+    const problemOf = (f: (x: readonly number[]) => { deviance: number; gradient: number[] }, m: number): MinimiserProblem => ({
+      evaluate: (x) => {
+        const r = safely(() => f(x));
+        return r === undefined ? { f: Infinity, g: new Array<number>(m).fill(NaN) } : { f: r.deviance, g: r.gradient };
+      },
+      diagonal: [...diagonal, ...new Array<boolean>(m - nTheta).fill(false)],
+      columns,
+      settings: GLMER_SETTINGS,
+      rejectNonFinite: true,
+      failure: OPTIMISATION_FAILED,
+      robust: true,
+    });
+
+    // nAGQ = 0: d₀(θ). For nAGQ ≥ 1 it only gives the start of d₁: where it fails (its region of evaluation may end
+    // before its minimum), its best point is the start
+    const d0 = (x: readonly number[]): { deviance: number; gradient: number[] } => {
+      const r = glmerDeviance(sc, x, undefined, 0, { gradient: true });
+      return { deviance: r.deviance, gradient: r.gradient! };
+    };
+    const thetaStart = startTheta === undefined ? initialTheta : toScaled(startTheta);
+    // (non-integer counts with nAGQ > 1: d₀ is infinite everywhere, so the start, as R's first phase ends there)
+    const theta0 = nonIntegerCount !== undefined ? thetaStart : minimiseWithRestarts(problemOf(d0, nTheta), thetaStart, blocks, { bestOnFailure: nAGQ >= 1 }).theta;
+
+    let thetaScaled = theta0;
+    let betaScaled: number[] | undefined;
+    let vcovHessian: (() => number[][] | undefined) | undefined;
+    if (nAGQ >= 1) {
+      // β' = β_s + R⁻¹ z, R the Cholesky factor of R_X'R_X / φ of the joint mode at θ₀ (φ the dispersion of the aic
+      // term, Σ d_i / Σ w, which sets the curvature of the deviance in β; not lme4's sigma², which includes ‖u‖²): z
+      // is β' in the metric of its approximate covariance, so that one step and one tolerance suit every element,
+      // whatever the scales and the correlations of the predictors (shifting x by 2000 made the intercept and the
+      // slope correlated by −1 and the minimisation crawl)
+      const r0 = glmerDeviance(sc, theta0, undefined, 0, { rx: true });
+      const betaStart = startFixef?.map((b, k) => ldexp(b, xExponents[k]!)) ?? r0.beta;
+      const phi = s.family.family === "binomial" || s.family.family === "poisson" ? 1 : r0.devResid / s.weights.reduce((a, b) => a + b, 0);
+      const rFactor = metricFactor(r0.rxtrx!, phi);
+      const betaOf = (x: readonly number[]): number[] => {
+        const z = Float64Array.from(x.slice(nTheta));
+        backSolve(rFactor, p, z);
+        return betaStart.map((b, k) => b + z[k]!);
+      };
+      // d₁(θ, β), or the AGQ deviance D_K(θ, β) for nAGQ = K > 1, with the gradient in z = R (β' − β_s)
+      const d1 = (x: readonly number[]): { deviance: number; gradient: number[] } => {
+        const theta = x.slice(0, nTheta);
+        const r = nAGQ === 1 ? glmerDeviance(sc, theta, betaOf(x), 1, { gradient: true }) : glmerAgqDeviance(sc, theta, betaOf(x), nAGQ, { gradient: true });
+        const g = r.gradient!;
+        const gz = Float64Array.from(g.slice(nTheta));
+        forwardSolve(rFactor, p, gz);
+        return { deviance: r.deviance, gradient: [...g.slice(0, nTheta), ...gz] };
+      };
+      const best = minimiseWithRestarts(problemOf(d1, nTheta + p), [...theta0, ...new Array<number>(p).fill(0)], blocks).theta;
+      thetaScaled = best.slice(0, nTheta);
+      betaScaled = betaOf(best);
+      // the Hessian of vcov in (θ', z) from 5-point differences of the analytic gradient, then 2 [H⁻¹]_ββ' =
+      // 2 R⁻¹ [H⁻¹]_zz R⁻ᵀ (the scaling of θ does not enter); in the units of β'
+      vcovHessian = () => {
+        const cols = best.map((_, j) => {
+          const h = VCOV_HESSIAN_STEP * Math.max(1, Math.abs(best[j]!));
+          const g = (d: number): number[] => {
+            const y = best.slice();
+            y[j] = best[j]! + d;
+            return safely(() => d1(y))?.gradient ?? new Array<number>(best.length).fill(NaN);
+          };
+          const gp1 = g(h);
+          const gm1 = g(-h);
+          const gp2 = g(2 * h);
+          const gm2 = g(-2 * h);
+          return gp1.map((_, i) => (8 * (gp1[i]! - gm1[i]!) - (gp2[i]! - gm2[i]!)) / (12 * h));
+        });
+        const hz = cols.map((col, a) => col.map((v, b) => (v + cols[b]![a]!) / 2));
+        const inverse = spdInverse(hz);
+        if (inverse === undefined) return undefined;
+        const rInverse = Array.from({ length: p }, (_, k) => {
+          const e = new Float64Array(p);
+          e[k] = 1;
+          backSolve(rFactor, p, e);
+          return e; // column k of R⁻¹
+        });
+        // R⁻¹ M R⁻ᵀ: entry (a, b) = Σ_cd R⁻¹[a, c] M[c, d] R⁻¹[b, d]
+        return Array.from({ length: p }, (_, a) =>
+          Array.from({ length: p }, (_, b) => {
+            let sum = 0;
+            for (let c = 0; c < p; c++) {
+              const rac = rInverse[c]![a]!;
+              if (rac === 0) continue;
+              for (let d = 0; d < p; d++) sum += rac * inverse[nTheta + c]![nTheta + d]! * rInverse[d]![b]!;
+            }
+            return 2 * sum;
+          }),
+        );
+      };
+    }
+
+    // the fit at the estimate (on the scaled structure; β, b and R_X'R_X back in the given units)
+    const theta = fromScaled(thetaScaled).map((v) => (v === 0 ? 0 : v));
+    const r =
+      nAGQ > 1 ? glmerAgqDeviance(sc, thetaScaled, betaScaled!, nAGQ, { rx: true }) : glmerDeviance(sc, thetaScaled, betaScaled, nAGQ === 0 ? 0 : 1, { rx: true });
+    const fixef = r.beta.map((b, k) => ldexp(b, -xExponents[k]!));
+    const bFit = r.b.map((v, j) => ldexp(v, -exponents.z[j]!));
+    const fam = s.family;
+    const { y, weights: w } = s;
+    // (the means and the linear predictor of the response as given: 2^ky μ, η + ky log 2)
+    const mu = ky === 0 ? r.mu : r.mu.map((m) => ldexp(m, ky));
+    const eta = ky === 0 ? r.eta : r.eta.map((e) => e + ky * Math.LN2);
+
+    const devResid = y.map((yi, i) => fam.devResid(yi, mu[i]!, w[i]!));
+    const residuals = devResid.map((d, i) => {
+      const v = Math.sqrt(Math.max(0, d));
+      return v === 0 ? 0 : y[i]! > mu[i]! ? v : -v;
+    });
+    const pearsonResiduals = y.map((yi, i) => pearsonResidualOf(fam, w[i]!, yi, mu[i]!));
+    const workingResiduals = y.map((yi, i) => workingResidualOf(fam, yi, eta[i]!, mu[i]!));
+    const responseResiduals = y.map((yi, i) => yi - mu[i]!);
+    const deviance = devResid.reduce((sum, d) => sum + Math.max(0, d), 0);
+    const dispersionFamily = fam.family !== "binomial" && fam.family !== "poisson";
+    const sigma = dispersionFamily ? Math.sqrt(dispersionOf(sy, r)) : 1;
+
+    // (an absolute threshold on θ's diagonal elements, as lme4's isSingular with its default tolerance 1e-4)
+    const singular = theta.some((v, j) => s.lower[j] === 0 && v < 1e-4);
+    const nParameters = nTheta + (nAGQ >= 1 ? p : 0);
+    // (lme4 gives the singular message from its convergence checks, which it runs only for these sizes)
+    const checked = n < HESSIAN_MAX_N && nParameters < HESSIAN_MAX_PARAMETERS;
+    const messages = [...s.messages];
+    if (singular && checked) messages.push(SINGULAR_MESSAGE);
+
+    const warnings = new Warnings();
+    for (const m of s.warnings) warnings.add(m);
+    for (const m of r.warnings) warnings.add(m);
+
+    // vcov in the units of β' (then each entry times 2^(−f_a − f_b), the standard errors 2^(−f_k) times the root of the
+    // diagonal: an entry may overflow where the standard error does not)
+    let vcovScaled: number[][] | undefined;
+    let vcovFrom: "hessian" | "RX" = "RX";
+    if (vcovHessian !== undefined && !singular && n < HESSIAN_MAX_N && nTheta + p < HESSIAN_MAX_PARAMETERS) {
+      vcovScaled = vcovHessian();
+      if (vcovScaled === undefined) warnings.add(VCOV_FALLBACK);
+      else vcovFrom = "hessian";
+    }
+    if (vcovScaled === undefined) {
+      const inverse = spdInverse(r.rxtrx!);
+      vcovScaled = Array.from({ length: p }, (_, a) => Array.from({ length: p }, (_, b) => sigma * sigma * (inverse?.[a]![b]! ?? NaN)));
+    }
+    const vcov = vcovScaled.map((row, a) => row.map((v, b) => ldexp(v, -xExponents[a]! - xExponents[b]!)));
+    const stdError = vcovScaled.map((row, i) => ldexp(Math.sqrt(row[i]!), -xExponents[i]!));
+    // (a standard error of 0 gives ±Infinity or NaN, as R's division does: not guarded on purpose)
+    const zValue = fixef.map((b, i) => b / stdError[i]!);
+    const rxtrx = r.rxtrx!.map((row, a) => row.map((v, b) => ldexp(v, xExponents[a]! + xExponents[b]!)));
+
+    // the blocks T_k and the variance components (not scaled by sigma, as lme4's VarCorr for glmer), from the blocks of
+    // θ' (cov = C⁻¹ T'T'ᵀ C⁻¹ with C the powers of 2 of the term's columns: no overflow of the squares of θ)
+    const thetaFit = thetaScaled.map((v) => (v === 0 ? 0 : v));
+    const varCorr: LmerVarCorr[] = s.terms.map((term) => {
+      const nc = term.columns.length;
+      const t: number[][] = Array.from({ length: nc }, () => new Array<number>(nc).fill(0));
+      let k = term.thetaOffset;
+      for (let j = 0; j < nc; j++) for (let i = j; i < nc; i++) t[i]![j] = thetaFit[k++]!;
+      const e = Array.from({ length: nc }, (_, i) => exponents.z[term.zOffset + i]!);
+      const cov = t.map((ti) => t.map((tj) => ti.reduce((sum, v, m) => sum + v * tj[m]!, 0)));
+      const sdScaled = cov.map((row, i) => Math.sqrt(row[i]!));
+      const sd = sdScaled.map((v, i) => ldexp(v, -e[i]!));
+      // (a column with variance 0 has the correlations 0/0 = NaN with the others, as lme4's VarCorr: not a bug)
+      const corr = cov.map((row, i) => row.map((v, j) => (i === j ? 1 : v / (sdScaled[i]! * sdScaled[j]!))));
+      return { group: s.groups[term.group]!.name, columns: [...term.columns], sd, corr };
+    });
+    const ranef: LmerRanef[] = s.groups.map((g, gi) => {
+      const terms = s.terms.filter((t) => t.group === gi);
+      return {
+        group: g.name,
+        levels: [...g.levels],
+        columns: terms.flatMap((t) => t.columns),
+        values: g.levels.map((_, l) =>
+          terms.flatMap((t) => {
+            const nc = t.columns.length;
+            return t.columns.map((_, j) => bFit[t.zOffset + l * nc + j]!);
+          }),
+        ),
+      };
+    });
+
+    // nAGQ > 1 (binomial and poisson only, G13): the AGQ deviance has no aic term, so R's logLik is relative to the
+    // saturated model; here the saturated model's constant aic − Σ d_i (which does not depend on μ for these families)
+    // is added back, so that logLik is the log-likelihood (G12; R's logLik differs by it)
+    // (+ 0: a deviance of 0, binomial weights so small that the aic term is 0, gives logLik 0, as R prints, not −0)
+    // (a response divided by 2^ky: the aic term of the response as given; the rest of the deviance does not change)
+    const fitDeviance = ky === 0 ? r.deviance : r.ldL2 + r.ussq + familyAic(fam.glm, y, mu, w, s.size, r.devResid, new Warnings());
+    const logLik = -(fitDeviance + (nAGQ > 1 ? r.aic - r.devResid : 0)) / 2 + 0;
+    const df = p + nTheta + (dispersionFamily ? 1 : 0);
+    const result: GlmerResult = {
+      formula,
+      family: fam.family,
+      link: fam.link,
+      nAGQ,
+      nObs: n,
+      rows: [...s.rows],
+      theta,
+      fixefNames: [...s.xColNames],
+      fixef,
+      coefTable: { estimate: [...fixef], stdError, zValue },
+      vcov,
+      vcovFrom,
+      sigma,
+      varCorr,
+      ranef,
+      fitted: mu,
+      linearPredictor: eta,
+      residuals,
+      pearsonResiduals,
+      workingResiduals,
+      responseResiduals,
+      deviance,
+      logLik,
+      df,
+      AIC: -2 * logLik + 2 * df,
+      BIC: -2 * logLik + Math.log(n) * df,
+      singular,
+      messages,
+      warnings: warnings.list,
+    };
+    const copyOf = <T>(v: T): T => (Array.isArray(v) || v instanceof Float64Array ? (v.slice() as T) : v);
+    const given: GlmerOptions = { ...options };
+    if (options.weights !== undefined) given.weights = copyOf(options.weights);
+    if (options.offset !== undefined) given.offset = copyOf(options.offset);
+    const snapshot: DataFrame = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v.slice()]));
+    internalsByFit.set(result, { structure: s, data, snapshot, options: given, theta: [...theta],
+      beta: [...fixef],
+      rxtrx,
+      b: [...bFit],
+      eta: [...eta],
+      mu: [...mu],
+      sigma,
+    });
+    return result;
   };
-  /** The minimisation problem of a deviance of x (θ' first) with its analytic gradient */
-  const problemOf = (f: (x: readonly number[]) => { deviance: number; gradient: number[] }, m: number): MinimiserProblem => ({
-    evaluate: (x) => {
-      const r = safely(() => f(x));
-      return r === undefined ? { f: Infinity, g: new Array<number>(m).fill(NaN) } : { f: r.deviance, g: r.gradient };
-    },
-    diagonal: [...diagonal, ...new Array<boolean>(m - nTheta).fill(false)],
-    columns,
-    settings: GLMER_SETTINGS,
-    rejectNonFinite: true,
-    failure: OPTIMISATION_FAILED,
-    robust: true,
-  });
-
-  // nAGQ = 0: d₀(θ). For nAGQ ≥ 1 it only gives the start of d₁: where it fails (its region of evaluation may end
-  // before its minimum), its best point is the start
-  const d0 = (x: readonly number[]): { deviance: number; gradient: number[] } => {
-    const r = glmerDeviance(sc, x, undefined, 0, { gradient: true });
-    return { deviance: r.deviance, gradient: r.gradient! };
-  };
-  const thetaStart = startTheta === undefined ? initialTheta : toScaled(startTheta);
-  // (non-integer counts with nAGQ > 1: d₀ is infinite everywhere, so the start, as R's first phase ends there)
-  const theta0 = nonIntegerCount !== undefined ? thetaStart : minimiseWithRestarts(problemOf(d0, nTheta), thetaStart, blocks, { bestOnFailure: nAGQ >= 1 }).theta;
-
-  let thetaScaled = theta0;
-  let betaScaled: number[] | undefined;
-  let vcovHessian: (() => number[][] | undefined) | undefined;
-  if (nAGQ >= 1) {
-    // β' = β_s + R⁻¹ z, R the Cholesky factor of R_X'R_X / φ of the joint mode at θ₀ (φ the dispersion of the aic
-    // term, Σ d_i / Σ w, which sets the curvature of the deviance in β; not lme4's sigma², which includes ‖u‖²): z
-    // is β' in the metric of its approximate covariance, so that one step and one tolerance suit every element,
-    // whatever the scales and the correlations of the predictors (shifting x by 2000 made the intercept and the
-    // slope correlated by −1 and the minimisation crawl)
-    const r0 = glmerDeviance(sc, theta0, undefined, 0, { rx: true });
-    const betaStart = startFixef?.map((b, k) => ldexp(b, xExponents[k]!)) ?? r0.beta;
-    const phi = s.family.family === "binomial" || s.family.family === "poisson" ? 1 : r0.devResid / s.weights.reduce((a, b) => a + b, 0);
-    const rFactor = metricFactor(r0.rxtrx!, phi);
-    const betaOf = (x: readonly number[]): number[] => {
-      const z = Float64Array.from(x.slice(nTheta));
-      backSolve(rFactor, p, z);
-      return betaStart.map((b, k) => b + z[k]!);
-    };
-    // d₁(θ, β), or the AGQ deviance D_K(θ, β) for nAGQ = K > 1, with the gradient in z = R (β' − β_s)
-    const d1 = (x: readonly number[]): { deviance: number; gradient: number[] } => {
-      const theta = x.slice(0, nTheta);
-      const r = nAGQ === 1 ? glmerDeviance(sc, theta, betaOf(x), 1, { gradient: true }) : glmerAgqDeviance(sc, theta, betaOf(x), nAGQ, { gradient: true });
-      const g = r.gradient!;
-      const gz = Float64Array.from(g.slice(nTheta));
-      forwardSolve(rFactor, p, gz);
-      return { deviance: r.deviance, gradient: [...g.slice(0, nTheta), ...gz] };
-    };
-    const best = minimiseWithRestarts(problemOf(d1, nTheta + p), [...theta0, ...new Array<number>(p).fill(0)], blocks).theta;
-    thetaScaled = best.slice(0, nTheta);
-    betaScaled = betaOf(best);
-    // the Hessian of vcov in (θ', z) from 5-point differences of the analytic gradient, then 2 [H⁻¹]_ββ' =
-    // 2 R⁻¹ [H⁻¹]_zz R⁻ᵀ (the scaling of θ does not enter); in the units of β'
-    vcovHessian = () => {
-      const cols = best.map((_, j) => {
-        const h = VCOV_HESSIAN_STEP * Math.max(1, Math.abs(best[j]!));
-        const g = (d: number): number[] => {
-          const y = best.slice();
-          y[j] = best[j]! + d;
-          return safely(() => d1(y))?.gradient ?? new Array<number>(best.length).fill(NaN);
-        };
-        const gp1 = g(h);
-        const gm1 = g(-h);
-        const gp2 = g(2 * h);
-        const gm2 = g(-2 * h);
-        return gp1.map((_, i) => (8 * (gp1[i]! - gm1[i]!) - (gp2[i]! - gm2[i]!)) / (12 * h));
-      });
-      const hz = cols.map((col, a) => col.map((v, b) => (v + cols[b]![a]!) / 2));
-      const inverse = spdInverse(hz);
-      if (inverse === undefined) return undefined;
-      const rInverse = Array.from({ length: p }, (_, k) => {
-        const e = new Float64Array(p);
-        e[k] = 1;
-        backSolve(rFactor, p, e);
-        return e; // column k of R⁻¹
-      });
-      // R⁻¹ M R⁻ᵀ: entry (a, b) = Σ_cd R⁻¹[a, c] M[c, d] R⁻¹[b, d]
-      return Array.from({ length: p }, (_, a) =>
-        Array.from({ length: p }, (_, b) => {
-          let sum = 0;
-          for (let c = 0; c < p; c++) {
-            const rac = rInverse[c]![a]!;
-            if (rac === 0) continue;
-            for (let d = 0; d < p; d++) sum += rac * inverse[nTheta + c]![nTheta + d]! * rInverse[d]![b]!;
-          }
-          return 2 * sum;
-        }),
-      );
-    };
+  let result: GlmerResult;
+  try {
+    result = fit();
+  } catch (e) {
+    // (a failure of the penalised IRLS or of the minimisation where the information is extreme: lme4's messages, or
+    // "did not converge", would blame the algorithm)
+    if (e instanceof Error && e.constructor === Error && !(information >= MIN_INFORMATION && information <= MAX_INFORMATION)) throw scaleError();
+    throw e;
   }
-
-  // the fit at the estimate (on the scaled structure; β, b and R_X'R_X back in the given units)
-  const theta = fromScaled(thetaScaled).map((v) => (v === 0 ? 0 : v));
-  const r =
-    nAGQ > 1 ? glmerAgqDeviance(sc, thetaScaled, betaScaled!, nAGQ, { rx: true }) : glmerDeviance(sc, thetaScaled, betaScaled, nAGQ === 0 ? 0 : 1, { rx: true });
-  const fixef = r.beta.map((b, k) => ldexp(b, -xExponents[k]!));
-  const bFit = r.b.map((v, j) => ldexp(v, -exponents.z[j]!));
-  const fam = s.family;
-  const { y, weights: w } = s;
-  // (the means and the linear predictor of the response as given: 2^ky μ, η + ky log 2)
-  const mu = ky === 0 ? r.mu : r.mu.map((m) => ldexp(m, ky));
-  const eta = ky === 0 ? r.eta : r.eta.map((e) => e + ky * Math.LN2);
-
-  const devResid = y.map((yi, i) => fam.devResid(yi, mu[i]!, w[i]!));
-  const residuals = devResid.map((d, i) => {
-    const v = Math.sqrt(Math.max(0, d));
-    return v === 0 ? 0 : y[i]! > mu[i]! ? v : -v;
-  });
-  const pearsonResiduals = y.map((yi, i) => pearsonResidualOf(fam, w[i]!, yi, mu[i]!));
-  const workingResiduals = y.map((yi, i) => workingResidualOf(fam, yi, eta[i]!, mu[i]!));
-  const responseResiduals = y.map((yi, i) => yi - mu[i]!);
-  const deviance = devResid.reduce((sum, d) => sum + Math.max(0, d), 0);
-  const dispersionFamily = fam.family !== "binomial" && fam.family !== "poisson";
-  const sigma = dispersionFamily ? Math.sqrt(dispersionOf(sy, r)) : 1;
-
-  // (an absolute threshold on θ's diagonal elements, as lme4's isSingular with its default tolerance 1e-4)
-  const singular = theta.some((v, j) => s.lower[j] === 0 && v < 1e-4);
-  const nParameters = nTheta + (nAGQ >= 1 ? p : 0);
-  // (lme4 gives the singular message from its convergence checks, which it runs only for these sizes)
-  const checked = n < HESSIAN_MAX_N && nParameters < HESSIAN_MAX_PARAMETERS;
-  const messages = [...s.messages];
-  if (singular && checked) messages.push(SINGULAR_MESSAGE);
-
-  const warnings = new Warnings();
-  for (const m of s.warnings) warnings.add(m);
-  for (const m of r.warnings) warnings.add(m);
-
-  // vcov in the units of β' (then each entry times 2^(−f_a − f_b), the standard errors 2^(−f_k) times the root of the
-  // diagonal: an entry may overflow where the standard error does not)
-  let vcovScaled: number[][] | undefined;
-  let vcovFrom: "hessian" | "RX" = "RX";
-  if (vcovHessian !== undefined && !singular && n < HESSIAN_MAX_N && nTheta + p < HESSIAN_MAX_PARAMETERS) {
-    vcovScaled = vcovHessian();
-    if (vcovScaled === undefined) warnings.add(VCOV_FALLBACK);
-    else vcovFrom = "hessian";
+  // A term at θ = 0 where the criterion is flat to rounding in θ (θ'² Σ W z² below 1e-10 of the deviance at θ' = 1:
+  // inverse.gaussian with the log link and responses of 1e200, whose optimum is near θ = 1e100) is not an estimate
+  const criterion = -2 * result.logLik;
+  if (result.theta.some((v, j) => v === 0 && s.lower[j] === 0) && Number.isFinite(criterion) && information < FLAT_INFORMATION * Math.abs(criterion)) {
+    throw scaleError();
   }
-  if (vcovScaled === undefined) {
-    const inverse = spdInverse(r.rxtrx!);
-    vcovScaled = Array.from({ length: p }, (_, a) => Array.from({ length: p }, (_, b) => sigma * sigma * (inverse?.[a]![b]! ?? NaN)));
-  }
-  const vcov = vcovScaled.map((row, a) => row.map((v, b) => ldexp(v, -xExponents[a]! - xExponents[b]!)));
-  const stdError = vcovScaled.map((row, i) => ldexp(Math.sqrt(row[i]!), -xExponents[i]!));
-  // (a standard error of 0 gives ±Infinity or NaN, as R's division does: not guarded on purpose)
-  const zValue = fixef.map((b, i) => b / stdError[i]!);
-  const rxtrx = r.rxtrx!.map((row, a) => row.map((v, b) => ldexp(v, xExponents[a]! + xExponents[b]!)));
-
-  // the blocks T_k and the variance components (not scaled by sigma, as lme4's VarCorr for glmer), from the blocks of
-  // θ' (cov = C⁻¹ T'T'ᵀ C⁻¹ with C the powers of 2 of the term's columns: no overflow of the squares of θ)
-  const thetaFit = thetaScaled.map((v) => (v === 0 ? 0 : v));
-  const varCorr: LmerVarCorr[] = s.terms.map((term) => {
-    const nc = term.columns.length;
-    const t: number[][] = Array.from({ length: nc }, () => new Array<number>(nc).fill(0));
-    let k = term.thetaOffset;
-    for (let j = 0; j < nc; j++) for (let i = j; i < nc; i++) t[i]![j] = thetaFit[k++]!;
-    const e = Array.from({ length: nc }, (_, i) => exponents.z[term.zOffset + i]!);
-    const cov = t.map((ti) => t.map((tj) => ti.reduce((sum, v, m) => sum + v * tj[m]!, 0)));
-    const sdScaled = cov.map((row, i) => Math.sqrt(row[i]!));
-    const sd = sdScaled.map((v, i) => ldexp(v, -e[i]!));
-    // (a column with variance 0 has the correlations 0/0 = NaN with the others, as lme4's VarCorr: not a bug)
-    const corr = cov.map((row, i) => row.map((v, j) => (i === j ? 1 : v / (sdScaled[i]! * sdScaled[j]!))));
-    return { group: s.groups[term.group]!.name, columns: [...term.columns], sd, corr };
-  });
-  const ranef: LmerRanef[] = s.groups.map((g, gi) => {
-    const terms = s.terms.filter((t) => t.group === gi);
-    return {
-      group: g.name,
-      levels: [...g.levels],
-      columns: terms.flatMap((t) => t.columns),
-      values: g.levels.map((_, l) =>
-        terms.flatMap((t) => {
-          const nc = t.columns.length;
-          return t.columns.map((_, j) => bFit[t.zOffset + l * nc + j]!);
-        }),
-      ),
-    };
-  });
-
-  // nAGQ > 1 (binomial and poisson only, G13): the AGQ deviance has no aic term, so R's logLik is relative to the
-  // saturated model; here the saturated model's constant aic − Σ d_i (which does not depend on μ for these families)
-  // is added back, so that logLik is the log-likelihood (G12; R's logLik differs by it)
-  // (+ 0: a deviance of 0, binomial weights so small that the aic term is 0, gives logLik 0, as R prints, not −0)
-  // (a response divided by 2^ky: the aic term of the response as given; the rest of the deviance does not change)
-  const fitDeviance = ky === 0 ? r.deviance : r.ldL2 + r.ussq + familyAic(fam.glm, y, mu, w, s.size, r.devResid, new Warnings());
-  const logLik = -(fitDeviance + (nAGQ > 1 ? r.aic - r.devResid : 0)) / 2 + 0;
-  const df = p + nTheta + (dispersionFamily ? 1 : 0);
-  const result: GlmerResult = {
-    formula,
-    family: fam.family,
-    link: fam.link,
-    nAGQ,
-    nObs: n,
-    rows: [...s.rows],
-    theta,
-    fixefNames: [...s.xColNames],
-    fixef,
-    coefTable: { estimate: [...fixef], stdError, zValue },
-    vcov,
-    vcovFrom,
-    sigma,
-    varCorr,
-    ranef,
-    fitted: mu,
-    linearPredictor: eta,
-    residuals,
-    pearsonResiduals,
-    workingResiduals,
-    responseResiduals,
-    deviance,
-    logLik,
-    df,
-    AIC: -2 * logLik + 2 * df,
-    BIC: -2 * logLik + Math.log(n) * df,
-    singular,
-    messages,
-    warnings: warnings.list,
-  };
-  const copyOf = <T>(v: T): T => (Array.isArray(v) || v instanceof Float64Array ? (v.slice() as T) : v);
-  const given: GlmerOptions = { ...options };
-  if (options.weights !== undefined) given.weights = copyOf(options.weights);
-  if (options.offset !== undefined) given.offset = copyOf(options.offset);
-  const snapshot: DataFrame = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v.slice()]));
-  internalsByFit.set(result, { structure: s, data, snapshot, options: given, theta: [...theta],
-    beta: [...fixef],
-    rxtrx,
-    b: [...bFit],
-    eta: [...eta],
-    mu: [...mu],
-    sigma,
-  });
   return result;
 }
+
+/**
+ * The largest information of a column of Z about its random effect at the start, Σ_i W_i z_ij² over the rows of the
+ * column (Z scaled as in the fit, so that θ' = 1 is the start of the minimisation; W the working weights at the
+ * family's starting means). The Laplace criterion resolves θ' where θ'² times this is neither negligible against the
+ * 1 of Λ'Z'WZΛ + I nor so large that the system loses its digits against the fixed effects (internal; exported for
+ * the tests)
+ */
+export function startInformation(s: GlmerStructure): number {
+  const fam = s.family;
+  const ww = s.mustart.map((m, i) => (s.weights[i]! > 0 ? workingWeight(fam, s.weights[i]!, fam.muEta(fam.linkfun(m)), m) : 0));
+  let top = 0;
+  for (const col of s.z) {
+    let sum = 0;
+    col.rows.forEach((i, k) => (sum += ww[i]! * col.values[k]! * col.values[k]!));
+    top = Math.max(top, sum);
+  }
+  return top;
+}
+
+/** The range of startInformation outside which a failure of the fit is reported as a matter of scale (G21) */
+const MIN_INFORMATION = 2 ** -40;
+const MAX_INFORMATION = 2 ** 40;
+/** startInformation below this times |deviance| makes the criterion flat to rounding in θ near the start */
+const FLAT_INFORMATION = 1e-10;
 
 /** Below this smallest response (of positive weight), a Gamma fit with the log link is fitted scaled (responseExponent) */
 const SMALL_GAMMA_RESPONSE = 2 ** -40;

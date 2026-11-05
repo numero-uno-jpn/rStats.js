@@ -1049,6 +1049,15 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   times 1e-20, θ 0 and a slope of 0 for 1e-150), fitted with the response divided by a power of 2 and the offset
   shifted, which is the same model: the fit is the response's as given, its intercept shifted by the log of the
   scale. lme4's step-halving tolerance is applied relative to the penalised deviance (lme4's is absolute 1e-7).
+- **`glmer` at response scales its Laplace criterion cannot resolve** is a RangeError (`... outside what the Laplace
+  criterion can resolve ...`). lme4's criterion leaves out the dispersion, so for poisson, inverse.gaussian and
+  gaussian it is not invariant to the scale of the response or of the prior weights. Where the information about the
+  random effects at the start (Σ W z² of a column of Z) is outside about 2^-40 to 2^40 and the fit fails, or a term
+  ends at θ = 0 on a criterion flat to rounding, the error replaces lme4's PIRLS messages, "did not converge", or a θ
+  of 0 that is no estimate (inverse.gaussian with the log link and a response of 1e200, whose optimum is near
+  θ = 1e100). For data on the scale of 1 to 10 this means poisson counts up to about 1e13 (prior weights up to about
+  2^35), inverse.gaussian with the log link up to about 1e13 and gaussian with the log link from about 1e-6 to 1e5.
+  Binomial and Gamma fits are not limited.
 - **`glmer` with non-integer poisson counts** is a RangeError for `nAGQ` 0 and 1: R's `dpois` is 0 there, so the
   Laplace log-likelihood is −Inf for every parameter, and R warns `non-integer x = ...` and returns its starting
   values (θ = 1) with logLik −Inf. With `nAGQ > 1` the estimates are R's, with its warning, and `logLik` is −Inf

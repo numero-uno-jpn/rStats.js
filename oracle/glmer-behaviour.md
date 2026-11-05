@@ -560,6 +560,12 @@ fails, so that ordinary fits keep their values:
   1. With nAGQ > 1 the quadrature deviance has no aic term: R's estimates (phase 1 is left at the start, as R's ends
   there), its warning, and logLik −Inf (G12).
 - *nAGQ* is truncated before its sign is checked (−0.5 is 0, rule 9).
+- *The scale of the response (G21).* lme4's criterion leaves out the dispersion, so for poisson, inverse.gaussian and
+  gaussian its curvature in θ depends on the scale of the response and of the prior weights. With `I = max_j Σ_i W_i
+  z_ij²` (Z scaled as in the fit, W at the starting means), a fit that fails with `I` outside [2^-40, 2^40], or that
+  ends with a term at θ = 0 while `I < 1e-10 |−2 logLik|` (the criterion flat to rounding near θ' = 1), is the
+  RangeError `glmer: the scale of the response (or of the prior weights) is outside what the Laplace criterion can
+  resolve ...`. Ordinary fits never reach either test's error.
 
 ### API
 

@@ -30,7 +30,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   prior weights from 2^-20 to 2^30, offsets far from the data (`log(exposure)`, constants) and Gamma responses beyond
   1e154 or, with the log link, below lme4's bound 2^-52 of the mean give the same fit transformed, also where lme4
   fails. Non-integer poisson counts are a RangeError for `nAGQ` 0 and 1 (the log-likelihood is −Inf everywhere; R
-  returns its starting values); `nAGQ` is truncated before its sign is checked (−0.5 is 0, as R).
+  returns its starting values); `nAGQ` is truncated before its sign is checked (−0.5 is 0, as R). A response scale
+  that lme4's Laplace criterion cannot resolve (poisson counts beyond about 1e13, inverse.gaussian or gaussian with
+  the log link far from 1) is a RangeError saying so, instead of a PIRLS message or a θ of 0 that is no estimate.
   Adaptive Gauss-Hermite quadrature (`nAGQ` from 2 to 100) for a single scalar random-effects term such as `(1 | g)`
   (R's two errors otherwise), with the rule computed to rounding error, the binomial and poisson families only (for
   Gamma, inverse.gaussian and gaussian a RangeError: lme4 holds the dispersion at 1 there, so its estimates would not
@@ -70,6 +72,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   fit and NaN (with NaN degrees of freedom and p-values) in `lmerSummary`, since the inverse of R_X'R_X overflowed. They
   are now computed with those columns of X divided by their powers of 2 (an entry of `vcov` may still overflow, as
   R's would, where the standard error does not); fits on ordinary scales are unchanged, bit for bit.
+- **`lmer` with predictors beyond 2^±500**: times 1e160 (and 1e-160 with REML) the fit threw a TypeError inside the
+  minimiser (X'X overflowed to NaN), and times 1e-160 it was accurate to about 1e-6 only (X'X subnormal). Such columns
+  of X are now divided by their powers of 2 for the fit (exact), so that the result is the unscaled fit transformed
+  back (the REML criterion with log det R_X'R_X of the given X); a Hessian with NaN in the minimiser is its failure,
+  not a TypeError. Fits on ordinary scales are unchanged, bit for bit.
 
 ## 0.17.0 - 2026-11-05
 
