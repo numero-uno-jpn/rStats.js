@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ansariTest,
   chisqTest,
+  corTest,
   fisherTest,
   ksTest,
   pairwisePropTest,
@@ -388,5 +389,67 @@ describe("ksTest warnings (R's ks.test)", () => {
     setWarningHandler(handler);
     ksTest("y ~ g", { y: [1, 2, 3, 4, 2, 5, 6, 7], g }, { exact: false });
     expect(handler.mock.calls).toEqual([[TWO_TIES, "ksTest"]]);
+  });
+});
+
+describe("corTest warnings (R's cor.test)", () => {
+  const SD_ZERO = "the standard deviation is zero";
+  const TIES = "Cannot compute exact p-value with ties";
+  const x = [1, 2, 3, 4, 5, 6];
+  const y = [2, 1, 4, 3, 7, 8];
+  const tied = [2, 1, 4, 4, 7, 8];
+  const flat = [2, 2, 2, 2, 2, 2];
+  const seq = (n: number): number[] => Array.from({ length: n }, (_, i) => i + 1);
+  const cases: [string, () => { warnings: string[] }, string[]][] = [
+    // cor.test(x, y)
+    ["pearson", () => corTest(x, y), []],
+    // cor.test(x, c(2,2,2,2,2,2))
+    ["pearson, constant", () => corTest(x, flat), [SD_ZERO]],
+    // cor.test(c(1,2,Inf,4), c(1,2,3,4))  (NaN, no warning)
+    ["pearson, infinite value", () => corTest([1, 2, Infinity, 4], [1, 2, 3, 4]), []],
+    // cor.test(c(1,2,3,4), c(Inf,Inf,Inf,Inf))  (NaN, no warning: R's sd of the infinite values is NaN)
+    ["pearson, infinite constant", () => corTest([1, 2, 3, 4], [Infinity, Infinity, Infinity, Infinity]), []],
+    // cor.test(x, c(2,2,2,2,2,2), method = "kendall")
+    ["kendall, constant", () => corTest(x, flat, { method: "kendall" }), [SD_ZERO]],
+    // cor.test(c(1,2,3,4), c(Inf,Inf,Inf,Inf), method = "kendall")
+    ["kendall, infinite constant", () => corTest([1, 2, 3, 4], [Infinity, Infinity, Infinity, Infinity], { method: "kendall" }), [SD_ZERO]],
+    // cor.test(c(1,1), c(1,2), method = "kendall")
+    ["kendall, n = 2, constant", () => corTest([1, 1], [1, 2], { method: "kendall" }), [SD_ZERO]],
+    // cor.test(x, y, method = "kendall")
+    ["kendall, exact", () => corTest(x, y, { method: "kendall" }), []],
+    // cor.test(x, c(2,1,4,4,7,8), method = "kendall")
+    ["kendall, ties", () => corTest(x, tied, { method: "kendall" }), [TIES]],
+    // cor.test(x, c(2,1,4,4,7,8), method = "kendall", exact = FALSE)
+    ["kendall, ties, exact false", () => corTest(x, tied, { method: "kendall", exact: false }), []],
+    // cor.test(1:60, c(1:59, 59), method = "kendall")  (n >= 50: not exact by default)
+    ["kendall, ties, n >= 50", () => corTest(seq(60), [...seq(59), 59], { method: "kendall" }), []],
+    // cor.test(x, c(2,2,2,2,2,2), method = "spearman")
+    ["spearman, constant", () => corTest(x, flat, { method: "spearman" }), [SD_ZERO]],
+    // cor.test(c(Inf,Inf,Inf,Inf), c(Inf,Inf,Inf,Inf), method = "spearman")
+    [
+      "spearman, infinite constants",
+      () => corTest([Infinity, Infinity, Infinity, Infinity], [Infinity, Infinity, Infinity, Infinity], { method: "spearman" }),
+      [SD_ZERO],
+    ],
+    // cor.test(x, y, method = "spearman")
+    ["spearman, exact", () => corTest(x, y, { method: "spearman" }), []],
+    // cor.test(x, c(2,1,4,4,7,8), method = "spearman")
+    ["spearman, ties", () => corTest(x, tied, { method: "spearman" }), [TIES]],
+    // cor.test(x, c(2,1,4,4,7,8), method = "spearman", exact = FALSE)
+    ["spearman, ties, exact false", () => corTest(x, tied, { method: "spearman", exact: false }), []],
+    // cor.test(1:1300, c(1:1299, 1299), method = "spearman")  (R's exact is TRUE whatever n)
+    ["spearman, ties, n > 1290", () => corTest(seq(1300), [...seq(1299), 1299], { method: "spearman" }), [TIES]],
+    // cor.test(~ a + b, data.frame(a = x, b = c(2,1,4,4,7,8)), method = "spearman")
+    ["formula, spearman, ties", () => corTest("~ a + b", { a: x, b: tied }, { method: "spearman" }), [TIES]],
+  ];
+  it.each(cases)("%s", (_, f, expected) => {
+    expect(f().warnings).toEqual(expected);
+  });
+
+  it("passes the warning to the handler once, also for the formula form", () => {
+    const handler = vi.fn<WarningHandler>();
+    setWarningHandler(handler);
+    corTest("~ a + b", { a: x, b: tied }, { method: "spearman" });
+    expect(handler.mock.calls).toEqual([[TIES, "corTest"]]);
   });
 });
