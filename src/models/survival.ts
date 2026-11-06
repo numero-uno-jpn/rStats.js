@@ -105,7 +105,10 @@ export interface SurvfitResult {
   stdErr: number[];
   /** Alias of `stdErr`: the same array. */
   stdError: number[];
-  /** Lower limit of the pointwise confidence interval of S(t) */
+  /**
+   * Lower limit of the pointwise confidence interval of S(t) (where S(t) = 1, 1 for each `confType`; with `"log-log"`
+   * as survival 3.8-12, NA before it)
+   */
   lower: number[];
   /** Upper limit of the pointwise confidence interval of S(t) */
   upper: number[];
@@ -363,9 +366,14 @@ export function survfit(time: readonly number[], status: readonly number[], opti
         const h = z * sigma * S;
         lo = Number.isNaN(h) ? NaN : Math.max(0, S - h);
         up = Number.isNaN(h) ? NaN : Math.min(1, S + h);
-      } else if (S === 0 || S === 1) {
+      } else if (S === 0) {
         lo = NaN;
         up = NaN;
+      } else if (S === 1) {
+        // log(-log(1)) is -Inf with a standard error of 0: survival 3.8-12 gives the limits 1 and 1 there (before
+        // 3.8-12, NA)
+        lo = 1;
+        up = 1;
       } else {
         const ls = Math.log(S);
         const m = Math.log(-ls);

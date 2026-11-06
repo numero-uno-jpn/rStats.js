@@ -23,6 +23,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - `aovSummary` follows R 4.6's `summary.aov`: the warning "essentially perfect fit for ‘1’: summary may be unreliable"
   where the residual variance is below 1e-30 times mean(f)^2 + var(f) of the fitted values f (also for each stratum of
   a fit with `Error()`).
+- `survfit` follows survival 3.8-12 (with R 4.6): with `confType: "log-log"`, the limits are 1 and 1 (not `NaN`) at the
+  times where the estimate is 1.
 
 ## 1.0.0 - 2026-11-05
 
