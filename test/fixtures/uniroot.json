@@ -1,7 +1,7 @@
 {
   "function": "uniroot",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-26T20:54:39+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:03:42+0000",
   "cases": [
     {"args":{"fn":"sq2","js":"x * x - 2","lower":"0","upper":"2","extendInt":"no"},"expected":{"root":"1.4142133199955025","fRoot":"-6.8554729848457896e-07","iter":"6","initIt":"NA","estimPrec":"6.1035156250666134e-05"}},
     {"args":{"fn":"sq2","js":"x * x - 2","lower":"0","upper":"2","extendInt":"yes"},"expected":{"root":"1.4142133199955025","fRoot":"-6.8554729848457896e-07","iter":"6","initIt":"NA","estimPrec":"6.1035156250666134e-05"}},

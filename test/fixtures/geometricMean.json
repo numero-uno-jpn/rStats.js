@@ -1,7 +1,7 @@
 {
   "function": "geometricMean",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T00:02:08+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:02:53+0000",
   "cases": [
     {"args":{"x":["2","8"],"naRm":false},"expected":{"value":"4"}},
     {"args":{"x":["2","8"],"naRm":true},"expected":{"value":"4"}},

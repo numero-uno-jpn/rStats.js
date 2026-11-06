@@ -1,7 +1,7 @@
 {
   "function": "pt",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-20T07:01:37+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:01:10+0000",
   "cases": [
     {"args":{"q":"-Inf","df":"1e-10","lowerTail":true,"logP":false},"expected":"0"},
     {"args":{"q":"-Inf","df":"1e-10","lowerTail":false,"logP":false},"expected":"1"},

@@ -1,7 +1,7 @@
 {
   "function": "qgamma",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-26T21:09:56+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:03:37+0000",
   "cases": [
     {"args":{"shape":"0","scale":"1","p":"0","lowerTail":true,"logP":false},"expected":"0"},
     {"args":{"shape":"1e-10","scale":"1","p":"0","lowerTail":true,"logP":false},"expected":"0"},

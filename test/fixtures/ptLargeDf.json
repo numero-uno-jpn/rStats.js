@@ -1,7 +1,7 @@
 {
   "function": "ptLargeDf",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-25T02:29:09+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:32:32+0000",
   "cases": [
     {"args":{"q":"-1000","df":"50","lowerTail":true,"logP":false},"expected":"1.670980682811937e-109"},
     {"args":{"q":"-1000","df":"50","lowerTail":false,"logP":false},"expected":"1"},

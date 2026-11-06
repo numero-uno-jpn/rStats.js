@@ -1,7 +1,7 @@
 {
   "function": "grad",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T00:06:06+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:03:42+0000",
   "cases": [
     {"args":{"fn":"sumsq","js":"x.reduce((s, v) => s + v * v, 0)","x":["1","2","3"],"method":"Richardson"},"expected":{"value":["1.9999999999953357","3.9999999999825167","5.9999999999865361"]}},
     {"args":{"fn":"sumsq","js":"x.reduce((s, v) => s + v * v, 0)","x":["1","2","3"],"method":"simple"},"expected":{"value":["2.0001000000036129","4.0000999999989517","6.0001000000120541"]}},

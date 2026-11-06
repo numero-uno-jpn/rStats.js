@@ -1,7 +1,7 @@
 {
   "function": "pnbinom_mu",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-20T02:21:10+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:02:32+0000",
   "cases": [
     {"args":{"q":"0","size":"0","mu":"0","lowerTail":true,"logP":false},"expected":"1"},
     {"args":{"q":"0","size":"0","mu":"0","lowerTail":false,"logP":false},"expected":"0"},
@@ -7783,7 +7783,7 @@
     {"args":{"q":"0","size":"Inf","mu":"1","lowerTail":false,"logP":false},"expected":"0.63212055882855767"},
     {"args":{"q":"0","size":"Inf","mu":"1","lowerTail":true,"logP":true},"expected":"-1"},
     {"args":{"q":"0","size":"Inf","mu":"1","lowerTail":false,"logP":true},"expected":"-0.45867514538708193"},
-    {"args":{"q":"1","size":"Inf","mu":"1","lowerTail":true,"logP":false},"expected":"0.73575888234288478"},
+    {"args":{"q":"1","size":"Inf","mu":"1","lowerTail":true,"logP":false},"expected":"0.73575888234288467"},
     {"args":{"q":"1","size":"Inf","mu":"1","lowerTail":false,"logP":false},"expected":"0.26424111765711528"},
     {"args":{"q":"1","size":"Inf","mu":"1","lowerTail":true,"logP":true},"expected":"-0.3068528194400546"},
     {"args":{"q":"1","size":"Inf","mu":"1","lowerTail":false,"logP":true},"expected":"-1.3308932682040548"},

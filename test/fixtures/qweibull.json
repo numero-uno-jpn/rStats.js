@@ -1,7 +1,7 @@
 {
   "function": "qweibull",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-20T02:02:55+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:08:17+0000",
   "cases": [
     {"args":{"shape":"0.01","scale":"1","p":"0","lowerTail":true,"logP":false},"expected":"0"},
     {"args":{"shape":"0.10000000000000001","scale":"1","p":"0","lowerTail":true,"logP":false},"expected":"0"},

@@ -1,7 +1,7 @@
 {
   "function": "binomTest",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T08:56:04+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:01:14+0000",
   "cases": [
     {"args":{"x":"0","n":"1","p":"0.5","alternative":"greater","confLevel":"0.64489567567268391"},"expected":{"method":"Exact binomial test","alternative":"greater","statistic":"0","statisticName":"number of successes","parameter":"1","parameterName":"number of trials","pValue":"1","confInt":["0","1"],"confLevel":"0.64489567567268391","estimate":"0","estimateNames":"probability of success","nullValue":"0.5","nullValueName":"probability of success","warnings":[]}},
     {"args":{"x":"4","n":"12","p":"0.41818960220552981","alternative":"two.sided","confLevel":"0.50121573138027453"},"expected":{"method":"Exact binomial test","alternative":"two.sided","statistic":"4","statisticName":"number of successes","parameter":"12","parameterName":"number of trials","pValue":"0.77140765506613318","confInt":["0.21594963872329709","0.47336564130767123"],"confLevel":"0.50121573138027453","estimate":"0.33333333333333331","estimateNames":"probability of success","nullValue":"0.41818960220552981","nullValueName":"probability of success","warnings":[]}},

@@ -1,7 +1,7 @@
 {
   "function": "qlogis",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-20T02:02:54+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:08:16+0000",
   "cases": [
     {"args":{"location":"0","scale":"1","p":"0","lowerTail":true,"logP":false},"expected":"-Inf"},
     {"args":{"location":"0","scale":"2.5","p":"0","lowerTail":true,"logP":false},"expected":"-Inf"},

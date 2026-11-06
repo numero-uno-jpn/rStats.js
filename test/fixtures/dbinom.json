@@ -1,7 +1,7 @@
 {
   "function": "dbinom",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-26T21:14:15+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:01:01+0000",
   "cases": [
     {"args":{"x":"0","size":"0","prob":"0","log":false},"expected":"1"},
     {"args":{"x":"0","size":"0","prob":"0","log":true},"expected":"0"},

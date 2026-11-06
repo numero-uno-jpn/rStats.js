@@ -1,7 +1,7 @@
 {
   "function": "qtukey",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-20T04:12:23+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:08:29+0000",
   "cases": [
     {"args":{"p":"0","nmeans":"2","df":"10","nranges":"1","lowerTail":true,"logP":false},"expected":"0"},
     {"args":{"p":"0","nmeans":"3","df":"10","nranges":"1","lowerTail":true,"logP":false},"expected":"0"},

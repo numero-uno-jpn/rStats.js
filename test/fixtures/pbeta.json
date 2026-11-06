@@ -1,7 +1,7 @@
 {
   "function": "pbeta",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-26T21:14:13+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:00:59+0000",
   "cases": [
     {"args":{"q":"0","shape1":"0","shape2":"0.5","lowerTail":true,"logP":false},"expected":"1"},
     {"args":{"q":"0","shape1":"0","shape2":"0.5","lowerTail":false,"logP":false},"expected":"0"},

@@ -1,7 +1,7 @@
 {
   "function": "dnf",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-20T04:36:09+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:02:20+0000",
   "cases": [
     {"args":{"x":"0","df1":"1","df2":"1","ncp":"0","log":false},"expected":"Inf"},
     {"args":{"x":"0","df1":"1","df2":"1","ncp":"0","log":true},"expected":"Inf"},

@@ -1,7 +1,7 @@
 {
   "function": "gamma",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-20T00:26:55+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:08:20+0000",
   "cases": [
     {"args":{"x":"-171.5"},"expected":"0"},
     {"args":{"x":"-100.5"},"expected":"-3.353690819807848e-159"},

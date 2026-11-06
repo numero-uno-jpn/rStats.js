@@ -1,7 +1,7 @@
 {
   "function": "shapiroTest",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-23T23:57:26+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:08:08+0000",
   "cases": [
     {"args":{"x":["0.16242799999999999","-1.710939","0.39126300000000003"]},"expected":{"method":"Shapiro-Wilk normality test","statistic":"0.83056985671879224","statisticName":"W","pValue":"0.18978086403176922","warnings":[]}},
     {"args":{"x":["0.29073700000000002","0.57671899999999998","0.061624999999999999"]},"expected":{"method":"Shapiro-Wilk normality test","statistic":"0.9959532054790009","statisticName":"W","pValue":"0.87842331239594584","warnings":[]}},

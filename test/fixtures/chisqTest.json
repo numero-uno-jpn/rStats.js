@@ -1,7 +1,7 @@
 {
   "function": "chisqTest",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-21T00:59:46+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:01:17+0000",
   "cases": [
     {"args":{"x":["20","15","25"]},"expected":{"method":"Chi-squared test for given probabilities","statistic":"2.5","statisticName":"X-squared","parameter":"2","parameterName":"df","pValue":"0.28650479686019009","observed":["20","15","25"],"expected":["20","20","20"],"residuals":["0","-1.1180339887498949","1.1180339887498949"],"stdres":["0","-1.3693063937629153","1.3693063937629153"],"warnings":[]}},
     {"args":{"x":["20","15","25"],"p":["0.30674720280554835","0.34039557207765275","0.3528572251167989"]},"expected":{"method":"Chi-squared test for given probabilities","statistic":"2.2709281845676781","statisticName":"X-squared","parameter":"2","parameterName":"df","pValue":"0.32127298641688384","observed":["20","15","25"],"expected":["18.404832168332902","20.423734324659165","21.171433507007933"],"residuals":["0.37182659730036766","-1.2001370181507822","0.83207229479886968"],"stdres":["0.44657523658243387","-1.4777094495955982","1.0343344942586474"],"warnings":[]}},

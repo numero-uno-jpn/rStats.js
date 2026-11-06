@@ -1,7 +1,7 @@
 {
   "function": "pbinomLargeN",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-25T02:35:10+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:38:30+0000",
   "cases": [
     {"args":{"q":"0","size":"1000","prob":"0.00050000000000000001","lowerTail":true,"logP":false},"expected":"0.60645482284006169"},
     {"args":{"q":"0","size":"1000","prob":"0.00050000000000000001","lowerTail":false,"logP":false},"expected":"0.39354517715993836"},

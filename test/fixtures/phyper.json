@@ -1,7 +1,7 @@
 {
   "function": "phyper",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-20T02:10:55+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:23:29+0000",
   "cases": [
     {"args":{"q":"0","m":"5","n":"5","k":"4","lowerTail":true,"logP":false},"expected":"0.023809523809523808"},
     {"args":{"q":"0","m":"5","n":"5","k":"4","lowerTail":false,"logP":false},"expected":"0.97619047619047616"},

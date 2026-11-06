@@ -1,7 +1,7 @@
 {
   "function": "qnt",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-20T08:02:32+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:03:41+0000",
   "cases": [
     {"args":{"df":"1","ncp":"1","p":"0","lowerTail":true,"logP":false},"expected":"-Inf"},
     {"args":{"df":"3","ncp":"1","p":"0","lowerTail":true,"logP":false},"expected":"-Inf"},

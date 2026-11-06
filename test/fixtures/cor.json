@@ -1,7 +1,7 @@
 {
   "function": "cor",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-21T00:59:46+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:02:13+0000",
   "cases": [
     {"args":{"x":["1","2"],"y":["2","1"],"method":"pearson"},"expected":{"value":"-0.99999999999999978"},"reference":{"value":"-1"}},
     {"args":{"x":["1","2"],"y":["2","1"],"method":"kendall"},"expected":{"value":"-0.99999999999999978"}},

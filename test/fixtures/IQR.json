@@ -1,7 +1,7 @@
 {
   "function": "IQR",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T00:02:07+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:02:51+0000",
   "cases": [
     {"args":{"x":["2.5","1","4","3.5","2"],"type":"1"},"expected":{"value":"1.5"}},
     {"args":{"x":["2.5","1","4","3.5","2"],"type":"6"},"expected":{"value":"2.25"}},

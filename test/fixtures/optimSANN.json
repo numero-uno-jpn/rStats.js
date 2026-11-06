@@ -1,7 +1,7 @@
 {
   "function": "optimSANN",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-25T15:30:57+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:03:56+0000",
   "cases": [
     {"args":{"fn":"rosenbrock","par":["-1.2","1"],"seed":"1","control":{"maxit":"200"}},"expected":{"par":["-0.9413784711422708","0.9035224206637037"],"value":"3.7989797740622224","counts":["200","NA"],"convergence":"0","message":"NULL","hessian":{}}},
     {"args":{"fn":"rosenbrock","par":["-1.2","1"],"seed":"1","control":{"maxit":"3000"}},"expected":{"par":["0.97943723217409906","0.9585587211021217"],"value":"0.00047737608363853631","counts":["3000","NA"],"convergence":"0","message":"NULL","hessian":{}}},

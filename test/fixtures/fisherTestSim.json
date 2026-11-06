@@ -1,7 +1,7 @@
 {
   "function": "fisherTestSim",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T10:24:43+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:03:35+0000",
   "cases": [
     {"args":{"x":[["1","3","5"],["2","4","6"]],"simulatePValue":true,"seed":"1"},"expected":{"method":"Fisher's Exact Test for Count Data with simulated p-value\n\t (based on 2000 replicates)","alternative":"two.sided","pValue":"1","next":"0.18776846048422158","warnings":[]}},
     {"args":{"x":[["1","3","5"],["2","4","6"]],"simulatePValue":true,"seed":"42"},"expected":{"method":"Fisher's Exact Test for Count Data with simulated p-value\n\t (based on 2000 replicates)","alternative":"two.sided","pValue":"1","next":"0.59892982593737543","warnings":[]}},

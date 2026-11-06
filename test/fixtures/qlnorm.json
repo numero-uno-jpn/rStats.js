@@ -1,7 +1,7 @@
 {
   "function": "qlnorm",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-20T02:02:52+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:08:15+0000",
   "cases": [
     {"args":{"meanlog":"0","sdlog":"1","p":"0","lowerTail":true,"logP":false},"expected":"0"},
     {"args":{"meanlog":"0","sdlog":"0.10000000000000001","p":"0","lowerTail":true,"logP":false},"expected":"0"},

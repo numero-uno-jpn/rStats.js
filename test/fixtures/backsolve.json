@@ -1,8 +1,8 @@
 {
   "function": "backsolve",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "info": {"lapack":"3.12.0","lapack_library":"libopenblasp-r0.3.26.so","blas":"libblas.so.3"},
-  "generated": "2026-10-21T01:04:20+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "info": {"lapack":"3.12.0","lapack_library":"libopenblasp-r0.3.32.so","blas":"libblas.so.3"},
+  "generated": "2026-11-05T22:40:41+0000",
   "cases": [
     {"args":{"fn":"backsolve","r":[["4.0592797355861814"]],"x":["0.51057991326359897"]},"expected":{"value":["0.1257809134924939"]}},
     {"args":{"fn":"backsolve","r":[["4.0592797355861814"]],"x":[["0.82001984446435516","-1.3479179551243865","1.1991653744606499"]]},"expected":{"value":[["0.20201116894594601","-0.33205840516673335","0.29541333748152837"]]}},

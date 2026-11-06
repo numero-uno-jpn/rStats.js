@@ -1,7 +1,7 @@
 {
   "function": "findInterval",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-26T21:16:01+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:02:52+0000",
   "cases": [
     {"args":{"x":["-1","0","0.5","1","2.5","3","4","6.9000000000000004","7","8","NA"],"vec":["0","1","2.5","4","4","7"],"rightmostClosed":false,"allInside":false,"leftOpen":false},"expected":{"value":["0","1","1","2","3","3","5","5","6","6","NA"]}},
     {"args":{"x":["-1","0","0.5","1","2.5","3","4","6.9000000000000004","7","8","NA"],"vec":["0","1","2.5","4","4","7"],"rightmostClosed":false,"allInside":false,"leftOpen":true},"expected":{"value":["0","0","1","1","2","3","3","5","5","6","NA"]}},

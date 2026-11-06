@@ -1,7 +1,7 @@
 {
   "function": "distSummary",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T00:14:14+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:02:54+0000",
   "cases": [
     {"args":{"distribution":"norm","mean":"0","sd":"1"},"expected":{"mean":"0","variance":"1","sd":"1","median":"0","mode":"0","skewness":"0","kurtosis":"0"}},
     {"args":{"distribution":"norm","mean":"-3","sd":"0.5"},"expected":{"mean":"-3","variance":"0.25","sd":"0.5","median":"-3","mode":"-3","skewness":"0","kurtosis":"0"}},

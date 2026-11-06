@@ -1,7 +1,7 @@
 {
   "function": "lfactorial",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-23T21:43:27+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:01:51+0000",
   "cases": [
     {"args":{"x":"0"},"expected":"0"},
     {"args":{"x":"1"},"expected":"0"},

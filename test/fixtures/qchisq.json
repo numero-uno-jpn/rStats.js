@@ -1,7 +1,7 @@
 {
   "function": "qchisq",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-26T21:09:57+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:03:37+0000",
   "cases": [
     {"args":{"df":"0","p":"0","lowerTail":true,"logP":false},"expected":"0"},
     {"args":{"df":"0.5","p":"0","lowerTail":true,"logP":false},"expected":"0"},

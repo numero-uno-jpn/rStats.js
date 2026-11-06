@@ -1,7 +1,7 @@
 {
   "function": "log1pexp",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T11:21:18+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T00:57:57+0000",
   "cases": [
     {"args":{"x":"-Inf"},"expected":"0"},
     {"args":{"x":"-1.0000000000000001e+300"},"expected":"0"},

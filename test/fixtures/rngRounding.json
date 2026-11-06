@@ -1,8 +1,8 @@
 {
   "function": "rngRounding",
-  "r_version": "R version 4.5.2 (2025-10-31)",
+  "r_version": "R version 4.6.2 (2026-10-29)",
   "platform": "x86_64-pc-linux-gnu",
-  "generated": "2026-10-25T04:28:55+0000",
+  "generated": "2026-11-06T01:08:12+0000",
   "cases": [
     {"seed":"1","sampleKind":"Rounding","args":{"fn":"sample.int","n":"10"},"expected":["3","4","5","7","2","8","9","6","10","1"],"randomSeed":["403"],"next":"0.20597457489930093"},
     {"seed":"1","sampleKind":"Rounding","args":{"fn":"sample.int","n":"1000000","size":"5"},"expected":["265509","372124","572853","908206","201682"],"randomSeed":["403"],"next":"0.89838968496769667"},

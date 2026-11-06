@@ -1,7 +1,7 @@
 {
   "function": "mcnemarTest",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T08:56:04+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:08:29+0000",
   "cases": [
     {"args":{"x":[["104","24"],["84","108"]],"correct":true},"expected":{"method":"McNemar's Chi-squared test with continuity correction","statistic":"32.231481481481481","statisticName":"McNemar's chi-squared","parameter":"1","parameterName":"df","pValue":"1.3685524504584093e-08","warnings":[]}},
     {"args":{"x":[["129","162","161","106","139"],["9","48","65","2","2"],["193","5","90","111","161"],["127","178","8","2","165"],["36","198","145","21","155"]],"correct":true},"expected":{"method":"McNemar's Chi-squared test","statistic":"819.37214631144855","statisticName":"McNemar's chi-squared","parameter":"10","parameterName":"df","pValue":"1.4107279679145763e-169","warnings":[]}},

@@ -1,7 +1,7 @@
 {
   "function": "chisqTestSim",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T10:24:41+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:01:50+0000",
   "cases": [
     {"args":{"x":["20","15","25"],"simulatePValue":true,"seed":"1"},"expected":{"method":"Chi-squared test for given probabilities with simulated p-value\n\t (based on 2000 replicates)","statistic":"2.5","statisticName":"X-squared","parameter":"NA","parameterName":"df","pValue":"0.29635182408795602","observed":["20","15","25"],"expected":["20","20","20"],"residuals":["0","-1.1180339887498949","1.1180339887498949"],"stdres":["0","-1.3693063937629153","1.3693063937629153"],"next":"0.63357395911589265","warnings":[]}},
     {"args":{"x":["20","15","25"],"p":["0.15755037451070786","0.18167113175582858","0.66077849373346353"],"simulatePValue":true,"B":"500","seed":"1"},"expected":{"method":"Chi-squared test for given probabilities with simulated p-value\n\t (based on 500 replicates)","statistic":"18.720436829078231","statisticName":"X-squared","parameter":"NA","parameterName":"df","pValue":"0.001996007984031936","observed":["20","15","25"],"expected":["9.4530224706424715","10.900267905349715","39.646709624007812"],"residuals":["3.4303835068396862","1.2417577859198832","-2.3261434663811764"],"stdres":["3.7374096691129965","1.3726915355564082","-3.9938781198584445"],"next":"0.41530902148224413","warnings":[]}},

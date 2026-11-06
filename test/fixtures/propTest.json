@@ -1,7 +1,7 @@
 {
   "function": "propTest",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T02:52:55+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:06:58+0000",
   "cases": [
     {"args":{"x":["5","84"],"n":["16","290"],"alternative":"less","confLevel":"0.98999999999999999","correct":true},"expected":{"method":"2-sample test for equality of proportions with continuity correction","alternative":"less","statistic":"1.543360793896047e-30","statisticName":"X-squared","parameter":"1","parameterName":"df","pValue":"0.50000000000000044","confInt":["-1","0.32229265765633097"],"confLevel":"0.98999999999999999","estimate":["0.3125","0.28965517241379313"],"estimateNames":["prop 1","prop 2"],"warnings":["Chi-squared approximation may be incorrect"]}},
     {"args":{"x":["179","126"],"n":["346","235"],"alternative":"less","confLevel":"0.94999999999999996","correct":true},"expected":{"method":"2-sample test for equality of proportions with continuity correction","alternative":"less","statistic":"0.13062213775705786","statisticName":"X-squared","parameter":"1","parameterName":"df","pValue":"0.35889392768765249","confInt":["-1","0.054138793770797874"],"confLevel":"0.94999999999999996","estimate":["0.51734104046242779","0.53617021276595744"],"estimateNames":["prop 1","prop 2"],"warnings":[]}},

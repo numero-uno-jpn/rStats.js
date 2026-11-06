@@ -1,7 +1,7 @@
 {
   "function": "optimize",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-26T20:54:39+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T01:03:42+0000",
   "cases": [
     {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"0","upper":"1","maximum":false},"expected":{"optimum":"0.33333333333333331","objective":"0"}},
     {"args":{"fn":"quad13","js":"(x - 1 / 3) * (x - 1 / 3)","lower":"0","upper":"1","maximum":false,"tol":"1e-10"},"expected":{"optimum":"0.33333333333333331","objective":"0"}},
@@ -15,8 +15,8 @@
     {"args":{"fn":"absm2","js":"Math.abs(x - 2)","lower":"0","upper":"5","maximum":false,"tol":"1e-10"},"expected":{"optimum":"2.0000000014004651","objective":"1.4004650772392324e-09"}},
     {"args":{"fn":"absm2","js":"Math.abs(x - 2)","lower":"0","upper":"5","maximum":true},"expected":{"optimum":"4.9999219713166747","objective":"2.9999219713166747"}},
     {"args":{"fn":"absm2","js":"Math.abs(x - 2)","lower":"0","upper":"5","maximum":true,"tol":"1e-10"},"expected":{"optimum":"4.999999924772542","objective":"2.999999924772542"}},
-    {"args":{"fn":"quartic","js":"x ** 4 - 3 * x ** 3 + 2","lower":"-1","upper":"4","maximum":false},"expected":{"optimum":"2.2499898179813851","objective":"-6.5429687489503117"}},
-    {"args":{"fn":"quartic","js":"x ** 4 - 3 * x ** 3 + 2","lower":"-1","upper":"4","maximum":false,"tol":"1e-10"},"expected":{"optimum":"2.2499999997346238","objective":"-6.5429687499999964"}},
+    {"args":{"fn":"quartic","js":"x ** 4 - 3 * x ** 3 + 2","lower":"-1","upper":"4","maximum":false},"expected":{"optimum":"2.2499898179813562","objective":"-6.5429687489503152"}},
+    {"args":{"fn":"quartic","js":"x ** 4 - 3 * x ** 3 + 2","lower":"-1","upper":"4","maximum":false,"tol":"1e-10"},"expected":{"optimum":"2.2499999997195075","objective":"-6.5429687500000036"}},
     {"args":{"fn":"quartic","js":"x ** 4 - 3 * x ** 3 + 2","lower":"-1","upper":"4","maximum":true},"expected":{"optimum":"-0.99993653333245702","objective":"5.9991749937404197"}},
     {"args":{"fn":"quartic","js":"x ** 4 - 3 * x ** 3 + 2","lower":"-1","upper":"4","maximum":true,"tol":"1e-10"},"expected":{"optimum":"-0.99999997082843373","objective":"5.9999996207696515"}},
     {"args":{"fn":"xexp","js":"x * Math.exp(-x)","lower":"0","upper":"10","maximum":false},"expected":{"optimum":"9.9999540836996097","objective":"0.00045401805937903559"}},

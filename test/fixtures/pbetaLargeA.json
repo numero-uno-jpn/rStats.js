@@ -1,7 +1,7 @@
 {
   "function": "pbetaLargeA",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-25T02:19:55+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:23:31+0000",
   "cases": [
     {"args":{"q":"0.99999992842143681","shape1":"50","shape2":"0.10000000000000001","lowerTail":true,"logP":false},"expected":"0.70033047414302785"},
     {"args":{"q":"0.99999992842143681","shape1":"50","shape2":"0.10000000000000001","lowerTail":false,"logP":false},"expected":"0.29966952585697215"},

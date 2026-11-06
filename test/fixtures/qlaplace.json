@@ -1,7 +1,7 @@
 {
   "function": "qlaplace",
-  "r_version": "R version 4.5.2 (2025-10-31)",
-  "generated": "2026-10-24T00:11:31+0000",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-05T22:03:32+0000",
   "cases": [
     {"args":{"mu":"0","sigma":"1","p":"0","lowerTail":true,"logP":false},"expected":"-Inf"},
     {"args":{"mu":"1","sigma":"2","p":"0","lowerTail":true,"logP":false},"expected":"-Inf"},
