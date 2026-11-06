@@ -52,3 +52,30 @@ describe("aovStrata", () => {
     expect(cmp.unused(), "known differences that are not needed").toEqual([]);
   });
 });
+
+// summary.aov's warning of R 4.6 on a stratum fitted essentially perfectly. In R 4.6.2, with
+//   d <- expand.grid(t = c("a", "b", "c"), b = c("1", "2", "3", "4")); d$y <- c(0, 2, 5)[d$t] + c(1, 4, 2, 7)[d$b]
+// summary(aov(y ~ t + Error(b), d)) warns once ("Error: Within" is exact; "Error: b" has no terms), and with noise
+// added to y not at all
+describe("summary of a stratum fitted essentially perfectly (R 4.6)", () => {
+  const PERFECT = "essentially perfect fit for ‘1’: summary may be unreliable";
+  const t: string[] = [];
+  const b: string[] = [];
+  const y: number[] = [];
+  [1, 4, 2, 7].forEach((be, j) =>
+    (["a", "b", "c"] as const).forEach((k) => {
+      t.push(k);
+      b.push(String(j + 1));
+      y.push({ a: 0, b: 2, c: 5 }[k] + be);
+    }),
+  );
+  it("warns where the Within stratum is exact", () => {
+    const s = aovSummary(aov("y ~ t + Error(b)", { y, t, b }) as AovStrataFit);
+    expect(s.warnings).toEqual([PERFECT]);
+  });
+  it("does not warn otherwise", () => {
+    const noisy = y.map((v, i) => v + [0.3, -0.2, 0.5, -0.1, 0.4, -0.6, 0.2, 0.1, -0.3, 0.6, -0.4, 0][i]!);
+    const s = aovSummary(aov("y ~ t + Error(b)", { y: noisy, t, b }) as AovStrataFit);
+    expect(s.warnings).toEqual([]);
+  });
+});

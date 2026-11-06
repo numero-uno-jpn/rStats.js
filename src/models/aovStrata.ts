@@ -23,7 +23,7 @@ import { termsOf, type FormulaNode, type ParsedFormula } from "./formula.js";
 import type { LmFormulaOptions } from "./lm.js";
 import type { DataFrame } from "./modelFrame.js";
 import { design } from "./modelMatrix.js";
-import { rssWithinRounding } from "./anovaSequential.js";
+import { AOV_PERFECT_FIT, aovPerfectFit, rssWithinRounding, strataSummaryWarnings } from "./anovaSequential.js";
 import { scaledTables } from "./scaledTables.js";
 
 /**
@@ -63,7 +63,10 @@ export interface AovStrataFit {
 /** Squared length of a column's projection on a stratum, relative to its own, below which it is not in the stratum */
 const STRATUM_TOL = 1e-14;
 
-/** The table of a stratum: terms that have columns in it, then Residuals when its df is positive */
+/**
+ * The table of a stratum: terms that have columns in it, then Residuals when its df is positive (twice: scaled back,
+ * and as fitted), and whether summary.aov (R 4.6) finds the stratum fitted essentially perfectly
+ */
 function stratumTable(
   name: string,
   zy: readonly DD[],
@@ -73,7 +76,7 @@ function stratumTable(
   columnSS: readonly number[],
   k: number,
   wy: readonly (readonly [number, number])[],
-): [AovStratum, AovStratum] {
+): [AovStratum, AovStratum, boolean] {
   // zy is the response scaled by 2^-k: F and p come from it, the sums of squares are scaled back by 2^2k (the second
   // table keeps them as fitted, for the effect sizes: see scaledTables.ts)
   const scaleBack = (v: number): number => ldexp(v, 2 * k);
@@ -82,11 +85,17 @@ function stratumTable(
   let rank = 0;
   let order: number[] = [];
   let qty: DD[] = zy.slice();
+  // the fitted values of the stratum's regression, in its coordinates (0 without columns)
+  const fitted = new Array<number>(dim).fill(0);
   if (kept.length > 0) {
     const q = qr(Array.from({ length: dim }, (_, i) => kept.map((j) => zcols[j]![i]![0])));
     rank = q.rank;
     order = q.pivot.slice(0, rank).map((k) => kept[k]!);
-    qty = ddLeastSquares(order.map((j) => zcols[j]!), zy).qty;
+    const ls = ddLeastSquares(order.map((j) => zcols[j]!), zy);
+    qty = ls.qty;
+    order.forEach((j, c) => {
+      for (let i = 0; i < dim; i++) fitted[i] = fitted[i]! + zcols[j]![i]![0] * ls.coef[c]![0];
+    });
   }
   const terms: { term: number; df: number; ss: DD }[] = [];
   order.forEach((j, k) => {
@@ -98,6 +107,10 @@ function stratumTable(
   });
   const rdf = dim - rank;
   let rss = ddSumSquares(qty, rank)[0];
+  // summary.aov's test (R 4.6) on the residual sum of squares as computed. R's coordinates of a stratum (its basis of
+  // the error model's space) differ from these; mean(f)^2 + var(f) lies between sum(f^2) / dim and sum(f^2) / (dim - 1)
+  // in any basis, so only a fit within that factor of R's threshold can be judged otherwise
+  const perfect = aovPerfectFit(fitted, rss, rdf);
   let rows = terms.filter((r) => r.term !== 0);
   // A residual sum of squares at the level of rounding (below 1e-24 times the sum of squares of the response wy, as in
   // anova and Anova: rssWithinRounding) is the residue of an exact fit in the stratum: it is taken as 0 (F = Inf),
@@ -125,7 +138,7 @@ function stratumTable(
       table: rows.map(({ df, ss }) => [df, back(ss[0]), back(ss[0] / df)]),
     };
   };
-  return [build(scaleBack), build((v) => v)];
+  return [build(scaleBack), build((v) => v), perfect];
 }
 
 /**
@@ -212,5 +225,7 @@ export function aovStrataFit(
   const strata = both.map((b) => b[0]);
   const result: AovStrataFit = { formula, multistratum: true, strata, rows: dt.frame.rows, warnings };
   scaledTables.set(result, both.map((b) => b[1]));
+  // summary.aov's warning for the strata it summarises (not the intercept stratum), given by aovSummary
+  if (both.some((b, i) => b[2] && groups[i]!.name !== "(Intercept)")) strataSummaryWarnings.set(result, [AOV_PERFECT_FIT]);
   return result;
 }

@@ -118,6 +118,33 @@ export function sequentialTerms(fit: LmFormulaResult): { terms: { term: number; 
 
 const upperF = (f: number, df1: number, df2: number): number => pf1(f, df1, df2, false, false);
 
+/**
+ * R 4.6's warning of summary.aov on a fit whose residual variance is negligible. R names the response by its column
+ * name, or by its number where it has none; a fit from a formula has one response, which R's summary.aov names "1"
+ */
+export const AOV_PERFECT_FIT = "essentially perfect fit for ‘1’: summary may be unreliable";
+
+/**
+ * Whether summary.aov (R 4.6) warns of an essentially perfect fit: residual df positive and the residual variance
+ * rss / rdf finite and below 1e-30 (mean(f)^2 + var(f)), f the fitted values (var(f) 0 for one value). An absolute
+ * threshold, as R's (rss and f may be on any common scale)
+ */
+export function aovPerfectFit(f: readonly number[], rss: number, rdf: number): boolean {
+  if (!(rdf > 0)) return false;
+  const n = f.length;
+  let mean = 0;
+  for (const v of f) mean += v;
+  mean /= n;
+  let ss = 0;
+  for (const v of f) ss += (v - mean) ** 2;
+  const variance = n > 1 ? ss / (n - 1) : 0;
+  const resvar = rss / rdf;
+  return Number.isFinite(resvar) && resvar < (mean * mean + variance) * 1e-30;
+}
+
+/** The warnings of summary() that an aov() fit with Error() leaves for aovSummary (set in aovStrata.ts) */
+export const strataSummaryWarnings = new WeakMap<AovStrataFit, string[]>();
+
 /** The rows of the sequential table without the intercept, and the warning on a perfect fit */
 function sequentialRows(fit: LmFormulaResult): { names: string[]; rows: { df: number; ss: number }[]; rdf: number; rss: number; k: number; perfect: boolean } {
   const s = sequentialTerms(fit);
@@ -287,7 +314,9 @@ export interface AovStrataSummary {
  * `summary(aov(formula, data))` for a fit without `Error()`: the rows of {@link anova}'s
  * sequential table, except that without residual degrees of freedom there is no `Residuals` row and no `F value` and
  * `Pr(>F)` columns. For a fit with an `Error()` term, the tables of the strata (`{ strata: [{ stratum: "Error: id",
- * colNames, rowNames, table }, ...] }`), without the intercept stratum.
+ * colNames, rowNames, table }, ...] }`), without the intercept stratum. As R 4.6, `warnings` has "essentially perfect
+ * fit for ‘1’: summary may be unreliable" where the residual variance of the fit (or of a stratum) is below 1e-30
+ * times the mean square of its fitted values.
  *
  * @param fit A fit from {@link aov} (or {@link lm}) with a formula.
  *
@@ -308,7 +337,9 @@ export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | Ao
   if (typeof fit === "object" && fit !== null && (fit as AovStrataFit).multistratum === true) {
     const f = fit as AovStrataFit;
     // (with the fit's warnings, such as "Error() model is singular": they were left out)
-    const summary: AovStrataSummary = { strata: f.strata.filter((s) => s.stratum !== "Error: (Intercept)").map((s) => ({ ...s })), warnings: [...f.warnings] };
+    // (and summary.aov's warning on a stratum fitted essentially perfectly, R 4.6)
+    const warnings = mergeWarnings(f.warnings, strataSummaryWarnings.get(f));
+    const summary: AovStrataSummary = { strata: f.strata.filter((s) => s.stratum !== "Error: (Intercept)").map((s) => ({ ...s })), warnings };
     const scaled = scaledTables.get(f);
     if (Array.isArray(scaled)) scaledTables.set(summary, scaled.filter((_, i) => f.strata[i]!.stratum !== "Error: (Intercept)"));
     return reported("aovSummary", summary, fit);
@@ -316,10 +347,16 @@ export function aovSummary(fit: LmFormulaResult | AovStrataFit): AnovaTable | Ao
   if (typeof fit !== "object" || fit === null || !Array.isArray((fit as Partial<LmFormulaResult>).effects)) {
     throw new TypeError("aovSummary() needs a fit from aov() with a formula");
   }
-  const t = sequentialTable(fit as LmFormulaResult);
-  // the fit's warnings and those of the table, once each (as for aov with Error(); R gives them when fitting)
-  const warnings = mergeWarnings((fit as LmFormulaResult).warnings, t.warnings);
-  if ((fit as LmFormulaResult).dfResidual > 0) {
+  const lmFit = fit as LmFormulaResult;
+  const t = sequentialTable(lmFit);
+  // summary.aov's own warning (R 4.6), on the fitted values and the residual sum of squares of the response scaled by
+  // 2^-k (the residual sum of squares as computed, before rounding residue is taken as 0)
+  const s = sequentialTerms(lmFit);
+  const perfect = aovPerfectFit(lmFit.fittedValues.map((v) => ldexp(v, -s.k)), s.rss, s.rdf);
+  // the fit's warnings and those of the table, once each (as for aov with Error(); R gives them when fitting), then
+  // summary.aov's
+  const warnings = mergeWarnings(lmFit.warnings, t.warnings, perfect ? [AOV_PERFECT_FIT] : []);
+  if (lmFit.dfResidual > 0) {
     const out = { ...t, warnings };
     const scaled = scaledTables.get(t);
     if (scaled !== undefined) scaledTables.set(out, scaled);

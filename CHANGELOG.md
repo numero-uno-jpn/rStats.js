@@ -20,6 +20,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   permutation variance of the averaged scores, are unchanged; the entry in differences-from-r is removed).
 - `corTest` follows R 4.6's text of the Kendall and Spearman warning: "cannot compute exact p-value with ties" (lower
   case).
+- `aovSummary` follows R 4.6's `summary.aov`: the warning "essentially perfect fit for ‘1’: summary may be unreliable"
+  where the residual variance is below 1e-30 times mean(f)^2 + var(f) of the fitted values f (also for each stratum of
+  a fit with `Error()`).
 
 ## 1.0.0 - 2026-11-05
 

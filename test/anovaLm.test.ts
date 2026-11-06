@@ -9,6 +9,9 @@ const PERFECT = "ANOVA F-tests on an essentially perfect fit are unreliable";
 /** Cells that differ from R by more than 1e-12 but are within 1e-12 of the exact reference */
 const BIG_MEAN = "y has a mean of 1e6: R's QR loses digits to the intercept; rStats.js computes in double-double";
 const KNOWN: KnownDifference[] = [
+  // a small coefficient (-0.0058, the others up to 9.6) of R's double-precision QR: R 4.6.2 1.02e-12 from the exact
+  // reference (R 4.5.2: 9.0e-13), rStats.js at the reference
+  { case: 30, table: "coefficients", row: "Ac:Bq", col: "", reason: "a small coefficient: R's QR 1.0e-12 from the reference" },
   { case: 50, table: "coefficients", row: "Ab:Bq", col: "", reason: `${BIG_MEAN} (R 3.3e-12 from the reference)` },
   { case: 50, table: "coefficients", row: "Ac:Bq", col: "", reason: `${BIG_MEAN} (R 1.5e-11 from the reference)` },
   { case: 50, table: "rSquared", row: "rSquared", col: "", reason: `${BIG_MEAN} (R 2.8e-12 from the reference)` },
