@@ -1,0 +1,27 @@
+{
+  "function": "chisqTestN1",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T11:40:09+0000",
+  "cases": [
+    {"args":{"x":[["12","5"],["7","9"]]},"expected":{"statistic":"2.3569217160548437","parameter":"1","pValue":"0.12472809637492194","pearson":"2.4305755196815575","warnings":[]}},
+    {"args":{"x":[["12","7","3"],["5","9","11"]]},"expected":{"statistic":"7.3825343773873184","parameter":"2","pValue":"0.024940377844774663","pearson":"7.5430242551566087","warnings":[]}},
+    {"args":{"x":[["20","3","2"],["4","15","6"],["1","5","30"]]},"expected":{"statistic":"68.328173913043486","parameter":"4","pValue":"5.1147557689900848e-14","pearson":"69.132034782608699","warnings":[]}},
+    {"args":{"x":[["0","1"],["0","1"]]},"expected":{"statistic":"NaN","parameter":"1","pValue":"NaN","pearson":"NaN","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["5","5"],["5","5"]]},"expected":{"statistic":"0","parameter":"1","pValue":"1","pearson":"0","warnings":[]}},
+    {"args":{"x":[["1000","0"],["0","1000"]]},"expected":{"statistic":"1999","parameter":"1","pValue":"0","pearson":"2000","warnings":[]}},
+    {"args":{"x":[["12","7","3"],["0","0","0"]]},"expected":{"statistic":"NaN","parameter":"2","pValue":"NaN","pearson":"NaN","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["10","5","2"],["3","8","6"],["1","4","9"]]},"expected":{"statistic":"14.89970694160017","parameter":"4","pValue":"0.0049138163896978908","pearson":"15.216721982910812","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["3","1"],["1","3"]]},"expected":{"statistic":"1.75","parameter":"1","pValue":"0.18587673236587593","pearson":"2","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["5","3","2","1"],["4","6","3","2"],["2","3","7","4"],["1","2","3","8"]]},"expected":{"statistic":"16.613222789115646","parameter":"9","pValue":"0.055128806179934674","pearson":"16.915281385281386","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["500","300"],["300","500"]]},"expected":{"statistic":"99.9375","parameter":"1","pValue":"1.572828835840301e-23","pearson":"100","warnings":[]}},
+    {"args":{"x":[["1","0","0"],["0","1","0"],["0","0","1"]]},"expected":{"statistic":"4.0000000000000009","parameter":"4","pValue":"0.406005849709838","pearson":"6.0000000000000009","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["0","5"],["3","0"]]},"expected":{"statistic":"7","parameter":"1","pValue":"0.0081509715935027104","pearson":"8","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["100000","200000"],["300000","400000"]]},"expected":{"statistic":"7936.5","parameter":"1","pValue":"0","pearson":"7936.5079365079364","warnings":[]}},
+    {"args":{"x":[["22","25","21"],["30","36","27"],["28","22","25"],["23","27","39"]]},"expected":{"statistic":"6.6462995399729516","parameter":"6","pValue":"0.35479853507486075","pearson":"6.6668128101580537","warnings":[]}},
+    {"args":{"x":[["8","11","7"],["7","3","5"]]},"expected":{"statistic":"2.1238095238095229","parameter":"2","pValue":"0.34579652259327126","pearson":"2.176904761904761","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["0","1","2","1","4"],["3","3","4","0","4"],["1","2","3","1","3"],["4","3","2","1","4"]]},"expected":{"statistic":"6.2357142857142849","parameter":"12","pValue":"0.90373645083142451","pearson":"6.3742857142857137","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["1","1","1","6","3"],["4","3","2","2","3"]]},"expected":{"statistic":"4.816468253968254","parameter":"4","pValue":"0.30665258377197813","pearson":"5.0091269841269837","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["2","2","1"],["2","1","0"],["2","1","0"],["4","1","3"]]},"expected":{"statistic":"3.5324999999999998","parameter":"6","pValue":"0.73964081206479315","pearson":"3.7287499999999998","warnings":["Chi-squared approximation may be incorrect"]}},
+    {"args":{"x":[["11","12"],["15","7"]]},"expected":{"statistic":"1.867452913219505","parameter":"1","pValue":"0.17176708581619032","pearson":"1.9098950248835844","warnings":[]}}
+  ]
+}

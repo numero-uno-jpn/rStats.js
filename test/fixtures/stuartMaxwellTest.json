@@ -1,0 +1,27 @@
+{
+  "function": "stuartMaxwellTest",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T11:40:09+0000",
+  "cases": [
+    {"args":{"x":[["20","3","2"],["4","15","6"],["1","5","30"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"0.30534351145038169","statisticName":"chi-squared","parameter":"2","parameterName":"df","pValue":"0.85841144421397531","N":"86","warnings":[]}},
+    {"args":{"x":[["10","0","0"],["0","5","3"],["0","2","8"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"0.20000000000000001","statisticName":"chi-squared","parameter":"2","parameterName":"df","pValue":"0.90483741803595963","N":"18","warnings":[]}},
+    {"args":{"x":[["10","0","0"],["0","5","0"],["0","0","8"]]},"expected":{"error":"Too many equal marginals, cannot compute"}},
+    {"args":{"x":[["10","5"],["2","8"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"1.2857142857142856","statisticName":"chi-squared","parameter":"1","parameterName":"df","pValue":"0.25683925795785667","N":"25","warnings":[]}},
+    {"args":{"x":[["5","1","0"],["2","5","0"],["0","0","0"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"0.33333333333333331","statisticName":"chi-squared","parameter":"2","parameterName":"df","pValue":"0.84648172489061402","N":"13","warnings":[]}},
+    {"args":{"x":[["35","5","2","1"],["4","40","6","2"],["1","7","30","5"],["0","2","6","25"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"0.69679453494482413","statisticName":"chi-squared","parameter":"3","parameterName":"df","pValue":"0.87395764670611154","N":"171","warnings":[]}},
+    {"args":{"x":[["1","2","3"],["4","5","6"],["7","8","9"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"2.535211267605634","statisticName":"chi-squared","parameter":"2","parameterName":"df","pValue":"0.28150484116590846","N":"45","warnings":[]}},
+    {"args":{"x":[["0","0"],["0","0"]]},"expected":{"error":"Too many equal marginals, cannot compute"}},
+    {"args":{"x":[["5","0"],["0","0"]]},"expected":{"error":"Too many equal marginals, cannot compute"}},
+    {"args":{"x":[["0","4","0"],["0","0","4"],["4","0","0"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"0","statisticName":"chi-squared","parameter":"2","parameterName":"df","pValue":"1","N":"12","warnings":[]}},
+    {"args":{"x":[["0","4","0"],["0","0","3"],["5","0","0"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"0.5106382978723405","statisticName":"chi-squared","parameter":"2","parameterName":"df","pValue":"0.77466922364590207","N":"12","warnings":[]}},
+    {"args":{"x":[["10","2","3"],["2","10","4"],["3","4","10"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"0","statisticName":"chi-squared","parameter":"2","parameterName":"df","pValue":"1","N":"48","warnings":[]}},
+    {"args":{"x":[["30","4","4"],["10","32","11"],["6","4","28"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"6","statisticName":"chi-squared","parameter":"2","parameterName":"df","pValue":"0.049787068367863944","N":"129","warnings":[]}},
+    {"args":{"x":[["24","4","4","4","7"],["1","20","5","6","5"],["2","7","16","4","3"],["7","10","8","30","11"],["8","5","5","2","24"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"8.582209579243754","statisticName":"chi-squared","parameter":"4","parameterName":"df","pValue":"0.072434127188922975","N":"222","warnings":[]}},
+    {"args":{"x":[["26","3","8","9","7"],["11","37","7","1","9"],["5","7","23","2","5"],["7","9","7","19","6"],["7","2","6","7","31"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"4.3179073721034369","statisticName":"chi-squared","parameter":"4","parameterName":"df","pValue":"0.36468809488228343","N":"261","warnings":[]}},
+    {"args":{"x":[["24","7","5","7","9"],["7","19","8","2","7"],["6","8","28","6","4"],["6","8","5","27","7"],["4","7","8","5","20"]]},"expected":{"method":"Stuart-Maxwell test","statistic":"1.848799843339187","statisticName":"chi-squared","parameter":"4","parameterName":"df","pValue":"0.76354308001795179","N":"244","warnings":[]}},
+    {"args":{"x":[["1","2","3"],["4","5","6"]]},"expected":{"error":"'x' must be square with at least two rows and columns"}},
+    {"args":{"x":[["1","-2"],["3","4"]]},"expected":{"error":"all entries of 'x' must be nonnegative and finite"}},
+    {"args":{"x":[["1","NaN"],["3","4"]]},"expected":{"error":"all entries of 'x' must be nonnegative and finite"}},
+    {"args":{"x":[["5"]]},"expected":{"error":"'x' must be square with at least two rows and columns"}}
+  ]
+}

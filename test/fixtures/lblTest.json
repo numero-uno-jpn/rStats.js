@@ -1,0 +1,21 @@
+{
+  "function": "lblTest",
+  "r_version": "R version 4.6.2 (2026-10-29)",
+  "generated": "2026-11-06T11:40:09+0000",
+  "cases": [
+    {"args":{"x":[["10","5","2"],["3","8","6"],["1","4","9"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"3.601652214003793","pValue":"0.00031620119680653147","pValueLess":"0.99984189940159673","pValueGreater":"0.00015810059840326574","warnings":[]}},
+    {"args":{"x":[["10","0","2"],["3","0","6"],["1","0","9"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"3.4224020185694966","pValue":"0.0006207046447799236","pValueLess":"0.99968964767761004","pValueGreater":"0.0003103523223899618","warnings":[]}},
+    {"args":{"x":[["10","5","2"],["3","8","6"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"-2.4073544790513126","pValue":"0.016068564623226818","pValueLess":"0.0080342823116134089","pValueGreater":"0.99196571768838659","warnings":[]}},
+    {"args":{"x":[["10","3"],["5","8"],["2","6"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"-2.4073544790513135","pValue":"0.016068564623226773","pValueLess":"0.0080342823116133864","pValueGreater":"0.99196571768838659","warnings":[]}},
+    {"args":{"x":[["10","5"],["2","3"]]},"expected":{"error":"‘object’ does not represent a problem with ordered data"}},
+    {"args":{"x":[["5","3","2","1"],["4","6","3","2"],["2","3","7","4"],["1","2","3","8"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"3.4581926995685937","pValue":"0.00054381226693211993","pValueLess":"0.99972809386653394","pValueGreater":"0.00027190613346605996","warnings":[]}},
+    {"args":{"x":[["0","0","0"],["1","2","3"],["4","5","6"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"-0.50891335780799463","pValue":"0.61081295650072442","pValueLess":"0.30540647825036221","pValueGreater":"0.69459352174963773","warnings":[]}},
+    {"args":{"x":[["5","5","5"],["5","5","5"],["5","5","5"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"0","pValue":"1","pValueLess":"0.5","pValueGreater":"0.5","warnings":[]}},
+    {"args":{"x":[["10","0","0"],["0","10","0"],["0","0","10"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"5.3851648071345037","pValue":"7.2378298687780784e-08","pValueLess":"0.99999996381085066","pValueGreater":"3.6189149343890392e-08","warnings":[]}},
+    {"args":{"x":[["20","10","5","2"],["15","15","8","4"],["10","12","12","9"],["5","8","14","15"],["2","4","9","22"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"7.3133960825012254","pValue":"2.6045832157706172e-13","pValueLess":"0.99999999999986977","pValueGreater":"1.3022916078853086e-13","warnings":[]}},
+    {"args":{"x":[["6","9","5","10"],["7","5","5","9"],["3","4","10","8"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"0.90567515759959005","pValue":"0.36510781519823832","pValueLess":"0.81744609240088084","pValueGreater":"0.18255390759911916","warnings":[]}},
+    {"args":{"x":[["5","7","7","8"],["4","5","8","7"],["2","7","4","8"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"0.60941912454192215","pValue":"0.54224666468248661","pValueLess":"0.72887666765875669","pValueGreater":"0.27112333234124331","warnings":[]}},
+    {"args":{"x":[["4","5","4","4"],["5","4","6","6"],["3","6","5","5"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"0.43061442041549258","pValue":"0.66674875413266488","pValueLess":"0.66662562293366756","pValueGreater":"0.33337437706633244","warnings":[]}},
+    {"args":{"x":[["5","6","3","5"],["3","9","7","5"],["6","8","2","5"]]},"expected":{"method":"Linear-by-Linear Association Test","statistic":"-0.42047160599621131","pValue":"0.67414096769414344","pValueLess":"0.33707048384707172","pValueGreater":"0.66292951615292828","warnings":[]}}
+  ]
+}
