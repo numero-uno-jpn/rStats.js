@@ -136,6 +136,9 @@ affected.
 | epitools' `oddsratio(method = "midp")` | the median-unbiased estimate and mid-p limits by uniroot on [0, 1000] with the tolerance 1.22e-4: the upper limit of [[30, 2], [1, 40]] is 11606 instead of 12475 | `oddsRatio`: the roots on the log scale of the odds ratio |
 | epitools' `midp.exact` p-value where it is below about 1e-16 | 2 min(m, 1 - m) with 1 - m formed from m: 0 for [[1000, 2000], [3000, 4000]] | both tails summed directly: the true small value |
 | epiR's score interval of the odds ratio (`OR.strata.score` of `epi.2by2`) | steps of 0.1% from 1.1 times (or 1/1.1 times) the estimate, so that for large tables the interval is exactly [est/1.1, 1.1 est] ([[1000, 2000], [3000, 4000]]: [0.60606, 0.73333], true [0.60962, 0.72905]) | `oddsRatio(method = "score")`: the roots of the statistic |
+| exact2x2's `fisher.exact(midp = TRUE)`: the confidence limits | uniroot on psi in (0, 1) or 1/psi in (eps, 1) with the tolerance 1.22e-4: the upper 95% limit of [[3, 1], [1, 3]] is 311.44 instead of 308.56, that of [[100, 1], [1, 100]] the end 1/eps (4.5036e15) instead of 198848 | `fisherTest(midp: true)`: the roots of the mid-p tails on the log scale of psi |
+| Boschloo's test: the p-value, a supremum over the nuisance parameter pi | Exact (`exact.test(method = "boschloo")`): the maximum over 100 points refined by `optimise` and rounded to 12 digits, up to 6.3e-9 relative below the supremum (80/200 against 100/200); exact2x2 (`boschloo()`): the maximum over 98 points, 1e-6 to 2e-4 below | `boschlooTest`: the supremum (a grid uniform on the arcsine scale of max(1000, 32 sqrt(n1 + n2)) points and Brent's method at every candidate maximum; within a few ulps of a 999-point grid refined to 1e-13) |
+| Exact's two-sided `"square"` Boschloo test | the region is completed by Barnard's convexity, which the two-sided statistic does not have: for 20/60 against 9/25 it contains the tables (6, 2) and (54, 23), whose Fisher p-value is 1, and the p-value is 0.785623 instead of 0.785614 | the region evaluated table by table |
 | clinfun's `jonckheere.test` and DescTools' `JonckheereTerpstraTest` with ties (normal approximation) | the null variance without ties (sum n_i m_i (n_i + m_i + 1) / 12), too large: p = 0.0086 for c(1, 1, 2, 2, 3, 3) in three groups | the permutation variance with the ties (Hollander & Wolfe): p = 0.0061; without ties as the packages |
 | clinfun's `jonckheere.test` and DescTools' `JonckheereTerpstraTest`, normal approximation with a large positive statistic | the upper tail as 1 - pnorm(z): 0 beyond z ~ 8.3 (1:101 in ordered groups of 34, 34, 33: p 0 for increasing and two-sided) | where 1 - pnorm(z) is below 1e-8, the upper tail pnorm(z, lower.tail = FALSE): 1.4902389037944e-26 (Rmpfr 1.4902389037944002e-26); above 1e-8 the packages' value (#280) |
 | `wilcox.test(x, exact = FALSE)` (also paired; two samples too), two-sided, with a small p-value from a large positive statistic | 2 (1 - F) with 1 - F formed from the lower tail F, which loses the digits: `wilcox.test(1:300, exact = FALSE)` gives p = 0 (`-(1:300)` gives 6.1141368593044447e-51, and `alternative = "greater"` 3.0570684296522223e-51) | the upper tail itself where it is below 1/64: 6.1141368593044446e-51 (twice R's own one-sided value). Above 1/64 R's 2 (1 - F); the values differ from R's by the rounding of 1 - F (a few 1e-17 absolute), beyond 1e-12 relative only below about p = 1e-4 |
@@ -903,6 +906,21 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   the risk ratio (Wald = `"katz.log"` away from zero counts, score = `"koopman"`), the odds ratio (`"wald"`,
   `"score"`, `"fisher"`) and the attributable risk (`binomDiffCI` `"wald"` and `"mee"`, times 100; `binomDiffCI`
   clips the Wald interval to [-1, 1], epiR does not).
+- **`fisherTest(midp: true)`** (exact2x2's `fisher.exact(midp = TRUE)`) is an option of `fisherTest` for 2 × 2
+  tables (an error for larger ones); its two-sided test is always the central one (exact2x2 stops with "midp option
+  not supported for tsmethod='minlike' or 'blaker'"), and there is no `tsmethod`: exact2x2's tests without mid-p (its
+  default minlike test with the matching interval, rounded to 4 decimals, and the central test) are not offered. A
+  level of 0 is an error (exact2x2 returns the point interval at the mid-p median). The estimate is the conditional
+  MLE as `fisherTest` gives it (the root; exact2x2 reports fisher.test's).
+- **`boschlooTest`** (Exact's `exact.test(method = "boschloo")`) takes the 2 × 2 table with the groups in the rows and
+  the events in column 1, as Exact, and its `alternative` in Exact's orientation (`"less"`: pi1 < pi2; exact2x2's
+  `boschloo()` uses the odds ratio of group 2 to group 1, the opposite one). The default two-sided method is
+  `"square"` (Exact's; exact2x2's is `"central"`). Not offered: confidence intervals, Berger and Boos' restricted
+  nuisance range (`np.interval`), the mid-p version, and exact2x2's p-value (the maximum over 98 grid points, with ties
+  split by floating-point equality and the tables (0, 0) and (n1, n2) left out). The region keeps the tables whose
+  statistic is within a relative 1e-7 of the observed one (Exact compares the statistics rounded to 12 significant
+  digits); `statistic` is not rounded. The result has the one value `nuisanceParameter` (Exact's `np` may list
+  several) and not the sample sizes as `parameter`.
 
 ### Data handling
 

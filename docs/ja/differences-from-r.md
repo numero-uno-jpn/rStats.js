@@ -130,6 +130,9 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | epitools の `oddsratio(method = "midp")` | 中央値不偏推定値と mid-p 限界を [0, 1000] 上で許容誤差 1.22e-4 の uniroot で求める。[[30, 2], [1, 40]] の上限が 12475 でなく 11606 | `oddsRatio`: オッズ比の対数の座標での根 |
 | epitools の `midp.exact` の p 値が 1e-16 ほどより小さいとき | 2 min(m, 1 - m) の 1 - m を m から作るので、[[1000, 2000], [3000, 4000]] で 0 | 両側の裾を直接足す: 小さな真の値 |
 | epiR のオッズ比のスコア区間 (`epi.2by2` の `OR.strata.score`) | 推定値の 1.1 倍 (または 1/1.1 倍) から 0.1% 刻みで進むので、大きな表では区間がちょうど [est/1.1, 1.1 est] になる ([[1000, 2000], [3000, 4000]] で [0.60606, 0.73333]、真値は [0.60962, 0.72905]) | `oddsRatio(method = "score")`: 統計量の根 |
+| exact2x2 の `fisher.exact(midp = TRUE)` の信頼限界 | psi ∈ (0, 1) か 1/psi ∈ (eps, 1) で許容誤差 1.22e-4 の uniroot を使う。[[3, 1], [1, 3]] の 95% 上限が 308.56 でなく 311.44、[[100, 1], [1, 100]] の上限が 198848 でなく端の 1/eps (4.5036e15) | `fisherTest(midp: true)`: psi の対数の座標での mid-p の裾の根 |
+| Boschloo 検定の p 値 (局外母数 pi についての上限) | Exact (`exact.test(method = "boschloo")`): 100 点の最大を `optimise` で精密化し 12 桁に丸める。上限より相対で最大 6.3e-9 小さい (80/200 対 100/200)。exact2x2 (`boschloo()`): 98 点の最大で、1e-6 から 2e-4 小さい | `boschlooTest`: 上限そのもの (逆正弦の座標で等間隔の max(1000, 32 sqrt(n1 + n2)) 点の格子と、候補となるすべての極大での Brent 法。999 点の格子を 1e-13 まで精密化した値と数 ulp 以内で一致) |
+| Exact の両側 `"square"` の Boschloo 検定 | 棄却域を Barnard の凸性で補うが、両側の統計量はこの性質を持たない。20/60 対 9/25 では Fisher の p 値が 1 の表 (6, 2) と (54, 23) が棄却域に入り、p 値が 0.785614 でなく 0.785623 | 棄却域を表ごとに判定する |
 | logit リンクで \|eta\| が 30 を超える `glm` | C コードが逆リンクと微分を eps の値でクリップする (30 で 1 − 9.4e-14、すぐ先で 1 − 2.2e-16 に跳ぶ)。x = 1、2 で度数 (1e15, 1)、(1, 2) の binomial は deviance 2139 で止まり、収束しない (解は eta = log 1e15) | 30 の先も厳密な値。1 未満の最大の double と最小の double で止める。deviance 0.013 (1 − y = 1/(1e15 + 1) の表現で決まる)。30 以内は R と同じ |
 | rate × q が非正規化数の `pexp(q, rate, log.p = TRUE)` (`pexp(1e-20, 1e-300, log.p = TRUE)`) | 非正規化数に丸めた積の対数: -736.8272408909739 (1.1e-5 ずれる) | log rate + log q: -736.8272297580946 |
 | 端の値での probit・cauchit・cloglog・power リンクの `glm` | `make.link` が eta (または mu) を eps の値で、微分を eps でクリップする。Phi(−10) = 7.6e-24、1 − exp(−e^-40) = 4.2e-18、平均 1e-16 (power 0.5) が 2.2e-16 に、−1e9 での cauchit の微分 3.2e-19 も 2.2e-16 になる | 厳密な値。最小の double と 1 未満の最大の double で (0, 1) に収める。R の範囲内は R と同じ |
@@ -852,6 +855,18 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   他の数値はこれらの関数で得られます: リスク比 (Wald は度数 0 のない所で `"katz.log"`、スコアは `"koopman"`)、
   オッズ比 (`"wald"`、`"score"`、`"fisher"`)、寄与危険 (`binomDiffCI` の `"wald"` と `"mee"` の 100 倍。
   `binomDiffCI` は Wald 区間を [-1, 1] に切り詰めるが epiR は切り詰めない)。
+- **`fisherTest(midp: true)`** (exact2x2 の `fisher.exact(midp = TRUE)`) は 2 × 2 表に対する `fisherTest` のオプション
+  です (それより大きい表ではエラー)。両側検定は常に central で (exact2x2 は "midp option not supported for
+  tsmethod='minlike' or 'blaker'" で止まる)、`tsmethod` はありません。exact2x2 の mid-p でない検定 (既定の minlike 検定と
+  それに対応する小数 4 桁に丸めた区間、central 検定) は提供しません。水準 0 はエラーです (exact2x2 は mid-p の中央値で
+  の点区間を返す)。推定値は `fisherTest` の条件付き最尤推定値 (根) です (exact2x2 は fisher.test のものを返す)。
+- **`boschlooTest`** (Exact の `exact.test(method = "boschloo")`) は Exact と同じく、行が群、1 列目が事象の 2 × 2 表を
+  とり、`alternative` も Exact の向きです (`"less"` は pi1 < pi2。exact2x2 の `boschloo()` は群 2 の群 1 に対するオッズ比を
+  使うので逆向き)。既定の両側の方法は `"square"` です (Exact の既定。exact2x2 は `"central"`)。信頼区間、Berger と Boos
+  の局外母数の範囲の制限 (`np.interval`)、mid-p 版、exact2x2 の p 値 (98 点の格子での最大。同順位を浮動小数点の等号で
+  分け、表 (0, 0) と (n1, n2) を除く) は提供しません。棄却域には統計量が観測値の相対 1e-7 以内の表も含めます (Exact は
+  有効数字 12 桁に丸めた統計量を比べる)。`statistic` は丸めません。結果は 1 つの値 `nuisanceParameter` を持ち (Exact の
+  `np` は複数のことがある)、標本の大きさを `parameter` には持ちません。
 
 ### データの扱い
 

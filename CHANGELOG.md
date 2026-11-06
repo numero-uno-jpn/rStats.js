@@ -22,6 +22,15 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   to 1e-3 and fail for zero cells or odds ratios beyond 1000); `binomRatioCI` applies `sides` to the limits; input
   without a defined result is an error (docs/differences-from-r.md). epiR's `epi.2by2` numbers for one stratum are
   reached through these functions.
+- **Mid-p Fisher's exact test**: `fisherTest(x, { midp: true })`, exact2x2's `fisher.exact(midp = TRUE)`, for 2 × 2
+  tables: the mid-p p-value (two-sided: the central test) and the mid-p confidence limits as the roots of the mid-p
+  tails (exact2x2's search stops up to 1% from them, at 1/eps for large limits); the estimate stays the conditional
+  MLE.
+- **Boschloo's test**: `boschlooTest(table, { alternative, tsmethod })`, Exact's `exact.test(method = "boschloo")`,
+  for a 2 × 2 table with the groups in the rows: `"square"` (default) or `"central"` two-sided, `alternative` in
+  Exact's orientation. The p-value is the true supremum over the nuisance parameter (Exact's is up to 6e-9 below it,
+  and its two-sided square region can contain tables that do not belong to it); 200 against 200 takes under 10 ms.
+  Tables with more than 2^24 possible outcomes, or a grid of more than 2^32 steps, are a RangeError.
 
 ## 1.1.0 - 2026-11-06
 
