@@ -234,6 +234,8 @@ describe("R's warnings in each situation (fixture htestWarnings)", () => {
 describe("the warning handler of the tests", () => {
   const P_TIES = "cannot compute exact p-value with ties";
   const CI_TIES_2 = "cannot compute exact confidence intervals with ties";
+  // ansari.test's text since R 4.6 ("interval")
+  const CI_TIES_ANSARI = "cannot compute exact confidence interval with ties";
   const APPROX = "Chi-squared approximation may be incorrect";
   const handled = (f: () => unknown): unknown[][] => {
     const handler = vi.fn<WarningHandler>();
@@ -254,7 +256,7 @@ describe("the warning handler of the tests", () => {
     const calls = handled(() => ansariTest("y ~ g", { y: [1, 2, 3, 4, 2, 5, 6, 7], g: g4 }, { confInt: true }));
     expect(calls).toEqual([
       [P_TIES, "ansariTest"],
-      [CI_TIES_2, "ansariTest"],
+      [CI_TIES_ANSARI, "ansariTest"],
     ]);
   });
 

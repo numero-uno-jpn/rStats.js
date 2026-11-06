@@ -4,15 +4,15 @@
 // Scores min(r, N + 1 - r) of the pooled ranks r (average ranks for ties); the statistic is the sum over the first
 // sample. Small samples without ties use the exact null distribution (src/htest/core/ansari.ts); the two-sided
 // p-value doubles the tail on the statistic's side of the centre floor((m+1)^2/4) + floor(m n / 2)/2 (the centre
-// follows R's ansari.test behaviour). Otherwise the statistic is standardised and compared with the normal, with Ansari
-// and Bradley's mean and the variance of a linear rank statistic from the observed sum of squared scores (the form
-// scipy.stats.ansari also uses).
+// follows R's ansari.test behaviour). Otherwise the statistic is standardised and compared with the normal: without ties
+// with Ansari and Bradley's mean and variance, with ties (as R 4.6) with the mean and variance of a sum of m of the
+// observed scores drawn without replacement (R 4.5 and scipy.stats.ansari keep the no-ties mean).
 //
 // Interval and estimate (Bauer, JASA 67, 1972, section 5): with the locations taken as 0, AB(s) is the statistic of
 // x / s against y, a step function of the ratio of scales s. Exact: AB(s) is evaluated between consecutive
 // candidate ratios x_i / y_j >= 0 (and beyond the largest), and the limits are the candidate ratios where it crosses
 // the exact quantiles; the estimate is the midpoint of the crossing of the median. Normal approximation: the limits and
-// the estimate are where the standardised AB(s) (standardised as for the test: R 4.5.2's ansari.test) crosses the normal
+// the estimate are where the standardised AB(s) (standardised as for the test, as R 4.6's ansari.test) crosses the normal
 // quantiles (and 0), found with R's uniroot conventions (tolerance 1e-4) in the range of the ratios of the positive
 // values and of the negative values. The candidate sets, evaluation points, search range, tolerance and the cases
 // returned as NaN (R's NA) follow R's documented and observed behaviour.
@@ -128,16 +128,7 @@ export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: A
     else pValue = lowerTo(statistic);
     if (confInt) ci = exactInterval(xs, ys, alternative, confLevel, warnings);
   } else {
-    // mean and variance with the sum of the scores at its value without ties (N (N + 2) / 4 for even N,
-    // (N + 1)^2 / 4 for odd N), and the sum of their squares as observed
-    let sq = 0;
-    for (const v of a) sq += v * v;
-    const even = N % 2 === 0;
-    const mean = even ? (m * (N + 2)) / 4 : (m * (N + 1) ** 2) / (4 * N);
-    const variance = even
-      ? (m * n * (16 * sq - N * (N + 2) ** 2)) / (16 * N * (N - 1))
-      : (m * n * (16 * N * sq - (N + 1) ** 4)) / (16 * N * N * (N - 1));
-    const z = (statistic - mean) / Math.sqrt(variance);
+    const z = normalized(statistic, a, ties, m, n);
     // large AB means the first sample is concentrated in the middle: smaller scale
     pValue =
       alternative === "two.sided"
@@ -149,7 +140,8 @@ export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: A
     if (confInt) ci = normalInterval(xs, ys, alternative, confLevel, exactR ? new Warnings() : warnings);
     if (exactR && ties) {
       warnings.add("cannot compute exact p-value with ties");
-      if (confInt) warnings.add("cannot compute exact confidence intervals with ties");
+      // (R 4.6's text: "interval", where R 4.5 had "intervals")
+      if (confInt) warnings.add("cannot compute exact confidence interval with ties");
     }
   }
   const result: HTest = {
@@ -169,6 +161,29 @@ export function ansariTest(x: Sample | string, y: Sample | DataFrame, options: A
   result.nullValue = 1;
   result.nullValueName = "ratio of scales";
   return reported("ansariTest", result);
+}
+
+/**
+ * The AB statistic standardized for the normal approximation. Without ties, with the moments of the scores of distinct
+ * ranks. With ties (as R 4.6), with those of the observed scores a of all N observations: mean m mean(a) and variance
+ * m n var(a) / N (var with the denominator N - 1), the variance of the sum of m scores drawn without replacement
+ */
+function normalized(ab: number, a: readonly number[], ties: boolean, m: number, n: number): number {
+  const N = m + n;
+  if (!ties) {
+    const even = N % 2 === 0;
+    const centred = even ? ab - (m * (N + 2)) / 4 : ab - (m * (N + 1) ** 2) / (4 * N);
+    const sd = even
+      ? Math.sqrt((m * n * (N + 2) * (N - 2)) / (48 * (N - 1)))
+      : Math.sqrt((m * n * (N + 1) * (3 + N * N)) / (48 * N * N));
+    return centred / sd;
+  }
+  let sum = 0;
+  for (const v of a) sum += v;
+  const mean = sum / N;
+  let ss = 0;
+  for (const v of a) ss += (v - mean) ** 2;
+  return (ab - m * mean) / Math.sqrt((m * n * (ss / (N - 1))) / N);
 }
 
 interface CIPart {
@@ -330,24 +345,9 @@ function normalInterval(
 ): CIPart | undefined {
   const m = xs.length;
   const n = ys.length;
-  const N = m + n;
-  const even = N % 2 === 0;
   const z = (s: number, zq: number): number => {
     const { ab, a, ties } = scaledStatistic(xs, ys, s);
-    const centred = even ? ab - (m * (N + 2)) / 4 : ab - (m * (N + 1) ** 2) / (4 * N);
-    let sd: number;
-    if (!ties) {
-      sd = even
-        ? Math.sqrt((m * n * (N + 2) * (N - 2)) / (48 * (N - 1)))
-        : Math.sqrt((m * n * (N + 1) * (3 + N * N)) / (48 * N * N));
-    } else {
-      let sq = 0;
-      for (const v of a) sq += v * v;
-      sd = even
-        ? Math.sqrt((m * n * (16 * sq - N * (N + 2) ** 2)) / (16 * N * (N - 1)))
-        : Math.sqrt((m * n * (16 * N * sq - (N + 1) ** 4)) / (16 * N * N * (N - 1)));
-    }
-    return centred / sd - zq;
+    return normalized(ab, a, ties, m, n) - zq;
   };
   // search range: the ratios of the positive values, and of the non-positive x to the negative y
   const ends: number[] = [];

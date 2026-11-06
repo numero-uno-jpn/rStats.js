@@ -291,7 +291,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `besselI(1e12, 2e5, expon.scaled = TRUE)`・`besselI(1e16, 1e7, expon.scaled = TRUE)` (I_(nu+1) / I_nu の連分数に 1e6 項より多く要る。#492) | 0 | 3.910426939755009e-7、3.969525474770118e-9 (Debye の一様漸近展開。Rmpfr との差は 1e-15 以内。修正前の rStats.js は連分数を 1e6 項で打ち切り、25%・99.8% 小さい値だった) |
 | `besselI(1e308, 1e154, expon.scaled = TRUE)`・`besselK(1e308, 1e154, expon.scaled = TRUE)` (#492) | 警告 ("ncalc ... Arg. out of range?" と "precision lost in result") のあと、Windows の R 4.5.2 は異常終了 (segmentation fault) | 2.419707245191434e-155、2.0663656770612464e-154 (Debye の一様漸近展開。Rmpfr との差は 5e-16 以内) |
 | `besselJ(1e200, 1e50)`・`besselY(1e200, 1e50)`・`besselJ(1e40, 1e17)` (x が大きい漸近展開。#490) | NaN と警告 "nu=1e+50 too large for bessel_j() algorithm" (nu が 1e7 を超えるとすべて) | 6.831382541998361e-102、-7.949547116811557e-101、-6.538328107498253e-22 (Rmpfr との差は 3e-16 以内。nu^2 の冪は溢れるときに比 nu / x の形、nu ≥ 2^52 では nu / 2 + 1/4 の 2 での剰余を nu の 4 での剰余から) |
-| タイがあり `exact` を指定しない (または `TRUE`) `ansari.test(conf.int = TRUE)` | エラー "object 'cint' not found" (両方の標本が 50 未満だと R は正確な方法の分岐に入り、タイがあると区間を飛ばす) | 正規近似の区間と推定値 (`exact: false` と同じ)。警告は R が止まる前の 2 つ ("cannot compute exact p-value with ties"、"cannot compute exact confidence intervals with ties") |
+| タイがあり `exact` を指定しない (または `TRUE`) `ansari.test(conf.int = TRUE)` | エラー "object 'cint' not found" (両方の標本が 50 未満だと R は正確な方法の分岐に入り、タイがあると区間を飛ばす) | 正規近似の区間と推定値 (`exact: false` と同じ)。警告は R が止まる前の 2 つ ("cannot compute exact p-value with ties"、"cannot compute exact confidence interval with ties"。R 4.6 より前は "intervals") |
 | `ansari.test(c(1, 2), c(-1, -2), exact = FALSE, conf.int = TRUE)` (標本の正の比がない: x がすべて 0 の片側、y がすべてその反対側。#506) | 警告 "samples differ in location: cannot compute confidence set, returning NA" のあと、エラー "invalid 'xmin' value" | 区間の端と推定値は NaN (このようなデータでの正確な方法の区間と同じ)。警告は "samples differ in location ..." (その前の R の `min`・`max` の値がないという警告は含めない)。統計量と p 値は R と同じ |
 | `ansari.test(c(1, 2, 3), c(-1, -2, -4), conf.int = TRUE)` (正確な方法で、標本の比 x / y >= 0 がない: x がすべて 0 の片側、y がすべてその反対側) | 警告 "cannot compute confidence set, returning NA" のあと、エラー "object 'absigma' not found" | 区間の端と推定値は NaN。警告は "cannot compute confidence set, returning NA"。統計量と p 値は R が止まる前に計算するものと同じ |
 | `ansari.test(c(1e-308, 1.2e308, 1.3e308, 1.4e308, 1.5e308), 1.1e308, conf.int = TRUE)` と `ansari.test(c(-2e-160, -1e-160, 1e-160, 2e-160, 1e140), c(5e-150, -5e-150), conf.int = TRUE)` (有限の比 s で x / s が Inf に溢れるか 0 に潰れ、AB(s) の順位で異なる観測値が同順位になる) | 推定値 0.6364、区間 [2e-11, 4e-11] | 推定値 1.3182、区間は NaN (信頼集合なし)。溢れない同じ順序のデータ (`c(1e-308, 1.2, 1.3, 1.4, 1.5)` と 1.1、1e140 の代わりに 1e-140) と同じ。そのときだけ、順序を保つ x / s の比較で順位を付ける (#507) |
@@ -1113,12 +1113,12 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   なり、`exact: true` で n ≥ 50 でも強制できます。`continuity` は S を sign(S)(|S| − 1) に置き換え
   ます。Pearson は 3 ペア以上、Kendall と Spearman は 2 ペア以上が必要で、区間には 4 ペア以上が必要
   です。定数のデータでは統計量、p 値、推定値が NaN になります。
-- **`ansariTest` の区間 (`confInt: true`):** R 4.5.2 と同じく位置を 0 として計算します。正確な方法:
+- **`ansariTest` の区間 (`confInt: true`):** R 4.6 と同じく位置を 0 として計算します。正確な方法:
   候補の比は x_i / y_j ≥ 0 で、x / s と y の統計量を隣り合う候補の間 (と最大の候補の 2.01 倍) で
   評価し、R の `qansari` の分位点を横切る候補を限界とします (`qansari` の累積和には余裕がないので、
   ちょうど 1/2 の確率が丸めで見逃されることがあり、R と同じです)。限界を作れないときは NaN (R の NA)
-  です。正規近似: 標準化した統計量 (R 4.5.2 のタイ補正した分散と、タイがないときの平均。R-devel では
-  変更されています) が正規分位点を横切る点を、正の値どうしの比と、0 以下の x と負の y の比の最小から
+  です。正規近似: 標準化した統計量 (タイがあるときは R 4.6 と同じく、観測したスコアの平均と分散。R 4.5 は
+  タイがないときの平均を使っていました) が正規分位点を横切る点を、正の値どうしの比と、0 以下の x と負の y の比の最小から
   最大の範囲で `uniroot` (許容誤差 1e-4) により求めます。s = 0 での 0 / 0 は、R の `rank` が NA を
   最後に置くのと同じく最後の順位にします。
 - **シミュレーションによる p 値** (`chisqTest`、`fisherTest`): (1 + 観測値の (1 − 64ε) 倍以上の

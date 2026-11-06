@@ -17,7 +17,8 @@ mantelhaenTest: 2 x 2 x K asymptotic test, pooled odds ratio and its Robins-Bres
 (StratifiedTable; cases whose |sum a - sum E| < 1/2 with the correction are left out, as statsmodels then still
 subtracts 1/2); the exact conditional p-values with exact rational arithmetic; I x J x K from the formula at 40 digits.
 ansariTest: exact cases (below 55 values per sample, no ties) by counting subsets in exact integers (scipy's exact
-p-values are good to about 1e-8 only); the normal approximation from scipy.stats.ansari.
+p-values are good to about 1e-8 only); the normal approximation from scipy.stats.ansari (with ties, the variance of R
+before 4.6; test/htest-basic.test.ts skips those cases).
 ksTest: one sample against the standard normal or exponential: the statistic from scipy.stats.ks_1samp, exact
 p-values from scipy.stats.kstwo (two-sided) and scipy.special.smirnov (one-sided), asymptotic ones from
 scipy.special.kolmogorov and exp(-2 n D^2). Two samples without ties: scipy.stats.ks_2samp (method "exact") and the

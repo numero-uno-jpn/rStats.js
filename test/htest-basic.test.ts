@@ -111,6 +111,18 @@ const floors: Record<string, Record<string, number>> = {
   ksTest: { pValue: 1e-2 },
 };
 
+// Cases the SciPy references no longer cover, with the reason (counted in the log)
+const hasTies = (...v: unknown[]): boolean => {
+  const z = v.flatMap(nums);
+  return new Set(z).size < z.length;
+};
+const skipped: Record<string, (a: Args) => string | undefined> = {
+  // scipy.stats.ansari's normal approximation with ties has the variance of R before 4.6 (from the sum of the squared
+  // scores, with the mean of untied scores); R 4.6 takes the mean and variance of the observed scores. Those cases are
+  // checked against R (fixture ansariTest)
+  ansariTest: (a) => (hasTies(a.x, a.y) ? "ties in the normal approximation (R 4.6's variance)" : undefined),
+};
+
 for (const [name, [tolerance, call]] of Object.entries(calls)) {
   const path = fileURLToPath(new URL(`./fixtures/htest_${name}.scipy.json`, import.meta.url));
   const fixture = JSON.parse(readFileSync(path, "utf8")) as { generator: string; cases: RefCase[] };
@@ -118,7 +130,13 @@ for (const [name, [tolerance, call]] of Object.entries(calls)) {
     it(`matches the SciPy references (${fixture.generator})`, () => {
       const bad: string[] = [];
       let worst = 0;
+      const skips = new Map<string, number>();
       for (const c of fixture.cases) {
+        const skip = skipped[name]?.(c.args);
+        if (skip !== undefined) {
+          skips.set(skip, (skips.get(skip) ?? 0) + 1);
+          continue;
+        }
         const actual = call(c.args);
         for (const [field, exp] of Object.entries(c.expected)) {
           const e = Array.isArray(exp) ? exp.map(num) : [num(exp)];
@@ -139,6 +157,7 @@ for (const [name, [tolerance, call]] of Object.entries(calls)) {
         }
       }
       console.log(`${name}: ${fixture.cases.length} cases, max relative error ${worst.toExponential(2)}`);
+      for (const [reason, k] of skips) console.log(`  ${k} skipped: ${reason}`);
       expect(bad.slice(0, 10), bad.join("\n")).toHaveLength(0);
     });
   });
@@ -420,7 +439,7 @@ if (hasFixture("ansariTestConfInt"))
       const twin = cases.find((d) => d.args.exact === false && key(d.args) === key(c.args));
       if (twin === undefined) throw new Error("no exact = FALSE case for an R 'cint' error");
       // the warnings are those R gives before it stops (its exact method cannot be used), not those of the twin's interval
-      const warnings = ["cannot compute exact p-value with ties", "cannot compute exact confidence intervals with ties"];
+      const warnings = ["cannot compute exact p-value with ties", "cannot compute exact confidence interval with ties"];
       return {
         expected: { ...twin.expected, warnings },
         reason: "R's 'cint' error with ties: compared with exact = FALSE (docs/differences-from-r.md), with R's warnings before it stops",

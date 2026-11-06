@@ -297,7 +297,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `besselI(1e12, 2e5, expon.scaled = TRUE)`, `besselI(1e16, 1e7, expon.scaled = TRUE)` (the continued fraction of I_(nu+1) / I_nu needs more than 1e6 terms; #492) | 0 | 3.910426939755009e-7, 3.969525474770118e-9 (Debye's uniform expansion, Rmpfr to within 1e-15; before the fix rStats.js stopped the fraction at 1e6 terms and gave values 25% and 99.8% low) |
 | `besselI(1e308, 1e154, expon.scaled = TRUE)`, `besselK(1e308, 1e154, expon.scaled = TRUE)` (#492) | a warning ("ncalc ... Arg. out of range?" and "precision lost in result"), then R 4.5.2 on Windows crashed (segmentation fault) | 2.419707245191434e-155, 2.0663656770612464e-154 (Debye's uniform expansion, Rmpfr to within 5e-16) |
 | `besselJ(1e200, 1e50)`, `besselY(1e200, 1e50)`, `besselJ(1e40, 1e17)` (the asymptotic expansion for large x; #490) | NaN with the warning "nu=1e+50 too large for bessel_j() algorithm" (every nu above 1e7) | 6.831382541998361e-102, -7.949547116811557e-101, -6.538328107498253e-22 (Rmpfr to within 3e-16; the powers of nu^2 as ratios nu / x where they overflow, and nu / 2 + 1/4 modulo 2 from nu modulo 4 for nu >= 2^52) |
-| `ansari.test(conf.int = TRUE)` with ties and `exact` unset (or `TRUE`) | error "object 'cint' not found" (with both samples below 50 values R takes the exact branch, which skips the interval with ties) | the normal-approximation interval and estimate, the same as with `exact: false`, with R's two warnings before it stops ("cannot compute exact p-value with ties", "cannot compute exact confidence intervals with ties") |
+| `ansari.test(conf.int = TRUE)` with ties and `exact` unset (or `TRUE`) | error "object 'cint' not found" (with both samples below 50 values R takes the exact branch, which skips the interval with ties) | the normal-approximation interval and estimate, the same as with `exact: false`, with R's two warnings before it stops ("cannot compute exact p-value with ties", "cannot compute exact confidence interval with ties", "intervals" before R 4.6) |
 | `ansari.test(c(1, 2), c(-1, -2), exact = FALSE, conf.int = TRUE)` (no positive ratio of the samples: all x on one side of 0 and all y on the other; #506) | the warning "samples differ in location: cannot compute confidence set, returning NA", then the error "invalid 'xmin' value" | NaN limits and estimate, as the exact interval on such data, with the warning "samples differ in location ..." (not R's warnings of `min` and `max` of no values before it); the statistic and p-value as R |
 | `ansari.test(c(1, 2, 3), c(-1, -2, -4), conf.int = TRUE)` (exact, no ratio x / y >= 0 of the samples: all x on one side of 0 and all y on the other) | the warning "cannot compute confidence set, returning NA", then the error "object 'absigma' not found" | NaN limits and estimate, with the warning "cannot compute confidence set, returning NA"; the statistic and p-value as R computes them before it stops |
 | `ansari.test(c(1e-308, 1.2e308, 1.3e308, 1.4e308, 1.5e308), 1.1e308, conf.int = TRUE)` and `ansari.test(c(-2e-160, -1e-160, 1e-160, 2e-160, 1e140), c(5e-150, -5e-150), conf.int = TRUE)` (for a finite trial ratio s, x / s overflows to Inf or falls to 0, tying distinct observations in the ranks of AB(s)) | estimate 0.6364; interval [2e-11, 4e-11] | estimate 1.3182 and interval NaN (no confidence set), as data with the same order and no overflow (`c(1e-308, 1.2, 1.3, 1.4, 1.5)` against 1.1; 1e-140 for 1e140): only there the ranks come from a comparison of x / s that keeps the order (#507) |
@@ -1192,13 +1192,13 @@ also from R's source. They are listed because they are easy to get wrong.
   n ≥ 50; `continuity` replaces S with sign(S)(|S| − 1). Pearson needs at least 3 pairs, Kendall
   and Spearman at least 2; intervals need at least 4. Constant data give NaN statistic, p-value
   and estimate.
-- **`ansariTest` interval (`confInt: true`):** computed as R 4.5.2 does, with the locations taken as
+- **`ansariTest` interval (`confInt: true`):** computed as R 4.6 does, with the locations taken as
   0. Exact: the candidate ratios are the x_i / y_j ≥ 0, the statistic of x / s against y is
   evaluated between consecutive candidates (and at 2.01 times the largest), the limits are the
   candidates where it crosses R's `qansari` quantiles (whose cumulative sums have no slack, so a
   probability that is exactly 1/2 can be missed by rounding, as in R), and limits that cannot be
-  formed are NaN (R's NA). Normal approximation: the standardised statistic (R 4.5.2's tie-corrected
-  variance with the no-ties mean; R-devel changed it) crosses the normal quantiles; the roots are
+  formed are NaN (R's NA). Normal approximation: the standardised statistic (with ties, R 4.6's mean
+  and variance of the observed scores; R 4.5 took the no-ties mean) crosses the normal quantiles; the roots are
   found with `uniroot` (tolerance 1e-4) between the smallest and largest ratio of the positive values
   and of the non-positive x to the negative y; 0 / 0 at s = 0 is ranked last, as R's `rank` puts NA
   last.

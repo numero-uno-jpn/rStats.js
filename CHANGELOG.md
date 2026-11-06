@@ -13,6 +13,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 - `glmRstandard` follows R 4.6: standardized Pearson residuals by default (R 4.6's default type of `rstandard()`), the
   deviance residuals with the new option `type: "deviance"`, divided by sigma sqrt(1 - h).
+- `ansariTest` follows R 4.6: the normal approximation with ties is centred and scaled with the mean and variance of
+  the observed scores (p-values, intervals and estimates change; without ties as before), and the warning reads
+  "cannot compute exact confidence interval with ties".
 
 ## 1.0.0 - 2026-11-05
 
