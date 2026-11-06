@@ -262,11 +262,13 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `survival::survdiff()` | `survdiff` | 生存曲線の差の検定: Harrington と Fleming の G-rho 族 (`rho = 0` でログランク検定) |
 | `survival::survfit()` | `survfit` | 生存関数の Kaplan-Meier 推定 (Greenwood の標準誤差と各点での信頼区間つき) |
 | `t.test()` | `tTest` | Student の t 検定 |
+| `equivalence::tost()` | `tost` | 2 つの平均の同等性についての 2 つの片側 t 検定 (TOST) |
 | `TukeyHSD()` | `TukeyHSD` | 一元配置分散分析の群平均の間の Tukey の HSD (honest significant differences) |
 | `PMCMRplus::tukeyTest()` | `tukeyTest` | 平均の Tukey の全対比較検定 |
 | `var.test()` | `varTest` | 2 つの正規標本の分散が与えた比であることの F 検定 |
 | `wilcox.test()` | `wilcoxTest` | Wilcoxon の符号付き順位検定と順位和検定 |
 | `BSDA::z.test()` | `zTest` | 標準偏差が既知の場合の、1 標本の平均または 2 標本の平均の差の z 検定 |
+| (R にない) | `binomDiffEquivalenceTest` | 独立な 2 つの比率 x1/n1 と x2/n2 の差が許容幅の内にあること (同等性) の検定 |
 | (R にない) | `setWarningHandler` | R の警告を受け取る関数の設定 (前の関数を返す) |
 
 ## 線形代数 (`rStats.js/linalg`)

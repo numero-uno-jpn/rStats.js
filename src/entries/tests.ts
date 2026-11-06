@@ -39,6 +39,15 @@ export {
   type OddsRatioResult,
 } from "../htest/twoByTwo.js";
 export {
+  tost,
+  binomDiffEquivalenceTest,
+  type TostOptions,
+  type TostResult,
+  type BinomDiffEquivalenceMethod,
+  type BinomDiffEquivalenceTestOptions,
+  type BinomDiffEquivalenceTestResult,
+} from "../htest/equivalence.js";
+export {
   boschlooTest,
   type BoschlooTestOptions,
   type BoschlooTestResult,

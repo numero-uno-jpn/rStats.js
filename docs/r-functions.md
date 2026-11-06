@@ -262,11 +262,13 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |
 | `survival::survfit()` | `survfit` | Kaplan-Meier estimate of the survival function with Greenwood's standard error and pointwise confidence intervals. |
 | `t.test()` | `tTest` | Student's t-test. |
+| `equivalence::tost()` | `tost` | Two one-sided t tests of equivalence of two means. |
 | `TukeyHSD()` | `TukeyHSD` | Tukey's honest significant differences between the group means of a one-way ANOVA. |
 | `PMCMRplus::tukeyTest()` | `tukeyTest` | Tukey's all-pairs test of means. |
 | `var.test()` | `varTest` | F test that the variances of two normal samples have a given ratio. |
 | `wilcox.test()` | `wilcoxTest` | Wilcoxon signed rank and rank sum tests. |
 | `BSDA::z.test()` | `zTest` | z test for the mean of one sample, or the difference of the means of two, with known standard deviations. |
+| (not in R) | `binomDiffEquivalenceTest` | Test of equivalence of two independent proportions x1/n1 and x2/n2 within a margin. |
 | (not in R) | `setWarningHandler` | Sets the function that receives R's warnings, and returns the one it replaces. |
 
 ## Linear algebra (`rStats.js/linalg`)
