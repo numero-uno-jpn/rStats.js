@@ -3,6 +3,22 @@ import { confint, lm, predict, svd } from "../src/index.js";
 import { describe, expect, it } from "vitest";
 import { arg, defined, htestSuite } from "./helpers/htest.js";
 
+/**
+ * Values of R that are further from the exact value than rStats.js; these are compared with the exact value instead
+ * (exact rational arithmetic with gmp, t quantile in double), with an absolute tolerance.
+ */
+const REFERENCES = [
+  // cases #5 and #7: the upper end of the second coefficient's interval (-0.63 + 0.63 = 9.6e-5) cancels. R 4.6.2 (OpenBLAS
+  // 0.3.32) is 3.4e-15 from the exact value, R 4.5.2 1.8e-15, rStats.js 1.06e-15 (about 8 ulp of 0.63)
+  {
+    field: "confUpper",
+    r: 9.5535478263131246e-5,
+    exact: 9.5535478266520028e-5,
+    tolerance: 2e-15,
+    reason: "cancelling interval end: judged by the exact value",
+  },
+];
+
 htestSuite({
   name: "lm",
   call: (a) => {
@@ -38,7 +54,9 @@ htestSuite({
   floor: { residuals: 1, coefficients: 1, confLower: 1e-3, confUpper: 1e-3 },
   // nearly collinear columns (1e6 + noise with an intercept): the fit is determined to eps times the condition number
   // of R (case 8: R is 1.7e-9 from 60-digit values, rStats.js 3.6e-11)
-  knownDifference: (a, _field, expected, actual) => {
+  knownDifference: (a, field, expected, actual) => {
+    const ref = REFERENCES.find((r) => r.field === field && r.r === expected);
+    if (ref) return Math.abs(actual - ref.exact) <= ref.tolerance ? ref.reason : undefined;
     const fit = lm(arg.mat(a.x)!, arg.vec(a.y)!, defined({ intercept: arg.bool(a.intercept), weights: arg.vec(a.weights) }));
     // a perfect fit: residuals, sigma and what follows from them are rounding residue, in R as here (R: F = 7.5e31)
     const ymax = Math.max(...arg.vec(a.y)!.map(Math.abs));
