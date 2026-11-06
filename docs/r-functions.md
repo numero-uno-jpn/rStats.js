@@ -199,6 +199,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `PMCMRplus::gamesHowellTest()` | `gamesHowellTest` | Games-Howell all-pairs test of means with Welch's standard errors and degrees of freedom. |
 | `multcomp::glht()` | `glhtDunnett` | Dunnett's many-to-one comparisons of a one-way ANOVA with simultaneous p-values. |
 | `glm()` | `glm` | Fit a generalized linear model by iteratively reweighted least squares. |
+| `DescTools::GoodmanKruskalGamma()` | `goodmanKruskalGamma` | Goodman and Kruskal's gamma of a table of two ordered classifications, with its asymptotic standard error and a Wald confidence interval. |
+| `DescTools::GTest()` | `gTest` | Log-likelihood ratio (G) test of independence in a contingency table, or of goodness of fit of counts to given probabilities. |
 | `hatvalues()` | `glmHatvalues` | Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight, for a `glm` fit. |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges' g. |
 | `irr::icc()` | `icc` | Intraclass correlation coefficient with its F test and confidence interval. |
@@ -209,6 +211,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `ks.test()` | `ksTest` | Kolmogorov-Smirnov test. |
 | `PMCMRplus::kwAllPairsDunnTest()` | `kwAllPairsDunnTest` | Dunn's all-pairs test of mean ranks with adjusted p-values. |
 | `PMCMRplus::kwManyOneDunnTest()` | `kwManyOneDunnTest` | Dunn's many-to-one test of mean ranks against the control. |
+| `coin::lbl_test()` | `lblTest` | Asymptotic linear-by-linear association test of a table of two ordered classifications. |
 | `car::leveneTest()` | `leveneTest` | Levene's test for homogeneity of variance across groups. |
 | `nortest::lillie.test()` | `lillieTest` | Lilliefors test for normality. |
 | `lm()` | `lm` | Fit a linear model from a formula. |
@@ -253,6 +256,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `rstandard()` | `glmRstandard` | Standardized Pearson or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia test for normality. |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
+| `DescTools::StuartMaxwellTest()` | `stuartMaxwellTest` | Stuart-Maxwell test of marginal homogeneity of a square table. |
 | `summary()` | `aovSummary` | The table of an analysis of variance fitted by `aov`. |
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |
 | `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |

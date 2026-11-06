@@ -199,6 +199,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `PMCMRplus::gamesHowellTest()` | `gamesHowellTest` | Welch の標準誤差と自由度による、平均の Games-Howell の全対比較検定 |
 | `multcomp::glht()` | `glhtDunnett` | 一元配置分散分析での Dunnett の多対一比較 (同時 p 値つき) |
 | `glm()` | `glm` | 反復重み付き最小二乗法による一般化線形モデルの当てはめ |
+| `DescTools::GoodmanKruskalGamma()` | `goodmanKruskalGamma` | 2 つの順序のある分類の表の Goodman と Kruskal のガンマ (漸近標準誤差と Wald 信頼区間つき) |
+| `DescTools::GTest()` | `gTest` | 分割表の独立性、または計数の与えた確率への適合度についての対数尤度比 (G) 検定 |
 | `hatvalues()` | `glmHatvalues` | `glm` の当てはめの、最後の重み付き最小二乗ステップのハット行列の対角成分 (事前重みが 0 でない行について) |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges の g |
 | `irr::icc()` | `icc` | 級内相関係数と、その F 検定および信頼区間 |
@@ -209,6 +211,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `ks.test()` | `ksTest` | Kolmogorov-Smirnov 検定 |
 | `PMCMRplus::kwAllPairsDunnTest()` | `kwAllPairsDunnTest` | 平均順位の Dunn の全対比較検定 (調整済み p 値つき) |
 | `PMCMRplus::kwManyOneDunnTest()` | `kwManyOneDunnTest` | 対照群に対する平均順位の Dunn の多対一検定 |
+| `coin::lbl_test()` | `lblTest` | 2 つの順序のある分類の表に対する漸近的な線形と線形の連関 (linear-by-linear association) の検定 |
 | `car::leveneTest()` | `leveneTest` | 群間の分散の均一性についての Levene 検定 |
 | `nortest::lillie.test()` | `lillieTest` | Lilliefors の正規性検定 |
 | `lm()` | `lm` | 式からの線形モデルの当てはめ |
@@ -253,6 +256,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `rstandard()` | `glmRstandard` | `glm` の当てはめの標準化 Pearson 残差 (既定) または標準化逸脱度残差 (事前重みが 0 でない行について) |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia の正規性検定 |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk の正規性検定 |
+| `DescTools::StuartMaxwellTest()` | `stuartMaxwellTest` | 正方の表の周辺の一様性についての Stuart-Maxwell 検定 |
 | `summary()` | `aovSummary` | `aov` で当てはめた分散分析の表 |
 | `summary()` | `glmSummary` | `glm` で当てはめた一般化線形モデルの要約: 分散パラメータ、係数の表、推定値の共分散 |
 | `survival::survdiff()` | `survdiff` | 生存曲線の差の検定: Harrington と Fleming の G-rho 族 (`rho = 0` でログランク検定) |

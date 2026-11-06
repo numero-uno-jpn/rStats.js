@@ -44,6 +44,20 @@ export {
   type BoschlooTestResult,
   type BoschlooTsMethod,
 } from "../htest/boschlooTest.js";
+export {
+  gTest,
+  stuartMaxwellTest,
+  goodmanKruskalGamma,
+  lblTest,
+  type GTestCorrection,
+  type GTestOptions,
+  type GTestResult,
+  type StuartMaxwellTestResult,
+  type GoodmanKruskalGammaOptions,
+  type GoodmanKruskalGammaResult,
+  type LblTestOptions,
+  type LblTestResult,
+} from "../htest/tableTests.js";
 export { mcnemarTest, type McnemarTestOptions, type McnemarTestResult } from "../htest/mcnemarTest.js";
 export { varTest, bartlettTest, type VarTestOptions, type VarTestResult, type BartlettTestResult } from "../htest/varTest.js";
 export {
