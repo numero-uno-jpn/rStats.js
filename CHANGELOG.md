@@ -32,7 +32,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   also takes 0..3 (Edgeworth terms in the normal p-value); the normal interval of the signed rank test is searched on
   the observations, values equal to `mu` included. Two values differ from R 4.6.2, where it is wrong
   (docs/differences-from-r.md): the one-sample conditional interval's lower end (R's is one Walsh average too high)
-  and its level, and two-sided normal p-values below 1/64 from the upper tail itself (R's 2 (1 - F) gives 0 for
+  and its level, the level of a conditional interval (one or two samples) with an end at the first or last Walsh
+  average or difference (R reports tail 0 there), and two-sided normal p-values below 1/64 from the upper tail itself (R's 2 (1 - F) gives 0 for
   `1:300`). The conditional distribution has time and memory limits (RangeError suggesting `exact: false`).
 - `pairwiseWilcoxTest` follows R 4.6's `wilcox.test` through `wilcoxTest`: exact p-values with ties and zeros, no
   ties warnings, and `correct` 0..3.

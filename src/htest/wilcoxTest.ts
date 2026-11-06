@@ -564,8 +564,9 @@ function ranksAndKey(v: readonly number[]): { ranks: number[]; key: string } {
  * midpoint has upperP > a' + 10 eps (-Inf where already A_1 - 1 has), with the tail of the last rejected point; the
  * upper end likewise from the top with lowerP. The distribution is rebuilt for each multiset of scores (cached).
  *
- * `firstTail`: the tail reported for an end at A_1 (A_K): R's 0 (two samples), or the tail at A_1 - 1 (A_K + 1), which
- * is what the test rejects there (one sample, where rStats.js gives the correct interval: see signedRankConditionalCI)
+ * An end at A_1 (A_K) is reported with the tail rejected there, at A_1 - 1 (A_K + 1). R 4.6.2 reports 0, which overstates
+ * the level (wilcox.test(c(1, 2, 3), c(3, 4, 5), conf.int = TRUE, alternative = "greater", conf.level = 0.92) gives
+ * level 1 where 0.95 is achieved; docs/differences-from-r.md)
  */
 function conditionalCI(
   A: readonly number[],
@@ -576,7 +577,6 @@ function conditionalCI(
   lowerP: (d: ScoreDistribution, stat: number) => number,
   scale: { mean: number; sd: number },
   nScores: number,
-  firstTail: boolean,
   ctx: Context,
   estimateNames: string,
 ): CIPart {
@@ -663,7 +663,7 @@ function conditionalCI(
   if (doLower) {
     const p0 = upperAt(0);
     if (!(p0 > a2)) {
-      let prev = firstTail ? p0 : 0;
+      let prev = p0;
       let k = 1;
       for (; k <= K - 1; k++) {
         const p = upperAt(k);
@@ -679,7 +679,7 @@ function conditionalCI(
   if (doUpper) {
     const p0 = lowerAt(0);
     if (!(p0 > a2)) {
-      let prev = firstTail ? p0 : 0;
+      let prev = p0;
       let k = K - 1;
       for (; k >= 1; k--) {
         const p = lowerAt(K - k);
@@ -719,7 +719,7 @@ function shiftedValues(x: readonly number[], t: number): number[] {
  * R 4.6.2 rejects at the lower end where P(V > v) <= a' (a strict tail, where its two-sample interval uses
  * P(W >= w)), which puts the lower end one Walsh average too high (for data without ties above the classical
  * interval, at the same reported level) and never at -Inf. Here the lower end uses P(V >= v), and the tails reported
- * for ends at A_1 or A_K are those rejected there: the classical interval for data without ties, at the level it
+ * for ends at A_1 or A_K are those rejected there (as for two samples, conditionalCI): the classical interval for data without ties, at the level it
  * achieves (docs/differences-from-r.md)
  */
 function signedRankConditionalCI(x: readonly number[], ctx: Context): CIPart {
@@ -741,7 +741,6 @@ function signedRankConditionalCI(x: readonly number[], ctx: Context): CIPart {
     lowerTail,
     { mean: K / 2, sd: Math.sqrt((n * (n + 1) * (2 * n + 1)) / 24) },
     n,
-    true,
     ctx,
     "(pseudo)median",
   );
@@ -995,7 +994,7 @@ function rankSumExactCI(x: readonly number[], y: readonly number[], ctx: Context
 /**
  * Exact conditional interval of the rank sum test (ties), as R 4.6: at a shift t the pooled mid-ranks of (x - t, y)
  * are the scores and w(t) the statistic; the lower end from P(W >= w), the upper from P(W <= w). An end at the first
- * difference has R's tail 0 (see conditionalCI)
+ * or last difference with the tail rejected there, where R 4.6.2 reports 0 (see conditionalCI)
  */
 function rankSumConditionalCI(x: readonly number[], y: readonly number[], ctx: Context): CIPart {
   const nx = x.length;
@@ -1015,7 +1014,6 @@ function rankSumConditionalCI(x: readonly number[], y: readonly number[], ctx: C
     lowerTail,
     { mean: (nx * ny) / 2, sd: Math.sqrt((nx * ny * (nx + ny + 1)) / 12) },
     nx + ny,
-    false,
     ctx,
     "difference in location",
   );

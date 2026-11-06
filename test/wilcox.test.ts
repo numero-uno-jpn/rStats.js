@@ -37,22 +37,108 @@ function signCounts(a: readonly number[]): number[] {
   return c;
 }
 
-const conditionalRefs = new Map<string, { r: Record<"confInt" | "confLevel", number[]>; correct: Record<"confInt" | "confLevel", number[]> } | undefined>();
+type Reference = { r: Record<"confInt" | "confLevel", number[]>; correct: Record<"confInt" | "confLevel", number[]>; twoSample: boolean };
+const conditionalRefs = new Map<string, Reference | undefined>();
+
+/** Number of m-subsets of the integer scores a with each sum s (exact while C(N, m) < 2^53) */
+function subsetCounts(a: readonly number[], m: number): number[] {
+  let total = 0;
+  for (const v of a) total += v;
+  const c = Array.from({ length: m + 1 }, () => new Array<number>(total + 1).fill(0));
+  c[0]![0] = 1;
+  for (const v of a) {
+    for (let j = m; j >= 1; j--) for (let s = total; s >= v; s--) c[j]![s]! += c[j - 1]![s - v]!;
+  }
+  return c[m]!;
+}
 
 /**
- * The one-sample exact conditional interval (ties or zeros in x - mu, exact test chosen) by R 4.6.2's rule and by the
- * correct one, from exact sign counts at each midpoint of the sorted Walsh averages; undefined for other cases
+ * Test inversion over the midpoints of the sorted values A (Walsh averages or differences), with tails(t) =
+ * [upper tail, lower tail] of the statistic at the shift t. R 4.6.2 reports an end at A_1 or A_K with the tail 0
+ * (rRule); the tail rejected there is the one at A_1 - 1 (A_K + 1)
  */
-function conditionalReference(a: HTestCase["args"]): { r: Record<"confInt" | "confLevel", number[]>; correct: Record<"confInt" | "confLevel", number[]> } | undefined {
+function invert(A: readonly number[], tails: (t: number) => [number, number], alternative: string, alpha: number, rRule: boolean): Record<"confInt" | "confLevel", number[]> {
+  const K = A.length;
+  let lower = -Infinity;
+  let lowerTail = 0;
+  if (alternative !== "less") {
+    const p0 = tails(A[0]! - 1)[0];
+    if (p0 <= alpha) {
+      let prev = rRule ? 0 : p0;
+      let k = 1;
+      for (; k < K; k++) {
+        const p = tails((A[k - 1]! + A[k]!) / 2)[0];
+        if (p > alpha) break;
+        prev = p;
+      }
+      lower = A[k - 1]!;
+      lowerTail = prev;
+    }
+  }
+  let upper = Infinity;
+  let upperTail = 0;
+  if (alternative !== "greater") {
+    const p0 = tails(A[K - 1]! + 1)[1];
+    if (p0 <= alpha) {
+      let prev = rRule ? 0 : p0;
+      let k = K - 1;
+      for (; k >= 1; k--) {
+        const p = tails((A[k - 1]! + A[k]!) / 2)[1];
+        if (p > alpha) break;
+        prev = p;
+      }
+      upper = A[k]!;
+      upperTail = prev;
+    }
+  }
+  return { confInt: [lower, upper], confLevel: [1 - lowerTail - upperTail] };
+}
+
+/**
+ * The exact conditional interval (ties, or zeros for one sample; exact test chosen) by R 4.6.2's rule and by the
+ * correct one, from exact counts (signs, or subsets for two samples) at each midpoint of the sorted Walsh averages
+ * or differences; undefined for other cases
+ */
+function conditionalReference(a: HTestCase["args"]): Reference | undefined {
   const key = JSON.stringify(a);
   if (conditionalRefs.has(key)) return conditionalRefs.get(key);
-  const compute = (): ReturnType<typeof conditionalReference> => {
-    const y = arg.vec(a.y);
+  const compute = (): Reference | undefined => {
+    if (!(arg.bool(a.confInt) ?? false)) return undefined;
+    const y0 = arg.vec(a.y);
     const paired = arg.bool(a.paired) ?? false;
-    if (!(arg.bool(a.confInt) ?? false) || (y !== undefined && !paired)) return undefined;
     const x0 = arg.vec(a.x)!;
-    const x = (y === undefined ? x0 : x0.map((v, i) => v - y[i]!)).filter((v) => !Number.isNaN(v));
     const mu = arg.num(a.mu) ?? 0;
+    const alternative = arg.str(a.alternative) ?? "two.sided";
+    const level = arg.num(a.confLevel) ?? 0.95;
+    const alpha = (alternative === "two.sided" ? (1 - level) / 2 : 1 - level) + 10 * Number.EPSILON;
+    if (y0 !== undefined && !paired) {
+      const x = x0.filter((v) => !Number.isNaN(v));
+      const y = y0.filter((v) => !Number.isNaN(v));
+      const m = x.length;
+      const N = m + y.length;
+      if (!(arg.bool(a.exact) ?? (m < 50 && y.length < 50)) || N > 54 || [...x, ...y].some((v) => !Number.isFinite(v))) return undefined;
+      if (new Set(midRanks([...x.map((v) => v - mu), ...y])).size === N) return undefined;
+      const diffs = x.flatMap((xi) => y.map((yj) => xi - yj)).sort((p, q) => p - q);
+      // P(W >= w) and P(W <= w) at the shift t
+      const tails = (t: number): [number, number] => {
+        const r = midRanks([...x.map((v) => v - t), ...y]);
+        const f = r.every(Number.isInteger) ? 1 : 2;
+        const c = subsetCounts(r.map((v) => v * f), m);
+        let w = 0;
+        for (let i = 0; i < m; i++) w += r[i]! * f;
+        let up = 0;
+        let lo = 0;
+        let all = 0;
+        c.forEach((k, s) => {
+          if (s >= w) up += k;
+          if (s <= w) lo += k;
+          all += k;
+        });
+        return [up / all, lo / all];
+      };
+      return { r: invert(diffs, tails, alternative, alpha, true), correct: invert(diffs, tails, alternative, alpha, false), twoSample: true };
+    }
+    const x = (y0 === undefined ? x0 : x0.map((v, i) => v - y0[i]!)).filter((v) => !Number.isNaN(v));
     const n = x.length;
     if (!(arg.bool(a.exact) ?? n < 50) || n > 52 || x.some((v) => !Number.isFinite(v))) return undefined;
     const d = x.map((v) => v - mu);
@@ -61,12 +147,8 @@ function conditionalReference(a: HTestCase["args"]): { r: Record<"confInt" | "co
     const walsh: number[] = [];
     for (let i = 0; i < n; i++) for (let j = i; j < n; j++) walsh.push((x[i]! + x[j]!) / 2);
     walsh.sort((p, q) => p - q);
-    const K = walsh.length;
-    const alternative = arg.str(a.alternative) ?? "two.sided";
-    const level = arg.num(a.confLevel) ?? 0.95;
-    const alpha = (alternative === "two.sided" ? (1 - level) / 2 : 1 - level) + 10 * Number.EPSILON;
-    // P(V >= v) (strict: P(V > v)) and P(V <= v) at the shift t
-    const tails = (t: number, strict: boolean): [number, number] => {
+    // P(V >= v) (strict, R 4.6.2: P(V > v)) and P(V <= v) at the shift t
+    const tails = (strict: boolean) => (t: number): [number, number] => {
       const e = x.map((v) => v - t);
       const r = midRanks(e.map(Math.abs));
       const f = r.every(Number.isInteger) ? 1 : 2;
@@ -81,42 +163,7 @@ function conditionalReference(a: HTestCase["args"]): { r: Record<"confInt" | "co
       });
       return [up / 2 ** n, lo / 2 ** n];
     };
-    const interval = (rRule: boolean): Record<"confInt" | "confLevel", number[]> => {
-      let lower = -Infinity;
-      let lowerTail = 0;
-      if (alternative !== "less") {
-        const p0 = tails(walsh[0]! - 1, rRule)[0];
-        if (p0 <= alpha) {
-          let prev = rRule ? 0 : p0;
-          let k = 1;
-          for (; k < K; k++) {
-            const p = tails((walsh[k - 1]! + walsh[k]!) / 2, rRule)[0];
-            if (p > alpha) break;
-            prev = p;
-          }
-          lower = walsh[k - 1]!;
-          lowerTail = prev;
-        }
-      }
-      let upper = Infinity;
-      let upperTail = 0;
-      if (alternative !== "greater") {
-        const p0 = tails(walsh[K - 1]! + 1, rRule)[1];
-        if (p0 <= alpha) {
-          let prev = rRule ? 0 : p0;
-          let k = K - 1;
-          for (; k >= 1; k--) {
-            const p = tails((walsh[k - 1]! + walsh[k]!) / 2, rRule)[1];
-            if (p > alpha) break;
-            prev = p;
-          }
-          upper = walsh[k]!;
-          upperTail = prev;
-        }
-      }
-      return { confInt: [lower, upper], confLevel: [1 - lowerTail - upperTail] };
-    };
-    return { r: interval(true), correct: interval(false) };
+    return { r: invert(walsh, tails(true), alternative, alpha, true), correct: invert(walsh, tails(false), alternative, alpha, false), twoSample: false };
   };
   const ref = compute();
   conditionalRefs.set(key, ref);
@@ -156,14 +203,15 @@ htestSuite({
       const all = [...(arg.vec(a.x) ?? []).map((v) => v - mu), ...(arg.vec(a.y) ?? [])].filter((v) => !Number.isNaN(v));
       if (arg.vec(a.y) !== undefined && all.every((v) => v === all[0])) return "two samples with every value tied: p = 1 (R gives NaN)";
     }
-    // R 4.6.2's one-sample conditional interval (ties or zeros) rejects its lower end where P(V > v) <= a' (a strict
-    // tail; its two-sample interval uses P(W >= w)) and gives an end at the first or last Walsh average the tail 0;
-    // rStats.js uses P(V >= v) and the tail rejected there. Both rules are recomputed here with exact counts: R's
-    // value must be that of R's rule, rStats.js's that of the correct one
+    // R 4.6.2's conditional intervals (ties, or zeros for one sample) report an end at the first or last Walsh average
+    // (difference) with the tail 0, and the one-sample one rejects its lower end where P(V > v) <= a' (a strict tail;
+    // the two-sample one uses P(W >= w)); rStats.js uses P(V >= v) and the tail rejected there. Both rules are
+    // recomputed here with exact counts: R's value must be that of R's rule, rStats.js's that of the correct one
     if (field === "confInt" || field === "confLevel") {
       const ref = conditionalReference(a);
       const near = (u: number, v: number): boolean => u === v || Math.abs(u - v) <= 1e-12 * Math.max(Math.abs(v), 1);
       if (ref !== undefined && ref.r[field].some((v) => near(expected, v)) && ref.correct[field].some((v) => near(actual, v))) {
+        if (ref.twoSample) return "two-sample conditional exact interval: R 4.6.2 reports the tail 0 for an end at the first or last difference (both rules checked by exact counts)";
         return "one-sample conditional exact interval: R 4.6.2's lower end from P(V > v), here P(V >= v) (both checked by exact counts)";
       }
     }

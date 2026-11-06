@@ -115,6 +115,16 @@ describe("wilcoxTest, exact intervals (R 4.6)", () => {
     expect(wilcoxTest([1, Infinity, Infinity], [2, 3], { confInt: true }).confInt).toEqual([-Infinity, Infinity]);
   });
 
+  it("two samples: an end at the first or last difference has the tail rejected there (R 4.6.2: 0)", () => {
+    // P(W >= 9) = 1 / C(6, 3) is rejected below -4: level 0.95 (R 4.6.2 reports 1)
+    const g = wilcoxTest([1, 2, 3], [3, 4, 5], { confInt: true, alternative: "greater", confLevel: 0.92 });
+    expect(g.confInt).toEqual([-4, Infinity]);
+    close(g.confLevel!, 0.95);
+    const l = wilcoxTest([1, 2, 3], [3, 4, 5], { confInt: true, alternative: "less", confLevel: 0.92 });
+    expect(l.confInt).toEqual([-Infinity, 0]);
+    close(l.confLevel!, 0.95);
+  });
+
   it("one sample with ties or zeros: the correct conditional interval (R 4.6.2's lower end is one Walsh average higher)", () => {
     // without ties, a zero (x9 - 0.5) takes the conditional path; the interval is the classical one of the same data
     // (R 4.6.2: [1.19, 2.37])
