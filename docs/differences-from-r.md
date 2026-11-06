@@ -33,7 +33,8 @@ reference, the case passes as "more accurate than R".
   behaviour).
 - **Signed rank and rank sum:** R's `dsignrank`/`psignrank` are off by about 1e-14 for n = 500
   and 1000; for n = 1100 the central `dsignrank` is Inf and `psignrank(1000, 1100)` is 0 (truth
-  2.27e-308). `dwilcox(·, 200, 200)` is off by 1.4e-14 throughout.
+  2.27e-308). `dwilcox(·, 200, 200)` is off by 1.4e-14 throughout, and R 4.6's `dwilcox`/`pwilcox`
+  (Löffler's formula) by 1e-14 already at m = n = 49.
 - **Studentized range:** R's `ptukey` is accurate to about 8 digits and `qtukey` to about 4;
   upper tails below 1e-15 become 0. For large df (such as 1e5) R returns the df = ∞ value;
   rStats.js computes the value for the given df.
@@ -265,7 +266,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `qcauchy(1e-320, 0, 1e-300)` | inaccurate (πp is subnormal) | correct value, computed as scale/p/π |
 | `qlogis(1e-320, lower.tail = FALSE)` | Inf | 736.83 |
 | `plogis(-745)` and other subnormal answers | 0 | 5e-324 |
-| `pwilcox(q, 500, 500)` | uses several GB and runs out of memory | computed (memory grows with mn/2). Beyond about m = n = 510 the entries near the center lose their accuracy (the passes of the table amplify errors above their centers): a RangeError there, from 1.7 sd below the center at 520 to 18 sd at 1050 (the tails stay available; unequal sizes with a small m, such as 100 and 20000, reach the center) |
+| `pwilcox(q, 500, 500)` | R 4.5 used several GB and ran out of memory (R 4.6, with Löffler's formula, takes 10 s) | computed (memory grows with mn/2). Beyond about m = n = 510 the entries near the center lose their accuracy (the passes of the table amplify errors above their centers): a RangeError there, from 1.7 sd below the center at 520 to 18 sd at 1050 (the tails stay available; unequal sizes with a small m, such as 100 and 20000, reach the center) |
 | `dwilcox(3, Inf, 5)`, `dsignrank(3, Inf)` | allocation error or crash | NaN |
 | `qsignrank(p, 1100)`, `qhyper(0.5, 1e13, 1e13, 1e13)` | does not finish | computed (`qhyper` takes about 2.5 s at this size; beyond a standard deviation of 2^21 it throws a RangeError, see the limits under Hypothesis tests) |
 | `qtukey(1e-10, 20, 10)` | NaN | finite answer |
