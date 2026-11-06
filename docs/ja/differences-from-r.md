@@ -902,8 +902,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   ものなので (欠測値の扱いも同じ)、値は t 分布の分位点と裾確率の最後の数ビットまで R と一致します (fixture 全体で相対
   1e-13 以内)。`confLevel` が 0.5 以下、`alpha` が 0.5 以上はエラーです (1 - 2 alpha 区間が点か逆向きになる。R は
   `conf.level` が (0, 1) にあることだけを確かめる)。正の有限値でない `epsilon` もエラーです。対応のある検定
-  (`paired: true`、method `"Paired TOST"`) は tTest の対応のある検定に同じ 2 つの片側検定を当てたもので、fixture に
-  対応のある例はありません。
+  (`paired: true`、method `"Paired TOST"`、推定値の名前は R と同じ "mean of the differences") は tTest の対応のある
+  検定に同じ 2 つの片側検定を当てたものです。
 - **`binomDiffEquivalenceTest`** は R にありません: 計数に対する、2 つの比率の同等性の 2 つの片側スコア検定
   (既定は Miettinen-Nurminen、Farrington-Manning の `"mee"`、Wald) で、同じ方法の水準 1 - 2 alpha の `binomDiffCI` と
   双対です。0/1 データには `tost` よりこちらを使うべきです (`tost` の t 近似では、すべて 0 かすべて 1 の群の分散が 0

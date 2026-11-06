@@ -960,7 +960,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   the t quantile and tail (within 1e-13 relative over the fixture). A `confLevel` of 0.5 or less and an `alpha` of 0.5
   or more are errors (the 1 - 2 alpha interval would be a point or reversed; R checks only that `conf.level` lies in
   (0, 1)), and so is an `epsilon` that is not positive and finite. The paired test (`paired: true`, method
-  `"Paired TOST"`) is tTest's paired test with the same two one-sided tests; the fixture has no paired case.
+  `"Paired TOST"`, estimate "mean of the differences" as R) is tTest's paired test with the same two one-sided tests.
 - **`binomDiffEquivalenceTest`** is not in R: the test of equivalence of two proportions on counts by two one-sided
   score tests (Miettinen-Nurminen by default, Farrington-Manning `"mee"` or Wald), dual to `binomDiffCI` with the same
   method at the level 1 - 2 alpha. For 0/1 data it is the test to use rather than `tost`, whose t approximation has a

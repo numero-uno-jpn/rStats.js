@@ -23,6 +23,7 @@ describe("tost against equivalence::tost", () => {
           confLevel: arg.num(a.confLevel),
           alpha: arg.num(a.alpha),
           varEqual: a.varEqual === undefined ? undefined : a.varEqual === true,
+          paired: a.paired === undefined ? undefined : a.paired === true,
         }));
       const e = c.expected;
       if (e.error !== undefined) {
@@ -35,14 +36,16 @@ describe("tost against equivalence::tost", () => {
       expect(r.method, ctx).toBe(e.method);
       expect(r.result, ctx).toBe(e.result);
       expect(r.warnings, ctx).toEqual(e.warnings);
+      expect([r.estimateNames].flat(), ctx).toEqual(e.estimateNames);
+      const estimate = [r.estimate].flat();
+      expect(estimate.length, ctx).toBe((e.estimate as string[]).length);
       const pairs: [number, string][] = [
         [r.parameter, e.parameter as string],
         [r.pValue, e.tostPValue as string],
         [r.confInt[0], (e.tostInterval as string[])[0]!],
         [r.confInt[1], (e.tostInterval as string[])[1]!],
         [r.confLevel, e.confLevel as string],
-        [(r.estimate as number[])[0]!, (e.estimate as string[])[0]!],
-        [(r.estimate as number[])[1]!, (e.estimate as string[])[1]!],
+        ...estimate.map((v, i): [number, string] => [v, (e.estimate as string[])[i]!]),
         [r.seDiff, e.seDiff as string],
         [r.epsilon, e.epsilon as string],
       ];
@@ -51,7 +54,7 @@ describe("tost against equivalence::tost", () => {
       for (const [v, s] of pairs) expect(relativeError(v, num(s)), `${ctx} ${s}`).toBeLessThanOrEqual(1e-13);
       compared++;
     }
-    expect(compared).toBe(44);
+    expect(compared).toBe(48);
     expect(errors).toBe(4);
   });
 });
@@ -79,7 +82,7 @@ describe("tost", () => {
       }
     }
     expect(tost(x, y, { paired: true }).method).toBe("Paired TOST");
-    expect(tost(x, y, { paired: true }).estimateNames).toBe("mean difference");
+    expect(tost(x, y, { paired: true }).estimateNames).toBe("mean of the differences");
     expect(tost(x, y, { varEqual: true }).method).toBe(" Two Sample TOST");
   });
 

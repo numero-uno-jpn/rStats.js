@@ -75,7 +75,7 @@ export interface TostResult {
   confInt: [number, number];
   /** `confLevel` (or `1 - alpha`), R's `conf.level` attribute of the interval. */
   confLevel: number;
-  /** `[mean of x, mean of y]`, or the mean difference for a paired test. */
+  /** `[mean of x, mean of y]`, or the mean of the differences for a paired test. */
   estimate: number | number[];
   /** Names of `estimate`, as tTest's. */
   estimateNames: string | string[];
@@ -150,7 +150,8 @@ export function tost(x: Sample, y: Sample, options: TostOptions = {}): TostResul
     confInt,
     confLevel,
     estimate: t.estimate,
-    estimateNames: t.estimateNames!,
+    // equivalence::tost names a paired estimate "mean of the differences" (tTest, as R's t.test, "mean difference")
+    estimateNames: paired ? "mean of the differences" : t.estimateNames!,
     epsilon,
     seDiff: se,
     warnings: [],
