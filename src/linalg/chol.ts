@@ -7,8 +7,8 @@
 // - Only the upper triangle is used (symmetry is not checked). The lower triangle of the result is 0
 // - Without pivoting, a non-positive diagonal is an error. A NaN diagonal is not an error; the NaN propagates
 //   (same as the R build tested, whose LAPACK is OpenBLAS; the reference dpotf2 stops on NaN too)
-// - With pivoting, rank deficiency is not an error and rank is returned (R warns). The diagonal at the
-//   stopping point holds the remaining value at that time, and later rows keep their original (permuted) values
+// - With pivoting, rank deficiency is not an error and rank is returned (R warns). The trailing submatrix
+//   from the stopping point on is zeroed (R 4.6: x[pivot, pivot] = t(R) R then holds for positive semi-definite x)
 // - pivot is 0-based to suit JS (R's pivot minus 1)
 // - chol2inv uses only the upper-left size x size upper triangle of x. A zero on the diagonal is an error
 
@@ -37,7 +37,7 @@ export interface CholOptions {
  * @category Linear algebra
  */
 export interface CholPivotResult {
-  /** The upper triangular factor `R`, such that `x[pivot, pivot] = t(R) R` (within the first `rank` rows). */
+  /** The upper triangular factor `R`, such that `x[pivot, pivot] = t(R) R` for positive semi-definite `x`. Rows from `rank` on are 0. */
   r: number[][];
   /** The column permutation, 0-based (R's `attr(, "pivot")` minus 1). */
   pivot: number[];
@@ -68,8 +68,8 @@ export function chol(x: MatrixInput, options?: CholOptions & { pivot?: false }):
  * Pivoted Cholesky decomposition, as R's `chol(x, pivot = TRUE)`.
  *
  * Does not throw for rank-deficient (positive semi-definite) matrices; check `rank` instead (R gives a
- * warning). Rows of `r` after `rank` are not meaningful: the diagonal element at the stopping position holds
- * the remaining value, and later rows keep the (permuted) input values.
+ * warning). As in R 4.6, the trailing submatrix of `r` from row and column `rank` on is 0, so that
+ * `x[pivot, pivot] = t(R) R` holds for a positive semi-definite `x`.
  *
  * @param x A square symmetric matrix (array of rows). Only the upper triangle is used.
  * @param options See {@link CholOptions}; `pivot` must be `true`.
@@ -100,6 +100,7 @@ export function chol(x: MatrixInput, options: CholOptions = {}): number[][] | Ch
     if (Number.isNaN(tol)) throw new RangeError("'tol' must not be NaN");
     const { pivot, rank } = pstf2(a, tol);
     zeroLower(a);
+    zeroTrailing(a, rank);
     return { r: fromMat(a), pivot: pivot.map((v) => v - 1), rank };
   }
   const info = potf2(a);
@@ -111,6 +112,12 @@ export function chol(x: MatrixInput, options: CholOptions = {}): number[][] | Ch
 function zeroLower(a: Mat): void {
   const n = a.nrow;
   for (let j = 0; j < n; j++) for (let i = j + 1; i < n; i++) a.data[i + j * n] = 0;
+}
+
+/** Zero the trailing submatrix a[k:n, k:n] left by a decomposition that stopped after k columns (R 4.6's chol) */
+function zeroTrailing(a: Mat, k: number): void {
+  const n = a.nrow;
+  for (let j = k; j < n; j++) for (let i = k; i < n; i++) a.data[i + j * n] = 0;
 }
 
 /** Overwrite a with its upper-triangular Cholesky factor (dpotf2). Returns the failing column (1-based), or 0 on success */

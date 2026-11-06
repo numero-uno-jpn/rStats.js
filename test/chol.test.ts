@@ -17,8 +17,10 @@ htestSuite({
   },
   tolerance: 1e-14,
   fieldTolerance: { pivot: 0, rank: 0 },
-  // The forward error of the Cholesky factor is typically proportional to the square root of the condition number
-  floor: { value: condScaled("value", 1e-14, 0.5) },
+  // The forward error of the Cholesky factor is typically proportional to the square root of the condition number.
+  // Factor 2: that is an estimate, not a bound. In case #12 (cond 1e8; R 4.6.2 with OpenBLAS 0.3.32) R is 8.1e-13
+  // and rStats.js 5.3e-13 from the exact factor (Rmpfr), so the two differ by 1.1 eps sqrt(cond) times the maximum.
+  floor: { value: condScaled("value", 1e-14, 0.5, 2) },
 });
 
 htestSuite({

@@ -1102,8 +1102,7 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   matrices tried there.
 - **`chol`** propagates NaN on the diagonal instead of failing (R's OpenBLAS does the same; the
   reference `dpotf2` stops). With `pivot: true`, a rank-deficient matrix returns `rank` instead
-  of a warning, and the diagonal at the stopping position holds the remaining value at that
-  point.
+  of a warning (the trailing submatrix is zeroed, as in R 4.6).
 - **`solve`** with NaN or Inf in the matrix solves without the condition check (LAPACK 3.12's
   `dgecon` returns an error that R ignores); `rcond` of the same matrix throws.
 - **`lu`** of a matrix with NaN or an infinite value throws "the matrix contains NaN or infinite values", as `svd`,

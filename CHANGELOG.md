@@ -25,6 +25,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   a fit with `Error()`).
 - `survfit` follows survival 3.8-12 (with R 4.6): with `confType: "log-log"`, the limits are 1 and 1 (not `NaN`) at the
   times where the estimate is 1.
+- `chol` with `pivot: true` follows R 4.6: when the decomposition stops early (rank deficiency), the trailing submatrix
+  of the factor is zeroed, so that `x[pivot, pivot] = t(R) R` holds for positive semi-definite `x`.
 - `wilcoxTest` follows R 4.6: with ties or zero differences the exact test (default for n < 50, zeros counted) is the
   conditional test given the mid-ranks, the signed rank test ranking the zeros with the data (Pratt), instead of the
   normal approximation, and the exact-test warnings are gone; exact intervals report the achieved confidence level
