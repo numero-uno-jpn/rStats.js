@@ -122,7 +122,8 @@ export function intervalLevel(confLevel: number | undefined, sides: string | und
 export function checkCount(v: number, name: string): number {
   if (typeof v !== "number") throw new TypeError(`'${name}' must be a number`);
   if (!isCount(v)) throw new RangeError(`'${name}' must be a nonnegative integer`);
-  return Math.round(v);
+  // (+ 0 turns -0 into 0, which would otherwise reach an estimate or a limit as -0)
+  return Math.round(v) + 0;
 }
 
 /** Successes and trials: integers with 0 <= x <= n and n > 0 */
@@ -137,7 +138,11 @@ export function checkTrials(x: number, n: number, xName: string, nName: string):
 
 /**
  * Wilson's score limits of x/n at kappa. At x = 0 the lower limit and at x = n the upper are exactly 0 and 1 (the
- * formula gives them up to rounding: DescTools' upper limit of 10/10 at the 50% level is 0.99999999999999989)
+ * formula gives them up to rounding: DescTools' upper limit of 10/10 at the 50% level is 0.99999999999999989).
+ * The limits are the roots of (n + kappa^2) p^2 - (2x + kappa^2) p + x^2/n = 0. Where centre - half cancels (more than
+ * half of the centre, small x or a level close to 1) the lower limit is taken from the product of the roots,
+ * x^2 / (n (n + kappa^2)), divided by the upper: centre - half loses digits in proportion to centre / lower (350 eps
+ * at 1/1e15 and the level 1 - 2^-53, 28 eps for wilsoncc at 1/1000 and 95%; DescTools has the same digits)
  */
 export function wilsonLimits(x: number, n: number, kappa: number): [number, number] {
   const p = x / n;
@@ -145,7 +150,11 @@ export function wilsonLimits(x: number, n: number, kappa: number): [number, numb
   const k2 = kappa * kappa;
   const centre = (x + k2 / 2) / (n + k2);
   const half = ((kappa * Math.sqrt(n)) / (n + k2)) * Math.sqrt(p * q + k2 / (4 * n));
-  return [x === 0 ? 0 : centre - half, x === n ? 1 : centre + half];
+  const up = centre + half;
+  let lower = centre - half;
+  if (x === 0) lower = 0;
+  else if (lower < centre / 2) lower = (p * (x / (n + k2))) / up;
+  return [lower, x === n ? 1 : up];
 }
 
 /** qbeta at alpha/2 in the lower or the upper tail (from the upper tail itself where alpha/2 < 1e-8, rule 10) */
@@ -251,7 +260,12 @@ export function binomCI(x: number, n: number, options: BinomCIOptions = {}): Bin
     case "wilsoncc": {
       const k2 = kappa * kappa;
       const den = 2 * (ns + k2);
-      lower = p === 0 ? 0 : (2 * xs + k2 - 1 - kappa * Math.sqrt(k2 - 2 - 1 / ns + 4 * p * (ns * q + 1))) / den;
+      // the lower limit is the smaller root of (n + kappa^2) L^2 - (2x + kappa^2 - 1) L + (2x - 1)^2 / (4n) = 0;
+      // where the difference cancels (more than half of the larger term) it is taken from the product of the roots
+      // as (2x - 1)^2 / (2n (2x + kappa^2 - 1 + kappa sqrt(...))), without cancellation (as wilsonLimits)
+      const bl = 2 * xs + k2 - 1;
+      const rl = kappa * Math.sqrt(k2 - 2 - 1 / ns + 4 * p * (ns * q + 1));
+      lower = p === 0 ? 0 : bl - rl < bl / 2 ? (((2 * xs - 1) / (2 * ns)) * (2 * xs - 1)) / (bl + rl) : (bl - rl) / den;
       upper = p === 1 ? 1 : (2 * xs + k2 + 1 + kappa * Math.sqrt(k2 + 2 - 1 / ns + 4 * p * (ns * q - 1))) / den;
       break;
     }

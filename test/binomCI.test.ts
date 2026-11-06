@@ -89,6 +89,28 @@ describe("binomCI", () => {
     expect(() => binomCI(3, 10, { conf: 0.9 })).toThrow(RangeError);
   });
 
+  it("gives the wilson and wilsoncc lower limits without cancellation for small x (audit 6)", () => {
+    // mpmath (60 digits) of the formulas with kappa = sqrt(2) erfinv(level); centre - half lost up to 1118 eps here
+    // (DescTools has the same digits). 4 eps: kappa from qnorm enters the lower limit about twice
+    const cases: [number, number, number, number, number][] = [
+      [1, 1e15, 1 - 2 ** -53, 1.4134451872532935418e-17, 3.5837326273290871132e-18],
+      [1, 1e15, 1 - 1e-10, 2.2831767273144901314e-17, 5.8389909168364625241e-18],
+      [1, 1000, 1 - 1e-10, 2.2832265311902945922e-5, 5.8390242239292581068e-6],
+      [1, 1000, 0.95, 1.7654637062607806274e-4, 5.2202355442703530787e-5],
+      [1, 1e15, 0.95, 1.7652455493515298837e-16, 5.2200145567073157414e-17],
+      [37, 100, 0.95, 0.28182360534324534872, 0.27726273973804645744],
+    ];
+    for (const [x, n, confLevel, wilson, wilsoncc] of cases) {
+      expect(Math.abs(binomCI(x, n, { confLevel }).confInt[0] / wilson - 1)).toBeLessThan(4 * 2 ** -52);
+      expect(Math.abs(binomCI(x, n, { confLevel, method: "wilsoncc" }).confInt[0] / wilsoncc - 1)).toBeLessThan(4 * 2 ** -52);
+    }
+  });
+
+  it("returns +0, not -0, for a count of -0 (audit 16)", () => {
+    expect(Object.is(binomCI(-0, 5).estimate, 0)).toBe(true);
+    expect(Object.is(binomCI(-0, 5, { method: "wald" }).confInt[0], 0)).toBe(true);
+  });
+
   it("returns the level, method and sides in full", () => {
     const r = binomCI(3, 10, { method: "clopper", sides: "l", confLevel: 0.9 });
     expect(r.method).toBe("clopper-pearson");

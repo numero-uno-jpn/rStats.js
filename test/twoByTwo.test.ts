@@ -227,4 +227,10 @@ describe("binomDiffCI, binomRatioCI and oddsRatio: roots and boundaries", () => 
     expect(r[0]).toBe(-r[1]);
     expect(relativeError(r[1], 0.28793394128201222)).toBeLessThan(1e-13);
   });
+
+  it("returns +0, not -0, for counts of -0 (audit 16)", () => {
+    expect(Object.is(oddsRatio([[-0, 5], [3, 4]], { method: "wald" }).estimate, 0)).toBe(true);
+    expect(Object.is(binomDiffCI(-0, 5, 0, 5, { method: "wald" }).confInt[0], 0)).toBe(true);
+    expect(Object.is(binomDiffCI(-0, 5, 0, 5).estimate, 0)).toBe(true);
+  });
 });
