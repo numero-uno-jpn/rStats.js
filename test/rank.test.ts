@@ -26,24 +26,9 @@ fixtureSuite({
   density: true,
   call: (a) => dsignrank(num(a.x), num(a.n), { log: bool(a.log) }),
 });
-/**
- * R's psignrank rounds q + 1e-7 to the nearest integer, so a q with a fractional part of 0.5 or more counts as the next
- * count (psignrank(2.5, n) is P[V <= 3]). We take the largest count not above q, as the other discrete distribution
- * functions (#145, #146): the value is that at floor(q)
- */
-const psignrankDiff = (a: Record<string, string | boolean>, _e: number, x: number): string | undefined => {
-  const q = num(a.q);
-  if (Number.isInteger(q) || Math.floor(q) === Math.round(q + 1e-7)) return undefined;
-  const atFloor = psignrank(Math.floor(q), num(a.n), tail(a));
-  if (Object.is(x, atFloor))
-    return "R rounds q + 1e-7 to the nearest integer; P[V <= q] is P[V <= floor(q)] (#145, #146)";
-  return undefined;
-};
-
 fixtureSuite({
   name: "psignrank",
   tolerance: 1e-14,
-  knownDifference: psignrankDiff,
   call: (a) => psignrank(num(a.q), num(a.n), tail(a)),
 });
 fixtureSuite({

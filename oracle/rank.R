@@ -56,14 +56,14 @@ ref_dsignrank <- function(x, n, log) {
 write_fixture("dsignrank", with_log(sgrid), function(r) dsignrank(r$x, r$n, log = r$log),
               function(r) ref_dsignrank(r$x, r$n, r$log))
 
-# Distribution function. R rounds q + 1e-7 to the nearest integer
+# Distribution function. R 4.6 takes floor(q + 1e-7) (R 4.5 rounded q + 1e-7 to the nearest integer)
 sq <- sgrid
 names(sq)[1] <- "q"
 sq <- rbind(sq, data.frame(q = c(3.4, 3.6, 3.5 - 1e-7, 2.5 - 1e-7, -0.4, -0.6), n = 5))
 ref_psignrank <- function(q, n, lower, log) {
   if (!(sr_ok(n) && is.finite(q))) return(NA)
   tot <- n * (n + 1) / 2
-  x <- round(q + 1e-7)
+  x <- floor(q + 1e-7)  # R 4.6's rule (R 4.5 rounded q + 1e-7 to the nearest integer)
   if (x < 0 || x >= tot) return(NA)
   # Smaller tail: P[V <= x] or P[V > x] = P[V <= tot - x - 1]
   lo_small <- x <= tot - x - 1

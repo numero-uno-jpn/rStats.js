@@ -564,16 +564,15 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `df(0, df1, Inf, ncp, log = TRUE)` | not the log of the linear value (−1.386 with ncp = 0, where the linear value is 1) | log of the linear value |
 | `qf` with df2 = Inf when the answer rounds to 0 | meaningless values such as 2e-130; Inf for log p = -1e-300 | value checked with the distribution function |
 | `pgeom`, `pnbinom`, `ppois`, `pbinom`, `phyper`, `pwilcox`, `psignrank` and the exact `ansari.test` distribution with q just below an integer k: k − 1e-7 ≤ q < k − 1e-9 max(1, k), so only for k < 100 (`pgeom(0.99999999, 0.5)`) | floor(q + 1e-7) = k, so P[X ≤ k] (0.75), although the density treats q as non-integer (`dgeom` is 0 there) | P[X ≤ k − 1] (0.5): the largest count not above q |
-| `psignrank` with a fractional part of 0.5 or more (`psignrank(0.6, 4)`) | rounds q + 1e-7 to the nearest integer: P[V ≤ 1] = 0.125 | P[V ≤ floor(q)] = 0.0625, as the other distribution functions |
 
 The distribution functions of the discrete distributions take P[X ≤ q] as P[X ≤ k] with k the largest
 count not above q. A q within min(1e-7, 1e-9 max(1, |q|)) of an integer counts as that integer (a computed
 2.9999999999999996 is 3); any other q gives floor(q). Below q = 100 this is the rule by which `dpois`, `dgeom`,
 `dnbinom`, `dhyper`, `dwilcox` and `dsignrank` decide whether x is an integer; above it the slack stays at R's 1e-7,
-so that a q such as 1000 − 5e-7 (`ppois(1000 - 5e-7, 1000)` = P[X ≤ 999], as in R) is not counted as an integer. R adds 1e-7 before the floor
-(before rounding to the nearest integer in `psignrank`), so its distribution functions step 1e-7 before
-the integer and do not agree with its densities. Only q within 1e-7 of an integer is affected, apart from
-`psignrank`, where any q with a fractional part of 0.5 or more changes (issues #145 and #146). An earlier version had
+so that a q such as 1000 − 5e-7 (`ppois(1000 - 5e-7, 1000)` = P[X ≤ 999], as in R) is not counted as an integer. R adds 1e-7 before the floor,
+so its distribution functions step 1e-7 before the integer and do not agree with its densities. Only q
+within 1e-7 of an integer is affected. (R 4.5's `psignrank` rounded q + 1e-7 to the nearest integer, so that any q
+with a fractional part of 0.5 or more changed, issues #145 and #146; R 4.6 takes the floor.) An earlier version had
 kept R's floor(q + 1e-7) for `pbinom` as R's own behaviour; that decision was reversed for the sake of
 correct values and agreement with the densities.
 

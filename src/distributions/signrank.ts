@@ -218,8 +218,8 @@ export function psignrank1(q: number, n: number, lowerTail: boolean, logP: boole
   if (Number.isNaN(q) || Number.isNaN(n)) return NaN;
   n = signrankN(n);
   if (Number.isNaN(n)) return NaN;
-  // R rounds q + 1e-7 to the nearest integer (psignrank(3.6, 5) is P[V <= 4], although V <= 3.6 is V <= 3). The
-  // largest count not above q, as the other discrete distribution functions (#145, #146)
+  // The largest count not above q, as the other discrete distribution functions (#145, #146). R 4.6 takes
+  // floor(q + 1e-7) as here, apart from q within 1e-7 below an integer (R 4.5 rounded q + 1e-7 to the nearest integer)
   const x = countAtMost(q);
   const total = (n * (n + 1)) / 2;
   if (x < 0) return dt0(lowerTail, logP);
