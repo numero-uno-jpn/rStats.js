@@ -221,7 +221,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `wilcox.test(c(1e308, 1.1e308, 1.2e308), mu = -1e308)` と 2 標本の `x - mu` (`mu` との差が溢れる有限なデータ) | 差がどれも Inf で同順位になり、正規近似で V = 6、p = 0.1489 (y = 1:3 に対して W = 9、p = 0.0636) | その場合だけ差を半分の単位 (x / 2 - mu / 2) で作り、真の差の順位を付ける。正確な p = 0.25 (W = 9 では 0.1) |
 | 不一致の度数がない組を含む r x r 表の `mcnemar.test` | 統計量と p 値が NaN | その組の寄与を 0 にする (自由度は変えない) |
 | `cor.test(c(1, 2), c(1, 2), method = "kendall", exact = FALSE)` (n = 2) | 統計量と p 値が NaN: 分散の 2 つ目の同順位の項が 0 / 0 (分母に n − 2 = 0) | z = 1、p = 0.3173: その項を 0 にする (同順位の組はどれも 2 個以下) |
-| `cor.test(c(1e-300, 2e-300, 3e-300), c(1, 2, 3))` と `cor.test(rep(1e308, 4), 1:4)` (Pearson。平方和がアンダーフローする、平均が溢れる) | NaN と警告 "the standard deviation is zero"。警告なしの NaN | r = 1 (データを 2 の冪で正規化する)、警告なし。NaN と警告 "the standard deviation is zero" (x が定数) |
+| `cor.test(c(1e-300, 2e-300, 3e-300), c(1, 2, 3))` (Pearson。平方和がアンダーフローする) | NaN と警告 "the standard deviation is zero" | r = 1 (データを 2 の冪で正規化する)、警告なし |
 | 二乗が溢れる `predict(glm, newdata, se.fit = TRUE)` (newdata 1e155) | se.fit が Inf | 最大の値で割ってからノルムを作る: 1.07e154 |
 | x の列が 1 から遠い (x の 1e-200 倍や 1e200 倍) `summary(lm)`、`summary(glm)`、`confint(glm)` | 標準誤差が Inf か 0 ((R'R)^-1 が溢れるか 0 に落ちる)、t が 0 か Inf、p が 1 か 0。プロファイル区間も求まらない | 逆行列の前に R の列を 2 の冪で割る。t、p、区間は x そのものと同じ (尺度を戻さない共分散は、範囲外なら今まで通り Inf か 0) |
 | 重み 1e308 か、重み 0 の行に無限大の応答がある `glm` (gaussian、切片あり) | null deviance が NaN (重みの和が溢れる、0 × Inf) | 5e306 と 4.67。重みを 2 の冪で割り、重み 0 の行を除く |

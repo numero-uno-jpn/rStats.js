@@ -197,9 +197,6 @@ function different(id: string, r: string[]): { warnings: string[]; reason: strin
     // R's sums of squares underflow (its cor is NaN, sd 0); the correlation here is 1 (decision F)
     case "corTest: pearson, data of 1e-300":
       return { warnings: r.filter((w) => w !== SD_ZERO), reason: "R's sums of squares underflow" };
-    // R's mean overflows (NaN without a warning); here the data are a constant (decision F)
-    case "corTest: pearson, constant of 1e308":
-      return { warnings: [...r, SD_ZERO], reason: "R's mean overflows" };
     default:
       return undefined;
   }
@@ -223,7 +220,6 @@ describe("R's warnings in each situation (fixture htestWarnings)", () => {
     expect(applied).toEqual([
       "ansariTest: normal interval, no positive ratio",
       "corTest: pearson, data of 1e-300",
-      "corTest: pearson, constant of 1e308",
       "cronbachAlpha: two negative items, fewer subjects than items",
       "cronbachAlpha: two items correlated -1",
       "cronbachAlpha: two items correlated 1",
@@ -296,7 +292,7 @@ describe("the warning handler of the tests", () => {
 
   it("corTest: once, also for the formula form", () => {
     const calls = handled(() => corTest("~ a + b", { a: x6, b: tied6 }, { method: "spearman" }));
-    expect(calls).toEqual([["Cannot compute exact p-value with ties", "corTest"]]);
+    expect(calls).toEqual([["cannot compute exact p-value with ties", "corTest"]]);
   });
 
   it("hedgesG", () => {

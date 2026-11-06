@@ -18,6 +18,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   "cannot compute exact confidence interval with ties".
 - `moodTest` with ties agrees with R 4.6, which fixed its tie correction of the variance (the values here, the exact
   permutation variance of the averaged scores, are unchanged; the entry in differences-from-r is removed).
+- `corTest` follows R 4.6's text of the Kendall and Spearman warning: "cannot compute exact p-value with ties" (lower
+  case).
 
 ## 1.0.0 - 2026-11-05
 

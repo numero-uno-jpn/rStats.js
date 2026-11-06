@@ -352,8 +352,8 @@ function spearmanTail(n: number, q: number, lower: boolean): number {
  * value is less accurate.
  *
  * As R, `warnings` has "the standard deviation is zero" where x or y is constant (the correlation is `NaN`), and
- * "Cannot compute exact p-value with ties" where Kendall's or Spearman's exact p-value is asked for or the default
- * but there are ties (the approximation is used), and "NaNs produced" where Spearman's t approximation has 2 pairs
+ * "cannot compute exact p-value with ties" (R 4.6's text) where Kendall's or Spearman's exact p-value is asked for or
+ * the default but there are ties (the approximation is used), and "NaNs produced" where Spearman's t approximation has 2 pairs
  * (0 degrees of freedom: the p-value is `NaN`).
  *
  * @param x First sample.
@@ -544,7 +544,8 @@ const SD_ZERO = "the standard deviation is zero";
 /** R's warning of pt where the p-value is NaN (Spearman's t approximation with n = 2) */
 const NANS = "NaNs produced";
 /** R's warning where the exact p-value cannot be used because of ties */
-const TIES = "Cannot compute exact p-value with ties";
+// (lower case since R 4.6, as the other tests' warning; R 4.5: "Cannot ...")
+const TIES = "cannot compute exact p-value with ties";
 
 /** Whether all values are equal and finite */
 function finiteConstant(v: readonly number[]): boolean {
