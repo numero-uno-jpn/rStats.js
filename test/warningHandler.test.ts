@@ -8,6 +8,8 @@ import { reportWarnings, unreported } from "../src/internal/warnings.js";
 const KEY = Symbol.for("@numero-uno-jpn/rstats.warningHandler");
 const PERFECT = "ANOVA F-tests on an essentially perfect fit are unreliable";
 const PERFECT_FIT = "essentially perfect fit: summary may be unreliable";
+/** summary.aov's own warning (R 4.6) */
+const AOV_PERFECT = "essentially perfect fit for ‘1’: summary may be unreliable";
 const BOUNDS = "bounds can only be used with method L-BFGS-B (or Brent)";
 const JT_TIES = "Sample size > 100 or data with ties \n p-value based on normal approximation. Specify nperm for permutation p-value";
 
@@ -74,8 +76,9 @@ describe("setWarningHandler", () => {
     // the results keep the fit's warnings, the handler gets only what anova and aovSummary add
     const tab = anova(fit);
     expect(tab.warnings).toEqual([PERFECT_FIT, PERFECT]);
-    expect(aovSummary(fit).warnings).toEqual([PERFECT_FIT, PERFECT]);
-    expect(handler.mock.calls).toEqual([[PERFECT, "anova"], [PERFECT, "aovSummary"]]);
+    // (and summary.aov's own warning of R 4.6)
+    expect(aovSummary(fit).warnings).toEqual([PERFECT_FIT, PERFECT, AOV_PERFECT]);
+    expect(handler.mock.calls).toEqual([[PERFECT, "anova"], [PERFECT, "aovSummary"], [AOV_PERFECT, "aovSummary"]]);
     handler.mockClear();
     // a table's warnings were passed by the call that made it
     expect(etaSquared(tab).warnings).toEqual([PERFECT_FIT, PERFECT]);
