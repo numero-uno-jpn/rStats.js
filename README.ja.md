@@ -267,12 +267,12 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `pnorm` | 1.6 KB |
 | `setSeed`, `rnorm` | 2.0 KB |
 | `solve` / `svd` / `eigen` | 2.4 / 2.4 / 5.1 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 16.4 / 27.7 / 31.0 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 18.9 / 27.7 / 31.0 KB |
 | `qbeta` / `pt` と `qt` | 43.5 / 40.0 KB |
-| `glm` と `glmSummary` / `glm` とそのすべての関数 | 35.0 / 50.9 KB |
-| `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 69.5 KB |
-| `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.1 / 65.6 KB |
-| すべて (`/mixed` を除く) | 248.9 KB |
+| `glm` と `glmSummary` / `glm` とそのすべての関数 | 35.0 / 51.0 KB |
+| `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 69.6 KB |
+| `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.2 / 65.7 KB |
+| すべて (`/mixed` を除く) | 251.5 KB |
 
 (`npm run size` で測れます。)
 

@@ -266,12 +266,12 @@ removed. Approximate sizes after minification and gzip:
 | `pnorm` | 1.6 KB |
 | `setSeed`, `rnorm` | 2.0 KB |
 | `solve` / `svd` / `eigen` | 2.4 / 2.4 / 5.1 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 16.4 / 27.7 / 31.0 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 18.9 / 27.7 / 31.0 KB |
 | `qbeta` / `pt` and `qt` | 43.5 / 40.0 KB |
-| `glm` and `glmSummary` / `glm` with all its methods | 35.0 / 50.9 KB |
-| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 69.5 KB |
-| `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.1 / 65.6 KB |
-| everything (except `/mixed`) | 248.9 KB |
+| `glm` and `glmSummary` / `glm` with all its methods | 35.0 / 51.0 KB |
+| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 69.6 KB |
+| `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.2 / 65.7 KB |
+| everything (except `/mixed`) | 251.5 KB |
 
 (`npm run size` measures these.)
 
