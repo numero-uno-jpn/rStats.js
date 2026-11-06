@@ -133,6 +133,9 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | exact2x2 の `fisher.exact(midp = TRUE)` の信頼限界 | psi ∈ (0, 1) か 1/psi ∈ (eps, 1) で許容誤差 1.22e-4 の uniroot を使う。[[3, 1], [1, 3]] の 95% 上限が 308.56 でなく 311.44、[[100, 1], [1, 100]] の上限が 198848 でなく端の 1/eps (4.5036e15) | `fisherTest(midp: true)`: psi の対数の座標での mid-p の裾の根 |
 | Boschloo 検定の p 値 (局外母数 pi についての上限) | Exact (`exact.test(method = "boschloo")`): 100 点の最大を `optimise` で精密化し 12 桁に丸める。上限より相対で最大 6.3e-9 小さい (80/200 対 100/200)。exact2x2 (`boschloo()`): 98 点の最大で、1e-6 から 2e-4 小さい | `boschlooTest`: 上限そのもの (逆正弦の座標で等間隔の max(1000, 32 sqrt(n1 + n2)) 点の格子と、候補となるすべての極大での Brent 法。999 点の格子を 1e-13 まで精密化した値と数 ulp 以内で一致) |
 | Exact の両側 `"square"` の Boschloo 検定 | 棄却域を Barnard の凸性で補うが、両側の統計量はこの性質を持たない。20/60 対 9/25 では Fisher の p 値が 1 の表 (6, 2) と (54, 23) が棄却域に入り、p 値が 0.785614 でなく 0.785623 | 棄却域を表ごとに判定する |
+| DescTools の表に対する `GTest` の p 値 | `1 - pchisq(G, df)` なので約 1.1e-16 より下で 0: [[500, 300], [300, 500]] で 0 (真値 8.885160398737880e-24) | `gTest`: 上側の裾 |
+| DescTools の `GTest` で G が度数に比べて小さいときの統計量 | x log(x / E) をそのまま足すので桁落ちする: c(50, 49) で 0.01010118187637941 でなく 0.01010118187639042 (相対 1.1e-12。普通の表では数 1e-15) | `gTest`: E を double-double で持ち、x log(x / E) + E - x (非負の項) を足す逸脱度の形 |
+| coin の `lbl_test` (漸近) | Z が相対で最大 2.3e-14 ずれ ([[0, 0, 0], [1, 2, 3], [4, 5, 6]] で -0.50891335780798256 でなく -0.5089133578079946)、p 値は絶対で約 1e-16 ずれる: フィクスチャの 5 x 4 の表の `"greater"` で 1.3023688113411116e-13 でなく 1.3022916078853086e-13 | `lblTest`: スコアの相関からの Z と、正規分布の裾そのもの |
 | logit リンクで \|eta\| が 30 を超える `glm` | C コードが逆リンクと微分を eps の値でクリップする (30 で 1 − 9.4e-14、すぐ先で 1 − 2.2e-16 に跳ぶ)。x = 1、2 で度数 (1e15, 1)、(1, 2) の binomial は deviance 2139 で止まり、収束しない (解は eta = log 1e15) | 30 の先も厳密な値。1 未満の最大の double と最小の double で止める。deviance 0.013 (1 − y = 1/(1e15 + 1) の表現で決まる)。30 以内は R と同じ |
 | rate × q が非正規化数の `pexp(q, rate, log.p = TRUE)` (`pexp(1e-20, 1e-300, log.p = TRUE)`) | 非正規化数に丸めた積の対数: -736.8272408909739 (1.1e-5 ずれる) | log rate + log q: -736.8272297580946 |
 | 端の値での probit・cauchit・cloglog・power リンクの `glm` | `make.link` が eta (または mu) を eps の値で、微分を eps でクリップする。Phi(−10) = 7.6e-24、1 − exp(−e^-40) = 4.2e-18、平均 1e-16 (power 0.5) が 2.2e-16 に、−1e9 での cauchit の微分 3.2e-19 も 2.2e-16 になる | 厳密な値。最小の double と 1 未満の最大の double で (0, 1) に収める。R の範囲内は R と同じ |
@@ -867,6 +870,32 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   分け、表 (0, 0) と (n1, n2) を除く) は提供しません。棄却域には統計量が観測値の相対 1e-7 以内の表も含めます (Exact は
   有効数字 12 桁に丸めた統計量を比べる)。`statistic` は丸めません。結果は 1 つの値 `nuisanceParameter` を持ち (Exact の
   `np` は複数のことがある)、標本の大きさを `parameter` には持ちません。
+- **`gTest`** (DescTools の `GTest`) は表かベクトルをとります (2 つ目の因子 `y` はない)。1 行か 1 列の表は DescTools と
+  同じく適合度検定です。Yates の補正は意図して DescTools と同じにしています: `ad - bc` が 0 のときも対角を増やし
+  ([[5, 5], [5, 5]] で G が 0 でなく 0.2003)、どのセルも 0 で止めません ([[0, 1], [0, 1]] で NaN と "NaNs produced")。
+  `parameterName` は DescTools の `"X-squared df"` です。自由度は DescTools と同じく空の行と列も数えます。
+  `ftResiduals` (与えた度数の Freeman-Tukey 偏差。Yates の補正なし) は DescTools にはありません。
+- **`stuartMaxwellTest`** (DescTools の `StuartMaxwellTest`) の自由度は K - 1 で、K は対角の外に度数のないカテゴリを
+  除いた残りの数です。DescTools は元の数から 1 を引いたままです ([[10, 0, 0], [0, 5, 3], [0, 2, 8]] で自由度 1、
+  p = 0.6547。DescTools は自由度 2、p = 0.9048)。対角の外の度数がつながらない組に分かれるカテゴリ (共分散行列が特異)
+  はエラーです。2 つ目の因子 `y` はありません。
+- **`goodmanKruskalGamma`** (DescTools の `GoodmanKruskalGamma`) は常に区間 (既定の水準 0.95) と標準誤差 `ase` を
+  オブジェクトで返します。DescTools は `conf.level` がなければガンマだけを返します。水準 0 と 1 はエラーです
+  (DescTools は点と [-1, 1])。一致対も不一致対もなければ、DescTools と同じくガンマは NaN です。分散は数学的に 0 の項
+  (sum x psi)^2 を含めません (DescTools はその丸め誤差、1e-30 未満を引く)。ガンマ = 0 の検定はありません。
+- **`lblTest`** (coin の `lbl_test`、漸近) は 2 水準のものも含めすべての因子に 1..k のスコアを付けます。coin は 2 水準の
+  因子を順序なしとして最初の水準の指示変数で表すので Z の符号が逆になり ([[10, 5, 2], [3, 8, 6]] でここでは
+  Z = 2.4074、coin では -2.4074 で、`"less"` と `"greater"` も入れ替わる)、2 x 2 表はエラーにしますが、ここでは検定
+  します (Z^2 は 'N - 1' カイ二乗統計量)。スコアは `rowScores` と `colScores` で与えます。漸近分布と表だけです
+  (式やブロックはない)。スコアが観測の上で変化しない表はエラーです。
+- **`chisqTest(nMinus1: true)`** は R にありません: Campbell (2007) の 'N - 1' カイ二乗検定で、連続性補正なしの
+  Pearson の統計量に (N - 1)/N を掛けます。2 x 2 表と r x c 表が対象です (method は "Pearson's 'N-1' Chi-squared
+  test")。このとき既定の連続性補正はかけません。`correct: true` を同時に与えること、ベクトル (適合度)、
+  `simulatePValue` はエラーです。
+- `chisqTest` と `gTest` の **`ftResiduals`** は R にありません: Freeman-Tukey 偏差 `sqrt(O) + sqrt(O + 1) -
+  sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975) を、この式の桁落ちなしに計算します (式のままでは絶対で
+  eps sqrt(O) を失う: [[1e5, 2e5], [3e5, 4e5]] で -31.236670803616877 でなく -31.236670803616562)。変種
+  2 (sqrt(O) - sqrt(E)) は提供しません。
 
 ### データの扱い
 

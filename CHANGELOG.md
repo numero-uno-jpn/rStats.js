@@ -31,6 +31,17 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   Exact's orientation. The p-value is the true supremum over the nuisance parameter (Exact's is up to 6e-9 below it,
   and its two-sided square region can contain tables that do not belong to it); 200 against 200 takes under 10 ms.
   Tables with more than 2^24 possible outcomes, or a grid of more than 2^32 steps, are a RangeError.
+- **Tests and measures of r × c tables**: `gTest(x, { correct, p, rescaleP })`, DescTools' `GTest()` (independence
+  and goodness of fit; corrections `none`, `williams` and `yates` as DescTools; the p-value is the upper tail, where
+  DescTools' is 0 below 1.1e-16, and G is summed without cancellation); `stuartMaxwellTest(table)`, DescTools'
+  `StuartMaxwellTest()`, with K - 1 degrees of freedom after removing the categories without off-diagonal counts;
+  `goodmanKruskalGamma(table, { confLevel })`, DescTools' `GoodmanKruskalGamma()`, with the asymptotic standard error
+  ASE1 and the Wald interval; `lblTest(table, { alternative, rowScores, colScores })`, coin's asymptotic `lbl_test()`,
+  with scores 1..k for every factor (coin turns the sign for a two-level factor and refuses 2 × 2 tables).
+- **'N - 1' chi-squared test**: `chisqTest(x, { nMinus1: true })` (Campbell 2007; not in R), Pearson's statistic
+  without continuity correction times (N - 1)/N, for 2 × 2 and r × c tables.
+- **Freeman-Tukey deviates**: the results of `chisqTest` and `gTest` have `ftResiduals`, `sqrt(O) + sqrt(O + 1) -
+  sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975).
 
 ## 1.1.0 - 2026-11-06
 

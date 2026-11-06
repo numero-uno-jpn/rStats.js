@@ -139,6 +139,9 @@ affected.
 | exact2x2's `fisher.exact(midp = TRUE)`: the confidence limits | uniroot on psi in (0, 1) or 1/psi in (eps, 1) with the tolerance 1.22e-4: the upper 95% limit of [[3, 1], [1, 3]] is 311.44 instead of 308.56, that of [[100, 1], [1, 100]] the end 1/eps (4.5036e15) instead of 198848 | `fisherTest(midp: true)`: the roots of the mid-p tails on the log scale of psi |
 | Boschloo's test: the p-value, a supremum over the nuisance parameter pi | Exact (`exact.test(method = "boschloo")`): the maximum over 100 points refined by `optimise` and rounded to 12 digits, up to 6.3e-9 relative below the supremum (80/200 against 100/200); exact2x2 (`boschloo()`): the maximum over 98 points, 1e-6 to 2e-4 below | `boschlooTest`: the supremum (a grid uniform on the arcsine scale of max(1000, 32 sqrt(n1 + n2)) points and Brent's method at every candidate maximum; within a few ulps of a 999-point grid refined to 1e-13) |
 | Exact's two-sided `"square"` Boschloo test | the region is completed by Barnard's convexity, which the two-sided statistic does not have: for 20/60 against 9/25 it contains the tables (6, 2) and (54, 23), whose Fisher p-value is 1, and the p-value is 0.785623 instead of 0.785614 | the region evaluated table by table |
+| DescTools' `GTest` of a table: the p-value | `1 - pchisq(G, df)`, 0 below about 1.1e-16: 0 for [[500, 300], [300, 500]] (true 8.885160398737880e-24) | `gTest`: the upper tail |
+| DescTools' `GTest`: the statistic where G is small against the counts | the plain sum of x log(x / E), which cancels: c(50, 49) gives 0.01010118187639042 for 0.01010118187637941 (1.1e-12 relative; a few 1e-15 in ordinary tables) | `gTest`: the deviance sum of x log(x / E) + E - x (nonnegative terms) with E in double-double |
+| coin's `lbl_test` (asymptotic) | Z up to 2.3e-14 relative off ([[0, 0, 0], [1, 2, 3], [4, 5, 6]]: -0.5089133578079946 for -0.50891335780798256) and the p-values about 1e-16 absolute: 1.3022916078853086e-13 for 1.3023688113411116e-13 (`"greater"`, the 5 x 4 table of the fixture) | `lblTest`: Z from the correlation of the scores, the normal tails directly |
 | clinfun's `jonckheere.test` and DescTools' `JonckheereTerpstraTest` with ties (normal approximation) | the null variance without ties (sum n_i m_i (n_i + m_i + 1) / 12), too large: p = 0.0086 for c(1, 1, 2, 2, 3, 3) in three groups | the permutation variance with the ties (Hollander & Wolfe): p = 0.0061; without ties as the packages |
 | clinfun's `jonckheere.test` and DescTools' `JonckheereTerpstraTest`, normal approximation with a large positive statistic | the upper tail as 1 - pnorm(z): 0 beyond z ~ 8.3 (1:101 in ordered groups of 34, 34, 33: p 0 for increasing and two-sided) | where 1 - pnorm(z) is below 1e-8, the upper tail pnorm(z, lower.tail = FALSE): 1.4902389037944e-26 (Rmpfr 1.4902389037944002e-26); above 1e-8 the packages' value (#280) |
 | `wilcox.test(x, exact = FALSE)` (also paired; two samples too), two-sided, with a small p-value from a large positive statistic | 2 (1 - F) with 1 - F formed from the lower tail F, which loses the digits: `wilcox.test(1:300, exact = FALSE)` gives p = 0 (`-(1:300)` gives 6.1141368593044447e-51, and `alternative = "greater"` 3.0570684296522223e-51) | the upper tail itself where it is below 1/64: 6.1141368593044446e-51 (twice R's own one-sided value). Above 1/64 R's 2 (1 - F); the values differ from R's by the rounding of 1 - F (a few 1e-17 absolute), beyond 1e-12 relative only below about p = 1e-4 |
@@ -921,6 +924,35 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   statistic is within a relative 1e-7 of the observed one (Exact compares the statistics rounded to 12 significant
   digits); `statistic` is not rounded. The result has the one value `nuisanceParameter` (Exact's `np` may list
   several) and not the sample sizes as `parameter`.
+- **`gTest`** (DescTools' `GTest`) takes a table or a vector (no second factor `y`); a table with one row or column is
+  a goodness-of-fit test, as DescTools. Yates' correction is DescTools' on purpose: the diagonal moves up when
+  `ad - bc` is 0 (so [[5, 5], [5, 5]] gets G = 0.2003 instead of 0) and no cell stops at 0 ([[0, 1], [0, 1]] gives NaN
+  with "NaNs produced"); `parameterName` is DescTools' `"X-squared df"`. The degrees of freedom count empty rows and
+  columns, as DescTools. `ftResiduals` (the Freeman-Tukey deviates of the counts given, without Yates' correction) is
+  not in DescTools.
+- **`stuartMaxwellTest`** (DescTools' `StuartMaxwellTest`) has K - 1 degrees of freedom, K the categories left after
+  removing those without counts off the diagonal; DescTools keeps the original number less 1 ([[10, 0, 0], [0, 5, 3],
+  [0, 2, 8]]: df 1 and p = 0.6547, DescTools df 2 and p = 0.9048). Categories whose off-diagonal counts fall into
+  unconnected groups (the covariance matrix is singular) are an error. No second factor `y`.
+- **`goodmanKruskalGamma`** (DescTools' `GoodmanKruskalGamma`) always returns the interval (level 0.95 by default) and
+  the standard error `ase`, as an object; DescTools returns gamma alone without `conf.level`. The levels 0 and 1 are
+  errors (DescTools: the point and [-1, 1]). Without concordant or discordant pairs gamma is NaN, as DescTools. The
+  variance leaves out the term (sum x psi)^2, which is 0 in the mathematics (DescTools subtracts its rounding, below
+  1e-30). No test of gamma = 0.
+- **`lblTest`** (coin's `lbl_test`, asymptotic) scores every factor 1..k, also one with two levels: coin leaves such a
+  factor unordered and codes it by an indicator of its first level, which turns the sign of Z ([[10, 5, 2], [3, 8, 6]]:
+  Z = 2.4074 here, -2.4074 in coin, and `"less"` and `"greater"` swapped), and refuses 2 x 2 tables, which are tested
+  here (Z^2 is the 'N - 1' chi-squared statistic). Scores are given as `rowScores` and `colScores`; only the
+  asymptotic distribution and a table (no formula, no blocks). Tables whose scores do not vary over the observations
+  are an error.
+- **`chisqTest(nMinus1: true)`** is not in R: Campbell's (2007) 'N - 1' chi-squared test, Pearson's statistic without
+  continuity correction times (N - 1)/N, for 2 x 2 and r x c tables (method "Pearson's 'N-1' Chi-squared test"). The
+  default continuity correction is then not applied; `correct: true` given with it, a vector (goodness of fit) and
+  `simulatePValue` are errors.
+- **`ftResiduals`** of `chisqTest` and `gTest` is not in R: the Freeman-Tukey deviates `sqrt(O) + sqrt(O + 1) -
+  sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975), computed without the cancellation of that formula (it loses
+  eps sqrt(O) absolute: -31.236670803616562 for -31.236670803616877 in [[1e5, 2e5], [3e5, 4e5]]). The variant
+  2 (sqrt(O) - sqrt(E)) is not offered.
 
 ### Data handling
 
