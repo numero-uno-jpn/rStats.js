@@ -3,6 +3,7 @@ import { binomDiffCI, binomRatioCI, fisherTest, oddsRatio } from "../src/index.j
 import { diffStatistic, oddsRatioStatistic, ratioStatistic } from "../src/htest/core/twoProportions.js";
 import { arg, defined, htestSuite, loadHTestFixture, type HTestCase } from "./helpers/htest.js";
 import { num, relativeError } from "./helpers/fixture.js";
+import { OddsRatioDistribution, twoSidedPValue, twoSidedPValueUnimodal } from "../src/htest/fisherTest.js";
 
 type Sub = { expected: HTestCase["expected"]; reason: string } | undefined;
 
@@ -267,6 +268,52 @@ describe("binomDiffCI, binomRatioCI and oddsRatio: roots and boundaries", () => 
       expect(relativeError(r[0], lower)).toBeLessThan(2 * 2 ** -52);
       expect(relativeError(r[1], upper)).toBeLessThan(2 * 2 ** -52);
     }
+  });
+
+  it("computes the closed-form odds ratio methods without the exact interval, within the time limit (audit 3)", () => {
+    // wald took 12.2 s and midp 22.1 s here (fisherTest's interval was always computed); counts above 2^31 - 1 threw
+    // fisherTest's error for every method
+    let t0 = performance.now();
+    const w = oddsRatio([[8e6, 8e6], [8e6, 8e6 + 7]], { method: "wald" });
+    expect(performance.now() - t0).toBeLessThan(2000);
+    expect(w.estimate).toBe((8e6 * (8e6 + 7)) / (8e6 * 8e6));
+    // the support has 16000001 values: above the limit of the exact methods (2^23, about 6 s)
+    expect(() => oddsRatio([[8e6, 8e6], [8e6, 8e6 + 7]])).toThrow(/more than 2\^23/);
+    expect(() => oddsRatio([[8e6, 8e6], [8e6, 8e6 + 7]], { method: "fisher" })).toThrow(/more than 2\^23/);
+    t0 = performance.now();
+    const s = oddsRatio([[1e9, 2e9], [3e9, 4e9]], { method: "score" });
+    expect(performance.now() - t0).toBeLessThan(2000);
+    expect(s.estimate).toBe((1e9 * 4e9) / (2e9 * 3e9));
+    expect(s.pValue).toEqual({ midp: 0, fisher: 0, chiSquare: 0 });
+    expect(() => oddsRatio([[3e9, 0], [0, 5]], { method: "fisher" })).toThrow(/2\^31 - 1/);
+    // phyper's limit (2^26 terms) bounds the p-values of every method
+    expect(() => oddsRatio([[1e15, 1e15], [1e15, 1e15]], { method: "wald" })).toThrow(RangeError);
+    // the n = 0 error (choice 16; epitools: estimate 0, [0, Inf], p-values 1 and NaN; audit 15)
+    expect(() => oddsRatio([[0, 0], [0, 0]])).toThrow(/all entries of the table are zero/);
+  });
+
+  it("gives Fisher's p-value of large tables from two phyper tails, as fisherTest's sum over the support", () => {
+    // the unimodal search against the array sum of fisherTest (R's way) where both apply
+    for (const [a, b, c, d] of [
+      [56, 14, 48, 32],
+      [3, 1, 1, 3],
+      [0, 10, 5, 5],
+      [10, 0, 0, 10],
+      [5000, 4000, 4100, 5200],
+      [20000, 20010, 19990, 20000],
+      [1, 3000, 2, 2500],
+      [400000, 400000, 400000, 400700],
+    ] as const) {
+      const dist = new OddsRatioDistribution(a + c, b + d, a + b);
+      const exact = twoSidedPValue(dist, a, 1);
+      const unimodal = twoSidedPValueUnimodal(a, a + c, b + d, a + b);
+      expect(relativeError(unimodal, exact)).toBeLessThan(1e-12);
+    }
+    // a support beyond the array (2^20) and entries beyond 2^31 - 1: symmetric margins put the p-value of a centred
+    // table at 1, and the wald interval is the closed form
+    const big = oddsRatio([[3e9, 3e9], [3e9, 3e9]], { method: "wald" });
+    expect(big.pValue.fisher).toBe(1);
+    expect(big.estimate).toBe(1);
   });
 
   it("returns +0, not -0, for counts of -0 (audit 16)", () => {

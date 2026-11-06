@@ -855,7 +855,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   Newcombe の `"score"` で 0/10 対 10/10 の差の下限は -1 です (DescTools は -1.0000000022)。x = 0 か n での
   `"wilsoncc"` は "NaNs produced" の警告を出しません (DescTools は 0 か 1 で置き換える限界について警告する)。
   `oddsRatio` は epiR の `epi.2by2` のスコア区間をメソッド `"score"` として持ち (対象のパッケージで他にない)、セルに
-  0 があるときの mid-p の推定値と限界は exact2x2 に合わせ、epitools のメソッド `"small"` はありません。`epi.2by2` の
+  0 があるときの mid-p の推定値と限界は exact2x2 に合わせ、epitools のメソッド `"small"` はありません。すべて 0 の表はエラーです (epitools は推定値 0、[0, Inf]、p 値 1、
+  カイ二乗の p 値 NaN)。正確な計算の限度を超える表もエラーです (性能の文書: `"midp"` と `"fisher"` で台が 2^23 個を
+  超えるとき)。`"wald"` と `"score"` は 2^31 - 1 を超える度数も受け付けます (epitools は `fisher.test` で失敗する)。
+  `epi.2by2` の
   他の数値はこれらの関数で得られます: リスク比 (Wald は度数 0 のない所で `"katz.log"`、スコアは `"koopman"`)、
   オッズ比 (`"wald"`、`"score"`、`"fisher"`)、寄与危険 (`binomDiffCI` の `"wald"` と `"mee"` の 100 倍。
   `binomDiffCI` は Wald 区間を [-1, 1] に切り詰めるが epiR は切り詰めない)。

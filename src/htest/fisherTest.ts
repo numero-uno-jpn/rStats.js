@@ -349,6 +349,71 @@ export class OddsRatioDistribution {
   }
 }
 
+/**
+ * The two-sided p-value of the count x at the odds ratio psi (0 < psi < Infinity): the sum of the probabilities at
+ * most P(X = x) (1 + 1e-7), as R
+ */
+export function twoSidedPValue(dist: OddsRatioDistribution, x: number, psi: number): number {
+  const dens = dist.density(psi);
+  const cut = dens[x - dist.lo]! * SLACK;
+  let acc: DD = [0, 0];
+  for (const v of dens) if (v <= cut) acc = ddAdd(acc, [v, 0]);
+  return acc[0];
+}
+
+/**
+ * Fisher's two-sided p-value of the 2 x 2 table with the (1, 1) cell x and the margins m (column 1), n (column 2) and
+ * k (row 1), at the odds ratio 1, without the array of the support: the hypergeometric density is unimodal, so the
+ * values at most P(X = x) (1 + 1e-7) are the two tails below and above two cut points, found by bisection and summed
+ * by phyper. For supports beyond what twoSidedPValue allocates (oddsRatio's p-value of tables with counts of 1e9)
+ */
+export function twoSidedPValueUnimodal(x: number, m: number, n: number, k: number): number {
+  const lo = Math.max(0, k - n);
+  const hi = Math.min(k, m);
+  // (on the log scale: P(X = x) underflows far in the tails, and a cut of 0 would take in every value that underflows)
+  const d = (i: number): number => dhyper1(i, m, n, k, true);
+  const cut = d(x) + Math.log(SLACK);
+  // a mode (the density increases up to it and decreases after; the formula may be one off where it rounds)
+  let mode = Math.min(hi, Math.max(lo, Math.floor(((k + 1) * (m + 1)) / (m + n + 2))));
+  while (mode < hi && d(mode + 1) > d(mode)) mode++;
+  while (mode > lo && d(mode - 1) > d(mode)) mode--;
+  // the last i in [from, to] with d(i) <= cut, d rising over [from, to] and d(from) <= cut
+  const risingLast = (from: number, to: number): number => {
+    let a = from;
+    let b = to + 1;
+    while (b - a > 1) {
+      const mid = a + Math.floor((b - a) / 2);
+      if (d(mid) <= cut) a = mid;
+      else b = mid;
+    }
+    return a;
+  };
+  // the first i in [from, to] with d(i) <= cut, d falling over [from, to]; to + 1 if there is none
+  const fallingFirst = (from: number, to: number): number => {
+    let a = from - 1;
+    let b = to + 1;
+    while (b - a > 1) {
+      const mid = a + Math.floor((b - a) / 2);
+      if (d(mid) <= cut) b = mid;
+      else a = mid;
+    }
+    return b;
+  };
+  // the p-value is P(X <= below) + P(X >= above)
+  let below: number;
+  let above: number;
+  if (x <= mode) {
+    below = risingLast(x, mode);
+    above = fallingFirst(mode + 1, hi);
+  } else {
+    above = fallingFirst(mode, x);
+    below = mode - 1 < lo || d(lo) > cut ? lo - 1 : risingLast(lo, mode - 1);
+  }
+  const lower = below < lo ? 0 : phyper1(below, m, n, k, true, false);
+  const upper = above > hi ? 0 : phyper1(above - 1, m, n, k, false, false);
+  return lower + upper;
+}
+
 /** Root of f, monotone in the odds ratio psi, to the precision of the doubles (on the log scale, see logScaleRoot) */
 function oddsRatioRoot(f: (psi: number) => number, belowOne: boolean): number {
   return logScaleRoot(f, belowOne);
@@ -382,13 +447,7 @@ function fisher2x2(t: number[][], options: FisherTestOptions, method: string): F
   else if (alternative === "greater") pValue = dist.tail(x, or, true);
   else if (or === 0) pValue = x === lo ? 1 : 0;
   else if (or === Infinity) pValue = x === hi ? 1 : 0;
-  else {
-    const dens = dist.density(or);
-    const cut = dens[x - lo]! * SLACK;
-    let acc: DD = [0, 0];
-    for (const v of dens) if (v <= cut) acc = ddAdd(acc, [v, 0]);
-    pValue = acc[0];
-  }
+  else pValue = twoSidedPValue(dist, x, or);
 
   let estimate: number;
   if (x === lo) estimate = 0;

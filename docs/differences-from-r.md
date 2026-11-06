@@ -906,7 +906,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   limit -1 (DescTools: -1.0000000022). `"wilsoncc"` at x = 0 or n has no "NaNs produced" warning (DescTools warns
   about the limit that it then replaces by 0 or 1). `oddsRatio` gives the score interval of epiR's `epi.2by2` as its
   method `"score"` (no other package in scope has it), its mid-p estimate and limits at a zero cell as exact2x2 does,
-  and does not have epitools' method `"small"`. epiR's other numbers of `epi.2by2` are those of these functions:
+  and does not have epitools' method `"small"`. A table of zeros is an error (epitools: the estimate 0, [0, Inf], the
+  p-values 1 and a chi-squared p-value NaN), and so is a table beyond the limits of the exact computation (performance:
+  a support above 2^23 values for `"midp"` and `"fisher"`); `"wald"` and `"score"` take counts above 2^31 - 1, where
+  epitools fails in `fisher.test`. epiR's other numbers of `epi.2by2` are those of these functions:
   the risk ratio (Wald = `"katz.log"` away from zero counts, score = `"koopman"`), the odds ratio (`"wald"`,
   `"score"`, `"fisher"`) and the attributable risk (`binomDiffCI` `"wald"` and `"mee"`, times 100; `binomDiffCI`
   clips the Wald interval to [-1, 1], epiR does not).
