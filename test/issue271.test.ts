@@ -30,7 +30,8 @@ describe("issue #271", () => {
   it("leaves the other cases as before", () => {
     const r = propTrendTest([15, 10, 8, 4], [30, 30, 30, 30]);
     expect(r.statistic).toBe(9.573428850537288);
-    expect(r.pValue).toBe(0.001974137263574751);
+    // 0.00197413726357475226 (mpmath): 0.001974137263574751 before pgamma's double-double continued fraction (1.2.0)
+    expect(r.pValue).toBe(0.001974137263574752);
     expect(propTrendTest([15, 10, 8, 4], [30, 30, 30, 30], [1, NaN, 3, 4]).statistic).toBe(9.679490161417874);
     // p = 0 or 1: the weights are infinite as in R; an error since #319 (NaN before)
     expect(() => propTrendTest([0, 0, 0], [3, 4, 5])).toThrow("all proportions are 0 or all are 1");

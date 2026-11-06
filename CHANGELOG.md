@@ -48,6 +48,15 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   counts with the score statistic at -margin and +margin (Miettinen-Nurminen by default, Farrington-Manning `"mee"`,
   `"wald"`), both one-sided p-values, the larger as the p-value, and the dual 1 - 2 alpha interval of `binomDiffCI`.
 
+### Fixed
+
+- `pgamma` and `pchisq`: the upper tail for small shapes (a < 4, so df < 8) and 1.1 < x < 64 (in the standardized
+  scale) is within a few eps of the true value; it was up to about 120 eps off from the rounding errors of the
+  continued fraction, which now runs in double-double there (`pchisq(2.3569217160548437, 1, lowerTail: false)` was
+  45 eps off). The values that depend on it can change in the last bits (for example the p-value of
+  `propTrendTest([15, 10, 8, 4], [30, 30, 30, 30])` by one ulp, now correctly rounded). Such calls take up to about
+  8 µs instead of 1 µs.
+
 ## 1.1.0 - 2026-11-06
 
 The reference is now R 4.6.2 (until 1.0.0, R 4.5.2): every fixture was regenerated with `oracle/Dockerfile.r46`

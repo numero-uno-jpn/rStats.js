@@ -136,6 +136,7 @@ function igamcContinuedFractionBoth(a: number, x: number): [number, number] {
 /** The continued fraction of DLMF 8.9.2: Q(a, x) = x^a e^-x / Gamma(a) times this */
 export function igamcContinuedFractionValue(a: number, x: number): number {
   if (x > 1e20) return igamcContinuedFractionLentz(a, x);
+  if (a < CF_DD_A && x < CF_DD_X) return igamcContinuedFractionDD(a, x);
   let y = 1 - a;
   let z = x + y + 1;
   let c = 0;
@@ -172,6 +173,139 @@ export function igamcContinuedFractionValue(a: number, x: number): number {
     if (t <= MACHEP) break;
   }
   return ans;
+}
+
+/**
+ * Below these a and x the continued fraction is evaluated in double-double. In double its rounding errors add up to
+ * about 120 eps relative for small a and x of a few (pchisq(2.3569217160548437, 1, lower = FALSE) was 45 eps off, R's
+ * 25 eps); in double-double they stay within 1 eps. The bounds enclose every point where the double recurrence was
+ * more than 8 eps off on a grid of a from 0.001 to 20 and x up to 400 a (a = 3.6 up to x = 26); above them it is
+ * within a few eps and short. The double-double recurrence takes about 8 us instead of 1 us where it is longest
+ * (a = 0.5, x = 1.18)
+ */
+const CF_DD_A = 4;
+const CF_DD_X = 64;
+
+/**
+ * igamcContinuedFractionValue's recurrence in double-double (for a < CF_DD_A and x < CF_DD_X, where it is at most
+ * about 75 steps). Each quantity is a pair (high, low) of plain numbers, with Dekker's products (Veltkamp splitting)
+ * and sums without the extra renormalisation of dd.ts: the result needs about a double's precision, and allocating
+ * an array per operation made it three times slower (about 22 us instead of 8 us for a = 0.5, x = 1.18; the double
+ * recurrence takes about 1 us). The values stay far inside the range of the splitting: the convergents are rescaled
+ * below 2^52 as in the double recurrence, and y, z and c are below about 2^7
+ */
+function igamcContinuedFractionDD(a: number, x: number): number {
+  // results of mul and sub
+  let hi = 0;
+  let lo = 0;
+  /** (ah + al)(bh + bl) to double-double precision */
+  const mul = (ah: number, al: number, bh: number, bl: number): void => {
+    const p = ah * bh;
+    let t = SPLITTER * ah;
+    const ahh = t - (t - ah);
+    const ahl = ah - ahh;
+    t = SPLITTER * bh;
+    const bhh = t - (t - bh);
+    const bhl = bh - bhh;
+    const e = ahh * bhh - p + ahh * bhl + ahl * bhh + ahl * bhl + (ah * bl + al * bh);
+    hi = p + e;
+    lo = e - (hi - p);
+  };
+  /** (ah + al) - (bh + bl) to double-double precision */
+  const sub = (ah: number, al: number, bh: number, bl: number): void => {
+    const d = ah - bh;
+    const bb = d - ah;
+    const e = ah - (d - bb) - (bh + bb) + (al - bl);
+    hi = d + e;
+    lo = e - (hi - d);
+  };
+  /** (ah + al) + b for a small integer b */
+  const addInt = (ah: number, al: number, b: number): void => {
+    const d = ah + b;
+    const bb = d - ah;
+    const e = ah - (d - bb) + (b - bb) + al;
+    hi = d + e;
+    lo = e - (hi - d);
+  };
+  // y = 1 - a, z = x + y + 1, as in the double recurrence
+  sub(1, 0, a, 0);
+  let yh = hi;
+  let yl = lo;
+  addInt(yh, yl, 1);
+  sub(hi, lo, -x, 0);
+  let zh = hi;
+  let zl = lo;
+  let c = 0;
+  let p2h = 1;
+  let p2l = 0;
+  let q2h = x;
+  let q2l = 0;
+  addInt(x, 0, 1);
+  let p1h = hi;
+  let p1l = lo;
+  mul(zh, zl, x, 0);
+  let q1h = hi;
+  let q1l = lo;
+  let ansh = p1h / q1h;
+  let ansl = 0;
+  for (let i = 0; i < MAXITER; i++) {
+    c += 1;
+    addInt(yh, yl, 1);
+    yh = hi;
+    yl = lo;
+    addInt(zh, zl, 2);
+    zh = hi;
+    zl = lo;
+    mul(yh, yl, c, 0);
+    const ych = hi;
+    const ycl = lo;
+    // pk = p1 z - p2 y c, qk = q1 z - q2 y c
+    mul(p1h, p1l, zh, zl);
+    const uh = hi;
+    const ul = lo;
+    mul(p2h, p2l, ych, ycl);
+    sub(uh, ul, hi, lo);
+    const pkh = hi;
+    const pkl = lo;
+    mul(q1h, q1l, zh, zl);
+    const vh = hi;
+    const vl = lo;
+    mul(q2h, q2l, ych, ycl);
+    sub(vh, vl, hi, lo);
+    const qkh = hi;
+    const qkl = lo;
+    // r = pk / qk: the quotient of the high parts, corrected by the remainder (qk stays positive here)
+    const r1 = pkh / qkh;
+    mul(r1, 0, qkh, qkl);
+    sub(pkh, pkl, hi, lo);
+    const r2 = (hi + lo) / qkh;
+    const rh = r1 + r2;
+    const rl = r2 - (rh - r1);
+    const change = ansh - rh + (ansl - rl);
+    ansh = rh;
+    ansl = rl;
+    p2h = p1h;
+    p2l = p1l;
+    p1h = pkh;
+    p1l = pkl;
+    q2h = q1h;
+    q2l = q1l;
+    q1h = qkh;
+    q1l = qkl;
+    // rescale before the convergents overflow (BIGINV = 2^-52, so exactly)
+    if (Math.abs(p1h) > BIG) {
+      p2h *= BIGINV;
+      p2l *= BIGINV;
+      p1h *= BIGINV;
+      p1l *= BIGINV;
+      q2h *= BIGINV;
+      q2l *= BIGINV;
+      q1h *= BIGINV;
+      q1l *= BIGINV;
+    }
+    if (Math.abs(change) <= 2 ** -58 * Math.abs(rh)) break;
+  }
+  return ansh + ansl;
 }
 
 /**

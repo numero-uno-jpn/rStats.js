@@ -243,6 +243,11 @@ the LAPACK reference implementation (modified BSD), LINPACK and EISPACK (public 
   a = 1e5, x = 0.999). The coefficients a + b and b − 1 are double-double too, since rounding
   a + b loses the digits of a small b (5e-11 at a = 1e8, b = 0.01), and from 2^52 on all of them
   are, since steps of 1 would be lost.
+- **The incomplete gamma continued fraction in double-double for small shapes** (`src/special/igam.ts`): for
+  a < 4 and 1.1 < x < 64 the rounding errors of the upper tail's continued fraction added up to about 120 eps in
+  double (`pchisq(2.3569217160548437, 1, lower.tail = FALSE)` was 45 eps off; R 4.6.2 is 25 eps off there and up to
+  about 60 eps in that region); the recurrence runs in double-double there, within 1 eps, so the upper tails of
+  `pgamma` and `pchisq` (df < 8) are within a few eps (1.2.0). It costs up to about 8 µs instead of 1 µs per call.
 - **Uniform asymptotic expansion for large parameters** (`src/special/incbetTemme.ts`): with
   ab/(a + b) >= 25 and x within the region where the expansion converges, the incomplete beta
   function uses Temme's expansion, whose exponent is the same double-double deviance as Loader's

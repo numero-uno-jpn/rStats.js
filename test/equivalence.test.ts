@@ -247,7 +247,9 @@ describe("binomDiffEquivalenceTest", () => {
     const r = binomDiffEquivalenceTest(80, 100, 78, 100, { margin: 0.15 });
     expect(r.pValues).toEqual([0.0018937433499954838, 0.012899725361675855]);
     expect(r.pValue).toBe(0.012899725361675855);
-    expect(r.confInt).toEqual([-0.07557697533608568, 0.11553638647686564]);
+    // (the true -0.0755769753360857571 and 0.115536386476865677 rounded; before pgamma's double-double continued
+    // fraction (1.2.0) the bound qchisq(0.9, 1) left them 8e-17 and 4e-17 off)
+    expect(r.confInt).toEqual([-0.07557697533608576, 0.11553638647686568]);
     expect(r.result).toBe("rejected");
     expect(r.method).toBe("mn");
   });

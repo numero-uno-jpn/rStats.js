@@ -23,8 +23,10 @@ describe("issue #143", () => {
   it("keeps the step of 1 elsewhere", () => {
     // values of the implementation before the fix
     const r = cohensD([1, 1 + E, 1 + 2 * E], undefined, { mu: -1 });
-    expect([r.value, r.ciLow, r.ciHigh]).toEqual([9007199254740992, 1433186871003179, 17299637460575152]);
+    // (the upper limits moved by an ulp or two, from 17299637460575152 and 63396437478.51937, with pgamma's
+    // double-double continued fraction in 1.2.0)
+    expect([r.value, r.ciLow, r.ciHigh]).toEqual([9007199254740992, 1433186871003179, 17299637460575150]);
     const s = cohensD([1, 1 + 1e-10], undefined, { mu: -1 });
-    expect([s.ciLow, s.ciHigh]).toEqual([886371910.5255351, 63396437478.51937]);
+    expect([s.ciLow, s.ciHigh]).toEqual([886371910.5255351, 63396437478.519394]);
   });
 });

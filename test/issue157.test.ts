@@ -26,7 +26,8 @@ describe("issue #157", () => {
   it("as before where the bracket stays finite", () => {
     expect(qchisq(0.5, 5e307, { ncp: 5e307 })).toBe(1e308);
     expect(qchisq(0.5, 1.7e308, { ncp: 1e306 })).toBe(1.71e308);
-    expect(qchisq(0.5, 3, { ncp: 2 })).toBe(4.137515123399119);
+    // 4.13751512339911725 (mpmath): 4.137515123399119 before pgamma's double-double continued fraction (1.2.0)
+    expect(qchisq(0.5, 3, { ncp: 2 })).toBe(4.137515123399117);
     expect(qchisq(0.01, 100, { ncp: 1e5, lowerTail: false })).toBe(101576.08685642914);
   });
 });
