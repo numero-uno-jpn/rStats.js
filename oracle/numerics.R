@@ -7,7 +7,8 @@ source("/oracle/_linalg.R")
 # Functions cannot be written to JSON, so each case names its function by an id and gives the same function as
 # a JavaScript expression in args.js (a body in x, or in t, y, p for ode; Math.* names). The tests can build it
 # with new Function. R evaluates its own copy of the function (fns below), so both must describe the same
-# function: they are listed side by side.
+# function: they are listed side by side. R 4.6 computes x^2, x^3 and x^4 by repeated multiplication (x * x * x,
+# left to right; R 4.5 called pow), so the JavaScript writes them as products to give the same bits.
 
 set.seed(20261028)
 cases <- list()
@@ -34,7 +35,7 @@ fns <- list(
   sinc       = list(r = function(x) sin(x) / x,               js = "Math.sin(x) / x"),
   quad13     = list(r = function(x) (x - 1 / 3)^2,            js = "(x - 1 / 3) * (x - 1 / 3)"),
   absm2      = list(r = function(x) abs(x - 2),               js = "Math.abs(x - 2)"),
-  quartic    = list(r = function(x) x^4 - 3 * x^3 + 2,        js = "x ** 4 - 3 * x ** 3 + 2"),
+  quartic    = list(r = function(x) x^4 - 3 * x^3 + 2,        js = "x * x * x * x - 3 * (x * x * x) + 2"),
   xexp       = list(r = function(x) x * exp(-x),              js = "x * Math.exp(-x)"),
   cos        = list(r = function(x) cos(x),                   js = "Math.cos(x)"),
   flat       = list(r = function(x) 1,                        js = "1"),
