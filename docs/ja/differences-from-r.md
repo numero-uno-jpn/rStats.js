@@ -315,6 +315,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `matrix(c(1, 3, 2, 4), 2) * 1e-60` のような小さな非対称行列の `eigen()` | 対称とみなす (平均 \|a\| <= 100 eps で `isSymmetric` が絶対差で比べる) ため固有値が誤る | 対称判定をどの尺度でも相対的に行う (`isSymmetric()` 自体は R と同じ) |
 | 値に "\r" を含む複数キー、または `NA` と文字列 "NA" での `merge()` | 異なるキーの行が結合される (キーを "\r" で連結するため) | 等しいキーだけを結合 |
 | `JonckheereTerpstraTest` (DescTools) の両側 p 値 | 1 を超えることがある | 最大 1 |
+| R 4.6 での `JonckheereTerpstraTest` (DescTools 0.99.60) の正確な p 値 | 負になる。同順位のない 6 個ずつの 3 群 (デモの例 more-tests の `x`) で -1.727。R 4.5.2 では 9.3277404228e-7 | 正確な p 値 9.327740420177e-7。R 4.6.2 の clinfun の `jonckheere.test` と同じ |
 | distSummary の `unif(-1e308, 1e308)` の平均、`beta(1e150, 1e150)` の分散、`triang(-1e308, 1e308, 0)` と `triang(0, 3e120, 1e120)` の歪度 | Inf、0、NaN、NaN | 0、1.25e-151、0、0.3054 (歪度は 2 の冪で割ったパラメータから) |
 | 小さな単位の共変量 x (x * 1e-4) での `aov(y ~ x + w + Error(id/w))` | x の行が消える (層への射影の平方和が 1e-5 を超える列だけを採用するため) | x の尺度によらず同じ表 (しきい値は列自身の平方和の 1e-14 倍。以前の 1e-5 × 列の平均二乗では、主に被験者間で変動する共変量の小さな被験者内成分も落ちていた) |
 | 1e-200 や 1e155 程度のデータでの `t.test`、`oneway.test`、`var.test`、`bartlett.test`、PMCMRplus の `tukeyTest`/`gamesHowellTest`、`pairwise.t.test` | "data are essentially constant" か NaN (分散が 0 にアンダーフロー、またはその二乗がオーバーフロー) | 尺度によらず同じ結果 (データを 2 の冪で正規化。丸め誤差なし) |
