@@ -656,6 +656,14 @@ function dpoisRawCore(x: number, lambda: number, wantLog: boolean, wantLin: bool
     const v = lg === Infinity ? -Infinity : -lambda + x * Math.log(lambda) - lg;
     return [v, wantLin ? Math.exp(v) : NaN];
   }
+  if (x < 0.01 && lambda < 700) {
+    // A small count: stirlerr(x) is about -log(x) / 2 and cancels against log(2 pi x) in the form below, which lost up
+    // to about 50 eps (dpoisRaw(1e-100, 100) was 3.720075976020794e-44 for 3.7200759760208361e-44; pgamma(100, 1e-100,
+    // upper) was 51 eps off, R 52 eps). lambda^x e^-lambda / Gamma(x + 1) = e^-lambda e^t with t = x log(lambda) -
+    // lgamma1p(x) small: within 1 eps (e^-lambda stays normal below lambda = 700)
+    const t = x * Math.log(lambda) - lgamma1p(x);
+    return [-lambda + t, wantLin ? Math.exp(-lambda) * Math.exp(t) : NaN];
+  }
   const b = bd0dd(x, [lambda, 0]);
   // (an overflowed deviance stays [Infinity, 0]: the double-double sum would make it NaN)
   const e = b[0] === Infinity ? b : ddAdd(b, [stirlerr(x), 0]);

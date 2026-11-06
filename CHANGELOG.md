@@ -56,6 +56,10 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   45 eps off). The values that depend on it can change in the last bits (for example the p-value of
   `propTrendTest([15, 10, 8, 4], [30, 30, 30, 30])` by one ulp, now correctly rounded). Such calls take up to about
   8 µs instead of 1 µs.
+- `pgamma` and the functions built on it (`pchisq`, `ppois`, ...) near x = a (20 < a, within Temme's expansion's
+  region): within about 4 eps, from up to about 35 eps (`pgamma(256.71, 199, lowerTail: false)` was 22 eps off);
+  and with a tiny shape (below 0.01): within a few eps, from up to about 50 eps (`pgamma(100, 1e-100, lowerTail:
+  false)`). Values there can change in the last bits.
 
 ## 1.1.0 - 2026-11-06
 

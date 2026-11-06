@@ -248,6 +248,13 @@ the LAPACK reference implementation (modified BSD), LINPACK and EISPACK (public 
   double (`pchisq(2.3569217160548437, 1, lower.tail = FALSE)` was 45 eps off; R 4.6.2 is 25 eps off there and up to
   about 60 eps in that region); the recurrence runs in double-double there, within 1 eps, so the upper tails of
   `pgamma` and `pchisq` (df < 8) are within a few eps (1.2.0). It costs up to about 8 µs instead of 1 µs per call.
+- **Temme's expansion with the double-double deviance in all its region** (`src/special/igam.ts`): in xsf's region
+  (|x − a| / a < 0.3 for 20 < a < 200, within 4.5 standard deviations above) the tails were formed from erfc and
+  e^(−a η²/2) of a rounded η, up to about 35 eps off (`pgamma(256.71, 199, lower.tail = FALSE)` 22 eps, R 0.2 eps);
+  the smaller tail now comes from the double-double deviance as farther out, within about 4 eps (1.2.0).
+- **The Poisson factor for a tiny count** (`src/special/loader.ts`): x^a e^−x / Γ(a + 1) for a < 0.01 is
+  e^−x e^(a log x − lgamma1p(a)); Loader's form lost up to about 50 eps there through the cancellation of stirlerr(a)
+  against log(2πa) (`pgamma(100, 1e-100, lower.tail = FALSE)` was 51 eps off, R 52 eps) (1.2.0).
 - **Uniform asymptotic expansion for large parameters** (`src/special/incbetTemme.ts`): with
   ab/(a + b) >= 25 and x within the region where the expansion converges, the incomplete beta
   function uses Temme's expansion, whose exponent is the same double-double deviance as Loader's

@@ -134,5 +134,6 @@
   {"args":{"q":"1.1000000000000001","shape":"1e-10","scale":"1","lowerTail":true,"logP":true},"reference":"-1.8599090455813328e-11"},
   {"args":{"q":"150","shape":"2","scale":"1","lowerTail":true,"logP":true},"reference":"-1.083439491947826e-63"},
   {"args":{"q":"500","shape":"10","scale":"1","lowerTail":true,"logP":true},"reference":"-3.9047966391213204e-199"},
-  {"args":{"q":"500","shape":"1.5","scale":"1","lowerTail":true,"logP":true},"reference":"-1.7994208765314476e-216"}
+  {"args":{"q":"500","shape":"1.5","scale":"1","lowerTail":true,"logP":true},"reference":"-1.7994208765314476e-216"},
+  {"args":{"q":"75","shape":"1e-10","scale":"1","lowerTail":true,"logP":true},"reference":"-3.5251173572823701e-45"}
 ]

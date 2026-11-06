@@ -9,7 +9,7 @@
 // - The prefactor x^a e^-x / Gamma(a) is computed with Loader's dpoisRaw (= x^a e^-x / Gamma(a+1)),
 //   to avoid cancellation in the log for large a and x
 
-import { erfc, erfcxNonNegative } from "./erf.js";
+import { erfcxNonNegative } from "./erf.js";
 import { SPLITTER } from "./dd.js";
 import { MACHEP } from "./constants.js";
 import { lgamma, lgamma1p } from "./gamma.js";
@@ -353,15 +353,6 @@ function igamcSeries(a: number, x: number): number {
   return term - a * Math.exp(L) * sum;
 }
 
-/** Temme's uniform asymptotic expansion for a close to x (DLMF 8.12.3/8.12.4) */
-function asymptoticSeries(a: number, x: number, lower: boolean): number {
-  const sgn = lower ? -1 : 1;
-  const eta = temmeEta(a, x);
-  let res = 0.5 * erfc(sgn * eta * Math.sqrt(a / 2));
-  res += (sgn * Math.exp(-0.5 * a * eta * eta) * temmeSum(a, eta)) / Math.sqrt(2 * Math.PI * a);
-  return res;
-}
-
 /** η of Temme's expansion: η^2 / 2 = λ - 1 - log λ (λ = x / a), with the sign of λ - 1 */
 function temmeEta(a: number, x: number): number {
   const lambda = x / a;
@@ -513,11 +504,7 @@ export function gammaIncBoth(a: number, x: number, lower: boolean): [number, num
     return [l + Math.log(a / A_SUB), v * (a / A_SUB)];
   }
   const absxmaA = Math.abs(x - a) / a;
-  if (xsfAsymptotic(a, absxmaA)) {
-    const v = asymptoticSeries(a, x, lower);
-    return [v > 0.5 ? Math.log1p(-asymptoticSeries(a, x, !lower)) : Math.log(v), v];
-  }
-  if (farAsymptotic(a, absxmaA)) return farTail(a, x, lower);
+  if (xsfAsymptotic(a, absxmaA) || farAsymptotic(a, absxmaA)) return farTail(a, x, lower);
   const d = directTailBoth(a, x);
   if (d.lower === lower) return [d.log, d.lin];
   return [d.lin > 0 ? Math.log1p(-d.lin) : -Math.exp(d.log), 1 - d.lin];
@@ -556,15 +543,11 @@ export function gammaInc(a: number, x: number, lower: boolean, log: boolean): nu
     return log ? v + Math.log(a / A_SUB) : v * (a / A_SUB);
   }
 
-  /* Asymptotic regime where a ~ x: both tails can be computed directly */
+  /* Asymptotic regime where a ~ x: Temme's expansion. In xsf's region too, the smaller tail is formed as in
+     temmeTail (the exponent from the double-double deviance) and the other as 1 minus it: xsf's form, erfc and
+     e^(-a η^2 / 2) from a rounded η, lost up to about 35 eps there (pgamma(256.71, 199, upper) 22 eps, R 0.2) */
   const absxmaA = Math.abs(x - a) / a;
-  if (xsfAsymptotic(a, absxmaA)) {
-    const v = asymptoticSeries(a, x, lower);
-    if (!log) return v;
-    // The log of a value near 1 is built with log1p from the small value of the other side
-    return v > 0.5 ? Math.log1p(-asymptoticSeries(a, x, !lower)) : Math.log(v);
-  }
-  if (farAsymptotic(a, absxmaA)) return farTail(a, x, lower)[log ? 0 : 1];
+  if (xsfAsymptotic(a, absxmaA) || farAsymptotic(a, absxmaA)) return farTail(a, x, lower)[log ? 0 : 1];
 
   if (log) {
     const d = directTail(a, x, true);
