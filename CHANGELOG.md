@@ -16,6 +16,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 - `ansariTest` follows R 4.6: the normal approximation with ties is centred and scaled with the mean and variance of
   the observed scores (p-values, intervals and estimates change; without ties as before), and the warning reads
   "cannot compute exact confidence interval with ties".
+- `moodTest` with ties agrees with R 4.6, which fixed its tie correction of the variance (the values here, the exact
+  permutation variance of the averaged scores, are unchanged; the entry in differences-from-r is removed).
 
 ## 1.0.0 - 2026-11-05
 

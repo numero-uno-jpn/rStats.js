@@ -507,12 +507,8 @@ if (hasFixture("moodTest"))
     name: "moodTest",
     call: (a) => moodTest(arg.vec(a.x)!, arg.vec(a.y)!, defined({ alternative: arg.str<Alternative>(a.alternative) })),
     tolerance: 1e-12,
-    // R 4.5.2's variance correction for ties has (N - t)^2 where Mielke's formula has (N - 2 cumsum(t) + t)^2
-    // (corrected in R-devel); the variance here is the exact permutation variance of the averaged scores
-    knownDifference: (a) => {
-      const z = [...arg.vec(a.x)!, ...arg.vec(a.y)!].filter(Number.isFinite);
-      return new Set(z).size < z.length ? "R 4.5.2's tie correction of the variance is wrong (fixed in R-devel)" : undefined;
-    },
+    // with ties, R 4.6 (Mielke's correction, (N - 2 cumsum(t) + t)^2) gives the exact permutation variance of the
+    // averaged scores, as here; R 4.5.2 had (N - t)^2 and was excused here until the fixtures came from R 4.6
   });
 
 // With ties the R fixture cannot be the reference (above), so the statistic is checked against its definition: the
