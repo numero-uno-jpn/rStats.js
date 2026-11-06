@@ -144,6 +144,7 @@ RangeError を投げます。正確な検定では、メッセージで回避の
 | `r2dtable`、`chisqTest` (分割表) と `fisherTest` のシミュレーションの p 値 | 総数が 2^24 を超える |
 | `chisqTest` の適合度のシミュレーション | `B` と総数の積が 2^27 を超える |
 | `dwilcox`、`pwilcox`、`qwilcox` (と 2 標本の正確な `wilcoxTest`) | 表の作成が 2^29 手順を超える |
+| 同順位やゼロ差のある `wilcoxTest(exact: true)` (条件付き検定) | 分布 (p 値に 1 回、区間の探索ではスコアの多重集合ごとに作り直す) の作成が 5e9 手順 (約 8 秒) を超えるか、1 つの配列が 2^24 個を超える |
 | `phyper` / `qhyper` | 和が 2^26 項を超える / 標準偏差が 2^21 を超える |
 | `besselJ`、`besselY`、`besselI`、`besselK` | 級数や漸化式が 2^25 から 2^31 の手順を超える、または double で分解できない位相 |
 | `rwilcox` / `rsignrank` | n が 2^24 を超える / n が 2^27 以上 |

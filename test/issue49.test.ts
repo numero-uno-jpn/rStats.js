@@ -17,10 +17,11 @@ describe("issue #49", () => {
     expect([c.statistic, c.pValue]).toEqual([2, 1]);
   });
 
-  it("leaves ties that are not all equal as before (R 4.5.2)", () => {
+  it("leaves ties that are not all equal as R (R 4.6.2)", () => {
     expect(wilcoxTest([1, 1, 2], [1, 1, 1], { exact: false }).pValue).toBeCloseTo(0.50498507509384583, 15);
+    // R 4.6's exact conditional test (R 4.5.2: the normal approximation, 0.28171791582572991)
     const r = wilcoxTest([1, 2, 2, 3], [2, 2, 4, 5]);
     expect(r.statistic).toBe(4);
-    expect(r.pValue).toBeCloseTo(0.28171791582572991, 15);
+    expect(r.pValue).toBeCloseTo(0.31428571428571428, 15);
   });
 });

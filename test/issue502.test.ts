@@ -1,7 +1,7 @@
-// Issue #502: the signed rank interval is formed from (x - mu) + mu, as in R. Where mu dwarfs the data that loses the
-// observations (R: interval NaN NaN, estimate 0); the observations themselves are now taken there, when some
-// observation is off by more than 2^-26 of the largest. The issue's example (1 ulp) keeps R's bits.
-// R values: wilcox.test(..., conf.int = TRUE), printed with sprintf("%a").
+// Issue #502: R 4.5 formed the signed rank interval from (x - mu) + mu, which loses the observations where mu dwarfs
+// the data (R 4.5.2: interval NaN NaN, estimate 0), and rStats.js took the observations themselves there. R 4.6
+// searches the observations themselves, so these are now R's values.
+// R values: R 4.6.2's wilcox.test(..., conf.int = TRUE), printed with sprintf("%a").
 import { describe, expect, it } from "vitest";
 import { wilcoxTest } from "../src/index.js";
 
@@ -17,25 +17,25 @@ const ciEst = (x: number[], mu: number, exact?: boolean): number[] => {
 };
 
 describe("issue #502: wilcoxTest's interval where mu dwarfs the data", () => {
-  it("mu = 1e17: the interval of the observations (R: NaN NaN, estimate 0)", () => {
-    // the differences all round to -mu (tied), so the normal approximation; the interval does not depend on mu:
-    // R's wilcox.test(c(1, 2, 3, 4.5), conf.int = TRUE, exact = FALSE)
-    expect(ciEst([1, 2, 3, 4.5], 1e17)).toEqual(["0x1.00044fa0e3e36p+0", "0x1.1ffeec17c7072p+2", "0x1.45f00c09478c2p+1"].map(fromHex));
-    expect(wilcoxTest([1, 2, 3, 4.5], { mu: 1e17, confInt: true }).estimateNames).toBe("(pseudo)median");
+  it("mu = 1e17: the interval of the observations (R 4.5.2: NaN NaN, estimate 0)", () => {
+    // the differences all round to -mu (tied); the normal interval does not depend on mu (as with mu = 0)
+    expect(ciEst([1, 2, 3, 4.5], 1e17, false)).toEqual(["0x1.00044fa0e3e36p+0", "0x1.1ffeec17c7072p+2", "0x1.45f00c09478c2p+1"].map(fromHex));
+    expect(wilcoxTest([1, 2, 3, 4.5], { mu: 1e17, confInt: true, exact: false }).estimateNames).toBe("(pseudo)median");
   });
 
-  it("mu = 1e16: the interval of the observations (R: [0, 8], estimate 3.9999)", () => {
-    // R's wilcox.test(c(1, 2, 3, 4.5, 7), conf.int = TRUE, exact = FALSE)
-    expect(ciEst([1, 2, 3, 4.5, 7], 1e16)).toEqual(["0x1.fffc30332a83dp+0", "0x1.4000288f033fep+2", "0x1.a000cf2984b6fp+1"].map(fromHex));
+  it("mu = 1e16: the interval of the observations (R 4.5.2: [0, 8], estimate 3.9999)", () => {
+    expect(ciEst([1, 2, 3, 4.5, 7], 1e16, false)).toEqual(["0x1.fffc30332a83dp+0", "0x1.4000288f033fep+2", "0x1.a000cf2984b6fp+1"].map(fromHex));
   });
 
-  it("the issue's example keeps R's bits (the reconstruction is off by 1 ulp, as with ordinary data)", () => {
-    // R: 0x1.f699d3249b3d7p+52 0x1.f699d3249b3dfp+52, estimate 0x1.f699d3249b3dbp+52
-    expect(ciEst([8841848152503256, 8841848152503264], -5054035322351469, true)).toEqual([8841848152503255, 8841848152503263, 8841848152503259]);
+  it("the issue's example: the Walsh averages of the observations", () => {
+    // R 4.6.2: (-Inf, Inf) (n = 2 reaches no level), estimate 0x1.f699d3249b3dcp+52
+    expect(ciEst([8841848152503256, 8841848152503264], -5054035322351469, true)).toEqual([-Infinity, Infinity, 8841848152503260]);
   });
 
-  it("ordinary data keep R's bits", () => {
-    // (0.1 - 0.4) + 0.4 is 0.09999999999999998; R: 0x1.9999999999998p-4 0x1.8cccccccccccdp+1, 0x1.7333333333334p+0
-    expect(ciEst([0.1, 0.7, 1.3, 2.2, 3.1], 0.4)).toEqual(["0x1.9999999999998p-4", "0x1.8cccccccccccdp+1", "0x1.7333333333334p+0"].map(fromHex));
+  it("ordinary data: R's values", () => {
+    // (the estimate's root is 1 ulp from R's, for every mu, mu = 0 included: uniroot's last step)
+    const r = ["0x1.665dd2c2b24bcp-1", "0x1.1999fc2389cd6p+1", "0x1.733636f83fcdep+0"].map(fromHex);
+    ciEst([0.1, 0.7, 1.3, 2.2, 3.1], 0.4, false).forEach((v, i) => expect(Math.abs(v - r[i]!)).toBeLessThanOrEqual(2 ** -51 * r[i]!));
+    expect(ciEst([0.1, 0.7, 1.3, 2.2, 3.1], 0.4, true)).toEqual([-Infinity, Infinity, fromHex("0x1.7333333333334p+0")]);
   });
 });

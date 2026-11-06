@@ -25,6 +25,15 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   a fit with `Error()`).
 - `survfit` follows survival 3.8-12 (with R 4.6): with `confType: "log-log"`, the limits are 1 and 1 (not `NaN`) at the
   times where the estimate is 1.
+- `wilcoxTest` follows R 4.6: with ties or zero differences the exact test (default for n < 50, zeros counted) is the
+  conditional test given the mid-ranks, the signed rank test ranking the zeros with the data (Pratt), instead of the
+  normal approximation, and the exact-test warnings are gone; exact intervals report the achieved confidence level
+  ((-Inf, Inf) at level 1 where none is reached); the two-sided exact two-sample p-value takes both tails; `correct`
+  also takes 0..3 (Edgeworth terms in the normal p-value); the normal interval of the signed rank test is searched on
+  the observations, values equal to `mu` included. Two values differ from R 4.6.2, where it is wrong
+  (docs/differences-from-r.md): the one-sample conditional interval's lower end (R's is one Walsh average too high)
+  and its level, and two-sided normal p-values below 1/64 from the upper tail itself (R's 2 (1 - F) gives 0 for
+  `1:300`). The conditional distribution has time and memory limits (RangeError suggesting `exact: false`).
 
 ## 1.0.0 - 2026-11-05
 

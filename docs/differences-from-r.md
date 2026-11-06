@@ -131,6 +131,8 @@ affected.
 | `fisher.test` (2 x 2) and `mantelhaen.test(exact = TRUE)`: the conditional MLE and the confidence limits | uniroot on psi in [0, 1] or 1/psi in [eps, 1] with the absolute tolerance eps^0.25: for [[3, 1], [1, 3]] the estimate is 1.7e-6 off, the 95% limits 1.3e-5 and 0.7% (621.93 for 626.24), the 99% upper limit 6%, and the 99.99% limit the end 1/eps (4.5e15 for 3.2e5) | the roots on the log scale of psi to the precision of the doubles (the tail equals alpha at the limits, the mean equals the count at the estimate) |
 | clinfun's `jonckheere.test` and DescTools' `JonckheereTerpstraTest` with ties (normal approximation) | the null variance without ties (sum n_i m_i (n_i + m_i + 1) / 12), too large: p = 0.0086 for c(1, 1, 2, 2, 3, 3) in three groups | the permutation variance with the ties (Hollander & Wolfe): p = 0.0061; without ties as the packages |
 | clinfun's `jonckheere.test` and DescTools' `JonckheereTerpstraTest`, normal approximation with a large positive statistic | the upper tail as 1 - pnorm(z): 0 beyond z ~ 8.3 (1:101 in ordered groups of 34, 34, 33: p 0 for increasing and two-sided) | where 1 - pnorm(z) is below 1e-8, the upper tail pnorm(z, lower.tail = FALSE): 1.4902389037944e-26 (Rmpfr 1.4902389037944002e-26); above 1e-8 the packages' value (#280) |
+| `wilcox.test(x, exact = FALSE)` (also paired; two samples too), two-sided, with a small p-value from a large positive statistic | 2 (1 - F) with 1 - F formed from the lower tail F, which loses the digits: `wilcox.test(1:300, exact = FALSE)` gives p = 0 (`-(1:300)` gives 6.1141368593044447e-51, and `alternative = "greater"` 3.0570684296522223e-51) | the upper tail itself where it is below 1/64: 6.1141368593044446e-51 (twice R's own one-sided value). Above 1/64 R's 2 (1 - F); the values differ from R's by the rounding of 1 - F (a few 1e-17 absolute), beyond 1e-12 relative only below about p = 1e-4 |
+| `wilcox.test(x, conf.int = TRUE)` (one sample or paired), exact with ties or zeros (the conditional interval of R 4.6) | the lower end where P(V > v) <= alpha' (a strict tail; the two-sample interval uses P(W >= w)), so it is one Walsh average too high and never -Inf, and an end at the first or last Walsh average is reported with tail 0: `x = c(1.83, 0.50, 1.62, 2.48, 1.68, 1.88, 1.55, 3.06, 1.30)` with `mu = 0.5` (a zero) gives [1.19, 2.37] at 0.9609375, where the data have no ties and the classical interval is [1.165, 2.37]; `c(1, 2, 2, 3)` gives [1, Inf] at level 1 | the lower end from P(V >= v) and the tails rejected at the ends: the classical interval for data without ties ([1.165, 2.37] at 0.9609375), (-Inf, Inf) for `c(1, 2, 2, 3)`, and the level that is achieved (the test compares both rules with exact counts) |
 | `oneway.test` (Welch, the default) with one constant group | NaN throughout (the weight n / 0 is infinite): `oneway.test` on [1, 1, 1] and [2, 3, 4] | the limit as that group's variance tends to 0: F = sum over the other groups of w_i (m_i - m_z)^2 / ((k - 1)(1 + 2 (k - 2) c)) with c = sum 1 / (n_i - 1) / (k^2 - 1) over them, df2 = 1 / (3 c); F 12, df (1, 2), p 0.0742, as `t.test` (Welch) on the same data. With two or more constant groups the limit depends on how the variances tend to 0, so it is an error "Welch's test is not defined with two or more constant groups" (R NaN) (#313) |
 | `mcnemar.test` (2 x 2, continuity correction) with fractional counts whose discordant cells differ by less than 1 | (abs(b - c) - 1)^2 / (b + c) squares the negative corrected difference, so the correction makes the statistic larger: 0.7 instead of 0.129 for b = 0.5, c = 0.2, and 0.1 (as without the correction) for b = 1.5, c = 1 | the corrected difference max(0, abs(b - c) - 1): statistic 0, p 1 there (R's `chisq.test` and `prop.test` clamp their corrections likewise); integer counts unchanged |
 | `chisq.test(x)$stdres` (contingency table) with a margin small against the total | E (1 - r / n)(1 - c / n) in doubles loses the small margins: [[2^52, 0], [0, 0.1]] gives NaN, -Inf, -Inf, 2^26 (true: 2^26 in absolute value in all four cells); integer tables such as [[1e15, 7], [3, 11]] are off by 2e-14 relative | the complements 1 - r / n and 1 - c / n as the other rows' and columns' sums over n, and O - E and the variance in double-double, rounded once: 2^26 in all four cells, 21912524.504463962 for the second (the exact value rounded); in ordinary tables the last bits may differ from R's (#382) |
@@ -276,8 +278,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `beta(1e-310, 1e-310)` (B(a, a) > 2/a overflows) | NaN, with warnings | Inf |
 | `qhyper(1 - 1e-15, 1e4, 1e5, 5000)` | 5000 | 617 (by definition) |
 | `fisher.test` on a 3 × 5 table with n = 179 | FEXACT error 7 with the default workspace | 0.2023726720757 (0.65 s) |
-| `wilcox.test(exact = TRUE)` with very large n (e.g. 3000) | `psignrank` gives NaN | computed |
-| `wilcox.test(x, y)` (normal approximation) with every value tied, e.g. `wilcox.test(1, 1)` | p = NaN two-sided (0 / 0; R 4.6 returns 1) | 1 (W always equals its expectation), for every alternative |
+| `wilcox.test(exact = TRUE)` with very large n (e.g. 3000) | `psignrank` gives NaN; with ties or zeros, "overflow error: cannot compute exact distribution" above about 1024 values | computed (with ties or zeros up to the time limit, about n = 2400: [performance](performance.md#limits)) |
+| `wilcox.test(x, y, exact = FALSE)` (normal approximation) with every value tied, e.g. `wilcox.test(1, 1, exact = FALSE)` | p = NaN (0 / 0; the exact conditional test, R 4.6's default here, gives 1) | 1 (W always equals its expectation), for every alternative |
 | `kappa(exact = TRUE)` and MASS's `ginv` of a matrix whose singular values exceed the largest double (`a * matrix(c(1, 1, 1, -1), 2)` with a = 1.7e308) | NaN (Inf / Inf) and the zero matrix (the cut-off tol × Inf drops every component) | 1 and the inverse (±2.9e-309): ratios and the cut-off on the scaled singular values |
 | lmerTest's `contest` with a contrast of extreme magnitude (`c(0, 1e160)`, `c(0, 1e-200)`, `diag(2) * 1e160`) | standard error Inf or 0, t 0 or Inf, df and p NaN; "infinite or missing values in 'x'" or no rows for the joint test | the test of the contrast itself (L and rhs divided by a power of 2), the estimate and the standard error in the contrast's units |
 | `psigamma(x, deriv)` for x < 0 and deriv ≥ 6 | NaN (not implemented in R) | computed (`psigamma(-1.5, 10)` = -156.229596593233) |
@@ -650,17 +652,6 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   in ...") and R's warnings about argument types are not. `cronbachAlpha` returns psych's `alpha`'s own warnings, not
   those of the functions it calls (`principal`, `cor`), and `pairwisePropTest` and `pairwiseWilcoxTest` give each
   warning once (R repeats it for every pair). Method names and all numeric fields match R.
-- **`wilcoxTest`** with n = 3, one-sided exact interval: the achieved confidence level is 0.88.
-  R reports 0.87 because its `psignrank(0, 3)` is 0.12500000000000003, 1 ulp above 1/8 (R itself
-  reports 0.88 for the two-sided interval with n = 4).
-- **`wilcoxTest`**, signed rank interval where `mu` dwarfs the data: R forms the interval from
-  (x − mu) + mu, which loses the observations there (`wilcox.test(c(1, 2, 3, 4.5), mu = 1e17,
-  conf.int = TRUE)` gives the interval NaN NaN and the estimate 0, "midrange"; with mu = 1e16 and
-  c(1, 2, 3, 4.5, 7), [0, 8]). When some observation comes back off by more than 2^-26 of the
-  largest, rStats.js takes the observations themselves: the interval and estimate of the same data
-  with mu = 0 (the method still follows the differences from mu). Smaller rounding, such as the 1 ulp
-  of (0.1 − 0.4) + 0.4, keeps R's values (issue #502). Where its interval is NaN, R also warns "all observations
-  are zero or tied"; rStats.js computes the interval and does not.
 - **`brunnerMunzelTest`** takes `confLevel` where lawstat takes `alpha` (`confLevel = 1 - alpha`),
   and returns an `alternative` field, which lawstat's result lacks. An empty sample throws "not
   enough 'x' observations" (or 'y'); lawstat returns meaningless numbers, because it indexes the
@@ -1176,12 +1167,13 @@ also from R's source. They are listed because they are easy to get wrong.
   one. Non-integer counts are rounded half to even. A 2 × 2 table with a zero margin gives p = 1,
   estimate 0, interval [0, Inf]. For r × c tables `alternative` is not checked and is returned as
   given. No `statistic` is returned.
-- **`wilcoxTest`:** by default (`exact` unset) the exact method is used for n < 50 after removing
-  zeros (both samples < 50 for two samples) without ties; with ties or zeros the normal
-  approximation is used even with `exact: true`. Normal-approximation intervals and estimates use
-  the same search range and objective as R and match to the last digit. When the achieved α of
-  an exact interval is more than α/2 from the target, the reported confidence level is replaced
-  (signed rank: 1 − signif(α, 2); rank sum: not rounded).
+- **`wilcoxTest`:** as R 4.6, by default (`exact` unset) the exact method is used for n < 50 (zeros
+  counted; both samples < 50 for two samples). With ties or zeros the exact test is the conditional
+  test given the mid-ranks; the exact signed rank test ranks the zeros with the data and leaves them
+  out of the scores (Pratt), while the normal approximation drops them first. Exact intervals report
+  the achieved confidence level. Normal-approximation intervals and estimates use the same search
+  range and objective as R and match to the last digit. `correct` 1 to 3 adds Edgeworth terms to the
+  normal p-value (without ties and zeros).
 - **`corTest`:** Spearman's exact test (Best and Roberts 1975, AS 89) is used for n ≤ 1290
   without ties (R's help says n < 1290, but 1290 is exact too): full enumeration for n ≤ 9,
   Edgeworth series above. The p-value uses round(S). Spearman's `continuity` applies only to the

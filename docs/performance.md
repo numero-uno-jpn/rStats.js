@@ -149,6 +149,7 @@ allocation could be avoided without changing the values or the random stream, it
 | `r2dtable`; simulated p-values of `chisqTest` (tables) and `fisherTest` | the grand total is above 2^24 |
 | `chisqTest` goodness-of-fit simulation | `B` times the total count is above 2^27 |
 | `dwilcox`, `pwilcox`, `qwilcox` (and the exact two-sample `wilcoxTest`) | the table would take more than 2^29 steps |
+| `wilcoxTest(exact: true)` with ties or zero differences (the conditional test) | its distribution, built once for the p-value and again for each multiset of scores that the interval's search meets, would take more than 5e9 steps (about 8 s) or one array would hold more than 2^24 values |
 | `phyper` / `qhyper` | the sum would take more than 2^26 terms / the standard deviation is above 2^21 |
 | `besselJ`, `besselY`, `besselI`, `besselK` | a series or recurrence would take more than 2^25 to 2^31 steps, or a phase is beyond what doubles resolve |
 | `rwilcox` / `rsignrank` | n is above 2^24 / n is 2^27 or more |

@@ -60,7 +60,9 @@ describe("review 59", () => {
 
   it("HTEST-020, HTEST-023, HTEST-026: inputs that define no test are errors", () => {
     expect(() => chisqTest([[1.5, 2.5], [3.5, 4.5]], { simulatePValue: true, B: 10 })).toThrow(/integer counts/);
-    expect(() => wilcoxTest([0, 0, 0])).toThrow(/no non-zero differences/);
+    // (the normal approximation; R 4.6's exact test, the default here, gives V = 0 and p = 1)
+    expect(() => wilcoxTest([0, 0, 0], { exact: false })).toThrow(/no non-zero differences/);
+    expect(wilcoxTest([0, 0, 0]).pValue).toBe(1);
     expect(() => varTest([1, 1, 1], [2, 2, 2])).toThrow(/zero variance/);
     expect(varTest([1, 1, 1], [1, 2, 4]).estimate).toBe(0); // one zero variance: the limit, as before
   });
