@@ -4,6 +4,20 @@
 
 ## まず読むこと (セッション 16 から)
 
+## 次のセッションで最初にやること (2026-11-06 に作成)
+
+- **状態:** 1.1.0 を公開済み (npm latest、R 4.6.2 が照合先)。すべて push 済み、作業ツリーは未追跡の `oracle/extreme-parameters-behaviour.md` だけ (触らない)。open の Issue は 0 件。この Mac で落ちるのは test/issue179・issue513 だけ (CI では通る)。
+- **次の作業: ROADMAP の 1 番「分割表と比率」→ 1.2.0。** 優先順は ROADMAP の Remaining (医療・心理統計で正しい手法を使える観点、2026-11-06 に改訂)。
+  - 中身: 2×2 の Fisher mid-p と Boschloo [exact2x2, Exact]、比率の区間を方法ごとに [DescTools BinomCI]、リスク差・リスク比・オッズ比の区間 [DescTools BinomDiffCI・BinomRatioCI、epitools]、Stuart-Maxwell・G 検定・Goodman-Kruskal の γ [DescTools]、線形連関の検定 [coin]。
+  - 見積もり: glmer の半分前後 (広いが浅い)。いちばん重いのは Boschloo (撹乱母数の最大化)。範囲を絞る (比率の区間は 5 方法程度、線形連関は漸近版だけ) か、Boschloo を 1.3.0 に分けるかを、着手時にユーザーと決める。
+  - 照合先のパッケージは GPL: glmer・wilcox と同じく、仕様のエージェントだけがソースを読み `oracle/*-behaviour.md` を書き、実装のエージェントは文書と論文から書く。エージェントは 1 体ずつ、報告は短い txt。
+  - oracle のイメージに exact2x2・Exact・epitools・coin を足す: `oracle/Dockerfile.r46` の末尾に層を 1 つ足す (上の層はキャッシュのまま)。`oracle/Dockerfile` (4.5.2) はユーザーの判断で変えない。
+- **残り (急がない):**
+  - fisher の fixture は R 4.5.2 のまま。oracle が colima の VM (4 GB) をほぼ使い切るので、cloud-r を止めてよいときに `npm run oracle -- fisher`。
+  - R 4.6 は x^2〜x^4 を pow でなく掛け算で計算する (NEWS にない)。rStats.js の `**` を使う R 由来の式が最後のビットでずれうる。今は落ちるテストはない。
+  - 手法の対応表 (外部の統計ウェブアプリの手法 159 項目と rStats.js 1.0.0 の対応、◎37・○25・△41・×31・−25) は `~/.claude/plans/rstats-coverage-vs-menu-2026-11-06.md` (リポジトリの外、Mac mini のローカルだけ)。
+  - ディスク: Mac 本体の空きは約 20 GB (Android を消した)。Docker のイメージは 4.5.2 と 4.6.2 の 2 組。
+
 - **1.1.0 を公開 (2026-11-06):** R 4.6.2 への移行 (下の項目)。npm latest = 1.1.0 (staged をユーザーが承認)、tag `v1.1.0` = `a310c7c` (dist 入り)、main = `bb366e8`、CI・Pages 通過、デモは v1.1.0、jsDelivr の dist/rstats.js・dist/mixed.js を確認 (公開直後の数十秒は rstats.js が 404 だった)。作業ブランチ r46 は削除済み。次は ROADMAP の 1 (分割表と比率)
 - **1.0.0 を公開 (2026-11-06):** npm latest = 1.0.0 (staged をユーザーが承認)。tag `v1.0.0` は release のワークフローが dist 入りのコミット `df7a602` に移した。main は `1405d4e` (デモの例 `deda702` と版のコミット)、CI・Pages 通過、デモの VERSION は v1.0.0、jsDelivr の `dist/rstats.js`・`dist/mixed.js` と npm から入れた `/mixed` の glmer が動くことを確かめた。以後は Semantic Versioning に従う。1.0.0 の後の優先順は ROADMAP の Remaining (2026-11-06 に改訂: ReactiveStat の menu.yaml 159 項目との対応表から、医療・心理統計で正しい手法を使える観点で並べた): 1 分割表と比率 (Fisher mid-p・Boschloo・比率と 2×2 の効果指標の区間など) → 2 頑健な標準誤差 (sandwich) → 3 診断・測定の一致 (ROC・Bland-Altman など) → 4 生存の続き → 5 試験デザインの検出力 → 6 メタアナリシス → 7 混合モデルの confint・simulate。lavaan・IRT・LCA・mice・mclust は範囲外。README に glmer の数値例も候補
 - **R 4.6 への移行の準備 (2026-11-06):** `oracle/Dockerfile.r46` (R 4.6.2、Ubuntu 26.04 resolute、スナップショットは同じ 2026-10-23、パッケージも同じ層) でイメージ `rstats-oracle:4.6.2` と `rstats-oracle-amd64:4.6.2` を作った。`oracle/Dockerfile` (4.5.2) は cloud-r への影響を避けるため変えない (ユーザー判断)。4.6 で回すには `RSTATS_ORACLE_IMAGE=rstats-oracle:4.6.2 RSTATS_ORACLE_AMD64_IMAGE=rstats-oracle-amd64:4.6.2 npm run oracle -- <name>`。R 同梱の推奨パッケージだけ版が違う (MASS 7.3-65→66、Matrix 1.7-4→6、survival 3.8-3→3.8-12)。試しの pnorm は 3420 値が 4.5.2 と一致。移行 (NEWS の確認 → 全 oracle を作り直して差を分類 → 1.x.0 で公開) は新機能 (分割表と比率) の前に行う予定
