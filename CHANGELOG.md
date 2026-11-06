@@ -11,7 +11,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 The reference is now R 4.6.2 (until 1.0.0, R 4.5.2): every fixture was regenerated with `oracle/Dockerfile.r46`
 (R 4.6.2, the same dated package snapshot, Ubuntu 26.04 with OpenBLAS 0.3.32), and the functions whose results R 4.6
-changed follow it, except where R 4.6.2 is wrong (docs/differences-from-r.md).
+changed follow it, except where R 4.6.2 is wrong (docs/differences-from-r.md). The fixture of `fisherTest` is still R 4.5.2's
+(`fisher.test` is unchanged in R 4.6; its oracle needs nearly all of the Docker VM's memory).
 
 ### Changed
 
