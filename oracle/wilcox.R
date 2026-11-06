@@ -114,6 +114,69 @@ for (s in list(list(x = c(1, 1, 1, 1, 2), y = c(1, 1, 1, 1, 1, 0)), list(x = c(0
                list(x = c(rep(1, 9), 2), y = 1), list(x = 2, y = c(rep(1, 9), 2)), list(x = c(1, 1), y = c(1, 2)))) {
   for (alt in alts) for (cr in c(TRUE, FALSE)) add(x = s$x, y = s$y, alternative = alt, exact = FALSE, correct = cr, confInt = TRUE)
 }
+# R 4.6 (oracle/wilcox46-behaviour.md): correct = 0..3 (continuity correction plus k Edgeworth terms, only without
+# ties and zeros), exact conditional inference with ties and zeros (Pratt's ranks for the signed rank test), the
+# achieved confidence level of exact intervals, two-sided normal p-values of 2 min(F, 1 - F), upper tails near 0
+ew1 <- c(0.8, 1.9, -0.4, 2.7, 1.1, -1.3, 0.5, 3.2, 1.6, -0.2, 2.1, 0.9)
+ew2 <- c(-0.5, 0.3, 1.2, -1.1, 0.7, -0.9, 0.1, -1.6)
+for (k in 0:3) {
+  for (alt in alts) {
+    add(x = ew1, alternative = alt, exact = FALSE, correct = k)
+    add(x = ew1, y = ew2, alternative = alt, exact = FALSE, correct = k)
+    add(x = one[[7]], alternative = alt, exact = FALSE, correct = k, confInt = TRUE)
+    add(x = two[[5]]$x, y = two[[5]]$y, alternative = alt, exact = FALSE, correct = k, confInt = TRUE)
+    # ties or zeros: the Edgeworth terms are dropped, the continuity correction stays
+    add(x = c(ew1, 0.8), alternative = alt, exact = FALSE, correct = k)
+    add(x = ew1, alternative = alt, mu = 0.5, exact = FALSE, correct = k)
+    add(x = ew1, y = c(ew2, 1.9), alternative = alt, exact = FALSE, correct = k)
+  }
+  add(x = ew1, mu = 3, exact = FALSE, correct = k)
+  add(x = ew1, y = ew2, mu = -3, exact = FALSE, correct = k)
+  add(x = ew1, correct = k)
+  add(x = ew1, y = ew2, correct = k, confInt = TRUE)
+}
+add(x = ew1, correct = 4)
+add(x = ew1, y = ew2, exact = FALSE, correct = 1.5)
+add(x = ew1, exact = FALSE, correct = -1)
+# Two-sided normal p-values far in the upper tail (R's 1 - F(z) is 0) and in the lower tail
+for (s in list(1:300, -(1:300))) for (alt in alts) add(x = s, alternative = alt, exact = FALSE)
+add(x = 1:300 + 0.5, y = -(1:200), exact = FALSE)
+add(x = -(1:300), y = 1:200, exact = FALSE)
+# Ties and zeros, exact (conditional) tests and intervals
+tz <- list(c(1.5, 2, 2, -3, 4, 0, 5, -1, 2), c(1, 2, 2, 3, 4, 5), c(0, 1, 2, 2, 3, 4, 5), c(1, 2, 2, 3), c(5, 5, 5),
+           c(0, 0, 1.5, -2.5, 3, 4.25, -0.5), c(1:10, 3), c(0, 3), c(0, 0), 5)
+for (x in tz) {
+  for (alt in alts) {
+    for (ex in exacts) add(x = x, alternative = alt, exact = ex, confInt = TRUE)
+    add(x = x, alternative = alt, mu = 2, confInt = TRUE)
+  }
+  for (cl in c(1e-6, 0.5, 0.8, 0.99)) add(x = x, confLevel = cl, confInt = TRUE)
+}
+tz2 <- list(list(x = c(1, 2, 2, 4, 5, 7), y = c(3, 3, 4, 6, 8, 9, 9)), list(x = c(1, 2, 3), y = c(3, 4, 5)),
+            list(x = c(1, 2, 2), y = c(3, 3)), list(x = c(1, 1), y = c(1, 1)), list(x = 1, y = 1),
+            list(x = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), y = c(2.5, 4.5, 6.5)), list(x = c(2.5, 4.5), y = c(1, 2, 3, 4, 5, 6)))
+for (s in tz2) {
+  for (alt in alts) {
+    for (ex in exacts) add(x = s$x, y = s$y, alternative = alt, exact = ex, confInt = TRUE)
+    add(x = s$x, y = s$y, alternative = alt, mu = -1, confInt = TRUE)
+  }
+  for (cl in c(1e-6, 0.5, 0.8, 0.99)) add(x = s$x, y = s$y, confLevel = cl, confInt = TRUE)
+}
+for (alt in alts) {
+  add(x = 4:2, y = 3:1, paired = TRUE, alternative = alt, confInt = TRUE)
+  add(x = c(1.1, 2.3, 3.6), alternative = alt, mu = 2.3, confInt = TRUE)
+}
+# Exact upper tails near 0 (summed directly, not 1 - the lower tail)
+tz3 <- c(5, 4, 3, 3, 2, 1, 6, 7, 8, 9, 10, 11, -1)
+for (alt in alts) {
+  add(x = c(tz3, tz3, tz3), alternative = alt)
+  add(x = c(10, 11, 11, 12, 13, 14, 15, 16, 17, 18), y = c(1, 2, 2, 3, 4, 5, 6, 7, 8), alternative = alt)
+}
+# Infinite observations in the conditional interval (R: "missing value where TRUE/FALSE needed")
+add(x = c(1, 2, Inf, Inf), confInt = TRUE)
+add(x = c(-Inf, 1, 2, 2, 5), confInt = TRUE)
+add(x = c(1, Inf, Inf), y = c(2, 3), confInt = TRUE)
+add(x = c(1, 2, Inf), confInt = TRUE)
 # The confidence level is not checked when no interval is computed
 add(x = 1:4, confLevel = 0)
 # Extreme values and inputs that raise errors
