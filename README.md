@@ -6,7 +6,7 @@ R-compatible statistical functions for JavaScript and the browser, written in Ty
 [Try it in the browser](https://numero-uno-jpn.github.io/rStats.js/demo/) (every function, with the values R gives).
 
 - **Same numbers as R.** Function names, defaults and results follow R. Every function is
-  tested against R 4.5.2 (relative error 1e-14 for distributions), and where R itself is
+  tested against R 4.6.2 (relative error 1e-14 for distributions), and where R itself is
   inaccurate, against high-precision reference values.
 - **JavaScript-style calls.** Required arguments are positional, optional ones go in an object
   with camelCase keys: `pt(q, df, { lowerTail: false })` is R's `pt(q, df, lower.tail = FALSE)`.

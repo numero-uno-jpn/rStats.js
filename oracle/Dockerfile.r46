@@ -1,13 +1,13 @@
-# R 4.6.2 for the move of the oracles from R 4.5.2 to R 4.6 (image names rstats-oracle:4.6.2 and
-# rstats-oracle-amd64:4.6.2). The fixtures are still generated with oracle/Dockerfile (R 4.5.2); this file stands
-# beside it so that the two can be compared, and leaves that one untouched:
+# The R used by scripts/oracle.sh to write the fixtures since 1.1.0: R 4.6.2 (image names rstats-oracle:4.6.2 and
+# rstats-oracle-amd64:4.6.2, the defaults of scripts/oracle.sh and scripts/reference.sh). oracle/Dockerfile (R 4.5.2,
+# the fixtures up to 1.0.0) is kept unchanged beside it:
 #
 #   docker build -f oracle/Dockerfile.r46 -t rstats-oracle:4.6.2 oracle
 #   docker build --platform linux/amd64 -f oracle/Dockerfile.r46 -t rstats-oracle-amd64:4.6.2 oracle
-#   RSTATS_ORACLE_IMAGE=rstats-oracle:4.6.2 RSTATS_ORACLE_AMD64_IMAGE=rstats-oracle-amd64:4.6.2 npm run oracle -- <name>
+#   npm run oracle -- <name>
 #
 # The same packages in the same layers as oracle/Dockerfile, from the same dated snapshot, so that a difference in
-# the results comes from R itself. rocker/r-ver 4.6 is built on Ubuntu 26.04 (resolute) and points to
+# the results comes from R itself (and from the system's OpenBLAS, 0.3.32 here against 0.3.26). rocker/r-ver 4.6 is built on Ubuntu 26.04 (resolute) and points to
 # __linux__/resolute/latest, so the snapshot is set for resolute.
 
 ARG R_VERSION=4.6.2

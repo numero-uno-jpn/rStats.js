@@ -4,19 +4,19 @@
 #   npm run oracle -- pnorm qnorm   only the named functions
 #   npm run oracle                  every oracle/*.R
 #
-# R runs in a throwaway container from the image rstats-oracle (R 4.5.2 with the
-# packages listed in oracle/Dockerfile); override with RSTATS_ORACLE_IMAGE.
+# R runs in a throwaway container from the image rstats-oracle:4.6.2 (R 4.6.2 with the
+# packages listed in oracle/Dockerfile.r46); override with RSTATS_ORACLE_IMAGE.
 # The random-number oracles use the x86_64 build of the same image instead (see below):
-#   docker build -t rstats-oracle oracle
-#   docker build --platform linux/amd64 -t rstats-oracle-amd64 oracle
+#   docker build -f oracle/Dockerfile.r46 -t rstats-oracle:4.6.2 oracle
+#   docker build --platform linux/amd64 -f oracle/Dockerfile.r46 -t rstats-oracle-amd64:4.6.2 oracle
 # --network none keeps the container offline. demo/ is mounted read-write as /demo because
 # oracle/demo.R reads demo/examples.R and writes demo/r-results.json there.
 set -eu
 
 cd "$(dirname "$0")/.."
-IMAGE="${RSTATS_ORACLE_IMAGE:-rstats-oracle}"
+IMAGE="${RSTATS_ORACLE_IMAGE:-rstats-oracle:4.6.2}"
 # x86_64 R (for the random-number fixtures); runs under emulation on arm64 hosts
-AMD64_IMAGE="${RSTATS_ORACLE_AMD64_IMAGE:-rstats-oracle-amd64}"
+AMD64_IMAGE="${RSTATS_ORACLE_AMD64_IMAGE:-rstats-oracle-amd64:4.6.2}"
 MEMORY="${RSTATS_ORACLE_MEMORY:-1536m}"
 
 if [ "$#" -eq 0 ]; then

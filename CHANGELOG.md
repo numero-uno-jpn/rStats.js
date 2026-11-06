@@ -9,6 +9,10 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ## Unreleased
 
+The reference is now R 4.6.2 (until 1.0.0, R 4.5.2): every fixture was regenerated with `oracle/Dockerfile.r46`
+(R 4.6.2, the same dated package snapshot, Ubuntu 26.04 with OpenBLAS 0.3.32), and the functions whose results R 4.6
+changed follow it, except where R 4.6.2 is wrong (docs/differences-from-r.md).
+
 ### Changed
 
 - `glmRstandard` follows R 4.6: standardized Pearson residuals by default (R 4.6's default type of `rstandard()`), the

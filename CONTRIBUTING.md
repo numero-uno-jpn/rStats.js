@@ -32,15 +32,16 @@ npm run oracle -- <oracle name>     # e.g. npm run oracle -- gamma
 ```
 
 `scripts/oracle.sh` runs `Rscript` in a throw-away container (`docker run --rm --network none`).
-The image is `rstats-oracle` by default (override with `RSTATS_ORACLE_IMAGE`), built from
-`oracle/Dockerfile`: R 4.5.2 with the packages the oracles load (`jsonlite`, `Rmpfr`, `gmp`, `MASS`,
+The image is `rstats-oracle:4.6.2` by default (override with `RSTATS_ORACLE_IMAGE`), built from
+`oracle/Dockerfile.r46`: R 4.6.2 with the packages the oracles load (`jsonlite`, `Rmpfr`, `gmp`, `MASS`,
 `Matrix`, and for functions that R lacks `extraDistr`, `lme4`, `car`, `afex` and the others listed in
-`oracle/Dockerfile`), pinned to a dated package snapshot so that a rebuild gives the same versions.
+`oracle/Dockerfile.r46`), pinned to a dated package snapshot so that a rebuild gives the same versions.
+(`oracle/Dockerfile`, R 4.5.2, is the image the fixtures were generated with up to 1.0.0; it is kept unchanged.)
 Building needs network access; running the oracles does not.
 
 ```sh
-docker build -t rstats-oracle oracle
-docker build --platform linux/amd64 -t rstats-oracle-amd64 oracle
+docker build -f oracle/Dockerfile.r46 -t rstats-oracle:4.6.2 oracle
+docker build --platform linux/amd64 -f oracle/Dockerfile.r46 -t rstats-oracle-amd64:4.6.2 oracle
 ```
 
 R's messages are forced to English with `LANGUAGE=en`, so error messages recorded in fixtures do

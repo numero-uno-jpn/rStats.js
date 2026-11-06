@@ -3,7 +3,7 @@
 > R-compatible statistics for JavaScript and TypeScript: distributions, random numbers that match
 > R's `set.seed()`, descriptive statistics, hypothesis tests, `lm`, `glm` and lme4's `lmer` and `glmer`, special functions,
 > numerical methods and linear algebra, with R's function names, defaults and numerical results.
-> Every function is tested against R 4.5.2. ESM only, no dependencies, runs in browsers, Node.js,
+> Every function is tested against R 4.6.2. ESM only, no dependencies, runs in browsers, Node.js,
 > Deno and Bun.
 
 Install with `npm install @numero-uno-jpn/rstats`. All functions are named exports:

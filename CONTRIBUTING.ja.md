@@ -34,16 +34,16 @@ npm run oracle -- <oracle name>     # 例: npm run oracle -- gamma
 ```
 
 `scripts/oracle.sh` は、使い捨てのコンテナ (`docker run --rm --network none`) で `Rscript` を
-実行します。イメージは既定で `rstats-oracle` です (`RSTATS_ORACLE_IMAGE` で変更できます)。
-このイメージは `oracle/Dockerfile` から作ります。R 4.5.2 と、oracle が読み込むパッケージ
+実行します。イメージは既定で `rstats-oracle:4.6.2` です (`RSTATS_ORACLE_IMAGE` で変更できます)。
+このイメージは `oracle/Dockerfile.r46` から作ります。R 4.6.2 と、oracle が読み込むパッケージ
 (`jsonlite`、`Rmpfr`、`gmp`、`MASS`、`Matrix`、R にない関数のための `extraDistr`、`lme4`、`car`、
-`afex` と、`oracle/Dockerfile` に挙げたほかのパッケージ) が入ります。パッケージは日付で固定した
+`afex` と、`oracle/Dockerfile.r46` に挙げたほかのパッケージ) が入ります。パッケージは日付で固定した
 スナップショットから取るので、作り直しても同じ版になります。作るときだけネットワークが要り、
-oracle の実行には要りません。
+oracle の実行には要りません。1.0.0 までの fixture を作った R 4.5.2 のイメージ (`oracle/Dockerfile`) は、変えずに残しています。
 
 ```sh
-docker build -t rstats-oracle oracle
-docker build --platform linux/amd64 -t rstats-oracle-amd64 oracle
+docker build -f oracle/Dockerfile.r46 -t rstats-oracle:4.6.2 oracle
+docker build --platform linux/amd64 -f oracle/Dockerfile.r46 -t rstats-oracle-amd64:4.6.2 oracle
 ```
 
 R のメッセージは `LANGUAGE=en` で英語に固定しているので、フィクスチャに記録されるエラー
