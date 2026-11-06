@@ -18,7 +18,7 @@ import { pnorm } from "../distributions/normal.js";
 import { pt1, qt1 } from "../distributions/t.js";
 import { reported, unreported } from "../internal/warnings.js";
 import { checkTrials } from "./binomCI.js";
-import { diffVariance } from "./core/twoProportions.js";
+import { diffDeviation, diffVariance } from "./core/twoProportions.js";
 import { matchChoice } from "./power.js";
 import { tTest } from "./tTest.js";
 import { checkConfLevelOpen, type Sample } from "./types.js";
@@ -247,9 +247,9 @@ export interface BinomDiffEquivalenceTestResult {
  * @example
  * ```ts
  * const r = binomDiffEquivalenceTest(80, 100, 78, 100, { margin: 0.15 });
- * r.pValues; // [0.0018937433499954838, 0.012899725361675855]
- * r.pValue;  // 0.012899725361675855
- * r.confInt; // [-0.07557697533608568, 0.11553638647686564] (binomDiffCI, method "mn", 90%)
+ * r.pValues; // [0.0018937433499954864, 0.012899725361675841]
+ * r.pValue;  // 0.012899725361675841
+ * r.confInt; // [-0.07557697533608577, 0.11553638647686569] (binomDiffCI, method "mn", 90%)
  * r.result;  // "rejected"
  * ```
  *
@@ -274,7 +274,7 @@ export function binomDiffEquivalenceTest(
   const est = a1 / m1 - a2 / m2;
   // z at delta0 = -+margin, written as diffStatistic's deviation (p1 - p2 - delta0); the variance is positive for the
   // score methods (the restricted MLE cannot put both proportions at 0 or 1 when 0 < |delta0| < 1)
-  const z = (delta0: number): number => (a1 / m1 - a2 / m2 - delta0) / Math.sqrt(diffVariance(a1, m1, a2, m2, delta0, method));
+  const z = (delta0: number): number => diffDeviation(a1, m1, a2, m2, delta0) / Math.sqrt(diffVariance(a1, m1, a2, m2, delta0, method));
   const zLower = z(-margin);
   const zUpper = z(margin);
   const pValues: [number, number] = [pnorm(zLower, { lowerTail: false }), pnorm(zUpper)];

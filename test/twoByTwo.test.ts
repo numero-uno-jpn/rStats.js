@@ -228,6 +228,28 @@ describe("binomDiffCI, binomRatioCI and oddsRatio: roots and boundaries", () => 
     expect(relativeError(r[1], 0.28793394128201222)).toBeLessThan(1e-13);
   });
 
+  it("keeps the digits of the mn and mee limits for small proportions and proportions near 1 (audit 1)", () => {
+    // mpmath (250 digits): the restricted MLE by bisection of the score equation, the limits by bisection of the
+    // statistic. Before, the closed form of the MLE gave [-2.6407478e-9, 1.0024815e-8] for the first, [-5.536e-12,
+    // 6.976e-13] for the third and 4e-3 relative for the upper limit of 1/1e8 against 0/1e8. 1e-14: the terms of the
+    // score equation and of the deviation p1 - p2 - delta cancel (within 10 ulps here)
+    const cases: [number, number, number, number, "mn" | "mee", number, number][] = [
+      [5, 1e9, 2, 1e9, "mn", -2.8362289455290099255e-9, 9.9306997866390918815e-9],
+      [5, 1e9, 2, 1e9, "mee", -2.8362289435414481343e-9, 9.9306997842992819391e-9],
+      [3, 1e15, 1, 1e15, "mn", -2.9104213746166196848e-15, 7.9248594586749542929e-15],
+      [1e15, 1e15, 1e15 - 1, 1e15, "mn", -2.8414588206941135538e-15, 5.6649342657589510235e-15],
+      [1, 1e4, 0, 1e4, "mn", -2.8403676778730927532e-4, 5.6628870485591529781e-4],
+      [1, 1e8, 0, 1e8, "mn", -2.8414587115406578854e-8, 5.6649340609687023253e-8],
+      [1, 1e8, 0, 1e8, "mee", -2.8414586923333650655e-8, 5.6649340411436428666e-8],
+      [56, 70, 48, 80, "mn", 0.052829713245844630778, 0.33817294001586832613],
+    ];
+    for (const [x1, n1, x2, n2, method, lower, upper] of cases) {
+      const r = binomDiffCI(x1, n1, x2, n2, { method }).confInt;
+      expect(relativeError(r[0], lower)).toBeLessThan(1e-14);
+      expect(relativeError(r[1], upper)).toBeLessThan(1e-14);
+    }
+  });
+
   it("returns +0, not -0, for counts of -0 (audit 16)", () => {
     expect(Object.is(oddsRatio([[-0, 5], [3, 4]], { method: "wald" }).estimate, 0)).toBe(true);
     expect(Object.is(binomDiffCI(-0, 5, 0, 5, { method: "wald" }).confInt[0], 0)).toBe(true);

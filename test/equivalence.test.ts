@@ -245,13 +245,27 @@ describe("binomDiffEquivalenceTest", () => {
 
   it("gives the documented example", () => {
     const r = binomDiffEquivalenceTest(80, 100, 78, 100, { margin: 0.15 });
-    expect(r.pValues).toEqual([0.0018937433499954838, 0.012899725361675855]);
-    expect(r.pValue).toBe(0.012899725361675855);
-    // (the true -0.0755769753360857571 and 0.115536386476865677 rounded; before pgamma's double-double continued
-    // fraction (1.2.0) the bound qchisq(0.9, 1) left them 8e-17 and 4e-17 off)
-    expect(r.confInt).toEqual([-0.07557697533608576, 0.11553638647686568]);
+    // (mpmath, 250 digits: 0.0018937433499954866863 and 0.01289972536167584567; worked from the failures since
+    // p1 + p2 > 1, the values were 0.0018937433499954838 and 0.012899725361675855 before)
+    expect(r.pValues).toEqual([0.0018937433499954864, 0.012899725361675841]);
+    expect(r.pValue).toBe(0.012899725361675841);
+    // (the true -0.0755769753360857571 and 0.115536386476865677: each 1 ulp from them rounded, as the score equation
+    // is now solved in the failures (p1 + p2 > 1). The statistic changes by about 1.3 eps per ulp of delta here, and
+    // the restricted MLE in doubles holds about 1 eps, so the last ulp is not determined; the limits of 1.2.0 before
+    // the change, [-0.07557697533608576, 0.11553638647686568], were the true values rounded by chance)
+    expect(r.confInt).toEqual([-0.07557697533608577, 0.11553638647686569]);
     expect(r.result).toBe("rejected");
     expect(r.method).toBe("mn");
+  });
+
+  it("keeps the digits of small proportions (audit 1)", () => {
+    // mpmath (250 digits, the restricted MLE by bisection): z = 3.3098215520290958791 and -1.9744429701426078397,
+    // p = 4.6677733972783324032e-4 and 0.024165698053707604462 (the closed form of the MLE gave 3.00828, p 1.31e-3)
+    const r = binomDiffEquivalenceTest(5, 1e9, 2, 1e9, { margin: 1e-8 });
+    expect(relativeError(r.statistic[0], 3.3098215520290958791)).toBeLessThan(1e-14);
+    expect(relativeError(r.statistic[1], -1.9744429701426078397)).toBeLessThan(1e-14);
+    expect(relativeError(r.pValues[0], 4.6677733972783324032e-4)).toBeLessThan(1e-14);
+    expect(relativeError(r.pValues[1], 0.024165698053707604462)).toBeLessThan(1e-14);
   });
 
   it("is infinite for Wald where both proportions are 0 or 1", () => {

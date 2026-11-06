@@ -93,7 +93,7 @@ export type BinomDiffCIResult = ProportionCIResult<BinomDiffCIMethod>;
  * @example
  * ```ts
  * binomDiffCI(56, 70, 48, 80).confInt; // [0.05245292663805373, 0.3357584554757674]
- * binomDiffCI(56, 70, 48, 80, { method: "mn" }).confInt; // [0.05282971324584459, 0.3381729400158684]
+ * binomDiffCI(56, 70, 48, 80, { method: "mn" }).confInt; // [0.05282971324584462, 0.33817294001586834]
  * ```
  *
  * @category Hypothesis tests
