@@ -7,7 +7,7 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.1.0 - 2026-11-06
 
 The reference is now R 4.6.2 (until 1.0.0, R 4.5.2): every fixture was regenerated with `oracle/Dockerfile.r46`
 (R 4.6.2, the same dated package snapshot, Ubuntu 26.04 with OpenBLAS 0.3.32), and the functions whose results R 4.6
