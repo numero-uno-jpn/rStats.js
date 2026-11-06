@@ -38,6 +38,12 @@ export {
   type OddsRatioOptions,
   type OddsRatioResult,
 } from "../htest/twoByTwo.js";
+export {
+  boschlooTest,
+  type BoschlooTestOptions,
+  type BoschlooTestResult,
+  type BoschlooTsMethod,
+} from "../htest/boschlooTest.js";
 export { mcnemarTest, type McnemarTestOptions, type McnemarTestResult } from "../htest/mcnemarTest.js";
 export { varTest, bartlettTest, type VarTestOptions, type VarTestResult, type BartlettTestResult } from "../htest/varTest.js";
 export {

@@ -130,6 +130,9 @@ export interface FisherTestResult extends Omit<HTest, "statistic" | "statisticNa
  * r.pValue;   // 0.4857142857142857
  * r.estimate; // 6.408319658199675 (conditional MLE of the odds ratio; R: 6.408309)
  * r.confInt;  // [0.2117355954465785, 626.2435305888127] (R: 0.2117329, 621.93)
+ * const m = fisherTest([[3, 1], [1, 3]], { midp: true });
+ * m.pValue;   // 0.2571428571428571
+ * m.confInt;  // [0.31005488171907974, 308.5567715811547] (exact2x2: 0.3100451, 311.4363)
  * ```
  *
  * @category Hypothesis tests

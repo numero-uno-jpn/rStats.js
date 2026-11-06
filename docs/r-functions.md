@@ -191,6 +191,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pwr::ES.w1()` | `esW1` | Effect size w of a goodness-of-fit test, `sqrt(sum((p1 - p0)^2 / p0))`. |
 | `pwr::ES.w2()` | `esW2` | Effect size w of a test of association, for a matrix of cell probabilities: with the row sums r and column sums c, `p0 = r c'` and `sqrt(sum((p - p0)^2 / p0))`. |
 | `effectsize::eta_squared()` | `etaSquared` | Eta squared of the terms of an analysis-of-variance table, with confidence intervals from the noncentral F distribution. |
+| `Exact::exact.test()` | `boschlooTest` | Boschloo's exact unconditional test for a 2 x 2 table whose rows are two independent binomial samples. |
 | `factanal()` | `factanal` | Maximum-likelihood factor analysis of a data matrix or, with `options.covmat`, of a covariance matrix. |
 | `fisher.test()` | `fisherTest` | Fisher's exact test for count data. |
 | `fligner.test()` | `flignerTest` | Fligner-Killeen test of homogeneity of variances. |

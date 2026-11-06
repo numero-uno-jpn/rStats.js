@@ -191,6 +191,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pwr::ES.w1()` | `esW1` | 適合度検定の効果量 w `sqrt(sum((p1 - p0)^2 / p0))` |
 | `pwr::ES.w2()` | `esW2` | セル確率の行列に対する関連の検定の効果量 w: 行和を r、列和を c として `p0 = r c'`、`sqrt(sum((p - p0)^2 / p0))` |
 | `effectsize::eta_squared()` | `etaSquared` | 分散分析表の各項のイータ二乗と、非心 F 分布による信頼区間 |
+| `Exact::exact.test()` | `boschlooTest` | 行が独立な 2 つの二項標本である 2 x 2 表に対する Boschloo の正確な無条件検定 |
 | `factanal()` | `factanal` | データ行列、または `options.covmat` を与えたときは共分散行列の最尤因子分析 |
 | `fisher.test()` | `fisherTest` | 計数データに対する Fisher の正確検定 |
 | `fligner.test()` | `flignerTest` | 分散の均一性についての Fligner-Killeen 検定 |
