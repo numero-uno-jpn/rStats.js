@@ -250,6 +250,25 @@ describe("binomDiffCI, binomRatioCI and oddsRatio: roots and boundaries", () => 
     }
   });
 
+  it("keeps the digits of the koopman limits where a proportion is near 1 (audit 2)", () => {
+    // mpmath (120 digits): Koopman's statistic at the smaller root of his quadratic, the limits by bisection on the log
+    // scale. Before, 1 - p2~ from the closed form lost its digits: [1.0220730e-15, 8.8019885e-15] for the first, the
+    // upper limit 4.4409e-16 for the second and the lower 1.0 for the third. Within 2 ulps
+    const cases: [number, number, number, number, number, number][] = [
+      [3, 1e15, 1e15 - 1, 1e15, 1.020270728364322037e-15, 8.821188092329774468e-15],
+      [1, 2 ** 53, 2 ** 53, 2 ** 53, 1.9598162530071513319e-17, 6.2893404548336129354e-16],
+      [1e15, 1e15, 1e15 - 1, 1e15, 0.99999999999999715854, 1.0000000000000056649],
+      [9, 10, 1, 10, 2.1353233467684044891, 50.711525004018054672],
+      [56, 70, 48, 80, 1.0798215063618983325, 1.6708055780191116103],
+      [5, 1e9, 2, 1e9, 0.55990288941831746147, 11.162650032288303199],
+    ];
+    for (const [x1, n1, x2, n2, lower, upper] of cases) {
+      const r = binomRatioCI(x1, n1, x2, n2, { method: "koopman" }).confInt;
+      expect(relativeError(r[0], lower)).toBeLessThan(2 * 2 ** -52);
+      expect(relativeError(r[1], upper)).toBeLessThan(2 * 2 ** -52);
+    }
+  });
+
   it("returns +0, not -0, for counts of -0 (audit 16)", () => {
     expect(Object.is(oddsRatio([[-0, 5], [3, 4]], { method: "wald" }).estimate, 0)).toBe(true);
     expect(Object.is(binomDiffCI(-0, 5, 0, 5, { method: "wald" }).confInt[0], 0)).toBe(true);

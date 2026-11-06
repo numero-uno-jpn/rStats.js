@@ -17,7 +17,7 @@
 // T/(1 + T), which is finite also where T is infinite (a variance of 0 at the end of the range).
 
 import { logScaleRoot, uniroot } from "../../internal/uniroot.js";
-import { ddAdd, ddDivNum, ddMul, ddMulNum, ddSub, twoProd } from "../../special/dd.js";
+import { ddAdd, ddDivNum, ddMul, ddMulNum, ddSub, twoProd, twoSum, type DD } from "../../special/dd.js";
 
 /** T / (1 + T) for T >= 0, 1 for T = Infinity: a bounded, increasing function of a statistic */
 function bounded(t: number): number {
@@ -192,36 +192,61 @@ export function diffStatistic(x1: number, n1: number, x2: number, n2: number, de
 const f64 = new Float64Array(1);
 const i64 = new BigInt64Array(f64.buffer);
 
-/** The neighbouring double of a finite x above (up) or below it */
-function nextDouble(x: number, up: boolean): number {
-  if (x === 0) return up ? Number.MIN_VALUE : -Number.MIN_VALUE;
-  f64[0] = x;
-  i64[0]! += (x > 0) === up ? 1n : -1n;
-  return f64[0];
+/** An integer key of a finite double that orders as the doubles do (consecutive doubles have consecutive keys) */
+function keyOf(x: number): bigint {
+  f64[0] = Math.abs(x);
+  return x < 0 ? -i64[0]! : i64[0]!;
+}
+
+function fromKey(k: bigint): number {
+  i64[0] = k < 0n ? -k : k;
+  return k < 0n ? -f64[0]! : f64[0]!;
 }
 
 /**
- * The double next to the sign change of g (increasing where `increasing`) within [lo, hi], from Brent's root r: Brent
- * stops once its bracket is within 4 eps |r|, which left limits up to 4 ulps from the sign change (0.11553638647686573
- * for 0.11553638647686568). Walks from r towards the change by single ulps (a few steps) and returns the double of the
- * two at the change with the smaller |g|
+ * The double at the sign change of g (increasing where `increasing`) within [lo, hi], from a root r found to a few ulps
+ * or a few eps |log r|: Brent stops once its bracket is within 4 eps |r|, which left a limit of the difference up to
+ * 4 ulps from the change (0.11553638647686573 for 0.11553638647686568), and on the log scale within 4 eps |log r|
+ * (13 eps at the ratio 2e-17). Searches from r in steps of 1, 2, 4, ... ulps for the change, bisects the doubles
+ * between, and returns the one of the two neighbours at the change with the smaller |g|
  */
 function polishRoot(g: (x: number) => number, r: number, lo: number, hi: number, increasing: boolean): number {
-  let x = r;
-  let gx = g(x);
-  if (gx === 0) return x;
-  // g(x) > 0 on the increasing side means the change lies below x
-  const up = (gx < 0) === increasing;
-  for (let i = 0; i < 64; i++) {
-    const y = nextDouble(x, up);
-    if (!(y >= lo && y <= hi)) return x;
-    const gy = g(y);
-    if (gy === 0) return y;
-    if (gy < 0 !== gx < 0) return Math.abs(gy) < Math.abs(gx) ? y : x;
-    x = y;
-    gx = gy;
+  const gr = g(r);
+  if (gr === 0 || Number.isNaN(gr)) return r;
+  // g(r) > 0 on the increasing side means the change lies below r
+  const up = (gr < 0) === increasing;
+  const end = keyOf(up ? hi : lo);
+  let a = keyOf(r);
+  let ga = gr;
+  let b = a;
+  let gb = gr;
+  let step = 1n;
+  for (;;) {
+    b = up ? a + step : a - step;
+    if (up ? b >= end : b <= end) b = end;
+    gb = g(fromKey(b));
+    if (gb === 0) return fromKey(b);
+    if (gb < 0 !== ga < 0 || b === end) break;
+    a = b;
+    ga = gb;
+    step *= 2n;
+    if (step > 1n << 40n) return fromKey(a);
   }
-  return x;
+  if (gb < 0 === ga < 0 || Number.isNaN(gb)) return fromKey(a);
+  // a and b on either side of the change: bisect the keys until they are neighbours
+  while (b - a > 1n || a - b > 1n) {
+    const m = (a + b) / 2n;
+    const gm = g(fromKey(m));
+    if (gm === 0) return fromKey(m);
+    if (gm < 0 === ga < 0) {
+      a = m;
+      ga = gm;
+    } else {
+      b = m;
+      gb = gm;
+    }
+  }
+  return Math.abs(gb) < Math.abs(ga) ? fromKey(b) : fromKey(a);
 }
 
 /**
@@ -277,7 +302,8 @@ function logSideRoot(g: (u: number) => number, u0: number, dir: 1 | -1): number 
 
 /**
  * The MLE p1~ under p1 = phi p2 (Koopman 1984): the smaller root of
- * (n1 + n2) p^2 - (phi (n1 + x2) + x1 + n2) p + phi (x1 + x2) = 0, capped at min(1, phi); p2~ = p1~ / phi
+ * (n1 + n2) p^2 - (phi (n1 + x2) + x1 + n2) p + phi (x1 + x2) = 0, capped at min(1, phi); p2~ = p1~ / phi. Accurate to
+ * about eps absolute (the discriminant cancels where the roots are close): the start of restrictedMleRatioFull
  */
 export function restrictedMleRatio(x1: number, n1: number, x2: number, n2: number, phi: number): [number, number] {
   const A = n1 + n2;
@@ -289,10 +315,90 @@ export function restrictedMleRatio(x1: number, n1: number, x2: number, n2: numbe
   return [q1, Math.min(1, q1 / phi)];
 }
 
-/** Koopman's statistic: Pearson's chi-squared of the two groups at the MLE under p1 = phi p2 (a 0/0 term counts 0) */
+/**
+ * The MLE under p1 = phi p2 with the complements, [p1~, 1 - p1~, p2~, 1 - p2~], each to nearly the precision of the
+ * doubles. The closed form (restrictedMleRatio) holds about eps absolute, so 1 - p~ near 0 lost its digits (the upper
+ * limit of 1/2^53 against 2^53/2^53 was 4.4409e-16 for 6.2893e-16, the lower of 1e15/1e15 against (1e15 - 1)/1e15
+ * was 1). The root of the score in p2~, S = m/p2 - phi (n1 - x1)/(1 - p1) - (n2 - x2)/(1 - p2) (m = x1 + x2,
+ * decreasing), is solved by Newton's method kept in its bracket, in p2~, 1 - p2~ or 1 - p1~ (chosen at the closed
+ * form's estimate), from which the others are formed in double-double
+ */
+function restrictedMleRatioFull(x1: number, n1: number, x2: number, n2: number, phi: number): [number, number, number, number] {
+  const [c1, c2] = restrictedMleRatio(x1, n1, x2, n2, phi);
+  if (!(phi > 0 && phi < Infinity)) return [c1, 1 - c1, c2, 1 - c2];
+  // the variable: 0 = p2~, 2 = 1 - p2~, 3 = 1 - p1~; p2~ as a function of it, in double-double. The rounding of v
+  // (eps v) moves each other quantity by at most about eps times itself: v = p2~ where both are at most 1/2 (1 - p1~
+  // moves by eps p1~), otherwise v = 1 - p2~ where phi (1 - p2~) <= 1 - p1~ (1 - p1~ = 1 - phi + phi v moves by
+  // eps phi v) and v = 1 - p1~ elsewhere. (With v = p1~, 3/1e15 against (1e15 - 1)/1e15 failed: 1 - p2~ = 1 - v/phi
+  // moves by eps p2~, 10% of its 1e-15)
+  const mode = c1 <= 0.5 && c2 <= 0.5 ? 0 : phi * (1 - c2) <= 1 - c1 ? 2 : 3;
+  const start = mode === 0 ? c2 : mode === 2 ? 1 - c2 : 1 - c1;
+  const p2Of = (v: number): DD => (mode === 0 ? [v, 0] : mode === 2 ? twoSum(1, -v) : ddDivNum(twoSum(1, -v), phi));
+  // |d p2~ / dv| and the range of v (p2~ in [0, min(1, 1/phi)], p1~ = phi p2~ in [0, min(1, phi)])
+  const slope = mode === 3 ? 1 / phi : 1;
+  const vMax = mode === 0 ? Math.min(1, 1 / phi) : 1;
+  const vMin = mode === 2 ? (phi > 1 ? ddDivNum(twoSum(phi, -1), phi)[0] : 0) : mode === 3 ? (phi < 1 ? twoSum(1, -phi)[0] : 0) : 0;
+  const parts = (v: number): [number, number, number, number] => {
+    const p2 = p2Of(v);
+    const p1 = ddMulNum(p2, phi);
+    return [p1[0], ddSub([1, 0], p1)[0], p2[0], ddSub([1, 0], p2)[0]];
+  };
+  const m = x1 + x2;
+  // h(v) = S as a function of v, made decreasing (p2~ decreases in v for modes 2 and 3), and h'(v)
+  const sign = mode < 2 ? 1 : -1;
+  // (a count over a value that has rounded to 0 or below at the end of the range counts as infinite)
+  const h = (v: number): [number, number] => {
+    const [, r1, q2, r2] = parts(v);
+    let s = 0;
+    let ds = 0;
+    if (m > 0) {
+      s += q2 > 0 ? m / q2 : Infinity;
+      ds -= m / (q2 * q2);
+    }
+    if (x1 < n1) {
+      s -= r1 > 0 ? (phi * (n1 - x1)) / r1 : Infinity;
+      ds -= ((phi * (n1 - x1)) / r1) * (phi / r1);
+    }
+    if (x2 < n2) {
+      s -= r2 > 0 ? (n2 - x2) / r2 : Infinity;
+      ds -= (n2 - x2) / (r2 * r2);
+    }
+    return [sign * s, ds * slope];
+  };
+  let v: number;
+  if (!(vMax > vMin)) v = vMin;
+  else if (!(h(vMin)[0] > 0)) v = vMin;
+  else if (!(h(vMax)[0] < 0)) v = vMax;
+  else {
+    let a = vMin;
+    let b = vMax;
+    v = start;
+    if (!(v > a && v < b)) v = a + (b - a) / 2;
+    for (let i = 0; i < 2000; i++) {
+      const [hv, dh] = h(v);
+      if (hv === 0) break;
+      if (hv > 0) a = v;
+      else b = v;
+      let next = v - hv / dh;
+      if (!(next > a && next < b)) next = a <= 0 ? b / 2 : b > 2 * a ? Math.sqrt(a * b) : a + (b - a) / 2;
+      if (!(next > a && next < b)) break;
+      const step = Math.abs(next - v);
+      v = next;
+      if (step <= 2 ** -53 * v) break;
+    }
+  }
+  const [q1, r1, q2, r2] = parts(v);
+  return [Math.min(1, Math.max(0, q1)), Math.min(1, Math.max(0, r1)), Math.min(1, Math.max(0, q2)), Math.min(1, Math.max(0, r2))];
+}
+
+/**
+ * Koopman's statistic: Pearson's chi-squared of the two groups at the MLE under p1 = phi p2 (a 0/0 term counts 0);
+ * x - n p~ is formed as n (1 - p~) - (n - x) where p~ > 1/2, with 1 - p~ from restrictedMleRatioFull
+ */
 export function ratioStatistic(x1: number, n1: number, x2: number, n2: number, phi: number): number {
-  const [q1, q2] = restrictedMleRatio(x1, n1, x2, n2, phi);
-  return term(x1 - n1 * q1, n1 * q1 * (1 - q1)) + term(x2 - n2 * q2, n2 * q2 * (1 - q2));
+  const [q1, r1, q2, r2] = restrictedMleRatioFull(x1, n1, x2, n2, phi);
+  const dev = (x: number, n: number, q: number, r: number): number => (q > 0.5 ? n * r - (n - x) : x - n * q);
+  return term(dev(x1, n1, q1, r1), n1 * q1 * r1) + term(dev(x2, n2, q2, r2), n2 * q2 * r2);
 }
 
 /** Koopman's interval {phi : statistic(phi) <= bound} around est = p1 / p2 (not both counts 0) */
@@ -332,19 +438,24 @@ export function oddsRatioScoreLimits(x1: number, n1: number, x2: number, n2: num
 
 /**
  * The roots of stat = bound on both sides of est (where stat is 0), solved on the log scale. Where est is 0 or
- * Infinity (a zero count), that limit is est and the other is solved from a bracket around 1 (logScaleRoot)
+ * Infinity (a zero count), that limit is est and the other is solved from a bracket around 1 (logScaleRoot). The roots
+ * are then moved to the sign change of stat - bound among the doubles (polishRoot)
  */
 function logScoreLimits(est: number, bound: number, stat: (v: number) => number): [number, number] {
   if (bound === 0) return [est, est];
   const target = bounded(bound);
+  // the raw comparison for the polish (stat increases away from est)
+  const h = (v: number): number => stat(v) - bound;
+  const below = (r: number): number => (r > 0 && r < est ? polishRoot(h, r, Number.MIN_VALUE, est, false) : r);
+  const above = (r: number): number => (r > est && r < Infinity ? polishRoot(h, r, est, Number.MAX_VALUE, true) : r);
   if (est === 0 || est === Infinity) {
     // stat increases in v from est = 0, and decreases in v towards est = Infinity
     const f = (v: number): number => bounded(stat(v)) - target;
     const f1 = f(1);
     const root = f1 === 0 ? 1 : logScaleRoot(f, est === 0 ? f1 > 0 : f1 < 0);
-    return est === 0 ? [0, root] : [root, Infinity];
+    return est === 0 ? [0, above(root)] : [below(root), Infinity];
   }
   const u0 = Math.log(est);
   const g = (u: number): number => (u === u0 ? 0 : bounded(stat(Math.exp(u)))) - target;
-  return [logSideRoot(g, u0, -1), logSideRoot(g, u0, 1)];
+  return [below(logSideRoot(g, u0, -1)), above(logSideRoot(g, u0, 1))];
 }
