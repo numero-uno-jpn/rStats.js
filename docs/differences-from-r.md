@@ -1243,7 +1243,10 @@ also from R's source. They are listed because they are easy to get wrong.
 - **`qr(x, { lapack: true })`:** `qraux` (tau) has min(rows, columns) elements, one
   per reflection, as in R; rank is always min(rows, columns); `qrFitted` and `qrResid` throw. Matrices
   containing NaN or Inf are not rejected (R also returns meaningless values; the values need not
-  match R's).
+  match R's). Where two columns tie for the pivot in exact arithmetic (e.g. `cbind(a, b, a + b, b)`),
+  rounding decides which comes first, in R as here: the reference LAPACK 3.12.1 is followed, and R's
+  choice depends on its BLAS and platform (R 4.6.2 on aarch64 and on x86_64 differ); the rank, |diag R|
+  and Q R P' = X do not depend on it.
 - **`kappa`:** the default (`exact: false`) applies LINPACK's `dtrco` estimate to R from a QR
   decomposition (after transposing wide matrices). With `norm: "I"` it uses the same triangle of
   the transposed matrix, as R does. `triangular` has an effect only with `method: "direct"`, and

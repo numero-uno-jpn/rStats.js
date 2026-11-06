@@ -11,9 +11,12 @@
 //   when 1 - (|x|/norm)^2 is below 1e-6, as R's output shows (the rule from issue #57; LINPACK's own test missed the
 //   cancellation near the rank tolerance and dropped an independent column)
 // - rank = min(number of columns - number moved, number of rows). The public pivot is 0-based to suit JS (internally 1-based)
-// lapack: true is the same column-pivoted decomposition as the LAPACK 3.12.0 reference SRC/dgeqp3.f
-// (dlaqp2.f, dlarfg.f, dlarf.f). rank is always min(rows, cols) (as in R; rank is not determined).
-// Applying Q follows SRC/dorm2r.f. LAPACK is modified BSD; see THIRD_PARTY_NOTICES.md.
+// lapack: true is the same column-pivoted decomposition as the LAPACK 3.12.1 reference SRC/dgeqp3.f
+// (dlaqp2.f, dlarfg.f, dlarf1f.f). 3.12.1's dlarf1f changed the order of operations from 3.12.0's dlarf, and with it
+// the choice among columns tied for the pivot; R 4.6.2 with OpenBLAS 0.3.32 on x86_64 makes 3.12.1's choices in the
+// cases tested (R 4.5.2 with OpenBLAS 0.3.26 on aarch64 made 3.12.0's). rank is always min(rows, cols) (as in
+// R; rank is not determined). Applying Q follows SRC/dorm2r.f (3.12.1, also dlarf1f).
+// LAPACK is modified BSD; see THIRD_PARTY_NOTICES.md.
 //
 // Difference from R: with lapack: true, results for matrices containing NaN or Inf are not necessarily the same as R
 // (R does not raise an error either and returns meaningless values).
@@ -248,12 +251,7 @@ function geqp3(A: Mat): { tau: Float64Array; pivot: number[] } {
     }
     const ci = i * m;
     tau[i] = larfg(a, ci + i, m - i);
-    if (i < n - 1) {
-      const aii = a[ci + i]!;
-      a[ci + i] = 1;
-      larfLeft(a, ci + i, m - i, tau[i]!, A, i, i + 1, n - i - 1);
-      a[ci + i] = aii;
-    }
+    if (i < n - 1) larf1fLeft(a, ci + i, m - i, tau[i]!, A, i, i + 1, n - i - 1);
     // Update the norms of the remaining columns
     for (let j = i + 1; j < n; j++) {
       if (vn1[j] === 0) continue;
@@ -325,6 +323,32 @@ export function larfLeft(d: Float64Array, vs: number, len: number, tau: number, 
   }
 }
 
+/**
+ * Apply H = I - tau v v^T from the left with v(1) = 1 implied, not read (LAPACK 3.12.1's dlarf1f with SIDE = 'L',
+ * which dlaqp2 and dorm2r use from 3.12.1 on). The order of operations differs from dlarf: the first row enters the
+ * product w = C^T v last, and with no nonzero element after v(1), the rows are scaled by 1 - tau. v = d[vs .. vs+len-1]
+ */
+function larf1fLeft(d: Float64Array, vs: number, len: number, tau: number, C: Mat, r0: number, c0: number, nc: number): void {
+  if (tau === 0) return;
+  let lastv = len;
+  while (lastv > 1 && d[vs + lastv - 1] === 0) lastv--;
+  const ldc = C.nrow;
+  const c = C.data;
+  for (let j = c0; j < c0 + nc; j++) {
+    const o = r0 + j * ldc;
+    if (lastv === 1) {
+      c[o]! *= 1 - tau;
+      continue;
+    }
+    let w = 0;
+    for (let i = 1; i < lastv; i++) w += c[o + i]! * d[vs + i]!;
+    w += c[o]!;
+    const t = -tau * w;
+    c[o]! += t;
+    for (let i = 1; i < lastv; i++) c[o + i]! += d[vs + i]! * t;
+  }
+}
+
 // ---- Functions using the decomposition ----
 
 interface Decomp {
@@ -361,12 +385,7 @@ function applyQ(d: Decomp, b: Mat, trans: boolean, k = d.rank): void {
   if (d.lapack) {
     const kk = Math.min(n, a.ncol);
     const order = trans ? range(0, kk) : range(0, kk).reverse();
-    for (const i of order) {
-      const aii = a.data[i + i * n]!;
-      a.data[i + i * n] = 1;
-      larfLeft(a.data, i + i * n, n - i, qraux[i]!, b, i, 0, b.ncol);
-      a.data[i + i * n] = aii;
-    }
+    for (const i of order) larf1fLeft(a.data, i + i * n, n - i, qraux[i]!, b, i, 0, b.ncol);
     return;
   }
   const ju = Math.min(k, n - 1);
