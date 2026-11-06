@@ -443,10 +443,11 @@ scores (1, 2) (fixture: `[[10, 5, 2], [3, 8, 6]]` gives Z = −0.52505). p-value
 
 No R package in the image offers it. Campbell (2007, Statistics in Medicine 26:3661-3675) recommends for 2×2 tables
 Pearson's statistic times `(N − 1)/N`, referred to χ²(1) (and the Fisher-Irwin test when an expected count is below
-1). For a 2×2 table it equals the Mantel-Haenszel statistic of one stratum without correction
-(`mantelhaen.test(array(x, c(2, 2, 1)), correct = FALSE)`) and the linear-by-linear statistic Z² (any scores); the
-fixture `chisqTestN1` gives `chisq.test(x, correct = FALSE)$statistic × (N − 1)/N`, df and upper-tail p for 2×2 and
-r×c tables (the generalisation to r×c is a decision), and the mantelhaen values for 2×2 as the check.
+1). For a 2×2 table it equals the Mantel-Haenszel statistic of one stratum without correction and the
+linear-by-linear statistic Z² (any scores). R's `mantelhaen.test` cannot serve as the check: it refuses a single
+stratum (`each dimension in table must be >= 2`), so the fixture has no Mantel-Haenszel values (corrected
+2026-11-07; the 2×2 cases are checked against `lblTest`'s Z² instead). The fixture `chisqTestN1` gives
+`chisq.test(x, correct = FALSE)$statistic × (N − 1)/N`, df and upper-tail p for 2×2 and r×c tables.
 
 ### 5.6 Freeman-Tukey residuals
 

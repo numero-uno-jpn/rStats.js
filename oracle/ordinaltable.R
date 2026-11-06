@@ -6,8 +6,8 @@ source("/oracle/_htest.R")
 #   goodmanKruskalGamma  DescTools::GoodmanKruskalGamma (with and without the interval)
 #   lblTest              coin::lbl_test on a table, asymptotic, default scores (Z and the three p-values)
 #   chisqTestN1          the 'N-1' chi-squared test (Campbell 2007): Pearson's X² (chisq.test, correct = FALSE)
-#                        times (N - 1) / N, with mantelhaen.test(correct = FALSE) on the table as a 2×2×1 array, which
-#                        gives the same statistic for a 2×2 table, as a check
+#                        times (N - 1) / N (mantelhaen.test cannot check it: it refuses a single stratum, "each
+#                        dimension in table must be >= 2"; the tests check 2×2 tables against lblTest's Z² instead)
 #   freemanTukey         Freeman-Tukey deviates sqrt(O) + sqrt(O + 1) - sqrt(4 E + 1) (Bishop, Fienberg and Holland
 #                        1975, 14.7) with E from chisq.test, and the variant 2 (sqrt(O) - sqrt(E)); no R package in
 #                        the image offers them, so these are the formulas evaluated by R
@@ -130,13 +130,6 @@ write_htest_fixture("chisqTestN1", cases, function(a) {
   out <- list(statistic = num2str(stat), parameter = num2str(unname(r$parameter)),
               pValue = num2str(pchisq(stat, unname(r$parameter), lower.tail = FALSE)),
               pearson = num2str(unname(r$statistic)))
-  if (all(dim(x) == 2)) {
-    mh <- tryCatch(mantelhaen.test(array(x, c(2, 2, 1)), correct = FALSE), error = function(e) NULL)
-    if (!is.null(mh)) {
-      out$mantelhaen.statistic <- num2str(unname(mh$statistic))
-      out$mantelhaen.pValue <- num2str(mh$p.value)
-    }
-  }
   out
 }, warnings = TRUE)
 
