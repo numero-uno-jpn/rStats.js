@@ -67,3 +67,16 @@ RUN install2.r --error --skipinstalled PMCMRplus dunn.test multcomp clinfun nort
                          "GPArotation", "polycor", "expm", "survival"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Contingency tables and proportions (1.2.0), in a layer of their own: exact2x2 (Fisher's mid-p, boschloo), Exact
+# (Boschloo's test), epitools (odds ratio intervals), coin (linear-by-linear association), epiR (epi.2by2) and
+# equivalence (tost). DescTools (BinomCI, BinomDiffCI, BinomRatioCI, GTest, StuartMaxwellTest) is in the first layer.
+# epiR imports sf and flextable, whose binary packages link to GDAL, GEOS, PROJ, udunits and libwebpmux.
+RUN apt-get update && apt-get install -y --no-install-recommends libgdal38 libgeos-c1t64 libproj25 libudunits2-0 \
+        libwebpmux3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && install2.r --error --skipinstalled exact2x2 Exact epitools coin epiR equivalence \
+    && Rscript -e 'pk <- c("exact2x2", "exactci", "Exact", "epitools", "coin", "libcoin", "epiR", "equivalence", \
+                         "DescTools"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
