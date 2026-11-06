@@ -7,6 +7,13 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Changed
+
+- `glmRstandard` follows R 4.6: standardized Pearson residuals by default (R 4.6's default type of `rstandard()`), the
+  deviance residuals with the new option `type: "deviance"`, divided by sigma sqrt(1 - h).
+
 ## 1.0.0 - 2026-11-05
 
 The first stable version: from 1.0.0 the public API follows Semantic Versioning (see Versioning in the README), so

@@ -245,7 +245,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | 標本サイズが異なる 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズの一方、効果量、有意水準のいずれか |
 | `quade.test()` | `quadeTest` | 反復のない完全ブロック計画に対する Quade 検定 |
 | `residuals()` | `glmResiduals` | `glm` で当てはめた一般化線形モデルの残差 (1 行に 1 つ) |
-| `rstandard()` | `glmRstandard` | `glm` の当てはめの標準化逸脱度残差 (事前重みが 0 でない行について) |
+| `rstandard()` | `glmRstandard` | `glm` の当てはめの標準化 Pearson 残差 (既定) または標準化逸脱度残差 (事前重みが 0 でない行について) |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia の正規性検定 |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk の正規性検定 |
 | `summary()` | `aovSummary` | `aov` で当てはめた分散分析の表 |

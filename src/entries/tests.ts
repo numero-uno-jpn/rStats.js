@@ -47,6 +47,7 @@ export {
   type GlmModel,
   type GlmSummary,
   type GlmSummaryOptions,
+  type GlmRstandardOptions,
   type GlmResidualType,
   type GlmResidualsOptions,
   type GlmPredictOptions,

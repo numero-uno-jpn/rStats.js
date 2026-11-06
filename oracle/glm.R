@@ -8,7 +8,7 @@ source("/oracle/_glm.R")
 #   residuals: devianceResiduals, pearsonResiduals, workingResiduals, responseResiduals
 #   summary.glm: dispersion, estimate, stdError, statistic, pValue (aliased columns left out), statisticName
 #     ("z value" when the dispersion is fixed at 1, else "t value"), covUnscaled
-#   influence: hatvalues, rstandard (deviance residuals), cooksDistance
+#   influence: hatvalues, rstandard (Pearson residuals, the default type of R 4.6), cooksDistance
 #   predict on the data: seLink (type = "link") and seResponse (type = "response"); with newdata (and newoffset
 #     for a model with an offset): predictLink, predictResponse, newSeLink, newSeResponse
 #   warnings: R's warning messages (an empty array when there are none)

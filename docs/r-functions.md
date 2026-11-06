@@ -245,7 +245,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance level for a given power. |
 | `quade.test()` | `quadeTest` | Quade test for an unreplicated complete block design. |
 | `residuals()` | `glmResiduals` | Residuals of a generalized linear model, one per row, for a `glm` fit. |
-| `rstandard()` | `glmRstandard` | Standardized deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
+| `rstandard()` | `glmRstandard` | Standardized Pearson or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia test for normality. |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
 | `summary()` | `aovSummary` | The table of an analysis of variance fitted by `aov`. |

@@ -122,7 +122,7 @@ function residualFloors(c: HTestCase): Record<string, number[]> {
   const keep = (v: number[]) => v.filter((_, i) => w[i]! > 0);
   const h = glmHatvalues(fit);
   const disp = glmSummary(fit).dispersion;
-  const stdScale = h.map((hi) => 1 / Math.sqrt(disp * (1 - hi)));
+  const stdScale = h.map((hi) => 1 / (Math.sqrt(disp) * Math.sqrt(1 - hi)));
   const pearsonR = keep((c.expected.pearsonResiduals as string[]).map(num));
   const cooksR = ((c.expected.cooksDistance ?? []) as string[]).map(num);
   const lp = (rows: number[][], off: number[]) =>
@@ -132,7 +132,8 @@ function residualFloors(c: HTestCase): Record<string, number[]> {
     workingResiduals: resp.map((r, i) => r / Math.abs(fam.muEta(eta[i]!))),
     pearsonResiduals: pearson,
     devianceResiduals: deviance,
-    rstandard: keep(deviance).map((v, i) => v * stdScale[i]!),
+    // standardized Pearson residuals (R 4.6's default type)
+    rstandard: keep(pearson).map((v, i) => v * stdScale[i]!),
     cooksDistance: keep(pearson).map((f, i) => 2 * Math.abs(cooksR[i]!) * Math.max(1, f / Math.abs(pearsonR[i]!))),
     linearPredictors: lp(fit.model.x, fit.model.offset),
     deviance: [devianceScale(fit)],
