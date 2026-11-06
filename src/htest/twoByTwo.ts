@@ -25,7 +25,7 @@ import { pgamma1 } from "../distributions/gamma.js";
 import { logScaleRoot } from "../internal/uniroot.js";
 import { reported, unreported } from "../internal/warnings.js";
 import { ddAdd, type DD } from "../special/dd.js";
-import { checkCount, checkTrials, intervalLevel, wilsonLimits, type CISides, type ProportionCIResult } from "./binomCI.js";
+import { checkCount, checkTrials, intervalLevel, wilsonLimits, type CISides, type IntervalLevel, type ProportionCIResult } from "./binomCI.js";
 import { diffScoreLimits, oddsRatioScoreLimits, ratioScoreLimits } from "./core/twoProportions.js";
 import { fisherTest, OddsRatioDistribution } from "./fisherTest.js";
 import { matchChoice } from "./power.js";
@@ -71,6 +71,46 @@ export interface BinomDiffCIOptions {
 export type BinomDiffCIResult = ProportionCIResult<BinomDiffCIMethod>;
 
 /**
+ * The two-sided limits of binomDiffCI for checked counts at the level lv (also used by binomDiffEquivalenceTest, with
+ * the level built from its alpha)
+ */
+export function binomDiffLimits(a1: number, m1: number, a2: number, m2: number, method: BinomDiffCIMethod, lv: IntervalLevel): [number, number] {
+  const { kappa } = lv;
+  const p1 = a1 / m1;
+  const p2 = a2 / m2;
+  const est = p1 - p2;
+  let lower: number;
+  let upper: number;
+  switch (method) {
+    case "wald": {
+      const half = kappa * Math.sqrt((p1 * (1 - p1)) / m1 + (p2 * (1 - p2)) / m2);
+      [lower, upper] = [Math.max(-1, est - half), Math.min(1, est + half)];
+      break;
+    }
+    case "ac": {
+      const q1 = (a1 + 1) / (m1 + 2);
+      const q2 = (a2 + 1) / (m2 + 2);
+      const centre = q1 - q2;
+      const half = kappa * Math.sqrt((q1 * (1 - q1)) / (m1 + 2) + (q2 * (1 - q2)) / (m2 + 2));
+      [lower, upper] = [Math.max(-1, centre - half), Math.min(1, centre + half)];
+      break;
+    }
+    case "score": {
+      const [l1, u1] = wilsonLimits(a1, m1, kappa);
+      const [l2, u2] = wilsonLimits(a2, m2, kappa);
+      lower = est - kappa * Math.sqrt((l1 * (1 - l1)) / m1 + (u2 * (1 - u2)) / m2);
+      upper = est + kappa * Math.sqrt((u1 * (1 - u1)) / m1 + (l2 * (1 - l2)) / m2);
+      break;
+    }
+    case "mn":
+    case "mee":
+      [lower, upper] = diffScoreLimits(a1, m1, a2, m2, lv.chisq, method);
+      break;
+  }
+  return [Math.min(lower, upper), Math.max(lower, upper)];
+}
+
+/**
  * Confidence interval for the difference p1 - p2 of two independent proportions x1/n1 and x2/n2. Equivalent to
  * `DescTools::BinomDiffCI()` in R.
  *
@@ -104,39 +144,8 @@ export function binomDiffCI(x1: number, n1: number, x2: number, n2: number, opti
   const lv = intervalLevel(options.confLevel, options.sides);
   const [a1, m1] = checkTrials(x1, n1, "x1", "n1");
   const [a2, m2] = checkTrials(x2, n2, "x2", "n2");
-  const { kappa } = lv;
-  const p1 = a1 / m1;
-  const p2 = a2 / m2;
-  const est = p1 - p2;
-  let lower: number;
-  let upper: number;
-  switch (method) {
-    case "wald": {
-      const half = kappa * Math.sqrt((p1 * (1 - p1)) / m1 + (p2 * (1 - p2)) / m2);
-      [lower, upper] = [Math.max(-1, est - half), Math.min(1, est + half)];
-      break;
-    }
-    case "ac": {
-      const q1 = (a1 + 1) / (m1 + 2);
-      const q2 = (a2 + 1) / (m2 + 2);
-      const centre = q1 - q2;
-      const half = kappa * Math.sqrt((q1 * (1 - q1)) / (m1 + 2) + (q2 * (1 - q2)) / (m2 + 2));
-      [lower, upper] = [Math.max(-1, centre - half), Math.min(1, centre + half)];
-      break;
-    }
-    case "score": {
-      const [l1, u1] = wilsonLimits(a1, m1, kappa);
-      const [l2, u2] = wilsonLimits(a2, m2, kappa);
-      lower = est - kappa * Math.sqrt((l1 * (1 - l1)) / m1 + (u2 * (1 - u2)) / m2);
-      upper = est + kappa * Math.sqrt((u1 * (1 - u1)) / m1 + (l2 * (1 - l2)) / m2);
-      break;
-    }
-    case "mn":
-    case "mee":
-      [lower, upper] = diffScoreLimits(a1, m1, a2, m2, lv.chisq, method);
-      break;
-  }
-  [lower, upper] = [Math.min(lower, upper), Math.max(lower, upper)];
+  const est = a1 / m1 - a2 / m2;
+  let [lower, upper] = binomDiffLimits(a1, m1, a2, m2, method, lv);
   if (lv.sides === "left") upper = 1;
   else if (lv.sides === "right") lower = -1;
   return reported("binomDiffCI", {

@@ -99,6 +99,16 @@ describe("tost", () => {
     expect(r.confInt).toEqual(tost(x, y, { epsilon: 0.5, confLevel: 0.9 }).confInt);
   });
 
+  it("takes the t quantile from the upper tail for alpha below 1e-8 (rule 10; audit 11)", () => {
+    // mpmath (60 digits): the upper 1e-12 quantile of t at the Welch df 7.999999999999996 is 69.695043237859712896
+    // (from 1 - alpha it was 69.69523624766852, 2.8e-6 relative off)
+    const u = [5.1, 4.9, 5.3, 5.0, 4.8, 5.2];
+    const v = [5.0, 5.1, 4.9, 5.2, 5.05, 4.95];
+    const r = tost(u, v, { epsilon: 0.3, alpha: 1e-12 });
+    expect(r.parameter).toBe(7.999999999999996);
+    expect(relativeError((r.confInt[1] - r.confInt[0]) / (2 * r.seDiff), 69.695043237859712896)).toBeLessThan(1e-14);
+  });
+
   it("rejects input without a defined result (choice 16)", () => {
     for (const epsilon of [0, -1, NaN, Infinity]) expect(() => tost(x, y, { epsilon })).toThrow(RangeError);
     for (const confLevel of [0, 0.5, 0.3, 1, 1.5, NaN]) expect(() => tost(x, y, { confLevel })).toThrow(RangeError);
@@ -266,6 +276,13 @@ describe("binomDiffEquivalenceTest", () => {
     expect(relativeError(r.statistic[1], -1.9744429701426078397)).toBeLessThan(1e-14);
     expect(relativeError(r.pValues[0], 4.6677733972783324032e-4)).toBeLessThan(1e-14);
     expect(relativeError(r.pValues[1], 0.024165698053707604462)).toBeLessThan(1e-14);
+  });
+
+  it("builds the interval from 2 alpha itself (audit 11)", () => {
+    // mpmath (250 digits): the mn limits of 56/70 against 48/80 with the bound qchisq(2e-10, 1, upper)
+    const r = binomDiffEquivalenceTest(56, 70, 48, 80, { margin: 0.5, alpha: 1e-10 });
+    expect(relativeError(r.confInt[0], -0.28235643448811864526)).toBeLessThan(4 * 2 ** -52);
+    expect(relativeError(r.confInt[1], 0.59510846464680767964)).toBeLessThan(4 * 2 ** -52);
   });
 
   it("is infinite for Wald where both proportions are 0 or 1", () => {

@@ -112,10 +112,22 @@ export function intervalLevel(confLevel: number | undefined, sides: string | und
   if (!(typeof c === "number" && c > 0 && c < 1)) throw new RangeError("'confLevel' must be a single number in (0, 1)");
   const level = s === "two.sided" ? c : 1 - 2 * (1 - c);
   if (!(level >= 0)) throw new RangeError("a one-sided 'confLevel' must be at least 0.5");
-  const alpha = 1 - level;
-  // (rule 10: for alpha/2 below 1e-8 the upper tail itself, as 1 - alpha/2 has lost its digits)
-  const kappa = alpha / 2 < 1e-8 ? qnorm(alpha / 2, { lowerTail: false }) : qnorm(1 - alpha / 2);
-  return { sides: s, level, alpha, kappa, chisq: qchisq(level, 1) };
+  // one-sided with alpha/2 below 1e-8 (rule 10), alpha from c (1 - c is exact for c >= 1/2), not from the rounded
+  // level; otherwise 1 - level as DescTools
+  const alpha = s !== "two.sided" && 1 - c < 1e-8 ? 2 * (1 - c) : 1 - level;
+  return { ...levelOfAlpha(alpha, level), sides: s };
+}
+
+/**
+ * The two-sided interval level of a given alpha, for callers that hold alpha itself (a test at 1 - 2 alpha: alpha
+ * taken back as 1 - level is about eps / alpha relative off). `level` is 1 - alpha unless given
+ */
+export function levelOfAlpha(alpha: number, level = 1 - alpha): IntervalLevel {
+  // (rule 10: for alpha/2 below 1e-8 the upper tails themselves, as 1 - alpha/2 and the level have lost their digits)
+  const small = alpha / 2 < 1e-8;
+  const kappa = small ? qnorm(alpha / 2, { lowerTail: false }) : qnorm(1 - alpha / 2);
+  const chisq = small ? qchisq(alpha, 1, { lowerTail: false }) : qchisq(level, 1);
+  return { sides: "two.sided", level, alpha, kappa, chisq };
 }
 
 /** A count: a nonnegative integer (within the slack of isCount), returned rounded */
