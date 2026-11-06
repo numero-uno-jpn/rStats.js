@@ -124,6 +124,12 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | 1e200 前後の値の分散 | 二乗がオーバーフロー: 分散 Inf、t = 0、p = 1 | 偏差を 2 のべき乗でスケーリングし、有限の結果 |
 | 1e-200 前後の値の相関 | アンダーフローして NA | 有限の結果 (同上) |
 | `fisher.test` (2 x 2) と `mantelhaen.test(exact = TRUE)` の条件付き最尤推定値と信頼限界 | psi の [0, 1] か 1/psi の [eps, 1] で、絶対許容誤差 eps^0.25 の uniroot を使う。[[3, 1], [1, 3]] では推定値が 1.7e-6、95% の限界が 1.3e-5 と 0.7% (626.24 が 621.93)、99% の上限が 6% ずれ、99.99% の限界は区間の端 1/eps (3.2e5 が 4.5e15) | psi の対数の座標で、double の精度まで根を求める (限界で片側確率が alpha、推定値で平均が度数に一致する) |
+| DescTools の `BinomCI(method = "midp")` | (0, p) と (p, 1) で絶対許容誤差 1.22e-4 の uniroot を使う。限界は 1e-6 から 1e-4 ずれ、1e-4 より小さい限界は大きく外れる (`BinomCI(5, 1e7, method = "midp")` で [1.832e-7, 1.108e-6] が [0, 1.168e-4]) | `binomCI`: p の対数の座標で、double の精度まで根を求める |
+| DescTools の `BinomDiffCI(method = "mn")` と `"mee"`、epiR の寄与危険のスコア区間 | mn は 1e-7 で止まる二分法 (相対 1e-7 ほどずれる)、mee は許容誤差 1.22e-4 の uniroot (小さい差で最大 8%)、epiR は mn の二分法の 100 倍 | `binomDiffCI`: スコア統計量の根 (制約付き最尤推定値は Farrington と Manning の閉じた形で、その acos が桁を失うところは Newton 法で補正) |
+| DescTools の `BinomRatioCI(method = "koopman")`、a = N1 か c = N0 での epiR のリスク比のスコア区間 | 許容誤差 1.22e-4 の uniroot か、境界での 1.0001 倍の刻み (相対 1e-4 ほど)。`1/1` 対 `0/1` の下限が 0.5206 でなく 2 | `binomRatioCI`: Koopman の統計量の根 |
+| epitools の `oddsratio(method = "midp")` | 中央値不偏推定値と mid-p 限界を [0, 1000] 上で許容誤差 1.22e-4 の uniroot で求める。[[30, 2], [1, 40]] の上限が 12475 でなく 11606 | `oddsRatio`: オッズ比の対数の座標での根 |
+| epitools の `midp.exact` の p 値が 1e-16 ほどより小さいとき | 2 min(m, 1 - m) の 1 - m を m から作るので、[[1000, 2000], [3000, 4000]] で 0 | 両側の裾を直接足す: 小さな真の値 |
+| epiR のオッズ比のスコア区間 (`epi.2by2` の `OR.strata.score`) | 推定値の 1.1 倍 (または 1/1.1 倍) から 0.1% 刻みで進むので、大きな表では区間がちょうど [est/1.1, 1.1 est] になる ([[1000, 2000], [3000, 4000]] で [0.60606, 0.73333]、真値は [0.60962, 0.72905]) | `oddsRatio(method = "score")`: 統計量の根 |
 | logit リンクで \|eta\| が 30 を超える `glm` | C コードが逆リンクと微分を eps の値でクリップする (30 で 1 − 9.4e-14、すぐ先で 1 − 2.2e-16 に跳ぶ)。x = 1、2 で度数 (1e15, 1)、(1, 2) の binomial は deviance 2139 で止まり、収束しない (解は eta = log 1e15) | 30 の先も厳密な値。1 未満の最大の double と最小の double で止める。deviance 0.013 (1 − y = 1/(1e15 + 1) の表現で決まる)。30 以内は R と同じ |
 | rate × q が非正規化数の `pexp(q, rate, log.p = TRUE)` (`pexp(1e-20, 1e-300, log.p = TRUE)`) | 非正規化数に丸めた積の対数: -736.8272408909739 (1.1e-5 ずれる) | log rate + log q: -736.8272297580946 |
 | 端の値での probit・cauchit・cloglog・power リンクの `glm` | `make.link` が eta (または mu) を eps の値で、微分を eps でクリップする。Phi(−10) = 7.6e-24、1 − exp(−e^-40) = 4.2e-18、平均 1e-16 (power 0.5) が 2.2e-16 に、−1e9 での cauchit の微分 3.2e-19 も 2.2e-16 になる | 厳密な値。最小の double と 1 未満の最大の double で (0, 1) に収める。R の範囲内は R と同じ |
@@ -211,6 +217,8 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `pnbinom(1e16, 1e16, 0.5)` (2^53 を超え、x + 1 が丸めでずれる) | 0.5 | 0.5000000028209479 = 1/2 + dnbinom (I_p(size, x + 1) = I_p(size, x) + dnbinom(x))。`qnbinom(0.5, 1e16, 0.5)` は R と同じく 1e16。極端な上側の裾で項が裾に対して分解できない場合は、丸めた x + 1 を使う (そこでは x の 1 の違いが結果の分解能より小さい) |
 | `pgeom(2^54, 1e-14, lower.tail = FALSE)` (2^53 を超え、x + 1 が丸めでずれる) | 0x1.13bd80f2f26d7p-260 (丸めた x + 1 を指数にした q^(x + 1)) | 0x1.13bd80f2f26d2p-260 (q^x q。正しく丸めた値は ...d1p-260。Issue #327) |
 | `binom.test(0, 1e20)`、`poisson.test(0, r = 1e20)` (2^53 を超えるカウント) | エラー "result would be too long a vector" | p 値を返す (二分法は中点が端点に丸まったところで止める。以前は終わらなかった) |
+| DescTools の `BinomCI(method = "midp")` の片側水準 0.5 (`sides = "right"`、両側水準 0) | エラー "f() values at end points not of opposite sign" (根が探索区間の外) | `binomCI`: 根 (mid-p の中央値) |
+| epitools の `oddsratio(method = "midp")` でセルに 0 があるか、オッズ比が 1000 を超えるとき (`[[0, 10], [5, 5]]`、`[[100, 1], [1, 100]]`) | エラー "f() values at end points not of opposite sign" | `oddsRatio`: 台の端では exact2x2 の約束 (推定値と限界が 0 か Infinity)、それ以外は根 |
 | `poisson.test(2^53 + 2, r = 2^53 + 2, alternative = "greater")` (2^53 を超え、x - 1 が丸めでずれる) | 0.50000000980826 (P[X >= x] を丸めた x - 1 の ppois(x - 1, upper) で計算) | 0.50000000140118 = P[X > x] + dpois(x)。真値は 1 次で 1/2 + 1/(3 sqrt(2 pi x))。両側の p 値の上側の裾も同じ (Issue #323) |
 | `binom.test(2^53, 2^54, alternative = "greater")`、`binom.test(2^53 + 2, 2^54 + 4, alternative = "greater")` (2^53 を超え、x - 1 か n - (x - 1) が丸めでずれる) | 0.5、0.500000011889406 (丸めた引数の pbinom(x - 1, upper)) | 0.5000000029723516 = P[X > x] + dbinom(x) (真値 1/2 + dbinom(n/2)/2)。両側の p 値の上側の裾も同じ (Issue #324) |
 | `poisson.test(c(5, 5), T = c(1e308, 1e308))`、`T = c(1e-308, 1e-308)` | p 値 0 (p0 = r T1 / (r T1 + T2) = 0)、期待度数 NaN。率比 NaN | p 値 1、期待度数 5、率比 1 (和が溢れる・正規の範囲を下回るときは T2 / T1 の比で計算する) |
@@ -828,6 +836,22 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`omega`** は 1 因子のとき、Schmid-Leiman 行列の群因子の列と群ごとの ω を厳密に 0 と返します。R は丸めの残差の
   平方根 (1e-8 ほど) を返します。群因子が 4 つ以上だと、データの最終ビットを変えるだけで R 自身の結果が最大 4e-11
   動くので、その程度で一致します (3 つまでは 1e-12)。
+
+- **`binomCI`、`binomDiffCI`、`binomRatioCI`、`oddsRatio`** (DescTools の `BinomCI`、`BinomDiffCI`、
+  `BinomRatioCI`、epitools の `oddsratio`) は 1 回の呼び出しで 1 件を扱い (DescTools はベクトルを再利用する)、結果
+  の定まらない入力はエラーにします。x > n、負や整数でない度数、n = 0、(0, 1) の外の水準は例外を投げます。パッケージ
+  は NaN や数値を返すか (11/10 の agresti-coull が [0.80, 1])、度数を丸めます (epitools が `fisher.test` を通して)。
+  0.5 未満の両側水準も受け付け (`BinomCI` は "'conf.level' has to be in [0.5, 1]" で止まる)、片側の水準は 0.5 以上
+  (両側水準 1 - 2(1 - c) が 0 以上) とします。`binomRatioCI` は `sides` を他の 2 つと同じく適用します (もう一方の限界
+  は 0 か Infinity)。DescTools は片側の水準を計算しますが、その両側区間の 2 つの限界をそのまま返します。x = 0 と
+  x = n での Wilson の限界は厳密に 0 と 1 です (DescTools は 50% の 10/10 で 0.99999999999999989)。そのため
+  Newcombe の `"score"` で 0/10 対 10/10 の差の下限は -1 です (DescTools は -1.0000000022)。x = 0 か n での
+  `"wilsoncc"` は "NaNs produced" の警告を出しません (DescTools は 0 か 1 で置き換える限界について警告する)。
+  `oddsRatio` は epiR の `epi.2by2` のスコア区間をメソッド `"score"` として持ち (対象のパッケージで他にない)、セルに
+  0 があるときの mid-p の推定値と限界は exact2x2 に合わせ、epitools のメソッド `"small"` はありません。`epi.2by2` の
+  他の数値はこれらの関数で得られます: リスク比 (Wald は度数 0 のない所で `"katz.log"`、スコアは `"koopman"`)、
+  オッズ比 (`"wald"`、`"score"`、`"fisher"`)、寄与危険 (`binomDiffCI` の `"wald"` と `"mee"` の 100 倍。
+  `binomDiffCI` は Wald 区間を [-1, 1] に切り詰めるが epiR は切り詰めない)。
 
 ### データの扱い
 

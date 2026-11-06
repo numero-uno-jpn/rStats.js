@@ -7,6 +7,22 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Proportions and odds ratios** (one case per call): `binomCI(x, n, { method, confLevel, sides })`, DescTools'
+  `BinomCI()`, with the methods `wilson` (default), `wald`, `wilsoncc`, `agresti-coull`, `jeffreys`,
+  `clopper-pearson` and `midp`; `binomDiffCI(x1, n1, x2, n2, ...)`, DescTools' `BinomDiffCI()`, with `ac` (default),
+  `wald`, `score` (Newcombe's hybrid), `mn` (Miettinen-Nurminen) and `mee` (Farrington-Manning); `binomRatioCI(x1, n1,
+  x2, n2, ...)`, DescTools' `BinomRatioCI()`, with `katz.log` (default) and `koopman`; `oddsRatio(table, { method,
+  confLevel })`, epitools' `oddsratio()`, with `midp` (default: the median-unbiased estimate and the mid-p exact
+  interval), `fisher`, `wald` and `score` (epiR's score interval), and epitools' three p-values. The mid-p and score
+  limits are the roots of their equations to the precision of the doubles (the packages stop their searches at 1e-7
+  to 1e-3 and fail for zero cells or odds ratios beyond 1000); `binomRatioCI` applies `sides` to the limits; input
+  without a defined result is an error (docs/differences-from-r.md). epiR's `epi.2by2` numbers for one stratum are
+  reached through these functions.
+
 ## 1.1.0 - 2026-11-06
 
 The reference is now R 4.6.2 (until 1.0.0, R 4.5.2): every fixture was regenerated with `oracle/Dockerfile.r46`

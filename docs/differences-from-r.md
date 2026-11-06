@@ -130,6 +130,12 @@ affected.
 | Variance of values around 1e200 | squares overflow: variance Inf, t = 0, p = 1 | deviations rescaled by powers of two; finite result |
 | Correlation of values around 1e-200 | underflow, NA | finite result (as above) |
 | `fisher.test` (2 x 2) and `mantelhaen.test(exact = TRUE)`: the conditional MLE and the confidence limits | uniroot on psi in [0, 1] or 1/psi in [eps, 1] with the absolute tolerance eps^0.25: for [[3, 1], [1, 3]] the estimate is 1.7e-6 off, the 95% limits 1.3e-5 and 0.7% (621.93 for 626.24), the 99% upper limit 6%, and the 99.99% limit the end 1/eps (4.5e15 for 3.2e5) | the roots on the log scale of psi to the precision of the doubles (the tail equals alpha at the limits, the mean equals the count at the estimate) |
+| DescTools' `BinomCI(method = "midp")` | uniroot on (0, p) and (p, 1) with the absolute tolerance 1.22e-4: limits 1e-6 to 1e-4 off, and those below 1e-4 grossly wrong (`BinomCI(5, 1e7, method = "midp")`: [0, 1.168e-4] for [1.832e-7, 1.108e-6]) | `binomCI`: the roots on the log scale of p, to the precision of the doubles |
+| DescTools' `BinomDiffCI(method = "mn")` and `"mee"`, epiR's score interval of the attributable risk | mn: a bisection stopped at 1e-7 (about 1e-7 relative off); mee: uniroot with the tolerance 1.22e-4 (up to 8% for small differences); epiR: the bisection of mn, times 100 | `binomDiffCI`: the roots of the score statistic (the restricted MLE in Farrington and Manning's closed form, polished by Newton steps where its acos loses digits) |
+| DescTools' `BinomRatioCI(method = "koopman")`, epiR's score interval of the risk ratio at a = N1 or c = N0 | uniroot with the tolerance 1.22e-4, or steps of 1.0001 at the boundaries (about 1e-4 relative); `1/1` against `0/1` gives the lower limit 2 instead of 0.5206 | `binomRatioCI`: the roots of Koopman's statistic |
+| epitools' `oddsratio(method = "midp")` | the median-unbiased estimate and mid-p limits by uniroot on [0, 1000] with the tolerance 1.22e-4: the upper limit of [[30, 2], [1, 40]] is 11606 instead of 12475 | `oddsRatio`: the roots on the log scale of the odds ratio |
+| epitools' `midp.exact` p-value where it is below about 1e-16 | 2 min(m, 1 - m) with 1 - m formed from m: 0 for [[1000, 2000], [3000, 4000]] | both tails summed directly: the true small value |
+| epiR's score interval of the odds ratio (`OR.strata.score` of `epi.2by2`) | steps of 0.1% from 1.1 times (or 1/1.1 times) the estimate, so that for large tables the interval is exactly [est/1.1, 1.1 est] ([[1000, 2000], [3000, 4000]]: [0.60606, 0.73333], true [0.60962, 0.72905]) | `oddsRatio(method = "score")`: the roots of the statistic |
 | clinfun's `jonckheere.test` and DescTools' `JonckheereTerpstraTest` with ties (normal approximation) | the null variance without ties (sum n_i m_i (n_i + m_i + 1) / 12), too large: p = 0.0086 for c(1, 1, 2, 2, 3, 3) in three groups | the permutation variance with the ties (Hollander & Wolfe): p = 0.0061; without ties as the packages |
 | clinfun's `jonckheere.test` and DescTools' `JonckheereTerpstraTest`, normal approximation with a large positive statistic | the upper tail as 1 - pnorm(z): 0 beyond z ~ 8.3 (1:101 in ordered groups of 34, 34, 33: p 0 for increasing and two-sided) | where 1 - pnorm(z) is below 1e-8, the upper tail pnorm(z, lower.tail = FALSE): 1.4902389037944e-26 (Rmpfr 1.4902389037944002e-26); above 1e-8 the packages' value (#280) |
 | `wilcox.test(x, exact = FALSE)` (also paired; two samples too), two-sided, with a small p-value from a large positive statistic | 2 (1 - F) with 1 - F formed from the lower tail F, which loses the digits: `wilcox.test(1:300, exact = FALSE)` gives p = 0 (`-(1:300)` gives 6.1141368593044447e-51, and `alternative = "greater"` 3.0570684296522223e-51) | the upper tail itself where it is below 1/64: 6.1141368593044446e-51 (twice R's own one-sided value). Above 1/64 R's 2 (1 - F); the values differ from R's by the rounding of 1 - F (a few 1e-17 absolute), beyond 1e-12 relative only below about p = 1e-4 |
@@ -217,6 +223,8 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `pnbinom(1e16, 1e16, 0.5)` (beyond 2^53, x + 1 rounds) | 0.5 | 0.5000000028209479 = 1/2 + dnbinom (I_p(size, x + 1) = I_p(size, x) + dnbinom(x)); `qnbinom(0.5, 1e16, 0.5)` is 1e16 as in R. Where the term is not resolved against a deep upper tail, the rounded x + 1 is used (one unit of x is below the resolution there) |
 | `pgeom(2^54, 1e-14, lower.tail = FALSE)` (beyond 2^53, x + 1 rounds) | 0x1.13bd80f2f26d7p-260 (q^(x + 1) with the rounded x + 1 in the exponent) | 0x1.13bd80f2f26d2p-260 (q^x q; the correctly rounded value is ...d1p-260; issue #327) |
 | `binom.test(0, 1e20)`, `poisson.test(0, r = 1e20)` (counts beyond 2^53) | error "result would be too long a vector" | a p-value (the bisections stop where their midpoint rounds to an end; they did not return before) |
+| DescTools' `BinomCI(method = "midp")` at the one-sided level 0.5 (`sides = "right"`, the two-sided level 0) | error "f() values at end points not of opposite sign" (the root is outside its bracket) | `binomCI`: the root (the mid-p median) |
+| epitools' `oddsratio(method = "midp")` with a zero cell or an odds ratio beyond 1000 (`[[0, 10], [5, 5]]`, `[[100, 1], [1, 100]]`) | error "f() values at end points not of opposite sign" | `oddsRatio`: exact2x2's conventions at the ends of the support (estimate and limit 0 or Infinity), the roots otherwise |
 | `poisson.test(2^53 + 2, r = 2^53 + 2, alternative = "greater")` (beyond 2^53, x - 1 rounds) | 0.50000000980826 (P[X >= x] as ppois(x - 1, upper) with a rounded x - 1) | 0.50000000140118 = P[X > x] + dpois(x), true 1/2 + 1/(3 sqrt(2 pi x)) to first order; also the upper tails of the two-sided p-value (issue #323) |
 | `binom.test(2^53, 2^54, alternative = "greater")`, `binom.test(2^53 + 2, 2^54 + 4, alternative = "greater")` (beyond 2^53, x - 1 or n - (x - 1) rounds) | 0.5, 0.500000011889406 (pbinom(x - 1, upper) with a rounded argument) | 0.5000000029723516 = P[X > x] + dbinom(x) (true 1/2 + dbinom(n/2)/2); also the upper tails of the two-sided p-value (issue #324) |
 | `poisson.test(c(5, 5), T = c(1e308, 1e308))`, `T = c(1e-308, 1e-308)` | p-value 0 (p0 = r T1 / (r T1 + T2) = 0), expected count NaN; rate ratio NaN | p-value 1, expected count 5, rate ratio 1 (the ratio T2 / T1 where the sums overflow or fall below the normal range) |
@@ -878,6 +886,23 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   R reports the square roots of rounding residues (about 1e-8). With four or more group factors R's own results move
   by up to 4e-11 when the data change in the last bit, so `omega` agrees with R to about that size there (1e-12 with
   up to three).
+
+- **`binomCI`, `binomDiffCI`, `binomRatioCI` and `oddsRatio`** (DescTools' `BinomCI`, `BinomDiffCI`,
+  `BinomRatioCI`, epitools' `oddsratio`) take one case per call (DescTools recycles vectors) and treat input without a
+  defined result as an error: x > n, a negative or non-integer count, n = 0 and a level outside (0, 1) throw, where
+  the packages return NaN, a number (agresti-coull of 11/10 gives [0.80, 1]) or round the counts (epitools, through
+  `fisher.test`). A two-sided level below 0.5 is accepted (`BinomCI` stops with "'conf.level' has to be in [0.5, 1]");
+  a one-sided level must be at least 0.5 (the two-sided level 1 - 2(1 - c) at least 0). `binomRatioCI` applies
+  `sides` as the other two do (the other limit becomes 0 or Infinity); DescTools computes the one-sided level but
+  keeps both limits of that two-sided interval. Wilson's limits at x = 0 and x = n are exactly 0 and 1 (DescTools:
+  0.99999999999999989 for 10/10 at 50%), so that Newcombe's `"score"` difference of 0/10 against 10/10 has the lower
+  limit -1 (DescTools: -1.0000000022). `"wilsoncc"` at x = 0 or n has no "NaNs produced" warning (DescTools warns
+  about the limit that it then replaces by 0 or 1). `oddsRatio` gives the score interval of epiR's `epi.2by2` as its
+  method `"score"` (no other package in scope has it), its mid-p estimate and limits at a zero cell as exact2x2 does,
+  and does not have epitools' method `"small"`. epiR's other numbers of `epi.2by2` are those of these functions:
+  the risk ratio (Wald = `"katz.log"` away from zero counts, score = `"koopman"`), the odds ratio (`"wald"`,
+  `"score"`, `"fisher"`) and the attributable risk (`binomDiffCI` `"wald"` and `"mee"`, times 100; `binomDiffCI`
+  clips the Wald interval to [-1, 1], epiR does not).
 
 ### Data handling
 
