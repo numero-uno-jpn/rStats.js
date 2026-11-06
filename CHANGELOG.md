@@ -34,6 +34,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   (docs/differences-from-r.md): the one-sample conditional interval's lower end (R's is one Walsh average too high)
   and its level, and two-sided normal p-values below 1/64 from the upper tail itself (R's 2 (1 - F) gives 0 for
   `1:300`). The conditional distribution has time and memory limits (RangeError suggesting `exact: false`).
+- `pairwiseWilcoxTest` follows R 4.6's `wilcox.test` through `wilcoxTest`: exact p-values with ties and zeros, no
+  ties warnings, and `correct` 0..3.
 
 ## 1.0.0 - 2026-11-05
 

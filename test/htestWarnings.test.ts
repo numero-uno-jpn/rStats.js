@@ -229,7 +229,6 @@ describe("R's warnings in each situation (fixture htestWarnings)", () => {
 
 describe("the warning handler of the tests", () => {
   const P_TIES = "cannot compute exact p-value with ties";
-  const CI_TIES_2 = "cannot compute exact confidence intervals with ties";
   // ansari.test's text since R 4.6 ("interval")
   const CI_TIES_ANSARI = "cannot compute exact confidence interval with ties";
   const APPROX = "Chi-squared approximation may be incorrect";
@@ -241,11 +240,9 @@ describe("the warning handler of the tests", () => {
   };
 
   it("wilcoxTest: once, also for the formula form", () => {
-    const calls = handled(() => wilcoxTest("y ~ g", { y: [1, 2, 3, 3, 4, 5], g: ["a", "a", "a", "b", "b", "b"] }, { confInt: true }));
-    expect(calls).toEqual([
-      [P_TIES, "wilcoxTest"],
-      [CI_TIES_2, "wilcoxTest"],
-    ]);
+    // (R 4.6's exact test gives no warnings with ties; the normal interval's level warning instead)
+    const calls = handled(() => wilcoxTest("y ~ 1", { y: [1, 2, 2, 3, 4, 5] }, { exact: false, confInt: true }));
+    expect(calls).toEqual([["requested conf.level not achievable", "wilcoxTest"]]);
   });
 
   it("ansariTest: once, also for the formula form", () => {
@@ -260,8 +257,8 @@ describe("the warning handler of the tests", () => {
     expect(ansariTest([1, 2, Infinity], [1.5, 2.5, -4], { confInt: true, exact: false }).confInt).toBeUndefined();
   });
 
-  it("pairwiseWilcoxTest: once, under its own name", () => {
-    expect(handled(() => pairwiseWilcoxTest([1, 2, 2, 3, 4, 5, 5, 6, 7], g3))).toEqual([[P_TIES, "pairwiseWilcoxTest"]]);
+  it("pairwiseWilcoxTest: no warnings with ties (R 4.6's exact conditional test)", () => {
+    expect(handled(() => pairwiseWilcoxTest([1, 2, 2, 3, 4, 5, 5, 6, 7], g3))).toEqual([]);
   });
 
   it("fisherTest", () => {
