@@ -55,23 +55,12 @@ function rsum(terms: number[]): number {
   return toDouble(roundTo(s, 53));
 }
 
-/** x^3 correctly rounded, as the C library's pow (R's x^3) */
-function cube(x: number): number {
-  const split = (a: number): [number, number] => {
-    const c = 134217729 * a;
-    const h = c - (c - a);
-    return [h, a - h];
-  };
-  const twoProd = (a: number, b: number): [number, number] => {
-    const p = a * b;
-    const [ah, al] = split(a);
-    const [bh, bl] = split(b);
-    return [p, ah * bh - p + ah * bl + al * bh + al * bl];
-  };
-  const [p, e] = twoProd(x, x);
-  const [q, f] = twoProd(p, x);
-  return q + (f + e * x);
-}
+/**
+ * R 4.6's x^3: (x * x) * x, rounded at each product. R 4.5 called the C library's pow (correctly rounded; the two can differ
+ * in the last bits); R 4.6.2 computes x^2, x^3 and x^4 by repeated multiplication (seen on aarch64 and x86_64, 20000
+ * random x each), which moved beale's BFGS path by one function evaluation.
+ */
+const cube = (x: number): number => x * x * x;
 
 const sq = (x: number): number => x * x;
 
