@@ -953,6 +953,18 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975), computed without the cancellation of that formula (it loses
   eps sqrt(O) absolute: -31.236670803616562 for -31.236670803616877 in [[1e5, 2e5], [3e5, 4e5]]). The variant
   2 (sqrt(O) - sqrt(E)) is not offered.
+- **`tost`** (equivalence's `tost`) names its fields as the other tests: `pValue` (R's `tost.p.value`), `confInt` and
+  `confLevel` (`tost.interval` and its attribute), `seDiff` (`se.diff`), `parameter` (the df); `result` keeps R's
+  strings `"rejected"` and `"not rejected"`. There is no `null.value`. The difference, its standard error and the
+  degrees of freedom are `tTest`'s (missing values dropped as there), so the values agree with R to the last bits of
+  the t quantile and tail (within 1e-13 relative over the fixture). A `confLevel` of 0.5 or less and an `alpha` of 0.5
+  or more are errors (the 1 - 2 alpha interval would be a point or reversed; R checks only that `conf.level` lies in
+  (0, 1)), and so is an `epsilon` that is not positive and finite. The paired test (`paired: true`, method
+  `"Paired TOST"`) is tTest's paired test with the same two one-sided tests; the fixture has no paired case.
+- **`binomDiffEquivalenceTest`** is not in R: the test of equivalence of two proportions on counts by two one-sided
+  score tests (Miettinen-Nurminen by default, Farrington-Manning `"mee"` or Wald), dual to `binomDiffCI` with the same
+  method at the level 1 - 2 alpha. For 0/1 data it is the test to use rather than `tost`, whose t approximation has a
+  variance of 0 for a group of all 0s or all 1s. The margin is symmetric, (-margin, margin) with margin in (0, 1).
 
 ### Data handling
 

@@ -42,6 +42,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   without continuity correction times (N - 1)/N, for 2 × 2 and r × c tables.
 - **Freeman-Tukey deviates**: the results of `chisqTest` and `gTest` have `ftResiduals`, `sqrt(O) + sqrt(O + 1) -
   sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975).
+- **Equivalence tests**: `tost(x, y, { epsilon, paired, varEqual, confLevel, alpha })`, equivalence's `tost()`: two
+  one-sided t tests (Welch's, pooled or paired, from `tTest`) with the larger p-value and the 1 - 2 alpha interval;
+  `binomDiffEquivalenceTest(x1, n1, x2, n2, { margin, method, alpha })` (not in R): equivalence of two proportions on
+  counts with the score statistic at -margin and +margin (Miettinen-Nurminen by default, Farrington-Manning `"mee"`,
+  `"wald"`), both one-sided p-values, the larger as the p-value, and the dual 1 - 2 alpha interval of `binomDiffCI`.
 
 ## 1.1.0 - 2026-11-06
 

@@ -896,6 +896,18 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975) を、この式の桁落ちなしに計算します (式のままでは絶対で
   eps sqrt(O) を失う: [[1e5, 2e5], [3e5, 4e5]] で -31.236670803616877 でなく -31.236670803616562)。変種
   2 (sqrt(O) - sqrt(E)) は提供しません。
+- **`tost`** (equivalence の `tost`) の結果のフィールド名は他の検定に合わせています: `pValue` (R の `tost.p.value`)、
+  `confInt` と `confLevel` (`tost.interval` とその属性)、`seDiff` (`se.diff`)、`parameter` (自由度)。`result` は R の
+  文字列 `"rejected"` と `"not rejected"` のままです。`null.value` はありません。差、その標準誤差、自由度は `tTest` の
+  ものなので (欠測値の扱いも同じ)、値は t 分布の分位点と裾確率の最後の数ビットまで R と一致します (fixture 全体で相対
+  1e-13 以内)。`confLevel` が 0.5 以下、`alpha` が 0.5 以上はエラーです (1 - 2 alpha 区間が点か逆向きになる。R は
+  `conf.level` が (0, 1) にあることだけを確かめる)。正の有限値でない `epsilon` もエラーです。対応のある検定
+  (`paired: true`、method `"Paired TOST"`) は tTest の対応のある検定に同じ 2 つの片側検定を当てたもので、fixture に
+  対応のある例はありません。
+- **`binomDiffEquivalenceTest`** は R にありません: 計数に対する、2 つの比率の同等性の 2 つの片側スコア検定
+  (既定は Miettinen-Nurminen、Farrington-Manning の `"mee"`、Wald) で、同じ方法の水準 1 - 2 alpha の `binomDiffCI` と
+  双対です。0/1 データには `tost` よりこちらを使うべきです (`tost` の t 近似では、すべて 0 かすべて 1 の群の分散が 0
+  になる)。許容幅は対称な (-margin, margin) で、margin は (0, 1) の値です。
 
 ### データの扱い
 
