@@ -235,7 +235,7 @@ function accurateSum(v: Float64Array, from: number, to: number): number {
  * Fisher's noncentral hypergeometric distribution of the (1, 1) cell of a 2 x 2 table with margins fixed:
  * P(X = i; psi) proportional to dhyper(i; m, n, k) psi^i on lo..hi
  */
-class OddsRatioDistribution {
+export class OddsRatioDistribution {
   readonly lo: number;
   readonly hi: number;
   /** log dhyper(i; m, n, k) for i = lo..hi */

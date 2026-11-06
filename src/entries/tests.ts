@@ -16,6 +16,28 @@ export type { Alternative, Counts, HTest, Sample } from "../htest/types.js";
 export { binomTest, type BinomTestOptions, type BinomTestResult } from "../htest/binomTest.js";
 export { poissonTest, type PoissonTestOptions, type PoissonTestResult } from "../htest/poissonTest.js";
 export { propTest, type PropTestOptions, type PropTestResult } from "../htest/propTest.js";
+export {
+  binomCI,
+  type BinomCIMethod,
+  type BinomCIOptions,
+  type BinomCIResult,
+  type CISides,
+  type ProportionCIResult,
+} from "../htest/binomCI.js";
+export {
+  binomDiffCI,
+  binomRatioCI,
+  oddsRatio,
+  type BinomDiffCIMethod,
+  type BinomDiffCIOptions,
+  type BinomDiffCIResult,
+  type BinomRatioCIMethod,
+  type BinomRatioCIOptions,
+  type BinomRatioCIResult,
+  type OddsRatioMethod,
+  type OddsRatioOptions,
+  type OddsRatioResult,
+} from "../htest/twoByTwo.js";
 export { mcnemarTest, type McnemarTestOptions, type McnemarTestResult } from "../htest/mcnemarTest.js";
 export { varTest, bartlettTest, type VarTestOptions, type VarTestResult, type BartlettTestResult } from "../htest/varTest.js";
 export {

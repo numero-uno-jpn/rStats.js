@@ -169,6 +169,9 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `aov()` | `aov` | 分散分析 |
 | `bartlett.test()` | `bartlettTest` | 複数の正規標本の分散が等しいことについての Bartlett 検定 |
 | `binom.test()` | `binomTest` | ベルヌーイ試行の成功確率についての単純帰無仮説の正確検定 |
+| `DescTools::BinomCI()` | `binomCI` | 二項比率 x/n の信頼区間 |
+| `DescTools::BinomDiffCI()` | `binomDiffCI` | 独立な 2 つの比率 x1/n1 と x2/n2 の差 p1 - p2 の信頼区間 |
+| `DescTools::BinomRatioCI()` | `binomRatioCI` | 独立な 2 つの比率 x1/n1 と x2/n2 の比 p1/p2 の信頼区間 |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | 2 標本の相対効果 P(X < Y) + P(X = Y)/2 が 1/2 であることについての Brunner-Munzel 検定 (等分散も分布の形が同じことも仮定しない) |
 | `chisq.test()` | `chisqTest` | Pearson のカイ二乗検定 |
 | `DescTools::CochranQTest()` | `cochranQTest` | 反復のない完全ブロック計画での 2 値応答に対する Cochran の Q 検定 |
@@ -214,6 +217,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `mcnemar.test()` | `mcnemarTest` | 正方の計数表の行と列の対称性についての McNemar のカイ二乗検定 |
 | `model.matrix()` | `modelMatrix` | データフレームに対する式のモデル行列 (R の `terms()` の属性つき) |
 | `mood.test()` | `moodTest` | 尺度についての Mood の 2 標本検定 |
+| `epitools::oddsratio()` | `oddsRatio` | 2 x 2 表のオッズ比とその信頼区間、独立性の 3 つの p 値 |
 | `effectsize::omega_squared()` | `omegaSquared` | 分散分析表の各項のオメガ二乗 (反復測定計画にも対応) |
 | `psych::omega()` | `omega` | 斜交 minres 因子解の Schmid-Leiman 変換による McDonald の ω |
 | `oneway.test()` | `onewayTest` | 複数の正規標本の平均が等しいことの検定 (等分散を仮定しない場合と仮定する場合) |

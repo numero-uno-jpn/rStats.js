@@ -169,6 +169,9 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `aov()` | `aov` | Analysis of variance. |
 | `bartlett.test()` | `bartlettTest` | Bartlett's test that the variances of several normal samples are equal. |
 | `binom.test()` | `binomTest` | Exact test of a simple null hypothesis about the probability of success in Bernoulli trials. |
+| `DescTools::BinomCI()` | `binomCI` | Confidence interval for a binomial proportion x/n. |
+| `DescTools::BinomDiffCI()` | `binomDiffCI` | Confidence interval for the difference p1 - p2 of two independent proportions x1/n1 and x2/n2. |
+| `DescTools::BinomRatioCI()` | `binomRatioCI` | Confidence interval for the ratio p1/p2 of two independent proportions x1/n1 and x2/n2. |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal variances or shapes. |
 | `chisq.test()` | `chisqTest` | Pearson's chi-squared test. |
 | `DescTools::CochranQTest()` | `cochranQTest` | Cochran's Q test for binary responses in an unreplicated complete block design. |
@@ -214,6 +217,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `mcnemar.test()` | `mcnemarTest` | McNemar's chi-squared test for symmetry of rows and columns in a square table of counts. |
 | `model.matrix()` | `modelMatrix` | The model matrix of a formula on a data frame, with the attributes of R's `terms()`. |
 | `mood.test()` | `moodTest` | Mood's two-sample test of scale. |
+| `epitools::oddsratio()` | `oddsRatio` | Odds ratio of a 2 x 2 table with its confidence interval and three p-values of independence. |
 | `effectsize::omega_squared()` | `omegaSquared` | Omega squared of the terms of an analysis-of-variance table, also of repeated-measures designs. |
 | `psych::omega()` | `omega` | McDonald's omega from a Schmid-Leiman transformation of an oblique minres factor solution. |
 | `oneway.test()` | `onewayTest` | Test that several normal samples have equal means, without or with the assumption of equal variances. |
