@@ -512,3 +512,38 @@
 | covariance matrix | 共分散行列 | `docs/ja` で使用 |
 | fitted means | 平均の当てはめ値 | 新規。`fitted value` の平均尺度 |
 | size (of a binomial response) | サイズ | 新規。二項分布の 2 列応答の行ごとの値 |
+| Laplace approximation | Laplace 近似 | `docs/ja/r-functions.md` で使用。人名は英字 |
+| adaptive Gauss-Hermite quadrature | 適応的 Gauss-Hermite 求積 | `docs/ja/r-functions.md` で使用。人名は英字 |
+| quadrature points | 求積点 | 新規。求積の点数 |
+| penalised IRLS | 罰則付き IRLS | `docs/ja/r-functions.md` で使用 |
+| Akaike's information criterion | Akaike の情報量規準 | 人名は英字 |
+| Schwarz's Bayesian information criterion | Schwarz のベイズ情報量規準 | 人名は英字 |
+| information criterion | 情報量規準 | `docs/ja` で使用 |
+| saturated model | 飽和モデル | 新規 |
+| covariance parameters | 共分散パラメータ | 新規。`theta` の値 |
+| relative covariance factor | 相対共分散因子 | 新規 |
+| spherical random effects | 球面化された変量効果 | 新規 |
+| conditional modes (of random effects) | 条件付きモード | 新規。変量効果の推定値 |
+| grouping factor | グループ化因子 | 新規。変量効果の群を定める因子 |
+| random-effects term | 変量効果の項 | 新規 |
+| fixed-effects part (of a formula) | 固定効果の部分 | 新規 |
+| Hessian | ヘッセ行列 | `docs/ja/r-functions.md` で使用 |
+| Satterthwaite's degrees of freedom | Satterthwaite の自由度 | 人名は英字。`docs/ja` で使用 |
+| deviance residuals | 逸脱度残差 | `docs/ja` で使用 |
+| Pearson residuals | Pearson 残差 | 人名は英字。`docs/ja` で使用 |
+| response residuals | 応答残差 | 新規 |
+| scaled residuals | 尺度化残差 | `docs/ja/r-functions.md` で使用 |
+| singular fit | 特異な当てはめ | 新規。`singular (matrix)` の「特異」と同じ語 |
+| REML criterion | REML 基準 | 新規 |
+| ML | ML | 英字のまま。最尤法 |
+| log-likelihood | 対数尤度 | `docs/ja` で使用 |
+| quartile | 四分位点 | 新規 |
+| treatment contrasts | 処理対比 | 新規 |
+| Cholesky factor | コレスキー因子 | 新規 |
+| joint F-test | 同時 F 検定 | 新規。行をまとめて検定する F 検定 |
+| quasi families | quasi 系の分布族 | 新規 |
+| rank of the hypothesis | 仮説のランク | 新規 |
+| level scores | 水準の得点 | 新規 |
+| orthogonal polynomials | 直交多項式 | 新規 |
+| identity link | identity リンク | 新規。値 `"identity"` は英字 |
+| population level | 母集団の水準 | 新規 |

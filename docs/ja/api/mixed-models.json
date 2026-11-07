@@ -2,947 +2,947 @@
   "GlmerAnovaOptions#summary": {
     "hash": "42ac8150b657",
     "en": "Options of {@link glmerAnova} for one fit: there is none (R's `anova()` of one fit has none); any key is a\nRangeError. For several fits the options are {@link LmerCompareOptions}.",
-    "ja": ""
+    "ja": "1 つの当てはめに対する {@link glmerAnova} のオプションです。オプションはありません (R の 1 つの当てはめに対する `anova()` も同じです)。どのキーも\nRangeError になります。複数の当てはめの場合、オプションは {@link LmerCompareOptions} です。"
   },
   "GlmerAnovaTable#summary": {
     "hash": "551c4e6c0709",
     "en": "Result of {@link glmerAnova} for one fit: lme4's table of the fixed-effects terms (sequential Wald statistics), one\nrow per term, without the intercept.",
-    "ja": ""
+    "ja": "1 つの当てはめに対する {@link glmerAnova} の結果です。lme4 の固定効果の項の表 (逐次の Wald 統計量) で、\n項ごとに 1 行あり、切片は含みません。"
   },
   "GlmerAnovaTable.F#summary": {
     "hash": "b40086c2403a",
     "en": "R's `F value`: Mean Sq / sigma² (Mean Sq for binomial and poisson).",
-    "ja": ""
+    "ja": "R の `F value` は、Mean Sq / sigma² です (binomial と poisson の場合は Mean Sq)。"
   },
   "GlmerAnovaTable.meanSq#summary": {
     "hash": "c7933d14aabd",
     "en": "R's `Mean Sq`: Sum Sq / npar.",
-    "ja": ""
+    "ja": "R の `Mean Sq` は、Sum Sq / npar です。"
   },
   "GlmerAnovaTable.messages#summary": {
     "hash": "d9b00590e964",
     "en": "R's messages (none).",
-    "ja": ""
+    "ja": "R のメッセージです (ありません)。"
   },
   "GlmerAnovaTable.npar#summary": {
     "hash": "56748454ca2d",
     "en": "R's `npar`: the term's number of columns (aliased columns dropped).",
-    "ja": ""
+    "ja": "R の `npar` は、項の列の数です (縮退した列は除きます)。"
   },
   "GlmerAnovaTable.sumSq#summary": {
     "hash": "7cb04b1cafc6",
     "en": "R's `Sum Sq`: the squared length of the term's part of R_X β̂ (R_X the Cholesky factor of R_X'R_X).",
-    "ja": ""
+    "ja": "R の `Sum Sq` は、R_X β̂ のうちその項の部分の長さの二乗です (R_X は R_X'R_X のコレスキー因子です)。"
   },
   "GlmerAnovaTable.terms#summary": {
     "hash": "dd9f6f4e6ee8",
     "en": "The terms (R's row names), in the order of the columns of the fixed-effects matrix, without `(Intercept)`.",
-    "ja": ""
+    "ja": "項です (R の行名)。固定効果のモデル行列の列の順に並び、`(Intercept)` は含みません。"
   },
   "GlmerAnovaTable.warnings#summary": {
     "hash": "45dba6599b95",
     "en": "R's warnings (none).",
-    "ja": ""
+    "ja": "R の警告です (ありません)。"
   },
   "GlmerFamilyName#summary": {
     "hash": "6cdbe78ee57b",
     "en": "The families that {@link glmer} fits (the glm families without the quasi ones).",
-    "ja": ""
+    "ja": "{@link glmer} が当てはめる分布族です (glm の分布族から quasi 系を除いたもの)。"
   },
   "GlmerOptions#summary": {
     "hash": "3475891bb69e",
     "en": "Options of {@link glmer}. Only the keys below are accepted: R's `subset`, `naAction`, `na.action`, `control`,\n`verbose`, `devFunOnly`, `mustart` and `etastart` give the Error `glmer: argument '<key>' is not supported`, any\nother key a RangeError (a key whose value is `undefined` included).",
-    "ja": ""
+    "ja": "{@link glmer} のオプションです。以下のキーだけを受け付けます。R の `subset`、`naAction`、`na.action`、`control`、\n`verbose`、`devFunOnly`、`mustart`、`etastart` は、エラー `glmer: argument '<key>' is not supported` になります。\nそれ以外のキー (値が `undefined` のものを含みます) は RangeError になります。"
   },
   "GlmerOptions.contrasts#summary": {
     "hash": "a729b039aa75",
     "en": "A contrast per factor of the fixed-effects part, as in {@link lmer} (see {@link LmerContrastName}); the\nrandom-effects terms always use treatment contrasts.",
-    "ja": ""
+    "ja": "固定効果の部分の因子ごとの対比です。{@link lmer} と同じく ({@link LmerContrastName} を参照)、\n変量効果の項は常に処理対比を使います。"
   },
   "GlmerOptions.family#summary": {
     "hash": "53003fbee864",
     "en": "The family: `\"binomial\"`, `\"poisson\"`, `\"Gamma\"`, `\"inverse.gaussian\"` or `\"gaussian\"` (default, as R's; with the\nidentity link it is a linear mixed model, a RangeError telling to use {@link lmer}). The quasi families are the\nerror `\"quasi\" families cannot be used in glmer`.",
-    "ja": ""
+    "ja": "分布族です: `\"binomial\"`、`\"poisson\"`、`\"Gamma\"`、`\"inverse.gaussian\"`、または `\"gaussian\"` です (既定。R と同じです。\nidentity リンクの場合は線形混合モデルになるため、{@link lmer} を使うよう伝える RangeError になります)。quasi 系の分布族は、\nエラー `\"quasi\" families cannot be used in glmer` になります。"
   },
   "GlmerOptions.levels#summary": {
     "hash": "d5a6ed7b32b5",
     "en": "The order of the levels of a factor (`{ A: [\"c\", \"a\", \"b\"] }`), as `factor(x, levels = ...)` in R. For a binomial\nresponse given as strings, the first level is failure and the others success.",
-    "ja": ""
+    "ja": "因子の水準の順序です (`{ A: [\"c\", \"a\", \"b\"] }`)。R の `factor(x, levels = ...)` と同じです。二項分布の応答が文字列で\n与えられた場合、最初の水準が失敗、それ以外の水準が成功になります。"
   },
   "GlmerOptions.link#summary": {
     "hash": "ace7feba4583",
     "en": "The link: any of `\"logit\"`, `\"probit\"`, `\"cauchit\"`, `\"cloglog\"`, `\"identity\"`, `\"log\"`, `\"sqrt\"`, `\"1/mu^2\"`,\n`\"inverse\"` (default: the family's, as in R: binomial logit, poisson log, Gamma inverse, inverse.gaussian\n1/mu^2, gaussian identity).",
-    "ja": ""
+    "ja": "リンクです。`\"logit\"`、`\"probit\"`、`\"cauchit\"`、`\"cloglog\"`、`\"identity\"`、`\"log\"`、`\"sqrt\"`、`\"1/mu^2\"`、\n`\"inverse\"` のいずれかです (既定は分布族のリンクで、R と同じく binomial は logit、poisson は log、Gamma は inverse、inverse.gaussian は\n1/mu^2、gaussian は identity です)。"
   },
   "GlmerOptions.nAGQ#summary": {
     "hash": "4cb2d0c28eaf",
     "en": "1 (default): the Laplace approximation, the deviance minimised over θ and β; 0: over θ only, with β from the\npenalised IRLS (faster, less exact); 2 to 100: adaptive Gauss-Hermite quadrature with that many points, more\nexact than the Laplace approximation. A non-integer is truncated as in R (−0.5 is 0); negative values after that\nare a RangeError (R uses 0), above 100 R's error. Above 1 the model must have a single random-effects term with one column, such as\n`(1 | g)` (otherwise R's errors `nAGQ > 1 is only available for models with a single, scalar random-effects\nterm` or `AGQ only defined for a single scalar random-effects term`), and the family must be binomial or\npoisson: for Gamma, inverse.gaussian and gaussian it is a RangeError, since lme4 holds the dispersion at 1 there\nand its estimates are not maximum likelihood (R fits them).",
-    "ja": ""
+    "ja": "1 (既定) の場合は Laplace 近似で、θ と β について逸脱度を最小化します。0 の場合は、θ についてのみ最小化し、β は罰則付き IRLS から得ます\n(速いが、精度は低いです)。2〜100 の場合は、その点数による適応的 Gauss-Hermite 求積です (Laplace 近似より精度が高いです)。\n整数でない値は R と同じく切り捨てられます (−0.5 は 0)。その後に負の値になるものは RangeError です (R では 0 として扱われます)。100 を超える場合は R のエラーです。\n1 より大きい場合、モデルは列が 1 つのスカラーの変量効果の項を 1 つだけ持つ必要があります (例: `(1 | g)`)。そうでない場合は、\nR のエラー `nAGQ > 1 is only available for models with a single, scalar random-effects\nterm` または `AGQ only defined for a single scalar random-effects term` になります。また、分布族は binomial か poisson でなければなりません。\nGamma、inverse.gaussian、gaussian の場合は RangeError です。lme4 はそこで分散を 1 に固定し、\nその推定値は最尤推定値にならないためです (R は当てはめます)。"
   },
   "GlmerOptions.offset#summary": {
     "hash": "549d28de7547",
     "en": "Offset added to the linear predictor: one per row of `data` (`null` or NaN drops the row), or a column name.",
-    "ja": ""
+    "ja": "線形予測子に加えるオフセットです。`data` の行ごとに 1 つ (`null` または NaN の場合、その行は除かれます)、または列名です。"
   },
   "GlmerOptions.start#summary": {
     "hash": "d0d9b6259e8b",
     "en": "Where the search begins (it does not change the estimate unless the deviance has several minima): `theta`, the\ncovariance parameters (the length of θ, diagonal elements not negative), and `fixef`, the fixed effects (nAGQ = 1\nonly), each with R's error messages.",
-    "ja": ""
+    "ja": "探索の開始点です (逸脱度に複数の極小値がない限り、推定値は変わりません): `theta` (共分散パラメータ。θ の長さであり、\n対角要素は負でないこと)、と `fixef` (固定効果。\nnAGQ = 1 の場合のみ)。いずれも R と同じエラーメッセージを出します。"
   },
   "GlmerOptions.start.fixef#summary": {
     "hash": "21e185ae654d",
     "en": "Starting values of the fixed effects (R's `start = list(fixef = ...)`; not with nAGQ = 0, as in R).",
-    "ja": ""
+    "ja": "固定効果の初期値です (R の `start = list(fixef = ...)`。R と同じく、nAGQ = 0 では使えません)。"
   },
   "GlmerOptions.start.theta#summary": {
     "hash": "67372eb592e1",
     "en": "Starting values of θ (R's `start = list(theta = ...)`).",
-    "ja": ""
+    "ja": "θ の初期値です (R の `start = list(theta = ...)`)。"
   },
   "GlmerOptions.weights#summary": {
     "hash": "67f27ef197f3",
     "en": "Prior weights (non-negative): one per row of `data` (`null` or NaN is missing and drops the row), or the name of\na numeric column. For the binomial family with proportions as the response, the numbers of trials.",
-    "ja": ""
+    "ja": "事前重み (非負) です: `data` の行ごとに 1 つ (`null` または NaN は欠測で、その行は除かれます)、\nまたは数値列の名前です。応答変数として比率を与える二項分布族の場合は、試行数です。"
   },
   "GlmerPredictOptions#summary": {
     "hash": "88bcd094b1f3",
     "en": "Options of {@link glmerPredict}: those of {@link LmerPredictOptions} and `newoffset`. Only these keys are accepted:\nR's `re.form`, `allow.new.levels`, `random.only`, `se.fit`, `newparams`, `terms`, `na.action` and `naAction` give\nthe Error `glmerPredict: argument '<key>' is not supported`, any other key a RangeError.",
-    "ja": ""
+    "ja": "{@link glmerPredict} のオプションです: {@link LmerPredictOptions} のものと `newoffset` です。以下のキーだけを受け付けます。\nR の `re.form`、`allow.new.levels`、`random.only`、`se.fit`、`newparams`、`terms`、`na.action`、`naAction` は、\nエラー `glmerPredict: argument '<key>' is not supported` になります。それ以外のキーは RangeError になります。"
   },
   "GlmerPredictOptions.newoffset#summary": {
     "hash": "1f403f47ef64",
     "en": "The offset of the rows of `newdata` (one number per row; default all 0) when the fit's offset was given as an\narray (or not at all); an offset given to glmer as a column name is read from that column of `newdata` instead,\nand `newoffset` is then a RangeError, as it is without `newdata`.",
-    "ja": ""
+    "ja": "`newdata` の行のオフセットです (行ごとに 1 つの数値。既定はすべて 0)。当てはめのオフセットが配列で与えられた場合 (または与えられなかった場合) に使います。\nglmer に列名で与えられたオフセットは、代わりに `newdata` のその列から読みます。\nその場合、`newoffset` は RangeError になります (`newdata` がない場合と同じです)。"
   },
   "GlmerResult#summary": {
     "hash": "35902b7bdd2e",
     "en": "Result of {@link glmer}: the fit of a generalized linear mixed model and the quantities of R's methods for it.",
-    "ja": ""
+    "ja": "{@link glmer} の結果です。一般化線形混合モデルの当てはめと、そのための R のメソッドに対応する量です。"
   },
   "GlmerResult.AIC#summary": {
     "hash": "9c361af07abf",
     "en": "Akaike's information criterion (R's `AIC()`).",
-    "ja": ""
+    "ja": "Akaike の情報量規準です (R の `AIC()`)。"
   },
   "GlmerResult.BIC#summary": {
     "hash": "bab579fcbcc0",
     "en": "Schwarz's Bayesian information criterion (R's `BIC()`).",
-    "ja": ""
+    "ja": "Schwarz のベイズ情報量規準です (R の `BIC()`)。"
   },
   "GlmerResult.coefTable#summary": {
     "hash": "3167ca7698b9",
     "en": "The coefficient table of the fixed effects (R's `coef(summary(fit))`, without the p-values).",
-    "ja": ""
+    "ja": "固定効果の係数表です (R の `coef(summary(fit))` で、p 値は含みません)。"
   },
   "GlmerResult.coefTable.estimate#summary": {
     "hash": "f1f615e4279b",
     "en": "Estimates (R's `Estimate`).",
-    "ja": ""
+    "ja": "推定値です (R の `Estimate`)。"
   },
   "GlmerResult.coefTable.stdError#summary": {
     "hash": "4b5b7823947c",
     "en": "Standard errors (R's `Std. Error`).",
-    "ja": ""
+    "ja": "標準誤差です (R の `Std. Error`)。"
   },
   "GlmerResult.coefTable.zValue#summary": {
     "hash": "40194bc8325e",
     "en": "Estimates over standard errors (R's `z value`; R labels it `t value` for Gamma, inverse.gaussian and gaussian).",
-    "ja": ""
+    "ja": "推定値を標準誤差で割ったものです (R の `z value`。Gamma、inverse.gaussian、gaussian では、R はこれを `t value` と表示します)。"
   },
   "GlmerResult.deviance#summary": {
     "hash": "d2b9477daf12",
     "en": "The sum of the squared deviance residuals (R's `deviance()`; not −2 logLik).",
-    "ja": ""
+    "ja": "逸脱度残差の二乗和です (R の `deviance()`。−2 対数尤度ではありません)。"
   },
   "GlmerResult.df#summary": {
     "hash": "5e65b4bffd8d",
     "en": "Degrees of freedom of the log-likelihood: the numbers of fixed effects and of θ, plus 1 for the families with a dispersion.",
-    "ja": ""
+    "ja": "対数尤度の自由度です: 固定効果の数と θ の数の和に、分散パラメータをもつ分布族の場合は 1 を加えたものです。"
   },
   "GlmerResult.family#summary": {
     "hash": "10ed74d7846d",
     "en": "The family.",
-    "ja": ""
+    "ja": "分布族です。"
   },
   "GlmerResult.fitted#summary": {
     "hash": "e0d00a6d8bd6",
     "en": "The fitted means μ̂, one per row used (R's `fitted()`; for a binomial response the probabilities).",
-    "ja": ""
+    "ja": "平均の当てはめ値 μ̂ です。使った行ごとに 1 つあります (R の `fitted()`。二項分布の応答の場合は確率です)。"
   },
   "GlmerResult.fixef#summary": {
     "hash": "7109001cba63",
     "en": "The fixed effects β̂ (R's `fixef()`).",
-    "ja": ""
+    "ja": "固定効果 β̂ です (R の `fixef()`)。"
   },
   "GlmerResult.fixefNames#summary": {
     "hash": "3b2967e9b200",
     "en": "Names of the columns of the fixed-effects model matrix (aliased columns dropped).",
-    "ja": ""
+    "ja": "固定効果のモデル行列の列の名前です (縮退した列は除きます)。"
   },
   "GlmerResult.formula#summary": {
     "hash": "b0def051d655",
     "en": "The formula.",
-    "ja": ""
+    "ja": "式です。"
   },
   "GlmerResult.linearPredictor#summary": {
     "hash": "bbbd9d92181f",
     "en": "The linear predictor η̂ = offset + Xβ̂ + Zb̂, one per row used (R's `predict()`).",
-    "ja": ""
+    "ja": "線形予測子 η̂ = オフセット + Xβ̂ + Zb̂ です。使った行ごとに 1 つあります (R の `predict()`)。"
   },
   "GlmerResult.link#summary": {
     "hash": "90e1f5862da3",
     "en": "The link.",
-    "ja": ""
+    "ja": "リンクです。"
   },
   "GlmerResult.logLik#summary": {
     "hash": "48b2d14a860b",
     "en": "The log-likelihood: of the Laplace approximation, −1/2 times the deviance minimised (R's `logLik()`), or with\nnAGQ > 1 of the quadrature, including the constant of the saturated model that R's `logLik()` leaves out there\n(so that it is comparable with nAGQ = 1 and with glm).",
-    "ja": ""
+    "ja": "対数尤度です。Laplace 近似の場合は、最小化された逸脱度の −1/2 倍です (R の `logLik()`)。\nnAGQ > 1 の場合は求積によるもので、R の `logLik()` がそこで省く飽和モデルの定数を含みます\n(nAGQ = 1 および glm と比較できるようにするためです)。"
   },
   "GlmerResult.messages#summary": {
     "hash": "fa6f6354f8d4",
     "en": "R's messages (a rank-deficient fixed-effects matrix, a singular fit).",
-    "ja": ""
+    "ja": "R のメッセージです (ランク不足の固定効果のモデル行列、特異な当てはめ)。"
   },
   "GlmerResult.nAGQ#summary": {
     "hash": "028f02b88584",
     "en": "1 (the Laplace approximation), 0 (β from the penalised IRLS) or the number of quadrature points (2 to 100).",
-    "ja": ""
+    "ja": "1 (Laplace 近似)、0 (β は罰則付き IRLS から)、または求積点の数 (2〜100) です。"
   },
   "GlmerResult.nObs#summary": {
     "hash": "5cb07a4b8abc",
     "en": "Number of rows used (rows with prior weight 0 included; R's `nobs()`).",
-    "ja": ""
+    "ja": "使った行の数です (事前重みが 0 の行も含みます。R の `nobs()`)。"
   },
   "GlmerResult.pearsonResiduals#summary": {
     "hash": "4f59af137203",
     "en": "The Pearson residuals √w (y − μ̂) / √V(μ̂) (R's `residuals(fit, \"pearson\")`).",
-    "ja": ""
+    "ja": "Pearson 残差 √w (y − μ̂) / √V(μ̂) です (R の `residuals(fit, \"pearson\")`)。"
   },
   "GlmerResult.ranef#summary": {
     "hash": "4d9b571080c8",
     "en": "The conditional modes of the random effects, one entry per grouping factor (R's `ranef()`).",
-    "ja": ""
+    "ja": "変量効果の条件付きモードです。グループ化因子ごとに 1 つの要素があります (R の `ranef()`)。"
   },
   "GlmerResult.residuals#summary": {
     "hash": "98a86bdd8f67",
     "en": "The deviance residuals (R's `residuals()`, whose default type for glmer is `\"deviance\"`).",
-    "ja": ""
+    "ja": "逸脱度残差です (R の `residuals()`。glmer での既定の種類は `\"deviance\"` です)。"
   },
   "GlmerResult.responseResiduals#summary": {
     "hash": "a7470de62a47",
     "en": "The response residuals y − μ̂ (R's `residuals(fit, \"response\")`; y the proportion for `cbind(s, f)`).",
-    "ja": ""
+    "ja": "応答残差 y − μ̂ です (R の `residuals(fit, \"response\")`。`cbind(s, f)` の場合の y は比率です)。"
   },
   "GlmerResult.rows#summary": {
     "hash": "1f346b81e189",
     "en": "0-based indices of the rows of `data` used (rows with a missing value in a variable, a weight or the offset dropped).",
-    "ja": ""
+    "ja": "使った `data` の行の、0 始まりの添字です (変数、重み、またはオフセットに欠測値がある行は除きます)。"
   },
   "GlmerResult.sigma#summary": {
     "hash": "5341865fbd83",
     "en": "R's `sigma()`: 1 for binomial and poisson; otherwise the square root of the sum of the squared Pearson residuals\nplus the squared length of the spherical random effects, over nObs.",
-    "ja": ""
+    "ja": "R の `sigma()` です: binomial と poisson では 1 です。それ以外では、Pearson 残差の二乗和と球面化された変量効果の長さの二乗の和を\nnObs で割ったものの平方根です。"
   },
   "GlmerResult.singular#summary": {
     "hash": "54a6c151d2e5",
     "en": "Whether the fit is singular: a diagonal element of a relative covariance factor below 1e-4 (R's `isSingular()`).",
-    "ja": ""
+    "ja": "当てはめが特異かどうかです: 相対共分散因子の対角要素のいずれかが 1e-4 未満であるとき特異です (R の `isSingular()`)。"
   },
   "GlmerResult.theta#summary": {
     "hash": "b82416d562ce",
     "en": "The estimate of the covariance parameters θ (R's `getME(fit, \"theta\")`): the lower triangles of the relative covariance factors, by term, column-major.",
-    "ja": ""
+    "ja": "共分散パラメータ θ の推定値です (R の `getME(fit, \"theta\")`): 項ごとの相対共分散因子の下三角部分を、列優先の順に並べたものです。"
   },
   "GlmerResult.varCorr#summary": {
     "hash": "34f859057a16",
     "en": "The variance components, one entry per random-effects term (R's `VarCorr()`; not scaled by sigma).",
-    "ja": ""
+    "ja": "分散成分です。変量効果の項ごとに 1 つの要素があります (R の `VarCorr()`。sigma による尺度化は行いません)。"
   },
   "GlmerResult.vcov#summary": {
     "hash": "7f4014ec12dd",
     "en": "The covariance matrix of the fixed effects (R's `vcov()`), array of rows.",
-    "ja": ""
+    "ja": "固定効果の共分散行列です (R の `vcov()`)。行の配列です。"
   },
   "GlmerResult.vcovFrom#summary": {
     "hash": "3350fcab203c",
     "en": "How `vcov` was computed: `\"hessian\"`, 2 times the block of the fixed effects of the inverse Hessian of the\ndeviance in (θ, β) (R's default for nAGQ = 1 when the fit is not singular, nObs < 10000 and there are fewer than\n20 parameters), or `\"RX\"`, σ² (R_X'R_X)⁻¹ of the penalised IRLS at the conditional mode.",
-    "ja": ""
+    "ja": "`vcov` の計算方法です。`\"hessian\"` は、(θ, β) における逸脱度のヘッセ行列の逆行列の、\n固定効果のブロックの 2 倍です (R の既定は、nAGQ = 1 かつ当てはめが特異でなく、nObs < 10000 かつ\nパラメータが 20 未満の場合です)。`\"RX\"` は、条件付きモードにおける罰則付き IRLS の σ² (R_X'R_X)⁻¹ です。"
   },
   "GlmerResult.warnings#summary": {
     "hash": "8796be8186fa",
     "en": "R's warnings (predictors on very different scales, the response, the fallback of vcov).",
-    "ja": ""
+    "ja": "R の警告です (説明変数の尺度が大きく異なること、応答変数、vcov の代替計算)。"
   },
   "GlmerResult.workingResiduals#summary": {
     "hash": "25ecf52704fd",
     "en": "The working residuals (y − μ̂) / μ'(η̂) (R's `residuals(fit, \"working\")`).",
-    "ja": ""
+    "ja": "作業残差 (y − μ̂) / μ'(η̂) です (R の `residuals(fit, \"working\")`)。"
   },
   "GlmerSummary#summary": {
     "hash": "fc6d5bf18e46",
     "en": "Result of {@link glmerSummary}: lme4's `summary()` of a glmer fit.",
-    "ja": ""
+    "ja": "{@link glmerSummary} の結果です: glmer の当てはめに対する lme4 の `summary()` です。"
   },
   "GlmerSummary.AIC#summary": {
     "hash": "6db3676658f4",
     "en": "Akaike's information criterion.",
-    "ja": ""
+    "ja": "Akaike の情報量規準です。"
   },
   "GlmerSummary.BIC#summary": {
     "hash": "f86464b59f87",
     "en": "Schwarz's Bayesian information criterion.",
-    "ja": ""
+    "ja": "Schwarz のベイズ情報量規準です。"
   },
   "GlmerSummary.correlation#summary": {
     "hash": "b3de93235884",
     "en": "The correlation of the fixed effects (R's `cov2cor(vcov(fit))`; array of rows, 1 on the diagonal).",
-    "ja": ""
+    "ja": "固定効果の相関です (R の `cov2cor(vcov(fit))`。行の配列で、対角要素は 1 です)。"
   },
   "GlmerSummary.df#summary": {
     "hash": "9956c2faebed",
     "en": "Degrees of freedom of the log-likelihood (the fit's `df`).",
-    "ja": ""
+    "ja": "対数尤度の自由度です (当てはめの `df`)。"
   },
   "GlmerSummary.dfResidual#summary": {
     "hash": "ea5d69ea8e9b",
     "en": "nObs − df (R's `df.resid`).",
-    "ja": ""
+    "ja": "nObs − df です (R の `df.resid`)。"
   },
   "GlmerSummary.estimate#summary": {
     "hash": "f1f615e4279b",
     "en": "Estimates (R's `Estimate`).",
-    "ja": ""
+    "ja": "推定値です (R の `Estimate`)。"
   },
   "GlmerSummary.family#summary": {
     "hash": "141dc1ddc2cc",
     "en": "The family (R's `Family:` line).",
-    "ja": ""
+    "ja": "分布族です (R の `Family:` の行)。"
   },
   "GlmerSummary.link#summary": {
     "hash": "90e1f5862da3",
     "en": "The link.",
-    "ja": ""
+    "ja": "リンクです。"
   },
   "GlmerSummary.logLik#summary": {
     "hash": "4aa0b22f5e47",
     "en": "The log-likelihood (the fit's).",
-    "ja": ""
+    "ja": "対数尤度です (当てはめのもの)。"
   },
   "GlmerSummary.messages#summary": {
     "hash": "fa6f6354f8d4",
     "en": "R's messages (a rank-deficient fixed-effects matrix, a singular fit).",
-    "ja": ""
+    "ja": "R のメッセージです (ランク不足の固定効果のモデル行列、特異な当てはめ)。"
   },
   "GlmerSummary.minus2LogLik#summary": {
     "hash": "f7073ff29e3a",
     "en": "−2 logLik (R's `-2*log(L)`; the fit's `deviance` is R's `deviance()`, another quantity).",
-    "ja": ""
+    "ja": "−2 対数尤度です (R の `-2*log(L)`。当てはめの `deviance` は R の `deviance()` で、別の量です)。"
   },
   "GlmerSummary.nAGQ#summary": {
     "hash": "3abf2ece04c7",
     "en": "The fit's nAGQ (R's title: Laplace approximation for 1, adaptive Gauss-Hermite quadrature otherwise).",
-    "ja": ""
+    "ja": "当てはめの nAGQ です (R の表題: 1 の場合は Laplace 近似、それ以外の場合は適応的 Gauss-Hermite 求積)。"
   },
   "GlmerSummary.nGroups#summary": {
     "hash": "f80224e1a6e3",
     "en": "The number of levels of each grouping factor (R's `ngrps()`), in the order of the fit's `ranef`.",
-    "ja": ""
+    "ja": "グループ化因子ごとの水準の数です (R の `ngrps()`)。当てはめの `ranef` と同じ順に並びます。"
   },
   "GlmerSummary.nObs#summary": {
     "hash": "d2be7f870e70",
     "en": "Number of observations (R's `Number of obs`).",
-    "ja": ""
+    "ja": "観測数です (R の `Number of obs`)。"
   },
   "GlmerSummary.names#summary": {
     "hash": "a4f5ca3e2690",
     "en": "Names of the fixed effects (R's row names).",
-    "ja": ""
+    "ja": "固定効果の名前です (R の行名)。"
   },
   "GlmerSummary.pValue#summary": {
     "hash": "b140570a2df1",
     "en": "Two-sided p-values from the normal distribution, 2 pnorm(−|statistic|) (R's `Pr(>|z|)`), for every family: lme4\nuses no t distribution for the families with a dispersion either.",
-    "ja": ""
+    "ja": "正規分布に基づく両側 p 値、2 pnorm(−|statistic|) です (R の `Pr(>|z|)`)。すべての分布族について用いられます。\n分散パラメータをもつ分布族についても、lme4 は t 分布を使いません。"
   },
   "GlmerSummary.residualQuantiles#summary": {
     "hash": "97ee6d29f649",
     "en": "Minimum, quartiles, median and maximum of the Pearson residuals divided by sigma (R's `Scaled residuals`).",
-    "ja": ""
+    "ja": "Pearson 残差を sigma で割ったものの、最小値、四分位点、中央値、最大値です (R の `Scaled residuals`)。"
   },
   "GlmerSummary.sigma#summary": {
     "hash": "c5f47b04abb7",
     "en": "R's `sigma()` (1 for binomial and poisson).",
-    "ja": ""
+    "ja": "R の `sigma()` です (binomial と poisson では 1)。"
   },
   "GlmerSummary.statistic#summary": {
     "hash": "01fa93040b69",
     "en": "Estimates over standard errors (R's third column).",
-    "ja": ""
+    "ja": "推定値を標準誤差で割ったものです (R の 3 列目)。"
   },
   "GlmerSummary.statisticName#summary": {
     "hash": "a1431a7a43fd",
     "en": "The third column's name: `\"z value\"` for binomial and poisson, `\"t value\"` for the families with a dispersion.",
-    "ja": ""
+    "ja": "3 列目の名前です: binomial と poisson では `\"z value\"`、分散パラメータをもつ分布族では `\"t value\"` です。"
   },
   "GlmerSummary.stdError#summary": {
     "hash": "b5bf4552da67",
     "en": "Standard errors (R's `Std. Error`, from the fit's `vcov`).",
-    "ja": ""
+    "ja": "標準誤差です (R の `Std. Error`。当てはめの `vcov` から)。"
   },
   "GlmerSummary.varCorr#summary": {
     "hash": "8ecf4ee16fc8",
     "en": "The variance components (R's `VarCorr()`, not scaled by sigma; no residual row).",
-    "ja": ""
+    "ja": "分散成分です (R の `VarCorr()`。sigma による尺度化は行いません。残差の行はありません)。"
   },
   "GlmerSummary.warnings#summary": {
     "hash": "faf5aac7b94f",
     "en": "R's warnings (the fallback of vcov to R_X, if the fit gave it).",
-    "ja": ""
+    "ja": "R の警告です (当てはめで vcov の計算を R_X に切り替えた場合)。"
   },
   "GlmerSummaryOptions#summary": {
     "hash": "efd51a343b9b",
     "en": "Options of {@link glmerSummary}: there is none yet. R's `correlation`, `use.hessian` and `useHessian` give the\nError `glmerSummary: argument '<key>' is not supported`, any other key a RangeError.",
-    "ja": ""
+    "ja": "{@link glmerSummary} のオプションです。現時点ではオプションはありません。R の `correlation`、`use.hessian`、`useHessian` は、\nエラー `glmerSummary: argument '<key>' is not supported` になります。それ以外のキーは RangeError になります。"
   },
   "LmerAnovaOptions#summary": {
     "hash": "ad65a9ceb8c0",
     "en": "Options of {@link lmerAnova} for one fit. R's `ddf` gives the Error `lmerAnova: argument 'ddf' is not supported`,\nany other key a RangeError.",
-    "ja": ""
+    "ja": "1 つの当てはめに対する {@link lmerAnova} のオプションです。R の `ddf` は、エラー `lmerAnova: argument 'ddf' is not supported` になります。\nそれ以外のキーは RangeError になります。"
   },
   "LmerAnovaOptions.type#summary": {
     "hash": "4bca57a13dae",
     "en": "The type of the sums of squares: `\"III\"` (default), `\"II\"` or `\"I\"` (also `3`, `2`, `1`).",
-    "ja": ""
+    "ja": "平方和の種類です: `\"III\"` (既定)、`\"II\"`、または `\"I\"` です (`3`、`2`、`1` も指定できます)。"
   },
   "LmerAnovaTable#summary": {
     "hash": "e995df1a1666",
     "en": "Result of {@link lmerAnova} for one fit: lmerTest's ANOVA table, one row per term of the fixed effects.",
-    "ja": ""
+    "ja": "1 つの当てはめに対する {@link lmerAnova} の結果です: lmerTest の分散分析表で、固定効果の項ごとに 1 行あります。"
   },
   "LmerAnovaTable.F#summary": {
     "hash": "d6426a6c8d5b",
     "en": "R's `F value`.",
-    "ja": ""
+    "ja": "R の `F value` です。"
   },
   "LmerAnovaTable.denDF#summary": {
     "hash": "3f9c5e9214e1",
     "en": "R's `DenDF`: Satterthwaite's denominator degrees of freedom.",
-    "ja": ""
+    "ja": "R の `DenDF` は、Satterthwaite の分母の自由度です。"
   },
   "LmerAnovaTable.meanSq#summary": {
     "hash": "e14293db9cea",
     "en": "R's `Mean Sq`: F σ².",
-    "ja": ""
+    "ja": "R の `Mean Sq` は F σ² です。"
   },
   "LmerAnovaTable.messages#summary": {
     "hash": "f465b1aa4813",
     "en": "R's messages (Type III: `Missing cells for: ...`).",
-    "ja": ""
+    "ja": "R のメッセージです (Type III の場合: `Missing cells for: ...`)。"
   },
   "LmerAnovaTable.numDF#summary": {
     "hash": "7a5b3a5f9247",
     "en": "R's `NumDF`.",
-    "ja": ""
+    "ja": "R の `NumDF` です。"
   },
   "LmerAnovaTable.pValue#summary": {
     "hash": "8678453719c6",
     "en": "R's `Pr(>F)`.",
-    "ja": ""
+    "ja": "R の `Pr(>F)` です。"
   },
   "LmerAnovaTable.sumSq#summary": {
     "hash": "25071bfbc2fb",
     "en": "R's `Sum Sq`: F σ² NumDF.",
-    "ja": ""
+    "ja": "R の `Sum Sq` は F σ² NumDF です。"
   },
   "LmerAnovaTable.terms#summary": {
     "hash": "e06c2815d464",
     "en": "The terms (R's row names), in the order of the formula's terms; terms without a test come last.",
-    "ja": ""
+    "ja": "項です (R の行名)。式の項の順に並び、検定のない項は最後に来ます。"
   },
   "LmerAnovaTable.type#summary": {
     "hash": "943da61ab7dd",
     "en": "The type of the sums of squares.",
-    "ja": ""
+    "ja": "平方和の種類です。"
   },
   "LmerAnovaTable.warnings#summary": {
     "hash": "a6a841fe147c",
     "en": "R's warnings (about the eigenvalues of the Hessian of the deviance in the variance parameters).",
-    "ja": ""
+    "ja": "R の警告です (分散パラメータについての逸脱度のヘッセ行列の固有値に関するもの)。"
   },
   "LmerAnovaType#summary": {
     "hash": "21deb4aa9747",
     "en": "The type of the sums of squares of an ANOVA table of {@link lmerAnova}.",
-    "ja": ""
+    "ja": "{@link lmerAnova} の分散分析表の平方和の種類です。"
   },
   "LmerCompareOptions#summary": {
     "hash": "f4f952483b0b",
     "en": "Options of {@link lmerAnova} for several fits. R's `modelNames` and `model.names` give the Error\n`lmerAnova: argument '<key>' is not supported`, any other key a RangeError.",
-    "ja": ""
+    "ja": "複数の当てはめに対する {@link lmerAnova} のオプションです。R の `modelNames` と `model.names` は、\nエラー `lmerAnova: argument '<key>' is not supported` になります。それ以外のキーは RangeError になります。"
   },
   "LmerCompareOptions.names#summary": {
     "hash": "0f0c73b02db0",
     "en": "The names of the models, in the order given (default `\"MODEL1\"`, `\"MODEL2\"`, ...).",
-    "ja": ""
+    "ja": "モデルの名前です。与えた順に並びます (既定は `\"MODEL1\"`、`\"MODEL2\"`、...)。"
   },
   "LmerCompareOptions.refit#summary": {
     "hash": "fdafcf9b54aa",
     "en": "Refit the REML fits by maximum likelihood before comparing them (default `true`). As in R's conditions, a number\nis `false` for 0 and `true` otherwise; `null` and other values are TypeErrors.",
-    "ja": ""
+    "ja": "比較の前に、REML の当てはめを最尤法で当てはめ直します (既定は `true`)。R の条件と同じく、\n数値は 0 なら `false`、それ以外なら `true` です。`null` やそのほかの値は TypeError になります。"
   },
   "LmerCompareTable#summary": {
     "hash": "3b03786717a6",
     "en": "Result of {@link lmerAnova} for several fits: lme4's comparison table, one row per model, sorted by the number of\nparameters.",
-    "ja": ""
+    "ja": "複数の当てはめに対する {@link lmerAnova} の結果です: lme4 の比較表で、モデルごとに 1 行あり、\nパラメータの数の順に並んでいます。"
   },
   "LmerCompareTable.AIC#summary": {
     "hash": "3cb9f11ead6a",
     "en": "Akaike's information criterion, −2 logLik + 2 npar.",
-    "ja": ""
+    "ja": "Akaike の情報量規準で、−2 対数尤度 + 2 npar です。"
   },
   "LmerCompareTable.BIC#summary": {
     "hash": "83e316c80dd9",
     "en": "Schwarz's criterion, −2 logLik + log(n) npar.",
-    "ja": ""
+    "ja": "Schwarz の基準で、−2 対数尤度 + log(n) npar です。"
   },
   "LmerCompareTable.Chisq#summary": {
     "hash": "922a4531ebab",
     "en": "The likelihood-ratio statistic against the row before (NaN in the first row).",
-    "ja": ""
+    "ja": "直前の行との尤度比統計量です (最初の行は NaN)。"
   },
   "LmerCompareTable.Df#summary": {
     "hash": "d452ec445318",
     "en": "The difference of npar from the row before (NaN in the first row).",
-    "ja": ""
+    "ja": "直前の行との npar の差です (最初の行は NaN)。"
   },
   "LmerCompareTable.deviance#summary": {
     "hash": "b26813eeb137",
     "en": "−2 logLik (R's `-2*log(L)`).",
-    "ja": ""
+    "ja": "−2 対数尤度です (R の `-2*log(L)`)。"
   },
   "LmerCompareTable.logLik#summary": {
     "hash": "2a552a09a447",
     "en": "The log-likelihood (of the ML refit, or the fit's own with `refit: false`).",
-    "ja": ""
+    "ja": "対数尤度です (最尤法での当てはめ直しのもの。`refit: false` の場合は当てはめ自身のもの)。"
   },
   "LmerCompareTable.messages#summary": {
     "hash": "984aa7da99f5",
     "en": "R's messages (`refitting model(s) with ML (instead of REML)`).",
-    "ja": ""
+    "ja": "R のメッセージです (`refitting model(s) with ML (instead of REML)`)。"
   },
   "LmerCompareTable.names#summary": {
     "hash": "39d2404f5621",
     "en": "The models' names (R's row names), in the order of the rows.",
-    "ja": ""
+    "ja": "モデルの名前です (R の行名)。行の順です。"
   },
   "LmerCompareTable.npar#summary": {
     "hash": "1c8cf72c3ffc",
     "en": "The number of parameters of each model (fixed effects, θ and σ).",
-    "ja": ""
+    "ja": "モデルごとのパラメータの数です (固定効果、θ、σ)。"
   },
   "LmerCompareTable.pValue#summary": {
     "hash": "afd564e25823",
     "en": "R's `Pr(>Chisq)` (NaN in the first row and where Df is 0).",
-    "ja": ""
+    "ja": "R の `Pr(>Chisq)` です (最初の行と、Df が 0 の箇所は NaN)。"
   },
   "LmerCompareTable.warnings#summary": {
     "hash": "c441f347ac79",
     "en": "R's warnings (duplicated names, a mix of REML and ML fits without refitting).",
-    "ja": ""
+    "ja": "R の警告です (名前の重複、REML と ML の当てはめが混在していて当てはめ直していない場合)。"
   },
   "LmerContestF#summary": {
     "hash": "855ecd0ea4c5",
     "en": "Result of {@link lmerContest} with `joint: true` (the default): one row of an F table, or none when the rows of L\nhave rank 0.",
-    "ja": ""
+    "ja": "`joint: true` (既定) の {@link lmerContest} の結果です: F 表の 1 行です。\nL の行のランクが 0 の場合は、行はありません。"
   },
   "LmerContestF.F#summary": {
     "hash": "d6426a6c8d5b",
     "en": "R's `F value`.",
-    "ja": ""
+    "ja": "R の `F value` です。"
   },
   "LmerContestF.denDF#summary": {
     "hash": "3f9c5e9214e1",
     "en": "R's `DenDF`: Satterthwaite's denominator degrees of freedom.",
-    "ja": ""
+    "ja": "R の `DenDF` は、Satterthwaite の分母の自由度です。"
   },
   "LmerContestF.joint#summary": {
     "hash": "9ddb336d9354",
     "en": "Whether the rows were tested jointly: always `true` here.",
-    "ja": ""
+    "ja": "行を同時に検定したかどうかです。ここでは常に `true` です。"
   },
   "LmerContestF.meanSq#summary": {
     "hash": "e14293db9cea",
     "en": "R's `Mean Sq`: F σ².",
-    "ja": ""
+    "ja": "R の `Mean Sq` は F σ² です。"
   },
   "LmerContestF.messages#summary": {
     "hash": "ec32d73e8d25",
     "en": "R's messages (none so far).",
-    "ja": ""
+    "ja": "R のメッセージです (今のところありません)。"
   },
   "LmerContestF.numDF#summary": {
     "hash": "ddce5e940d6b",
     "en": "R's `NumDF`: the rank of the hypothesis.",
-    "ja": ""
+    "ja": "R の `NumDF` は、仮説のランクです。"
   },
   "LmerContestF.pValue#summary": {
     "hash": "8678453719c6",
     "en": "R's `Pr(>F)`.",
-    "ja": ""
+    "ja": "R の `Pr(>F)` です。"
   },
   "LmerContestF.sumSq#summary": {
     "hash": "25071bfbc2fb",
     "en": "R's `Sum Sq`: F σ² NumDF.",
-    "ja": ""
+    "ja": "R の `Sum Sq` は F σ² NumDF です。"
   },
   "LmerContestF.warnings#summary": {
     "hash": "c87b6fca54fa",
     "en": "R's warnings (about the Hessian's eigenvalues; `Contrast is rank deficient and test may be affected`).",
-    "ja": ""
+    "ja": "R の警告です (ヘッセ行列の固有値に関するもの、`Contrast is rank deficient and test may be affected`)。"
   },
   "LmerContestOptions#summary": {
     "hash": "a0b3e693e704",
     "en": "Options of {@link lmerContest}. R's `collect`, `checkEstimability`, `check_estimability` and `ddf` give the Error\n`lmerContest: argument '<key>' is not supported`, any other key a RangeError.",
-    "ja": ""
+    "ja": "{@link lmerContest} のオプションです。R の `collect`、`checkEstimability`、`check_estimability`、`ddf` は、\nエラー `lmerContest: argument '<key>' is not supported` になります。それ以外のキーは RangeError になります。"
   },
   "LmerContestOptions.confint#summary": {
     "hash": "4856f0cdc75b",
     "en": "With `joint: false`, whether to add the confidence intervals (default `true`; a logical value as `joint`).",
-    "ja": ""
+    "ja": "`joint: false` の場合に、信頼区間を追加するかどうかです (既定は `true`。値の扱いは `joint` と同じです)。"
   },
   "LmerContestOptions.joint#summary": {
     "hash": "5ccf1b591a4f",
     "en": "Test the rows jointly with one F-test (default `true`), or each row with its own t-test (`false`). As in R's\nconditions, a number is `false` for 0 and `true` otherwise; `null` and other values are TypeErrors.",
-    "ja": ""
+    "ja": "行を 1 つの F 検定で同時に検定します (既定は `true`)。または、行ごとに自身の t 検定を行います (`false`)。\nR の条件と同じく、数値は 0 なら `false`、それ以外なら `true` です。`null` やそのほかの値は TypeError になります。"
   },
   "LmerContestOptions.level#summary": {
     "hash": "09d119a11108",
     "en": "The confidence level of the intervals (default 0.95).",
-    "ja": ""
+    "ja": "区間の信頼水準です (既定は 0.95)。"
   },
   "LmerContestOptions.rhs#summary": {
     "hash": "03c7872e2268",
     "en": "The right-hand side of the hypothesis L β = rhs: one value, or one per row of L (default 0).",
-    "ja": ""
+    "ja": "仮説 L β = rhs の右辺です: 1 つの値、または L の行ごとの値です (既定は 0)。"
   },
   "LmerContestT#summary": {
     "hash": "923ed32b3899",
     "en": "Result of {@link lmerContest} with `joint: false`: one t-test per row of L.",
-    "ja": ""
+    "ja": "`joint: false` の {@link lmerContest} の結果です: L の行ごとに 1 つの t 検定があります。"
   },
   "LmerContestT.df#summary": {
     "hash": "e8de5fb45e2d",
     "en": "R's `df`: Satterthwaite's degrees of freedom.",
-    "ja": ""
+    "ja": "R の `df` は、Satterthwaite の自由度です。"
   },
   "LmerContestT.estimate#summary": {
     "hash": "00c9ae961fd4",
     "en": "R's `Estimate`: l'β̂.",
-    "ja": ""
+    "ja": "R の `Estimate` は l'β̂ です。"
   },
   "LmerContestT.joint#summary": {
     "hash": "02f1237f1d34",
     "en": "Whether the rows were tested jointly: always `false` here.",
-    "ja": ""
+    "ja": "行を同時に検定したかどうかです。ここでは常に `false` です。"
   },
   "LmerContestT.lower#summary": {
     "hash": "78d7ac309881",
     "en": "R's `lower`: the lower limit of the confidence interval of the estimate (unless `confint: false`).",
-    "ja": ""
+    "ja": "R の `lower` は、推定値の信頼区間の下限です (`confint: false` の場合を除きます)。"
   },
   "LmerContestT.messages#summary": {
     "hash": "ec32d73e8d25",
     "en": "R's messages (none so far).",
-    "ja": ""
+    "ja": "R のメッセージです (今のところありません)。"
   },
   "LmerContestT.pValue#summary": {
     "hash": "9837e90aa9e8",
     "en": "R's `Pr(>|t|)`.",
-    "ja": ""
+    "ja": "R の `Pr(>|t|)` です。"
   },
   "LmerContestT.stdError#summary": {
     "hash": "8db1bc430681",
     "en": "R's `Std. Error`.",
-    "ja": ""
+    "ja": "R の `Std. Error` です。"
   },
   "LmerContestT.tValue#summary": {
     "hash": "f51b854aae50",
     "en": "R's `t value`: (estimate − rhs) / stdError.",
-    "ja": ""
+    "ja": "R の `t value` は、(estimate − rhs) / stdError です。"
   },
   "LmerContestT.upper#summary": {
     "hash": "a19e389fc20f",
     "en": "R's `upper`: the upper limit of the confidence interval (unless `confint: false`).",
-    "ja": ""
+    "ja": "R の `upper` は、信頼区間の上限です (`confint: false` の場合を除きます)。"
   },
   "LmerContestT.warnings#summary": {
     "hash": "a991d1baa265",
     "en": "R's warnings (about the Hessian's eigenvalues).",
-    "ja": ""
+    "ja": "R の警告です (ヘッセ行列の固有値に関するもの)。"
   },
   "LmerContrastName#summary": {
     "hash": "581494e40c03",
     "en": "A contrast of a factor of lmer's fixed effects: R's `contr.treatment`, `contr.sum`, `contr.helmert` or `contr.poly`\n(orthogonal polynomials in the level scores 1, 2, ..., columns `.L`, `.Q`, `.C`, `^4`, ...).",
-    "ja": ""
+    "ja": "lmer の固定効果の因子の対比です: R の `contr.treatment`、`contr.sum`、`contr.helmert`、または `contr.poly` です\n(水準の得点 1、2、... に対する直交多項式で、列は `.L`、`.Q`、`.C`、`^4`、... です)。"
   },
   "LmerOptions#summary": {
     "hash": "cb481806af11",
     "en": "Options of {@link lmer}. Only the keys below are accepted: R's `weights`, `offset`, `subset`, `naAction`,\n`na.action`, `control`, `start`, `verbose` and `devFunOnly` give the Error `lmer: argument '<key>' is not\nsupported`, any other key a RangeError (a key whose value is `undefined` included).",
-    "ja": ""
+    "ja": "{@link lmer} のオプションです。以下のキーだけを受け付けます。R の `weights`、`offset`、`subset`、`naAction`、\n`na.action`、`control`、`start`、`verbose`、`devFunOnly` は、エラー `lmer: argument '<key>' is not\nsupported` になります。それ以外のキー (値が `undefined` のものを含みます) は RangeError になります。"
   },
   "LmerOptions.REML#summary": {
     "hash": "de481ef271e6",
     "en": "Whether to minimise the REML criterion (default `true`) or the ML deviance (`false`). As in R's conditions, a\nnumber is `false` for 0 and `true` otherwise; `null` and other values (the strings `\"TRUE\"`, `\"FALSE\"` included)\nare TypeErrors. The result's `REML` is the boolean.",
-    "ja": ""
+    "ja": "REML 基準を最小化するかどうかです (既定は `true`)。`false` の場合は ML の逸脱度を最小化します。R の条件と同じく、\n数値は 0 なら `false`、それ以外なら `true` です。`null` やそのほかの値 (文字列の `\"TRUE\"`、`\"FALSE\"` を含みます) は\nTypeError になります。結果の `REML` は真偽値です。"
   },
   "LmerOptions.contrasts#summary": {
     "hash": "930f6a43f95b",
     "en": "A contrast per factor of the fixed-effects part: `\"contr.treatment\"` (default), `\"contr.sum\"`, `\"contr.helmert\"` or\n`\"contr.poly\"` (see {@link LmerContrastName}); the random-effects terms always use treatment contrasts. A name that\nis not a variable of the fixed-effects part (a grouping variable alone included) gives the warning\n`variable 'B' is absent, its contrast will be ignored`.",
-    "ja": ""
+    "ja": "固定効果の部分の因子ごとの対比です: `\"contr.treatment\"` (既定)、`\"contr.sum\"`、`\"contr.helmert\"`、または\n`\"contr.poly\"` です ({@link LmerContrastName} を参照)。変量効果の項は常に処理対比を使います。固定効果の部分の変数でない名前\n(グループ化変数だけのものを含みます) は、\n警告 `variable 'B' is absent, its contrast will be ignored` を出します。"
   },
   "LmerOptions.levels#summary": {
     "hash": "e4863b3798a1",
     "en": "The order of the levels of a factor (`{ A: [\"c\", \"a\", \"b\"] }`), as `factor(x, levels = ...)` in R.",
-    "ja": ""
+    "ja": "因子の水準の順序です (`{ A: [\"c\", \"a\", \"b\"] }`)。R の `factor(x, levels = ...)` と同じです。"
   },
   "LmerPredictOptions#summary": {
     "hash": "5c5c257a4af8",
     "en": "Options of {@link lmerPredict}. Only the keys below are accepted: R's `re.form`, `allow.new.levels`, `random.only`,\n`se.fit`, `newparams`, `terms`, `na.action` and `naAction` give the Error `lmerPredict: argument '<key>' is not\nsupported`, any other key a RangeError.",
-    "ja": ""
+    "ja": "{@link lmerPredict} のオプションです。以下のキーだけを受け付けます。R の `re.form`、`allow.new.levels`、`random.only`、\n`se.fit`、`newparams`、`terms`、`na.action`、`naAction` は、エラー `lmerPredict: argument '<key>' is not\nsupported` になります。それ以外のキーは RangeError になります。"
   },
   "LmerPredictOptions.allowNewLevels#summary": {
     "hash": "6e629b700601",
     "en": "Whether a level of a grouping factor not in the fit, or a missing grouping value, is allowed (default `false`, an\nerror): that term then adds 0 for the row (the population level for that term). R's `allow.new.levels`.",
-    "ja": ""
+    "ja": "当てはめにない水準、またはグループ化因子の欠測値を許すかどうかです (既定は `false` で、エラーになります)。\nその項は、その行に対して 0 を加えます (その項について母集団の水準に当たります)。R の `allow.new.levels` です。"
   },
   "LmerPredictOptions.newdata#summary": {
     "hash": "bc121fac8bb2",
     "en": "The rows to predict: a data frame with the columns of the fit's data that the prediction uses (the variables of\nthe fixed-effects part and of the selected random-effects terms; not the response). Default: the rows of the fit.",
-    "ja": ""
+    "ja": "予測する行です: 予測に使う、当てはめのデータの列をもつデータフレームです (固定効果の部分と、選ばれた変量効果の項の変数です。応答変数は含みません)。\n既定は当てはめの行です。"
   },
   "LmerPredictOptions.randomOnly#summary": {
     "hash": "aacd8aa5540e",
     "en": "Whether to predict the random part only, without the fixed effects and the offset (default `false`; R's `random.only`).",
-    "ja": ""
+    "ja": "変量効果の部分だけを予測するかどうかです。固定効果とオフセットは含みません (既定は `false`。R の `random.only`)。"
   },
   "LmerPredictOptions.reForm#summary": {
     "hash": "c083752d4bc0",
     "en": "Which random-effects terms to include (R's `re.form`): `undefined` or `null` all of them (default); `false`,\n`\"~0\"` or `\"~ 0\"` none (the population-level prediction); a one-sided formula such as `\"~ (1 | g)\"` those written\nin it (its fixed part is ignored). Its grouping factors must be the fit's and its columns among the fit's columns\nfor that factor; a term may have fewer columns than the fit's.",
-    "ja": ""
+    "ja": "含める変量効果の項です (R の `re.form`)。`undefined` または `null` の場合はすべて (既定) です。`false`、`\"~0\"`、または `\"~ 0\"` の場合は、\nどれも含めません (母集団の水準の予測)。`\"~ (1 | g)\"` のような片側の式の場合は、その式に書かれた項です (固定効果の部分は無視されます)。\nその式のグループ化因子は当てはめのものでなければならず、その列は、その因子について当てはめの列に含まれていなければなりません。\n項の列は、当てはめより少なくても構いません。"
   },
   "LmerPredictOptions.seFit#summary": {
     "hash": "30eba4978819",
     "en": "Whether to return the standard errors (default `false`; R's `se.fit`).",
-    "ja": ""
+    "ja": "標準誤差を返すかどうかです (既定は `false`。R の `se.fit`)。"
   },
   "LmerPredictOptions.type#summary": {
     "hash": "7e2dd038df0a",
     "en": "`\"link\"` (default) or `\"response\"`: for lmer both give the same values, as in R.",
-    "ja": ""
+    "ja": "`\"link\"` (既定) または `\"response\"` です。lmer では、R と同じく、どちらも同じ値になります。"
   },
   "LmerRanef#summary": {
     "hash": "d9ff6187b1c6",
     "en": "The conditional modes of the random effects of a grouping factor in a {@link LmerResult}: one entry of R's\n`ranef()`.",
-    "ja": ""
+    "ja": "{@link LmerResult} におけるグループ化因子の変量効果の条件付きモードです。\nR の `ranef()` の要素 1 つです。"
   },
   "LmerRanef.columns#summary": {
     "hash": "8aa4474aa59a",
     "en": "The columns of all the terms of this grouping factor, in term order.",
-    "ja": ""
+    "ja": "このグループ化因子のすべての項の列です。項の順に並びます。"
   },
   "LmerRanef.group#summary": {
     "hash": "cc1c06a4546b",
     "en": "The grouping factor's name.",
-    "ja": ""
+    "ja": "グループ化因子の名前です。"
   },
   "LmerRanef.levels#summary": {
     "hash": "b79cbbd4e4f1",
     "en": "Its levels (the rows of `values`).",
-    "ja": ""
+    "ja": "その水準です (`values` の行)。"
   },
   "LmerRanef.values#summary": {
     "hash": "45f10677664e",
     "en": "One array per level, one value per column.",
-    "ja": ""
+    "ja": "水準ごとに 1 つの配列です。列ごとに 1 つの値です。"
   },
   "LmerResult#summary": {
     "hash": "5859532b2ef5",
     "en": "Result of {@link lmer}: the fit of a linear mixed model and the quantities of R's methods for it.",
-    "ja": ""
+    "ja": "{@link lmer} の結果です: 線形混合モデルの当てはめと、そのための R のメソッドに対応する量です。"
   },
   "LmerResult.AIC#summary": {
     "hash": "9c361af07abf",
     "en": "Akaike's information criterion (R's `AIC()`).",
-    "ja": ""
+    "ja": "Akaike の情報量規準です (R の `AIC()`)。"
   },
   "LmerResult.BIC#summary": {
     "hash": "bab579fcbcc0",
     "en": "Schwarz's Bayesian information criterion (R's `BIC()`).",
-    "ja": ""
+    "ja": "Schwarz のベイズ情報量規準です (R の `BIC()`)。"
   },
   "LmerResult.REML#summary": {
     "hash": "91b6df258eef",
     "en": "Whether the REML criterion was minimised (otherwise the ML deviance).",
-    "ja": ""
+    "ja": "REML 基準を最小化したかどうかです (そうでない場合は ML の逸脱度)。"
   },
   "LmerResult.REMLcrit#summary": {
     "hash": "f6ade0356c88",
     "en": "The REML criterion at the estimates, for either kind of fit (R's `REMLcrit()`).",
-    "ja": ""
+    "ja": "推定値における REML 基準です。どちらの種類の当てはめでも値をもちます (R の `REMLcrit()`)。"
   },
   "LmerResult.coefTable#summary": {
     "hash": "1734d030ffff",
     "en": "The coefficient table of the fixed effects (R's `coef(summary(fit))`).",
-    "ja": ""
+    "ja": "固定効果の係数表です (R の `coef(summary(fit))`)。"
   },
   "LmerResult.coefTable.estimate#summary": {
     "hash": "f1f615e4279b",
     "en": "Estimates (R's `Estimate`).",
-    "ja": ""
+    "ja": "推定値です (R の `Estimate`)。"
   },
   "LmerResult.coefTable.stdError#summary": {
     "hash": "4b5b7823947c",
     "en": "Standard errors (R's `Std. Error`).",
-    "ja": ""
+    "ja": "標準誤差です (R の `Std. Error`)。"
   },
   "LmerResult.coefTable.tValue#summary": {
     "hash": "91836147a0d2",
     "en": "t statistics (R's `t value`).",
-    "ja": ""
+    "ja": "t 統計量です (R の `t value`)。"
   },
   "LmerResult.deviance#summary": {
     "hash": "d92ff9e2ae49",
     "en": "The ML deviance at the estimates, for either kind of fit (R's `deviance(fit, REML = FALSE)`).",
-    "ja": ""
+    "ja": "推定値における ML の逸脱度です。どちらの種類の当てはめでも値をもちます (R の `deviance(fit, REML = FALSE)`)。"
   },
   "LmerResult.df#summary": {
     "hash": "1a4a4661bb4d",
     "en": "Degrees of freedom of the log-likelihood: the numbers of fixed effects and of θ, plus 1 (for σ).",
-    "ja": ""
+    "ja": "対数尤度の自由度です: 固定効果の数と θ の数の和に 1 を加えたものです (σ の分)。"
   },
   "LmerResult.fitted#summary": {
     "hash": "7c06054270a1",
     "en": "Fitted values Xβ̂ + Zb̂, one per row used (R's `fitted()`).",
-    "ja": ""
+    "ja": "当てはめ値 Xβ̂ + Zb̂ です。使った行ごとに 1 つあります (R の `fitted()`)。"
   },
   "LmerResult.fixef#summary": {
     "hash": "7109001cba63",
     "en": "The fixed effects β̂ (R's `fixef()`).",
-    "ja": ""
+    "ja": "固定効果 β̂ です (R の `fixef()`)。"
   },
   "LmerResult.fixefNames#summary": {
     "hash": "3b2967e9b200",
     "en": "Names of the columns of the fixed-effects model matrix (aliased columns dropped).",
-    "ja": ""
+    "ja": "固定効果のモデル行列の列の名前です (縮退した列は除きます)。"
   },
   "LmerResult.formula#summary": {
     "hash": "b0def051d655",
     "en": "The formula.",
-    "ja": ""
+    "ja": "式です。"
   },
   "LmerResult.logLik#summary": {
     "hash": "3d82c2fb7e78",
     "en": "The log-likelihood, or the REML log-likelihood for a REML fit (R's `logLik()`).",
-    "ja": ""
+    "ja": "対数尤度です。REML の当てはめの場合は REML の対数尤度です (R の `logLik()`)。"
   },
   "LmerResult.messages#summary": {
     "hash": "fa6f6354f8d4",
     "en": "R's messages (a rank-deficient fixed-effects matrix, a singular fit).",
-    "ja": ""
+    "ja": "R のメッセージです (ランク不足の固定効果のモデル行列、特異な当てはめ)。"
   },
   "LmerResult.nObs#summary": {
     "hash": "f7b5890229ca",
     "en": "Number of rows used.",
-    "ja": ""
+    "ja": "使った行の数です。"
   },
   "LmerResult.ranef#summary": {
     "hash": "4d9b571080c8",
     "en": "The conditional modes of the random effects, one entry per grouping factor (R's `ranef()`).",
-    "ja": ""
+    "ja": "変量効果の条件付きモードです。グループ化因子ごとに 1 つの要素があります (R の `ranef()`)。"
   },
   "LmerResult.residuals#summary": {
     "hash": "85ce6ff74d87",
     "en": "Residuals y − fitted (R's `residuals()`).",
-    "ja": ""
+    "ja": "残差 y − 当てはめ値 です (R の `residuals()`)。"
   },
   "LmerResult.rows#summary": {
     "hash": "8e4e4cf19616",
     "en": "0-based indices of the rows of `data` used (rows with a missing value in a variable of the formula dropped).",
-    "ja": ""
+    "ja": "使った `data` の行の、0 始まりの添字です (式の変数に欠測値がある行は除きます)。"
   },
   "LmerResult.sigma#summary": {
     "hash": "fd83011ddaf3",
     "en": "The residual standard deviation (R's `sigma()`).",
-    "ja": ""
+    "ja": "残差の標準偏差です (R の `sigma()`)。"
   },
   "LmerResult.singular#summary": {
     "hash": "54a6c151d2e5",
     "en": "Whether the fit is singular: a diagonal element of a relative covariance factor below 1e-4 (R's `isSingular()`).",
-    "ja": ""
+    "ja": "当てはめが特異かどうかです: 相対共分散因子の対角要素のいずれかが 1e-4 未満であるとき特異です (R の `isSingular()`)。"
   },
   "LmerResult.theta#summary": {
     "hash": "b82416d562ce",
     "en": "The estimate of the covariance parameters θ (R's `getME(fit, \"theta\")`): the lower triangles of the relative covariance factors, by term, column-major.",
-    "ja": ""
+    "ja": "共分散パラメータ θ の推定値です (R の `getME(fit, \"theta\")`): 項ごとの相対共分散因子の下三角部分を、列優先の順に並べたものです。"
   },
   "LmerResult.varCorr#summary": {
     "hash": "99fe65d032f3",
     "en": "The variance components, one entry per random-effects term (R's `VarCorr()`).",
-    "ja": ""
+    "ja": "分散成分です。変量効果の項ごとに 1 つの要素があります (R の `VarCorr()`)。"
   },
   "LmerResult.vcov#summary": {
     "hash": "7f4014ec12dd",
     "en": "The covariance matrix of the fixed effects (R's `vcov()`), array of rows.",
-    "ja": ""
+    "ja": "固定効果の共分散行列です (R の `vcov()`)。行の配列です。"
   },
   "LmerResult.warnings#summary": {
     "hash": "6f39667e6281",
     "en": "R's warnings (predictors on very different scales).",
-    "ja": ""
+    "ja": "R の警告です (説明変数の尺度が大きく異なること)。"
   },
   "LmerSummary#summary": {
     "hash": "d428d69115fb",
     "en": "Result of {@link lmerSummary}: the coefficient table of lmerTest's `summary()`.",
-    "ja": ""
+    "ja": "{@link lmerSummary} の結果です: lmerTest の `summary()` の係数表です。"
   },
   "LmerSummary.ddf#summary": {
     "hash": "eff3d17cc456",
     "en": "The method of the degrees of freedom.",
-    "ja": ""
+    "ja": "自由度の計算方法です。"
   },
   "LmerSummary.df#summary": {
     "hash": "f43aba2ffa01",
     "en": "Satterthwaite's degrees of freedom (R's `df`; not with `ddf: \"lme4\"`).",
-    "ja": ""
+    "ja": "Satterthwaite の自由度です (R の `df`。`ddf: \"lme4\"` の場合はありません)。"
   },
   "LmerSummary.estimate#summary": {
     "hash": "f1f615e4279b",
     "en": "Estimates (R's `Estimate`).",
-    "ja": ""
+    "ja": "推定値です (R の `Estimate`)。"
   },
   "LmerSummary.messages#summary": {
     "hash": "ec32d73e8d25",
     "en": "R's messages (none so far).",
-    "ja": ""
+    "ja": "R のメッセージです (今のところありません)。"
   },
   "LmerSummary.names#summary": {
     "hash": "b8f0267fc155",
     "en": "The names of the fixed effects (R's row names).",
-    "ja": ""
+    "ja": "固定効果の名前です (R の行名)。"
   },
   "LmerSummary.pValue#summary": {
     "hash": "a9eb290212c6",
     "en": "Two-sided p-values (R's `Pr(>|t|)`; not with `ddf: \"lme4\"`).",
-    "ja": ""
+    "ja": "両側 p 値です (R の `Pr(>|t|)`。`ddf: \"lme4\"` の場合はありません)。"
   },
   "LmerSummary.stdError#summary": {
     "hash": "4b5b7823947c",
     "en": "Standard errors (R's `Std. Error`).",
-    "ja": ""
+    "ja": "標準誤差です (R の `Std. Error`)。"
   },
   "LmerSummary.tValue#summary": {
     "hash": "91836147a0d2",
     "en": "t statistics (R's `t value`).",
-    "ja": ""
+    "ja": "t 統計量です (R の `t value`)。"
   },
   "LmerSummary.warnings#summary": {
     "hash": "1e5f15e620f6",
