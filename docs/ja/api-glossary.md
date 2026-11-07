@@ -668,3 +668,27 @@
 | cross-product (matrix) | クロス積 | 新規。`crossprod` |
 | compact form (of a decomposition) | コンパクトな形式 | 新規。R の `qr` の表現 |
 | 0-based (index) | 0 始まり | 新規。`1-based` の対 |
+| Moore-Penrose generalized inverse | Moore-Penrose の一般化逆行列 | `docs/ja/r-functions.md` で使用。人名は英字 |
+| Kronecker product | Kronecker 積 | `docs/ja/r-functions.md` で使用 |
+| outer product | 外積 | `docs/ja/r-functions.md` で使用 |
+| Golub-Reinsch (algorithm) | Golub–Reinsch 法 | 人名は英字。`docs/ja/differences-from-r.md` で「Golub–Reinsch」を使用 |
+| Householder transformation | Householder 変換 | 新規。人名は英字 (`Householder vector` と同じ) |
+| LINPACK-style (QR) | LINPACK 形式 | 新規。`LINPACK` は英字のまま |
+| LU decomposition | LU 分解 | `docs/ja` で使用 |
+| partial pivoting | 部分ピボット | `docs/ja` で使用 |
+| projection (onto a space) | 射影 | `docs/ja` で使用 |
+| space spanned by (vectors) | 張る空間 | `docs/ja` で使用 |
+| orthogonal matrix | 直交行列 | `docs/ja/r-functions.md` で使用 |
+| orthogonal complement | 直交補完 | `docs/ja/differences-from-r.md` で使用 |
+| singular vector | 特異ベクトル | `docs/ja` で使用 |
+| Schur decomposition | Schur 分解 | 新規。`quasi-triangular` の行で既に使用 |
+| upper quasi-triangular | 上準三角 | 新規。`quasi-triangular` の上三角側 |
+| complex conjugate pair | 複素共役の組 | 新規 |
+| Padé quotient | Padé 近似の商 | 新規。`expm` の有理近似 |
+| conjugate gradient squared method | 共役勾配二乗法 | 新規。英字の名称を括弧で添える |
+| scaling and squaring | 尺度化と二乗法 | 新規 |
+| triangular system (of equations) | 三角連立方程式 | `docs/ja/r-functions.md` で使用 |
+| regular sequence | 等間隔の数列 | 新規。`seq` |
+| least squares (coefficients, fitted values, residuals) | 最小二乗 | `docs/ja` で使用 |
+| right-hand side | 右辺 | `docs/ja` で使用 |
+| LAPACK estimator (of a condition number) | 推定ルーチン | 新規。`rcond`、`kappa` の推定 |

@@ -817,986 +817,986 @@
   "expm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "expm#@param options": {
     "hash": "0249f58ad408",
     "en": "See {@link ExpmOptions}.",
-    "ja": ""
+    "ja": "{@link ExpmOptions} を参照してください。"
   },
   "expm#@param x": {
     "hash": "08fd13cc80ac",
     "en": "A square matrix (array of rows).",
-    "ja": ""
+    "ja": "正方行列です (行の配列です)。"
   },
   "expm#@returns": {
     "hash": "4ff627ef8218",
     "en": "`exp(x)` as an array of rows.",
-    "ja": ""
+    "ja": "`exp(x)` を行の配列にしたものです。"
   },
   "expm#summary": {
     "hash": "0343f593c7d4",
     "en": "Matrix exponential. Equivalent to `expm::expm(x, method, order)` in R. The methods are `\"Higham08.b\"` (the\ndefault), `\"Higham08\"`, `\"Pade\"`, `\"Taylor\"`, `\"PadeO\"` and `\"TaylorO\"`.\n\n`\"Higham08.b\"` and `\"Higham08\"` use the scaling and squaring method with Padé approximants of degree 3, 5, 7, 9 or\n13 (Higham 2005), with or without balancing first, and throw if a linear system of the method is computationally\nsingular. The other methods use scaling and squaring with a Taylor polynomial or a diagonal Padé approximant of\ndegree `order` (the Padé quotient by the conjugate gradient squared method, as expm does).",
-    "ja": ""
+    "ja": "行列の指数関数です。R の `expm::expm(x, method, order)` と同等です。方法は `\"Higham08.b\"` (既定)、`\"Higham08\"`、`\"Pade\"`、`\"Taylor\"`、`\"PadeO\"`、`\"TaylorO\"` です。\n\n`\"Higham08.b\"` と `\"Higham08\"` は、次数 3、5、7、9、13 の Padé 近似を使う尺度化と二乗法です (Higham 2005)。平衡化を先に行うかどうかが異なります。方法の中の線形方程式が計算上特異である場合は例外を投げます。それ以外の方法は、次数 `order` の Taylor 多項式または対角の Padé 近似を使う尺度化と二乗法です (Padé 近似の商は、expm と同じく共役勾配二乗法 (conjugate gradient squared method) で求めます)。"
   },
   "forwardsolve(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "forwardsolve(0)#@param l": {
     "hash": "243d684bc2c0",
     "en": "A triangular matrix (array of rows).",
-    "ja": ""
+    "ja": "三角行列です (行の配列です)。"
   },
   "forwardsolve(0)#@param options": {
     "hash": "f2c8331eb057",
     "en": "See {@link BacksolveOptions}.",
-    "ja": ""
+    "ja": "{@link BacksolveOptions} を参照してください。"
   },
   "forwardsolve(0)#@param x": {
     "hash": "e81abecdbbe2",
     "en": "The right-hand side vector.",
-    "ja": ""
+    "ja": "右辺のベクトルです。"
   },
   "forwardsolve(0)#@returns": {
     "hash": "4e20bac060f1",
     "en": "The solution `y`, a vector of length `k`.",
-    "ja": ""
+    "ja": "解 `y` です。長さ `k` のベクトルです。"
   },
   "forwardsolve(0)#summary": {
     "hash": "4eb96bf04f26",
     "en": "Solves the triangular system `l y = x` with a vector right-hand side. Equivalent to R's `forwardsolve()`.\n\nOnly the top-left `k` x `k` triangle of `l` (lower by default) and the first `k` elements of `x` are used.\nThrows if a diagonal element is exactly zero.",
-    "ja": ""
+    "ja": "右辺がベクトルの三角連立方程式 `l y = x` を解きます。R の `forwardsolve()` と同等です。\n\n`l` の左上の `k` x `k` の三角部分 (既定では下三角) と、`x` の最初の `k` 個の要素だけを使います。対角要素が正確に 0 の場合は例外を投げます。"
   },
   "forwardsolve(1)#@param l": {
     "hash": "243d684bc2c0",
     "en": "A triangular matrix (array of rows).",
-    "ja": ""
+    "ja": "三角行列です (行の配列です)。"
   },
   "forwardsolve(1)#@param options": {
     "hash": "f2c8331eb057",
     "en": "See {@link BacksolveOptions}.",
-    "ja": ""
+    "ja": "{@link BacksolveOptions} を参照してください。"
   },
   "forwardsolve(1)#@param x": {
     "hash": "658c7a6894ae",
     "en": "The right-hand side matrix (array of rows); only its first `k` rows are used.",
-    "ja": ""
+    "ja": "右辺の行列です (行の配列です)。最初の `k` 行だけを使います。"
   },
   "forwardsolve(1)#@returns": {
     "hash": "592593ed4e5b",
     "en": "The solution `y`, a matrix with `k` rows.",
-    "ja": ""
+    "ja": "解 `y` です。`k` 行の行列です。"
   },
   "forwardsolve(1)#summary": {
     "hash": "a7da3cc3e046",
     "en": "Solves the triangular system `l y = x` with a matrix right-hand side.",
-    "ja": ""
+    "ja": "右辺が行列の三角連立方程式 `l y = x` を解きます。"
   },
   "forwardsolve(2)#@param l": {
     "hash": "243d684bc2c0",
     "en": "A triangular matrix (array of rows).",
-    "ja": ""
+    "ja": "三角行列です (行の配列です)。"
   },
   "forwardsolve(2)#@param options": {
     "hash": "f2c8331eb057",
     "en": "See {@link BacksolveOptions}.",
-    "ja": ""
+    "ja": "{@link BacksolveOptions} を参照してください。"
   },
   "forwardsolve(2)#@param x": {
     "hash": "7403675017c6",
     "en": "The right-hand side, a vector or a matrix.",
-    "ja": ""
+    "ja": "右辺です。ベクトルまたは行列です。"
   },
   "forwardsolve(2)#@returns": {
     "hash": "cbe752edcd35",
     "en": "A vector if `x` is a vector, otherwise a matrix with `k` rows.",
-    "ja": ""
+    "ja": "`x` がベクトルの場合はベクトルです。それ以外の場合は `k` 行の行列です。"
   },
   "forwardsolve(2)#summary": {
     "hash": "1f21f8c5b540",
     "en": "Solves the triangular system `l y = x`.",
-    "ja": ""
+    "ja": "三角連立方程式 `l y = x` を解きます。"
   },
   "ginv#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ginv#@param options": {
     "hash": "7241f9e88a54",
     "en": "`tol`: relative tolerance for treating singular values as zero. Default: `sqrt(Number.EPSILON)`.",
-    "ja": ""
+    "ja": "`tol`: 特異値を 0 とみなす相対的な許容誤差です。既定: `sqrt(Number.EPSILON)` です。"
   },
   "ginv#@param x": {
     "hash": "0b32178fbabd",
     "en": "A matrix (array of rows).",
-    "ja": ""
+    "ja": "行列です (行の配列です)。"
   },
   "ginv#@returns": {
     "hash": "2125fac6328f",
     "en": "The generalized inverse (`ncol` x `nrow`) as an array of rows.",
-    "ja": ""
+    "ja": "一般化逆行列 (`ncol` x `nrow`) を行の配列にしたものです。"
   },
   "ginv#summary": {
     "hash": "d9b63b50a124",
     "en": "Moore-Penrose generalized inverse. Equivalent to `MASS::ginv()` in R.\n\nComputed from the singular value decomposition; singular values not greater than `tol` times the largest\nsingular value are treated as zero.",
-    "ja": ""
+    "ja": "Moore-Penrose の一般化逆行列です。R の `MASS::ginv()` と同等です。\n\n特異値分解から計算します。最大の特異値に `tol` を掛けた値以下の特異値は 0 として扱われます。"
   },
   "kappa#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "kappa#@param options": {
     "hash": "53681fc916c0",
     "en": "See {@link KappaOptions}.",
-    "ja": ""
+    "ja": "{@link KappaOptions} を参照してください。"
   },
   "kappa#@param z": {
     "hash": "0b32178fbabd",
     "en": "A matrix (array of rows).",
-    "ja": ""
+    "ja": "行列です (行の配列です)。"
   },
   "kappa#@returns": {
     "hash": "71a242556e3a",
     "en": "The (estimated) condition number.",
-    "ja": ""
+    "ja": "(推定された) 条件数です。"
   },
   "kappa#summary": {
     "hash": "0186c3f5df47",
     "en": "Condition number of a matrix, estimated or exact. Equivalent to R's `kappa()`.\n\nBy default (as in R) this is the LINPACK estimate of the one-norm condition number, computed on the\ntriangular factor `R` of the QR decomposition. With `exact: true` and the default `norm: \"2\"`, it is the ratio\nof the largest to the smallest singular value (computed with {@link svd}); `Infinity` if the matrix is singular.",
-    "ja": ""
+    "ja": "行列の条件数です。推定値または正確な値です。R の `kappa()` と同等です。\n\n既定では (R と同じく) QR 分解の三角因子 `R` に対して計算した、1-ノルムの条件数の LINPACK の推定値です。`exact: true` かつ既定のノルム `norm: \"2\"` の場合は、最大の特異値と最小の特異値の比です (計算には {@link svd} を使います)。行列が特異であれば `Infinity` です。"
   },
   "kronecker#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "kronecker#summary": {
     "hash": "8901ab88db86",
     "en": "Kronecker product. Equivalent to R's `kronecker()`. Two vectors give a vector.",
-    "ja": ""
+    "ja": "Kronecker 積です。R の `kronecker()` と同等です。2 つのベクトルの場合は、ベクトルを返します。"
   },
   "lu#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lu#summary": {
     "hash": "0829b3b0baba",
     "en": "LU decomposition with partial (row) pivoting, `x = P L U`. Equivalent to R's `Matrix::lu()`. The factors are those\nof `Matrix::expand(Matrix::lu(x))` (LAPACK's dgetrf). Throws on `NaN` or infinite values (`Matrix::lu` returns factors\nwith NaN or infinite values).",
-    "ja": ""
+    "ja": "部分 (行) ピボット付きの LU 分解で、`x = P L U` です。R の `Matrix::lu()` と同等です。因子は `Matrix::expand(Matrix::lu(x))` のもの (LAPACK の dgetrf) です。`NaN` または無限大の値があると例外を投げます (`Matrix::lu` は、NaN または無限大の値を含む因子を返します)。"
   },
   "matMul#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "matMul#summary": {
     "hash": "4fbc397115ec",
     "en": "Matrix product. Equivalent to R's `%*%`. A vector is taken as a row or a column so that the product is defined\n(two vectors give their inner product as a 1 x 1 matrix).",
-    "ja": ""
+    "ja": "行列の積です。R の `%*%` と同等です。ベクトルは、積が定義されるように行または列として扱われます (2 つのベクトルの場合は、内積を 1 x 1 の行列として返します)。"
   },
   "matrix#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "matrix#summary": {
     "hash": "f9cf8de3fd07",
     "en": "Build a matrix from data, recycled to fill it. Equivalent to R's `matrix()`. Filled by columns unless `byrow`.",
-    "ja": ""
+    "ja": "データから行列を作ります。データは行列を埋めるためにリサイクルされます。R の `matrix()` と同等です。`byrow` でない限り、列ごとに埋められます。"
   },
   "multiply#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "multiply#summary": {
     "hash": "47155ced58d0",
     "en": "Element-wise product with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to\nR's `*`. The matrix product is {@link matMul}.",
-    "ja": ""
+    "ja": "R のリサイクルによる要素ごとの積です (短いベクトルは行列の列の方向にリサイクルされます)。R の `*` と同等です。行列の積は {@link matMul} です。"
   },
   "norm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "norm#@param options": {
     "hash": "6e532aedcae5",
     "en": "See {@link NormOptions}.",
-    "ja": ""
+    "ja": "{@link NormOptions} を参照してください。"
   },
   "norm#@param x": {
     "hash": "0b32178fbabd",
     "en": "A matrix (array of rows).",
-    "ja": ""
+    "ja": "行列です (行の配列です)。"
   },
   "norm#@returns": {
     "hash": "36ef55878fbe",
     "en": "The norm of `x`.",
-    "ja": ""
+    "ja": "`x` のノルムです。"
   },
   "norm#summary": {
     "hash": "8e1e432a2486",
     "en": "Matrix norm. Equivalent to R's `norm()`.\n\nReturns `NaN` if the matrix contains `NaN`. For `type: \"2\"`, an infinite element is an error.",
-    "ja": ""
+    "ja": "行列のノルムです。R の `norm()` と同等です。\n\n行列に `NaN` が含まれる場合は `NaN` を返します。`type: \"2\"` の場合、無限大の要素はエラーです。"
   },
   "outer(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "outer(0)#summary": {
     "hash": "eecf78a53800",
     "en": "Outer product of two vectors: the matrix of `fun(x[i], y[j])`. Equivalent to R's `outer()`. `fun` is `\"*\"`\n(default), `\"+\"`, `\"-\"`, `\"/\"`, `\"^\"` or a function of two numbers, given as the third argument or as the option\n`fun` (giving both is a RangeError).",
-    "ja": ""
+    "ja": "2 つのベクトルの外積です。要素が `fun(x[i], y[j])` の行列になります。R の `outer()` と同等です。`fun` は `\"*\"` (既定)、`\"+\"`、`\"-\"`、`\"/\"`、`\"^\"` または 2 つの数の関数です。第 3 引数か、オプション `fun` で指定します (両方で指定すると RangeError になります)。"
   },
   "outer(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "outer(1)#summary": {
     "hash": "be9d46afdaef",
     "en": "Outer product of two vectors, with the operation in the options: `outer(x, y, { fun: \"+\" })`.",
-    "ja": ""
+    "ja": "2 つのベクトルの外積です。演算はオプションで指定します: `outer(x, y, { fun: \"+\" })`。"
   },
   "prcomp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "prcomp#summary": {
     "hash": "90ad464a17b3",
     "en": "Principal components of the columns of `x` (observations as rows). Equivalent to R's `prcomp()`. The sign of each\ncomponent is arbitrary, as in R.",
-    "ja": ""
+    "ja": "`x` の列の主成分です (観測を行とします)。R の `prcomp()` と同等です。各成分の符号は、R と同じく任意です。"
   },
   "qr#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qr#@param options": {
     "hash": "f851a5659ca3",
     "en": "See {@link QROptions}.",
-    "ja": ""
+    "ja": "{@link QROptions} を参照してください。"
   },
   "qr#@param x": {
     "hash": "0b32178fbabd",
     "en": "A matrix (array of rows).",
-    "ja": ""
+    "ja": "行列です (行の配列です)。"
   },
   "qr#@returns": {
     "hash": "ceffde9d3c2b",
     "en": "The decomposition in compact form. See {@link QR}.",
-    "ja": ""
+    "ja": "コンパクトな形式の分解です。{@link QR} を参照してください。"
   },
   "qr#summary": {
     "hash": "694778a08374",
     "en": "QR decomposition. Equivalent to R's `qr()`.\n\nBy default this uses Householder transformations with R's LINPACK-style limited column pivoting: columns that\nare (nearly) linearly dependent on earlier ones, as judged by `tol`, are moved to the right end and the rank is\nreduced. With `lapack: true` it uses LAPACK-style column pivoting (R's `LAPACK = TRUE`).\n\nThe default method throws on `NaN` or infinite values. With `lapack: true`, such input does not throw and the\nresult may differ from R's (which is not meaningful either).",
-    "ja": ""
+    "ja": "QR 分解です。R の `qr()` と同等です。\n\n既定では、R の LINPACK 形式の制限付き列ピボットを使う Householder 変換を使います。`tol` で判定して、前の列に (ほぼ) 線形従属な列は右端へ移され、ランクが減ります。`lapack: true` の場合は、LAPACK 形式の列ピボットを使います (R の `LAPACK = TRUE` です)。\n\n既定の方法は、`NaN` または無限大の値があると例外を投げます。`lapack: true` の場合は、そのような入力でも例外を投げず、結果は R と異なることがあります (R の結果も意味を持ちません)。"
   },
   "qrCoef(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qrCoef(0)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrCoef(0)#@param y": {
     "hash": "3080900f7a06",
     "en": "The response vector, with as many elements as the decomposed matrix has rows.",
-    "ja": ""
+    "ja": "応答のベクトルです。要素数は分解した行列の行数と同じです。"
   },
   "qrCoef(0)#@returns": {
     "hash": "b3023591c392",
     "en": "The coefficient vector (one element per column of the decomposed matrix).",
-    "ja": ""
+    "ja": "係数のベクトルです (分解した行列の列ごとに 1 つの要素があります)。"
   },
   "qrCoef(0)#summary": {
     "hash": "5ca91e395431",
     "en": "Least-squares coefficients for a vector response. Equivalent to R's `qr.coef()`.\n\nCoefficients are returned in the original column order. Coefficients of columns that were not used\n(those after position `rank` in `pivot`) are `NaN` (R's `NA`). For a decomposition computed with\n`lapack: true`, the first `min(nrow, ncol)` pivoted columns are used.",
-    "ja": ""
+    "ja": "ベクトルの応答に対する最小二乗係数です。R の `qr.coef()` と同等です。\n\n係数は元の列の順序で返されます。使われなかった列 (`pivot` で位置 `rank` より後にある列) の係数は、`NaN` (R の `NA`) です。`lapack: true` で計算された分解の場合は、ピボットされた最初の `min(nrow, ncol)` 個の列が使われます。"
   },
   "qrCoef(1)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrCoef(1)#@param y": {
     "hash": "e987fef511da",
     "en": "The response matrix (array of rows), with as many rows as the decomposed matrix.",
-    "ja": ""
+    "ja": "応答の行列です (行の配列です)。行数は分解した行列と同じです。"
   },
   "qrCoef(1)#@returns": {
     "hash": "745bf36826d5",
     "en": "The coefficients as an array of rows (one row per column of the decomposed matrix, one column per column of `y`).",
-    "ja": ""
+    "ja": "係数を行の配列にしたものです (分解した行列の列ごとに 1 行、`y` の列ごとに 1 列です)。"
   },
   "qrCoef(1)#summary": {
     "hash": "4d944292e0c2",
     "en": "Least-squares coefficients for each column of a matrix response.",
-    "ja": ""
+    "ja": "行列の応答の各列に対する最小二乗係数です。"
   },
   "qrCoef(2)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrCoef(2)#@param y": {
     "hash": "e3269a9fcc38",
     "en": "The response, a vector or a matrix.",
-    "ja": ""
+    "ja": "応答です。ベクトルまたは行列です。"
   },
   "qrCoef(2)#@returns": {
     "hash": "d1053ce6751d",
     "en": "A vector if `y` is a vector, otherwise an array of rows.",
-    "ja": ""
+    "ja": "`y` がベクトルの場合はベクトルです。それ以外の場合は行の配列です。"
   },
   "qrCoef(2)#summary": {
     "hash": "883628392157",
     "en": "Least-squares coefficients.",
-    "ja": ""
+    "ja": "最小二乗係数です。"
   },
   "qrFitted(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qrFitted(0)#@param options": {
     "hash": "8dd4eed61500",
     "en": "`k`: the number of pivoted columns to project onto (an integer from 0 to `rank`). Default: `q.rank`.",
-    "ja": ""
+    "ja": "`k`: 射影先にする、ピボットされた列の数です (0 から `rank` までの整数)。既定: `q.rank` です。"
   },
   "qrFitted(0)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrFitted(0)#@param y": {
     "hash": "3080900f7a06",
     "en": "The response vector, with as many elements as the decomposed matrix has rows.",
-    "ja": ""
+    "ja": "応答のベクトルです。要素数は分解した行列の行数と同じです。"
   },
   "qrFitted(0)#@returns": {
     "hash": "41cfce660ba0",
     "en": "The fitted values as a vector.",
-    "ja": ""
+    "ja": "当てはめ値のベクトルです。"
   },
   "qrFitted(0)#summary": {
     "hash": "b527675fd955",
     "en": "Least-squares fitted values for a vector response: the projection of `y` onto the space spanned by the\nfirst `k` pivoted columns. Equivalent to R's `qr.fitted()`.\n\nNot supported for a decomposition computed with `lapack: true` (throws).",
-    "ja": ""
+    "ja": "ベクトルの応答に対する最小二乗の当てはめ値です。`y` を、ピボットされた最初の `k` 列が張る空間へ射影したものです。R の `qr.fitted()` と同等です。\n\n`lapack: true` で計算された分解には対応していません (例外を投げます)。"
   },
   "qrFitted(1)#@param options": {
     "hash": "8dd4eed61500",
     "en": "`k`: the number of pivoted columns to project onto (an integer from 0 to `rank`). Default: `q.rank`.",
-    "ja": ""
+    "ja": "`k`: 射影先にする、ピボットされた列の数です (0 から `rank` までの整数)。既定: `q.rank` です。"
   },
   "qrFitted(1)#@param q": {
     "hash": "8097a0dd47ee",
     "en": "A QR decomposition from {@link qr} (not `lapack: true`).",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です (`lapack: true` で計算したものは除きます)。"
   },
   "qrFitted(1)#@param y": {
     "hash": "e987fef511da",
     "en": "The response matrix (array of rows), with as many rows as the decomposed matrix.",
-    "ja": ""
+    "ja": "応答の行列です (行の配列です)。行数は分解した行列と同じです。"
   },
   "qrFitted(1)#@returns": {
     "hash": "8c5d58f66239",
     "en": "The fitted values as an array of rows.",
-    "ja": ""
+    "ja": "当てはめ値を行の配列にしたものです。"
   },
   "qrFitted(1)#summary": {
     "hash": "6732fff37e10",
     "en": "Least-squares fitted values for each column of a matrix response.",
-    "ja": ""
+    "ja": "行列の応答の各列に対する最小二乗の当てはめ値です。"
   },
   "qrFitted(2)#@param options": {
     "hash": "8dd4eed61500",
     "en": "`k`: the number of pivoted columns to project onto (an integer from 0 to `rank`). Default: `q.rank`.",
-    "ja": ""
+    "ja": "`k`: 射影先にする、ピボットされた列の数です (0 から `rank` までの整数)。既定: `q.rank` です。"
   },
   "qrFitted(2)#@param q": {
     "hash": "8097a0dd47ee",
     "en": "A QR decomposition from {@link qr} (not `lapack: true`).",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です (`lapack: true` で計算したものは除きます)。"
   },
   "qrFitted(2)#@param y": {
     "hash": "e3269a9fcc38",
     "en": "The response, a vector or a matrix.",
-    "ja": ""
+    "ja": "応答です。ベクトルまたは行列です。"
   },
   "qrFitted(2)#@returns": {
     "hash": "d1053ce6751d",
     "en": "A vector if `y` is a vector, otherwise an array of rows.",
-    "ja": ""
+    "ja": "`y` がベクトルの場合はベクトルです。それ以外の場合は行の配列です。"
   },
   "qrFitted(2)#summary": {
     "hash": "9532df27c9e9",
     "en": "Least-squares fitted values.",
-    "ja": ""
+    "ja": "最小二乗の当てはめ値です。"
   },
   "qrQ#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qrQ#@param options": {
     "hash": "f055c44520c5",
     "en": "See {@link QRQOptions}.",
-    "ja": ""
+    "ja": "{@link QRQOptions} を参照してください。"
   },
   "qrQ#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrQ#@returns": {
     "hash": "a0693f3f1f69",
     "en": "`Q` as an array of rows.",
-    "ja": ""
+    "ja": "`Q` を行の配列にしたものです。"
   },
   "qrQ#summary": {
     "hash": "def7fde3b8f7",
     "en": "Recovers the orthogonal matrix `Q` from a QR decomposition. Equivalent to R's `qr.Q()`.",
-    "ja": ""
+    "ja": "QR 分解から直交行列 `Q` を復元します。R の `qr.Q()` と同等です。"
   },
   "qrQty(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qrQty(0)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrQty(0)#@param y": {
     "hash": "aaf3b20bdcc9",
     "en": "A vector with as many elements as the decomposed matrix has rows.",
-    "ja": ""
+    "ja": "ベクトルです。要素数は分解した行列の行数と同じです。"
   },
   "qrQty(0)#@returns": {
     "hash": "20b3d567b965",
     "en": "`t(Q) %*% y` as a vector.",
-    "ja": ""
+    "ja": "`t(Q) %*% y` をベクトルにしたものです。"
   },
   "qrQty(0)#summary": {
     "hash": "b6de853c5936",
     "en": "Computes `t(Q) %*% y` for a vector `y`. Equivalent to R's `qr.qty()`.",
-    "ja": ""
+    "ja": "ベクトル `y` に対して `t(Q) %*% y` を計算します。R の `qr.qty()` と同等です。"
   },
   "qrQty(1)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrQty(1)#@param y": {
     "hash": "93eef540d48a",
     "en": "A matrix (array of rows) with as many rows as the decomposed matrix.",
-    "ja": ""
+    "ja": "行列です (行の配列です)。行数は分解した行列と同じです。"
   },
   "qrQty(1)#@returns": {
     "hash": "d4914742006b",
     "en": "`t(Q) %*% y` as an array of rows.",
-    "ja": ""
+    "ja": "`t(Q) %*% y` を行の配列にしたものです。"
   },
   "qrQty(1)#summary": {
     "hash": "ede78b598966",
     "en": "Computes `t(Q) %*% y` for a matrix `y`.",
-    "ja": ""
+    "ja": "行列 `y` に対して `t(Q) %*% y` を計算します。"
   },
   "qrQty(2)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrQty(2)#@param y": {
     "hash": "b6459974ba14",
     "en": "A vector or a matrix with as many rows as the decomposed matrix.",
-    "ja": ""
+    "ja": "ベクトルまたは行列です。行数は分解した行列と同じです。"
   },
   "qrQty(2)#@returns": {
     "hash": "d1053ce6751d",
     "en": "A vector if `y` is a vector, otherwise an array of rows.",
-    "ja": ""
+    "ja": "`y` がベクトルの場合はベクトルです。それ以外の場合は行の配列です。"
   },
   "qrQty(2)#summary": {
     "hash": "ae21233433bd",
     "en": "Computes `t(Q) %*% y`.",
-    "ja": ""
+    "ja": "`t(Q) %*% y` を計算します。"
   },
   "qrQy(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qrQy(0)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrQy(0)#@param y": {
     "hash": "aaf3b20bdcc9",
     "en": "A vector with as many elements as the decomposed matrix has rows.",
-    "ja": ""
+    "ja": "ベクトルです。要素数は分解した行列の行数と同じです。"
   },
   "qrQy(0)#@returns": {
     "hash": "6b9e87b36576",
     "en": "`Q %*% y` as a vector.",
-    "ja": ""
+    "ja": "`Q %*% y` をベクトルにしたものです。"
   },
   "qrQy(0)#summary": {
     "hash": "be922503eaad",
     "en": "Computes `Q %*% y` for a vector `y`. Equivalent to R's `qr.qy()`.",
-    "ja": ""
+    "ja": "ベクトル `y` に対して `Q %*% y` を計算します。R の `qr.qy()` と同等です。"
   },
   "qrQy(1)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrQy(1)#@param y": {
     "hash": "93eef540d48a",
     "en": "A matrix (array of rows) with as many rows as the decomposed matrix.",
-    "ja": ""
+    "ja": "行列です (行の配列です)。行数は分解した行列と同じです。"
   },
   "qrQy(1)#@returns": {
     "hash": "06ae726811b8",
     "en": "`Q %*% y` as an array of rows.",
-    "ja": ""
+    "ja": "`Q %*% y` を行の配列にしたものです。"
   },
   "qrQy(1)#summary": {
     "hash": "0ebf3ad7bb8e",
     "en": "Computes `Q %*% y` for a matrix `y`.",
-    "ja": ""
+    "ja": "行列 `y` に対して `Q %*% y` を計算します。"
   },
   "qrQy(2)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrQy(2)#@param y": {
     "hash": "b6459974ba14",
     "en": "A vector or a matrix with as many rows as the decomposed matrix.",
-    "ja": ""
+    "ja": "ベクトルまたは行列です。行数は分解した行列と同じです。"
   },
   "qrQy(2)#@returns": {
     "hash": "d1053ce6751d",
     "en": "A vector if `y` is a vector, otherwise an array of rows.",
-    "ja": ""
+    "ja": "`y` がベクトルの場合はベクトルです。それ以外の場合は行の配列です。"
   },
   "qrQy(2)#summary": {
     "hash": "f8dd76145fa4",
     "en": "Computes `Q %*% y`.",
-    "ja": ""
+    "ja": "`Q %*% y` を計算します。"
   },
   "qrR#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qrR#@param options": {
     "hash": "0d72b99f0278",
     "en": "`complete`: return all `n` rows instead of the first `min(n, p)`. Default: `false`.",
-    "ja": ""
+    "ja": "`complete`: 最初の `min(n, p)` 行の代わりに、すべての `n` 行を返します。既定: `false` です。"
   },
   "qrR#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrR#@returns": {
     "hash": "c989448bedf7",
     "en": "`R` as an array of rows.",
-    "ja": ""
+    "ja": "`R` を行の配列にしたものです。"
   },
   "qrR#summary": {
     "hash": "66ee4ac19749",
     "en": "Recovers the upper triangular matrix `R` from a QR decomposition. Equivalent to R's `qr.R()`.\n\nThe columns stay in pivoted order (as in R); use `q.pivot` to map them back.",
-    "ja": ""
+    "ja": "QR 分解から上三角行列 `R` を復元します。R の `qr.R()` と同等です。\n\n列はピボットされた順序のままです (R と同じです)。元に戻すには `q.pivot` を使います。"
   },
   "qrResid(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qrResid(0)#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrResid(0)#@param y": {
     "hash": "3080900f7a06",
     "en": "The response vector, with as many elements as the decomposed matrix has rows.",
-    "ja": ""
+    "ja": "応答のベクトルです。要素数は分解した行列の行数と同じです。"
   },
   "qrResid(0)#@returns": {
     "hash": "a77cf1413ed4",
     "en": "The residual vector.",
-    "ja": ""
+    "ja": "残差のベクトルです。"
   },
   "qrResid(0)#summary": {
     "hash": "6ee26b1731af",
     "en": "Least-squares residuals for a vector response: `y` minus its projection onto the space spanned by the\nfirst `rank` pivoted columns. Equivalent to R's `qr.resid()`.\n\nNot supported for a decomposition computed with `lapack: true` (throws).",
-    "ja": ""
+    "ja": "ベクトルの応答に対する最小二乗の残差です。`y` から、ピボットされた最初の `rank` 個の列が張る空間への射影を引いたものです。R の `qr.resid()` と同等です。\n\n`lapack: true` で計算された分解には対応していません (例外を投げます)。"
   },
   "qrResid(1)#@param q": {
     "hash": "8097a0dd47ee",
     "en": "A QR decomposition from {@link qr} (not `lapack: true`).",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です (`lapack: true` で計算したものは除きます)。"
   },
   "qrResid(1)#@param y": {
     "hash": "e987fef511da",
     "en": "The response matrix (array of rows), with as many rows as the decomposed matrix.",
-    "ja": ""
+    "ja": "応答の行列です (行の配列です)。行数は分解した行列と同じです。"
   },
   "qrResid(1)#@returns": {
     "hash": "6025e6ec246a",
     "en": "The residuals as an array of rows.",
-    "ja": ""
+    "ja": "残差を行の配列にしたものです。"
   },
   "qrResid(1)#summary": {
     "hash": "b31087688e54",
     "en": "Least-squares residuals for each column of a matrix response.",
-    "ja": ""
+    "ja": "行列の応答の各列に対する最小二乗の残差です。"
   },
   "qrResid(2)#@param q": {
     "hash": "8097a0dd47ee",
     "en": "A QR decomposition from {@link qr} (not `lapack: true`).",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です (`lapack: true` で計算したものは除きます)。"
   },
   "qrResid(2)#@param y": {
     "hash": "e3269a9fcc38",
     "en": "The response, a vector or a matrix.",
-    "ja": ""
+    "ja": "応答です。ベクトルまたは行列です。"
   },
   "qrResid(2)#@returns": {
     "hash": "d1053ce6751d",
     "en": "A vector if `y` is a vector, otherwise an array of rows.",
-    "ja": ""
+    "ja": "`y` がベクトルの場合はベクトルです。それ以外の場合は行の配列です。"
   },
   "qrResid(2)#summary": {
     "hash": "4cb215c108d6",
     "en": "Least-squares residuals.",
-    "ja": ""
+    "ja": "最小二乗の残差です。"
   },
   "qrSolve#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qrSolve#@param a": {
     "hash": "f5fdc4b04d5e",
     "en": "A matrix (array of rows) or a QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "行列 (行の配列です) または {@link qr} が返す QR 分解です。"
   },
   "qrSolve#@param b": {
     "hash": "535723b8d0b8",
     "en": "The right-hand side, a vector or a matrix. Default: the identity matrix.",
-    "ja": ""
+    "ja": "右辺です。ベクトルまたは行列です。既定: 単位行列です。"
   },
   "qrSolve#@param options": {
     "hash": "6758d3106ff2",
     "en": "`tol`: the tolerance passed to {@link qr} when `a` is a matrix. Default: `1e-7`.",
-    "ja": ""
+    "ja": "`tol`: `a` が行列の場合に {@link qr} へ渡す許容誤差です。既定: `1e-7` です。"
   },
   "qrSolve#@returns": {
     "hash": "ca10b909be1e",
     "en": "A vector if `b` is a vector, otherwise an array of rows.",
-    "ja": ""
+    "ja": "`b` がベクトルの場合はベクトルです。それ以外の場合は行の配列です。"
   },
   "qrSolve#summary": {
     "hash": "9bc941990741",
     "en": "Solves `a x = b` in the least-squares sense using a QR decomposition. Equivalent to R's `qr.solve()`.\n\nThrows if the rank is less than `min(nrow, ncol)`. When `b` is omitted, returns the inverse of `a` (square\nmatrices only). For a wide matrix, coefficients of unused columns are set to 0 (as in R).",
-    "ja": ""
+    "ja": "QR 分解を使って、`a x = b` を最小二乗の意味で解きます。R の `qr.solve()` と同等です。\n\nランクが `min(nrow, ncol)` より小さい場合は例外を投げます。`b` を省略した場合は、`a` の逆行列を返します (正方行列の場合だけです)。横長の行列では、使われない列の係数は 0 になります (R と同じです)。"
   },
   "qrX#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qrX#@param options": {
     "hash": "42090913dfb7",
     "en": "`complete`: whether the default `ncol` is the number of rows (`true`) or `min(nrow, ncol)` (`false`, the default).\n  `ncol`: the number of columns to return, from 0 to `max(nrow, ncol)`; columns beyond the original ones are taken\n  from `Q` (as in R). A larger `ncol` is an error (R pads zero columns).",
-    "ja": ""
+    "ja": "`complete`: 既定の `ncol` を行数 (`true`) にするか、`min(nrow, ncol)` (`false`、既定) にするかを指定します。\n  `ncol`: 返す列数です。0 から `max(nrow, ncol)` までです。元の列を超える列は、R と同じく `Q` から取ります。上の範囲より大きい `ncol` はエラーです (R ではゼロの列で埋められます)。"
   },
   "qrX#@param q": {
     "hash": "46d1273844d9",
     "en": "A QR decomposition from {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です。"
   },
   "qrX#@returns": {
     "hash": "9ad8e5a63e89",
     "en": "The reconstructed matrix as an array of rows.",
-    "ja": ""
+    "ja": "復元した行列を行の配列にしたものです。"
   },
   "qrX#summary": {
     "hash": "e381be81766a",
     "en": "Reconstructs the original matrix from a QR decomposition, with columns back in their original order.\nEquivalent to R's `qr.X()`.\n\nIf the decomposition was pivoted, `ncol` smaller than the number of columns is an error (as in R).",
-    "ja": ""
+    "ja": "QR 分解から元の行列を復元します。列は元の順序に戻されます。R の `qr.X()` と同等です。\n\n分解がピボットされている場合は、列数より小さい `ncol` はエラーです (R と同じです)。"
   },
   "rbind(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rbind(0)#summary": {
     "hash": "5d9c1ad0e05d",
     "en": "Combine vectors and matrices as rows. Equivalent to R's `rbind()`. Given data frames (objects of columns), stacks\ntheir rows, as R's `rbind()` of data frames: all must have the same column names, matched by name (the result has\nthe first frame's column order).",
-    "ja": ""
+    "ja": "ベクトルと行列を行として結合します。R の `rbind()` と同等です。列を並べたオブジェクトとしてデータフレームが与えられた場合は、R の `rbind()` をデータフレームに対して行うのと同じく、行を積み重ねます。すべての列名が同じでなければならず、列名で対応づけられます (結果は最初のデータフレームの列の順序になります)。"
   },
   "rbind(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rbind(1)#summary": {
     "hash": "5d9c1ad0e05d",
     "en": "Combine vectors and matrices as rows. Equivalent to R's `rbind()`. Given data frames (objects of columns), stacks\ntheir rows, as R's `rbind()` of data frames: all must have the same column names, matched by name (the result has\nthe first frame's column order).",
-    "ja": ""
+    "ja": "ベクトルと行列を行として結合します。R の `rbind()` と同等です。列を並べたオブジェクトとしてデータフレームが与えられた場合は、R の `rbind()` をデータフレームに対して行うのと同じく、行を積み重ねます。すべての列名が同じでなければならず、列名で対応づけられます (結果は最初のデータフレームの列の順序になります)。"
   },
   "rcond#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rcond#@param options": {
     "hash": "89ae1eec944e",
     "en": "See {@link RcondOptions}.",
-    "ja": ""
+    "ja": "{@link RcondOptions} を参照してください。"
   },
   "rcond#@param x": {
     "hash": "0b32178fbabd",
     "en": "A matrix (array of rows).",
-    "ja": ""
+    "ja": "行列です (行の配列です)。"
   },
   "rcond#@returns": {
     "hash": "9723c47ffb98",
     "en": "The estimated reciprocal condition number, between 0 and 1.",
-    "ja": ""
+    "ja": "推定された逆数の条件数です。0 から 1 の間の値です。"
   },
   "rcond#summary": {
     "hash": "ce59dcef1921",
     "en": "Estimate of the reciprocal condition number of a matrix. Equivalent to R's `rcond()`.\n\nUses LAPACK's estimators (`dgecon` on the LU decomposition, or `dtrcon` for triangular matrices). For a\nnon-square matrix, the estimate is computed on the triangular factor `R` of its QR decomposition\n(of the transpose if the matrix is wide). Returns 0 for an exactly singular matrix.",
-    "ja": ""
+    "ja": "行列の逆数の条件数の推定値です。R の `rcond()` と同等です。\n\nLAPACK の推定ルーチンを使います (LU 分解に対する `dgecon`、三角行列に対する `dtrcon`)。正方でない行列では、その QR 分解の三角因子 `R` に対して推定を行います (横長の行列の場合は、転置した行列について行います)。正確に特異な行列の場合は 0 を返します。"
   },
   "schur#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "schur#@param x": {
     "hash": "08fd13cc80ac",
     "en": "A square matrix (array of rows).",
-    "ja": ""
+    "ja": "正方行列です (行の配列です)。"
   },
   "schur#@returns": {
     "hash": "d3f1fe866820",
     "en": "`T`, `Q` and the eigenvalues read off `T`. See {@link SchurResult}.",
-    "ja": ""
+    "ja": "`T` と `Q`、および `T` から読み取った固有値です。{@link SchurResult} を参照してください。"
   },
   "schur#summary": {
     "hash": "04861bd23c7e",
     "en": "Real Schur decomposition of a square matrix. Equivalent to R's `Matrix::Schur(x)`.\n\nReturns an orthogonal `Q` and an upper quasi-triangular `T` with `x = Q T Q'`. `T` has 1 x 1 diagonal blocks for\nreal eigenvalues and standardised 2 x 2 blocks `[[a, b], [c, a]]` (`b c < 0`) for complex conjugate pairs\n`a ± sqrt(-b c) i`. The decomposition is not unique: the order of the diagonal blocks and the signs of `Q`'s\ncolumns may differ from R's (both are correct). Throws on `NaN` or infinite values.",
-    "ja": ""
+    "ja": "正方行列の実 Schur 分解です。R の `Matrix::Schur(x)` と同等です。\n\n直交行列 `Q` と、上準三角行列 `T` を返します (`x = Q T Q'`)。`T` は、実数の固有値に対しては 1 x 1 の対角ブロック、複素共役の組に対しては標準化された 2 x 2 のブロック `[[a, b], [c, a]]` (`b c < 0`) を持ちます。複素共役の組は `a ± sqrt(-b c) i` です。分解は一意ではありません。対角ブロックの順序と `Q` の列の符号は、R と異なることがあります (どちらも正しいものです)。`NaN` または無限大の値があると例外を投げます。"
   },
   "seq#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "seq#summary": {
     "hash": "32163d177f07",
     "en": "Regular sequences. Equivalent to R's `seq()`. `seq(from, to)` steps by ±1; `by` steps by the increment, up to\n`to`; `lengthOut` gives that many values, both ends exact. `from` or `to` may be omitted (`undefined`) when the\nother two are given; `seq(n)` alone is `1, 2, ..., n`.",
-    "ja": ""
+    "ja": "等間隔の数列です。R の `seq()` と同等です。`seq(from, to)` は ±1 刻みです。`by` は増分の刻みで、`to` を超えない範囲で進みます。`lengthOut` は、その数だけの値を、両端が正確になるように返します。`from` と `to` は、ほかの 2 つが与えられているとき省略 (`undefined`) できます。`seq(n)` だけの場合は `1, 2, ..., n` です。"
   },
   "solve(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "solve(0)#@param a": {
     "hash": "08fd13cc80ac",
     "en": "A square matrix (array of rows).",
-    "ja": ""
+    "ja": "正方行列です (行の配列です)。"
   },
   "solve(0)#@param b": {
     "hash": "09c07d50c617",
     "en": "Omit (or pass `undefined`) to compute the inverse.",
-    "ja": ""
+    "ja": "省略する (または `undefined` を渡す) と、逆行列を計算します。"
   },
   "solve(0)#@param options": {
     "hash": "bd0af3b38bea",
     "en": "See {@link SolveOptions}.",
-    "ja": ""
+    "ja": "{@link SolveOptions} を参照してください。"
   },
   "solve(0)#@returns": {
     "hash": "bc70db6eeeac",
     "en": "The inverse of `a` as an array of rows.",
-    "ja": ""
+    "ja": "`a` の逆行列を行の配列にしたものです。"
   },
   "solve(0)#summary": {
     "hash": "12f6e387b5e1",
     "en": "Inverse of a square matrix. Equivalent to R's `solve(a)`.\n\nUses an LU decomposition with partial pivoting. Throws if the matrix is exactly singular or if its estimated\nreciprocal condition number is below `tol` (the check is skipped for matrices with `NaN` or infinite values).",
-    "ja": ""
+    "ja": "正方行列の逆行列です。R の `solve(a)` と同等です。\n\n部分ピボット付きの LU 分解を使います。行列が正確に特異である場合、または推定された逆数の条件数が `tol` より小さい場合は例外を投げます (`NaN` または無限大の値を含む行列では、条件数の検査を行いません)。"
   },
   "solve(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "solve(1)#@param a": {
     "hash": "08fd13cc80ac",
     "en": "A square matrix (array of rows).",
-    "ja": ""
+    "ja": "正方行列です (行の配列です)。"
   },
   "solve(1)#@param b": {
     "hash": "451c43588484",
     "en": "The right-hand side vector, with as many elements as `a` has rows.",
-    "ja": ""
+    "ja": "右辺のベクトルです。要素数は `a` の行数と同じです。"
   },
   "solve(1)#@param options": {
     "hash": "bd0af3b38bea",
     "en": "See {@link SolveOptions}.",
-    "ja": ""
+    "ja": "{@link SolveOptions} を参照してください。"
   },
   "solve(1)#@returns": {
     "hash": "d3a213d4b3e2",
     "en": "The solution `x` as a vector.",
-    "ja": ""
+    "ja": "解 `x` をベクトルにしたものです。"
   },
   "solve(1)#summary": {
     "hash": "22ace44dcdaa",
     "en": "Solves the linear system `a x = b` for a vector `b`, as R's `solve(a, b)`.\n\nThrows if `a` is exactly singular or its estimated reciprocal condition number is below `tol`.",
-    "ja": ""
+    "ja": "R の `solve(a, b)` と同じく、ベクトル `b` に対して連立方程式 `a x = b` を解きます。\n\n`a` が正確に特異である場合、またはその推定された逆数の条件数が `tol` より小さい場合は例外を投げます。"
   },
   "solve(2)#@param a": {
     "hash": "08fd13cc80ac",
     "en": "A square matrix (array of rows).",
-    "ja": ""
+    "ja": "正方行列です (行の配列です)。"
   },
   "solve(2)#@param b": {
     "hash": "a83f04530b74",
     "en": "The right-hand side matrix (array of rows), with as many rows as `a`.",
-    "ja": ""
+    "ja": "右辺の行列です (行の配列です)。行数は `a` と同じです。"
   },
   "solve(2)#@param options": {
     "hash": "bd0af3b38bea",
     "en": "See {@link SolveOptions}.",
-    "ja": ""
+    "ja": "{@link SolveOptions} を参照してください。"
   },
   "solve(2)#@returns": {
     "hash": "e9b5e9515a54",
     "en": "The solution `x` as an array of rows.",
-    "ja": ""
+    "ja": "解 `x` を行の配列にしたものです。"
   },
   "solve(2)#summary": {
     "hash": "052d43e83e6c",
     "en": "Solves the linear system `a x = b` for a matrix `b`.",
-    "ja": ""
+    "ja": "行列 `b` に対して連立方程式 `a x = b` を解きます。"
   },
   "solve(3)#@param a": {
     "hash": "08fd13cc80ac",
     "en": "A square matrix (array of rows).",
-    "ja": ""
+    "ja": "正方行列です (行の配列です)。"
   },
   "solve(3)#@param b": {
     "hash": "535f63ce539e",
     "en": "The right-hand side, a vector or a matrix. Omit to compute the inverse.",
-    "ja": ""
+    "ja": "右辺です。ベクトルまたは行列です。省略すると逆行列を計算します。"
   },
   "solve(3)#@param options": {
     "hash": "bd0af3b38bea",
     "en": "See {@link SolveOptions}.",
-    "ja": ""
+    "ja": "{@link SolveOptions} を参照してください。"
   },
   "solve(3)#@returns": {
     "hash": "ca10b909be1e",
     "en": "A vector if `b` is a vector, otherwise an array of rows.",
-    "ja": ""
+    "ja": "`b` がベクトルの場合はベクトルです。それ以外の場合は行の配列です。"
   },
   "solve(3)#summary": {
     "hash": "7e89093f01ff",
     "en": "Solves the linear system `a x = b`, or inverts `a` when `b` is omitted.",
-    "ja": ""
+    "ja": "連立方程式 `a x = b` を解きます。`b` を省略した場合は、`a` の逆行列を計算します。"
   },
   "subtract#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "subtract#summary": {
     "hash": "fe0f15394e26",
     "en": "Element-wise difference with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to\nR's `-`.",
-    "ja": ""
+    "ja": "R のリサイクルによる要素ごとの差です (短いベクトルは行列の列の方向にリサイクルされます)。R の `-` と同等です。"
   },
   "svd#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "svd#@param options": {
     "hash": "be50fe0cea4b",
     "en": "See {@link SvdOptions}.",
-    "ja": ""
+    "ja": "{@link SvdOptions} を参照してください。"
   },
   "svd#@param x": {
     "hash": "0b32178fbabd",
     "en": "A matrix (array of rows).",
-    "ja": ""
+    "ja": "行列です (行の配列です)。"
   },
   "svd#@returns": {
     "hash": "21648c79480b",
     "en": "The singular values and vectors. See {@link SvdResult}.",
-    "ja": ""
+    "ja": "特異値と特異ベクトルです。{@link SvdResult} を参照してください。"
   },
   "svd#summary": {
     "hash": "222b82e2ff44",
     "en": "Singular value decomposition. Equivalent to R's `svd()`.\n\nUses the Golub-Reinsch algorithm, while R uses LAPACK's `dgesdd`. Singular values agree with R up to\nrounding, but the signs of singular vectors may differ from R (both are correct); for repeated singular\nvalues the vectors may span the same subspace with a different basis. Singular vectors beyond\n`min(nrow, ncol)` are a basis of the orthogonal complement and do not match R. Throws on `NaN` or infinite values.",
-    "ja": ""
+    "ja": "特異値分解です。R の `svd()` と同等です。\n\nGolub–Reinsch のアルゴリズムを使います。R は LAPACK の `dgesdd` を使います。特異値は丸め誤差の範囲で R と一致しますが、一方で特異ベクトルの符号は R と異なることがあります (どちらも正しいものです)。重複する特異値の場合、ベクトルは同じ部分空間を張りますが、基底は R と異なることがあります。`min(nrow, ncol)` を超える特異ベクトルは直交補完の基底であり、R とは一致しません。`NaN` または無限大の値があると例外を投げます。"
   },
   "t#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "t#summary": {
     "hash": "8d34dd5ef7c8",
     "en": "Transpose. Equivalent to R's `t()`. A vector becomes a 1-row matrix.",
-    "ja": ""
+    "ja": "転置です。R の `t()` と同等です。ベクトルは 1 行の行列になります。"
   },
   "tcrossprod#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "tcrossprod#@param x": {
     "hash": "f207ff995045",
     "en": "A matrix (array of rows) or a vector.",
-    "ja": ""
+    "ja": "行列 (行の配列です) またはベクトルです。"
   },
   "tcrossprod#@param y": {
     "hash": "fda5629c6e1d",
     "en": "A matrix or a vector with the same number of columns as `x`. Defaults to `x`.",
-    "ja": ""
+    "ja": "行列またはベクトルです。列数は `x` と同じです。既定は `x` です。"
   },
   "tcrossprod#@returns": {
     "hash": "3d0f28898440",
     "en": "The product as an array of rows (`nrow(x)` x `nrow(y)`).",
-    "ja": ""
+    "ja": "積を行の配列にしたものです (`nrow(x)` x `nrow(y)`)。"
   },
   "tcrossprod#summary": {
     "hash": "f0f9200e9707",
     "en": "Matrix cross-product `x %*% t(y)`, or `x %*% t(x)` when `y` is omitted. Equivalent to R's `tcrossprod()`.\n\nA vector argument is treated as a one-column matrix.",
-    "ja": ""
+    "ja": "行列のクロス積 `x %*% t(y)` です。`y` を省略した場合は `x %*% t(x)` です。R の `tcrossprod()` と同等です。\n\nベクトルの引数は、1 列の行列として扱われます。"
   }
 }
