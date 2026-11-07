@@ -947,336 +947,336 @@
   "LmerSummary.warnings#summary": {
     "hash": "1e5f15e620f6",
     "en": "R's warnings: those about the eigenvalues of the Hessian of the deviance in the variance parameters.",
-    "ja": ""
+    "ja": "R の警告です (分散パラメータについての逸脱度のヘッセ行列の固有値に関するもの)。"
   },
   "LmerSummaryOptions#summary": {
     "hash": "d8447b5c0c87",
     "en": "Options of {@link lmerSummary}. Any other key is a RangeError (R's lmerTest ignores unknown arguments with a\nwarning).",
-    "ja": ""
+    "ja": "{@link lmerSummary} のオプションです。それ以外のキーは RangeError になります (R の lmerTest は、未知の引数を\n警告付きで無視します)。"
   },
   "LmerSummaryOptions.ddf#summary": {
     "hash": "093599091028",
     "en": "The denominator degrees of freedom: `\"Satterthwaite\"` (default; with df and p-values) or `\"lme4\"` (lme4's table:\nestimates, standard errors and t values only).",
-    "ja": ""
+    "ja": "分母の自由度です: `\"Satterthwaite\"` (既定。df と p 値を含みます) または `\"lme4\"` (lme4 の表で、\n推定値、標準誤差、t 値のみを含みます)。"
   },
   "LmerVarCorr#summary": {
     "hash": "38d2d3df3ad9",
     "en": "The variance and correlation parameters of a random-effects term in a {@link LmerResult}: one entry of R's\n`VarCorr()`.",
-    "ja": ""
+    "ja": "{@link LmerResult} における変量効果の項の分散パラメータと相関パラメータです。R の\n`VarCorr()` の要素 1 つです。"
   },
   "LmerVarCorr.columns#summary": {
     "hash": "e29329b85ee3",
     "en": "The names of the term's columns, such as `[\"(Intercept)\", \"Days\"]`.",
-    "ja": ""
+    "ja": "項の列の名前です (例: `[\"(Intercept)\", \"Days\"]`)。"
   },
   "LmerVarCorr.corr#summary": {
     "hash": "f3bde709fbf3",
     "en": "Their correlation matrix (array of rows; 1 on the diagonal).",
-    "ja": ""
+    "ja": "相関行列です (行の配列。対角要素は 1 です)。"
   },
   "LmerVarCorr.group#summary": {
     "hash": "c63eb771f6d3",
     "en": "The grouping factor's name, such as `\"Subject\"` or `\"cask:batch\"`.",
-    "ja": ""
+    "ja": "グループ化因子の名前です (例: `\"Subject\"` や `\"cask:batch\"`)。"
   },
   "LmerVarCorr.sd#summary": {
     "hash": "8fa8531dbf29",
     "en": "The standard deviations of the random effects, one per column.",
-    "ja": ""
+    "ja": "変量効果の標準偏差です。列ごとに 1 つあります。"
   },
   "MixedPrediction#summary": {
     "hash": "eeca8f1e500a",
     "en": "Result of {@link glmerPredict} and {@link lmerPredict}.",
-    "ja": ""
+    "ja": "{@link glmerPredict} と {@link lmerPredict} の結果です。"
   },
   "MixedPrediction.fit#summary": {
     "hash": "63c11881964c",
     "en": "The predictions, one per row (of `newdata`, or of the fit), on the scale of `type`.",
-    "ja": ""
+    "ja": "予測値です。行 (`newdata` の行、なければ当てはめの行) ごとに 1 つあり、`type` の尺度上の値です。"
   },
   "MixedPrediction.seFit#summary": {
     "hash": "fedb112732a4",
     "en": "Their standard errors (only with `seFit: true`; R's `se.fit`).",
-    "ja": ""
+    "ja": "その標準誤差です (`seFit: true` の場合のみ。R の `se.fit`)。"
   },
   "MixedPrediction.warnings#summary": {
     "hash": "5555764acb68",
     "en": "R's warnings (only when there are some: glmer's warning about the standard errors).",
-    "ja": ""
+    "ja": "R の警告です (ある場合のみ。glmer の標準誤差についての警告です)。"
   },
   "glmer#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmer#@param data": {
     "hash": "804617eb5ffd",
     "en": "The data frame: an object of columns.",
-    "ja": ""
+    "ja": "データフレームです (列のオブジェクトです)。"
   },
   "glmer#@param formula": {
     "hash": "aca761d45669",
     "en": "A formula such as `\"cbind(inc, notinc) ~ period + (1 | herd)\"` or `\"y ~ x + (1 | g)\"`.",
-    "ja": ""
+    "ja": "`\"cbind(inc, notinc) ~ period + (1 | herd)\"` や `\"y ~ x + (1 | g)\"` のような式です。"
   },
   "glmer#@param options": {
     "hash": "ba0059c7107b",
     "en": "`family`, `link`, `weights`, `offset`, `nAGQ`, `start`, and `contrasts` and `levels` as in\n  {@link lmer} (see {@link GlmerOptions} for the keys accepted).",
-    "ja": ""
+    "ja": "`family`、`link`、`weights`、`offset`、`nAGQ`、`start`、および `contrasts` と `levels` (\n  {@link lmer} と同じ。受け付けるキーは {@link GlmerOptions} を参照)。"
   },
   "glmer#summary": {
     "hash": "e78d1c46b3eb",
     "en": "Fit a generalized linear mixed model by the Laplace approximation (`nAGQ = 1`, default), by adaptive Gauss-Hermite\nquadrature (`nAGQ` from 2 to 100) or with the fixed effects from the penalised IRLS (`nAGQ = 0`). Equivalent to `lme4::glmer()` in R. With the quantities of its methods:\n`fixef()`, `coef(summary())` (without p-values), `vcov()`, `sigma()`, `VarCorr()`, `ranef()`, `fitted()`,\n`predict()`, `residuals()` of the four types, `deviance()`, `logLik()`, `AIC()`, `BIC()` and `isSingular()`.\n\nThe families are binomial, poisson, Gamma, inverse.gaussian and gaussian (not with the identity link: that is\n{@link lmer}), with the links of {@link glm} and lme4's own inverse links and variance functions. The formula is\nas in {@link lmer}; a binomial response may be 0/1 values, booleans, strings or a factor (the first level failure),\nproportions with the numbers of trials as `weights`, or `cbind(successes, failures)` with two column names on the\nleft-hand side.\n\nThe estimate is the exact minimiser of the Laplace deviance computed at the exact conditional mode of the random\neffects (lme4's optimiser and its penalised IRLS stop early, so lme4's values typically differ in the 4th to 6th\nsignificant digit, its standard errors by up to about 1%). Elements of θ on the boundary are exactly 0, and the fit\nis then singular. lme4's warnings about its optimiser and its convergence checks are not given.\n\nThe scale of the response: lme4's Laplace criterion leaves out the dispersion, so for the poisson,\ninverse.gaussian and gaussian families it is not invariant to the scale of the response (or of the prior weights).\nWhere the information about the random effects at the start, Σ W z² of a column of Z (W the working weights at\nthe starting means), is above 2^40 (the penalised system then loses about 40 of its 53 bits), or below 2^-40 and\nthe fit fails or a term ends at θ = 0 on a criterion flat to rounding, the result is a RangeError saying so. For\ndata like the example below: poisson counts up to about 1e11 (prior weights up to about 2^34), inverse.gaussian\nwith the log link up to about 1e13, gaussian with the log link from about 1e-6 to 5e4 fit; beyond, the RangeError.\nGamma fits are not limited by the scale of the response (its criterion is invariant; with the log link a tiny\nresponse is rescaled).\n\nAdaptive Gauss-Hermite quadrature (`nAGQ > 1`) needs a single scalar random-effects term such as `(1 | g)`, with\nR's errors otherwise. It is offered for binomial and poisson only: for Gamma, inverse.gaussian and gaussian it is a\nRangeError, since lme4 holds the dispersion at 1 there, so that its estimates would not be maximum likelihood. Its\n`logLik`, `AIC` and `BIC` are those of the log-likelihood, unlike R's, which leave out the constant of the\nsaturated model (`aic − Σ` deviance residuals) for nAGQ > 1: they differ from R's by that constant and are\ncomparable with the Laplace fit's.",
-    "ja": ""
+    "ja": "Laplace 近似 (`nAGQ = 1`、既定)、適応的 Gauss-Hermite 求積 (`nAGQ` は 2 から 100)、\nまたは (`nAGQ = 0`) 罰則付き IRLS による固定効果で、一般化線形混合モデルを当てはめます。R の `lme4::glmer()` と同等です。メソッドに対応する量として、\n次を持ちます:`fixef()`、`coef(summary())` (p 値なし)、`vcov()`、`sigma()`、`VarCorr()`、`ranef()`、`fitted()`、`predict()`、\n4 種類の `residuals()`、`deviance()`、`logLik()`、`AIC()`、`BIC()`、`isSingular()`。\n\n族は binomial、poisson、Gamma、inverse.gaussian、\ngaussian です (gaussian は恒等リンクのものを除きます。それは {@link lmer} の対象です)。リンクは {@link glm} のもので、\nlme4 独自の逆リンクと分散関数も使います。式は {@link lmer} と同じです。二項分布の応答は、\n0/1 の値、真偽値、文字列、または因子 (第 1 水準が失敗) です。比率は、試行の数を `weights` として与えます。\nまたは、左辺に 2 つの列名を書いた `cbind(successes, failures)` を与えます。\n\n推定値は、変量効果の厳密な条件付きモードで計算した Laplace 逸脱度の、\n厳密な最小化点です (lme4 の最適化と罰則付き IRLS は途中で止まるため、lme4 の値は通常、\n4 から 6 桁目の有効数字が異なり、標準誤差は約 1% まで異なることがあります)。境界上の θ の要素は厳密に 0 になり、\nそのとき当てはめは特異になります。lme4 の最適化や収束判定についての警告は出しません。\n\n応答の尺度について: lme4 の Laplace 基準は分散を含まないため、poisson、inverse.gaussian、\ngaussian の族では、応答 (または事前の重み) の尺度に対して不変ではありません。開始時点での変量効果の情報、\nすなわち Z の列の Σ W z² (W は開始時点の平均での作業用の重み) が 2^40 より大きい場合 (そのとき罰則付きの系は 53 ビットのうち約 40 ビットを失います)、\nまたは 2^-40 より小さく、かつ当てはめが失敗するか、\n丸め誤差の範囲で平坦な基準上でいずれかの項が θ = 0 で終わる場合は、その旨を述べた RangeError になります。\n下の例と同様のデータでは、poisson の度数は約 1e11 まで (事前の重みは約 2^34 まで)、\nlog リンクの inverse.gaussian は約 1e13 まで、\nlog リンクの gaussian は約 1e-6 から 5e4 までなら当てはまります。それを超えると RangeError になります。Gamma の当てはめは、\n応答の尺度では制限されません (その基準は不変です。log リンクのときは、極端に小さい応答を再尺度化します)。\n\n適応的 Gauss-Hermite 求積 (`nAGQ > 1`) には、`(1 | g)` のような 1 つのスカラーの変量効果の項が必要です。\nそれ以外の場合は、R と同じくエラーになります。対象は binomial と poisson だけです。\nGamma、inverse.gaussian、gaussian では RangeError になります。\nlme4 はそこで分散を 1 に固定するため、その推定値は最尤推定値になりません。その `logLik`、`AIC`、`BIC` は対数尤度によるものです。\nR の値は、nAGQ > 1 のとき飽和モデルの定数 (`aic − Σ` deviance residuals) を除くため、\nR とはその定数の分だけ異なります。そのため、Laplace の当てはめと比較できます。"
   },
   "glmerAnova(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmerAnova(0)#@param fit": {
     "hash": "354f5a7d5c70",
     "en": "A result of {@link glmer} (the object it returned, not a copy), or an array of at least two fits of\n  glmer, lmer and glm.",
-    "ja": ""
+    "ja": "{@link glmer} の結果です (返されたオブジェクトそのもので、コピーではありません)。または、\n  glmer、lmer、glm の当てはめからなる、少なくとも 2 つの当てはめの配列です。"
   },
   "glmerAnova(0)#@param options": {
     "hash": "73783cde1b36",
     "en": "For one fit none; for several `refit` and `names` (see {@link LmerCompareOptions}).",
-    "ja": ""
+    "ja": "1 つの当てはめの場合は指定がなく、複数の場合は `refit` と `names` です ({@link LmerCompareOptions} を参照)。"
   },
   "glmerAnova(0)#summary": {
     "hash": "9d9b658e6855",
     "en": "The ANOVA table of the fixed-effects terms of a generalized linear mixed model fitted by {@link glmer}, or, given an\narray of fits, the likelihood-ratio comparison of the models. Equivalent to `lme4::anova()` in R.\n\nFor one fit: for each term of the fixed effects (in the order of the columns, the intercept left out), the\nsequential Wald sum of squares, the squared length of the term's part of R_X β̂ (R_X the Cholesky factor of\nR_X'R_X at the conditional mode), its number of columns (`npar`), the mean square and F = mean square / σ² (σ = 1\nfor binomial and poisson). As in lme4, there are no p-values (the statistics need not be F distributed).\n\nFor several fits: fits of {@link glmer}, {@link lmer} and {@link glm} together (at least one of glmer or lmer). The\nglmer and lmer fits must be fitted to the same data object with the same rows and the same response (the left-hand\nside of the formula); a glm fit must have the same number of observations and the same response values; all must\nhave the same prior weights. lmer's REML fits are refitted by maximum likelihood (unless `refit: false`); the models\nare sorted by their number of parameters, and each is compared with the one before by the likelihood-ratio test\nwhere that one is nested in it: the same family, link and offset (an lmer fit is gaussian with the identity link),\nits fixed-effects columns in the column space of the larger fit's and its random-effects terms within the larger\nfit's. Unlike R's, the log-likelihood of a glmer fit with `nAGQ > 1` includes the saturated model's constant (see\n{@link glmer}), so that it can be compared with the Laplace fit and with glm.",
-    "ja": ""
+    "ja": "{@link glmer} で当てはめた一般化線形混合モデルの、固定効果の項の分散分析表です。または、\n当てはめの配列を与えた場合は、モデルの尤度比による比較です。R の `lme4::anova()` と同等です。\n\n1 つの当てはめの場合: 固定効果の各項について (列の順で、切片は除きます)、逐次的な Wald 平方和 (R_X β̂ のうち、\nその項の部分の長さの二乗。R_X は条件付きモードでの R_X'R_X のコレスキー因子)、\n列の数 (`npar`)、平均平方、そして F = 平均平方 / σ² (binomial と poisson では σ = 1) を示します。\nlme4 と同じく、p 値はありません (統計量は F 分布に従うとは限らないためです)。\n\n複数の当てはめの場合: {@link glmer}、{@link lmer}、{@link glm} の当てはめを混ぜて使えます (glmer か lmer の少なくとも一方を含む必要があります)。\nglmer と lmer の当てはめは、同じデータオブジェクト、\n同じ行、同じ応答 (式の左辺) で当てはめたものでなければなりません。glm の当てはめは、観測数と応答の値が同じでなければなりません。\nすべての当てはめで、事前の重みが同じである必要があります。lmer の REML の当てはめは、\n(`refit: false` でない限り) 最尤法で当てはめ直します。モデルはパラメータの数で並べ替えられ、各モデルは、1 つ前のモデルがそれに含まれる (ネストしている) 場合に限り、\n1 つ前のモデルと尤度比検定で比べられます。ネストとは、族、リンク、\nオフセットが同じこと (lmer の当てはめは恒等リンクの gaussian とみなします)、1 つ前のモデルの固定効果の列が、より大きい当てはめの列空間に含まれること、\n変量効果の項が、より大きい当てはめの中にあることです。R と違い、`nAGQ > 1` の glmer の当てはめの対数尤度は、\n飽和モデルの定数を含みます ({@link glmer} を参照)。そのため、Laplace の当てはめや glm と比較できます。"
   },
   "glmerAnova(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmerAnova(1)#@param options": {
     "hash": "73783cde1b36",
     "en": "For one fit none; for several `refit` and `names` (see {@link LmerCompareOptions}).",
-    "ja": ""
+    "ja": "1 つの当てはめの場合は指定がなく、複数の場合は `refit` と `names` です ({@link LmerCompareOptions} を参照)。"
   },
   "glmerAnova(1)#summary": {
     "hash": "9d9b658e6855",
     "en": "The ANOVA table of the fixed-effects terms of a generalized linear mixed model fitted by {@link glmer}, or, given an\narray of fits, the likelihood-ratio comparison of the models. Equivalent to `lme4::anova()` in R.\n\nFor one fit: for each term of the fixed effects (in the order of the columns, the intercept left out), the\nsequential Wald sum of squares, the squared length of the term's part of R_X β̂ (R_X the Cholesky factor of\nR_X'R_X at the conditional mode), its number of columns (`npar`), the mean square and F = mean square / σ² (σ = 1\nfor binomial and poisson). As in lme4, there are no p-values (the statistics need not be F distributed).\n\nFor several fits: fits of {@link glmer}, {@link lmer} and {@link glm} together (at least one of glmer or lmer). The\nglmer and lmer fits must be fitted to the same data object with the same rows and the same response (the left-hand\nside of the formula); a glm fit must have the same number of observations and the same response values; all must\nhave the same prior weights. lmer's REML fits are refitted by maximum likelihood (unless `refit: false`); the models\nare sorted by their number of parameters, and each is compared with the one before by the likelihood-ratio test\nwhere that one is nested in it: the same family, link and offset (an lmer fit is gaussian with the identity link),\nits fixed-effects columns in the column space of the larger fit's and its random-effects terms within the larger\nfit's. Unlike R's, the log-likelihood of a glmer fit with `nAGQ > 1` includes the saturated model's constant (see\n{@link glmer}), so that it can be compared with the Laplace fit and with glm.",
-    "ja": ""
+    "ja": "{@link glmer} で当てはめた一般化線形混合モデルの、固定効果の項の分散分析表です。または、\n当てはめの配列を与えた場合は、モデルの尤度比による比較です。R の `lme4::anova()` と同等です。\n\n1 つの当てはめの場合: 固定効果の各項について (列の順で、切片は除きます)、逐次的な Wald 平方和 (R_X β̂ のうち、\nその項の部分の長さの二乗。R_X は条件付きモードでの R_X'R_X のコレスキー因子)、\n列の数 (`npar`)、平均平方、そして F = 平均平方 / σ² (binomial と poisson では σ = 1) を示します。\nlme4 と同じく、p 値はありません (統計量は F 分布に従うとは限らないためです)。\n\n複数の当てはめの場合: {@link glmer}、{@link lmer}、{@link glm} の当てはめを混ぜて使えます (glmer か lmer の少なくとも一方を含む必要があります)。\nglmer と lmer の当てはめは、同じデータオブジェクト、\n同じ行、同じ応答 (式の左辺) で当てはめたものでなければなりません。glm の当てはめは、観測数と応答の値が同じでなければなりません。\nすべての当てはめで、事前の重みが同じである必要があります。lmer の REML の当てはめは、\n(`refit: false` でない限り) 最尤法で当てはめ直します。モデルはパラメータの数で並べ替えられ、各モデルは、1 つ前のモデルがそれに含まれる (ネストしている) 場合に限り、\n1 つ前のモデルと尤度比検定で比べられます。ネストとは、族、リンク、\nオフセットが同じこと (lmer の当てはめは恒等リンクの gaussian とみなします)、1 つ前のモデルの固定効果の列が、より大きい当てはめの列空間に含まれること、\n変量効果の項が、より大きい当てはめの中にあることです。R と違い、`nAGQ > 1` の glmer の当てはめの対数尤度は、\n飽和モデルの定数を含みます ({@link glmer} を参照)。そのため、Laplace の当てはめや glm と比較できます。"
   },
   "glmerPredict#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmerPredict#@param fit": {
     "hash": "18c2ba618141",
     "en": "The object returned by {@link glmer} (not a copy of it).",
-    "ja": ""
+    "ja": "{@link glmer} が返したオブジェクトです (そのコピーではありません)。"
   },
   "glmerPredict#@param options": {
     "hash": "0a9e4fff26a3",
     "en": "`newdata`, `reForm`, `allowNewLevels`, `randomOnly`, `type`, `seFit` and `newoffset` (see\n  {@link GlmerPredictOptions}).",
-    "ja": ""
+    "ja": "`newdata`、`reForm`、`allowNewLevels`、`randomOnly`、`type`、`seFit`、`newoffset` (\n  {@link GlmerPredictOptions} を参照)。"
   },
   "glmerPredict#summary": {
     "hash": "7a1ffce431fd",
     "en": "Predictions of a generalized linear mixed model fitted by {@link glmer}, at the rows of the fit or at new data, with\nall, some or none of the random-effects terms, on the link or the response scale, optionally with their standard\nerrors. Equivalent to `lme4::predict()` in R.\n\nThe rules are those of {@link lmerPredict}, with the offset: without `newdata` the fit's; with it, an offset given\nto glmer as a column name is read from that column of `newdata`, one given as an array is replaced by `newoffset`\n(default 0: R ignores glmer's `offset` argument in prediction). `type: \"response\"` applies R's inverse link (at the\nfit's rows with all terms, the fitted means). The standard errors use the Fisher weights at the conditional mode,\nwith R's warning that they are an approximation; on the response scale they are multiplied by |dμ/dη|.",
-    "ja": ""
+    "ja": "{@link glmer} で当てはめた一般化線形混合モデルの予測値です。当てはめの行、\nまたは新しいデータの行について、変量効果の項をすべて、一部、またはどれも含めずに、リンクの尺度または応答の尺度で計算します。\n必要に応じて、標準誤差も付けます。R の `lme4::predict()` と同等です。\n\n規則は {@link lmerPredict} と同じで、オフセットについては次のとおりです。`newdata` がない場合は当てはめのオフセットを使います。\nある場合、glmer に列名で与えたオフセットは `newdata` のその列から読み、\n配列で与えたものは `newoffset` で置き換えます (既定は 0 です。R は予測で glmer の `offset` 引数を無視します)。`type: \"response\"` は、\nR と同じ逆リンクを適用します (当てはめの行で、すべての項を使う場合は、当てはめられた平均です)。標準誤差は、\n条件付きモードでの Fisher 重みを使います。R と同じく、これは近似であるという警告が付きます。応答の尺度では、|dμ/dη| を掛けます。"
   },
   "glmerSummary#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmerSummary#@param fit": {
     "hash": "a138dee70b56",
     "en": "A result of {@link glmer} (the object it returned, not a copy).",
-    "ja": ""
+    "ja": "{@link glmer} の結果です (返されたオブジェクトそのもので、コピーではありません)。"
   },
   "glmerSummary#@param options": {
     "hash": "29a35ff332d6",
     "en": "None yet (see {@link GlmerSummaryOptions}).",
-    "ja": ""
+    "ja": "今のところ指定できるものはありません ({@link GlmerSummaryOptions} を参照)。"
   },
   "glmerSummary#summary": {
     "hash": "61037bbd2ed2",
     "en": "The summary of a generalized linear mixed model fitted by {@link glmer}: the coefficient table with p-values, the\ncorrelation of the fixed effects, the quantiles of the scaled residuals, the information criteria, the variance\ncomponents and the numbers of groups. Equivalent to `lme4::summary()` in R.\n\nThe p-values are from the normal distribution for every family, as lme4's (whose third column is named `t value`\nfor the families with a dispersion, although its p-values are normal ones). The values are those of the fit at the\nexact optimum (see {@link glmer}), so they typically differ from lme4's in the 4th to 6th significant digit. For\n`nAGQ > 1`, `logLik`, `AIC`, `BIC` and `minus2LogLik` are those of the log-likelihood, as the fit's.",
-    "ja": ""
+    "ja": "{@link glmer} で当てはめた一般化線形混合モデルの要約です。\np 値つきの係数表、固定効果の相関、尺度化された残差の分位点、情報量規準、分散成分、\n群の数を含みます。R の `lme4::summary()` と同等です。\n\np 値は、すべての族で正規分布から求めます。これは lme4 と同じです (lme4 では、\n分散パラメータをもつ族でも 3 列目が `t value` と名付けられていますが、その p 値は正規分布によるものです)。値は、厳密な最適点での当てはめのものです ({@link glmer} を参照)。\nそのため、通常は lme4 と 4 から 6 桁目の有効数字が異なります。`nAGQ > 1` の場合、`logLik`、`AIC`、`BIC`、`minus2LogLik` は、\n当てはめのものと同じく対数尤度によるものです。"
   },
   "lmer#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmer#@param data": {
     "hash": "804617eb5ffd",
     "en": "The data frame: an object of columns.",
-    "ja": ""
+    "ja": "データフレームです (列のオブジェクトです)。"
   },
   "lmer#@param formula": {
     "hash": "03ad6a6a20b8",
     "en": "A formula such as `\"Reaction ~ Days + (Days | Subject)\"`.",
-    "ja": ""
+    "ja": "`\"Reaction ~ Days + (Days | Subject)\"` のような式です。"
   },
   "lmer#@param options": {
     "hash": "92839f7b18dd",
     "en": "`REML`, and `contrasts` and `levels` as in {@link lm} (see {@link LmerOptions} for the keys accepted).",
-    "ja": ""
+    "ja": "`REML`、および `contrasts` と `levels` は {@link lm} と同じです ({@link LmerOptions} で受け付けるキーを参照)。"
   },
   "lmer#summary": {
     "hash": "b5ef9c6bb0ab",
     "en": "Fit a linear mixed model by REML (default) or maximum likelihood. Equivalent to `lme4::lmer()` in R. With the\nquantities of its methods: `fixef()`, `coef(summary())` (without p-values), `vcov()`, `sigma()`, `VarCorr()`,\n`ranef()`, `fitted()`, `residuals()`, `logLik()`, `AIC()`, `BIC()`, `deviance()`, `REMLcrit()` and `isSingular()`.\n\nThe formula has random-effects terms `(lhs | group)` (correlated effects of the columns of `lhs` within each level\nof `group`) or `(lhs || group)` (uncorrelated); `group` may be `a:b` (the combinations), `a/b` (nested: `b:a` and\n`a`) and so on, as in lme4. The fixed-effects part is coded as in {@link lm}; aliased columns are dropped (with a\nmessage). Rows with a missing value in a variable of the formula are dropped (`rows` lists those used).\n\nThe covariance parameters θ are the lower triangles of the relative covariance factors of the terms; the estimate\nis the exact minimiser of the profiled criterion (lme4's optimiser stops close to it, so lme4's values typically\ndiffer in the 5th to 9th significant digit). Elements on the boundary are exactly 0, and the fit is then singular.\nThe computation is sparse (a sparse Cholesky factorisation, as in lme4), so many groups are handled quickly.\n\nThe functions that take the fit ({@link lmerSummary}, {@link lmerAnova}, {@link lmerContest} and the others) need\nthe object `lmer` returned itself: a copy of it (`structuredClone`, `{ ...fit }`, JSON or `postMessage`) lacks the\ninternal values they use and is a TypeError. The fields of a copy keep their values.",
-    "ja": ""
+    "ja": "REML (既定) または最尤法で線形混合モデルを当てはめます。R の `lme4::lmer()` と同等です。メソッドに対応する量として、\n次を持ちます:\n`fixef()`、`coef(summary())` (p 値なし)、`vcov()`、`sigma()`、`VarCorr()`、`ranef()`、`fitted()`、`residuals()`、`logLik()`、`AIC()`、`BIC()`、`deviance()`、`REMLcrit()`、`isSingular()`。\n\n式の変量効果の項は、`(lhs | group)` (`group` の各水準の中での `lhs` の列の、\n相関のある効果) または `(lhs || group)` (相関なし) です。`group` は `a:b` (組み合わせ)、`a/b` (入れ子: `b:a` と `a`) などでもよく、\nlme4 と同じです。固定効果の部分は {@link lm} と同じように符号化されます。\n縮退した列は (メッセージとともに) 除かれます。式の変数に欠測値がある行は除かれます (使った行は `rows` に示されます)。\n\n共分散パラメータ θ は、項の相対共分散因子の下三角部分です。推定値は、\nプロファイルされた基準の厳密な最小化点です (lme4 の最適化はその近くで止まるため、lme4 の値は通常、\n5 から 9 桁目の有効数字が異なります)。境界上の要素は厳密に 0 になり、そのとき当てはめは特異になります。\n計算は疎です (lme4 と同じく、疎なコレスキー分解を使います)。そのため、多くのグループも速く扱えます。\n\n{@link lmerSummary}、{@link lmerAnova}、{@link lmerContest} など、\n当てはめを受け取る関数には、`lmer` が返したオブジェクトそのものが必要です。そのコピー (`structuredClone`、`{ ...fit }`、\nJSON、`postMessage`) は、それらが使う内部の値を持たず、TypeError になります。コピーのフィールドは、値を保ちます。"
   },
   "lmerAnova(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmerAnova(0)#@param fit": {
     "hash": "fdc9f902d40f",
     "en": "A result of {@link lmer} (the object it returned, not a copy), or an array of at least two.",
-    "ja": ""
+    "ja": "{@link lmer} の結果です (返されたオブジェクトそのもので、コピーではありません)。または、少なくとも 2 つの当てはめの配列です。"
   },
   "lmerAnova(0)#@param options": {
     "hash": "8c8adc64295f",
     "en": "For one fit `type`; for several `refit` and `names`.",
-    "ja": ""
+    "ja": "1 つの当てはめの場合は `type`、複数の場合は `refit` と `names` です。"
   },
   "lmerAnova(0)#summary": {
     "hash": "5715021f5c68",
     "en": "The ANOVA table of a linear mixed model fitted by {@link lmer}, with Satterthwaite's denominator degrees of freedom\n(lmerTest's `anova()`), or, given an array of fits, the likelihood-ratio comparison of the models (lme4's\n`anova()` of several fits). Equivalent to `lmerTest::anova()` in R.\n\nFor one fit: each term of the fixed effects is tested jointly (an F-test of its hypothesis matrix, of Type III by\ndefault, II or I as in lmerTest; see {@link lmerContest} for the test). Type III with an empty cell of an\ninteraction gives the message `Missing cells for: ...`. A term without a test is listed last, with NaN.\n\nFor several fits (fitted to the same data object, with the same rows): REML fits are first refitted by maximum\nlikelihood (unless `refit: false`), the models are sorted by their number of parameters, and each is compared with\nthe one before by the likelihood-ratio test.",
-    "ja": ""
+    "ja": "{@link lmer} で当てはめた線形混合モデルの分散分析表です。\n分母の自由度は Satterthwaite のものです (lmerTest の `anova()`)。または、当てはめの配列を与えた場合は、\nモデルの尤度比による比較です (複数の当てはめに対する lme4 の `anova()`)。R の `lmerTest::anova()` と同等です。\n\n1 つの当てはめの場合: 固定効果の各項は同時に検定されます (その仮説行列の F 検定です。既定は Type III で、\nlmerTest と同じく II または I を指定できます。検定の内容は {@link lmerContest} を参照)。Type III で交互作用に空のセルがある場合は、\nメッセージ `Missing cells for: ...` を出します。検定のない項は最後に並び、NaN になります。\n\n複数の当てはめの場合 (同じデータオブジェクトで、同じ行を使って当てはめたもの): REML の当てはめは、\nまず最尤法で当てはめ直します (`refit: false` でない限り)。\nモデルはパラメータの数で並べ替えられ、それぞれ 1 つ前のモデルと尤度比検定で比べられます。"
   },
   "lmerAnova(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmerAnova(1)#@param options": {
     "hash": "8c8adc64295f",
     "en": "For one fit `type`; for several `refit` and `names`.",
-    "ja": ""
+    "ja": "1 つの当てはめの場合は `type`、複数の場合は `refit` と `names` です。"
   },
   "lmerAnova(1)#summary": {
     "hash": "5715021f5c68",
     "en": "The ANOVA table of a linear mixed model fitted by {@link lmer}, with Satterthwaite's denominator degrees of freedom\n(lmerTest's `anova()`), or, given an array of fits, the likelihood-ratio comparison of the models (lme4's\n`anova()` of several fits). Equivalent to `lmerTest::anova()` in R.\n\nFor one fit: each term of the fixed effects is tested jointly (an F-test of its hypothesis matrix, of Type III by\ndefault, II or I as in lmerTest; see {@link lmerContest} for the test). Type III with an empty cell of an\ninteraction gives the message `Missing cells for: ...`. A term without a test is listed last, with NaN.\n\nFor several fits (fitted to the same data object, with the same rows): REML fits are first refitted by maximum\nlikelihood (unless `refit: false`), the models are sorted by their number of parameters, and each is compared with\nthe one before by the likelihood-ratio test.",
-    "ja": ""
+    "ja": "{@link lmer} で当てはめた線形混合モデルの分散分析表です。\n分母の自由度は Satterthwaite のものです (lmerTest の `anova()`)。または、当てはめの配列を与えた場合は、\nモデルの尤度比による比較です (複数の当てはめに対する lme4 の `anova()`)。R の `lmerTest::anova()` と同等です。\n\n1 つの当てはめの場合: 固定効果の各項は同時に検定されます (その仮説行列の F 検定です。既定は Type III で、\nlmerTest と同じく II または I を指定できます。検定の内容は {@link lmerContest} を参照)。Type III で交互作用に空のセルがある場合は、\nメッセージ `Missing cells for: ...` を出します。検定のない項は最後に並び、NaN になります。\n\n複数の当てはめの場合 (同じデータオブジェクトで、同じ行を使って当てはめたもの): REML の当てはめは、\nまず最尤法で当てはめ直します (`refit: false` でない限り)。\nモデルはパラメータの数で並べ替えられ、それぞれ 1 つ前のモデルと尤度比検定で比べられます。"
   },
   "lmerContest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmerContest(0)#@param L": {
     "hash": "334765230036",
     "en": "A contrast, or an array of contrasts (rows).",
-    "ja": ""
+    "ja": "対比 1 つ、または対比の配列 (行) です。"
   },
   "lmerContest(0)#@param fit": {
     "hash": "3d029ca65b0f",
     "en": "A result of {@link lmer} (the object it returned, not a copy).",
-    "ja": ""
+    "ja": "{@link lmer} の結果です (返されたオブジェクトそのもので、コピーではありません)。"
   },
   "lmerContest(0)#@param options": {
     "hash": "3ab4f10205c2",
     "en": "`rhs`, `joint`, `confint`, `level`.",
-    "ja": ""
+    "ja": "`rhs`、`joint`、`confint`、`level`。"
   },
   "lmerContest(0)#summary": {
     "hash": "6740d99277a6",
     "en": "Tests of contrasts L β = rhs of the fixed effects of a linear mixed model fitted by {@link lmer}, with Satterthwaite's\ndegrees of freedom. Equivalent to `lmerTest::contest()` in R.\n\n`L` is one contrast (a vector, one value per fixed effect) or several (an array of rows). By default the rows are\ntested jointly: an F-test of the hypothesis, rotated to its eigenvectors (rows that are linearly dependent count\nonce; a row set of rank 0 gives an empty table). With `joint: false` each row has its own t-test, with a confidence\ninterval at `level` unless `confint` is false. The degrees of freedom come from the analytic derivatives at the exact\noptimum (see {@link lmerSummary}).",
-    "ja": ""
+    "ja": "{@link lmer} で当てはめた線形混合モデルの固定効果について、対比 L β = rhs を検定します。\n自由度は Satterthwaite のものです。R の `lmerTest::contest()` と同等です。\n\n`L` は 1 つの対比 (ベクトル。固定効果ごとに 1 つの値) か、複数 (行の配列) です。既定では、\n行は同時に検定されます。これは、仮説の F 検定を固有ベクトルに回転したものです (線形従属な行は 1 回として数えます。\nランクが 0 の行の集合は空の表になります)。`joint: false` の場合は、\n行ごとに自身の t 検定を行い、`confint` が false でない限り、`level` の信頼区間を付けます。\n自由度は、厳密な最適点での解析的な導関数から求めます ({@link lmerSummary} を参照)。"
   },
   "lmerContest(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmerContest(1)#@param L": {
     "hash": "334765230036",
     "en": "A contrast, or an array of contrasts (rows).",
-    "ja": ""
+    "ja": "対比 1 つ、または対比の配列 (行) です。"
   },
   "lmerContest(1)#@param fit": {
     "hash": "3d029ca65b0f",
     "en": "A result of {@link lmer} (the object it returned, not a copy).",
-    "ja": ""
+    "ja": "{@link lmer} の結果です (返されたオブジェクトそのもので、コピーではありません)。"
   },
   "lmerContest(1)#@param options": {
     "hash": "3ab4f10205c2",
     "en": "`rhs`, `joint`, `confint`, `level`.",
-    "ja": ""
+    "ja": "`rhs`、`joint`、`confint`、`level`。"
   },
   "lmerContest(1)#summary": {
     "hash": "6740d99277a6",
     "en": "Tests of contrasts L β = rhs of the fixed effects of a linear mixed model fitted by {@link lmer}, with Satterthwaite's\ndegrees of freedom. Equivalent to `lmerTest::contest()` in R.\n\n`L` is one contrast (a vector, one value per fixed effect) or several (an array of rows). By default the rows are\ntested jointly: an F-test of the hypothesis, rotated to its eigenvectors (rows that are linearly dependent count\nonce; a row set of rank 0 gives an empty table). With `joint: false` each row has its own t-test, with a confidence\ninterval at `level` unless `confint` is false. The degrees of freedom come from the analytic derivatives at the exact\noptimum (see {@link lmerSummary}).",
-    "ja": ""
+    "ja": "{@link lmer} で当てはめた線形混合モデルの固定効果について、対比 L β = rhs を検定します。\n自由度は Satterthwaite のものです。R の `lmerTest::contest()` と同等です。\n\n`L` は 1 つの対比 (ベクトル。固定効果ごとに 1 つの値) か、複数 (行の配列) です。既定では、\n行は同時に検定されます。これは、仮説の F 検定を固有ベクトルに回転したものです (線形従属な行は 1 回として数えます。\nランクが 0 の行の集合は空の表になります)。`joint: false` の場合は、\n行ごとに自身の t 検定を行い、`confint` が false でない限り、`level` の信頼区間を付けます。\n自由度は、厳密な最適点での解析的な導関数から求めます ({@link lmerSummary} を参照)。"
   },
   "lmerContest(2)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmerContest(2)#@param L": {
     "hash": "334765230036",
     "en": "A contrast, or an array of contrasts (rows).",
-    "ja": ""
+    "ja": "対比 1 つ、または対比の配列 (行) です。"
   },
   "lmerContest(2)#@param fit": {
     "hash": "3d029ca65b0f",
     "en": "A result of {@link lmer} (the object it returned, not a copy).",
-    "ja": ""
+    "ja": "{@link lmer} の結果です (返されたオブジェクトそのもので、コピーではありません)。"
   },
   "lmerContest(2)#@param options": {
     "hash": "3ab4f10205c2",
     "en": "`rhs`, `joint`, `confint`, `level`.",
-    "ja": ""
+    "ja": "`rhs`、`joint`、`confint`、`level`。"
   },
   "lmerContest(2)#summary": {
     "hash": "6740d99277a6",
     "en": "Tests of contrasts L β = rhs of the fixed effects of a linear mixed model fitted by {@link lmer}, with Satterthwaite's\ndegrees of freedom. Equivalent to `lmerTest::contest()` in R.\n\n`L` is one contrast (a vector, one value per fixed effect) or several (an array of rows). By default the rows are\ntested jointly: an F-test of the hypothesis, rotated to its eigenvectors (rows that are linearly dependent count\nonce; a row set of rank 0 gives an empty table). With `joint: false` each row has its own t-test, with a confidence\ninterval at `level` unless `confint` is false. The degrees of freedom come from the analytic derivatives at the exact\noptimum (see {@link lmerSummary}).",
-    "ja": ""
+    "ja": "{@link lmer} で当てはめた線形混合モデルの固定効果について、対比 L β = rhs を検定します。\n自由度は Satterthwaite のものです。R の `lmerTest::contest()` と同等です。\n\n`L` は 1 つの対比 (ベクトル。固定効果ごとに 1 つの値) か、複数 (行の配列) です。既定では、\n行は同時に検定されます。これは、仮説の F 検定を固有ベクトルに回転したものです (線形従属な行は 1 回として数えます。\nランクが 0 の行の集合は空の表になります)。`joint: false` の場合は、\n行ごとに自身の t 検定を行い、`confint` が false でない限り、`level` の信頼区間を付けます。\n自由度は、厳密な最適点での解析的な導関数から求めます ({@link lmerSummary} を参照)。"
   },
   "lmerPredict#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmerPredict#@param fit": {
     "hash": "94f8eda5af22",
     "en": "The object returned by {@link lmer} (not a copy of it).",
-    "ja": ""
+    "ja": "{@link lmer} が返したオブジェクトです (そのコピーではありません)。"
   },
   "lmerPredict#@param options": {
     "hash": "be003799a093",
     "en": "`newdata`, `reForm`, `allowNewLevels`, `randomOnly`, `type` and `seFit` (see {@link LmerPredictOptions}).",
-    "ja": ""
+    "ja": "`newdata`、`reForm`、`allowNewLevels`、`randomOnly`、`type`、`seFit` ({@link LmerPredictOptions} を参照)。"
   },
   "lmerPredict#summary": {
     "hash": "d2899113d3b5",
     "en": "Predictions of a linear mixed model fitted by {@link lmer}, at the rows of the fit or at new data, with all, some\nor none of the random-effects terms, optionally with their standard errors. Equivalent to `lme4::predict()` in R.\n\nThe prediction of a row is x'β̂ + Σ z'b̂ over the selected terms, x built from the row as the fit built its\nfixed-effects matrix (its terms, contrasts, factor levels and dropped columns) and b̂ the conditional mode of the\nrow's level. A missing value in a variable gives NaN for its row; a factor level of the fixed part that the fit did\nnot have is the RangeError `factor <name> has new level <value>` (R: `non-conformable arguments`). The standard\nerrors are those of the conditional covariance σ² A K⁻¹ A' of (b, β) at θ̂ (Henderson's equations), computed\ncorrectly also where lme4's are wrong (crossed grouping factors, some `reForm` subsets).",
-    "ja": ""
+    "ja": "{@link lmer} で当てはめた線形混合モデルの予測値です。当てはめの行、または新しいデータの行について、変量効果の項をすべて、\n一部、またはどれも含めずに計算します。必要に応じて、標準誤差も付けます。R の `lme4::predict()` と同等です。\n\n行の予測値は、選ばれた項の上での x'β̂ + Σ z'b̂ です。ここで x は、当てはめが固定効果の行列を作ったのと同じ方法で、\nその行から作ったものです (項、対比、因子の水準、除かれた列を含みます)。b̂ は、その行の水準の条件付きモードです。\n変数に欠測値がある行は NaN になります。固定部分の因子の水準が当てはめになかった場合は、\nRangeError `factor <name> has new level <value>` になります (R では `non-conformable arguments`)。\n標準誤差は、θ̂ での (b, β) の条件付き共分散 σ² A K⁻¹ A' のものです (Henderson の方程式)。\nlme4 の値が誤っている場合 (交差するグループ化因子、一部の `reForm` の部分集合など) でも、正しく計算されます。"
   },
   "lmerSummary#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lmerSummary#@param fit": {
     "hash": "3d029ca65b0f",
     "en": "A result of {@link lmer} (the object it returned, not a copy).",
-    "ja": ""
+    "ja": "{@link lmer} の結果です (返されたオブジェクトそのもので、コピーではありません)。"
   },
   "lmerSummary#@param options": {
     "hash": "69005bbfbe63",
     "en": "`ddf`: `\"Satterthwaite\"` (default) or `\"lme4\"`.",
-    "ja": ""
+    "ja": "`ddf`: `\"Satterthwaite\"` (既定) または `\"lme4\"`。"
   },
   "lmerSummary#summary": {
     "hash": "673ae9f45af9",
     "en": "The coefficient table of a linear mixed model fitted by {@link lmer}, with Satterthwaite's degrees of freedom and\nthe p-values of the t-tests: the `summary()` of a fit by lmerTest. Equivalent to `lmerTest::summary()` in R.\n\nThe degrees of freedom of each coefficient are Satterthwaite's: 2 var² / (g'Ag), with var its variance, g its\nderivative in the variance parameters (θ, σ) and A their asymptotic covariance (twice the inverse Hessian of the\ndeviance). The derivatives are computed analytically at the exact optimum (lmerTest differentiates numerically at\nlme4's optimum, so its degrees of freedom typically differ in the 5th to 8th significant digit). With\n`ddf: \"lme4\"` the table is lme4's (as `coefTable` of the fit), without degrees of freedom and p-values.",
-    "ja": ""
+    "ja": "{@link lmer} で当てはめた線形混合モデルの係数表です。Satterthwaite の自由度と、t 検定の p 値を含みます。\nlmerTest による当てはめの `summary()` です。R の `lmerTest::summary()` と同等です。\n\n各係数の自由度は Satterthwaite のもので、2 var² / (g'Ag) です。var はその分散、\ng は分散パラメータ (θ、σ) についての導関数、A はそれらの漸近共分散です (逸脱度の逆ヘッセ行列の 2 倍です)。\n導関数は、厳密な最適点で解析的に計算されます (lmerTest は lme4 の最適点で数値的に微分するため、\nその自由度は通常、\n5 から 8 桁目の有効数字が異なります)。`ddf: \"lme4\"` の場合の表は lme4 のもの (当てはめの `coefTable`) で、自由度と p 値はありません。"
   }
 }

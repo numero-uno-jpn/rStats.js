@@ -547,3 +547,40 @@
 | orthogonal polynomials | 直交多項式 | 新規 |
 | identity link | identity リンク | 新規。値 `"identity"` は英字 |
 | population level | 母集団の水準 | 新規 |
+| Laplace approximation | Laplace 近似 | 新規 (`glmer`) |
+| adaptive Gauss-Hermite quadrature | 適応的 Gauss-Hermite 求積 | 新規 (`nAGQ > 1`)。人名は英字 |
+| penalised IRLS | 罰則付き IRLS | 新規。IRLS は英字 |
+| conditional mode | 条件付きモード | 新規。変量効果の推定値 |
+| criterion (optimised) | 基準 | 既存の訳語 (`REML 基準`、`REMLcrit`) で使用 |
+| grouping factor | グループ化因子 | 既存の訳語で使用 |
+| Satterthwaite (degrees of freedom) | Satterthwaite の自由度 | 人名は英字 (規則 11) |
+| Henderson's equations | Henderson の方程式 | 人名は英字 (新規) |
+| Hessian | ヘッセ行列 | 既存の訳語で使用 |
+| Cholesky factor | コレスキー因子 | 新規。`コレスキー分解` の因子 |
+| saturated model | 飽和モデル | 新規 |
+| Wald sum of squares | Wald 平方和 | 新規。Wald は人名英字 |
+| sparse (computation) | 疎 | 新規。疎な行列の計算 |
+| covariance parameters | 共分散パラメータ | 新規。`θ` (英字の記号は残す) |
+| relative covariance factor | 相対共分散因子 | 新規 |
+| nested (models) | ネストしている | 新規。モデルの包含関係。「ネストしたモデル」とも書く |
+| nested (factor levels, `a/b`) | 入れ子 | 新規。`a/b` の意味 |
+| contrast | 対比 | 新規。`L β = rhs` の `L` |
+| refit | 当てはめ直し | 新規 |
+| scaled residuals | 尺度化された残差 | 新規 |
+| random-effects term | 変量効果の項 | 新規。`random effect` の訳 (変量効果) を項に付けた形 |
+| boundary (of θ) | 境界 | 新規。「境界上」 |
+| Fisher weights | Fisher 重み | 新規。Fisher は人名英字 |
+| working weights | 作業用の重み | 新規 |
+| prior weights | 事前の重み | 新規 |
+| offset | オフセット | 新規 |
+| link (function) | リンク | 新規 (`glm` の `link`) |
+| inverse link | 逆リンク | 新規 |
+| variance function | 分散関数 | 新規 |
+| response (variable) | 応答 | 新規。`応答変数` とはしない |
+| log-likelihood | 対数尤度 | 新規 (`logLik`) |
+| deviance residuals | 逸脱度残差 | 新規 |
+| information criteria | 情報量規準 | 新規。`AIC` と `BIC` が含まれる |
+| ANOVA table | 分散分析表 | 既存の訳語で使用 |
+| mean square | 平均平方 | 新規 |
+| t-test | t 検定 | 新規。`t` は英字。空白あり |
+| F-test | F 検定 | 新規。`F` は英字。空白あり |
