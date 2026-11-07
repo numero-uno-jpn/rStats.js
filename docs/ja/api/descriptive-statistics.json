@@ -2,751 +2,751 @@
   "CorMethod#summary": {
     "hash": "b65b3fea7fc6",
     "en": "Correlation coefficient: Pearson's r, Kendall's tau or Spearman's rho.",
-    "ja": ""
+    "ja": "相関係数: Pearson の r、Kendall の tau、または Spearman の rho。"
   },
   "CorUse#summary": {
     "hash": "d034bff5f751",
     "en": "Handling of missing values, as R's `use`.",
-    "ja": ""
+    "ja": "欠測値の扱い方。R の `use` と同じです。"
   },
   "CovOptions#summary": {
     "hash": "b3fd699a0b51",
     "en": "Options for {@link cov} and {@link cor}.",
-    "ja": ""
+    "ja": "{@link cov} と {@link cor} のオプション。"
   },
   "CovOptions.method#summary": {
     "hash": "d0f077088082",
     "en": "Default `\"pearson\"`. Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "既定は `\"pearson\"`。一意に決まる略語も受け付けます。"
   },
   "CovOptions.use#summary": {
     "hash": "158672b1eddf",
     "en": "Default `\"everything\"`. Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "既定は `\"everything\"`。一意に決まる略語も受け付けます。"
   },
   "CutOptions#summary": {
     "hash": "825fd13722b1",
     "en": "Options for {@link cut}.",
-    "ja": ""
+    "ja": "{@link cut} のオプション。"
   },
   "CutOptions.includeLowest#summary": {
     "hash": "3ae06cd82177",
     "en": "Close the first interval on the left (or the last on the right when `right` is false). Default `false`.",
-    "ja": ""
+    "ja": "左端の区間 (`right` が false の場合は右端の区間) を閉じます。既定は `false`。"
   },
   "CutOptions.right#summary": {
     "hash": "5b16c0bfcdcb",
     "en": "Intervals closed on the right, (a, b] (default `true`); otherwise [a, b).",
-    "ja": ""
+    "ja": "区間は右端を閉じた (a, b] とします (既定は `true`)。それ以外は [a, b) です。"
   },
   "CvOptions#summary": {
     "hash": "92d143ccb11f",
     "en": "Options for {@link cv}.",
-    "ja": ""
+    "ja": "{@link cv} のオプション。"
   },
   "CvOptions.unbiased#summary": {
     "hash": "52f7e12ccbae",
     "en": "Small-sample correction. Default `false`.",
-    "ja": ""
+    "ja": "小標本補正です。既定は `false`。"
   },
   "DiffOptions#summary": {
     "hash": "4e364b8ccd18",
     "en": "Options for {@link diff}.",
-    "ja": ""
+    "ja": "{@link diff} のオプション。"
   },
   "DiffOptions.differences#summary": {
     "hash": "7b90b24240ca",
     "en": "Number of times differences are taken. Default `1`.",
-    "ja": ""
+    "ja": "差分を取る回数。既定は `1`。"
   },
   "DiffOptions.lag#summary": {
     "hash": "4e21f71f48b9",
     "en": "Distance between the values subtracted. Default `1`.",
-    "ja": ""
+    "ja": "差し引く値どうしの間隔。既定は `1`。"
   },
   "FindIntervalOptions#summary": {
     "hash": "8670b34ed697",
     "en": "Options for {@link findInterval}.",
-    "ja": ""
+    "ja": "{@link findInterval} のオプション。"
   },
   "FindIntervalOptions.allInside#summary": {
     "hash": "20a0c5a43c4f",
     "en": "Give 1 instead of 0 left of the first point and N - 1 instead of N at or right of the last (N = `vec.length`).",
-    "ja": ""
+    "ja": "最初の点より左では 0 の代わりに 1 を、最後の点以上の位置では N の代わりに N - 1 を返します (N は `vec.length`)。"
   },
   "FindIntervalOptions.leftOpen#summary": {
     "hash": "5dff186a74ac",
     "en": "Intervals (v_i, v_(i+1)] instead of [v_i, v_(i+1)).",
-    "ja": ""
+    "ja": "区間は [v_i, v_(i+1)) ではなく (v_i, v_(i+1)] とします。"
   },
   "FindIntervalOptions.rightmostClosed#summary": {
     "hash": "58b3725839a5",
     "en": "Treat the last interval as closed on the right (with `leftOpen`, the first as closed on the left).",
-    "ja": ""
+    "ja": "最後の区間を右端で閉じた区間として扱います (`leftOpen` と併用する場合は、最初の区間を左端で閉じた区間として扱います)。"
   },
   "HistOptions#summary": {
     "hash": "3f53278cda79",
     "en": "Options for {@link hist}.",
-    "ja": ""
+    "ja": "{@link hist} のオプション。"
   },
   "HistOptions.breaks#summary": {
     "hash": "0b1dabecece8",
     "en": "Break points (finite: an infinite or NaN one is an error), a number of cells (a suggestion for pretty), or a\nrule: `\"Sturges\"` (default), `\"Scott\"` or `\"FD\"` (Freedman-Diaconis).",
-    "ja": ""
+    "ja": "区切り点 (有限の値であること。無限大や NaN があるとエラーになります)、階級数 (pretty に対する目安)、または\n規則: `\"Sturges\"` (既定)、`\"Scott\"`、または `\"FD\"` (Freedman-Diaconis)。"
   },
   "HistOptions.includeLowest#summary": {
     "hash": "3859bd327136",
     "en": "Close the first cell on the left (the last on the right when `right` is false). Default `true`.",
-    "ja": ""
+    "ja": "左端の最初の階級 (`right` が false の場合は右端の最後の階級) を閉じます。既定は `true`。"
   },
   "HistOptions.right#summary": {
     "hash": "a8cbac405f34",
     "en": "Cells closed on the right, (a, b] (default `true`).",
-    "ja": ""
+    "ja": "階級は右端を閉じた (a, b] とします (既定は `true`)。"
   },
   "HistResult#summary": {
     "hash": "b5dee04c66fc",
     "en": "Result of {@link hist}.",
-    "ja": ""
+    "ja": "{@link hist} の結果。"
   },
   "HistResult.breaks#summary": {
     "hash": "976c50b8af9f",
     "en": "The cell boundaries, one more than the cells.",
-    "ja": ""
+    "ja": "階級の境界です。階級数より 1 つ多くなります。"
   },
   "HistResult.counts#summary": {
     "hash": "b5ead6fb5fe9",
     "en": "Number of values in each cell.",
-    "ja": ""
+    "ja": "各階級に含まれる値の度数。"
   },
   "HistResult.density#summary": {
     "hash": "f7c5653f0789",
     "en": "counts / (n * cell width)",
-    "ja": ""
+    "ja": "度数 / (n * 階級幅)"
   },
   "HistResult.mids#summary": {
     "hash": "b2c81f11bad9",
     "en": "Cell midpoints.",
-    "ja": ""
+    "ja": "階級の中点です。"
   },
   "IQR#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "IQR#summary": {
     "hash": "b50dd43c1bb2",
     "en": "Interquartile range, the difference of the 0.75 and 0.25 quantiles. Equivalent to R's `IQR()`.",
-    "ja": ""
+    "ja": "四分位範囲。0.75 分位点と 0.25 分位点の差です。R の `IQR()` と同等です。"
   },
   "MadOptions#summary": {
     "hash": "1e3ce6838a84",
     "en": "Options for {@link mad}.",
-    "ja": ""
+    "ja": "{@link mad} のオプション。"
   },
   "MadOptions.center#summary": {
     "hash": "3595ae44dbdf",
     "en": "Centre. Default: the median (`NaN` if `x` has a missing value and `naRm` is not set).",
-    "ja": ""
+    "ja": "中心。既定: 中央値 (`x` に欠測値があり `naRm` が設定されていない場合は `NaN`)。"
   },
   "MadOptions.constant#summary": {
     "hash": "a8aeb5092e49",
     "en": "Scale factor. Default `1.4826` (consistent for the normal standard deviation).",
-    "ja": ""
+    "ja": "尺度係数。既定は `1.4826` (正規分布の標準偏差と一致させるための値)。"
   },
   "MadOptions.high#summary": {
     "hash": "e6a308f80207",
     "en": "For an even count n, take the higher one (the \"hi-median\"): the (n / 2 + 1)-th smallest, as for `low`. Both `low` and `high` is an error for an even count.",
-    "ja": ""
+    "ja": "偶数個 n の場合は、大きい方の中央値 (\"hi-median\") をとります。小さい方から数えて (n / 2 + 1) 番目の値です (`low` の場合と同様)。偶数個のときに `low` と `high` の両方を指定するとエラーになります。"
   },
   "MadOptions.low#summary": {
     "hash": "1a34a6c0d7be",
     "en": "For an even count n, take the lower of the two middle absolute deviations (the \"lo-median\"): the (n / 2)-th\nsmallest. As in R, n counts the missing values unless `naRm` removed them, the k-th smallest is taken among\nthe deviations that are not missing, and fewer than k of them (or k = 0) is an error. With an odd count the\nordinary median is used.",
-    "ja": ""
+    "ja": "偶数個 n の場合は、中央の 2 つの絶対偏差のうち小さい方 (\"lo-median\") をとります。小さい方から (n / 2) 番目の値です。\nR と同じく、n には (`naRm` で除かれていない限り) 欠測値も数えます。k 番目に小さい値は、\n欠測でない偏差の中から選ばれます。欠測でない偏差が k 個より少ない場合 (または k = 0 の場合) はエラーです。\n奇数個の場合は、通常の中央値を使います。"
   },
   "MeanADOptions#summary": {
     "hash": "db48deef6c6f",
     "en": "Options for {@link meanAD}.",
-    "ja": ""
+    "ja": "{@link meanAD} のオプション。"
   },
   "MeanADOptions.center#summary": {
     "hash": "3ae004cd61ac",
     "en": "Centre: the mean (default) or `\"median\"`, or a number.",
-    "ja": ""
+    "ja": "中心: 平均 (既定)、`\"median\"`、または数値。"
   },
   "MeanOptions#summary": {
     "hash": "fa2fe404a41d",
     "en": "Options for {@link mean}.",
-    "ja": ""
+    "ja": "{@link mean} のオプション。"
   },
   "MeanOptions.trim#summary": {
     "hash": "9e9eccf29366",
     "en": "Fraction (0 to 0.5) of values trimmed from each end before the mean. Default `0`.",
-    "ja": ""
+    "ja": "平均の前に両端から取り除く値の割合 (0 から 0.5 まで)。既定は `0`。"
   },
   "MomentOptions#summary": {
     "hash": "255c005b65ce",
     "en": "Options for {@link skewness} and {@link kurtosis}.",
-    "ja": ""
+    "ja": "{@link skewness} と {@link kurtosis} のオプション。"
   },
   "MomentOptions.type#summary": {
     "hash": "08e4a5be8bac",
     "en": "e1071's type: 1, 2 or 3. Default `3`.",
-    "ja": ""
+    "ja": "e1071 の type: 1、2、3 のいずれか。既定は `3`。"
   },
   "NaRmOptions#summary": {
     "hash": "56d8b399ccd4",
     "en": "Options of the summaries that can drop missing values.",
-    "ja": ""
+    "ja": "欠測値を除外できる要約のオプション。"
   },
   "NaRmOptions.naRm#summary": {
     "hash": "862c80bfa573",
     "en": "Drop `NaN` (R's `NA`) before computing. Default `false`: a `NaN` gives `NaN`.",
-    "ja": ""
+    "ja": "計算の前に `NaN` (R の `NA`) を除外します。既定は `false` です (`NaN` があると結果は `NaN` になります)。"
   },
   "PrettyOptions#summary": {
     "hash": "f2a043b0d9db",
     "en": "Options for {@link pretty}.",
-    "ja": ""
+    "ja": "{@link pretty} のオプション。"
   },
   "PrettyOptions.highUBias#summary": {
     "hash": "e273114e1dce",
     "en": "Bias towards larger units. Default `1.5`. Must be finite and non-negative (as in R).",
-    "ja": ""
+    "ja": "大きい単位への偏り。既定は `1.5`。有限かつ非負でなければなりません (R と同じく)。"
   },
   "PrettyOptions.minN#summary": {
     "hash": "2b856b0b9a45",
     "en": "Minimal number of intervals. Default `n / 3` rounded down (computed from `n` before it is truncated). Truncated\ntowards 0 to an integer (as in R); `NaN`, a negative value or one greater than `n` is an error.",
-    "ja": ""
+    "ja": "区間数の最小値。既定は `n / 3` を切り捨てた値 (切り捨てる前の `n` から計算)。0 に向かって整数に切り捨てられます (R と同じく)。\n`NaN`、負の値、または `n` より大きい値はエラーです。"
   },
   "PrettyOptions.n#summary": {
     "hash": "c7a0c73d4b4b",
     "en": "Desired number of intervals. Default `5`. Truncated towards 0 to an integer (as in R); `NaN`, a negative value\nor one of 2^31 or more in absolute value is an error (unless `x` has no finite values).",
-    "ja": ""
+    "ja": "希望する区間数。既定は `5`。0 に向かって整数に切り捨てられます (R と同じく)。`NaN`、負の値、\nまたは絶対値が 2^31 以上の値はエラーです (`x` に有限の値がない場合を除きます)。"
   },
   "PrettyOptions.shrinkSml#summary": {
     "hash": "db7b3ffb32f5",
     "en": "Factor applied to the cell when the range is very small. Default `0.75`. Must be finite and positive (as in R).",
-    "ja": ""
+    "ja": "範囲が非常に小さい場合に区間幅へかける係数。既定は `0.75`。有限かつ正でなければなりません (R と同じく)。"
   },
   "PrettyOptions.u5Bias#summary": {
     "hash": "1500a83e68d1",
     "en": "Bias towards 5 over 2 times a power of 10. Default `0.5 + 1.5 * highUBias`. Must be finite and non-negative (as\nin R).",
-    "ja": ""
+    "ja": "10 のべき乗の 2 倍より 5 を優先する偏り。既定は `0.5 + 1.5 * highUBias`。有限かつ\n非負でなければなりません (R と同じく)。"
   },
   "QuantileOptions#summary": {
     "hash": "a41c5c230657",
     "en": "Options for {@link quantile}.",
-    "ja": ""
+    "ja": "{@link quantile} のオプション。"
   },
   "QuantileOptions.type#summary": {
     "hash": "e0fd8cfb6714",
     "en": "Hyndman and Fan's definition, 1 to 9. Default `7`.",
-    "ja": ""
+    "ja": "Hyndman and Fan の定義 (1 から 9)。既定は `7`。"
   },
   "RankOptions#summary": {
     "hash": "aa3762ce9b87",
     "en": "Options for {@link rank}.",
-    "ja": ""
+    "ja": "{@link rank} のオプション。"
   },
   "RankOptions.naLast#summary": {
     "hash": "5428a0162090",
     "en": "Missing values: `\"last\"` (default, R's `na.last = TRUE`) ranks them after the others, `\"first\"` (`FALSE`) before\nthem, `\"keep\"` leaves them `NaN`.",
-    "ja": ""
+    "ja": "欠測値: `\"last\"` (既定。R の `na.last = TRUE` に当たる) は欠測値を他の値より後ろに順位付けし、`\"first\"` (`FALSE`) は前に順位付けします。\n`\"keep\"` は欠測値を `NaN` のままにします。"
   },
   "RankOptions.tiesMethod#summary": {
     "hash": "a7f4492be692",
     "en": "Ranks of tied values. Default `\"average\"`.",
-    "ja": ""
+    "ja": "同順位の値の順位。既定は `\"average\"`。"
   },
   "ScaleOptions#summary": {
     "hash": "bf14a2b17270",
     "en": "Options for {@link scale}.",
-    "ja": ""
+    "ja": "{@link scale} のオプション。"
   },
   "ScaleOptions.center#summary": {
     "hash": "9bf1d5583bb6",
     "en": "Subtract the column means (`true`, default), nothing (`false`) or the given values.",
-    "ja": ""
+    "ja": "列の平均を引きます (`true`、既定)。何も引かない (`false`) か、指定した値を引きます。"
   },
   "ScaleOptions.scale#summary": {
     "hash": "b75131400d7a",
     "en": "Divide by the root mean square of each (centred) column, sqrt(sum v^2 / (n - 1)) (`true`, default: the standard\ndeviation when centred), by nothing (`false`) or by the given values.",
-    "ja": ""
+    "ja": "(中心化された) 各列を二乗平均平方根で割ります。sqrt(sum v^2 / (n - 1)) です (`true`、既定: 中心化されている場合は標準偏差)。\n割らない (`false`) か、指定した値で割ります。"
   },
   "TableOptions#summary": {
     "hash": "2d079e5ec645",
     "en": "Options for {@link table}.",
-    "ja": ""
+    "ja": "{@link table} のオプション。"
   },
   "TableOptions.useNA#summary": {
     "hash": "c5bc2b551802",
     "en": "Count missing values: `\"no\"` (default), `\"ifany\"` (when there are some) or `\"always\"`.",
-    "ja": ""
+    "ja": "欠測値を数えるかどうか: `\"no\"` (既定)、`\"ifany\"` (欠測値がある場合)、または `\"always\"`。"
   },
   "TabulateOptions#summary": {
     "hash": "0e6f42110b1e",
     "en": "Options for {@link tabulate}.",
-    "ja": ""
+    "ja": "{@link tabulate} のオプション。"
   },
   "TabulateOptions.nbins#summary": {
     "hash": "c001f4612890",
     "en": "Number of bins. Default max(1, bin); truncated towards 0, as R does.",
-    "ja": ""
+    "ja": "ビンの数。既定は max(1, bin)。R と同じく 0 に向かって切り捨てられます。"
   },
   "TiesMethod#summary": {
     "hash": "039814b7ea52",
     "en": "How ties are ranked, as R's `ties.method`.",
-    "ja": ""
+    "ja": "同順位の値の順位の付け方。R の `ties.method` と同じです。"
   },
   "cor(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cor(0)#summary": {
     "hash": "cf09210b7032",
     "en": "Correlation of two vectors, or correlation matrix of the columns of a matrix (or between the columns of `x` and\n`y`). Equivalent to R's `cor()`. Pearson correlations are computed in double-double, so they can be slightly more\naccurate than R's (exactly 1 for perfectly correlated data).",
-    "ja": ""
+    "ja": "2 つのベクトルの相関、または行列の列どうしの相関行列を返します (`x` と\n`y` の列どうしの場合も同様)。R の `cor()` と同等です。Pearson の相関は double-double で計算されるため、R の結果より\nわずかに正確になる場合があります (完全に相関するデータでは正確に 1 になります)。"
   },
   "cor(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cor(1)#summary": {
     "hash": "cf09210b7032",
     "en": "Correlation of two vectors, or correlation matrix of the columns of a matrix (or between the columns of `x` and\n`y`). Equivalent to R's `cor()`. Pearson correlations are computed in double-double, so they can be slightly more\naccurate than R's (exactly 1 for perfectly correlated data).",
-    "ja": ""
+    "ja": "2 つのベクトルの相関、または行列の列どうしの相関行列を返します (`x` と\n`y` の列どうしの場合も同様)。R の `cor()` と同等です。Pearson の相関は double-double で計算されるため、R の結果より\nわずかに正確になる場合があります (完全に相関するデータでは正確に 1 になります)。"
   },
   "cov(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cov(0)#summary": {
     "hash": "c92cd1aa50d0",
     "en": "Covariance of two vectors, or covariance matrix of the columns of a matrix (or between the columns of `x` and `y`).\nEquivalent to R's `cov()`.",
-    "ja": ""
+    "ja": "2 つのベクトルの共分散、または行列の列どうしの共分散行列を返します (`x` と `y` の列どうしの場合も同様)。\nR の `cov()` と同等です。"
   },
   "cov(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cov(1)#summary": {
     "hash": "c92cd1aa50d0",
     "en": "Covariance of two vectors, or covariance matrix of the columns of a matrix (or between the columns of `x` and `y`).\nEquivalent to R's `cov()`.",
-    "ja": ""
+    "ja": "2 つのベクトルの共分散、または行列の列どうしの共分散行列を返します (`x` と `y` の列どうしの場合も同様)。\nR の `cov()` と同等です。"
   },
   "cummax#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cummax#summary": {
     "hash": "faa3cedcf282",
     "en": "Running maxima. Equivalent to R's `cummax()`. `NaN` from the first `NaN` on.",
-    "ja": ""
+    "ja": "累積最大値。R の `cummax()` と同等です。最初の `NaN` 以降は `NaN` になります。"
   },
   "cummin#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cummin#summary": {
     "hash": "521c32d5fd12",
     "en": "Running minima. Equivalent to R's `cummin()`.",
-    "ja": ""
+    "ja": "累積最小値。R の `cummin()` と同等です。"
   },
   "cumprod#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cumprod#summary": {
     "hash": "b1e22d322072",
     "en": "Running products. Equivalent to R's `cumprod()`. Products beyond the double range show as ±Infinity with the right\nsign, as R's long double accumulator does.",
-    "ja": ""
+    "ja": "累積積。R の `cumprod()` と同等です。倍精度の範囲を超える積は、R の long double の累積器と同じく、\n正しい符号の ±Infinity として返されます。"
   },
   "cumsum#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cumsum#summary": {
     "hash": "6e1e94d2a42c",
     "en": "Running sums. Equivalent to R's `cumsum()`. Each partial sum is rounded from an exact accumulator; `NaN` from the\nfirst `NaN` on.",
-    "ja": ""
+    "ja": "累積和。R の `cumsum()` と同等です。各部分和は正確な累積器から丸められます。\n最初の `NaN` 以降は `NaN` になります。"
   },
   "cut#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cut#@param breaks": {
     "hash": "a11be558edb9",
     "en": "The break points (NaN among them is dropped, as R does; fewer than 2 left are an error), or a\n  number of intervals (at least 2): then equal intervals over the range of `x`, widened by 1/1000 of the range at\n  each end, as R does. That range must be finite.",
-    "ja": ""
+    "ja": "区切り点 (NaN は R と同じく除かれます。残りが 2 つ未満の場合はエラーです)、または\n  区間数 (2 以上): この場合は `x` の範囲を、両端をそれぞれ範囲の 1/1000 だけ広げたうえで、\n  等間隔に分割します (R と同じ)。その範囲は有限でなければなりません。"
   },
   "cut#summary": {
     "hash": "3f2145df1db1",
     "en": "Interval numbers (1-based) of the values, or NaN outside the breaks. Equivalent to R's `cut(..., labels = FALSE)`.",
-    "ja": ""
+    "ja": "値が属する区間の番号 (1 から数えた番号)。区切り点の外側の値は NaN になります。R の `cut(..., labels = FALSE)` と同等です。"
   },
   "cv#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cv#summary": {
     "hash": "36c4be9569a8",
     "en": "Coefficient of variation sd / mean (sample standard deviation). Equivalent to `DescTools::CoefVar()` in R.",
-    "ja": ""
+    "ja": "変動係数 sd / mean (標本標準偏差)。R の `DescTools::CoefVar()` と同等です。"
   },
   "diff#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "diff#summary": {
     "hash": "55c24149190b",
     "en": "Lagged and iterated differences. Equivalent to R's `diff()`. For a vector (empty when `lag * differences` is at\nleast the length).",
-    "ja": ""
+    "ja": "ラグ付きの差分と、繰り返し取る差分。R の `diff()` と同等です。ベクトルの場合は、`lag * differences` が\n長さ以上のとき空になります。"
   },
   "ecdf#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ecdf#summary": {
     "hash": "1d07bd1221c1",
     "en": "Empirical distribution function of `x`: a function returning the fraction of values at or below its argument.\nEquivalent to R's `ecdf()`. `NaN` values are dropped.",
-    "ja": ""
+    "ja": "`x` の経験分布関数: 引数以下の値の割合を返す関数です。\nR の `ecdf()` と同等です。`NaN` の値は除外されます。"
   },
   "findInterval#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "findInterval#summary": {
     "hash": "2607d5ab2229",
     "en": "For each value, the number of break points at or below it (the interval index). Equivalent to R's\n`findInterval()`. `vec` must be non-decreasing.",
-    "ja": ""
+    "ja": "各値について、その値以下の区切り点の個数 (区間の番号) です。R の\n`findInterval()` と同等です。`vec` は非減少でなければなりません。"
   },
   "fivenum#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "fivenum#summary": {
     "hash": "6f5b165f2f45",
     "en": "Tukey's five-number summary (minimum, lower hinge, median, upper hinge, maximum). Equivalent to R's `fivenum()`.\n`NaN` values are dropped.",
-    "ja": ""
+    "ja": "Tukey の五数要約 (最小値、下側ヒンジ、中央値、上側ヒンジ、最大値)。R の `fivenum()` と同等です。\n`NaN` の値は除外されます。"
   },
   "geometricMean#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "geometricMean#summary": {
     "hash": "3af97ca7062c",
     "en": "Geometric mean exp(mean(log x)). Equivalent to `DescTools::Gmean()` in R. NaN with a negative value, 0 with a\nzero.",
-    "ja": ""
+    "ja": "幾何平均 exp(mean(log x))。R の `DescTools::Gmean()` と同等です。負の値があると NaN、0 があると\n0 になります。"
   },
   "hist#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "hist#summary": {
     "hash": "fa2c6e03ee4c",
     "en": "Histogram counts. Equivalent to R's `hist(x, plot = FALSE)`. Break points (by default pretty points over the range\nwith about Sturges' number of cells), counts, densities and cell midpoints. Non-finite values are dropped.",
-    "ja": ""
+    "ja": "ヒストグラムの度数。R の `hist(x, plot = FALSE)` と同等です。区切り点 (既定では範囲に対する pretty な区切り点で、\n階級数は Sturges の式による目安程度)、度数、密度、階級の中点を返します。有限でない値は除外されます。"
   },
   "kurtosis#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "kurtosis#summary": {
     "hash": "b22f30b6c6a0",
     "en": "Sample excess kurtosis. Equivalent to `e1071::kurtosis()` in R. Missing values are dropped; `{ type: 1 }` is\njStat's kurtosis.",
-    "ja": ""
+    "ja": "標本の超過尖度。R の `e1071::kurtosis()` と同等です。欠測値は除外されます。`{ type: 1 }` は\njStat の尖度です。"
   },
   "mad#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "mad#summary": {
     "hash": "c0c189cab60d",
     "en": "Median absolute deviation, scaled. Equivalent to R's `mad()`.",
-    "ja": ""
+    "ja": "中央絶対偏差 (スケール調整済み)。R の `mad()` と同等です。"
   },
   "mean#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "mean#summary": {
     "hash": "b8ce9ca79a0c",
     "en": "Arithmetic mean, optionally trimmed. Equivalent to R's `mean()`. Accurate to the last bit: the sum is taken in\ndouble-double and corrected by the mean deviation, as R corrects its long double mean.",
-    "ja": ""
+    "ja": "算術平均 (刈り込みも可能)。R の `mean()` と同等です。最後のビットまで正確です。和は\ndouble-double で求め、R が long double の平均を補正するのと同じく、平均偏差で補正します。"
   },
   "meanAD#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "meanAD#summary": {
     "hash": "d078b70a737d",
     "en": "Mean absolute deviation from the centre. Equivalent to `DescTools::MeanAD()` in R. Missing values are dropped.",
-    "ja": ""
+    "ja": "中心からの平均絶対偏差。R の `DescTools::MeanAD()` と同等です。欠測値は除外されます。"
   },
   "median#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "median#summary": {
     "hash": "e30b61332f34",
     "en": "Median of the values (the mean of the two middle ones for an even count). Equivalent to R's `median()`.",
-    "ja": ""
+    "ja": "値の中央値 (偶数個の場合は中央の 2 つの平均)。R の `median()` と同等です。"
   },
   "modes#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "modes#summary": {
     "hash": "a2f141f59ffe",
     "en": "The most frequent values (all of them, in increasing order) and their frequency. Equivalent to\n`DescTools::Mode()` in R. Missing values are dropped; `value` is `[NaN]` and `frequency` NaN when every value\noccurs once.",
-    "ja": ""
+    "ja": "最も頻度の高い値 (すべてを昇順に) とその頻度。R の\n`DescTools::Mode()` と同等です。欠測値は除外されます。すべての値が\n1 回だけ現れる場合、`value` は `[NaN]`、`frequency` は NaN になります。"
   },
   "modes.frequency#summary": {
     "hash": "99e3c6788cff",
     "en": "How often each of them occurs (NaN when every value occurs once).",
-    "ja": ""
+    "ja": "それぞれの値の出現回数 (すべての値が 1 回ずつの場合は NaN)。"
   },
   "modes.value#summary": {
     "hash": "418e0a9a79bd",
     "en": "The most frequent values, in increasing order (`[NaN]` when every value occurs once).",
-    "ja": ""
+    "ja": "最も頻度の高い値 (昇順。すべての値が 1 回ずつの場合は `[NaN]`)。"
   },
   "pretty#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pretty#summary": {
     "hash": "18d234937c87",
     "en": "About n + 1 equally spaced \"round\" values (1, 2 or 5 times a power of 10) covering the range of `x`. Equivalent to\nR's `pretty()`.",
-    "ja": ""
+    "ja": "`x` の範囲を覆う、おおよそ n + 1 個の等間隔な「きりのよい」値 (10 のべき乗の 1 倍、2 倍、5 倍のいずれか)。R の\n`pretty()` と同等です。"
   },
   "prod#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "prod#summary": {
     "hash": "0bcdbd340bce",
     "en": "Product of the values. Equivalent to R's `prod()`. 1 for an empty vector.",
-    "ja": ""
+    "ja": "値の積。R の `prod()` と同等です。空のベクトルの場合は 1 です。"
   },
   "quantile(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "quantile(0)#@param options": {
     "hash": "803c5de0d0e1",
     "en": "`type` (1 to 9, default 7) and `naRm`.",
-    "ja": ""
+    "ja": "`type` (1 から 9、既定は 7) と `naRm`。"
   },
   "quantile(0)#@param probs": {
     "hash": "b967c09d1f33",
     "en": "Probabilities in [0, 1]. Default `[0, 0.25, 0.5, 0.75, 1]`. A single number gives a single number.",
-    "ja": ""
+    "ja": "確率 ([0, 1] の範囲)。既定は `[0, 0.25, 0.5, 0.75, 1]`。単一の数を与えた場合は、単一の数を返します。"
   },
   "quantile(0)#@param x": {
     "hash": "5b8aed649f28",
     "en": "The data.",
-    "ja": ""
+    "ja": "データ。"
   },
   "quantile(0)#summary": {
     "hash": "4cb7983746da",
     "en": "Sample quantiles. Equivalent to R's `quantile()`. Without names (R's `names = FALSE`).",
-    "ja": ""
+    "ja": "標本分位点。R の `quantile()` と同等です。名前は付けません (R の `names = FALSE` に相当)。"
   },
   "quantile(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "quantile(1)#@param options": {
     "hash": "803c5de0d0e1",
     "en": "`type` (1 to 9, default 7) and `naRm`.",
-    "ja": ""
+    "ja": "`type` (1 から 9、既定は 7) と `naRm`。"
   },
   "quantile(1)#@param probs": {
     "hash": "b967c09d1f33",
     "en": "Probabilities in [0, 1]. Default `[0, 0.25, 0.5, 0.75, 1]`. A single number gives a single number.",
-    "ja": ""
+    "ja": "確率 ([0, 1] の範囲)。既定は `[0, 0.25, 0.5, 0.75, 1]`。単一の数を与えた場合は、単一の数を返します。"
   },
   "quantile(1)#@param x": {
     "hash": "5b8aed649f28",
     "en": "The data.",
-    "ja": ""
+    "ja": "データ。"
   },
   "quantile(1)#summary": {
     "hash": "4cb7983746da",
     "en": "Sample quantiles. Equivalent to R's `quantile()`. Without names (R's `names = FALSE`).",
-    "ja": ""
+    "ja": "標本分位点。R の `quantile()` と同等です。名前は付けません (R の `names = FALSE` に相当)。"
   },
   "range#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "range#summary": {
     "hash": "338c4cc75e3f",
     "en": "`[min, max]` of the values. Equivalent to R's `range()`. `[NaN, NaN]` with a missing value unless `naRm`;\n`[Infinity, -Infinity]` for an empty vector.",
-    "ja": ""
+    "ja": "値の `[min, max]`。R の `range()` と同等です。欠測値がある場合は、`naRm` を指定しない限り `[NaN, NaN]`。\n空のベクトルの場合は `[Infinity, -Infinity]`。"
   },
   "rank#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rank#summary": {
     "hash": "0a8bd6ad696f",
     "en": "Sample ranks. Equivalent to R's `rank()`.",
-    "ja": ""
+    "ja": "標本の順位。R の `rank()` と同等です。"
   },
   "scale#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "scale#summary": {
     "hash": "11fec5f67560",
     "en": "Centre and scale the columns of a matrix (array of rows; a vector is one column). Equivalent to R's `scale()`.\n`center` and `scale` report the values used (R's attributes), when any.",
-    "ja": ""
+    "ja": "行列の列を中心化してスケーリングします (行の配列として与えます。ベクトルは 1 列とみなします)。R の `scale()` と同等です。\n`center` と `scale` には、使った値が入ります (R の属性に相当。ある場合のみ)。"
   },
   "scale.center#summary": {
     "hash": "2941368b2bb8",
     "en": "The values subtracted from each column (R's `scaled:center` attribute); absent with `center: false`.",
-    "ja": ""
+    "ja": "各列から引いた値 (R の `scaled:center` 属性)。`center: false` の場合は存在しません。"
   },
   "scale.scale#summary": {
     "hash": "44c8a20633ae",
     "en": "The values each column was divided by (R's `scaled:scale` attribute); absent with `scale: false`.",
-    "ja": ""
+    "ja": "各列を割った値 (R の `scaled:scale` 属性)。`scale: false` の場合は存在しません。"
   },
   "scale.scaled#summary": {
     "hash": "d35246a2daa7",
     "en": "The centred and scaled matrix, as an array of rows (R's returned matrix).",
-    "ja": ""
+    "ja": "中心化してスケーリングした行列 (行の配列として。R が返す行列に相当)。"
   },
   "sd#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "sd#summary": {
     "hash": "0e13f88e8a1d",
     "en": "Sample standard deviation (denominator n - 1). Equivalent to R's `sd()`.",
-    "ja": ""
+    "ja": "標本標準偏差 (分母は n - 1)。R の `sd()` と同等です。"
   },
   "skewness#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "skewness#summary": {
     "hash": "c351834db091",
     "en": "Sample skewness. Equivalent to `e1071::skewness()` in R. Missing values are dropped; `{ type: 1 }` is jStat's\nskewness.",
-    "ja": ""
+    "ja": "標本歪度。R の `e1071::skewness()` と同等です。欠測値は除外されます。`{ type: 1 }` は\njStat の歪度です。"
   },
   "sum#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "sum#summary": {
     "hash": "5e53af19b72d",
     "en": "Sum of the values. Equivalent to R's `sum()`. For a numeric vector (0 for an empty one).",
-    "ja": ""
+    "ja": "値の和。R の `sum()` と同等です。数値ベクトルの場合 (空のベクトルは 0)。"
   },
   "table#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "table#summary": {
     "hash": "a86fd5b78206",
     "en": "Frequency table of the distinct values. Equivalent to R's `table()`. For one numeric vector: `values` in increasing\norder (NaN last when counted) with their `counts`. As in R, values with the same text (15 significant digits, as\nR's `as.character`) are counted as one, under the smallest of them.",
-    "ja": ""
+    "ja": "相異なる値の度数表。R の `table()` と同等です。1 つの数値ベクトルの場合は、昇順の\n`values` (欠測値を数える場合は NaN を最後に) と、それぞれの `counts` を返します。R と同じく、同じ文字列になる値 (有効数字 15 桁、\nR の `as.character` と同じ) は、そのうち最小の値の下にまとめて 1 つとして数えられます。"
   },
   "table.counts#summary": {
     "hash": "b304aa7320f4",
     "en": "How often each value occurs.",
-    "ja": ""
+    "ja": "各値の出現回数。"
   },
   "table.values#summary": {
     "hash": "b187697b544a",
     "en": "The distinct values, in increasing order (NaN last when missing values are counted); R's names.",
-    "ja": ""
+    "ja": "相異なる値を昇順に並べたもの (欠測値を数える場合は NaN を最後に)。R の names に相当します。"
   },
   "tabulate(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "tabulate(0)#summary": {
     "hash": "54418e27e3e9",
     "en": "Counts of the integers 1..nbins in `bin` (values truncated towards 0; others, NaN, infinite values and values\nbeyond the integer range of R are not counted).\nEquivalent to R's `tabulate()`. `nbins` defaults to max(1, bin) and is truncated towards 0, as R does; it is the\nsecond argument or the option `nbins` (giving both is a RangeError).",
-    "ja": ""
+    "ja": "`bin` に含まれる整数 1..nbins の個数 (値は 0 に向かって切り捨てられます。それ以外の値、NaN、無限大の値、\nR の整数範囲を超える値は数えられません)。\nR の `tabulate()` と同等です。`nbins` の既定は max(1, bin) で、R と同じく 0 に向かって切り捨てられます。\n第 2 引数またはオプション `nbins` で指定します (両方を指定すると RangeError になります)。"
   },
   "tabulate(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "tabulate(1)#summary": {
     "hash": "9a6bfabdce5a",
     "en": "Counts of the integers 1..nbins in `bin`, with the number of bins in the options: `tabulate(bin, { nbins: 3 })`.",
-    "ja": ""
+    "ja": "`bin` に含まれる整数 1..nbins の個数。ビンの数はオプションで指定します: `tabulate(bin, { nbins: 3 })`。"
   },
   "unique#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "unique#summary": {
     "hash": "81bbdaf1c45d",
     "en": "Distinct values in order of first appearance (one NaN at most). Equivalent to R's `unique()`.",
-    "ja": ""
+    "ja": "最初に現れた順に並べた相異なる値 (NaN は高々 1 つ)。R の `unique()` と同等です。"
   },
   "variance#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "variance#summary": {
     "hash": "8f8f062feafd",
     "en": "Sample variance (denominator n - 1). Equivalent to R's `var()`. For a vector (`NaN` for fewer than 2 values); named\n`variance` because `var` cannot be a name in JavaScript. For matrices use `cov`.",
-    "ja": ""
+    "ja": "標本分散 (分母は n - 1)。R の `var()` と同等です。ベクトルの場合 (値が 2 つ未満のときは `NaN`)。JavaScript では `var` を名前に使えないため、この関数は\n`variance` という名前になっています。行列の場合は `cov` を使います。"
   },
   "weightedMean#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "weightedMean#summary": {
     "hash": "63f7fc2854a8",
     "en": "Weighted mean `sum(x w) / sum(w)`. Equivalent to R's `weighted.mean()`. Values with weight 0 do not enter the\nnumerator (even if infinite or NaN), and `naRm` drops missing values of `x` with their weights.",
-    "ja": ""
+    "ja": "重み付き平均 `sum(x w) / sum(w)`。R の `weighted.mean()` と同等です。重みが 0 の値は、\n(無限大や NaN であっても) 分子には入りません。`naRm` を指定すると、`x` の欠測値はその重みとともに除外されます。"
   }
 }

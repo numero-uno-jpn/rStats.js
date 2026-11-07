@@ -358,3 +358,37 @@
 | Patefield's algorithm | Patefield のアルゴリズム | 人名は英字 |
 | Stirling correction | Stirling 補正 | 人名は英字。`docs/ja` で使用 |
 | clock (seed from the clock) | 時刻 | 種を時刻から作ること (新規) |
+| break point (of a histogram or cut) | 区切り点 | 新規。`cut` と `hist` で使用 |
+| interval (cut, findInterval, pretty) | 区間 | 新規 |
+| cell (of a histogram) | 階級 | 新規。`hist` の階級 (階級幅、階級の中点) |
+| cell (of pretty) | 区間幅 | 新規。`pretty` の最小単位 |
+| bin (of tabulate) | ビン | 新規 |
+| interquartile range | 四分位範囲 | 新規 |
+| five-number summary | 五数要約 | 新規。Tukey の五数要約 |
+| hinge | ヒンジ | 新規。Tukey の五数要約 |
+| median absolute deviation | 中央絶対偏差 | 新規 |
+| mean absolute deviation | 平均絶対偏差 | 新規 |
+| absolute deviation | 絶対偏差 | 新規 |
+| excess kurtosis | 超過尖度 | 新規 |
+| coefficient of variation | 変動係数 | 新規 |
+| empirical distribution function | 経験分布関数 | 新規 |
+| running sum, product, maximum, minimum (cumulative) | 累積和、累積積、累積最大値、累積最小値 | 新規 |
+| lag (of differences) | ラグ | 新規 |
+| trimmed mean | 刈り込み平均 | 新規 |
+| arithmetic mean, geometric mean | 算術平均、幾何平均 | 新規 |
+| weighted mean | 重み付き平均 | 新規 |
+| sum, product (of values) | 和、積 | 新規 |
+| range (of values) | 範囲 | 新規 |
+| mode (statistical) | 最頻値 | 新規 |
+| midpoint | 中点 | 新規 |
+| frequency table | 度数表 | 新規 |
+| centre (noun) | 中心 | 新規。動詞・形容詞の「centred」は「中心化」 |
+| scale factor | 尺度係数 | 新規 |
+| non-decreasing | 非減少 | 新規 |
+| lo-median, hi-median | 下側中央値、上側中央値 | 新規。引用符付きの値 |
+| double-double | double-double | 英字のまま。精度の実装方式 |
+| long double | long double | 英字のまま。R の型 |
+| Hyndman and Fan (quantile type) | Hyndman and Fan | 人名は英字 |
+| Freedman-Diaconis | Freedman-Diaconis | 人名は英字 |
+| Sturges (rule, formula) | Sturges | 人名は英字 |
+| Kendall's tau, Spearman's rho | Kendall の tau、Spearman の rho | 人名は英字 |
