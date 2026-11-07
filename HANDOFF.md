@@ -1,12 +1,13 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-07 (セッション 17、1.2.0 の版のコミットまで)
+最終更新: 2026-11-07 (セッション 17 の終わり、1.2.0 を公開)
 
 ## まず読むこと (セッション 16 から)
 
 ## 次のセッションで最初にやること (2026-11-07 に作成)
 
-- **状態:** 1.2.0 の版のコミット `f30b7c2` まで main にある。origin/main は `078fbc5` (CI・Pages 通過)。未 push は `86c0592` (デモの例 12 個。公開中のデモは CDN の版を読むので、1.2.0 の公開前に push しない)・`b4155cc` (README・ROADMAP・llms.txt・サイズ)・`f30b7c2` (版)・この HANDOFF。公開の手順: tag `v1.2.0` をユーザーが push → npm の staged をユーザーが承認 → jsDelivr の dist/rstats.js を確かめて main を push → CI・Pages・デモの VERSION を確かめる。公開が済んでいなければ、そこから再開する。
+- **状態:** 1.2.0 を公開済み (2026-11-07、npm latest = 1.2.0、staged をユーザーが `npm stage approve <id>` で承認。2FA のため SSH の対話端末で)。tag `v1.2.0` = `9bc931a` (release のワークフローが dist 入りに移した)、main = `833c0a5` を push 済みで CI・Pages 通過、デモは v1.2.0、jsDelivr の dist/rstats.js・dist/mixed.js を確認 (mixed.js は公開直後の約 30 秒 404)。この HANDOFF の更新はコミットだけで未 push (ユーザーの指示)。作業ツリーは未追跡の `oracle/extreme-parameters-behaviour.md` だけ (触らない)。
+  - 公開の経過: release の初回は test/boschloo.test.ts の時間のテスト (上限 3 秒、実行機で 3.5 秒) で止まった。上限を設計上の約 10 秒にして (`833c0a5`)、tag を付け直してユーザーが `push -f` した。Pages は GitHub 側のデプロイのタイムアウト (10 分、`256a64b` でも起きた) で失敗し、`gh run rerun` で通った。時間を測るテストの上限は実行機の速さでなく設計上の上限で決める
 - **次の作業 (公開の後):** ROADMAP の Remaining の 1 番 (頑健な標準誤差: sandwich の vcovHC・vcovCL、lmtest の coeftest、coxph の robust)。進め方は 1.2.0 と同じ (下)。
 - **1.2.0 でしたこと (セッション 17、2026-11-06〜07):** 計画は `~/.claude/plans/idempotent-swinging-lerdorf.md`。
   - ユーザーの判断: Boschloo は 1.2.0 に含める。比率の区間は 7 方法 (wilson・wilsoncc・clopper-pearson・wald・agresti-coull・jeffreys・midp)。2×2 の効果指標は epiR (ReactiveStat が使う) と DescTools・epitools の両方に照合。線形連関は漸近版だけ。ReactiveStat の menu.yaml にある N-1 カイ二乗・リスク差の同等性検定・Freeman-Tukey 残差も入れる。仕様の判断 1〜16 は `oracle/contingency-behaviour.md` の「rStats.js's choices」(要点: 1 件ずつの API、fisherTest の midp、mee・ac・オッズ比の score も、既定はパッケージの既定、不正確な根は真の根、Boschloo は真の上限で既定 square、tost とスコア法の比率の同等性検定の両方、G 検定は上側の p 値、Stuart-Maxwell の df は除いた後、N-1 は chisqTest のオプション、FT 残差は結果の欄、線形連関は全部 1..k の得点、γ は推定・区間・ASE、意味のない入力はエラー)。
