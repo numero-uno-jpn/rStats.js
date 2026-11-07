@@ -485,3 +485,30 @@
 | observed (factor) | 観測された因子 | 新規。`aovEz` の `observed` |
 | univariate (test) | 単変量 | `docs/ja` に 1 件 |
 | sequential (sums of squares) | 逐次 | `docs/ja` で「逐次の表」として使用 |
+| analysis of deviance | 逸脱度分析 | 新規。`glmAnova` の表 |
+| residual deviance | 残差逸脱度 | 新規。`GlmResult.deviance` |
+| null deviance | 帰無逸脱度 | 新規。切片だけのモデルの逸脱度 |
+| score statistic | スコア統計量 | 新規。`"Rao"` の検定の統計量 |
+| power link | べき乗リンク | 新規。`mu^power` のリンク |
+| variance function | 分散関数 | 新規。`quasi` の分散関数 |
+| prior weights | 事前重み | `docs/ja` で使用 |
+| working weights | 作業重み | `docs/ja` で使用 |
+| working residuals | 作業残差 | `docs/ja` で使用 |
+| iteratively reweighted least squares | 反復重み付き最小二乗法 | `docs/ja` で使用 |
+| link (of a GLM) | リンク | `docs/ja` で使用 |
+| offset | オフセット | `docs/ja` で使用 |
+| profile likelihood | プロファイル尤度 | `docs/ja` で使用 |
+| profile equations | プロファイルの方程式 | 新規。`glmConfint` の輪郭方程式 |
+| profile points | プロファイルの点 | 新規。R のスプラインの格子の点 |
+| hat matrix | ハット行列 | `docs/ja` で使用 |
+| Cook's distance | Cook の距離 | 人名は英字。`docs/ja` で使用 |
+| standardized residuals | 標準化残差 | 新規。Pearson 残差などの標準化 |
+| z statistic, t statistic | z 統計量、t 統計量 | 新規。出力の `"z value"`、`"t value"` は英字 |
+| starting coefficients | 初期係数 | 新規。`start` の係数 |
+| maximum number of iterations | 反復の最大回数 | 新規 |
+| convergence tolerance | 収束の許容誤差 | `docs/ja` で使用 |
+| residual degrees of freedom | 残差の自由度 | `docs/ja` で使用 |
+| successes (number of) | 成功数 | `docs/ja` で使用。「(成功数, 失敗数)」 |
+| covariance matrix | 共分散行列 | `docs/ja` で使用 |
+| fitted means | 平均の当てはめ値 | 新規。`fitted value` の平均尺度 |
+| size (of a binomial response) | サイズ | 新規。二項分布の 2 列応答の行ごとの値 |

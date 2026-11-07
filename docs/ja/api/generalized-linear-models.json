@@ -2,586 +2,586 @@
   "GlmAnovaOptions#summary": {
     "hash": "6ef1e3f00b42",
     "en": "Options for {@link glmAnova}.",
-    "ja": ""
+    "ja": "{@link glmAnova} のオプションです。"
   },
   "GlmAnovaOptions.dispersion#summary": {
     "hash": "ad9eef5ebb55",
     "en": "Dispersion for the tests instead of the estimate of the largest model.",
-    "ja": ""
+    "ja": "検定に使う分散パラメータです。最大のモデルの推定値の代わりに使います。"
   },
   "GlmAnovaOptions.test#summary": {
     "hash": "c53bed16912a",
     "en": "The test: `\"Chisq\"` (or its synonym `\"LRT\"`), `\"Rao\"`, `\"F\"`, `\"Cp\"`, or `false` for none. Default, as R since\n4.4.0: `\"Chisq\"` when the dispersion is known (binomial, poisson or `dispersion` given), else `\"F\"`.",
-    "ja": ""
+    "ja": "検定の種類です。`\"Chisq\"` (同義の `\"LRT\"` も可)、`\"Rao\"`、`\"F\"`、`\"Cp\"`、または検定をしない場合の `false` です。既定は、R 4.4.0 以降と同じく、分散パラメータが既知のとき (二項分布、ポアソン分布、または `dispersion` を指定したとき) は `\"Chisq\"`、それ以外は `\"F\"` です。"
   },
   "GlmAnovaResult#summary": {
     "hash": "9288956f44ac",
     "en": "Result of {@link glmAnova}: R's anova table.",
-    "ja": ""
+    "ja": "{@link glmAnova} の結果で、R の anova 表に相当します。"
   },
   "GlmAnovaResult.colNames#summary": {
     "hash": "7f4b70ded6cb",
     "en": "Column names, such as `\"Df\"`, `\"Deviance\"`, `\"Resid. Df\"`, `\"Resid. Dev\"`, `\"Pr(>Chi)\"`.",
-    "ja": ""
+    "ja": "列名です (例: `\"Df\"`、`\"Deviance\"`、`\"Resid. Df\"`、`\"Resid. Dev\"`、`\"Pr(>Chi)\"`)。"
   },
   "GlmAnovaResult.rowNames#summary": {
     "hash": "4056ce071587",
     "en": "Row names: `\"NULL\"`, `\"x1\"`, ... for one fit; `\"1\"`, `\"2\"`, ... for a comparison.",
-    "ja": ""
+    "ja": "行名です。1 つの当てはめでは `\"NULL\"`、`\"x1\"`、...、比較では `\"1\"`、`\"2\"`、... です。"
   },
   "GlmAnovaResult.table#summary": {
     "hash": "8038156e03d0",
     "en": "One array per row; NaN where R leaves the cell empty (NA).",
-    "ja": ""
+    "ja": "行ごとに 1 つの配列です。R でセルが空 (NA) になる箇所は NaN です。"
   },
   "GlmAnovaResult.warnings#summary": {
     "hash": "59b46434779d",
     "en": "R's warnings (from the refits and the F test of binomial or poisson families).",
-    "ja": ""
+    "ja": "R の警告です (再当てはめによるものと、二項分布またはポアソン分布の族での F 検定によるもの)。"
   },
   "GlmAnovaTest#summary": {
     "hash": "742e1b59fe51",
     "en": "Tests of {@link glmAnova}.",
-    "ja": ""
+    "ja": "{@link glmAnova} の検定の種類です。"
   },
   "GlmConfintOptions#summary": {
     "hash": "478c0457c569",
     "en": "Options for {@link glmConfint}.",
-    "ja": ""
+    "ja": "{@link glmConfint} のオプションです。"
   },
   "GlmConfintOptions.level#summary": {
     "hash": "a9c8e3eccda4",
     "en": "Confidence level. Default `0.95`.",
-    "ja": ""
+    "ja": "信頼水準です。既定は `0.95`。"
   },
   "GlmConfintOptions.parm#summary": {
     "hash": "598a19425434",
     "en": "Indices of the coefficients (0-based, intercept first). Default: all.",
-    "ja": ""
+    "ja": "係数の添字です (0 始まり、切片が先頭)。既定: すべて。"
   },
   "GlmConfintOptions.test#summary": {
     "hash": "042965c6c2bd",
     "en": "`\"LRT\"` (default; the likelihood ratio) or `\"Rao\"` (the score statistic).",
-    "ja": ""
+    "ja": "`\"LRT\"` (既定。尤度比) または `\"Rao\"` (スコア統計量)。"
   },
   "GlmFamilyName#summary": {
     "hash": "c9e0a10bc9b7",
     "en": "Names of the families of R's stats.",
-    "ja": ""
+    "ja": "R の stats の分布族の名前です。"
   },
   "GlmFamilySpec#summary": {
     "hash": "ae3c59f34b92",
     "en": "A family with its link (and, for `quasi`, its variance function), as R's family objects such as `quasi(link = \"log\", variance = \"mu^2\")`.",
-    "ja": ""
+    "ja": "リンクを持つ分布族です (`quasi` の場合は分散関数も持ちます)。R の family オブジェクトと同様の形式です (例: `quasi(link = \"log\", variance = \"mu^2\")`)。"
   },
   "GlmFamilySpec.family#summary": {
     "hash": "4c292b4a54b5",
     "en": "The family's name, such as `\"binomial\"`.",
-    "ja": ""
+    "ja": "分布族の名前です (例: `\"binomial\"`)。"
   },
   "GlmFamilySpec.link#summary": {
     "hash": "259419e6fb21",
     "en": "The link: any named link (for `quasi`, one of its own list). Default: the family's default link.",
-    "ja": ""
+    "ja": "リンクです。名前付きのリンクを指定できます (`quasi` の場合は、その族自身の一覧にあるリンクのうちの 1 つ)。既定: 分布族の既定のリンクです。"
   },
   "GlmFamilySpec.variance#summary": {
     "hash": "eea3ace78383",
     "en": "Variance function of `quasi`. Default `\"constant\"`.",
-    "ja": ""
+    "ja": "`quasi` の分散関数です。既定は `\"constant\"`。"
   },
   "GlmLink#summary": {
     "hash": "fec2bfecc7cc",
     "en": "A link: one of R's named links or a power link `mu^power` (R's `power(lambda)`; `power <= 0` is the log link).",
-    "ja": ""
+    "ja": "リンクです。R の名前付きリンクのいずれか、またはべき乗リンク `mu^power` です (R の `power(lambda)`。`power <= 0` は log リンクです)。"
   },
   "GlmLinkName#summary": {
     "hash": "bbe008316c20",
     "en": "Names of the links of R's stats (`make.link`).",
-    "ja": ""
+    "ja": "R の stats のリンクの名前です (`make.link`)。"
   },
   "GlmModel#summary": {
     "hash": "83c17165425b",
     "en": "The data and settings of a fit, kept for the refits of {@link glmConfint} and {@link glmAnova}.",
-    "ja": ""
+    "ja": "当てはめのデータと設定です。{@link glmConfint} と {@link glmAnova} の再当てはめのために保持されます。"
   },
   "GlmModel.columnNames#summary": {
     "hash": "1611761932c6",
     "en": "Column names: `\"(Intercept)\"`, `\"x1\"`, `\"x2\"`, ...",
-    "ja": ""
+    "ja": "列名です (`\"(Intercept)\"`、`\"x1\"`、`\"x2\"`、...)。"
   },
   "GlmModel.epsilon#summary": {
     "hash": "d5df4aa3ff29",
     "en": "Convergence tolerance (R's `glm.control(epsilon)`).",
-    "ja": ""
+    "ja": "収束の許容誤差です (R の `glm.control(epsilon)`)。"
   },
   "GlmModel.familySpec#summary": {
     "hash": "811eb946b9af",
     "en": "The family and link of the fit.",
-    "ja": ""
+    "ja": "当てはめの分布族とリンクです。"
   },
   "GlmModel.hasOffset#summary": {
     "hash": "d9b78ad81401",
     "en": "Whether an offset was given.",
-    "ja": ""
+    "ja": "オフセットが指定されたかどうかです。"
   },
   "GlmModel.intercept#summary": {
     "hash": "175bfd0e95f8",
     "en": "Whether the model has an intercept.",
-    "ja": ""
+    "ja": "モデルに切片があるかどうかです。"
   },
   "GlmModel.maxit#summary": {
     "hash": "0662be30d5da",
     "en": "Maximum number of iterations (R's `glm.control(maxit)`).",
-    "ja": ""
+    "ja": "反復の最大回数です (R の `glm.control(maxit)`)。"
   },
   "GlmModel.offset#summary": {
     "hash": "e49593f39806",
     "en": "Offset, one per row (0 when not given).",
-    "ja": ""
+    "ja": "オフセットです。行ごとに 1 つで、指定がないときは 0 です。"
   },
   "GlmModel.priorGiven#summary": {
     "hash": "4202ab9c4d4b",
     "en": "Prior weights as given (1 when not given).",
-    "ja": ""
+    "ja": "与えられたとおりの事前重みです (指定がないときは 1)。"
   },
   "GlmModel.start#summary": {
     "hash": "3014797ccf81",
     "en": "Starting coefficients, if given.",
-    "ja": ""
+    "ja": "指定された場合の初期係数です。"
   },
   "GlmModel.x#summary": {
     "hash": "f91462e1f216",
     "en": "Model matrix (with the column of ones), rows with a missing value dropped.",
-    "ja": ""
+    "ja": "モデル行列です (1 の列を含みます。欠測値を含む行は除いたものです)。"
   },
   "GlmModel.yGiven#summary": {
     "hash": "034de105c7af",
     "en": "Response as given (a vector, or rows of successes and failures), rows with a missing value dropped.",
-    "ja": ""
+    "ja": "与えられたとおりの応答変数です (ベクトル、または (成功数, 失敗数) の行)。欠測値を含む行は除いたものです。"
   },
   "GlmModel.yScale#summary": {
     "hash": "deb3b95db5e1",
     "en": "k when the fit was computed on the response scaled by 2^-k (gaussian on the identity link; see scaledView).",
-    "ja": ""
+    "ja": "応答変数を 2^-k でスケーリングして当てはめたときの k です (identity リンクの gaussian の場合。scaledView を参照)。"
   },
   "GlmOptions#summary": {
     "hash": "1dfeb5b4d5f6",
     "en": "Options for {@link glm}.",
-    "ja": ""
+    "ja": "{@link glm} のオプションです。"
   },
   "GlmOptions.epsilon#summary": {
     "hash": "1172f2ae7660",
     "en": "Convergence tolerance on the relative change of the deviance (R's `glm.control(epsilon)`). Default `1e-8`.",
-    "ja": ""
+    "ja": "逸脱度の相対変化に対する収束の許容誤差です (R の `glm.control(epsilon)`)。既定は `1e-8`。"
   },
   "GlmOptions.family#summary": {
     "hash": "c377223dfaeb",
     "en": "The family: a name (`\"gaussian\"`, the default, `\"binomial\"`, `\"quasibinomial\"`, `\"poisson\"`, `\"quasipoisson\"`,\n`\"Gamma\"`, `\"inverse.gaussian\"`, `\"quasi\"`) or an object with the link and, for `quasi`, the variance function,\nas R's `quasi(link = \"log\", variance = \"mu^2\")`.",
-    "ja": ""
+    "ja": "分布族です。名前 (既定は `\"gaussian\"`。`\"binomial\"`、`\"quasibinomial\"`、`\"poisson\"`、`\"quasipoisson\"`、`\"Gamma\"`、`\"inverse.gaussian\"`、`\"quasi\"`)、または、リンクと (`quasi` の場合は) 分散関数を持つオブジェクトです。後者は R の `quasi(link = \"log\", variance = \"mu^2\")` と同じ形式です。"
   },
   "GlmOptions.intercept#summary": {
     "hash": "cc460b4791bd",
     "en": "Include an intercept (a column of ones before the columns of `x`). Default `true`.",
-    "ja": ""
+    "ja": "切片を含めます (`x` の列の前に 1 の列を加えます)。既定は `true`。"
   },
   "GlmOptions.link#summary": {
     "hash": "490099064514",
     "en": "The link (overrides the family object's): a name such as `\"logit\"` or `{ power: lambda }` (quasi only). As in R,\nany named link may be used with any family except `quasi`, which takes only its own list.",
-    "ja": ""
+    "ja": "リンクです (分布族のオブジェクトのリンクより優先されます)。`\"logit\"` などの名前、または `{ power: lambda }` (quasi のみ) を指定します。R と同じく、名前付きのリンクは `quasi` を除くどの分布族にも使えます。quasi は、その族専用の一覧にあるリンクだけを受け付けます。"
   },
   "GlmOptions.maxit#summary": {
     "hash": "8df303ed2238",
     "en": "Maximum number of iterations. Default `25`.",
-    "ja": ""
+    "ja": "反復の最大回数です。既定は `25`。"
   },
   "GlmOptions.offset#summary": {
     "hash": "edbff844543b",
     "en": "Offset added to the linear predictor.",
-    "ja": ""
+    "ja": "線形予測子に加えるオフセットです。"
   },
   "GlmOptions.start#summary": {
     "hash": "ae5a98258d8f",
     "en": "Starting coefficients (intercept first).",
-    "ja": ""
+    "ja": "初期係数です (切片が先頭)。"
   },
   "GlmOptions.weights#summary": {
     "hash": "6f15ab4d432a",
     "en": "Prior weights (non-negative).",
-    "ja": ""
+    "ja": "事前重みです (0 以上)。"
   },
   "GlmPredictOptions#summary": {
     "hash": "0f2d573ed11a",
     "en": "Options for {@link glmPredict}.",
-    "ja": ""
+    "ja": "{@link glmPredict} のオプションです。"
   },
   "GlmPredictOptions.dispersion#summary": {
     "hash": "75a6ec64d928",
     "en": "Dispersion for the standard errors instead of the summary's.",
-    "ja": ""
+    "ja": "標準誤差に使う分散パラメータです。summary の値の代わりに使います。"
   },
   "GlmPredictOptions.newdata#summary": {
     "hash": "6078b38f47e9",
     "en": "New predictor values, with the columns of `x` (no column of ones). Default: the data of the fit.",
-    "ja": ""
+    "ja": "新しい説明変数の値です。`x` と同じ列を持ちます (1 の列は含みません)。既定: 当てはめのデータ。"
   },
   "GlmPredictOptions.newoffset#summary": {
     "hash": "182715bf1712",
     "en": "Offset for `newdata`. Default 0.",
-    "ja": ""
+    "ja": "`newdata` のオフセットです。既定は 0。"
   },
   "GlmPredictOptions.type#summary": {
     "hash": "88b67fff2b1a",
     "en": "`\"link\"` (default; the linear predictor) or `\"response\"` (the mean).",
-    "ja": ""
+    "ja": "`\"link\"` (既定。線形予測子) または `\"response\"` (平均)。"
   },
   "GlmResidualType#summary": {
     "hash": "f1807c59eb9f",
     "en": "Kinds of residuals of {@link glmResiduals}.",
-    "ja": ""
+    "ja": "{@link glmResiduals} の残差の種類です。"
   },
   "GlmResidualsOptions#summary": {
     "hash": "e3272b80da87",
     "en": "Options for {@link glmResiduals}.",
-    "ja": ""
+    "ja": "{@link glmResiduals} のオプションです。"
   },
   "GlmResidualsOptions.type#summary": {
     "hash": "3c2d346b4010",
     "en": "Kind of residuals. Default `\"deviance\"`.",
-    "ja": ""
+    "ja": "残差の種類です。既定は `\"deviance\"`。"
   },
   "GlmResult#summary": {
     "hash": "eb5eabaebafd",
     "en": "Result of {@link glm}: R's `glm` object.",
-    "ja": ""
+    "ja": "{@link glm} の結果で、R の `glm` オブジェクトに相当します。"
   },
   "GlmResult.aic#summary": {
     "hash": "903db591971c",
     "en": "AIC; NaN for the quasi families.",
-    "ja": ""
+    "ja": "AIC です。quasi の族では NaN です。"
   },
   "GlmResult.boundary#summary": {
     "hash": "18e8ac5425e2",
     "en": "Whether the step was truncated (halved) in the last iteration.",
-    "ja": ""
+    "ja": "最後の反復でステップが (半分に) 切り詰められたかどうかです。"
   },
   "GlmResult.coefficients#summary": {
     "hash": "819c384fa4fe",
     "en": "Coefficients (intercept first); NaN for aliased columns.",
-    "ja": ""
+    "ja": "係数です (切片が先頭)。縮退した列は NaN です。"
   },
   "GlmResult.converged#summary": {
     "hash": "9c821b9d30c6",
     "en": "Whether the iterations converged.",
-    "ja": ""
+    "ja": "反復が収束したかどうかです。"
   },
   "GlmResult.deviance#summary": {
     "hash": "c467c3c4f36a",
     "en": "Residual deviance.",
-    "ja": ""
+    "ja": "残差逸脱度です。"
   },
   "GlmResult.dfNull#summary": {
     "hash": "3d5bd616b7b0",
     "en": "Degrees of freedom of the null deviance (R's `df.null`).",
-    "ja": ""
+    "ja": "帰無逸脱度の自由度です (R の `df.null`)。"
   },
   "GlmResult.dfResidual#summary": {
     "hash": "a265af92ef8a",
     "en": "Residual degrees of freedom (R's `df.residual`).",
-    "ja": ""
+    "ja": "残差の自由度です (R の `df.residual`)。"
   },
   "GlmResult.family#summary": {
     "hash": "93a29071db65",
     "en": "The family's name and the link's name (`\"mu^0.333\"` for a power link).",
-    "ja": ""
+    "ja": "分布族の名前とリンクの名前です (べき乗リンクの場合は `\"mu^0.333\"`)。"
   },
   "GlmResult.fittedValues#summary": {
     "hash": "b2419492488b",
     "en": "Fitted means, one per row (rows with a missing value dropped).",
-    "ja": ""
+    "ja": "平均の当てはめ値です。行ごとに 1 つで、欠測値を含む行は除かれています。"
   },
   "GlmResult.iter#summary": {
     "hash": "d35ada18fc0a",
     "en": "Number of iterations.",
-    "ja": ""
+    "ja": "反復の回数です。"
   },
   "GlmResult.linearPredictors#summary": {
     "hash": "df49045f888e",
     "en": "Linear predictors, one per row, offset included (R's `linear.predictors`).",
-    "ja": ""
+    "ja": "線形予測子です。行ごとに 1 つで、オフセットを含みます (R の `linear.predictors`)。"
   },
   "GlmResult.link#summary": {
     "hash": "02db169cd281",
     "en": "The link's name, such as `\"logit\"`.",
-    "ja": ""
+    "ja": "リンクの名前です (例: `\"logit\"`)。"
   },
   "GlmResult.model#summary": {
     "hash": "396b26c6adc2",
     "en": "The data and settings of the fit, for the refits of {@link glmConfint} and {@link glmAnova}.",
-    "ja": ""
+    "ja": "当てはめのデータと設定です。{@link glmConfint} と {@link glmAnova} の再当てはめのためのものです。"
   },
   "GlmResult.nullDeviance#summary": {
     "hash": "e0f290bf568e",
     "en": "Deviance of the model with the intercept only, or of the empty model without intercept (R's `null.deviance`).",
-    "ja": ""
+    "ja": "帰無逸脱度です。切片だけのモデル、または切片のない空のモデルの逸脱度です (R の `null.deviance`)。"
   },
   "GlmResult.priorWeights#summary": {
     "hash": "02efd8dbb2ec",
     "en": "Prior weights after the response was read (multiplied by the sizes for a two-column binomial response).",
-    "ja": ""
+    "ja": "応答変数を読み取った後の事前重みです (2 列の二項分布の応答の場合は、各行のサイズを掛けたもの)。"
   },
   "GlmResult.qr#summary": {
     "hash": "10c0c18d7286",
     "en": "QR decomposition of the last weighted least squares problem (undefined for a model without columns).",
-    "ja": ""
+    "ja": "最後の重み付き最小二乗問題の QR 分解です (列のないモデルでは定義されません)。"
   },
   "GlmResult.rank#summary": {
     "hash": "7a9f76fb57de",
     "en": "Numerical rank of the model matrix.",
-    "ja": ""
+    "ja": "モデル行列の数値的なランクです。"
   },
   "GlmResult.residuals#summary": {
     "hash": "56dc1f755418",
     "en": "Working residuals.",
-    "ja": ""
+    "ja": "作業残差です。"
   },
   "GlmResult.warnings#summary": {
     "hash": "19382659fccd",
     "en": "R's warnings, each once, in order of first appearance.",
-    "ja": ""
+    "ja": "R の警告です。それぞれ 1 回ずつ、最初に現れた順です。"
   },
   "GlmResult.weights#summary": {
     "hash": "bc9cbbe27086",
     "en": "Working weights of the last least squares step (0 for rows not used).",
-    "ja": ""
+    "ja": "最後の最小二乗ステップの作業重みです (使われなかった行は 0)。"
   },
   "GlmResult.y#summary": {
     "hash": "955f454e7895",
     "en": "The response as the family reads it (proportions for a two-column binomial response).",
-    "ja": ""
+    "ja": "分布族が読み取った応答変数です (2 列の二項分布の応答の場合は比率)。"
   },
   "GlmRstandardOptions#summary": {
     "hash": "c42f17f49e8c",
     "en": "Options for {@link glmRstandard}.",
-    "ja": ""
+    "ja": "{@link glmRstandard} のオプションです。"
   },
   "GlmRstandardOptions.type#summary": {
     "hash": "a250e25081ae",
     "en": "`\"pearson\"` (default, as R 4.6) or `\"deviance\"` (R's default before 4.6): the residuals that are standardized.",
-    "ja": ""
+    "ja": "標準化する残差です。既定は `\"pearson\"` (R 4.6 と同じ) で、`\"deviance\"` は R 4.6 より前の既定です。"
   },
   "GlmSummary#summary": {
     "hash": "08ea3ebad99f",
     "en": "Result of {@link glmSummary}: the quantities of R's `summary(glm)`.",
-    "ja": ""
+    "ja": "{@link glmSummary} の結果です。R の `summary(glm)` の量です。"
   },
   "GlmSummary.covScaled#summary": {
     "hash": "d6326b01c99f",
     "en": "covUnscaled times the dispersion.",
-    "ja": ""
+    "ja": "covUnscaled に分散パラメータを掛けたものです。"
   },
   "GlmSummary.covUnscaled#summary": {
     "hash": "fa939c300968",
     "en": "(R'R)^-1 of the columns that are not aliased.",
-    "ja": ""
+    "ja": "縮退していない列の (R'R)^-1 です。"
   },
   "GlmSummary.dfResidual#summary": {
     "hash": "a265af92ef8a",
     "en": "Residual degrees of freedom (R's `df.residual`).",
-    "ja": ""
+    "ja": "残差の自由度です (R の `df.residual`)。"
   },
   "GlmSummary.dispersion#summary": {
     "hash": "5f55a2b31891",
     "en": "The dispersion used (estimated, given, or 1 for binomial and poisson).",
-    "ja": ""
+    "ja": "使われた分散パラメータです (推定値、与えられた値、または二項分布とポアソン分布の場合は 1)。"
   },
   "GlmSummary.estimate#summary": {
     "hash": "0e80f0031fc3",
     "en": "The coefficient table of the columns that are not aliased, in their order.",
-    "ja": ""
+    "ja": "縮退していない列の係数の表です (列の順のまま)。"
   },
   "GlmSummary.pValue#summary": {
     "hash": "3c501f256ae5",
     "en": "Two-sided p-values (R's `Pr(>|z|)` or `Pr(>|t|)`).",
-    "ja": ""
+    "ja": "両側 p 値です (R の `Pr(>|z|)` または `Pr(>|t|)`)。"
   },
   "GlmSummary.statistic#summary": {
     "hash": "61e3cc637399",
     "en": "z or t statistics (see `statisticName`).",
-    "ja": ""
+    "ja": "z 統計量または t 統計量です (`statisticName` を参照)。"
   },
   "GlmSummary.statisticName#summary": {
     "hash": "f3f69154d729",
     "en": "`\"z value\"` when the dispersion is fixed (binomial, poisson), else `\"t value\"`.",
-    "ja": ""
+    "ja": "分散パラメータが固定されている場合 (二項分布、ポアソン分布) は `\"z value\"`、それ以外は `\"t value\"` です。"
   },
   "GlmSummary.stdError#summary": {
     "hash": "4b5b7823947c",
     "en": "Standard errors (R's `Std. Error`).",
-    "ja": ""
+    "ja": "標準誤差です (R の `Std. Error`)。"
   },
   "GlmSummary.warnings#summary": {
     "hash": "c625086487aa",
     "en": "Warnings (such as \"observations with zero weight not used for calculating dispersion\").",
-    "ja": ""
+    "ja": "警告です (例: \"observations with zero weight not used for calculating dispersion\")。"
   },
   "GlmSummaryOptions#summary": {
     "hash": "5facaa91c0db",
     "en": "Options for {@link glmSummary}.",
-    "ja": ""
+    "ja": "{@link glmSummary} のオプションです。"
   },
   "GlmSummaryOptions.dispersion#summary": {
     "hash": "0ddb09542bc3",
     "en": "Dispersion to use instead of the estimate (or 1 for binomial and poisson).",
-    "ja": ""
+    "ja": "推定値の代わりに使う分散パラメータです (または二項分布とポアソン分布では 1)。"
   },
   "QuasiVariance#summary": {
     "hash": "2dd1d964bbbf",
     "en": "Variance functions of the `quasi` family.",
-    "ja": ""
+    "ja": "`quasi` の分布族の分散関数です。"
   },
   "glm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glm#@param x": {
     "hash": "a3f10d9c922f",
     "en": "Predictors: a matrix (array of rows, one column per predictor; rows of length 0 for a model with the\n  intercept only) or a vector (one predictor).",
-    "ja": ""
+    "ja": "説明変数です: 行列 (行の配列で、説明変数ごとに 1 列。長さ 0 の行は、切片だけの\n  モデルの場合) またはベクトル (説明変数 1 つ)。"
   },
   "glm#@param y": {
     "hash": "48cfd547aa1d",
     "en": "Response: a vector, or for the binomial families rows of (successes, failures).",
-    "ja": ""
+    "ja": "応答変数です: ベクトル、または二項分布族の場合は (成功数, 失敗数) の行です。"
   },
   "glm#summary": {
     "hash": "b874206cf349",
     "en": "Fit a generalized linear model by iteratively reweighted least squares. Equivalent to R's\n`glm(y ~ x, family = ...)`. Or `y ~ x - 1` without intercept; the predictors are given as a matrix instead of a\nformula. Rows with a missing value (NaN) in `x`, `y`, the weights or the offset are dropped. Every family and link\nof R's `stats` is available; R's warnings are returned in `warnings`. See {@link glmSummary}, {@link glmResiduals},\n{@link glmPredict}, {@link glmConfint} and {@link glmAnova} for the methods.",
-    "ja": ""
+    "ja": "反復重み付き最小二乗法により一般化線形モデルを当てはめます。R の\n`glm(y ~ x, family = ...)` と同等です。切片なしの場合は `y ~ x - 1` と同じで、説明変数は式ではなく行列で与えます。`x`、`y`、重み、またはオフセットに欠測値 (NaN) を含む行は除かれます。R の `stats` のすべての分布族とリンクが使えます。R の警告は `warnings` で返されます。メソッドについては {@link glmSummary}、{@link glmResiduals}、\n{@link glmPredict}、{@link glmConfint}、{@link glmAnova} を参照してください。"
   },
   "glmAnova#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmAnova#@param fits": {
     "hash": "6c5e5d4375af",
     "en": "One fit, or an array of fits to compare.",
-    "ja": ""
+    "ja": "1 つの当てはめ、または比較する当てはめの配列です。"
   },
   "glmAnova#summary": {
     "hash": "750551923762",
     "en": "Analysis of deviance, for one `glm` fit (the sequential table, each column of `x` added in order) or for several\nfits of the same data (`anova(fit1, fit2, ...)`). Equivalent to R's `anova()`.",
-    "ja": ""
+    "ja": "逸脱度分析です。1 つの `glm` の当てはめ (逐次の表。`x` の各列を順に加えます)、または同じデータの複数の当てはめ\n(`anova(fit1, fit2, ...)`) に対するものです。R の `anova()` と同等です。"
   },
   "glmConfint#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmConfint#summary": {
     "hash": "d138236a37a4",
     "en": "Profile likelihood confidence intervals for the coefficients of a generalized linear model (NaN for aliased\ncolumns, and for a limit that the profile does not reach), for a `glm` fit. Equivalent to R's `confint()`. With\nthe exact solutions of the profile equations, where R interpolates a spline through a grid of profile points (and\nis up to about 5e-4 standard errors from them).",
-    "ja": ""
+    "ja": "一般化線形モデルの係数のプロファイル尤度信頼区間です (縮退した列と、プロファイルが到達しない限界では NaN です)。`glm` の当てはめに対するものです。R の `confint()` と同等です。\nプロファイルの方程式の厳密解を用います (R は、プロファイルの点の格子を通るスプラインで補間しますが、その値は厳密解から最大で約 5e-4 標準誤差ずれます)。"
   },
   "glmConfint.lower#summary": {
     "hash": "c8f030a17881",
     "en": "Lower limits, one per coefficient (R's first column, `2.5 %` by default).",
-    "ja": ""
+    "ja": "下限です。係数ごとに 1 つです (R の 1 列目。既定は `2.5 %`)。"
   },
   "glmConfint.upper#summary": {
     "hash": "5ebeae73b6c5",
     "en": "Upper limits, one per coefficient (R's second column, `97.5 %` by default).",
-    "ja": ""
+    "ja": "上限です。係数ごとに 1 つです (R の 2 列目。既定は `97.5 %`)。"
   },
   "glmCooksDistance#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmCooksDistance#summary": {
     "hash": "ec6110b668d2",
     "en": "Cook's distances, for the rows of non-zero prior weight, for a `glm` fit. Equivalent to R's `cooks.distance()`.",
-    "ja": ""
+    "ja": "`glm` の当てはめについて、事前重みが 0 でない行の Cook の距離です。R の `cooks.distance()` と同等です。"
   },
   "glmHatvalues#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmHatvalues#summary": {
     "hash": "bc0d681dcfa7",
     "en": "Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight, for a\n`glm` fit. Equivalent to R's `hatvalues()`.",
-    "ja": ""
+    "ja": "`glm` の当てはめについて、事前重みが 0 でない行の、最後の重み付き最小二乗ステップのハット行列の対角成分です。\nR の `hatvalues()` と同等です。"
   },
   "glmPredict#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmPredict#summary": {
     "hash": "bcf1afcd9b4a",
     "en": "Predictions of a generalized linear model with their standard errors, for a `glm` fit. Equivalent to R's\n`predict(fit, newdata, type, se.fit = TRUE)`. Aliased columns are left out, as R does.",
-    "ja": ""
+    "ja": "`glm` の当てはめについて、一般化線形モデルの予測値とその標準誤差です。R の\n`predict(fit, newdata, type, se.fit = TRUE)` と同等です。縮退した列は R と同じく除かれます。"
   },
   "glmPredict.fit#summary": {
     "hash": "4d8deb82176b",
     "en": "Predictions on the scale of `type`, one per row.",
-    "ja": ""
+    "ja": "`type` の尺度での予測値です。行ごとに 1 つです。"
   },
   "glmPredict.nonEstimable#summary": {
     "hash": "35b9d0c2538e",
     "en": "0-based rows of `newdata` whose prediction is not estimable from a rank-deficient fit (R's `attr(, \"non-estim\")`); present only when there are some.",
-    "ja": ""
+    "ja": "ランク不足の当てはめから予測が推定できない `newdata` の行です (0 始まりの添字。R の `attr(, \"non-estim\")`)。そのような行があるときだけ存在します。"
   },
   "glmPredict.seFit#summary": {
     "hash": "1218ca51b7f1",
     "en": "Their standard errors (R's `se.fit`).",
-    "ja": ""
+    "ja": "それらの標準誤差です (R の `se.fit`)。"
   },
   "glmPredict.warnings#summary": {
     "hash": "91c0f33972df",
     "en": "R's warning for those rows; present only when there are some.",
-    "ja": ""
+    "ja": "それらの行に対する R の警告です。そのような行があるときだけ存在します。"
   },
   "glmResiduals(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmResiduals(0)#summary": {
     "hash": "c4e16e960092",
     "en": "Residuals of a generalized linear model, one per row, for a `glm` fit (default `\"deviance\"`). Equivalent to R's\n`residuals(fit, type)`. The kind is the second argument or the option `type` (giving both is a RangeError).",
-    "ja": ""
+    "ja": "`glm` の当てはめについて、一般化線形モデルの残差です。行ごとに 1 つです (既定は `\"deviance\"`)。R の\n`residuals(fit, type)` と同等です。残差の種類は 2 番目の引数、またはオプション `type` で指定します (両方を指定すると RangeError になります)。"
   },
   "glmResiduals(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmResiduals(1)#summary": {
     "hash": "74432b2e010a",
     "en": "Residuals of a generalized linear model, with the kind in the options: `glmResiduals(fit, { type: \"pearson\" })`.",
-    "ja": ""
+    "ja": "一般化線形モデルの残差です。残差の種類はオプションで指定します (例: `glmResiduals(fit, { type: \"pearson\" })`)。"
   },
   "glmRstandard#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmRstandard#summary": {
     "hash": "2e663834b3aa",
     "en": "Standardized Pearson (default) or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit.\nEquivalent to R's `rstandard()`. The residuals are divided by sigma sqrt(1 - h), sigma the square root of the\ndispersion, as R 4.6, whose default type is `\"pearson\"` (R before 4.6: `\"deviance\"`).",
-    "ja": ""
+    "ja": "`glm` の当てはめについて、事前重みが 0 でない行の標準化 Pearson 残差 (既定) または標準化逸脱度残差です。\nR の `rstandard()` と同等です。残差は sigma sqrt(1 - h) で割ります (sigma は分散パラメータの平方根。R 4.6 と同じ)。R 4.6 の既定の type は `\"pearson\"` で、R 4.6 より前は `\"deviance\"` です。"
   },
   "glmSummary#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glmSummary#summary": {
     "hash": "c5512c6e5e40",
     "en": "Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates,\nfor a `glm` fit. Equivalent to R's `summary()`.",
-    "ja": ""
+    "ja": "一般化線形モデルの要約です。分散パラメータ、係数の表、推定値の共分散行列を含み、\n`glm` の当てはめについてのものです。R の `summary()` と同等です。"
   }
 }
