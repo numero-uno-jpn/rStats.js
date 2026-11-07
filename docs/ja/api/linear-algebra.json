@@ -1617,7 +1617,7 @@
   "seq#summary": {
     "hash": "32163d177f07",
     "en": "Regular sequences. Equivalent to R's `seq()`. `seq(from, to)` steps by ±1; `by` steps by the increment, up to\n`to`; `lengthOut` gives that many values, both ends exact. `from` or `to` may be omitted (`undefined`) when the\nother two are given; `seq(n)` alone is `1, 2, ..., n`.",
-    "ja": "等間隔の数列です。R の `seq()` と同等です。`seq(from, to)` は ±1 刻みです。`by` は増分の刻みで、`to` を超えない範囲で進みます。`lengthOut` は、その数だけの値を、両端が正確になるように返します。`from` と `to` は、ほかの 2 つが与えられているとき省略 (`undefined`) できます。`seq(n)` だけの場合は `1, 2, ..., n` です。"
+    "ja": "等間隔の数列です。R の `seq()` と同等です。`seq(from, to)` は ±1 刻みです。`by` は増分の刻みで、`to` を超えない範囲で進みます。`lengthOut` は、その数だけの値を、両端が正確になるように返します。`from` または `to` は、ほかの 2 つが与えられているとき省略 (`undefined`) できます。`seq(n)` だけの場合は `1, 2, ..., n` です。"
   },
   "solve(0)#@example": {
     "hash": "f2167be5edf2",
@@ -1762,7 +1762,7 @@
   "svd#summary": {
     "hash": "222b82e2ff44",
     "en": "Singular value decomposition. Equivalent to R's `svd()`.\n\nUses the Golub-Reinsch algorithm, while R uses LAPACK's `dgesdd`. Singular values agree with R up to\nrounding, but the signs of singular vectors may differ from R (both are correct); for repeated singular\nvalues the vectors may span the same subspace with a different basis. Singular vectors beyond\n`min(nrow, ncol)` are a basis of the orthogonal complement and do not match R. Throws on `NaN` or infinite values.",
-    "ja": "特異値分解です。R の `svd()` と同等です。\n\nGolub–Reinsch のアルゴリズムを使います。R は LAPACK の `dgesdd` を使います。特異値は丸め誤差の範囲で R と一致しますが、一方で特異ベクトルの符号は R と異なることがあります (どちらも正しいものです)。重複する特異値の場合、ベクトルは同じ部分空間を張りますが、基底は R と異なることがあります。`min(nrow, ncol)` を超える特異ベクトルは直交補完の基底であり、R とは一致しません。`NaN` または無限大の値があると例外を投げます。"
+    "ja": "特異値分解です。R の `svd()` と同等です。\n\nGolub–Reinsch のアルゴリズムを使います。R は LAPACK の `dgesdd` を使います。特異値は丸め誤差の範囲で R と一致しますが、一方で特異ベクトルの符号は R と異なることがあります (どちらも正しいものです)。重複する特異値の場合、ベクトルは同じ部分空間を張りますが、基底は R と異なることがあります。`min(nrow, ncol)` を超える特異ベクトルは直交補空間の基底であり、R とは一致しません。`NaN` または無限大の値があると例外を投げます。"
   },
   "t#@example": {
     "hash": "f2167be5edf2",
