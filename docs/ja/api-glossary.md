@@ -137,8 +137,8 @@
 | 英語 | 日本語 | 注記 |
 |---|---|---|
 | distribution | 分布 | |
-| probability density | 確率密度 | 「密度」「対数密度」は `docs/ja` で使用。「確率密度関数」の形は (要確認) |
-| cumulative distribution function | 累積分布関数 | (要確認) |
+| probability density | 確率密度 | 「密度」「対数密度」は `docs/ja` で使用 |
+| cumulative distribution function | 累積分布関数 | |
 | quantile | 分位点 | `docs/ja` で使用 |
 | central distribution | 中心分布 | `docs/ja` で使用 |
 | noncentral distribution | 非心分布 | `docs/ja` で使用 |
@@ -160,7 +160,7 @@
 | uniform | 一様分布 | `docs/ja` で使用 |
 | studentized range | スチューデント化された範囲 | `docs/ja` で使用 |
 | shape (parameter) | 形状 | 引数名 `shape` は英字 |
-| scale (parameter) | 尺度 | 引数名 `scale` は英字。「尺度」は別の意味にもなるため (要確認) |
+| scale (parameter) | 尺度パラメータ | 引数名 `scale` は英字 |
 | tail | 裾 | `docs/ja` で使用 |
 | mean | 平均 | |
 | skewness | 歪度 | `docs/ja` で使用 |
@@ -206,10 +206,9 @@
 | linear mixed model | 線形混合モデル | `docs/ja` で使用 |
 | variance component | 分散成分 | `docs/ja` で使用 |
 | REML | REML | 英字のまま。制限付き最尤法 |
-| random intercept | 変量切片 | (要確認) |
+| random intercept | ランダム切片 | |
 | convergence | 収束 | `docs/ja` で使用 |
 | iteration | 反復 | `docs/ja` で使用 |
-| intraclass correlation | 級内相関係数 | `docs/ja` では「級内相関」 (要確認) |
 
 ### 5. 生存時間解析
 
@@ -218,7 +217,7 @@
 | survival | 生存 | `docs/ja` で使用 |
 | survival function | 生存関数 | `docs/ja` で使用 |
 | hazard | ハザード | `docs/ja` で使用 |
-| hazard ratio | ハザード比 | (要確認) |
+| hazard ratio | ハザード比 | |
 | censoring | 打ち切り | `docs/ja` で使用 |
 | Kaplan-Meier | Kaplan-Meier | 人名は英字 |
 | Cox proportional hazards | Cox 比例ハザード | 人名は英字 |
@@ -286,7 +285,7 @@
 | option (object) | オプション | |
 | default (as a value) | 既定 | 「Default `x`」は「既定は `x`」 (規則 8) |
 | parameter (JS) | 引数 | `docs/ja` で使用 |
-| return value | 戻り値 | (要確認)。`docs/ja` は「返す」を多く使用 |
+| return value | 戻り値 | `docs/ja` は「返す」を多く使用 |
 | throws | 例外を投げる | `docs/ja` で「例外」を使用 |
 | error | エラー | |
 | warning | 警告 | `docs/ja` で使用 |
