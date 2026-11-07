@@ -2,736 +2,736 @@
   "CronbachAlphaResult#summary": {
     "hash": "4f561f8ce8a5",
     "en": "Result of {@link cronbachAlpha}.",
-    "ja": ""
+    "ja": "{@link cronbachAlpha} の結果です。"
   },
   "CronbachAlphaResult.G6#summary": {
     "hash": "26dfbe1b3e7f",
     "en": "Guttman's lambda 6, from the squared multiple correlations.",
-    "ja": ""
+    "ja": "重相関係数の二乗から求めた Guttman の λ6 です。"
   },
   "CronbachAlphaResult.alphaDrop#summary": {
     "hash": "12212713b4c5",
     "en": "Raw alpha of the items without each item in turn.",
-    "ja": ""
+    "ja": "各項目を順に除いたときの、項目の raw alpha です。"
   },
   "CronbachAlphaResult.averageR#summary": {
     "hash": "f5bd1d8f03ef",
     "en": "Mean correlation between the items.",
-    "ja": ""
+    "ja": "項目間相関の平均です。"
   },
   "CronbachAlphaResult.rawAlpha#summary": {
     "hash": "9109a8ad9b6f",
     "en": "Cronbach's alpha from the covariances.",
-    "ja": ""
+    "ja": "共分散から求めた Cronbach の α です。"
   },
   "CronbachAlphaResult.stdAlpha#summary": {
     "hash": "7db539985c0c",
     "en": "Alpha from the correlations (standardized items).",
-    "ja": ""
+    "ja": "相関から求めた α です (項目を標準化した場合)。"
   },
   "CronbachAlphaResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告です。それぞれ 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列です)。"
   },
   "FactanalOptions#summary": {
     "hash": "067a79f0ee4b",
     "en": "Options of {@link factanal}",
-    "ja": ""
+    "ja": "{@link factanal} のオプションです。"
   },
   "FactanalOptions.control#summary": {
     "hash": "74e4eaada430",
     "en": "Settings of the optimisation (part of R's `control` list).",
-    "ja": ""
+    "ja": "最適化の設定です (R の `control` リストの一部です)。"
   },
   "FactanalOptions.control.lower#summary": {
     "hash": "e28cbdc20e5e",
     "en": "Lower bound of the uniquenesses. Default 0.005.",
-    "ja": ""
+    "ja": "独自因子分散の下限です。既定は 0.005。"
   },
   "FactanalOptions.control.start#summary": {
     "hash": "dc6043165b67",
     "en": "Starting uniquenesses. Default `(1 - factors / (2p)) / diag(solve(S))`.",
-    "ja": ""
+    "ja": "初期の独自因子分散です。既定は `(1 - factors / (2p)) / diag(solve(S))`。"
   },
   "FactanalOptions.covmat#summary": {
     "hash": "3818b2ff33c6",
     "en": "A covariance (or correlation) matrix to analyse instead of the data `x` (pass `null` as `x`).",
-    "ja": ""
+    "ja": "データ `x` の代わりに分析する共分散行列 (または相関行列) です (`x` として `null` を渡します)。"
   },
   "FactanalOptions.nObs#summary": {
     "hash": "e3f53cb3990b",
     "en": "The number of observations behind `covmat` (for the test statistic). Default: unknown.",
-    "ja": ""
+    "ja": "`covmat` の元になった観測数です (検定統計量のため)。既定: 不明です。"
   },
   "FactanalOptions.rotation#summary": {
     "hash": "c6e167637b03",
     "en": "Default `\"varimax\"`.",
-    "ja": ""
+    "ja": "既定は `\"varimax\"`。"
   },
   "FactanalOptions.scores#summary": {
     "hash": "8bc7f4400b17",
     "en": "Factor scores to compute from the data (R's `scores`): `\"none\"` (default), `\"regression\"` (Thomson's,\nz R^-1 L) or `\"Bartlett\"` (z W L (L' W L)^-1 with W = diag(1 / uniquenesses)), where z is the data\nstandardised by column (denominator n - 1), R its correlation matrix and L the final loadings. Scores need\n`x`: with `covmat` they are an error.",
-    "ja": ""
+    "ja": "データから計算する因子得点です (R の `scores`)。`\"none\"` (既定)、`\"regression\"` (Thomson の方法、z R^-1 L)、または `\"Bartlett\"` (z W L (L' W L)^-1、ただし W = diag(1 / 独自因子分散)) のいずれかです。z は列ごとに標準化したデータ (分母は n - 1) で、R はその相関行列、L は最終的な負荷量です。得点には `x` が必要です。`covmat` を指定すると、エラーになります。"
   },
   "FactanalResult#summary": {
     "hash": "05608271e68a",
     "en": "Result of {@link factanal}",
-    "ja": ""
+    "ja": "{@link factanal} の結果です。"
   },
   "FactanalResult.PVAL#summary": {
     "hash": "993d210964af",
     "en": "Its upper chi-squared tail probability (NaN as STATISTIC)",
-    "ja": ""
+    "ja": "そのカイ二乗分布の上側の裾確率です (STATISTIC と同じく NaN)。"
   },
   "FactanalResult.STATISTIC#summary": {
     "hash": "30e7c757ba95",
     "en": "The likelihood-ratio statistic (NaN without n.obs or with no degrees of freedom)",
-    "ja": ""
+    "ja": "尤度比統計量です (n.obs を指定しないとき、または自由度がないときは NaN です)。"
   },
   "FactanalResult.converged#summary": {
     "hash": "1c2b06acd539",
     "en": "Whether the optimisation converged.",
-    "ja": ""
+    "ja": "最適化が収束したかどうかです。"
   },
   "FactanalResult.counts#summary": {
     "hash": "ee0b728b3350",
     "en": "optim's counts of function and gradient evaluations",
-    "ja": ""
+    "ja": "optim の、関数と勾配の評価回数です。"
   },
   "FactanalResult.dof#summary": {
     "hash": "3ab964b061c0",
     "en": "Degrees of freedom of the statistic, ((p - factors)^2 - (p + factors)) / 2.",
-    "ja": ""
+    "ja": "統計量の自由度で、((p - factors)^2 - (p + factors)) / 2 です。"
   },
   "FactanalResult.loadings#summary": {
     "hash": "db4a3d417de0",
     "en": "The (rotated) loadings, p rows by `factors` columns, columns sorted by decreasing sum of squares, each column's sum positive",
-    "ja": ""
+    "ja": "(回転後の) 負荷量です。p 行、`factors` 列で、列は平方和の大きい順に並び、各列の和は正です。"
   },
   "FactanalResult.objective#summary": {
     "hash": "93130834255a",
     "en": "The minimised criterion",
-    "ja": ""
+    "ja": "最小化された基準です。"
   },
   "FactanalResult.rotmat#summary": {
     "hash": "f883e771a92f",
     "en": "The rotation matrix (absent for `rotation: \"none\"` and for one factor)",
-    "ja": ""
+    "ja": "回転行列です (`rotation: \"none\"` の場合と、因子が 1 つの場合は含まれません)。"
   },
   "FactanalResult.scores#summary": {
     "hash": "8d923a82acfa",
     "en": "The factor scores (with `scores` other than `\"none\"`): one row per observation, one column per factor",
-    "ja": ""
+    "ja": "因子得点です (`scores` が `\"none\"` 以外の場合): 観測値ごとに 1 行、因子ごとに 1 列です。"
   },
   "FactanalResult.uniquenesses#summary": {
     "hash": "0b8dcbbd3623",
     "en": "The uniquenesses, one per variable: the variance not explained by the factors.",
-    "ja": ""
+    "ja": "独自因子分散です。変数ごとに 1 つあり、因子では説明されない分散です。"
   },
   "FactanalResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告です。それぞれ 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列です)。"
   },
   "FactanalRotation#summary": {
     "hash": "e7797d6acf6f",
     "en": "Rotations of {@link factanal}",
-    "ja": ""
+    "ja": "{@link factanal} の回転方法です。"
   },
   "FactanalScores#summary": {
     "hash": "0886d002fe33",
     "en": "Factor scores of {@link factanal}",
-    "ja": ""
+    "ja": "{@link factanal} の因子得点の種類です。"
   },
   "IccOptions#summary": {
     "hash": "24dd5ebe3a94",
     "en": "Options for {@link icc}. Unambiguous abbreviations of the choices are accepted.",
-    "ja": ""
+    "ja": "{@link icc} のオプションです。選択肢は、曖昧さのない省略形も受け付けます。"
   },
   "IccOptions.confLevel#summary": {
     "hash": "ccfda40f60f0",
     "en": "Confidence level of the interval. Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準です。既定は `0.95`。"
   },
   "IccOptions.model#summary": {
     "hash": "bdb0cdf34966",
     "en": "`\"oneway\"` (default; subjects are the only effect) or `\"twoway\"` (subjects and raters).",
-    "ja": ""
+    "ja": "`\"oneway\"` (既定。効果は被験者だけです)、または `\"twoway\"` (被験者と評定者)。"
   },
   "IccOptions.r0#summary": {
     "hash": "6148d93606c8",
     "en": "The value of the coefficient under the null hypothesis. Default `0`.",
-    "ja": ""
+    "ja": "帰無仮説のもとでの係数の値です。既定は `0`。"
   },
   "IccOptions.type#summary": {
     "hash": "dc59b28aa273",
     "en": "Two-way model: `\"consistency\"` (default) or `\"agreement\"` (rater differences count as disagreement).",
-    "ja": ""
+    "ja": "二元配置モデルの場合: `\"consistency\"` (既定)、または `\"agreement\"` (評定者による差を不一致として数えます)。"
   },
   "IccOptions.unit#summary": {
     "hash": "6f6bdb442fb7",
     "en": "`\"single\"` (default; the reliability of one rater) or `\"average\"` (of the mean of the k raters).",
-    "ja": ""
+    "ja": "`\"single\"` (既定。1 人の評定者の信頼性)、または `\"average\"` (k 人の評定者の平均の信頼性)。"
   },
   "IccResult#summary": {
     "hash": "e2a8718a869b",
     "en": "Result of {@link icc}.",
-    "ja": ""
+    "ja": "{@link icc} の結果です。"
   },
   "IccResult.Fvalue#summary": {
     "hash": "ad690ef918ee",
     "en": "F statistic of the test of ICC = r0.",
-    "ja": ""
+    "ja": "ICC = r0 の検定の F 統計量です。"
   },
   "IccResult.df1#summary": {
     "hash": "4f11dff78521",
     "en": "Numerator degrees of freedom of the F test.",
-    "ja": ""
+    "ja": "F 検定の分子の自由度です。"
   },
   "IccResult.df2#summary": {
     "hash": "3754202c55cc",
     "en": "Denominator degrees of freedom of the F test.",
-    "ja": ""
+    "ja": "F 検定の分母の自由度です。"
   },
   "IccResult.fValue#summary": {
     "hash": "5ffbff4e390d",
     "en": "Alias of `Fvalue`: the same value.",
-    "ja": ""
+    "ja": "`Fvalue` の別名です (同じ値です)。"
   },
   "IccResult.lbound#summary": {
     "hash": "74dbe99f09ab",
     "en": "Lower confidence limit.",
-    "ja": ""
+    "ja": "信頼区間の下限です。"
   },
   "IccResult.pValue#summary": {
     "hash": "3caeff89d9a3",
     "en": "Upper-tail p-value of the F test.",
-    "ja": ""
+    "ja": "F 検定の上側の p 値です。"
   },
   "IccResult.ubound#summary": {
     "hash": "0c7d76725ebf",
     "en": "Upper confidence limit.",
-    "ja": ""
+    "ja": "信頼区間の上限です。"
   },
   "IccResult.value#summary": {
     "hash": "0db19461c93e",
     "en": "The intraclass correlation coefficient.",
-    "ja": ""
+    "ja": "級内相関係数です。"
   },
   "IccResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告です。それぞれ 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列です)。"
   },
   "Kappa2Options#summary": {
     "hash": "385596c3b88c",
     "en": "Options for {@link kappa2}.",
-    "ja": ""
+    "ja": "{@link kappa2} のオプションです。"
   },
   "Kappa2Options.weight#summary": {
     "hash": "e3f0c0d05af0",
     "en": "`\"unweighted\"` (default): only identical ratings agree. `\"equal\"`: weights `1 − d/(c − 1)` for levels `d` apart\n(of `c` levels); `\"squared\"`: `1 − d²/(c − 1)²`. Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "`\"unweighted\"` (既定): 同じ評定だけを一致とみなします。`\"equal\"`: 水準が `d` だけ離れているとき (水準は `c` 個)、重みは `1 − d/(c − 1)` です。\n`\"squared\"`: 重みは `1 − d²/(c − 1)²` です。曖昧さのない省略形も受け付けます。"
   },
   "Kappa2Weight#summary": {
     "hash": "532485c479d4",
     "en": "Weighting of the disagreements in {@link kappa2}.",
-    "ja": ""
+    "ja": "{@link kappa2} における不一致の重み付けです。"
   },
   "KappaResult#summary": {
     "hash": "50ac01eb06b9",
     "en": "Result of {@link kappa2} and {@link kappamFleiss}.",
-    "ja": ""
+    "ja": "{@link kappa2} と {@link kappamFleiss} の結果です。"
   },
   "KappaResult.pValue#summary": {
     "hash": "5fd22b4cb106",
     "en": "Two-sided p-value of the z test (absent for Fleiss' exact kappa).",
-    "ja": ""
+    "ja": "z 検定の両側の p 値です (Fleiss の正確な κ の場合は含まれません)。"
   },
   "KappaResult.statistic#summary": {
     "hash": "2adc3cd77d67",
     "en": "z statistic of the test of kappa = 0 (absent for Fleiss' exact kappa).",
-    "ja": ""
+    "ja": "κ = 0 の検定の z 統計量です (Fleiss の正確な κ の場合は含まれません)。"
   },
   "KappaResult.value#summary": {
     "hash": "828ec3d6e932",
     "en": "The kappa coefficient.",
-    "ja": ""
+    "ja": "κ 係数です。"
   },
   "KappaResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告です。それぞれ 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列です)。"
   },
   "KappamFleissOptions#summary": {
     "hash": "31b607f4dc95",
     "en": "Options for {@link kappamFleiss}.",
-    "ja": ""
+    "ja": "{@link kappamFleiss} のオプションです。"
   },
   "KappamFleissOptions.exact#summary": {
     "hash": "91c11058e5bd",
     "en": "Conger's exact kappa instead of Fleiss' (no test is then given). Default `false`.",
-    "ja": ""
+    "ja": "Fleiss の κ の代わりに Conger の正確な κ を求めます (このとき検定は求めません)。既定は `false`。"
   },
   "OmegaOptions#summary": {
     "hash": "b407628c914a",
     "en": "Options of {@link omega}",
-    "ja": ""
+    "ja": "{@link omega} のオプションです。"
   },
   "OmegaOptions.covmat#summary": {
     "hash": "81c175af1755",
     "en": "A correlation (or covariance) matrix to analyse instead of the data `x` (pass `null` as `x`).",
-    "ja": ""
+    "ja": "データ `x` の代わりに分析する相関行列 (または共分散行列) です (`x` として `null` を渡します)。"
   },
   "OmegaOptions.nfactors#summary": {
     "hash": "593230cb7d74",
     "en": "The number of first-order (group) factors. Default 3.",
-    "ja": ""
+    "ja": "一次因子 (群因子) の数です。既定は 3。"
   },
   "OmegaResult#summary": {
     "hash": "524e4ded5f47",
     "en": "Result of {@link omega}",
-    "ja": ""
+    "ja": "{@link omega} の結果です。"
   },
   "OmegaResult.ECV#summary": {
     "hash": "37b4f9e3c29f",
     "en": "Explained common variance of the general factor",
-    "ja": ""
+    "ja": "一般因子の説明された共通分散です。"
   },
   "OmegaResult.G6#summary": {
     "hash": "43bfe2b1f38a",
     "en": "Guttman's lambda 6",
-    "ja": ""
+    "ja": "Guttman の λ6 です。"
   },
   "OmegaResult.alpha#summary": {
     "hash": "884afbed56f7",
     "en": "Cronbach's alpha (standardised: of the correlations)",
-    "ja": ""
+    "ja": "Cronbach の α です (標準化した場合: 相関に基づく)。"
   },
   "OmegaResult.gloading#summary": {
     "hash": "de12924d4a99",
     "en": "The loadings of the first-order factors on the general factor",
-    "ja": ""
+    "ja": "一次因子の一般因子への負荷量です。"
   },
   "OmegaResult.key#summary": {
     "hash": "f6a5843289ea",
     "en": "The item signs (-1 for a flipped item)",
-    "ja": ""
+    "ja": "項目の符号です (反転した項目は -1)。"
   },
   "OmegaResult.messages#summary": {
     "hash": "4d537242c131",
     "en": "The messages R would print (e.g. for two factors), each once.",
-    "ja": ""
+    "ja": "R が表示するメッセージです (たとえば 2 因子の場合)。それぞれ 1 回ずつです。"
   },
   "OmegaResult.oblique#summary": {
     "hash": "3f915868609b",
     "en": "The oblimin pattern (the varimax loadings for one factor)",
-    "ja": ""
+    "ja": "oblimin のパターン行列です (因子が 1 つのときは varimax の負荷量です)。"
   },
   "OmegaResult.omegaGroup#summary": {
     "hash": "93c1c77b67b4",
     "en": "Rows g, F1*, ...; columns total, general, group (NaN for a group with no items)",
-    "ja": ""
+    "ja": "行は g、F1*、...、列は total、general、group です (項目のない群では NaN)。"
   },
   "OmegaResult.omegaH#summary": {
     "hash": "637e3a19f7e3",
     "en": "Omega hierarchical: the share of the total variance due to the general factor",
-    "ja": ""
+    "ja": "階層的 ω です。全分散のうち、一般因子によるものの割合です。"
   },
   "OmegaResult.omegaLim#summary": {
     "hash": "c8538be89fd3",
     "en": "Omega asymptotic: the general factor's share of the common variance",
-    "ja": ""
+    "ja": "漸近 ω です。共通分散のうち、一般因子の占める割合です。"
   },
   "OmegaResult.omegaTot#summary": {
     "hash": "4f3daeefc287",
     "en": "Omega total",
-    "ja": ""
+    "ja": "全体の ω です。"
   },
   "OmegaResult.orthog#summary": {
     "hash": "9b7231574752",
     "en": "The varimax loadings of the first-order minres solution",
-    "ja": ""
+    "ja": "一次因子の minres 解の varimax 負荷量です。"
   },
   "OmegaResult.phi#summary": {
     "hash": "15f39c490b45",
     "en": "The factor correlations (absent for one factor)",
-    "ja": ""
+    "ja": "因子間相関です (因子が 1 つのときは含まれません)。"
   },
   "OmegaResult.sl#summary": {
     "hash": "0a87d6315dba",
     "en": "The Schmid-Leiman matrix, p rows; columns as `slNames`",
-    "ja": ""
+    "ja": "Schmid-Leiman 行列です。p 行で、列は `slNames` のとおりです。"
   },
   "OmegaResult.slNames#summary": {
     "hash": "028fd5fbddd8",
     "en": "`[\"g\", \"F1*\", ..., \"h2\", \"u2\", \"p2\", \"com\"]`",
-    "ja": ""
+    "ja": "`[\"g\", \"F1*\", ..., \"h2\", \"u2\", \"p2\", \"com\"]`"
   },
   "OmegaResult.warnings#summary": {
     "hash": "3775ed67b26d",
     "en": "The warnings R would give (e.g. an ultra-Heywood case, or one factor), each once.",
-    "ja": ""
+    "ja": "R が出す警告です (たとえば ultra-Heywood の場合や、因子が 1 つの場合)。それぞれ 1 回ずつです。"
   },
   "PolychorStdErrResult#summary": {
     "hash": "7429209ac061",
     "en": "Result of {@link polychor} with `stdErr`.",
-    "ja": ""
+    "ja": "`stdErr` を指定した {@link polychor} の結果です。"
   },
   "PolychorStdErrResult.chisq#summary": {
     "hash": "3e403469d720",
     "en": "Chi-square statistic of the test of bivariate normality.",
-    "ja": ""
+    "ja": "2 変量正規性の検定のカイ二乗統計量です。"
   },
   "PolychorStdErrResult.colCuts#summary": {
     "hash": "db4d391d11f2",
     "en": "The column thresholds.",
-    "ja": ""
+    "ja": "列の閾値です。"
   },
   "PolychorStdErrResult.df#summary": {
     "hash": "7fdf3f96c4a2",
     "en": "Its degrees of freedom, r c − r − c.",
-    "ja": ""
+    "ja": "その自由度で、r c − r − c です。"
   },
   "PolychorStdErrResult.n#summary": {
     "hash": "0e61a50bb725",
     "en": "The number of observations (the total of the table).",
-    "ja": ""
+    "ja": "観測数 (表の総和) です。"
   },
   "PolychorStdErrResult.rowCuts#summary": {
     "hash": "a61a3ee71c6b",
     "en": "The row thresholds (the estimates with `ML`, the two-step ones otherwise).",
-    "ja": ""
+    "ja": "行の閾値です (`ML` の場合は推定値、それ以外は 2 段階の推定値です)。"
   },
   "PolychorStdErrResult.var#summary": {
     "hash": "5b8f1c79f694",
     "en": "Variances and covariances of the estimates (the inverse of the negative Hessian of the log-likelihood at the\nmaximum), in the order rho, the row thresholds, the column thresholds; 1 × 1 (rho alone) without `ML`.",
-    "ja": ""
+    "ja": "推定値の分散と共分散です (最大値における対数尤度の負のヘッセ行列の逆行列)。順序は rho、行の閾値、列の閾値です。`ML` がない場合は 1 × 1 (rho だけ) です。"
   },
   "PolycorOptions#summary": {
     "hash": "a57921699911",
     "en": "Options of {@link polychor} and {@link polyserial}.",
-    "ja": ""
+    "ja": "{@link polychor} と {@link polyserial} のオプションです。"
   },
   "PolycorOptions.ML#summary": {
     "hash": "6787c3e28b0e",
     "en": "Estimate the correlation and the thresholds together by maximum likelihood (polycor's `ML = TRUE`), instead of\nthe two-step estimate. Default `false`.",
-    "ja": ""
+    "ja": "2 段階の推定の代わりに、相関と閾値を最尤法で同時に推定します (polycor の `ML = TRUE`)。既定は `false`。"
   },
   "PolycorOptions.stdErr#summary": {
     "hash": "faf149ed7e69",
     "en": "Also return the variances of the estimates, the chi-square test of bivariate normality and the thresholds\n(polycor's `std.err = TRUE`). Without `ML`, the correlation is the maximum-likelihood one given the two-step\nthresholds. Default `false`.",
-    "ja": ""
+    "ja": "推定値の分散、2 変量正規性のカイ二乗検定、閾値も返します (polycor の `std.err = TRUE`)。`ML` を指定しない場合、相関は 2 段階の閾値を与えたうえでの最尤推定値になります。既定は `false`。"
   },
   "PolycorResult#summary": {
     "hash": "d9ed47fb10da",
     "en": "Result of {@link polychor} and {@link polyserial}.",
-    "ja": ""
+    "ja": "{@link polychor} と {@link polyserial} の結果です。"
   },
   "PolycorResult.rho#summary": {
     "hash": "b60130f6bb7e",
     "en": "The correlation (`NaN` where polycor returns NA).",
-    "ja": ""
+    "ja": "相関です (polycor が NA を返す場合は `NaN`)。"
   },
   "PolycorResult.warnings#summary": {
     "hash": "0b7567bc4a6f",
     "en": "polycor's warnings, in order.",
-    "ja": ""
+    "ja": "polycor の警告です。出た順に並びます。"
   },
   "PolyserialStdErrResult#summary": {
     "hash": "b8a427e431ab",
     "en": "Result of {@link polyserial} with `stdErr`.",
-    "ja": ""
+    "ja": "`stdErr` を指定した {@link polyserial} の結果です。"
   },
   "PolyserialStdErrResult.chisq#summary": {
     "hash": "b5c7cf07f89e",
     "en": "Chi-square statistic of the test of bivariate normality (polycor's, on a binned table).",
-    "ja": ""
+    "ja": "2 変量正規性の検定のカイ二乗統計量です (polycor のもので、区間に分けた表に基づきます)。"
   },
   "PolyserialStdErrResult.cuts#summary": {
     "hash": "8c8376c71b22",
     "en": "The thresholds of the ordinal variable (the estimates with `ML`, the two-step ones otherwise).",
-    "ja": ""
+    "ja": "順序変数の閾値です (`ML` の場合は推定値、それ以外は 2 段階の推定値です)。"
   },
   "PolyserialStdErrResult.df#summary": {
     "hash": "e941cb9fc5e7",
     "en": "Its degrees of freedom, 3 s − 1 for s categories.",
-    "ja": ""
+    "ja": "その自由度で、s 個のカテゴリの場合は 3 s − 1 です。"
   },
   "PolyserialStdErrResult.n#summary": {
     "hash": "d084140ce9b3",
     "en": "The number of observations used.",
-    "ja": ""
+    "ja": "使われた観測数です。"
   },
   "PolyserialStdErrResult.var#summary": {
     "hash": "6496a0cd12a5",
     "en": "Variances and covariances of the estimates, in the order rho, the thresholds; 1 × 1 (rho alone) without `ML`.",
-    "ja": ""
+    "ja": "推定値の分散と共分散です。順序は rho、閾値です。`ML` がない場合は 1 × 1 (rho だけ) です。"
   },
   "cronbachAlpha#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cronbachAlpha#@param x": {
     "hash": "53b8c89129c8",
     "en": "An n × k matrix (array of rows): k ≥ 2 items observed on n ≥ 2 subjects.",
-    "ja": ""
+    "ja": "n × k の行列 (行の配列) です。n 人 (n ≥ 2) の被験者について観測した、k 個 (k ≥ 2) の項目です。"
   },
   "cronbachAlpha#summary": {
     "hash": "94da2e62636b",
     "en": "Cronbach's alpha of a set of items, standardized alpha, Guttman's lambda 6 and the mean inter-item correlation,\nand alpha with each item dropped. Equivalent to `psych::alpha()` in R. It gives the `total` row and\n`alpha.drop$raw_alpha` of `alpha(x)` with its defaults (no missing values, no reversed items).\n\nAs psych, `warnings` has \"Item =  had no variance and was deleted but still is counted in the score\" for a constant\nitem (an unnamed matrix's column has no name) and \"Some items were negatively correlated with the first principal\ncomponent and probably should be reversed. ...\" (with psych's line breaks) where a loading of the first principal\ncomponent of the correlations is negative. The warnings of the functions psych calls are not included.",
-    "ja": ""
+    "ja": "項目群の Cronbach の α、標準化 α、Guttman の λ6、項目間相関の平均、および各項目を除いたときの α です。R の `psych::alpha()` と同等です。既定の設定 (欠測値なし、反転項目なし) の `alpha(x)` の `total` の行と `alpha.drop$raw_alpha` を返します。\n\npsych と同じく、定数の項目 (名前のない行列の列には名前がありません) については、`warnings` に \"Item =  had no variance and was deleted but still is counted in the score\" が入ります。また、相関行列の第 1 主成分に対する負荷量が負の場合には、psych の改行つきで \"Some items were negatively correlated with the first principal\ncomponent and probably should be reversed. ...\" が入ります。psych が呼ぶ関数の警告は含みません。"
   },
   "factanal#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "factanal#@param factors": {
     "hash": "dc284224174c",
     "en": "The number of factors.",
-    "ja": ""
+    "ja": "因子の数です。"
   },
   "factanal#@param x": {
     "hash": "b79a8c1ee488",
     "en": "The data matrix (array of rows), or `null` with `options.covmat`.",
-    "ja": ""
+    "ja": "データ行列 (行の配列) です。`options.covmat` を指定する場合は `null` です。"
   },
   "factanal#summary": {
     "hash": "af12bbe74940",
     "en": "Maximum-likelihood factor analysis of a data matrix (rows are observations) or, with `options.covmat`, of a\ncovariance matrix. Equivalent to R's `factanal()`. With `rotation` `\"varimax\"`, `\"promax\"` or `\"none\"`.",
-    "ja": ""
+    "ja": "データ行列 (行が観測値) に対する、または `options.covmat` を指定した場合は共分散行列に対する、最尤法による因子分析です。R の `factanal()` と同等です。`rotation` には `\"varimax\"`、`\"promax\"`、`\"none\"` を指定できます。"
   },
   "icc#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "icc#@param options": {
     "hash": "53b3e2f50f29",
     "en": "See {@link IccOptions}.",
-    "ja": ""
+    "ja": "{@link IccOptions} を参照してください。"
   },
   "icc#@param ratings": {
     "hash": "d3de6c37844e",
     "en": "An n × k matrix (array of rows): the ratings of the k raters for each of the n subjects.",
-    "ja": ""
+    "ja": "n × k の行列 (行の配列) です。n 人の被験者それぞれについての、k 人の評定者の評定です。"
   },
   "icc#summary": {
     "hash": "381d2fe4d701",
     "en": "Intraclass correlation coefficient with its F test and confidence interval (McGraw and Wong's forms).\nEquivalent to `irr::icc(ratings, model, type, unit, r0, conf.level)` in R. No missing values are allowed.",
-    "ja": ""
+    "ja": "F 検定と信頼区間を含む級内相関係数です (McGraw and Wong の形式)。R の `irr::icc(ratings, model, type, unit, r0, conf.level)` と同等です。欠測値は使えません。"
   },
   "kappa2#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "kappa2#@param options": {
     "hash": "7054ec2ef873",
     "en": "See {@link Kappa2Options}.",
-    "ja": ""
+    "ja": "{@link Kappa2Options} を参照してください。"
   },
   "kappa2#@param ratings": {
     "hash": "de8bbc2a94d7",
     "en": "An n × 2 matrix (array of rows): the ratings of the two raters for each subject, with at least 2\n  complete rows.",
-    "ja": ""
+    "ja": "n × 2 の行列 (行の配列) です。各被験者についての 2 人の評定者の評定で、少なくとも 2 つの完全な行 (欠測値を含まない行) が必要です。"
   },
   "kappa2#summary": {
     "hash": "dc2b827a4fa9",
     "en": "Cohen's kappa for two raters, unweighted or weighted, with the z test of kappa = 0. Equivalent to\n`irr::kappa2(ratings, weight)` in R. The ratings are numeric.\n\nThe levels are the distinct ratings of both raters sorted as R sorts their character forms (so 10 sorts before 2,\nwhich matters for the weighted kappas). Rows with a missing value (`NaN`) are dropped. The variance of the test is\nthe one under the null hypothesis; the p-value is computed as 2 Φ(−|z|), so small p-values are more accurate than\nirr's.",
-    "ja": ""
+    "ja": "2 人の評定者に対する Cohen の κ (重みなしまたは重み付き) と、κ = 0 の z 検定です。R の `irr::kappa2(ratings, weight)` と同等です。評定は数値です。\n\n水準は、両方の評定者の相異なる評定を、R が文字列の形で並べるのと同じ順に並べたものです (そのため 10 は 2 より前に並び、この順序は重み付き κ で重要です)。欠測値 (`NaN`) を含む行は除外されます。検定の分散は、帰無仮説のもとでの分散です。p 値は 2 Φ(−|z|) で計算するため、小さい p 値は irr の値より正確です。"
   },
   "kappamFleiss#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "kappamFleiss#@param options": {
     "hash": "4468638472fa",
     "en": "See {@link KappamFleissOptions}.",
-    "ja": ""
+    "ja": "{@link KappamFleissOptions} を参照してください。"
   },
   "kappamFleiss#@param ratings": {
     "hash": "8ba4fa3638ac",
     "en": "An n × m matrix (array of rows): the ratings of the m raters for each of the n subjects.",
-    "ja": ""
+    "ja": "n × m の行列 (行の配列) です。n 人の被験者それぞれについての、m 人の評定者の評定です。"
   },
   "kappamFleiss#summary": {
     "hash": "b2065862f357",
     "en": "Fleiss' kappa for several raters (or Conger's exact kappa), with the z test of kappa = 0 for Fleiss' kappa.\nEquivalent to `irr::kappam.fleiss(ratings, exact)` in R. The ratings are numeric, without missing values.\n\nThe p-value is computed as 2 Φ(−|z|), so small p-values are more accurate than irr's.",
-    "ja": ""
+    "ja": "複数の評定者に対する Fleiss の κ (または Conger の正確な κ) と、Fleiss の κ についての κ = 0 の z 検定です。R の `irr::kappam.fleiss(ratings, exact)` と同等です。評定は数値で、欠測値を含みません。\n\np 値は 2 Φ(−|z|) で計算するため、小さい p 値は irr の値より正確です。"
   },
   "omega#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "omega#@param options": {
     "hash": "f86a03483c4a",
     "en": "See {@link OmegaOptions}.",
-    "ja": ""
+    "ja": "{@link OmegaOptions} を参照してください。"
   },
   "omega#@param x": {
     "hash": "ce81ef9a5eea",
     "en": "The data matrix (array of rows, NaN for missing values: correlations of pairwise complete observations),\n  or `null` with `options.covmat`. At least 2 variables.",
-    "ja": ""
+    "ja": "データ行列 (行の配列。欠測値は NaN で表し、相関はペアごとに完全な観測値に基づきます)、または `options.covmat` を指定する場合は `null` です。少なくとも 2 つの変数が必要です。"
   },
   "omega#summary": {
     "hash": "570cc53ce04e",
     "en": "McDonald's omega (hierarchical, asymptotic and total) from a Schmid-Leiman transformation of an oblique minres\nfactor solution. Equivalent to `psych::omega()` in R. With its defaults (`fm = \"minres\"`, `rotate = \"oblimin\"`,\n`option = \"equal\"`, `flip = TRUE`).",
-    "ja": ""
+    "ja": "斜交 minres 因子解の Schmid-Leiman 変換による McDonald の ω (階層的、漸近、全体) です。R の `psych::omega()` と同等で、その既定 (`fm = \"minres\"`、`rotate = \"oblimin\"`、`option = \"equal\"`、`flip = TRUE`) を用います。"
   },
   "partialR#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "partialR#@param i": {
     "hash": "5fe224bf3c03",
     "en": "0-based column index.",
-    "ja": ""
+    "ja": "0 始まりの列の番号です。"
   },
   "partialR#@param j": {
     "hash": "ad4e492bf41e",
     "en": "0-based column index, different from `i`.",
-    "ja": ""
+    "ja": "`i` と異なる、0 始まりの列の番号です。"
   },
   "partialR#@param x": {
     "hash": "6ed1dd74a61f",
     "en": "An n × p matrix (array of rows), the variables in the columns.",
-    "ja": ""
+    "ja": "n × p の行列 (行の配列) です。変数は列に並びます。"
   },
   "partialR#summary": {
     "hash": "0a07d6c08f5f",
     "en": "Partial correlation of columns `i` and `j` of `x` given all its other columns. Equivalent to\n`psych::partial.r(x, c(i, j), others)` in R. Returns its off-diagonal element (no missing values).",
-    "ja": ""
+    "ja": "`x` の列 `i` と `j` の、ほかのすべての列を与えたときの偏相関です。R の `psych::partial.r(x, c(i, j), others)` と同等です。非対角の要素を返します (欠測値は含まないこと)。"
   },
   "polychor(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "polychor(0)#@param options": {
     "hash": "b148a017be36",
     "en": "`ML` and `stdErr` (see {@link PolycorOptions}).",
-    "ja": ""
+    "ja": "`ML` と `stdErr` ({@link PolycorOptions} を参照)。"
   },
   "polychor(0)#@param table": {
     "hash": "391e0a95a9fb",
     "en": "A contingency table (array of rows of counts).",
-    "ja": ""
+    "ja": "分割表 (度数の行の配列) です。"
   },
   "polychor(0)#summary": {
     "hash": "4914a3c3a56f",
     "en": "Polychoric correlation of two ordinal variables. By default the two-step estimate: thresholds from the margins,\nthen the maximum-likelihood correlation given them. Equivalent to `polycor::polychor()` in R. It takes `x` and `y`\nor a table, as `polychor(x, y)` or `polychor(table)`.\n\nGiven `x` and `y`, the table has the sorted distinct values of `x` as rows and those of `y` as columns (pairs with\na missing value are not counted). Rows and columns with a zero margin are removed with a warning; with fewer than\ntwo rows or columns left, `rho` is `NaN` (and the result has no other fields).\n\nWith `ML`, the correlation and the thresholds are estimated together by maximum likelihood; with `stdErr`, the\nresult also has their variances, the chi-square test of bivariate normality and the thresholds (with `stdErr`\nalone, the correlation is maximised given the two-step thresholds). The exact maximum is returned (R's optimisers\nstop about 1e-4 short of it). If the likelihood increases up to |rho| = 0.9999, `rho` is ±0.9999 with a warning.",
-    "ja": ""
+    "ja": "2 つの順序変数の多分相関です。既定は 2 段階の推定です。まず周辺度数から閾値を求め、次にそれを与えたうえで最尤法により相関を求めます。R の `polycor::polychor()` と同等です。`x` と `y`、または分割表を受け付けます (`polychor(x, y)` または `polychor(table)` と書きます)。\n\n`x` と `y` を与えた場合、分割表は `x` の相異なる値を昇順に並べたものを行、`y` の相異なる値を昇順に並べたものを列とします (欠測値を含む組は数えません)。周辺度数が 0 の行と列は、警告を出して取り除かれます。残った行の数または列の数が 2 未満のときは、`rho` は `NaN` になり、結果にはほかのフィールドがありません。\n\n`ML` を指定すると、相関と閾値を最尤法で同時に推定します。`stdErr` を指定すると、結果にはそれらの分散、2 変量正規性のカイ二乗検定、閾値も加わります (`stdErr` だけの場合は、2 段階の閾値を与えたうえで相関を最大化します)。厳密な最大値を返します (R の最適化ルーチンは、それより約 1e-4 手前で止まります)。尤度が |rho| = 0.9999 まで増加し続ける場合、`rho` は ±0.9999 になり、警告が出ます。"
   },
   "polychor(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "polychor(1)#@param options": {
     "hash": "b148a017be36",
     "en": "`ML` and `stdErr` (see {@link PolycorOptions}).",
-    "ja": ""
+    "ja": "`ML` と `stdErr` ({@link PolycorOptions} を参照)。"
   },
   "polychor(1)#@param table": {
     "hash": "391e0a95a9fb",
     "en": "A contingency table (array of rows of counts).",
-    "ja": ""
+    "ja": "分割表 (度数の行の配列) です。"
   },
   "polychor(1)#summary": {
     "hash": "4914a3c3a56f",
     "en": "Polychoric correlation of two ordinal variables. By default the two-step estimate: thresholds from the margins,\nthen the maximum-likelihood correlation given them. Equivalent to `polycor::polychor()` in R. It takes `x` and `y`\nor a table, as `polychor(x, y)` or `polychor(table)`.\n\nGiven `x` and `y`, the table has the sorted distinct values of `x` as rows and those of `y` as columns (pairs with\na missing value are not counted). Rows and columns with a zero margin are removed with a warning; with fewer than\ntwo rows or columns left, `rho` is `NaN` (and the result has no other fields).\n\nWith `ML`, the correlation and the thresholds are estimated together by maximum likelihood; with `stdErr`, the\nresult also has their variances, the chi-square test of bivariate normality and the thresholds (with `stdErr`\nalone, the correlation is maximised given the two-step thresholds). The exact maximum is returned (R's optimisers\nstop about 1e-4 short of it). If the likelihood increases up to |rho| = 0.9999, `rho` is ±0.9999 with a warning.",
-    "ja": ""
+    "ja": "2 つの順序変数の多分相関です。既定は 2 段階の推定です。まず周辺度数から閾値を求め、次にそれを与えたうえで最尤法により相関を求めます。R の `polycor::polychor()` と同等です。`x` と `y`、または分割表を受け付けます (`polychor(x, y)` または `polychor(table)` と書きます)。\n\n`x` と `y` を与えた場合、分割表は `x` の相異なる値を昇順に並べたものを行、`y` の相異なる値を昇順に並べたものを列とします (欠測値を含む組は数えません)。周辺度数が 0 の行と列は、警告を出して取り除かれます。残った行の数または列の数が 2 未満のときは、`rho` は `NaN` になり、結果にはほかのフィールドがありません。\n\n`ML` を指定すると、相関と閾値を最尤法で同時に推定します。`stdErr` を指定すると、結果にはそれらの分散、2 変量正規性のカイ二乗検定、閾値も加わります (`stdErr` だけの場合は、2 段階の閾値を与えたうえで相関を最大化します)。厳密な最大値を返します (R の最適化ルーチンは、それより約 1e-4 手前で止まります)。尤度が |rho| = 0.9999 まで増加し続ける場合、`rho` は ±0.9999 になり、警告が出ます。"
   },
   "polychor(2)#@param options": {
     "hash": "b148a017be36",
     "en": "`ML` and `stdErr` (see {@link PolycorOptions}).",
-    "ja": ""
+    "ja": "`ML` と `stdErr` ({@link PolycorOptions} を参照)。"
   },
   "polychor(2)#@param x": {
     "hash": "9d9a30a0c355",
     "en": "Categories of the first variable.",
-    "ja": ""
+    "ja": "1 つ目の変数のカテゴリです。"
   },
   "polychor(2)#@param y": {
     "hash": "91951d979641",
     "en": "Categories of the second variable, the same length.",
-    "ja": ""
+    "ja": "2 つ目の変数のカテゴリです。長さは同じです。"
   },
   "polychor(2)#summary": {
     "hash": "7053f588e15e",
     "en": "Polychoric correlation of two ordinal variables given as vectors of category codes (see the table form).",
-    "ja": ""
+    "ja": "カテゴリの符号のベクトルで与えた 2 つの順序変数の多分相関です (分割表の形の説明を参照)。"
   },
   "polychor(3)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "polychor(3)#@param options": {
     "hash": "b148a017be36",
     "en": "`ML` and `stdErr` (see {@link PolycorOptions}).",
-    "ja": ""
+    "ja": "`ML` と `stdErr` ({@link PolycorOptions} を参照)。"
   },
   "polychor(3)#summary": {
     "hash": "4914a3c3a56f",
     "en": "Polychoric correlation of two ordinal variables. By default the two-step estimate: thresholds from the margins,\nthen the maximum-likelihood correlation given them. Equivalent to `polycor::polychor()` in R. It takes `x` and `y`\nor a table, as `polychor(x, y)` or `polychor(table)`.\n\nGiven `x` and `y`, the table has the sorted distinct values of `x` as rows and those of `y` as columns (pairs with\na missing value are not counted). Rows and columns with a zero margin are removed with a warning; with fewer than\ntwo rows or columns left, `rho` is `NaN` (and the result has no other fields).\n\nWith `ML`, the correlation and the thresholds are estimated together by maximum likelihood; with `stdErr`, the\nresult also has their variances, the chi-square test of bivariate normality and the thresholds (with `stdErr`\nalone, the correlation is maximised given the two-step thresholds). The exact maximum is returned (R's optimisers\nstop about 1e-4 short of it). If the likelihood increases up to |rho| = 0.9999, `rho` is ±0.9999 with a warning.",
-    "ja": ""
+    "ja": "2 つの順序変数の多分相関です。既定は 2 段階の推定です。まず周辺度数から閾値を求め、次にそれを与えたうえで最尤法により相関を求めます。R の `polycor::polychor()` と同等です。`x` と `y`、または分割表を受け付けます (`polychor(x, y)` または `polychor(table)` と書きます)。\n\n`x` と `y` を与えた場合、分割表は `x` の相異なる値を昇順に並べたものを行、`y` の相異なる値を昇順に並べたものを列とします (欠測値を含む組は数えません)。周辺度数が 0 の行と列は、警告を出して取り除かれます。残った行の数または列の数が 2 未満のときは、`rho` は `NaN` になり、結果にはほかのフィールドがありません。\n\n`ML` を指定すると、相関と閾値を最尤法で同時に推定します。`stdErr` を指定すると、結果にはそれらの分散、2 変量正規性のカイ二乗検定、閾値も加わります (`stdErr` だけの場合は、2 段階の閾値を与えたうえで相関を最大化します)。厳密な最大値を返します (R の最適化ルーチンは、それより約 1e-4 手前で止まります)。尤度が |rho| = 0.9999 まで増加し続ける場合、`rho` は ±0.9999 になり、警告が出ます。"
   },
   "polyserial(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "polyserial(0)#@param options": {
     "hash": "b148a017be36",
     "en": "`ML` and `stdErr` (see {@link PolycorOptions}).",
-    "ja": ""
+    "ja": "`ML` と `stdErr` ({@link PolycorOptions} を参照)。"
   },
   "polyserial(0)#@param x": {
     "hash": "0cd40f5bbb97",
     "en": "The numeric variable.",
-    "ja": ""
+    "ja": "数値変数です。"
   },
   "polyserial(0)#@param y": {
     "hash": "27ec7b0860cb",
     "en": "Categories of the ordinal variable, the same length.",
-    "ja": ""
+    "ja": "順序変数のカテゴリです。長さは同じです。"
   },
   "polyserial(0)#summary": {
     "hash": "060a6fdfc111",
     "en": "Polyserial correlation of a numeric variable and an ordinal one. By default the two-step (ad hoc) estimate.\nEquivalent to `polycor::polyserial(x, y)` in R.\n\nPairs with a missing value are dropped. The categories of `y` are its sorted distinct values, coded 1, 2, ...;\nwith fewer than two, `rho` is `NaN` (and the result has no other fields). A two-step estimate beyond ±0.9999 is set\nto ±0.9999 with a warning.\n\nWith `ML`, the correlation and the thresholds are estimated together by maximum likelihood; with `stdErr`, the\nresult also has their variances, polycor's chi-square test of bivariate normality and the thresholds (with `stdErr`\nalone, the correlation is maximised given the two-step thresholds). The exact maximum is returned (R's optimisers\nstop about 1e-4 short of it). If the likelihood increases up to |rho| = 0.9999, `rho` is ±0.9999 with a warning.",
-    "ja": ""
+    "ja": "数値変数と順序変数のポリシリアル相関です。既定は 2 段階の便宜的な (ad hoc) 推定です。R の `polycor::polyserial(x, y)` と同等です。\n\n欠測値を含む組は除外されます。`y` のカテゴリは、相異なる値を昇順に並べたもので、1、2、... と符号化されます。カテゴリが 2 未満のときは、`rho` は `NaN` になり、結果にはほかのフィールドがありません。2 段階の推定値が ±0.9999 を超える場合は、±0.9999 に設定され、警告が出ます。\n\n`ML` を指定すると、相関と閾値を最尤法で同時に推定します。`stdErr` を指定すると、結果にはそれらの分散、polycor の 2 変量正規性のカイ二乗検定、閾値も加わります (`stdErr` だけの場合は、2 段階の閾値を与えたうえで相関を最大化します)。厳密な最大値を返します (R の最適化ルーチンは、それより約 1e-4 手前で止まります)。尤度が |rho| = 0.9999 まで増加し続ける場合、`rho` は ±0.9999 になり、警告が出ます。"
   },
   "polyserial(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "polyserial(1)#@param options": {
     "hash": "b148a017be36",
     "en": "`ML` and `stdErr` (see {@link PolycorOptions}).",
-    "ja": ""
+    "ja": "`ML` と `stdErr` ({@link PolycorOptions} を参照)。"
   },
   "polyserial(1)#@param x": {
     "hash": "0cd40f5bbb97",
     "en": "The numeric variable.",
-    "ja": ""
+    "ja": "数値変数です。"
   },
   "polyserial(1)#@param y": {
     "hash": "27ec7b0860cb",
     "en": "Categories of the ordinal variable, the same length.",
-    "ja": ""
+    "ja": "順序変数のカテゴリです。長さは同じです。"
   },
   "polyserial(1)#summary": {
     "hash": "060a6fdfc111",
     "en": "Polyserial correlation of a numeric variable and an ordinal one. By default the two-step (ad hoc) estimate.\nEquivalent to `polycor::polyserial(x, y)` in R.\n\nPairs with a missing value are dropped. The categories of `y` are its sorted distinct values, coded 1, 2, ...;\nwith fewer than two, `rho` is `NaN` (and the result has no other fields). A two-step estimate beyond ±0.9999 is set\nto ±0.9999 with a warning.\n\nWith `ML`, the correlation and the thresholds are estimated together by maximum likelihood; with `stdErr`, the\nresult also has their variances, polycor's chi-square test of bivariate normality and the thresholds (with `stdErr`\nalone, the correlation is maximised given the two-step thresholds). The exact maximum is returned (R's optimisers\nstop about 1e-4 short of it). If the likelihood increases up to |rho| = 0.9999, `rho` is ±0.9999 with a warning.",
-    "ja": ""
+    "ja": "数値変数と順序変数のポリシリアル相関です。既定は 2 段階の便宜的な (ad hoc) 推定です。R の `polycor::polyserial(x, y)` と同等です。\n\n欠測値を含む組は除外されます。`y` のカテゴリは、相異なる値を昇順に並べたもので、1、2、... と符号化されます。カテゴリが 2 未満のときは、`rho` は `NaN` になり、結果にはほかのフィールドがありません。2 段階の推定値が ±0.9999 を超える場合は、±0.9999 に設定され、警告が出ます。\n\n`ML` を指定すると、相関と閾値を最尤法で同時に推定します。`stdErr` を指定すると、結果にはそれらの分散、polycor の 2 変量正規性のカイ二乗検定、閾値も加わります (`stdErr` だけの場合は、2 段階の閾値を与えたうえで相関を最大化します)。厳密な最大値を返します (R の最適化ルーチンは、それより約 1e-4 手前で止まります)。尤度が |rho| = 0.9999 まで増加し続ける場合、`rho` は ±0.9999 になり、警告が出ます。"
   }
 }

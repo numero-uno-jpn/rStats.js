@@ -584,3 +584,55 @@
 | mean square | 平均平方 | 新規 |
 | t-test | t 検定 | 新規。`t` は英字。空白あり |
 | F-test | F 検定 | 新規。`F` は英字。空白あり |
+| Cronbach's alpha | Cronbach の α | `docs/ja/r-functions.md` で使用 |
+| Guttman's lambda 6 | Guttman の λ6 | `docs/ja/r-functions.md` で使用。人名は英字 |
+| squared multiple correlations | 重相関係数の二乗 | 新規 |
+| raw alpha | raw alpha | 英字のまま。共分散から求めた α |
+| uniquenesses | 独自因子分散 | `docs/ja/differences-from-r.md` で使用 |
+| factor scores | 因子得点 | 新規 |
+| Thomson's method (factor scores) | Thomson の方法 | 人名は英字。新規 |
+| loadings | 負荷量 | `docs/ja/differences-from-r.md` で使用 |
+| rotation (of loadings) | 回転 | 新規 |
+| rotation matrix | 回転行列 | 新規 |
+| varimax, promax, oblimin, minres | 英字のまま | 回転法・因子解法の名前。値 `"varimax"` などと同じ |
+| F statistic | F 統計量 | 新規。`z statistic, t statistic` と同じ形 |
+| kappa (coefficient) | κ 係数 | 記号 κ は `docs/ja/r-functions.md` で使用 |
+| Cohen's kappa | Cohen の κ | `docs/ja/r-functions.md` で使用 |
+| Fleiss' kappa | Fleiss の κ | `docs/ja/r-functions.md` で使用 |
+| Conger's exact kappa | Conger の正確な κ | 新規 |
+| McDonald's omega | McDonald の ω | `docs/ja/r-functions.md` で使用 |
+| omega hierarchical | 階層的 ω | 新規 |
+| omega asymptotic | 漸近 ω | 新規 |
+| omega total | 全体の ω | 新規 |
+| Schmid-Leiman transformation | Schmid-Leiman 変換 | 人名は英字。`docs/ja/r-functions.md` で使用 |
+| pattern matrix (oblique) | パターン行列 | 新規 |
+| factor correlations | 因子間相関 | 新規 |
+| first-order (factors) | 一次因子 | 新規 |
+| general factor | 一般因子 | 新規 |
+| group factor | 群因子 | 新規 |
+| explained common variance | 説明された共通分散 | 新規 |
+| ultra-Heywood (case) | ultra-Heywood の場合 | 新規。`docs/ja/differences-from-r.md` の「(Heywood)」と同じ語 |
+| forms (of the intraclass correlation) | 形式 | 新規。`McGraw and Wong's forms` |
+| two-way (model) | 二元配置 | 新規。`one-way` の「一元配置」と対 |
+| disagreement | 不一致 | 新規 |
+| weighted, unweighted (kappa) | 重み付き、重みなし | `docs/ja/r-functions.md` の「重みなし」を使用。「重み付き」は「重み付き平均」と統一 |
+| polychoric correlation | 多分相関 | 新規 |
+| polyserial correlation | ポリシリアル相関 | `docs/ja/r-functions.md` で使用 |
+| partial correlation | 偏相関 | 新規 |
+| bivariate normality | 2 変量正規性 | 新規 |
+| threshold (of an ordinal variable) | 閾値 | 新規 |
+| ordinal variable | 順序変数 | 新規 |
+| numeric variable | 数値変数 | 新規 |
+| category (of a variable) | カテゴリ | 新規 |
+| chi-square statistic | カイ二乗統計量 | 新規。「カイ二乗」は `chi-squared test` と同じ |
+| item (of a scale) | 項目 | `docs/ja/r-functions.md` で使用 |
+| rater | 評定者 | `docs/ja/r-functions.md` で使用 |
+| rating | 評定 | `docs/ja/r-functions.md` で使用 |
+| subject (of a study) | 被験者 | `docs/ja` で使用 (`between-subjects factor`) |
+| observation (row of data) | 観測値 | 新規。`number of observations` の「観測数」と対 |
+| message (of R) | メッセージ | 新規 |
+| lower bound, upper bound | 下限、上限 | 新規。区間の端は `lower end, upper end` (下端、上端) |
+| starting values | 初期値 | 新規。`starting coefficients` の「初期係数」と対 |
+| optimisation | 最適化 | `docs/ja/performance.md` で使用 |
+| evaluations (of function, gradient) | 評価回数 | 新規 |
+| reversed item, flipped item | 反転 | 新規。符号を反転すること |
