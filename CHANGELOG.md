@@ -7,7 +7,14 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.2.0 - 2026-11-07
+
+Contingency tables and proportions (item 1 of the roadmap): intervals for a proportion and for the risk difference,
+risk ratio and odds ratio of a 2 × 2 table, the mid-p version of Fisher's exact test, Boschloo's test, the G-test,
+the Stuart-Maxwell test, Goodman and Kruskal's gamma, the linear-by-linear association test, the 'N − 1' chi-squared
+test, Freeman-Tukey residuals and equivalence tests, checked against DescTools, epitools, epiR, exact2x2, Exact, coin
+and equivalence (R 4.6.2); where these packages' root searches or maxima are inexact, the true values. `pgamma` (and
+`pchisq`, `ppois`, ...) is more accurate for small shapes and near x = a.
 
 ### Added
 
