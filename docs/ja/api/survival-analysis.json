@@ -2,456 +2,456 @@
   "CoxphControl#summary": {
     "hash": "ae1b9dd0bb09",
     "en": "Control of the Newton-Raphson iterations of {@link coxph} (R's `coxph.control`).",
-    "ja": ""
+    "ja": "{@link coxph} のニュートン・ラフソン法の反復の制御 (R の `coxph.control`)。"
   },
   "CoxphControl.eps#summary": {
     "hash": "f6b6e63214a8",
     "en": "Convergence tolerance on the relative change of the log partial likelihood. Default 1e-9.",
-    "ja": ""
+    "ja": "対数部分尤度の相対変化に対する収束の許容誤差。既定は 1e-9。"
   },
   "CoxphControl.iterMax#summary": {
     "hash": "cae6ee13ca09",
     "en": "Maximum number of iterations. Default 20.",
-    "ja": ""
+    "ja": "反復の最大回数。既定は 20。"
   },
   "CoxphControl.tolerChol#summary": {
     "hash": "8d04c173445d",
     "en": "Tolerance of the pivots of the Cholesky factorisation. Default 2^-39 (eps^0.75 for the machine eps 2^-52).",
-    "ja": ""
+    "ja": "コレスキー分解のピボットに対する許容誤差。既定は 2^-39 (機械イプシロン 2^-52 に対する eps^0.75)。"
   },
   "CoxphControl.tolerInf#summary": {
     "hash": "3216272d8786",
     "en": "Tolerance of the check for infinite coefficients. Default sqrt(`eps`).",
-    "ja": ""
+    "ja": "係数が無限大かどうかを判定する際の許容誤差。既定は sqrt(`eps`)。"
   },
   "CoxphOptions#summary": {
     "hash": "43507f45c638",
     "en": "Options for {@link coxph}.",
-    "ja": ""
+    "ja": "{@link coxph} のオプション。"
   },
   "CoxphOptions.confLevel#summary": {
     "hash": "f8c806fc5453",
     "en": "Confidence level of the intervals of exp(coef). Default 0.95.",
-    "ja": ""
+    "ja": "exp(coef) の区間の信頼水準。既定は 0.95。"
   },
   "CoxphOptions.control#summary": {
     "hash": "81df3e07fff7",
     "en": "See {@link CoxphControl}.",
-    "ja": ""
+    "ja": "{@link CoxphControl} を参照してください。"
   },
   "CoxphOptions.init#summary": {
     "hash": "b9fe0b5291f4",
     "en": "Starting coefficients. Default 0.",
-    "ja": ""
+    "ja": "開始時の係数。既定は 0。"
   },
   "CoxphOptions.nocenter#summary": {
     "hash": "886c5b3450c8",
     "en": "Covariates whose values all lie in this set are neither centred nor scaled. Default `[-1, 0, 1]`.",
-    "ja": ""
+    "ja": "値がすべてこの集合に含まれる共変量は、中心化もスケーリングもされません。既定は `[-1, 0, 1]`。"
   },
   "CoxphOptions.strata#summary": {
     "hash": "29c04c42d8d8",
     "en": "Stratum labels, one per observation: a separate baseline hazard per stratum.",
-    "ja": ""
+    "ja": "観測値ごとの層のラベル。層ごとに別々のベースラインハザードを持ちます。"
   },
   "CoxphOptions.ties#summary": {
     "hash": "25f97be6bf2d",
     "en": "Handling of tied event times. Default `\"efron\"`.",
-    "ja": ""
+    "ja": "同順位のイベント時刻の扱い。既定は `\"efron\"`。"
   },
   "CoxphOptions.weights#summary": {
     "hash": "3c3f079882e5",
     "en": "Case weights (positive integers; other weights make R use a robust variance, which is not supported yet).",
-    "ja": ""
+    "ja": "観測値の重み (正の整数。それ以外の重みでは R はロバスト分散を用いますが、ロバスト分散はまだサポートされていません)。"
   },
   "CoxphResult#summary": {
     "hash": "ecaaa3580a90",
     "en": "Result of {@link coxph}.",
-    "ja": ""
+    "ja": "{@link coxph} の結果。"
   },
   "CoxphResult.coefficients#summary": {
     "hash": "b9896c18f3f1",
     "en": "Coefficients (NaN for R's NA: an aliased column or one whose information fell below the tolerance)",
-    "ja": ""
+    "ja": "係数 (R の NA に対応する NaN: 縮退した列、または情報量が許容誤差を下回った列)"
   },
   "CoxphResult.iter#summary": {
     "hash": "c93192711097",
     "en": "Number of iterations (`iterMax + 1` when they ran out)",
-    "ja": ""
+    "ja": "反復回数 (上限に達した場合は `iterMax + 1`)"
   },
   "CoxphResult.linearPredictors#summary": {
     "hash": "49a1380d5b8d",
     "en": "Linear predictors (centred by the means), one per observation used, in input order",
-    "ja": ""
+    "ja": "線形予測子 (平均で中心化した値)。使用した観測値ごとに 1 つ、入力と同じ順序です。"
   },
   "CoxphResult.loglik#summary": {
     "hash": "bec1b76e6853",
     "en": "Log partial likelihood at the starting values and at the end",
-    "ja": ""
+    "ja": "開始値と終了時点における対数部分尤度"
   },
   "CoxphResult.logtest#summary": {
     "hash": "ef398ebc1560",
     "en": "Likelihood ratio test",
-    "ja": ""
+    "ja": "尤度比検定"
   },
   "CoxphResult.lower#summary": {
     "hash": "87d8c28bcaa2",
     "en": "Lower confidence limits of exp(coef)",
-    "ja": ""
+    "ja": "exp(coef) の信頼区間の下限"
   },
   "CoxphResult.means#summary": {
     "hash": "2c886b2bca94",
     "en": "The means used to centre the covariates (0 for the columns not centred)",
-    "ja": ""
+    "ja": "共変量の中心化に用いた平均 (中心化しなかった列は 0)"
   },
   "CoxphResult.n#summary": {
     "hash": "5cd47c9217e3",
     "en": "Number of observations used",
-    "ja": ""
+    "ja": "使用した観測値の数"
   },
   "CoxphResult.nevent#summary": {
     "hash": "fe5894dcb4cd",
     "en": "Number of events",
-    "ja": ""
+    "ja": "イベントの数"
   },
   "CoxphResult.p#summary": {
     "hash": "65143ba59634",
     "en": "Two-sided p-values `Pr(>|z|)`",
-    "ja": ""
+    "ja": "両側 p 値 `Pr(>|z|)`"
   },
   "CoxphResult.pValue#summary": {
     "hash": "14b7d385c694",
     "en": "Alias of `p`: the same array.",
-    "ja": ""
+    "ja": "`p` の別名です。同じ配列です。"
   },
   "CoxphResult.rsq#summary": {
     "hash": "a080023eb60f",
     "en": "R^2 (1 - exp(-logtest / n)) and its maximum (1 - exp(2 loglik[0] / n))",
-    "ja": ""
+    "ja": "R^2 (1 - exp(-logtest / n)) と、その最大値 (1 - exp(2 loglik[0] / n))"
   },
   "CoxphResult.rsq.maxrsq#summary": {
     "hash": "f0e7f446a513",
     "en": "Its maximum, 1 - exp(2 loglik[0] / n) (R's `maxrsq`).",
-    "ja": ""
+    "ja": "その最大値 1 - exp(2 loglik[0] / n) (R の `maxrsq`)。"
   },
   "CoxphResult.rsq.rsq#summary": {
     "hash": "5a9f906d44b6",
     "en": "R^2, 1 - exp(-logtest / n) (R's `rsq`).",
-    "ja": ""
+    "ja": "R^2、1 - exp(-logtest / n) (R の `rsq`)。"
   },
   "CoxphResult.score#summary": {
     "hash": "7c3e3fa680ca",
     "en": "The score test statistic at the starting values",
-    "ja": ""
+    "ja": "開始値におけるスコア検定統計量"
   },
   "CoxphResult.sctest#summary": {
     "hash": "a8fc550e559e",
     "en": "Score (log-rank) test",
-    "ja": ""
+    "ja": "スコア (ログランク) 検定"
   },
   "CoxphResult.se#summary": {
     "hash": "e107dc59164a",
     "en": "Standard errors of the coefficients",
-    "ja": ""
+    "ja": "係数の標準誤差"
   },
   "CoxphResult.stdError#summary": {
     "hash": "a2d9d992c915",
     "en": "Alias of `se`: the same array.",
-    "ja": ""
+    "ja": "`se` の別名です。同じ配列です。"
   },
   "CoxphResult.upper#summary": {
     "hash": "7c36721902da",
     "en": "Upper confidence limits of exp(coef)",
-    "ja": ""
+    "ja": "exp(coef) の信頼区間の上限"
   },
   "CoxphResult.var#summary": {
     "hash": "1a9f63574f44",
     "en": "Variance matrix of the coefficients (array of rows)",
-    "ja": ""
+    "ja": "係数の分散行列 (行の配列)"
   },
   "CoxphResult.wald#summary": {
     "hash": "2e8f4e891b6c",
     "en": "The Wald statistic of the non-NA coefficients (against `init` when given)",
-    "ja": ""
+    "ja": "NA でない係数のワルド統計量 (指定されている場合は `init` に対して)"
   },
   "CoxphResult.waldtest#summary": {
     "hash": "7af5b8baaec8",
     "en": "Wald test",
-    "ja": ""
+    "ja": "ワルド検定"
   },
   "CoxphResult.warnings#summary": {
     "hash": "19382659fccd",
     "en": "R's warnings, each once, in order of first appearance.",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回だけ、初めて現れた順に並びます。"
   },
   "CoxphResult.z#summary": {
     "hash": "4e79b1893bfd",
     "en": "Wald z statistics",
-    "ja": ""
+    "ja": "ワルド z 統計量"
   },
   "CoxphResult.zValue#summary": {
     "hash": "f199ee2a8585",
     "en": "Alias of `z`: the same array.",
-    "ja": ""
+    "ja": "`z` の別名です。同じ配列です。"
   },
   "CoxphTest#summary": {
     "hash": "7756ec0c3f8f",
     "en": "A test statistic with its degrees of freedom and upper chi-squared tail.",
-    "ja": ""
+    "ja": "自由度と、カイ二乗分布の上側裾確率を持つ検定統計量。"
   },
   "CoxphTest.df#summary": {
     "hash": "8244d1ac1ac5",
     "en": "Degrees of freedom (R's `df`).",
-    "ja": ""
+    "ja": "自由度 (R の `df`)。"
   },
   "CoxphTest.pValue#summary": {
     "hash": "6bdc6fb1443f",
     "en": "Upper chi-squared tail (R's `pvalue`).",
-    "ja": ""
+    "ja": "カイ二乗分布の上側裾確率 (R の `pvalue`)。"
   },
   "CoxphTest.statistic#summary": {
     "hash": "ad0ff471d5e2",
     "en": "The chi-squared statistic (R's `test`).",
-    "ja": ""
+    "ja": "カイ二乗統計量 (R の `test`)。"
   },
   "SurvdiffOptions#summary": {
     "hash": "c7e02f5eeeb1",
     "en": "Options for {@link survdiff}.",
-    "ja": ""
+    "ja": "{@link survdiff} のオプション。"
   },
   "SurvdiffOptions.rho#summary": {
     "hash": "0c4651147e49",
     "en": "Exponent of the weights S(t-)^rho (pooled Kaplan-Meier estimate just before each event time). Default 0.",
-    "ja": ""
+    "ja": "重み S(t-)^rho の指数 (各イベント時刻の直前の併合 Kaplan-Meier 推定値)。既定は 0。"
   },
   "SurvdiffResult#summary": {
     "hash": "083b3cee2bd6",
     "en": "Result of {@link survdiff}.",
-    "ja": ""
+    "ja": "{@link survdiff} の結果。"
   },
   "SurvdiffResult.chisq#summary": {
     "hash": "f927d1112a02",
     "en": "Chi-squared statistic",
-    "ja": ""
+    "ja": "カイ二乗統計量"
   },
   "SurvdiffResult.df#summary": {
     "hash": "f684ca1ba51b",
     "en": "Degrees of freedom: (number of groups with a positive expected count) - 1, or the rank of the variance matrix of\nthose groups (all but the first) when it is singular",
-    "ja": ""
+    "ja": "自由度: (期待度数が正の群の数) - 1。分散行列が特異な場合は、期待度数が正の群 (最初の群を除く) の分散行列のランク"
   },
   "SurvdiffResult.exp#summary": {
     "hash": "f4d0553d0d17",
     "en": "Weighted expected number of events per group",
-    "ja": ""
+    "ja": "群ごとの重み付き期待イベント数"
   },
   "SurvdiffResult.groups#summary": {
     "hash": "8898dfcc1533",
     "en": "R's names of the groups, `\"group=<label>\"`, in the order of the sorted labels",
-    "ja": ""
+    "ja": "R の群名 `\"group=<label>\"`。ソートしたラベルの順に並びます。"
   },
   "SurvdiffResult.n#summary": {
     "hash": "5901bc26819e",
     "en": "Number of observations per group",
-    "ja": ""
+    "ja": "群ごとの観測値の数"
   },
   "SurvdiffResult.obs#summary": {
     "hash": "0bf6073124fb",
     "en": "Weighted observed number of events per group",
-    "ja": ""
+    "ja": "群ごとの重み付き観測イベント数"
   },
   "SurvdiffResult.pValue#summary": {
     "hash": "e4651488cea6",
     "en": "Alias of `pvalue`: the same value.",
-    "ja": ""
+    "ja": "`pvalue` の別名です。同じ値です。"
   },
   "SurvdiffResult.pvalue#summary": {
     "hash": "fe6b84e29571",
     "en": "Upper chi-squared tail on `df` degrees of freedom (NaN for df = 0: the data carry no information on the groups)",
-    "ja": ""
+    "ja": "自由度 `df` のカイ二乗分布の上側裾確率 (df = 0 の場合は NaN: データに群の情報がないため)"
   },
   "SurvdiffResult.var#summary": {
     "hash": "b2c820ef5164",
     "en": "Variance matrix of obs - exp (array of rows)",
-    "ja": ""
+    "ja": "obs - exp の分散行列 (行の配列)"
   },
   "SurvdiffResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "SurvfitConfType#summary": {
     "hash": "2329064f9936",
     "en": "Confidence interval type of {@link survfit}.",
-    "ja": ""
+    "ja": "{@link survfit} の信頼区間の種類。"
   },
   "SurvfitOptions#summary": {
     "hash": "4df02fb61d3c",
     "en": "Options for {@link survfit}.",
-    "ja": ""
+    "ja": "{@link survfit} のオプション。"
   },
   "SurvfitOptions.confInt#summary": {
     "hash": "f18f020efba3",
     "en": "Confidence level. Default 0.95.",
-    "ja": ""
+    "ja": "信頼水準。既定は 0.95。"
   },
   "SurvfitOptions.confType#summary": {
     "hash": "b00c00e4bddf",
     "en": "Transformation of the pointwise confidence intervals. Default `\"log\"`.",
-    "ja": ""
+    "ja": "各時点の信頼区間の変換。既定は `\"log\"`。"
   },
   "SurvfitOptions.group#summary": {
     "hash": "cbd449982c37",
     "en": "Group labels, one per observation: one curve per group. Omitted: a single curve.",
-    "ja": ""
+    "ja": "観測値ごとの群ラベル。群ごとに 1 本の曲線を求めます。省略時は曲線が 1 本だけになります。"
   },
   "SurvfitResult#summary": {
     "hash": "a355fa79fdfd",
     "en": "Result of {@link survfit}: the rows of R's `summary(fit, censored = TRUE)` and the medians.",
-    "ja": ""
+    "ja": "{@link survfit} の結果: R の `summary(fit, censored = TRUE)` の行と中央値。"
   },
   "SurvfitResult.lower#summary": {
     "hash": "50494cc1358f",
     "en": "Lower limit of the pointwise confidence interval of S(t) (where S(t) = 1, 1 for each `confType`; with `\"log-log\"`\nas survival 3.8-12, NA before it)",
-    "ja": ""
+    "ja": "S(t) の各時点の信頼区間の下限 (S(t) = 1 のときは、どの `confType` でも 1。`\"log-log\"` の場合は\nsurvival 3.8-12 と同じく、その前は NA)"
   },
   "SurvfitResult.median#summary": {
     "hash": "6dafc2c61d68",
     "en": "Per stratum, [median, lower limit, upper limit] (NaN for R's NA)",
-    "ja": ""
+    "ja": "層ごとの [中央値, 下限, 上限] (R の NA に対応する NaN)"
   },
   "SurvfitResult.medianRows#summary": {
     "hash": "36f85e1d304d",
     "en": "The strata of `median`",
-    "ja": ""
+    "ja": "`median` の層"
   },
   "SurvfitResult.nCensor#summary": {
     "hash": "ece7b5896d13",
     "en": "Number censored at the time (R's `n.censor`)",
-    "ja": ""
+    "ja": "その時刻における打ち切り数 (R の `n.censor`)"
   },
   "SurvfitResult.nEvent#summary": {
     "hash": "36bb3670303c",
     "en": "Number of events at the time (R's `n.event`)",
-    "ja": ""
+    "ja": "その時刻におけるイベント数 (R の `n.event`)"
   },
   "SurvfitResult.nRisk#summary": {
     "hash": "04d9d7b012f2",
     "en": "Number at risk just before the time (R's `n.risk`)",
-    "ja": ""
+    "ja": "その時刻の直前の危険集合の人数 (R の `n.risk`)"
   },
   "SurvfitResult.stdErr#summary": {
     "hash": "f9c427193075",
     "en": "Standard error of S(t) (S times the standard error of log S)",
-    "ja": ""
+    "ja": "S(t) の標準誤差 (S に log S の標準誤差を掛けたもの)"
   },
   "SurvfitResult.stdError#summary": {
     "hash": "57873a6127b0",
     "en": "Alias of `stdErr`: the same array.",
-    "ja": ""
+    "ja": "`stdErr` の別名です。同じ配列です。"
   },
   "SurvfitResult.strata#summary": {
     "hash": "bf820a7240b1",
     "en": "Stratum of each row (`\"group=<label>\"`, or `\"all\"` for a single curve)",
-    "ja": ""
+    "ja": "各行の層 (`\"group=<label>\"`。曲線が 1 本の場合は `\"all\"`)"
   },
   "SurvfitResult.surv#summary": {
     "hash": "737fb22c7831",
     "en": "Kaplan-Meier estimate S(t)",
-    "ja": ""
+    "ja": "Kaplan-Meier 推定値 S(t)"
   },
   "SurvfitResult.time#summary": {
     "hash": "a52f10d227c3",
     "en": "Time of each row (the distinct times of the stratum, censored ones included)",
-    "ja": ""
+    "ja": "各行の時刻 (その層の相異なる時刻。打ち切りの時刻を含む)"
   },
   "SurvfitResult.upper#summary": {
     "hash": "30f85a878af4",
     "en": "Upper limit of the pointwise confidence interval of S(t)",
-    "ja": ""
+    "ja": "S(t) の各時点の信頼区間の上限"
   },
   "coxph#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "coxph#@param options": {
     "hash": "795aa9a4dd66",
     "en": "See {@link CoxphOptions}.",
-    "ja": ""
+    "ja": "{@link CoxphOptions} を参照してください。"
   },
   "coxph#@param status": {
     "hash": "6cf57efd1a01",
     "en": "1 for an event, 0 for a censored time.",
-    "ja": ""
+    "ja": "イベントなら 1、打ち切りなら 0。"
   },
   "coxph#@param time": {
     "hash": "5c2950cfd3c6",
     "en": "Follow-up times.",
-    "ja": ""
+    "ja": "追跡時間。"
   },
   "coxph#@param x": {
     "hash": "13061a0d73ca",
     "en": "The covariate matrix, one row per observation (at least one column).",
-    "ja": ""
+    "ja": "共変量の行列。観測値ごとに 1 行 (列は少なくとも 1 つ)。"
   },
   "coxph#summary": {
     "hash": "acd58b7a26a0",
     "en": "Cox proportional hazards regression. Equivalent to R's `survival::coxph()`. As\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, control)` for right-censored data, with the\nvalues of `summary(fit)`.\n\nRows with a missing time, status, covariate, weight or stratum are dropped. Times within sqrt(eps) of each other are\ntreated as tied. Covariates whose values all lie in `nocenter` are not centred; the others are centred by their\nweighted means, which only shifts the linear predictors. R's warnings (non-convergence, possibly infinite\ncoefficients) are returned in `warnings`.",
-    "ja": ""
+    "ja": "Cox 比例ハザード回帰。R の `survival::coxph()` と同等です。次の形で、\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, control)` により、右側打ち切りのデータに対して\n`summary(fit)` の値を再現します。\n\ntime、status、共変量、重み、層のいずれかが欠測している行は除外されます。互いの差が sqrt(eps) 以内の時刻は、\n同順位として扱われます。値がすべて `nocenter` に含まれる共変量は中心化されません。それ以外の共変量は、重み付き平均で\n中心化されます。これは線形予測子をずらすだけです。R の警告 (非収束、係数が無限大になる可能性) は、\n`warnings` で返されます。"
   },
   "survdiff#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "survdiff#@param group": {
     "hash": "36a43786f511",
     "en": "Group labels, one per observation.",
-    "ja": ""
+    "ja": "観測値ごとの群ラベル。"
   },
   "survdiff#@param options": {
     "hash": "fbcc677f090d",
     "en": "See {@link SurvdiffOptions}.",
-    "ja": ""
+    "ja": "{@link SurvdiffOptions} を参照してください。"
   },
   "survdiff#@param status": {
     "hash": "6cf57efd1a01",
     "en": "1 for an event, 0 for a censored time.",
-    "ja": ""
+    "ja": "イベントなら 1、打ち切りなら 0。"
   },
   "survdiff#@param time": {
     "hash": "5c2950cfd3c6",
     "en": "Follow-up times.",
-    "ja": ""
+    "ja": "追跡時間。"
   },
   "survdiff#summary": {
     "hash": "9e64215bc011",
     "en": "Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for\n`rho = 0`. Equivalent to R's `survival::survdiff()`. As `survdiff(Surv(time, status) ~ group, rho = rho)`.\n\nRows with a missing time, status or group are dropped.",
-    "ja": ""
+    "ja": "生存曲線の差の検定: Harrington と Fleming の G-rho 族。`rho = 0` のときは\nログランク検定。R の `survival::survdiff()` と同等です。`survdiff(Surv(time, status) ~ group, rho = rho)` と同じ意味です。\n\ntime、status、group のいずれかが欠測している行は除外されます。"
   },
   "survfit#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "survfit#@param options": {
     "hash": "24771a30a7f0",
     "en": "See {@link SurvfitOptions}.",
-    "ja": ""
+    "ja": "{@link SurvfitOptions} を参照してください。"
   },
   "survfit#@param status": {
     "hash": "6cf57efd1a01",
     "en": "1 for an event, 0 for a censored time.",
-    "ja": ""
+    "ja": "イベントなら 1、打ち切りなら 0。"
   },
   "survfit#@param time": {
     "hash": "5c2950cfd3c6",
     "en": "Follow-up times.",
-    "ja": ""
+    "ja": "追跡時間。"
   },
   "survfit#summary": {
     "hash": "d66eef16b2f4",
     "en": "Kaplan-Meier estimate of the survival function with Greenwood's standard error and pointwise confidence intervals.\nEquivalent to R's `survival::survfit()`. As `summary(survfit(Surv(time, status) ~ group, conf.type, conf.int),\ncensored = TRUE)`, with the medians and their confidence limits of `summary(fit)$table`.\n\nRows with a missing time, status or group are dropped.",
-    "ja": ""
+    "ja": "Greenwood の標準誤差と各時点の信頼区間を持つ、生存関数の Kaplan-Meier 推定値。\nR の `survival::survfit()` と同等です。`summary(survfit(Surv(time, status) ~ group, conf.type, conf.int),\ncensored = TRUE)` の形で、`summary(fit)$table` の中央値とその信頼限界を含みます。\n\ntime、status、group のいずれかが欠測している行は除外されます。"
   }
 }
