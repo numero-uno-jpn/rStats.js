@@ -462,3 +462,26 @@
 | true difference in means | 真の平均の差 | 新規 |
 | upper, lower confidence limit | 信頼区間の上限、下限 | 新規 |
 | open (one-sided interval) | 開いた (区間) | 新規。片側区間のもう一方の側 |
+| Type I, Type II, Type III | Type I, Type II, Type III | 英字のまま。`docs/ja` で「Type II と III」を使用 |
+| marginality | 周辺性 | `docs/ja` で使用。car の Type II の原則 |
+| sphericity | 球面性 | `docs/ja` で使用 |
+| sphericity correction | 球面性の補正 | 新規。Greenhouse-Geisser と Huynh-Feldt の補正 |
+| Mauchly test | Mauchly 検定 | 人名は英字。`docs/ja` で使用 |
+| Greenhouse-Geisser, Huynh-Feldt | Greenhouse-Geisser、Huynh-Feldt | 人名は英字 (規則 11) |
+| partial eta squared | 部分イータ二乗 | `docs/ja` で使用。`"pes"` の効果量 |
+| mean square | 平均平方 | `docs/ja` で使用 |
+| residual mean square | 残差平均平方 | `docs/ja` で使用 |
+| between-subjects factor | 被験者間因子 | `docs/ja` で使用 |
+| within-subjects factor | 被験者内因子 | `docs/ja` で使用。被験者間因子と対 |
+| formula | 式 | 新規。`"y ~ A * B"` などの R の式 |
+| model matrix | モデル行列 | `docs/ja` で使用 |
+| term (of a model) | 項 | `docs/ja` で使用。`terms()` の項 |
+| indicator (variable) | 指示変数 | `docs/ja` で使用。因子の水準を 0 と 1 で表す列 |
+| rank-deficient | ランク不足 | `docs/ja` で使用 |
+| non-estimable | 推定できない | 新規。ランク不足の当てはめの予測に使う |
+| weighted least squares | 重み付き最小二乗法 | `docs/ja` で使用 |
+| pivoting (QR) | ピボット | `docs/ja` で「qr のピボット」として使用。`pivot` と同じ訳語 |
+| attribute (of an R object) | 属性 | `docs/ja` で使用。`terms()` の属性 |
+| observed (factor) | 観測された因子 | 新規。`aovEz` の `observed` |
+| univariate (test) | 単変量 | `docs/ja` に 1 件 |
+| sequential (sums of squares) | 逐次 | `docs/ja` で「逐次の表」として使用 |
