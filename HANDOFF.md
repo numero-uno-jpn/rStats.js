@@ -1,17 +1,22 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-06 (セッション 16 の終わり、1.1.0 を公開)
+最終更新: 2026-11-07 (セッション 17、1.2.0 の版のコミットまで)
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること (2026-11-06 に作成)
+## 次のセッションで最初にやること (2026-11-07 に作成)
 
-- **状態:** 1.1.0 を公開済み (npm latest、R 4.6.2 が照合先)。すべて push 済み、作業ツリーは未追跡の `oracle/extreme-parameters-behaviour.md` だけ (触らない)。open の Issue は 0 件。この Mac で落ちるのは test/issue179・issue513 だけ (CI では通る)。
-- **次の作業: ROADMAP の 1 番「分割表と比率」→ 1.2.0。** 優先順は ROADMAP の Remaining (医療・心理統計で正しい手法を使える観点、2026-11-06 に改訂)。
-  - 中身: 2×2 の Fisher mid-p と Boschloo [exact2x2, Exact]、比率の区間を方法ごとに [DescTools BinomCI]、リスク差・リスク比・オッズ比の区間 [DescTools BinomDiffCI・BinomRatioCI、epitools]、Stuart-Maxwell・G 検定・Goodman-Kruskal の γ [DescTools]、線形連関の検定 [coin]。
-  - 見積もり: glmer の半分前後 (広いが浅い)。いちばん重いのは Boschloo (撹乱母数の最大化)。範囲を絞る (比率の区間は 5 方法程度、線形連関は漸近版だけ) か、Boschloo を 1.3.0 に分けるかを、着手時にユーザーと決める。
-  - 照合先のパッケージは GPL: glmer・wilcox と同じく、仕様のエージェントだけがソースを読み `oracle/*-behaviour.md` を書き、実装のエージェントは文書と論文から書く。エージェントは 1 体ずつ、報告は短い txt。
-  - oracle のイメージに exact2x2・Exact・epitools・coin を足す: `oracle/Dockerfile.r46` の末尾に層を 1 つ足す (上の層はキャッシュのまま)。`oracle/Dockerfile` (4.5.2) はユーザーの判断で変えない。
+- **状態:** 1.2.0 の版のコミット `f30b7c2` まで main にある。origin/main は `078fbc5` (CI・Pages 通過)。未 push は `86c0592` (デモの例 12 個。公開中のデモは CDN の版を読むので、1.2.0 の公開前に push しない)・`b4155cc` (README・ROADMAP・llms.txt・サイズ)・`f30b7c2` (版)・この HANDOFF。公開の手順: tag `v1.2.0` をユーザーが push → npm の staged をユーザーが承認 → jsDelivr の dist/rstats.js を確かめて main を push → CI・Pages・デモの VERSION を確かめる。公開が済んでいなければ、そこから再開する。
+- **次の作業 (公開の後):** ROADMAP の Remaining の 1 番 (頑健な標準誤差: sandwich の vcovHC・vcovCL、lmtest の coeftest、coxph の robust)。進め方は 1.2.0 と同じ (下)。
+- **1.2.0 でしたこと (セッション 17、2026-11-06〜07):** 計画は `~/.claude/plans/idempotent-swinging-lerdorf.md`。
+  - ユーザーの判断: Boschloo は 1.2.0 に含める。比率の区間は 7 方法 (wilson・wilsoncc・clopper-pearson・wald・agresti-coull・jeffreys・midp)。2×2 の効果指標は epiR (ReactiveStat が使う) と DescTools・epitools の両方に照合。線形連関は漸近版だけ。ReactiveStat の menu.yaml にある N-1 カイ二乗・リスク差の同等性検定・Freeman-Tukey 残差も入れる。仕様の判断 1〜16 は `oracle/contingency-behaviour.md` の「rStats.js's choices」(要点: 1 件ずつの API、fisherTest の midp、mee・ac・オッズ比の score も、既定はパッケージの既定、不正確な根は真の根、Boschloo は真の上限で既定 square、tost とスコア法の比率の同等性検定の両方、G 検定は上側の p 値、Stuart-Maxwell の df は除いた後、N-1 は chisqTest のオプション、FT 残差は結果の欄、線形連関は全部 1..k の得点、γ は推定・区間・ASE、意味のない入力はエラー)。
+  - oracle: Dockerfile.r46 に exact2x2 1.7.0・Exact 3.3・epitools 0.5.10.1・coin 1.4.6・epiR 3.0.0・equivalence 0.8.2 の層 (epiR のため GDAL・GEOS・PROJ・udunits・libwebpmux も)。oracle スクリプト 6 本 (binomci・twobytwo・exact2x2・boschloo・ordinaltable・equivalence)、fixture 14 本。
+  - 追加した関数: binomCI・binomDiffCI・binomRatioCI・oddsRatio、fisherTest の midp、boschlooTest、gTest・stuartMaxwellTest・goodmanKruskalGamma・lblTest、chisqTest の nMinus1 と ftResiduals、tost・binomDiffEquivalenceTest。仕様のエージェント 1 体 → 実装のエージェント 4 体 (A+B、C、D、E。worktree、1 体ずつ) → 点検のエージェント (読み取りだけ、16 件) → 修正のエージェント 1 体。
+  - pgamma の精度 (ユーザーの指示で調べた): 上側の連分数を a < 4・x < 64 で double-double に (pchisq の df 1 で最大 75 → 8 eps、qchisq の df 1 は約 2.8 倍遅い)、Temme の領域を double-double の逸脱度から (35 → 4 eps)、a < 0.01 のポアソン因子 (50 → 1 eps)。値をビットで固定していたテスト 5 本を更新 (4 本は真の値の丸めと確認)。
+  - R (パッケージ) が誤る所は differences-from-r に (uniroot の許容で止めた区間、epiR のオッズ比のスコア区間が大きな表で est×1.1、exact2x2 の Boschloo が 98 点の格子、Exact の square の棄却域、DescTools の GTest の 1 − pchisq と Williams の空の行、Stuart-Maxwell の df、coin の 2 水準の符号、Wilson の下端の桁落ちなど)。
+  - 未解決の小さな点: 同等性検定の文書の例の区間は真の値から 1 ulp (統計量の変化が δ の 1 ulp あたり 1.3 eps しかなく決めきれない)。binomDiffCI.json の参照値 1 件が mpmath と 6 ulp (許容内)。oddsRatio の p 値は件数約 1e13 で phyper の上限 (performance に記載)。
+  - 依頼文: `~/.claude/plans/rstats-1.2.0-briefs/` (spec_brief.md・impl_brief.md・audit_findings.md。この Mac のローカルだけ)。次も同じ形で進めるなら、impl_brief.md を写して土台のコミットと担当を直して使う。点検のスクリプトはジョブの一時領域にあり、残らない。
+
 - **残り (急がない):**
   - fisher の fixture は R 4.5.2 のまま。oracle が colima の VM (4 GB) をほぼ使い切るので、cloud-r を止めてよいときに `npm run oracle -- fisher`。
   - R 4.6 は x^2〜x^4 を pow でなく掛け算で計算する (NEWS にない)。rStats.js の `**` を使う R 由来の式が最後のビットでずれうる。今は落ちるテストはない。
