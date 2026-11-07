@@ -80,7 +80,29 @@ describe("boschlooTest", () => {
     expect(() => boschlooTest([[1, 2], [4, 5]], { alternative: "x" as never })).toThrow(RangeError);
     // (n1 + 1)(n2 + 1) above 2^24 tables
     expect(() => boschlooTest([[2000, 2096], [2000, 2096]])).toThrow(/more than 2\^24/);
-    // a grid of more than 2^32 steps (about 10 s): a small group against a very large one
-    expect(() => boschlooTest([[1, 0], [50000, 150000]])).toThrow(/would take too long/);
+    // a grid of more than 3.4e8 steps (points times the widths of the binomial vectors, about 8 s): a small group
+    // against a very large one (1 against 200000 now takes about 4 s; 1 against 300000 is beyond)
+    expect(() => boschlooTest([[1, 0], [100000, 200000]])).toThrow(/would take too long/);
+    expect(() => boschlooTest([[270000, 0], [0, 1]])).toThrow(/would take too long/);
+  });
+
+  it("keeps long groups within the time limit (audit 4)", () => {
+    // [[262000, 0], [0, 1]] took 18.3 s, [[131000, 131000], [0, 1]] 19.4 s (now about 5 and 8 s): the binomial vectors
+    // stop where they underflow. 60000 against 1 took 2.4 s, now 0.6 s
+    const t0 = performance.now();
+    const r = boschlooTest([[60000, 0], [0, 1]]);
+    expect(performance.now() - t0).toBeLessThan(3000);
+    expect(r.pValue).toBeGreaterThan(0);
+  });
+
+  it("does not lose digits growing with n (audit 5)", () => {
+    // [[n, 0], [0, n]] (square): the region is the two extreme tables, P(pi) = 2 pi^n (1 - pi)^n, largest at 1/2: the
+    // supremum is 2^(1 - 2n) exactly. The rounded ratio p/(1 - p) compounded over the n steps of the binomial vector
+    // (70 ulps at n = 300) and localmin's sqrt(eps) in theta (another 25 ulps there) are gone; 8 ulps: the rounding of
+    // P near its flat maximum decides the last steps of the refinement
+    for (const n of [30, 200, 300]) {
+      const r = boschlooTest([[n, 0], [0, n]]);
+      expect(relativeError(r.pValue, 2 ** (1 - 2 * n))).toBeLessThan(8 * 2 ** -52);
+    }
   });
 });

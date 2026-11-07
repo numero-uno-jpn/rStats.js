@@ -143,7 +143,7 @@ allocation could be avoided without changing the values or the random stream, it
 |---|---|
 | `fisherTest` (2 × 2), `mantelhaenTest(exact: true)` | the support of the count has more than 2^24 values; `mantelhaenTest` also when the total reaches 2^53 |
 | `oddsRatio` | `"midp"` and `"fisher"`: the support of the count has more than 2^23 values (about 6 s), and for `"fisher"` an entry is above 2^31 - 1; every method: the hypergeometric p-values would take more than 2^26 terms of `phyper` (counts of about 1e13) |
-| `boschlooTest` | (n1 + 1)(n2 + 1) is above 2^24, or the grid over the nuisance parameter would take more than 2^32 steps (about 8 s; max(1000, 32 sqrt(n1 + n2)) points times n1 + 3 n2: a small group against one of 150000) |
+| `boschlooTest` | (n1 + 1)(n2 + 1) is above 2^24, or the grid over the nuisance parameter would take more than 3.4e8 steps (about 8 s; max(1000, 32 sqrt(n1 + n2)) points times min(n + 1, 40 sqrt(n)) for both groups: a small group against one of 270000) |
 | `ksTest(exact: true)` (one sample) | the matrix power needs more than 2^33 multiply-adds |
 | `ansariTest(exact: true)`, `jonckheereTest(exact: true)` | the distribution needs more than 2^24 values or 2^32 steps |
 | `corTest(method: "kendall", exact: true)` | n is above 1290 |

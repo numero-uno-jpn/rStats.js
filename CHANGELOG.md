@@ -30,7 +30,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   for a 2 × 2 table with the groups in the rows: `"square"` (default) or `"central"` two-sided, `alternative` in
   Exact's orientation. The p-value is the true supremum over the nuisance parameter (Exact's is up to 6e-9 below it,
   and its two-sided square region can contain tables that do not belong to it); 200 against 200 takes under 10 ms.
-  Tables with more than 2^24 possible outcomes, or a grid of more than 2^32 steps, are a RangeError.
+  Tables with more than 2^24 possible outcomes, or a grid that would take more than about 8 s, are a RangeError.
 - **Tests and measures of r × c tables**: `gTest(x, { correct, p, rescaleP })`, DescTools' `GTest()` (independence
   and goodness of fit; corrections `none`, `williams` and `yates` as DescTools; the p-value is the upper tail, where
   DescTools' is 0 below 1.1e-16, and G is summed without cancellation); `stuartMaxwellTest(table)`, DescTools'

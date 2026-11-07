@@ -138,7 +138,7 @@ RangeError を投げます。正確な検定では、メッセージで回避の
 |---|---|
 | `fisherTest` (2 × 2)、`mantelhaenTest(exact: true)` | 度数の台が 2^24 個を超える。`mantelhaenTest` は合計が 2^53 以上のときも |
 | `oddsRatio` | `"midp"` と `"fisher"`: 度数の台が 2^23 個を超える (約 6 秒)、`"fisher"` は 2^31 - 1 を超える度数があるときも。すべての方法: 超幾何分布の p 値に `phyper` の項が 2^26 個より多く要る (度数が 1e13 ほど) |
-| `boschlooTest` | (n1 + 1)(n2 + 1) が 2^24 を超える、または局外母数の格子での計算が 2^32 手順を超える (約 8 秒。格子点 max(1000, 32 sqrt(n1 + n2)) 個 × (n1 + 3 n2)。小さい群と 150000 の群など) |
+| `boschlooTest` | (n1 + 1)(n2 + 1) が 2^24 を超える、または局外母数の格子での計算が 3.4e8 手順を超える (約 8 秒。格子点 max(1000, 32 sqrt(n1 + n2)) 個 × 両群の min(n + 1, 40 sqrt(n)) の和。小さい群と 270000 の群など) |
 | `ksTest(exact: true)` (1 標本) | 行列のべきに 2^33 回を超える積和が要る |
 | `ansariTest(exact: true)`、`jonckheereTest(exact: true)` | 分布に 2^24 個を超える値か 2^32 を超える手順が要る |
 | `corTest(method: "kendall", exact: true)` | n が 1290 を超える |

@@ -24,13 +24,15 @@
 //   the precision of the doubles.
 // - Each evaluation uses the region as runs of j in each row i: runs that start at 0 or end at n2 are cumulative sums of
 //   b(.; n2, pi) from that end (one-sided regions are such tails), others are summed directly. The binomial vectors are
-//   dbinom at the mode and the exact ratios of neighbours from there.
+//   dbinom at the mode and the ratios of neighbours from there (with p/(1 - p) in double-double), as far as they do not
+//   underflow.
 
 import { dbinom1 } from "../distributions/binomial.js";
 import { phyper1 } from "../distributions/hypergeometric.js";
 import { reported, unreported } from "../internal/warnings.js";
 import { localMin } from "../optim/localmin.js";
 import { lfactorial } from "../special/choose.js";
+import { ddDiv, twoSum } from "../special/dd.js";
 import { checkCount } from "./binomCI.js";
 import { fisherTest } from "./fisherTest.js";
 import { matchChoice } from "./power.js";
@@ -85,8 +87,12 @@ const CANDIDATE_RATIO = 0.9;
 const SLACK = 1 + 1e-7;
 /** Largest number of tables (n1 + 1)(n2 + 1) (one array of the region; design rule 4) */
 const MAX_TABLES = 2 ** 24;
-/** Largest number of steps of the evaluations of P on the grid (about 10 s; design rule 4) */
-const MAX_WORK = 2 ** 32;
+/**
+ * Largest number of steps of the evaluations of P on the grid, the grid's points times the widths of the binomial
+ * vectors (design rule 4): about 8 s at the limit (131000 and 131000 events against one observation, 7.7 s; 2^32 steps
+ * counted as n1 + 3 n2 per point took 18 s for 262000 against 1)
+ */
+const MAX_WORK = 3.4e8;
 
 /**
  * Boschloo's exact unconditional test (`method = "boschloo"`) for a 2 x 2 table whose rows are two independent
@@ -136,7 +142,9 @@ export function boschlooTest(table: readonly Counts[], options: BoschlooTestOpti
   }
   const N = n1 + n2;
   const grid = Math.max(MIN_GRID, Math.ceil(GRID_PER_SQRT_N * Math.sqrt(N)));
-  if (grid * (n1 + 3 * n2 + 4) > MAX_WORK) {
+  // the binomial vectors are written where they do not underflow: at most about 40 sqrt(n) values (pi = 1/2)
+  const width = (n: number): number => Math.min(n + 1, 40 * Math.sqrt(n));
+  if (grid * (width(n1) + width(n2) + 4) > MAX_WORK) {
     throw new RangeError(`Boschloo's test of these group sizes (${n1} and ${n2}) would take too long`);
   }
 
@@ -265,19 +273,46 @@ function rejectionRegion(n1: number, n2: number, x1: number, x2: number, kind: "
   return { starts, from: Int32Array.from(from), to: Int32Array.from(to) };
 }
 
-/** b(.; n, p) into out: dbinom at the mode and the ratios of neighbours outward */
-function binomialVector(n: number, p: number, out: Float64Array): void {
+/**
+ * b(.; n, p) into out, written on [lo, hi] (returned) outside which the values underflow to 0: dbinom at the mode and
+ * the ratios of neighbours outward. The ratios p/(1 - p) and (1 - p)/p rounded once enter every step, so their rounding
+ * compounds (70 ulps at n = 300: 2^-599 came out 4.819839730205692e-181 for 4.819839730205768e-181); they are formed
+ * in double-double (1 - p exactly) and the vector is corrected by (1 + c)^k = 1 + k c, c the relative low part and k
+ * the steps from the mode (k c is below 1e-10, so the square terms are below the last bit). The walk stops where a
+ * value underflows: every later one would be 0 (the time of long groups then follows sqrt(n), not n)
+ */
+function binomialVector(n: number, p: number, out: Float64Array): [number, number] {
   if (p === 0 || p === 1) {
-    out.fill(0);
-    out[p === 0 ? 0 : n] = 1;
-    return;
+    const at = p === 0 ? 0 : n;
+    out[at] = 1;
+    return [at, at];
   }
   const mode = Math.min(n, Math.floor((n + 1) * p));
   out[mode] = dbinom1(mode, n, p, false);
-  const up = p / (1 - p);
-  const down = (1 - p) / p;
-  for (let i = mode + 1; i <= n; i++) out[i] = out[i - 1]! * (((n - i + 1) / i) * up);
-  for (let i = mode - 1; i >= 0; i--) out[i] = out[i + 1]! * (((i + 1) / (n - i)) * down);
+  const q = twoSum(1, -p);
+  const upDD = ddDiv([p, 0], q);
+  const downDD = ddDiv(q, [p, 0]);
+  const up = upDD[0];
+  const down = downDD[0];
+  let hi = mode;
+  for (let i = mode + 1; i <= n; i++) {
+    const v = out[i - 1]! * (((n - i + 1) / i) * up);
+    if (v === 0) break;
+    out[i] = v;
+    hi = i;
+  }
+  let lo = mode;
+  for (let i = mode - 1; i >= 0; i--) {
+    const v = out[i + 1]! * (((i + 1) / (n - i)) * down);
+    if (v === 0) break;
+    out[i] = v;
+    lo = i;
+  }
+  const cu = upDD[1] / up;
+  const cd = downDD[1] / down;
+  for (let i = mode + 1; i <= hi; i++) out[i] = out[i]! * (1 + (i - mode) * cu);
+  for (let i = lo; i < mode; i++) out[i] = out[i]! * (1 + (mode - i) * cd);
+  return [lo, hi];
 }
 
 /** The supremum over pi in [0, 1] of the probability of the region, and a pi where it is attained */
@@ -287,24 +322,26 @@ function supremum(region: Region, n1: number, n2: number, grid: number): { value
   const b2 = new Float64Array(n2 + 1);
   const below = new Float64Array(n2 + 1);
   const above = new Float64Array(n2 + 1);
+  // (b1 and b2 are read on the ranges written by binomialVector only: 0 outside, as the cumulative sums there)
   const probability = (p: number): number => {
-    binomialVector(n1, p, b1);
-    binomialVector(n2, p, b2);
+    const [lo1, hi1] = binomialVector(n1, p, b1);
+    const [lo2, hi2] = binomialVector(n2, p, b2);
     let acc = 0;
-    for (let j = 0; j <= n2; j++) below[j] = acc += b2[j]!;
+    for (let j = lo2; j <= hi2; j++) below[j] = acc += b2[j]!;
     acc = 0;
-    for (let j = n2; j >= 0; j--) above[j] = acc += b2[j]!;
+    for (let j = hi2; j >= lo2; j--) above[j] = acc += b2[j]!;
     let total = 0;
-    for (let i = 0; i <= n1; i++) {
+    for (let i = lo1; i <= hi1; i++) {
       const w = b1[i]!;
       if (w === 0) continue;
       let row = 0;
       for (let r = starts[i]!; r < starts[i + 1]!; r++) {
         const f = from[r]!;
         const e = to[r]!;
-        if (f === 0) row += below[e]!;
-        else if (e === n2) row += above[f]!;
-        else for (let j = f; j <= e; j++) row += b2[j]!;
+        if (e < lo2 || f > hi2) continue;
+        if (f === 0) row += below[Math.min(e, hi2)]!;
+        else if (e === n2) row += above[Math.max(f, lo2)]!;
+        else for (let j = Math.max(f, lo2); j <= Math.min(e, hi2); j++) row += b2[j]!;
       }
       total += w * row;
     }
@@ -332,10 +369,32 @@ function supremum(region: Region, n1: number, n2: number, grid: number): { value
     const lower = (half * Math.max(0, k - 1)) / (grid + 1);
     const upper = (half * Math.min(grid + 1, k + 1)) / (grid + 1);
     const m = localMin((theta) => -probability(piOf(theta)), lower, upper, 1e-14);
-    const refined = probability(piOf(m.x));
+    let theta = m.x;
+    let refined = probability(piOf(theta));
+    // Brent's localmin stops within about sqrt(eps) of the maximum, where the value has dropped by the curvature times
+    // that squared (about 2N (1e-8)^2 relative: 25 ulps at [[300, 0], [0, 300]]). Two steps to the vertex of the
+    // parabola through theta - h, theta, theta + h, with h a 1e-4 and then 1e-6 part of the peak width 1/sqrt(2N)
+    // (the vertex's error from the rounding of P is then about eps / (2N h), from the cubic term h^2 sqrt(2N)), each
+    // kept only where it raises P by more than its rounding (4 ulps: [[3, 7], [8, 2]] would otherwise move 1.5 ulps
+    // above the true 0.020694732666015625)
+    let h = 1e-4 / Math.sqrt(2 * (n1 + n2));
+    for (let step = 0; step < 2; step++, h *= 1e-2) {
+      if (!(theta - h > lower && theta + h < upper)) break;
+      const vl = probability(piOf(theta - h));
+      const vr = probability(piOf(theta + h));
+      const den = vl - 2 * refined + vr;
+      if (!(den < 0)) break;
+      const shift = (h * (vl - vr)) / (2 * den);
+      if (!(Math.abs(shift) < h)) break;
+      const v = probability(piOf(theta + shift));
+      if (v > refined * (1 + 2 ** -50)) {
+        theta += shift;
+        refined = v;
+      }
+    }
     if (refined > value) {
       value = refined;
-      bestAt = piOf(m.x);
+      bestAt = piOf(theta);
     }
   }
   return { value, at: bestAt };
