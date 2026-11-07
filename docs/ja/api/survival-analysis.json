@@ -2,7 +2,7 @@
   "CoxphControl#summary": {
     "hash": "ae1b9dd0bb09",
     "en": "Control of the Newton-Raphson iterations of {@link coxph} (R's `coxph.control`).",
-    "ja": "{@link coxph} のニュートン・ラフソン法の反復の制御 (R の `coxph.control`)。"
+    "ja": "{@link coxph} のNewton-Raphson 法の反復の制御 (R の `coxph.control`)。"
   },
   "CoxphControl.eps#summary": {
     "hash": "f6b6e63214a8",
@@ -172,12 +172,12 @@
   "CoxphResult.wald#summary": {
     "hash": "2e8f4e891b6c",
     "en": "The Wald statistic of the non-NA coefficients (against `init` when given)",
-    "ja": "NA でない係数のワルド統計量 (指定されている場合は `init` に対して)"
+    "ja": "NA でない係数の Wald 統計量 (指定されている場合は `init` に対して)"
   },
   "CoxphResult.waldtest#summary": {
     "hash": "7af5b8baaec8",
     "en": "Wald test",
-    "ja": "ワルド検定"
+    "ja": "Wald 検定"
   },
   "CoxphResult.warnings#summary": {
     "hash": "19382659fccd",
@@ -187,7 +187,7 @@
   "CoxphResult.z#summary": {
     "hash": "4e79b1893bfd",
     "en": "Wald z statistics",
-    "ja": "ワルド z 統計量"
+    "ja": "Wald z 統計量"
   },
   "CoxphResult.zValue#summary": {
     "hash": "f199ee2a8585",
@@ -337,7 +337,7 @@
   "SurvfitResult.nRisk#summary": {
     "hash": "04d9d7b012f2",
     "en": "Number at risk just before the time (R's `n.risk`)",
-    "ja": "その時刻の直前の危険集合の人数 (R の `n.risk`)"
+    "ja": "その時刻の直前のリスク集合の人数 (R の `n.risk`)"
   },
   "SurvfitResult.stdErr#summary": {
     "hash": "f9c427193075",

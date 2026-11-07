@@ -294,3 +294,26 @@
 | Promise | Promise | 英字のまま |
 | RangeError, TypeError | RangeError, TypeError | 英字のまま |
 | Node.js | Node.js | 英字のまま |
+
+## 翻訳で追加した用語
+
+| 英語 | 日本語 | 注記 |
+|---|---|---|
+| Wald (test, statistic) | Wald 検定、Wald 統計量 | 人名は英字 |
+| log-rank test | ログランク検定 | |
+| number at risk | リスク集合の大きさ、リスク集合の人数 | R の `n.risk` |
+| baseline hazard | ベースラインハザード | |
+| stratum / strata | 層 | |
+| log partial likelihood | 対数部分尤度 | |
+| case weights | 観測値の重み | |
+| robust variance | ロバスト分散 | |
+| linear predictor | 線形予測子 | |
+| singular (matrix) | 特異 | |
+| rank (of a matrix) | ランク | 統計量の順位は「順位」 |
+| aliased (column) | 縮退した (列) | 線形従属で除かれた列 |
+| centred / scaled | 中心化 / スケーリング | |
+| pooled | 併合 | |
+| pointwise | 各時点の | 生存曲線の文脈 |
+| distinct (values, times) | 相異なる | |
+| machine epsilon | 機械イプシロン | |
+| Newton-Raphson | Newton-Raphson 法 | 人名は英字 |
