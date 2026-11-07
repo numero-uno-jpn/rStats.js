@@ -187,7 +187,7 @@
   "PAdjustOptions.n#summary": {
     "hash": "f663228464f0",
     "en": "Number of comparisons. Default: the number of non-`NaN` p-values. Must not be smaller\nthan that; must be an integer and at most 65536 for `\"hommel\"`.",
-    "ja": "比較の数です。既定: `NaN` でない p 値の数。これより小さく\nしてはいけません。整数でなければならず、`\"hommel\"` の場合は 65536 以下でなければなりません。"
+    "ja": "比較の数です。既定: `NaN` でない p 値の数。これより小さく\nしてはいけません。`\"hommel\"` の場合は、整数かつ 65536 以下でなければなりません。"
   },
   "PMCMRResult#summary": {
     "hash": "90c1243fb498",
