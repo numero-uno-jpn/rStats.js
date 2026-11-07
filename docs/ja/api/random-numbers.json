@@ -2,976 +2,976 @@
   "RNGKindName#summary": {
     "hash": "d3e898eac1c3",
     "en": "A uniform random number generator, R's `RNGkind(kind)`.",
-    "ja": ""
+    "ja": "一様乱数生成器。R の `RNGkind(kind)` に対応します。"
   },
   "RNGKindOptions#summary": {
     "hash": "b2dd60ba9730",
     "en": "Options for {@link RNGkind}. Omitted entries keep the current setting, as in R.",
-    "ja": ""
+    "ja": "{@link RNGkind} のオプション。省略した項目は、R と同じく現在の設定のまま残ります。"
   },
   "RNGKindOptions.kind#summary": {
     "hash": "fd34fdd4b990",
     "en": "Uniform generator: `\"Mersenne-Twister\"` (R's default), `\"L'Ecuyer-CMRG\"`, or `\"default\"`.",
-    "ja": ""
+    "ja": "一様乱数生成器。`\"Mersenne-Twister\"` (R の既定)、`\"L'Ecuyer-CMRG\"`、または `\"default\"`。"
   },
   "RNGKindOptions.sampleKind#summary": {
     "hash": "beb44b17c608",
     "en": "`\"Rejection\"` (R's default since 3.6.0), `\"Rounding\"` (the `sample` of R before 3.6.0, to\nreproduce older results), or `\"default\"`.",
-    "ja": ""
+    "ja": "`\"Rejection\"` (R の既定。3.6.0 以降)、`\"Rounding\"` (3.6.0 より前の R の `sample` と同じ。古い結果を\n再現するため)、または `\"default\"`。"
   },
   "RNGKinds#summary": {
     "hash": "bd69bbfbe494",
     "en": "The kinds in effect, as returned by {@link RNGkind}.",
-    "ja": ""
+    "ja": "{@link RNGkind} が返す、現在有効な種類。"
   },
   "RNGKinds.kind#summary": {
     "hash": "223de2c391b6",
     "en": "The uniform generator.",
-    "ja": ""
+    "ja": "一様乱数生成器。"
   },
   "RNGKinds.normalKind#summary": {
     "hash": "c5a61482f426",
     "en": "Always `\"Inversion\"` (the only normal kind supported).",
-    "ja": ""
+    "ja": "常に `\"Inversion\"` (対応している正規乱数の種類はこれだけです)。"
   },
   "RNGKinds.sampleKind#summary": {
     "hash": "693b1d74e13d",
     "en": "How `sample` draws indices.",
-    "ja": ""
+    "ja": "`sample` が添字を抽出する方法。"
   },
   "RNGkind#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "RNGkind#@param options": {
     "hash": "104a0ae552d9",
     "en": "The kinds to change; omitted entries are kept. Default: change nothing.",
-    "ja": ""
+    "ja": "変更する種類。省略した項目は変更されません。既定: 何も変更しない。"
   },
   "RNGkind#@returns": {
     "hash": "2bb8f05d0042",
     "en": "The kinds in effect before the call (the current ones when called without options), as R.",
-    "ja": ""
+    "ja": "呼び出し前に有効だった種類 (オプションなしで呼んだ場合は現在の種類)。R と同じです。"
   },
   "RNGkind#@throws": {
     "hash": "62d2b9682d9a",
     "en": "RangeError for an unsupported kind (nothing is changed then).",
-    "ja": ""
+    "ja": "対応していない種類の場合は RangeError を投げます (このとき何も変更されません)。"
   },
   "RNGkind#summary": {
     "hash": "1308da2349c2",
     "en": "Reads or changes the kinds of random number generation. Equivalent to R's `RNGkind()`.\n\n- `kind: \"Mersenne-Twister\"` (or `\"default\"`): R's default generator.\n- `kind: \"L'Ecuyer-CMRG\"`: L'Ecuyer's MRG32k3a, with independent streams for parallel work\n  ({@link nextRNGStream}, {@link nextRNGSubStream}).\n- `sampleKind: \"Rounding\"`: indices drawn as `floor(n * u)`, as `sample`, `sampleInt` and\n  `rwilcox` did in R before 3.6.0 (slightly non-uniform for large n; R warns about it, rStats.js\n  does not). `\"Rejection\"` (or `\"default\"`) is R's default since 3.6.0. Other functions are not\n  affected.\n\nAs in R, changing `kind` seeds the new generator from the next uniform of the current one (also\nwhen the kind does not change), so a stream stays reproducible from the last {@link setSeed};\nchanging only `sampleKind` keeps the stream. Call {@link setSeed} afterwards to seed the new\ngenerator directly: `RNGkind({ kind }); setSeed(seed)` is R's `set.seed(seed, kind)`.",
-    "ja": ""
+    "ja": "乱数生成の種類を読み取るか変更します。R の `RNGkind()` と同等です。\n\n- `kind: \"Mersenne-Twister\"` (または `\"default\"`): R の既定の生成器です。\n- `kind: \"L'Ecuyer-CMRG\"`: L'Ecuyer の MRG32k3a です。並列処理向けに、互いに独立したストリームを使えます\n  ({@link nextRNGStream}、{@link nextRNGSubStream})。\n- `sampleKind: \"Rounding\"`: 添字を `floor(n * u)` で抽出します。これは、3.6.0 より前の R の `sample`、`sampleInt`、`rwilcox` と同じ方法です (n が大きいとわずかに一様でなくなります。R はこれを警告しますが、rStats.js は警告しません)。`\"Rejection\"` (または `\"default\"`) は 3.6.0 以降の R の既定です。ほかの関数には影響しません。\n\nR と同じく、`kind` を変更すると、現在の生成器の次の一様乱数から新しい生成器の種が決まります (種類が変わらない場合も同じです)。そのため、ストリームは最後の {@link setSeed} から再現できます。`sampleKind` だけを変更した場合は、ストリームは保たれます。新しい生成器に直接種を与えるには、その後で {@link setSeed} を呼んでください。`RNGkind({ kind }); setSeed(seed)` は、R の `set.seed(seed, kind)` に当たります。"
   },
   "SampleKindName#summary": {
     "hash": "432bfd756c72",
     "en": "How `sample` turns uniforms into indices, R's `RNGkind(sample.kind)`.",
-    "ja": ""
+    "ja": "`sample` が一様乱数から添字を作る方法。R の `RNGkind(sample.kind)` に対応します。"
   },
   "SampleOptions#summary": {
     "hash": "6af1849b96b5",
     "en": "Options for {@link sample} and {@link sampleInt}.",
-    "ja": ""
+    "ja": "{@link sample} と {@link sampleInt} のオプション。"
   },
   "SampleOptions.prob#summary": {
     "hash": "77d2a0dd2ee2",
     "en": "Weights for the candidates (need not sum to 1). Default: equal probabilities.",
-    "ja": ""
+    "ja": "候補ごとの重み (合計が 1 である必要はありません)。既定: 等確率。"
   },
   "SampleOptions.replace#summary": {
     "hash": "9d5c250a9e37",
     "en": "Sample with replacement. Default `false`.",
-    "ja": ""
+    "ja": "復元抽出を行います。既定は `false`。"
   },
   "SampleOptions.size#summary": {
     "hash": "836db562cdfc",
     "en": "Number of items to draw (truncated, as R; below 2^31 with `prob`). Default: the number of candidates (a random\npermutation).",
-    "ja": ""
+    "ja": "抽出する要素の数 (R と同じく切り捨てられます。`prob` を指定する場合は 2^31 未満)。既定: 候補の数 (ランダムな\n順列)。"
   },
   "getRandomSeed#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "getRandomSeed#@returns": {
     "hash": "ece042fac4d1",
     "en": "The same integers as R's `.Random.seed`: the kind code (`10403` for R's default,\n  `403` with `sampleKind: \"Rounding\"`, `10407` for L'Ecuyer-CMRG), followed by 625 integers\n  for Mersenne-Twister or 6 for L'Ecuyer-CMRG (unsigned seeds of 2^31 or more appear as\n  negative numbers, as in R). Pass it to {@link setRandomSeed} to restore the state.",
-    "ja": ""
+    "ja": "R の `.Random.seed` と同じ整数です。先頭は種類コード (R の既定では `10403`、\n  `sampleKind: \"Rounding\"` の場合は `403`、L'Ecuyer-CMRG では `10407`)。その後に、Mersenne-Twister では 625 個、L'Ecuyer-CMRG では 6 個の整数が続きます (2^31 以上の符号なしの種は、R と同じく負の数として現れます)。状態を復元するには、これを {@link setRandomSeed} に渡します。"
   },
   "getRandomSeed#summary": {
     "hash": "025e16afdc36",
     "en": "Returns a copy of the current generator state, as reading R's `.Random.seed` does.\nEquivalent to R's `.Random.seed`.",
-    "ja": ""
+    "ja": "R で `.Random.seed` を読むのと同じように、現在の生成器の状態のコピーを返します。\nR の `.Random.seed` と同等です。"
   },
   "nextRNGStream#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "nextRNGStream#@param state": {
     "hash": "958b27a4f1eb",
     "en": "A 7-integer state as returned by {@link getRandomSeed} after\n  `RNGkind({ kind: \"L'Ecuyer-CMRG\" })`, or copied from R's `.Random.seed`.",
-    "ja": ""
+    "ja": "{@link getRandomSeed} が `RNGkind({ kind: \"L'Ecuyer-CMRG\" })` の後に返した、7 個の整数からなる状態、\n  または R の `.Random.seed` からコピーした状態。"
   },
   "nextRNGStream#@returns": {
     "hash": "5e718db7bd8a",
     "en": "A new state of the same form (the first element, the kind code, is unchanged).\n  Pass it to {@link setRandomSeed} to draw from that stream.",
-    "ja": ""
+    "ja": "同じ形式の新しい状態 (先頭の要素である種類コードは変わりません)。\n  そのストリームから乱数を生成するには、これを {@link setRandomSeed} に渡します。"
   },
   "nextRNGStream#@throws": {
     "hash": "b822db58e820",
     "en": "RangeError if `state` is not a valid L'Ecuyer-CMRG state.",
-    "ja": ""
+    "ja": "`state` が有効な L'Ecuyer-CMRG の状態でない場合は RangeError を投げます。"
   },
   "nextRNGStream#summary": {
     "hash": "d7a911154bbc",
     "en": "The start of the next stream of L'Ecuyer-CMRG: the state advanced by 2^127 steps.\nEquivalent to R's `parallel::nextRNGStream()`.\n\nStreams started this way do not overlap for any practical length, so each parallel task\n(a worker, or one replicate of a simulation) can be given its own stream, reproducibly.\nWithin a stream, {@link nextRNGSubStream} gives substreams of 2^76 steps.",
-    "ja": ""
+    "ja": "L'Ecuyer-CMRG の次のストリームの開始状態です。状態を 2^127 ステップ進めたものです。\nR の `parallel::nextRNGStream()` と同等です。\n\nこの方法で始めたストリームは、実用上どれだけ長く使っても重なりません。そのため、並列処理の各タスク\n(ワーカー、またはシミュレーションの 1 回の反復) に、再現できる形で固有のストリームを割り当てられます。\nストリームの中では、{@link nextRNGSubStream} で 2^76 ステップのサブストリームが得られます。"
   },
   "nextRNGSubStream#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "nextRNGSubStream#@param state": {
     "hash": "9bf8ae7b2921",
     "en": "A 7-integer state, as for {@link nextRNGStream}.",
-    "ja": ""
+    "ja": "{@link nextRNGStream} と同じ、7 個の整数からなる状態。"
   },
   "nextRNGSubStream#@returns": {
     "hash": "da22b25c8d3b",
     "en": "A new state of the same form.",
-    "ja": ""
+    "ja": "同じ形式の新しい状態。"
   },
   "nextRNGSubStream#@throws": {
     "hash": "b822db58e820",
     "en": "RangeError if `state` is not a valid L'Ecuyer-CMRG state.",
-    "ja": ""
+    "ja": "`state` が有効な L'Ecuyer-CMRG の状態でない場合は RangeError を投げます。"
   },
   "nextRNGSubStream#summary": {
     "hash": "8d78ed476711",
     "en": "The start of the next substream of L'Ecuyer-CMRG: the state advanced by 2^76 steps.\nEquivalent to R's `parallel::nextRNGSubStream()`.",
-    "ja": ""
+    "ja": "L'Ecuyer-CMRG の次のサブストリームの開始状態です。状態を 2^76 ステップ進めたものです。\nR の `parallel::nextRNGSubStream()` と同等です。"
   },
   "r2dtable#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "r2dtable#@param c": {
     "hash": "5c2bfd2ecfd4",
     "en": "Column totals (non-negative integers, at least two), with the same sum as `r`.",
-    "ja": ""
+    "ja": "列和 (非負の整数で、2 個以上)。総和が `r` と同じである必要があります。"
   },
   "r2dtable#@param n": {
     "hash": "f18ad5758afa",
     "en": "Number of tables (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する表の個数 (小数は R と同じく切り捨てられます)。"
   },
   "r2dtable#@param r": {
     "hash": "862e25a3a5aa",
     "en": "Row totals (non-negative integers, at least two).",
-    "ja": ""
+    "ja": "行和 (非負の整数で、2 個以上)。"
   },
   "r2dtable#@returns": {
     "hash": "2182a9370969",
     "en": "An array of `n` tables, each `r.length` rows of `c.length` counts.",
-    "ja": ""
+    "ja": "`n` 個の表からなる配列。各表は、`c.length` 列の度数からなる `r.length` 行です。"
   },
   "r2dtable#@throws": {
     "hash": "bd82d2f18246",
     "en": "RangeError for invalid arguments or totals that differ, and (when n >= 1) for a grand total above 2^24\n  (16777216; R allows up to 2147483647), as the table of log factorials has total + 1 entries.",
-    "ja": ""
+    "ja": "不正な引数の場合、または行和と列和の総和が一致しない場合に RangeError を投げます。また、(n が 1 以上のとき) 総和が 2^24\n  (16777216。R は 2147483647 まで許します) を超える場合にも投げます。対数階乗の表が、総和 + 1 個の要素を持つためです。"
   },
   "r2dtable#summary": {
     "hash": "b3338d6047a0",
     "en": "Random two-way tables with given row and column totals. Equivalent to R's `r2dtable()`.\n\nUses Patefield's (1981) algorithm and consumes the same uniforms as R, so after `setSeed` the tables are R's.\nEach table is returned as an array of rows (R returns a list of matrices).",
-    "ja": ""
+    "ja": "行和と列和を与えた 2 元分割表の乱数。R の `r2dtable()` と同等です。\n\nPatefield (1981) のアルゴリズムを使い、R と同じ一様乱数を消費するので、`setSeed` の後では表も R と同じになります。\n各表は行の配列として返されます (R は行列のリストを返します)。"
   },
   "rarcsine#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rarcsine#summary": {
     "hash": "14c7f9f7c33c",
     "en": "Random numbers from the arcsine distribution on (a, b), by inversion: `qarcsine(runif(n), a, b)`.\nNot an R function. The arcsine distribution is neither in base R nor in extraDistr.",
-    "ja": ""
+    "ja": "(a, b) 上の逆正弦分布の乱数を、逆関数法で生成します: `qarcsine(runif(n), a, b)`。\nR の関数ではありません。逆正弦分布は、R の base パッケージにも extraDistr パッケージにもありません。"
   },
   "rbeta#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rbeta#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rbeta#@param shape1": {
     "hash": "5e47e68bb258",
     "en": "First shape parameter.",
-    "ja": ""
+    "ja": "第 1 の形状パラメータ。"
   },
   "rbeta#@param shape2": {
     "hash": "2b8b21be5408",
     "en": "Second shape parameter.",
-    "ja": ""
+    "ja": "第 2 の形状パラメータ。"
   },
   "rbeta#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rbeta#summary": {
     "hash": "cc3ce236e93c",
     "en": "Random numbers from the beta distribution. Equivalent to R's `rbeta()`.",
-    "ja": ""
+    "ja": "ベータ分布の乱数。R の `rbeta()` と同等です。"
   },
   "rbeta.options.ncp#summary": {
     "hash": "61a3e2ad5cf7",
     "en": "Non-centrality parameter. If omitted, the central distribution is used.",
-    "ja": ""
+    "ja": "非心度。省略した場合は中心分布が使われます。"
   },
   "rbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rbinom#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rbinom#@param prob": {
     "hash": "a9df36648664",
     "en": "Probability of success in each trial.",
-    "ja": ""
+    "ja": "各試行での成功確率。"
   },
   "rbinom#@param size": {
     "hash": "ef4bc90d5ace",
     "en": "Number of trials.",
-    "ja": ""
+    "ja": "試行回数。"
   },
   "rbinom#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rbinom#summary": {
     "hash": "db17c57bc575",
     "en": "Random numbers from the binomial distribution. Equivalent to R's `rbinom()`.\n\nFor `size * min(prob, 1 - prob) >= 30` (algorithm BTPE) the stream can depart from R's: R's final acceptance test has\ntwo Stirling corrections with the wrong sign, and here the signs are right (`setSeed(439); rbinom(1, 10000, 0.5)` is\n4879, R 5023). Below 30 (inversion) the stream is R's.",
-    "ja": ""
+    "ja": "二項分布の乱数。R の `rbinom()` と同等です。\n\n`size * min(prob, 1 - prob) >= 30` の場合 (アルゴリズム BTPE)、ストリームは R と異なることがあります。R の最終的な採択判定には符号の誤った Stirling 補正が 2 つ含まれていますが、ここでは符号が正しく設定されています (`setSeed(439); rbinom(1, 10000, 0.5)` の結果は\n4879 で、R では 5023 です)。30 未満 (逆関数法) の場合は、ストリームは R と同じです。"
   },
   "rcauchy#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rcauchy#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rcauchy#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rcauchy#summary": {
     "hash": "a300ff4436da",
     "en": "Random numbers from the Cauchy distribution. Equivalent to R's `rcauchy()`.",
-    "ja": ""
+    "ja": "コーシー分布の乱数。R の `rcauchy()` と同等です。"
   },
   "rcauchy.options.location#summary": {
     "hash": "7a9e7b80d4a9",
     "en": "Location. Default `0`.",
-    "ja": ""
+    "ja": "位置パラメータ。既定は `0`。"
   },
   "rcauchy.options.scale#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
+    "ja": "尺度パラメータ。既定は `1`。"
   },
   "rchisq#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rchisq#@param df": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度。"
   },
   "rchisq#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rchisq#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rchisq#summary": {
     "hash": "2200374347d2",
     "en": "Random numbers from the chi-squared distribution. Equivalent to R's `rchisq()`.",
-    "ja": ""
+    "ja": "カイ二乗分布の乱数。R の `rchisq()` と同等です。"
   },
   "rchisq.options.ncp#summary": {
     "hash": "61a3e2ad5cf7",
     "en": "Non-centrality parameter. If omitted, the central distribution is used.",
-    "ja": ""
+    "ja": "非心度。省略した場合は中心分布が使われます。"
   },
   "rexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rexp#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rexp#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rexp#summary": {
     "hash": "609692d68f46",
     "en": "Random numbers from the exponential distribution. Equivalent to R's `rexp()`.",
-    "ja": ""
+    "ja": "指数分布の乱数。R の `rexp()` と同等です。"
   },
   "rexp.options.rate#summary": {
     "hash": "25a75156b551",
     "en": "Rate. Default `1`.",
-    "ja": ""
+    "ja": "率。既定は `1`。"
   },
   "rf#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rf#@param df1": {
     "hash": "f60d7db3a4ef",
     "en": "Numerator degrees of freedom.",
-    "ja": ""
+    "ja": "分子の自由度。"
   },
   "rf#@param df2": {
     "hash": "bb02427a9e71",
     "en": "Denominator degrees of freedom.",
-    "ja": ""
+    "ja": "分母の自由度。"
   },
   "rf#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rf#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rf#summary": {
     "hash": "3ae82931bf00",
     "en": "Random numbers from the F distribution. Equivalent to R's `rf()`.",
-    "ja": ""
+    "ja": "F 分布の乱数。R の `rf()` と同等です。"
   },
   "rf.options.ncp#summary": {
     "hash": "61a3e2ad5cf7",
     "en": "Non-centrality parameter. If omitted, the central distribution is used.",
-    "ja": ""
+    "ja": "非心度。省略した場合は中心分布が使われます。"
   },
   "rgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rgamma#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rgamma#@param shape": {
     "hash": "a5851ea116dc",
     "en": "Shape parameter.",
-    "ja": ""
+    "ja": "形状パラメータ。"
   },
   "rgamma#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rgamma#summary": {
     "hash": "ca9c52adfc65",
     "en": "Random numbers from the gamma distribution. Equivalent to R's `rgamma()`.",
-    "ja": ""
+    "ja": "ガンマ分布の乱数。R の `rgamma()` と同等です。"
   },
   "rgamma.options.rate#summary": {
     "hash": "0f28223c1c09",
     "en": "Rate. Default `1`. Give either `rate` or `scale`.",
-    "ja": ""
+    "ja": "率。既定は `1`。`rate` か `scale` のどちらか一方を指定します。"
   },
   "rgamma.options.scale#summary": {
     "hash": "0c19aa9f4116",
     "en": "Scale (`1 / rate`). Default `1`. Giving both is an error unless `scale = 1 / rate`.",
-    "ja": ""
+    "ja": "尺度 (`1 / rate`)。既定は `1`。両方を指定するとエラーになります。ただし `scale = 1 / rate` の場合は除きます。"
   },
   "rgeom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rgeom#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rgeom#@param prob": {
     "hash": "e2776037f539",
     "en": "Probability of success in each trial, in (0, 1].",
-    "ja": ""
+    "ja": "各試行での成功確率 ((0, 1] の範囲)。"
   },
   "rgeom#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rgeom#summary": {
     "hash": "211bd112e7c6",
     "en": "Random numbers from the geometric distribution (number of failures before the first\nsuccess). Equivalent to R's `rgeom()`.",
-    "ja": ""
+    "ja": "幾何分布の乱数 (最初の\n成功までの失敗の回数)。R の `rgeom()` と同等です。"
   },
   "rhyper#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rhyper#@param k": {
     "hash": "a4fe7a480171",
     "en": "Number of balls drawn from the urn.",
-    "ja": ""
+    "ja": "つぼから引く玉の数。"
   },
   "rhyper#@param m": {
     "hash": "6b6da3e305a3",
     "en": "Number of white balls in the urn.",
-    "ja": ""
+    "ja": "つぼの中の白玉の数。"
   },
   "rhyper#@param n": {
     "hash": "514a5b5cddb2",
     "en": "Number of black balls in the urn.",
-    "ja": ""
+    "ja": "つぼの中の黒玉の数。"
   },
   "rhyper#@param nn": {
     "hash": "6f0ab4488b94",
     "en": "Number of values to generate.",
-    "ja": ""
+    "ja": "生成する値の個数。"
   },
   "rhyper#@returns": {
     "hash": "b71068401c08",
     "en": "An array of `nn` values (the number of white balls drawn); `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`nn` 個の値からなる配列 (引いた白玉の数)。不正なパラメータの場合は `NaN`。"
   },
   "rhyper#summary": {
     "hash": "e7c1511a2ed0",
     "en": "Random numbers from the hypergeometric distribution. Equivalent to R's `rhyper()`.",
-    "ja": ""
+    "ja": "超幾何分布の乱数。R の `rhyper()` と同等です。"
   },
   "rinvgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rinvgamma#@param alpha": {
     "hash": "e24919316bd4",
     "en": "Shape.",
-    "ja": ""
+    "ja": "形状パラメータ。"
   },
   "rinvgamma#@param n": {
     "hash": "6f0ab4488b94",
     "en": "Number of values to generate.",
-    "ja": ""
+    "ja": "生成する値の個数。"
   },
   "rinvgamma#summary": {
     "hash": "46e332471d51",
     "en": "Random numbers from the inverse gamma distribution. Equivalent to `extraDistr::rinvgamma(n, alpha, beta = 1)` in R.",
-    "ja": ""
+    "ja": "逆ガンマ分布の乱数。R の `extraDistr::rinvgamma(n, alpha, beta = 1)` と同等です。"
   },
   "rinvgamma.options.beta#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
+    "ja": "尺度パラメータ。既定は `1`。"
   },
   "rkumar#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rkumar#summary": {
     "hash": "f401f426cc7a",
     "en": "Random numbers from the Kumaraswamy distribution. Equivalent to `extraDistr::rkumar(n, a, b)` in R.",
-    "ja": ""
+    "ja": "クマラスワミ分布の乱数。R の `extraDistr::rkumar(n, a, b)` と同等です。"
   },
   "rlaplace#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rlaplace#summary": {
     "hash": "a1df991662dc",
     "en": "Random numbers from the Laplace distribution. Equivalent to `extraDistr::rlaplace(n, mu = 0, sigma = 1)` in R.",
-    "ja": ""
+    "ja": "ラプラス分布の乱数。R の `extraDistr::rlaplace(n, mu = 0, sigma = 1)` と同等です。"
   },
   "rlnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rlnorm#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rlnorm#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rlnorm#summary": {
     "hash": "a077fd676b8c",
     "en": "Random numbers from the log-normal distribution. Equivalent to R's `rlnorm()`.",
-    "ja": ""
+    "ja": "対数正規分布の乱数。R の `rlnorm()` と同等です。"
   },
   "rlnorm.options.meanlog#summary": {
     "hash": "36c6c4bfaf79",
     "en": "Mean on the log scale. Default `0`.",
-    "ja": ""
+    "ja": "対数スケールでの平均。既定は `0`。"
   },
   "rlnorm.options.sdlog#summary": {
     "hash": "f5823ab62b91",
     "en": "Standard deviation on the log scale. Default `1`.",
-    "ja": ""
+    "ja": "対数スケールでの標準偏差。既定は `1`。"
   },
   "rlogis#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rlogis#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rlogis#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rlogis#summary": {
     "hash": "9eea05afd557",
     "en": "Random numbers from the logistic distribution. Equivalent to R's `rlogis()`.",
-    "ja": ""
+    "ja": "ロジスティック分布の乱数。R の `rlogis()` と同等です。"
   },
   "rlogis.options.location#summary": {
     "hash": "7a9e7b80d4a9",
     "en": "Location. Default `0`.",
-    "ja": ""
+    "ja": "位置パラメータ。既定は `0`。"
   },
   "rlogis.options.scale#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
+    "ja": "尺度パラメータ。既定は `1`。"
   },
   "rmultinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rmultinom#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rmultinom#@param prob": {
     "hash": "99338ae50ecd",
     "en": "Category weights of length K. They need not sum to 1 (they are divided by their sum).",
-    "ja": ""
+    "ja": "長さ K のカテゴリの重み。和が 1 である必要はありません (総和で割られます)。"
   },
   "rmultinom#@param size": {
     "hash": "5cf0e4a9df64",
     "en": "Number of objects distributed into the K categories in each draw (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "各抽出で K 個のカテゴリに振り分ける対象の数 (小数は R と同じく切り捨てられます)。"
   },
   "rmultinom#@returns": {
     "hash": "009fd22074b2",
     "en": "An array of `n` arrays, each of length K and summing to the truncated `size`.",
-    "ja": ""
+    "ja": "`n` 個の配列からなる配列。各配列は長さ K で、その総和は切り捨てた `size` に一致します。"
   },
   "rmultinom#@throws": {
     "hash": "18df96445b3a",
     "en": "RangeError if the truncated `size` is negative or 2^31 or more, or `prob` has a negative or\n  non-finite value, or no positive value.",
-    "ja": ""
+    "ja": "切り捨てた `size` が負か 2^31 以上の場合、または `prob` に負の値か有限でない値が含まれる場合、\n  あるいは正の値がない場合に RangeError を投げます。"
   },
   "rmultinom#summary": {
     "hash": "3677f8259a55",
     "en": "Random vectors from the multinomial distribution. Equivalent to R's `rmultinom()`.\n\nUnlike R, which returns a K x n matrix with one draw per column, this returns `n` rows\nwith one draw per row (the transpose of R's result). The random stream is the same as R's.",
-    "ja": ""
+    "ja": "多項分布の乱数ベクトル。R の `rmultinom()` と同等です。\n\nR は、各列に 1 回ずつ抽出した K x n の行列を返しますが、ここでは\n各行に 1 回ずつ抽出した `n` 行を返します (R の結果の転置です)。乱数のストリームは R と同じです。"
   },
   "rnbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rnbinom#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rnbinom#@param size": {
     "hash": "be1d6209acd7",
     "en": "Target number of successes (dispersion parameter; need not be an integer).",
-    "ja": ""
+    "ja": "目標の成功回数 (分散パラメータ。整数である必要はありません)。"
   },
   "rnbinom#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rnbinom#@throws": {
     "hash": "b22045ca93d1",
     "en": "TypeError unless exactly one of `prob` and `mu` is given.",
-    "ja": ""
+    "ja": "`prob` と `mu` のうちちょうど一方が指定されていない場合は TypeError を投げます。"
   },
   "rnbinom#summary": {
     "hash": "3442eb01519a",
     "en": "Random numbers from the negative binomial distribution. Equivalent to R's `rnbinom()`.",
-    "ja": ""
+    "ja": "負の二項分布の乱数。R の `rnbinom()` と同等です。"
   },
   "rnbinom.options.mu#summary": {
     "hash": "70598cec18b9",
     "en": "Mean (alternative parametrization). Give exactly one of `prob` and `mu`.",
-    "ja": ""
+    "ja": "平均 (別のパラメータ化)。`prob` と `mu` のどちらか一方のみを指定します。"
   },
   "rnbinom.options.prob#summary": {
     "hash": "45935ac67a23",
     "en": "Probability of success in each trial. Give exactly one of `prob` and `mu`.",
-    "ja": ""
+    "ja": "各試行での成功確率。`prob` と `mu` のどちらか一方のみを指定します。"
   },
   "rnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rnorm#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rnorm#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rnorm#summary": {
     "hash": "a00962a63cd2",
     "en": "Random numbers from the normal distribution. Equivalent to R's `rnorm()`.\n\nUses inversion (R's default `\"Inversion\"` normal kind), so the output matches R for the same seed.",
-    "ja": ""
+    "ja": "正規分布の乱数。R の `rnorm()` と同等です。\n\n逆関数法を使います (R の既定の正規乱数の種類 `\"Inversion\"`)。そのため、同じ種であれば出力は R と一致します。"
   },
   "rnorm.options.mean#summary": {
     "hash": "0de81da293b0",
     "en": "Mean. Default `0`.",
-    "ja": ""
+    "ja": "平均。既定は `0`。"
   },
   "rnorm.options.sd#summary": {
     "hash": "bc948bd4118e",
     "en": "Standard deviation. Default `1`.",
-    "ja": ""
+    "ja": "標準偏差。既定は `1`。"
   },
   "rpareto#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rpareto#summary": {
     "hash": "20fd0c0adef2",
     "en": "Random numbers from the Pareto distribution. Equivalent to `extraDistr::rpareto(n, a = 1, b = 1)` in R.",
-    "ja": ""
+    "ja": "パレート分布の乱数。R の `extraDistr::rpareto(n, a = 1, b = 1)` と同等です。"
   },
   "rpois#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rpois#@param lambda": {
     "hash": "dbd118650706",
     "en": "Mean.",
-    "ja": ""
+    "ja": "平均。"
   },
   "rpois#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rpois#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rpois#summary": {
     "hash": "98e09bf83094",
     "en": "Random numbers from the Poisson distribution. Equivalent to R's `rpois()`.",
-    "ja": ""
+    "ja": "ポアソン分布の乱数。R の `rpois()` と同等です。"
   },
   "rsignrank#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rsignrank#@param n": {
     "hash": "4395328224c6",
     "en": "Number of observations in the sample.",
-    "ja": ""
+    "ja": "標本の観測値の数。"
   },
   "rsignrank#@param nn": {
     "hash": "6f0ab4488b94",
     "en": "Number of values to generate.",
-    "ja": ""
+    "ja": "生成する値の個数。"
   },
   "rsignrank#@returns": {
     "hash": "17b714943efe",
     "en": "An array of `nn` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`nn` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rsignrank#summary": {
     "hash": "e7745ab441ee",
     "en": "Random numbers from the distribution of the Wilcoxon signed rank statistic.\nEquivalent to R's `rsignrank()`.",
-    "ja": ""
+    "ja": "Wilcoxon の符号付き順位統計量の分布からの乱数。\nR の `rsignrank()` と同等です。"
   },
   "rt#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rt#@param df": {
     "hash": "33fb6f5f54cf",
     "en": "Degrees of freedom (may be `Infinity`).",
-    "ja": ""
+    "ja": "自由度 (`Infinity` も指定できます)。"
   },
   "rt#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rt#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rt#summary": {
     "hash": "11ed87cc501c",
     "en": "Random numbers from Student's t distribution. Equivalent to R's `rt()`.",
-    "ja": ""
+    "ja": "Student の t 分布の乱数。R の `rt()` と同等です。"
   },
   "rt.options.ncp#summary": {
     "hash": "61a3e2ad5cf7",
     "en": "Non-centrality parameter. If omitted, the central distribution is used.",
-    "ja": ""
+    "ja": "非心度。省略した場合は中心分布が使われます。"
   },
   "rtriang#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rtriang#summary": {
     "hash": "42fa89302cb8",
     "en": "Random numbers from the triangular distribution.\nEquivalent to `extraDistr::rtriang(n, a = -1, b = 1, c = (a + b)/2)` in R.",
-    "ja": ""
+    "ja": "三角分布の乱数。\nR の `extraDistr::rtriang(n, a = -1, b = 1, c = (a + b)/2)` と同等です。"
   },
   "runif#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "runif#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "runif#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "runif#summary": {
     "hash": "b226bd8d4b33",
     "en": "Random numbers from the uniform distribution. Equivalent to R's `runif()`.",
-    "ja": ""
+    "ja": "一様分布の乱数。R の `runif()` と同等です。"
   },
   "runif.options.max#summary": {
     "hash": "b36e5e77c658",
     "en": "Upper limit. Default `1`.",
-    "ja": ""
+    "ja": "上限。既定は `1`。"
   },
   "runif.options.min#summary": {
     "hash": "ddc4f1cd66a1",
     "en": "Lower limit. Default `0`.",
-    "ja": ""
+    "ja": "下限。既定は `0`。"
   },
   "rweibull#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rweibull#@param n": {
     "hash": "be791cca1655",
     "en": "Number of values to generate (fractions are truncated, as in R).",
-    "ja": ""
+    "ja": "生成する値の個数 (小数は R と同じく切り捨てられます)。"
   },
   "rweibull#@param shape": {
     "hash": "5a87ce5e3d25",
     "en": "Shape parameter (required, as in R).",
-    "ja": ""
+    "ja": "形状パラメータ (必須。R と同じく)。"
   },
   "rweibull#@returns": {
     "hash": "9a598c2b506c",
     "en": "An array of `n` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`n` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rweibull#summary": {
     "hash": "5bc8b246653e",
     "en": "Random numbers from the Weibull distribution. Equivalent to R's `rweibull()`.",
-    "ja": ""
+    "ja": "ワイブル分布の乱数。R の `rweibull()` と同等です。"
   },
   "rweibull.options.scale#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
+    "ja": "尺度パラメータ。既定は `1`。"
   },
   "rwilcox#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rwilcox#@param m": {
     "hash": "3d9af09a309c",
     "en": "Number of observations in the first sample.",
-    "ja": ""
+    "ja": "第 1 標本の観測値の数。"
   },
   "rwilcox#@param n": {
     "hash": "d1405ebfc0d1",
     "en": "Number of observations in the second sample.",
-    "ja": ""
+    "ja": "第 2 標本の観測値の数。"
   },
   "rwilcox#@param nn": {
     "hash": "6f0ab4488b94",
     "en": "Number of values to generate.",
-    "ja": ""
+    "ja": "生成する値の個数。"
   },
   "rwilcox#@returns": {
     "hash": "17b714943efe",
     "en": "An array of `nn` values; `NaN` for invalid parameters.",
-    "ja": ""
+    "ja": "`nn` 個の値からなる配列。不正なパラメータの場合は `NaN`。"
   },
   "rwilcox#@throws": {
     "hash": "d5e81b29847c",
     "en": "RangeError if `m + n` exceeds 2147483647 or `n` exceeds 2^24 (one uniform is drawn per value of the second\nsample), before drawing.",
-    "ja": ""
+    "ja": "`m + n` が 2147483647 を超える場合、または `n` が 2^24 を超える場合は、抽出する前に RangeError を投げます (第 2 標本の\n  値 1 つごとに一様乱数を 1 つ引くため)。"
   },
   "rwilcox#summary": {
     "hash": "78f915f1eb71",
     "en": "Random numbers from the distribution of the Wilcoxon rank sum statistic.\nEquivalent to R's `rwilcox()`.",
-    "ja": ""
+    "ja": "Wilcoxon の順位和統計量の分布からの乱数。\nR の `rwilcox()` と同等です。"
   },
   "sample#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "sample#@param options": {
     "hash": "ec9411810a27",
     "en": "See {@link SampleOptions}.",
-    "ja": ""
+    "ja": "{@link SampleOptions} を参照してください。"
   },
   "sample#@param x": {
     "hash": "9c375a5f590a",
     "en": "Candidates.",
-    "ja": ""
+    "ja": "候補。"
   },
   "sample#@returns": {
     "hash": "32e39afc0054",
     "en": "The drawn elements of `x`.",
-    "ja": ""
+    "ja": "`x` の要素のうち抽出されたもの。"
   },
   "sample#summary": {
     "hash": "d469a35720f8",
     "en": "Random sample of the elements of an array. Equivalent to R's `sample()`.\n\nAlways samples from the elements of `x`. R's special case where a single number `x`\nmeans `1:x` is not supported; use {@link sampleInt} for that. Uses the same random\nnumbers as R, so results match R for the same seed.",
-    "ja": ""
+    "ja": "配列の要素からの無作為抽出。R の `sample()` と同等です。\n\n常に `x` の要素から抽出します。R の特別な場合で、単一の数 `x` を\n`1:x` とみなす場合には対応していません。その場合は {@link sampleInt} を使ってください。R と同じ乱数を使うため、\n同じ種であれば結果は R と一致します。"
   },
   "sampleInt#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "sampleInt#@param n": {
     "hash": "b47f3632008d",
     "en": "Number of candidates: a non-negative number up to 4.5e15 (2^52, as R); below 2^31 with `prob`, and for\n  sampling without replacement more than n / 2 of them.",
-    "ja": ""
+    "ja": "候補の数: 0 以上 4.5e15 (2^52、R と同じ) 以下の数。2^31 未満である必要があるのは、`prob` を指定する場合と、\n  非復元抽出で半分 (n / 2) より多くを抽出する場合です。"
   },
   "sampleInt#@param options": {
     "hash": "ec9411810a27",
     "en": "See {@link SampleOptions}.",
-    "ja": ""
+    "ja": "{@link SampleOptions} を参照してください。"
   },
   "sampleInt#@returns": {
     "hash": "4be865781e0b",
     "en": "The drawn integers, each in `0..n-1`.",
-    "ja": ""
+    "ja": "抽出された整数。それぞれ `0..n-1` の範囲にあります。"
   },
   "sampleInt#summary": {
     "hash": "39e7533a907f",
     "en": "Random sample of integers from `0..n-1`. Equivalent to R's `sample.int()`. Unlike R, it is 0-based.\n\nThe result is R's `sample.int(n, ...)` minus 1, so it can be used directly as array\nindices. It consumes the same random numbers as R (default `sample.kind = \"Rejection\"`).",
-    "ja": ""
+    "ja": "`0..n-1` の整数からの無作為抽出。R の `sample.int()` と同等です。ただし、R と違って 0 始まりです。\n\n結果は R の `sample.int(n, ...)` から 1 を引いたものなので、配列の添字としてそのまま使えます。R と同じ乱数を消費します (既定は `sample.kind = \"Rejection\"`)。"
   },
   "setRandomSeed#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "setRandomSeed#@param state": {
     "hash": "5bbd3f831131",
     "en": "The integers returned by {@link getRandomSeed}, or copied from R's `.Random.seed`.",
-    "ja": ""
+    "ja": "{@link getRandomSeed} が返す整数、または R の `.Random.seed` からコピーした整数。"
   },
   "setRandomSeed#@throws": {
     "hash": "b95735f6b413",
     "en": "RangeError for a kind code other than those of Mersenne-Twister or L'Ecuyer-CMRG with\n  Inversion and Rejection or Rounding (`10403`, `403`, `10407`, `407`), a state of the wrong\n  length, or an invalid L'Ecuyer-CMRG state (R reseeds from the clock in these cases).",
-    "ja": ""
+    "ja": "種類コードが、Inversion と Rejection または Rounding を使う Mersenne-Twister または L'Ecuyer-CMRG のコード (`10403`、`403`、`10407`、`407`) 以外の場合、\n  状態の長さが誤っている場合、または不正な L'Ecuyer-CMRG の状態の場合は RangeError を投げます (R では、これらの場合に時刻から種を作り直します)。"
   },
   "setRandomSeed#summary": {
     "hash": "ed6d7b457ab5",
     "en": "Restores a generator state, including its kinds, as assigning R's `.Random.seed` does.\nEquivalent to R's `.Random.seed`.",
-    "ja": ""
+    "ja": "R で `.Random.seed` に代入するのと同じように、種類を含む生成器の状態を復元します。\nR の `.Random.seed` と同等です。"
   },
   "setSeed#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "setSeed#@param seed": {
     "hash": "a48efd72d499",
     "en": "A 32-bit integer. Fractions are truncated toward zero.",
-    "ja": ""
+    "ja": "32 ビットの整数。小数は 0 に向かって切り捨てられます。"
   },
   "setSeed#@throws": {
     "hash": "2dab197cfe10",
     "en": "RangeError if `seed` is not finite or does not fit in a 32-bit integer.",
-    "ja": ""
+    "ja": "`seed` が有限でない場合、または 32 ビット整数に収まらない場合は RangeError を投げます。"
   },
   "setSeed#summary": {
     "hash": "36d803fbd83b",
     "en": "Seeds the random number generator. Equivalent to R's `set.seed()`.\n\nSeeds the current generator, R's default `RNGkind(\"Mersenne-Twister\", \"Inversion\", \"Rejection\")`\nunless {@link RNGkind} chose another, so every `r*` function and `sample`/`sampleInt` produce the\nsame numbers as in R after the same seed. R's `set.seed(seed, kind, sample.kind = ...)` is\n`RNGkind({ kind, sampleKind })` followed by `setSeed(seed)` (R itself does the same). As in R\nthere is a single global stream shared by all functions; if no seed is set, one is chosen from\nthe clock or `crypto.getRandomValues`.",
-    "ja": ""
+    "ja": "乱数生成器に種を与えます。R の `set.seed()` と同等です。\n\n現在の生成器に種を与えます。{@link RNGkind} で別の種類が選ばれていない限り、R の既定である `RNGkind(\"Mersenne-Twister\", \"Inversion\", \"Rejection\")` になります。そのため、`r*` の各関数と `sample`/`sampleInt` は、同じ種のあとで R と同じ数値を生成します。R の `set.seed(seed, kind, sample.kind = ...)` は、`RNGkind({ kind, sampleKind })` を行ってから `setSeed(seed)` を呼ぶことに当たります (R 自身も同じことをしています)。R と同じく、すべての関数で共有される単一の大域的なストリームがあります。種が設定されていない場合は、時刻または `crypto.getRandomValues` から種が選ばれます。"
   }
 }

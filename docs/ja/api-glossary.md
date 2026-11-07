@@ -317,3 +317,44 @@
 | distinct (values, times) | 相異なる | |
 | machine epsilon | 機械イプシロン | |
 | Newton-Raphson | Newton-Raphson 法 | 人名は英字 |
+| random number generator | 乱数生成器 | `docs/ja` で使用 |
+| uniform random number | 一様乱数 | `docs/ja` で使用 |
+| stream (of random numbers) | ストリーム | `docs/ja` で使用。並列処理で独立に使う乱数列 |
+| substream | サブストリーム | |
+| state (of a generator) | 状態 | `docs/ja` で「乱数生成器の状態」として使用 |
+| kind (of a generator) | 種類 | 引数 `kind`、`sampleKind` は英字 |
+| kind code | 種類コード | `.Random.seed` の先頭の整数 (新規) |
+| Mersenne-Twister | Mersenne-Twister | 英字のまま (人名由来) |
+| L'Ecuyer-CMRG | L'Ecuyer-CMRG | 英字のまま (人名由来) |
+| rejection (sampling) | 棄却法 | 標準的な訳語 (新規)。値 `"Rejection"` は英字 |
+| inversion (method) | 逆関数法 | `docs/ja` で使用 |
+| sampling with replacement | 復元抽出 | `docs/ja` に該当例なし (新規) |
+| sampling without replacement | 非復元抽出 | `docs/ja` に該当例なし (新規) |
+| random sample (of elements) | 無作為抽出 | `docs/ja` で使用 |
+| candidates (for sampling) | 候補 | (新規) |
+| permutation | 順列 | `docs/ja` で使用 |
+| urn | つぼ | `docs/ja` で使用。ひらがな |
+| white ball, black ball | 白玉、黒玉 | `docs/ja` で使用 (超幾何分布の説明) |
+| multinomial distribution | 多項分布 | `docs/ja` で使用 |
+| Wilcoxon signed rank statistic | Wilcoxon の符号付き順位統計量 | 人名は英字。`docs/ja` で使用 |
+| Wilcoxon rank sum statistic | Wilcoxon の順位和統計量 | 人名は英字。`docs/ja` で使用 |
+| truncated (toward zero) | 切り捨て | `docs/ja` で使用 (「R と同じく切り捨て」) |
+| two-way table | 2 元分割表 | `docs/ja` で使用 |
+| row totals, column totals | 行和、列和 | `docs/ja` で使用 |
+| grand total | 総和 | |
+| dispersion parameter | 分散パラメータ | `docs/ja` で使用。分散 (variance) と区別する |
+| location (parameter) | 位置パラメータ | `docs/ja` で使用 |
+| rate (parameter) | 率 | 引数名 `rate` は英字。`docs/ja` で使用 |
+| Student's t distribution | Student の t 分布 | `docs/ja` で使用。人名は英字 |
+| arcsine distribution | 逆正弦分布 | `docs/ja` で使用 |
+| triangular distribution | 三角分布 | `docs/ja` で使用 |
+| geometric distribution | 幾何分布 | `docs/ja` で使用 |
+| inverse gamma distribution | 逆ガンマ分布 | `docs/ja` で使用 |
+| Cauchy distribution | コーシー分布 | `docs/ja` で使用 |
+| Laplace distribution | ラプラス分布 | `docs/ja` で使用 |
+| Pareto distribution | パレート分布 | `docs/ja` で使用 |
+| logistic distribution | ロジスティック分布 | `docs/ja` で使用 |
+| Kumaraswamy distribution | クマラスワミ分布 | `docs/ja` で使用 |
+| Patefield's algorithm | Patefield のアルゴリズム | 人名は英字 |
+| Stirling correction | Stirling 補正 | 人名は英字。`docs/ja` で使用 |
+| clock (seed from the clock) | 時刻 | 種を時刻から作ること (新規) |
