@@ -1,9 +1,4 @@
 {
-  "Anova#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "Anova#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -19,11 +14,6 @@
     "en": "Type II or type III tests of the terms of a linear model. Equivalent to `car::Anova()` in R. As\n`car::Anova(fit, type = 2)` or `type = 3` for an `lm` fit: columns `Sum Sq`, `Df`, `F value`, `Pr(>F)`; rows the terms (type III: `(Intercept)` first when the\nmodel has one) and `Residuals`.\n\nType II tests each term after all the others except the terms that contain it (car's marginality; it does not\ndepend on the contrasts). Type III tests each column set of the model's own matrix after all the other columns, so\nit depends on the contrasts (`contr.sum` is the usual choice).\n\nErrors as car: `residual df = 0`, `residual sum of squares is 0 (within rounding error)`, and for type III `there\nare aliased coefficients in the model`. Type II of a model with only an intercept gives the type III table with a\nwarning.",
     "ja": ""
   },
-  "AnovaOptions#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "AnovaOptions#summary": {
     "hash": "f7e3482c3c4f",
     "en": "Options for {@link Anova}.",
@@ -32,11 +22,6 @@
   "AnovaOptions.type#summary": {
     "hash": "a376d8d910ec",
     "en": "The type of the tests: 2 (default, as car) or 3; `\"II\"` and `\"III\"` are accepted too.",
-    "ja": ""
-  },
-  "AnovaTable#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "AnovaTable#summary": {
@@ -64,19 +49,9 @@
     "en": "R's warnings.",
     "ja": ""
   },
-  "AovEzEffectSize#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "AovEzEffectSize#summary": {
     "hash": "6349f9d15632",
     "en": "An effect size of {@link aovEz}: generalized (`\"ges\"`) or partial (`\"pes\"`) eta squared.",
-    "ja": ""
-  },
-  "AovEzOptions#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "AovEzOptions#summary": {
@@ -124,11 +99,6 @@
     "en": "Within-subjects factors (columns).",
     "ja": ""
   },
-  "AovEzResult#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "AovEzResult#summary": {
     "hash": "45d1351e1c7d",
     "en": "Result of {@link aovEz}.",
@@ -164,11 +134,6 @@
     "en": "The within-subject factors (columns), as given.",
     "ja": ""
   },
-  "AovEzTable#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "AovEzTable#summary": {
     "hash": "b6c32cca0ee6",
     "en": "A table of {@link aovEz}.",
@@ -187,11 +152,6 @@
   "AovEzTable.table#summary": {
     "hash": "6df5fef84610",
     "en": "One array per row, one value per column.",
-    "ja": ""
-  },
-  "AovStrataFit#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "AovStrataFit#summary": {
@@ -224,11 +184,6 @@
     "en": "R's warnings, such as `Error() model is singular`.",
     "ja": ""
   },
-  "AovStrataSummary#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "AovStrataSummary#summary": {
     "hash": "d8a069d1d068",
     "en": "Result of {@link aovSummary} for a fit with error strata.",
@@ -242,11 +197,6 @@
   "AovStrataSummary.warnings#summary": {
     "hash": "7483a848413d",
     "en": "The fit's warnings (such as \"Error() model is singular\"), each once; R gives them when fitting.",
-    "ja": ""
-  },
-  "AovStratum#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "AovStratum#summary": {
@@ -274,11 +224,6 @@
     "en": "One array per row; NaN where R prints nothing.",
     "ja": ""
   },
-  "ConfintOptions#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "ConfintOptions#summary": {
     "hash": "85789914993f",
     "en": "Options for {@link confint}.",
@@ -289,19 +234,9 @@
     "en": "Confidence level. Default `0.95`.",
     "ja": ""
   },
-  "ContrastName#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "ContrastName#summary": {
     "hash": "d9dafc5f270d",
     "en": "A contrast of a factor: R's `contr.treatment`, `contr.sum` or `contr.helmert`.",
-    "ja": ""
-  },
-  "LmFormulaOptions#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "LmFormulaOptions#summary": {
@@ -309,34 +244,14 @@
     "en": "Options of {@link lm} with a formula.",
     "ja": ""
   },
-  "LmFormulaOptions.contrasts#summary": {
-    "hash": "b44912094eea",
-    "en": "A contrast per factor (default `\"contr.treatment\"`); a boolean variable takes it too. A name that is not a\nvariable of the formula gives the warning `variable 'B' is absent, its contrast will be ignored`; a numeric\nvariable (the response too) is an error.",
-    "ja": ""
-  },
-  "LmFormulaOptions.levels#summary": {
-    "hash": "e4863b3798a1",
-    "en": "The order of the levels of a factor (`{ A: [\"c\", \"a\", \"b\"] }`), as `factor(x, levels = ...)` in R.",
-    "ja": ""
-  },
   "LmFormulaOptions.weights#summary": {
     "hash": "8d5b9c09257d",
     "en": "Weights: an array parallel to the rows of `data`, or the name of a numeric column.",
     "ja": ""
   },
-  "LmFormulaResult#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "LmFormulaResult#summary": {
     "hash": "9dd13efa2de4",
     "en": "Result of {@link lm} with a formula: the fit of the model matrix, with the formula's terms.",
-    "ja": ""
-  },
-  "LmFormulaResult.adjRSquared#summary": {
-    "hash": "782c3a8ff1bb",
-    "en": "Adjusted R^2; 0 for a model with nothing beyond the intercept, as in R.",
     "ja": ""
   },
   "LmFormulaResult.aov#summary": {
@@ -354,69 +269,9 @@
     "en": "Names of the coefficients (the model matrix's column names).",
     "ja": ""
   },
-  "LmFormulaResult.coefTable#summary": {
-    "hash": "0e80f0031fc3",
-    "en": "The coefficient table of the columns that are not aliased, in their order.",
-    "ja": ""
-  },
-  "LmFormulaResult.coefTable.estimate#summary": {
-    "hash": "f1f615e4279b",
-    "en": "Estimates (R's `Estimate`).",
-    "ja": ""
-  },
-  "LmFormulaResult.coefTable.pValue#summary": {
-    "hash": "d0b6321e1340",
-    "en": "Two-sided p-values (R's `Pr(>|t|)`).",
-    "ja": ""
-  },
-  "LmFormulaResult.coefTable.stdError#summary": {
-    "hash": "4b5b7823947c",
-    "en": "Standard errors (R's `Std. Error`).",
-    "ja": ""
-  },
-  "LmFormulaResult.coefTable.tValue#summary": {
-    "hash": "91836147a0d2",
-    "en": "t statistics (R's `t value`).",
-    "ja": ""
-  },
-  "LmFormulaResult.coefficients#summary": {
-    "hash": "819c384fa4fe",
-    "en": "Coefficients (intercept first); NaN for aliased columns.",
-    "ja": ""
-  },
-  "LmFormulaResult.dfResidual#summary": {
-    "hash": "946c88527b7c",
-    "en": "Residual degrees of freedom, n - rank (n counts the rows of non-zero weight).",
-    "ja": ""
-  },
   "LmFormulaResult.effects#summary": {
     "hash": "524d87c79dd1",
     "en": "The effects Q'y of the (weighted) fit, one per row of non-zero weight.",
-    "ja": ""
-  },
-  "LmFormulaResult.fPValue#summary": {
-    "hash": "c4b60d33de32",
-    "en": "p-value of the overall F test; absent with `fStatistic`.",
-    "ja": ""
-  },
-  "LmFormulaResult.fStatistic#summary": {
-    "hash": "01eb1092a452",
-    "en": "Overall F statistic with its degrees of freedom. Absent (as is `fPValue`) when the model has nothing beyond the\nintercept, where R's `summary(lm)` has no `fstatistic`.",
-    "ja": ""
-  },
-  "LmFormulaResult.fStatistic.dendf#summary": {
-    "hash": "4b90ba3de11b",
-    "en": "Denominator degrees of freedom (the residual degrees of freedom).",
-    "ja": ""
-  },
-  "LmFormulaResult.fStatistic.numdf#summary": {
-    "hash": "3f8f27b21520",
-    "en": "Numerator degrees of freedom (rank minus the intercept).",
-    "ja": ""
-  },
-  "LmFormulaResult.fStatistic.value#summary": {
-    "hash": "79d1697cc2fe",
-    "en": "The F statistic.",
     "ja": ""
   },
   "LmFormulaResult.factors#summary": {
@@ -424,19 +279,9 @@
     "en": "R's factors attribute of the terms (one array per variable, one code per term).",
     "ja": ""
   },
-  "LmFormulaResult.fittedValues#summary": {
-    "hash": "b83925260809",
-    "en": "Fitted values, one per residual (R's `fitted.values`).",
-    "ja": ""
-  },
   "LmFormulaResult.formula#summary": {
     "hash": "b0def051d655",
     "en": "The formula.",
-    "ja": ""
-  },
-  "LmFormulaResult.intercept#summary": {
-    "hash": "175bfd0e95f8",
-    "en": "Whether the model has an intercept.",
     "ja": ""
   },
   "LmFormulaResult.nObs#summary": {
@@ -447,26 +292,6 @@
   "LmFormulaResult.order#summary": {
     "hash": "77afef1fc733",
     "en": "Degree of each term.",
-    "ja": ""
-  },
-  "LmFormulaResult.qr#summary": {
-    "hash": "c3d358aa4cba",
-    "en": "The QR decomposition of the (weighted) model matrix.",
-    "ja": ""
-  },
-  "LmFormulaResult.rSquared#summary": {
-    "hash": "17eb95915a31",
-    "en": "R^2; 0 for a model with nothing beyond the intercept, as in R.",
-    "ja": ""
-  },
-  "LmFormulaResult.rank#summary": {
-    "hash": "7a9f76fb57de",
-    "en": "Numerical rank of the model matrix.",
-    "ja": ""
-  },
-  "LmFormulaResult.residuals#summary": {
-    "hash": "465e1769912c",
-    "en": "Residuals y - fitted (rows with a missing value dropped; rows of weight 0 included).",
     "ja": ""
   },
   "LmFormulaResult.response#summary": {
@@ -482,11 +307,6 @@
   "LmFormulaResult.rss#summary": {
     "hash": "3dacfdc83d7a",
     "en": "The weighted residual sum of squares.",
-    "ja": ""
-  },
-  "LmFormulaResult.sigma#summary": {
-    "hash": "85523b6f676d",
-    "en": "Residual standard error.",
     "ja": ""
   },
   "LmFormulaResult.termLabels#summary": {
@@ -519,11 +339,6 @@
     "en": "The response (rows used).",
     "ja": ""
   },
-  "LmOptions#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "LmOptions#summary": {
     "hash": "a53ec0091f86",
     "en": "Options for {@link lm}.",
@@ -537,11 +352,6 @@
   "LmOptions.weights#summary": {
     "hash": "e61af0c4aa8b",
     "en": "Weights for weighted least squares (non-negative; rows of weight 0 are left out of the fit).",
-    "ja": ""
-  },
-  "LmResult#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "LmResult#summary": {
@@ -649,11 +459,6 @@
     "en": "Residual standard error.",
     "ja": ""
   },
-  "MauchlyTestOptions#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "MauchlyTestOptions#summary": {
     "hash": "a65fb918a703",
     "en": "Options for {@link mauchlyTest}.",
@@ -677,11 +482,6 @@
   "MauchlyTestOptions.idata#summary": {
     "hash": "b467cdbcdb1b",
     "en": "The within-subject design: a data frame with one row per column of `y`. Default: a column `index` = 1 ... k.",
-    "ja": ""
-  },
-  "MauchlyTestResult#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "MauchlyTestResult#summary": {
@@ -714,11 +514,6 @@
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
     "ja": ""
   },
-  "ModelMatrixOptions#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "ModelMatrixOptions#summary": {
     "hash": "2c9b969f6c38",
     "en": "Options for {@link modelMatrix}.",
@@ -732,11 +527,6 @@
   "ModelMatrixOptions.levels#summary": {
     "hash": "e4863b3798a1",
     "en": "The order of the levels of a factor (`{ A: [\"c\", \"a\", \"b\"] }`), as `factor(x, levels = ...)` in R.",
-    "ja": ""
-  },
-  "ModelMatrixResult#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "ModelMatrixResult#summary": {
@@ -794,11 +584,6 @@
     "en": "The model matrix (array of rows).",
     "ja": ""
   },
-  "PredictOptions#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "PredictOptions#summary": {
     "hash": "63d4e841245e",
     "en": "Options for {@link predict}.",
@@ -812,11 +597,6 @@
   "PredictOptions.level#summary": {
     "hash": "ccfda40f60f0",
     "en": "Confidence level of the interval. Default `0.95`.",
-    "ja": ""
-  },
-  "anova#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "anova#@example": {
@@ -837,11 +617,6 @@
   "anova#summary": {
     "hash": "58667258431f",
     "en": "Analysis of variance of linear models fitted from a formula. Equivalent to R's `anova()`. With one fit, the table of sequential (type I) sums\nof squares, equivalent to R's `anova(fit)`: one row per term (the intercept left out), in the order of the model,\nand `Residuals`. With several fits, the comparison of the models in the order given, equivalent to R's\n`anova(fit1, fit2, ...)`: columns `Res.Df`, `RSS`, `Df`, `Sum of Sq`, `F`, `Pr(>F)`, the F tests scaled by the\nresidual mean square of the model with the fewest residual degrees of freedom.",
-    "ja": ""
-  },
-  "aov(0)#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "aov(0)#@example": {
@@ -884,11 +659,6 @@
     "en": "Analysis of variance from a model formula, as R's `aov(formula, data)` (with `weights` and\n`contrasts`): the same fit as {@link lm} with a formula; {@link aovSummary} gives the table of R's\n`summary(aov(...))`. With one `Error()` term (`y ~ W + Error(id/W)`) the fit has error strata: the result is an\n{@link AovStrataFit} whose tables {@link aovSummary} returns, one per stratum.",
     "ja": ""
   },
-  "aovEz#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "aovEz#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -902,11 +672,6 @@
   "aovEz#summary": {
     "hash": "936db8f0ce69",
     "en": "Repeated-measures (within-subjects), between-subjects and mixed analysis of variance from long data. Equivalent to\n`afex::aov_ez()` in R. As afex's\n`aov_ez(id, dv, data, between, within, type, observed, anova_table = list(correction, es))`, it returns afex's\nanova table and car's univariate tests, sphericity corrections (Greenhouse-Geisser, Huynh-Feldt) and Mauchly tests.\n\nBetween-subjects factors use `contr.sum` and sorted levels; the levels of within-subjects factors are taken in order\nof first appearance. Several rows for a subject and a cell are averaged (with afex's warning); subjects that miss\na cell are removed (with a warning).",
-    "ja": ""
-  },
-  "aovSummary(0)#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "aovSummary(0)#@example": {
@@ -924,11 +689,6 @@
     "en": "The table of an analysis of variance fitted by {@link aov}. Equivalent to R's `summary()`. As R's\n`summary(aov(formula, data))` for a fit without `Error()`: the rows of {@link anova}'s\nsequential table, except that without residual degrees of freedom there is no `Residuals` row and no `F value` and\n`Pr(>F)` columns. For a fit with an `Error()` term, the tables of the strata (`{ strata: [{ stratum: \"Error: id\",\ncolNames, rowNames, table }, ...] }`), without the intercept stratum. As R 4.6, `warnings` has \"essentially perfect\nfit for ‘1’: summary may be unreliable\" where the residual variance of the fit (or of a stratum) is below 1e-30\ntimes the mean square of its fitted values.",
     "ja": ""
   },
-  "aovSummary(1)#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "aovSummary(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -944,11 +704,6 @@
     "en": "The table of an analysis of variance fitted by {@link aov}. Equivalent to R's `summary()`. As R's\n`summary(aov(formula, data))` for a fit without `Error()`: the rows of {@link anova}'s\nsequential table, except that without residual degrees of freedom there is no `Residuals` row and no `F value` and\n`Pr(>F)` columns. For a fit with an `Error()` term, the tables of the strata (`{ strata: [{ stratum: \"Error: id\",\ncolNames, rowNames, table }, ...] }`), without the intercept stratum. As R 4.6, `warnings` has \"essentially perfect\nfit for ‘1’: summary may be unreliable\" where the residual variance of the fit (or of a stratum) is below 1e-30\ntimes the mean square of its fitted values.",
     "ja": ""
   },
-  "aovSummary(2)#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "aovSummary(2)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -962,11 +717,6 @@
   "aovSummary(2)#summary": {
     "hash": "c29d32d7d888",
     "en": "The table of an analysis of variance fitted by {@link aov}. Equivalent to R's `summary()`. As R's\n`summary(aov(formula, data))` for a fit without `Error()`: the rows of {@link anova}'s\nsequential table, except that without residual degrees of freedom there is no `Residuals` row and no `F value` and\n`Pr(>F)` columns. For a fit with an `Error()` term, the tables of the strata (`{ strata: [{ stratum: \"Error: id\",\ncolNames, rowNames, table }, ...] }`), without the intercept stratum. As R 4.6, `warnings` has \"essentially perfect\nfit for ‘1’: summary may be unreliable\" where the residual variance of the fit (or of a stratum) is below 1e-30\ntimes the mean square of its fitted values.",
-    "ja": ""
-  },
-  "confint#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "confint#@example": {
@@ -987,11 +737,6 @@
   "confint.upper#summary": {
     "hash": "5ebeae73b6c5",
     "en": "Upper limits, one per coefficient (R's second column, `97.5 %` by default).",
-    "ja": ""
-  },
-  "lm(0)#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "lm(0)#@example": {
@@ -1034,11 +779,6 @@
     "en": "Fit a linear model by least squares, the predictors given as a matrix: R's `lm(y ~ x)` (or `y ~ x - 1` without\nintercept, with `weights` for weighted least squares) together with `summary()`. Rows with a missing value in `x`,\n`y` or the weights are dropped.",
     "ja": ""
   },
-  "mauchlyTest#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
-    "ja": ""
-  },
   "mauchlyTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1052,11 +792,6 @@
   "mauchlyTest#summary": {
     "hash": "d7346cb109e2",
     "en": "Mauchly's test of sphericity of the measurements of each subject (a row of `y`), on the contrasts spanned by `M`\nand orthogonal to `X` (both formulas over `idata`). Equivalent to R's `mauchly.test()`. As R's\n`mauchly.test(lm(y ~ 1), X = ~1)` and its variants (`group` for `lm(y ~ group)`, `M`, `X`, `idata`).",
-    "ja": ""
-  },
-  "modelMatrix#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "modelMatrix#@example": {
@@ -1077,11 +812,6 @@
   "modelMatrix#summary": {
     "hash": "75704bf887a2",
     "en": "The model matrix of a formula on a data frame, with the attributes of R's `terms()`. Equivalent to R's\n`model.matrix(formula, data)`. With `contrasts.arg`, together with `attr(terms(formula), ...)`.\n\nRows with a missing value (`null`, or `NaN` in a numeric column) in any variable of the formula are dropped first.\nStrings are factors of the values in the rows kept (sorted by code point), unless `levels` gives the levels, which\nare then all kept even without a row (their columns are 0); booleans are factors with always the two levels FALSE\nand TRUE; numbers are numeric. The response may be of any type: it only drops its rows with a missing value.",
-    "ja": ""
-  },
-  "predict#@category": {
-    "hash": "83f3f93230c8",
-    "en": "Linear models and ANOVA",
     "ja": ""
   },
   "predict#@example": {

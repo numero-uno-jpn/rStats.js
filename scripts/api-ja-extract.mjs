@@ -17,6 +17,8 @@
 //   the previous run. "stale" is set when "en" changed while "ja" was not empty.
 // - Entries with empty text are not written. Inline code spans stay as they are. Fenced code blocks are replaced
 //   with ⟦code1⟧, ⟦code2⟧, ... (numbered per entry).
+// - Not collected: inherited members (TypeDoc's inheritedFrom; their comment is the parent's, so the translation of
+//   the parent is reused when the skeleton is filled in), and the @category block tag (a category name, not prose).
 //
 // Re-running is idempotent: an existing entry with the same hash is kept as it is; keys that no longer exist are
 // removed. Duplicate keys stop the script with the key in the message.
@@ -158,6 +160,7 @@ function countOf(entries) {
 
 // A reflection and its descendants. The comment of the reflection is keyed by its own path.
 function walkNode(node, path, ctx) {
+  if (node.inheritedFrom) return;
   emitComment(ctx, path, "summary", node.comment);
   walkMembers(node, path, ctx);
 }
@@ -183,7 +186,7 @@ function walkSignature(sig, path, ctx) {
 function emitComment(ctx, base, summaryPart, comment) {
   if (!comment) return;
   const parts = [[summaryPart, render(comment.summary, ctx.symbols)]];
-  const tags = comment.blockTags ?? [];
+  const tags = (comment.blockTags ?? []).filter((t) => t.tag !== "@category");
   const count = new Map();
   for (const t of tags) count.set(t.tag, (count.get(t.tag) ?? 0) + 1);
   const seen = new Map();

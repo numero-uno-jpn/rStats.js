@@ -1,27 +1,12 @@
 {
-  "CorMethod#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "CorMethod#summary": {
     "hash": "b65b3fea7fc6",
     "en": "Correlation coefficient: Pearson's r, Kendall's tau or Spearman's rho.",
     "ja": ""
   },
-  "CorUse#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "CorUse#summary": {
     "hash": "d034bff5f751",
     "en": "Handling of missing values, as R's `use`.",
-    "ja": ""
-  },
-  "CovOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "CovOptions#summary": {
@@ -39,11 +24,6 @@
     "en": "Default `\"everything\"`. Unambiguous abbreviations are accepted.",
     "ja": ""
   },
-  "CutOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "CutOptions#summary": {
     "hash": "825fd13722b1",
     "en": "Options for {@link cut}.",
@@ -59,29 +39,14 @@
     "en": "Intervals closed on the right, (a, b] (default `true`); otherwise [a, b).",
     "ja": ""
   },
-  "CvOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "CvOptions#summary": {
     "hash": "92d143ccb11f",
     "en": "Options for {@link cv}.",
     "ja": ""
   },
-  "CvOptions.naRm#summary": {
-    "hash": "862c80bfa573",
-    "en": "Drop `NaN` (R's `NA`) before computing. Default `false`: a `NaN` gives `NaN`.",
-    "ja": ""
-  },
   "CvOptions.unbiased#summary": {
     "hash": "52f7e12ccbae",
     "en": "Small-sample correction. Default `false`.",
-    "ja": ""
-  },
-  "DiffOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "DiffOptions#summary": {
@@ -97,11 +62,6 @@
   "DiffOptions.lag#summary": {
     "hash": "4e21f71f48b9",
     "en": "Distance between the values subtracted. Default `1`.",
-    "ja": ""
-  },
-  "FindIntervalOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "FindIntervalOptions#summary": {
@@ -124,11 +84,6 @@
     "en": "Treat the last interval as closed on the right (with `leftOpen`, the first as closed on the left).",
     "ja": ""
   },
-  "HistOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "HistOptions#summary": {
     "hash": "3f53278cda79",
     "en": "Options for {@link hist}.",
@@ -147,11 +102,6 @@
   "HistOptions.right#summary": {
     "hash": "a8cbac405f34",
     "en": "Cells closed on the right, (a, b] (default `true`).",
-    "ja": ""
-  },
-  "HistResult#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "HistResult#summary": {
@@ -179,11 +129,6 @@
     "en": "Cell midpoints.",
     "ja": ""
   },
-  "IQR#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "IQR#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -192,11 +137,6 @@
   "IQR#summary": {
     "hash": "b50dd43c1bb2",
     "en": "Interquartile range, the difference of the 0.75 and 0.25 quantiles. Equivalent to R's `IQR()`.",
-    "ja": ""
-  },
-  "MadOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "MadOptions#summary": {
@@ -224,16 +164,6 @@
     "en": "For an even count n, take the lower of the two middle absolute deviations (the \"lo-median\"): the (n / 2)-th\nsmallest. As in R, n counts the missing values unless `naRm` removed them, the k-th smallest is taken among\nthe deviations that are not missing, and fewer than k of them (or k = 0) is an error. With an odd count the\nordinary median is used.",
     "ja": ""
   },
-  "MadOptions.naRm#summary": {
-    "hash": "862c80bfa573",
-    "en": "Drop `NaN` (R's `NA`) before computing. Default `false`: a `NaN` gives `NaN`.",
-    "ja": ""
-  },
-  "MeanADOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "MeanADOptions#summary": {
     "hash": "db48deef6c6f",
     "en": "Options for {@link meanAD}.",
@@ -244,29 +174,14 @@
     "en": "Centre: the mean (default) or `\"median\"`, or a number.",
     "ja": ""
   },
-  "MeanOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "MeanOptions#summary": {
     "hash": "fa2fe404a41d",
     "en": "Options for {@link mean}.",
     "ja": ""
   },
-  "MeanOptions.naRm#summary": {
-    "hash": "862c80bfa573",
-    "en": "Drop `NaN` (R's `NA`) before computing. Default `false`: a `NaN` gives `NaN`.",
-    "ja": ""
-  },
   "MeanOptions.trim#summary": {
     "hash": "9e9eccf29366",
     "en": "Fraction (0 to 0.5) of values trimmed from each end before the mean. Default `0`.",
-    "ja": ""
-  },
-  "MomentOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "MomentOptions#summary": {
@@ -279,11 +194,6 @@
     "en": "e1071's type: 1, 2 or 3. Default `3`.",
     "ja": ""
   },
-  "NaRmOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "NaRmOptions#summary": {
     "hash": "56d8b399ccd4",
     "en": "Options of the summaries that can drop missing values.",
@@ -292,11 +202,6 @@
   "NaRmOptions.naRm#summary": {
     "hash": "862c80bfa573",
     "en": "Drop `NaN` (R's `NA`) before computing. Default `false`: a `NaN` gives `NaN`.",
-    "ja": ""
-  },
-  "PrettyOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "PrettyOptions#summary": {
@@ -329,29 +234,14 @@
     "en": "Bias towards 5 over 2 times a power of 10. Default `0.5 + 1.5 * highUBias`. Must be finite and non-negative (as\nin R).",
     "ja": ""
   },
-  "QuantileOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "QuantileOptions#summary": {
     "hash": "a41c5c230657",
     "en": "Options for {@link quantile}.",
     "ja": ""
   },
-  "QuantileOptions.naRm#summary": {
-    "hash": "862c80bfa573",
-    "en": "Drop `NaN` (R's `NA`) before computing. Default `false`: a `NaN` gives `NaN`.",
-    "ja": ""
-  },
   "QuantileOptions.type#summary": {
     "hash": "e0fd8cfb6714",
     "en": "Hyndman and Fan's definition, 1 to 9. Default `7`.",
-    "ja": ""
-  },
-  "RankOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "RankOptions#summary": {
@@ -369,11 +259,6 @@
     "en": "Ranks of tied values. Default `\"average\"`.",
     "ja": ""
   },
-  "ScaleOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "ScaleOptions#summary": {
     "hash": "bf14a2b17270",
     "en": "Options for {@link scale}.",
@@ -389,11 +274,6 @@
     "en": "Divide by the root mean square of each (centred) column, sqrt(sum v^2 / (n - 1)) (`true`, default: the standard\ndeviation when centred), by nothing (`false`) or by the given values.",
     "ja": ""
   },
-  "TableOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "TableOptions#summary": {
     "hash": "2d079e5ec645",
     "en": "Options for {@link table}.",
@@ -402,11 +282,6 @@
   "TableOptions.useNA#summary": {
     "hash": "c5bc2b551802",
     "en": "Count missing values: `\"no\"` (default), `\"ifany\"` (when there are some) or `\"always\"`.",
-    "ja": ""
-  },
-  "TabulateOptions#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "TabulateOptions#summary": {
@@ -419,19 +294,9 @@
     "en": "Number of bins. Default max(1, bin); truncated towards 0, as R does.",
     "ja": ""
   },
-  "TiesMethod#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "TiesMethod#summary": {
     "hash": "039814b7ea52",
     "en": "How ties are ranked, as R's `ties.method`.",
-    "ja": ""
-  },
-  "cor(0)#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "cor(0)#@example": {
@@ -444,11 +309,6 @@
     "en": "Correlation of two vectors, or correlation matrix of the columns of a matrix (or between the columns of `x` and\n`y`). Equivalent to R's `cor()`. Pearson correlations are computed in double-double, so they can be slightly more\naccurate than R's (exactly 1 for perfectly correlated data).",
     "ja": ""
   },
-  "cor(1)#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "cor(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -457,11 +317,6 @@
   "cor(1)#summary": {
     "hash": "cf09210b7032",
     "en": "Correlation of two vectors, or correlation matrix of the columns of a matrix (or between the columns of `x` and\n`y`). Equivalent to R's `cor()`. Pearson correlations are computed in double-double, so they can be slightly more\naccurate than R's (exactly 1 for perfectly correlated data).",
-    "ja": ""
-  },
-  "cov(0)#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "cov(0)#@example": {
@@ -474,11 +329,6 @@
     "en": "Covariance of two vectors, or covariance matrix of the columns of a matrix (or between the columns of `x` and `y`).\nEquivalent to R's `cov()`.",
     "ja": ""
   },
-  "cov(1)#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "cov(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -487,11 +337,6 @@
   "cov(1)#summary": {
     "hash": "c92cd1aa50d0",
     "en": "Covariance of two vectors, or covariance matrix of the columns of a matrix (or between the columns of `x` and `y`).\nEquivalent to R's `cov()`.",
-    "ja": ""
-  },
-  "cummax#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "cummax#@example": {
@@ -504,11 +349,6 @@
     "en": "Running maxima. Equivalent to R's `cummax()`. `NaN` from the first `NaN` on.",
     "ja": ""
   },
-  "cummin#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "cummin#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -517,11 +357,6 @@
   "cummin#summary": {
     "hash": "521c32d5fd12",
     "en": "Running minima. Equivalent to R's `cummin()`.",
-    "ja": ""
-  },
-  "cumprod#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "cumprod#@example": {
@@ -534,11 +369,6 @@
     "en": "Running products. Equivalent to R's `cumprod()`. Products beyond the double range show as ±Infinity with the right\nsign, as R's long double accumulator does.",
     "ja": ""
   },
-  "cumsum#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "cumsum#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -547,11 +377,6 @@
   "cumsum#summary": {
     "hash": "6e1e94d2a42c",
     "en": "Running sums. Equivalent to R's `cumsum()`. Each partial sum is rounded from an exact accumulator; `NaN` from the\nfirst `NaN` on.",
-    "ja": ""
-  },
-  "cut#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "cut#@example": {
@@ -569,11 +394,6 @@
     "en": "Interval numbers (1-based) of the values, or NaN outside the breaks. Equivalent to R's `cut(..., labels = FALSE)`.",
     "ja": ""
   },
-  "cv#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "cv#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -582,11 +402,6 @@
   "cv#summary": {
     "hash": "36c4be9569a8",
     "en": "Coefficient of variation sd / mean (sample standard deviation). Equivalent to `DescTools::CoefVar()` in R.",
-    "ja": ""
-  },
-  "diff#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "diff#@example": {
@@ -599,11 +414,6 @@
     "en": "Lagged and iterated differences. Equivalent to R's `diff()`. For a vector (empty when `lag * differences` is at\nleast the length).",
     "ja": ""
   },
-  "ecdf#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "ecdf#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -612,11 +422,6 @@
   "ecdf#summary": {
     "hash": "1d07bd1221c1",
     "en": "Empirical distribution function of `x`: a function returning the fraction of values at or below its argument.\nEquivalent to R's `ecdf()`. `NaN` values are dropped.",
-    "ja": ""
-  },
-  "findInterval#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "findInterval#@example": {
@@ -629,11 +434,6 @@
     "en": "For each value, the number of break points at or below it (the interval index). Equivalent to R's\n`findInterval()`. `vec` must be non-decreasing.",
     "ja": ""
   },
-  "fivenum#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "fivenum#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -642,11 +442,6 @@
   "fivenum#summary": {
     "hash": "6f5b165f2f45",
     "en": "Tukey's five-number summary (minimum, lower hinge, median, upper hinge, maximum). Equivalent to R's `fivenum()`.\n`NaN` values are dropped.",
-    "ja": ""
-  },
-  "geometricMean#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "geometricMean#@example": {
@@ -659,11 +454,6 @@
     "en": "Geometric mean exp(mean(log x)). Equivalent to `DescTools::Gmean()` in R. NaN with a negative value, 0 with a\nzero.",
     "ja": ""
   },
-  "hist#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "hist#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -672,11 +462,6 @@
   "hist#summary": {
     "hash": "fa2c6e03ee4c",
     "en": "Histogram counts. Equivalent to R's `hist(x, plot = FALSE)`. Break points (by default pretty points over the range\nwith about Sturges' number of cells), counts, densities and cell midpoints. Non-finite values are dropped.",
-    "ja": ""
-  },
-  "kurtosis#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "kurtosis#@example": {
@@ -689,11 +474,6 @@
     "en": "Sample excess kurtosis. Equivalent to `e1071::kurtosis()` in R. Missing values are dropped; `{ type: 1 }` is\njStat's kurtosis.",
     "ja": ""
   },
-  "mad#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "mad#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -702,11 +482,6 @@
   "mad#summary": {
     "hash": "c0c189cab60d",
     "en": "Median absolute deviation, scaled. Equivalent to R's `mad()`.",
-    "ja": ""
-  },
-  "mean#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "mean#@example": {
@@ -719,11 +494,6 @@
     "en": "Arithmetic mean, optionally trimmed. Equivalent to R's `mean()`. Accurate to the last bit: the sum is taken in\ndouble-double and corrected by the mean deviation, as R corrects its long double mean.",
     "ja": ""
   },
-  "meanAD#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "meanAD#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -734,11 +504,6 @@
     "en": "Mean absolute deviation from the centre. Equivalent to `DescTools::MeanAD()` in R. Missing values are dropped.",
     "ja": ""
   },
-  "median#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "median#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -747,11 +512,6 @@
   "median#summary": {
     "hash": "e30b61332f34",
     "en": "Median of the values (the mean of the two middle ones for an even count). Equivalent to R's `median()`.",
-    "ja": ""
-  },
-  "modes#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "modes#@example": {
@@ -774,11 +534,6 @@
     "en": "The most frequent values, in increasing order (`[NaN]` when every value occurs once).",
     "ja": ""
   },
-  "pretty#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "pretty#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -789,11 +544,6 @@
     "en": "About n + 1 equally spaced \"round\" values (1, 2 or 5 times a power of 10) covering the range of `x`. Equivalent to\nR's `pretty()`.",
     "ja": ""
   },
-  "prod#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "prod#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -802,11 +552,6 @@
   "prod#summary": {
     "hash": "0bcdbd340bce",
     "en": "Product of the values. Equivalent to R's `prod()`. 1 for an empty vector.",
-    "ja": ""
-  },
-  "quantile(0)#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "quantile(0)#@example": {
@@ -834,11 +579,6 @@
     "en": "Sample quantiles. Equivalent to R's `quantile()`. Without names (R's `names = FALSE`).",
     "ja": ""
   },
-  "quantile(1)#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "quantile(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -864,11 +604,6 @@
     "en": "Sample quantiles. Equivalent to R's `quantile()`. Without names (R's `names = FALSE`).",
     "ja": ""
   },
-  "range#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "range#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -879,11 +614,6 @@
     "en": "`[min, max]` of the values. Equivalent to R's `range()`. `[NaN, NaN]` with a missing value unless `naRm`;\n`[Infinity, -Infinity]` for an empty vector.",
     "ja": ""
   },
-  "rank#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "rank#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -892,11 +622,6 @@
   "rank#summary": {
     "hash": "0a8bd6ad696f",
     "en": "Sample ranks. Equivalent to R's `rank()`.",
-    "ja": ""
-  },
-  "scale#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "scale#@example": {
@@ -924,11 +649,6 @@
     "en": "The centred and scaled matrix, as an array of rows (R's returned matrix).",
     "ja": ""
   },
-  "sd#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "sd#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -937,11 +657,6 @@
   "sd#summary": {
     "hash": "0e13f88e8a1d",
     "en": "Sample standard deviation (denominator n - 1). Equivalent to R's `sd()`.",
-    "ja": ""
-  },
-  "skewness#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "skewness#@example": {
@@ -954,11 +669,6 @@
     "en": "Sample skewness. Equivalent to `e1071::skewness()` in R. Missing values are dropped; `{ type: 1 }` is jStat's\nskewness.",
     "ja": ""
   },
-  "sum#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "sum#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -967,11 +677,6 @@
   "sum#summary": {
     "hash": "5e53af19b72d",
     "en": "Sum of the values. Equivalent to R's `sum()`. For a numeric vector (0 for an empty one).",
-    "ja": ""
-  },
-  "table#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "table#@example": {
@@ -994,11 +699,6 @@
     "en": "The distinct values, in increasing order (NaN last when missing values are counted); R's names.",
     "ja": ""
   },
-  "tabulate(0)#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "tabulate(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1019,11 +719,6 @@
     "en": "Counts of the integers 1..nbins in `bin`, with the number of bins in the options: `tabulate(bin, { nbins: 3 })`.",
     "ja": ""
   },
-  "unique#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "unique#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1034,11 +729,6 @@
     "en": "Distinct values in order of first appearance (one NaN at most). Equivalent to R's `unique()`.",
     "ja": ""
   },
-  "variance#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
-    "ja": ""
-  },
   "variance#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1047,11 +737,6 @@
   "variance#summary": {
     "hash": "8f8f062feafd",
     "en": "Sample variance (denominator n - 1). Equivalent to R's `var()`. For a vector (`NaN` for fewer than 2 values); named\n`variance` because `var` cannot be a name in JavaScript. For matrices use `cov`.",
-    "ja": ""
-  },
-  "weightedMean#@category": {
-    "hash": "989909b6c0d3",
-    "en": "Descriptive statistics",
     "ja": ""
   },
   "weightedMean#@example": {

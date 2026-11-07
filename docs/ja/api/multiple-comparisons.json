@@ -1,17 +1,7 @@
 {
-  "DunnTestMethod#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "DunnTestMethod#summary": {
     "hash": "7ece85eb68d0",
     "en": "Adjustment method of {@link dunnTest} (dunn.test's `method`).",
-    "ja": ""
-  },
-  "DunnTestOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "DunnTestOptions#summary": {
@@ -27,11 +17,6 @@
   "DunnTestOptions.method#summary": {
     "hash": "c06a4e9898be",
     "en": "Adjustment of the p-values. Default `\"none\"`.",
-    "ja": ""
-  },
-  "DunnTestResult#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "DunnTestResult#summary": {
@@ -84,11 +69,6 @@
     "en": "Alias of `Z`: the same array.",
     "ja": ""
   },
-  "GlhtDunnettOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "GlhtDunnettOptions#summary": {
     "hash": "c250a66d17bb",
     "en": "Options of {@link glhtDunnett}.",
@@ -97,11 +77,6 @@
   "GlhtDunnettOptions.alternative#summary": {
     "hash": "52c36c030161",
     "en": "Alternative hypothesis for each group against the control. Default `\"two.sided\"`.",
-    "ja": ""
-  },
-  "GlhtDunnettResult#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "GlhtDunnettResult#summary": {
@@ -159,11 +134,6 @@
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
     "ja": ""
   },
-  "KwAllPairsDunnTestOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "KwAllPairsDunnTestOptions#summary": {
     "hash": "ea0c6f7db211",
     "en": "Options of the all-pairs Dunn test.",
@@ -174,29 +144,14 @@
     "en": "p-value adjustment (see `pAdjust`). Default `\"holm\"`.",
     "ja": ""
   },
-  "KwManyOneDunnTestOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "KwManyOneDunnTestOptions#summary": {
     "hash": "3aa2bd8eb9aa",
     "en": "Options of the many-to-one Dunn test.",
     "ja": ""
   },
-  "KwManyOneDunnTestOptions.alternative#summary": {
-    "hash": "52c36c030161",
-    "en": "Alternative hypothesis for each group against the control. Default `\"two.sided\"`.",
-    "ja": ""
-  },
   "KwManyOneDunnTestOptions.pAdjustMethod#summary": {
     "hash": "2635de999b22",
     "en": "`\"single-step\"` (simultaneous normal probabilities, the default) or a `pAdjust` method.",
-    "ja": ""
-  },
-  "ManyOneTestOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "ManyOneTestOptions#summary": {
@@ -209,29 +164,14 @@
     "en": "Alternative hypothesis for each group against the control. Default `\"two.sided\"`.",
     "ja": ""
   },
-  "ManyOneUTestOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "ManyOneUTestOptions#summary": {
     "hash": "42ce55f788fe",
     "en": "Options of Steel's many-to-one rank test (`manyOneUTest`).",
     "ja": ""
   },
-  "PAdjustMethod#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "PAdjustMethod#summary": {
     "hash": "d48703e5d2b0",
     "en": "Adjustment method for {@link pAdjust}, as in R's `p.adjust.methods`. `\"fdr\"` is an alias of `\"BH\"`.",
-    "ja": ""
-  },
-  "PAdjustOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "PAdjustOptions#summary": {
@@ -247,11 +187,6 @@
   "PAdjustOptions.n#summary": {
     "hash": "f663228464f0",
     "en": "Number of comparisons. Default: the number of non-`NaN` p-values. Must not be smaller\nthan that; must be an integer and at most 65536 for `\"hommel\"`.",
-    "ja": ""
-  },
-  "PMCMRResult#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "PMCMRResult#summary": {
@@ -294,11 +229,6 @@
     "en": "R's warnings.",
     "ja": ""
   },
-  "PairwiseOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "PairwiseOptions#summary": {
     "hash": "f04607ade0df",
     "en": "Common options of the pairwise comparisons.",
@@ -314,11 +244,6 @@
     "en": "p-value adjustment (see `pAdjust`). Default `\"holm\"`.",
     "ja": ""
   },
-  "PairwisePropTestOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "PairwisePropTestOptions#summary": {
     "hash": "07f19e7ba228",
     "en": "Options for {@link pairwisePropTest}.",
@@ -332,11 +257,6 @@
   "PairwisePropTestOptions.pAdjustMethod#summary": {
     "hash": "8566732f7ddd",
     "en": "p-value adjustment (see `pAdjust`). Default `\"holm\"`.",
-    "ja": ""
-  },
-  "PairwiseResult#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "PairwiseResult#summary": {
@@ -374,24 +294,9 @@
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
     "ja": ""
   },
-  "PairwiseTTestOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "PairwiseTTestOptions#summary": {
     "hash": "a08607a2dc92",
     "en": "Options for {@link pairwiseTTest}.",
-    "ja": ""
-  },
-  "PairwiseTTestOptions.alternative#summary": {
-    "hash": "120f77cdf9f0",
-    "en": "Alternative hypothesis for each comparison of row group against column group. Default `\"two.sided\"`.",
-    "ja": ""
-  },
-  "PairwiseTTestOptions.pAdjustMethod#summary": {
-    "hash": "8566732f7ddd",
-    "en": "p-value adjustment (see `pAdjust`). Default `\"holm\"`.",
     "ja": ""
   },
   "PairwiseTTestOptions.paired#summary": {
@@ -404,59 +309,9 @@
     "en": "Pool the standard deviation over all groups. Default `!paired`.",
     "ja": ""
   },
-  "PairwiseWilcoxTestOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "PairwiseWilcoxTestOptions#summary": {
     "hash": "9db3f8995a72",
     "en": "Options for {@link pairwiseWilcoxTest}: those of the comparisons themselves, as for `wilcoxTest`.",
-    "ja": ""
-  },
-  "PairwiseWilcoxTestOptions.alternative#summary": {
-    "hash": "120f77cdf9f0",
-    "en": "Alternative hypothesis for each comparison of row group against column group. Default `\"two.sided\"`.",
-    "ja": ""
-  },
-  "PairwiseWilcoxTestOptions.confLevel#summary": {
-    "hash": "ccfda40f60f0",
-    "en": "Confidence level of the interval. Default `0.95`.",
-    "ja": ""
-  },
-  "PairwiseWilcoxTestOptions.correct#summary": {
-    "hash": "225570510e66",
-    "en": "Continuity correction of the normal approximation. Default `true`. As in R 4.6, also `0` (the same as `true`) or\n`1`, `2`, `3`: the continuity correction plus that many Edgeworth terms in the p-value (only without ties and zero\ndifferences; with them, the continuity correction only). The interval and estimate use the continuity correction\nalone. Any other number throws.",
-    "ja": ""
-  },
-  "PairwiseWilcoxTestOptions.exact#summary": {
-    "hash": "b2e8336e1b38",
-    "en": "Compute an exact p-value (and interval). Default `null`: exact when the sample size is below 50 (both samples,\nfor two samples; zero differences count). With ties or zero differences the exact test is the conditional\n(permutation) test given the mid-ranks, as in R 4.6; the signed rank test then ranks the zeros with the other\ndifferences and leaves them out of the permutation distribution (Pratt).\n\nThe conditional distribution is built once for the p-value and again for each multiset of scores that the\ninterval's search meets. Where that would take more than about 8 seconds, a RangeError suggesting `exact: false`\nis thrown before the computation. Measured on a Mac mini (Apple M1, Node 24) with data rounded to one or two\ndecimals: the p-value up to about n = 2400 (one sample) and m = n = 320 (two samples); the interval up to about\nn = 150 to 300 (one sample; 4 s at n = 150 with 3 decimals, 4.6 s at n = 300 with 1) and m = n = 80 (two samples;\n49 x 49 takes 3 s). Ties in few places (or none) cost less.",
-    "ja": ""
-  },
-  "PairwiseWilcoxTestOptions.mu#summary": {
-    "hash": "bf3faff3336a",
-    "en": "Location under the null hypothesis (location shift for two samples). Default `0`.",
-    "ja": ""
-  },
-  "PairwiseWilcoxTestOptions.pAdjustMethod#summary": {
-    "hash": "8566732f7ddd",
-    "en": "p-value adjustment (see `pAdjust`). Default `\"holm\"`.",
-    "ja": ""
-  },
-  "PairwiseWilcoxTestOptions.paired#summary": {
-    "hash": "0b1746731ea7",
-    "en": "Paired test (signed rank test on `x - y`). Requires `y`. Default `false`.",
-    "ja": ""
-  },
-  "PairwiseWilcoxTestOptions.tolRoot#summary": {
-    "hash": "b02dbee995aa",
-    "en": "Tolerance of the root search for the interval and estimate in the normal approximation (R's `tol.root`). Default `1e-4`.",
-    "ja": ""
-  },
-  "TukeyHSD#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "TukeyHSD#@example": {
@@ -474,11 +329,6 @@
     "en": "Tukey's honest significant differences between the group means of a one-way ANOVA (Tukey-Kramer for unequal\nsizes). Equivalent to R's `TukeyHSD(aov(y ~ g))`.",
     "ja": ""
   },
-  "TukeyHSDOptions#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "TukeyHSDOptions#summary": {
     "hash": "5ee78b2e5464",
     "en": "Options for {@link TukeyHSD}.",
@@ -487,11 +337,6 @@
   "TukeyHSDOptions.confLevel#summary": {
     "hash": "d779cc3bc1a3",
     "en": "Family-wise confidence level in [0, 1] (a RangeError otherwise). Default `0.95`.",
-    "ja": ""
-  },
-  "TukeyHSDResult#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "TukeyHSDResult#summary": {
@@ -544,11 +389,6 @@
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
     "ja": ""
   },
-  "dscfAllPairsTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "dscfAllPairsTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -557,11 +397,6 @@
   "dscfAllPairsTest#summary": {
     "hash": "d30e22a08f83",
     "en": "Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. Equivalent to\n`PMCMRplus::dscfAllPairsTest()` in R. The statistic, sqrt(2) (U - n_i n_j / 2) / sqrt(Var U) with the smaller U,\nis never positive.",
-    "ja": ""
-  },
-  "dunnTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "dunnTest#@example": {
@@ -574,11 +409,6 @@
     "en": "Dunn's test of all pairs of mean ranks. Equivalent to `dunn.test::dunn.test(x, g, method, altp)` in R. The step-wise\nadjustments multiply (or transform) each p-value by the factor of its rank and cap it at 1, without enforcing\nmonotonicity, as dunn.test does (unlike `pAdjust`). Equal p-values share the rank of the first of them in the\nordering, so they get the same adjusted value (dunn.test ranks ties in the order of the comparisons).",
     "ja": ""
   },
-  "dunnettTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "dunnettTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -587,11 +417,6 @@
   "dunnettTest#summary": {
     "hash": "ef9f7fe78b4c",
     "en": "Dunnett's many-to-one test of means against the control (the first group), with the pooled variance. Equivalent to\n`PMCMRplus::dunnettTest()` in R. The p-values are the exact multivariate t probabilities (R approximates them by\nrandomised integration); two-sided, as in PMCMRplus, `min(1, 2 P(max T_i >= |t|))`.",
-    "ja": ""
-  },
-  "gamesHowellTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "gamesHowellTest#@example": {
@@ -604,11 +429,6 @@
     "en": "Games-Howell all-pairs test of means with Welch's standard errors and degrees of freedom. Equivalent to\n`PMCMRplus::gamesHowellTest()` in R.",
     "ja": ""
   },
-  "glhtDunnett#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "glhtDunnett#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -617,11 +437,6 @@
   "glhtDunnett#summary": {
     "hash": "6975cfa3f203",
     "en": "Dunnett's many-to-one comparisons of a one-way ANOVA with simultaneous p-values. Equivalent to\n`multcomp::glht()` in R. It gives `summary(glht(aov(y ~ g), linfct = mcp(g = \"Dunnett\"), alternative))`, with the\nexact multivariate t probabilities (R approximates them by randomised integration): two-sided\n`P(max |T_i| >= |t|)`, greater `P(max T_i >= t)`, less `P(min T_i <= t)`.",
-    "ja": ""
-  },
-  "kwAllPairsDunnTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "kwAllPairsDunnTest#@example": {
@@ -644,11 +459,6 @@
     "en": "Dunn's all-pairs test of mean ranks with adjusted p-values. Equivalent to `PMCMRplus::kwAllPairsDunnTest()` in R.",
     "ja": ""
   },
-  "kwManyOneDunnTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "kwManyOneDunnTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -657,11 +467,6 @@
   "kwManyOneDunnTest#summary": {
     "hash": "b102d9117c59",
     "en": "Dunn's many-to-one test of mean ranks against the control (the first group). Equivalent to\n`PMCMRplus::kwManyOneDunnTest()` in R. With `pAdjustMethod` `\"single-step\"` (the default) the p-values are the\nexact simultaneous normal probabilities (R approximates them by randomised integration).",
-    "ja": ""
-  },
-  "manyOneUTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "manyOneUTest#@example": {
@@ -682,11 +487,6 @@
   "manyOneUTest#summary": {
     "hash": "5f7d793ab339",
     "en": "Steel's many-to-one rank test in its normal approximation: the Mann-Whitney statistic of each group against the\ncontrol (the first group), each pair ranked on its own (midranks), standardised with the tie-corrected variance.\nEquivalent to `PMCMRplus::manyOneUTest()` in R. The statistic is positive when the group ranks higher than the\ncontrol. With `pAdjustMethod` `\"single-step\"` (the default; at least three groups) the p-values are the exact\nsimultaneous normal probabilities (R approximates them by randomised integration).",
-    "ja": ""
-  },
-  "pAdjust#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "pAdjust#@example": {
@@ -714,11 +514,6 @@
     "en": "Adjusts p-values for multiple comparisons. Equivalent to R's `p.adjust()`.\n\n`NaN` values are excluded from the adjustment and returned as `NaN` in place. If `n` is\n1 or less, the p-values are returned unchanged. Differences from R: with `\"hommel\"` a\nnon-integer `n` or an `n` above 65536 (O(n^2) work, about 6 s at the limit) is an error, and an empty `p` always\ngives an empty result.",
     "ja": ""
   },
-  "pairwisePropTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "pairwisePropTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -737,11 +532,6 @@
   "pairwisePropTest#summary": {
     "hash": "ff4c114b551c",
     "en": "Pairwise two-group tests of equal proportions, with adjusted p-values. Equivalent to R's `pairwise.prop.test()`.",
-    "ja": ""
-  },
-  "pairwiseTTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "pairwiseTTest#@example": {
@@ -764,11 +554,6 @@
     "en": "Pairwise t tests between groups, with adjusted p-values. Equivalent to R's `pairwise.t.test()`.",
     "ja": ""
   },
-  "pairwiseWilcoxTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
-    "ja": ""
-  },
   "pairwiseWilcoxTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -777,11 +562,6 @@
   "pairwiseWilcoxTest#summary": {
     "hash": "60f99285897e",
     "en": "Pairwise Wilcoxon rank sum (or signed rank, with `paired`) tests between groups, with adjusted p-values. Equivalent\nto R's `pairwise.wilcox.test()`. `method` is that of the last comparison, as in R.",
-    "ja": ""
-  },
-  "tukeyTest#@category": {
-    "hash": "115c5e26d937",
-    "en": "Multiple comparisons",
     "ja": ""
   },
   "tukeyTest#@example": {

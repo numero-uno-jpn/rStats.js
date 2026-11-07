@@ -1,9 +1,4 @@
 {
-  "ArcsineParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "ArcsineParams#summary": {
     "hash": "82cbd308070a",
     "en": "Limits of the arcsine distribution.",
@@ -19,11 +14,6 @@
     "en": "Upper limit. Default `1`.",
     "ja": ""
   },
-  "DensityOptions#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "DensityOptions#summary": {
     "hash": "669784697657",
     "en": "Options shared by the density / probability mass (`d*`) functions.\nCorresponds to R's `log` argument.",
@@ -34,19 +24,9 @@
     "en": "If `true`, return the log of the density (or probability). Default `false`.",
     "ja": ""
   },
-  "DistName#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "DistName#summary": {
     "hash": "1f33394885fe",
     "en": "Distributions known to {@link distSummary} (the names of their d/p/q/r functions).",
-    "ja": ""
-  },
-  "DistSummary#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "DistSummary#summary": {
@@ -89,11 +69,6 @@
     "en": "Variance (NaN when it does not exist, `Infinity` when it is infinite).",
     "ja": ""
   },
-  "ExponentialParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "ExponentialParams#summary": {
     "hash": "3c9e7162d15f",
     "en": "Parameters of the exponential distribution.",
@@ -102,11 +77,6 @@
   "ExponentialParams.rate#summary": {
     "hash": "25a75156b551",
     "en": "Rate. Default `1`.",
-    "ja": ""
-  },
-  "GammaParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "GammaParams#summary": {
@@ -124,11 +94,6 @@
     "en": "Scale. Default `1`. Do not combine with a different `rate`.",
     "ja": ""
   },
-  "InvgammaParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "InvgammaParams#summary": {
     "hash": "40f99bc91b70",
     "en": "Scale parameter of the inverse gamma distribution.",
@@ -137,11 +102,6 @@
   "InvgammaParams.beta#summary": {
     "hash": "5caa2ef04b99",
     "en": "Scale (the rate of the gamma distribution of 1/X). Default `1`.",
-    "ja": ""
-  },
-  "LaplaceParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "LaplaceParams#summary": {
@@ -159,11 +119,6 @@
     "en": "Scale. Default `1`.",
     "ja": ""
   },
-  "LocationScaleParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "LocationScaleParams#summary": {
     "hash": "5db904088bc7",
     "en": "Location and scale parameters, used by the logistic and Cauchy distributions.",
@@ -177,11 +132,6 @@
   "LocationScaleParams.scale#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
-  },
-  "LognormalParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "LognormalParams#summary": {
@@ -199,11 +149,6 @@
     "en": "Standard deviation of the distribution on the log scale. Default `1`.",
     "ja": ""
   },
-  "MultinomialOptions#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "MultinomialOptions#summary": {
     "hash": "66bf4a29a2f6",
     "en": "Options for {@link dmultinom}.",
@@ -217,11 +162,6 @@
   "MultinomialOptions.size#summary": {
     "hash": "49ef53ecfdd9",
     "en": "Total number of objects; defaults to the sum of `x` (it must equal it, as in R).",
-    "ja": ""
-  },
-  "NegBinomialParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "NegBinomialParams#summary": {
@@ -239,11 +179,6 @@
     "en": "Probability of success on each trial (`0 < prob <= 1`). Do not combine with `mu`.",
     "ja": ""
   },
-  "NoncentralOption#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "NoncentralOption#summary": {
     "hash": "07b594ec2f21",
     "en": "Noncentrality option accepted by the chi-squared, t, F and beta distribution functions.",
@@ -252,11 +187,6 @@
   "NoncentralOption.ncp#summary": {
     "hash": "896be9a114a5",
     "en": "Noncentrality parameter. If omitted, the central distribution is used.\nAs in R, an explicit `ncp: 0` describes the same distribution as the central one. R then uses\nthe noncentral algorithm, so its values can differ slightly from the central values;\nrStats.js returns values of the same accuracy in both cases.",
-    "ja": ""
-  },
-  "NormalOptions#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "NormalOptions#summary": {
@@ -284,11 +214,6 @@
     "en": "Standard deviation. Default `1`.",
     "ja": ""
   },
-  "ParetoParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "ParetoParams#summary": {
     "hash": "f8fdecc97399",
     "en": "Shape and scale of the Pareto distribution.",
@@ -304,11 +229,6 @@
     "en": "Scale (the lower limit of the support). Default `1`.",
     "ja": ""
   },
-  "TailOptions#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "TailOptions#summary": {
     "hash": "4ddb0b806c3e",
     "en": "Options shared by the distribution (`p*`) and quantile (`q*`) functions.\nCorrespond to R's `lower.tail` and `log.p` arguments.",
@@ -322,11 +242,6 @@
   "TailOptions.lowerTail#summary": {
     "hash": "eb8c4c33656f",
     "en": "If `true`, probabilities are P[X <= x]; if `false`, P[X > x]. Default `true`.",
-    "ja": ""
-  },
-  "TriangParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "TriangParams#summary": {
@@ -349,34 +264,14 @@
     "en": "Mode. Default `(a + b) / 2`.",
     "ja": ""
   },
-  "TukeyOptions#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "TukeyOptions#summary": {
     "hash": "1341072439c0",
     "en": "Options for {@link ptukey} and {@link qtukey}.",
     "ja": ""
   },
-  "TukeyOptions.logP#summary": {
-    "hash": "00fd95e0d841",
-    "en": "If `true`, probabilities are given (to `q*`) and returned (from `p*`) as log(p). Default `false`.",
-    "ja": ""
-  },
-  "TukeyOptions.lowerTail#summary": {
-    "hash": "eb8c4c33656f",
-    "en": "If `true`, probabilities are P[X <= x]; if `false`, P[X > x]. Default `true`.",
-    "ja": ""
-  },
   "TukeyOptions.nranges#summary": {
     "hash": "16cf6c9732f4",
     "en": "Number of groups whose ranges are compared; the statistic is the maximum of that many ranges. Default `1`.",
-    "ja": ""
-  },
-  "UniformParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "UniformParams#summary": {
@@ -394,29 +289,14 @@
     "en": "Lower limit. Default `0`.",
     "ja": ""
   },
-  "VectorResult#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "VectorResult#summary": {
     "hash": "05461f7e4249",
     "en": "Result type matching the shape of a {@link Vectorizable} input:\n`number` for a number, `Float64Array` for a `Float64Array`, and `number[]` for an array.",
     "ja": ""
   },
-  "Vectorizable#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "Vectorizable#summary": {
     "hash": "747c599822dc",
     "en": "Input accepted as the vectorized first argument of the distribution functions\n(the counterpart of R's automatic vectorization).\nA number gives a number, a `number[]` gives a `number[]`, and a `Float64Array` gives a `Float64Array`.",
-    "ja": ""
-  },
-  "WeibullParams#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "WeibullParams#summary": {
@@ -427,11 +307,6 @@
   "WeibullParams.scale#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
-  },
-  "darcsine#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "darcsine#@example": {
@@ -452,11 +327,6 @@
   "darcsine#summary": {
     "hash": "c54393fe60f8",
     "en": "Density of the arcsine distribution on (a, b), f(x) = 1 / (pi sqrt((x - a)(b - x))).\nNot an R function. Neither base R nor extraDistr has the arcsine distribution; this equals\n`dbeta((x - a) / (b - a), 0.5, 0.5) / (b - a)`.",
-    "ja": ""
-  },
-  "dbeta#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dbeta#@example": {
@@ -494,11 +364,6 @@
     "en": "Density of the beta distribution. Equivalent to R's `dbeta(x, shape1, shape2, ncp = 0, log = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral beta distribution.",
     "ja": ""
   },
-  "dbinom#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -534,11 +399,6 @@
     "en": "Probability mass function of the binomial distribution. Equivalent to R's `dbinom(x, size, prob, log = FALSE)`.",
     "ja": ""
   },
-  "dcauchy#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dcauchy#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -562,11 +422,6 @@
   "dcauchy#summary": {
     "hash": "7dae174ad1f1",
     "en": "Density of the Cauchy distribution. Equivalent to R's `dcauchy(x, location = 0, scale = 1, log = FALSE)`.",
-    "ja": ""
-  },
-  "dchisq#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dchisq#@example": {
@@ -599,11 +454,6 @@
     "en": "Density of the chi-squared distribution. Equivalent to R's `dchisq(x, df, ncp = 0, log = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral chi-squared distribution.",
     "ja": ""
   },
-  "dexp#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -627,11 +477,6 @@
   "dexp#summary": {
     "hash": "9982acc3d150",
     "en": "Density of the exponential distribution. Equivalent to R's `dexp(x, rate = 1, log = FALSE)`.",
-    "ja": ""
-  },
-  "df#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "df#@example": {
@@ -669,11 +514,6 @@
     "en": "Density of the F distribution. Equivalent to R's `df(x, df1, df2, ncp, log = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral F distribution.",
     "ja": ""
   },
-  "dgamma#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -709,11 +549,6 @@
     "en": "Density of the gamma distribution. Equivalent to R's `dgamma(x, shape, rate = 1, scale = 1/rate, log = FALSE)`.",
     "ja": ""
   },
-  "dgeom#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dgeom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -742,11 +577,6 @@
   "dgeom#summary": {
     "hash": "742c2d68cc81",
     "en": "Probability mass function of the geometric distribution (number of failures before the first success). Equivalent to R's `dgeom(x, prob, log = FALSE)`.",
-    "ja": ""
-  },
-  "dhyper#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dhyper#@example": {
@@ -789,11 +619,6 @@
     "en": "Probability mass function of the hypergeometric distribution (number of white balls among `k` drawn without replacement from an urn of `m` white and `n` black balls). Equivalent to R's `dhyper(x, m, n, k, log = FALSE)`.",
     "ja": ""
   },
-  "dinvgamma#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dinvgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -819,11 +644,6 @@
     "en": "Density of the inverse gamma distribution. Equivalent to `extraDistr::dinvgamma(x, alpha, beta = 1, log = FALSE)` in R.\nf(x) = beta^alpha x^(-alpha-1) exp(-beta/x) / Gamma(alpha).",
     "ja": ""
   },
-  "distSummary#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "distSummary#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -832,11 +652,6 @@
   "distSummary#summary": {
     "hash": "e86ea10b03d9",
     "en": "Mean, variance, standard deviation, median, mode, skewness and excess kurtosis of a distribution, given by the\nname of its d/p/q/r functions and their parameters (with the same names and defaults; `gamma` takes `rate` or\n`scale`, `nbinom` takes `prob` or `mu`). Invalid parameters give NaN throughout. The distributions are the central\nones: `ncp` of `chisq`, `beta`, `t` and `f` is not taken (an unknown key, a RangeError).\nNot an R function. R has no function for these summaries; the R references are closed forms checked against\nnumerical moments.",
-    "ja": ""
-  },
-  "dkumar#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dkumar#@example": {
@@ -864,11 +679,6 @@
     "en": "Density of the Kumaraswamy distribution. Equivalent to `extraDistr::dkumar(x, a, b, log = FALSE)` in R.",
     "ja": ""
   },
-  "dlaplace#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dlaplace#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -887,11 +697,6 @@
   "dlaplace#summary": {
     "hash": "08ccdf47a4b6",
     "en": "Density of the Laplace distribution. Equivalent to `extraDistr::dlaplace(x, mu = 0, sigma = 1, log = FALSE)` in R.",
-    "ja": ""
-  },
-  "dlnorm#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dlnorm#@example": {
@@ -919,11 +724,6 @@
     "en": "Density of the log-normal distribution. Equivalent to R's `dlnorm(x, meanlog = 0, sdlog = 1, log = FALSE)`.",
     "ja": ""
   },
-  "dlogis#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dlogis#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -947,11 +747,6 @@
   "dlogis#summary": {
     "hash": "ebc126e15cac",
     "en": "Density of the logistic distribution. Equivalent to R's `dlogis(x, location = 0, scale = 1, log = FALSE)`.",
-    "ja": ""
-  },
-  "dmultinom#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dmultinom#@example": {
@@ -989,11 +784,6 @@
     "en": "Probability function of the multinomial distribution. Equivalent to R's\n`dmultinom(x, size = NULL, prob, log = FALSE)`.",
     "ja": ""
   },
-  "dnbinom#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dnbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1027,11 +817,6 @@
   "dnbinom#summary": {
     "hash": "d6e8106736bf",
     "en": "Probability mass function of the negative binomial distribution (number of failures before the `size`-th success). Equivalent to R's `dnbinom(x, size, prob, mu, log = FALSE)`.\n\nThe distribution is parameterized by `size` and exactly one of `prob` or `mu`. With `mu`, `size = Infinity` gives the Poisson distribution.",
-    "ja": ""
-  },
-  "dnorm#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dnorm#@example": {
@@ -1074,11 +859,6 @@
     "en": "Standard deviation. Default `1`.",
     "ja": ""
   },
-  "dpareto#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dpareto#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1097,11 +877,6 @@
   "dpareto#summary": {
     "hash": "793044655b34",
     "en": "Density of the Pareto distribution. Equivalent to `extraDistr::dpareto(x, a = 1, b = 1, log = FALSE)` in R.",
-    "ja": ""
-  },
-  "dpois#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dpois#@example": {
@@ -1132,11 +907,6 @@
   "dpois#summary": {
     "hash": "94382373e4f0",
     "en": "Probability mass function of the Poisson distribution. Equivalent to R's `dpois(x, lambda, log = FALSE)`.",
-    "ja": ""
-  },
-  "dsignrank#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dsignrank#@example": {
@@ -1174,11 +944,6 @@
     "en": "Probability mass function of the distribution of the Wilcoxon signed rank statistic. Equivalent to R's `dsignrank(x, n, log = FALSE)`.",
     "ja": ""
   },
-  "dt#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dt#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1209,11 +974,6 @@
     "en": "Density of the t distribution. Equivalent to R's `dt(x, df, ncp, log = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral t distribution.\n\nAs in R, `ncp: 0` gives the same values as the central distribution.",
     "ja": ""
   },
-  "dtriang#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "dtriang#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1232,11 +992,6 @@
   "dtriang#summary": {
     "hash": "2419d58be665",
     "en": "Density of the triangular distribution. Equivalent to `extraDistr::dtriang(x, a = -1, b = 1, c = (a + b)/2, log = FALSE)` in R.",
-    "ja": ""
-  },
-  "dunif#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dunif#@example": {
@@ -1262,11 +1017,6 @@
   "dunif#summary": {
     "hash": "7602801371fb",
     "en": "Density of the uniform distribution. Equivalent to R's `dunif(x, min = 0, max = 1, log = FALSE)`.",
-    "ja": ""
-  },
-  "dweibull#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dweibull#@example": {
@@ -1297,11 +1047,6 @@
   "dweibull#summary": {
     "hash": "fdbe80fab571",
     "en": "Density of the Weibull distribution. Equivalent to R's `dweibull(x, shape, scale = 1, log = FALSE)`.",
-    "ja": ""
-  },
-  "dwilcox#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "dwilcox#@example": {
@@ -1344,11 +1089,6 @@
     "en": "Probability mass function of the distribution of the Wilcoxon rank sum statistic (Mann-Whitney U). Equivalent to R's `dwilcox(x, m, n, log = FALSE)`.\n\nUnlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.",
     "ja": ""
   },
-  "parcsine#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "parcsine#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1357,11 +1097,6 @@
   "parcsine#summary": {
     "hash": "c6aa7e3821da",
     "en": "Distribution function of the arcsine distribution on (a, b): `pbeta((q - a) / (b - a), 0.5, 0.5)`.\nNot an R function. Neither base R nor extraDistr has the arcsine distribution.",
-    "ja": ""
-  },
-  "pbeta#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "pbeta#@example": {
@@ -1399,11 +1134,6 @@
     "en": "Distribution function of the beta distribution. Equivalent to R's `pbeta(q, shape1, shape2, ncp = 0, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral beta distribution.",
     "ja": ""
   },
-  "pbinom#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "pbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1439,11 +1169,6 @@
     "en": "Distribution function of the binomial distribution. Equivalent to R's `pbinom(q, size, prob, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "pbvnorm#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "pbvnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1469,11 +1194,6 @@
     "en": "Probability that a standard bivariate normal pair (X, Y) with correlation `rho` lies in the rectangle\n`lower ≤ (X, Y) ≤ upper`. Equivalent to `mvtnorm::pmvnorm()` in R. The same as\n`pmvnorm(lower, upper, corr = matrix(c(1, rho, rho, 1), 2))`.\nBounds may be infinite. Accurate to about 1e-15 absolute.",
     "ja": ""
   },
-  "pcauchy#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "pcauchy#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1497,11 +1217,6 @@
   "pcauchy#summary": {
     "hash": "22c274222154",
     "en": "Distribution function of the Cauchy distribution. Equivalent to R's `pcauchy(q, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "pchisq#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "pchisq#@example": {
@@ -1534,11 +1249,6 @@
     "en": "Distribution function of the chi-squared distribution. Equivalent to R's `pchisq(q, df, ncp = 0, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral chi-squared distribution.",
     "ja": ""
   },
-  "pexp#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "pexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1562,11 +1272,6 @@
   "pexp#summary": {
     "hash": "2068eb546448",
     "en": "Distribution function of the exponential distribution. Equivalent to R's `pexp(q, rate = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "pf#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "pf#@example": {
@@ -1604,11 +1309,6 @@
     "en": "Distribution function of the F distribution. Equivalent to R's `pf(q, df1, df2, ncp, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral F distribution.",
     "ja": ""
   },
-  "pgamma#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "pgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1644,11 +1344,6 @@
     "en": "Distribution function of the gamma distribution. Equivalent to R's `pgamma(q, shape, rate = 1, scale = 1/rate, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "pgeom#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "pgeom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1677,11 +1372,6 @@
   "pgeom#summary": {
     "hash": "bc3148e6890c",
     "en": "Distribution function of the geometric distribution (number of failures before the first success). Equivalent to R's `pgeom(q, prob, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "phyper#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "phyper#@example": {
@@ -1724,11 +1414,6 @@
     "en": "Distribution function of the hypergeometric distribution (number of white balls among `k` drawn without replacement from an urn of `m` white and `n` black balls). Equivalent to R's `phyper(q, m, n, k, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "pinvgamma#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "pinvgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1737,11 +1422,6 @@
   "pinvgamma#summary": {
     "hash": "7fd2eb2a03b7",
     "en": "Distribution function of the inverse gamma distribution. Equivalent to\n`extraDistr::pinvgamma(q, alpha, beta = 1, lower.tail = TRUE, log.p = FALSE)` in R.",
-    "ja": ""
-  },
-  "pkumar#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "pkumar#@example": {
@@ -1754,11 +1434,6 @@
     "en": "Distribution function of the Kumaraswamy distribution. Equivalent to `extraDistr::pkumar(q, a, b, lower.tail, log.p)` in R.",
     "ja": ""
   },
-  "plaplace#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "plaplace#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1767,11 +1442,6 @@
   "plaplace#summary": {
     "hash": "ff2e00bc2790",
     "en": "Distribution function of the Laplace distribution. Equivalent to `extraDistr::plaplace(q, mu = 0, sigma = 1, lower.tail, log.p)` in R.",
-    "ja": ""
-  },
-  "plnorm#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "plnorm#@example": {
@@ -1799,11 +1469,6 @@
     "en": "Distribution function of the log-normal distribution. Equivalent to R's `plnorm(q, meanlog = 0, sdlog = 1, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "plogis#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "plogis#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1827,11 +1492,6 @@
   "plogis#summary": {
     "hash": "563b8035cede",
     "en": "Distribution function of the logistic distribution. Equivalent to R's `plogis(q, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "pnbinom#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "pnbinom#@example": {
@@ -1869,11 +1529,6 @@
     "en": "Distribution function of the negative binomial distribution (number of failures before the `size`-th success). Equivalent to R's `pnbinom(q, size, prob, mu, lower.tail = TRUE, log.p = FALSE)`.\n\nThe distribution is parameterized by `size` and exactly one of `prob` or `mu`. With `mu`, `size = Infinity` gives the Poisson distribution.",
     "ja": ""
   },
-  "pnorm#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "pnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1899,11 +1554,6 @@
     "en": "Distribution function of the normal distribution.\nEquivalent to R's `pnorm(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "ppareto#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "ppareto#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1912,11 +1562,6 @@
   "ppareto#summary": {
     "hash": "343b2786aacd",
     "en": "Distribution function of the Pareto distribution. Equivalent to `extraDistr::ppareto(q, a = 1, b = 1, lower.tail, log.p)` in R.",
-    "ja": ""
-  },
-  "ppois#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "ppois#@example": {
@@ -1947,11 +1592,6 @@
   "ppois#summary": {
     "hash": "252c594573e4",
     "en": "Distribution function of the Poisson distribution. Equivalent to R's `ppois(q, lambda, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "psignrank#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "psignrank#@example": {
@@ -1989,11 +1629,6 @@
     "en": "Distribution function of the distribution of the Wilcoxon signed rank statistic. Equivalent to R's `psignrank(q, n, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "pt#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "pt#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2024,11 +1659,6 @@
     "en": "Distribution function of the t distribution. Equivalent to R's `pt(q, df, ncp, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral t distribution.",
     "ja": ""
   },
-  "ptriang#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "ptriang#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2037,11 +1667,6 @@
   "ptriang#summary": {
     "hash": "7584f38ec268",
     "en": "Distribution function of the triangular distribution. Equivalent to `extraDistr::ptriang(q, a, b, c, lower.tail, log.p)` in R.",
-    "ja": ""
-  },
-  "ptukey#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "ptukey#@example": {
@@ -2079,11 +1704,6 @@
     "en": "Distribution function of the studentized range distribution (used by Tukey's HSD). Equivalent to R's `ptukey(q, nmeans, df, nranges = 1, lower.tail = TRUE, log.p = FALSE)`.\n\nResults aim at a relative accuracy of about 1e-15. R's `ptukey` is accurate to only about 8 digits, so values can differ from R's beyond that.",
     "ja": ""
   },
-  "punif#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "punif#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2107,11 +1727,6 @@
   "punif#summary": {
     "hash": "ef98f3822c6f",
     "en": "Distribution function of the uniform distribution. Equivalent to R's `punif(q, min = 0, max = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "pweibull#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "pweibull#@example": {
@@ -2142,11 +1757,6 @@
   "pweibull#summary": {
     "hash": "159af33c2fe4",
     "en": "Distribution function of the Weibull distribution. Equivalent to R's `pweibull(q, shape, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "pwilcox#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "pwilcox#@example": {
@@ -2189,11 +1799,6 @@
     "en": "Distribution function of the distribution of the Wilcoxon rank sum statistic (Mann-Whitney U). Equivalent to R's `pwilcox(q, m, n, lower.tail = TRUE, log.p = FALSE)`.\n\nUnlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.",
     "ja": ""
   },
-  "qarcsine#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qarcsine#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2202,11 +1807,6 @@
   "qarcsine#summary": {
     "hash": "4f4c2574d309",
     "en": "Quantile function of the arcsine distribution on (a, b): `a + (b - a) qbeta(p, 0.5, 0.5)`.\nNot an R function. Neither base R nor extraDistr has the arcsine distribution.",
-    "ja": ""
-  },
-  "qbeta#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qbeta#@example": {
@@ -2244,11 +1844,6 @@
     "en": "Quantile function of the beta distribution. Equivalent to R's `qbeta(p, shape1, shape2, ncp = 0, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral beta distribution.",
     "ja": ""
   },
-  "qbinom#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2284,11 +1879,6 @@
     "en": "Quantile function of the binomial distribution. Equivalent to R's `qbinom(p, size, prob, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "qcauchy#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qcauchy#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2312,11 +1902,6 @@
   "qcauchy#summary": {
     "hash": "839193fb5e02",
     "en": "Quantile function of the Cauchy distribution. Equivalent to R's `qcauchy(p, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "qchisq#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qchisq#@example": {
@@ -2349,11 +1934,6 @@
     "en": "Quantile function of the chi-squared distribution. Equivalent to R's `qchisq(p, df, ncp = 0, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral chi-squared distribution.",
     "ja": ""
   },
-  "qexp#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2377,11 +1957,6 @@
   "qexp#summary": {
     "hash": "1f72894ebae8",
     "en": "Quantile function of the exponential distribution. Equivalent to R's `qexp(p, rate = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "qf#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qf#@example": {
@@ -2419,11 +1994,6 @@
     "en": "Quantile function of the F distribution. Equivalent to R's `qf(p, df1, df2, ncp, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral F distribution.",
     "ja": ""
   },
-  "qgamma#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2459,11 +2029,6 @@
     "en": "Quantile function of the gamma distribution. Equivalent to R's `qgamma(p, shape, rate = 1, scale = 1/rate, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "qgeom#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qgeom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2492,11 +2057,6 @@
   "qgeom#summary": {
     "hash": "f8542800dd1b",
     "en": "Quantile function of the geometric distribution (number of failures before the first success). Equivalent to R's `qgeom(p, prob, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "qhyper#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qhyper#@example": {
@@ -2539,11 +2099,6 @@
     "en": "Quantile function of the hypergeometric distribution (number of white balls among `k` drawn without replacement from an urn of `m` white and `n` black balls). Equivalent to R's `qhyper(p, m, n, k, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "qinvgamma#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qinvgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2552,11 +2107,6 @@
   "qinvgamma#summary": {
     "hash": "e491ca6c1dc5",
     "en": "Quantile function of the inverse gamma distribution. Equivalent to\n`extraDistr::qinvgamma(p, alpha, beta = 1, lower.tail = TRUE, log.p = FALSE)` in R.",
-    "ja": ""
-  },
-  "qkumar#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qkumar#@example": {
@@ -2569,11 +2119,6 @@
     "en": "Quantile function of the Kumaraswamy distribution. Equivalent to `extraDistr::qkumar(p, a, b, lower.tail, log.p)` in R.",
     "ja": ""
   },
-  "qlaplace#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qlaplace#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2582,11 +2127,6 @@
   "qlaplace#summary": {
     "hash": "330651e0cfd4",
     "en": "Quantile function of the Laplace distribution. Equivalent to `extraDistr::qlaplace(p, mu = 0, sigma = 1, lower.tail, log.p)` in R.",
-    "ja": ""
-  },
-  "qlnorm#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qlnorm#@example": {
@@ -2614,11 +2154,6 @@
     "en": "Quantile function of the log-normal distribution. Equivalent to R's `qlnorm(p, meanlog = 0, sdlog = 1, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "qlogis#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qlogis#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2642,11 +2177,6 @@
   "qlogis#summary": {
     "hash": "ddb0eea03794",
     "en": "Quantile function of the logistic distribution. Equivalent to R's `qlogis(p, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "qnbinom#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qnbinom#@example": {
@@ -2684,11 +2214,6 @@
     "en": "Quantile function of the negative binomial distribution (number of failures before the `size`-th success). Equivalent to R's `qnbinom(p, size, prob, mu, lower.tail = TRUE, log.p = FALSE)`.\n\nThe distribution is parameterized by `size` and exactly one of `prob` or `mu`. With `mu`, `size = Infinity` gives the Poisson distribution.",
     "ja": ""
   },
-  "qnorm#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2714,11 +2239,6 @@
     "en": "Quantile function of the normal distribution.\nEquivalent to R's `qnorm(p, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "qpareto#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qpareto#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2727,11 +2247,6 @@
   "qpareto#summary": {
     "hash": "ce3c9fa3bfc2",
     "en": "Quantile function of the Pareto distribution. Equivalent to `extraDistr::qpareto(p, a = 1, b = 1, lower.tail, log.p)` in R.",
-    "ja": ""
-  },
-  "qpois#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qpois#@example": {
@@ -2762,11 +2277,6 @@
   "qpois#summary": {
     "hash": "7215613e9409",
     "en": "Quantile function of the Poisson distribution. Equivalent to R's `qpois(p, lambda, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "qsignrank#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qsignrank#@example": {
@@ -2804,11 +2314,6 @@
     "en": "Quantile function of the distribution of the Wilcoxon signed rank statistic. Equivalent to R's `qsignrank(p, n, lower.tail = TRUE, log.p = FALSE)`.",
     "ja": ""
   },
-  "qt#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qt#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2839,11 +2344,6 @@
     "en": "Quantile function of the t distribution. Equivalent to R's `qt(p, df, ncp, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral t distribution.",
     "ja": ""
   },
-  "qtriang#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qtriang#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2852,11 +2352,6 @@
   "qtriang#summary": {
     "hash": "15783f9842d4",
     "en": "Quantile function of the triangular distribution. Equivalent to `extraDistr::qtriang(p, a, b, c, lower.tail, log.p)` in R.",
-    "ja": ""
-  },
-  "qtukey#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qtukey#@example": {
@@ -2894,11 +2389,6 @@
     "en": "Quantile function of the studentized range distribution (used by Tukey's HSD). Equivalent to R's `qtukey(p, nmeans, df, nranges = 1, lower.tail = TRUE, log.p = FALSE)`.\n\nResults aim at a relative accuracy of about 1e-15. R's `ptukey` is accurate to only about 8 digits, so values can differ from R's beyond that.",
     "ja": ""
   },
-  "qunif#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
-    "ja": ""
-  },
   "qunif#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2922,11 +2412,6 @@
   "qunif#summary": {
     "hash": "d7eb15518a8c",
     "en": "Quantile function of the uniform distribution. Equivalent to R's `qunif(p, min = 0, max = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "qweibull#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qweibull#@example": {
@@ -2957,11 +2442,6 @@
   "qweibull#summary": {
     "hash": "f26cb24389e3",
     "en": "Quantile function of the Weibull distribution. Equivalent to R's `qweibull(p, shape, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
-  },
-  "qwilcox#@category": {
-    "hash": "7fe7bf5ec1c8",
-    "en": "Distributions",
     "ja": ""
   },
   "qwilcox#@example": {

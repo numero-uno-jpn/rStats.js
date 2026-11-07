@@ -1,9 +1,4 @@
 {
-  "BacksolveOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "BacksolveOptions#summary": {
     "hash": "28d45503f06d",
     "en": "Options for {@link backsolve} and {@link forwardsolve}.",
@@ -24,11 +19,6 @@
     "en": "Use the upper triangle of the matrix. Default: `true` for `backsolve`, `false` for `forwardsolve`. R's `upper.tri`.",
     "ja": ""
   },
-  "Chol2InvOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "Chol2InvOptions#summary": {
     "hash": "21faeaec31ae",
     "en": "Options for {@link chol2inv}.",
@@ -37,11 +27,6 @@
   "Chol2InvOptions.size#summary": {
     "hash": "7cb584ce4600",
     "en": "Number of rows and columns of `x` to use (its top-left `size` x `size` upper triangle). Default: the number of columns of `x`.",
-    "ja": ""
-  },
-  "CholOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "CholOptions#summary": {
@@ -57,11 +42,6 @@
   "CholOptions.tol#summary": {
     "hash": "043038584c91",
     "en": "Stopping tolerance for the pivoted decomposition. A negative value means `n * eps * max(diag(x))`. Default: `-1`. Used only with `pivot: true`.",
-    "ja": ""
-  },
-  "CholPivotResult#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "CholPivotResult#summary": {
@@ -84,11 +64,6 @@
     "en": "The number of columns factored before the decomposition stopped (R's `attr(, \"rank\")`).",
     "ja": ""
   },
-  "Determinant#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "Determinant#summary": {
     "hash": "ba73abf86fa8",
     "en": "Result of {@link determinant}: the determinant equals `sign * modulus` (or `sign * exp(modulus)` when `logarithm` is `true`).",
@@ -109,11 +84,6 @@
     "en": "The sign of the determinant (`1` or `-1`).",
     "ja": ""
   },
-  "DiagOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "DiagOptions#summary": {
     "hash": "cdd604cd4d10",
     "en": "Options for {@link diag}.",
@@ -129,11 +99,6 @@
     "en": "Number of rows of the matrix built from a vector or a number (R's `nrow`). Default: the length of the vector.",
     "ja": ""
   },
-  "EigenOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "EigenOptions#summary": {
     "hash": "e711fc83f1fa",
     "en": "Options for {@link eigen}.",
@@ -147,11 +112,6 @@
   "EigenOptions.symmetric#summary": {
     "hash": "22a1a7c553b6",
     "en": "Treat the matrix as symmetric (only its lower triangle is then used). Default: detected automatically,\nlike R's `isSymmetric()` (relative difference between the matrix and its transpose at most `100 * eps`).",
-    "ja": ""
-  },
-  "EigenResult#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "EigenResult#summary": {
@@ -179,19 +139,9 @@
     "en": "The imaginary parts of the eigenvectors. Present only when `valuesIm` is present (and vectors were computed).",
     "ja": ""
   },
-  "ExpmMethod#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "ExpmMethod#summary": {
     "hash": "9a7919d73069",
     "en": "Methods of {@link expm}.",
-    "ja": ""
-  },
-  "ExpmOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "ExpmOptions#summary": {
@@ -207,11 +157,6 @@
   "ExpmOptions.order#summary": {
     "hash": "ad4cd19adf4c",
     "en": "Degree of the Padé approximant or the Taylor polynomial (a positive integer up to 2147483647, R's integer range,\nand with order * (n^3 + 64) at most 2^31 for an n x n matrix, a bound on the time), used only by `\"Pade\"`,\n`\"Taylor\"`, `\"PadeO\"` and `\"TaylorO\"`. Default: 8.",
-    "ja": ""
-  },
-  "KappaOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "KappaOptions#summary": {
@@ -244,11 +189,6 @@
     "en": "With `triangular: true`, use the upper (`\"U\"`) or lower (`\"L\"`) triangle. Default: `\"U\"`.",
     "ja": ""
   },
-  "LuResult#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "LuResult#summary": {
     "hash": "484550b61222",
     "en": "Result of {@link lu}: `x = P L U`.",
@@ -269,19 +209,9 @@
     "en": "Upper triangular (min(m, n) x n).",
     "ja": ""
   },
-  "MatrixInput#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "MatrixInput#summary": {
     "hash": "7e64d1e8d551",
     "en": "A matrix given as an array of rows. Each row may be a plain array or a `Float64Array`;\nall rows must have the same length. A matrix with zero rows is treated as 0 x 0.",
-    "ja": ""
-  },
-  "MatrixOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "MatrixOptions#summary": {
@@ -304,11 +234,6 @@
     "en": "Number of rows (R's `nrow`). Default: the length of the data divided by `ncol` (rounded up), or the length of\nthe data when `ncol` is not given either.",
     "ja": ""
   },
-  "NormOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "NormOptions#summary": {
     "hash": "b24806fe26d4",
     "en": "Options for {@link norm}.",
@@ -319,19 +244,9 @@
     "en": "Which norm to compute (a single character, case-insensitive). Default: `\"O\"`.\n- `\"O\"` or `\"1\"`: one norm, the maximum absolute column sum\n- `\"I\"`: infinity norm, the maximum absolute row sum\n- `\"F\"` or `\"E\"`: Frobenius norm\n- `\"M\"`: the maximum absolute value of the elements\n- `\"2\"`: spectral norm, the largest singular value",
     "ja": ""
   },
-  "NormType#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "NormType#summary": {
     "hash": "c525ec518b9e",
     "en": "Matrix norm type for {@link norm}: `\"O\"`/`\"1\"` (one norm), `\"I\"` (infinity norm), `\"F\"`/`\"E\"` (Frobenius),\n`\"M\"` (maximum modulus) or `\"2\"` (spectral norm). Case-insensitive, as in R.",
-    "ja": ""
-  },
-  "Operand#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "Operand#summary": {
@@ -339,19 +254,9 @@
     "en": "A vector (plain array) or a matrix (array of rows).",
     "ja": ""
   },
-  "OuterFun#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "OuterFun#summary": {
     "hash": "0fd823bbca13",
     "en": "The operation of {@link outer}: `\"*\"`, `\"+\"`, `\"-\"`, `\"/\"`, `\"^\"` or a function of two numbers.",
-    "ja": ""
-  },
-  "OuterOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "OuterOptions#summary": {
@@ -362,11 +267,6 @@
   "OuterOptions.fun#summary": {
     "hash": "bee43b78685b",
     "en": "The operation. Default `\"*\"`.",
-    "ja": ""
-  },
-  "PrcompOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "PrcompOptions#summary": {
@@ -392,11 +292,6 @@
   "PrcompOptions.tol#summary": {
     "hash": "8c9f87e290f8",
     "en": "Drop the components whose standard deviation is at most `tol` times that of the first: `rotation` and `x` keep\nthe components with `sdev > sdev[0] * tol` if they are fewer than k. Default: none are dropped.",
-    "ja": ""
-  },
-  "PrcompResult#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "PrcompResult#summary": {
@@ -429,11 +324,6 @@
     "en": "Scores: the data in the coordinates of the components (observations x components kept).",
     "ja": ""
   },
-  "QR#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "QR#summary": {
     "hash": "a0724206d77a",
     "en": "A QR decomposition returned by {@link qr}, in R's compact form. Pass it to {@link qrQ}, {@link qrR},\n{@link qrCoef} and the other `qr*` functions.",
@@ -464,11 +354,6 @@
     "en": "Whether the decomposition was computed with `lapack: true` (R's `attr(, \"useLAPACK\")`).",
     "ja": ""
   },
-  "QROptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "QROptions#summary": {
     "hash": "e6ac167008c2",
     "en": "Options for {@link qr}.",
@@ -484,11 +369,6 @@
     "en": "Tolerance for detecting linear dependence: a column whose remaining norm falls below `tol` times its\noriginal norm is moved to the right end and reduces the rank. Default: `1e-7`. Used only when `lapack` is `false`.",
     "ja": ""
   },
-  "QRQOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "QRQOptions#summary": {
     "hash": "1f17063cdd18",
     "en": "Options for {@link qrQ}.",
@@ -502,11 +382,6 @@
   "QRQOptions.dvec#summary": {
     "hash": "8841325ae6d6",
     "en": "Diagonal of a diagonal matrix that `Q` is multiplied by on the right. Its length must equal the number of returned columns. Default: all ones.",
-    "ja": ""
-  },
-  "RcondOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "RcondOptions#summary": {
@@ -527,11 +402,6 @@
   "RcondOptions.uplo#summary": {
     "hash": "c4af35b8667b",
     "en": "With `triangular: true`, use the upper (`\"U\"`) or lower (`\"L\"`) triangle; any other value is an error for a\nsquare matrix (a non-square matrix uses R of its QR decomposition, as in R). Default: `\"U\"`.",
-    "ja": ""
-  },
-  "SchurResult#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "SchurResult#summary": {
@@ -559,11 +429,6 @@
     "en": "Real parts of the eigenvalues, in the order of T's diagonal blocks.",
     "ja": ""
   },
-  "SeqOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "SeqOptions#summary": {
     "hash": "66db334c59f9",
     "en": "Options for {@link seq}.",
@@ -579,11 +444,6 @@
     "en": "Desired length.",
     "ja": ""
   },
-  "SolveOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "SolveOptions#summary": {
     "hash": "0a14bee7eab6",
     "en": "Options for {@link solve}.",
@@ -592,11 +452,6 @@
   "SolveOptions.tol#summary": {
     "hash": "ab0b80671601",
     "en": "Tolerance for detecting singularity: throws if the estimated reciprocal condition number (one norm) is\nsmaller than this. A value of 0 or less disables the check. Default: `Number.EPSILON`.",
-    "ja": ""
-  },
-  "SvdOptions#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "SvdOptions#summary": {
@@ -612,11 +467,6 @@
   "SvdOptions.nv#summary": {
     "hash": "75a767c5200c",
     "en": "Number of right singular vectors to compute. Default: `min(nrow, ncol)`. A fraction is truncated toward zero, and values above the number of columns (`Infinity` included) are reduced to it. Negative values and `NaN` are errors.",
-    "ja": ""
-  },
-  "SvdResult#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "SvdResult#summary": {
@@ -639,19 +489,9 @@
     "en": "The right singular vectors as columns (`ncol` x `nv`, array of rows). Omitted when `nv` is 0.",
     "ja": ""
   },
-  "VectorOrMatrix#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "VectorOrMatrix#summary": {
     "hash": "3d35dc7ed54e",
     "en": "A vector or a matrix (array of rows). Used for arguments that accept either, such as the\nright-hand side of `backsolve`; a vector is treated as a one-column matrix, as in R.",
-    "ja": ""
-  },
-  "add#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "add#@example": {
@@ -662,11 +502,6 @@
   "add#summary": {
     "hash": "2e939962680c",
     "en": "Element-wise sum with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to\nR's `+`.",
-    "ja": ""
-  },
-  "backsolve(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "backsolve(0)#@example": {
@@ -749,11 +584,6 @@
     "en": "Solves the triangular system `r y = x`.",
     "ja": ""
   },
-  "cbind(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "cbind(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -764,11 +594,6 @@
     "en": "Combine vectors and matrices as columns. Equivalent to R's `cbind()`. Vectors are recycled to the number of rows.\nGiven data frames (objects of columns), puts their columns side by side, as R's `cbind()` of data frames: all must\nhave the same number of rows, and a column name may occur only once.",
     "ja": ""
   },
-  "cbind(1)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "cbind(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -777,11 +602,6 @@
   "cbind(1)#summary": {
     "hash": "57166f0b04f6",
     "en": "Combine vectors and matrices as columns. Equivalent to R's `cbind()`. Vectors are recycled to the number of rows.\nGiven data frames (objects of columns), puts their columns side by side, as R's `cbind()` of data frames: all must\nhave the same number of rows, and a column name may occur only once.",
-    "ja": ""
-  },
-  "chol(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "chol(0)#@example": {
@@ -854,11 +674,6 @@
     "en": "Cholesky decomposition, with or without pivoting.",
     "ja": ""
   },
-  "chol2inv#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "chol2inv#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -882,11 +697,6 @@
   "chol2inv#summary": {
     "hash": "ccc939d84adf",
     "en": "Inverse of a matrix from its Cholesky factor: computes `(t(R) R)^-1`. Equivalent to R's `chol2inv()`.\n\nOnly the upper triangle of the top-left `size` x `size` block of `x` is used. Throws if a diagonal element is zero.",
-    "ja": ""
-  },
-  "crossprod#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "crossprod#@example": {
@@ -914,11 +724,6 @@
     "en": "Matrix cross-product `t(x) %*% y`, or `t(x) %*% x` when `y` is omitted. Equivalent to R's `crossprod()`.\n\nA vector argument is treated as a one-column matrix.",
     "ja": ""
   },
-  "det#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "det#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -937,11 +742,6 @@
   "det#summary": {
     "hash": "78c1a23aa6d1",
     "en": "Determinant of a square matrix. Equivalent to R's `det()`.",
-    "ja": ""
-  },
-  "determinant#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "determinant#@example": {
@@ -969,11 +769,6 @@
     "en": "Determinant as modulus and sign. Equivalent to R's `determinant()`.\n\nComputed from an LU decomposition; the log modulus is the sum of the logs of the absolute diagonal elements.",
     "ja": ""
   },
-  "diag#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "diag#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -984,11 +779,6 @@
     "en": "Matrix diagonals, diagonal matrices and identity matrices. Equivalent to R's `diag()`. It has three meanings: the\ndiagonal of a matrix (as a vector); the diagonal matrix of a vector of length 2 or more (its values recycled along the diagonal of an `nrow` x `ncol` matrix when given); and for a single\nnumber n, the n x n identity matrix (with `nrow`/`ncol`, a matrix with that number on the diagonal).",
     "ja": ""
   },
-  "divide#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "divide#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -997,11 +787,6 @@
   "divide#summary": {
     "hash": "d75ac3a92301",
     "en": "Element-wise quotient with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to\nR's `/`.",
-    "ja": ""
-  },
-  "eigen#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "eigen#@example": {
@@ -1029,11 +814,6 @@
     "en": "Eigenvalues and eigenvectors of a square matrix. Equivalent to R's `eigen()`.\n\nSymmetric matrices use tridiagonalization and the implicit QL method; other matrices use Hessenberg reduction\nand the Francis double-shift QR method, after balancing the matrix as LAPACK's `dgebal` does. R uses LAPACK, so eigenvalues agree up to rounding, but\neigenvector signs may differ from R (both are correct); for repeated eigenvalues the basis may differ.\nComplex eigenvalues and eigenvectors are returned as separate real and imaginary parts (`valuesIm`,\n`vectorsIm`). Each complex eigenvector is scaled to unit length with its largest component real and positive.\nThrows on `NaN` or infinite values.",
     "ja": ""
   },
-  "expm#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "expm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1057,11 +837,6 @@
   "expm#summary": {
     "hash": "0343f593c7d4",
     "en": "Matrix exponential. Equivalent to `expm::expm(x, method, order)` in R. The methods are `\"Higham08.b\"` (the\ndefault), `\"Higham08\"`, `\"Pade\"`, `\"Taylor\"`, `\"PadeO\"` and `\"TaylorO\"`.\n\n`\"Higham08.b\"` and `\"Higham08\"` use the scaling and squaring method with Padé approximants of degree 3, 5, 7, 9 or\n13 (Higham 2005), with or without balancing first, and throw if a linear system of the method is computationally\nsingular. The other methods use scaling and squaring with a Taylor polynomial or a diagonal Padé approximant of\ndegree `order` (the Padé quotient by the conjugate gradient squared method, as expm does).",
-    "ja": ""
-  },
-  "forwardsolve(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "forwardsolve(0)#@example": {
@@ -1144,11 +919,6 @@
     "en": "Solves the triangular system `l y = x`.",
     "ja": ""
   },
-  "ginv#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "ginv#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1172,11 +942,6 @@
   "ginv#summary": {
     "hash": "d9b63b50a124",
     "en": "Moore-Penrose generalized inverse. Equivalent to `MASS::ginv()` in R.\n\nComputed from the singular value decomposition; singular values not greater than `tol` times the largest\nsingular value are treated as zero.",
-    "ja": ""
-  },
-  "kappa#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "kappa#@example": {
@@ -1204,11 +969,6 @@
     "en": "Condition number of a matrix, estimated or exact. Equivalent to R's `kappa()`.\n\nBy default (as in R) this is the LINPACK estimate of the one-norm condition number, computed on the\ntriangular factor `R` of the QR decomposition. With `exact: true` and the default `norm: \"2\"`, it is the ratio\nof the largest to the smallest singular value (computed with {@link svd}); `Infinity` if the matrix is singular.",
     "ja": ""
   },
-  "kronecker#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "kronecker#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1217,11 +977,6 @@
   "kronecker#summary": {
     "hash": "8901ab88db86",
     "en": "Kronecker product. Equivalent to R's `kronecker()`. Two vectors give a vector.",
-    "ja": ""
-  },
-  "lu#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "lu#@example": {
@@ -1234,11 +989,6 @@
     "en": "LU decomposition with partial (row) pivoting, `x = P L U`. Equivalent to R's `Matrix::lu()`. The factors are those\nof `Matrix::expand(Matrix::lu(x))` (LAPACK's dgetrf). Throws on `NaN` or infinite values (`Matrix::lu` returns factors\nwith NaN or infinite values).",
     "ja": ""
   },
-  "matMul#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "matMul#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1247,11 +997,6 @@
   "matMul#summary": {
     "hash": "4fbc397115ec",
     "en": "Matrix product. Equivalent to R's `%*%`. A vector is taken as a row or a column so that the product is defined\n(two vectors give their inner product as a 1 x 1 matrix).",
-    "ja": ""
-  },
-  "matrix#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "matrix#@example": {
@@ -1264,11 +1009,6 @@
     "en": "Build a matrix from data, recycled to fill it. Equivalent to R's `matrix()`. Filled by columns unless `byrow`.",
     "ja": ""
   },
-  "multiply#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "multiply#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1277,11 +1017,6 @@
   "multiply#summary": {
     "hash": "47155ced58d0",
     "en": "Element-wise product with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to\nR's `*`. The matrix product is {@link matMul}.",
-    "ja": ""
-  },
-  "norm#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "norm#@example": {
@@ -1309,11 +1044,6 @@
     "en": "Matrix norm. Equivalent to R's `norm()`.\n\nReturns `NaN` if the matrix contains `NaN`. For `type: \"2\"`, an infinite element is an error.",
     "ja": ""
   },
-  "outer(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "outer(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1334,11 +1064,6 @@
     "en": "Outer product of two vectors, with the operation in the options: `outer(x, y, { fun: \"+\" })`.",
     "ja": ""
   },
-  "prcomp#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "prcomp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1347,11 +1072,6 @@
   "prcomp#summary": {
     "hash": "90ad464a17b3",
     "en": "Principal components of the columns of `x` (observations as rows). Equivalent to R's `prcomp()`. The sign of each\ncomponent is arbitrary, as in R.",
-    "ja": ""
-  },
-  "qr#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "qr#@example": {
@@ -1377,11 +1097,6 @@
   "qr#summary": {
     "hash": "694778a08374",
     "en": "QR decomposition. Equivalent to R's `qr()`.\n\nBy default this uses Householder transformations with R's LINPACK-style limited column pivoting: columns that\nare (nearly) linearly dependent on earlier ones, as judged by `tol`, are moved to the right end and the rank is\nreduced. With `lapack: true` it uses LAPACK-style column pivoting (R's `LAPACK = TRUE`).\n\nThe default method throws on `NaN` or infinite values. With `lapack: true`, such input does not throw and the\nresult may differ from R's (which is not meaningful either).",
-    "ja": ""
-  },
-  "qrCoef(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "qrCoef(0)#@example": {
@@ -1447,11 +1162,6 @@
   "qrCoef(2)#summary": {
     "hash": "883628392157",
     "en": "Least-squares coefficients.",
-    "ja": ""
-  },
-  "qrFitted(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "qrFitted(0)#@example": {
@@ -1534,11 +1244,6 @@
     "en": "Least-squares fitted values.",
     "ja": ""
   },
-  "qrQ#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "qrQ#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1562,11 +1267,6 @@
   "qrQ#summary": {
     "hash": "def7fde3b8f7",
     "en": "Recovers the orthogonal matrix `Q` from a QR decomposition. Equivalent to R's `qr.Q()`.",
-    "ja": ""
-  },
-  "qrQty(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "qrQty(0)#@example": {
@@ -1634,11 +1334,6 @@
     "en": "Computes `t(Q) %*% y`.",
     "ja": ""
   },
-  "qrQy(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "qrQy(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1704,11 +1399,6 @@
     "en": "Computes `Q %*% y`.",
     "ja": ""
   },
-  "qrR#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "qrR#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1732,11 +1422,6 @@
   "qrR#summary": {
     "hash": "66ee4ac19749",
     "en": "Recovers the upper triangular matrix `R` from a QR decomposition. Equivalent to R's `qr.R()`.\n\nThe columns stay in pivoted order (as in R); use `q.pivot` to map them back.",
-    "ja": ""
-  },
-  "qrResid(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "qrResid(0)#@example": {
@@ -1804,11 +1489,6 @@
     "en": "Least-squares residuals.",
     "ja": ""
   },
-  "qrSolve#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "qrSolve#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1839,11 +1519,6 @@
     "en": "Solves `a x = b` in the least-squares sense using a QR decomposition. Equivalent to R's `qr.solve()`.\n\nThrows if the rank is less than `min(nrow, ncol)`. When `b` is omitted, returns the inverse of `a` (square\nmatrices only). For a wide matrix, coefficients of unused columns are set to 0 (as in R).",
     "ja": ""
   },
-  "qrX#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "qrX#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1869,11 +1544,6 @@
     "en": "Reconstructs the original matrix from a QR decomposition, with columns back in their original order.\nEquivalent to R's `qr.X()`.\n\nIf the decomposition was pivoted, `ncol` smaller than the number of columns is an error (as in R).",
     "ja": ""
   },
-  "rbind(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "rbind(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1884,11 +1554,6 @@
     "en": "Combine vectors and matrices as rows. Equivalent to R's `rbind()`. Given data frames (objects of columns), stacks\ntheir rows, as R's `rbind()` of data frames: all must have the same column names, matched by name (the result has\nthe first frame's column order).",
     "ja": ""
   },
-  "rbind(1)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "rbind(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1897,11 +1562,6 @@
   "rbind(1)#summary": {
     "hash": "5d9c1ad0e05d",
     "en": "Combine vectors and matrices as rows. Equivalent to R's `rbind()`. Given data frames (objects of columns), stacks\ntheir rows, as R's `rbind()` of data frames: all must have the same column names, matched by name (the result has\nthe first frame's column order).",
-    "ja": ""
-  },
-  "rcond#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "rcond#@example": {
@@ -1929,11 +1589,6 @@
     "en": "Estimate of the reciprocal condition number of a matrix. Equivalent to R's `rcond()`.\n\nUses LAPACK's estimators (`dgecon` on the LU decomposition, or `dtrcon` for triangular matrices). For a\nnon-square matrix, the estimate is computed on the triangular factor `R` of its QR decomposition\n(of the transpose if the matrix is wide). Returns 0 for an exactly singular matrix.",
     "ja": ""
   },
-  "schur#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "schur#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1954,11 +1609,6 @@
     "en": "Real Schur decomposition of a square matrix. Equivalent to R's `Matrix::Schur(x)`.\n\nReturns an orthogonal `Q` and an upper quasi-triangular `T` with `x = Q T Q'`. `T` has 1 x 1 diagonal blocks for\nreal eigenvalues and standardised 2 x 2 blocks `[[a, b], [c, a]]` (`b c < 0`) for complex conjugate pairs\n`a ± sqrt(-b c) i`. The decomposition is not unique: the order of the diagonal blocks and the signs of `Q`'s\ncolumns may differ from R's (both are correct). Throws on `NaN` or infinite values.",
     "ja": ""
   },
-  "seq#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "seq#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1967,11 +1617,6 @@
   "seq#summary": {
     "hash": "32163d177f07",
     "en": "Regular sequences. Equivalent to R's `seq()`. `seq(from, to)` steps by ±1; `by` steps by the increment, up to\n`to`; `lengthOut` gives that many values, both ends exact. `from` or `to` may be omitted (`undefined`) when the\nother two are given; `seq(n)` alone is `1, 2, ..., n`.",
-    "ja": ""
-  },
-  "solve(0)#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "solve(0)#@example": {
@@ -2084,11 +1729,6 @@
     "en": "Solves the linear system `a x = b`, or inverts `a` when `b` is omitted.",
     "ja": ""
   },
-  "subtract#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "subtract#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2097,11 +1737,6 @@
   "subtract#summary": {
     "hash": "fe0f15394e26",
     "en": "Element-wise difference with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to\nR's `-`.",
-    "ja": ""
-  },
-  "svd#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "svd#@example": {
@@ -2129,11 +1764,6 @@
     "en": "Singular value decomposition. Equivalent to R's `svd()`.\n\nUses the Golub-Reinsch algorithm, while R uses LAPACK's `dgesdd`. Singular values agree with R up to\nrounding, but the signs of singular vectors may differ from R (both are correct); for repeated singular\nvalues the vectors may span the same subspace with a different basis. Singular vectors beyond\n`min(nrow, ncol)` are a basis of the orthogonal complement and do not match R. Throws on `NaN` or infinite values.",
     "ja": ""
   },
-  "t#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
-    "ja": ""
-  },
   "t#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2142,11 +1772,6 @@
   "t#summary": {
     "hash": "8d34dd5ef7c8",
     "en": "Transpose. Equivalent to R's `t()`. A vector becomes a 1-row matrix.",
-    "ja": ""
-  },
-  "tcrossprod#@category": {
-    "hash": "2e0b924981b4",
-    "en": "Linear algebra",
     "ja": ""
   },
   "tcrossprod#@example": {

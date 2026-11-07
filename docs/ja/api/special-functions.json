@@ -1,9 +1,4 @@
 {
-  "BesselOptions#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "BesselOptions#summary": {
     "hash": "60b278e467b1",
     "en": "Options for {@link besselI} and {@link besselK}.",
@@ -12,11 +7,6 @@
   "BesselOptions.exponScaled#summary": {
     "hash": "65b69ebcb364",
     "en": "If `true`, return `exp(-x) I(x, nu)` (for `besselI`) or `exp(x) K(x, nu)` (for `besselK`). Default `false`.",
-    "ja": ""
-  },
-  "GammaincResult#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "GammaincResult#summary": {
@@ -44,11 +34,6 @@
     "en": "Upper incomplete gamma function Gamma(a, x) = integral from x to Inf of t^(a-1) e^-t dt.",
     "ja": ""
   },
-  "RCompatibleOptions#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "RCompatibleOptions#summary": {
     "hash": "bd224cfa7264",
     "en": "Option shared by functions whose edge cases R defines differently from the mathematical function",
@@ -57,11 +42,6 @@
   "RCompatibleOptions.rCompatible#summary": {
     "hash": "b209632ddee9",
     "en": "`true` (default) returns what R returns at the edge cases listed for each function; `false` returns the\nmathematical value there instead (see docs/differences-from-r.md).",
-    "ja": ""
-  },
-  "besselI#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "besselI#@example": {
@@ -94,11 +74,6 @@
     "en": "Modified Bessel function of the first kind. Equivalent to R's\n`besselI(x, nu, expon.scaled = FALSE)`. Takes single numbers.",
     "ja": ""
   },
-  "besselJ#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "besselJ#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -122,11 +97,6 @@
   "besselJ#summary": {
     "hash": "ed3d9f911775",
     "en": "Bessel function of the first kind. Equivalent to R's `besselJ(x, nu)`. Takes single numbers.",
-    "ja": ""
-  },
-  "besselK#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "besselK#@example": {
@@ -159,11 +129,6 @@
     "en": "Modified Bessel function of the second kind. Equivalent to R's\n`besselK(x, nu, expon.scaled = FALSE)`. Takes single numbers.",
     "ja": ""
   },
-  "besselY#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "besselY#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -189,11 +154,6 @@
     "en": "Bessel function of the second kind. Equivalent to R's `besselY(x, nu)`. Takes single numbers.",
     "ja": ""
   },
-  "beta#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "beta#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -217,11 +177,6 @@
   "beta#summary": {
     "hash": "f0c3fe92184c",
     "en": "Beta function B(a, b). Equivalent to R's `beta()`. Takes single numbers.",
-    "ja": ""
-  },
-  "choose#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "choose#@example": {
@@ -254,11 +209,6 @@
     "en": "Binomial coefficient. Equivalent to R's `choose()`. Takes single numbers.\n\n`n` may be any real number. `k` is rounded to the nearest integer (as R does, which also warns\nwhen `k` is not close to an integer); `choose(n, k)` is 0 for `k < 0` and 1 for `k = 0`.\nFor integer `n` the result is an integer (exact up to 2^53).\n\nEdge cases where R differs from the mathematical value, followed by default (`rCompatible: false`\nreturns the mathematical value instead):\n- `n` within 1e-9 max(1, |n|) of an integer is treated as that integer, so `choose(1e-10, 2)` is 0\n  (mathematically -5e-11); for `n < 0` and `k >= 30` the tolerance is relative to `k - 1 - n`;\n- `choose(n, Infinity)` is 0 for `n >= 0` (otherwise `NaN`);\n- `choose(±Infinity, k)` is `NaN` for `k >= 30` (`±Infinity` below).",
     "ja": ""
   },
-  "digamma#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "digamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -277,11 +227,6 @@
   "digamma#summary": {
     "hash": "bd7b6c5d50ca",
     "en": "Digamma function, the derivative of `lgamma`. Equivalent to R's `digamma()`. Takes a single number.",
-    "ja": ""
-  },
-  "erf#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "erf#@example": {
@@ -304,11 +249,6 @@
     "en": "Error function, erf(x) = 2 / sqrt(pi) * integral from 0 to x of exp(-t^2) dt.\nNot an R function. R writes it as `2 * pnorm(x * sqrt(2)) - 1`, which loses the relative accuracy of small x.",
     "ja": ""
   },
-  "erfc#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "erfc#@example": {
     "hash": "a24bf871a9e4",
     "en": "⟦code1⟧\n\nChanges from xsf: exp(-x^2) is formed from x^2 = hi + lo exact (the rounding of x^2 is 33 ε relative at x = 5.7),\nand below the normal range exp(-700) is applied last so that subnormal results (x up to 27.2) are not flushed to 0.",
@@ -329,11 +269,6 @@
     "en": "Complementary error function, erfc(x) = 1 - erf(x), accurate in the upper tail (down to the subnormal range near\nx = 27).\nNot an R function. R writes it as `2 * pnorm(x * sqrt(2), lower.tail = FALSE)`.",
     "ja": ""
   },
-  "erfcinv#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "erfcinv#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -344,11 +279,6 @@
     "en": "Inverse of the complementary error function: the x with erfc(x) = z, for 0 <= z <= 2 (NaN outside).\nEquivalent to `pracma::erfcinv()` in R.",
     "ja": ""
   },
-  "erfinv#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "erfinv#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -357,11 +287,6 @@
   "erfinv#summary": {
     "hash": "bb5da6436929",
     "en": "Inverse of the error function: the x with erf(x) = y, for -1 <= y <= 1 (NaN outside).\nEquivalent to `pracma::erfinv()` in R. Unlike pracma, it is accurate for small |y| (pracma's\n`qnorm((1 + y) / 2)` loses it: `erfinv(1e-300)` is -0 there).",
-    "ja": ""
-  },
-  "factorial#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "factorial#@example": {
@@ -384,11 +309,6 @@
     "en": "Factorial. Equivalent to R's `factorial()`. Takes a single number: `gamma(x + 1)`, defined for\nany real `x` that is not a negative integer.",
     "ja": ""
   },
-  "gamma#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "gamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -409,11 +329,6 @@
     "en": "Gamma function. Equivalent to R's `gamma()`. Takes a single number.",
     "ja": ""
   },
-  "gammainc#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "gammainc#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -422,11 +337,6 @@
   "gammainc#summary": {
     "hash": "38ac0f807785",
     "en": "The non-regularized incomplete gamma functions gamma(a, x) and Gamma(a, x) and their logs.\nEquivalent to `pracma::gammainc()` in R. `pracma::gammainc(x, a)` returns them as `lowinc` and `uppinc`;\nin base R they are `pgamma(x, a) * gamma(a)` and `pgamma(x, a, lower.tail = FALSE) * gamma(a)`.",
-    "ja": ""
-  },
-  "lbeta#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "lbeta#@example": {
@@ -452,11 +362,6 @@
   "lbeta#summary": {
     "hash": "ae9d7aef8ca3",
     "en": "Natural logarithm of the absolute value of the beta function, log|B(a, b)|.\nEquivalent to R's `lbeta()`. Takes single numbers.\n\nFor a, b > 0 with the larger argument above 15, it is computed as\nlgamma(small) - [lgamma(large + small) - lgamma(large)] with the bracketed difference\nevaluated without cancellation, so accuracy is kept for large arguments.",
-    "ja": ""
-  },
-  "lchoose#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "lchoose#@example": {
@@ -489,11 +394,6 @@
     "en": "Logarithm of the absolute value of the binomial coefficient. Equivalent to R's `lchoose()`.\nTakes single numbers: `log(abs(choose(n, k)))`, computed without overflow.\n\nEdge cases where R differs from the mathematical value, followed by default (`rCompatible: false`\nreturns the mathematical value instead): `n` within 1e-9 max(1, |n|) of an integer is treated as that\ninteger (for `k >= 2`; for `n < 0` the tolerance is relative to `k - 1 - n`); `lchoose(n, Infinity)` is `-Infinity` for `n >= 0` (otherwise `NaN`); `lchoose(±Infinity, k)`\nis `NaN` for `k >= 2` (`Infinity` for `k = 1`).",
     "ja": ""
   },
-  "lfactorial#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "lfactorial#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -512,11 +412,6 @@
   "lfactorial#summary": {
     "hash": "6a545f094f11",
     "en": "Logarithm of the factorial. Equivalent to R's `lfactorial()`. Takes a single number:\n`lgamma(x + 1)`, computed without forming `x + 1` near 0 so that small `x` keep their accuracy.",
-    "ja": ""
-  },
-  "lgamma#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "lgamma#@example": {
@@ -539,11 +434,6 @@
     "en": "Natural logarithm of the absolute value of the gamma function, log|Gamma(x)|.\nEquivalent to R's `lgamma()`. Takes a single number.\n\nNear the zeros x = 1 and x = 2 the result keeps full relative accuracy\n(computed as lgamma(1 + e) = lgamma1p(e) and lgamma(2 + e) = lgamma1p(e) + log1p(e)).",
     "ja": ""
   },
-  "lgamma1p#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "lgamma1p#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -562,11 +452,6 @@
   "lgamma1p#summary": {
     "hash": "748bcbfb8016",
     "en": "lgamma(1 + x) = log|Gamma(1 + x)|, accurate near x = 0 and x = 1, where it is near 0.\nNot an R function. R has it only in its C API (Rmath.h), as `lgamma1p`.",
-    "ja": ""
-  },
-  "log1mexp#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "log1mexp#@example": {
@@ -589,11 +474,6 @@
     "en": "log(1 - exp(-x)) for x >= 0, accurate for both small and large x; note the sign of the argument.\nNot an R function. R has it only in its C API (Rmath.h), as `log1mexp`; the DPQ package also has it.",
     "ja": ""
   },
-  "log1pexp#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "log1pexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -612,11 +492,6 @@
   "log1pexp#summary": {
     "hash": "c804e5a60107",
     "en": "log(1 + exp(x)), without overflow for large x and accurate for very negative x.\nNot an R function. R has it only in its C API (Rmath.h), as `log1pexp`; the DPQ package also has it.",
-    "ja": ""
-  },
-  "log1pmx#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "log1pmx#@example": {
@@ -639,11 +514,6 @@
     "en": "log(1 + x) - x, accurate for small |x| (where log1p(x) - x would cancel).\nNot an R function. R has it only in its C API (Rmath.h), as `log1pmx`.",
     "ja": ""
   },
-  "perm#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
-    "ja": ""
-  },
   "perm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -652,11 +522,6 @@
   "perm#summary": {
     "hash": "c00fbcb2621f",
     "en": "Number of ordered selections of k items from n: n! / (n - k)!, defined for real n >= 0 as\nGamma(n + 1) / Gamma(n - k + 1) (0 for an integer n < k). Negative arguments give NaN.\nNot an R function. It is jStat's `permutation`; R has only `choose()` (unordered selections).",
-    "ja": ""
-  },
-  "psigamma#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "psigamma#@example": {
@@ -687,11 +552,6 @@
   "psigamma#summary": {
     "hash": "9b69e65c1b0d",
     "en": "Polygamma function, the derivative of order `deriv` of `digamma`. Equivalent to R's\n`psigamma()`. Takes a single number.\n\n`psigamma(-Infinity, deriv)` is `Infinity` for odd `deriv` as in R, which treats it like the poles\n(`NaN` with `rCompatible: false`). Unlike R, which returns `NaN` for `x < 0` with `deriv >= 6` and\nwhere the result overflows, the value is computed there.",
-    "ja": ""
-  },
-  "trigamma#@category": {
-    "hash": "1f46f124dc01",
-    "en": "Special functions",
     "ja": ""
   },
   "trigamma#@example": {

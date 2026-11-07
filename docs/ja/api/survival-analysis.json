@@ -1,9 +1,4 @@
 {
-  "CoxphControl#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
-    "ja": ""
-  },
   "CoxphControl#summary": {
     "hash": "ae1b9dd0bb09",
     "en": "Control of the Newton-Raphson iterations of {@link coxph} (R's `coxph.control`).",
@@ -27,11 +22,6 @@
   "CoxphControl.tolerInf#summary": {
     "hash": "3216272d8786",
     "en": "Tolerance of the check for infinite coefficients. Default sqrt(`eps`).",
-    "ja": ""
-  },
-  "CoxphOptions#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
     "ja": ""
   },
   "CoxphOptions#summary": {
@@ -72,11 +62,6 @@
   "CoxphOptions.weights#summary": {
     "hash": "3c3f079882e5",
     "en": "Case weights (positive integers; other weights make R use a robust variance, which is not supported yet).",
-    "ja": ""
-  },
-  "CoxphResult#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
     "ja": ""
   },
   "CoxphResult#summary": {
@@ -209,11 +194,6 @@
     "en": "Alias of `z`: the same array.",
     "ja": ""
   },
-  "CoxphTest#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
-    "ja": ""
-  },
   "CoxphTest#summary": {
     "hash": "7756ec0c3f8f",
     "en": "A test statistic with its degrees of freedom and upper chi-squared tail.",
@@ -234,11 +214,6 @@
     "en": "The chi-squared statistic (R's `test`).",
     "ja": ""
   },
-  "SurvdiffOptions#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
-    "ja": ""
-  },
   "SurvdiffOptions#summary": {
     "hash": "c7e02f5eeeb1",
     "en": "Options for {@link survdiff}.",
@@ -247,11 +222,6 @@
   "SurvdiffOptions.rho#summary": {
     "hash": "0c4651147e49",
     "en": "Exponent of the weights S(t-)^rho (pooled Kaplan-Meier estimate just before each event time). Default 0.",
-    "ja": ""
-  },
-  "SurvdiffResult#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
     "ja": ""
   },
   "SurvdiffResult#summary": {
@@ -309,19 +279,9 @@
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
     "ja": ""
   },
-  "SurvfitConfType#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
-    "ja": ""
-  },
   "SurvfitConfType#summary": {
     "hash": "2329064f9936",
     "en": "Confidence interval type of {@link survfit}.",
-    "ja": ""
-  },
-  "SurvfitOptions#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
     "ja": ""
   },
   "SurvfitOptions#summary": {
@@ -342,11 +302,6 @@
   "SurvfitOptions.group#summary": {
     "hash": "cbd449982c37",
     "en": "Group labels, one per observation: one curve per group. Omitted: a single curve.",
-    "ja": ""
-  },
-  "SurvfitResult#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
     "ja": ""
   },
   "SurvfitResult#summary": {
@@ -414,11 +369,6 @@
     "en": "Upper limit of the pointwise confidence interval of S(t)",
     "ja": ""
   },
-  "coxph#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
-    "ja": ""
-  },
   "coxph#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -449,11 +399,6 @@
     "en": "Cox proportional hazards regression. Equivalent to R's `survival::coxph()`. As\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, control)` for right-censored data, with the\nvalues of `summary(fit)`.\n\nRows with a missing time, status, covariate, weight or stratum are dropped. Times within sqrt(eps) of each other are\ntreated as tied. Covariates whose values all lie in `nocenter` are not centred; the others are centred by their\nweighted means, which only shifts the linear predictors. R's warnings (non-convergence, possibly infinite\ncoefficients) are returned in `warnings`.",
     "ja": ""
   },
-  "survdiff#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
-    "ja": ""
-  },
   "survdiff#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -482,11 +427,6 @@
   "survdiff#summary": {
     "hash": "9e64215bc011",
     "en": "Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for\n`rho = 0`. Equivalent to R's `survival::survdiff()`. As `survdiff(Surv(time, status) ~ group, rho = rho)`.\n\nRows with a missing time, status or group are dropped.",
-    "ja": ""
-  },
-  "survfit#@category": {
-    "hash": "782c73833bcc",
-    "en": "Survival analysis",
     "ja": ""
   },
   "survfit#@example": {

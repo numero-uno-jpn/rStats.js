@@ -1,17 +1,7 @@
 {
-  "Alternative#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "Alternative#summary": {
     "hash": "e27a36e52b9f",
     "en": "Alternative hypothesis of a test, as in R. Test options also accept unambiguous\nabbreviations (`\"two\"`, `\"l\"`, `\"g\"`), like R's `match.arg()`.",
-    "ja": ""
-  },
-  "AnsariTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "AnsariTestOptions#summary": {
@@ -39,54 +29,9 @@
     "en": "Exact p-value. Default: exact when both samples have fewer than 50 values and there are no ties. The exact\ndistribution keeps 2 (m + 1) (floor((m + n + 1)^2 / 4) + 1) doubles and makes m + n passes over half of them;\nbeyond 2^24 doubles or 2^32 steps (m = n = 203, or m = 1 and n = 2047) it is a RangeError (R computes it however\nlarge).",
     "ja": ""
   },
-  "BartlettTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BartlettTestResult#summary": {
     "hash": "604369215035",
     "en": "Result of {@link bartlettTest}. Has no `alternative`, as R's `bartlett.test()` returns none.",
-    "ja": ""
-  },
-  "BartlettTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "BartlettTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "BartlettTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "BartlettTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "BartlettTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "BartlettTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "BartlettTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "BartlettTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
     "ja": ""
   },
   "BartlettTestResult.parameter#summary": {
@@ -94,39 +39,9 @@
     "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
     "ja": ""
   },
-  "BartlettTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "BartlettTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "BartlettTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "BartlettTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "BinomCIMethod#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BinomCIMethod#summary": {
     "hash": "6e6e56763d95",
     "en": "Methods of {@link binomCI}.",
-    "ja": ""
-  },
-  "BinomCIOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "BinomCIOptions#summary": {
@@ -149,29 +64,14 @@
     "en": "`\"two.sided\"` (default), `\"left\"` (lower limit only) or `\"right\"` (upper limit only); abbreviations accepted.",
     "ja": ""
   },
-  "BinomCIResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BinomCIResult#summary": {
     "hash": "baed93a6d75d",
     "en": "Result of {@link binomCI}.",
     "ja": ""
   },
-  "BinomDiffCIMethod#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BinomDiffCIMethod#summary": {
     "hash": "e41cfb2d59cd",
     "en": "Methods of {@link binomDiffCI}.",
-    "ja": ""
-  },
-  "BinomDiffCIOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "BinomDiffCIOptions#summary": {
@@ -194,29 +94,14 @@
     "en": "`\"two.sided\"` (default), `\"left\"` (lower limit only) or `\"right\"` (upper limit only); abbreviations accepted.",
     "ja": ""
   },
-  "BinomDiffCIResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BinomDiffCIResult#summary": {
     "hash": "f0cfc2244299",
     "en": "Result of {@link binomDiffCI}.",
     "ja": ""
   },
-  "BinomDiffEquivalenceMethod#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BinomDiffEquivalenceMethod#summary": {
     "hash": "0fbf66dba10f",
     "en": "Statistics of {@link binomDiffEquivalenceTest}.",
-    "ja": ""
-  },
-  "BinomDiffEquivalenceTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "BinomDiffEquivalenceTestOptions#summary": {
@@ -237,11 +122,6 @@
   "BinomDiffEquivalenceTestOptions.method#summary": {
     "hash": "c68d6eee7c6e",
     "en": "The statistic: `\"mn\"` (Miettinen-Nurminen score, the default), `\"mee\"` (Farrington-Manning score) or `\"wald\"`.\n Unambiguous abbreviations are accepted.",
-    "ja": ""
-  },
-  "BinomDiffEquivalenceTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "BinomDiffEquivalenceTestResult#summary": {
@@ -309,19 +189,9 @@
     "en": "Warnings (none: input without a defined result is an error).",
     "ja": ""
   },
-  "BinomRatioCIMethod#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BinomRatioCIMethod#summary": {
     "hash": "e9b566a9f01f",
     "en": "Methods of {@link binomRatioCI}.",
-    "ja": ""
-  },
-  "BinomRatioCIOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "BinomRatioCIOptions#summary": {
@@ -344,19 +214,9 @@
     "en": "`\"two.sided\"` (default), `\"left\"` (lower limit only) or `\"right\"` (upper limit only); abbreviations accepted.",
     "ja": ""
   },
-  "BinomRatioCIResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BinomRatioCIResult#summary": {
     "hash": "f09668e439d6",
     "en": "Result of {@link binomRatioCI}.",
-    "ja": ""
-  },
-  "BinomTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "BinomTestOptions#summary": {
@@ -379,19 +239,9 @@
     "en": "Hypothesized probability of success. Default `0.5`.",
     "ja": ""
   },
-  "BinomTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BinomTestResult#summary": {
     "hash": "d85880b3247a",
     "en": "Result of {@link binomTest}.",
-    "ja": ""
-  },
-  "BinomTestResult.alternative#summary": {
-    "hash": "c113a2d4dc0a",
-    "en": "Alternative hypothesis, always in full form.",
     "ja": ""
   },
   "BinomTestResult.confInt#summary": {
@@ -409,59 +259,14 @@
     "en": "Observed proportion of successes.",
     "ja": ""
   },
-  "BinomTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "BinomTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
   "BinomTestResult.nullValue#summary": {
     "hash": "86f472baf058",
     "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
     "ja": ""
   },
-  "BinomTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "BinomTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
   "BinomTestResult.parameter#summary": {
     "hash": "c086fc77b305",
     "en": "Number of trials (`parameterName` is `\"number of trials\"`).",
-    "ja": ""
-  },
-  "BinomTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "BinomTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "BinomTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "BinomTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "BoschlooTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "BoschlooTestOptions#summary": {
@@ -479,44 +284,9 @@
     "en": "Two-sided method: `\"square\"` (the default, as Exact) or `\"central\"`. Ignored for one-sided tests.",
     "ja": ""
   },
-  "BoschlooTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BoschlooTestResult#summary": {
     "hash": "7afa4bdac661",
     "en": "Result of {@link boschlooTest}.",
-    "ja": ""
-  },
-  "BoschlooTestResult.alternative#summary": {
-    "hash": "c113a2d4dc0a",
-    "en": "Alternative hypothesis, always in full form.",
-    "ja": ""
-  },
-  "BoschlooTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "BoschlooTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "BoschlooTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "BoschlooTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "BoschlooTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
     "ja": ""
   },
   "BoschlooTestResult.nuisanceParameter#summary": {
@@ -524,59 +294,9 @@
     "en": "The common proportion pi under the null hypothesis at which the supremum (the p-value) is attained.",
     "ja": ""
   },
-  "BoschlooTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "BoschlooTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "BoschlooTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
-  "BoschlooTestResult.parameter#summary": {
-    "hash": "1343f6628cf5",
-    "en": "Parameter of the null distribution of the statistic, such as degrees of freedom (R's `parameter`).",
-    "ja": ""
-  },
-  "BoschlooTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "BoschlooTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "BoschlooTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "BoschlooTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "BoschlooTsMethod#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "BoschlooTsMethod#summary": {
     "hash": "d4abc957a7ae",
     "en": "Two-sided method of {@link boschlooTest}: `\"square\"` (Boschloo's original: Fisher's two-sided p-value as the\nstatistic) or `\"central\"` (twice the one-sided p-value in the direction of the data).",
-    "ja": ""
-  },
-  "BrunnerMunzelTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "BrunnerMunzelTestOptions#summary": {
@@ -594,19 +314,9 @@
     "en": "Confidence level of the interval for the relative effect (lawstat's `1 - alpha`). Default `0.95`.",
     "ja": ""
   },
-  "CISides#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "CISides#summary": {
     "hash": "5210c02e64d6",
     "en": "Which limits of a proportion's interval are kept (DescTools' `sides`): `\"two.sided\"` both, `\"left\"` the lower one\n(the upper is the end of the range), `\"right\"` the upper one.",
-    "ja": ""
-  },
-  "ChisqStatTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "ChisqStatTestResult#summary": {
@@ -614,74 +324,9 @@
     "en": "Result of a k-sample test with a chi-squared statistic. Has no `alternative`, as R returns none.",
     "ja": ""
   },
-  "ChisqStatTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "ChisqStatTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "ChisqStatTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "ChisqStatTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "ChisqStatTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "ChisqStatTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "ChisqStatTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "ChisqStatTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
   "ChisqStatTestResult.parameter#summary": {
     "hash": "cfbe40dcbc6d",
     "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
-    "ja": ""
-  },
-  "ChisqStatTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "ChisqStatTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "ChisqStatTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "ChisqStatTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "ChisqTestFactorsResult#summary": {
@@ -694,26 +339,6 @@
     "en": "Levels of `y` (columns of the table), sorted by code point.",
     "ja": ""
   },
-  "ChisqTestFactorsResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
   "ChisqTestFactorsResult.expected#summary": {
     "hash": "70fc5a97334c",
     "en": "Expected counts under the null hypothesis.",
@@ -724,39 +349,9 @@
     "en": "Freeman-Tukey deviates `sqrt(O) + sqrt(O + 1) - sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975; not in R),\napproximately standard normal under the null hypothesis; their sum of squares is the Freeman-Tukey statistic.",
     "ja": ""
   },
-  "ChisqTestFactorsResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
   "ChisqTestFactorsResult.observed#summary": {
     "hash": "f7786eddb2e4",
     "en": "Observed counts (an array of rows for a contingency table).",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult.parameter#summary": {
-    "hash": "cfbe40dcbc6d",
-    "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
     "ja": ""
   },
   "ChisqTestFactorsResult.residuals#summary": {
@@ -769,29 +364,9 @@
     "en": "Levels of `x` (rows of the table), sorted by code point.",
     "ja": ""
   },
-  "ChisqTestFactorsResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
   "ChisqTestFactorsResult.stdres#summary": {
     "hash": "ad712fcc7ff3",
     "en": "Standardized residuals `(O - E) / sqrt(V)`, where `V` is\n`E (1 - row proportion) (1 - column proportion)` for a contingency table and\n`n p (1 - p)` for goodness of fit. For a contingency table the complements are the other rows' and columns'\nsums over the total, and the residual and `V` are computed in double-double.",
-    "ja": ""
-  },
-  "ChisqTestFactorsResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "ChisqTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "ChisqTestOptions#summary": {
@@ -829,34 +404,9 @@
     "en": "Compute the p-value by Monte Carlo simulation with `B` replicates (R's `simulate.p.value`), using the random\nstream of {@link setSeed} as R does. Default `false`.",
     "ja": ""
   },
-  "ChisqTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "ChisqTestResult#summary": {
     "hash": "8ae44ea687be",
     "en": "Result of {@link chisqTest}. Has no `alternative`, because R's `chisq.test()` does not return one.",
-    "ja": ""
-  },
-  "ChisqTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "ChisqTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "ChisqTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "ChisqTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
     "ja": ""
   },
   "ChisqTestResult.expected#summary": {
@@ -869,29 +419,9 @@
     "en": "Freeman-Tukey deviates `sqrt(O) + sqrt(O + 1) - sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975; not in R),\napproximately standard normal under the null hypothesis; their sum of squares is the Freeman-Tukey statistic.",
     "ja": ""
   },
-  "ChisqTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "ChisqTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "ChisqTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
   "ChisqTestResult.observed#summary": {
     "hash": "f7786eddb2e4",
     "en": "Observed counts (an array of rows for a contingency table).",
-    "ja": ""
-  },
-  "ChisqTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
     "ja": ""
   },
   "ChisqTestResult.parameter#summary": {
@@ -899,39 +429,14 @@
     "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
     "ja": ""
   },
-  "ChisqTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
   "ChisqTestResult.residuals#summary": {
     "hash": "aec36391abe2",
     "en": "Pearson residuals `(O - E) / sqrt(E)`.",
     "ja": ""
   },
-  "ChisqTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "ChisqTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
   "ChisqTestResult.stdres#summary": {
     "hash": "ad712fcc7ff3",
     "en": "Standardized residuals `(O - E) / sqrt(V)`, where `V` is\n`E (1 - row proportion) (1 - column proportion)` for a contingency table and\n`n p (1 - p)` for goodness of fit. For a contingency table the complements are the other rows' and columns'\nsums over the total, and the residual and `V` are computed in double-double.",
-    "ja": ""
-  },
-  "ChisqTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "CorOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "CorOptions#summary": {
@@ -942,11 +447,6 @@
   "CorOptions.method#summary": {
     "hash": "819fc6fb7f20",
     "en": "Correlation coefficient to compute. Default `\"pearson\"`. Unambiguous abbreviations are accepted.",
-    "ja": ""
-  },
-  "CorTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "CorTestOptions#summary": {
@@ -974,34 +474,9 @@
     "en": "Compute an exact p-value (Kendall and Spearman). Default: as in R, exact when there are\nno ties and n < 50 (Kendall) or n <= 1290 (Spearman). With ties the approximation is\nalways used. Kendall's exact distribution takes about n^3 / 2 steps: for n above 1290 (about 5 s)\n`exact: true` without ties is a RangeError (R computes it however long it takes).",
     "ja": ""
   },
-  "CorTestOptions.method#summary": {
-    "hash": "819fc6fb7f20",
-    "en": "Correlation coefficient to compute. Default `\"pearson\"`. Unambiguous abbreviations are accepted.",
-    "ja": ""
-  },
-  "CorTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "CorTestResult#summary": {
     "hash": "f401116a542d",
     "en": "Result of {@link corTest}. For Pearson, `statisticName` is `\"t\"` with `parameter` (df)\nand `confInt`; for Kendall `\"T\"` (exact) or `\"z\"`; for Spearman `\"S\"`.",
-    "ja": ""
-  },
-  "CorTestResult.alternative#summary": {
-    "hash": "c113a2d4dc0a",
-    "en": "Alternative hypothesis, always in full form.",
-    "ja": ""
-  },
-  "CorTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "CorTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
     "ja": ""
   },
   "CorTestResult.estimate#summary": {
@@ -1014,11 +489,6 @@
     "en": "`\"cor\"`, `\"tau\"` or `\"rho\"`.",
     "ja": ""
   },
-  "CorTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
   "CorTestResult.nullValue#summary": {
     "hash": "d06cb554ae85",
     "en": "Correlation under the null hypothesis: always `0`.",
@@ -1029,49 +499,9 @@
     "en": "`\"correlation\"`, `\"tau\"` or `\"rho\"`.",
     "ja": ""
   },
-  "CorTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
-  "CorTestResult.parameter#summary": {
-    "hash": "1343f6628cf5",
-    "en": "Parameter of the null distribution of the statistic, such as degrees of freedom (R's `parameter`).",
-    "ja": ""
-  },
-  "CorTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "CorTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "CorTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "CorTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "Counts#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "Counts#summary": {
     "hash": "8bdfc906e2d0",
     "en": "Counts: an array of numbers. A contingency table is passed as an array of rows.",
-    "ja": ""
-  },
-  "CvmTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "CvmTestResult#summary": {
@@ -1079,84 +509,14 @@
     "en": "Result of {@link cvmTest}, with nortest's warning for a p-value below the approximation's range.",
     "ja": ""
   },
-  "CvmTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "CvmTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "CvmTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "CvmTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "CvmTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "CvmTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "CvmTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "CvmTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
-  "CvmTestResult.parameter#summary": {
-    "hash": "1343f6628cf5",
-    "en": "Parameter of the null distribution of the statistic, such as degrees of freedom (R's `parameter`).",
-    "ja": ""
-  },
-  "CvmTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "CvmTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "CvmTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
   "CvmTestResult.warnings#summary": {
     "hash": "684b9afd8b5f",
     "en": "Warnings, as nortest gives them (empty when there are none).",
     "ja": ""
   },
-  "Factor#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "Factor#summary": {
     "hash": "9967160d547d",
     "en": "A factor: category labels, with `null` or `undefined` for missing values (R's NA).",
-    "ja": ""
-  },
-  "FisherTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "FisherTestOptions#summary": {
@@ -1199,89 +559,14 @@
     "en": "Compute the p-value of an r x c table (larger than 2 x 2) by Monte Carlo simulation with `B` replicates (R's\n`simulate.p.value`), using the random stream of {@link setSeed} as R does. Ignored for 2 x 2 tables. Default\n`false`.",
     "ja": ""
   },
-  "FisherTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "FisherTestResult#summary": {
     "hash": "0d50bae28036",
     "en": "Result of {@link fisherTest}. Has no `statistic` or `statisticName`, because R's\n`fisher.test()` does not return a statistic. For 2 x 2 tables, `estimate` is the\nconditional maximum likelihood estimate of the odds ratio and `confInt` its interval;\nfor larger tables only `method`, `alternative` and `pValue` are set.",
     "ja": ""
   },
-  "FisherTestResult.alternative#summary": {
-    "hash": "c113a2d4dc0a",
-    "en": "Alternative hypothesis, always in full form.",
-    "ja": ""
-  },
-  "FisherTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "FisherTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "FisherTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "FisherTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "FisherTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "FisherTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "FisherTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "FisherTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
-  "FisherTestResult.parameter#summary": {
-    "hash": "1343f6628cf5",
-    "en": "Parameter of the null distribution of the statistic, such as degrees of freedom (R's `parameter`).",
-    "ja": ""
-  },
-  "FisherTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "FisherTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "GTestCorrection#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "GTestCorrection#summary": {
     "hash": "08050b65a63b",
     "en": "Corrections of {@link gTest}.",
-    "ja": ""
-  },
-  "GTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "GTestOptions#summary": {
@@ -1304,34 +589,9 @@
     "en": "Rescale `p` to sum to 1. Default `false`, in which case `p` must sum to 1 (within sqrt(eps)).",
     "ja": ""
   },
-  "GTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "GTestResult#summary": {
     "hash": "65e2f1234233",
     "en": "Result of {@link gTest}. Has no `alternative`, as DescTools' `GTest` returns none.",
-    "ja": ""
-  },
-  "GTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "GTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "GTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "GTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
     "ja": ""
   },
   "GTestResult.expected#summary": {
@@ -1344,59 +604,14 @@
     "en": "Freeman-Tukey deviates `sqrt(O) + sqrt(O + 1) - sqrt(4E + 1)` of the counts given (without Yates' correction),\napproximately standard normal under the null hypothesis.",
     "ja": ""
   },
-  "GTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "GTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "GTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
   "GTestResult.observed#summary": {
     "hash": "28dc843bf328",
     "en": "The counts, after Yates' correction where it is applied (as DescTools); an array of rows for a table.",
     "ja": ""
   },
-  "GTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
   "GTestResult.parameter#summary": {
     "hash": "6ccaa46971f2",
     "en": "Degrees of freedom (`parameterName` is `\"X-squared df\"`, as DescTools).",
-    "ja": ""
-  },
-  "GTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "GTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "GTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "GTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "GoodmanKruskalGammaOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "GoodmanKruskalGammaOptions#summary": {
@@ -1407,11 +622,6 @@
   "GoodmanKruskalGammaOptions.confLevel#summary": {
     "hash": "b0d0ad298ae4",
     "en": "Confidence level of `confInt`, in (0, 1). Default `0.95`.",
-    "ja": ""
-  },
-  "GoodmanKruskalGammaResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "GoodmanKruskalGammaResult#summary": {
@@ -1444,19 +654,9 @@
     "en": "Warnings (none: DescTools gives none either).",
     "ja": ""
   },
-  "GroupLabel#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "GroupLabel#summary": {
     "hash": "c08ecffce933",
     "en": "Group label: a number or a string.",
-    "ja": ""
-  },
-  "HTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "HTest#summary": {
@@ -1534,19 +734,9 @@
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
     "ja": ""
   },
-  "JonckheereAlternative#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "JonckheereAlternative#summary": {
     "hash": "5f327267a1c1",
     "en": "Alternative of {@link jonckheereTest}.",
-    "ja": ""
-  },
-  "JonckheereTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "JonckheereTestOptions#summary": {
@@ -1574,11 +764,6 @@
     "en": "`\"DescTools\"` (default: `JonckheereTerpstraTest`) or `\"clinfun\"` (`jonckheere.test`).",
     "ja": ""
   },
-  "JonckheereTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "JonckheereTestResult#summary": {
     "hash": "0053d7dc720f",
     "en": "Result of {@link jonckheereTest}.",
@@ -1589,74 +774,9 @@
     "en": "Alternative hypothesis: `\"two.sided\"`, `\"increasing\"` or `\"decreasing\"`.",
     "ja": ""
   },
-  "JonckheereTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "JonckheereTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "JonckheereTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "JonckheereTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "JonckheereTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "JonckheereTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "JonckheereTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "JonckheereTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
-  "JonckheereTestResult.parameter#summary": {
-    "hash": "1343f6628cf5",
-    "en": "Parameter of the null distribution of the statistic, such as degrees of freedom (R's `parameter`).",
-    "ja": ""
-  },
-  "JonckheereTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "JonckheereTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "JonckheereTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
   "JonckheereTestResult.warnings#summary": {
     "hash": "d8cc3bb5d55c",
     "en": "The packages' warnings (normal approximation).",
-    "ja": ""
-  },
-  "KsTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "KsTestOptions#summary": {
@@ -1674,11 +794,6 @@
     "en": "Exact p-value. Default: exact for one sample of fewer than 100 values without ties, and for two samples with\nm n < 10000. The exact two-sided one-sample p-value for D < 1/2 raises a matrix of size 2 floor(n D) + 1 to the\nn-th power; where that needs more than 2^33 multiply-adds (m 781 at n 1023, about 4 s) it is a RangeError (R\ncomputes it however long it takes).",
     "ja": ""
   },
-  "KsTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "KsTestResult#summary": {
     "hash": "e3eaaafac42f",
     "en": "Result of {@link ksTest}. As in R, `alternative` describes the hypothesis in words (\"two-sided\", \"the CDF of x lies\nabove the null hypothesis\", ...), and `exact` tells whether the p-value is exact.",
@@ -1689,79 +804,9 @@
     "en": "Description of the alternative hypothesis, as R prints it (e.g. `\"two-sided\"`).",
     "ja": ""
   },
-  "KsTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "KsTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "KsTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "KsTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
   "KsTestResult.exact#summary": {
     "hash": "caa6a8715f13",
     "en": "Whether the p-value is exact.",
-    "ja": ""
-  },
-  "KsTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "KsTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "KsTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "KsTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
-  "KsTestResult.parameter#summary": {
-    "hash": "1343f6628cf5",
-    "en": "Parameter of the null distribution of the statistic, such as degrees of freedom (R's `parameter`).",
-    "ja": ""
-  },
-  "KsTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "KsTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "KsTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "KsTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "LblTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "LblTestOptions#summary": {
@@ -1784,19 +829,9 @@
     "en": "Scores of the rows. Default `1, 2, ..., r`.",
     "ja": ""
   },
-  "LblTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "LblTestResult#summary": {
     "hash": "aea2941a982e",
     "en": "Result of {@link lblTest}.",
-    "ja": ""
-  },
-  "LeveneTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "LeveneTestOptions#summary": {
@@ -1807,11 +842,6 @@
   "LeveneTestOptions.center#summary": {
     "hash": "03c49a7b30c1",
     "en": "The centre of each group: `\"median\"` (default) or `\"mean\"`.",
-    "ja": ""
-  },
-  "LeveneTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "LeveneTestResult#summary": {
@@ -1839,11 +869,6 @@
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
     "ja": ""
   },
-  "MantelhaenTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "MantelhaenTestOptions#summary": {
     "hash": "896b0e107f80",
     "en": "Options for {@link mantelhaenTest}.",
@@ -1869,11 +894,6 @@
     "en": "Exact conditional test (2 x 2 x K). Default `false`.",
     "ja": ""
   },
-  "MantelhaenTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "MantelhaenTestResult#summary": {
     "hash": "2d8b6bffa409",
     "en": "Result of {@link mantelhaenTest}. 2 x 2 x K tables add the common odds ratio and its interval.",
@@ -1882,76 +902,6 @@
   "MantelhaenTestResult.alternative#summary": {
     "hash": "776d308b22a8",
     "en": "Present for 2 x 2 x K tables.",
-    "ja": ""
-  },
-  "MantelhaenTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "MantelhaenTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "MantelhaenTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "MantelhaenTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "MantelhaenTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "MantelhaenTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "MantelhaenTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "MantelhaenTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
-  "MantelhaenTestResult.parameter#summary": {
-    "hash": "1343f6628cf5",
-    "en": "Parameter of the null distribution of the statistic, such as degrees of freedom (R's `parameter`).",
-    "ja": ""
-  },
-  "MantelhaenTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "MantelhaenTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "MantelhaenTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "MantelhaenTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "McnemarTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "McnemarTestOptions#summary": {
@@ -1964,84 +914,14 @@
     "en": "Apply the continuity correction (2 x 2 tables only). Default `true`.",
     "ja": ""
   },
-  "McnemarTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "McnemarTestResult#summary": {
     "hash": "5aa35fd14888",
     "en": "Result of {@link mcnemarTest}. Has no `alternative`, as R's `mcnemar.test()` returns none.",
     "ja": ""
   },
-  "McnemarTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "McnemarTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "McnemarTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "McnemarTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "McnemarTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "McnemarTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "McnemarTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "McnemarTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
   "McnemarTestResult.parameter#summary": {
     "hash": "cfbe40dcbc6d",
     "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
-    "ja": ""
-  },
-  "McnemarTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "McnemarTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "McnemarTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "McnemarTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "MoodTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "MoodTestOptions#summary": {
@@ -2054,29 +934,14 @@
     "en": "Alternative hypothesis (unambiguous abbreviations accepted). Default `\"two.sided\"`.",
     "ja": ""
   },
-  "NormalityTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "NormalityTestResult#summary": {
     "hash": "a7d34529ac89",
     "en": "Result of a normality test: no `alternative`, as nortest returns none.",
     "ja": ""
   },
-  "OddsRatioMethod#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "OddsRatioMethod#summary": {
     "hash": "a92743eccc7a",
     "en": "Methods of {@link oddsRatio}.",
-    "ja": ""
-  },
-  "OddsRatioOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "OddsRatioOptions#summary": {
@@ -2092,11 +957,6 @@
   "OddsRatioOptions.method#summary": {
     "hash": "40cb138f9c44",
     "en": "`\"midp\"` (the default: median-unbiased estimate and mid-p exact interval), `\"fisher\"` (conditional MLE and\n Fisher's exact interval), `\"wald\"` or `\"score\"` (epiR's score interval). Unambiguous abbreviations accepted.",
-    "ja": ""
-  },
-  "OddsRatioResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "OddsRatioResult#summary": {
@@ -2149,11 +1009,6 @@
     "en": "R's warnings (\"Chi-squared approximation may be incorrect\" where an expected count is below 5).",
     "ja": ""
   },
-  "OnewayTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "OnewayTestOptions#summary": {
     "hash": "4b8390b9d48c",
     "en": "Options for {@link onewayTest}.",
@@ -2164,54 +1019,9 @@
     "en": "Assume equal variances (the classical F test). Default `false` (Welch's test).",
     "ja": ""
   },
-  "OnewayTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "OnewayTestResult#summary": {
     "hash": "cbf7abc8b1bd",
     "en": "Result of {@link onewayTest}: an F statistic with two degrees of freedom.",
-    "ja": ""
-  },
-  "OnewayTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "OnewayTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "OnewayTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "OnewayTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "OnewayTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "OnewayTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "OnewayTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "OnewayTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
     "ja": ""
   },
   "OnewayTestResult.parameter#summary": {
@@ -2222,26 +1032,6 @@
   "OnewayTestResult.parameterName#summary": {
     "hash": "50fbb2c08c12",
     "en": "Names of `parameter`: `[\"num df\", \"denom df\"]`.",
-    "ja": ""
-  },
-  "OnewayTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "OnewayTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "OnewayTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "PearsonTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "PearsonTestOptions#summary": {
@@ -2257,11 +1047,6 @@
   "PearsonTestOptions.nClasses#summary": {
     "hash": "0d297f990353",
     "en": "Number of classes. Default `ceil(2 n^(2/5))`.",
-    "ja": ""
-  },
-  "PoissonTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "PoissonTestOptions#summary": {
@@ -2289,19 +1074,9 @@
     "en": "Hypothesized rate, or rate ratio for two samples (nonnegative). Default `1`.",
     "ja": ""
   },
-  "PoissonTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "PoissonTestResult#summary": {
     "hash": "efff10c0b5bb",
     "en": "Result of {@link poissonTest}.",
-    "ja": ""
-  },
-  "PoissonTestResult.alternative#summary": {
-    "hash": "c113a2d4dc0a",
-    "en": "Alternative hypothesis, always in full form.",
     "ja": ""
   },
   "PoissonTestResult.confInt#summary": {
@@ -2319,59 +1094,14 @@
     "en": "Event rate (one sample) or rate ratio (two samples).",
     "ja": ""
   },
-  "PoissonTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "PoissonTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
   "PoissonTestResult.nullValue#summary": {
     "hash": "86f472baf058",
     "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
     "ja": ""
   },
-  "PoissonTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "PoissonTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
   "PoissonTestResult.parameter#summary": {
     "hash": "e551d05a8831",
     "en": "Time base (one sample) or expected first count under the null hypothesis (two samples).",
-    "ja": ""
-  },
-  "PoissonTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "PoissonTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "PoissonTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "PoissonTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "PropTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "PropTestOptions#summary": {
@@ -2399,44 +1129,14 @@
     "en": "Hypothesized proportion(s), one per group, each strictly between 0 and 1. Default: `0.5` for one group, and\n equality of the proportions for several.",
     "ja": ""
   },
-  "PropTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "PropTestResult#summary": {
     "hash": "5013e779b579",
     "en": "Result of {@link propTest}.",
     "ja": ""
   },
-  "PropTestResult.alternative#summary": {
-    "hash": "c113a2d4dc0a",
-    "en": "Alternative hypothesis, always in full form.",
-    "ja": ""
-  },
-  "PropTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "PropTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
   "PropTestResult.estimate#summary": {
     "hash": "83dcd20d49ac",
     "en": "The observed proportion(s).",
-    "ja": ""
-  },
-  "PropTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "PropTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
     "ja": ""
   },
   "PropTestResult.nullValue#summary": {
@@ -2449,39 +1149,9 @@
     "en": "Names of `nullValue` (R's `names(null.value)`), one per group.",
     "ja": ""
   },
-  "PropTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
   "PropTestResult.parameter#summary": {
     "hash": "cfbe40dcbc6d",
     "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
-    "ja": ""
-  },
-  "PropTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "PropTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "PropTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "PropTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "PropTrendTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "PropTrendTestOptions#summary": {
@@ -2494,84 +1164,14 @@
     "en": "Scores of the groups (as the third argument `score`). Default `1, 2, ..., k`.",
     "ja": ""
   },
-  "PropTrendTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "PropTrendTestResult#summary": {
     "hash": "2340b65c6324",
     "en": "Result of {@link propTrendTest}: no `alternative`, as R returns none.",
     "ja": ""
   },
-  "PropTrendTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "PropTrendTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "PropTrendTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "PropTrendTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "PropTrendTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "PropTrendTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "PropTrendTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "PropTrendTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
   "PropTrendTestResult.parameter#summary": {
     "hash": "a6ace19b96d4",
     "en": "Degrees of freedom (1).",
-    "ja": ""
-  },
-  "PropTrendTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "PropTrendTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "PropTrendTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "PropTrendTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "ProportionCIResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "ProportionCIResult#summary": {
@@ -2609,54 +1209,9 @@
     "en": "Warnings (none so far: input without a defined result is an error).",
     "ja": ""
   },
-  "QuadeTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "QuadeTestResult#summary": {
     "hash": "f03ccf564e52",
     "en": "Result of {@link quadeTest}: an F statistic with two degrees of freedom.",
-    "ja": ""
-  },
-  "QuadeTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "QuadeTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "QuadeTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "QuadeTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "QuadeTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "QuadeTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "QuadeTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "QuadeTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
     "ja": ""
   },
   "QuadeTestResult.parameter#summary": {
@@ -2669,34 +1224,9 @@
     "en": "Names of `parameter`: `[\"num df\", \"denom df\"]`.",
     "ja": ""
   },
-  "QuadeTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "QuadeTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "QuadeTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "Sample#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "Sample#summary": {
     "hash": "f65b99382852",
     "en": "A sample: an array of numbers.",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "StuartMaxwellTestResult#summary": {
@@ -2709,74 +1239,9 @@
     "en": "The total of the table without the categories removed.",
     "ja": ""
   },
-  "StuartMaxwellTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.nullValue#summary": {
-    "hash": "86f472baf058",
-    "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
   "StuartMaxwellTestResult.parameter#summary": {
     "hash": "0b5cad95c14f",
     "en": "Degrees of freedom: the number of categories left, less 1 (`parameterName` is `\"df\"`).",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "StuartMaxwellTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "TTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "TTestOptions#summary": {
@@ -2809,19 +1274,9 @@
     "en": "Assume equal variances and use the pooled variance. Default `false` (Welch's test).",
     "ja": ""
   },
-  "TTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "TTestResult#summary": {
     "hash": "faf8cdb5ba6d",
     "en": "Result of {@link tTest}.",
-    "ja": ""
-  },
-  "TTestResult.alternative#summary": {
-    "hash": "c113a2d4dc0a",
-    "en": "Alternative hypothesis, always in full form.",
     "ja": ""
   },
   "TTestResult.confInt#summary": {
@@ -2839,49 +1294,14 @@
     "en": "Mean of `x` (or of the differences), or `[mean of x, mean of y]` for two samples.",
     "ja": ""
   },
-  "TTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "TTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
   "TTestResult.nullValue#summary": {
     "hash": "bf0c02672d7f",
     "en": "`mu`.",
     "ja": ""
   },
-  "TTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "TTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
   "TTestResult.parameter#summary": {
     "hash": "e0bc5709ef75",
     "en": "Degrees of freedom of the t distribution (`parameterName` is `\"df\"`).",
-    "ja": ""
-  },
-  "TTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "TTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "TTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
     "ja": ""
   },
   "TTestResult.stdErr#summary": {
@@ -2892,16 +1312,6 @@
   "TTestResult.stdError#summary": {
     "hash": "280735c25b2c",
     "en": "Alias of `stdErr`: the same value.",
-    "ja": ""
-  },
-  "TTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "TostOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "TostOptions#summary": {
@@ -2932,11 +1342,6 @@
   "TostOptions.varEqual#summary": {
     "hash": "45bf1d9e1d9d",
     "en": "Pooled variance (Student's t) instead of Welch's. Default `false`.",
-    "ja": ""
-  },
-  "TostResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "TostResult#summary": {
@@ -3004,11 +1409,6 @@
     "en": "Warnings (none: input without a defined result is an error).",
     "ja": ""
   },
-  "VarTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "VarTestOptions#summary": {
     "hash": "80eebacb1521",
     "en": "Options for {@link varTest}.",
@@ -3029,19 +1429,9 @@
     "en": "Hypothesized ratio of the variances of `x` and `y`. Default `1`.",
     "ja": ""
   },
-  "VarTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "VarTestResult#summary": {
     "hash": "0f0e8130c5c4",
     "en": "Result of {@link varTest}. The F distribution has two degrees of freedom, so `parameter` is a pair.",
-    "ja": ""
-  },
-  "VarTestResult.alternative#summary": {
-    "hash": "c113a2d4dc0a",
-    "en": "Alternative hypothesis, always in full form.",
     "ja": ""
   },
   "VarTestResult.confInt#summary": {
@@ -3059,29 +1449,9 @@
     "en": "Ratio of the sample variances.",
     "ja": ""
   },
-  "VarTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "VarTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
   "VarTestResult.nullValue#summary": {
     "hash": "86f472baf058",
     "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
-  },
-  "VarTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "VarTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
     "ja": ""
   },
   "VarTestResult.parameter#summary": {
@@ -3094,34 +1464,9 @@
     "en": "Names of `parameter`: `[\"num df\", \"denom df\"]`.",
     "ja": ""
   },
-  "VarTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "VarTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "VarTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "WarningHandler#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "WarningHandler#summary": {
     "hash": "5bbec88450f8",
     "en": "A function that receives R's warnings: the warning's text and the name of the function that gave it, once per\ndistinct warning of a call, after the call has computed its result.",
-    "ja": ""
-  },
-  "WilcoxTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "WilcoxTestOptions#summary": {
@@ -3169,89 +1514,14 @@
     "en": "Tolerance of the root search for the interval and estimate in the normal approximation (R's `tol.root`). Default `1e-4`.",
     "ja": ""
   },
-  "WilcoxTestResult#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "WilcoxTestResult#summary": {
     "hash": "25c87905590e",
     "en": "Result of {@link wilcoxTest}. `statisticName` is `\"V\"` for the signed rank test and `\"W\"`\nfor the rank sum test; `parameter` is not set. `estimate` and `confInt` are set only\nwith `confInt: true`.",
     "ja": ""
   },
-  "WilcoxTestResult.alternative#summary": {
-    "hash": "c113a2d4dc0a",
-    "en": "Alternative hypothesis, always in full form.",
-    "ja": ""
-  },
-  "WilcoxTestResult.confInt#summary": {
-    "hash": "9f6227be89c4",
-    "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
-  },
-  "WilcoxTestResult.confLevel#summary": {
-    "hash": "61d80d95e5f2",
-    "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
-  },
-  "WilcoxTestResult.estimate#summary": {
-    "hash": "26d55f53a245",
-    "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
-  },
-  "WilcoxTestResult.estimateNames#summary": {
-    "hash": "b2ce6760854d",
-    "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
-  },
-  "WilcoxTestResult.method#summary": {
-    "hash": "9d94b36ac561",
-    "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
-  },
   "WilcoxTestResult.nullValue#summary": {
     "hash": "bf0c02672d7f",
     "en": "`mu`.",
-    "ja": ""
-  },
-  "WilcoxTestResult.nullValueName#summary": {
-    "hash": "56259eaa4ede",
-    "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
-  },
-  "WilcoxTestResult.pValue#summary": {
-    "hash": "07c6b08e520c",
-    "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
-  },
-  "WilcoxTestResult.parameter#summary": {
-    "hash": "1343f6628cf5",
-    "en": "Parameter of the null distribution of the statistic, such as degrees of freedom (R's `parameter`).",
-    "ja": ""
-  },
-  "WilcoxTestResult.parameterName#summary": {
-    "hash": "d82a7793eb9c",
-    "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
-  },
-  "WilcoxTestResult.statistic#summary": {
-    "hash": "724e53f0b3fb",
-    "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
-  },
-  "WilcoxTestResult.statisticName#summary": {
-    "hash": "be62a5e97dfc",
-    "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
-  },
-  "WilcoxTestResult.warnings#summary": {
-    "hash": "f41315c05954",
-    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "ZTestOptions#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "ZTestOptions#summary": {
@@ -3284,11 +1554,6 @@
     "en": "Known standard deviation of the population of `y` (required with `y`).",
     "ja": ""
   },
-  "adTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "adTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3297,11 +1562,6 @@
   "adTest#summary": {
     "hash": "90245a798d5c",
     "en": "Anderson-Darling test for normality. Equivalent to `nortest::ad.test()` in R. `NaN` values are dropped; at least 8\nvalues are needed.",
-    "ja": ""
-  },
-  "ansariTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "ansariTest(0)#@example": {
@@ -3327,11 +1587,6 @@
   "ansariTest(1)#summary": {
     "hash": "3bd254a06013",
     "en": "Ansari-Bradley test from a formula and a data frame. As R's `ansari.test(formula, data)`: `\"y ~ g\"`\ncompares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where\none of them is missing are dropped.",
-    "ja": ""
-  },
-  "bartlettTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "bartlettTest(0)#@example": {
@@ -3362,11 +1617,6 @@
   "bartlettTest(1)#summary": {
     "hash": "d9f4ece934e6",
     "en": "Bartlett's test from a formula and a data frame. As R's `bartlett.test(formula, data)`: `\"y ~ g\"`, one\ngroup per level of `g`, in the order of the levels. Only the variables of the formula count: the rows where one of\nthem is missing are dropped.",
-    "ja": ""
-  },
-  "binomCI#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "binomCI#@example": {
@@ -3402,11 +1652,6 @@
   "binomCI#summary": {
     "hash": "17c0f3302b7a",
     "en": "Confidence interval for a binomial proportion x/n. Equivalent to `DescTools::BinomCI()` in R.\n\nMethods (`method`): `\"wilson\"` (the default, Wilson's score interval), `\"wald\"`, `\"wilsoncc\"` (with continuity\ncorrection), `\"agresti-coull\"`, `\"jeffreys\"`, `\"clopper-pearson\"` (the exact interval) and `\"midp\"` (the mid-p exact\ninterval). With `sides: \"left\"` or `\"right\"` only the lower or the upper limit is kept, at the one-sided level\n`confLevel` (the two-sided interval at `1 - 2 (1 - confLevel)`), and the other end is 0 or 1. Limits are clipped to\n[0, 1].\n\nThe mid-p limits are the roots of their equations to the precision of the doubles; DescTools stops its search at\nan absolute 1.22e-4, which leaves its limits up to 1e-4 off and gives 0 for lower limits below that. Unlike\nDescTools, which returns NaN or numbers, x > n, a negative or non-integer count, n = 0 and a level outside (0, 1)\nare errors.",
-    "ja": ""
-  },
-  "binomDiffCI#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "binomDiffCI#@example": {
@@ -3454,11 +1699,6 @@
     "en": "Confidence interval for the difference p1 - p2 of two independent proportions x1/n1 and x2/n2. Equivalent to\n`DescTools::BinomDiffCI()` in R.\n\nMethods (`method`): `\"ac\"` (Agresti-Caffo, the default as in DescTools: the Wald interval with one success and one\nfailure added to each group), `\"wald\"`, `\"score\"` (Newcombe's hybrid score interval, his method 10), `\"mn\"`\n(Miettinen-Nurminen score interval) and `\"mee\"` (Farrington-Manning / Mee: the same without the factor N/(N - 1);\nepiR's score interval of the attributable risk). With `sides: \"left\"` or `\"right\"` only the lower or the upper limit\nis kept, at the one-sided level `confLevel`, and the other end is 1 or -1. The `\"mn\"` and `\"mee\"` limits are the\nroots of the score statistic to the precision of the doubles (DescTools stops at about 1e-7 and 1e-4).",
     "ja": ""
   },
-  "binomDiffEquivalenceTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "binomDiffEquivalenceTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3502,11 +1742,6 @@
   "binomDiffEquivalenceTest#summary": {
     "hash": "64825d2b58e0",
     "en": "Test of equivalence of two independent proportions x1/n1 and x2/n2 within a margin. Two one-sided tests of\nH01: p1 - p2 <= -margin and H02: p1 - p2 >= margin, each at level `alpha`; equivalence is shown when both reject.\nNot an R function. (The R packages in scope give the dual intervals, `DescTools::BinomDiffCI`, or test one bound at\na time.)\n\nThe statistic at a bound delta0 is z = (p1 - p2 - delta0) / sqrt(var), with var the variance of p1 - p2 at the\nmaximum likelihood estimate of (p1, p2) under p1 - p2 = delta0 (Farrington and Manning 1990, `\"mee\"`), the same times\nN/(N - 1) (Miettinen and Nurminen 1985, `\"mn\"`, the default), or at the observed proportions (`\"wald\"`). The\np-values are normal tails. The test is dual to {@link binomDiffCI} with the same method at the level 1 - 2 alpha:\nequivalence is shown exactly when that interval, returned as `confInt`, lies inside (-margin, margin).\n\nThe Wald variance is 0 when both proportions are 0 or 1: the statistics are then infinite and the p-values 0 or 1,\nas binomDiffCI's Wald interval is a point there.",
-    "ja": ""
-  },
-  "binomRatioCI#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "binomRatioCI#@example": {
@@ -3554,11 +1789,6 @@
     "en": "Confidence interval for the ratio p1/p2 of two independent proportions x1/n1 and x2/n2 (the risk ratio). Equivalent\nto `DescTools::BinomRatioCI()` in R.\n\nMethods (`method`): `\"katz.log\"` (the default; Katz's log interval, with 0.5 put for a zero count, and n - 0.5 for\nboth counts when both groups are all successes, as DescTools) and `\"koopman\"` (Koopman's score interval, also epiR's\nscore interval of the risk ratio), whose limits are the roots of Koopman's statistic to the precision of the\ndoubles. With `sides: \"left\"` or `\"right\"` only the lower or the upper limit is kept, at the one-sided level\n`confLevel`, and the other end is Infinity or 0 (DescTools computes the one-sided level but keeps both limits).\nWith x1 = x2 = 0 the estimate is 0 and the interval [0, Infinity], as DescTools.",
     "ja": ""
   },
-  "binomTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "binomTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3582,11 +1812,6 @@
   "binomTest#summary": {
     "hash": "0959ea58883a",
     "en": "Exact test of a simple null hypothesis about the probability of success in Bernoulli trials. Equivalent to R's\n`binom.test()`.",
-    "ja": ""
-  },
-  "boschlooTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "boschlooTest#@example": {
@@ -3614,11 +1839,6 @@
     "en": "Boschloo's exact unconditional test (`method = \"boschloo\"`) for a 2 x 2 table whose rows are two independent\nbinomial samples. Equivalent to `Exact::exact.test()` in R.\n\nThe rows are the groups and column 1 counts the events: `[[x1, n1 - x1], [x2, n2 - x2]]`. The statistic is Fisher's\nexact p-value of each possible table (one-sided, or two-sided for `tsmethod: \"square\"`), and the p-value is the\nlargest probability, over the common proportion pi under the null hypothesis, of the tables whose statistic is at\nmost the observed one (Boschloo 1970). `alternative: \"less\"` means pi1 < pi2 (Exact's orientation; exact2x2's\n`boschloo()` uses the opposite one). `\"central\"` doubles the one-sided p-value in the direction of the data.\n\nThe p-value is the true supremum, from a fine grid and a refinement of every candidate maximum; Exact maximises\nover 100 points refined by `optimise` and rounds to 12 digits (about 1e-9 relative off), and its two-sided\n`\"square\"` region can contain tables that do not belong there (docs/differences-from-r.md). `statistic` is the\nobserved Fisher p-value (one-sided in the direction tested, or two-sided for `\"square\"`), `estimate` the difference\nof the proportions x1/n1 - x2/n2, and `nuisanceParameter` the pi at which the supremum is attained.\n\nA table with more than 2^24 possible outcomes ((n1 + 1)(n2 + 1)) is a RangeError, as is one whose grid would take\nmore than about 10 seconds.",
     "ja": ""
   },
-  "brunnerMunzelTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "brunnerMunzelTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3627,11 +1847,6 @@
   "brunnerMunzelTest#summary": {
     "hash": "7d4dd4dc254a",
     "en": "Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal\nvariances or shapes. Equivalent to `lawstat::brunner.munzel.test()` in R. `NaN` values are dropped.\n\n`estimate` is the estimated relative effect and `confInt` its two-sided interval (not clipped to [0, 1]). Each\nsample needs at least 2 values (lawstat returns NaN for a sample of one). When the variance estimates are 0 (for\nexample completely separated samples), the statistic, degrees of freedom and p-value are `NaN` or ±Infinity, as in\nlawstat.",
-    "ja": ""
-  },
-  "chisqTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "chisqTest(0)#@example": {
@@ -3659,11 +1874,6 @@
     "en": "Pearson's chi-squared test. Equivalent to R's `chisq.test()`.\n\nGiven an array of counts, tests goodness of fit to `options.p`. Given a matrix (an array\nof rows), tests independence in the contingency table; a matrix with a single row or\ncolumn is treated as a goodness-of-fit test, as in R. Yates' correction is applied to\n2 x 2 tables by default; as in R, the amount subtracted is `min(0.5, min |O - E|)` over\nall cells. Sums are computed in extended precision, like R.\n\nWith `simulatePValue: true` the p-value is computed from `B` simulated samples (multinomial for goodness of fit,\nrandom tables with the observed margins otherwise), drawn from the random stream of {@link setSeed} exactly as in\nR, so `setSeed(s)` before the call gives R's p-value after `set.seed(s)`.\n\nGiven two factor vectors (arrays of labels of the same length), tests independence in their contingency table, as\nR's `chisq.test(x, y)`; pairs with a missing label are dropped and the levels are sorted by code point.\n\nWith `nMinus1: true` (not in R) the statistic is Campbell's (2007) 'N - 1' chi-squared, Pearson's statistic without\ncontinuity correction times `(N - 1) / N`, for 2 x 2 and larger tables with a total N above 1. The result also has\nthe Freeman-Tukey deviates `ftResiduals` (not in R).\n\nAs R, `warnings` has \"Chi-squared approximation may be incorrect\" where an expected count is below 5 (unless the\np-value is simulated), and \"cannot compute simulated p-value with zero marginals\" where `simulatePValue` is asked for\na table with a zero row or column sum (the ordinary test is done).",
     "ja": ""
   },
-  "chisqTest(1)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "chisqTest(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3689,11 +1899,6 @@
     "en": "Pearson's chi-squared test. Equivalent to R's `chisq.test()`.\n\nGiven an array of counts, tests goodness of fit to `options.p`. Given a matrix (an array\nof rows), tests independence in the contingency table; a matrix with a single row or\ncolumn is treated as a goodness-of-fit test, as in R. Yates' correction is applied to\n2 x 2 tables by default; as in R, the amount subtracted is `min(0.5, min |O - E|)` over\nall cells. Sums are computed in extended precision, like R.\n\nWith `simulatePValue: true` the p-value is computed from `B` simulated samples (multinomial for goodness of fit,\nrandom tables with the observed margins otherwise), drawn from the random stream of {@link setSeed} exactly as in\nR, so `setSeed(s)` before the call gives R's p-value after `set.seed(s)`.\n\nGiven two factor vectors (arrays of labels of the same length), tests independence in their contingency table, as\nR's `chisq.test(x, y)`; pairs with a missing label are dropped and the levels are sorted by code point.\n\nWith `nMinus1: true` (not in R) the statistic is Campbell's (2007) 'N - 1' chi-squared, Pearson's statistic without\ncontinuity correction times `(N - 1) / N`, for 2 x 2 and larger tables with a total N above 1. The result also has\nthe Freeman-Tukey deviates `ftResiduals` (not in R).\n\nAs R, `warnings` has \"Chi-squared approximation may be incorrect\" where an expected count is below 5 (unless the\np-value is simulated), and \"cannot compute simulated p-value with zero marginals\" where `simulatePValue` is asked for\na table with a zero row or column sum (the ordinary test is done).",
     "ja": ""
   },
-  "cochranQTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "cochranQTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3707,11 +1912,6 @@
   "cochranQTest#summary": {
     "hash": "e67e69450929",
     "en": "Cochran's Q test for binary responses in an unreplicated complete block design. Equivalent to\n`DescTools::CochranQTest()` in R. Takes a matrix: the Friedman test of the 0/1 matrix (with ties), reported as Q.",
-    "ja": ""
-  },
-  "corTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "corTest(0)#@example": {
@@ -3764,11 +1964,6 @@
     "en": "Test for correlation from a formula and a data frame. As R's `cor.test(formula, data)`: the one-sided\nformula `\"~ x + y\"` names the two variables. Only they count: the rows where one of them is missing are dropped.",
     "ja": ""
   },
-  "cvmTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "cvmTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3777,11 +1972,6 @@
   "cvmTest#summary": {
     "hash": "804f2f7b9108",
     "en": "Cramer-von Mises test for normality. Equivalent to `nortest::cvm.test()` in R. `NaN` values are dropped; at least 8\nvalues are needed.",
-    "ja": ""
-  },
-  "fisherTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "fisherTest#@example": {
@@ -3807,11 +1997,6 @@
   "fisherTest#summary": {
     "hash": "f54850e4d4dd",
     "en": "Fisher's exact test for count data. Equivalent to R's `fisher.test()`.\n\nTests independence in an r x c contingency table with fixed margins. For 2 x 2 tables\nit also returns the conditional MLE of the odds ratio and its confidence interval,\nreproducing R's numbers (including R's root-finding tolerance). The two-sided p-value\nsums the probabilities of tables no more likely than the observed one (relative\ntolerance `1e-7`, as in R). Non-integer counts are rounded to the nearest integer\n(ties to even), with R's warning (\"'x' has been rounded to integer: Mean relative difference: 0.0625\", the text of\nR's `all.equal` of the counts and the rounded counts; none where they differ by less than about 1.5e-8).\n\nWith `simulatePValue: true`, the p-value of a table larger than 2 x 2 is computed from `B` random tables with the\nobserved margins, drawn from the random stream of {@link setSeed} exactly as in R.\n\nWith `midp: true` (2 x 2 only), the mid-p version of exact2x2's `fisher.exact()`: the p-value and the interval come\nfrom the mid-p tails (two-sided: the central test, twice the smaller tail, at most 1), the limits are the roots of\nthe mid-p tails to the precision of the doubles (exact2x2's search stops up to 1% from them), and `method` is\n`\"Central Fisher's Exact Test (mid-p version)\"` or `\"One-sided Fisher's Exact Test (mid-p version)\"`.\n\nNot implemented: R's `hybrid` option.",
-    "ja": ""
-  },
-  "flignerTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "flignerTest(0)#@example": {
@@ -3849,11 +2034,6 @@
     "en": "Fligner-Killeen test from a formula and a data frame. As R's `fligner.test(formula, data)`: `\"y ~ g\"`,\none group per level of `g`. Only the variables of the formula count: the rows where one of them is missing are\ndropped.",
     "ja": ""
   },
-  "friedmanTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "friedmanTest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3882,11 +2062,6 @@
   "friedmanTest(1)#summary": {
     "hash": "3c85c5d0f542",
     "en": "Friedman test from a formula and a data frame. As R's `friedman.test(formula, data)`: `\"y ~ w | b\"`\nwith the groups `w` and the blocks `b`. The rows where `y`, `w` or `b` is missing are dropped first; then every\ncombination of group and block must occur exactly once (else the error `not an unreplicated complete block\ndesign`, so that one missing value fails, unlike the matrix form, which drops its block).",
-    "ja": ""
-  },
-  "gTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "gTest#@example": {
@@ -3919,11 +2094,6 @@
     "en": "Log-likelihood ratio (G) test of independence in a contingency table, or of goodness of fit of counts to given\nprobabilities. Equivalent to `DescTools::GTest()` in R.\n\nFor a table (an array of rows), `G = 2 sum x log(x / E) / q` with `E` the products of the margins over the total and\n`(r - 1)(c - 1)` degrees of freedom, counting empty rows and columns as DescTools; for a vector (or a table with one\nrow or column), `E = n p` and `k - 1` degrees of freedom. `correct: \"williams\"` divides by Williams' q\n(`1 + (n sum 1/R_i - 1)(n sum 1/C_j - 1) / (6 n (r - 1)(c - 1))` for a table, which is not defined with an empty\nrow or column: an error, where DescTools gives G = 0 and p = 1; and `1 + (k + 1) / (6n)` for a vector). `correct: \"yates\"` moves the counts of a 2 x 2 table by 0.5 toward\nindependence as DescTools does: the off-diagonal cells up and the diagonal down when `x11 x22 - x12 x21 > 0`, and\nthe other way otherwise, also when it is 0 (so that a table of exact independence gets a positive G), and without\nstopping at 0 (a cell that becomes negative makes G NaN, with the warning \"NaNs produced\"). For two counts it moves\nthem by 0.5 toward `E` when they differ from it by more than 0.25.\n\nThe p-value is the upper tail of chi-squared (DescTools computes `1 - pchisq` for a table, which is 0 below about\n1e-16). G is summed as a deviance, without the cancellation of the plain sum. The result also has the Freeman-Tukey\ndeviates `ftResiduals`.",
     "ja": ""
   },
-  "goodmanKruskalGamma#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "goodmanKruskalGamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3954,11 +2124,6 @@
     "en": "Goodman and Kruskal's gamma of a table of two ordered classifications, with its asymptotic standard error and a\nWald confidence interval. Equivalent to `DescTools::GoodmanKruskalGamma()` in R.\n\n`gamma = (C - D) / (C + D)` with C and D the numbers of concordant and discordant pairs. The standard error is the\nnon-null ASE1 (Agresti 2010, section 7.1): `sqrt(sum x psi^2)` with `psi_ij = 2 (D Pc_ij - C Pd_ij) / (C + D)^2`,\n`Pc_ij` the counts above-left and below-right of cell (i, j) and `Pd_ij` those above-right and below-left. The\ninterval is `[max(-1, gamma - z ase), min(1, gamma + z ase)]`, z the normal quantile of `1 - (1 - confLevel) / 2`.\nWithout concordant or discordant pairs (a table with one row, for example) gamma and the interval are NaN, as\nDescTools. No test of gamma = 0 is given (it would need the null standard error).",
     "ja": ""
   },
-  "jonckheereTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "jonckheereTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -3977,11 +2142,6 @@
   "jonckheereTest#summary": {
     "hash": "52bd76869840",
     "en": "Jonckheere-Terpstra test of equal distributions against ordered alternatives. Equivalent to\n`DescTools::JonckheereTerpstraTest()` in R. Computes `JonckheereTerpstraTest(x, g, alternative, exact)` (with `g`\nan ordered factor) or, with `variant: \"clinfun\"`, clinfun's `jonckheere.test(x, g, alternative)` (whose\ntwo-sided p-value is `2 min(p_increasing, p_decreasing, 0.5)`; DescTools caps it at 1 instead of 0.5). Pairs with a missing value are dropped (with `variant: \"clinfun\"`, also those with an infinite value, as clinfun does).",
-    "ja": ""
-  },
-  "kruskalTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "kruskalTest(0)#@example": {
@@ -4017,11 +2177,6 @@
   "kruskalTest(1)#summary": {
     "hash": "1727473160ff",
     "en": "Kruskal-Wallis test from a formula and a data frame. As R's `kruskal.test(formula, data)`: `\"y ~ g\"`,\none group per level of `g`. Only the variables of the formula count: the rows where one of them is missing are\ndropped.",
-    "ja": ""
-  },
-  "ksTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "ksTest(0)#@example": {
@@ -4069,11 +2224,6 @@
     "en": "Two-sample Kolmogorov-Smirnov test from a formula and a data frame. As R's `ks.test(formula, data)`:\n`\"y ~ g\"` compares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the\nrows where one of them is missing are dropped.",
     "ja": ""
   },
-  "lblTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "lblTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4104,11 +2254,6 @@
     "en": "Asymptotic linear-by-linear association test of a table of two ordered classifications (the Mantel test of trend).\nEquivalent to `coin::lbl_test()` in R. As coin's asymptotic test, except for tables with a two-level factor.\n\n`Z = sqrt(N - 1) r`, r the Pearson correlation of the row and column scores over the N observations: the linear\nstatistic `sum x_ij u_i v_j` standardised by its permutation (conditional) mean and variance. The scores are 1..k\nby default for every factor (the level index; empty rows and columns keep their place). coin leaves a two-level\nfactor unordered and codes it by an indicator of its first level, which turns the sign of Z, and refuses 2 x 2\ntables; here two-level factors are scored like the others and a 2 x 2 table is tested (Z^2 is then the 'N - 1'\nchi-squared statistic). p-values from the normal distribution: `\"greater\"` is positive association.",
     "ja": ""
   },
-  "leveneTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "leveneTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4129,11 +2274,6 @@
     "en": "Levene's test for homogeneity of variance across groups. Equivalent to `car::leveneTest()` in R. Computes\n`leveneTest(y ~ g, center = median)` (or `mean`). Pairs with a missing value are dropped; groups are ordered by\ntheir sorted labels.",
     "ja": ""
   },
-  "lillieTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "lillieTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4142,11 +2282,6 @@
   "lillieTest#summary": {
     "hash": "8cf9a7019e0e",
     "en": "Lilliefors (Kolmogorov-Smirnov) test for normality. Equivalent to `nortest::lillie.test()` in R. `NaN` values are\ndropped; at least 5 values are needed.",
-    "ja": ""
-  },
-  "mantelhaenTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "mantelhaenTest#@example": {
@@ -4167,11 +2302,6 @@
   "mantelhaenTest#summary": {
     "hash": "76fb78991022",
     "en": "Cochran-Mantel-Haenszel chi-squared test of conditional independence in a set of contingency tables, one per\nstratum. Equivalent to R's `mantelhaen.test()`. Takes the strata as R takes a three-dimensional array.",
-    "ja": ""
-  },
-  "mcnemarTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "mcnemarTest#@example": {
@@ -4199,11 +2329,6 @@
     "en": "McNemar's chi-squared test for symmetry of rows and columns in a square table of counts. Equivalent to R's\n`mcnemar.test()`. Takes a matrix, or two factors given as paired category codes.",
     "ja": ""
   },
-  "moodTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "moodTest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4227,11 +2352,6 @@
   "moodTest(1)#summary": {
     "hash": "2c6cb773522c",
     "en": "Mood's test from a formula and a data frame. As R's `mood.test(formula, data)`: `\"y ~ g\"` compares the\ntwo levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where one of them is\nmissing are dropped.",
-    "ja": ""
-  },
-  "oddsRatio#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "oddsRatio#@example": {
@@ -4262,11 +2382,6 @@
   "oddsRatio#summary": {
     "hash": "3e107a12cc48",
     "en": "Odds ratio of a 2 x 2 table with its confidence interval and three p-values of independence. Equivalent to\n`epitools::oddsratio()` in R.\n\nThe table is in epitools' orientation: rows are the exposure (row 1 the reference level) and columns the outcome\n(column 1 without the disease); the odds ratio x11 x22 / (x12 x21) is the same for the transposed table.\n\nMethods (`method`): `\"midp\"` (the default, as epitools: the median-unbiased estimate and the mid-p exact interval\nfrom Fisher's noncentral hypergeometric distribution of x11 given the margins), `\"fisher\"` (the conditional MLE and\nthe exact interval of {@link fisherTest}), `\"wald\"` (the sample odds ratio and Woolf's interval on the log scale;\nas epitools, no zero-cell correction: a zero cell gives an estimate of 0 or Infinity and NaN for the limit that is\nnot defined) and `\"score\"` (the sample odds ratio and the score interval of epiR's `epi.2by2`, Miettinen-Nurminen\nwithout the factor N/(N - 1)). The mid-p and score limits are the roots of their equations to the precision of the\ndoubles (epitools solves with uniroot's tolerance on [0, 1000] and fails beyond and for zero cells; epiR steps by\n0.1%). With a zero cell the mid-p estimate and limits follow the conventions of exact2x2: 0 or Infinity at the end\nof the support.\n\n`pValue` has epitools' three p-values: the two-sided mid-p (twice the smaller one-sided mid-p value), Fisher's\nexact test and Pearson's chi-squared without continuity correction (with R's warning \"Chi-squared approximation may\nbe incorrect\" where an expected count is below 5).",
-    "ja": ""
-  },
-  "onewayTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "onewayTest(0)#@example": {
@@ -4309,11 +2424,6 @@
     "en": "One-way analysis of means from a formula and a data frame. As R's `oneway.test(formula, data)`:\n`\"y ~ A\"` has one group per level of `A`; with several factors, `\"y ~ A + B\"`, the groups are the combinations of\ntheir levels present in the data (R's `interaction()`, the first factor varying fastest). Only the variables of\nthe formula count: the rows where one of them is missing are dropped.",
     "ja": ""
   },
-  "pearsonTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "pearsonTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4322,11 +2432,6 @@
   "pearsonTest#summary": {
     "hash": "3422bfc16536",
     "en": "Pearson chi-square test for normality, with classes of equal probability under the fitted normal distribution.\nEquivalent to `nortest::pearson.test()` in R. `NaN` values are dropped.",
-    "ja": ""
-  },
-  "poissonTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "poissonTest#@example": {
@@ -4347,11 +2452,6 @@
   "poissonTest#summary": {
     "hash": "17263c7ec78e",
     "en": "Exact test of a Poisson rate, or comparison of two Poisson rates. Equivalent to R's `poisson.test()`.",
-    "ja": ""
-  },
-  "propTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "propTest#@example": {
@@ -4377,11 +2477,6 @@
   "propTest#summary": {
     "hash": "2914ee29cb43",
     "en": "Test of equal or given proportions. Equivalent to R's `prop.test()`.\n\nAs R, `warnings` has \"Chi-squared approximation may be incorrect\" where an expected count of the table of successes\nand failures (n p or n (1 - p), p the given or the pooled proportion) is below 5.",
-    "ja": ""
-  },
-  "propTrendTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "propTrendTest(0)#@example": {
@@ -4419,11 +2514,6 @@
     "en": "Chi-squared test for trend in proportions, with the scores in the options:\n`propTrendTest(x, n, { score: [0, 1, 2, 4] })`.",
     "ja": ""
   },
-  "quadeTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "quadeTest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4454,11 +2544,6 @@
     "en": "Quade test from a formula and a data frame. As R's `quade.test(formula, data)`: `\"y ~ w | b\"` with the\ngroups `w` and the blocks `b`. The rows where `y`, `w` or `b` is missing are dropped first; then every combination\nof group and block must occur exactly once (else the error `not an unreplicated complete block design`).",
     "ja": ""
   },
-  "setWarningHandler#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "setWarningHandler#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4484,11 +2569,6 @@
     "en": "Sets the function that receives R's warnings, and returns the one it replaces (`null` when there was none). Not an\nR function. It plays the part of R's printing of warnings (and, by throwing, of `options(warn = 2)`).\n\nEvery test, model and fit returns R's warnings in its result's `warnings` whatever the handler. With a handler\nset, each call of such a function (and `pivotLonger` without `onWarning`) also passes its warnings to the handler\nonce it has computed its result: each distinct warning once, in order, with the name of the function called (a\nfunction that calls another, such as `pairwiseWilcoxTest`, passes the warnings once, under its own name). A fit's\nwarnings are passed once, when it is fitted (`lm`, `glm`, `aov`, `lmer`, ...): a function given a fit or a table\n(`anova`, `aovSummary`, `Anova`, `glmSummary`, `etaSquared`, `lmerSummary`, ...) keeps them in its result's\n`warnings` but passes only the warnings it adds. An error thrown by the handler propagates to the caller. By default\nthere is no handler and nothing is printed.\n\nTo print the warnings as R does, set `(message, source) => console.warn(source + \": \" + message)`. A handler that\nthrows (`(message) => { throw new Error(message); }`) turns each warning into an error, as R's `options(warn = 2)`.\n\nThe handler is kept on `globalThis`, so it is one setting for every copy of the library loaded on a page.",
     "ja": ""
   },
-  "sfTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "sfTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4499,11 +2579,6 @@
     "en": "Shapiro-Francia test for normality. Equivalent to `nortest::sf.test()` in R. `NaN` values are dropped; the sample\nsize must be between 5 and 5000.",
     "ja": ""
   },
-  "shapiroTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "shapiroTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4512,11 +2587,6 @@
   "shapiroTest#summary": {
     "hash": "5ddf5d6366f6",
     "en": "Shapiro-Wilk test of normality. Equivalent to R's `shapiro.test()`. `NaN` values are dropped; the sample size must\nbe between 3 and 5000.",
-    "ja": ""
-  },
-  "stuartMaxwellTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "stuartMaxwellTest#@example": {
@@ -4542,11 +2612,6 @@
   "stuartMaxwellTest#summary": {
     "hash": "372fc48e0fbe",
     "en": "Stuart-Maxwell test of marginal homogeneity of a square table (paired classifications into the same categories).\nEquivalent to `DescTools::StuartMaxwellTest()` in R. The degrees of freedom differ where categories are removed.\n\nCategories with no counts off the diagonal (in their row and column) are removed. With the K categories left, `d`\nthe differences of the row and column sums of the first K - 1 and `S` their covariance (`S_ii = r_i + c_i - 2 x_ii`,\n`S_ij = -(x_ij + x_ji)`), the statistic `d' S^-1 d` is chi-squared with K - 1 degrees of freedom (DescTools keeps the\noriginal number of categories less 1). For a 2 x 2 table it is McNemar's statistic without correction.",
-    "ja": ""
-  },
-  "tTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "tTest(0)#@example": {
@@ -4604,11 +2669,6 @@
     "en": "Student's t-test from a formula and a data frame. As R's `t.test(formula, data)`: `\"y ~ g\"` compares\nthe two levels of `g` (the first level is `x`; `estimateNames` and `nullValueName` name the levels, as in R),\n`\"y ~ 1\"` is the one-sample test and `\"Pair(a, b) ~ 1\"` the paired test of `a` and `b` (the option `paired` is not\nallowed). Only the variables of the formula count: the rows where one of them is missing are dropped.",
     "ja": ""
   },
-  "tost#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "tost#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -4644,11 +2704,6 @@
     "en": "Two one-sided t tests (TOST) of equivalence of two means. Equivalent to `equivalence::tost()` in R.\n\nEquivalence, |mean(x) - mean(y)| < epsilon, is shown at level alpha = 1 - confLevel when both one-sided t tests of\nH01: d <= -epsilon and H02: d >= epsilon reject; the p-value is the larger of their p-values and `confInt` the dual\n1 - 2 alpha interval (90% for the default `confLevel` 0.95). The difference, standard error and degrees of freedom are\nthose of {@link tTest} (Welch's by default, pooled with `varEqual`, paired with `paired`), with tTest's checks and\nerrors. Used on 0/1 data it compares two proportions with a t approximation; for counts\n{@link binomDiffEquivalenceTest} is the better test.\n\nUnlike R, a level of 0.5 or less (`confLevel`) or of 0.5 or more (`alpha`) is an error (the interval would be empty),\nand so is a margin that is not positive.",
     "ja": ""
   },
-  "varTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
-    "ja": ""
-  },
   "varTest(0)#@example": {
     "hash": "7ffa69c495d9",
     "en": "⟦code1⟧\n\nThere is also a formula form, `varTest(\"y ~ g\", data, options)` (next overload).",
@@ -4672,11 +2727,6 @@
   "varTest(1)#summary": {
     "hash": "b2fd5b18ae71",
     "en": "F test of two variances from a formula and a data frame. As R's `var.test(formula, data)`: `\"y ~ g\"`\ncompares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where\none of them is missing are dropped.",
-    "ja": ""
-  },
-  "wilcoxTest(0)#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "wilcoxTest(0)#@example": {
@@ -4727,11 +2777,6 @@
   "wilcoxTest(1)#summary": {
     "hash": "5edc34283504",
     "en": "Wilcoxon tests from a formula and a data frame. As R's `wilcox.test(formula, data)`: `\"y ~ g\"` is the\nrank sum test of the two levels of `g` (the first level is `x`), `\"y ~ 1\"` the signed rank test and\n`\"Pair(a, b) ~ 1\"` the paired test of `a` and `b` (the option `paired` is not allowed). Only the variables of the\nformula count: the rows where one of them is missing are dropped.",
-    "ja": ""
-  },
-  "zTest#@category": {
-    "hash": "3bbc4c913159",
-    "en": "Hypothesis tests",
     "ja": ""
   },
   "zTest#@example": {

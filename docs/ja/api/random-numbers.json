@@ -1,17 +1,7 @@
 {
-  "RNGKindName#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "RNGKindName#summary": {
     "hash": "d3e898eac1c3",
     "en": "A uniform random number generator, R's `RNGkind(kind)`.",
-    "ja": ""
-  },
-  "RNGKindOptions#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "RNGKindOptions#summary": {
@@ -27,11 +17,6 @@
   "RNGKindOptions.sampleKind#summary": {
     "hash": "beb44b17c608",
     "en": "`\"Rejection\"` (R's default since 3.6.0), `\"Rounding\"` (the `sample` of R before 3.6.0, to\nreproduce older results), or `\"default\"`.",
-    "ja": ""
-  },
-  "RNGKinds#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "RNGKinds#summary": {
@@ -52,11 +37,6 @@
   "RNGKinds.sampleKind#summary": {
     "hash": "693b1d74e13d",
     "en": "How `sample` draws indices.",
-    "ja": ""
-  },
-  "RNGkind#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "RNGkind#@example": {
@@ -84,19 +64,9 @@
     "en": "Reads or changes the kinds of random number generation. Equivalent to R's `RNGkind()`.\n\n- `kind: \"Mersenne-Twister\"` (or `\"default\"`): R's default generator.\n- `kind: \"L'Ecuyer-CMRG\"`: L'Ecuyer's MRG32k3a, with independent streams for parallel work\n  ({@link nextRNGStream}, {@link nextRNGSubStream}).\n- `sampleKind: \"Rounding\"`: indices drawn as `floor(n * u)`, as `sample`, `sampleInt` and\n  `rwilcox` did in R before 3.6.0 (slightly non-uniform for large n; R warns about it, rStats.js\n  does not). `\"Rejection\"` (or `\"default\"`) is R's default since 3.6.0. Other functions are not\n  affected.\n\nAs in R, changing `kind` seeds the new generator from the next uniform of the current one (also\nwhen the kind does not change), so a stream stays reproducible from the last {@link setSeed};\nchanging only `sampleKind` keeps the stream. Call {@link setSeed} afterwards to seed the new\ngenerator directly: `RNGkind({ kind }); setSeed(seed)` is R's `set.seed(seed, kind)`.",
     "ja": ""
   },
-  "SampleKindName#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "SampleKindName#summary": {
     "hash": "432bfd756c72",
     "en": "How `sample` turns uniforms into indices, R's `RNGkind(sample.kind)`.",
-    "ja": ""
-  },
-  "SampleOptions#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "SampleOptions#summary": {
@@ -119,11 +89,6 @@
     "en": "Number of items to draw (truncated, as R; below 2^31 with `prob`). Default: the number of candidates (a random\npermutation).",
     "ja": ""
   },
-  "getRandomSeed#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "getRandomSeed#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -137,11 +102,6 @@
   "getRandomSeed#summary": {
     "hash": "025e16afdc36",
     "en": "Returns a copy of the current generator state, as reading R's `.Random.seed` does.\nEquivalent to R's `.Random.seed`.",
-    "ja": ""
-  },
-  "nextRNGStream#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "nextRNGStream#@example": {
@@ -169,11 +129,6 @@
     "en": "The start of the next stream of L'Ecuyer-CMRG: the state advanced by 2^127 steps.\nEquivalent to R's `parallel::nextRNGStream()`.\n\nStreams started this way do not overlap for any practical length, so each parallel task\n(a worker, or one replicate of a simulation) can be given its own stream, reproducibly.\nWithin a stream, {@link nextRNGSubStream} gives substreams of 2^76 steps.",
     "ja": ""
   },
-  "nextRNGSubStream#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "nextRNGSubStream#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -197,11 +152,6 @@
   "nextRNGSubStream#summary": {
     "hash": "8d78ed476711",
     "en": "The start of the next substream of L'Ecuyer-CMRG: the state advanced by 2^76 steps.\nEquivalent to R's `parallel::nextRNGSubStream()`.",
-    "ja": ""
-  },
-  "r2dtable#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "r2dtable#@example": {
@@ -239,11 +189,6 @@
     "en": "Random two-way tables with given row and column totals. Equivalent to R's `r2dtable()`.\n\nUses Patefield's (1981) algorithm and consumes the same uniforms as R, so after `setSeed` the tables are R's.\nEach table is returned as an array of rows (R returns a list of matrices).",
     "ja": ""
   },
-  "rarcsine#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rarcsine#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -252,11 +197,6 @@
   "rarcsine#summary": {
     "hash": "14c7f9f7c33c",
     "en": "Random numbers from the arcsine distribution on (a, b), by inversion: `qarcsine(runif(n), a, b)`.\nNot an R function. The arcsine distribution is neither in base R nor in extraDistr.",
-    "ja": ""
-  },
-  "rbeta#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "rbeta#@example": {
@@ -294,11 +234,6 @@
     "en": "Non-centrality parameter. If omitted, the central distribution is used.",
     "ja": ""
   },
-  "rbinom#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -327,11 +262,6 @@
   "rbinom#summary": {
     "hash": "db17c57bc575",
     "en": "Random numbers from the binomial distribution. Equivalent to R's `rbinom()`.\n\nFor `size * min(prob, 1 - prob) >= 30` (algorithm BTPE) the stream can depart from R's: R's final acceptance test has\ntwo Stirling corrections with the wrong sign, and here the signs are right (`setSeed(439); rbinom(1, 10000, 0.5)` is\n4879, R 5023). Below 30 (inversion) the stream is R's.",
-    "ja": ""
-  },
-  "rcauchy#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "rcauchy#@example": {
@@ -364,11 +294,6 @@
     "en": "Scale. Default `1`.",
     "ja": ""
   },
-  "rchisq#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rchisq#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -399,11 +324,6 @@
     "en": "Non-centrality parameter. If omitted, the central distribution is used.",
     "ja": ""
   },
-  "rexp#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -427,11 +347,6 @@
   "rexp.options.rate#summary": {
     "hash": "25a75156b551",
     "en": "Rate. Default `1`.",
-    "ja": ""
-  },
-  "rf#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "rf#@example": {
@@ -469,11 +384,6 @@
     "en": "Non-centrality parameter. If omitted, the central distribution is used.",
     "ja": ""
   },
-  "rgamma#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -509,11 +419,6 @@
     "en": "Scale (`1 / rate`). Default `1`. Giving both is an error unless `scale = 1 / rate`.",
     "ja": ""
   },
-  "rgeom#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rgeom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -537,11 +442,6 @@
   "rgeom#summary": {
     "hash": "211bd112e7c6",
     "en": "Random numbers from the geometric distribution (number of failures before the first\nsuccess). Equivalent to R's `rgeom()`.",
-    "ja": ""
-  },
-  "rhyper#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "rhyper#@example": {
@@ -579,11 +479,6 @@
     "en": "Random numbers from the hypergeometric distribution. Equivalent to R's `rhyper()`.",
     "ja": ""
   },
-  "rinvgamma#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rinvgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -609,11 +504,6 @@
     "en": "Scale. Default `1`.",
     "ja": ""
   },
-  "rkumar#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rkumar#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -624,11 +514,6 @@
     "en": "Random numbers from the Kumaraswamy distribution. Equivalent to `extraDistr::rkumar(n, a, b)` in R.",
     "ja": ""
   },
-  "rlaplace#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rlaplace#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -637,11 +522,6 @@
   "rlaplace#summary": {
     "hash": "a1df991662dc",
     "en": "Random numbers from the Laplace distribution. Equivalent to `extraDistr::rlaplace(n, mu = 0, sigma = 1)` in R.",
-    "ja": ""
-  },
-  "rlnorm#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "rlnorm#@example": {
@@ -674,11 +554,6 @@
     "en": "Standard deviation on the log scale. Default `1`.",
     "ja": ""
   },
-  "rlogis#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rlogis#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -707,11 +582,6 @@
   "rlogis.options.scale#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
-  },
-  "rmultinom#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "rmultinom#@example": {
@@ -747,11 +617,6 @@
   "rmultinom#summary": {
     "hash": "3677f8259a55",
     "en": "Random vectors from the multinomial distribution. Equivalent to R's `rmultinom()`.\n\nUnlike R, which returns a K x n matrix with one draw per column, this returns `n` rows\nwith one draw per row (the transpose of R's result). The random stream is the same as R's.",
-    "ja": ""
-  },
-  "rnbinom#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "rnbinom#@example": {
@@ -794,11 +659,6 @@
     "en": "Probability of success in each trial. Give exactly one of `prob` and `mu`.",
     "ja": ""
   },
-  "rnorm#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -829,11 +689,6 @@
     "en": "Standard deviation. Default `1`.",
     "ja": ""
   },
-  "rpareto#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rpareto#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -842,11 +697,6 @@
   "rpareto#summary": {
     "hash": "20fd0c0adef2",
     "en": "Random numbers from the Pareto distribution. Equivalent to `extraDistr::rpareto(n, a = 1, b = 1)` in R.",
-    "ja": ""
-  },
-  "rpois#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "rpois#@example": {
@@ -874,11 +724,6 @@
     "en": "Random numbers from the Poisson distribution. Equivalent to R's `rpois()`.",
     "ja": ""
   },
-  "rsignrank#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rsignrank#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -902,11 +747,6 @@
   "rsignrank#summary": {
     "hash": "e7745ab441ee",
     "en": "Random numbers from the distribution of the Wilcoxon signed rank statistic.\nEquivalent to R's `rsignrank()`.",
-    "ja": ""
-  },
-  "rt#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "rt#@example": {
@@ -939,11 +779,6 @@
     "en": "Non-centrality parameter. If omitted, the central distribution is used.",
     "ja": ""
   },
-  "rtriang#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rtriang#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -952,11 +787,6 @@
   "rtriang#summary": {
     "hash": "42fa89302cb8",
     "en": "Random numbers from the triangular distribution.\nEquivalent to `extraDistr::rtriang(n, a = -1, b = 1, c = (a + b)/2)` in R.",
-    "ja": ""
-  },
-  "runif#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "runif#@example": {
@@ -989,11 +819,6 @@
     "en": "Lower limit. Default `0`.",
     "ja": ""
   },
-  "rweibull#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "rweibull#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1022,11 +847,6 @@
   "rweibull.options.scale#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
-  },
-  "rwilcox#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "rwilcox#@example": {
@@ -1064,11 +884,6 @@
     "en": "Random numbers from the distribution of the Wilcoxon rank sum statistic.\nEquivalent to R's `rwilcox()`.",
     "ja": ""
   },
-  "sample#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "sample#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1092,11 +907,6 @@
   "sample#summary": {
     "hash": "d469a35720f8",
     "en": "Random sample of the elements of an array. Equivalent to R's `sample()`.\n\nAlways samples from the elements of `x`. R's special case where a single number `x`\nmeans `1:x` is not supported; use {@link sampleInt} for that. Uses the same random\nnumbers as R, so results match R for the same seed.",
-    "ja": ""
-  },
-  "sampleInt#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "sampleInt#@example": {
@@ -1124,11 +934,6 @@
     "en": "Random sample of integers from `0..n-1`. Equivalent to R's `sample.int()`. Unlike R, it is 0-based.\n\nThe result is R's `sample.int(n, ...)` minus 1, so it can be used directly as array\nindices. It consumes the same random numbers as R (default `sample.kind = \"Rejection\"`).",
     "ja": ""
   },
-  "setRandomSeed#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
-    "ja": ""
-  },
   "setRandomSeed#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1147,11 +952,6 @@
   "setRandomSeed#summary": {
     "hash": "ed6d7b457ab5",
     "en": "Restores a generator state, including its kinds, as assigning R's `.Random.seed` does.\nEquivalent to R's `.Random.seed`.",
-    "ja": ""
-  },
-  "setSeed#@category": {
-    "hash": "fba17add91ec",
-    "en": "Random numbers",
     "ja": ""
   },
   "setSeed#@example": {

@@ -1,17 +1,7 @@
 {
-  "GlmerAnovaOptions#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "GlmerAnovaOptions#summary": {
     "hash": "42ac8150b657",
     "en": "Options of {@link glmerAnova} for one fit: there is none (R's `anova()` of one fit has none); any key is a\nRangeError. For several fits the options are {@link LmerCompareOptions}.",
-    "ja": ""
-  },
-  "GlmerAnovaTable#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "GlmerAnovaTable#summary": {
@@ -54,19 +44,9 @@
     "en": "R's warnings (none).",
     "ja": ""
   },
-  "GlmerFamilyName#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "GlmerFamilyName#summary": {
     "hash": "6cdbe78ee57b",
     "en": "The families that {@link glmer} fits (the glm families without the quasi ones).",
-    "ja": ""
-  },
-  "GlmerOptions#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "GlmerOptions#summary": {
@@ -124,54 +104,14 @@
     "en": "Prior weights (non-negative): one per row of `data` (`null` or NaN is missing and drops the row), or the name of\na numeric column. For the binomial family with proportions as the response, the numbers of trials.",
     "ja": ""
   },
-  "GlmerPredictOptions#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "GlmerPredictOptions#summary": {
     "hash": "88bcd094b1f3",
     "en": "Options of {@link glmerPredict}: those of {@link LmerPredictOptions} and `newoffset`. Only these keys are accepted:\nR's `re.form`, `allow.new.levels`, `random.only`, `se.fit`, `newparams`, `terms`, `na.action` and `naAction` give\nthe Error `glmerPredict: argument '<key>' is not supported`, any other key a RangeError.",
     "ja": ""
   },
-  "GlmerPredictOptions.allowNewLevels#summary": {
-    "hash": "6e629b700601",
-    "en": "Whether a level of a grouping factor not in the fit, or a missing grouping value, is allowed (default `false`, an\nerror): that term then adds 0 for the row (the population level for that term). R's `allow.new.levels`.",
-    "ja": ""
-  },
-  "GlmerPredictOptions.newdata#summary": {
-    "hash": "bc121fac8bb2",
-    "en": "The rows to predict: a data frame with the columns of the fit's data that the prediction uses (the variables of\nthe fixed-effects part and of the selected random-effects terms; not the response). Default: the rows of the fit.",
-    "ja": ""
-  },
   "GlmerPredictOptions.newoffset#summary": {
     "hash": "1f403f47ef64",
     "en": "The offset of the rows of `newdata` (one number per row; default all 0) when the fit's offset was given as an\narray (or not at all); an offset given to glmer as a column name is read from that column of `newdata` instead,\nand `newoffset` is then a RangeError, as it is without `newdata`.",
-    "ja": ""
-  },
-  "GlmerPredictOptions.randomOnly#summary": {
-    "hash": "aacd8aa5540e",
-    "en": "Whether to predict the random part only, without the fixed effects and the offset (default `false`; R's `random.only`).",
-    "ja": ""
-  },
-  "GlmerPredictOptions.reForm#summary": {
-    "hash": "c083752d4bc0",
-    "en": "Which random-effects terms to include (R's `re.form`): `undefined` or `null` all of them (default); `false`,\n`\"~0\"` or `\"~ 0\"` none (the population-level prediction); a one-sided formula such as `\"~ (1 | g)\"` those written\nin it (its fixed part is ignored). Its grouping factors must be the fit's and its columns among the fit's columns\nfor that factor; a term may have fewer columns than the fit's.",
-    "ja": ""
-  },
-  "GlmerPredictOptions.seFit#summary": {
-    "hash": "30eba4978819",
-    "en": "Whether to return the standard errors (default `false`; R's `se.fit`).",
-    "ja": ""
-  },
-  "GlmerPredictOptions.type#summary": {
-    "hash": "7e2dd038df0a",
-    "en": "`\"link\"` (default) or `\"response\"`: for lmer both give the same values, as in R.",
-    "ja": ""
-  },
-  "GlmerResult#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "GlmerResult#summary": {
@@ -339,11 +279,6 @@
     "en": "The working residuals (y − μ̂) / μ'(η̂) (R's `residuals(fit, \"working\")`).",
     "ja": ""
   },
-  "GlmerSummary#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "GlmerSummary#summary": {
     "hash": "fc6d5bf18e46",
     "en": "Result of {@link glmerSummary}: lme4's `summary()` of a glmer fit.",
@@ -464,19 +399,9 @@
     "en": "R's warnings (the fallback of vcov to R_X, if the fit gave it).",
     "ja": ""
   },
-  "GlmerSummaryOptions#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "GlmerSummaryOptions#summary": {
     "hash": "efd51a343b9b",
     "en": "Options of {@link glmerSummary}: there is none yet. R's `correlation`, `use.hessian` and `useHessian` give the\nError `glmerSummary: argument '<key>' is not supported`, any other key a RangeError.",
-    "ja": ""
-  },
-  "LmerAnovaOptions#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "LmerAnovaOptions#summary": {
@@ -487,11 +412,6 @@
   "LmerAnovaOptions.type#summary": {
     "hash": "4bca57a13dae",
     "en": "The type of the sums of squares: `\"III\"` (default), `\"II\"` or `\"I\"` (also `3`, `2`, `1`).",
-    "ja": ""
-  },
-  "LmerAnovaTable#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "LmerAnovaTable#summary": {
@@ -549,19 +469,9 @@
     "en": "R's warnings (about the eigenvalues of the Hessian of the deviance in the variance parameters).",
     "ja": ""
   },
-  "LmerAnovaType#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "LmerAnovaType#summary": {
     "hash": "21deb4aa9747",
     "en": "The type of the sums of squares of an ANOVA table of {@link lmerAnova}.",
-    "ja": ""
-  },
-  "LmerCompareOptions#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "LmerCompareOptions#summary": {
@@ -577,11 +487,6 @@
   "LmerCompareOptions.refit#summary": {
     "hash": "fdafcf9b54aa",
     "en": "Refit the REML fits by maximum likelihood before comparing them (default `true`). As in R's conditions, a number\nis `false` for 0 and `true` otherwise; `null` and other values are TypeErrors.",
-    "ja": ""
-  },
-  "LmerCompareTable#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "LmerCompareTable#summary": {
@@ -644,11 +549,6 @@
     "en": "R's warnings (duplicated names, a mix of REML and ML fits without refitting).",
     "ja": ""
   },
-  "LmerContestF#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "LmerContestF#summary": {
     "hash": "855ecd0ea4c5",
     "en": "Result of {@link lmerContest} with `joint: true` (the default): one row of an F table, or none when the rows of L\nhave rank 0.",
@@ -699,11 +599,6 @@
     "en": "R's warnings (about the Hessian's eigenvalues; `Contrast is rank deficient and test may be affected`).",
     "ja": ""
   },
-  "LmerContestOptions#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "LmerContestOptions#summary": {
     "hash": "a0b3e693e704",
     "en": "Options of {@link lmerContest}. R's `collect`, `checkEstimability`, `check_estimability` and `ddf` give the Error\n`lmerContest: argument '<key>' is not supported`, any other key a RangeError.",
@@ -727,11 +622,6 @@
   "LmerContestOptions.rhs#summary": {
     "hash": "03c7872e2268",
     "en": "The right-hand side of the hypothesis L β = rhs: one value, or one per row of L (default 0).",
-    "ja": ""
-  },
-  "LmerContestT#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "LmerContestT#summary": {
@@ -789,19 +679,9 @@
     "en": "R's warnings (about the Hessian's eigenvalues).",
     "ja": ""
   },
-  "LmerContrastName#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "LmerContrastName#summary": {
     "hash": "581494e40c03",
     "en": "A contrast of a factor of lmer's fixed effects: R's `contr.treatment`, `contr.sum`, `contr.helmert` or `contr.poly`\n(orthogonal polynomials in the level scores 1, 2, ..., columns `.L`, `.Q`, `.C`, `^4`, ...).",
-    "ja": ""
-  },
-  "LmerOptions#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "LmerOptions#summary": {
@@ -822,11 +702,6 @@
   "LmerOptions.levels#summary": {
     "hash": "e4863b3798a1",
     "en": "The order of the levels of a factor (`{ A: [\"c\", \"a\", \"b\"] }`), as `factor(x, levels = ...)` in R.",
-    "ja": ""
-  },
-  "LmerPredictOptions#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "LmerPredictOptions#summary": {
@@ -864,11 +739,6 @@
     "en": "`\"link\"` (default) or `\"response\"`: for lmer both give the same values, as in R.",
     "ja": ""
   },
-  "LmerRanef#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "LmerRanef#summary": {
     "hash": "d9ff6187b1c6",
     "en": "The conditional modes of the random effects of a grouping factor in a {@link LmerResult}: one entry of R's\n`ranef()`.",
@@ -892,11 +762,6 @@
   "LmerRanef.values#summary": {
     "hash": "45f10677664e",
     "en": "One array per level, one value per column.",
-    "ja": ""
-  },
-  "LmerResult#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "LmerResult#summary": {
@@ -1034,11 +899,6 @@
     "en": "R's warnings (predictors on very different scales).",
     "ja": ""
   },
-  "LmerSummary#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "LmerSummary#summary": {
     "hash": "d428d69115fb",
     "en": "Result of {@link lmerSummary}: the coefficient table of lmerTest's `summary()`.",
@@ -1089,11 +949,6 @@
     "en": "R's warnings: those about the eigenvalues of the Hessian of the deviance in the variance parameters.",
     "ja": ""
   },
-  "LmerSummaryOptions#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "LmerSummaryOptions#summary": {
     "hash": "d8447b5c0c87",
     "en": "Options of {@link lmerSummary}. Any other key is a RangeError (R's lmerTest ignores unknown arguments with a\nwarning).",
@@ -1102,11 +957,6 @@
   "LmerSummaryOptions.ddf#summary": {
     "hash": "093599091028",
     "en": "The denominator degrees of freedom: `\"Satterthwaite\"` (default; with df and p-values) or `\"lme4\"` (lme4's table:\nestimates, standard errors and t values only).",
-    "ja": ""
-  },
-  "LmerVarCorr#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "LmerVarCorr#summary": {
@@ -1134,11 +984,6 @@
     "en": "The standard deviations of the random effects, one per column.",
     "ja": ""
   },
-  "MixedPrediction#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "MixedPrediction#summary": {
     "hash": "eeca8f1e500a",
     "en": "Result of {@link glmerPredict} and {@link lmerPredict}.",
@@ -1157,11 +1002,6 @@
   "MixedPrediction.warnings#summary": {
     "hash": "5555764acb68",
     "en": "R's warnings (only when there are some: glmer's warning about the standard errors).",
-    "ja": ""
-  },
-  "glmer#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "glmer#@example": {
@@ -1189,11 +1029,6 @@
     "en": "Fit a generalized linear mixed model by the Laplace approximation (`nAGQ = 1`, default), by adaptive Gauss-Hermite\nquadrature (`nAGQ` from 2 to 100) or with the fixed effects from the penalised IRLS (`nAGQ = 0`). Equivalent to `lme4::glmer()` in R. With the quantities of its methods:\n`fixef()`, `coef(summary())` (without p-values), `vcov()`, `sigma()`, `VarCorr()`, `ranef()`, `fitted()`,\n`predict()`, `residuals()` of the four types, `deviance()`, `logLik()`, `AIC()`, `BIC()` and `isSingular()`.\n\nThe families are binomial, poisson, Gamma, inverse.gaussian and gaussian (not with the identity link: that is\n{@link lmer}), with the links of {@link glm} and lme4's own inverse links and variance functions. The formula is\nas in {@link lmer}; a binomial response may be 0/1 values, booleans, strings or a factor (the first level failure),\nproportions with the numbers of trials as `weights`, or `cbind(successes, failures)` with two column names on the\nleft-hand side.\n\nThe estimate is the exact minimiser of the Laplace deviance computed at the exact conditional mode of the random\neffects (lme4's optimiser and its penalised IRLS stop early, so lme4's values typically differ in the 4th to 6th\nsignificant digit, its standard errors by up to about 1%). Elements of θ on the boundary are exactly 0, and the fit\nis then singular. lme4's warnings about its optimiser and its convergence checks are not given.\n\nThe scale of the response: lme4's Laplace criterion leaves out the dispersion, so for the poisson,\ninverse.gaussian and gaussian families it is not invariant to the scale of the response (or of the prior weights).\nWhere the information about the random effects at the start, Σ W z² of a column of Z (W the working weights at\nthe starting means), is above 2^40 (the penalised system then loses about 40 of its 53 bits), or below 2^-40 and\nthe fit fails or a term ends at θ = 0 on a criterion flat to rounding, the result is a RangeError saying so. For\ndata like the example below: poisson counts up to about 1e11 (prior weights up to about 2^34), inverse.gaussian\nwith the log link up to about 1e13, gaussian with the log link from about 1e-6 to 5e4 fit; beyond, the RangeError.\nGamma fits are not limited by the scale of the response (its criterion is invariant; with the log link a tiny\nresponse is rescaled).\n\nAdaptive Gauss-Hermite quadrature (`nAGQ > 1`) needs a single scalar random-effects term such as `(1 | g)`, with\nR's errors otherwise. It is offered for binomial and poisson only: for Gamma, inverse.gaussian and gaussian it is a\nRangeError, since lme4 holds the dispersion at 1 there, so that its estimates would not be maximum likelihood. Its\n`logLik`, `AIC` and `BIC` are those of the log-likelihood, unlike R's, which leave out the constant of the\nsaturated model (`aic − Σ` deviance residuals) for nAGQ > 1: they differ from R's by that constant and are\ncomparable with the Laplace fit's.",
     "ja": ""
   },
-  "glmerAnova(0)#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "glmerAnova(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1214,11 +1049,6 @@
     "en": "The ANOVA table of the fixed-effects terms of a generalized linear mixed model fitted by {@link glmer}, or, given an\narray of fits, the likelihood-ratio comparison of the models. Equivalent to `lme4::anova()` in R.\n\nFor one fit: for each term of the fixed effects (in the order of the columns, the intercept left out), the\nsequential Wald sum of squares, the squared length of the term's part of R_X β̂ (R_X the Cholesky factor of\nR_X'R_X at the conditional mode), its number of columns (`npar`), the mean square and F = mean square / σ² (σ = 1\nfor binomial and poisson). As in lme4, there are no p-values (the statistics need not be F distributed).\n\nFor several fits: fits of {@link glmer}, {@link lmer} and {@link glm} together (at least one of glmer or lmer). The\nglmer and lmer fits must be fitted to the same data object with the same rows and the same response (the left-hand\nside of the formula); a glm fit must have the same number of observations and the same response values; all must\nhave the same prior weights. lmer's REML fits are refitted by maximum likelihood (unless `refit: false`); the models\nare sorted by their number of parameters, and each is compared with the one before by the likelihood-ratio test\nwhere that one is nested in it: the same family, link and offset (an lmer fit is gaussian with the identity link),\nits fixed-effects columns in the column space of the larger fit's and its random-effects terms within the larger\nfit's. Unlike R's, the log-likelihood of a glmer fit with `nAGQ > 1` includes the saturated model's constant (see\n{@link glmer}), so that it can be compared with the Laplace fit and with glm.",
     "ja": ""
   },
-  "glmerAnova(1)#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "glmerAnova(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1232,11 +1062,6 @@
   "glmerAnova(1)#summary": {
     "hash": "9d9b658e6855",
     "en": "The ANOVA table of the fixed-effects terms of a generalized linear mixed model fitted by {@link glmer}, or, given an\narray of fits, the likelihood-ratio comparison of the models. Equivalent to `lme4::anova()` in R.\n\nFor one fit: for each term of the fixed effects (in the order of the columns, the intercept left out), the\nsequential Wald sum of squares, the squared length of the term's part of R_X β̂ (R_X the Cholesky factor of\nR_X'R_X at the conditional mode), its number of columns (`npar`), the mean square and F = mean square / σ² (σ = 1\nfor binomial and poisson). As in lme4, there are no p-values (the statistics need not be F distributed).\n\nFor several fits: fits of {@link glmer}, {@link lmer} and {@link glm} together (at least one of glmer or lmer). The\nglmer and lmer fits must be fitted to the same data object with the same rows and the same response (the left-hand\nside of the formula); a glm fit must have the same number of observations and the same response values; all must\nhave the same prior weights. lmer's REML fits are refitted by maximum likelihood (unless `refit: false`); the models\nare sorted by their number of parameters, and each is compared with the one before by the likelihood-ratio test\nwhere that one is nested in it: the same family, link and offset (an lmer fit is gaussian with the identity link),\nits fixed-effects columns in the column space of the larger fit's and its random-effects terms within the larger\nfit's. Unlike R's, the log-likelihood of a glmer fit with `nAGQ > 1` includes the saturated model's constant (see\n{@link glmer}), so that it can be compared with the Laplace fit and with glm.",
-    "ja": ""
-  },
-  "glmerPredict#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "glmerPredict#@example": {
@@ -1259,11 +1084,6 @@
     "en": "Predictions of a generalized linear mixed model fitted by {@link glmer}, at the rows of the fit or at new data, with\nall, some or none of the random-effects terms, on the link or the response scale, optionally with their standard\nerrors. Equivalent to `lme4::predict()` in R.\n\nThe rules are those of {@link lmerPredict}, with the offset: without `newdata` the fit's; with it, an offset given\nto glmer as a column name is read from that column of `newdata`, one given as an array is replaced by `newoffset`\n(default 0: R ignores glmer's `offset` argument in prediction). `type: \"response\"` applies R's inverse link (at the\nfit's rows with all terms, the fitted means). The standard errors use the Fisher weights at the conditional mode,\nwith R's warning that they are an approximation; on the response scale they are multiplied by |dμ/dη|.",
     "ja": ""
   },
-  "glmerSummary#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "glmerSummary#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1282,11 +1102,6 @@
   "glmerSummary#summary": {
     "hash": "61037bbd2ed2",
     "en": "The summary of a generalized linear mixed model fitted by {@link glmer}: the coefficient table with p-values, the\ncorrelation of the fixed effects, the quantiles of the scaled residuals, the information criteria, the variance\ncomponents and the numbers of groups. Equivalent to `lme4::summary()` in R.\n\nThe p-values are from the normal distribution for every family, as lme4's (whose third column is named `t value`\nfor the families with a dispersion, although its p-values are normal ones). The values are those of the fit at the\nexact optimum (see {@link glmer}), so they typically differ from lme4's in the 4th to 6th significant digit. For\n`nAGQ > 1`, `logLik`, `AIC`, `BIC` and `minus2LogLik` are those of the log-likelihood, as the fit's.",
-    "ja": ""
-  },
-  "lmer#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "lmer#@example": {
@@ -1314,11 +1129,6 @@
     "en": "Fit a linear mixed model by REML (default) or maximum likelihood. Equivalent to `lme4::lmer()` in R. With the\nquantities of its methods: `fixef()`, `coef(summary())` (without p-values), `vcov()`, `sigma()`, `VarCorr()`,\n`ranef()`, `fitted()`, `residuals()`, `logLik()`, `AIC()`, `BIC()`, `deviance()`, `REMLcrit()` and `isSingular()`.\n\nThe formula has random-effects terms `(lhs | group)` (correlated effects of the columns of `lhs` within each level\nof `group`) or `(lhs || group)` (uncorrelated); `group` may be `a:b` (the combinations), `a/b` (nested: `b:a` and\n`a`) and so on, as in lme4. The fixed-effects part is coded as in {@link lm}; aliased columns are dropped (with a\nmessage). Rows with a missing value in a variable of the formula are dropped (`rows` lists those used).\n\nThe covariance parameters θ are the lower triangles of the relative covariance factors of the terms; the estimate\nis the exact minimiser of the profiled criterion (lme4's optimiser stops close to it, so lme4's values typically\ndiffer in the 5th to 9th significant digit). Elements on the boundary are exactly 0, and the fit is then singular.\nThe computation is sparse (a sparse Cholesky factorisation, as in lme4), so many groups are handled quickly.\n\nThe functions that take the fit ({@link lmerSummary}, {@link lmerAnova}, {@link lmerContest} and the others) need\nthe object `lmer` returned itself: a copy of it (`structuredClone`, `{ ...fit }`, JSON or `postMessage`) lacks the\ninternal values they use and is a TypeError. The fields of a copy keep their values.",
     "ja": ""
   },
-  "lmerAnova(0)#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "lmerAnova(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1339,11 +1149,6 @@
     "en": "The ANOVA table of a linear mixed model fitted by {@link lmer}, with Satterthwaite's denominator degrees of freedom\n(lmerTest's `anova()`), or, given an array of fits, the likelihood-ratio comparison of the models (lme4's\n`anova()` of several fits). Equivalent to `lmerTest::anova()` in R.\n\nFor one fit: each term of the fixed effects is tested jointly (an F-test of its hypothesis matrix, of Type III by\ndefault, II or I as in lmerTest; see {@link lmerContest} for the test). Type III with an empty cell of an\ninteraction gives the message `Missing cells for: ...`. A term without a test is listed last, with NaN.\n\nFor several fits (fitted to the same data object, with the same rows): REML fits are first refitted by maximum\nlikelihood (unless `refit: false`), the models are sorted by their number of parameters, and each is compared with\nthe one before by the likelihood-ratio test.",
     "ja": ""
   },
-  "lmerAnova(1)#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "lmerAnova(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1357,11 +1162,6 @@
   "lmerAnova(1)#summary": {
     "hash": "5715021f5c68",
     "en": "The ANOVA table of a linear mixed model fitted by {@link lmer}, with Satterthwaite's denominator degrees of freedom\n(lmerTest's `anova()`), or, given an array of fits, the likelihood-ratio comparison of the models (lme4's\n`anova()` of several fits). Equivalent to `lmerTest::anova()` in R.\n\nFor one fit: each term of the fixed effects is tested jointly (an F-test of its hypothesis matrix, of Type III by\ndefault, II or I as in lmerTest; see {@link lmerContest} for the test). Type III with an empty cell of an\ninteraction gives the message `Missing cells for: ...`. A term without a test is listed last, with NaN.\n\nFor several fits (fitted to the same data object, with the same rows): REML fits are first refitted by maximum\nlikelihood (unless `refit: false`), the models are sorted by their number of parameters, and each is compared with\nthe one before by the likelihood-ratio test.",
-    "ja": ""
-  },
-  "lmerContest(0)#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "lmerContest(0)#@example": {
@@ -1389,11 +1189,6 @@
     "en": "Tests of contrasts L β = rhs of the fixed effects of a linear mixed model fitted by {@link lmer}, with Satterthwaite's\ndegrees of freedom. Equivalent to `lmerTest::contest()` in R.\n\n`L` is one contrast (a vector, one value per fixed effect) or several (an array of rows). By default the rows are\ntested jointly: an F-test of the hypothesis, rotated to its eigenvectors (rows that are linearly dependent count\nonce; a row set of rank 0 gives an empty table). With `joint: false` each row has its own t-test, with a confidence\ninterval at `level` unless `confint` is false. The degrees of freedom come from the analytic derivatives at the exact\noptimum (see {@link lmerSummary}).",
     "ja": ""
   },
-  "lmerContest(1)#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "lmerContest(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1417,11 +1212,6 @@
   "lmerContest(1)#summary": {
     "hash": "6740d99277a6",
     "en": "Tests of contrasts L β = rhs of the fixed effects of a linear mixed model fitted by {@link lmer}, with Satterthwaite's\ndegrees of freedom. Equivalent to `lmerTest::contest()` in R.\n\n`L` is one contrast (a vector, one value per fixed effect) or several (an array of rows). By default the rows are\ntested jointly: an F-test of the hypothesis, rotated to its eigenvectors (rows that are linearly dependent count\nonce; a row set of rank 0 gives an empty table). With `joint: false` each row has its own t-test, with a confidence\ninterval at `level` unless `confint` is false. The degrees of freedom come from the analytic derivatives at the exact\noptimum (see {@link lmerSummary}).",
-    "ja": ""
-  },
-  "lmerContest(2)#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "lmerContest(2)#@example": {
@@ -1449,11 +1239,6 @@
     "en": "Tests of contrasts L β = rhs of the fixed effects of a linear mixed model fitted by {@link lmer}, with Satterthwaite's\ndegrees of freedom. Equivalent to `lmerTest::contest()` in R.\n\n`L` is one contrast (a vector, one value per fixed effect) or several (an array of rows). By default the rows are\ntested jointly: an F-test of the hypothesis, rotated to its eigenvectors (rows that are linearly dependent count\nonce; a row set of rank 0 gives an empty table). With `joint: false` each row has its own t-test, with a confidence\ninterval at `level` unless `confint` is false. The degrees of freedom come from the analytic derivatives at the exact\noptimum (see {@link lmerSummary}).",
     "ja": ""
   },
-  "lmerPredict#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
-    "ja": ""
-  },
   "lmerPredict#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1472,11 +1257,6 @@
   "lmerPredict#summary": {
     "hash": "d2899113d3b5",
     "en": "Predictions of a linear mixed model fitted by {@link lmer}, at the rows of the fit or at new data, with all, some\nor none of the random-effects terms, optionally with their standard errors. Equivalent to `lme4::predict()` in R.\n\nThe prediction of a row is x'β̂ + Σ z'b̂ over the selected terms, x built from the row as the fit built its\nfixed-effects matrix (its terms, contrasts, factor levels and dropped columns) and b̂ the conditional mode of the\nrow's level. A missing value in a variable gives NaN for its row; a factor level of the fixed part that the fit did\nnot have is the RangeError `factor <name> has new level <value>` (R: `non-conformable arguments`). The standard\nerrors are those of the conditional covariance σ² A K⁻¹ A' of (b, β) at θ̂ (Henderson's equations), computed\ncorrectly also where lme4's are wrong (crossed grouping factors, some `reForm` subsets).",
-    "ja": ""
-  },
-  "lmerSummary#@category": {
-    "hash": "68c12810fc55",
-    "en": "Mixed models",
     "ja": ""
   },
   "lmerSummary#@example": {

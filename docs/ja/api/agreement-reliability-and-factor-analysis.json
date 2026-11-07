@@ -1,9 +1,4 @@
 {
-  "CronbachAlphaResult#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "CronbachAlphaResult#summary": {
     "hash": "4f561f8ce8a5",
     "en": "Result of {@link cronbachAlpha}.",
@@ -37,11 +32,6 @@
   "CronbachAlphaResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
-  },
-  "FactanalOptions#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "FactanalOptions#summary": {
@@ -82,11 +72,6 @@
   "FactanalOptions.scores#summary": {
     "hash": "8bc7f4400b17",
     "en": "Factor scores to compute from the data (R's `scores`): `\"none\"` (default), `\"regression\"` (Thomson's,\nz R^-1 L) or `\"Bartlett\"` (z W L (L' W L)^-1 with W = diag(1 / uniquenesses)), where z is the data\nstandardised by column (denominator n - 1), R its correlation matrix and L the final loadings. Scores need\n`x`: with `covmat` they are an error.",
-    "ja": ""
-  },
-  "FactanalResult#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "FactanalResult#summary": {
@@ -149,29 +134,14 @@
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
     "ja": ""
   },
-  "FactanalRotation#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "FactanalRotation#summary": {
     "hash": "e7797d6acf6f",
     "en": "Rotations of {@link factanal}",
     "ja": ""
   },
-  "FactanalScores#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "FactanalScores#summary": {
     "hash": "0886d002fe33",
     "en": "Factor scores of {@link factanal}",
-    "ja": ""
-  },
-  "IccOptions#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "IccOptions#summary": {
@@ -202,11 +172,6 @@
   "IccOptions.unit#summary": {
     "hash": "6f6bdb442fb7",
     "en": "`\"single\"` (default; the reliability of one rater) or `\"average\"` (of the mean of the k raters).",
-    "ja": ""
-  },
-  "IccResult#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "IccResult#summary": {
@@ -259,11 +224,6 @@
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
     "ja": ""
   },
-  "Kappa2Options#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "Kappa2Options#summary": {
     "hash": "385596c3b88c",
     "en": "Options for {@link kappa2}.",
@@ -274,19 +234,9 @@
     "en": "`\"unweighted\"` (default): only identical ratings agree. `\"equal\"`: weights `1 − d/(c − 1)` for levels `d` apart\n(of `c` levels); `\"squared\"`: `1 − d²/(c − 1)²`. Unambiguous abbreviations are accepted.",
     "ja": ""
   },
-  "Kappa2Weight#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "Kappa2Weight#summary": {
     "hash": "532485c479d4",
     "en": "Weighting of the disagreements in {@link kappa2}.",
-    "ja": ""
-  },
-  "KappaResult#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "KappaResult#summary": {
@@ -314,11 +264,6 @@
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
     "ja": ""
   },
-  "KappamFleissOptions#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "KappamFleissOptions#summary": {
     "hash": "31b607f4dc95",
     "en": "Options for {@link kappamFleiss}.",
@@ -327,11 +272,6 @@
   "KappamFleissOptions.exact#summary": {
     "hash": "91c11058e5bd",
     "en": "Conger's exact kappa instead of Fleiss' (no test is then given). Default `false`.",
-    "ja": ""
-  },
-  "OmegaOptions#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "OmegaOptions#summary": {
@@ -347,11 +287,6 @@
   "OmegaOptions.nfactors#summary": {
     "hash": "593230cb7d74",
     "en": "The number of first-order (group) factors. Default 3.",
-    "ja": ""
-  },
-  "OmegaResult#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "OmegaResult#summary": {
@@ -439,11 +374,6 @@
     "en": "The warnings R would give (e.g. an ultra-Heywood case, or one factor), each once.",
     "ja": ""
   },
-  "PolychorStdErrResult#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "PolychorStdErrResult#summary": {
     "hash": "7429209ac061",
     "en": "Result of {@link polychor} with `stdErr`.",
@@ -469,11 +399,6 @@
     "en": "The number of observations (the total of the table).",
     "ja": ""
   },
-  "PolychorStdErrResult.rho#summary": {
-    "hash": "b60130f6bb7e",
-    "en": "The correlation (`NaN` where polycor returns NA).",
-    "ja": ""
-  },
   "PolychorStdErrResult.rowCuts#summary": {
     "hash": "a61a3ee71c6b",
     "en": "The row thresholds (the estimates with `ML`, the two-step ones otherwise).",
@@ -482,16 +407,6 @@
   "PolychorStdErrResult.var#summary": {
     "hash": "5b8f1c79f694",
     "en": "Variances and covariances of the estimates (the inverse of the negative Hessian of the log-likelihood at the\nmaximum), in the order rho, the row thresholds, the column thresholds; 1 × 1 (rho alone) without `ML`.",
-    "ja": ""
-  },
-  "PolychorStdErrResult.warnings#summary": {
-    "hash": "0b7567bc4a6f",
-    "en": "polycor's warnings, in order.",
-    "ja": ""
-  },
-  "PolycorOptions#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "PolycorOptions#summary": {
@@ -509,11 +424,6 @@
     "en": "Also return the variances of the estimates, the chi-square test of bivariate normality and the thresholds\n(polycor's `std.err = TRUE`). Without `ML`, the correlation is the maximum-likelihood one given the two-step\nthresholds. Default `false`.",
     "ja": ""
   },
-  "PolycorResult#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "PolycorResult#summary": {
     "hash": "d9ed47fb10da",
     "en": "Result of {@link polychor} and {@link polyserial}.",
@@ -527,11 +437,6 @@
   "PolycorResult.warnings#summary": {
     "hash": "0b7567bc4a6f",
     "en": "polycor's warnings, in order.",
-    "ja": ""
-  },
-  "PolyserialStdErrResult#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "PolyserialStdErrResult#summary": {
@@ -559,24 +464,9 @@
     "en": "The number of observations used.",
     "ja": ""
   },
-  "PolyserialStdErrResult.rho#summary": {
-    "hash": "b60130f6bb7e",
-    "en": "The correlation (`NaN` where polycor returns NA).",
-    "ja": ""
-  },
   "PolyserialStdErrResult.var#summary": {
     "hash": "6496a0cd12a5",
     "en": "Variances and covariances of the estimates, in the order rho, the thresholds; 1 × 1 (rho alone) without `ML`.",
-    "ja": ""
-  },
-  "PolyserialStdErrResult.warnings#summary": {
-    "hash": "0b7567bc4a6f",
-    "en": "polycor's warnings, in order.",
-    "ja": ""
-  },
-  "cronbachAlpha#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "cronbachAlpha#@example": {
@@ -592,11 +482,6 @@
   "cronbachAlpha#summary": {
     "hash": "94da2e62636b",
     "en": "Cronbach's alpha of a set of items, standardized alpha, Guttman's lambda 6 and the mean inter-item correlation,\nand alpha with each item dropped. Equivalent to `psych::alpha()` in R. It gives the `total` row and\n`alpha.drop$raw_alpha` of `alpha(x)` with its defaults (no missing values, no reversed items).\n\nAs psych, `warnings` has \"Item =  had no variance and was deleted but still is counted in the score\" for a constant\nitem (an unnamed matrix's column has no name) and \"Some items were negatively correlated with the first principal\ncomponent and probably should be reversed. ...\" (with psych's line breaks) where a loading of the first principal\ncomponent of the correlations is negative. The warnings of the functions psych calls are not included.",
-    "ja": ""
-  },
-  "factanal#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "factanal#@example": {
@@ -619,11 +504,6 @@
     "en": "Maximum-likelihood factor analysis of a data matrix (rows are observations) or, with `options.covmat`, of a\ncovariance matrix. Equivalent to R's `factanal()`. With `rotation` `\"varimax\"`, `\"promax\"` or `\"none\"`.",
     "ja": ""
   },
-  "icc#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "icc#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -642,11 +522,6 @@
   "icc#summary": {
     "hash": "381d2fe4d701",
     "en": "Intraclass correlation coefficient with its F test and confidence interval (McGraw and Wong's forms).\nEquivalent to `irr::icc(ratings, model, type, unit, r0, conf.level)` in R. No missing values are allowed.",
-    "ja": ""
-  },
-  "kappa2#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "kappa2#@example": {
@@ -669,11 +544,6 @@
     "en": "Cohen's kappa for two raters, unweighted or weighted, with the z test of kappa = 0. Equivalent to\n`irr::kappa2(ratings, weight)` in R. The ratings are numeric.\n\nThe levels are the distinct ratings of both raters sorted as R sorts their character forms (so 10 sorts before 2,\nwhich matters for the weighted kappas). Rows with a missing value (`NaN`) are dropped. The variance of the test is\nthe one under the null hypothesis; the p-value is computed as 2 Φ(−|z|), so small p-values are more accurate than\nirr's.",
     "ja": ""
   },
-  "kappamFleiss#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "kappamFleiss#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -694,11 +564,6 @@
     "en": "Fleiss' kappa for several raters (or Conger's exact kappa), with the z test of kappa = 0 for Fleiss' kappa.\nEquivalent to `irr::kappam.fleiss(ratings, exact)` in R. The ratings are numeric, without missing values.\n\nThe p-value is computed as 2 Φ(−|z|), so small p-values are more accurate than irr's.",
     "ja": ""
   },
-  "omega#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "omega#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -717,11 +582,6 @@
   "omega#summary": {
     "hash": "570cc53ce04e",
     "en": "McDonald's omega (hierarchical, asymptotic and total) from a Schmid-Leiman transformation of an oblique minres\nfactor solution. Equivalent to `psych::omega()` in R. With its defaults (`fm = \"minres\"`, `rotate = \"oblimin\"`,\n`option = \"equal\"`, `flip = TRUE`).",
-    "ja": ""
-  },
-  "partialR#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "partialR#@example": {
@@ -749,11 +609,6 @@
     "en": "Partial correlation of columns `i` and `j` of `x` given all its other columns. Equivalent to\n`psych::partial.r(x, c(i, j), others)` in R. Returns its off-diagonal element (no missing values).",
     "ja": ""
   },
-  "polychor(0)#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "polychor(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -772,11 +627,6 @@
   "polychor(0)#summary": {
     "hash": "4914a3c3a56f",
     "en": "Polychoric correlation of two ordinal variables. By default the two-step estimate: thresholds from the margins,\nthen the maximum-likelihood correlation given them. Equivalent to `polycor::polychor()` in R. It takes `x` and `y`\nor a table, as `polychor(x, y)` or `polychor(table)`.\n\nGiven `x` and `y`, the table has the sorted distinct values of `x` as rows and those of `y` as columns (pairs with\na missing value are not counted). Rows and columns with a zero margin are removed with a warning; with fewer than\ntwo rows or columns left, `rho` is `NaN` (and the result has no other fields).\n\nWith `ML`, the correlation and the thresholds are estimated together by maximum likelihood; with `stdErr`, the\nresult also has their variances, the chi-square test of bivariate normality and the thresholds (with `stdErr`\nalone, the correlation is maximised given the two-step thresholds). The exact maximum is returned (R's optimisers\nstop about 1e-4 short of it). If the likelihood increases up to |rho| = 0.9999, `rho` is ±0.9999 with a warning.",
-    "ja": ""
-  },
-  "polychor(1)#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "polychor(1)#@example": {
@@ -819,11 +669,6 @@
     "en": "Polychoric correlation of two ordinal variables given as vectors of category codes (see the table form).",
     "ja": ""
   },
-  "polychor(3)#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
-    "ja": ""
-  },
   "polychor(3)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -837,11 +682,6 @@
   "polychor(3)#summary": {
     "hash": "4914a3c3a56f",
     "en": "Polychoric correlation of two ordinal variables. By default the two-step estimate: thresholds from the margins,\nthen the maximum-likelihood correlation given them. Equivalent to `polycor::polychor()` in R. It takes `x` and `y`\nor a table, as `polychor(x, y)` or `polychor(table)`.\n\nGiven `x` and `y`, the table has the sorted distinct values of `x` as rows and those of `y` as columns (pairs with\na missing value are not counted). Rows and columns with a zero margin are removed with a warning; with fewer than\ntwo rows or columns left, `rho` is `NaN` (and the result has no other fields).\n\nWith `ML`, the correlation and the thresholds are estimated together by maximum likelihood; with `stdErr`, the\nresult also has their variances, the chi-square test of bivariate normality and the thresholds (with `stdErr`\nalone, the correlation is maximised given the two-step thresholds). The exact maximum is returned (R's optimisers\nstop about 1e-4 short of it). If the likelihood increases up to |rho| = 0.9999, `rho` is ±0.9999 with a warning.",
-    "ja": ""
-  },
-  "polyserial(0)#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "polyserial(0)#@example": {
@@ -867,11 +707,6 @@
   "polyserial(0)#summary": {
     "hash": "060a6fdfc111",
     "en": "Polyserial correlation of a numeric variable and an ordinal one. By default the two-step (ad hoc) estimate.\nEquivalent to `polycor::polyserial(x, y)` in R.\n\nPairs with a missing value are dropped. The categories of `y` are its sorted distinct values, coded 1, 2, ...;\nwith fewer than two, `rho` is `NaN` (and the result has no other fields). A two-step estimate beyond ±0.9999 is set\nto ±0.9999 with a warning.\n\nWith `ML`, the correlation and the thresholds are estimated together by maximum likelihood; with `stdErr`, the\nresult also has their variances, polycor's chi-square test of bivariate normality and the thresholds (with `stdErr`\nalone, the correlation is maximised given the two-step thresholds). The exact maximum is returned (R's optimisers\nstop about 1e-4 short of it). If the likelihood increases up to |rho| = 0.9999, `rho` is ±0.9999 with a warning.",
-    "ja": ""
-  },
-  "polyserial(1)#@category": {
-    "hash": "cb54c643a625",
-    "en": "Agreement, reliability and factor analysis",
     "ja": ""
   },
   "polyserial(1)#@example": {

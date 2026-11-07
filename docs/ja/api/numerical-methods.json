@@ -1,9 +1,4 @@
 {
-  "ApproxOptions#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "ApproxOptions#summary": {
     "hash": "1c1cba0463ab",
     "en": "Options for {@link approx}.",
@@ -49,11 +44,6 @@
     "en": "Value right of the data. Default: NaN (rule 1) or the last y (rule 2).",
     "ja": ""
   },
-  "DerivOptions#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "DerivOptions#summary": {
     "hash": "0a51a1dd3e17",
     "en": "Options for {@link grad}, {@link jacobian} and {@link hessian}.",
@@ -84,11 +74,6 @@
     "en": "Coordinates with |x| below this get the step `eps`. Default `sqrt(2.220446e-16 / 7e-7)`.",
     "ja": ""
   },
-  "IntegrateOptions#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "IntegrateOptions#summary": {
     "hash": "d6ac0f9f1aa4",
     "en": "Options for {@link integrate}.",
@@ -112,11 +97,6 @@
   "IntegrateOptions.subdivisions#summary": {
     "hash": "a4b0d1d49bd8",
     "en": "Maximum number of subintervals. Default `100`.",
-    "ja": ""
-  },
-  "IntegrateResult#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "IntegrateResult#summary": {
@@ -149,19 +129,9 @@
     "en": "The estimate of the integral.",
     "ja": ""
   },
-  "OdeFunc#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "OdeFunc#summary": {
     "hash": "bfdc92a908f9",
     "en": "Derivative of the state: `func(t, y, parms)` returns dy/dt (one value per state variable).",
-    "ja": ""
-  },
-  "OdeOptions#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "OdeOptions#summary": {
@@ -172,11 +142,6 @@
   "OdeOptions.method#summary": {
     "hash": "5140cf405e25",
     "en": "`\"euler\"`, `\"rk2\"` (Heun) or `\"rk4\"` (classical Runge-Kutta, default).",
-    "ja": ""
-  },
-  "OptimControl#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "OptimControl#summary": {
@@ -259,19 +224,9 @@
     "en": "CG update: 1 Fletcher-Reeves (default), 2 Polak-Ribière, 3 Beale-Sorenson.",
     "ja": ""
   },
-  "OptimMethod#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "OptimMethod#summary": {
     "hash": "b4b6bdce3932",
     "en": "Methods of {@link optim}",
-    "ja": ""
-  },
-  "OptimOptions#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "OptimOptions#summary": {
@@ -307,11 +262,6 @@
   "OptimOptions.upper#summary": {
     "hash": "cd3812011ee1",
     "en": "Upper bounds (L-BFGS-B and Brent), recycled. Default `Infinity`.",
-    "ja": ""
-  },
-  "OptimResult#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "OptimResult#summary": {
@@ -354,11 +304,6 @@
     "en": "R's warnings",
     "ja": ""
   },
-  "OptimizeOptions#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "OptimizeOptions#summary": {
     "hash": "77b11954bac7",
     "en": "Options for {@link optimize}.",
@@ -372,11 +317,6 @@
   "OptimizeOptions.tol#summary": {
     "hash": "08cf3aee6694",
     "en": "Accuracy. Default `eps^0.25`.",
-    "ja": ""
-  },
-  "SplineFunction#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "SplineFunction#summary": {
@@ -394,11 +334,6 @@
     "en": "The spline at `xq`, with the order of the derivative in the options: `s(xq, { deriv: 1 })`.",
     "ja": ""
   },
-  "SplineFunctionOptions#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "SplineFunctionOptions#summary": {
     "hash": "ddee20c664b2",
     "en": "Options of the function that {@link splinefun} and {@link splinefunH} return.",
@@ -409,19 +344,9 @@
     "en": "Order of the derivative, 0 to 3 (a fraction is truncated, as R does). Default `0`.",
     "ja": ""
   },
-  "SplineMethod#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "SplineMethod#summary": {
     "hash": "5243db2f1659",
     "en": "Cubic spline method.",
-    "ja": ""
-  },
-  "SplineOptions#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "SplineOptions#summary": {
@@ -459,11 +384,6 @@
     "en": "Points to interpolate at (then `n`, `xmin` and `xmax` are not used).",
     "ja": ""
   },
-  "SplinefunOptions#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "SplinefunOptions#summary": {
     "hash": "386f4f3f6e9c",
     "en": "Options for {@link splinefun}.",
@@ -479,19 +399,9 @@
     "en": "How to merge equal x values. Default `\"mean\"`.",
     "ja": ""
   },
-  "Ties#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "Ties#summary": {
     "hash": "6326ae5457dc",
     "en": "How equal `x` values are merged before interpolating (R's `ties`): `\"mean\"`, `\"min\"` or `\"max\"` of their `y`, or a\nfunction of their `y` values.",
-    "ja": ""
-  },
-  "UnirootOptions#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "UnirootOptions#summary": {
@@ -524,11 +434,6 @@
     "en": "Accuracy. Default `eps^0.25`.",
     "ja": ""
   },
-  "UnirootResult#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "UnirootResult#summary": {
     "hash": "2e177099d771",
     "en": "Result of {@link uniroot}.",
@@ -559,11 +464,6 @@
     "en": "The root found.",
     "ja": ""
   },
-  "approx#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "approx#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -584,11 +484,6 @@
     "en": "The interpolated values, one per point of `x`.",
     "ja": ""
   },
-  "barylag#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "barylag#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -597,11 +492,6 @@
   "barylag#summary": {
     "hash": "af7ddf427b05",
     "en": "Lagrange interpolation in barycentric form through the points (xi, yi). Equivalent to `pracma::barylag()` in R.\nThe points must lie within the range of the nodes.",
-    "ja": ""
-  },
-  "grad#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "grad#@example": {
@@ -614,11 +504,6 @@
     "en": "Gradient of a scalar function of a vector. Equivalent to `numDeriv::grad(func, x, method)` in R.",
     "ja": ""
   },
-  "hermiteInterp#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "hermiteInterp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -627,11 +512,6 @@
   "hermiteInterp#summary": {
     "hash": "60c73eebff03",
     "en": "The polynomial of degree 2n - 1 through n points with given values and derivatives (global Hermite\ninterpolation, jStat's hermite), evaluated at `x`. Not an R function. Neither base R nor the recommended packages\nhave it (for piecewise cubic Hermite interpolation, see {@link splinefunH}). Computed by divided differences on\nthe doubled nodes.",
-    "ja": ""
-  },
-  "hessian#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "hessian#@example": {
@@ -644,11 +524,6 @@
     "en": "Hessian matrix of a scalar function of a vector, by Richardson extrapolation (Bates and Watts). Equivalent to\n`numDeriv::hessian(func, x)` in R.",
     "ja": ""
   },
-  "integrate#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "integrate#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -659,11 +534,6 @@
     "en": "Integral of a function of one variable over a finite or infinite range. Equivalent to R's `integrate()`.",
     "ja": ""
   },
-  "jacobian#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "jacobian#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -672,11 +542,6 @@
   "jacobian#summary": {
     "hash": "a5540fc8ad79",
     "en": "Jacobian of a vector function of a vector: row i holds the derivatives of the i-th value. Equivalent to\n`numDeriv::jacobian(func, x, method)` in R.",
-    "ja": ""
-  },
-  "ode#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "ode#@example": {
@@ -694,11 +559,6 @@
     "en": "Solve the initial value problem y' = func(t, y, parms), y(times[0]) = y, with one fixed step per interval of\n`times`. Equivalent to `deSolve::ode(y, times, func, parms, method)` in R. That is for `\"euler\"` and `\"rk4\"`; for\n`\"rk2\"`, it is `deSolve::ode(..., method = rkMethod(\"rk2\"))` (or `deSolve::rk(..., method = \"rk2\")`), since deSolve's `ode()`\ndoes not accept `method = \"rk2\"`.",
     "ja": ""
   },
-  "optim#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "optim#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -709,11 +569,6 @@
     "en": "General-purpose minimisation of `fn` from the starting point `par`. Equivalent to R's `optim()`. The same methods\nwith the same iterations, so the same results and counts, except CG: after an accepted step it tries the minimum of\nthe parabola through the start and the accepted point, where R's cgmin always tries the midpoint (so CG's path,\nresults and counts differ from R's).",
     "ja": ""
   },
-  "optimHess#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "optimHess#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -722,11 +577,6 @@
   "optimHess#summary": {
     "hash": "deebb7aec5c6",
     "en": "Numerically differentiated Hessian of fn at par, from central differences of the gradient (gr, or the numerical\ngradient of fn). Equivalent to R's `optimHess()`. `control` uses `fnscale`, `parscale` and `ndeps`.",
-    "ja": ""
-  },
-  "optimize#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "optimize#@example": {
@@ -749,11 +599,6 @@
     "en": "Location of the minimum or maximum (R's `minimum` or `maximum`).",
     "ja": ""
   },
-  "spline#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "spline#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -774,11 +619,6 @@
     "en": "The interpolated values, one per point of `x`.",
     "ja": ""
   },
-  "splinefun#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "splinefun#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -789,11 +629,6 @@
     "en": "The cubic spline through the points, as a function of `x` and the order of derivative (0 to 3; a fraction is\ntruncated, as R does). Equivalent to R's `splinefun()`. Except that the third derivative of `\"monoH.FC\"` is the\nexact one (see {@link splinefunH}). The order of derivative is the second argument of the function or its option\n`deriv` ({@link SplineFunction}).",
     "ja": ""
   },
-  "splinefunH#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
-    "ja": ""
-  },
   "splinefunH#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -802,11 +637,6 @@
   "splinefunH#summary": {
     "hash": "3a5a639ae4be",
     "en": "The cubic Hermite spline with values `y` and slopes `m` at the points `x`, as a function of `x` and the order of\nderivative (0 to 3; a fraction is truncated, as R does); linear outside the data. Equivalent to R's `splinefunH()`.\nExcept for the third derivative: on [x_i, x_{i+1}] it is the exact (6 m_i + 6 m_{i+1} - 12 delta) / h^2, with\nh = x_{i+1} - x_i and delta = (y_{i+1} - y_i) / h, where R divides by h only once (the two agree when h = 1). The\norder of derivative is the second argument of the function or its option `deriv` ({@link SplineFunction}).",
-    "ja": ""
-  },
-  "uniroot#@category": {
-    "hash": "750474c0c271",
-    "en": "Numerical methods",
     "ja": ""
   },
   "uniroot#@example": {
