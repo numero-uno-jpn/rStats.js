@@ -2,411 +2,411 @@
   "AggregateValue#summary": {
     "hash": "af041155f7a3",
     "en": "What the function of {@link aggregate} returns for a group: a number, an array of numbers, or named numbers.",
-    "ja": ""
+    "ja": "グループについて {@link aggregate} の関数が返す値です。数、数の配列、または名前付きの数のいずれかです。"
   },
   "DataFrame#summary": {
     "hash": "a2e4ba33c9ba",
     "en": "A data frame: an object of columns of equal length. `null` (and `NaN` in a numeric column) is a missing value.",
-    "ja": ""
+    "ja": "データフレーム: 同じ長さの列を並べたオブジェクトです。`null` (数値の列では `NaN`) は欠測値です。"
   },
   "DataRow#summary": {
     "hash": "b2e620cc339c",
     "en": "A row of a data frame, as passed to the condition of {@link subset}: column name to value.",
-    "ja": ""
+    "ja": "データフレームの 1 行で、{@link subset} の条件に渡されます。列名から値への対応です。"
   },
   "DataValue#summary": {
     "hash": "14c06b956439",
     "en": "One value of a data frame column (`null`: missing).",
-    "ja": ""
+    "ja": "データフレームの列の値 1 つです (`null` は欠測)。"
   },
   "FromRowsOptions#summary": {
     "hash": "89d8e9742e9a",
     "en": "Options of {@link fromRows}.",
-    "ja": ""
+    "ja": "{@link fromRows} のオプション。"
   },
   "FromRowsOptions.columns#summary": {
     "hash": "531d26a9e900",
     "en": "The columns to take, in this order. Default: every key that occurs in some row, in the order of first\nappearance.",
-    "ja": ""
+    "ja": "取り出す列を、この順で指定します。既定: いずれかの行に現れるすべてのキーを、\n最初に現れた順です。"
   },
   "GroupingLabels#summary": {
     "hash": "97cf82c06f4a",
     "en": "The group labels of the rows: one per row.",
-    "ja": ""
+    "ja": "行の群のラベルです。行ごとに 1 つです。"
   },
   "GroupingLevel#summary": {
     "hash": "9b71b9652ac0",
     "en": "A level of a grouping factor (a label that is not missing).",
-    "ja": ""
+    "ja": "群を表す因子の水準 1 つです (欠測でないラベル)。"
   },
   "MergeOptions#summary": {
     "hash": "99430c21a760",
     "en": "Options for {@link merge}.",
-    "ja": ""
+    "ja": "{@link merge} のオプション。"
   },
   "MergeOptions.all#summary": {
     "hash": "5705de6a7720",
     "en": "Keep the rows of both frames that have no match. Default `false`.",
-    "ja": ""
+    "ja": "両方のデータフレームで、対応する行がない行を残します。既定は `false`。"
   },
   "MergeOptions.allX#summary": {
     "hash": "84d9e94d2365",
     "en": "Keep the rows of x that have no match in y (y's columns missing). Default `all`.",
-    "ja": ""
+    "ja": "y に対応する行がない x の行を残します (y の列は欠測になります)。既定は `all`。"
   },
   "MergeOptions.allY#summary": {
     "hash": "95ae99ab2c47",
     "en": "Keep the rows of y that have no match in x (x's columns missing). Default `all`.",
-    "ja": ""
+    "ja": "x に対応する行がない y の行を残します (x の列は欠測になります)。既定は `all`。"
   },
   "MergeOptions.by#summary": {
     "hash": "58f8f89b7569",
     "en": "The key columns, in both frames. Default: the column names common to both, in x's order.",
-    "ja": ""
+    "ja": "両方のデータフレームのキー列です。既定: 両方に共通する列名です (x の順)。"
   },
   "MergeOptions.byX#summary": {
     "hash": "3f8934f6dfcf",
     "en": "The key columns of x. Default `by`.",
-    "ja": ""
+    "ja": "x のキー列です。既定は `by`。"
   },
   "MergeOptions.byY#summary": {
     "hash": "0e717a0fb532",
     "en": "The key columns of y (as many as `byX`, matched in order). Default `by`.",
-    "ja": ""
+    "ja": "y のキー列です (`byX` と同じ数で、順に対応させます)。既定は `by`。"
   },
   "MergeOptions.sort#summary": {
     "hash": "ee2302a5d263",
     "en": "Order the rows by the key. Default `true`.",
-    "ja": ""
+    "ja": "キーの順に行を並べます。既定は `true`。"
   },
   "MergeOptions.suffixes#summary": {
     "hash": "dbd8e425a4d0",
     "en": "Appended to the names of the non-key columns that occur in both frames. Default `[\".x\", \".y\"]`.",
-    "ja": ""
+    "ja": "両方のデータフレームに現れる、キー以外の列名の末尾に付ける接尾辞です。既定は `[\".x\", \".y\"]`。"
   },
   "MissingVector#summary": {
     "hash": "efa7b04210cd",
     "en": "A vector: numbers (`NaN` missing), or strings, booleans or numbers with `null` for a missing value.",
-    "ja": ""
+    "ja": "ベクトル: 数 (欠測値は `NaN`)、または文字列、真偽値、数 (欠測値は `null`) です。"
   },
   "PivotLongerOptions#summary": {
     "hash": "e5434161aa21",
     "en": "Options for {@link pivotLonger} (tidyr's arguments in camelCase).",
-    "ja": ""
+    "ja": "{@link pivotLonger} のオプション (tidyr の引数を camelCase にしたもの)。"
   },
   "PivotLongerOptions.cols#summary": {
     "hash": "98a0091d575c",
     "en": "The columns to pivot: their names, in this order, or a test of the name (selecting in the data's order).",
-    "ja": ""
+    "ja": "ピボットする列です。列名をこの順で並べたもの、または列名に対する判定関数です (データの順に選びます)。"
   },
   "PivotLongerOptions.colsVary#summary": {
     "hash": "791a89aaf11c",
     "en": "`\"fastest\"` (default): the pivoted columns vary within each input row; `\"slowest\"`: all rows for each column in\nturn. Any other value is an error, as in tidyr.",
-    "ja": ""
+    "ja": "`\"fastest\"` (既定): ピボットした列は、入力の各行の中で変わります。`\"slowest\"`: 列ごとに、すべての行を\n順に並べます。それ以外の値はエラーです (tidyr と同じく)。"
   },
   "PivotLongerOptions.namesPattern#summary": {
     "hash": "f96a0628a37b",
     "en": "A regular expression whose capture groups are the parts of the names.",
-    "ja": ""
+    "ja": "キャプチャグループが名前の各部分になる正規表現です。"
   },
   "PivotLongerOptions.namesPrefix#summary": {
     "hash": "c6f7cf7b4973",
     "en": "A regular expression whose match at the start of the names is removed.",
-    "ja": ""
+    "ja": "名前の先頭で一致した部分を取り除く正規表現です。"
   },
   "PivotLongerOptions.namesSep#summary": {
     "hash": "1c52b47f9543",
     "en": "A regular expression at whose matches the names are split into the parts.",
-    "ja": ""
+    "ja": "一致した箇所で名前を各部分に分ける正規表現です。"
   },
   "PivotLongerOptions.namesTo#summary": {
     "hash": "c5d1e1ce50ef",
     "en": "The columns to make from the names, one per part of the names. `\".value\"` marks the part that names the value\ncolumns. With `[]`, no columns are made from the names (namesSep and namesPattern are not used). Default `\"name\"`.",
-    "ja": ""
+    "ja": "名前から作る列です。名前の部分ごとに 1 つずつ作ります。`\".value\"` は値の列の名前になる\n部分を示します。`[]` の場合は、名前から列を作りません (namesSep と namesPattern も使いません)。既定は `\"name\"`。"
   },
   "PivotLongerOptions.namesTransform#summary": {
     "hash": "ea0cf6faa14c",
     "en": "Functions applied to the parts, by `namesTo` column (the part as a string; missing parts stay missing). Own\nproperties only: a `namesTo` column named toString has no transform unless one is given. The transform of\n`\".value\"` gives the names of the value columns, and must return strings.",
-    "ja": ""
+    "ja": "部分に適用する関数で、`namesTo` の列ごとに指定します (部分は文字列で、欠測の部分は欠測のままです)。\n自身のプロパティだけを対象にします。`namesTo` の列名が toString であっても、与えない限り変換はありません。`\".value\"` の変換は、\n値の列の名前を与えるもので、文字列を返す必要があります。"
   },
   "PivotLongerOptions.onWarning#summary": {
     "hash": "0f288c29f772",
     "en": "Called with each of tidyr's warnings, once per distinct warning, in order. Default: the warnings go to the handler\nof {@link setWarningHandler} (none by default).",
-    "ja": ""
+    "ja": "tidyr の警告を順に、相異なる警告ごとに 1 回ずつ渡して呼ばれます。既定: 警告は {@link setWarningHandler} の\nハンドラーに渡されます (既定では未設定です)。"
   },
   "PivotLongerOptions.valuesDropNa#summary": {
     "hash": "db7db1cd41c4",
     "en": "Drop the rows where every value column is missing. Default `false`.",
-    "ja": ""
+    "ja": "すべての値の列が欠測である行を除きます。既定は `false`。"
   },
   "PivotLongerOptions.valuesTo#summary": {
     "hash": "a7ea7a694916",
     "en": "The name of the value column (without `\".value\"` in `namesTo`). Default `\"value\"`.",
-    "ja": ""
+    "ja": "値の列の名前です (`namesTo` に `\".value\"` を含めない場合)。既定は `\"value\"`。"
   },
   "PivotSummary#summary": {
     "hash": "def0011614df",
     "en": "A summary of the values of one cell (in data order), for `valuesFn` of {@link pivotWider}.",
-    "ja": ""
+    "ja": "1 つのセルの値 (データの順) の要約です。{@link pivotWider} の `valuesFn` で使います。"
   },
   "PivotWiderOptions#summary": {
     "hash": "5e893d5b25a7",
     "en": "Options for {@link pivotWider} (tidyr's arguments in camelCase).",
-    "ja": ""
+    "ja": "{@link pivotWider} のオプション (tidyr の引数を camelCase にしたもの)。"
   },
   "PivotWiderOptions.idCols#summary": {
     "hash": "6d7c0c060ddc",
     "en": "The columns that identify a row of the result. Default: every column not in `namesFrom` or `valuesFrom`, in the\ndata's order; when given, the other columns are dropped (a column of `namesFrom` or `valuesFrom` is an error).",
-    "ja": ""
+    "ja": "結果の 1 行を識別する列です。既定: `namesFrom` にも `valuesFrom` にもないすべての列を、データの順に使います。\n指定した場合、ほかの列は捨てられます (`namesFrom` または `valuesFrom` の列を含めるとエラーです)。"
   },
   "PivotWiderOptions.namesFrom#summary": {
     "hash": "e037e961da02",
     "en": "The column (or columns) whose values name the new columns (at least one). Default `\"name\"`.",
-    "ja": ""
+    "ja": "値が新しい列の名前になる列です (1 つ以上)。既定は `\"name\"`。"
   },
   "PivotWiderOptions.namesPrefix#summary": {
     "hash": "c42f15ed471a",
     "en": "Put before each new name. Default `\"\"`.",
-    "ja": ""
+    "ja": "新しい名前の前に付けます。既定は `\"\"`。"
   },
   "PivotWiderOptions.namesSep#summary": {
     "hash": "3f09affc96d8",
     "en": "Joins the values of several `namesFrom` columns, and a value column's name to the name. Default `\"_\"`.",
-    "ja": ""
+    "ja": "複数の `namesFrom` 列の値と、値の列の名前を、名前に連結します。既定は `\"_\"`。"
   },
   "PivotWiderOptions.namesSort#summary": {
     "hash": "b5d6a444cd3e",
     "en": "Sort the names (by the first `namesFrom` column, then the next) instead of taking them in order of appearance.",
-    "ja": ""
+    "ja": "出現順に取る代わりに、名前を並べ替えます (最初の `namesFrom` 列で、次に次の列で並べます)。"
   },
   "PivotWiderOptions.namesVary#summary": {
     "hash": "54847a8bc107",
     "en": "With several `valuesFrom`: `\"fastest\"` (default) all names for each value column; `\"slowest\"` each value column\nfor each name. Any other value is an error, as in tidyr.",
-    "ja": ""
+    "ja": "複数の `valuesFrom` がある場合: `\"fastest\"` (既定) は各値の列について、すべての名前を並べ、`\"slowest\"` は\n各名前について、各値の列を並べます。それ以外の値はエラーです (tidyr と同じく)。"
   },
   "PivotWiderOptions.valuesFill#summary": {
     "hash": "2336bb935418",
     "en": "The value of a cell that no row fills, or such values by value column. Default: missing. As in tidyr, it is cast\nto the type of the value column: a boolean becomes 0 or 1 in a numeric column, 0 and 1 become false and true in a\nboolean column (NaN missing); any other mix (a string with a number or a boolean) is an error.",
-    "ja": ""
+    "ja": "どの行も埋めないセルの値です。または値の列ごとの値です。既定は欠測です。tidyr と同じく、値の列の型に変換されます。\n数の列では真偽値が 0 か 1 になり、真偽値の列では 0 と 1 が false と true になります (NaN は欠測)。\nほかの組み合わせ (文字列と数、または真偽値) はエラーです。"
   },
   "PivotWiderOptions.valuesFn#summary": {
     "hash": "e50205db8e95",
     "en": "Summarises the values of each filled cell, or such functions by value column. As in tidyr, the results for one\nvalue column take one common type: booleans become 0 and 1 if any result is a number; strings mixed with numbers\nor booleans are an error.",
-    "ja": ""
+    "ja": "埋められた各セルの値を要約します。または値の列ごとの関数です。tidyr と同じく、1 つの値の列の結果は共通の型になります。\nいずれかの結果が数なら、真偽値は 0 と 1 になります。\n文字列を数または真偽値と混ぜるとエラーです。"
   },
   "PivotWiderOptions.valuesFrom#summary": {
     "hash": "d649eb99c765",
     "en": "The column (or columns) whose values fill the new columns (at least one). Default `\"value\"`.",
-    "ja": ""
+    "ja": "新しい列を埋める値の列です (1 つ以上)。既定は `\"value\"`。"
   },
   "SplitOptions#summary": {
     "hash": "2ec053b3553a",
     "en": "Options for {@link split}.",
-    "ja": ""
+    "ja": "{@link split} のオプション。"
   },
   "SplitOptions.drop#summary": {
     "hash": "7cccb852fb29",
     "en": "With several factors, leave out the combinations without a row. Default `false`.",
-    "ja": ""
+    "ja": "複数の因子があるとき、行がない組み合わせを除きます。既定は `false`。"
   },
   "SplitOptions.sep#summary": {
     "hash": "326f0f53d829",
     "en": "The separator of the levels in the names of combinations. Default `\".\"`.",
-    "ja": ""
+    "ja": "組み合わせの名前で水準をつなぐ区切り文字です。既定は `\".\"`。"
   },
   "SubsetOptions#summary": {
     "hash": "eed3e73e3a19",
     "en": "Options for {@link subset}.",
-    "ja": ""
+    "ja": "{@link subset} のオプション。"
   },
   "SubsetOptions.select#summary": {
     "hash": "4f5890da81e3",
     "en": "The columns to keep, in this order. Default: all, in their order.",
-    "ja": ""
+    "ja": "残す列を、この順で指定します。既定: すべての列を、元の順で残します。"
   },
   "TapplyResult#summary": {
     "hash": "39e56cf30773",
     "en": "Result of {@link tapply}.",
-    "ja": ""
+    "ja": "{@link tapply} の結果。"
   },
   "TapplyResult.dim#summary": {
     "hash": "b9fc26d552b7",
     "en": "The number of levels of each factor.",
-    "ja": ""
+    "ja": "各因子の水準の数です。"
   },
   "TapplyResult.dimnames#summary": {
     "hash": "002af3e36ec0",
     "en": "The levels of each factor (numbers as numbers).",
-    "ja": ""
+    "ja": "各因子の水準です (数は数のまま)。"
   },
   "TapplyResult.values#summary": {
     "hash": "59da4c03e5ba",
     "en": "The cells in column-major order (the first factor varies fastest). When the function gave a single number for\nevery non-empty cell, numbers with NaN for the empty cells; otherwise the function's results, `null` for the\nempty cells.",
-    "ja": ""
+    "ja": "セルを列優先の順 (最初の因子が最も速く変わります) に並べたものです。\n空でないすべてのセルについて関数が 1 つの数を返した場合は、数で、空のセルは NaN です。\nそれ以外の場合は関数の結果で、空のセルは `null` です。"
   },
   "aggregate(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "aggregate(0)#summary": {
     "hash": "b827026f3cec",
     "en": "The function applied to the values of each group, as a data frame. Equivalent to R's `aggregate()`.\n\nFormula form, `aggregate(formula, data, fun)`: `\"y ~ g\"`, `\"y ~ g + h\"`, `\"cbind(y, z) ~ g\"` or `\". ~ g\"` (every\ncolumn not on the right). The grouping variables are all the variables of the right-hand side in order of first\nappearance, whatever its operators (`\"y ~ g:h\"` and `\"y ~ g * h\"` group by g and h); `\"y ~ .\"` groups by every\ncolumn not summarised, and `\"y ~ 1\"` gives one row without a grouping column. The rows with a missing value in any\nvariable of the formula are dropped first. Data frame form, `aggregate(x, by, fun)`: the columns of `x` summarised\nby the label columns of `by` (its keys name them); only the rows with a missing label are dropped, so `fun` sees the\nmissing values of `x`.\n\nThe result has the grouping columns first (with the labels as in the data), then one column per summarised column,\nand one row per non-empty combination of the groups (the first factor varying fastest). When `fun` returns k > 1\nvalues, a summarised column `y` becomes `y.1`, ..., `y.k` (an array) or `y.<name>` (an object of numbers).",
-    "ja": ""
+    "ja": "各グループの値に関数を適用し、結果をデータフレームで返します。R の `aggregate()` と同等です。\n\nformula の形 `aggregate(formula, data, fun)`: `\"y ~ g\"`、`\"y ~ g + h\"`、`\"cbind(y, z) ~ g\"`、または\n`\". ~ g\"` (右辺にない列すべて)。群の変数は、右辺に現れるすべての変数で、最初に現れた順です。\n演算子は問いません (`\"y ~ g:h\"` と `\"y ~ g * h\"` は g と h で群にします)。`\"y ~ .\"` は\n要約しない列すべてで群にし、`\"y ~ 1\"` は群の列がない 1 行を返します。\nformula のどれかの変数に欠測値がある行は、最初に除かれます。\nデータフレームの形 `aggregate(x, by, fun)`: `by` のラベルの列 (キーが列名になります) で `x` の列を要約します。\n欠測のラベルがある行だけを除くので、`fun` には `x` の欠測値が渡されます。\n\n結果は、群の列を先頭に並べます (ラベルはデータのとおりです)。その後に、要約した列ごとに 1 列を並べます。\n行は、空でない群の組み合わせごとに 1 行です (最初の因子が最も速く変わります)。`fun` が k > 1 個の値を返すと、\n要約した列 `y` は `y.1`、...、`y.k` (配列の場合) または `y.<name>` (数のオブジェクトの場合) になります。"
   },
   "aggregate(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "aggregate(1)#summary": {
     "hash": "b827026f3cec",
     "en": "The function applied to the values of each group, as a data frame. Equivalent to R's `aggregate()`.\n\nFormula form, `aggregate(formula, data, fun)`: `\"y ~ g\"`, `\"y ~ g + h\"`, `\"cbind(y, z) ~ g\"` or `\". ~ g\"` (every\ncolumn not on the right). The grouping variables are all the variables of the right-hand side in order of first\nappearance, whatever its operators (`\"y ~ g:h\"` and `\"y ~ g * h\"` group by g and h); `\"y ~ .\"` groups by every\ncolumn not summarised, and `\"y ~ 1\"` gives one row without a grouping column. The rows with a missing value in any\nvariable of the formula are dropped first. Data frame form, `aggregate(x, by, fun)`: the columns of `x` summarised\nby the label columns of `by` (its keys name them); only the rows with a missing label are dropped, so `fun` sees the\nmissing values of `x`.\n\nThe result has the grouping columns first (with the labels as in the data), then one column per summarised column,\nand one row per non-empty combination of the groups (the first factor varying fastest). When `fun` returns k > 1\nvalues, a summarised column `y` becomes `y.1`, ..., `y.k` (an array) or `y.<name>` (an object of numbers).",
-    "ja": ""
+    "ja": "各グループの値に関数を適用し、結果をデータフレームで返します。R の `aggregate()` と同等です。\n\nformula の形 `aggregate(formula, data, fun)`: `\"y ~ g\"`、`\"y ~ g + h\"`、`\"cbind(y, z) ~ g\"`、または\n`\". ~ g\"` (右辺にない列すべて)。群の変数は、右辺に現れるすべての変数で、最初に現れた順です。\n演算子は問いません (`\"y ~ g:h\"` と `\"y ~ g * h\"` は g と h で群にします)。`\"y ~ .\"` は\n要約しない列すべてで群にし、`\"y ~ 1\"` は群の列がない 1 行を返します。\nformula のどれかの変数に欠測値がある行は、最初に除かれます。\nデータフレームの形 `aggregate(x, by, fun)`: `by` のラベルの列 (キーが列名になります) で `x` の列を要約します。\n欠測のラベルがある行だけを除くので、`fun` には `x` の欠測値が渡されます。\n\n結果は、群の列を先頭に並べます (ラベルはデータのとおりです)。その後に、要約した列ごとに 1 列を並べます。\n行は、空でない群の組み合わせごとに 1 行です (最初の因子が最も速く変わります)。`fun` が k > 1 個の値を返すと、\n要約した列 `y` は `y.1`、...、`y.k` (配列の場合) または `y.<name>` (数のオブジェクトの場合) になります。"
   },
   "completeCases#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "completeCases#@param args": {
     "hash": "a28211600a4f",
     "en": "Data frames (objects of equal-length columns) or arrays, all with the same number of rows.",
-    "ja": ""
+    "ja": "データフレーム (同じ長さの列からなるオブジェクト) または配列で、すべて行数が同じです。"
   },
   "completeCases#summary": {
     "hash": "b7ddad3ad828",
     "en": "Which rows have no missing value. Equivalent to R's `complete.cases()`. One boolean per row, true when no column\nof any argument is missing (`null`, or `NaN` in a numeric column) in that row.",
-    "ja": ""
+    "ja": "欠測値がない行を返します。R の `complete.cases()` と同等です。行ごとに 1 つの真偽値で、どの引数のどの列も\nその行で欠測 (`null`、または数値の列では `NaN`) でないとき true になります。"
   },
   "fromRows#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "fromRows#summary": {
     "hash": "6644e16c06e5",
     "en": "A data frame (an object of columns) from an array of row objects, the usual shape of JSON and of parsed CSV:\n`[{ age: 30, score: 5 }, { age: 41, score: 7 }]` becomes `{ age: [30, 41], score: [5, 7] }`. A key that a row\nlacks, and `undefined`, become `null` (a missing value). Values must be numbers, strings, booleans or `null`, and\none column may not mix numbers, strings and booleans. Not an R function. R reads data as data frames directly.",
-    "ja": ""
+    "ja": "行のオブジェクトの配列から作るデータフレーム (列からなるオブジェクト) です。JSON やパースした CSV でよく使われる形です:\n`[{ age: 30, score: 5 }, { age: 41, score: 7 }]` は `{ age: [30, 41], score: [5, 7] }` になります。行にないキーと `undefined` は `null` (欠測値) になります。\n値は数、文字列、真偽値、または `null` でなければならず、1 つの列に数、文字列、真偽値を混ぜることはできません。\nR の関数ではありません。R はデータを直接データフレームとして読みます。"
   },
   "merge#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "merge#summary": {
     "hash": "c903c40dbe52",
     "en": "Join two data frames on key columns. Equivalent to R's `merge()`. For data frames: every pair of rows of x and y\nwith equal keys (missing keys match each other; key columns of different types are compared in their common type,\nas R's match: text, or numbers with TRUE as 1), and with `allX` / `allY` the rows without a match. Columns: the\nkeys (named as in x; in the common type when rows only in y are kept), x's other columns, y's other columns; a\nnon-key name present in both gets the suffixes. Rows are\nordered by the key unless `sort` is false (several keys: as text joined with \"\\r\" unless `allX` or `allY`, as R\ndoes); without key columns, the cross join (x varying fastest).",
-    "ja": ""
+    "ja": "キー列で 2 つのデータフレームを結合します。R の `merge()` と同等です。データフレームの場合は、キーが等しい x と y の行の\nすべての組み合わせです (欠測のキーどうしは一致します)。型の違うキー列は、共通の型で比べます。R の match と同じく、\n文字列は文字列として、数と TRUE は 1 として比べます。`allX` / `allY` の場合は、対応する行がない行も加えます。\n列は、キー (x での名前のまま。y の行だけを残す場合は共通の型)、x のキー以外の列、y のキー以外の列です。\nキー以外で両方にある列名には、接尾辞が付きます。行はキーで並べます。\n`sort` が false の場合は並べ替えません (複数のキーは、`allX` または `allY` の場合を除いて、\"\\r\" で連結した文字列として、\nR と同じく並べます)。キー列がなければ、直積になります (x が最も速く変わります)。"
   },
   "naOmit(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "naOmit(0)#summary": {
     "hash": "540527f3ea3c",
     "en": "The values that are not missing. Equivalent to R's `na.omit()`. For a vector.",
-    "ja": ""
+    "ja": "欠測値でない値です。R の `na.omit()` と同等です。ベクトルの場合です。"
   },
   "naOmit(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "naOmit(1)#summary": {
     "hash": "540527f3ea3c",
     "en": "The values that are not missing. Equivalent to R's `na.omit()`. For a vector.",
-    "ja": ""
+    "ja": "欠測値でない値です。R の `na.omit()` と同等です。ベクトルの場合です。"
   },
   "naOmit(2)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "naOmit(2)#summary": {
     "hash": "8b1a2ccf8670",
     "en": "The complete rows of a data frame, as R's `na.omit()` for a data frame: the same columns, in order, restricted to the rows where none is missing (`null`, or `NaN` in a numeric column); see {@link completeCases}.",
-    "ja": ""
+    "ja": "データフレームの完全な行です。データフレームに対する R の `na.omit()` と同じく、同じ列を同じ順に保ち、どの列も欠測 (`null`、または数値の列では `NaN`) でない行に絞ります。{@link completeCases} を参照してください。"
   },
   "pivotLonger#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pivotLonger#summary": {
     "hash": "772092bda738",
     "en": "Reshapes a data frame from wide to long: the selected columns become rows. Equivalent to `tidyr::pivot_longer()` in\nR. The result has the columns not selected, a column per part of the selected names (`namesTo`), and the value\ncolumn (`valuesTo`), or with `\".value\"` in `namesTo` one value column per value of that part. The values of the\nselected columns are combined into one type: numbers with booleans give numbers; strings with either are an error.",
-    "ja": ""
+    "ja": "データフレームを横長から縦長に組み替えます。選んだ列が行になります。R の `tidyr::pivot_longer()` と同等です。結果は、選ばれなかった列、\n選んだ列の名前の部分ごとの列 (`namesTo`)、値の列 (`valuesTo`) を持ちます。\n`namesTo` に `\".value\"` がある場合は、その部分の値ごとに値の列を 1 つずつ持ちます。\n選んだ列の値は 1 つの型にまとめられます。数と真偽値は数になります。文字列を数または真偽値と混ぜるとエラーです。"
   },
   "pivotWider#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pivotWider#summary": {
     "hash": "d2f889c3995f",
     "en": "Reshapes a data frame from long to wide: the values of `namesFrom` become columns, filled from `valuesFrom`.\nEquivalent to `tidyr::pivot_wider()` in R. One row per combination of the id columns (in order of first appearance),\nthe new columns in order of first appearance of their names (unless `namesSort`). A cell that no row fills is\n`valuesFill` (default missing). A cell that several rows fill is an error unless `valuesFn` summarises the values\n(tidyr makes a list column there, which a data frame here cannot hold).",
-    "ja": ""
+    "ja": "データフレームを縦長から横長に組み替えます。`namesFrom` の値が列になり、`valuesFrom` の値で埋められます。R の `tidyr::pivot_wider()` と同等です。\n行は、ID 列の組み合わせごとに 1 行で (最初に現れた順)、新しい列は名前が最初に現れた順です (`namesSort` の場合を除きます)。\nどの行も埋めないセルは `valuesFill` になります (既定は欠測です)。\n複数の行が埋めるセルはエラーですが、`valuesFn` で値を要約する場合は除きます。\ntidyr ではそこにリストの列ができますが、ここではデータフレームに保持できないためです。"
   },
   "split(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "split(0)#summary": {
     "hash": "5fa20bfa060b",
     "en": "The values of `x` (or the rows of a data frame) divided into groups. Equivalent to R's `split(x, f, drop, sep)`.\n\n`f` is one array of group labels or an array of such arrays, one per factor. The result is a `Map` from the group's\nname to its values, in R's order: with one factor its levels; with several every combination of their levels (the\nfirst factor varying fastest), named by joining the levels with `sep`, the empty ones included unless `drop`.\nValues whose label is missing are left out.",
-    "ja": ""
+    "ja": "`x` の値 (またはデータフレームの行) を群に分けたものです。R の `split(x, f, drop, sep)` と同等です。\n\n`f` は、群のラベルの配列 1 つ、または因子ごとのそのような配列の配列です。結果は、群の名前からその値への `Map` で、\nR と同じ順になります。因子が 1 つなら水準の順、複数なら水準のすべての組み合わせ (最初の因子が最も速く変わります) です。\n組み合わせの名前は、水準を `sep` でつないだものです。`drop` でない限り、空の群も含みます。\nラベルが欠測の値は除かれます。"
   },
   "split(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "split(1)#summary": {
     "hash": "5fa20bfa060b",
     "en": "The values of `x` (or the rows of a data frame) divided into groups. Equivalent to R's `split(x, f, drop, sep)`.\n\n`f` is one array of group labels or an array of such arrays, one per factor. The result is a `Map` from the group's\nname to its values, in R's order: with one factor its levels; with several every combination of their levels (the\nfirst factor varying fastest), named by joining the levels with `sep`, the empty ones included unless `drop`.\nValues whose label is missing are left out.",
-    "ja": ""
+    "ja": "`x` の値 (またはデータフレームの行) を群に分けたものです。R の `split(x, f, drop, sep)` と同等です。\n\n`f` は、群のラベルの配列 1 つ、または因子ごとのそのような配列の配列です。結果は、群の名前からその値への `Map` で、\nR と同じ順になります。因子が 1 つなら水準の順、複数なら水準のすべての組み合わせ (最初の因子が最も速く変わります) です。\n組み合わせの名前は、水準を `sep` でつないだものです。`drop` でない限り、空の群も含みます。\nラベルが欠測の値は除かれます。"
   },
   "split(2)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "split(2)#summary": {
     "hash": "5fa20bfa060b",
     "en": "The values of `x` (or the rows of a data frame) divided into groups. Equivalent to R's `split(x, f, drop, sep)`.\n\n`f` is one array of group labels or an array of such arrays, one per factor. The result is a `Map` from the group's\nname to its values, in R's order: with one factor its levels; with several every combination of their levels (the\nfirst factor varying fastest), named by joining the levels with `sep`, the empty ones included unless `drop`.\nValues whose label is missing are left out.",
-    "ja": ""
+    "ja": "`x` の値 (またはデータフレームの行) を群に分けたものです。R の `split(x, f, drop, sep)` と同等です。\n\n`f` は、群のラベルの配列 1 つ、または因子ごとのそのような配列の配列です。結果は、群の名前からその値への `Map` で、\nR と同じ順になります。因子が 1 つなら水準の順、複数なら水準のすべての組み合わせ (最初の因子が最も速く変わります) です。\n組み合わせの名前は、水準を `sep` でつないだものです。`drop` でない限り、空の群も含みます。\nラベルが欠測の値は除かれます。"
   },
   "subset#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "subset#summary": {
     "hash": "787d8cd1c0f7",
     "en": "The rows of a data frame that meet a condition, and optionally some of its columns. Equivalent to R's `subset()`.\nFor a data frame: `keep` is a boolean per row or a function of the row; a missing (`null`) or non-boolean result\ncounts as false, as R drops the rows whose condition is NA.",
-    "ja": ""
+    "ja": "条件を満たすデータフレームの行と、必要なら一部の列を返します。R の `subset()` と同等です。\nデータフレームの場合、`keep` は行ごとの真偽値、または行の関数です。欠測 (`null`) または真偽値でない結果は偽として扱われます。\nR は条件の値が NA の行を落とすので、これと同じです。"
   },
   "tapply#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "tapply#summary": {
     "hash": "44bacecbeba9",
     "en": "The function applied to the values of each group. Equivalent to R's `tapply(x, index, fun)`.\n\n`index` is one array of group labels (one per value of `x`) or an array of such arrays, one per factor. The\nfunction is called only for the non-empty cells; a value of `x` whose label is missing is left out.",
-    "ja": ""
+    "ja": "各群の値に関数を適用します。R の `tapply(x, index, fun)` と同等です。\n\n`index` は、`x` の値ごとの群のラベルの配列 1 つ、または因子ごとのそのような配列の配列です。\n関数が呼ばれるのは空でないセルだけで、ラベルが欠測の `x` の値は除かれます。"
   },
   "toRows#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "toRows#summary": {
     "hash": "afac2102ff77",
     "en": "The rows of a data frame as an array of objects, the inverse of {@link fromRows}: `{ age: [30, 41], score: [5, 7]\n}` becomes `[{ age: 30, score: 5 }, { age: 41, score: 7 }]`. Missing values stay as they are (`null`, or `NaN` in a\nnumeric column). Not an R function. R keeps data in data frames and has no need for row objects.",
-    "ja": ""
+    "ja": "データフレームの行を、行のオブジェクトの配列として返します。{@link fromRows} の逆です。`{ age: [30, 41], score: [5, 7]\n}` は`[{ age: 30, score: 5 }, { age: 41, score: 7 }]` になります。欠測値はそのまま残ります (`null`、または数値の列では\n`NaN`)。R の関数ではありません。R はデータをデータフレームで保持するので、行のオブジェクトは必要ありません。"
   }
 }

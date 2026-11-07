@@ -392,3 +392,27 @@
 | Freedman-Diaconis | Freedman-Diaconis | 人名は英字 |
 | Sturges (rule, formula) | Sturges | 人名は英字 |
 | Kendall's tau, Spearman's rho | Kendall の tau、Spearman の rho | 人名は英字 |
+| boolean | 真偽値 | 新規 (`docs/ja` で 1 件)。`true` / `false` の値 |
+| vector | ベクトル | `docs/ja/r-functions.md` で使用。欠測値を含む値の並び |
+| regular expression | 正規表現 | 新規 (`docs/ja` で 1 件) |
+| capture group | キャプチャグループ | 新規。正規表現の括弧で捕らえた部分 |
+| suffix | 接尾辞 | 新規。`merge` の `suffixes` |
+| join (of two data frames) | 結合 | `docs/ja` で使用 (「表の結合」「キー列による 2 つのデータフレームの結合」) |
+| key column | キー列 | `docs/ja/r-functions.md` で使用 |
+| cross join | 直積 | 新規。キー列がないときの `merge` |
+| combination (of groups) | 組み合わせ | 新規。群の組み合わせ |
+| column-major order | 列優先の順 | 新規。最初の因子が最も速く変わる順 |
+| label (of a group) | ラベル | `docs/ja` で使用。群のラベル |
+| handler | ハンドラー | 新規。`setWarningHandler` の処理関数 |
+| value column (of a reshape) | 値の列 | 新規。`pivotLonger` / `pivotWider` の `valuesTo` |
+| ID column | ID 列 | 新規。`pivotWider` の識別用の列 |
+| wide, long (format) | 横長、縦長 | 新規。データの形 |
+| match (of rows) | 対応 | 新規。`merge` で行が対応すること |
+| cell (of a table, tapply, pivot) | セル | `docs/ja` で使用 (分割表の「セル」)。ヒストグラムの「階級」とは別 |
+| own property | 自身のプロパティ | 新規。JavaScript の用語 |
+| cast (to a type) | 型に変換 | 新規。tidyr と同じく、値の列の型へ変換すること |
+| concatenate | 連結 | 新規。名前へ文字列をつなぐこと |
+| split (into groups) | 群に分ける | 新規。`split` の説明 |
+| summarise (verb) | 要約する | `docs/ja` で「要約」を使用 |
+| row object | 行のオブジェクト | 新規。`fromRows` / `toRows` の行の形 |
+| non-empty | 空でない | 新規。`docs/ja` の「空のセル」と同じ語感 |
