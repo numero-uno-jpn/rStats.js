@@ -2,2486 +2,2486 @@
   "ArcsineParams#summary": {
     "hash": "82cbd308070a",
     "en": "Limits of the arcsine distribution.",
-    "ja": ""
+    "ja": "逆正弦分布の下限と上限。"
   },
   "ArcsineParams.a#summary": {
     "hash": "ddc4f1cd66a1",
     "en": "Lower limit. Default `0`.",
-    "ja": ""
+    "ja": "下限。既定は `0`。"
   },
   "ArcsineParams.b#summary": {
     "hash": "b36e5e77c658",
     "en": "Upper limit. Default `1`.",
-    "ja": ""
+    "ja": "上限。既定は `1`。"
   },
   "DensityOptions#summary": {
     "hash": "669784697657",
     "en": "Options shared by the density / probability mass (`d*`) functions.\nCorresponds to R's `log` argument.",
-    "ja": ""
+    "ja": "密度関数・確率質量関数 (`d*`) で共通のオプション。\nR の `log` 引数に対応します。"
   },
   "DensityOptions.log#summary": {
     "hash": "d647aa43a0d8",
     "en": "If `true`, return the log of the density (or probability). Default `false`.",
-    "ja": ""
+    "ja": "`true` の場合は、密度 (または確率) の対数を返します。既定は `false`。"
   },
   "DistName#summary": {
     "hash": "1f33394885fe",
     "en": "Distributions known to {@link distSummary} (the names of their d/p/q/r functions).",
-    "ja": ""
+    "ja": "{@link distSummary} が扱える分布 (それぞれの d/p/q/r 関数の名前)。"
   },
   "DistSummary#summary": {
     "hash": "ef9848d50ebe",
     "en": "Result of {@link distSummary}.",
-    "ja": ""
+    "ja": "{@link distSummary} の結果。"
   },
   "DistSummary.kurtosis#summary": {
     "hash": "7edf2b0926cd",
     "en": "Excess kurtosis (0 for the normal distribution).",
-    "ja": ""
+    "ja": "超過尖度 (正規分布では 0)。"
   },
   "DistSummary.mean#summary": {
     "hash": "6d103e584258",
     "en": "Mean (NaN when it does not exist, `Infinity` when it is infinite).",
-    "ja": ""
+    "ja": "平均 (存在しない場合は NaN、無限大の場合は `Infinity`)。"
   },
   "DistSummary.median#summary": {
     "hash": "acb7c99dd909",
     "en": "Median: the q function at 0.5 (for discrete distributions the smallest x with F(x) >= 0.5).",
-    "ja": ""
+    "ja": "中央値: 0.5 における q 関数の値 (離散分布では F(x) >= 0.5 となる最小の x)。"
   },
   "DistSummary.mode#summary": {
     "hash": "3b692f5cc0d1",
     "en": "Mode: the maximum of the density (NaN when it is not unique; the larger of two adjacent modes).",
-    "ja": ""
+    "ja": "最頻値: 密度が最大となる点 (一意に定まらない場合は NaN。隣接する 2 つの最頻値がある場合は大きい方)。"
   },
   "DistSummary.sd#summary": {
     "hash": "13571b4b7fe1",
     "en": "Standard deviation, the square root of the variance.",
-    "ja": ""
+    "ja": "標準偏差。分散の平方根です。"
   },
   "DistSummary.skewness#summary": {
     "hash": "e5cbd56447b7",
     "en": "Skewness, E[(X - mean)^3] / sd^3.",
-    "ja": ""
+    "ja": "歪度、E[(X - mean)^3] / sd^3。"
   },
   "DistSummary.variance#summary": {
     "hash": "95286bf5a2cd",
     "en": "Variance (NaN when it does not exist, `Infinity` when it is infinite).",
-    "ja": ""
+    "ja": "分散 (存在しない場合は NaN、無限大の場合は `Infinity`)。"
   },
   "ExponentialParams#summary": {
     "hash": "3c9e7162d15f",
     "en": "Parameters of the exponential distribution.",
-    "ja": ""
+    "ja": "指数分布のパラメータ。"
   },
   "ExponentialParams.rate#summary": {
     "hash": "25a75156b551",
     "en": "Rate. Default `1`.",
-    "ja": ""
+    "ja": "率。既定は `1`。"
   },
   "GammaParams#summary": {
     "hash": "523a041a70b5",
     "en": "Parameters of the gamma distribution. Give either `rate` or `scale`; if both are given,\n`scale` must equal `1 / rate`.",
-    "ja": ""
+    "ja": "ガンマ分布のパラメータ。`rate` か `scale` のどちらかを指定します。両方を指定する場合、\n`scale` は `1 / rate` と等しくなければなりません。"
   },
   "GammaParams.rate#summary": {
     "hash": "d05aa10a322a",
     "en": "Rate (`rate = 1 / scale`). Default `1`.",
-    "ja": ""
+    "ja": "率 (`rate = 1 / scale`)。既定は `1`。"
   },
   "GammaParams.scale#summary": {
     "hash": "2c10d5b7956d",
     "en": "Scale. Default `1`. Do not combine with a different `rate`.",
-    "ja": ""
+    "ja": "尺度パラメータ。既定は `1`。異なる `rate` と併用しないでください。"
   },
   "InvgammaParams#summary": {
     "hash": "40f99bc91b70",
     "en": "Scale parameter of the inverse gamma distribution.",
-    "ja": ""
+    "ja": "逆ガンマ分布の尺度パラメータ。"
   },
   "InvgammaParams.beta#summary": {
     "hash": "5caa2ef04b99",
     "en": "Scale (the rate of the gamma distribution of 1/X). Default `1`.",
-    "ja": ""
+    "ja": "尺度 (1/X に対するガンマ分布の率)。既定は `1`。"
   },
   "LaplaceParams#summary": {
     "hash": "657fcdc818d2",
     "en": "Location and scale of the Laplace distribution.",
-    "ja": ""
+    "ja": "ラプラス分布の位置パラメータと尺度パラメータ。"
   },
   "LaplaceParams.mu#summary": {
     "hash": "7a9e7b80d4a9",
     "en": "Location. Default `0`.",
-    "ja": ""
+    "ja": "位置パラメータ。既定は `0`。"
   },
   "LaplaceParams.sigma#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
+    "ja": "尺度パラメータ。既定は `1`。"
   },
   "LocationScaleParams#summary": {
     "hash": "5db904088bc7",
     "en": "Location and scale parameters, used by the logistic and Cauchy distributions.",
-    "ja": ""
+    "ja": "位置パラメータと尺度パラメータ。ロジスティック分布とコーシー分布で使われます。"
   },
   "LocationScaleParams.location#summary": {
     "hash": "7a9e7b80d4a9",
     "en": "Location. Default `0`.",
-    "ja": ""
+    "ja": "位置パラメータ。既定は `0`。"
   },
   "LocationScaleParams.scale#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
+    "ja": "尺度パラメータ。既定は `1`。"
   },
   "LognormalParams#summary": {
     "hash": "5e216d4ffc69",
     "en": "Parameters of the log-normal distribution (mean and standard deviation on the log scale).",
-    "ja": ""
+    "ja": "対数正規分布のパラメータ (対数スケールでの平均と標準偏差)。"
   },
   "LognormalParams.meanlog#summary": {
     "hash": "3bfc9a926813",
     "en": "Mean of the distribution on the log scale. Default `0`.",
-    "ja": ""
+    "ja": "対数スケールでの分布の平均。既定は `0`。"
   },
   "LognormalParams.sdlog#summary": {
     "hash": "ecf7cd3284b2",
     "en": "Standard deviation of the distribution on the log scale. Default `1`.",
-    "ja": ""
+    "ja": "対数スケールでの分布の標準偏差。既定は `1`。"
   },
   "MultinomialOptions#summary": {
     "hash": "66bf4a29a2f6",
     "en": "Options for {@link dmultinom}.",
-    "ja": ""
+    "ja": "{@link dmultinom} のオプション。"
   },
   "MultinomialOptions.log#summary": {
     "hash": "005a5b7d70fb",
     "en": "If `true`, return the log probability. Default `false`.",
-    "ja": ""
+    "ja": "`true` の場合は、対数確率を返します。既定は `false`。"
   },
   "MultinomialOptions.size#summary": {
     "hash": "49ef53ecfdd9",
     "en": "Total number of objects; defaults to the sum of `x` (it must equal it, as in R).",
-    "ja": ""
+    "ja": "総数。既定値は `x` の和です (R と同じく、この値は和と一致していなければなりません)。"
   },
   "NegBinomialParams#summary": {
     "hash": "8caec01277e5",
     "en": "Parameters of the negative binomial distribution. Give exactly one of `prob` and `mu`.",
-    "ja": ""
+    "ja": "負の二項分布のパラメータ。`prob` と `mu` のどちらか一方のみを指定します。"
   },
   "NegBinomialParams.mu#summary": {
     "hash": "68397232ca67",
     "en": "Mean (`mu = size * (1 - prob) / prob`). Do not combine with `prob`.",
-    "ja": ""
+    "ja": "平均 (`mu = size * (1 - prob) / prob`)。`prob` と併用しないでください。"
   },
   "NegBinomialParams.prob#summary": {
     "hash": "7677f3cf6ce3",
     "en": "Probability of success on each trial (`0 < prob <= 1`). Do not combine with `mu`.",
-    "ja": ""
+    "ja": "各試行での成功確率 (`0 < prob <= 1`)。`mu` と併用しないでください。"
   },
   "NoncentralOption#summary": {
     "hash": "07b594ec2f21",
     "en": "Noncentrality option accepted by the chi-squared, t, F and beta distribution functions.",
-    "ja": ""
+    "ja": "カイ二乗分布、t 分布、F 分布、ベータ分布の関数が受け付ける非心オプション。"
   },
   "NoncentralOption.ncp#summary": {
     "hash": "896be9a114a5",
     "en": "Noncentrality parameter. If omitted, the central distribution is used.\nAs in R, an explicit `ncp: 0` describes the same distribution as the central one. R then uses\nthe noncentral algorithm, so its values can differ slightly from the central values;\nrStats.js returns values of the same accuracy in both cases.",
-    "ja": ""
+    "ja": "非心度。省略した場合は中心分布が使われます。\nR と同じく、明示的な `ncp: 0` は中心分布と同じ分布を表します。R では非心アルゴリズムが使われるため、\nその値は中心分布の値とわずかに異なることがあります;\nrStats.js は、どちらの場合も同じ精度の値を返します。"
   },
   "NormalOptions#summary": {
     "hash": "78a7e30d47ee",
     "en": "Options for {@link pnorm} and {@link qnorm}.",
-    "ja": ""
+    "ja": "{@link pnorm} と {@link qnorm} のオプション。"
   },
   "NormalOptions.logP#summary": {
     "hash": "97233d4bc23e",
     "en": "If `true`, probabilities are given (to `qnorm`) and returned (from `pnorm`) as log(p). Default `false`.",
-    "ja": ""
+    "ja": "`true` の場合、確率は (`qnorm` に対しては) 与えられ、(`pnorm` からは) log(p) として返されます。既定は `false`。"
   },
   "NormalOptions.lowerTail#summary": {
     "hash": "eb8c4c33656f",
     "en": "If `true`, probabilities are P[X <= x]; if `false`, P[X > x]. Default `true`.",
-    "ja": ""
+    "ja": "`true` の場合は確率が P[X <= x]、`false` の場合は P[X > x] です。既定は `true`。"
   },
   "NormalOptions.mean#summary": {
     "hash": "0de81da293b0",
     "en": "Mean. Default `0`.",
-    "ja": ""
+    "ja": "平均。既定は `0`。"
   },
   "NormalOptions.sd#summary": {
     "hash": "bc948bd4118e",
     "en": "Standard deviation. Default `1`.",
-    "ja": ""
+    "ja": "標準偏差。既定は `1`。"
   },
   "ParetoParams#summary": {
     "hash": "f8fdecc97399",
     "en": "Shape and scale of the Pareto distribution.",
-    "ja": ""
+    "ja": "パレート分布の形状パラメータと尺度パラメータ。"
   },
   "ParetoParams.a#summary": {
     "hash": "69d44e880a5d",
     "en": "Shape. Default `1`.",
-    "ja": ""
+    "ja": "形状。既定は `1`。"
   },
   "ParetoParams.b#summary": {
     "hash": "00e3d8bdaa6a",
     "en": "Scale (the lower limit of the support). Default `1`.",
-    "ja": ""
+    "ja": "尺度 (台の下限)。既定は `1`。"
   },
   "TailOptions#summary": {
     "hash": "4ddb0b806c3e",
     "en": "Options shared by the distribution (`p*`) and quantile (`q*`) functions.\nCorrespond to R's `lower.tail` and `log.p` arguments.",
-    "ja": ""
+    "ja": "分布関数 (`p*`) と分位点関数 (`q*`) で共通のオプション。\nR の `lower.tail` 引数と `log.p` 引数に対応します。"
   },
   "TailOptions.logP#summary": {
     "hash": "00fd95e0d841",
     "en": "If `true`, probabilities are given (to `q*`) and returned (from `p*`) as log(p). Default `false`.",
-    "ja": ""
+    "ja": "`true` の場合、確率は (`q*` に対しては) 与えられ、(`p*` からは) log(p) として返されます。既定は `false`。"
   },
   "TailOptions.lowerTail#summary": {
     "hash": "eb8c4c33656f",
     "en": "If `true`, probabilities are P[X <= x]; if `false`, P[X > x]. Default `true`.",
-    "ja": ""
+    "ja": "`true` の場合は確率が P[X <= x]、`false` の場合は P[X > x] です。既定は `true`。"
   },
   "TriangParams#summary": {
     "hash": "a2a9356bb9dd",
     "en": "Limits and mode of the triangular distribution.",
-    "ja": ""
+    "ja": "三角分布の下限、上限、最頻値。"
   },
   "TriangParams.a#summary": {
     "hash": "a6ac543fce74",
     "en": "Minimum. Default `-1`.",
-    "ja": ""
+    "ja": "最小値。既定は `-1`。"
   },
   "TriangParams.b#summary": {
     "hash": "5e0f33906396",
     "en": "Maximum. Default `1`.",
-    "ja": ""
+    "ja": "最大値。既定は `1`。"
   },
   "TriangParams.c#summary": {
     "hash": "52a4d335ce1b",
     "en": "Mode. Default `(a + b) / 2`.",
-    "ja": ""
+    "ja": "最頻値。既定は `(a + b) / 2`。"
   },
   "TukeyOptions#summary": {
     "hash": "1341072439c0",
     "en": "Options for {@link ptukey} and {@link qtukey}.",
-    "ja": ""
+    "ja": "{@link ptukey} と {@link qtukey} のオプション。"
   },
   "TukeyOptions.nranges#summary": {
     "hash": "16cf6c9732f4",
     "en": "Number of groups whose ranges are compared; the statistic is the maximum of that many ranges. Default `1`.",
-    "ja": ""
+    "ja": "範囲を比較する群の数。統計量は、この数の範囲の最大値です。既定は `1`。"
   },
   "UniformParams#summary": {
     "hash": "c11c2ecd919d",
     "en": "Parameters of the uniform distribution.",
-    "ja": ""
+    "ja": "一様分布のパラメータ。"
   },
   "UniformParams.max#summary": {
     "hash": "b36e5e77c658",
     "en": "Upper limit. Default `1`.",
-    "ja": ""
+    "ja": "上限。既定は `1`。"
   },
   "UniformParams.min#summary": {
     "hash": "ddc4f1cd66a1",
     "en": "Lower limit. Default `0`.",
-    "ja": ""
+    "ja": "下限。既定は `0`。"
   },
   "VectorResult#summary": {
     "hash": "05461f7e4249",
     "en": "Result type matching the shape of a {@link Vectorizable} input:\n`number` for a number, `Float64Array` for a `Float64Array`, and `number[]` for an array.",
-    "ja": ""
+    "ja": "{@link Vectorizable} の入力の形状に合わせた結果の型:\n数値は `number`、`Float64Array` は `Float64Array`、配列は `number[]`。"
   },
   "Vectorizable#summary": {
     "hash": "747c599822dc",
     "en": "Input accepted as the vectorized first argument of the distribution functions\n(the counterpart of R's automatic vectorization).\nA number gives a number, a `number[]` gives a `number[]`, and a `Float64Array` gives a `Float64Array`.",
-    "ja": ""
+    "ja": "分布関数のベクトル化された第 1 引数として受け付ける入力\n(R の自動ベクトル化に相当します)。\n数値を渡すと数値が、`number[]` を渡すと `number[]` が、`Float64Array` を渡すと `Float64Array` が返されます。"
   },
   "WeibullParams#summary": {
     "hash": "0a5ae6669bff",
     "en": "Parameters of the Weibull distribution (besides the positional `shape`).",
-    "ja": ""
+    "ja": "ワイブル分布のパラメータ (位置引数 `shape` 以外)。"
   },
   "WeibullParams.scale#summary": {
     "hash": "ae847907afae",
     "en": "Scale. Default `1`.",
-    "ja": ""
+    "ja": "尺度パラメータ。既定は `1`。"
   },
   "darcsine#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "darcsine#@param options": {
     "hash": "82b8d97d07ec",
     "en": "`a` and `b` (see {@link ArcsineParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`a` と `b` ({@link ArcsineParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "darcsine#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "darcsine#summary": {
     "hash": "c54393fe60f8",
     "en": "Density of the arcsine distribution on (a, b), f(x) = 1 / (pi sqrt((x - a)(b - x))).\nNot an R function. Neither base R nor extraDistr has the arcsine distribution; this equals\n`dbeta((x - a) / (b - a), 0.5, 0.5) / (b - a)`.",
-    "ja": ""
+    "ja": "区間 (a, b) 上の逆正弦分布の密度。f(x) = 1 / (pi sqrt((x - a)(b - x)))。\nR の関数ではありません。base R にも extraDistr にも逆正弦分布はありません。これは\n`dbeta((x - a) / (b - a), 0.5, 0.5) / (b - a)` と等しくなります。"
   },
   "dbeta#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dbeta#@param options": {
     "hash": "095baf9ca6b7",
     "en": "`ncp` (see {@link NoncentralOption}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dbeta#@param shape1": {
     "hash": "c1cebb1115b8",
     "en": "First shape parameter (a).",
-    "ja": ""
+    "ja": "第 1 形状パラメータ (a)。"
   },
   "dbeta#@param shape2": {
     "hash": "2688748611fd",
     "en": "Second shape parameter (b).",
-    "ja": ""
+    "ja": "第 2 形状パラメータ (b)。"
   },
   "dbeta#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dbeta#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dbeta#summary": {
     "hash": "adf07b61b3a7",
     "en": "Density of the beta distribution. Equivalent to R's `dbeta(x, shape1, shape2, ncp = 0, log = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral beta distribution.",
-    "ja": ""
+    "ja": "ベータ分布の密度。R の `dbeta(x, shape1, shape2, ncp = 0, log = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心ベータ分布を使います。"
   },
   "dbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dbinom#@param options": {
     "hash": "7a26921a8ad3",
     "en": "`log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`log` ({@link DensityOptions} を参照)。"
   },
   "dbinom#@param prob": {
     "hash": "66e2887ea5ec",
     "en": "Probability of success on each trial.",
-    "ja": ""
+    "ja": "各試行での成功確率。"
   },
   "dbinom#@param size": {
     "hash": "ef4bc90d5ace",
     "en": "Number of trials.",
-    "ja": ""
+    "ja": "試行回数。"
   },
   "dbinom#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dbinom#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "dbinom#summary": {
     "hash": "45911e0eb179",
     "en": "Probability mass function of the binomial distribution. Equivalent to R's `dbinom(x, size, prob, log = FALSE)`.",
-    "ja": ""
+    "ja": "二項分布の確率質量関数。R の `dbinom(x, size, prob, log = FALSE)` と同等です。"
   },
   "dcauchy#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dcauchy#@param options": {
     "hash": "211e24d39f47",
     "en": "`location` and `scale` (see {@link LocationScaleParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`location` と `scale` ({@link LocationScaleParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dcauchy#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dcauchy#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dcauchy#summary": {
     "hash": "7dae174ad1f1",
     "en": "Density of the Cauchy distribution. Equivalent to R's `dcauchy(x, location = 0, scale = 1, log = FALSE)`.",
-    "ja": ""
+    "ja": "コーシー分布の密度。R の `dcauchy(x, location = 0, scale = 1, log = FALSE)` と同等です。"
   },
   "dchisq#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dchisq#@param df": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度。"
   },
   "dchisq#@param options": {
     "hash": "095baf9ca6b7",
     "en": "`ncp` (see {@link NoncentralOption}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dchisq#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dchisq#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dchisq#summary": {
     "hash": "6ab7b68941fd",
     "en": "Density of the chi-squared distribution. Equivalent to R's `dchisq(x, df, ncp = 0, log = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral chi-squared distribution.",
-    "ja": ""
+    "ja": "カイ二乗分布の密度。R の `dchisq(x, df, ncp = 0, log = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心カイ二乗分布を使います。"
   },
   "dexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dexp#@param options": {
     "hash": "bedf007f9681",
     "en": "`rate` (see {@link ExponentialParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`rate` ({@link ExponentialParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dexp#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dexp#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dexp#summary": {
     "hash": "9982acc3d150",
     "en": "Density of the exponential distribution. Equivalent to R's `dexp(x, rate = 1, log = FALSE)`.",
-    "ja": ""
+    "ja": "指数分布の密度。R の `dexp(x, rate = 1, log = FALSE)` と同等です。"
   },
   "df#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "df#@param df1": {
     "hash": "f60d7db3a4ef",
     "en": "Numerator degrees of freedom.",
-    "ja": ""
+    "ja": "分子の自由度。"
   },
   "df#@param df2": {
     "hash": "bb02427a9e71",
     "en": "Denominator degrees of freedom.",
-    "ja": ""
+    "ja": "分母の自由度。"
   },
   "df#@param options": {
     "hash": "095baf9ca6b7",
     "en": "`ncp` (see {@link NoncentralOption}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "df#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "df#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "df#summary": {
     "hash": "78edb4624c23",
     "en": "Density of the F distribution. Equivalent to R's `df(x, df1, df2, ncp, log = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral F distribution.",
-    "ja": ""
+    "ja": "F 分布の密度。R の `df(x, df1, df2, ncp, log = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心 F 分布を使います。"
   },
   "dgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dgamma#@param options": {
     "hash": "4419a9f4facd",
     "en": "`rate` or `scale` (see {@link GammaParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`rate` または `scale` ({@link GammaParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dgamma#@param shape": {
     "hash": "a5851ea116dc",
     "en": "Shape parameter.",
-    "ja": ""
+    "ja": "形状パラメータ。"
   },
   "dgamma#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dgamma#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dgamma#@throws": {
     "hash": "eb3f6cf0512f",
     "en": "RangeError if both `rate` and `scale` are given and `scale` is not `1 / rate`.",
-    "ja": ""
+    "ja": "`rate` と `scale` の両方が指定され、`scale` が `1 / rate` でない場合に RangeError。"
   },
   "dgamma#summary": {
     "hash": "547165450e45",
     "en": "Density of the gamma distribution. Equivalent to R's `dgamma(x, shape, rate = 1, scale = 1/rate, log = FALSE)`.",
-    "ja": ""
+    "ja": "ガンマ分布の密度。R の `dgamma(x, shape, rate = 1, scale = 1/rate, log = FALSE)` と同等です。"
   },
   "dgeom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dgeom#@param options": {
     "hash": "7a26921a8ad3",
     "en": "`log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`log` ({@link DensityOptions} を参照)。"
   },
   "dgeom#@param prob": {
     "hash": "66e2887ea5ec",
     "en": "Probability of success on each trial.",
-    "ja": ""
+    "ja": "各試行での成功確率。"
   },
   "dgeom#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dgeom#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "dgeom#summary": {
     "hash": "742c2d68cc81",
     "en": "Probability mass function of the geometric distribution (number of failures before the first success). Equivalent to R's `dgeom(x, prob, log = FALSE)`.",
-    "ja": ""
+    "ja": "幾何分布の確率質量関数 (最初の成功までの失敗回数)。R の `dgeom(x, prob, log = FALSE)` と同等です。"
   },
   "dhyper#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dhyper#@param k": {
     "hash": "c54b20bca7e7",
     "en": "Number of balls drawn.",
-    "ja": ""
+    "ja": "引いた玉の数。"
   },
   "dhyper#@param m": {
     "hash": "6b6da3e305a3",
     "en": "Number of white balls in the urn.",
-    "ja": ""
+    "ja": "つぼの中の白玉の数。"
   },
   "dhyper#@param n": {
     "hash": "514a5b5cddb2",
     "en": "Number of black balls in the urn.",
-    "ja": ""
+    "ja": "つぼの中の黒玉の数。"
   },
   "dhyper#@param options": {
     "hash": "7a26921a8ad3",
     "en": "`log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`log` ({@link DensityOptions} を参照)。"
   },
   "dhyper#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dhyper#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "dhyper#summary": {
     "hash": "706f4c27aa52",
     "en": "Probability mass function of the hypergeometric distribution (number of white balls among `k` drawn without replacement from an urn of `m` white and `n` black balls). Equivalent to R's `dhyper(x, m, n, k, log = FALSE)`.",
-    "ja": ""
+    "ja": "超幾何分布の確率質量関数 (白玉 `m` 個と黒玉 `n` 個のつぼから、戻さずに `k` 個引いたときの白玉の数)。R の `dhyper(x, m, n, k, log = FALSE)` と同等です。"
   },
   "dinvgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dinvgamma#@param alpha": {
     "hash": "a5851ea116dc",
     "en": "Shape parameter.",
-    "ja": ""
+    "ja": "形状パラメータ。"
   },
   "dinvgamma#@param options": {
     "hash": "a0bd80ef5d46",
     "en": "`beta` (see {@link InvgammaParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`beta` ({@link InvgammaParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dinvgamma#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dinvgamma#summary": {
     "hash": "1c67a64a4ff5",
     "en": "Density of the inverse gamma distribution. Equivalent to `extraDistr::dinvgamma(x, alpha, beta = 1, log = FALSE)` in R.\nf(x) = beta^alpha x^(-alpha-1) exp(-beta/x) / Gamma(alpha).",
-    "ja": ""
+    "ja": "逆ガンマ分布の密度。R の `extraDistr::dinvgamma(x, alpha, beta = 1, log = FALSE)` と同等です。\nf(x) = beta^alpha x^(-alpha-1) exp(-beta/x) / Gamma(alpha)。"
   },
   "distSummary#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "distSummary#summary": {
     "hash": "e86ea10b03d9",
     "en": "Mean, variance, standard deviation, median, mode, skewness and excess kurtosis of a distribution, given by the\nname of its d/p/q/r functions and their parameters (with the same names and defaults; `gamma` takes `rate` or\n`scale`, `nbinom` takes `prob` or `mu`). Invalid parameters give NaN throughout. The distributions are the central\nones: `ncp` of `chisq`, `beta`, `t` and `f` is not taken (an unknown key, a RangeError).\nNot an R function. R has no function for these summaries; the R references are closed forms checked against\nnumerical moments.",
-    "ja": ""
+    "ja": "d/p/q/r 関数の名前とそのパラメータで与えた分布の、平均、分散、標準偏差、中央値、最頻値、歪度、超過尖度を求めます。\n引数名と既定値は各関数と同じです (`gamma` は `rate` か\n`scale`、`nbinom` は `prob` か `mu` を取ります)。無効な引数の場合は、すべての値が NaN になります。分布は中心分布です。\n`chisq`、`beta`、`t`、`f` の `ncp` は受け付けません (未知のキーとして RangeError になります)。\nR の関数ではありません。R にはこれらの要約の関数がなく、R 側の参照は閉じた形の式を\n数値的なモーメントと照合したものです。"
   },
   "dkumar#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dkumar#@param a": {
     "hash": "5e47e68bb258",
     "en": "First shape parameter.",
-    "ja": ""
+    "ja": "第 1 形状パラメータ。"
   },
   "dkumar#@param b": {
     "hash": "2b8b21be5408",
     "en": "Second shape parameter.",
-    "ja": ""
+    "ja": "第 2 形状パラメータ。"
   },
   "dkumar#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dkumar#summary": {
     "hash": "32dc4dbe9cb2",
     "en": "Density of the Kumaraswamy distribution. Equivalent to `extraDistr::dkumar(x, a, b, log = FALSE)` in R.",
-    "ja": ""
+    "ja": "クマラスワミ分布の密度。R の `extraDistr::dkumar(x, a, b, log = FALSE)` と同等です。"
   },
   "dlaplace#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dlaplace#@param options": {
     "hash": "8cb12890f583",
     "en": "`mu` and `sigma` (see {@link LaplaceParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`mu` と `sigma` ({@link LaplaceParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dlaplace#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dlaplace#summary": {
     "hash": "08ccdf47a4b6",
     "en": "Density of the Laplace distribution. Equivalent to `extraDistr::dlaplace(x, mu = 0, sigma = 1, log = FALSE)` in R.",
-    "ja": ""
+    "ja": "ラプラス分布の密度。R の `extraDistr::dlaplace(x, mu = 0, sigma = 1, log = FALSE)` と同等です。"
   },
   "dlnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dlnorm#@param options": {
     "hash": "a1668f083be8",
     "en": "`meanlog` and `sdlog` (see {@link LognormalParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`meanlog` と `sdlog` ({@link LognormalParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dlnorm#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dlnorm#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dlnorm#summary": {
     "hash": "a31f572b3b0a",
     "en": "Density of the log-normal distribution. Equivalent to R's `dlnorm(x, meanlog = 0, sdlog = 1, log = FALSE)`.",
-    "ja": ""
+    "ja": "対数正規分布の密度。R の `dlnorm(x, meanlog = 0, sdlog = 1, log = FALSE)` と同等です。"
   },
   "dlogis#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dlogis#@param options": {
     "hash": "211e24d39f47",
     "en": "`location` and `scale` (see {@link LocationScaleParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`location` と `scale` ({@link LocationScaleParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dlogis#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dlogis#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dlogis#summary": {
     "hash": "ebc126e15cac",
     "en": "Density of the logistic distribution. Equivalent to R's `dlogis(x, location = 0, scale = 1, log = FALSE)`.",
-    "ja": ""
+    "ja": "ロジスティック分布の密度。R の `dlogis(x, location = 0, scale = 1, log = FALSE)` と同等です。"
   },
   "dmultinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dmultinom#@param options": {
     "hash": "26aed594fe33",
     "en": "`size` and `log` (see {@link MultinomialOptions}).",
-    "ja": ""
+    "ja": "`size` と `log` ({@link MultinomialOptions} を参照)。"
   },
   "dmultinom#@param prob": {
     "hash": "ee415378f378",
     "en": "Category weights, K finite non-negative numbers, not all 0 (divided by their sum).",
-    "ja": ""
+    "ja": "カテゴリの重み。有限な非負の数 K 個で、すべてが 0 ではないもの (合計で割って使われます)。"
   },
   "dmultinom#@param x": {
     "hash": "34d3541e247b",
     "en": "Counts, a vector of K non-negative integers.",
-    "ja": ""
+    "ja": "度数。K 個の非負の整数からなるベクトル。"
   },
   "dmultinom#@returns": {
     "hash": "54c1e356373f",
     "en": "The probability `N! / (x_1! ... x_K!) prod p_j^x_j` with `N = sum(x)`, or its log.",
-    "ja": ""
+    "ja": "確率 `N! / (x_1! ... x_K!) prod p_j^x_j` (`N = sum(x)`)、またはその対数。"
   },
   "dmultinom#@throws": {
     "hash": "978993bb2cbd",
     "en": "RangeError if `x` and `prob` differ in length, `x` has a negative or non-integer value, `prob` has a\n  negative or non-finite value or no positive value, or `size` differs from the sum of `x`.",
-    "ja": ""
+    "ja": "`x` と `prob` の長さが異なる場合、`x` に負または非整数の値がある場合、`prob` に\n  負または有限でない値がある場合、正の値がない場合、または `size` が `x` の和と異なる場合に RangeError。"
   },
   "dmultinom#summary": {
     "hash": "f2a1f81f910c",
     "en": "Probability function of the multinomial distribution. Equivalent to R's\n`dmultinom(x, size = NULL, prob, log = FALSE)`.",
-    "ja": ""
+    "ja": "多項分布の確率関数。R の\n`dmultinom(x, size = NULL, prob, log = FALSE)` と同等です。"
   },
   "dnbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dnbinom#@param options": {
     "hash": "4b6309578390",
     "en": "`prob` or `mu` (see {@link NegBinomialParams}; exactly one is required) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`prob` または `mu` ({@link NegBinomialParams} を参照。どちらか一方の指定が必要です) と `log` ({@link DensityOptions} を参照)。"
   },
   "dnbinom#@param size": {
     "hash": "68bc9e3041f9",
     "en": "Target number of successes (need not be an integer).",
-    "ja": ""
+    "ja": "目標の成功回数 (整数でなくてもかまいません)。"
   },
   "dnbinom#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dnbinom#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "dnbinom#@throws": {
     "hash": "b22045ca93d1",
     "en": "TypeError unless exactly one of `prob` and `mu` is given.",
-    "ja": ""
+    "ja": "`prob` と `mu` のどちらか一方のみが指定されていない場合に TypeError。"
   },
   "dnbinom#summary": {
     "hash": "d6e8106736bf",
     "en": "Probability mass function of the negative binomial distribution (number of failures before the `size`-th success). Equivalent to R's `dnbinom(x, size, prob, mu, log = FALSE)`.\n\nThe distribution is parameterized by `size` and exactly one of `prob` or `mu`. With `mu`, `size = Infinity` gives the Poisson distribution.",
-    "ja": ""
+    "ja": "負の二項分布の確率質量関数 (`size` 回目の成功までの失敗回数)。R の `dnbinom(x, size, prob, mu, log = FALSE)` と同等です。\n\n分布は `size` と、`prob` または `mu` のどちらか一方で指定されます。`mu` を使う場合、`size = Infinity` はポアソン分布になります。"
   },
   "dnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dnorm#@param options": {
     "hash": "66ea6e1abccf",
     "en": "Distribution parameters and output scale.",
-    "ja": ""
+    "ja": "分布のパラメータと出力のスケール。"
   },
   "dnorm#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dnorm#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dnorm#summary": {
     "hash": "92a07558782f",
     "en": "Density of the normal distribution. Equivalent to R's `dnorm(x, mean = 0, sd = 1, log = FALSE)`.",
-    "ja": ""
+    "ja": "正規分布の密度。R の `dnorm(x, mean = 0, sd = 1, log = FALSE)` と同等です。"
   },
   "dnorm.options.log#summary": {
     "hash": "99248facf9dc",
     "en": "If `true`, return the log density. Default `false`.",
-    "ja": ""
+    "ja": "`true` の場合は、対数密度を返します。既定は `false`。"
   },
   "dnorm.options.mean#summary": {
     "hash": "0de81da293b0",
     "en": "Mean. Default `0`.",
-    "ja": ""
+    "ja": "平均。既定は `0`。"
   },
   "dnorm.options.sd#summary": {
     "hash": "bc948bd4118e",
     "en": "Standard deviation. Default `1`.",
-    "ja": ""
+    "ja": "標準偏差。既定は `1`。"
   },
   "dpareto#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dpareto#@param options": {
     "hash": "a1341adafe91",
     "en": "`a` and `b` (see {@link ParetoParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`a` と `b` ({@link ParetoParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dpareto#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dpareto#summary": {
     "hash": "793044655b34",
     "en": "Density of the Pareto distribution. Equivalent to `extraDistr::dpareto(x, a = 1, b = 1, log = FALSE)` in R.",
-    "ja": ""
+    "ja": "パレート分布の密度。R の `extraDistr::dpareto(x, a = 1, b = 1, log = FALSE)` と同等です。"
   },
   "dpois#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dpois#@param lambda": {
     "hash": "dbd118650706",
     "en": "Mean.",
-    "ja": ""
+    "ja": "平均。"
   },
   "dpois#@param options": {
     "hash": "7a26921a8ad3",
     "en": "`log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`log` ({@link DensityOptions} を参照)。"
   },
   "dpois#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dpois#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "dpois#summary": {
     "hash": "94382373e4f0",
     "en": "Probability mass function of the Poisson distribution. Equivalent to R's `dpois(x, lambda, log = FALSE)`.",
-    "ja": ""
+    "ja": "ポアソン分布の確率質量関数。R の `dpois(x, lambda, log = FALSE)` と同等です。"
   },
   "dsignrank#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dsignrank#@param n": {
     "hash": "7bec08620fae",
     "en": "Number of observations.",
-    "ja": ""
+    "ja": "観測値の数。"
   },
   "dsignrank#@param options": {
     "hash": "7a26921a8ad3",
     "en": "`log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`log` ({@link DensityOptions} を参照)。"
   },
   "dsignrank#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dsignrank#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "dsignrank#@throws": {
     "hash": "c8baf067e79a",
     "en": "RangeError if `n` is so large that the required table cannot be allocated.",
-    "ja": ""
+    "ja": "`n` が大きすぎて必要な表を確保できない場合に RangeError。"
   },
   "dsignrank#summary": {
     "hash": "64186773b1c3",
     "en": "Probability mass function of the distribution of the Wilcoxon signed rank statistic. Equivalent to R's `dsignrank(x, n, log = FALSE)`.",
-    "ja": ""
+    "ja": "Wilcoxon の符号付き順位統計量の分布の確率質量関数。R の `dsignrank(x, n, log = FALSE)` と同等です。"
   },
   "dt#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dt#@param df": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度。"
   },
   "dt#@param options": {
     "hash": "095baf9ca6b7",
     "en": "`ncp` (see {@link NoncentralOption}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dt#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dt#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dt#summary": {
     "hash": "d985da5cc28f",
     "en": "Density of the t distribution. Equivalent to R's `dt(x, df, ncp, log = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral t distribution.\n\nAs in R, `ncp: 0` gives the same values as the central distribution.",
-    "ja": ""
+    "ja": "t 分布の密度。R の `dt(x, df, ncp, log = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心 t 分布を使います。\n\nR と同じく、`ncp: 0` は中心分布と同じ値を返します。"
   },
   "dtriang#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dtriang#@param options": {
     "hash": "063d85152f61",
     "en": "`a`, `b` and `c` (see {@link TriangParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`a`、`b`、`c` ({@link TriangParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dtriang#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dtriang#summary": {
     "hash": "2419d58be665",
     "en": "Density of the triangular distribution. Equivalent to `extraDistr::dtriang(x, a = -1, b = 1, c = (a + b)/2, log = FALSE)` in R.",
-    "ja": ""
+    "ja": "三角分布の密度。R の `extraDistr::dtriang(x, a = -1, b = 1, c = (a + b)/2, log = FALSE)` と同等です。"
   },
   "dunif#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dunif#@param options": {
     "hash": "b32ea0652547",
     "en": "`min` and `max` (see {@link UniformParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`min` と `max` ({@link UniformParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dunif#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dunif#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dunif#summary": {
     "hash": "7602801371fb",
     "en": "Density of the uniform distribution. Equivalent to R's `dunif(x, min = 0, max = 1, log = FALSE)`.",
-    "ja": ""
+    "ja": "一様分布の密度。R の `dunif(x, min = 0, max = 1, log = FALSE)` と同等です。"
   },
   "dweibull#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dweibull#@param options": {
     "hash": "2576370b3f81",
     "en": "`scale` (see {@link WeibullParams}) and `log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`scale` ({@link WeibullParams} を参照) と `log` ({@link DensityOptions} を参照)。"
   },
   "dweibull#@param shape": {
     "hash": "a5851ea116dc",
     "en": "Shape parameter.",
-    "ja": ""
+    "ja": "形状パラメータ。"
   },
   "dweibull#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dweibull#@returns": {
     "hash": "27c764f400cc",
     "en": "The density (or log density).",
-    "ja": ""
+    "ja": "密度 (または対数密度)。"
   },
   "dweibull#summary": {
     "hash": "fdbe80fab571",
     "en": "Density of the Weibull distribution. Equivalent to R's `dweibull(x, shape, scale = 1, log = FALSE)`.",
-    "ja": ""
+    "ja": "ワイブル分布の密度。R の `dweibull(x, shape, scale = 1, log = FALSE)` と同等です。"
   },
   "dwilcox#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dwilcox#@param m": {
     "hash": "a74c0ba6dc60",
     "en": "Size of the first sample.",
-    "ja": ""
+    "ja": "第 1 標本のサイズ。"
   },
   "dwilcox#@param n": {
     "hash": "52359659ebad",
     "en": "Size of the second sample.",
-    "ja": ""
+    "ja": "第 2 標本のサイズ。"
   },
   "dwilcox#@param options": {
     "hash": "7a26921a8ad3",
     "en": "`log` (see {@link DensityOptions}).",
-    "ja": ""
+    "ja": "`log` ({@link DensityOptions} を参照)。"
   },
   "dwilcox#@param x": {
     "hash": "5026ef9c83b0",
     "en": "Value(s) at which to evaluate: a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "評価する値 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "dwilcox#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "dwilcox#@throws": {
     "hash": "fe5ff47a3139",
     "en": "RangeError if `m` and `n` are so large that the required table cannot be allocated or would take more than\n2^29 steps to build (min(m, n) times its length; about 6 to 8 s), or that the table loses its accuracy (near the\ncenter for m = n >= 550 or so; the tails stay available).",
-    "ja": ""
+    "ja": "`m` と `n` が大きすぎて、必要な表を確保できない場合、または表の構築に 2^29 ステップ以上かかる場合 (min(m, n) に表の長さを掛けたもの。\n約 6 〜 8 秒)、または表の精度が失われる場合 (\nm = n >= 550 程度の中央付近。裾は引き続き利用できます) に RangeError。"
   },
   "dwilcox#summary": {
     "hash": "e6dae6f11a72",
     "en": "Probability mass function of the distribution of the Wilcoxon rank sum statistic (Mann-Whitney U). Equivalent to R's `dwilcox(x, m, n, log = FALSE)`.\n\nUnlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.",
-    "ja": ""
+    "ja": "Wilcoxon の順位和統計量 (Mann-Whitney U) の分布の確率質量関数。R の `dwilcox(x, m, n, log = FALSE)` と同等です。\n\nR と異なり、メモリ使用量は統計量の範囲 (最大で `m * n / 2`) に応じてのみ増えるため、`m = n = 500` のような大きな標本でも動作します。"
   },
   "parcsine#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "parcsine#summary": {
     "hash": "c6aa7e3821da",
     "en": "Distribution function of the arcsine distribution on (a, b): `pbeta((q - a) / (b - a), 0.5, 0.5)`.\nNot an R function. Neither base R nor extraDistr has the arcsine distribution.",
-    "ja": ""
+    "ja": "区間 (a, b) 上の逆正弦分布の分布関数: `pbeta((q - a) / (b - a), 0.5, 0.5)`。\nR の関数ではありません。base R にも extraDistr にも逆正弦分布はありません。"
   },
   "pbeta#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pbeta#@param options": {
     "hash": "72be8d425494",
     "en": "`ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pbeta#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pbeta#@param shape1": {
     "hash": "c1cebb1115b8",
     "en": "First shape parameter (a).",
-    "ja": ""
+    "ja": "第 1 形状パラメータ (a)。"
   },
   "pbeta#@param shape2": {
     "hash": "2688748611fd",
     "en": "Second shape parameter (b).",
-    "ja": ""
+    "ja": "第 2 形状パラメータ (b)。"
   },
   "pbeta#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pbeta#summary": {
     "hash": "ed2f6b673f57",
     "en": "Distribution function of the beta distribution. Equivalent to R's `pbeta(q, shape1, shape2, ncp = 0, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral beta distribution.",
-    "ja": ""
+    "ja": "ベータ分布の分布関数。R の `pbeta(q, shape1, shape2, ncp = 0, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心ベータ分布を使います。"
   },
   "pbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pbinom#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pbinom#@param prob": {
     "hash": "66e2887ea5ec",
     "en": "Probability of success on each trial.",
-    "ja": ""
+    "ja": "各試行での成功確率。"
   },
   "pbinom#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pbinom#@param size": {
     "hash": "ef4bc90d5ace",
     "en": "Number of trials.",
-    "ja": ""
+    "ja": "試行回数。"
   },
   "pbinom#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pbinom#summary": {
     "hash": "9748ca72c45b",
     "en": "Distribution function of the binomial distribution. Equivalent to R's `pbinom(q, size, prob, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "二項分布の分布関数。R の `pbinom(q, size, prob, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "pbvnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pbvnorm#@param lower": {
     "hash": "dbd3c9899e98",
     "en": "Lower bounds `[a1, a2]`.",
-    "ja": ""
+    "ja": "下限 `[a1, a2]`。"
   },
   "pbvnorm#@param rho": {
     "hash": "492e8702260f",
     "en": "Correlation, in [−1, 1].",
-    "ja": ""
+    "ja": "相関係数 ([−1, 1] の範囲)。"
   },
   "pbvnorm#@param upper": {
     "hash": "fcd32fef7999",
     "en": "Upper bounds `[b1, b2]`.",
-    "ja": ""
+    "ja": "上限 `[b1, b2]`。"
   },
   "pbvnorm#summary": {
     "hash": "63a58bf9c94d",
     "en": "Probability that a standard bivariate normal pair (X, Y) with correlation `rho` lies in the rectangle\n`lower ≤ (X, Y) ≤ upper`. Equivalent to `mvtnorm::pmvnorm()` in R. The same as\n`pmvnorm(lower, upper, corr = matrix(c(1, rho, rho, 1), 2))`.\nBounds may be infinite. Accurate to about 1e-15 absolute.",
-    "ja": ""
+    "ja": "相関 `rho` をもつ標準二変量正規分布の組 (X, Y) が、長方形\n`lower ≤ (X, Y) ≤ upper` に入る確率。R の `mvtnorm::pmvnorm()` と同等です。次と同じです:\n`pmvnorm(lower, upper, corr = matrix(c(1, rho, rho, 1), 2))`。\n境界は無限大でもかまいません。絶対誤差で約 1e-15 の精度です。"
   },
   "pcauchy#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pcauchy#@param options": {
     "hash": "c0087619ca30",
     "en": "`location` and `scale` (see {@link LocationScaleParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`location` と `scale` ({@link LocationScaleParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pcauchy#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pcauchy#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pcauchy#summary": {
     "hash": "22c274222154",
     "en": "Distribution function of the Cauchy distribution. Equivalent to R's `pcauchy(q, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "コーシー分布の分布関数。R の `pcauchy(q, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "pchisq#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pchisq#@param df": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度。"
   },
   "pchisq#@param options": {
     "hash": "72be8d425494",
     "en": "`ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pchisq#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pchisq#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pchisq#summary": {
     "hash": "1bf6b3003b44",
     "en": "Distribution function of the chi-squared distribution. Equivalent to R's `pchisq(q, df, ncp = 0, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral chi-squared distribution.",
-    "ja": ""
+    "ja": "カイ二乗分布の分布関数。R の `pchisq(q, df, ncp = 0, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心カイ二乗分布を使います。"
   },
   "pexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pexp#@param options": {
     "hash": "54e994b5ca76",
     "en": "`rate` (see {@link ExponentialParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`rate` ({@link ExponentialParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pexp#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pexp#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pexp#summary": {
     "hash": "2068eb546448",
     "en": "Distribution function of the exponential distribution. Equivalent to R's `pexp(q, rate = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "指数分布の分布関数。R の `pexp(q, rate = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "pf#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pf#@param df1": {
     "hash": "f60d7db3a4ef",
     "en": "Numerator degrees of freedom.",
-    "ja": ""
+    "ja": "分子の自由度。"
   },
   "pf#@param df2": {
     "hash": "bb02427a9e71",
     "en": "Denominator degrees of freedom.",
-    "ja": ""
+    "ja": "分母の自由度。"
   },
   "pf#@param options": {
     "hash": "72be8d425494",
     "en": "`ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pf#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pf#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pf#summary": {
     "hash": "0f34b9777085",
     "en": "Distribution function of the F distribution. Equivalent to R's `pf(q, df1, df2, ncp, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral F distribution.",
-    "ja": ""
+    "ja": "F 分布の分布関数。R の `pf(q, df1, df2, ncp, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心 F 分布を使います。"
   },
   "pgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pgamma#@param options": {
     "hash": "d8f37e4674f1",
     "en": "`rate` or `scale` (see {@link GammaParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`rate` または `scale` ({@link GammaParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pgamma#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pgamma#@param shape": {
     "hash": "a5851ea116dc",
     "en": "Shape parameter.",
-    "ja": ""
+    "ja": "形状パラメータ。"
   },
   "pgamma#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pgamma#@throws": {
     "hash": "eb3f6cf0512f",
     "en": "RangeError if both `rate` and `scale` are given and `scale` is not `1 / rate`.",
-    "ja": ""
+    "ja": "`rate` と `scale` の両方が指定され、`scale` が `1 / rate` でない場合に RangeError。"
   },
   "pgamma#summary": {
     "hash": "d3e9b87fda0d",
     "en": "Distribution function of the gamma distribution. Equivalent to R's `pgamma(q, shape, rate = 1, scale = 1/rate, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "ガンマ分布の分布関数。R の `pgamma(q, shape, rate = 1, scale = 1/rate, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "pgeom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pgeom#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pgeom#@param prob": {
     "hash": "66e2887ea5ec",
     "en": "Probability of success on each trial.",
-    "ja": ""
+    "ja": "各試行での成功確率。"
   },
   "pgeom#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pgeom#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pgeom#summary": {
     "hash": "bc3148e6890c",
     "en": "Distribution function of the geometric distribution (number of failures before the first success). Equivalent to R's `pgeom(q, prob, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "幾何分布の分布関数 (最初の成功までの失敗回数)。R の `pgeom(q, prob, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "phyper#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "phyper#@param k": {
     "hash": "c54b20bca7e7",
     "en": "Number of balls drawn.",
-    "ja": ""
+    "ja": "引いた玉の数。"
   },
   "phyper#@param m": {
     "hash": "6b6da3e305a3",
     "en": "Number of white balls in the urn.",
-    "ja": ""
+    "ja": "つぼの中の白玉の数。"
   },
   "phyper#@param n": {
     "hash": "514a5b5cddb2",
     "en": "Number of black balls in the urn.",
-    "ja": ""
+    "ja": "つぼの中の黒玉の数。"
   },
   "phyper#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "phyper#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "phyper#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "phyper#summary": {
     "hash": "a608df2fd5be",
     "en": "Distribution function of the hypergeometric distribution (number of white balls among `k` drawn without replacement from an urn of `m` white and `n` black balls). Equivalent to R's `phyper(q, m, n, k, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "超幾何分布の分布関数 (白玉 `m` 個と黒玉 `n` 個のつぼから、戻さずに `k` 個引いたときの白玉の数)。R の `phyper(q, m, n, k, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "pinvgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pinvgamma#summary": {
     "hash": "7fd2eb2a03b7",
     "en": "Distribution function of the inverse gamma distribution. Equivalent to\n`extraDistr::pinvgamma(q, alpha, beta = 1, lower.tail = TRUE, log.p = FALSE)` in R.",
-    "ja": ""
+    "ja": "逆ガンマ分布の分布関数。R の\n`extraDistr::pinvgamma(q, alpha, beta = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "pkumar#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pkumar#summary": {
     "hash": "975fb6740203",
     "en": "Distribution function of the Kumaraswamy distribution. Equivalent to `extraDistr::pkumar(q, a, b, lower.tail, log.p)` in R.",
-    "ja": ""
+    "ja": "クマラスワミ分布の分布関数。R の `extraDistr::pkumar(q, a, b, lower.tail, log.p)` と同等です。"
   },
   "plaplace#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "plaplace#summary": {
     "hash": "ff2e00bc2790",
     "en": "Distribution function of the Laplace distribution. Equivalent to `extraDistr::plaplace(q, mu = 0, sigma = 1, lower.tail, log.p)` in R.",
-    "ja": ""
+    "ja": "ラプラス分布の分布関数。R の `extraDistr::plaplace(q, mu = 0, sigma = 1, lower.tail, log.p)` と同等です。"
   },
   "plnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "plnorm#@param options": {
     "hash": "2cdaea0b5df7",
     "en": "`meanlog` and `sdlog` (see {@link LognormalParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`meanlog` と `sdlog` ({@link LognormalParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "plnorm#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "plnorm#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "plnorm#summary": {
     "hash": "c79e2e1660be",
     "en": "Distribution function of the log-normal distribution. Equivalent to R's `plnorm(q, meanlog = 0, sdlog = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "対数正規分布の分布関数。R の `plnorm(q, meanlog = 0, sdlog = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "plogis#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "plogis#@param options": {
     "hash": "c0087619ca30",
     "en": "`location` and `scale` (see {@link LocationScaleParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`location` と `scale` ({@link LocationScaleParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "plogis#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "plogis#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "plogis#summary": {
     "hash": "563b8035cede",
     "en": "Distribution function of the logistic distribution. Equivalent to R's `plogis(q, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "ロジスティック分布の分布関数。R の `plogis(q, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "pnbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pnbinom#@param options": {
     "hash": "bda8dd838db1",
     "en": "`prob` or `mu` (see {@link NegBinomialParams}; exactly one is required), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`prob` または `mu` ({@link NegBinomialParams} を参照。どちらか一方の指定が必要です)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pnbinom#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pnbinom#@param size": {
     "hash": "68bc9e3041f9",
     "en": "Target number of successes (need not be an integer).",
-    "ja": ""
+    "ja": "目標の成功回数 (整数でなくてもかまいません)。"
   },
   "pnbinom#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pnbinom#@throws": {
     "hash": "b22045ca93d1",
     "en": "TypeError unless exactly one of `prob` and `mu` is given.",
-    "ja": ""
+    "ja": "`prob` と `mu` のどちらか一方のみが指定されていない場合に TypeError。"
   },
   "pnbinom#summary": {
     "hash": "c1e221e70bb5",
     "en": "Distribution function of the negative binomial distribution (number of failures before the `size`-th success). Equivalent to R's `pnbinom(q, size, prob, mu, lower.tail = TRUE, log.p = FALSE)`.\n\nThe distribution is parameterized by `size` and exactly one of `prob` or `mu`. With `mu`, `size = Infinity` gives the Poisson distribution.",
-    "ja": ""
+    "ja": "負の二項分布の分布関数 (`size` 回目の成功までの失敗回数)。R の `pnbinom(q, size, prob, mu, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n分布は `size` と、`prob` または `mu` のどちらか一方で指定されます。`mu` を使う場合、`size = Infinity` はポアソン分布になります。"
   },
   "pnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pnorm#@param options": {
     "hash": "e361931f6ef5",
     "en": "`mean`, `sd`, `lowerTail` and `logP` (see {@link NormalOptions}).",
-    "ja": ""
+    "ja": "`mean`、`sd`、`lowerTail`、`logP` ({@link NormalOptions} を参照)。"
   },
   "pnorm#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pnorm#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pnorm#summary": {
     "hash": "9bf7118157d3",
     "en": "Distribution function of the normal distribution.\nEquivalent to R's `pnorm(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "正規分布の分布関数。\nR の `pnorm(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "ppareto#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ppareto#summary": {
     "hash": "343b2786aacd",
     "en": "Distribution function of the Pareto distribution. Equivalent to `extraDistr::ppareto(q, a = 1, b = 1, lower.tail, log.p)` in R.",
-    "ja": ""
+    "ja": "パレート分布の分布関数。R の `extraDistr::ppareto(q, a = 1, b = 1, lower.tail, log.p)` と同等です。"
   },
   "ppois#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ppois#@param lambda": {
     "hash": "dbd118650706",
     "en": "Mean.",
-    "ja": ""
+    "ja": "平均。"
   },
   "ppois#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "ppois#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "ppois#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "ppois#summary": {
     "hash": "252c594573e4",
     "en": "Distribution function of the Poisson distribution. Equivalent to R's `ppois(q, lambda, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "ポアソン分布の分布関数。R の `ppois(q, lambda, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "psignrank#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "psignrank#@param n": {
     "hash": "7bec08620fae",
     "en": "Number of observations.",
-    "ja": ""
+    "ja": "観測値の数。"
   },
   "psignrank#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "psignrank#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "psignrank#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "psignrank#@throws": {
     "hash": "c8baf067e79a",
     "en": "RangeError if `n` is so large that the required table cannot be allocated.",
-    "ja": ""
+    "ja": "`n` が大きすぎて必要な表を確保できない場合に RangeError。"
   },
   "psignrank#summary": {
     "hash": "26827f583a5e",
     "en": "Distribution function of the distribution of the Wilcoxon signed rank statistic. Equivalent to R's `psignrank(q, n, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "Wilcoxon の符号付き順位統計量の分布の分布関数。R の `psignrank(q, n, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "pt#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pt#@param df": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度。"
   },
   "pt#@param options": {
     "hash": "72be8d425494",
     "en": "`ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pt#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pt#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pt#summary": {
     "hash": "5b108acd8713",
     "en": "Distribution function of the t distribution. Equivalent to R's `pt(q, df, ncp, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral t distribution.",
-    "ja": ""
+    "ja": "t 分布の分布関数。R の `pt(q, df, ncp, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心 t 分布を使います。"
   },
   "ptriang#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ptriang#summary": {
     "hash": "7584f38ec268",
     "en": "Distribution function of the triangular distribution. Equivalent to `extraDistr::ptriang(q, a, b, c, lower.tail, log.p)` in R.",
-    "ja": ""
+    "ja": "三角分布の分布関数。R の `extraDistr::ptriang(q, a, b, c, lower.tail, log.p)` と同等です。"
   },
   "ptukey#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ptukey#@param df": {
     "hash": "9324c7b58bfd",
     "en": "Degrees of freedom of the standard deviation estimate.",
-    "ja": ""
+    "ja": "標準偏差の推定値の自由度。"
   },
   "ptukey#@param nmeans": {
     "hash": "e8d0274833ed",
     "en": "Number of means (sample size of each range).",
-    "ja": ""
+    "ja": "平均の数 (各範囲の標本サイズ)。"
   },
   "ptukey#@param options": {
     "hash": "39a5fbab5bed",
     "en": "`nranges`, `lowerTail` and `logP` (see {@link TukeyOptions}).",
-    "ja": ""
+    "ja": "`nranges`、`lowerTail`、`logP` ({@link TukeyOptions} を参照)。"
   },
   "ptukey#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "ptukey#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "ptukey#summary": {
     "hash": "a22de4de97eb",
     "en": "Distribution function of the studentized range distribution (used by Tukey's HSD). Equivalent to R's `ptukey(q, nmeans, df, nranges = 1, lower.tail = TRUE, log.p = FALSE)`.\n\nResults aim at a relative accuracy of about 1e-15. R's `ptukey` is accurate to only about 8 digits, so values can differ from R's beyond that.",
-    "ja": ""
+    "ja": "スチューデント化された範囲の分布の分布関数 (Tukey の HSD で使われます)。R の `ptukey(q, nmeans, df, nranges = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n結果は約 1e-15 の相対精度を目指しています。R の `ptukey` は約 8 桁の精度しかないため、その桁より先では R と値が異なることがあります。"
   },
   "punif#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "punif#@param options": {
     "hash": "1e5c8e610e95",
     "en": "`min` and `max` (see {@link UniformParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`min` と `max` ({@link UniformParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "punif#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "punif#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "punif#summary": {
     "hash": "ef98f3822c6f",
     "en": "Distribution function of the uniform distribution. Equivalent to R's `punif(q, min = 0, max = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "一様分布の分布関数。R の `punif(q, min = 0, max = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "pweibull#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pweibull#@param options": {
     "hash": "2fd500a11ed7",
     "en": "`scale` (see {@link WeibullParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`scale` ({@link WeibullParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pweibull#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pweibull#@param shape": {
     "hash": "a5851ea116dc",
     "en": "Shape parameter.",
-    "ja": ""
+    "ja": "形状パラメータ。"
   },
   "pweibull#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pweibull#summary": {
     "hash": "159af33c2fe4",
     "en": "Distribution function of the Weibull distribution. Equivalent to R's `pweibull(q, shape, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "ワイブル分布の分布関数。R の `pweibull(q, shape, scale = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "pwilcox#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwilcox#@param m": {
     "hash": "a74c0ba6dc60",
     "en": "Size of the first sample.",
-    "ja": ""
+    "ja": "第 1 標本のサイズ。"
   },
   "pwilcox#@param n": {
     "hash": "52359659ebad",
     "en": "Size of the second sample.",
-    "ja": ""
+    "ja": "第 2 標本のサイズ。"
   },
   "pwilcox#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "pwilcox#@param q": {
     "hash": "58639e382c80",
     "en": "Quantile(s): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "分位点 (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "pwilcox#@returns": {
     "hash": "fe02afc3412d",
     "en": "The probability (or log probability).",
-    "ja": ""
+    "ja": "確率 (または対数確率)。"
   },
   "pwilcox#@throws": {
     "hash": "fe5ff47a3139",
     "en": "RangeError if `m` and `n` are so large that the required table cannot be allocated or would take more than\n2^29 steps to build (min(m, n) times its length; about 6 to 8 s), or that the table loses its accuracy (near the\ncenter for m = n >= 550 or so; the tails stay available).",
-    "ja": ""
+    "ja": "`m` と `n` が大きすぎて、必要な表を確保できない場合、または表の構築に 2^29 ステップ以上かかる場合 (min(m, n) に表の長さを掛けたもの。\n約 6 〜 8 秒)、または表の精度が失われる場合 (\nm = n >= 550 程度の中央付近。裾は引き続き利用できます) に RangeError。"
   },
   "pwilcox#summary": {
     "hash": "a04765a5c9a5",
     "en": "Distribution function of the distribution of the Wilcoxon rank sum statistic (Mann-Whitney U). Equivalent to R's `pwilcox(q, m, n, lower.tail = TRUE, log.p = FALSE)`.\n\nUnlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.",
-    "ja": ""
+    "ja": "Wilcoxon の順位和統計量 (Mann-Whitney U) の分布の分布関数。R の `pwilcox(q, m, n, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\nR と異なり、メモリ使用量は統計量の範囲 (最大で `m * n / 2`) に応じてのみ増えるため、`m = n = 500` のような大きな標本でも動作します。"
   },
   "qarcsine#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qarcsine#summary": {
     "hash": "4f4c2574d309",
     "en": "Quantile function of the arcsine distribution on (a, b): `a + (b - a) qbeta(p, 0.5, 0.5)`.\nNot an R function. Neither base R nor extraDistr has the arcsine distribution.",
-    "ja": ""
+    "ja": "区間 (a, b) 上の逆正弦分布の分位点関数: `a + (b - a) qbeta(p, 0.5, 0.5)`。\nR の関数ではありません。base R にも extraDistr にも逆正弦分布はありません。"
   },
   "qbeta#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qbeta#@param options": {
     "hash": "72be8d425494",
     "en": "`ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qbeta#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qbeta#@param shape1": {
     "hash": "c1cebb1115b8",
     "en": "First shape parameter (a).",
-    "ja": ""
+    "ja": "第 1 形状パラメータ (a)。"
   },
   "qbeta#@param shape2": {
     "hash": "2688748611fd",
     "en": "Second shape parameter (b).",
-    "ja": ""
+    "ja": "第 2 形状パラメータ (b)。"
   },
   "qbeta#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qbeta#summary": {
     "hash": "cc42788be169",
     "en": "Quantile function of the beta distribution. Equivalent to R's `qbeta(p, shape1, shape2, ncp = 0, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral beta distribution.",
-    "ja": ""
+    "ja": "ベータ分布の分位点関数。R の `qbeta(p, shape1, shape2, ncp = 0, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心ベータ分布を使います。"
   },
   "qbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qbinom#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qbinom#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qbinom#@param prob": {
     "hash": "66e2887ea5ec",
     "en": "Probability of success on each trial.",
-    "ja": ""
+    "ja": "各試行での成功確率。"
   },
   "qbinom#@param size": {
     "hash": "ef4bc90d5ace",
     "en": "Number of trials.",
-    "ja": ""
+    "ja": "試行回数。"
   },
   "qbinom#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qbinom#summary": {
     "hash": "422fa3b9da03",
     "en": "Quantile function of the binomial distribution. Equivalent to R's `qbinom(p, size, prob, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "二項分布の分位点関数。R の `qbinom(p, size, prob, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qcauchy#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qcauchy#@param options": {
     "hash": "c0087619ca30",
     "en": "`location` and `scale` (see {@link LocationScaleParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`location` と `scale` ({@link LocationScaleParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qcauchy#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qcauchy#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qcauchy#summary": {
     "hash": "839193fb5e02",
     "en": "Quantile function of the Cauchy distribution. Equivalent to R's `qcauchy(p, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "コーシー分布の分位点関数。R の `qcauchy(p, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qchisq#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qchisq#@param df": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度。"
   },
   "qchisq#@param options": {
     "hash": "72be8d425494",
     "en": "`ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qchisq#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qchisq#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qchisq#summary": {
     "hash": "0bd49f41053d",
     "en": "Quantile function of the chi-squared distribution. Equivalent to R's `qchisq(p, df, ncp = 0, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral chi-squared distribution.",
-    "ja": ""
+    "ja": "カイ二乗分布の分位点関数。R の `qchisq(p, df, ncp = 0, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心カイ二乗分布を使います。"
   },
   "qexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qexp#@param options": {
     "hash": "54e994b5ca76",
     "en": "`rate` (see {@link ExponentialParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`rate` ({@link ExponentialParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qexp#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qexp#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qexp#summary": {
     "hash": "1f72894ebae8",
     "en": "Quantile function of the exponential distribution. Equivalent to R's `qexp(p, rate = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "指数分布の分位点関数。R の `qexp(p, rate = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qf#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qf#@param df1": {
     "hash": "f60d7db3a4ef",
     "en": "Numerator degrees of freedom.",
-    "ja": ""
+    "ja": "分子の自由度。"
   },
   "qf#@param df2": {
     "hash": "bb02427a9e71",
     "en": "Denominator degrees of freedom.",
-    "ja": ""
+    "ja": "分母の自由度。"
   },
   "qf#@param options": {
     "hash": "72be8d425494",
     "en": "`ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qf#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qf#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qf#summary": {
     "hash": "ce924f435bcf",
     "en": "Quantile function of the F distribution. Equivalent to R's `qf(p, df1, df2, ncp, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral F distribution.",
-    "ja": ""
+    "ja": "F 分布の分位点関数。R の `qf(p, df1, df2, ncp, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心 F 分布を使います。"
   },
   "qgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qgamma#@param options": {
     "hash": "d8f37e4674f1",
     "en": "`rate` or `scale` (see {@link GammaParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`rate` または `scale` ({@link GammaParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qgamma#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qgamma#@param shape": {
     "hash": "a5851ea116dc",
     "en": "Shape parameter.",
-    "ja": ""
+    "ja": "形状パラメータ。"
   },
   "qgamma#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qgamma#@throws": {
     "hash": "eb3f6cf0512f",
     "en": "RangeError if both `rate` and `scale` are given and `scale` is not `1 / rate`.",
-    "ja": ""
+    "ja": "`rate` と `scale` の両方が指定され、`scale` が `1 / rate` でない場合に RangeError。"
   },
   "qgamma#summary": {
     "hash": "6b24f785b890",
     "en": "Quantile function of the gamma distribution. Equivalent to R's `qgamma(p, shape, rate = 1, scale = 1/rate, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "ガンマ分布の分位点関数。R の `qgamma(p, shape, rate = 1, scale = 1/rate, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qgeom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qgeom#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qgeom#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qgeom#@param prob": {
     "hash": "66e2887ea5ec",
     "en": "Probability of success on each trial.",
-    "ja": ""
+    "ja": "各試行での成功確率。"
   },
   "qgeom#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qgeom#summary": {
     "hash": "f8542800dd1b",
     "en": "Quantile function of the geometric distribution (number of failures before the first success). Equivalent to R's `qgeom(p, prob, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "幾何分布の分位点関数 (最初の成功までの失敗回数)。R の `qgeom(p, prob, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qhyper#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qhyper#@param k": {
     "hash": "c54b20bca7e7",
     "en": "Number of balls drawn.",
-    "ja": ""
+    "ja": "引いた玉の数。"
   },
   "qhyper#@param m": {
     "hash": "6b6da3e305a3",
     "en": "Number of white balls in the urn.",
-    "ja": ""
+    "ja": "つぼの中の白玉の数。"
   },
   "qhyper#@param n": {
     "hash": "514a5b5cddb2",
     "en": "Number of black balls in the urn.",
-    "ja": ""
+    "ja": "つぼの中の黒玉の数。"
   },
   "qhyper#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qhyper#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qhyper#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qhyper#summary": {
     "hash": "515d387d5568",
     "en": "Quantile function of the hypergeometric distribution (number of white balls among `k` drawn without replacement from an urn of `m` white and `n` black balls). Equivalent to R's `qhyper(p, m, n, k, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "超幾何分布の分位点関数 (白玉 `m` 個と黒玉 `n` 個のつぼから、戻さずに `k` 個引いたときの白玉の数)。R の `qhyper(p, m, n, k, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qinvgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qinvgamma#summary": {
     "hash": "e491ca6c1dc5",
     "en": "Quantile function of the inverse gamma distribution. Equivalent to\n`extraDistr::qinvgamma(p, alpha, beta = 1, lower.tail = TRUE, log.p = FALSE)` in R.",
-    "ja": ""
+    "ja": "逆ガンマ分布の分位点関数。R の\n`extraDistr::qinvgamma(p, alpha, beta = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qkumar#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qkumar#summary": {
     "hash": "47f90a52c1db",
     "en": "Quantile function of the Kumaraswamy distribution. Equivalent to `extraDistr::qkumar(p, a, b, lower.tail, log.p)` in R.",
-    "ja": ""
+    "ja": "クマラスワミ分布の分位点関数。R の `extraDistr::qkumar(p, a, b, lower.tail, log.p)` と同等です。"
   },
   "qlaplace#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qlaplace#summary": {
     "hash": "330651e0cfd4",
     "en": "Quantile function of the Laplace distribution. Equivalent to `extraDistr::qlaplace(p, mu = 0, sigma = 1, lower.tail, log.p)` in R.",
-    "ja": ""
+    "ja": "ラプラス分布の分位点関数。R の `extraDistr::qlaplace(p, mu = 0, sigma = 1, lower.tail, log.p)` と同等です。"
   },
   "qlnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qlnorm#@param options": {
     "hash": "2cdaea0b5df7",
     "en": "`meanlog` and `sdlog` (see {@link LognormalParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`meanlog` と `sdlog` ({@link LognormalParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qlnorm#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qlnorm#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qlnorm#summary": {
     "hash": "35964e509b53",
     "en": "Quantile function of the log-normal distribution. Equivalent to R's `qlnorm(p, meanlog = 0, sdlog = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "対数正規分布の分位点関数。R の `qlnorm(p, meanlog = 0, sdlog = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qlogis#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qlogis#@param options": {
     "hash": "c0087619ca30",
     "en": "`location` and `scale` (see {@link LocationScaleParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`location` と `scale` ({@link LocationScaleParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qlogis#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qlogis#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qlogis#summary": {
     "hash": "ddb0eea03794",
     "en": "Quantile function of the logistic distribution. Equivalent to R's `qlogis(p, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "ロジスティック分布の分位点関数。R の `qlogis(p, location = 0, scale = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qnbinom#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qnbinom#@param options": {
     "hash": "bda8dd838db1",
     "en": "`prob` or `mu` (see {@link NegBinomialParams}; exactly one is required), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`prob` または `mu` ({@link NegBinomialParams} を参照。どちらか一方の指定が必要です)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qnbinom#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qnbinom#@param size": {
     "hash": "68bc9e3041f9",
     "en": "Target number of successes (need not be an integer).",
-    "ja": ""
+    "ja": "目標の成功回数 (整数でなくてもかまいません)。"
   },
   "qnbinom#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qnbinom#@throws": {
     "hash": "b22045ca93d1",
     "en": "TypeError unless exactly one of `prob` and `mu` is given.",
-    "ja": ""
+    "ja": "`prob` と `mu` のどちらか一方のみが指定されていない場合に TypeError。"
   },
   "qnbinom#summary": {
     "hash": "503f02d40087",
     "en": "Quantile function of the negative binomial distribution (number of failures before the `size`-th success). Equivalent to R's `qnbinom(p, size, prob, mu, lower.tail = TRUE, log.p = FALSE)`.\n\nThe distribution is parameterized by `size` and exactly one of `prob` or `mu`. With `mu`, `size = Infinity` gives the Poisson distribution.",
-    "ja": ""
+    "ja": "負の二項分布の分位点関数 (`size` 回目の成功までの失敗回数)。R の `qnbinom(p, size, prob, mu, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n分布は `size` と、`prob` または `mu` のどちらか一方で指定されます。`mu` を使う場合、`size = Infinity` はポアソン分布になります。"
   },
   "qnorm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qnorm#@param options": {
     "hash": "e361931f6ef5",
     "en": "`mean`, `sd`, `lowerTail` and `logP` (see {@link NormalOptions}).",
-    "ja": ""
+    "ja": "`mean`、`sd`、`lowerTail`、`logP` ({@link NormalOptions} を参照)。"
   },
   "qnorm#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qnorm#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qnorm#summary": {
     "hash": "d6412a5b0327",
     "en": "Quantile function of the normal distribution.\nEquivalent to R's `qnorm(p, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "正規分布の分位点関数。\nR の `qnorm(p, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qpareto#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qpareto#summary": {
     "hash": "ce3c9fa3bfc2",
     "en": "Quantile function of the Pareto distribution. Equivalent to `extraDistr::qpareto(p, a = 1, b = 1, lower.tail, log.p)` in R.",
-    "ja": ""
+    "ja": "パレート分布の分位点関数。R の `extraDistr::qpareto(p, a = 1, b = 1, lower.tail, log.p)` と同等です。"
   },
   "qpois#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qpois#@param lambda": {
     "hash": "dbd118650706",
     "en": "Mean.",
-    "ja": ""
+    "ja": "平均。"
   },
   "qpois#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qpois#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qpois#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qpois#summary": {
     "hash": "7215613e9409",
     "en": "Quantile function of the Poisson distribution. Equivalent to R's `qpois(p, lambda, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "ポアソン分布の分位点関数。R の `qpois(p, lambda, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qsignrank#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qsignrank#@param n": {
     "hash": "7bec08620fae",
     "en": "Number of observations.",
-    "ja": ""
+    "ja": "観測値の数。"
   },
   "qsignrank#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qsignrank#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qsignrank#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qsignrank#@throws": {
     "hash": "c8baf067e79a",
     "en": "RangeError if `n` is so large that the required table cannot be allocated.",
-    "ja": ""
+    "ja": "`n` が大きすぎて必要な表を確保できない場合に RangeError。"
   },
   "qsignrank#summary": {
     "hash": "e0b69d69feb9",
     "en": "Quantile function of the distribution of the Wilcoxon signed rank statistic. Equivalent to R's `qsignrank(p, n, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "Wilcoxon の符号付き順位統計量の分布の分位点関数。R の `qsignrank(p, n, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qt#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qt#@param df": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度。"
   },
   "qt#@param options": {
     "hash": "72be8d425494",
     "en": "`ncp` (see {@link NoncentralOption}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`ncp` ({@link NoncentralOption} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qt#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qt#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qt#summary": {
     "hash": "9f5174b22c5f",
     "en": "Quantile function of the t distribution. Equivalent to R's `qt(p, df, ncp, lower.tail = TRUE, log.p = FALSE)`.\n\nIf `ncp` is omitted the central distribution is used; otherwise the noncentral t distribution.",
-    "ja": ""
+    "ja": "t 分布の分位点関数。R の `qt(p, df, ncp, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n`ncp` を省略した場合は中心分布、それ以外の場合は非心 t 分布を使います。"
   },
   "qtriang#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qtriang#summary": {
     "hash": "15783f9842d4",
     "en": "Quantile function of the triangular distribution. Equivalent to `extraDistr::qtriang(p, a, b, c, lower.tail, log.p)` in R.",
-    "ja": ""
+    "ja": "三角分布の分位点関数。R の `extraDistr::qtriang(p, a, b, c, lower.tail, log.p)` と同等です。"
   },
   "qtukey#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qtukey#@param df": {
     "hash": "9324c7b58bfd",
     "en": "Degrees of freedom of the standard deviation estimate.",
-    "ja": ""
+    "ja": "標準偏差の推定値の自由度。"
   },
   "qtukey#@param nmeans": {
     "hash": "e8d0274833ed",
     "en": "Number of means (sample size of each range).",
-    "ja": ""
+    "ja": "平均の数 (各範囲の標本サイズ)。"
   },
   "qtukey#@param options": {
     "hash": "39a5fbab5bed",
     "en": "`nranges`, `lowerTail` and `logP` (see {@link TukeyOptions}).",
-    "ja": ""
+    "ja": "`nranges`、`lowerTail`、`logP` ({@link TukeyOptions} を参照)。"
   },
   "qtukey#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qtukey#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qtukey#summary": {
     "hash": "a3c0e82bcabd",
     "en": "Quantile function of the studentized range distribution (used by Tukey's HSD). Equivalent to R's `qtukey(p, nmeans, df, nranges = 1, lower.tail = TRUE, log.p = FALSE)`.\n\nResults aim at a relative accuracy of about 1e-15. R's `ptukey` is accurate to only about 8 digits, so values can differ from R's beyond that.",
-    "ja": ""
+    "ja": "スチューデント化された範囲の分布の分位点関数 (Tukey の HSD で使われます)。R の `qtukey(p, nmeans, df, nranges = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\n結果は約 1e-15 の相対精度を目指しています。R の `ptukey` は約 8 桁の精度しかないため、その桁より先では R と値が異なることがあります。"
   },
   "qunif#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qunif#@param options": {
     "hash": "1e5c8e610e95",
     "en": "`min` and `max` (see {@link UniformParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`min` と `max` ({@link UniformParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qunif#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qunif#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qunif#summary": {
     "hash": "d7eb15518a8c",
     "en": "Quantile function of the uniform distribution. Equivalent to R's `qunif(p, min = 0, max = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "一様分布の分位点関数。R の `qunif(p, min = 0, max = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qweibull#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qweibull#@param options": {
     "hash": "2fd500a11ed7",
     "en": "`scale` (see {@link WeibullParams}), `lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`scale` ({@link WeibullParams} を参照)、`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qweibull#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qweibull#@param shape": {
     "hash": "a5851ea116dc",
     "en": "Shape parameter.",
-    "ja": ""
+    "ja": "形状パラメータ。"
   },
   "qweibull#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qweibull#summary": {
     "hash": "f26cb24389e3",
     "en": "Quantile function of the Weibull distribution. Equivalent to R's `qweibull(p, shape, scale = 1, lower.tail = TRUE, log.p = FALSE)`.",
-    "ja": ""
+    "ja": "ワイブル分布の分位点関数。R の `qweibull(p, shape, scale = 1, lower.tail = TRUE, log.p = FALSE)` と同等です。"
   },
   "qwilcox#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "qwilcox#@param m": {
     "hash": "a74c0ba6dc60",
     "en": "Size of the first sample.",
-    "ja": ""
+    "ja": "第 1 標本のサイズ。"
   },
   "qwilcox#@param n": {
     "hash": "52359659ebad",
     "en": "Size of the second sample.",
-    "ja": ""
+    "ja": "第 2 標本のサイズ。"
   },
   "qwilcox#@param options": {
     "hash": "b68c6c7e3320",
     "en": "`lowerTail` and `logP` (see {@link TailOptions}).",
-    "ja": ""
+    "ja": "`lowerTail` と `logP` ({@link TailOptions} を参照)。"
   },
   "qwilcox#@param p": {
     "hash": "eb3fe040d5cd",
     "en": "Probability (or log probability with `logP`): a number, `number[]` or `Float64Array`. The result has the same shape.",
-    "ja": ""
+    "ja": "確率 (`logP` を指定した場合は対数確率) (複数可): 数値、`number[]`、または `Float64Array`。結果は同じ形状になります。"
   },
   "qwilcox#@returns": {
     "hash": "94bbd78cfdfe",
     "en": "The quantile(s).",
-    "ja": ""
+    "ja": "分位点 (複数可)。"
   },
   "qwilcox#@throws": {
     "hash": "fe5ff47a3139",
     "en": "RangeError if `m` and `n` are so large that the required table cannot be allocated or would take more than\n2^29 steps to build (min(m, n) times its length; about 6 to 8 s), or that the table loses its accuracy (near the\ncenter for m = n >= 550 or so; the tails stay available).",
-    "ja": ""
+    "ja": "`m` と `n` が大きすぎて、必要な表を確保できない場合、または表の構築に 2^29 ステップ以上かかる場合 (min(m, n) に表の長さを掛けたもの。\n約 6 〜 8 秒)、または表の精度が失われる場合 (\nm = n >= 550 程度の中央付近。裾は引き続き利用できます) に RangeError。"
   },
   "qwilcox#summary": {
     "hash": "06c09b595914",
     "en": "Quantile function of the distribution of the Wilcoxon rank sum statistic (Mann-Whitney U). Equivalent to R's `qwilcox(p, m, n, lower.tail = TRUE, log.p = FALSE)`.\n\nUnlike R, memory use grows only with the range of the statistic (at most `m * n / 2`), so large samples such as `m = n = 500` work.",
-    "ja": ""
+    "ja": "Wilcoxon の順位和統計量 (Mann-Whitney U) の分布の分位点関数。R の `qwilcox(p, m, n, lower.tail = TRUE, log.p = FALSE)` と同等です。\n\nR と異なり、メモリ使用量は統計量の範囲 (最大で `m * n / 2`) に応じてのみ増えるため、`m = n = 500` のような大きな標本でも動作します。"
   }
 }
