@@ -636,3 +636,35 @@
 | optimisation | 最適化 | `docs/ja/performance.md` で使用 |
 | evaluations (of function, gradient) | 評価回数 | 新規 |
 | reversed item, flipped item | 反転 | 新規。符号を反転すること |
+| positive definite | 正定値 | 新規。`chol` の前提 |
+| positive semi-definite | 半正定値 | 新規 |
+| upper triangular | 上三角 | `docs/ja` で使用 (上三角行列) |
+| triangular factor | 三角因子 | 新規。`R` などの三角行列の因子 |
+| quasi-triangular | 準三角 | 新規。Schur 分解の `T` |
+| unit lower triangular | 単位下三角 | 新規。LU 分解の `L` |
+| permutation (matrix) | 置換行列 | 新規。LU 分解の `P` |
+| orthogonal factor | 直交因子 | 新規。Schur 分解の `Q` |
+| pivoted (decomposition) | ピボット付き | 新規。`pivot: true` の分解 |
+| diagonal pivoting | 対角ピボット | 新規 |
+| Householder vector | Householder ベクトル | 新規。Householder は人名のため英字 |
+| Hessenberg reduction | Hessenberg 化 | 新規。Hessenberg は人名のため英字 |
+| tridiagonalization | 三重対角化 | `docs/ja` で使用 |
+| implicit QL method | 陰的 QL 法 | 新規 |
+| Francis double-shift QR method | Francis の二重シフト QR 法 | 新規。人名は英字 (規則 11) |
+| balancing (of a matrix) | 平衡化 | `docs/ja` で使用。LAPACK の `dgebal` |
+| Padé approximant | Padé 近似 | 新規。人名は英字 |
+| Taylor polynomial | Taylor 多項式 | 新規。人名は英字 |
+| recycling (R's) | リサイクル | 新規。R の要素の再利用規則。`docs/ja/api` で使用 |
+| singular value | 特異値 | `docs/ja` で使用 |
+| condition number | 条件数 | 新規 |
+| reciprocal condition number | 逆数の条件数 | 新規。`rcond` |
+| one-norm (1-norm) | 1-ノルム | 新規 |
+| infinity norm | 無限大ノルム | 新規 |
+| spectral norm | スペクトルノルム | 新規。最大の特異値 |
+| Frobenius norm | Frobenius ノルム | 新規。Frobenius は人名は英字 |
+| modulus (of a complex number or determinant) | 絶対値 | 新規。`modulus` (行列式) |
+| scores (of principal components) | 得点 | 新規。`prcomp` の `x` |
+| identity matrix | 単位行列 | 新規 |
+| cross-product (matrix) | クロス積 | 新規。`crossprod` |
+| compact form (of a decomposition) | コンパクトな形式 | 新規。R の `qr` の表現 |
+| 0-based (index) | 0 始まり | 新規。`1-based` の対 |

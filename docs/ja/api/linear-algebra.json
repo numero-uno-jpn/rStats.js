@@ -2,817 +2,817 @@
   "BacksolveOptions#summary": {
     "hash": "28d45503f06d",
     "en": "Options for {@link backsolve} and {@link forwardsolve}.",
-    "ja": ""
+    "ja": "{@link backsolve} と {@link forwardsolve} のオプションです。"
   },
   "BacksolveOptions.k#summary": {
     "hash": "96cab7190c6c",
     "en": "Number of rows and columns of the triangular matrix to use (its top-left `k` x `k` block). Default: the number of columns of the matrix.",
-    "ja": ""
+    "ja": "使う三角行列の行数と列数です (左上の `k` x `k` のブロック)。既定: 行列の列数です。"
   },
   "BacksolveOptions.transpose#summary": {
     "hash": "40083c5670b9",
     "en": "Solve `t(r) y = x` instead of `r y = x`. Default: `false`.",
-    "ja": ""
+    "ja": "`r y = x` の代わりに `t(r) y = x` を解きます。既定: `false` です。"
   },
   "BacksolveOptions.upperTri#summary": {
     "hash": "23908a51a285",
     "en": "Use the upper triangle of the matrix. Default: `true` for `backsolve`, `false` for `forwardsolve`. R's `upper.tri`.",
-    "ja": ""
+    "ja": "行列の上三角を使います。既定: `backsolve` では `true`、`forwardsolve` では `false` です。R の `upper.tri` です。"
   },
   "Chol2InvOptions#summary": {
     "hash": "21faeaec31ae",
     "en": "Options for {@link chol2inv}.",
-    "ja": ""
+    "ja": "{@link chol2inv} のオプションです。"
   },
   "Chol2InvOptions.size#summary": {
     "hash": "7cb584ce4600",
     "en": "Number of rows and columns of `x` to use (its top-left `size` x `size` upper triangle). Default: the number of columns of `x`.",
-    "ja": ""
+    "ja": "使う `x` の行数と列数です (左上の `size` x `size` の上三角)。既定: `x` の列数です。"
   },
   "CholOptions#summary": {
     "hash": "e4c567d2b1b4",
     "en": "Options for {@link chol}.",
-    "ja": ""
+    "ja": "{@link chol} のオプションです。"
   },
   "CholOptions.pivot#summary": {
     "hash": "b56e27a09669",
     "en": "Use diagonal pivoting (largest remaining diagonal first), which also works for positive semi-definite matrices. Default: `false`.",
-    "ja": ""
+    "ja": "対角ピボットを使います (残りの対角要素のうち最大のものを先に選びます)。これは半正定値行列でも使えます。既定: `false` です。"
   },
   "CholOptions.tol#summary": {
     "hash": "043038584c91",
     "en": "Stopping tolerance for the pivoted decomposition. A negative value means `n * eps * max(diag(x))`. Default: `-1`. Used only with `pivot: true`.",
-    "ja": ""
+    "ja": "ピボット付き分解の停止判定の許容誤差です。負の値は `n * eps * max(diag(x))` を意味します。既定: `-1` です。`pivot: true` の場合にのみ使われます。"
   },
   "CholPivotResult#summary": {
     "hash": "7fe2d4fb4473",
     "en": "Result of {@link chol} with `pivot: true`.",
-    "ja": ""
+    "ja": "`pivot: true` のときの {@link chol} の結果です。"
   },
   "CholPivotResult.pivot#summary": {
     "hash": "c237d07583c1",
     "en": "The column permutation, 0-based (R's `attr(, \"pivot\")` minus 1).",
-    "ja": ""
+    "ja": "0 始まりの列の置換です (R の `attr(, \"pivot\")` から 1 を引いたものです)。"
   },
   "CholPivotResult.r#summary": {
     "hash": "6fbda63df502",
     "en": "The upper triangular factor `R`, such that `x[pivot, pivot] = t(R) R` for positive semi-definite `x`. Rows from `rank` on are 0.",
-    "ja": ""
+    "ja": "上三角の因子 `R` です。半正定値の `x` に対して、`x[pivot, pivot] = t(R) R` が成り立ちます。`rank` 以降の行はすべて 0 です。"
   },
   "CholPivotResult.rank#summary": {
     "hash": "b3b1d18bd9a2",
     "en": "The number of columns factored before the decomposition stopped (R's `attr(, \"rank\")`).",
-    "ja": ""
+    "ja": "分解が止まるまでに分解された列の数です (R の `attr(, \"rank\")` です)。"
   },
   "Determinant#summary": {
     "hash": "ba73abf86fa8",
     "en": "Result of {@link determinant}: the determinant equals `sign * modulus` (or `sign * exp(modulus)` when `logarithm` is `true`).",
-    "ja": ""
+    "ja": "{@link determinant} の結果です。行列式は `sign * modulus` に等しくなります (`logarithm` が `true` の場合は `sign * exp(modulus)` です)。"
   },
   "Determinant.logarithm#summary": {
     "hash": "77515f71e5b8",
     "en": "Whether `modulus` is on the log scale.",
-    "ja": ""
+    "ja": "`modulus` が対数スケールかどうかです。"
   },
   "Determinant.modulus#summary": {
     "hash": "fa081c6dfbd1",
     "en": "The absolute value of the determinant, or its natural logarithm when `logarithm` is `true`. `-Infinity` (or 0) for an exactly singular matrix.",
-    "ja": ""
+    "ja": "行列式の絶対値です。`logarithm` が `true` の場合は、その自然対数です。正確に特異な行列では `-Infinity` (または 0) です。"
   },
   "Determinant.sign#summary": {
     "hash": "3258950f1495",
     "en": "The sign of the determinant (`1` or `-1`).",
-    "ja": ""
+    "ja": "行列式の符号です (`1` または `-1` です)。"
   },
   "DiagOptions#summary": {
     "hash": "cdd604cd4d10",
     "en": "Options for {@link diag}.",
-    "ja": ""
+    "ja": "{@link diag} のオプションです。"
   },
   "DiagOptions.ncol#summary": {
     "hash": "c747789ede05",
     "en": "Number of columns of the matrix built from a vector or a number (R's `ncol`). Default: `nrow`.",
-    "ja": ""
+    "ja": "ベクトルまたは数から作る行列の列数です (R の `ncol` です)。既定: `nrow` です。"
   },
   "DiagOptions.nrow#summary": {
     "hash": "ca96d9ba025b",
     "en": "Number of rows of the matrix built from a vector or a number (R's `nrow`). Default: the length of the vector.",
-    "ja": ""
+    "ja": "ベクトルまたは数から作る行列の行数です (R の `nrow` です)。既定: ベクトルの長さです。"
   },
   "EigenOptions#summary": {
     "hash": "e711fc83f1fa",
     "en": "Options for {@link eigen}.",
-    "ja": ""
+    "ja": "{@link eigen} のオプションです。"
   },
   "EigenOptions.onlyValues#summary": {
     "hash": "9c419e450551",
     "en": "Compute only the eigenvalues. Default: `false`. R's `only.values`.",
-    "ja": ""
+    "ja": "固有値だけを計算します。既定: `false` です。R の `only.values` です。"
   },
   "EigenOptions.symmetric#summary": {
     "hash": "22a1a7c553b6",
     "en": "Treat the matrix as symmetric (only its lower triangle is then used). Default: detected automatically,\nlike R's `isSymmetric()` (relative difference between the matrix and its transpose at most `100 * eps`).",
-    "ja": ""
+    "ja": "行列を対称として扱います (その場合は下三角だけを使います)。既定: 自動的に判定されます。\nR の `isSymmetric()` と同じです (行列とその転置の相対差が最大でも `100 * eps` です)。"
   },
   "EigenResult#summary": {
     "hash": "bba932310780",
     "en": "Result of {@link eigen}.",
-    "ja": ""
+    "ja": "{@link eigen} の結果です。"
   },
   "EigenResult.values#summary": {
     "hash": "546b16f503c4",
     "en": "The eigenvalues (their real parts if complex). Sorted in decreasing order for a symmetric matrix, and by\ndecreasing modulus otherwise (within a complex conjugate pair, the one with positive imaginary part comes first).",
-    "ja": ""
+    "ja": "固有値です (複素数の場合は実部です)。対称行列では降順に、そうでない場合は\n絶対値の降順に並びます (複素共役の組の中では、虚部が正のものが先に来ます)。"
   },
   "EigenResult.valuesIm#summary": {
     "hash": "15d45c782a1d",
     "en": "The imaginary parts of the eigenvalues. Present only for a non-symmetric matrix with complex eigenvalues.",
-    "ja": ""
+    "ja": "固有値の虚部です。非対称行列で複素数の固有値がある場合にだけ存在します。"
   },
   "EigenResult.vectors#summary": {
     "hash": "2d7e78ea8600",
     "en": "The eigenvectors as columns (array of rows; real parts if complex), each of unit length. Omitted with `onlyValues: true`.",
-    "ja": ""
+    "ja": "固有ベクトルを列として並べたものです (行の配列です。複素数の場合は実部です)。それぞれ長さ 1 です。`onlyValues: true` の場合は省略されます。"
   },
   "EigenResult.vectorsIm#summary": {
     "hash": "210224338b6a",
     "en": "The imaginary parts of the eigenvectors. Present only when `valuesIm` is present (and vectors were computed).",
-    "ja": ""
+    "ja": "固有ベクトルの虚部です。`valuesIm` が存在する場合 (かつベクトルが計算された場合) にだけ存在します。"
   },
   "ExpmMethod#summary": {
     "hash": "9a7919d73069",
     "en": "Methods of {@link expm}.",
-    "ja": ""
+    "ja": "{@link expm} の方法です。"
   },
   "ExpmOptions#summary": {
     "hash": "9642a3aaccc6",
     "en": "Options for {@link expm}.",
-    "ja": ""
+    "ja": "{@link expm} のオプションです。"
   },
   "ExpmOptions.method#summary": {
     "hash": "e6d6b863bee8",
     "en": "`\"Higham08.b\"` (default): Higham's scaling and squaring with Padé approximants after balancing (LAPACK's\n`dgebal`, permutation then scaling). `\"Higham08\"`: the same without balancing. `\"Pade\"` and `\"Taylor\"` (and\n`\"PadeO\"`, `\"TaylorO\"`, which compute the same): scaling and squaring with a diagonal Padé approximant or a\nTaylor polynomial of degree `order` (Shapira and Firth's code in the expm package).",
-    "ja": ""
+    "ja": "`\"Higham08.b\"` (既定): 平衡化 (LAPACK の\n`dgebal`、置換の後に尺度化) の後に、Padé 近似を使う Higham の尺度化と二乗法を行います。\n`\"Higham08\"`: 平衡化をしない以外は同じです。`\"Pade\"` と `\"Taylor\"` (および `\"PadeO\"`、`\"TaylorO\"`。これらは同じ計算をします): 対角の Padé 近似、または次数 `order` の Taylor 多項式による尺度化と二乗法です\n(expm パッケージの Shapira と Firth のコードです)。"
   },
   "ExpmOptions.order#summary": {
     "hash": "ad4cd19adf4c",
     "en": "Degree of the Padé approximant or the Taylor polynomial (a positive integer up to 2147483647, R's integer range,\nand with order * (n^3 + 64) at most 2^31 for an n x n matrix, a bound on the time), used only by `\"Pade\"`,\n`\"Taylor\"`, `\"PadeO\"` and `\"TaylorO\"`. Default: 8.",
-    "ja": ""
+    "ja": "Padé 近似または Taylor 多項式の次数です (2147483647 以下の正の整数で、R の整数の範囲です。\nn x n の行列では order * (n^3 + 64) が 2^31 以下でなければなりません。これは時間の上限です)。\n`\"Pade\"`、`\"Taylor\"`、`\"PadeO\"`、`\"TaylorO\"` でのみ使われます。既定: 8 です。"
   },
   "KappaOptions#summary": {
     "hash": "f116f33e0658",
     "en": "Options for {@link kappa}.",
-    "ja": ""
+    "ja": "{@link kappa} のオプションです。"
   },
   "KappaOptions.exact#summary": {
     "hash": "00ca6de484ef",
     "en": "Compute the condition number exactly instead of estimating it. Default: `false`.",
-    "ja": ""
+    "ja": "条件数を推定せず、正確に計算します。既定: `false` です。"
   },
   "KappaOptions.method#summary": {
     "hash": "ffe00e2ce3ad",
     "en": "Estimation method when `exact` is `false`: `\"qr\"` applies LINPACK's `dtrco` estimate to the `R` factor of\nthe QR decomposition (of the transpose if `z` is wide); `\"direct\"` uses `1 / rcond(z)`. Default: `\"qr\"`.",
-    "ja": ""
+    "ja": "`exact` が `false` の場合の推定方法です。`\"qr\"` は、QR 分解の\n`R` 因子 (`z` が横長の場合は転置したもの) に LINPACK の `dtrco` の推定を適用します。`\"direct\"` は `1 / rcond(z)` を使います。既定: `\"qr\"` です。"
   },
   "KappaOptions.norm#summary": {
     "hash": "16f40a94a2c9",
     "en": "The norm. Default: `\"2\"` when `exact` is `true`, otherwise `\"1\"`. With `exact: true`, `\"2\"` uses the singular\nvalues and other norms use `norm(z) * norm(solve(z))`. With `exact: false`, as in R: the estimates through a\ntriangular factor (`method: \"qr\"`, or `\"direct\"` with `triangular: true`) use the infinity norm only for `\"I\"`\nwritten exactly so and the 1-norm for any other norm (R warns for norms other than `\"1\"`, `\"O\"` and `\"I\"`, and\nfor `\"2\"`); `method: \"direct\"` without `triangular` accepts `\"1\"`, `\"O\"` and `\"I\"` in either case and throws for\nany other.",
-    "ja": ""
+    "ja": "ノルムです。既定: `exact` が `true` の場合は `\"2\"`、\nそれ以外は `\"1\"` です。`exact: true` の場合、`\"2\"` は特異値を使い、ほかのノルムは `norm(z) * norm(solve(z))` を使います。\n`exact: false` の場合は、R と同じく次のとおりです。三角因子を通す推定 (`method: \"qr\"`、または `triangular: true` の `\"direct\"`) では、\n`\"I\"` と正確にそう書かれた場合だけ無限大ノルムを使い、それ以外のノルムはすべて 1-ノルムを使います\n(R は `\"1\"`、`\"O\"`、`\"I\"` 以外のノルムと `\"2\"` で警告します)。`method: \"direct\"` で `triangular` がない場合は、大文字と小文字のどちらでも `\"1\"`、`\"O\"`、`\"I\"` を受け付け、\nそれ以外は例外を投げます。"
   },
   "KappaOptions.triangular#summary": {
     "hash": "11ef438d5524",
     "en": "Treat `z` as triangular and use only its triangle given by `uplo`. Default: `false`. Has an effect only with `method: \"direct\"` (as in R).",
-    "ja": ""
+    "ja": "`z` を三角行列として扱い、`uplo` で指定された三角部分だけを使います。既定: `false` です。`method: \"direct\"` の場合にだけ効果があります (R と同じです)。"
   },
   "KappaOptions.uplo#summary": {
     "hash": "82ce307b128b",
     "en": "With `triangular: true`, use the upper (`\"U\"`) or lower (`\"L\"`) triangle. Default: `\"U\"`.",
-    "ja": ""
+    "ja": "`triangular: true` の場合に、上三角 (`\"U\"`) または下三角 (`\"L\"`) を使います。既定: `\"U\"` です。"
   },
   "LuResult#summary": {
     "hash": "484550b61222",
     "en": "Result of {@link lu}: `x = P L U`.",
-    "ja": ""
+    "ja": "{@link lu} の結果です: `x = P L U` です。"
   },
   "LuResult.L#summary": {
     "hash": "8407dc46735f",
     "en": "Unit lower triangular (m x min(m, n)).",
-    "ja": ""
+    "ja": "単位下三角行列です (m x min(m, n))。"
   },
   "LuResult.P#summary": {
     "hash": "a377e922c0ff",
     "en": "Permutation matrix (m x m).",
-    "ja": ""
+    "ja": "置換行列です (m x m)。"
   },
   "LuResult.U#summary": {
     "hash": "b6ee77f7e58e",
     "en": "Upper triangular (min(m, n) x n).",
-    "ja": ""
+    "ja": "上三角行列です (min(m, n) x n)。"
   },
   "MatrixInput#summary": {
     "hash": "7e64d1e8d551",
     "en": "A matrix given as an array of rows. Each row may be a plain array or a `Float64Array`;\nall rows must have the same length. A matrix with zero rows is treated as 0 x 0.",
-    "ja": ""
+    "ja": "行の配列として与えられた行列です。各行は普通の配列または `Float64Array` のどちらでもかまいません。\nすべての行は同じ長さでなければなりません。行が 0 個の行列は 0 x 0 として扱われます。"
   },
   "MatrixOptions#summary": {
     "hash": "723421c348ec",
     "en": "Options for {@link matrix}.",
-    "ja": ""
+    "ja": "{@link matrix} のオプションです。"
   },
   "MatrixOptions.byrow#summary": {
     "hash": "a2a6d5fbd304",
     "en": "Fill by rows instead of by columns (R's default). Default `false`.",
-    "ja": ""
+    "ja": "列ごとではなく行ごとに要素を入れます (R の既定と同じです)。既定は `false` です。"
   },
   "MatrixOptions.ncol#summary": {
     "hash": "de774eedd04b",
     "en": "Number of columns (R's `ncol`). Default: the length of the data divided by `nrow` (rounded up), or 1 when `nrow`\nis not given either.",
-    "ja": ""
+    "ja": "列数です (R の `ncol` です)。既定: データの長さを `nrow` で割った値 (切り上げ) です。\n`nrow` も指定されていない場合は 1 です。"
   },
   "MatrixOptions.nrow#summary": {
     "hash": "df9462c9af91",
     "en": "Number of rows (R's `nrow`). Default: the length of the data divided by `ncol` (rounded up), or the length of\nthe data when `ncol` is not given either.",
-    "ja": ""
+    "ja": "行数です (R の `nrow` です)。既定: データの長さを `ncol` で割った値 (切り上げ) です。\n`ncol` も指定されていない場合は、データの長さです。"
   },
   "NormOptions#summary": {
     "hash": "b24806fe26d4",
     "en": "Options for {@link norm}.",
-    "ja": ""
+    "ja": "{@link norm} のオプションです。"
   },
   "NormOptions.type#summary": {
     "hash": "4bf5f7eb5235",
     "en": "Which norm to compute (a single character, case-insensitive). Default: `\"O\"`.\n- `\"O\"` or `\"1\"`: one norm, the maximum absolute column sum\n- `\"I\"`: infinity norm, the maximum absolute row sum\n- `\"F\"` or `\"E\"`: Frobenius norm\n- `\"M\"`: the maximum absolute value of the elements\n- `\"2\"`: spectral norm, the largest singular value",
-    "ja": ""
+    "ja": "計算するノルムです (1 文字で、大文字と小文字は区別しません)。既定: `\"O\"` です。\n- `\"O\"` または `\"1\"`: 1-ノルム (絶対値の列和の最大値)\n- `\"I\"`: 無限大ノルム (絶対値の行和の最大値)\n- `\"F\"` または `\"E\"`: Frobenius ノルム\n- `\"M\"`: 要素の絶対値の最大値\n- `\"2\"`: スペクトルノルム (最大の特異値)"
   },
   "NormType#summary": {
     "hash": "c525ec518b9e",
     "en": "Matrix norm type for {@link norm}: `\"O\"`/`\"1\"` (one norm), `\"I\"` (infinity norm), `\"F\"`/`\"E\"` (Frobenius),\n`\"M\"` (maximum modulus) or `\"2\"` (spectral norm). Case-insensitive, as in R.",
-    "ja": ""
+    "ja": "{@link norm} の行列ノルムの種類です: `\"O\"`/`\"1\"` (1-ノルム)、`\"I\"` (無限大ノルム)、`\"F\"`/`\"E\"` (Frobenius ノルム)、\n`\"M\"` (絶対値の最大値) または `\"2\"` (スペクトルノルム)。大文字と小文字は区別せず、R と同じです。"
   },
   "Operand#summary": {
     "hash": "6e8a38f74667",
     "en": "A vector (plain array) or a matrix (array of rows).",
-    "ja": ""
+    "ja": "ベクトル (普通の配列) または行列 (行の配列) です。"
   },
   "OuterFun#summary": {
     "hash": "0fd823bbca13",
     "en": "The operation of {@link outer}: `\"*\"`, `\"+\"`, `\"-\"`, `\"/\"`, `\"^\"` or a function of two numbers.",
-    "ja": ""
+    "ja": "{@link outer} の演算です: `\"*\"`、`\"+\"`、`\"-\"`、`\"/\"`、`\"^\"`、または 2 つの数の関数です。"
   },
   "OuterOptions#summary": {
     "hash": "756e2bb2252c",
     "en": "Options for {@link outer}.",
-    "ja": ""
+    "ja": "{@link outer} のオプションです。"
   },
   "OuterOptions.fun#summary": {
     "hash": "bee43b78685b",
     "en": "The operation. Default `\"*\"`.",
-    "ja": ""
+    "ja": "演算です。既定は `\"*\"` です。"
   },
   "PrcompOptions#summary": {
     "hash": "dbe51d810c74",
     "en": "Options for {@link prcomp}.",
-    "ja": ""
+    "ja": "{@link prcomp} のオプションです。"
   },
   "PrcompOptions.center#summary": {
     "hash": "255949d36711",
     "en": "Centre the columns (default `true`), or subtract the given values.",
-    "ja": ""
+    "ja": "列を中心化します (既定は `true` です)。または、与えられた値を引きます。"
   },
   "PrcompOptions.rank#summary": {
     "hash": "fbe57055968a",
     "en": "The number k of components to keep in `rotation` and `x` (R's `rank.`): `min(trunc(rank), nrow, ncol)`. It must\nbe finite with a positive integer part. Default: all `min(nrow, ncol)`. `sdev` always has all of them, as in R.",
-    "ja": ""
+    "ja": "`rotation` と `x` に残す主成分の数 k です (R の `rank.` です): `min(trunc(rank), nrow, ncol)`。\n有限で、整数部分が正である必要があります。既定: すべての `min(nrow, ncol)` です。`sdev` は R と同じく、常にすべてを持ちます。"
   },
   "PrcompOptions.scale#summary": {
     "hash": "4917356de123",
     "en": "Scale the columns to unit variance (default `false`), or divide by the given values.",
-    "ja": ""
+    "ja": "列を分散が 1 になるようにスケーリングします (既定は `false` です)。または、与えられた値で割ります。"
   },
   "PrcompOptions.tol#summary": {
     "hash": "8c9f87e290f8",
     "en": "Drop the components whose standard deviation is at most `tol` times that of the first: `rotation` and `x` keep\nthe components with `sdev > sdev[0] * tol` if they are fewer than k. Default: none are dropped.",
-    "ja": ""
+    "ja": "最初の主成分の標準偏差の `tol` 倍以下の標準偏差を持つ主成分を除きます: `rotation` と `x` は、\n`sdev > sdev[0] * tol` を満たす主成分の数と k のうち小さいほうの数だけ残します。既定: 除く主成分はありません。"
   },
   "PrcompResult#summary": {
     "hash": "4897daa8aeac",
     "en": "Result of {@link prcomp}.",
-    "ja": ""
+    "ja": "{@link prcomp} の結果です。"
   },
   "PrcompResult.center#summary": {
     "hash": "91e6f006c970",
     "en": "The centring used, when any.",
-    "ja": ""
+    "ja": "使った中心化です (ある場合です)。"
   },
   "PrcompResult.rotation#summary": {
     "hash": "83d63ef60b57",
     "en": "Loadings: the eigenvectors as columns (variables x components kept).",
-    "ja": ""
+    "ja": "負荷量です: 固有ベクトルを列として並べたもの (変数 x 残した主成分) です。"
   },
   "PrcompResult.scale#summary": {
     "hash": "311a5ba18b32",
     "en": "The scaling used, when any.",
-    "ja": ""
+    "ja": "使ったスケーリングです (ある場合です)。"
   },
   "PrcompResult.sdev#summary": {
     "hash": "a1e104e937e4",
     "en": "Standard deviations of the principal components.",
-    "ja": ""
+    "ja": "主成分の標準偏差です。"
   },
   "PrcompResult.x#summary": {
     "hash": "6c2113325ea8",
     "en": "Scores: the data in the coordinates of the components (observations x components kept).",
-    "ja": ""
+    "ja": "得点です: 主成分の座標でのデータ (観測 x 残した主成分) です。"
   },
   "QR#summary": {
     "hash": "a0724206d77a",
     "en": "A QR decomposition returned by {@link qr}, in R's compact form. Pass it to {@link qrQ}, {@link qrR},\n{@link qrCoef} and the other `qr*` functions.",
-    "ja": ""
+    "ja": "{@link qr} が返す QR 分解です (R のコンパクトな形式です)。これを {@link qrQ}、{@link qrR}、\n{@link qrCoef}、そのほかの `qr*` 関数に渡して使います。"
   },
   "QR.pivot#summary": {
     "hash": "5863782faef3",
     "en": "The column permutation, 0-based (R's `pivot` minus 1).",
-    "ja": ""
+    "ja": "列の置換です。0 始まりです (R の `pivot` から 1 を引いたものです)。"
   },
   "QR.qr#summary": {
     "hash": "1e0c20f74613",
     "en": "Compact form: the upper triangle holds `R`; the part below the diagonal holds the Householder vectors that represent `Q`.",
-    "ja": ""
+    "ja": "コンパクトな形式です: 上三角に `R` があり、対角より下の部分には `Q` を表す Householder ベクトルがあります。"
   },
   "QR.qraux#summary": {
     "hash": "f15182160803",
     "en": "Auxiliary information about `Q`: the leading elements of the Householder vectors for the LINPACK method (`ncol`\nelements), `tau` for the LAPACK method (one per reflection, `min(nrow, ncol)` elements).",
-    "ja": ""
+    "ja": "`Q` に関する補助情報です: LINPACK の方法では Householder ベクトルの先頭の要素 (`ncol`\n個) を、LAPACK の方法では `tau` (反射ごとに 1 つ、`min(nrow, ncol)` 個) を持ちます。"
   },
   "QR.rank#summary": {
     "hash": "cdd189eed155",
     "en": "The computed rank of the matrix. Always `min(nrow, ncol)` for `lapack: true`.",
-    "ja": ""
+    "ja": "行列の計算されたランクです。`lapack: true` の場合は常に `min(nrow, ncol)` です。"
   },
   "QR.useLapack#summary": {
     "hash": "a98c1f33e304",
     "en": "Whether the decomposition was computed with `lapack: true` (R's `attr(, \"useLAPACK\")`).",
-    "ja": ""
+    "ja": "分解が `lapack: true` で計算されたかどうかです (R の `attr(, \"useLAPACK\")` です)。"
   },
   "QROptions#summary": {
     "hash": "e6ac167008c2",
     "en": "Options for {@link qr}.",
-    "ja": ""
+    "ja": "{@link qr} のオプションです。"
   },
   "QROptions.lapack#summary": {
     "hash": "29b4d6481ba7",
     "en": "Use LAPACK-style full column pivoting (R's `LAPACK = TRUE`). The rank is then always `min(nrow, ncol)`\nand is not detected. Default: `false` (R's LINPACK-style limited pivoting with `tol`).",
-    "ja": ""
+    "ja": "LAPACK 形式の完全な列ピボットを使います (R の `LAPACK = TRUE` です)。この場合、ランクは常に `min(nrow, ncol)` になり、\n検出されません。既定: `false` です (R の LINPACK 形式の制限付きピボットと `tol` を使います)。"
   },
   "QROptions.tol#summary": {
     "hash": "258ad3f197f5",
     "en": "Tolerance for detecting linear dependence: a column whose remaining norm falls below `tol` times its\noriginal norm is moved to the right end and reduces the rank. Default: `1e-7`. Used only when `lapack` is `false`.",
-    "ja": ""
+    "ja": "線形従属を検出するための許容誤差です。残りのノルムが元のノルムの `tol` 倍を下回る列は、\n右端へ移され、ランクが減ります。既定: `1e-7` です。`lapack` が `false` の場合にだけ使われます。"
   },
   "QRQOptions#summary": {
     "hash": "1f17063cdd18",
     "en": "Options for {@link qrQ}.",
-    "ja": ""
+    "ja": "{@link qrQ} のオプションです。"
   },
   "QRQOptions.complete#summary": {
     "hash": "0ed50ab52f7a",
     "en": "Return the full `n` x `n` matrix `Q`. Default: `false`, which returns the first `min(n, p)` columns (`n` x `min(n, p)`).",
-    "ja": ""
+    "ja": "完全な `n` x `n` の行列 `Q` を返します。既定: `false` です。その場合は、最初の `min(n, p)` 列 (`n` x `min(n, p)`) を返します。"
   },
   "QRQOptions.dvec#summary": {
     "hash": "8841325ae6d6",
     "en": "Diagonal of a diagonal matrix that `Q` is multiplied by on the right. Its length must equal the number of returned columns. Default: all ones.",
-    "ja": ""
+    "ja": "`Q` の右から掛ける対角行列の対角要素です。その長さは、返される列数と等しくなければなりません。既定: すべて 1 です。"
   },
   "RcondOptions#summary": {
     "hash": "e8dda0e1d1c4",
     "en": "Options for {@link rcond}.",
-    "ja": ""
+    "ja": "{@link rcond} のオプションです。"
   },
   "RcondOptions.norm#summary": {
     "hash": "8f628a2dc474",
     "en": "The norm: `\"O\"` or `\"1\"` (one norm) or `\"I\"` (infinity norm). Default: `\"O\"`.",
-    "ja": ""
+    "ja": "ノルムです: `\"O\"` または `\"1\"` (1-ノルム)、または `\"I\"` (無限大ノルム) です。既定: `\"O\"` です。"
   },
   "RcondOptions.triangular#summary": {
     "hash": "945a8a090846",
     "en": "Treat `x` as triangular and use only its triangle given by `uplo`. Default: `false`.",
-    "ja": ""
+    "ja": "`x` を三角行列として扱い、`uplo` で指定された三角部分だけを使います。既定: `false` です。"
   },
   "RcondOptions.uplo#summary": {
     "hash": "c4af35b8667b",
     "en": "With `triangular: true`, use the upper (`\"U\"`) or lower (`\"L\"`) triangle; any other value is an error for a\nsquare matrix (a non-square matrix uses R of its QR decomposition, as in R). Default: `\"U\"`.",
-    "ja": ""
+    "ja": "`triangular: true` の場合に、上三角 (`\"U\"`) または下三角 (`\"L\"`) を使います。正方行列では、\nほかの値はエラーです (正方でない行列は、QR 分解の R 因子を使います。R と同じです)。既定: `\"U\"` です。"
   },
   "SchurResult#summary": {
     "hash": "3bb3e3249900",
     "en": "Result of {@link schur}: `x = Q T Q'`.",
-    "ja": ""
+    "ja": "{@link schur} の結果です: `x = Q T Q'` です。"
   },
   "SchurResult.Q#summary": {
     "hash": "3b59de2296f4",
     "en": "The orthogonal factor (array of rows).",
-    "ja": ""
+    "ja": "直交因子です (行の配列です)。"
   },
   "SchurResult.T#summary": {
     "hash": "e487d887862f",
     "en": "The upper quasi-triangular factor (array of rows).",
-    "ja": ""
+    "ja": "上準三角因子です (行の配列です)。"
   },
   "SchurResult.valuesIm#summary": {
     "hash": "b0aa1012b8af",
     "en": "Imaginary parts of the eigenvalues (0 for real ones; a complex pair has the positive one first).",
-    "ja": ""
+    "ja": "固有値の虚部です (実数の固有値では 0 です。複素共役の組では、虚部が正のものが先に来ます)。"
   },
   "SchurResult.valuesRe#summary": {
     "hash": "8fe686c434bc",
     "en": "Real parts of the eigenvalues, in the order of T's diagonal blocks.",
-    "ja": ""
+    "ja": "固有値の実部です。T の対角ブロックの順に並びます。"
   },
   "SeqOptions#summary": {
     "hash": "66db334c59f9",
     "en": "Options for {@link seq}.",
-    "ja": ""
+    "ja": "{@link seq} のオプションです。"
   },
   "SeqOptions.by#summary": {
     "hash": "854fd51d4ef2",
     "en": "Increment.",
-    "ja": ""
+    "ja": "増分です。"
   },
   "SeqOptions.lengthOut#summary": {
     "hash": "61e453ca0174",
     "en": "Desired length.",
-    "ja": ""
+    "ja": "希望する長さです。"
   },
   "SolveOptions#summary": {
     "hash": "0a14bee7eab6",
     "en": "Options for {@link solve}.",
-    "ja": ""
+    "ja": "{@link solve} のオプションです。"
   },
   "SolveOptions.tol#summary": {
     "hash": "ab0b80671601",
     "en": "Tolerance for detecting singularity: throws if the estimated reciprocal condition number (one norm) is\nsmaller than this. A value of 0 or less disables the check. Default: `Number.EPSILON`.",
-    "ja": ""
+    "ja": "特異性を検出するための許容誤差です。推定された逆数の条件数 (1-ノルム) が\nこれより小さい場合は例外を投げます。0 以下の値では検査しません。既定: `Number.EPSILON` です。"
   },
   "SvdOptions#summary": {
     "hash": "30f7878db543",
     "en": "Options for {@link svd}.",
-    "ja": ""
+    "ja": "{@link svd} のオプションです。"
   },
   "SvdOptions.nu#summary": {
     "hash": "a12a2de49265",
     "en": "Number of left singular vectors to compute. Default: `min(nrow, ncol)`. A fraction is truncated toward zero, and values above the number of rows (`Infinity` included) are reduced to it. Negative values and `NaN` are errors.",
-    "ja": ""
+    "ja": "計算する左特異ベクトルの数です。既定: `min(nrow, ncol)` です。小数は 0 の方向へ切り捨てられ、行数を超える値 (`Infinity` を含みます) は行数に減らされます。負の値と `NaN` はエラーです。"
   },
   "SvdOptions.nv#summary": {
     "hash": "75a767c5200c",
     "en": "Number of right singular vectors to compute. Default: `min(nrow, ncol)`. A fraction is truncated toward zero, and values above the number of columns (`Infinity` included) are reduced to it. Negative values and `NaN` are errors.",
-    "ja": ""
+    "ja": "計算する右特異ベクトルの数です。既定: `min(nrow, ncol)` です。小数は 0 の方向へ切り捨てられ、列数を超える値 (`Infinity` を含みます) は列数に減らされます。負の値と `NaN` はエラーです。"
   },
   "SvdResult#summary": {
     "hash": "72a636e0d58e",
     "en": "Result of {@link svd}: `x = u %*% diag(d) %*% t(v)`.",
-    "ja": ""
+    "ja": "{@link svd} の結果です: `x = u %*% diag(d) %*% t(v)` です。"
   },
   "SvdResult.d#summary": {
     "hash": "a7ff24b82157",
     "en": "The singular values, in decreasing order.",
-    "ja": ""
+    "ja": "特異値です。降順です。"
   },
   "SvdResult.u#summary": {
     "hash": "22f0280c1c31",
     "en": "The left singular vectors as columns (`nrow` x `nu`, array of rows). Omitted when `nu` is 0.",
-    "ja": ""
+    "ja": "左特異ベクトルを列として並べたものです (`nrow` x `nu`、行の配列です)。`nu` が 0 の場合は省略されます。"
   },
   "SvdResult.v#summary": {
     "hash": "a0a9400809bc",
     "en": "The right singular vectors as columns (`ncol` x `nv`, array of rows). Omitted when `nv` is 0.",
-    "ja": ""
+    "ja": "右特異ベクトルを列として並べたものです (`ncol` x `nv`、行の配列です)。`nv` が 0 の場合は省略されます。"
   },
   "VectorOrMatrix#summary": {
     "hash": "3d35dc7ed54e",
     "en": "A vector or a matrix (array of rows). Used for arguments that accept either, such as the\nright-hand side of `backsolve`; a vector is treated as a one-column matrix, as in R.",
-    "ja": ""
+    "ja": "ベクトルまたは行列 (行の配列) です。どちらも受け付ける引数に使われ、例として `backsolve` の右辺があります。\nベクトルは、R と同じく 1 列の行列として扱われます。"
   },
   "add#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "add#summary": {
     "hash": "2e939962680c",
     "en": "Element-wise sum with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to\nR's `+`.",
-    "ja": ""
+    "ja": "R のリサイクルによる要素ごとの和です (短いベクトルは行列の列の方向にリサイクルされます)。\nR の `+` と同等です。"
   },
   "backsolve(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "backsolve(0)#@param options": {
     "hash": "f2c8331eb057",
     "en": "See {@link BacksolveOptions}.",
-    "ja": ""
+    "ja": "{@link BacksolveOptions} を参照してください。"
   },
   "backsolve(0)#@param r": {
     "hash": "243d684bc2c0",
     "en": "A triangular matrix (array of rows).",
-    "ja": ""
+    "ja": "三角行列です (行の配列です)。"
   },
   "backsolve(0)#@param x": {
     "hash": "e81abecdbbe2",
     "en": "The right-hand side vector.",
-    "ja": ""
+    "ja": "右辺のベクトルです。"
   },
   "backsolve(0)#@returns": {
     "hash": "4e20bac060f1",
     "en": "The solution `y`, a vector of length `k`.",
-    "ja": ""
+    "ja": "解 `y` です。長さ `k` のベクトルです。"
   },
   "backsolve(0)#summary": {
     "hash": "1b31aaa23beb",
     "en": "Solves the triangular system `r y = x` with a vector right-hand side. Equivalent to R's `backsolve()`.\n\nOnly the top-left `k` x `k` triangle of `r` (upper by default) and the first `k` elements of `x` are used.\nThrows if a diagonal element is exactly zero.",
-    "ja": ""
+    "ja": "右辺がベクトルの三角連立方程式 `r y = x` を解きます。R の `backsolve()` と同等です。\n\n`r` の左上の `k` x `k` の三角部分 (既定では上三角) と、`x` の最初の `k` 個の要素だけを使います。\n対角要素が正確に 0 の場合は例外を投げます。"
   },
   "backsolve(1)#@param options": {
     "hash": "f2c8331eb057",
     "en": "See {@link BacksolveOptions}.",
-    "ja": ""
+    "ja": "{@link BacksolveOptions} を参照してください。"
   },
   "backsolve(1)#@param r": {
     "hash": "243d684bc2c0",
     "en": "A triangular matrix (array of rows).",
-    "ja": ""
+    "ja": "三角行列です (行の配列です)。"
   },
   "backsolve(1)#@param x": {
     "hash": "658c7a6894ae",
     "en": "The right-hand side matrix (array of rows); only its first `k` rows are used.",
-    "ja": ""
+    "ja": "右辺の行列です (行の配列です)。最初の `k` 行だけを使います。"
   },
   "backsolve(1)#@returns": {
     "hash": "592593ed4e5b",
     "en": "The solution `y`, a matrix with `k` rows.",
-    "ja": ""
+    "ja": "解 `y` です。`k` 行の行列です。"
   },
   "backsolve(1)#summary": {
     "hash": "772c9460c0ef",
     "en": "Solves the triangular system `r y = x` with a matrix right-hand side.",
-    "ja": ""
+    "ja": "右辺が行列の三角連立方程式 `r y = x` を解きます。"
   },
   "backsolve(2)#@param options": {
     "hash": "f2c8331eb057",
     "en": "See {@link BacksolveOptions}.",
-    "ja": ""
+    "ja": "{@link BacksolveOptions} を参照してください。"
   },
   "backsolve(2)#@param r": {
     "hash": "243d684bc2c0",
     "en": "A triangular matrix (array of rows).",
-    "ja": ""
+    "ja": "三角行列です (行の配列です)。"
   },
   "backsolve(2)#@param x": {
     "hash": "7403675017c6",
     "en": "The right-hand side, a vector or a matrix.",
-    "ja": ""
+    "ja": "右辺です。ベクトルまたは行列です。"
   },
   "backsolve(2)#@returns": {
     "hash": "cbe752edcd35",
     "en": "A vector if `x` is a vector, otherwise a matrix with `k` rows.",
-    "ja": ""
+    "ja": "`x` がベクトルの場合はベクトルです。それ以外の場合は `k` 行の行列です。"
   },
   "backsolve(2)#summary": {
     "hash": "3e99585287f9",
     "en": "Solves the triangular system `r y = x`.",
-    "ja": ""
+    "ja": "三角連立方程式 `r y = x` を解きます。"
   },
   "cbind(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cbind(0)#summary": {
     "hash": "57166f0b04f6",
     "en": "Combine vectors and matrices as columns. Equivalent to R's `cbind()`. Vectors are recycled to the number of rows.\nGiven data frames (objects of columns), puts their columns side by side, as R's `cbind()` of data frames: all must\nhave the same number of rows, and a column name may occur only once.",
-    "ja": ""
+    "ja": "ベクトルと行列を列として結合します。R の `cbind()` と同等です。ベクトルは行数にリサイクルされます。\nデータフレーム (列のオブジェクト) が与えられた場合は、\nその列を並べて結合します (R の `cbind()` をデータフレームに使う場合と同じです)。すべて同じ行数でなければならず、列名は重複してはなりません。"
   },
   "cbind(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cbind(1)#summary": {
     "hash": "57166f0b04f6",
     "en": "Combine vectors and matrices as columns. Equivalent to R's `cbind()`. Vectors are recycled to the number of rows.\nGiven data frames (objects of columns), puts their columns side by side, as R's `cbind()` of data frames: all must\nhave the same number of rows, and a column name may occur only once.",
-    "ja": ""
+    "ja": "ベクトルと行列を列として結合します。R の `cbind()` と同等です。ベクトルは行数にリサイクルされます。\nデータフレーム (列のオブジェクト) が与えられた場合は、\nその列を並べて結合します (R の `cbind()` をデータフレームに使う場合と同じです)。すべて同じ行数でなければならず、列名は重複してはなりません。"
   },
   "chol(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "chol(0)#@param options": {
     "hash": "29d3f27c8060",
     "en": "See {@link CholOptions}.",
-    "ja": ""
+    "ja": "{@link CholOptions} を参照してください。"
   },
   "chol(0)#@param x": {
     "hash": "46c029e98935",
     "en": "A square symmetric positive definite matrix (array of rows).",
-    "ja": ""
+    "ja": "正方の対称正定値行列です (行の配列です)。"
   },
   "chol(0)#@returns": {
     "hash": "5dba139ad69e",
     "en": "The upper triangular factor `R` as an array of rows.",
-    "ja": ""
+    "ja": "上三角の因子 `R` です (行の配列です)。"
   },
   "chol(0)#summary": {
     "hash": "7b9bbc047af8",
     "en": "Cholesky decomposition. Equivalent to R's `chol()`.\n\nReturns the upper triangular `R` with `x = t(R) R`. Only the upper triangle of `x` is used (symmetry is\nnot checked), and the lower triangle of the result is zero. Throws if `x` is not positive definite.",
-    "ja": ""
+    "ja": "コレスキー分解です。R の `chol()` と同等です。\n\n上三角の `R` を返し、`x = t(R) R` が成り立ちます。`x` の上三角部分だけを使います (対称性は検査されません)。\n結果の下三角部分は 0 です。`x` が正定値でない場合は例外を投げます。"
   },
   "chol(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "chol(1)#@param options": {
     "hash": "5d0b9a0a844e",
     "en": "See {@link CholOptions}; `pivot` must be `true`.",
-    "ja": ""
+    "ja": "{@link CholOptions} を参照してください。`pivot` は `true` でなければなりません。"
   },
   "chol(1)#@param x": {
     "hash": "f4711c9b2911",
     "en": "A square symmetric matrix (array of rows). Only the upper triangle is used.",
-    "ja": ""
+    "ja": "正方の対称行列です (行の配列です)。上三角部分だけを使います。"
   },
   "chol(1)#@returns": {
     "hash": "a0a60a2807b5",
     "en": "The factor, the 0-based pivot and the rank. See {@link CholPivotResult}.",
-    "ja": ""
+    "ja": "因子、0 始まりのピボット、およびランクです。{@link CholPivotResult} を参照してください。"
   },
   "chol(1)#summary": {
     "hash": "1cd9f283ad82",
     "en": "Pivoted Cholesky decomposition, as R's `chol(x, pivot = TRUE)`.\n\nDoes not throw for rank-deficient (positive semi-definite) matrices; check `rank` instead (R gives a\nwarning). As in R 4.6, the trailing submatrix of `r` from row and column `rank` on is 0, so that\n`x[pivot, pivot] = t(R) R` holds for a positive semi-definite `x`.",
-    "ja": ""
+    "ja": "ピボット付きコレスキー分解です。R の `chol(x, pivot = TRUE)` と同じです。\n\nランク不足 (半正定値) の行列でも例外を投げません。代わりに `rank` を確認してください (R は警告を出します)。\nR 4.6 と同じく、`r` の行と列が `rank` 以降の末尾の部分行列は 0 です。\nそのため、半正定値の `x` に対して `x[pivot, pivot] = t(R) R` が成り立ちます。"
   },
   "chol(2)#@param options": {
     "hash": "29d3f27c8060",
     "en": "See {@link CholOptions}.",
-    "ja": ""
+    "ja": "{@link CholOptions} を参照してください。"
   },
   "chol(2)#@param x": {
     "hash": "4d5c56173f72",
     "en": "A square symmetric matrix (array of rows).",
-    "ja": ""
+    "ja": "正方の対称行列です (行の配列です)。"
   },
   "chol(2)#@returns": {
     "hash": "966daeaba1d4",
     "en": "The factor `R`, or a {@link CholPivotResult} when `pivot` is `true`.",
-    "ja": ""
+    "ja": "因子 `R` です。`pivot` が `true` の場合は {@link CholPivotResult} です。"
   },
   "chol(2)#summary": {
     "hash": "f2e4f9cd849e",
     "en": "Cholesky decomposition, with or without pivoting.",
-    "ja": ""
+    "ja": "ピボットの有無を選べるコレスキー分解です。"
   },
   "chol2inv#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "chol2inv#@param options": {
     "hash": "77905bdd8c05",
     "en": "See {@link Chol2InvOptions}.",
-    "ja": ""
+    "ja": "{@link Chol2InvOptions} を参照してください。"
   },
   "chol2inv#@param x": {
     "hash": "78bf9ffcb530",
     "en": "The upper triangular Cholesky factor `R` (array of rows), e.g. from {@link chol}. A vector is treated as a one-column matrix.",
-    "ja": ""
+    "ja": "上三角のコレスキー因子 `R` です (行の配列です)。例: {@link chol} から得たもの。ベクトルは 1 列の行列として扱われます。"
   },
   "chol2inv#@returns": {
     "hash": "f61404b2672b",
     "en": "The symmetric inverse matrix (`size` x `size`) as an array of rows.",
-    "ja": ""
+    "ja": "対称な逆行列 (`size` x `size`) です (行の配列です)。"
   },
   "chol2inv#summary": {
     "hash": "ccc939d84adf",
     "en": "Inverse of a matrix from its Cholesky factor: computes `(t(R) R)^-1`. Equivalent to R's `chol2inv()`.\n\nOnly the upper triangle of the top-left `size` x `size` block of `x` is used. Throws if a diagonal element is zero.",
-    "ja": ""
+    "ja": "コレスキー因子から行列の逆行列を求めます: `(t(R) R)^-1` を計算します。R の `chol2inv()` と同等です。\n\n`x` の左上の `size` x `size` のブロックの上三角部分だけを使います。対角要素が 0 の場合は例外を投げます。"
   },
   "crossprod#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "crossprod#@param x": {
     "hash": "f207ff995045",
     "en": "A matrix (array of rows) or a vector.",
-    "ja": ""
+    "ja": "行列 (行の配列) またはベクトルです。"
   },
   "crossprod#@param y": {
     "hash": "6b5eff122654",
     "en": "A matrix or a vector with the same number of rows as `x`. Defaults to `x`.",
-    "ja": ""
+    "ja": "`x` と同じ行数の行列またはベクトルです。既定は `x` です。"
   },
   "crossprod#@returns": {
     "hash": "026331d82338",
     "en": "The product as an array of rows (`ncol(x)` x `ncol(y)`).",
-    "ja": ""
+    "ja": "積です (行の配列です。`ncol(x)` x `ncol(y)`)。"
   },
   "crossprod#summary": {
     "hash": "5588a36f829f",
     "en": "Matrix cross-product `t(x) %*% y`, or `t(x) %*% x` when `y` is omitted. Equivalent to R's `crossprod()`.\n\nA vector argument is treated as a one-column matrix.",
-    "ja": ""
+    "ja": "行列のクロス積 `t(x) %*% y` です。`y` を省略した場合は `t(x) %*% x` です。R の `crossprod()` と同等です。\n\nベクトルの引数は 1 列の行列として扱われます。"
   },
   "det#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "det#@param x": {
     "hash": "08fd13cc80ac",
     "en": "A square matrix (array of rows).",
-    "ja": ""
+    "ja": "正方行列です (行の配列です)。"
   },
   "det#@returns": {
     "hash": "27e9cfc68e17",
     "en": "The determinant.",
-    "ja": ""
+    "ja": "行列式です。"
   },
   "det#summary": {
     "hash": "78c1a23aa6d1",
     "en": "Determinant of a square matrix. Equivalent to R's `det()`.",
-    "ja": ""
+    "ja": "正方行列の行列式です。R の `det()` と同等です。"
   },
   "determinant#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "determinant#@param options": {
     "hash": "b1e130a741c2",
     "en": "`logarithm`: return the natural logarithm of the modulus. Default: `true`.",
-    "ja": ""
+    "ja": "`logarithm`: 絶対値を自然対数で返します。既定: `true` です。"
   },
   "determinant#@param x": {
     "hash": "08fd13cc80ac",
     "en": "A square matrix (array of rows).",
-    "ja": ""
+    "ja": "正方行列です (行の配列です)。"
   },
   "determinant#@returns": {
     "hash": "14a6ed3d936d",
     "en": "The modulus and sign. See {@link Determinant}.",
-    "ja": ""
+    "ja": "絶対値と符号です。{@link Determinant} を参照してください。"
   },
   "determinant#summary": {
     "hash": "1c48b63ac1de",
     "en": "Determinant as modulus and sign. Equivalent to R's `determinant()`.\n\nComputed from an LU decomposition; the log modulus is the sum of the logs of the absolute diagonal elements.",
-    "ja": ""
+    "ja": "絶対値と符号で表した行列式です。R の `determinant()` と同等です。\n\nLU 分解から計算されます。対数の絶対値は、対角要素の絶対値の対数の和です。"
   },
   "diag#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "diag#summary": {
     "hash": "1f2f3f2d21fb",
     "en": "Matrix diagonals, diagonal matrices and identity matrices. Equivalent to R's `diag()`. It has three meanings: the\ndiagonal of a matrix (as a vector); the diagonal matrix of a vector of length 2 or more (its values recycled along the diagonal of an `nrow` x `ncol` matrix when given); and for a single\nnumber n, the n x n identity matrix (with `nrow`/`ncol`, a matrix with that number on the diagonal).",
-    "ja": ""
+    "ja": "行列の対角、対角行列、単位行列です。R の `diag()` と同等です。意味は 3 つあります。行列の対角 (ベクトルとして)、長さ 2 以上のベクトルから作る対角行列\n(`nrow` x `ncol` の行列を与えた場合、その対角に沿って値をリサイクルします)、そして 1 つの数 n に対する n x n の単位行列です\n(`nrow`/`ncol` を指定すると、対角にその数が並んだ行列になります)。"
   },
   "divide#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "divide#summary": {
     "hash": "d75ac3a92301",
     "en": "Element-wise quotient with R's recycling (a shorter vector is recycled down the columns of a matrix). Equivalent to\nR's `/`.",
-    "ja": ""
+    "ja": "R のリサイクルによる要素ごとの商です (短いベクトルは行列の列の方向にリサイクルされます)。\nR の `/` と同等です。"
   },
   "eigen#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "eigen#@param options": {
     "hash": "5e0f6d85a02e",
     "en": "See {@link EigenOptions}.",
-    "ja": ""
+    "ja": "{@link EigenOptions} を参照してください。"
   },
   "eigen#@param x": {
     "hash": "08fd13cc80ac",
     "en": "A square matrix (array of rows).",
-    "ja": ""
+    "ja": "正方行列です (行の配列です)。"
   },
   "eigen#@returns": {
     "hash": "280f131f59da",
     "en": "The eigenvalues and eigenvectors. See {@link EigenResult}.",
-    "ja": ""
+    "ja": "固有値と固有ベクトルです。{@link EigenResult} を参照してください。"
   },
   "eigen#summary": {
     "hash": "6838f2a0a4ce",
     "en": "Eigenvalues and eigenvectors of a square matrix. Equivalent to R's `eigen()`.\n\nSymmetric matrices use tridiagonalization and the implicit QL method; other matrices use Hessenberg reduction\nand the Francis double-shift QR method, after balancing the matrix as LAPACK's `dgebal` does. R uses LAPACK, so eigenvalues agree up to rounding, but\neigenvector signs may differ from R (both are correct); for repeated eigenvalues the basis may differ.\nComplex eigenvalues and eigenvectors are returned as separate real and imaginary parts (`valuesIm`,\n`vectorsIm`). Each complex eigenvector is scaled to unit length with its largest component real and positive.\nThrows on `NaN` or infinite values.",
-    "ja": ""
+    "ja": "正方行列の固有値と固有ベクトルです。R の `eigen()` と同等です。\n\n対称行列では三重対角化と陰的 QL 法を使います。そのほかの行列では、LAPACK の `dgebal` と同じ方法で平衡化した後に、\nHessenberg 化と Francis の二重シフト QR 法を使います。R は LAPACK を使うため、固有値は丸めの範囲で一致しますが、\n固有ベクトルの符号は R と異なることがあります (どちらも正しい値です)。重複する固有値では、基底が異なることがあります。\n複素数の固有値と固有ベクトルは、実部と虚部を別々に返します (`valuesIm`、\n`vectorsIm`)。各複素固有ベクトルは、最大の成分が実数で正になるように、長さ 1 に尺度化されます。\n`NaN` または無限大の値があると例外を投げます。"
   },
   "expm#@example": {
     "hash": "f2167be5edf2",
