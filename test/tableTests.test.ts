@@ -28,6 +28,15 @@ htestSuite({
     JSON.stringify(a.x) === JSON.stringify(["50", "49"]) && (field === "statistic" || field === "pValue")
       ? "c(50, 49): DescTools' plain sum of x log(x / E) cancels (1.1e-12; the deviance against mpmath below)"
       : undefined,
+  // Williams' q has 1/R_i: with an empty row or column DescTools gives q = Inf, G = 0 and p = 1 (audit 14)
+  substitute: (c) => {
+    if (arg.str(c.args.correct) !== "williams") return undefined;
+    const x = c.args.x;
+    if (!(Array.isArray(x) && Array.isArray(x[0]))) return undefined;
+    const t = arg.mat(x)!;
+    const empty = t.some((r) => r.every((v) => v === 0)) || t[0]!.some((_, j) => t.every((r) => r[j] === 0));
+    return empty ? { expected: { error: "williams" }, reason: "Williams' correction with an empty row or column is an error (DescTools: G = 0, p = 1)" } : undefined;
+  },
 });
 
 describe("gTest", () => {
@@ -316,5 +325,53 @@ describe("ftResiduals", () => {
     const r = chisqTest([[0, 5], [3, 0]], { correct: false });
     const E = (r.expected as number[][])[0]![0]!;
     expect(relativeError((r.ftResiduals as number[][])[0]![0]!, 1 - Math.sqrt(4 * E + 1))).toBeLessThan(1e-15);
+  });
+});
+
+describe("scaling, cancellation and undefined input (audit 7, 8, 10, 14, 15)", () => {
+  it("gives goodmanKruskalGamma's ase without cancellation or overflow, and its interval near level 1", () => {
+    // mpmath (400 digits) of the definitions. The prefix sums lost the 8 next to 1e17 (ase 0, [1, 1]); C, D and
+    // (C + D)^2 overflowed (ase 0; gamma NaN); qnorm(1 - 1e-12 / 2) gave the lower limit 0.49697682431400764
+    const cases: [number[][], number, number, number, number][] = [
+      // table, confLevel, gamma, ase, lower limit
+      [[[20, 10, 5], [3, 30, 15], [0, 5, 40]], 1 - 1e-12, 0.85175879396984924623, 0.049755590447499954514, 0.49697606405790139412],
+      [[[1e17, 1, 2], [3, 4, 5], [6, 7, 8]], 0.95, 0.999999999999999885, 4.0229377049337681949e-17, 0.99999999999999980615],
+      [[[1e80, 1e79], [1e79, 1e80]], 0.95, 0.98019801980198019931, 9.1959920788617377149e-42, 0.98019801980198019931],
+      [[[10, 5, 2], [3, 8, 6], [1, 4, 9]], 0.95, 0.67032967032967032967, 0.12561196922920022671, 0.4241347346132844159],
+    ];
+    for (const [t, confLevel, gamma, ase, lower] of cases) {
+      const r = goodmanKruskalGamma(t, { confLevel });
+      expect(relativeError(r.estimate, gamma)).toBeLessThan(2 * 2 ** -52);
+      expect(relativeError(r.ase, ase)).toBeLessThan(4 * 2 ** -52);
+      expect(relativeError(r.confInt[0], lower)).toBeLessThan(4 * 2 ** -52);
+    }
+    // ase 2.8284271247461900607e-320 (subnormal: 1e-3)
+    const big = goodmanKruskalGamma([[1e160, 1], [1, 1e160]]);
+    expect(big.estimate).toBe(1);
+    expect(relativeError(big.ase, 2.8284271247461900607e-320)).toBeLessThan(1e-3);
+  });
+
+  it("scales stuartMaxwellTest's counts (McNemar's (b - c)^2 / (b + c) of the doubles, mpmath)", () => {
+    expect(relativeError(stuartMaxwellTest([[0, 1e200], [3e200, 0]]).statistic, 9.9999999999999996973e199)).toBeLessThan(2 * 2 ** -52);
+    expect(relativeError(stuartMaxwellTest([[0, 1e-200], [3e-200, 0]]).statistic, 9.999999999999999821e-201)).toBeLessThan(2 * 2 ** -52);
+  });
+
+  it("keeps the Freeman-Tukey deviates finite for counts above 1e154 (mpmath, 400 digits)", () => {
+    // 1e-14: E = R C / N is rounded to a double, which moves the deviate by eps sqrt(E), here about 10 eps of it
+    const truth = [-1.9089023002066445094e99, 1.4514555174644245972e99, 1.1746150900145239336e99, -9.8780306383839351794e98];
+    for (const r of [gTest([[1e200, 2e200], [3e200, 4e200]]), chisqTest([[1e200, 2e200], [3e200, 4e200]])]) {
+      (r.ftResiduals as number[][]).flat().forEach((v, i) => expect(relativeError(v, truth[i]!)).toBeLessThan(1e-14));
+    }
+  });
+
+  it("refuses Williams' correction with an empty row or column (DescTools: G = 0, p = 1)", () => {
+    expect(() => gTest([[10, 0, 3], [2, 0, 8]], { correct: "williams" })).toThrow(/empty row or column/);
+    expect(() => gTest([[10, 2, 3], [0, 0, 0]], { correct: "williams" })).toThrow(/empty row or column/);
+  });
+
+  it("gives lblTest's Z where the total overflows (mpmath: 1.4142135623730950566e154)", () => {
+    const r = lblTest([[1e308, 1], [1, 1e308]]);
+    expect(relativeError(r.statistic, 1.4142135623730950566e154)).toBeLessThan(2 * 2 ** -52);
+    expect(r.pValue).toBe(0);
   });
 });

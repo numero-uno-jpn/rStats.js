@@ -932,7 +932,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   a goodness-of-fit test, as DescTools. Yates' correction is DescTools' on purpose: the diagonal moves up when
   `ad - bc` is 0 (so [[5, 5], [5, 5]] gets G = 0.2003 instead of 0) and no cell stops at 0 ([[0, 1], [0, 1]] gives NaN
   with "NaNs produced"); `parameterName` is DescTools' `"X-squared df"`. The degrees of freedom count empty rows and
-  columns, as DescTools. `ftResiduals` (the Freeman-Tukey deviates of the counts given, without Yates' correction) is
+  columns, as DescTools. Williams' correction with an empty row or column is an error (its q has 1/0: DescTools gives
+  q = Inf, G = 0 and p = 1, as for [[10, 0, 3], [2, 0, 8]]). `ftResiduals` (the Freeman-Tukey deviates of the counts given, without Yates' correction) is
   not in DescTools.
 - **`stuartMaxwellTest`** (DescTools' `StuartMaxwellTest`) has K - 1 degrees of freedom, K the categories left after
   removing those without counts off the diagonal; DescTools keeps the original number less 1 ([[10, 0, 0], [0, 5, 3],

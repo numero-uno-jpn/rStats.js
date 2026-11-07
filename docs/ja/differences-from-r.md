@@ -877,8 +877,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`gTest`** (DescTools の `GTest`) は表かベクトルをとります (2 つ目の因子 `y` はない)。1 行か 1 列の表は DescTools と
   同じく適合度検定です。Yates の補正は意図して DescTools と同じにしています: `ad - bc` が 0 のときも対角を増やし
   ([[5, 5], [5, 5]] で G が 0 でなく 0.2003)、どのセルも 0 で止めません ([[0, 1], [0, 1]] で NaN と "NaNs produced")。
-  `parameterName` は DescTools の `"X-squared df"` です。自由度は DescTools と同じく空の行と列も数えます。
-  `ftResiduals` (与えた度数の Freeman-Tukey 偏差。Yates の補正なし) は DescTools にはありません。
+  `parameterName` は DescTools の `"X-squared df"` です。自由度は DescTools と同じく空の行と列も数えます。空の行か列の
+  ある表での Williams の補正はエラーです (q に 1/0 が入る。DescTools は q = Inf、G = 0、p = 1 を返す。[[10, 0, 3],
+  [2, 0, 8]] など)。`ftResiduals` (与えた度数の Freeman-Tukey 偏差。Yates の補正なし) は DescTools にはありません。
 - **`stuartMaxwellTest`** (DescTools の `StuartMaxwellTest`) の自由度は K - 1 で、K は対角の外に度数のないカテゴリを
   除いた残りの数です。DescTools は元の数から 1 を引いたままです ([[10, 0, 0], [0, 5, 3], [0, 2, 8]] で自由度 1、
   p = 0.6547。DescTools は自由度 2、p = 0.9048)。対角の外の度数がつながらない組に分かれるカテゴリ (共分散行列が特異)
