@@ -1,0 +1,1667 @@
+{
+  "AnovaEffectSizeModel#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "AnovaEffectSizeModel#summary": {
+    "hash": "48ed7b7f01e7",
+    "en": "A model of the ANOVA effect sizes: a table of `anova()` or `Anova()`, a fit from `lm()` or `aov()` (also with\n`Error()`), the `aovSummary()` of an `aov()` fit with `Error()`, or a result of `aovEz()`.",
+    "ja": ""
+  },
+  "AnovaEffectSizeOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "AnovaEffectSizeOptions#summary": {
+    "hash": "343e15e33c26",
+    "en": "Options for {@link etaSquared}, {@link omegaSquared} and {@link epsilonSquared}.",
+    "ja": ""
+  },
+  "AnovaEffectSizeOptions.alternative#summary": {
+    "hash": "cd97cdafcc92",
+    "en": "`\"greater\"` (default: the interval is [lower, 1]), `\"two.sided\"` or `\"less\"` ([0, upper]).",
+    "ja": ""
+  },
+  "AnovaEffectSizeOptions.ci#summary": {
+    "hash": "5243c722b953",
+    "en": "Confidence level of the interval, or `null` for no interval. Default `0.95`.",
+    "ja": ""
+  },
+  "AnovaEffectSizeOptions.partial#summary": {
+    "hash": "49a738fd6ce7",
+    "en": "Partial effect sizes (default `true`). A table with a single term always gives the non-partial one (not so for\nmodels with error strata).",
+    "ja": ""
+  },
+  "AnovaEffectSizeTable#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "AnovaEffectSizeTable#summary": {
+    "hash": "27aafb12438c",
+    "en": "Result of the ANOVA effect sizes: one row per term.",
+    "ja": ""
+  },
+  "AnovaEffectSizeTable.colNames#summary": {
+    "hash": "75d5615b7291",
+    "en": "effectsize's columns: the effect size (`\"Eta2_partial\"`, `\"Omega2\"`, ...), then `\"CI\"`, `\"CI_low\"`, `\"CI_high\"`.",
+    "ja": ""
+  },
+  "AnovaEffectSizeTable.groups#summary": {
+    "hash": "3a03bd8d12e9",
+    "en": "For aov with `Error()`: the error stratum of each row (`\"id\"`, `\"id:W\"`, `\"Within\"`).",
+    "ja": ""
+  },
+  "AnovaEffectSizeTable.rowNames#summary": {
+    "hash": "81240357e5a4",
+    "en": "The terms.",
+    "ja": ""
+  },
+  "AnovaEffectSizeTable.table#summary": {
+    "hash": "220ec4ddbe1d",
+    "en": "One array per term.",
+    "ja": ""
+  },
+  "AnovaEffectSizeTable.warnings#summary": {
+    "hash": "d0055cbd3682",
+    "en": "effectsize's warnings.",
+    "ja": ""
+  },
+  "CohenESOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "CohenESOptions#summary": {
+    "hash": "4ea0f977f880",
+    "en": "Options for {@link cohenES}.",
+    "ja": ""
+  },
+  "CohenESOptions.size#summary": {
+    "hash": "0206b3d27f8e",
+    "en": "The conventional size: `\"small\"` (default), `\"medium\"` or `\"large\"`.",
+    "ja": ""
+  },
+  "CohenESResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "CohenESResult#summary": {
+    "hash": "1671a56ed662",
+    "en": "Result of {@link cohenES}.",
+    "ja": ""
+  },
+  "CohenESResult.effectSize#summary": {
+    "hash": "c848db6d27ca",
+    "en": "Cohen's effect size (R's `effect.size`).",
+    "ja": ""
+  },
+  "CohenESResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "CohenESResult.size#summary": {
+    "hash": "424856e0bb01",
+    "en": "The conventional size.",
+    "ja": ""
+  },
+  "CohenESResult.test#summary": {
+    "hash": "e2572477387d",
+    "en": "The test.",
+    "ja": ""
+  },
+  "CohenTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "CohenTest#summary": {
+    "hash": "988b7251ad70",
+    "en": "The tests of {@link cohenES}",
+    "ja": ""
+  },
+  "CohensDOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "CohensDOptions#summary": {
+    "hash": "543f8d13b3f0",
+    "en": "Options for {@link cohensD} and {@link hedgesG}.",
+    "ja": ""
+  },
+  "CohensDOptions.adjust#summary": {
+    "hash": "5038d9108f60",
+    "en": "{@link cohensD} only: apply Hedges' small-sample correction (the result is Hedges' g). Default `false`.",
+    "ja": ""
+  },
+  "CohensDOptions.alternative#summary": {
+    "hash": "12908efd23a1",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`: a one-sided interval is open on the other side.",
+    "ja": ""
+  },
+  "CohensDOptions.ci#summary": {
+    "hash": "5243c722b953",
+    "en": "Confidence level of the interval, or `null` for no interval. Default `0.95`.",
+    "ja": ""
+  },
+  "CohensDOptions.mu#summary": {
+    "hash": "461178462934",
+    "en": "The difference (or mean) under the null hypothesis. Default `0`.",
+    "ja": ""
+  },
+  "CohensDOptions.paired#summary": {
+    "hash": "3f28fd21ad9d",
+    "en": "Paired samples: the effect size of the differences `x - y`. Default `false`.",
+    "ja": ""
+  },
+  "CohensDOptions.pooledSd#summary": {
+    "hash": "881a89696f14",
+    "en": "Two samples: standardize by the pooled standard deviation (default `true`) or by `sqrt((s1² + s2²)/2)`.",
+    "ja": ""
+  },
+  "CohensDResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "CohensDResult#summary": {
+    "hash": "fd26d14f254c",
+    "en": "Result of {@link cohensD} and {@link hedgesG}.",
+    "ja": ""
+  },
+  "CohensDResult.ci#summary": {
+    "hash": "938e03c96cf8",
+    "en": "Confidence level (absent without an interval).",
+    "ja": ""
+  },
+  "CohensDResult.ciHigh#summary": {
+    "hash": "29a5a1caae96",
+    "en": "Upper confidence limit (R's `CI_high`; `Infinity` for `\"greater\"`).",
+    "ja": ""
+  },
+  "CohensDResult.ciLow#summary": {
+    "hash": "7fae80871852",
+    "en": "Lower confidence limit (R's `CI_low`; `-Infinity` for `\"less\"`).",
+    "ja": ""
+  },
+  "CohensDResult.name#summary": {
+    "hash": "3b51a2e579a7",
+    "en": "`\"Cohens_d\"` or `\"Hedges_g\"`.",
+    "ja": ""
+  },
+  "CohensDResult.value#summary": {
+    "hash": "431ff0e4f50b",
+    "en": "The effect size.",
+    "ja": ""
+  },
+  "CohensDResult.warnings#summary": {
+    "hash": "d0055cbd3682",
+    "en": "effectsize's warnings.",
+    "ja": ""
+  },
+  "EffectSize#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "EffectSize#summary": {
+    "hash": "57e37290e1b8",
+    "en": "An effect size: a number, or Cohen's conventional `\"small\"`, `\"medium\"` or `\"large\"`",
+    "ja": ""
+  },
+  "EtaSquaredOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "EtaSquaredOptions#summary": {
+    "hash": "dc3534b8cbee",
+    "en": "Options for {@link etaSquared}.",
+    "ja": ""
+  },
+  "EtaSquaredOptions.alternative#summary": {
+    "hash": "cd97cdafcc92",
+    "en": "`\"greater\"` (default: the interval is [lower, 1]), `\"two.sided\"` or `\"less\"` ([0, upper]).",
+    "ja": ""
+  },
+  "EtaSquaredOptions.ci#summary": {
+    "hash": "5243c722b953",
+    "en": "Confidence level of the interval, or `null` for no interval. Default `0.95`.",
+    "ja": ""
+  },
+  "EtaSquaredOptions.generalized#summary": {
+    "hash": "d389e3e7743f",
+    "en": "Generalized eta squared: `true` (all factors manipulated) or the names of the observed factors. Default\n`false`.",
+    "ja": ""
+  },
+  "EtaSquaredOptions.partial#summary": {
+    "hash": "49a738fd6ce7",
+    "en": "Partial effect sizes (default `true`). A table with a single term always gives the non-partial one (not so for\nmodels with error strata).",
+    "ja": ""
+  },
+  "PowerAnovaTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PowerAnovaTestOptions#summary": {
+    "hash": "7191178b362b",
+    "en": "Options for {@link powerAnovaTest}. The quantity given as `null` (or omitted, for those without a default) is solved for.",
+    "ja": ""
+  },
+  "PowerAnovaTestOptions.betweenVar#summary": {
+    "hash": "3e0498f11d91",
+    "en": "Variance between the groups' means.",
+    "ja": ""
+  },
+  "PowerAnovaTestOptions.groups#summary": {
+    "hash": "f73de6b3f40e",
+    "en": "Number of groups.",
+    "ja": ""
+  },
+  "PowerAnovaTestOptions.n#summary": {
+    "hash": "28f44c378103",
+    "en": "Number of observations per group.",
+    "ja": ""
+  },
+  "PowerAnovaTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PowerAnovaTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "PowerAnovaTestOptions.withinVar#summary": {
+    "hash": "c9bd3a7a8c8a",
+    "en": "Variance within the groups.",
+    "ja": ""
+  },
+  "PowerAnovaTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PowerAnovaTestResult#summary": {
+    "hash": "c9bbeed57b33",
+    "en": "Result of {@link powerAnovaTest}.",
+    "ja": ""
+  },
+  "PowerAnovaTestResult.betweenVar#summary": {
+    "hash": "7a4a0238b338",
+    "en": "Variance between the groups' means (R's `between.var`).",
+    "ja": ""
+  },
+  "PowerAnovaTestResult.groups#summary": {
+    "hash": "f73de6b3f40e",
+    "en": "Number of groups.",
+    "ja": ""
+  },
+  "PowerAnovaTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "PowerAnovaTestResult.n#summary": {
+    "hash": "28f44c378103",
+    "en": "Number of observations per group.",
+    "ja": ""
+  },
+  "PowerAnovaTestResult.note#summary": {
+    "hash": "794eecae18cf",
+    "en": "A note on the sample size.",
+    "ja": ""
+  },
+  "PowerAnovaTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PowerAnovaTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "PowerAnovaTestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "PowerAnovaTestResult.withinVar#summary": {
+    "hash": "d763e60b90b6",
+    "en": "Variance within the groups (R's `within.var`).",
+    "ja": ""
+  },
+  "PowerPropTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PowerPropTestOptions#summary": {
+    "hash": "f51b85eea165",
+    "en": "Options for {@link powerPropTest}. The quantity given as `null` (or omitted, for those without a default) is solved for.",
+    "ja": ""
+  },
+  "PowerPropTestOptions.alternative#summary": {
+    "hash": "04489b922537",
+    "en": "`\"two.sided\"` (default) or `\"one.sided\"`.",
+    "ja": ""
+  },
+  "PowerPropTestOptions.n#summary": {
+    "hash": "28f44c378103",
+    "en": "Number of observations per group.",
+    "ja": ""
+  },
+  "PowerPropTestOptions.p1#summary": {
+    "hash": "dc1ae4137661",
+    "en": "Probability in one group.",
+    "ja": ""
+  },
+  "PowerPropTestOptions.p2#summary": {
+    "hash": "bebe23293990",
+    "en": "Probability in the other group.",
+    "ja": ""
+  },
+  "PowerPropTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PowerPropTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "PowerPropTestOptions.strict#summary": {
+    "hash": "efb5e6a3d34a",
+    "en": "Two-sided: count the probability of rejecting in the wrong direction too. Default `false`.",
+    "ja": ""
+  },
+  "PowerPropTestOptions.tol#summary": {
+    "hash": "c7e042f6bd87",
+    "en": "Tolerance of the root finding. Default `eps^0.25`.",
+    "ja": ""
+  },
+  "PowerPropTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PowerPropTestResult#summary": {
+    "hash": "c14dab18b9bb",
+    "en": "Result of {@link powerPropTest}.",
+    "ja": ""
+  },
+  "PowerPropTestResult.alternative#summary": {
+    "hash": "8e07981ddd6d",
+    "en": "`\"two.sided\"` or `\"one.sided\"`.",
+    "ja": ""
+  },
+  "PowerPropTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "PowerPropTestResult.n#summary": {
+    "hash": "28f44c378103",
+    "en": "Number of observations per group.",
+    "ja": ""
+  },
+  "PowerPropTestResult.note#summary": {
+    "hash": "794eecae18cf",
+    "en": "A note on the sample size.",
+    "ja": ""
+  },
+  "PowerPropTestResult.p1#summary": {
+    "hash": "dc1ae4137661",
+    "en": "Probability in one group.",
+    "ja": ""
+  },
+  "PowerPropTestResult.p2#summary": {
+    "hash": "bebe23293990",
+    "en": "Probability in the other group.",
+    "ja": ""
+  },
+  "PowerPropTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PowerPropTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "PowerPropTestResult.warnings#summary": {
+    "hash": "3db2080f70ed",
+    "en": "R's warnings.",
+    "ja": ""
+  },
+  "PowerTTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PowerTTestOptions#summary": {
+    "hash": "9b531681be6d",
+    "en": "Options for {@link powerTTest}. The quantity given as `null` (or omitted, for those without a default) is solved for.",
+    "ja": ""
+  },
+  "PowerTTestOptions.alternative#summary": {
+    "hash": "04489b922537",
+    "en": "`\"two.sided\"` (default) or `\"one.sided\"`.",
+    "ja": ""
+  },
+  "PowerTTestOptions.delta#summary": {
+    "hash": "860f4ffbac23",
+    "en": "True difference in means.",
+    "ja": ""
+  },
+  "PowerTTestOptions.n#summary": {
+    "hash": "bef627e08191",
+    "en": "Number of observations (per group).",
+    "ja": ""
+  },
+  "PowerTTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PowerTTestOptions.sd#summary": {
+    "hash": "bc948bd4118e",
+    "en": "Standard deviation. Default `1`.",
+    "ja": ""
+  },
+  "PowerTTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "PowerTTestOptions.strict#summary": {
+    "hash": "efb5e6a3d34a",
+    "en": "Two-sided: count the probability of rejecting in the wrong direction too. Default `false`.",
+    "ja": ""
+  },
+  "PowerTTestOptions.tol#summary": {
+    "hash": "c7e042f6bd87",
+    "en": "Tolerance of the root finding. Default `eps^0.25`.",
+    "ja": ""
+  },
+  "PowerTTestOptions.type#summary": {
+    "hash": "bcf3a7132e29",
+    "en": "`\"two.sample\"` (default), `\"one.sample\"` or `\"paired\"`.",
+    "ja": ""
+  },
+  "PowerTTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PowerTTestResult#summary": {
+    "hash": "ae06884397dc",
+    "en": "Result of {@link powerTTest}: R's power.htest with the solved quantity filled in.",
+    "ja": ""
+  },
+  "PowerTTestResult.alternative#summary": {
+    "hash": "8e07981ddd6d",
+    "en": "`\"two.sided\"` or `\"one.sided\"`.",
+    "ja": ""
+  },
+  "PowerTTestResult.delta#summary": {
+    "hash": "860f4ffbac23",
+    "en": "True difference in means.",
+    "ja": ""
+  },
+  "PowerTTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "PowerTTestResult.n#summary": {
+    "hash": "0f6f177de98b",
+    "en": "Number of observations (per group, or of pairs).",
+    "ja": ""
+  },
+  "PowerTTestResult.note#summary": {
+    "hash": "794eecae18cf",
+    "en": "A note on the sample size.",
+    "ja": ""
+  },
+  "PowerTTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PowerTTestResult.sd#summary": {
+    "hash": "1bcfceb57192",
+    "en": "Standard deviation.",
+    "ja": ""
+  },
+  "PowerTTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "PowerTTestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "Pwr2p2nTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "Pwr2p2nTestOptions#summary": {
+    "hash": "364bf92db879",
+    "en": "Options for {@link pwr2p2nTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
+    "ja": ""
+  },
+  "Pwr2p2nTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": ""
+  },
+  "Pwr2p2nTestOptions.h#summary": {
+    "hash": "61373fb4d3ae",
+    "en": "Effect size h ({@link esH}), or `\"small\"`, `\"medium\"`, `\"large\"`.",
+    "ja": ""
+  },
+  "Pwr2p2nTestOptions.n1#summary": {
+    "hash": "c419be274043",
+    "en": "Number of observations in the first group.",
+    "ja": ""
+  },
+  "Pwr2p2nTestOptions.n2#summary": {
+    "hash": "be3501e2c9f0",
+    "en": "Number of observations in the second group.",
+    "ja": ""
+  },
+  "Pwr2p2nTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "Pwr2p2nTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult#summary": {
+    "hash": "9f20c306c391",
+    "en": "Result of {@link pwr2p2nTest}.",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult.alternative#summary": {
+    "hash": "1169559c5650",
+    "en": "The alternative hypothesis.",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult.h#summary": {
+    "hash": "7309eabbc07a",
+    "en": "Effect size h.",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult.n1#summary": {
+    "hash": "c419be274043",
+    "en": "Number of observations in the first group.",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult.n2#summary": {
+    "hash": "be3501e2c9f0",
+    "en": "Number of observations in the second group.",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult.note#summary": {
+    "hash": "098cb8d9e06e",
+    "en": "A note on the sample sizes.",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "Pwr2p2nTestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "Pwr2pTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "Pwr2pTestOptions#summary": {
+    "hash": "c931c6cc9124",
+    "en": "Options for {@link pwr2pTest} and {@link pwrPTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
+    "ja": ""
+  },
+  "Pwr2pTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": ""
+  },
+  "Pwr2pTestOptions.h#summary": {
+    "hash": "61373fb4d3ae",
+    "en": "Effect size h ({@link esH}), or `\"small\"`, `\"medium\"`, `\"large\"`.",
+    "ja": ""
+  },
+  "Pwr2pTestOptions.n#summary": {
+    "hash": "50954f47052d",
+    "en": "Number of observations (per group for {@link pwr2pTest}).",
+    "ja": ""
+  },
+  "Pwr2pTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "Pwr2pTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "Pwr2pTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "Pwr2pTestResult#summary": {
+    "hash": "1caa778a7764",
+    "en": "Result of {@link pwr2pTest} and {@link pwrPTest}.",
+    "ja": ""
+  },
+  "Pwr2pTestResult.alternative#summary": {
+    "hash": "1169559c5650",
+    "en": "The alternative hypothesis.",
+    "ja": ""
+  },
+  "Pwr2pTestResult.h#summary": {
+    "hash": "7309eabbc07a",
+    "en": "Effect size h.",
+    "ja": ""
+  },
+  "Pwr2pTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "Pwr2pTestResult.n#summary": {
+    "hash": "50954f47052d",
+    "en": "Number of observations (per group for {@link pwr2pTest}).",
+    "ja": ""
+  },
+  "Pwr2pTestResult.note#summary": {
+    "hash": "42d75b5fe86a",
+    "en": "A note on the sample sizes (absent for {@link pwrPTest}).",
+    "ja": ""
+  },
+  "Pwr2pTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "Pwr2pTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "Pwr2pTestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "PwrAnovaTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrAnovaTestOptions#summary": {
+    "hash": "4952a3c7d2fd",
+    "en": "Options for {@link pwrAnovaTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
+    "ja": ""
+  },
+  "PwrAnovaTestOptions.f#summary": {
+    "hash": "add447becc81",
+    "en": "Effect size f, or `\"small\"`, `\"medium\"`, `\"large\"`.",
+    "ja": ""
+  },
+  "PwrAnovaTestOptions.k#summary": {
+    "hash": "f73de6b3f40e",
+    "en": "Number of groups.",
+    "ja": ""
+  },
+  "PwrAnovaTestOptions.n#summary": {
+    "hash": "28f44c378103",
+    "en": "Number of observations per group.",
+    "ja": ""
+  },
+  "PwrAnovaTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrAnovaTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "PwrAnovaTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrAnovaTestResult#summary": {
+    "hash": "7c320b838a2c",
+    "en": "Result of {@link pwrAnovaTest}.",
+    "ja": ""
+  },
+  "PwrAnovaTestResult.f#summary": {
+    "hash": "2443691de1d0",
+    "en": "Effect size f.",
+    "ja": ""
+  },
+  "PwrAnovaTestResult.k#summary": {
+    "hash": "f73de6b3f40e",
+    "en": "Number of groups.",
+    "ja": ""
+  },
+  "PwrAnovaTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "PwrAnovaTestResult.n#summary": {
+    "hash": "28f44c378103",
+    "en": "Number of observations per group.",
+    "ja": ""
+  },
+  "PwrAnovaTestResult.note#summary": {
+    "hash": "794eecae18cf",
+    "en": "A note on the sample size.",
+    "ja": ""
+  },
+  "PwrAnovaTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrAnovaTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "PwrAnovaTestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "PwrChisqTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrChisqTestOptions#summary": {
+    "hash": "f4cede77f88b",
+    "en": "Options for {@link pwrChisqTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
+    "ja": ""
+  },
+  "PwrChisqTestOptions.N#summary": {
+    "hash": "97c2da672900",
+    "en": "Total number of observations.",
+    "ja": ""
+  },
+  "PwrChisqTestOptions.df#summary": {
+    "hash": "16694fec65bc",
+    "en": "Degrees of freedom.",
+    "ja": ""
+  },
+  "PwrChisqTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrChisqTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "PwrChisqTestOptions.w#summary": {
+    "hash": "a72778ada997",
+    "en": "Effect size w ({@link esW1}, {@link esW2}), or `\"small\"`, `\"medium\"`, `\"large\"`.",
+    "ja": ""
+  },
+  "PwrChisqTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrChisqTestResult#summary": {
+    "hash": "e9f2c9a02b88",
+    "en": "Result of {@link pwrChisqTest}.",
+    "ja": ""
+  },
+  "PwrChisqTestResult.N#summary": {
+    "hash": "97c2da672900",
+    "en": "Total number of observations.",
+    "ja": ""
+  },
+  "PwrChisqTestResult.df#summary": {
+    "hash": "16694fec65bc",
+    "en": "Degrees of freedom.",
+    "ja": ""
+  },
+  "PwrChisqTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "PwrChisqTestResult.note#summary": {
+    "hash": "794eecae18cf",
+    "en": "A note on the sample size.",
+    "ja": ""
+  },
+  "PwrChisqTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrChisqTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "PwrChisqTestResult.w#summary": {
+    "hash": "708c8d5bfb0b",
+    "en": "Effect size w.",
+    "ja": ""
+  },
+  "PwrChisqTestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "PwrF2TestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrF2TestOptions#summary": {
+    "hash": "1ae15d86ef8a",
+    "en": "Options for {@link pwrF2Test}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
+    "ja": ""
+  },
+  "PwrF2TestOptions.f2#summary": {
+    "hash": "70f1eac2141c",
+    "en": "Effect size f², or `\"small\"`, `\"medium\"`, `\"large\"`.",
+    "ja": ""
+  },
+  "PwrF2TestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrF2TestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "PwrF2TestOptions.u#summary": {
+    "hash": "d67e29bb833c",
+    "en": "Degrees of freedom of the numerator.",
+    "ja": ""
+  },
+  "PwrF2TestOptions.v#summary": {
+    "hash": "abf4e0a19239",
+    "en": "Degrees of freedom of the denominator.",
+    "ja": ""
+  },
+  "PwrF2TestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrF2TestResult#summary": {
+    "hash": "353c0dd17389",
+    "en": "Result of {@link pwrF2Test}.",
+    "ja": ""
+  },
+  "PwrF2TestResult.f2#summary": {
+    "hash": "c0cfc8252916",
+    "en": "Effect size f².",
+    "ja": ""
+  },
+  "PwrF2TestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "PwrF2TestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrF2TestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "PwrF2TestResult.u#summary": {
+    "hash": "d67e29bb833c",
+    "en": "Degrees of freedom of the numerator.",
+    "ja": ""
+  },
+  "PwrF2TestResult.v#summary": {
+    "hash": "abf4e0a19239",
+    "en": "Degrees of freedom of the denominator.",
+    "ja": ""
+  },
+  "PwrF2TestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "PwrNormTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrNormTestOptions#summary": {
+    "hash": "b218fe0094f8",
+    "en": "Options for {@link pwrNormTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
+    "ja": ""
+  },
+  "PwrNormTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": ""
+  },
+  "PwrNormTestOptions.d#summary": {
+    "hash": "84bebb46159d",
+    "en": "Effect size d (difference of means over the known standard deviation), or `\"small\"`, `\"medium\"`, `\"large\"`.",
+    "ja": ""
+  },
+  "PwrNormTestOptions.n#summary": {
+    "hash": "7bec08620fae",
+    "en": "Number of observations.",
+    "ja": ""
+  },
+  "PwrNormTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrNormTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "PwrNormTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrNormTestResult#summary": {
+    "hash": "e9d9066aa2fa",
+    "en": "Result of {@link pwrNormTest}.",
+    "ja": ""
+  },
+  "PwrNormTestResult.alternative#summary": {
+    "hash": "1169559c5650",
+    "en": "The alternative hypothesis.",
+    "ja": ""
+  },
+  "PwrNormTestResult.d#summary": {
+    "hash": "957baedccc87",
+    "en": "Effect size d.",
+    "ja": ""
+  },
+  "PwrNormTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "PwrNormTestResult.n#summary": {
+    "hash": "7bec08620fae",
+    "en": "Number of observations.",
+    "ja": ""
+  },
+  "PwrNormTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrNormTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "PwrNormTestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "PwrRTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrRTestOptions#summary": {
+    "hash": "13572e855000",
+    "en": "Options for {@link pwrRTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
+    "ja": ""
+  },
+  "PwrRTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": ""
+  },
+  "PwrRTestOptions.n#summary": {
+    "hash": "7bec08620fae",
+    "en": "Number of observations.",
+    "ja": ""
+  },
+  "PwrRTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrRTestOptions.r#summary": {
+    "hash": "26964fb5866e",
+    "en": "Correlation, or `\"small\"`, `\"medium\"`, `\"large\"`.",
+    "ja": ""
+  },
+  "PwrRTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "PwrRTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrRTestResult#summary": {
+    "hash": "3d68e57ff838",
+    "en": "Result of {@link pwrRTest}.",
+    "ja": ""
+  },
+  "PwrRTestResult.alternative#summary": {
+    "hash": "1169559c5650",
+    "en": "The alternative hypothesis.",
+    "ja": ""
+  },
+  "PwrRTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "PwrRTestResult.n#summary": {
+    "hash": "7bec08620fae",
+    "en": "Number of observations.",
+    "ja": ""
+  },
+  "PwrRTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrRTestResult.r#summary": {
+    "hash": "19555bb267d8",
+    "en": "Correlation.",
+    "ja": ""
+  },
+  "PwrRTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "PwrRTestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "PwrT2nTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrT2nTestOptions#summary": {
+    "hash": "aee924e6b449",
+    "en": "Options for {@link pwrT2nTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
+    "ja": ""
+  },
+  "PwrT2nTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": ""
+  },
+  "PwrT2nTestOptions.d#summary": {
+    "hash": "0de371e9ad81",
+    "en": "Effect size d, or `\"small\"`, `\"medium\"`, `\"large\"`.",
+    "ja": ""
+  },
+  "PwrT2nTestOptions.n1#summary": {
+    "hash": "c419be274043",
+    "en": "Number of observations in the first group.",
+    "ja": ""
+  },
+  "PwrT2nTestOptions.n2#summary": {
+    "hash": "be3501e2c9f0",
+    "en": "Number of observations in the second group.",
+    "ja": ""
+  },
+  "PwrT2nTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrT2nTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "PwrT2nTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrT2nTestResult#summary": {
+    "hash": "7b1de9720e91",
+    "en": "Result of {@link pwrT2nTest}.",
+    "ja": ""
+  },
+  "PwrT2nTestResult.alternative#summary": {
+    "hash": "1169559c5650",
+    "en": "The alternative hypothesis.",
+    "ja": ""
+  },
+  "PwrT2nTestResult.d#summary": {
+    "hash": "957baedccc87",
+    "en": "Effect size d.",
+    "ja": ""
+  },
+  "PwrT2nTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "PwrT2nTestResult.n1#summary": {
+    "hash": "c419be274043",
+    "en": "Number of observations in the first group.",
+    "ja": ""
+  },
+  "PwrT2nTestResult.n2#summary": {
+    "hash": "be3501e2c9f0",
+    "en": "Number of observations in the second group.",
+    "ja": ""
+  },
+  "PwrT2nTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrT2nTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "PwrT2nTestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "PwrTTestOptions#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrTTestOptions#summary": {
+    "hash": "26ceb754b11f",
+    "en": "Options for {@link pwrTTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
+    "ja": ""
+  },
+  "PwrTTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": ""
+  },
+  "PwrTTestOptions.d#summary": {
+    "hash": "16d4ed606fc1",
+    "en": "Effect size d (Cohen's d), or `\"small\"`, `\"medium\"`, `\"large\"`.",
+    "ja": ""
+  },
+  "PwrTTestOptions.n#summary": {
+    "hash": "0f6f177de98b",
+    "en": "Number of observations (per group, or of pairs).",
+    "ja": ""
+  },
+  "PwrTTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrTTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": ""
+  },
+  "PwrTTestOptions.type#summary": {
+    "hash": "bcf3a7132e29",
+    "en": "`\"two.sample\"` (default), `\"one.sample\"` or `\"paired\"`.",
+    "ja": ""
+  },
+  "PwrTTestResult#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "PwrTTestResult#summary": {
+    "hash": "35aeac600e17",
+    "en": "Result of {@link pwrTTest}.",
+    "ja": ""
+  },
+  "PwrTTestResult.alternative#summary": {
+    "hash": "1169559c5650",
+    "en": "The alternative hypothesis.",
+    "ja": ""
+  },
+  "PwrTTestResult.d#summary": {
+    "hash": "957baedccc87",
+    "en": "Effect size d.",
+    "ja": ""
+  },
+  "PwrTTestResult.method#summary": {
+    "hash": "61c3d9943edf",
+    "en": "Description of the calculation.",
+    "ja": ""
+  },
+  "PwrTTestResult.n#summary": {
+    "hash": "0f6f177de98b",
+    "en": "Number of observations (per group, or of pairs).",
+    "ja": ""
+  },
+  "PwrTTestResult.note#summary": {
+    "hash": "794eecae18cf",
+    "en": "A note on the sample size.",
+    "ja": ""
+  },
+  "PwrTTestResult.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": ""
+  },
+  "PwrTTestResult.sigLevel#summary": {
+    "hash": "aafaab7a40d6",
+    "en": "Significance level (R's `sig.level`).",
+    "ja": ""
+  },
+  "PwrTTestResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "cohenES(0)#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "cohenES(0)#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "cohenES(0)#summary": {
+    "hash": "ce6006eb079c",
+    "en": "Cohen's conventional effect sizes. Equivalent to `pwr::cohen.ES(test, size)` in R. The size is the second argument\nor the option `size` (giving both is a RangeError).",
+    "ja": ""
+  },
+  "cohenES(1)#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "cohenES(1)#summary": {
+    "hash": "a994d5ac6a86",
+    "en": "Cohen's conventional effect sizes, with the size in the options: `cohenES(\"anov\", { size: \"medium\" })`.",
+    "ja": ""
+  },
+  "cohensD#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "cohensD#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "cohensD#summary": {
+    "hash": "db855b410b00",
+    "en": "Cohen's d: the standardized difference of means of two samples (pooled or averaged standard deviation), of paired\nsamples, or of one sample against `mu`, with a confidence interval from the noncentral t distribution.\nEquivalent to `effectsize::cohens_d()` in R.\n\nAs effectsize, `warnings` has \"'y' is numeric but has only 2 unique values. ...\" where `y` has exactly 2 distinct\nvalues (a grouping variable is given as two samples here) and \"Missing values detected. NAs dropped.\" for `NaN`.",
+    "ja": ""
+  },
+  "epsilonSquared#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "epsilonSquared#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "epsilonSquared#summary": {
+    "hash": "c2bbd6dcf2d5",
+    "en": "Epsilon squared of the terms of an analysis-of-variance table, also of repeated-measures designs (see\n{@link etaSquared}). Equivalent to `effectsize::epsilon_squared()` in R.",
+    "ja": ""
+  },
+  "esH#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "esH#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "esH#summary": {
+    "hash": "d4ce230cb060",
+    "en": "Effect size h of two proportions: `2 asin(sqrt(p1)) - 2 asin(sqrt(p2))`. Equivalent to `pwr::ES.h()` in R.",
+    "ja": ""
+  },
+  "esW1#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "esW1#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "esW1#summary": {
+    "hash": "2a907b12d360",
+    "en": "Effect size w of a goodness-of-fit test, `sqrt(sum((p1 - p0)^2 / p0))`. Equivalent to `pwr::ES.w1()` in R.",
+    "ja": ""
+  },
+  "esW2#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "esW2#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "esW2#summary": {
+    "hash": "e367e69ad8bd",
+    "en": "Effect size w of a test of association, for a matrix of cell probabilities (an array of rows): with the row sums\nr and column sums c, `p0 = r c'` and `sqrt(sum((p - p0)^2 / p0))`. Equivalent to `pwr::ES.w2()` in R.",
+    "ja": ""
+  },
+  "etaSquared#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "etaSquared#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "etaSquared#summary": {
+    "hash": "d851f7203e21",
+    "en": "Eta squared of the terms of an analysis-of-variance table (partial by default, or generalized), with confidence\nintervals from the noncentral F distribution. Equivalent to `effectsize::eta_squared()` in R. It takes a table of\n`anova()` or `Anova()`; a fit from `lm()` with a formula is replaced by its `anova()` table.\n\nRepeated measures: for a fit of `aov()` with an `Error()` term (or its {@link aovSummary}) each term is measured\nagainst the residual of its error stratum, the totals add up all strata, and the result has the stratum of each\nrow in `groups`; for a result of {@link aovEz}, the same from car's univariate tests (rows as afex's table).",
+    "ja": ""
+  },
+  "hedgesG#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "hedgesG#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "hedgesG#summary": {
+    "hash": "2e24022ea1c1",
+    "en": "Hedges' g: Cohen's d and its interval multiplied by the small-sample correction J(df). Equivalent to\n`effectsize::hedges_g()` in R.",
+    "ja": ""
+  },
+  "omegaSquared#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "omegaSquared#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "omegaSquared#summary": {
+    "hash": "5dfb30e822cf",
+    "en": "Omega squared of the terms of an analysis-of-variance table, also of repeated-measures designs (see\n{@link etaSquared}). Equivalent to `effectsize::omega_squared()` in R.",
+    "ja": ""
+  },
+  "powerAnovaTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "powerAnovaTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "powerAnovaTest#summary": {
+    "hash": "89745225507f",
+    "en": "Power of the F test of a balanced one-way analysis of variance, or one of the other quantities for a given power.\nEquivalent to R's `power.anova.test()`.",
+    "ja": ""
+  },
+  "powerPropTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "powerPropTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "powerPropTest#summary": {
+    "hash": "9286026b71a2",
+    "en": "Power of the test of two proportions, or the sample size, a probability or the significance level for a given\npower. Equivalent to R's `power.prop.test()`.",
+    "ja": ""
+  },
+  "powerTTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "powerTTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "powerTTest#summary": {
+    "hash": "f3f21e93f64b",
+    "en": "Power of a one- or two-sample t test, or the sample size, difference, standard deviation or significance level\nfor a given power. Equivalent to R's `power.t.test()`.",
+    "ja": ""
+  },
+  "pwr2p2nTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "pwr2p2nTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "pwr2p2nTest#summary": {
+    "hash": "df4fbe134206",
+    "en": "Power of the test of two proportions with unequal sample sizes (arcsine transformation), or the effect size, a\nsample size or the significance level for a given power. Equivalent to `pwr::pwr.2p2n.test()` in R.",
+    "ja": ""
+  },
+  "pwr2pTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "pwr2pTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "pwr2pTest#summary": {
+    "hash": "7b05faf9b575",
+    "en": "Power of the test of two proportions with equal sample sizes (arcsine transformation), or the effect size, sample\nsize or significance level for a given power. Equivalent to `pwr::pwr.2p.test()` in R.",
+    "ja": ""
+  },
+  "pwrAnovaTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "pwrAnovaTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "pwrAnovaTest#summary": {
+    "hash": "41b094e5671f",
+    "en": "Power of the F test of a balanced one-way analysis of variance, or the number of groups, sample size, effect size\nor significance level for a given power. Equivalent to `pwr::pwr.anova.test()` in R.",
+    "ja": ""
+  },
+  "pwrChisqTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "pwrChisqTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "pwrChisqTest#summary": {
+    "hash": "8151f794884b",
+    "en": "Power of a chi-squared test, or the effect size, number of observations or significance level for a given power.\nEquivalent to `pwr::pwr.chisq.test()` in R.",
+    "ja": ""
+  },
+  "pwrF2Test#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "pwrF2Test#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "pwrF2Test#summary": {
+    "hash": "0a1cde1d8f5b",
+    "en": "Power of the F test of a general linear model, or the degrees of freedom, effect size or significance level for a\ngiven power. Equivalent to `pwr::pwr.f2.test()` in R.",
+    "ja": ""
+  },
+  "pwrNormTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "pwrNormTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "pwrNormTest#summary": {
+    "hash": "adc7b38b79e5",
+    "en": "Power of the test of a mean of a normal distribution with known variance, or the effect size, sample size or\nsignificance level for a given power. Equivalent to `pwr::pwr.norm.test()` in R.",
+    "ja": ""
+  },
+  "pwrPTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "pwrPTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "pwrPTest#summary": {
+    "hash": "c383ca25a309",
+    "en": "Power of the test of one proportion (arcsine transformation), or the effect size, sample size or significance\nlevel for a given power. Equivalent to `pwr::pwr.p.test()` in R.",
+    "ja": ""
+  },
+  "pwrRTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "pwrRTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "pwrRTest#summary": {
+    "hash": "9e20aaf7be6c",
+    "en": "Power of the test of a correlation (Fisher's z transformation), or the sample size, correlation or significance\nlevel for a given power. Equivalent to `pwr::pwr.r.test()` in R. As in pwr, the power computed for `\"less\"` reports\n`r` negated.",
+    "ja": ""
+  },
+  "pwrT2nTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "pwrT2nTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "pwrT2nTest#summary": {
+    "hash": "55d15f9ea854",
+    "en": "Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance\nlevel for a given power. Equivalent to `pwr::pwr.t2n.test()` in R.",
+    "ja": ""
+  },
+  "pwrTTest#@category": {
+    "hash": "cefeb3814069",
+    "en": "Effect sizes and power",
+    "ja": ""
+  },
+  "pwrTTest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "pwrTTest#summary": {
+    "hash": "da4f243182e5",
+    "en": "Power of a t test of means, or the sample size, effect size or significance level for a given power.\nEquivalent to `pwr::pwr.t.test()` in R.",
+    "ja": ""
+  }
+}

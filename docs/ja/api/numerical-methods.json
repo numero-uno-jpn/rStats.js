@@ -1,0 +1,822 @@
+{
+  "ApproxOptions#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "ApproxOptions#summary": {
+    "hash": "1c1cba0463ab",
+    "en": "Options for {@link approx}.",
+    "ja": ""
+  },
+  "ApproxOptions.f#summary": {
+    "hash": "84e8536a927d",
+    "en": "For `\"constant\"`: the step value is (1 - f) y_left + f y_right, with f in [0, 1] (else an error, as in R). Default `0`.",
+    "ja": ""
+  },
+  "ApproxOptions.method#summary": {
+    "hash": "aafbe0a82d49",
+    "en": "`\"linear\"` (default) or `\"constant\"` (step function). A unique prefix is accepted and anything else is an\nerror, as in R.",
+    "ja": ""
+  },
+  "ApproxOptions.n#summary": {
+    "hash": "45c17e5e1643",
+    "en": "Number of points when `xout` is not given. Default `50`.",
+    "ja": ""
+  },
+  "ApproxOptions.rule#summary": {
+    "hash": "bc489f74345b",
+    "en": "Extrapolation rule (1: NaN, 2: the end value), for both sides or `[left, right]`. Default `1`. Any other value is\nan error (R takes every value other than 1 as 2).",
+    "ja": ""
+  },
+  "ApproxOptions.ties#summary": {
+    "hash": "4ecca5411162",
+    "en": "How to merge equal x values. Default `\"mean\"`.",
+    "ja": ""
+  },
+  "ApproxOptions.xout#summary": {
+    "hash": "60c846bd2915",
+    "en": "Points to interpolate at. Default: `n` equally spaced points over the range of `x`.",
+    "ja": ""
+  },
+  "ApproxOptions.yleft#summary": {
+    "hash": "07c3b8ea4d0b",
+    "en": "Value left of the data. Default: NaN (rule 1) or the first y (rule 2).",
+    "ja": ""
+  },
+  "ApproxOptions.yright#summary": {
+    "hash": "e9b84ca61295",
+    "en": "Value right of the data. Default: NaN (rule 1) or the last y (rule 2).",
+    "ja": ""
+  },
+  "DerivOptions#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "DerivOptions#summary": {
+    "hash": "0a51a1dd3e17",
+    "en": "Options for {@link grad}, {@link jacobian} and {@link hessian}.",
+    "ja": ""
+  },
+  "DerivOptions.d#summary": {
+    "hash": "597a2e7c8df5",
+    "en": "Relative initial step of \"Richardson\". Default `1e-4` (`0.1` for `hessian`).",
+    "ja": ""
+  },
+  "DerivOptions.eps#summary": {
+    "hash": "ec9f9a5dcbe4",
+    "en": "Step for \"simple\", and for coordinates near 0 in \"Richardson\". Default `1e-4`.",
+    "ja": ""
+  },
+  "DerivOptions.method#summary": {
+    "hash": "29af4d0c34d0",
+    "en": "`\"Richardson\"` (default) or `\"simple\"` (forward difference; not for `hessian`).",
+    "ja": ""
+  },
+  "DerivOptions.r#summary": {
+    "hash": "d3dc4c009153",
+    "en": "Number of halvings of the step (Richardson iterations), at most 512. Default `4`.",
+    "ja": ""
+  },
+  "DerivOptions.zeroTol#summary": {
+    "hash": "06a8b8f0206e",
+    "en": "Coordinates with |x| below this get the step `eps`. Default `sqrt(2.220446e-16 / 7e-7)`.",
+    "ja": ""
+  },
+  "IntegrateOptions#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "IntegrateOptions#summary": {
+    "hash": "d6ac0f9f1aa4",
+    "en": "Options for {@link integrate}.",
+    "ja": ""
+  },
+  "IntegrateOptions.absTol#summary": {
+    "hash": "44ad965683e7",
+    "en": "Absolute accuracy requested. Default `relTol`.",
+    "ja": ""
+  },
+  "IntegrateOptions.relTol#summary": {
+    "hash": "503a997c08fb",
+    "en": "Relative accuracy requested. Default `eps^0.25` (about 1.2e-4).",
+    "ja": ""
+  },
+  "IntegrateOptions.stopOnError#summary": {
+    "hash": "82ab458c95b3",
+    "en": "Throw when QUADPACK reports a problem (default `true`); otherwise return the result with its code.",
+    "ja": ""
+  },
+  "IntegrateOptions.subdivisions#summary": {
+    "hash": "a4b0d1d49bd8",
+    "en": "Maximum number of subintervals. Default `100`.",
+    "ja": ""
+  },
+  "IntegrateResult#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "IntegrateResult#summary": {
+    "hash": "4fa078014bbc",
+    "en": "Result of {@link integrate}.",
+    "ja": ""
+  },
+  "IntegrateResult.absError#summary": {
+    "hash": "b97d29d6c5a6",
+    "en": "Estimate of the absolute error.",
+    "ja": ""
+  },
+  "IntegrateResult.ier#summary": {
+    "hash": "2631b0a208fb",
+    "en": "QUADPACK's code: 0 OK, 1 maximum number of subdivisions reached, 2 roundoff error, 3 bad integrand\n behaviour, 4 roundoff error in the extrapolation table, 5 probably divergent, 6 invalid input.",
+    "ja": ""
+  },
+  "IntegrateResult.message#summary": {
+    "hash": "4179f1dc932a",
+    "en": "R's message for `ier`.",
+    "ja": ""
+  },
+  "IntegrateResult.subdivisions#summary": {
+    "hash": "a8b61e611f99",
+    "en": "Number of subintervals used.",
+    "ja": ""
+  },
+  "IntegrateResult.value#summary": {
+    "hash": "91eb44afeb63",
+    "en": "The estimate of the integral.",
+    "ja": ""
+  },
+  "OdeFunc#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "OdeFunc#summary": {
+    "hash": "bfdc92a908f9",
+    "en": "Derivative of the state: `func(t, y, parms)` returns dy/dt (one value per state variable).",
+    "ja": ""
+  },
+  "OdeOptions#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "OdeOptions#summary": {
+    "hash": "edab437b0a9f",
+    "en": "Options for {@link ode}.",
+    "ja": ""
+  },
+  "OdeOptions.method#summary": {
+    "hash": "5140cf405e25",
+    "en": "`\"euler\"`, `\"rk2\"` (Heun) or `\"rk4\"` (classical Runge-Kutta, default).",
+    "ja": ""
+  },
+  "OptimControl#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "OptimControl#summary": {
+    "hash": "cf3545f719af",
+    "en": "Control parameters of {@link optim} (R's `control`, in camelCase)",
+    "ja": ""
+  },
+  "OptimControl.abstol#summary": {
+    "hash": "57ebe9fb6254",
+    "en": "Absolute convergence tolerance (stop when the value falls to it). Default `-Infinity`.",
+    "ja": ""
+  },
+  "OptimControl.alpha#summary": {
+    "hash": "a2a5750be38e",
+    "en": "Nelder-Mead reflection factor. Default 1.",
+    "ja": ""
+  },
+  "OptimControl.beta#summary": {
+    "hash": "cc78d4b512c9",
+    "en": "Nelder-Mead contraction factor. Default 0.5.",
+    "ja": ""
+  },
+  "OptimControl.factr#summary": {
+    "hash": "86f97ab39722",
+    "en": "L-BFGS-B: relative reduction tolerance in units of the machine epsilon. Default 1e7.",
+    "ja": ""
+  },
+  "OptimControl.fnscale#summary": {
+    "hash": "27c16a1e80b7",
+    "en": "Scaling of the objective: `fn / fnscale` is minimised (negative to maximise). Default 1.",
+    "ja": ""
+  },
+  "OptimControl.gamma#summary": {
+    "hash": "a8fe370db486",
+    "en": "Nelder-Mead expansion factor. Default 2.",
+    "ja": ""
+  },
+  "OptimControl.lmm#summary": {
+    "hash": "2027963bbdbb",
+    "en": "L-BFGS-B: number of corrections kept. Default 5.",
+    "ja": ""
+  },
+  "OptimControl.maxit#summary": {
+    "hash": "7ea275e14a9b",
+    "en": "Maximum number of iterations. Default 500 for Nelder-Mead, 10000 for SANN, 100 otherwise.",
+    "ja": ""
+  },
+  "OptimControl.ndeps#summary": {
+    "hash": "92dfc5254110",
+    "en": "Steps of the finite-difference gradient, in the scaled parameters. Default 1e-3.",
+    "ja": ""
+  },
+  "OptimControl.parscale#summary": {
+    "hash": "a3b2a34af8bf",
+    "en": "Scaling of the parameters: the optimisation is on `par / parscale`. Default 1.",
+    "ja": ""
+  },
+  "OptimControl.pgtol#summary": {
+    "hash": "b65b5accfb50",
+    "en": "L-BFGS-B: tolerance on the projected gradient. Default 0.",
+    "ja": ""
+  },
+  "OptimControl.reltol#summary": {
+    "hash": "1df8571c1b5a",
+    "en": "Relative convergence tolerance. Default `sqrt(eps)`.",
+    "ja": ""
+  },
+  "OptimControl.temp#summary": {
+    "hash": "3f88cceb0b34",
+    "en": "SANN: starting temperature. Default 10.",
+    "ja": ""
+  },
+  "OptimControl.tmax#summary": {
+    "hash": "5baa90a12f96",
+    "en": "SANN: evaluations per temperature. Default 10.",
+    "ja": ""
+  },
+  "OptimControl.type#summary": {
+    "hash": "b3d48d875fb0",
+    "en": "CG update: 1 Fletcher-Reeves (default), 2 Polak-Ribière, 3 Beale-Sorenson.",
+    "ja": ""
+  },
+  "OptimMethod#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "OptimMethod#summary": {
+    "hash": "b4b6bdce3932",
+    "en": "Methods of {@link optim}",
+    "ja": ""
+  },
+  "OptimOptions#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "OptimOptions#summary": {
+    "hash": "ce58bc192fb9",
+    "en": "Options of {@link optim}",
+    "ja": ""
+  },
+  "OptimOptions.control#summary": {
+    "hash": "8af5d47d9144",
+    "en": "Control parameters (R's `control`). See {@link OptimControl}.",
+    "ja": ""
+  },
+  "OptimOptions.gr#summary": {
+    "hash": "4a6d6e4807e1",
+    "en": "Gradient of fn (numerical by central differences when omitted)",
+    "ja": ""
+  },
+  "OptimOptions.hessian#summary": {
+    "hash": "cfb6495e55dd",
+    "en": "Also return the numerically differentiated Hessian at the solution. Default `false`.",
+    "ja": ""
+  },
+  "OptimOptions.lower#summary": {
+    "hash": "5edfa1aa8d90",
+    "en": "Lower bounds (L-BFGS-B and Brent), recycled. Default `-Infinity`.",
+    "ja": ""
+  },
+  "OptimOptions.method#summary": {
+    "hash": "24925c55eb9b",
+    "en": "Default `\"Nelder-Mead\"`",
+    "ja": ""
+  },
+  "OptimOptions.upper#summary": {
+    "hash": "cd3812011ee1",
+    "en": "Upper bounds (L-BFGS-B and Brent), recycled. Default `Infinity`.",
+    "ja": ""
+  },
+  "OptimResult#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "OptimResult#summary": {
+    "hash": "8fbbb77ad4d5",
+    "en": "Result of {@link optim}",
+    "ja": ""
+  },
+  "OptimResult.convergence#summary": {
+    "hash": "9f97aceb061c",
+    "en": "0 success, 1 iteration limit reached, 10 Nelder-Mead simplex degenerate, 51 / 52 L-BFGS-B warning / error",
+    "ja": ""
+  },
+  "OptimResult.counts#summary": {
+    "hash": "c37593383f5d",
+    "en": "Evaluations of fn and gr (NaN where R has NA)",
+    "ja": ""
+  },
+  "OptimResult.hessian#summary": {
+    "hash": "d84196009d59",
+    "en": "The numerically differentiated Hessian at `par`, when `hessian` is true (array of rows).",
+    "ja": ""
+  },
+  "OptimResult.message#summary": {
+    "hash": "19555a23c9c4",
+    "en": "L-BFGS-B's final message; null for the other methods",
+    "ja": ""
+  },
+  "OptimResult.par#summary": {
+    "hash": "9a9b7f7bce51",
+    "en": "The best parameters found.",
+    "ja": ""
+  },
+  "OptimResult.value#summary": {
+    "hash": "ff2df9b7048f",
+    "en": "fn at `par`.",
+    "ja": ""
+  },
+  "OptimResult.warnings#summary": {
+    "hash": "ff46067d45f7",
+    "en": "R's warnings",
+    "ja": ""
+  },
+  "OptimizeOptions#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "OptimizeOptions#summary": {
+    "hash": "77b11954bac7",
+    "en": "Options for {@link optimize}.",
+    "ja": ""
+  },
+  "OptimizeOptions.maximum#summary": {
+    "hash": "54e1153077fa",
+    "en": "Maximise instead of minimise. Default `false`.",
+    "ja": ""
+  },
+  "OptimizeOptions.tol#summary": {
+    "hash": "08cf3aee6694",
+    "en": "Accuracy. Default `eps^0.25`.",
+    "ja": ""
+  },
+  "SplineFunction#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "SplineFunction#summary": {
+    "hash": "0abd9af6cb38",
+    "en": "The function that {@link splinefun} and {@link splinefunH} return: the spline, or a derivative, at the points `xq`.\nThe order of the derivative is the second argument or the option `deriv` (giving both is a RangeError).",
+    "ja": ""
+  },
+  "SplineFunction(0)#summary": {
+    "hash": "0d5437297dd8",
+    "en": "The spline at `xq`, or its derivative of order `deriv` (0 to 3).",
+    "ja": ""
+  },
+  "SplineFunction(1)#summary": {
+    "hash": "8a0684328196",
+    "en": "The spline at `xq`, with the order of the derivative in the options: `s(xq, { deriv: 1 })`.",
+    "ja": ""
+  },
+  "SplineFunctionOptions#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "SplineFunctionOptions#summary": {
+    "hash": "ddee20c664b2",
+    "en": "Options of the function that {@link splinefun} and {@link splinefunH} return.",
+    "ja": ""
+  },
+  "SplineFunctionOptions.deriv#summary": {
+    "hash": "8430c881236d",
+    "en": "Order of the derivative, 0 to 3 (a fraction is truncated, as R does). Default `0`.",
+    "ja": ""
+  },
+  "SplineMethod#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "SplineMethod#summary": {
+    "hash": "5243db2f1659",
+    "en": "Cubic spline method.",
+    "ja": ""
+  },
+  "SplineOptions#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "SplineOptions#summary": {
+    "hash": "844bcf2be19a",
+    "en": "Options for {@link spline}.",
+    "ja": ""
+  },
+  "SplineOptions.method#summary": {
+    "hash": "f7ed02673eac",
+    "en": "`\"fmm\"` (default), `\"natural\"`, `\"periodic\"` or `\"hyman\"`.",
+    "ja": ""
+  },
+  "SplineOptions.n#summary": {
+    "hash": "5a6562d1ec86",
+    "en": "Number of equally spaced points from `xmin` to `xmax`. Default `3 * x.length`.",
+    "ja": ""
+  },
+  "SplineOptions.ties#summary": {
+    "hash": "4ecca5411162",
+    "en": "How to merge equal x values. Default `\"mean\"`.",
+    "ja": ""
+  },
+  "SplineOptions.xmax#summary": {
+    "hash": "62430cd02424",
+    "en": "Right end of the equally spaced points. Default: the largest `x`.",
+    "ja": ""
+  },
+  "SplineOptions.xmin#summary": {
+    "hash": "413d3f657f31",
+    "en": "Left end of the equally spaced points. Default: the smallest `x`.",
+    "ja": ""
+  },
+  "SplineOptions.xout#summary": {
+    "hash": "7a4e4ba47688",
+    "en": "Points to interpolate at (then `n`, `xmin` and `xmax` are not used).",
+    "ja": ""
+  },
+  "SplinefunOptions#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "SplinefunOptions#summary": {
+    "hash": "386f4f3f6e9c",
+    "en": "Options for {@link splinefun}.",
+    "ja": ""
+  },
+  "SplinefunOptions.method#summary": {
+    "hash": "07f0c38e6504",
+    "en": "`\"fmm\"` (default), `\"natural\"`, `\"periodic\"`, `\"monoH.FC\"` or `\"hyman\"`.",
+    "ja": ""
+  },
+  "SplinefunOptions.ties#summary": {
+    "hash": "4ecca5411162",
+    "en": "How to merge equal x values. Default `\"mean\"`.",
+    "ja": ""
+  },
+  "Ties#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "Ties#summary": {
+    "hash": "6326ae5457dc",
+    "en": "How equal `x` values are merged before interpolating (R's `ties`): `\"mean\"`, `\"min\"` or `\"max\"` of their `y`, or a\nfunction of their `y` values.",
+    "ja": ""
+  },
+  "UnirootOptions#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "UnirootOptions#summary": {
+    "hash": "ed8f9dadcd7e",
+    "en": "Options for {@link uniroot}.",
+    "ja": ""
+  },
+  "UnirootOptions.extendInt#summary": {
+    "hash": "85f989f4a58d",
+    "en": "Extend the interval when f has the same sign at both ends: `\"yes\"` (both ways), `\"downX\"` (f decreasing),\n`\"upX\"` (f increasing) or `\"no\"` (default). A unique prefix is accepted and anything else is an error, as in R.",
+    "ja": ""
+  },
+  "UnirootOptions.fLower#summary": {
+    "hash": "fcde9308b731",
+    "en": "f(lower), when already known.",
+    "ja": ""
+  },
+  "UnirootOptions.fUpper#summary": {
+    "hash": "ec213d86f9ad",
+    "en": "f(upper), when already known.",
+    "ja": ""
+  },
+  "UnirootOptions.maxiter#summary": {
+    "hash": "9310f583b903",
+    "en": "Maximum number of iterations. Default `1000`.",
+    "ja": ""
+  },
+  "UnirootOptions.tol#summary": {
+    "hash": "08cf3aee6694",
+    "en": "Accuracy. Default `eps^0.25`.",
+    "ja": ""
+  },
+  "UnirootResult#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "UnirootResult#summary": {
+    "hash": "2e177099d771",
+    "en": "Result of {@link uniroot}.",
+    "ja": ""
+  },
+  "UnirootResult.estimPrec#summary": {
+    "hash": "a177d6e0bb1f",
+    "en": "Brent's estimate of the precision of the root.",
+    "ja": ""
+  },
+  "UnirootResult.fRoot#summary": {
+    "hash": "be043685efd6",
+    "en": "f at the root.",
+    "ja": ""
+  },
+  "UnirootResult.initIt#summary": {
+    "hash": "7b064a618502",
+    "en": "Iterations used to extend the interval (NaN when it was not extended).",
+    "ja": ""
+  },
+  "UnirootResult.iter#summary": {
+    "hash": "5aec4eb56cc1",
+    "en": "Iterations used (including those extending the interval).",
+    "ja": ""
+  },
+  "UnirootResult.root#summary": {
+    "hash": "b35dffd6759d",
+    "en": "The root found.",
+    "ja": ""
+  },
+  "approx#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "approx#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "approx#summary": {
+    "hash": "322379ce53b8",
+    "en": "Linear or constant interpolation. Equivalent to R's `approx()`.",
+    "ja": ""
+  },
+  "approx.x#summary": {
+    "hash": "0ae5e8ada25b",
+    "en": "The points interpolated at (`xout`, or the equally spaced points).",
+    "ja": ""
+  },
+  "approx.y#summary": {
+    "hash": "04daadfa8c61",
+    "en": "The interpolated values, one per point of `x`.",
+    "ja": ""
+  },
+  "barylag#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "barylag#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "barylag#summary": {
+    "hash": "af7ddf427b05",
+    "en": "Lagrange interpolation in barycentric form through the points (xi, yi). Equivalent to `pracma::barylag()` in R.\nThe points must lie within the range of the nodes.",
+    "ja": ""
+  },
+  "grad#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "grad#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "grad#summary": {
+    "hash": "531aca15320c",
+    "en": "Gradient of a scalar function of a vector. Equivalent to `numDeriv::grad(func, x, method)` in R.",
+    "ja": ""
+  },
+  "hermiteInterp#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "hermiteInterp#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "hermiteInterp#summary": {
+    "hash": "60c73eebff03",
+    "en": "The polynomial of degree 2n - 1 through n points with given values and derivatives (global Hermite\ninterpolation, jStat's hermite), evaluated at `x`. Not an R function. Neither base R nor the recommended packages\nhave it (for piecewise cubic Hermite interpolation, see {@link splinefunH}). Computed by divided differences on\nthe doubled nodes.",
+    "ja": ""
+  },
+  "hessian#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "hessian#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "hessian#summary": {
+    "hash": "b6a51dfd2791",
+    "en": "Hessian matrix of a scalar function of a vector, by Richardson extrapolation (Bates and Watts). Equivalent to\n`numDeriv::hessian(func, x)` in R.",
+    "ja": ""
+  },
+  "integrate#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "integrate#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "integrate#summary": {
+    "hash": "ad2a30ccf67e",
+    "en": "Integral of a function of one variable over a finite or infinite range. Equivalent to R's `integrate()`.",
+    "ja": ""
+  },
+  "jacobian#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "jacobian#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "jacobian#summary": {
+    "hash": "a5540fc8ad79",
+    "en": "Jacobian of a vector function of a vector: row i holds the derivatives of the i-th value. Equivalent to\n`numDeriv::jacobian(func, x, method)` in R.",
+    "ja": ""
+  },
+  "ode#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "ode#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "ode#@returns": {
+    "hash": "61d535f03465",
+    "en": "One row per time: `[t, y1, y2, ...]`.",
+    "ja": ""
+  },
+  "ode#summary": {
+    "hash": "dcfe1e41a6f5",
+    "en": "Solve the initial value problem y' = func(t, y, parms), y(times[0]) = y, with one fixed step per interval of\n`times`. Equivalent to `deSolve::ode(y, times, func, parms, method)` in R. That is for `\"euler\"` and `\"rk4\"`; for\n`\"rk2\"`, it is `deSolve::ode(..., method = rkMethod(\"rk2\"))` (or `deSolve::rk(..., method = \"rk2\")`), since deSolve's `ode()`\ndoes not accept `method = \"rk2\"`.",
+    "ja": ""
+  },
+  "optim#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "optim#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "optim#summary": {
+    "hash": "903cde0d2e31",
+    "en": "General-purpose minimisation of `fn` from the starting point `par`. Equivalent to R's `optim()`. The same methods\nwith the same iterations, so the same results and counts, except CG: after an accepted step it tries the minimum of\nthe parabola through the start and the accepted point, where R's cgmin always tries the midpoint (so CG's path,\nresults and counts differ from R's).",
+    "ja": ""
+  },
+  "optimHess#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "optimHess#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "optimHess#summary": {
+    "hash": "deebb7aec5c6",
+    "en": "Numerically differentiated Hessian of fn at par, from central differences of the gradient (gr, or the numerical\ngradient of fn). Equivalent to R's `optimHess()`. `control` uses `fnscale`, `parscale` and `ndeps`.",
+    "ja": ""
+  },
+  "optimize#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "optimize#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "optimize#summary": {
+    "hash": "d64d0185c324",
+    "en": "Minimum (or maximum) of a function of one variable on an interval, by Brent's golden-section and parabolic\nsearch. Equivalent to R's `optimize()`. `optimum` is the location (R's `minimum`/`maximum`) and `objective` the\nfunction there. `lower` and `upper` must be finite and `lower` less than `upper`, as in R.",
+    "ja": ""
+  },
+  "optimize.objective#summary": {
+    "hash": "dc20a23ec6fb",
+    "en": "Value of the function there.",
+    "ja": ""
+  },
+  "optimize.optimum#summary": {
+    "hash": "d7477b776712",
+    "en": "Location of the minimum or maximum (R's `minimum` or `maximum`).",
+    "ja": ""
+  },
+  "spline#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "spline#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "spline#summary": {
+    "hash": "094f2787f84a",
+    "en": "Cubic spline interpolation at given or equally spaced points. Equivalent to R's `spline()`.",
+    "ja": ""
+  },
+  "spline.x#summary": {
+    "hash": "0ae5e8ada25b",
+    "en": "The points interpolated at (`xout`, or the equally spaced points).",
+    "ja": ""
+  },
+  "spline.y#summary": {
+    "hash": "04daadfa8c61",
+    "en": "The interpolated values, one per point of `x`.",
+    "ja": ""
+  },
+  "splinefun#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "splinefun#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "splinefun#summary": {
+    "hash": "586a5ad8c73c",
+    "en": "The cubic spline through the points, as a function of `x` and the order of derivative (0 to 3; a fraction is\ntruncated, as R does). Equivalent to R's `splinefun()`. Except that the third derivative of `\"monoH.FC\"` is the\nexact one (see {@link splinefunH}). The order of derivative is the second argument of the function or its option\n`deriv` ({@link SplineFunction}).",
+    "ja": ""
+  },
+  "splinefunH#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "splinefunH#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "splinefunH#summary": {
+    "hash": "3a5a639ae4be",
+    "en": "The cubic Hermite spline with values `y` and slopes `m` at the points `x`, as a function of `x` and the order of\nderivative (0 to 3; a fraction is truncated, as R does); linear outside the data. Equivalent to R's `splinefunH()`.\nExcept for the third derivative: on [x_i, x_{i+1}] it is the exact (6 m_i + 6 m_{i+1} - 12 delta) / h^2, with\nh = x_{i+1} - x_i and delta = (y_{i+1} - y_i) / h, where R divides by h only once (the two agree when h = 1). The\norder of derivative is the second argument of the function or its option `deriv` ({@link SplineFunction}).",
+    "ja": ""
+  },
+  "uniroot#@category": {
+    "hash": "750474c0c271",
+    "en": "Numerical methods",
+    "ja": ""
+  },
+  "uniroot#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "uniroot#summary": {
+    "hash": "c70577a0932a",
+    "en": "A root of a function of one variable in an interval, by Brent's zeroin. Equivalent to R's `uniroot()`.",
+    "ja": ""
+  }
+}

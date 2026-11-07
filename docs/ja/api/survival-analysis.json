@@ -1,0 +1,517 @@
+{
+  "CoxphControl#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "CoxphControl#summary": {
+    "hash": "ae1b9dd0bb09",
+    "en": "Control of the Newton-Raphson iterations of {@link coxph} (R's `coxph.control`).",
+    "ja": ""
+  },
+  "CoxphControl.eps#summary": {
+    "hash": "f6b6e63214a8",
+    "en": "Convergence tolerance on the relative change of the log partial likelihood. Default 1e-9.",
+    "ja": ""
+  },
+  "CoxphControl.iterMax#summary": {
+    "hash": "cae6ee13ca09",
+    "en": "Maximum number of iterations. Default 20.",
+    "ja": ""
+  },
+  "CoxphControl.tolerChol#summary": {
+    "hash": "8d04c173445d",
+    "en": "Tolerance of the pivots of the Cholesky factorisation. Default 2^-39 (eps^0.75 for the machine eps 2^-52).",
+    "ja": ""
+  },
+  "CoxphControl.tolerInf#summary": {
+    "hash": "3216272d8786",
+    "en": "Tolerance of the check for infinite coefficients. Default sqrt(`eps`).",
+    "ja": ""
+  },
+  "CoxphOptions#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "CoxphOptions#summary": {
+    "hash": "43507f45c638",
+    "en": "Options for {@link coxph}.",
+    "ja": ""
+  },
+  "CoxphOptions.confLevel#summary": {
+    "hash": "f8c806fc5453",
+    "en": "Confidence level of the intervals of exp(coef). Default 0.95.",
+    "ja": ""
+  },
+  "CoxphOptions.control#summary": {
+    "hash": "81df3e07fff7",
+    "en": "See {@link CoxphControl}.",
+    "ja": ""
+  },
+  "CoxphOptions.init#summary": {
+    "hash": "b9fe0b5291f4",
+    "en": "Starting coefficients. Default 0.",
+    "ja": ""
+  },
+  "CoxphOptions.nocenter#summary": {
+    "hash": "886c5b3450c8",
+    "en": "Covariates whose values all lie in this set are neither centred nor scaled. Default `[-1, 0, 1]`.",
+    "ja": ""
+  },
+  "CoxphOptions.strata#summary": {
+    "hash": "29c04c42d8d8",
+    "en": "Stratum labels, one per observation: a separate baseline hazard per stratum.",
+    "ja": ""
+  },
+  "CoxphOptions.ties#summary": {
+    "hash": "25f97be6bf2d",
+    "en": "Handling of tied event times. Default `\"efron\"`.",
+    "ja": ""
+  },
+  "CoxphOptions.weights#summary": {
+    "hash": "3c3f079882e5",
+    "en": "Case weights (positive integers; other weights make R use a robust variance, which is not supported yet).",
+    "ja": ""
+  },
+  "CoxphResult#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "CoxphResult#summary": {
+    "hash": "ecaaa3580a90",
+    "en": "Result of {@link coxph}.",
+    "ja": ""
+  },
+  "CoxphResult.coefficients#summary": {
+    "hash": "b9896c18f3f1",
+    "en": "Coefficients (NaN for R's NA: an aliased column or one whose information fell below the tolerance)",
+    "ja": ""
+  },
+  "CoxphResult.iter#summary": {
+    "hash": "c93192711097",
+    "en": "Number of iterations (`iterMax + 1` when they ran out)",
+    "ja": ""
+  },
+  "CoxphResult.linearPredictors#summary": {
+    "hash": "49a1380d5b8d",
+    "en": "Linear predictors (centred by the means), one per observation used, in input order",
+    "ja": ""
+  },
+  "CoxphResult.loglik#summary": {
+    "hash": "bec1b76e6853",
+    "en": "Log partial likelihood at the starting values and at the end",
+    "ja": ""
+  },
+  "CoxphResult.logtest#summary": {
+    "hash": "ef398ebc1560",
+    "en": "Likelihood ratio test",
+    "ja": ""
+  },
+  "CoxphResult.lower#summary": {
+    "hash": "87d8c28bcaa2",
+    "en": "Lower confidence limits of exp(coef)",
+    "ja": ""
+  },
+  "CoxphResult.means#summary": {
+    "hash": "2c886b2bca94",
+    "en": "The means used to centre the covariates (0 for the columns not centred)",
+    "ja": ""
+  },
+  "CoxphResult.n#summary": {
+    "hash": "5cd47c9217e3",
+    "en": "Number of observations used",
+    "ja": ""
+  },
+  "CoxphResult.nevent#summary": {
+    "hash": "fe5894dcb4cd",
+    "en": "Number of events",
+    "ja": ""
+  },
+  "CoxphResult.p#summary": {
+    "hash": "65143ba59634",
+    "en": "Two-sided p-values `Pr(>|z|)`",
+    "ja": ""
+  },
+  "CoxphResult.pValue#summary": {
+    "hash": "14b7d385c694",
+    "en": "Alias of `p`: the same array.",
+    "ja": ""
+  },
+  "CoxphResult.rsq#summary": {
+    "hash": "a080023eb60f",
+    "en": "R^2 (1 - exp(-logtest / n)) and its maximum (1 - exp(2 loglik[0] / n))",
+    "ja": ""
+  },
+  "CoxphResult.rsq.maxrsq#summary": {
+    "hash": "f0e7f446a513",
+    "en": "Its maximum, 1 - exp(2 loglik[0] / n) (R's `maxrsq`).",
+    "ja": ""
+  },
+  "CoxphResult.rsq.rsq#summary": {
+    "hash": "5a9f906d44b6",
+    "en": "R^2, 1 - exp(-logtest / n) (R's `rsq`).",
+    "ja": ""
+  },
+  "CoxphResult.score#summary": {
+    "hash": "7c3e3fa680ca",
+    "en": "The score test statistic at the starting values",
+    "ja": ""
+  },
+  "CoxphResult.sctest#summary": {
+    "hash": "a8fc550e559e",
+    "en": "Score (log-rank) test",
+    "ja": ""
+  },
+  "CoxphResult.se#summary": {
+    "hash": "e107dc59164a",
+    "en": "Standard errors of the coefficients",
+    "ja": ""
+  },
+  "CoxphResult.stdError#summary": {
+    "hash": "a2d9d992c915",
+    "en": "Alias of `se`: the same array.",
+    "ja": ""
+  },
+  "CoxphResult.upper#summary": {
+    "hash": "7c36721902da",
+    "en": "Upper confidence limits of exp(coef)",
+    "ja": ""
+  },
+  "CoxphResult.var#summary": {
+    "hash": "1a9f63574f44",
+    "en": "Variance matrix of the coefficients (array of rows)",
+    "ja": ""
+  },
+  "CoxphResult.wald#summary": {
+    "hash": "2e8f4e891b6c",
+    "en": "The Wald statistic of the non-NA coefficients (against `init` when given)",
+    "ja": ""
+  },
+  "CoxphResult.waldtest#summary": {
+    "hash": "7af5b8baaec8",
+    "en": "Wald test",
+    "ja": ""
+  },
+  "CoxphResult.warnings#summary": {
+    "hash": "19382659fccd",
+    "en": "R's warnings, each once, in order of first appearance.",
+    "ja": ""
+  },
+  "CoxphResult.z#summary": {
+    "hash": "4e79b1893bfd",
+    "en": "Wald z statistics",
+    "ja": ""
+  },
+  "CoxphResult.zValue#summary": {
+    "hash": "f199ee2a8585",
+    "en": "Alias of `z`: the same array.",
+    "ja": ""
+  },
+  "CoxphTest#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "CoxphTest#summary": {
+    "hash": "7756ec0c3f8f",
+    "en": "A test statistic with its degrees of freedom and upper chi-squared tail.",
+    "ja": ""
+  },
+  "CoxphTest.df#summary": {
+    "hash": "8244d1ac1ac5",
+    "en": "Degrees of freedom (R's `df`).",
+    "ja": ""
+  },
+  "CoxphTest.pValue#summary": {
+    "hash": "6bdc6fb1443f",
+    "en": "Upper chi-squared tail (R's `pvalue`).",
+    "ja": ""
+  },
+  "CoxphTest.statistic#summary": {
+    "hash": "ad0ff471d5e2",
+    "en": "The chi-squared statistic (R's `test`).",
+    "ja": ""
+  },
+  "SurvdiffOptions#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "SurvdiffOptions#summary": {
+    "hash": "c7e02f5eeeb1",
+    "en": "Options for {@link survdiff}.",
+    "ja": ""
+  },
+  "SurvdiffOptions.rho#summary": {
+    "hash": "0c4651147e49",
+    "en": "Exponent of the weights S(t-)^rho (pooled Kaplan-Meier estimate just before each event time). Default 0.",
+    "ja": ""
+  },
+  "SurvdiffResult#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "SurvdiffResult#summary": {
+    "hash": "083b3cee2bd6",
+    "en": "Result of {@link survdiff}.",
+    "ja": ""
+  },
+  "SurvdiffResult.chisq#summary": {
+    "hash": "f927d1112a02",
+    "en": "Chi-squared statistic",
+    "ja": ""
+  },
+  "SurvdiffResult.df#summary": {
+    "hash": "f684ca1ba51b",
+    "en": "Degrees of freedom: (number of groups with a positive expected count) - 1, or the rank of the variance matrix of\nthose groups (all but the first) when it is singular",
+    "ja": ""
+  },
+  "SurvdiffResult.exp#summary": {
+    "hash": "f4d0553d0d17",
+    "en": "Weighted expected number of events per group",
+    "ja": ""
+  },
+  "SurvdiffResult.groups#summary": {
+    "hash": "8898dfcc1533",
+    "en": "R's names of the groups, `\"group=<label>\"`, in the order of the sorted labels",
+    "ja": ""
+  },
+  "SurvdiffResult.n#summary": {
+    "hash": "5901bc26819e",
+    "en": "Number of observations per group",
+    "ja": ""
+  },
+  "SurvdiffResult.obs#summary": {
+    "hash": "0bf6073124fb",
+    "en": "Weighted observed number of events per group",
+    "ja": ""
+  },
+  "SurvdiffResult.pValue#summary": {
+    "hash": "e4651488cea6",
+    "en": "Alias of `pvalue`: the same value.",
+    "ja": ""
+  },
+  "SurvdiffResult.pvalue#summary": {
+    "hash": "fe6b84e29571",
+    "en": "Upper chi-squared tail on `df` degrees of freedom (NaN for df = 0: the data carry no information on the groups)",
+    "ja": ""
+  },
+  "SurvdiffResult.var#summary": {
+    "hash": "b2c820ef5164",
+    "en": "Variance matrix of obs - exp (array of rows)",
+    "ja": ""
+  },
+  "SurvdiffResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "SurvfitConfType#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "SurvfitConfType#summary": {
+    "hash": "2329064f9936",
+    "en": "Confidence interval type of {@link survfit}.",
+    "ja": ""
+  },
+  "SurvfitOptions#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "SurvfitOptions#summary": {
+    "hash": "4df02fb61d3c",
+    "en": "Options for {@link survfit}.",
+    "ja": ""
+  },
+  "SurvfitOptions.confInt#summary": {
+    "hash": "f18f020efba3",
+    "en": "Confidence level. Default 0.95.",
+    "ja": ""
+  },
+  "SurvfitOptions.confType#summary": {
+    "hash": "b00c00e4bddf",
+    "en": "Transformation of the pointwise confidence intervals. Default `\"log\"`.",
+    "ja": ""
+  },
+  "SurvfitOptions.group#summary": {
+    "hash": "cbd449982c37",
+    "en": "Group labels, one per observation: one curve per group. Omitted: a single curve.",
+    "ja": ""
+  },
+  "SurvfitResult#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "SurvfitResult#summary": {
+    "hash": "a355fa79fdfd",
+    "en": "Result of {@link survfit}: the rows of R's `summary(fit, censored = TRUE)` and the medians.",
+    "ja": ""
+  },
+  "SurvfitResult.lower#summary": {
+    "hash": "50494cc1358f",
+    "en": "Lower limit of the pointwise confidence interval of S(t) (where S(t) = 1, 1 for each `confType`; with `\"log-log\"`\nas survival 3.8-12, NA before it)",
+    "ja": ""
+  },
+  "SurvfitResult.median#summary": {
+    "hash": "6dafc2c61d68",
+    "en": "Per stratum, [median, lower limit, upper limit] (NaN for R's NA)",
+    "ja": ""
+  },
+  "SurvfitResult.medianRows#summary": {
+    "hash": "36f85e1d304d",
+    "en": "The strata of `median`",
+    "ja": ""
+  },
+  "SurvfitResult.nCensor#summary": {
+    "hash": "ece7b5896d13",
+    "en": "Number censored at the time (R's `n.censor`)",
+    "ja": ""
+  },
+  "SurvfitResult.nEvent#summary": {
+    "hash": "36bb3670303c",
+    "en": "Number of events at the time (R's `n.event`)",
+    "ja": ""
+  },
+  "SurvfitResult.nRisk#summary": {
+    "hash": "04d9d7b012f2",
+    "en": "Number at risk just before the time (R's `n.risk`)",
+    "ja": ""
+  },
+  "SurvfitResult.stdErr#summary": {
+    "hash": "f9c427193075",
+    "en": "Standard error of S(t) (S times the standard error of log S)",
+    "ja": ""
+  },
+  "SurvfitResult.stdError#summary": {
+    "hash": "57873a6127b0",
+    "en": "Alias of `stdErr`: the same array.",
+    "ja": ""
+  },
+  "SurvfitResult.strata#summary": {
+    "hash": "bf820a7240b1",
+    "en": "Stratum of each row (`\"group=<label>\"`, or `\"all\"` for a single curve)",
+    "ja": ""
+  },
+  "SurvfitResult.surv#summary": {
+    "hash": "737fb22c7831",
+    "en": "Kaplan-Meier estimate S(t)",
+    "ja": ""
+  },
+  "SurvfitResult.time#summary": {
+    "hash": "a52f10d227c3",
+    "en": "Time of each row (the distinct times of the stratum, censored ones included)",
+    "ja": ""
+  },
+  "SurvfitResult.upper#summary": {
+    "hash": "30f85a878af4",
+    "en": "Upper limit of the pointwise confidence interval of S(t)",
+    "ja": ""
+  },
+  "coxph#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "coxph#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "coxph#@param options": {
+    "hash": "795aa9a4dd66",
+    "en": "See {@link CoxphOptions}.",
+    "ja": ""
+  },
+  "coxph#@param status": {
+    "hash": "6cf57efd1a01",
+    "en": "1 for an event, 0 for a censored time.",
+    "ja": ""
+  },
+  "coxph#@param time": {
+    "hash": "5c2950cfd3c6",
+    "en": "Follow-up times.",
+    "ja": ""
+  },
+  "coxph#@param x": {
+    "hash": "13061a0d73ca",
+    "en": "The covariate matrix, one row per observation (at least one column).",
+    "ja": ""
+  },
+  "coxph#summary": {
+    "hash": "acd58b7a26a0",
+    "en": "Cox proportional hazards regression. Equivalent to R's `survival::coxph()`. As\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, control)` for right-censored data, with the\nvalues of `summary(fit)`.\n\nRows with a missing time, status, covariate, weight or stratum are dropped. Times within sqrt(eps) of each other are\ntreated as tied. Covariates whose values all lie in `nocenter` are not centred; the others are centred by their\nweighted means, which only shifts the linear predictors. R's warnings (non-convergence, possibly infinite\ncoefficients) are returned in `warnings`.",
+    "ja": ""
+  },
+  "survdiff#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "survdiff#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "survdiff#@param group": {
+    "hash": "36a43786f511",
+    "en": "Group labels, one per observation.",
+    "ja": ""
+  },
+  "survdiff#@param options": {
+    "hash": "fbcc677f090d",
+    "en": "See {@link SurvdiffOptions}.",
+    "ja": ""
+  },
+  "survdiff#@param status": {
+    "hash": "6cf57efd1a01",
+    "en": "1 for an event, 0 for a censored time.",
+    "ja": ""
+  },
+  "survdiff#@param time": {
+    "hash": "5c2950cfd3c6",
+    "en": "Follow-up times.",
+    "ja": ""
+  },
+  "survdiff#summary": {
+    "hash": "9e64215bc011",
+    "en": "Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for\n`rho = 0`. Equivalent to R's `survival::survdiff()`. As `survdiff(Surv(time, status) ~ group, rho = rho)`.\n\nRows with a missing time, status or group are dropped.",
+    "ja": ""
+  },
+  "survfit#@category": {
+    "hash": "782c73833bcc",
+    "en": "Survival analysis",
+    "ja": ""
+  },
+  "survfit#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "survfit#@param options": {
+    "hash": "24771a30a7f0",
+    "en": "See {@link SurvfitOptions}.",
+    "ja": ""
+  },
+  "survfit#@param status": {
+    "hash": "6cf57efd1a01",
+    "en": "1 for an event, 0 for a censored time.",
+    "ja": ""
+  },
+  "survfit#@param time": {
+    "hash": "5c2950cfd3c6",
+    "en": "Follow-up times.",
+    "ja": ""
+  },
+  "survfit#summary": {
+    "hash": "d66eef16b2f4",
+    "en": "Kaplan-Meier estimate of the survival function with Greenwood's standard error and pointwise confidence intervals.\nEquivalent to R's `survival::survfit()`. As `summary(survfit(Surv(time, status) ~ group, conf.type, conf.int),\ncensored = TRUE)`, with the medians and their confidence limits of `summary(fit)$table`.\n\nRows with a missing time, status or group are dropped.",
+    "ja": ""
+  }
+}

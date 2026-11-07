@@ -1,0 +1,727 @@
+{
+  "GlmAnovaOptions#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmAnovaOptions#summary": {
+    "hash": "6ef1e3f00b42",
+    "en": "Options for {@link glmAnova}.",
+    "ja": ""
+  },
+  "GlmAnovaOptions.dispersion#summary": {
+    "hash": "ad9eef5ebb55",
+    "en": "Dispersion for the tests instead of the estimate of the largest model.",
+    "ja": ""
+  },
+  "GlmAnovaOptions.test#summary": {
+    "hash": "c53bed16912a",
+    "en": "The test: `\"Chisq\"` (or its synonym `\"LRT\"`), `\"Rao\"`, `\"F\"`, `\"Cp\"`, or `false` for none. Default, as R since\n4.4.0: `\"Chisq\"` when the dispersion is known (binomial, poisson or `dispersion` given), else `\"F\"`.",
+    "ja": ""
+  },
+  "GlmAnovaResult#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmAnovaResult#summary": {
+    "hash": "9288956f44ac",
+    "en": "Result of {@link glmAnova}: R's anova table.",
+    "ja": ""
+  },
+  "GlmAnovaResult.colNames#summary": {
+    "hash": "7f4b70ded6cb",
+    "en": "Column names, such as `\"Df\"`, `\"Deviance\"`, `\"Resid. Df\"`, `\"Resid. Dev\"`, `\"Pr(>Chi)\"`.",
+    "ja": ""
+  },
+  "GlmAnovaResult.rowNames#summary": {
+    "hash": "4056ce071587",
+    "en": "Row names: `\"NULL\"`, `\"x1\"`, ... for one fit; `\"1\"`, `\"2\"`, ... for a comparison.",
+    "ja": ""
+  },
+  "GlmAnovaResult.table#summary": {
+    "hash": "8038156e03d0",
+    "en": "One array per row; NaN where R leaves the cell empty (NA).",
+    "ja": ""
+  },
+  "GlmAnovaResult.warnings#summary": {
+    "hash": "59b46434779d",
+    "en": "R's warnings (from the refits and the F test of binomial or poisson families).",
+    "ja": ""
+  },
+  "GlmAnovaTest#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmAnovaTest#summary": {
+    "hash": "742e1b59fe51",
+    "en": "Tests of {@link glmAnova}.",
+    "ja": ""
+  },
+  "GlmConfintOptions#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmConfintOptions#summary": {
+    "hash": "478c0457c569",
+    "en": "Options for {@link glmConfint}.",
+    "ja": ""
+  },
+  "GlmConfintOptions.level#summary": {
+    "hash": "a9c8e3eccda4",
+    "en": "Confidence level. Default `0.95`.",
+    "ja": ""
+  },
+  "GlmConfintOptions.parm#summary": {
+    "hash": "598a19425434",
+    "en": "Indices of the coefficients (0-based, intercept first). Default: all.",
+    "ja": ""
+  },
+  "GlmConfintOptions.test#summary": {
+    "hash": "042965c6c2bd",
+    "en": "`\"LRT\"` (default; the likelihood ratio) or `\"Rao\"` (the score statistic).",
+    "ja": ""
+  },
+  "GlmFamilyName#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmFamilyName#summary": {
+    "hash": "c9e0a10bc9b7",
+    "en": "Names of the families of R's stats.",
+    "ja": ""
+  },
+  "GlmFamilySpec#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmFamilySpec#summary": {
+    "hash": "ae3c59f34b92",
+    "en": "A family with its link (and, for `quasi`, its variance function), as R's family objects such as `quasi(link = \"log\", variance = \"mu^2\")`.",
+    "ja": ""
+  },
+  "GlmFamilySpec.family#summary": {
+    "hash": "4c292b4a54b5",
+    "en": "The family's name, such as `\"binomial\"`.",
+    "ja": ""
+  },
+  "GlmFamilySpec.link#summary": {
+    "hash": "259419e6fb21",
+    "en": "The link: any named link (for `quasi`, one of its own list). Default: the family's default link.",
+    "ja": ""
+  },
+  "GlmFamilySpec.variance#summary": {
+    "hash": "eea3ace78383",
+    "en": "Variance function of `quasi`. Default `\"constant\"`.",
+    "ja": ""
+  },
+  "GlmLink#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmLink#summary": {
+    "hash": "fec2bfecc7cc",
+    "en": "A link: one of R's named links or a power link `mu^power` (R's `power(lambda)`; `power <= 0` is the log link).",
+    "ja": ""
+  },
+  "GlmLinkName#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmLinkName#summary": {
+    "hash": "bbe008316c20",
+    "en": "Names of the links of R's stats (`make.link`).",
+    "ja": ""
+  },
+  "GlmModel#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmModel#summary": {
+    "hash": "83c17165425b",
+    "en": "The data and settings of a fit, kept for the refits of {@link glmConfint} and {@link glmAnova}.",
+    "ja": ""
+  },
+  "GlmModel.columnNames#summary": {
+    "hash": "1611761932c6",
+    "en": "Column names: `\"(Intercept)\"`, `\"x1\"`, `\"x2\"`, ...",
+    "ja": ""
+  },
+  "GlmModel.epsilon#summary": {
+    "hash": "d5df4aa3ff29",
+    "en": "Convergence tolerance (R's `glm.control(epsilon)`).",
+    "ja": ""
+  },
+  "GlmModel.familySpec#summary": {
+    "hash": "811eb946b9af",
+    "en": "The family and link of the fit.",
+    "ja": ""
+  },
+  "GlmModel.hasOffset#summary": {
+    "hash": "d9b78ad81401",
+    "en": "Whether an offset was given.",
+    "ja": ""
+  },
+  "GlmModel.intercept#summary": {
+    "hash": "175bfd0e95f8",
+    "en": "Whether the model has an intercept.",
+    "ja": ""
+  },
+  "GlmModel.maxit#summary": {
+    "hash": "0662be30d5da",
+    "en": "Maximum number of iterations (R's `glm.control(maxit)`).",
+    "ja": ""
+  },
+  "GlmModel.offset#summary": {
+    "hash": "e49593f39806",
+    "en": "Offset, one per row (0 when not given).",
+    "ja": ""
+  },
+  "GlmModel.priorGiven#summary": {
+    "hash": "4202ab9c4d4b",
+    "en": "Prior weights as given (1 when not given).",
+    "ja": ""
+  },
+  "GlmModel.start#summary": {
+    "hash": "3014797ccf81",
+    "en": "Starting coefficients, if given.",
+    "ja": ""
+  },
+  "GlmModel.x#summary": {
+    "hash": "f91462e1f216",
+    "en": "Model matrix (with the column of ones), rows with a missing value dropped.",
+    "ja": ""
+  },
+  "GlmModel.yGiven#summary": {
+    "hash": "034de105c7af",
+    "en": "Response as given (a vector, or rows of successes and failures), rows with a missing value dropped.",
+    "ja": ""
+  },
+  "GlmModel.yScale#summary": {
+    "hash": "deb3b95db5e1",
+    "en": "k when the fit was computed on the response scaled by 2^-k (gaussian on the identity link; see scaledView).",
+    "ja": ""
+  },
+  "GlmOptions#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmOptions#summary": {
+    "hash": "1dfeb5b4d5f6",
+    "en": "Options for {@link glm}.",
+    "ja": ""
+  },
+  "GlmOptions.epsilon#summary": {
+    "hash": "1172f2ae7660",
+    "en": "Convergence tolerance on the relative change of the deviance (R's `glm.control(epsilon)`). Default `1e-8`.",
+    "ja": ""
+  },
+  "GlmOptions.family#summary": {
+    "hash": "c377223dfaeb",
+    "en": "The family: a name (`\"gaussian\"`, the default, `\"binomial\"`, `\"quasibinomial\"`, `\"poisson\"`, `\"quasipoisson\"`,\n`\"Gamma\"`, `\"inverse.gaussian\"`, `\"quasi\"`) or an object with the link and, for `quasi`, the variance function,\nas R's `quasi(link = \"log\", variance = \"mu^2\")`.",
+    "ja": ""
+  },
+  "GlmOptions.intercept#summary": {
+    "hash": "cc460b4791bd",
+    "en": "Include an intercept (a column of ones before the columns of `x`). Default `true`.",
+    "ja": ""
+  },
+  "GlmOptions.link#summary": {
+    "hash": "490099064514",
+    "en": "The link (overrides the family object's): a name such as `\"logit\"` or `{ power: lambda }` (quasi only). As in R,\nany named link may be used with any family except `quasi`, which takes only its own list.",
+    "ja": ""
+  },
+  "GlmOptions.maxit#summary": {
+    "hash": "8df303ed2238",
+    "en": "Maximum number of iterations. Default `25`.",
+    "ja": ""
+  },
+  "GlmOptions.offset#summary": {
+    "hash": "edbff844543b",
+    "en": "Offset added to the linear predictor.",
+    "ja": ""
+  },
+  "GlmOptions.start#summary": {
+    "hash": "ae5a98258d8f",
+    "en": "Starting coefficients (intercept first).",
+    "ja": ""
+  },
+  "GlmOptions.weights#summary": {
+    "hash": "6f15ab4d432a",
+    "en": "Prior weights (non-negative).",
+    "ja": ""
+  },
+  "GlmPredictOptions#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmPredictOptions#summary": {
+    "hash": "0f2d573ed11a",
+    "en": "Options for {@link glmPredict}.",
+    "ja": ""
+  },
+  "GlmPredictOptions.dispersion#summary": {
+    "hash": "75a6ec64d928",
+    "en": "Dispersion for the standard errors instead of the summary's.",
+    "ja": ""
+  },
+  "GlmPredictOptions.newdata#summary": {
+    "hash": "6078b38f47e9",
+    "en": "New predictor values, with the columns of `x` (no column of ones). Default: the data of the fit.",
+    "ja": ""
+  },
+  "GlmPredictOptions.newoffset#summary": {
+    "hash": "182715bf1712",
+    "en": "Offset for `newdata`. Default 0.",
+    "ja": ""
+  },
+  "GlmPredictOptions.type#summary": {
+    "hash": "88b67fff2b1a",
+    "en": "`\"link\"` (default; the linear predictor) or `\"response\"` (the mean).",
+    "ja": ""
+  },
+  "GlmResidualType#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmResidualType#summary": {
+    "hash": "f1807c59eb9f",
+    "en": "Kinds of residuals of {@link glmResiduals}.",
+    "ja": ""
+  },
+  "GlmResidualsOptions#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmResidualsOptions#summary": {
+    "hash": "e3272b80da87",
+    "en": "Options for {@link glmResiduals}.",
+    "ja": ""
+  },
+  "GlmResidualsOptions.type#summary": {
+    "hash": "3c2d346b4010",
+    "en": "Kind of residuals. Default `\"deviance\"`.",
+    "ja": ""
+  },
+  "GlmResult#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmResult#summary": {
+    "hash": "eb5eabaebafd",
+    "en": "Result of {@link glm}: R's `glm` object.",
+    "ja": ""
+  },
+  "GlmResult.aic#summary": {
+    "hash": "903db591971c",
+    "en": "AIC; NaN for the quasi families.",
+    "ja": ""
+  },
+  "GlmResult.boundary#summary": {
+    "hash": "18e8ac5425e2",
+    "en": "Whether the step was truncated (halved) in the last iteration.",
+    "ja": ""
+  },
+  "GlmResult.coefficients#summary": {
+    "hash": "819c384fa4fe",
+    "en": "Coefficients (intercept first); NaN for aliased columns.",
+    "ja": ""
+  },
+  "GlmResult.converged#summary": {
+    "hash": "9c821b9d30c6",
+    "en": "Whether the iterations converged.",
+    "ja": ""
+  },
+  "GlmResult.deviance#summary": {
+    "hash": "c467c3c4f36a",
+    "en": "Residual deviance.",
+    "ja": ""
+  },
+  "GlmResult.dfNull#summary": {
+    "hash": "3d5bd616b7b0",
+    "en": "Degrees of freedom of the null deviance (R's `df.null`).",
+    "ja": ""
+  },
+  "GlmResult.dfResidual#summary": {
+    "hash": "a265af92ef8a",
+    "en": "Residual degrees of freedom (R's `df.residual`).",
+    "ja": ""
+  },
+  "GlmResult.family#summary": {
+    "hash": "93a29071db65",
+    "en": "The family's name and the link's name (`\"mu^0.333\"` for a power link).",
+    "ja": ""
+  },
+  "GlmResult.fittedValues#summary": {
+    "hash": "b2419492488b",
+    "en": "Fitted means, one per row (rows with a missing value dropped).",
+    "ja": ""
+  },
+  "GlmResult.iter#summary": {
+    "hash": "d35ada18fc0a",
+    "en": "Number of iterations.",
+    "ja": ""
+  },
+  "GlmResult.linearPredictors#summary": {
+    "hash": "df49045f888e",
+    "en": "Linear predictors, one per row, offset included (R's `linear.predictors`).",
+    "ja": ""
+  },
+  "GlmResult.link#summary": {
+    "hash": "02db169cd281",
+    "en": "The link's name, such as `\"logit\"`.",
+    "ja": ""
+  },
+  "GlmResult.model#summary": {
+    "hash": "396b26c6adc2",
+    "en": "The data and settings of the fit, for the refits of {@link glmConfint} and {@link glmAnova}.",
+    "ja": ""
+  },
+  "GlmResult.nullDeviance#summary": {
+    "hash": "e0f290bf568e",
+    "en": "Deviance of the model with the intercept only, or of the empty model without intercept (R's `null.deviance`).",
+    "ja": ""
+  },
+  "GlmResult.priorWeights#summary": {
+    "hash": "02efd8dbb2ec",
+    "en": "Prior weights after the response was read (multiplied by the sizes for a two-column binomial response).",
+    "ja": ""
+  },
+  "GlmResult.qr#summary": {
+    "hash": "10c0c18d7286",
+    "en": "QR decomposition of the last weighted least squares problem (undefined for a model without columns).",
+    "ja": ""
+  },
+  "GlmResult.rank#summary": {
+    "hash": "7a9f76fb57de",
+    "en": "Numerical rank of the model matrix.",
+    "ja": ""
+  },
+  "GlmResult.residuals#summary": {
+    "hash": "56dc1f755418",
+    "en": "Working residuals.",
+    "ja": ""
+  },
+  "GlmResult.warnings#summary": {
+    "hash": "19382659fccd",
+    "en": "R's warnings, each once, in order of first appearance.",
+    "ja": ""
+  },
+  "GlmResult.weights#summary": {
+    "hash": "bc9cbbe27086",
+    "en": "Working weights of the last least squares step (0 for rows not used).",
+    "ja": ""
+  },
+  "GlmResult.y#summary": {
+    "hash": "955f454e7895",
+    "en": "The response as the family reads it (proportions for a two-column binomial response).",
+    "ja": ""
+  },
+  "GlmRstandardOptions#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmRstandardOptions#summary": {
+    "hash": "c42f17f49e8c",
+    "en": "Options for {@link glmRstandard}.",
+    "ja": ""
+  },
+  "GlmRstandardOptions.dispersion#summary": {
+    "hash": "0ddb09542bc3",
+    "en": "Dispersion to use instead of the estimate (or 1 for binomial and poisson).",
+    "ja": ""
+  },
+  "GlmRstandardOptions.type#summary": {
+    "hash": "a250e25081ae",
+    "en": "`\"pearson\"` (default, as R 4.6) or `\"deviance\"` (R's default before 4.6): the residuals that are standardized.",
+    "ja": ""
+  },
+  "GlmSummary#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmSummary#summary": {
+    "hash": "08ea3ebad99f",
+    "en": "Result of {@link glmSummary}: the quantities of R's `summary(glm)`.",
+    "ja": ""
+  },
+  "GlmSummary.covScaled#summary": {
+    "hash": "d6326b01c99f",
+    "en": "covUnscaled times the dispersion.",
+    "ja": ""
+  },
+  "GlmSummary.covUnscaled#summary": {
+    "hash": "fa939c300968",
+    "en": "(R'R)^-1 of the columns that are not aliased.",
+    "ja": ""
+  },
+  "GlmSummary.dfResidual#summary": {
+    "hash": "a265af92ef8a",
+    "en": "Residual degrees of freedom (R's `df.residual`).",
+    "ja": ""
+  },
+  "GlmSummary.dispersion#summary": {
+    "hash": "5f55a2b31891",
+    "en": "The dispersion used (estimated, given, or 1 for binomial and poisson).",
+    "ja": ""
+  },
+  "GlmSummary.estimate#summary": {
+    "hash": "0e80f0031fc3",
+    "en": "The coefficient table of the columns that are not aliased, in their order.",
+    "ja": ""
+  },
+  "GlmSummary.pValue#summary": {
+    "hash": "3c501f256ae5",
+    "en": "Two-sided p-values (R's `Pr(>|z|)` or `Pr(>|t|)`).",
+    "ja": ""
+  },
+  "GlmSummary.statistic#summary": {
+    "hash": "61e3cc637399",
+    "en": "z or t statistics (see `statisticName`).",
+    "ja": ""
+  },
+  "GlmSummary.statisticName#summary": {
+    "hash": "f3f69154d729",
+    "en": "`\"z value\"` when the dispersion is fixed (binomial, poisson), else `\"t value\"`.",
+    "ja": ""
+  },
+  "GlmSummary.stdError#summary": {
+    "hash": "4b5b7823947c",
+    "en": "Standard errors (R's `Std. Error`).",
+    "ja": ""
+  },
+  "GlmSummary.warnings#summary": {
+    "hash": "c625086487aa",
+    "en": "Warnings (such as \"observations with zero weight not used for calculating dispersion\").",
+    "ja": ""
+  },
+  "GlmSummaryOptions#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "GlmSummaryOptions#summary": {
+    "hash": "5facaa91c0db",
+    "en": "Options for {@link glmSummary}.",
+    "ja": ""
+  },
+  "GlmSummaryOptions.dispersion#summary": {
+    "hash": "0ddb09542bc3",
+    "en": "Dispersion to use instead of the estimate (or 1 for binomial and poisson).",
+    "ja": ""
+  },
+  "QuasiVariance#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "QuasiVariance#summary": {
+    "hash": "2dd1d964bbbf",
+    "en": "Variance functions of the `quasi` family.",
+    "ja": ""
+  },
+  "glm#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "glm#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "glm#@param x": {
+    "hash": "a3f10d9c922f",
+    "en": "Predictors: a matrix (array of rows, one column per predictor; rows of length 0 for a model with the\n  intercept only) or a vector (one predictor).",
+    "ja": ""
+  },
+  "glm#@param y": {
+    "hash": "48cfd547aa1d",
+    "en": "Response: a vector, or for the binomial families rows of (successes, failures).",
+    "ja": ""
+  },
+  "glm#summary": {
+    "hash": "b874206cf349",
+    "en": "Fit a generalized linear model by iteratively reweighted least squares. Equivalent to R's\n`glm(y ~ x, family = ...)`. Or `y ~ x - 1` without intercept; the predictors are given as a matrix instead of a\nformula. Rows with a missing value (NaN) in `x`, `y`, the weights or the offset are dropped. Every family and link\nof R's `stats` is available; R's warnings are returned in `warnings`. See {@link glmSummary}, {@link glmResiduals},\n{@link glmPredict}, {@link glmConfint} and {@link glmAnova} for the methods.",
+    "ja": ""
+  },
+  "glmAnova#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "glmAnova#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "glmAnova#@param fits": {
+    "hash": "6c5e5d4375af",
+    "en": "One fit, or an array of fits to compare.",
+    "ja": ""
+  },
+  "glmAnova#summary": {
+    "hash": "750551923762",
+    "en": "Analysis of deviance, for one `glm` fit (the sequential table, each column of `x` added in order) or for several\nfits of the same data (`anova(fit1, fit2, ...)`). Equivalent to R's `anova()`.",
+    "ja": ""
+  },
+  "glmConfint#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "glmConfint#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "glmConfint#summary": {
+    "hash": "d138236a37a4",
+    "en": "Profile likelihood confidence intervals for the coefficients of a generalized linear model (NaN for aliased\ncolumns, and for a limit that the profile does not reach), for a `glm` fit. Equivalent to R's `confint()`. With\nthe exact solutions of the profile equations, where R interpolates a spline through a grid of profile points (and\nis up to about 5e-4 standard errors from them).",
+    "ja": ""
+  },
+  "glmConfint.lower#summary": {
+    "hash": "c8f030a17881",
+    "en": "Lower limits, one per coefficient (R's first column, `2.5 %` by default).",
+    "ja": ""
+  },
+  "glmConfint.upper#summary": {
+    "hash": "5ebeae73b6c5",
+    "en": "Upper limits, one per coefficient (R's second column, `97.5 %` by default).",
+    "ja": ""
+  },
+  "glmCooksDistance#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "glmCooksDistance#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "glmCooksDistance#summary": {
+    "hash": "ec6110b668d2",
+    "en": "Cook's distances, for the rows of non-zero prior weight, for a `glm` fit. Equivalent to R's `cooks.distance()`.",
+    "ja": ""
+  },
+  "glmHatvalues#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "glmHatvalues#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "glmHatvalues#summary": {
+    "hash": "bc0d681dcfa7",
+    "en": "Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight, for a\n`glm` fit. Equivalent to R's `hatvalues()`.",
+    "ja": ""
+  },
+  "glmPredict#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "glmPredict#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "glmPredict#summary": {
+    "hash": "bcf1afcd9b4a",
+    "en": "Predictions of a generalized linear model with their standard errors, for a `glm` fit. Equivalent to R's\n`predict(fit, newdata, type, se.fit = TRUE)`. Aliased columns are left out, as R does.",
+    "ja": ""
+  },
+  "glmPredict.fit#summary": {
+    "hash": "4d8deb82176b",
+    "en": "Predictions on the scale of `type`, one per row.",
+    "ja": ""
+  },
+  "glmPredict.nonEstimable#summary": {
+    "hash": "35b9d0c2538e",
+    "en": "0-based rows of `newdata` whose prediction is not estimable from a rank-deficient fit (R's `attr(, \"non-estim\")`); present only when there are some.",
+    "ja": ""
+  },
+  "glmPredict.seFit#summary": {
+    "hash": "1218ca51b7f1",
+    "en": "Their standard errors (R's `se.fit`).",
+    "ja": ""
+  },
+  "glmPredict.warnings#summary": {
+    "hash": "91c0f33972df",
+    "en": "R's warning for those rows; present only when there are some.",
+    "ja": ""
+  },
+  "glmResiduals(0)#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "glmResiduals(0)#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "glmResiduals(0)#summary": {
+    "hash": "c4e16e960092",
+    "en": "Residuals of a generalized linear model, one per row, for a `glm` fit (default `\"deviance\"`). Equivalent to R's\n`residuals(fit, type)`. The kind is the second argument or the option `type` (giving both is a RangeError).",
+    "ja": ""
+  },
+  "glmResiduals(1)#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "glmResiduals(1)#summary": {
+    "hash": "74432b2e010a",
+    "en": "Residuals of a generalized linear model, with the kind in the options: `glmResiduals(fit, { type: \"pearson\" })`.",
+    "ja": ""
+  },
+  "glmRstandard#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "glmRstandard#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "glmRstandard#summary": {
+    "hash": "2e663834b3aa",
+    "en": "Standardized Pearson (default) or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit.\nEquivalent to R's `rstandard()`. The residuals are divided by sigma sqrt(1 - h), sigma the square root of the\ndispersion, as R 4.6, whose default type is `\"pearson\"` (R before 4.6: `\"deviance\"`).",
+    "ja": ""
+  },
+  "glmSummary#@category": {
+    "hash": "e5a8fec09738",
+    "en": "Generalized linear models",
+    "ja": ""
+  },
+  "glmSummary#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "glmSummary#summary": {
+    "hash": "c5512c6e5e40",
+    "en": "Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates,\nfor a `glm` fit. Equivalent to R's `summary()`.",
+    "ja": ""
+  }
+}

@@ -1,0 +1,722 @@
+{
+  "BesselOptions#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "BesselOptions#summary": {
+    "hash": "60b278e467b1",
+    "en": "Options for {@link besselI} and {@link besselK}.",
+    "ja": ""
+  },
+  "BesselOptions.exponScaled#summary": {
+    "hash": "65b69ebcb364",
+    "en": "If `true`, return `exp(-x) I(x, nu)` (for `besselI`) or `exp(x) K(x, nu)` (for `besselK`). Default `false`.",
+    "ja": ""
+  },
+  "GammaincResult#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "GammaincResult#summary": {
+    "hash": "4e6d483a98d4",
+    "en": "Result of {@link gammainc}.",
+    "ja": ""
+  },
+  "GammaincResult.logLower#summary": {
+    "hash": "db1a771984e1",
+    "en": "log of `lower` (finite where `lower` overflows).",
+    "ja": ""
+  },
+  "GammaincResult.logUpper#summary": {
+    "hash": "3373cc0c5eb5",
+    "en": "log of `upper`.",
+    "ja": ""
+  },
+  "GammaincResult.lower#summary": {
+    "hash": "b92a88b3db70",
+    "en": "Lower incomplete gamma function gamma(a, x) = integral from 0 to x of t^(a-1) e^-t dt.",
+    "ja": ""
+  },
+  "GammaincResult.upper#summary": {
+    "hash": "7d2c3b21aeb5",
+    "en": "Upper incomplete gamma function Gamma(a, x) = integral from x to Inf of t^(a-1) e^-t dt.",
+    "ja": ""
+  },
+  "RCompatibleOptions#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "RCompatibleOptions#summary": {
+    "hash": "bd224cfa7264",
+    "en": "Option shared by functions whose edge cases R defines differently from the mathematical function",
+    "ja": ""
+  },
+  "RCompatibleOptions.rCompatible#summary": {
+    "hash": "b209632ddee9",
+    "en": "`true` (default) returns what R returns at the edge cases listed for each function; `false` returns the\nmathematical value there instead (see docs/differences-from-r.md).",
+    "ja": ""
+  },
+  "besselI#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "besselI#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "besselI#@param nu": {
+    "hash": "46acd8f4bbaf",
+    "en": "Order, any real number. For `nu < 0`, `I(x, -nu) = I(x, nu) + 2/pi sin(pi nu) K(x, nu)`\n  (A&S 9.6.2, as in R).",
+    "ja": ""
+  },
+  "besselI#@param options": {
+    "hash": "677f082276f0",
+    "en": "`exponScaled` (see {@link BesselOptions}).",
+    "ja": ""
+  },
+  "besselI#@param x": {
+    "hash": "622600f515f6",
+    "en": "Argument, `x >= 0` (`NaN` for negative `x`).",
+    "ja": ""
+  },
+  "besselI#@returns": {
+    "hash": "acddf9bcf7c3",
+    "en": "I_nu(x), or `exp(-x) I_nu(x)` when `exponScaled`.\n\nFor orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by\nbounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): several seconds at\n`nu = 1e8`. Beyond 2^28 steps, and for `besselI` where its continued fraction does not converge (`x` above about\n5e10), Debye's uniform expansion is used; a RangeError is thrown only where its exponent `nu eta - x` is formed from\nterms above 2^26 and the result is in range (near `x = 0.66 nu`, unscaled).",
+    "ja": ""
+  },
+  "besselI#summary": {
+    "hash": "7ab9f41bdb19",
+    "en": "Modified Bessel function of the first kind. Equivalent to R's\n`besselI(x, nu, expon.scaled = FALSE)`. Takes single numbers.",
+    "ja": ""
+  },
+  "besselJ#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "besselJ#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "besselJ#@param nu": {
+    "hash": "32389c115f8f",
+    "en": "Order, any real number. For `nu < 0`, `J(x, -nu) = cos(pi nu) J(x, nu) - sin(pi nu) Y(x, nu)`\n  (A&S 9.1.2, as in R).",
+    "ja": ""
+  },
+  "besselJ#@param x": {
+    "hash": "622600f515f6",
+    "en": "Argument, `x >= 0` (`NaN` for negative `x`).",
+    "ja": ""
+  },
+  "besselJ#@returns": {
+    "hash": "42ec129d8d15",
+    "en": "J_nu(x).\n\nFor `x` much larger than `nu` but below the range of the asymptotic expansion (`x < nu / 0.011`), the time grows\nwith `x` (a continued fraction of about `x - nu` terms): about 15 ms at `x = 5e4`, `nu = 1000`, 1.6 s at `x = 1e7`,\n`nu = 2e5`. Near the turning point (`x` a little below `nu`) a recurrence takes about `nu` steps. Beyond 2^25 terms\nof the continued fraction or 2^31 steps of the recurrence (2^28 for a negative non-integer order, which needs Y) a\nRangeError is thrown before the computation. So it is in the asymptotic expansion (`x` above about `90 nu`) where\nthe phase correction `nu^2 / (2x)` exceeds 2^26, which double precision does not resolve.",
+    "ja": ""
+  },
+  "besselJ#summary": {
+    "hash": "ed3d9f911775",
+    "en": "Bessel function of the first kind. Equivalent to R's `besselJ(x, nu)`. Takes single numbers.",
+    "ja": ""
+  },
+  "besselK#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "besselK#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "besselK#@param nu": {
+    "hash": "eca4daf5f424",
+    "en": "Order, any real number (`K(x, -nu) = K(x, nu)`).",
+    "ja": ""
+  },
+  "besselK#@param options": {
+    "hash": "677f082276f0",
+    "en": "`exponScaled` (see {@link BesselOptions}).",
+    "ja": ""
+  },
+  "besselK#@param x": {
+    "hash": "622600f515f6",
+    "en": "Argument, `x >= 0` (`NaN` for negative `x`).",
+    "ja": ""
+  },
+  "besselK#@returns": {
+    "hash": "681cccdcc7d5",
+    "en": "K_nu(x), or `exp(x) K_nu(x)` when `exponScaled`.\n\nFor orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by\nbounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): several seconds at\n`nu = 1e8`. Beyond 2^28 steps, and for `besselI` where its continued fraction does not converge (`x` above about\n5e10), Debye's uniform expansion is used; a RangeError is thrown only where its exponent `nu eta - x` is formed from\nterms above 2^26 and the result is in range (near `x = 0.66 nu`, unscaled).",
+    "ja": ""
+  },
+  "besselK#summary": {
+    "hash": "2bcac1d91800",
+    "en": "Modified Bessel function of the second kind. Equivalent to R's\n`besselK(x, nu, expon.scaled = FALSE)`. Takes single numbers.",
+    "ja": ""
+  },
+  "besselY#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "besselY#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "besselY#@param nu": {
+    "hash": "ebef4bd6e694",
+    "en": "Order, any real number. For `nu < 0`, `Y(x, -nu) = sin(pi nu) J(x, nu) + cos(pi nu) Y(x, nu)`\n  (A&S 9.1.2, as in R).",
+    "ja": ""
+  },
+  "besselY#@param x": {
+    "hash": "e5cd1e87b13d",
+    "en": "Argument, `x >= 0` (`NaN` for negative `x`; `-Infinity` at 0).",
+    "ja": ""
+  },
+  "besselY#@returns": {
+    "hash": "c8b88d0e20cd",
+    "en": "Y_nu(x).\n\nFor orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by\nbounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): about 2.4 s for\n`besselY(0.9e8, 1e8)`. Beyond 2^28 steps, or 2^25 terms of the continued fraction for `x` above `nu` (as for\n{@link besselJ}), a RangeError is thrown before the computation, and likewise for a phase correction `nu^2 / (2x)`\nbeyond 2^26 in the asymptotic expansion for large `x`.",
+    "ja": ""
+  },
+  "besselY#summary": {
+    "hash": "a241f6b96473",
+    "en": "Bessel function of the second kind. Equivalent to R's `besselY(x, nu)`. Takes single numbers.",
+    "ja": ""
+  },
+  "beta#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "beta#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "beta#@param a": {
+    "hash": "3a56609734ee",
+    "en": "First argument.",
+    "ja": ""
+  },
+  "beta#@param b": {
+    "hash": "147cd58aca1e",
+    "en": "Second argument.",
+    "ja": ""
+  },
+  "beta#@returns": {
+    "hash": "834d5a8d9bc2",
+    "en": "B(a, b).",
+    "ja": ""
+  },
+  "beta#summary": {
+    "hash": "f0c3fe92184c",
+    "en": "Beta function B(a, b). Equivalent to R's `beta()`. Takes single numbers.",
+    "ja": ""
+  },
+  "choose#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "choose#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "choose#@param k": {
+    "hash": "4cc137bfbbf8",
+    "en": "Number chosen (rounded to an integer).",
+    "ja": ""
+  },
+  "choose#@param n": {
+    "hash": "7ae735fa2329",
+    "en": "Number of items (any real number).",
+    "ja": ""
+  },
+  "choose#@param options": {
+    "hash": "10c4550723c9",
+    "en": "`rCompatible` (default `true`).",
+    "ja": ""
+  },
+  "choose#@returns": {
+    "hash": "18c8da8a51fa",
+    "en": "The binomial coefficient.",
+    "ja": ""
+  },
+  "choose#summary": {
+    "hash": "0923c2e14dcd",
+    "en": "Binomial coefficient. Equivalent to R's `choose()`. Takes single numbers.\n\n`n` may be any real number. `k` is rounded to the nearest integer (as R does, which also warns\nwhen `k` is not close to an integer); `choose(n, k)` is 0 for `k < 0` and 1 for `k = 0`.\nFor integer `n` the result is an integer (exact up to 2^53).\n\nEdge cases where R differs from the mathematical value, followed by default (`rCompatible: false`\nreturns the mathematical value instead):\n- `n` within 1e-9 max(1, |n|) of an integer is treated as that integer, so `choose(1e-10, 2)` is 0\n  (mathematically -5e-11); for `n < 0` and `k >= 30` the tolerance is relative to `k - 1 - n`;\n- `choose(n, Infinity)` is 0 for `n >= 0` (otherwise `NaN`);\n- `choose(±Infinity, k)` is `NaN` for `k >= 30` (`±Infinity` below).",
+    "ja": ""
+  },
+  "digamma#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "digamma#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "digamma#@param x": {
+    "hash": "fb60e87080d1",
+    "en": "Argument.",
+    "ja": ""
+  },
+  "digamma#@returns": {
+    "hash": "c0d80dda9d2a",
+    "en": "psi(x) (`NaN` at zero and the negative integers).",
+    "ja": ""
+  },
+  "digamma#summary": {
+    "hash": "bd7b6c5d50ca",
+    "en": "Digamma function, the derivative of `lgamma`. Equivalent to R's `digamma()`. Takes a single number.",
+    "ja": ""
+  },
+  "erf#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "erf#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "erf#@param x": {
+    "hash": "fb60e87080d1",
+    "en": "Argument.",
+    "ja": ""
+  },
+  "erf#@returns": {
+    "hash": "ccaf40c1797e",
+    "en": "erf(x).",
+    "ja": ""
+  },
+  "erf#summary": {
+    "hash": "d6210819856a",
+    "en": "Error function, erf(x) = 2 / sqrt(pi) * integral from 0 to x of exp(-t^2) dt.\nNot an R function. R writes it as `2 * pnorm(x * sqrt(2)) - 1`, which loses the relative accuracy of small x.",
+    "ja": ""
+  },
+  "erfc#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "erfc#@example": {
+    "hash": "a24bf871a9e4",
+    "en": "⟦code1⟧\n\nChanges from xsf: exp(-x^2) is formed from x^2 = hi + lo exact (the rounding of x^2 is 33 ε relative at x = 5.7),\nand below the normal range exp(-700) is applied last so that subnormal results (x up to 27.2) are not flushed to 0.",
+    "ja": ""
+  },
+  "erfc#@param a": {
+    "hash": "fb60e87080d1",
+    "en": "Argument.",
+    "ja": ""
+  },
+  "erfc#@returns": {
+    "hash": "22b323876f2f",
+    "en": "erfc(a).",
+    "ja": ""
+  },
+  "erfc#summary": {
+    "hash": "aa282e453ed5",
+    "en": "Complementary error function, erfc(x) = 1 - erf(x), accurate in the upper tail (down to the subnormal range near\nx = 27).\nNot an R function. R writes it as `2 * pnorm(x * sqrt(2), lower.tail = FALSE)`.",
+    "ja": ""
+  },
+  "erfcinv#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "erfcinv#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "erfcinv#summary": {
+    "hash": "7531ef999022",
+    "en": "Inverse of the complementary error function: the x with erfc(x) = z, for 0 <= z <= 2 (NaN outside).\nEquivalent to `pracma::erfcinv()` in R.",
+    "ja": ""
+  },
+  "erfinv#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "erfinv#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "erfinv#summary": {
+    "hash": "bb5da6436929",
+    "en": "Inverse of the error function: the x with erf(x) = y, for -1 <= y <= 1 (NaN outside).\nEquivalent to `pracma::erfinv()` in R. Unlike pracma, it is accurate for small |y| (pracma's\n`qnorm((1 + y) / 2)` loses it: `erfinv(1e-300)` is -0 there).",
+    "ja": ""
+  },
+  "factorial#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "factorial#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "factorial#@param x": {
+    "hash": "fb60e87080d1",
+    "en": "Argument.",
+    "ja": ""
+  },
+  "factorial#@returns": {
+    "hash": "c870bc7c1ed9",
+    "en": "x! = Gamma(x + 1) (`NaN` at negative integers, `Infinity` on overflow).",
+    "ja": ""
+  },
+  "factorial#summary": {
+    "hash": "b5575b9301e6",
+    "en": "Factorial. Equivalent to R's `factorial()`. Takes a single number: `gamma(x + 1)`, defined for\nany real `x` that is not a negative integer.",
+    "ja": ""
+  },
+  "gamma#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "gamma#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "gamma#@param x": {
+    "hash": "fb60e87080d1",
+    "en": "Argument.",
+    "ja": ""
+  },
+  "gamma#@returns": {
+    "hash": "fc1716f62800",
+    "en": "Gamma(x). `NaN` at zero and negative integers; `Infinity` on overflow.",
+    "ja": ""
+  },
+  "gamma#summary": {
+    "hash": "d40871b63b53",
+    "en": "Gamma function. Equivalent to R's `gamma()`. Takes a single number.",
+    "ja": ""
+  },
+  "gammainc#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "gammainc#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "gammainc#summary": {
+    "hash": "38ac0f807785",
+    "en": "The non-regularized incomplete gamma functions gamma(a, x) and Gamma(a, x) and their logs.\nEquivalent to `pracma::gammainc()` in R. `pracma::gammainc(x, a)` returns them as `lowinc` and `uppinc`;\nin base R they are `pgamma(x, a) * gamma(a)` and `pgamma(x, a, lower.tail = FALSE) * gamma(a)`.",
+    "ja": ""
+  },
+  "lbeta#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "lbeta#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "lbeta#@param a": {
+    "hash": "3a56609734ee",
+    "en": "First argument.",
+    "ja": ""
+  },
+  "lbeta#@param b": {
+    "hash": "147cd58aca1e",
+    "en": "Second argument.",
+    "ja": ""
+  },
+  "lbeta#@returns": {
+    "hash": "fc96dae61236",
+    "en": "log|B(a, b)|.",
+    "ja": ""
+  },
+  "lbeta#summary": {
+    "hash": "ae9d7aef8ca3",
+    "en": "Natural logarithm of the absolute value of the beta function, log|B(a, b)|.\nEquivalent to R's `lbeta()`. Takes single numbers.\n\nFor a, b > 0 with the larger argument above 15, it is computed as\nlgamma(small) - [lgamma(large + small) - lgamma(large)] with the bracketed difference\nevaluated without cancellation, so accuracy is kept for large arguments.",
+    "ja": ""
+  },
+  "lchoose#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "lchoose#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "lchoose#@param k": {
+    "hash": "4cc137bfbbf8",
+    "en": "Number chosen (rounded to an integer).",
+    "ja": ""
+  },
+  "lchoose#@param n": {
+    "hash": "7ae735fa2329",
+    "en": "Number of items (any real number).",
+    "ja": ""
+  },
+  "lchoose#@param options": {
+    "hash": "10c4550723c9",
+    "en": "`rCompatible` (default `true`).",
+    "ja": ""
+  },
+  "lchoose#@returns": {
+    "hash": "420613172b8c",
+    "en": "log|choose(n, k)| (`-Infinity` where `choose(n, k)` is 0).",
+    "ja": ""
+  },
+  "lchoose#summary": {
+    "hash": "5430356ea459",
+    "en": "Logarithm of the absolute value of the binomial coefficient. Equivalent to R's `lchoose()`.\nTakes single numbers: `log(abs(choose(n, k)))`, computed without overflow.\n\nEdge cases where R differs from the mathematical value, followed by default (`rCompatible: false`\nreturns the mathematical value instead): `n` within 1e-9 max(1, |n|) of an integer is treated as that\ninteger (for `k >= 2`; for `n < 0` the tolerance is relative to `k - 1 - n`); `lchoose(n, Infinity)` is `-Infinity` for `n >= 0` (otherwise `NaN`); `lchoose(±Infinity, k)`\nis `NaN` for `k >= 2` (`Infinity` for `k = 1`).",
+    "ja": ""
+  },
+  "lfactorial#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "lfactorial#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "lfactorial#@param x": {
+    "hash": "fb60e87080d1",
+    "en": "Argument.",
+    "ja": ""
+  },
+  "lfactorial#@returns": {
+    "hash": "2bc782155046",
+    "en": "log|x!| = log|Gamma(x + 1)| (`Infinity` at negative integers).",
+    "ja": ""
+  },
+  "lfactorial#summary": {
+    "hash": "6a545f094f11",
+    "en": "Logarithm of the factorial. Equivalent to R's `lfactorial()`. Takes a single number:\n`lgamma(x + 1)`, computed without forming `x + 1` near 0 so that small `x` keep their accuracy.",
+    "ja": ""
+  },
+  "lgamma#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "lgamma#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "lgamma#@param x": {
+    "hash": "fb60e87080d1",
+    "en": "Argument.",
+    "ja": ""
+  },
+  "lgamma#@returns": {
+    "hash": "a78600941a78",
+    "en": "log|Gamma(x)|.",
+    "ja": ""
+  },
+  "lgamma#summary": {
+    "hash": "b5c69b455e24",
+    "en": "Natural logarithm of the absolute value of the gamma function, log|Gamma(x)|.\nEquivalent to R's `lgamma()`. Takes a single number.\n\nNear the zeros x = 1 and x = 2 the result keeps full relative accuracy\n(computed as lgamma(1 + e) = lgamma1p(e) and lgamma(2 + e) = lgamma1p(e) + log1p(e)).",
+    "ja": ""
+  },
+  "lgamma1p#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "lgamma1p#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "lgamma1p#@param x": {
+    "hash": "8ffc64ccc58b",
+    "en": "A number.",
+    "ja": ""
+  },
+  "lgamma1p#@returns": {
+    "hash": "9182c9722c04",
+    "en": "log|Gamma(1 + x)|; `Infinity` at the poles (x a negative integer) and at x = Infinity, `NaN` for\n  x = -Infinity.",
+    "ja": ""
+  },
+  "lgamma1p#summary": {
+    "hash": "748bcbfb8016",
+    "en": "lgamma(1 + x) = log|Gamma(1 + x)|, accurate near x = 0 and x = 1, where it is near 0.\nNot an R function. R has it only in its C API (Rmath.h), as `lgamma1p`.",
+    "ja": ""
+  },
+  "log1mexp#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "log1mexp#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "log1mexp#@param x": {
+    "hash": "5f75e1794f89",
+    "en": "A number >= 0.",
+    "ja": ""
+  },
+  "log1mexp#@returns": {
+    "hash": "b01243dfcc08",
+    "en": "log(1 - exp(-x)); `-Infinity` at x = 0, 0 at x = Infinity, `NaN` for x < 0.",
+    "ja": ""
+  },
+  "log1mexp#summary": {
+    "hash": "3980fded799c",
+    "en": "log(1 - exp(-x)) for x >= 0, accurate for both small and large x; note the sign of the argument.\nNot an R function. R has it only in its C API (Rmath.h), as `log1mexp`; the DPQ package also has it.",
+    "ja": ""
+  },
+  "log1pexp#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "log1pexp#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "log1pexp#@param x": {
+    "hash": "8ffc64ccc58b",
+    "en": "A number.",
+    "ja": ""
+  },
+  "log1pexp#@returns": {
+    "hash": "e654df18ba21",
+    "en": "log(1 + exp(x)); 0 at x = -Infinity, `Infinity` at x = Infinity.",
+    "ja": ""
+  },
+  "log1pexp#summary": {
+    "hash": "c804e5a60107",
+    "en": "log(1 + exp(x)), without overflow for large x and accurate for very negative x.\nNot an R function. R has it only in its C API (Rmath.h), as `log1pexp`; the DPQ package also has it.",
+    "ja": ""
+  },
+  "log1pmx#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "log1pmx#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "log1pmx#@param x": {
+    "hash": "463f973df11a",
+    "en": "A number >= -1.",
+    "ja": ""
+  },
+  "log1pmx#@returns": {
+    "hash": "b0cd03fcd0a3",
+    "en": "log(1 + x) - x; `-Infinity` at x = -1 and x = Infinity, `NaN` for x < -1.",
+    "ja": ""
+  },
+  "log1pmx#summary": {
+    "hash": "0a28361b26d4",
+    "en": "log(1 + x) - x, accurate for small |x| (where log1p(x) - x would cancel).\nNot an R function. R has it only in its C API (Rmath.h), as `log1pmx`.",
+    "ja": ""
+  },
+  "perm#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "perm#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "perm#summary": {
+    "hash": "c00fbcb2621f",
+    "en": "Number of ordered selections of k items from n: n! / (n - k)!, defined for real n >= 0 as\nGamma(n + 1) / Gamma(n - k + 1) (0 for an integer n < k). Negative arguments give NaN.\nNot an R function. It is jStat's `permutation`; R has only `choose()` (unordered selections).",
+    "ja": ""
+  },
+  "psigamma#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "psigamma#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "psigamma#@param deriv": {
+    "hash": "7f925de5ca7d",
+    "en": "Order of the derivative, an integer from 0 to 100 (rounded half to even; default 0, digamma).",
+    "ja": ""
+  },
+  "psigamma#@param options": {
+    "hash": "10c4550723c9",
+    "en": "`rCompatible` (default `true`).",
+    "ja": ""
+  },
+  "psigamma#@param x": {
+    "hash": "fb60e87080d1",
+    "en": "Argument.",
+    "ja": ""
+  },
+  "psigamma#@returns": {
+    "hash": "8af5832dfce3",
+    "en": "psi^(deriv)(x). At zero and the negative integers, `Infinity` for odd `deriv` and `NaN` for even.\n  `NaN` if `deriv` is outside 0 to 100.",
+    "ja": ""
+  },
+  "psigamma#summary": {
+    "hash": "9b69e65c1b0d",
+    "en": "Polygamma function, the derivative of order `deriv` of `digamma`. Equivalent to R's\n`psigamma()`. Takes a single number.\n\n`psigamma(-Infinity, deriv)` is `Infinity` for odd `deriv` as in R, which treats it like the poles\n(`NaN` with `rCompatible: false`). Unlike R, which returns `NaN` for `x < 0` with `deriv >= 6` and\nwhere the result overflows, the value is computed there.",
+    "ja": ""
+  },
+  "trigamma#@category": {
+    "hash": "1f46f124dc01",
+    "en": "Special functions",
+    "ja": ""
+  },
+  "trigamma#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "trigamma#@param options": {
+    "hash": "10c4550723c9",
+    "en": "`rCompatible` (default `true`).",
+    "ja": ""
+  },
+  "trigamma#@param x": {
+    "hash": "fb60e87080d1",
+    "en": "Argument.",
+    "ja": ""
+  },
+  "trigamma#@returns": {
+    "hash": "1426059e1fac",
+    "en": "psi'(x) (`Infinity` at zero and the negative integers).",
+    "ja": ""
+  },
+  "trigamma#summary": {
+    "hash": "74f9412c154f",
+    "en": "Trigamma function, the second derivative of `lgamma`. Equivalent to R's `trigamma()`. Takes a single number.\n\n`trigamma(-Infinity)` is `Infinity` as in R (`NaN` with `rCompatible: false`).",
+    "ja": ""
+  }
+}
