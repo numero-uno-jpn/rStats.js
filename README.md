@@ -203,6 +203,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`) |
 | Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), `glmer` (lme4: all glm families, Laplace approximation and adaptive Gauss-Hermite quadrature), `glmerSummary`, `glmerAnova`, `glmerPredict` and `lmerPredict`, from `@numero-uno-jpn/rstats/mixed` |
 | More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest) |
+| Contingency tables and proportions | `binomCI`, `binomDiffCI`, `binomRatioCI` (DescTools' `BinomCI`, `BinomDiffCI`, `BinomRatioCI`), `oddsRatio` (epitools, and epiR's score interval), `fisherTest(x, { midp: true })` (exact2x2), `boschlooTest` (Exact), `gTest`, `stuartMaxwellTest`, `goodmanKruskalGamma` (DescTools), `lblTest` (coin), `chisqTest(x, { nMinus1: true })` (Campbell's 'N − 1' test) and Freeman-Tukey residuals, `tost` (equivalence), `binomDiffEquivalenceTest` (score TOST of two proportions) |
 | Multiple comparisons | `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest` (PMCMRplus), `dunnTest` (dunn.test), `glhtDunnett` (multcomp) |
 | Survival analysis | `survdiff` (log-rank), `survfit` (Kaplan-Meier with intervals and median), `coxph` (Cox regression: Efron and Breslow ties, case weights, strata, the Wald, likelihood-ratio and score tests) |
 | Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor), `pbvnorm`, `factanal`, `omega` (McDonald's ω, psych) |
@@ -266,12 +267,12 @@ removed. Approximate sizes after minification and gzip:
 | `pnorm` | 1.6 KB |
 | `setSeed`, `rnorm` | 2.0 KB |
 | `solve` / `svd` / `eigen` | 2.4 / 2.4 / 5.1 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 18.9 / 27.7 / 31.0 KB |
-| `qbeta` / `pt` and `qt` | 43.5 / 40.0 KB |
-| `glm` and `glmSummary` / `glm` with all its methods | 35.0 / 51.0 KB |
-| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 69.6 KB |
-| `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.2 / 65.7 KB |
-| everything (except `/mixed`) | 251.5 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 18.9 / 27.9 / 31.0 KB |
+| `qbeta` / `pt` and `qt` | 43.9 / 40.4 KB |
+| `glm` and `glmSummary` / `glm` with all its methods | 35.0 / 51.4 KB |
+| `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 70.0 KB |
+| `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.2 / 66.1 KB |
+| everything (except `/mixed`) | 263.5 KB |
 
 (`npm run size` measures these.)
 
@@ -281,7 +282,7 @@ Each area is also a subpath export, for importing one area without the rest:
 (`lmer`, `glmer` and their methods; this area is only available this way, not from the main entry point).
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function except those of `/mixed`, 249 KB gzipped) from jsDelivr, which serves each npm release:
+function except those of `/mixed`, 264 KB gzipped) from jsDelivr, which serves each npm release:
 
 ```html
 <script type="module">
@@ -301,7 +302,7 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js` and
 `dist/mixed.js` export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 38 KB (`special`) to 206 KB (`tests`) gzipped.
+transfers 39 KB (`special`) to 221 KB (`tests`) gzipped.
 
 Use either `dist/rstats.js` or the per-area bundles on one page, not both: they are separate sets of modules, so a
 page that mixes them loads the common code twice and has two random number states (`setSeed` from one does not seed

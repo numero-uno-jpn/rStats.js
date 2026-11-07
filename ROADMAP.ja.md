@@ -39,6 +39,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 | 分散分析 | formula で呼ぶ `aov`、`lm`、`modelMatrix` (多元、交互作用、共変量、`Error()` の層)、`anova` (逐次の表とモデルの比較)、car の `Anova` (Type II と III)、afex の `aov_ez` に当たる `aovEz` (反復測定、Greenhouse-Geisser と Huynh-Feldt、一般化 η²)、`mauchly.test` |
 | 効果量と検出力 | effectsize の `cohens_d`、`hedges_g`、`eta_squared`、`omega_squared`、`epsilon_squared` (`anova` と `Anova` の表から。信頼区間は厳密な限界)、`power.t.test`、`power.prop.test`、`power.anova.test` と `pwr` の検出力の関数 |
 | ほかの検定 | `leveneTest` (car)、`propTrendTest` (`prop.trend.test`)、`jonckheereTest` (DescTools と clinfun)、`cochranQTest` (DescTools)、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (nortest) |
+| 分割表と比率 | `binomCI`、`binomDiffCI`、`binomRatioCI` (DescTools の `BinomCI`、`BinomDiffCI`、`BinomRatioCI`)、`oddsRatio` (epitools と epiR のスコア区間)、`fisherTest(x, { midp: true })` (exact2x2)、`boschlooTest` (Exact)、`gTest`、`stuartMaxwellTest`、`goodmanKruskalGamma` (DescTools)、`lblTest` (coin)、`chisqTest(x, { nMinus1: true })` (Campbell の N − 1 検定) と Freeman-Tukey 残差、`tost` (equivalence)、`binomDiffEquivalenceTest` (2 つの比率のスコア法の TOST) |
 | 多重比較 | PMCMRplus の `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest`、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp)。Dunnett 型の確率は厳密に計算する (R は乱数を使う) |
 | 混合モデル | lme4 の `lmer` を `lmer` として (REML と ML。相関のある変量効果と相関のない変量効果 `(x \| g)`・`(x \|\| g)`、交差と入れ子の群 `a/b`・`a:b`)。`fixef`、`vcov`、`coef(summary())` (p 値を除く)、`VarCorr`、`ranef`、`fitted`、`residuals`、`logLik`、`AIC`、`BIC`、`deviance`、`REMLcrit`、`isSingular` に当たる値。lmerTest の Satterthwaite の t 検定と F 検定 (`summary`、`contest`、Type I/II/III の `anova`) と、lme4 の複数の当てはめの `anova`。lme4 の `glmer` を `glmer` として (glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、その `summary`・`anova`・`predict` (`glmerSummary`・`glmerAnova`・`glmerPredict`) と `lmer` の `predict` (`lmerPredict`)。Bates ら (2015) の論文から、疎なコレスキー分解で実装。推定値は基準の厳密な最適点 (lme4 はその手前で止まる)。独立した分野 `@numero-uno-jpn/rstats/mixed` (`dist/mixed.js`) にあり、全部入りのファイルには含めない |
 | 生存時間解析 | `survival` パッケージの `survdiff` (log-rank と G-rho 族) と `survfit` (Kaplan-Meier。log・plain・log-log の信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイ、重み、層、summary の検定) |
@@ -58,28 +59,22 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 指標とその信頼区間を出せることを重視します。この一覧は、医学・心理学の研究向けの統計ウェブアプリの手法と
 照らし合わせて作りました (2026-11-06)。優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-1. **分割表と比率:** 2 × 2 表の Fisher の正確検定の mid-p 版と Boschloo の検定 [exact2x2、Exact]。比率の信頼区間を
-   方法ごとに (Wilson、Clopper-Pearson、Agresti-Coull、Jeffreys) [DescTools `BinomCI`]。2 × 2 表の効果の指標と
-   その区間: リスク差 (Newcombe、Miettinen-Nurminen) [DescTools `BinomDiffCI`]、リスク比 [DescTools
-   `BinomRatioCI`]、オッズ比 (Wald、mid-p) [epitools]。Stuart-Maxwell 検定 [DescTools `StuartMaxwellTest`]、
-   G 検定 [DescTools `GTest`]、Goodman と Kruskal の γ [DescTools `GoodmanKruskalGamma`]、線形連関の検定 [coin
-   `lbl_test`]。
-2. **頑健な標準誤差:** サンドイッチ型の共分散行列 (HC0〜HC3 とクラスター) [sandwich `vcovHC`、`vcovCL`] と、
+1. **頑健な標準誤差:** サンドイッチ型の共分散行列 (HC0〜HC3 とクラスター) [sandwich `vcovHC`、`vcovCL`] と、
    それによる係数の検定 [lmtest `coeftest`]。これで、修正ポアソン回帰 (リスク比)、逆確率重み付けの後の重み付き
    回帰、差の差分析が正しい区間を持つ。Cox 回帰の robust 分散と `cluster` [survival `coxph`]。
-3. **診断の正確度と測定の一致:** ROC 曲線と AUC (DeLong の区間と検定) [pROC]。Bland-Altman 解析
+2. **診断の正確度と測定の一致:** ROC 曲線と AUC (DeLong の区間と検定) [pROC]。Bland-Altman 解析
    [BlandAltmanLeh]。Deming 回帰と Passing-Bablok 回帰 [mcr]。同等性の検定 (2 つの片側検定) [TOSTER]。
    級内相関係数の 6 つの形 [psych `ICC`]。
-4. **生存時間解析の続き:** Nelson-Aalen 推定量 [`survfit` の累積ハザード]。制限平均生存時間 [survRM2]。比例
+3. **生存時間解析の続き:** Nelson-Aalen 推定量 [`survfit` の累積ハザード]。制限平均生存時間 [survRM2]。比例
    ハザード性の検定 [`cox.zph`]。(start, stop] 形式の時間依存性変数 [`coxph`]。競合リスク: 累積発生率、Gray の
    検定、Fine-Gray 回帰 [cmprsk]。加速故障時間モデルと Tobit モデル [`survreg`]。
-5. **試験デザインのサンプルサイズと検出力:** 平均と比率の同等性・非劣性・優越性、McNemar 検定、生存時間
+4. **試験デザインのサンプルサイズと検出力:** 平均と比率の同等性・非劣性・優越性、McNemar 検定、生存時間
    (Schoenfeld、Freedman)、Simon の 2 段階デザイン [clinfun `ph2simon`]。照合先は項目に着手するときに決める。
-6. **メタアナリシス:** 固定効果とランダム効果 (DerSimonian-Laird、REML)、Q と I²、Egger の検定 [metafor]。
-7. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。
+5. **メタアナリシス:** 固定効果とランダム効果 (DerSimonian-Laird、REML)、Q と I²、Egger の検定 [metafor]。
+6. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。
    `mixed` の分野はパッケージのルートと全部入りの `dist/rstats.js` には含めない (2026-11-05 に決定)。後で含めても
    互換性は崩れない。
-8. **その後 (順不同):** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰と
+7. **その後 (順不同):** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰と
    分位点回帰 [MASS `rlm`、quantreg]、GEE [geepack]。MANOVA [`manova`]、判別分析 [MASS `lda`]、正準相関
    [`cancor`]。クラスタ分析 [`hclust`、`kmeans`]。多次元尺度法と対応分析 [`cmdscale`、MASS `isoMDS`、ca]。
    Tamhane の T2 と Page の検定 [PMCMRplus]、Grubbs の検定 [outliers]。正則化回帰 [glmnet]。時系列 [`acf`、`arima`]。

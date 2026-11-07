@@ -39,6 +39,7 @@ against R and are not a priority.
 | Analysis of variance | `aov`, `lm` and `modelMatrix` from formulas (several factors, interactions, covariates, `Error()` strata), `anova` (sequential and model comparison), car's `Anova` (types II and III), afex's `aov_ez` as `aovEz` (repeated measures, Greenhouse-Geisser and Huynh-Feldt, generalized eta squared), `mauchly.test` |
 | Effect sizes and power | effectsize's `cohens_d`, `hedges_g`, `eta_squared`, `omega_squared`, `epsilon_squared` (from `anova` and `Anova` tables, exact confidence limits); `power.t.test`, `power.prop.test`, `power.anova.test` and the power functions of `pwr` |
 | More tests | `leveneTest` (car), `propTrendTest` (`prop.trend.test`), `jonckheereTest` (DescTools and clinfun), `cochranQTest` (DescTools), `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (nortest) |
+| Contingency tables and proportions | `binomCI`, `binomDiffCI`, `binomRatioCI` (DescTools' `BinomCI`, `BinomDiffCI`, `BinomRatioCI`), `oddsRatio` (epitools, and epiR's score interval), `fisherTest(x, { midp: true })` (exact2x2), `boschlooTest` (Exact), `gTest`, `stuartMaxwellTest`, `goodmanKruskalGamma` (DescTools), `lblTest` (coin), `chisqTest(x, { nMinus1: true })` (Campbell's 'N − 1' test) and Freeman-Tukey residuals, `tost` (equivalence), `binomDiffEquivalenceTest` (score TOST of two proportions) |
 | Multiple comparisons | PMCMRplus's `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest`; `dunnTest` (dunn.test); `glhtDunnett` (multcomp); Dunnett-type probabilities computed exactly (R's are randomised) |
 | Mixed models | lme4's `lmer` as `lmer` (REML and ML; correlated and uncorrelated random effects `(x \| g)`, `(x \|\| g)`, crossed and nested grouping factors `a/b`, `a:b`), with the quantities of `fixef`, `vcov`, `coef(summary())` (without p-values), `VarCorr`, `ranef`, `fitted`, `residuals`, `logLik`, `AIC`, `BIC`, `deviance`, `REMLcrit` and `isSingular`; lmerTest's Satterthwaite t- and F-tests (`summary`, `contest`, Type I/II/III `anova`) and lme4's `anova` of several fits; lme4's `glmer` as `glmer` (all glm families, Laplace approximation and adaptive Gauss-Hermite quadrature) with `summary`, `anova` and `predict` (`glmerSummary`, `glmerAnova`, `glmerPredict`) and `predict` of `lmer` (`lmerPredict`); implemented from Bates et al. (2015) with a sparse Cholesky factorisation; the estimates are the exact optimum of the criterion (lme4 stops close to it). In its own area `@numero-uno-jpn/rstats/mixed` (`dist/mixed.js`), not in the single-file bundle |
 | Survival analysis | `survdiff` (log-rank and the G-rho family) and `survfit` (Kaplan-Meier with log, plain and log-log intervals and the median) and `coxph` (Cox regression: Efron and Breslow ties, weights, strata, the summary tests) of the `survival` package |
@@ -59,32 +60,25 @@ and effect measures with their confidence intervals, not only p-values. The list
 a statistics web application for medical and psychological research (2026-11-06). In order of priority; the R
 function or package that each item is checked against is given in brackets.
 
-1. **Contingency tables and proportions:** the mid-p version of Fisher's exact test and Boschloo's test for 2 × 2
-   tables [exact2x2, Exact]; confidence intervals for a proportion by method (Wilson, Clopper-Pearson,
-   Agresti-Coull, Jeffreys) [DescTools `BinomCI`]; the effect measures of a 2 × 2 table with their intervals: the
-   risk difference (Newcombe, Miettinen-Nurminen) [DescTools `BinomDiffCI`], the risk ratio [DescTools
-   `BinomRatioCI`] and the odds ratio (Wald, mid-p) [epitools]; the Stuart-Maxwell test [DescTools
-   `StuartMaxwellTest`], the G-test [DescTools `GTest`], Goodman and Kruskal's gamma [DescTools
-   `GoodmanKruskalGamma`] and the linear-by-linear association test [coin `lbl_test`].
-2. **Robust standard errors:** sandwich covariance matrices, HC0 to HC3 and clustered [sandwich `vcovHC`,
+1. **Robust standard errors:** sandwich covariance matrices, HC0 to HC3 and clustered [sandwich `vcovHC`,
    `vcovCL`], and the tests of the coefficients with them [lmtest `coeftest`], so that modified Poisson regression
    (risk ratios), weighted regression after inverse probability weighting and difference-in-differences get correct
    intervals; the robust variance and `cluster` of Cox regression [survival `coxph`].
-3. **Diagnostic accuracy and agreement of measurements:** ROC curves and the AUC with DeLong's interval and test
+2. **Diagnostic accuracy and agreement of measurements:** ROC curves and the AUC with DeLong's interval and test
    [pROC]; Bland-Altman analysis [BlandAltmanLeh]; Deming and Passing-Bablok regression [mcr]; equivalence tests
    (two one-sided tests) [TOSTER]; the six forms of the intraclass correlation [psych `ICC`].
-4. **Survival analysis, continued:** the Nelson-Aalen estimate [`survfit`'s cumulative hazard]; the restricted mean
+3. **Survival analysis, continued:** the Nelson-Aalen estimate [`survfit`'s cumulative hazard]; the restricted mean
    survival time [survRM2]; the test of proportional hazards [`cox.zph`]; time-dependent covariates in the (start,
    stop] form [`coxph`]; competing risks: cumulative incidence, Gray's test and Fine-Gray regression [cmprsk];
    accelerated failure time and Tobit models [`survreg`].
-5. **Sample size and power for trial designs:** equivalence, non-inferiority and superiority for means and
+4. **Sample size and power for trial designs:** equivalence, non-inferiority and superiority for means and
    proportions, McNemar's test, survival (Schoenfeld, Freedman) and Simon's two-stage design [clinfun
    `ph2simon`]; the reference for each is chosen when the item is taken up.
-6. **Meta-analysis:** fixed and random effects (DerSimonian-Laird, REML), Q and I², Egger's test [metafor].
-7. **Mixed models, continued:** `confint` (profile likelihood) and `simulate` of `lmer` and `glmer` fits [lme4]. The
+5. **Meta-analysis:** fixed and random effects (DerSimonian-Laird, REML), Q and I², Egger's test [metafor].
+6. **Mixed models, continued:** `confint` (profile likelihood) and `simulate` of `lmer` and `glmer` fits [lme4]. The
    `mixed` area stays out of the root export and the single-file bundle `dist/rstats.js` (decided 2026-11-05); adding
    it later would not break compatibility.
-8. **Later, in no particular order:** ordinal logistic regression [MASS `polr`], nonlinear regression [`nls` and the
+7. **Later, in no particular order:** ordinal logistic regression [MASS `polr`], nonlinear regression [`nls` and the
    self-starting models], robust and quantile regression [MASS `rlm`, quantreg], GEE [geepack]; MANOVA [`manova`],
    discriminant analysis [MASS `lda`], canonical correlation [`cancor`]; cluster analysis [`hclust`, `kmeans`];
    multidimensional scaling and correspondence analysis [`cmdscale`, MASS `isoMDS`, ca]; Tamhane's T2 and Page's

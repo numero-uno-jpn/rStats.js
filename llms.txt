@@ -72,6 +72,14 @@ a CDN without a bundler, see the README section "Using it in the browser".
   true one (R leaves out a constant).
 - Indices are 0-based where R returns indices: `sampleInt(n)` returns `0..n-1` (R's
   `sample.int(n) - 1` from the same random stream), and the pivots of `qr` and `chol`.
+- Contingency tables and proportions: DescTools' `BinomCI(x, n, method = "wilson")` → `binomCI(x, n, { method:
+  "wilson" })` (also `BinomDiffCI` → `binomDiffCI(x1, n1, x2, n2, ...)`, `BinomRatioCI` → `binomRatioCI`, `GTest` →
+  `gTest`, `StuartMaxwellTest` → `stuartMaxwellTest`, `GoodmanKruskalGamma` → `goodmanKruskalGamma`), epitools'
+  `oddsratio(m)` → `oddsRatio(m)`, exact2x2's `fisher.exact(m, midp = TRUE)` → `fisherTest(m, { midp: true })`,
+  Exact's `exact.test(m, method = "boschloo")` → `boschlooTest(m)`, coin's `lbl_test(table)` → `lblTest(table)`,
+  equivalence's `tost(x, y, epsilon = 1)` → `tost(x, y, { epsilon: 1 })`; the 'N − 1' chi-squared test is
+  `chisqTest(m, { nMinus1: true })` and `binomDiffEquivalenceTest(x1, n1, x2, n2, { margin })` is the score TOST of
+  two proportions. Where these packages' root searches are inexact, rStats.js returns the true roots.
 - R's warnings: every test, model and fit returns them in its result (`warnings: string[]`, R's text, each distinct
   warning once, `[]` when there are none). Nothing is printed by default. `setWarningHandler((message, source) =>
   console.warn(source + ": " + message))` prints each warning of a call once, as R does (`source` is the function

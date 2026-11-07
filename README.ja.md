@@ -205,6 +205,7 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
 | 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)、`glmer` (lme4: glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、`glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`。`@numero-uno-jpn/rstats/mixed` から import する |
 | ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest) |
+| 分割表と比率 | `binomCI`、`binomDiffCI`、`binomRatioCI` (DescTools の `BinomCI`、`BinomDiffCI`、`BinomRatioCI`)、`oddsRatio` (epitools と epiR のスコア区間)、`fisherTest(x, { midp: true })` (exact2x2)、`boschlooTest` (Exact)、`gTest`、`stuartMaxwellTest`、`goodmanKruskalGamma` (DescTools)、`lblTest` (coin)、`chisqTest(x, { nMinus1: true })` (Campbell の N − 1 検定) と Freeman-Tukey 残差、`tost` (equivalence)、`binomDiffEquivalenceTest` (2 つの比率のスコア法の TOST) |
 | 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest` (PMCMRplus)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
 | 生存時間解析 | `survdiff` (log-rank)、`survfit` (Kaplan-Meier。信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイの扱い、ケースの重み、層、Wald・尤度比・スコア検定) |
 | 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor)、`pbvnorm`、`factanal`、`omega` (McDonald の ω。psych) |
@@ -267,12 +268,12 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `pnorm` | 1.6 KB |
 | `setSeed`, `rnorm` | 2.0 KB |
 | `solve` / `svd` / `eigen` | 2.4 / 2.4 / 5.1 KB |
-| `wilcoxTest` / `fisherTest` / `tTest` | 18.9 / 27.7 / 31.0 KB |
-| `qbeta` / `pt` と `qt` | 43.5 / 40.0 KB |
-| `glm` と `glmSummary` / `glm` とそのすべての関数 | 35.0 / 51.0 KB |
-| `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 69.6 KB |
-| `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.2 / 65.7 KB |
-| すべて (`/mixed` を除く) | 251.5 KB |
+| `wilcoxTest` / `fisherTest` / `tTest` | 18.9 / 27.9 / 31.0 KB |
+| `qbeta` / `pt` と `qt` | 43.9 / 40.4 KB |
+| `glm` と `glmSummary` / `glm` とそのすべての関数 | 35.0 / 51.4 KB |
+| `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 70.0 KB |
+| `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.2 / 66.1 KB |
+| すべて (`/mixed` を除く) | 263.5 KB |
 
 (`npm run size` で測れます。)
 
@@ -282,7 +283,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 できません。メインの入口には含めていません)。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` 以外のすべての関数を含む
-minify 済みの ES モジュール、gzip で 249 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
+minify 済みの ES モジュール、gzip で 264 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
 そのまま配信します。
 
 ```html
@@ -303,7 +304,7 @@ minify 済みの ES モジュール、gzip で 249 KB) を jsDelivr から読み
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
 `dist/mixed.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
 2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
-38 KB (`special`) から 206 KB (`tests`) です。
+39 KB (`special`) から 221 KB (`tests`) です。
 
 1 つのページでは、`dist/rstats.js` か分野ごとのバンドルのどちらか一方だけを使ってください。両者は別々の
 モジュールの集まりなので、混ぜると共通のコードが 2 回読み込まれ、乱数の状態も 2 つになります (一方の `setSeed`
