@@ -151,8 +151,8 @@ function ddSum(x: readonly number[]): number {
  * R's `chisq.test(x, y)`; pairs with a missing label are dropped and the levels are sorted by code point.
  *
  * With `nMinus1: true` (not in R) the statistic is Campbell's (2007) 'N - 1' chi-squared, Pearson's statistic without
- * continuity correction times `(N - 1) / N`, for 2 x 2 and larger tables. The result also has the Freeman-Tukey
- * deviates `ftResiduals` (not in R).
+ * continuity correction times `(N - 1) / N`, for 2 x 2 and larger tables with a total N above 1. The result also has
+ * the Freeman-Tukey deviates `ftResiduals` (not in R).
  *
  * As R, `warnings` has "Chi-squared approximation may be incorrect" where an expected count is below 5 (unless the
  * p-value is simulated), and "cannot compute simulated p-value with zero marginals" where `simulatePValue` is asked for
@@ -388,6 +388,8 @@ function contingency(x: number[][], options: ChisqTestOptions): ChisqTestResult 
   if (all.some((v) => !(v >= 0 && v < Infinity))) throw new RangeError("all entries of 'x' must be non-negative and finite");
   const n = ddSum(all);
   if (!(n > 0)) throw new RangeError("at least one entry of 'x' must be positive");
+  // (N - 1)/N would turn the statistic negative or make it 0 (choice 16, rule 1)
+  if (nMinus1 && !(n > 1)) throw new RangeError("'nMinus1' needs a table with a total above 1");
   const sr = x.map((r) => ddSum(r));
   const sc = x[0]!.map((_, j) => ddSum(x.map((r) => r[j]!)));
   const E = sr.map((a) => sc.map((b) => productOver(a, b, n)));
@@ -422,9 +424,11 @@ function contingency(x: number[][], options: ChisqTestOptions): ChisqTestResult 
   } else {
     stat = ddSum(diff.flatMap((r, i) => r.map((d, j) => squareOver(d, E[i]![j]!))));
     if (nMinus1) {
-      // Campbell (2007): X^2 (N - 1) / N, in this order (as the statistic would be scaled by hand)
+      // Campbell (2007): X^2 (N - 1) / N, in this order (as the statistic would be scaled by hand); X^2 ((N - 1) / N)
+      // where the product overflows ([[1e160, 1], [1, 1e160]]: Infinity for 2e160)
       method = "Pearson's 'N-1' Chi-squared test";
-      stat = (stat * (n - 1)) / n;
+      const scaled = stat * (n - 1);
+      stat = Number.isFinite(scaled) ? scaled / n : stat * ((n - 1) / n);
     }
   }
   return {

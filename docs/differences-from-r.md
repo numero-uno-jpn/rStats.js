@@ -953,7 +953,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`chisqTest(nMinus1: true)`** is not in R: Campbell's (2007) 'N - 1' chi-squared test, Pearson's statistic without
   continuity correction times (N - 1)/N, for 2 x 2 and r x c tables (method "Pearson's 'N-1' Chi-squared test"). The
   default continuity correction is then not applied; `correct: true` given with it, a vector (goodness of fit) and
-  `simulatePValue` are errors.
+  `simulatePValue` are errors, and so is a total N of at most 1 (the factor (N - 1)/N would make the statistic 0 or
+  negative).
 - **`ftResiduals`** of `chisqTest` and `gTest` is not in R: the Freeman-Tukey deviates `sqrt(O) + sqrt(O + 1) -
   sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975), computed without the cancellation of that formula (it loses
   eps sqrt(O) absolute: -31.236670803616562 for -31.236670803616877 in [[1e5, 2e5], [3e5, 4e5]]). The variant

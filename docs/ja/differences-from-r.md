@@ -896,7 +896,7 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`chisqTest(nMinus1: true)`** は R にありません: Campbell (2007) の 'N - 1' カイ二乗検定で、連続性補正なしの
   Pearson の統計量に (N - 1)/N を掛けます。2 x 2 表と r x c 表が対象です (method は "Pearson's 'N-1' Chi-squared
   test")。このとき既定の連続性補正はかけません。`correct: true` を同時に与えること、ベクトル (適合度)、
-  `simulatePValue` はエラーです。
+  `simulatePValue` はエラーです。合計 N が 1 以下の表もエラーです (係数 (N - 1)/N で統計量が 0 か負になる)。
 - `chisqTest` と `gTest` の **`ftResiduals`** は R にありません: Freeman-Tukey 偏差 `sqrt(O) + sqrt(O + 1) -
   sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975) を、この式の桁落ちなしに計算します (式のままでは絶対で
   eps sqrt(O) を失う: [[1e5, 2e5], [3e5, 4e5]] で -31.236670803616877 でなく -31.236670803616562)。変種

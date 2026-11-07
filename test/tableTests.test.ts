@@ -281,6 +281,14 @@ describe("chisqTest(nMinus1)", () => {
     const r = chisqTest([[12, 5], [7, 9]], { nMinus1: true, correct: false });
     expect(r.method).toBe("Pearson's 'N-1' Chi-squared test");
   });
+
+  it("needs a total above 1, and does not overflow (audit 9)", () => {
+    // N <= 1 made the statistic negative ([[0.1, 0.2], [0.3, 0.1]]: -0.0521, p = 1) or 0 (choice 16)
+    expect(() => chisqTest([[0.1, 0.2], [0.3, 0.1]], { nMinus1: true })).toThrow(/total above 1/);
+    expect(() => chisqTest([[0.5, 0], [0, 0.5]], { nMinus1: true })).toThrow(/total above 1/);
+    // mpmath (400 digits): 2.0000000000000000131e160 (X^2 (N - 1) overflowed to Infinity); 4 ulps: X^2 and the factor
+    expect(relativeError(chisqTest([[1e160, 1], [1, 1e160]], { nMinus1: true }).statistic, 2.0000000000000000131e160)).toBeLessThan(4 * 2 ** -52);
+  });
 });
 
 // ---- Freeman-Tukey deviates ----
