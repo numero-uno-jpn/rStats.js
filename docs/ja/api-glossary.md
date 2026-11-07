@@ -416,3 +416,25 @@
 | summarise (verb) | 要約する | `docs/ja` で「要約」を使用 |
 | row object | 行のオブジェクト | 新規。`fromRows` / `toRows` の行の形 |
 | non-empty | 空でない | 新規。`docs/ja` の「空のセル」と同じ語感 |
+| control (group) | 対照群 | `docs/ja` で使用 (「対照群に対する平均」) |
+| contrast | 対比 | `docs/ja` で使用 |
+| simultaneous (p-values, probabilities) | 同時 | `docs/ja` で使用 (「同時 p 値」「同時正規確率」)。`"single-step"` は英字のまま |
+| all-pairs (test, comparisons) | 全対比較 | `docs/ja` で使用 |
+| many-to-one (test, comparisons) | 多対一 | `docs/ja` で使用 |
+| pairwise comparisons | ペアごとの比較 | 新規。`docs/ja` の「ペアごと」に合わせた |
+| family-wise (confidence level) | 族単位 | 新規 |
+| response (variable) | 応答変数 | 新規。`x` の値の説明 |
+| 1-based | 1 始まり | `docs/ja` で使用 |
+| step-wise adjustment | 段階的な調整 | `docs/ja` で使用 |
+| randomised integration | 乱数による積分 | 新規。R が近似に使う方法 |
+| tie correction | 同順位補正 | 新規。`ties` の補正 |
+| midranks | 中間順位 | 新規 |
+| monotonicity | 単調性 | 新規 |
+| standardised (statistic) | 標準化 | `docs/ja` で使用 |
+| adjusted p-value | 調整済みの p 値 | `docs/ja` で使用 |
+| alias (of a property) | 別名 | `docs/ja` で「の別名です」を使用 |
+| lower-triangular (table) | 下三角 | `docs/ja` で使用 |
+| upper tail | 上側の裾 | 新規。「上側」は `docs/ja` で使用 |
+| lower end, upper end (of an interval) | 下端、上端 | 新規 |
+| number of comparisons | 比較の数 | 新規 |
+| unambiguous abbreviation | 曖昧さのない省略形 | 新規 |

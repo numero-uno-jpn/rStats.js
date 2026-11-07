@@ -2,576 +2,576 @@
   "DunnTestMethod#summary": {
     "hash": "7ece85eb68d0",
     "en": "Adjustment method of {@link dunnTest} (dunn.test's `method`).",
-    "ja": ""
+    "ja": "{@link dunnTest} の調整方法 (dunn.test の `method`)。"
   },
   "DunnTestOptions#summary": {
     "hash": "f15022edff45",
     "en": "Options of {@link dunnTest}.",
-    "ja": ""
+    "ja": "{@link dunnTest} のオプション。"
   },
   "DunnTestOptions.altp#summary": {
     "hash": "343862be236e",
     "en": "Report two-sided p-values (twice the upper tail of |Z|) instead of one-sided ones. Default `false`.",
-    "ja": ""
+    "ja": "片側の p 値ではなく、両側の p 値 (|Z| の上側の裾の確率の 2 倍) を報告します。既定は `false`。"
   },
   "DunnTestOptions.method#summary": {
     "hash": "c06a4e9898be",
     "en": "Adjustment of the p-values. Default `\"none\"`.",
-    "ja": ""
+    "ja": "p 値の調整。既定は `\"none\"`。"
   },
   "DunnTestResult#summary": {
     "hash": "73b849c34114",
     "en": "Result of {@link dunnTest} (dunn.test's list).",
-    "ja": ""
+    "ja": "{@link dunnTest} の結果 (dunn.test のリスト)。"
   },
   "DunnTestResult.P#summary": {
     "hash": "dcaddc3cbe18",
     "en": "p-values: the upper tail of |Z|, or twice that with `altp`.",
-    "ja": ""
+    "ja": "p 値: |Z| の上側の裾の確率 (`altp` を指定すると、その 2 倍)。"
   },
   "DunnTestResult.PAdjusted#summary": {
     "hash": "9900234c6acb",
     "en": "Adjusted p-values (no monotonicity step).",
-    "ja": ""
+    "ja": "調整済みの p 値 (単調性の処理は行いません)。"
   },
   "DunnTestResult.Z#summary": {
     "hash": "250287c89ef3",
     "en": "Dunn's z for each comparison.",
-    "ja": ""
+    "ja": "各比較の Dunn の z。"
   },
   "DunnTestResult.chi2#summary": {
     "hash": "ef6e9e81d8b9",
     "en": "Kruskal-Wallis chi-squared statistic (with the tie correction).",
-    "ja": ""
+    "ja": "Kruskal-Wallis のカイ二乗統計量 (同順位の補正を含む)。"
   },
   "DunnTestResult.comparisons#summary": {
     "hash": "c8baaf4d1f49",
     "en": "Labels of the comparisons, `\"<label j> - <label i>\"`, in the order (2,1), (3,1), (3,2), (4,1), ...",
-    "ja": ""
+    "ja": "比較のラベルです。形式は `\"<label j> - <label i>\"` で、並び順は (2,1)、(3,1)、(3,2)、(4,1)、... です。"
   },
   "DunnTestResult.pAdjusted#summary": {
     "hash": "90c73658c601",
     "en": "Alias of `PAdjusted`: the same array.",
-    "ja": ""
+    "ja": "`PAdjusted` の別名。同じ配列です。"
   },
   "DunnTestResult.pValue#summary": {
     "hash": "a59bf3749fae",
     "en": "Alias of `P`: the same array.",
-    "ja": ""
+    "ja": "`P` の別名。同じ配列です。"
   },
   "DunnTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "DunnTestResult.zValue#summary": {
     "hash": "5b9eeb382531",
     "en": "Alias of `Z`: the same array.",
-    "ja": ""
+    "ja": "`Z` の別名。同じ配列です。"
   },
   "GlhtDunnettOptions#summary": {
     "hash": "c250a66d17bb",
     "en": "Options of {@link glhtDunnett}.",
-    "ja": ""
+    "ja": "{@link glhtDunnett} のオプション。"
   },
   "GlhtDunnettOptions.alternative#summary": {
     "hash": "52c36c030161",
     "en": "Alternative hypothesis for each group against the control. Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "各群を対照群と比べる際の対立仮説です。既定は `\"two.sided\"`。"
   },
   "GlhtDunnettResult#summary": {
     "hash": "23d19bc010df",
     "en": "Result of {@link glhtDunnett}.",
-    "ja": ""
+    "ja": "{@link glhtDunnett} の結果。"
   },
   "GlhtDunnettResult.df#summary": {
     "hash": "55f87671ef3c",
     "en": "Residual degrees of freedom, N - k.",
-    "ja": ""
+    "ja": "残差の自由度 (N - k)。"
   },
   "GlhtDunnettResult.estimate#summary": {
     "hash": "a3f535bd6fd0",
     "en": "Differences of the group means from the control's.",
-    "ja": ""
+    "ja": "各群の平均と対照群の平均の差。"
   },
   "GlhtDunnettResult.names#summary": {
     "hash": "0267d9d9e5ca",
     "en": "Labels of the contrasts, `\"<level> - <level 1>\"`.",
-    "ja": ""
+    "ja": "対比のラベルです。形式は `\"<level> - <level 1>\"` です。"
   },
   "GlhtDunnettResult.p#summary": {
     "hash": "a938e3d8ea3e",
     "en": "Simultaneous (single-step) p-values.",
-    "ja": ""
+    "ja": "同時 (single-step) の p 値。"
   },
   "GlhtDunnettResult.pValue#summary": {
     "hash": "14b7d385c694",
     "en": "Alias of `p`: the same array.",
-    "ja": ""
+    "ja": "`p` の別名。同じ配列です。"
   },
   "GlhtDunnettResult.se#summary": {
     "hash": "d9da08530f7f",
     "en": "Their standard errors (pooled).",
-    "ja": ""
+    "ja": "それらの標準誤差 (併合分散による)。"
   },
   "GlhtDunnettResult.stdError#summary": {
     "hash": "a2d9d992c915",
     "en": "Alias of `se`: the same array.",
-    "ja": ""
+    "ja": "`se` の別名。同じ配列です。"
   },
   "GlhtDunnettResult.t#summary": {
     "hash": "c9887a11c98b",
     "en": "t statistics.",
-    "ja": ""
+    "ja": "t 統計量。"
   },
   "GlhtDunnettResult.tValue#summary": {
     "hash": "948072709f85",
     "en": "Alias of `t`: the same array.",
-    "ja": ""
+    "ja": "`t` の別名。同じ配列です。"
   },
   "GlhtDunnettResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "KwAllPairsDunnTestOptions#summary": {
     "hash": "ea0c6f7db211",
     "en": "Options of the all-pairs Dunn test.",
-    "ja": ""
+    "ja": "全対比較の Dunn 検定のオプション。"
   },
   "KwAllPairsDunnTestOptions.pAdjustMethod#summary": {
     "hash": "8566732f7ddd",
     "en": "p-value adjustment (see `pAdjust`). Default `\"holm\"`.",
-    "ja": ""
+    "ja": "p 値の調整 (`pAdjust` を参照)。既定は `\"holm\"`。"
   },
   "KwManyOneDunnTestOptions#summary": {
     "hash": "3aa2bd8eb9aa",
     "en": "Options of the many-to-one Dunn test.",
-    "ja": ""
+    "ja": "多対一比較の Dunn 検定のオプション。"
   },
   "KwManyOneDunnTestOptions.pAdjustMethod#summary": {
     "hash": "2635de999b22",
     "en": "`\"single-step\"` (simultaneous normal probabilities, the default) or a `pAdjust` method.",
-    "ja": ""
+    "ja": "`\"single-step\"` (既定。同時正規確率) または `pAdjust` の調整方法です。"
   },
   "ManyOneTestOptions#summary": {
     "hash": "1ba8463f45ea",
     "en": "Options of the many-to-one tests.",
-    "ja": ""
+    "ja": "多対一比較の検定のオプション。"
   },
   "ManyOneTestOptions.alternative#summary": {
     "hash": "52c36c030161",
     "en": "Alternative hypothesis for each group against the control. Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "各群を対照群と比べる際の対立仮説です。既定は `\"two.sided\"`。"
   },
   "ManyOneUTestOptions#summary": {
     "hash": "42ce55f788fe",
     "en": "Options of Steel's many-to-one rank test (`manyOneUTest`).",
-    "ja": ""
+    "ja": "Steel の多対一順位検定 (`manyOneUTest`) のオプション。"
   },
   "PAdjustMethod#summary": {
     "hash": "d48703e5d2b0",
     "en": "Adjustment method for {@link pAdjust}, as in R's `p.adjust.methods`. `\"fdr\"` is an alias of `\"BH\"`.",
-    "ja": ""
+    "ja": "{@link pAdjust} の調整方法です。R の `p.adjust.methods` と同じです。`\"fdr\"` は `\"BH\"` の別名です。"
   },
   "PAdjustOptions#summary": {
     "hash": "b8dd84e0632f",
     "en": "Options for {@link pAdjust}.",
-    "ja": ""
+    "ja": "{@link pAdjust} のオプション。"
   },
   "PAdjustOptions.method#summary": {
     "hash": "fef69cfac5f1",
     "en": "Adjustment method. Default `\"holm\"`. Unambiguous abbreviations are accepted, as in R.",
-    "ja": ""
+    "ja": "調整方法です。既定は `\"holm\"`。R と同じく、曖昧さのない省略形も受け付けます。"
   },
   "PAdjustOptions.n#summary": {
     "hash": "f663228464f0",
     "en": "Number of comparisons. Default: the number of non-`NaN` p-values. Must not be smaller\nthan that; must be an integer and at most 65536 for `\"hommel\"`.",
-    "ja": ""
+    "ja": "比較の数です。既定: `NaN` でない p 値の数。これより小さく\nしてはいけません。整数でなければならず、`\"hommel\"` の場合は 65536 以下でなければなりません。"
   },
   "PMCMRResult#summary": {
     "hash": "90c1243fb498",
     "en": "Result of the PMCMRplus tests (R's `PMCMR` objects).",
-    "ja": ""
+    "ja": "PMCMRplus の検定の結果 (R の `PMCMR` オブジェクト)。"
   },
   "PMCMRResult.colNames#summary": {
     "hash": "c06179ab4a9f",
     "en": "Labels of the columns (groups 1..k-1, or the control).",
-    "ja": ""
+    "ja": "列のラベル (群 1..k-1、または対照群)。"
   },
   "PMCMRResult.method#summary": {
     "hash": "ad31a71008c5",
     "en": "Description of the test (R's `method`).",
-    "ja": ""
+    "ja": "検定の説明 (R の `method`)。"
   },
   "PMCMRResult.pAdjustMethod#summary": {
     "hash": "bad1f2de48aa",
     "en": "How the p-values were adjusted (`\"single-step\"` for the simultaneous probabilities).",
-    "ja": ""
+    "ja": "p 値の調整方法 (同時確率の場合は `\"single-step\"`)。"
   },
   "PMCMRResult.pValue#summary": {
     "hash": "3763522b295e",
     "en": "p-values, in the same layout as `statistic`.",
-    "ja": ""
+    "ja": "p 値。配置は `statistic` と同じです。"
   },
   "PMCMRResult.rowNames#summary": {
     "hash": "bf7e6b785bc6",
     "en": "Labels of the rows (groups 2..k).",
-    "ja": ""
+    "ja": "行のラベル (群 2..k)。"
   },
   "PMCMRResult.statistic#summary": {
     "hash": "806cc24c8533",
     "en": "Statistics as a table: for the all-pairs tests row `r` compares group `rowNames[r]` with each group\n`colNames[c]` (lower triangle; `NaN` above the diagonal), for the many-to-one tests each group with the control\n(one column).",
-    "ja": ""
+    "ja": "表形式の統計量です。全対比較の検定では、行 `r` は群 `rowNames[r]` を各群\n`colNames[c]` と比べます (下三角。対角線より上は `NaN`)。多対一比較の検定では、各群を対照群と比べます\n(列は 1 つです)。"
   },
   "PMCMRResult.warnings#summary": {
     "hash": "3db2080f70ed",
     "en": "R's warnings.",
-    "ja": ""
+    "ja": "R の警告。"
   },
   "PairwiseOptions#summary": {
     "hash": "f04607ade0df",
     "en": "Common options of the pairwise comparisons.",
-    "ja": ""
+    "ja": "ペアごとの比較に共通するオプション。"
   },
   "PairwiseOptions.alternative#summary": {
     "hash": "120f77cdf9f0",
     "en": "Alternative hypothesis for each comparison of row group against column group. Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "行の群と列の群を比べる各比較の対立仮説です。既定は `\"two.sided\"`。"
   },
   "PairwiseOptions.pAdjustMethod#summary": {
     "hash": "8566732f7ddd",
     "en": "p-value adjustment (see `pAdjust`). Default `\"holm\"`.",
-    "ja": ""
+    "ja": "p 値の調整 (`pAdjust` を参照)。既定は `\"holm\"`。"
   },
   "PairwisePropTestOptions#summary": {
     "hash": "07f19e7ba228",
     "en": "Options for {@link pairwisePropTest}.",
-    "ja": ""
+    "ja": "{@link pairwisePropTest} のオプション。"
   },
   "PairwisePropTestOptions.correct#summary": {
     "hash": "229a4bad2542",
     "en": "Continuity correction in each two-group test. Default `true`.",
-    "ja": ""
+    "ja": "各 2 群の検定における連続性補正です。既定は `true`。"
   },
   "PairwisePropTestOptions.pAdjustMethod#summary": {
     "hash": "8566732f7ddd",
     "en": "p-value adjustment (see `pAdjust`). Default `\"holm\"`.",
-    "ja": ""
+    "ja": "p 値の調整 (`pAdjust` を参照)。既定は `\"holm\"`。"
   },
   "PairwiseResult#summary": {
     "hash": "40ceda3cb467",
     "en": "Result of the pairwise comparisons (R's `pairwise.htest`).",
-    "ja": ""
+    "ja": "ペアごとの比較の結果 (R の `pairwise.htest`)。"
   },
   "PairwiseResult.colNames#summary": {
     "hash": "4ee703cfb4b0",
     "en": "Labels of the columns (groups 1..k-1).",
-    "ja": ""
+    "ja": "列のラベル (群 1..k-1)。"
   },
   "PairwiseResult.method#summary": {
     "hash": "1b241a42be88",
     "en": "Description of the tests (R's `method`).",
-    "ja": ""
+    "ja": "検定の説明 (R の `method`)。"
   },
   "PairwiseResult.pAdjustMethod#summary": {
     "hash": "5c0443a4d533",
     "en": "Adjustment method.",
-    "ja": ""
+    "ja": "調整方法。"
   },
   "PairwiseResult.pValue#summary": {
     "hash": "f4cfe95e63f8",
     "en": "Adjusted p-values as a lower-triangular table: row `r` compares group `rowNames[r]` with each group\n`colNames[c]`; entries above the diagonal are `NaN`.",
-    "ja": ""
+    "ja": "調整済みの p 値を下三角の表で示します。行 `r` は群 `rowNames[r]` を各群\n`colNames[c]` と比べます。対角線より上の要素は `NaN` です。"
   },
   "PairwiseResult.rowNames#summary": {
     "hash": "bf7e6b785bc6",
     "en": "Labels of the rows (groups 2..k).",
-    "ja": ""
+    "ja": "行のラベル (群 2..k)。"
   },
   "PairwiseResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "PairwiseTTestOptions#summary": {
     "hash": "a08607a2dc92",
     "en": "Options for {@link pairwiseTTest}.",
-    "ja": ""
+    "ja": "{@link pairwiseTTest} のオプション。"
   },
   "PairwiseTTestOptions.paired#summary": {
     "hash": "53816821fd8c",
     "en": "Paired t tests (groups matched by position). Default `false`.",
-    "ja": ""
+    "ja": "対応のある t 検定 (群は位置で対応させます)。既定は `false`。"
   },
   "PairwiseTTestOptions.poolSd#summary": {
     "hash": "9508073e0f5b",
     "en": "Pool the standard deviation over all groups. Default `!paired`.",
-    "ja": ""
+    "ja": "標準偏差をすべての群で併合します。既定は `!paired`。"
   },
   "PairwiseWilcoxTestOptions#summary": {
     "hash": "9db3f8995a72",
     "en": "Options for {@link pairwiseWilcoxTest}: those of the comparisons themselves, as for `wilcoxTest`.",
-    "ja": ""
+    "ja": "{@link pairwiseWilcoxTest} のオプション: 比較そのもののオプション (`wilcoxTest` と同じ)。"
   },
   "TukeyHSD#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "TukeyHSD#@param x": {
     "hash": "44f797358d11",
     "en": "An array of samples (groups), or one sample with group labels `g` (then `options` comes third).",
-    "ja": ""
+    "ja": "群ごとの標本の配列です。または、群のラベル `g` を付けた 1 つの標本です (その場合、`options` は 3 番目の引数になります)。"
   },
   "TukeyHSD#summary": {
     "hash": "8144ce5543a0",
     "en": "Tukey's honest significant differences between the group means of a one-way ANOVA (Tukey-Kramer for unequal\nsizes). Equivalent to R's `TukeyHSD(aov(y ~ g))`.",
-    "ja": ""
+    "ja": "一元配置分散分析における群の平均どうしの Tukey の HSD (honest significant differences) です (群のサイズが等しくない\n場合は Tukey-Kramer)。R の `TukeyHSD(aov(y ~ g))` と同等です。"
   },
   "TukeyHSDOptions#summary": {
     "hash": "5ee78b2e5464",
     "en": "Options for {@link TukeyHSD}.",
-    "ja": ""
+    "ja": "{@link TukeyHSD} のオプション。"
   },
   "TukeyHSDOptions.confLevel#summary": {
     "hash": "d779cc3bc1a3",
     "en": "Family-wise confidence level in [0, 1] (a RangeError otherwise). Default `0.95`.",
-    "ja": ""
+    "ja": "族単位の信頼水準です ([0, 1] の範囲内。範囲外では RangeError の例外を投げます)。既定は `0.95`。"
   },
   "TukeyHSDResult#summary": {
     "hash": "9400dab918fa",
     "en": "Result of {@link TukeyHSD}: one entry per pair of groups, in R's order (2-1, 3-1, ..., k-1, 3-2, ...).",
-    "ja": ""
+    "ja": "{@link TukeyHSD} の結果: 群の組ごとに 1 つの要素があり、順序は R と同じです (2-1, 3-1, ..., k-1, 3-2, ...)。"
   },
   "TukeyHSDResult.diff#summary": {
     "hash": "a1a6b324e560",
     "en": "Difference of means, group i minus group j.",
-    "ja": ""
+    "ja": "平均の差 (群 i の平均から群 j の平均を引いたもの)。"
   },
   "TukeyHSDResult.i#summary": {
     "hash": "09b6d517c9ad",
     "en": "The group compared (1-based position among the groups compared, i > j).",
-    "ja": ""
+    "ja": "比較される群 (比較対象の群の中での 1 始まりの位置。i > j)。"
   },
   "TukeyHSDResult.j#summary": {
     "hash": "8de7284f7a28",
     "en": "The group it is compared with (1-based index).",
-    "ja": ""
+    "ja": "比較の相手の群 (1 始まりの番号)。"
   },
   "TukeyHSDResult.lwr#summary": {
     "hash": "4f3bd96640cb",
     "en": "Lower ends of the simultaneous intervals.",
-    "ja": ""
+    "ja": "同時信頼区間の下端。"
   },
   "TukeyHSDResult.names#summary": {
     "hash": "e1b029b398d3",
     "en": "Labels of the comparisons, `\"a-b\"`: the group labels when given, otherwise the positions of the samples in the\nlist (from 1). Groups without data are left out, as in R.",
-    "ja": ""
+    "ja": "比較のラベル `\"a-b\"` です。群のラベルが与えられていればそれを使い、そうでなければ、リストの中での標本の位置\n(1 から数えた位置) を使います。R と同じく、データのない群は除かれます。"
   },
   "TukeyHSDResult.pAdj#summary": {
     "hash": "cc29a48a5759",
     "en": "p-values adjusted for the multiple comparisons.",
-    "ja": ""
+    "ja": "多重比較のために調整された p 値。"
   },
   "TukeyHSDResult.pAdjusted#summary": {
     "hash": "18a40262f92e",
     "en": "Alias of `pAdj`: the same array.",
-    "ja": ""
+    "ja": "`pAdj` の別名。同じ配列です。"
   },
   "TukeyHSDResult.upr#summary": {
     "hash": "75f27c79b169",
     "en": "Upper ends.",
-    "ja": ""
+    "ja": "上端。"
   },
   "TukeyHSDResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "dscfAllPairsTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dscfAllPairsTest#summary": {
     "hash": "d30e22a08f83",
     "en": "Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. Equivalent to\n`PMCMRplus::dscfAllPairsTest()` in R. The statistic, sqrt(2) (U - n_i n_j / 2) / sqrt(Var U) with the smaller U,\nis never positive.",
-    "ja": ""
+    "ja": "ペアごとの Mann-Whitney 統計量による Dwass-Steel-Critchlow-Fligner の全対比較検定です。R の\n`PMCMRplus::dscfAllPairsTest()` と同等です。統計量 sqrt(2) (U - n_i n_j / 2) / sqrt(Var U) は、小さいほうの U を用いると、\n正になることはありません。"
   },
   "dunnTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dunnTest#summary": {
     "hash": "91a3fb46b8c2",
     "en": "Dunn's test of all pairs of mean ranks. Equivalent to `dunn.test::dunn.test(x, g, method, altp)` in R. The step-wise\nadjustments multiply (or transform) each p-value by the factor of its rank and cap it at 1, without enforcing\nmonotonicity, as dunn.test does (unlike `pAdjust`). Equal p-values share the rank of the first of them in the\nordering, so they get the same adjusted value (dunn.test ranks ties in the order of the comparisons).",
-    "ja": ""
+    "ja": "平均順位の全対比較の Dunn 検定です。R の `dunn.test::dunn.test(x, g, method, altp)` と同等です。段階的な\n調整では、各 p 値に、その順位に応じた係数を掛ける (または変換する) うえで、1 を上限とします。dunn.test と同じく、単調性は強制しません\n(`pAdjust` とは異なります)。等しい p 値は、並び順で最初のものの順位を共有するため、\n同じ調整後の値になります (dunn.test は比較の順に同順位をつけます)。"
   },
   "dunnettTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "dunnettTest#summary": {
     "hash": "ef9f7fe78b4c",
     "en": "Dunnett's many-to-one test of means against the control (the first group), with the pooled variance. Equivalent to\n`PMCMRplus::dunnettTest()` in R. The p-values are the exact multivariate t probabilities (R approximates them by\nrandomised integration); two-sided, as in PMCMRplus, `min(1, 2 P(max T_i >= |t|))`.",
-    "ja": ""
+    "ja": "併合分散を用いた Dunnett の多対一検定です。各群の平均を対照群 (最初の群) と比べます。R の\n`PMCMRplus::dunnettTest()` と同等です。p 値は、多変量 t 分布の正確な確率です (R は乱数による\n積分で近似します)。PMCMRplus と同じく両側です (`min(1, 2 P(max T_i >= |t|))`)。"
   },
   "gamesHowellTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "gamesHowellTest#summary": {
     "hash": "2f1d9b277832",
     "en": "Games-Howell all-pairs test of means with Welch's standard errors and degrees of freedom. Equivalent to\n`PMCMRplus::gamesHowellTest()` in R.",
-    "ja": ""
+    "ja": "Welch の標準誤差と自由度を用いた Games-Howell の全対比較検定です。R の\n`PMCMRplus::gamesHowellTest()` と同等です。"
   },
   "glhtDunnett#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "glhtDunnett#summary": {
     "hash": "6975cfa3f203",
     "en": "Dunnett's many-to-one comparisons of a one-way ANOVA with simultaneous p-values. Equivalent to\n`multcomp::glht()` in R. It gives `summary(glht(aov(y ~ g), linfct = mcp(g = \"Dunnett\"), alternative))`, with the\nexact multivariate t probabilities (R approximates them by randomised integration): two-sided\n`P(max |T_i| >= |t|)`, greater `P(max T_i >= t)`, less `P(min T_i <= t)`.",
-    "ja": ""
+    "ja": "一元配置分散分析に対する、同時 p 値を用いた Dunnett の多対一比較です。R の\n`multcomp::glht()` と同等です。その結果は `summary(glht(aov(y ~ g), linfct = mcp(g = \"Dunnett\"), alternative))` と同じで、\n正確な多変量 t 分布の確率 (R は乱数による積分で近似します) を用います。両側では\n`P(max |T_i| >= |t|)`、greater は `P(max T_i >= t)`、less は `P(min T_i <= t)` です。"
   },
   "kwAllPairsDunnTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "kwAllPairsDunnTest#@param g": {
     "hash": "ec5aad7ecb0b",
     "en": "Group labels, parallel to `x` (groups in the order of the sorted labels).",
-    "ja": ""
+    "ja": "群のラベルです。`x` と対応させます (群は、ソートしたラベルの順になります)。"
   },
   "kwAllPairsDunnTest#@param x": {
     "hash": "740ef4cf6e31",
     "en": "Response values.",
-    "ja": ""
+    "ja": "応答変数の値。"
   },
   "kwAllPairsDunnTest#summary": {
     "hash": "a478c04e9e8b",
     "en": "Dunn's all-pairs test of mean ranks with adjusted p-values. Equivalent to `PMCMRplus::kwAllPairsDunnTest()` in R.",
-    "ja": ""
+    "ja": "調整済みの p 値を用いた、平均順位の全対比較の Dunn 検定です。R の `PMCMRplus::kwAllPairsDunnTest()` と同等です。"
   },
   "kwManyOneDunnTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "kwManyOneDunnTest#summary": {
     "hash": "b102d9117c59",
     "en": "Dunn's many-to-one test of mean ranks against the control (the first group). Equivalent to\n`PMCMRplus::kwManyOneDunnTest()` in R. With `pAdjustMethod` `\"single-step\"` (the default) the p-values are the\nexact simultaneous normal probabilities (R approximates them by randomised integration).",
-    "ja": ""
+    "ja": "平均順位を対照群 (最初の群) と比べる Dunn の多対一検定です。R の\n`PMCMRplus::kwManyOneDunnTest()` と同等です。`pAdjustMethod` が `\"single-step\"` (既定) の場合、p 値は\n正確な同時正規確率です (R は乱数による積分で近似します)。"
   },
   "manyOneUTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "manyOneUTest#@param g": {
     "hash": "ec5aad7ecb0b",
     "en": "Group labels, parallel to `x` (groups in the order of the sorted labels).",
-    "ja": ""
+    "ja": "群のラベルです。`x` と対応させます (群は、ソートしたラベルの順になります)。"
   },
   "manyOneUTest#@param x": {
     "hash": "740ef4cf6e31",
     "en": "Response values.",
-    "ja": ""
+    "ja": "応答変数の値。"
   },
   "manyOneUTest#summary": {
     "hash": "5f7d793ab339",
     "en": "Steel's many-to-one rank test in its normal approximation: the Mann-Whitney statistic of each group against the\ncontrol (the first group), each pair ranked on its own (midranks), standardised with the tie-corrected variance.\nEquivalent to `PMCMRplus::manyOneUTest()` in R. The statistic is positive when the group ranks higher than the\ncontrol. With `pAdjustMethod` `\"single-step\"` (the default; at least three groups) the p-values are the exact\nsimultaneous normal probabilities (R approximates them by randomised integration).",
-    "ja": ""
+    "ja": "Steel の多対一順位検定を正規近似で行います。各群の Mann-Whitney 統計量を\n対照群 (最初の群) と比べて求めます。各ペアは個別に順位づけされ (中間順位)、同順位補正を含む分散で標準化されます。\nR の `PMCMRplus::manyOneUTest()` と同等です。群の順位が対照群より\n高いとき、統計量は正になります。`pAdjustMethod` が `\"single-step\"` の場合 (既定。3 群以上のとき)、p 値は正確な\n同時正規確率です (R は乱数による積分で近似します)。"
   },
   "pAdjust#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pAdjust#@param options": {
     "hash": "5dc5cf1dd328",
     "en": "See {@link PAdjustOptions}, or just the method name as a string.",
-    "ja": ""
+    "ja": "{@link PAdjustOptions} を参照してください。または、調整方法の名前だけを文字列で渡すこともできます。"
   },
   "pAdjust#@param p": {
     "hash": "7dd0c8207dfe",
     "en": "p-values.",
-    "ja": ""
+    "ja": "p 値。"
   },
   "pAdjust#@returns": {
     "hash": "eec914d1081a",
     "en": "Adjusted p-values, in the same order as `p`.",
-    "ja": ""
+    "ja": "調整済みの p 値 (`p` と同じ順序)。"
   },
   "pAdjust#summary": {
     "hash": "d1415ae91ecb",
     "en": "Adjusts p-values for multiple comparisons. Equivalent to R's `p.adjust()`.\n\n`NaN` values are excluded from the adjustment and returned as `NaN` in place. If `n` is\n1 or less, the p-values are returned unchanged. Differences from R: with `\"hommel\"` a\nnon-integer `n` or an `n` above 65536 (O(n^2) work, about 6 s at the limit) is an error, and an empty `p` always\ngives an empty result.",
-    "ja": ""
+    "ja": "多重比較のために p 値を調整します。R の `p.adjust()` と同等です。\n\n`NaN` の値は調整から除外され、その位置に `NaN` のまま返されます。`n` が\n1 以下の場合、p 値は変更されずに返されます。R との違い: `\"hommel\"` の場合、\n整数でない `n` や 65536 を超える `n` (O(n^2) の計算量で、上限では約 6 秒) はエラーになります。空の `p` は常に\n空の結果を返します。"
   },
   "pairwisePropTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pairwisePropTest#@param n": {
     "hash": "0f881680cdfb",
     "en": "Numbers of trials per group. Groups with `NaN` in `x` or `n` are dropped (the rows and columns are then\n  numbered over the groups kept, as in R).",
-    "ja": ""
+    "ja": "群ごとの試行回数です。`x` または `n` に `NaN` を含む群は除外されます (その場合、行と列の番号は\n  残った群について、R と同じく振り直されます)。"
   },
   "pairwisePropTest#@param x": {
     "hash": "ed791b1914ab",
     "en": "Numbers of successes per group.",
-    "ja": ""
+    "ja": "群ごとの成功数です。"
   },
   "pairwisePropTest#summary": {
     "hash": "ff4c114b551c",
     "en": "Pairwise two-group tests of equal proportions, with adjusted p-values. Equivalent to R's `pairwise.prop.test()`.",
-    "ja": ""
+    "ja": "調整済みの p 値を用いた、比率が等しいかどうかのペアごとの 2 群比較です。R の `pairwise.prop.test()` と同等です。"
   },
   "pairwiseTTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pairwiseTTest#@param g": {
     "hash": "0240cda1f378",
     "en": "Group labels, parallel to `x`.",
-    "ja": ""
+    "ja": "群のラベルです。`x` と対応させます。"
   },
   "pairwiseTTest#@param x": {
     "hash": "740ef4cf6e31",
     "en": "Response values.",
-    "ja": ""
+    "ja": "応答変数の値。"
   },
   "pairwiseTTest#summary": {
     "hash": "540339a15252",
     "en": "Pairwise t tests between groups, with adjusted p-values. Equivalent to R's `pairwise.t.test()`.",
-    "ja": ""
+    "ja": "調整済みの p 値を用いた、群どうしのペアごとの t 検定です。R の `pairwise.t.test()` と同等です。"
   },
   "pairwiseWilcoxTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pairwiseWilcoxTest#summary": {
     "hash": "60f99285897e",
     "en": "Pairwise Wilcoxon rank sum (or signed rank, with `paired`) tests between groups, with adjusted p-values. Equivalent\nto R's `pairwise.wilcox.test()`. `method` is that of the last comparison, as in R.",
-    "ja": ""
+    "ja": "調整済みの p 値を用いた、群どうしのペアごとの比較です。Wilcoxon の順位和検定を行います (`paired` を指定すると、Wilcoxon の符号付き順位検定)。R の\n`pairwise.wilcox.test()` と同等です。`method` の値は最後の比較のものになり、R と同じです。"
   },
   "tukeyTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "tukeyTest#summary": {
     "hash": "f0cf919e3691",
     "en": "Tukey's all-pairs test of means (Tukey-Kramer for unequal sizes). Equivalent to `PMCMRplus::tukeyTest()` in R.",
-    "ja": ""
+    "ja": "平均の Tukey の全対比較検定です (群のサイズが等しくない場合は Tukey-Kramer)。R の `PMCMRplus::tukeyTest()` と同等です。"
   }
 }
