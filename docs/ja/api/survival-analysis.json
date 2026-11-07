@@ -2,7 +2,7 @@
   "CoxphControl#summary": {
     "hash": "ae1b9dd0bb09",
     "en": "Control of the Newton-Raphson iterations of {@link coxph} (R's `coxph.control`).",
-    "ja": "{@link coxph} のNewton-Raphson 法の反復の制御 (R の `coxph.control`)。"
+    "ja": "{@link coxph} の Newton-Raphson 法の反復の制御 (R の `coxph.control`)。"
   },
   "CoxphControl.eps#summary": {
     "hash": "f6b6e63214a8",
