@@ -692,3 +692,52 @@
 | least squares (coefficients, fitted values, residuals) | 最小二乗 | `docs/ja` で使用 |
 | right-hand side | 右辺 | `docs/ja` で使用 |
 | LAPACK estimator (of a condition number) | 推定ルーチン | 新規。`rcond`、`kappa` の推定 |
+| step function (`method: "constant"`) | 階段関数 | 新規。`approx` の `"constant"` |
+| extrapolation rule | 外挿規則 | 新規。`approx` の `rule` (1 は NaN、2 は端の値) |
+| Nelder-Mead | Nelder-Mead | 人名は英字 (最適化法) |
+| Nelder-Mead reflection factor | 反射係数 | 新規 |
+| Nelder-Mead contraction factor | 縮小係数 | 新規 |
+| Nelder-Mead expansion factor | 拡大係数 | 新規 |
+| simplex | 単体 | 新規。Nelder-Mead の単体 |
+| degenerate (simplex) | 退化 | 新規 |
+| BFGS | BFGS | 英字のまま (最適化法の名称) |
+| L-BFGS-B | L-BFGS-B | 英字のまま (最適化法の名称) |
+| SANN | SANN | 英字のまま (最適化法の名称) |
+| CG update | 更新式 | 新規。CG の更新式 |
+| Fletcher-Reeves, Polak-Ribière, Beale-Sorenson | Fletcher-Reeves、Polak-Ribière、Beale-Sorenson | 人名は英字 (CG の更新式) |
+| starting temperature, temperature (SANN) | 初期温度、温度 | 新規 |
+| projected gradient | 射影勾配 | 新規。L-BFGS-B の `pgtol` |
+| relative reduction tolerance | 相対的な減少の許容誤差 | 新規。L-BFGS-B の `factr` |
+| iteration limit | 反復回数の上限 | 新規 |
+| objective (function) | 目的関数 | 新規 |
+| minimise, maximise | 最小化、最大化 | 新規 |
+| control parameters | 制御パラメータ | 新規。`optim` の `control` |
+| gradient | 勾配 | 新規 |
+| scalar function | スカラー関数 | 新規 |
+| vector function | ベクトル関数 | 新規 |
+| numerical differentiation | 数値微分 | 新規 |
+| finite difference | 有限差分 | 新規 |
+| central difference | 中心差分 | 新規 |
+| forward difference | 前進差分 | 新規 |
+| derivative | 導関数 | 新規 |
+| Richardson extrapolation | Richardson 外挿 | 人名は英字 |
+| Richardson iteration | Richardson の反復 | 人名は英字。`DerivOptions.r` |
+| Jacobian | ヤコビ行列 | 新規。`docs/ja` の Hessian (ヘッセ行列) と同じく片仮名で統一 |
+| Brent | Brent | 人名は英字。Brent の zeroin、Brent の黄金分割探索 |
+| golden-section search | 黄金分割探索 | 新規 |
+| parabolic search | 放物線探索 | 新規 |
+| Heun's method | Heun 法 | 人名は英字 |
+| Runge-Kutta method | Runge-Kutta 法 | 人名は英字 |
+| initial value problem | 初期値問題 | 新規 |
+| fixed step | 固定ステップ | 新規。`ode` の固定ステップ |
+| equally spaced | 等間隔 | 新規 |
+| subinterval | 部分区間 | 新規。`integrate` の `subdivisions` |
+| QUADPACK | QUADPACK | 英字のまま (ソフトウェア名) |
+| cubic spline | 3 次スプライン | 新規 |
+| cubic Hermite spline | 3 次 Hermite スプライン | 新規 |
+| Lagrange interpolation | Lagrange 補間 | 人名は英字 |
+| Hermite interpolation | Hermite 補間 | 人名は英字 |
+| piecewise (cubic) | 区分的 | 新規 |
+| barycentric form | 重心形式 | 新規 |
+| divided differences | 差分商 | 新規 |
+| node (of interpolation) | 節点 | 新規 |

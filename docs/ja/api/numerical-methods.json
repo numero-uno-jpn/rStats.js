@@ -2,651 +2,651 @@
   "ApproxOptions#summary": {
     "hash": "1c1cba0463ab",
     "en": "Options for {@link approx}.",
-    "ja": ""
+    "ja": "{@link approx} のオプションです。"
   },
   "ApproxOptions.f#summary": {
     "hash": "84e8536a927d",
     "en": "For `\"constant\"`: the step value is (1 - f) y_left + f y_right, with f in [0, 1] (else an error, as in R). Default `0`.",
-    "ja": ""
+    "ja": "`\"constant\"` の場合: ステップの値は (1 - f) y_left + f y_right です。f は [0, 1] の範囲にあり、それ以外の値は R と同じくエラーになります。既定: `0` です。"
   },
   "ApproxOptions.method#summary": {
     "hash": "aafbe0a82d49",
     "en": "`\"linear\"` (default) or `\"constant\"` (step function). A unique prefix is accepted and anything else is an\nerror, as in R.",
-    "ja": ""
+    "ja": "`\"linear\"` (既定) または `\"constant\"` (階段関数) です。一意な接頭辞も受け付け、それ以外の値は R と同じくエラーになります。"
   },
   "ApproxOptions.n#summary": {
     "hash": "45c17e5e1643",
     "en": "Number of points when `xout` is not given. Default `50`.",
-    "ja": ""
+    "ja": "`xout` が与えられていない場合の点の数です。既定: `50` です。"
   },
   "ApproxOptions.rule#summary": {
     "hash": "bc489f74345b",
     "en": "Extrapolation rule (1: NaN, 2: the end value), for both sides or `[left, right]`. Default `1`. Any other value is\nan error (R takes every value other than 1 as 2).",
-    "ja": ""
+    "ja": "外挿規則です (1: NaN、2: 端の値)。両側に共通で指定するか、`[left, right]` の組で指定します。既定: `1` です。1 と 2 以外の値はエラーです (R では 1 以外のすべての値が 2 として扱われます)。"
   },
   "ApproxOptions.ties#summary": {
     "hash": "4ecca5411162",
     "en": "How to merge equal x values. Default `\"mean\"`.",
-    "ja": ""
+    "ja": "同じ x の値のまとめ方です。既定: `\"mean\"` です。"
   },
   "ApproxOptions.xout#summary": {
     "hash": "60c846bd2915",
     "en": "Points to interpolate at. Default: `n` equally spaced points over the range of `x`.",
-    "ja": ""
+    "ja": "補間する点です。既定: `x` の範囲にわたる等間隔の `n` 個の点です。"
   },
   "ApproxOptions.yleft#summary": {
     "hash": "07c3b8ea4d0b",
     "en": "Value left of the data. Default: NaN (rule 1) or the first y (rule 2).",
-    "ja": ""
+    "ja": "データの左側の値です。既定: 規則 1 のとき NaN、規則 2 のとき最初の y です。"
   },
   "ApproxOptions.yright#summary": {
     "hash": "e9b84ca61295",
     "en": "Value right of the data. Default: NaN (rule 1) or the last y (rule 2).",
-    "ja": ""
+    "ja": "データの右側の値です。既定: 規則 1 のとき NaN、規則 2 のとき最後の y です。"
   },
   "DerivOptions#summary": {
     "hash": "0a51a1dd3e17",
     "en": "Options for {@link grad}, {@link jacobian} and {@link hessian}.",
-    "ja": ""
+    "ja": "{@link grad}、{@link jacobian}、{@link hessian} のオプションです。"
   },
   "DerivOptions.d#summary": {
     "hash": "597a2e7c8df5",
     "en": "Relative initial step of \"Richardson\". Default `1e-4` (`0.1` for `hessian`).",
-    "ja": ""
+    "ja": "\"Richardson\" での相対的な初期ステップです。既定: `1e-4` (`hessian` の場合は `0.1`) です。"
   },
   "DerivOptions.eps#summary": {
     "hash": "ec9f9a5dcbe4",
     "en": "Step for \"simple\", and for coordinates near 0 in \"Richardson\". Default `1e-4`.",
-    "ja": ""
+    "ja": "\"simple\" のステップと、\"Richardson\" で 0 付近の座標に使うステップです。既定: `1e-4` です。"
   },
   "DerivOptions.method#summary": {
     "hash": "29af4d0c34d0",
     "en": "`\"Richardson\"` (default) or `\"simple\"` (forward difference; not for `hessian`).",
-    "ja": ""
+    "ja": "`\"Richardson\"` (既定) または `\"simple\"` (前進差分です。`hessian` では使えません)。"
   },
   "DerivOptions.r#summary": {
     "hash": "d3dc4c009153",
     "en": "Number of halvings of the step (Richardson iterations), at most 512. Default `4`.",
-    "ja": ""
+    "ja": "ステップを半分にする回数 (Richardson の反復) です。最大 512 です。既定: `4` です。"
   },
   "DerivOptions.zeroTol#summary": {
     "hash": "06a8b8f0206e",
     "en": "Coordinates with |x| below this get the step `eps`. Default `sqrt(2.220446e-16 / 7e-7)`.",
-    "ja": ""
+    "ja": "|x| がこの値より小さい座標には、ステップ `eps` を使います。既定: `sqrt(2.220446e-16 / 7e-7)` です。"
   },
   "IntegrateOptions#summary": {
     "hash": "d6ac0f9f1aa4",
     "en": "Options for {@link integrate}.",
-    "ja": ""
+    "ja": "{@link integrate} のオプションです。"
   },
   "IntegrateOptions.absTol#summary": {
     "hash": "44ad965683e7",
     "en": "Absolute accuracy requested. Default `relTol`.",
-    "ja": ""
+    "ja": "要求する絶対精度です。既定: `relTol` です。"
   },
   "IntegrateOptions.relTol#summary": {
     "hash": "503a997c08fb",
     "en": "Relative accuracy requested. Default `eps^0.25` (about 1.2e-4).",
-    "ja": ""
+    "ja": "要求する相対精度です。既定: `eps^0.25` (約 1.2e-4) です。"
   },
   "IntegrateOptions.stopOnError#summary": {
     "hash": "82ab458c95b3",
     "en": "Throw when QUADPACK reports a problem (default `true`); otherwise return the result with its code.",
-    "ja": ""
+    "ja": "QUADPACK が問題を報告したときは例外を投げます (既定は `true`)。それ以外の場合は、コードを含めた結果を返します。"
   },
   "IntegrateOptions.subdivisions#summary": {
     "hash": "a4b0d1d49bd8",
     "en": "Maximum number of subintervals. Default `100`.",
-    "ja": ""
+    "ja": "部分区間の最大数です。既定: `100` です。"
   },
   "IntegrateResult#summary": {
     "hash": "4fa078014bbc",
     "en": "Result of {@link integrate}.",
-    "ja": ""
+    "ja": "{@link integrate} の結果です。"
   },
   "IntegrateResult.absError#summary": {
     "hash": "b97d29d6c5a6",
     "en": "Estimate of the absolute error.",
-    "ja": ""
+    "ja": "絶対誤差の推定値です。"
   },
   "IntegrateResult.ier#summary": {
     "hash": "2631b0a208fb",
     "en": "QUADPACK's code: 0 OK, 1 maximum number of subdivisions reached, 2 roundoff error, 3 bad integrand\n behaviour, 4 roundoff error in the extrapolation table, 5 probably divergent, 6 invalid input.",
-    "ja": ""
+    "ja": "QUADPACK のコードです: 0 は正常終了、1 は部分区間の最大数に到達、2 は丸め誤差、3 は被積分関数の\n 振る舞いが不適切、4 は外挿表の丸め誤差、5 はおそらく発散、6 は不正な入力です。"
   },
   "IntegrateResult.message#summary": {
     "hash": "4179f1dc932a",
     "en": "R's message for `ier`.",
-    "ja": ""
+    "ja": "`ier` に対応する R のメッセージです。"
   },
   "IntegrateResult.subdivisions#summary": {
     "hash": "a8b61e611f99",
     "en": "Number of subintervals used.",
-    "ja": ""
+    "ja": "使用した部分区間の数です。"
   },
   "IntegrateResult.value#summary": {
     "hash": "91eb44afeb63",
     "en": "The estimate of the integral.",
-    "ja": ""
+    "ja": "積分の推定値です。"
   },
   "OdeFunc#summary": {
     "hash": "bfdc92a908f9",
     "en": "Derivative of the state: `func(t, y, parms)` returns dy/dt (one value per state variable).",
-    "ja": ""
+    "ja": "状態の導関数です: `func(t, y, parms)` は dy/dt を返します (状態変数ごとに 1 つの値)。"
   },
   "OdeOptions#summary": {
     "hash": "edab437b0a9f",
     "en": "Options for {@link ode}.",
-    "ja": ""
+    "ja": "{@link ode} のオプションです。"
   },
   "OdeOptions.method#summary": {
     "hash": "5140cf405e25",
     "en": "`\"euler\"`, `\"rk2\"` (Heun) or `\"rk4\"` (classical Runge-Kutta, default).",
-    "ja": ""
+    "ja": "`\"euler\"`、`\"rk2\"` (Heun)、または `\"rk4\"` (古典的な Runge-Kutta 法、既定)。"
   },
   "OptimControl#summary": {
     "hash": "cf3545f719af",
     "en": "Control parameters of {@link optim} (R's `control`, in camelCase)",
-    "ja": ""
+    "ja": "{@link optim} の制御パラメータ (R の `control` を camelCase で表したもの)"
   },
   "OptimControl.abstol#summary": {
     "hash": "57ebe9fb6254",
     "en": "Absolute convergence tolerance (stop when the value falls to it). Default `-Infinity`.",
-    "ja": ""
+    "ja": "絶対収束の許容誤差です (値がこの値まで下がったら停止します)。既定: `-Infinity` です。"
   },
   "OptimControl.alpha#summary": {
     "hash": "a2a5750be38e",
     "en": "Nelder-Mead reflection factor. Default 1.",
-    "ja": ""
+    "ja": "Nelder-Mead の反射係数です。既定: 1 です。"
   },
   "OptimControl.beta#summary": {
     "hash": "cc78d4b512c9",
     "en": "Nelder-Mead contraction factor. Default 0.5.",
-    "ja": ""
+    "ja": "Nelder-Mead の縮小係数です。既定: 0.5 です。"
   },
   "OptimControl.factr#summary": {
     "hash": "86f97ab39722",
     "en": "L-BFGS-B: relative reduction tolerance in units of the machine epsilon. Default 1e7.",
-    "ja": ""
+    "ja": "L-BFGS-B: 機械イプシロンを単位とする相対的な減少の許容誤差です。既定: 1e7 です。"
   },
   "OptimControl.fnscale#summary": {
     "hash": "27c16a1e80b7",
     "en": "Scaling of the objective: `fn / fnscale` is minimised (negative to maximise). Default 1.",
-    "ja": ""
+    "ja": "目的関数のスケーリングです: `fn / fnscale` が最小化されます (最大化するには負の値にします)。既定: 1 です。"
   },
   "OptimControl.gamma#summary": {
     "hash": "a8fe370db486",
     "en": "Nelder-Mead expansion factor. Default 2.",
-    "ja": ""
+    "ja": "Nelder-Mead の拡大係数です。既定: 2 です。"
   },
   "OptimControl.lmm#summary": {
     "hash": "2027963bbdbb",
     "en": "L-BFGS-B: number of corrections kept. Default 5.",
-    "ja": ""
+    "ja": "L-BFGS-B: 保持する修正の数です。既定: 5 です。"
   },
   "OptimControl.maxit#summary": {
     "hash": "7ea275e14a9b",
     "en": "Maximum number of iterations. Default 500 for Nelder-Mead, 10000 for SANN, 100 otherwise.",
-    "ja": ""
+    "ja": "反復の最大回数です。既定: Nelder-Mead では 500、SANN では 10000、それ以外では 100 です。"
   },
   "OptimControl.ndeps#summary": {
     "hash": "92dfc5254110",
     "en": "Steps of the finite-difference gradient, in the scaled parameters. Default 1e-3.",
-    "ja": ""
+    "ja": "スケール後のパラメータにおける、有限差分による勾配のステップです。既定: 1e-3 です。"
   },
   "OptimControl.parscale#summary": {
     "hash": "a3b2a34af8bf",
     "en": "Scaling of the parameters: the optimisation is on `par / parscale`. Default 1.",
-    "ja": ""
+    "ja": "パラメータのスケーリングです: 最適化は `par / parscale` に対して行われます。既定: 1 です。"
   },
   "OptimControl.pgtol#summary": {
     "hash": "b65b5accfb50",
     "en": "L-BFGS-B: tolerance on the projected gradient. Default 0.",
-    "ja": ""
+    "ja": "L-BFGS-B: 射影勾配の許容誤差です。既定: 0 です。"
   },
   "OptimControl.reltol#summary": {
     "hash": "1df8571c1b5a",
     "en": "Relative convergence tolerance. Default `sqrt(eps)`.",
-    "ja": ""
+    "ja": "相対的な収束の許容誤差です。既定: `sqrt(eps)` です。"
   },
   "OptimControl.temp#summary": {
     "hash": "3f88cceb0b34",
     "en": "SANN: starting temperature. Default 10.",
-    "ja": ""
+    "ja": "SANN: 初期温度です。既定: 10 です。"
   },
   "OptimControl.tmax#summary": {
     "hash": "5baa90a12f96",
     "en": "SANN: evaluations per temperature. Default 10.",
-    "ja": ""
+    "ja": "SANN: 温度ごとの評価回数です。既定: 10 です。"
   },
   "OptimControl.type#summary": {
     "hash": "b3d48d875fb0",
     "en": "CG update: 1 Fletcher-Reeves (default), 2 Polak-Ribière, 3 Beale-Sorenson.",
-    "ja": ""
+    "ja": "CG の更新式: 1 は Fletcher-Reeves (既定)、2 は Polak-Ribière、3 は Beale-Sorenson です。"
   },
   "OptimMethod#summary": {
     "hash": "b4b6bdce3932",
     "en": "Methods of {@link optim}",
-    "ja": ""
+    "ja": "{@link optim} の方法"
   },
   "OptimOptions#summary": {
     "hash": "ce58bc192fb9",
     "en": "Options of {@link optim}",
-    "ja": ""
+    "ja": "{@link optim} のオプション"
   },
   "OptimOptions.control#summary": {
     "hash": "8af5d47d9144",
     "en": "Control parameters (R's `control`). See {@link OptimControl}.",
-    "ja": ""
+    "ja": "制御パラメータ (R の `control`)。{@link OptimControl} を参照してください。"
   },
   "OptimOptions.gr#summary": {
     "hash": "4a6d6e4807e1",
     "en": "Gradient of fn (numerical by central differences when omitted)",
-    "ja": ""
+    "ja": "fn の勾配 (省略した場合は中心差分による数値的な計算)"
   },
   "OptimOptions.hessian#summary": {
     "hash": "cfb6495e55dd",
     "en": "Also return the numerically differentiated Hessian at the solution. Default `false`.",
-    "ja": ""
+    "ja": "解における、数値微分によるヘッセ行列も返します。既定: `false` です。"
   },
   "OptimOptions.lower#summary": {
     "hash": "5edfa1aa8d90",
     "en": "Lower bounds (L-BFGS-B and Brent), recycled. Default `-Infinity`.",
-    "ja": ""
+    "ja": "下限 (L-BFGS-B と Brent の場合)。値はリサイクルされます。既定: `-Infinity` です。"
   },
   "OptimOptions.method#summary": {
     "hash": "24925c55eb9b",
     "en": "Default `\"Nelder-Mead\"`",
-    "ja": ""
+    "ja": "既定は `\"Nelder-Mead\"` です。"
   },
   "OptimOptions.upper#summary": {
     "hash": "cd3812011ee1",
     "en": "Upper bounds (L-BFGS-B and Brent), recycled. Default `Infinity`.",
-    "ja": ""
+    "ja": "上限 (L-BFGS-B と Brent の場合)。値はリサイクルされます。既定: `Infinity` です。"
   },
   "OptimResult#summary": {
     "hash": "8fbbb77ad4d5",
     "en": "Result of {@link optim}",
-    "ja": ""
+    "ja": "{@link optim} の結果"
   },
   "OptimResult.convergence#summary": {
     "hash": "9f97aceb061c",
     "en": "0 success, 1 iteration limit reached, 10 Nelder-Mead simplex degenerate, 51 / 52 L-BFGS-B warning / error",
-    "ja": ""
+    "ja": "0 は成功、1 は反復回数の上限に到達、10 は Nelder-Mead の単体の退化、51 / 52 は L-BFGS-B の警告 / エラー"
   },
   "OptimResult.counts#summary": {
     "hash": "c37593383f5d",
     "en": "Evaluations of fn and gr (NaN where R has NA)",
-    "ja": ""
+    "ja": "fn と gr の評価回数 (R で NA となる箇所では NaN)"
   },
   "OptimResult.hessian#summary": {
     "hash": "d84196009d59",
     "en": "The numerically differentiated Hessian at `par`, when `hessian` is true (array of rows).",
-    "ja": ""
+    "ja": "`hessian` が true の場合に、`par` における数値微分によるヘッセ行列です (行の配列)。"
   },
   "OptimResult.message#summary": {
     "hash": "19555a23c9c4",
     "en": "L-BFGS-B's final message; null for the other methods",
-    "ja": ""
+    "ja": "L-BFGS-B の最終メッセージです。他の方法では null です。"
   },
   "OptimResult.par#summary": {
     "hash": "9a9b7f7bce51",
     "en": "The best parameters found.",
-    "ja": ""
+    "ja": "見つかった最良のパラメータです。"
   },
   "OptimResult.value#summary": {
     "hash": "ff2df9b7048f",
     "en": "fn at `par`.",
-    "ja": ""
+    "ja": "`par` における fn の値です。"
   },
   "OptimResult.warnings#summary": {
     "hash": "ff46067d45f7",
     "en": "R's warnings",
-    "ja": ""
+    "ja": "R の警告"
   },
   "OptimizeOptions#summary": {
     "hash": "77b11954bac7",
     "en": "Options for {@link optimize}.",
-    "ja": ""
+    "ja": "{@link optimize} のオプションです。"
   },
   "OptimizeOptions.maximum#summary": {
     "hash": "54e1153077fa",
     "en": "Maximise instead of minimise. Default `false`.",
-    "ja": ""
+    "ja": "最小化の代わりに最大化します。既定: `false` です。"
   },
   "OptimizeOptions.tol#summary": {
     "hash": "08cf3aee6694",
     "en": "Accuracy. Default `eps^0.25`.",
-    "ja": ""
+    "ja": "精度です。既定: `eps^0.25` です。"
   },
   "SplineFunction#summary": {
     "hash": "0abd9af6cb38",
     "en": "The function that {@link splinefun} and {@link splinefunH} return: the spline, or a derivative, at the points `xq`.\nThe order of the derivative is the second argument or the option `deriv` (giving both is a RangeError).",
-    "ja": ""
+    "ja": "{@link splinefun} と {@link splinefunH} が返す関数です。点 `xq` における、スプラインまたはその導関数の値です。\n導関数の次数は、第 2 引数またはオプション `deriv` で指定します (両方を指定すると RangeError になります)。"
   },
   "SplineFunction(0)#summary": {
     "hash": "0d5437297dd8",
     "en": "The spline at `xq`, or its derivative of order `deriv` (0 to 3).",
-    "ja": ""
+    "ja": "`xq` における、スプラインまたは次数 `deriv` (0 から 3 まで) の導関数の値です。"
   },
   "SplineFunction(1)#summary": {
     "hash": "8a0684328196",
     "en": "The spline at `xq`, with the order of the derivative in the options: `s(xq, { deriv: 1 })`.",
-    "ja": ""
+    "ja": "`xq` におけるスプラインです。導関数の次数はオプションで指定します: `s(xq, { deriv: 1 })`。"
   },
   "SplineFunctionOptions#summary": {
     "hash": "ddee20c664b2",
     "en": "Options of the function that {@link splinefun} and {@link splinefunH} return.",
-    "ja": ""
+    "ja": "{@link splinefun} と {@link splinefunH} が返す関数のオプションです。"
   },
   "SplineFunctionOptions.deriv#summary": {
     "hash": "8430c881236d",
     "en": "Order of the derivative, 0 to 3 (a fraction is truncated, as R does). Default `0`.",
-    "ja": ""
+    "ja": "導関数の次数です。0 から 3 まで (R と同じく小数は切り捨てられます)。既定: `0` です。"
   },
   "SplineMethod#summary": {
     "hash": "5243db2f1659",
     "en": "Cubic spline method.",
-    "ja": ""
+    "ja": "3 次スプラインの方法です。"
   },
   "SplineOptions#summary": {
     "hash": "844bcf2be19a",
     "en": "Options for {@link spline}.",
-    "ja": ""
+    "ja": "{@link spline} のオプションです。"
   },
   "SplineOptions.method#summary": {
     "hash": "f7ed02673eac",
     "en": "`\"fmm\"` (default), `\"natural\"`, `\"periodic\"` or `\"hyman\"`.",
-    "ja": ""
+    "ja": "`\"fmm\"` (既定)、`\"natural\"`、`\"periodic\"`、または `\"hyman\"` です。"
   },
   "SplineOptions.n#summary": {
     "hash": "5a6562d1ec86",
     "en": "Number of equally spaced points from `xmin` to `xmax`. Default `3 * x.length`.",
-    "ja": ""
+    "ja": "`xmin` から `xmax` までの等間隔の点の数です。既定: `3 * x.length` です。"
   },
   "SplineOptions.ties#summary": {
     "hash": "4ecca5411162",
     "en": "How to merge equal x values. Default `\"mean\"`.",
-    "ja": ""
+    "ja": "同じ x の値のまとめ方です。既定: `\"mean\"` です。"
   },
   "SplineOptions.xmax#summary": {
     "hash": "62430cd02424",
     "en": "Right end of the equally spaced points. Default: the largest `x`.",
-    "ja": ""
+    "ja": "等間隔の点の右端です。既定: 最大の `x` です。"
   },
   "SplineOptions.xmin#summary": {
     "hash": "413d3f657f31",
     "en": "Left end of the equally spaced points. Default: the smallest `x`.",
-    "ja": ""
+    "ja": "等間隔の点の左端です。既定: 最小の `x` です。"
   },
   "SplineOptions.xout#summary": {
     "hash": "7a4e4ba47688",
     "en": "Points to interpolate at (then `n`, `xmin` and `xmax` are not used).",
-    "ja": ""
+    "ja": "補間する点です (この場合、`n`、`xmin`、`xmax` は使われません)。"
   },
   "SplinefunOptions#summary": {
     "hash": "386f4f3f6e9c",
     "en": "Options for {@link splinefun}.",
-    "ja": ""
+    "ja": "{@link splinefun} のオプションです。"
   },
   "SplinefunOptions.method#summary": {
     "hash": "07f0c38e6504",
     "en": "`\"fmm\"` (default), `\"natural\"`, `\"periodic\"`, `\"monoH.FC\"` or `\"hyman\"`.",
-    "ja": ""
+    "ja": "`\"fmm\"` (既定)、`\"natural\"`、`\"periodic\"`、`\"monoH.FC\"`、または `\"hyman\"` です。"
   },
   "SplinefunOptions.ties#summary": {
     "hash": "4ecca5411162",
     "en": "How to merge equal x values. Default `\"mean\"`.",
-    "ja": ""
+    "ja": "同じ x の値のまとめ方です。既定: `\"mean\"` です。"
   },
   "Ties#summary": {
     "hash": "6326ae5457dc",
     "en": "How equal `x` values are merged before interpolating (R's `ties`): `\"mean\"`, `\"min\"` or `\"max\"` of their `y`, or a\nfunction of their `y` values.",
-    "ja": ""
+    "ja": "補間の前に、等しい `x` の値のまとめ方です (R の `ties`)。`\"mean\"`、`\"min\"`、または `\"max\"` は、対応する `y` の平均、最小値、最大値です。または、対応する `y` の値の\n関数です。"
   },
   "UnirootOptions#summary": {
     "hash": "ed8f9dadcd7e",
     "en": "Options for {@link uniroot}.",
-    "ja": ""
+    "ja": "{@link uniroot} のオプションです。"
   },
   "UnirootOptions.extendInt#summary": {
     "hash": "85f989f4a58d",
     "en": "Extend the interval when f has the same sign at both ends: `\"yes\"` (both ways), `\"downX\"` (f decreasing),\n`\"upX\"` (f increasing) or `\"no\"` (default). A unique prefix is accepted and anything else is an error, as in R.",
-    "ja": ""
+    "ja": "両端で f が同符号のとき区間を拡張します: `\"yes\"` (両方向)、`\"downX\"` (f が減少)、\n`\"upX\"` (f が増加)、または `\"no\"` (既定)。一意な接頭辞も受け付け、それ以外の値は R と同じくエラーになります。"
   },
   "UnirootOptions.fLower#summary": {
     "hash": "fcde9308b731",
     "en": "f(lower), when already known.",
-    "ja": ""
+    "ja": "既に分かっている場合の f(lower) です。"
   },
   "UnirootOptions.fUpper#summary": {
     "hash": "ec213d86f9ad",
     "en": "f(upper), when already known.",
-    "ja": ""
+    "ja": "既に分かっている場合の f(upper) です。"
   },
   "UnirootOptions.maxiter#summary": {
     "hash": "9310f583b903",
     "en": "Maximum number of iterations. Default `1000`.",
-    "ja": ""
+    "ja": "反復の最大回数です。既定: `1000` です。"
   },
   "UnirootOptions.tol#summary": {
     "hash": "08cf3aee6694",
     "en": "Accuracy. Default `eps^0.25`.",
-    "ja": ""
+    "ja": "精度です。既定: `eps^0.25` です。"
   },
   "UnirootResult#summary": {
     "hash": "2e177099d771",
     "en": "Result of {@link uniroot}.",
-    "ja": ""
+    "ja": "{@link uniroot} の結果です。"
   },
   "UnirootResult.estimPrec#summary": {
     "hash": "a177d6e0bb1f",
     "en": "Brent's estimate of the precision of the root.",
-    "ja": ""
+    "ja": "Brent による根の精度の推定値です。"
   },
   "UnirootResult.fRoot#summary": {
     "hash": "be043685efd6",
     "en": "f at the root.",
-    "ja": ""
+    "ja": "根における f の値です。"
   },
   "UnirootResult.initIt#summary": {
     "hash": "7b064a618502",
     "en": "Iterations used to extend the interval (NaN when it was not extended).",
-    "ja": ""
+    "ja": "区間の拡張に使った反復回数です (区間を拡張しなかった場合は NaN)。"
   },
   "UnirootResult.iter#summary": {
     "hash": "5aec4eb56cc1",
     "en": "Iterations used (including those extending the interval).",
-    "ja": ""
+    "ja": "使った反復回数です (区間を拡張するための反復を含みます)。"
   },
   "UnirootResult.root#summary": {
     "hash": "b35dffd6759d",
     "en": "The root found.",
-    "ja": ""
+    "ja": "見つかった根です。"
   },
   "approx#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "approx#summary": {
     "hash": "322379ce53b8",
     "en": "Linear or constant interpolation. Equivalent to R's `approx()`.",
-    "ja": ""
+    "ja": "線形補間または階段関数による補間です。R の `approx()` と同等です。"
   },
   "approx.x#summary": {
     "hash": "0ae5e8ada25b",
     "en": "The points interpolated at (`xout`, or the equally spaced points).",
-    "ja": ""
+    "ja": "補間を行う点です (`xout`、または等間隔の点)。"
   },
   "approx.y#summary": {
     "hash": "04daadfa8c61",
     "en": "The interpolated values, one per point of `x`.",
-    "ja": ""
+    "ja": "補間された値です。`x` の点ごとに 1 つずつです。"
   },
   "barylag#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "barylag#summary": {
     "hash": "af7ddf427b05",
     "en": "Lagrange interpolation in barycentric form through the points (xi, yi). Equivalent to `pracma::barylag()` in R.\nThe points must lie within the range of the nodes.",
-    "ja": ""
+    "ja": "点 (xi, yi) を通る、重心形式の Lagrange 補間です。R の `pracma::barylag()` と同等です。\n点は節点の範囲内になければなりません。"
   },
   "grad#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "grad#summary": {
     "hash": "531aca15320c",
     "en": "Gradient of a scalar function of a vector. Equivalent to `numDeriv::grad(func, x, method)` in R.",
-    "ja": ""
+    "ja": "ベクトルのスカラー関数の勾配です。R の `numDeriv::grad(func, x, method)` と同等です。"
   },
   "hermiteInterp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "hermiteInterp#summary": {
     "hash": "60c73eebff03",
     "en": "The polynomial of degree 2n - 1 through n points with given values and derivatives (global Hermite\ninterpolation, jStat's hermite), evaluated at `x`. Not an R function. Neither base R nor the recommended packages\nhave it (for piecewise cubic Hermite interpolation, see {@link splinefunH}). Computed by divided differences on\nthe doubled nodes.",
-    "ja": ""
+    "ja": "与えられた値と導関数をもつ n 個の点を通る、次数 2n - 1 の多項式です (大域的な Hermite 補間、jStat の hermite)。`x` で評価します。R の関数ではありません。base R にも推奨パッケージにもありません (区分的な 3 次の Hermite 補間については {@link splinefunH} を参照してください)。二重化された節点上の差分商により計算されます。"
   },
   "hessian#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "hessian#summary": {
     "hash": "b6a51dfd2791",
     "en": "Hessian matrix of a scalar function of a vector, by Richardson extrapolation (Bates and Watts). Equivalent to\n`numDeriv::hessian(func, x)` in R.",
-    "ja": ""
+    "ja": "ベクトルのスカラー関数のヘッセ行列です。Richardson 外挿 (Bates and Watts) により求めます。R の\n`numDeriv::hessian(func, x)` と同等です。"
   },
   "integrate#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "integrate#summary": {
     "hash": "ad2a30ccf67e",
     "en": "Integral of a function of one variable over a finite or infinite range. Equivalent to R's `integrate()`.",
-    "ja": ""
+    "ja": "有限または無限の範囲における、1 変数関数の積分です。R の `integrate()` と同等です。"
   },
   "jacobian#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "jacobian#summary": {
     "hash": "a5540fc8ad79",
     "en": "Jacobian of a vector function of a vector: row i holds the derivatives of the i-th value. Equivalent to\n`numDeriv::jacobian(func, x, method)` in R.",
-    "ja": ""
+    "ja": "ベクトルのベクトル関数のヤコビ行列です: 行 i には、i 番目の値の導関数が入ります。R の\n`numDeriv::jacobian(func, x, method)` と同等です。"
   },
   "ode#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ode#@returns": {
     "hash": "61d535f03465",
     "en": "One row per time: `[t, y1, y2, ...]`.",
-    "ja": ""
+    "ja": "時刻ごとに 1 行です: `[t, y1, y2, ...]`。"
   },
   "ode#summary": {
     "hash": "dcfe1e41a6f5",
     "en": "Solve the initial value problem y' = func(t, y, parms), y(times[0]) = y, with one fixed step per interval of\n`times`. Equivalent to `deSolve::ode(y, times, func, parms, method)` in R. That is for `\"euler\"` and `\"rk4\"`; for\n`\"rk2\"`, it is `deSolve::ode(..., method = rkMethod(\"rk2\"))` (or `deSolve::rk(..., method = \"rk2\")`), since deSolve's `ode()`\ndoes not accept `method = \"rk2\"`.",
-    "ja": ""
+    "ja": "y' = func(t, y, parms), y(times[0]) = y の初期値問題を、`times` の区間ごとに 1 つの固定ステップで解きます。R の `deSolve::ode(y, times, func, parms, method)` と同等です。ただし、これが成り立つのは `\"euler\"` と `\"rk4\"` の場合です。`\"rk2\"` の場合は、`deSolve::ode(..., method = rkMethod(\"rk2\"))` (または `deSolve::rk(..., method = \"rk2\")`) と同等です。deSolve の `ode()` は `method = \"rk2\"` を受け付けないためです。"
   },
   "optim#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "optim#summary": {
     "hash": "903cde0d2e31",
     "en": "General-purpose minimisation of `fn` from the starting point `par`. Equivalent to R's `optim()`. The same methods\nwith the same iterations, so the same results and counts, except CG: after an accepted step it tries the minimum of\nthe parabola through the start and the accepted point, where R's cgmin always tries the midpoint (so CG's path,\nresults and counts differ from R's).",
-    "ja": ""
+    "ja": "開始点 `par` から `fn` を最小化する汎用関数です。R の `optim()` と同等です。CG 以外は、R と同じ方法と同じ反復を用いるため、結果と評価回数も同じです。CG では、採択されたステップの後に、始点と採択された点を通る放物線の最小点を試します。一方、R の cgmin は常に中点を試します (そのため CG の経路、結果、評価回数は R と異なります)。"
   },
   "optimHess#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "optimHess#summary": {
     "hash": "deebb7aec5c6",
     "en": "Numerically differentiated Hessian of fn at par, from central differences of the gradient (gr, or the numerical\ngradient of fn). Equivalent to R's `optimHess()`. `control` uses `fnscale`, `parscale` and `ndeps`.",
-    "ja": ""
+    "ja": "par における fn の、数値微分によるヘッセ行列です。勾配 (gr、または fn の数値的な勾配) の中心差分から求めます。R の `optimHess()` と同等です。`control` は `fnscale`、`parscale`、`ndeps` を使います。"
   },
   "optimize#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "optimize#summary": {
     "hash": "d64d0185c324",
     "en": "Minimum (or maximum) of a function of one variable on an interval, by Brent's golden-section and parabolic\nsearch. Equivalent to R's `optimize()`. `optimum` is the location (R's `minimum`/`maximum`) and `objective` the\nfunction there. `lower` and `upper` must be finite and `lower` less than `upper`, as in R.",
-    "ja": ""
+    "ja": "区間上における 1 変数関数の最小値 (または最大値) を、Brent の黄金分割探索と放物線探索で求めます。R の `optimize()` と同等です。`optimum` は位置 (R の `minimum`/`maximum`) で、`objective` はその位置における関数の値です。`lower` と `upper` は有限でなければならず、R と同じく `lower` は `upper` より小さくなければなりません。"
   },
   "optimize.objective#summary": {
     "hash": "dc20a23ec6fb",
     "en": "Value of the function there.",
-    "ja": ""
+    "ja": "その位置における関数の値です。"
   },
   "optimize.optimum#summary": {
     "hash": "d7477b776712",
     "en": "Location of the minimum or maximum (R's `minimum` or `maximum`).",
-    "ja": ""
+    "ja": "最小値または最大値の位置です (R の `minimum` または `maximum`)。"
   },
   "spline#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "spline#summary": {
     "hash": "094f2787f84a",
     "en": "Cubic spline interpolation at given or equally spaced points. Equivalent to R's `spline()`.",
-    "ja": ""
+    "ja": "与えられた点、または等間隔の点における 3 次スプライン補間です。R の `spline()` と同等です。"
   },
   "spline.x#summary": {
     "hash": "0ae5e8ada25b",
     "en": "The points interpolated at (`xout`, or the equally spaced points).",
-    "ja": ""
+    "ja": "補間を行う点です (`xout`、または等間隔の点)。"
   },
   "spline.y#summary": {
     "hash": "04daadfa8c61",
     "en": "The interpolated values, one per point of `x`.",
-    "ja": ""
+    "ja": "補間された値です。`x` の点ごとに 1 つずつです。"
   },
   "splinefun#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "splinefun#summary": {
     "hash": "586a5ad8c73c",
     "en": "The cubic spline through the points, as a function of `x` and the order of derivative (0 to 3; a fraction is\ntruncated, as R does). Equivalent to R's `splinefun()`. Except that the third derivative of `\"monoH.FC\"` is the\nexact one (see {@link splinefunH}). The order of derivative is the second argument of the function or its option\n`deriv` ({@link SplineFunction}).",
-    "ja": ""
+    "ja": "点を通る 3 次スプラインを、`x` と導関数の次数 (0 から 3。R と同じく小数は切り捨てられます) の関数として表したものです。R の `splinefun()` と同等です。ただし、`\"monoH.FC\"` の 3 階導関数は正確なものです ({@link splinefunH} を参照)。導関数の次数は、関数の第 2 引数、またはそのオプション `deriv` ({@link SplineFunction}) で指定します。"
   },
   "splinefunH#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "splinefunH#summary": {
     "hash": "3a5a639ae4be",
     "en": "The cubic Hermite spline with values `y` and slopes `m` at the points `x`, as a function of `x` and the order of\nderivative (0 to 3; a fraction is truncated, as R does); linear outside the data. Equivalent to R's `splinefunH()`.\nExcept for the third derivative: on [x_i, x_{i+1}] it is the exact (6 m_i + 6 m_{i+1} - 12 delta) / h^2, with\nh = x_{i+1} - x_i and delta = (y_{i+1} - y_i) / h, where R divides by h only once (the two agree when h = 1). The\norder of derivative is the second argument of the function or its option `deriv` ({@link SplineFunction}).",
-    "ja": ""
+    "ja": "点 `x` における値 `y` と傾き `m` をもつ 3 次 Hermite スプラインで、`x` と導関数の次数 (0 から 3。R と同じく小数は切り捨てられます) の関数です。データの外側では線形です。R の `splinefunH()` と同等です。ただし 3 階導関数は異なります: [x_i, x_{i+1}] 上では、正確な値 (6 m_i + 6 m_{i+1} - 12 delta) / h^2 となります。ここで h = x_{i+1} - x_i、delta = (y_{i+1} - y_i) / h です。R は h による除算を 1 回しか行わないため、h = 1 のとき両者は一致します。導関数の次数は、関数の第 2 引数、またはそのオプション `deriv` ({@link SplineFunction}) で指定します。"
   },
   "uniroot#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "uniroot#summary": {
     "hash": "c70577a0932a",
     "en": "A root of a function of one variable in an interval, by Brent's zeroin. Equivalent to R's `uniroot()`.",
-    "ja": ""
+    "ja": "区間における 1 変数関数の根を、Brent の zeroin 法で求めます。R の `uniroot()` と同等です。"
   }
 }
