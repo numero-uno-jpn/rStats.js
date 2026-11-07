@@ -365,9 +365,9 @@ function sumRange(v: Float64Array, from: number, to: number): number {
  * @example
  * ```ts
  * const r = oddsRatio([[56, 14], [48, 32]]);
- * r.estimate; // 2.636423733155189
- * r.confInt;  // [1.2761591542927115, 5.670866460839428]
- * r.pValue;   // { midp: 0.008449442679452801, fisher: 0.012521129749209175, chiSquare: 0.008045081368196578 }
+ * r.estimate; // 2.6364237331551914
+ * r.confInt;  // [1.276159154292712, 5.670866460839431]
+ * r.pValue;   // { midp: 0.008449442679452648, fisher: 0.012521129749209155, chiSquare: 0.00804508136819659 }
  * ```
  *
  * @category Hypothesis tests
