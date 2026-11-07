@@ -88,10 +88,11 @@ describe("boschlooTest", () => {
 
   it("keeps long groups within the time limit (audit 4)", () => {
     // [[262000, 0], [0, 1]] took 18.3 s, [[131000, 131000], [0, 1]] 19.4 s (now about 5 and 8 s): the binomial vectors
-    // stop where they underflow. 60000 against 1 took 2.4 s, now 0.6 s
+    // stop where they underflow. 60000 against 1 took 2.4 s, now 0.6 s here (3.5 s on the release runner, so the bound
+    // is the design limit of about 10 s, not a measure of this machine)
     const t0 = performance.now();
     const r = boschlooTest([[60000, 0], [0, 1]]);
-    expect(performance.now() - t0).toBeLessThan(3000);
+    expect(performance.now() - t0).toBeLessThan(10_000);
     expect(r.pValue).toBeGreaterThan(0);
   });
 
