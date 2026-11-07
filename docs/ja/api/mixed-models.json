@@ -87,7 +87,7 @@
   "GlmerOptions.start#summary": {
     "hash": "d0d9b6259e8b",
     "en": "Where the search begins (it does not change the estimate unless the deviance has several minima): `theta`, the\ncovariance parameters (the length of θ, diagonal elements not negative), and `fixef`, the fixed effects (nAGQ = 1\nonly), each with R's error messages.",
-    "ja": "探索の開始点です (逸脱度に複数の極小値がない限り、推定値は変わりません): `theta` (共分散パラメータ。θ の長さであり、\n対角要素は負でないこと)、と `fixef` (固定効果。\nnAGQ = 1 の場合のみ)。いずれも R と同じエラーメッセージを出します。"
+    "ja": "探索の開始点です (逸脱度に複数の極小値がない限り、推定値は変わりません): `theta` (共分散パラメータ。θ の長さであり、\n対角要素は負でないこと) と `fixef` (固定効果。\nnAGQ = 1 の場合のみ)。いずれも R と同じエラーメッセージを出します。"
   },
   "GlmerOptions.start.fixef#summary": {
     "hash": "21e185ae654d",
@@ -267,7 +267,7 @@
   "GlmerResult.vcovFrom#summary": {
     "hash": "3350fcab203c",
     "en": "How `vcov` was computed: `\"hessian\"`, 2 times the block of the fixed effects of the inverse Hessian of the\ndeviance in (θ, β) (R's default for nAGQ = 1 when the fit is not singular, nObs < 10000 and there are fewer than\n20 parameters), or `\"RX\"`, σ² (R_X'R_X)⁻¹ of the penalised IRLS at the conditional mode.",
-    "ja": "`vcov` の計算方法です。`\"hessian\"` は、(θ, β) における逸脱度のヘッセ行列の逆行列の、\n固定効果のブロックの 2 倍です (R の既定は、nAGQ = 1 かつ当てはめが特異でなく、nObs < 10000 かつ\nパラメータが 20 未満の場合です)。`\"RX\"` は、条件付きモードにおける罰則付き IRLS の σ² (R_X'R_X)⁻¹ です。"
+    "ja": "`vcov` の計算方法です。`\"hessian\"` は、(θ, β) における逸脱度のヘッセ行列の逆行列の、\n固定効果のブロックの 2 倍です (nAGQ = 1 で、当てはめが特異でなく、nObs < 10000 かつ\nパラメータが 20 未満の場合の R の既定)。`\"RX\"` は、条件付きモードにおける罰則付き IRLS の σ² (R_X'R_X)⁻¹ です。"
   },
   "GlmerResult.warnings#summary": {
     "hash": "8796be8186fa",
