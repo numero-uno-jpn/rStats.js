@@ -438,3 +438,27 @@
 | lower end, upper end (of an interval) | 下端、上端 | 新規 |
 | number of comparisons | 比較の数 | 新規 |
 | unambiguous abbreviation | 曖昧さのない省略形 | 新規 |
+| number of observations | 観測数 | 新規。`docs/ja` の「観測数」と同じ語 (効果量の引数の説明) |
+| total number of observations | 観測数の総数 | 新規 |
+| paired samples | 対応のある標本 | `docs/ja` で「対応のある標本」を使用 |
+| averaged standard deviation | 平均した標準偏差 | 新規。併合 (pooled) 標準偏差と対比 |
+| eta squared | イータ二乗 | `docs/ja` で使用 |
+| generalized eta squared | 一般化イータ二乗 | 新規 |
+| partial (effect size) | 部分効果量 | 新規。項ごとの部分効果量 |
+| epsilon squared | イプシロン二乗 | 新規 |
+| omega squared | オメガ二乗 | 新規 |
+| conventional (sizes, effect sizes) | 慣例的な | 新規。Cohen の「慣例的な」大きさ |
+| small-sample correction | 小標本補正 | `docs/ja` で使用 |
+| Cohen's d | Cohen の d | 人名は英字 |
+| Hedges' g | Hedges の g | 人名は英字 |
+| root finding | 求根 | 新規 |
+| error stratum | 誤差層 | 新規。`stratum` の「層」を使う |
+| balanced (design) | 釣り合いのとれた | 新規 |
+| general linear model | 一般線形モデル | 新規 |
+| arcsine transformation | 逆正弦変換 | 新規 |
+| test of association | 連関の検定 | 新規 |
+| Fisher's z transformation | Fisher の z 変換 | 人名は英字。新規 |
+| variance between, within the groups' means | 群平均の間の分散、群内の分散 | 新規 |
+| true difference in means | 真の平均の差 | 新規 |
+| upper, lower confidence limit | 信頼区間の上限、下限 | 新規 |
+| open (one-sided interval) | 開いた (区間) | 新規。片側区間のもう一方の側 |

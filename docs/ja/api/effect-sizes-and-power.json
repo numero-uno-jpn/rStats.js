@@ -2,1251 +2,1251 @@
   "AnovaEffectSizeModel#summary": {
     "hash": "48ed7b7f01e7",
     "en": "A model of the ANOVA effect sizes: a table of `anova()` or `Anova()`, a fit from `lm()` or `aov()` (also with\n`Error()`), the `aovSummary()` of an `aov()` fit with `Error()`, or a result of `aovEz()`.",
-    "ja": ""
+    "ja": "分散分析の効果量のためのモデルです: `anova()` または `Anova()` の表、`lm()` または `aov()` の当てはめ (\n`Error()` を含むものも可)、`Error()` を含む `aov()` の当てはめに対する `aovSummary()`、または `aovEz()` の結果です。"
   },
   "AnovaEffectSizeOptions#summary": {
     "hash": "343e15e33c26",
     "en": "Options for {@link etaSquared}, {@link omegaSquared} and {@link epsilonSquared}.",
-    "ja": ""
+    "ja": "{@link etaSquared}、{@link omegaSquared}、{@link epsilonSquared} のオプションです。"
   },
   "AnovaEffectSizeOptions.alternative#summary": {
     "hash": "cd97cdafcc92",
     "en": "`\"greater\"` (default: the interval is [lower, 1]), `\"two.sided\"` or `\"less\"` ([0, upper]).",
-    "ja": ""
+    "ja": "`\"greater\"` (既定: 区間は [lower, 1])、`\"two.sided\"`、または `\"less\"` (区間は [0, upper])。"
   },
   "AnovaEffectSizeOptions.ci#summary": {
     "hash": "5243c722b953",
     "en": "Confidence level of the interval, or `null` for no interval. Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準、または区間を求めない場合は `null`。既定は `0.95`。"
   },
   "AnovaEffectSizeOptions.partial#summary": {
     "hash": "49a738fd6ce7",
     "en": "Partial effect sizes (default `true`). A table with a single term always gives the non-partial one (not so for\nmodels with error strata).",
-    "ja": ""
+    "ja": "部分効果量を求めます (既定は `true`)。項が 1 つだけの表では、常に部分効果量ではない方が得られます (\n誤差層のあるモデルでは、この限りではありません)。"
   },
   "AnovaEffectSizeTable#summary": {
     "hash": "27aafb12438c",
     "en": "Result of the ANOVA effect sizes: one row per term.",
-    "ja": ""
+    "ja": "分散分析の効果量の結果です。項ごとに 1 行です。"
   },
   "AnovaEffectSizeTable.colNames#summary": {
     "hash": "75d5615b7291",
     "en": "effectsize's columns: the effect size (`\"Eta2_partial\"`, `\"Omega2\"`, ...), then `\"CI\"`, `\"CI_low\"`, `\"CI_high\"`.",
-    "ja": ""
+    "ja": "effectsize の列名です: 効果量 (`\"Eta2_partial\"`、`\"Omega2\"` など)、続いて `\"CI\"`、`\"CI_low\"`、`\"CI_high\"` です。"
   },
   "AnovaEffectSizeTable.groups#summary": {
     "hash": "3a03bd8d12e9",
     "en": "For aov with `Error()`: the error stratum of each row (`\"id\"`, `\"id:W\"`, `\"Within\"`).",
-    "ja": ""
+    "ja": "`Error()` を指定した aov の場合: 各行の誤差層 (`\"id\"`、`\"id:W\"`、`\"Within\"`)。"
   },
   "AnovaEffectSizeTable.rowNames#summary": {
     "hash": "81240357e5a4",
     "en": "The terms.",
-    "ja": ""
+    "ja": "項です。"
   },
   "AnovaEffectSizeTable.table#summary": {
     "hash": "220ec4ddbe1d",
     "en": "One array per term.",
-    "ja": ""
+    "ja": "項ごとの配列です。"
   },
   "AnovaEffectSizeTable.warnings#summary": {
     "hash": "d0055cbd3682",
     "en": "effectsize's warnings.",
-    "ja": ""
+    "ja": "effectsize の警告です。"
   },
   "CohenESOptions#summary": {
     "hash": "4ea0f977f880",
     "en": "Options for {@link cohenES}.",
-    "ja": ""
+    "ja": "{@link cohenES} のオプションです。"
   },
   "CohenESOptions.size#summary": {
     "hash": "0206b3d27f8e",
     "en": "The conventional size: `\"small\"` (default), `\"medium\"` or `\"large\"`.",
-    "ja": ""
+    "ja": "慣例的な大きさ: `\"small\"` (既定)、`\"medium\"`、または `\"large\"`。"
   },
   "CohenESResult#summary": {
     "hash": "1671a56ed662",
     "en": "Result of {@link cohenES}.",
-    "ja": ""
+    "ja": "{@link cohenES} の結果です。"
   },
   "CohenESResult.effectSize#summary": {
     "hash": "c848db6d27ca",
     "en": "Cohen's effect size (R's `effect.size`).",
-    "ja": ""
+    "ja": "Cohen の効果量 (R の `effect.size`)。"
   },
   "CohenESResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "CohenESResult.size#summary": {
     "hash": "424856e0bb01",
     "en": "The conventional size.",
-    "ja": ""
+    "ja": "慣例的な大きさです。"
   },
   "CohenESResult.test#summary": {
     "hash": "e2572477387d",
     "en": "The test.",
-    "ja": ""
+    "ja": "検定です。"
   },
   "CohenTest#summary": {
     "hash": "988b7251ad70",
     "en": "The tests of {@link cohenES}",
-    "ja": ""
+    "ja": "{@link cohenES} が扱う検定です。"
   },
   "CohensDOptions#summary": {
     "hash": "543f8d13b3f0",
     "en": "Options for {@link cohensD} and {@link hedgesG}.",
-    "ja": ""
+    "ja": "{@link cohensD} と {@link hedgesG} のオプションです。"
   },
   "CohensDOptions.adjust#summary": {
     "hash": "5038d9108f60",
     "en": "{@link cohensD} only: apply Hedges' small-sample correction (the result is Hedges' g). Default `false`.",
-    "ja": ""
+    "ja": "{@link cohensD} のみ: Hedges の小標本補正を適用します (結果は Hedges の g になります)。既定は `false`。"
   },
   "CohensDOptions.alternative#summary": {
     "hash": "12908efd23a1",
     "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`: a one-sided interval is open on the other side.",
-    "ja": ""
+    "ja": "`\"two.sided\"` (既定)、`\"less\"`、または `\"greater\"`: 片側の区間は、もう一方の側が開いた区間になります。"
   },
   "CohensDOptions.ci#summary": {
     "hash": "5243c722b953",
     "en": "Confidence level of the interval, or `null` for no interval. Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準、または区間を求めない場合は `null`。既定は `0.95`。"
   },
   "CohensDOptions.mu#summary": {
     "hash": "461178462934",
     "en": "The difference (or mean) under the null hypothesis. Default `0`.",
-    "ja": ""
+    "ja": "帰無仮説のもとでの差 (または平均)。既定は `0`。"
   },
   "CohensDOptions.paired#summary": {
     "hash": "3f28fd21ad9d",
     "en": "Paired samples: the effect size of the differences `x - y`. Default `false`.",
-    "ja": ""
+    "ja": "対応のある標本: 差 `x - y` の効果量です。既定は `false`。"
   },
   "CohensDOptions.pooledSd#summary": {
     "hash": "881a89696f14",
     "en": "Two samples: standardize by the pooled standard deviation (default `true`) or by `sqrt((s1² + s2²)/2)`.",
-    "ja": ""
+    "ja": "2 標本の場合: 併合標準偏差で標準化します (既定は `true`)。それ以外の場合は `sqrt((s1² + s2²)/2)` で標準化します。"
   },
   "CohensDResult#summary": {
     "hash": "fd26d14f254c",
     "en": "Result of {@link cohensD} and {@link hedgesG}.",
-    "ja": ""
+    "ja": "{@link cohensD} と {@link hedgesG} の結果です。"
   },
   "CohensDResult.ci#summary": {
     "hash": "938e03c96cf8",
     "en": "Confidence level (absent without an interval).",
-    "ja": ""
+    "ja": "信頼水準 (区間がない場合は含まれません)。"
   },
   "CohensDResult.ciHigh#summary": {
     "hash": "29a5a1caae96",
     "en": "Upper confidence limit (R's `CI_high`; `Infinity` for `\"greater\"`).",
-    "ja": ""
+    "ja": "信頼区間の上限 (R の `CI_high`。`\"greater\"` のとき `Infinity`)。"
   },
   "CohensDResult.ciLow#summary": {
     "hash": "7fae80871852",
     "en": "Lower confidence limit (R's `CI_low`; `-Infinity` for `\"less\"`).",
-    "ja": ""
+    "ja": "信頼区間の下限 (R の `CI_low`。`\"less\"` のとき `-Infinity`)。"
   },
   "CohensDResult.name#summary": {
     "hash": "3b51a2e579a7",
     "en": "`\"Cohens_d\"` or `\"Hedges_g\"`.",
-    "ja": ""
+    "ja": "`\"Cohens_d\"` または `\"Hedges_g\"`。"
   },
   "CohensDResult.value#summary": {
     "hash": "431ff0e4f50b",
     "en": "The effect size.",
-    "ja": ""
+    "ja": "効果量です。"
   },
   "CohensDResult.warnings#summary": {
     "hash": "d0055cbd3682",
     "en": "effectsize's warnings.",
-    "ja": ""
+    "ja": "effectsize の警告です。"
   },
   "EffectSize#summary": {
     "hash": "57e37290e1b8",
     "en": "An effect size: a number, or Cohen's conventional `\"small\"`, `\"medium\"` or `\"large\"`",
-    "ja": ""
+    "ja": "効果量: 数値、または Cohen の慣例的な `\"small\"`、`\"medium\"`、`\"large\"` のいずれか。"
   },
   "EtaSquaredOptions#summary": {
     "hash": "dc3534b8cbee",
     "en": "Options for {@link etaSquared}.",
-    "ja": ""
+    "ja": "{@link etaSquared} のオプションです。"
   },
   "EtaSquaredOptions.generalized#summary": {
     "hash": "d389e3e7743f",
     "en": "Generalized eta squared: `true` (all factors manipulated) or the names of the observed factors. Default\n`false`.",
-    "ja": ""
+    "ja": "一般化イータ二乗: `true` (すべての因子が操作された場合) または観測された因子の名前。既定は\n`false`。"
   },
   "PowerAnovaTestOptions#summary": {
     "hash": "7191178b362b",
     "en": "Options for {@link powerAnovaTest}. The quantity given as `null` (or omitted, for those without a default) is solved for.",
-    "ja": ""
+    "ja": "{@link powerAnovaTest} のオプションです。値に `null` を指定した量、または既定値のない量を省略した場合は、その量を求めます。"
   },
   "PowerAnovaTestOptions.betweenVar#summary": {
     "hash": "3e0498f11d91",
     "en": "Variance between the groups' means.",
-    "ja": ""
+    "ja": "群平均の間の分散です。"
   },
   "PowerAnovaTestOptions.groups#summary": {
     "hash": "f73de6b3f40e",
     "en": "Number of groups.",
-    "ja": ""
+    "ja": "群の数です。"
   },
   "PowerAnovaTestOptions.n#summary": {
     "hash": "28f44c378103",
     "en": "Number of observations per group.",
-    "ja": ""
+    "ja": "群ごとの観測数です。"
   },
   "PowerAnovaTestOptions.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PowerAnovaTestOptions.sigLevel#summary": {
     "hash": "9bd4ea7a67d6",
     "en": "Significance level. Default `0.05`.",
-    "ja": ""
+    "ja": "有意水準。既定は `0.05`。"
   },
   "PowerAnovaTestOptions.withinVar#summary": {
     "hash": "c9bd3a7a8c8a",
     "en": "Variance within the groups.",
-    "ja": ""
+    "ja": "群内の分散です。"
   },
   "PowerAnovaTestResult#summary": {
     "hash": "c9bbeed57b33",
     "en": "Result of {@link powerAnovaTest}.",
-    "ja": ""
+    "ja": "{@link powerAnovaTest} の結果です。"
   },
   "PowerAnovaTestResult.betweenVar#summary": {
     "hash": "7a4a0238b338",
     "en": "Variance between the groups' means (R's `between.var`).",
-    "ja": ""
+    "ja": "群平均の間の分散 (R の `between.var`)。"
   },
   "PowerAnovaTestResult.groups#summary": {
     "hash": "f73de6b3f40e",
     "en": "Number of groups.",
-    "ja": ""
+    "ja": "群の数です。"
   },
   "PowerAnovaTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "PowerAnovaTestResult.n#summary": {
     "hash": "28f44c378103",
     "en": "Number of observations per group.",
-    "ja": ""
+    "ja": "群ごとの観測数です。"
   },
   "PowerAnovaTestResult.note#summary": {
     "hash": "794eecae18cf",
     "en": "A note on the sample size.",
-    "ja": ""
+    "ja": "標本サイズに関する注記です。"
   },
   "PowerAnovaTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PowerAnovaTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "PowerAnovaTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "PowerAnovaTestResult.withinVar#summary": {
     "hash": "d763e60b90b6",
     "en": "Variance within the groups (R's `within.var`).",
-    "ja": ""
+    "ja": "群内の分散 (R の `within.var`)。"
   },
   "PowerPropTestOptions#summary": {
     "hash": "f51b85eea165",
     "en": "Options for {@link powerPropTest}. The quantity given as `null` (or omitted, for those without a default) is solved for.",
-    "ja": ""
+    "ja": "{@link powerPropTest} のオプションです。値に `null` を指定した量、または既定値のない量を省略した場合は、その量を求めます。"
   },
   "PowerPropTestOptions.alternative#summary": {
     "hash": "04489b922537",
     "en": "`\"two.sided\"` (default) or `\"one.sided\"`.",
-    "ja": ""
+    "ja": "`\"two.sided\"` (既定) または `\"one.sided\"`。"
   },
   "PowerPropTestOptions.n#summary": {
     "hash": "28f44c378103",
     "en": "Number of observations per group.",
-    "ja": ""
+    "ja": "群ごとの観測数です。"
   },
   "PowerPropTestOptions.p1#summary": {
     "hash": "dc1ae4137661",
     "en": "Probability in one group.",
-    "ja": ""
+    "ja": "一方の群における確率です。"
   },
   "PowerPropTestOptions.p2#summary": {
     "hash": "bebe23293990",
     "en": "Probability in the other group.",
-    "ja": ""
+    "ja": "もう一方の群における確率です。"
   },
   "PowerPropTestOptions.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PowerPropTestOptions.sigLevel#summary": {
     "hash": "9bd4ea7a67d6",
     "en": "Significance level. Default `0.05`.",
-    "ja": ""
+    "ja": "有意水準。既定は `0.05`。"
   },
   "PowerPropTestOptions.strict#summary": {
     "hash": "efb5e6a3d34a",
     "en": "Two-sided: count the probability of rejecting in the wrong direction too. Default `false`.",
-    "ja": ""
+    "ja": "両側の場合、誤った方向で棄却する確率も含めます。既定は `false`。"
   },
   "PowerPropTestOptions.tol#summary": {
     "hash": "c7e042f6bd87",
     "en": "Tolerance of the root finding. Default `eps^0.25`.",
-    "ja": ""
+    "ja": "求根の許容誤差。既定は `eps^0.25`。"
   },
   "PowerPropTestResult#summary": {
     "hash": "c14dab18b9bb",
     "en": "Result of {@link powerPropTest}.",
-    "ja": ""
+    "ja": "{@link powerPropTest} の結果です。"
   },
   "PowerPropTestResult.alternative#summary": {
     "hash": "8e07981ddd6d",
     "en": "`\"two.sided\"` or `\"one.sided\"`.",
-    "ja": ""
+    "ja": "`\"two.sided\"` または `\"one.sided\"`。"
   },
   "PowerPropTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "PowerPropTestResult.n#summary": {
     "hash": "28f44c378103",
     "en": "Number of observations per group.",
-    "ja": ""
+    "ja": "群ごとの観測数です。"
   },
   "PowerPropTestResult.note#summary": {
     "hash": "794eecae18cf",
     "en": "A note on the sample size.",
-    "ja": ""
+    "ja": "標本サイズに関する注記です。"
   },
   "PowerPropTestResult.p1#summary": {
     "hash": "dc1ae4137661",
     "en": "Probability in one group.",
-    "ja": ""
+    "ja": "一方の群における確率です。"
   },
   "PowerPropTestResult.p2#summary": {
     "hash": "bebe23293990",
     "en": "Probability in the other group.",
-    "ja": ""
+    "ja": "もう一方の群における確率です。"
   },
   "PowerPropTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PowerPropTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "PowerPropTestResult.warnings#summary": {
     "hash": "3db2080f70ed",
     "en": "R's warnings.",
-    "ja": ""
+    "ja": "R の警告です。"
   },
   "PowerTTestOptions#summary": {
     "hash": "9b531681be6d",
     "en": "Options for {@link powerTTest}. The quantity given as `null` (or omitted, for those without a default) is solved for.",
-    "ja": ""
+    "ja": "{@link powerTTest} のオプションです。値に `null` を指定した量、または既定値のない量を省略した場合は、その量を求めます。"
   },
   "PowerTTestOptions.alternative#summary": {
     "hash": "04489b922537",
     "en": "`\"two.sided\"` (default) or `\"one.sided\"`.",
-    "ja": ""
+    "ja": "`\"two.sided\"` (既定) または `\"one.sided\"`。"
   },
   "PowerTTestOptions.delta#summary": {
     "hash": "860f4ffbac23",
     "en": "True difference in means.",
-    "ja": ""
+    "ja": "真の平均の差です。"
   },
   "PowerTTestOptions.n#summary": {
     "hash": "bef627e08191",
     "en": "Number of observations (per group).",
-    "ja": ""
+    "ja": "観測数 (群ごと)。"
   },
   "PowerTTestOptions.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PowerTTestOptions.sd#summary": {
     "hash": "bc948bd4118e",
     "en": "Standard deviation. Default `1`.",
-    "ja": ""
+    "ja": "標準偏差。既定は `1`。"
   },
   "PowerTTestOptions.sigLevel#summary": {
     "hash": "9bd4ea7a67d6",
     "en": "Significance level. Default `0.05`.",
-    "ja": ""
+    "ja": "有意水準。既定は `0.05`。"
   },
   "PowerTTestOptions.strict#summary": {
     "hash": "efb5e6a3d34a",
     "en": "Two-sided: count the probability of rejecting in the wrong direction too. Default `false`.",
-    "ja": ""
+    "ja": "両側の場合、誤った方向で棄却する確率も含めます。既定は `false`。"
   },
   "PowerTTestOptions.tol#summary": {
     "hash": "c7e042f6bd87",
     "en": "Tolerance of the root finding. Default `eps^0.25`.",
-    "ja": ""
+    "ja": "求根の許容誤差。既定は `eps^0.25`。"
   },
   "PowerTTestOptions.type#summary": {
     "hash": "bcf3a7132e29",
     "en": "`\"two.sample\"` (default), `\"one.sample\"` or `\"paired\"`.",
-    "ja": ""
+    "ja": "`\"two.sample\"` (既定)、`\"one.sample\"`、または `\"paired\"`。"
   },
   "PowerTTestResult#summary": {
     "hash": "ae06884397dc",
     "en": "Result of {@link powerTTest}: R's power.htest with the solved quantity filled in.",
-    "ja": ""
+    "ja": "{@link powerTTest} の結果です。R の power.htest に、求めた量を入れたものです。"
   },
   "PowerTTestResult.alternative#summary": {
     "hash": "8e07981ddd6d",
     "en": "`\"two.sided\"` or `\"one.sided\"`.",
-    "ja": ""
+    "ja": "`\"two.sided\"` または `\"one.sided\"`。"
   },
   "PowerTTestResult.delta#summary": {
     "hash": "860f4ffbac23",
     "en": "True difference in means.",
-    "ja": ""
+    "ja": "真の平均の差です。"
   },
   "PowerTTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "PowerTTestResult.n#summary": {
     "hash": "0f6f177de98b",
     "en": "Number of observations (per group, or of pairs).",
-    "ja": ""
+    "ja": "観測数 (群ごと、または対の数)。"
   },
   "PowerTTestResult.note#summary": {
     "hash": "794eecae18cf",
     "en": "A note on the sample size.",
-    "ja": ""
+    "ja": "標本サイズに関する注記です。"
   },
   "PowerTTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PowerTTestResult.sd#summary": {
     "hash": "1bcfceb57192",
     "en": "Standard deviation.",
-    "ja": ""
+    "ja": "標準偏差です。"
   },
   "PowerTTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "PowerTTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "Pwr2p2nTestOptions#summary": {
     "hash": "364bf92db879",
     "en": "Options for {@link pwr2p2nTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
-    "ja": ""
+    "ja": "{@link pwr2p2nTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
   "Pwr2p2nTestOptions.h#summary": {
     "hash": "61373fb4d3ae",
     "en": "Effect size h ({@link esH}), or `\"small\"`, `\"medium\"`, `\"large\"`.",
-    "ja": ""
+    "ja": "効果量 h ({@link esH})、または `\"small\"`、`\"medium\"`、`\"large\"`。"
   },
   "Pwr2p2nTestOptions.n1#summary": {
     "hash": "c419be274043",
     "en": "Number of observations in the first group.",
-    "ja": ""
+    "ja": "第 1 群の観測数です。"
   },
   "Pwr2p2nTestOptions.n2#summary": {
     "hash": "be3501e2c9f0",
     "en": "Number of observations in the second group.",
-    "ja": ""
+    "ja": "第 2 群の観測数です。"
   },
   "Pwr2p2nTestResult#summary": {
     "hash": "9f20c306c391",
     "en": "Result of {@link pwr2p2nTest}.",
-    "ja": ""
+    "ja": "{@link pwr2p2nTest} の結果です。"
   },
   "Pwr2p2nTestResult.alternative#summary": {
     "hash": "1169559c5650",
     "en": "The alternative hypothesis.",
-    "ja": ""
+    "ja": "対立仮説です。"
   },
   "Pwr2p2nTestResult.h#summary": {
     "hash": "7309eabbc07a",
     "en": "Effect size h.",
-    "ja": ""
+    "ja": "効果量 h です。"
   },
   "Pwr2p2nTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "Pwr2p2nTestResult.n1#summary": {
     "hash": "c419be274043",
     "en": "Number of observations in the first group.",
-    "ja": ""
+    "ja": "第 1 群の観測数です。"
   },
   "Pwr2p2nTestResult.n2#summary": {
     "hash": "be3501e2c9f0",
     "en": "Number of observations in the second group.",
-    "ja": ""
+    "ja": "第 2 群の観測数です。"
   },
   "Pwr2p2nTestResult.note#summary": {
     "hash": "098cb8d9e06e",
     "en": "A note on the sample sizes.",
-    "ja": ""
+    "ja": "標本サイズに関する注記です。"
   },
   "Pwr2p2nTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "Pwr2p2nTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "Pwr2p2nTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "Pwr2pTestOptions#summary": {
     "hash": "c931c6cc9124",
     "en": "Options for {@link pwr2pTest} and {@link pwrPTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
-    "ja": ""
+    "ja": "{@link pwr2pTest} と {@link pwrPTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
   "Pwr2pTestOptions.h#summary": {
     "hash": "61373fb4d3ae",
     "en": "Effect size h ({@link esH}), or `\"small\"`, `\"medium\"`, `\"large\"`.",
-    "ja": ""
+    "ja": "効果量 h ({@link esH})、または `\"small\"`、`\"medium\"`、`\"large\"`。"
   },
   "Pwr2pTestOptions.n#summary": {
     "hash": "50954f47052d",
     "en": "Number of observations (per group for {@link pwr2pTest}).",
-    "ja": ""
+    "ja": "観測数 ({@link pwr2pTest} では群ごと)。"
   },
   "Pwr2pTestResult#summary": {
     "hash": "1caa778a7764",
     "en": "Result of {@link pwr2pTest} and {@link pwrPTest}.",
-    "ja": ""
+    "ja": "{@link pwr2pTest} と {@link pwrPTest} の結果です。"
   },
   "Pwr2pTestResult.alternative#summary": {
     "hash": "1169559c5650",
     "en": "The alternative hypothesis.",
-    "ja": ""
+    "ja": "対立仮説です。"
   },
   "Pwr2pTestResult.h#summary": {
     "hash": "7309eabbc07a",
     "en": "Effect size h.",
-    "ja": ""
+    "ja": "効果量 h です。"
   },
   "Pwr2pTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "Pwr2pTestResult.n#summary": {
     "hash": "50954f47052d",
     "en": "Number of observations (per group for {@link pwr2pTest}).",
-    "ja": ""
+    "ja": "観測数 ({@link pwr2pTest} では群ごと)。"
   },
   "Pwr2pTestResult.note#summary": {
     "hash": "42d75b5fe86a",
     "en": "A note on the sample sizes (absent for {@link pwrPTest}).",
-    "ja": ""
+    "ja": "標本サイズに関する注記です ({@link pwrPTest} の結果には含まれません)。"
   },
   "Pwr2pTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "Pwr2pTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "Pwr2pTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "PwrAnovaTestOptions#summary": {
     "hash": "4952a3c7d2fd",
     "en": "Options for {@link pwrAnovaTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
-    "ja": ""
+    "ja": "{@link pwrAnovaTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
   "PwrAnovaTestOptions.f#summary": {
     "hash": "add447becc81",
     "en": "Effect size f, or `\"small\"`, `\"medium\"`, `\"large\"`.",
-    "ja": ""
+    "ja": "効果量 f、または `\"small\"`、`\"medium\"`、`\"large\"`。"
   },
   "PwrAnovaTestOptions.k#summary": {
     "hash": "f73de6b3f40e",
     "en": "Number of groups.",
-    "ja": ""
+    "ja": "群の数です。"
   },
   "PwrAnovaTestOptions.n#summary": {
     "hash": "28f44c378103",
     "en": "Number of observations per group.",
-    "ja": ""
+    "ja": "群ごとの観測数です。"
   },
   "PwrAnovaTestResult#summary": {
     "hash": "7c320b838a2c",
     "en": "Result of {@link pwrAnovaTest}.",
-    "ja": ""
+    "ja": "{@link pwrAnovaTest} の結果です。"
   },
   "PwrAnovaTestResult.f#summary": {
     "hash": "2443691de1d0",
     "en": "Effect size f.",
-    "ja": ""
+    "ja": "効果量 f です。"
   },
   "PwrAnovaTestResult.k#summary": {
     "hash": "f73de6b3f40e",
     "en": "Number of groups.",
-    "ja": ""
+    "ja": "群の数です。"
   },
   "PwrAnovaTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "PwrAnovaTestResult.n#summary": {
     "hash": "28f44c378103",
     "en": "Number of observations per group.",
-    "ja": ""
+    "ja": "群ごとの観測数です。"
   },
   "PwrAnovaTestResult.note#summary": {
     "hash": "794eecae18cf",
     "en": "A note on the sample size.",
-    "ja": ""
+    "ja": "標本サイズに関する注記です。"
   },
   "PwrAnovaTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PwrAnovaTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "PwrAnovaTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "PwrChisqTestOptions#summary": {
     "hash": "f4cede77f88b",
     "en": "Options for {@link pwrChisqTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
-    "ja": ""
+    "ja": "{@link pwrChisqTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
   "PwrChisqTestOptions.N#summary": {
     "hash": "97c2da672900",
     "en": "Total number of observations.",
-    "ja": ""
+    "ja": "観測数の総数です。"
   },
   "PwrChisqTestOptions.df#summary": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度です。"
   },
   "PwrChisqTestOptions.w#summary": {
     "hash": "a72778ada997",
     "en": "Effect size w ({@link esW1}, {@link esW2}), or `\"small\"`, `\"medium\"`, `\"large\"`.",
-    "ja": ""
+    "ja": "効果量 w ({@link esW1}、{@link esW2})、または `\"small\"`、`\"medium\"`、`\"large\"`。"
   },
   "PwrChisqTestResult#summary": {
     "hash": "e9f2c9a02b88",
     "en": "Result of {@link pwrChisqTest}.",
-    "ja": ""
+    "ja": "{@link pwrChisqTest} の結果です。"
   },
   "PwrChisqTestResult.N#summary": {
     "hash": "97c2da672900",
     "en": "Total number of observations.",
-    "ja": ""
+    "ja": "観測数の総数です。"
   },
   "PwrChisqTestResult.df#summary": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度です。"
   },
   "PwrChisqTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "PwrChisqTestResult.note#summary": {
     "hash": "794eecae18cf",
     "en": "A note on the sample size.",
-    "ja": ""
+    "ja": "標本サイズに関する注記です。"
   },
   "PwrChisqTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PwrChisqTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "PwrChisqTestResult.w#summary": {
     "hash": "708c8d5bfb0b",
     "en": "Effect size w.",
-    "ja": ""
+    "ja": "効果量 w です。"
   },
   "PwrChisqTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "PwrF2TestOptions#summary": {
     "hash": "1ae15d86ef8a",
     "en": "Options for {@link pwrF2Test}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
-    "ja": ""
+    "ja": "{@link pwrF2Test} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
   "PwrF2TestOptions.f2#summary": {
     "hash": "70f1eac2141c",
     "en": "Effect size f², or `\"small\"`, `\"medium\"`, `\"large\"`.",
-    "ja": ""
+    "ja": "効果量 f²、または `\"small\"`、`\"medium\"`、`\"large\"`。"
   },
   "PwrF2TestOptions.u#summary": {
     "hash": "d67e29bb833c",
     "en": "Degrees of freedom of the numerator.",
-    "ja": ""
+    "ja": "分子の自由度です。"
   },
   "PwrF2TestOptions.v#summary": {
     "hash": "abf4e0a19239",
     "en": "Degrees of freedom of the denominator.",
-    "ja": ""
+    "ja": "分母の自由度です。"
   },
   "PwrF2TestResult#summary": {
     "hash": "353c0dd17389",
     "en": "Result of {@link pwrF2Test}.",
-    "ja": ""
+    "ja": "{@link pwrF2Test} の結果です。"
   },
   "PwrF2TestResult.f2#summary": {
     "hash": "c0cfc8252916",
     "en": "Effect size f².",
-    "ja": ""
+    "ja": "効果量 f² です。"
   },
   "PwrF2TestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "PwrF2TestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PwrF2TestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "PwrF2TestResult.u#summary": {
     "hash": "d67e29bb833c",
     "en": "Degrees of freedom of the numerator.",
-    "ja": ""
+    "ja": "分子の自由度です。"
   },
   "PwrF2TestResult.v#summary": {
     "hash": "abf4e0a19239",
     "en": "Degrees of freedom of the denominator.",
-    "ja": ""
+    "ja": "分母の自由度です。"
   },
   "PwrF2TestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "PwrNormTestOptions#summary": {
     "hash": "b218fe0094f8",
     "en": "Options for {@link pwrNormTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
-    "ja": ""
+    "ja": "{@link pwrNormTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
   "PwrNormTestOptions.d#summary": {
     "hash": "84bebb46159d",
     "en": "Effect size d (difference of means over the known standard deviation), or `\"small\"`, `\"medium\"`, `\"large\"`.",
-    "ja": ""
+    "ja": "効果量 d (既知の標準偏差に対する平均の差)、または `\"small\"`、`\"medium\"`、`\"large\"`。"
   },
   "PwrNormTestOptions.n#summary": {
     "hash": "7bec08620fae",
     "en": "Number of observations.",
-    "ja": ""
+    "ja": "観測数です。"
   },
   "PwrNormTestResult#summary": {
     "hash": "e9d9066aa2fa",
     "en": "Result of {@link pwrNormTest}.",
-    "ja": ""
+    "ja": "{@link pwrNormTest} の結果です。"
   },
   "PwrNormTestResult.alternative#summary": {
     "hash": "1169559c5650",
     "en": "The alternative hypothesis.",
-    "ja": ""
+    "ja": "対立仮説です。"
   },
   "PwrNormTestResult.d#summary": {
     "hash": "957baedccc87",
     "en": "Effect size d.",
-    "ja": ""
+    "ja": "効果量 d です。"
   },
   "PwrNormTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "PwrNormTestResult.n#summary": {
     "hash": "7bec08620fae",
     "en": "Number of observations.",
-    "ja": ""
+    "ja": "観測数です。"
   },
   "PwrNormTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PwrNormTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "PwrNormTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "PwrRTestOptions#summary": {
     "hash": "13572e855000",
     "en": "Options for {@link pwrRTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
-    "ja": ""
+    "ja": "{@link pwrRTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
   "PwrRTestOptions.n#summary": {
     "hash": "7bec08620fae",
     "en": "Number of observations.",
-    "ja": ""
+    "ja": "観測数です。"
   },
   "PwrRTestOptions.r#summary": {
     "hash": "26964fb5866e",
     "en": "Correlation, or `\"small\"`, `\"medium\"`, `\"large\"`.",
-    "ja": ""
+    "ja": "相関係数、または `\"small\"`、`\"medium\"`、`\"large\"`。"
   },
   "PwrRTestResult#summary": {
     "hash": "3d68e57ff838",
     "en": "Result of {@link pwrRTest}.",
-    "ja": ""
+    "ja": "{@link pwrRTest} の結果です。"
   },
   "PwrRTestResult.alternative#summary": {
     "hash": "1169559c5650",
     "en": "The alternative hypothesis.",
-    "ja": ""
+    "ja": "対立仮説です。"
   },
   "PwrRTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "PwrRTestResult.n#summary": {
     "hash": "7bec08620fae",
     "en": "Number of observations.",
-    "ja": ""
+    "ja": "観測数です。"
   },
   "PwrRTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PwrRTestResult.r#summary": {
     "hash": "19555bb267d8",
     "en": "Correlation.",
-    "ja": ""
+    "ja": "相関係数です。"
   },
   "PwrRTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "PwrRTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "PwrT2nTestOptions#summary": {
     "hash": "aee924e6b449",
     "en": "Options for {@link pwrT2nTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
-    "ja": ""
+    "ja": "{@link pwrT2nTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
   "PwrT2nTestOptions.d#summary": {
     "hash": "0de371e9ad81",
     "en": "Effect size d, or `\"small\"`, `\"medium\"`, `\"large\"`.",
-    "ja": ""
+    "ja": "効果量 d、または `\"small\"`、`\"medium\"`、`\"large\"`。"
   },
   "PwrT2nTestOptions.n1#summary": {
     "hash": "c419be274043",
     "en": "Number of observations in the first group.",
-    "ja": ""
+    "ja": "第 1 群の観測数です。"
   },
   "PwrT2nTestOptions.n2#summary": {
     "hash": "be3501e2c9f0",
     "en": "Number of observations in the second group.",
-    "ja": ""
+    "ja": "第 2 群の観測数です。"
   },
   "PwrT2nTestResult#summary": {
     "hash": "7b1de9720e91",
     "en": "Result of {@link pwrT2nTest}.",
-    "ja": ""
+    "ja": "{@link pwrT2nTest} の結果です。"
   },
   "PwrT2nTestResult.alternative#summary": {
     "hash": "1169559c5650",
     "en": "The alternative hypothesis.",
-    "ja": ""
+    "ja": "対立仮説です。"
   },
   "PwrT2nTestResult.d#summary": {
     "hash": "957baedccc87",
     "en": "Effect size d.",
-    "ja": ""
+    "ja": "効果量 d です。"
   },
   "PwrT2nTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "PwrT2nTestResult.n1#summary": {
     "hash": "c419be274043",
     "en": "Number of observations in the first group.",
-    "ja": ""
+    "ja": "第 1 群の観測数です。"
   },
   "PwrT2nTestResult.n2#summary": {
     "hash": "be3501e2c9f0",
     "en": "Number of observations in the second group.",
-    "ja": ""
+    "ja": "第 2 群の観測数です。"
   },
   "PwrT2nTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PwrT2nTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "PwrT2nTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "PwrTTestOptions#summary": {
     "hash": "26ceb754b11f",
     "en": "Options for {@link pwrTTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
-    "ja": ""
+    "ja": "{@link pwrTTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
   "PwrTTestOptions.d#summary": {
     "hash": "16d4ed606fc1",
     "en": "Effect size d (Cohen's d), or `\"small\"`, `\"medium\"`, `\"large\"`.",
-    "ja": ""
+    "ja": "効果量 d (Cohen の d)、または `\"small\"`、`\"medium\"`、`\"large\"`。"
   },
   "PwrTTestOptions.n#summary": {
     "hash": "0f6f177de98b",
     "en": "Number of observations (per group, or of pairs).",
-    "ja": ""
+    "ja": "観測数 (群ごと、または対の数)。"
   },
   "PwrTTestOptions.type#summary": {
     "hash": "bcf3a7132e29",
     "en": "`\"two.sample\"` (default), `\"one.sample\"` or `\"paired\"`.",
-    "ja": ""
+    "ja": "`\"two.sample\"` (既定)、`\"one.sample\"`、または `\"paired\"`。"
   },
   "PwrTTestResult#summary": {
     "hash": "35aeac600e17",
     "en": "Result of {@link pwrTTest}.",
-    "ja": ""
+    "ja": "{@link pwrTTest} の結果です。"
   },
   "PwrTTestResult.alternative#summary": {
     "hash": "1169559c5650",
     "en": "The alternative hypothesis.",
-    "ja": ""
+    "ja": "対立仮説です。"
   },
   "PwrTTestResult.d#summary": {
     "hash": "957baedccc87",
     "en": "Effect size d.",
-    "ja": ""
+    "ja": "効果量 d です。"
   },
   "PwrTTestResult.method#summary": {
     "hash": "61c3d9943edf",
     "en": "Description of the calculation.",
-    "ja": ""
+    "ja": "計算の説明です。"
   },
   "PwrTTestResult.n#summary": {
     "hash": "0f6f177de98b",
     "en": "Number of observations (per group, or of pairs).",
-    "ja": ""
+    "ja": "観測数 (群ごと、または対の数)。"
   },
   "PwrTTestResult.note#summary": {
     "hash": "794eecae18cf",
     "en": "A note on the sample size.",
-    "ja": ""
+    "ja": "標本サイズに関する注記です。"
   },
   "PwrTTestResult.power#summary": {
     "hash": "04518a4ed7b3",
     "en": "Power of the test.",
-    "ja": ""
+    "ja": "検定の検出力です。"
   },
   "PwrTTestResult.sigLevel#summary": {
     "hash": "aafaab7a40d6",
     "en": "Significance level (R's `sig.level`).",
-    "ja": ""
+    "ja": "有意水準 (R の `sig.level`)。"
   },
   "PwrTTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "cohenES(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cohenES(0)#summary": {
     "hash": "ce6006eb079c",
     "en": "Cohen's conventional effect sizes. Equivalent to `pwr::cohen.ES(test, size)` in R. The size is the second argument\nor the option `size` (giving both is a RangeError).",
-    "ja": ""
+    "ja": "Cohen の慣例的な効果量です。R の `pwr::cohen.ES(test, size)` と同等です。大きさは第 2 引数、\nまたはオプション `size` で指定します (両方を指定すると RangeError になります)。"
   },
   "cohenES(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cohenES(1)#summary": {
     "hash": "a994d5ac6a86",
     "en": "Cohen's conventional effect sizes, with the size in the options: `cohenES(\"anov\", { size: \"medium\" })`.",
-    "ja": ""
+    "ja": "大きさをオプションで指定した、Cohen の慣例的な効果量です: `cohenES(\"anov\", { size: \"medium\" })`。"
   },
   "cohensD#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cohensD#summary": {
     "hash": "db855b410b00",
     "en": "Cohen's d: the standardized difference of means of two samples (pooled or averaged standard deviation), of paired\nsamples, or of one sample against `mu`, with a confidence interval from the noncentral t distribution.\nEquivalent to `effectsize::cohens_d()` in R.\n\nAs effectsize, `warnings` has \"'y' is numeric but has only 2 unique values. ...\" where `y` has exactly 2 distinct\nvalues (a grouping variable is given as two samples here) and \"Missing values detected. NAs dropped.\" for `NaN`.",
-    "ja": ""
+    "ja": "Cohen の d: 2 つの標本の平均の差を標準化したもの (併合標準偏差、または平均した標準偏差を用いる)、\n対応のある標本の差を標準化したもの、または 1 つの標本の平均と `mu` との差を標準化したものです。非心 t 分布による信頼区間を付けます。\nR の `effectsize::cohens_d()` と同等です。\n\neffectsize と同じく、`warnings` には、`y` の相異なる値がちょうど 2 つのとき (ここでは群変数を 2 標本として与えます) \"'y' is numeric but has only 2 unique values. ...\" が入ります。\n`NaN` を含むとき \"Missing values detected. NAs dropped.\" が入ります。"
   },
   "epsilonSquared#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "epsilonSquared#summary": {
     "hash": "c2bbd6dcf2d5",
     "en": "Epsilon squared of the terms of an analysis-of-variance table, also of repeated-measures designs (see\n{@link etaSquared}). Equivalent to `effectsize::epsilon_squared()` in R.",
-    "ja": ""
+    "ja": "分散分析表の各項のイプシロン二乗です。反復測定計画についても求めます (\n{@link etaSquared} を参照)。R の `effectsize::epsilon_squared()` と同等です。"
   },
   "esH#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "esH#summary": {
     "hash": "d4ce230cb060",
     "en": "Effect size h of two proportions: `2 asin(sqrt(p1)) - 2 asin(sqrt(p2))`. Equivalent to `pwr::ES.h()` in R.",
-    "ja": ""
+    "ja": "2 つの比率の効果量 h: `2 asin(sqrt(p1)) - 2 asin(sqrt(p2))`。R の `pwr::ES.h()` と同等です。"
   },
   "esW1#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "esW1#summary": {
     "hash": "2a907b12d360",
     "en": "Effect size w of a goodness-of-fit test, `sqrt(sum((p1 - p0)^2 / p0))`. Equivalent to `pwr::ES.w1()` in R.",
-    "ja": ""
+    "ja": "適合度検定の効果量 w: `sqrt(sum((p1 - p0)^2 / p0))`。R の `pwr::ES.w1()` と同等です。"
   },
   "esW2#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "esW2#summary": {
     "hash": "e367e69ad8bd",
     "en": "Effect size w of a test of association, for a matrix of cell probabilities (an array of rows): with the row sums\nr and column sums c, `p0 = r c'` and `sqrt(sum((p - p0)^2 / p0))`. Equivalent to `pwr::ES.w2()` in R.",
-    "ja": ""
+    "ja": "連関の検定の効果量 w です。セル確率の行列 (行の配列) について、行和\nr と列和 c から `p0 = r c'` を作り、`sqrt(sum((p - p0)^2 / p0))` で計算します。R の `pwr::ES.w2()` と同等です。"
   },
   "etaSquared#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "etaSquared#summary": {
     "hash": "d851f7203e21",
     "en": "Eta squared of the terms of an analysis-of-variance table (partial by default, or generalized), with confidence\nintervals from the noncentral F distribution. Equivalent to `effectsize::eta_squared()` in R. It takes a table of\n`anova()` or `Anova()`; a fit from `lm()` with a formula is replaced by its `anova()` table.\n\nRepeated measures: for a fit of `aov()` with an `Error()` term (or its {@link aovSummary}) each term is measured\nagainst the residual of its error stratum, the totals add up all strata, and the result has the stratum of each\nrow in `groups`; for a result of {@link aovEz}, the same from car's univariate tests (rows as afex's table).",
-    "ja": ""
+    "ja": "分散分析表の各項のイータ二乗です (既定は部分イータ二乗。一般化イータ二乗にもできます)。信頼区間は\n非心 F 分布から求めます。R の `effectsize::eta_squared()` と同等です。入力は `anova()` または\n`Anova()` の表です。式で与えた `lm()` の当てはめは、その `anova()` の表に置き換えられます。\n\n反復測定: `Error()` 項を含む `aov()` の当てはめ (またはその {@link aovSummary}) の場合、各項は\nその誤差層の残差に対して求められ、合計は全層を合わせたものになります。結果の `groups` には各行の\n層が入ります。{@link aovEz} の結果の場合は、car の一変量検定から同じ量を求めます (行は afex の表のとおりです)。"
   },
   "hedgesG#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "hedgesG#summary": {
     "hash": "2e24022ea1c1",
     "en": "Hedges' g: Cohen's d and its interval multiplied by the small-sample correction J(df). Equivalent to\n`effectsize::hedges_g()` in R.",
-    "ja": ""
+    "ja": "Hedges の g: Cohen の d とその信頼区間に小標本補正 J(df) を掛けたものです。\nR の `effectsize::hedges_g()` と同等です。"
   },
   "omegaSquared#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "omegaSquared#summary": {
     "hash": "5dfb30e822cf",
     "en": "Omega squared of the terms of an analysis-of-variance table, also of repeated-measures designs (see\n{@link etaSquared}). Equivalent to `effectsize::omega_squared()` in R.",
-    "ja": ""
+    "ja": "分散分析表の各項のオメガ二乗です。反復測定計画についても求めます (\n{@link etaSquared} を参照)。R の `effectsize::omega_squared()` と同等です。"
   },
   "powerAnovaTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "powerAnovaTest#summary": {
     "hash": "89745225507f",
     "en": "Power of the F test of a balanced one-way analysis of variance, or one of the other quantities for a given power.\nEquivalent to R's `power.anova.test()`.",
-    "ja": ""
+    "ja": "釣り合いのとれた一元配置の分散分析の F 検定の検出力、または与えた検出力に対する他の量を求めます。\nR の `power.anova.test()` と同等です。"
   },
   "powerPropTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "powerPropTest#summary": {
     "hash": "9286026b71a2",
     "en": "Power of the test of two proportions, or the sample size, a probability or the significance level for a given\npower. Equivalent to R's `power.prop.test()`.",
-    "ja": ""
+    "ja": "2 つの比率の検定の検出力、または与えた検出力に対する標本サイズ、確率、有意水準を求めます。\nR の `power.prop.test()` と同等です。"
   },
   "powerTTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "powerTTest#summary": {
     "hash": "f3f21e93f64b",
     "en": "Power of a one- or two-sample t test, or the sample size, difference, standard deviation or significance level\nfor a given power. Equivalent to R's `power.t.test()`.",
-    "ja": ""
+    "ja": "1 標本または 2 標本の t 検定の検出力、または与えた検出力に対する標本サイズ、平均の差、標準偏差、有意水準を求めます。\nR の `power.t.test()` と同等です。"
   },
   "pwr2p2nTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwr2p2nTest#summary": {
     "hash": "df4fbe134206",
     "en": "Power of the test of two proportions with unequal sample sizes (arcsine transformation), or the effect size, a\nsample size or the significance level for a given power. Equivalent to `pwr::pwr.2p2n.test()` in R.",
-    "ja": ""
+    "ja": "標本サイズが異なる 2 つの比率の検定の検出力 (逆正弦変換)、または与えた検出力に対する効果量、標本サイズ、有意水準を求めます。\nR の `pwr::pwr.2p2n.test()` と同等です。"
   },
   "pwr2pTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwr2pTest#summary": {
     "hash": "7b05faf9b575",
     "en": "Power of the test of two proportions with equal sample sizes (arcsine transformation), or the effect size, sample\nsize or significance level for a given power. Equivalent to `pwr::pwr.2p.test()` in R.",
-    "ja": ""
+    "ja": "標本サイズが等しい 2 つの比率の検定の検出力 (逆正弦変換)、または与えた検出力に対する効果量、標本サイズ、有意水準を求めます。\nR の `pwr::pwr.2p.test()` と同等です。"
   },
   "pwrAnovaTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwrAnovaTest#summary": {
     "hash": "41b094e5671f",
     "en": "Power of the F test of a balanced one-way analysis of variance, or the number of groups, sample size, effect size\nor significance level for a given power. Equivalent to `pwr::pwr.anova.test()` in R.",
-    "ja": ""
+    "ja": "釣り合いのとれた一元配置の分散分析の F 検定の検出力、または与えた検出力に対する群の数、標本サイズ、効果量、有意水準を求めます。\nR の `pwr::pwr.anova.test()` と同等です。"
   },
   "pwrChisqTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwrChisqTest#summary": {
     "hash": "8151f794884b",
     "en": "Power of a chi-squared test, or the effect size, number of observations or significance level for a given power.\nEquivalent to `pwr::pwr.chisq.test()` in R.",
-    "ja": ""
+    "ja": "カイ二乗検定の検出力、または与えた検出力に対する効果量、観測数、有意水準を求めます。\nR の `pwr::pwr.chisq.test()` と同等です。"
   },
   "pwrF2Test#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwrF2Test#summary": {
     "hash": "0a1cde1d8f5b",
     "en": "Power of the F test of a general linear model, or the degrees of freedom, effect size or significance level for a\ngiven power. Equivalent to `pwr::pwr.f2.test()` in R.",
-    "ja": ""
+    "ja": "一般線形モデルの F 検定の検出力、または与えた検出力に対する自由度、効果量、有意水準を求めます。\nR の `pwr::pwr.f2.test()` と同等です。"
   },
   "pwrNormTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwrNormTest#summary": {
     "hash": "adc7b38b79e5",
     "en": "Power of the test of a mean of a normal distribution with known variance, or the effect size, sample size or\nsignificance level for a given power. Equivalent to `pwr::pwr.norm.test()` in R.",
-    "ja": ""
+    "ja": "既知の分散を持つ正規分布の平均に関する検定の検出力、または与えた検出力に対する効果量、標本サイズ、有意水準を求めます。\nR の `pwr::pwr.norm.test()` と同等です。"
   },
   "pwrPTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwrPTest#summary": {
     "hash": "c383ca25a309",
     "en": "Power of the test of one proportion (arcsine transformation), or the effect size, sample size or significance\nlevel for a given power. Equivalent to `pwr::pwr.p.test()` in R.",
-    "ja": ""
+    "ja": "1 つの比率の検定 (逆正弦変換) の検出力、または与えた検出力に対する効果量、標本サイズ、有意水準を求めます。\nR の `pwr::pwr.p.test()` と同等です。"
   },
   "pwrRTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwrRTest#summary": {
     "hash": "9e20aaf7be6c",
     "en": "Power of the test of a correlation (Fisher's z transformation), or the sample size, correlation or significance\nlevel for a given power. Equivalent to `pwr::pwr.r.test()` in R. As in pwr, the power computed for `\"less\"` reports\n`r` negated.",
-    "ja": ""
+    "ja": "相関の検定 (Fisher の z 変換) の検出力、または与えた検出力に対する標本サイズ、相関係数、\n有意水準を求めます。R の `pwr::pwr.r.test()` と同等です。pwr と同じく、`\"less\"` で計算した場合は、\n`r` の符号を反転して報告します。"
   },
   "pwrT2nTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwrT2nTest#summary": {
     "hash": "55d15f9ea854",
     "en": "Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance\nlevel for a given power. Equivalent to `pwr::pwr.t2n.test()` in R.",
-    "ja": ""
+    "ja": "標本サイズが異なる 2 標本の t 検定の検出力、または与えた検出力に対する標本サイズ、効果量、有意水準を求めます。\nR の `pwr::pwr.t2n.test()` と同等です。"
   },
   "pwrTTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pwrTTest#summary": {
     "hash": "da4f243182e5",
     "en": "Power of a t test of means, or the sample size, effect size or significance level for a given power.\nEquivalent to `pwr::pwr.t.test()` in R.",
-    "ja": ""
+    "ja": "平均に関する t 検定の検出力、または与えた検出力に対する標本サイズ、効果量、有意水準を求めます。\nR の `pwr::pwr.t.test()` と同等です。"
   }
 }
