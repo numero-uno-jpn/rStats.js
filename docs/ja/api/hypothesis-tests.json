@@ -32,52 +32,52 @@
   "AucOptions#summary": {
     "hash": "b30f7f788e0c",
     "en": "Options for {@link auc}.",
-    "ja": ""
+    "ja": "{@link auc} のオプション。"
   },
   "AucOptions.correct#summary": {
     "hash": "8b209c50a4de",
     "en": "Standardise the partial AUC as McClish (1989), so that 0.5 is the diagonal and 1 the perfect curve. Default\n`false`.",
-    "ja": ""
+    "ja": "部分 AUC を McClish (1989) の方法で標準化します。0.5 が対角線に、1 が完全な曲線に対応するようにします。既定は\n`false`。"
   },
   "AucOptions.focus#summary": {
     "hash": "9b988d72e8ef",
     "en": "Which axis the limits are on: `\"specificity\"` (default) or `\"sensitivity\"`; abbreviations are accepted.",
-    "ja": ""
+    "ja": "限界が置かれる軸は、`\"specificity\"` (既定) または `\"sensitivity\"` です。曖昧さのない省略形も受け付けます。"
   },
   "AucOptions.partialAuc#summary": {
     "hash": "ee7571a6dab1",
     "en": "The limits `[a, b]` (in either order, within [0, 1]) of the specificity or sensitivity: the partial AUC.",
-    "ja": ""
+    "ja": "部分 AUC の限界 `[a, b]` です。特異度または感度の限界を、順序は問わず [0, 1] の範囲内で指定します。"
   },
   "AucResult#summary": {
     "hash": "23d9a8e5054f",
     "en": "Result of {@link auc}.",
-    "ja": ""
+    "ja": "{@link auc} の結果です。"
   },
   "AucResult.auc#summary": {
     "hash": "3cc10a674f15",
     "en": "The area (the full AUC, or the partial one, standardised with `correct`).",
-    "ja": ""
+    "ja": "面積です (全体の AUC、または `correct` で標準化した部分 AUC)。"
   },
   "AucResult.correct#summary": {
     "hash": "35bc2067d7d1",
     "en": "Whether the partial AUC is standardised.",
-    "ja": ""
+    "ja": "部分 AUC を標準化したかどうかです。"
   },
   "AucResult.focus#summary": {
     "hash": "83df32fe322f",
     "en": "The axis of the limits.",
-    "ja": ""
+    "ja": "限界が置かれた軸です。"
   },
   "AucResult.partialAuc#summary": {
     "hash": "69214f34c450",
     "en": "The limits `[high, low]` of the partial area (pROC's order), or `null` for the full AUC.",
-    "ja": ""
+    "ja": "部分面積の限界 `[high, low]` です (pROC の順序)。全体の AUC の場合は `null` です。"
   },
   "AucResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告を、R と同じ順序で 1 回ずつ示します (ない場合は空の配列)。"
   },
   "BartlettTestResult#summary": {
     "hash": "604369215035",
@@ -492,162 +492,162 @@
   "CiAucOptions#summary": {
     "hash": "671c9c8debd0",
     "en": "Options for {@link ciAuc}.",
-    "ja": ""
+    "ja": "{@link ciAuc} のオプション。"
   },
   "CiAucOptions.bootN#summary": {
     "hash": "e439cc398d6e",
     "en": "Number of bootstrap replicates. Default `2000`.",
-    "ja": ""
+    "ja": "ブートストラップの反復回数。既定は `2000`。"
   },
   "CiAucOptions.bootStratified#summary": {
     "hash": "f945f85cd9c2",
     "en": "Resample the controls and the cases separately (default `true`), or all observations together.",
-    "ja": ""
+    "ja": "対照と症例をそれぞれ別に再標本化します (既定は `true`)。そうでない場合は、全観測値をまとめて再標本化します。"
   },
   "CiAucOptions.confLevel#summary": {
     "hash": "42d1ccaf5699",
     "en": "Confidence level, in [0, 1]. Default `0.95`.",
-    "ja": ""
+    "ja": "信頼水準です。[0, 1] の範囲で指定します。既定は `0.95`。"
   },
   "CiAucOptions.method#summary": {
     "hash": "2b5e37d982fe",
     "en": "`\"delong\"` (default) or `\"bootstrap\"`; abbreviations are accepted.",
-    "ja": ""
+    "ja": "`\"delong\"` (既定) または `\"bootstrap\"` です。曖昧さのない省略形も受け付けます。"
   },
   "CiAucResult#summary": {
     "hash": "f983ea517c86",
     "en": "Result of {@link ciAuc}.",
-    "ja": ""
+    "ja": "{@link ciAuc} の結果です。"
   },
   "CiAucResult.confInt#summary": {
     "hash": "3481879de797",
     "en": "The interval `[lower, upper]`.",
-    "ja": ""
+    "ja": "区間 `[lower, upper]` です。"
   },
   "CiAucResult.confLevel#summary": {
     "hash": "b01d237f1ff5",
     "en": "The confidence level.",
-    "ja": ""
+    "ja": "信頼水準です。"
   },
   "CiAucResult.estimate#summary": {
     "hash": "409032704628",
     "en": "The AUC: DeLong's θ (the mean of the placements), or the curve's AUC for the bootstrap.",
-    "ja": ""
+    "ja": "AUC です。DeLong の θ (placement の平均 (要確認))、ブートストラップの場合は曲線の AUC です。"
   },
   "CiAucResult.method#summary": {
     "hash": "1f16839a9091",
     "en": "The method, in full.",
-    "ja": ""
+    "ja": "方法を省略せずに示したものです。"
   },
   "CiAucResult.variance#summary": {
     "hash": "83e63ece459d",
     "en": "DeLong's variance of the AUC (pROC's `var(roc)`), or the variance of the bootstrap AUCs.",
-    "ja": ""
+    "ja": "AUC の DeLong の分散 (pROC の `var(roc)`)、またはブートストラップの AUC の分散です。"
   },
   "CiAucResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告を、R と同じ順序で 1 回ずつ示します (ない場合は空の配列)。"
   },
   "CoordsOptions#summary": {
     "hash": "80ad8b7d8c23",
     "en": "Options for {@link coords}.",
-    "ja": ""
+    "ja": "{@link coords} のオプション。"
   },
   "CoordsOptions.bestMethod#summary": {
     "hash": "4892c81f7810",
     "en": "The criterion of `\"best\"`: `\"youden\"` (default; the maximum of se + r·sp) or `\"closest.topleft\"` (the minimum of\n(1 − se)² + r(1 − sp)²; `\"topleft\"` is the same); abbreviations are accepted.",
-    "ja": ""
+    "ja": "`\"best\"` の基準です。`\"youden\"` (既定。se + r·sp の最大値) または `\"closest.topleft\"` (\n(1 − se)² + r(1 − sp)² の最小値。`\"topleft\"` も同じ)。曖昧さのない省略形も受け付けます。"
   },
   "CoordsOptions.bestWeights#summary": {
     "hash": "0ff58e35a0bb",
     "en": "`[cost, prevalence]`: the weight r = (1 − prevalence)/(cost · prevalence) of the specificity in the criteria.\nThe cost must be positive and the prevalence in (0, 1). Default `[1, 0.5]` (r = 1).",
-    "ja": ""
+    "ja": "`[cost, prevalence]` は、基準で特異度にかける重み r = (1 − prevalence)/(cost · prevalence) です。\ncost は正の値で、prevalence は (0, 1) の範囲にします。既定は `[1, 0.5]` (r = 1)。"
   },
   "CoordsResult#summary": {
     "hash": "409d44133075",
     "en": "Result of {@link coords}: one array per column, one value per point (pROC's data frame with `ret = \"all\"`).",
-    "ja": ""
+    "ja": "{@link coords} の結果です。列ごとに 1 つの配列があり、点ごとに 1 つの値が入ります (`ret = \"all\"` の pROC のデータフレームと同じ)。"
   },
   "CoordsResult.accuracy#summary": {
     "hash": "6d37e721ea1a",
     "en": "Accuracy (tp + tn)/(number of observations).",
-    "ja": ""
+    "ja": "精度 (tp + tn)/(観測数)。"
   },
   "CoordsResult.closestTopleft#summary": {
     "hash": "b7a96df1fb0a",
     "en": "The squared distance to the top left corner (1 − se)² + r(1 − sp)².",
-    "ja": ""
+    "ja": "左上の隅までの距離の二乗 (1 − se)² + r(1 − sp)²。"
   },
   "CoordsResult.fn#summary": {
     "hash": "398651877282",
     "en": "False negatives.",
-    "ja": ""
+    "ja": "偽陰性の数。"
   },
   "CoordsResult.fp#summary": {
     "hash": "f5120e6da574",
     "en": "False positives.",
-    "ja": ""
+    "ja": "偽陽性の数。"
   },
   "CoordsResult.fpr#summary": {
     "hash": "0b95bacef3d6",
     "en": "False positive rate fp/(fp + tn).",
-    "ja": ""
+    "ja": "偽陽性率 fp/(fp + tn)。"
   },
   "CoordsResult.lrNeg#summary": {
     "hash": "a8da2a8d1f23",
     "en": "Negative likelihood ratio (1 − se)/sp.",
-    "ja": ""
+    "ja": "陰性尤度比 (1 − se)/sp。"
   },
   "CoordsResult.lrPos#summary": {
     "hash": "21b4269c0531",
     "en": "Positive likelihood ratio se/(1 − sp).",
-    "ja": ""
+    "ja": "陽性尤度比 se/(1 − sp)。"
   },
   "CoordsResult.npv#summary": {
     "hash": "2b72d565f64e",
     "en": "Negative predictive value tn/(tn + fn) (`NaN` when no observation is negative).",
-    "ja": ""
+    "ja": "陰性的中率 tn/(tn + fn) (陰性の観測値がない場合は `NaN`)。"
   },
   "CoordsResult.ppv#summary": {
     "hash": "4bea285d9e78",
     "en": "Positive predictive value tp/(tp + fp) (`NaN` when no observation is positive).",
-    "ja": ""
+    "ja": "陽性的中率 tp/(tp + fp) (陽性の観測値がない場合は `NaN`)。"
   },
   "CoordsResult.sensitivity#summary": {
     "hash": "afc5fb877679",
     "en": "Sensitivity tp/(tp + fn).",
-    "ja": ""
+    "ja": "感度 tp/(tp + fn)。"
   },
   "CoordsResult.specificity#summary": {
     "hash": "81b20fe4ea7f",
     "en": "Specificity tn/(tn + fp).",
-    "ja": ""
+    "ja": "特異度 tn/(tn + fp)。"
   },
   "CoordsResult.threshold#summary": {
     "hash": "94c8e1597f19",
     "en": "The threshold of each point.",
-    "ja": ""
+    "ja": "各点の閾値です。"
   },
   "CoordsResult.tn#summary": {
     "hash": "89e833cf24d4",
     "en": "True negatives.",
-    "ja": ""
+    "ja": "真陰性の数。"
   },
   "CoordsResult.tp#summary": {
     "hash": "e565abb33728",
     "en": "True positives.",
-    "ja": ""
+    "ja": "真陽性の数。"
   },
   "CoordsResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告を、R と同じ順序で 1 回ずつ示します (ない場合は空の配列)。"
   },
   "CoordsResult.youden#summary": {
     "hash": "2a202942f736",
     "en": "pROC's Youden criterion se + r·sp (not se + sp − 1).",
-    "ja": ""
+    "ja": "pROC の Youden の基準 se + r·sp です (se + sp − 1 ではありません)。"
   },
   "CorOptions#summary": {
     "hash": "3ab51340226f",
@@ -727,117 +727,117 @@
   "DiagnosticMeasure#summary": {
     "hash": "958e5031830c",
     "en": "An estimate with its confidence interval.",
-    "ja": ""
+    "ja": "信頼区間を付けた推定値です。"
   },
   "DiagnosticMeasure.confInt#summary": {
     "hash": "3481879de797",
     "en": "The interval `[lower, upper]`.",
-    "ja": ""
+    "ja": "区間 `[lower, upper]` です。"
   },
   "DiagnosticMeasure.estimate#summary": {
     "hash": "890b654fcc31",
     "en": "The estimate.",
-    "ja": ""
+    "ja": "推定値です。"
   },
   "DiagnosticTestsOptions#summary": {
     "hash": "a619e767ea6f",
     "en": "Options for {@link diagnosticTests}.",
-    "ja": ""
+    "ja": "{@link diagnosticTests} のオプション。"
   },
   "DiagnosticTestsOptions.confLevel#summary": {
     "hash": "76045c457fcf",
     "en": "Confidence level, in (0, 1). Default `0.95`.",
-    "ja": ""
+    "ja": "信頼水準です。(0, 1) の範囲で指定します。既定は `0.95`。"
   },
   "DiagnosticTestsOptions.method#summary": {
     "hash": "61fe3f63856e",
     "en": "The interval of the proportions: `\"exact\"` (default; Clopper-Pearson), `\"wilson\"` or `\"jeffreys\"`;\nabbreviations are accepted.",
-    "ja": ""
+    "ja": "比率の区間です。`\"exact\"` (既定。Clopper-Pearson)、`\"wilson\"` または `\"jeffreys\"` です。\n曖昧さのない省略形も受け付けます。"
   },
   "DiagnosticTestsOptions.prevalence#summary": {
     "hash": "9a75d4f33e3c",
     "en": "A prevalence in (0, 1) at which to give the predictive values as well (`ppvAtPrevalence`, `npvAtPrevalence`).",
-    "ja": ""
+    "ja": "有病率を (0, 1) の範囲で指定します。その有病率における的中率も求めます (`ppvAtPrevalence`、`npvAtPrevalence`)。"
   },
   "DiagnosticTestsResult#summary": {
     "hash": "2b05a9f522ad",
     "en": "Result of {@link diagnosticTests}.",
-    "ja": ""
+    "ja": "{@link diagnosticTests} の結果です。"
   },
   "DiagnosticTestsResult.accuracy#summary": {
     "hash": "dd8e562996cd",
     "en": "Diagnostic accuracy (a + d)/total.",
-    "ja": ""
+    "ja": "診断精度 (a + d)/total。"
   },
   "DiagnosticTestsResult.apparentPrevalence#summary": {
     "hash": "da1c4452d70b",
     "en": "Apparent prevalence (a + b)/total (epiR's \"ap\").",
-    "ja": ""
+    "ja": "見かけの有病率 (a + b)/total (epiR の \"ap\")。"
   },
   "DiagnosticTestsResult.confLevel#summary": {
     "hash": "b01d237f1ff5",
     "en": "The confidence level.",
-    "ja": ""
+    "ja": "信頼水準です。"
   },
   "DiagnosticTestsResult.diagnosticOR#summary": {
     "hash": "30062baef46c",
     "en": "Diagnostic odds ratio ad/(bc), with Woolf's interval.",
-    "ja": ""
+    "ja": "診断オッズ比 ad/(bc)。区間は Woolf の区間です。"
   },
   "DiagnosticTestsResult.lrNeg#summary": {
     "hash": "7735577c33f7",
     "en": "Negative likelihood ratio (1 − se)/sp, with the log interval.",
-    "ja": ""
+    "ja": "陰性尤度比 (1 − se)/sp で、区間は対数区間です。"
   },
   "DiagnosticTestsResult.lrPos#summary": {
     "hash": "47f647ae43e1",
     "en": "Positive likelihood ratio se/(1 − sp), with the log interval.",
-    "ja": ""
+    "ja": "陽性尤度比 se/(1 − sp) で、区間は対数区間です。"
   },
   "DiagnosticTestsResult.method#summary": {
     "hash": "7e194d280e69",
     "en": "The method of the proportions' intervals, in full.",
-    "ja": ""
+    "ja": "比率の区間の方法を省略せずに示します。"
   },
   "DiagnosticTestsResult.npv#summary": {
     "hash": "5ea1133338e4",
     "en": "Negative predictive value d/(c + d).",
-    "ja": ""
+    "ja": "陰性的中率 d/(c + d)。"
   },
   "DiagnosticTestsResult.npvAtPrevalence#summary": {
     "hash": "ecc4b0b104f9",
     "en": "The negative predictive value at the prevalence given in the options (absent without it).",
-    "ja": ""
+    "ja": "オプションで指定した有病率での陰性的中率です (指定がない場合は存在しません)。"
   },
   "DiagnosticTestsResult.ppv#summary": {
     "hash": "8db8355b4bb6",
     "en": "Positive predictive value a/(a + b).",
-    "ja": ""
+    "ja": "陽性的中率 a/(a + b)。"
   },
   "DiagnosticTestsResult.ppvAtPrevalence#summary": {
     "hash": "882a941c8456",
     "en": "The positive predictive value at the prevalence given in the options (absent without it).",
-    "ja": ""
+    "ja": "オプションで指定した有病率での陽性的中率です (指定がない場合は存在しません)。"
   },
   "DiagnosticTestsResult.prevalence#summary": {
     "hash": "25cb2fd78789",
     "en": "True prevalence (a + c)/total (epiR's \"tp\").",
-    "ja": ""
+    "ja": "真の有病率 (a + c)/total (epiR の \"tp\")。"
   },
   "DiagnosticTestsResult.sensitivity#summary": {
     "hash": "b6a0d703fc22",
     "en": "Sensitivity a/(a + c).",
-    "ja": ""
+    "ja": "感度 a/(a + c)。"
   },
   "DiagnosticTestsResult.specificity#summary": {
     "hash": "f1bb00008f33",
     "en": "Specificity d/(b + d).",
-    "ja": ""
+    "ja": "特異度 d/(b + d)。"
   },
   "DiagnosticTestsResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告を、R と同じ順序で 1 回ずつ示します (ない場合は空の配列)。"
   },
   "Factor#summary": {
     "hash": "9967160d547d",
@@ -1552,172 +1552,172 @@
   "RocDirection#summary": {
     "hash": "4b46de106346",
     "en": "Direction of a ROC curve: `\"<\"` when the cases have the higher values (an observation is classified as a case\nwhen its value is at least the threshold), `\">\"` when they have the lower values.",
-    "ja": ""
+    "ja": "ROC 曲線の向きです。症例の値のほうが高いときは `\"<\"` です (観測値は、その値が閾値以上なら症例に分類されます)。\n症例の値のほうが低いときは `\">\"` です。"
   },
   "RocOptions#summary": {
     "hash": "a298c9f434ef",
     "en": "Options for {@link roc}.",
-    "ja": ""
+    "ja": "{@link roc} のオプション。"
   },
   "RocOptions.direction#summary": {
     "hash": "d56ec3173f46",
     "en": "`\"auto\"` (default): `\"<\"` when the median of the controls is at most the median of the cases, else `\">\"`\n(pROC's rule: the AUC can then be below 0.5). `\"<\"`: the cases have the higher values; `\">\"`: the lower values.",
-    "ja": ""
+    "ja": "`\"auto\"` (既定): 対照の中央値が症例の中央値以下なら `\"<\"`、そうでなければ `\">\"` です。\n(pROC の規則。この場合 AUC は 0.5 を下回ることがあります)。`\"<\"` は症例の値が高いこと、`\">\"` は低いことを表します。"
   },
   "RocOptions.levels#summary": {
     "hash": "f19397fbad6b",
     "en": "The control and the case level of the response, in this order (numbers, strings or booleans, compared as R\ncompares them as strings). Default: the first two of the response's sorted levels (numbers in numerical order,\nstrings by code point, `false` before `true`). Not with the `{ controls, cases }` form.",
-    "ja": ""
+    "ja": "応答の対照と症例の水準を、この順に指定します (数値、文字列、真偽値で、R が文字列として比べるのと同じく比較します)。\n既定: 応答の水準を並べ替えたもののうち最初の 2 つ (数値は数の順、文字列はコードポイント順、`false` は `true` より前)。\n`{ controls, cases }` の形式では指定できません。"
   },
   "RocOptions.naRm#summary": {
     "hash": "2996530fc7db",
     "en": "Drop the observations with a missing response or predictor (default `true`); `false` makes them an error.",
-    "ja": ""
+    "ja": "欠測値のある応答または説明変数の観測値を除外します (既定は `true`)。`false` にすると、欠測値はエラーになります。"
   },
   "RocResponseValue#summary": {
     "hash": "09ff43514902",
     "en": "A value of a response of {@link roc}: a number, a string or a boolean; `null` (or `NaN`) is a missing value.",
-    "ja": ""
+    "ja": "{@link roc} の応答の値です。数値、文字列、真偽値のいずれかです。`null` (または `NaN`) は欠測値を表します。"
   },
   "RocResult#summary": {
     "hash": "796738adb8e1",
     "en": "A ROC curve: the result of {@link roc}, as pROC's `roc` object.",
-    "ja": ""
+    "ja": "ROC 曲線です。{@link roc} の結果で、pROC の `roc` オブジェクトと同じ形式です。"
   },
   "RocResult.auc#summary": {
     "hash": "529c30988783",
     "en": "The area under the curve.",
-    "ja": ""
+    "ja": "曲線下面積です。"
   },
   "RocResult.cases#summary": {
     "hash": "fd086c69a68f",
     "en": "The predictor values of the cases, in input order (missing values removed).",
-    "ja": ""
+    "ja": "症例の説明変数の値です。入力の順序のまま、欠測値は除かれます。"
   },
   "RocResult.controls#summary": {
     "hash": "28efa099b9a9",
     "en": "The predictor values of the controls, in input order (missing values removed).",
-    "ja": ""
+    "ja": "対照の説明変数の値です。入力の順序のまま、欠測値は除かれます。"
   },
   "RocResult.direction#summary": {
     "hash": "25b36a0f5637",
     "en": "The direction used (the one chosen by `\"auto\"`, or the one given).",
-    "ja": ""
+    "ja": "使われた向きです (`\"auto\"` で選ばれたもの、または指定されたもの)。"
   },
   "RocResult.levels#summary": {
     "hash": "88773475718d",
     "en": "The control and the case level, as strings (`[\"0\", \"1\"]` for the `{ controls, cases }` form).",
-    "ja": ""
+    "ja": "対照と症例の水準を文字列で示します (`{ controls, cases }` の形式では `[\"0\", \"1\"]`)。"
   },
   "RocResult.sensitivities#summary": {
     "hash": "055369a4b0aa",
     "en": "The sensitivity at each threshold (from 1 down to 0).",
-    "ja": ""
+    "ja": "各閾値での感度です (1 から 0 へ)。"
   },
   "RocResult.specificities#summary": {
     "hash": "34fe50ca8167",
     "en": "The specificity at each threshold (from 0 up to 1).",
-    "ja": ""
+    "ja": "各閾値での特異度です (0 から 1 へ)。"
   },
   "RocResult.thresholds#summary": {
     "hash": "035fee91aabe",
     "en": "The thresholds, from `-Infinity` up to `Infinity` for direction `\"<\"` and down from `Infinity` for `\">\"`: the\nmidpoints between consecutive distinct values of the predictor.",
-    "ja": ""
+    "ja": "閾値です。向き `\"<\"` では `-Infinity` から `Infinity` へ、`\">\"` では `Infinity` から下へ並びます。\n説明変数の、隣り合う相異なる値の中点です。"
   },
   "RocResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告を、R と同じ順序で 1 回ずつ示します (ない場合は空の配列)。"
   },
   "RocSamples#summary": {
     "hash": "49e441e2532e",
     "en": "The two samples of {@link roc}'s `{ controls, cases }` form.",
-    "ja": ""
+    "ja": "{@link roc} の `{ controls, cases }` の形式の 2 つの標本です。"
   },
   "RocSamples.cases#summary": {
     "hash": "445ecea32c29",
     "en": "The predictor values of the cases (`NaN` for a missing value).",
-    "ja": ""
+    "ja": "症例の説明変数の値です (欠測値は `NaN`)。"
   },
   "RocSamples.controls#summary": {
     "hash": "a262f6746f7b",
     "en": "The predictor values of the controls (`NaN` for a missing value).",
-    "ja": ""
+    "ja": "対照の説明変数の値です (欠測値は `NaN`)。"
   },
   "RocTestOptions#summary": {
     "hash": "118635d1153b",
     "en": "Options for {@link rocTest}.",
-    "ja": ""
+    "ja": "{@link rocTest} のオプション。"
   },
   "RocTestOptions.alternative#summary": {
     "hash": "c83d5565567f",
     "en": "The alternative for the difference AUC₁ − AUC₂. Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "差 AUC₁ − AUC₂ の対立仮説です。既定は `\"two.sided\"`。"
   },
   "RocTestOptions.bootN#summary": {
     "hash": "e439cc398d6e",
     "en": "Number of bootstrap replicates. Default `2000`.",
-    "ja": ""
+    "ja": "ブートストラップの反復回数。既定は `2000`。"
   },
   "RocTestOptions.bootStratified#summary": {
     "hash": "f945f85cd9c2",
     "en": "Resample the controls and the cases separately (default `true`), or all observations together.",
-    "ja": ""
+    "ja": "対照と症例をそれぞれ別に再標本化します (既定は `true`)。そうでない場合は、全観測値をまとめて再標本化します。"
   },
   "RocTestOptions.confLevel#summary": {
     "hash": "1125cd2def50",
     "en": "Confidence level of the interval of the paired DeLong test, in [0, 1]. Default `0.95`.",
-    "ja": ""
+    "ja": "対応のある DeLong 検定の区間の信頼水準です ([0, 1] の範囲)。既定は `0.95`。"
   },
   "RocTestOptions.direction#summary": {
     "hash": "3093945a3423",
     "en": "With a response and two predictors: the direction of both curves (see {@link RocOptions}).",
-    "ja": ""
+    "ja": "応答と 2 つの説明変数を指定する場合は、両方の曲線の向きです ({@link RocOptions} を参照)。"
   },
   "RocTestOptions.levels#summary": {
     "hash": "7780e7871a61",
     "en": "With a response and two predictors: the control and case levels (see {@link RocOptions}).",
-    "ja": ""
+    "ja": "応答と 2 つの説明変数を指定する場合は、対照と症例の水準です ({@link RocOptions} を参照)。"
   },
   "RocTestOptions.method#summary": {
     "hash": "2b5e37d982fe",
     "en": "`\"delong\"` (default) or `\"bootstrap\"`; abbreviations are accepted.",
-    "ja": ""
+    "ja": "`\"delong\"` (既定) または `\"bootstrap\"` です。曖昧さのない省略形も受け付けます。"
   },
   "RocTestOptions.paired#summary": {
     "hash": "83225fa93193",
     "en": "Whether the curves are paired (on the same observations). Default: paired when both come from the same response\n(as pROC). `true` for curves that are not is an error; `false` for curves that are gives pROC's warning.",
-    "ja": ""
+    "ja": "曲線が対応しているか (同じ観測値に基づくか) を指定します。既定: 両方の曲線が同じ応答から得られるときは対応あり (pROC と同じ)。\n対応しない曲線に `true` を指定するとエラーになります。対応する曲線に `false` を指定すると、pROC の警告が出ます。"
   },
   "RocTestResult#summary": {
     "hash": "0386a350f56d",
     "en": "Result of {@link rocTest}.",
-    "ja": ""
+    "ja": "{@link rocTest} の結果です。"
   },
   "RocTestResult.bootStratified#summary": {
     "hash": "c658903e52d5",
     "en": "For the bootstrap: whether it was stratified.",
-    "ja": ""
+    "ja": "ブートストラップの場合に、層別に行ったかどうかです。"
   },
   "RocTestResult.estimate#summary": {
     "hash": "9720ec1d9a74",
     "en": "The AUCs of the two curves.",
-    "ja": ""
+    "ja": "2 つの曲線の AUC です。"
   },
   "RocTestResult.estimateNames#summary": {
     "hash": "e849bf946fa1",
     "en": "`\"AUC of roc1\"` and `\"AUC of roc2\"`.",
-    "ja": ""
+    "ja": "`\"AUC of roc1\"` と `\"AUC of roc2\"`。"
   },
   "RocTestResult.roc1#summary": {
     "hash": "440bc48ab6fb",
     "en": "The two curves compared (rebuilt on the observations where neither predictor is missing, when paired).",
-    "ja": ""
+    "ja": "比較した 2 つの曲線です (対応がある場合は、どちらの説明変数も欠測でない観測値から作り直したものです)。"
   },
   "RocTestResult.roc2#summary": {
     "hash": "53cc429f4012",
     "en": "The second curve.",
-    "ja": ""
+    "ja": "2 つ目の曲線です。"
   },
   "Sample#summary": {
     "hash": "f65b99382852",
@@ -1742,157 +1742,157 @@
   "TTOSTOptions#summary": {
     "hash": "e47bcd0362e9",
     "en": "Options for {@link tTOST} and {@link tsumTOST}. The equivalence bounds are required: `eqb`, or `lowEqbound` and\n`highEqbound`. Unambiguous abbreviations of the choices are accepted.",
-    "ja": ""
+    "ja": "{@link tTOST} と {@link tsumTOST} のオプションです。同等性の限界 (`eqb`、または `lowEqbound` と\n`highEqbound`) は必須です。選択肢は、曖昧さのない省略形も受け付けます。"
   },
   "TTOSTOptions.alpha#summary": {
     "hash": "b8841684b6f7",
     "en": "The level of each one-sided test, in (0, 0.5); the intervals are 1 − 2 alpha intervals. Default `0.05`.",
-    "ja": ""
+    "ja": "各片側検定の有意水準です。(0, 0.5) の範囲で指定します。区間は 1 − 2 alpha の区間です。既定は `0.05`。"
   },
   "TTOSTOptions.biasCorrection#summary": {
     "hash": "c1fecbb8d326",
     "en": "Hedges' small-sample correction J of the standardised difference (g instead of d). Default `true`.",
-    "ja": ""
+    "ja": "標準化した差に対する Hedges の小標本補正 J です (d ではなく g を使います)。既定は `true`。"
   },
   "TTOSTOptions.eqb#summary": {
     "hash": "0ae4f54101b1",
     "en": "The bounds: a number `e` for `(-|e|, |e|)`, or two numbers `[low, high]` (in either order).",
-    "ja": ""
+    "ja": "同等性の限界です。数値 `e` なら `(-|e|, |e|)`、2 つの数値 `[low, high]` (順序は問いません) です。"
   },
   "TTOSTOptions.eqboundType#summary": {
     "hash": "f973ada09cda",
     "en": "`\"raw\"` (default): the bounds are in the units of the data; `\"SMD\"`: in units of the standardised difference.",
-    "ja": ""
+    "ja": "`\"raw\"` (既定): 限界はデータの単位です。`\"SMD\"`: 限界は標準化した差の単位です。"
   },
   "TTOSTOptions.glass#summary": {
     "hash": "48ec37b390a3",
     "en": "`\"glass1\"` or `\"glass2\"`: Glass's delta, standardised by the SD of the first or second sample.",
-    "ja": ""
+    "ja": "`\"glass1\"` または `\"glass2\"` (Glass の delta) です。1 つ目または 2 つ目の標本の標準偏差で標準化します。"
   },
   "TTOSTOptions.highEqbound#summary": {
     "hash": "65011dec8c7b",
     "en": "The upper bound (with `lowEqbound`, where `eqb` is not given).",
-    "ja": ""
+    "ja": "上限の限界です (`eqb` を指定しないときに `lowEqbound` と組み合わせます)。"
   },
   "TTOSTOptions.hypothesis#summary": {
     "hash": "626c1ad0dee4",
     "en": "`\"EQU\"` (default): equivalence, the effect lies inside the bounds; `\"MET\"`: minimal effect, outside them.",
-    "ja": ""
+    "ja": "`\"EQU\"` (既定): 同等性。効果が限界の内側にあります。`\"MET\"`: 最小効果。効果が限界の外側にあります。"
   },
   "TTOSTOptions.lowEqbound#summary": {
     "hash": "724ccf79912f",
     "en": "The lower bound (with `highEqbound`, where `eqb` is not given).",
-    "ja": ""
+    "ja": "下限の限界です (`eqb` を指定しないときに `highEqbound` と組み合わせます)。"
   },
   "TTOSTOptions.mu#summary": {
     "hash": "4007b897fdd6",
     "en": "The difference (or mean) of the two-sided t test (the `tTest` row). Default `0`.",
-    "ja": ""
+    "ja": "両側 t 検定 (`tTest` の行) の差 (または平均) です。既定は `0`。"
   },
   "TTOSTOptions.paired#summary": {
     "hash": "82ae7522d2c2",
     "en": "Paired samples. Default `false`.",
-    "ja": ""
+    "ja": "対応のある標本です。既定は `false`。"
   },
   "TTOSTOptions.rmCorrection#summary": {
     "hash": "cb2956aef540",
     "en": "Paired samples: standardise by the SD of the differences over sqrt(2(1 − r)) (d_rm). Default `false`.",
-    "ja": ""
+    "ja": "対応のある標本: 差の標準偏差を sqrt(2(1 − r)) で割って標準化します (d_rm)。既定は `false`。"
   },
   "TTOSTOptions.smdCi#summary": {
     "hash": "0b9236c850fe",
     "en": "Interval of the standardised difference: `\"nct\"` (default), `\"goulet\"`, `\"t\"` or `\"z\"`.",
-    "ja": ""
+    "ja": "標準化した差の区間です。`\"nct\"` (既定)、`\"goulet\"`、`\"t\"`、`\"z\"` のいずれかです。"
   },
   "TTOSTOptions.varEqual#summary": {
     "hash": "246d60c413cf",
     "en": "Two samples: pooled variance (Student's t) instead of Welch's. Default `false`.",
-    "ja": ""
+    "ja": "2 標本の場合に、Welch の代わりに併合分散を使います (Student の t 検定)。既定は `false`。"
   },
   "TTOSTResult#summary": {
     "hash": "490bdf960b53",
     "en": "Result of {@link tTOST} and {@link tsumTOST}.",
-    "ja": ""
+    "ja": "{@link tTOST} と {@link tsumTOST} の結果です。"
   },
   "TTOSTResult.bounds#summary": {
     "hash": "4d060699c3d0",
     "en": "The bounds `[low, high]` in the units of the data (`raw`) and of the standardised difference (`smd`).",
-    "ja": ""
+    "ja": "限界 `[low, high]` です。データの単位 (`raw`) と、標準化した差の単位 (`smd`) で示します。"
   },
   "TTOSTResult.confLevel#summary": {
     "hash": "2e608421c7db",
     "en": "`1 - 2 alpha`.",
-    "ja": ""
+    "ja": "`1 - 2 alpha`。"
   },
   "TTOSTResult.hypothesis#summary": {
     "hash": "f50305eb87b5",
     "en": "`\"EQU\"` or `\"MET\"`.",
-    "ja": ""
+    "ja": "`\"EQU\"` または `\"MET\"` です。"
   },
   "TTOSTResult.lower#summary": {
     "hash": "66bcca501442",
     "en": "The test of the lower bound: alternative \"greater\" (EQU) or \"less\" (MET).",
-    "ja": ""
+    "ja": "下限の検定です。対立仮説は \"greater\" (EQU) または \"less\" (MET) です。"
   },
   "TTOSTResult.method#summary": {
     "hash": "97f0a5ff1833",
     "en": "The t test's method (`\"Welch Two Sample t-test\"`, `\" Two Sample t-test\"`, `\"Paired t-test\"`, `\"One Sample t-test\"`).",
-    "ja": ""
+    "ja": "t 検定の方法です (`\"Welch Two Sample t-test\"`、`\" Two Sample t-test\"`、`\"Paired t-test\"`、`\"One Sample t-test\"`)。"
   },
   "TTOSTResult.pValue#summary": {
     "hash": "ff5626c196bb",
     "en": "The p-value of the TOST: the larger (EQU) or the smaller (MET) of the p-values of `lower` and `upper`.",
-    "ja": ""
+    "ja": "TOST の p 値です。`lower` と `upper` の p 値のうち、大きいほう (EQU) または小さいほう (MET) です。"
   },
   "TTOSTResult.raw#summary": {
     "hash": "db39eea75b6a",
     "en": "The raw effect, the difference minus `mu`: estimate, standard error and 1 − 2 alpha interval.",
-    "ja": ""
+    "ja": "生の効果 (差から `mu` を引いたもの) です。推定値、標準誤差、1 − 2 alpha の区間を含みます。"
   },
   "TTOSTResult.smd#summary": {
     "hash": "a9214f3f50b0",
     "en": "The standardised mean difference: its label (`\"Hedges's g(av)\"`, `\"Cohen's d\"`, `\"Hedges's g(z)\"`, `\"Glass's\ndelta(g)\"`, ...), estimate, standard error, 1 − 2 alpha interval, the degrees of freedom of its interval and the\nbias correction J (1 without it).",
-    "ja": ""
+    "ja": "標準化平均差です。そのラベル (`\"Hedges's g(av)\"`、`\"Cohen's d\"`、`\"Hedges's g(z)\"`、`\"Glass's\ndelta(g)\"`、...)、推定値、標準誤差、1 − 2 alpha の区間、その区間の自由度、\n小標本補正 J (なしの場合は 1) です。"
   },
   "TTOSTResult.tTest#summary": {
     "hash": "a33d34cc8992",
     "en": "The two-sided t test of the difference against `mu` (TOSTER's \"t-test\" row).",
-    "ja": ""
+    "ja": "`mu` に対する差の両側 t 検定です (TOSTER の \"t-test\" の行)。"
   },
   "TTOSTResult.upper#summary": {
     "hash": "991cfefff2ae",
     "en": "The test of the upper bound: alternative \"less\" (EQU) or \"greater\" (MET).",
-    "ja": ""
+    "ja": "上限の検定です。対立仮説は \"less\" (EQU) または \"greater\" (MET) です。"
   },
   "TTOSTResult.warnings#summary": {
     "hash": "18c36b67225e",
     "en": "TOSTER's notes, as warnings.",
-    "ja": ""
+    "ja": "TOSTER の注記を、警告として示します。"
   },
   "TTOSTTest#summary": {
     "hash": "7a707bd2816e",
     "en": "One t test of {@link TTOSTResult}.",
-    "ja": ""
+    "ja": "{@link TTOSTResult} の 1 つの t 検定です。"
   },
   "TTOSTTest.df#summary": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度です。"
   },
   "TTOSTTest.pValue#summary": {
     "hash": "ffd507b5dc11",
     "en": "p-value.",
-    "ja": ""
+    "ja": "p 値です。"
   },
   "TTOSTTest.se#summary": {
     "hash": "7d3d4b29b7d4",
     "en": "Standard error of the difference (or mean).",
-    "ja": ""
+    "ja": "差 (または平均) の標準誤差です。"
   },
   "TTOSTTest.t#summary": {
     "hash": "0bf3c2c65b4e",
     "en": "The t statistic.",
-    "ja": ""
+    "ja": "t 統計量です。"
   },
   "TTestOptions#summary": {
     "hash": "78b56edb8ac2",
@@ -2062,42 +2062,42 @@
   "TsumTOSTStatistics#summary": {
     "hash": "e471295d2b82",
     "en": "Summary statistics for {@link tsumTOST}. One sample: `m1`, `sd1`, `n1`; two samples: also `m2`, `sd2`, `n2`;\npaired samples (option `paired`): also `r12`, the correlation of the pairs.",
-    "ja": ""
+    "ja": "{@link tsumTOST} の要約統計量です。1 標本の場合は `m1`、`sd1`、`n1`。2 標本の場合は、それに加えて `m2`、`sd2`、`n2`。\n対応のある標本 (オプション `paired`) の場合は、それに加えて `r12` (対の相関) です。"
   },
   "TsumTOSTStatistics.m1#summary": {
     "hash": "0d5ba99328e3",
     "en": "Mean of the first sample.",
-    "ja": ""
+    "ja": "1 つ目の標本の平均です。"
   },
   "TsumTOSTStatistics.m2#summary": {
     "hash": "d36c41a07364",
     "en": "Mean of the second sample.",
-    "ja": ""
+    "ja": "2 つ目の標本の平均です。"
   },
   "TsumTOSTStatistics.n1#summary": {
     "hash": "a74c0ba6dc60",
     "en": "Size of the first sample.",
-    "ja": ""
+    "ja": "1 つ目の標本のサイズです。"
   },
   "TsumTOSTStatistics.n2#summary": {
     "hash": "52359659ebad",
     "en": "Size of the second sample.",
-    "ja": ""
+    "ja": "2 つ目の標本のサイズです。"
   },
   "TsumTOSTStatistics.r12#summary": {
     "hash": "2e7ffa6450a0",
     "en": "Paired samples: the correlation of the pairs.",
-    "ja": ""
+    "ja": "対応のある標本の場合の、対の相関です。"
   },
   "TsumTOSTStatistics.sd1#summary": {
     "hash": "3d39160c1d95",
     "en": "Standard deviation of the first sample.",
-    "ja": ""
+    "ja": "1 つ目の標本の標準偏差です。"
   },
   "TsumTOSTStatistics.sd2#summary": {
     "hash": "fa4f1fff5c17",
     "en": "Standard deviation of the second sample.",
-    "ja": ""
+    "ja": "2 つ目の標本の標準偏差です。"
   },
   "VarTestOptions#summary": {
     "hash": "80eebacb1521",
@@ -2282,22 +2282,22 @@
   "auc#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "auc#@param curve": {
     "hash": "74c7a1d9b158",
     "en": "A curve from {@link roc}.",
-    "ja": ""
+    "ja": "{@link roc} から得られる曲線です。"
   },
   "auc#@param options": {
     "hash": "3e6227a6e0f7",
     "en": "See {@link AucOptions}.",
-    "ja": ""
+    "ja": "{@link AucOptions} を参照してください。"
   },
   "auc#summary": {
     "hash": "6930c818ff03",
     "en": "The area under a ROC curve, or the partial area between two specificities or sensitivities. Equivalent to\n`pROC::auc()` in R.\n\nThe partial area sums the trapezoids of the points within the limits and interpolates the curve linearly at the\nlimits. With `correct`, it is standardised as McClish (1989): (1 + (A − min)/(max − min))/2, with min the area under\nthe diagonal and max that of the perfect curve between the limits, computed exactly from the counts of the points and\nrounded once (a curve on the diagonal gives 0.5); below the diagonal that is undefined, an error (pROC: NA with a\nwarning). Limits outside [0, 1] are an error (pROC: NA).",
-    "ja": ""
+    "ja": "ROC 曲線の下の面積、または 2 つの特異度 (または感度) の間の部分面積です。\nR の `pROC::auc()` と同等です。\n\n部分面積は、限界の内側にある点の台形の和で、限界では\n曲線を線形に補間します。`correct` を指定すると、McClish (1989) の方法で標準化します。(1 + (A − min)/(max − min))/2 で、min は\n対角線の下の面積、max は限界の間の完全な曲線の面積です。点の度数から正確に計算して、\n1 回だけ丸めます (対角線上の曲線は 0.5 になります)。対角線より下では定義されず、\nエラーになります (pROC では NA と警告)。[0, 1] の外の限界はエラーです (pROC では NA)。"
   },
   "bartlettTest(0)#@example": {
     "hash": "8239c4c22379",
@@ -2612,22 +2612,22 @@
   "ciAuc#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ciAuc#@param curve": {
     "hash": "74c7a1d9b158",
     "en": "A curve from {@link roc}.",
-    "ja": ""
+    "ja": "{@link roc} から得られる曲線です。"
   },
   "ciAuc#@param options": {
     "hash": "fa5eedf5b661",
     "en": "See {@link CiAucOptions}.",
-    "ja": ""
+    "ja": "{@link CiAucOptions} を参照してください。"
   },
   "ciAuc#summary": {
     "hash": "e25bd670a155",
     "en": "Confidence interval of the area under a ROC curve, by DeLong's method or the bootstrap. Equivalent to\n`pROC::ci.auc()` in R.\n\nDeLong's interval is θ ∓ z√S (DeLong, DeLong and Clarke-Pearson 1988), clipped to [0, 1]; it needs at least two\ncontrols and two cases (pROC: NA). The bootstrap draws R's random stream as pROC does (`setSeed` gives R's values):\n`bootN` resamples of the controls then the cases (stratified, at least two of each) or of all observations, and\nthe type-7 quantiles α/2 and 1 − α/2 of their AUCs. A non-stratified resample without cases or without controls is\ndropped with pROC's warning (pROC stops at one without controls).",
-    "ja": ""
+    "ja": "DeLong の方法またはブートストラップによる、ROC 曲線の下の面積の信頼区間です。\nR の `pROC::ci.auc()` と同等です。\n\nDeLong の区間は θ ∓ z√S (DeLong, DeLong and Clarke-Pearson 1988) で、[0, 1] に切り詰めます。対照と症例が\nそれぞれ 2 つ以上必要です (pROC では NA)。ブートストラップは、pROC と同じく R の乱数ストリームを用います (`setSeed` では R と同じ値になります)。\n`bootN` 回の再標本化を、対照、次に症例について行います (層別、各群 2 つ以上)。または全観測値について行い、\nその AUC の type-7 の分位点 α/2 と 1 − α/2 を求めます。層別でない再標本で症例または対照がないものは、\npROC の警告とともに除かれます (pROC は対照がないものでは停止します)。"
   },
   "cochranQTest#@example": {
     "hash": "f2167be5edf2",
@@ -2647,27 +2647,27 @@
   "coords#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "coords#@param curve": {
     "hash": "74c7a1d9b158",
     "en": "A curve from {@link roc}.",
-    "ja": ""
+    "ja": "{@link roc} から得られる曲線です。"
   },
   "coords#@param options": {
     "hash": "3bc08870b53a",
     "en": "See {@link CoordsOptions}.",
-    "ja": ""
+    "ja": "{@link CoordsOptions} を参照してください。"
   },
   "coords#@param x": {
     "hash": "03294dbd98cf",
     "en": "`\"all\"` (default: every point of the curve), `\"best\"`, or thresholds (a number or an array).",
-    "ja": ""
+    "ja": "`\"all\"` (既定。曲線のすべての点)、`\"best\"`、または閾値 (数値または配列)。"
   },
   "coords#summary": {
     "hash": "34dacea6e4c4",
     "en": "Coordinates of a ROC curve: sensitivity, specificity, the counts, predictive values, likelihood ratios and the\ncriteria of the best threshold, at every point of the curve, at the best threshold(s) or at given thresholds.\nEquivalent to `pROC::coords(roc, x, ret = \"all\")` in R.\n\nEvery column is computed from the integer counts of each threshold and rounded once (pROC rebuilds the counts from\nthe proportions, so that they are not always integers, and loses digits in 1 − specificity). The rows of `\"best\"`\nare all the points whose criterion equals the best one exactly (pROC compares rounded sums and can lose ties). At a\ngiven threshold, an observation equal to it counts as positive.",
-    "ja": ""
+    "ja": "ROC 曲線の座標です。感度、特異度、度数、的中率、尤度比、最適な閾値の基準を、\n曲線のすべての点、最適な閾値 (複数の場合もあります)、または与えた閾値について求めます。\nR の `pROC::coords(roc, x, ret = \"all\")` と同等です。\n\n各列は、閾値ごとの整数の度数から計算し、1 回だけ丸めます (pROC は割合から度数を作り直すため、\n度数が整数になるとは限らず、1 − 特異度 で桁が落ちます)。`\"best\"` の行は、基準が最良の値と厳密に等しいすべての点です\n(pROC は丸めた和を比べるため、同順位を失うことがあります)。与えた閾値では、\n閾値と等しい観測値は陽性として数えます。"
   },
   "corTest(0)#@example": {
     "hash": "75da4426261f",
@@ -2732,22 +2732,22 @@
   "diagnosticTests#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "diagnosticTests#@param options": {
     "hash": "a8afe80c9157",
     "en": "See {@link DiagnosticTestsOptions}.",
-    "ja": ""
+    "ja": "{@link DiagnosticTestsOptions} を参照してください。"
   },
   "diagnosticTests#@param table": {
     "hash": "df65f45180e6",
     "en": "The 2 × 2 table of counts (an array of two rows).",
-    "ja": ""
+    "ja": "度数の 2 × 2 の分割表です (2 行の配列)。"
   },
   "diagnosticTests#summary": {
     "hash": "62b5d4923639",
     "en": "Sensitivity, specificity, predictive values, likelihood ratios, accuracy, the diagnostic odds ratio and the true and\napparent prevalence of a binary test, each with a confidence interval, from its 2 × 2 table. Equivalent to\n`epiR::epi.tests()` in R.\n\nThe table is epiR's: rows test positive and negative, columns disease present and absent, `[[a, b], [c, d]]` with\na the true positives, b the false positives, c the false negatives and d the true negatives. The proportions'\nintervals are those of {@link binomCI}: `\"exact\"` is Clopper-Pearson's, computed directly (epiR computes it as 1 −\nqbeta(...), which loses digits for small limits); `\"jeffreys\"` gives 0 and 1 at the ends, as binomCI (epiR the\nbeta quantiles). The likelihood ratios have the log interval (Simel, Samsa and Matchar 1991) and the odds ratio\nWoolf's. Zero cells give infinite ratios and NaN limits, as epiR; a zero row or column total is an error.",
-    "ja": ""
+    "ja": "2 × 2 の分割表から求めた、感度、特異度、的中率、尤度比、精度、診断オッズ比、真の有病率と\n見かけの有病率です。いずれも信頼区間付きです。\nR の `epiR::epi.tests()` と同等です。\n\n分割表は epiR のものです。行は検査陽性と検査陰性、列は疾患あり、疾患なしで、`[[a, b], [c, d]]` は\na は真陽性、b は偽陽性、c は偽陰性、d は真陰性です。割合の区間は\n{@link binomCI} のものです。`\"exact\"` は Clopper-Pearson の区間で、直接計算します (epiR は 1 −\nqbeta(...) として計算するため、小さい限界で桁が落ちます)。`\"jeffreys\"` では、両端が 0 と 1 になります\n(binomCI と同じ。epiR はベータ分位点を求めます)。尤度比は対数区間 (Simel, Samsa and Matchar 1991)、オッズ比は\nWoolf の区間です。0 のセルは、epiR と同じく無限大の比と NaN の限界になります。行和または列和が 0 の場合はエラーです。"
   },
   "fisherTest#@example": {
     "hash": "f2167be5edf2",
@@ -3322,112 +3322,112 @@
   "roc(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "roc(0)#@param options": {
     "hash": "b3825111bee5",
     "en": "See {@link RocOptions}.",
-    "ja": ""
+    "ja": "{@link RocOptions} を参照してください。"
   },
   "roc(0)#@param predictor": {
     "hash": "eb3efc9f3bbe",
     "en": "The predictor, numeric, of the same length (`NaN` for a missing value).",
-    "ja": ""
+    "ja": "数値の説明変数です。同じ長さで、欠測値は `NaN` です。"
   },
   "roc(0)#@param response": {
     "hash": "8b887aa6f12f",
     "en": "The outcome: numbers, strings or booleans (`null` or `NaN` for a missing value).",
-    "ja": ""
+    "ja": "応答です。数値、文字列、真偽値のいずれかです (欠測値は `null` または `NaN`)。"
   },
   "roc(0)#summary": {
     "hash": "abb45a479d74",
     "en": "The ROC curve of a numeric predictor of a binary response. Equivalent to `pROC::roc()` in R.\n\nThe first level of the response is the control, the second the case (with more than two levels the first two are\nused, with pROC's warning). The thresholds are the midpoints between consecutive distinct values, with `-Infinity`\nand `Infinity` at the ends, and the points are stored as pROC stores them, by increasing specificity. The AUC is\ncomputed from the counts as U/(mn) and rounded once. Infinite predictor values are an error (pROC returns NaN with\na warning), as are an empty class and, with `naRm: false`, missing values (pROC returns NA).",
-    "ja": ""
+    "ja": "2 値の応答に対する、数値の説明変数の ROC 曲線です。R の `pROC::roc()` と同等です。\n\n応答の 1 つ目の水準が対照、2 つ目が症例です (水準が 3 つ以上あるときは最初の 2 つを使い、\npROC の警告が出ます)。閾値は、隣り合う相異なる値の中点で、両端は\n`-Infinity` と `Infinity` です。点は pROC と同じく、特異度の増加順に格納します。AUC は\n度数から U/(mn) として計算し、1 回だけ丸めます。説明変数の無限大の値はエラーになります (pROC は NaN と\n警告を返します)。空の群や、`naRm: false` の場合の欠測値も、エラーです (pROC は NA を返します)。"
   },
   "roc(1)#@param data": {
     "hash": "32d65cbd3954",
     "en": "The data frame: an object of columns (`null` or `NaN` for a missing value).",
-    "ja": ""
+    "ja": "データフレームです。列からなるオブジェクトです (欠測値は `null` または `NaN`)。"
   },
   "roc(1)#@param formula": {
     "hash": "67d52c88dce8",
     "en": "`\"response ~ predictor\"`.",
-    "ja": ""
+    "ja": "`\"response ~ predictor\"`。"
   },
   "roc(1)#@param options": {
     "hash": "b3825111bee5",
     "en": "See {@link RocOptions}.",
-    "ja": ""
+    "ja": "{@link RocOptions} を参照してください。"
   },
   "roc(1)#summary": {
     "hash": "41fed773452a",
     "en": "The ROC curve from a formula `response ~ predictor` and a data frame; the rows where either is missing are dropped.",
-    "ja": ""
+    "ja": "式 `response ~ predictor` とデータフレームから求める ROC 曲線です。どちらかが欠測している行は除かれます。"
   },
   "roc(2)#@param options": {
     "hash": "76bf9a3b9d72",
     "en": "See {@link RocOptions} (without `levels`).",
-    "ja": ""
+    "ja": "{@link RocOptions} を参照してください (`levels` を除く)。"
   },
   "roc(2)#@param samples": {
     "hash": "6bfd97a84224",
     "en": "The two samples.",
-    "ja": ""
+    "ja": "2 つの標本です。"
   },
   "roc(2)#summary": {
     "hash": "6e10357b82c1",
     "en": "The ROC curve from the predictor values of the controls and of the cases (pROC's `roc(controls =, cases =)`).",
-    "ja": ""
+    "ja": "対照と症例の説明変数の値から求める ROC 曲線です (pROC の `roc(controls =, cases =)`)。"
   },
   "rocTest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rocTest(0)#@param options": {
     "hash": "1cd76a84c12f",
     "en": "See {@link RocTestOptions}.",
-    "ja": ""
+    "ja": "{@link RocTestOptions} を参照してください。"
   },
   "rocTest(0)#@param roc1": {
     "hash": "20c4e87053f7",
     "en": "The first curve, from {@link roc}.",
-    "ja": ""
+    "ja": "1 つ目の曲線です ({@link roc} から得たもの)。"
   },
   "rocTest(0)#@param roc2": {
     "hash": "53cc429f4012",
     "en": "The second curve.",
-    "ja": ""
+    "ja": "2 つ目の曲線です。"
   },
   "rocTest(0)#summary": {
     "hash": "f6cf2b3d34e9",
     "en": "Tests the difference of the areas under two ROC curves, by DeLong's method or the bootstrap. Equivalent to\n`pROC::roc.test()` in R.\n\nCurves from the same response are paired, as pROC pairs them (identical responses; where a predictor is missing,\nboth curves are rebuilt on the observations where neither is). Paired DeLong: Z = (θ₁ − θ₂)/σ with σ² from the\nplacements' covariances (DeLong, DeLong and Clarke-Pearson 1988), Z = 0 when both are 0, and the interval θ₁ − θ₂ ∓\nzσ. Unpaired DeLong: D = (θ₁ − θ₂)/√(S₁ + S₂) on pROC's Welch-Satterthwaite degrees of freedom (when both variances\nare 0, D = 0 with p-value 1 if the AUCs are equal, and the degrees of freedom are NaN). Bootstrap: D = (AUC₁ −\nAUC₂)/sd of the resampled differences, with R's random stream. DeLong's method needs at least two controls and two\ncases in each curve, as does the stratified bootstrap. The method is DeLong's unless given (pROC switches to the\nbootstrap silently for curves of different directions; here DeLong's test gives pROC's warning).",
-    "ja": ""
+    "ja": "DeLong の方法またはブートストラップで、2 つの ROC 曲線の下の面積の差を検定します。\nR の `pROC::roc.test()` と同等です。\n\n同じ応答から得た曲線は、pROC と同じく対応があるものとして扱います (応答が同一で、説明変数に欠測値がある場合は、\nどちらの曲線も、どちらの説明変数も欠測でない観測値から作り直します)。対応のある DeLong: Z = (θ₁ − θ₂)/σ で、\nσ² は placement の共分散 (DeLong, DeLong and Clarke-Pearson 1988) から求めます。両方が 0 のときは Z = 0 で、区間は θ₁ − θ₂ ∓\nzσ です。対応のない DeLong: D = (θ₁ − θ₂)/√(S₁ + S₂) で、自由度は pROC の Welch-Satterthwaite の自由度です (両方の分散が\n0 の場合、AUC が等しければ D = 0 で p 値は 1、自由度は NaN です)。ブートストラップ: D = (AUC₁ −\nAUC₂)/再標本化した差の標準偏差で、R の乱数ストリームを使います。DeLong の方法では、各曲線に対照と\n症例が 2 つ以上必要です。層別ブートストラップも同じです。方法は、指定がない限り DeLong です (pROC は、向きの異なる曲線では黙って\nブートストラップに切り替えます。ここでは DeLong の検定となり、pROC の警告が出ます)。"
   },
   "rocTest(1)#@param options": {
     "hash": "1cd76a84c12f",
     "en": "See {@link RocTestOptions}.",
-    "ja": ""
+    "ja": "{@link RocTestOptions} を参照してください。"
   },
   "rocTest(1)#@param predictor1": {
     "hash": "7180693cdc8b",
     "en": "The first predictor.",
-    "ja": ""
+    "ja": "1 つ目の説明変数です。"
   },
   "rocTest(1)#@param predictor2": {
     "hash": "aa63f9eeb1d7",
     "en": "The second predictor.",
-    "ja": ""
+    "ja": "2 つ目の説明変数です。"
   },
   "rocTest(1)#@param response": {
     "hash": "a2615336da0d",
     "en": "The outcome (see {@link roc}).",
-    "ja": ""
+    "ja": "応答です ({@link roc} を参照)。"
   },
   "rocTest(1)#summary": {
     "hash": "e785930b9a81",
     "en": "Tests the difference of the areas under the ROC curves of two predictors of the same response (paired);\nobservations with a missing response or predictor are dropped from both.",
-    "ja": ""
+    "ja": "同じ応答に対する 2 つの説明変数の ROC 曲線の下の面積の差を検定します (対応あり)。\n応答または説明変数が欠測している観測値は、両方から除かれます。"
   },
   "setWarningHandler#@example": {
     "hash": "f2167be5edf2",
@@ -3502,37 +3502,37 @@
   "tTOST#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "tTOST#@param options": {
     "hash": "87841e65d2df",
     "en": "See {@link TTOSTOptions}; the bounds are required.",
-    "ja": ""
+    "ja": "{@link TTOSTOptions} を参照してください。同等性の限界は必須です。"
   },
   "tTOST#@param x": {
     "hash": "a3fad0c745c2",
     "en": "Sample (NaN values are dropped; for paired samples, the pairs with a NaN).",
-    "ja": ""
+    "ja": "標本です (NaN の値は除かれます。対応のある標本では、NaN を含む対を除きます)。"
   },
   "tTOST#@param y": {
     "hash": "fe248a4ae4ef",
     "en": "Second sample (omit for one sample).",
-    "ja": ""
+    "ja": "2 つ目の標本です (1 標本の場合は省略します)。"
   },
   "tTOST#@returns": {
     "hash": "63ee213b58c7",
     "en": "See {@link TTOSTResult}.",
-    "ja": ""
+    "ja": "{@link TTOSTResult} を参照してください。"
   },
   "tTOST#@throws": {
     "hash": "073bc4c73e15",
     "en": "TypeError without bounds, for options of the wrong type, or for samples that are not arrays of numbers\n  (`null` or strings in them); RangeError for infinite values, alpha outside (0, 0.5), bounds that are not finite or\n  in the wrong order, an unknown choice, or fewer than 2 observations in a sample; Error where the t test has too\n  few observations or the data are essentially constant.",
-    "ja": ""
+    "ja": "限界がない場合、オプションの型が誤っている場合、または数値の配列でない標本 (`null` や文字列を含むもの) の場合は TypeError。\n  無限大の値、alpha が (0, 0.5) の外、有限でない限界や順序が逆の限界、未知の選択肢、\n  標本の観測値が 2 つ未満の場合は RangeError。\n  t 検定の観測値が少なすぎる場合、またはデータがほぼ定数の場合は Error。"
   },
   "tTOST#summary": {
     "hash": "427305fd7bdc",
     "en": "Two one-sided t tests (TOST) of equivalence, or minimal-effect tests, for one sample, two samples or paired samples,\nwith the standardised mean difference and its interval. Equivalent to `TOSTER::t_TOST()` in R.\n\nWith `hypothesis: \"EQU\"` (the default) equivalence, low < difference < high, is shown at level alpha when both the\ntest of the lower bound (alternative \"greater\") and that of the upper bound (alternative \"less\") reject; the\np-value is the larger of the two. With `\"MET\"` the alternatives are reversed and the p-value is the smaller. The\neffect is the difference minus `mu`: mean(x) - mean(y) - mu (two samples, Welch's or pooled), the mean of x - y\nminus mu (paired) or the mean of x minus mu (one sample). The bounds, the raw estimate and interval and the\nstandardised difference all refer to that effect. The intervals are 1 - 2 alpha intervals (90% for the default alpha\n0.05).\n\nThe standardised difference is Hedges' g (Cohen's d without `biasCorrection`) with the average SD\n`sqrt((s1² + s2²)/2)` for Welch's test, the pooled SD with `varEqual`, the SD of the differences for paired samples\n(d_z, or d_rm with `rmCorrection`), the SD of one sample with `glass`, or the SD for one sample. Its interval is from\nthe noncentral t (`\"nct\"`, as exact roots; TOSTER's optimiser is about 1e-9 accurate), Goulet-Pelletier and\nCousineau's (`\"goulet\"`), or `g -+ q se` with a t or normal quantile (`\"t\"`, `\"z\"`).\n\nDifferences from TOSTER (decisions 20-23 of oracle/methodcomparison-behaviour.md): `mu` is subtracted everywhere\n(TOSTER tests the bounds on the difference itself, gives the raw interval of the difference, the two-sample SMD of\nthe difference plus mu and the paired SMD without mu); the one-sample `\"t\"` and `\"z\"` intervals of the standardised\ndifference are 1 - 2 alpha intervals (TOSTER's 1 - alpha); TOSTER's notes are warnings; alpha must be in (0, 0.5).\nWith `mu` 0 only the last three apply.\n\nWith 2 observations (df 1) Hedges' correction J(1) is 0: the bias-corrected standardised difference is 0 (and its\n`\"nct\"` interval), and some of its standard errors and intervals are NaN or infinite, as TOSTER's formulas give.",
-    "ja": ""
+    "ja": "同等性の 2 つの片側 t 検定 (TOST)、または最小効果検定 (1 標本、2 標本、対応のある標本)、\n標準化平均差とその区間も求めます。R の `TOSTER::t_TOST()` と同等です。\n\n`hypothesis: \"EQU\"` (既定) の場合、同等性 (低い限界 < 差 < 高い限界) は、水準 alpha で示されます。下限の検定\n(対立仮説 \"greater\") と上限の検定 (対立仮説 \"less\") の両方が棄却するときに示されます。p 値は、この 2 つのうち大きいほうです。\n`\"MET\"` の場合は対立仮説が逆になり、p 値は小さいほうになります。効果は、差から `mu` を引いたものです。\n2 標本では mean(x) - mean(y) - mu (Welch または併合分散)、対応のある標本では x - y の平均から mu を引いたもの、\n1 標本では x の平均から mu を引いたものです。限界、生の推定値と区間、および\n標準化した差は、いずれもこの効果に対するものです。区間は 1 - 2 alpha の区間です (既定の alpha\n0.05 では 90%)。\n\n標準化した差は、Hedges の g です (`biasCorrection` を指定しない場合は Cohen の d)。Welch の検定では、平均した標準偏差\n`sqrt((s1² + s2²)/2)`、`varEqual` では併合標準偏差、対応のある標本では差の標準偏差 (d_z、`rmCorrection` の場合は d_rm)、\n`glass` を指定した場合は 1 つの標本の標準偏差、1 標本の場合は標準偏差を使います。\n区間は、非心 t 分布 (`\"nct\"`、正確な求根で求める。TOSTER の最適化は約 1e-9 の精度) による区間、\nGoulet-Pelletier と Cousineau の区間 (`\"goulet\"`)、または t か正規の分位点を使った `g -+ q se` (`\"t\"`、`\"z\"`) です。\n\nTOSTER との違い (oracle/methodcomparison-behaviour.md の判断 20 から 23): `mu` はどこでも差し引かれます\n(TOSTER は差そのものに対して限界を検定し、差の生の区間を与え、2 標本の SMD には差に mu を足したものを、対応のある SMD には mu を引かないものを使います)。\n1 標本の `\"t\"` と `\"z\"` の標準化した差の区間は、1 - 2 alpha の区間です (TOSTER では 1 - alpha)。TOSTER の注記は警告になります。\nalpha は (0, 0.5) の範囲でなければなりません。\n`mu` が 0 の場合は、最後の 3 つだけが適用されます。\n\n2 つの観測値 (自由度 1) の場合、Hedges の補正 J(1) は 0 です。そのため、小標本補正をした標準化した差は 0 になり (その `\"nct\"` の区間も)、\n標準誤差や区間の一部は、TOSTER の式どおり NaN または無限大になります。"
   },
   "tTest(0)#@example": {
     "hash": "0c5f2f033950",
@@ -3627,32 +3627,32 @@
   "tsumTOST#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "tsumTOST#@param options": {
     "hash": "87841e65d2df",
     "en": "See {@link TTOSTOptions}; the bounds are required.",
-    "ja": ""
+    "ja": "{@link TTOSTOptions} を参照してください。同等性の限界は必須です。"
   },
   "tsumTOST#@param stats": {
     "hash": "9f362e569ae5",
     "en": "See {@link TsumTOSTStatistics}.",
-    "ja": ""
+    "ja": "{@link TsumTOSTStatistics} を参照してください。"
   },
   "tsumTOST#@returns": {
     "hash": "63ee213b58c7",
     "en": "See {@link TTOSTResult}.",
-    "ja": ""
+    "ja": "{@link TTOSTResult} を参照してください。"
   },
   "tsumTOST#@throws": {
     "hash": "67544e88217f",
     "en": "RangeError for sizes below 2 (or not integers), standard deviations that are not positive, a correlation\n  outside (-1, 1), missing statistics of the second sample, or the errors of {@link tTOST}'s options.",
-    "ja": ""
+    "ja": "RangeError となるのは、標本サイズが 2 未満 (または整数でない) 場合、標準偏差が正でない場合、\n  相関が (-1, 1) の外の場合、2 つ目の標本の統計量が欠けている場合、または {@link tTOST} のオプションのエラーの場合です。"
   },
   "tsumTOST#summary": {
     "hash": "ca47139a8b78",
     "en": "{@link tTOST} from summary statistics: means, standard deviations, sample sizes and, for paired samples, the\ncorrelation of the pairs. Equivalent to `TOSTER::tsum_TOST()` in R.\n\nThe tests and effect sizes are those of tTOST for data with these summaries (Welch's or pooled for two samples;\npaired from the SD of the differences sqrt(sd1² + sd2² - 2 r12 sd1 sd2)). The one-sided p-values are upper tails\nwhere TOSTER takes `1 - pt(t, df)`, so small ones keep their digits. For paired samples with n1 != n2 the smaller\nis used, with TOSTER's warning `Unequal number of pairs; using smallest n`.",
-    "ja": ""
+    "ja": "要約統計量 (平均、標準偏差、標本サイズ、および対応のある標本の場合は対の相関) から求める {@link tTOST} です。\nR の `TOSTER::tsum_TOST()` と同等です。\n\n検定と効果量は、これらの要約をもつデータに対する tTOST のものです (2 標本は Welch の検定または併合分散、対応のある標本は\n差の標準偏差 sqrt(sd1² + sd2² - 2 r12 sd1 sd2) から)。片側 p 値は、TOSTER が `1 - pt(t, df)` とする場合に上側の裾とするので、\n小さい値も桁が保たれます。対応のある標本で n1 != n2 のときは小さいほうを使い、\nTOSTER の警告 `Unequal number of pairs; using smallest n` が出ます。"
   },
   "varTest(0)#@example": {
     "hash": "7ffa69c495d9",
