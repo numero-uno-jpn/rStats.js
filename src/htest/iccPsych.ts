@@ -13,7 +13,7 @@
 //   first, that lies below the pooled value. Without pooling these are the ANOVA mean squares.
 
 import { pf1, qf1 } from "../distributions/f.js";
-import { ldexp, meanDD, scaleToUnit } from "../internal/summary.js";
+import { ldexp, ldexpWide, scaleToUnit } from "../internal/summary.js";
 import { reported } from "../internal/warnings.js";
 import { ddAdd, ddDivNum, ddMul, ddSub, type DD } from "../special/dd.js";
 import { checkConfLevelOpen } from "./types.js";
@@ -125,6 +125,13 @@ function isAdditive(rows: readonly (readonly number[])[]): boolean {
 
 const sameArray = (a: readonly number[], b: readonly number[]): boolean => a.every((v, i) => v === b[i]);
 
+/** Mean of double-doubles */
+function meanOfDD(v: readonly DD[]): DD {
+  let s: DD = [0, 0];
+  for (const u of v) s = ddAdd(s, u);
+  return ddDivNum(s, v.length);
+}
+
 /** Sum of squared deviations of the means m from g, times w, in double-double */
 function ssOfMeans(m: readonly DD[], g: DD, w: number): DD {
   let s: DD = [0, 0];
@@ -195,31 +202,56 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
   if (x.some((r) => r.some((v) => !Number.isFinite(v)))) throw new RangeError("'x' contains infinite ratings");
   const n = x.length;
   if (n < 2 || k < 2) throw new RangeError("at least 2 subjects and 2 raters are needed");
-  // the ratings scaled by one power of 2 (exact): the coefficients, F values and bounds have no units; the mean
-  // squares are scaled back for output
-  const { groups: rows, k: shift } = scaleToUnit(x);
+  // the ratings scaled by one power of 2 (exact), for the checks below
+  const { groups: rows } = scaleToUnit(x);
   if (rows.every((r) => sameArray(r, rows[0]!))) {
     throw new RangeError(
       rows[0]!.every((v) => v === rows[0]![0]) ? "all ratings are equal" : "every subject has the same ratings: the coefficients are undefined",
     );
   }
   const cols = Array.from({ length: k }, (_, j) => rows.map((r) => r[j]!));
-  const grand = meanDD(rows.flat());
-  const ssB = ssOfMeans(rows.map(meanDD), grand, k);
+  // SSB and SSE do not change when a constant is added to a column, SSJ and SSE not when one is added to a row: the
+  // sums of squares come from the ratings minus the first row (SSB), minus the first column (SSJ) and minus both
+  // (SSE), so that a rater or subject offset far beyond the spread of the ratings does not swamp them. Each difference
+  // is exact (a double-double); they are formed from the unscaled ratings (halved where a difference would overflow)
+  // and then scaled by one power of 2 of their own
+  const half = x.some((r, i) => r.some((v, j) => !Number.isFinite(v - x[0]![j]!) || !Number.isFinite(v - x[i]![0]!)));
+  const raw = half ? x.map((r) => r.map((v) => v / 2)) : x;
+  const byCol = raw.map((r) => r.map((v, j) => exactDiff(v, raw[0]![j]!)));
+  const byRow = raw.map((r) => r.map((v) => exactDiff(v, r[0]!)));
+  const both = byRow.map((r) => r.map((v, j) => ddSub(v, byRow[0]![j]!)));
+  // each scaled by its own power of 2, so that the squares of the small ones do not underflow beside a large offset
+  const expOf = (m: DD[][]): number => {
+    let big = 0;
+    for (const r of m) for (const v of r) big = Math.max(big, Math.abs(v[0]));
+    return big === 0 ? 0 : Math.floor(Math.log2(big));
+  };
+  const unit = (m: DD[][], e: number): DD[][] => m.map((r) => r.map((v) => [ldexp(v[0], -e), ldexp(v[1], -e)] as const));
+  const [kB, kJ, kE] = [expOf(byCol), expOf(byRow), expOf(both)];
+  const [yB, yJ, yE] = [unit(byCol, kB), unit(byRow, kJ), unit(both, kE)];
+  const colsOf = (m: DD[][]): DD[][] => Array.from({ length: k }, (_, j) => m.map((r) => r[j]!));
+  let ssB = ssOfMeans(yB.map(meanOfDD), meanOfDD(yB.flat()), k);
   // (identical columns: SSJ is exactly 0, which the double-double means need not give)
-  const ssJ: DD = cols.every((c) => sameArray(c, cols[0]!)) ? [0, 0] : ssOfMeans(cols.map(meanDD), grand, n);
+  let ssJ: DD = cols.every((c) => sameArray(c, cols[0]!)) ? [0, 0] : ssOfMeans(colsOf(yJ).map(meanOfDD), meanOfDD(yJ.flat()), n);
   let ssE: DD = [0, 0];
   if (!isAdditive(rows)) {
     // the residuals x - row mean - column mean + grand mean, in double-double (no cancellation of SST - SSB - SSJ)
-    const rm = rows.map(meanDD);
-    const cm = cols.map(meanDD);
-    rows.forEach((r, i) =>
+    const rm = yE.map(meanOfDD);
+    const cm = colsOf(yE).map(meanOfDD);
+    const grand = meanOfDD(yE.flat());
+    yE.forEach((r, i) =>
       r.forEach((v, j) => {
-        const e = ddAdd(ddSub(ddSub([v, 0], rm[i]!), cm[j]!), grand);
+        const e = ddAdd(ddSub(ddSub(v, rm[i]!), cm[j]!), grand);
         ssE = ddAdd(ssE, ddMul(e, e));
       }),
     );
   }
+  // the mean squares in the units of the largest of the three scales (kd)
+  const kd = Math.max(kB, kJ, kE);
+  const toUnits = (ss: DD, e: number): DD => [ldexpWide(ss[0], 2 * (e - kd)), ldexpWide(ss[1], 2 * (e - kd))];
+  ssB = toUnits(ssB, kB);
+  ssJ = toUnits(ssJ, kJ);
+  ssE = toUnits(ssE, kE);
   const dfB = n - 1;
   const dfJ = k - 1;
   const dfE = (n - 1) * (k - 1);
@@ -276,8 +308,16 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
   const v = vDen === 0 ? k - 1 : ((k - 1) * (n - 1) * (a + c) ** 2) / vDen;
   const G1 = q(dfB, v);
   const G2 = q(v, dfB);
-  const l2 = (n * (MSB - G1 * MSE)) / (G1 * (k * MSJ + (k * n - k - n) * MSE) + n * MSB);
-  const u2 = (n * (G2 * MSB - MSE)) / (k * MSJ + (k * n - k - n) * MSE + n * G2 * MSB);
+  // the bounds with numerator and denominator divided by G1 (and by G2 where it is above 1), so that a quantile that
+  // overflows (a tiny v, where ICC2 < 0 makes a and c nearly cancel) gives the limit G -> Infinity, not -Inf/Inf.
+  // Above 1/2 a bound is formed as 1 minus its complement, (n MSE + kJE)/(kJE + n MSB/G), which keeps it <= 1
+  const kJE = k * MSJ + (k * n - k - n) * MSE;
+  const bound = (b: number, den: number): number => (b > 0.5 ? 1 - (n * MSE + kJE) / den : b);
+  const l2 = bound((n * (MSB / G1 - MSE)) / (kJE + (n * MSB) / G1), kJE + (n * MSB) / G1);
+  const u2 =
+    G2 > 1
+      ? bound((n * (MSB - MSE / G2)) / (kJE / G2 + n * MSB), kJE + n * G2 * MSB)
+      : bound((n * (G2 * MSB - MSE)) / (kJE + n * G2 * MSB), kJE + n * G2 * MSB);
   const sb = (r: number): number => (r * k) / (1 + r * (k - 1));
   const p1 = upperP(F1, dfB, dfW);
   const p3 = upperP(F3, dfB, dfE);
@@ -300,7 +340,7 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
     row("ICC2k", (MSB - MSE) / (MSB + (MSJ - MSE) / n), F3, dfE, p3, sb(l2), sb(u2)),
     row("ICC3k", (MSB - MSE) / MSB, F3, dfE, p3, average(F3L), average(F3U)),
   ];
-  const back = (ms: number): number => ldexp(ms, 2 * shift);
+  const back = (ms: number): number => ldexpWide(ms, 2 * (kd + (half ? 1 : 0)));
   return reported("ICC", {
     results,
     MSB: back(MSB),

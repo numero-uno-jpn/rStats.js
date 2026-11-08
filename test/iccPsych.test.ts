@@ -177,4 +177,42 @@ describe("ICC (psych)", () => {
       }
     }
   });
+
+  it("ICC2's lower bound where Satterthwaite's v is tiny (the quantile of F overflows)", () => {
+    // ICC2 = -1.514 makes the two parts of v nearly cancel: v = 5.6e-4, qf(0.975, 3, v) = Infinity. The bound is the
+    // limit G1 -> Infinity of n(MSB - G1 MSE)/(G1 (k MSJ + (kn - k - n) MSE) + n MSB), -n MSE/(k MSJ + (kn - k - n) MSE)
+    // (it was NaN, -Inf/Inf); n = 4, k = 2
+    const r = ICC([[1, 2], [2, 1], [1.5, 1.5], [1, 2.1]], { lmer: false });
+    const lim = (-4 * r.MSE) / (2 * r.MSJ + (8 - 2 - 4) * r.MSE);
+    expect(relErr(lim, -1.52424639580603)).toBeLessThanOrEqual(1e-13);
+    expect(relErr(r.results[1]!.lower, lim)).toBeLessThanOrEqual(1e-14);
+    expect(relErr(r.results[4]!.lower, (2 * lim) / (1 + lim))).toBeLessThanOrEqual(1e-14);
+  });
+
+  it("sums of squares with a rater or subject offset far beyond the spread", () => {
+    const sf = [[9, 2, 5, 8], [6, 1, 3, 2], [8, 4, 6, 8], [7, 1, 2, 6], [10, 5, 6, 9], [6, 2, 4, 7]];
+    for (const lmer of [true, false]) {
+      // a constant 4th rater: column shifts change neither MSB nor MSE, so every coefficient, F and bound is that of
+      // the rater at 0 (exact rational MSE 3.25, ICC3 0.52559; with the offset 1e40 MSB was 12 times too large)
+      const at0 = ICC(sf.map((r) => [r[0]!, r[1]!, r[2]!, 0]), { lmer });
+      for (const C of [1e40, 1e100, 1e150]) {
+        const r = ICC(sf.map((row) => [row[0]!, row[1]!, row[2]!, C]), { lmer });
+        expect(relErr(r.MSB, at0.MSB), `C ${C} MSB`).toBeLessThanOrEqual(1e-14);
+        if (!lmer) expect(relErr(r.MSE, at0.MSE), `C ${C} MSE`).toBeLessThanOrEqual(1e-14);
+        expect(relErr(r.results[2]!.ICC, 0.5255878284923928), `C ${C} ICC3`).toBeLessThanOrEqual(1e-14);
+        rowsOf(r)[2]!.forEach((v, j) => expect(relErr(v, rowsOf(at0)[2]![j]!), `C ${C} ICC3[${j}]`).toBeLessThanOrEqual(1e-13));
+      }
+      // a subject at 1e100: row shifts change neither MSJ nor MSE, so they are those of the row at 0 (MSJ was 4.2e134)
+      const zero = ICC([[0, 0, 0, 0], ...sf], { lmer: false });
+      const out = ICC([[1e100, 1e100, 1e100, 1e100], ...sf], { lmer: false });
+      expect(relErr(out.MSJ, zero.MSJ)).toBeLessThanOrEqual(1e-14);
+      expect(relErr(out.MSE, zero.MSE)).toBeLessThanOrEqual(1e-14);
+      for (const row of out.results) expect(row.upper).toBeLessThanOrEqual(1);
+    }
+    // differences beyond the double range (values of both signs near 2^1023): the coefficients are those of the
+    // unscaled data
+    const c = sf.map((r) => r.map((v) => v - 5));
+    const big = ICC(c.map((r) => r.map((v) => v * 2 ** 1021)), { lmer: false });
+    rowsOf(big).flat().forEach((v, i) => expect(relErr(v, rowsOf(ICC(c, { lmer: false })).flat()[i]!)).toBeLessThanOrEqual(1e-14));
+  });
 });
