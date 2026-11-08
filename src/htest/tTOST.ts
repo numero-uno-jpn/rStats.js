@@ -309,6 +309,17 @@ function standardised(m: Moments, o: Settings): { label: string; denom: number; 
   return { label, denom, estimate: neg ? -g : g, se, confInt: neg ? [-hi, -lo] : [lo, hi], df: dfOut, J };
 }
 
+/** A sample of tTOST: an array (or typed array) of numbers, NaN allowed (dropped), not infinite */
+function checkSample(v: unknown, name: string): asserts v is Sample {
+  if (!(Array.isArray(v) || ArrayBuffer.isView(v))) throw new TypeError(`'${name}' must be an array of numbers`);
+  const a = v as ArrayLike<unknown>;
+  for (let i = 0; i < a.length; i++) {
+    const u = a[i];
+    if (typeof u !== "number") throw new TypeError(`'${name}' must be numeric`);
+    if (u === Infinity || u === -Infinity) throw new RangeError(`'${name}' must not contain infinite values`);
+  }
+}
+
 /** The bounds [low, high] from eqb or lowEqbound/highEqbound */
 function boundsOf(options: TTOSTOptions): [number, number] {
   const { eqb } = options;
@@ -359,49 +370,60 @@ function settingsOf(options: TTOSTOptions): Settings & { hypothesis: "EQU" | "ME
 }
 
 /**
- * The tests and effect sizes from the difference (in the units of the data) with its standard error and df, and the
- * moments of the standardised difference (scaled by 2^-k)
+ * The tests and effect sizes from the effect (the difference minus mu) and its standard error, in the units 2^kE and
+ * 2^kSE (so that neither the t statistics nor the interval lose the scaling of the data), and the moments of the
+ * standardised difference (in the units 2^kS)
  */
 function tostCore(
   name: "tTOST" | "tsumTOST",
-  diff: number,
+  effect: number,
+  kE: number,
   se: number,
+  kSE: number,
   df: number,
   method: string,
   m: Moments,
-  k: number,
+  kS: number,
   s: ReturnType<typeof settingsOf>,
   given: [number, number],
   warnings: string[],
 ): TTOSTResult {
-  const { alpha, mu, hypothesis } = s;
+  const { alpha, hypothesis } = s;
   const smd = standardised(m, s);
-  const dDenom = ldexp(smd.denom, k);
+  const dDenom = ldexp(smd.denom, kS);
   const raw: [number, number] = s.smdBounds ? [given[0] * dDenom, given[1] * dDenom] : given;
+  // the bounds in the units of the effect
+  const rawE: [number, number] = s.smdBounds
+    ? [ldexp(given[0] * smd.denom, kS - kE), ldexp(given[1] * smd.denom, kS - kE)]
+    : [ldexp(given[0], -kE), ldexp(given[1], -kE)];
   const smdB: [number, number] = s.smdBounds ? given : [given[0] / dDenom, given[1] / dDenom];
   if (s.smdBounds) warnings.push(SMD_NOTE);
   if (!(raw[0] <= 0 && raw[1] >= 0)) warnings.push(ZERO_NOTE);
   // the effect is the difference minus mu throughout: the bound tests compare it with [low, high] (TOSTER compares the
   // difference itself), and the raw estimate, its interval and the SMD are those of it
-  const effect = diff - mu;
-  const t0 = effect / se;
-  const tL = (effect - raw[0]) / se;
-  const tU = (effect - raw[1]) / se;
+  const tOf = (v: number): number => ldexp(v / se, kE - kSE);
+  const t0 = tOf(effect);
+  const tL = tOf(effect - rawE[0]);
+  const tU = tOf(effect - rawE[1]);
+  const seOut = ldexp(se, kSE);
   const equ = hypothesis === "EQU";
-  const tTestRow: TTOSTTest = { t: t0, se, df, pValue: 2 * pt1(-Math.abs(t0), df, true, false) };
+  const tTestRow: TTOSTTest = { t: t0, se: seOut, df, pValue: 2 * pt1(-Math.abs(t0), df, true, false) };
   // EQU: H0 effect <= low (alternative "greater") and diff >= high ("less"); MET the reverse
-  const lower: TTOSTTest = { t: tL, se, df, pValue: pt1(tL, df, !equ, false) };
-  const upper: TTOSTTest = { t: tU, se, df, pValue: pt1(tU, df, equ, false) };
+  const lower: TTOSTTest = { t: tL, se: seOut, df, pValue: pt1(tL, df, !equ, false) };
+  const upper: TTOSTTest = { t: tU, se: seOut, df, pValue: pt1(tU, df, equ, false) };
   const pValue = equ ? Math.max(lower.pValue, upper.pValue) : Math.min(lower.pValue, upper.pValue);
   if (!equ && raw[0] <= 0 && raw[1] >= 0 && pValue <= tTestRow.pValue) warnings.push(MET_NOTE);
   const q = qt1(alpha, df, false, false);
+  // the interval in the larger of the two units
+  const kc = Math.max(kE, kSE);
+  const [eC, sC] = [ldexp(effect, kE - kc), ldexp(se, kSE - kc)];
   return reported(name, {
     tTest: tTestRow,
     lower,
     upper,
     pValue,
     bounds: { raw, smd: smdB },
-    raw: { estimate: effect, se, confInt: [effect - q * se, effect + q * se] as [number, number] },
+    raw: { estimate: ldexp(effect, kE), se: seOut, confInt: [ldexp(eC - q * sC, kc), ldexp(eC + q * sC, kc)] as [number, number] },
     smd: { label: smd.label, estimate: smd.estimate, se: smd.se, confInt: smd.confInt, df: smd.df, J: smd.J },
     confLevel: 1 - 2 * alpha,
     method,
@@ -434,13 +456,17 @@ function tostCore(
  * difference are 1 - 2 alpha intervals (TOSTER's 1 - alpha); TOSTER's notes are warnings; alpha must be in (0, 0.5).
  * With `mu` 0 only the last three apply.
  *
+ * With 2 observations (df 1) Hedges' correction J(1) is 0: the bias-corrected standardised difference is 0 (and its
+ * `"nct"` interval), and some of its standard errors and intervals are NaN or infinite, as TOSTER's formulas give.
+ *
  * @param x Sample (NaN values are dropped; for paired samples, the pairs with a NaN).
  * @param y Second sample (omit for one sample).
  * @param options See {@link TTOSTOptions}; the bounds are required.
  * @returns See {@link TTOSTResult}.
- * @throws TypeError without bounds or for options of the wrong type; RangeError for alpha outside (0, 0.5), bounds
- *   that are not finite or in the wrong order, an unknown choice, or fewer than 2 observations in a sample; Error where
- *   the t test has too few observations or the data are essentially constant.
+ * @throws TypeError without bounds, for options of the wrong type, or for samples that are not arrays of numbers
+ *   (`null` or strings in them); RangeError for infinite values, alpha outside (0, 0.5), bounds that are not finite or
+ *   in the wrong order, an unknown choice, or fewer than 2 observations in a sample; Error where the t test has too
+ *   few observations or the data are essentially constant.
  *
  * @example
  * ```ts
@@ -459,19 +485,25 @@ export function tTOST(x: Sample, y?: Sample, options: TTOSTOptions = {}): TTOSTR
   const { paired, varEqual, mu } = s;
   const oneSample = y === undefined;
   if (paired && oneSample) throw new TypeError("'y' is required when paired is true");
-  // the t test: its errors, method, difference, standard error and df (R's t.test)
+  checkSample(x, "x");
+  if (!oneSample) checkSample(y, "y");
+  // the t test: its errors, method and df (R's t.test)
   const tt = unreported(() => (oneSample ? tTest(x, { mu }) : tTest(x, y, { paired, varEqual, mu })));
-  const diff = typeof tt.estimate === "number" ? tt.estimate : tt.estimate![0]! - tt.estimate![1]!;
-  const se = tt.stdErr;
   const df = tt.parameter!;
-  // the moments of the standardised difference, on the data scaled by one power of 2 (exact; no units)
+  // the effect, its standard error (as tTest's) and the moments of the standardised difference, on the data scaled by
+  // the same power of 2 as in tTest (exact; the results are scaled back)
   let m: Moments;
   let k: number;
+  let effect: number;
+  let se: number;
   if (oneSample) {
     const sc = scaleToUnit([dropNaN(Array.from(x))]);
     k = sc.k;
     const v = sc.groups[0]!;
-    m = { design: "one", n: v.length, delta: mean(v) - ldexp(mu, -k), s: Math.sqrt(variance(v)) };
+    const vv = variance(v);
+    effect = mean(v) - ldexp(mu, -k);
+    se = Math.sqrt(vv / v.length);
+    m = { design: "one", n: v.length, delta: effect, s: Math.sqrt(vv) };
   } else if (paired) {
     const [a0, b0] = completePairs(Array.from(x), Array.from(y));
     const sc = scaleToUnit([a0, b0]);
@@ -485,15 +517,23 @@ export function tTOST(x: Sample, y?: Sample, options: TTOSTOptions = {}): TTOSTR
     const vd = variance(d);
     const sdif = Math.sqrt(vd);
     const oneMinusR = ((sdif - (s1 - s2)) * (sdif + (s1 - s2))) / (2 * s1 * s2);
+    effect = mean(d) - ldexp(mu, -k);
+    se = Math.sqrt(vd / d.length);
     m = { design: "paired", n: d.length, delta: mean(a) - mean(b) - ldexp(mu, -k), s1, s2, sdif, oneMinusR };
   } else {
     const sc = scaleToUnit([dropNaN(Array.from(x)), dropNaN(Array.from(y))]);
     k = sc.k;
     const [a, b] = sc.groups as [number[], number[]];
     if (a.length < 2 || b.length < 2) throw new RangeError("not enough observations: at least 2 are needed in each sample");
-    m = { design: "two", n1: a.length, n2: b.length, delta: mean(a) - mean(b) - ldexp(mu, -k), s1: Math.sqrt(variance(a)), s2: Math.sqrt(variance(b)) };
+    const [n1, n2, v1, v2] = [a.length, b.length, variance(a), variance(b)];
+    effect = mean(a) - mean(b) - ldexp(mu, -k);
+    // (tTest's forms)
+    se = varEqual
+      ? Math.sqrt((((n1 - 1) * v1 + (n2 - 1) * v2) / (n1 + n2 - 2)) * (1 / n1 + 1 / n2))
+      : Math.sqrt(Math.sqrt(v1 / n1) ** 2 + Math.sqrt(v2 / n2) ** 2);
+    m = { design: "two", n1, n2, delta: effect, s1: Math.sqrt(v1), s2: Math.sqrt(v2) };
   }
-  return tostCore("tTOST", diff, se, df, tt.method, m, k, s, given, []);
+  return tostCore("tTOST", effect, k, se, k, df, tt.method, m, k, s, given, []);
 }
 
 /**
@@ -551,21 +591,27 @@ export function tsumTOST(stats: TsumTOSTStatistics, options: TTOSTOptions = {}):
     size(n2, "n2");
   }
   const warnings: string[] = [];
-  // everything on the statistics scaled by one power of 2 (exact), the difference and its SE scaled back
-  const { groups, k } = scaleToUnit([[m1, sd1, ...(oneSample ? [] : [m2!, sd2!])], [s.mu]]);
-  const [a1, b1, a2 = NaN, b2 = NaN] = groups[0]!;
-  const muS = groups[1]![0]!;
-  let diff: number;
+  // the means (with mu) and the SDs each scaled by one power of 2 of their own (exact): the SDs enter only through
+  // ratios with the difference and through the df, so a mean far larger than the SDs leaves their squares in range.
+  // The difference is in the units 2^kM, the SDs and the standard error in 2^kS; the moments in 2^kS
+  const { groups: gm, k: kM } = scaleToUnit([[m1, ...(oneSample ? [] : [m2!]), s.mu]]);
+  const { groups: gs, k: kS } = scaleToUnit([[sd1, ...(oneSample ? [] : [sd2!])]]);
+  const [a1, a2 = NaN] = oneSample ? [gm[0]![0]!] : [gm[0]![0]!, gm[0]![1]!];
+  const muS = gm[0]![gm[0]!.length - 1]!;
+  const [b1, b2 = NaN] = gs[0]!;
+  // the effect in the units of the SDs, for the standardised difference
+  const inS = (v: number): number => ldexp(v, kM - kS);
+  let effect: number;
   let se: number;
   let df: number;
   let method: string;
   let m: Moments;
   if (oneSample) {
-    diff = a1!;
+    effect = a1! - muS;
     se = b1! / Math.sqrt(n1);
     df = n1 - 1;
     method = "One Sample t-test";
-    m = { design: "one", n: n1, delta: a1! - muS, s: b1! };
+    m = { design: "one", n: n1, delta: inS(effect), s: b1! };
   } else if (s.paired) {
     const r = num(r12, "r12");
     if (!(r > -1 && r < 1)) throw new RangeError("'r12' must be in (-1, 1)");
@@ -576,16 +622,16 @@ export function tsumTOST(stats: TsumTOSTStatistics, options: TTOSTOptions = {}):
     }
     const sdif = Math.sqrt(b1! * b1! + b2 * b2 - 2 * r * b1! * b2);
     if (!(sdif > 0)) throw new RangeError("the standard deviation of the differences is 0");
-    diff = a1! - a2;
+    effect = a1! - a2 - muS;
     se = sdif / Math.sqrt(n);
     df = n - 1;
     method = "Paired t-test";
-    m = { design: "paired", n, delta: diff - muS, s1: b1!, s2: b2, sdif, oneMinusR: 1 - r };
+    m = { design: "paired", n, delta: inS(effect), s1: b1!, s2: b2, sdif, oneMinusR: 1 - r };
   } else {
     const n2v = n2!;
     const v1 = b1! * b1!;
     const v2 = b2 * b2;
-    diff = a1! - a2;
+    effect = a1! - a2 - muS;
     if (s.varEqual) {
       const v = ((n1 - 1) * v1 + (n2v - 1) * v2) / (n1 + n2v - 2);
       se = Math.sqrt(v * (1 / n1 + 1 / n2v));
@@ -598,7 +644,7 @@ export function tsumTOST(stats: TsumTOSTStatistics, options: TTOSTOptions = {}):
       df = (w1 + w2) ** 2 / ((w1 * w1) / (n1 - 1) + (w2 * w2) / (n2v - 1));
       method = "Welch Two Sample t-test";
     }
-    m = { design: "two", n1, n2: n2v, delta: a1! - a2 - muS, s1: b1!, s2: b2 };
+    m = { design: "two", n1, n2: n2v, delta: inS(effect), s1: b1!, s2: b2 };
   }
-  return tostCore("tsumTOST", ldexp(diff, k), ldexp(se, k), df, method, m, k, s, given, warnings);
+  return tostCore("tsumTOST", effect, kM, se, kS, df, method, m, kS, s, given, warnings);
 }
