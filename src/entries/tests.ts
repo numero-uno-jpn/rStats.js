@@ -109,6 +109,26 @@ export {
   type QuasiVariance,
 } from "../models/glm.js";
 export { glmConfint, type GlmConfintOptions } from "../models/glmConfint.js";
+export {
+  vcovHC,
+  vcovCL,
+  type RobustFit,
+  type VcovResult,
+  type VcovHCType,
+  type VcovHCOptions,
+  type VcovCLType,
+  type VcovCLOptions,
+  type ClusterLabel,
+} from "../models/sandwich.js";
+export {
+  coeftest,
+  coefci,
+  type VcovArgument,
+  type CoeftestOptions,
+  type CoeftestResult,
+  type CoefciOptions,
+  type CoefciResult,
+} from "../models/coeftest.js";
 export { glmAnova, type GlmAnovaOptions, type GlmAnovaResult, type GlmAnovaTest } from "../models/glmAnova.js";
 export {
   modelMatrix,
