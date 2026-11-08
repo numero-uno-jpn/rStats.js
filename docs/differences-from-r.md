@@ -1064,14 +1064,29 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **Hat values of 1:** where sandwich returns a matrix of NaN (HC2 to HC5 with a hat value of exactly 1),
   `vcovHC` throws a RangeError naming the observations; R's warning about hat values close to 1 is kept for the
   finite results (HC0, HC1 and hat values below 1).
+- **HC1 with as many observations as coefficients:** its factor n / (n − k) (`vcovHC`) or (n − 1) / (n − k)
+  (`vcovCL`) is infinite and sandwich returns a matrix of NaN; rStats.js throws a RangeError.
+- **1 − h without cancellation:** for the rows with a hat value above 1/2, 1 − h is the squared norm of the
+  row of the trailing columns of Q rather than 1 minus the hat value, which lost the digits of h (an error of
+  about eps / (1 − h) in HC2 to HC5, as in R). With a leverage row of 1 − h = 2.7e-5, HC3 is 5e-13 from the
+  exact value where sandwich's is about 1e-11 off. (The blocks I − H_gg of clustered HC2 and HC3 are formed as
+  in sandwich.)
+- **Data far from 1:** where the sandwich in doubles would overflow or underflow on the way (weights beyond
+  about 2^±510, the response of a gaussian glm beyond 2^±256, x and y in the same units near 1e±160, working
+  weights below the normal range), it is formed in units of powers of 2, so that the values are those of the
+  same data in units near 1; sandwich returns Infinity, 0 or NaN there, or an error about hat values of 1.
+  Where the covariance itself is not representable (a response around 1e±300), its entries are Infinity or 0
+  as they must be, and `coeftest` and `coefci` take the standard errors from its scaled form, so that the
+  standard errors, statistics, p-values and limits are right where R's are Infinity, 0 or NaN.
 - **Clustered HC2 and HC3 use the symmetric adjustment** (Bell and McCaffrey 2002; Pustejovsky and Tipton 2018):
   each cluster's residuals are multiplied by (I − H_gg)^(−1/2) or (I − H_gg)⁻¹ with H_gg the block of the
   symmetric hat matrix W^½ X A X' W^½. For HC3 this is exactly the leave-one-cluster-out jackknife. sandwich
   uses the transpose of that adjustment for a weighted lm and for every glm (the same where the weights are
   constant within each cluster, as for an unweighted lm); its values are 1% to 23% off in the test fixture. A
   singular block (cluster fixed effects), where sandwich returns NaN (HC2) or meaningless numbers (HC3), is a
-  RangeError.
-- **Cluster labels:** numbers, strings or booleans, one per input row of the fit (the rows the fit dropped for a
+  RangeError; so is a cluster of one row whose 1 − h is below the threshold of the larger blocks (eps^(1/1.3),
+  sandwich's NaN) when other clusters have more rows (with one row in every cluster only a hat value of 1 is).
+- **Cluster labels:** numbers, strings or booleans (an array, or a typed array of numbers), one per input row of the fit (the rows the fit dropped for a
   missing value are dropped from the cluster too; any other length is an error, as R). A missing label is an
   error, as R. G is the number of distinct labels among the rows used: R counts every level of a factor,
   unused ones included. The intersections of several clustering dimensions are formed as tuples of the labels:
@@ -1079,8 +1094,10 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   RangeError (`at least two clusters are needed`), where R fails with `non-conformable arrays`.
 - **`vcovCL`'s default type is HC1 for an lm and HC0 for a glm**, as sandwich's (a glm is not an lm for its
   test).
-- **`coeftest` and `coefci`:** a covariance with a negative variance is a RangeError (R gives NaN standard
-  errors with `NaNs produced`), and so is a `level` outside [0, 1] (R gives NaN limits). The `vcov` option takes
+- **`coeftest` and `coefci`:** a covariance with a negative, NaN or infinite variance is a RangeError (R gives
+  NaN standard errors with `NaNs produced`, or carries NaN and Infinity through to the statistics and p-values),
+  and so is a `level` outside [0, 1] (R gives NaN limits). Only the diagonal is used, as R's: the matrix is not
+  checked for symmetry. The `vcov` option takes
   a matrix (matched by position; it must be p × p, or k × k for the coefficients that are not aliased, where R
   recycles), the result of `vcovHC` or `vcovCL` (matched by name) or a function of the fit; options of the
   covariance function are passed by closing over them instead of R's `...`. `parm` takes 0-based indices. As

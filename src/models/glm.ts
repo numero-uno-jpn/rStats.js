@@ -1035,6 +1035,21 @@ export function glmHatvalues(fit: GlmResult): number[] {
   return out;
 }
 
+/**
+ * For each row of non-zero prior weight (in order, as glmHatvalues), its row in the fit's QR decomposition, or -1 for
+ * a row the last least squares step left out
+ */
+export function glmQrRows(fit: GlmResult): number[] {
+  const out: number[] = [];
+  let k = 0;
+  const usedRows = USED_ROWS.get(fit) ?? fit.weights.map((v) => v > 0);
+  fit.priorWeights.forEach((w, i) => {
+    const r = usedRows[i] ? k++ : -1;
+    if (w > 0) out.push(r);
+  });
+  return out;
+}
+
 function median(v: number[]): number {
   const s = v.slice().sort((a, b) => a - b);
   const m = s.length >> 1;
