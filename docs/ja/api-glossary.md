@@ -781,3 +781,27 @@
 | single number | 単一の数値 | 新規。ベクトルを受け付けない関数 (「1 つの数値」は `Takes a single number`) |
 | order (of the derivative) | 導関数の階数 | 新規 (`psigamma` の `deriv`) |
 | ordered (selection) | 順序付き | 新規 (`perm`)。「順序を考えない」は unordered |
+| equivalence margin | 同等性マージン | 新規。TOST の `margin` (`epsilon`) |
+| hybrid score interval | ハイブリッドスコア区間 | 新規。Newcombe の区間 |
+| score (interval) | スコア区間 | 新規。`"score"` の区間 |
+| Wald (interval) | Wald 区間 | 新規。`Wald` は人名のため英字 |
+| number of trials | 試行回数 | 新規。二項検定の `parameter` |
+| concordant pairs, discordant pairs | 一致する組、不一致の組 | 新規。Goodman-Kruskal の γ |
+| pairs (of observations) | 組 | 新規。`pairs with NaN are dropped` など |
+| median-unbiased estimate | 中央値不偏推定値 | 新規。`oddsRatio` の `"midp"` |
+| conditional maximum likelihood estimate | 条件付き最尤推定値 | 新規。`fisherTest` の `estimate` |
+| mid-p | mid-p | 英字のまま。mid-p の裾・mid-p 値 |
+| central (two-sided method) | central | 英字のまま。`"central"` の両側の方法 |
+| classes (of a chi-squared test) | 区分 | 新規。`pearsonTest` の `nClasses` |
+| event rate | 事象率 | 新規。`poissonTest` の推定値 |
+| replicates (of a simulation) | 反復回数 | 新規。`B` の説明 |
+| expected probabilities | 期待確率 | 新規。適合度検定の `p` |
+| doubles (number of values, memory) | 倍精度数 | 新規。`double precision` の値の数 |
+| multiply-adds | 乗算と加算 | 新規。計算量の単位 |
+| hypothesized (value, proportion) | 仮説上の (値、比率) | 新規。`poissonTest` の `r` など |
+| deviates (Freeman-Tukey) | 偏差 | 新規。Freeman-Tukey の偏差 |
+| relative effect | 相対効果 | 新規。Brunner-Munzel の検定 |
+| limit (of an interval) | 限界 | 新規。「下側の限界」「上側の限界」(区間の片側の限界) |
+| clipped | 切り詰め | 新規。区間を範囲に収める処理 |
+| rescale | 再スケール | 新規。`rescaleP` |
+| exact (p-value, method) | 正確 (正確な p 値、正確法) | 新規。`exact` オプション。`exact test` の「正確」と同じ語 |

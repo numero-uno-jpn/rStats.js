@@ -2,1342 +2,1342 @@
   "Alternative#summary": {
     "hash": "e27a36e52b9f",
     "en": "Alternative hypothesis of a test, as in R. Test options also accept unambiguous\nabbreviations (`\"two\"`, `\"l\"`, `\"g\"`), like R's `match.arg()`.",
-    "ja": ""
+    "ja": "R と同じく、検定の対立仮説です。検定のオプションは、R の `match.arg()` と同じく、曖昧さのない\n省略形 (`\"two\"`、`\"l\"`、`\"g\"`) も受け付けます。"
   },
   "AnsariTestOptions#summary": {
     "hash": "c547883a958e",
     "en": "Options for {@link ansariTest}.",
-    "ja": ""
+    "ja": "{@link ansariTest} のオプション。"
   },
   "AnsariTestOptions.alternative#summary": {
     "hash": "f6f27d3b58dd",
     "en": "Alternative hypothesis (unambiguous abbreviations accepted). Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "対立仮説です (曖昧さのない省略形も受け付けます)。既定は `\"two.sided\"`。"
   },
   "AnsariTestOptions.confInt#summary": {
     "hash": "711e072326d9",
     "en": "Compute a confidence interval for the ratio of scales and its estimate (R's `conf.int`). Default `false`.",
-    "ja": ""
+    "ja": "尺度の比の信頼区間と、その推定値を求めます (R の `conf.int`)。既定は `false`。"
   },
   "AnsariTestOptions.confLevel#summary": {
     "hash": "ccfda40f60f0",
     "en": "Confidence level of the interval. Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準。既定は `0.95`。"
   },
   "AnsariTestOptions.exact#summary": {
     "hash": "47b46149a879",
     "en": "Exact p-value. Default: exact when both samples have fewer than 50 values and there are no ties. The exact\ndistribution keeps 2 (m + 1) (floor((m + n + 1)^2 / 4) + 1) doubles and makes m + n passes over half of them;\nbeyond 2^24 doubles or 2^32 steps (m = n = 203, or m = 1 and n = 2047) it is a RangeError (R computes it however\nlarge).",
-    "ja": ""
+    "ja": "正確な p 値です。既定: 両方の標本の値が 50 未満で、同順位がないときに正確法を使います。正確な\n分布は 2 (m + 1) (floor((m + n + 1)^2 / 4) + 1) 個の倍精度数を保持し、m + n 回の走査でその半分を処理します。\n2^24 個の倍精度数、または 2^32 回の処理を超える場合 (m = n = 203、または m = 1 かつ n = 2047) は RangeError になります (R はどれだけ大きくても\n計算します)。"
   },
   "BartlettTestResult#summary": {
     "hash": "604369215035",
     "en": "Result of {@link bartlettTest}. Has no `alternative`, as R's `bartlett.test()` returns none.",
-    "ja": ""
+    "ja": "{@link bartlettTest} の結果。R の `bartlett.test()` は対立仮説を返さないため、`alternative` はありません。"
   },
   "BartlettTestResult.parameter#summary": {
     "hash": "cfbe40dcbc6d",
     "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
-    "ja": ""
+    "ja": "自由度 (`parameterName` は `\"df\"`)。"
   },
   "BinomCIMethod#summary": {
     "hash": "6e6e56763d95",
     "en": "Methods of {@link binomCI}.",
-    "ja": ""
+    "ja": "{@link binomCI} の方法。"
   },
   "BinomCIOptions#summary": {
     "hash": "744784964c92",
     "en": "Options for {@link binomCI}.",
-    "ja": ""
+    "ja": "{@link binomCI} のオプション。"
   },
   "BinomCIOptions.confLevel#summary": {
     "hash": "76045c457fcf",
     "en": "Confidence level, in (0, 1). Default `0.95`.",
-    "ja": ""
+    "ja": "信頼水準 (0, 1 の範囲)。既定は `0.95`。"
   },
   "BinomCIOptions.method#summary": {
     "hash": "570a8ba72fcc",
     "en": "The interval: `\"wilson\"` (default), `\"wald\"`, `\"wilsoncc\"`, `\"agresti-coull\"`, `\"jeffreys\"`,\n `\"clopper-pearson\"` or `\"midp\"`. Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "区間の方法です: `\"wilson\"` (既定)、`\"wald\"`、`\"wilsoncc\"`、`\"agresti-coull\"`、`\"jeffreys\"`、\n `\"clopper-pearson\"`、または `\"midp\"` です。曖昧さのない省略形も受け付けます。"
   },
   "BinomCIOptions.sides#summary": {
     "hash": "80743546332b",
     "en": "`\"two.sided\"` (default), `\"left\"` (lower limit only) or `\"right\"` (upper limit only); abbreviations accepted.",
-    "ja": ""
+    "ja": "`\"two.sided\"` (既定)、`\"left\"` (下側の限界のみ)、または `\"right\"` (上側の限界のみ)。省略形も受け付けます。"
   },
   "BinomCIResult#summary": {
     "hash": "baed93a6d75d",
     "en": "Result of {@link binomCI}.",
-    "ja": ""
+    "ja": "{@link binomCI} の結果。"
   },
   "BinomDiffCIMethod#summary": {
     "hash": "e41cfb2d59cd",
     "en": "Methods of {@link binomDiffCI}.",
-    "ja": ""
+    "ja": "{@link binomDiffCI} の方法。"
   },
   "BinomDiffCIOptions#summary": {
     "hash": "7fbdd272f570",
     "en": "Options for {@link binomDiffCI}.",
-    "ja": ""
+    "ja": "{@link binomDiffCI} のオプション。"
   },
   "BinomDiffCIOptions.confLevel#summary": {
     "hash": "76045c457fcf",
     "en": "Confidence level, in (0, 1). Default `0.95`.",
-    "ja": ""
+    "ja": "信頼水準 (0, 1 の範囲)。既定は `0.95`。"
   },
   "BinomDiffCIOptions.method#summary": {
     "hash": "3f5cf8b5c454",
     "en": "`\"ac\"` (Agresti-Caffo, the default), `\"wald\"`, `\"score\"` (Newcombe's hybrid score interval), `\"mn\"`\n (Miettinen-Nurminen) or `\"mee\"` (Farrington-Manning / Mee). Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "`\"ac\"` (既定の Agresti-Caffo)、`\"wald\"`、`\"score\"` (Newcombe のハイブリッドスコア区間)、`\"mn\"`\n (Miettinen-Nurminen)、または `\"mee\"` (Farrington-Manning / Mee)。曖昧さのない省略形も受け付けます。"
   },
   "BinomDiffCIOptions.sides#summary": {
     "hash": "80743546332b",
     "en": "`\"two.sided\"` (default), `\"left\"` (lower limit only) or `\"right\"` (upper limit only); abbreviations accepted.",
-    "ja": ""
+    "ja": "`\"two.sided\"` (既定)、`\"left\"` (下側の限界のみ)、または `\"right\"` (上側の限界のみ)。省略形も受け付けます。"
   },
   "BinomDiffCIResult#summary": {
     "hash": "f0cfc2244299",
     "en": "Result of {@link binomDiffCI}.",
-    "ja": ""
+    "ja": "{@link binomDiffCI} の結果。"
   },
   "BinomDiffEquivalenceMethod#summary": {
     "hash": "0fbf66dba10f",
     "en": "Statistics of {@link binomDiffEquivalenceTest}.",
-    "ja": ""
+    "ja": "{@link binomDiffEquivalenceTest} の統計量。"
   },
   "BinomDiffEquivalenceTestOptions#summary": {
     "hash": "440fb8cf45ed",
     "en": "Options for {@link binomDiffEquivalenceTest}.",
-    "ja": ""
+    "ja": "{@link binomDiffEquivalenceTest} のオプション。"
   },
   "BinomDiffEquivalenceTestOptions.alpha#summary": {
     "hash": "ddbc2f873908",
     "en": "The level of each one-sided test, in (0, 0.5). Default `0.05`.",
-    "ja": ""
+    "ja": "各片側検定の有意水準。(0, 0.5) の範囲です。既定は `0.05`。"
   },
   "BinomDiffEquivalenceTestOptions.margin#summary": {
     "hash": "ac9a010912a4",
     "en": "The equivalence margin epsilon, in (0, 1): equivalence means -epsilon < p1 - p2 < epsilon. Required.",
-    "ja": ""
+    "ja": "同等性マージン epsilon。(0, 1) の範囲です。同等とは -epsilon < p1 - p2 < epsilon であることです。必須です。"
   },
   "BinomDiffEquivalenceTestOptions.method#summary": {
     "hash": "c68d6eee7c6e",
     "en": "The statistic: `\"mn\"` (Miettinen-Nurminen score, the default), `\"mee\"` (Farrington-Manning score) or `\"wald\"`.\n Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "統計量です: `\"mn\"` (Miettinen-Nurminen のスコア。既定)、`\"mee\"` (Farrington-Manning のスコア)、または `\"wald\"`。\n 曖昧さのない省略形も受け付けます。"
   },
   "BinomDiffEquivalenceTestResult#summary": {
     "hash": "34ea465173e9",
     "en": "Result of {@link binomDiffEquivalenceTest}.",
-    "ja": ""
+    "ja": "{@link binomDiffEquivalenceTest} の結果。"
   },
   "BinomDiffEquivalenceTestResult.alpha#summary": {
     "hash": "0b3bf59e8706",
     "en": "The level of each one-sided test.",
-    "ja": ""
+    "ja": "各片側検定の有意水準。"
   },
   "BinomDiffEquivalenceTestResult.confInt#summary": {
     "hash": "ace7810a5a8c",
     "en": "The 1 - 2 alpha interval of p1 - p2 of {@link binomDiffCI} with the same method; equivalence is shown exactly when\n it lies inside (-margin, margin).",
-    "ja": ""
+    "ja": "同じ方法の {@link binomDiffCI} による p1 - p2 の 1 - 2 alpha の区間です。同等性は、この区間が\n (-margin, margin) の内側に入るときに限り示されます。"
   },
   "BinomDiffEquivalenceTestResult.confLevel#summary": {
     "hash": "2e608421c7db",
     "en": "`1 - 2 alpha`.",
-    "ja": ""
+    "ja": "`1 - 2 alpha`。"
   },
   "BinomDiffEquivalenceTestResult.estimate#summary": {
     "hash": "95cd6a105b2d",
     "en": "The estimate p1 - p2.",
-    "ja": ""
+    "ja": "推定値 p1 - p2。"
   },
   "BinomDiffEquivalenceTestResult.margin#summary": {
     "hash": "6445f199e482",
     "en": "The margin epsilon.",
-    "ja": ""
+    "ja": "同等性マージン epsilon。"
   },
   "BinomDiffEquivalenceTestResult.method#summary": {
     "hash": "c4b858257073",
     "en": "The statistic, in full (`\"mn\"`, `\"mee\"` or `\"wald\"`).",
-    "ja": ""
+    "ja": "統計量を省略せずに示したもの (`\"mn\"`、`\"mee\"`、または `\"wald\"`)。"
   },
   "BinomDiffEquivalenceTestResult.pValue#summary": {
     "hash": "77867cc58fce",
     "en": "The larger of `pValues`: the p-value of the test of equivalence.",
-    "ja": ""
+    "ja": "`pValues` のうち大きい方の値です。同等性の検定の p 値です。"
   },
   "BinomDiffEquivalenceTestResult.pValues#summary": {
     "hash": "afed8ea8ab2b",
     "en": "`[P(Z > z(-margin)), P(Z < z(margin))]`: the one-sided p-values of H01 and H02.",
-    "ja": ""
+    "ja": "`[P(Z > z(-margin)), P(Z < z(margin))]`: H01 と H02 の片側 p 値です。"
   },
   "BinomDiffEquivalenceTestResult.result#summary": {
     "hash": "34d77447b431",
     "en": "`\"rejected\"` (equivalence shown: both p-values below alpha) or `\"not rejected\"`, as {@link tost}'s `result`.",
-    "ja": ""
+    "ja": "`\"rejected\"` (同等性が示された。両方の p 値が alpha 未満) または `\"not rejected\"` ({@link tost} の `result` と同じく)。"
   },
   "BinomDiffEquivalenceTestResult.statistic#summary": {
     "hash": "53fe96cf3912",
     "en": "`[z(-margin), z(margin)]`, z(delta0) = (p1 - p2 - delta0) / sqrt(var(delta0)): the statistics of H01: p1 - p2 <=\n-margin (large values reject) and of H02: p1 - p2 >= margin (small values reject).",
-    "ja": ""
+    "ja": "`[z(-margin), z(margin)]`。z(delta0) = (p1 - p2 - delta0) / sqrt(var(delta0)) です。H01 (p1 - p2 <=\n-margin。大きい値で棄却) と H02 (p1 - p2 >= margin。小さい値で棄却) の統計量です。"
   },
   "BinomDiffEquivalenceTestResult.statisticName#summary": {
     "hash": "ffcc3029bc6f",
     "en": "`\"z\"`.",
-    "ja": ""
+    "ja": "`\"z\"`。"
   },
   "BinomDiffEquivalenceTestResult.warnings#summary": {
     "hash": "8ef3f0a7d534",
     "en": "Warnings (none: input without a defined result is an error).",
-    "ja": ""
+    "ja": "警告 (なし。定義された結果が得られない入力はエラーになります)。"
   },
   "BinomRatioCIMethod#summary": {
     "hash": "e9b566a9f01f",
     "en": "Methods of {@link binomRatioCI}.",
-    "ja": ""
+    "ja": "{@link binomRatioCI} の方法。"
   },
   "BinomRatioCIOptions#summary": {
     "hash": "760106f4eacf",
     "en": "Options for {@link binomRatioCI}.",
-    "ja": ""
+    "ja": "{@link binomRatioCI} のオプション。"
   },
   "BinomRatioCIOptions.confLevel#summary": {
     "hash": "76045c457fcf",
     "en": "Confidence level, in (0, 1). Default `0.95`.",
-    "ja": ""
+    "ja": "信頼水準 (0, 1 の範囲)。既定は `0.95`。"
   },
   "BinomRatioCIOptions.method#summary": {
     "hash": "8c6a29bf9689",
     "en": "`\"katz.log\"` (the default) or `\"koopman\"` (Koopman's score interval). Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "`\"katz.log\"` (既定)、または `\"koopman\"` (Koopman のスコア区間)。曖昧さのない省略形も受け付けます。"
   },
   "BinomRatioCIOptions.sides#summary": {
     "hash": "80743546332b",
     "en": "`\"two.sided\"` (default), `\"left\"` (lower limit only) or `\"right\"` (upper limit only); abbreviations accepted.",
-    "ja": ""
+    "ja": "`\"two.sided\"` (既定)、`\"left\"` (下側の限界のみ)、または `\"right\"` (上側の限界のみ)。省略形も受け付けます。"
   },
   "BinomRatioCIResult#summary": {
     "hash": "f09668e439d6",
     "en": "Result of {@link binomRatioCI}.",
-    "ja": ""
+    "ja": "{@link binomRatioCI} の結果。"
   },
   "BinomTestOptions#summary": {
     "hash": "cb89d39b9679",
     "en": "Options for {@link binomTest}.",
-    "ja": ""
+    "ja": "{@link binomTest} のオプション。"
   },
   "BinomTestOptions.alternative#summary": {
     "hash": "f6f27d3b58dd",
     "en": "Alternative hypothesis (unambiguous abbreviations accepted). Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "対立仮説です (曖昧さのない省略形も受け付けます)。既定は `\"two.sided\"`。"
   },
   "BinomTestOptions.confLevel#summary": {
     "hash": "ccfda40f60f0",
     "en": "Confidence level of the interval. Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準。既定は `0.95`。"
   },
   "BinomTestOptions.p#summary": {
     "hash": "bf881a579f41",
     "en": "Hypothesized probability of success. Default `0.5`.",
-    "ja": ""
+    "ja": "仮説上の成功確率。既定は `0.5`。"
   },
   "BinomTestResult#summary": {
     "hash": "d85880b3247a",
     "en": "Result of {@link binomTest}.",
-    "ja": ""
+    "ja": "{@link binomTest} の結果。"
   },
   "BinomTestResult.confInt#summary": {
     "hash": "bf7b6c94a26f",
     "en": "Clopper-Pearson interval for the probability of success.",
-    "ja": ""
+    "ja": "成功確率の Clopper-Pearson 区間。"
   },
   "BinomTestResult.confLevel#summary": {
     "hash": "61d80d95e5f2",
     "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
+    "ja": "`confInt` の信頼水準 (R の `attr(conf.int, \"conf.level\")`)。"
   },
   "BinomTestResult.estimate#summary": {
     "hash": "052d808d1780",
     "en": "Observed proportion of successes.",
-    "ja": ""
+    "ja": "観測された成功の割合。"
   },
   "BinomTestResult.nullValue#summary": {
     "hash": "86f472baf058",
     "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
+    "ja": "帰無仮説の下での母数の値 (R の `null.value`)。"
   },
   "BinomTestResult.parameter#summary": {
     "hash": "c086fc77b305",
     "en": "Number of trials (`parameterName` is `\"number of trials\"`).",
-    "ja": ""
+    "ja": "試行回数 (`parameterName` は `\"number of trials\"`)。"
   },
   "BoschlooTestOptions#summary": {
     "hash": "cf228dea224d",
     "en": "Options for {@link boschlooTest}.",
-    "ja": ""
+    "ja": "{@link boschlooTest} のオプション。"
   },
   "BoschlooTestOptions.alternative#summary": {
     "hash": "2b2f20f8fddf",
     "en": "Alternative hypothesis, in Exact's orientation: `\"less\"` means pi1 < pi2 (the proportion of row 1 below that of\nrow 2). Default `\"two.sided\"`. Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "Exact の向きでの対立仮説です。`\"less\"` は pi1 < pi2 (行 1 の割合が\n行 2 の割合より小さい) を意味します。既定は `\"two.sided\"`。曖昧さのない省略形も受け付けます。"
   },
   "BoschlooTestOptions.tsmethod#summary": {
     "hash": "ec718fca894b",
     "en": "Two-sided method: `\"square\"` (the default, as Exact) or `\"central\"`. Ignored for one-sided tests.",
-    "ja": ""
+    "ja": "両側の方法です: `\"square\"` (既定。Exact と同じ) または `\"central\"`。片側検定では無視されます。"
   },
   "BoschlooTestResult#summary": {
     "hash": "7afa4bdac661",
     "en": "Result of {@link boschlooTest}.",
-    "ja": ""
+    "ja": "{@link boschlooTest} の結果。"
   },
   "BoschlooTestResult.nuisanceParameter#summary": {
     "hash": "250145e2232a",
     "en": "The common proportion pi under the null hypothesis at which the supremum (the p-value) is attained.",
-    "ja": ""
+    "ja": "帰無仮説の下での共通の割合 pi です。この値で上限 (p 値) が達成されます。"
   },
   "BoschlooTsMethod#summary": {
     "hash": "d4abc957a7ae",
     "en": "Two-sided method of {@link boschlooTest}: `\"square\"` (Boschloo's original: Fisher's two-sided p-value as the\nstatistic) or `\"central\"` (twice the one-sided p-value in the direction of the data).",
-    "ja": ""
+    "ja": "{@link boschlooTest} の両側の方法: `\"square\"` (Boschloo の元の方法。Fisher の両側 p 値を\n統計量として使う) または `\"central\"` (データの向きの片側 p 値の 2 倍)。"
   },
   "BrunnerMunzelTestOptions#summary": {
     "hash": "1662ab96de68",
     "en": "Options for {@link brunnerMunzelTest}.",
-    "ja": ""
+    "ja": "{@link brunnerMunzelTest} のオプション。"
   },
   "BrunnerMunzelTestOptions.alternative#summary": {
     "hash": "88cff38cddd1",
     "en": "Alternative hypothesis (unambiguous abbreviations accepted). Default `\"two.sided\"`. As in lawstat, `\"greater\"`\nmeans that `x` tends to be larger than `y` (the relative effect is below 1/2) and `\"less\"` the opposite.",
-    "ja": ""
+    "ja": "対立仮説です (曖昧さのない省略形も受け付けます)。既定は `\"two.sided\"`。lawstat と同じく、`\"greater\"` は\n`x` が `y` より大きくなる傾向があること (相対効果は 1/2 より小さい) を意味します。`\"less\"` はその逆です。"
   },
   "BrunnerMunzelTestOptions.confLevel#summary": {
     "hash": "9d1ffdb17ba9",
     "en": "Confidence level of the interval for the relative effect (lawstat's `1 - alpha`). Default `0.95`.",
-    "ja": ""
+    "ja": "相対効果の区間の信頼水準 (lawstat の `1 - alpha`)。既定は `0.95`。"
   },
   "CISides#summary": {
     "hash": "5210c02e64d6",
     "en": "Which limits of a proportion's interval are kept (DescTools' `sides`): `\"two.sided\"` both, `\"left\"` the lower one\n(the upper is the end of the range), `\"right\"` the upper one.",
-    "ja": ""
+    "ja": "比率の区間のどちらの限界を残すか (DescTools の `sides`) です。`\"two.sided\"` は両方、`\"left\"` は下側の限界\n(上側は範囲の端)、`\"right\"` は上側の限界です。"
   },
   "ChisqStatTestResult#summary": {
     "hash": "70b07083b775",
     "en": "Result of a k-sample test with a chi-squared statistic. Has no `alternative`, as R returns none.",
-    "ja": ""
+    "ja": "カイ二乗統計量を用いた k 標本の検定の結果です。R は対立仮説を返さないため、`alternative` はありません。"
   },
   "ChisqStatTestResult.parameter#summary": {
     "hash": "cfbe40dcbc6d",
     "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
-    "ja": ""
+    "ja": "自由度 (`parameterName` は `\"df\"`)。"
   },
   "ChisqTestFactorsResult#summary": {
     "hash": "34df6f53af4a",
     "en": "Result of {@link chisqTest} with two factor vectors: also the levels that label the rows and columns.",
-    "ja": ""
+    "ja": "2 つの因子ベクトルを使った {@link chisqTest} の結果です。行と列のラベルとなる水準も含みます。"
   },
   "ChisqTestFactorsResult.colLevels#summary": {
     "hash": "5aa1512ee015",
     "en": "Levels of `y` (columns of the table), sorted by code point.",
-    "ja": ""
+    "ja": "`y` の水準 (表の列)。コードポイント順に並べられます。"
   },
   "ChisqTestFactorsResult.expected#summary": {
     "hash": "70fc5a97334c",
     "en": "Expected counts under the null hypothesis.",
-    "ja": ""
+    "ja": "帰無仮説の下での期待度数。"
   },
   "ChisqTestFactorsResult.ftResiduals#summary": {
     "hash": "7cf74be005a6",
     "en": "Freeman-Tukey deviates `sqrt(O) + sqrt(O + 1) - sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975; not in R),\napproximately standard normal under the null hypothesis; their sum of squares is the Freeman-Tukey statistic.",
-    "ja": ""
+    "ja": "Freeman-Tukey の偏差 `sqrt(O) + sqrt(O + 1) - sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975。R にはありません)。\n帰無仮説の下でおおむね標準正規分布に従い、その二乗和が Freeman-Tukey 統計量です。"
   },
   "ChisqTestFactorsResult.observed#summary": {
     "hash": "f7786eddb2e4",
     "en": "Observed counts (an array of rows for a contingency table).",
-    "ja": ""
+    "ja": "観測度数 (分割表の場合は行の配列)。"
   },
   "ChisqTestFactorsResult.residuals#summary": {
     "hash": "aec36391abe2",
     "en": "Pearson residuals `(O - E) / sqrt(E)`.",
-    "ja": ""
+    "ja": "Pearson の残差 `(O - E) / sqrt(E)`。"
   },
   "ChisqTestFactorsResult.rowLevels#summary": {
     "hash": "d7f6cc5d64b6",
     "en": "Levels of `x` (rows of the table), sorted by code point.",
-    "ja": ""
+    "ja": "`x` の水準 (表の行)。コードポイント順に並べられます。"
   },
   "ChisqTestFactorsResult.stdres#summary": {
     "hash": "ad712fcc7ff3",
     "en": "Standardized residuals `(O - E) / sqrt(V)`, where `V` is\n`E (1 - row proportion) (1 - column proportion)` for a contingency table and\n`n p (1 - p)` for goodness of fit. For a contingency table the complements are the other rows' and columns'\nsums over the total, and the residual and `V` are computed in double-double.",
-    "ja": ""
+    "ja": "標準化残差 `(O - E) / sqrt(V)` です。ここで `V` は、分割表では\n`E (1 - row proportion) (1 - column proportion)`、\n適合度では `n p (1 - p)` です。分割表では、補数 (1 - 行の割合、1 - 列の割合) は、他の行の和と他の列の\n和を総和で割ったものです。残差と `V` は double-double で計算されます。"
   },
   "ChisqTestOptions#summary": {
     "hash": "1e23d7bcd7e8",
     "en": "Options for {@link chisqTest}.",
-    "ja": ""
+    "ja": "{@link chisqTest} のオプション。"
   },
   "ChisqTestOptions.B#summary": {
     "hash": "a573e76d2163",
     "en": "Number of replicates for `simulatePValue`. Default `2000`.",
-    "ja": ""
+    "ja": "`simulatePValue` の反復回数。既定は `2000`。"
   },
   "ChisqTestOptions.correct#summary": {
     "hash": "e88c0cb99c54",
     "en": "Apply Yates' continuity correction (2 x 2 tables only). Default `true`.",
-    "ja": ""
+    "ja": "Yates の連続性補正を適用します (2 x 2 表のみ)。既定は `true`。"
   },
   "ChisqTestOptions.nMinus1#summary": {
     "hash": "b0f8eba340fb",
     "en": "The 'N - 1' chi-squared test (Campbell 2007; not in R): Pearson's statistic times `(N - 1) / N`, without continuity\ncorrection, for a contingency table (2 x 2 or larger). Default `false`. An error for goodness of fit (a vector or\na matrix with one row or column), with `simulatePValue`, and with `correct: true` given explicitly (the default\ncorrection is not applied).",
-    "ja": ""
+    "ja": "'N - 1' のカイ二乗検定 (Campbell 2007。R にはありません): Pearson の統計量に `(N - 1) / N` を掛けたもので、連続性補正は行いません。\n分割表 (2 x 2 以上) に対して使います。既定は `false`。適合度検定 (ベクトル、または 1 行か 1 列の行列) の場合、\n`simulatePValue` を指定した場合、そして `correct: true` を明示的に指定した場合 (既定の補正は\n適用されない) はエラーになります。"
   },
   "ChisqTestOptions.p#summary": {
     "hash": "21c4aa4a4dff",
     "en": "Expected probabilities for the goodness-of-fit test. Default: equal probabilities. Ignored for contingency tables.",
-    "ja": ""
+    "ja": "適合度検定の期待確率です。既定: 等しい確率。分割表では無視されます。"
   },
   "ChisqTestOptions.rescaleP#summary": {
     "hash": "b536c3ebf29b",
     "en": "Rescale `p` to sum to 1. Default `false`, in which case `p` must sum to 1.",
-    "ja": ""
+    "ja": "`p` の合計が 1 になるように再スケールします。既定は `false` で、その場合 `p` の合計は 1 である必要があります。"
   },
   "ChisqTestOptions.simulatePValue#summary": {
     "hash": "b3e320003a86",
     "en": "Compute the p-value by Monte Carlo simulation with `B` replicates (R's `simulate.p.value`), using the random\nstream of {@link setSeed} as R does. Default `false`.",
-    "ja": ""
+    "ja": "`B` 回の反復によるモンテカルロ・シミュレーションで p 値を求めます (R の `simulate.p.value`)。R と同じく {@link setSeed} の乱数\nストリームを使います。既定は `false`。"
   },
   "ChisqTestResult#summary": {
     "hash": "8ae44ea687be",
     "en": "Result of {@link chisqTest}. Has no `alternative`, because R's `chisq.test()` does not return one.",
-    "ja": ""
+    "ja": "{@link chisqTest} の結果です。R の `chisq.test()` は対立仮説を返さないため、`alternative` はありません。"
   },
   "ChisqTestResult.expected#summary": {
     "hash": "70fc5a97334c",
     "en": "Expected counts under the null hypothesis.",
-    "ja": ""
+    "ja": "帰無仮説の下での期待度数。"
   },
   "ChisqTestResult.ftResiduals#summary": {
     "hash": "7cf74be005a6",
     "en": "Freeman-Tukey deviates `sqrt(O) + sqrt(O + 1) - sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975; not in R),\napproximately standard normal under the null hypothesis; their sum of squares is the Freeman-Tukey statistic.",
-    "ja": ""
+    "ja": "Freeman-Tukey の偏差 `sqrt(O) + sqrt(O + 1) - sqrt(4E + 1)` (Bishop, Fienberg and Holland 1975。R にはありません)。\n帰無仮説の下でおおむね標準正規分布に従い、その二乗和が Freeman-Tukey 統計量です。"
   },
   "ChisqTestResult.observed#summary": {
     "hash": "f7786eddb2e4",
     "en": "Observed counts (an array of rows for a contingency table).",
-    "ja": ""
+    "ja": "観測度数 (分割表の場合は行の配列)。"
   },
   "ChisqTestResult.parameter#summary": {
     "hash": "cfbe40dcbc6d",
     "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
-    "ja": ""
+    "ja": "自由度 (`parameterName` は `\"df\"`)。"
   },
   "ChisqTestResult.residuals#summary": {
     "hash": "aec36391abe2",
     "en": "Pearson residuals `(O - E) / sqrt(E)`.",
-    "ja": ""
+    "ja": "Pearson の残差 `(O - E) / sqrt(E)`。"
   },
   "ChisqTestResult.stdres#summary": {
     "hash": "ad712fcc7ff3",
     "en": "Standardized residuals `(O - E) / sqrt(V)`, where `V` is\n`E (1 - row proportion) (1 - column proportion)` for a contingency table and\n`n p (1 - p)` for goodness of fit. For a contingency table the complements are the other rows' and columns'\nsums over the total, and the residual and `V` are computed in double-double.",
-    "ja": ""
+    "ja": "標準化残差 `(O - E) / sqrt(V)` です。ここで `V` は、分割表では\n`E (1 - row proportion) (1 - column proportion)`、\n適合度では `n p (1 - p)` です。分割表では、補数 (1 - 行の割合、1 - 列の割合) は、他の行の和と他の列の\n和を総和で割ったものです。残差と `V` は double-double で計算されます。"
   },
   "CorOptions#summary": {
     "hash": "3ab51340226f",
     "en": "The base of {@link CorTestOptions}: the options {@link corTest} shares with the coefficient. The options of the\nexported `cor` (descriptive statistics) are {@link CovOptions}.",
-    "ja": ""
+    "ja": "{@link CorTestOptions} の基底です: {@link corTest} が相関係数と共有するオプションです。\nエクスポートされた `cor` (記述統計) のオプションは {@link CovOptions} です。"
   },
   "CorOptions.method#summary": {
     "hash": "819fc6fb7f20",
     "en": "Correlation coefficient to compute. Default `\"pearson\"`. Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "計算する相関係数です。既定は `\"pearson\"`。曖昧さのない省略形も受け付けます。"
   },
   "CorTestOptions#summary": {
     "hash": "fbc5e7f8b14d",
     "en": "Options for {@link corTest}.",
-    "ja": ""
+    "ja": "{@link corTest} のオプション。"
   },
   "CorTestOptions.alternative#summary": {
     "hash": "a6e8572dfd6a",
     "en": "Alternative hypothesis: `\"two.sided\"`, `\"less\"` or `\"greater\"`. Default `\"two.sided\"`.\nUnambiguous abbreviations such as `\"two\"`, `\"l\"` and `\"g\"` are accepted, as in R.",
-    "ja": ""
+    "ja": "対立仮説: `\"two.sided\"`、`\"less\"`、または `\"greater\"`。既定は `\"two.sided\"`。\nR と同じく、`\"two\"`、`\"l\"`、`\"g\"` などの曖昧さのない省略形も受け付けます。"
   },
   "CorTestOptions.confLevel#summary": {
     "hash": "4e3fb48a84df",
     "en": "Confidence level of the interval (Pearson only; the interval needs at least 4 pairs). Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準 (Pearson のみ。区間には 4 組以上が必要です)。既定は `0.95`。"
   },
   "CorTestOptions.continuity#summary": {
     "hash": "eab3264a74a3",
     "en": "Apply a continuity correction when the approximation is used (Kendall and Spearman). Default `false`.",
-    "ja": ""
+    "ja": "近似を用いる場合 (Kendall と Spearman) に連続性補正を適用します。既定は `false`。"
   },
   "CorTestOptions.exact#summary": {
     "hash": "4371459ee799",
     "en": "Compute an exact p-value (Kendall and Spearman). Default: as in R, exact when there are\nno ties and n < 50 (Kendall) or n <= 1290 (Spearman). With ties the approximation is\nalways used. Kendall's exact distribution takes about n^3 / 2 steps: for n above 1290 (about 5 s)\n`exact: true` without ties is a RangeError (R computes it however long it takes).",
-    "ja": ""
+    "ja": "正確な p 値を求めます (Kendall と Spearman)。既定: R と同じく、同順位がなく\nn < 50 (Kendall) または n <= 1290 (Spearman) のときに正確法を使います。\n同順位がある場合は、常に近似を使います。Kendall の正確な分布には約 n^3 / 2 回の処理がかかります。n が 1290 を超える場合 (約 5 秒)\nは、同順位がなければ `exact: true` は RangeError になります (R はどれだけ時間がかかっても計算します)。"
   },
   "CorTestResult#summary": {
     "hash": "f401116a542d",
     "en": "Result of {@link corTest}. For Pearson, `statisticName` is `\"t\"` with `parameter` (df)\nand `confInt`; for Kendall `\"T\"` (exact) or `\"z\"`; for Spearman `\"S\"`.",
-    "ja": ""
+    "ja": "{@link corTest} の結果。Pearson の場合、`statisticName` は `\"t\"` で、`parameter` (df) と `confInt` を持ちます。\nKendall の場合は `\"T\"` (正確法) または `\"z\"`、Spearman の場合は `\"S\"` です。"
   },
   "CorTestResult.estimate#summary": {
     "hash": "5db9451f687c",
     "en": "Sample correlation coefficient.",
-    "ja": ""
+    "ja": "標本相関係数。"
   },
   "CorTestResult.estimateNames#summary": {
     "hash": "0f6a6cb81f95",
     "en": "`\"cor\"`, `\"tau\"` or `\"rho\"`.",
-    "ja": ""
+    "ja": "`\"cor\"`、`\"tau\"`、または `\"rho\"`。"
   },
   "CorTestResult.nullValue#summary": {
     "hash": "d06cb554ae85",
     "en": "Correlation under the null hypothesis: always `0`.",
-    "ja": ""
+    "ja": "帰無仮説の下での相関係数: 常に `0`。"
   },
   "CorTestResult.nullValueName#summary": {
     "hash": "ed64cb316ef7",
     "en": "`\"correlation\"`, `\"tau\"` or `\"rho\"`.",
-    "ja": ""
+    "ja": "`\"correlation\"`、`\"tau\"`、または `\"rho\"`。"
   },
   "Counts#summary": {
     "hash": "8bdfc906e2d0",
     "en": "Counts: an array of numbers. A contingency table is passed as an array of rows.",
-    "ja": ""
+    "ja": "度数: 数値の配列です。分割表は、行の配列として渡します。"
   },
   "CvmTestResult#summary": {
     "hash": "2e36a38faec8",
     "en": "Result of {@link cvmTest}, with nortest's warning for a p-value below the approximation's range.",
-    "ja": ""
+    "ja": "{@link cvmTest} の結果です。p 値が近似の範囲を下回る場合の nortest の警告を含みます。"
   },
   "CvmTestResult.warnings#summary": {
     "hash": "684b9afd8b5f",
     "en": "Warnings, as nortest gives them (empty when there are none).",
-    "ja": ""
+    "ja": "nortest が出す警告です (警告がない場合は空)。"
   },
   "Factor#summary": {
     "hash": "9967160d547d",
     "en": "A factor: category labels, with `null` or `undefined` for missing values (R's NA).",
-    "ja": ""
+    "ja": "因子: カテゴリのラベルです。欠測値は `null` または `undefined` で表します (R の NA)。"
   },
   "FisherTestOptions#summary": {
     "hash": "f0ad4ee1a7da",
     "en": "Options for {@link fisherTest}.",
-    "ja": ""
+    "ja": "{@link fisherTest} のオプション。"
   },
   "FisherTestOptions.B#summary": {
     "hash": "a573e76d2163",
     "en": "Number of replicates for `simulatePValue`. Default `2000`.",
-    "ja": ""
+    "ja": "`simulatePValue` の反復回数。既定は `2000`。"
   },
   "FisherTestOptions.alternative#summary": {
     "hash": "116299cecae5",
     "en": "Alternative hypothesis: `\"two.sided\"`, `\"less\"` or `\"greater\"`. Default `\"two.sided\"`.\nUnambiguous abbreviations are accepted. Used for 2 x 2 tables only.",
-    "ja": ""
+    "ja": "対立仮説: `\"two.sided\"`、`\"less\"`、または `\"greater\"`。既定は `\"two.sided\"`。\n曖昧さのない省略形も受け付けます。2 x 2 表でのみ使われます。"
   },
   "FisherTestOptions.confInt#summary": {
     "hash": "71ab0e293524",
     "en": "Compute a confidence interval for the odds ratio (2 x 2 tables only). Default `true`.",
-    "ja": ""
+    "ja": "オッズ比の区間を求めます (2 x 2 表のみ)。既定は `true`。"
   },
   "FisherTestOptions.confLevel#summary": {
     "hash": "ce0b0b4471d4",
     "en": "Confidence level of the interval (2 x 2 tables only). Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準 (2 x 2 表のみ)。既定は `0.95`。"
   },
   "FisherTestOptions.midp#summary": {
     "hash": "5e9bb6b3ec24",
     "en": "The mid-p version of the test of a 2 x 2 table (as `exact2x2::fisher.exact(x, midp = TRUE)`): the p-value and the\nconfidence limits from the mid-p tails P(X < x) + P(X = x)/2 and P(X > x) + P(X = x)/2 of the (1, 1) cell; the\ntwo-sided p-value is twice the smaller tail (the central test) and the estimate stays the conditional MLE. An error\nfor larger tables. Default `false`.",
-    "ja": ""
+    "ja": "2 x 2 表の検定の mid-p 版です (`exact2x2::fisher.exact(x, midp = TRUE)` と同じ)。p 値と信頼限界は、(1, 1) のセルの\nmid-p の裾 P(X < x) + P(X = x)/2 と P(X > x) + P(X = x)/2 から求めます。両側 p 値は、\n小さい方の裾の 2 倍です (central test)。\n推定値は条件付き最尤推定値のままです。より大きい表ではエラーになります。既定は `false`。"
   },
   "FisherTestOptions.or#summary": {
     "hash": "2188d989659c",
     "en": "Odds ratio under the null hypothesis (2 x 2 tables only). Default `1`.",
-    "ja": ""
+    "ja": "帰無仮説の下でのオッズ比 (2 x 2 表のみ)。既定は `1`。"
   },
   "FisherTestOptions.simulatePValue#summary": {
     "hash": "f60492a2e4ae",
     "en": "Compute the p-value of an r x c table (larger than 2 x 2) by Monte Carlo simulation with `B` replicates (R's\n`simulate.p.value`), using the random stream of {@link setSeed} as R does. Ignored for 2 x 2 tables. Default\n`false`.",
-    "ja": ""
+    "ja": "r x c 表 (2 x 2 より大きい) の p 値を、`B` 回の反復によるモンテカルロ・シミュレーションで求めます (R の\n`simulate.p.value`)。R と同じく {@link setSeed} の乱数ストリームを使います。2 x 2 表では無視されます。既定は\n`false`。"
   },
   "FisherTestResult#summary": {
     "hash": "0d50bae28036",
     "en": "Result of {@link fisherTest}. Has no `statistic` or `statisticName`, because R's\n`fisher.test()` does not return a statistic. For 2 x 2 tables, `estimate` is the\nconditional maximum likelihood estimate of the odds ratio and `confInt` its interval;\nfor larger tables only `method`, `alternative` and `pValue` are set.",
-    "ja": ""
+    "ja": "{@link fisherTest} の結果。`statistic` と `statisticName` はありません。R の\n`fisher.test()` は統計量を返さないためです。2 x 2 表では、`estimate` はオッズ比の\n条件付き最尤推定値で、`confInt` はその区間です。\nより大きい表では、`method`、`alternative`、`pValue` だけが設定されます。"
   },
   "GTestCorrection#summary": {
     "hash": "08050b65a63b",
     "en": "Corrections of {@link gTest}.",
-    "ja": ""
+    "ja": "{@link gTest} の補正。"
   },
   "GTestOptions#summary": {
     "hash": "3463dc2782fc",
     "en": "Options for {@link gTest}.",
-    "ja": ""
+    "ja": "{@link gTest} のオプション。"
   },
   "GTestOptions.correct#summary": {
     "hash": "d09e25d74767",
     "en": "`\"none\"` (default), `\"williams\"` (Williams' correction q of the statistic) or `\"yates\"` (Yates' correction of the\ncounts by 0.5, 2 x 2 tables and two-category goodness of fit only). Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "`\"none\"` (既定)、`\"williams\"` (統計量の Williams の補正 q)、または `\"yates\"` (度数を 0.5 ずつ修正する Yates の補正。\n2 x 2 表と 2 カテゴリの適合度検定のみ)。曖昧さのない省略形も受け付けます。"
   },
   "GTestOptions.p#summary": {
     "hash": "bc773b52d1f9",
     "en": "Expected probabilities for the goodness-of-fit test. Default: equal probabilities. Ignored for a table.",
-    "ja": ""
+    "ja": "適合度検定の期待確率です。既定: 等しい確率。表では無視されます。"
   },
   "GTestOptions.rescaleP#summary": {
     "hash": "ab1d405b4d77",
     "en": "Rescale `p` to sum to 1. Default `false`, in which case `p` must sum to 1 (within sqrt(eps)).",
-    "ja": ""
+    "ja": "`p` の合計が 1 になるように再スケールします。既定は `false` で、その場合 `p` の合計は 1 (sqrt(eps) の範囲内) である必要があります。"
   },
   "GTestResult#summary": {
     "hash": "65e2f1234233",
     "en": "Result of {@link gTest}. Has no `alternative`, as DescTools' `GTest` returns none.",
-    "ja": ""
+    "ja": "{@link gTest} の結果。DescTools の `GTest` は対立仮説を返さないため、`alternative` はありません。"
   },
   "GTestResult.expected#summary": {
     "hash": "70fc5a97334c",
     "en": "Expected counts under the null hypothesis.",
-    "ja": ""
+    "ja": "帰無仮説の下での期待度数。"
   },
   "GTestResult.ftResiduals#summary": {
     "hash": "307137f42387",
     "en": "Freeman-Tukey deviates `sqrt(O) + sqrt(O + 1) - sqrt(4E + 1)` of the counts given (without Yates' correction),\napproximately standard normal under the null hypothesis.",
-    "ja": ""
+    "ja": "与えられた度数の Freeman-Tukey の偏差 `sqrt(O) + sqrt(O + 1) - sqrt(4E + 1)` (Yates の補正なし)、\n帰無仮説の下でおおむね標準正規分布に従います。"
   },
   "GTestResult.observed#summary": {
     "hash": "28dc843bf328",
     "en": "The counts, after Yates' correction where it is applied (as DescTools); an array of rows for a table.",
-    "ja": ""
+    "ja": "度数です。Yates の補正が適用される場合は、補正後の値です (DescTools と同じ)。表の場合は行の配列です。"
   },
   "GTestResult.parameter#summary": {
     "hash": "6ccaa46971f2",
     "en": "Degrees of freedom (`parameterName` is `\"X-squared df\"`, as DescTools).",
-    "ja": ""
+    "ja": "自由度 (`parameterName` は `\"X-squared df\"`、DescTools と同じ)。"
   },
   "GoodmanKruskalGammaOptions#summary": {
     "hash": "b92aaab32a82",
     "en": "Options for {@link goodmanKruskalGamma}.",
-    "ja": ""
+    "ja": "{@link goodmanKruskalGamma} のオプション。"
   },
   "GoodmanKruskalGammaOptions.confLevel#summary": {
     "hash": "b0d0ad298ae4",
     "en": "Confidence level of `confInt`, in (0, 1). Default `0.95`.",
-    "ja": ""
+    "ja": "`confInt` の信頼水準。(0, 1) の範囲です。既定は `0.95`。"
   },
   "GoodmanKruskalGammaResult#summary": {
     "hash": "322ccd09d7c5",
     "en": "Result of {@link goodmanKruskalGamma}.",
-    "ja": ""
+    "ja": "{@link goodmanKruskalGamma} の結果。"
   },
   "GoodmanKruskalGammaResult.ase#summary": {
     "hash": "707d17d15057",
     "en": "The asymptotic standard error ASE1 (not under the null hypothesis).",
-    "ja": ""
+    "ja": "漸近標準誤差 ASE1 です (帰無仮説の下での値ではありません)。"
   },
   "GoodmanKruskalGammaResult.confInt#summary": {
     "hash": "a6cf1f5222b4",
     "en": "The Wald interval `gamma -/+ z ase`, clipped to [-1, 1].",
-    "ja": ""
+    "ja": "Wald 区間 `gamma -/+ z ase` を [-1, 1] に切り詰めたものです。"
   },
   "GoodmanKruskalGammaResult.confLevel#summary": {
     "hash": "8fcc737ed74a",
     "en": "The confidence level of `confInt`.",
-    "ja": ""
+    "ja": "`confInt` の信頼水準です。"
   },
   "GoodmanKruskalGammaResult.estimate#summary": {
     "hash": "af95d7827ff1",
     "en": "Gamma, `(C - D) / (C + D)` with C and D the numbers of concordant and discordant pairs (NaN when both are 0).",
-    "ja": ""
+    "ja": "ガンマ。`(C - D) / (C + D)` で、C と D はそれぞれ一致する組と不一致の組の数です (両方が 0 のとき NaN)。"
   },
   "GoodmanKruskalGammaResult.warnings#summary": {
     "hash": "607e20354a58",
     "en": "Warnings (none: DescTools gives none either).",
-    "ja": ""
+    "ja": "警告 (なし。DescTools も警告を出しません)。"
   },
   "GroupLabel#summary": {
     "hash": "c08ecffce933",
     "en": "Group label: a number or a string.",
-    "ja": ""
+    "ja": "群のラベル: 数値または文字列です。"
   },
   "HTest#summary": {
     "hash": "d0b8741cc39f",
     "en": "Result of a hypothesis test: a plain object mirroring R's `htest` class.\n\nR's named values (`statistic`, `parameter`, `estimate`, `null.value`) are split into a\nnumber and a separate `...Name` field. `estimate` is an array only when there are two\nestimates (for example the two means of a two-sample t-test). `conf.int`'s\n`conf.level` attribute becomes `confLevel`.",
-    "ja": ""
+    "ja": "検定結果: R の `htest` クラスに対応する単純なオブジェクトです。\n\nR の名前付きの値 (`statistic`、`parameter`、`estimate`、`null.value`) は、数値と、別の `...Name` フィールドに\n分けられます。`estimate` が配列になるのは、推定値が 2 つある場合 (例: 2 標本の t 検定の 2 つの平均) だけです。\n`conf.int` の\n`conf.level` 属性は `confLevel` になります。"
   },
   "HTest.alternative#summary": {
     "hash": "c113a2d4dc0a",
     "en": "Alternative hypothesis, always in full form.",
-    "ja": ""
+    "ja": "対立仮説です。常に省略しない形で示します。"
   },
   "HTest.confInt#summary": {
     "hash": "9f6227be89c4",
     "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
+    "ja": "信頼区間 `[lower, upper]` (R の `conf.int`)。"
   },
   "HTest.confLevel#summary": {
     "hash": "61d80d95e5f2",
     "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
+    "ja": "`confInt` の信頼水準 (R の `attr(conf.int, \"conf.level\")`)。"
   },
   "HTest.estimate#summary": {
     "hash": "26d55f53a245",
     "en": "Estimate(s) of the parameter being tested (R's `estimate`).",
-    "ja": ""
+    "ja": "検定の対象となる母数の推定値 (複数の場合があります。R の `estimate`)。"
   },
   "HTest.estimateNames#summary": {
     "hash": "b2ce6760854d",
     "en": "Name(s) of `estimate` (R's `names(estimate)`), e.g. `\"mean of x\"`.",
-    "ja": ""
+    "ja": "`estimate` の名前 (複数の場合があります。R の `names(estimate)`)。例: `\"mean of x\"`。"
   },
   "HTest.method#summary": {
     "hash": "9d94b36ac561",
     "en": "Description of the test, as R's `method` (e.g. `\"Welch Two Sample t-test\"`).",
-    "ja": ""
+    "ja": "検定の説明です (R の `method` と同じ。例: `\"Welch Two Sample t-test\"`)。"
   },
   "HTest.nullValue#summary": {
     "hash": "86f472baf058",
     "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
+    "ja": "帰無仮説の下での母数の値 (R の `null.value`)。"
   },
   "HTest.nullValueName#summary": {
     "hash": "56259eaa4ede",
     "en": "Name of `nullValue` (R's `names(null.value)`), e.g. `\"difference in means\"`.",
-    "ja": ""
+    "ja": "`nullValue` の名前 (R の `names(null.value)`)。例: `\"difference in means\"`。"
   },
   "HTest.pValue#summary": {
     "hash": "07c6b08e520c",
     "en": "p-value of the test (R's `p.value`).",
-    "ja": ""
+    "ja": "検定の p 値 (R の `p.value`)。"
   },
   "HTest.parameter#summary": {
     "hash": "1343f6628cf5",
     "en": "Parameter of the null distribution of the statistic, such as degrees of freedom (R's `parameter`).",
-    "ja": ""
+    "ja": "統計量の帰無分布のパラメータです。自由度など (R の `parameter`)。"
   },
   "HTest.parameterName#summary": {
     "hash": "d82a7793eb9c",
     "en": "Name of `parameter` (e.g. `\"df\"`).",
-    "ja": ""
+    "ja": "`parameter` の名前 (例: `\"df\"`)。"
   },
   "HTest.statistic#summary": {
     "hash": "724e53f0b3fb",
     "en": "Value of the test statistic (R's `statistic`).",
-    "ja": ""
+    "ja": "検定統計量の値 (R の `statistic`)。"
   },
   "HTest.statisticName#summary": {
     "hash": "be62a5e97dfc",
     "en": "Name of the test statistic (e.g. `\"t\"`, `\"X-squared\"`, `\"V\"`, `\"W\"`).",
-    "ja": ""
+    "ja": "検定統計量の名前 (例: `\"t\"`、`\"X-squared\"`、`\"V\"`、`\"W\"`)。"
   },
   "HTest.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "JonckheereAlternative#summary": {
     "hash": "5f327267a1c1",
     "en": "Alternative of {@link jonckheereTest}.",
-    "ja": ""
+    "ja": "{@link jonckheereTest} の対立仮説。"
   },
   "JonckheereTestOptions#summary": {
     "hash": "a02bde5df153",
     "en": "Options for {@link jonckheereTest}.",
-    "ja": ""
+    "ja": "{@link jonckheereTest} のオプション。"
   },
   "JonckheereTestOptions.alternative#summary": {
     "hash": "066b1e82b18e",
     "en": "`\"two.sided\"` (default), `\"increasing\"` or `\"decreasing\"` (unambiguous abbreviations accepted).",
-    "ja": ""
+    "ja": "`\"two.sided\"` (既定)、`\"increasing\"`、または `\"decreasing\"` (曖昧さのない省略形も受け付けます)。"
   },
   "JonckheereTestOptions.exact#summary": {
     "hash": "15e8679f26b2",
     "en": "The exact p-value (`\"DescTools\"` only). Default: exact when there are no ties and at most 100 observations. With\nties the normal approximation is used anyway, with a warning. The exact distribution is the convolution of the\nMann-Whitney distributions; where it would have more than 2^24 values or take more than 2^32 multiply-adds\n(three groups of 215, about 8 s), `exact: true` is a RangeError (R computes it however long it takes).",
-    "ja": ""
+    "ja": "正確な p 値です (`\"DescTools\"` のみ)。既定: 同順位がなく、観測数が 100 以下のときに正確法。同順位がある場合は、いずれにせよ正規近似を用い、警告を出します。\n正確な分布は Mann-Whitney 分布の畳み込みです。\n値の数が 2^24 を超える場合、または 2^32 回を超える乗算と加算が必要な場合\n(3 群それぞれ 215 個、約 8 秒) は、`exact: true` は RangeError になります (R はどれだけ時間がかかっても計算します)。"
   },
   "JonckheereTestOptions.levels#summary": {
     "hash": "399b400be1e3",
     "en": "The order of the groups. Default: the labels sorted (numbers as numbers, strings by code point).",
-    "ja": ""
+    "ja": "群の順序です。既定: ラベルを並べ替えたもの (数値は数値として、文字列はコードポイント順)。"
   },
   "JonckheereTestOptions.variant#summary": {
     "hash": "68b217b63996",
     "en": "`\"DescTools\"` (default: `JonckheereTerpstraTest`) or `\"clinfun\"` (`jonckheere.test`).",
-    "ja": ""
+    "ja": "`\"DescTools\"` (既定: `JonckheereTerpstraTest`) または `\"clinfun\"` (`jonckheere.test`)。"
   },
   "JonckheereTestResult#summary": {
     "hash": "0053d7dc720f",
     "en": "Result of {@link jonckheereTest}.",
-    "ja": ""
+    "ja": "{@link jonckheereTest} の結果。"
   },
   "JonckheereTestResult.alternative#summary": {
     "hash": "8aa94df2af8d",
     "en": "Alternative hypothesis: `\"two.sided\"`, `\"increasing\"` or `\"decreasing\"`.",
-    "ja": ""
+    "ja": "対立仮説: `\"two.sided\"`、`\"increasing\"`、または `\"decreasing\"`。"
   },
   "JonckheereTestResult.warnings#summary": {
     "hash": "d8cc3bb5d55c",
     "en": "The packages' warnings (normal approximation).",
-    "ja": ""
+    "ja": "パッケージの警告です (正規近似によるもの)。"
   },
   "KsTestOptions#summary": {
     "hash": "0d12d6a2cd4a",
     "en": "Options for {@link ksTest}.",
-    "ja": ""
+    "ja": "{@link ksTest} のオプション。"
   },
   "KsTestOptions.alternative#summary": {
     "hash": "0d09074af6c0",
     "en": "Alternative hypothesis (unambiguous abbreviations accepted). `\"greater\"`: the distribution function of `x` lies\nabove that of `y` (statistic D^+); `\"less\"`: below (D^-). Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "対立仮説 (曖昧さのない省略形も受け付けます)。`\"greater\"`: `x` の分布関数が `y` の分布関数より上にある (統計量 D^+)。\n`\"less\"`: 下にある (D^-)。既定は `\"two.sided\"`。"
   },
   "KsTestOptions.exact#summary": {
     "hash": "ab5b3053c66c",
     "en": "Exact p-value. Default: exact for one sample of fewer than 100 values without ties, and for two samples with\nm n < 10000. The exact two-sided one-sample p-value for D < 1/2 raises a matrix of size 2 floor(n D) + 1 to the\nn-th power; where that needs more than 2^33 multiply-adds (m 781 at n 1023, about 4 s) it is a RangeError (R\ncomputes it however long it takes).",
-    "ja": ""
+    "ja": "正確な p 値です。既定: 1 標本の場合は、同順位がなく 100 未満の値に対して正確法。2 標本の場合は、\nm n < 10000 のときに正確法 (同順位の有無は問いません)。両側の 1 標本の p 値 (D < 1/2) は、2 floor(n D) + 1 の大きさの行列を n 乗します。\nそれに 2^33 回を超える乗算と加算が必要な場合 (n 1023 のとき m 781、約 4 秒) は RangeError になります (R はどれだけ時間がかかっても\n計算します)。"
   },
   "KsTestResult#summary": {
     "hash": "e3eaaafac42f",
     "en": "Result of {@link ksTest}. As in R, `alternative` describes the hypothesis in words (\"two-sided\", \"the CDF of x lies\nabove the null hypothesis\", ...), and `exact` tells whether the p-value is exact.",
-    "ja": ""
+    "ja": "{@link ksTest} の結果。R と同じく、`alternative` は仮説を言葉で表します (\"two-sided\"、\"the CDF of x lies\nabove the null hypothesis\" など)。`exact` は p 値が正確かどうかを示します。"
   },
   "KsTestResult.alternative#summary": {
     "hash": "85b682e4165d",
     "en": "Description of the alternative hypothesis, as R prints it (e.g. `\"two-sided\"`).",
-    "ja": ""
+    "ja": "対立仮説の説明です。R が表示するとおりです (例: `\"two-sided\"`)。"
   },
   "KsTestResult.exact#summary": {
     "hash": "caa6a8715f13",
     "en": "Whether the p-value is exact.",
-    "ja": ""
+    "ja": "p 値が正確かどうかです。"
   },
   "LblTestOptions#summary": {
     "hash": "bc3e6ab41f29",
     "en": "Options for {@link lblTest}.",
-    "ja": ""
+    "ja": "{@link lblTest} のオプション。"
   },
   "LblTestOptions.alternative#summary": {
     "hash": "44e7273422d5",
     "en": "`\"two.sided\"` (default), `\"less\"` (negative association) or `\"greater\"` (positive association).",
-    "ja": ""
+    "ja": "`\"two.sided\"` (既定)、`\"less\"` (負の関連)、または `\"greater\"` (正の関連)。"
   },
   "LblTestOptions.colScores#summary": {
     "hash": "b5f2d3b92537",
     "en": "Scores of the columns. Default `1, 2, ..., c`.",
-    "ja": ""
+    "ja": "列の得点です。既定は `1, 2, ..., c`。"
   },
   "LblTestOptions.rowScores#summary": {
     "hash": "d66959e77208",
     "en": "Scores of the rows. Default `1, 2, ..., r`.",
-    "ja": ""
+    "ja": "行の得点です。既定は `1, 2, ..., r`。"
   },
   "LblTestResult#summary": {
     "hash": "aea2941a982e",
     "en": "Result of {@link lblTest}.",
-    "ja": ""
+    "ja": "{@link lblTest} の結果。"
   },
   "LeveneTestOptions#summary": {
     "hash": "643fa51ec1be",
     "en": "Options for {@link leveneTest}.",
-    "ja": ""
+    "ja": "{@link leveneTest} のオプション。"
   },
   "LeveneTestOptions.center#summary": {
     "hash": "03c49a7b30c1",
     "en": "The centre of each group: `\"median\"` (default) or `\"mean\"`.",
-    "ja": ""
+    "ja": "各群の中心: `\"median\"` (既定) または `\"mean\"`。"
   },
   "LeveneTestResult#summary": {
     "hash": "60bf8ee6a3dd",
     "en": "Result of {@link leveneTest}: car's table.",
-    "ja": ""
+    "ja": "{@link leveneTest} の結果です: car の表。"
   },
   "LeveneTestResult.colNames#summary": {
     "hash": "915e15950702",
     "en": "`[\"Df\", \"F value\", \"Pr(>F)\"]`.",
-    "ja": ""
+    "ja": "`[\"Df\", \"F value\", \"Pr(>F)\"]`。"
   },
   "LeveneTestResult.rowNames#summary": {
     "hash": "c9af4670a501",
     "en": "`[\"group\", \"\"]` (the second row is the residuals).",
-    "ja": ""
+    "ja": "`[\"group\", \"\"]` (2 行目は残差)。"
   },
   "LeveneTestResult.table#summary": {
     "hash": "46d89aa52794",
     "en": "One array per row; NaN where car prints nothing.",
-    "ja": ""
+    "ja": "行ごとの配列です。car が何も表示しない箇所は NaN です。"
   },
   "LeveneTestResult.warnings#summary": {
     "hash": "f41315c05954",
     "en": "R's warnings, each once, in R's order (an empty array when there are none).",
-    "ja": ""
+    "ja": "R の警告。各警告は 1 回ずつ、R と同じ順序で並びます (警告がない場合は空の配列)。"
   },
   "MantelhaenTestOptions#summary": {
     "hash": "896b0e107f80",
     "en": "Options for {@link mantelhaenTest}.",
-    "ja": ""
+    "ja": "{@link mantelhaenTest} のオプション。"
   },
   "MantelhaenTestOptions.alternative#summary": {
     "hash": "5df45d7c25da",
     "en": "Alternative hypothesis (2 x 2 x K only). Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "対立仮説 (2 x 2 x K のみ)。既定は `\"two.sided\"`。"
   },
   "MantelhaenTestOptions.confLevel#summary": {
     "hash": "c4d2ea9702e6",
     "en": "Confidence level of the interval for the common odds ratio. Default `0.95`.",
-    "ja": ""
+    "ja": "共通のオッズ比の区間の信頼水準。既定は `0.95`。"
   },
   "MantelhaenTestOptions.correct#summary": {
     "hash": "57f9c667d8c2",
     "en": "Continuity correction (2 x 2 x K, asymptotic test). Default `true`.",
-    "ja": ""
+    "ja": "連続性補正 (2 x 2 x K、漸近検定)。既定は `true`。"
   },
   "MantelhaenTestOptions.exact#summary": {
     "hash": "88be8b34fd63",
     "en": "Exact conditional test (2 x 2 x K). Default `false`.",
-    "ja": ""
+    "ja": "正確な条件付き検定 (2 x 2 x K)。既定は `false`。"
   },
   "MantelhaenTestResult#summary": {
     "hash": "2d8b6bffa409",
     "en": "Result of {@link mantelhaenTest}. 2 x 2 x K tables add the common odds ratio and its interval.",
-    "ja": ""
+    "ja": "{@link mantelhaenTest} の結果。2 x 2 x K の表では、共通のオッズ比とその区間も加わります。"
   },
   "MantelhaenTestResult.alternative#summary": {
     "hash": "776d308b22a8",
     "en": "Present for 2 x 2 x K tables.",
-    "ja": ""
+    "ja": "2 x 2 x K の表の場合にあります。"
   },
   "McnemarTestOptions#summary": {
     "hash": "8510ca65f4a2",
     "en": "Options for {@link mcnemarTest}.",
-    "ja": ""
+    "ja": "{@link mcnemarTest} のオプション。"
   },
   "McnemarTestOptions.correct#summary": {
     "hash": "86b346f91716",
     "en": "Apply the continuity correction (2 x 2 tables only). Default `true`.",
-    "ja": ""
+    "ja": "連続性補正を適用します (2 x 2 表のみ)。既定は `true`。"
   },
   "McnemarTestResult#summary": {
     "hash": "5aa35fd14888",
     "en": "Result of {@link mcnemarTest}. Has no `alternative`, as R's `mcnemar.test()` returns none.",
-    "ja": ""
+    "ja": "{@link mcnemarTest} の結果。R の `mcnemar.test()` は対立仮説を返さないため、`alternative` はありません。"
   },
   "McnemarTestResult.parameter#summary": {
     "hash": "cfbe40dcbc6d",
     "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
-    "ja": ""
+    "ja": "自由度 (`parameterName` は `\"df\"`)。"
   },
   "MoodTestOptions#summary": {
     "hash": "550b2e130d32",
     "en": "Options for {@link moodTest}.",
-    "ja": ""
+    "ja": "{@link moodTest} のオプション。"
   },
   "MoodTestOptions.alternative#summary": {
     "hash": "f6f27d3b58dd",
     "en": "Alternative hypothesis (unambiguous abbreviations accepted). Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "対立仮説 (曖昧さのない省略形も受け付けます)。既定は `\"two.sided\"`。"
   },
   "NormalityTestResult#summary": {
     "hash": "a7d34529ac89",
     "en": "Result of a normality test: no `alternative`, as nortest returns none.",
-    "ja": ""
+    "ja": "正規性の検定の結果です。nortest は対立仮説を返さないため、`alternative` はありません。"
   },
   "OddsRatioMethod#summary": {
     "hash": "a92743eccc7a",
     "en": "Methods of {@link oddsRatio}.",
-    "ja": ""
+    "ja": "{@link oddsRatio} の方法。"
   },
   "OddsRatioOptions#summary": {
     "hash": "8d274afe8818",
     "en": "Options for {@link oddsRatio}.",
-    "ja": ""
+    "ja": "{@link oddsRatio} のオプション。"
   },
   "OddsRatioOptions.confLevel#summary": {
     "hash": "76045c457fcf",
     "en": "Confidence level, in (0, 1). Default `0.95`.",
-    "ja": ""
+    "ja": "信頼水準 (0, 1 の範囲)。既定は `0.95`。"
   },
   "OddsRatioOptions.method#summary": {
     "hash": "40cb138f9c44",
     "en": "`\"midp\"` (the default: median-unbiased estimate and mid-p exact interval), `\"fisher\"` (conditional MLE and\n Fisher's exact interval), `\"wald\"` or `\"score\"` (epiR's score interval). Unambiguous abbreviations accepted.",
-    "ja": ""
+    "ja": "`\"midp\"` (既定: 中央値不偏推定値と mid-p の正確な区間)、`\"fisher\"` (条件付き最尤推定値と Fisher の正確な区間)、`\"wald\"`、\nまたは `\"score\"` (epiR のスコア区間)。曖昧さのない省略形も受け付けます。"
   },
   "OddsRatioResult#summary": {
     "hash": "0f698f5febc1",
     "en": "Result of {@link oddsRatio}.",
-    "ja": ""
+    "ja": "{@link oddsRatio} の結果。"
   },
   "OddsRatioResult.confInt#summary": {
     "hash": "3f84ba7a83ce",
     "en": "`[lower, upper]`.",
-    "ja": ""
+    "ja": "`[lower, upper]`。"
   },
   "OddsRatioResult.confLevel#summary": {
     "hash": "b01d237f1ff5",
     "en": "The confidence level.",
-    "ja": ""
+    "ja": "信頼水準です。"
   },
   "OddsRatioResult.estimate#summary": {
     "hash": "71acaac046b1",
     "en": "The odds ratio: the median-unbiased estimate (`\"midp\"`), the conditional MLE (`\"fisher\"`) or the sample odds\n ratio x11 x22 / (x12 x21) (`\"wald\"`, `\"score\"`).",
-    "ja": ""
+    "ja": "オッズ比です: 中央値不偏推定値 (`\"midp\"`)、条件付き最尤推定値 (`\"fisher\"`)、または標本のオッズ比 x11 x22 / (x12 x21) (`\"wald\"`、\n`\"score\"`)。"
   },
   "OddsRatioResult.method#summary": {
     "hash": "104542c68410",
     "en": "epitools' description of the method (e.g. `\"median-unbiased estimate & mid-p exact CI\"`).",
-    "ja": ""
+    "ja": "epitools による方法の説明です (例: `\"median-unbiased estimate & mid-p exact CI\"`)。"
   },
   "OddsRatioResult.pValue#summary": {
     "hash": "3bf69996bbf5",
     "en": "epitools' p-values of independence, the same for every method.",
-    "ja": ""
+    "ja": "epitools の独立性の p 値です。どの方法でも同じです。"
   },
   "OddsRatioResult.pValue.chiSquare#summary": {
     "hash": "b663af2f9242",
     "en": "Pearson's chi-squared test without continuity correction.",
-    "ja": ""
+    "ja": "連続性補正なしの Pearson のカイ二乗検定。"
   },
   "OddsRatioResult.pValue.fisher#summary": {
     "hash": "a0cb2fa350d3",
     "en": "Fisher's exact two-sided p-value (as {@link fisherTest}).",
-    "ja": ""
+    "ja": "Fisher の両側正確 p 値 ({@link fisherTest} と同じ)。"
   },
   "OddsRatioResult.pValue.midp#summary": {
     "hash": "f999f77aba32",
     "en": "The two-sided mid-p exact p-value: twice the smaller one-sided mid-p value P(X < a) + P(X = a)/2.",
-    "ja": ""
+    "ja": "両側の mid-p 正確 p 値です: 小さい方の片側 mid-p 値 P(X < a) + P(X = a)/2 の 2 倍です。"
   },
   "OddsRatioResult.warnings#summary": {
     "hash": "a7581622fea0",
     "en": "R's warnings (\"Chi-squared approximation may be incorrect\" where an expected count is below 5).",
-    "ja": ""
+    "ja": "R の警告 (\"Chi-squared approximation may be incorrect\"。期待度数が 5 未満の場合に出ます)。"
   },
   "OnewayTestOptions#summary": {
     "hash": "4b8390b9d48c",
     "en": "Options for {@link onewayTest}.",
-    "ja": ""
+    "ja": "{@link onewayTest} のオプション。"
   },
   "OnewayTestOptions.varEqual#summary": {
     "hash": "f6d8c6620501",
     "en": "Assume equal variances (the classical F test). Default `false` (Welch's test).",
-    "ja": ""
+    "ja": "等分散を仮定します (古典的な F 検定)。既定は `false` (Welch の検定)。"
   },
   "OnewayTestResult#summary": {
     "hash": "cbf7abc8b1bd",
     "en": "Result of {@link onewayTest}: an F statistic with two degrees of freedom.",
-    "ja": ""
+    "ja": "{@link onewayTest} の結果です: 2 つの自由度をもつ F 統計量です。"
   },
   "OnewayTestResult.parameter#summary": {
     "hash": "4bf7f2409cea",
     "en": "`[num df, denom df]`.",
-    "ja": ""
+    "ja": "`[num df, denom df]`。"
   },
   "OnewayTestResult.parameterName#summary": {
     "hash": "50fbb2c08c12",
     "en": "Names of `parameter`: `[\"num df\", \"denom df\"]`.",
-    "ja": ""
+    "ja": "`parameter` の名前: `[\"num df\", \"denom df\"]`。"
   },
   "PearsonTestOptions#summary": {
     "hash": "b77dddc8f92b",
     "en": "Options for {@link pearsonTest}.",
-    "ja": ""
+    "ja": "{@link pearsonTest} のオプション。"
   },
   "PearsonTestOptions.adjust#summary": {
     "hash": "0d346b848a0b",
     "en": "Subtract the 2 estimated parameters from the degrees of freedom. Default `true`.",
-    "ja": ""
+    "ja": "推定した 2 個のパラメータを自由度から引きます。既定は `true`。"
   },
   "PearsonTestOptions.nClasses#summary": {
     "hash": "0d297f990353",
     "en": "Number of classes. Default `ceil(2 n^(2/5))`.",
-    "ja": ""
+    "ja": "区分の数。既定は `ceil(2 n^(2/5))`。"
   },
   "PoissonTestOptions#summary": {
     "hash": "80bb205f77a4",
     "en": "Options for {@link poissonTest}.",
-    "ja": ""
+    "ja": "{@link poissonTest} のオプション。"
   },
   "PoissonTestOptions.T#summary": {
     "hash": "1bf36a448a89",
     "en": "Time base(s): one per count, positive and finite (R accepts 0 and returns NaN or Inf; an error here). Default `1` (or `[1, 1]`).",
-    "ja": ""
+    "ja": "時間の基準です。観測値ごとに 1 つで、正の有限値である必要があります (R は 0 を受け付け、NaN や Inf を返しますが、ここではエラーになります)。既定は `1` (または `[1, 1]`)。"
   },
   "PoissonTestOptions.alternative#summary": {
     "hash": "f6f27d3b58dd",
     "en": "Alternative hypothesis (unambiguous abbreviations accepted). Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "対立仮説 (曖昧さのない省略形も受け付けます)。既定は `\"two.sided\"`。"
   },
   "PoissonTestOptions.confLevel#summary": {
     "hash": "ccfda40f60f0",
     "en": "Confidence level of the interval. Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準。既定は `0.95`。"
   },
   "PoissonTestOptions.r#summary": {
     "hash": "a502ac4a5338",
     "en": "Hypothesized rate, or rate ratio for two samples (nonnegative). Default `1`.",
-    "ja": ""
+    "ja": "仮説上の率です。2 標本の場合は率の比です (非負)。既定は `1`。"
   },
   "PoissonTestResult#summary": {
     "hash": "efff10c0b5bb",
     "en": "Result of {@link poissonTest}.",
-    "ja": ""
+    "ja": "{@link poissonTest} の結果。"
   },
   "PoissonTestResult.confInt#summary": {
     "hash": "9f6227be89c4",
     "en": "Confidence interval `[lower, upper]` (R's `conf.int`).",
-    "ja": ""
+    "ja": "信頼区間 `[lower, upper]` (R の `conf.int`)。"
   },
   "PoissonTestResult.confLevel#summary": {
     "hash": "61d80d95e5f2",
     "en": "Confidence level of `confInt` (R's `attr(conf.int, \"conf.level\")`).",
-    "ja": ""
+    "ja": "`confInt` の信頼水準 (R の `attr(conf.int, \"conf.level\")`)。"
   },
   "PoissonTestResult.estimate#summary": {
     "hash": "530f611d5c9b",
     "en": "Event rate (one sample) or rate ratio (two samples).",
-    "ja": ""
+    "ja": "事象率 (1 標本) または率の比 (2 標本)。"
   },
   "PoissonTestResult.nullValue#summary": {
     "hash": "86f472baf058",
     "en": "Value of the parameter under the null hypothesis (R's `null.value`).",
-    "ja": ""
+    "ja": "帰無仮説の下での母数の値 (R の `null.value`)。"
   },
   "PoissonTestResult.parameter#summary": {
     "hash": "e551d05a8831",
     "en": "Time base (one sample) or expected first count under the null hypothesis (two samples).",
-    "ja": ""
+    "ja": "時間の基準 (1 標本)、または帰無仮説の下での最初の度数の期待値 (2 標本)。"
   },
   "PropTestOptions#summary": {
     "hash": "66fa51d26fda",
     "en": "Options for {@link propTest}.",
-    "ja": ""
+    "ja": "{@link propTest} のオプション。"
   },
   "PropTestOptions.alternative#summary": {
     "hash": "a922f66c0a32",
     "en": "Alternative hypothesis (one or two groups without `p`; otherwise only `\"two.sided\"`). Default `\"two.sided\"`.",
-    "ja": ""
+    "ja": "対立仮説 (1 群または 2 群で `p` を指定しない場合。それ以外では `\"two.sided\"` のみ)。既定は `\"two.sided\"`。"
   },
   "PropTestOptions.confLevel#summary": {
     "hash": "ccfda40f60f0",
     "en": "Confidence level of the interval. Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準。既定は `0.95`。"
   },
   "PropTestOptions.correct#summary": {
     "hash": "90dc888d7969",
     "en": "Apply the continuity correction (one or two groups). Default `true`.",
-    "ja": ""
+    "ja": "連続性補正を適用します (1 群または 2 群の場合)。既定は `true`。"
   },
   "PropTestOptions.p#summary": {
     "hash": "4ba93c608d9a",
     "en": "Hypothesized proportion(s), one per group, each strictly between 0 and 1. Default: `0.5` for one group, and\n equality of the proportions for several.",
-    "ja": ""
+    "ja": "仮説上の比率です。群ごとに 1 つずつで、それぞれ 0 より大きく 1 より小さい値である必要があります。既定: 1 群の場合は `0.5`、\n複数の群の場合は比率が等しいこと。"
   },
   "PropTestResult#summary": {
     "hash": "5013e779b579",
     "en": "Result of {@link propTest}.",
-    "ja": ""
+    "ja": "{@link propTest} の結果。"
   },
   "PropTestResult.estimate#summary": {
     "hash": "83dcd20d49ac",
     "en": "The observed proportion(s).",
-    "ja": ""
+    "ja": "観測された比率です。"
   },
   "PropTestResult.nullValue#summary": {
     "hash": "e534fcc1fd24",
     "en": "Hypothesized proportion(s), when given or for one group.",
-    "ja": ""
+    "ja": "仮説上の比率です (指定された場合、または 1 群の場合)。"
   },
   "PropTestResult.nullValueName#summary": {
     "hash": "2a8de5c11443",
     "en": "Names of `nullValue` (R's `names(null.value)`), one per group.",
-    "ja": ""
+    "ja": "`nullValue` の名前 (R の `names(null.value)`)。群ごとに 1 つです。"
   },
   "PropTestResult.parameter#summary": {
     "hash": "cfbe40dcbc6d",
     "en": "Degrees of freedom (`parameterName` is `\"df\"`).",
-    "ja": ""
+    "ja": "自由度 (`parameterName` は `\"df\"`)。"
   },
   "PropTrendTestOptions#summary": {
     "hash": "685e11db9c98",
     "en": "Options for {@link propTrendTest}.",
-    "ja": ""
+    "ja": "{@link propTrendTest} のオプション。"
   },
   "PropTrendTestOptions.score#summary": {
     "hash": "a8ada524f6bc",
     "en": "Scores of the groups (as the third argument `score`). Default `1, 2, ..., k`.",
-    "ja": ""
+    "ja": "群の得点です (3 番目の引数 `score` として)。既定は `1, 2, ..., k`。"
   },
   "PropTrendTestResult#summary": {
     "hash": "2340b65c6324",
     "en": "Result of {@link propTrendTest}: no `alternative`, as R returns none.",
-    "ja": ""
+    "ja": "{@link propTrendTest} の結果: R は対立仮説を返さないため、`alternative` はありません。"
   },
   "PropTrendTestResult.parameter#summary": {
     "hash": "a6ace19b96d4",
     "en": "Degrees of freedom (1).",
-    "ja": ""
+    "ja": "自由度 (1)。"
   },
   "ProportionCIResult#summary": {
     "hash": "a1d4edc3cb09",
     "en": "A confidence interval for a proportion, a difference or a ratio of proportions.",
-    "ja": ""
+    "ja": "比率、比率の差、または比率の比の信頼区間です。"
   },
   "ProportionCIResult.confInt#summary": {
     "hash": "68871638de96",
     "en": "`[lower, upper]`; with `sides: \"left\"` the upper end of the range, with `\"right\"` the lower end.",
-    "ja": ""
+    "ja": "`[lower, upper]`。`sides: \"left\"` のときは上端が範囲の端、`\"right\"` のときは下端が範囲の端です。"
   },
   "ProportionCIResult.confLevel#summary": {
     "hash": "20b3c34e0e15",
     "en": "The confidence level given (of the one-sided limit, for `sides` other than `\"two.sided\"`).",
-    "ja": ""
+    "ja": "指定された信頼水準です (`sides` が `\"two.sided\"` 以外の場合は、片側の限界の信頼水準です)。"
   },
   "ProportionCIResult.estimate#summary": {
     "hash": "386f1a128c92",
     "en": "The point estimate.",
-    "ja": ""
+    "ja": "点推定値です。"
   },
   "ProportionCIResult.method#summary": {
     "hash": "1f16839a9091",
     "en": "The method, in full.",
-    "ja": ""
+    "ja": "方法を省略せずに示したものです。"
   },
   "ProportionCIResult.sides#summary": {
     "hash": "7607886e2aba",
     "en": "The sides, in full.",
-    "ja": ""
+    "ja": "片側の指定を省略せずに示したものです。"
   },
   "ProportionCIResult.warnings#summary": {
     "hash": "6f7f4cd849f1",
     "en": "Warnings (none so far: input without a defined result is an error).",
-    "ja": ""
+    "ja": "警告 (今のところ、警告はありません。定義された結果が得られない入力はエラーになります)。"
   },
   "QuadeTestResult#summary": {
     "hash": "f03ccf564e52",
     "en": "Result of {@link quadeTest}: an F statistic with two degrees of freedom.",
-    "ja": ""
+    "ja": "{@link quadeTest} の結果: 2 つの自由度をもつ F 統計量です。"
   },
   "QuadeTestResult.parameter#summary": {
     "hash": "4bf7f2409cea",
     "en": "`[num df, denom df]`.",
-    "ja": ""
+    "ja": "`[num df, denom df]`。"
   },
   "QuadeTestResult.parameterName#summary": {
     "hash": "50fbb2c08c12",
     "en": "Names of `parameter`: `[\"num df\", \"denom df\"]`.",
-    "ja": ""
+    "ja": "`parameter` の名前: `[\"num df\", \"denom df\"]`。"
   },
   "Sample#summary": {
     "hash": "f65b99382852",
     "en": "A sample: an array of numbers.",
-    "ja": ""
+    "ja": "標本: 数値の配列です。"
   },
   "StuartMaxwellTestResult#summary": {
     "hash": "f465b59de963",
     "en": "Result of {@link stuartMaxwellTest}. Has no `alternative`, as DescTools' `StuartMaxwellTest` returns none.",
-    "ja": ""
+    "ja": "{@link stuartMaxwellTest} の結果。DescTools の `StuartMaxwellTest` は対立仮説を返さないため、`alternative` はありません。"
   },
   "StuartMaxwellTestResult.N#summary": {
     "hash": "6fc110e88770",
     "en": "The total of the table without the categories removed.",
-    "ja": ""
+    "ja": "除外されたカテゴリを含まない、表の合計です。"
   },
   "StuartMaxwellTestResult.parameter#summary": {
     "hash": "0b5cad95c14f",
     "en": "Degrees of freedom: the number of categories left, less 1 (`parameterName` is `\"df\"`).",
-    "ja": ""
+    "ja": "自由度: 残ったカテゴリの数から 1 を引いた値です (`parameterName` は `\"df\"`)。"
   },
   "TTestOptions#summary": {
     "hash": "78b56edb8ac2",
     "en": "Options for {@link tTest}.",
-    "ja": ""
+    "ja": "{@link tTest} のオプション。"
   },
   "TTestOptions.alternative#summary": {
     "hash": "a6e8572dfd6a",
     "en": "Alternative hypothesis: `\"two.sided\"`, `\"less\"` or `\"greater\"`. Default `\"two.sided\"`.\nUnambiguous abbreviations such as `\"two\"`, `\"l\"` and `\"g\"` are accepted, as in R.",
-    "ja": ""
+    "ja": "対立仮説: `\"two.sided\"`、`\"less\"`、または `\"greater\"`。既定は `\"two.sided\"`。\nR と同じく、`\"two\"`、`\"l\"`、`\"g\"` などの曖昧さのない省略形も受け付けます。"
   },
   "TTestOptions.confLevel#summary": {
     "hash": "ccfda40f60f0",
     "en": "Confidence level of the interval. Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準。既定は `0.95`。"
   },
   "TTestOptions.mu#summary": {
     "hash": "3476d9666f41",
     "en": "True mean under the null hypothesis (difference in means for two samples). Default `0`.",
-    "ja": ""
+    "ja": "帰無仮説の下での真の平均 (2 標本の場合は平均の差)。既定は `0`。"
   },
   "TTestOptions.paired#summary": {
     "hash": "018d3f7b5b45",
     "en": "Paired t-test on `x - y` (pairs with `NaN` are dropped). Requires `y`. Default `false`.",
-    "ja": ""
+    "ja": "`x - y` の対応のある t 検定 (`NaN` のある組は除かれます)。`y` が必要です。既定は `false`。"
   },
   "TTestOptions.varEqual#summary": {
     "hash": "a5e71ee6ede6",
     "en": "Assume equal variances and use the pooled variance. Default `false` (Welch's test).",
-    "ja": ""
+    "ja": "等分散を仮定し、併合分散を使います。既定は `false` (Welch の検定)。"
   },
   "TTestResult#summary": {
     "hash": "faf8cdb5ba6d",
     "en": "Result of {@link tTest}.",
-    "ja": ""
+    "ja": "{@link tTest} の結果。"
   },
   "TTestResult.confInt#summary": {
     "hash": "fc8b404dd8ae",
     "en": "Confidence interval for the mean (or difference in means).",
-    "ja": ""
+    "ja": "平均 (または平均の差) の信頼区間。"
   },
   "TTestResult.confLevel#summary": {
     "hash": "a915febd99df",
     "en": "Confidence level of `confInt`.",
-    "ja": ""
+    "ja": "`confInt` の信頼水準。"
   },
   "TTestResult.estimate#summary": {
     "hash": "71266f3351f5",
     "en": "Mean of `x` (or of the differences), or `[mean of x, mean of y]` for two samples.",
-    "ja": ""
+    "ja": "`x` の平均 (または差の平均)。2 標本の場合は `[mean of x, mean of y]`。"
   },
   "TTestResult.nullValue#summary": {
     "hash": "bf0c02672d7f",
     "en": "`mu`.",
-    "ja": ""
+    "ja": "`mu` です。"
   },
   "TTestResult.parameter#summary": {
     "hash": "e0bc5709ef75",
     "en": "Degrees of freedom of the t distribution (`parameterName` is `\"df\"`).",
-    "ja": ""
+    "ja": "t 分布の自由度 (`parameterName` は `\"df\"`)。"
   },
   "TTestResult.stdErr#summary": {
     "hash": "b66ccf0632ee",
     "en": "Standard error of the mean (or difference), R's `stderr`.",
-    "ja": ""
+    "ja": "平均 (または差) の標準誤差 (R の `stderr`)。"
   },
   "TTestResult.stdError#summary": {
     "hash": "280735c25b2c",
     "en": "Alias of `stdErr`: the same value.",
-    "ja": ""
+    "ja": "`stdErr` の別名です。同じ値です。"
   },
   "TostOptions#summary": {
     "hash": "041fa9c2e144",
     "en": "Options for {@link tost}.",
-    "ja": ""
+    "ja": "{@link tost} のオプション。"
   },
   "TostOptions.alpha#summary": {
     "hash": "e7af12dd76f0",
     "en": "The level of each one-sided test, in (0, 0.5); overrides `confLevel` (which becomes `1 - alpha`).",
-    "ja": ""
+    "ja": "各片側検定の有意水準。(0, 0.5) の範囲です。`confLevel` より優先され、その値は `1 - alpha` になります。"
   },
   "TostOptions.confLevel#summary": {
     "hash": "48090ce65ea2",
     "en": "One minus the level of each one-sided test, in (0.5, 1); the interval is a 1 - 2(1 - confLevel) interval.\n Default `0.95`.",
-    "ja": ""
+    "ja": "各片側検定の有意水準を 1 から引いた値 (0.5, 1 の範囲)。区間は 1 - 2(1 - confLevel) の区間です。\n 既定は `0.95`。"
   },
   "TostOptions.epsilon#summary": {
     "hash": "31253d3afc12",
     "en": "The equivalence margin: equivalence means |mean difference| < epsilon. Positive. Default `1` (as R).",
-    "ja": ""
+    "ja": "同等性マージン: 同等性は |平均の差| < epsilon を意味します。正の値です。既定は `1` (R と同じ)。"
   },
   "TostOptions.paired#summary": {
     "hash": "28ee13e2b4be",
     "en": "Paired TOST on `x - y` (pairs with `NaN` are dropped). Default `false`.",
-    "ja": ""
+    "ja": "`x - y` の対応のある TOST (`NaN` のある組は除かれます)。既定は `false`。"
   },
   "TostOptions.varEqual#summary": {
     "hash": "45bf1d9e1d9d",
