@@ -40,7 +40,7 @@ export interface KsTestOptions {
   /**
    * Exact p-value. Default: exact for one sample of fewer than 100 values without ties, and for two samples with
    * m n < 10000. The exact two-sided one-sample p-value for D < 1/2 raises a matrix of size 2 floor(n D) + 1 to the
-   * n-th power; where that needs more than 2^33 multiply-adds (m 781 at n 1023, about 4 s) it is a RangeError (R
+   * n-th power; where that needs more than 2^33 multiply-adds (m 783 at n 1023, about 4 s) it is a RangeError (R
    * computes it however long it takes).
    */
   exact?: boolean;

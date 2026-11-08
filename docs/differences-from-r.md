@@ -694,13 +694,13 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `pAdjust`** throw a RangeError, before anything is allocated, where the computation would need more than a few
   seconds (limits set from timings on the development machine; the default thresholds, such as n < 100 for `ksTest`,
   are far below them). `ksTest(exact: true)` (one sample, two-sided, D < 1/2): the matrix of size m = 2 floor(n D) + 1
-  is raised to the n-th power, and m^3 times the number of matrix products may be at most 2^33 (m 781 at n 1023, 3.6 s;
+  is raised to the n-th power, and m^3 times the number of matrix products may be at most 2^33 (m 783 at n 1023, 3.6 s;
   the sum for small p-values, #483, takes 1.4 s there).
   `ansariTest(exact: true)` (no ties): the distribution keeps 2 (m + 1) (floor((N + 1)^2 / 4) + 1) doubles (N = m + n),
   at most 2^24, and N times half that many steps, at most 2^32 (m = n = 202, 5.3 s). `corTest(method: "kendall",
   exact: true)` (no ties): n at most 1290 (about n^3 / 2 steps, 4.9 s; the same number as the Spearman exact limit).
   `jonckheereTest(exact: true)` (no ties): the convolution of the Mann-Whitney distributions may have at most 2^24
-  values and take at most 2^32 multiply-adds (three groups of 215, 8.5 s). The hint is to use `exact: false`.
+  values and take at most 2^32 multiply-adds (three equal groups of 216, 8.5 s). The hint is to use `exact: false`.
   `pAdjust(method: "hommel")`: n at most 65536 (O(n^2) steps, 5.7 s). R computes these however long it takes (issues
   #307, #308, #316, #321, #391).
 - **`expm` with the methods `"Taylor"`, `"Pade"`, `"TaylorO"` and `"PadeO"`** throws a RangeError, before any

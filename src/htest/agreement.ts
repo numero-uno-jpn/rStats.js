@@ -72,9 +72,9 @@ export interface Kappa2Options {
 export interface KappaResult {
   /** The kappa coefficient. */
   value: number;
-  /** z statistic of the test of kappa = 0 (absent for Fleiss' exact kappa). */
+  /** z statistic of the test of kappa = 0 (absent for Conger's exact kappa). */
   statistic?: number;
-  /** Two-sided p-value of the z test (absent for Fleiss' exact kappa). */
+  /** Two-sided p-value of the z test (absent for Conger's exact kappa). */
   pValue?: number;
   /** R's warnings, each once, in R's order (an empty array when there are none). */
   warnings: string[];

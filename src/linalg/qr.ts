@@ -774,6 +774,9 @@ export function qrX(q: QR, options: { complete?: boolean; ncol?: number } = {}):
  * Throws if the rank is less than `min(nrow, ncol)`. When `b` is omitted, returns the inverse of `a` (square
  * matrices only). For a wide matrix, coefficients of unused columns are set to 0 (as in R).
  *
+ * A LAPACK decomposition (`qr(a, { lapack: true })`) has no rank, so it throws instead if some `|R[k][k]|` is at most
+ * `tol * |R[0][0]|` (`tol` from `options`, default `1e-7`), which R's `qr.solve()` does not detect.
+ *
  * @param a A matrix (array of rows) or a QR decomposition from {@link qr}.
  * @param b The right-hand side, a vector or a matrix. Default: the identity matrix.
  * @param options `tol`: the tolerance passed to {@link qr} when `a` is a matrix. Default: `1e-7`.

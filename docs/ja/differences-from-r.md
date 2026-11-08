@@ -671,13 +671,13 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`ksTest`・`ansariTest`・`corTest` (Kendall)・`jonckheereTest` の正確な p 値と、`pAdjust` の Hommel 法**は、計算に
   数秒より長くかかる大きさでは、何も確保する前に RangeError を投げます (上限は開発機での計測から決めました。`ksTest`
   の n < 100 などの既定の切り替えは、上限よりずっと小さい)。`ksTest(exact: true)` (1 標本、両側、D < 1/2) は大きさ
-  m = 2 floor(n D) + 1 の行列を n 乗し、m^3 と行列の積の回数の積が 2^33 まで (n 1023 で m 781、3.6 秒。小さい p 値の和
+  m = 2 floor(n D) + 1 の行列を n 乗し、m^3 と行列の積の回数の積が 2^33 まで (n 1023 で m 783、3.6 秒。小さい p 値の和
   (#483) はそこで 1.4 秒) です。
   `ansariTest(exact: true)` (同順位なし) は分布に 2 (m + 1) (floor((N + 1)^2 / 4) + 1) 個 (N = m + n) の double を使い、
   これが 2^24 まで、手数 (その半分の N 倍) が 2^32 まで (m = n = 202 で 5.3 秒) です。`corTest(method: "kendall",
   exact: true)` (同順位なし) は n が 1290 まで (手数は約 n^3 / 2、4.9 秒。Spearman の正確検定の上限と同じ数) です。
   `jonckheereTest(exact: true)` (同順位なし) は Mann-Whitney の分布の畳み込みの値の個数が 2^24 まで、積和の回数が
-  2^32 まで (215 個ずつの 3 群で 8.5 秒) です。`exact: false` を案内します。`pAdjust(method: "hommel")` は n が
+  2^32 まで (216 個ずつの 3 群で 8.5 秒) です。`exact: false` を案内します。`pAdjust(method: "hommel")` は n が
   65536 まで (手数は O(n^2)、5.7 秒) です。R は時間がかかっても計算します (Issue #307、#308、#316、#321、#391)。
 - **`expm` の `"Taylor"`・`"Pade"`・`"TaylorO"`・`"PadeO"`** は、n × n の行列で order と (n^3 + 64) の積が 2^31 を
   超えると、計算の前に RangeError を投げます。これらの方法は行列によらず order 回の行列の積を計算します (上限は 2 × 2

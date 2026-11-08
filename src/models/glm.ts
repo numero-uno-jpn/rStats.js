@@ -817,7 +817,10 @@ export interface GlmSummary {
   statistic: number[];
   /** Two-sided p-values (R's `Pr(>|z|)` or `Pr(>|t|)`). */
   pValue: number[];
-  /** `"z value"` when the dispersion is fixed (binomial, poisson), else `"t value"`. */
+  /**
+   * `"z value"` when the dispersion is not estimated (fixed by the family: binomial, poisson; or given as
+   * `options.dispersion`), else `"t value"`.
+   */
   statisticName: "z value" | "t value";
   /** (R'R)^-1 of the columns that are not aliased. */
   covUnscaled: number[][];
