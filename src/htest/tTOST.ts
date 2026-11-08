@@ -114,7 +114,7 @@ export interface TTOSTTest {
  * @category Hypothesis tests
  */
 export interface TTOSTResult {
-  /** The two-sided t test of `mu` (TOSTER's "t-test" row). */
+  /** The two-sided t test of the difference against `mu` (TOSTER's "t-test" row). */
   tTest: TTOSTTest;
   /** The test of the lower bound: alternative "greater" (EQU) or "less" (MET). */
   lower: TTOSTTest;
@@ -124,7 +124,7 @@ export interface TTOSTResult {
   pValue: number;
   /** The bounds `[low, high]` in the units of the data (`raw`) and of the standardised difference (`smd`). */
   bounds: { raw: [number, number]; smd: [number, number] };
-  /** The raw difference: estimate (the difference minus `mu`), standard error and 1 − 2 alpha interval. */
+  /** The raw effect, the difference minus `mu`: estimate, standard error and 1 − 2 alpha interval. */
   raw: { estimate: number; se: number; confInt: [number, number] };
   /**
    * The standardised mean difference: its label (`"Hedges's g(av)"`, `"Cohen's d"`, `"Hedges's g(z)"`, `"Glass's
@@ -368,7 +368,6 @@ function tostCore(
   se: number,
   df: number,
   method: string,
-  oneSample: boolean,
   m: Moments,
   k: number,
   s: ReturnType<typeof settingsOf>,
@@ -382,27 +381,27 @@ function tostCore(
   const smdB: [number, number] = s.smdBounds ? given : [given[0] / dDenom, given[1] / dDenom];
   if (s.smdBounds) warnings.push(SMD_NOTE);
   if (!(raw[0] <= 0 && raw[1] >= 0)) warnings.push(ZERO_NOTE);
-  const t0 = (diff - mu) / se;
-  const tL = (diff - raw[0]) / se;
-  const tU = (diff - raw[1]) / se;
+  // the effect is the difference minus mu throughout: the bound tests compare it with [low, high] (TOSTER compares the
+  // difference itself), and the raw estimate, its interval and the SMD are those of it
+  const effect = diff - mu;
+  const t0 = effect / se;
+  const tL = (effect - raw[0]) / se;
+  const tU = (effect - raw[1]) / se;
   const equ = hypothesis === "EQU";
   const tTestRow: TTOSTTest = { t: t0, se, df, pValue: 2 * pt1(-Math.abs(t0), df, true, false) };
-  // EQU: H0 diff <= low (alternative "greater") and diff >= high ("less"); MET the reverse
+  // EQU: H0 effect <= low (alternative "greater") and diff >= high ("less"); MET the reverse
   const lower: TTOSTTest = { t: tL, se, df, pValue: pt1(tL, df, !equ, false) };
   const upper: TTOSTTest = { t: tU, se, df, pValue: pt1(tU, df, equ, false) };
   const pValue = equ ? Math.max(lower.pValue, upper.pValue) : Math.min(lower.pValue, upper.pValue);
   if (!equ && raw[0] <= 0 && raw[1] >= 0 && pValue <= tTestRow.pValue) warnings.push(MET_NOTE);
   const q = qt1(alpha, df, false, false);
-  // TOSTER's raw estimate is the difference minus mu; its interval is the t test's, of the difference itself (for one
-  // sample TOSTER gives the interval of the mean; here that of the mean minus mu, as the estimate: decision 20)
-  const centre = oneSample ? diff - mu : diff;
   return reported(name, {
     tTest: tTestRow,
     lower,
     upper,
     pValue,
     bounds: { raw, smd: smdB },
-    raw: { estimate: diff - mu, se, confInt: [centre - q * se, centre + q * se] as [number, number] },
+    raw: { estimate: effect, se, confInt: [effect - q * se, effect + q * se] as [number, number] },
     smd: { label: smd.label, estimate: smd.estimate, se: smd.se, confInt: smd.confInt, df: smd.df, J: smd.J },
     confLevel: 1 - 2 * alpha,
     method,
@@ -418,9 +417,10 @@ function tostCore(
  * With `hypothesis: "EQU"` (the default) equivalence, low < difference < high, is shown at level alpha when both the
  * test of the lower bound (alternative "greater") and that of the upper bound (alternative "less") reject; the
  * p-value is the larger of the two. With `"MET"` the alternatives are reversed and the p-value is the smaller. The
- * difference is mean(x) - mean(y) (two samples, Welch's or pooled), the mean of x - y (paired) or the mean of x (one
- * sample); as TOSTER, the bounds apply to that difference (or mean) itself, and `mu` is the null value of the
- * two-sided t test only. The intervals are 1 - 2 alpha intervals (90% for the default alpha 0.05).
+ * effect is the difference minus `mu`: mean(x) - mean(y) - mu (two samples, Welch's or pooled), the mean of x - y
+ * minus mu (paired) or the mean of x minus mu (one sample). The bounds, the raw estimate and interval and the
+ * standardised difference all refer to that effect. The intervals are 1 - 2 alpha intervals (90% for the default alpha
+ * 0.05).
  *
  * The standardised difference is Hedges' g (Cohen's d without `biasCorrection`) with the average SD
  * `sqrt((s1² + s2²)/2)` for Welch's test, the pooled SD with `varEqual`, the SD of the differences for paired samples
@@ -428,12 +428,11 @@ function tostCore(
  * the noncentral t (`"nct"`, as exact roots; TOSTER's optimiser is about 1e-9 accurate), Goulet-Pelletier and
  * Cousineau's (`"goulet"`), or `g -+ q se` with a t or normal quantile (`"t"`, `"z"`).
  *
- * Differences from TOSTER (decisions 20-23 of oracle/methodcomparison-behaviour.md): for one sample the raw interval
- * is that of mean - mu (TOSTER's is of the mean) and the `"t"` and `"z"` intervals of the standardised difference are
- * 1 - 2 alpha intervals (TOSTER's 1 - alpha); TOSTER's notes are warnings; alpha must be in (0, 0.5).
- *
- * As TOSTER, the standardised difference of two samples uses mean(x) - mean(y) + mu, and that of paired samples
- * ignores mu.
+ * Differences from TOSTER (decisions 20-23 of oracle/methodcomparison-behaviour.md): `mu` is subtracted everywhere
+ * (TOSTER tests the bounds on the difference itself, gives the raw interval of the difference, the two-sample SMD of
+ * the difference plus mu and the paired SMD without mu); the one-sample `"t"` and `"z"` intervals of the standardised
+ * difference are 1 - 2 alpha intervals (TOSTER's 1 - alpha); TOSTER's notes are warnings; alpha must be in (0, 0.5).
+ * With `mu` 0 only the last three apply.
  *
  * @param x Sample (NaN values are dropped; for paired samples, the pairs with a NaN).
  * @param y Second sample (omit for one sample).
@@ -486,17 +485,15 @@ export function tTOST(x: Sample, y?: Sample, options: TTOSTOptions = {}): TTOSTR
     const vd = variance(d);
     const sdif = Math.sqrt(vd);
     const oneMinusR = ((sdif - (s1 - s2)) * (sdif + (s1 - s2))) / (2 * s1 * s2);
-    // as TOSTER, the paired standardised difference ignores mu
-    m = { design: "paired", n: d.length, delta: mean(a) - mean(b), s1, s2, sdif, oneMinusR };
+    m = { design: "paired", n: d.length, delta: mean(a) - mean(b) - ldexp(mu, -k), s1, s2, sdif, oneMinusR };
   } else {
     const sc = scaleToUnit([dropNaN(Array.from(x)), dropNaN(Array.from(y))]);
     k = sc.k;
     const [a, b] = sc.groups as [number[], number[]];
     if (a.length < 2 || b.length < 2) throw new RangeError("not enough observations: at least 2 are needed in each sample");
-    // as TOSTER: mean(x) - (mean(y) - mu)
-    m = { design: "two", n1: a.length, n2: b.length, delta: mean(a) - (mean(b) - ldexp(mu, -k)), s1: Math.sqrt(variance(a)), s2: Math.sqrt(variance(b)) };
+    m = { design: "two", n1: a.length, n2: b.length, delta: mean(a) - mean(b) - ldexp(mu, -k), s1: Math.sqrt(variance(a)), s2: Math.sqrt(variance(b)) };
   }
-  return tostCore("tTOST", diff, se, df, tt.method, oneSample, m, k, s, given, []);
+  return tostCore("tTOST", diff, se, df, tt.method, m, k, s, given, []);
 }
 
 /**
@@ -583,7 +580,7 @@ export function tsumTOST(stats: TsumTOSTStatistics, options: TTOSTOptions = {}):
     se = sdif / Math.sqrt(n);
     df = n - 1;
     method = "Paired t-test";
-    m = { design: "paired", n, delta: diff, s1: b1!, s2: b2, sdif, oneMinusR: 1 - r };
+    m = { design: "paired", n, delta: diff - muS, s1: b1!, s2: b2, sdif, oneMinusR: 1 - r };
   } else {
     const n2v = n2!;
     const v1 = b1! * b1!;
@@ -601,7 +598,7 @@ export function tsumTOST(stats: TsumTOSTStatistics, options: TTOSTOptions = {}):
       df = (w1 + w2) ** 2 / ((w1 * w1) / (n1 - 1) + (w2 * w2) / (n2v - 1));
       method = "Welch Two Sample t-test";
     }
-    m = { design: "two", n1, n2: n2v, delta: a1! - (a2 - muS), s1: b1!, s2: b2 };
+    m = { design: "two", n1, n2: n2v, delta: a1! - a2 - muS, s1: b1!, s2: b2 };
   }
-  return tostCore("tsumTOST", ldexp(diff, k), ldexp(se, k), df, method, oneSample, m, k, s, given, warnings);
+  return tostCore("tsumTOST", ldexp(diff, k), ldexp(se, k), df, method, m, k, s, given, warnings);
 }

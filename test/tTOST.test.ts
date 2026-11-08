@@ -1,8 +1,10 @@
 // TOSTER's t_TOST against R (oracle/toster.R), by the rules of oracle/methodcomparison-behaviour.md, section 4 and
 // decisions 18-23: the three t tests, the bounds, the raw and standardised effect sizes and TOSTER's notes (here
 // warnings). The noncentral-t limits are compared with the fixture's reference (true roots; TOSTER's optimiser is
-// about 1e-9 accurate). Known differences (decisions 20 and 23): for one sample the raw interval is that of mean - mu
-// and the "t" and "z" limits of the standardised difference are 1 - 2 alpha limits; alpha = 0.5 is an error.
+// about 1e-9 accurate). Known differences: mu is subtracted everywhere (the user's rule, overriding decision 20: the
+// bound tests, the raw interval and the SMD are those of the difference minus mu; the expected values of the cases
+// with mu are recomputed from R's numbers), the one-sample "t" and "z" limits of the standardised difference are
+// 1 - 2 alpha limits (decision 20), and alpha = 0.5 is an error (decision 23).
 import { describe, expect, it } from "vitest";
 import { tsumTOST, tTOST, type TTOSTOptions, type TTOSTResult } from "../src/index.js";
 import { pt, qnorm, qt } from "../src/index.js";
@@ -45,8 +47,17 @@ describe("tTOST (TOSTER t_TOST)", () => {
       const what = (f: string): string => `case ${index} ${f}`;
       // closed forms: 1e-13; the p-values (t tails) 1e-12
       const rows = e.TOST as Record<string, string[]>;
+      const mu = arg.num(a.mu) ?? 0;
+      const met = (a.hypothesis as string | undefined)?.startsWith("M") ?? false;
       for (const [name, got] of [["t-test", r.tTest], ["TOST Lower", r.lower], ["TOST Upper", r.upper]] as const) {
         const w = rows[name]!.map(num);
+        if (mu !== 0 && name !== "t-test") {
+          // known difference (mu everywhere): the bound tests of the difference minus mu, t - mu/se with R's t and se,
+          // and its p-value on R's df (lower: alternative "greater" for EQU; upper: "less")
+          w[0] = w[0]! - mu / w[1]!;
+          const upperTail = (name === "TOST Lower") !== met;
+          w[3] = pt(w[0], w[2]!, { lowerTail: !upperTail }) as number;
+        }
         expect(err(got.t, w[0]!, 1e-12), what(`${name} t`)).toBeLessThanOrEqual(1e-12);
         expect(err(got.se, w[1]!), what(`${name} se`)).toBeLessThanOrEqual(1e-13);
         expect(err(got.df, w[2]!), what(`${name} df`)).toBeLessThanOrEqual(1e-13);
@@ -61,19 +72,26 @@ describe("tTOST (TOSTER t_TOST)", () => {
       const eff = e.effsize as Record<string, string[]>;
       const rawE = eff.Raw!.map(num);
       const oneSample = a.y === undefined;
-      const mu = arg.num(a.mu) ?? 0;
       const se = rawE[1]!;
-      // known difference (decision 20): TOSTER's one-sample interval is that of the mean, here of mean - mu
-      const rawLo = oneSample ? rawE[2]! - mu : rawE[2]!;
-      const rawHi = oneSample ? rawE[3]! - mu : rawE[3]!;
+      // known difference (mu everywhere): TOSTER's interval is that of the difference (or mean), here of it minus mu
+      const rawLo = rawE[2]! - mu;
+      const rawHi = rawE[3]! - mu;
       expect(err(r.raw.estimate, rawE[0]!, se), what("raw estimate")).toBeLessThanOrEqual(1e-13);
       expect(err(r.raw.se, se), what("raw se")).toBeLessThanOrEqual(1e-13);
       // the ends relative to the standard error (they cancel near 0, and mu is subtracted in R's values)
       expect(err(r.raw.confInt[0], rawLo, se), what("raw lower")).toBeLessThanOrEqual(1e-12);
       expect(err(r.raw.confInt[1], rawHi, se), what("raw upper")).toBeLessThanOrEqual(1e-12);
       expect(err(r.confLevel, rawE[4]!), what("conf level")).toBeLessThanOrEqual(1e-15);
-      const smdE = eff[r.smd.label]!.map(num);
+      let smdE = eff[r.smd.label]!.map(num);
       const smd = e.smd as Record<string, string>;
+      if (mu !== 0 && !oneSample) {
+        // known difference (mu everywhere): TOSTER's SMD is that of the difference plus mu (two samples) or of the
+        // difference (paired); here of the difference minus mu. Its estimate from R's numbers is J (Δ − mu) / d_denom;
+        // the rest is that of the same data with y shifted by mu and mu 0 (where the fixture checks every field)
+        const shifted = tTOST(arg.vec(a.x)!, arg.vec(a.y)!.map((v) => v + mu), { ...optionsOf(a), mu: 0 });
+        expect(err(shifted.smd.estimate, (num(smd.J!) * rawE[0]!) / num(smd.d_denom!)), what("smd from R's numbers")).toBeLessThanOrEqual(1e-13);
+        smdE = [shifted.smd.estimate, shifted.smd.se, ...shifted.smd.confInt];
+      }
       const ref = (c.reference as { smd: { dlow: string; dhigh: string } } | undefined)?.smd;
       expect(err(r.smd.estimate, smdE[0]!, 1e-3), what("smd estimate")).toBeLessThanOrEqual(1e-13);
       expect(err(r.smd.se, smdE[1]!), what("smd se")).toBeLessThanOrEqual(1e-13);
@@ -81,7 +99,8 @@ describe("tTOST (TOSTER t_TOST)", () => {
       expect(err(r.smd.J, num(smd.J!)), what("J")).toBeLessThanOrEqual(1e-13);
       expect(err(r.smd.df, num(smd.d_df!)), what("smd df")).toBeLessThanOrEqual(1e-13);
       let [lo, hi] = [smdE[2]!, smdE[3]!];
-      if (ref !== undefined) [lo, hi] = [num(ref.dlow), num(ref.dhigh)];
+      if (mu !== 0 && !oneSample) [lo, hi] = [smdE[2]!, smdE[3]!];
+      else if (ref !== undefined) [lo, hi] = [num(ref.dlow), num(ref.dhigh)];
       else if (oneSample && (r.smd.label === "Hedges's g" || r.smd.label === "Cohen's d") && (a.smdCi === "t" || a.smdCi === "z")) {
         // known difference (decision 20): 1 - 2 alpha limits, TOSTER's are 1 - alpha
         const q = a.smdCi === "t" ? (qt(1 - alpha, r.smd.df) as number) : (qnorm(1 - alpha) as number);

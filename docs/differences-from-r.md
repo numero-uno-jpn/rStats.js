@@ -979,12 +979,13 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   of `icc` with `unit: "average"` (irr's, McGraw and Wong's formula): for the 6 × 4 data of Shrout and Fleiss [0.0711,
   0.9272] against [0.0394, 0.9286]. Only the six rows and the mean squares are returned (no `stats` table, `lme` or
   `summary`), and `check.keys` is not offered.
-- **`tTOST`** (TOSTER's `t_TOST`): for one sample with `mu` the raw interval is that of mean - mu, as its estimate
-  (TOSTER's is the interval of the mean), and the `"t"` and `"z"` intervals of the one-sample standardised difference
-  are 1 - 2 alpha intervals as in the other designs (TOSTER's are 1 - alpha). As TOSTER, the bounds apply to the
-  difference (or mean) itself and `mu` only to the two-sided t test, the raw interval of two and paired samples is
-  that of the difference (not minus `mu`), the standardised difference of two samples is that of mean(x) - mean(y) +
-  `mu`, and that of paired samples ignores `mu`. TOSTER's notes (`Equivalence interval does not include zero.`, the
+- **`tTOST`** (TOSTER's `t_TOST`) treats `mu` as one rule: the effect is the difference (or the one-sample mean) minus
+  `mu`, Δ - mu, everywhere. The bound tests compare Δ - mu with [low, high], and the raw estimate, the raw interval and
+  the standardised difference are those of Δ - mu, for one, two and paired samples. TOSTER uses `mu` inconsistently:
+  its bound tests compare Δ itself with the bounds, its raw estimate is Δ - mu but its raw interval that of Δ, its
+  two-sample standardised difference that of Δ + mu, and its paired one that of Δ (only the one-sample standardised
+  difference is of Δ - mu). With `mu` 0 (the default) the two agree. The `"t"` and `"z"` intervals of the one-sample
+  standardised difference are 1 - 2 alpha intervals as in the other designs (TOSTER's are 1 - alpha). TOSTER's notes (`Equivalence interval does not include zero.`, the
   note on SMD bounds and the MET note) are warnings; its decision sentences are not reproduced. `alpha` must lie in
   (0, 0.5) (TOSTER accepts 0.5, a zero-width interval), and bounds in the wrong order are an error. The paired SD of
   the differences is computed from the differences (TOSTER's sqrt(s1² + s2² - 2 r s1 s2) cancels for r near 1). With

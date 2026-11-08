@@ -20,8 +20,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   pooled) and paired samples, with bounds in raw or SMD units, the three t tests, the raw difference and the
   standardised mean difference (Hedges' g or Cohen's d, d_av, d_z, d_rm, Glass's delta) with `nct` (exact roots),
   `goulet`, `t` or `z` intervals; `tsumTOST(stats, options)`, TOSTER's `tsum_TOST()`, from summary statistics. `tost`
-  is unchanged. Two of TOSTER's one-sample inconsistencies are fixed (the raw interval of mean − mu; 1 − 2α limits
-  for `t` and `z`), and its notes are warnings (docs/differences-from-r.md).
+  is unchanged. Unlike TOSTER, `mu` is subtracted everywhere (bound tests, raw interval and SMD of the difference
+  minus mu), the one-sample `t` and `z` limits are 1 − 2α limits, and TOSTER's notes are warnings
+  (docs/differences-from-r.md).
 
 ## 1.2.0 - 2026-11-07
 
