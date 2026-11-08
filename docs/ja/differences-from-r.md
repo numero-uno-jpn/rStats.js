@@ -913,6 +913,14 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   (既定は Miettinen-Nurminen、Farrington-Manning の `"mee"`、Wald) で、同じ方法の水準 1 - 2 alpha の `binomDiffCI` と
   双対です。0/1 データには `tost` よりこちらを使うべきです (`tost` の t 近似では、すべて 0 かすべて 1 の群の分散が 0
   になる)。許容幅は対称な (-margin, margin) で、margin は (0, 1) の値です。
+- **`blandAltman`** (BlandAltmanLeh の `bland.altman.stats`) のフィールド名は camelCase です (`meanDiff`、`lowerLimit`、
+  `upperLimit`、`criticalDiff`、`based.on` は `n`)。区間はベクトル `lines`・`CI.lines` ではなく組 (`meanDiffConfInt`、
+  `lowerLimitConfInt`、`upperLimitConfInt`) で返し、完全な組 (`groups`) は返しません。完全な組が 2 未満、無限大の値、
+  [0, 1] の外の水準はエラーです (R は NA や NaN の限界を返し、1 つ目では警告 "less than 2 data pairs after deleting
+  NAs" を出す)。オプション `ciMethod: "exact"` はパッケージにありません: 非心 t 分布による一致限界の正確な区間
+  (Carkeet 2015) で、小さい n ではパッケージの `limit ± t sqrt(3 s²/n)` より広くなります (n = 17 で 3%、n = 10 で 6%、
+  n = 2 で 2 倍)。2 つの測定法が同一 (s = 0) なら、水準 1 でもすべての区間が点 d̄ です (R はそこで NaN)。R の `sd()` が
+  オーバーフロー・アンダーフローする 2^±500 程度以上のデータでは、2 の冪で割ったデータの結果にその冪を掛けた値を返します。
 
 ### データの扱い
 

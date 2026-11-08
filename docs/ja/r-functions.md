@@ -2,7 +2,7 @@
 
 R の関数から、rStats.js でそれに当たる関数を引くための一覧です (`node scripts/r-index.mjs --ja` で生成)。ほかのパッケージの
 関数は `package::function()` と書いています。引数の書き方は [JavaScript の開発者のための rStats.js](guide-for-js-developers.md) を、
-各関数の詳しい説明は [API リファレンス](https://numero-uno-jpn.github.io/rStats.js/ja/api/) を参照してください。
+各関数の詳しい説明は [API リファレンス](https://numero-uno-jpn.github.io/rStats.js/api/) (英語) を参照してください。
 
 ## 特殊関数 (`rStats.js/special`)
 
@@ -172,6 +172,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `DescTools::BinomCI()` | `binomCI` | 二項比率 x/n の信頼区間 |
 | `DescTools::BinomDiffCI()` | `binomDiffCI` | 独立な 2 つの比率 x1/n1 と x2/n2 の差 p1 - p2 の信頼区間 |
 | `DescTools::BinomRatioCI()` | `binomRatioCI` | 独立な 2 つの比率 x1/n1 と x2/n2 の比 p1/p2 の信頼区間 |
+| `BlandAltmanLeh::bland.altman.stats()` | `blandAltman` | 2 つの測定法の Bland-Altman 分析: 差の平均、一致限界とそれらの信頼区間 |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | 2 標本の相対効果 P(X < Y) + P(X = Y)/2 が 1/2 であることについての Brunner-Munzel 検定 (等分散も分布の形が同じことも仮定しない) |
 | `chisq.test()` | `chisqTest` | Pearson のカイ二乗検定 |
 | `DescTools::CochranQTest()` | `cochranQTest` | 反復のない完全ブロック計画での 2 値応答に対する Cochran の Q 検定 |

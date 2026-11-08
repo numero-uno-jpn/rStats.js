@@ -7,6 +7,15 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Bland-Altman analysis**: `blandAltman(x, y, { two, mode, confLevel, ciMethod })`, BlandAltmanLeh's
+  `bland.altman.stats()`: the mean difference, the limits of agreement and their intervals, with the package's
+  `sqrt(3 s²/n)` interval of the limits (default) or the exact one from the noncentral t (`ciMethod: "exact"`, Carkeet
+  2015). Fewer than 2 complete pairs is an error; data of any scale (docs/differences-from-r.md).
+
 ## 1.2.0 - 2026-11-07
 
 Contingency tables and proportions (item 1 of the roadmap): intervals for a proportion and for the risk difference,

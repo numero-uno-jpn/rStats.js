@@ -172,6 +172,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `DescTools::BinomCI()` | `binomCI` | Confidence interval for a binomial proportion x/n. |
 | `DescTools::BinomDiffCI()` | `binomDiffCI` | Confidence interval for the difference p1 - p2 of two independent proportions x1/n1 and x2/n2. |
 | `DescTools::BinomRatioCI()` | `binomRatioCI` | Confidence interval for the ratio p1/p2 of two independent proportions x1/n1 and x2/n2. |
+| `BlandAltmanLeh::bland.altman.stats()` | `blandAltman` | Bland-Altman analysis of two methods of measurement: the mean difference, the limits of agreement and their confidence intervals. |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal variances or shapes. |
 | `chisq.test()` | `chisqTest` | Pearson's chi-squared test. |
 | `DescTools::CochranQTest()` | `cochranQTest` | Cochran's Q test for binary responses in an unreplicated complete block design. |

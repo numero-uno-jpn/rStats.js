@@ -971,6 +971,15 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   score tests (Miettinen-Nurminen by default, Farrington-Manning `"mee"` or Wald), dual to `binomDiffCI` with the same
   method at the level 1 - 2 alpha. For 0/1 data it is the test to use rather than `tost`, whose t approximation has a
   variance of 0 for a group of all 0s or all 1s. The margin is symmetric, (-margin, margin) with margin in (0, 1).
+- **`blandAltman`** (BlandAltmanLeh's `bland.altman.stats`) names its fields in camelCase (`meanDiff`, `lowerLimit`,
+  `upperLimit`, `criticalDiff`, `n` for `based.on`) and returns the intervals as pairs (`meanDiffConfInt`,
+  `lowerLimitConfInt`, `upperLimitConfInt`) instead of the vectors `lines` and `CI.lines`; the complete pairs (`groups`)
+  are not returned. Fewer than 2 complete pairs, infinite values and a level outside [0, 1] are errors (R: NA or NaN
+  limits, with the warning "less than 2 data pairs after deleting NAs" for the first). The option `ciMethod: "exact"`
+  is not in the package: the exact interval of the limits of agreement from the noncentral t distribution (Carkeet
+  2015), wider than the package's `limit ± t sqrt(3 s²/n)` for small n (3% at n = 17, 6% at n = 10, twice at n = 2).
+  For identical methods (s = 0) every interval is the point d̄, also at the level 1 (R: NaN there). Data of order
+  2^±500 and beyond, where R's `sd()` over- or underflows, give the results of the unscaled data times the power of 2.
 
 ### Data handling
 
