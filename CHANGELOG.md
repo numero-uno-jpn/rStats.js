@@ -7,6 +7,16 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Intraclass correlations of Shrout and Fleiss**: `ICC(x, { alpha | confLevel, lmer })`, psych's `ICC()`, returning
+  the six forms (ICC1, ICC2, ICC3 and their averages) with their F tests and intervals and the mean squares, next to
+  the irr-based `icc`. Both paths are exact: the ANOVA mean squares (`lmer: false`) and, by default as psych, the REML
+  estimates of the variance components in closed form (lme4's optimiser leaves psych's values 1e-5 to 1e-4 off).
+  Complete data only; ICC2k has psych's interval (Spearman-Brown of ICC2's), not irr's.
+
 ## 1.2.0 - 2026-11-07
 
 Contingency tables and proportions (item 1 of the roadmap): intervals for a proportion and for the risk difference,

@@ -191,6 +191,8 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | Dunnett 型の p 値 (multcomp の Dunnett、PMCMRplus の `dunnettTest` と single-step の `kwManyOneDunnTest`・`manyOneUTest`) | mvtnorm の乱数を使う積分で、絶対 1e-3 程度。実行ごとに変わる (種で固定) | 1 次元積分で厳密に |
 | 多重比較 (Steel-Dwass、Games-Howell、Tukey) のステューデント化範囲の p 値 | R の `ptukey` は 8 桁程度 (テストで最大 3.4e-8 ずれる) | 完全な精度 |
 | irr の κ の p 値 | 2 (1 − Φ(|z|)) で作るので、小さい値が桁落ちする (1.7e-16 でなく 2.2e-16) | 2 Φ(−|z|) |
+| psych の `ICC` の `lmer = TRUE` (既定) | 平均平方を lme4 の REML の当てはめから作るが、最適化が早く止まる: どの値も相対 1e-5 から 1e-4 ずれる | 釣り合った二元配置モデルの REML 推定値を閉じた形で求める (ANOVA の平均平方。分散成分が負になる所では残差の平均平方をその平均平方と併合する: Robertson、Wright、Dykstra の平均平方の単調回帰) |
+| 2^±520 倍したデータ、大きな定数 (1e6) を足したデータ、残差の平均平方が 0 のデータでの psych の `ICC` (`lmer = FALSE`) | `aov` の平方和: NaN、相対 3e-10 のずれ、F が約 1e31 | 2 の冪で正規化したデータで平方和を倍精度 2 倍長で計算する。評価者間の差が定数の評価 (残差がちょうど 0) では F は Infinity、p は 0 |
 | polycor の最尤推定と標準誤差 (`ML = TRUE`、`std.err = TRUE`) | Nelder-Mead や BFGS が早めに止まり、ヘッセ行列は差分で求める: 相対で最大 1e-3 ずれる。関連の強い表では 2 段階推定の BFGS が 1 を越え、0.9999 と無限大の分散を返す | 尤度の厳密な最大値 (160 ビットの値と 4e-15 以内) と解析的なヘッセ行列 |
 | psych の `omega` (minres) で独自因子分散が下限 0.005 に張り付く場合 (Heywood) | `fa` は L-BFGS-B に、非対角の目的関数ではなく、対角を含めた残差の二乗和の勾配を渡す。2 つの最小は内点では一致するが下限では一致せず、最小より高い点で、多くは convergence 0 で止まる (テストの例では 0.5%〜3.4% 高く、独自因子分散は最大 0.05 ずれる) | その点から目的関数そのものの勾配で L-BFGS-B を続け (factr 1e3)、最小に届く。下限に張り付かなければ psych と同じビット |
 | 項目の相関行列が特異な場合の psych の `alpha` (同じ項目の重複、ほかの項目の和の項目、項目数が被験者数以上。Issue #468) | G6 を `smc` から求める。擬似逆行列と [0, 1] への切り詰めで、残りの項目で完全に予測できる項目の SMC が 1 でなく 0 になる。同じ項目 2 つで G6 0.5、a = b と c で 0.712 (R² からは 0.956)、項目数が被験者数より多いと負の値 (以前の rStats.js はエラーで、raw・std の alpha も返さなかった) | 各 SMC を lm(x_i ~ x_-i) の R² (R の QR、tol 1e-7) で求める。G6 は 1 と 0.956。行列が特異でなければ以前どおり逆行列から求める (psych と同じ値。ただし項目がほぼ従属なときは、psych の `Pinv` が小さい特異値を切り捨てるので違う)。項目数が被験者数以上なら、中心化した項目は高々 n - 1 次元に入るので、どの項目も残りで完全に予測でき、G6 は常に 1 になる (標本の上では正しいが、情報はない) |
@@ -909,6 +911,14 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `conf.level` が (0, 1) にあることだけを確かめる)。正の有限値でない `epsilon` もエラーです。対応のある検定
   (`paired: true`、method `"Paired TOST"`、推定値の名前は R と同じ "mean of the differences") は tTest の対応のある
   検定に同じ 2 つの片側検定を当てたものです。
+- **`ICC`** (psych の `ICC`) は欠測のないデータだけを受け付けます (欠測した評価はエラー。psych の lmer の経路では扱える)。
+  すべての評価が等しいデータ、どの被験者の評価も同じデータはエラーです (psych では ICC -8e-16 のような丸め誤差)。
+  被験者か評価者が 2 未満のときもエラーです。残差の平均平方がちょうど 0 のとき (評価者間の差が定数の評価) は F が
+  Infinity、p が 0 で、ICC3、ICC3k とその区間は 1 です。そのとき ANOVA の経路では `aov` の警告 `essentially perfect
+  fit for ‘1’: summary may be unreliable` を残します。lme4 の `boundary (singular) fit` のメッセージは警告にしません。
+  ICC2k の区間は psych のもの (ICC2 の区間を Spearman-Brown で変換) で、`icc` の `unit: "average"` のもの (irr の、
+  McGraw と Wong の式) ではありません: Shrout と Fleiss の 6 × 4 のデータで [0.0711, 0.9272] と [0.0394, 0.9286]。返す
+  のは 6 行と平均平方だけで (`stats` の表、`lme`、`summary` はない)、`check.keys` はありません。
 - **`binomDiffEquivalenceTest`** は R にありません: 計数に対する、2 つの比率の同等性の 2 つの片側スコア検定
   (既定は Miettinen-Nurminen、Farrington-Manning の `"mee"`、Wald) で、同じ方法の水準 1 - 2 alpha の `binomDiffCI` と
   双対です。0/1 データには `tost` よりこちらを使うべきです (`tost` の t 近似では、すべて 0 かすべて 1 の群の分散が 0

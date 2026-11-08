@@ -204,6 +204,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `hatvalues()` | `glmHatvalues` | Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight, for a `glm` fit. |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges' g. |
 | `irr::icc()` | `icc` | Intraclass correlation coefficient with its F test and confidence interval. |
+| `psych::ICC()` | `ICC` | The six intraclass correlations of Shrout and Fleiss (1979), with their F tests and confidence intervals. |
 | `DescTools::JonckheereTerpstraTest()` | `jonckheereTest` | Jonckheere-Terpstra test of equal distributions against ordered alternatives. |
 | `irr::kappa2()` | `kappa2` | Cohen's kappa for two raters, unweighted or weighted, with the z test of kappa = 0. |
 | `irr::kappam.fleiss()` | `kappamFleiss` | Fleiss' kappa for several raters, with the z test of kappa = 0 for Fleiss' kappa. |

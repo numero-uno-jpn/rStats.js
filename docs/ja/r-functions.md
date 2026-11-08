@@ -204,6 +204,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `hatvalues()` | `glmHatvalues` | `glm` の当てはめの、最後の重み付き最小二乗ステップのハット行列の対角成分 (事前重みが 0 でない行について) |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges の g |
 | `irr::icc()` | `icc` | 級内相関係数と、その F 検定および信頼区間 |
+| `psych::ICC()` | `ICC` | Shrout と Fleiss の 6 種類の級内相関係数と、その F 検定および信頼区間 |
 | `DescTools::JonckheereTerpstraTest()` | `jonckheereTest` | 順序のある対立仮説に対する、分布が等しいことについての Jonckheere-Terpstra 検定 |
 | `irr::kappa2()` | `kappa2` | 2 人の評定者に対する Cohen の κ (重みなしまたは重みつき) と、κ = 0 の z 検定 |
 | `irr::kappam.fleiss()` | `kappamFleiss` | 複数の評定者に対する Fleiss の κ と、Fleiss の κ についての κ = 0 の z 検定 |

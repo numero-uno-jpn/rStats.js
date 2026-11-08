@@ -197,6 +197,8 @@ affected.
 | Dunnett-type p-values (multcomp's Dunnett, PMCMRplus's `dunnettTest` and single-step `kwManyOneDunnTest` and `manyOneUTest`) | mvtnorm's randomised integration: about 1e-3 absolute, different from run to run (seeded) | exact one-dimensional integral |
 | Studentized-range p-values of post-hoc tests (Steel-Dwass, Games-Howell, Tukey) | R's `ptukey`, about 8 digits (off by up to 3.4e-8 in the tests) | full precision |
 | irr's kappa p-values | formed as 2 (1 − Φ(|z|)), losing small ones (2.2e-16 instead of 1.7e-16) | 2 Φ(−|z|) |
+| psych's `ICC` with `lmer = TRUE` (the default) | the mean squares from lme4's REML fit, whose optimiser stops early: every value about 1e-5 to 1e-4 relative off | the REML estimates of the balanced two-way model in closed form (the ANOVA mean squares, or where a variance component would be negative, the residual mean square pooled with that one: Robertson, Wright and Dykstra's isotonic regression of the mean squares) |
+| psych's `ICC` with `lmer = FALSE` on data scaled by 2^±520, with a large offset (1e6) or with a residual mean square of 0 | `aov`'s sums of squares: NaN, 3e-10 relative off, F about 1e31 | sums of squares in double-double on data scaled by a power of 2; F Infinity and p 0 where the ratings differ between raters by constants (the residual is exactly 0) |
 | polycor's maximum-likelihood estimates and standard errors (`ML = TRUE`, `std.err = TRUE`) | Nelder-Mead or BFGS stops early and the Hessian is taken by finite differences: off by up to 1e-3 relative; on strongly associated tables the two-step BFGS runs past 1 and reports 0.9999 with an infinite variance | the exact maximum (within 4e-15 of 160-bit values) and the analytic Hessian |
 | nortest's `pearson.test` with a value whose `pnorm` rounds to 1 (an outlier about 8.3 sd or more above the mean) | the value falls in class k + 1, which `tabulate` drops: the counts sum to less than n (1176.13 for 99 zeros and 1e6) | counted in the last class: 1174.26 |
 | psych's `omega` (minres) with a uniqueness at the lower bound 0.005 (a Heywood case) | `fa` passes L-BFGS-B the gradient of the residual sum of squares with the diagonal, not that of the off-diagonal objective; the two minima agree in the interior but not at the bound, so the fit stops above the minimum, mostly with convergence 0 (0.5% to 3.4% above it in the tests; uniquenesses off by up to 0.05) | from that point, L-BFGS-B goes on with the objective's own gradient (factr 1e3) to the minimum; without a uniqueness at the bound as psych, bit for bit |
@@ -967,6 +969,15 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   or more are errors (the 1 - 2 alpha interval would be a point or reversed; R checks only that `conf.level` lies in
   (0, 1)), and so is an `epsilon` that is not positive and finite. The paired test (`paired: true`, method
   `"Paired TOST"`, estimate "mean of the differences" as R) is tTest's paired test with the same two one-sided tests.
+- **`ICC`** (psych's `ICC`) accepts complete data only (missing ratings are an error; psych's lmer path handles them).
+  Ratings that are all equal, or the same for every subject, are errors (psych: rounding noise such as ICC -8e-16);
+  fewer than 2 subjects or raters too. Where the residual mean square is exactly 0 (ratings that differ between
+  raters by constants) F is Infinity and p 0, and ICC3, ICC3k and their bounds are 1; `aov`'s warning `essentially
+  perfect fit for ‘1’: summary may be unreliable` is kept on the ANOVA path then. lme4's `boundary (singular) fit`
+  message is not a warning. The interval of ICC2k is psych's (ICC2's bounds transformed by Spearman-Brown), not that
+  of `icc` with `unit: "average"` (irr's, McGraw and Wong's formula): for the 6 × 4 data of Shrout and Fleiss [0.0711,
+  0.9272] against [0.0394, 0.9286]. Only the six rows and the mean squares are returned (no `stats` table, `lme` or
+  `summary`), and `check.keys` is not offered.
 - **`binomDiffEquivalenceTest`** is not in R: the test of equivalence of two proportions on counts by two one-sided
   score tests (Miettinen-Nurminen by default, Farrington-Manning `"mee"` or Wald), dual to `binomDiffCI` with the same
   method at the level 1 - 2 alpha. For 0/1 data it is the test to use rather than `tost`, whose t approximation has a
