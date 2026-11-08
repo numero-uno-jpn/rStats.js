@@ -1042,6 +1042,49 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   that depends on a mean of 3.9e-14); and the AIC of a gaussian perfect fit, n log of a deviance that
   is rounding residue.
 
+### Robust covariances (`vcovHC`, `vcovCL`, `coeftest`, `coefci`)
+
+- **Rows of prior weight 0 are left out** of `vcovHC` and `vcovCL`: the values are those of the fit without
+  those rows (n is the number of rows of non-zero weight, and a cluster whose rows all have weight 0 does not
+  count). sandwich counts the rows in n but not in the bread, which scales every type by (n_ok / n)², and
+  recycles the hat values of the rows used against all rows (with R's warning `longer object length is not a
+  multiple of shorter object length`); its values are 9% to 53% off in the test fixture.
+- **No absolute threshold on the estimating functions:** sandwich sets the residual factor of a row to 0 when
+  every entry of its estimating function is below 2.2e-16 in absolute value, so that data on a small scale
+  (y × 2^-56) give a zero matrix. rStats.js uses w e (lm) and W z (glm) as they are, which changes nothing
+  else but the last bits of rows with a residual of about 0.
+- **`type: "const"` is the model-based covariance of the fit** (R's `vcov(fit)`: σ̂² (X'WX)⁻¹ for an lm, the
+  dispersion of `summary.glm` times (X'WX)⁻¹ for a glm). sandwich's `"const"` is that only for an unweighted
+  lm; for a weighted lm it uses the unweighted X'X and for a glm Σ (W z)² / (n − k), which are 7% to 75% off
+  `vcov(fit)` in the test fixture. With `sandwich: false` the meat is the one whose sandwich is `vcov(fit)`
+  (omega_i = dispersion W_i / phi_s²).
+- **Hat values of 1:** where sandwich returns a matrix of NaN (HC2 to HC5 with a hat value of exactly 1),
+  `vcovHC` throws a RangeError naming the observations; R's warning about hat values close to 1 is kept for the
+  finite results (HC0, HC1 and hat values below 1).
+- **Clustered HC2 and HC3 use the symmetric adjustment** (Bell and McCaffrey 2002; Pustejovsky and Tipton 2018):
+  each cluster's residuals are multiplied by (I − H_gg)^(−1/2) or (I − H_gg)⁻¹ with H_gg the block of the
+  symmetric hat matrix W^½ X A X' W^½. For HC3 this is exactly the leave-one-cluster-out jackknife. sandwich
+  uses the transpose of that adjustment for a weighted lm and for every glm (the same where the weights are
+  constant within each cluster, as for an unweighted lm); its values are 1% to 23% off in the test fixture. A
+  singular block (cluster fixed effects), where sandwich returns NaN (HC2) or meaningless numbers (HC3), is a
+  RangeError.
+- **Cluster labels:** numbers, strings or booleans, one per input row of the fit (the rows the fit dropped for a
+  missing value are dropped from the cluster too; any other length is an error, as R). A missing label is an
+  error, as R. G is the number of distinct labels among the rows used: R counts every level of a factor,
+  unused ones included. The intersections of several clustering dimensions are formed as tuples of the labels:
+  R pastes them with "_", so that ("a_b", "c") and ("a", "b_c") fall into one cluster. A single cluster is a
+  RangeError (`at least two clusters are needed`), where R fails with `non-conformable arrays`.
+- **`vcovCL`'s default type is HC1 for an lm and HC0 for a glm**, as sandwich's (a glm is not an lm for its
+  test).
+- **`coeftest` and `coefci`:** a covariance with a negative variance is a RangeError (R gives NaN standard
+  errors with `NaNs produced`), and so is a `level` outside [0, 1] (R gives NaN limits). The `vcov` option takes
+  a matrix (matched by position; it must be p × p, or k × k for the coefficients that are not aliased, where R
+  recycles), the result of `vcovHC` or `vcovCL` (matched by name) or a function of the fit; options of the
+  covariance function are passed by closing over them instead of R's `...`. `parm` takes 0-based indices. As
+  lmtest, a glm gets z tests and normal quantiles by default for every family.
+- **Ill-conditioned model matrices:** the values carry the rounding of the fit's own QR decomposition, as R's
+  (for a model matrix with condition number 2e12 both are up to about 1e-3 from the exact value).
+
 ### Mixed models
 
 - **`lmer` returns the exact optimum** of the REML criterion (or the ML deviance), found by Newton's method with

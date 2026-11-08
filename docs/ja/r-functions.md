@@ -2,7 +2,7 @@
 
 R の関数から、rStats.js でそれに当たる関数を引くための一覧です (`node scripts/r-index.mjs --ja` で生成)。ほかのパッケージの
 関数は `package::function()` と書いています。引数の書き方は [JavaScript の開発者のための rStats.js](guide-for-js-developers.md) を、
-各関数の詳しい説明は [API リファレンス](https://numero-uno-jpn.github.io/rStats.js/ja/api/) を参照してください。
+各関数の詳しい説明は [API リファレンス](https://numero-uno-jpn.github.io/rStats.js/api/) (英語) を参照してください。
 
 ## 特殊関数 (`rStats.js/special`)
 
@@ -175,6 +175,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | 2 標本の相対効果 P(X < Y) + P(X = Y)/2 が 1/2 であることについての Brunner-Munzel 検定 (等分散も分布の形が同じことも仮定しない) |
 | `chisq.test()` | `chisqTest` | Pearson のカイ二乗検定 |
 | `DescTools::CochranQTest()` | `cochranQTest` | 反復のない完全ブロック計画での 2 値応答に対する Cochran の Q 検定 |
+| `lmtest::coefci()` | `coefci` | 与えた共分散行列による `lm` または `glm` の当てはめの係数の信頼区間 |
+| `lmtest::coeftest()` | `coeftest` | 与えた共分散行列による `lm` または `glm` の当てはめの係数の検定 |
 | `pwr::cohen.ES()` | `cohenES` | Cohen による効果量の慣用値 |
 | `effectsize::cohens_d()` | `cohensD` | Cohen の d: 2 標本、対応のある標本、または 1 標本と `mu` の平均の差を標準化した値と、非心 t 分布による信頼区間 |
 | `confint()` | `confint` | `lm` で当てはめた線形モデルの係数の信頼区間 |
@@ -266,6 +268,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `TukeyHSD()` | `TukeyHSD` | 一元配置分散分析の群平均の間の Tukey の HSD (honest significant differences) |
 | `PMCMRplus::tukeyTest()` | `tukeyTest` | 平均の Tukey の全対比較検定 |
 | `var.test()` | `varTest` | 2 つの正規標本の分散が与えた比であることの F 検定 |
+| `sandwich::vcovCL()` | `vcovCL` | `lm` または `glm` の当てはめの係数のクラスター頑健な共分散行列 |
+| `sandwich::vcovHC()` | `vcovHC` | `lm` または `glm` の当てはめの係数の不均一分散に頑健な共分散行列 |
 | `wilcox.test()` | `wilcoxTest` | Wilcoxon の符号付き順位検定と順位和検定 |
 | `BSDA::z.test()` | `zTest` | 標準偏差が既知の場合の、1 標本の平均または 2 標本の平均の差の z 検定 |
 | (R にない) | `binomDiffEquivalenceTest` | 独立な 2 つの比率 x1/n1 と x2/n2 の差が許容幅の内にあること (同等性) の検定 |

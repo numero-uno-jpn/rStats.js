@@ -304,7 +304,7 @@ const HC_TYPES = ["HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5
 
 /**
  * Heteroskedasticity-consistent covariance matrix of the coefficients of an `lm` or `glm` fit. Equivalent to R's
- * `sandwich::vcovHC(fit, type, omega, sandwich)`.
+ * `sandwich::vcovHC()`.
  *
  * The sandwich A (X' diag(omega) X) A (Zeileis 2006), A = (X'WX)^-1, with omega_i = res_i^2 (HC0, White 1980), times n
  * / (n - k) (HC1), divided by 1 - h_i (HC2) or (1 - h_i)^2 (HC3, MacKinnon and White 1985), by (1 - h_i)^delta_i
@@ -518,7 +518,7 @@ function fixNegative(V: number[][]): number[][] {
 
 /**
  * Clustered covariance matrix of the coefficients of an `lm` or `glm` fit. Equivalent to R's
- * `sandwich::vcovCL(fit, cluster, type, sandwich, fix, cadjust, multi0)`.
+ * `sandwich::vcovCL()`.
  *
  * The meat sums the estimating functions within each cluster (Zeileis, Köll and Graham 2020), times G / (G - 1) with
  * `cadjust`; HC1 multiplies by (n - 1) / (n - k). Several clustering dimensions are combined by inclusion and exclusion

@@ -191,7 +191,7 @@ function nobsOf(fit: RobustFit): number {
 
 /**
  * Tests of the coefficients of an `lm` or `glm` fit with a given covariance matrix. Equivalent to R's
- * `lmtest::coeftest(fit, vcov., df)`.
+ * `lmtest::coeftest()`.
  *
  * Each coefficient's estimate divided by its standard error (the square root of the covariance's diagonal), with a t
  * test on `df` degrees of freedom or a z test. The default `df` is the residual degrees of freedom of an lm and
@@ -255,7 +255,7 @@ function percentNames(a: number): [string, string] {
 
 /**
  * Confidence intervals of the coefficients of an `lm` or `glm` fit with a given covariance matrix. Equivalent to R's
- * `lmtest::coefci(fit, parm, level, vcov., df)`.
+ * `lmtest::coefci()`.
  *
  * The limits estimate ± q se with the t quantile on `df` degrees of freedom, or the normal quantile (by default for a
  * glm of every family, as lmtest). `parm` takes 0-based indices (R: 1-based) or names.

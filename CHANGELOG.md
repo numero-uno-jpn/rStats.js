@@ -7,6 +7,24 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Robust covariances** of `lm` (matrix and formula) and `glm` fits: `vcovHC(fit, { type, omega, sandwich })`,
+  sandwich's `vcovHC()`, with the types `const`, `HC0` (`HC`), `HC1`, `HC2`, `HC3` (default), `HC4`, `HC4m` and
+  `HC5` and omega as an array or a function `(res, hat, df) => omega`; `vcovCL(fit, { cluster, type, cadjust,
+  multi0, fix, sandwich })`, sandwich's `vcovCL()`, one-way and multi-way, with `HC0` and `HC1` (the default for an
+  lm; `HC0` for a glm) and `HC2`/`HC3` in the symmetric form of Bell and McCaffrey (for HC3 the leave-one-cluster-out
+  jackknife). Both return `{ vcov, names, warnings }`. Rows of prior weight 0 are left out, `const` is the
+  model-based covariance, cluster intersections are tuples of labels, and a hat value of 1 (HC2 to HC5), a singular
+  cluster block or a single cluster is an error (docs/differences-from-r.md).
+- **Tests and intervals with a given covariance**: `coeftest(fit, { vcov, df })` and `coefci(fit, { parm, level,
+  vcov, df })`, lmtest's `coeftest()` and `coefci()`: t tests on the residual degrees of freedom of an lm, z tests
+  for a glm of every family; `vcov` is a matrix, the result of `vcovHC`/`vcovCL` or a function of the fit.
+- `LmResult` has the model matrix `x`, the `weights` and the 0-based input `rows` used (as `LmFormulaResult` had),
+  and `GlmModel` the `rows` used.
+
 ## 1.2.0 - 2026-11-07
 
 Contingency tables and proportions (item 1 of the roadmap): intervals for a proportion and for the risk difference,
