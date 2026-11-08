@@ -681,7 +681,7 @@
 | projection (onto a space) | 射影 | `docs/ja` で使用 |
 | space spanned by (vectors) | 張る空間 | `docs/ja` で使用 |
 | orthogonal matrix | 直交行列 | `docs/ja/r-functions.md` で使用 |
-| orthogonal complement | 直交補空間 | `docs/ja/differences-from-r.md` の「直交補完」は誤記 |
+| orthogonal complement | 直交補空間 | `docs/ja/differences-from-r.md` で使用 |
 | singular vector | 特異ベクトル | `docs/ja` で使用 |
 | Schur decomposition | Schur 分解 | 新規。`quasi-triangular` の行で既に使用 |
 | upper quasi-triangular | 上準三角 | 新規。`quasi-triangular` の上三角側 |
