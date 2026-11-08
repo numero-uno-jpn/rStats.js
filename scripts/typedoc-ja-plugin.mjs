@@ -24,8 +24,9 @@
 //
 // Finally the rendered HTML gets a deliberately narrow, mechanical post-processing (Renderer "endPage", see
 // HEADING_TERMS and TAG_TERMS): TypeScript terms that TypeDoc's ja locale translates unnaturally are put back to the
-// English words of TypeDoc's English output. Only the text of <h2>-<h4> and the <code class="tsd-tag"> flags change;
-// attribute values (id, href), <h1>, the navigation, the index lists and the body text are left alone.
+// English words of TypeDoc's English output. Only the text of <h2>-<h5>, the kind word of the <h1> title and the
+// <code class="tsd-tag"> flags change; attribute values (id, href), the navigation, the index lists and the body text
+// are left alone.
 
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -49,7 +50,7 @@ const CATEGORY_NAMES = {
   "Special functions": "特殊関数",
 };
 
-// Scope: text nodes inside <h2>, <h3> and <h4> elements only (never attributes such as id="プロパティ", so the anchors
+// Scope: text nodes inside <h2> to <h5> elements only (never attributes such as id="プロパティ", so the anchors
 // keep working), replaced as a whole text node (a node like "階層 (" before a link counts as "階層"). Extend the
 // table to cover more headings. The values are the exact strings of TypeDoc's English output.
 const HEADING_TERMS = {
@@ -59,6 +60,14 @@ const HEADING_TERMS = {
   "型宣言": "Type Declaration",
   "階層": "Hierarchy",
   "theme_hierarchy_view_summary": "View Summary", // a key missing from TypeDoc's ja locale, link text in the 階層 h4
+  "インデックス": "Index", // the h5 above a page's member index
+};
+// Scope: the kind word at the start of the <h1> page title ("インターフェイス CohensDOptions"), only when a space and
+// the name follow it.
+const TITLE_KINDS = {
+  "インターフェイス": "Interface",
+  "関数": "Function",
+  "型エイリアス": "Type Alias",
 };
 // Scope: the whole content of every <code class="tsd-tag">...</code> flag, anywhere in the page.
 const TAG_TERMS = {
@@ -90,7 +99,11 @@ function restoreEnglishTerms(html) {
       })
       .join("");
   return html
-    .replace(/(<h[234]\b[^>]*>)([\s\S]*?)(<\/h[234]>)/g, (_, open, inner, close) => open + inHeading(inner) + close)
+    .replace(/(<h[2345]\b[^>]*>)([\s\S]*?)(<\/h[2345]>)/g, (_, open, inner, close) => open + inHeading(inner) + close)
+    .replace(/(<h1\b[^>]*>\s*)([^<\s]+)( )/g, (m, open, word, space) => {
+      const kind = TITLE_KINDS[word.normalize("NFC")];
+      return kind ? open + kind + space : m;
+    })
     .replace(/(<code class="tsd-tag">)([^<]*)(<\/code>)/g, (m, open, text, close) =>
       Object.hasOwn(TAG_TERMS, text) ? open + TAG_TERMS[text] + close : m,
     );
