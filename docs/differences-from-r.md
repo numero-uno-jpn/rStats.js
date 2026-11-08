@@ -889,7 +889,8 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   `cluster()` term of the formula, and R's warning when both are given, do not exist). With the robust variance, a
   single cluster is an error "at least two clusters are needed for the robust variance" (R fails with "(subscript)
   logical subscript too long" for two or more covariates). Cluster labels that are numbers with the same 15-digit
-  text are one cluster, as strata. R's own results for a coefficient running off to infinity over many iterations depend on the platform (x86_64
+  text are one cluster, as strata. An infinite case weight is an error "'weights' must be finite" (R's check of the
+  weights, > 0, lets it through). R's own results for a coefficient running off to infinity over many iterations depend on the platform (x86_64
   and arm64 R differ by 1e-7 after 20 iterations), so such fits agree with R only to that size.
 - **`omega`** with one factor reports the group column of the Schmid-Leiman matrix and the group omegas as exactly 0;
   R reports the square roots of rounding residues (about 1e-8). With four or more group factors R's own results move

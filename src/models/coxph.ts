@@ -197,6 +197,8 @@ interface Evaluation {
   info: number[][];
 }
 
+const MIN_NORMAL = 2 ** -1022;
+
 /** Distance of eta from the shift of the risk sums beyond which exp would leave (or near) the doubles (e^709.8 overflows) */
 const SHIFT_LIMIT = 700;
 
@@ -295,7 +297,15 @@ function evaluate(data: SortedData, beta: readonly number[], efron: boolean): Ev
           const irow = info[i]!;
           for (let l = 0; l <= i; l++) {
             row[l]! += efron ? drow[l]! / share : drow[l]!;
-            irow[l]! += (stepWeight * (row[l]! - mean * riskX[l]!)) / riskSum;
+            const dev = row[l]! - mean * riskX[l]!;
+            const term = stepWeight * dev;
+            // stepWeight and dev both carry the scale of the weights, so the product leaves the doubles for weights
+            // around 2^+-512 although the term does not: there (only) the quotient first, which does not change the
+            // bits of the ordinary case
+            irow[l]! +=
+              (term < Infinity && term > -Infinity && (Math.abs(term) >= MIN_NORMAL || dev === 0)) || !Number.isFinite(stepWeight)
+                ? term / riskSum
+                : stepWeight * (dev / riskSum);
           }
         }
       }
@@ -318,54 +328,82 @@ function evaluate(data: SortedData, beta: readonly number[], efron: boolean): Ev
  * sum_m [(x_j - xbar_m) / M - (1 - f) r_j lambda_m (x_j - xbar_m)]. The increments of the times before an
  * observation's own are accumulated forward in time (C0 = sum lambda, C1 = sum lambda xbar), so that each residual
  * costs O(p) and not O(n p). Sum_j w_j s_j is the score vector.
+ *
+ * Each risk set is shifted by its own largest linear predictor M (as evaluate shifts the risk sums): S0 and S1 of a
+ * time are held as e^-M times their values, and C0 and C1 in the units e^-M of the current time. A shift by the
+ * stratum's largest linear predictor alone made every r of the later risk sets 0 once the linear predictors spanned
+ * more than about 745 (an early death with a large one): S0 = 0 and the residuals NaN. M does not increase forward in
+ * time, so the rescaling factors of C0 and C1 are at most 1 and only the negligible early terms can underflow. The
+ * residuals do not depend on the scale of the weights, which are therefore taken in units of a power of 2 (exact)
  */
 function scoreResiduals(data: SortedData, beta: readonly number[], efron: boolean): number[][] {
-  const { time, event, weight, x, stratumEnd } = data;
+  const { time, event, x, stratumEnd } = data;
+  const weight = scaleToUnit([data.weight]).groups[0]!;
   const n = time.length;
   const p = beta.length;
   const out = Array.from({ length: n }, () => new Array<number>(p).fill(0));
+  const etaOf = (j: number): number => {
+    let e = 0;
+    for (let i = 0; i < p; i++) e += beta[i]! * x[j]![i]!;
+    return e;
+  };
   for (let start = 0; start < n; ) {
     let end = start;
     while (!stratumEnd[end]) end++;
-    // linear predictors less the stratum's largest, which cancels in every ratio below and keeps exp in range
     const eta: number[] = [];
-    let top = -Infinity;
-    for (let j = start; j <= end; j++) {
-      let e = 0;
-      for (let i = 0; i < p; i++) e += beta[i]! * x[j]![i]!;
-      eta.push(e);
-      if (e > top) top = e;
-    }
-    const r = eta.map((e) => Math.exp(Number.isFinite(top) ? e - top : e));
-    // the first row of each group of tied times, and the risk sums at it (accumulated from the end of the stratum)
+    for (let j = start; j <= end; j++) eta.push(etaOf(j));
+    // the first row of each group of tied times, and the risk sums at it (accumulated from the end of the stratum) in
+    // units of e^-shift[g], shift[g] the largest linear predictor of the risk set (0 if it is not finite)
     const groupStart: number[] = [];
     for (let j = start; j <= end; j++) if (j === start || time[j] !== time[j - 1]) groupStart.push(j);
     const groupEnd = (g: number): number => (g + 1 < groupStart.length ? groupStart[g + 1]! : end + 1);
     const riskSum: number[] = new Array<number>(groupStart.length);
     const riskX: number[][] = new Array<number[]>(groupStart.length);
+    const shift: number[] = new Array<number>(groupStart.length);
+    let top = -Infinity;
     let s0 = 0;
     const s1 = new Array<number>(p).fill(0);
     for (let g = groupStart.length - 1; g >= 0; g--) {
+      const before = Number.isFinite(top) ? top : 0;
+      for (let j = groupStart[g]!; j < groupEnd(g); j++) top = Math.max(top, eta[j - start]!);
+      const m = Number.isFinite(top) ? top : 0;
+      // (nothing to rescale at the last time, where `before` is only a placeholder)
+      if (g < groupStart.length - 1 && m !== before) {
+        const f = Math.exp(before - m);
+        s0 *= f;
+        for (let i = 0; i < p; i++) s1[i]! *= f;
+      }
       for (let j = groupStart[g]!; j < groupEnd(g); j++) {
-        const wr = weight[j]! * r[j - start]!;
+        const wr = weight[j]! * Math.exp(eta[j - start]! - m);
         s0 += wr;
         for (let i = 0; i < p; i++) s1[i]! += wr * x[j]![i]!;
       }
       riskSum[g] = s0;
       riskX[g] = s1.slice();
+      shift[g] = m;
     }
+    // C0 = sum lambda and C1 = sum lambda xbar over the earlier event times, in units of e^-shift[g]
     let c0 = 0;
     const c1 = new Array<number>(p).fill(0);
     for (let g = 0; g < groupStart.length; g++) {
+      const m = shift[g]!;
+      if (g > 0 && m !== shift[g - 1]) {
+        const f = Math.exp(m - shift[g - 1]!);
+        c0 *= f;
+        for (let i = 0; i < p; i++) c1[i]! *= f;
+      }
       const from = groupStart[g]!;
       const to = groupEnd(g);
+      // r_j in units of e^shift[g] (eta_j <= shift[g] for every j at risk)
+      const r: number[] = [];
+      for (let j = from; j < to; j++) r.push(Math.exp(eta[j - start]! - m));
       let d = 0;
       let dw = 0;
       let e0 = 0;
       const e1 = new Array<number>(p).fill(0);
       for (let j = from; j < to; j++) {
         if (!event[j]) continue;
-        const wr = weight[j]! * r[j - start]!;
+        const wr = weight[j]! * r[j - from]!;
         d++;
         dw += weight[j]!;
         e0 += wr;
@@ -373,20 +411,20 @@ function scoreResiduals(data: SortedData, beta: readonly number[], efron: boolea
       }
       // the part of the earlier event times: -r_j (x_j C0 - C1)
       for (let j = from; j < to; j++) {
-        const rj = r[j - start]!;
+        const rj = r[j - from]!;
         const xj = x[j]!;
         const sj = out[j]!;
         for (let i = 0; i < p; i++) sj[i] = -rj * (xj[i]! * c0 - c1[i]!);
       }
       if (d === 0) continue;
       const steps = efron ? d : 1;
-      for (let m = 0; m < steps; m++) {
-        const f = m / steps;
+      for (let k = 0; k < steps; k++) {
+        const f = k / steps;
         const s0m = riskSum[g]! - f * e0;
         const xbar = riskX[g]!.map((v, i) => (v - f * e1[i]!) / s0m);
         const lambda = dw / steps / s0m;
         for (let j = from; j < to; j++) {
-          const rj = r[j - start]!;
+          const rj = r[j - from]!;
           const xj = x[j]!;
           const sj = out[j]!;
           if (event[j]) {
@@ -561,8 +599,8 @@ function zeroEventResult(rows: readonly (readonly number[])[], p: number, warnin
  * @param status 1 for an event, 0 for a censored time.
  * @param x The covariate matrix, one row per observation (at least one column).
  * @param options See {@link CoxphOptions}.
- * @throws TypeError if `robust` is not a boolean. RangeError for invalid arguments, among them a robust variance
- * with fewer than two clusters.
+ * @throws TypeError if `robust` is not a boolean. RangeError for invalid arguments, among them an infinite weight
+ * and a robust variance with fewer than two clusters.
  *
  * @example
  * ```ts
@@ -638,6 +676,9 @@ export function fitCoxph(
   if (keep.some((i) => x[i]!.some((v) => !Number.isFinite(v)))) throw new RangeError("'x' contains infinite values");
   const w = keep.map((i) => (weights === undefined ? 1 : weights[i]!));
   if (w.some((v) => !(v > 0))) throw new RangeError("Invalid weights, must be >0");
+  // an infinite weight passes R's check (> 0) and counts as an integer there; the fit cannot use it (the sums become
+  // Inf or NaN: NaN coefficients and a misleading "coefficient may be infinite" before this check)
+  if (w.some((v) => v === Infinity)) throw new RangeError("'weights' must be finite");
   const warnings = new Warnings();
   // R's default: the robust variance with a cluster or a weight that is not an integer (silently)
   const useRobust = robust ?? (cluster !== undefined || w.some((v) => !Number.isInteger(v)));
@@ -873,9 +914,12 @@ export function fitCoxph(
     };
     robustUnit = crossProduct(clusterSums(dfbeta));
     // the robust score test at init (0 without it): T_c = the cluster sums of w_j s_j(init), u = sum_c T_c,
-    // rscore = u' (sum_c T_c T_c')^- u by the generalised Cholesky factorisation (over all p columns, as R)
+    // rscore = u' (sum_c T_c T_c')^- u by the generalised Cholesky factorisation (over all p columns, as R). rscore
+    // does not depend on the scale of the weights, and u u' and T_c T_c' scale as its square (overflowing or
+    // underflowing for weights around 2^+-512): T_c is formed from the weights in units of a power of 2 (exact)
+    const wUnit = scaleToUnit([sortedW]).groups[0]!;
     const beta0 = init === undefined ? new Array<number>(p).fill(0) : init.map((v, j) => ldexp(v / scales[j]!, shift[j]!));
-    const t = clusterSums(toUnit(scoreResiduals(data, beta0, efron)).map((s, r) => s.map((v) => sortedW[r]! * v)));
+    const t = clusterSums(toUnit(scoreResiduals(data, beta0, efron)).map((s, r) => s.map((v) => wUnit[r]! * v)));
     const u = new Array<number>(p).fill(0);
     for (const row of t) for (let i = 0; i < p; i++) u[i]! += row[i]!;
     const sMatrix = crossProduct(t);

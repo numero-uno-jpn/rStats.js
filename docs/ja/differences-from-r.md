@@ -840,7 +840,8 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   ます (R の formula の `cluster()` 項と、両方を指定したときの R の警告はありません)。頑健分散でクラスターが 1 つだけの
   ときは "at least two clusters are needed for the robust variance" のエラーです (R は共変量が 2 つ以上だと
   "(subscript) logical subscript too long" で止まります)。15 桁の表記が同じ数値のクラスターのラベルは、層と同じく 1 つ
-  のクラスターです。多数の反復で
+  のクラスターです。無限大のケースの重みは "'weights' must be finite" のエラーです (R の重みの検査 (> 0) は通します)。
+  多数の反復で
   係数が無限大に向かう例では R 自身の結果がプラットフォームで違う (20 回の反復で x86_64 と arm64 の R が 1e-7
   違う) ので、その程度までしか一致しません。
 - **`omega`** は 1 因子のとき、Schmid-Leiman 行列の群因子の列と群ごとの ω を厳密に 0 と返します。R は丸めの残差の

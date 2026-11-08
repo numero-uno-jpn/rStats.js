@@ -30,7 +30,17 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   `robscore`; `var` is then the robust variance and `z`, `p`, `lower`, `upper`, `wald` and `waldtest` use it, while
   `se` stays the model-based standard error (R's `se(coef)`). Efron and Breslow ties, case weights and strata, R's
   warning for a cluster with `robust: false`; a single cluster is an error (docs/differences-from-r.md). Non-integer
-  case weights no longer throw. Checked against survival 3.8-12 (R 4.6.2).
+  case weights no longer throw. Checked against survival 3.8-12 (R 4.6.2). The score residuals shift each risk set by
+  its own largest linear predictor (finite where the linear predictors span more than exp's range), and the robust
+  variance and `rscore` do not depend on the scale of the weights.
+
+### Fixed
+
+- **`coxph` with case weights around 2^±512 or beyond** (all weights times 2^-560 or 2^600): the information
+  overflowed or underflowed (it was formed as a product that scales as the square of the weights), giving NaN
+  coefficients without a warning or "Ran out of iterations"; it is now formed as a quotient first where that product
+  leaves the doubles (ordinary fits keep their bits). An infinite case weight is now an error "'weights' must be
+  finite" (it gave NaN coefficients with a misleading "coefficient may be infinite").
 
 ## 1.2.0 - 2026-11-07
 
