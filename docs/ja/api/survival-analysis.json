@@ -32,7 +32,7 @@
   "CoxphOptions.cluster#summary": {
     "hash": "c00118c23869",
     "en": "Cluster labels, one per observation, for the robust variance (R's `cluster`): the observations of a cluster are\ntreated as correlated. Rows with a missing label (`null` or NaN) are dropped, like rows with a missing stratum.\nWithout it, each observation is its own cluster. At least two clusters are needed.",
-    "ja": ""
+    "ja": "ロバスト分散のための、観測値ごとに 1 つのクラスターのラベルです (R の `cluster`)。同じクラスターの観測値は、相関していると扱われます。\n欠測のラベル (`null` または NaN) の行は、欠測の層の行と同じく除かれます。\nこれがない場合は、観測値ごとに独自のクラスターになります。少なくとも 2 つのクラスターが必要です。"
   },
   "CoxphOptions.confLevel#summary": {
     "hash": "f8c806fc5453",
@@ -57,7 +57,7 @@
   "CoxphOptions.robust#summary": {
     "hash": "68a6add74f16",
     "en": "Whether to use the robust (Lin-Wei sandwich) variance. Default as R: `true` when `cluster` is given or some case\nweight is not an integer, else `false`. With `false` a `cluster` is ignored (with R's warning).",
-    "ja": ""
+    "ja": "ロバスト (Lin-Wei のサンドイッチ) 分散を使うかどうかです。既定は R と同じく、`cluster` を指定したとき、または\n観測値の重みに整数でないものがあるときは `true`、それ以外は `false` です。`false` のとき、`cluster` は無視されます (R の警告を伴います)。"
   },
   "CoxphOptions.strata#summary": {
     "hash": "29c04c42d8d8",
@@ -72,8 +72,7 @@
   "CoxphOptions.weights#summary": {
     "hash": "7bf6493b04b2",
     "en": "Case weights (positive). A weight that is not an integer switches the robust variance on (see `robust`).",
-    "ja": "観測値の重み (正の整数。それ以外の重みでは R はロバスト分散を用いますが、ロバスト分散はまだサポートされていません)。",
-    "stale": true
+    "ja": "観測値の重み (正の値) です。整数でない重みがあると、ロバスト分散が有効になります (`robust` を参照)。"
   },
   "CoxphResult#summary": {
     "hash": "ecaaa3580a90",
@@ -108,8 +107,7 @@
   "CoxphResult.lower#summary": {
     "hash": "875aa5297bd6",
     "en": "Lower confidence limits of exp(coef) (from `robustSe` when `usedRobust`)",
-    "ja": "exp(coef) の信頼区間の下限",
-    "stale": true
+    "ja": "exp(coef) の信頼区間の下限です (`usedRobust` のときは `robustSe` から求めます)。"
   },
   "CoxphResult.means#summary": {
     "hash": "2c886b2bca94",
@@ -124,7 +122,7 @@
   "CoxphResult.naiveVar#summary": {
     "hash": "23eed817f365",
     "en": "The model-based variance (R's `naive.var`); only when `usedRobust`.",
-    "ja": ""
+    "ja": "モデルに基づく分散です (R の `naive.var`)。`usedRobust` の場合のみ値を持ちます。"
   },
   "CoxphResult.nevent#summary": {
     "hash": "fe5894dcb4cd",
@@ -144,17 +142,17 @@
   "CoxphResult.robscore#summary": {
     "hash": "87564f2a0959",
     "en": "The robust score test (R's `robscore`: `rscore`, the number of non-NaN coefficients); only when `usedRobust`.",
-    "ja": ""
+    "ja": "ロバストスコア検定です (R の `robscore`: `rscore`、NaN でない係数の数)。`usedRobust` の場合のみです。"
   },
   "CoxphResult.robustSe#summary": {
     "hash": "01a3257cee19",
     "en": "Robust standard errors, the square roots of the diagonal of `var` (R's `robust se`); only when `usedRobust`.",
-    "ja": ""
+    "ja": "ロバスト標準誤差です。`var` の対角成分の平方根です (R の `robust se`)。`usedRobust` の場合のみです。"
   },
   "CoxphResult.rscore#summary": {
     "hash": "a64d42f38cc3",
     "en": "The robust score test statistic at `init` (R's `rscore`); only when `usedRobust`.",
-    "ja": ""
+    "ja": "`init` におけるロバストスコア検定統計量です (R の `rscore`)。`usedRobust` の場合のみです。"
   },
   "CoxphResult.rsq#summary": {
     "hash": "a080023eb60f",
@@ -184,8 +182,7 @@
   "CoxphResult.se#summary": {
     "hash": "3b71781a19af",
     "en": "Model-based (naive) standard errors of the coefficients, also when `usedRobust` (R's column `se(coef)`; the robust\nones are `robustSe`)",
-    "ja": "係数の標準誤差",
-    "stale": true
+    "ja": "係数の、モデルに基づく (naive) 標準誤差です。`usedRobust` のときも、こちらです (R の列 `se(coef)`;\nロバストなものは `robustSe` です)。"
   },
   "CoxphResult.stdError#summary": {
     "hash": "a2d9d992c915",
@@ -195,19 +192,17 @@
   "CoxphResult.upper#summary": {
     "hash": "4e40165efade",
     "en": "Upper confidence limits of exp(coef) (from `robustSe` when `usedRobust`)",
-    "ja": "exp(coef) の信頼区間の上限",
-    "stale": true
+    "ja": "exp(coef) の信頼区間の上限です (`usedRobust` のときは `robustSe` から求めます)。"
   },
   "CoxphResult.usedRobust#summary": {
     "hash": "1e900766fe9f",
     "en": "Whether the robust variance was used (R's `used.robust`). False also when it was asked for but there is nothing to\ncompute it from (no events, or every coefficient NaN), as R.",
-    "ja": ""
+    "ja": "ロバスト分散を使ったかどうかです (R の `used.robust`)。要求されたものの、\nそれを計算する元がない場合 (イベントがない、またはすべての係数が NaN) も、R と同じく false です。"
   },
   "CoxphResult.var#summary": {
     "hash": "816a6e9f8207",
     "en": "Variance matrix of the coefficients (array of rows): the robust variance when `usedRobust` (R's `var`), else the\nmodel-based one",
-    "ja": "係数の分散行列 (行の配列)",
-    "stale": true
+    "ja": "係数の分散行列です (行の配列)。`usedRobust` のときはロバスト分散です (R の `var`)。それ以外は、\nモデルに基づく分散です。"
   },
   "CoxphResult.wald#summary": {
     "hash": "2e8f4e891b6c",
@@ -217,8 +212,7 @@
   "CoxphResult.waldtest#summary": {
     "hash": "a3c065e3f9ac",
     "en": "Wald test (with the robust variance when `usedRobust`)",
-    "ja": "Wald 検定",
-    "stale": true
+    "ja": "Wald 検定です (`usedRobust` のときはロバスト分散を使います)。"
   },
   "CoxphResult.warnings#summary": {
     "hash": "19382659fccd",
@@ -228,8 +222,7 @@
   "CoxphResult.z#summary": {
     "hash": "cdaf19ffef38",
     "en": "Wald z statistics (coefficient / `robustSe` when `usedRobust`, else / `se`)",
-    "ja": "Wald z 統計量",
-    "stale": true
+    "ja": "Wald の z 統計量です (係数 / `robustSe` (`usedRobust` のとき)、それ以外は係数 / `se`)。"
   },
   "CoxphResult.zValue#summary": {
     "hash": "f199ee2a8585",
@@ -439,13 +432,12 @@
   "coxph#@throws": {
     "hash": "e30a2f320d13",
     "en": "TypeError if `robust` is not a boolean. RangeError for invalid arguments, among them an infinite weight\nand a robust variance with fewer than two clusters.",
-    "ja": ""
+    "ja": "`robust` が真偽値でない場合は TypeError です。不正な引数に対しては RangeError です (無限大の重み、\n2 つ未満のクラスターでのロバスト分散を含みます)。"
   },
   "coxph#summary": {
     "hash": "d49a66231d07",
     "en": "Cox proportional hazards regression. Equivalent to R's `survival::coxph()`. As\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, robust, cluster, control)` for right-censored\ndata, with the values of `summary(fit)`.\n\nWith `robust` (by default when `cluster` is given or a case weight is not an integer) the variance is the robust\n(Lin-Wei sandwich) one, summed over the clusters (each observation its own cluster without `cluster`), as R:\n`var` is the robust variance and `naiveVar` the model-based one; `se` (and `stdError`) stay the model-based standard\nerrors (R's `se(coef)`), while `z`, `p`, the intervals `lower`/`upper`, `wald` and `waldtest` use the robust ones\n(`robustSe`); `robscore` is the robust score test at `init`. The likelihood ratio and score tests and the R^2 ignore\nthe clustering.\n\nRows with a missing time, status, covariate, weight or stratum are dropped. Times within sqrt(eps) of each other are\ntreated as tied. Covariates whose values all lie in `nocenter` are not centred; the others are centred by their\nweighted means, which only shifts the linear predictors. R's warnings (non-convergence, possibly infinite\ncoefficients) are returned in `warnings`.",
-    "ja": "Cox 比例ハザード回帰。R の `survival::coxph()` と同等です。次の形で、\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, control)` により、右側打ち切りのデータに対して\n`summary(fit)` の値を再現します。\n\ntime、status、共変量、重み、層のいずれかが欠測している行は除外されます。互いの差が sqrt(eps) 以内の時刻は、\n同順位として扱われます。値がすべて `nocenter` に含まれる共変量は中心化されません。それ以外の共変量は、重み付き平均で\n中心化されます。これは線形予測子をずらすだけです。R の警告 (非収束、係数が無限大になる可能性) は、\n`warnings` で返されます。",
-    "stale": true
+    "ja": "Cox 比例ハザード回帰です。R の `survival::coxph()` と同等です。右側打ち切りのデータについて、\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, robust, cluster, control)` の形で呼び出した場合と同じく、\n`summary(fit)` の値を得ます。\n\n`robust` を指定したとき (既定では、`cluster` を指定したとき、または観測値の重みに整数でないものがあるとき) は、分散は\nロバストな (Lin-Wei のサンドイッチ) 分散になります。これは、クラスターごとに合計したものです (`cluster` がなければ、\n観測値ごとに独自のクラスター)。R と同じく、`var` はロバスト分散、`naiveVar` はモデルに基づく分散です。`se` (と `stdError`) は\nモデルに基づく標準誤差のままです (R の `se(coef)`)。一方、`z`、`p`、区間 `lower`/`upper`、`wald`、`waldtest` は\nロバストなもの (`robustSe`) を使います。`robscore` は `init` におけるロバストスコア検定です。尤度比検定、スコア検定、R^2 は、\nクラスター化を無視します。\n\n時刻、status、共変量、重み、層のいずれかが欠測している行は除外されます。互いの差が sqrt(eps) 以内の時刻は、\n同順位として扱われます。`nocenter` に値がすべて含まれる共変量は中心化されません。そのほかの共変量は、重み付き平均で\n中心化されます。これは線形予測子をずらすだけです。R の警告 (非収束、係数が無限大になる可能性) は、\n`warnings` で返されます。"
   },
   "survdiff#@example": {
     "hash": "f2167be5edf2",

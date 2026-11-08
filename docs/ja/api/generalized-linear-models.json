@@ -147,7 +147,7 @@
   "GlmModel.rows#summary": {
     "hash": "c287515cf204",
     "en": "0-based indices of the input rows used (the rows without a missing value; rows of weight 0 included).",
-    "ja": ""
+    "ja": "使った入力の行の、0 始まりの添字です (欠測値のない行。重みが 0 の行を含みます)。"
   },
   "GlmModel.start#summary": {
     "hash": "3014797ccf81",
