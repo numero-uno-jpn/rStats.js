@@ -72,7 +72,7 @@
   "besselI#summary": {
     "hash": "7ab9f41bdb19",
     "en": "Modified Bessel function of the first kind. Equivalent to R's\n`besselI(x, nu, expon.scaled = FALSE)`. Takes single numbers.",
-    "ja": "第 1 種変形 Bessel 関数です。R の\n`besselI(x, nu, expon.scaled = FALSE)` と同等です。単一の数値を受け取ります。"
+    "ja": "第 1 種変形ベッセル関数です。R の\n`besselI(x, nu, expon.scaled = FALSE)` と同等です。単一の数値を受け取ります。"
   },
   "besselJ#@example": {
     "hash": "f2167be5edf2",
@@ -97,7 +97,7 @@
   "besselJ#summary": {
     "hash": "ed3d9f911775",
     "en": "Bessel function of the first kind. Equivalent to R's `besselJ(x, nu)`. Takes single numbers.",
-    "ja": "第 1 種 Bessel 関数です。R の `besselJ(x, nu)` と同等です。単一の数値を受け取ります。"
+    "ja": "第 1 種ベッセル関数です。R の `besselJ(x, nu)` と同等です。単一の数値を受け取ります。"
   },
   "besselK#@example": {
     "hash": "f2167be5edf2",
@@ -127,7 +127,7 @@
   "besselK#summary": {
     "hash": "2bcac1d91800",
     "en": "Modified Bessel function of the second kind. Equivalent to R's\n`besselK(x, nu, expon.scaled = FALSE)`. Takes single numbers.",
-    "ja": "第 2 種変形 Bessel 関数です。R の\n`besselK(x, nu, expon.scaled = FALSE)` と同等です。単一の数値を受け取ります。"
+    "ja": "第 2 種変形ベッセル関数です。R の\n`besselK(x, nu, expon.scaled = FALSE)` と同等です。単一の数値を受け取ります。"
   },
   "besselY#@example": {
     "hash": "f2167be5edf2",
@@ -152,7 +152,7 @@
   "besselY#summary": {
     "hash": "a241f6b96473",
     "en": "Bessel function of the second kind. Equivalent to R's `besselY(x, nu)`. Takes single numbers.",
-    "ja": "第 2 種 Bessel 関数です。R の `besselY(x, nu)` と同等です。単一の数値を受け取ります。"
+    "ja": "第 2 種ベッセル関数です。R の `besselY(x, nu)` と同等です。単一の数値を受け取ります。"
   },
   "beta#@example": {
     "hash": "f2167be5edf2",

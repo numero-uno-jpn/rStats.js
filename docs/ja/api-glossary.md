@@ -74,6 +74,8 @@
 
 `docs/ja` では、人名に由来する検定名は英字のまま使われています (Welch、Fisher、Wilcoxon、Tukey、Kruskal、Pearson、Satterthwaite、Dunnett など)。一方、分布名は カタカナ で書かれています (ポアソン、ガンマ、ベータ、ワイブル、対数正規、逆ガウス など)。この表の訳語もこれに従います。
 
+分布名と同じく、数学で定着した人名由来の用語もカタカナにします (ヘッセ行列、ヤコビ行列、ベッセル関数)。それ以外の人名 (手法名、検定名、統計量名) は英字です。
+
 ### 12. 語の揺れ
 
 同じ語に複数の訳がある場合は、ここで決めた訳に統一します。表に無い語を訳すときは、先に `docs/ja/*.md` を検索してください。
@@ -741,15 +743,15 @@
 | barycentric form | 重心形式 | 新規 |
 | divided differences | 差分商 | 新規 |
 | node (of interpolation) | 節点 | 新規 |
-| Bessel function of the first kind | 第 1 種 Bessel 関数 | 人名は英字 (規則 11)。`docs/ja` の既存表記「ベッセル」とは異なる (`besselJ`) |
-| Bessel function of the second kind | 第 2 種 Bessel 関数 | 人名は英字 (規則 11)。`docs/ja` の既存表記「ベッセル」とは異なる (`besselY`) |
-| modified Bessel function | 変形 Bessel 関数 | 人名は英字 (規則 11)。`besselI` は「第 1 種変形」、`besselK` は「第 2 種変形」 |
+| Bessel function of the first kind | 第 1 種ベッセル関数 | `docs/ja` で使用 (`besselJ`)。ヘッセ行列と同じく定着した訳語なのでカタカナ |
+| Bessel function of the second kind | 第 2 種ベッセル関数 | `docs/ja` で使用 (`besselY`) |
+| modified Bessel function | 変形ベッセル関数 | `besselI` は「第 1 種変形」、`besselK` は「第 2 種変形」 |
 | order (of a Bessel function) | 次数 | `docs/ja` で使用 |
 | Debye's uniform expansion | Debye の一様漸近展開 | `docs/ja` で使用。人名は英字 |
 | asymptotic expansion | 漸近展開 | `docs/ja` で使用 |
 | continued fraction | 連分数 | `docs/ja` で使用 |
 | recurrence (formula) | 漸化式 | `docs/ja` で使用 |
-| turning point | 転換点 | 新規。Bessel 関数で次数と引数が近い付近 |
+| turning point | 転換点 | 新規。ベッセル関数で次数と引数が近い付近 |
 | phase correction | 位相の補正 | `docs/ja` で使用 |
 | gamma function | ガンマ関数 | `docs/ja` で使用 |
 | beta function | ベータ関数 | `docs/ja` で使用 |
