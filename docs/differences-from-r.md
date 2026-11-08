@@ -199,6 +199,7 @@ affected.
 | irr's kappa p-values | formed as 2 (1 − Φ(|z|)), losing small ones (2.2e-16 instead of 1.7e-16) | 2 Φ(−|z|) |
 | psych's `ICC` with `lmer = TRUE` (the default) | the mean squares from lme4's REML fit, whose optimiser stops early: every value about 1e-5 to 1e-4 relative off | the REML estimates of the balanced two-way model in closed form (the ANOVA mean squares, or where a variance component would be negative, the residual mean square pooled with that one: Robertson, Wright and Dykstra's isotonic regression of the mean squares) |
 | psych's `ICC` with `lmer = FALSE` on data scaled by 2^±520, with a large offset (1e6) or with a residual mean square of 0 | `aov`'s sums of squares: NaN, 3e-10 relative off, F about 1e31 | sums of squares in double-double on data scaled by a power of 2; F Infinity and p 0 where the ratings differ between raters by constants (the residual is exactly 0) |
+| TOSTER's noncentral-t limits of the standardised mean difference (`smd_ci = "nct"`) | found by an optimiser (`optimize`, `nlm`): about 1e-9 relative off (up to 7e-9 in the tests) | the roots of the noncentral t, as `cohensD`; for a noncentrality above 37.62 R's own `pt` uses a normal approximation (Abramowitz and Stegun 26.7.10), so roots of R's `pt` are off there (1% at ncp 50: an upper limit 15.80 for 15.96 for a one-sample g of 11.2 with 8 values) |
 | polycor's maximum-likelihood estimates and standard errors (`ML = TRUE`, `std.err = TRUE`) | Nelder-Mead or BFGS stops early and the Hessian is taken by finite differences: off by up to 1e-3 relative; on strongly associated tables the two-step BFGS runs past 1 and reports 0.9999 with an infinite variance | the exact maximum (within 4e-15 of 160-bit values) and the analytic Hessian |
 | nortest's `pearson.test` with a value whose `pnorm` rounds to 1 (an outlier about 8.3 sd or more above the mean) | the value falls in class k + 1, which `tabulate` drops: the counts sum to less than n (1176.13 for 99 zeros and 1e6) | counted in the last class: 1174.26 |
 | psych's `omega` (minres) with a uniqueness at the lower bound 0.005 (a Heywood case) | `fa` passes L-BFGS-B the gradient of the residual sum of squares with the diagonal, not that of the off-diagonal objective; the two minima agree in the interior but not at the bound, so the fit stops above the minimum, mostly with convergence 0 (0.5% to 3.4% above it in the tests; uniquenesses off by up to 0.05) | from that point, L-BFGS-B goes on with the objective's own gradient (factr 1e3) to the minimum; without a uniqueness at the bound as psych, bit for bit |
@@ -978,6 +979,19 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   of `icc` with `unit: "average"` (irr's, McGraw and Wong's formula): for the 6 × 4 data of Shrout and Fleiss [0.0711,
   0.9272] against [0.0394, 0.9286]. Only the six rows and the mean squares are returned (no `stats` table, `lme` or
   `summary`), and `check.keys` is not offered.
+- **`tTOST`** (TOSTER's `t_TOST`): for one sample with `mu` the raw interval is that of mean - mu, as its estimate
+  (TOSTER's is the interval of the mean), and the `"t"` and `"z"` intervals of the one-sample standardised difference
+  are 1 - 2 alpha intervals as in the other designs (TOSTER's are 1 - alpha). As TOSTER, the bounds apply to the
+  difference (or mean) itself and `mu` only to the two-sided t test, the raw interval of two and paired samples is
+  that of the difference (not minus `mu`), the standardised difference of two samples is that of mean(x) - mean(y) +
+  `mu`, and that of paired samples ignores `mu`. TOSTER's notes (`Equivalence interval does not include zero.`, the
+  note on SMD bounds and the MET note) are warnings; its decision sentences are not reproduced. `alpha` must lie in
+  (0, 0.5) (TOSTER accepts 0.5, a zero-width interval), and bounds in the wrong order are an error. The paired SD of
+  the differences is computed from the differences (TOSTER's sqrt(s1² + s2² - 2 r s1 s2) cancels for r near 1). With
+  `smdCi: "goulet"` and a difference of exactly 0 the limits are the continuous limit of the formula (TOSTER uses
+  another expression there).
+- **`tsumTOST`** (TOSTER's `tsum_TOST`): the one-sided p-values are upper tails (TOSTER's `1 - pt(t, df)` loses small
+  ones); otherwise as `tTOST`. Paired samples need `r12` in (-1, 1).
 - **`binomDiffEquivalenceTest`** is not in R: the test of equivalence of two proportions on counts by two one-sided
   score tests (Miettinen-Nurminen by default, Farrington-Manning `"mee"` or Wald), dual to `binomDiffCI` with the same
   method at the level 1 - 2 alpha. For 0/1 data it is the test to use rather than `tost`, whose t approximation has a

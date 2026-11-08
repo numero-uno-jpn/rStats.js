@@ -48,6 +48,14 @@ export {
   type BinomDiffEquivalenceTestResult,
 } from "../htest/equivalence.js";
 export {
+  tTOST,
+  tsumTOST,
+  type TTOSTOptions,
+  type TTOSTResult,
+  type TTOSTTest,
+  type TsumTOSTStatistics,
+} from "../htest/tTOST.js";
+export {
   boschlooTest,
   type BoschlooTestOptions,
   type BoschlooTestResult,

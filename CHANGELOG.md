@@ -16,6 +16,12 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   the irr-based `icc`. Both paths are exact: the ANOVA mean squares (`lmer: false`) and, by default as psych, the REML
   estimates of the variance components in closed form (lme4's optimiser leaves psych's values 1e-5 to 1e-4 off).
   Complete data only; ICC2k has psych's interval (Spearman-Brown of ICC2's), not irr's.
+- **Equivalence and minimal-effect t tests**: `tTOST(x, y?, options)`, TOSTER's `t_TOST()`, for one, two (Welch or
+  pooled) and paired samples, with bounds in raw or SMD units, the three t tests, the raw difference and the
+  standardised mean difference (Hedges' g or Cohen's d, d_av, d_z, d_rm, Glass's delta) with `nct` (exact roots),
+  `goulet`, `t` or `z` intervals; `tsumTOST(stats, options)`, TOSTER's `tsum_TOST()`, from summary statistics. `tost`
+  is unchanged. Two of TOSTER's one-sample inconsistencies are fixed (the raw interval of mean − mu; 1 − 2α limits
+  for `t` and `z`), and its notes are warnings (docs/differences-from-r.md).
 
 ## 1.2.0 - 2026-11-07
 
