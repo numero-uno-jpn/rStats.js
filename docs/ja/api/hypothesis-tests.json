@@ -532,7 +532,7 @@
   "CiAucResult.estimate#summary": {
     "hash": "409032704628",
     "en": "The AUC: DeLong's θ (the mean of the placements), or the curve's AUC for the bootstrap.",
-    "ja": "AUC です。DeLong の θ (placement の平均 (要確認))、ブートストラップの場合は曲線の AUC です。"
+    "ja": "AUC です。DeLong の θ (placement の平均)、ブートストラップの場合は曲線の AUC です。"
   },
   "CiAucResult.method#summary": {
     "hash": "1f16839a9091",
@@ -1710,14 +1710,14 @@
     "ja": "`\"AUC of roc1\"` と `\"AUC of roc2\"`。"
   },
   "RocTestResult.roc1#summary": {
-    "hash": "440bc48ab6fb",
-    "en": "The two curves compared (rebuilt on the observations where neither predictor is missing, when paired).",
-    "ja": "比較した 2 つの曲線です (対応がある場合は、どちらの説明変数も欠測でない観測値から作り直したものです)。"
+    "hash": "9a56b6dda05b",
+    "en": "The first curve compared (when paired, rebuilt on the observations where neither predictor is missing).",
+    "ja": "比較した 1 つ目の曲線です (対応がある場合は、どちらの説明変数も欠測でない観測値から作り直したものです)。"
   },
   "RocTestResult.roc2#summary": {
-    "hash": "53cc429f4012",
-    "en": "The second curve.",
-    "ja": "2 つ目の曲線です。"
+    "hash": "662df1c8ab4e",
+    "en": "The second curve compared (when paired, rebuilt as `roc1`).",
+    "ja": "比較した 2 つ目の曲線です (対応がある場合は、`roc1` と同じく作り直したものです)。"
   },
   "Sample#summary": {
     "hash": "f65b99382852",

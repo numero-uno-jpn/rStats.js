@@ -311,9 +311,9 @@ export interface RocTestResult extends HTest {
   estimate: [number, number];
   /** `"AUC of roc1"` and `"AUC of roc2"`. */
   estimateNames: [string, string];
-  /** The two curves compared (rebuilt on the observations where neither predictor is missing, when paired). */
+  /** The first curve compared (when paired, rebuilt on the observations where neither predictor is missing). */
   roc1: RocResult;
-  /** The second curve. */
+  /** The second curve compared (when paired, rebuilt as `roc1`). */
   roc2: RocResult;
   /** For the bootstrap: whether it was stratified. */
   bootStratified?: boolean;
