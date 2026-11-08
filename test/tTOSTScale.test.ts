@@ -99,4 +99,21 @@ describe("tTOST and tsumTOST: scaling", () => {
     expect(tTOST([...x, NaN], y, { eqb: 0.5 }).raw.estimate).toBe(tTOST(x, y, { eqb: 0.5 }).raw.estimate);
     expect(tTOST(Float64Array.from(x), Float64Array.from(y), { eqb: 0.5 }).pValue).toBe(tTOST(x, y, { eqb: 0.5 }).pValue);
   });
+  it("tsumTOST: means far below the bounds' units (the bound in the means' units overflowed: t Infinity, p 0)", () => {
+    // the t's are in SE units: means of 1e-300 or 1e-200 beside SDs of 1e10 give the t's and p-values of mean 0
+    // (tL = 5e9/(1e10/sqrt(20)) = 2.2360679774997896, p 0.01877; at 1e-300 tL was Infinity and p 0)
+    const tests = (r: TTOSTResult): number[] => [r.lower.t, r.lower.pValue, r.upper.t, r.upper.pValue, r.pValue];
+    const designs: [string, (m: number) => TTOSTResult][] = [
+      ["one", (m) => tsumTOST({ m1: m, sd1: 1e10, n1: 20 }, { eqb: 5e9 })],
+      ["one, eqb 1e10, sd 1", (m) => tsumTOST({ m1: m, sd1: 1, n1: 20 }, { eqb: 1e10 })],
+      ["pooled", (m) => tsumTOST({ m1: m, sd1: 1e10, n1: 20, m2: 0, sd2: 1e10, n2: 20 }, { eqb: 5e9, varEqual: true })],
+      ["welch", (m) => tsumTOST({ m1: m, sd1: 1e10, n1: 20, m2: 0, sd2: 2e10, n2: 15 }, { eqb: 5e9 })],
+      ["SMD", (m) => tsumTOST({ m1: m, sd1: 1e10, n1: 20 }, { eqb: 0.5, eqboundType: "SMD" })],
+    ];
+    for (const [name, run] of designs) {
+      const at0 = tests(run(0));
+      for (const m of [1e-200, 1e-300, 5e-324]) expect(tests(run(m)), `${name} m1 ${m}`).toEqual(at0);
+    }
+    expect(rel(tests(designs[0]![1](1e-300))[0]!, 5e9 / (1e10 / Math.sqrt(20)))).toBeLessThanOrEqual(1e-15);
+  });
 });
