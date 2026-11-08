@@ -93,6 +93,22 @@ glmAnova(fit).table[1];                            // ≈ [1, 62.978, 4, 0.5196,
 fit.warnings;                                      // [] (R's warnings, such as non-convergence)
 ```
 
+Robust covariances (sandwich's `vcovHC` and `vcovCL`) go into lmtest's `coeftest` and `coefci`. A modified Poisson
+regression (a Poisson glm of a 0/1 outcome) gives a risk ratio with a robust interval:
+
+```ts
+import { glm, vcovHC, coefci } from "@numero-uno-jpn/rstats";
+
+const exposed = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const event   = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0];
+const fit = glm(exposed, event, { family: "poisson" });   // R: glm(event ~ exposed, family = poisson)
+fit.coefficients.map(Math.exp);                         // ≈ [0.3, 2] (risk 0.3 unexposed; risk ratio 2)
+const ci = coefci(fit, { vcov: vcovHC(fit, { type: "HC0" }) });
+// R: lmtest::coefci(fit, vcov. = sandwich::vcovHC(fit, type = "HC0"))
+ci.lower.map(Math.exp);                                 // ≈ [0.11640, 0.68361]
+ci.upper.map(Math.exp);                                 // ≈ [0.77320, 5.8513]
+```
+
 ### Analysis of variance with formulas
 
 `lm` and `aov` also take an R formula and a data frame (an object of columns; strings are factors). `anova` gives
@@ -200,13 +216,14 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | Hypothesis tests | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (one way, a fit whose table is `aovSummary`), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
 | Analysis of variance | `aov` and `aovSummary` with a formula (several factors, interactions, covariates, `Error()` strata), `anova` (`anova.lm`, sequential and model comparison), `Anova` (car: types II and III), `aovEz` (afex: repeated-measures and mixed designs, Greenhouse-Geisser and Huynh-Feldt corrections, generalized and partial eta squared), `mauchlyTest` (`mauchly.test`) |
 | Effect sizes and power | `cohensD`, `hedgesG` (effectsize, with exact confidence limits), `etaSquared`, `omegaSquared`, `epsilonSquared` (partial, generalized, from `anova` and `Anova` tables); `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`); `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
-| Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`) |
+| Linear models | `lm` (a formula and a data frame, or a matrix, with the `summary` quantities), `modelMatrix` (`model.matrix`), `confint`, `predict`; `glm` (matrix interface, every family and link of R's `stats`) with `glmSummary` (`summary.glm`), `glmResiduals` (the four kinds), `glmHatvalues`, `glmRstandard`, `glmCooksDistance`, `glmPredict` (with standard errors), `glmConfint` (profile likelihood, exact limits), `glmAnova` (`anova.glm`); `vcovHC`, `vcovCL` (sandwich: HC0 to HC5, one-way and multi-way clustered), `coeftest`, `coefci` (lmtest) |
 | Mixed models | `lmer` (lme4: REML and ML, correlated and uncorrelated random effects, crossed and nested grouping factors; `fixef`, `vcov`, `VarCorr`, `ranef`, `logLik`, `AIC`, `BIC`, `REMLcrit`, `isSingular`), `lmerSummary`, `lmerContest` and `lmerAnova` (lmerTest: Satterthwaite's t- and F-tests, Type I/II/III ANOVA tables; likelihood-ratio comparison of fits), `glmer` (lme4: all glm families, Laplace approximation and adaptive Gauss-Hermite quadrature), `glmerSummary`, `glmerAnova`, `glmerPredict` and `lmerPredict`, from `@numero-uno-jpn/rstats/mixed` |
-| More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest) |
+| More tests | `leveneTest`, `propTrendTest` (`prop.trend.test`), `jonckheereTest`, `cochranQTest`, `adTest`, `lillieTest`, `cvmTest`, `sfTest`, `pearsonTest` (car, DescTools, clinfun, nortest); `tTOST`, `tsumTOST` (TOSTER: equivalence and minimal-effect t tests) |
 | Contingency tables and proportions | `binomCI`, `binomDiffCI`, `binomRatioCI` (DescTools' `BinomCI`, `BinomDiffCI`, `BinomRatioCI`), `oddsRatio` (epitools, and epiR's score interval), `fisherTest(x, { midp: true })` (exact2x2), `boschlooTest` (Exact), `gTest`, `stuartMaxwellTest`, `goodmanKruskalGamma` (DescTools), `lblTest` (coin), `chisqTest(x, { nMinus1: true })` (Campbell's 'N − 1' test) and Freeman-Tukey residuals, `tost` (equivalence), `binomDiffEquivalenceTest` (score TOST of two proportions) |
 | Multiple comparisons | `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest` (PMCMRplus), `dunnTest` (dunn.test), `glhtDunnett` (multcomp) |
-| Survival analysis | `survdiff` (log-rank), `survfit` (Kaplan-Meier with intervals and median), `coxph` (Cox regression: Efron and Breslow ties, case weights, strata, the Wald, likelihood-ratio and score tests) |
-| Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor), `pbvnorm`, `factanal`, `omega` (McDonald's ω, psych) |
+| Survival analysis | `survdiff` (log-rank), `survfit` (Kaplan-Meier with intervals and median), `coxph` (Cox regression: Efron and Breslow ties, case weights, strata, the Wald, likelihood-ratio and score tests, the robust variance and `cluster`) |
+| Diagnostic accuracy and method comparison | `roc`, `auc`, `ciAuc` (`ci.auc`), `rocTest` (`roc.test`), `coords` (pROC: DeLong's interval and test, the bootstrap, partial AUC), `diagnosticTests` (epiR's `epi.tests`), `blandAltman` (BlandAltmanLeh's `bland.altman.stats`), `mcreg` (mcr: Deming, weighted Deming and Passing-Bablok regression) |
+| Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `ICC` (psych: the six forms of Shrout and Fleiss), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor), `pbvnorm`, `factanal`, `omega` (McDonald's ω, psych) |
 | Data handling | `completeCases` (`complete.cases`), `naOmit` (`na.omit`), `subset`, `merge`, `rbind` and `cbind` of data frames, `tapply`, `split`, `aggregate`, `pivotLonger` and `pivotWider` (tidyr), `fromRows` and `toRows` (a data frame from an array of row objects and back); formula forms of the tests (`tTest("y ~ g", data)`, `kruskalTest`, `friedmanTest("y ~ w \| b", data)`, `corTest("~ x + y", data)`, ...) |
 | Linear algebra | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` with `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS), `schur`, `expm` |
 | Numerical methods | `integrate`, `optimize`, `optim`, `optimHess`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
@@ -272,7 +289,7 @@ removed. Approximate sizes after minification and gzip:
 | `glm` and `glmSummary` / `glm` with all its methods | 35.0 / 51.4 KB |
 | `lmer` (from `/mixed`) / with `lmerSummary`, `lmerContest`, `lmerAnova` | 19.4 / 70.0 KB |
 | `glmer` (from `/mixed`) / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 47.2 / 66.1 KB |
-| everything (except `/mixed`) | 263.5 KB |
+| everything (except `/mixed`) | 289.5 KB |
 
 (`npm run size` measures these.)
 
@@ -282,7 +299,7 @@ Each area is also a subpath export, for importing one area without the rest:
 (`lmer`, `glmer` and their methods; this area is only available this way, not from the main entry point).
 
 Without a bundler, load the single-file build `dist/rstats.js` (one minified ES module with every
-function except those of `/mixed`, 264 KB gzipped) from jsDelivr, which serves each npm release:
+function except those of `/mixed`, 290 KB gzipped) from jsDelivr, which serves each npm release:
 
 ```html
 <script type="module">
@@ -302,7 +319,7 @@ A page that needs only some areas can load the per-area bundles instead: `dist/d
 `dist/tests.js`, `dist/linalg.js`, `dist/descriptive.js`, `dist/numerics.js`, `dist/special.js` and
 `dist/mixed.js` export the same functions as the subpaths above, and share their common code through
 `dist/chunks/`, so loading two areas does not load that code twice. With its chunks, one area
-transfers 39 KB (`special`) to 221 KB (`tests`) gzipped.
+transfers 39 KB (`special`) to 250 KB (`tests`) gzipped.
 
 Use either `dist/rstats.js` or the per-area bundles on one page, not both: they are separate sets of modules, so a
 page that mixes them loads the common code twice and has two random number states (`setSeed` from one does not seed

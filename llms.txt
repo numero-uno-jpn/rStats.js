@@ -100,6 +100,23 @@ a CDN without a bundler, see the README section "Using it in the browser".
   "breslow", weights = w)` → `coxph(time, status, x, { ties: "breslow", weights: w })`, with `strata` as labels.
   psych's `omega(m, nfactors = 3)` → `omega(x, { nfactors: 3 })` (`omega(null, { covmat: R })` for a correlation
   matrix).
+- Robust standard errors of `lm` and `glm` fits: sandwich's `vcovHC(fit, type = "HC0")` → `vcovHC(fit, { type:
+  "HC0" })` (HC3 by default), `vcovCL(fit, cluster = ~ id)` → `vcovCL(fit, { cluster: d.id })` (one label per input
+  row; several clustering dimensions as an array of label arrays); both return `{ vcov, names, warnings }`. lmtest's
+  `coeftest(fit, vcov. = vcovHC(fit, type = "HC0"))` → `coeftest(fit, { vcov: vcovHC(fit, { type: "HC0" }) })` (`vcov`
+  is a matrix, such a result or a function of the fit) and `coefci(fit, parm, level, vcov.)` → `coefci(fit, { parm,
+  level, vcov })` (`parm` 0-based); a glm gets z tests, as lmtest. A modified Poisson regression is `glm(x, y, {
+  family: "poisson" })` of a 0/1 outcome with `coefci(fit, { vcov: vcovHC(fit, { type: "HC0" }) })`, exponentiated.
+  survival's `coxph(..., cluster = id)` → `coxph(time, status, x, { cluster: id })` (also `robust: true`): `var` is
+  then the robust variance and `se` stays R's `se(coef)`.
+- Diagnostic accuracy and agreement: pROC's `roc(response, predictor)` → `roc(response, predictor)` (also `roc("y ~
+  x", d)` and `roc({ controls, cases })`), `auc(r, partial.auc = c(1, 0.8))` → `auc(r, { partialAuc: [1, 0.8] })`,
+  `ci.auc(r)` → `ciAuc(r)` (DeLong; `{ method: "bootstrap" }`), `roc.test(r1, r2)` → `rocTest(r1, r2)`, `coords(r,
+  "best")` → `coords(r, "best")` (column arrays); epiR's `epi.tests(tab)` → `diagnosticTests(tab)`; BlandAltmanLeh's
+  `bland.altman.stats(x, y)` → `blandAltman(x, y)`; mcr's `mcreg(x, y, method.reg = "PaBa")` → `mcreg(x, y, {
+  methodReg: "PaBa" })`; psych's `ICC(m)` → `ICC(m)` (irr's `icc` is a separate function); TOSTER's `t_TOST(x, y, eqb =
+  0.5)` → `tTOST(x, y, { eqb: 0.5 })` and `tsum_TOST(m1, sd1, n1, m2, sd2, n2, eqb = 0.5)` → `tsumTOST({ m1, sd1, n1,
+  m2, sd2, n2 }, { eqb: 0.5 })`.
 - Data frames are objects of columns (`null` or `NaN` for NA); `fromRows(rows)` converts an array of row objects
   (`[{ age: 30, score: 5 }, ...]`) and `toRows(d)` converts back. Tests take formulas like R's:
   `t.test(y ~ g, data = d)` → `tTest("y ~ g", d)`, `friedman.test(y ~ w | b, d)` → `friedmanTest("y ~ w | b", d)`,

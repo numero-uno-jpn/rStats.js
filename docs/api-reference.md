@@ -1,8 +1,9 @@
 # rStats.js API reference
 
 rStats.js gives JavaScript the numerical core of R: probability distributions, random numbers that match R's
-`set.seed()`, descriptive statistics, hypothesis tests, linear, generalized linear and (generalized) linear mixed models, survival
-analysis, linear algebra and numerical methods. Function names and results follow R, and the functions are tested
+`set.seed()`, descriptive statistics, hypothesis tests, linear, generalized linear and (generalized) linear mixed models with
+robust covariances, survival analysis, diagnostic accuracy and method comparison, linear algebra and numerical
+methods. Function names and results follow R, and the functions are tested
 against R (to a relative 1e-14 for distributions and 1e-12 for tests and models; see
 [accuracy](https://numero-uno-jpn.github.io/rStats.js/docs/accuracy.html)) or against high-precision references
 (where R itself is inaccurate, or has no such function).
@@ -44,7 +45,8 @@ loads the common code twice, with two random number states.
 ### Names
 
 R's names, with a dot becoming camelCase: `t.test` → `tTest`, `p.adjust` → `pAdjust`. Functions of other packages
-keep their names: `car::Anova` → `Anova`, `tidyr::pivot_longer` → `pivotLonger`.
+keep their names: `car::Anova` → `Anova`, `tidyr::pivot_longer` → `pivotLonger`, `TOSTER::t_TOST` → `tTOST`. psych's
+`ICC` and irr's `icc` are two functions.
 
 Where R's name is a reserved word of JavaScript or too general to export, the name says what the function computes:
 
@@ -57,6 +59,8 @@ Where R's name is a reserved word of JavaScript or too general to export, the na
 | `cv` | DescTools' `CoefVar` |
 | `pbvnorm` | mvtnorm's `pmvnorm` in two dimensions |
 | `glhtDunnett` | multcomp's `glht` with Dunnett's contrasts |
+| `blandAltman` | BlandAltmanLeh's `bland.altman.stats` |
+| `diagnosticTests` | epiR's `epi.tests` |
 
 The methods of the models other than `lm` (R's `summary`, `predict`, `anova`, ... of a fit) carry the model's name in
 front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`, `glmerSummary`, `glmerPredict`. The methods without a

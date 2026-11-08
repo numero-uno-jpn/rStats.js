@@ -97,6 +97,22 @@ glmAnova(fit).table[1];                            // ≈ [1, 62.978, 4, 0.5196,
 fit.warnings;                                      // [] (収束しないなどの R の警告)
 ```
 
+頑健な共分散 (sandwich の `vcovHC` と `vcovCL`) は、lmtest の `coeftest` と `coefci` に渡せます。修正ポアソン回帰
+(0/1 の結果のポアソン glm) では、リスク比と頑健な信頼区間が得られます。
+
+```ts
+import { glm, vcovHC, coefci } from "@numero-uno-jpn/rstats";
+
+const exposed = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const event   = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0];
+const fit = glm(exposed, event, { family: "poisson" });   // R: glm(event ~ exposed, family = poisson)
+fit.coefficients.map(Math.exp);                         // ≈ [0.3, 2] (非曝露のリスク 0.3、リスク比 2)
+const ci = coefci(fit, { vcov: vcovHC(fit, { type: "HC0" }) });
+// R: lmtest::coefci(fit, vcov. = sandwich::vcovHC(fit, type = "HC0"))
+ci.lower.map(Math.exp);                                 // ≈ [0.11640, 0.68361]
+ci.upper.map(Math.exp);                                 // ≈ [0.77320, 5.8513]
+```
+
 ### formula による分散分析
 
 `lm` と `aov` は、R の formula とデータフレーム (列のオブジェクト。文字列の列は因子) でも呼べます。`anova` は R の
@@ -202,13 +218,14 @@ eigen([[2, 1], [1, 3]]).values;     // ≈ [3.618033989, 1.381966011]
 | 検定 | `tTest`, `chisqTest`, `fisherTest`, `wilcoxTest`, `corTest`, `binomTest`, `poissonTest`, `propTest`, `mcnemarTest`, `varTest`, `bartlettTest`, `kruskalTest`, `friedmanTest`, `quadeTest`, `flignerTest`, `moodTest`, `onewayTest`, `shapiroTest`, `mantelhaenTest`, `ansariTest`, `ksTest`, `pairwiseTTest`, `pairwiseWilcoxTest`, `pairwisePropTest`, `aov` (一元配置。表は当てはめの `aovSummary`), `TukeyHSD`, `zTest`, `brunnerMunzelTest`, `pAdjust` (`p.adjust`) |
 | 分散分析 | formula で呼ぶ `aov` と `aovSummary` (多元、交互作用、共変量、`Error()` の層), `anova` (`anova.lm`。逐次の表とモデルの比較), `Anova` (car の Type II と III), `aovEz` (afex。反復測定と混合計画、Greenhouse-Geisser と Huynh-Feldt の補正、一般化 η² と偏 η²), `mauchlyTest` (`mauchly.test`) |
 | 効果量と検出力 | `cohensD`, `hedgesG` (effectsize。信頼区間は厳密な限界), `etaSquared`, `omegaSquared`, `epsilonSquared` (偏・一般化。`anova` と `Anova` の表から), `powerTTest`, `powerPropTest`, `powerAnovaTest` (`power.*.test`), `pwrTTest`, `pwrT2nTest`, `pwr2pTest`, `pwr2p2nTest`, `pwrPTest`, `pwrNormTest`, `pwrRTest`, `pwrChisqTest`, `pwrAnovaTest`, `pwrF2Test`, `esH`, `esW1`, `esW2`, `cohenES` (pwr) |
-| 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`) |
+| 線形モデル | `lm` (formula とデータフレーム、または行列で渡す。`summary` の値も返す), `modelMatrix` (`model.matrix`), `confint`, `predict`。`glm` (行列で渡す形。R の `stats` のすべての族とリンク) と `glmSummary` (`summary.glm`)、`glmResiduals` (4 種類)、`glmHatvalues`、`glmRstandard`、`glmCooksDistance`、`glmPredict` (標準誤差つき)、`glmConfint` (プロファイル尤度、厳密な限界)、`glmAnova` (`anova.glm`)。`vcovHC`、`vcovCL` (sandwich: HC0〜HC5、一元と多元のクラスター)、`coeftest`、`coefci` (lmtest) |
 | 混合モデル | `lmer` (lme4: REML と最尤法、相関のある変量効果と相関のない変量効果、交差と入れ子の群。`fixef`、`vcov`、`VarCorr`、`ranef`、`logLik`、`AIC`、`BIC`、`REMLcrit`、`isSingular`)、`lmerSummary`・`lmerContest`・`lmerAnova` (lmerTest: Satterthwaite の t 検定と F 検定、Type I/II/III の分散分析表。当てはめどうしの尤度比検定)、`glmer` (lme4: glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、`glmerSummary`・`glmerAnova`・`glmerPredict`・`lmerPredict`。`@numero-uno-jpn/rstats/mixed` から import する |
-| ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest) |
+| ほかの検定 | `leveneTest`、`propTrendTest` (`prop.trend.test`)、`jonckheereTest`、`cochranQTest`、`adTest`、`lillieTest`、`cvmTest`、`sfTest`、`pearsonTest` (car、DescTools、clinfun、nortest)。`tTOST`、`tsumTOST` (TOSTER: 平均の同等性検定と最小効果検定) |
 | 分割表と比率 | `binomCI`、`binomDiffCI`、`binomRatioCI` (DescTools の `BinomCI`、`BinomDiffCI`、`BinomRatioCI`)、`oddsRatio` (epitools と epiR のスコア区間)、`fisherTest(x, { midp: true })` (exact2x2)、`boschlooTest` (Exact)、`gTest`、`stuartMaxwellTest`、`goodmanKruskalGamma` (DescTools)、`lblTest` (coin)、`chisqTest(x, { nMinus1: true })` (Campbell の N − 1 検定) と Freeman-Tukey 残差、`tost` (equivalence)、`binomDiffEquivalenceTest` (2 つの比率のスコア法の TOST) |
 | 多重比較 | `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest` (PMCMRplus)、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp) |
-| 生存時間解析 | `survdiff` (log-rank)、`survfit` (Kaplan-Meier。信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイの扱い、ケースの重み、層、Wald・尤度比・スコア検定) |
-| 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor)、`pbvnorm`、`factanal`、`omega` (McDonald の ω。psych) |
+| 生存時間解析 | `survdiff` (log-rank)、`survfit` (Kaplan-Meier。信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイの扱い、ケースの重み、層、Wald・尤度比・スコア検定、ロバスト分散と `cluster`) |
+| 診断の精度と測定法の比較 | `roc`、`auc`、`ciAuc` (`ci.auc`)、`rocTest` (`roc.test`)、`coords` (pROC: DeLong の区間と検定、ブートストラップ、部分 AUC)、`diagnosticTests` (epiR の `epi.tests`)、`blandAltman` (BlandAltmanLeh の `bland.altman.stats`)、`mcreg` (mcr: Deming 回帰、重み付き Deming 回帰、Passing-Bablok 回帰) |
+| 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`ICC` (psych: Shrout と Fleiss の 6 つの形式)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor)、`pbvnorm`、`factanal`、`omega` (McDonald の ω。psych) |
 | データの扱い | `completeCases` (`complete.cases`)、`naOmit` (`na.omit`)、`subset`、`merge`、データフレームの `rbind`・`cbind`、`tapply`、`split`、`aggregate`、`pivotLonger` と `pivotWider` (tidyr)、`fromRows` と `toRows` (行のオブジェクトの配列とデータフレームの相互の変換)。検定の formula 版 (`tTest("y ~ g", data)`、`kruskalTest`、`friedmanTest("y ~ w \| b", data)`、`corTest("~ x + y", data)` など) |
 | 線形代数 | `matMul` (`%*%`), `add`, `subtract`, `multiply`, `divide`, `outer`, `t`, `diag`, `cbind`, `rbind`, `matrix`, `kronecker`, `seq`, `crossprod`, `tcrossprod`, `norm`, `backsolve`, `forwardsolve`, `chol`, `chol2inv`, `qr` と `qrQ`, `qrR`, `qrX`, `qrCoef`, `qrQy`, `qrQty`, `qrResid`, `qrFitted`, `qrSolve` (`qr.Q` …), `solve`, `det`, `determinant`, `rcond`, `kappa`, `svd`, `eigen`, `lu`, `prcomp`, `ginv` (MASS)、`schur`、`expm` |
 | 数値計算 | `integrate`, `optimize`, `optim`, `optimHess`, `uniroot`, `approx`, `spline`, `splinefun`, `splinefunH`, `barylag`, `hermiteInterp`, `ode`, `grad`, `jacobian`, `hessian` |
@@ -273,7 +290,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 | `glm` と `glmSummary` / `glm` とそのすべての関数 | 35.0 / 51.4 KB |
 | `lmer` (`/mixed` から) / `lmerSummary`・`lmerContest`・`lmerAnova` も | 19.4 / 70.0 KB |
 | `glmer` (`/mixed` から) / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 47.2 / 66.1 KB |
-| すべて (`/mixed` を除く) | 263.5 KB |
+| すべて (`/mixed` を除く) | 289.5 KB |
 
 (`npm run size` で測れます。)
 
@@ -283,7 +300,7 @@ double-double 演算で計算しているためです。詳しくは [docs/ja/ac
 できません。メインの入口には含めていません)。
 
 バンドラを使わない場合は、1 ファイルにまとめたビルド `dist/rstats.js` (`/mixed` 以外のすべての関数を含む
-minify 済みの ES モジュール、gzip で 264 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
+minify 済みの ES モジュール、gzip で 290 KB) を jsDelivr から読み込めます。jsDelivr は、npm のリリースを
 そのまま配信します。
 
 ```html
@@ -304,7 +321,7 @@ minify 済みの ES モジュール、gzip で 264 KB) を jsDelivr から読み
 `dist/tests.js`、`dist/linalg.js`、`dist/descriptive.js`、`dist/numerics.js`、`dist/special.js`、
 `dist/mixed.js` は上のサブパスと同じ関数を export し、共通のコードを `dist/chunks/` で共有します。そのため、
 2 つの分野を読み込んでも共通部分は 1 回しか読み込まれません。chunk を含めた 1 分野の転送量は、gzip で
-39 KB (`special`) から 221 KB (`tests`) です。
+39 KB (`special`) から 250 KB (`tests`) です。
 
 1 つのページでは、`dist/rstats.js` か分野ごとのバンドルのどちらか一方だけを使ってください。両者は別々の
 モジュールの集まりなので、混ぜると共通のコードが 2 回読み込まれ、乱数の状態も 2 つになります (一方の `setSeed`
