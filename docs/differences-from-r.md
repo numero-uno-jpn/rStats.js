@@ -890,7 +890,11 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   single cluster is an error "at least two clusters are needed for the robust variance" (R fails with "(subscript)
   logical subscript too long" for two or more covariates). Cluster labels that are numbers with the same 15-digit
   text are one cluster, as strata. An infinite case weight is an error "'weights' must be finite" (R's check of the
-  weights, > 0, lets it through). R's own results for a coefficient running off to infinity over many iterations depend on the platform (x86_64
+  weights, > 0, lets it through). Weights of 2^64 or more are fitted divided by the power of 2 of the largest, which
+  leaves the coefficients and the robust variance as they are (weights × 2^1015, or one weight of 1e308 among
+  weights near 1, gave a coefficient 0 or NaN when the risk sums were formed from the weights as given); the log
+  likelihoods, the score test and the naive variance are scaled back (the log likelihoods −Inf where they are
+  beyond the doubles). R's own results for a coefficient running off to infinity over many iterations depend on the platform (x86_64
   and arm64 R differ by 1e-7 after 20 iterations), so such fits agree with R only to that size.
 - **`omega`** with one factor reports the group column of the Schmid-Leiman matrix and the group omegas as exactly 0;
   R reports the square roots of rounding residues (about 1e-8). With four or more group factors R's own results move
@@ -1069,15 +1073,27 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **1 − h without cancellation:** for the rows with a hat value above 1/2, 1 − h is the squared norm of the
   row of the trailing columns of Q rather than 1 minus the hat value, which lost the digits of h (an error of
   about eps / (1 − h) in HC2 to HC5, as in R). With a leverage row of 1 − h = 2.7e-5, HC3 is 5e-13 from the
-  exact value where sandwich's is about 1e-11 off. (The blocks I − H_gg of clustered HC2 and HC3 are formed as
-  in sandwich.)
+  exact value where sandwich's is about 1e-11 off. Likewise the blocks I − H_gg of clustered HC2 and HC3 where
+  H_gg has an eigenvalue above 1/2: that eigenvalue's 1 − λ comes from the trailing columns of Q (a leverage row
+  in a cluster of two with 1 − λ = 2.5e-11: HC3 5e-8 from the exact value, where the subtraction, as sandwich's,
+  is 3e-5 off); other blocks are formed as in sandwich.
 - **Data far from 1:** where the sandwich in doubles would overflow or underflow on the way (weights beyond
   about 2^±510, the response of a gaussian glm beyond 2^±256, x and y in the same units near 1e±160, working
   weights below the normal range), it is formed in units of powers of 2, so that the values are those of the
   same data in units near 1; sandwich returns Infinity, 0 or NaN there, or an error about hat values of 1.
   Where the covariance itself is not representable (a response around 1e±300), its entries are Infinity or 0
   as they must be, and `coeftest` and `coefci` take the standard errors from its scaled form, so that the
-  standard errors, statistics, p-values and limits are right where R's are Infinity, 0 or NaN.
+  standard errors, statistics, p-values and limits are right where R's are Infinity, 0 or NaN. That scaled
+  form is kept with the matrix object returned: a copy of the matrix gives the values it holds (se 0, z
+  Infinity, p 0 where it holds 0). The meat (`sandwich: false`) likewise has entries ±Infinity or 0 where its
+  values are beyond the doubles, with the same scaled form (formed in doubles, they came out NaN, Infinity −
+  Infinity). An `omega` function given for a gaussian glm whose response is far from 1 receives the residual
+  factors in the fit's units, formed in units of powers of 2 (W z / phi_s in doubles is 0 or Infinity beyond
+  about 2^±512, where phi_s overflows or underflows). With `fix`, negative eigenvalues are looked for on the
+  matrix scaled to unit diagonal, so a positive definite covariance is kept as it is whatever the units of the columns; where an
+  eigenvalue is negative, it is set to 0 in the units of the largest variance, as in R, and coefficients whose
+  scale is about 2^537 or more below the largest then get variance 0 (R's have no correct digits from about
+  2^26 apart on).
 - **Clustered HC2 and HC3 use the symmetric adjustment** (Bell and McCaffrey 2002; Pustejovsky and Tipton 2018):
   each cluster's residuals are multiplied by (I − H_gg)^(−1/2) or (I − H_gg)⁻¹ with H_gg the block of the
   symmetric hat matrix W^½ X A X' W^½. For HC3 this is exactly the leave-one-cluster-out jackknife. sandwich
