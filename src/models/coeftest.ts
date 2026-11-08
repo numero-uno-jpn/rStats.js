@@ -210,7 +210,9 @@ function nobsOf(fit: RobustFit): number {
  * dispersion is estimated). A covariance whose diagonal has a negative, NaN or infinite variance is an error (R gives
  * NaN); only the diagonal is used (the matrix is not checked for symmetry, as R's). For a result of {@link vcovHC} or
  * {@link vcovCL} (or the fit's own covariance) the standard errors come from the covariance in units of powers of 2,
- * so they are right where the matrix holds Infinity or 0 (a response around 1e±300).
+ * so they are right where the matrix holds Infinity or 0 (a response around 1e±300). That record belongs to the matrix
+ * object returned: a copy of it (`vcov.map((r) => r.slice())`, `structuredClone`, JSON) loses it and gives the values
+ * the copy holds (se 0, z Infinity and p 0 where it holds 0); pass the result or its original matrix instead.
  *
  * @param fit The result of {@link lm} or {@link glm}.
  *
@@ -272,7 +274,9 @@ function percentNames(a: number): [string, string] {
  * `lmtest::coefci()`.
  *
  * The limits estimate ± q se with the t quantile on `df` degrees of freedom, or the normal quantile (by default for a
- * glm of every family, as lmtest). `parm` takes 0-based indices (R: 1-based) or names.
+ * glm of every family, as lmtest). `parm` takes 0-based indices (R: 1-based) or names. The standard errors as in
+ * {@link coeftest}: from the covariance in units of powers of 2 for a result of {@link vcovHC} or {@link vcovCL} or
+ * its original matrix, not for a copy of the matrix (which gives intervals of width 0 where it holds 0).
  *
  * @param fit The result of {@link lm} or {@link glm}.
  *

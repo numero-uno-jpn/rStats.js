@@ -4,6 +4,7 @@
 // the same fits in units near 1 (powers of 2 are exact, so the values scale exactly), closed forms and exact rationals.
 import { describe, expect, it } from "vitest";
 import { coefci, coeftest, glm, lm, vcovCL, vcovHC, type RobustFit, type VcovResult } from "../src/index.js";
+import { scaledVcovs } from "../src/models/sandwich.js";
 import { matrixError } from "./helpers/robust.js";
 import { expectScaleInvariant } from "./helpers/scaleInvariance.js";
 
@@ -17,6 +18,7 @@ const se = (V: number[][]): number[] => V.map((r, i) => Math.sqrt(r[i]!));
 const ldexp = (v: number, k: number): number => v * P(k);
 const rel = (a: number, b: number): number => Math.abs(a - b) / Math.abs(b);
 const worstRel = (a: number[], b: number[]): number => Math.max(...a.map((v, i) => rel(v, b[i]!)));
+type ClusterArg = NonNullable<NonNullable<Parameters<typeof vcovCL>[1]>["cluster"]>;
 
 describe("weights far from 1 (lm)", () => {
   // V does not depend on a common factor of the weights; the fits are identical. Before: the zero matrix below 2^-540,
@@ -195,8 +197,11 @@ describe("responses far from 1", () => {
 });
 
 describe("1 - h without cancellation (M2)", () => {
-  /** Exact HC3 of lm(y ~ x) by rationals: x integers, y doubles (multiples of 2^-60 here) */
-  function exactHC3(xs: number[], ys: number[]): number[][] {
+  /**
+   * Exact HC3 of lm(y ~ x) by rationals: x integers, y doubles (multiples of 2^-60 here). With clusters, vcovCL's HC3
+   * of an unweighted lm (cadjust): A (sum_g U_g U_g') A, U_g = X_g' (I - H_gg)^-1 e_g, I - H_gg solved by elimination
+   */
+  function exactHC3(xs: number[], ys: number[], cluster?: string[]): number[][] {
     type Q = [bigint, bigint];
     const gcd = (a: bigint, b: bigint): bigint => {
       a = a < 0n ? -a : a;
@@ -242,14 +247,41 @@ describe("1 - h without cancellation (M2)", () => {
       [z, z],
       [z, z],
     ];
-    X.forEach((v, i) => {
-      const r = [one, v];
-      const e = sub(Y[i]!, add(b0, mul(b1, v)));
-      const t = [add(A[0]![0]!, mul(A[0]![1]!, v)), add(A[1]![0]!, mul(A[1]![1]!, v))];
-      const omh = sub(one, add(t[0]!, mul(t[1]!, v)));
-      const o = div(mul(e, e), mul(omh, omh));
-      for (let a = 0; a < 2; a++) for (let c = 0; c < 2; c++) M[a]![c] = add(M[a]![c]!, mul(o, mul(r[a]!, r[c]!)));
-    });
+    const res = X.map((v, i) => sub(Y[i]!, add(b0, mul(b1, v))));
+    // h_ij = (1, x_i) A (1, x_j)'
+    const hat = (i: number, j: number): Q => {
+      const t = [add(A[0]![0]!, mul(A[0]![1]!, X[i]!)), add(A[1]![0]!, mul(A[1]![1]!, X[i]!))];
+      return add(t[0]!, mul(t[1]!, X[j]!));
+    };
+    if (cluster === undefined) {
+      X.forEach((v, i) => {
+        const r = [one, v];
+        const e = res[i]!;
+        const omh = sub(one, hat(i, i));
+        const o = div(mul(e, e), mul(omh, omh));
+        for (let a = 0; a < 2; a++) for (let c = 0; c < 2; c++) M[a]![c] = add(M[a]![c]!, mul(o, mul(r[a]!, r[c]!)));
+      });
+    } else {
+      for (const label of new Set(cluster)) {
+        const rows = cluster.flatMap((l, i) => (l === label ? [i] : []));
+        // [I - H_gg | e_g], reduced to [I | (I - H_gg)^-1 e_g]
+        const T = rows.map((i, a) => [...rows.map((j, b) => sub(a === b ? one : z, hat(i, j))), res[i]!]);
+        const m = rows.length;
+        for (let c = 0; c < m; c++) {
+          const p = T.findIndex((r, i) => i >= c && r[c]![0] !== 0n);
+          [T[c], T[p]] = [T[p]!, T[c]!];
+          const d = T[c]![c]!;
+          T[c] = T[c]!.map((v) => div(v, d));
+          for (let r = 0; r < m; r++) {
+            if (r === c) continue;
+            const f = T[r]![c]!;
+            T[r] = T[r]!.map((v, l) => sub(v, mul(f, T[c]![l]!)));
+          }
+        }
+        const U = [0, 1].map((a) => rows.reduce((s, i, b) => add(s, mul(a === 0 ? one : X[i]!, T[b]![m]!)), z));
+        for (let a = 0; a < 2; a++) for (let c = 0; c < 2; c++) M[a]![c] = add(M[a]![c]!, mul(U[a]!, U[c]!));
+      }
+    }
     const AM = [0, 1].map((a) => [0, 1].map((c) => add(mul(A[a]![0]!, M[0]![c]!), mul(A[a]![1]!, M[1]![c]!))));
     return [0, 1].map((a) => [0, 1].map((c) => num(add(mul(AM[a]![0]!, A[0]![c]!), mul(AM[a]![1]!, A[1]![c]!)))));
   }
@@ -265,6 +297,116 @@ describe("1 - h without cancellation (M2)", () => {
       const ys = [1.3, 2.1, 2.9, 4.2, 4.8, 6.3, 6.8, big + 0.7];
       expect(matrixError(vcovHC(lm(xs, ys)).vcov, exactHC3(xs, ys)), `big ${big}`).toBeLessThan(tol);
     }
+  });
+
+  it("clustered HC3 with the leverage row in a cluster of two: I - H_gg without cancellation", () => {
+    // the block's eigenvalue near 1 of H_gg from the trailing columns of Q, as 1 - h for one row (the rest of the
+    // error is the fit's residual, as for vcovHC above). Before (I - H_gg by subtraction): 4.1e-11, 1.0e-7 and 3.2e-5
+    const cluster = ["a", "a", "b", "b", "c", "c", "d", "d"];
+    for (const [big, tol] of [
+      [9, 3e-14],
+      [2 ** 10, 5e-12],
+      [2 ** 16, 3e-9],
+      [2 ** 20, 2e-7],
+    ] as const) {
+      const xs = [0, 1, 2, 3, 4, 5, 6, big];
+      const ys = [1.3, 2.1, 2.9, 4.2, 4.8, 6.3, 6.8, big + 0.7];
+      expect(matrixError(vcovCL(lm(xs, ys), { type: "HC3", cluster }).vcov, exactHC3(xs, ys, cluster)), `big ${big}`).toBeLessThan(tol);
+    }
+  });
+});
+
+describe("second audit", () => {
+  /** The value of entry (a, b) of a recorded matrix times 2^-t, from its mantissa and exponents */
+  const recorded = (V: number[][], a: number, b: number, t: number): number => {
+    const rec = scaledVcovs.get(V)!;
+    return ldexp(rec.mant[a]![b]!, rec.exp[a]! + rec.exp[b]! - t);
+  };
+
+  it("vcovCL fix with a column far from 1 keeps a positive definite matrix as it is (before: se 0 for the smaller coefficients)", () => {
+    const x2 = [0.3, -1.1, 0.8, 2.2, -0.4, 1.7, 0.1, -2.0, 1.4, 0.6];
+    const cl2 = [g, [1, 2, 1, 2, 1, 2, 1, 2, 1, 2]];
+    const cases: [string, (X: number[][]) => RobustFit, ClusterArg][] = [
+      ["lm one-way", (X) => lm(X, y), g],
+      ["Gamma one-way", (X) => glm(X, y, { family: "Gamma", weights: w }), g],
+      ["Gamma two-way", (X) => glm(X, y, { family: "Gamma" }), cl2],
+    ];
+    for (const [name, make, cluster] of cases) {
+      const se0 = coeftest(make(x.map((v, i) => [v, x2[i]!])), { vcov: (f) => vcovCL(f, { cluster }) }).stdError;
+      for (const k of [600, -600, 1000, -1000]) {
+        const f = make(x.map((v, i) => [v, ldexp(x2[i]!, k)]));
+        const fixed = coeftest(f, { vcov: (ff) => vcovCL(ff, { cluster, fix: true }) }).stdError;
+        // (the coefficient of the scaled column scales by 2^-k; a few ulps from the sums in units of powers of 2)
+        expect(worstRel(fixed.map((v, i) => (i === 2 ? ldexp(v, k) : v)), se0), `${name} ${k}`).toBeLessThan(1e-14);
+      }
+    }
+  });
+
+  it("an omega given for a gaussian glm with the response far from 1 gets the residual factors in the fit's units", () => {
+    const f0 = glm(x, y);
+    let r0: number[] = [];
+    vcovHC(f0, { omega: (r) => ((r0 = r), r.map((v) => v * v)) });
+    const hc0 = coeftest(f0, { vcov: (f) => vcovHC(f, { type: "HC0" }) }).stdError;
+    for (const k of [260, -260, 520]) {
+      const f = glm(
+        x,
+        y.map((v) => v * P(k)),
+      );
+      let r: number[] = [];
+      const se = coeftest(f, { vcov: (ff) => vcovHC(ff, { omega: (res) => ((r = res), res.map((v) => v * v)) }) }).stdError;
+      // W z / phi_s scales by 2^-k: exactly (before: 0 at 2^520, Infinity at 2^-520, subnormal digits at ±260)
+      expect(r.map((v) => ldexp(v, k)), `${k}`).toEqual(r0);
+      // the sandwich of omega = res^2 is HC0's; at 2^520 omega itself (2^-1040) is subnormal, about 34 bits, the
+      // user's function's rounding (before: se 0); at ±260 a few ulps (before: 1e-13 at -260, the factor n phi_s^2
+      // of the plain sandwich subnormal)
+      expect(worstRel(se.map((v) => ldexp(v, -k)), hc0), `${k}`).toBeLessThan(k === 520 ? 1e-10 : 1e-15);
+    }
+  });
+
+  it("the meat (sandwich: false) of residual factors beyond the double range: ±Infinity or 0, kept in units of powers of 2", () => {
+    // x centred so that the off-diagonal entries are negative. Before: NaN (Infinity - Infinity) at 2^±600
+    const xc = x.map((v) => v - 9);
+    const f0 = lm(xc, y);
+    for (const k of [600, 1000, -600]) {
+      const f = lm(
+        xc,
+        y.map((v) => v * P(k)),
+      );
+      for (const [name, meat, ref] of [
+        ["HC0", vcovHC(f, { type: "HC0", sandwich: false }).vcov, vcovHC(f0, { type: "HC0", sandwich: false }).vcov],
+        ["HC3", vcovHC(f, { sandwich: false }).vcov, vcovHC(f0, { sandwich: false }).vcov],
+        ["CL", vcovCL(f, { cluster: g, sandwich: false }).vcov, vcovCL(f0, { cluster: g, sandwich: false }).vcov],
+        ["CL HC2", vcovCL(f, { cluster: g, type: "HC2", sandwich: false }).vcov, vcovCL(f0, { cluster: g, type: "HC2", sandwich: false }).vcov],
+      ] as const) {
+        ref.forEach((row, a) =>
+          row.forEach((v, b) => {
+            // the meat scales by 2^2k
+            if (k > 0) expect(meat[a]![b], `${k} ${name}`).toBe(Math.sign(v) * Infinity);
+            else expect(Math.abs(meat[a]![b]!), `${k} ${name}`).toBe(0);
+            expect(rel(recorded(meat, a, b, 2 * k), v), `${k} ${name}`).toBeLessThan(1e-14);
+          }),
+        );
+      }
+    }
+    // a gaussian glm (its meat scales by 2^-2k) and an omega given
+    const g0 = glm(xc, y);
+    const gf = glm(
+      xc,
+      y.map((v) => v * P(-1000)),
+    );
+    const ref = vcovHC(g0, { type: "HC0", sandwich: false }).vcov;
+    const meat = vcovHC(gf, { type: "HC0", sandwich: false }).vcov;
+    ref.forEach((row, a) => row.forEach((v, b) => expect(rel(recorded(meat, a, b, 2000), v)).toBeLessThan(1e-14)));
+    // (the meat of a given omega does not depend on the fit's residuals)
+    const fx = lm(
+      xc.map((v) => v * 16),
+      y,
+    );
+    const om = vcovHC(fx, { omega: f0.residuals.map((r) => ldexp(r * r, 1020)), sandwich: false }).vcov;
+    expect(om[1]![1]).toBe(Infinity);
+    vcovHC(fx, { omega: f0.residuals.map((r) => r * r), sandwich: false }).vcov.forEach((row, a) =>
+      row.forEach((v, b) => expect(rel(recorded(om, a, b, 1020), v)).toBeLessThan(1e-14)),
+    );
   });
 });
 

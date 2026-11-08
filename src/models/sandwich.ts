@@ -154,6 +154,10 @@ interface Parts {
   h: number[];
   /** 1 - h, without cancellation where h > 1/2 (see oneMinusHat) */
   omh: number[];
+  /** The fit's QR factor (of the rows sqrt(W) X), its rank, and the row of each of the n rows in it (-1: none) */
+  qr: QR | undefined;
+  rank: number;
+  qrRow: (i: number) => number;
   /** 0-based input rows of the n rows */
   inputRows: number[];
   /** The number of input rows of the fit */
@@ -306,12 +310,20 @@ function scaledBread(q: QR, rank: number): { B: number[][]; e: number[] } {
   return { B: order.map(([, a]) => order.map(([, b]) => inv[a]![b]!)), e: order.map(([, a]) => e[a]!) };
 }
 
+/** The first `rank` columns of Q (m x rank) */
+function qrLeading(q: QR, rank: number): number[][] {
+  const m = q.qr.length;
+  return qrQy(
+    q,
+    Array.from({ length: m }, (_, i) => Array.from({ length: rank }, (_, j) => (i === j ? 1 : 0))),
+  );
+}
+
 /** Squared row norms of the first `rank` columns of Q (the hat values of the rows of the decomposition) */
 function qrHat(q: QR, rank: number): number[] {
   const m = q.qr.length;
   if (rank === 0) return new Array<number>(m).fill(0);
-  const e = Array.from({ length: m }, (_, i) => Array.from({ length: rank }, (_, j) => (i === j ? 1 : 0)));
-  const Q = qrQy(q, e);
+  const Q = qrLeading(q, rank);
   // above 1 - 10 eps set to 1, as R's lm.influence
   return Q.map((r) => {
     const h = r.reduce((s, v) => s + v * v, 0);
@@ -420,16 +432,35 @@ function partsOf(given: RobustFit, onView = false): Parts {
       };
       return { T, B, e, u, s: s + view.k, omegaPart };
     };
+    // the residual factors W z / phi_s: the plain quotient where phi_s and W z are in range; otherwise (phi_s overflows
+    // or underflows for a gaussian response beyond 2^±256, given an omega) from W z 2^-s and phi_s = phi 2^x of the
+    // scaled fit's working residuals, as W z 2^-s / phi 2^(s - x + k): in the fit's units, as the omega function takes them
+    let res: number[];
+    if (representable(phiS) && wz.every(Number.isFinite)) res = wz.map((v) => v / phiS);
+    else {
+      const view = scaledView(fit);
+      const num = commonScale(W.map((w, i) => (w === 0 ? [0, 0] : mulPair(toPair(w), toPair(view.fit.residuals[idx[i]!]!)))));
+      if (fixed) res = num.v.map((v) => scaledEntry(v, num.s + view.k));
+      else {
+        const den = commonScale(W.map(toPair));
+        // phi = (sum (W z 2^-s)^2 / sum W 2^-t) 2^(2s - t + 2k), s here including k
+        const phi = num.v.reduce((t, v) => t + v * v, 0) / den.v.reduce((t, v) => t + v, 0);
+        res = num.v.map((v) => scaledEntry(v / phi, den.s - num.s - view.k));
+      }
+    }
     return {
       glm: true,
       names: cols.map((j) => allNames[j]!),
       X,
       W,
-      res: wz.map((v) => v / phiS),
+      res,
       phiS,
       A,
       h,
       omh: oneMinusHat(fit.qr, fit.rank, h, (i) => qrRows[i]!),
+      qr: fit.qr,
+      rank: fit.rank,
+      qrRow: (i) => qrRows[i]!,
       inputRows: idx.map((i) => usedRows[i]!),
       nInput: inputRowCount(given, usedRows),
       nonZero,
@@ -467,6 +498,9 @@ function partsOf(given: RobustFit, onView = false): Parts {
     A,
     h,
     omh: oneMinusHat(fit.qr, fit.rank, h, (i) => i),
+    qr: fit.qr,
+    rank: fit.rank,
+    qrRow: (i) => i,
     inputRows: idx.map((i) => fit.rows[i]!),
     nInput: inputRowCount(fit, fit.rows),
     nonZero,
@@ -488,7 +522,9 @@ const representable = (v: number): boolean => Math.abs(v) >= SAFE && Math.abs(v)
  * tiny units made it Infinity, 0 or NaN
  */
 function plainOk(P: Parts, M: number[][], V: number[][], zero: boolean): boolean {
-  if (!(P.phiS >= SAFE && P.phiS < Infinity)) return false;
+  // (and the factor n phi_s^2 of the sandwich: subnormal for phi_s below 2^-511, a gaussian glm's response near 2^-260
+  // with an omega given, which lost 1e-13)
+  if (!(P.phiS >= SAFE && P.phiS < Infinity) || !representable(P.X.length * P.phiS * P.phiS)) return false;
   for (let a = 0; a < V.length; a++) {
     if (!representable(P.A[a]![a]!)) return false;
     if (!zero && (!representable(M[a]![a]!) || !representable(V[a]![a]!))) return false;
@@ -541,7 +577,8 @@ const HC_TYPES = ["HC3", "const", "HC", "HC0", "HC1", "HC2", "HC4", "HC4m", "HC5
  * warning, and with HC2 to HC5, whose value is then undefined (R's NaN), an error, as is HC1 with as many
  * observations as coefficients. Aliased coefficients are left out of the matrix. Data far from 1 (weights, responses)
  * are handled in units of powers of 2: entries that are not representable are Infinity or 0, and {@link coeftest}
- * still gives their standard errors. See docs/differences-from-r.md.
+ * still gives their standard errors, from a record kept with the matrix object returned (a copy of the matrix loses it:
+ * pass the result or its original matrix). See docs/differences-from-r.md.
  *
  * @param fit The result of {@link lm} or {@link glm}.
  *
@@ -629,8 +666,23 @@ export function vcovHC(fit: RobustFit, options: VcovHCOptions = {}): VcovResult 
   let vcov: number[][];
   // (const: the model-based covariance itself, not A (X'WX) A, which loses digits for an ill-conditioned X)
   if (sandwich && type === "const" && options.omega === undefined) vcov = modelCovariance(fit).vcov;
-  else if (!sandwich) vcov = rescaled(weightedCrossprod(P.X, omega, n), -P.k);
-  else {
+  else if (!sandwich) {
+    const M = weightedCrossprod(P.X, omega, n);
+    if (meatOk(M, (omegaOf === undefined ? omega : res).every((v) => v === 0))) vcov = M;
+    else {
+      // in units of powers of 2 (scaledMeat): the type's omega from the scaled residual factors, a given omega by its
+      // own power of 2 on X D^-1
+      const S = P.scaled();
+      if (omegaOf !== undefined) {
+        const { mant, exp } = scaledMeat(S, weightedCrossprod(S.T, omegaOf(S.u.map((v) => v * v)), n));
+        vcov = withScale(mant, exp);
+      } else {
+        const g = commonScale(omega.map(toPair), true);
+        vcov = withScale(weightedCrossprod(S.omegaPart().T, g.v, n), S.e.map((e) => g.s / 2 + e));
+      }
+    }
+    vcov = rescaled(vcov, -P.k);
+  } else {
     const M = weightedCrossprod(P.X, omega, n);
     vcov = sandwichOf(P.A, M, n * P.phiS * P.phiS);
     if (!plainOk(P, M, vcov, (omegaOf === undefined ? omega : res).every((v) => v === 0))) {
@@ -760,6 +812,7 @@ function adjustedSums(P: Parts, C: ClusterRows, g: number[], G: number, power: n
   g.forEach((c, i) => members[c]!.push(i));
   const f = Math.sqrt((G - 1) / G);
   const allSingle = G === g.length;
+  let leading: number[][] | undefined;
   return members.map((rows, c) => {
     if (rows.length === 1) {
       const i = rows[0]!;
@@ -768,6 +821,12 @@ function adjustedSums(P: Parts, C: ClusterRows, g: number[], G: number, power: n
     }
     const Xs = rows.map(C.xs);
     const rs = rows.map(C.rs);
+    if (P.qr !== undefined && P.rank > 0) {
+      leading ??= qrLeading(P.qr, P.rank);
+      const v = complementPower(P, leading, rows, rs, power);
+      if (v === null) throw singularBlock(c);
+      if (v !== undefined) return Array.from({ length: k }, (_, j) => f * Xs.reduce((s, x, a) => s + x[j]! * v[a]!, 0));
+    }
     const XA = Xs.map((x) => Array.from({ length: k }, (_, j) => x.reduce((s, v, l) => s + v * C.A[l]![j]!, 0)));
     const IH = Xs.map((_, a) => Xs.map((xb, b) => (a === b ? 1 : 0) - XA[a]!.reduce((s, v, l) => s + v * xb[l]!, 0)));
     for (let a = 0; a < IH.length; a++) for (let b = 0; b < a; b++) IH[a]![b] = IH[b]![a] = (IH[a]![b]! + IH[b]![a]!) / 2;
@@ -776,6 +835,62 @@ function adjustedSums(P: Parts, C: ClusterRows, g: number[], G: number, power: n
     const v = Mg.map((r) => r.reduce((s, m, b) => s + m * rs[b]!, 0));
     return Array.from({ length: k }, (_, j) => f * Xs.reduce((s, x, a) => s + x[j]! * v[a]!, 0));
   });
+}
+
+/**
+ * (I - H_gg)^p r for a block of rows whose H_gg has an eigenvalue above 1/2, where I - H_gg by subtraction loses the
+ * digits of that eigenvalue (an error of eps / (1 - lambda), as 1 - h for one row; Bell and McCaffrey's adjustment
+ * then had relative errors of 3e-5 at 1 - lambda = 2.5e-11). With Q1_g the block's rows of the first `rank` columns of
+ * Q (H_gg = Q1_g Q1_g') and Q1_g' Q1_g = V diag(s) V', the vectors w_j = Q1_g v_j (|w_j|^2 = s_j) span the range of
+ * H_gg and I - H_gg = I - sum_j w_j w_j' (I - H_gg is the identity on the rest). For s_j <= 1/2 the eigenvalue 1 - s_j
+ * is formed directly; for the others, u_j = w_j / sqrt(s_j) put in the block's rows of a vector of length m has Q'u
+ * with |Q1'u|^2 = s_j and |Q2'u|^2 = 1 - s_j, Q2 the trailing columns of the full Q: the matrix Z'Z, Z = Q2' [u_j],
+ * is u_j' (I - H_gg) u_l without cancellation (the trailing columns as in oneMinusHat). So (I - H_gg)^p = I + sum_(s_j
+ * <= 1/2) ((1 - s_j)^p - 1) / s_j w_j w_j' + U ((Z'Z)^p - I) U'. undefined where no eigenvalue exceeds 1/2 (the
+ * subtraction is exact enough there, and its bits are kept); null where the block is singular (an eigenvalue of Z'Z
+ * below the threshold of symmetricPower)
+ */
+function complementPower(P: Parts, leading: number[][], rows: number[], r: number[], power: number): number[] | null | undefined {
+  const qr = P.qr!;
+  const rank = P.rank;
+  const zero = new Array<number>(rank).fill(0);
+  const Qg = rows.map((i) => {
+    const q = P.qrRow(i);
+    return q < 0 ? zero : leading[q]!;
+  });
+  const gram = Array.from({ length: rank }, (_, a) => Array.from({ length: rank }, (_, b) => Qg.reduce((s, q) => s + q[a]! * q[b]!, 0)));
+  const { values, vectors } = eigen(gram, { symmetric: true });
+  if (!values.some((s) => s > 0.5)) return undefined;
+  const V = vectors!;
+  const out = r.slice();
+  const big: number[][] = [];
+  values.forEach((s, j) => {
+    const w = Qg.map((q) => q.reduce((t, v, l) => t + v * V[l]![j]!, 0));
+    if (s > 0.5) big.push(w.map((v) => v / Math.sqrt(s)));
+    else if (s > 0) {
+      // ((1 - s)^p - 1) / s without cancellation for small s
+      const c = Math.expm1(power * Math.log1p(-s)) / s;
+      const t = c * w.reduce((a, v, i) => a + v * r[i]!, 0);
+      w.forEach((v, i) => (out[i]! += t * v));
+    }
+  });
+  const m = qr.qr.length;
+  const Z = big.map((u) => {
+    const e = new Array<number>(m).fill(0);
+    rows.forEach((i, a) => {
+      const q = P.qrRow(i);
+      if (q >= 0) e[q] = u[a]!;
+    });
+    return qrQty(qr, e).slice(rank);
+  });
+  const ZZ = Z.map((za) => Z.map((zb) => za.reduce((s, v, l) => s + v * zb[l]!, 0)));
+  const Mp = symmetricPower(ZZ, power);
+  if (Mp === undefined) return null;
+  // U ((Z'Z)^p - I) U' r
+  const ur = big.map((u) => u.reduce((s, v, i) => s + v * r[i]!, 0));
+  const t = Mp.map((row, a) => row.reduce((s, v, b) => s + v * ur[b]!, 0) - ur[a]!);
+  big.forEach((u, a) => u.forEach((v, i) => (out[i]! += t[a]! * v)));
+  return out;
 }
 
 function singularBlock(c: number): RangeError {
@@ -802,6 +917,47 @@ function fixNegative(V: number[][]): number[][] {
 }
 
 /**
+ * fixNegative of a matrix kept as mant_ab 2^(exp_a + exp_b) (see ScaledVcov). Whether an eigenvalue is negative is
+ * decided on the equilibrated matrix D^-1 V D^-1, D = sqrt(|diag V|), whose entries mant_ab / sqrt(|mant_aa mant_bb|)
+ * are near 1 whatever the units (the signs of the eigenvalues are those of V: Sylvester's law of inertia), with a
+ * margin of rounding (16 k eps of its largest eigenvalue): then the matrix and its exponents are kept as they are. A
+ * negative eigenvalue is set to 0 in one common unit (that of the largest exponent), as the truncation is defined in the
+ * units of V and does not commute with a diagonal scaling: coefficients whose scale is about 2^537 or more below the
+ * largest then get variance 0 (see docs/differences-from-r.md). Before, the common unit was used in every case, so
+ * that such coefficients got variance 0 also for a positive definite matrix
+ */
+function fixScaled(mant: number[][], exp: number[]): { mant: number[][]; exp: number[] } {
+  const k = mant.length;
+  if (k === 0) return { mant, exp };
+  const d = mant.map((r, a) => (r[a]! !== 0 ? Math.sqrt(Math.abs(r[a]!)) : 1));
+  const C = mant.map((r, a) => r.map((v, b) => v / d[a]! / d[b]!));
+  const { values } = eigen(C, { symmetric: true });
+  const top = values.reduce((m, l) => Math.max(m, Math.abs(l)), 0);
+  if (values.every((l) => l >= -16 * k * EPS * top)) return { mant, exp };
+  const t = Math.max(...exp);
+  return { mant: fixNegative(mant.map((r, a) => r.map((v, b) => scaledEntry(v, exp[a]! + exp[b]! - 2 * t)))), exp: exp.map(() => t) };
+}
+
+/**
+ * Whether the meat in plain doubles can be trusted (with `sandwich: false`): every entry finite and the diagonal
+ * representable (2^-969 up to the largest double), or all residual factors 0. Otherwise (huge or tiny residual factors:
+ * entries Infinity - Infinity = NaN, or 0) it is formed in units of powers of 2 (scaledMeat)
+ */
+function meatOk(M: number[][], zero: boolean): boolean {
+  return zero || M.every((r, a) => representable(r[a]!) && r.every(Number.isFinite));
+}
+
+/**
+ * The meat from its form in the units of ScaledParts: sum psi_i psi_i' / n (or the cluster sums) with psi_i =
+ * (T_i u_i) D 2^s / c, where c = phi_s (glm) or 2^-qw (lm) is the square root of the factor of S.omegaPart; so M_ab =
+ * Ms_ab / c~^2 2^(exp_a + exp_b), exp_a = s + e_a - x for c^2 = c~^2 2^2x
+ */
+function scaledMeat(S: ScaledParts, Ms: number[][]): { mant: number[][]; exp: number[] } {
+  const [fm, fx] = S.omegaPart().factor;
+  return { mant: Ms.map((r) => r.map((v) => v / fm)), exp: S.e.map((e) => S.s + e - fx / 2) };
+}
+
+/**
  * Clustered covariance matrix of the coefficients of an `lm` or `glm` fit. Equivalent to R's
  * `sandwich::vcovCL()`.
  *
@@ -817,7 +973,9 @@ function fixNegative(V: number[][]): number[][] {
  * cluster. G is the number of distinct labels among the rows used (labels are compared as text, numbers with 15
  * significant digits as R's `as.character`: 1 and 1 + 2^-52, or 0.1 + 0.2 and 0.3, are one label); intersections of
  * dimensions are tuples of labels; at least two clusters are needed. Rows of prior weight 0 are left out. HC1 needs
- * more observations than coefficients. Data far from 1 as {@link vcovHC}. See docs/differences-from-r.md.
+ * more observations than coefficients. Data far from 1 as {@link vcovHC} (the same record of the units, lost by a copy
+ * of the matrix); with `fix`, a negative eigenvalue is set to 0 in the units of the largest coefficient's variance, so
+ * that coefficients whose scale is about 2^537 or more below it then get variance 0. See docs/differences-from-r.md.
  *
  * @param fit The result of {@link lm} or {@link glm}.
  *
@@ -896,27 +1054,23 @@ export function vcovCL(fit: RobustFit, options: VcovCLOptions = {}): VcovResult 
   // the plain sandwich where its pieces are in range (the adjusted sums of HC2 and HC3 would fail on NaN otherwise)
   const inRange = P.phiS >= SAFE && P.phiS < Infinity && P.A.every((r, a) => representable(r[a]!)) && P.res.every(Number.isFinite);
   let vcov: number[][] | undefined;
-  if (!sandwich || inRange) {
+  if (inRange) {
     const M = meatOf(plainRows(P));
-    if (!sandwich) vcov = rescaled(fix ? fixNegative(M) : M, -P.k);
-    else {
+    if (!sandwich) {
+      if (meatOk(M, zero)) vcov = fix ? fixNegative(M) : M;
+    } else {
       const V = sandwichOf(P.A, M, n * P.phiS * P.phiS);
       if (plainOk(P, M, V, zero)) vcov = fix ? fixNegative(V) : V;
     }
   }
   if (vcov === undefined) {
-    // in units of powers of 2 (ScaledParts)
+    // in units of powers of 2 (ScaledParts); fix on the equilibrated matrix (fixScaled)
     const S = P.scaled();
-    let Vs = sandwichOf(S.B, meatOf(scaledRows(S)), n);
-    let exp = S.e.map((e) => S.s - e);
-    if (fix) {
-      // on the matrix in one common unit (fixing negative eigenvalues commutes with a common factor only)
-      const top = Math.max(...exp);
-      Vs = fixNegative(Vs.map((r, a) => r.map((v, b) => scaledEntry(v, exp[a]! + exp[b]! - 2 * top))));
-      exp = exp.map(() => top);
-    }
-    vcov = withScale(Vs, exp);
+    const Ms = meatOf(scaledRows(S));
+    const { mant, exp } = sandwich ? { mant: sandwichOf(S.B, Ms, n), exp: S.e.map((e) => S.s - e) } : scaledMeat(S, Ms);
+    const fixed = fix ? fixScaled(mant, exp) : { mant, exp };
+    vcov = withScale(fixed.mant, fixed.exp);
   }
-  if (sandwich) vcov = rescaled(vcov, P.k);
+  vcov = rescaled(vcov, sandwich ? P.k : -P.k);
   return reported("vcovCL", { vcov, names: P.names, warnings: [] }, fit);
 }
