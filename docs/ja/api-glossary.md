@@ -858,3 +858,42 @@
 | pooled proportion | 併合した比率 | 新規。`propTest` と `propTrendTest` |
 | event | 事象 | 新規。`poissonTest` と `propTrendTest` の事象の数 (`event rate` は「事象率」) |
 | unconnected (groups) | つながらない群 | 新規。`stuartMaxwellTest` の S が特異になる場合 |
+| ROC curve | ROC 曲線 | 新規 (1.3.0)。`roc` |
+| area under the curve (AUC) | 曲線下面積 (AUC) | 新規。`auc` |
+| partial AUC | 部分 AUC | 新規。`auc` の `partialAuc` |
+| case, control (ROC) | 症例、対照 | 新規。ROC の正例・負例 |
+| placement (DeLong) | placement | 新規。定訳がないため英字のまま |
+| diagonal (of a ROC plot) | 対角線 | 新規。「対角行列」と区別 |
+| sensitivity, specificity | 感度、特異度 | 新規。`diagnosticTests`、`coords` |
+| positive / negative predictive value | 陽性的中率、陰性的中率 | 新規。まとめて「的中率」 |
+| true / false positive, true / false negative | 真陽性、偽陽性、真陰性、偽陰性 | 新規 |
+| false positive rate | 偽陽性率 | 新規 |
+| positive / negative likelihood ratio | 陽性尤度比、陰性尤度比 | 新規。「尤度比」に合わせた |
+| diagnostic odds ratio | 診断オッズ比 | 新規 |
+| prevalence, apparent / true prevalence | 有病率、見かけの有病率、真の有病率 | 新規 |
+| Youden criterion | Youden の基準 | 人名は英字 (規則 11) |
+| resample (noun / verb) | 再標本、再標本化する | 新規。「リサンプル」は使わない |
+| stratified (bootstrap) | 層別 | 「stratum = 層」に合わせた |
+| percentile interval | パーセンタイル区間 | 新規。`mcreg` のブートストラップ |
+| BCa interval | 偏りを補正し加速を加えた (BCa) 区間 | 新規 |
+| bootstrap-t | ブートストラップ t | 新規 |
+| nested (bootstrap) | 入れ子 | 新規 |
+| leave-one-out | 1 つ抜き | 新規。ジャックナイフ |
+| pseudo-values | 擬似値 | 新規 |
+| degenerate (resamples) | 退化した | 新規 |
+| limits of agreement | 一致限界 | `blandAltman` |
+| complete pairs | 完全な対 | 新規。欠測のない組 |
+| intraclass correlation forms | 一元配置、二元配置、変量評定者、固定評定者、一貫性、絶対一致 | 新規。`ICC` の 6 つの形 |
+| equivalence bounds | 同等性の限界 | 新規。「同等性マージン」と区別。`tTOST` |
+| minimal effect test | 最小効果検定 | 新規。TOST の MET |
+| raw effect | 生の効果 | 新規。TOSTER の raw |
+| standardised mean difference (SMD) | 標準化平均差 (SMD) | 新規 |
+| cluster, multi-way clustering | クラスター、多元のクラスター化 | 新規 (1.3.0)。`vcovCL` |
+| sandwich estimator | サンドイッチ推定量 | 新規 |
+| meat (of the sandwich) | meat | 定訳がないため英字のまま (初出に「中央の行列」を併記) |
+| estimating functions | 推定関数 | 新規 |
+| hat value | ハット値 | 「ハット行列」に合わせた |
+| model-based (variance) | モデルに基づく (分散) | 新規。naive の訳 |
+| leave-one-cluster-out jackknife | 1 クラスターを除いたジャックナイフ | 新規 |
+| inclusion-exclusion | 包除原理 | 新規。多元のクラスター |
+| typed array | 型付き配列 | JavaScript の用語 |

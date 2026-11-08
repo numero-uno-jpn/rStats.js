@@ -991,9 +991,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `alpha`) です。結果は `intercept` と `slope` を `{ estimate, se, confInt }` (mcr の `@para`) として持ち、`xmean`、
   `weights` (`@weight`)、`jackknife` (`@B0jack`、`@B1jack`)、`bootstrap` (`@B0`、`@B1`、`@sigmaB0`、`@sigmaB1`、
   `@glob.sigma`、`@nsamples`)、Passing-Bablok では mcr の `calcCUSUM` の統計量を `cusum` (`nPos`、`nNeg`、`maxCusum`。
-  累積和の列は返さない) として持ちます。既定の区間は mcr の 999 個のリサンプルによる乱数のブートストラップではなく
+  累積和の列は返さない) として持ちます。既定の区間は mcr の 999 個の再標本による乱数のブートストラップではなく
   `"analytical"` (重みつき Deming では `"jackknife"`) です。`rngSeed` を与えたブートストラップは、同じ `rng.seed` の
-  mcr と同じリサンプル (R の乱数列) になり、与えなければ現在の乱数列から引きます。Deming、重みつき Deming、
+  mcr と同じ再標本 (R の乱数列) になり、与えなければ現在の乱数列から引きます。Deming、重みつき Deming、
   Passing-Bablok だけで、`PaBaLarge` (と `NBins`)、`LinReg`、`WLinReg`、`PBequi`、`TS` はなく、測定法や標本の名前も
   ありません。Passing-Bablok の奇数位置の傾きは dy/dx そのものです (mcr は tan(atan(dy/dx)) で数 ulp ずれ、1 が
   0.99999999999999989 になる)。傾きがちょうど 1 のとき、これで CUSUM が変わることがあります。mcr では直線上の点の残差が
