@@ -262,6 +262,15 @@ export {
   type BlandAltmanOptions,
   type BlandAltmanResult,
 } from "../htest/blandAltman.js";
+export {
+  mcreg,
+  type McregMethod,
+  type McregCiMethod,
+  type McregBootstrapCiMethod,
+  type McregOptions,
+  type McregCoefficient,
+  type McregResult,
+} from "../htest/mcreg.js";
 export { factanal, type FactanalOptions, type FactanalResult, type FactanalRotation, type FactanalScores } from "../descriptive/factanal.js";
 export { omega, type OmegaOptions, type OmegaResult } from "../descriptive/omega.js";
 export {

@@ -159,6 +159,7 @@ allocation could be avoided without changing the values or the random stream, it
 | `tapply`, `split`, `aggregate` | the cross-classification has 2^31 cells or more (R's limit too) |
 | `expm` (Taylor and Padé methods) | order × (n^3 + 64) is above 2^31 |
 | `grad`, `jacobian`, `hessian` (Richardson) | `r` is above 512 |
+| `mcreg` (Passing-Bablok) | n is above 5793 (2^24 pairwise slopes), or all the fits of the call (the data, the jackknife, the resamples and the nested resamples) would take more than 2^27 slopes (about 10 s; 999 resamples of 518 points) |
 
 The details, with timings and R's behaviour, are in [differences from R](differences-from-r.md) (Hypothesis tests
 and Random numbers under "Deliberate differences"). There is no bound on the length of an output the

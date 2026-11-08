@@ -220,6 +220,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `PMCMRplus::manyOneUTest()` | `manyOneUTest` | Steel の多対一順位検定の正規近似: 各群と対照群の Mann-Whitney 統計量を、対ごとに順位を付け、同順位を補正した分散で標準化したもの |
 | `mauchly.test()` | `mauchlyTest` | `M` が張り `X` に直交する対比上での、各被験者の測定値の球面性についての Mauchly 検定 |
 | `mcnemar.test()` | `mcnemarTest` | 正方の計数表の行と列の対称性についての McNemar のカイ二乗検定 |
+| `mcr::mcreg()` | `mcreg` | 測定法の比較の回帰 (Deming、重みつき Deming、Passing-Bablok) と、係数の信頼区間 |
 | `model.matrix()` | `modelMatrix` | データフレームに対する式のモデル行列 (R の `terms()` の属性つき) |
 | `mood.test()` | `moodTest` | 尺度についての Mood の 2 標本検定 |
 | `epitools::oddsratio()` | `oddsRatio` | 2 x 2 表のオッズ比とその信頼区間、独立性の 3 つの p 値 |

@@ -220,6 +220,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `PMCMRplus::manyOneUTest()` | `manyOneUTest` | Steel's many-to-one rank test in its normal approximation: the Mann-Whitney statistic of each group against the control, each pair ranked on its own, standardised with the tie-corrected variance. |
 | `mauchly.test()` | `mauchlyTest` | Mauchly's test of sphericity of the measurements of each subject, on the contrasts spanned by `M` and orthogonal to `X`. |
 | `mcnemar.test()` | `mcnemarTest` | McNemar's chi-squared test for symmetry of rows and columns in a square table of counts. |
+| `mcr::mcreg()` | `mcreg` | Method comparison regression of y on x. |
 | `model.matrix()` | `modelMatrix` | The model matrix of a formula on a data frame, with the attributes of R's `terms()`. |
 | `mood.test()` | `moodTest` | Mood's two-sample test of scale. |
 | `epitools::oddsratio()` | `oddsRatio` | Odds ratio of a 2 x 2 table with its confidence interval and three p-values of independence. |

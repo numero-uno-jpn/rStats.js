@@ -151,6 +151,7 @@ affected.
 | `oneway.test` (Welch, the default) with one constant group | NaN throughout (the weight n / 0 is infinite): `oneway.test` on [1, 1, 1] and [2, 3, 4] | the limit as that group's variance tends to 0: F = sum over the other groups of w_i (m_i - m_z)^2 / ((k - 1)(1 + 2 (k - 2) c)) with c = sum 1 / (n_i - 1) / (k^2 - 1) over them, df2 = 1 / (3 c); F 12, df (1, 2), p 0.0742, as `t.test` (Welch) on the same data. With two or more constant groups the limit depends on how the variances tend to 0, so it is an error "Welch's test is not defined with two or more constant groups" (R NaN) (#313) |
 | `mcnemar.test` (2 x 2, continuity correction) with fractional counts whose discordant cells differ by less than 1 | (abs(b - c) - 1)^2 / (b + c) squares the negative corrected difference, so the correction makes the statistic larger: 0.7 instead of 0.129 for b = 0.5, c = 0.2, and 0.1 (as without the correction) for b = 1.5, c = 1 | the corrected difference max(0, abs(b - c) - 1): statistic 0, p 1 there (R's `chisq.test` and `prop.test` clamp their corrections likewise); integer counts unchanged |
 | `chisq.test(x)$stdres` (contingency table) with a margin small against the total | E (1 - r / n)(1 - c / n) in doubles loses the small margins: [[2^52, 0], [0, 0.1]] gives NaN, -Inf, -Inf, 2^26 (true: 2^26 in absolute value in all four cells); integer tables such as [[1e15, 7], [3, 11]] are off by 2e-14 relative | the complements 1 - r / n and 1 - c / n as the other rows' and columns' sums over n, and O - E and the variance in double-double, rounded once: 2^26 in all four cells, 21912524.504463962 for the second (the exact value rounded); in ordinary tables the last bits may differ from R's (#382) |
+| mcr's `mcreg(method.reg = "Deming")`: the slope for a small error ratio, the analytical standard errors, data of order 2^±500 | (λq - u + sqrt((u - λq)² + 4λp²))/(2λp) cancels when λq < u: `error.ratio = 1e-300` gives slope 0 (true 0.96786), 1e-12 a relative error of 7e-4, 1e300 Inf; 1 - p²/(uq) and the jackknife pseudo-values lose up to 7e-14; the sums overflow (NaN at 2^520) or its check sd(x) > 0 underflows (an error at 2^-540) | `mcreg`: the same root as 2p/(R - (λq - u)) where λq < u (and the equation divided by λ for λ > 1), (uq - p²)/(uq) in double-double, the jackknife standard error as (n - 1) sd of the leave-one-out estimates; the data scaled by a power of 2 |
 | irr's `icc` (two-way) with subject and rater effects much larger than the interaction | the residual mean square from the total, subject and rater sums of squares cancels: effects of 1e8 with an interaction of ±1 give ICC 1, F Inf, bounds NaN (true MSE 3/2) | where that subtraction is below 2^-20 of the total sum of squares (or 0 or less), the MSE is the sum of the squared residuals x - row mean - column mean + grand mean in double-double: ICC 0.9999999999999999, F 2e16; elsewhere the same bits as before (#392) |
 | `oneway.test` (Welch), `var.test` and car's `leveneTest` with groups on very different scales (a group's spread below 2^-1022 times the largest value) | `oneway.test` on [1e200, 2e200], [0, 1e-100], [5, 7]: NaN (the variance of the first overflows); `var.test(c(1e308, 1e308), c(0, 1e-100))`: F Inf, p 0 (var of the first is Inf); `leveneTest` on [1e308, 1e308] and [0, 1e-100]: F 6.2e31, p 1.6e-32 | each group on its own scale only where its variance (or deviations) would fall below the normal range on the common one (as `bartlettTest`, #270): F 15, df2 4/3; ratio 0, F 0, p 0; F Inf, p 0 (the deviations are 0 in one group only). Elsewhere the same bits (#393) |
 | dunn.test's step-wise adjustments (`holm`, `hs`, `hochberg`, `bh`, `by`) with tied p-values | ties ranked in the order of the comparisons: the same p-value gets different adjusted values (1, 0.828, 0.414 with `holm`), which change when the groups are relabelled | a run of ties takes the rank of its first, the one the stopping rule decides on: the same value whatever the order, the same decisions; without ties as dunn.test |
@@ -980,6 +981,24 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   2015), wider than the package's `limit ± t sqrt(3 s²/n)` for small n (3% at n = 17, 6% at n = 10, twice at n = 2).
   For identical methods (s = 0) every interval is the point d̄, also at the level 1 (R: NaN there). Data of order
   2^±500 and beyond, where R's `sd()` over- or underflows, give the results of the unscaled data times the power of 2.
+- **`mcreg`** (mcr's `mcreg`) is one function with the options in camelCase and `confLevel` (= 1 - mcr's `alpha`); the
+  result has `intercept` and `slope` as `{ estimate, se, confInt }` (mcr's `@para`), `xmean`, `weights` (`@weight`),
+  `jackknife` (`@B0jack`, `@B1jack`), `bootstrap` (`@B0`, `@B1`, `@sigmaB0`, `@sigmaB1`, `@glob.sigma`, `@nsamples`) and,
+  for Passing-Bablok, `cusum` with mcr's `calcCUSUM` statistic (`nPos`, `nNeg`, `maxCusum`; not the path). The
+  default interval is `"analytical"` (`"jackknife"` for weighted Deming), not mcr's random bootstrap with 999
+  resamples; the bootstrap with `rngSeed` gives mcr's resamples for the same `rng.seed` (R's stream), and without it
+  draws from the current stream. Only Deming, weighted Deming and Passing-Bablok: no `PaBaLarge` (and `NBins`),
+  `LinReg`, `WLinReg`, `PBequi` or `TS`; no names of the methods or samples. Passing-Bablok's slope at an odd position
+  is dy/dx itself (mcr: tan(atan(dy/dx)), a few ulps off, 0.99999999999999989 for 1); for a slope of exactly 1 this
+  can change the CUSUM, where mcr's residuals of the points on the line are tiny positive numbers and here 0 (6
+  points above the line and a maximum of 0 in mcr, 1 and 0 here, for x = 1..6, y = 1..5, 6.5). Where Passing-Bablok's
+  interval is not defined (too few points, always for n <= 4) the limits are -Inf and Inf as in mcr, with a warning
+  (mcr gives none). Data with a Deming covariance of 0 are an error (mcr: NaN), and so are 2 or fewer pairs, constant
+  x or y, infinite values, a negative value for Passing-Bablok and a value that is not positive for weighted Deming
+  (mcr's restrictions, with rStats.js's messages). The 1e-12 tie rule of Passing-Bablok is applied to the data
+  scaled by a power of 2 (the same ties; mcr's rule overflows near the largest doubles). Weighted Deming stops as mcr
+  (an absolute threshold, `iterMax`, the warning "no konvergence after ... iterations" with mcr's spelling), so it
+  is not exactly invariant to the units of the data.
 
 ### Data handling
 
