@@ -2067,726 +2067,726 @@
   "gTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "gTest#@param options": {
     "hash": "8c4c91f7f21b",
     "en": "See {@link GTestOptions}.",
-    "ja": ""
+    "ja": "{@link GTestOptions} を参照してください。"
   },
   "gTest#@param x": {
     "hash": "1171e87c47d9",
     "en": "Counts (nonnegative, finite; not all 0), or a contingency table as an array of rows.",
-    "ja": ""
+    "ja": "度数 (非負の有限値で、すべてが 0 ではないこと)、または行の配列としての分割表です。"
   },
   "gTest#@returns": {
     "hash": "326399f34ab4",
     "en": "The test result, with `statisticName` `\"G\"`; see {@link GTestResult}.",
-    "ja": ""
+    "ja": "検定結果です。`statisticName` は `\"G\"` です。{@link GTestResult} を参照してください。"
   },
   "gTest#@throws": {
     "hash": "b13167b2359e",
     "en": "RangeError for negative or non-finite counts, a total of 0, fewer than 2 counts, `p` of the wrong length,\n  negative or not summing to 1, `\"yates\"` for anything but a 2 x 2 table or two counts, and `\"williams\"` for a\n  table with an empty row or column.",
-    "ja": ""
+    "ja": "RangeError になるのは、度数が負または有限でない場合、合計が 0 の場合、度数が 2 個未満の場合、`p` の長さが誤っている場合、\nまたは負であるか合計が 1 でない場合、`\"yates\"` を 2 x 2 表でも 2 個の度数でもない場合に指定した場合、\nそして `\"williams\"` を空の行または列をもつ表に指定した場合です。"
   },
   "gTest#summary": {
     "hash": "ceb0a4c457fe",
     "en": "Log-likelihood ratio (G) test of independence in a contingency table, or of goodness of fit of counts to given\nprobabilities. Equivalent to `DescTools::GTest()` in R.\n\nFor a table (an array of rows), `G = 2 sum x log(x / E) / q` with `E` the products of the margins over the total and\n`(r - 1)(c - 1)` degrees of freedom, counting empty rows and columns as DescTools; for a vector (or a table with one\nrow or column), `E = n p` and `k - 1` degrees of freedom. `correct: \"williams\"` divides by Williams' q\n(`1 + (n sum 1/R_i - 1)(n sum 1/C_j - 1) / (6 n (r - 1)(c - 1))` for a table, which is not defined with an empty\nrow or column: an error, where DescTools gives G = 0 and p = 1; and `1 + (k + 1) / (6n)` for a vector). `correct: \"yates\"` moves the counts of a 2 x 2 table by 0.5 toward\nindependence as DescTools does: the off-diagonal cells up and the diagonal down when `x11 x22 - x12 x21 > 0`, and\nthe other way otherwise, also when it is 0 (so that a table of exact independence gets a positive G), and without\nstopping at 0 (a cell that becomes negative makes G NaN, with the warning \"NaNs produced\"). For two counts it moves\nthem by 0.5 toward `E` when they differ from it by more than 0.25.\n\nThe p-value is the upper tail of chi-squared (DescTools computes `1 - pchisq` for a table, which is 0 below about\n1e-16). G is summed as a deviance, without the cancellation of the plain sum. The result also has the Freeman-Tukey\ndeviates `ftResiduals`.",
-    "ja": ""
+    "ja": "対数尤度比 (G) 検定です。分割表の独立性、または度数と与えられた確率との適合度を検定します。\nR の `DescTools::GTest()` と同等です。\n\n分割表 (行の配列) の場合、`G = 2 sum x log(x / E) / q` です。`E` は周辺和の積を総和で割ったものです。\n自由度は `(r - 1)(c - 1)` で、空の行と列も DescTools と同じく数えます。ベクトル (または 1 行か 1 列の表) の場合は、`E = n p`、自由度は `k - 1` です。\n`correct: \"williams\"` は Williams の q で割ります (表の場合は `1 + (n sum 1/R_i - 1)(n sum 1/C_j - 1) / (6 n (r - 1)(c - 1))`、ベクトルの場合は `1 + (k + 1) / (6n)`)。\n表に空の行または列がある場合、表の q は定義されず、エラーになります (DescTools では G = 0、p = 1 になります)。\n`correct: \"yates\"` は、DescTools と同じく、2 x 2 表の度数を独立の方向へ 0.5 だけ動かします。\n`x11 x22 - x12 x21 > 0` のときは非対角のセルを増やし、対角のセルを減らします。\nそれ以外 (0 の場合を含む) は逆向きです。完全に独立な表でも正の G が得られるようにするためです。\n0 で止めることはせず、負になったセルがあると G は NaN になり、警告 \"NaNs produced\" が出ます。\n2 個の度数の場合は、E との差が 0.25 より大きいとき、各度数を 0.5 だけ `E` の方へ動かします。\n\np 値は、カイ二乗分布の上側の裾です (DescTools は、表の場合に `1 - pchisq` を計算するため、約 1e-16 より小さい値では 0 になります)。\nG は逸脱度として和を取るため、単純な和にある桁落ちは起きません。\n結果には、Freeman-Tukey の偏差 `ftResiduals` も含まれます。"
   },
   "goodmanKruskalGamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "goodmanKruskalGamma#@param options": {
     "hash": "4e9265e615cf",
     "en": "See {@link GoodmanKruskalGammaOptions}.",
-    "ja": ""
+    "ja": "{@link GoodmanKruskalGammaOptions} を参照してください。"
   },
   "goodmanKruskalGamma#@param table": {
     "hash": "823ee3d25207",
     "en": "A table of counts (nonnegative, finite) as an array of rows; rows and columns in their order.",
-    "ja": ""
+    "ja": "度数の表 (非負の有限値) を、行の配列として与えます。行と列は、その並び順のまま使います。"
   },
   "goodmanKruskalGamma#@returns": {
     "hash": "fd01db51fb00",
     "en": "See {@link GoodmanKruskalGammaResult}.",
-    "ja": ""
+    "ja": "{@link GoodmanKruskalGammaResult} を参照してください。"
   },
   "goodmanKruskalGamma#@throws": {
     "hash": "8050052eb506",
     "en": "RangeError for negative or non-finite counts, or a level outside (0, 1).",
-    "ja": ""
+    "ja": "RangeError になるのは、度数が負または有限でない場合、または水準が (0, 1) の範囲外の場合です。"
   },
   "goodmanKruskalGamma#summary": {
     "hash": "e9d15d4eca3f",
     "en": "Goodman and Kruskal's gamma of a table of two ordered classifications, with its asymptotic standard error and a\nWald confidence interval. Equivalent to `DescTools::GoodmanKruskalGamma()` in R.\n\n`gamma = (C - D) / (C + D)` with C and D the numbers of concordant and discordant pairs. The standard error is the\nnon-null ASE1 (Agresti 2010, section 7.1): `sqrt(sum x psi^2)` with `psi_ij = 2 (D Pc_ij - C Pd_ij) / (C + D)^2`,\n`Pc_ij` the counts above-left and below-right of cell (i, j) and `Pd_ij` those above-right and below-left. The\ninterval is `[max(-1, gamma - z ase), min(1, gamma + z ase)]`, z the normal quantile of `1 - (1 - confLevel) / 2`.\nWithout concordant or discordant pairs (a table with one row, for example) gamma and the interval are NaN, as\nDescTools. No test of gamma = 0 is given (it would need the null standard error).",
-    "ja": ""
+    "ja": "2 つの順序付き分類の分割表について、Goodman と Kruskal のガンマを、その漸近標準誤差と Wald 信頼区間とともに求めます。\nR の `DescTools::GoodmanKruskalGamma()` と同等です。\n\n`gamma = (C - D) / (C + D)` です。C と D は、それぞれ一致する組と不一致の組の数です。\n標準誤差は、帰無仮説の下ではない ASE1 です (Agresti 2010 の 7.1 節)。`sqrt(sum x psi^2)` で、`psi_ij = 2 (D Pc_ij - C Pd_ij) / (C + D)^2` です。\n`Pc_ij` は、セル (i, j) より左上と右下にある度数、`Pd_ij` は右上と左下にある度数です。\n区間は `[max(-1, gamma - z ase), min(1, gamma + z ase)]` で、z は `1 - (1 - confLevel) / 2` の正規分位点です。\n一致する組も不一致の組もない場合 (たとえば 1 行の表) は、ガンマと区間が DescTools と同じく NaN になります。\nガンマ = 0 の検定は行いません (そのためには、帰無仮説の下での標準誤差が必要になるためです)。"
   },
   "jonckheereTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "jonckheereTest#@param g": {
     "hash": "5196b32ef463",
     "en": "Group labels, parallel to `x`, in the order of the alternative.",
-    "ja": ""
+    "ja": "`x` と対応する群のラベルです。対立仮説の順序で並べます。"
   },
   "jonckheereTest#@param x": {
     "hash": "9d001da736e7",
     "en": "The values.",
-    "ja": ""
+    "ja": "値です。"
   },
   "jonckheereTest#summary": {
     "hash": "52bd76869840",
     "en": "Jonckheere-Terpstra test of equal distributions against ordered alternatives. Equivalent to\n`DescTools::JonckheereTerpstraTest()` in R. Computes `JonckheereTerpstraTest(x, g, alternative, exact)` (with `g`\nan ordered factor) or, with `variant: \"clinfun\"`, clinfun's `jonckheere.test(x, g, alternative)` (whose\ntwo-sided p-value is `2 min(p_increasing, p_decreasing, 0.5)`; DescTools caps it at 1 instead of 0.5). Pairs with a missing value are dropped (with `variant: \"clinfun\"`, also those with an infinite value, as clinfun does).",
-    "ja": ""
+    "ja": "等しい分布を、順序付けられた対立仮説に対して検定する Jonckheere-Terpstra 検定です。\nR の `DescTools::JonckheereTerpstraTest()` と同等です。`g` を順序付き因子として、`JonckheereTerpstraTest(x, g, alternative, exact)` を計算します。\nまたは、`variant: \"clinfun\"` の場合は、clinfun の `jonckheere.test(x, g, alternative)` を計算します (その両側 p 値は `2 min(p_increasing, p_decreasing, 0.5)` で、DescTools では 0.5 ではなく 1 で上限を設けます)。\n欠測値を含む組は除かれます (`variant: \"clinfun\"` の場合は、clinfun と同じく無限大の値を含む組も除かれます)。"
   },
   "kruskalTest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "kruskalTest(0)#@param g": {
     "hash": "318110f74c26",
     "en": "Group labels, parallel to `x`.\n\nThere is also a formula form, `kruskalTest(\"y ~ g\", data)` (next overload).",
-    "ja": ""
+    "ja": "`x` と対応する群のラベルです。\n\n式を使う形式もあります: `kruskalTest(\"y ~ g\", data)` (次のオーバーロード)。"
   },
   "kruskalTest(0)#@param x": {
     "hash": "3dd6c15894ac",
     "en": "An array of samples (each with at least one non-missing value, as R requires), or one sample with group\n  labels `g`.",
-    "ja": ""
+    "ja": "標本の配列です (R と同じく、各標本には欠測でない値が少なくとも 1 つ必要です)。\nまたは、群のラベル `g` をもつ 1 つの標本です。"
   },
   "kruskalTest(0)#summary": {
     "hash": "fe765429b913",
     "en": "Kruskal-Wallis rank sum test. Equivalent to R's `kruskal.test()`.",
-    "ja": ""
+    "ja": "Kruskal-Wallis の順位和検定です。R の `kruskal.test()` と同等です。"
   },
   "kruskalTest(1)#@param data": {
     "hash": "32d65cbd3954",
     "en": "The data frame: an object of columns (`null` or `NaN` for a missing value).",
-    "ja": ""
+    "ja": "データフレーム: 列のオブジェクトです (欠測値は `null` または `NaN`)。"
   },
   "kruskalTest(1)#@param formula": {
     "hash": "2987624ca2aa",
     "en": "`\"y ~ g\"` (one variable on each side).",
-    "ja": ""
+    "ja": "`\"y ~ g\"` (両辺にそれぞれ 1 つの変数)。"
   },
   "kruskalTest(1)#summary": {
     "hash": "1727473160ff",
     "en": "Kruskal-Wallis test from a formula and a data frame. As R's `kruskal.test(formula, data)`: `\"y ~ g\"`,\none group per level of `g`. Only the variables of the formula count: the rows where one of them is missing are\ndropped.",
-    "ja": ""
+    "ja": "式とデータフレームから行う Kruskal-Wallis 検定です。\nR の `kruskal.test(formula, data)` と同じく、`\"y ~ g\"` では、`g` の水準ごとに 1 つの群を作ります。\n式の変数だけが対象になり、いずれかが欠測している行は除かれます。"
   },
   "ksTest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ksTest(0)#@param options": {
     "hash": "ad284295b223",
     "en": "See {@link KsTestOptions}.\n\nThere is also a formula form for two samples, `ksTest(\"y ~ g\", data, options)` (next overload).",
-    "ja": ""
+    "ja": "{@link KsTestOptions} を参照してください。\n\n2 標本用の式を使う形式もあります: `ksTest(\"y ~ g\", data, options)` (次のオーバーロード)。"
   },
   "ksTest(0)#@param x": {
     "hash": "766d3fde5ca1",
     "en": "Sample.",
-    "ja": ""
+    "ja": "標本です。"
   },
   "ksTest(0)#@param y": {
     "hash": "6fcd650192b6",
     "en": "A continuous distribution function, or a second sample.",
-    "ja": ""
+    "ja": "連続分布の分布関数、または 2 つ目の標本です。"
   },
   "ksTest(0)#summary": {
     "hash": "4177c64d3fe2",
     "en": "Kolmogorov-Smirnov test. Equivalent to R's `ks.test()`. Takes a distribution function given as a function (for\nexample `(q) => pnorm(q)`) or a second sample. `NaN` values are dropped.\n\nAs R, `warnings` has \"ties should not be present for the one-sample Kolmogorov-Smirnov test\" for one sample with\nties, and \"p-value will be approximate in the presence of ties\" for two samples with ties and `exact: false` (or\nm n >= 10000).",
-    "ja": ""
+    "ja": "Kolmogorov-Smirnov 検定です。R の `ks.test()` と同等です。\n分布関数は、関数 (たとえば `(q) => pnorm(q)`) として与えるか、2 つ目の標本として与えます。`NaN` の値は除かれます。\n\nR と同じく、`warnings` には、1 標本で同順位がある場合は \"ties should not be present for the one-sample Kolmogorov-Smirnov test\" が、\n2 標本で同順位があり、\n`exact: false` の場合 (または m n >= 10000 の場合) は \"p-value will be approximate in the presence of ties\" が入ります。"
   },
   "ksTest(1)#@param data": {
     "hash": "32d65cbd3954",
     "en": "The data frame: an object of columns (`null` or `NaN` for a missing value).",
-    "ja": ""
+    "ja": "データフレーム: 列のオブジェクトです (欠測値は `null` または `NaN`)。"
   },
   "ksTest(1)#@param formula": {
     "hash": "1c904a61d23c",
     "en": "`\"y ~ g\"`.",
-    "ja": ""
+    "ja": "`\"y ~ g\"`。"
   },
   "ksTest(1)#@param options": {
     "hash": "e9b560476334",
     "en": "See {@link KsTestOptions}.",
-    "ja": ""
+    "ja": "{@link KsTestOptions} を参照してください。"
   },
   "ksTest(1)#summary": {
     "hash": "6bef018ca660",
     "en": "Two-sample Kolmogorov-Smirnov test from a formula and a data frame. As R's `ks.test(formula, data)`:\n`\"y ~ g\"` compares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the\nrows where one of them is missing are dropped.",
-    "ja": ""
+    "ja": "式とデータフレームから行う 2 標本の Kolmogorov-Smirnov 検定です。\nR の `ks.test(formula, data)` と同じく、`\"y ~ g\"` は `g` の 2 つの水準を比較します (最初の水準が `x`)。\n式の変数だけが対象になり、いずれかが欠測している行は除かれます。"
   },
   "lblTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lblTest#@param options": {
     "hash": "3dd7c97414ad",
     "en": "See {@link LblTestOptions}.",
-    "ja": ""
+    "ja": "{@link LblTestOptions} を参照してください。"
   },
   "lblTest#@param table": {
     "hash": "2ff352f4f33a",
     "en": "A table of counts (nonnegative, finite) as an array of rows.",
-    "ja": ""
+    "ja": "度数の表 (非負の有限値) を、行の配列として与えます。"
   },
   "lblTest#@returns": {
     "hash": "53b8e8b0027f",
     "en": "The test result, with `statisticName` `\"Z\"`; see {@link LblTestResult}.",
-    "ja": ""
+    "ja": "検定結果です。`statisticName` は `\"Z\"` です。{@link LblTestResult} を参照してください。"
   },
   "lblTest#@throws": {
     "hash": "f3665c7e79a6",
     "en": "RangeError for negative or non-finite counts, a total of at most 1, scores of the wrong length or not\n  finite, and tables whose row or column scores do not vary over the observations (Z undefined).",
-    "ja": ""
+    "ja": "RangeError になるのは、度数が負または有限でない場合、合計が 1 以下の場合、得点の長さが誤っているか有限でない場合、\nそして行または列の得点が観測値の間で変わらない表の場合 (Z が定義されない) です。"
   },
   "lblTest#summary": {
     "hash": "272cdb6b3ebd",
     "en": "Asymptotic linear-by-linear association test of a table of two ordered classifications (the Mantel test of trend).\nEquivalent to `coin::lbl_test()` in R. As coin's asymptotic test, except for tables with a two-level factor.\n\n`Z = sqrt(N - 1) r`, r the Pearson correlation of the row and column scores over the N observations: the linear\nstatistic `sum x_ij u_i v_j` standardised by its permutation (conditional) mean and variance. The scores are 1..k\nby default for every factor (the level index; empty rows and columns keep their place). coin leaves a two-level\nfactor unordered and codes it by an indicator of its first level, which turns the sign of Z, and refuses 2 x 2\ntables; here two-level factors are scored like the others and a 2 x 2 table is tested (Z^2 is then the 'N - 1'\nchi-squared statistic). p-values from the normal distribution: `\"greater\"` is positive association.",
-    "ja": ""
+    "ja": "順序付きの 2 つの分類の分割表に対する、漸近的な線形-線形連関の検定です (Mantel の傾向検定)。\nR の `coin::lbl_test()` と同等です。2 水準の因子をもつ表を除き、coin の漸近検定と同じです。\n\n`Z = sqrt(N - 1) r` です。r は、N 個の観測値における行の得点と列の得点の Pearson の相関係数です。\n線形統計量 `sum x_ij u_i v_j` を、その順列 (条件付き) の平均と分散で標準化したものです。\n得点は、既定では各因子について 1..k です (水準の番号。空の行と列も位置を保ちます)。\ncoin は 2 水準の因子を順序なしのままにし、最初の水準の指示変数で符号化します。これは Z の符号を反転させ、また 2 x 2 表は受け付けません。\nここでは、2 水準の因子もほかの因子と同じく得点を付け、2 x 2 表も検定します (その場合、Z^2 は 'N - 1' のカイ二乗統計量です)。\np 値は正規分布から求めます。`\"greater\"` は正の連関を意味します。"
   },
   "leveneTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "leveneTest#@param g": {
     "hash": "b1c9382cf5ed",
     "en": "Group labels, parallel to `y`.",
-    "ja": ""
+    "ja": "`y` と対応する群のラベルです。"
   },
   "leveneTest#@param y": {
     "hash": "9d001da736e7",
     "en": "The values.",
-    "ja": ""
+    "ja": "値です。"
   },
   "leveneTest#summary": {
     "hash": "3f20a5f5ea99",
     "en": "Levene's test for homogeneity of variance across groups. Equivalent to `car::leveneTest()` in R. Computes\n`leveneTest(y ~ g, center = median)` (or `mean`). Pairs with a missing value are dropped; groups are ordered by\ntheir sorted labels.",
-    "ja": ""
+    "ja": "分散の等質性についての Levene の検定です。R の `car::leveneTest()` と同等です。\n`leveneTest(y ~ g, center = median)` (または `mean`) を計算します。欠測値を含む組は除かれます。\n群は、並べ替えたラベルの順に並びます。"
   },
   "lillieTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lillieTest#summary": {
     "hash": "8cf9a7019e0e",
     "en": "Lilliefors (Kolmogorov-Smirnov) test for normality. Equivalent to `nortest::lillie.test()` in R. `NaN` values are\ndropped; at least 5 values are needed.",
-    "ja": ""
+    "ja": "Lilliefors (Kolmogorov-Smirnov) 検定による正規性の検定です。R の `nortest::lillie.test()` と同等です。\n`NaN` の値は除かれます。少なくとも 5 個の値が必要です。"
   },
   "mantelhaenTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "mantelhaenTest#@param options": {
     "hash": "3372385c3c43",
     "en": "See {@link MantelhaenTestOptions}.",
-    "ja": ""
+    "ja": "{@link MantelhaenTestOptions} を参照してください。"
   },
   "mantelhaenTest#@param strata": {
     "hash": "308c678bff4d",
     "en": "The K strata, each an I x J table of counts as an array of rows (all of the same shape; I, J >= 2,\n  K >= 2 for the asymptotic test).",
-    "ja": ""
+    "ja": "K 個の層です。\nそれぞれ、行の配列として与えた I x J の度数表です (すべて同じ形である必要があります。I, J >= 2 で、漸近検定の場合は K >= 2 です)。"
   },
   "mantelhaenTest#summary": {
     "hash": "76fb78991022",
     "en": "Cochran-Mantel-Haenszel chi-squared test of conditional independence in a set of contingency tables, one per\nstratum. Equivalent to R's `mantelhaen.test()`. Takes the strata as R takes a three-dimensional array.",
-    "ja": ""
+    "ja": "Cochran-Mantel-Haenszel のカイ二乗検定です。層ごとに 1 つずつの、一連の分割表について条件付き独立性を検定します。\nR の `mantelhaen.test()` と同等です。層は、R が 3 次元配列を受け取るのと同じ形で与えます。"
   },
   "mcnemarTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "mcnemarTest#@param options": {
     "hash": "aa97a9e70b31",
     "en": "See {@link McnemarTestOptions}.",
-    "ja": ""
+    "ja": "{@link McnemarTestOptions} を参照してください。"
   },
   "mcnemarTest#@param x": {
     "hash": "a11088e3e0e4",
     "en": "Square table of counts as an array of rows, or the first of two paired samples of category codes.",
-    "ja": ""
+    "ja": "度数の正方表を行の配列として与えるか、カテゴリコードからなる対応のある 2 標本の 1 つ目です。"
   },
   "mcnemarTest#@param y": {
     "hash": "432b8697908f",
     "en": "Second paired sample of category codes, when `x` is a sample. May be omitted (and the options passed in\n  its place) when `x` is a table.",
-    "ja": ""
+    "ja": "`x` が標本のとき、カテゴリコードからなる対応のある 2 つ目の標本です。\n`x` が表のときは省略できます (その場合は、そのかわりにオプションを渡します)。"
   },
   "mcnemarTest#summary": {
     "hash": "cbb0639c7fdb",
     "en": "McNemar's chi-squared test for symmetry of rows and columns in a square table of counts. Equivalent to R's\n`mcnemar.test()`. Takes a matrix, or two factors given as paired category codes.",
-    "ja": ""
+    "ja": "度数の正方表について、行と列の対称性を検定する McNemar のカイ二乗検定です。R の `mcnemar.test()` と同等です。\n行列、または対応するカテゴリコードとして与えられた 2 つの因子を受け取ります。"
   },
   "moodTest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "moodTest(0)#summary": {
     "hash": "99849faec82f",
     "en": "Mood's two-sample test of scale. Equivalent to R's `mood.test()`. `NaN` values are dropped; ties get the average\nof the scores of their positions.\n\nThere is also a formula form, `moodTest(\"y ~ g\", data, options)` (next overload).",
-    "ja": ""
+    "ja": "2 標本の尺度についての Mood の検定です。R の `mood.test()` と同等です。`NaN` の値は除かれます。\n同順位の値には、その位置に対応する得点の平均が与えられます。\n\n式を使う形式もあります: `moodTest(\"y ~ g\", data, options)` (次のオーバーロード)。"
   },
   "moodTest(1)#@param data": {
     "hash": "32d65cbd3954",
     "en": "The data frame: an object of columns (`null` or `NaN` for a missing value).",
-    "ja": ""
+    "ja": "データフレーム: 列のオブジェクトです (欠測値は `null` または `NaN`)。"
   },
   "moodTest(1)#@param formula": {
     "hash": "1c904a61d23c",
     "en": "`\"y ~ g\"`.",
-    "ja": ""
+    "ja": "`\"y ~ g\"`。"
   },
   "moodTest(1)#summary": {
     "hash": "2c6cb773522c",
     "en": "Mood's test from a formula and a data frame. As R's `mood.test(formula, data)`: `\"y ~ g\"` compares the\ntwo levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where one of them is\nmissing are dropped.",
-    "ja": ""
+    "ja": "式とデータフレームから行う Mood の検定です。\nR の `mood.test(formula, data)` と同じく、`\"y ~ g\"` は `g` の 2 つの水準を比較します (最初の水準が `x`)。\n式の変数だけが対象になり、いずれかが欠測している行は除かれます。"
   },
   "oddsRatio#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "oddsRatio#@param options": {
     "hash": "0a9495e661e4",
     "en": "See {@link OddsRatioOptions}.",
-    "ja": ""
+    "ja": "{@link OddsRatioOptions} を参照してください。"
   },
   "oddsRatio#@param table": {
     "hash": "54b7511a5c0e",
     "en": "A 2 x 2 table of counts as an array of rows.",
-    "ja": ""
+    "ja": "度数の 2 x 2 表を、行の配列として与えます。"
   },
   "oddsRatio#@returns": {
     "hash": "037379e55e1e",
     "en": "See {@link OddsRatioResult}.\nLimits: the exact methods (`\"midp\"`, `\"fisher\"`) need the support of x11 given the margins (min(x11, x22) +\nmin(x12, x21) + 1 values) to be at most 2^23 (about 6 s), and `\"fisher\"` counts of at most 2^31 - 1 (as\n`fisherTest`); the p-values of every method need phyper within its 2^26 terms (counts up to about 1e12).",
-    "ja": ""
+    "ja": "{@link OddsRatioResult} を参照してください。\n制限: 正確法 (`\"midp\"`、`\"fisher\"`) では、周辺和が与えられたときの x11 の台 (min(x11, x22) + min(x12, x21) + 1 個の値) が 2^23 以下である必要があります (約 6 秒)。\n`\"fisher\"` では、度数が 2^31 - 1 以下である必要があります (`fisherTest` と同じ)。\nすべての方法の p 値は、phyper の 2^26 項以内で計算できる必要があります (度数は約 1e12 まで)。"
   },
   "oddsRatio#@throws": {
     "hash": "7acf53be498e",
     "en": "TypeError if the table is not 2 x 2; RangeError for negative or non-integer counts, a table of zeros, a\n  level outside (0, 1), an unknown method, or a table beyond the limits above.",
-    "ja": ""
+    "ja": "TypeError になるのは、表が 2 x 2 でない場合です。\nRangeError になるのは、度数が負または整数でない場合、すべて 0 の表の場合、水準が (0, 1) の範囲外の場合、未知の method の場合、または上記の制限を超える表の場合です。"
   },
   "oddsRatio#summary": {
     "hash": "3e107a12cc48",
     "en": "Odds ratio of a 2 x 2 table with its confidence interval and three p-values of independence. Equivalent to\n`epitools::oddsratio()` in R.\n\nThe table is in epitools' orientation: rows are the exposure (row 1 the reference level) and columns the outcome\n(column 1 without the disease); the odds ratio x11 x22 / (x12 x21) is the same for the transposed table.\n\nMethods (`method`): `\"midp\"` (the default, as epitools: the median-unbiased estimate and the mid-p exact interval\nfrom Fisher's noncentral hypergeometric distribution of x11 given the margins), `\"fisher\"` (the conditional MLE and\nthe exact interval of {@link fisherTest}), `\"wald\"` (the sample odds ratio and Woolf's interval on the log scale;\nas epitools, no zero-cell correction: a zero cell gives an estimate of 0 or Infinity and NaN for the limit that is\nnot defined) and `\"score\"` (the sample odds ratio and the score interval of epiR's `epi.2by2`, Miettinen-Nurminen\nwithout the factor N/(N - 1)). The mid-p and score limits are the roots of their equations to the precision of the\ndoubles (epitools solves with uniroot's tolerance on [0, 1000] and fails beyond and for zero cells; epiR steps by\n0.1%). With a zero cell the mid-p estimate and limits follow the conventions of exact2x2: 0 or Infinity at the end\nof the support.\n\n`pValue` has epitools' three p-values: the two-sided mid-p (twice the smaller one-sided mid-p value), Fisher's\nexact test and Pearson's chi-squared without continuity correction (with R's warning \"Chi-squared approximation may\nbe incorrect\" where an expected count is below 5).",
-    "ja": ""
+    "ja": "2 x 2 表のオッズ比を、その信頼区間と、独立性についての 3 つの p 値とともに求めます。\nR の `epitools::oddsratio()` と同等です。\n\n表は epitools の向きです。行は曝露 (行 1 が基準の水準)、列は結果 (列 1 は疾病なし) です。\nオッズ比 x11 x22 / (x12 x21) は、転置した表でも同じです。\n\n方法 (`method`): `\"midp\"` (既定。epitools と同じく、中央値不偏推定値と、周辺和が与えられたときの x11 について Fisher の非心超幾何分布から求める mid-p の正確な区間)、`\"fisher\"` (条件付き最尤推定値と、{@link fisherTest} の正確な区間)、`\"wald\"` (標本のオッズ比と、対数スケールの Woolf の区間。epitools と同じく、0 のセルに対する補正は行いません。0 のセルがあると推定値は 0 または Infinity になり、定義されない限界は NaN になります)、\nそして `\"score\"` (標本のオッズ比と、epiR の `epi.2by2` のスコア区間。N/(N - 1) の因子を除いた Miettinen-Nurminen 法)。\nmid-p とスコアの限界は、\n倍精度数の精度で、\nそれぞれの方程式の根です (epitools は [0, 1000] の範囲で uniroot の許容誤差を使って解きます。その範囲外や 0 のセルの場合は失敗します。epiR は 0.1% 刻みで進みます)。\n0 のセルがある場合、\nmid-p の推定値と限界は exact2x2 の規約に従います。\nつまり、\n台の端で 0 または Infinity になります。\n\n`pValue` は epitools の 3 つの p 値をもちます。\n両側の mid-p (小さい方の片側 mid-p 値の 2 倍)、Fisher の正確検定、\nそして連続性補正のない Pearson のカイ二乗検定です (期待度数が 5 未満のときは、R の警告 \"Chi-squared approximation may be incorrect\" が出ます)。"
   },
   "onewayTest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "onewayTest(0)#@param g": {
     "hash": "a9e6ad9ec4c8",
     "en": "Group labels, parallel to `x` (or the options, when `x` is an array of samples).\n\nThere is also a formula form, `onewayTest(\"y ~ A + B\", data, options)` (next overload).",
-    "ja": ""
+    "ja": "`x` と対応する群のラベルです (`x` が標本の配列の場合は、そのかわりにオプションを渡します)。\n\n式を使う形式もあります: `onewayTest(\"y ~ A + B\", data, options)` (次のオーバーロード)。"
   },
   "onewayTest(0)#@param x": {
     "hash": "5a4ba65f024a",
     "en": "An array of samples, or one sample with group labels `g`.",
-    "ja": ""
+    "ja": "標本の配列、または群のラベル `g` をもつ 1 つの標本です。"
   },
   "onewayTest(0)#summary": {
     "hash": "baa89d1bef1e",
     "en": "Test that several normal samples have equal means, without (default) or with the assumption of equal variances.\nEquivalent to R's `oneway.test()`.",
-    "ja": ""
+    "ja": "複数の正規標本の平均が等しいかを検定します。等分散を仮定しない場合 (既定) と、仮定する場合があります。\nR の `oneway.test()` と同等です。"
   },
   "onewayTest(1)#@param data": {
     "hash": "32d65cbd3954",
     "en": "The data frame: an object of columns (`null` or `NaN` for a missing value).",
-    "ja": ""
+    "ja": "データフレーム: 列のオブジェクトです (欠測値は `null` または `NaN`)。"
   },
   "onewayTest(1)#@param formula": {
     "hash": "e04a8fb0c3be",
     "en": "`\"y ~ A\"` or `\"y ~ A + B + ...\"`.",
-    "ja": ""
+    "ja": "`\"y ~ A\"` または `\"y ~ A + B + ...\"`。"
   },
   "onewayTest(1)#@param options": {
     "hash": "27e4ba8fd9b1",
     "en": "See {@link OnewayTestOptions}.",
-    "ja": ""
+    "ja": "{@link OnewayTestOptions} を参照してください。"
   },
   "onewayTest(1)#summary": {
     "hash": "acf33e5180d6",
     "en": "One-way analysis of means from a formula and a data frame. As R's `oneway.test(formula, data)`:\n`\"y ~ A\"` has one group per level of `A`; with several factors, `\"y ~ A + B\"`, the groups are the combinations of\ntheir levels present in the data (R's `interaction()`, the first factor varying fastest). Only the variables of\nthe formula count: the rows where one of them is missing are dropped.",
-    "ja": ""
+    "ja": "式とデータフレームから行う一元配置の平均の検定です。\nR の `oneway.test(formula, data)` と同じく、`\"y ~ A\"` では `A` の水準ごとに 1 つの群を作ります。\n複数の因子をもつ `\"y ~ A + B\"` では、データに現れる水準の組み合わせが群になります (R の `interaction()` と同じく、最初の因子が最も速く変わります)。\n式の変数だけが対象になり、いずれかが欠測している行は除かれます。"
   },
   "pearsonTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "pearsonTest#summary": {
     "hash": "3422bfc16536",
     "en": "Pearson chi-square test for normality, with classes of equal probability under the fitted normal distribution.\nEquivalent to `nortest::pearson.test()` in R. `NaN` values are dropped.",
-    "ja": ""
+    "ja": "正規性についての Pearson のカイ二乗検定です。当てはめた正規分布の下で確率の等しい区分を使います。\nR の `nortest::pearson.test()` と同等です。`NaN` の値は除かれます。"
   },
   "poissonTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "poissonTest#@param options": {
     "hash": "5726a49f9419",
     "en": "See {@link PoissonTestOptions}.",
-    "ja": ""
+    "ja": "{@link PoissonTestOptions} を参照してください。"
   },
   "poissonTest#@param x": {
     "hash": "bc37a30494d3",
     "en": "Number of events, or `[count1, count2]` to compare two rates.",
-    "ja": ""
+    "ja": "事象の数、または 2 つの率を比べる `[count1, count2]` です。"
   },
   "poissonTest#summary": {
     "hash": "17263c7ec78e",
     "en": "Exact test of a Poisson rate, or comparison of two Poisson rates. Equivalent to R's `poisson.test()`.",
-    "ja": ""
+    "ja": "ポアソン率についての正確検定、または 2 つのポアソン率の比較です。R の `poisson.test()` と同等です。"
   },
   "propTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "propTest#@param n": {
     "hash": "b1642baeaca2",
     "en": "Numbers of trials (omitted, and the options passed in its place, when `x` is a table).",
-    "ja": ""
+    "ja": "試行回数です (`x` が表の場合は省略し、そのかわりにオプションを渡します)。"
   },
   "propTest#@param options": {
     "hash": "0648bab2e201",
     "en": "See {@link PropTestOptions}.",
-    "ja": ""
+    "ja": "{@link PropTestOptions} を参照してください。"
   },
   "propTest#@param x": {
     "hash": "2554c82f41e9",
     "en": "Numbers of successes, or a table of rows `[successes, failures]`.",
-    "ja": ""
+    "ja": "成功の数、または、行が `[successes, failures]` の表です。"
   },
   "propTest#summary": {
     "hash": "2914ee29cb43",
     "en": "Test of equal or given proportions. Equivalent to R's `prop.test()`.\n\nAs R, `warnings` has \"Chi-squared approximation may be incorrect\" where an expected count of the table of successes\nand failures (n p or n (1 - p), p the given or the pooled proportion) is below 5.",
-    "ja": ""
+    "ja": "比率が等しいか、または与えられた比率であるかの検定です。R の `prop.test()` と同等です。\n\nR と同じく、成功と失敗の表 (n p または n (1 - p)。p は与えられた比率、または併合した比率です) の期待度数が 5 未満のとき、\n`warnings` に \"Chi-squared approximation may be incorrect\" が入ります。"
   },
   "propTrendTest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "propTrendTest(0)#@param n": {
     "hash": "d03532162b75",
     "en": "Numbers of trials.",
-    "ja": ""
+    "ja": "試行回数です。"
   },
   "propTrendTest(0)#@param score": {
     "hash": "c87f32edb5ac",
     "en": "Scores of the groups. Default `1, 2, ..., k`. A group with a NaN score is left out of the regression\n  (as R's `lm` omits it), but its counts stay in the pooled proportion and the weights, as in R. Other scores must\n  be finite, with at least two distinct values. With no events or only events (all proportions 0, or all 1) the test is not defined (an error, as in R).",
-    "ja": ""
+    "ja": "群の得点です。既定は `1, 2, ..., k` です。NaN の得点をもつ群は回帰から除かれます (R の `lm` が除くのと同じです)。\nただし、R と同じく、その度数は併合した比率と重みに残ります。ほかの得点は有限でなければならず、相異なる値を少なくとも 2 つもつ必要があります。\n事象がない場合、または事象しかない場合 (すべての比率が 0、またはすべてが 1) は、検定は定義されず、R と同じくエラーになります。"
   },
   "propTrendTest(0)#@param x": {
     "hash": "c5481cd0353f",
     "en": "Numbers of events.",
-    "ja": ""
+    "ja": "事象の数です。"
   },
   "propTrendTest(0)#summary": {
     "hash": "94144ef5c15a",
     "en": "Chi-squared test for trend in proportions. Equivalent to R's `prop.trend.test(x, n, score)`. The scores are the\nthird argument or the option `score` (giving both is a RangeError).",
-    "ja": ""
+    "ja": "比率の傾向についてのカイ二乗検定です。R の `prop.trend.test(x, n, score)` と同等です。\n得点は、第 3 引数か、オプション `score` で与えます (両方を与えると RangeError になります)。"
   },
   "propTrendTest(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "propTrendTest(1)#summary": {
     "hash": "d11bc1807633",
     "en": "Chi-squared test for trend in proportions, with the scores in the options:\n`propTrendTest(x, n, { score: [0, 1, 2, 4] })`.",
-    "ja": ""
+    "ja": "得点をオプションで与える、比率の傾向についてのカイ二乗検定です。\n例: `propTrendTest(x, n, { score: [0, 1, 2, 4] })`。"
   },
   "quadeTest(0)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "quadeTest(0)#@param y": {
     "hash": "e61e51eb84be",
     "en": "Blocks as rows, treatments as columns. Rows with a missing value are dropped.\n\nThere is also a formula form, `quadeTest(\"y ~ w | b\", data)` (next overload).",
-    "ja": ""
+    "ja": "ブロックを行、処理を列とします。欠測値を含む行は除かれます。\n\n式を使う形式もあります: `quadeTest(\"y ~ w | b\", data)` (次のオーバーロード)。"
   },
   "quadeTest(0)#summary": {
     "hash": "807b5c63f686",
     "en": "Quade test for an unreplicated complete block design. Equivalent to R's `quade.test()`. Takes a matrix.",
-    "ja": ""
+    "ja": "反復のない完全ブロック計画に対する Quade の検定です。R の `quade.test()` と同等です。行列を受け取ります。"
   },
   "quadeTest(1)#@param data": {
     "hash": "32d65cbd3954",
     "en": "The data frame: an object of columns (`null` or `NaN` for a missing value).",
-    "ja": ""
+    "ja": "データフレーム: 列のオブジェクトです (欠測値は `null` または `NaN`)。"
   },
   "quadeTest(1)#@param formula": {
     "hash": "c78a4fd011bd",
     "en": "`\"y ~ w | b\"` (one variable on each side of `|`).",
-    "ja": ""
+    "ja": "`\"y ~ w | b\"` (`|` の両側にそれぞれ 1 つの変数)。"
   },
   "quadeTest(1)#summary": {
     "hash": "8f3c2b48b491",
     "en": "Quade test from a formula and a data frame. As R's `quade.test(formula, data)`: `\"y ~ w | b\"` with the\ngroups `w` and the blocks `b`. The rows where `y`, `w` or `b` is missing are dropped first; then every combination\nof group and block must occur exactly once (else the error `not an unreplicated complete block design`).",
-    "ja": ""
+    "ja": "式とデータフレームから行う Quade の検定です。R の `quade.test(formula, data)` と同じく、`\"y ~ w | b\"` では、群 `w` とブロック `b` を使います。\nまず、`y`、`w`、`b` のどれかが欠測している行を除きます。\nその後、群とブロックの各組み合わせがちょうど 1 回ずつ現れる必要があります (そうでない場合は、エラー `not an unreplicated complete block design` になります)。"
   },
   "setWarningHandler#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "setWarningHandler#@param handler": {
     "hash": "27aa4bd4762e",
     "en": "The function that receives the warnings, or `null` to stop passing them.",
-    "ja": ""
+    "ja": "警告を受け取る関数です。警告を渡すのをやめる場合は `null` です。"
   },
   "setWarningHandler#@returns": {
     "hash": "aa728049dde8",
     "en": "The handler set before, or `null`.",
-    "ja": ""
+    "ja": "以前に設定されたハンドラーです。なければ `null` です。"
   },
   "setWarningHandler#@throws": {
     "hash": "bcfb68cd49f7",
     "en": "TypeError if `handler` is neither a function nor `null`.",
-    "ja": ""
+    "ja": "`handler` が関数でも `null` でもない場合は TypeError になります。"
   },
   "setWarningHandler#summary": {
     "hash": "182108ba7255",
     "en": "Sets the function that receives R's warnings, and returns the one it replaces (`null` when there was none). Not an\nR function. It plays the part of R's printing of warnings (and, by throwing, of `options(warn = 2)`).\n\nEvery test, model and fit returns R's warnings in its result's `warnings` whatever the handler. With a handler\nset, each call of such a function (and `pivotLonger` without `onWarning`) also passes its warnings to the handler\nonce it has computed its result: each distinct warning once, in order, with the name of the function called (a\nfunction that calls another, such as `pairwiseWilcoxTest`, passes the warnings once, under its own name). A fit's\nwarnings are passed once, when it is fitted (`lm`, `glm`, `aov`, `lmer`, ...): a function given a fit or a table\n(`anova`, `aovSummary`, `Anova`, `glmSummary`, `etaSquared`, `lmerSummary`, ...) keeps them in its result's\n`warnings` but passes only the warnings it adds. An error thrown by the handler propagates to the caller. By default\nthere is no handler and nothing is printed.\n\nTo print the warnings as R does, set `(message, source) => console.warn(source + \": \" + message)`. A handler that\nthrows (`(message) => { throw new Error(message); }`) turns each warning into an error, as R's `options(warn = 2)`.\n\nThe handler is kept on `globalThis`, so it is one setting for every copy of the library loaded on a page.",
-    "ja": ""
+    "ja": "R の警告を受け取る関数を設定し、置き換えられた関数を返します (なければ `null`)。R の関数ではありません。\nR が警告を表示する役割を果たし、また例外を投げることで `options(warn = 2)` の役割も果たします。\n\nハンドラーの設定に関係なく、すべての検定、モデル、当てはめは、R の警告をその結果の `warnings` に返します。\nハンドラーを設定すると、そのような関数 (および `onWarning` のない `pivotLonger`) を呼ぶたびに、結果を計算した後で、警告もハンドラーに渡されます。\n各警告は、異なるものを 1 回ずつ、順に、呼ばれた関数の名前とともに渡されます (ほかの関数を呼ぶ関数、たとえば `pairwiseWilcoxTest` は、警告を自身の名前の下で 1 回だけ渡します)。\n当てはめの警告は、当てはめるとき (`lm`、`glm`、`aov`、`lmer` など) に 1 回渡されます。\n当てはめや表を受け取る関数 (`anova`、`aovSummary`、`Anova`、`glmSummary`、`etaSquared`、`lmerSummary` など) は、警告を結果の `warnings` に残しますが、自分が追加した警告だけを渡します。\nハンドラーが投げたエラーは、\n呼び出し元に伝わります。\n既定ではハンドラーはなく、何も表示されません。\n\nR と同じように警告を表示するには、`(message, source) => console.warn(source + \": \" + message)` を設定します。\n例外を投げるハンドラー (`(message) => { throw new Error(message); }`) は、R の `options(warn = 2)` と同じく、各警告をエラーに変えます。\n\nハンドラーは `globalThis` に保持されるため、ページに読み込まれたライブラリのすべてのコピーで、1 つの設定を共有します。"
   },
   "sfTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "sfTest#summary": {
     "hash": "9ff5e9e22c7a",
     "en": "Shapiro-Francia test for normality. Equivalent to `nortest::sf.test()` in R. `NaN` values are dropped; the sample\nsize must be between 5 and 5000.",
-    "ja": ""
+    "ja": "Shapiro-Francia の正規性検定です。R の `nortest::sf.test()` と同等です。`NaN` の値は除かれます。\n標本サイズは 5 以上 5000 以下である必要があります。"
   },
   "shapiroTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "shapiroTest#summary": {
     "hash": "5ddf5d6366f6",
     "en": "Shapiro-Wilk test of normality. Equivalent to R's `shapiro.test()`. `NaN` values are dropped; the sample size must\nbe between 3 and 5000.",
-    "ja": ""
+    "ja": "Shapiro-Wilk の正規性検定です。R の `shapiro.test()` と同等です。`NaN` の値は除かれます。\n標本サイズは 3 以上 5000 以下である必要があります。"
   },
   "stuartMaxwellTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "stuartMaxwellTest#@param table": {
     "hash": "68101d0a4eaf",
     "en": "A square table of counts as an array of rows.",
-    "ja": ""
+    "ja": "度数の正方表を、行の配列として与えます。"
   },
   "stuartMaxwellTest#@returns": {
     "hash": "9a08ca59e18c",
     "en": "The test result, with `statisticName` `\"chi-squared\"`; see {@link StuartMaxwellTestResult}.",
-    "ja": ""
+    "ja": "検定結果です。`statisticName` は `\"chi-squared\"` です。{@link StuartMaxwellTestResult} を参照してください。"
   },
   "stuartMaxwellTest#@throws": {
     "hash": "65a5aeab44a4",
     "en": "RangeError for a table that is not square with at least two rows, negative or non-finite counts, fewer\n  than 2 categories left (\"Too many equal marginals, cannot compute\") and categories whose off-diagonal counts fall\n  into unconnected groups (S is then singular).",
-    "ja": ""
+    "ja": "RangeError になるのは、表が正方でないか、行が 2 つ未満の場合、度数が負または有限でない場合、\n残るカテゴリが 2 個未満の場合 (\"Too many equal marginals, cannot compute\")、そして、\n非対角の度数によって互いにつながらない群に分かれるカテゴリがある場合です (その場合 S は特異になります)。"
   },
   "stuartMaxwellTest#summary": {
     "hash": "372fc48e0fbe",
     "en": "Stuart-Maxwell test of marginal homogeneity of a square table (paired classifications into the same categories).\nEquivalent to `DescTools::StuartMaxwellTest()` in R. The degrees of freedom differ where categories are removed.\n\nCategories with no counts off the diagonal (in their row and column) are removed. With the K categories left, `d`\nthe differences of the row and column sums of the first K - 1 and `S` their covariance (`S_ii = r_i + c_i - 2 x_ii`,\n`S_ij = -(x_ij + x_ji)`), the statistic `d' S^-1 d` is chi-squared with K - 1 degrees of freedom (DescTools keeps the\noriginal number of categories less 1). For a 2 x 2 table it is McNemar's statistic without correction.",
-    "ja": ""
+    "ja": "正方表について周辺の同質性を検定する Stuart-Maxwell 検定です (同じカテゴリへの対応のある分類)。\nR の `DescTools::StuartMaxwellTest()` と同等です。カテゴリが除かれる場合は、自由度が異なります。\n\nその行と列に対角以外の度数がないカテゴリは除かれます。\n残った K 個のカテゴリについて、`d` は最初の K - 1 個の行和と列和の差、`S` はその共分散です (`S_ii = r_i + c_i - 2 x_ii`、`S_ij = -(x_ij + x_ji)`)。\n統計量 `d' S^-1 d` は、自由度 K - 1 のカイ二乗分布に従います (DescTools は、自由度を元のカテゴリ数から 1 を引いた値のままにします)。\n2 x 2 表の場合、これは補正なしの McNemar の統計量です。"
   },
   "tTest(0)#@example": {
     "hash": "0c5f2f033950",
     "en": "⟦code1⟧\n\nThere is also a formula form, `tTest(\"y ~ g\", data, options)` (next overload).",
-    "ja": ""
+    "ja": "⟦code1⟧\n\n式を使う形式もあります: `tTest(\"y ~ g\", data, options)` (次のオーバーロード)。"
   },
   "tTest(0)#@param options": {
     "hash": "e5e133c6eb92",
     "en": "See {@link TTestOptions}.",
-    "ja": ""
+    "ja": "{@link TTestOptions} を参照してください。"
   },
   "tTest(0)#@param x": {
     "hash": "766d3fde5ca1",
     "en": "Sample.",
-    "ja": ""
+    "ja": "標本です。"
   },
   "tTest(0)#@param y": {
     "hash": "42b18dc4d271",
     "en": "Second sample for a two-sample or paired test. May be omitted, and the options\n  passed in its place: `tTest(x, { mu: 1 })`.",
-    "ja": ""
+    "ja": "2 標本または対応のある検定の 2 つ目の標本です。\n省略することができ、そのかわりにオプションを渡します: `tTest(x, { mu: 1 })`。"
   },
   "tTest(0)#@returns": {
     "hash": "e0833fb991cb",
     "en": "The test result, with `statisticName` `\"t\"`; see {@link TTestResult}.",
-    "ja": ""
+    "ja": "検定結果です。`statisticName` は `\"t\"` です。{@link TTestResult} を参照してください。"
   },
   "tTest(0)#summary": {
     "hash": "c7fed222e710",
     "en": "Student's t-test. Equivalent to R's `t.test()`.\n\nPerforms a one-sample, two-sample (Welch's by default, or pooled-variance with\n`varEqual: true`) or paired t-test. `NaN` values are dropped. As in R, each sample needs 2\nobservations, except that with `varEqual: true` a two-sample test needs 1 in each and 3 in all; an\nerror is also thrown if the data are essentially constant.",
-    "ja": ""
+    "ja": "Student の t 検定です。R の `t.test()` と同等です。\n\n1 標本、2 標本 (既定では Welch の検定、`varEqual: true` のときは併合分散)、または対応のある t 検定を行います。\n`NaN` の値は除かれます。R と同じく、各標本には 2 つの観測値が必要です。\nただし `varEqual: true` の 2 標本検定では、各標本に 1 つ、全体で 3 つの観測値が必要です。\nデータが実質的に定数の場合も、エラーになります。"
   },
   "tTest(1)#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "tTest(1)#@param data": {
     "hash": "32d65cbd3954",
     "en": "The data frame: an object of columns (`null` or `NaN` for a missing value).",
-    "ja": ""
+    "ja": "データフレーム: 列のオブジェクトです (欠測値は `null` または `NaN`)。"
   },
   "tTest(1)#@param formula": {
     "hash": "8840ad31fa56",
     "en": "`\"y ~ g\"`, `\"y ~ 1\"` or `\"Pair(a, b) ~ 1\"`.",
-    "ja": ""
+    "ja": "`\"y ~ g\"`、`\"y ~ 1\"`、または `\"Pair(a, b) ~ 1\"`。"
   },
   "tTest(1)#@param options": {
     "hash": "e5e133c6eb92",
     "en": "See {@link TTestOptions}.",
-    "ja": ""
+    "ja": "{@link TTestOptions} を参照してください。"
   },
   "tTest(1)#summary": {
     "hash": "f545017784fe",
     "en": "Student's t-test from a formula and a data frame. As R's `t.test(formula, data)`: `\"y ~ g\"` compares\nthe two levels of `g` (the first level is `x`; `estimateNames` and `nullValueName` name the levels, as in R),\n`\"y ~ 1\"` is the one-sample test and `\"Pair(a, b) ~ 1\"` the paired test of `a` and `b` (the option `paired` is not\nallowed). Only the variables of the formula count: the rows where one of them is missing are dropped.",
-    "ja": ""
+    "ja": "式とデータフレームから行う Student の t 検定です。\nR の `t.test(formula, data)` と同じく、`\"y ~ g\"` は `g` の 2 つの水準を比較します (最初の水準が `x`。`estimateNames` と `nullValueName` は、R と同じく水準の名前を与えます)。\n`\"y ~ 1\"` は 1 標本検定、`\"Pair(a, b) ~ 1\"` は `a` と `b` の対応のある検定です (オプション `paired` は使えません)。\n式の変数だけが対象になり、いずれかが欠測している行は除かれます。"
   },
   "tost#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "tost#@param options": {
     "hash": "1679cea1569e",
     "en": "See {@link TostOptions}.",
-    "ja": ""
+    "ja": "{@link TostOptions} を参照してください。"
   },
   "tost#@param x": {
     "hash": "766d3fde5ca1",
     "en": "Sample.",
-    "ja": ""
+    "ja": "標本です。"
   },
   "tost#@param y": {
     "hash": "0b59443958db",
     "en": "Second sample.",
-    "ja": ""
+    "ja": "2 つ目の標本です。"
   },
   "tost#@returns": {
     "hash": "cfaeaaf5930e",
     "en": "See {@link TostResult}.",
-    "ja": ""
+    "ja": "{@link TostResult} を参照してください。"
   },
   "tost#@throws": {
     "hash": "ac1a8780a5b9",
     "en": "RangeError for a margin that is not positive and finite or a level out of range; Error where tTest has\n  too few observations or the data are essentially constant.",
-    "ja": ""
+    "ja": "RangeError になるのは、同等性マージンが正の有限値でない場合、または水準が範囲外の場合です。\ntTest の観測値が少なすぎる場合、またはデータが実質的に定数の場合は Error になります。"
   },
   "tost#summary": {
     "hash": "527ddf4e6de7",
     "en": "Two one-sided t tests (TOST) of equivalence of two means. Equivalent to `equivalence::tost()` in R.\n\nEquivalence, |mean(x) - mean(y)| < epsilon, is shown at level alpha = 1 - confLevel when both one-sided t tests of\nH01: d <= -epsilon and H02: d >= epsilon reject; the p-value is the larger of their p-values and `confInt` the dual\n1 - 2 alpha interval (90% for the default `confLevel` 0.95). The difference, standard error and degrees of freedom are\nthose of {@link tTest} (Welch's by default, pooled with `varEqual`, paired with `paired`), with tTest's checks and\nerrors. Used on 0/1 data it compares two proportions with a t approximation; for counts\n{@link binomDiffEquivalenceTest} is the better test.\n\nUnlike R, a level of 0.5 or less (`confLevel`) or of 0.5 or more (`alpha`) is an error (the interval would be empty),\nand so is a margin that is not positive.",
-    "ja": ""
+    "ja": "2 つの片側 t 検定 (TOST) による、2 つの平均の同等性の検定です。R の `equivalence::tost()` と同等です。\n\n同等性、つまり |mean(x) - mean(y)| < epsilon は、H01: d <= -epsilon と H02: d >= epsilon の両方の片側 t 検定が棄却されるとき、水準 alpha = 1 - confLevel で示されます。\np 値はその 2 つの p 値のうち大きい方で、`confInt` は双対の 1 - 2 alpha の区間です (既定の `confLevel` 0.95 では 90%)。\n差、標準誤差、自由度は {@link tTest} のもの (既定では Welch、`varEqual` では併合、`paired` では対応のある検定) で、tTest と同じ確認とエラーが適用されます。\n0/1 のデータに用いる場合は、\nt 近似によって 2 つの比率を比べます。\n度数の場合は {@link binomDiffEquivalenceTest} のほうがよい検定です。\n\nR と異なり、水準が 0.5 以下 (`confLevel`) または 0.5 以上 (`alpha`) の場合は、エラーになります (区間が空になるため)。\n正でない同等性マージンも、同じくエラーです。"
   },
   "varTest(0)#@example": {
     "hash": "7ffa69c495d9",
     "en": "⟦code1⟧\n\nThere is also a formula form, `varTest(\"y ~ g\", data, options)` (next overload).",
-    "ja": ""
+    "ja": "⟦code1⟧\n\n式を使う形式もあります: `varTest(\"y ~ g\", data, options)` (次のオーバーロード)。"
   },
   "varTest(0)#summary": {
     "hash": "2283f0b4194f",
     "en": "F test that the variances of two normal samples have a given ratio. Equivalent to R's `var.test()`. `NaN` values\nare dropped.",
-    "ja": ""
+    "ja": "2 つの正規標本の分散の比が与えられた値であるかを検定する F 検定です。R の `var.test()` と同等です。\n`NaN` の値は除かれます。"
   },
   "varTest(1)#@param data": {
     "hash": "32d65cbd3954",
     "en": "The data frame: an object of columns (`null` or `NaN` for a missing value).",
-    "ja": ""
+    "ja": "データフレーム: 列のオブジェクトです (欠測値は `null` または `NaN`)。"
   },
   "varTest(1)#@param formula": {
     "hash": "1c904a61d23c",
     "en": "`\"y ~ g\"`.",
-    "ja": ""
+    "ja": "`\"y ~ g\"`。"
   },
   "varTest(1)#summary": {
     "hash": "b2fd5b18ae71",
     "en": "F test of two variances from a formula and a data frame. As R's `var.test(formula, data)`: `\"y ~ g\"`\ncompares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where\none of them is missing are dropped.",
-    "ja": ""
+    "ja": "式とデータフレームから行う、2 つの分散についての F 検定です。\nR の `var.test(formula, data)` と同じく、`\"y ~ g\"` は `g` の 2 つの水準を比較します (最初の水準が `x`)。\n式の変数だけが対象になり、いずれかが欠測している行は除かれます。"
   },
   "wilcoxTest(0)#@example": {
     "hash": "17981ebd8898",
     "en": "⟦code1⟧\n\nThere is also a formula form, `wilcoxTest(\"y ~ g\", data, options)` (next overload).",
-    "ja": ""
+    "ja": "⟦code1⟧\n\n式を使う形式もあります: `wilcoxTest(\"y ~ g\", data, options)` (次のオーバーロード)。"
   },
   "wilcoxTest(0)#@param options": {
     "hash": "444fd1263a75",
     "en": "See {@link WilcoxTestOptions}.",
-    "ja": ""
+    "ja": "{@link WilcoxTestOptions} を参照してください。"
   },
   "wilcoxTest(0)#@param x": {
     "hash": "766d3fde5ca1",
     "en": "Sample.",
-    "ja": ""
+    "ja": "標本です。"
   },
   "wilcoxTest(0)#@param y": {
     "hash": "e7f87c96ca20",
     "en": "Second sample for a two-sample or paired test. May be omitted, and the options\n  passed in its place: `wilcoxTest(x, { mu: 1 })`.",
-    "ja": ""
+    "ja": "2 標本または対応のある検定の 2 つ目の標本です。\n省略することができ、そのかわりにオプションを渡します: `wilcoxTest(x, { mu: 1 })`。"
   },
   "wilcoxTest(0)#@returns": {
     "hash": "5c09463e0a11",
     "en": "The test result; see {@link WilcoxTestResult}.",
-    "ja": ""
+    "ja": "検定結果です。{@link WilcoxTestResult} を参照してください。"
   },
   "wilcoxTest(0)#summary": {
     "hash": "d56f5af6e7b6",
     "en": "Wilcoxon signed rank and rank sum (Mann-Whitney) tests. Equivalent to R's `wilcox.test()`.\n\nWith one sample (or `paired: true`) performs the signed rank test; with two samples the\nrank sum test. The choice between exact and normal-approximation p-values, the\nHodges-Lehmann estimates and the confidence intervals follow R 4.6: with ties or zeros the\nexact test is the conditional test given the mid-ranks, and an exact interval reports the\nconfidence level it achieves. Only `NaN` is dropped; infinite values are kept and ranked (as\nR actually does). Where R 4.6.2 is wrong, the one-sample conditional interval and small\ntwo-sided normal p-values, see docs/differences-from-r.md.",
-    "ja": ""
+    "ja": "Wilcoxon の符号付き順位検定と順位和 (Mann-Whitney) 検定です。R の `wilcox.test()` と同等です。\n\n1 標本 (または `paired: true`) の場合は符号付き順位検定を、2 標本の場合は順位和検定を行います。\n正確な p 値と正規近似の p 値の選択、Hodges-Lehmann 推定値、信頼区間は、R 4.6 に従います。\n同順位や 0 がある場合、正確検定は中間順位を与えたときの条件付き検定であり、正確な区間は、実際に達成する信頼水準を報告します。\n除かれるのは `NaN` だけです。\n無限大の値は残され、順位付けされます (R も実際にそうします)。\nR 4.6.2 が誤っている場合 (1 標本の条件付き区間と、小さい両側の正規近似の p 値) は、\ndocs/differences-from-r.md を参照してください。"
   },
   "wilcoxTest(1)#@param data": {
     "hash": "32d65cbd3954",
     "en": "The data frame: an object of columns (`null` or `NaN` for a missing value).",
-    "ja": ""
+    "ja": "データフレーム: 列のオブジェクトです (欠測値は `null` または `NaN`)。"
   },
   "wilcoxTest(1)#@param formula": {
     "hash": "8840ad31fa56",
     "en": "`\"y ~ g\"`, `\"y ~ 1\"` or `\"Pair(a, b) ~ 1\"`.",
-    "ja": ""
+    "ja": "`\"y ~ g\"`、`\"y ~ 1\"`、または `\"Pair(a, b) ~ 1\"`。"
   },
   "wilcoxTest(1)#@param options": {
     "hash": "444fd1263a75",
     "en": "See {@link WilcoxTestOptions}.",
-    "ja": ""
+    "ja": "{@link WilcoxTestOptions} を参照してください。"
   },
   "wilcoxTest(1)#summary": {
     "hash": "5edc34283504",
     "en": "Wilcoxon tests from a formula and a data frame. As R's `wilcox.test(formula, data)`: `\"y ~ g\"` is the\nrank sum test of the two levels of `g` (the first level is `x`), `\"y ~ 1\"` the signed rank test and\n`\"Pair(a, b) ~ 1\"` the paired test of `a` and `b` (the option `paired` is not allowed). Only the variables of the\nformula count: the rows where one of them is missing are dropped.",
-    "ja": ""
+    "ja": "式とデータフレームから行う Wilcoxon 検定です。\nR の `wilcox.test(formula, data)` と同じく、`\"y ~ g\"` は `g` の 2 つの水準の順位和検定です (最初の水準が `x`)。\n`\"y ~ 1\"` は符号付き順位検定、`\"Pair(a, b) ~ 1\"` は `a` と `b` の対応のある検定です (オプション `paired` は使えません)。\n式の変数だけが対象になり、いずれかが欠測している行は除かれます。"
   },
   "zTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "zTest#summary": {
     "hash": "238025ce2c8b",
     "en": "z test for the mean of one sample, or the difference of the means of two, with known standard deviations.\nEquivalent to `BSDA::z.test()` in R. The open end of a one-sided interval is ±Infinity here (NA in BSDA). `NaN`\nvalues are dropped.",
-    "ja": ""
+    "ja": "既知の標準偏差をもつ、1 標本の平均についての、または 2 標本の平均の差についての z 検定です。\nR の `BSDA::z.test()` と同等です。片側の区間の開いた側の端は、ここでは ±Infinity です (BSDA では NA)。\n`NaN` の値は除かれます。"
   }
 }

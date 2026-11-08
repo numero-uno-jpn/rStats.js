@@ -825,3 +825,36 @@
 | orientation (of an alternative) | 向き | 新規。`alternative: "less"` が指す向き |
 | location shift | 位置のずれ | 新規。二標本の位置の差 (`mu`) |
 | root (of an equation) | 根 | 既存の訳語に合わせた。「スコア統計量の根」 |
+| log-likelihood ratio (G) test | 対数尤度比 (G) 検定 | 新規。`gTest` |
+| Williams' correction | Williams の補正 | 新規。人名は英字 (規則 11)。`gTest` の `correct: "williams"` |
+| linear-by-linear association test | 線形-線形連関の検定 | 新規。`lblTest` |
+| Mantel test of trend | Mantel の傾向検定 | 新規。人名は英字。`lblTest` |
+| test for trend (in proportions) | 比率の傾向についての検定 | 新規。`propTrendTest` |
+| linear statistic | 線形統計量 | 新規。`lblTest` の `sum x_ij u_i v_j` |
+| two-level (factor) | 2 水準 (の因子) | 新規。水準が 2 つの因子 |
+| marginal homogeneity | 周辺の同質性 | 新規。`stuartMaxwellTest` |
+| conditional independence | 条件付き独立性 | 新規。`mantelhaenTest` |
+| off-diagonal (cells, counts) | 非対角 (のセル、度数) | 新規。`stuartMaxwellTest` |
+| category code | カテゴリコード | 新規。`mcnemarTest` の対応のある標本 |
+| coded (by an indicator) | 符号化する | 新規。`lblTest` の 2 水準の因子 |
+| support (of a distribution) | 台 | 新規。`oddsRatio` の `x11` の台 |
+| noncentral hypergeometric (distribution) | 非心超幾何分布 | 新規。`oddsRatio` の mid-p |
+| Woolf (interval) | Woolf の区間 | 新規。人名は英字 (規則 11) |
+| Welch's test | Welch の検定 | `docs/ja` で使用 (`guide-for-js-developers.md`)。人名は英字 |
+| Student's t-test | Student の t 検定 | 人名は英字。`tTest` |
+| Levene's test | Levene の検定 | 人名は英字 (規則 11)。`leveneTest` |
+| Mood's test (of scale) | Mood の検定 | 人名は英字 (規則 11)。`moodTest` |
+| Quade test | Quade の検定 | 人名は英字 (規則 11)。`quadeTest` |
+| Stuart-Maxwell test | Stuart-Maxwell 検定 | 人名は英字 (規則 11)。`stuartMaxwellTest` |
+| Jonckheere-Terpstra test | Jonckheere-Terpstra 検定 | 人名は英字 (規則 11)。`jonckheereTest` |
+| Kolmogorov-Smirnov test | Kolmogorov-Smirnov 検定 | 人名は英字 (規則 11)。`ksTest` |
+| Shapiro-Wilk test, Shapiro-Francia test | Shapiro-Wilk の正規性検定、Shapiro-Francia の正規性検定 | 人名は英字 (規則 11) |
+| Lilliefors test | Lilliefors (Kolmogorov-Smirnov) 検定 | 人名は英字 (規則 11)。`lillieTest` |
+| McNemar's chi-squared test | McNemar のカイ二乗検定 | 人名は英字 (規則 11)。`mcnemarTest` |
+| Cochran-Mantel-Haenszel test | Cochran-Mantel-Haenszel のカイ二乗検定 | 人名は英字 (規則 11)。`mantelhaenTest` |
+| Kruskal-Wallis rank sum test | Kruskal-Wallis の順位和検定 | 人名は英字 (規則 11)。`kruskalTest` |
+| formula (`"y ~ g"`) | 式 | 範囲 1 と 2 の訳語に合わせた |
+| limits (on the inputs) | 制限 | 新規。`oddsRatio` の、計算できる入力の範囲 |
+| pooled proportion | 併合した比率 | 新規。`propTest` と `propTrendTest` |
+| event | 事象 | 新規。`poissonTest` と `propTrendTest` の事象の数 (`event rate` は「事象率」) |
+| unconnected (groups) | つながらない群 | 新規。`stuartMaxwellTest` の S が特異になる場合 |
