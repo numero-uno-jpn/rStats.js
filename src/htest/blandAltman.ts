@@ -13,13 +13,13 @@
 //   noncentrality z sqrt(n), so the exact interval of the upper limit is d̄ + s q/sqrt(n) at the quantiles q of that
 //   distribution, and that of the lower limit its mirror image ("exact").
 //
-// The differences are formed on the data scaled by a common power of 2 (src/internal/summary.ts), so that neither
-// the differences nor the squares of the standard deviation over- or underflow; results with units are scaled back
-// at the end (exact), so in the ordinary range they are those of the unscaled formulas.
+// The differences are scaled by a power of 2 of their own (src/internal/summary.ts), so that the squares of the
+// standard deviation neither over- nor underflow; results with units are scaled back at the end (exact), so in the
+// ordinary range they are those of the unscaled formulas.
 
 import { qnt1 } from "../distributions/nt.js";
 import { qt1 } from "../distributions/t.js";
-import { ldexp, mean, pairedDifferences, standardDeviation } from "../internal/summary.js";
+import { ldexp, mean, scaleToUnit, standardDeviation } from "../internal/summary.js";
 import { reported } from "../internal/warnings.js";
 import { matchChoice } from "./power.js";
 import { checkConfLevel, type Sample } from "./types.js";
@@ -165,8 +165,13 @@ export function blandAltman(x: Sample, y: Sample, options: BlandAltmanOptions = 
     return Number.isFinite(m) ? m : u / 2 + b[i]! / 2;
   });
   const diffs = first.map((u, i) => u - second[i]!);
-  // everything below in the coordinates 2^-k of the data, scaled back by ldexp at the end
-  const { d, k } = pairedDifferences(first, second);
+  // everything below in the coordinates 2^-k of the differences themselves (not of the data, where small differences
+  // beside a large pair would underflow), scaled back by ldexp at the end; the differences of the halves (k + 1) only
+  // where a difference overflows
+  const half = !diffs.every(Number.isFinite);
+  const { groups, k: kd } = scaleToUnit([half ? first.map((u, i) => u / 2 - second[i]! / 2) : diffs]);
+  const d = groups[0]!;
+  const k = kd + (half ? 1 : 0);
   const m = mean(d);
   const s = standardDeviation(d);
   const crit = two * s;
@@ -181,7 +186,9 @@ export function blandAltman(x: Sample, y: Sample, options: BlandAltmanOptions = 
   let lowerLimitConfInt: [number, number];
   let upperLimitConfInt: [number, number];
   if (ciMethod === "package") {
-    const se = Math.sqrt((3 * s * s) / n);
+    // (s sqrt(3/n) where 3 s²/n would leave the normal range)
+    const v3 = (3 * s * s) / n;
+    const se = v3 >= 2 ** -1022 || v3 === 0 ? Math.sqrt(v3) : s * Math.sqrt(3 / n);
     lowerLimitConfInt = [lower + times(t1, se), lower + times(t2, se)];
     upperLimitConfInt = [upper + times(t1, se), upper + times(t2, se)];
   } else {

@@ -253,4 +253,39 @@ describe("blandAltman", () => {
     // @ts-expect-error unknown option
     expect(() => blandAltman([1, 2, 3], [1, 2, 4], { conf: 0.9 })).toThrow(RangeError);
   });
+
+  it("small differences beside a large pair, and limits whose standard error is near the subnormals", () => {
+    const x = [10.1, 12.3, 9.8, 15.2, 11.1, 13.4, 14.8, 9.9, 12.0, 16.3];
+    const y = [10.6, 12.0, 10.4, 15.9, 11.0, 14.1, 15.3, 10.3, 12.9, 16.8];
+    const fields = (r: BlandAltmanResult): number[] => [
+      r.meanDiff,
+      r.lowerLimit,
+      r.upperLimit,
+      r.criticalDiff,
+      ...r.meanDiffConfInt,
+      ...r.lowerLimitConfInt,
+      ...r.upperLimitConfInt,
+    ];
+    for (const ciMethod of ["package", "exact"] as const) {
+      // a pair (2^1000, 2^1000) and the pairs above times 2^-100: the result is that of the exact differences
+      // [0, d 2^-100] against 0 (the scaling by the largest datum made meanDiff 0, true -3.155e-31)
+      const xm = [2 ** 1000, ...x.map((v) => v * 2 ** -100)];
+      const ym = [2 ** 1000, ...y.map((v) => v * 2 ** -100)];
+      const dm = xm.map((v, i) => v - ym[i]!);
+      const got = fields(blandAltman(xm, ym, { ciMethod }));
+      fields(blandAltman(dm, dm.map(() => 0), { ciMethod })).forEach((w, i) => expect(got[i], `${ciMethod} [${i}]`).toBe(w));
+      expect(got[0]).toBe(-3.1554436208840474e-31);
+      // differences of order 2^-1040 beside a pair at 1: the "package" intervals of the limits collapsed to points
+      // (sqrt(3 s²/n) underflowed); they are those of the differences times 2^1040, scaled back
+      const xs = [1, 2 ** -1000, 2 ** -1000, 2 ** -1000];
+      const ys = [1, 2 ** -1000 + 2 ** -1040, 2 ** -1000, 2 ** -1000 - 2 ** -1040];
+      const ds = xs.map((v, i) => (v - ys[i]!) * 2 ** 520 * 2 ** 520);
+      const r = fields(blandAltman(xs, ys, { ciMethod }));
+      const ref = fields(blandAltman(ds, ds.map(() => 0), { ciMethod })).map((v) => v * 2 ** -520 * 2 ** -520);
+      // (the reference rounded once more into the subnormals: 1 ulp of 2^-1074 relative to the values near 3e-313)
+      ref.forEach((w, i) => expect(Math.abs(r[i]! - w), `${ciMethod} subnormal [${i}]`).toBeLessThanOrEqual(2 ** -1074));
+      // the upper limit's interval, true [-5.52e-314, 3.27e-313] ("package") or [5.79e-314, 5.34e-313] ("exact")
+      expect(r[9]! - r[8]!).toBeGreaterThan(3e-313);
+    }
+  });
 });
