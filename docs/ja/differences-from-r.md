@@ -960,7 +960,9 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
     ます (pROC は "missing value where TRUE/FALSE needed" で止まる)。`rocTest` の "<k> NA value(s) produced during
     bootstrap were ignored." の数は捨てた反復の数です。
   - `partialAuc` を与えた `auc`: [0, 1] の外の端はエラーです (pROC は NA)。対角線より下での McClish の補正もエラーです
-    (pROC は警告 "Partial AUC correction not defined for ROC curves below the diagonal." つきで NA)。
+    (pROC は警告 "Partial AUC correction not defined for ROC curves below the diagonal." つきで NA)。補正は点の計数から
+    厳密に求めて 1 回だけ丸めるので、対角線上の曲線は下とはみなされず 0.5 になり、0 に近い端でも桁を失いません (丸めた
+    面積を使う pROC とは最後の桁で、0 に近い端ではそれ以上に違うことがあります)。
   - `coords`: すべての列を整数の計数から求めます (上を参照)。`"best"` は厳密に同点の行をすべて返します。
     `bestWeights` のコストは正でなければなりません (pROC は確かめない)。`youden` は pROC の se + r·sp で、
     se + sp − 1 ではありません。列名は camelCase です (`lrPos`、`lrNeg`、`closestTopleft`)。

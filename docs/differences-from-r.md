@@ -1023,6 +1023,9 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
     value(s) produced during bootstrap were ignored." is that of the dropped replicates.
   - `auc` with `partialAuc`: limits outside [0, 1] are an error (pROC: NA), as is McClish's correction below the
     diagonal (pROC: NA with the warning "Partial AUC correction not defined for ROC curves below the diagonal.").
+    The correction is computed exactly from the counts of the points and rounded once, so a curve on the diagonal
+    gives 0.5 rather than counting as below it, and limits near 0 keep their digits (pROC's rounded areas can differ
+    in the last bits, or by more for limits near 0).
   - `coords`: all columns from the integer counts (see above); `"best"` returns every row tied exactly; the cost in
     `bestWeights` must be positive (pROC does not check it); `youden` is pROC's se + r·sp, not se + sp − 1. The
     columns are camelCase (`lrPos`, `lrNeg`, `closestTopleft`).

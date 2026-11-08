@@ -17,6 +17,7 @@
 import { parseFormula, termsOf } from "../models/formula.js";
 import { modelFrame, type DataFrame } from "../models/modelFrame.js";
 import { midpoint } from "../internal/extremes.js";
+import { ldexpWide } from "../internal/summary.js";
 import { reported, Warnings } from "../internal/warnings.js";
 import { formatR } from "./core/simulate.js";
 import { matchChoice } from "./power.js";
@@ -201,6 +202,35 @@ export function aucOf(controls: readonly number[], cases: readonly number[], dir
   const n = controls.length;
   const m = cases.length;
   return twiceU(tally(controls, cases), n, direction) / (2 * m * n);
+}
+
+/** Twice the Mann-Whitney U of two samples in a direction (an integer; the AUC is this over 2mn) */
+export function twiceUOf(controls: readonly number[], cases: readonly number[], direction: RocDirection): number {
+  return twiceU(tally(controls, cases), controls.length, direction);
+}
+
+const bitLength = (v: bigint): number => (v === 0n ? 0 : v.toString(2).length);
+
+/**
+ * The rational num/den rounded once to the nearest double (den nonzero): the quotient to at least 55 bits, with a
+ * sticky bit for a remainder, converted by Number (which rounds to nearest, ties to even). A quotient in the
+ * subnormal range is rounded twice
+ */
+export function ratioToDouble(num: bigint, den: bigint): number {
+  if (den < 0n) {
+    num = -num;
+    den = -den;
+  }
+  if (num === 0n) return 0;
+  const neg = num < 0n;
+  const a0 = neg ? -num : num;
+  const shift = 55 - (bitLength(a0) - bitLength(den));
+  const a = shift >= 0 ? a0 << BigInt(shift) : a0;
+  const b = shift >= 0 ? den : den << BigInt(-shift);
+  let q = a / b;
+  if (q * b !== a) q |= 1n;
+  const v = ldexpWide(Number(q), -shift);
+  return neg ? -v : v;
 }
 
 /**
@@ -500,14 +530,93 @@ function partialArea(x: readonly number[], y: readonly number[], lo: number, hi:
   return area;
 }
 
+/** A rational num/den (den > 0, not reduced) */
+type Ratio = [bigint, bigint];
+const qAdd = (a: Ratio, b: Ratio): Ratio => [a[0] * b[1] + b[0] * a[1], a[1] * b[1]];
+const qSub = (a: Ratio, b: Ratio): Ratio => [a[0] * b[1] - b[0] * a[1], a[1] * b[1]];
+const qMul = (a: Ratio, b: Ratio): Ratio => [a[0] * b[0], a[1] * b[1]];
+const qDiv = (a: Ratio, b: Ratio): Ratio => (b[0] < 0n ? [-a[0] * b[1], -a[1] * b[0]] : [a[0] * b[1], a[1] * b[0]]);
+const qCmp = (a: Ratio, b: Ratio): number => {
+  const d = a[0] * b[1] - b[0] * a[1];
+  return d < 0n ? -1 : d > 0n ? 1 : 0;
+};
+
+/** The integer numerators of proportions v[k] = count/size, or undefined when a value is not such a quotient */
+function countsOf(v: readonly number[], size: number): number[] | undefined {
+  if (!(size >= 1)) return undefined;
+  const out = v.map((p) => Math.round(p * size));
+  return out.every((c, k) => c / size === v[k]) ? out : undefined;
+}
+
+/**
+ * McClish's standardised partial AUC computed exactly from the counts of the points, rounded once; undefined for a
+ * curve whose proportions are not counts over its numbers of controls and cases (an object not made by roc).
+ *
+ * The excess of the curve over the diagonal at a point, e = y - (1 - x), has the integer numerator
+ * Y dx + X dy - dx dy over dx dy, so A - min is the integral of the piecewise linear e between the limits (the
+ * trapezoids of the points within them, and the pieces up to the limits interpolated linearly, as partialArea), and
+ * max - min = (hi - lo)(hi + lo)/2. Formed in doubles both cancel: a curve on the diagonal came out below it
+ * (an error), and limits near 0 lost digits and gave 0/0
+ */
+function mcClishExact(xs: readonly number[], ys: readonly number[], dx: number, dy: number, lo: number, hi: number): number | undefined {
+  const X = countsOf(xs, dx);
+  const Y = countsOf(ys, dy);
+  if (X === undefined || Y === undefined) return undefined;
+  const bdx = BigInt(dx);
+  const bdy = BigInt(dy);
+  const D = bdx * bdy;
+  const e = (k: number): Ratio => [BigInt(Y[k]!) * bdx + BigInt(X[k]!) * bdy - D, D];
+  const x = (k: number): Ratio => [BigInt(X[k]!), bdx];
+  const L = toRational(lo);
+  const H = toRational(hi);
+  // e at v on the segment from point i to point j
+  const eAt = (v: Ratio, i: number, j: number): Ratio =>
+    qAdd(e(i), qMul(qDiv(qSub(v, x(i)), qSub(x(j), x(i))), qSub(e(j), e(i))));
+  const inside: number[] = [];
+  X.forEach((_, k) => {
+    if (qCmp(x(k), L) >= 0 && qCmp(x(k), H) <= 0) inside.push(k);
+  });
+  let excess: Ratio;
+  if (inside.length === 0) {
+    const j = X.findIndex((_, k) => qCmp(x(k), H) >= 0);
+    const i = j - 1;
+    excess = qMul(qAdd(eAt(H, i, j), eAt(L, i, j)), qMul(qSub(H, L), [1n, 2n]));
+  } else {
+    // the trapezoids within the limits: sum (X_q - X_p)(E_p + E_q) over 2 dx D
+    let t = 0n;
+    for (let k = 1; k < inside.length; k++) {
+      const p = inside[k - 1]!;
+      const q = inside[k]!;
+      t += BigInt(X[q]! - X[p]!) * (e(p)[0] + e(q)[0]);
+    }
+    excess = [t, 2n * bdx * D];
+    const last = inside[inside.length - 1]!;
+    if (qCmp(x(last), H) !== 0) {
+      const j = last + 1;
+      excess = qAdd(excess, qMul(qSub(H, x(last)), qMul(qAdd(e(last), eAt(H, last, j)), [1n, 2n])));
+    }
+    const first = inside[0]!;
+    if (qCmp(x(first), L) !== 0) {
+      const j = first - 1;
+      excess = qAdd(excess, qMul(qSub(x(first), L), qMul(qAdd(e(first), eAt(L, first, j)), [1n, 2n])));
+    }
+  }
+  if (excess[0] < 0n) throw new Error("Partial AUC correction not defined for ROC curves below the diagonal.");
+  // (1 + (A - min)/(max - min))/2 with max - min = (hi - lo)(hi + lo)/2
+  const span = qMul(qMul(qSub(H, L), qAdd(H, L)), [1n, 2n]);
+  const r = qDiv(qAdd(span, excess), qMul(span, [2n, 1n]));
+  return ratioToDouble(r[0], r[1]);
+}
+
 /**
  * The area under a ROC curve, or the partial area between two specificities or sensitivities. Equivalent to
  * `pROC::auc()` in R.
  *
  * The partial area sums the trapezoids of the points within the limits and interpolates the curve linearly at the
  * limits. With `correct`, it is standardised as McClish (1989): (1 + (A − min)/(max − min))/2, with min the area under
- * the diagonal and max that of the perfect curve between the limits; below the diagonal that is undefined, an error
- * (pROC: NA with a warning). Limits outside [0, 1] are an error (pROC: NA).
+ * the diagonal and max that of the perfect curve between the limits, computed exactly from the counts of the points and
+ * rounded once (a curve on the diagonal gives 0.5); below the diagonal that is undefined, an error (pROC: NA with a
+ * warning). Limits outside [0, 1] are an error (pROC: NA).
  *
  * @param curve A curve from {@link roc}.
  * @param options See {@link AucOptions}.
@@ -517,7 +626,7 @@ function partialArea(x: readonly number[], y: readonly number[], lo: number, hi:
  * const r = roc({ controls: [1, 2, 2, 3, 5, 7], cases: [2, 4, 5, 5, 8, 9, 10] });
  * auc(r).auc;                                        // 0.7857142857142857
  * auc(r, { partialAuc: [1, 0.8] }).auc;              // 0.08666666666666666
- * auc(r, { partialAuc: [1, 0.8], correct: true }).auc; // 0.6851851851851851
+ * auc(r, { partialAuc: [1, 0.8], correct: true }).auc; // 0.6851851851851852
  * ```
  *
  * @category Hypothesis tests
@@ -540,12 +649,18 @@ export function auc(curve: RocResult, options: AucOptions = {}): AucResult {
   const se = curve.sensitivities;
   const sp = curve.specificities;
   const [x, y] = focus === "specificity" ? [sp, se] : [[...se].reverse(), [...sp].reverse()];
-  let area = partialArea(x, y, lo, hi);
-  if (correct) {
-    const min = ((1 - hi + (1 - lo)) * (hi - lo)) / 2;
-    const max = hi - lo;
-    if (area < min) throw new Error("Partial AUC correction not defined for ROC curves below the diagonal.");
-    area = (1 + (area - min) / (max - min)) / 2;
+  let area: number;
+  const n = curve.controls.length;
+  const m = curve.cases.length;
+  const exact = correct ? (focus === "specificity" ? mcClishExact(x, y, n, m, lo, hi) : mcClishExact(x, y, m, n, lo, hi)) : undefined;
+  if (exact !== undefined) area = exact;
+  else {
+    area = partialArea(x, y, lo, hi);
+    if (correct) {
+      const min = ((1 - hi + (1 - lo)) * (hi - lo)) / 2;
+      if (area < min) throw new Error("Partial AUC correction not defined for ROC curves below the diagonal.");
+      area = (1 + (area - min) / (((hi - lo) * (hi + lo)) / 2)) / 2;
+    }
   }
   return reported("auc", { auc: area, partialAuc: [hi, lo], focus, correct, warnings: [] });
 }
