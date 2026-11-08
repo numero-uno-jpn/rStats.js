@@ -110,10 +110,10 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 | `tTest` | 70.9 KB | 31.0 KB |
 | `qbeta` | 98.4 KB | 43.9 KB |
 | `pt`、`qt` | 89.7 KB | 40.4 KB |
-| `glm`、`glmSummary` / `glm` とすべてのメソッド | 85.1 / 122.2 KB | 35.0 / 51.4 KB |
-| すべて (`/mixed` を除く) | 700.0 KB | 263.5 KB |
+| `glm`、`glmSummary` / `glm` とすべてのメソッド | 85.2 / 122.3 KB | 35.0 / 51.4 KB |
+| すべて (`/mixed` を除く) | 767.6 KB | 289.5 KB |
 | `@numero-uno-jpn/rstats/distributions` (全体) | 241.7 KB | 95.6 KB |
-| `@numero-uno-jpn/rstats/tests` (全体) | 520.5 KB | 201.6 KB |
+| `@numero-uno-jpn/rstats/tests` (全体) | 591.7 KB | 229.0 KB |
 | `@numero-uno-jpn/rstats/linalg` (全体) | 65.6 KB | 24.1 KB |
 | `@numero-uno-jpn/rstats/descriptive` (全体) | 58.8 KB | 21.7 KB |
 | `@numero-uno-jpn/rstats/numerics` (全体) | 64.6 KB | 26.3 KB |
@@ -124,7 +124,7 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 
 サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを
 `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 39 KB
-(`special`) から 221 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
+(`special`) から 250 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
 ある検定には、formula とモデルフレームのコードが入ります。
 
 ## 上限

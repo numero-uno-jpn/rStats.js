@@ -1,6 +1,6 @@
 # rStats.js API リファレンス
 
-rStats.js は、R の数値計算の中心を JavaScript に提供します。確率分布、R の `set.seed()` と一致する乱数、記述統計、仮説検定、線形モデル、一般化線形モデル、(一般化) 線形混合モデル、生存時間解析、線形代数、数値計算です。関数の名前と結果は R に従い、関数は R と比べてテストしています (相対誤差で、分布は 1e-14、検定とモデルは 1e-12 まで。[精度](https://numero-uno-jpn.github.io/rStats.js/docs/ja/accuracy.html) を参照)。R と比べる代わりに、R 自身が不正確な場合や R にその関数がない場合は、高精度の参照値と比べています。
+rStats.js は、R の数値計算の中心を JavaScript に提供します。確率分布、R の `set.seed()` と一致する乱数、記述統計、仮説検定、線形モデル、一般化線形モデル、(一般化) 線形混合モデルと頑健な共分散、生存時間解析、診断の精度と測定法の比較、線形代数、数値計算です。関数の名前と結果は R に従い、関数は R と比べてテストしています (相対誤差で、分布は 1e-14、検定とモデルは 1e-12 まで。[精度](https://numero-uno-jpn.github.io/rStats.js/docs/ja/accuracy.html) を参照)。R と比べる代わりに、R 自身が不正確な場合や R にその関数がない場合は、高精度の参照値と比べています。
 
 このリファレンスでは、すべての関数について、そのオプション、結果、使用例を載せています (使用例はテストで実行しています)。関数は、メニューで分野ごとにまとめてあります。
 
@@ -30,7 +30,7 @@ import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed";        // 混合モ�
 
 ### 名前
 
-R の名前を使います。ドット (.) は camelCase になります: `t.test` → `tTest`、`p.adjust` → `pAdjust`。他のパッケージの関数も、名前をそのまま使います: `car::Anova` → `Anova`、`tidyr::pivot_longer` → `pivotLonger`。
+R の名前を使います。ドット (.) は camelCase になります: `t.test` → `tTest`、`p.adjust` → `pAdjust`。他のパッケージの関数も、名前をそのまま使います: `car::Anova` → `Anova`、`tidyr::pivot_longer` → `pivotLonger`、`TOSTER::t_TOST` → `tTOST`。psych の `ICC` と irr の `icc` は別の関数です。
 
 R の名前が JavaScript の予約語である場合や、一般的すぎてそのまま公開できない場合は、関数が計算する内容を名前にしています。
 
@@ -43,6 +43,8 @@ R の名前が JavaScript の予約語である場合や、一般的すぎてそ
 | `cv` | DescTools の `CoefVar` |
 | `pbvnorm` | mvtnorm の `pmvnorm` (2 次元) |
 | `glhtDunnett` | multcomp の `glht` (Dunnett の対比) |
+| `blandAltman` | BlandAltmanLeh の `bland.altman.stats` |
+| `diagnosticTests` | epiR の `epi.tests` |
 
 `lm` 以外のモデルのメソッド (R で当てはめに対して使う `summary`、`predict`、`anova` など) は、名前の前にモデルの名前が付きます: `glmSummary`、`glmPredict`、`lmerSummary`、`lmerAnova`、`glmerSummary`、`glmerPredict`。モデルの名前が付かないメソッド (`predict`、`confint`、`anova`) は `lm` のものです。
 
