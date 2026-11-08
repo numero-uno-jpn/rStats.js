@@ -175,6 +175,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal variances or shapes. |
 | `chisq.test()` | `chisqTest` | Pearson's chi-squared test. |
 | `DescTools::CochranQTest()` | `cochranQTest` | Cochran's Q test for binary responses in an unreplicated complete block design. |
+| `lmtest::coefci()` | `coefci` | Confidence intervals of the coefficients of an `lm` or `glm` fit with a given covariance matrix. |
+| `lmtest::coeftest()` | `coeftest` | Tests of the coefficients of an `lm` or `glm` fit with a given covariance matrix. |
 | `pwr::cohen.ES()` | `cohenES` | Cohen's conventional effect sizes. |
 | `effectsize::cohens_d()` | `cohensD` | Cohen's d: the standardized difference of means of two samples, of paired samples, or of one sample against `mu`, with a confidence interval from the noncentral t distribution. |
 | `confint()` | `confint` | Confidence intervals for the coefficients of a linear model, for an `lm` fit. |
@@ -266,6 +268,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `TukeyHSD()` | `TukeyHSD` | Tukey's honest significant differences between the group means of a one-way ANOVA. |
 | `PMCMRplus::tukeyTest()` | `tukeyTest` | Tukey's all-pairs test of means. |
 | `var.test()` | `varTest` | F test that the variances of two normal samples have a given ratio. |
+| `sandwich::vcovCL()` | `vcovCL` | Clustered covariance matrix of the coefficients of an `lm` or `glm` fit. |
+| `sandwich::vcovHC()` | `vcovHC` | Heteroskedasticity-consistent covariance matrix of the coefficients of an `lm` or `glm` fit. |
 | `wilcox.test()` | `wilcoxTest` | Wilcoxon signed rank and rank sum tests. |
 | `BSDA::z.test()` | `zTest` | z test for the mean of one sample, or the difference of the means of two, with known standard deviations. |
 | (not in R) | `binomDiffEquivalenceTest` | Test of equivalence of two independent proportions x1/n1 and x2/n2 within a margin. |

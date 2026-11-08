@@ -885,9 +885,16 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
 - **`poissonTest`** requires a finite `T` and `r` (R accepts `Inf`). The one-sample test accepts `confLevel` 0 and 1
   as R does (the two-sample test, as `binomTest`, needs 0 < `confLevel` < 1).
 
-- **`coxph`** takes the covariates as a matrix (no formula), and non-integer case weights throw "non-integer
-  weights (robust variance) are not supported yet": R switches to the robust (sandwich) variance for them.
-  R's own results for a coefficient running off to infinity over many iterations depend on the platform (x86_64
+- **`coxph`** takes the covariates as a matrix (no formula), so the cluster is only the `cluster` option (R's
+  `cluster()` term of the formula, and R's warning when both are given, do not exist). With the robust variance, a
+  single cluster is an error "at least two clusters are needed for the robust variance" (R fails with "(subscript)
+  logical subscript too long" for two or more covariates). Cluster labels that are numbers with the same 15-digit
+  text are one cluster, as strata. An infinite case weight is an error "'weights' must be finite" (R's check of the
+  weights, > 0, lets it through). Weights of 2^64 or more are fitted divided by the power of 2 of the largest, which
+  leaves the coefficients and the robust variance as they are (weights × 2^1015, or one weight of 1e308 among
+  weights near 1, gave a coefficient 0 or NaN when the risk sums were formed from the weights as given); the log
+  likelihoods, the score test and the naive variance are scaled back (the log likelihoods −Inf where they are
+  beyond the doubles). R's own results for a coefficient running off to infinity over many iterations depend on the platform (x86_64
   and arm64 R differ by 1e-7 after 20 iterations), so such fits agree with R only to that size.
 - **`omega`** with one factor reports the group column of the Schmid-Leiman matrix and the group omegas as exactly 0;
   R reports the square roots of rounding residues (about 1e-8). With four or more group factors R's own results move
@@ -1041,6 +1048,78 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   cancellation and known only to eps times its condition number (up to 7.3e-4 for a standard error
   that depends on a mean of 3.9e-14); and the AIC of a gaussian perfect fit, n log of a deviance that
   is rounding residue.
+
+### Robust covariances (`vcovHC`, `vcovCL`, `coeftest`, `coefci`)
+
+- **Rows of prior weight 0 are left out** of `vcovHC` and `vcovCL`: the values are those of the fit without
+  those rows (n is the number of rows of non-zero weight, and a cluster whose rows all have weight 0 does not
+  count). sandwich counts the rows in n but not in the bread, which scales every type by (n_ok / n)², and
+  recycles the hat values of the rows used against all rows (with R's warning `longer object length is not a
+  multiple of shorter object length`); its values are 9% to 53% off in the test fixture.
+- **No absolute threshold on the estimating functions:** sandwich sets the residual factor of a row to 0 when
+  every entry of its estimating function is below 2.2e-16 in absolute value, so that data on a small scale
+  (y × 2^-56) give a zero matrix. rStats.js uses w e (lm) and W z (glm) as they are, which changes nothing
+  else but the last bits of rows with a residual of about 0.
+- **`type: "const"` is the model-based covariance of the fit** (R's `vcov(fit)`: σ̂² (X'WX)⁻¹ for an lm, the
+  dispersion of `summary.glm` times (X'WX)⁻¹ for a glm). sandwich's `"const"` is that only for an unweighted
+  lm; for a weighted lm it uses the unweighted X'X and for a glm Σ (W z)² / (n − k), which are 7% to 75% off
+  `vcov(fit)` in the test fixture. With `sandwich: false` the meat is the one whose sandwich is `vcov(fit)`
+  (omega_i = dispersion W_i / phi_s²).
+- **Hat values of 1:** where sandwich returns a matrix of NaN (HC2 to HC5 with a hat value of exactly 1),
+  `vcovHC` throws a RangeError naming the observations; R's warning about hat values close to 1 is kept for the
+  finite results (HC0, HC1 and hat values below 1).
+- **HC1 with as many observations as coefficients:** its factor n / (n − k) (`vcovHC`) or (n − 1) / (n − k)
+  (`vcovCL`) is infinite and sandwich returns a matrix of NaN; rStats.js throws a RangeError.
+- **1 − h without cancellation:** for the rows with a hat value above 1/2, 1 − h is the squared norm of the
+  row of the trailing columns of Q rather than 1 minus the hat value, which lost the digits of h (an error of
+  about eps / (1 − h) in HC2 to HC5, as in R). With a leverage row of 1 − h = 2.7e-5, HC3 is 5e-13 from the
+  exact value where sandwich's is about 1e-11 off. Likewise the blocks I − H_gg of clustered HC2 and HC3 where
+  H_gg has an eigenvalue above 1/2: that eigenvalue's 1 − λ comes from the trailing columns of Q (a leverage row
+  in a cluster of two with 1 − λ = 2.5e-11: HC3 5e-8 from the exact value, where the subtraction, as sandwich's,
+  is 3e-5 off); other blocks are formed as in sandwich.
+- **Data far from 1:** where the sandwich in doubles would overflow or underflow on the way (weights beyond
+  about 2^±510, the response of a gaussian glm beyond 2^±256, x and y in the same units near 1e±160, working
+  weights below the normal range), it is formed in units of powers of 2, so that the values are those of the
+  same data in units near 1; sandwich returns Infinity, 0 or NaN there, or an error about hat values of 1.
+  Where the covariance itself is not representable (a response around 1e±300), its entries are Infinity or 0
+  as they must be, and `coeftest` and `coefci` take the standard errors from its scaled form, so that the
+  standard errors, statistics, p-values and limits are right where R's are Infinity, 0 or NaN. That scaled
+  form is kept with the matrix object returned: a copy of the matrix gives the values it holds (se 0, z
+  Infinity, p 0 where it holds 0). The meat (`sandwich: false`) likewise has entries ±Infinity or 0 where its
+  values are beyond the doubles, with the same scaled form (formed in doubles, they came out NaN, Infinity −
+  Infinity). An `omega` function given for a gaussian glm whose response is far from 1 receives the residual
+  factors in the fit's units, formed in units of powers of 2 (W z / phi_s in doubles is 0 or Infinity beyond
+  about 2^±512, where phi_s overflows or underflows). With `fix`, negative eigenvalues are looked for on the
+  matrix scaled to unit diagonal, so a positive definite covariance is kept as it is whatever the units of the columns; where an
+  eigenvalue is negative, it is set to 0 in the units of the largest variance, as in R, and coefficients whose
+  scale is about 2^537 or more below the largest then get variance 0 (R's have no correct digits from about
+  2^26 apart on).
+- **Clustered HC2 and HC3 use the symmetric adjustment** (Bell and McCaffrey 2002; Pustejovsky and Tipton 2018):
+  each cluster's residuals are multiplied by (I − H_gg)^(−1/2) or (I − H_gg)⁻¹ with H_gg the block of the
+  symmetric hat matrix W^½ X A X' W^½. For HC3 this is exactly the leave-one-cluster-out jackknife. sandwich
+  uses the transpose of that adjustment for a weighted lm and for every glm (the same where the weights are
+  constant within each cluster, as for an unweighted lm); its values are 1% to 23% off in the test fixture. A
+  singular block (cluster fixed effects), where sandwich returns NaN (HC2) or meaningless numbers (HC3), is a
+  RangeError; so is a cluster of one row whose 1 − h is below the threshold of the larger blocks (eps^(1/1.3),
+  sandwich's NaN) when other clusters have more rows (with one row in every cluster only a hat value of 1 is).
+- **Cluster labels:** numbers, strings or booleans (an array, or a typed array of numbers), one per input row of the fit (the rows the fit dropped for a
+  missing value are dropped from the cluster too; any other length is an error, as R). A missing label is an
+  error, as R. G is the number of distinct labels among the rows used: R counts every level of a factor,
+  unused ones included. The intersections of several clustering dimensions are formed as tuples of the labels:
+  R pastes them with "_", so that ("a_b", "c") and ("a", "b_c") fall into one cluster. A single cluster is a
+  RangeError (`at least two clusters are needed`), where R fails with `non-conformable arrays`.
+- **`vcovCL`'s default type is HC1 for an lm and HC0 for a glm**, as sandwich's (a glm is not an lm for its
+  test).
+- **`coeftest` and `coefci`:** a covariance with a negative, NaN or infinite variance is a RangeError (R gives
+  NaN standard errors with `NaNs produced`, or carries NaN and Infinity through to the statistics and p-values),
+  and so is a `level` outside [0, 1] (R gives NaN limits). Only the diagonal is used, as R's: the matrix is not
+  checked for symmetry. The `vcov` option takes
+  a matrix (matched by position; it must be p × p, or k × k for the coefficients that are not aliased, where R
+  recycles), the result of `vcovHC` or `vcovCL` (matched by name) or a function of the fit; options of the
+  covariance function are passed by closing over them instead of R's `...`. `parm` takes 0-based indices. As
+  lmtest, a glm gets z tests and normal quantiles by default for every family.
+- **Ill-conditioned model matrices:** the values carry the rounding of the fit's own QR decomposition, as R's
+  (for a model matrix with condition number 2e12 both are up to about 1e-3 from the exact value).
 
 ### Mixed models
 
@@ -1407,7 +1486,7 @@ By default rStats.js returns what R returns;
   argument, and the `side` argument of `grad` and `jacobian`.
 - deSolve's adaptive solvers (`lsoda`, `ode45`, ...); `ode` has the fixed-step `euler`, `rk2`
   and `rk4`.
-- `coxph`: counting-process data (`Surv(start, stop, event)`), `ties = "exact"`, offsets, clusters and the robust
-  variance, `tt()` terms and residuals; concordance.
+- `coxph`: counting-process data (`Surv(start, stop, event)`), `ties = "exact"`, offsets, `tt()` terms and
+  residuals (the score and dfbeta residuals behind the robust variance are not exported); concordance.
 - `omega`: factoring methods other than minres, rotations other than oblimin, `n.iter` (bootstrap intervals) and
   `poly = TRUE`.

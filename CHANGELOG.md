@@ -7,6 +7,41 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Robust covariances** of `lm` (matrix and formula) and `glm` fits: `vcovHC(fit, { type, omega, sandwich })`,
+  sandwich's `vcovHC()`, with the types `const`, `HC0` (`HC`), `HC1`, `HC2`, `HC3` (default), `HC4`, `HC4m` and
+  `HC5` and omega as an array or a function `(res, hat, df) => omega`; `vcovCL(fit, { cluster, type, cadjust,
+  multi0, fix, sandwich })`, sandwich's `vcovCL()`, one-way and multi-way, with `HC0` and `HC1` (the default for an
+  lm; `HC0` for a glm) and `HC2`/`HC3` in the symmetric form of Bell and McCaffrey (for HC3 the leave-one-cluster-out
+  jackknife). Both return `{ vcov, names, warnings }`. Rows of prior weight 0 are left out, `const` is the
+  model-based covariance, cluster intersections are tuples of labels, and a hat value of 1 (HC2 to HC5), a singular
+  cluster block or a single cluster is an error (docs/differences-from-r.md).
+- **Tests and intervals with a given covariance**: `coeftest(fit, { vcov, df })` and `coefci(fit, { parm, level,
+  vcov, df })`, lmtest's `coeftest()` and `coefci()`: t tests on the residual degrees of freedom of an lm, z tests
+  for a glm of every family; `vcov` is a matrix, the result of `vcovHC`/`vcovCL` or a function of the fit.
+- `LmResult` has the model matrix `x`, the `weights` and the 0-based input `rows` used (as `LmFormulaResult` had),
+  and `GlmModel` the `rows` used.
+- **Robust variance of `coxph`** (survival's `coxph(robust, cluster)`; Lin and Wei 1989): options `robust` (default
+  as R: on with a `cluster` or a case weight that is not an integer) and `cluster` (rows with a missing label are
+  dropped). The result has `usedRobust` always and, with the robust variance, `naiveVar`, `robustSe`, `rscore` and
+  `robscore`; `var` is then the robust variance and `z`, `p`, `lower`, `upper`, `wald` and `waldtest` use it, while
+  `se` stays the model-based standard error (R's `se(coef)`). Efron and Breslow ties, case weights and strata, R's
+  warning for a cluster with `robust: false`; a single cluster is an error (docs/differences-from-r.md). Non-integer
+  case weights no longer throw. Checked against survival 3.8-12 (R 4.6.2). The score residuals shift each risk set by
+  its own largest linear predictor (finite where the linear predictors span more than exp's range), and the robust
+  variance and `rscore` do not depend on the scale of the weights.
+
+### Fixed
+
+- **`coxph` with case weights around 2^±512 or beyond** (all weights times 2^-560 or 2^600): the information
+  overflowed or underflowed (it was formed as a product that scales as the square of the weights), giving NaN
+  coefficients without a warning or "Ran out of iterations"; it is now formed as a quotient first where that product
+  leaves the doubles (ordinary fits keep their bits). An infinite case weight is now an error "'weights' must be
+  finite" (it gave NaN coefficients with a misleading "coefficient may be infinite").
+
 ## 1.2.0 - 2026-11-07
 
 Contingency tables and proportions (item 1 of the roadmap): intervals for a proportion and for the risk difference,

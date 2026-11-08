@@ -81,8 +81,5 @@ describe("coxph", () => {
     expect(() => coxph([1, 2], [1, 2], [[1], [2]])).toThrow(RangeError);
     expect(() => coxph([1, 2], [1, 0], [[1]])).toThrow(RangeError);
     expect(() => coxph([1, 2], [1, 0], [[], []])).toThrow(RangeError);
-    expect(() => coxph([1, 2, 3], [1, 0, 1], [[1], [2], [0]], { weights: [1, 0.5, 2] })).toThrow(
-      "non-integer weights (robust variance) are not supported yet",
-    );
   });
 });
