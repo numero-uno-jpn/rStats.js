@@ -173,6 +173,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `DescTools::BinomCI()` | `binomCI` | 二項比率 x/n の信頼区間 |
 | `DescTools::BinomDiffCI()` | `binomDiffCI` | 独立な 2 つの比率 x1/n1 と x2/n2 の差 p1 - p2 の信頼区間 |
 | `DescTools::BinomRatioCI()` | `binomRatioCI` | 独立な 2 つの比率 x1/n1 と x2/n2 の比 p1/p2 の信頼区間 |
+| `BlandAltmanLeh::bland.altman.stats()` | `blandAltman` | 2 つの測定法の Bland-Altman 分析: 差の平均、一致限界とそれらの信頼区間 |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | 2 標本の相対効果 P(X < Y) + P(X = Y)/2 が 1/2 であることについての Brunner-Munzel 検定 (等分散も分布の形が同じことも仮定しない) |
 | `chisq.test()` | `chisqTest` | Pearson のカイ二乗検定 |
 | `pROC::ci.auc()` | `ciAuc` | ROC 曲線の下の面積の信頼区間 (DeLong の方法またはブートストラップ) |
@@ -223,6 +224,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `PMCMRplus::manyOneUTest()` | `manyOneUTest` | Steel の多対一順位検定の正規近似: 各群と対照群の Mann-Whitney 統計量を、対ごとに順位を付け、同順位を補正した分散で標準化したもの |
 | `mauchly.test()` | `mauchlyTest` | `M` が張り `X` に直交する対比上での、各被験者の測定値の球面性についての Mauchly 検定 |
 | `mcnemar.test()` | `mcnemarTest` | 正方の計数表の行と列の対称性についての McNemar のカイ二乗検定 |
+| `mcr::mcreg()` | `mcreg` | 測定法の比較の回帰 (Deming、重みつき Deming、Passing-Bablok) と、係数の信頼区間 |
 | `model.matrix()` | `modelMatrix` | データフレームに対する式のモデル行列 (R の `terms()` の属性つき) |
 | `mood.test()` | `moodTest` | 尺度についての Mood の 2 標本検定 |
 | `epitools::oddsratio()` | `oddsRatio` | 2 x 2 表のオッズ比とその信頼区間、独立性の 3 つの p 値 |

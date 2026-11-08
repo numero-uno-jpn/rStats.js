@@ -25,6 +25,16 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   sensitivity, specificity, predictive values, likelihood ratios (log intervals), accuracy, the diagnostic odds ratio
   (Woolf) and the true and apparent prevalence, with exact (Clopper-Pearson, computed directly), Wilson or Jeffreys
   intervals, and the predictive values at a given prevalence.
+- **Bland-Altman analysis**: `blandAltman(x, y, { two, mode, confLevel, ciMethod })`, BlandAltmanLeh's
+  `bland.altman.stats()`: the mean difference, the limits of agreement and their intervals, with the package's
+  `sqrt(3 s²/n)` interval of the limits (default) or the exact one from the noncentral t (`ciMethod: "exact"`, Carkeet
+  2015). Fewer than 2 complete pairs is an error; data of any scale (docs/differences-from-r.md).
+- **Method comparison regression**: `mcreg(x, y, { methodReg, methodCi, methodBootstrapCi, errorRatio, confLevel,
+  slopeMeasure, nsamples, nnested, rngSeed, iterMax, threshold, naRm })`, mcr's `mcreg()`: Deming, weighted Deming
+  (constant CV) and Passing-Bablok regression with analytical, jackknife and bootstrap intervals (quantile, Student,
+  BCa, bootstrap-t, nested bootstrap) drawn from R's random stream (`rngSeed` = mcr's `rng.seed`), and Passing and
+  Bablok's CUSUM statistic of linearity. The default interval is analytical (jackknife for weighted Deming) instead of
+  mcr's random bootstrap; Deming's slope without mcr's cancellation for small error ratios (docs/differences-from-r.md).
 
 ## 1.2.0 - 2026-11-07
 

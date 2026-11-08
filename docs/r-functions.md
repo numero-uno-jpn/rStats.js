@@ -173,6 +173,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `DescTools::BinomCI()` | `binomCI` | Confidence interval for a binomial proportion x/n. |
 | `DescTools::BinomDiffCI()` | `binomDiffCI` | Confidence interval for the difference p1 - p2 of two independent proportions x1/n1 and x2/n2. |
 | `DescTools::BinomRatioCI()` | `binomRatioCI` | Confidence interval for the ratio p1/p2 of two independent proportions x1/n1 and x2/n2. |
+| `BlandAltmanLeh::bland.altman.stats()` | `blandAltman` | Bland-Altman analysis of two methods of measurement: the mean difference, the limits of agreement and their confidence intervals. |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal variances or shapes. |
 | `chisq.test()` | `chisqTest` | Pearson's chi-squared test. |
 | `pROC::ci.auc()` | `ciAuc` | Confidence interval of the area under a ROC curve, by DeLong's method or the bootstrap. |
@@ -223,6 +224,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `PMCMRplus::manyOneUTest()` | `manyOneUTest` | Steel's many-to-one rank test in its normal approximation: the Mann-Whitney statistic of each group against the control, each pair ranked on its own, standardised with the tie-corrected variance. |
 | `mauchly.test()` | `mauchlyTest` | Mauchly's test of sphericity of the measurements of each subject, on the contrasts spanned by `M` and orthogonal to `X`. |
 | `mcnemar.test()` | `mcnemarTest` | McNemar's chi-squared test for symmetry of rows and columns in a square table of counts. |
+| `mcr::mcreg()` | `mcreg` | Method comparison regression of y on x. |
 | `model.matrix()` | `modelMatrix` | The model matrix of a formula on a data frame, with the attributes of R's `terms()`. |
 | `mood.test()` | `moodTest` | Mood's two-sample test of scale. |
 | `epitools::oddsratio()` | `oddsRatio` | Odds ratio of a 2 x 2 table with its confidence interval and three p-values of independence. |

@@ -154,6 +154,7 @@ RangeError を投げます。正確な検定では、メッセージで回避の
 | `tapply`、`split`、`aggregate` | 分類のセルが 2^31 個以上 (R の上限と同じ) |
 | `expm` (Taylor と Padé の方法) | order × (n^3 + 64) が 2^31 を超える |
 | `grad`、`jacobian`、`hessian` (Richardson) | `r` が 512 を超える |
+| `mcreg` (Passing-Bablok) | n が 5793 を超える (2^24 個の 2 点間の傾き)、または呼び出しのすべての当てはめ (データ、ジャックナイフ、リサンプル、入れ子のリサンプル) の傾きが合わせて 2^27 個を超える (約 10 秒。518 点の 999 個のリサンプル) |
 
 時間と R の動作を含めた詳細は [R との違い](differences-from-r.md) (「意図的な違い」の仮説検定と乱数) にあります。
 呼び出し側が求める出力の長さ (`seq`、`approx`、`spline`、`sampleInt`、`r*` 関数) や、`optim` の `maxit` のような反復の

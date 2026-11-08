@@ -80,7 +80,7 @@ const out = ja
       "",
       "R の関数から、rStats.js でそれに当たる関数を引くための一覧です (`node scripts/r-index.mjs --ja` で生成)。ほかのパッケージの",
       "関数は `package::function()` と書いています。引数の書き方は [JavaScript の開発者のための rStats.js](guide-for-js-developers.md) を、",
-      "各関数の詳しい説明は [API リファレンス](https://numero-uno-jpn.github.io/rStats.js/api/) (英語) を参照してください。",
+      "各関数の詳しい説明は [API リファレンス](https://numero-uno-jpn.github.io/rStats.js/ja/api/) を参照してください。",
       "",
     ]
   : [
