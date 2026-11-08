@@ -352,6 +352,7 @@ const CONDITIONS = {
   tTest: { 1: formulaOrOptions },
   wilcoxTest: { 1: formulaOrOptions },
   onewayTest: { 1: formulaOrOptions },
+  roc: { 1: formulaOrOptions },
 };
 
 /**
