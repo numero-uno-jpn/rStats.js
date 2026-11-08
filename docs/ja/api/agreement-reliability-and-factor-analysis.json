@@ -2,112 +2,112 @@
   "BlandAltmanCiMethod#summary": {
     "hash": "571a34b1c2df",
     "en": "Interval of the limits of agreement in {@link blandAltman}.",
-    "ja": ""
+    "ja": "{@link blandAltman} における一致限界の区間です。"
   },
   "BlandAltmanOptions#summary": {
     "hash": "fbeafbef2d4e",
     "en": "Options for {@link blandAltman}.",
-    "ja": ""
+    "ja": "{@link blandAltman} のオプションです。"
   },
   "BlandAltmanOptions.ciMethod#summary": {
     "hash": "8609f6b153b9",
     "en": "Interval of the two limits of agreement: `\"package\"` (the default), BlandAltmanLeh's `limit ± t sqrt(3 s²/n)` with\nt quantiles on n - 1 degrees of freedom (Bland and Altman 1986's approximation), or `\"exact\"`, the exact interval\nfrom the noncentral t distribution (Carkeet 2015), wider for small n. Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "2 つの一致限界の区間です。`\"package\"` (既定) では BlandAltmanLeh の `limit ± t sqrt(3 s²/n)` を用い、\nt 分位点は自由度 n - 1 です (Bland と Altman (1986) の近似)。`\"exact\"` では、非心 t 分布による厳密な区間 (Carkeet (2015)) を用い、\n小さな n では幅が広くなります。曖昧でない省略形は受け付けられます。"
   },
   "BlandAltmanOptions.confLevel#summary": {
     "hash": "fd9148bdc2a1",
     "en": "Level of the confidence intervals, in [0, 1] (two-sided). Default `0.95`.",
-    "ja": ""
+    "ja": "信頼区間の水準 ([0, 1] の範囲、両側) です。既定は `0.95` です。"
   },
   "BlandAltmanOptions.mode#summary": {
     "hash": "2a667c605c4f",
     "en": "`1` for the differences `x - y` (the default), `2` for `y - x`.",
-    "ja": ""
+    "ja": "差 `x - y` の場合は `1` (既定)、`y - x` の場合は `2` です。"
   },
   "BlandAltmanOptions.two#summary": {
     "hash": "4c7b5a54ed72",
     "en": "The multiple of the standard deviation of the differences in the limits of agreement, positive. Default `1.96`.",
-    "ja": ""
+    "ja": "一致限界に用いる差の標準偏差の倍数で、正の値です。既定は `1.96` です。"
   },
   "BlandAltmanResult#summary": {
     "hash": "071b2acafae3",
     "en": "Result of {@link blandAltman}.",
-    "ja": ""
+    "ja": "{@link blandAltman} の結果です。"
   },
   "BlandAltmanResult.ciMethod#summary": {
     "hash": "c1f5324babe0",
     "en": "The interval of the limits, in full.",
-    "ja": ""
+    "ja": "限界の区間の方法を、正式な名前で示したものです。"
   },
   "BlandAltmanResult.confLevel#summary": {
     "hash": "d51f25890da4",
     "en": "The level of the intervals.",
-    "ja": ""
+    "ja": "区間の水準です。"
   },
   "BlandAltmanResult.criticalDiff#summary": {
     "hash": "8e5cfc6eb812",
     "en": "`two s`, s the standard deviation of the differences (R's `critical.diff`).",
-    "ja": ""
+    "ja": "`two s` です。s は差の標準偏差です (R の `critical.diff`)。"
   },
   "BlandAltmanResult.diffs#summary": {
     "hash": "41cffa7ed6a8",
     "en": "The difference of each complete pair, `x - y` (mode 1) or `y - x` (mode 2) (R's `diffs`).",
-    "ja": ""
+    "ja": "各完全な対の差 (mode 1 では `x - y`、mode 2 では `y - x`) です (R の `diffs`)。"
   },
   "BlandAltmanResult.lowerLimit#summary": {
     "hash": "4176faa29f36",
     "en": "Lower limit of agreement `d̄ - two s` (R's `lower.limit`).",
-    "ja": ""
+    "ja": "一致限界の下限 `d̄ - two s` です (R の `lower.limit`)。"
   },
   "BlandAltmanResult.lowerLimitConfInt#summary": {
     "hash": "ff97ad6d3845",
     "en": "Interval of the lower limit of agreement (R's `lower.limit.ci.lower`, `.upper` for `ciMethod: \"package\"`).",
-    "ja": ""
+    "ja": "一致限界の下限の区間です (R の `lower.limit.ci.lower`、`ciMethod: \"package\"` のときは `.upper`)。"
   },
   "BlandAltmanResult.meanDiff#summary": {
     "hash": "de75baaa7687",
     "en": "Mean of the differences d̄ (R's `mean.diffs`).",
-    "ja": ""
+    "ja": "差の平均 d̄ です (R の `mean.diffs`)。"
   },
   "BlandAltmanResult.meanDiffConfInt#summary": {
     "hash": "20ad2dfba60b",
     "en": "t interval of the mean difference, `d̄ ± t s/sqrt(n)` (R's `mean.diff.ci.lower`, `.upper`).",
-    "ja": ""
+    "ja": "平均差 `d̄ ± t s/sqrt(n)` の t 区間です (R の `mean.diff.ci.lower`、`.upper`)。"
   },
   "BlandAltmanResult.means#summary": {
     "hash": "7ccbcd11d594",
     "en": "The mean of each complete pair, `(x + y)/2` (R's `means`).",
-    "ja": ""
+    "ja": "各完全な対の平均 `(x + y)/2` です (R の `means`)。"
   },
   "BlandAltmanResult.mode#summary": {
     "hash": "f347e14f03ec",
     "en": "The direction of the differences, 1 or 2.",
-    "ja": ""
+    "ja": "差の向きで、1 または 2 です。"
   },
   "BlandAltmanResult.n#summary": {
     "hash": "9e9a4549595a",
     "en": "Number of complete pairs (R's `based.on`).",
-    "ja": ""
+    "ja": "完全な対の数です (R の `based.on`)。"
   },
   "BlandAltmanResult.two#summary": {
     "hash": "80922bf006d6",
     "en": "The multiple of the standard deviation in the limits (R's `two`).",
-    "ja": ""
+    "ja": "限界に用いる標準偏差の倍数です (R の `two`)。"
   },
   "BlandAltmanResult.upperLimit#summary": {
     "hash": "7ffd8e6af86c",
     "en": "Upper limit of agreement `d̄ + two s` (R's `upper.limit`).",
-    "ja": ""
+    "ja": "一致限界の上限 `d̄ + two s` です (R の `upper.limit`)。"
   },
   "BlandAltmanResult.upperLimitConfInt#summary": {
     "hash": "ef6a59d931e0",
     "en": "Interval of the upper limit of agreement (R's `upper.limit.ci.lower`, `.upper` for `ciMethod: \"package\"`).",
-    "ja": ""
+    "ja": "一致限界の上限の区間です (R の `upper.limit.ci.lower`、`ciMethod: \"package\"` のときは `.upper`)。"
   },
   "BlandAltmanResult.warnings#summary": {
     "hash": "8ef3f0a7d534",
     "en": "Warnings (none: input without a defined result is an error).",
-    "ja": ""
+    "ja": "警告です (警告はありません。結果が定まらない入力はエラーです)。"
   },
   "CronbachAlphaResult#summary": {
     "hash": "4f561f8ce8a5",
@@ -257,157 +257,157 @@
   "ICC#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "ICC#@param options": {
     "hash": "1cc0c28f7516",
     "en": "See {@link ICCOptions}.",
-    "ja": ""
+    "ja": "{@link ICCOptions} を参照してください。"
   },
   "ICC#@param x": {
     "hash": "a196a94c082e",
     "en": "An n × k matrix of ratings (array of rows), without missing values.",
-    "ja": ""
+    "ja": "評定の n × k 行列 (行の配列) です。欠測値を含んではいけません。"
   },
   "ICC#@returns": {
     "hash": "e21ff9945465",
     "en": "See {@link ICCResult}.",
-    "ja": ""
+    "ja": "{@link ICCResult} を参照してください。"
   },
   "ICC#@throws": {
     "hash": "17ab1c3fa6df",
     "en": "TypeError if x is not a matrix of numbers; RangeError for missing or infinite ratings (psych's REML path\n  accepts missing ratings; here they are an error), fewer than 2 subjects or raters, ratings that are all equal or\n  identical for every subject, or a level out of range.",
-    "ja": ""
+    "ja": "x が数値の行列でないときは TypeError、次の場合は RangeError です。欠測値または無限大の評定 (psych の REML の経路は\n  欠測値を受け付けますが、ここではエラーです)、被験者または評定者が 2 未満、評定がすべて等しい場合、\n  または各被験者で同一の評定の場合、水準が範囲外の場合です。"
   },
   "ICC#summary": {
     "hash": "4a137a03d0f7",
     "en": "The six intraclass correlations of Shrout and Fleiss (1979), with their F tests and confidence intervals.\nEquivalent to `psych::ICC(x, alpha, lmer)` in R. Only complete data are accepted.\n\n`x` is an n × k matrix (an array of rows): the ratings of the k raters for each of the n subjects. The forms are\nICC1 = (MSB − MSW)/(MSB + (k − 1)MSW) (one-way), ICC2 = (MSB − MSE)/(MSB + (k − 1)MSE + k(MSJ − MSE)/n) (two-way\nrandom raters, absolute agreement), ICC3 = (MSB − MSE)/(MSB + (k − 1)MSE) (two-way fixed raters, consistency), and\ntheir averages over k raters ICC1k, ICC2k, ICC3k. With `lmer: true` (the default, as psych) the mean squares are\nrebuilt from the REML estimates of the variance components of the two-way random model, which are not negative;\nwhere both ANOVA components are not negative they equal the ANOVA mean squares. psych fits that model with lme4,\nwhose optimiser stops early (results about 1e-5 relative off); here the REML estimates are computed exactly, in\nclosed form.\n\nICC1, ICC3, ICC1k and ICC3k agree with {@link icc} (irr's forms); the interval of ICC2k is psych's (ICC2's bounds\ntransformed by Spearman-Brown), not irr's (McGraw and Wong's average-agreement interval).\n\nWhere the residual mean square is 0 (ratings that differ between raters by constants), the F statistics of ICC2 and\nICC3 are Infinity with p-value 0, and ICC3, ICC3k and their bounds are 1.",
-    "ja": ""
+    "ja": "Shrout と Fleiss (1979) の 6 種類の級内相関係数を、その F 検定および信頼区間とともに示します。\nR の `psych::ICC(x, alpha, lmer)` と同等です。完全なデータのみ受け付けます。\n\n`x` は n × k の行列 (行の配列) で、n 人の被験者それぞれに対する k 人の評定者の評定です。形式は次のとおりです。\nICC1 = (MSB − MSW)/(MSB + (k − 1)MSW) (一元配置), ICC2 = (MSB − MSE)/(MSB + (k − 1)MSE + k(MSJ − MSE)/n) (2 元配置、変量評定者、\n絶対一致), ICC3 = (MSB − MSE)/(MSB + (k − 1)MSE) (2 元配置、固定評定者、一貫性)、および k 人の評定者の平均 ICC1k、ICC2k、ICC3k です。\n`lmer: true` (psych と同じく既定) の場合、平均平方は 2 元の変量効果モデルの分散成分の REML 推定値から作り直されます。\nその推定値は負になりません。両方の ANOVA の分散成分がともに負でない場合、\nそれらは ANOVA の平均平方に一致します。psych はそのモデルを lme4 で当てはめますが、\nその最適化は途中で止まるため (結果は相対で約 1e-5 ずれます)、ここでは REML 推定値を\n閉じた形で厳密に計算します。\n\nICC1、ICC3、ICC1k、ICC3k は {@link icc} (irr の形式) と一致します。ICC2k の区間は、psych の\nものです (ICC2 の境界を Spearman-Brown で変換したもの)。irr のもの (McGraw と Wong の平均一致の区間) ではありません。\n\n残差平均平方が 0 の場合 (評定が評定者ごとに定数だけ異なる場合)、ICC2 と\nICC3 の F 統計量は Infinity で p 値は 0 となり、ICC3、ICC3k およびそれらの境界は 1 です。"
   },
   "ICCOptions#summary": {
     "hash": "9f96e84f5f48",
     "en": "Options for {@link ICC}.",
-    "ja": ""
+    "ja": "{@link ICC} のオプションです。"
   },
   "ICCOptions.alpha#summary": {
     "hash": "a5a784771762",
     "en": "One minus the confidence level of the intervals, in (0, 1) (psych's `alpha`). Default `0.05`; overrides\n `confLevel`.",
-    "ja": ""
+    "ja": "区間の信頼水準を 1 から引いた値で、(0, 1) の範囲です (psych の `alpha`)。既定は `0.05` で、\n `confLevel` より優先されます。"
   },
   "ICCOptions.confLevel#summary": {
     "hash": "fa5516778b0e",
     "en": "Confidence level of the intervals, in (0, 1). Default `0.95`.",
-    "ja": ""
+    "ja": "区間の信頼水準で、(0, 1) の範囲です。既定は `0.95` です。"
   },
   "ICCOptions.lmer#summary": {
     "hash": "42d342be60d9",
     "en": "`true` (default, as psych): the mean squares from the REML estimates of the variance components, which are not\nnegative (where a component would be negative, it is 0 and the coefficients that depend on it are 0, F 1);\n`false`: the ANOVA mean squares (coefficients may be negative).",
-    "ja": ""
+    "ja": "`true` (既定、psych と同じ): 分散成分の REML 推定値から得た平均平方で、\n負にならないものです (成分が負になる場合は 0 とし、それに依存する係数は 0、F は 1 とします);\n`false`: ANOVA の平均平方です (係数は負になることがあります)。"
   },
   "ICCResult#summary": {
     "hash": "793fcdd3ab91",
     "en": "Result of {@link ICC}.",
-    "ja": ""
+    "ja": "{@link ICC} の結果です。"
   },
   "ICCResult.MSB#summary": {
     "hash": "a07165105d55",
     "en": "Mean square of subjects (REML: `k σ²_subject + σ²_e`).",
-    "ja": ""
+    "ja": "被験者の平均平方です (REML: `k σ²_subject + σ²_e`)。"
   },
   "ICCResult.MSE#summary": {
     "hash": "9776a5e3e7bb",
     "en": "Residual mean square (REML: `σ²_e`).",
-    "ja": ""
+    "ja": "残差平均平方です (REML: `σ²_e`)。"
   },
   "ICCResult.MSJ#summary": {
     "hash": "338ad9aeb86c",
     "en": "Mean square of raters (REML: `n σ²_rater + σ²_e`).",
-    "ja": ""
+    "ja": "評定者の平均平方です (REML: `n σ²_rater + σ²_e`)。"
   },
   "ICCResult.MSW#summary": {
     "hash": "9775b4269731",
     "en": "Mean square within subjects, used by ICC1 and ICC1k (REML: `σ²_e + σ²_rater`).",
-    "ja": ""
+    "ja": "被験者内の平均平方で、ICC1 と ICC1k に用いられます (REML: `σ²_e + σ²_rater`)。"
   },
   "ICCResult.confLevel#summary": {
     "hash": "16903bfe7be6",
     "en": "Confidence level of the intervals, `1 - alpha`.",
-    "ja": ""
+    "ja": "区間の信頼水準 `1 - alpha` です。"
   },
   "ICCResult.k#summary": {
     "hash": "fc57fe5454af",
     "en": "Number of raters (columns).",
-    "ja": ""
+    "ja": "評定者の数 (列の数) です。"
   },
   "ICCResult.lmer#summary": {
     "hash": "031d50c7ebe8",
     "en": "Whether the REML path was used.",
-    "ja": ""
+    "ja": "REML の経路を用いたかどうかです。"
   },
   "ICCResult.n#summary": {
     "hash": "e10211488e3e",
     "en": "Number of subjects (rows).",
-    "ja": ""
+    "ja": "被験者の数 (行の数) です。"
   },
   "ICCResult.results#summary": {
     "hash": "5311dccb505f",
     "en": "The six forms, in psych's order ICC1, ICC2, ICC3, ICC1k, ICC2k, ICC3k.",
-    "ja": ""
+    "ja": "6 つの形式を psych の順序 (ICC1、ICC2、ICC3、ICC1k、ICC2k、ICC3k) で並べたものです。"
   },
   "ICCResult.warnings#summary": {
     "hash": "d4f1d8ff0e2f",
     "en": "R's warnings (aov's `essentially perfect fit` where the residual mean square is 0 on the ANOVA path).",
-    "ja": ""
+    "ja": "R の警告です (ANOVA の経路で残差平均平方が 0 のときの aov の `essentially perfect fit`)。"
   },
   "ICCRow#summary": {
     "hash": "a02eedcc15e3",
     "en": "One of the six forms in {@link ICCResult}.",
-    "ja": ""
+    "ja": "{@link ICCResult} の 6 つの形式のうちの 1 つです。"
   },
   "ICCRow.F#summary": {
     "hash": "f7d8d1644f72",
     "en": "F statistic of the test of ICC = 0.",
-    "ja": ""
+    "ja": "ICC = 0 の検定の F 統計量です。"
   },
   "ICCRow.ICC#summary": {
     "hash": "1c0513423b69",
     "en": "The intraclass correlation.",
-    "ja": ""
+    "ja": "級内相関係数です。"
   },
   "ICCRow.df1#summary": {
     "hash": "f60d7db3a4ef",
     "en": "Numerator degrees of freedom.",
-    "ja": ""
+    "ja": "分子の自由度です。"
   },
   "ICCRow.df2#summary": {
     "hash": "bb02427a9e71",
     "en": "Denominator degrees of freedom.",
-    "ja": ""
+    "ja": "分母の自由度です。"
   },
   "ICCRow.lower#summary": {
     "hash": "74dbe99f09ab",
     "en": "Lower confidence limit.",
-    "ja": ""
+    "ja": "信頼区間の下限です。"
   },
   "ICCRow.name#summary": {
     "hash": "dc6ac461f9cd",
     "en": "psych's row name: `\"Single_raters_absolute\"`, `\"Single_random_raters\"`, ...",
-    "ja": ""
+    "ja": "psych の行名です: `\"Single_raters_absolute\"`、`\"Single_random_raters\"`、..."
   },
   "ICCRow.pValue#summary": {
     "hash": "3caeff89d9a3",
     "en": "Upper-tail p-value of the F test.",
-    "ja": ""
+    "ja": "F 検定の上側 p 値です。"
   },
   "ICCRow.type#summary": {
     "hash": "723c476843a4",
     "en": "`\"ICC1\"`, `\"ICC2\"`, `\"ICC3\"`, `\"ICC1k\"`, `\"ICC2k\"` or `\"ICC3k\"`.",
-    "ja": ""
+    "ja": "`\"ICC1\"`、`\"ICC2\"`、`\"ICC3\"`、`\"ICC1k\"`、`\"ICC2k\"`、`\"ICC3k\"` のいずれかです。"
   },
   "ICCRow.upper#summary": {
     "hash": "0c7d76725ebf",
     "en": "Upper confidence limit.",
-    "ja": ""
+    "ja": "信頼区間の上限です。"
   },
   "IccOptions#summary": {
     "hash": "24dd5ebe3a94",
@@ -542,177 +542,177 @@
   "McregBootstrapCiMethod#summary": {
     "hash": "e2c217ae97c6",
     "en": "Bootstrap intervals of {@link mcreg}.",
-    "ja": ""
+    "ja": "{@link mcreg} のブートストラップ区間です。"
   },
   "McregCiMethod#summary": {
     "hash": "dde4991d0cdd",
     "en": "Interval methods of {@link mcreg}.",
-    "ja": ""
+    "ja": "{@link mcreg} の区間の方法です。"
   },
   "McregCoefficient#summary": {
     "hash": "86260ddb1094",
     "en": "A coefficient of {@link McregResult}.",
-    "ja": ""
+    "ja": "{@link McregResult} の係数です。"
   },
   "McregCoefficient.confInt#summary": {
     "hash": "9ee555c7fcfe",
     "en": "The interval at `confLevel`.",
-    "ja": ""
+    "ja": "`confLevel` における区間です。"
   },
   "McregCoefficient.estimate#summary": {
     "hash": "680365832e72",
     "en": "The estimate from all the data.",
-    "ja": ""
+    "ja": "全データからの推定値です。"
   },
   "McregCoefficient.se#summary": {
     "hash": "f0acf6b6b146",
     "en": "Its standard error (`NaN` where the method has none: Passing-Bablok analytical, bootstrap quantile and BCa).",
-    "ja": ""
+    "ja": "標準誤差です (その方法が持たない場合は `NaN` です: Passing-Bablok の解析的な区間、ブートストラップの分位点、BCa)。"
   },
   "McregMethod#summary": {
     "hash": "55a39ddce44e",
     "en": "Regression methods of {@link mcreg}.",
-    "ja": ""
+    "ja": "{@link mcreg} の回帰の方法です。"
   },
   "McregOptions#summary": {
     "hash": "daaef29b5ee4",
     "en": "Options for {@link mcreg}.",
-    "ja": ""
+    "ja": "{@link mcreg} のオプションです。"
   },
   "McregOptions.confLevel#summary": {
     "hash": "cb1f88780992",
     "en": "Level of the intervals, in (0, 1) (mcr's `1 - alpha`). Default `0.95`.",
-    "ja": ""
+    "ja": "区間の水準で、(0, 1) の範囲です (mcr の `1 - alpha`)。既定は `0.95` です。"
   },
   "McregOptions.errorRatio#summary": {
     "hash": "a42a451fbd04",
     "en": "The ratio of the error variances σ²(x)/σ²(y), x the reference method (mcr's `error.ratio`; Deming and weighted\nDeming), positive and finite. Default `1`.",
-    "ja": ""
+    "ja": "誤差分散の比 σ²(x)/σ²(y) で、x は基準法です (mcr の `error.ratio`、Deming と重みつき Deming)。\n正で有限の値です。既定は `1` です。"
   },
   "McregOptions.iterMax#summary": {
     "hash": "8e39fce4a72e",
     "en": "Weighted Deming: the largest number of iterations, a positive integer. Default `30`.",
-    "ja": ""
+    "ja": "重みつき Deming: 反復回数の上限で、正の整数です。既定は `30` です。"
   },
   "McregOptions.methodBootstrapCi#summary": {
     "hash": "cfb686975b78",
     "en": "The bootstrap interval: `\"quantile\"` (the default), `\"Student\"`, `\"BCa\"` or `\"tBoot\"` (bootstrap-t: with Deming\nor with nested resamples).",
-    "ja": ""
+    "ja": "ブートストラップ区間の方法です: `\"quantile\"` (既定)、`\"Student\"`、`\"BCa\"`、または `\"tBoot\"` (ブートストラップ t で、\nDeming の場合、または入れ子の再標本を用いる場合)。"
   },
   "McregOptions.methodCi#summary": {
     "hash": "4c1156d4eed1",
     "en": "`\"analytical\"` (the default for Deming and Passing-Bablok; not available for weighted Deming), `\"jackknife\"` (the\ndefault for weighted Deming), `\"bootstrap\"` or `\"nestedbootstrap\"`. mcr's default is `\"bootstrap\"`.",
-    "ja": ""
+    "ja": "`\"analytical\"` (Deming と Passing-Bablok の既定。重みつき Deming では使えません)、`\"jackknife\"` (重みつき Deming の既定、\n`\"bootstrap\"` または `\"nestedbootstrap\"`。mcr の既定は `\"bootstrap\"` です。"
   },
   "McregOptions.methodReg#summary": {
     "hash": "e98ade35d7ef",
     "en": "`\"PaBa\"` (Passing-Bablok, the default, as mcr), `\"Deming\"` or `\"WDeming\"` (weighted Deming, constant coefficient\nof variation). Unambiguous abbreviations are accepted.",
-    "ja": ""
+    "ja": "`\"PaBa\"` (Passing-Bablok。mcr と同じく既定)、`\"Deming\"`、または `\"WDeming\"` (重みつき Deming、\n変動係数が一定の場合)。曖昧でない省略形は受け付けられます。"
   },
   "McregOptions.naRm#summary": {
     "hash": "c24caaf4b25f",
     "en": "Drop the pairs with `NaN` (otherwise they are an error). Default `false`.",
-    "ja": ""
+    "ja": "`NaN` を含む対を除きます (そうしない場合はエラーです)。既定は `false` です。"
   },
   "McregOptions.nnested#summary": {
     "hash": "f97f5f38970e",
     "en": "Number of inner resamples of each resample for `\"nestedbootstrap\"`, a positive integer. Default `25`.",
-    "ja": ""
+    "ja": "`\"nestedbootstrap\"` での、各再標本ごとの内側の再標本の数で、正の整数です。既定は `25` です。"
   },
   "McregOptions.nsamples#summary": {
     "hash": "94d9e1bf2142",
     "en": "Number of bootstrap resamples, a positive integer. Default `999`.",
-    "ja": ""
+    "ja": "ブートストラップの再標本の数で、正の整数です。既定は `999` です。"
   },
   "McregOptions.rngSeed#summary": {
     "hash": "521009174ad8",
     "en": "Seed of the resamples: the stream of R's `set.seed(rngSeed, kind = \"Mersenne-Twister\")`, as mcr's `rng.seed`; the\nstate of the generator is restored afterwards if it had one (in a session that never drew a random number, the\nstream of the seed continues, as in R). Without it the resamples are drawn from the current stream.",
-    "ja": ""
+    "ja": "再標本の乱数の種です: R の `set.seed(rngSeed, kind = \"Mersenne-Twister\")` のストリームを、mcr の `rng.seed` と同じく用います。\n生成器の状態が以前にあった場合は、後で復元されます (まだ乱数を引いていないセッションでは、\nR と同じく種のストリームが続きます)。指定しない場合、再標本は現在のストリームから引かれます。"
   },
   "McregOptions.slopeMeasure#summary": {
     "hash": "ab1b6a678168",
     "en": "Passing-Bablok: the mean of two middle slopes as `\"radian\"` (tan of the mean angle, the default) or `\"tangent\"`.",
-    "ja": ""
+    "ja": "Passing-Bablok: 中央の 2 つの傾きの平均を、`\"radian\"` (平均の角度の tan。既定) または `\"tangent\"` (平均の傾き) として求めます。"
   },
   "McregOptions.threshold#summary": {
     "hash": "08adfeb67734",
     "en": "Weighted Deming: the iteration stops when both coefficients change by less than this (absolute). Default `1e-6`.",
-    "ja": ""
+    "ja": "重みつき Deming: 両方の係数の変化がこの値 (絶対値) より小さくなったら反復を止めます。既定は `1e-6` です。"
   },
   "McregResult#summary": {
     "hash": "ba3498e87364",
     "en": "Result of {@link mcreg}.",
-    "ja": ""
+    "ja": "{@link mcreg} の結果です。"
   },
   "McregResult.bootstrap#summary": {
     "hash": "15986c878164",
     "en": "Bootstrap: the coefficients of the resamples kept, in the order drawn (mcr's `@B0`, `@B1`), their standard errors\n(`@sigmaB0`, `@sigmaB1`: the standard deviation of the nested estimates, the analytical standard error for Deming,\nthe jackknife one for weighted Deming with BCa, else `NaN`), the global standard errors (`@glob.sigma`) and the\nnumber of resamples kept.",
-    "ja": ""
+    "ja": "ブートストラップ: 残した再標本の係数を引かれた順に (mcr の `@B0`、`@B1`)、その標準誤差を\n(`@sigmaB0`、`@sigmaB1`: 入れ子の推定値の標準偏差。Deming では解析的な標準誤差、BCa を伴う重みつき Deming ではジャックナイフによる標準誤差、それ以外は `NaN`)、\n全体の標準誤差 (`@glob.sigma`) と、\n残した再標本の数です。"
   },
   "McregResult.confLevel#summary": {
     "hash": "d51f25890da4",
     "en": "The level of the intervals.",
-    "ja": ""
+    "ja": "区間の水準です。"
   },
   "McregResult.cusum#summary": {
     "hash": "abba1461978b",
     "en": "Passing-Bablok: the linearity statistic (mcr's `calcCUSUM`): the numbers of points above and below the line and\nthe largest absolute cumulative sum of their scores ordered along the line.",
-    "ja": ""
+    "ja": "Passing-Bablok: 線形性の統計量 (mcr の `calcCUSUM`) です。直線より上と下の点の数と、\n直線に沿って並べたスコアの累積和の絶対値の最大値です。"
   },
   "McregResult.errorRatio#summary": {
     "hash": "5dae9d0bbe34",
     "en": "The ratio of the error variances used (1 for Passing-Bablok).",
-    "ja": ""
+    "ja": "推定に用いた誤差分散の比です (Passing-Bablok では 1)。"
   },
   "McregResult.intercept#summary": {
     "hash": "3a92c705a859",
     "en": "The intercept (mcr's row `Intercept` of `@para`).",
-    "ja": ""
+    "ja": "切片です (mcr の `@para` の行 `Intercept`)。"
   },
   "McregResult.jackknife#summary": {
     "hash": "d46632caac88",
     "en": "Jackknife: the leave-one-out coefficients (mcr's `@B0jack`, `@B1jack`; also for the BCa interval).",
-    "ja": ""
+    "ja": "ジャックナイフ: 1 つ抜きの係数です (mcr の `@B0jack`、`@B1jack`。BCa 区間にも用います)。"
   },
   "McregResult.methodBootstrapCi#summary": {
     "hash": "1694e4e25412",
     "en": "The bootstrap interval, in full (bootstrap methods only).",
-    "ja": ""
+    "ja": "ブートストラップ区間の方法を、正式な名前で示したものです (ブートストラップの方法のみ)。"
   },
   "McregResult.methodCi#summary": {
     "hash": "e217ee715a34",
     "en": "The interval method, in full.",
-    "ja": ""
+    "ja": "区間の方法を、正式な名前で示したものです。"
   },
   "McregResult.methodReg#summary": {
     "hash": "cda672ee9947",
     "en": "The regression method, in full.",
-    "ja": ""
+    "ja": "回帰の方法を、正式な名前で示したものです。"
   },
   "McregResult.n#summary": {
     "hash": "8c3d2110e648",
     "en": "Number of pairs used.",
-    "ja": ""
+    "ja": "用いた対の数です。"
   },
   "McregResult.slope#summary": {
     "hash": "0fa896543d61",
     "en": "The slope (mcr's row `Slope` of `@para`).",
-    "ja": ""
+    "ja": "傾きです (mcr の `@para` の行 `Slope`)。"
   },
   "McregResult.warnings#summary": {
     "hash": "1750d6302e3c",
     "en": "Warnings (the weighted Deming iteration not converging, degenerate resamples, an undefined interval).",
-    "ja": ""
+    "ja": "警告です (重みつき Deming の反復が収束しない場合、退化した再標本、定まらない区間)。"
   },
   "McregResult.weights#summary": {
     "hash": "b5eeb853ba3b",
     "en": "Weighted Deming: the weights of the last iteration (mcr's `@weight`); Infinity where beyond the double range.",
-    "ja": ""
+    "ja": "重みつき Deming: 最後の反復の重みです (mcr の `@weight`)。倍精度の範囲を超える場合は Infinity です。"
   },
   "McregResult.xmean#summary": {
     "hash": "557a60f6f637",
     "en": "The mean of x (Deming), the weighted mean of the last iteration (weighted Deming), `NaN` (Passing-Bablok).",
-    "ja": ""
+    "ja": "x の平均です (Deming)、最後の反復の重みつき平均です (重みつき Deming)、`NaN` です (Passing-Bablok)。"
   },
   "OmegaOptions#summary": {
     "hash": "b407628c914a",
@@ -912,37 +912,37 @@
   "blandAltman#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "blandAltman#@param options": {
     "hash": "20b15ff62c52",
     "en": "See {@link BlandAltmanOptions}.",
-    "ja": ""
+    "ja": "{@link BlandAltmanOptions} を参照してください。"
   },
   "blandAltman#@param x": {
     "hash": "687ed0faaf4b",
     "en": "Measurements by the first method.",
-    "ja": ""
+    "ja": "1 番目の方法による測定値です。"
   },
   "blandAltman#@param y": {
     "hash": "b779c0b08b91",
     "en": "Measurements by the second method, paired with `x`.",
-    "ja": ""
+    "ja": "2 番目の方法による測定値で、`x` と対になっています。"
   },
   "blandAltman#@returns": {
     "hash": "42d59be0a539",
     "en": "See {@link BlandAltmanResult}.",
-    "ja": ""
+    "ja": "{@link BlandAltmanResult} を参照してください。"
   },
   "blandAltman#@throws": {
     "hash": "d690412c7b1a",
     "en": "TypeError if `x` and `y` differ in length; RangeError for fewer than 2 complete pairs, infinite values, a\n  `two` that is not positive and finite, a `mode` other than 1 or 2, a level outside [0, 1] or an unknown\n  `ciMethod`.",
-    "ja": ""
+    "ja": "`x` と `y` の長さが異なる場合は TypeError です。完全な対が 2 未満、\n  無限大の値、正で有限でない `two`、1 または 2 以外の `mode`、\n  [0, 1] の範囲外の水準、不明な `ciMethod` の場合は RangeError です。"
   },
   "blandAltman#summary": {
     "hash": "ee00bd96c402",
     "en": "Bland-Altman analysis of two methods of measurement: the mean difference, the limits of agreement and their\nconfidence intervals. Equivalent to `BlandAltmanLeh::bland.altman.stats()` in R.\n\nWith d the differences of the complete pairs (pairs with `NaN` in either sample are dropped), d̄ their mean and s\ntheir standard deviation, the limits of agreement are `d̄ ± two s`. The mean difference has the t interval `d̄ ± t\ns/sqrt(n)` with t quantiles on n - 1 degrees of freedom. The interval of each limit is, by default, BlandAltmanLeh's\n`limit ± t sqrt(3 s²/n)` (Bland and Altman 1986); `ciMethod: \"exact\"` gives the exact interval (Carkeet 2015):\n`d̄ + s q/sqrt(n)` for the upper limit with q the quantiles (1 ∓ confLevel)/2 of the noncentral t distribution with\nn - 1 degrees of freedom and noncentrality `two sqrt(n)`, and its mirror image for the lower limit.\n\nUnlike R, fewer than 2 complete pairs, infinite values and a level outside [0, 1] are errors (R gives NA or NaN\nlimits); `confLevel` 0 gives intervals of width 0 and 1 infinite ones, as R. Identical methods (s = 0) give every\nlimit and interval equal to d̄.",
-    "ja": ""
+    "ja": "2 つの測定法の Bland-Altman 分析です: 差の平均、一致限界、およびそれらの\n信頼区間。R の `BlandAltmanLeh::bland.altman.stats()` と同等です。\n\nd を完全な対 (どちらかの標本が `NaN` の対は除かれます) の差、d̄ をその平均、s をその標準偏差とすると、\n一致限界は `d̄ ± two s` です。差の平均は、`d̄ ± t\ns/sqrt(n)` の t 区間を持ち、t 分位点は自由度 n - 1 です。各限界の区間は、既定では BlandAltmanLeh の\n`limit ± t sqrt(3 s²/n)` (Bland と Altman (1986)) です。`ciMethod: \"exact\"` では厳密な区間 (Carkeet (2015)) になります:\n上限は `d̄ + s q/sqrt(n)` で、q は自由度 n - 1、非心度 `two sqrt(n)` の非心 t 分布の (1 ∓ confLevel)/2 分位点です。\n下限はその鏡像です。\n\nR と異なり、完全な対が 2 未満、無限大の値、[0, 1] の範囲外の水準はエラーです\n(R では NA または NaN の限界になります)。`confLevel` が 0 のときは幅 0 の区間、1 のときは無限大の区間になります (R と同じ)。\n同一の方法 (s = 0) では、すべての限界と区間が d̄ に等しくなります。"
   },
   "cronbachAlpha#@example": {
     "hash": "f2167be5edf2",
@@ -1042,37 +1042,37 @@
   "mcreg#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "mcreg#@param options": {
     "hash": "7820a8c5128d",
     "en": "See {@link McregOptions}.",
-    "ja": ""
+    "ja": "{@link McregOptions} を参照してください。"
   },
   "mcreg#@param x": {
     "hash": "70b5ecd09487",
     "en": "Measurements by the reference method.",
-    "ja": ""
+    "ja": "基準法による測定値です。"
   },
   "mcreg#@param y": {
     "hash": "5f50d9aa1701",
     "en": "Measurements by the test method, paired with `x`.",
-    "ja": ""
+    "ja": "検査法による測定値で、`x` と対になっています。"
   },
   "mcreg#@returns": {
     "hash": "4e6cd902f2a0",
     "en": "See {@link McregResult}.",
-    "ja": ""
+    "ja": "{@link McregResult} を参照してください。"
   },
   "mcreg#@throws": {
     "hash": "92c64a3458c3",
     "en": "TypeError if `x` and `y` differ in length; RangeError for missing values without `naRm`, infinite values,\n  fewer than 3 pairs, constant x or y, negative values (Passing-Bablok), values that are not positive (weighted\n  Deming), more than 5793 points (Passing-Bablok), an analytical interval for weighted Deming, a bootstrap-t\n  interval without nested resamples for Passing-Bablok or weighted Deming, too many degenerate resamples, a zero\n  covariance (Deming), or an invalid option.",
-    "ja": ""
+    "ja": "`x` と `y` の長さが異なる場合は TypeError です。`naRm` を指定しない欠測値、無限大の値、\n  3 対未満、x または y が定数、負の値 (Passing-Bablok)、正でない値 (重みつき Deming)、\n  5793 点を超える場合 (Passing-Bablok)、重みつき Deming の解析的な区間、\n  Passing-Bablok または重みつき Deming で入れ子の再標本のないブートストラップ t 区間、退化した再標本が多すぎる場合、\n  共分散が 0 の場合 (Deming)、または無効なオプションの場合は RangeError です。"
   },
   "mcreg#summary": {
     "hash": "7d57b5916fc0",
     "en": "Method comparison regression of y (test method) on x (reference method): Deming, weighted Deming or Passing-Bablok\nregression with analytical, jackknife or bootstrap intervals. Equivalent to `mcr::mcreg()` in R.\n\n- **Deming** (`\"Deming\"`): the slope minimises the squared distances in the metric of the error variances, λ =\n  `errorRatio` = σ²(x)/σ²(y) (mcr's convention; λ → 0 gives the least-squares slope of y on x). The analytical\n  standard errors are Strike's (1991), with t intervals on n - 2 degrees of freedom.\n- **Weighted Deming** (`\"WDeming\"`): Linnet's (1990) iteration for errors proportional to the level (constant\n  coefficient of variation), stopped as mcr when both coefficients change by less than `threshold` (absolute), with\n  a warning when `iterMax` iterations are reached. No analytical interval (jackknife by default). Values must be\n  positive. Since the threshold is absolute, data of very large magnitude (around 1e150) may not converge and\n  data of very small magnitude (around 1e-150) stop after the first iteration; choose `threshold` in the units of\n  the data.\n- **Passing-Bablok** (`\"PaBa\"`): the shifted median of the n(n - 1)/2 pairwise slopes and the rank interval of\n  Passing and Bablok (1983); the intercept is the median of y - b x and its limits those of the slope's limits.\n  Differences below a relative 1e-12 count as ties (mcr's rule; a pair tied in x only is vertical), so data with a\n  large offset (1e12 + O(1)) have most differences set to 0; the mean of two middle slopes is tan of the mean angle\n  (`slopeMeasure: \"radian\"`, mcr's default; it changes when y is rescaled, as angles do not scale) or the mean slope\n  (`\"tangent\"`). Where the interval is not defined (too few points, always for n <= 4) its limits and the\n  intercept's are -Infinity and Infinity, with a warning. Values must not be negative. The result has the CUSUM\n  statistic of linearity (`cusum`; no test decision).\n- **jackknife**: the leave-one-out estimates, the standard error sd(pseudo-values)/sqrt(n) and the interval estimate\n  ± t se on n - 2 degrees of freedom (Linnet 1993); the estimates are those of all the data.\n- **bootstrap**: `nsamples` resamples of the pairs with replacement; `\"quantile\"` the percentile interval,\n  `\"Student\"` estimate ± t sd(B), `\"BCa\"` the bias-corrected and accelerated interval (jackknife acceleration),\n  `\"tBoot\"` the bootstrap-t interval with the analytical standard errors (Deming) or, with `\"nestedbootstrap\"`, the\n  standard deviation of `nnested` inner resamples of each resample. Resamples with constant x or y are dropped\n  with mcr's warning (an error when more than 5% are). The resamples are drawn as R's `sample(1:n, n, replace =\n  TRUE)` from the current random stream, or from `set.seed(rngSeed)` as mcr's `rng.seed` (the generator's state is\n  then restored if it had one), so the values are mcr's for the same seed. With very few points (n = 5) the\n  bootstrap-t limits can be infinite or huge, because resamples of 2 or 3 distinct points have standard errors 0.\n\nUnlike mcr, the default interval is `\"analytical\"` (`\"jackknife\"` for weighted Deming) rather than a random\nbootstrap; `confLevel` replaces mcr's `alpha` (= 1 - confLevel); 2 or fewer points, constant x or y, infinite\nvalues and data whose Deming covariance is 0 are errors. Passing-Bablok's odd-position slopes are dy/dx (mcr: tan of\nits angle, a few ulps off). PaBaLarge, LinReg, WLinReg, PBequi and TS are not offered.",
-    "ja": ""
+    "ja": "y (検査法) の x (基準法) への測定法比較の回帰です: Deming、重みつき Deming、または Passing-Bablok の回帰で、\n解析的、ジャックナイフ、またはブートストラップの区間を伴います。R の `mcr::mcreg()` と同等です。\n\n- **Deming** (`\"Deming\"`): 傾きは、誤差分散による尺度での二乗距離を最小にするものです。λ =\n  `errorRatio` = σ²(x)/σ²(y) です (mcr の規約。λ → 0 のとき、y の x への最小二乗の傾きになります)。解析的な\n  標準誤差は Strike (1991) によるもので、t 区間は自由度 n - 2 を用います。\n- **重みつき Deming** (`\"WDeming\"`): 誤差が水準に比例する場合 (変動係数が一定) の Linnet (1990) の反復です。\n  mcr と同じく、両方の係数の変化が `threshold` (絶対値) より小さくなると止めます。`iterMax` 回の反復に達すると警告を出します。\n  解析的な区間はありません (既定はジャックナイフ)。値は正でなければなりません。\n  threshold は絶対値のため、非常に大きな大きさのデータ (約 1e150 程度) では収束しないことがあり、非常に小さな大きさのデータ (約 1e-150 程度) では\n  最初の反復の後で止まります。\n  `threshold` はデータの単位で選んでください。\n- **Passing-Bablok** (`\"PaBa\"`): n(n - 1)/2 個の対ごとの傾きのシフトされた中央値と、\n  Passing と Bablok (1983) の順位区間です。切片は y - b x の中央値で、その限界は傾きの限界と同じです。\n  相対で 1e-12 より小さい差は同順位として扱われます (mcr の規則。x だけが同順位の対は垂直です)。\n  そのため、大きなオフセット (1e12 + O(1)) を持つデータでは、差の大部分が 0 になります。\n  中央の 2 つの傾きの平均は、平均の角度の tan (`slopeMeasure: \"radian\"`、mcr の既定。y を再スケールすると変わります。角度は尺度変換されないためです)\n  か、平均の傾き (`\"tangent\"`) です。区間が定義されない場合 (点が少なすぎる場合、n <= 4 では常に)、傾きと切片の限界は\n  -Infinity と Infinity になり、警告を出します。値は負であってはいけません。\n  結果には線形性の CUSUM 統計量 (`cusum`。検定の判定は行いません) が含まれます。\n- **ジャックナイフ**: 1 つ抜きの推定値、標準誤差 sd(擬似値)/sqrt(n)、および区間の推定値 ± t se (自由度 n - 2、Linnet (1993)) です。\n  推定値は全データによるものです。\n- **ブートストラップ**: 対の `nsamples` 個の再標本を復元抽出します。`\"quantile\"` はパーセンタイル区間、\n  `\"Student\"` は推定値 ± t sd(B)、`\"BCa\"` は偏りを補正し加速を加えた区間 (ジャックナイフによる加速)、\n  `\"tBoot\"` は解析的な標準誤差を用いたブートストラップ t 区間 (Deming の場合)、または `\"nestedbootstrap\"` の場合は、\n  各再標本の内側の `nnested` 個の再標本の標準偏差です。x または y が定数の再標本は、mcr の警告とともに除かれます\n  (5% を超える場合はエラーです)。再標本は、現在の乱数ストリームから R の `sample(1:n, n, replace =\n  TRUE)` として引かれるか、mcr の `rng.seed` として `set.seed(rngSeed)` から引かれます (生成器の状態は、あった場合は復元されます)。\n  そのため、同じ種に対して値は mcr のものと一致します。点が非常に少ない場合 (n = 5) には、相異なる 2 点か 3 点の再標本の標準誤差が 0 になるため、\n  ブートストラップ t の限界が無限大や非常に大きな値になることがあります。\n\nmcr と異なり、既定の区間は、ランダムなブートストラップではなく `\"analytical\"` (重みつき Deming では `\"jackknife\"`) です。\n`confLevel` は mcr の `alpha` (= 1 - confLevel) に代わるものです。2 点以下、x または y が定数、無限大の値、\nDeming の共分散が 0 のデータは、エラーになります。Passing-Bablok の奇数位置の傾きは dy/dx です (mcr では角度の tan で、数 ulp ずれます)。\nPaBaLarge、LinReg、WLinReg、PBequi、TS は提供していません。"
   },
   "omega#@example": {
     "hash": "f2167be5edf2",
