@@ -29,6 +29,11 @@
     "en": "Options for {@link coxph}.",
     "ja": "{@link coxph} のオプション。"
   },
+  "CoxphOptions.cluster#summary": {
+    "hash": "c00118c23869",
+    "en": "Cluster labels, one per observation, for the robust variance (R's `cluster`): the observations of a cluster are\ntreated as correlated. Rows with a missing label (`null` or NaN) are dropped, like rows with a missing stratum.\nWithout it, each observation is its own cluster. At least two clusters are needed.",
+    "ja": ""
+  },
   "CoxphOptions.confLevel#summary": {
     "hash": "f8c806fc5453",
     "en": "Confidence level of the intervals of exp(coef). Default 0.95.",
@@ -49,6 +54,11 @@
     "en": "Covariates whose values all lie in this set are neither centred nor scaled. Default `[-1, 0, 1]`.",
     "ja": "値がすべてこの集合に含まれる共変量は、中心化もスケーリングもされません。既定は `[-1, 0, 1]`。"
   },
+  "CoxphOptions.robust#summary": {
+    "hash": "68a6add74f16",
+    "en": "Whether to use the robust (Lin-Wei sandwich) variance. Default as R: `true` when `cluster` is given or some case\nweight is not an integer, else `false`. With `false` a `cluster` is ignored (with R's warning).",
+    "ja": ""
+  },
   "CoxphOptions.strata#summary": {
     "hash": "29c04c42d8d8",
     "en": "Stratum labels, one per observation: a separate baseline hazard per stratum.",
@@ -60,9 +70,10 @@
     "ja": "同順位のイベント時刻の扱い。既定は `\"efron\"`。"
   },
   "CoxphOptions.weights#summary": {
-    "hash": "3c3f079882e5",
-    "en": "Case weights (positive integers; other weights make R use a robust variance, which is not supported yet).",
-    "ja": "観測値の重み (正の整数。それ以外の重みでは R はロバスト分散を用いますが、ロバスト分散はまだサポートされていません)。"
+    "hash": "7bf6493b04b2",
+    "en": "Case weights (positive). A weight that is not an integer switches the robust variance on (see `robust`).",
+    "ja": "観測値の重み (正の整数。それ以外の重みでは R はロバスト分散を用いますが、ロバスト分散はまだサポートされていません)。",
+    "stale": true
   },
   "CoxphResult#summary": {
     "hash": "ecaaa3580a90",
@@ -95,9 +106,10 @@
     "ja": "尤度比検定"
   },
   "CoxphResult.lower#summary": {
-    "hash": "87d8c28bcaa2",
-    "en": "Lower confidence limits of exp(coef)",
-    "ja": "exp(coef) の信頼区間の下限"
+    "hash": "875aa5297bd6",
+    "en": "Lower confidence limits of exp(coef) (from `robustSe` when `usedRobust`)",
+    "ja": "exp(coef) の信頼区間の下限",
+    "stale": true
   },
   "CoxphResult.means#summary": {
     "hash": "2c886b2bca94",
@@ -108,6 +120,11 @@
     "hash": "5cd47c9217e3",
     "en": "Number of observations used",
     "ja": "使用した観測値の数"
+  },
+  "CoxphResult.naiveVar#summary": {
+    "hash": "23eed817f365",
+    "en": "The model-based variance (R's `naive.var`); only when `usedRobust`.",
+    "ja": ""
   },
   "CoxphResult.nevent#summary": {
     "hash": "fe5894dcb4cd",
@@ -123,6 +140,21 @@
     "hash": "14b7d385c694",
     "en": "Alias of `p`: the same array.",
     "ja": "`p` の別名です。同じ配列です。"
+  },
+  "CoxphResult.robscore#summary": {
+    "hash": "87564f2a0959",
+    "en": "The robust score test (R's `robscore`: `rscore`, the number of non-NaN coefficients); only when `usedRobust`.",
+    "ja": ""
+  },
+  "CoxphResult.robustSe#summary": {
+    "hash": "01a3257cee19",
+    "en": "Robust standard errors, the square roots of the diagonal of `var` (R's `robust se`); only when `usedRobust`.",
+    "ja": ""
+  },
+  "CoxphResult.rscore#summary": {
+    "hash": "a64d42f38cc3",
+    "en": "The robust score test statistic at `init` (R's `rscore`); only when `usedRobust`.",
+    "ja": ""
   },
   "CoxphResult.rsq#summary": {
     "hash": "a080023eb60f",
@@ -150,9 +182,10 @@
     "ja": "スコア (ログランク) 検定"
   },
   "CoxphResult.se#summary": {
-    "hash": "e107dc59164a",
-    "en": "Standard errors of the coefficients",
-    "ja": "係数の標準誤差"
+    "hash": "3b71781a19af",
+    "en": "Model-based (naive) standard errors of the coefficients, also when `usedRobust` (R's column `se(coef)`; the robust\nones are `robustSe`)",
+    "ja": "係数の標準誤差",
+    "stale": true
   },
   "CoxphResult.stdError#summary": {
     "hash": "a2d9d992c915",
@@ -160,14 +193,21 @@
     "ja": "`se` の別名です。同じ配列です。"
   },
   "CoxphResult.upper#summary": {
-    "hash": "7c36721902da",
-    "en": "Upper confidence limits of exp(coef)",
-    "ja": "exp(coef) の信頼区間の上限"
+    "hash": "4e40165efade",
+    "en": "Upper confidence limits of exp(coef) (from `robustSe` when `usedRobust`)",
+    "ja": "exp(coef) の信頼区間の上限",
+    "stale": true
+  },
+  "CoxphResult.usedRobust#summary": {
+    "hash": "1e900766fe9f",
+    "en": "Whether the robust variance was used (R's `used.robust`). False also when it was asked for but there is nothing to\ncompute it from (no events, or every coefficient NaN), as R.",
+    "ja": ""
   },
   "CoxphResult.var#summary": {
-    "hash": "1a9f63574f44",
-    "en": "Variance matrix of the coefficients (array of rows)",
-    "ja": "係数の分散行列 (行の配列)"
+    "hash": "816a6e9f8207",
+    "en": "Variance matrix of the coefficients (array of rows): the robust variance when `usedRobust` (R's `var`), else the\nmodel-based one",
+    "ja": "係数の分散行列 (行の配列)",
+    "stale": true
   },
   "CoxphResult.wald#summary": {
     "hash": "2e8f4e891b6c",
@@ -175,9 +215,10 @@
     "ja": "NA でない係数の Wald 統計量 (指定されている場合は `init` に対して)"
   },
   "CoxphResult.waldtest#summary": {
-    "hash": "7af5b8baaec8",
-    "en": "Wald test",
-    "ja": "Wald 検定"
+    "hash": "a3c065e3f9ac",
+    "en": "Wald test (with the robust variance when `usedRobust`)",
+    "ja": "Wald 検定",
+    "stale": true
   },
   "CoxphResult.warnings#summary": {
     "hash": "19382659fccd",
@@ -185,9 +226,10 @@
     "ja": "R の警告。各警告は 1 回だけ、初めて現れた順に並びます。"
   },
   "CoxphResult.z#summary": {
-    "hash": "4e79b1893bfd",
-    "en": "Wald z statistics",
-    "ja": "Wald z 統計量"
+    "hash": "cdaf19ffef38",
+    "en": "Wald z statistics (coefficient / `robustSe` when `usedRobust`, else / `se`)",
+    "ja": "Wald z 統計量",
+    "stale": true
   },
   "CoxphResult.zValue#summary": {
     "hash": "f199ee2a8585",
@@ -394,10 +436,16 @@
     "en": "The covariate matrix, one row per observation (at least one column).",
     "ja": "共変量の行列。観測値ごとに 1 行 (列は少なくとも 1 つ)。"
   },
+  "coxph#@throws": {
+    "hash": "e30a2f320d13",
+    "en": "TypeError if `robust` is not a boolean. RangeError for invalid arguments, among them an infinite weight\nand a robust variance with fewer than two clusters.",
+    "ja": ""
+  },
   "coxph#summary": {
-    "hash": "acd58b7a26a0",
-    "en": "Cox proportional hazards regression. Equivalent to R's `survival::coxph()`. As\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, control)` for right-censored data, with the\nvalues of `summary(fit)`.\n\nRows with a missing time, status, covariate, weight or stratum are dropped. Times within sqrt(eps) of each other are\ntreated as tied. Covariates whose values all lie in `nocenter` are not centred; the others are centred by their\nweighted means, which only shifts the linear predictors. R's warnings (non-convergence, possibly infinite\ncoefficients) are returned in `warnings`.",
-    "ja": "Cox 比例ハザード回帰。R の `survival::coxph()` と同等です。次の形で、\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, control)` により、右側打ち切りのデータに対して\n`summary(fit)` の値を再現します。\n\ntime、status、共変量、重み、層のいずれかが欠測している行は除外されます。互いの差が sqrt(eps) 以内の時刻は、\n同順位として扱われます。値がすべて `nocenter` に含まれる共変量は中心化されません。それ以外の共変量は、重み付き平均で\n中心化されます。これは線形予測子をずらすだけです。R の警告 (非収束、係数が無限大になる可能性) は、\n`warnings` で返されます。"
+    "hash": "d49a66231d07",
+    "en": "Cox proportional hazards regression. Equivalent to R's `survival::coxph()`. As\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, robust, cluster, control)` for right-censored\ndata, with the values of `summary(fit)`.\n\nWith `robust` (by default when `cluster` is given or a case weight is not an integer) the variance is the robust\n(Lin-Wei sandwich) one, summed over the clusters (each observation its own cluster without `cluster`), as R:\n`var` is the robust variance and `naiveVar` the model-based one; `se` (and `stdError`) stay the model-based standard\nerrors (R's `se(coef)`), while `z`, `p`, the intervals `lower`/`upper`, `wald` and `waldtest` use the robust ones\n(`robustSe`); `robscore` is the robust score test at `init`. The likelihood ratio and score tests and the R^2 ignore\nthe clustering.\n\nRows with a missing time, status, covariate, weight or stratum are dropped. Times within sqrt(eps) of each other are\ntreated as tied. Covariates whose values all lie in `nocenter` are not centred; the others are centred by their\nweighted means, which only shifts the linear predictors. R's warnings (non-convergence, possibly infinite\ncoefficients) are returned in `warnings`.",
+    "ja": "Cox 比例ハザード回帰。R の `survival::coxph()` と同等です。次の形で、\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, control)` により、右側打ち切りのデータに対して\n`summary(fit)` の値を再現します。\n\ntime、status、共変量、重み、層のいずれかが欠測している行は除外されます。互いの差が sqrt(eps) 以内の時刻は、\n同順位として扱われます。値がすべて `nocenter` に含まれる共変量は中心化されません。それ以外の共変量は、重み付き平均で\n中心化されます。これは線形予測子をずらすだけです。R の警告 (非収束、係数が無限大になる可能性) は、\n`warnings` で返されます。",
+    "stale": true
   },
   "survdiff#@example": {
     "hash": "f2167be5edf2",

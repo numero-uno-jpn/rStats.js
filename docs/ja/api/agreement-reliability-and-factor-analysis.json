@@ -1,4 +1,114 @@
 {
+  "BlandAltmanCiMethod#summary": {
+    "hash": "571a34b1c2df",
+    "en": "Interval of the limits of agreement in {@link blandAltman}.",
+    "ja": ""
+  },
+  "BlandAltmanOptions#summary": {
+    "hash": "fbeafbef2d4e",
+    "en": "Options for {@link blandAltman}.",
+    "ja": ""
+  },
+  "BlandAltmanOptions.ciMethod#summary": {
+    "hash": "8609f6b153b9",
+    "en": "Interval of the two limits of agreement: `\"package\"` (the default), BlandAltmanLeh's `limit ± t sqrt(3 s²/n)` with\nt quantiles on n - 1 degrees of freedom (Bland and Altman 1986's approximation), or `\"exact\"`, the exact interval\nfrom the noncentral t distribution (Carkeet 2015), wider for small n. Unambiguous abbreviations are accepted.",
+    "ja": ""
+  },
+  "BlandAltmanOptions.confLevel#summary": {
+    "hash": "fd9148bdc2a1",
+    "en": "Level of the confidence intervals, in [0, 1] (two-sided). Default `0.95`.",
+    "ja": ""
+  },
+  "BlandAltmanOptions.mode#summary": {
+    "hash": "2a667c605c4f",
+    "en": "`1` for the differences `x - y` (the default), `2` for `y - x`.",
+    "ja": ""
+  },
+  "BlandAltmanOptions.two#summary": {
+    "hash": "4c7b5a54ed72",
+    "en": "The multiple of the standard deviation of the differences in the limits of agreement, positive. Default `1.96`.",
+    "ja": ""
+  },
+  "BlandAltmanResult#summary": {
+    "hash": "071b2acafae3",
+    "en": "Result of {@link blandAltman}.",
+    "ja": ""
+  },
+  "BlandAltmanResult.ciMethod#summary": {
+    "hash": "c1f5324babe0",
+    "en": "The interval of the limits, in full.",
+    "ja": ""
+  },
+  "BlandAltmanResult.confLevel#summary": {
+    "hash": "d51f25890da4",
+    "en": "The level of the intervals.",
+    "ja": ""
+  },
+  "BlandAltmanResult.criticalDiff#summary": {
+    "hash": "8e5cfc6eb812",
+    "en": "`two s`, s the standard deviation of the differences (R's `critical.diff`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.diffs#summary": {
+    "hash": "41cffa7ed6a8",
+    "en": "The difference of each complete pair, `x - y` (mode 1) or `y - x` (mode 2) (R's `diffs`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.lowerLimit#summary": {
+    "hash": "4176faa29f36",
+    "en": "Lower limit of agreement `d̄ - two s` (R's `lower.limit`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.lowerLimitConfInt#summary": {
+    "hash": "ff97ad6d3845",
+    "en": "Interval of the lower limit of agreement (R's `lower.limit.ci.lower`, `.upper` for `ciMethod: \"package\"`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.meanDiff#summary": {
+    "hash": "de75baaa7687",
+    "en": "Mean of the differences d̄ (R's `mean.diffs`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.meanDiffConfInt#summary": {
+    "hash": "20ad2dfba60b",
+    "en": "t interval of the mean difference, `d̄ ± t s/sqrt(n)` (R's `mean.diff.ci.lower`, `.upper`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.means#summary": {
+    "hash": "7ccbcd11d594",
+    "en": "The mean of each complete pair, `(x + y)/2` (R's `means`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.mode#summary": {
+    "hash": "f347e14f03ec",
+    "en": "The direction of the differences, 1 or 2.",
+    "ja": ""
+  },
+  "BlandAltmanResult.n#summary": {
+    "hash": "9e9a4549595a",
+    "en": "Number of complete pairs (R's `based.on`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.two#summary": {
+    "hash": "80922bf006d6",
+    "en": "The multiple of the standard deviation in the limits (R's `two`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.upperLimit#summary": {
+    "hash": "7ffd8e6af86c",
+    "en": "Upper limit of agreement `d̄ + two s` (R's `upper.limit`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.upperLimitConfInt#summary": {
+    "hash": "ef6a59d931e0",
+    "en": "Interval of the upper limit of agreement (R's `upper.limit.ci.lower`, `.upper` for `ciMethod: \"package\"`).",
+    "ja": ""
+  },
+  "BlandAltmanResult.warnings#summary": {
+    "hash": "8ef3f0a7d534",
+    "en": "Warnings (none: input without a defined result is an error).",
+    "ja": ""
+  },
   "CronbachAlphaResult#summary": {
     "hash": "4f561f8ce8a5",
     "en": "Result of {@link cronbachAlpha}.",
@@ -144,6 +254,161 @@
     "en": "Factor scores of {@link factanal}",
     "ja": "{@link factanal} の因子得点の種類です。"
   },
+  "ICC#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "ICC#@param options": {
+    "hash": "1cc0c28f7516",
+    "en": "See {@link ICCOptions}.",
+    "ja": ""
+  },
+  "ICC#@param x": {
+    "hash": "a196a94c082e",
+    "en": "An n × k matrix of ratings (array of rows), without missing values.",
+    "ja": ""
+  },
+  "ICC#@returns": {
+    "hash": "e21ff9945465",
+    "en": "See {@link ICCResult}.",
+    "ja": ""
+  },
+  "ICC#@throws": {
+    "hash": "17ab1c3fa6df",
+    "en": "TypeError if x is not a matrix of numbers; RangeError for missing or infinite ratings (psych's REML path\n  accepts missing ratings; here they are an error), fewer than 2 subjects or raters, ratings that are all equal or\n  identical for every subject, or a level out of range.",
+    "ja": ""
+  },
+  "ICC#summary": {
+    "hash": "4a137a03d0f7",
+    "en": "The six intraclass correlations of Shrout and Fleiss (1979), with their F tests and confidence intervals.\nEquivalent to `psych::ICC(x, alpha, lmer)` in R. Only complete data are accepted.\n\n`x` is an n × k matrix (an array of rows): the ratings of the k raters for each of the n subjects. The forms are\nICC1 = (MSB − MSW)/(MSB + (k − 1)MSW) (one-way), ICC2 = (MSB − MSE)/(MSB + (k − 1)MSE + k(MSJ − MSE)/n) (two-way\nrandom raters, absolute agreement), ICC3 = (MSB − MSE)/(MSB + (k − 1)MSE) (two-way fixed raters, consistency), and\ntheir averages over k raters ICC1k, ICC2k, ICC3k. With `lmer: true` (the default, as psych) the mean squares are\nrebuilt from the REML estimates of the variance components of the two-way random model, which are not negative;\nwhere both ANOVA components are not negative they equal the ANOVA mean squares. psych fits that model with lme4,\nwhose optimiser stops early (results about 1e-5 relative off); here the REML estimates are computed exactly, in\nclosed form.\n\nICC1, ICC3, ICC1k and ICC3k agree with {@link icc} (irr's forms); the interval of ICC2k is psych's (ICC2's bounds\ntransformed by Spearman-Brown), not irr's (McGraw and Wong's average-agreement interval).\n\nWhere the residual mean square is 0 (ratings that differ between raters by constants), the F statistics of ICC2 and\nICC3 are Infinity with p-value 0, and ICC3, ICC3k and their bounds are 1.",
+    "ja": ""
+  },
+  "ICCOptions#summary": {
+    "hash": "9f96e84f5f48",
+    "en": "Options for {@link ICC}.",
+    "ja": ""
+  },
+  "ICCOptions.alpha#summary": {
+    "hash": "a5a784771762",
+    "en": "One minus the confidence level of the intervals, in (0, 1) (psych's `alpha`). Default `0.05`; overrides\n `confLevel`.",
+    "ja": ""
+  },
+  "ICCOptions.confLevel#summary": {
+    "hash": "fa5516778b0e",
+    "en": "Confidence level of the intervals, in (0, 1). Default `0.95`.",
+    "ja": ""
+  },
+  "ICCOptions.lmer#summary": {
+    "hash": "42d342be60d9",
+    "en": "`true` (default, as psych): the mean squares from the REML estimates of the variance components, which are not\nnegative (where a component would be negative, it is 0 and the coefficients that depend on it are 0, F 1);\n`false`: the ANOVA mean squares (coefficients may be negative).",
+    "ja": ""
+  },
+  "ICCResult#summary": {
+    "hash": "793fcdd3ab91",
+    "en": "Result of {@link ICC}.",
+    "ja": ""
+  },
+  "ICCResult.MSB#summary": {
+    "hash": "a07165105d55",
+    "en": "Mean square of subjects (REML: `k σ²_subject + σ²_e`).",
+    "ja": ""
+  },
+  "ICCResult.MSE#summary": {
+    "hash": "9776a5e3e7bb",
+    "en": "Residual mean square (REML: `σ²_e`).",
+    "ja": ""
+  },
+  "ICCResult.MSJ#summary": {
+    "hash": "338ad9aeb86c",
+    "en": "Mean square of raters (REML: `n σ²_rater + σ²_e`).",
+    "ja": ""
+  },
+  "ICCResult.MSW#summary": {
+    "hash": "9775b4269731",
+    "en": "Mean square within subjects, used by ICC1 and ICC1k (REML: `σ²_e + σ²_rater`).",
+    "ja": ""
+  },
+  "ICCResult.confLevel#summary": {
+    "hash": "16903bfe7be6",
+    "en": "Confidence level of the intervals, `1 - alpha`.",
+    "ja": ""
+  },
+  "ICCResult.k#summary": {
+    "hash": "fc57fe5454af",
+    "en": "Number of raters (columns).",
+    "ja": ""
+  },
+  "ICCResult.lmer#summary": {
+    "hash": "031d50c7ebe8",
+    "en": "Whether the REML path was used.",
+    "ja": ""
+  },
+  "ICCResult.n#summary": {
+    "hash": "e10211488e3e",
+    "en": "Number of subjects (rows).",
+    "ja": ""
+  },
+  "ICCResult.results#summary": {
+    "hash": "5311dccb505f",
+    "en": "The six forms, in psych's order ICC1, ICC2, ICC3, ICC1k, ICC2k, ICC3k.",
+    "ja": ""
+  },
+  "ICCResult.warnings#summary": {
+    "hash": "d4f1d8ff0e2f",
+    "en": "R's warnings (aov's `essentially perfect fit` where the residual mean square is 0 on the ANOVA path).",
+    "ja": ""
+  },
+  "ICCRow#summary": {
+    "hash": "a02eedcc15e3",
+    "en": "One of the six forms in {@link ICCResult}.",
+    "ja": ""
+  },
+  "ICCRow.F#summary": {
+    "hash": "f7d8d1644f72",
+    "en": "F statistic of the test of ICC = 0.",
+    "ja": ""
+  },
+  "ICCRow.ICC#summary": {
+    "hash": "1c0513423b69",
+    "en": "The intraclass correlation.",
+    "ja": ""
+  },
+  "ICCRow.df1#summary": {
+    "hash": "f60d7db3a4ef",
+    "en": "Numerator degrees of freedom.",
+    "ja": ""
+  },
+  "ICCRow.df2#summary": {
+    "hash": "bb02427a9e71",
+    "en": "Denominator degrees of freedom.",
+    "ja": ""
+  },
+  "ICCRow.lower#summary": {
+    "hash": "74dbe99f09ab",
+    "en": "Lower confidence limit.",
+    "ja": ""
+  },
+  "ICCRow.name#summary": {
+    "hash": "dc6ac461f9cd",
+    "en": "psych's row name: `\"Single_raters_absolute\"`, `\"Single_random_raters\"`, ...",
+    "ja": ""
+  },
+  "ICCRow.pValue#summary": {
+    "hash": "3caeff89d9a3",
+    "en": "Upper-tail p-value of the F test.",
+    "ja": ""
+  },
+  "ICCRow.type#summary": {
+    "hash": "723c476843a4",
+    "en": "`\"ICC1\"`, `\"ICC2\"`, `\"ICC3\"`, `\"ICC1k\"`, `\"ICC2k\"` or `\"ICC3k\"`.",
+    "ja": ""
+  },
+  "ICCRow.upper#summary": {
+    "hash": "0c7d76725ebf",
+    "en": "Upper confidence limit.",
+    "ja": ""
+  },
   "IccOptions#summary": {
     "hash": "24dd5ebe3a94",
     "en": "Options for {@link icc}. Unambiguous abbreviations of the choices are accepted.",
@@ -273,6 +538,181 @@
     "hash": "91c11058e5bd",
     "en": "Conger's exact kappa instead of Fleiss' (no test is then given). Default `false`.",
     "ja": "Fleiss の κ の代わりに Conger の正確な κ を求めます (このとき検定は求めません)。既定は `false`。"
+  },
+  "McregBootstrapCiMethod#summary": {
+    "hash": "e2c217ae97c6",
+    "en": "Bootstrap intervals of {@link mcreg}.",
+    "ja": ""
+  },
+  "McregCiMethod#summary": {
+    "hash": "dde4991d0cdd",
+    "en": "Interval methods of {@link mcreg}.",
+    "ja": ""
+  },
+  "McregCoefficient#summary": {
+    "hash": "86260ddb1094",
+    "en": "A coefficient of {@link McregResult}.",
+    "ja": ""
+  },
+  "McregCoefficient.confInt#summary": {
+    "hash": "9ee555c7fcfe",
+    "en": "The interval at `confLevel`.",
+    "ja": ""
+  },
+  "McregCoefficient.estimate#summary": {
+    "hash": "680365832e72",
+    "en": "The estimate from all the data.",
+    "ja": ""
+  },
+  "McregCoefficient.se#summary": {
+    "hash": "f0acf6b6b146",
+    "en": "Its standard error (`NaN` where the method has none: Passing-Bablok analytical, bootstrap quantile and BCa).",
+    "ja": ""
+  },
+  "McregMethod#summary": {
+    "hash": "55a39ddce44e",
+    "en": "Regression methods of {@link mcreg}.",
+    "ja": ""
+  },
+  "McregOptions#summary": {
+    "hash": "daaef29b5ee4",
+    "en": "Options for {@link mcreg}.",
+    "ja": ""
+  },
+  "McregOptions.confLevel#summary": {
+    "hash": "cb1f88780992",
+    "en": "Level of the intervals, in (0, 1) (mcr's `1 - alpha`). Default `0.95`.",
+    "ja": ""
+  },
+  "McregOptions.errorRatio#summary": {
+    "hash": "a42a451fbd04",
+    "en": "The ratio of the error variances σ²(x)/σ²(y), x the reference method (mcr's `error.ratio`; Deming and weighted\nDeming), positive and finite. Default `1`.",
+    "ja": ""
+  },
+  "McregOptions.iterMax#summary": {
+    "hash": "8e39fce4a72e",
+    "en": "Weighted Deming: the largest number of iterations, a positive integer. Default `30`.",
+    "ja": ""
+  },
+  "McregOptions.methodBootstrapCi#summary": {
+    "hash": "cfb686975b78",
+    "en": "The bootstrap interval: `\"quantile\"` (the default), `\"Student\"`, `\"BCa\"` or `\"tBoot\"` (bootstrap-t: with Deming\nor with nested resamples).",
+    "ja": ""
+  },
+  "McregOptions.methodCi#summary": {
+    "hash": "4c1156d4eed1",
+    "en": "`\"analytical\"` (the default for Deming and Passing-Bablok; not available for weighted Deming), `\"jackknife\"` (the\ndefault for weighted Deming), `\"bootstrap\"` or `\"nestedbootstrap\"`. mcr's default is `\"bootstrap\"`.",
+    "ja": ""
+  },
+  "McregOptions.methodReg#summary": {
+    "hash": "e98ade35d7ef",
+    "en": "`\"PaBa\"` (Passing-Bablok, the default, as mcr), `\"Deming\"` or `\"WDeming\"` (weighted Deming, constant coefficient\nof variation). Unambiguous abbreviations are accepted.",
+    "ja": ""
+  },
+  "McregOptions.naRm#summary": {
+    "hash": "c24caaf4b25f",
+    "en": "Drop the pairs with `NaN` (otherwise they are an error). Default `false`.",
+    "ja": ""
+  },
+  "McregOptions.nnested#summary": {
+    "hash": "f97f5f38970e",
+    "en": "Number of inner resamples of each resample for `\"nestedbootstrap\"`, a positive integer. Default `25`.",
+    "ja": ""
+  },
+  "McregOptions.nsamples#summary": {
+    "hash": "94d9e1bf2142",
+    "en": "Number of bootstrap resamples, a positive integer. Default `999`.",
+    "ja": ""
+  },
+  "McregOptions.rngSeed#summary": {
+    "hash": "521009174ad8",
+    "en": "Seed of the resamples: the stream of R's `set.seed(rngSeed, kind = \"Mersenne-Twister\")`, as mcr's `rng.seed`; the\nstate of the generator is restored afterwards if it had one (in a session that never drew a random number, the\nstream of the seed continues, as in R). Without it the resamples are drawn from the current stream.",
+    "ja": ""
+  },
+  "McregOptions.slopeMeasure#summary": {
+    "hash": "ab1b6a678168",
+    "en": "Passing-Bablok: the mean of two middle slopes as `\"radian\"` (tan of the mean angle, the default) or `\"tangent\"`.",
+    "ja": ""
+  },
+  "McregOptions.threshold#summary": {
+    "hash": "08adfeb67734",
+    "en": "Weighted Deming: the iteration stops when both coefficients change by less than this (absolute). Default `1e-6`.",
+    "ja": ""
+  },
+  "McregResult#summary": {
+    "hash": "ba3498e87364",
+    "en": "Result of {@link mcreg}.",
+    "ja": ""
+  },
+  "McregResult.bootstrap#summary": {
+    "hash": "15986c878164",
+    "en": "Bootstrap: the coefficients of the resamples kept, in the order drawn (mcr's `@B0`, `@B1`), their standard errors\n(`@sigmaB0`, `@sigmaB1`: the standard deviation of the nested estimates, the analytical standard error for Deming,\nthe jackknife one for weighted Deming with BCa, else `NaN`), the global standard errors (`@glob.sigma`) and the\nnumber of resamples kept.",
+    "ja": ""
+  },
+  "McregResult.confLevel#summary": {
+    "hash": "d51f25890da4",
+    "en": "The level of the intervals.",
+    "ja": ""
+  },
+  "McregResult.cusum#summary": {
+    "hash": "abba1461978b",
+    "en": "Passing-Bablok: the linearity statistic (mcr's `calcCUSUM`): the numbers of points above and below the line and\nthe largest absolute cumulative sum of their scores ordered along the line.",
+    "ja": ""
+  },
+  "McregResult.errorRatio#summary": {
+    "hash": "5dae9d0bbe34",
+    "en": "The ratio of the error variances used (1 for Passing-Bablok).",
+    "ja": ""
+  },
+  "McregResult.intercept#summary": {
+    "hash": "3a92c705a859",
+    "en": "The intercept (mcr's row `Intercept` of `@para`).",
+    "ja": ""
+  },
+  "McregResult.jackknife#summary": {
+    "hash": "d46632caac88",
+    "en": "Jackknife: the leave-one-out coefficients (mcr's `@B0jack`, `@B1jack`; also for the BCa interval).",
+    "ja": ""
+  },
+  "McregResult.methodBootstrapCi#summary": {
+    "hash": "1694e4e25412",
+    "en": "The bootstrap interval, in full (bootstrap methods only).",
+    "ja": ""
+  },
+  "McregResult.methodCi#summary": {
+    "hash": "e217ee715a34",
+    "en": "The interval method, in full.",
+    "ja": ""
+  },
+  "McregResult.methodReg#summary": {
+    "hash": "cda672ee9947",
+    "en": "The regression method, in full.",
+    "ja": ""
+  },
+  "McregResult.n#summary": {
+    "hash": "8c3d2110e648",
+    "en": "Number of pairs used.",
+    "ja": ""
+  },
+  "McregResult.slope#summary": {
+    "hash": "0fa896543d61",
+    "en": "The slope (mcr's row `Slope` of `@para`).",
+    "ja": ""
+  },
+  "McregResult.warnings#summary": {
+    "hash": "1750d6302e3c",
+    "en": "Warnings (the weighted Deming iteration not converging, degenerate resamples, an undefined interval).",
+    "ja": ""
+  },
+  "McregResult.weights#summary": {
+    "hash": "b5eeb853ba3b",
+    "en": "Weighted Deming: the weights of the last iteration (mcr's `@weight`); Infinity where beyond the double range.",
+    "ja": ""
+  },
+  "McregResult.xmean#summary": {
+    "hash": "557a60f6f637",
+    "en": "The mean of x (Deming), the weighted mean of the last iteration (weighted Deming), `NaN` (Passing-Bablok).",
+    "ja": ""
   },
   "OmegaOptions#summary": {
     "hash": "b407628c914a",
@@ -469,6 +909,41 @@
     "en": "Variances and covariances of the estimates, in the order rho, the thresholds; 1 × 1 (rho alone) without `ML`.",
     "ja": "推定値の分散と共分散です。順序は rho、閾値です。`ML` がない場合は 1 × 1 (rho だけ) です。"
   },
+  "blandAltman#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "blandAltman#@param options": {
+    "hash": "20b15ff62c52",
+    "en": "See {@link BlandAltmanOptions}.",
+    "ja": ""
+  },
+  "blandAltman#@param x": {
+    "hash": "687ed0faaf4b",
+    "en": "Measurements by the first method.",
+    "ja": ""
+  },
+  "blandAltman#@param y": {
+    "hash": "b779c0b08b91",
+    "en": "Measurements by the second method, paired with `x`.",
+    "ja": ""
+  },
+  "blandAltman#@returns": {
+    "hash": "42d59be0a539",
+    "en": "See {@link BlandAltmanResult}.",
+    "ja": ""
+  },
+  "blandAltman#@throws": {
+    "hash": "d690412c7b1a",
+    "en": "TypeError if `x` and `y` differ in length; RangeError for fewer than 2 complete pairs, infinite values, a\n  `two` that is not positive and finite, a `mode` other than 1 or 2, a level outside [0, 1] or an unknown\n  `ciMethod`.",
+    "ja": ""
+  },
+  "blandAltman#summary": {
+    "hash": "ee00bd96c402",
+    "en": "Bland-Altman analysis of two methods of measurement: the mean difference, the limits of agreement and their\nconfidence intervals. Equivalent to `BlandAltmanLeh::bland.altman.stats()` in R.\n\nWith d the differences of the complete pairs (pairs with `NaN` in either sample are dropped), d̄ their mean and s\ntheir standard deviation, the limits of agreement are `d̄ ± two s`. The mean difference has the t interval `d̄ ± t\ns/sqrt(n)` with t quantiles on n - 1 degrees of freedom. The interval of each limit is, by default, BlandAltmanLeh's\n`limit ± t sqrt(3 s²/n)` (Bland and Altman 1986); `ciMethod: \"exact\"` gives the exact interval (Carkeet 2015):\n`d̄ + s q/sqrt(n)` for the upper limit with q the quantiles (1 ∓ confLevel)/2 of the noncentral t distribution with\nn - 1 degrees of freedom and noncentrality `two sqrt(n)`, and its mirror image for the lower limit.\n\nUnlike R, fewer than 2 complete pairs, infinite values and a level outside [0, 1] are errors (R gives NA or NaN\nlimits); `confLevel` 0 gives intervals of width 0 and 1 infinite ones, as R. Identical methods (s = 0) give every\nlimit and interval equal to d̄.",
+    "ja": ""
+  },
   "cronbachAlpha#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -563,6 +1038,41 @@
     "hash": "b2065862f357",
     "en": "Fleiss' kappa for several raters (or Conger's exact kappa), with the z test of kappa = 0 for Fleiss' kappa.\nEquivalent to `irr::kappam.fleiss(ratings, exact)` in R. The ratings are numeric, without missing values.\n\nThe p-value is computed as 2 Φ(−|z|), so small p-values are more accurate than irr's.",
     "ja": "複数の評定者に対する Fleiss の κ (または Conger の正確な κ) と、Fleiss の κ についての κ = 0 の z 検定です。R の `irr::kappam.fleiss(ratings, exact)` と同等です。評定は数値で、欠測値を含みません。\n\np 値は 2 Φ(−|z|) で計算するため、小さい p 値は irr の値より正確です。"
+  },
+  "mcreg#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "mcreg#@param options": {
+    "hash": "7820a8c5128d",
+    "en": "See {@link McregOptions}.",
+    "ja": ""
+  },
+  "mcreg#@param x": {
+    "hash": "70b5ecd09487",
+    "en": "Measurements by the reference method.",
+    "ja": ""
+  },
+  "mcreg#@param y": {
+    "hash": "5f50d9aa1701",
+    "en": "Measurements by the test method, paired with `x`.",
+    "ja": ""
+  },
+  "mcreg#@returns": {
+    "hash": "4e6cd902f2a0",
+    "en": "See {@link McregResult}.",
+    "ja": ""
+  },
+  "mcreg#@throws": {
+    "hash": "92c64a3458c3",
+    "en": "TypeError if `x` and `y` differ in length; RangeError for missing values without `naRm`, infinite values,\n  fewer than 3 pairs, constant x or y, negative values (Passing-Bablok), values that are not positive (weighted\n  Deming), more than 5793 points (Passing-Bablok), an analytical interval for weighted Deming, a bootstrap-t\n  interval without nested resamples for Passing-Bablok or weighted Deming, too many degenerate resamples, a zero\n  covariance (Deming), or an invalid option.",
+    "ja": ""
+  },
+  "mcreg#summary": {
+    "hash": "7d57b5916fc0",
+    "en": "Method comparison regression of y (test method) on x (reference method): Deming, weighted Deming or Passing-Bablok\nregression with analytical, jackknife or bootstrap intervals. Equivalent to `mcr::mcreg()` in R.\n\n- **Deming** (`\"Deming\"`): the slope minimises the squared distances in the metric of the error variances, λ =\n  `errorRatio` = σ²(x)/σ²(y) (mcr's convention; λ → 0 gives the least-squares slope of y on x). The analytical\n  standard errors are Strike's (1991), with t intervals on n - 2 degrees of freedom.\n- **Weighted Deming** (`\"WDeming\"`): Linnet's (1990) iteration for errors proportional to the level (constant\n  coefficient of variation), stopped as mcr when both coefficients change by less than `threshold` (absolute), with\n  a warning when `iterMax` iterations are reached. No analytical interval (jackknife by default). Values must be\n  positive. Since the threshold is absolute, data of very large magnitude (around 1e150) may not converge and\n  data of very small magnitude (around 1e-150) stop after the first iteration; choose `threshold` in the units of\n  the data.\n- **Passing-Bablok** (`\"PaBa\"`): the shifted median of the n(n - 1)/2 pairwise slopes and the rank interval of\n  Passing and Bablok (1983); the intercept is the median of y - b x and its limits those of the slope's limits.\n  Differences below a relative 1e-12 count as ties (mcr's rule; a pair tied in x only is vertical), so data with a\n  large offset (1e12 + O(1)) have most differences set to 0; the mean of two middle slopes is tan of the mean angle\n  (`slopeMeasure: \"radian\"`, mcr's default; it changes when y is rescaled, as angles do not scale) or the mean slope\n  (`\"tangent\"`). Where the interval is not defined (too few points, always for n <= 4) its limits and the\n  intercept's are -Infinity and Infinity, with a warning. Values must not be negative. The result has the CUSUM\n  statistic of linearity (`cusum`; no test decision).\n- **jackknife**: the leave-one-out estimates, the standard error sd(pseudo-values)/sqrt(n) and the interval estimate\n  ± t se on n - 2 degrees of freedom (Linnet 1993); the estimates are those of all the data.\n- **bootstrap**: `nsamples` resamples of the pairs with replacement; `\"quantile\"` the percentile interval,\n  `\"Student\"` estimate ± t sd(B), `\"BCa\"` the bias-corrected and accelerated interval (jackknife acceleration),\n  `\"tBoot\"` the bootstrap-t interval with the analytical standard errors (Deming) or, with `\"nestedbootstrap\"`, the\n  standard deviation of `nnested` inner resamples of each resample. Resamples with constant x or y are dropped\n  with mcr's warning (an error when more than 5% are). The resamples are drawn as R's `sample(1:n, n, replace =\n  TRUE)` from the current random stream, or from `set.seed(rngSeed)` as mcr's `rng.seed` (the generator's state is\n  then restored if it had one), so the values are mcr's for the same seed. With very few points (n = 5) the\n  bootstrap-t limits can be infinite or huge, because resamples of 2 or 3 distinct points have standard errors 0.\n\nUnlike mcr, the default interval is `\"analytical\"` (`\"jackknife\"` for weighted Deming) rather than a random\nbootstrap; `confLevel` replaces mcr's `alpha` (= 1 - confLevel); 2 or fewer points, constant x or y, infinite\nvalues and data whose Deming covariance is 0 are errors. Passing-Bablok's odd-position slopes are dy/dx (mcr: tan of\nits angle, a few ulps off). PaBaLarge, LinReg, WLinReg, PBequi and TS are not offered.",
+    "ja": ""
   },
   "omega#@example": {
     "hash": "f2167be5edf2",

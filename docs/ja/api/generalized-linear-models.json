@@ -144,6 +144,11 @@
     "en": "Prior weights as given (1 when not given).",
     "ja": "与えられたとおりの事前重みです (指定がないときは 1)。"
   },
+  "GlmModel.rows#summary": {
+    "hash": "c287515cf204",
+    "en": "0-based indices of the input rows used (the rows without a missing value; rows of weight 0 included).",
+    "ja": ""
+  },
   "GlmModel.start#summary": {
     "hash": "3014797ccf81",
     "en": "Starting coefficients, if given.",

@@ -29,6 +29,56 @@
     "en": "Exact p-value. Default: exact when both samples have fewer than 50 values and there are no ties. The exact\ndistribution keeps 2 (m + 1) (floor((m + n + 1)^2 / 4) + 1) doubles and makes m + n passes over half of them;\nbeyond 2^24 doubles or 2^32 steps (m = n = 203, or m = 1 and n = 2047) it is a RangeError (R computes it however\nlarge).",
     "ja": "正確な p 値です。既定: 両方の標本の値が 50 未満で、同順位がないときに正確法を使います。正確な\n分布は 2 (m + 1) (floor((m + n + 1)^2 / 4) + 1) 個の倍精度数を保持し、m + n 回の走査でその半分を処理します。\n2^24 個の倍精度数、または 2^32 回の処理を超える場合 (m = n = 203、または m = 1 かつ n = 2047) は RangeError になります (R はどれだけ大きくても\n計算します)。"
   },
+  "AucOptions#summary": {
+    "hash": "b30f7f788e0c",
+    "en": "Options for {@link auc}.",
+    "ja": ""
+  },
+  "AucOptions.correct#summary": {
+    "hash": "8b209c50a4de",
+    "en": "Standardise the partial AUC as McClish (1989), so that 0.5 is the diagonal and 1 the perfect curve. Default\n`false`.",
+    "ja": ""
+  },
+  "AucOptions.focus#summary": {
+    "hash": "9b988d72e8ef",
+    "en": "Which axis the limits are on: `\"specificity\"` (default) or `\"sensitivity\"`; abbreviations are accepted.",
+    "ja": ""
+  },
+  "AucOptions.partialAuc#summary": {
+    "hash": "ee7571a6dab1",
+    "en": "The limits `[a, b]` (in either order, within [0, 1]) of the specificity or sensitivity: the partial AUC.",
+    "ja": ""
+  },
+  "AucResult#summary": {
+    "hash": "23d9a8e5054f",
+    "en": "Result of {@link auc}.",
+    "ja": ""
+  },
+  "AucResult.auc#summary": {
+    "hash": "3cc10a674f15",
+    "en": "The area (the full AUC, or the partial one, standardised with `correct`).",
+    "ja": ""
+  },
+  "AucResult.correct#summary": {
+    "hash": "35bc2067d7d1",
+    "en": "Whether the partial AUC is standardised.",
+    "ja": ""
+  },
+  "AucResult.focus#summary": {
+    "hash": "83df32fe322f",
+    "en": "The axis of the limits.",
+    "ja": ""
+  },
+  "AucResult.partialAuc#summary": {
+    "hash": "69214f34c450",
+    "en": "The limits `[high, low]` of the partial area (pROC's order), or `null` for the full AUC.",
+    "ja": ""
+  },
+  "AucResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
   "BartlettTestResult#summary": {
     "hash": "604369215035",
     "en": "Result of {@link bartlettTest}. Has no `alternative`, as R's `bartlett.test()` returns none.",
@@ -439,6 +489,166 @@
     "en": "Standardized residuals `(O - E) / sqrt(V)`, where `V` is\n`E (1 - row proportion) (1 - column proportion)` for a contingency table and\n`n p (1 - p)` for goodness of fit. For a contingency table the complements are the other rows' and columns'\nsums over the total, and the residual and `V` are computed in double-double.",
     "ja": "標準化残差 `(O - E) / sqrt(V)` です。ここで `V` は、分割表では\n`E (1 - row proportion) (1 - column proportion)`、\n適合度では `n p (1 - p)` です。分割表では、補数 (1 - 行の割合、1 - 列の割合) は、他の行の和と他の列の\n和を総和で割ったものです。残差と `V` は double-double で計算されます。"
   },
+  "CiAucOptions#summary": {
+    "hash": "671c9c8debd0",
+    "en": "Options for {@link ciAuc}.",
+    "ja": ""
+  },
+  "CiAucOptions.bootN#summary": {
+    "hash": "e439cc398d6e",
+    "en": "Number of bootstrap replicates. Default `2000`.",
+    "ja": ""
+  },
+  "CiAucOptions.bootStratified#summary": {
+    "hash": "f945f85cd9c2",
+    "en": "Resample the controls and the cases separately (default `true`), or all observations together.",
+    "ja": ""
+  },
+  "CiAucOptions.confLevel#summary": {
+    "hash": "42d1ccaf5699",
+    "en": "Confidence level, in [0, 1]. Default `0.95`.",
+    "ja": ""
+  },
+  "CiAucOptions.method#summary": {
+    "hash": "2b5e37d982fe",
+    "en": "`\"delong\"` (default) or `\"bootstrap\"`; abbreviations are accepted.",
+    "ja": ""
+  },
+  "CiAucResult#summary": {
+    "hash": "f983ea517c86",
+    "en": "Result of {@link ciAuc}.",
+    "ja": ""
+  },
+  "CiAucResult.confInt#summary": {
+    "hash": "3481879de797",
+    "en": "The interval `[lower, upper]`.",
+    "ja": ""
+  },
+  "CiAucResult.confLevel#summary": {
+    "hash": "b01d237f1ff5",
+    "en": "The confidence level.",
+    "ja": ""
+  },
+  "CiAucResult.estimate#summary": {
+    "hash": "409032704628",
+    "en": "The AUC: DeLong's θ (the mean of the placements), or the curve's AUC for the bootstrap.",
+    "ja": ""
+  },
+  "CiAucResult.method#summary": {
+    "hash": "1f16839a9091",
+    "en": "The method, in full.",
+    "ja": ""
+  },
+  "CiAucResult.variance#summary": {
+    "hash": "83e63ece459d",
+    "en": "DeLong's variance of the AUC (pROC's `var(roc)`), or the variance of the bootstrap AUCs.",
+    "ja": ""
+  },
+  "CiAucResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "CoordsOptions#summary": {
+    "hash": "80ad8b7d8c23",
+    "en": "Options for {@link coords}.",
+    "ja": ""
+  },
+  "CoordsOptions.bestMethod#summary": {
+    "hash": "4892c81f7810",
+    "en": "The criterion of `\"best\"`: `\"youden\"` (default; the maximum of se + r·sp) or `\"closest.topleft\"` (the minimum of\n(1 − se)² + r(1 − sp)²; `\"topleft\"` is the same); abbreviations are accepted.",
+    "ja": ""
+  },
+  "CoordsOptions.bestWeights#summary": {
+    "hash": "0ff58e35a0bb",
+    "en": "`[cost, prevalence]`: the weight r = (1 − prevalence)/(cost · prevalence) of the specificity in the criteria.\nThe cost must be positive and the prevalence in (0, 1). Default `[1, 0.5]` (r = 1).",
+    "ja": ""
+  },
+  "CoordsResult#summary": {
+    "hash": "409d44133075",
+    "en": "Result of {@link coords}: one array per column, one value per point (pROC's data frame with `ret = \"all\"`).",
+    "ja": ""
+  },
+  "CoordsResult.accuracy#summary": {
+    "hash": "6d37e721ea1a",
+    "en": "Accuracy (tp + tn)/(number of observations).",
+    "ja": ""
+  },
+  "CoordsResult.closestTopleft#summary": {
+    "hash": "b7a96df1fb0a",
+    "en": "The squared distance to the top left corner (1 − se)² + r(1 − sp)².",
+    "ja": ""
+  },
+  "CoordsResult.fn#summary": {
+    "hash": "398651877282",
+    "en": "False negatives.",
+    "ja": ""
+  },
+  "CoordsResult.fp#summary": {
+    "hash": "f5120e6da574",
+    "en": "False positives.",
+    "ja": ""
+  },
+  "CoordsResult.fpr#summary": {
+    "hash": "0b95bacef3d6",
+    "en": "False positive rate fp/(fp + tn).",
+    "ja": ""
+  },
+  "CoordsResult.lrNeg#summary": {
+    "hash": "a8da2a8d1f23",
+    "en": "Negative likelihood ratio (1 − se)/sp.",
+    "ja": ""
+  },
+  "CoordsResult.lrPos#summary": {
+    "hash": "21b4269c0531",
+    "en": "Positive likelihood ratio se/(1 − sp).",
+    "ja": ""
+  },
+  "CoordsResult.npv#summary": {
+    "hash": "2b72d565f64e",
+    "en": "Negative predictive value tn/(tn + fn) (`NaN` when no observation is negative).",
+    "ja": ""
+  },
+  "CoordsResult.ppv#summary": {
+    "hash": "4bea285d9e78",
+    "en": "Positive predictive value tp/(tp + fp) (`NaN` when no observation is positive).",
+    "ja": ""
+  },
+  "CoordsResult.sensitivity#summary": {
+    "hash": "afc5fb877679",
+    "en": "Sensitivity tp/(tp + fn).",
+    "ja": ""
+  },
+  "CoordsResult.specificity#summary": {
+    "hash": "81b20fe4ea7f",
+    "en": "Specificity tn/(tn + fp).",
+    "ja": ""
+  },
+  "CoordsResult.threshold#summary": {
+    "hash": "94c8e1597f19",
+    "en": "The threshold of each point.",
+    "ja": ""
+  },
+  "CoordsResult.tn#summary": {
+    "hash": "89e833cf24d4",
+    "en": "True negatives.",
+    "ja": ""
+  },
+  "CoordsResult.tp#summary": {
+    "hash": "e565abb33728",
+    "en": "True positives.",
+    "ja": ""
+  },
+  "CoordsResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "CoordsResult.youden#summary": {
+    "hash": "2a202942f736",
+    "en": "pROC's Youden criterion se + r·sp (not se + sp − 1).",
+    "ja": ""
+  },
   "CorOptions#summary": {
     "hash": "3ab51340226f",
     "en": "The base of {@link CorTestOptions}: the options {@link corTest} shares with the coefficient. The options of the\nexported `cor` (descriptive statistics) are {@link CovOptions}.",
@@ -513,6 +723,121 @@
     "hash": "684b9afd8b5f",
     "en": "Warnings, as nortest gives them (empty when there are none).",
     "ja": "nortest が出す警告です (警告がない場合は空)。"
+  },
+  "DiagnosticMeasure#summary": {
+    "hash": "958e5031830c",
+    "en": "An estimate with its confidence interval.",
+    "ja": ""
+  },
+  "DiagnosticMeasure.confInt#summary": {
+    "hash": "3481879de797",
+    "en": "The interval `[lower, upper]`.",
+    "ja": ""
+  },
+  "DiagnosticMeasure.estimate#summary": {
+    "hash": "890b654fcc31",
+    "en": "The estimate.",
+    "ja": ""
+  },
+  "DiagnosticTestsOptions#summary": {
+    "hash": "a619e767ea6f",
+    "en": "Options for {@link diagnosticTests}.",
+    "ja": ""
+  },
+  "DiagnosticTestsOptions.confLevel#summary": {
+    "hash": "76045c457fcf",
+    "en": "Confidence level, in (0, 1). Default `0.95`.",
+    "ja": ""
+  },
+  "DiagnosticTestsOptions.method#summary": {
+    "hash": "61fe3f63856e",
+    "en": "The interval of the proportions: `\"exact\"` (default; Clopper-Pearson), `\"wilson\"` or `\"jeffreys\"`;\nabbreviations are accepted.",
+    "ja": ""
+  },
+  "DiagnosticTestsOptions.prevalence#summary": {
+    "hash": "9a75d4f33e3c",
+    "en": "A prevalence in (0, 1) at which to give the predictive values as well (`ppvAtPrevalence`, `npvAtPrevalence`).",
+    "ja": ""
+  },
+  "DiagnosticTestsResult#summary": {
+    "hash": "2b05a9f522ad",
+    "en": "Result of {@link diagnosticTests}.",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.accuracy#summary": {
+    "hash": "dd8e562996cd",
+    "en": "Diagnostic accuracy (a + d)/total.",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.apparentPrevalence#summary": {
+    "hash": "da1c4452d70b",
+    "en": "Apparent prevalence (a + b)/total (epiR's \"ap\").",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.confLevel#summary": {
+    "hash": "b01d237f1ff5",
+    "en": "The confidence level.",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.diagnosticOR#summary": {
+    "hash": "30062baef46c",
+    "en": "Diagnostic odds ratio ad/(bc), with Woolf's interval.",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.lrNeg#summary": {
+    "hash": "7735577c33f7",
+    "en": "Negative likelihood ratio (1 − se)/sp, with the log interval.",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.lrPos#summary": {
+    "hash": "47f647ae43e1",
+    "en": "Positive likelihood ratio se/(1 − sp), with the log interval.",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.method#summary": {
+    "hash": "7e194d280e69",
+    "en": "The method of the proportions' intervals, in full.",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.npv#summary": {
+    "hash": "5ea1133338e4",
+    "en": "Negative predictive value d/(c + d).",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.npvAtPrevalence#summary": {
+    "hash": "ecc4b0b104f9",
+    "en": "The negative predictive value at the prevalence given in the options (absent without it).",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.ppv#summary": {
+    "hash": "8db8355b4bb6",
+    "en": "Positive predictive value a/(a + b).",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.ppvAtPrevalence#summary": {
+    "hash": "882a941c8456",
+    "en": "The positive predictive value at the prevalence given in the options (absent without it).",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.prevalence#summary": {
+    "hash": "25cb2fd78789",
+    "en": "True prevalence (a + c)/total (epiR's \"tp\").",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.sensitivity#summary": {
+    "hash": "b6a0d703fc22",
+    "en": "Sensitivity a/(a + c).",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.specificity#summary": {
+    "hash": "f1bb00008f33",
+    "en": "Specificity d/(b + d).",
+    "ja": ""
+  },
+  "DiagnosticTestsResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
   },
   "Factor#summary": {
     "hash": "9967160d547d",
@@ -1224,6 +1549,176 @@
     "en": "Names of `parameter`: `[\"num df\", \"denom df\"]`.",
     "ja": "`parameter` の名前: `[\"num df\", \"denom df\"]`。"
   },
+  "RocDirection#summary": {
+    "hash": "4b46de106346",
+    "en": "Direction of a ROC curve: `\"<\"` when the cases have the higher values (an observation is classified as a case\nwhen its value is at least the threshold), `\">\"` when they have the lower values.",
+    "ja": ""
+  },
+  "RocOptions#summary": {
+    "hash": "a298c9f434ef",
+    "en": "Options for {@link roc}.",
+    "ja": ""
+  },
+  "RocOptions.direction#summary": {
+    "hash": "d56ec3173f46",
+    "en": "`\"auto\"` (default): `\"<\"` when the median of the controls is at most the median of the cases, else `\">\"`\n(pROC's rule: the AUC can then be below 0.5). `\"<\"`: the cases have the higher values; `\">\"`: the lower values.",
+    "ja": ""
+  },
+  "RocOptions.levels#summary": {
+    "hash": "f19397fbad6b",
+    "en": "The control and the case level of the response, in this order (numbers, strings or booleans, compared as R\ncompares them as strings). Default: the first two of the response's sorted levels (numbers in numerical order,\nstrings by code point, `false` before `true`). Not with the `{ controls, cases }` form.",
+    "ja": ""
+  },
+  "RocOptions.naRm#summary": {
+    "hash": "2996530fc7db",
+    "en": "Drop the observations with a missing response or predictor (default `true`); `false` makes them an error.",
+    "ja": ""
+  },
+  "RocResponseValue#summary": {
+    "hash": "09ff43514902",
+    "en": "A value of a response of {@link roc}: a number, a string or a boolean; `null` (or `NaN`) is a missing value.",
+    "ja": ""
+  },
+  "RocResult#summary": {
+    "hash": "796738adb8e1",
+    "en": "A ROC curve: the result of {@link roc}, as pROC's `roc` object.",
+    "ja": ""
+  },
+  "RocResult.auc#summary": {
+    "hash": "529c30988783",
+    "en": "The area under the curve.",
+    "ja": ""
+  },
+  "RocResult.cases#summary": {
+    "hash": "fd086c69a68f",
+    "en": "The predictor values of the cases, in input order (missing values removed).",
+    "ja": ""
+  },
+  "RocResult.controls#summary": {
+    "hash": "28efa099b9a9",
+    "en": "The predictor values of the controls, in input order (missing values removed).",
+    "ja": ""
+  },
+  "RocResult.direction#summary": {
+    "hash": "25b36a0f5637",
+    "en": "The direction used (the one chosen by `\"auto\"`, or the one given).",
+    "ja": ""
+  },
+  "RocResult.levels#summary": {
+    "hash": "88773475718d",
+    "en": "The control and the case level, as strings (`[\"0\", \"1\"]` for the `{ controls, cases }` form).",
+    "ja": ""
+  },
+  "RocResult.sensitivities#summary": {
+    "hash": "055369a4b0aa",
+    "en": "The sensitivity at each threshold (from 1 down to 0).",
+    "ja": ""
+  },
+  "RocResult.specificities#summary": {
+    "hash": "34fe50ca8167",
+    "en": "The specificity at each threshold (from 0 up to 1).",
+    "ja": ""
+  },
+  "RocResult.thresholds#summary": {
+    "hash": "035fee91aabe",
+    "en": "The thresholds, from `-Infinity` up to `Infinity` for direction `\"<\"` and down from `Infinity` for `\">\"`: the\nmidpoints between consecutive distinct values of the predictor.",
+    "ja": ""
+  },
+  "RocResult.warnings#summary": {
+    "hash": "f41315c05954",
+    "en": "R's warnings, each once, in R's order (an empty array when there are none).",
+    "ja": ""
+  },
+  "RocSamples#summary": {
+    "hash": "49e441e2532e",
+    "en": "The two samples of {@link roc}'s `{ controls, cases }` form.",
+    "ja": ""
+  },
+  "RocSamples.cases#summary": {
+    "hash": "445ecea32c29",
+    "en": "The predictor values of the cases (`NaN` for a missing value).",
+    "ja": ""
+  },
+  "RocSamples.controls#summary": {
+    "hash": "a262f6746f7b",
+    "en": "The predictor values of the controls (`NaN` for a missing value).",
+    "ja": ""
+  },
+  "RocTestOptions#summary": {
+    "hash": "118635d1153b",
+    "en": "Options for {@link rocTest}.",
+    "ja": ""
+  },
+  "RocTestOptions.alternative#summary": {
+    "hash": "c83d5565567f",
+    "en": "The alternative for the difference AUC₁ − AUC₂. Default `\"two.sided\"`.",
+    "ja": ""
+  },
+  "RocTestOptions.bootN#summary": {
+    "hash": "e439cc398d6e",
+    "en": "Number of bootstrap replicates. Default `2000`.",
+    "ja": ""
+  },
+  "RocTestOptions.bootStratified#summary": {
+    "hash": "f945f85cd9c2",
+    "en": "Resample the controls and the cases separately (default `true`), or all observations together.",
+    "ja": ""
+  },
+  "RocTestOptions.confLevel#summary": {
+    "hash": "1125cd2def50",
+    "en": "Confidence level of the interval of the paired DeLong test, in [0, 1]. Default `0.95`.",
+    "ja": ""
+  },
+  "RocTestOptions.direction#summary": {
+    "hash": "3093945a3423",
+    "en": "With a response and two predictors: the direction of both curves (see {@link RocOptions}).",
+    "ja": ""
+  },
+  "RocTestOptions.levels#summary": {
+    "hash": "7780e7871a61",
+    "en": "With a response and two predictors: the control and case levels (see {@link RocOptions}).",
+    "ja": ""
+  },
+  "RocTestOptions.method#summary": {
+    "hash": "2b5e37d982fe",
+    "en": "`\"delong\"` (default) or `\"bootstrap\"`; abbreviations are accepted.",
+    "ja": ""
+  },
+  "RocTestOptions.paired#summary": {
+    "hash": "83225fa93193",
+    "en": "Whether the curves are paired (on the same observations). Default: paired when both come from the same response\n(as pROC). `true` for curves that are not is an error; `false` for curves that are gives pROC's warning.",
+    "ja": ""
+  },
+  "RocTestResult#summary": {
+    "hash": "0386a350f56d",
+    "en": "Result of {@link rocTest}.",
+    "ja": ""
+  },
+  "RocTestResult.bootStratified#summary": {
+    "hash": "c658903e52d5",
+    "en": "For the bootstrap: whether it was stratified.",
+    "ja": ""
+  },
+  "RocTestResult.estimate#summary": {
+    "hash": "9720ec1d9a74",
+    "en": "The AUCs of the two curves.",
+    "ja": ""
+  },
+  "RocTestResult.estimateNames#summary": {
+    "hash": "e849bf946fa1",
+    "en": "`\"AUC of roc1\"` and `\"AUC of roc2\"`.",
+    "ja": ""
+  },
+  "RocTestResult.roc1#summary": {
+    "hash": "440bc48ab6fb",
+    "en": "The two curves compared (rebuilt on the observations where neither predictor is missing, when paired).",
+    "ja": ""
+  },
+  "RocTestResult.roc2#summary": {
+    "hash": "53cc429f4012",
+    "en": "The second curve.",
+    "ja": ""
+  },
   "Sample#summary": {
     "hash": "f65b99382852",
     "en": "A sample: an array of numbers.",
@@ -1243,6 +1738,161 @@
     "hash": "0b5cad95c14f",
     "en": "Degrees of freedom: the number of categories left, less 1 (`parameterName` is `\"df\"`).",
     "ja": "自由度: 残ったカテゴリの数から 1 を引いた値です (`parameterName` は `\"df\"`)。"
+  },
+  "TTOSTOptions#summary": {
+    "hash": "e47bcd0362e9",
+    "en": "Options for {@link tTOST} and {@link tsumTOST}. The equivalence bounds are required: `eqb`, or `lowEqbound` and\n`highEqbound`. Unambiguous abbreviations of the choices are accepted.",
+    "ja": ""
+  },
+  "TTOSTOptions.alpha#summary": {
+    "hash": "b8841684b6f7",
+    "en": "The level of each one-sided test, in (0, 0.5); the intervals are 1 − 2 alpha intervals. Default `0.05`.",
+    "ja": ""
+  },
+  "TTOSTOptions.biasCorrection#summary": {
+    "hash": "c1fecbb8d326",
+    "en": "Hedges' small-sample correction J of the standardised difference (g instead of d). Default `true`.",
+    "ja": ""
+  },
+  "TTOSTOptions.eqb#summary": {
+    "hash": "0ae4f54101b1",
+    "en": "The bounds: a number `e` for `(-|e|, |e|)`, or two numbers `[low, high]` (in either order).",
+    "ja": ""
+  },
+  "TTOSTOptions.eqboundType#summary": {
+    "hash": "f973ada09cda",
+    "en": "`\"raw\"` (default): the bounds are in the units of the data; `\"SMD\"`: in units of the standardised difference.",
+    "ja": ""
+  },
+  "TTOSTOptions.glass#summary": {
+    "hash": "48ec37b390a3",
+    "en": "`\"glass1\"` or `\"glass2\"`: Glass's delta, standardised by the SD of the first or second sample.",
+    "ja": ""
+  },
+  "TTOSTOptions.highEqbound#summary": {
+    "hash": "65011dec8c7b",
+    "en": "The upper bound (with `lowEqbound`, where `eqb` is not given).",
+    "ja": ""
+  },
+  "TTOSTOptions.hypothesis#summary": {
+    "hash": "626c1ad0dee4",
+    "en": "`\"EQU\"` (default): equivalence, the effect lies inside the bounds; `\"MET\"`: minimal effect, outside them.",
+    "ja": ""
+  },
+  "TTOSTOptions.lowEqbound#summary": {
+    "hash": "724ccf79912f",
+    "en": "The lower bound (with `highEqbound`, where `eqb` is not given).",
+    "ja": ""
+  },
+  "TTOSTOptions.mu#summary": {
+    "hash": "4007b897fdd6",
+    "en": "The difference (or mean) of the two-sided t test (the `tTest` row). Default `0`.",
+    "ja": ""
+  },
+  "TTOSTOptions.paired#summary": {
+    "hash": "82ae7522d2c2",
+    "en": "Paired samples. Default `false`.",
+    "ja": ""
+  },
+  "TTOSTOptions.rmCorrection#summary": {
+    "hash": "cb2956aef540",
+    "en": "Paired samples: standardise by the SD of the differences over sqrt(2(1 − r)) (d_rm). Default `false`.",
+    "ja": ""
+  },
+  "TTOSTOptions.smdCi#summary": {
+    "hash": "0b9236c850fe",
+    "en": "Interval of the standardised difference: `\"nct\"` (default), `\"goulet\"`, `\"t\"` or `\"z\"`.",
+    "ja": ""
+  },
+  "TTOSTOptions.varEqual#summary": {
+    "hash": "246d60c413cf",
+    "en": "Two samples: pooled variance (Student's t) instead of Welch's. Default `false`.",
+    "ja": ""
+  },
+  "TTOSTResult#summary": {
+    "hash": "490bdf960b53",
+    "en": "Result of {@link tTOST} and {@link tsumTOST}.",
+    "ja": ""
+  },
+  "TTOSTResult.bounds#summary": {
+    "hash": "4d060699c3d0",
+    "en": "The bounds `[low, high]` in the units of the data (`raw`) and of the standardised difference (`smd`).",
+    "ja": ""
+  },
+  "TTOSTResult.confLevel#summary": {
+    "hash": "2e608421c7db",
+    "en": "`1 - 2 alpha`.",
+    "ja": ""
+  },
+  "TTOSTResult.hypothesis#summary": {
+    "hash": "f50305eb87b5",
+    "en": "`\"EQU\"` or `\"MET\"`.",
+    "ja": ""
+  },
+  "TTOSTResult.lower#summary": {
+    "hash": "66bcca501442",
+    "en": "The test of the lower bound: alternative \"greater\" (EQU) or \"less\" (MET).",
+    "ja": ""
+  },
+  "TTOSTResult.method#summary": {
+    "hash": "97f0a5ff1833",
+    "en": "The t test's method (`\"Welch Two Sample t-test\"`, `\" Two Sample t-test\"`, `\"Paired t-test\"`, `\"One Sample t-test\"`).",
+    "ja": ""
+  },
+  "TTOSTResult.pValue#summary": {
+    "hash": "ff5626c196bb",
+    "en": "The p-value of the TOST: the larger (EQU) or the smaller (MET) of the p-values of `lower` and `upper`.",
+    "ja": ""
+  },
+  "TTOSTResult.raw#summary": {
+    "hash": "db39eea75b6a",
+    "en": "The raw effect, the difference minus `mu`: estimate, standard error and 1 − 2 alpha interval.",
+    "ja": ""
+  },
+  "TTOSTResult.smd#summary": {
+    "hash": "a9214f3f50b0",
+    "en": "The standardised mean difference: its label (`\"Hedges's g(av)\"`, `\"Cohen's d\"`, `\"Hedges's g(z)\"`, `\"Glass's\ndelta(g)\"`, ...), estimate, standard error, 1 − 2 alpha interval, the degrees of freedom of its interval and the\nbias correction J (1 without it).",
+    "ja": ""
+  },
+  "TTOSTResult.tTest#summary": {
+    "hash": "a33d34cc8992",
+    "en": "The two-sided t test of the difference against `mu` (TOSTER's \"t-test\" row).",
+    "ja": ""
+  },
+  "TTOSTResult.upper#summary": {
+    "hash": "991cfefff2ae",
+    "en": "The test of the upper bound: alternative \"less\" (EQU) or \"greater\" (MET).",
+    "ja": ""
+  },
+  "TTOSTResult.warnings#summary": {
+    "hash": "18c36b67225e",
+    "en": "TOSTER's notes, as warnings.",
+    "ja": ""
+  },
+  "TTOSTTest#summary": {
+    "hash": "7a707bd2816e",
+    "en": "One t test of {@link TTOSTResult}.",
+    "ja": ""
+  },
+  "TTOSTTest.df#summary": {
+    "hash": "16694fec65bc",
+    "en": "Degrees of freedom.",
+    "ja": ""
+  },
+  "TTOSTTest.pValue#summary": {
+    "hash": "ffd507b5dc11",
+    "en": "p-value.",
+    "ja": ""
+  },
+  "TTOSTTest.se#summary": {
+    "hash": "7d3d4b29b7d4",
+    "en": "Standard error of the difference (or mean).",
+    "ja": ""
+  },
+  "TTOSTTest.t#summary": {
+    "hash": "0bf3c2c65b4e",
+    "en": "The t statistic.",
+    "ja": ""
   },
   "TTestOptions#summary": {
     "hash": "78b56edb8ac2",
@@ -1408,6 +2058,46 @@
     "hash": "8ef3f0a7d534",
     "en": "Warnings (none: input without a defined result is an error).",
     "ja": "警告はありません (常に空です。定義された結果が得られない入力は、警告ではなくエラーになります)。"
+  },
+  "TsumTOSTStatistics#summary": {
+    "hash": "e471295d2b82",
+    "en": "Summary statistics for {@link tsumTOST}. One sample: `m1`, `sd1`, `n1`; two samples: also `m2`, `sd2`, `n2`;\npaired samples (option `paired`): also `r12`, the correlation of the pairs.",
+    "ja": ""
+  },
+  "TsumTOSTStatistics.m1#summary": {
+    "hash": "0d5ba99328e3",
+    "en": "Mean of the first sample.",
+    "ja": ""
+  },
+  "TsumTOSTStatistics.m2#summary": {
+    "hash": "d36c41a07364",
+    "en": "Mean of the second sample.",
+    "ja": ""
+  },
+  "TsumTOSTStatistics.n1#summary": {
+    "hash": "a74c0ba6dc60",
+    "en": "Size of the first sample.",
+    "ja": ""
+  },
+  "TsumTOSTStatistics.n2#summary": {
+    "hash": "52359659ebad",
+    "en": "Size of the second sample.",
+    "ja": ""
+  },
+  "TsumTOSTStatistics.r12#summary": {
+    "hash": "2e7ffa6450a0",
+    "en": "Paired samples: the correlation of the pairs.",
+    "ja": ""
+  },
+  "TsumTOSTStatistics.sd1#summary": {
+    "hash": "3d39160c1d95",
+    "en": "Standard deviation of the first sample.",
+    "ja": ""
+  },
+  "TsumTOSTStatistics.sd2#summary": {
+    "hash": "fa4f1fff5c17",
+    "en": "Standard deviation of the second sample.",
+    "ja": ""
   },
   "VarTestOptions#summary": {
     "hash": "80eebacb1521",
@@ -1588,6 +2278,26 @@
     "hash": "3bd254a06013",
     "en": "Ansari-Bradley test from a formula and a data frame. As R's `ansari.test(formula, data)`: `\"y ~ g\"`\ncompares the two levels of `g` (the first level is `x`). Only the variables of the formula count: the rows where\none of them is missing are dropped.",
     "ja": "式とデータフレームから行う Ansari-Bradley 検定です。R の `ansari.test(formula, data)` と同じく、`\"y ~ g\"` は\n`g` の 2 つの水準を比較します (最初の水準が `x`)。式の変数だけが対象になり、\nそのどちらかが欠測している行は除かれます。"
+  },
+  "auc#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "auc#@param curve": {
+    "hash": "74c7a1d9b158",
+    "en": "A curve from {@link roc}.",
+    "ja": ""
+  },
+  "auc#@param options": {
+    "hash": "3e6227a6e0f7",
+    "en": "See {@link AucOptions}.",
+    "ja": ""
+  },
+  "auc#summary": {
+    "hash": "6930c818ff03",
+    "en": "The area under a ROC curve, or the partial area between two specificities or sensitivities. Equivalent to\n`pROC::auc()` in R.\n\nThe partial area sums the trapezoids of the points within the limits and interpolates the curve linearly at the\nlimits. With `correct`, it is standardised as McClish (1989): (1 + (A − min)/(max − min))/2, with min the area under\nthe diagonal and max that of the perfect curve between the limits, computed exactly from the counts of the points and\nrounded once (a curve on the diagonal gives 0.5); below the diagonal that is undefined, an error (pROC: NA with a\nwarning). Limits outside [0, 1] are an error (pROC: NA).",
+    "ja": ""
   },
   "bartlettTest(0)#@example": {
     "hash": "8239c4c22379",
@@ -1899,6 +2609,26 @@
     "en": "Pearson's chi-squared test. Equivalent to R's `chisq.test()`.\n\nGiven an array of counts, tests goodness of fit to `options.p`. Given a matrix (an array\nof rows), tests independence in the contingency table; a matrix with a single row or\ncolumn is treated as a goodness-of-fit test, as in R. Yates' correction is applied to\n2 x 2 tables by default; as in R, the amount subtracted is `min(0.5, min |O - E|)` over\nall cells. Sums are computed in extended precision, like R.\n\nWith `simulatePValue: true` the p-value is computed from `B` simulated samples (multinomial for goodness of fit,\nrandom tables with the observed margins otherwise), drawn from the random stream of {@link setSeed} exactly as in\nR, so `setSeed(s)` before the call gives R's p-value after `set.seed(s)`.\n\nGiven two factor vectors (arrays of labels of the same length), tests independence in their contingency table, as\nR's `chisq.test(x, y)`; pairs with a missing label are dropped and the levels are sorted by code point.\n\nWith `nMinus1: true` (not in R) the statistic is Campbell's (2007) 'N - 1' chi-squared, Pearson's statistic without\ncontinuity correction times `(N - 1) / N`, for 2 x 2 and larger tables with a total N above 1. The result also has\nthe Freeman-Tukey deviates `ftResiduals` (not in R).\n\nAs R, `warnings` has \"Chi-squared approximation may be incorrect\" where an expected count is below 5 (unless the\np-value is simulated), and \"cannot compute simulated p-value with zero marginals\" where `simulatePValue` is asked for\na table with a zero row or column sum (the ordinary test is done).",
     "ja": "Pearson のカイ二乗検定です。R の `chisq.test()` と同等です。\n\n度数の配列を与えた場合は、`options.p` に対する適合度を検定します。行列 (行の配列) を与えた場合は、分割表の\n独立性を検定します。1 行または 1 列だけの行列は、R と同じく適合度検定として扱われます。Yates の補正は\n既定で 2 x 2 表に適用されます。\nR と同じく、差し引く量は全セルにわたる `min(0.5, min |O - E|)` です。\n和は R と同じく拡張精度で計算されます。\n\n`simulatePValue: true` のとき、p 値は `B` 個のシミュレーション標本から計算されます (適合度では多項分布、それ以外では観測された周辺和をもつ乱数表から)。\n乱数は {@link setSeed} の乱数ストリームから、R とまったく同じ方法で抽出されます。\nそのため、呼び出しの前に `setSeed(s)` とすると、R で `set.seed(s)` とした後と同じ p 値になります。\n\n同じ長さの 2 つの因子ベクトル (ラベルの配列) を与えた場合は、R の `chisq.test(x, y)` と同じく、その分割表の独立性を検定します。\n欠測のラベルを含む組は除かれ、水準はコードポイント順に並べられます。\n\n`nMinus1: true` (R にはありません) のとき、統計量は Campbell (2007) の 'N - 1' カイ二乗です。これは連続性補正なしの Pearson 統計量に `(N - 1) / N` を\n掛けたもので、2 x 2 以上の表で合計 N が 1 より大きい場合に使われます。結果には Freeman-Tukey の偏差 `ftResiduals` も含まれます\n(R にはありません)。\n\nR と同じく、期待度数が 5 未満のとき、`warnings` に \"Chi-squared approximation may be incorrect\" が入ります\n(p 値をシミュレートした場合を除きます)。`simulatePValue` を、行和または列和が 0 の表に対して指定した場合は、\n\"cannot compute simulated p-value with zero marginals\" が入ります (通常の検定が行われます)。"
   },
+  "ciAuc#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "ciAuc#@param curve": {
+    "hash": "74c7a1d9b158",
+    "en": "A curve from {@link roc}.",
+    "ja": ""
+  },
+  "ciAuc#@param options": {
+    "hash": "fa5eedf5b661",
+    "en": "See {@link CiAucOptions}.",
+    "ja": ""
+  },
+  "ciAuc#summary": {
+    "hash": "e25bd670a155",
+    "en": "Confidence interval of the area under a ROC curve, by DeLong's method or the bootstrap. Equivalent to\n`pROC::ci.auc()` in R.\n\nDeLong's interval is θ ∓ z√S (DeLong, DeLong and Clarke-Pearson 1988), clipped to [0, 1]; it needs at least two\ncontrols and two cases (pROC: NA). The bootstrap draws R's random stream as pROC does (`setSeed` gives R's values):\n`bootN` resamples of the controls then the cases (stratified, at least two of each) or of all observations, and\nthe type-7 quantiles α/2 and 1 − α/2 of their AUCs. A non-stratified resample without cases or without controls is\ndropped with pROC's warning (pROC stops at one without controls).",
+    "ja": ""
+  },
   "cochranQTest#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -1913,6 +2643,31 @@
     "hash": "e67e69450929",
     "en": "Cochran's Q test for binary responses in an unreplicated complete block design. Equivalent to\n`DescTools::CochranQTest()` in R. Takes a matrix: the Friedman test of the 0/1 matrix (with ties), reported as Q.",
     "ja": "2 値応答の、反復のない完全ブロック計画に対する Cochran の Q 検定です。R の `DescTools::CochranQTest()` と同等です。行列を受け取ります。0/1 の行列に対して\n(同順位を考慮して) Friedman 検定を行い、結果を Q として報告します。"
+  },
+  "coords#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "coords#@param curve": {
+    "hash": "74c7a1d9b158",
+    "en": "A curve from {@link roc}.",
+    "ja": ""
+  },
+  "coords#@param options": {
+    "hash": "3bc08870b53a",
+    "en": "See {@link CoordsOptions}.",
+    "ja": ""
+  },
+  "coords#@param x": {
+    "hash": "03294dbd98cf",
+    "en": "`\"all\"` (default: every point of the curve), `\"best\"`, or thresholds (a number or an array).",
+    "ja": ""
+  },
+  "coords#summary": {
+    "hash": "34dacea6e4c4",
+    "en": "Coordinates of a ROC curve: sensitivity, specificity, the counts, predictive values, likelihood ratios and the\ncriteria of the best threshold, at every point of the curve, at the best threshold(s) or at given thresholds.\nEquivalent to `pROC::coords(roc, x, ret = \"all\")` in R.\n\nEvery column is computed from the integer counts of each threshold and rounded once (pROC rebuilds the counts from\nthe proportions, so that they are not always integers, and loses digits in 1 − specificity). The rows of `\"best\"`\nare all the points whose criterion equals the best one exactly (pROC compares rounded sums and can lose ties). At a\ngiven threshold, an observation equal to it counts as positive.",
+    "ja": ""
   },
   "corTest(0)#@example": {
     "hash": "75da4426261f",
@@ -1973,6 +2728,26 @@
     "hash": "804f2f7b9108",
     "en": "Cramer-von Mises test for normality. Equivalent to `nortest::cvm.test()` in R. `NaN` values are dropped; at least 8\nvalues are needed.",
     "ja": "正規性の Cramer-von Mises 検定です。R の `nortest::cvm.test()` と同等です。`NaN` の値は除かれます。少なくとも 8 個の値が\n必要です。"
+  },
+  "diagnosticTests#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "diagnosticTests#@param options": {
+    "hash": "a8afe80c9157",
+    "en": "See {@link DiagnosticTestsOptions}.",
+    "ja": ""
+  },
+  "diagnosticTests#@param table": {
+    "hash": "df65f45180e6",
+    "en": "The 2 × 2 table of counts (an array of two rows).",
+    "ja": ""
+  },
+  "diagnosticTests#summary": {
+    "hash": "62b5d4923639",
+    "en": "Sensitivity, specificity, predictive values, likelihood ratios, accuracy, the diagnostic odds ratio and the true and\napparent prevalence of a binary test, each with a confidence interval, from its 2 × 2 table. Equivalent to\n`epiR::epi.tests()` in R.\n\nThe table is epiR's: rows test positive and negative, columns disease present and absent, `[[a, b], [c, d]]` with\na the true positives, b the false positives, c the false negatives and d the true negatives. The proportions'\nintervals are those of {@link binomCI}: `\"exact\"` is Clopper-Pearson's, computed directly (epiR computes it as 1 −\nqbeta(...), which loses digits for small limits); `\"jeffreys\"` gives 0 and 1 at the ends, as binomCI (epiR the\nbeta quantiles). The likelihood ratios have the log interval (Simel, Samsa and Matchar 1991) and the odds ratio\nWoolf's. Zero cells give infinite ratios and NaN limits, as epiR; a zero row or column total is an error.",
+    "ja": ""
   },
   "fisherTest#@example": {
     "hash": "f2167be5edf2",
@@ -2544,6 +3319,116 @@
     "en": "Quade test from a formula and a data frame. As R's `quade.test(formula, data)`: `\"y ~ w | b\"` with the\ngroups `w` and the blocks `b`. The rows where `y`, `w` or `b` is missing are dropped first; then every combination\nof group and block must occur exactly once (else the error `not an unreplicated complete block design`).",
     "ja": "式とデータフレームから行う Quade の検定です。R の `quade.test(formula, data)` と同じく、`\"y ~ w | b\"` では、群 `w` とブロック `b` を使います。\nまず、`y`、`w`、`b` のどれかが欠測している行を除きます。\nその後、群とブロックの各組み合わせがちょうど 1 回ずつ現れる必要があります (そうでない場合は、エラー `not an unreplicated complete block design` になります)。"
   },
+  "roc(0)#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "roc(0)#@param options": {
+    "hash": "b3825111bee5",
+    "en": "See {@link RocOptions}.",
+    "ja": ""
+  },
+  "roc(0)#@param predictor": {
+    "hash": "eb3efc9f3bbe",
+    "en": "The predictor, numeric, of the same length (`NaN` for a missing value).",
+    "ja": ""
+  },
+  "roc(0)#@param response": {
+    "hash": "8b887aa6f12f",
+    "en": "The outcome: numbers, strings or booleans (`null` or `NaN` for a missing value).",
+    "ja": ""
+  },
+  "roc(0)#summary": {
+    "hash": "abb45a479d74",
+    "en": "The ROC curve of a numeric predictor of a binary response. Equivalent to `pROC::roc()` in R.\n\nThe first level of the response is the control, the second the case (with more than two levels the first two are\nused, with pROC's warning). The thresholds are the midpoints between consecutive distinct values, with `-Infinity`\nand `Infinity` at the ends, and the points are stored as pROC stores them, by increasing specificity. The AUC is\ncomputed from the counts as U/(mn) and rounded once. Infinite predictor values are an error (pROC returns NaN with\na warning), as are an empty class and, with `naRm: false`, missing values (pROC returns NA).",
+    "ja": ""
+  },
+  "roc(1)#@param data": {
+    "hash": "32d65cbd3954",
+    "en": "The data frame: an object of columns (`null` or `NaN` for a missing value).",
+    "ja": ""
+  },
+  "roc(1)#@param formula": {
+    "hash": "67d52c88dce8",
+    "en": "`\"response ~ predictor\"`.",
+    "ja": ""
+  },
+  "roc(1)#@param options": {
+    "hash": "b3825111bee5",
+    "en": "See {@link RocOptions}.",
+    "ja": ""
+  },
+  "roc(1)#summary": {
+    "hash": "41fed773452a",
+    "en": "The ROC curve from a formula `response ~ predictor` and a data frame; the rows where either is missing are dropped.",
+    "ja": ""
+  },
+  "roc(2)#@param options": {
+    "hash": "76bf9a3b9d72",
+    "en": "See {@link RocOptions} (without `levels`).",
+    "ja": ""
+  },
+  "roc(2)#@param samples": {
+    "hash": "6bfd97a84224",
+    "en": "The two samples.",
+    "ja": ""
+  },
+  "roc(2)#summary": {
+    "hash": "6e10357b82c1",
+    "en": "The ROC curve from the predictor values of the controls and of the cases (pROC's `roc(controls =, cases =)`).",
+    "ja": ""
+  },
+  "rocTest(0)#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "rocTest(0)#@param options": {
+    "hash": "1cd76a84c12f",
+    "en": "See {@link RocTestOptions}.",
+    "ja": ""
+  },
+  "rocTest(0)#@param roc1": {
+    "hash": "20c4e87053f7",
+    "en": "The first curve, from {@link roc}.",
+    "ja": ""
+  },
+  "rocTest(0)#@param roc2": {
+    "hash": "53cc429f4012",
+    "en": "The second curve.",
+    "ja": ""
+  },
+  "rocTest(0)#summary": {
+    "hash": "f6cf2b3d34e9",
+    "en": "Tests the difference of the areas under two ROC curves, by DeLong's method or the bootstrap. Equivalent to\n`pROC::roc.test()` in R.\n\nCurves from the same response are paired, as pROC pairs them (identical responses; where a predictor is missing,\nboth curves are rebuilt on the observations where neither is). Paired DeLong: Z = (θ₁ − θ₂)/σ with σ² from the\nplacements' covariances (DeLong, DeLong and Clarke-Pearson 1988), Z = 0 when both are 0, and the interval θ₁ − θ₂ ∓\nzσ. Unpaired DeLong: D = (θ₁ − θ₂)/√(S₁ + S₂) on pROC's Welch-Satterthwaite degrees of freedom (when both variances\nare 0, D = 0 with p-value 1 if the AUCs are equal, and the degrees of freedom are NaN). Bootstrap: D = (AUC₁ −\nAUC₂)/sd of the resampled differences, with R's random stream. DeLong's method needs at least two controls and two\ncases in each curve, as does the stratified bootstrap. The method is DeLong's unless given (pROC switches to the\nbootstrap silently for curves of different directions; here DeLong's test gives pROC's warning).",
+    "ja": ""
+  },
+  "rocTest(1)#@param options": {
+    "hash": "1cd76a84c12f",
+    "en": "See {@link RocTestOptions}.",
+    "ja": ""
+  },
+  "rocTest(1)#@param predictor1": {
+    "hash": "7180693cdc8b",
+    "en": "The first predictor.",
+    "ja": ""
+  },
+  "rocTest(1)#@param predictor2": {
+    "hash": "aa63f9eeb1d7",
+    "en": "The second predictor.",
+    "ja": ""
+  },
+  "rocTest(1)#@param response": {
+    "hash": "a2615336da0d",
+    "en": "The outcome (see {@link roc}).",
+    "ja": ""
+  },
+  "rocTest(1)#summary": {
+    "hash": "e785930b9a81",
+    "en": "Tests the difference of the areas under the ROC curves of two predictors of the same response (paired);\nobservations with a missing response or predictor are dropped from both.",
+    "ja": ""
+  },
   "setWarningHandler#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -2613,6 +3498,41 @@
     "hash": "372fc48e0fbe",
     "en": "Stuart-Maxwell test of marginal homogeneity of a square table (paired classifications into the same categories).\nEquivalent to `DescTools::StuartMaxwellTest()` in R. The degrees of freedom differ where categories are removed.\n\nCategories with no counts off the diagonal (in their row and column) are removed. With the K categories left, `d`\nthe differences of the row and column sums of the first K - 1 and `S` their covariance (`S_ii = r_i + c_i - 2 x_ii`,\n`S_ij = -(x_ij + x_ji)`), the statistic `d' S^-1 d` is chi-squared with K - 1 degrees of freedom (DescTools keeps the\noriginal number of categories less 1). For a 2 x 2 table it is McNemar's statistic without correction.",
     "ja": "正方表について周辺の同質性を検定する Stuart-Maxwell 検定です (同じカテゴリへの対応のある分類)。\nR の `DescTools::StuartMaxwellTest()` と同等です。カテゴリが除かれる場合は、自由度が異なります。\n\nその行と列に対角以外の度数がないカテゴリは除かれます。\n残った K 個のカテゴリについて、`d` は最初の K - 1 個の行和と列和の差、`S` はその共分散です (`S_ii = r_i + c_i - 2 x_ii`、`S_ij = -(x_ij + x_ji)`)。\n統計量 `d' S^-1 d` は、自由度 K - 1 のカイ二乗分布に従います (DescTools は、自由度を元のカテゴリ数から 1 を引いた値のままにします)。\n2 x 2 表の場合、これは補正なしの McNemar の統計量です。"
+  },
+  "tTOST#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "tTOST#@param options": {
+    "hash": "87841e65d2df",
+    "en": "See {@link TTOSTOptions}; the bounds are required.",
+    "ja": ""
+  },
+  "tTOST#@param x": {
+    "hash": "a3fad0c745c2",
+    "en": "Sample (NaN values are dropped; for paired samples, the pairs with a NaN).",
+    "ja": ""
+  },
+  "tTOST#@param y": {
+    "hash": "fe248a4ae4ef",
+    "en": "Second sample (omit for one sample).",
+    "ja": ""
+  },
+  "tTOST#@returns": {
+    "hash": "63ee213b58c7",
+    "en": "See {@link TTOSTResult}.",
+    "ja": ""
+  },
+  "tTOST#@throws": {
+    "hash": "073bc4c73e15",
+    "en": "TypeError without bounds, for options of the wrong type, or for samples that are not arrays of numbers\n  (`null` or strings in them); RangeError for infinite values, alpha outside (0, 0.5), bounds that are not finite or\n  in the wrong order, an unknown choice, or fewer than 2 observations in a sample; Error where the t test has too\n  few observations or the data are essentially constant.",
+    "ja": ""
+  },
+  "tTOST#summary": {
+    "hash": "427305fd7bdc",
+    "en": "Two one-sided t tests (TOST) of equivalence, or minimal-effect tests, for one sample, two samples or paired samples,\nwith the standardised mean difference and its interval. Equivalent to `TOSTER::t_TOST()` in R.\n\nWith `hypothesis: \"EQU\"` (the default) equivalence, low < difference < high, is shown at level alpha when both the\ntest of the lower bound (alternative \"greater\") and that of the upper bound (alternative \"less\") reject; the\np-value is the larger of the two. With `\"MET\"` the alternatives are reversed and the p-value is the smaller. The\neffect is the difference minus `mu`: mean(x) - mean(y) - mu (two samples, Welch's or pooled), the mean of x - y\nminus mu (paired) or the mean of x minus mu (one sample). The bounds, the raw estimate and interval and the\nstandardised difference all refer to that effect. The intervals are 1 - 2 alpha intervals (90% for the default alpha\n0.05).\n\nThe standardised difference is Hedges' g (Cohen's d without `biasCorrection`) with the average SD\n`sqrt((s1² + s2²)/2)` for Welch's test, the pooled SD with `varEqual`, the SD of the differences for paired samples\n(d_z, or d_rm with `rmCorrection`), the SD of one sample with `glass`, or the SD for one sample. Its interval is from\nthe noncentral t (`\"nct\"`, as exact roots; TOSTER's optimiser is about 1e-9 accurate), Goulet-Pelletier and\nCousineau's (`\"goulet\"`), or `g -+ q se` with a t or normal quantile (`\"t\"`, `\"z\"`).\n\nDifferences from TOSTER (decisions 20-23 of oracle/methodcomparison-behaviour.md): `mu` is subtracted everywhere\n(TOSTER tests the bounds on the difference itself, gives the raw interval of the difference, the two-sample SMD of\nthe difference plus mu and the paired SMD without mu); the one-sample `\"t\"` and `\"z\"` intervals of the standardised\ndifference are 1 - 2 alpha intervals (TOSTER's 1 - alpha); TOSTER's notes are warnings; alpha must be in (0, 0.5).\nWith `mu` 0 only the last three apply.\n\nWith 2 observations (df 1) Hedges' correction J(1) is 0: the bias-corrected standardised difference is 0 (and its\n`\"nct\"` interval), and some of its standard errors and intervals are NaN or infinite, as TOSTER's formulas give.",
+    "ja": ""
   },
   "tTest(0)#@example": {
     "hash": "0c5f2f033950",
@@ -2703,6 +3623,36 @@
     "hash": "527ddf4e6de7",
     "en": "Two one-sided t tests (TOST) of equivalence of two means. Equivalent to `equivalence::tost()` in R.\n\nEquivalence, |mean(x) - mean(y)| < epsilon, is shown at level alpha = 1 - confLevel when both one-sided t tests of\nH01: d <= -epsilon and H02: d >= epsilon reject; the p-value is the larger of their p-values and `confInt` the dual\n1 - 2 alpha interval (90% for the default `confLevel` 0.95). The difference, standard error and degrees of freedom are\nthose of {@link tTest} (Welch's by default, pooled with `varEqual`, paired with `paired`), with tTest's checks and\nerrors. Used on 0/1 data it compares two proportions with a t approximation; for counts\n{@link binomDiffEquivalenceTest} is the better test.\n\nUnlike R, a level of 0.5 or less (`confLevel`) or of 0.5 or more (`alpha`) is an error (the interval would be empty),\nand so is a margin that is not positive.",
     "ja": "2 つの片側 t 検定 (TOST) による、2 つの平均の同等性の検定です。R の `equivalence::tost()` と同等です。\n\n同等性、つまり |mean(x) - mean(y)| < epsilon は、H01: d <= -epsilon と H02: d >= epsilon の両方の片側 t 検定が棄却されるとき、水準 alpha = 1 - confLevel で示されます。\np 値はその 2 つの p 値のうち大きい方で、`confInt` は双対の 1 - 2 alpha の区間です (既定の `confLevel` 0.95 では 90%)。\n差、標準誤差、自由度は {@link tTest} のもの (既定では Welch、`varEqual` では併合、`paired` では対応のある検定) で、tTest と同じ確認とエラーが適用されます。\n0/1 のデータに用いる場合は、\nt 近似によって 2 つの比率を比べます。\n度数の場合は {@link binomDiffEquivalenceTest} のほうがよい検定です。\n\nR と異なり、水準が 0.5 以下 (`confLevel`) または 0.5 以上 (`alpha`) の場合は、エラーになります (区間が空になるため)。\n正でない同等性マージンも、同じくエラーです。"
+  },
+  "tsumTOST#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "tsumTOST#@param options": {
+    "hash": "87841e65d2df",
+    "en": "See {@link TTOSTOptions}; the bounds are required.",
+    "ja": ""
+  },
+  "tsumTOST#@param stats": {
+    "hash": "9f362e569ae5",
+    "en": "See {@link TsumTOSTStatistics}.",
+    "ja": ""
+  },
+  "tsumTOST#@returns": {
+    "hash": "63ee213b58c7",
+    "en": "See {@link TTOSTResult}.",
+    "ja": ""
+  },
+  "tsumTOST#@throws": {
+    "hash": "67544e88217f",
+    "en": "RangeError for sizes below 2 (or not integers), standard deviations that are not positive, a correlation\n  outside (-1, 1), missing statistics of the second sample, or the errors of {@link tTOST}'s options.",
+    "ja": ""
+  },
+  "tsumTOST#summary": {
+    "hash": "ca47139a8b78",
+    "en": "{@link tTOST} from summary statistics: means, standard deviations, sample sizes and, for paired samples, the\ncorrelation of the pairs. Equivalent to `TOSTER::tsum_TOST()` in R.\n\nThe tests and effect sizes are those of tTOST for data with these summaries (Welch's or pooled for two samples;\npaired from the SD of the differences sqrt(sd1² + sd2² - 2 r12 sd1 sd2)). The one-sided p-values are upper tails\nwhere TOSTER takes `1 - pt(t, df)`, so small ones keep their digits. For paired samples with n1 != n2 the smaller\nis used, with TOSTER's warning `Unequal number of pairs; using smallest n`.",
+    "ja": ""
   },
   "varTest(0)#@example": {
     "hash": "7ffa69c495d9",

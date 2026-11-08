@@ -224,6 +224,136 @@
     "en": "One array per row; NaN where R prints nothing.",
     "ja": "行ごとに 1 つの配列です。R が何も表示しない箇所は NaN です。"
   },
+  "ClusterLabel#summary": {
+    "hash": "aae2f528104a",
+    "en": "A cluster label: a number, a string or a boolean (`null`, `undefined` and NaN are missing, an error).",
+    "ja": ""
+  },
+  "CoefciOptions#summary": {
+    "hash": "79026bae1cc5",
+    "en": "Options for {@link coefci}.",
+    "ja": ""
+  },
+  "CoefciOptions.df#summary": {
+    "hash": "68e2493da236",
+    "en": "See {@link CoeftestOptions}.",
+    "ja": ""
+  },
+  "CoefciOptions.level#summary": {
+    "hash": "42d1ccaf5699",
+    "en": "Confidence level, in [0, 1]. Default `0.95`.",
+    "ja": ""
+  },
+  "CoefciOptions.parm#summary": {
+    "hash": "becdb9f2d523",
+    "en": "The coefficients: 0-based indices into the coefficients kept, in the order given, or names (the coefficients kept\nwhose names are among them, in their order; unknown names give no row). Default: all.",
+    "ja": ""
+  },
+  "CoefciOptions.vcov#summary": {
+    "hash": "68e2493da236",
+    "en": "See {@link CoeftestOptions}.",
+    "ja": ""
+  },
+  "CoefciResult#summary": {
+    "hash": "e341f910ad7e",
+    "en": "Result of {@link coefci}.",
+    "ja": ""
+  },
+  "CoefciResult.colNames#summary": {
+    "hash": "37d5f6cf5cc1",
+    "en": "R's column names, such as `[\"2.5 %\", \"97.5 %\"]`.",
+    "ja": ""
+  },
+  "CoefciResult.lower#summary": {
+    "hash": "05ecac6e27aa",
+    "en": "Lower limits.",
+    "ja": ""
+  },
+  "CoefciResult.names#summary": {
+    "hash": "0051a3062a2b",
+    "en": "The names of the coefficients (the row names).",
+    "ja": ""
+  },
+  "CoefciResult.upper#summary": {
+    "hash": "0767bbeb571a",
+    "en": "Upper limits.",
+    "ja": ""
+  },
+  "CoefciResult.warnings#summary": {
+    "hash": "35b335c15c90",
+    "en": "Warnings, including those of a covariance function called.",
+    "ja": ""
+  },
+  "CoeftestOptions#summary": {
+    "hash": "98ef01fcb857",
+    "en": "Options for {@link coeftest}.",
+    "ja": ""
+  },
+  "CoeftestOptions.df#summary": {
+    "hash": "0de799e69ffc",
+    "en": "Degrees of freedom of the t tests. Default: the residual degrees of freedom for an lm fit and `Infinity` (z tests)\nfor a glm fit, of every family (lmtest's default; `glmSummary` uses t tests for the families with an estimated\ndispersion). A value that is not positive and finite gives z tests.",
+    "ja": ""
+  },
+  "CoeftestOptions.vcov#summary": {
+    "hash": "3657a1aead1b",
+    "en": "The covariance of the coefficients. Default: the fit's own (R's `vcov(fit)`), with NaN for aliased coefficients.",
+    "ja": ""
+  },
+  "CoeftestResult#summary": {
+    "hash": "21518351cdf7",
+    "en": "Result of {@link coeftest}: R's coefficient table with its attributes.",
+    "ja": ""
+  },
+  "CoeftestResult.df#summary": {
+    "hash": "9f8b0b12cb80",
+    "en": "The degrees of freedom: as given (or the default), also where z tests are used.",
+    "ja": ""
+  },
+  "CoeftestResult.estimate#summary": {
+    "hash": "1b77ab4201c7",
+    "en": "The coefficients kept (R's `Estimate`).",
+    "ja": ""
+  },
+  "CoeftestResult.method#summary": {
+    "hash": "f87ffeb4fbcf",
+    "en": "`\"t test of coefficients\"` or `\"z test of coefficients\"`.",
+    "ja": ""
+  },
+  "CoeftestResult.names#summary": {
+    "hash": "a2f29141070c",
+    "en": "The names of the coefficients kept (the table's row names).",
+    "ja": ""
+  },
+  "CoeftestResult.nobs#summary": {
+    "hash": "4d23b2f376fe",
+    "en": "The number of observations of the fit (rows of non-zero weight).",
+    "ja": ""
+  },
+  "CoeftestResult.pValue#summary": {
+    "hash": "1a1a1d37b906",
+    "en": "Two-sided p-values.",
+    "ja": ""
+  },
+  "CoeftestResult.statistic#summary": {
+    "hash": "c23eab58ae2f",
+    "en": "The t or z statistics.",
+    "ja": ""
+  },
+  "CoeftestResult.statisticName#summary": {
+    "hash": "d87680505606",
+    "en": "`\"t value\"` or `\"z value\"`.",
+    "ja": ""
+  },
+  "CoeftestResult.stdError#summary": {
+    "hash": "71b3a175f33d",
+    "en": "Their standard errors (R's `Std. Error`).",
+    "ja": ""
+  },
+  "CoeftestResult.warnings#summary": {
+    "hash": "35b335c15c90",
+    "en": "Warnings, including those of a covariance function called.",
+    "ja": ""
+  },
   "ConfintOptions#summary": {
     "hash": "85789914993f",
     "en": "Options for {@link confint}.",
@@ -454,10 +584,25 @@
     "en": "Residuals y - fitted (rows with a missing value dropped; rows of weight 0 included).",
     "ja": "残差 y - 当てはめ値です (欠測値のある行は除き、重みが 0 の行は含みます)。"
   },
+  "LmResult.rows#summary": {
+    "hash": "c287515cf204",
+    "en": "0-based indices of the input rows used (the rows without a missing value; rows of weight 0 included).",
+    "ja": ""
+  },
   "LmResult.sigma#summary": {
     "hash": "85523b6f676d",
     "en": "Residual standard error.",
     "ja": "残差の標準誤差です。"
+  },
+  "LmResult.weights#summary": {
+    "hash": "06990e2f90dd",
+    "en": "The weights of the rows used, if any.",
+    "ja": ""
+  },
+  "LmResult.x#summary": {
+    "hash": "d8847dc430ee",
+    "en": "The model matrix (with the column of ones when there is an intercept) of the rows used, unweighted.",
+    "ja": ""
   },
   "MauchlyTestOptions#summary": {
     "hash": "a65fb918a703",
@@ -599,6 +744,101 @@
     "en": "Confidence level of the interval. Default `0.95`.",
     "ja": "区間の信頼水準です。既定は `0.95`。"
   },
+  "RobustFit#summary": {
+    "hash": "41f77e4ecfcc",
+    "en": "A fit that {@link vcovHC}, {@link vcovCL}, {@link coeftest} and {@link coefci} take: the result of {@link lm} (from a\nmatrix or a formula) or of {@link glm}.",
+    "ja": ""
+  },
+  "VcovArgument#summary": {
+    "hash": "71d1505749f1",
+    "en": "The covariance matrix given to {@link coeftest} and {@link coefci}: a matrix (array of rows), the result of\n{@link vcovHC} or {@link vcovCL}, or a function of the fit returning either (to pass options, close over them:\n`(f) => vcovCL(f, { cluster })`).\n\nA result (with `names`) is matched to the coefficients by name: the coefficients whose names it has are kept, in the\nfit's order. A matrix is matched by position: it must be p × p (p the number of coefficients) or k × k (k the number\nof coefficients that are not aliased, which it then stands for).",
+    "ja": ""
+  },
+  "VcovCLOptions#summary": {
+    "hash": "daca7d167a94",
+    "en": "Options for {@link vcovCL}.",
+    "ja": ""
+  },
+  "VcovCLOptions.cadjust#summary": {
+    "hash": "48b132acea85",
+    "en": "Multiply each clustering term by G / (G - 1), G its number of clusters. Default `true`.",
+    "ja": ""
+  },
+  "VcovCLOptions.cluster#summary": {
+    "hash": "a92bf4bd4a97",
+    "en": "The clusters: one label per input row of the fit (the rows the fit dropped for a missing value are dropped here\ntoo), an array or a typed array, or for multi-way clustering an array of such arrays, one per clustering\ndimension. Default: every observation its own cluster.",
+    "ja": ""
+  },
+  "VcovCLOptions.fix#summary": {
+    "hash": "ef43474a23d7",
+    "en": "Set negative eigenvalues of the result to 0. Default `false`.",
+    "ja": ""
+  },
+  "VcovCLOptions.multi0#summary": {
+    "hash": "dcc8f021be22",
+    "en": "Multi-way clustering: use clusters of one observation for the intersection of all dimensions. Default `false`.",
+    "ja": ""
+  },
+  "VcovCLOptions.sandwich#summary": {
+    "hash": "3a51b873df46",
+    "en": "Return the sandwich (default `true`) or the meat only (`false`).",
+    "ja": ""
+  },
+  "VcovCLOptions.type#summary": {
+    "hash": "74c77e8c21ba",
+    "en": "`\"HC0\"` (alias `\"HC\"`), `\"HC1\"`, `\"HC2\"` or `\"HC3\"`. Default `\"HC1\"` for an lm fit and `\"HC0\"` for a glm fit, as sandwich.",
+    "ja": ""
+  },
+  "VcovCLType#summary": {
+    "hash": "a00de5f88db9",
+    "en": "Types of {@link vcovCL}.",
+    "ja": ""
+  },
+  "VcovHCOptions#summary": {
+    "hash": "cd7ed6859a87",
+    "en": "Options for {@link vcovHC}.",
+    "ja": ""
+  },
+  "VcovHCOptions.omega#summary": {
+    "hash": "29d883f4a2cc",
+    "en": "The weights omega_i of the meat instead of the type's: an array of one value per row of non-zero weight (or one per\nrow used, those of weight 0 then left out), or a function `(res, hat, df) => omega` of the residual factors, the\nhat values and n - k.",
+    "ja": ""
+  },
+  "VcovHCOptions.sandwich#summary": {
+    "hash": "3a51b873df46",
+    "en": "Return the sandwich (default `true`) or the meat only (`false`).",
+    "ja": ""
+  },
+  "VcovHCOptions.type#summary": {
+    "hash": "22b59aa6c344",
+    "en": "The estimator: `\"HC3\"` (default), `\"const\"`, `\"HC0\"` (alias `\"HC\"`), `\"HC1\"`, `\"HC2\"`, `\"HC4\"`, `\"HC4m\"` or\n`\"HC5\"`. Unambiguous abbreviations are accepted, as R's `match.arg`.",
+    "ja": ""
+  },
+  "VcovHCType#summary": {
+    "hash": "c17785a77f0c",
+    "en": "Types of {@link vcovHC}.",
+    "ja": ""
+  },
+  "VcovResult#summary": {
+    "hash": "c0978c3e4fd0",
+    "en": "A covariance matrix of the coefficients that are not aliased, with their names: the result of {@link vcovHC} and\n{@link vcovCL}.",
+    "ja": ""
+  },
+  "VcovResult.names#summary": {
+    "hash": "beda5254ee83",
+    "en": "The names of its rows and columns: the coefficient names of a formula fit, else `\"(Intercept)\"`, `\"x1\"`, `\"x2\"`,\n... (aliased coefficients left out).",
+    "ja": ""
+  },
+  "VcovResult.vcov#summary": {
+    "hash": "9681388fa763",
+    "en": "The covariance matrix (k × k, k the number of coefficients that are not aliased), or the meat with `sandwich: false`.",
+    "ja": ""
+  },
+  "VcovResult.warnings#summary": {
+    "hash": "3db2080f70ed",
+    "en": "R's warnings.",
+    "ja": ""
+  },
   "anova#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
@@ -718,6 +958,36 @@
     "hash": "c29d32d7d888",
     "en": "The table of an analysis of variance fitted by {@link aov}. Equivalent to R's `summary()`. As R's\n`summary(aov(formula, data))` for a fit without `Error()`: the rows of {@link anova}'s\nsequential table, except that without residual degrees of freedom there is no `Residuals` row and no `F value` and\n`Pr(>F)` columns. For a fit with an `Error()` term, the tables of the strata (`{ strata: [{ stratum: \"Error: id\",\ncolNames, rowNames, table }, ...] }`), without the intercept stratum. As R 4.6, `warnings` has \"essentially perfect\nfit for ‘1’: summary may be unreliable\" where the residual variance of the fit (or of a stratum) is below 1e-30\ntimes the mean square of its fitted values.",
     "ja": "{@link aov} で当てはめた分散分析の表です。R の `summary()` と同等です。\n`Error()` を含まない当てはめでは、R の `summary(aov(formula, data))` と同じく、{@link anova} の逐次の表の行です。\nただし、残差の自由度がないときは `Residuals` の行がなく、`F value` と\n`Pr(>F)` の列もありません。`Error()` の項を含む当てはめでは、層ごとの表です (`{ strata: [{ stratum: \"Error: id\",\ncolNames, rowNames, table }, ...] }`)。切片の層は除きます。R 4.6 では、当てはめ (または層) の残差の分散が、その当てはめ値の平均平方の 1e-30\n倍未満のとき、`warnings` に \"essentially perfect\nfit for ‘1’: summary may be unreliable\" が入ります。"
+  },
+  "coefci#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "coefci#@param fit": {
+    "hash": "5958007168cf",
+    "en": "The result of {@link lm} or {@link glm}.",
+    "ja": ""
+  },
+  "coefci#summary": {
+    "hash": "300ecc805fbe",
+    "en": "Confidence intervals of the coefficients of an `lm` or `glm` fit with a given covariance matrix. Equivalent to R's\n`lmtest::coefci()`.\n\nThe limits estimate ± q se with the t quantile on `df` degrees of freedom, or the normal quantile (by default for a\nglm of every family, as lmtest). `parm` takes 0-based indices (R: 1-based) or names. The standard errors as in\n{@link coeftest}: from the covariance in units of powers of 2 for a result of {@link vcovHC} or {@link vcovCL} or\nits original matrix, not for a copy of the matrix (which gives intervals of width 0 where it holds 0).",
+    "ja": ""
+  },
+  "coeftest#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "coeftest#@param fit": {
+    "hash": "5958007168cf",
+    "en": "The result of {@link lm} or {@link glm}.",
+    "ja": ""
+  },
+  "coeftest#summary": {
+    "hash": "71307bc244be",
+    "en": "Tests of the coefficients of an `lm` or `glm` fit with a given covariance matrix. Equivalent to R's\n`lmtest::coeftest()`.\n\nEach coefficient's estimate divided by its standard error (the square root of the covariance's diagonal), with a t\ntest on `df` degrees of freedom or a z test. The default `df` is the residual degrees of freedom of an lm and\n`Infinity` (z tests) for a glm of every family, as lmtest (unlike `glmSummary`, which uses t tests where the\ndispersion is estimated). A covariance whose diagonal has a negative, NaN or infinite variance is an error (R gives\nNaN); only the diagonal is used (the matrix is not checked for symmetry, as R's). For a result of {@link vcovHC} or\n{@link vcovCL} (or the fit's own covariance) the standard errors come from the covariance in units of powers of 2,\nso they are right where the matrix holds Infinity or 0 (a response around 1e±300). That record belongs to the matrix\nobject returned: a copy of it (`vcov.map((r) => r.slice())`, `structuredClone`, JSON) loses it and gives the values\nthe copy holds (se 0, z Infinity and p 0 where it holds 0); pass the result or its original matrix instead.",
+    "ja": ""
   },
   "confint#@example": {
     "hash": "f2167be5edf2",
@@ -858,5 +1128,35 @@
     "hash": "91c0f33972df",
     "en": "R's warning for those rows; present only when there are some.",
     "ja": "それらの行に対する R の警告です。該当する行があるときだけ存在します。"
+  },
+  "vcovCL#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "vcovCL#@param fit": {
+    "hash": "5958007168cf",
+    "en": "The result of {@link lm} or {@link glm}.",
+    "ja": ""
+  },
+  "vcovCL#summary": {
+    "hash": "83b6403237be",
+    "en": "Clustered covariance matrix of the coefficients of an `lm` or `glm` fit. Equivalent to R's\n`sandwich::vcovCL()`.\n\nThe meat sums the estimating functions within each cluster (Zeileis, Köll and Graham 2020), times G / (G - 1) with\n`cadjust`; HC1 multiplies by (n - 1) / (n - k). Several clustering dimensions are combined by inclusion and exclusion\nover all their intersections, each term with its own G (Cameron, Gelbach and Miller 2011); `multi0` uses clusters of\none observation for the full intersection. HC2 and HC3 adjust each cluster's residuals by (I - H_gg)^-1/2 or\n(I - H_gg)^-1 in the symmetric form of Bell and McCaffrey (2002) (for HC3 the leave-one-cluster-out jackknife),\nwhich is sandwich's for an unweighted lm; sandwich transposes the adjustment for a weighted lm or a glm. A singular\nblock (cluster fixed effects) is an error. `fix` sets negative eigenvalues to 0.\n\nThe default type is HC1 for an lm and HC0 for a glm, as sandwich. Without `cluster` each observation is its own\ncluster. G is the number of distinct labels among the rows used (labels are compared as text, numbers with 15\nsignificant digits as R's `as.character`: 1 and 1 + 2^-52, or 0.1 + 0.2 and 0.3, are one label); intersections of\ndimensions are tuples of labels; at least two clusters are needed. Rows of prior weight 0 are left out. HC1 needs\nmore observations than coefficients. Data far from 1 as {@link vcovHC} (the same record of the units, lost by a copy\nof the matrix); with `fix`, a negative eigenvalue is set to 0 in the units of the largest coefficient's variance, so\nthat coefficients whose scale is about 2^537 or more below it then get variance 0. See docs/differences-from-r.md.",
+    "ja": ""
+  },
+  "vcovHC#@example": {
+    "hash": "f2167be5edf2",
+    "en": "⟦code1⟧",
+    "ja": ""
+  },
+  "vcovHC#@param fit": {
+    "hash": "5958007168cf",
+    "en": "The result of {@link lm} or {@link glm}.",
+    "ja": ""
+  },
+  "vcovHC#summary": {
+    "hash": "c9177e348f8a",
+    "en": "Heteroskedasticity-consistent covariance matrix of the coefficients of an `lm` or `glm` fit. Equivalent to R's\n`sandwich::vcovHC()`.\n\nThe sandwich A (X' diag(omega) X) A (Zeileis 2006), A = (X'WX)^-1, with omega_i = res_i^2 (HC0, White 1980), times n\n/ (n - k) (HC1), divided by 1 - h_i (HC2) or (1 - h_i)^2 (HC3, MacKinnon and White 1985), by (1 - h_i)^delta_i\n(HC4, Cribari-Neto 2004; HC4m, Cribari-Neto and da Silva 2011) or by its square root (HC5, Cribari-Neto et al.\n2007), with HC4m's gamma = (1, 1.5) and HC5's k = 0.7 fixed as in sandwich; res_i is w_i e_i for an lm and W_i z_i /\nphi_s for a glm (working weights and residuals). `\"const\"` is the model-based covariance of the fit (R's `vcov(fit)`:\nsigma^2 A, or the dispersion times A for a glm); sandwich's `\"const\"` equals it only for an unweighted lm.\n\nRows of prior weight 0 are left out (R counts them in n and returns different values); a hat value of 1 gives R's\nwarning, and with HC2 to HC5, whose value is then undefined (R's NaN), an error, as is HC1 with as many\nobservations as coefficients. Aliased coefficients are left out of the matrix. Data far from 1 (weights, responses)\nare handled in units of powers of 2: entries that are not representable are Infinity or 0, and {@link coeftest}\nstill gives their standard errors, from a record kept with the matrix object returned (a copy of the matrix loses it:\npass the result or its original matrix). See docs/differences-from-r.md.",
+    "ja": ""
   }
 }
