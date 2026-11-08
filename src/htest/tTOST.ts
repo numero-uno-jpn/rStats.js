@@ -189,6 +189,9 @@ interface Settings {
 
 /** The noncentrality with P(T(df, ncp) > t) = p (upperTail) or P(T(df, ncp) <= t) = p, as a root to the last bit */
 function ncpRoot(t: number, df: number, p: number, upperTail: boolean): number {
+  // an infinite t (a standardised difference beyond the doubles, e.g. a mean of 1e300 over a SD of 1e-300) has both
+  // roots at that infinity: the limits are infinite as the estimate is
+  if (t === Infinity || t === -Infinity) return t;
   // (where t ± 1 both round to t, a step of 1 to 2 ulp of t, as cohensD)
   const h = t - 1 < t + 1 ? 1 : Math.abs(t) * Number.EPSILON;
   // P(T > t) increases with ncp, P(T <= t) decreases

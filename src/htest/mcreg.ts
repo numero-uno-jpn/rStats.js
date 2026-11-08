@@ -362,9 +362,15 @@ function wdemingFit(
   // where x and y have very different units although the weight itself is representable
   const [sR, tR] = split(errorRatio);
   const [s1, t1] = split(1 + errorRatio);
-  const weights = m.map((v) =>
-    mix > 1 ? ldexpWide((s1 / (sR * v)) ** 2, 2 * (t1 - tR - ky)) : ldexpWide((s1 / v) ** 2, 2 * (t1 - kx)),
-  );
+  // m itself is split as well: its values may span more than 2^512 (a point near 0 among large ones), where squaring
+  // 1/m before applying the exponent overflowed although the weight is representable
+  const weights = m.map((v) => {
+    if (v === 0) return Infinity;
+    const [sv, tv] = split(Math.abs(v));
+    return mix > 1
+      ? ldexpWide((s1 / (sR * sv)) ** 2, 2 * (t1 - tR - tv - ky))
+      : ldexpWide((s1 / sv) ** 2, 2 * (t1 - tv - kx));
+  });
   // as mcr: the warning also when the last allowed iteration converged
   return { b0, b1, xmean, weights, converged: count < iterMax };
 }

@@ -85,4 +85,13 @@ describe("mcreg: scaling", () => {
       w(2 ** -400, errorRatio).forEach((v, i) => expect(rel(v, plain[i]!), `${errorRatio} [${i}]`).toBeLessThanOrEqual(1e-13));
     }
   });
+  it("weighted Deming weights of data spanning more than 2^512 at a large scale (1/m was squared before its exponent)", () => {
+    const x = [1e-170, 2e-170, 1, 2, 3, 4];
+    const y = [1.1e-170, 1.9e-170, 1.05, 2.1, 2.9, 4.2];
+    const fit = (k: number) => mcreg(x.map((v) => v * 2 ** k), y.map((v) => v * 2 ** k), { methodReg: "WDeming", threshold: 0, iterMax: 200 });
+    const lo = fit(600);
+    const hi = fit(700);
+    expect(hi.weights!.every(Number.isFinite)).toBe(true);
+    hi.weights!.forEach((w, i) => expect(Math.abs(w - lo.weights![i]! * 2 ** -200)).toBeLessThanOrEqual(1e-15 * w));
+  });
 });

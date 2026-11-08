@@ -252,10 +252,13 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
   // SSB and SSE do not change when a constant is added to a column, SSJ and SSE not when one is added to a row: the
   // sums of squares come from the ratings minus the first row (SSB), minus the first column (SSJ) and minus both
   // (SSE), so that a rater or subject offset far beyond the spread of the ratings does not swamp them. Each difference
-  // is exact (a double-double); they are formed from the unscaled ratings (halved where a difference would overflow)
-  // and then scaled by one power of 2 of their own
-  const half = x.some((r, i) => r.some((v, j) => !Number.isFinite(v - x[0]![j]!) || !Number.isFinite(v - x[i]![0]!)));
-  const raw = half ? x.map((r) => r.map((v) => v / 2)) : x;
+  // is exact (a double-double); they are formed from the unscaled ratings (divided by 8 where a difference could
+  // overflow: the double differences x_ij - x_i1 - x_1j + x_11 reach 4 max|x|) and then scaled by one power of 2 of
+  // their own
+  let big = 0;
+  for (const r of x) for (const v of r) big = Math.max(big, Math.abs(v));
+  const shift = big > 2 ** 1020 ? 3 : 0;
+  const raw = shift > 0 ? x.map((r) => r.map((v) => v / 8)) : x;
   const byCol = raw.map((r) => r.map((v, j) => exactDiff(v, raw[0]![j]!)));
   const byRow = raw.map((r) => r.map((v) => exactDiff(v, r[0]!)));
   const both = byRow.map((r) => r.map((v, j) => ddSub(v, byRow[0]![j]!)));
@@ -285,11 +288,10 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
       }),
     );
   }
-  // Each sum of squares stays in its own units, 2^(2kB), 2^(2kJ), 2^(2kE) (times 4 where the ratings were halved): a
+  // Each sum of squares stays in its own units, 2^(2kB), 2^(2kJ), 2^(2kE) (times 64 where the ratings were divided by 8): a
   // quantity brings only the mean squares it uses to the larger of their scales, so that it underflows only where its
   // true value does (a rater offset far beyond the spread makes SSJ huge, but MSB, MSE, ICC3 and F3 do not change)
-  const h = half ? 1 : 0;
-  const scaled = (ss: DD, kx: number): Scaled => ({ v: ss, e: 2 * (kx + h) });
+  const scaled = (ss: DD, kx: number): Scaled => ({ v: ss, e: 2 * (kx + shift) });
   const SB = scaled(ssB, kB);
   const SJ = scaled(ssJ, kJ);
   const SE = scaled(ssE, kE);
@@ -351,8 +353,14 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
   // ICC2's interval (Shrout and Fleiss 1979, eq. for case 2): Satterthwaite's v of the combination k ICC2 MSJ + (n(1 +
   // (k - 1) ICC2) - k ICC2) MSE, written with MSE multiplied through (Fj = MSJ/MSE in the paper), so that MSE = 0 gives
   // its limit k - 1 (and MSJ = MSE = 0, where any v gives the bounds 1, k - 1 too)
-  const a = k * icc2 * j2;
-  const c = (n * (1 + (k - 1) * icc2) - k * icc2) * e2;
+  // v does not change when a and c are scaled together: both are divided by the power of 2 of the larger, so that
+  // their squares neither overflow nor underflow (MSJ far beyond MSB and MSE made (n - 1) a^2 + c^2 underflow to 0)
+  const a0 = k * icc2 * j2;
+  const c0 = (n * (1 + (k - 1) * icc2) - k * icc2) * e2;
+  const top = Math.max(Math.abs(a0), Math.abs(c0));
+  const ka = top > 0 && Number.isFinite(top) ? Math.floor(Math.log2(top)) : 0;
+  const a = ldexp(a0, -ka);
+  const c = ldexp(c0, -ka);
   const vDen = (n - 1) * a * a + c * c;
   const v = vDen === 0 ? k - 1 : ((k - 1) * (n - 1) * (a + c) ** 2) / vDen;
   const G1 = q(dfB, v);

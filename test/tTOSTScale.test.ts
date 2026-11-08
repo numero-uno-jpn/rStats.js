@@ -116,4 +116,10 @@ describe("tTOST and tsumTOST: scaling", () => {
     }
     expect(rel(tests(designs[0]![1](1e-300))[0]!, 5e9 / (1e10 / Math.sqrt(20)))).toBeLessThanOrEqual(1e-15);
   });
+  it("a standardised difference beyond the doubles gives infinite limits, not the root finder's error", () => {
+    const r = tsumTOST({ m1: 1e300, sd1: 1e-300, n1: 20 }, { eqb: 1 });
+    expect(r.smd.estimate).toBe(Infinity);
+    expect(r.smd.confInt).toEqual([Infinity, Infinity]);
+    expect(r.pValue).toBe(1);
+  });
 });

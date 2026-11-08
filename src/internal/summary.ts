@@ -77,6 +77,9 @@ export function ldexp(v: number, k: number): number {
 
 /** v 2^k for any integer k (beyond the +-2046 of ldexp), in steps of at most 2^1000 */
 export function ldexpWide(v: number, k: number): number {
+  // an infinite exponent is the limit (the loops below would not end)
+  if (k === Infinity) return v * Infinity;
+  if (k === -Infinity) return v * 0;
   let x = v;
   let r = k;
   while (r > 1000) {

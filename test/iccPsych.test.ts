@@ -243,4 +243,28 @@ describe("ICC (psych)", () => {
       expect([out.MSJ, out.MSE], `subject ${C}`).toEqual([zero.MSJ, zero.MSE]);
     }
   });
+  it("ratings near the largest doubles, where the double differences overflow, return (they looped forever)", () => {
+    // x_ij - x_i1 - x_1j + x_11 reaches 4 max|x|: ratings of 2^1021 times small integers made that difference
+    // Infinity, and the scaling by its power of 2 never ended. The data times a power of 2 give the same coefficients
+    const base = [[3, -1, 2], [-2, 1, 0], [1, 2, -3], [0, -3, 1]];
+    for (const lmer of [false, true]) {
+      const ref = rowsOf(ICC(base, { lmer })).map((r) => r[0]);
+      for (const k of [1020, 1021, -1000]) {
+        const out = rowsOf(ICC(base.map((r) => r.map((v) => v * 2 ** k)), { lmer })).map((r) => r[0]);
+        expect(out, `lmer ${lmer} 2^${k}`).toEqual(ref);
+      }
+    }
+  });
+  it("ICC2's interval with a rater offset far beyond the spread (Satterthwaite's v underflowed to k - 1)", () => {
+    // ICC2 and its bounds scale as C^-2; scaled back they must not depend on C (they were off by up to 2x beyond 2^268)
+    const sf = [[9, 2, 5, 8], [6, 1, 3, 2], [8, 4, 6, 8], [7, 1, 2, 6], [10, 5, 6, 9], [6, 2, 4, 7]];
+    const at = (e: number): number[] => {
+      const r = ICC(sf.map((row) => [row[0]!, row[1]!, row[2]!, 2 ** e]), { lmer: false }).results[1]!;
+      return [r.ICC, r.lower, r.upper].map((v) => v * 2 ** (2 * e));
+    };
+    const ref = at(100);
+    for (const e of [270, 300, 400, 500]) {
+      at(e).forEach((v, i) => expect(Math.abs(v - ref[i]!), `2^${e} ${i}`).toBeLessThanOrEqual(1e-13 * Math.abs(ref[i]!)));
+    }
+  });
 });
