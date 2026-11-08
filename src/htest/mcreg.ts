@@ -338,11 +338,23 @@ function wdemingFit(
       break;
     }
   }
-  // mcr's weights 1/m² in the units of the data (Infinity or 0 where they leave the double range)
-  const factor = (mix > 1 ? mix : 1) / (1 + errorRatio);
-  const weights = m.map((v) => ldexpWide(1 / (v * factor) ** 2, -2 * kx));
+  // mcr's weights 1/m² in the units of the data (Infinity or 0 where they leave the double range). The true level is
+  // m (errorRatio/(1 + errorRatio)) 2^ky for mix > 1 and m/(1 + errorRatio) 2^kx otherwise; the powers of 2 of
+  // errorRatio, 1 + errorRatio and the units are carried apart from the products, which would overflow or underflow
+  // where x and y have very different units although the weight itself is representable
+  const [sR, tR] = split(errorRatio);
+  const [s1, t1] = split(1 + errorRatio);
+  const weights = m.map((v) =>
+    mix > 1 ? ldexpWide((s1 / (sR * v)) ** 2, 2 * (t1 - tR - ky)) : ldexpWide((s1 / v) ** 2, 2 * (t1 - kx)),
+  );
   // as mcr: the warning also when the last allowed iteration converged
   return { b0, b1, xmean, weights, converged: count < iterMax };
+}
+
+/** A positive finite v as [s, t] with v = s 2^t exactly, s in [1/2, 4) */
+function split(v: number): [number, number] {
+  const t = Math.floor(Math.log2(v));
+  return [ldexpWide(v, -t), t];
 }
 
 /** The angle of a slope (±π/2 for a vertical pair) */

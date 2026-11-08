@@ -70,4 +70,19 @@ describe("mcreg: scaling", () => {
       b.weights!.slice(2).forEach((w, i) => expect(rel(w, a.weights![i + 2]!)).toBeLessThanOrEqual(1e-13));
     }
   });
+  it("weighted Deming's reported weights where x and y units differ by more than 2^510 (they were 0)", () => {
+    // errorRatio 1 and x in units 2^-800: m = (x̂ + ŷ)/2 ≈ ŷ/2, the weights about 4/ŷ² as with x in units 2^-100
+    // (x̂ is negligible beside ŷ in both); errorRatio 1e300 with x in units 2^-400: m ≈ ŷ, as with x unscaled. The
+    // fits agree to the iteration's rounding, hence 1e-13
+    const w = (xs: number, errorRatio: number): number[] =>
+      mcreg(x.map((v) => v * xs), y, { methodReg: "WDeming", errorRatio }).weights!;
+    const near = w(2 ** -100, 1);
+    for (const e of [-800, -1000]) {
+      w(2 ** e, 1).forEach((v, i) => expect(rel(v, near[i]!), `2^${e} [${i}]`).toBeLessThanOrEqual(1e-13));
+    }
+    const plain = w(1, 1e300);
+    for (const errorRatio of [1e300, 1e200]) {
+      w(2 ** -400, errorRatio).forEach((v, i) => expect(rel(v, plain[i]!), `${errorRatio} [${i}]`).toBeLessThanOrEqual(1e-13));
+    }
+  });
 });
