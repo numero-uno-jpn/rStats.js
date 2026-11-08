@@ -80,3 +80,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgdal38 libge
                          "DescTools"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Diagnostic accuracy and measurement agreement (1.4.0), in a layer of their own: pROC (ROC curves, AUC, DeLong),
+# BlandAltmanLeh (Bland-Altman), mcr (Deming and Passing-Bablok regression) and TOSTER (equivalence tests).
+# psych (ICC) is in an earlier layer.
+RUN install2.r --error --skipinstalled pROC BlandAltmanLeh mcr TOSTER \
+    && Rscript -e 'pk <- c("pROC", "BlandAltmanLeh", "mcr", "TOSTER", "psych"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
