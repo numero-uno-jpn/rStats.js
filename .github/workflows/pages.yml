@@ -5,7 +5,9 @@ name: Pages
 # edition under ja/api/. The references are built from the latest release tag, so that they describe the version on
 # npm; the rest comes from main. The Japanese edition is made by scripts/typedoc-ja-plugin.mjs, with the translations
 # (docs/ja/api) and the front page (docs/ja/api-reference.md) of main; a translation whose English changed since the
-# release is not used (the hash differs), so that page stays English until main is released.
+# release is not used (the hash differs), so that page stays English until main is released. Last,
+# scripts/link-r-functions.mjs links the rStats.js names of the r-functions tables to those API pages, only for the
+# functions that exist in the released API.
 # Requires Settings → Pages → Source: GitHub Actions.
 on:
   push:
@@ -60,6 +62,8 @@ jobs:
             --readme "$GITHUB_WORKSPACE/docs/ja/api-reference.md" --out ../api-ja --name "rStats.js $tag"
           sudo mkdir -p "$GITHUB_WORKSPACE/_site/ja/api"
           sudo cp -R ../api-ja/. "$GITHUB_WORKSPACE/_site/ja/api/"
+      - name: Link the functions of the R index tables to the API reference
+        run: sudo node scripts/link-r-functions.mjs _site
       - uses: actions/upload-pages-artifact@v5
         with:
           path: ./_site
