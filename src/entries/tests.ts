@@ -48,6 +48,14 @@ export {
   type BinomDiffEquivalenceTestResult,
 } from "../htest/equivalence.js";
 export {
+  tTOST,
+  tsumTOST,
+  type TTOSTOptions,
+  type TTOSTResult,
+  type TTOSTTest,
+  type TsumTOSTStatistics,
+} from "../htest/tTOST.js";
+export {
   boschlooTest,
   type BoschlooTestOptions,
   type BoschlooTestResult,
@@ -299,6 +307,7 @@ export {
   type McregCoefficient,
   type McregResult,
 } from "../htest/mcreg.js";
+export { ICC, type ICCOptions, type ICCResult, type ICCRow } from "../htest/iccPsych.js";
 export { factanal, type FactanalOptions, type FactanalResult, type FactanalRotation, type FactanalScores } from "../descriptive/factanal.js";
 export { omega, type OmegaOptions, type OmegaResult } from "../descriptive/omega.js";
 export {

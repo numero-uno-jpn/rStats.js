@@ -209,6 +209,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `hatvalues()` | `glmHatvalues` | `glm` の当てはめの、最後の重み付き最小二乗ステップのハット行列の対角成分 (事前重みが 0 でない行について) |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges の g |
 | `irr::icc()` | `icc` | 級内相関係数と、その F 検定および信頼区間 |
+| `psych::ICC()` | `ICC` | Shrout と Fleiss の 6 種類の級内相関係数と、その F 検定および信頼区間 |
 | `DescTools::JonckheereTerpstraTest()` | `jonckheereTest` | 順序のある対立仮説に対する、分布が等しいことについての Jonckheere-Terpstra 検定 |
 | `irr::kappa2()` | `kappa2` | 2 人の評定者に対する Cohen の κ (重みなしまたは重みつき) と、κ = 0 の z 検定 |
 | `irr::kappam.fleiss()` | `kappamFleiss` | 複数の評定者に対する Fleiss の κ と、Fleiss の κ についての κ = 0 の z 検定 |
@@ -269,8 +270,10 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `summary()` | `glmSummary` | `glm` で当てはめた一般化線形モデルの要約: 分散パラメータ、係数の表、推定値の共分散 |
 | `survival::survdiff()` | `survdiff` | 生存曲線の差の検定: Harrington と Fleming の G-rho 族 (`rho = 0` でログランク検定) |
 | `survival::survfit()` | `survfit` | 生存関数の Kaplan-Meier 推定 (Greenwood の標準誤差と各点での信頼区間つき) |
+| `TOSTER::t_TOST()` | `tTOST` | 1 標本・2 標本・対応のある標本の平均についての同等性検定 (TOST) と最小効果検定、標準化平均差とその区間つき |
 | `t.test()` | `tTest` | Student の t 検定 |
 | `equivalence::tost()` | `tost` | 2 つの平均の同等性についての 2 つの片側 t 検定 (TOST) |
+| `TOSTER::tsum_TOST()` | `tsumTOST` | 要約統計量 (平均・標準偏差・標本の大きさ) からの `tTOST` |
 | `TukeyHSD()` | `TukeyHSD` | 一元配置分散分析の群平均の間の Tukey の HSD (honest significant differences) |
 | `PMCMRplus::tukeyTest()` | `tukeyTest` | 平均の Tukey の全対比較検定 |
 | `var.test()` | `varTest` | 2 つの正規標本の分散が与えた比であることの F 検定 |

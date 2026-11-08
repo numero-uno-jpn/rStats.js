@@ -209,6 +209,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `hatvalues()` | `glmHatvalues` | Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight, for a `glm` fit. |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges' g. |
 | `irr::icc()` | `icc` | Intraclass correlation coefficient with its F test and confidence interval. |
+| `psych::ICC()` | `ICC` | The six intraclass correlations of Shrout and Fleiss (1979), with their F tests and confidence intervals. |
 | `DescTools::JonckheereTerpstraTest()` | `jonckheereTest` | Jonckheere-Terpstra test of equal distributions against ordered alternatives. |
 | `irr::kappa2()` | `kappa2` | Cohen's kappa for two raters, unweighted or weighted, with the z test of kappa = 0. |
 | `irr::kappam.fleiss()` | `kappamFleiss` | Fleiss' kappa for several raters, with the z test of kappa = 0 for Fleiss' kappa. |
@@ -269,8 +270,10 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |
 | `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |
 | `survival::survfit()` | `survfit` | Kaplan-Meier estimate of the survival function with Greenwood's standard error and pointwise confidence intervals. |
+| `TOSTER::t_TOST()` | `tTOST` | Two one-sided t tests of equivalence, or minimal-effect tests, for one sample, two samples or paired samples, with the standardised mean difference and its interval. |
 | `t.test()` | `tTest` | Student's t-test. |
 | `equivalence::tost()` | `tost` | Two one-sided t tests of equivalence of two means. |
+| `TOSTER::tsum_TOST()` | `tsumTOST` | `tTOST` from summary statistics: means, standard deviations, sample sizes and, for paired samples, the correlation of the pairs. |
 | `TukeyHSD()` | `TukeyHSD` | Tukey's honest significant differences between the group means of a one-way ANOVA. |
 | `PMCMRplus::tukeyTest()` | `tukeyTest` | Tukey's all-pairs test of means. |
 | `var.test()` | `varTest` | F test that the variances of two normal samples have a given ratio. |

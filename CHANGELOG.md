@@ -35,6 +35,18 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   BCa, bootstrap-t, nested bootstrap) drawn from R's random stream (`rngSeed` = mcr's `rng.seed`), and Passing and
   Bablok's CUSUM statistic of linearity. The default interval is analytical (jackknife for weighted Deming) instead of
   mcr's random bootstrap; Deming's slope without mcr's cancellation for small error ratios (docs/differences-from-r.md).
+- **Intraclass correlations of Shrout and Fleiss**: `ICC(x, { alpha | confLevel, lmer })`, psych's `ICC()`, returning
+  the six forms (ICC1, ICC2, ICC3 and their averages) with their F tests and intervals and the mean squares, next to
+  the irr-based `icc`. Both paths are exact: the ANOVA mean squares (`lmer: false`) and, by default as psych, the REML
+  estimates of the variance components in closed form (lme4's optimiser leaves psych's values 1e-5 to 1e-4 off).
+  Complete data only; ICC2k has psych's interval (Spearman-Brown of ICC2's), not irr's.
+- **Equivalence and minimal-effect t tests**: `tTOST(x, y?, options)`, TOSTER's `t_TOST()`, for one, two (Welch or
+  pooled) and paired samples, with bounds in raw or SMD units, the three t tests, the raw difference and the
+  standardised mean difference (Hedges' g or Cohen's d, d_av, d_z, d_rm, Glass's delta) with `nct` (exact roots),
+  `goulet`, `t` or `z` intervals; `tsumTOST(stats, options)`, TOSTER's `tsum_TOST()`, from summary statistics. `tost`
+  is unchanged. Unlike TOSTER, `mu` is subtracted everywhere (bound tests, raw interval and SMD of the difference
+  minus mu), the one-sample `t` and `z` limits are 1 − 2α limits, and TOSTER's notes are warnings
+  (docs/differences-from-r.md).
 
 ## 1.2.0 - 2026-11-07
 
