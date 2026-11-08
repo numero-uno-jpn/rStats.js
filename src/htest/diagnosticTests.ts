@@ -152,9 +152,10 @@ export function diagnosticTests(table: readonly (readonly number[])[], options: 
     specificity: prop(d, M0),
     ppv: prop(a, N1),
     npv: prop(d, N0),
-    // se/(1 - sp) with 1 - sp = b/M0, and (1 - se)/sp with 1 - se = c/M1
-    lrPos: logInterval(se / (b / M0), c / (a * M1) + d / (b * M0)),
-    // (c M0)/(M1 d) from the counts, rounded once (c / M1 / sp was rounded three times); d = 0 gives Inf or NaN
+    // se/(1 - sp) with 1 - sp = b/M0, and (1 - se)/sp with 1 - se = c/M1, each from the counts and rounded once:
+    // (a M0)/(M1 b) (se / (b / M0) was rounded three times); b = 0 gives Inf, or NaN for a = 0
+    lrPos: logInterval(b === 0 ? se / 0 : ratioToDouble(BigInt(a) * BigInt(M0), BigInt(M1) * BigInt(b)), c / (a * M1) + d / (b * M0)),
+    // (c M0)/(M1 d), rounded once (c / M1 / sp was rounded three times); d = 0 gives Inf or NaN
     lrNeg: logInterval(d === 0 ? c / M1 / sp : ratioToDouble(BigInt(c) * BigInt(M0), BigInt(M1) * BigInt(d)), a / (c * M1) + b / (d * M0)),
     accuracy: prop(a + d, total),
     diagnosticOR: logInterval((a * d) / (b * c), 1 / a + 1 / b + 1 / c + 1 / d),

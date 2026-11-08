@@ -549,8 +549,10 @@ function countsOf(v: readonly number[], size: number): number[] | undefined {
 }
 
 /**
- * McClish's standardised partial AUC computed exactly from the counts of the points, rounded once; undefined for a
- * curve whose proportions are not counts over its numbers of controls and cases (an object not made by roc).
+ * McClish's standardised partial AUC computed exactly and rounded once. For a curve made by roc the points are
+ * count/size, and the counts give the exact proportions; for any other curve (a hand-built or edited object) each
+ * coordinate is taken as the exact value of its double (a dyadic rational), so the result is correctly rounded and
+ * the decision "below the diagonal" is exact in both cases.
  *
  * The excess of the curve over the diagonal at a point, e = y - (1 - x), has the integer numerator
  * Y dx + X dy - dx dy over dx dy, so A - min is the integral of the piecewise linear e between the limits (the
@@ -558,15 +560,33 @@ function countsOf(v: readonly number[], size: number): number[] | undefined {
  * max - min = (hi - lo)(hi + lo)/2. Formed in doubles both cancel: a curve on the diagonal came out below it
  * (an error), and limits near 0 lost digits and gave 0/0
  */
-function mcClishExact(xs: readonly number[], ys: readonly number[], dx: number, dy: number, lo: number, hi: number): number | undefined {
+function mcClishExact(xs: readonly number[], ys: readonly number[], dx: number, dy: number, lo: number, hi: number): number {
   const X = countsOf(xs, dx);
   const Y = countsOf(ys, dy);
-  if (X === undefined || Y === undefined) return undefined;
-  const bdx = BigInt(dx);
-  const bdy = BigInt(dy);
+  if (X !== undefined && Y !== undefined) {
+    return mcClishFromIntegers(X.map(BigInt), Y.map(BigInt), BigInt(dx), BigInt(dy), lo, hi);
+  }
+  // not counts: the doubles' own rationals over the common denominator 2^K
+  const ok = xs.length >= 2 && xs.length === ys.length && xs[0] === 0 && xs[xs.length - 1] === 1 &&
+    xs.every((v, k) => v >= 0 && v <= 1 && (k === 0 || v >= xs[k - 1]!)) && ys.every((v) => v >= 0 && v <= 1);
+  if (!ok) {
+    throw new RangeError(
+      "the curve's sensitivities and specificities must be numbers in [0, 1] forming a ROC curve (use a curve from roc)",
+    );
+  }
+  const rx = xs.map(toRational);
+  const ry = ys.map(toRational);
+  let K = 0n;
+  for (const [, d] of [...rx, ...ry]) K = d > K ? d : K;
+  const scaled = (r: [bigint, bigint]): bigint => r[0] * (K / r[1]);
+  return mcClishFromIntegers(rx.map(scaled), ry.map(scaled), K, K, lo, hi);
+}
+
+/** McClish's standardised partial AUC of the points (X/dx, Y/dy), exactly, rounded once */
+function mcClishFromIntegers(X: readonly bigint[], Y: readonly bigint[], bdx: bigint, bdy: bigint, lo: number, hi: number): number {
   const D = bdx * bdy;
-  const e = (k: number): Ratio => [BigInt(Y[k]!) * bdx + BigInt(X[k]!) * bdy - D, D];
-  const x = (k: number): Ratio => [BigInt(X[k]!), bdx];
+  const e = (k: number): Ratio => [Y[k]! * bdx + X[k]! * bdy - D, D];
+  const x = (k: number): Ratio => [X[k]!, bdx];
   const L = toRational(lo);
   const H = toRational(hi);
   // e at v on the segment from point i to point j
@@ -587,7 +607,7 @@ function mcClishExact(xs: readonly number[], ys: readonly number[], dx: number, 
     for (let k = 1; k < inside.length; k++) {
       const p = inside[k - 1]!;
       const q = inside[k]!;
-      t += BigInt(X[q]! - X[p]!) * (e(p)[0] + e(q)[0]);
+      t += (X[q]! - X[p]!) * (e(p)[0] + e(q)[0]);
     }
     excess = [t, 2n * bdx * D];
     const last = inside[inside.length - 1]!;
@@ -652,16 +672,8 @@ export function auc(curve: RocResult, options: AucOptions = {}): AucResult {
   let area: number;
   const n = curve.controls.length;
   const m = curve.cases.length;
-  const exact = correct ? (focus === "specificity" ? mcClishExact(x, y, n, m, lo, hi) : mcClishExact(x, y, m, n, lo, hi)) : undefined;
-  if (exact !== undefined) area = exact;
-  else {
-    area = partialArea(x, y, lo, hi);
-    if (correct) {
-      const min = ((1 - hi + (1 - lo)) * (hi - lo)) / 2;
-      if (area < min) throw new Error("Partial AUC correction not defined for ROC curves below the diagonal.");
-      area = (1 + (area - min) / (((hi - lo) * (hi + lo)) / 2)) / 2;
-    }
-  }
+  if (correct) area = focus === "specificity" ? mcClishExact(x, y, n, m, lo, hi) : mcClishExact(x, y, m, n, lo, hi);
+  else area = partialArea(x, y, lo, hi);
   return reported("auc", { auc: area, partialAuc: [hi, lo], focus, correct, warnings: [] });
 }
 

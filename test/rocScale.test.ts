@@ -57,6 +57,11 @@ function mcClishExact(r: RocResult, lo: number, hi: number, focus: "specificity"
   const sp = r.specificities.map((v): Q => [BigInt(Math.round(v * r.controls.length)), n]);
   const se = r.sensitivities.map((v): Q => [BigInt(Math.round(v * r.cases.length)), m]);
   const [x, y] = focus === "specificity" ? [sp, se] : [[...se].reverse(), [...sp].reverse()];
+  return mcClishOfPoints(x, y, lo, hi);
+}
+
+/** The same for the curve through the exact points (x[k], y[k]), x nondecreasing from 0 to 1 */
+function mcClishOfPoints(x: readonly Q[], y: readonly Q[], lo: number, hi: number): Q {
   const L = exact(lo);
   const H = exact(hi);
   let area: Q = [0n, 1n];
@@ -159,6 +164,82 @@ describe("auc with McClish's correction, exactly", () => {
       const s = 2 ** k;
       const r = roc({ controls: controls.map((v) => v * s), cases: cases.map((v) => v * s) });
       expect(auc(r, { partialAuc: [0, 1e-9], correct: true }).auc).toBe(ref);
+    }
+  });
+});
+
+describe("auc with McClish's correction for curves not made by roc", () => {
+  // an object whose proportions are not counts over its numbers of controls and cases (hand-built or edited): the
+  // coordinates are taken as the exact values of their doubles; this used to fall back to the rounded formula
+  const v = [1, 2, 3];
+  const diag = roc({ controls: v, cases: v }, { direction: "<" });
+  const r2 = roc({ controls: [1, 2, 3, 4], cases: [1, 5, 6, 7, 8] }, { direction: "<" });
+
+  it("gives 0.5 on the diagonal and keeps its digits near 0", () => {
+    // quarters are exact doubles: exactly on the diagonal, 0.5 (the rounded formula threw "below the diagonal")
+    const q = roc({ controls: [1, 2, 3, 4], cases: [1, 2, 3, 4] }, { direction: "<" });
+    const edited = { ...q, controls: [...q.controls, 5] };
+    for (const [lo, hi] of [[0, 0.2], [0.1, 0.9], [0, 1], [0.25, 0.75], [0, 1e-300]] as [number, number][]) {
+      for (const focus of ["specificity", "sensitivity"] as const) {
+        expect(auc(edited, { partialAuc: [lo, hi], focus, correct: true }).auc).toBe(0.5);
+      }
+    }
+    // thirds are not: the doubles 1/3 and 2/3 both lie below the exact thirds, so these points are below the
+    // diagonal by about 1e-17, and the exact decision is an error (a curve made by roc uses the counts: 0.5)
+    expect(auc(diag, { partialAuc: [0, 0.2], correct: true }).auc).toBe(0.5);
+    const pts = (c: RocResult): [Q[], Q[]] => [c.specificities.map(exact), c.sensitivities.map(exact)];
+    expect(cmp(mcClishOfPoints(...pts(diag), 0, 0.5), HALF)).toBeLessThan(0);
+    expect(() => auc({ ...diag, controls: [...diag.controls, 4] }, { partialAuc: [0, 0.5], correct: true })).toThrow("below the diagonal");
+    // the first segment is se = 1 - 0.8 sp: 3/5 for every upper limit up to 1/4 (the rounded formula gave
+    // 0.60000013899822 at 1e-9 and NaN at 1e-200)
+    const e2 = { ...r2, cases: [...r2.cases, 9] };
+    for (const h of [0.25, 1e-9, 1e-200, 5e-324]) {
+      const ref = mcClishOfPoints(e2.specificities.map(exact), e2.sensitivities.map(exact), 0, h);
+      const got = auc(e2, { partialAuc: [0, h], correct: true }).auc;
+      expect(isRounded(got, ref)).toBe(true);
+      expect(got).toBeCloseTo(0.6, 15);
+    }
+  });
+
+  it("is the exact fraction of the doubles rounded once, and decides 'below the diagonal' exactly", () => {
+    const rnd = lcg(29);
+    let checked = 0;
+    let below = 0;
+    for (let t = 0; t < 200; t++) {
+      // a hand-built curve: random doubles (not counts), x increasing from 0 to 1 and y decreasing from 1 to 0
+      const k = 2 + rnd(8);
+      const xs = [0, ...Array.from({ length: k }, () => rnd(1 << 30) / (1 << 30) + rnd(1000) * 2 ** -60), 1].sort((a, b) => a - b);
+      const ys = [1, ...Array.from({ length: k }, () => rnd(1 << 30) / (1 << 30)), 0].sort((a, b) => b - a);
+      const curve: RocResult = { ...diag, specificities: xs, sensitivities: ys };
+      const u = (rnd(1000) + 1) / 1001;
+      const w = (rnd(1000) + 1) / 1001;
+      const pairs: [number, number][] = [
+        [Math.min(u, w), Math.max(u, w) + (u === w ? 1e-3 : 0)],
+        [u * 1e-7, (1 + w) * 1e-6],
+        [0, u * 1e-200],
+      ];
+      for (const [lo, hi] of pairs) {
+        for (const focus of ["specificity", "sensitivity"] as const) {
+          const [x, y] = focus === "specificity" ? [xs, ys] : [[...ys].reverse(), [...xs].reverse()];
+          const ref = mcClishOfPoints(x.map(exact), y.map(exact), lo, hi);
+          if (cmp(ref, HALF) < 0) {
+            expect(() => auc(curve, { partialAuc: [lo, hi], focus, correct: true })).toThrow("below the diagonal");
+            below++;
+          } else {
+            expect(isRounded(auc(curve, { partialAuc: [lo, hi], focus, correct: true }).auc, ref)).toBe(true);
+            checked++;
+          }
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(300);
+    expect(below).toBeGreaterThan(50);
+  });
+
+  it("rejects an object that is not a ROC curve", () => {
+    for (const sp of [[0, 0.5], [0.1, 1], [0, 0.7, 0.3, 1], [0, NaN, 1], [0, 2, 1]]) {
+      const curve: RocResult = { ...diag, specificities: sp, sensitivities: sp.map(() => 0.5) };
+      expect(() => auc(curve, { partialAuc: [0, 0.2], correct: true })).toThrow(RangeError);
     }
   });
 });
