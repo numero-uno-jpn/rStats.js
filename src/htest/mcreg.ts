@@ -804,7 +804,7 @@ export function mcreg(x: Sample, y: Sample, options: McregOptions = {}): McregRe
     if (options.rngSeed !== undefined) {
       // R's set.seed(rngSeed, kind = "Mersenne-Twister"), and the previous state restored afterwards if there was one,
       // as mcr (which restores .Random.seed only where it existed: in a session that never drew a random number, the
-      // stream of set.seed(rngSeed) continues after the call)
+      // stream of set.seed(rngSeed) continues after the call; RNGkind, as in R, creates a state)
       const saved = isRandomSeeded() ? getRandomSeed() : undefined;
       try {
         RNGkind({ kind: "Mersenne-Twister" });

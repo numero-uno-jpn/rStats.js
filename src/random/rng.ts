@@ -68,7 +68,7 @@ function initSeed(seed: number): void {
 }
 
 /**
- * Whether the generator has a state (set by a seed, a restored state or a first draw), as R's `.Random.seed` exists.
+ * Whether the generator has a state (set by a seed, a restored state, RNGkind or a first draw), as R's `.Random.seed` exists.
  * Internal (mcreg's rngSeed restores the previous state only where there was one, as mcr)
  */
 export function isRandomSeeded(): boolean {
