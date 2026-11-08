@@ -194,7 +194,8 @@ describe("RNG kinds", () => {
 
 describe("RNGkind seeds a generator that was never seeded", () => {
   // R 4.6.2, in a fresh session: exists(".Random.seed") is FALSE before RNGkind(sample.kind = "Rejection") (any call
-  // of RNGkind) and TRUE after it, as after a first draw. Each case starts from a fresh copy of the module state
+  // that gives a kind) and TRUE after it, as after a first draw; RNGkind() and RNGkind(NULL) leave it FALSE. Each case
+  // starts from a fresh copy of the module state
   const fresh = async () => {
     vi.resetModules();
     const rng = await import("../src/random/rng.js");
@@ -205,6 +206,14 @@ describe("RNGkind seeds a generator that was never seeded", () => {
 
   it.each([
     ["no options", {}],
+    ["every option undefined", { kind: undefined, sampleKind: undefined }],
+  ] as const)("a query (%s) does not seed", async (_, options) => {
+    const m = await fresh();
+    expect(m.RNGkind(options)).toEqual({ kind: "Mersenne-Twister", normalKind: "Inversion", sampleKind: "Rejection" });
+    expect(m.isRandomSeeded()).toBe(false);
+  });
+
+  it.each([
     ["sampleKind only", { sampleKind: "Rejection" }],
     ["sampleKind Rounding", { sampleKind: "Rounding" }],
     ["kind", { kind: "Mersenne-Twister" }],

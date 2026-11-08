@@ -68,7 +68,7 @@ function initSeed(seed: number): void {
 }
 
 /**
- * Whether the generator has a state (set by a seed, a restored state, RNGkind or a first draw), as R's `.Random.seed` exists.
+ * Whether the generator has a state (set by a seed, a restored state, RNGkind with a kind or a first draw), as R's `.Random.seed` exists.
  * Internal (mcreg's rngSeed restores the previous state only where there was one, as mcr)
  */
 export function isRandomSeeded(): boolean {
@@ -141,7 +141,8 @@ function lookup(table: Record<string, boolean>, name: string | undefined, what: 
  * when the kind does not change), so a stream stays reproducible from the last {@link setSeed};
  * changing only `sampleKind` keeps the stream. Call {@link setSeed} afterwards to seed the new
  * generator directly: `RNGkind({ kind }); setSeed(seed)` is R's `set.seed(seed, kind)`. Also as in R,
- * any call seeds a generator that has not been seeded yet (from the clock, as a first draw would).
+ * a call that gives a kind seeds a generator that has not been seeded yet (from the clock, as a
+ * first draw would); a call without kinds only reads them.
  *
  * @param options The kinds to change; omitted entries are kept. Default: change nothing.
  * @returns The kinds in effect before the call (the current ones when called without options), as R.
@@ -171,9 +172,9 @@ export function RNGkind(options: RNGKindOptions = {}): RNGKinds {
   };
   const useLec = lookup(KINDS, options.kind, "RNG kind");
   const useRounding = lookup(SAMPLE_KINDS, options.sampleKind, "sample kind");
-  // as R, where any call of RNGkind creates .Random.seed: a generator never seeded is seeded from the clock first, as
-  // a first draw would
-  ensureSeeded();
+  // as R, where a call of RNGkind that gives a kind creates .Random.seed: a generator never seeded is seeded from the
+  // clock first, as a first draw would (a query, without kinds, leaves it unseeded, as R's RNGkind() and RNGkind(NULL))
+  if (useLec !== undefined || useRounding !== undefined) ensureSeeded();
   if (useLec !== undefined) {
     // The new generator is seeded with the next uniform u (0 < u < 1) times 2^32 - 1, truncated to an unsigned integer
     const seed = Math.trunc(unifRand() * 4294967295);

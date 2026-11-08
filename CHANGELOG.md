@@ -50,8 +50,9 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ### Fixed
 
-- `RNGkind`: any call seeds a generator that was never seeded (from the clock, as a first draw would), as R's
-  `RNGkind()` creates `.Random.seed`; changing only `sampleKind` left it unseeded.
+- `RNGkind`: a call that gives a kind seeds a generator that was never seeded (from the clock, as a first draw
+  would), as R's `RNGkind()` creates `.Random.seed` then; changing only `sampleKind` left it unseeded. A call without
+  kinds still leaves it unseeded, as in R.
 
 ## 1.2.0 - 2026-11-07
 
