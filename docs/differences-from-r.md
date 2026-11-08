@@ -201,6 +201,11 @@ affected.
 | nortest's `pearson.test` with a value whose `pnorm` rounds to 1 (an outlier about 8.3 sd or more above the mean) | the value falls in class k + 1, which `tabulate` drops: the counts sum to less than n (1176.13 for 99 zeros and 1e6) | counted in the last class: 1174.26 |
 | psych's `omega` (minres) with a uniqueness at the lower bound 0.005 (a Heywood case) | `fa` passes L-BFGS-B the gradient of the residual sum of squares with the diagonal, not that of the off-diagonal objective; the two minima agree in the interior but not at the bound, so the fit stops above the minimum, mostly with convergence 0 (0.5% to 3.4% above it in the tests; uniquenesses off by up to 0.05) | from that point, L-BFGS-B goes on with the objective's own gradient (factr 1e3) to the minimum; without a uniqueness at the bound as psych, bit for bit |
 | psych's `alpha` with a singular item correlation matrix (a repeated item, an item that is the sum of others, or at least as many items as subjects; issue #468) | G6 from `smc`, whose pseudo-inverse and clamp to [0, 1] give an item that the others predict exactly an SMC of 0 instead of 1: G6 0.5 for two copies of one item, 0.712 for a = b next to c (the R^2 gives 0.956), negative values with more items than subjects (rStats.js before: an error, also for raw and standardized alpha) | each SMC as the R^2 of lm(x_i ~ x_-i) (R's QR, tol 1e-7): G6 1 and 0.956. Where the matrix is nonsingular, the SMC from its inverse as before (psych's value, except for nearly dependent items, where psych's `Pinv` drops small singular values). With at least as many items as subjects the centred items span at most n - 1 dimensions, so every item is predicted exactly by the others and G6 is always 1 (correct for the sample, but it carries no information) |
+| pROC's `coords` (`ret = "all"`) | the counts rebuilt as se · m and sp · n, not always integers (32/49 · 49 = 31.999999999999996); fpr = 1 − sp, lr_pos = se/(1 − sp) and closest.topleft cancel near sp = 1 (one false positive among 10000 controls: fpr 9.9999999999989e-05, lr_pos 10000.0000000011) | `coords`: every column from the integer counts, rounded once (fp/n, (tp n)/(m fp), ...) |
+| pROC's `coords(x = "best")` | the criteria (se + r sp, the distance to the corner) compared with `==` after rounding: thresholds tied mathematically are lost (controls 7, 10, 12, 6, 10, 6 and cases 5, 2, 3, 1, 12, 14, 12, 14, 3, 14, 8, 13: only 11 for 11 and 12.5, both se + sp = 4/3) | `coords`: the criteria compared exactly (integer cross-products with the exact rational of the weights); every tied row |
+| epiR's `epi.tests(method = "exact")` | the Clopper-Pearson limits as 1 − qbeta(...), which loses digits for small limits (se = 1e-7: lower limit off by 4e-9 relative) | `diagnosticTests`: qbeta directly (binomCI's `"clopper-pearson"`) |
+| epiR's `epi.tests`: the positive likelihood ratio and its limits when the specificity is near 1 | se/(1 − sp) with 1 − sp formed from sp: 180000.89999939842 for 180000.9 ([[9e5, 10], [1e5, 2e6]]) | `diagnosticTests`: 1 − sp = b/(b + d) from the counts (likewise 1 − se for LR−) |
+| epiR's `epi.tests(method = "wilson")`: the lower limit at x = 0 | −2.8e-17 (rounding of centre − half) | 0 (binomCI's Wilson limits) |
 
 ### Distributions outside base R
 
@@ -971,6 +976,36 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   score tests (Miettinen-Nurminen by default, Farrington-Manning `"mee"` or Wald), dual to `binomDiffCI` with the same
   method at the level 1 - 2 alpha. For 0/1 data it is the test to use rather than `tost`, whose t approximation has a
   variance of 0 for a group of all 0s or all 1s. The margin is symmetric, (-margin, margin) with margin in (0, 1).
+- **`roc`, `auc`, `ciAuc`, `rocTest` and `coords`** (pROC): the curve, its AUC (U/(mn) from the counts, rounded
+  once; pROC's trapezoid sum differs by an ulp), DeLong's interval and tests and the bootstrap (R's random stream:
+  after `setSeed` the same draws and values as pROC) agree with pROC within 1e-13 relative. Differences:
+  - An infinite predictor value is an error (pROC: NaN with a warning), as are missing values with `naRm: false`
+    (pROC: NA). A curve of the `{ controls, cases }` form is never treated as paired with another curve (it has no
+    response to compare).
+  - DeLong's interval and tests need at least two controls and two cases (pROC: NA, NaN or the R error "missing value
+    where TRUE/FALSE needed"). The unpaired DeLong test of two curves whose variances are both 0 gives D = 0 and
+    p-value 1 (one-sided 0.5) for equal AUCs (pROC: NaN); its degrees of freedom are NaN. At `confLevel` 1 `ciAuc`
+    gives [0, 1] as pROC, also when the variance is 0.
+  - `rocTest` uses DeLong's test unless `method` is given (pROC switches to the bootstrap silently for curves of
+    different directions), and checks `confLevel` also then (pROC: NaN limits). Venkatraman's test, the sensitivity
+    and specificity tests, smoothing, `percent` and the `ci.coords` family are not offered.
+  - `ciAuc` with the bootstrap returns the curve's AUC as `estimate` and the interval (pROC's middle value is the
+    median of the bootstrap AUCs). A stratified bootstrap needs at least two controls and two cases (pROC resamples a
+    single value x ≥ 1 from 1, ..., x); a non-stratified resample without controls is dropped with the warning of one
+    without cases (pROC stops with "missing value where TRUE/FALSE needed"). With `rocTest`, the count in "<k> NA
+    value(s) produced during bootstrap were ignored." is that of the dropped replicates.
+  - `auc` with `partialAuc`: limits outside [0, 1] are an error (pROC: NA), as is McClish's correction below the
+    diagonal (pROC: NA with the warning "Partial AUC correction not defined for ROC curves below the diagonal.").
+  - `coords`: all columns from the integer counts (see above); `"best"` returns every row tied exactly; the cost in
+    `bestWeights` must be positive (pROC does not check it); `youden` is pROC's se + r·sp, not se + sp − 1. The
+    columns are camelCase (`lrPos`, `lrNeg`, `closestTopleft`).
+- **`diagnosticTests`** (epiR's `epi.tests`) returns sensitivity, specificity, the predictive values, the likelihood
+  ratios, accuracy, the diagnostic odds ratio and the two prevalences with their intervals, not Youden's index, the
+  number needed to diagnose or epiR's `p.*` rows. Methods `"exact"` (epiR's "exact" and "clopper-pearson", computed
+  directly), `"wilson"` and `"jeffreys"`; Jeffreys' interval is binomCI's, 0 at x = 0 and 1 at x = n (epiR: the beta
+  quantiles there). epiR's `"agresti"` (which changes the estimates) is not offered. A zero row or column total, non-
+  integer counts and a level outside (0, 1) are errors (epiR: NaN, the counts used, NaN limits); zero cells give
+  infinite ratios and NaN limits as epiR. The option `prevalence` adds the predictive values at that prevalence.
 
 ### Data handling
 

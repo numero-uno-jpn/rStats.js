@@ -195,6 +195,11 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | psych の `omega` (minres) で独自因子分散が下限 0.005 に張り付く場合 (Heywood) | `fa` は L-BFGS-B に、非対角の目的関数ではなく、対角を含めた残差の二乗和の勾配を渡す。2 つの最小は内点では一致するが下限では一致せず、最小より高い点で、多くは convergence 0 で止まる (テストの例では 0.5%〜3.4% 高く、独自因子分散は最大 0.05 ずれる) | その点から目的関数そのものの勾配で L-BFGS-B を続け (factr 1e3)、最小に届く。下限に張り付かなければ psych と同じビット |
 | 項目の相関行列が特異な場合の psych の `alpha` (同じ項目の重複、ほかの項目の和の項目、項目数が被験者数以上。Issue #468) | G6 を `smc` から求める。擬似逆行列と [0, 1] への切り詰めで、残りの項目で完全に予測できる項目の SMC が 1 でなく 0 になる。同じ項目 2 つで G6 0.5、a = b と c で 0.712 (R² からは 0.956)、項目数が被験者数より多いと負の値 (以前の rStats.js はエラーで、raw・std の alpha も返さなかった) | 各 SMC を lm(x_i ~ x_-i) の R² (R の QR、tol 1e-7) で求める。G6 は 1 と 0.956。行列が特異でなければ以前どおり逆行列から求める (psych と同じ値。ただし項目がほぼ従属なときは、psych の `Pinv` が小さい特異値を切り捨てるので違う)。項目数が被験者数以上なら、中心化した項目は高々 n - 1 次元に入るので、どの項目も残りで完全に予測でき、G6 は常に 1 になる (標本の上では正しいが、情報はない) |
 | nortest の `pearson.test` で、`pnorm` が 1 に丸まる値 (平均より約 8.3 sd 以上大きい外れ値) がある場合 | その値は k + 1 番目の区間になり、`tabulate` が捨てる。計数の合計が n より小さくなる (0 が 99 個と 1e6 で 1176.13) | 最後の区間に数える: 1174.26 |
+| pROC の `coords` (`ret = "all"`) | 計数を se · m と sp · n から作り直すので整数にならないことがある (32/49 · 49 = 31.999999999999996)。fpr = 1 − sp、lr_pos = se/(1 − sp)、closest.topleft は sp が 1 に近いと桁落ちする (対照 10000 のうち偽陽性 1: fpr 9.9999999999989e-05、lr_pos 10000.0000000011) | `coords`: すべての列を整数の計数から求め、1 回だけ丸める (fp/n、(tp n)/(m fp)、...) |
+| pROC の `coords(x = "best")` | 基準 (se + r sp、隅までの距離) を丸めたあと `==` で比べるので、数学的に同点の閾値が落ちる (対照 7, 10, 12, 6, 10, 6、症例 5, 2, 3, 1, 12, 14, 12, 14, 3, 14, 8, 13: 11 と 12.5 がともに se + sp = 4/3 なのに 11 だけ) | `coords`: 基準を厳密に比べる (重みの厳密な有理数での整数の積)。同点の行をすべて返す |
+| epiR の `epi.tests(method = "exact")` | Clopper-Pearson の限界を 1 − qbeta(...) として求めるので、小さい限界で桁を失う (se = 1e-7: 下限が相対 4e-9 ずれる) | `diagnosticTests`: qbeta を直接使う (binomCI の `"clopper-pearson"`) |
+| epiR の `epi.tests`: 特異度が 1 に近いときの陽性尤度比とその限界 | sp から作った 1 − sp による se/(1 − sp): 180000.9 が 180000.89999939842 ([[9e5, 10], [1e5, 2e6]]) | `diagnosticTests`: 計数から 1 − sp = b/(b + d) (LR− の 1 − se も同様) |
+| epiR の `epi.tests(method = "wilson")`: x = 0 での下限 | −2.8e-17 (centre − half の丸め) | 0 (binomCI の Wilson の限界) |
 
 ### R にない分布
 
@@ -913,6 +918,34 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   (既定は Miettinen-Nurminen、Farrington-Manning の `"mee"`、Wald) で、同じ方法の水準 1 - 2 alpha の `binomDiffCI` と
   双対です。0/1 データには `tost` よりこちらを使うべきです (`tost` の t 近似では、すべて 0 かすべて 1 の群の分散が 0
   になる)。許容幅は対称な (-margin, margin) で、margin は (0, 1) の値です。
+- **`roc`、`auc`、`ciAuc`、`rocTest`、`coords`** (pROC): 曲線、その AUC (計数からの U/(mn) を 1 回だけ丸めたもの。
+  pROC の台形の和とは 1 ulp 違う)、DeLong の区間と検定、ブートストラップ (R の乱数列: `setSeed` のあとは pROC と同じ
+  抽出と値) は pROC と相対 1e-13 以内で一致します。違い:
+  - 予測変数の無限大の値はエラーです (pROC は警告つきで NaN)。`naRm: false` での欠測値もエラーです (pROC は NA)。
+    `{ controls, cases }` の形の曲線は、ほかの曲線と対応があるとはみなしません (比べる応答がない)。
+  - DeLong の区間と検定には対照と症例が 2 つ以上ずつ必要です (pROC は NA、NaN、または R のエラー "missing value
+    where TRUE/FALSE needed")。分散がどちらも 0 の 2 曲線の対応のない DeLong 検定は、AUC が等しければ D = 0、p 値 1
+    (片側 0.5) を返します (pROC は NaN)。自由度は NaN です。`confLevel` が 1 のとき `ciAuc` は分散が 0 でも pROC と
+    同じく [0, 1] を返します。
+  - `rocTest` は `method` を与えなければ DeLong の検定を使い (pROC は向きの違う曲線では黙ってブートストラップに切り
+    替える)、そのときも `confLevel` を確かめます (pROC は NaN の区間)。Venkatraman の検定、感度・特異度の検定、平滑
+    化、`percent`、`ci.coords` などはありません。
+  - ブートストラップの `ciAuc` は `estimate` に曲線の AUC を、区間とともに返します (pROC の 3 つの値の中央は
+    ブートストラップの AUC の中央値)。層別のブートストラップには対照と症例が 2 つ以上ずつ必要です (pROC は 1 つの値
+    x ≥ 1 を 1, ..., x から抽出し直す)。層別しないブートストラップで対照のない標本は、症例のない標本と同じ警告で捨て
+    ます (pROC は "missing value where TRUE/FALSE needed" で止まる)。`rocTest` の "<k> NA value(s) produced during
+    bootstrap were ignored." の数は捨てた反復の数です。
+  - `partialAuc` を与えた `auc`: [0, 1] の外の端はエラーです (pROC は NA)。対角線より下での McClish の補正もエラーです
+    (pROC は警告 "Partial AUC correction not defined for ROC curves below the diagonal." つきで NA)。
+  - `coords`: すべての列を整数の計数から求めます (上を参照)。`"best"` は厳密に同点の行をすべて返します。
+    `bestWeights` のコストは正でなければなりません (pROC は確かめない)。`youden` は pROC の se + r·sp で、
+    se + sp − 1 ではありません。列名は camelCase です (`lrPos`、`lrNeg`、`closestTopleft`)。
+- **`diagnosticTests`** (epiR の `epi.tests`) は感度、特異度、予測値、尤度比、正診率、診断オッズ比、2 つの有病率を
+  区間つきで返し、Youden 指数、NND、epiR の `p.*` の行は返しません。方法は `"exact"` (epiR の "exact" と
+  "clopper-pearson" を直接計算)、`"wilson"`、`"jeffreys"` です。Jeffreys の区間は binomCI のもので、x = 0 で 0、
+  x = n で 1 です (epiR はそこでもベータ分布の分位点)。推定値を変える epiR の `"agresti"` はありません。行または列の
+  合計が 0、整数でない計数、(0, 1) の外の水準はエラーです (epiR は NaN、計数をそのまま使う、NaN の区間)。0 のセルは
+  epiR と同じく無限大の比と NaN の区間になります。オプション `prevalence` で、その有病率での予測値も返します。
 
 ### データの扱い
 

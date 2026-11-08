@@ -167,6 +167,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `ansari.test()` | `ansariTest` | 2 標本の尺度の違いについての Ansari-Bradley 検定 |
 | `afex::aov_ez()` | `aovEz` | long のデータからの反復測定・被験者間・混合計画の分散分析 |
 | `aov()` | `aov` | 分散分析 |
+| `pROC::auc()` | `auc` | ROC 曲線の下の面積、または 2 つの特異度 (感度) の間の部分面積 |
 | `bartlett.test()` | `bartlettTest` | 複数の正規標本の分散が等しいことについての Bartlett 検定 |
 | `binom.test()` | `binomTest` | ベルヌーイ試行の成功確率についての単純帰無仮説の正確検定 |
 | `DescTools::BinomCI()` | `binomCI` | 二項比率 x/n の信頼区間 |
@@ -174,18 +175,21 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `DescTools::BinomRatioCI()` | `binomRatioCI` | 独立な 2 つの比率 x1/n1 と x2/n2 の比 p1/p2 の信頼区間 |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | 2 標本の相対効果 P(X < Y) + P(X = Y)/2 が 1/2 であることについての Brunner-Munzel 検定 (等分散も分布の形が同じことも仮定しない) |
 | `chisq.test()` | `chisqTest` | Pearson のカイ二乗検定 |
+| `pROC::ci.auc()` | `ciAuc` | ROC 曲線の下の面積の信頼区間 (DeLong の方法またはブートストラップ) |
 | `DescTools::CochranQTest()` | `cochranQTest` | 反復のない完全ブロック計画での 2 値応答に対する Cochran の Q 検定 |
 | `pwr::cohen.ES()` | `cohenES` | Cohen による効果量の慣用値 |
 | `effectsize::cohens_d()` | `cohensD` | Cohen の d: 2 標本、対応のある標本、または 1 標本と `mu` の平均の差を標準化した値と、非心 t 分布による信頼区間 |
 | `confint()` | `confint` | `lm` で当てはめた線形モデルの係数の信頼区間 |
 | `confint()` | `glmConfint` | `glm` で当てはめた一般化線形モデルの係数のプロファイル尤度信頼区間 |
 | `cooks.distance()` | `glmCooksDistance` | `glm` の当てはめの Cook の距離 (事前重みが 0 でない行について) |
+| `pROC::coords()` | `coords` | ROC 曲線の座標: すべての点、最良の閾値、または与えた閾値での感度、特異度、計数、予測値、尤度比と最良の閾値の基準 |
 | `cor.test()` | `corTest` | 対応のある標本間の相関の検定 |
 | `survival::coxph()` | `coxph` | Cox 比例ハザード回帰 |
 | `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises の正規性検定 |
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | 対ごとの Mann-Whitney 統計量による Dwass-Steel-Critchlow-Fligner の全対比較検定 |
 | `dunn.test::dunn.test()` | `dunnTest` | 平均順位のすべての対についての Dunn の検定 |
 | `PMCMRplus::dunnettTest()` | `dunnettTest` | プールした分散による、対照群に対する平均の Dunnett の多対一検定 |
+| `epiR::epi.tests()` | `diagnosticTests` | 2 値の検査の 2 × 2 表からの感度、特異度、予測値、尤度比、正診率、診断オッズ比、真の有病率と見かけの有病率 (それぞれ信頼区間つき) |
 | `effectsize::epsilon_squared()` | `epsilonSquared` | 分散分析表の各項のイプシロン二乗 (反復測定計画にも対応) |
 | `pwr::ES.h()` | `esH` | 2 つの比率の効果量 h |
 | `pwr::ES.w1()` | `esW1` | 適合度検定の効果量 w `sqrt(sum((p1 - p0)^2 / p0))` |
@@ -253,6 +257,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | 標本サイズが異なる 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズの一方、効果量、有意水準のいずれか |
 | `quade.test()` | `quadeTest` | 反復のない完全ブロック計画に対する Quade 検定 |
 | `residuals()` | `glmResiduals` | `glm` で当てはめた一般化線形モデルの残差 (1 行に 1 つ) |
+| `pROC::roc.test()` | `rocTest` | 2 つの ROC 曲線の下の面積の差の検定 (DeLong の方法またはブートストラップ) |
+| `pROC::roc()` | `roc` | 2 値の応答に対する数値の予測変数の ROC 曲線 |
 | `rstandard()` | `glmRstandard` | `glm` の当てはめの標準化 Pearson 残差 (既定) または標準化逸脱度残差 (事前重みが 0 でない行について) |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia の正規性検定 |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk の正規性検定 |

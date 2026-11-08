@@ -7,6 +7,25 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **ROC curves** (pROC 1.19.1): `roc(response, predictor, { levels, direction, naRm })`, `roc(formula, data)` and
+  `roc({ controls, cases })`, pROC's `roc()`, with pROC's thresholds, stored order and "auto" direction (the median
+  rule), and the AUC from the counts; `auc(curve, { partialAuc, focus, correct })`, the partial AUC with McClish's
+  correction; `ciAuc(curve, { confLevel, method, bootN, bootStratified })`, `ci.auc()`, DeLong's interval and variance
+  or the bootstrap on R's random stream; `rocTest(roc1, roc2, options)` and `rocTest(response, predictor1,
+  predictor2, options)`, `roc.test()`, DeLong's paired and unpaired tests and the bootstrap test, pairing curves of the
+  same response as pROC; `coords(curve, x, { bestMethod, bestWeights })`, `coords(ret = "all")`, as column arrays.
+  The coordinates are computed from the integer counts and the "best" thresholds compared exactly, where pROC loses
+  digits and tied thresholds; one case or one control for DeLong's methods, infinite predictor values and limits
+  outside [0, 1] are errors (docs/differences-from-r.md).
+- **Diagnostic 2 × 2 measures**: `diagnosticTests(table, { method, confLevel, prevalence })`, epiR's `epi.tests()`:
+  sensitivity, specificity, predictive values, likelihood ratios (log intervals), accuracy, the diagnostic odds ratio
+  (Woolf) and the true and apparent prevalence, with exact (Clopper-Pearson, computed directly), Wilson or Jeffreys
+  intervals, and the predictive values at a given prevalence.
+
 ## 1.2.0 - 2026-11-07
 
 Contingency tables and proportions (item 1 of the roadmap): intervals for a proportion and for the risk difference,

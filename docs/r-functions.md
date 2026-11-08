@@ -167,6 +167,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `ansari.test()` | `ansariTest` | Ansari-Bradley test that two samples differ in scale. |
 | `afex::aov_ez()` | `aovEz` | Repeated-measures, between-subjects and mixed analysis of variance from long data. |
 | `aov()` | `aov` | Analysis of variance. |
+| `pROC::auc()` | `auc` | The area under a ROC curve, or the partial area between two specificities or sensitivities. |
 | `bartlett.test()` | `bartlettTest` | Bartlett's test that the variances of several normal samples are equal. |
 | `binom.test()` | `binomTest` | Exact test of a simple null hypothesis about the probability of success in Bernoulli trials. |
 | `DescTools::BinomCI()` | `binomCI` | Confidence interval for a binomial proportion x/n. |
@@ -174,18 +175,21 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `DescTools::BinomRatioCI()` | `binomRatioCI` | Confidence interval for the ratio p1/p2 of two independent proportions x1/n1 and x2/n2. |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal variances or shapes. |
 | `chisq.test()` | `chisqTest` | Pearson's chi-squared test. |
+| `pROC::ci.auc()` | `ciAuc` | Confidence interval of the area under a ROC curve, by DeLong's method or the bootstrap. |
 | `DescTools::CochranQTest()` | `cochranQTest` | Cochran's Q test for binary responses in an unreplicated complete block design. |
 | `pwr::cohen.ES()` | `cohenES` | Cohen's conventional effect sizes. |
 | `effectsize::cohens_d()` | `cohensD` | Cohen's d: the standardized difference of means of two samples, of paired samples, or of one sample against `mu`, with a confidence interval from the noncentral t distribution. |
 | `confint()` | `confint` | Confidence intervals for the coefficients of a linear model, for an `lm` fit. |
 | `confint()` | `glmConfint` | Profile likelihood confidence intervals for the coefficients of a generalized linear model, for a `glm` fit. |
 | `cooks.distance()` | `glmCooksDistance` | Cook's distances, for the rows of non-zero prior weight, for a `glm` fit. |
+| `pROC::coords()` | `coords` | Coordinates of a ROC curve: sensitivity, specificity, the counts, predictive values, likelihood ratios and the criteria of the best threshold, at every point of the curve, at the best threshold(s) or at given thresholds. |
 | `cor.test()` | `corTest` | Test for correlation between paired samples. |
 | `survival::coxph()` | `coxph` | Cox proportional hazards regression. |
 | `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises test for normality. |
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. |
 | `dunn.test::dunn.test()` | `dunnTest` | Dunn's test of all pairs of mean ranks. |
 | `PMCMRplus::dunnettTest()` | `dunnettTest` | Dunnett's many-to-one test of means against the control, with the pooled variance. |
+| `epiR::epi.tests()` | `diagnosticTests` | Sensitivity, specificity, predictive values, likelihood ratios, accuracy, the diagnostic odds ratio and the true and apparent prevalence of a binary test, each with a confidence interval, from its 2 × 2 table. |
 | `effectsize::epsilon_squared()` | `epsilonSquared` | Epsilon squared of the terms of an analysis-of-variance table, also of repeated-measures designs. |
 | `pwr::ES.h()` | `esH` | Effect size h of two proportions. |
 | `pwr::ES.w1()` | `esW1` | Effect size w of a goodness-of-fit test, `sqrt(sum((p1 - p0)^2 / p0))`. |
@@ -253,6 +257,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance level for a given power. |
 | `quade.test()` | `quadeTest` | Quade test for an unreplicated complete block design. |
 | `residuals()` | `glmResiduals` | Residuals of a generalized linear model, one per row, for a `glm` fit. |
+| `pROC::roc.test()` | `rocTest` | Tests the difference of the areas under two ROC curves, by DeLong's method or the bootstrap. |
+| `pROC::roc()` | `roc` | The ROC curve of a numeric predictor of a binary response. |
 | `rstandard()` | `glmRstandard` | Standardized Pearson or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia test for normality. |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
