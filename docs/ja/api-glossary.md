@@ -741,3 +741,41 @@
 | barycentric form | 重心形式 | 新規 |
 | divided differences | 差分商 | 新規 |
 | node (of interpolation) | 節点 | 新規 |
+| Bessel function of the first kind | 第 1 種 Bessel 関数 | 人名は英字 (規則 11)。`docs/ja` の既存表記「ベッセル」とは異なる (`besselJ`) |
+| Bessel function of the second kind | 第 2 種 Bessel 関数 | 人名は英字 (規則 11)。`docs/ja` の既存表記「ベッセル」とは異なる (`besselY`) |
+| modified Bessel function | 変形 Bessel 関数 | 人名は英字 (規則 11)。`besselI` は「第 1 種変形」、`besselK` は「第 2 種変形」 |
+| order (of a Bessel function) | 次数 | `docs/ja` で使用 |
+| Debye's uniform expansion | Debye の一様漸近展開 | `docs/ja` で使用。人名は英字 |
+| asymptotic expansion | 漸近展開 | `docs/ja` で使用 |
+| continued fraction | 連分数 | `docs/ja` で使用 |
+| recurrence (formula) | 漸化式 | `docs/ja` で使用 |
+| turning point | 転換点 | 新規。Bessel 関数で次数と引数が近い付近 |
+| phase correction | 位相の補正 | `docs/ja` で使用 |
+| gamma function | ガンマ関数 | `docs/ja` で使用 |
+| beta function | ベータ関数 | `docs/ja` で使用 |
+| incomplete gamma function | 不完全ガンマ関数 | `docs/ja` で使用 |
+| lower / upper incomplete gamma function | 下側 / 上側不完全ガンマ関数 | `docs/ja` で使用 |
+| non-regularized | 正則化しない | `docs/ja` で使用 |
+| digamma function | ディガンマ関数 | `docs/ja` で使用 (`lgamma` の導関数) |
+| polygamma function | ポリガンマ関数 | `docs/ja` で使用 |
+| trigamma function | トリガンマ関数 | `docs/ja` で使用 |
+| binomial coefficient | 二項係数 | `docs/ja` で使用 |
+| factorial | 階乗 | `docs/ja` で使用 |
+| error function | 誤差関数 | `docs/ja` で使用 |
+| complementary error function | 相補誤差関数 | `docs/ja` で使用 |
+| inverse function | 逆関数 | 新規 (`erfinv`、`erfcinv`) |
+| subnormal (number) | 非正規化数 | `docs/ja` で使用 |
+| round half to even | 最も近い偶数への丸め | 新規 (`psigamma` の `deriv`) |
+| nearest integer | 最も近い整数 | `docs/ja` で使用 |
+| cancellation (loss of significance) | 桁落ち | `docs/ja` で使用 |
+| zero (of a function) | 零点 | `docs/ja` で使用 (`lgamma` の x = 1、x = 2) |
+| pole | 極 | 新規 (`lgamma1p` の `Infinity`) |
+| exponent (of exp) | 指数 | 新規 (`besselI` の `nu eta - x`)。「指数分布」の「指数」と同じ語 |
+| unscaled | 指数スケールなし | 新規。`exponScaled` が `false` の場合 |
+| flushed (to zero) | 0 に落とされる | 新規。丸めで 0 になること |
+| edge case | 端のケース | `docs/ja` で使用。R が特別に定義する入力 |
+| mathematical value | 数学的な値 | `docs/ja` で使用 |
+| first argument | 第 1 引数 | `docs/ja` で使用 |
+| single number | 単一の数値 | 新規。ベクトルを受け付けない関数 (「1 つの数値」は `Takes a single number`) |
+| order (of the derivative) | 導関数の階数 | 新規 (`psigamma` の `deriv`) |
+| ordered (selection) | 順序付き | 新規 (`perm`)。「順序を考えない」は unordered |

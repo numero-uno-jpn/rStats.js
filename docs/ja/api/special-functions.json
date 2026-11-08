@@ -2,581 +2,581 @@
   "BesselOptions#summary": {
     "hash": "60b278e467b1",
     "en": "Options for {@link besselI} and {@link besselK}.",
-    "ja": ""
+    "ja": "{@link besselI} と {@link besselK} のオプションです。"
   },
   "BesselOptions.exponScaled#summary": {
     "hash": "65b69ebcb364",
     "en": "If `true`, return `exp(-x) I(x, nu)` (for `besselI`) or `exp(x) K(x, nu)` (for `besselK`). Default `false`.",
-    "ja": ""
+    "ja": "`true` の場合は、`exp(-x) I(x, nu)` (`besselI` の場合) または `exp(x) K(x, nu)` (`besselK` の場合) を返します。既定は `false`。"
   },
   "GammaincResult#summary": {
     "hash": "4e6d483a98d4",
     "en": "Result of {@link gammainc}.",
-    "ja": ""
+    "ja": "{@link gammainc} の結果です。"
   },
   "GammaincResult.logLower#summary": {
     "hash": "db1a771984e1",
     "en": "log of `lower` (finite where `lower` overflows).",
-    "ja": ""
+    "ja": "`lower` の対数です (`lower` がオーバーフローする箇所でも有限です)。"
   },
   "GammaincResult.logUpper#summary": {
     "hash": "3373cc0c5eb5",
     "en": "log of `upper`.",
-    "ja": ""
+    "ja": "`upper` の対数です。"
   },
   "GammaincResult.lower#summary": {
     "hash": "b92a88b3db70",
     "en": "Lower incomplete gamma function gamma(a, x) = integral from 0 to x of t^(a-1) e^-t dt.",
-    "ja": ""
+    "ja": "下側不完全ガンマ関数 gamma(a, x) = integral from 0 to x of t^(a-1) e^-t dt です。"
   },
   "GammaincResult.upper#summary": {
     "hash": "7d2c3b21aeb5",
     "en": "Upper incomplete gamma function Gamma(a, x) = integral from x to Inf of t^(a-1) e^-t dt.",
-    "ja": ""
+    "ja": "上側不完全ガンマ関数 Gamma(a, x) = integral from x to Inf of t^(a-1) e^-t dt です。"
   },
   "RCompatibleOptions#summary": {
     "hash": "bd224cfa7264",
     "en": "Option shared by functions whose edge cases R defines differently from the mathematical function",
-    "ja": ""
+    "ja": "R が端のケースの値を数学的な関数と異なるように定義している関数に共通のオプションです。"
   },
   "RCompatibleOptions.rCompatible#summary": {
     "hash": "b209632ddee9",
     "en": "`true` (default) returns what R returns at the edge cases listed for each function; `false` returns the\nmathematical value there instead (see docs/differences-from-r.md).",
-    "ja": ""
+    "ja": "`true` (既定) の場合は、各関数に挙げた端のケースで R が返す値を返します。`false` の場合は、代わりにそこで数学的な値を返します\n(docs/differences-from-r.md を参照)。"
   },
   "besselI#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "besselI#@param nu": {
     "hash": "46acd8f4bbaf",
     "en": "Order, any real number. For `nu < 0`, `I(x, -nu) = I(x, nu) + 2/pi sin(pi nu) K(x, nu)`\n  (A&S 9.6.2, as in R).",
-    "ja": ""
+    "ja": "次数で、任意の実数です。`nu < 0` の場合、`I(x, -nu) = I(x, nu) + 2/pi sin(pi nu) K(x, nu)` となります\n  (A&S 9.6.2、R と同じく)。"
   },
   "besselI#@param options": {
     "hash": "677f082276f0",
     "en": "`exponScaled` (see {@link BesselOptions}).",
-    "ja": ""
+    "ja": "`exponScaled` ({@link BesselOptions} を参照)。"
   },
   "besselI#@param x": {
     "hash": "622600f515f6",
     "en": "Argument, `x >= 0` (`NaN` for negative `x`).",
-    "ja": ""
+    "ja": "`x >= 0` の引数です (負の `x` では `NaN`)。"
   },
   "besselI#@returns": {
     "hash": "acddf9bcf7c3",
     "en": "I_nu(x), or `exp(-x) I_nu(x)` when `exponScaled`.\n\nFor orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by\nbounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): several seconds at\n`nu = 1e8`. Beyond 2^28 steps, and for `besselI` where its continued fraction does not converge (`x` above about\n5e10), Debye's uniform expansion is used; a RangeError is thrown only where its exponent `nu eta - x` is formed from\nterms above 2^26 and the result is in range (near `x = 0.66 nu`, unscaled).",
-    "ja": ""
+    "ja": "I_nu(x)。`exponScaled` の場合は `exp(-x) I_nu(x)` です。\n\n次数が 1000 を超える場合、倍精度の範囲を大きく外れる結果はただちに返されます (`Infinity` または 0 で、\nその対数の境界によって決まります)。それ以外では、時間は次数とともに増えます (約 `nu` 手順の漸化式)。\n`nu = 1e8` では数秒かかります。2^28 手順を超える場合、および `besselI` で連分数が収束しない場合 (`x` が約 5e10 を超える場合) には、\nDebye の一様漸近展開を使います。\nRangeError は、指数 `nu eta - x` が 2^26 を超える項から作られ、かつ結果が範囲内にある場合 (`x = 0.66 nu` 付近で、指数スケールなし) に限って投げられます。"
   },
   "besselI#summary": {
     "hash": "7ab9f41bdb19",
     "en": "Modified Bessel function of the first kind. Equivalent to R's\n`besselI(x, nu, expon.scaled = FALSE)`. Takes single numbers.",
-    "ja": ""
+    "ja": "第 1 種変形 Bessel 関数です。R の\n`besselI(x, nu, expon.scaled = FALSE)` と同等です。単一の数値を受け取ります。"
   },
   "besselJ#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "besselJ#@param nu": {
     "hash": "32389c115f8f",
     "en": "Order, any real number. For `nu < 0`, `J(x, -nu) = cos(pi nu) J(x, nu) - sin(pi nu) Y(x, nu)`\n  (A&S 9.1.2, as in R).",
-    "ja": ""
+    "ja": "次数で、任意の実数です。`nu < 0` の場合、`J(x, -nu) = cos(pi nu) J(x, nu) - sin(pi nu) Y(x, nu)` となります\n  (A&S 9.1.2、R と同じく)。"
   },
   "besselJ#@param x": {
     "hash": "622600f515f6",
     "en": "Argument, `x >= 0` (`NaN` for negative `x`).",
-    "ja": ""
+    "ja": "`x >= 0` の引数です (負の `x` では `NaN`)。"
   },
   "besselJ#@returns": {
     "hash": "42ec129d8d15",
     "en": "J_nu(x).\n\nFor `x` much larger than `nu` but below the range of the asymptotic expansion (`x < nu / 0.011`), the time grows\nwith `x` (a continued fraction of about `x - nu` terms): about 15 ms at `x = 5e4`, `nu = 1000`, 1.6 s at `x = 1e7`,\n`nu = 2e5`. Near the turning point (`x` a little below `nu`) a recurrence takes about `nu` steps. Beyond 2^25 terms\nof the continued fraction or 2^31 steps of the recurrence (2^28 for a negative non-integer order, which needs Y) a\nRangeError is thrown before the computation. So it is in the asymptotic expansion (`x` above about `90 nu`) where\nthe phase correction `nu^2 / (2x)` exceeds 2^26, which double precision does not resolve.",
-    "ja": ""
+    "ja": "J_nu(x)。\n\n`x` が `nu` よりずっと大きいが、漸近展開の範囲 (`x < nu / 0.011`) よりは小さい場合、時間は `x` とともに増えます (約 `x - nu` 項の連分数)。\nたとえば `x = 5e4`、`nu = 1000` で約 15 ms、`x = 1e7`、`nu = 2e5` で 1.6 s です。\n転換点 (`x` が `nu` よりわずかに小さい付近) では、漸化式が約 `nu` 手順かかります。\n連分数が 2^25 項を超える場合、または漸化式が 2^31 手順を超える場合 (Y が必要な負の非整数次数では 2^28 手順) には、\n計算の前に RangeError を投げます。\nそのため、この場合は、位相の補正 `nu^2 / (2x)` が 2^26 を超え、倍精度では分解できない漸近展開の範囲 (`x` が約 `90 nu` を超える範囲) に入ります。"
   },
   "besselJ#summary": {
     "hash": "ed3d9f911775",
     "en": "Bessel function of the first kind. Equivalent to R's `besselJ(x, nu)`. Takes single numbers.",
-    "ja": ""
+    "ja": "第 1 種 Bessel 関数です。R の `besselJ(x, nu)` と同等です。単一の数値を受け取ります。"
   },
   "besselK#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "besselK#@param nu": {
     "hash": "eca4daf5f424",
     "en": "Order, any real number (`K(x, -nu) = K(x, nu)`).",
-    "ja": ""
+    "ja": "次数で、任意の実数です (`K(x, -nu) = K(x, nu)`)。"
   },
   "besselK#@param options": {
     "hash": "677f082276f0",
     "en": "`exponScaled` (see {@link BesselOptions}).",
-    "ja": ""
+    "ja": "`exponScaled` ({@link BesselOptions} を参照)。"
   },
   "besselK#@param x": {
     "hash": "622600f515f6",
     "en": "Argument, `x >= 0` (`NaN` for negative `x`).",
-    "ja": ""
+    "ja": "`x >= 0` の引数です (負の `x` では `NaN`)。"
   },
   "besselK#@returns": {
     "hash": "681cccdcc7d5",
     "en": "K_nu(x), or `exp(x) K_nu(x)` when `exponScaled`.\n\nFor orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by\nbounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): several seconds at\n`nu = 1e8`. Beyond 2^28 steps, and for `besselI` where its continued fraction does not converge (`x` above about\n5e10), Debye's uniform expansion is used; a RangeError is thrown only where its exponent `nu eta - x` is formed from\nterms above 2^26 and the result is in range (near `x = 0.66 nu`, unscaled).",
-    "ja": ""
+    "ja": "K_nu(x)。`exponScaled` の場合は `exp(x) K_nu(x)` です。\n\n次数が 1000 を超える場合、倍精度の範囲を大きく外れる結果はただちに返されます (`Infinity` または 0 で、\nその対数の境界によって決まります)。それ以外では、時間は次数とともに増えます (約 `nu` 手順の漸化式)。\n`nu = 1e8` では数秒かかります。2^28 手順を超える場合、および `besselI` で連分数が収束しない場合 (`x` が約 5e10 を超える場合) には、\nDebye の一様漸近展開を使います。\nRangeError は、指数 `nu eta - x` が 2^26 を超える項から作られ、かつ結果が範囲内にある場合 (`x = 0.66 nu` 付近で、指数スケールなし) に限って投げられます。"
   },
   "besselK#summary": {
     "hash": "2bcac1d91800",
     "en": "Modified Bessel function of the second kind. Equivalent to R's\n`besselK(x, nu, expon.scaled = FALSE)`. Takes single numbers.",
-    "ja": ""
+    "ja": "第 2 種変形 Bessel 関数です。R の\n`besselK(x, nu, expon.scaled = FALSE)` と同等です。単一の数値を受け取ります。"
   },
   "besselY#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "besselY#@param nu": {
     "hash": "ebef4bd6e694",
     "en": "Order, any real number. For `nu < 0`, `Y(x, -nu) = sin(pi nu) J(x, nu) + cos(pi nu) Y(x, nu)`\n  (A&S 9.1.2, as in R).",
-    "ja": ""
+    "ja": "次数で、任意の実数です。`nu < 0` の場合、`Y(x, -nu) = sin(pi nu) J(x, nu) + cos(pi nu) Y(x, nu)` となります\n  (A&S 9.1.2、R と同じく)。"
   },
   "besselY#@param x": {
     "hash": "e5cd1e87b13d",
     "en": "Argument, `x >= 0` (`NaN` for negative `x`; `-Infinity` at 0).",
-    "ja": ""
+    "ja": "`x >= 0` の引数です (負の `x` では `NaN`、0 では `-Infinity`)。"
   },
   "besselY#@returns": {
     "hash": "c8b88d0e20cd",
     "en": "Y_nu(x).\n\nFor orders above 1000, results far out of the range of doubles are returned at once (`Infinity` or 0, decided by\nbounds on their log); otherwise the time grows with the order (a recurrence of about `nu` steps): about 2.4 s for\n`besselY(0.9e8, 1e8)`. Beyond 2^28 steps, or 2^25 terms of the continued fraction for `x` above `nu` (as for\n{@link besselJ}), a RangeError is thrown before the computation, and likewise for a phase correction `nu^2 / (2x)`\nbeyond 2^26 in the asymptotic expansion for large `x`.",
-    "ja": ""
+    "ja": "Y_nu(x)。\n\n次数が 1000 を超える場合、倍精度の範囲を大きく外れる結果はただちに返されます (`Infinity` または 0 で、\nその対数の境界によって決まります)。それ以外では、時間は次数とともに増えます (約 `nu` 手順の漸化式)。\nたとえば `besselY(0.9e8, 1e8)` で約 2.4 s です。\n2^28 手順を超える場合、または `x` が `nu` より大きいときの連分数の 2^25 項を超える場合 ({@link besselJ} と同じ) には、計算の前に RangeError を投げます。\n大きな `x` の漸近展開で位相の補正 `nu^2 / (2x)` が 2^26 を超える場合も同様です。"
   },
   "besselY#summary": {
     "hash": "a241f6b96473",
     "en": "Bessel function of the second kind. Equivalent to R's `besselY(x, nu)`. Takes single numbers.",
-    "ja": ""
+    "ja": "第 2 種 Bessel 関数です。R の `besselY(x, nu)` と同等です。単一の数値を受け取ります。"
   },
   "beta#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "beta#@param a": {
     "hash": "3a56609734ee",
     "en": "First argument.",
-    "ja": ""
+    "ja": "第 1 引数です。"
   },
   "beta#@param b": {
     "hash": "147cd58aca1e",
     "en": "Second argument.",
-    "ja": ""
+    "ja": "第 2 引数です。"
   },
   "beta#@returns": {
     "hash": "834d5a8d9bc2",
     "en": "B(a, b).",
-    "ja": ""
+    "ja": "B(a, b)。"
   },
   "beta#summary": {
     "hash": "f0c3fe92184c",
     "en": "Beta function B(a, b). Equivalent to R's `beta()`. Takes single numbers.",
-    "ja": ""
+    "ja": "ベータ関数 B(a, b)。R の `beta()` と同等です。単一の数値を受け取ります。"
   },
   "choose#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "choose#@param k": {
     "hash": "4cc137bfbbf8",
     "en": "Number chosen (rounded to an integer).",
-    "ja": ""
+    "ja": "選ぶ個数です (最も近い整数に丸められます)。"
   },
   "choose#@param n": {
     "hash": "7ae735fa2329",
     "en": "Number of items (any real number).",
-    "ja": ""
+    "ja": "項目の数です (任意の実数)。"
   },
   "choose#@param options": {
     "hash": "10c4550723c9",
     "en": "`rCompatible` (default `true`).",
-    "ja": ""
+    "ja": "`rCompatible` (既定は `true`)。"
   },
   "choose#@returns": {
     "hash": "18c8da8a51fa",
     "en": "The binomial coefficient.",
-    "ja": ""
+    "ja": "二項係数です。"
   },
   "choose#summary": {
     "hash": "0923c2e14dcd",
     "en": "Binomial coefficient. Equivalent to R's `choose()`. Takes single numbers.\n\n`n` may be any real number. `k` is rounded to the nearest integer (as R does, which also warns\nwhen `k` is not close to an integer); `choose(n, k)` is 0 for `k < 0` and 1 for `k = 0`.\nFor integer `n` the result is an integer (exact up to 2^53).\n\nEdge cases where R differs from the mathematical value, followed by default (`rCompatible: false`\nreturns the mathematical value instead):\n- `n` within 1e-9 max(1, |n|) of an integer is treated as that integer, so `choose(1e-10, 2)` is 0\n  (mathematically -5e-11); for `n < 0` and `k >= 30` the tolerance is relative to `k - 1 - n`;\n- `choose(n, Infinity)` is 0 for `n >= 0` (otherwise `NaN`);\n- `choose(±Infinity, k)` is `NaN` for `k >= 30` (`±Infinity` below).",
-    "ja": ""
+    "ja": "二項係数。R の `choose()` と同等です。単一の数値を受け取ります。\n\n`n` は任意の実数で構いません。`k` は最も近い整数に丸められます (R と同じく、\n`k` が整数に近くない場合は警告も出します)。`choose(n, k)` は `k < 0` で 0、`k = 0` で 1 です。\n整数の `n` では、結果は整数になります (2^53 まで正確です)。\n\nR が数学的な値と異なる端のケースは次のとおりです。既定では R の値を返し、\n`rCompatible: false` の場合は代わりに数学的な値を返します:\n- 整数から 1e-9 max(1, |n|) 以内の `n` は、その整数として扱われます。そのため `choose(1e-10, 2)` は 0 になります\n  (数学的には -5e-11)。`n < 0` かつ `k >= 30` の場合、許容範囲は `k - 1 - n` を基準とします;\n- `n >= 0` のとき、`choose(n, Infinity)` は 0 です (それ以外は `NaN`);\n- `choose(±Infinity, k)` は `k >= 30` で `NaN` です (それより小さい場合は `±Infinity`)。"
   },
   "digamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "digamma#@param x": {
     "hash": "fb60e87080d1",
     "en": "Argument.",
-    "ja": ""
+    "ja": "引数です。"
   },
   "digamma#@returns": {
     "hash": "c0d80dda9d2a",
     "en": "psi(x) (`NaN` at zero and the negative integers).",
-    "ja": ""
+    "ja": "psi(x) (0 と負の整数では `NaN`)。"
   },
   "digamma#summary": {
     "hash": "bd7b6c5d50ca",
     "en": "Digamma function, the derivative of `lgamma`. Equivalent to R's `digamma()`. Takes a single number.",
-    "ja": ""
+    "ja": "ディガンマ関数です。`lgamma` の導関数です。R の `digamma()` と同等です。1 つの数値を受け取ります。"
   },
   "erf#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "erf#@param x": {
     "hash": "fb60e87080d1",
     "en": "Argument.",
-    "ja": ""
+    "ja": "引数です。"
   },
   "erf#@returns": {
     "hash": "ccaf40c1797e",
     "en": "erf(x).",
-    "ja": ""
+    "ja": "erf(x)。"
   },
   "erf#summary": {
     "hash": "d6210819856a",
     "en": "Error function, erf(x) = 2 / sqrt(pi) * integral from 0 to x of exp(-t^2) dt.\nNot an R function. R writes it as `2 * pnorm(x * sqrt(2)) - 1`, which loses the relative accuracy of small x.",
-    "ja": ""
+    "ja": "誤差関数、erf(x) = 2 / sqrt(pi) * integral from 0 to x of exp(-t^2) dt。\nR の関数ではありません。R では `2 * pnorm(x * sqrt(2)) - 1` と書きますが、これは小さな x の相対精度を失います。"
   },
   "erfc#@example": {
     "hash": "a24bf871a9e4",
     "en": "⟦code1⟧\n\nChanges from xsf: exp(-x^2) is formed from x^2 = hi + lo exact (the rounding of x^2 is 33 ε relative at x = 5.7),\nand below the normal range exp(-700) is applied last so that subnormal results (x up to 27.2) are not flushed to 0.",
-    "ja": ""
+    "ja": "⟦code1⟧\n\nxsf からの変更点: exp(-x^2) は、x^2 = hi + lo と厳密に表して作られます (x^2 の丸め誤差は、x = 5.7 で相対 33 ε になります)。\n正規化数の範囲より下では、exp(-700) を最後に適用するので、非正規化数となる結果 (x が 27.2 まで) が 0 に落とされません。"
   },
   "erfc#@param a": {
     "hash": "fb60e87080d1",
     "en": "Argument.",
-    "ja": ""
+    "ja": "引数です。"
   },
   "erfc#@returns": {
     "hash": "22b323876f2f",
     "en": "erfc(a).",
-    "ja": ""
+    "ja": "erfc(a)。"
   },
   "erfc#summary": {
     "hash": "aa282e453ed5",
     "en": "Complementary error function, erfc(x) = 1 - erf(x), accurate in the upper tail (down to the subnormal range near\nx = 27).\nNot an R function. R writes it as `2 * pnorm(x * sqrt(2), lower.tail = FALSE)`.",
-    "ja": ""
+    "ja": "相補誤差関数、erfc(x) = 1 - erf(x)。上側の裾で精度がよく (x = 27 付近の\n非正規化数の範囲まで)、\nR の関数ではありません。R では `2 * pnorm(x * sqrt(2), lower.tail = FALSE)` と書きます。"
   },
   "erfcinv#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "erfcinv#summary": {
     "hash": "7531ef999022",
     "en": "Inverse of the complementary error function: the x with erfc(x) = z, for 0 <= z <= 2 (NaN outside).\nEquivalent to `pracma::erfcinv()` in R.",
-    "ja": ""
+    "ja": "相補誤差関数の逆関数です。0 <= z <= 2 の範囲で erfc(x) = z となる x を返します (範囲外は NaN)。\nR の `pracma::erfcinv()` と同等です。"
   },
   "erfinv#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "erfinv#summary": {
     "hash": "bb5da6436929",
     "en": "Inverse of the error function: the x with erf(x) = y, for -1 <= y <= 1 (NaN outside).\nEquivalent to `pracma::erfinv()` in R. Unlike pracma, it is accurate for small |y| (pracma's\n`qnorm((1 + y) / 2)` loses it: `erfinv(1e-300)` is -0 there).",
-    "ja": ""
+    "ja": "誤差関数の逆関数です。-1 <= y <= 1 の範囲で erf(x) = y となる x を返します (範囲外は NaN)。\nR の `pracma::erfinv()` と同等です。ただし、pracma と違って小さい |y| でも精度がよいです (pracma の\n`qnorm((1 + y) / 2)` では精度が失われ、そこでの `erfinv(1e-300)` は -0 になります)。"
   },
   "factorial#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "factorial#@param x": {
     "hash": "fb60e87080d1",
     "en": "Argument.",
-    "ja": ""
+    "ja": "引数です。"
   },
   "factorial#@returns": {
     "hash": "c870bc7c1ed9",
     "en": "x! = Gamma(x + 1) (`NaN` at negative integers, `Infinity` on overflow).",
-    "ja": ""
+    "ja": "x! = Gamma(x + 1) (負の整数では `NaN`、オーバーフローでは `Infinity`)。"
   },
   "factorial#summary": {
     "hash": "b5575b9301e6",
     "en": "Factorial. Equivalent to R's `factorial()`. Takes a single number: `gamma(x + 1)`, defined for\nany real `x` that is not a negative integer.",
-    "ja": ""
+    "ja": "階乗です。R の `factorial()` と同等です。1 つの数値を受け取ります: `gamma(x + 1)` で、\n負の整数以外の任意の実数 `x` に対して定義されます。"
   },
   "gamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "gamma#@param x": {
     "hash": "fb60e87080d1",
     "en": "Argument.",
-    "ja": ""
+    "ja": "引数です。"
   },
   "gamma#@returns": {
     "hash": "fc1716f62800",
     "en": "Gamma(x). `NaN` at zero and negative integers; `Infinity` on overflow.",
-    "ja": ""
+    "ja": "Gamma(x)。0 と負の整数では `NaN`、オーバーフローでは `Infinity` です。"
   },
   "gamma#summary": {
     "hash": "d40871b63b53",
     "en": "Gamma function. Equivalent to R's `gamma()`. Takes a single number.",
-    "ja": ""
+    "ja": "ガンマ関数です。R の `gamma()` と同等です。1 つの数値を受け取ります。"
   },
   "gammainc#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "gammainc#summary": {
     "hash": "38ac0f807785",
     "en": "The non-regularized incomplete gamma functions gamma(a, x) and Gamma(a, x) and their logs.\nEquivalent to `pracma::gammainc()` in R. `pracma::gammainc(x, a)` returns them as `lowinc` and `uppinc`;\nin base R they are `pgamma(x, a) * gamma(a)` and `pgamma(x, a, lower.tail = FALSE) * gamma(a)`.",
-    "ja": ""
+    "ja": "正則化しない不完全ガンマ関数 gamma(a, x) と Gamma(a, x)、およびそれらの対数です。\nR の `pracma::gammainc()` と同等です。`pracma::gammainc(x, a)` はそれらを `lowinc` と `uppinc` として返します。\nベース R では、それぞれ `pgamma(x, a) * gamma(a)` と `pgamma(x, a, lower.tail = FALSE) * gamma(a)` です。"
   },
   "lbeta#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lbeta#@param a": {
     "hash": "3a56609734ee",
     "en": "First argument.",
-    "ja": ""
+    "ja": "第 1 引数です。"
   },
   "lbeta#@param b": {
     "hash": "147cd58aca1e",
     "en": "Second argument.",
-    "ja": ""
+    "ja": "第 2 引数です。"
   },
   "lbeta#@returns": {
     "hash": "fc96dae61236",
     "en": "log|B(a, b)|.",
-    "ja": ""
+    "ja": "log|B(a, b)|。"
   },
   "lbeta#summary": {
     "hash": "ae9d7aef8ca3",
     "en": "Natural logarithm of the absolute value of the beta function, log|B(a, b)|.\nEquivalent to R's `lbeta()`. Takes single numbers.\n\nFor a, b > 0 with the larger argument above 15, it is computed as\nlgamma(small) - [lgamma(large + small) - lgamma(large)] with the bracketed difference\nevaluated without cancellation, so accuracy is kept for large arguments.",
-    "ja": ""
+    "ja": "ベータ関数の絶対値の自然対数、log|B(a, b)|。\nR の `lbeta()` と同等です。単一の数値を受け取ります。\n\na, b > 0 で、大きいほうの引数が 15 を超える場合は、\nlgamma(small) - [lgamma(large + small) - lgamma(large)] として計算します。角括弧内の差は\n桁落ちしないように評価するので、大きな引数でも精度が保たれます。"
   },
   "lchoose#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lchoose#@param k": {
     "hash": "4cc137bfbbf8",
     "en": "Number chosen (rounded to an integer).",
-    "ja": ""
+    "ja": "選ぶ個数です (最も近い整数に丸められます)。"
   },
   "lchoose#@param n": {
     "hash": "7ae735fa2329",
     "en": "Number of items (any real number).",
-    "ja": ""
+    "ja": "項目の数です (任意の実数)。"
   },
   "lchoose#@param options": {
     "hash": "10c4550723c9",
     "en": "`rCompatible` (default `true`).",
-    "ja": ""
+    "ja": "`rCompatible` (既定は `true`)。"
   },
   "lchoose#@returns": {
     "hash": "420613172b8c",
     "en": "log|choose(n, k)| (`-Infinity` where `choose(n, k)` is 0).",
-    "ja": ""
+    "ja": "log|choose(n, k)| (`choose(n, k)` が 0 の場合は `-Infinity`)。"
   },
   "lchoose#summary": {
     "hash": "5430356ea459",
     "en": "Logarithm of the absolute value of the binomial coefficient. Equivalent to R's `lchoose()`.\nTakes single numbers: `log(abs(choose(n, k)))`, computed without overflow.\n\nEdge cases where R differs from the mathematical value, followed by default (`rCompatible: false`\nreturns the mathematical value instead): `n` within 1e-9 max(1, |n|) of an integer is treated as that\ninteger (for `k >= 2`; for `n < 0` the tolerance is relative to `k - 1 - n`); `lchoose(n, Infinity)` is `-Infinity` for `n >= 0` (otherwise `NaN`); `lchoose(±Infinity, k)`\nis `NaN` for `k >= 2` (`Infinity` for `k = 1`).",
-    "ja": ""
+    "ja": "二項係数の絶対値の対数です。R の `lchoose()` と同等です。\n単一の数値を受け取ります: `log(abs(choose(n, k)))` を、オーバーフローせずに計算します。\n\nR が数学的な値と異なる端のケースは次のとおりです。既定では R の値を返し、\n`rCompatible: false` の場合は代わりに数学的な値を返します: `n` が整数から 1e-9 max(1, |n|) 以内にあるときは、その整数として扱われます\n(`k >= 2` の場合。`n < 0` の場合、許容範囲は `k - 1 - n` を基準とします); `lchoose(n, Infinity)` は `n >= 0` で `-Infinity` です (それ以外は `NaN`); `lchoose(±Infinity, k)` は\n`k >= 2` で `NaN` です (`k = 1` では `Infinity`)。"
   },
   "lfactorial#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lfactorial#@param x": {
     "hash": "fb60e87080d1",
     "en": "Argument.",
-    "ja": ""
+    "ja": "引数です。"
   },
   "lfactorial#@returns": {
     "hash": "2bc782155046",
     "en": "log|x!| = log|Gamma(x + 1)| (`Infinity` at negative integers).",
-    "ja": ""
+    "ja": "log|x!| = log|Gamma(x + 1)| (負の整数では `Infinity`)。"
   },
   "lfactorial#summary": {
     "hash": "6a545f094f11",
     "en": "Logarithm of the factorial. Equivalent to R's `lfactorial()`. Takes a single number:\n`lgamma(x + 1)`, computed without forming `x + 1` near 0 so that small `x` keep their accuracy.",
-    "ja": ""
+    "ja": "階乗の対数です。R の `lfactorial()` と同等です。1 つの数値を受け取ります:\n`lgamma(x + 1)` を、0 付近で `x + 1` を作らずに計算します。そのため、小さな `x` でも精度が保たれます。"
   },
   "lgamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lgamma#@param x": {
     "hash": "fb60e87080d1",
     "en": "Argument.",
-    "ja": ""
+    "ja": "引数です。"
   },
   "lgamma#@returns": {
     "hash": "a78600941a78",
     "en": "log|Gamma(x)|.",
-    "ja": ""
+    "ja": "log|Gamma(x)|。"
   },
   "lgamma#summary": {
     "hash": "b5c69b455e24",
     "en": "Natural logarithm of the absolute value of the gamma function, log|Gamma(x)|.\nEquivalent to R's `lgamma()`. Takes a single number.\n\nNear the zeros x = 1 and x = 2 the result keeps full relative accuracy\n(computed as lgamma(1 + e) = lgamma1p(e) and lgamma(2 + e) = lgamma1p(e) + log1p(e)).",
-    "ja": ""
+    "ja": "ガンマ関数の絶対値の自然対数、log|Gamma(x)|。\nR の `lgamma()` と同等です。1 つの数値を受け取ります。\n\n零点 x = 1 と x = 2 の付近でも、結果は相対精度を完全に保ちます\n(lgamma(1 + e) = lgamma1p(e) および lgamma(2 + e) = lgamma1p(e) + log1p(e) として計算します)。"
   },
   "lgamma1p#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "lgamma1p#@param x": {
     "hash": "8ffc64ccc58b",
     "en": "A number.",
-    "ja": ""
+    "ja": "数値です。"
   },
   "lgamma1p#@returns": {
     "hash": "9182c9722c04",
     "en": "log|Gamma(1 + x)|; `Infinity` at the poles (x a negative integer) and at x = Infinity, `NaN` for\n  x = -Infinity.",
-    "ja": ""
+    "ja": "log|Gamma(1 + x)|。極 (x が負の整数) と x = Infinity では `Infinity`、\n  x = -Infinity では `NaN` です。"
   },
   "lgamma1p#summary": {
     "hash": "748bcbfb8016",
     "en": "lgamma(1 + x) = log|Gamma(1 + x)|, accurate near x = 0 and x = 1, where it is near 0.\nNot an R function. R has it only in its C API (Rmath.h), as `lgamma1p`.",
-    "ja": ""
+    "ja": "lgamma(1 + x) = log|Gamma(1 + x)|。x = 0 と x = 1 の付近で精度がよく、そこでは値が 0 に近くなります。\nR の関数ではありません。R には C API (Rmath.h) にのみ `lgamma1p` として存在します。"
   },
   "log1mexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "log1mexp#@param x": {
     "hash": "5f75e1794f89",
     "en": "A number >= 0.",
-    "ja": ""
+    "ja": "0 以上の数値です。"
   },
   "log1mexp#@returns": {
     "hash": "b01243dfcc08",
     "en": "log(1 - exp(-x)); `-Infinity` at x = 0, 0 at x = Infinity, `NaN` for x < 0.",
-    "ja": ""
+    "ja": "log(1 - exp(-x))。x = 0 では `-Infinity`、x = Infinity では 0、x < 0 では `NaN` です。"
   },
   "log1mexp#summary": {
     "hash": "3980fded799c",
     "en": "log(1 - exp(-x)) for x >= 0, accurate for both small and large x; note the sign of the argument.\nNot an R function. R has it only in its C API (Rmath.h), as `log1mexp`; the DPQ package also has it.",
-    "ja": ""
+    "ja": "x >= 0 の log(1 - exp(-x)) です。小さい x と大きい x のどちらでも精度がよいです。引数の符号に注意してください。\nR の関数ではありません。R には C API (Rmath.h) にのみ `log1mexp` として存在し、DPQ パッケージにもあります。"
   },
   "log1pexp#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "log1pexp#@param x": {
     "hash": "8ffc64ccc58b",
     "en": "A number.",
-    "ja": ""
+    "ja": "数値です。"
   },
   "log1pexp#@returns": {
     "hash": "e654df18ba21",
     "en": "log(1 + exp(x)); 0 at x = -Infinity, `Infinity` at x = Infinity.",
-    "ja": ""
+    "ja": "log(1 + exp(x))。x = -Infinity では 0、x = Infinity では `Infinity` です。"
   },
   "log1pexp#summary": {
     "hash": "c804e5a60107",
     "en": "log(1 + exp(x)), without overflow for large x and accurate for very negative x.\nNot an R function. R has it only in its C API (Rmath.h), as `log1pexp`; the DPQ package also has it.",
-    "ja": ""
+    "ja": "log(1 + exp(x))。大きな x でもオーバーフローせず、非常に負の x でも精度がよいです。\nR の関数ではありません。R には C API (Rmath.h) にのみ `log1pexp` として存在し、DPQ パッケージにもあります。"
   },
   "log1pmx#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "log1pmx#@param x": {
     "hash": "463f973df11a",
     "en": "A number >= -1.",
-    "ja": ""
+    "ja": "-1 以上の数値です。"
   },
   "log1pmx#@returns": {
     "hash": "b0cd03fcd0a3",
     "en": "log(1 + x) - x; `-Infinity` at x = -1 and x = Infinity, `NaN` for x < -1.",
-    "ja": ""
+    "ja": "log(1 + x) - x。x = -1 と x = Infinity では `-Infinity`、x < -1 では `NaN` です。"
   },
   "log1pmx#summary": {
     "hash": "0a28361b26d4",
     "en": "log(1 + x) - x, accurate for small |x| (where log1p(x) - x would cancel).\nNot an R function. R has it only in its C API (Rmath.h), as `log1pmx`.",
-    "ja": ""
+    "ja": "log(1 + x) - x です。小さい |x| で精度がよいです (log1p(x) - x では桁落ちするところ)。\nR の関数ではありません。R には C API (Rmath.h) にのみ `log1pmx` として存在します。"
   },
   "perm#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "perm#summary": {
     "hash": "c00fbcb2621f",
     "en": "Number of ordered selections of k items from n: n! / (n - k)!, defined for real n >= 0 as\nGamma(n + 1) / Gamma(n - k + 1) (0 for an integer n < k). Negative arguments give NaN.\nNot an R function. It is jStat's `permutation`; R has only `choose()` (unordered selections).",
-    "ja": ""
+    "ja": "n 個から k 個を順序付きで選ぶ方法の数: n! / (n - k)!。実数 n >= 0 に対しては、\nGamma(n + 1) / Gamma(n - k + 1) として定義されます (整数の n < k では 0)。負の引数では NaN になります。\nR の関数ではありません。jStat の `permutation` にあたります。R には `choose()` (順序を考えない選び方) しかありません。"
   },
   "psigamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "psigamma#@param deriv": {
     "hash": "7f925de5ca7d",
     "en": "Order of the derivative, an integer from 0 to 100 (rounded half to even; default 0, digamma).",
-    "ja": ""
+    "ja": "導関数の階数で、0 から 100 までの整数です (最も近い偶数への丸め。既定は 0 で、ディガンマ関数)。"
   },
   "psigamma#@param options": {
     "hash": "10c4550723c9",
     "en": "`rCompatible` (default `true`).",
-    "ja": ""
+    "ja": "`rCompatible` (既定は `true`)。"
   },
   "psigamma#@param x": {
     "hash": "fb60e87080d1",
     "en": "Argument.",
-    "ja": ""
+    "ja": "引数です。"
   },
   "psigamma#@returns": {
     "hash": "8af5832dfce3",
     "en": "psi^(deriv)(x). At zero and the negative integers, `Infinity` for odd `deriv` and `NaN` for even.\n  `NaN` if `deriv` is outside 0 to 100.",
-    "ja": ""
+    "ja": "psi^(deriv)(x)。0 と負の整数では、`deriv` が奇数のとき `Infinity`、偶数のとき `NaN` です。\n  `deriv` が 0 から 100 の範囲外のときは `NaN` です。"
   },
   "psigamma#summary": {
     "hash": "9b69e65c1b0d",
     "en": "Polygamma function, the derivative of order `deriv` of `digamma`. Equivalent to R's\n`psigamma()`. Takes a single number.\n\n`psigamma(-Infinity, deriv)` is `Infinity` for odd `deriv` as in R, which treats it like the poles\n(`NaN` with `rCompatible: false`). Unlike R, which returns `NaN` for `x < 0` with `deriv >= 6` and\nwhere the result overflows, the value is computed there.",
-    "ja": ""
+    "ja": "ポリガンマ関数で、`digamma` の `deriv` 階導関数です。R の\n`psigamma()` と同等です。1 つの数値を受け取ります。\n\n`psigamma(-Infinity, deriv)` は、R と同じく、`deriv` が奇数のとき `Infinity` です (R はこれを極と同様に扱います。\n`rCompatible: false` の場合は `NaN`)。R は `x < 0` かつ `deriv >= 6` の場合と、結果がオーバーフローする場合に `NaN` を返しますが、\nここでは値を計算します。"
   },
   "trigamma#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "trigamma#@param options": {
     "hash": "10c4550723c9",
     "en": "`rCompatible` (default `true`).",
-    "ja": ""
+    "ja": "`rCompatible` (既定は `true`)。"
   },
   "trigamma#@param x": {
     "hash": "fb60e87080d1",
     "en": "Argument.",
-    "ja": ""
+    "ja": "引数です。"
   },
   "trigamma#@returns": {
     "hash": "1426059e1fac",
     "en": "psi'(x) (`Infinity` at zero and the negative integers).",
-    "ja": ""
+    "ja": "psi'(x)。0 と負の整数では `Infinity` です。"
   },
   "trigamma#summary": {
     "hash": "74f9412c154f",
     "en": "Trigamma function, the second derivative of `lgamma`. Equivalent to R's `trigamma()`. Takes a single number.\n\n`trigamma(-Infinity)` is `Infinity` as in R (`NaN` with `rCompatible: false`).",
-    "ja": ""
+    "ja": "トリガンマ関数で、`lgamma` の 2 階導関数です。R の `trigamma()` と同等です。1 つの数値を受け取ります。\n\n`trigamma(-Infinity)` は、R と同じく `Infinity` です (`rCompatible: false` の場合は `NaN`)。"
   }
 }
