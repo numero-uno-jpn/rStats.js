@@ -14,7 +14,7 @@
 
 import { qnorm } from "../distributions/normal.js";
 import { pt, pt1, qt, qt1 } from "../distributions/t.js";
-import { completePairs, dropNaN, ldexp, mean, scaleToUnit, variance } from "../internal/summary.js";
+import { completePairs, dropNaN, ldexp, ldexpWide, mean, scaleToUnit, variance } from "../internal/summary.js";
 import { reported, unreported } from "../internal/warnings.js";
 import { unirootCore } from "../numerics/integrate.js";
 import { hedgesJ } from "./effectSize.js";
@@ -392,19 +392,30 @@ function tostCore(
   const smd = standardised(m, s);
   const dDenom = ldexp(smd.denom, kS);
   const raw: [number, number] = s.smdBounds ? [given[0] * dDenom, given[1] * dDenom] : given;
-  // the bounds in the units of the effect
-  const rawE: [number, number] = s.smdBounds
-    ? [ldexp(given[0] * smd.denom, kS - kE), ldexp(given[1] * smd.denom, kS - kE)]
-    : [ldexp(given[0], -kE), ldexp(given[1], -kE)];
+  // each bound as a value of moderate size times 2^kb (the SMD bounds times the denominator, in the SDs' units kS)
+  const boundOf = (g: number): [number, number] => {
+    if (g === 0) return [0, kE];
+    const tg = Math.floor(Math.log2(Math.abs(g)));
+    const sg = ldexpWide(g, -tg);
+    return s.smdBounds ? [sg * smd.denom, tg + kS] : [sg, tg];
+  };
   const smdB: [number, number] = s.smdBounds ? given : [given[0] / dDenom, given[1] / dDenom];
   if (s.smdBounds) warnings.push(SMD_NOTE);
   if (!(raw[0] <= 0 && raw[1] >= 0)) warnings.push(ZERO_NOTE);
   // the effect is the difference minus mu throughout: the bound tests compare it with [low, high] (TOSTER compares the
   // difference itself), and the raw estimate, its interval and the SMD are those of it
   const tOf = (v: number): number => ldexp(v / se, kE - kSE);
+  // effect - bound in the larger of their units, so that neither term leaves the double range where t does not (in
+  // tsumTOST the means' units kE and the SDs' kS are independent: a bound converted to the units of tiny means
+  // overflowed, t was Infinity)
+  const tMinus = (g: number): number => {
+    const [b, kb] = boundOf(g);
+    const kc = Math.max(kE, kb);
+    return ldexpWide((ldexpWide(effect, kE - kc) - ldexpWide(b, kb - kc)) / se, kc - kSE);
+  };
   const t0 = tOf(effect);
-  const tL = tOf(effect - rawE[0]);
-  const tU = tOf(effect - rawE[1]);
+  const tL = tMinus(given[0]);
+  const tU = tMinus(given[1]);
   const seOut = ldexp(se, kSE);
   const equ = hypothesis === "EQU";
   const tTestRow: TTOSTTest = { t: t0, se: seOut, df, pValue: 2 * pt1(-Math.abs(t0), df, true, false) };

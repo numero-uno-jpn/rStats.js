@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   getRandomSeed, nextRNGStream, nextRNGSubStream, RNGkind, rnorm, runif, sample, sampleInt, setRandomSeed, setSeed,
   type RNGKindName, type SampleKindName,
@@ -189,5 +189,55 @@ describe("RNG kinds", () => {
       ].map((x) => Number(BigInt.asIntN(32, x)));
       expect(Array.from(f(state))).toEqual([10407, ...want]);
     }
+  });
+});
+
+describe("RNGkind seeds a generator that was never seeded", () => {
+  // R 4.6.2, in a fresh session: exists(".Random.seed") is FALSE before RNGkind(sample.kind = "Rejection") (any call
+  // that gives a kind) and TRUE after it, as after a first draw; RNGkind() and RNGkind(NULL) leave it FALSE. Each case
+  // starts from a fresh copy of the module state
+  const fresh = async () => {
+    vi.resetModules();
+    const rng = await import("../src/random/rng.js");
+    const { mcreg } = await import("../src/htest/mcreg.js");
+    expect(rng.isRandomSeeded()).toBe(false);
+    return { ...rng, mcreg };
+  };
+
+  it.each([
+    ["no options", {}],
+    ["every option undefined", { kind: undefined, sampleKind: undefined }],
+  ] as const)("a query (%s) does not seed", async (_, options) => {
+    const m = await fresh();
+    expect(m.RNGkind(options)).toEqual({ kind: "Mersenne-Twister", normalKind: "Inversion", sampleKind: "Rejection" });
+    expect(m.isRandomSeeded()).toBe(false);
+  });
+
+  it.each([
+    ["sampleKind only", { sampleKind: "Rejection" }],
+    ["sampleKind Rounding", { sampleKind: "Rounding" }],
+    ["kind", { kind: "Mersenne-Twister" }],
+    ["kind L'Ecuyer-CMRG", { kind: "L'Ecuyer-CMRG" }],
+  ] as const)("%s", async (_, options) => {
+    const m = await fresh();
+    m.RNGkind(options);
+    expect(m.isRandomSeeded()).toBe(true);
+    m.RNGkind({ kind: "default", sampleKind: "default" });
+  });
+
+  it("an unsupported kind changes nothing", async () => {
+    const m = await fresh();
+    expect(() => m.RNGkind({ kind: "Wichmann-Hill" as RNGKindName })).toThrow(RangeError);
+    expect(m.isRandomSeeded()).toBe(false);
+  });
+
+  it("mcreg's rngSeed then restores the state, as mcr after RNGkind in R", async () => {
+    const m = await fresh();
+    m.RNGkind({ sampleKind: "Rejection" });
+    // (getRandomSeed would itself seed the generator: the state must exist before it is read)
+    expect(m.isRandomSeeded()).toBe(true);
+    const before = m.getRandomSeed();
+    m.mcreg([1, 2, 3, 4, 5, 6], [1.1, 2.2, 2.8, 4.1, 5.2, 5.9], { methodReg: "Deming", methodCi: "bootstrap", nsamples: 20, rngSeed: 1 });
+    expect(Array.from(m.getRandomSeed())).toEqual(Array.from(before));
   });
 });
