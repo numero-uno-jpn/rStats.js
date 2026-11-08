@@ -110,6 +110,14 @@ describe("diagnosticTests", () => {
     expect(diagnosticTests([[900000, 10], [100000, 2000000]]).lrPos.estimate).toBe((900000 * 2000010) / (1000000 * 10));
   });
 
+  it("rounds LR+ once, as LR-", () => {
+    // (a M0)/(M1 b) = 5/3; se / (b / M0) rounded three times gave 1.6666666666666665
+    expect(diagnosticTests([[1, 1], [2, 4]]).lrPos.estimate).toBe(5 / 3);
+    expect(diagnosticTests([[1, 1], [2, 9]]).lrPos.estimate).toBe(10 / 3);
+    // a zero cell: b = 0 gives Inf, and a = 0 gives 0
+    expect(diagnosticTests([[0, 1], [2, 4]]).lrPos.estimate).toBe(0);
+  });
+
   it("gives infinite ratios and NaN limits for zero cells, as epiR", () => {
     const r = diagnosticTests([
       [10, 0],
