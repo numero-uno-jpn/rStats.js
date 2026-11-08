@@ -188,9 +188,20 @@ interface SortedData {
   x: number[][];
   /** Whether the observation is the last of its stratum */
   stratumEnd: boolean[];
+  /**
+   * The weights are those of the fit divided by 2^c (c = 0 unless the largest is 2^64 or more), and this is c ln 2:
+   * evaluate then gives the log partial likelihood, the score and the information divided by 2^c
+   */
+  logUnit: number;
 }
 
-/** Log partial likelihood, score and information (lower triangle filled into the upper) at the scaled coefficients */
+/** The weights from which the fit runs on weights divided by a power of 2 (see SortedData.logUnit) */
+const WEIGHT_LIMIT = 2 ** 64;
+
+/**
+ * Log partial likelihood, score and information (lower triangle filled into the upper) at the scaled coefficients, all
+ * divided by 2^c where the weights are taken in units of 2^c (SortedData.logUnit)
+ */
 interface Evaluation {
   loglik: number;
   score: number[];
@@ -203,7 +214,7 @@ const MIN_NORMAL = 2 ** -1022;
 const SHIFT_LIMIT = 700;
 
 function evaluate(data: SortedData, beta: readonly number[], efron: boolean): Evaluation {
-  const { time, event, weight, x, stratumEnd } = data;
+  const { time, event, weight, x, stratumEnd, logUnit } = data;
   const n = time.length;
   const p = beta.length;
   const zeros = (): number[] => new Array<number>(p).fill(0);
@@ -287,7 +298,8 @@ function evaluate(data: SortedData, beta: readonly number[], efron: boolean): Ev
       const stepWeight = deathWeight / steps;
       for (let s = 0; s < steps; s++) {
         riskSum += efron ? deathRisk / share : deathRisk;
-        loglik -= stepWeight * (Math.log(riskSum) + shift);
+        // (the risk sum of the weights in units of 2^c is 2^-c times that of the fit's: log 2^c = logUnit added back)
+        loglik -= stepWeight * (Math.log(riskSum) + shift + logUnit);
         for (let i = 0; i < p; i++) {
           riskX[i]! += efron ? deathX[i]! / share : deathX[i]!;
           const mean = riskX[i]! / riskSum;
@@ -704,9 +716,16 @@ export function fitCoxph(
   );
 
   // 2. centring and scaling (sums over the sorted observations)
-  let totalWeight = 0;
-  for (const v of w) totalWeight += v;
   const sortedW = order.map((k) => w[k]!);
+  // weights of 2^64 or more (to the top of the doubles: the risk sums, w eta and the log likelihood overflowed, giving
+  // a coefficient 0 or NaN): the fit runs on the weights divided by 2^c, c the exponent of the largest, which leaves the
+  // coefficients, the means and the score residuals as they are and divides the log likelihood (after the term W c log 2,
+  // W the weight of the deaths), the score and the information by 2^c. Its stopping rule compares log likelihoods by
+  // their ratio, which the factor does not change. Below 2^64 nothing is scaled (the same bits as before)
+  const { groups: unitW, k: weightExp } = maxOf(sortedW) >= WEIGHT_LIMIT ? scaleToUnit([sortedW]) : { groups: [sortedW], k: 0 };
+  const fitW = unitW[0]!;
+  let totalWeight = 0;
+  for (const v of w) totalWeight += weightExp === 0 ? v : ldexp(v, -weightExp);
   const xs = order.map((k) => x[keep[k]!]!.slice());
   const means = new Array<number>(p).fill(0);
   // the scale of column j is scales[j] 2^-shift[j]
@@ -718,11 +737,11 @@ export function fitCoxph(
     const column = xs.map((row) => row[j]!);
     const centreScale = (col: readonly number[]): { m: number; s: number; d: number[]; ok: boolean } => {
       let sum = 0;
-      for (let k = 0; k < n; k++) sum += sortedW[k]! * col[k]!;
+      for (let k = 0; k < n; k++) sum += fitW[k]! * col[k]!;
       const m = sum / totalWeight;
       let absSum = 0;
       const d = col.map((v, k) => {
-        absSum += sortedW[k]! * Math.abs(v - m);
+        absSum += fitW[k]! * Math.abs(v - m);
         return v - m;
       });
       const s = absSum === 0 ? 1 : totalWeight / absSum;
@@ -743,9 +762,10 @@ export function fitCoxph(
   const data: SortedData = {
     time: order.map((k) => mergedTime[k]!),
     event: order.map((k) => status[keep[k]!] === 1),
-    weight: sortedW,
+    weight: fitW,
     x: xs,
     stratumEnd: order.map((k, r) => r === n - 1 || stratumOf[order[r + 1]!] !== stratumOf[k]),
+    logUnit: weightExp * Math.LN2,
   };
   const efron = ties === "efron";
 
@@ -820,10 +840,12 @@ export function fitCoxph(
   const mant = scales.map((s, j) => ldexp(s, -scaleExpo[j]!));
   const expo = scaleExpo.map((e, j) => e - shift[j]!);
   const coefUnit = beta.map((b, j) => b * mant[j]!);
+  // (the score and the variance of the weights divided by 2^c: the fit's variance is 2^-c varFit, which is kept apart,
+  // as 2^-c and the units 2^e_j can be far from 1 in opposite directions, e.g. a weight of 1e300 among weights 1)
   const uUnit = ev.score.map((v, j) => v / mant[j]!);
-  const varUnit = inverse.map((row, i) => row.map((v, j) => v * mant[i]! * mant[j]!));
+  const varFit = inverse.map((row, i) => row.map((v, j) => v * mant[i]! * mant[j]!));
   const internal = coefUnit.map((c, j) => ldexp(c, expo[j]!));
-  const variance = varUnit.map((row, i) => row.map((v, j) => ldexp(v, expo[i]! + expo[j]!)));
+  const variance = varFit.map((row, i) => row.map((v, j) => ldexp(v, expo[i]! + expo[j]! - weightExp)));
 
   // 6. output
   const coefficients = internal.slice();
@@ -839,9 +861,9 @@ export function fitCoxph(
   });
   if (iterMax > 1) {
     // abs(u' var) in units of 2^-e_j
-    const infinity = varUnit.map((_, j) => {
+    const infinity = varFit.map((_, j) => {
       let s = 0;
-      for (let i = 0; i < p; i++) s += uUnit[i]! * varUnit[i]![j]!;
+      for (let i = 0; i < p; i++) s += uUnit[i]! * varFit[i]![j]!;
       return Math.abs(s);
     });
     if (ranOut) {
@@ -866,7 +888,9 @@ export function fitCoxph(
   // score residual in those units is the scaled one divided by the mantissa of the scale (as the score above)
   const used = coefficients.map((c, j) => (Number.isNaN(c) ? -1 : j)).filter((j) => j >= 0);
   const k = used.length;
+  // (robustUnit 2^-2 dfExp in units of 2^(e_i + e_j))
   let robustUnit: number[][] | undefined;
+  let dfExp = 0;
   let rscore = 0;
   let residuals: { scoreResiduals: number[][]; dfbeta: number[][] } | undefined;
   if (useRobust && k > 0) {
@@ -892,13 +916,31 @@ export function fitCoxph(
     const toUnit = (rows: number[][]): number[][] => rows.map((row) => row.map((v, j) => v / mant[j]!));
     // dfbeta_j = w_j s_j' V_naive (V_naive with zero rows and columns for NaN coefficients), summed by cluster
     const sUnit = toUnit(scoreResiduals(data, beta, efron));
-    const dfbeta = sUnit.map((s, r) =>
-      varUnit.map((_, l) => {
+    // (w 2^-c varFit = (w 2^-c) (s' varFit)). With the weights divided by 2^c, the product is taken times 2^dfExp, dfExp
+    // such that its largest value is near 1: w 2^-c and s' varFit can both be near the bottom of the doubles (a weight of
+    // 1e300 among weights 1, whose units 2^e_j are then about 1e300 too), where the plain product underflowed to 0
+    const sv = sUnit.map((s) =>
+      varFit.map((_, l) => {
         let v = 0;
-        for (let i = 0; i < p; i++) v += s[i]! * varUnit[i]![l]!;
-        return sortedW[r]! * v;
+        for (let i = 0; i < p; i++) v += s[i]! * varFit[i]![l]!;
+        return v;
       }),
     );
+    let dfbeta: number[][];
+    if (weightExp === 0) dfbeta = sv.map((row, r) => row.map((v) => fitW[r]! * v));
+    else {
+      const exponent = (v: number): number => (v === 0 || !Number.isFinite(v) ? 0 : Math.floor(Math.log2(Math.abs(v))));
+      let top = -Infinity;
+      sv.forEach((row, r) => row.forEach((v) => v !== 0 && Number.isFinite(v) && (top = Math.max(top, exponent(fitW[r]!) + exponent(v)))));
+      dfExp = top === -Infinity ? 0 : -top;
+      dfbeta = sv.map((row, r) => {
+        const ew = exponent(fitW[r]!);
+        return row.map((v) => {
+          const ev = exponent(v);
+          return ldexp(ldexp(fitW[r]!, -ew) * ldexp(v, -ev), ew + ev + dfExp);
+        });
+      });
+    }
     const clusterSums = (rows: readonly number[][]): number[][] => {
       const sums = Array.from({ length: nClusters }, () => new Array<number>(p).fill(0));
       rows.forEach((row, r) => {
@@ -935,13 +977,15 @@ export function fitCoxph(
     const dfbetaOut: number[][] = new Array<number[]>(n);
     order.forEach((kk, r) => {
       scoreOut[kk] = sUnit[r]!.map((v, j) => ldexp(v, -expo[j]!));
-      dfbetaOut[kk] = dfbeta[r]!.map((v, j) => ldexp(v, expo[j]!));
+      dfbetaOut[kk] = dfbeta[r]!.map((v, j) => ldexp(v, expo[j]! - dfExp));
     });
     residuals = { scoreResiduals: scoreOut, dfbeta: dfbetaOut };
   }
   const usedRobust = robustUnit !== undefined;
-  // the variance of z, p, the intervals and the Wald test: the robust one when used (the se stays the naive one, as R)
-  const testUnit = robustUnit ?? varUnit;
+  // the variance of z, p, the intervals and the Wald test: the robust one when used (the se stays the naive one, as R),
+  // as testUnit 2^testExp
+  const testUnit = robustUnit ?? varFit;
+  const testExp = robustUnit === undefined ? -weightExp : -2 * dfExp;
 
   // 8. tests and the summary
   // (in units of 2^e_j)
@@ -955,26 +999,32 @@ export function fitCoxph(
     const y = cholSolve(v, b);
     for (let i = 0; i < k; i++) wald += b[i]! * y[i]!;
   }
+  wald = ldexp(wald, -testExp);
   // (for alpha below 1e-8 the upper probability itself: 1 - alpha loses its digits and rounds to 1 below 1.1e-16; review 58)
   const a2 = (1 - confLevel) / 2;
   const q = a2 < 1e-8 ? qnorm(a2, { lowerTail: false }) : qnorm((1 + confLevel) / 2);
-  const seOf = (vUnit: readonly number[][]): { unit: number[]; se: number[] } => {
-    const unit = vUnit.map((row, j) => Math.sqrt(row[j]!));
-    return { unit, se: unit.map((v, j) => ldexp(v, expo[j]!)) };
+  // the standard errors of a variance vUnit 2^t in units of 2^e_j: sqrt(vUnit 2^(t - 2h)) 2^h, h = floor(t / 2)
+  const seOf = (vUnit: readonly number[][], t: number): { unit: number[]; h: number; se: number[] } => {
+    const h = Math.floor(t / 2);
+    const unit = vUnit.map((row, j) => Math.sqrt(ldexp(row[j]!, t - 2 * h)));
+    return { unit, h, se: unit.map((v, j) => ldexp(v, expo[j]! + h)) };
   };
-  const se = seOf(varUnit).se;
-  const { unit: testSeUnit, se: testSe } = seOf(testUnit);
-  const z = coefficients.map((c, j) => (Number.isNaN(c) ? c : coefUnit[j]!) / testSeUnit[j]!);
+  const se = seOf(varFit, -weightExp).se;
+  const { unit: testSeUnit, h: testH, se: testSe } = seOf(testUnit, testExp);
+  const z = coefficients.map((c, j) => ldexp((Number.isNaN(c) ? c : coefUnit[j]!) / testSeUnit[j]!, -testH));
   const pz = z.map((v) => pchisq(v * v, 1, { lowerTail: false }));
   const lower = coefficients.map((c, j) => Math.exp(c - q * testSe[j]!));
   const upper = coefficients.map((c, j) => Math.exp(c + q * testSe[j]!));
-  const lr = -2 * (loglik[0] - loglik[1]);
-  const robustVariance = robustUnit?.map((row, i) => row.map((v, j) => ldexp(v, expo[i]! + expo[j]!)));
+  // (the log likelihoods and the score test of the weights divided by 2^c times 2^c; the difference first)
+  const lr = ldexp(-2 * (loglik[0] - loglik[1]), weightExp);
+  const loglikOut: [number, number] = [ldexp(loglik[0], weightExp), ldexp(loglik[1], weightExp)];
+  const scoreTestOut = ldexp(scoreTest, weightExp);
+  const robustVariance = robustUnit?.map((row, i) => row.map((v, j) => ldexp(v, expo[i]! + expo[j]! - 2 * dfExp)));
   const result: CoxphResult = {
     coefficients,
     var: robustVariance ?? variance,
-    loglik,
-    score: scoreTest,
+    loglik: loglikOut,
+    score: scoreTestOut,
     wald,
     iter,
     means,
@@ -990,9 +1040,9 @@ export function fitCoxph(
     lower,
     upper,
     logtest: chisqTest(lr, k),
-    sctest: chisqTest(scoreTest, k),
+    sctest: chisqTest(scoreTestOut, k),
     waldtest: chisqTest(wald, k),
-    rsq: { rsq: 1 - Math.exp(-lr / n), maxrsq: 1 - Math.exp((2 * loglik[0]) / n) },
+    rsq: { rsq: 1 - Math.exp(-lr / n), maxrsq: 1 - Math.exp((2 * loglikOut[0]) / n) },
     usedRobust,
     ...(usedRobust ? { naiveVar: variance, robustSe: testSe, rscore, robscore: chisqTest(rscore, k) } : {}),
     warnings: warnings.list,

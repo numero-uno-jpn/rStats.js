@@ -128,6 +128,46 @@ describe("coxph with weights scaled by powers of 2 (the information and rscore n
   });
 });
 
+describe("coxph with weights near the top of the doubles (second audit, finding 4)", () => {
+  const t = [1, 2, 3, 4, 5, 6, 7, 8];
+  const s = [1, 1, 0, 1, 1, 1, 0, 1];
+  const xx = [[0.1], [1.3], [0.4], [-0.8], [2], [0.2], [-1], [0.5]];
+
+  it("fits weights of 2^1015 and 2^1023 as weights of 1 (before: coefficient 0 and 'Loglik converged before variable 1')", () => {
+    const ref = coxph(t, s, xx);
+    for (const e of [1015, 1023]) {
+      const W = t.map(() => 2 ** e);
+      const r = coxph(t, s, xx, { weights: W, robust: false });
+      expect(r.warnings).toEqual([]);
+      expect(r.iter).toBe(ref.iter);
+      // (the fit runs on the weights divided by 2^e: the same coefficient bit for bit)
+      expect(r.coefficients).toEqual(ref.coefficients);
+      expect(rel(r.se[0]! * 2 ** (e / 2), ref.se[0]!)).toBeLessThan(1e-15);
+      // the tests are 2^e times those of weights 1 (the log likelihoods themselves are beyond the doubles)
+      expect(rel(r.logtest.statistic * 2 ** -e, ref.logtest.statistic)).toBeLessThan(1e-12);
+      expect(rel(r.sctest.statistic * 2 ** -e, ref.sctest.statistic)).toBeLessThan(1e-14);
+      expect(rel(r.wald * 2 ** -e, ref.wald)).toBeLessThan(1e-14);
+      expect(rel(r.z[0]! * 2 ** (-e / 2), ref.z[0]!)).toBeLessThan(1e-14);
+      expect(r.loglik[1]).toBe(-Infinity);
+    }
+  });
+
+  it("fits a weight of 1e308 among weights near 1 (before: coefficient NaN, 'Ran out of iterations')", () => {
+    const tt = [1, 2, 3, 4, 5, 6];
+    const ss = [1, 1, 0, 1, 1, 0];
+    const x6 = [[0.1], [1.3], [0.4], [-0.8], [2], [0.2]];
+    // the fit does not depend on the scale of the weights: 1e308 and 1e200 give the same estimates (1e200 was right
+    // before; the weights 1 and 1.5 are then about 1e-300 and 1e-108 times the largest, both exact multiples of
+    // powers of 2 in their units)
+    const big = coxph(tt, ss, x6, { weights: [1, 1, 1e308, 1, 1, 1.5] });
+    const ref = coxph(tt, ss, x6, { weights: [1, 1, 1e200, 1, 1, 1.5] });
+    expect(big.warnings).toEqual([]);
+    expect(rel(big.coefficients[0]!, ref.coefficients[0]!)).toBeLessThan(1e-14);
+    expect(rel(big.se[0]!, ref.se[0]!)).toBeLessThan(1e-14);
+    expect(rel(big.robustSe![0]!, ref.robustSe![0]!)).toBeLessThan(1e-14);
+  });
+});
+
 describe("coxph with an infinite weight", () => {
   it("throws a RangeError (was NaN coefficients with the warning 'coefficient may be infinite')", () => {
     const t = [1, 2, 3, 4, 5, 6];
