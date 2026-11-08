@@ -607,3 +607,7 @@ Decided by the user on 2026-11-09. Binding; they override the recommendations ab
   t/z SMD limits at 1 − 2α) and keep and document the third; TOSTER's notes become warnings ("Equivalence interval
   does not include zero." included), decision sentences not reproduced; no log_TOST, wilcox_TOST, boot_t_TOST or
   power functions now; α in (0, 0.5), RangeError otherwise.
+- Addendum (2026-11-09, user): `mu` in tTOST/tsumTOST is applied consistently as Δ − mu: the bound tests compare
+  Δ − mu with [low, high], the raw estimate and interval and the SMD are those of Δ − mu for one, two and paired
+  samples (this supersedes decision 20's partial fixes and TOSTER's Δ + mu in the two-sample SMD). With mu = 0 the
+  results equal TOSTER's. Documented in docs/differences-from-r.md.
