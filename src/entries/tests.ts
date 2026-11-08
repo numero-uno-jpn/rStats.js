@@ -48,6 +48,14 @@ export {
   type BinomDiffEquivalenceTestResult,
 } from "../htest/equivalence.js";
 export {
+  tTOST,
+  tsumTOST,
+  type TTOSTOptions,
+  type TTOSTResult,
+  type TTOSTTest,
+  type TsumTOSTStatistics,
+} from "../htest/tTOST.js";
+export {
   boschlooTest,
   type BoschlooTestOptions,
   type BoschlooTestResult,
@@ -276,6 +284,50 @@ export {
   type IccResult,
   type CronbachAlphaResult,
 } from "../htest/agreement.js";
+export {
+  roc,
+  auc,
+  coords,
+  type RocDirection,
+  type RocResponseValue,
+  type RocOptions,
+  type RocSamples,
+  type RocResult,
+  type AucOptions,
+  type AucResult,
+  type CoordsOptions,
+  type CoordsResult,
+} from "../htest/roc.js";
+export {
+  ciAuc,
+  rocTest,
+  type CiAucOptions,
+  type CiAucResult,
+  type RocTestOptions,
+  type RocTestResult,
+} from "../htest/rocTest.js";
+export {
+  diagnosticTests,
+  type DiagnosticMeasure,
+  type DiagnosticTestsOptions,
+  type DiagnosticTestsResult,
+} from "../htest/diagnosticTests.js";
+export {
+  blandAltman,
+  type BlandAltmanCiMethod,
+  type BlandAltmanOptions,
+  type BlandAltmanResult,
+} from "../htest/blandAltman.js";
+export {
+  mcreg,
+  type McregMethod,
+  type McregCiMethod,
+  type McregBootstrapCiMethod,
+  type McregOptions,
+  type McregCoefficient,
+  type McregResult,
+} from "../htest/mcreg.js";
+export { ICC, type ICCOptions, type ICCResult, type ICCRow } from "../htest/iccPsych.js";
 export { factanal, type FactanalOptions, type FactanalResult, type FactanalRotation, type FactanalScores } from "../descriptive/factanal.js";
 export { omega, type OmegaOptions, type OmegaResult } from "../descriptive/omega.js";
 export {

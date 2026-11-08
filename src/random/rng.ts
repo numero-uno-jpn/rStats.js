@@ -67,6 +67,14 @@ function initSeed(seed: number): void {
   seeded = true;
 }
 
+/**
+ * Whether the generator has a state (set by a seed, a restored state or a first draw), as R's `.Random.seed` exists.
+ * Internal (mcreg's rngSeed restores the previous state only where there was one, as mcr)
+ */
+export function isRandomSeeded(): boolean {
+  return seeded;
+}
+
 function ensureSeeded(): void {
   if (seeded) return;
   // As in R, if no seed has been set, derive one from the time etc.

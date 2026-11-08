@@ -167,13 +167,16 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `ansari.test()` | `ansariTest` | Ansari-Bradley test that two samples differ in scale. |
 | `afex::aov_ez()` | `aovEz` | Repeated-measures, between-subjects and mixed analysis of variance from long data. |
 | `aov()` | `aov` | Analysis of variance. |
+| `pROC::auc()` | `auc` | The area under a ROC curve, or the partial area between two specificities or sensitivities. |
 | `bartlett.test()` | `bartlettTest` | Bartlett's test that the variances of several normal samples are equal. |
 | `binom.test()` | `binomTest` | Exact test of a simple null hypothesis about the probability of success in Bernoulli trials. |
 | `DescTools::BinomCI()` | `binomCI` | Confidence interval for a binomial proportion x/n. |
 | `DescTools::BinomDiffCI()` | `binomDiffCI` | Confidence interval for the difference p1 - p2 of two independent proportions x1/n1 and x2/n2. |
 | `DescTools::BinomRatioCI()` | `binomRatioCI` | Confidence interval for the ratio p1/p2 of two independent proportions x1/n1 and x2/n2. |
+| `BlandAltmanLeh::bland.altman.stats()` | `blandAltman` | Bland-Altman analysis of two methods of measurement: the mean difference, the limits of agreement and their confidence intervals. |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | Brunner-Munzel test that two samples have the relative effect P(X < Y) + P(X = Y)/2 = 1/2, without assuming equal variances or shapes. |
 | `chisq.test()` | `chisqTest` | Pearson's chi-squared test. |
+| `pROC::ci.auc()` | `ciAuc` | Confidence interval of the area under a ROC curve, by DeLong's method or the bootstrap. |
 | `DescTools::CochranQTest()` | `cochranQTest` | Cochran's Q test for binary responses in an unreplicated complete block design. |
 | `lmtest::coefci()` | `coefci` | Confidence intervals of the coefficients of an `lm` or `glm` fit with a given covariance matrix. |
 | `lmtest::coeftest()` | `coeftest` | Tests of the coefficients of an `lm` or `glm` fit with a given covariance matrix. |
@@ -182,12 +185,14 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `confint()` | `confint` | Confidence intervals for the coefficients of a linear model, for an `lm` fit. |
 | `confint()` | `glmConfint` | Profile likelihood confidence intervals for the coefficients of a generalized linear model, for a `glm` fit. |
 | `cooks.distance()` | `glmCooksDistance` | Cook's distances, for the rows of non-zero prior weight, for a `glm` fit. |
+| `pROC::coords()` | `coords` | Coordinates of a ROC curve: sensitivity, specificity, the counts, predictive values, likelihood ratios and the criteria of the best threshold, at every point of the curve, at the best threshold(s) or at given thresholds. |
 | `cor.test()` | `corTest` | Test for correlation between paired samples. |
 | `survival::coxph()` | `coxph` | Cox proportional hazards regression. |
 | `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises test for normality. |
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. |
 | `dunn.test::dunn.test()` | `dunnTest` | Dunn's test of all pairs of mean ranks. |
 | `PMCMRplus::dunnettTest()` | `dunnettTest` | Dunnett's many-to-one test of means against the control, with the pooled variance. |
+| `epiR::epi.tests()` | `diagnosticTests` | Sensitivity, specificity, predictive values, likelihood ratios, accuracy, the diagnostic odds ratio and the true and apparent prevalence of a binary test, each with a confidence interval, from its 2 × 2 table. |
 | `effectsize::epsilon_squared()` | `epsilonSquared` | Epsilon squared of the terms of an analysis-of-variance table, also of repeated-measures designs. |
 | `pwr::ES.h()` | `esH` | Effect size h of two proportions. |
 | `pwr::ES.w1()` | `esW1` | Effect size w of a goodness-of-fit test, `sqrt(sum((p1 - p0)^2 / p0))`. |
@@ -206,6 +211,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `hatvalues()` | `glmHatvalues` | Diagonal of the hat matrix of the last weighted least squares step, for the rows of non-zero prior weight, for a `glm` fit. |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges' g. |
 | `irr::icc()` | `icc` | Intraclass correlation coefficient with its F test and confidence interval. |
+| `psych::ICC()` | `ICC` | The six intraclass correlations of Shrout and Fleiss (1979), with their F tests and confidence intervals. |
 | `DescTools::JonckheereTerpstraTest()` | `jonckheereTest` | Jonckheere-Terpstra test of equal distributions against ordered alternatives. |
 | `irr::kappa2()` | `kappa2` | Cohen's kappa for two raters, unweighted or weighted, with the z test of kappa = 0. |
 | `irr::kappam.fleiss()` | `kappamFleiss` | Fleiss' kappa for several raters, with the z test of kappa = 0 for Fleiss' kappa. |
@@ -221,6 +227,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `PMCMRplus::manyOneUTest()` | `manyOneUTest` | Steel's many-to-one rank test in its normal approximation: the Mann-Whitney statistic of each group against the control, each pair ranked on its own, standardised with the tie-corrected variance. |
 | `mauchly.test()` | `mauchlyTest` | Mauchly's test of sphericity of the measurements of each subject, on the contrasts spanned by `M` and orthogonal to `X`. |
 | `mcnemar.test()` | `mcnemarTest` | McNemar's chi-squared test for symmetry of rows and columns in a square table of counts. |
+| `mcr::mcreg()` | `mcreg` | Method comparison regression of y on x. |
 | `model.matrix()` | `modelMatrix` | The model matrix of a formula on a data frame, with the attributes of R's `terms()`. |
 | `mood.test()` | `moodTest` | Mood's two-sample test of scale. |
 | `epitools::oddsratio()` | `oddsRatio` | Odds ratio of a 2 x 2 table with its confidence interval and three p-values of independence. |
@@ -255,6 +262,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance level for a given power. |
 | `quade.test()` | `quadeTest` | Quade test for an unreplicated complete block design. |
 | `residuals()` | `glmResiduals` | Residuals of a generalized linear model, one per row, for a `glm` fit. |
+| `pROC::roc.test()` | `rocTest` | Tests the difference of the areas under two ROC curves, by DeLong's method or the bootstrap. |
+| `pROC::roc()` | `roc` | The ROC curve of a numeric predictor of a binary response. |
 | `rstandard()` | `glmRstandard` | Standardized Pearson or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia test for normality. |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
@@ -263,8 +272,10 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |
 | `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |
 | `survival::survfit()` | `survfit` | Kaplan-Meier estimate of the survival function with Greenwood's standard error and pointwise confidence intervals. |
+| `TOSTER::t_TOST()` | `tTOST` | Two one-sided t tests of equivalence, or minimal-effect tests, for one sample, two samples or paired samples, with the standardised mean difference and its interval. |
 | `t.test()` | `tTest` | Student's t-test. |
 | `equivalence::tost()` | `tost` | Two one-sided t tests of equivalence of two means. |
+| `TOSTER::tsum_TOST()` | `tsumTOST` | `tTOST` from summary statistics: means, standard deviations, sample sizes and, for paired samples, the correlation of the pairs. |
 | `TukeyHSD()` | `TukeyHSD` | Tukey's honest significant differences between the group means of a one-way ANOVA. |
 | `PMCMRplus::tukeyTest()` | `tukeyTest` | Tukey's all-pairs test of means. |
 | `var.test()` | `varTest` | F test that the variances of two normal samples have a given ratio. |

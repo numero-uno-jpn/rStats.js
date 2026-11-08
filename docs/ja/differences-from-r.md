@@ -166,6 +166,7 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | `oneway.test` (Welch、既定) で定数の群が 1 つ | 重み n / 0 が無限で、すべて NaN ([1, 1, 1] と [2, 3, 4] の `oneway.test`) | その群の分散を 0 に近づけた極限。F = (ほかの群の w_i (m_i - m_z)^2 の和) / ((k - 1)(1 + 2 (k - 2) c))、c = ほかの群の 1 / (n_i - 1) の和 / (k^2 - 1)、df2 = 1 / (3 c)。F 12、自由度 (1, 2)、p 0.0742 で、同じデータの `t.test` (Welch) と同じ。定数の群が 2 つ以上では極限が分散の近づき方で変わるので、エラー "Welch's test is not defined with two or more constant groups" (R は NaN) (#313) |
 | 不一致の 2 セルの差が 1 未満の小数の度数での `mcnemar.test` (2 x 2、連続性補正) | (abs(b - c) - 1)^2 / (b + c) で負の補正後の差を二乗するので、補正で統計量が大きくなる。b = 0.5、c = 0.2 で 0.7 (補正なしは 0.129)、b = 1.5、c = 1 で 0.1 (補正なしと同じ) | 補正後の差を max(0, abs(b - c) - 1) とする。そこでは統計量 0、p 1 (R の `chisq.test` と `prop.test` も補正を同じように止めている)。整数の度数では変わらない |
 | 総和に比べて小さい周辺度数がある分割表の `chisq.test(x)$stdres` | E (1 - r / n)(1 - c / n) を倍精度で計算し、小さい周辺度数を落とす。[[2^52, 0], [0, 0.1]] で NaN、-Inf、-Inf、2^26 (正しくは 4 セルとも絶対値 2^26)。[[1e15, 7], [3, 11]] のような整数の表でも相対 2e-14 誤る | 補数 1 - r / n、1 - c / n をほかの行・列の和 / n とし、O - E と分散を倍精度 2 倍長で計算して最後に 1 回丸める。4 セルとも 2^26、2 つ目の例は 21912524.504463962 (真の値を丸めたもの)。通常の表でも R と末尾のビットが違うことがある (#382) |
+| mcr の `mcreg(method.reg = "Deming")`: 誤差比が小さいときの傾き、解析的な標準誤差、2^±500 程度のデータ。約 1e154 を超える範囲にわたるデータでの `method.reg = "WDeming"` | (λq - u + sqrt((u - λq)² + 4λp²))/(2λp) は λq < u で桁が落ちる。`error.ratio = 1e-300` で傾き 0 (真の値 0.96786)、1e-12 で相対誤差 7e-4、1e300 で Inf。1 - p²/(uq) とジャックナイフの擬似値で最大 7e-14 を失う。和がオーバーフローする (2^520 で NaN) か、検査 sd(x) > 0 がアンダーフローする (2^-540 でエラー)。重み付き Deming の重み 1/m² がオーバーフローする | `mcreg`: λq < u では同じ根を 2p/(R - (λq - u)) で求める (λ > 1 では方程式を λ で割る)。(uq - p²)/(uq) を倍精度 2 倍長で、ジャックナイフの標準誤差を 1 点除外の推定値の sd の (n - 1) 倍で計算する。x と y をそれぞれ 2 の冪で正規化し (誤差比も合わせて変換)、単位が大きく異なるデータでも平方和を保つ。重み付き Deming は dx/m と dy/m から和を作り、重みを最大のもので割る (出力の 1/m² は範囲を超える所で Infinity) |
 | 被験者と評価者の効果が交互作用よりずっと大きいときの irr の `icc` (two-way) | 残差の平均平方を全体・被験者・評価者の平方和の引き算で求め、桁が落ちる。効果 1e8、交互作用 ±1 で ICC 1、F Inf、区間 NaN (真の MSE は 3/2) | その引き算の結果が全体の平方和の 2^-20 未満 (0 以下を含む) のときだけ、残差 x - 行平均 - 列平均 + 総平均 の平方和を倍精度 2 倍長で計算する。ICC 0.9999999999999999、F 2e16。それ以外は以前と同じビット (#392) |
 | 尺度が大きく違う群 (ある群の散らばりが最大の値の 2^-1022 倍未満) での `oneway.test` (Welch)、`var.test`、car の `leveneTest` | [1e200, 2e200]、[0, 1e-100]、[5, 7] の `oneway.test` は NaN (1 群目の分散が溢れる)。`var.test(c(1e308, 1e308), c(0, 1e-100))` は F Inf、p 0 (1 群目の var が Inf)。[1e308, 1e308] と [0, 1e-100] の `leveneTest` は F 6.2e31、p 1.6e-32 | 共通の座標で分散 (や偏差) が正規化数の範囲を下回るときだけ、各群を自分の座標で計算する (`bartlettTest` の #270 と同じ)。F 15、df2 4/3。比 0、F 0、p 0。F Inf、p 0 (偏差が 0 なのは片方の群だけ)。それ以外は以前と同じビット (#393) |
 | 完全相関 (たとえば `1:5` とそれ自身) | r = 1 − 2 ulp。1 − r² が桁落ちし、t と p が大きくずれる (p が 0 でなく 4e-24。1e-4 のノイズがあると p 値が 14% ずれる) | r と 1 − r² を double-double で計算 |
@@ -191,10 +192,18 @@ R 自身が不正確か失敗する場合と、rStats.js が意図的に違う�
 | Dunnett 型の p 値 (multcomp の Dunnett、PMCMRplus の `dunnettTest` と single-step の `kwManyOneDunnTest`・`manyOneUTest`) | mvtnorm の乱数を使う積分で、絶対 1e-3 程度。実行ごとに変わる (種で固定) | 1 次元積分で厳密に |
 | 多重比較 (Steel-Dwass、Games-Howell、Tukey) のステューデント化範囲の p 値 | R の `ptukey` は 8 桁程度 (テストで最大 3.4e-8 ずれる) | 完全な精度 |
 | irr の κ の p 値 | 2 (1 − Φ(|z|)) で作るので、小さい値が桁落ちする (1.7e-16 でなく 2.2e-16) | 2 Φ(−|z|) |
+| psych の `ICC` の `lmer = TRUE` (既定) | 平均平方を lme4 の REML の当てはめから作るが、最適化が早く止まる: どの値も相対 1e-5 から 1e-4 ずれる | 釣り合った二元配置モデルの REML 推定値を閉じた形で求める (ANOVA の平均平方。分散成分が負になる所では残差の平均平方をその平均平方と併合する: Robertson、Wright、Dykstra の平均平方の単調回帰) |
+| 2^±520 倍したデータ、大きな定数 (1e6) を足したデータ、残差の平均平方が 0 のデータでの psych の `ICC` (`lmer = FALSE`) | `aov` の平方和: NaN、相対 3e-10 のずれ、F が約 1e31 | 評価から第 1 行、第 1 列、またはその両方を引いた正確な差 (行や列ごとの定数のずれで平方和は変わらない) をそれぞれ 2 の冪で正規化し、平方和を倍精度 2 倍長で計算する。評価者や対象者のずれが評価のばらつきよりはるかに大きくても (1e100) 平方和は崩れない。評価者間の差が定数の評価 (残差がちょうど 0) では F は Infinity、p は 0 |
+| TOSTER の標準化平均差の非心 t による限界 (`smd_ci = "nct"`) | 最適化 (`optimize`、`nlm`) で求めるので相対 1e-9 程度ずれる (テストでは最大 7e-9) | `cohensD` と同じく非心 t 分布の根。非心度が 37.62 を超えると R の `pt` 自体が正規近似 (Abramowitz and Stegun 26.7.10) を使うので、R の `pt` の根はそこでずれる (非心度 50 で 1%: 8 個の値の 1 標本で g が 11.2 のとき上限 15.96 に対して 15.80) |
 | polycor の最尤推定と標準誤差 (`ML = TRUE`、`std.err = TRUE`) | Nelder-Mead や BFGS が早めに止まり、ヘッセ行列は差分で求める: 相対で最大 1e-3 ずれる。関連の強い表では 2 段階推定の BFGS が 1 を越え、0.9999 と無限大の分散を返す | 尤度の厳密な最大値 (160 ビットの値と 4e-15 以内) と解析的なヘッセ行列 |
 | psych の `omega` (minres) で独自因子分散が下限 0.005 に張り付く場合 (Heywood) | `fa` は L-BFGS-B に、非対角の目的関数ではなく、対角を含めた残差の二乗和の勾配を渡す。2 つの最小は内点では一致するが下限では一致せず、最小より高い点で、多くは convergence 0 で止まる (テストの例では 0.5%〜3.4% 高く、独自因子分散は最大 0.05 ずれる) | その点から目的関数そのものの勾配で L-BFGS-B を続け (factr 1e3)、最小に届く。下限に張り付かなければ psych と同じビット |
 | 項目の相関行列が特異な場合の psych の `alpha` (同じ項目の重複、ほかの項目の和の項目、項目数が被験者数以上。Issue #468) | G6 を `smc` から求める。擬似逆行列と [0, 1] への切り詰めで、残りの項目で完全に予測できる項目の SMC が 1 でなく 0 になる。同じ項目 2 つで G6 0.5、a = b と c で 0.712 (R² からは 0.956)、項目数が被験者数より多いと負の値 (以前の rStats.js はエラーで、raw・std の alpha も返さなかった) | 各 SMC を lm(x_i ~ x_-i) の R² (R の QR、tol 1e-7) で求める。G6 は 1 と 0.956。行列が特異でなければ以前どおり逆行列から求める (psych と同じ値。ただし項目がほぼ従属なときは、psych の `Pinv` が小さい特異値を切り捨てるので違う)。項目数が被験者数以上なら、中心化した項目は高々 n - 1 次元に入るので、どの項目も残りで完全に予測でき、G6 は常に 1 になる (標本の上では正しいが、情報はない) |
 | nortest の `pearson.test` で、`pnorm` が 1 に丸まる値 (平均より約 8.3 sd 以上大きい外れ値) がある場合 | その値は k + 1 番目の区間になり、`tabulate` が捨てる。計数の合計が n より小さくなる (0 が 99 個と 1e6 で 1176.13) | 最後の区間に数える: 1174.26 |
+| pROC の `coords` (`ret = "all"`) | 計数を se · m と sp · n から作り直すので整数にならないことがある (32/49 · 49 = 31.999999999999996)。fpr = 1 − sp、lr_pos = se/(1 − sp)、closest.topleft は sp が 1 に近いと桁落ちする (対照 10000 のうち偽陽性 1: fpr 9.9999999999989e-05、lr_pos 10000.0000000011) | `coords`: すべての列を整数の計数から求め、1 回だけ丸める (fp/n、(tp n)/(m fp)、...) |
+| pROC の `coords(x = "best")` | 基準 (se + r sp、隅までの距離) を丸めたあと `==` で比べるので、数学的に同点の閾値が落ちる (対照 7, 10, 12, 6, 10, 6、症例 5, 2, 3, 1, 12, 14, 12, 14, 3, 14, 8, 13: 11 と 12.5 がともに se + sp = 4/3 なのに 11 だけ) | `coords`: 基準を厳密に比べる (重みの厳密な有理数での整数の積)。同点の行をすべて返す |
+| epiR の `epi.tests(method = "exact")` | Clopper-Pearson の限界を 1 − qbeta(...) として求めるので、小さい限界で桁を失う (se = 1e-7: 下限が相対 4e-9 ずれる) | `diagnosticTests`: qbeta を直接使う (binomCI の `"clopper-pearson"`) |
+| epiR の `epi.tests`: 特異度が 1 に近いときの陽性尤度比とその限界 | sp から作った 1 − sp による se/(1 − sp): 180000.9 が 180000.89999939842 ([[9e5, 10], [1e5, 2e6]]) | `diagnosticTests`: 計数から 1 − sp = b/(b + d) (LR− の 1 − se も同様) |
+| epiR の `epi.tests(method = "wilson")`: x = 0 での下限 | −2.8e-17 (centre − half の丸め) | 0 (binomCI の Wilson の限界) |
 
 ### R にない分布
 
@@ -342,7 +351,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `chisq.test(c(1, 1), p = c(1e308, 1e308), rescale.p = TRUE)` (有限の重みの合計が溢れる) | 統計量 Inf、p 値 0 (Inf で割った重みがすべて 0) | 統計量 0、p 値 1 (重みを 2^e (2^e はセルの数以上) を単位にしてから割る。Issue #303) |
 | 応答の単位を変えた (1e-4 倍、1e±100 程度) afex の `aov_ez` と `mauchly.test` | 球面性の補正と Mauchly 検定が消える (car の固有値の絶対しきい値)、または W が NaN | 尺度によらず同じ ε と W (ランクは最大固有値とデータの平方和に対する相対値で判定。W は det(U / (trace(U)/p)) で計算) |
 | 単位が大きく違う共変量の `coxph(Surv(time, status) ~ x1 + x2)` (x1 を 1e7 倍や 1e-6 倍、x2 はそのまま) | Wald 検定で共変量が 1 つ落ちる (3.36 が 0.31 や 3.08 になる。元の単位の分散のコレスキー分解で、ピボットが相対許容幅を下回る)。x1 を 1e200 倍すると標準誤差がアンダーフローして 0 (z は Inf、p は 0)、1e-160 倍すると "infinite argument in coxph.wtest" | 尺度によらず同じ z、p、Wald 検定 (分散・z・Wald 検定・無限の係数の判定を、各共変量の尺度の 2 の冪を単位として計算する。係数・分散・標準誤差は出力の直前に元の単位に戻す) |
-| 1e±200 程度のデータでの `zTest` (BSDA の `z.test`)、effectsize の `cohens_d`/`hedges_g`、irr の `icc`、psych の `alpha`、nortest の `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`、`aov`、`TukeyHSD`、car の `leveneTest`、`lm`、`anova`、`aov(... + Error())`、afex の `ges` | NaN、0、±Inf、または異なる検定結果 (データの二乗がオーバーフロー・アンダーフロー) | 尺度によらず同じ結果 (平均を引く前にデータを 2 の冪で正規化。平方和、MSE、標準誤差、区間は出力時に単位を戻す) |
+| 1e±200 程度のデータでの `zTest` (BSDA の `z.test`)、effectsize の `cohens_d`/`hedges_g`、irr の `icc`、psych の `alpha`、nortest の `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`、`aov`、`TukeyHSD`、car の `leveneTest`、`lm`、`anova`、`aov(... + Error())`、afex の `ges`、TOSTER の `t_TOST` と `tsum_TOST` | NaN、0、±Inf、または異なる検定結果 (データの二乗がオーバーフロー・アンダーフロー) | 尺度によらず同じ結果 (平均を引く前にデータを 2 の冪で正規化。平方和、MSE、標準誤差、区間は出力時に単位を戻す) |
 | `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` は double の最大値)、double の最大値に近い符号の異なる値の対応のある `t.test` | -Inf か NaN (正規化の前に偏差や差がオーバーフロー) | 約 -2.3969、相関は -1。対応のある検定は他の尺度と同じ結果 |
 | `t.test(x, mu = 1e100)`、`t.test(1:4, mu = 1e6)` (mu が区間より桁違いに大きい) | 区間が [0, 0]。[0.44573974329978228, 4.5542602567002177] で 1.4e-10 ずれる (mu + (t ± q) stdErr の形で計算。mu が無限大なら NaN) | 推定値を中心とする区間 (mu に依存しない): [0.44573974323947896, 4.5542602567605215]。mu か t stdErr が abs(推定値) + q stdErr の 16 倍を超えるとき、または R の形の端が有限でないときだけ。それ以外は R の形で R と同じビット |
 | 応答が 1e±200 程度での car の `Anova` (型 II・III)、`predict(lm)` の標準誤差と区間、gaussian の `glm` とその `summary`・`residuals`・`rstandard`・`cooks.distance`・`predict`・`anova`・`confint`、DescTools の `CoefVar` と `MeanAD` | Inf、0、NaN、"residual sum of squares is 0"、または "no valid set of coefficients has been found" | 尺度によらず同じ結果 (応答を 2 の冪で正規化。glm は gaussian と定数分散の quasi の identity link) |
@@ -916,10 +925,86 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
   `conf.level` が (0, 1) にあることだけを確かめる)。正の有限値でない `epsilon` もエラーです。対応のある検定
   (`paired: true`、method `"Paired TOST"`、推定値の名前は R と同じ "mean of the differences") は tTest の対応のある
   検定に同じ 2 つの片側検定を当てたものです。
+- **`ICC`** (psych の `ICC`) は欠測のないデータだけを受け付けます (欠測した評価はエラー。psych の lmer の経路では扱える)。
+  すべての評価が等しいデータ、どの被験者の評価も同じデータはエラーです (psych では ICC -8e-16 のような丸め誤差)。
+  被験者か評価者が 2 未満のときもエラーです。残差の平均平方がちょうど 0 のとき (評価者間の差が定数の評価) は F が
+  Infinity、p が 0 で、ICC3、ICC3k とその区間は 1 です。そのとき ANOVA の経路では `aov` の警告 `essentially perfect
+  fit for ‘1’: summary may be unreliable` を残します。lme4 の `boundary (singular) fit` のメッセージは警告にしません。
+  ICC2k の区間は psych のもの (ICC2 の区間を Spearman-Brown で変換) で、`icc` の `unit: "average"` のもの (irr の、
+  McGraw と Wong の式) ではありません: Shrout と Fleiss の 6 × 4 のデータで [0.0711, 0.9272] と [0.0394, 0.9286]。返す
+  のは 6 行と平均平方だけで (`stats` の表、`lme`、`summary` はない)、`check.keys` はありません。
+- **`tTOST`** (TOSTER の `t_TOST`) は `mu` を 1 つの規則で扱います: 効果は、どこでも差 (1 標本では平均) から `mu`
+  を引いた Δ - mu です。限界の検定は Δ - mu を [low, high] と比べ、生の差の推定値と区間、標準化平均差も Δ - mu の
+  ものです (1 標本、2 標本、対応のある標本のいずれも)。TOSTER の `mu` の扱いは一貫していません: 限界の検定は Δ
+  そのものを限界と比べ、生の差の推定値は Δ - mu なのに区間は Δ のもの、2 標本の標準化平均差は Δ + mu のもの、対応の
+  ある標本では Δ のものです (Δ - mu のものは 1 標本の標準化平均差だけ)。`mu` が 0 (既定) なら両者は一致します。1 標本
+  の標準化平均差の `"t"` と `"z"` の区間は、他の場合と同じく 1 - 2 alpha の区間です (TOSTER は 1 - alpha)。TOSTER の注意 (`Equivalence interval
+  does not include zero.`、SMD の限界の注意、MET の注意) は警告にし、判定の文は再現しません。`alpha` は (0, 0.5) の
+  値でなければなりません (TOSTER は幅 0 の区間になる 0.5 も受け付ける)。順序が逆の限界もエラーです。対応のある標本の
+  差の標準偏差は差から計算します (TOSTER の sqrt(s1² + s2² - 2 r s1 s2) は r が 1 に近いと桁落ちする)。`smdCi:
+  "goulet"` で差がちょうど 0 のとき、限界は式の連続な極限です (TOSTER はそこで別の式を使う)。
+- **`tsumTOST`** (TOSTER の `tsum_TOST`): 片側の p 値は上側の裾から求めます (TOSTER の `1 - pt(t, df)` は小さい値が
+  桁落ちする)。それ以外は `tTOST` と同じです。対応のある標本には (-1, 1) の `r12` が必要です。
 - **`binomDiffEquivalenceTest`** は R にありません: 計数に対する、2 つの比率の同等性の 2 つの片側スコア検定
   (既定は Miettinen-Nurminen、Farrington-Manning の `"mee"`、Wald) で、同じ方法の水準 1 - 2 alpha の `binomDiffCI` と
   双対です。0/1 データには `tost` よりこちらを使うべきです (`tost` の t 近似では、すべて 0 かすべて 1 の群の分散が 0
   になる)。許容幅は対称な (-margin, margin) で、margin は (0, 1) の値です。
+- **`roc`、`auc`、`ciAuc`、`rocTest`、`coords`** (pROC): 曲線、その AUC (計数からの U/(mn) を 1 回だけ丸めたもの。
+  pROC の台形の和とは 1 ulp 違う)、DeLong の区間と検定、ブートストラップ (R の乱数列: `setSeed` のあとは pROC と同じ
+  抽出と値) は pROC と相対 1e-13 以内で一致します。違い:
+  - 予測変数の無限大の値はエラーです (pROC は警告つきで NaN)。`naRm: false` での欠測値もエラーです (pROC は NA)。
+    `{ controls, cases }` の形の曲線は、ほかの曲線と対応があるとはみなしません (比べる応答がない)。
+  - DeLong の区間と検定には対照と症例が 2 つ以上ずつ必要です (pROC は NA、NaN、または R のエラー "missing value
+    where TRUE/FALSE needed")。分散がどちらも 0 の 2 曲線の対応のない DeLong 検定は、AUC が等しければ D = 0、p 値 1
+    (片側 0.5) を返します (pROC は NaN)。自由度は NaN です。`confLevel` が 1 のとき `ciAuc` は分散が 0 でも pROC と
+    同じく [0, 1] を返します。
+  - `rocTest` は `method` を与えなければ DeLong の検定を使い (pROC は向きの違う曲線では黙ってブートストラップに切り
+    替える)、そのときも `confLevel` を確かめます (pROC は NaN の区間)。Venkatraman の検定、感度・特異度の検定、平滑
+    化、`percent`、`ci.coords` などはありません。
+  - ブートストラップの `ciAuc` は `estimate` に曲線の AUC を、区間とともに返します (pROC の 3 つの値の中央は
+    ブートストラップの AUC の中央値)。層別のブートストラップには対照と症例が 2 つ以上ずつ必要です (pROC は 1 つの値
+    x ≥ 1 を 1, ..., x から抽出し直す)。層別しないブートストラップで対照のない標本は、症例のない標本と同じ警告で捨て
+    ます (pROC は "missing value where TRUE/FALSE needed" で止まる)。`rocTest` の "<k> NA value(s) produced during
+    bootstrap were ignored." の数は捨てた反復の数です。
+  - `partialAuc` を与えた `auc`: [0, 1] の外の端はエラーです (pROC は NA)。対角線より下での McClish の補正もエラーです
+    (pROC は警告 "Partial AUC correction not defined for ROC curves below the diagonal." つきで NA)。補正は点の計数から
+    厳密に求めて 1 回だけ丸めるので、対角線上の曲線は下とはみなされず 0.5 になり、0 に近い端でも桁を失いません (丸めた
+    面積を使う pROC とは最後の桁で、0 に近い端ではそれ以上に違うことがあります)。
+  - `coords`: すべての列を整数の計数から求めます (上を参照)。`"best"` は厳密に同点の行をすべて返します。
+    `bestWeights` のコストは正でなければなりません (pROC は確かめない)。`youden` は pROC の se + r·sp で、
+    se + sp − 1 ではありません。列名は camelCase です (`lrPos`、`lrNeg`、`closestTopleft`)。
+- **`diagnosticTests`** (epiR の `epi.tests`) は感度、特異度、予測値、尤度比、正診率、診断オッズ比、2 つの有病率を
+  区間つきで返し、Youden 指数、NND、epiR の `p.*` の行は返しません。方法は `"exact"` (epiR の "exact" と
+  "clopper-pearson" を直接計算)、`"wilson"`、`"jeffreys"` です。Jeffreys の区間は binomCI のもので、x = 0 で 0、
+  x = n で 1 です (epiR はそこでもベータ分布の分位点)。推定値を変える epiR の `"agresti"` はありません。行または列の
+  合計が 0、整数でない計数、(0, 1) の外の水準はエラーです (epiR は NaN、計数をそのまま使う、NaN の区間)。0 のセルは
+  epiR と同じく無限大の比と NaN の区間になります。オプション `prevalence` で、その有病率での予測値も返します。
+- **`blandAltman`** (BlandAltmanLeh の `bland.altman.stats`) のフィールド名は camelCase です (`meanDiff`、`lowerLimit`、
+  `upperLimit`、`criticalDiff`、`based.on` は `n`)。区間はベクトル `lines`・`CI.lines` ではなく組 (`meanDiffConfInt`、
+  `lowerLimitConfInt`、`upperLimitConfInt`) で返し、完全な組 (`groups`) は返しません。完全な組が 2 未満、無限大の値、
+  [0, 1] の外の水準はエラーです (R は NA や NaN の限界を返し、1 つ目では警告 "less than 2 data pairs after deleting
+  NAs" を出す)。オプション `ciMethod: "exact"` はパッケージにありません: 非心 t 分布による一致限界の正確な区間
+  (Carkeet 2015) で、小さい n ではパッケージの `limit ± t sqrt(3 s²/n)` より広くなります (n = 17 で 3%、n = 10 で 6%、
+  n = 2 で 2 倍)。2 つの測定法が同一 (s = 0) なら、水準 1 でもすべての区間が点 d̄ です (R はそこで NaN)。R の `sd()` が
+  オーバーフロー・アンダーフローする 2^±500 程度以上のデータでは、2 の冪で割ったデータの結果にその冪を掛けた値を返します。
+- **`mcreg`** (mcr の `mcreg`) は 1 つの関数で、オプションは camelCase、`alpha` の代わりに `confLevel` (= 1 - mcr の
+  `alpha`) です。結果は `intercept` と `slope` を `{ estimate, se, confInt }` (mcr の `@para`) として持ち、`xmean`、
+  `weights` (`@weight`)、`jackknife` (`@B0jack`、`@B1jack`)、`bootstrap` (`@B0`、`@B1`、`@sigmaB0`、`@sigmaB1`、
+  `@glob.sigma`、`@nsamples`)、Passing-Bablok では mcr の `calcCUSUM` の統計量を `cusum` (`nPos`、`nNeg`、`maxCusum`。
+  累積和の列は返さない) として持ちます。既定の区間は mcr の 999 個のリサンプルによる乱数のブートストラップではなく
+  `"analytical"` (重みつき Deming では `"jackknife"`) です。`rngSeed` を与えたブートストラップは、同じ `rng.seed` の
+  mcr と同じリサンプル (R の乱数列) になり、与えなければ現在の乱数列から引きます。Deming、重みつき Deming、
+  Passing-Bablok だけで、`PaBaLarge` (と `NBins`)、`LinReg`、`WLinReg`、`PBequi`、`TS` はなく、測定法や標本の名前も
+  ありません。Passing-Bablok の奇数位置の傾きは dy/dx そのものです (mcr は tan(atan(dy/dx)) で数 ulp ずれ、1 が
+  0.99999999999999989 になる)。傾きがちょうど 1 のとき、これで CUSUM が変わることがあります。mcr では直線上の点の残差が
+  ごく小さい正の数になり、ここでは 0 です (x = 1..6、y = 1..5, 6.5 で、直線より上の点が mcr では 6 個で最大値 0、ここでは
+  1 個で 0)。Passing-Bablok の区間が定まらないとき (点が少ない。n <= 4 では常に) は mcr と同じく限界を -Inf と Inf に
+  し、警告を出します (mcr は出さない)。Deming の共分散が 0 のデータはエラーです (mcr は NaN)。組が 2 以下、x か y が
+  一定、無限大の値、Passing-Bablok での負の値、重みつき Deming での正でない値もエラーです (mcr の制限を rStats.js の
+  メッセージで)。Passing-Bablok の 1e-12 の同順位の規則は 2 の冪で正規化したデータに適用します (同順位は同じ。mcr の
+  規則は最大の倍精度数の近くでオーバーフローする)。重みつき Deming は mcr と同じく止めます (絶対的な閾値、`iterMax`、
+  mcr の綴りのままの警告 "no konvergence after ... iterations")。そのため、データの単位に対して厳密には不変では
+  ありません。
 
 ### データの扱い
 

@@ -151,6 +151,7 @@ affected.
 | `oneway.test` (Welch, the default) with one constant group | NaN throughout (the weight n / 0 is infinite): `oneway.test` on [1, 1, 1] and [2, 3, 4] | the limit as that group's variance tends to 0: F = sum over the other groups of w_i (m_i - m_z)^2 / ((k - 1)(1 + 2 (k - 2) c)) with c = sum 1 / (n_i - 1) / (k^2 - 1) over them, df2 = 1 / (3 c); F 12, df (1, 2), p 0.0742, as `t.test` (Welch) on the same data. With two or more constant groups the limit depends on how the variances tend to 0, so it is an error "Welch's test is not defined with two or more constant groups" (R NaN) (#313) |
 | `mcnemar.test` (2 x 2, continuity correction) with fractional counts whose discordant cells differ by less than 1 | (abs(b - c) - 1)^2 / (b + c) squares the negative corrected difference, so the correction makes the statistic larger: 0.7 instead of 0.129 for b = 0.5, c = 0.2, and 0.1 (as without the correction) for b = 1.5, c = 1 | the corrected difference max(0, abs(b - c) - 1): statistic 0, p 1 there (R's `chisq.test` and `prop.test` clamp their corrections likewise); integer counts unchanged |
 | `chisq.test(x)$stdres` (contingency table) with a margin small against the total | E (1 - r / n)(1 - c / n) in doubles loses the small margins: [[2^52, 0], [0, 0.1]] gives NaN, -Inf, -Inf, 2^26 (true: 2^26 in absolute value in all four cells); integer tables such as [[1e15, 7], [3, 11]] are off by 2e-14 relative | the complements 1 - r / n and 1 - c / n as the other rows' and columns' sums over n, and O - E and the variance in double-double, rounded once: 2^26 in all four cells, 21912524.504463962 for the second (the exact value rounded); in ordinary tables the last bits may differ from R's (#382) |
+| mcr's `mcreg(method.reg = "Deming")`: the slope for a small error ratio, the analytical standard errors, data of order 2^±500; `method.reg = "WDeming"` with data spanning more than about 1e154 | (λq - u + sqrt((u - λq)² + 4λp²))/(2λp) cancels when λq < u: `error.ratio = 1e-300` gives slope 0 (true 0.96786), 1e-12 a relative error of 7e-4, 1e300 Inf; 1 - p²/(uq) and the jackknife pseudo-values lose up to 7e-14; the sums overflow (NaN at 2^520) or its check sd(x) > 0 underflows (an error at 2^-540); the weights 1/m² of weighted Deming overflow | `mcreg`: the same root as 2p/(R - (λq - u)) where λq < u (and the equation divided by λ for λ > 1), (uq - p²)/(uq) in double-double, the jackknife standard error as (n - 1) sd of the leave-one-out estimates; x and y each scaled by a power of 2 (the error ratio with them), so that data in very different units keep their sums of squares; weighted Deming's sums formed from dx/m and dy/m and its weights divided by the largest (the reported 1/m² Infinity where beyond the range) |
 | irr's `icc` (two-way) with subject and rater effects much larger than the interaction | the residual mean square from the total, subject and rater sums of squares cancels: effects of 1e8 with an interaction of ±1 give ICC 1, F Inf, bounds NaN (true MSE 3/2) | where that subtraction is below 2^-20 of the total sum of squares (or 0 or less), the MSE is the sum of the squared residuals x - row mean - column mean + grand mean in double-double: ICC 0.9999999999999999, F 2e16; elsewhere the same bits as before (#392) |
 | `oneway.test` (Welch), `var.test` and car's `leveneTest` with groups on very different scales (a group's spread below 2^-1022 times the largest value) | `oneway.test` on [1e200, 2e200], [0, 1e-100], [5, 7]: NaN (the variance of the first overflows); `var.test(c(1e308, 1e308), c(0, 1e-100))`: F Inf, p 0 (var of the first is Inf); `leveneTest` on [1e308, 1e308] and [0, 1e-100]: F 6.2e31, p 1.6e-32 | each group on its own scale only where its variance (or deviations) would fall below the normal range on the common one (as `bartlettTest`, #270): F 15, df2 4/3; ratio 0, F 0, p 0; F Inf, p 0 (the deviations are 0 in one group only). Elsewhere the same bits (#393) |
 | dunn.test's step-wise adjustments (`holm`, `hs`, `hochberg`, `bh`, `by`) with tied p-values | ties ranked in the order of the comparisons: the same p-value gets different adjusted values (1, 0.828, 0.414 with `holm`), which change when the groups are relabelled | a run of ties takes the rank of its first, the one the stopping rule decides on: the same value whatever the order, the same decisions; without ties as dunn.test |
@@ -197,10 +198,18 @@ affected.
 | Dunnett-type p-values (multcomp's Dunnett, PMCMRplus's `dunnettTest` and single-step `kwManyOneDunnTest` and `manyOneUTest`) | mvtnorm's randomised integration: about 1e-3 absolute, different from run to run (seeded) | exact one-dimensional integral |
 | Studentized-range p-values of post-hoc tests (Steel-Dwass, Games-Howell, Tukey) | R's `ptukey`, about 8 digits (off by up to 3.4e-8 in the tests) | full precision |
 | irr's kappa p-values | formed as 2 (1 − Φ(|z|)), losing small ones (2.2e-16 instead of 1.7e-16) | 2 Φ(−|z|) |
+| psych's `ICC` with `lmer = TRUE` (the default) | the mean squares from lme4's REML fit, whose optimiser stops early: every value about 1e-5 to 1e-4 relative off | the REML estimates of the balanced two-way model in closed form (the ANOVA mean squares, or where a variance component would be negative, the residual mean square pooled with that one: Robertson, Wright and Dykstra's isotonic regression of the mean squares) |
+| psych's `ICC` with `lmer = FALSE` on data scaled by 2^±520, with a large offset (1e6) or with a residual mean square of 0 | `aov`'s sums of squares: NaN, 3e-10 relative off, F about 1e31 | sums of squares in double-double from the exact differences of the ratings from the first row, the first column or both (which row and column offsets do not change), each scaled by a power of 2, so that an offset of a rater or subject far beyond the spread (1e100) does not swamp them; F Infinity and p 0 where the ratings differ between raters by constants (the residual is exactly 0) |
+| TOSTER's noncentral-t limits of the standardised mean difference (`smd_ci = "nct"`) | found by an optimiser (`optimize`, `nlm`): about 1e-9 relative off (up to 7e-9 in the tests) | the roots of the noncentral t, as `cohensD`; for a noncentrality above 37.62 R's own `pt` uses a normal approximation (Abramowitz and Stegun 26.7.10), so roots of R's `pt` are off there (1% at ncp 50: an upper limit 15.80 for 15.96 for a one-sample g of 11.2 with 8 values) |
 | polycor's maximum-likelihood estimates and standard errors (`ML = TRUE`, `std.err = TRUE`) | Nelder-Mead or BFGS stops early and the Hessian is taken by finite differences: off by up to 1e-3 relative; on strongly associated tables the two-step BFGS runs past 1 and reports 0.9999 with an infinite variance | the exact maximum (within 4e-15 of 160-bit values) and the analytic Hessian |
 | nortest's `pearson.test` with a value whose `pnorm` rounds to 1 (an outlier about 8.3 sd or more above the mean) | the value falls in class k + 1, which `tabulate` drops: the counts sum to less than n (1176.13 for 99 zeros and 1e6) | counted in the last class: 1174.26 |
 | psych's `omega` (minres) with a uniqueness at the lower bound 0.005 (a Heywood case) | `fa` passes L-BFGS-B the gradient of the residual sum of squares with the diagonal, not that of the off-diagonal objective; the two minima agree in the interior but not at the bound, so the fit stops above the minimum, mostly with convergence 0 (0.5% to 3.4% above it in the tests; uniquenesses off by up to 0.05) | from that point, L-BFGS-B goes on with the objective's own gradient (factr 1e3) to the minimum; without a uniqueness at the bound as psych, bit for bit |
 | psych's `alpha` with a singular item correlation matrix (a repeated item, an item that is the sum of others, or at least as many items as subjects; issue #468) | G6 from `smc`, whose pseudo-inverse and clamp to [0, 1] give an item that the others predict exactly an SMC of 0 instead of 1: G6 0.5 for two copies of one item, 0.712 for a = b next to c (the R^2 gives 0.956), negative values with more items than subjects (rStats.js before: an error, also for raw and standardized alpha) | each SMC as the R^2 of lm(x_i ~ x_-i) (R's QR, tol 1e-7): G6 1 and 0.956. Where the matrix is nonsingular, the SMC from its inverse as before (psych's value, except for nearly dependent items, where psych's `Pinv` drops small singular values). With at least as many items as subjects the centred items span at most n - 1 dimensions, so every item is predicted exactly by the others and G6 is always 1 (correct for the sample, but it carries no information) |
+| pROC's `coords` (`ret = "all"`) | the counts rebuilt as se · m and sp · n, not always integers (32/49 · 49 = 31.999999999999996); fpr = 1 − sp, lr_pos = se/(1 − sp) and closest.topleft cancel near sp = 1 (one false positive among 10000 controls: fpr 9.9999999999989e-05, lr_pos 10000.0000000011) | `coords`: every column from the integer counts, rounded once (fp/n, (tp n)/(m fp), ...) |
+| pROC's `coords(x = "best")` | the criteria (se + r sp, the distance to the corner) compared with `==` after rounding: thresholds tied mathematically are lost (controls 7, 10, 12, 6, 10, 6 and cases 5, 2, 3, 1, 12, 14, 12, 14, 3, 14, 8, 13: only 11 for 11 and 12.5, both se + sp = 4/3) | `coords`: the criteria compared exactly (integer cross-products with the exact rational of the weights); every tied row |
+| epiR's `epi.tests(method = "exact")` | the Clopper-Pearson limits as 1 − qbeta(...), which loses digits for small limits (se = 1e-7: lower limit off by 4e-9 relative) | `diagnosticTests`: qbeta directly (binomCI's `"clopper-pearson"`) |
+| epiR's `epi.tests`: the positive likelihood ratio and its limits when the specificity is near 1 | se/(1 − sp) with 1 − sp formed from sp: 180000.89999939842 for 180000.9 ([[9e5, 10], [1e5, 2e6]]) | `diagnosticTests`: 1 − sp = b/(b + d) from the counts (likewise 1 − se for LR−) |
+| epiR's `epi.tests(method = "wilson")`: the lower limit at x = 0 | −2.8e-17 (rounding of centre − half) | 0 (binomCI's Wilson limits) |
 
 ### Distributions outside base R
 
@@ -348,7 +357,7 @@ closed forms written in R (`distSummary`). The values here agree with 50-digit m
 | `chisq.test(c(1, 1), p = c(1e308, 1e308), rescale.p = TRUE)` (the total of the finite weights overflows) | statistic Inf, p-value 0 (each weight divided by Inf is 0) | statistic 0, p-value 1 (the weights in units of 2^e, 2^e >= the number of cells, before the division; issue #303) |
 | afex's `aov_ez` and `mauchly.test` with the response in other units (1e-4 times, or around 1e±100) | the sphericity corrections and Mauchly's test disappear (car's absolute eigenvalue threshold), or W is NaN | the same epsilons and W at any scale (the rank judged relative to the largest eigenvalue and to the sum of squares of the data; W as det(U / (trace(U)/p))) |
 | `coxph(Surv(time, status) ~ x1 + x2)` with covariates in very different units (x1 * 1e7 or x1 * 1e-6, x2 as is) | the Wald test drops a covariate (3.36 becomes 0.31 or 3.08: the Cholesky pivots of the variance in the original units fall below the relative tolerance); at x1 * 1e200 the standard error underflows to 0 (z Inf, p 0), at x1 * 1e-160 "infinite argument in coxph.wtest" | the same z, p and Wald test at any scale (the variance, z, the Wald test and the check for infinite coefficients formed in units of a power of 2 of each covariate's scale; the coefficients, the variance and the standard errors scaled back for output) |
-| `zTest` (BSDA's `z.test`), effectsize's `cohens_d`/`hedges_g`, irr's `icc`, psych's `alpha`, nortest's `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`, `aov`, `TukeyHSD`, car's `leveneTest`, `lm`, `anova`, `aov(... + Error())`, afex's `ges` on data around 1e±200 | NaN, 0, ±Inf or a different test result (squares of the data overflow or underflow) | the result at any scale (the data scaled by a power of 2 before the mean is subtracted; sums of squares, MSE, standard errors and intervals scaled back for output) |
+| `zTest` (BSDA's `z.test`), effectsize's `cohens_d`/`hedges_g`, irr's `icc`, psych's `alpha`, nortest's `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`, `aov`, `TukeyHSD`, car's `leveneTest`, `lm`, `anova`, `aov(... + Error())`, afex's `ges`, TOSTER's `t_TOST` and `tsum_TOST` on data around 1e±200 | NaN, 0, ±Inf or a different test result (squares of the data overflow or underflow) | the result at any scale (the data scaled by a power of 2 before the mean is subtracted; sums of squares, MSE, standard errors and intervals scaled back for output) |
 | `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` the largest double), and a paired `t.test` of values of opposite sign near the largest double | -Inf or NaN (the deviation, or the difference, overflows before any rescaling) | about -2.3969 and a correlation of -1; the paired test as at any other scale |
 | `t.test(x, mu = 1e100)`, and `t.test(1:4, mu = 1e6)` (mu far larger than the interval) | interval [0, 0]; [0.44573974329978228, 4.5542602567002177], 1.4e-10 off (formed as mu + (t ± q) stdErr; NaN for an infinite mu) | the interval about the estimate, which does not depend on mu: [0.44573974323947896, 4.5542602567605215]. Only where mu or t stdErr exceeds 16 times abs(estimate) + q stdErr, or R's end is not finite; elsewhere R's form and bits |
 | car's `Anova` (types II and III), `predict(lm)` standard errors and intervals, gaussian `glm` and `summary`, `residuals`, `rstandard`, `cooks.distance`, `predict`, `anova`, `confint` of it, DescTools' `CoefVar` and `MeanAD`, with the response around 1e±200 | Inf, 0 or NaN, "residual sum of squares is 0", or "no valid set of coefficients has been found" | the result at any scale (the response scaled by a power of 2; for glm on the gaussian family, or quasi with constant variance, on the identity link) |
@@ -974,10 +983,93 @@ rStats.js's `dpois` and `dbinom` use a threshold of 1e-7, which may differ from 
   or more are errors (the 1 - 2 alpha interval would be a point or reversed; R checks only that `conf.level` lies in
   (0, 1)), and so is an `epsilon` that is not positive and finite. The paired test (`paired: true`, method
   `"Paired TOST"`, estimate "mean of the differences" as R) is tTest's paired test with the same two one-sided tests.
+- **`ICC`** (psych's `ICC`) accepts complete data only (missing ratings are an error; psych's lmer path handles them).
+  Ratings that are all equal, or the same for every subject, are errors (psych: rounding noise such as ICC -8e-16);
+  fewer than 2 subjects or raters too. Where the residual mean square is exactly 0 (ratings that differ between
+  raters by constants) F is Infinity and p 0, and ICC3, ICC3k and their bounds are 1; `aov`'s warning `essentially
+  perfect fit for ‘1’: summary may be unreliable` is kept on the ANOVA path then. lme4's `boundary (singular) fit`
+  message is not a warning. The interval of ICC2k is psych's (ICC2's bounds transformed by Spearman-Brown), not that
+  of `icc` with `unit: "average"` (irr's, McGraw and Wong's formula): for the 6 × 4 data of Shrout and Fleiss [0.0711,
+  0.9272] against [0.0394, 0.9286]. Only the six rows and the mean squares are returned (no `stats` table, `lme` or
+  `summary`), and `check.keys` is not offered.
+- **`tTOST`** (TOSTER's `t_TOST`) treats `mu` as one rule: the effect is the difference (or the one-sample mean) minus
+  `mu`, Δ - mu, everywhere. The bound tests compare Δ - mu with [low, high], and the raw estimate, the raw interval and
+  the standardised difference are those of Δ - mu, for one, two and paired samples. TOSTER uses `mu` inconsistently:
+  its bound tests compare Δ itself with the bounds, its raw estimate is Δ - mu but its raw interval that of Δ, its
+  two-sample standardised difference that of Δ + mu, and its paired one that of Δ (only the one-sample standardised
+  difference is of Δ - mu). With `mu` 0 (the default) the two agree. The `"t"` and `"z"` intervals of the one-sample
+  standardised difference are 1 - 2 alpha intervals as in the other designs (TOSTER's are 1 - alpha). TOSTER's notes (`Equivalence interval does not include zero.`, the
+  note on SMD bounds and the MET note) are warnings; its decision sentences are not reproduced. `alpha` must lie in
+  (0, 0.5) (TOSTER accepts 0.5, a zero-width interval), and bounds in the wrong order are an error. The paired SD of
+  the differences is computed from the differences (TOSTER's sqrt(s1² + s2² - 2 r s1 s2) cancels for r near 1). With
+  `smdCi: "goulet"` and a difference of exactly 0 the limits are the continuous limit of the formula (TOSTER uses
+  another expression there).
+- **`tsumTOST`** (TOSTER's `tsum_TOST`): the one-sided p-values are upper tails (TOSTER's `1 - pt(t, df)` loses small
+  ones); otherwise as `tTOST`. Paired samples need `r12` in (-1, 1).
 - **`binomDiffEquivalenceTest`** is not in R: the test of equivalence of two proportions on counts by two one-sided
   score tests (Miettinen-Nurminen by default, Farrington-Manning `"mee"` or Wald), dual to `binomDiffCI` with the same
   method at the level 1 - 2 alpha. For 0/1 data it is the test to use rather than `tost`, whose t approximation has a
   variance of 0 for a group of all 0s or all 1s. The margin is symmetric, (-margin, margin) with margin in (0, 1).
+- **`roc`, `auc`, `ciAuc`, `rocTest` and `coords`** (pROC): the curve, its AUC (U/(mn) from the counts, rounded
+  once; pROC's trapezoid sum differs by an ulp), DeLong's interval and tests and the bootstrap (R's random stream:
+  after `setSeed` the same draws and values as pROC) agree with pROC within 1e-13 relative. Differences:
+  - An infinite predictor value is an error (pROC: NaN with a warning), as are missing values with `naRm: false`
+    (pROC: NA). A curve of the `{ controls, cases }` form is never treated as paired with another curve (it has no
+    response to compare).
+  - DeLong's interval and tests need at least two controls and two cases (pROC: NA, NaN or the R error "missing value
+    where TRUE/FALSE needed"). The unpaired DeLong test of two curves whose variances are both 0 gives D = 0 and
+    p-value 1 (one-sided 0.5) for equal AUCs (pROC: NaN); its degrees of freedom are NaN. At `confLevel` 1 `ciAuc`
+    gives [0, 1] as pROC, also when the variance is 0.
+  - `rocTest` uses DeLong's test unless `method` is given (pROC switches to the bootstrap silently for curves of
+    different directions), and checks `confLevel` also then (pROC: NaN limits). Venkatraman's test, the sensitivity
+    and specificity tests, smoothing, `percent` and the `ci.coords` family are not offered.
+  - `ciAuc` with the bootstrap returns the curve's AUC as `estimate` and the interval (pROC's middle value is the
+    median of the bootstrap AUCs). A stratified bootstrap needs at least two controls and two cases (pROC resamples a
+    single value x ≥ 1 from 1, ..., x); a non-stratified resample without controls is dropped with the warning of one
+    without cases (pROC stops with "missing value where TRUE/FALSE needed"). With `rocTest`, the count in "<k> NA
+    value(s) produced during bootstrap were ignored." is that of the dropped replicates.
+  - `auc` with `partialAuc`: limits outside [0, 1] are an error (pROC: NA), as is McClish's correction below the
+    diagonal (pROC: NA with the warning "Partial AUC correction not defined for ROC curves below the diagonal.").
+    The correction is computed exactly from the counts of the points and rounded once, so a curve on the diagonal
+    gives 0.5 rather than counting as below it, and limits near 0 keep their digits (pROC's rounded areas can differ
+    in the last bits, or by more for limits near 0).
+  - `coords`: all columns from the integer counts (see above); `"best"` returns every row tied exactly; the cost in
+    `bestWeights` must be positive (pROC does not check it); `youden` is pROC's se + r·sp, not se + sp − 1. The
+    columns are camelCase (`lrPos`, `lrNeg`, `closestTopleft`).
+- **`diagnosticTests`** (epiR's `epi.tests`) returns sensitivity, specificity, the predictive values, the likelihood
+  ratios, accuracy, the diagnostic odds ratio and the two prevalences with their intervals, not Youden's index, the
+  number needed to diagnose or epiR's `p.*` rows. Methods `"exact"` (epiR's "exact" and "clopper-pearson", computed
+  directly), `"wilson"` and `"jeffreys"`; Jeffreys' interval is binomCI's, 0 at x = 0 and 1 at x = n (epiR: the beta
+  quantiles there). epiR's `"agresti"` (which changes the estimates) is not offered. A zero row or column total, non-
+  integer counts and a level outside (0, 1) are errors (epiR: NaN, the counts used, NaN limits); zero cells give
+  infinite ratios and NaN limits as epiR. The option `prevalence` adds the predictive values at that prevalence.
+- **`blandAltman`** (BlandAltmanLeh's `bland.altman.stats`) names its fields in camelCase (`meanDiff`, `lowerLimit`,
+  `upperLimit`, `criticalDiff`, `n` for `based.on`) and returns the intervals as pairs (`meanDiffConfInt`,
+  `lowerLimitConfInt`, `upperLimitConfInt`) instead of the vectors `lines` and `CI.lines`; the complete pairs (`groups`)
+  are not returned. Fewer than 2 complete pairs, infinite values and a level outside [0, 1] are errors (R: NA or NaN
+  limits, with the warning "less than 2 data pairs after deleting NAs" for the first). The option `ciMethod: "exact"`
+  is not in the package: the exact interval of the limits of agreement from the noncentral t distribution (Carkeet
+  2015), wider than the package's `limit ± t sqrt(3 s²/n)` for small n (3% at n = 17, 6% at n = 10, twice at n = 2).
+  For identical methods (s = 0) every interval is the point d̄, also at the level 1 (R: NaN there). Data of order
+  2^±500 and beyond, where R's `sd()` over- or underflows, give the results of the unscaled data times the power of 2.
+- **`mcreg`** (mcr's `mcreg`) is one function with the options in camelCase and `confLevel` (= 1 - mcr's `alpha`); the
+  result has `intercept` and `slope` as `{ estimate, se, confInt }` (mcr's `@para`), `xmean`, `weights` (`@weight`),
+  `jackknife` (`@B0jack`, `@B1jack`), `bootstrap` (`@B0`, `@B1`, `@sigmaB0`, `@sigmaB1`, `@glob.sigma`, `@nsamples`) and,
+  for Passing-Bablok, `cusum` with mcr's `calcCUSUM` statistic (`nPos`, `nNeg`, `maxCusum`; not the path). The
+  default interval is `"analytical"` (`"jackknife"` for weighted Deming), not mcr's random bootstrap with 999
+  resamples; the bootstrap with `rngSeed` gives mcr's resamples for the same `rng.seed` (R's stream), and without it
+  draws from the current stream. Only Deming, weighted Deming and Passing-Bablok: no `PaBaLarge` (and `NBins`),
+  `LinReg`, `WLinReg`, `PBequi` or `TS`; no names of the methods or samples. Passing-Bablok's slope at an odd position
+  is dy/dx itself (mcr: tan(atan(dy/dx)), a few ulps off, 0.99999999999999989 for 1); for a slope of exactly 1 this
+  can change the CUSUM, where mcr's residuals of the points on the line are tiny positive numbers and here 0 (6
+  points above the line and a maximum of 0 in mcr, 1 and 0 here, for x = 1..6, y = 1..5, 6.5). Where Passing-Bablok's
+  interval is not defined (too few points, always for n <= 4) the limits are -Inf and Inf as in mcr, with a warning
+  (mcr gives none). Data with a Deming covariance of 0 are an error (mcr: NaN), and so are 2 or fewer pairs, constant
+  x or y, infinite values, a negative value for Passing-Bablok and a value that is not positive for weighted Deming
+  (mcr's restrictions, with rStats.js's messages). The 1e-12 tie rule of Passing-Bablok is applied to the data
+  scaled by a power of 2 (the same ties; mcr's rule overflows near the largest doubles). Weighted Deming stops as mcr
+  (an absolute threshold, `iterMax`, the warning "no konvergence after ... iterations" with mcr's spelling), so it
+  is not exactly invariant to the units of the data.
 
 ### Data handling
 

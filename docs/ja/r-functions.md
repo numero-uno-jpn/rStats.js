@@ -167,13 +167,16 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `ansari.test()` | `ansariTest` | 2 標本の尺度の違いについての Ansari-Bradley 検定 |
 | `afex::aov_ez()` | `aovEz` | long のデータからの反復測定・被験者間・混合計画の分散分析 |
 | `aov()` | `aov` | 分散分析 |
+| `pROC::auc()` | `auc` | ROC 曲線の下の面積、または 2 つの特異度 (感度) の間の部分面積 |
 | `bartlett.test()` | `bartlettTest` | 複数の正規標本の分散が等しいことについての Bartlett 検定 |
 | `binom.test()` | `binomTest` | ベルヌーイ試行の成功確率についての単純帰無仮説の正確検定 |
 | `DescTools::BinomCI()` | `binomCI` | 二項比率 x/n の信頼区間 |
 | `DescTools::BinomDiffCI()` | `binomDiffCI` | 独立な 2 つの比率 x1/n1 と x2/n2 の差 p1 - p2 の信頼区間 |
 | `DescTools::BinomRatioCI()` | `binomRatioCI` | 独立な 2 つの比率 x1/n1 と x2/n2 の比 p1/p2 の信頼区間 |
+| `BlandAltmanLeh::bland.altman.stats()` | `blandAltman` | 2 つの測定法の Bland-Altman 分析: 差の平均、一致限界とそれらの信頼区間 |
 | `lawstat::brunner.munzel.test()` | `brunnerMunzelTest` | 2 標本の相対効果 P(X < Y) + P(X = Y)/2 が 1/2 であることについての Brunner-Munzel 検定 (等分散も分布の形が同じことも仮定しない) |
 | `chisq.test()` | `chisqTest` | Pearson のカイ二乗検定 |
+| `pROC::ci.auc()` | `ciAuc` | ROC 曲線の下の面積の信頼区間 (DeLong の方法またはブートストラップ) |
 | `DescTools::CochranQTest()` | `cochranQTest` | 反復のない完全ブロック計画での 2 値応答に対する Cochran の Q 検定 |
 | `lmtest::coefci()` | `coefci` | 与えた共分散行列による `lm` または `glm` の当てはめの係数の信頼区間 |
 | `lmtest::coeftest()` | `coeftest` | 与えた共分散行列による `lm` または `glm` の当てはめの係数の検定 |
@@ -182,12 +185,14 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `confint()` | `confint` | `lm` で当てはめた線形モデルの係数の信頼区間 |
 | `confint()` | `glmConfint` | `glm` で当てはめた一般化線形モデルの係数のプロファイル尤度信頼区間 |
 | `cooks.distance()` | `glmCooksDistance` | `glm` の当てはめの Cook の距離 (事前重みが 0 でない行について) |
+| `pROC::coords()` | `coords` | ROC 曲線の座標: すべての点、最良の閾値、または与えた閾値での感度、特異度、計数、予測値、尤度比と最良の閾値の基準 |
 | `cor.test()` | `corTest` | 対応のある標本間の相関の検定 |
 | `survival::coxph()` | `coxph` | Cox 比例ハザード回帰 |
 | `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises の正規性検定 |
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | 対ごとの Mann-Whitney 統計量による Dwass-Steel-Critchlow-Fligner の全対比較検定 |
 | `dunn.test::dunn.test()` | `dunnTest` | 平均順位のすべての対についての Dunn の検定 |
 | `PMCMRplus::dunnettTest()` | `dunnettTest` | プールした分散による、対照群に対する平均の Dunnett の多対一検定 |
+| `epiR::epi.tests()` | `diagnosticTests` | 2 値の検査の 2 × 2 表からの感度、特異度、予測値、尤度比、正診率、診断オッズ比、真の有病率と見かけの有病率 (それぞれ信頼区間つき) |
 | `effectsize::epsilon_squared()` | `epsilonSquared` | 分散分析表の各項のイプシロン二乗 (反復測定計画にも対応) |
 | `pwr::ES.h()` | `esH` | 2 つの比率の効果量 h |
 | `pwr::ES.w1()` | `esW1` | 適合度検定の効果量 w `sqrt(sum((p1 - p0)^2 / p0))` |
@@ -206,6 +211,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `hatvalues()` | `glmHatvalues` | `glm` の当てはめの、最後の重み付き最小二乗ステップのハット行列の対角成分 (事前重みが 0 でない行について) |
 | `effectsize::hedges_g()` | `hedgesG` | Hedges の g |
 | `irr::icc()` | `icc` | 級内相関係数と、その F 検定および信頼区間 |
+| `psych::ICC()` | `ICC` | Shrout と Fleiss の 6 種類の級内相関係数と、その F 検定および信頼区間 |
 | `DescTools::JonckheereTerpstraTest()` | `jonckheereTest` | 順序のある対立仮説に対する、分布が等しいことについての Jonckheere-Terpstra 検定 |
 | `irr::kappa2()` | `kappa2` | 2 人の評定者に対する Cohen の κ (重みなしまたは重みつき) と、κ = 0 の z 検定 |
 | `irr::kappam.fleiss()` | `kappamFleiss` | 複数の評定者に対する Fleiss の κ と、Fleiss の κ についての κ = 0 の z 検定 |
@@ -221,6 +227,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `PMCMRplus::manyOneUTest()` | `manyOneUTest` | Steel の多対一順位検定の正規近似: 各群と対照群の Mann-Whitney 統計量を、対ごとに順位を付け、同順位を補正した分散で標準化したもの |
 | `mauchly.test()` | `mauchlyTest` | `M` が張り `X` に直交する対比上での、各被験者の測定値の球面性についての Mauchly 検定 |
 | `mcnemar.test()` | `mcnemarTest` | 正方の計数表の行と列の対称性についての McNemar のカイ二乗検定 |
+| `mcr::mcreg()` | `mcreg` | 測定法の比較の回帰 (Deming、重みつき Deming、Passing-Bablok) と、係数の信頼区間 |
 | `model.matrix()` | `modelMatrix` | データフレームに対する式のモデル行列 (R の `terms()` の属性つき) |
 | `mood.test()` | `moodTest` | 尺度についての Mood の 2 標本検定 |
 | `epitools::oddsratio()` | `oddsRatio` | 2 x 2 表のオッズ比とその信頼区間、独立性の 3 つの p 値 |
@@ -255,6 +262,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | 標本サイズが異なる 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズの一方、効果量、有意水準のいずれか |
 | `quade.test()` | `quadeTest` | 反復のない完全ブロック計画に対する Quade 検定 |
 | `residuals()` | `glmResiduals` | `glm` で当てはめた一般化線形モデルの残差 (1 行に 1 つ) |
+| `pROC::roc.test()` | `rocTest` | 2 つの ROC 曲線の下の面積の差の検定 (DeLong の方法またはブートストラップ) |
+| `pROC::roc()` | `roc` | 2 値の応答に対する数値の予測変数の ROC 曲線 |
 | `rstandard()` | `glmRstandard` | `glm` の当てはめの標準化 Pearson 残差 (既定) または標準化逸脱度残差 (事前重みが 0 でない行について) |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia の正規性検定 |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk の正規性検定 |
@@ -263,8 +272,10 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `summary()` | `glmSummary` | `glm` で当てはめた一般化線形モデルの要約: 分散パラメータ、係数の表、推定値の共分散 |
 | `survival::survdiff()` | `survdiff` | 生存曲線の差の検定: Harrington と Fleming の G-rho 族 (`rho = 0` でログランク検定) |
 | `survival::survfit()` | `survfit` | 生存関数の Kaplan-Meier 推定 (Greenwood の標準誤差と各点での信頼区間つき) |
+| `TOSTER::t_TOST()` | `tTOST` | 1 標本・2 標本・対応のある標本の平均についての同等性検定 (TOST) と最小効果検定、標準化平均差とその区間つき |
 | `t.test()` | `tTest` | Student の t 検定 |
 | `equivalence::tost()` | `tost` | 2 つの平均の同等性についての 2 つの片側 t 検定 (TOST) |
+| `TOSTER::tsum_TOST()` | `tsumTOST` | 要約統計量 (平均・標準偏差・標本の大きさ) からの `tTOST` |
 | `TukeyHSD()` | `TukeyHSD` | 一元配置分散分析の群平均の間の Tukey の HSD (honest significant differences) |
 | `PMCMRplus::tukeyTest()` | `tukeyTest` | 平均の Tukey の全対比較検定 |
 | `var.test()` | `varTest` | 2 つの正規標本の分散が与えた比であることの F 検定 |

@@ -33,6 +33,42 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   case weights no longer throw. Checked against survival 3.8-12 (R 4.6.2). The score residuals shift each risk set by
   its own largest linear predictor (finite where the linear predictors span more than exp's range), and the robust
   variance and `rscore` do not depend on the scale of the weights.
+- **ROC curves** (pROC 1.19.1): `roc(response, predictor, { levels, direction, naRm })`, `roc(formula, data)` and
+  `roc({ controls, cases })`, pROC's `roc()`, with pROC's thresholds, stored order and "auto" direction (the median
+  rule), and the AUC from the counts; `auc(curve, { partialAuc, focus, correct })`, the partial AUC with McClish's
+  correction; `ciAuc(curve, { confLevel, method, bootN, bootStratified })`, `ci.auc()`, DeLong's interval and variance
+  or the bootstrap on R's random stream; `rocTest(roc1, roc2, options)` and `rocTest(response, predictor1,
+  predictor2, options)`, `roc.test()`, DeLong's paired and unpaired tests and the bootstrap test, pairing curves of the
+  same response as pROC; `coords(curve, x, { bestMethod, bestWeights })`, `coords(ret = "all")`, as column arrays.
+  The coordinates are computed from the integer counts and the "best" thresholds compared exactly, where pROC loses
+  digits and tied thresholds; one case or one control for DeLong's methods, infinite predictor values and limits
+  outside [0, 1] are errors (docs/differences-from-r.md).
+- **Diagnostic 2 × 2 measures**: `diagnosticTests(table, { method, confLevel, prevalence })`, epiR's `epi.tests()`:
+  sensitivity, specificity, predictive values, likelihood ratios (log intervals), accuracy, the diagnostic odds ratio
+  (Woolf) and the true and apparent prevalence, with exact (Clopper-Pearson, computed directly), Wilson or Jeffreys
+  intervals, and the predictive values at a given prevalence.
+- **Bland-Altman analysis**: `blandAltman(x, y, { two, mode, confLevel, ciMethod })`, BlandAltmanLeh's
+  `bland.altman.stats()`: the mean difference, the limits of agreement and their intervals, with the package's
+  `sqrt(3 s²/n)` interval of the limits (default) or the exact one from the noncentral t (`ciMethod: "exact"`, Carkeet
+  2015). Fewer than 2 complete pairs is an error; data of any scale (docs/differences-from-r.md).
+- **Method comparison regression**: `mcreg(x, y, { methodReg, methodCi, methodBootstrapCi, errorRatio, confLevel,
+  slopeMeasure, nsamples, nnested, rngSeed, iterMax, threshold, naRm })`, mcr's `mcreg()`: Deming, weighted Deming
+  (constant CV) and Passing-Bablok regression with analytical, jackknife and bootstrap intervals (quantile, Student,
+  BCa, bootstrap-t, nested bootstrap) drawn from R's random stream (`rngSeed` = mcr's `rng.seed`), and Passing and
+  Bablok's CUSUM statistic of linearity. The default interval is analytical (jackknife for weighted Deming) instead of
+  mcr's random bootstrap; Deming's slope without mcr's cancellation for small error ratios (docs/differences-from-r.md).
+- **Intraclass correlations of Shrout and Fleiss**: `ICC(x, { alpha | confLevel, lmer })`, psych's `ICC()`, returning
+  the six forms (ICC1, ICC2, ICC3 and their averages) with their F tests and intervals and the mean squares, next to
+  the irr-based `icc`. Both paths are exact: the ANOVA mean squares (`lmer: false`) and, by default as psych, the REML
+  estimates of the variance components in closed form (lme4's optimiser leaves psych's values 1e-5 to 1e-4 off).
+  Complete data only; ICC2k has psych's interval (Spearman-Brown of ICC2's), not irr's.
+- **Equivalence and minimal-effect t tests**: `tTOST(x, y?, options)`, TOSTER's `t_TOST()`, for one, two (Welch or
+  pooled) and paired samples, with bounds in raw or SMD units, the three t tests, the raw difference and the
+  standardised mean difference (Hedges' g or Cohen's d, d_av, d_z, d_rm, Glass's delta) with `nct` (exact roots),
+  `goulet`, `t` or `z` intervals; `tsumTOST(stats, options)`, TOSTER's `tsum_TOST()`, from summary statistics. `tost`
+  is unchanged. Unlike TOSTER, `mu` is subtracted everywhere (bound tests, raw interval and SMD of the difference
+  minus mu), the one-sample `t` and `z` limits are 1 − 2α limits, and TOSTER's notes are warnings
+  (docs/differences-from-r.md).
 
 ### Fixed
 
