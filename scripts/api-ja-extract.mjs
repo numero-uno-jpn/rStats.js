@@ -20,20 +20,20 @@
 // - Not collected: inherited members (TypeDoc's inheritedFrom; their comment is the parent's, so the translation of
 //   the parent is reused when the skeleton is filled in), and the @category block tag (a category name, not prose).
 //
+// The key, text and hash logic is in api-ja-keys.mjs (shared with typedoc-ja-plugin.mjs).
+//
 // Re-running is idempotent: an existing entry with the same hash is kept as it is; keys that no longer exist are
 // removed. Duplicate keys stop the script with the key in the message.
 
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { PLACEHOLDER, hashOf, placeholderize, slugOf, walkNode } from "./api-ja-keys.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(root, "docs", "ja", "api");
-const FENCED_CODE = /```[\s\S]*?```/g;
-const PLACEHOLDER = /⟦code\d+⟧/g;
 
 const tmp = mkdtempSync(join(tmpdir(), "rstats-ja-api-"));
 try {
@@ -70,7 +70,8 @@ function main(tmpDir) {
   for (const g of groups) {
     const ctx = {
       symbols,
-      add(key, text) {
+      add(key, text, _loc, inherited) {
+        if (inherited) return; // filled from the parent by the plugin
         if (collected.has(key)) throw new Error(`duplicate key: ${key}`);
         collected.set(key, { group: g.slug, text });
       },
@@ -114,21 +115,6 @@ function runTypeDoc(tmpDir) {
   return JSON.parse(readFileSync(json, "utf8"));
 }
 
-function slugOf(title) {
-  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-}
-
-function hashOf(text) {
-  return createHash("sha256").update(text, "utf8").digest("hex").slice(0, 12);
-}
-
-// Replaces each fenced code block with a numbered placeholder.
-function placeholderize(text) {
-  let n = 0;
-  const en = text.replace(FENCED_CODE, () => `⟦code${++n}⟧`);
-  return { en, placeholders: n };
-}
-
 // Keeps ja and the stale flag of entries whose hash did not change; takes the new en when it did.
 function mergeEntries(previous, next) {
   const out = {};
@@ -156,63 +142,4 @@ function countOf(entries) {
     c.placeholders += (e.en.match(PLACEHOLDER) ?? []).length;
   }
   return c;
-}
-
-// A reflection and its descendants. The comment of the reflection is keyed by its own path.
-function walkNode(node, path, ctx) {
-  if (node.inheritedFrom) return;
-  emitComment(ctx, path, "summary", node.comment);
-  walkMembers(node, path, ctx);
-}
-
-function walkMembers(node, path, ctx) {
-  for (const child of node.children ?? []) walkNode(child, `${path}.${child.name}`, ctx);
-  const sigs = node.signatures ?? [];
-  sigs.forEach((sig, i) => walkSignature(sig, sigs.length > 1 ? `${path}(${i})` : path, ctx));
-  for (const sig of [node.getSignature, node.setSignature]) if (sig) walkSignature(sig, path, ctx);
-  if (node.type?.type === "reflection" && node.type.declaration) walkNode(node.type.declaration, path, ctx);
-}
-
-function walkSignature(sig, path, ctx) {
-  emitComment(ctx, path, "summary", sig.comment);
-  for (const tp of sig.typeParameters ?? []) emitComment(ctx, path, `@typeParam ${tp.name}`, tp.comment);
-  for (const p of sig.parameters ?? []) {
-    emitComment(ctx, path, `@param ${p.name}`, p.comment);
-    walkMembers(p, `${path}.${p.name}`, ctx);
-  }
-  if (sig.type?.type === "reflection" && sig.type.declaration) walkNode(sig.type.declaration, path, ctx);
-}
-
-function emitComment(ctx, base, summaryPart, comment) {
-  if (!comment) return;
-  const parts = [[summaryPart, render(comment.summary, ctx.symbols)]];
-  const tags = (comment.blockTags ?? []).filter((t) => t.tag !== "@category");
-  const count = new Map();
-  for (const t of tags) count.set(t.tag, (count.get(t.tag) ?? 0) + 1);
-  const seen = new Map();
-  for (const t of tags) {
-    let part = t.tag;
-    if (count.get(t.tag) > 1) {
-      const n = seen.get(t.tag) ?? 0;
-      seen.set(t.tag, n + 1);
-      part = `${t.tag}[${n}]`;
-    }
-    parts.push([part, render(t.content, ctx.symbols)]);
-  }
-  for (const [part, text] of parts) ctx.add(`${base}#${part}`, text);
-}
-
-// Joins the display parts back into TSDoc text. {@link X} and {@link X | text} are rebuilt from the target's name.
-function render(parts, symbols) {
-  return (parts ?? [])
-    .map((p) => {
-      if (p.kind !== "inline-tag") return p.text;
-      const target = p.target !== undefined ? symbols[p.target]?.qualifiedName : undefined;
-      if (p.tag === "@link" && target !== undefined) {
-        return p.text === target ? `{@link ${target}}` : `{@link ${target} | ${p.text}}`;
-      }
-      return p.text ? `{${p.tag} ${p.text}}` : `{${p.tag}}`;
-    })
-    .join("")
-    .trim();
 }
