@@ -215,4 +215,32 @@ describe("ICC (psych)", () => {
     const big = ICC(c.map((r) => r.map((v) => v * 2 ** 1021)), { lmer: false });
     rowsOf(big).flat().forEach((v, i) => expect(relErr(v, rowsOf(ICC(c, { lmer: false })).flat()[i]!)).toBeLessThanOrEqual(1e-14));
   });
+  it("each mean square in its own scale: offsets up to the double range leave MSB, MSE and the ICC3 forms exact", () => {
+    // the sums of squares were brought to the largest of their scales, so beyond a rater offset of about 2^510 times
+    // the spread MSB and MSE underflowed to 0 (ICC3, F3 and their bounds NaN); now every quantity that a column shift
+    // does not change equals that of the rater at 0, to the bit
+    const sf = [[9, 2, 5, 8], [6, 1, 3, 2], [8, 4, 6, 8], [7, 1, 2, 6], [10, 5, 6, 9], [6, 2, 4, 7]];
+    const fixed = (r: ICCResult): number[] => [r.MSB, r.MSE, ...rowsOf(r)[2]!, ...rowsOf(r)[5]!];
+    for (const lmer of [true, false]) {
+      const at0 = ICC(sf.map((r) => [r[0]!, r[1]!, r[2]!, 0]), { lmer });
+      for (const C of [2 ** 520, 2 ** 540, 2 ** 600, 2 ** 1000, -(2 ** 1000), 1.7e308]) {
+        const r = ICC(sf.map((row) => [row[0]!, row[1]!, row[2]!, C]), { lmer });
+        expect(fixed(r), `lmer ${lmer} C ${C}`).toEqual(fixed(at0));
+      }
+      // small ratings beside a moderate rater offset: MSB and MSE are those of the rater at 0 times 2^-600 (exact)
+      const tiny = (C: number): ICCResult => ICC(sf.map((row) => [row[0]! * 2 ** -300, row[1]! * 2 ** -300, row[2]! * 2 ** -300, C]), { lmer });
+      for (const C of [2 ** 300, 1]) {
+        const r = tiny(C);
+        expect(r.MSB).toBe(at0.MSB * 2 ** -600);
+        expect(r.MSE).toBe(at0.MSE * 2 ** -600);
+        expect(rowsOf(r)[2]).toEqual(rowsOf(at0)[2]);
+      }
+    }
+    // a subject offset: MSJ and MSE are those of the subject at 0
+    const zero = ICC([[0, 0, 0, 0], ...sf], { lmer: false });
+    for (const C of [2 ** 540, 2 ** 1000, 1.7e308]) {
+      const out = ICC([[C, C, C, C], ...sf], { lmer: false });
+      expect([out.MSJ, out.MSE], `subject ${C}`).toEqual([zero.MSJ, zero.MSE]);
+    }
+  });
 });

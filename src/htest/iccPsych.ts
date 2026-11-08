@@ -132,6 +132,45 @@ function meanOfDD(v: readonly DD[]): DD {
   return ddDivNum(s, v.length);
 }
 
+/** A nonnegative value v 2^e, v a double-double of moderate size: a sum or mean square in units of its own */
+interface Scaled {
+  v: DD;
+  e: number;
+}
+
+const sDiv = (s: Scaled, d: number): Scaled => ({ v: ddDivNum(s.v, d), e: s.e });
+
+/**
+ * The values brought to the largest scale among them (zeros do not count), as doubles `at` in units 2^E: the smaller
+ * ones lose only the digits (or the whole value) that are negligible beside the largest
+ */
+function inCommon(...s: Scaled[]): { at: number; E: number }[] {
+  const nz = s.filter((t) => t.v[0] !== 0);
+  const E = nz.length === 0 ? 0 : Math.max(...nz.map((t) => t.e));
+  return s.map((t) => ({ at: ldexpWide(t.v[0], t.e - E), E }));
+}
+
+/** a + b, at the larger of their scales (in double-double) */
+function sAdd(a: Scaled, b: Scaled): Scaled {
+  if (b.v[0] === 0) return a;
+  if (a.v[0] === 0) return b;
+  const E = Math.max(a.e, b.e);
+  const to = (t: Scaled): DD => [ldexpWide(t.v[0], t.e - E), ldexpWide(t.v[1], t.e - E)];
+  return { v: ddAdd(to(a), to(b)), e: E };
+}
+
+/** a/b (Infinity for b = 0 < a, NaN for 0/0), formed from the ratio of the parts and one power of 2 */
+const sRatio = (a: Scaled, b: Scaled): number => ldexpWide(a.v[0] / b.v[0], a.e - b.e);
+
+const sLess = (a: Scaled, b: Scaled): boolean => {
+  const [x, y] = inCommon(a, b);
+  return x!.at < y!.at;
+};
+const sLessEq = (a: Scaled, b: Scaled): boolean => {
+  const [x, y] = inCommon(a, b);
+  return x!.at <= y!.at;
+};
+
 /** Sum of squared deviations of the means m from g, times w, in double-double */
 function ssOfMeans(m: readonly DD[], g: DD, w: number): DD {
   let s: DD = [0, 0];
@@ -230,9 +269,9 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
   const [kB, kJ, kE] = [expOf(byCol), expOf(byRow), expOf(both)];
   const [yB, yJ, yE] = [unit(byCol, kB), unit(byRow, kJ), unit(both, kE)];
   const colsOf = (m: DD[][]): DD[][] => Array.from({ length: k }, (_, j) => m.map((r) => r[j]!));
-  let ssB = ssOfMeans(yB.map(meanOfDD), meanOfDD(yB.flat()), k);
+  const ssB = ssOfMeans(yB.map(meanOfDD), meanOfDD(yB.flat()), k);
   // (identical columns: SSJ is exactly 0, which the double-double means need not give)
-  let ssJ: DD = cols.every((c) => sameArray(c, cols[0]!)) ? [0, 0] : ssOfMeans(colsOf(yJ).map(meanOfDD), meanOfDD(yJ.flat()), n);
+  const ssJ: DD = cols.every((c) => sameArray(c, cols[0]!)) ? [0, 0] : ssOfMeans(colsOf(yJ).map(meanOfDD), meanOfDD(yJ.flat()), n);
   let ssE: DD = [0, 0];
   if (!isAdditive(rows)) {
     // the residuals x - row mean - column mean + grand mean, in double-double (no cancellation of SST - SSB - SSJ)
@@ -246,43 +285,48 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
       }),
     );
   }
-  // the mean squares in the units of the largest of the three scales (kd)
-  const kd = Math.max(kB, kJ, kE);
-  const toUnits = (ss: DD, e: number): DD => [ldexpWide(ss[0], 2 * (e - kd)), ldexpWide(ss[1], 2 * (e - kd))];
-  ssB = toUnits(ssB, kB);
-  ssJ = toUnits(ssJ, kJ);
-  ssE = toUnits(ssE, kE);
+  // Each sum of squares stays in its own units, 2^(2kB), 2^(2kJ), 2^(2kE) (times 4 where the ratings were halved): a
+  // quantity brings only the mean squares it uses to the larger of their scales, so that it underflows only where its
+  // true value does (a rater offset far beyond the spread makes SSJ huge, but MSB, MSE, ICC3 and F3 do not change)
+  const h = half ? 1 : 0;
+  const scaled = (ss: DD, kx: number): Scaled => ({ v: ss, e: 2 * (kx + h) });
+  const SB = scaled(ssB, kB);
+  const SJ = scaled(ssJ, kJ);
+  const SE = scaled(ssE, kE);
   const dfB = n - 1;
   const dfJ = k - 1;
   const dfE = (n - 1) * (k - 1);
-  let MSB = ddDivNum(ssB, dfB)[0];
-  let MSJ = ddDivNum(ssJ, dfJ)[0];
-  let MSE = ddDivNum(ssE, dfE)[0];
-  let MSW = ddDivNum(ddAdd(ssJ, ssE), dfJ + dfE)[0];
+  let MSB = sDiv(SB, dfB);
+  let MSJ = sDiv(SJ, dfJ);
+  let MSE = sDiv(SE, dfE);
+  let MSW = sDiv(sAdd(SJ, SE), dfJ + dfE);
   const warnings: string[] = [];
   if (lmer) {
     // REML: the isotonic regression of (MSB, MSJ) >= MSE with weights df (see the header)
     const parts = {
-      B: { ss: ssB, df: dfB, ms: MSB, pooled: false },
-      J: { ss: ssJ, df: dfJ, ms: MSJ, pooled: false },
+      B: { ss: SB, df: dfB, ms: MSB, pooled: false },
+      J: { ss: SJ, df: dfJ, ms: MSJ, pooled: false },
     };
-    let pooledSS = ssE;
+    let pooledSS = SE;
     let pooledDf = dfE;
-    for (const t of MSB <= MSJ ? (["B", "J"] as const) : (["J", "B"] as const)) {
+    for (const t of sLessEq(MSB, MSJ) ? (["B", "J"] as const) : (["J", "B"] as const)) {
       const part = parts[t];
-      if (part.ms < ddDivNum(pooledSS, pooledDf)[0]) {
-        pooledSS = ddAdd(pooledSS, part.ss);
+      if (sLess(part.ms, sDiv(pooledSS, pooledDf))) {
+        pooledSS = sAdd(pooledSS, part.ss);
         pooledDf += part.df;
         part.pooled = true;
       }
     }
-    const lambdaE = ddDivNum(pooledSS, pooledDf)[0];
+    const lambdaE = sDiv(pooledSS, pooledDf);
     if (parts.B.pooled) MSB = lambdaE;
     if (parts.J.pooled) MSJ = lambdaE;
     MSE = lambdaE;
     // sigma2_e + sigma2_rater = MSE + (MSJ - MSE)/n: the ANOVA MSW unless the subjects' mean square was pooled
     // (pooling the raters' gives (SSJ + SSE)/(dfJ + dfE) = MSW itself)
-    if (parts.B.pooled) MSW = MSE + (MSJ - MSE) / n;
+    if (parts.B.pooled) {
+      const [e, j] = inCommon(MSE, MSJ) as [{ at: number; E: number }, { at: number; E: number }];
+      MSW = { v: [e.at + (j.at - e.at) / n, 0], e: e.E };
+    }
   } else if (ssE[0] === 0) warnings.push("essentially perfect fit for ‘1’: summary may be unreliable");
   // the upper alpha/2 quantile of F (rule 10: from the upper tail itself below 1e-8, as 1 - alpha/2 loses its digits)
   const q = (d1: number, d2: number): number =>
@@ -292,18 +336,23 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
   const single = (f: number): number => (f === Infinity ? 1 : (f - 1) / (f + k - 1));
   const average = (f: number): number => 1 - 1 / f;
   const dfW = n * (k - 1);
-  const F1 = MSB / MSW;
-  const F3 = MSB / MSE;
+  const F1 = sRatio(MSB, MSW);
+  const F3 = sRatio(MSB, MSE);
   const [F1L, F1U] = [F1 / q(dfB, dfW), F1 * q(dfW, dfB)];
   const [F3L, F3U] = [F3 / q(dfB, dfE), F3 * q(dfE, dfB)];
-  const icc1 = (MSB - MSW) / (MSB + (k - 1) * MSW);
-  const icc2 = (MSB - MSE) / (MSB + (k - 1) * MSE + (k * (MSJ - MSE)) / n);
-  const icc3 = (MSB - MSE) / (MSB + (k - 1) * MSE);
+  // ICC1 and ICC1k need MSB and MSW, ICC3 and ICC3k MSB and MSE, ICC2, ICC2k and ICC2's interval all three: each in
+  // the units of the largest of those it uses
+  const [b1, w1] = inCommon(MSB, MSW).map((t) => t.at) as [number, number];
+  const [b3, e3] = inCommon(MSB, MSE).map((t) => t.at) as [number, number];
+  const [b2, j2, e2] = inCommon(MSB, MSJ, MSE).map((t) => t.at) as [number, number, number];
+  const icc1 = (b1 - w1) / (b1 + (k - 1) * w1);
+  const icc2 = (b2 - e2) / (b2 + (k - 1) * e2 + (k * (j2 - e2)) / n);
+  const icc3 = (b3 - e3) / (b3 + (k - 1) * e3);
   // ICC2's interval (Shrout and Fleiss 1979, eq. for case 2): Satterthwaite's v of the combination k ICC2 MSJ + (n(1 +
   // (k - 1) ICC2) - k ICC2) MSE, written with MSE multiplied through (Fj = MSJ/MSE in the paper), so that MSE = 0 gives
   // its limit k - 1 (and MSJ = MSE = 0, where any v gives the bounds 1, k - 1 too)
-  const a = k * icc2 * MSJ;
-  const c = (n * (1 + (k - 1) * icc2) - k * icc2) * MSE;
+  const a = k * icc2 * j2;
+  const c = (n * (1 + (k - 1) * icc2) - k * icc2) * e2;
   const vDen = (n - 1) * a * a + c * c;
   const v = vDen === 0 ? k - 1 : ((k - 1) * (n - 1) * (a + c) ** 2) / vDen;
   const G1 = q(dfB, v);
@@ -311,13 +360,13 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
   // the bounds with numerator and denominator divided by G1 (and by G2 where it is above 1), so that a quantile that
   // overflows (a tiny v, where ICC2 < 0 makes a and c nearly cancel) gives the limit G -> Infinity, not -Inf/Inf.
   // Above 1/2 a bound is formed as 1 minus its complement, (n MSE + kJE)/(kJE + n MSB/G), which keeps it <= 1
-  const kJE = k * MSJ + (k * n - k - n) * MSE;
-  const bound = (b: number, den: number): number => (b > 0.5 ? 1 - (n * MSE + kJE) / den : b);
-  const l2 = bound((n * (MSB / G1 - MSE)) / (kJE + (n * MSB) / G1), kJE + (n * MSB) / G1);
+  const kJE = k * j2 + (k * n - k - n) * e2;
+  const bound = (b: number, den: number): number => (b > 0.5 ? 1 - (n * e2 + kJE) / den : b);
+  const l2 = bound((n * (b2 / G1 - e2)) / (kJE + (n * b2) / G1), kJE + (n * b2) / G1);
   const u2 =
     G2 > 1
-      ? bound((n * (MSB - MSE / G2)) / (kJE / G2 + n * MSB), kJE + n * G2 * MSB)
-      : bound((n * (G2 * MSB - MSE)) / (kJE + n * G2 * MSB), kJE + n * G2 * MSB);
+      ? bound((n * (b2 - e2 / G2)) / (kJE / G2 + n * b2), kJE + n * G2 * b2)
+      : bound((n * (G2 * b2 - e2)) / (kJE + n * G2 * b2), kJE + n * G2 * b2);
   const sb = (r: number): number => (r * k) / (1 + r * (k - 1));
   const p1 = upperP(F1, dfB, dfW);
   const p3 = upperP(F3, dfB, dfE);
@@ -336,11 +385,12 @@ export function ICC(x: readonly (readonly number[])[], options: ICCOptions = {})
     row("ICC1", icc1, F1, dfW, p1, single(F1L), single(F1U)),
     row("ICC2", icc2, F3, dfE, p3, l2, u2),
     row("ICC3", icc3, F3, dfE, p3, single(F3L), single(F3U)),
-    row("ICC1k", (MSB - MSW) / MSB, F1, dfW, p1, average(F1L), average(F1U)),
-    row("ICC2k", (MSB - MSE) / (MSB + (MSJ - MSE) / n), F3, dfE, p3, sb(l2), sb(u2)),
-    row("ICC3k", (MSB - MSE) / MSB, F3, dfE, p3, average(F3L), average(F3U)),
+    row("ICC1k", (b1 - w1) / b1, F1, dfW, p1, average(F1L), average(F1U)),
+    row("ICC2k", (b2 - e2) / (b2 + (j2 - e2) / n), F3, dfE, p3, sb(l2), sb(u2)),
+    row("ICC3k", (b3 - e3) / b3, F3, dfE, p3, average(F3L), average(F3U)),
   ];
-  const back = (ms: number): number => ldexpWide(ms, 2 * (kd + (half ? 1 : 0)));
+  // each mean square scaled back on its own
+  const back = (ms: Scaled): number => ldexpWide(ms.v[0], ms.e);
   return reported("ICC", {
     results,
     MSB: back(MSB),
