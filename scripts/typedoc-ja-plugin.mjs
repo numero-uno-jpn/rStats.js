@@ -21,6 +21,11 @@
 // code spans, paragraph breaks and the start of Markdown blocks (list items, headings, tables, quotes) are untouched.
 //
 // The category titles are renamed last (CATEGORY_NAMES); their order is the one of typedoc.json's categoryOrder.
+//
+// Finally the rendered HTML gets a deliberately narrow, mechanical post-processing (Renderer "endPage", see
+// HEADING_TERMS and TAG_TERMS): TypeScript terms that TypeDoc's ja locale translates unnaturally are put back to the
+// English words of TypeDoc's English output. Only the text of <h2>-<h4> and the <code class="tsd-tag"> flags change;
+// attribute values (id, href), <h1>, the navigation, the index lists and the body text are left alone.
 
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -44,12 +49,51 @@ const CATEGORY_NAMES = {
   "Special functions": "特殊関数",
 };
 
+// Scope: text nodes inside <h2>, <h3> and <h4> elements only (never attributes such as id="プロパティ", so the anchors
+// keep working), replaced as a whole text node (a node like "階層 (" before a link counts as "階層"). Extend the
+// table to cover more headings. The values are the exact strings of TypeDoc's English output.
+const HEADING_TERMS = {
+  "プロパティ": "Properties",
+  "パラメータ": "Parameters",
+  "型パラメーター": "Type Parameters",
+  "型宣言": "Type Declaration",
+  "階層": "Hierarchy",
+  "theme_hierarchy_view_summary": "View Summary", // a key missing from TypeDoc's ja locale, link text in the 階層 h4
+};
+// Scope: the whole content of every <code class="tsd-tag">...</code> flag, anywhere in the page.
+const TAG_TERMS = {
+  "オプション": "Optional",
+};
+
 export function load(app) {
   const dir = process.env.RSTATS_JA_DIR;
   if (!dir) throw new Error("typedoc-ja-plugin: set RSTATS_JA_DIR to the directory with the translations (docs/ja/api)");
   const translations = readTranslations(dir);
   // -400: after the link resolver (-300) and the category plugin (-200).
   app.converter.on("resolveEnd", (context) => translate(app, context.project, translations), -400);
+  app.renderer.on("endPage", (page) => {
+    if (typeof page.contents === "string") page.contents = restoreEnglishTerms(page.contents);
+  });
+}
+
+function restoreEnglishTerms(html) {
+  const inHeading = (inner) =>
+    inner
+      .split(/(<[^>]*>)/)
+      .map((node) => {
+        if (node.startsWith("<")) return node;
+        // Keep the whitespace and parentheses around the term (e.g. "階層 (" in front of the "View Summary" link).
+        const [, lead, core, tail] = node.match(/^(\s*)([\s\S]*?)([\s()]*)$/);
+        // NFC for the lookup: TypeDoc's ja locale spells プロパティ with a decomposed プ (フ + U+309A).
+        const key = core.normalize("NFC");
+        return Object.hasOwn(HEADING_TERMS, key) ? lead + HEADING_TERMS[key] + tail : node;
+      })
+      .join("");
+  return html
+    .replace(/(<h[234]\b[^>]*>)([\s\S]*?)(<\/h[234]>)/g, (_, open, inner, close) => open + inHeading(inner) + close)
+    .replace(/(<code class="tsd-tag">)([^<]*)(<\/code>)/g, (m, open, text, close) =>
+      Object.hasOwn(TAG_TERMS, text) ? open + TAG_TERMS[text] + close : m,
+    );
 }
 
 function readTranslations(dir) {
