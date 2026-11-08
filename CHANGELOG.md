@@ -7,6 +7,18 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **Robust variance of `coxph`** (survival's `coxph(robust, cluster)`; Lin and Wei 1989): options `robust` (default
+  as R: on with a `cluster` or a case weight that is not an integer) and `cluster` (rows with a missing label are
+  dropped). The result has `usedRobust` always and, with the robust variance, `naiveVar`, `robustSe`, `rscore` and
+  `robscore`; `var` is then the robust variance and `z`, `p`, `lower`, `upper`, `wald` and `waldtest` use it, while
+  `se` stays the model-based standard error (R's `se(coef)`). Efron and Breslow ties, case weights and strata, R's
+  warning for a cluster with `robust: false`; a single cluster is an error (docs/differences-from-r.md). Non-integer
+  case weights no longer throw. Checked against survival 3.8-12 (R 4.6.2).
+
 ## 1.2.0 - 2026-11-07
 
 Contingency tables and proportions (item 1 of the roadmap): intervals for a proportion and for the risk difference,
