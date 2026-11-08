@@ -1515,9 +1515,9 @@
     "ja": "`b` がベクトルの場合はベクトルです。それ以外の場合は行の配列です。"
   },
   "qrSolve#summary": {
-    "hash": "9bc941990741",
-    "en": "Solves `a x = b` in the least-squares sense using a QR decomposition. Equivalent to R's `qr.solve()`.\n\nThrows if the rank is less than `min(nrow, ncol)`. When `b` is omitted, returns the inverse of `a` (square\nmatrices only). For a wide matrix, coefficients of unused columns are set to 0 (as in R).",
-    "ja": "QR 分解を使って、`a x = b` を最小二乗の意味で解きます。R の `qr.solve()` と同等です。\n\nランクが `min(nrow, ncol)` より小さい場合は例外を投げます。`b` を省略した場合は、`a` の逆行列を返します (正方行列の場合だけです)。横長の行列では、使われない列の係数は 0 になります (R と同じです)。"
+    "hash": "11ab04193e47",
+    "en": "Solves `a x = b` in the least-squares sense using a QR decomposition. Equivalent to R's `qr.solve()`.\n\nThrows if the rank is less than `min(nrow, ncol)`. When `b` is omitted, returns the inverse of `a` (square\nmatrices only). For a wide matrix, coefficients of unused columns are set to 0 (as in R).\n\nA LAPACK decomposition (`qr(a, { lapack: true })`) has no rank, so it throws instead if some `|R[k][k]|` is at most\n`tol * |R[0][0]|` (`tol` from `options`, default `1e-7`), which R's `qr.solve()` does not detect.",
+    "ja": "QR 分解を使って、`a x = b` を最小二乗の意味で解きます。R の `qr.solve()` と同等です。\n\nランクが `min(nrow, ncol)` より小さい場合は例外を投げます。`b` を省略した場合は、`a` の逆行列を返します (正方行列の場合だけです)。横長の行列では、使われない列の係数は 0 になります (R と同じです)。\n\nLAPACK による分解 (`qr(a, { lapack: true })`) にはランクがありません。そのため、ある `|R[k][k]|` が `tol * |R[0][0]|` 以下 (`tol` は `options` の値で、既定は `1e-7`) の場合は、代わりに例外を投げます。R の `qr.solve()` はこれを検出しません。"
   },
   "qrX#@example": {
     "hash": "f2167be5edf2",

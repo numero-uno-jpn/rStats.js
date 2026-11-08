@@ -245,14 +245,14 @@
     "ja": "{@link kappa2} と {@link kappamFleiss} の結果です。"
   },
   "KappaResult.pValue#summary": {
-    "hash": "5fd22b4cb106",
-    "en": "Two-sided p-value of the z test (absent for Fleiss' exact kappa).",
-    "ja": "z 検定の両側の p 値です (Fleiss の正確な κ の場合は含まれません)。"
+    "hash": "37f80e03178d",
+    "en": "Two-sided p-value of the z test (absent for Conger's exact kappa).",
+    "ja": "z 検定の両側の p 値です (Conger の正確な κ の場合は含まれません)。"
   },
   "KappaResult.statistic#summary": {
-    "hash": "2adc3cd77d67",
-    "en": "z statistic of the test of kappa = 0 (absent for Fleiss' exact kappa).",
-    "ja": "κ = 0 の検定の z 統計量です (Fleiss の正確な κ の場合は含まれません)。"
+    "hash": "02674ede5f9f",
+    "en": "z statistic of the test of kappa = 0 (absent for Conger's exact kappa).",
+    "ja": "κ = 0 の検定の z 統計量です (Conger の正確な κ の場合は含まれません)。"
   },
   "KappaResult.value#summary": {
     "hash": "828ec3d6e932",

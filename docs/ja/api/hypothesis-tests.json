@@ -750,9 +750,9 @@
     "ja": "`\"two.sided\"` (既定)、`\"increasing\"`、または `\"decreasing\"` (曖昧さのない省略形も受け付けます)。"
   },
   "JonckheereTestOptions.exact#summary": {
-    "hash": "15e8679f26b2",
-    "en": "The exact p-value (`\"DescTools\"` only). Default: exact when there are no ties and at most 100 observations. With\nties the normal approximation is used anyway, with a warning. The exact distribution is the convolution of the\nMann-Whitney distributions; where it would have more than 2^24 values or take more than 2^32 multiply-adds\n(three groups of 215, about 8 s), `exact: true` is a RangeError (R computes it however long it takes).",
-    "ja": "正確な p 値です (`\"DescTools\"` のみ)。既定: 同順位がなく、観測数が 100 以下のときに正確法。同順位がある場合は、いずれにせよ正規近似を用い、警告を出します。\n正確な分布は Mann-Whitney 分布の畳み込みです。\n値の数が 2^24 を超える場合、または 2^32 回を超える乗算と加算が必要な場合\n(3 群それぞれ 215 個、約 8 秒) は、`exact: true` は RangeError になります (R はどれだけ時間がかかっても計算します)。"
+    "hash": "503398e39e5d",
+    "en": "The exact p-value (`\"DescTools\"` only). Default: exact when there are no ties and at most 100 observations. With\nties the normal approximation is used anyway, with a warning. The exact distribution is the convolution of the\nMann-Whitney distributions; where it would have more than 2^24 values or take more than 2^32 multiply-adds\n(three equal groups of 216, about 8 s), `exact: true` is a RangeError (R computes it however long it takes).",
+    "ja": "正確な p 値です (`\"DescTools\"` のみ)。既定: 同順位がなく、観測数が 100 以下のときに正確法。同順位がある場合は、いずれにせよ正規近似を用い、警告を出します。\n正確な分布は Mann-Whitney 分布の畳み込みです。\n値の数が 2^24 を超える場合、または 2^32 回を超える乗算と加算が必要な場合\n(216 個ずつの等しい大きさの 3 群、約 8 秒) は、`exact: true` は RangeError になります (R はどれだけ時間がかかっても計算します)。"
   },
   "JonckheereTestOptions.levels#summary": {
     "hash": "399b400be1e3",
@@ -790,9 +790,9 @@
     "ja": "対立仮説 (曖昧さのない省略形も受け付けます)。`\"greater\"`: `x` の分布関数が `y` の分布関数より上にある (統計量 D^+)。\n`\"less\"`: 下にある (D^-)。既定は `\"two.sided\"`。"
   },
   "KsTestOptions.exact#summary": {
-    "hash": "ab5b3053c66c",
-    "en": "Exact p-value. Default: exact for one sample of fewer than 100 values without ties, and for two samples with\nm n < 10000. The exact two-sided one-sample p-value for D < 1/2 raises a matrix of size 2 floor(n D) + 1 to the\nn-th power; where that needs more than 2^33 multiply-adds (m 781 at n 1023, about 4 s) it is a RangeError (R\ncomputes it however long it takes).",
-    "ja": "正確な p 値です。既定: 1 標本の場合は、同順位がなく 100 未満の値に対して正確法。2 標本の場合は、\nm n < 10000 のときに正確法 (同順位の有無は問いません)。両側の 1 標本の p 値 (D < 1/2) は、2 floor(n D) + 1 の大きさの行列を n 乗します。\nそれに 2^33 回を超える乗算と加算が必要な場合 (n 1023 のとき m 781、約 4 秒) は RangeError になります (R はどれだけ時間がかかっても\n計算します)。"
+    "hash": "0c4d8105d82a",
+    "en": "Exact p-value. Default: exact for one sample of fewer than 100 values without ties, and for two samples with\nm n < 10000. The exact two-sided one-sample p-value for D < 1/2 raises a matrix of size 2 floor(n D) + 1 to the\nn-th power; where that needs more than 2^33 multiply-adds (m 783 at n 1023, about 4 s) it is a RangeError (R\ncomputes it however long it takes).",
+    "ja": "正確な p 値です。既定: 1 標本の場合は、同順位がなく 100 未満の値に対して正確法。2 標本の場合は、\nm n < 10000 のときに正確法 (同順位の有無は問いません)。両側の 1 標本の p 値 (D < 1/2) は、2 floor(n D) + 1 の大きさの行列を n 乗します。\nそれに 2^33 回を超える乗算と加算が必要な場合 (n 1023 のとき m 783、約 4 秒) は RangeError になります (R はどれだけ時間がかかっても\n計算します)。"
   },
   "KsTestResult#summary": {
     "hash": "e3eaaafac42f",

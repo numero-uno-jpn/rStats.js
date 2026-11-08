@@ -410,9 +410,9 @@
     "ja": "z 統計量または t 統計量です (`statisticName` を参照)。"
   },
   "GlmSummary.statisticName#summary": {
-    "hash": "f3f69154d729",
-    "en": "`\"z value\"` when the dispersion is fixed (binomial, poisson), else `\"t value\"`.",
-    "ja": "分散パラメータが固定されている場合 (二項分布、ポアソン分布) は `\"z value\"`、それ以外は `\"t value\"` です。"
+    "hash": "2b162cb642b6",
+    "en": "`\"z value\"` when the dispersion is not estimated (fixed by the family: binomial, poisson; or given as\n`options.dispersion`), else `\"t value\"`.",
+    "ja": "分散パラメータが推定されない場合 (family で固定されている二項分布とポアソン分布、または `options.dispersion` で与えた場合) は `\"z value\"`、それ以外は `\"t value\"` です。"
   },
   "GlmSummary.stdError#summary": {
     "hash": "4b5b7823947c",
