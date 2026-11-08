@@ -34,7 +34,7 @@ import { qbeta } from "@numero-uno-jpn/rstats/distributions";       // or one ar
 import { lmer, glmer } from "@numero-uno-jpn/rstats/mixed";        // mixed models: only from this area
 ```
 
-Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.2.0/dist/rstats.js` is one ES module with
+Without a bundler, `https://cdn.jsdelivr.net/npm/@numero-uno-jpn/rstats@1.3.0/dist/rstats.js` is one ES module with
 every function except the mixed models, which are in `dist/mixed.js`. Keep a version in the URL (an exact one, or a
 major version such as `@1` from 1.0.0 on): a URL without one follows every new release, breaking changes included.
 Use either `dist/rstats.js` or the per-area bundles (`dist/tests.js`, `dist/mixed.js`, ...) on one page: mixing them

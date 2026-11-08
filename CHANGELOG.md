@@ -7,7 +7,14 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.3.0 - 2026-11-09
+
+Robust standard errors and diagnostic accuracy and measurement agreement (items 1 and 2 of the roadmap): sandwich's
+heteroskedasticity-consistent and clustered covariances of lm and glm fits with lmtest's tests and intervals, the
+robust variance of coxph, ROC curves with DeLong's and the bootstrap intervals and tests, the diagnostic 2 × 2
+measures, Bland-Altman analysis, Deming and Passing-Bablok regression, the six Shrout-Fleiss intraclass correlations
+and TOSTER's equivalence tests, checked against sandwich, lmtest, survival, pROC, epiR, BlandAltmanLeh, mcr, psych and
+TOSTER (R 4.6.2); where these packages lose digits or overflow, the true values.
 
 ### Added
 
