@@ -805,3 +805,23 @@
 | clipped | 切り詰め | 新規。区間を範囲に収める処理 |
 | rescale | 再スケール | 新規。`rescaleP` |
 | exact (p-value, method) | 正確 (正確な p 値、正確法) | 新規。`exact` オプション。`exact test` の「正確」と同じ語 |
+| finite (values) | 有限 | 既存の訳語に合わせた。「正の有限値」 |
+| population (of a sample) | 母集団 | 既存の訳語に合わせた。「母集団の既知の標準偏差」 |
+| proportion (binomial) | 比率 | 既存の訳語に合わせた。「観測された比率」 |
+| Edgeworth term | Edgeworth 項 | 既存の訳語に合わせた。人名は英字 (規則 11 より `docs/ja` を優先) |
+| signed rank test | 符号付き順位検定 | 既存の訳語に合わせた。`Wilcoxon signed rank statistic` とは別 |
+| Hodges-Lehmann estimate | Hodges-Lehmann 推定値 | 人名は英字 (規則 11) |
+| unreplicated complete block design | 反復のない完全ブロック計画 | 既存の訳語に合わせた (`friedmanTest`、`cochranQTest`) |
+| block (of a block design) | ブロック | 既存の訳語に合わせた |
+| treatment (of a block design) | 処理 | 既存の訳語に合わせた。`treatment contrasts` (処理対比) とは別 |
+| binary response | 2 値応答 | 既存の訳語に合わせた |
+| Bernoulli trial | ベルヌーイ試行 | 既存の訳語に合わせた (`binomTest`) |
+| dual (test and interval) | 双対 | 新規。検定と区間の対応 (`binomDiffEquivalenceTest`) |
+| margins (of a table) | 周辺和 | 既存の訳語に合わせた。行和・列和の総称 |
+| supremum | 上限 | 新規。`真の上限 (supremum)` の形で併記 (`boschlooTest`) |
+| attributable risk | 寄与危険 | 既存の訳語に合わせた (epiR の寄与危険のスコア区間) |
+| code point (order) | コードポイント順 | 既存の訳語に合わせた。並べ替えの順序 |
+| homogeneity (of variances) | 分散の等質性 | 新規。`flignerTest` の説明 |
+| orientation (of an alternative) | 向き | 新規。`alternative: "less"` が指す向き |
+| location shift | 位置のずれ | 新規。二標本の位置の差 (`mu`) |
+| root (of an equation) | 根 | 既存の訳語に合わせた。「スコア統計量の根」 |
