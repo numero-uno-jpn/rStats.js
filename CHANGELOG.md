@@ -48,6 +48,11 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   minus mu), the one-sample `t` and `z` limits are 1 − 2α limits, and TOSTER's notes are warnings
   (docs/differences-from-r.md).
 
+### Fixed
+
+- `RNGkind`: any call seeds a generator that was never seeded (from the clock, as a first draw would), as R's
+  `RNGkind()` creates `.Random.seed`; changing only `sampleKind` left it unseeded.
+
 ## 1.2.0 - 2026-11-07
 
 Contingency tables and proportions (item 1 of the roadmap): intervals for a proportion and for the risk difference,

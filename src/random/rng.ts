@@ -140,7 +140,8 @@ function lookup(table: Record<string, boolean>, name: string | undefined, what: 
  * As in R, changing `kind` seeds the new generator from the next uniform of the current one (also
  * when the kind does not change), so a stream stays reproducible from the last {@link setSeed};
  * changing only `sampleKind` keeps the stream. Call {@link setSeed} afterwards to seed the new
- * generator directly: `RNGkind({ kind }); setSeed(seed)` is R's `set.seed(seed, kind)`.
+ * generator directly: `RNGkind({ kind }); setSeed(seed)` is R's `set.seed(seed, kind)`. Also as in R,
+ * any call seeds a generator that has not been seeded yet (from the clock, as a first draw would).
  *
  * @param options The kinds to change; omitted entries are kept. Default: change nothing.
  * @returns The kinds in effect before the call (the current ones when called without options), as R.
@@ -170,6 +171,9 @@ export function RNGkind(options: RNGKindOptions = {}): RNGKinds {
   };
   const useLec = lookup(KINDS, options.kind, "RNG kind");
   const useRounding = lookup(SAMPLE_KINDS, options.sampleKind, "sample kind");
+  // as R, where any call of RNGkind creates .Random.seed: a generator never seeded is seeded from the clock first, as
+  // a first draw would
+  ensureSeeded();
   if (useLec !== undefined) {
     // The new generator is seeded with the next uniform u (0 < u < 1) times 2^32 - 1, truncated to an unsigned integer
     const seed = Math.trunc(unifRand() * 4294967295);
