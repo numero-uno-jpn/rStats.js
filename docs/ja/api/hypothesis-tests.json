@@ -1112,7 +1112,7 @@
   "PropTestOptions.alternative#summary": {
     "hash": "a922f66c0a32",
     "en": "Alternative hypothesis (one or two groups without `p`; otherwise only `\"two.sided\"`). Default `\"two.sided\"`.",
-    "ja": "対立仮説 (1 群または 2 群で `p` を指定しない場合。それ以外では `\"two.sided\"` のみ)。既定は `\"two.sided\"`。"
+    "ja": "対立仮説 (1 群の場合と、`p` を指定しない 2 群の場合に選べます。それ以外では `\"two.sided\"` のみ)。既定は `\"two.sided\"`。"
   },
   "PropTestOptions.confLevel#summary": {
     "hash": "ccfda40f60f0",
