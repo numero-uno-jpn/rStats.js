@@ -31,8 +31,8 @@
 import { pnorm, qnorm } from "../distributions/normal.js";
 import { qt1 } from "../distributions/t.js";
 import { quantile } from "../descriptive/quantile.js";
-import { RNGkind, getRandomSeed, setRandomSeed, setSeed, unifIndex } from "../random/rng.js";
-import { ldexp, meanDD, scaleToUnit, standardDeviation } from "../internal/summary.js";
+import { RNGkind, getRandomSeed, isRandomSeeded, setRandomSeed, setSeed, unifIndex } from "../random/rng.js";
+import { ldexp, ldexpWide, meanDD, scaleToUnit, standardDeviation } from "../internal/summary.js";
 import { reported } from "../internal/warnings.js";
 import { ddAdd, ddDivNum, ddMul, ddSub, type DD } from "../special/dd.js";
 import { matchChoice } from "./power.js";
@@ -102,7 +102,8 @@ export interface McregOptions {
   nnested?: number;
   /**
    * Seed of the resamples: the stream of R's `set.seed(rngSeed, kind = "Mersenne-Twister")`, as mcr's `rng.seed`; the
-   * state of the generator is restored afterwards. Without it the resamples are drawn from the current stream.
+   * state of the generator is restored afterwards if it had one (in a session that never drew a random number, the
+   * stream of the seed continues, as in R). Without it the resamples are drawn from the current stream.
    */
   rngSeed?: number;
   /** Weighted Deming: the largest number of iterations, a positive integer. Default `30`. */
@@ -151,7 +152,7 @@ export interface McregResult {
   slope: McregCoefficient;
   /** The mean of x (Deming), the weighted mean of the last iteration (weighted Deming), `NaN` (Passing-Bablok). */
   xmean: number;
-  /** Weighted Deming: the weights of the last iteration (mcr's `@weight`). */
+  /** Weighted Deming: the weights of the last iteration (mcr's `@weight`); Infinity where beyond the double range. */
   weights?: number[];
   /** Jackknife: the leave-one-out coefficients (mcr's `@B0jack`, `@B1jack`; also for the BCa interval). */
   jackknife?: { intercept: number[]; slope: number[] };
@@ -265,36 +266,53 @@ function demingFit(x: readonly number[], y: readonly number[], lambda: number): 
   return { b0, b1, se0, se1, xmean: mx[0] };
 }
 
-/** Weighted Deming regression (Linnet 1990) with mcr's stopping rule, on data scaled by 2^-k */
+/**
+ * Weighted Deming regression (Linnet 1990) with mcr's stopping rule, on x scaled by 2^-kx and y by 2^-ky, with the
+ * error ratio of the scaled data (lambda) and mix = errorRatio 2^(ky - kx): the level m = (x̂ + errorRatio ŷ)/(1 +
+ * errorRatio) of a point is, up to one constant factor, x̂ + mix ŷ in the scaled units. The weights 1/m² enter only
+ * through the weighted means (with the weights divided by the largest, so that they cannot overflow) and the sums
+ * of (dx/m)², (dy/m)² and dx dy/m², which do not depend on that factor (the slope is homogeneous in them); mcr's
+ * weights 1/m², which overflow for data spanning more than about 1e154, are formed only for output
+ */
 function wdemingFit(
   x: readonly number[],
   y: readonly number[],
   lambda: number,
+  mix: number,
+  errorRatio: number,
   iterMax: number,
   threshold: number,
-  k: number,
+  kx: number,
+  ky: number,
 ): Fit & { xmean: number; weights: number[]; converged: boolean } {
   const n = x.length;
   const start = demingFit(x, y, lambda);
   let b0 = start.b0;
   let b1 = start.b1;
   let xmean = NaN;
-  const w = new Array<number>(n);
+  // m up to the factor (mix > 1 ? mix : 1)/(1 + errorRatio) 2^kx: x̂ + mix ŷ, or x̂/mix + ŷ for mix > 1
+  const m = new Array<number>(n);
   let count = iterMax;
   for (let i = 0; i < iterMax; i++) {
-    let sw: DD = [0, 0];
-    let swx: DD = [0, 0];
-    let swy: DD = [0, 0];
     const f = 1 + lambda * b1 * b1;
+    let mMin = Infinity;
     for (let j = 0; j < n; j++) {
       const d = y[j]! - (b0 + b1 * x[j]!);
       const xh = x[j]! + (lambda * b1 * d) / f;
       const yh = y[j]! - d / f;
-      const m = (xh + lambda * yh) / (1 + lambda);
-      w[j] = 1 / (m * m);
-      sw = ddAdd(sw, [w[j]!, 0]);
-      swx = ddAdd(swx, ddMul([w[j]!, 0], [x[j]!, 0]));
-      swy = ddAdd(swy, ddMul([w[j]!, 0], [y[j]!, 0]));
+      m[j] = mix > 1 ? xh / mix + yh : xh + mix * yh;
+      mMin = Math.min(mMin, Math.abs(m[j]!));
+    }
+    let sw: DD = [0, 0];
+    let swx: DD = [0, 0];
+    let swy: DD = [0, 0];
+    for (let j = 0; j < n; j++) {
+      // the weight relative to the largest, (mMin/m)^2 <= 1
+      const r = mMin / m[j]!;
+      const wj: DD = [r * r, 0];
+      sw = ddAdd(sw, wj);
+      swx = ddAdd(swx, ddMul(wj, [x[j]!, 0]));
+      swy = ddAdd(swy, ddMul(wj, [y[j]!, 0]));
     }
     const xw = ddDivNum(swx, sw[0] + sw[1]);
     const yw = ddDivNum(swy, sw[0] + sw[1]);
@@ -302,18 +320,17 @@ function wdemingFit(
     let q: DD = [0, 0];
     let p: DD = [0, 0];
     for (let j = 0; j < n; j++) {
-      const dx = ddSub([x[j]!, 0], xw);
-      const dy = ddSub([y[j]!, 0], yw);
-      const wj: DD = [w[j]!, 0];
-      u = ddAdd(u, ddMul(wj, ddMul(dx, dx)));
-      q = ddAdd(q, ddMul(wj, ddMul(dy, dy)));
-      p = ddAdd(p, ddMul(wj, ddMul(dx, dy)));
+      const dx = ddDivNum(ddSub([x[j]!, 0], xw), m[j]!);
+      const dy = ddDivNum(ddSub([y[j]!, 0], yw), m[j]!);
+      u = ddAdd(u, ddMul(dx, dx));
+      q = ddAdd(q, ddMul(dy, dy));
+      p = ddAdd(p, ddMul(dx, dy));
     }
     const B1 = demingSlope(u[0], q[0], p[0], lambda);
     const B0 = ddSub(yw, ddMul([B1, 0], xw))[0];
     xmean = xw[0];
-    // the threshold is absolute, on the intercept in the units of the data
-    const done = Math.abs(b1 - B1) < threshold && ldexp(Math.abs(b0 - B0), k) < threshold;
+    // the threshold is absolute, on the slope and the intercept in the units of the data
+    const done = ldexp(Math.abs(b1 - B1), ky - kx) < threshold && ldexp(Math.abs(b0 - B0), ky) < threshold;
     b0 = B0;
     b1 = B1;
     if (done) {
@@ -321,8 +338,11 @@ function wdemingFit(
       break;
     }
   }
+  // mcr's weights 1/m² in the units of the data (Infinity or 0 where they leave the double range)
+  const factor = (mix > 1 ? mix : 1) / (1 + errorRatio);
+  const weights = m.map((v) => ldexpWide(1 / (v * factor) ** 2, -2 * kx));
   // as mcr: the warning also when the last allowed iteration converged
-  return { b0, b1, xmean, weights: w.slice(), converged: count < iterMax };
+  return { b0, b1, xmean, weights, converged: count < iterMax };
 }
 
 /** The angle of a slope (±π/2 for a vertical pair) */
@@ -498,11 +518,14 @@ const sdNaRm = (v: readonly number[]): number => standardDeviation(v.filter((u) 
  * - **Weighted Deming** (`"WDeming"`): Linnet's (1990) iteration for errors proportional to the level (constant
  *   coefficient of variation), stopped as mcr when both coefficients change by less than `threshold` (absolute), with
  *   a warning when `iterMax` iterations are reached. No analytical interval (jackknife by default). Values must be
- *   positive.
+ *   positive. Since the threshold is absolute, data of very large magnitude (around 1e150) may not converge and
+ *   data of very small magnitude (around 1e-150) stop after the first iteration; choose `threshold` in the units of
+ *   the data.
  * - **Passing-Bablok** (`"PaBa"`): the shifted median of the n(n - 1)/2 pairwise slopes and the rank interval of
  *   Passing and Bablok (1983); the intercept is the median of y - b x and its limits those of the slope's limits.
- *   Differences below a relative 1e-12 count as ties (mcr's rule; a pair tied in x only is vertical); the mean of two
- *   middle slopes is tan of the mean angle (`slopeMeasure: "radian"`, mcr's default) or the mean slope
+ *   Differences below a relative 1e-12 count as ties (mcr's rule; a pair tied in x only is vertical), so data with a
+ *   large offset (1e12 + O(1)) have most differences set to 0; the mean of two middle slopes is tan of the mean angle
+ *   (`slopeMeasure: "radian"`, mcr's default; it changes when y is rescaled, as angles do not scale) or the mean slope
  *   (`"tangent"`). Where the interval is not defined (too few points, always for n <= 4) its limits and the
  *   intercept's are -Infinity and Infinity, with a warning. Values must not be negative. The result has the CUSUM
  *   statistic of linearity (`cusum`; no test decision).
@@ -514,7 +537,8 @@ const sdNaRm = (v: readonly number[]): number => standardDeviation(v.filter((u) 
  *   standard deviation of `nnested` inner resamples of each resample. Resamples with constant x or y are dropped
  *   with mcr's warning (an error when more than 5% are). The resamples are drawn as R's `sample(1:n, n, replace =
  *   TRUE)` from the current random stream, or from `set.seed(rngSeed)` as mcr's `rng.seed` (the generator's state is
- *   then restored), so the values are mcr's for the same seed.
+ *   then restored if it had one), so the values are mcr's for the same seed. With very few points (n = 5) the
+ *   bootstrap-t limits can be infinite or huge, because resamples of 2 or 3 distinct points have standard errors 0.
  *
  * Unlike mcr, the default interval is `"analytical"` (`"jackknife"` for weighted Deming) rather than a random
  * bootstrap; `confLevel` replaces mcr's `alpha` (= 1 - confLevel); 2 or fewer points, constant x or y, infinite
@@ -607,16 +631,26 @@ export function mcreg(x: Sample, y: Sample, options: McregOptions = {}): McregRe
     throw new RangeError("weighted Deming regression needs positive values");
   }
 
-  const { groups, k } = scaleToUnit([xa, ya]);
-  const [xs, ys] = groups as [number[], number[]];
+  // the data scaled by powers of 2 (exact): Deming and weighted Deming scale x and y separately (x by 2^-kx, y by
+  // 2^-ky, the error ratio by 2^(2(ky - kx))), so that data in very different units keep their sums of squares in
+  // range; Passing-Bablok scales both by one power (its tie rule and angles compare dy with dx). The slope is
+  // scaled back by 2^(ky - kx), the intercept by 2^ky
+  const common = scaleToUnit([xa, ya]);
+  const [kx, ky] = deming ? [scaleToUnit([xa]).k, scaleToUnit([ya]).k] : [common.k, common.k];
+  const xs = deming ? xa.map((v) => ldexp(v, -kx)) : common.groups[0]!;
+  const ys = deming ? ya.map((v) => ldexp(v, -ky)) : common.groups[1]!;
+  // the scaled error ratio, kept from 0 and Infinity (a ratio beyond 2^±1000 of the scaled data is the limit itself to
+  // far below the rounding of the sums)
+  const lambda = Math.min(Math.max(ldexpWide(errorRatio, 2 * (ky - kx)), Number.MIN_VALUE), 2 ** 1000);
+  const mix = ldexpWide(errorRatio, ky - kx);
   const warnings = new Set<string>();
   const noConvergence = `no konvergence after ${iterMax} iterations`;
 
   /** The estimates for the points idx (in the scaled units), and the analytical standard errors for Deming */
   const fitOf = (xv: readonly number[], yv: readonly number[]): Fit & { se0?: number; se1?: number } => {
-    if (methodReg === "Deming") return demingFit(xv, yv, errorRatio);
+    if (methodReg === "Deming") return demingFit(xv, yv, lambda);
     if (methodReg === "WDeming") {
-      const f = wdemingFit(xv, yv, errorRatio, iterMax, threshold, k);
+      const f = wdemingFit(xv, yv, lambda, mix, errorRatio, iterMax, threshold, kx, ky);
       if (!f.converged) warnings.add(noConvergence);
       return f;
     }
@@ -630,16 +664,16 @@ export function mcreg(x: Sample, y: Sample, options: McregOptions = {}): McregRe
   let analytic: [number, number] | undefined;
   let pabaSlopesAll: PabaSlopes | undefined;
   if (methodReg === "Deming") {
-    const f = demingFit(xs, ys, errorRatio);
+    const f = demingFit(xs, ys, lambda);
     global = f;
-    xmean = ldexp(f.xmean, k);
+    xmean = ldexp(f.xmean, kx);
     analytic = [f.se0, f.se1];
   } else if (methodReg === "WDeming") {
-    const f = wdemingFit(xs, ys, errorRatio, iterMax, threshold, k);
+    const f = wdemingFit(xs, ys, lambda, mix, errorRatio, iterMax, threshold, kx, ky);
     if (!f.converged) warnings.add(noConvergence);
     global = f;
-    xmean = ldexp(f.xmean, k);
-    weights = f.weights.map((w) => ldexp(w, -2 * k));
+    xmean = ldexp(f.xmean, kx);
+    weights = f.weights;
   } else {
     const f = pabaFit(xs, ys, tangent);
     global = f;
@@ -756,14 +790,16 @@ export function mcreg(x: Sample, y: Sample, options: McregOptions = {}): McregRe
       }
     };
     if (options.rngSeed !== undefined) {
-      // R's set.seed(rngSeed, kind = "Mersenne-Twister"), and the previous state restored afterwards, as mcr
-      const saved = getRandomSeed();
+      // R's set.seed(rngSeed, kind = "Mersenne-Twister"), and the previous state restored afterwards if there was one,
+      // as mcr (which restores .Random.seed only where it existed: in a session that never drew a random number, the
+      // stream of set.seed(rngSeed) continues after the call)
+      const saved = isRandomSeeded() ? getRandomSeed() : undefined;
       try {
         RNGkind({ kind: "Mersenne-Twister" });
         setSeed(options.rngSeed);
         run();
       } finally {
-        setRandomSeed(saved);
+        if (saved !== undefined) setRandomSeed(saved);
       }
     } else run();
     if (dropped > 0.05 * nsamples) throw new RangeError("There were too many resamples with undetermined regression coefficients!");
@@ -808,17 +844,17 @@ export function mcreg(x: Sample, y: Sample, options: McregOptions = {}): McregRe
       }
     }
     boot = {
-      intercept: b0.map((v) => ldexp(v, k)),
-      slope: b1,
-      sigmaIntercept: s0.map((v) => ldexp(v, k)),
-      sigmaSlope: s1,
-      globalSigma: [ldexp(globSigma[0], k), globSigma[1]],
+      intercept: b0.map((v) => ldexp(v, ky)),
+      slope: b1.map((v) => ldexp(v, ky - kx)),
+      sigmaIntercept: s0.map((v) => ldexp(v, ky)),
+      sigmaSlope: s1.map((v) => ldexp(v, ky - kx)),
+      globalSigma: [ldexp(globSigma[0], ky), ldexp(globSigma[1], ky - kx)],
       nsamples: kept,
     };
   }
 
   const coef = (c: 0 | 1): McregCoefficient => {
-    const back = c === 0 ? (v: number): number => ldexp(v, k) : (v: number): number => v;
+    const back = (v: number): number => ldexp(v, c === 0 ? ky : ky - kx);
     return { estimate: back(est[c]), se: back(se[c]), confInt: [back(ci[c][0]), back(ci[c][1])] };
   };
   const result: McregResult = {
@@ -832,7 +868,7 @@ export function mcreg(x: Sample, y: Sample, options: McregOptions = {}): McregRe
     slope: coef(1),
     xmean,
     ...(weights === undefined ? {} : { weights }),
-    ...(jack === undefined ? {} : { jackknife: { intercept: jack[0].map((v) => ldexp(v, k)), slope: jack[1] } }),
+    ...(jack === undefined ? {} : { jackknife: { intercept: jack[0].map((v) => ldexp(v, ky)), slope: jack[1].map((v) => ldexp(v, ky - kx)) } }),
     ...(boot === undefined ? {} : { bootstrap: boot }),
     ...(methodReg === "PaBa" ? { cusum: cusumOf(xs, ys, global.b0, global.b1) } : {}),
     warnings: [...warnings],
