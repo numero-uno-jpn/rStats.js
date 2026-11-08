@@ -649,6 +649,36 @@
     "en": "Bootstrap: the coefficients of the resamples kept, in the order drawn (mcr's `@B0`, `@B1`), their standard errors\n(`@sigmaB0`, `@sigmaB1`: the standard deviation of the nested estimates, the analytical standard error for Deming,\nthe jackknife one for weighted Deming with BCa, else `NaN`), the global standard errors (`@glob.sigma`) and the\nnumber of resamples kept.",
     "ja": "ブートストラップ: 残した再標本の係数を引かれた順に (mcr の `@B0`、`@B1`)、その標準誤差を\n(`@sigmaB0`、`@sigmaB1`: 入れ子の推定値の標準偏差。Deming では解析的な標準誤差、BCa を伴う重みつき Deming ではジャックナイフによる標準誤差、それ以外は `NaN`)、\n全体の標準誤差 (`@glob.sigma`) と、\n残した再標本の数です。"
   },
+  "McregResult.bootstrap.globalSigma#summary": {
+    "hash": "8ab45118739b",
+    "en": "The global standard errors of the intercept and the slope (mcr's `@glob.sigma`).",
+    "ja": "切片と傾きの全体の標準誤差です (mcr の `@glob.sigma`)。"
+  },
+  "McregResult.bootstrap.intercept#summary": {
+    "hash": "7fe7512faaf3",
+    "en": "The intercepts of the resamples kept, in the order drawn (mcr's `@B0`).",
+    "ja": "残した再標本の切片です。引いた順に並びます (mcr の `@B0`)。"
+  },
+  "McregResult.bootstrap.nsamples#summary": {
+    "hash": "2c076bb5297a",
+    "en": "The number of resamples kept.",
+    "ja": "残した再標本の数です。"
+  },
+  "McregResult.bootstrap.sigmaIntercept#summary": {
+    "hash": "77d9e1447707",
+    "en": "The standard errors of the intercepts (mcr's `@sigmaB0`).",
+    "ja": "切片の標準誤差です (mcr の `@sigmaB0`)。"
+  },
+  "McregResult.bootstrap.sigmaSlope#summary": {
+    "hash": "dbbb07abbbdb",
+    "en": "The standard errors of the slopes (mcr's `@sigmaB1`).",
+    "ja": "傾きの標準誤差です (mcr の `@sigmaB1`)。"
+  },
+  "McregResult.bootstrap.slope#summary": {
+    "hash": "5d050ab3fed5",
+    "en": "The slopes of the resamples kept (mcr's `@B1`).",
+    "ja": "残した再標本の傾きです (mcr の `@B1`)。"
+  },
   "McregResult.confLevel#summary": {
     "hash": "d51f25890da4",
     "en": "The level of the intervals.",
@@ -658,6 +688,21 @@
     "hash": "abba1461978b",
     "en": "Passing-Bablok: the linearity statistic (mcr's `calcCUSUM`): the numbers of points above and below the line and\nthe largest absolute cumulative sum of their scores ordered along the line.",
     "ja": "Passing-Bablok: 線形性の統計量 (mcr の `calcCUSUM`) です。直線より上と下の点の数と、\n直線に沿って並べたスコアの累積和の絶対値の最大値です。"
+  },
+  "McregResult.cusum.maxCusum#summary": {
+    "hash": "c3ca14779d37",
+    "en": "The largest absolute cumulative sum of the scores ordered along the line.",
+    "ja": "直線に沿って並べた得点の累積和の絶対値の最大値です。"
+  },
+  "McregResult.cusum.nNeg#summary": {
+    "hash": "c55b897be9ab",
+    "en": "The number of points below the line.",
+    "ja": "直線より下の点の数です。"
+  },
+  "McregResult.cusum.nPos#summary": {
+    "hash": "3d1a97a443f3",
+    "en": "The number of points above the line.",
+    "ja": "直線より上の点の数です。"
   },
   "McregResult.errorRatio#summary": {
     "hash": "5dae9d0bbe34",
@@ -673,6 +718,16 @@
     "hash": "d46632caac88",
     "en": "Jackknife: the leave-one-out coefficients (mcr's `@B0jack`, `@B1jack`; also for the BCa interval).",
     "ja": "ジャックナイフ: 1 つ抜きの係数です (mcr の `@B0jack`、`@B1jack`。BCa 区間にも用います)。"
+  },
+  "McregResult.jackknife.intercept#summary": {
+    "hash": "041e5fb7b14f",
+    "en": "The intercepts with each point left out (mcr's `@B0jack`).",
+    "ja": "各点を 1 つずつ除いたときの切片です (mcr の `@B0jack`)。"
+  },
+  "McregResult.jackknife.slope#summary": {
+    "hash": "f3c18e4bac5d",
+    "en": "The slopes with each point left out (mcr's `@B1jack`).",
+    "ja": "各点を 1 つずつ除いたときの傾きです (mcr の `@B1jack`)。"
   },
   "McregResult.methodBootstrapCi#summary": {
     "hash": "1694e4e25412",

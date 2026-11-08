@@ -1819,6 +1819,16 @@
     "en": "The bounds `[low, high]` in the units of the data (`raw`) and of the standardised difference (`smd`).",
     "ja": "限界 `[low, high]` です。データの単位 (`raw`) と、標準化した差の単位 (`smd`) で示します。"
   },
+  "TTOSTResult.bounds.raw#summary": {
+    "hash": "2951fbd1bf46",
+    "en": "`[low, high]` in the units of the data.",
+    "ja": "データの単位での `[low, high]` です。"
+  },
+  "TTOSTResult.bounds.smd#summary": {
+    "hash": "b2ad803fa384",
+    "en": "`[low, high]` in the units of the standardised difference.",
+    "ja": "標準化した差の単位での `[low, high]` です。"
+  },
   "TTOSTResult.confLevel#summary": {
     "hash": "2e608421c7db",
     "en": "`1 - 2 alpha`.",
@@ -1849,10 +1859,55 @@
     "en": "The raw effect, the difference minus `mu`: estimate, standard error and 1 − 2 alpha interval.",
     "ja": "生の効果 (差から `mu` を引いたもの) です。推定値、標準誤差、1 − 2 alpha の区間を含みます。"
   },
+  "TTOSTResult.raw.confInt#summary": {
+    "hash": "eefb82cd75b0",
+    "en": "Its 1 − 2 alpha interval.",
+    "ja": "その 1 − 2 alpha の区間です。"
+  },
+  "TTOSTResult.raw.estimate#summary": {
+    "hash": "96d2121af2cf",
+    "en": "The difference minus `mu`.",
+    "ja": "差から `mu` を引いた値です。"
+  },
+  "TTOSTResult.raw.se#summary": {
+    "hash": "6ede18f07959",
+    "en": "Its standard error.",
+    "ja": "その標準誤差です。"
+  },
   "TTOSTResult.smd#summary": {
     "hash": "a9214f3f50b0",
     "en": "The standardised mean difference: its label (`\"Hedges's g(av)\"`, `\"Cohen's d\"`, `\"Hedges's g(z)\"`, `\"Glass's\ndelta(g)\"`, ...), estimate, standard error, 1 − 2 alpha interval, the degrees of freedom of its interval and the\nbias correction J (1 without it).",
     "ja": "標準化平均差です。そのラベル (`\"Hedges's g(av)\"`、`\"Cohen's d\"`、`\"Hedges's g(z)\"`、`\"Glass's\ndelta(g)\"`、...)、推定値、標準誤差、1 − 2 alpha の区間、その区間の自由度、\n小標本補正 J (なしの場合は 1) です。"
+  },
+  "TTOSTResult.smd.J#summary": {
+    "hash": "bd1be38d217a",
+    "en": "The bias correction J (1 without it).",
+    "ja": "偏りの補正 J です (補正しないときは 1)。"
+  },
+  "TTOSTResult.smd.confInt#summary": {
+    "hash": "eefb82cd75b0",
+    "en": "Its 1 − 2 alpha interval.",
+    "ja": "その 1 − 2 alpha の区間です。"
+  },
+  "TTOSTResult.smd.df#summary": {
+    "hash": "80c42b156163",
+    "en": "The degrees of freedom of the interval.",
+    "ja": "区間の自由度です。"
+  },
+  "TTOSTResult.smd.estimate#summary": {
+    "hash": "890b654fcc31",
+    "en": "The estimate.",
+    "ja": "推定値です。"
+  },
+  "TTOSTResult.smd.label#summary": {
+    "hash": "dccda37dff3a",
+    "en": "The name of the standardised difference, such as `\"Hedges's g(av)\"`.",
+    "ja": "標準化した差の名前です。例: `\"Hedges's g(av)\"`。"
+  },
+  "TTOSTResult.smd.se#summary": {
+    "hash": "6ede18f07959",
+    "en": "Its standard error.",
+    "ja": "その標準誤差です。"
   },
   "TTOSTResult.tTest#summary": {
     "hash": "a33d34cc8992",

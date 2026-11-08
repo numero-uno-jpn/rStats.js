@@ -123,15 +123,40 @@ export interface TTOSTResult {
   /** The p-value of the TOST: the larger (EQU) or the smaller (MET) of the p-values of `lower` and `upper`. */
   pValue: number;
   /** The bounds `[low, high]` in the units of the data (`raw`) and of the standardised difference (`smd`). */
-  bounds: { raw: [number, number]; smd: [number, number] };
+  bounds: {
+    /** `[low, high]` in the units of the data. */
+    raw: [number, number];
+    /** `[low, high]` in the units of the standardised difference. */
+    smd: [number, number];
+  };
   /** The raw effect, the difference minus `mu`: estimate, standard error and 1 − 2 alpha interval. */
-  raw: { estimate: number; se: number; confInt: [number, number] };
+  raw: {
+    /** The difference minus `mu`. */
+    estimate: number;
+    /** Its standard error. */
+    se: number;
+    /** Its 1 − 2 alpha interval. */
+    confInt: [number, number];
+  };
   /**
    * The standardised mean difference: its label (`"Hedges's g(av)"`, `"Cohen's d"`, `"Hedges's g(z)"`, `"Glass's
    * delta(g)"`, ...), estimate, standard error, 1 − 2 alpha interval, the degrees of freedom of its interval and the
    * bias correction J (1 without it).
    */
-  smd: { label: string; estimate: number; se: number; confInt: [number, number]; df: number; J: number };
+  smd: {
+    /** The name of the standardised difference, such as `"Hedges's g(av)"`. */
+    label: string;
+    /** The estimate. */
+    estimate: number;
+    /** Its standard error. */
+    se: number;
+    /** Its 1 − 2 alpha interval. */
+    confInt: [number, number];
+    /** The degrees of freedom of the interval. */
+    df: number;
+    /** The bias correction J (1 without it). */
+    J: number;
+  };
   /** `1 - 2 alpha`. */
   confLevel: number;
   /** The t test's method (`"Welch Two Sample t-test"`, `" Two Sample t-test"`, `"Paired t-test"`, `"One Sample t-test"`). */

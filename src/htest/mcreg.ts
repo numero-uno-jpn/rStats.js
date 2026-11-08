@@ -155,7 +155,12 @@ export interface McregResult {
   /** Weighted Deming: the weights of the last iteration (mcr's `@weight`); Infinity where beyond the double range. */
   weights?: number[];
   /** Jackknife: the leave-one-out coefficients (mcr's `@B0jack`, `@B1jack`; also for the BCa interval). */
-  jackknife?: { intercept: number[]; slope: number[] };
+  jackknife?: {
+    /** The intercepts with each point left out (mcr's `@B0jack`). */
+    intercept: number[];
+    /** The slopes with each point left out (mcr's `@B1jack`). */
+    slope: number[];
+  };
   /**
    * Bootstrap: the coefficients of the resamples kept, in the order drawn (mcr's `@B0`, `@B1`), their standard errors
    * (`@sigmaB0`, `@sigmaB1`: the standard deviation of the nested estimates, the analytical standard error for Deming,
@@ -163,18 +168,31 @@ export interface McregResult {
    * number of resamples kept.
    */
   bootstrap?: {
+    /** The intercepts of the resamples kept, in the order drawn (mcr's `@B0`). */
     intercept: number[];
+    /** The slopes of the resamples kept (mcr's `@B1`). */
     slope: number[];
+    /** The standard errors of the intercepts (mcr's `@sigmaB0`). */
     sigmaIntercept: number[];
+    /** The standard errors of the slopes (mcr's `@sigmaB1`). */
     sigmaSlope: number[];
+    /** The global standard errors of the intercept and the slope (mcr's `@glob.sigma`). */
     globalSigma: [number, number];
+    /** The number of resamples kept. */
     nsamples: number;
   };
   /**
    * Passing-Bablok: the linearity statistic (mcr's `calcCUSUM`): the numbers of points above and below the line and
    * the largest absolute cumulative sum of their scores ordered along the line.
    */
-  cusum?: { nPos: number; nNeg: number; maxCusum: number };
+  cusum?: {
+    /** The number of points above the line. */
+    nPos: number;
+    /** The number of points below the line. */
+    nNeg: number;
+    /** The largest absolute cumulative sum of the scores ordered along the line. */
+    maxCusum: number;
+  };
   /** Warnings (the weighted Deming iteration not converging, degenerate resamples, an undefined interval). */
   warnings: string[];
 }
