@@ -18,7 +18,9 @@
 // - Entries with empty text are not written. Inline code spans stay as they are. Fenced code blocks are replaced
 //   with ⟦code1⟧, ⟦code2⟧, ... (numbered per entry).
 // - Not collected: inherited members (TypeDoc's inheritedFrom; their comment is the parent's, so the translation of
-//   the parent is reused when the skeleton is filled in), and the @category block tag (a category name, not prose).
+//   the parent is reused when the skeleton is filled in; exception: a member whose inheritedFrom source is not a
+//   reflection of the project, such as one inherited from a non-exported interface, has no parent key and is
+//   collected under its own path, e.g. PwrTTestOptions.power#summary), and the @category block tag (a category name, not prose).
 //
 // The key, text and hash logic is in api-ja-keys.mjs (shared with typedoc-ja-plugin.mjs).
 //

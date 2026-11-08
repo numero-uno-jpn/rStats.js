@@ -12,7 +12,9 @@
 // the link resolver at -300), the project is serialized and walked with api-ja-keys.mjs, which gives every comment its
 // key and the English text as it is now. A translation replaces the comment only if its stored hash equals the hash of
 // that English, its "ja" is not empty and it is not marked stale; otherwise the English stays and the key is reported.
-// Members that TypeDoc inherits (inheritedFrom) are filled from the parent's key. The display parts of a comment are
+// Members that TypeDoc inherits (inheritedFrom) are filled from the parent's key, except those whose source is not a
+// reflection of the project (e.g. a non-exported interface): api-ja-keys.mjs gives them their own key and they are
+// replaced like any other comment, with no parent lookup. The display parts of a comment are
 // rebuilt from "ja": ⟦codeN⟧ becomes the original fenced code block, each {@link ...} reuses the original inline tag
 // part (so its resolved target stays), the rest is text. Because the translations keep the English line breaks, a
 // single line break inside prose is removed between two Japanese characters and becomes a space otherwise; code, inline

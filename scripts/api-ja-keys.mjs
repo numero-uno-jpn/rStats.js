@@ -10,6 +10,9 @@
 //   hash of the English now being generated.
 // - Inherited members (TypeDoc's inheritedFrom) are walked under the qualified name of the member they inherit from,
 //   flagged inherited, so that the parent's key can fill them. They are never written to the JSON files.
+//   Exception: when the source of the inheritance is not a reflection of the project (inheritedFrom.target is -1,
+//   e.g. a member inherited from a non-exported interface), there is no parent key to fall back on. Such a member is
+//   walked under its own path and not flagged inherited, so it is collected and replaced like any other entry.
 //
 // The functions take TypeDoc's JSON output (the result of --json, or app.serializer.projectToObject).
 
@@ -48,12 +51,18 @@ export function render(parts, symbols) {
     .trim();
 }
 
+// True when the inheritedFrom reference points to a reflection of the project (a resolved numeric id). A target of -1
+// (unresolved, e.g. a non-exported interface) or a non-numeric target means there is no parent entry.
+function hasSourceReflection(ref) {
+  return typeof ref.target === "number" && ref.target >= 0;
+}
+
 // A reflection and its descendants. The comment of the reflection is keyed by its own path.
 // ctx.symbols is the project's symbolIdMap; ctx.add(key, text, loc, inherited) is called for every comment, with
 // loc = { id, tagIndex }: the id of the reflection that owns the comment, and the index in comment.blockTags
 // (undefined for the summary).
 export function walkNode(node, path, ctx, inherited = false) {
-  if (node.inheritedFrom) {
+  if (node.inheritedFrom && hasSourceReflection(node.inheritedFrom)) {
     path = node.inheritedFrom.qualifiedName ?? node.inheritedFrom.name;
     inherited = true;
   }

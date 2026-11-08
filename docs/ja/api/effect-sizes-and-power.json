@@ -464,6 +464,11 @@
     "en": "Options for {@link pwr2p2nTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
     "ja": "{@link pwr2p2nTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
+  "Pwr2p2nTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": "`\"two.sided\"` (既定)、`\"less\"`、または `\"greater\"`。曖昧さのない省略形も使えます。"
+  },
   "Pwr2p2nTestOptions.h#summary": {
     "hash": "61373fb4d3ae",
     "en": "Effect size h ({@link esH}), or `\"small\"`, `\"medium\"`, `\"large\"`.",
@@ -478,6 +483,16 @@
     "hash": "be3501e2c9f0",
     "en": "Number of observations in the second group.",
     "ja": "第 2 群の観測数です。"
+  },
+  "Pwr2p2nTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": "検定の検出力です。"
+  },
+  "Pwr2p2nTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": "有意水準。既定は `0.05`。"
   },
   "Pwr2p2nTestResult#summary": {
     "hash": "9f20c306c391",
@@ -534,6 +549,11 @@
     "en": "Options for {@link pwr2pTest} and {@link pwrPTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
     "ja": "{@link pwr2pTest} と {@link pwrPTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
+  "Pwr2pTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": "`\"two.sided\"` (既定)、`\"less\"`、または `\"greater\"`。曖昧さのない省略形も使えます。"
+  },
   "Pwr2pTestOptions.h#summary": {
     "hash": "61373fb4d3ae",
     "en": "Effect size h ({@link esH}), or `\"small\"`, `\"medium\"`, `\"large\"`.",
@@ -543,6 +563,16 @@
     "hash": "50954f47052d",
     "en": "Number of observations (per group for {@link pwr2pTest}).",
     "ja": "観測数 ({@link pwr2pTest} では群ごと)。"
+  },
+  "Pwr2pTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": "検定の検出力です。"
+  },
+  "Pwr2pTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": "有意水準。既定は `0.05`。"
   },
   "Pwr2pTestResult#summary": {
     "hash": "1caa778a7764",
@@ -609,6 +639,16 @@
     "en": "Number of observations per group.",
     "ja": "群ごとの観測数です。"
   },
+  "PwrAnovaTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": "検定の検出力です。"
+  },
+  "PwrAnovaTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": "有意水準。既定は `0.05`。"
+  },
   "PwrAnovaTestResult#summary": {
     "hash": "7c320b838a2c",
     "en": "Result of {@link pwrAnovaTest}.",
@@ -668,6 +708,16 @@
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
     "ja": "自由度です。"
+  },
+  "PwrChisqTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": "検定の検出力です。"
+  },
+  "PwrChisqTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": "有意水準。既定は `0.05`。"
   },
   "PwrChisqTestOptions.w#summary": {
     "hash": "a72778ada997",
@@ -729,6 +779,16 @@
     "en": "Effect size f², or `\"small\"`, `\"medium\"`, `\"large\"`.",
     "ja": "効果量 f²、または `\"small\"`、`\"medium\"`、`\"large\"`。"
   },
+  "PwrF2TestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": "検定の検出力です。"
+  },
+  "PwrF2TestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": "有意水準。既定は `0.05`。"
+  },
   "PwrF2TestOptions.u#summary": {
     "hash": "d67e29bb833c",
     "en": "Degrees of freedom of the numerator.",
@@ -784,6 +844,11 @@
     "en": "Options for {@link pwrNormTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
     "ja": "{@link pwrNormTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
+  "PwrNormTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": "`\"two.sided\"` (既定)、`\"less\"`、または `\"greater\"`。曖昧さのない省略形も使えます。"
+  },
   "PwrNormTestOptions.d#summary": {
     "hash": "84bebb46159d",
     "en": "Effect size d (difference of means over the known standard deviation), or `\"small\"`, `\"medium\"`, `\"large\"`.",
@@ -793,6 +858,16 @@
     "hash": "7bec08620fae",
     "en": "Number of observations.",
     "ja": "観測数です。"
+  },
+  "PwrNormTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": "検定の検出力です。"
+  },
+  "PwrNormTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": "有意水準。既定は `0.05`。"
   },
   "PwrNormTestResult#summary": {
     "hash": "e9d9066aa2fa",
@@ -839,15 +914,30 @@
     "en": "Options for {@link pwrRTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
     "ja": "{@link pwrRTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
+  "PwrRTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": "`\"two.sided\"` (既定)、`\"less\"`、または `\"greater\"`。曖昧さのない省略形も使えます。"
+  },
   "PwrRTestOptions.n#summary": {
     "hash": "7bec08620fae",
     "en": "Number of observations.",
     "ja": "観測数です。"
   },
+  "PwrRTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": "検定の検出力です。"
+  },
   "PwrRTestOptions.r#summary": {
     "hash": "26964fb5866e",
     "en": "Correlation, or `\"small\"`, `\"medium\"`, `\"large\"`.",
     "ja": "相関係数、または `\"small\"`、`\"medium\"`、`\"large\"`。"
+  },
+  "PwrRTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": "有意水準。既定は `0.05`。"
   },
   "PwrRTestResult#summary": {
     "hash": "3d68e57ff838",
@@ -894,6 +984,11 @@
     "en": "Options for {@link pwrT2nTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
     "ja": "{@link pwrT2nTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
+  "PwrT2nTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": "`\"two.sided\"` (既定)、`\"less\"`、または `\"greater\"`。曖昧さのない省略形も使えます。"
+  },
   "PwrT2nTestOptions.d#summary": {
     "hash": "0de371e9ad81",
     "en": "Effect size d, or `\"small\"`, `\"medium\"`, `\"large\"`.",
@@ -908,6 +1003,16 @@
     "hash": "be3501e2c9f0",
     "en": "Number of observations in the second group.",
     "ja": "第 2 群の観測数です。"
+  },
+  "PwrT2nTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": "検定の検出力です。"
+  },
+  "PwrT2nTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": "有意水準。既定は `0.05`。"
   },
   "PwrT2nTestResult#summary": {
     "hash": "7b1de9720e91",
@@ -959,6 +1064,11 @@
     "en": "Options for {@link pwrTTest}. The quantity given as `null` (or omitted, except `sigLevel`) is solved for.",
     "ja": "{@link pwrTTest} のオプションです。値に `null` を指定した量、または省略した量 (`sigLevel` を除く) は、その量を求めます。"
   },
+  "PwrTTestOptions.alternative#summary": {
+    "hash": "e6126824b258",
+    "en": "`\"two.sided\"` (default), `\"less\"` or `\"greater\"`; unambiguous abbreviations are accepted.",
+    "ja": "`\"two.sided\"` (既定)、`\"less\"`、または `\"greater\"`。曖昧さのない省略形も使えます。"
+  },
   "PwrTTestOptions.d#summary": {
     "hash": "16d4ed606fc1",
     "en": "Effect size d (Cohen's d), or `\"small\"`, `\"medium\"`, `\"large\"`.",
@@ -968,6 +1078,16 @@
     "hash": "0f6f177de98b",
     "en": "Number of observations (per group, or of pairs).",
     "ja": "観測数 (群ごと、または対の数)。"
+  },
+  "PwrTTestOptions.power#summary": {
+    "hash": "04518a4ed7b3",
+    "en": "Power of the test.",
+    "ja": "検定の検出力です。"
+  },
+  "PwrTTestOptions.sigLevel#summary": {
+    "hash": "9bd4ea7a67d6",
+    "en": "Significance level. Default `0.05`.",
+    "ja": "有意水準。既定は `0.05`。"
   },
   "PwrTTestOptions.type#summary": {
     "hash": "bcf3a7132e29",
