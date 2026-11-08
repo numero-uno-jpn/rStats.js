@@ -1,6 +1,6 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-07 (セッション 17 の終わり、1.2.0 を公開)
+最終更新: 2026-11-08 (セッション 18、日本語版 API リファレンスを公開)
 
 ## まず読むこと (セッション 16 から)
 
@@ -8,6 +8,13 @@
 
 - **状態:** 1.2.0 を公開済み (2026-11-07、npm latest = 1.2.0、staged をユーザーが `npm stage approve <id>` で承認。2FA のため SSH の対話端末で)。tag `v1.2.0` = `9bc931a` (release のワークフローが dist 入りに移した)、main = `833c0a5` を push 済みで CI・Pages 通過、デモは v1.2.0、jsDelivr の dist/rstats.js・dist/mixed.js を確認 (mixed.js は公開直後の約 30 秒 404)。この HANDOFF の更新はコミットだけで未 push (ユーザーの指示)。作業ツリーは未追跡の `oracle/extreme-parameters-behaviour.md` だけ (触らない)。
   - 公開の経過: release の初回は test/boschloo.test.ts の時間のテスト (上限 3 秒、実行機で 3.5 秒) で止まった。上限を設計上の約 10 秒にして (`833c0a5`)、tag を付け直してユーザーが `push -f` した。Pages は GitHub 側のデプロイのタイムアウト (10 分、`256a64b` でも起きた) で失敗し、`gh run rerun` で通った。時間を測るテストの上限は実行機の速さでなく設計上の上限で決める
+- **日本語版 API リファレンス (セッション 18、2026-11-08):** https://numero-uno-jpn.github.io/rStats.js/ja/api/ を公開。main = `7980669` を push 済みで Pages 通過。計画は `~/.claude/plans/valiant-enchanting-lemon.md` (最後の版だけ残る)。
+  - 訳は `docs/ja/api/*.json` (3,260 件、`{hash, en, ja, stale}`)。src の TSDoc は英語のまま。`scripts/api-ja-extract.mjs` (キーの計算は `scripts/api-ja-keys.mjs`) が抽出し、英文が変わった項目に `stale` を付ける。訳し直しの依頼文の雛形は `docs/ja/api/TRANSLATING.md`、用語集は `docs/ja/api-glossary.md` (翻訳中に決めた語を末尾に追記してある)。トップページは `docs/ja/api-reference.md`。
+  - `scripts/typedoc-ja-plugin.mjs` が生成時に訳を差し替える。hash が合わない項目は英語のまま出す。継承メンバーは親の訳を使う (親が export されていないものは子の名前で収録)。見出しの TypeScript の用語 (Interface、Function、Properties、Parameters、Index、Optional など) は、HTML の後処理で英語に戻している (h1 の種類名、h2〜h5 の文字、`tsd-tag` だけ)。
+  - Pages は英語版・日本語版とも最新のリリースタグから API を作る。main で英文を直すと、その項目は次のリリースまで日本語版でも英語で出る (正常)。**リリースの前に `node scripts/api-ja-extract.mjs` を実行し、stale があれば訳し直す。**
+  - `scripts/link-r-functions.mjs` が Pages の生成時に r-functions の表 (en、ja) の関数名へ API のリンクを付ける (リリースにある関数だけ。`Anova` は `Anova-1.html`)。
+  - 英文の修正 (`0e09dc2`、次のリリースで API に出る): `GlmSummary.statisticName` に dispersion 指定時、`KappaResult` は Conger の正確な κ、`qrSolve` の LAPACK の条件、Jonckheere の例は 216 個ずつ、KS の例は m 783。トップページの Conventions を小見出しと表に分けた (`69e78aa`、英語版は次のリリースで反映)。
+  - 翻訳の進め方: Haiku 5.5 のエージェントに分野ごとに 1 体ずつ (同時に走らせると抽出スクリプトが他の分野の訳を上書きする)。抜き取りで、条件の掛かり先 ("X or Y without Z" など) と人名の表記 (英字。ただしヘッセ行列・ヤコビ行列・ベッセル関数・分布名はカタカナ) を確かめる。
 - **次の作業 (公開の後):** ROADMAP の Remaining の 1 番 (頑健な標準誤差: sandwich の vcovHC・vcovCL、lmtest の coeftest、coxph の robust)。進め方は 1.2.0 と同じ (下)。
 - **1.2.0 でしたこと (セッション 17、2026-11-06〜07):** 計画は `~/.claude/plans/idempotent-swinging-lerdorf.md`。
   - ユーザーの判断: Boschloo は 1.2.0 に含める。比率の区間は 7 方法 (wilson・wilsoncc・clopper-pearson・wald・agresti-coull・jeffreys・midp)。2×2 の効果指標は epiR (ReactiveStat が使う) と DescTools・epitools の両方に照合。線形連関は漸近版だけ。ReactiveStat の menu.yaml にある N-1 カイ二乗・リスク差の同等性検定・Freeman-Tukey 残差も入れる。仕様の判断 1〜16 は `oracle/contingency-behaviour.md` の「rStats.js's choices」(要点: 1 件ずつの API、fisherTest の midp、mee・ac・オッズ比の score も、既定はパッケージの既定、不正確な根は真の根、Boschloo は真の上限で既定 square、tost とスコア法の比率の同等性検定の両方、G 検定は上側の p 値、Stuart-Maxwell の df は除いた後、N-1 は chisqTest のオプション、FT 残差は結果の欄、線形連関は全部 1..k の得点、γ は推定・区間・ASE、意味のない入力はエラー)。
