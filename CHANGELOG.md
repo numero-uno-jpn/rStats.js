@@ -24,6 +24,13 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   for a glm of every family; `vcov` is a matrix, the result of `vcovHC`/`vcovCL` or a function of the fit.
 - `LmResult` has the model matrix `x`, the `weights` and the 0-based input `rows` used (as `LmFormulaResult` had),
   and `GlmModel` the `rows` used.
+- **Robust variance of `coxph`** (survival's `coxph(robust, cluster)`; Lin and Wei 1989): options `robust` (default
+  as R: on with a `cluster` or a case weight that is not an integer) and `cluster` (rows with a missing label are
+  dropped). The result has `usedRobust` always and, with the robust variance, `naiveVar`, `robustSe`, `rscore` and
+  `robscore`; `var` is then the robust variance and `z`, `p`, `lower`, `upper`, `wald` and `waldtest` use it, while
+  `se` stays the model-based standard error (R's `se(coef)`). Efron and Breslow ties, case weights and strata, R's
+  warning for a cluster with `robust: false`; a single cluster is an error (docs/differences-from-r.md). Non-integer
+  case weights no longer throw. Checked against survival 3.8-12 (R 4.6.2).
 
 ## 1.2.0 - 2026-11-07
 

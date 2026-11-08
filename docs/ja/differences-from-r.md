@@ -836,8 +836,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`poissonTest`** の `T` と `r` は有限値が必要です (R は `Inf` を受け付けます)。1 標本の検定は R と同じく `confLevel` の
   0 と 1 を受け付けます (2 標本の検定は `binomTest` と同じく 0 < `confLevel` < 1)。
 
-- **`coxph`** は共変量を行列で受け取ります (formula はありません)。整数でないケースの重みは "non-integer weights (robust
-  variance) are not supported yet" で止まります (R はそのとき頑健 (サンドイッチ) 分散に切り替えます)。多数の反復で
+- **`coxph`** は共変量を行列で受け取ります (formula はありません)。そのためクラスターは `cluster` オプションだけで指定し
+  ます (R の formula の `cluster()` 項と、両方を指定したときの R の警告はありません)。頑健分散でクラスターが 1 つだけの
+  ときは "at least two clusters are needed for the robust variance" のエラーです (R は共変量が 2 つ以上だと
+  "(subscript) logical subscript too long" で止まります)。15 桁の表記が同じ数値のクラスターのラベルは、層と同じく 1 つ
+  のクラスターです。多数の反復で
   係数が無限大に向かう例では R 自身の結果がプラットフォームで違う (20 回の反復で x86_64 と arm64 の R が 1e-7
   違う) ので、その程度までしか一致しません。
 - **`omega`** は 1 因子のとき、Schmid-Leiman 行列の群因子の列と群ごとの ω を厳密に 0 と返します。R は丸めの残差の
@@ -1309,6 +1312,6 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - numDeriv の複素数ステップ法 (`method = "complex"`。複素数の引数を受け取る関数が要る) と、`grad`・
   `jacobian` の `side` 引数。
 - deSolve の適応刻みの解法 (`lsoda`、`ode45` など)。`ode` は固定刻みの `euler`・`rk2`・`rk4` です。
-- `coxph`: 計数過程のデータ (`Surv(start, stop, event)`)、`ties = "exact"`、オフセット、クラスターと頑健分散、
-  `tt()` の項、残差、concordance。
+- `coxph`: 計数過程のデータ (`Surv(start, stop, event)`)、`ties = "exact"`、オフセット、`tt()` の項、
+  残差 (頑健分散の元になるスコア残差と dfbeta 残差は公開していません)、concordance。
 - `omega`: minres 以外の因子抽出法、oblimin 以外の回転、`n.iter` (ブートストラップの区間)、`poly = TRUE`。
