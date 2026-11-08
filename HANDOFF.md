@@ -1,10 +1,21 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-08 (セッション 18、日本語版 API リファレンスを公開)
+最終更新: 2026-11-09 (セッション 19、1.3.0 を公開: 頑健な標準誤差と、診断の正確度・測定の一致)
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること (2026-11-07 に作成)
+## 次のセッションで最初にやること (2026-11-09 に作成、セッション 19)
+
+- **状態:** 1.3.0 を公開済み (2026-11-09、npm latest = 1.3.0。staged をユーザーが `npm stage approve fcb628a8-...` で承認。1 回目は通っておらず `npm stage view <id>` で status: staged と分かり、やり直して通った)。tag `v1.3.0` = `3d3fb65` (release が dist 入りに移した)、main = `4382006` を push 済みで CI・Pages 通過、デモ v1.3.0、jsDelivr の dist/rstats.js・dist/mixed.js を確認 (rstats.js は承認後しばらく 404)、/api/ と /ja/api/ に新しい関数のページ。
+- **1.3.0 の中身:** ROADMAP の旧 1 (頑健な標準誤差: `vcovHC`・`vcovCL`・`coeftest`・`coefci`、coxph の `robust`・`cluster`・非整数の重み) と旧 2 (`roc`・`auc`・`ciAuc`・`rocTest`・`coords`・`diagnosticTests`・`blandAltman`・`mcreg`・`ICC`・`tTOST`・`tsumTOST`) をまとめて 1 つの版に (ユーザーの判断)。仕様は `oracle/robust-behaviour.md`・`oracle/roc-behaviour.md`・`oracle/methodcomparison-behaviour.md` (どれも末尾の「rStats.js's choices」にユーザーの判断)。計画は `~/.claude/plans/cheerful-bouncing-flute.md`。
+- **進め方の変更 (ユーザーの指示、メモリ `feedback-rstats-parallel-agents`):** 今後はエージェントを立てず、私が自分で処理する。クリーンルームは「私は R・GPL のソースを読まない。仕様も実装も論文・ヘルプ・R の実行結果 (fixture) から書く」。1.3.0 までの仕様の文書はソースを読んだエージェントが書いたもの。
+- **精度の点検:** 新しい関数はどれも、overflow・underflow・桁落ち・端の場合の点検 → 修正 → 再点検を 2〜3 回くり返した (2^±1000 の尺度、厳密な有理数・BigInt との照合)。主な直したもの: coxph のスコア残差 (リスク集合ごとのずらし)、sandwich の 2 の冪の単位での再計算と coeftest の指数の記録 (WeakMap。行列を写すと消える、TSDoc に記載)、ROC の McClish 補正と AUC の差を BigInt で厳密に、ICC の平均平方ごとの指数、mcreg の x・y を別々の尺度で、tTOST の尺度、`RNGkind` が種類を指定したときだけ乱数の状態を作る (R で確認)。点検の報告は残っていない (ジョブの一時領域)。
+- **残った小さな点 (直していない):** coxph の素朴な分散の E[x²] − x̄² の桁落ち (直すと issue367 のテストが崩れる)、vcovCL の `fix` で負の固有値を本当に 0 にするときは R と同じ共通の単位 (2^537 以上小さい係数の分散は 0)、Gamma の glm で作業重みが非正規化数のときは当てはめの精度まで、tsumTOST の SD が非正規化数 (1e-320) のとき相対 1e-4、`tTest` の丸めた平均からの効果 (前から)、ICC の F 分位点の極限の挙動、既訳の API の訳 13 件で改行の数が英文と違う (glm・survival・random)。
+- **oracle:** Dockerfile.r46 に pROC・BlandAltmanLeh・mcr・TOSTER の層を足し、arm64 と amd64 の両方を作り直した (sandwich・lmtest・survival は前から入っている)。
+- **作業ブランチ・worktree が残っている:** `.claude/worktrees/` に robust-integration・diag-integration・release・docs13・demo13・fix-*・ja1〜3・agent-* など。消すのはユーザーに確認してから。
+- **次の作業:** ROADMAP の Remaining の 1 (生存時間解析の続き: Nelson-Aalen、RMST、cox.zph、時間依存性変数、競合リスク、survreg)。エージェントなしで、上のクリーンルームの方式で。
+
+## 前回 (セッション 18 まで) の「次のセッションで最初にやること」 (2026-11-07 に作成)
 
 - **状態:** 1.2.0 を公開済み (2026-11-07、npm latest = 1.2.0、staged をユーザーが `npm stage approve <id>` で承認。2FA のため SSH の対話端末で)。tag `v1.2.0` = `9bc931a` (release のワークフローが dist 入りに移した)、main = `833c0a5` を push 済みで CI・Pages 通過、デモは v1.2.0、jsDelivr の dist/rstats.js・dist/mixed.js を確認 (mixed.js は公開直後の約 30 秒 404)。この HANDOFF の更新はコミットだけで未 push (ユーザーの指示)。作業ツリーは未追跡の `oracle/extreme-parameters-behaviour.md` だけ (触らない)。
   - 公開の経過: release の初回は test/boschloo.test.ts の時間のテスト (上限 3 秒、実行機で 3.5 秒) で止まった。上限を設計上の約 10 秒にして (`833c0a5`)、tag を付け直してユーザーが `push -f` した。Pages は GitHub 側のデプロイのタイムアウト (10 分、`256a64b` でも起きた) で失敗し、`gh run rerun` で通った。時間を測るテストの上限は実行機の速さでなく設計上の上限で決める
