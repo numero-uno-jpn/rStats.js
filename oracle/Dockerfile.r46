@@ -88,3 +88,10 @@ RUN install2.r --error --skipinstalled pROC BlandAltmanLeh mcr TOSTER \
     && Rscript -e 'pk <- c("pROC", "BlandAltmanLeh", "mcr", "TOSTER", "psych"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Survival analysis, continued (1.4.0), in a layer of their own: survRM2 (restricted mean survival time) and cmprsk
+# (competing risks: cuminc, crr). survival (survfit, cox.zph, survreg) is one of R's recommended packages.
+RUN install2.r --error --skipinstalled survRM2 cmprsk \
+    && Rscript -e 'pk <- c("survRM2", "cmprsk", "survival"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
