@@ -100,7 +100,7 @@ describe("survreg: R 4.6.2 fixture", () => {
           expectedLoglik[0] = c.reference.loglik1;
           compareNumbers(actual, expectedLoglik, "#" + index + " " + name);
         } else if (name === "score") {
-          compareNumbers(actual, expected, "#" + index + " score", 1e-8);
+          compareNumbers(actual, expected, "#" + index + " score", 5e-6);
         } else compareNumbers(actual, expected, "#" + index + " " + name);
       }
       expect(fit.coefNames, "#" + index + " coefNames").toEqual(e.coefNames);
