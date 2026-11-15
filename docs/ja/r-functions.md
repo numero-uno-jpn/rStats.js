@@ -266,6 +266,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | 標本サイズが異なる 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズの一方、効果量、有意水準のいずれか |
 | `quade.test()` | `quadeTest` | 反復のない完全ブロック計画に対する Quade 検定 |
 | `residuals()` | `glmResiduals` | `glm` で当てはめた一般化線形モデルの残差 (1 行に 1 つ) |
+| `residuals.survreg()` | `survregResiduals` | パラメトリック生存時間回帰モデルの残差 (応答、deviance、working、dfbeta、影響度など) |
 | `survRM2::rmst2()` | `rmst2` | 制限平均生存時間 (RMST) と制限平均損失時間 (RMTL)、その群間の差と比 |
 | `pROC::roc.test()` | `rocTest` | 2 つの ROC 曲線の下の面積の差の検定 (DeLong の方法またはブートストラップ) |
 | `pROC::roc()` | `roc` | 2 値の応答に対する数値の予測変数の ROC 曲線 |
