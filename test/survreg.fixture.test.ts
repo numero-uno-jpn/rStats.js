@@ -34,21 +34,43 @@ function optionsOf(a: Raw): SurvregOptions {
   return options as SurvregOptions;
 }
 function verifyScoreByFiniteDifferences(a: Raw, fit: SurvregResult, label: string): void {
-  const base = optionsOf(a);
-  const p = fit.coefficients.length;
-  const theta = [...fit.coefficients, ...(fit.var.length > p ? fit.scale.map(Math.log) : [])];
-  if (theta.some(v => !Number.isFinite(v))) return;
-  const control = { ...(base.control ?? {}), maxiter: 0 };
-  const loglikAt = (values: number[]): number => survreg(
-    vector(a.time) ?? [], vector(a.event), matrix(a.x) ?? [],
-    { ...base, init: values, control },
-  ).loglik[1];
+  const time = vector(a.time)!, event = vector(a.event) ?? time.map(() => 1);
+  const x = matrix(a.x) ?? time.map(() => []);
+  const offset = vector(a.offset) ?? time.map(() => 0);
+  const weights = vector(a.weights) ?? time.map(() => 1);
+  const intercept = a.intercept !== false;
+  const dist = String(a.dist ?? "weibull");
+  const theta = [...fit.coefficients, Math.log(fit.scale[0]!)];
+  const loglik = (v: number[]): number => {
+    const beta = v.slice(0, fit.coefficients.length), sigma = Math.exp(v[v.length - 1]!);
+    let total = 0;
+    for (let i = 0; i < time.length; i++) {
+      const row = x[i]!;
+      let eta = offset[i]!;
+      if (intercept) eta += beta[0]!;
+      for (let j = 0; j < row.length; j++) eta += row[j]! * beta[j + (intercept ? 1 : 0)]!;
+      const y = Math.log(time[i]!);
+      const z = (y - eta) / sigma;
+      let g: number;
+      if (event[i] === 1) {
+        g = dist === "lognormal" || dist === "loggaussian"
+          ? -0.5 * z * z - 0.5 * LOG2PI - Math.log(sigma) - Math.log(time[i]!)
+          : z - Math.exp(z) - Math.log(sigma) - Math.log(time[i]!);
+      } else {
+        g = dist === "lognormal" || dist === "loggaussian"
+          ? pnorm(z, { lowerTail: false, logP: true })
+          : -Math.exp(z);
+      }
+      total += weights[i]! * g;
+    }
+    return total;
+  };
   theta.forEach((value, j) => {
     const h = 1e-5 * Math.max(1, Math.abs(value));
     const plus = theta.slice(), minus = theta.slice();
     plus[j] = value + h;
     minus[j] = value - h;
-    const numerical = (loglikAt(plus) - loglikAt(minus)) / (2 * h);
+    const numerical = (loglik(plus) - loglik(minus)) / (2 * h);
     const tolerance = 2e-5 * Math.max(1, Math.abs(numerical));
     expect(Math.abs(fit.score[j]! - numerical), label + " score[" + j + "] finite difference")
       .toBeLessThanOrEqual(tolerance);
