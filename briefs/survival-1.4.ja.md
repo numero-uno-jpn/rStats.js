@@ -55,6 +55,18 @@ R の survival は LGPL、cmprsk と survRM2 は GPL です。rStats.js は MIT 
 
 ## 3. 設計で守ること
 
+- **検証済みの関数を使う (一から書かない):** rStats.js の公開・内部の関数は、R との照合と極端な尺度の点検を
+  済ませてあります。同じ計算を自前で書き直さず、それを呼んでください。たとえば次のものです
+  - Kaplan-Meier 曲線・累積ハザード (打ち切りの分布の KM も): `survfit` (src/models/survival.ts)
+  - 重み付き最小二乗・一般化線形モデル: `lm`・`glm` (src/models/lm.ts・glm.ts)。対数リンクの推定方程式は
+    `glm(family: "poisson", weights)` で解ける
+  - 頑健な共分散: `vcovHC`・`vcovCL` (src/models/sandwich.ts)。Cox 回帰: `coxph`
+  - 行列の分解・逆行列・連立方程式: `src/linalg/` (`chol`・`qr`・`solve` など)。逆行列を `solve` の列ごとの呼び出しで
+    作らない
+  - 分布関数・分位点: `src/distributions/`。総和や尺度の調整は `src/internal/` と `src/numerics/` の既存の道具
+  - 自前で書くのは、既存の関数では計算できない固有の部分 (rmst2 の打ち切りの補正項を含む B 行列など) だけ。
+    その部分と、既存の関数を使わなかった理由を報告に書く
+  - 既存の関数の結果を R に合わせるために後から補正する、といった回り道が要るときは、Issue で質問して止まる
 - **互換性を壊さない:** 1.x の間は、既存の関数の結果やオプションの意味を変えない (README の Versioning)。
   オプションや結果の欄を足すのは構わない
 - **R が誤る所は正しい値を返す:** 仕様書の「Where R is wrong or inaccurate」に従う。正しい値を返す所は、
