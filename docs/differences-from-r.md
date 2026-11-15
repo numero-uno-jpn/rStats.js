@@ -1585,6 +1585,10 @@ By default rStats.js returns what R returns;
 
 ### Survival analysis
 
+
+- **Extreme finite RMST endpoints:** `survfit` scales endpoints for restricted-mean areas and Greenwood area terms only when the full integration span subtraction would overflow, avoiding overflow in a subtraction such as `Number.MAX_VALUE - (-Number.MAX_VALUE)`. This returns the finite mathematical result where direct binary64 subtraction would overflow.
+
+
 - **Case weights in `survfit`:** rStats.js requires non-negative safe-integer counts, rejects fractional or unsafe individual weights, and rejects a stratum total above `Number.MAX_SAFE_INTEGER`. This avoids rounded or infinite risk sets; `robust: true` requests the IJ variance for supported integer counts.
 - **Zero-total-weight strata:** rStats.js throws when a stratum has no positive total weight (including an all-zero fit), rather than returning a curve with no weighted risk set.
 - **Restricted-mean lower limits:** `survfit` accepts a numeric `rmean` between the integration origin `min(0, min(time))` and the first observed time. The area is defined there (survival is one), even though R errors.
@@ -1597,6 +1601,13 @@ By default rStats.js returns what R returns;
 - **Very large `rmst2` times:** follow-up times are divided by an exact power of two before integration and rescaled in the result. Ratio estimates and Wald statistics are therefore computed on a numerically better-scaled time axis without changing their units.
 
 ## Competing risks
+
+- **Extreme adjusted RMST covariates:** `rmst2` scales covariate columns by exact powers of two around the existing `lm` / `glm` fits and transforms coefficients and covariance back to original units. This avoids intermediate cross-product overflow for finite scale-equivalent designs; extreme inputs can therefore remain finite where a direct binary64 design cross-product would overflow.
+
+- **Large-offset Fine-Gray covariates:** `crr` forms the risk-set information from centered weighted products when the covariate offset is much larger than its spread, rather than subtracting two large raw moments. This preserves the small positive information that direct `E[Z²] - E[Z]²` can lose.
+
+- **Small or extreme predicted incidence:** `predictCrr` uses `-expm1(-H)` for cumulative incidence and combines `log(bfitj) + eta` before exponentiating when the direct baseline-times-risk product underflows or overflows. It can return a positive tiny incidence where `1 - exp(-H)` rounds to zero, or a finite incidence where `exp(eta)` alone overflows.
+
 
 ### `cuminc`, Gray's test and `crr`
 

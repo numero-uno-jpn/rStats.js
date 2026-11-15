@@ -578,11 +578,29 @@ export function crr(
       const s0 = sum(rf);
       const s1 = Array.from({ length: p }, (_, a) =>
         sum(rf.map((w, i) => w * zz[i]![a]!)));
-      const s2 = Array.from({ length: p }, (_, a) =>
-        Array.from({ length: p }, (_, b) =>
-          sum(rf.map((w, i) => w * zz[i]![a]! * zz[i]![b]!))));
       if (!(s0 > 0)) throw new Error("empty Fine-Gray risk set");
       const meanZ = s1.map((v) => v / s0);
+      const needsCentering = Array.from({ length: p }, (_, a) => {
+        const anchor = zz[0]![a]!;
+        let spread = 0, magnitude = 0;
+        for (const row of zz) {
+          spread = Math.max(spread, Math.abs(row[a]! - anchor));
+          magnitude = Math.max(magnitude, Math.abs(row[a]!));
+        }
+        return spread > 0 && magnitude / spread > 1e6;
+      });
+      const useCentered = needsCentering.some(Boolean);
+      // Allocate centered columns only for the exceptional large-offset path; ordinary inputs
+      // retain the original second-moment calculation and its operation order.
+      const centered = useCentered
+        ? Array.from({ length: p }, (_, a) => zz.map(row => row[a]! - zz[0]![a]!))
+        : [];
+      const centeredMean = useCentered
+        ? centered.map(column => sum(column.map((v, i) => rf[i]! * v)) / s0)
+        : [];
+      const s2 = useCentered ? undefined : Array.from({ length: p }, (_, a) =>
+        Array.from({ length: p }, (_, b) =>
+          sum(rf.map((w, i) => w * zz[i]![a]! * zz[i]![b]!))));
       means.push(meanZ); riskFactors.push(rf.map((v) => v / s0));
       const b = direct ? d / s0 : (d * Math.exp(-maxLp)) / s0;
       bfitj.push(b);
@@ -596,7 +614,11 @@ export function crr(
         res[j]![a] = increment;
       }
       for (let a = 0; a < p; a++) for (let b0 = 0; b0 < p; b0++) {
-        infTerms[a]![b0]!.push(d * (s2[a]![b0]! / s0 - meanZ[a]! * meanZ[b0]!));
+        const covariance = useCentered
+          ? sum(rf.map((w, i) => w * (centered[a]![i]! - centeredMean[a]!) *
+              (centered[b0]![i]! - centeredMean[b0]!))) / s0
+          : s2![a]![b0]! / s0 - meanZ[a]! * meanZ[b0]!;
+        infTerms[a]![b0]!.push(d * covariance);
       }
     }
     const eta = zeros(t.length, p);
@@ -738,9 +760,15 @@ export function predictCrr(
       let cumulative = 0;
       for (let k = 0; k <= j; k++) {
         const z = [...(p1 === 0 ? [] : cov1![i]!), ...(p2 === 0 ? [] : cov2![i]!.map((v, h) => v * tfs[k]![h]!))];
-        cumulative += fit.bfitj[k]! * Math.exp(dot(fit.coefficients, z));
+        const baseline = fit.bfitj[k]!;
+        const eta = dot(fit.coefficients, z);
+        const direct = baseline * Math.exp(eta);
+        const increment = Number.isFinite(direct) && (direct !== 0 || baseline === 0)
+          ? direct
+          : baseline === 0 ? 0 : Math.exp(Math.log(baseline) + eta);
+        cumulative += increment;
       }
-      row.push(1 - Math.exp(-cumulative));
+      row.push(-Math.expm1(-cumulative));
     }
     return row;
   });

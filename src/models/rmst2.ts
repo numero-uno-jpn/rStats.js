@@ -186,8 +186,18 @@ function adjustedFit(
   names: string[],
   zCrit: number,
 ): { coef: number[]; cov: number[][]; table: RmstCoefficientTable } {
-  const predictors = rows.map(r => [r.arm, ...r.x]);
-  const Z = rows.map(r => [1, r.arm, ...r.x]);
+  const rawPredictors = rows.map(r => [r.arm, ...r.x]);
+  // Keep ordinary columns unchanged; only extreme magnitudes are divided by an exact power of two.
+  // The fit and sandwich are computed in these equivalent coordinates, then mapped back below.
+  const columnScales = rawPredictors[0]!.map((_, j) => {
+    const magnitude = rawPredictors.reduce((m, row) => Math.max(m, Math.abs(row[j]!)), 0);
+    if (magnitude === 0) return 1;
+    const exponent = Math.floor(Math.log2(magnitude));
+    return exponent > 500 || exponent < -500 ? 2 ** exponent : 1;
+  });
+  const predictors = rawPredictors.map(row => row.map((v, j) => v / columnScales[j]!));
+  const Z = rows.map((_, i) => [1, ...predictors[i]!]);
+  const parameterScales = [1, ...columnScales];
   const w = censorWeights(rows);
   const fit = logLink
     ? glm(predictors, y, { family: "poisson", weights: w })
@@ -195,7 +205,8 @@ function adjustedFit(
   if (logLink && !(fit as ReturnType<typeof glm>).converged) {
     throw new Error("the adjusted RMST Poisson model did not converge");
   }
-  const coef = fit.coefficients;
+  const scaledCoef = fit.coefficients;
+  const coef = scaledCoef.map((v, j) => v / parameterScales[j]!);
   const mu = fit.fittedValues;
   if (coef.some(v => !Number.isFinite(v)) || mu.some(v => !Number.isFinite(v))) {
     throw new Error("the adjusted RMST model is singular or has non-finite fitted values");
@@ -240,7 +251,8 @@ function adjustedFit(
   const A = crossprod(derivativeRows);
   const B = crossprod(eta);
   const Ainv = solve(A);
-  const cov = matMul(matMul(Ainv, B), Ainv);
+  const scaledCov = matMul(matMul(Ainv, B), Ainv);
+  const cov = scaledCov.map((row, i) => row.map((v, j) => v / parameterScales[i]! / parameterScales[j]!));
   const se = cov.map((row, i) => Math.sqrt(Math.max(0, row[i]!)));
   const z = coef.map((v, i) => v / se[i]!);
   const pValue = z.map(pTwoSided);

@@ -499,20 +499,33 @@ export function survfit(time: readonly number[], status: readonly number[], opti
     out.events.push(rows.reduce((v,o)=>v+ (o.event?o.weight:0),0));
     const tau= rmean==="none"?NaN:rmean==="common"?Math.max(...allTimes):rmean==="individual"?maxTime:rmean;
     if(rmean!=="none"&&!Number.isFinite(tau)) throw new RangeError("'rmean' must be finite");
-    const areaSum=wideSum();
-    const survAt=(t:number)=>{let x=1;for(const ev of eventRows){if(ev.t<=t)x=ev.S;else break;}return x;};
-    const cuts=Array.from(new Set([t0,...eventRows.map(e=>e.t).filter(t=>t>t0&&t<tau),tau])).sort((a,b)=>a-b);
-    for(let k=0;k<cuts.length-1;k++){const l=cuts[k]!,u=cuts[k+1]!;wideSumAdd(areaSum,survAt(l)*(u-l),cuts.length+1);}
-    const area=wideSumValue(areaSum);
-    const varianceSum=wideSum();
     const finiteTimes=rows.filter(o=>Number.isFinite(o.time)).map(o=>Math.abs(o.time));
-    const largestTime=Number.isFinite(tau)?Math.max(Math.abs(tau),Math.abs(t0),...finiteTimes):0;
-    const exponent=Math.max(-1074,Math.min(1023,Math.floor(Math.log2(largestTime))));
+    const largestTime=Number.isFinite(tau)?Math.max(Math.abs(tau),Math.abs(t0),...finiteTimes):Math.max(Math.abs(t0),...finiteTimes);
+    const exponent=largestTime===0?0:Math.max(-1074,Math.min(1023,Math.floor(Math.log2(largestTime))));
     const timeScale=largestTime===0?1:2**exponent;
+    const scaleEndpoints=Number.isFinite(tau)&&!Number.isFinite(tau-t0);
+    const survAt=(t:number)=>{let x=1;for(const ev of eventRows){if(ev.t<=t)x=ev.S;else break;}return x;};
+    const survAtScaled=(t:number)=>{let x=1;for(const ev of eventRows){if(ev.t/timeScale<=t)x=ev.S;else break;}return x;};
+    const areaSum=wideSum();
+    if(scaleEndpoints){
+      const cuts=Array.from(new Set([t0/timeScale,...eventRows.map(e=>e.t/timeScale).filter(t=>t>t0/timeScale&&t<tau/timeScale),tau/timeScale])).sort((a,b)=>a-b);
+      for(let k=0;k<cuts.length-1;k++){const l=cuts[k]!,u=cuts[k+1]!;wideSumAdd(areaSum,survAtScaled(l)*(u-l),cuts.length+1);}
+    }else{
+      const cuts=Array.from(new Set([t0,...eventRows.map(e=>e.t).filter(t=>t>t0&&t<tau),tau])).sort((a,b)=>a-b);
+      for(let k=0;k<cuts.length-1;k++){const l=cuts[k]!,u=cuts[k+1]!;wideSumAdd(areaSum,survAt(l)*(u-l),cuts.length+1);}
+    }
+    const area=wideSumValue(areaSum)*(scaleEndpoints?timeScale:1);
+    const varianceSum=wideSum();
     if(Number.isFinite(tau)){
       for(const ev of eventRows){if(ev.t>tau||ev.n<=ev.d)continue;
-        const aSum=wideSum();const c2=Array.from(new Set([ev.t,...eventRows.map(e=>e.t).filter(t=>t>ev.t&&t<tau),tau])).sort((a,b)=>a-b);
-        for(let k=0;k<c2.length-1;k++) wideSumAdd(aSum,survAt(c2[k]!)*((c2[k+1]!-c2[k]!)/timeScale),c2.length+1);
+        const aSum=wideSum();
+        if(scaleEndpoints){
+          const c2=Array.from(new Set([ev.t/timeScale,...eventRows.map(e=>e.t/timeScale).filter(t=>t>ev.t/timeScale&&t<tau/timeScale),tau/timeScale])).sort((a,b)=>a-b);
+          for(let k=0;k<c2.length-1;k++) wideSumAdd(aSum,survAtScaled(c2[k]!)*(c2[k+1]!-c2[k]!),c2.length+1);
+        }else{
+          const c2=Array.from(new Set([ev.t,...eventRows.map(e=>e.t).filter(t=>t>ev.t&&t<tau),tau])).sort((a,b)=>a-b);
+          for(let k=0;k<c2.length-1;k++) wideSumAdd(aSum,survAt(c2[k]!)*((c2[k+1]!-c2[k]!)/timeScale),c2.length+1);
+        }
         const A=wideSumValue(aSum);
         wideSumAdd(varianceSum,A*A*ev.d/(ev.n*(ev.n-ev.d)),eventRows.length+1);
       }
