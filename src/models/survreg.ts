@@ -127,24 +127,37 @@ function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[]
   const evaluate=(v:number[],withH:boolean)=>{let ll=0;const u=Array(q).fill(0),H=Array.from({length:q},()=>Array(q).fill(0)),B=Array.from({length:q},()=>Array(q).fill(0));
     for(let i=0;i<y.length;i++){const s=strata[i]!,eta=dot(X[i]!,v.slice(0,p))+offset[i]!,sig=fixed??Math.exp(v[p+s]!);const g=deriv(lo[i]!,hi[i]!,status[i]!,eta,sig,d,nu);const wi=weights[i]!;ll+=wi*g.g;
       const si=Array(q).fill(0);for(let j=0;j<p;j++)si[j]=X[i]![j]!*g.e;if(fixed===undefined)si[p+s]=g.t;
-      for(let a=0;a<q;a++){u[a]+=wi*si[a]!;for(let c=0;c<q;c++)B[a]![c]+=wi*si[a]!*si[c]!;}
-      if(withH){for(let a=0;a<p;a++){for(let c=0;c<p;c++)H[a]![c]+=wi*X[i]![a]!*X[i]![c]!*g.ee;if(fixed===undefined)H[a]![p+s]+=wi*X[i]![a]!*g.et;}
-        if(fixed===undefined){for(let c=0;c<p;c++)H[p+s]![c]+=wi*X[i]![c]!*g.et;H[p+s]![p+s]+=wi*g.tt;}}
+      for(let aa=0;aa<q;aa++){u[aa]+=wi*si[aa]!;for(let cc=0;cc<q;cc++)B[aa]![cc]+=wi*si[aa]!*si[cc]!;}
+      if(withH){for(let aa=0;aa<p;aa++){for(let cc=0;cc<p;cc++)H[aa]![cc]+=wi*X[i]![aa]!*X[i]![cc]!*g.ee;if(fixed===undefined)H[aa]![p+s]+=wi*X[i]![aa]!*g.et;}
+        if(fixed===undefined){for(let cc=0;cc<p;cc++)H[p+s]![cc]+=wi*X[i]![cc]!*g.et;H[p+s]![p+s]+=wi*g.tt;}}
     }return {ll,u,H,B};};
-  let cur=evaluate(b,true),best=cur.ll,iter=0,warn=false,trial=b.slice();
-  if(maxiter===0){const V=inv(cur.H.map(r=>r.map(x=>-x)));return {b,ll:cur.ll,iter,V,score:cur.u,warn};}
+  const inverse=(m:number[][]):number[][]=>{try{return inv(m);}catch{return Array.from({length:q},()=>Array(q).fill(0));}};
+  const stepAt=(v:number[])=>{const e=evaluate(v,true),I=e.H.map(r=>r.map(x=>-x));let V:number[][],delta:number[];
+    try{V=inv(I);delta=matVec(V,e.u);}catch{V=inv(e.B);delta=matVec(V,e.u);}
+    return {e,delta};};
+  let cur=evaluate(b,true),best=cur.ll,iter=0,warn=false;
+  let initial: {e:ReturnType<typeof evaluate>;delta:number[]};
+  try{initial=stepAt(b);}catch{initial={e:cur,delta:Array(q).fill(0)};}
+  let trial=b.map((x,j)=>x+initial.delta[j]!);
+  if(maxiter===0){const V=inverse(cur.H.map(r=>r.map(x=>-x)));return {b,ll:cur.ll,iter,V,score:cur.u,warn};}
   for(let it=1;it<=maxiter;it++){
-    let I=cur.H.map(r=>r.map(x=>-x)),step:number[];
-    try{step=matVec(inv(I),cur.u);}catch{step=matVec(inv(cur.B),cur.u);}
-    trial=b.map((x,j)=>x+step[j]!);
-    let next=evaluate(trial,true);
+    const next=evaluate(trial,true);
     if(Number.isFinite(next.ll)&&Math.abs(1-best/next.ll)<=tol){b.splice(0,b.length,...trial);cur=next;best=next.ll;iter=it;break;}
-    if(!Number.isFinite(next.ll)||next.ll<best){trial=b.map((x,j)=>x+(trial[j]!-x)/3);for(let s=0;s<k;s++)if(fixed===undefined)trial[p+s]=Math.max(trial[p+s]!,b[p+s]!-1.1);next=evaluate(trial,true);
-      if(!Number.isFinite(next.ll)||next.ll<best){iter=it;continue;}}
+    if(!Number.isFinite(next.ll)||next.ll<best){
+      const old=trial.slice();trial=b.map((x,j)=>x+(old[j]!-x)/3);
+      for(let ss=0;ss<k;ss++)if(fixed===undefined)trial[p+ss]=Math.max(trial[p+ss]!,b[p+ss]!-1.1);
+      iter=it;
+      continue;
+    }
     b.splice(0,b.length,...trial);cur=next;best=next.ll;iter=it;
-    if(it===maxiter){try{const I2=cur.H.map(r=>r.map(x=>-x));const st=matVec(inv(I2),cur.u);const candidate=b.map((x,j)=>x+st[j]!);const ev=evaluate(candidate,false);if(ev.ll>=best)b.splice(0,b.length,...candidate);}catch{}warn=maxiter>=2;}
+    if(it<maxiter){try{const nstep=stepAt(b);trial=b.map((x,j)=>x+nstep.delta[j]!);}catch{trial=b.slice();}}
+    else { // survreg returns the next full trial if it improves, but keeps the likelihood at the last accepted point
+      try{const nstep=stepAt(b);const candidate=b.map((x,j)=>x+nstep.delta[j]!);const ev=evaluate(candidate,false);if(Number.isFinite(ev.ll)&&ev.ll>=best)b.splice(0,b.length,...candidate);}catch{}
+    }
   }
-  const final=evaluate(b,true);let V:number[][];try{V=inv(final.H.map(r=>r.map(x=>-x)));}catch{V=Array.from({length:q},()=>Array(q).fill(0));}
+  if(iter===maxiter&&maxiter>=2)warn=true;
+  const final=evaluate(b,true);let V:number[][];
+  try{V=inv(final.H.map(r=>r.map(x=>-x)));}catch{V=Array.from({length:q},()=>Array(q).fill(0));}
   return {b,ll:best,iter,V,score:final.u,warn};
 }
 
