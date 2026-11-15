@@ -2213,7 +2213,7 @@
         "ja": "制限平均生存時間と制限平均損失時間: 各群の推定値と群間比較 (survRM2)"
       },
       "js": "(() => { const time = [1, 2, 3, 4, 5, 6, 1.5, 2.5, 3.5, 4.5, 7, 8]; const status = [1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0]; const arm = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0]; const r = rmst2(time, status, arm); return [r.arm1.rmst.estimate, r.arm0.rmst.estimate, r.arm1.rmtl.estimate, r.arm0.rmtl.estimate, r.difference.estimate, r.ratio.estimate, r.rmtlRatio.estimate]; })()",
-      "r": "{ time <- c(1, 2, 3, 4, 5, 6, 1.5, 2.5, 3.5, 4.5, 7, 8); status <- c(1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0); arm <- c(rep(1, 6), rep(0, 6)); r <- survRM2::rmst2(time, status, arm); c(r$RMST.arm1$result[\"Est.\"], r$RMST.arm0$result[\"Est.\"], r$RMTL.arm1$result[\"Est.\"], r$RMTL.arm0$result[\"Est.\"], r$RMST.difference$result[\"Est.\"], r$RMST.ratio$result[\"Est.\"], r$RMTL.ratio$result[\"Est.\"]) }"
+      "r": "{ time <- c(1, 2, 3, 4, 5, 6, 1.5, 2.5, 3.5, 4.5, 7, 8); status <- c(1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0); arm <- c(rep(1, 6), rep(0, 6)); r <- survRM2::rmst2(time, status, arm); c(r$RMST.arm1$result[\"RMST\", \"Est.\"], r$RMST.arm0$result[\"RMST\", \"Est.\"], r$RMST.arm1$result[\"RMTL\", \"Est.\"], r$RMST.arm0$result[\"RMTL\", \"Est.\"], r$unadjusted.result[1, \"Est.\"], r$unadjusted.result[2, \"Est.\"], r$unadjusted.result[3, \"Est.\"]) }"
     },
     {
       "id": "competing-incidence-gray",
