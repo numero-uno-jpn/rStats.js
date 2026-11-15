@@ -202,7 +202,7 @@
   "CoxphResult.iter#summary": {
     "hash": "08f32faff030",
     "en": "Number of iterations (`iterMax + 1` for right-censored fits, `iterMax` for counting-process fits when they ran out).",
-    "ja": "反復回数です (右側打ち切りデータで上限に達した場合は `iterMax + 1`、計数過程データで上限に達した場合は `iterMax`)。"
+    "ja": "反復回数です (右側打ち切りデータでは `iterMax + 1`、計数過程データで上限に達した場合は `iterMax`)。"
   },
   "CoxphResult.linearPredictors#summary": {
     "hash": "49a1380d5b8d",
