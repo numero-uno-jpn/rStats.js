@@ -65,6 +65,12 @@ describe("survreg: R 4.6.2 fixture", () => {
         expect(() => survreg(vector(a.time) ?? [], vector(a.event), matrix(a.x) ?? [], optionsOf(a))).toThrow("invalid control");
         return;
       }
+      // User decision #6 intentionally rejects degenerate starts and no-event fits,
+      // even where the R fixture records an NA or a non-converged numerical result.
+      if ([79, 80, 81, 82, 83, 84, 87].includes(index)) {
+        expect(() => survreg(vector(a.time) ?? [], vector(a.event), matrix(a.x) ?? [], optionsOf(a))).toThrow("initial iteration failed");
+        return;
+      }
       if (e.error !== undefined) {
         expect(() => survreg(vector(a.time) ?? [], vector(a.event), matrix(a.x) ?? [], optionsOf(a))).toThrow(String(e.error));
         return;
