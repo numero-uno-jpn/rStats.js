@@ -215,11 +215,12 @@ function cholInverse(m:number[][]):number[][]{
 function matVec(a:number[][],v:number[]):number[]{return a.map(r=>dot(r,v));}
 function dot(a:number[],b:number[]):number{const s=a.reduce((sum,x,i)=>sum+x*b[i]!,0);return checkedDot(a,b,s);}
 /** Use the verified scaler when squared column units could cross the 1e-10 Cholesky pivot tolerance. */
-function scaleDesign(X:number[][]):{values:number[][];exponent:number[]} {
+function scaleDesign(X:number[][],tolerChol=1e-10):{values:number[][];exponent:number[]} {
+  const bound=tolerChol>0?Math.min(2**16,1/Math.sqrt(tolerChol)):2**16;
   const columns=Array.from({length:X[0]!.length},(_,j)=>{
     const values=X.map(row=>row[j]!);
     let max=0;for(const v of values)max=Math.max(max,Math.abs(v));
-    if(max>2**16||(max>0&&max<2**-16)){
+    if(max>bound||(max>0&&max<1/bound)){
       const scaled=scaleToUnit([values]);
       return {values:scaled.groups[0]!,exponent:scaled.k};
     }
@@ -235,7 +236,7 @@ function quantile(p:number,d:SurvregDistribution,nu:number):number {
   return qt(p,nu);
 }
 function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[],weights:number[],offset:number[],strata:number[],k:number,d:SurvregDistribution,nu:number,fixed:number|undefined,start:number[],maxiter:number,tol:number,tolerChol=1e-10): {b:number[];ll:number;iter:number;V:number[][];VScaled:number[][];xExponent:number[];score:number[];z:number[];warn:boolean} {
-  const p=X[0]!.length, q=p+(fixed===undefined?k:0), scaled=scaleDesign(X), design=scaled.values, xExponent=scaled.exponent;
+  const p=X[0]!.length, q=p+(fixed===undefined?k:0), scaled=scaleDesign(X,tolerChol), design=scaled.values, xExponent=scaled.exponent;
   const b=start.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v);
   const evaluate=(v:number[],withH:boolean)=>{let ll=0;const u=Array(q).fill(0),H=Array.from({length:q},()=>Array(q).fill(0)),B=Array.from({length:q},()=>Array(q).fill(0));
     for(let i=0;i<y.length;i++){const s=strata[i]!,eta=dot(design[i]!,v.slice(0,p))+offset[i]!,sig=fixed??Math.exp(v[p+s]!);const g=deriv(lo[i]!,hi[i]!,status[i]!,eta,sig,d,nu);const wi=weights[i]!;ll+=wi*g.g;
@@ -370,7 +371,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   if(!isNull&&options.init!==undefined){for(let j=0;j<p;j++)start[j]=options.init[j]!;if(options.init.length===q)for(let j=p;j<q;j++)start[j]=options.init[j]!;}
   else if(!isNull&&p>0){ // weighted least-squares start from the null scales
     const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[1+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu),w=-ww[i]!*gg.ee;return w>0&&Number.isFinite(w)?{w,r:yy[i]!-gg.e/gg.ee-oo[i]!}:{w:0,r:0};});
-    const scaled=scaleDesign(X),A=Array.from({length:p},(_,a)=>Array.from({length:p},(_,b)=>scaled.values.reduce((s,row,i)=>s+z[i]!.w*row[a]!*row[b]!,0)));
+    const scaled=scaleDesign(X,control.tolerChol??1e-10),A=Array.from({length:p},(_,a)=>Array.from({length:p},(_,b)=>scaled.values.reduce((s,row,i)=>s+z[i]!.w*row[a]!*row[b]!,0)));
     const rhs=Array.from({length:p},(_,a)=>scaled.values.reduce((s,row,i)=>s+z[i]!.w*row[a]!*z[i]!.r,0));
     try{const factor=A.map(r=>r.slice()),rank=cholFactor(factor,control.tolerChol??1e-10);const theta=rank>=0?cholSolve(factor,rhs):matVec(solve(A),rhs);start.splice(0,p,...theta.map((v,j)=>ldexpWide(v,-scaled.exponent[j]!)));}catch{}
   }
