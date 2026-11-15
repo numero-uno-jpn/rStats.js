@@ -33,17 +33,18 @@ describe("survreg", () => {
     const event = [1, 1, 1, 1];
     const unitX = [[-1], [-1], [1], [1]];
     const factor = 2 ** 500;
+    const ordinary = survreg(y, event, unitX, { dist: "gaussian", scale: 1 });
+    const scaled = survreg(y, event, unitX.map(([v]) => [v! * factor]), { dist: "gaussian", scale: 1 });
     const weight = 2 ** 500;
-    const weights = Array(4).fill(weight);
-    const options = { dist: "gaussian" as const, scale: 1, weights };
-    const ordinary = survreg(y, event, unitX, options);
-    const scaled = survreg(y, event, unitX.map(([v]) => [v! * factor]), options);
+    const weighted = survreg(y, event, unitX, {
+      dist: "gaussian", scale: 1, weights: Array(4).fill(weight),
+    });
 
     // The exact Gaussian MLE with fixed scale is weighted least squares:
     // X'X = diag(4, 4), X'y = (10, 4), so beta = (2.5, 1).
-    // Scaling x by 2^500 changes beta[1] by 2^-500 and var[1,1] by 2^-1000;
-    // multiplying every case weight by 2^500 divides the whole covariance by 2^500.
-    // The common weight multiplier cancels from beta and the z statistics.
+    // Scaling x by 2^500 changes beta[1] by 2^-500 and var[1,1] by 2^-1000,
+    // while z is invariant. Scaling all case weights by 2^500 leaves beta
+    // unchanged and divides the covariance by 2^500.
     expect(ordinary.coefficients[0]).toBeCloseTo(2.5, 11);
     expect(ordinary.coefficients[1]).toBeCloseTo(1, 11);
     expect(scaled.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
@@ -52,6 +53,12 @@ describe("survreg", () => {
     expect(scaled.var[1]![1]! * factor * factor).toBeCloseTo(ordinary.var[1]![1]!, 11);
     expect(scaled.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
     expect(scaled.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+    expect(weighted.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(weighted.coefficients[1]).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(weighted.var[0]![0]! * weight).toBeCloseTo(ordinary.var[0]![0]!, 11);
+    expect(weighted.var[1]![1]! * weight).toBeCloseTo(ordinary.var[1]![1]!, 11);
+    expect(weighted.z[0]! / ordinary.z[0]!).toBeCloseTo(Math.sqrt(weight), 10);
+    expect(weighted.z[1]! / ordinary.z[1]!).toBeCloseTo(Math.sqrt(weight), 10);
   });
 
   it("computes a finite midpoint when the endpoint sum overflows", () => {
