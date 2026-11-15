@@ -120,11 +120,11 @@ describe("survreg", () => {
     expect(weighted.z[0]! / ordinary.z[0]!).toBeCloseTo(Math.sqrt(weight), 10);
     expect(weighted.z[1]! / ordinary.z[1]!).toBeCloseTo(Math.sqrt(weight), 10);
     const weightedDfb = survregResiduals(weighted, { type: "dfbeta", weighted: true }) as number[][];
-    const ordinaryDfb = survregResiduals(ordinary, { type: "dfbeta" }) as number[][];
-    weightedDfb.forEach((row, i) => row.forEach((v, j) => expect(v).toBeCloseTo(ordinaryDfb[i]![j]!, 10)));
+    const baseDfb = survregResiduals(ordinary, { type: "dfbeta" }) as number[][];
+    weightedDfb.forEach((row, i) => row.forEach((v, j) => expect(v).toBeCloseTo(baseDfb[i]![j]!, 10)));
     const weightedLd = survregResiduals(weighted, { type: "ldcase", weighted: true }) as number[];
-    const ordinaryLd = survregResiduals(ordinary, { type: "ldcase" }) as number[];
-    weightedLd.forEach((v, i) => expect(v).toBeCloseTo(ordinaryLd[i]!, 10));
+    const baseLd = survregResiduals(ordinary, { type: "ldcase" }) as number[];
+    weightedLd.forEach((v, i) => expect(v).toBeCloseTo(baseLd[i]!, 10));
     const smallWeight = 2 ** -500;
     const downWeighted = survreg(y, event, unitX, {
       dist: "gaussian", scale: 1, weights: Array(4).fill(smallWeight),
