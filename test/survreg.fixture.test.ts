@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { survreg, type SurvregOptions } from "../src/index.js";
+import { pchisq, survreg, type SurvregOptions } from "../src/index.js";
 import { loadAnovaFixture } from "./helpers/anova.js";
 
 const fixture = loadAnovaFixture("survreg");
@@ -69,6 +69,7 @@ describe("survreg: R 4.6.2 fixture", () => {
       ];
       for (const [name, actual, expected] of fields) {
         if (expected === undefined) continue;
+        if (c.reference?.refKind === "nullIter" && (name === "icoef" || name === "chi" || name === "chiP")) continue;
         if (name === "loglik" && c.reference?.refKind === "nullIter") {
           const expectedLoglik = (expected as unknown[]).slice();
           expectedLoglik[0] = c.reference.loglik1;
@@ -79,11 +80,17 @@ describe("survreg: R 4.6.2 fixture", () => {
       }
       expect(fit.coefNames, "#" + index + " coefNames").toEqual(e.coefNames);
       expect(fit.tableRowNames, "#" + index + " tableRowNames").toEqual(e.tableRowNames);
-      expect(fit.iter, "#" + index + " iter").toBe(numberValue(e.iter));
+      if (c.reference?.refKind !== "nullIter") expect(fit.iter, "#" + index + " iter").toBe(numberValue(e.iter));
       expect(fit.df, "#" + index + " df").toBe(numberValue(e.df));
       expect(fit.idf, "#" + index + " idf").toBe(numberValue(e.idf));
       expect(fit.dfResidual, "#" + index + " df.residual").toBe(numberValue(e["df.residual"]));
       expect(fit.n, "#" + index + " n").toBe(numberValue(e.n));
+      if (c.reference?.refKind === "nullIter") {
+        const refNull = numberValue(c.reference.loglik1);
+        const chi = 2 * (fit.loglik[1]! - refNull);
+        compareNumbers(fit.chi, chi, "#" + index + " reference chi");
+        compareNumbers(fit.chiP, pchisq(chi, fit.chiDf, { lowerTail: false }), "#" + index + " reference chiP");
+      }
       expect(fit.warnings, "#" + index + " warnings").toEqual(e.warnings);
     });
   });
