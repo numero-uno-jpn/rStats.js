@@ -281,9 +281,10 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const nullX=X.map(()=>[1]),isNull=X.every(r=>r.length===1&&r[0]===1);
   if(options.init!==undefined&&options.init.length!==p&&options.init.length!==q)throw new Error("Wrong length for initial parameters");
   const nullStartDeriv=yy.map((center,i)=>deriv(lo[i]!,hi[i]!,st[i]!,center,fixed??sig0,d,nu));
-  const nullDen=nullStartDeriv.reduce((s,g,i)=>s-ww[i]!*g.ee,0);
+  const nullTerms=nullStartDeriv.map((g,i)=>{const w=-ww[i]!*g.ee;return w>0&&Number.isFinite(w)?{w,r:yy[i]!-g.e/g.ee-oo[i]!}:{w:0,r:0};});
+  const nullDen=nullTerms.reduce((s,v)=>s+v.w,0);
   if(!(nullDen>0))throw new Error("initial iteration failed (use starting estimates?)");
-  const nullBeta=nullStartDeriv.reduce((s,g,i)=>s-ww[i]!*g.ee*(yy[i]!-g.e/g.ee-oo[i]!),0)/nullDen;
+  const nullBeta=nullTerms.reduce((s,v)=>s+v.w*v.r,0)/nullDen;
   const nullStart=[options.init!==undefined&&isNull?options.init[0]!:nullBeta,...(fixed===undefined?Array(k).fill(Math.log(sig0)):[])];
   if(isNull&&options.init!==undefined&&options.init.length===q)for(let s=0;s<k;s++)nullStart[1+s]=options.init[1+s]!;
   const nullFit=fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,nullStart,maxiter,tol,control.tolerChol??1e-10);
@@ -291,7 +292,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   if(fixed===undefined)for(let s=0;s<k;s++)start[p+s]=nullFit.b[1+s]!;
   if(!isNull&&options.init!==undefined){for(let j=0;j<p;j++)start[j]=options.init[j]!;if(options.init.length===q)for(let j=p;j<q;j++)start[j]=options.init[j]!;}
   else if(!isNull&&p>0){ // weighted least-squares start from the null scales
-    const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[1+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu);return {w:-ww[i]!*gg.ee,r:yy[i]!-gg.e/gg.ee-oo[i]!};});
+    const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[1+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu),w=-ww[i]!*gg.ee;return w>0&&Number.isFinite(w)?{w,r:yy[i]!-gg.e/gg.ee-oo[i]!}:{w:0,r:0};});
     const A=Array.from({length:p},(_,a)=>Array.from({length:p},(_,b)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*row[b]!,0)));
     const rhs=Array.from({length:p},(_,a)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*z[i]!.r,0));
     try{const factor=A.map(r=>r.slice()),rank=cholFactor(factor,control.tolerChol??1e-10);const beta=rank>=0?cholSolve(factor,rhs):matVec(solve(A),rhs);start.splice(0,p,...beta);}catch{}
