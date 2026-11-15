@@ -63,7 +63,7 @@ Where R's name is a reserved word of JavaScript or too general to export, the na
 | `diagnosticTests` | epiR's `epi.tests` |
 
 The methods of the models other than `lm` (R's `summary`, `predict`, `anova`, ... of a fit) carry the model's name in
-front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`, `glmerSummary`, `glmerPredict`. The methods without a
+front: `glmSummary`, `glmPredict`, `lmerSummary`, `lmerAnova`, `glmerSummary`, `glmerPredict`, `coxZph`, `predictCrr`, `survregPredict`, `survregResiduals`. The methods without a
 prefix (`predict`, `confint`, `anova`) are those of `lm`.
 
 ### Arguments
