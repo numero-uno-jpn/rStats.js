@@ -97,6 +97,39 @@ describe("survreg", () => {
     expect(midpoint(9e307, 9.5e307)).toBe(9.25e307);
   });
 
+  it("retains finite prediction standard errors when exp(eta) overflows", () => {
+    const fit = survreg([1, 2, 3, 4], [1, 1, 1, 1], [], { dist: "lognormal", scale: 1 });
+    const extreme = {
+      ...fit,
+      linearPredictors: Array(fit.n).fill(710),
+      var: [[1e-10]],
+    };
+    const prediction = survregPredict(extreme, { type: "response", seFit: true }) as {
+      fit: number[];
+      seFit: number[];
+    };
+
+    // exp(710) is outside binary64, but exp(710) * 1e-5 is finite.
+    // Compute the product in log space: exp(710 + log(1e-5)).
+    expect(prediction.fit[0]).toBe(Infinity);
+    expect(prediction.seFit[0]).toBeCloseTo(2.233994766161711e303, 10);
+  });
+
+  it("computes log-time response residuals without subtracting nearly equal exponentials", () => {
+    const fit = survreg([1, 2, 3, 4], [1, 1, 1, 1], [], { dist: "lognormal", scale: 1 });
+    const delta = 2 ** -43;
+    const extreme = {
+      ...fit,
+      linearPredictors: Array(fit.n).fill(700),
+      y: Array(fit.n).fill(700 + delta),
+    };
+    const residuals = survregResiduals(extreme, { type: "response" }) as number[];
+
+    //  exp(700 + 2^-43) - exp(700), evaluated with 80+ decimal digits,
+    // is 1.1530483501872619875...e291. Direct subtraction loses about 0.05%.
+    expect(residuals[0]).toBeCloseTo(1.153048350187262e291, 10);
+  });
+
   it("rejects invalid weights", () => {
     expect(() => survreg(time, event, x, { weights: [1, 1, 1, 1, 1, 1, 1, 0] })).toThrow("Invalid weights, must be >0");
   });
