@@ -233,7 +233,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const lev=[...new Set(strataIn.map(String))].sort(),sid=strataIn.map(v=>lev.indexOf(String(v)));
   if(fixed!==undefined&&lev.length>1)throw new Error("The scale argument is not valid with multiple strata");
   for(let i=0;i<n0;i++){
-    const xi=x.length===0?[]:Array.from(x[i]!);const missingTime=type==="interval2"?(Number.isNaN(time[i]!)&&Number.isNaN(time2![i]!)):Number.isNaN(time[i]!)||((type==="interval"||type==="interval2")&&Number.isNaN(time2![i]!)&&type==="interval");if(missingTime||type!=="interval2"&&Number.isNaN(events[i]!)||Number.isNaN(weights[i]!)||Number.isNaN(offset[i]!)||xi.some(Number.isNaN))continue;
+    const xi=x.length===0?[]:Array.from(x[i]!);const missingTime=type==="interval2"?(Number.isNaN(time[i]!)&&Number.isNaN(time2![i]!)):Number.isNaN(time[i]!)||((type==="interval"||type==="interval2")&&Number.isNaN(time2![i]!)&&type==="interval");if(missingTime||type!=="interval2"&&Number.isNaN(events[i]!)||Number.isNaN(weights[i]!)||Number.isNaN(offset[i]!)||Number.isNaN(strataIn[i] as number)||xi.some(Number.isNaN))continue;
     if(!(weights[i]!>0))throw new RangeError("Invalid weights, must be >0");
     if(xi.some(v=>!Number.isFinite(v)))throw new Error("data contains an infinite predictor");
     let l=time[i]!,u=time[i]!,s=Number(events[i]);
@@ -253,7 +253,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const variance=centers.reduce((a,b,i)=>a+ww[i]!*(b-mean)**2,0)/sw;
   const vd=d==="extreme"||d==="weibull"||d==="exponential"||d==="rayleigh"?variance/1.64:d==="logistic"||d==="loglogistic"?variance/3.2:d==="t"?variance*(nu-2)/nu:variance;
   const sig0=fixed??2*Math.sqrt(vd);
-  if(!(sig0>0)&&p>0)throw new Error("initial iteration failed (use starting estimates?)");
+  if(fixed===undefined&&!(sig0>0))throw new Error("initial iteration failed (use starting estimates?)");
   const q=p+(fixed===undefined?k:0),base=Array(q).fill(0);if(intercept)base[0]=mean;
   if(fixed===undefined)for(let s=0;s<k;s++)base[p+s]=Math.log(sig0);
   const control=options.control??{},maxiter=control.maxiter??30,tol=control.relTolerance??1e-9;
@@ -261,13 +261,15 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   if(control.tolerChol!==undefined&&(!Number.isFinite(control.tolerChol)||control.tolerChol<0))throw new RangeError("invalid control");
   const nullX=X.map(()=>[1]);
   const nullStartDeriv=yy.map((center,i)=>deriv(lo[i]!,hi[i]!,st[i]!,center,fixed??sig0,d,nu));
-  const nullDen=nullStartDeriv.reduce((s,g,i)=>s+ww[i]!*Math.max(1e-12,-g.ee),0);
-  const nullBeta=nullStartDeriv.reduce((s,g,i)=>s+ww[i]!*Math.max(1e-12,-g.ee)*(yy[i]!-g.e/g.ee-oo[i]!),0)/nullDen;
+  const nullDen=nullStartDeriv.reduce((s,g,i)=>s-ww[i]!*g.ee,0);
+  if(!(nullDen>0))throw new Error("initial iteration failed (use starting estimates?)");
+  const nullBeta=nullStartDeriv.reduce((s,g,i)=>s-ww[i]!*g.ee*(yy[i]!-g.e/g.ee-oo[i]!),0)/nullDen;
   const nullFit=fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,[nullBeta,...(fixed===undefined?Array(k).fill(Math.log(sig0)):[])],maxiter,tol,control.tolerChol??1e-10);
-  let start=base;
+  let start=base.slice();
+  if(fixed===undefined)for(let s=0;s<k;s++)start[p+s]=nullFit.b[1+s]!;
   if(options.init!==undefined){if(options.init.length!==p&&options.init.length!==q)throw new Error("Wrong length for initial parameters");start=base.slice();for(let j=0;j<p;j++)start[j]=options.init[j]!;if(options.init.length===q)for(let j=p;j<q;j++)start[j]=options.init[j]!;}
   else if(p>0){ // weighted least-squares start from the null scales
-    const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[1+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu);return {w:ww[i]!*Math.max(1e-12,-gg.ee),r:yy[i]!-gg.e/gg.ee-oo[i]!};});
+    const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[1+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu);return {w:-ww[i]!*gg.ee,r:yy[i]!-gg.e/gg.ee-oo[i]!};});
     const A=Array.from({length:p},(_,a)=>Array.from({length:p},(_,b)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*row[b]!,0)));
     const rhs=Array.from({length:p},(_,a)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*z[i]!.r,0));
     try{const b=matVec(solve(A),rhs);start.splice(0,p,...b);}catch{}
@@ -307,7 +309,9 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
   const lev=fit.strataLevels.map(String),ss=options.newStrata?.map(v=>lev.indexOf(String(v)))??(options.newX===undefined?fit.strata.slice():X.map(()=>0));
   if(fit.strataLevels.length>1&&options.newStrata===undefined&&options.newX!==undefined)throw new Error("newStrata is required when the model has strata");
   if(options.newStrata!==undefined&&options.newStrata.length!==X.length)throw new RangeError("variable lengths differ (found for 'newStrata')");
+  if(options.newX!==undefined&&X.some(r=>r.length!==fit.coefficients.length))throw new RangeError("newX has the wrong number of columns");
   if(ss.some(s=>s<0))throw new Error("unknown stratum in newStrata");
+  if(!["lp","linear","link","response","quantile","uquantile"].includes(type))throw new RangeError("invalid prediction type");
   const ps=options.p===undefined?[0.1,0.9]:typeof options.p==="number"?[options.p]:Array.from(options.p);
   const logTime=["weibull","loggaussian","lognormal","loglogistic"].includes(fit.dist);
   const pred=X.map((r,i)=>{if(r.some(Number.isNaN))return type==="quantile"||type==="uquantile"?ps.map(()=>NaN):NaN;
@@ -342,6 +346,7 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
 export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptions={}):number[]|number[][] {
   checkOptions(options,SURVREG_RESIDUALS_KEYS,"survregResiduals"); // generated: option-keys.mjs
   const type=options.type??"response",nu=fit.parms,p=fit.coefficients.length,q=fit.var.length,weighted=options.weighted??false;
+  if(!["response","deviance","working","dfbeta","dfbetas","ldcase","ldresp","ldshape","matrix"].includes(type))throw new RangeError("invalid residual type");
   const rows=fit.x.map((x,i)=>{const eta=dot(x,fit.coefficients)+fit.offset[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[fit.strata[i]!]!;const g=deriv(fit.lower[i]!,fit.upper[i]!,fit.status[i]!,eta,sig,fit.dist,nu);const v=weighted?fit.weights[i]!:1;
     const s=Array(q).fill(0);for(let j=0;j<p;j++)s[j]=x[j]!*g.e;if(q>p)s[p+fit.strata[i]!]=g.t;
     const V=fit.var,dfb=matVec(V,s),quad=dot(s,dfb);
