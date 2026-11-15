@@ -251,6 +251,9 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   for(const [a,name] of [[weights,"weights"],[offset,"offset"],[strataIn,"strata"]] as const)if(a.length!==n0)throw new RangeError(`variable lengths differ (found for '${name}')`);
   
   const rows:number[]=[],yy:number[]=[],lo:number[]=[],hi:number[]=[],st:number[]=[],ww:number[]=[],oo:number[]=[],xx:number[][]=[],dataWarnings:string[]=[];
+  // Surv accepts both 0/1 and 1/2 event coding for right/left censoring.
+  // If 2 occurs, 1/2 is the coding and 0 is an invalid status (as in fixture #93).
+  const oneTwoStatus=(type==="right"||type==="left")&&events.some(v=>Number(v)===2);
   const addWarning=(s:string)=>{if(!dataWarnings.includes(s))dataWarnings.push(s);};
   const lev=[...new Set(strataIn.map(String))].sort(),sidAll=strataIn.map(v=>lev.indexOf(String(v))),sid:number[]=[];
   if(fixed!==undefined&&lev.length>1)throw new Error("The scale argument is not valid with multiple strata");
@@ -259,8 +262,14 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
     if(!(weights[i]!>0))throw new RangeError("Invalid weights, must be >0");
     if(xi.some(v=>!Number.isFinite(v)))throw new Error("data contains an infinite predictor");
     let l=time[i]!,u=time[i]!,s=Number(events[i]);
-    if(type==="right"){if(s!==0&&s!==1){addWarning("Invalid status value, converted to NA");continue;}if(s===0)u=Infinity;s=s===1?1:0;}
-    else if(type==="left"){if(s!==0&&s!==1){addWarning("Invalid status value, converted to NA");continue;}if(s===0)l=-Infinity;s=s===1?1:2;}
+    if(type==="right"){
+      if(oneTwoStatus){if(s!==1&&s!==2){addWarning("Invalid status value, converted to NA");continue;}if(s===2)u=Infinity;s=s===1?1:0;}
+      else {if(s!==0&&s!==1){addWarning("Invalid status value, converted to NA");continue;}if(s===0)u=Infinity;s=s===1?1:0;}
+    }
+    else if(type==="left"){
+      if(oneTwoStatus){if(s!==1&&s!==2){addWarning("Invalid status value, converted to NA");continue;}if(s===2)l=-Infinity;s=s===1?1:2;}
+      else {if(s!==0&&s!==1){addWarning("Invalid status value, converted to NA");continue;}if(s===0)l=-Infinity;s=s===1?1:2;}
+    }
     else if(type==="interval"){u=time2![i]!;if(s===0){l=time[i]!;u=Infinity;}else if(s===1){u=l;}else if(s===2){u=time[i]!;l=-Infinity;}else if(s!==3){addWarning("Invalid status value, converted to NA");continue;}if(s===3&&l>u){addWarning("Invalid interval: start > stop, NA created");continue;}if(s===3&&l===u)throw new Error("initial iteration failed (use starting estimates?)");}
     else if(type==="interval2"){const lower=time[i]!,upper=time2![i]!;if(Number.isNaN(lower)&&Number.isNaN(upper))continue;if(lower>upper){addWarning("Invalid interval: start > stop, NA created");continue;}if(lower===upper){l=lower;u=upper;s=1;}else if(!Number.isFinite(lower)||lower===0){l=-Infinity;u=upper;s=2;}else if(!Number.isFinite(upper)){l=lower;u=Infinity;s=0;}else{l=lower;u=upper;s=3;}}
     if(logTime){if((Number.isFinite(l)&&l<0)||(Number.isFinite(u)&&u<0))addWarning("NaNs produced");if(l===Infinity||u===-Infinity||(Number.isFinite(l)&&l<=0)||(Number.isFinite(u)&&u<=0))throw new Error("Invalid survival times for this distribution");if(Number.isFinite(l))l=Math.log(l);if(Number.isFinite(u))u=Math.log(u);}
