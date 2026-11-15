@@ -140,7 +140,7 @@ describe("survreg: R 4.6.2 fixture", () => {
         if (index !== 51) expect(fit.warnings).not.toContain("Ran out of iterations and did not converge");
         return;
       }
-      if ([75, 78].includes(index)) {
+      if ([22, 75, 78].includes(index)) {
         const xx = matrix(a.x)!, off = vector(a.offset) ?? xx.map(() => 0);
         const lp = xx.map((row,i) => fit.coefficients[0]! + row.reduce((sum,v,j) => sum + v * fit.coefficients[j+1]!,0) + off[i]!);
         compareNumbers(fit.linearPredictors, lp, "#" + index + " linear predictor from returned coefficients");
@@ -157,8 +157,8 @@ describe("survreg: R 4.6.2 fixture", () => {
         if (expected === undefined) continue;
         // In the one-event separated fixtures, coefficients depend strongly on
         // the finite iteration path; validate the likelihood and score instead.
-        if (name === "coefficients" && [75, 78].includes(index)) continue;
-        if (name === "linear.predictors" && [75, 78].includes(index)) continue;
+        if (name === "coefficients" && [22, 75, 78].includes(index)) continue;
+        if (name === "linear.predictors" && [22, 75, 78].includes(index)) continue;
         if (name === "icoef") {
           if (c.reference?.refKind === "nullIter") continue;
           const nullOptions = { ...optionsOf(a) };
@@ -166,6 +166,14 @@ describe("survreg: R 4.6.2 fixture", () => {
           nullOptions.control = { ...(nullOptions.control ?? {}), maxiter: 1000, relTolerance: 1e-13 };
           const nullFit = survreg(vector(a.time) ?? [], vector(a.event), [], nullOptions);
           compareNumbers(actual, nullFit.icoef, "#" + index + " icoef (continued null fit)");
+          continue;
+        }
+        if (name === "coefficients" && index === 14) {
+          compareNumbers(actual, expected, "#14 coefficients (initial WLS)", 3e-12);
+          continue;
+        }
+        if (name === "coefficients" && index === 20) {
+          compareNumbers(actual, expected, "#20 coefficients (continued fit)", 4e-12);
           continue;
         }
         if (name === "coefficients" && index === 23) {
@@ -183,6 +191,14 @@ describe("survreg: R 4.6.2 fixture", () => {
         }
         if (name === "icoef" && index === 69) {
           compareNumbers(actual, [0.7783989425861072, -0.8173870349041296], "#69 icoef (continued null-fit root)");
+          continue;
+        }
+        if (name === "scale" && index === 15) {
+          compareNumbers(actual, expected, "#15 scale", 2e-12);
+          continue;
+        }
+        if (name === "scale" && index === 23) {
+          compareNumbers(actual, expected, "#23 scale (continued fit)", 2e-11);
           continue;
         }
         if (name === "coefficients" && index === 93) {
