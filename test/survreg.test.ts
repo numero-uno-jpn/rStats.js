@@ -53,6 +53,12 @@ describe("survreg", () => {
     expect(scaled.var[1]![1]! * factor * factor).toBeCloseTo(ordinary.var[1]![1]!, 11);
     expect(scaled.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
     expect(scaled.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+    const smallFactor = 2 ** -500;
+    const small = survreg(y, event, unitX.map(([v]) => [v! * smallFactor]), { dist: "gaussian", scale: 1 });
+    expect(small.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(small.coefficients[1]! * smallFactor).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(small.var[1]![1]! * smallFactor * smallFactor).toBeCloseTo(ordinary.var[1]![1]!, 11);
+    expect(small.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
 
     // Predictions and diagnostics are returned in the original covariate units too.
     const pred0 = survregPredict(ordinary, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
@@ -78,6 +84,12 @@ describe("survreg", () => {
     expect(weighted.var[1]![1]! * weight).toBeCloseTo(ordinary.var[1]![1]!, 11);
     expect(weighted.z[0]! / ordinary.z[0]!).toBeCloseTo(Math.sqrt(weight), 10);
     expect(weighted.z[1]! / ordinary.z[1]!).toBeCloseTo(Math.sqrt(weight), 10);
+    const weightedDfb = survregResiduals(weighted, { type: "dfbeta", weighted: true }) as number[][];
+    const ordinaryDfb = survregResiduals(ordinary, { type: "dfbeta" }) as number[][];
+    weightedDfb.forEach((row, i) => row.forEach((v, j) => expect(v).toBeCloseTo(ordinaryDfb[i]![j]!, 10)));
+    const weightedLd = survregResiduals(weighted, { type: "ldcase", weighted: true }) as number[];
+    const ordinaryLd = survregResiduals(ordinary, { type: "ldcase" }) as number[];
+    weightedLd.forEach((v, i) => expect(v).toBeCloseTo(ordinaryLd[i]!, 10));
     const smallWeight = 2 ** -500;
     const downWeighted = survreg(y, event, unitX, {
       dist: "gaussian", scale: 1, weights: Array(4).fill(smallWeight),
