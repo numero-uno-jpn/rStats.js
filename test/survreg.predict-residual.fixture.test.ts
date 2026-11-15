@@ -39,10 +39,10 @@ describe("survregPredict: R 4.6.2 fixture",()=>{
   fixture.cases.forEach((c,index)=>it("case "+index,()=>{
     const a=c.args,e=c.expected;
     const fit=survreg(vec(a.time)??[],vec(a.event),mat(a.x)??[],fitOptions(a));
-    const p=vec(a.p);
+    const p=a.p===undefined?undefined:Array.isArray(a.p)?(a.p as unknown[]).map(num):num(a.p);
     const result=survregPredict(fit,{
       type:(a.predType as "lp"|"response"|"quantile"|"uquantile")??"lp",
-      ...(p===undefined?{}:{p:p.length===1?p[0]!:p}),
+      ...(p===undefined?{}:{p}),
       ...(a.newX===undefined?{}:{newX:mat(a.newX)!}),
       ...(a.newStrata===undefined?{}:{newStrata:a.newStrata as (string|number|boolean)[]}),
       ...(a.newOffset===undefined?{}:{newOffset:vec(a.newOffset)!}),
