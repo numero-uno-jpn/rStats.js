@@ -155,7 +155,7 @@ describe("survreg: R 4.6.2 fixture", () => {
         ["value", fit.value, e.value], ["se", fit.se, e.se], ["z", fit.z, e.z], ["p", fit.p, e.p],
         ["chi", fit.chi, e.chi], ["chiDf", fit.chiDf, e.chiDf], ["chiP", fit.chiP, e.chiP],
       ];
-      if ([14, 15, 16, 31, 34].includes(index)) verifyScoreByFiniteDifferences(a, fit, "#" + index);
+      if ([14, 15, 16, 17, 20, 22, 24, 25, 28, 29, 31, 33, 34, 35, 42, 43, 44, 54].includes(index)) verifyScoreByFiniteDifferences(a, fit, "#" + index);
       for (const [name, actual, expected] of fields) {
         if (expected === undefined) continue;
         if (c.reference?.refKind === "nullIter" && (name === "icoef" || name === "chi" || name === "chiP")) continue;
