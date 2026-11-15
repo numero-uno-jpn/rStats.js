@@ -13,8 +13,8 @@ describe("survreg", () => {
     expect(fit.var).toHaveLength(3);
     expect(fit.loglik).toHaveLength(2);
     expect(fit.linearPredictors).toHaveLength(time.length);
-    expect(survregPredict(fit, { type: "lp" })).toHaveLength(time.length);
-    expect(survregPredict(fit, { type: "quantile", p: 0.5 })).toHaveLength(time.length);
+    expect(survregPredict(fit, { type: "lp" }) as number[]).toHaveLength(time.length);
+    expect(survregPredict(fit, { type: "quantile", p: 0.5 }) as number[]).toHaveLength(time.length);
     expect(survregResiduals(fit, { type: "matrix" })).toHaveLength(time.length);
   });
 
