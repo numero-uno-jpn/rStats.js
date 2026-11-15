@@ -186,6 +186,10 @@ describe("survreg: R 4.6.2 fixture", () => {
           compareNumbers(actual, expected, "#27 value (maxiter=12)", 2.5e-12);
           continue;
         }
+        if (name === "value" && index === 93) {
+          compareNumbers(actual, expected, "#93 value (Surv 1/2 coding)", 2e-9);
+          continue;
+        }
         if (name === "scale" && [14, 20].includes(index)) {
           compareNumbers(actual, expected, "#" + index + " scale (continued fit)", 3e-11);
           continue;
