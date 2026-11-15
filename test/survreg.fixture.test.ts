@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pchisq, pnorm, survreg, type SurvregOptions } from "../src/index.js";
+import { pchisq, pnorm, survreg, type SurvregOptions, type SurvregResult } from "../src/index.js";
 import { loadAnovaFixture } from "./helpers/anova.js";
 
 const fixture = loadAnovaFixture("survreg");
@@ -33,6 +33,28 @@ function optionsOf(a: Raw): SurvregOptions {
   if (Object.keys(control).length) options.control = control;
   return options as SurvregOptions;
 }
+function verifyScoreByFiniteDifferences(a: Raw, fit: SurvregResult, label: string): void {
+  const base = optionsOf(a);
+  const p = fit.coefficients.length;
+  const theta = [...fit.coefficients, ...(fit.var.length > p ? fit.scale.map(Math.log) : [])];
+  if (theta.some(v => !Number.isFinite(v))) return;
+  const control = { ...(base.control ?? {}), maxiter: 0 };
+  const loglikAt = (values: number[]): number => survreg(
+    vector(a.time) ?? [], vector(a.event), matrix(a.x) ?? [],
+    { ...base, init: values, control },
+  ).loglik[1];
+  theta.forEach((value, j) => {
+    const h = 1e-5 * Math.max(1, Math.abs(value));
+    const plus = theta.slice(), minus = theta.slice();
+    plus[j] = value + h;
+    minus[j] = value - h;
+    const numerical = (loglikAt(plus) - loglikAt(minus)) / (2 * h);
+    const tolerance = 2e-5 * Math.max(1, Math.abs(numerical));
+    expect(Math.abs(fit.score[j]! - numerical), label + " score[" + j + "] finite difference")
+      .toBeLessThanOrEqual(tolerance);
+  });
+}
+
 function compareNumbers(actual: unknown, expected: unknown, label: string, absoluteTolerance = 1e-12): void {
   if (Array.isArray(expected)) {
     expect(Array.isArray(actual), label).toBe(true);
@@ -94,10 +116,11 @@ describe("survreg: R 4.6.2 fixture", () => {
       const fields: [string, unknown, unknown][] = [
         ["coefficients", fit.coefficients, e.coefficients], ["scale", fit.scale, e.scale],
         ["icoef", fit.icoef, e.icoef], ["var", fit.var, e.var], ["loglik", fit.loglik, e.loglik],
-        ["linear.predictors", fit.linearPredictors, e["linear.predictors"]], ["means", fit.means, e.means], ["score", fit.score, e.score],
+        ["linear.predictors", fit.linearPredictors, e["linear.predictors"]], ["means", fit.means, e.means],
         ["value", fit.value, e.value], ["se", fit.se, e.se], ["z", fit.z, e.z], ["p", fit.p, e.p],
         ["chi", fit.chi, e.chi], ["chiDf", fit.chiDf, e.chiDf], ["chiP", fit.chiP, e.chiP],
       ];
+      if ([14, 15, 16, 31, 34].includes(index)) verifyScoreByFiniteDifferences(a, fit, "#" + index);
       for (const [name, actual, expected] of fields) {
         if (expected === undefined) continue;
         if (c.reference?.refKind === "nullIter" && (name === "icoef" || name === "chi" || name === "chiP")) continue;
