@@ -149,7 +149,7 @@ function cholFactor(m:number[][],tol:number):number {
   for(let i=0;i<p;i++){const d=m[i]![i]!;if(d>0&&(!anyPositive||d>scale)){scale=d;anyPositive=true;}}
   const limit=anyPositive?scale*tol:tol;let rank=0,nonNegative=true;
   for(let i=0;i<p;i++){const pivot=m[i]![i]!;
-    if(!Number.isFinite(pivot)||pivot<limit){m[i]![i]=0;if(pivot< -8*limit)nonNegative=false;for(let j=i+1;j<p;j++)m[j]![i]=0;continue;}
+    if(!Number.isFinite(pivot)||pivot<=limit){m[i]![i]=0;if(pivot< -8*limit)nonNegative=false;for(let j=i+1;j<p;j++)m[j]![i]=0;continue;}
     rank++;for(let j=i+1;j<p;j++){const t=m[j]![i]!/pivot;m[j]![i]=t;m[j]![j]!-=t*t*pivot;for(let k=j+1;k<p;k++)m[k]![j]!-=t*m[k]![i]!;}
   }
   return nonNegative?rank:-rank;
@@ -291,7 +291,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
     const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[1+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu);return {w:-ww[i]!*gg.ee,r:yy[i]!-gg.e/gg.ee-oo[i]!};});
     const A=Array.from({length:p},(_,a)=>Array.from({length:p},(_,b)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*row[b]!,0)));
     const rhs=Array.from({length:p},(_,a)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*z[i]!.r,0));
-    try{const b=matVec(solve(A),rhs);start.splice(0,p,...b);}catch{}
+    try{const factor=A.map(r=>r.slice()),rank=cholFactor(factor,control.tolerChol??1e-10);const b=rank>=0?cholSolve(factor,rhs):matVec(solve(A),rhs);start.splice(0,p,...b);}catch{}
     if(fixed===undefined)for(let s=0;s<k;s++)start[p+s]=nullFit.b[1+s]!;
   }
   const isNull=X.every(r=>r.length===1&&r[0]===1);
@@ -334,7 +334,7 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
   const ps=options.p===undefined?[0.1,0.9]:typeof options.p==="number"?[options.p]:Array.from(options.p);
   const logTime=["weibull","loggaussian","lognormal","loglogistic"].includes(fit.dist);
   const pred=X.map((r,i)=>{if(r.some(Number.isNaN))return type==="quantile"||type==="uquantile"?ps.map(()=>NaN):NaN;
-    const eta=dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
+    const eta=options.newX===undefined?fit.linearPredictors[i]!:dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
     if(type==="lp"||type==="linear"||type==="link")return eta;
     if(type==="response")return logTime?Math.exp(eta):eta;
     return ps.map(p=>{const q=eta+sig*quantile(p,fit.dist,fit.parms);return type==="uquantile"?q:logTime?Math.exp(q):q;});});
