@@ -35,6 +35,23 @@ describe("survreg", () => {
     const factor = 2 ** 500;
     const ordinary = survreg(y, event, unitX, { dist: "gaussian", scale: 1 });
     const scaled = survreg(y, event, unitX.map(([v]) => [v! * factor]), { dist: "gaussian", scale: 1 });
+    const hugeFactor = 2 ** 1000;
+    const huge = survreg(y, event, unitX.map(([v]) => [v! * hugeFactor]), { dist: "gaussian", scale: 1 });
+    expect(huge.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(huge.coefficients[1]! * hugeFactor).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(huge.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
+    expect(huge.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+    // The slope variance is 1/(4*2^2000), below binary64's subnormal range.
+    // The public variance therefore rounds to zero, but the z statistic is computed
+    // before converting the covariance back to the unscaled coefficient units.
+    expect(huge.var[1]![1]).toBe(0);
+    const tinyFactor = 2 ** -1000;
+    const tiny = survreg(y, event, unitX.map(([v]) => [v! * tinyFactor]), { dist: "gaussian", scale: 1 });
+    expect(tiny.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(tiny.coefficients[1]! * tinyFactor).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(tiny.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
+    expect(tiny.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+
     const weight = 2 ** 500;
     const weighted = survreg(y, event, unitX, {
       dist: "gaussian", scale: 1, weights: Array(4).fill(weight),
