@@ -24,7 +24,8 @@ function optionsOf(a: Raw): SurvregOptions {
     if (v !== undefined) options[key] = v;
   }
   if (a.strata !== undefined) options.strata = a.strata as (string | number | boolean)[];
-  for (const key of ["scale", "parms"] as const) if (a[key] !== undefined) options[key] = numberValue(a[key]);
+  if (a.scale !== undefined) options.scale = numberValue(a.scale);
+  if (a.parms !== undefined) options.df = numberValue(a.parms);
   const control: Record<string, number> = {};
   if (a.maxiter !== undefined) control.maxiter = numberValue(a.maxiter);
   if (a["rel.tolerance"] !== undefined) control.relTolerance = numberValue(a["rel.tolerance"]);
