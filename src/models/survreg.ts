@@ -303,10 +303,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   // The null fit supplies the full model's starting scales and loglik[1]. It is iterated to convergence
   // independently of the full-model maxiter; an intercept-only fit itself still uses the user's maxiter.
   const nullMaxiter=isNull?maxiter:Math.max(maxiter,1000);
-  // The intercept-only fit used to initialize a non-null model is a numerical
-  // reference, not a user-limited fit: refine it well beyond the outer tolerance.
-  const nullTol=isNull?tol:Math.min(tol,1e-13);
-  const nullFit=fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,nullStart,nullMaxiter,nullTol,control.tolerChol??1e-10);
+  const nullFit=fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,nullStart,nullMaxiter,tol,control.tolerChol??1e-10);
   let start=base.slice();
   if(fixed===undefined)for(let s=0;s<k;s++)start[p+s]=nullFit.b[1+s]!;
   if(!isNull&&options.init!==undefined){for(let j=0;j<p;j++)start[j]=options.init[j]!;if(options.init.length===q)for(let j=p;j<q;j++)start[j]=options.init[j]!;}
