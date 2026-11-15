@@ -232,7 +232,7 @@ function quantile(p:number,d:SurvregDistribution,nu:number):number {
   if(d==="gaussian"||d==="loggaussian"||d==="lognormal")return qnorm(p);
   return qt(p,nu);
 }
-function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[],weights:number[],offset:number[],strata:number[],k:number,d:SurvregDistribution,nu:number,fixed:number|undefined,start:number[],maxiter:number,tol:number,tolerChol=1e-10):{b:number[];ll:number;iter:number;V:number[][];score:number[];warn:boolean} {
+function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[],weights:number[],offset:number[],strata:number[],k:number,d:SurvregDistribution,nu:number,fixed:number|undefined,start:number[],maxiter:number,tol:number,tolerChol=1e-10): {b:number[];ll:number;iter:number;V:number[][];score:number[];z:number[];warn:boolean} {
   const p=X[0]!.length, q=p+(fixed===undefined?k:0), scaled=scaleDesign(X), design=scaled.values, xExponent=scaled.exponent;
   const b=start.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v);
   const evaluate=(v:number[],withH:boolean)=>{let ll=0;const u=Array(q).fill(0),H=Array.from({length:q},()=>Array(q).fill(0)),B=Array.from({length:q},()=>Array(q).fill(0));
@@ -248,7 +248,7 @@ function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[]
   let initial: {e:ReturnType<typeof evaluate>;delta:number[]};
   try{initial=stepAt(b);}catch{initial={e:cur,delta:Array(q).fill(0)};}
   let trial=b.map((x,j)=>x+initial.delta[j]!);
-  if(maxiter===0){const f=factorAt(cur);const V=cholInverse(f.factor);return {b:b.map((v,j)=>j<p?ldexpWide(v,-xExponent[j]!):v),ll:cur.ll,iter,V:V.map((row,i)=>row.map((v,j)=>ldexpWide(v,(i<p?-xExponent[i]!:0)+(j<p?-xExponent[j]!:0)))),score:cur.u.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v),warn};}
+  if(maxiter===0){const f=factorAt(cur);const V=cholInverse(f.factor),z=V.map((row,j)=>row[j]===0?NaN:b[j]!/Math.sqrt(Math.max(0,row[j]!)));return {b:b.map((v,j)=>j<p?ldexpWide(v,-xExponent[j]!):v),ll:cur.ll,iter,V:V.map((row,i)=>row.map((v,j)=>ldexpWide(v,(i<p?-xExponent[i]!:0)+(j<p?-xExponent[j]!:0)))),score:cur.u.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v),z,warn};}
   for(let it=1;it<=maxiter;it++){
     const next=evaluate(trial,true);
     if(Number.isFinite(next.ll)&&Math.abs(1-best/next.ll)<=tol){b.splice(0,b.length,...trial);cur=next;best=next.ll;iter=it;converged=true;break;}
@@ -266,7 +266,8 @@ function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[]
   }
   if(iter===maxiter&&maxiter>=2&&!converged)warn=true;
   const final=evaluate(b,true),f=factorAt(final),V=cholInverse(f.factor);
-  return {b:b.map((v,j)=>j<p?ldexpWide(v,-xExponent[j]!):v),ll:best,iter,V:V.map((row,i)=>row.map((v,j)=>ldexpWide(v,(i<p?-xExponent[i]!:0)+(j<p?-xExponent[j]!:0)))),score:final.u.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v),warn};
+  const z=V.map((row,j)=>row[j]===0?NaN:b[j]!/Math.sqrt(Math.max(0,row[j]!)));
+  return {b:b.map((v,j)=>j<p?ldexpWide(v,-xExponent[j]!):v),ll:best,iter,V:V.map((row,i)=>row.map((v,j)=>ldexpWide(v,(i<p?-xExponent[i]!:0)+(j<p?-xExponent[j]!:0)))),score:final.u.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v),z,warn};
 }
 
 /**
@@ -373,15 +374,15 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   }
   const model=isNull?nullFit:fitCore(X,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol,control.tolerChol??1e-10);
   const jac=logTime?rows.reduce((s,orig,j)=>s+(st[j]===1?ww[j]!*Math.log(time[orig]!):0),0)*-1:0;
-  const varmat=model.V.map(r=>r.slice());const coefs=model.b.slice(0,p).map((v,j)=>(varmat[j]?.[j]??0)===0?NaN:v);const ses=coefs.map((_,j)=>(varmat[j]?.[j]??0)===0?0:Math.sqrt(Math.max(0,varmat[j]?.[j]??0)));
-  const zstat=coefs.map((v,j)=>v/ses[j]!);const pv=zstat.map(v=>2*pnorm(-Math.abs(v)));
+  const varmat=model.V.map(r=>r.slice());const coefs=model.b.slice(0,p).map((v,j)=>Number.isNaN(model.z[j]!)?NaN:v);const ses=coefs.map((_,j)=>(varmat[j]?.[j]??0)===0?0:Math.sqrt(Math.max(0,varmat[j]?.[j]??0)));
+  const zstat=coefs.map((_,j)=>model.z[j]!);const pv=zstat.map(v=>2*pnorm(-Math.abs(v)));
   const scales=fixed!==undefined?[fixed]:Array.from({length:k},(_,s)=>Math.exp(model.b[p+s]!));
   const means=Array.from({length:p},(_,j)=>X.reduce((s,r)=>s+r[j]!,0)/X.length);
   // The score is the gradient in the original (un-centred) coefficient coordinates: X' * dℓ/dη.
   const lp=X.map((r,i)=>dot(r,model.b.slice(0,p))+oo[i]!);
   const chi=2*((model.ll+jac)-(nullFit.ll+jac)),chiDf=p+(fixed===undefined?k:0)-(1+(fixed===undefined?k:0));
   const tableNames=[...coefs.map((_,j)=>j===0&&intercept?"(Intercept)":`x${j+(intercept?0:1)}`),...(fixed===undefined?(k===1?["Log(scale)"]:lev):[])];
-  const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>(varmat[j]?.[j]??0)===0?0:Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((v,j)=>v/seAll[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
+  const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>(varmat[j]?.[j]??0)===0?0:Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((_,j)=>model.z[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
   const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),hasOffset:options.offset!==undefined,icoef:fixed===undefined||rows.length===1?nullFit.b.slice():[nullFit.b[0]!,Math.log(fixed)], var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score.slice(),tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,distributionDf:nu,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...dataWarnings,...(model.warn||nullFit.warn?["Ran out of iterations and did not converge"]:[]),...(d==="exponential"&&options.scale!==undefined&&options.scale>0?["Exponential has a fixed scale, user specified value ignored"]:[])]};
   return reported("survreg",result);
 }
