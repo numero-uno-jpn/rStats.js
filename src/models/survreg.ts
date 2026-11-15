@@ -244,7 +244,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   if(d!=="t"&&options.df!==undefined)throw new RangeError("Extreme value distribution has no optional parameters");
   const logTime=["weibull","loggaussian","lognormal","loglogistic"].includes(d);
   const fixed0=options.scale!==undefined&&options.scale>0?options.scale:undefined;
-  const fixed=(d==="exponential"||d==="rayleigh")?(d==="exponential"?1:Math.SQRT1_2):fixed0;
+  const fixed=(d==="exponential"||d==="rayleigh")?(d==="exponential"?1:0.5):fixed0;
   const time2=options.time2, weights=options.weights??Array(n0).fill(1),offset=options.offset??Array(n0).fill(0),strataIn=options.strata??Array(n0).fill("1");
   for(const [a,name] of [[weights,"weights"],[offset,"offset"],[strataIn,"strata"]] as const)if(a.length!==n0)throw new RangeError(`variable lengths differ (found for '${name}')`);
   
