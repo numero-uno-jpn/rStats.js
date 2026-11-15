@@ -30,7 +30,7 @@ function compare(actual: unknown, expected: unknown, label: string): void {
   expect(Math.abs(a-e),label).toBeLessThanOrEqual(tolerance);
 }
 function load(name:string):Fixture {
-  const path=fileURLToPath(new URL("../fixtures/"+name+".json",import.meta.url));
+  const path=fileURLToPath(new URL("./fixtures/"+name+".json",import.meta.url));
   return JSON.parse(readFileSync(path,"utf8")) as Fixture;
 }
 
