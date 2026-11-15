@@ -45,7 +45,7 @@ export interface SurvregTable { value: number[]; se: number[]; z: number[]; p: n
  * @category Survival analysis
  */
 export interface SurvregResult {
-  coefficients: number[]; coefNames: string[]; scale: number[]; table: SurvregTable; strataLevels: (string | number | boolean)[];
+  coefficients: number[]; coefNames: string[]; scale: number[]; table: SurvregTable; strataLevels: (string | number | boolean)[]; hasOffset: boolean;
   icoef: number[]; var: number[][]; loglik: [number, number]; iter: number; df: number; idf: number;
   dfResidual: number; n: number; linearPredictors: number[]; means: number[]; score: number[];
   tableRowNames: string[]; value: number[]; se: number[]; z: number[]; p: number[];
@@ -309,12 +309,12 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const zstat=coefs.map((v,j)=>v/ses[j]!);const pv=zstat.map(v=>2*pnorm(-Math.abs(v)));
   const scales=fixed!==undefined?[fixed]:Array.from({length:k},(_,s)=>Math.exp(model.b[p+s]!));
   const means=Array.from({length:p},(_,j)=>X.reduce((s,r)=>s+r[j]!,0)/X.length);
-  const scoreOut=model.score.slice();if(intercept)for(let j=1;j<p;j++)scoreOut[j]=scoreOut[j]!-means[j]!*scoreOut[0]!;
+  // The score is the gradient in the original (un-centred) coefficient coordinates: X' * dℓ/dη.
   const lp=X.map((r,i)=>dot(r,model.b.slice(0,p))+oo[i]!);
   const chi=2*((model.ll+jac)-(nullFit.ll+jac)),chiDf=p+(fixed===undefined?k:0)-(1+(fixed===undefined?k:0));
   const tableNames=[...coefs.map((_,j)=>j===0&&intercept?"(Intercept)":`x${j+(intercept?0:1)}`),...(fixed===undefined?(k===1?["Log(scale)"]:lev):[])];
   const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>(varmat[j]?.[j]??0)===0?NaN:Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((v,j)=>v/seAll[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
-  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),icoef:fixed===undefined?nullFit.b:[nullFit.b[0]!,Math.log(fixed)], var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:scoreOut,tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,distributionDf:nu,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...dataWarnings,...(model.warn||nullFit.warn?["Ran out of iterations and did not converge"]:[]),...(d==="exponential"&&options.scale!==undefined&&options.scale>0?["Exponential has a fixed scale, user specified value ignored"]:[])]};
+  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),hasOffset:options.offset!==undefined,icoef:fixed===undefined?nullFit.b:[nullFit.b[0]!,Math.log(fixed)], var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score.slice(),tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,distributionDf:nu,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...dataWarnings,...(model.warn||nullFit.warn?["Ran out of iterations and did not converge"]:[]),...(d==="exponential"&&options.scale!==undefined&&options.scale>0?["Exponential has a fixed scale, user specified value ignored"]:[])]};
   return reported("survreg",result);
 }
 
@@ -332,7 +332,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
  */
 export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={}):number[]|number[][]|SurvregPredictionResult {
   checkOptions(options, SURVREG_PREDICT_KEYS, "survregPredict"); // generated: option-keys.mjs
-  const type=options.type??"lp",X=options.newX===undefined?fit.x:options.newX.map(r=>fit.intercept?[1,...r]:Array.from(r)),off=options.newOffset??(options.newX===undefined?fit.offset:Array(X.length).fill(0));
+  const type=options.type??"lp",X=options.newX===undefined?fit.x:options.newX.map(r=>fit.intercept?[1,...r]:Array.from(r)),off=fit.hasOffset?(options.newOffset??(options.newX===undefined?fit.offset:Array(X.length).fill(0))):Array(X.length).fill(0);
   if(off.length!==X.length)throw new RangeError("variable lengths differ (found for 'newOffset')");
   const lev=fit.strataLevels.map(String),ss=options.newStrata?.map(v=>lev.indexOf(String(v)))??(options.newX===undefined?fit.strata.slice():X.map(()=>0));
   if(fit.strataLevels.length>1&&options.newStrata===undefined&&options.newX!==undefined)throw new Error("newStrata is required when the model has strata");
