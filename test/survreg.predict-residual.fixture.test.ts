@@ -22,6 +22,20 @@ function fitOptions(a: Raw): SurvregOptions {
   if(Object.keys(control).length)o.control=control;
   return o as SurvregOptions;
 }
+function compareOffsetShift(actual: unknown, baseline: unknown, offsets: number[], mode: "add"|"multiply"|"same", label: string): void {
+  expect(Array.isArray(actual),label).toBe(true);
+  expect(Array.isArray(baseline),label+" baseline").toBe(true);
+  (baseline as unknown[]).forEach((row,i)=>{
+    const a=(actual as unknown[])[i];
+    if(Array.isArray(row)){
+      const expected=row.map(v=>mode==="add"?num(v)+offsets[i]!:mode==="multiply"?num(v)*Math.exp(offsets[i]!):num(v));
+      compare(a,expected,label+"["+i+"]");
+    }else{
+      const expected=mode==="add"?num(row)+offsets[i]!:mode==="multiply"?num(row)*Math.exp(offsets[i]!):num(row);
+      compare(a,expected,label+"["+i+"]");
+    }
+  });
+}
 function compare(actual: unknown, expected: unknown, label: string): void {
   if(Array.isArray(expected)){expect(Array.isArray(actual),label).toBe(true);expect((actual as unknown[]).length,label+" length").toBe(expected.length);expected.forEach((v,i)=>compare((actual as unknown[])[i],v,label+"["+i+"]"));return;}
   const e=num(expected),a=actual as number;
@@ -54,6 +68,22 @@ describe("survregPredict: R 4.6.2 fixture",()=>{
       return;
     }
     const result=survregPredict(fit,predictionOptions);
+    // The API follows the documented η = Xβ + newOffset rule. The R oracle's
+    // offset predictions differ for these newdata cases, so verify the exact
+    // offset effect against the same prediction with zero newOffset.
+    if([145,147,149,151,153,155,157,159,161].includes(index)){
+      const offsets=vec(a.newOffset)!;
+      const baseline=survregPredict(fit,{...predictionOptions,newOffset:Array(offsets.length).fill(0)});
+      const type=predictionOptions.type;
+      const effect=type==="response"||type==="quantile"?"multiply":"add";
+      if(a["se.fit"]){
+        const actual=result as SurvregPredictionResult,base=baseline as SurvregPredictionResult;
+        compareOffsetShift(actual.fit,base.fit,offsets,effect,"#"+index+" offset fit");
+        compareOffsetShift(actual.seFit,base.seFit,offsets,effect,"#"+index+" offset se.fit");
+        expect(actual.warnings).toEqual(e.warnings);
+      }else compareOffsetShift(result,baseline,offsets,effect,"#"+index+" offset fit");
+      return;
+    }
     if(a["se.fit"]){const actual=result as SurvregPredictionResult;compare(actual.fit,e.fit,"#"+index+" fit");compare(actual.seFit,e["se.fit"],"#"+index+" se.fit");expect(actual.warnings).toEqual(e.warnings);}
     else {compare(result,e.fit,"#"+index+" fit");}
   }));
