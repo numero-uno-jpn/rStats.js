@@ -73,7 +73,7 @@ function logDensity(z:number,d:SurvregDistribution,nu:number):number {
 }
 function hValues(z:number,d:SurvregDistribution,nu:number):[number,number] {
   if (d === "extreme" || d === "weibull" || d === "exponential" || d === "rayleigh") { const w=Math.exp(z); return [1-w,w*w-3*w+1]; }
-  if (d === "logistic" || d === "loglogistic") { const w=Math.exp(Math.max(-745,Math.min(709,z))); const a=(1-w)/(1+w); return [a,(w*w-4*w+1)/((1+w)*(1+w))]; }
+  if (d === "logistic" || d === "loglogistic") { const e=Math.exp(-Math.abs(z)); return [-Math.tanh(z/2),1-6*e/((1+e)*(1+e))]; }
   if (d === "gaussian" || d === "loggaussian" || d === "lognormal") return [-z,z*z-1];
   const den=nu+z*z; return [-(nu+1)*z/den,(nu+1)*((nu+2)*z*z-nu)/(den*den)];
 }
@@ -93,16 +93,14 @@ function deriv(lo:number,hi:number,kind:number,eta:number,sigma:number,d:Survreg
   }
   const lf=logF(zu,d,nu), ll=logF(zl,d,nu), ls=logS(zl,d,nu), lu=logS(zu,d,nu);
   const lp=kind===0?ls:kind===2?lf:logDiff(zl>0?ls:lf,zl>0?lu:ll);
-  const P=Math.exp(lp), fl=zl===-Infinity?0:density(zl,d,nu), fu=zu===Infinity?0:density(zu,d,nu);
+  const rl=zl===-Infinity?0:Math.exp(logDensity(zl,d,nu)-lp), ru=zu===Infinity?0:Math.exp(logDensity(zu,d,nu)-lp);
   const [hl1]=hValues(zl,d,nu), [hu1]=hValues(zu,d,nu);
-  const fpl=fl*hl1, fpu=fu*hu1;
-  const A=fu-fl, B=fpu-fpl;
-  const zlF=zl===-Infinity?0:zl*fl, zuF=zu===Infinity?0:zu*fu;
-  const dg=-A/(sigma*P);
-  const dgg=B/(sigma*sigma*P)-dg*dg;
-  const dt=-(zuF-zlF)/P;
-  const dtt=((zu===Infinity?0:zu*zu*fpu)-(zl===-Infinity?0:zl*zl*fpl))/P-dt*(1+dt);
-  const det=((zu===Infinity?0:zu*fpu)-(zl===-Infinity?0:zl*fpl))/(sigma*P)-dg*(1+dt);
+  const fpl=rl*hl1, fpu=ru*hu1;
+  const dg=-(ru-rl)/sigma;
+  const dgg=(fpu-fpl)/(sigma*sigma)-dg*dg;
+  const dt=-((zu===Infinity?0:zu*ru)-(zl===-Infinity?0:zl*rl));
+  const dtt=((zu===Infinity?0:zu*zu*fpu)-(zl===-Infinity?0:zl*zl*fpl))-dt*(1+dt);
+  const det=((zu===Infinity?0:zu*fpu)-(zl===-Infinity?0:zl*fpl))/sigma-dg*(1+dt);
   return {g:lp,e:dg,ee:dgg,t:dt,tt:dtt,et:det};
 }
 function inv(a:number[][]):number[][] {
@@ -184,7 +182,7 @@ export function survreg(time: readonly number[], event: readonly number[], x: re
   const fixed=(d==="exponential"||d==="rayleigh")?(d==="exponential"?1:Math.SQRT1_2):fixed0;
   const time2=options.time2, weights=options.weights??Array(n0).fill(1),offset=options.offset??Array(n0).fill(0),strataIn=options.strata??Array(n0).fill("1");
   for(const [a,name] of [[weights,"weights"],[offset,"offset"],[strataIn,"strata"]] as const)if(a.length!==n0)throw new RangeError(`variable lengths differ (found for '${name}')`);
-  if(weights.some(w=>!(w>0)))throw new RangeError("Invalid weights, must be >0");
+  if(weights.some(w=>!Number.isNaN(w)&&!(w>0)))throw new RangeError("Invalid weights, must be >0");
   const rows:number[]=[],yy:number[]=[],lo:number[]=[],hi:number[]=[],st:number[]=[],ww:number[]=[],oo:number[]=[],xx:number[][]=[];
   const lev=[...new Set(strataIn.map(String))].sort(),sid=strataIn.map(v=>lev.indexOf(String(v)));
   if(fixed!==undefined&&lev.length>1)throw new Error("The scale argument is not valid with multiple strata");
@@ -196,7 +194,7 @@ export function survreg(time: readonly number[], event: readonly number[], x: re
     else if(type==="left"){s=s===1?1:2;}
     else if(type==="interval"){u=time2![i]!;if(s===0){l=time[i]!;u=Infinity;}else if(s===1){u=l;}else if(s===2){u=l;l=-Infinity;}else if(s!==3)continue;}
     else {const lower=time[i]!,upper=time2![i]!;if(Number.isNaN(lower)&&Number.isNaN(upper))continue;if(lower>upper)continue;if(lower===upper){l=lower;u=upper;s=1;}else if(!Number.isFinite(lower)||lower===0){l=-Infinity;u=upper;s=2;}else if(!Number.isFinite(upper)){l=lower;u=Infinity;s=0;}else{l=lower;u=upper;s=3;}}
-    if(logTime){if((Number.isFinite(l)&&l<=0)||(Number.isFinite(u)&&u<=0))throw new Error("Invalid survival times for this distribution");if(Number.isFinite(l))l=Math.log(l);if(Number.isFinite(u))u=Math.log(u);}
+    if(logTime){if(!Number.isFinite(l)&&l!==-Infinity||!Number.isFinite(u)&&u!==Infinity||(Number.isFinite(l)&&l<=0)||(Number.isFinite(u)&&u<=0))throw new Error("Invalid survival times for this distribution");if(Number.isFinite(l))l=Math.log(l);if(Number.isFinite(u))u=Math.log(u);}
     rows.push(i);yy.push(s===1?u:Number.isFinite(l)&&Number.isFinite(u)?(l+u)/2:Number.isFinite(l)?l:u);lo.push(l);hi.push(u);st.push(s);ww.push(weights[i]!);oo.push(offset[i]!);xx.push(xi);
   }
   if(rows.length===0)throw new Error("No observations");
@@ -215,7 +213,7 @@ export function survreg(time: readonly number[], event: readonly number[], x: re
   let start=base;
   if(options.init!==undefined){if(options.init.length!==p&&options.init.length!==q)throw new Error("Wrong length for initial parameters");start=base.slice();for(let j=0;j<p;j++)start[j]=options.init[j]!;if(options.init.length===q)for(let j=p;j<q;j++)start[j]=options.init[j]!;}
   else if(p>0){ // weighted least-squares start from the null scales
-    const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[p+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu);return {w:ww[i]!*Math.max(1e-12,-gg.ee),r:yy[i]!-gg.e/gg.ee-oo[i]!};});
+    const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[1+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu);return {w:ww[i]!*Math.max(1e-12,-gg.ee),r:yy[i]!-gg.e/gg.ee-oo[i]!};});
     const A=Array.from({length:p},(_,a)=>Array.from({length:p},(_,b)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*row[b]!,0)));
     const rhs=Array.from({length:p},(_,a)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*z[i]!.r,0));
     try{const b=matVec(solve(A),rhs);start.splice(0,p,...b);}catch{}
@@ -287,7 +285,7 @@ export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptio
     if(type==="ldresp"||type==="ldshape"){const d=Array(q).fill(0);for(let j=0;j<p;j++)d[j]=type==="ldresp"?sig*(-x[j]!*g.ee):x[j]!*g.et;if(q>p)d[p+fit.strata[i]!]=type==="ldresp"?-sig*g.et:g.tt;return dot(d,matVec(V,d))*v;}
     const logD=logDensity(0,fit.dist,nu)-Math.log(sig),dev=fit.status[i]===1?Math.sign(fit.y[i]!-eta):fit.status[i]===0?1:fit.status[i]===2?-1:Math.sign((fit.lower[i]!+fit.upper[i]!)/2-eta);
     if(type==="deviance")return dev*Math.sqrt(Math.max(0,2*((fit.status[i]===1?logD:0)-g.g)))*v;
-    const center=fit.status[i]===3?(fit.lower[i]!+fit.upper[i]!)/2:fit.y[i]!;
+    let center=fit.status[i]===3?(fit.lower[i]!+fit.upper[i]!)/2:fit.y[i]!;\n    if(fit.status[i]===3&&(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh")){const b=(fit.upper[i]!-fit.lower[i]!)/sig;center=fit.lower[i]!-sig*(Math.log(b)-Math.log(Math.expm1(b)));}
     const response=center-eta;return (["weibull","loggaussian","lognormal","loglogistic"].includes(fit.dist)?Math.exp(center)-Math.exp(eta):response)*v;
   });
   if(type==="dfbeta"||type==="dfbetas")return rows as number[][];
