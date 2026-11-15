@@ -93,6 +93,36 @@ function expProduct(logValue:number,factor:number):number {
   if(!Number.isFinite(factor))return Math.exp(logValue)*factor;
   return Math.sign(factor)*Math.exp(logValue+Math.log(Math.abs(factor)));
 }
+function intervalWidthOverScale(lower:number,upper:number,sigma:number):number {
+  const width=upper-lower;
+  return Number.isFinite(width)?width/sigma:upper/sigma-lower/sigma;
+}
+function logIntervalWidthOverScale(lower:number,upper:number,sigma:number):number {
+  const width=upper-lower;
+  if(Number.isFinite(width))return Math.log(width)-Math.log(sigma);
+  const magnitude=Math.max(Math.abs(lower),Math.abs(upper));
+  return Math.log(magnitude)+Math.log(upper/magnitude-lower/magnitude)-Math.log(sigma);
+}
+function extremeIntervalCenter(lower:number,upper:number,sigma:number):number {
+  const logB=logIntervalWidthOverScale(lower,upper,sigma);
+  const b=logB>Math.log(Number.MAX_VALUE)?Infinity:Math.exp(logB);
+  if(b<1e-8){
+    const width=upper-lower;
+    return midpoint(lower,upper)+width*(b/24);
+  }
+  if(b>50)return upper-sigma*logB-sigma*Math.log1p(-Math.exp(-b));
+  return lower-sigma*(logB-Math.log(Math.expm1(b)));
+}
+function extremeIntervalMaxLogProbability(lower:number,upper:number,sigma:number):number {
+  const logB=logIntervalWidthOverScale(lower,upper,sigma);
+  if(logB<Math.log(1e-8))return logB-1;
+  const b=logB>Math.log(Number.MAX_VALUE)?Infinity:Math.exp(logB);
+  if(!Number.isFinite(b))return 0;
+  const logExpm1=b>50?b+Math.log1p(-Math.exp(-b)):Math.log(Math.expm1(b));
+  const a=logB-logExpm1;
+  const upperLog=b>50?logB-Math.log1p(-Math.exp(-b)):a+b;
+  return logDiff(-Math.exp(a),-Math.exp(upperLog));
+}
 function logisticLogF(z:number):number { return z < -36 ? z : -Math.log1p(Math.exp(-z)); }
 function logisticLogS(z:number):number { return z > 36 ? -z : -Math.log1p(Math.exp(z)); }
 function logF(z:number,d:SurvregDistribution,nu:number):number {
@@ -424,12 +454,12 @@ export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptio
     if(type==="ldresp"||type==="ldshape"){const d=Array(q).fill(0);for(let j=0;j<p;j++)d[j]=type==="ldresp"?sig*(-x[j]!*g.ee):x[j]!*g.et;if(q>p)d[p+fit.strata[i]!]=type==="ldresp"?-sig*g.et:g.tt;return dot(d,matVec(V,d))*v;}
     const logD=logDensity(0,fit.dist,nu)-Math.log(sig);
     let center=fit.status[i]===3?midpoint(fit.lower[i]!,fit.upper[i]!):fit.y[i]!;
-    if(fit.status[i]===3&&(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh")){const b=(fit.upper[i]!-fit.lower[i]!)/sig;center=fit.lower[i]!-sig*(Math.log(b)-(b>50?b+Math.log1p(-Math.exp(-b)):Math.log(Math.expm1(b))));}
+    if(fit.status[i]===3&&(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh"))center=extremeIntervalCenter(fit.lower[i]!,fit.upper[i]!,sig);
     const dev=fit.status[i]===0?1:fit.status[i]===2?-1:Math.sign(center-eta);
     if(type==="deviance"){
       let gmax=fit.status[i]===1?logD:0;
-      if(fit.status[i]===3){const b=(fit.upper[i]!-fit.lower[i]!)/sig;
-        if(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh"){const logExpm1=b>50?b+Math.log1p(-Math.exp(-b)):Math.log(Math.expm1(b));const aa=Math.log(b)-logExpm1;gmax=logDiff(-Math.exp(aa),-Math.exp(aa+b));}
+      if(fit.status[i]===3){const b=intervalWidthOverScale(fit.lower[i]!,fit.upper[i]!,sig);
+        if(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh")gmax=extremeIntervalMaxLogProbability(fit.lower[i]!,fit.upper[i]!,sig);
         else if(fit.dist==="logistic"||fit.dist==="loglogistic"){gmax=Math.log(Math.tanh(b/4));}
         else if(fit.dist==="gaussian"||fit.dist==="loggaussian"||fit.dist==="lognormal"){gmax=Math.log(2*pnorm(b/2)-1);}
         else if(fit.dist==="t"){gmax=Math.log(2*pt(b/2,fit.distributionDf)-1);}
