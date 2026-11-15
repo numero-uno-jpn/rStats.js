@@ -1518,3 +1518,10 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - `variance: false` の場合、`crr` は残差を `null` とし、`var`、`inf`、`invinf` は NaN 行列を返す。このモードでは残差を返さない。
 - 係数名は `names` オプションで指定できる。JavaScript では R の引数式の deparse を再現できないためである。既定名は共変量列から生成する。
 - 公開 API は `subset` と `na.action = "fail"` を提供しない。呼び出し前に行を抽出すること。欠損行は除外し、その数を `<k> cases omitted due to missing values` という `warnings` で返す。R はこの文を標準出力に表示するが、rStats.js では選択された API に従って warnings に格納する。
+
+
+## パラメトリック生存時間回帰
+
+- **`survreg` の underflow 処理:** `survival::survreg` と異なり、rStats.js は基本分布の尤度を対数領域で計算し、underflow した尤度を -200 に置き換えたり、それに対応する便宜的な導関数を使ったりしません。`oracle/survreg-behaviour.md` の高精度計算に関する決定に従い、該当ケースは R の代替値ではなく参照値と比較します。
+- **`survreg` の null model:** 切片のみのモデルは 20 回で打ち切らず、指定された収束条件まで反復します。そのため `nullIter` の参照ケースでは R と null 尤度が異なる場合があります。
+- **`survregResiduals` の区間打ち切り:** 区間打ち切りの導関数と extreme-value の区間中心は、R の既知の誤りではなく数学的に正しい導関数と sigma を含む中心を使います。
