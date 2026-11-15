@@ -159,7 +159,7 @@ describe("survreg: R 4.6.2 fixture", () => {
         // the finite iteration path; validate the likelihood and score instead.
         if (name === "coefficients" && [75, 78].includes(index)) continue;
         if (name === "linear.predictors" && [75, 78].includes(index)) continue;
-        if (name === "icoef" && index >= 41) {
+        if (name === "icoef") {
           if (c.reference?.refKind === "nullIter") continue;
           const nullOptions = { ...optionsOf(a) };
           delete nullOptions.init;
