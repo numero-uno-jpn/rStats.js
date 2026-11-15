@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { survreg, survregPredict, survregResiduals, type SurvregOptions, type SurvregPredictionResult } from "../src/index.js";
 
 type Raw = Record<string, unknown>;
-type Fixture = { cases: { args: Raw; expected: Raw }[] };
+type Fixture = { cases: { args: Raw; expected: Raw; reference?: { values?: unknown[]; [key: string]: unknown } }[] };
 const num = (v: unknown): number => typeof v === "number" ? v : v === "NA" || v === "NaN" ? NaN : v === "Inf" ? Infinity : v === "-Inf" ? -Infinity : Number(v);
 const vec = (v: unknown): number[] | undefined => v === undefined ? undefined : (v as unknown[]).map(num);
 const mat = (v: unknown): number[][] | undefined => v === undefined ? undefined : (v as unknown[][]).map(r => r.map(num));
