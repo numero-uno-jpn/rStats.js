@@ -305,7 +305,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   }
   const model=isNull?nullFit:fitCore(X,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol,control.tolerChol??1e-10);
   const jac=logTime?rows.reduce((s,orig,j)=>s+(st[j]===1?ww[j]!*Math.log(time[orig]!):0),0)*-1:0;
-  const varmat=model.V.map(r=>r.slice());const coefs=model.b.slice(0,p).map((v,j)=>(varmat[j]?.[j]??0)===0?NaN:v);const ses=coefs.map((_,j)=>(varmat[j]?.[j]??0)===0?NaN:Math.sqrt(Math.max(0,varmat[j]?.[j]??0)));
+  const varmat=model.V.map(r=>r.slice());const coefs=model.b.slice(0,p).map((v,j)=>(varmat[j]?.[j]??0)===0?NaN:v);const ses=coefs.map((_,j)=>(varmat[j]?.[j]??0)===0?0:Math.sqrt(Math.max(0,varmat[j]?.[j]??0)));
   const zstat=coefs.map((v,j)=>v/ses[j]!);const pv=zstat.map(v=>2*pnorm(-Math.abs(v)));
   const scales=fixed!==undefined?[fixed]:Array.from({length:k},(_,s)=>Math.exp(model.b[p+s]!));
   const means=Array.from({length:p},(_,j)=>X.reduce((s,r)=>s+r[j]!,0)/X.length);
@@ -313,8 +313,8 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const lp=X.map((r,i)=>dot(r,model.b.slice(0,p))+oo[i]!);
   const chi=2*((model.ll+jac)-(nullFit.ll+jac)),chiDf=p+(fixed===undefined?k:0)-(1+(fixed===undefined?k:0));
   const tableNames=[...coefs.map((_,j)=>j===0&&intercept?"(Intercept)":`x${j+(intercept?0:1)}`),...(fixed===undefined?(k===1?["Log(scale)"]:lev):[])];
-  const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>(varmat[j]?.[j]??0)===0?NaN:Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((v,j)=>v/seAll[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
-  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),hasOffset:options.offset!==undefined,icoef:fixed===undefined?nullFit.b:[nullFit.b[0]!,Math.log(fixed)], var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score.slice(),tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,distributionDf:nu,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...dataWarnings,...(model.warn||nullFit.warn?["Ran out of iterations and did not converge"]:[]),...(d==="exponential"&&options.scale!==undefined&&options.scale>0?["Exponential has a fixed scale, user specified value ignored"]:[])]};
+  const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>(varmat[j]?.[j]??0)===0?0:Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((v,j)=>v/seAll[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
+  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),hasOffset:options.offset!==undefined,icoef:nullFit.b.slice(), var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score.slice(),tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,distributionDf:nu,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...dataWarnings,...(model.warn||nullFit.warn?["Ran out of iterations and did not converge"]:[]),...(d==="exponential"&&options.scale!==undefined&&options.scale>0?["Exponential has a fixed scale, user specified value ignored"]:[])]};
   return reported("survreg",result);
 }
 
