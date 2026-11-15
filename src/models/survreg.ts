@@ -137,7 +137,7 @@ function deriv(lo:number,hi:number,kind:number,eta:number,sigma:number,d:Survreg
 function inv(a:number[][]):number[][] {
   const n=a.length, aug=a.map((r,i)=>[...r,...r.map((_,j)=>i===j?1:0)]);
   for(let k=0;k<n;k++){let p=k;for(let i=k+1;i<n;i++)if(Math.abs(aug[i]![k]!)>Math.abs(aug[p]![k]!))p=i;
-    if(Math.abs(aug[p]![k]!)<1e-13*Math.max(1,...a.map((r,i)=>Math.abs(r[i]??0)))) throw new Error("singular information matrix");
+    if(!Number.isFinite(aug[p]![k]!)||Math.abs(aug[p]![k]!)<=1e-13*Math.max(Number.MIN_VALUE,...a.map((r,i)=>Math.abs(r[i]??0)))) throw new Error("singular information matrix");
     [aug[k],aug[p]]=[aug[p]!,aug[k]!]; const v=aug[k]![k]!; for(let j=0;j<2*n;j++)aug[k]![j]!/=v;
     for(let i=0;i<n;i++)if(i!==k){const f=aug[i]![k]!;for(let j=0;j<2*n;j++)aug[i]![j]!-=f*aug[k]![j]!;}
   }
