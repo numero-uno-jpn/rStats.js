@@ -282,9 +282,10 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const p0=xx[0]!.length,p=p0+(intercept?1:0),X=xx.map(r=>intercept?[1,...r]:r),k=lev.length;
   const centers=yy.map((v,i)=>v-oo[i]!);const sw=ww.reduce((a,b)=>a+b,0),mean=centers.reduce((a,b,i)=>a+b*ww[i]!,0)/sw;
   const variance=centers.reduce((a,b,i)=>a+ww[i]!*(b-mean)**2,0)/sw;
+  const centerRange=Math.max(...centers)-Math.min(...centers);
   const vd=d==="extreme"||d==="weibull"||d==="exponential"||d==="rayleigh"?variance/1.64:d==="logistic"||d==="loglogistic"?variance/3.2:d==="t"?variance*(nu-2)/nu:variance;
   const sig0=fixed??2*Math.sqrt(vd);
-  if(fixed===undefined&&!(sig0>0))throw new Error("initial iteration failed (use starting estimates?)");
+  if(fixed===undefined&&(!(sig0>0)||!(centerRange>0)))throw new Error("initial iteration failed (use starting estimates?)");
   const q=p+(fixed===undefined?k:0),base=Array(q).fill(0);if(intercept)base[0]=mean;
   if(fixed===undefined)for(let s=0;s<k;s++)base[p+s]=Math.log(sig0);
   const control=options.control??{},maxiter=control.maxiter??30,tol=control.relTolerance??1e-9;
