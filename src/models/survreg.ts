@@ -95,7 +95,7 @@ function logS(z:number,d:SurvregDistribution,nu:number):number {
   return pt(z,nu,{lowerTail:false,logP:true});
 }
 function logDensity(z:number,d:SurvregDistribution,nu:number):number {
-  if (d === "extreme" || d === "weibull" || d === "exponential" || d === "rayleigh") return z - Math.exp(z);
+  if (d === "extreme" || d === "weibull" || d === "exponential" || d === "rayleigh") return z===Infinity?-Infinity:z-Math.exp(z);
   if (d === "logistic" || d === "loglogistic") return -Math.abs(z) - 2*Math.log1p(Math.exp(-Math.abs(z)));
   if (d === "gaussian" || d === "loggaussian" || d === "lognormal") return -0.5*(z*z+LOG2PI);
   return dt(z,nu,{log:true});
