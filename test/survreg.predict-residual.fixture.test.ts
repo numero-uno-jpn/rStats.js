@@ -13,7 +13,8 @@ function fitOptions(a: Raw): SurvregOptions {
   for (const k of ["type", "dist", "intercept"] as const) if (a[k] !== undefined) o[k] = a[k];
   for (const k of ["time2", "weights", "offset", "init"] as const) { const v=vec(a[k]); if(v!==undefined)o[k]=v; }
   if(a.strata!==undefined)o.strata=a.strata;
-  for(const k of ["scale","parms"] as const)if(a[k]!==undefined)o[k]=num(a[k]);
+  if(a.scale!==undefined)o.scale=num(a.scale);
+  if(a.parms!==undefined)o.df=num(a.parms);
   const control:Record<string,number>={};
   if(a.maxiter!==undefined)control.maxiter=num(a.maxiter);
   if(a["rel.tolerance"]!==undefined)control.relTolerance=num(a["rel.tolerance"]);
