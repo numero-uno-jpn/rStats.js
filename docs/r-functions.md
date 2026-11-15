@@ -278,6 +278,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |
 | `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |
 | `survival::survfit()` | `survfit` | Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means. |
+| `survival::survreg()` | `survreg` | Fit a parametric survival regression model. |
 | `TOSTER::t_TOST()` | `tTOST` | Two one-sided t tests of equivalence, or minimal-effect tests, for one sample, two samples or paired samples, with the standardised mean difference and its interval. |
 | `t.test()` | `tTest` | Student's t-test. |
 | `cmprsk::timepoints()` | `timepoints` | Evaluate cumulative-incidence curves at requested times. |
