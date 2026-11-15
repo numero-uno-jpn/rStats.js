@@ -188,7 +188,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   checkOptions(nestedOptions(options,"control"),SURVREG_CONTROL_KEYS,"survreg","control"); // generated: option-keys.mjs
   const type=options.type??"right",d=options.dist??"weibull",nu=options.parms??4,intercept=options.intercept??true;
   const n0=time.length,events=event===undefined?Array(n0).fill(1):Array.from(event,Number);if(events.length!==n0||x.length!==0&&x.length!==n0)throw new RangeError("variable lengths differ");
-  if(type==="counting" as SurvregType)throw new Error("start-stop type Surv objects are not supported");
+  if((type as string)==="counting")throw new Error("start-stop type Surv objects are not supported");
   if(!["right","left","interval","interval2"].includes(type))throw new TypeError("invalid survival type");
   if(!["extreme","logistic","gaussian","weibull","exponential","rayleigh","loggaussian","lognormal","loglogistic","t"].includes(d))throw new RangeError("'arg' should be one of “extreme”, “logistic”, “gaussian”, “weibull”, “exponential”, “rayleigh”, “loggaussian”, “lognormal”, “loglogistic”, “t”");
   if((type==="interval"||type==="interval2")&&options.time2===undefined)throw new TypeError("time2 is required for interval data");
@@ -206,12 +206,12 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const lev=[...new Set(strataIn.map(String))].sort(),sid=strataIn.map(v=>lev.indexOf(String(v)));
   if(fixed!==undefined&&lev.length>1)throw new Error("The scale argument is not valid with multiple strata");
   for(let i=0;i<n0;i++){
-    const xi=x.length===0?[]:Array.from(x[i]!);if(Number.isNaN(time[i]!)||Number.isNaN(events[i]!)||Number.isNaN(weights[i]!)||Number.isNaN(offset[i]!)||xi.some(Number.isNaN))continue;
+    const xi=x.length===0?[]:Array.from(x[i]!);const missingTime=type==="interval2"?(Number.isNaN(time[i]!)&&Number.isNaN(time2![i]!)):Number.isNaN(time[i]!)||((type==="interval"||type==="interval2")&&Number.isNaN(time2![i]!)&&type==="interval");if(missingTime||type!=="interval2"&&Number.isNaN(events[i]!)||Number.isNaN(weights[i]!)||Number.isNaN(offset[i]!)||xi.some(Number.isNaN))continue;
     if(!(weights[i]!>0))throw new RangeError("Invalid weights, must be >0");
     if(xi.some(v=>!Number.isFinite(v)))throw new Error("data contains an infinite predictor");
     let l=time[i]!,u=time[i]!,s=Number(events[i]);
-    if(type==="right"){s=s===1?1:0;}
-    else if(type==="left"){s=s===1?1:2;}
+    if(type==="right"){if(s!==0&&s!==1)continue;s=s===1?1:0;}
+    else if(type==="left"){if(s!==0&&s!==1)continue;s=s===1?1:2;}
     else if(type==="interval"){u=time2![i]!;if(s===0){l=time[i]!;u=Infinity;}else if(s===1){u=l;}else if(s===2){u=l;l=-Infinity;}else if(s!==3){continue;}if(s===3&&l>u)continue;}
     else if(type==="interval2"){const lower=time[i]!,upper=time2![i]!;if(Number.isNaN(lower)&&Number.isNaN(upper))continue;if(lower>upper)continue;if(lower===upper){l=lower;u=upper;s=1;}else if(!Number.isFinite(lower)||lower===0){l=-Infinity;u=upper;s=2;}else if(!Number.isFinite(upper)){l=lower;u=Infinity;s=0;}else{l=lower;u=upper;s=3;}}
     if(logTime){if(l===Infinity||u===-Infinity||(Number.isFinite(l)&&l<=0)||(Number.isFinite(u)&&u<=0))throw new Error("Invalid survival times for this distribution");if(Number.isFinite(l))l=Math.log(l);if(Number.isFinite(u))u=Math.log(u);}
@@ -229,7 +229,11 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const control=options.control??{},maxiter=control.maxiter??30,tol=control.relTolerance??1e-9;
   if(!Number.isInteger(maxiter)||maxiter<0||!Number.isFinite(tol)||tol<0)throw new RangeError("invalid control");
   if(control.tolerChol!==undefined&&(!Number.isFinite(control.tolerChol)||control.tolerChol<0))throw new RangeError("invalid control");
-  const nullX=X.map(()=>[1]);\n  const nullStartDeriv=yy.map((center,i)=>deriv(lo[i]!,hi[i]!,st[i]!,center,fixed??sig0,d,nu));\n  const nullDen=nullStartDeriv.reduce((s,g,i)=>s+ww[i]!*Math.max(1e-12,-g.ee),0);\n  const nullBeta=nullStartDeriv.reduce((s,g,i)=>s+ww[i]!*Math.max(1e-12,-g.ee)*(yy[i]!-g.e/g.ee-oo[i]!),0)/nullDen;\n  const nullFit=fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,[nullBeta,...(fixed===undefined?Array(k).fill(Math.log(sig0)):[])],maxiter,tol);
+  const nullX=X.map(()=>[1]);
+  const nullStartDeriv=yy.map((center,i)=>deriv(lo[i]!,hi[i]!,st[i]!,center,fixed??sig0,d,nu));
+  const nullDen=nullStartDeriv.reduce((s,g,i)=>s+ww[i]!*Math.max(1e-12,-g.ee),0);
+  const nullBeta=nullStartDeriv.reduce((s,g,i)=>s+ww[i]!*Math.max(1e-12,-g.ee)*(yy[i]!-g.e/g.ee-oo[i]!),0)/nullDen;
+  const nullFit=fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,[nullBeta,...(fixed===undefined?Array(k).fill(Math.log(sig0)):[])],maxiter,tol);
   let start=base;
   if(options.init!==undefined){if(options.init.length!==p&&options.init.length!==q)throw new Error("Wrong length for initial parameters");start=base.slice();for(let j=0;j<p;j++)start[j]=options.init[j]!;if(options.init.length===q)for(let j=p;j<q;j++)start[j]=options.init[j]!;}
   else if(p>0){ // weighted least-squares start from the null scales
@@ -240,7 +244,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
     if(fixed===undefined)for(let s=0;s<k;s++)start[p+s]=nullFit.b[p+s]!;
   }
   const isNull=X.every(r=>r.length===1&&r[0]===1);
-  const model=isNull?(options.init===undefined?nullFit:fitCore(nullX,yy,lo,hi,st,ww,oo,sid,d,nu,fixed,start,maxiter,tol)):fitCore(X,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol);
+  const model=isNull?(options.init===undefined?nullFit:fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol)):fitCore(X,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol);
   const jac=logTime?rows.reduce((s,orig,j)=>s+(st[j]===1?ww[j]!*Math.log(time[orig]!):0),0)*-1:0;
   const varmat=model.V.map(r=>r.slice());const coefs=model.b.slice(0,p);const ses=coefs.map((_,j)=>Math.sqrt(Math.max(0,varmat[j]?.[j]??0)));
   const zstat=coefs.map((v,j)=>v/ses[j]!);const pv=zstat.map(v=>2*pnorm(-Math.abs(v)));
