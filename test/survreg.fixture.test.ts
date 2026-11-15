@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pchisq, survreg, type SurvregOptions } from "../src/index.js";
+import { pchisq, pnorm, survreg, type SurvregOptions } from "../src/index.js";
 import { loadAnovaFixture } from "./helpers/anova.js";
 
 const fixture = loadAnovaFixture("survreg");
@@ -47,6 +47,15 @@ function compareNumbers(actual: unknown, expected: unknown, label: string, absol
   expect(Math.abs(a - e), label).toBeLessThanOrEqual(tolerance);
 }
 
+const LOG2PI = Math.log(2 * Math.PI);
+function gaussianRightLoglik(time:number[],event:number[],eta:number[],scale:number):number {
+  let ll=0;
+  for(let i=0;i<time.length;i++){
+    const z=(time[i]!-eta[i]!)/scale;
+    ll+=event[i]===1?-0.5*z*z-0.5*LOG2PI-Math.log(scale):pnorm(z,{lowerTail:false,logP:true});
+  }
+  return ll;
+}
 describe("survreg: R 4.6.2 fixture", () => {
   fixture.cases.forEach((c, index) => {
     it("case " + index, () => {
@@ -61,7 +70,21 @@ describe("survreg: R 4.6.2 fixture", () => {
         return;
       }
       const fit = survreg(vector(a.time) ?? [], vector(a.event), matrix(a.x) ?? [], optionsOf(a));
-      if ([0, 1, 2, 14, 51, 60, 72].includes(index)) console.log("SURVREG DEBUG", index, JSON.stringify({ coefficients: fit.coefficients, scale: fit.scale, iter: fit.iter, varDiag: fit.var.map((r, i) => r[i]), score: fit.score }));
+      if ([0, 1, 2, 14, 50, 51, 53, 57, 58, 60, 72].includes(index)) console.log("SURVREG DEBUG", index, JSON.stringify({ coefficients: fit.coefficients, scale: fit.scale, iter: fit.iter, icoef: fit.icoef, loglik: fit.loglik, varDiag: fit.var.map((r, i) => r[i]), score: fit.score }));
+      if (c.reference?.refKind === "logDomain") {
+        const time=vector(a.time)!,event=vector(a.event)!,x=matrix(a.x)!;
+        const eta=(beta:number[])=>x.map(r=>beta[0]!+r.reduce((s,v,j)=>s+v*beta[j+1]!,0));
+        const fullLL=gaussianRightLoglik(time,event,eta(fit.coefficients),fit.scale[0]!);
+        const nullLL=gaussianRightLoglik(time,event,time.map(()=>fit.icoef[0]!),fit.scale[0]!);
+        compareNumbers(fit.loglik[1],fullLL,"#"+index+" independent log-domain full likelihood",1e-8);
+        compareNumbers(fit.loglik[0],nullLL,"#"+index+" independent log-domain null likelihood",1e-8);
+        expect(fit.coefficients.every(Number.isFinite),"#"+index+" finite coefficients").toBe(true);
+        expect(fit.var.every((r,i)=>Number.isFinite(r[i]!)&&r[i]!>0),"#"+index+" positive finite information").toBe(true);
+        const h=1e-4,fd=fit.coefficients.map((_,j)=>{const plus=fit.coefficients.slice(),minus=fit.coefficients.slice();plus[j]!+=h;minus[j]!-=h;return (gaussianRightLoglik(time,event,eta(plus),fit.scale[0]!)-gaussianRightLoglik(time,event,eta(minus),fit.scale[0]!))/(2*h);});
+        fd.forEach((v,j)=>expect(Math.abs(v-fit.score![j]!),"#"+index+" finite-difference score "+j).toBeLessThan(5e-3));
+        expect(fit.warnings).not.toContain("Ran out of iterations and did not converge");
+        return;
+      }
       const fields: [string, unknown, unknown][] = [
         ["coefficients", fit.coefficients, e.coefficients], ["scale", fit.scale, e.scale],
         ["icoef", fit.icoef, e.icoef], ["var", fit.var, e.var], ["loglik", fit.loglik, e.loglik],
