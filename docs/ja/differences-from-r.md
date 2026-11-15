@@ -1527,3 +1527,4 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`survregResiduals` の区間打ち切り:** 区間打ち切りの導関数と extreme-value の区間中心は、R の既知の誤りではなく数学的に正しい導関数と sigma を含む中心を使います。
 
 - **`survreg` の control と退化データ:** `control.maxiter` が負の場合は拒否します。また、exact event も有限区間イベントもないデータ、または scale を推定できないデータは初期化エラーにします。R がこのような入力で有用でない初期当てはめを返す場合でも、rStats.js は選択した API 方針に従って拒否します。
+- **`survreg` の score の座標系:** rStats.js は `oracle/survreg-behaviour.md` §3 の定義どおり、元の設計行列の座標 `(β, log(scale))` における対数尤度の解析的勾配を返します。R の fixture にある `score` は、未収束の一部の当てはめでこの座標系の勾配と一致しません。rStats.js では R の値を転記せず、自身の対数尤度を有限差分して score を検証します。
