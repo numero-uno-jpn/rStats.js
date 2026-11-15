@@ -73,6 +73,8 @@ export interface SurvregPredictionResult { fit: number[] | number[][]; seFit?: n
  */
 export interface SurvregResidualsOptions { type?: "response" | "deviance" | "working" | "dfbeta" | "dfbetas" | "ldcase" | "ldresp" | "ldshape" | "matrix"; weighted?: boolean; }
 
+const survregNumericState = new WeakMap<SurvregResult,{V:number[][];xExponent:number[]}>();
+
 type Deriv = { g:number; e:number; ee:number; t:number; tt:number; et:number; };
 const LOG2PI = Math.log(2 * Math.PI);
 const safelyNumber=(x:unknown):number=>Number(x);
@@ -232,7 +234,7 @@ function quantile(p:number,d:SurvregDistribution,nu:number):number {
   if(d==="gaussian"||d==="loggaussian"||d==="lognormal")return qnorm(p);
   return qt(p,nu);
 }
-function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[],weights:number[],offset:number[],strata:number[],k:number,d:SurvregDistribution,nu:number,fixed:number|undefined,start:number[],maxiter:number,tol:number,tolerChol=1e-10): {b:number[];ll:number;iter:number;V:number[][];score:number[];z:number[];warn:boolean} {
+function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[],weights:number[],offset:number[],strata:number[],k:number,d:SurvregDistribution,nu:number,fixed:number|undefined,start:number[],maxiter:number,tol:number,tolerChol=1e-10): {b:number[];ll:number;iter:number;V:number[][];VScaled:number[][];xExponent:number[];score:number[];z:number[];warn:boolean} {
   const p=X[0]!.length, q=p+(fixed===undefined?k:0), scaled=scaleDesign(X), design=scaled.values, xExponent=scaled.exponent;
   const b=start.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v);
   const evaluate=(v:number[],withH:boolean)=>{let ll=0;const u=Array(q).fill(0),H=Array.from({length:q},()=>Array(q).fill(0)),B=Array.from({length:q},()=>Array(q).fill(0));
@@ -248,7 +250,7 @@ function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[]
   let initial: {e:ReturnType<typeof evaluate>;delta:number[]};
   try{initial=stepAt(b);}catch{initial={e:cur,delta:Array(q).fill(0)};}
   let trial=b.map((x,j)=>x+initial.delta[j]!);
-  if(maxiter===0){const f=factorAt(cur);const V=cholInverse(f.factor),z=V.map((row,j)=>row[j]===0?NaN:b[j]!/Math.sqrt(Math.max(0,row[j]!)));return {b:b.map((v,j)=>j<p?ldexpWide(v,-xExponent[j]!):v),ll:cur.ll,iter,V:V.map((row,i)=>row.map((v,j)=>ldexpWide(v,(i<p?-xExponent[i]!:0)+(j<p?-xExponent[j]!:0)))),score:cur.u.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v),z,warn};}
+  if(maxiter===0){const f=factorAt(cur);const V=cholInverse(f.factor),VScaled=V.map(row=>row.slice()),z=V.map((row,j)=>row[j]===0?NaN:b[j]!/Math.sqrt(Math.max(0,row[j]!)));return {b:b.map((v,j)=>j<p?ldexpWide(v,-xExponent[j]!):v),ll:cur.ll,iter,V:V.map((row,i)=>row.map((v,j)=>ldexpWide(v,(i<p?-xExponent[i]!:0)+(j<p?-xExponent[j]!:0)))),VScaled,xExponent,score:cur.u.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v),z,warn};}
   for(let it=1;it<=maxiter;it++){
     const next=evaluate(trial,true);
     if(Number.isFinite(next.ll)&&Math.abs(1-best/next.ll)<=tol){b.splice(0,b.length,...trial);cur=next;best=next.ll;iter=it;converged=true;break;}
@@ -265,9 +267,9 @@ function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[]
     }
   }
   if(iter===maxiter&&maxiter>=2&&!converged)warn=true;
-  const final=evaluate(b,true),f=factorAt(final),V=cholInverse(f.factor);
+  const final=evaluate(b,true),f=factorAt(final),V=cholInverse(f.factor),VScaled=V.map(row=>row.slice());
   const z=V.map((row,j)=>row[j]===0?NaN:b[j]!/Math.sqrt(Math.max(0,row[j]!)));
-  return {b:b.map((v,j)=>j<p?ldexpWide(v,-xExponent[j]!):v),ll:best,iter,V:V.map((row,i)=>row.map((v,j)=>ldexpWide(v,(i<p?-xExponent[i]!:0)+(j<p?-xExponent[j]!:0)))),score:final.u.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v),z,warn};
+  return {b:b.map((v,j)=>j<p?ldexpWide(v,-xExponent[j]!):v),ll:best,iter,V:V.map((row,i)=>row.map((v,j)=>ldexpWide(v,(i<p?-xExponent[i]!:0)+(j<p?-xExponent[j]!:0)))),VScaled,xExponent,score:final.u.map((v,j)=>j<p?ldexpWide(v,xExponent[j]!):v),z,warn};
 }
 
 /**
@@ -384,6 +386,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const tableNames=[...coefs.map((_,j)=>j===0&&intercept?"(Intercept)":`x${j+(intercept?0:1)}`),...(fixed===undefined?(k===1?["Log(scale)"]:lev):[])];
   const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>(varmat[j]?.[j]??0)===0?0:Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((_,j)=>model.z[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
   const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),hasOffset:options.offset!==undefined,icoef:fixed===undefined||rows.length===1?nullFit.b.slice():[nullFit.b[0]!,Math.log(fixed)], var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score.slice(),tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,distributionDf:nu,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...dataWarnings,...(model.warn||nullFit.warn?["Ran out of iterations and did not converge"]:[]),...(d==="exponential"&&options.scale!==undefined&&options.scale>0?["Exponential has a fixed scale, user specified value ignored"]:[])]};
+  survregNumericState.set(result,{V:model.VScaled,xExponent:model.xExponent});
   return reported("survreg",result);
 }
 
@@ -420,7 +423,8 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
   if(!options.seFit)return fitValue;
   const se=X.map((r,i)=>{if(r.some(Number.isNaN))return type==="quantile"||type==="uquantile"?ps.map(()=>NaN):NaN;
     const eta=options.newX===undefined&&options.newOffset===undefined?fit.linearPredictors[i]!:dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
-    const one=(z:number)=>{const v=Array(fit.var.length).fill(0);for(let j=0;j<r.length;j++)v[j]=r[j]!;if(fit.var.length>r.length)v[r.length+ss[i]!]=z*sig;return Math.sqrt(Math.max(0,dot(v,matVec(fit.var,v))));};
+    const numeric=survregNumericState.get(fit),covariance=numeric?.V??fit.var;
+    const one=(z:number)=>{const v=Array(covariance.length).fill(0);for(let j=0;j<r.length;j++)v[j]=numeric?ldexpWide(r[j]!, -numeric.xExponent[j]!):r[j]!;if(covariance.length>r.length)v[r.length+ss[i]!]=z*sig;return Math.sqrt(Math.max(0,dot(v,matVec(covariance,v))));};
     if(type==="lp"||type==="linear"||type==="link")return one(0);
     if(type==="response")return logTime?expProduct(eta,one(0)):one(0);
     return ps.map(p=>{const z=quantile(p,fit.dist,fit.parms),s=one(z),q=eta+sig*z;return type==="uquantile"?s:logTime?expProduct(q,s):s;});});
@@ -444,15 +448,17 @@ export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptio
   checkOptions(options, SURVREG_RESIDUALS_KEYS, "survregResiduals"); // generated: option-keys.mjs
   const type=options.type??"response",nu=fit.distributionDf,p=fit.coefficients.length,q=fit.var.length,weighted=options.weighted??false;
   if(!["response","deviance","working","dfbeta","dfbetas","ldcase","ldresp","ldshape","matrix"].includes(type))throw new RangeError("invalid residual type");
+  const numeric=survregNumericState.get(fit),V=numeric?.V??fit.var;
   const rows=fit.x.map((x,i)=>{const eta=fit.linearPredictors[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[fit.strata[i]!]!;const g=deriv(fit.lower[i]!,fit.upper[i]!,fit.status[i]!,eta,sig,fit.dist,nu);const v=weighted?fit.weights[i]!:1;
-    const s=Array(q).fill(0);for(let j=0;j<p;j++)s[j]=x[j]!*g.e;if(q>p)s[p+fit.strata[i]!]=g.t;
-    const V=fit.var,dfb=matVec(V,s),quad=dot(s,dfb);
+    const sx=x.map((value,j)=>numeric?ldexpWide(value,-numeric.xExponent[j]!):value);
+    const s=Array(q).fill(0);for(let j=0;j<p;j++)s[j]=sx[j]!*g.e;if(q>p)s[p+fit.strata[i]!]=g.t;
+    const dfbScaled=matVec(V,s),dfb=dfbScaled.map((value,j)=>numeric&&j<p?ldexpWide(value,-numeric.xExponent[j]!):value),quad=dot(s,dfbScaled);
     if(type==="matrix")return [g.g,g.e,g.ee,g.t,g.tt,g.et].map(a=>a*v);
     if(type==="working")return -g.e/g.ee*v;
     if(type==="dfbeta")return dfb.map(a=>a*v);
-    if(type==="dfbetas")return dfb.map((a,j)=>a/Math.sqrt(V[j]?.[j]??NaN)*v);
+    if(type==="dfbetas")return dfbScaled.map((a,j)=>a/Math.sqrt(V[j]?.[j]??NaN)*v);
     if(type==="ldcase")return quad*v;
-    if(type==="ldresp"||type==="ldshape"){const d=Array(q).fill(0);for(let j=0;j<p;j++)d[j]=type==="ldresp"?sig*(-x[j]!*g.ee):x[j]!*g.et;if(q>p)d[p+fit.strata[i]!]=type==="ldresp"?-sig*g.et:g.tt;return dot(d,matVec(V,d))*v;}
+    if(type==="ldresp"||type==="ldshape"){const d=Array(q).fill(0);for(let j=0;j<p;j++)d[j]=type==="ldresp"?sig*(-sx[j]!*g.ee):sx[j]!*g.et;if(q>p)d[p+fit.strata[i]!]=type==="ldresp"?-sig*g.et:g.tt;return dot(d,matVec(V,d))*v;}
     const logD=logDensity(0,fit.dist,nu)-Math.log(sig);
     let center=fit.status[i]===3?midpoint(fit.lower[i]!,fit.upper[i]!):fit.y[i]!;
     if(fit.status[i]===3&&(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh"))center=extremeIntervalCenter(fit.lower[i]!,fit.upper[i]!,sig);
