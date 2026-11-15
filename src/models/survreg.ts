@@ -24,7 +24,7 @@ export interface SurvregOptions {
 }
 export interface SurvregTable { value: number[]; se: number[]; z: number[]; p: number[]; }
 export interface SurvregResult {
-  coefficients: number[]; coefNames: string[]; scale: number[]; strataLevels: (string | number | boolean)[];
+  coefficients: number[]; coefNames: string[]; scale: number[]; table: SurvregTable; strataLevels: (string | number | boolean)[];
   icoef: number[]; var: number[][]; loglik: [number, number]; iter: number; df: number; idf: number;
   dfResidual: number; n: number; linearPredictors: number[]; means: number[]; score: number[];
   tableRowNames: string[]; value: number[]; se: number[]; z: number[]; p: number[];
@@ -182,7 +182,7 @@ function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[]
  *
  * @category Survival analysis
  */
-export function survreg(time: readonly number[], event: readonly number[], x: readonly (readonly number[])[] = [], options: SurvregOptions = {}): SurvregResult {
+export function survreg(time: readonly number[], event?: readonly (number | boolean)[], x: readonly (readonly number[])[] = [], options: SurvregOptions = {}): SurvregResult {
   checkOptions(options,SURVREG_KEYS,"survreg"); // generated: option-keys.mjs
   const type=options.type??"right",d=options.dist??"weibull",nu=options.parms??4,intercept=options.intercept??true;
   const n0=time.length;if(event.length!==n0||x.length!==0&&x.length!==n0)throw new RangeError("variable lengths differ");
@@ -201,9 +201,9 @@ export function survreg(time: readonly number[], event: readonly number[], x: re
   const lev=[...new Set(strataIn.map(String))].sort(),sid=strataIn.map(v=>lev.indexOf(String(v)));
   if(fixed!==undefined&&lev.length>1)throw new Error("The scale argument is not valid with multiple strata");
   for(let i=0;i<n0;i++){
-    const xi=x.length===0?[]:Array.from(x[i]!);if(Number.isNaN(time[i]!)||Number.isNaN(event[i]!)||Number.isNaN(weights[i]!)||Number.isNaN(offset[i]!)||xi.some(Number.isNaN))continue;
+    const xi=x.length===0?[]:Array.from(x[i]!);if(Number.isNaN(time[i]!)||Number.isNaN(events[i]!)||Number.isNaN(weights[i]!)||Number.isNaN(offset[i]!)||xi.some(Number.isNaN))continue;
     if(xi.some(v=>!Number.isFinite(v)))throw new Error("data contains an infinite predictor");
-    let l=time[i]!,u=time[i]!,s=Number(event[i]);
+    let l=time[i]!,u=time[i]!,s=Number(events[i]);
     if(type==="right"){s=s===1?1:0;}
     else if(type==="left"){s=s===1?1:2;}
     else if(type==="interval"){u=time2![i]!;if(s===0){l=time[i]!;u=Infinity;}else if(s===1){u=l;}else if(s===2){u=l;l=-Infinity;}else if(s!==3)continue;}
@@ -244,7 +244,7 @@ export function survreg(time: readonly number[], event: readonly number[], x: re
   const chi=2*((model.ll+jac)-(nullFit.ll+jac)),chiDf=p+(fixed===undefined?k:0)-(1+(fixed===undefined?k:0));
   const tableNames=[...coefs.map((_,j)=>j===0&&intercept?"(Intercept)":`x${j+(intercept?0:1)}`),...(fixed===undefined?(k===1?["Log(scale)"]:lev.map(s=>`strata=${s}`)):[])];
   const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((v,j)=>v/seAll[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
-  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),icoef:nullFit.b, var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score,tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...(model.warn?["Ran out of iterations and did not converge"]:[]),...((d==="exponential"||d==="rayleigh")&&options.scale!==undefined&&options.scale>0?[d==="exponential"?"Exponential has a fixed scale, user specified value ignored":"Rayleigh has a fixed scale, user specified value ignored"]:[])]};
+  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),icoef:nullFit.b, var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score,tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...(model.warn?["Ran out of iterations and did not converge"]:[]),...((d==="exponential"||d==="rayleigh")&&options.scale!==undefined&&options.scale>0?[d==="exponential"?"Exponential has a fixed scale, user specified value ignored":"Rayleigh has a fixed scale, user specified value ignored"]:[])]};
   return reported("survreg",result);
 }
 
