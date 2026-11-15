@@ -95,8 +95,11 @@ t `qt(p, ν)`.
   (`Surv(lower, upper)`: lower NA or −Inf → left censored at upper; **lower 0 → left censored at upper**; upper NA or
   Inf → right censored at lower; equal → exact; both NA → the row is missing; lower > upper → NA with the warning
   `Invalid interval: start > stop, NA created`). For "interval" with event 3 and time > time2 the same warning.
-  "counting" (start, stop] data: error `start-stop type Surv objects are not supported`. An event value outside the
-  allowed set: warning `Invalid status value, converted to NA` and the row is dropped. Logical events are 0/1.
+  "counting" (start, stop] data: error `start-stop type Surv objects are not supported`. For right/left
+  censoring, both 0/1 (0 censored, 1 event) and 1/2 (1 censored, 2 event) encodings are accepted; if 2 occurs,
+  1/2 coding is selected and 0 is invalid. For interval types, event codes are 0/1/2/3 as listed above. An event
+  value outside the selected set: warning `Invalid status value, converted to NA` and the row is dropped.
+  Logical events are 0/1.
 - **Missing values** in any variable (time, event, x, weights, strata, offset): the row is dropped (`n` counts the
   rows used).
 - **Checks** (verbatim errors in section 11): for the log-transformed distributions every finite time used must be
