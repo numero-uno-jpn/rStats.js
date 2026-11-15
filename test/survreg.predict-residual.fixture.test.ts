@@ -58,8 +58,8 @@ describe("survregResiduals: R 4.6.2 fixture",()=>{
   fixture.cases.forEach((c,index)=>it("case "+index,()=>{
     const a=c.args,e=c.expected;
     const fit=survreg(vec(a.time)??[],vec(a.event),mat(a.x)??[],fitOptions(a));
-    const actual=survregResiduals(fit,{type:a.residType as "response"|"deviance"|"working"|"dfbeta"|"dfbetas"|"ldcase"|"ldresp"|"ldshape"|"matrix"});
-    compare(actual,e.values,"#"+index+" values");
+    const actual=survregResiduals(fit,{type:a.residType as "response"|"deviance"|"working"|"dfbeta"|"dfbetas"|"ldcase"|"ldresp"|"ldshape"|"matrix",weighted:Boolean(a.weighted)});
+    compare(actual,c.reference?.values??e.values,"#"+index+" values");
     expect(fit.warnings).toEqual(e.warnings);
   }));
 });
