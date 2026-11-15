@@ -252,7 +252,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   
   const rows:number[]=[],yy:number[]=[],lo:number[]=[],hi:number[]=[],st:number[]=[],ww:number[]=[],oo:number[]=[],xx:number[][]=[],dataWarnings:string[]=[];
   // Surv accepts both 0/1 and 1/2 event coding for right/left censoring.
-  // If 2 occurs, 1/2 is the coding and 0 is an invalid status (as in fixture #93).
+  // If 2 occurs, 1/2 is the coding (1=censored, 2=event) and 0 is invalid (fixture #93).
   const oneTwoStatus=(type==="right"||type==="left")&&events.some(v=>Number(v)===2);
   const addWarning=(s:string)=>{if(!dataWarnings.includes(s))dataWarnings.push(s);};
   const lev=[...new Set(strataIn.map(String))].sort(),sidAll=strataIn.map(v=>lev.indexOf(String(v))),sid:number[]=[];
