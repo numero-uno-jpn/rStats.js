@@ -252,6 +252,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `cmprsk::predict.crr()` | `predictCrr` | Fine-Gray の当てはめからの累積発生関数の予測 |
 | `predict()` | `glmPredict` | `glm` で当てはめた一般化線形モデルの予測値とその標準誤差 |
 | `predict()` | `predict` | `lm` で当てはめた線形モデルの、説明変数の新しい値での予測値 (標準誤差と、必要に応じて区間つき) |
+| `predict.survreg()` | `survregPredict` | パラメトリック生存時間回帰モデルの予測値と標準誤差 |
 | `prop.test()` | `propTest` | 比率が等しいこと、または与えた値であることの検定 |
 | `prop.trend.test()` | `propTrendTest` | 比率の傾向についてのカイ二乗検定 |
 | `pwr::pwr.2p.test()` | `pwr2pTest` | 標本サイズが等しい 2 つの比率の検定の検出力、または与えた検出力に対する効果量、標本サイズ、有意水準のいずれか |
