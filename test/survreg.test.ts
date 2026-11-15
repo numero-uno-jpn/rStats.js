@@ -159,7 +159,7 @@ describe("survreg", () => {
     // exp(710) is outside binary64, but exp(710) * 1e-5 is finite.
     // Compute the product in log space: exp(710 + log(1e-5)).
     expect(prediction.fit[0]).toBe(Infinity);
-    expect(prediction.seFit[0]).toBeCloseTo(2.233994766161711e303, 10);
+    expect(prediction.seFit[0]! / 2.233994766161711e303).toBeCloseTo(1, 12);
   });
 
   it("keeps extreme-value interval residuals finite when the endpoint difference overflows", () => {
@@ -194,7 +194,7 @@ describe("survreg", () => {
 
     //  exp(700 + 2^-43) - exp(700), evaluated with 80+ decimal digits,
     // is 1.1530483501872619875...e291. Direct subtraction loses about 0.05%.
-    expect(residuals[0]).toBeCloseTo(1.153048350187262e291, 10);
+    expect(residuals[0]! / 1.153048350187262e291).toBeCloseTo(1, 12);
   });
 
   it("rejects invalid weights", () => {
