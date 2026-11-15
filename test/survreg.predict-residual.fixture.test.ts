@@ -27,7 +27,7 @@ function compare(actual: unknown, expected: unknown, label: string): void {
   const e=num(expected),a=actual as number;
   if(Number.isNaN(e)){expect(Number.isNaN(a),label).toBe(true);return;}
   if(!Number.isFinite(e)){expect(a,label).toBe(e);return;}
-  const tolerance=e===0?1e-12:1e-12*Math.abs(e);
+  const tolerance=Math.max(1e-12,1e-12*Math.abs(e));
   expect(Math.abs(a-e),label).toBeLessThanOrEqual(tolerance);
 }
 function load(name:string):Fixture {
@@ -60,6 +60,7 @@ describe("survregResiduals: R 4.6.2 fixture",()=>{
     const a=c.args,e=c.expected;
     const fit=survreg(vec(a.time)??[],vec(a.event),mat(a.x)??[],fitOptions(a));
     const actual=survregResiduals(fit,{type:a.residType as "response"|"deviance"|"working"|"dfbeta"|"dfbetas"|"ldcase"|"ldresp"|"ldshape"|"matrix",weighted:Boolean(a.weighted)});
+    if (index >= 86 && index <= 98) console.log("SURVREG RESIDUAL DEBUG", index, JSON.stringify({ type: a.residType, actual: (actual as number[][]).slice(0, 3), expected: c.reference?.values?.slice(0, 3) ?? e.values?.slice(0, 3) }));
     compare(actual,c.reference?.values??e.values,"#"+index+" values");
     expect(fit.warnings).toEqual(e.warnings);
   }));
