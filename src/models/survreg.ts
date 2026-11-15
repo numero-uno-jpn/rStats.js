@@ -79,13 +79,6 @@ function hValues(z:number,d:SurvregDistribution,nu:number):[number,number] {
   if (d === "gaussian" || d === "loggaussian" || d === "lognormal") return [-z,z*z-1];
   const den=nu+z*z; return [-(nu+1)*z/den,(nu+1)*((nu+2)*z*z-nu)/(den*den)];
 }
-function cdf(z:number,d:SurvregDistribution,nu:number):number {
-  if (d==="extreme"||d==="weibull"||d==="exponential"||d==="rayleigh") return -Math.expm1(-Math.exp(z));
-  if (d==="logistic"||d==="loglogistic") return z>=0?1/(1+Math.exp(-z)):Math.exp(z)/(1+Math.exp(z));
-  if (d==="gaussian"||d==="loggaussian"||d==="lognormal") return pnorm(z);
-  return pt(z,nu);
-}
-function density(z:number,d:SurvregDistribution,nu:number):number { return Math.exp(logDensity(z,d,nu)); }
 function deriv(lo:number,hi:number,kind:number,eta:number,sigma:number,d:SurvregDistribution,nu:number):Deriv {
   const zl=lo===-Infinity?-Infinity:(lo-eta)/sigma, zu=hi===Infinity?Infinity:(hi-eta)/sigma;
   if(kind===1) { // exact
@@ -116,7 +109,6 @@ function inv(a:number[][]):number[][] {
 }
 function matVec(a:number[][],v:number[]):number[]{return a.map(r=>r.reduce((s,x,j)=>s+x*v[j]!,0));}
 function dot(a:number[],b:number[]):number{return a.reduce((s,x,i)=>s+x*b[i]!,0);}
-function norm(a:number[]):number{return Math.max(0,...a.map(Math.abs));}
 function quantile(p:number,d:SurvregDistribution,nu:number):number {
   if(p<=0)return -Infinity;if(p>=1)return Infinity;
   if(d==="extreme"||d==="weibull"||d==="exponential"||d==="rayleigh")return Math.log(-Math.log1p(-p));
@@ -241,7 +233,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
     const A=Array.from({length:p},(_,a)=>Array.from({length:p},(_,b)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*row[b]!,0)));
     const rhs=Array.from({length:p},(_,a)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*z[i]!.r,0));
     try{const b=matVec(solve(A),rhs);start.splice(0,p,...b);}catch{}
-    if(fixed===undefined)for(let s=0;s<k;s++)start[p+s]=nullFit.b[p+s]!;
+    if(fixed===undefined)for(let s=0;s<k;s++)start[p+s]=nullFit.b[1+s]!;
   }
   const isNull=X.every(r=>r.length===1&&r[0]===1);
   const model=isNull?(options.init===undefined?nullFit:fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol)):fitCore(X,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol);
@@ -274,8 +266,8 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
   checkOptions(options,SURVREG_PREDICT_KEYS,"survregPredict"); // generated: option-keys.mjs
   const type=options.type??"lp",X=options.newX===undefined?fit.x:options.newX.map(r=>fit.intercept?[1,...r]:Array.from(r)),off=options.newOffset??(options.newX===undefined?fit.offset:Array(X.length).fill(0));
   if(off.length!==X.length)throw new RangeError("variable lengths differ (found for 'newOffset')");
-  const lev=fit.strataLevels.map(String),ss=options.newStrata?.map(v=>lev.indexOf(String(v)))??X.map(()=>0);
-  if(fit.strataLevels.length>1&&options.newStrata===undefined)throw new Error("newStrata is required when the model has strata");
+  const lev=fit.strataLevels.map(String),ss=options.newStrata?.map(v=>lev.indexOf(String(v)))??(options.newX===undefined?fit.strata.slice():X.map(()=>0));
+  if(fit.strataLevels.length>1&&options.newStrata===undefined&&options.newX!==undefined)throw new Error("newStrata is required when the model has strata");
   if(options.newStrata!==undefined&&options.newStrata.length!==X.length)throw new RangeError("variable lengths differ (found for 'newStrata')");
   if(ss.some(s=>s<0))throw new Error("unknown stratum in newStrata");
   const ps=options.p===undefined?[0.1,0.9]:typeof options.p==="number"?[options.p]:Array.from(options.p);
@@ -292,7 +284,7 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
     const one=(z:number)=>{const v=Array(fit.var.length).fill(0);for(let j=0;j<r.length;j++)v[j]=r[j]!;if(fit.var.length>r.length)v[r.length+ss[i]!]=z*sig;return Math.sqrt(Math.max(0,dot(v,matVec(fit.var,v))));};
     if(type==="lp"||type==="linear"||type==="link")return one(0);
     if(type==="response")return one(0)*(logTime?Math.exp(eta):1);
-    return ps.map(p=>{const z=quantile(p,fit.dist,4),s=one(z),q=eta+sig*z;return type==="uquantile"?s:s*(logTime?Math.exp(q):1);});});
+    return ps.map(p=>{const z=quantile(p,fit.dist,fit.parms),s=one(z),q=eta+sig*z;return type==="uquantile"?s:s*(logTime?Math.exp(q):1);});});
   const seFit=(type==="quantile"||type==="uquantile")?(ps.length===1?se.map(v=>(v as number[])[0]!):se as number[][]):se as number[];
   return {fit:fitValue,seFit,warnings:[]};
 }
