@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { survreg, survregPredict, survregResiduals } from "../src/index.js";
+import { midpoint } from "../src/internal/extremes.js";
 
 describe("survreg", () => {
   const time = [2, 3, 4, 5, 6, 7, 8, 9];
@@ -24,6 +25,176 @@ describe("survreg", () => {
     });
     expect(fit.scale).toEqual([1]);
     expect(fit.n).toBe(time.length);
+  });
+
+
+  it("keeps Gaussian AFT coefficients and Wald z invariant under extreme predictor units", () => {
+    const y = [1, 2, 3, 4];
+    const event = [1, 1, 1, 1];
+    const unitX = [[-1], [-1], [1], [1]];
+    const factor = 2 ** 500;
+    const ordinary = survreg(y, event, unitX, { dist: "gaussian", scale: 1 });
+    const scaled = survreg(y, event, unitX.map(([v]) => [v! * factor]), { dist: "gaussian", scale: 1 });
+    const hugeFactor = 2 ** 1000;
+    const huge = survreg(y, event, unitX.map(([v]) => [v! * hugeFactor]), { dist: "gaussian", scale: 1 });
+    expect(huge.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(huge.coefficients[1]! * hugeFactor).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(huge.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
+    expect(huge.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+    // The slope variance is 1/(4*2^2000), below binary64's subnormal range.
+    // The public variance therefore rounds to zero, but prediction/diagnostics use
+    // the retained scaled covariance and the z statistic is computed before unscaling.
+    expect(huge.var[1]![1]).toBe(0);
+    const hugePrediction = survregPredict(huge, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
+    const ordinaryPrediction = survregPredict(ordinary, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
+    hugePrediction.fit.forEach((v, i) => expect(v).toBeCloseTo(ordinaryPrediction.fit[i]!, 10));
+    hugePrediction.seFit.forEach((v, i) => expect(v).toBeCloseTo(ordinaryPrediction.seFit[i]!, 10));
+    const hugeDfb = survregResiduals(huge, { type: "dfbeta" }) as number[][];
+    const ordinaryDfb = survregResiduals(ordinary, { type: "dfbeta" }) as number[][];
+    hugeDfb.forEach((row, i) => expect(row[1]! * hugeFactor).toBeCloseTo(ordinaryDfb[i]![1]!, 10));
+    const hugeLd = survregResiduals(huge, { type: "ldcase" }) as number[];
+    const ordinaryLd = survregResiduals(ordinary, { type: "ldcase" }) as number[];
+    hugeLd.forEach((v, i) => expect(v).toBeCloseTo(ordinaryLd[i]!, 10));
+
+    const tinyFactor = 2 ** -1000;
+    const tiny = survreg(y, event, unitX.map(([v]) => [v! * tinyFactor]), { dist: "gaussian", scale: 1 });
+    expect(tiny.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(tiny.coefficients[1]! * tinyFactor).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(tiny.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
+    expect(tiny.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+    const tinyPrediction = survregPredict(tiny, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
+    tinyPrediction.fit.forEach((v, i) => expect(v).toBeCloseTo(ordinaryPrediction.fit[i]!, 10));
+    tinyPrediction.seFit.forEach((v, i) => expect(v).toBeCloseTo(ordinaryPrediction.seFit[i]!, 10));
+    const tinyDfb = survregResiduals(tiny, { type: "dfbeta" }) as number[][];
+    tinyDfb.forEach((row, i) => expect(row[1]! * tinyFactor).toBeCloseTo(ordinaryDfb[i]![1]!, 10));
+    const tinyLd = survregResiduals(tiny, { type: "ldcase" }) as number[];
+    tinyLd.forEach((v, i) => expect(v).toBeCloseTo(ordinaryLd[i]!, 10));
+
+    const weight = 2 ** 500;
+    const weighted = survreg(y, event, unitX, {
+      dist: "gaussian", scale: 1, weights: Array(4).fill(weight),
+    });
+
+    // The exact Gaussian MLE with fixed scale is weighted least squares:
+    // X'X = diag(4, 4), X'y = (10, 4), so beta = (2.5, 1).
+    // Scaling x by 2^500 changes beta[1] by 2^-500 and var[1,1] by 2^-1000,
+    // while z is invariant. Scaling all case weights by 2^500 leaves beta
+    // unchanged and divides the covariance by 2^500.
+    expect(ordinary.coefficients[0]).toBeCloseTo(2.5, 11);
+    expect(ordinary.coefficients[1]).toBeCloseTo(1, 11);
+    expect(scaled.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(scaled.coefficients[1]! * factor).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(scaled.var[0]![0]).toBeCloseTo(ordinary.var[0]![0]!, 11);
+    expect(scaled.var[1]![1]! * factor * factor).toBeCloseTo(ordinary.var[1]![1]!, 11);
+    expect(scaled.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
+    expect(scaled.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+    const smallFactor = 2 ** -500;
+    const small = survreg(y, event, unitX.map(([v]) => [v! * smallFactor]), { dist: "gaussian", scale: 1 });
+    expect(small.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(small.coefficients[1]! * smallFactor).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(small.var[1]![1]! * smallFactor * smallFactor).toBeCloseTo(ordinary.var[1]![1]!, 11);
+    expect(small.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+
+    // Predictions and diagnostics are returned in the original covariate units too.
+    const pred0 = survregPredict(ordinary, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
+    const pred1 = survregPredict(scaled, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
+    pred1.fit.forEach((v, i) => expect(v).toBeCloseTo(pred0.fit[i]!, 10));
+    pred1.seFit.forEach((v, i) => expect(v).toBeCloseTo(pred0.seFit[i]!, 10));
+    const work0 = survregResiduals(ordinary, { type: "working" }) as number[];
+    const work1 = survregResiduals(scaled, { type: "working" }) as number[];
+    work1.forEach((v, i) => expect(v).toBeCloseTo(work0[i]!, 10));
+    const dfb0 = survregResiduals(ordinary, { type: "dfbeta" }) as number[][];
+    const dfb1 = survregResiduals(scaled, { type: "dfbeta" }) as number[][];
+    dfb1.forEach((row, i) => {
+      expect(row[0]).toBeCloseTo(dfb0[i]![0]!, 10);
+      expect(row[1]! * factor).toBeCloseTo(dfb0[i]![1]!, 10);
+    });
+    const ld0 = survregResiduals(ordinary, { type: "ldcase" }) as number[];
+    const ld1 = survregResiduals(scaled, { type: "ldcase" }) as number[];
+    ld1.forEach((v, i) => expect(v).toBeCloseTo(ld0[i]!, 10));
+
+    expect(weighted.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(weighted.coefficients[1]).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(weighted.var[0]![0]! * weight).toBeCloseTo(ordinary.var[0]![0]!, 11);
+    expect(weighted.var[1]![1]! * weight).toBeCloseTo(ordinary.var[1]![1]!, 11);
+    expect(weighted.z[0]! / ordinary.z[0]!).toBeCloseTo(Math.sqrt(weight), 10);
+    expect(weighted.z[1]! / ordinary.z[1]!).toBeCloseTo(Math.sqrt(weight), 10);
+    const weightedDfb = survregResiduals(weighted, { type: "dfbeta", weighted: true }) as number[][];
+    const baseDfb = survregResiduals(ordinary, { type: "dfbeta" }) as number[][];
+    weightedDfb.forEach((row, i) => row.forEach((v, j) => expect(v).toBeCloseTo(baseDfb[i]![j]!, 10)));
+    const weightedLd = survregResiduals(weighted, { type: "ldcase", weighted: true }) as number[];
+    const baseLd = survregResiduals(ordinary, { type: "ldcase" }) as number[];
+    weightedLd.forEach((v, i) => expect(v).toBeCloseTo(baseLd[i]!, 10));
+    const smallWeight = 2 ** -500;
+    const downWeighted = survreg(y, event, unitX, {
+      dist: "gaussian", scale: 1, weights: Array(4).fill(smallWeight),
+    });
+    expect(downWeighted.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(downWeighted.coefficients[1]).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(downWeighted.var[0]![0]! * smallWeight).toBeCloseTo(ordinary.var[0]![0]!, 11);
+    expect(downWeighted.var[1]![1]! * smallWeight).toBeCloseTo(ordinary.var[1]![1]!, 11);
+    expect(downWeighted.z[0]! / ordinary.z[0]!).toBeCloseTo(Math.sqrt(smallWeight), 10);
+    expect(downWeighted.z[1]! / ordinary.z[1]!).toBeCloseTo(Math.sqrt(smallWeight), 10);
+  });
+
+  it("computes a finite midpoint when the endpoint sum overflows", () => {
+    // The exact midpoint is (9e307 + 9.5e307)/2 = 9.25e307, within Number.MAX_VALUE.
+    // The direct binary64 sum overflows, so the helper must halve the endpoints first.
+    expect(9e307 + 9.5e307).toBe(Infinity);
+    expect(midpoint(9e307, 9.5e307)).toBe(9.25e307);
+  });
+
+  it("retains finite prediction standard errors when exp(eta) overflows", () => {
+    const fit = survreg([1, 2, 3, 4], [1, 1, 1, 1], [], { dist: "lognormal", scale: 1 });
+    const extreme = {
+      ...fit,
+      linearPredictors: Array(fit.n).fill(710),
+      var: [[1e-10]],
+    };
+    const prediction = survregPredict(extreme, { type: "response", seFit: true }) as {
+      fit: number[];
+      seFit: number[];
+    };
+
+    // exp(710) is outside binary64, but exp(710) * 1e-5 is finite.
+    // Compute the product in log space: exp(710 + log(1e-5)).
+    expect(prediction.fit[0]).toBe(Infinity);
+    expect(prediction.seFit[0]! / 2.233994766161711e303).toBeCloseTo(1, 12);
+  });
+
+  it("keeps extreme-value interval residuals finite when the endpoint difference overflows", () => {
+    const fit = survreg([1, 2, 3, 4], [1, 1, 1, 1], [], { dist: "extreme", scale: 1 });
+    const extreme = {
+      ...fit,
+      lower: Array(fit.n).fill(-1e308),
+      upper: Array(fit.n).fill(1e308),
+      y: Array(fit.n).fill(0),
+      status: Array(fit.n).fill(3),
+      linearPredictors: Array(fit.n).fill(0),
+      scale: [1e308],
+    };
+    const residuals = survregResiduals(extreme, { type: "deviance" }) as number[];
+
+    // Although upper-lower overflows, (upper-lower)/scale is exactly 2.
+    // For the standard extreme-value CDF F(z)=1-exp(-exp(z)), the interval
+    // likelihood at eta=0 is log(F(1)-F(-1)); its maximum occurs at
+    // zLower=log(2/expm1(2)). 80-digit mpmath gives deviance 0.1386839485691086477...
+    expect(residuals[0]).toBeCloseTo(0.13868394856910865, 11);
+  });
+
+  it("computes log-time response residuals without subtracting nearly equal exponentials", () => {
+    const fit = survreg([1, 2, 3, 4], [1, 1, 1, 1], [], { dist: "lognormal", scale: 1 });
+    const delta = 2 ** -43;
+    const extreme = {
+      ...fit,
+      linearPredictors: Array(fit.n).fill(700),
+      y: Array(fit.n).fill(700 + delta),
+    };
+    const residuals = survregResiduals(extreme, { type: "response" }) as number[];
+
+    //  exp(700 + 2^-43) - exp(700), evaluated with 80+ decimal digits,
+    // is 1.1530483501872619875...e291. Direct subtraction loses about 0.05%.
+    expect(residuals[0]! / 1.153048350187262e291).toBeCloseTo(1, 12);
   });
 
   it("rejects invalid weights", () => {
