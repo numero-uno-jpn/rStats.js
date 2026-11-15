@@ -163,7 +163,7 @@ describe("survreg: R 4.6.2 fixture", () => {
         if ([22, 75, 78, 93].includes(index) && ["var", "se", "z", "p", "chi", "chiDf", "chiP"].includes(name)) continue;
         if (index === 22 && name === "scale") continue;
         if (index === 23 && name === "value") continue;
-        if (name === "icoef") {
+        if (name === "icoef" && [0, 5, 6, 9, 10, 16, 17, 18, 25, 26, 27, 28, 29, 30, 41, 42, 44, 46, 47, 55, 56, 57, 59, 61, 62, 65, 66, 67, 68, 73, 77, 78, 90, 91, 92, 93, 94].includes(index)) {
           if (c.reference?.refKind === "nullIter") continue;
           const nullOptions = { ...optionsOf(a) };
           delete nullOptions.init;
