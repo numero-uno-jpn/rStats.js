@@ -290,7 +290,10 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const nullBeta=nullTerms.reduce((s,v)=>s+v.w*v.r,0)/nullDen;
   const nullStart=[options.init!==undefined&&isNull?options.init[0]!:nullBeta,...(fixed===undefined?Array(k).fill(Math.log(sig0)):[])];
   if(isNull&&options.init!==undefined&&options.init.length===q)for(let s=0;s<k;s++)nullStart[1+s]=options.init[1+s]!;
-  const nullFit=fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,nullStart,maxiter,tol,control.tolerChol??1e-10);
+  // The null fit supplies the full model's starting scales and loglik[1]. It is iterated to convergence
+  // independently of the full-model maxiter; an intercept-only fit itself still uses the user's maxiter.
+  const nullMaxiter=isNull?maxiter:Math.max(maxiter,1000);
+  const nullFit=fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,nullStart,nullMaxiter,tol,control.tolerChol??1e-10);
   let start=base.slice();
   if(fixed===undefined)for(let s=0;s<k;s++)start[p+s]=nullFit.b[1+s]!;
   if(!isNull&&options.init!==undefined){for(let j=0;j<p;j++)start[j]=options.init[j]!;if(options.init.length===q)for(let j=p;j<q;j++)start[j]=options.init[j]!;}
