@@ -339,14 +339,14 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
   const ps=options.p===undefined?[0.1,0.9]:typeof options.p==="number"?[options.p]:Array.from(options.p);
   const logTime=["weibull","exponential","rayleigh","loggaussian","lognormal","loglogistic"].includes(fit.dist);
   const pred=X.map((r,i)=>{if(r.some(Number.isNaN))return type==="quantile"||type==="uquantile"?ps.map(()=>NaN):NaN;
-    const eta=options.newX===undefined?fit.linearPredictors[i]!:dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
+    const eta=options.newX===undefined&&options.newOffset===undefined?fit.linearPredictors[i]!:dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
     if(type==="lp"||type==="linear"||type==="link")return eta;
     if(type==="response")return logTime?Math.exp(eta):eta;
     return ps.map(p=>{const q=eta+sig*quantile(p,fit.dist,fit.distributionDf);return type==="uquantile"?q:logTime?Math.exp(q):q;});});
   const fitValue=(type==="quantile"||type==="uquantile")?(ps.length===1?pred.map(v=>(v as number[])[0]!):pred as number[][]):pred as number[];
   if(!options.seFit)return fitValue;
   const se=X.map((r,i)=>{if(r.some(Number.isNaN))return type==="quantile"||type==="uquantile"?ps.map(()=>NaN):NaN;
-    const eta=options.newX===undefined?fit.linearPredictors[i]!:dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
+    const eta=options.newX===undefined&&options.newOffset===undefined?fit.linearPredictors[i]!:dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
     const one=(z:number)=>{const v=Array(fit.var.length).fill(0);for(let j=0;j<r.length;j++)v[j]=r[j]!;if(fit.var.length>r.length)v[r.length+ss[i]!]=z*sig;return Math.sqrt(Math.max(0,dot(v,matVec(fit.var,v))));};
     if(type==="lp"||type==="linear"||type==="link")return one(0);
     if(type==="response")return one(0)*(logTime?Math.exp(eta):1);
