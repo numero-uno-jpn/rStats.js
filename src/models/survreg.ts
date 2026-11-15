@@ -29,7 +29,7 @@ export interface SurvregResult {
   icoef: number[]; var: number[][]; loglik: [number, number]; iter: number; df: number; idf: number;
   dfResidual: number; n: number; linearPredictors: number[]; means: number[]; score: number[];
   tableRowNames: string[]; value: number[]; se: number[]; z: number[]; p: number[];
-  chi: number; chiDf: number; chiP: number; dist: SurvregDistribution; intercept: boolean;
+  chi: number; chiDf: number; chiP: number; dist: SurvregDistribution; parms: number; intercept: boolean;
   x: number[][]; offset: number[]; rows: number[]; weights: number[]; strata: number[];
   y: number[]; lower: number[]; upper: number[]; status: number[]; type: SurvregType; warnings: string[];
 }
@@ -210,8 +210,8 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
     if(!(weights[i]!>0))throw new RangeError("Invalid weights, must be >0");
     if(xi.some(v=>!Number.isFinite(v)))throw new Error("data contains an infinite predictor");
     let l=time[i]!,u=time[i]!,s=Number(events[i]);
-    if(type==="right"){if(s!==0&&s!==1)continue;s=s===1?1:0;}
-    else if(type==="left"){if(s!==0&&s!==1)continue;s=s===1?1:2;}
+    if(type==="right"){if(s!==0&&s!==1)continue;if(s===0)u=Infinity;s=s===1?1:0;}
+    else if(type==="left"){if(s!==0&&s!==1)continue;if(s===0)l=-Infinity;s=s===1?1:2;}
     else if(type==="interval"){u=time2![i]!;if(s===0){l=time[i]!;u=Infinity;}else if(s===1){u=l;}else if(s===2){u=l;l=-Infinity;}else if(s!==3){continue;}if(s===3&&l>u)continue;}
     else if(type==="interval2"){const lower=time[i]!,upper=time2![i]!;if(Number.isNaN(lower)&&Number.isNaN(upper))continue;if(lower>upper)continue;if(lower===upper){l=lower;u=upper;s=1;}else if(!Number.isFinite(lower)||lower===0){l=-Infinity;u=upper;s=2;}else if(!Number.isFinite(upper)){l=lower;u=Infinity;s=0;}else{l=lower;u=upper;s=3;}}
     if(logTime){if(l===Infinity||u===-Infinity||(Number.isFinite(l)&&l<=0)||(Number.isFinite(u)&&u<=0))throw new Error("Invalid survival times for this distribution");if(Number.isFinite(l))l=Math.log(l);if(Number.isFinite(u))u=Math.log(u);}
@@ -254,7 +254,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const chi=2*((model.ll+jac)-(nullFit.ll+jac)),chiDf=p+(fixed===undefined?k:0)-(1+(fixed===undefined?k:0));
   const tableNames=[...coefs.map((_,j)=>j===0&&intercept?"(Intercept)":`x${j+(intercept?0:1)}`),...(fixed===undefined?(k===1?["Log(scale)"]:lev.map(s=>`strata=${s}`)):[])];
   const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((v,j)=>v/seAll[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
-  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),icoef:nullFit.b, var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score,tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...(model.warn?["Ran out of iterations and did not converge"]:[]),...((d==="exponential"||d==="rayleigh")&&options.scale!==undefined&&options.scale>0?[d==="exponential"?"Exponential has a fixed scale, user specified value ignored":"Rayleigh has a fixed scale, user specified value ignored"]:[])]};
+  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),icoef:nullFit.b, var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score,tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...(model.warn?["Ran out of iterations and did not converge"]:[]),...((d==="exponential"||d==="rayleigh")&&options.scale!==undefined&&options.scale>0?[d==="exponential"?"Exponential has a fixed scale, user specified value ignored":"Rayleigh has a fixed scale, user specified value ignored"]:[])]};
   return reported("survreg",result);
 }
 
@@ -284,7 +284,7 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
     const eta=dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
     if(type==="lp"||type==="linear"||type==="link")return eta;
     if(type==="response")return logTime?Math.exp(eta):eta;
-    return ps.map(p=>{const q=eta+sig*quantile(p,fit.dist,4);return type==="uquantile"?q:logTime?Math.exp(q):q;});});
+    return ps.map(p=>{const q=eta+sig*quantile(p,fit.dist,fit.parms);return type==="uquantile"?q:logTime?Math.exp(q):q;});});
   const fitValue=(type==="quantile"||type==="uquantile")?(ps.length===1?pred.map(v=>(v as number[])[0]!):pred as number[][]):pred as number[];
   if(!options.seFit)return fitValue;
   const se=X.map((r,i)=>{if(r.some(Number.isNaN))return type==="quantile"||type==="uquantile"?ps.map(()=>NaN):NaN;
@@ -311,7 +311,7 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
  */
 export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptions={}):number[]|number[][] {
   checkOptions(options,SURVREG_RESIDUALS_KEYS,"survregResiduals"); // generated: option-keys.mjs
-  const type=options.type??"response",nu=4,p=fit.coefficients.length,q=fit.var.length,weighted=options.weighted??false;
+  const type=options.type??"response",nu=fit.parms,p=fit.coefficients.length,q=fit.var.length,weighted=options.weighted??false;
   const rows=fit.x.map((x,i)=>{const eta=dot(x,fit.coefficients)+fit.offset[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[fit.strata[i]!]!;const g=deriv(fit.lower[i]!,fit.upper[i]!,fit.status[i]!,eta,sig,fit.dist,nu);const v=weighted?fit.weights[i]!:1;
     const s=Array(q).fill(0);for(let j=0;j<p;j++)s[j]=x[j]!*g.e;if(q>p)s[p+fit.strata[i]!]=g.t;
     const V=fit.var,dfb=matVec(V,s),quad=dot(s,dfb);
@@ -323,13 +323,13 @@ export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptio
     if(type==="ldresp"||type==="ldshape"){const d=Array(q).fill(0);for(let j=0;j<p;j++)d[j]=type==="ldresp"?sig*(-x[j]!*g.ee):x[j]!*g.et;if(q>p)d[p+fit.strata[i]!]=type==="ldresp"?-sig*g.et:g.tt;return dot(d,matVec(V,d))*v;}
     const logD=logDensity(0,fit.dist,nu)-Math.log(sig);
     let center=fit.status[i]===3?(fit.lower[i]!+fit.upper[i]!)/2:fit.y[i]!;
-    if(fit.status[i]===3&&(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh")){const b=(fit.upper[i]!-fit.lower[i]!)/sig;center=fit.lower[i]!-sig*(Math.log(b)-Math.log(Math.expm1(b)));}
+    if(fit.status[i]===3&&(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh")){const b=(fit.upper[i]!-fit.lower[i]!)/sig;center=fit.lower[i]!-sig*(Math.log(b)-(b>50?b+Math.log1p(-Math.exp(-b)):Math.log(Math.expm1(b))));}
     const dev=fit.status[i]===0?1:fit.status[i]===2?-1:Math.sign(center-eta);
     if(type==="deviance"){
       let gmax=fit.status[i]===1?logD:0;
       if(fit.status[i]===3){const b=(fit.upper[i]!-fit.lower[i]!)/sig;
         if(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh"){const aa=Math.log(b)-Math.log(Math.expm1(b));gmax=logDiff(-Math.exp(aa),-Math.exp(aa+b));}
-        else if(fit.dist==="logistic"||fit.dist==="loglogistic"){const h=Math.exp(b/2);gmax=Math.log((h-1)/(h+1));}
+        else if(fit.dist==="logistic"||fit.dist==="loglogistic"){gmax=Math.log(Math.tanh(b/4));}
         else if(fit.dist==="gaussian"||fit.dist==="loggaussian"||fit.dist==="lognormal"){gmax=Math.log(2*pnorm(b/2)-1);}
       }
       return dev*Math.sqrt(Math.max(0,2*(gmax-g.g)))*v;
