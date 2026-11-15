@@ -383,7 +383,7 @@ export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptio
     if(type==="deviance"){
       let gmax=fit.status[i]===1?logD:0;
       if(fit.status[i]===3){const b=(fit.upper[i]!-fit.lower[i]!)/sig;
-        if(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh"){const aa=Math.log(b)-Math.log(Math.expm1(b));gmax=logDiff(-Math.exp(aa),-Math.exp(aa+b));}
+        if(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh"){const logExpm1=b>50?b+Math.log1p(-Math.exp(-b)):Math.log(Math.expm1(b));const aa=Math.log(b)-logExpm1;gmax=logDiff(-Math.exp(aa),-Math.exp(aa+b));}
         else if(fit.dist==="logistic"||fit.dist==="loglogistic"){gmax=Math.log(Math.tanh(b/4));}
         else if(fit.dist==="gaussian"||fit.dist==="loggaussian"||fit.dist==="lognormal"){gmax=Math.log(2*pnorm(b/2)-1);}
         else if(fit.dist==="t"){gmax=Math.log(2*pt(b/2,fit.parms)-1);}
