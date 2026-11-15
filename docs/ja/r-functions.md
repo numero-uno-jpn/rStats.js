@@ -262,6 +262,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | 標本サイズが異なる 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズの一方、効果量、有意水準のいずれか |
 | `quade.test()` | `quadeTest` | 反復のない完全ブロック計画に対する Quade 検定 |
 | `residuals()` | `glmResiduals` | `glm` で当てはめた一般化線形モデルの残差 (1 行に 1 つ) |
+| `survRM2::rmst2()` | `rmst2` | 制限平均生存時間 (RMST) と制限平均損失時間 (RMTL)、その群間の差と比 |
 | `pROC::roc.test()` | `rocTest` | 2 つの ROC 曲線の下の面積の差の検定 (DeLong の方法またはブートストラップ) |
 | `pROC::roc()` | `roc` | 2 値の応答に対する数値の予測変数の ROC 曲線 |
 | `rstandard()` | `glmRstandard` | `glm` の当てはめの標準化 Pearson 残差 (既定) または標準化逸脱度残差 (事前重みが 0 でない行について) |
@@ -271,7 +272,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `summary()` | `aovSummary` | `aov` で当てはめた分散分析の表 |
 | `summary()` | `glmSummary` | `glm` で当てはめた一般化線形モデルの要約: 分散パラメータ、係数の表、推定値の共分散 |
 | `survival::survdiff()` | `survdiff` | 生存曲線の差の検定: Harrington と Fleming の G-rho 族 (`rho = 0` でログランク検定) |
-| `survival::survfit()` | `survfit` | 生存関数の Kaplan-Meier 推定 (Greenwood の標準誤差と各点での信頼区間つき) |
+| `survival::survfit()` | `survfit` | 生存関数の Kaplan-Meier 推定、または累積ハザードの指数による推定 (各点での信頼区間、中央値、制限平均つき) |
 | `TOSTER::t_TOST()` | `tTOST` | 1 標本・2 標本・対応のある標本の平均についての同等性検定 (TOST) と最小効果検定、標準化平均差とその区間つき |
 | `t.test()` | `tTest` | Student の t 検定 |
 | `equivalence::tost()` | `tost` | 2 つの平均の同等性についての 2 つの片側 t 検定 (TOST) |

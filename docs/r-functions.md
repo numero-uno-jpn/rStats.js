@@ -262,6 +262,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance level for a given power. |
 | `quade.test()` | `quadeTest` | Quade test for an unreplicated complete block design. |
 | `residuals()` | `glmResiduals` | Residuals of a generalized linear model, one per row, for a `glm` fit. |
+| `survRM2::rmst2()` | `rmst2` | Restricted mean survival time, restricted mean time lost, and their between-arm contrasts. |
 | `pROC::roc.test()` | `rocTest` | Tests the difference of the areas under two ROC curves, by DeLong's method or the bootstrap. |
 | `pROC::roc()` | `roc` | The ROC curve of a numeric predictor of a binary response. |
 | `rstandard()` | `glmRstandard` | Standardized Pearson or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
@@ -271,7 +272,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `summary()` | `aovSummary` | The table of an analysis of variance fitted by `aov`. |
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |
 | `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |
-| `survival::survfit()` | `survfit` | Kaplan-Meier estimate of the survival function with Greenwood's standard error and pointwise confidence intervals. |
+| `survival::survfit()` | `survfit` | Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means. |
 | `TOSTER::t_TOST()` | `tTOST` | Two one-sided t tests of equivalence, or minimal-effect tests, for one sample, two samples or paired samples, with the standardised mean difference and its interval. |
 | `t.test()` | `tTest` | Student's t-test. |
 | `equivalence::tost()` | `tost` | Two one-sided t tests of equivalence of two means. |

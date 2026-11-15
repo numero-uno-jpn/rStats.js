@@ -1582,3 +1582,17 @@ By default rStats.js returns what R returns;
   residuals (the score and dfbeta residuals behind the robust variance are not exported); concordance.
 - `omega`: factoring methods other than minres, rotations other than oblimin, `n.iter` (bootstrap intervals) and
   `poly = TRUE`.
+
+
+### Survival analysis
+
+- **Case weights in `survfit`:** rStats.js requires non-negative safe-integer counts, rejects fractional or unsafe individual weights, and rejects a stratum total above `Number.MAX_SAFE_INTEGER`. This avoids rounded or infinite risk sets; `robust: true` requests the IJ variance for supported integer counts.
+- **Zero-total-weight strata:** rStats.js throws when a stratum has no positive total weight (including an all-zero fit), rather than returning a curve with no weighted risk set.
+- **Restricted-mean lower limits:** `survfit` accepts a numeric `rmean` between the integration origin `min(0, min(time))` and the first observed time. The area is defined there (survival is one), even though R errors.
+- **Robust exponential-hazard curves:** for `stype: 2`, the standard error of the cumulative hazard is converted to the standard error of survival for the summary result, and confidence limits use it on the log-survival scale. This corrects survival 3.8-12's robust-`stype: 2` treatment.
+- **Robust Fleming–Harrington confidence limits:** with `ctype: 2`, the log-scale interval uses the selected IJ influence (KM for `stype: 1`, cumulative hazard for `stype: 2`); the public `stdErr` remains on the survival scale even when the underlying fit uses `logse`.
+- **Large-time restricted means:** the variance is evaluated after scaling time by a power of two, so squaring the integrated areas does not overflow when the final standard error is representable.
+- **`rmst2` boundaries:** non-positive restriction times, negative follow-up times, and restriction times before the first observation are errors, rather than returning degenerate or inconsistent estimates. Missing time, status, or arm values are errors; rows with missing covariates are omitted from the adjusted analysis.
+- **`rmst2` p-values:** two-sided p-values are computed as `2 * pnorm(-abs(z))`, not `1 - pchisq(z^2, 1)`; the latter loses small probabilities by cancellation. The same normal-tail calculation is used for adjusted and unadjusted contrasts.
+- **`rmst2` zero-RMTL boundaries:** an unadjusted RMTL ratio is 0 or infinity when exactly one arm has zero RMTL; its confidence limits and p-value remain NaN, as in the reference.
+- **Very large `rmst2` times:** follow-up times are divided by an exact power of two before integration and rescaled in the result. Ratio estimates and Wald statistics are therefore computed on a numerically better-scaled time axis without changing their units.

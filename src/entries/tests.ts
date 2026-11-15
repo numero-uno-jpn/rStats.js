@@ -243,6 +243,7 @@ export {
   type SurvfitResult,
   type SurvfitConfType,
 } from "../models/survival.js";
+export { rmst2, type Rmst2Options, type Rmst2Result, type RmstEstimate, type RmstContrast, type RmstCoefficientTable } from "../models/rmst2.js";
 export {
   coxph,
   type CoxphOptions,

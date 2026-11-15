@@ -7,6 +7,31 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- Extended `survfit` with weighted integer-count curves, Nelson-Aalen and Fleming-Harrington cumulative hazards,
+  `stype`/ `ctype`, infinitesimal-jackknife standard errors, all six confidence transformations, and restricted-mean
+  summaries (`rmean`, `seRmean`, and the per-stratum table).
+- Added `rmst2` for unadjusted RMST/RMTL estimates and contrasts, plus covariate-adjusted estimating-equation
+  models with censoring weights and sandwich standard errors.
+
+### Changed
+
+- `survfit` requires non-negative safe-integer case weights and rejects group totals that exceed the safe-integer range, preventing rounded or infinite risk sets.
+
+### Fixed
+
+- The robust `stype: 2` confidence limits use the standard error of the cumulative hazard on the log-survival scale.
+- Restricted-mean calculations scale interval widths before accumulation and integrate RMTL directly, avoiding both large-time intermediate overflow and cancellation in `tau - RMST`.
+- `rmst2` two-sided p-values use the accurate normal upper tail rather than subtracting a chi-squared CDF from one.
+- `rmst2` determines 1/2 status coding within each arm, so mixed arm encodings no longer silently discard a valid arm's events.
+- `survfit` uses the Kaplan-Meier influence variance for robust `stype: 1` curves regardless of `ctype`; the cumulative-hazard influence remains specific to `stdChaz`.
+- `rmst2` applies its default-`tau` rule to the original 0/1 status convention, errors on missing time/status/arm values, and ignores extra arm levels only beyond the restriction time.
+- `rmst2` returns the defined boundary RMTL ratios (zero or infinity when exactly one arm has zero RMTL) and normalizes very large follow-up times by a power of two before integration to preserve scale-invariant contrasts.
+- Robust `survfit` with `ctype: 2` uses the selected influence scale for confidence limits; the public per-row `stdErr` is converted back to the survival scale when the fit uses log-scale standard errors.
+
 ## 1.3.0 - 2026-11-09
 
 Robust standard errors and diagnostic accuracy and measurement agreement (items 1 and 2 of the roadmap): sandwich's
