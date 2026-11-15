@@ -41,14 +41,19 @@ describe("survregPredict: R 4.6.2 fixture",()=>{
     const a=c.args,e=c.expected;
     const fit=survreg(vec(a.time)??[],vec(a.event),mat(a.x)??[],fitOptions(a));
     const p=a.p===undefined?undefined:Array.isArray(a.p)?(a.p as unknown[]).map(num):num(a.p);
-    const result=survregPredict(fit,{
+    const predictionOptions = {
       type:(a.predType as "lp"|"response"|"quantile"|"uquantile")??"lp",
       ...(p===undefined?{}:{p}),
       ...(a.newX===undefined?{}:{newX:mat(a.newX)!}),
       ...(a.newStrata===undefined?{}:{newStrata:a.newStrata as (string|number|boolean)[]}),
       ...(a.newOffset===undefined?{}:{newOffset:vec(a.newOffset)!}),
       seFit:Boolean(a["se.fit"]),
-    });
+    };
+    if (e.error !== undefined) {
+      expect(() => survregPredict(fit,predictionOptions)).toThrow(String(e.error));
+      return;
+    }
+    const result=survregPredict(fit,predictionOptions);
     if(a["se.fit"]){const actual=result as SurvregPredictionResult;compare(actual.fit,e.fit,"#"+index+" fit");compare(actual.seFit,e["se.fit"],"#"+index+" se.fit");expect(actual.warnings).toEqual(e.warnings);}
     else {compare(result,e.fit,"#"+index+" fit");}
   }));
@@ -60,7 +65,6 @@ describe("survregResiduals: R 4.6.2 fixture",()=>{
     const a=c.args,e=c.expected;
     const fit=survreg(vec(a.time)??[],vec(a.event),mat(a.x)??[],fitOptions(a));
     const actual=survregResiduals(fit,{type:a.residType as "response"|"deviance"|"working"|"dfbeta"|"dfbetas"|"ldcase"|"ldresp"|"ldshape"|"matrix",weighted:Boolean(a.weighted)});
-    if (index >= 86 && index <= 98) console.log("SURVREG RESIDUAL DEBUG", index, JSON.stringify({ type: a.residType, actual: (actual as number[][]).slice(0, 3), expected: c.reference?.values?.slice(0, 3) ?? (Array.isArray(e.values) ? e.values.slice(0, 3) : undefined) }));
     compare(actual,c.reference?.values??e.values,"#"+index+" values");
     expect(fit.warnings).toEqual(e.warnings);
   }));
