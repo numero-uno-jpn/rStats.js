@@ -187,7 +187,7 @@ function scaleDesign(X:number[][]):{values:number[][];exponent:number[]} {
   const columns=Array.from({length:X[0]!.length},(_,j)=>{
     const values=X.map(row=>row[j]!);
     let max=0;for(const v of values)max=Math.max(max,Math.abs(v));
-    if(max>2**40||(max>0&&max<2**-40)){
+    if(max>2**16||(max>0&&max<2**-16)){
       const scaled=scaleToUnit([values]);
       return {values:scaled.groups[0]!,exponent:scaled.k};
     }
