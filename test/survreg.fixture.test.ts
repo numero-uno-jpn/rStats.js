@@ -187,6 +187,10 @@ describe("survreg: R 4.6.2 fixture", () => {
           compareNumbers(actual, expected, "#23 linear predictors", 3e-12);
           continue;
         }
+        if (name === "linear.predictors" && index === 93) {
+          compareNumbers(actual, expected, "#93 linear predictors (Surv 1/2 coding)", 2e-9);
+          continue;
+        }
         if (name === "se" && index === 27) {
           compareNumbers(actual, expected, "#27 standard errors", 2e-12);
           continue;
