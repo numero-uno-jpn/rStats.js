@@ -223,14 +223,6 @@ describe("survreg: R 4.6.2 fixture", () => {
           compareNumbers(actual, expected, "#27 coefficients (maxiter=12)", 2.5e-12);
           continue;
         }
-        if (name === "icoef" && index === 45) {
-          compareNumbers(actual, [5.355846621166119, -0.2737562150041142], "#45 icoef (continued null-fit root)");
-          continue;
-        }
-        if (name === "icoef" && index === 69) {
-          compareNumbers(actual, [0.7783989425861072, -0.8173870349041296], "#69 icoef (continued null-fit root)");
-          continue;
-        }
         if (name === "scale" && index === 15) {
           compareNumbers(actual, expected, "#15 scale", 2e-12);
           continue;
