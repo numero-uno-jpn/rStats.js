@@ -1525,3 +1525,5 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 - **`survreg` の underflow 処理:** `survival::survreg` と異なり、rStats.js は基本分布の尤度を対数領域で計算し、underflow した尤度を -200 に置き換えたり、それに対応する便宜的な導関数を使ったりしません。`oracle/survreg-behaviour.md` の高精度計算に関する決定に従い、該当ケースは R の代替値ではなく参照値と比較します。
 - **`survreg` の null model:** 切片のみのモデルは 20 回で打ち切らず、指定された収束条件まで反復します。そのため `nullIter` の参照ケースでは R と null 尤度が異なる場合があります。
 - **`survregResiduals` の区間打ち切り:** 区間打ち切りの導関数と extreme-value の区間中心は、R の既知の誤りではなく数学的に正しい導関数と sigma を含む中心を使います。
+
+- **`survreg` の control と退化データ:** `control.maxiter` が負の場合は拒否します。また、exact event も有限区間イベントもないデータ、または scale を推定できないデータは初期化エラーにします。R がこのような入力で有用でない初期当てはめを返す場合でも、rStats.js は選択した API 方針に従って拒否します。
