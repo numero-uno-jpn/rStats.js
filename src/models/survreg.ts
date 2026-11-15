@@ -92,19 +92,17 @@ function deriv(lo:number,hi:number,kind:number,eta:number,sigma:number,d:Survreg
     return {g:f-Math.log(sigma),e:-h1/sigma,ee:a/(sigma*sigma),t:-zu*h1-1,tt:zu*h1+zu*zu*a,et:(h1+zu*a)/sigma};
   }
   const lf=logF(zu,d,nu), ll=logF(zl,d,nu), ls=logS(zl,d,nu), lu=logS(zu,d,nu);
-  const lp=kind===0?logS(zl,d,nu):kind===2?logF(zu,d,nu):logDiff(zl>0?ls:lf,zl>0?lu:ll);
+  const lp=kind===0?ls:kind===2?lf:logDiff(zl>0?ls:lf,zl>0?lu:ll);
   const P=Math.exp(lp), fl=zl===-Infinity?0:density(zl,d,nu), fu=zu===Infinity?0:density(zu,d,nu);
-  const [hl1,hl2]=hValues(zl,d,nu), [hu1,hu2]=hValues(zu,d,nu);
+  const [hl1]=hValues(zl,d,nu), [hu1]=hValues(zu,d,nu);
   const fpl=fl*hl1, fpu=fu*hu1;
-  const A=kind===0?0:fu-fl, B=kind===0?0:fpu-fpl;
+  const A=fu-fl, B=fpu-fpl;
   const zlF=zl===-Infinity?0:zl*fl, zuF=zu===Infinity?0:zu*fu;
-  const dg=kind===0?0:kind===2? -fu/(sigma*P): -A/(sigma*P);
-  const dgg=kind===0?0:kind===2?fpu/(sigma*sigma*P)-dg*dg:B/(sigma*sigma*P)-dg*dg;
-  const dt=kind===0?0:kind===2?0:-(zuF-zlF)/P;
-  const dtt=kind===0?0:kind===2?0:((zu===Infinity?0:zu*zu*fpu)-(zl===-Infinity?0:zl*zl*fpl))/P-dt*(1+dt);
-  const det=kind===0?0:kind===2?0:( (zu===Infinity?0:zu*fpu)-(zl===-Infinity?0:zl*fpl))/(sigma*P)-dg*(1+dt);
-  if(kind===0) return {g:lp,e:0,ee:0,t:0,tt:0,et:0};
-  if(kind===2) return {g:lp,e:dg,ee:dgg,t:0,tt:0,et:0};
+  const dg=-A/(sigma*P);
+  const dgg=B/(sigma*sigma*P)-dg*dg;
+  const dt=-(zuF-zlF)/P;
+  const dtt=((zu===Infinity?0:zu*zu*fpu)-(zl===-Infinity?0:zl*zl*fpl))/P-dt*(1+dt);
+  const det=((zu===Infinity?0:zu*fpu)-(zl===-Infinity?0:zl*fpl))/(sigma*P)-dg*(1+dt);
   return {g:lp,e:dg,ee:dgg,t:dt,tt:dtt,et:det};
 }
 function inv(a:number[][]):number[][] {
@@ -217,7 +215,7 @@ export function survreg(time: readonly number[], event: readonly number[], x: re
   let start=base;
   if(options.init!==undefined){if(options.init.length!==p&&options.init.length!==q)throw new Error("Wrong length for initial parameters");start=base.slice();for(let j=0;j<p;j++)start[j]=options.init[j]!;if(options.init.length===q)for(let j=p;j<q;j++)start[j]=options.init[j]!;}
   else if(p>0){ // weighted least-squares start from the null scales
-    const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[p+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu);return {w:ww[i]!*Math.max(1e-12,-gg.ee),r:yy[i]!+gg.e/gg.ee-oo[i]!};});
+    const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[p+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu);return {w:ww[i]!*Math.max(1e-12,-gg.ee),r:yy[i]!-gg.e/gg.ee-oo[i]!};});
     const A=Array.from({length:p},(_,a)=>Array.from({length:p},(_,b)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*row[b]!,0)));
     const rhs=Array.from({length:p},(_,a)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*z[i]!.r,0));
     try{const b=matVec(solve(A),rhs);start.splice(0,p,...b);}catch{}
@@ -234,7 +232,7 @@ export function survreg(time: readonly number[], event: readonly number[], x: re
   const chi=2*((model.ll+jac)-(nullFit.ll+jac)),chiDf=p+(fixed===undefined?k:0)-(1+(fixed===undefined?k:0));
   const tableNames=[...coefs.map((_,j)=>j===0&&intercept?"(Intercept)":`x${j+(intercept?0:1)}`),...(fixed===undefined?(k===1?["Log(scale)"]:lev.map(s=>`strata=${s}`)):[])];
   const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((v,j)=>v/seAll[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
-  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),icoef:nullFit.b, var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score,tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:model.warn?["Ran out of iterations and did not converge"]:[]};
+  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),icoef:nullFit.b, var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score,tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...(model.warn?["Ran out of iterations and did not converge"]:[]),...((d==="exponential"||d==="rayleigh")&&options.scale!==undefined&&options.scale>0?[d==="exponential"?"Exponential has a fixed scale, user specified value ignored":"Rayleigh has a fixed scale, user specified value ignored"]:[])]};
   return reported("survreg",result);
 }
 
