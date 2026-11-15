@@ -42,15 +42,33 @@ describe("survreg", () => {
     expect(huge.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
     expect(huge.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
     // The slope variance is 1/(4*2^2000), below binary64's subnormal range.
-    // The public variance therefore rounds to zero, but the z statistic is computed
-    // before converting the covariance back to the unscaled coefficient units.
+    // The public variance therefore rounds to zero, but prediction/diagnostics use
+    // the retained scaled covariance and the z statistic is computed before unscaling.
     expect(huge.var[1]![1]).toBe(0);
+    const hugePrediction = survregPredict(huge, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
+    const ordinaryPrediction = survregPredict(ordinary, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
+    hugePrediction.fit.forEach((v, i) => expect(v).toBeCloseTo(ordinaryPrediction.fit[i]!, 10));
+    hugePrediction.seFit.forEach((v, i) => expect(v).toBeCloseTo(ordinaryPrediction.seFit[i]!, 10));
+    const hugeDfb = survregResiduals(huge, { type: "dfbeta" }) as number[][];
+    const ordinaryDfb = survregResiduals(ordinary, { type: "dfbeta" }) as number[][];
+    hugeDfb.forEach((row, i) => expect(row[1]! * hugeFactor).toBeCloseTo(ordinaryDfb[i]![1]!, 10));
+    const hugeLd = survregResiduals(huge, { type: "ldcase" }) as number[];
+    const ordinaryLd = survregResiduals(ordinary, { type: "ldcase" }) as number[];
+    hugeLd.forEach((v, i) => expect(v).toBeCloseTo(ordinaryLd[i]!, 10));
+
     const tinyFactor = 2 ** -1000;
     const tiny = survreg(y, event, unitX.map(([v]) => [v! * tinyFactor]), { dist: "gaussian", scale: 1 });
     expect(tiny.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
     expect(tiny.coefficients[1]! * tinyFactor).toBeCloseTo(ordinary.coefficients[1]!, 11);
     expect(tiny.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
     expect(tiny.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+    const tinyPrediction = survregPredict(tiny, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
+    tinyPrediction.fit.forEach((v, i) => expect(v).toBeCloseTo(ordinaryPrediction.fit[i]!, 10));
+    tinyPrediction.seFit.forEach((v, i) => expect(v).toBeCloseTo(ordinaryPrediction.seFit[i]!, 10));
+    const tinyDfb = survregResiduals(tiny, { type: "dfbeta" }) as number[][];
+    tinyDfb.forEach((row, i) => expect(row[1]! * tinyFactor).toBeCloseTo(ordinaryDfb[i]![1]!, 10));
+    const tinyLd = survregResiduals(tiny, { type: "ldcase" }) as number[];
+    tinyLd.forEach((v, i) => expect(v).toBeCloseTo(ordinaryLd[i]!, 10));
 
     const weight = 2 ** 500;
     const weighted = survreg(y, event, unitX, {
