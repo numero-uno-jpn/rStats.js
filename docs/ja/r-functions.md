@@ -278,6 +278,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `summary()` | `glmSummary` | `glm` で当てはめた一般化線形モデルの要約: 分散パラメータ、係数の表、推定値の共分散 |
 | `survival::survdiff()` | `survdiff` | 生存曲線の差の検定: Harrington と Fleming の G-rho 族 (`rho = 0` でログランク検定) |
 | `survival::survfit()` | `survfit` | 生存関数の Kaplan-Meier 推定、または累積ハザードの指数による推定 (各点での信頼区間、中央値、制限平均つき) |
+| `survival::survreg()` | `survreg` | パラメトリック生存時間回帰モデルを当てはめる |
 | `TOSTER::t_TOST()` | `tTOST` | 1 標本・2 標本・対応のある標本の平均についての同等性検定 (TOST) と最小効果検定、標準化平均差とその区間つき |
 | `t.test()` | `tTest` | Student の t 検定 |
 | `cmprsk::timepoints()` | `timepoints` | 累積発生関数の曲線を指定した時点で求める |
