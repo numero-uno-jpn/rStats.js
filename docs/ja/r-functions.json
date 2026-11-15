@@ -264,6 +264,7 @@
   "roc": "2 値の応答に対する数値の予測変数の ROC 曲線",
   "rocTest": "2 つの ROC 曲線の下の面積の差の検定 (DeLong の方法またはブートストラップ)",
   "glmResiduals": "`glm` で当てはめた一般化線形モデルの残差 (1 行に 1 つ)",
+  "survregResiduals": "パラメトリック生存時間回帰モデルの残差 (応答、deviance、working、dfbeta、影響度など)",
   "glmRstandard": "`glm` の当てはめの標準化 Pearson 残差 (既定) または標準化逸脱度残差 (事前重みが 0 でない行について)",
   "sfTest": "Shapiro-Francia の正規性検定",
   "shapiroTest": "Shapiro-Wilk の正規性検定",
