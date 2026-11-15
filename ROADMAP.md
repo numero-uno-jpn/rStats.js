@@ -42,7 +42,7 @@ against R and are not a priority.
 | Contingency tables and proportions | `binomCI`, `binomDiffCI`, `binomRatioCI` (DescTools' `BinomCI`, `BinomDiffCI`, `BinomRatioCI`), `oddsRatio` (epitools, and epiR's score interval), `fisherTest(x, { midp: true })` (exact2x2), `boschlooTest` (Exact), `gTest`, `stuartMaxwellTest`, `goodmanKruskalGamma` (DescTools), `lblTest` (coin), `chisqTest(x, { nMinus1: true })` (Campbell's 'N − 1' test) and Freeman-Tukey residuals, `tost` (equivalence), `binomDiffEquivalenceTest` (score TOST of two proportions) |
 | Multiple comparisons | PMCMRplus's `dscfAllPairsTest` (Steel-Dwass), `kwAllPairsDunnTest`, `kwManyOneDunnTest`, `manyOneUTest` (Steel's many-one rank test), `dunnettTest`, `gamesHowellTest`, `tukeyTest`; `dunnTest` (dunn.test); `glhtDunnett` (multcomp); Dunnett-type probabilities computed exactly (R's are randomised) |
 | Mixed models | lme4's `lmer` as `lmer` (REML and ML; correlated and uncorrelated random effects `(x \| g)`, `(x \|\| g)`, crossed and nested grouping factors `a/b`, `a:b`), with the quantities of `fixef`, `vcov`, `coef(summary())` (without p-values), `VarCorr`, `ranef`, `fitted`, `residuals`, `logLik`, `AIC`, `BIC`, `deviance`, `REMLcrit` and `isSingular`; lmerTest's Satterthwaite t- and F-tests (`summary`, `contest`, Type I/II/III `anova`) and lme4's `anova` of several fits; lme4's `glmer` as `glmer` (all glm families, Laplace approximation and adaptive Gauss-Hermite quadrature) with `summary`, `anova` and `predict` (`glmerSummary`, `glmerAnova`, `glmerPredict`) and `predict` of `lmer` (`lmerPredict`); implemented from Bates et al. (2015) with a sparse Cholesky factorisation; the estimates are the exact optimum of the criterion (lme4 stops close to it). In its own area `@numero-uno-jpn/rstats/mixed` (`dist/mixed.js`), not in the single-file bundle |
-| Survival analysis | `survdiff` (log-rank and the G-rho family) and `survfit` (Kaplan-Meier with log, plain and log-log intervals and the median) and `coxph` (Cox regression: Efron and Breslow ties, weights, strata, the summary tests, the robust variance and `cluster`) of the `survival` package |
+| Survival analysis | `survival`'s `survdiff` (log-rank and the G-rho family); `survfit` (Kaplan-Meier, Nelson-Aalen and Fleming-Harrington cumulative hazards, integer weights, robust standard errors, six confidence transformations, medians, restricted means and counting-process data); `rmst2` (unadjusted and covariate-adjusted RMST/RMTL, `survRM2`); `coxph` with counting-process data and `coxZph` (proportional-hazards score tests); `cuminc`, `timepoints`, `crr` and `predictCrr` (cumulative incidence, Gray's tests and Fine-Gray regression, `cmprsk`); `survreg`, `survregPredict` and `survregResiduals` (parametric accelerated-failure-time regression) |
 | Diagnostic accuracy and method comparison | pROC's `roc`, `auc` (with the partial AUC), `ci.auc`, `roc.test` and `coords` (DeLong's interval and tests, the bootstrap on R's random stream); epiR's `epi.tests` as `diagnosticTests`; BlandAltmanLeh's `bland.altman.stats` as `blandAltman` (with the exact interval of the limits of agreement); mcr's `mcreg` (Deming, weighted Deming and Passing-Bablok regression with analytical, jackknife and bootstrap intervals) |
 | Agreement and reliability | `kappa2`, `kappamFleiss`, `icc` (irr), `ICC` (psych's six forms of Shrout and Fleiss), `cronbachAlpha`, `partialR` (psych), `polychor`, `polyserial` (polycor, two-step and maximum likelihood), `pbvnorm`, `omega` (McDonald's ω, psych); effect sizes of repeated-measures designs (`Error()` strata and `aovEz`) |
 | Optimisation | `factanal` (maximum likelihood, varimax and promax); `optim` with all six methods (Nelder-Mead, BFGS, CG, L-BFGS-B, SANN, Brent), following R's iterations (except CG, which tries the minimum of the parabola where R tries the midpoint, so its path differs), and `optimHess` |
@@ -61,11 +61,7 @@ and effect measures with their confidence intervals, not only p-values. The list
 a statistics web application for medical and psychological research (2026-11-06). In order of priority; the R
 function or package that each item is checked against is given in brackets.
 
-1. **Survival analysis, continued:** the Nelson-Aalen estimate [`survfit`'s cumulative hazard]; the restricted mean
-   survival time [survRM2]; the test of proportional hazards [`cox.zph`]; time-dependent covariates in the (start,
-   stop] form [`coxph`]; competing risks: cumulative incidence, Gray's test and Fine-Gray regression [cmprsk];
-   accelerated failure time and Tobit models [`survreg`].
-2. **Sample size and power for trial designs:** equivalence, non-inferiority and superiority for means and
+1. **Sample size and power for trial designs:** equivalence, non-inferiority and superiority for means and
    proportions, McNemar's test, survival (Schoenfeld, Freedman) and Simon's two-stage design [clinfun
    `ph2simon`]; the reference for each is chosen when the item is taken up.
 3. **Meta-analysis:** fixed and random effects (DerSimonian-Laird, REML), Q and I², Egger's test [metafor].
@@ -77,6 +73,8 @@ function or package that each item is checked against is given in brackets.
    discriminant analysis [MASS `lda`], canonical correlation [`cancor`]; cluster analysis [`hclust`, `kmeans`];
    multidimensional scaling and correspondence analysis [`cmdscale`, MASS `isoMDS`, ca]; Tamhane's T2 and Page's
    test [PMCMRplus], Grubbs' test [outliers]; regularised regression [glmnet]; time series [`acf`, `arima`].
+
+Survival analysis (the former item 1) was completed in 1.4.0. Not included for now, as decided in the "rStats.js's choices" of the behaviour documents: `survfit`'s `scale` option and `crr`'s `cengroup`.
 
 The former items 1 (robust standard errors) and 2 (diagnostic accuracy and agreement of measurements) were done in
 1.3.0. Left out of them, as recorded in the "rStats.js's choices" of their behaviour documents
