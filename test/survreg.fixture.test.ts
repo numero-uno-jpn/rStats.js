@@ -106,7 +106,15 @@ describe("survreg: R 4.6.2 fixture", () => {
           expectedLoglik[0] = c.reference.loglik1;
           compareNumbers(actual, expectedLoglik, "#" + index + " " + name);
         } else if (name === "score") {
+          // Scores are gradients, not differences of two large quantities.
           compareNumbers(actual, expected, "#" + index + " score", 5e-6);
+        } else if (name === "var") {
+          // Covariance entries can differ by a few ulps after inversion; compare on
+          // the common matrix scale rather than giving near-zero off-diagonals a
+          // tolerance proportional to their own tiny magnitude (design rule 8.7).
+          const av = actual as number[][], ev = expected as unknown[][];
+          const scale = Math.max(1, ...av.flat().map(Math.abs), ...ev.flat().map(numberValue).map(Math.abs).filter(Number.isFinite));
+          compareNumbers(av.map(row => row.map(v => v / scale)), ev.map(row => row.map(v => numberValue(v) / scale)), "#" + index + " var (scaled)");
         } else compareNumbers(actual, expected, "#" + index + " " + name);
       }
       expect(fit.coefNames, "#" + index + " coefNames").toEqual(e.coefNames);
