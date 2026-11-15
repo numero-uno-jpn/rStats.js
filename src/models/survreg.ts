@@ -79,8 +79,8 @@ function logDiff(a:number,b:number):number { // log(exp(a)-exp(b)), a >= b
   if (a < b) return NaN;
   return a + log1mexp(b-a);
 }
-function logisticLogF(z:number):number { return -Math.log1p(Math.exp(-z)); }
-function logisticLogS(z:number):number { return -Math.log1p(Math.exp(z)); }
+function logisticLogF(z:number):number { return z < -36 ? z : -Math.log1p(Math.exp(-z)); }
+function logisticLogS(z:number):number { return z > 36 ? -z : -Math.log1p(Math.exp(z)); }
 function logF(z:number,d:SurvregDistribution,nu:number):number {
   if (z === -Infinity) return -Infinity; if (z === Infinity) return 0;
   if (d === "extreme" || d === "weibull" || d === "exponential" || d === "rayleigh") {
