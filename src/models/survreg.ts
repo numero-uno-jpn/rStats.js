@@ -135,14 +135,14 @@ function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[]
   const stepAt=(v:number[])=>{const e=evaluate(v,true),I=e.H.map(r=>r.map(x=>-x));let V:number[][],delta:number[];
     try{V=inv(I);delta=matVec(V,e.u);}catch{V=inv(e.B);delta=matVec(V,e.u);}
     return {e,delta};};
-  let cur=evaluate(b,true),best=cur.ll,iter=0,warn=false;
+  let cur=evaluate(b,true),best=cur.ll,iter=0,warn=false,converged=false;
   let initial: {e:ReturnType<typeof evaluate>;delta:number[]};
   try{initial=stepAt(b);}catch{initial={e:cur,delta:Array(q).fill(0)};}
   let trial=b.map((x,j)=>x+initial.delta[j]!);
   if(maxiter===0){const V=inverse(cur.H.map(r=>r.map(x=>-x)));return {b,ll:cur.ll,iter,V,score:cur.u,warn};}
   for(let it=1;it<=maxiter;it++){
     const next=evaluate(trial,true);
-    if(Number.isFinite(next.ll)&&Math.abs(1-best/next.ll)<=tol){b.splice(0,b.length,...trial);cur=next;best=next.ll;iter=it;break;}
+    if(Number.isFinite(next.ll)&&Math.abs(1-best/next.ll)<=tol){b.splice(0,b.length,...trial);cur=next;best=next.ll;iter=it;converged=true;break;}
     if(!Number.isFinite(next.ll)||next.ll<best){
       const old=trial.slice();trial=b.map((x,j)=>x+(old[j]!-x)/3);
       for(let ss=0;ss<k;ss++)if(fixed===undefined)trial[p+ss]=Math.max(trial[p+ss]!,b[p+ss]!-1.1);
@@ -155,7 +155,7 @@ function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[]
       try{const nstep=stepAt(b);const candidate=b.map((x,j)=>x+nstep.delta[j]!);const ev=evaluate(candidate,false);if(Number.isFinite(ev.ll)&&ev.ll>=best)b.splice(0,b.length,...candidate);}catch{}
     }
   }
-  if(iter===maxiter&&maxiter>=2)warn=true;
+  if(iter===maxiter&&maxiter>=2&&!converged)warn=true;
   const final=evaluate(b,true);let V:number[][];
   try{V=inv(final.H.map(r=>r.map(x=>-x)));}catch{V=Array.from({length:q},()=>Array(q).fill(0));}
   return {b,ll:best,iter,V,score:final.u,warn};
