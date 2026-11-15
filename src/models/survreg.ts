@@ -263,11 +263,11 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
     if(xi.some(v=>!Number.isFinite(v)))throw new Error("data contains an infinite predictor");
     let l=time[i]!,u=time[i]!,s=Number(events[i]);
     if(type==="right"){
-      if(oneTwoStatus){if(s!==1&&s!==2){addWarning("Invalid status value, converted to NA");continue;}if(s===2)u=Infinity;s=s===1?1:0;}
+      if(oneTwoStatus){if(s!==1&&s!==2){addWarning("Invalid status value, converted to NA");continue;}if(s===1)u=Infinity;s=s===2?1:0;}
       else {if(s!==0&&s!==1){addWarning("Invalid status value, converted to NA");continue;}if(s===0)u=Infinity;s=s===1?1:0;}
     }
     else if(type==="left"){
-      if(oneTwoStatus){if(s!==1&&s!==2){addWarning("Invalid status value, converted to NA");continue;}if(s===2)l=-Infinity;s=s===1?1:2;}
+      if(oneTwoStatus){if(s!==1&&s!==2){addWarning("Invalid status value, converted to NA");continue;}if(s===1)l=-Infinity;s=s===2?1:2;}
       else {if(s!==0&&s!==1){addWarning("Invalid status value, converted to NA");continue;}if(s===0)l=-Infinity;s=s===1?1:2;}
     }
     else if(type==="interval"){u=time2![i]!;if(s===0){l=time[i]!;u=Infinity;}else if(s===1){u=l;}else if(s===2){u=time[i]!;l=-Infinity;}else if(s!==3){addWarning("Invalid status value, converted to NA");continue;}if(s===3&&l>u){addWarning("Invalid interval: start > stop, NA created");continue;}if(s===3&&l===u)throw new Error("initial iteration failed (use starting estimates?)");}
