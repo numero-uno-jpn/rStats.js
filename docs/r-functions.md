@@ -252,6 +252,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `cmprsk::predict.crr()` | `predictCrr` | Predict cumulative incidence from a Fine-Gray fit. |
 | `predict()` | `glmPredict` | Predictions of a generalized linear model with their standard errors, for a `glm` fit. |
 | `predict()` | `predict` | Predictions of a linear model at new values of the predictors, with standard errors and optionally intervals, for an `lm` fit. |
+| `predict.survreg()` | `survregPredict` | Predictions from a parametric survival regression fit. |
 | `prop.test()` | `propTest` | Test of equal or given proportions. |
 | `prop.trend.test()` | `propTrendTest` | Chi-squared test for trend in proportions. |
 | `pwr::pwr.2p.test()` | `pwr2pTest` | Power of the test of two proportions with equal sample sizes, or the effect size, sample size or significance level for a given power. |
