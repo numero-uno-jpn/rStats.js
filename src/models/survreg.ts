@@ -244,7 +244,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   if(options.scale!==undefined&&(!Number.isFinite(options.scale)||options.scale<0))throw new RangeError("Invalid scale value");
   if(d==="t"&&(!(nu>=3)||!Number.isFinite(nu)))throw new RangeError("Degrees of freedom must be >=3");
   if(d!=="t"&&options.df!==undefined)throw new RangeError("Extreme value distribution has no optional parameters");
-  const logTime=["weibull","loggaussian","lognormal","loglogistic"].includes(d);
+  const logTime=["weibull","exponential","rayleigh","loggaussian","lognormal","loglogistic"].includes(d);
   const fixed0=options.scale!==undefined&&options.scale>0?options.scale:undefined;
   const fixed=(d==="exponential"||d==="rayleigh")?(d==="exponential"?1:0.5):fixed0;
   const time2=options.time2, weights=options.weights??Array(n0).fill(1),offset=options.offset??Array(n0).fill(0),strataIn=options.strata??Array(n0).fill("1");
@@ -337,7 +337,7 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
   if(ss.some(s=>s<0))throw new Error("unknown stratum in newStrata");
   if(!["lp","linear","link","response","quantile","uquantile"].includes(type))throw new RangeError("invalid prediction type");
   const ps=options.p===undefined?[0.1,0.9]:typeof options.p==="number"?[options.p]:Array.from(options.p);
-  const logTime=["weibull","loggaussian","lognormal","loglogistic"].includes(fit.dist);
+  const logTime=["weibull","exponential","rayleigh","loggaussian","lognormal","loglogistic"].includes(fit.dist);
   const pred=X.map((r,i)=>{if(r.some(Number.isNaN))return type==="quantile"||type==="uquantile"?ps.map(()=>NaN):NaN;
     const eta=options.newX===undefined?fit.linearPredictors[i]!:dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
     if(type==="lp"||type==="linear"||type==="link")return eta;
@@ -394,7 +394,7 @@ export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptio
       }
       return dev*Math.sqrt(Math.max(0,2*(gmax-g.g)))*v;
     }
-    const response=center-eta;return (["weibull","loggaussian","lognormal","loglogistic"].includes(fit.dist)?Math.exp(center)-Math.exp(eta):response)*v;
+    const response=center-eta;return (["weibull","exponential","rayleigh","loggaussian","lognormal","loglogistic"].includes(fit.dist)?Math.exp(center)-Math.exp(eta):response)*v;
   });
   if(type==="dfbeta"||type==="dfbetas")return rows as number[][];
   return rows as number[];
