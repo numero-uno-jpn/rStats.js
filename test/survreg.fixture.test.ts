@@ -63,7 +63,7 @@ describe("survreg: R 4.6.2 fixture", () => {
       const fields: [string, unknown, unknown][] = [
         ["coefficients", fit.coefficients, e.coefficients], ["scale", fit.scale, e.scale],
         ["icoef", fit.icoef, e.icoef], ["var", fit.var, e.var], ["loglik", fit.loglik, e.loglik],
-        ["linear.predictors", fit.linearPredictors, e["linear.predictors"]], ["means", fit.means, e.means],
+        ["linear.predictors", fit.linearPredictors, e["linear.predictors"]], ["means", fit.means, e.means], ["score", fit.score, e.score],
         ["value", fit.value, e.value], ["se", fit.se, e.se], ["z", fit.z, e.z], ["p", fit.p, e.p],
         ["chi", fit.chi, e.chi], ["chiDf", fit.chiDf, e.chiDf], ["chiP", fit.chiP, e.chiP],
       ];
@@ -74,7 +74,7 @@ describe("survreg: R 4.6.2 fixture", () => {
           expectedLoglik[0] = c.reference.loglik1;
           compareNumbers(actual, expectedLoglik, "#" + index + " " + name);
         } else if (name === "score") {
-          compareNumbers(fit.score, e.score, "#" + index + " score", 1e-8);
+          compareNumbers(actual, expected, "#" + index + " score", 1e-8);
         } else compareNumbers(actual, expected, "#" + index + " " + name);
       }
       expect(fit.coefNames, "#" + index + " coefNames").toEqual(e.coefNames);
