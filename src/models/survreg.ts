@@ -37,6 +37,7 @@ export interface SurvregPredictOptions {
   p?: number | readonly number[]; newX?: readonly (readonly number[])[]; newStrata?: readonly (string | number | boolean)[];
   newOffset?: readonly number[]; seFit?: boolean;
 }
+export interface SurvregPredictionResult { fit: number[] | number[][]; seFit?: number[] | number[][]; warnings: string[]; }
 export interface SurvregResidualsOptions { type?: "response" | "deviance" | "working" | "dfbeta" | "dfbetas" | "ldcase" | "ldresp" | "ldshape" | "matrix"; weighted?: boolean; }
 
 type Deriv = { g:number; e:number; ee:number; t:number; tt:number; et:number; };
@@ -259,17 +260,31 @@ export function survreg(time: readonly number[], event: readonly number[], x: re
  * ```
  * @category Survival analysis
  */
-export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={}):number[]|number[][] {
+export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={}):number[]|number[][]|SurvregPredictionResult {
   checkOptions(options,SURVREG_PREDICT_KEYS,"survregPredict"); // generated: option-keys.mjs
   const type=options.type??"lp",X=options.newX===undefined?fit.x:options.newX.map(r=>fit.intercept?[1,...r]:Array.from(r)),off=options.newOffset??(options.newX===undefined?fit.offset:Array(X.length).fill(0));
   if(off.length!==X.length)throw new RangeError("variable lengths differ (found for 'newOffset')");
   const lev=fit.strataLevels.map(String),ss=options.newStrata?.map(v=>lev.indexOf(String(v)))??X.map(()=>0);
   if(fit.strataLevels.length>1&&options.newStrata===undefined)throw new Error("newStrata is required when the model has strata");
+  if(options.newStrata!==undefined&&options.newStrata.length!==X.length)throw new RangeError("variable lengths differ (found for 'newStrata')");
+  if(ss.some(s=>s<0))throw new Error("unknown stratum in newStrata");
   const ps=options.p===undefined?[0.1,0.9]:typeof options.p==="number"?[options.p]:Array.from(options.p);
-  const out=X.map((r,i)=>{const eta=dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;if(type==="lp"||type==="linear"||type==="link")return eta;if(type==="response")return ["weibull","loggaussian","lognormal","loglogistic"].includes(fit.dist)?Math.exp(eta):eta;
-    return ps.map(p=>{const q=eta+sig*quantile(p,fit.dist,4);return type==="uquantile"?q:["weibull","loggaussian","lognormal","loglogistic"].includes(fit.dist)?Math.exp(q):q;});});
-  if(type==="quantile"||type==="uquantile")return ps.length===1?out.map(v=>(v as number[])[0]!):out as number[][];
-  return out as number[];
+  const logTime=["weibull","loggaussian","lognormal","loglogistic"].includes(fit.dist);
+  const pred=X.map((r,i)=>{if(r.some(Number.isNaN))return type==="quantile"||type==="uquantile"?ps.map(()=>NaN):NaN;
+    const eta=dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
+    if(type==="lp"||type==="linear"||type==="link")return eta;
+    if(type==="response")return logTime?Math.exp(eta):eta;
+    return ps.map(p=>{const q=eta+sig*quantile(p,fit.dist,4);return type==="uquantile"?q:logTime?Math.exp(q):q;});});
+  const fitValue=(type==="quantile"||type==="uquantile")?(ps.length===1?pred.map(v=>(v as number[])[0]!):pred as number[][]):pred as number[];
+  if(!options.seFit)return fitValue;
+  const se=X.map((r,i)=>{if(r.some(Number.isNaN))return type==="quantile"||type==="uquantile"?ps.map(()=>NaN):NaN;
+    const eta=dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
+    const one=(z:number)=>{const v=Array(fit.var.length).fill(0);for(let j=0;j<r.length;j++)v[j]=r[j]!;if(fit.var.length>r.length)v[r.length+ss[i]!]=z*sig;return Math.sqrt(Math.max(0,dot(v,matVec(fit.var,v))));};
+    if(type==="lp"||type==="linear"||type==="link")return one(0);
+    if(type==="response")return one(0)*(logTime?Math.exp(eta):1);
+    return ps.map(p=>{const z=quantile(p,fit.dist,4),s=one(z),q=eta+sig*z;return type==="uquantile"?s:s*(logTime?Math.exp(q):1);});});
+  const seFit=(type==="quantile"||type==="uquantile")?(ps.length===1?se.map(v=>(v as number[])[0]!):se as number[][]):se as number[];
+  return {fit:fitValue,seFit,warnings:[]};
 }
 
 /**
@@ -296,9 +311,19 @@ export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptio
     if(type==="dfbetas")return dfb.map((a,j)=>a/Math.sqrt(V[j]?.[j]??NaN)*v);
     if(type==="ldcase")return quad*v;
     if(type==="ldresp"||type==="ldshape"){const d=Array(q).fill(0);for(let j=0;j<p;j++)d[j]=type==="ldresp"?sig*(-x[j]!*g.ee):x[j]!*g.et;if(q>p)d[p+fit.strata[i]!]=type==="ldresp"?-sig*g.et:g.tt;return dot(d,matVec(V,d))*v;}
-    const logD=logDensity(0,fit.dist,nu)-Math.log(sig),dev=fit.status[i]===1?Math.sign(fit.y[i]!-eta):fit.status[i]===0?1:fit.status[i]===2?-1:Math.sign((fit.lower[i]!+fit.upper[i]!)/2-eta);
-    if(type==="deviance")return dev*Math.sqrt(Math.max(0,2*((fit.status[i]===1?logD:0)-g.g)))*v;
-    let center=fit.status[i]===3?(fit.lower[i]!+fit.upper[i]!)/2:fit.y[i]!;\n    if(fit.status[i]===3&&(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh")){const b=(fit.upper[i]!-fit.lower[i]!)/sig;center=fit.lower[i]!-sig*(Math.log(b)-Math.log(Math.expm1(b)));}
+    const logD=logDensity(0,fit.dist,nu)-Math.log(sig);
+    let center=fit.status[i]===3?(fit.lower[i]!+fit.upper[i]!)/2:fit.y[i]!;
+    if(fit.status[i]===3&&(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh")){const b=(fit.upper[i]!-fit.lower[i]!)/sig;center=fit.lower[i]!-sig*(Math.log(b)-Math.log(Math.expm1(b)));}
+    const dev=fit.status[i]===0?1:fit.status[i]===2?-1:Math.sign(center-eta);
+    if(type==="deviance"){
+      let gmax=fit.status[i]===1?logD:0;
+      if(fit.status[i]===3){const b=(fit.upper[i]!-fit.lower[i]!)/sig;
+        if(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh"){const aa=Math.log(b)-Math.log(Math.expm1(b));gmax=logDiff(-Math.exp(aa),-Math.exp(aa+b));}
+        else if(fit.dist==="logistic"||fit.dist==="loglogistic"){const h=Math.exp(b/2);gmax=Math.log((h-1)/(h+1));}
+        else if(fit.dist==="gaussian"||fit.dist==="loggaussian"||fit.dist==="lognormal"){gmax=Math.log(2*pnorm(b/2)-1);}
+      }
+      return dev*Math.sqrt(Math.max(0,2*(gmax-g.g)))*v;
+    }
     const response=center-eta;return (["weibull","loggaussian","lognormal","loglogistic"].includes(fit.dist)?Math.exp(center)-Math.exp(eta):response)*v;
   });
   if(type==="dfbeta"||type==="dfbetas")return rows as number[][];
