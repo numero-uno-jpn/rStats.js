@@ -366,6 +366,7 @@ export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptio
         if(fit.dist==="extreme"||fit.dist==="weibull"||fit.dist==="exponential"||fit.dist==="rayleigh"){const aa=Math.log(b)-Math.log(Math.expm1(b));gmax=logDiff(-Math.exp(aa),-Math.exp(aa+b));}
         else if(fit.dist==="logistic"||fit.dist==="loglogistic"){gmax=Math.log(Math.tanh(b/4));}
         else if(fit.dist==="gaussian"||fit.dist==="loggaussian"||fit.dist==="lognormal"){gmax=Math.log(2*pnorm(b/2)-1);}
+        else if(fit.dist==="t"){gmax=Math.log(2*pt(b/2,fit.parms)-1);}
       }
       return dev*Math.sqrt(Math.max(0,2*(gmax-g.g)))*v;
     }
