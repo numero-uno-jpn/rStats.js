@@ -72,6 +72,7 @@ function verifyScoreByFiniteDifferences(a: Raw, fit: SurvregResult, label: strin
     minus[j] = value - h;
     const numerical = (loglik(plus) - loglik(minus)) / (2 * h);
     const tolerance = 2e-5 * Math.max(1, Math.abs(numerical));
+    if (label === "#16") console.log("SURVREG SCORE FD", j, JSON.stringify({ score: fit.score[j], numerical, tolerance, theta }));
     expect(Math.abs(fit.score[j]! - numerical), label + " score[" + j + "] finite difference")
       .toBeLessThanOrEqual(tolerance);
   });
@@ -133,7 +134,7 @@ describe("survreg: R 4.6.2 fixture", () => {
           expectedIcoef: e.icoef, iterations: fit.iter, refinedIterations: refined.iter,
         }));
       }
-      if ([0, 1, 2, 14, 50, 51, 53, 57, 58, 60, 72].includes(index)) console.log("SURVREG DEBUG", index, JSON.stringify({ coefficients: fit.coefficients, scale: fit.scale, iter: fit.iter, icoef: fit.icoef, loglik: fit.loglik, varDiag: fit.var.map((r, i) => r[i]), score: fit.score }));
+      if ([0, 1, 2, 14, 16, 50, 51, 53, 57, 58, 60, 72].includes(index)) console.log("SURVREG DEBUG", index, JSON.stringify({ coefficients: fit.coefficients, scale: fit.scale, iter: fit.iter, icoef: fit.icoef, loglik: fit.loglik, varDiag: fit.var.map((r, i) => r[i]), score: fit.score }));
       if (index === 51 || c.reference?.refKind === "logDomain") {
         const time=vector(a.time)!,event=vector(a.event)!,x=matrix(a.x)!;
         const eta=(beta:number[])=>x.map(r=>beta[0]!+r.reduce((s,v,j)=>s+v*beta[j+1]!,0));
