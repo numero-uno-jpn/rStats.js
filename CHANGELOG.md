@@ -30,6 +30,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ### Fixed
 
+- `survreg` scales extreme design-matrix columns by exact powers of two before the initial weighted least-squares fit and Newton/BHHH calculations, then restores coefficient, covariance and score units; interval midpoints and log-time response residual differences avoid overflow and cancellation.
+
 - The robust `stype: 2` confidence limits use the standard error of the cumulative hazard on the log-survival scale.
 - Restricted-mean calculations scale interval widths before accumulation and integrate RMTL directly, avoiding both large-time intermediate overflow and cancellation in `tau - RMST`.
 - `rmst2` two-sided p-values use the accurate normal upper tail rather than subtracting a chi-squared CDF from one.
