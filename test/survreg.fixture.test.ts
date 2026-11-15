@@ -120,6 +120,19 @@ describe("survreg: R 4.6.2 fixture", () => {
         return;
       }
       const fit = survreg(vector(a.time) ?? [], vector(a.event), matrix(a.x) ?? [], optionsOf(a));
+      if ([23, 27, 45, 69, 75, 78].includes(index)) {
+        const base = optionsOf(a);
+        const refined = survreg(vector(a.time) ?? [], vector(a.event), matrix(a.x) ?? [], {
+          ...base,
+          init: [...fit.coefficients, ...fit.scale.map(Math.log)],
+          control: { ...(base.control ?? {}), maxiter: 1000, relTolerance: 1e-13 },
+        });
+        console.log("SURVREG REFINED", index, JSON.stringify({
+          coefficients: fit.coefficients, refinedCoefficients: refined.coefficients,
+          icoef: fit.icoef, refinedIcoef: refined.icoef, expectedCoefficients: e.coefficients,
+          expectedIcoef: e.icoef, iterations: fit.iter, refinedIterations: refined.iter,
+        }));
+      }
       if ([0, 1, 2, 14, 50, 51, 53, 57, 58, 60, 72].includes(index)) console.log("SURVREG DEBUG", index, JSON.stringify({ coefficients: fit.coefficients, scale: fit.scale, iter: fit.iter, icoef: fit.icoef, loglik: fit.loglik, varDiag: fit.var.map((r, i) => r[i]), score: fit.score }));
       if (index === 51 || c.reference?.refKind === "logDomain") {
         const time=vector(a.time)!,event=vector(a.event)!,x=matrix(a.x)!;
