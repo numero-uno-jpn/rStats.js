@@ -244,7 +244,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
     if(logTime){if((Number.isFinite(l)&&l<0)||(Number.isFinite(u)&&u<0))addWarning("NaNs produced");if(l===Infinity||u===-Infinity||(Number.isFinite(l)&&l<=0)||(Number.isFinite(u)&&u<=0))throw new Error("Invalid survival times for this distribution");if(Number.isFinite(l))l=Math.log(l);if(Number.isFinite(u))u=Math.log(u);}
     rows.push(i);yy.push(s===1?u:Number.isFinite(l)&&Number.isFinite(u)?(l+u)/2:Number.isFinite(l)?l:u);lo.push(l);hi.push(u);st.push(s);ww.push(weights[i]!);oo.push(offset[i]!);xx.push(xi);
   }
-  if(rows.length===0)throw new Error("No observations");
+  if(rows.length===0)throw new Error("initial iteration failed (use starting estimates?)");
   if(!st.some(s=>s===1||s===3))throw new Error("initial iteration failed (use starting estimates?)");
   if(yy.some(v=>!Number.isFinite(v)))throw new Error("initial iteration failed (use starting estimates?)");
   if(xx.some(r=>r.length!==xx[0]!.length))throw new TypeError("all rows of the matrix must have the same length");
