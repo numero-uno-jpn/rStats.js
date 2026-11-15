@@ -266,6 +266,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance level for a given power. |
 | `quade.test()` | `quadeTest` | Quade test for an unreplicated complete block design. |
 | `residuals()` | `glmResiduals` | Residuals of a generalized linear model, one per row, for a `glm` fit. |
+| `residuals.survreg()` | `survregResiduals` | Residuals from a parametric survival regression fit. |
 | `survRM2::rmst2()` | `rmst2` | Restricted mean survival time, restricted mean time lost, and their between-arm contrasts. |
 | `pROC::roc.test()` | `rocTest` | Tests the difference of the areas under two ROC curves, by DeLong's method or the bootstrap. |
 | `pROC::roc()` | `roc` | The ROC curve of a numeric predictor of a binary response. |
