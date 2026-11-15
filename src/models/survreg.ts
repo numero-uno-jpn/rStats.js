@@ -134,13 +134,6 @@ function deriv(lo:number,hi:number,kind:number,eta:number,sigma:number,d:Survreg
   const det=((zu===Infinity||fpu===0?0:zu*fpu)-(zl===-Infinity||fpl===0?0:zl*fpl))/sigma-dg*(1+dt);
   return {g:lp,e:dg,ee:dgg,t:dt,tt:dtt,et:det};
 }
-function positiveDefinite(a:number[][],tol:number):boolean {
-  const n=a.length,scale=Math.max(0,...a.map((r,i)=>r[i]!));
-  if(!(scale>0))return false;
-  const threshold=tol*scale,L=Array.from({length:n},()=>Array(n).fill(0));
-  for(let i=0;i<n;i++){for(let j=0;j<=i;j++){let v=a[i]![j]!;for(let k=0;k<j;k++)v-=L[i]![k]!*L[j]![k]!;if(i===j){if(v<=threshold)return false;L[i]![j]=Math.sqrt(v);}else L[i]![j]=v/L[j]![j]!;}}
-  return true;
-}
 function inv(a:number[][]):number[][] {
   const n=a.length, aug=a.map((r,i)=>[...r,...r.map((_,j)=>i===j?1:0)]);
   for(let k=0;k<n;k++){let p=k;for(let i=k+1;i<n;i++)if(Math.abs(aug[i]![k]!)>Math.abs(aug[p]![k]!))p=i;
@@ -149,6 +142,26 @@ function inv(a:number[][]):number[][] {
     for(let i=0;i<n;i++)if(i!==k){const f=aug[i]![k]!;for(let j=0;j<2*n;j++)aug[i]![j]!-=f*aug[k]![j]!;}
   }
   return aug.map(r=>r.slice(n));
+}
+/** Generalised Cholesky factorisation I = L D L' with tolerance on pivots. */
+function cholFactor(m:number[][],tol:number):number {
+  const p=m.length;let scale=0,anyPositive=false;
+  for(let i=0;i<p;i++){const d=m[i]![i]!;if(d>0&&(!anyPositive||d>scale)){scale=d;anyPositive=true;}}
+  const limit=anyPositive?scale*tol:tol;let rank=0,nonNegative=true;
+  for(let i=0;i<p;i++){const pivot=m[i]![i]!;
+    if(!Number.isFinite(pivot)||pivot<limit){m[i]![i]=0;if(pivot< -8*limit)nonNegative=false;for(let j=i+1;j<p;j++)m[j]![i]=0;continue;}
+    rank++;for(let j=i+1;j<p;j++){const t=m[j]![i]!/pivot;m[j]![i]=t;m[j]![j]!-=t*t*pivot;for(let k=j+1;k<p;k++)m[k]![j]!-=t*m[k]![i]!;}
+  }
+  return nonNegative?rank:-rank;
+}
+function cholSolve(m:readonly number[][],b:readonly number[]):number[]{
+  const p=m.length,y=b.slice();for(let i=0;i<p;i++){let v=y[i]!;for(let j=0;j<i;j++)v-=y[j]!*m[i]![j]!;y[i]=v;}
+  for(let i=p-1;i>=0;i--){if(m[i]![i]===0){y[i]=0;continue;}let v=y[i]!/m[i]![i]!;for(let j=i+1;j<p;j++)v-=y[j]!*m[j]![i]!;y[i]=v;}return y;
+}
+function cholInverse(m:number[][]):number[][]{
+  const p=m.length;for(let i=0;i<p;i++){if(!(m[i]![i]!>0))continue;m[i]![i]=1/m[i]![i]!;for(let j=i+1;j<p;j++){m[j]![i]=-m[j]![i]!;for(let k=0;k<i;k++)m[j]![k]!+=m[j]![i]!*m[i]![k]!;}}
+  for(let i=0;i<p;i++){if(m[i]![i]===0){for(let j=0;j<p;j++){m[i]![j]=0;m[j]![i]=0;}continue;}for(let j=i+1;j<p;j++){const t=m[j]![i]!*m[j]![j]!;m[i]![j]=t;for(let k=i;k<j;k++)m[i]![k]!+=t*m[j]![k]!;}}
+  for(let i=0;i<p;i++)for(let j=0;j<i;j++)m[i]![j]=m[j]![i]!;return m;
 }
 function matVec(a:number[][],v:number[]):number[]{return a.map(r=>r.reduce((s,x,j)=>s+x*v[j]!,0));}
 function dot(a:number[],b:number[]):number{return a.reduce((s,x,i)=>s+x*b[i]!,0);}
@@ -168,15 +181,13 @@ function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[]
       if(withH){for(let aa=0;aa<p;aa++){for(let cc=0;cc<p;cc++)H[aa]![cc]+=wi*X[i]![aa]!*X[i]![cc]!*g.ee;if(fixed===undefined)H[aa]![p+s]+=wi*X[i]![aa]!*g.et;}
         if(fixed===undefined){for(let cc=0;cc<p;cc++)H[p+s]![cc]+=wi*X[i]![cc]!*g.et;H[p+s]![p+s]+=wi*g.tt;}}
     }return {ll,u,H,B};};
-  const inverse=(m:number[][]):number[][]=>{try{return inv(m);}catch{return Array.from({length:q},()=>Array(q).fill(0));}};
-  const stepAt=(v:number[])=>{const e=evaluate(v,true),I=e.H.map(r=>r.map(x=>-x));let V:number[][],delta:number[];
-    if(positiveDefinite(I,tolerChol)){V=inv(I);delta=matVec(V,e.u);}else{V=inv(e.B);delta=matVec(V,e.u);}
-    return {e,delta};};
+  const factorAt=(e:ReturnType<typeof evaluate>)=>{const f=e.H.map(r=>r.map(x=>-x));const rank=cholFactor(f,tolerChol);return {factor:f,rank};};
+  const stepAt=(v:number[])=>{const e=evaluate(v,true),f=factorAt(e);const delta=f.rank>=0?cholSolve(f.factor,e.u):matVec(inv(e.B),e.u);return {e,delta};};
   let cur=evaluate(b,true),best=cur.ll,iter=0,warn=false,converged=false;
   let initial: {e:ReturnType<typeof evaluate>;delta:number[]};
   try{initial=stepAt(b);}catch{initial={e:cur,delta:Array(q).fill(0)};}
   let trial=b.map((x,j)=>x+initial.delta[j]!);
-  if(maxiter===0){const V=inverse(cur.H.map(r=>r.map(x=>-x)));return {b,ll:cur.ll,iter,V,score:cur.u,warn};}
+  if(maxiter===0){const f=factorAt(cur);const V=cholInverse(f.factor);return {b,ll:cur.ll,iter,V,score:cur.u,warn};}
   for(let it=1;it<=maxiter;it++){
     const next=evaluate(trial,true);
     if(Number.isFinite(next.ll)&&Math.abs(1-best/next.ll)<=tol){b.splice(0,b.length,...trial);cur=next;best=next.ll;iter=it;converged=true;break;}
@@ -193,8 +204,7 @@ function fitCore(X:number[][],y:number[],lo:number[],hi:number[],status:number[]
     }
   }
   if(iter===maxiter&&maxiter>=2&&!converged)warn=true;
-  const final=evaluate(b,true);let V:number[][];
-  try{V=inv(final.H.map(r=>r.map(x=>-x)));}catch{V=Array.from({length:q},()=>Array(q).fill(0));}
+  const final=evaluate(b,true),f=factorAt(final),V=cholInverse(f.factor);
   return {b,ll:best,iter,V,score:final.u,warn};
 }
 
@@ -287,14 +297,14 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const isNull=X.every(r=>r.length===1&&r[0]===1);
   const model=isNull?(options.init===undefined?nullFit:fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol,control.tolerChol??1e-10)):fitCore(X,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol,control.tolerChol??1e-10);
   const jac=logTime?rows.reduce((s,orig,j)=>s+(st[j]===1?ww[j]!*Math.log(time[orig]!):0),0)*-1:0;
-  const varmat=model.V.map(r=>r.slice());const coefs=model.b.slice(0,p);const ses=coefs.map((_,j)=>Math.sqrt(Math.max(0,varmat[j]?.[j]??0)));
+  const varmat=model.V.map(r=>r.slice());const coefs=model.b.slice(0,p).map((v,j)=>(varmat[j]?.[j]??0)===0?NaN:v);const ses=coefs.map((_,j)=>(varmat[j]?.[j]??0)===0?NaN:Math.sqrt(Math.max(0,varmat[j]?.[j]??0)));
   const zstat=coefs.map((v,j)=>v/ses[j]!);const pv=zstat.map(v=>2*pnorm(-Math.abs(v)));
   const scales=fixed!==undefined?[fixed]:Array.from({length:k},(_,s)=>Math.exp(model.b[p+s]!));
   const means=Array.from({length:p},(_,j)=>X.reduce((s,r)=>s+r[j]!,0)/X.length);
-  const lp=X.map((r,i)=>dot(r,coefs)+oo[i]!);
+  const lp=X.map((r,i)=>dot(r,model.b.slice(0,p))+oo[i]!);
   const chi=2*((model.ll+jac)-(nullFit.ll+jac)),chiDf=p+(fixed===undefined?k:0)-(1+(fixed===undefined?k:0));
   const tableNames=[...coefs.map((_,j)=>j===0&&intercept?"(Intercept)":`x${j+(intercept?0:1)}`),...(fixed===undefined?(k===1?["Log(scale)"]:lev.map(s=>`strata=${s}`)):[])];
-  const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((v,j)=>v/seAll[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
+  const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>(varmat[j]?.[j]??0)===0?NaN:Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((v,j)=>v/seAll[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
   const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),icoef:fixed===undefined?nullFit.b:[nullFit.b[0]!,Math.log(fixed)], var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score,tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...dataWarnings,...(model.warn||nullFit.warn?["Ran out of iterations and did not converge"]:[]),...((d==="exponential"||d==="rayleigh")&&options.scale!==undefined&&options.scale>0?[d==="exponential"?"Exponential has a fixed scale, user specified value ignored":"Rayleigh has a fixed scale, user specified value ignored"]:[])]};
   return reported("survreg",result);
 }
@@ -356,7 +366,7 @@ export function survregResiduals(fit:SurvregResult,options:SurvregResidualsOptio
   checkOptions(options,SURVREG_RESIDUALS_KEYS,"survregResiduals"); // generated: option-keys.mjs
   const type=options.type??"response",nu=fit.parms,p=fit.coefficients.length,q=fit.var.length,weighted=options.weighted??false;
   if(!["response","deviance","working","dfbeta","dfbetas","ldcase","ldresp","ldshape","matrix"].includes(type))throw new RangeError("invalid residual type");
-  const rows=fit.x.map((x,i)=>{const eta=dot(x,fit.coefficients)+fit.offset[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[fit.strata[i]!]!;const g=deriv(fit.lower[i]!,fit.upper[i]!,fit.status[i]!,eta,sig,fit.dist,nu);const v=weighted?fit.weights[i]!:1;
+  const rows=fit.x.map((x,i)=>{const eta=fit.linearPredictors[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[fit.strata[i]!]!;const g=deriv(fit.lower[i]!,fit.upper[i]!,fit.status[i]!,eta,sig,fit.dist,nu);const v=weighted?fit.weights[i]!:1;
     const s=Array(q).fill(0);for(let j=0;j<p;j++)s[j]=x[j]!*g.e;if(q>p)s[p+fit.strata[i]!]=g.t;
     const V=fit.var,dfb=matVec(V,s),quad=dot(s,dfb);
     if(type==="matrix")return [g.g,g.e,g.ee,g.t,g.tt,g.et].map(a=>a*v);
