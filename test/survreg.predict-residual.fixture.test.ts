@@ -79,7 +79,8 @@ describe("survregPredict: R 4.6.2 fixture",()=>{
       if(a["se.fit"]){
         const actual=result as SurvregPredictionResult,base=baseline as SurvregPredictionResult;
         compareOffsetShift(actual.fit,base.fit,offsets,effect,"#"+index+" offset fit");
-        compareOffsetShift(actual.seFit,base.seFit,offsets,"same","#"+index+" offset se.fit");
+        if ([151,155].includes(index)) console.log("OFFSET SE DEBUG",index,JSON.stringify({type,offsets,actual:actual.seFit,baseline:base.seFit}));
+        compareOffsetShift(actual.seFit,base.seFit,offsets,(type==="response"||type==="quantile")?"multiply":"same","#"+index+" offset se.fit");
         expect(actual.warnings).toEqual(e.warnings);
       }else compareOffsetShift(result,baseline,offsets,effect,"#"+index+" offset fit");
       return;
