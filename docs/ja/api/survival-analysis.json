@@ -2,102 +2,102 @@
   "CoxZphOptions#summary": {
     "hash": "56a1c697e03f",
     "en": "Options for Schoenfeld-residual tests of proportional hazards.",
-    "ja": ""
+    "ja": "比例ハザード性の Schoenfeld 残差検定のオプションです。"
   },
   "CoxZphOptions.collapseTerms#summary": {
     "hash": "8ecebed9f437",
     "en": "Keep grouped columns separate in y, var and the test table. Default true.",
-    "ja": ""
+    "ja": "y、var、検定表で、グループ化された列を個別に保持するかどうかです。既定は `true` です。"
   },
   "CoxZphOptions.global#summary": {
     "hash": "dd5ef3b9f488",
     "en": "Include the global test row. Default true.",
-    "ja": ""
+    "ja": "全体検定の行を含めるかどうかです。既定は `true` です。"
   },
   "CoxZphOptions.terms#summary": {
     "hash": "64ae230dcdb5",
     "en": "Zero-based column groups defining formula terms; false makes each column its own term. A multi-column group is collapsed by default.",
-    "ja": ""
+    "ja": "式の項を定義する 0 始まりの列グループです。`false` の場合は、各列を独立した項として扱います。複数列からなるグループは、既定では 1 つにまとめます。"
   },
   "CoxZphOptions.transform#summary": {
     "hash": "7bbe007645b1",
     "en": "Transform of the merged stop times. Default `\"km\"`; a function receives all used rows in input order.",
-    "ja": ""
+    "ja": "統合後の終了時刻に適用する変換です。既定は `\"km\"` です。関数を指定した場合は、使用したすべての行を入力順に受け取ります。"
   },
   "CoxZphResult#summary": {
     "hash": "e2eb2eed1613",
     "en": "Result of the proportional-hazards test.",
-    "ja": ""
+    "ja": "比例ハザード性の検定結果です。"
   },
   "CoxZphResult.chisq#summary": {
     "hash": "f4dadc864b3d",
     "en": "Chi-squared statistics, with GLOBAL last when requested.",
-    "ja": ""
+    "ja": "カイ二乗統計量です。要求した場合は GLOBAL が最後に入ります。"
   },
   "CoxZphResult.df#summary": {
     "hash": "16694fec65bc",
     "en": "Degrees of freedom.",
-    "ja": ""
+    "ja": "自由度です。"
   },
   "CoxZphResult.p#summary": {
     "hash": "ccfb7210e92c",
     "en": "Upper chi-squared probabilities.",
-    "ja": ""
+    "ja": "カイ二乗分布の上側確率です。"
   },
   "CoxZphResult.pValue#summary": {
     "hash": "82a64744a80a",
     "en": "Alias of p.",
-    "ja": ""
+    "ja": "`p` の別名です。"
   },
   "CoxZphResult.rowNames#summary": {
     "hash": "b44fe3095d6f",
     "en": "Names of the tested terms, with GLOBAL last when requested.",
-    "ja": ""
+    "ja": "検定した項の名前です。要求した場合は GLOBAL が最後に入ります。"
   },
   "CoxZphResult.strata#summary": {
     "hash": "fabbe7640028",
     "en": "Stratum labels at event rows, only when the fit had strata.",
-    "ja": ""
+    "ja": "当てはめに層があった場合に限り、イベント行の層ラベルを返します。"
   },
   "CoxZphResult.time#summary": {
     "hash": "0ad286345ee7",
     "en": "Event times in the fit's merged time scale.",
-    "ja": ""
+    "ja": "統合後の時刻尺度で表したイベント時刻です。"
   },
   "CoxZphResult.transform#summary": {
     "hash": "a652f54f08aa",
     "en": "Transform used.",
-    "ja": ""
+    "ja": "使用した変換です。"
   },
   "CoxZphResult.var#summary": {
     "hash": "ef1748dc9479",
     "en": "Variance matrix for y.",
-    "ja": ""
+    "ja": "y の分散行列です。"
   },
   "CoxZphResult.warnings#summary": {
     "hash": "cefb702ef3e8",
     "en": "Warnings of the fit and this call.",
-    "ja": ""
+    "ja": "当てはめとこの呼び出しで発生した警告です。"
   },
   "CoxZphResult.x#summary": {
     "hash": "1d88046e6b8e",
     "en": "Transformed times at the event rows.",
-    "ja": ""
+    "ja": "イベント行における変換後の時刻です。"
   },
   "CoxZphResult.y#summary": {
     "hash": "38a13cbcc675",
     "en": "Scaled Schoenfeld residuals, one row per event.",
-    "ja": ""
+    "ja": "イベントごとに 1 行の、スケーリングした Schoenfeld 残差です。"
   },
   "CoxZphTerms#summary": {
     "hash": "2f6fe0511076",
     "en": "Term grouping accepted by coxZph; use `collapseTerms: false` to retain individual columns within groups.",
-    "ja": ""
+    "ja": "`coxZph` が受け付ける項のグループ化です。`collapseTerms: false` を指定すると、グループ内の列を個別に保持します。"
   },
   "CoxZphTransform#summary": {
     "hash": "9b63d00c8bae",
     "en": "Transform names and custom functions accepted by coxZph.",
-    "ja": ""
+    "ja": "`coxZph` が受け付ける変換名と独自の関数です。"
   },
   "CoxphControl#summary": {
     "hash": "ae1b9dd0bb09",
@@ -117,7 +117,7 @@
   "CoxphControl.timefix#summary": {
     "hash": "2aca3f8d60d9",
     "en": "Whether to merge event times (and start/stop times for counting-process data) within the tolerance of aeqSurv. Default true.",
-    "ja": ""
+    "ja": "イベント時刻 (計数過程データでは開始時刻と終了時刻も) を、`aeqSurv` の許容誤差内で統合するかどうかです。既定は `true` です。"
   },
   "CoxphControl.tolerChol#summary": {
     "hash": "8d04c173445d",
@@ -137,8 +137,7 @@
   "CoxphOptions.cluster#summary": {
     "hash": "779615355c16",
     "en": "Cluster labels, one per observation, for the robust variance (R's `cluster`): the observations of a cluster are\ntreated as correlated. Rows with a missing label (`null` or NaN) are dropped, like rows with a missing stratum.\nFor counting-process data, `id` supplies the subject clusters when `cluster` is absent. Without either, each row\nis its own cluster for the default robust variance of non-integer weights. At least two clusters are needed.",
-    "ja": "ロバスト分散のための、観測値ごとに 1 つのクラスターのラベルです (R の `cluster`)。同じクラスターの観測値は、相関していると扱われます。\n欠測のラベル (`null` または NaN) の行は、欠測の層の行と同じく除かれます。\nこれがない場合は、観測値ごとに独自のクラスターになります。少なくとも 2 つのクラスターが必要です。",
-    "stale": true
+    "ja": "ロバスト分散のための、観測値ごとに 1 つのクラスターラベルです (R の `cluster`)。同じクラスターの観測値は相関していると扱います。\nラベルが欠測 (`null` または NaN) の行は、層が欠測している行と同じく除外します。\n計数過程データでは、`cluster` がない場合に `id` が被験者ごとのクラスターを指定します。どちらもない場合、整数でない重みに対する既定のロバスト分散では、各行を独立したクラスターとして扱います。クラスターは少なくとも 2 つ必要です。"
   },
   "CoxphOptions.confLevel#summary": {
     "hash": "f8c806fc5453",
@@ -153,7 +152,7 @@
   "CoxphOptions.id#summary": {
     "hash": "3bbe3082bc13",
     "en": "Subject identifiers for counting-process data; missing identifiers drop their rows.",
-    "ja": ""
+    "ja": "計数過程データの被験者識別子です。識別子が欠測している行は除外します。"
   },
   "CoxphOptions.init#summary": {
     "hash": "b9fe0b5291f4",
@@ -168,13 +167,12 @@
   "CoxphOptions.robust#summary": {
     "hash": "3d7ed3cb040a",
     "en": "Whether to use the robust (Lin-Wei sandwich) variance. Default as R: `true` when `cluster` is given, a counting\nprocess `id` has repeated event rows, or some case weight is not an integer, else `false`. With `false` a\n`cluster` is ignored (with R's warning).",
-    "ja": "ロバスト (Lin-Wei のサンドイッチ) 分散を使うかどうかです。既定は R と同じく、`cluster` を指定したとき、または\n観測値の重みに整数でないものがあるときは `true`、それ以外は `false` です。`false` のとき、`cluster` は無視されます (R の警告を伴います)。",
-    "stale": true
+    "ja": "ロバスト (Lin-Wei のサンドイッチ) 分散を使うかどうかです。既定は R と同じく、`cluster` を指定した場合、計数過程データで `id` が同じイベント行が複数ある場合、またはケース重みに整数でないものがある場合は `true`、それ以外は `false` です。`false` の場合、`cluster` は R の警告を伴って無視されます。"
   },
   "CoxphOptions.start#summary": {
     "hash": "58208bc25044",
     "en": "Start times for counting-process data; when present, time is the stop time.",
-    "ja": ""
+    "ja": "計数過程データの開始時刻です。指定した場合、`time` は終了時刻になります。"
   },
   "CoxphOptions.strata#summary": {
     "hash": "29c04c42d8d8",
@@ -204,8 +202,7 @@
   "CoxphResult.iter#summary": {
     "hash": "08f32faff030",
     "en": "Number of iterations (`iterMax + 1` for right-censored fits, `iterMax` for counting-process fits when they ran out).",
-    "ja": "反復回数 (上限に達した場合は `iterMax + 1`)",
-    "stale": true
+    "ja": "反復回数です (右側打ち切りデータで上限に達した場合は `iterMax + 1`、計数過程データで上限に達した場合は `iterMax`)。"
   },
   "CoxphResult.linearPredictors#summary": {
     "hash": "49a1380d5b8d",
@@ -240,7 +237,7 @@
   "CoxphResult.nId#summary": {
     "hash": "c3215984a257",
     "en": "Number of distinct subjects, only when id was supplied.",
-    "ja": ""
+    "ja": "`id` を指定した場合に限り、異なる被験者の数を返します。"
   },
   "CoxphResult.naiveVar#summary": {
     "hash": "23eed817f365",
@@ -375,242 +372,242 @@
   "CrrOptions#summary": {
     "hash": "9b3b69cd381b",
     "en": "Options for {@link crr}.",
-    "ja": ""
+    "ja": "`{@link crr}` のオプションです。"
   },
   "CrrOptions.cencode#summary": {
     "hash": "849018b4ad5a",
     "en": "Censoring code. Default 0.",
-    "ja": ""
+    "ja": "打ち切りコードです。既定は 0 です。"
   },
   "CrrOptions.confLevel#summary": {
     "hash": "9325cbf8e916",
     "en": "Confidence level for exponentiated coefficient intervals. Default 0.95.",
-    "ja": ""
+    "ja": "指数変換した係数の信頼区間の信頼水準です。既定は 0.95 です。"
   },
   "CrrOptions.cov2#summary": {
     "hash": "89d32041b710",
     "en": "Time-dependent covariate matrix, one row per observation.",
-    "ja": ""
+    "ja": "観測値ごとに 1 行を持つ、時間依存性共変量の行列です。"
   },
   "CrrOptions.failcode#summary": {
     "hash": "7add2219a477",
     "en": "Cause whose subdistribution hazard is modelled. Default 1.",
-    "ja": ""
+    "ja": "部分分布ハザードをモデル化するイベント原因です。既定は 1 です。"
   },
   "CrrOptions.gtol#summary": {
     "hash": "790e77cb8b82",
     "en": "Convergence tolerance. Default 1e-6.",
-    "ja": ""
+    "ja": "収束許容誤差です。既定は 1e-6 です。"
   },
   "CrrOptions.init#summary": {
     "hash": "e5a349e0f7b3",
     "en": "Initial coefficient vector. Default all zero.",
-    "ja": ""
+    "ja": "係数の初期値ベクトルです。既定はすべて 0 です。"
   },
   "CrrOptions.maxiter#summary": {
     "hash": "8b211fbf917a",
     "en": "Maximum Newton iterations. Default 10.",
-    "ja": ""
+    "ja": "Newton 法の最大反復回数です。既定は 10 です。"
   },
   "CrrOptions.names#summary": {
     "hash": "1dd24ded50b4",
     "en": "Coefficient names, in the order of cov1 then cov2 interactions.",
-    "ja": ""
+    "ja": "`cov1` の項、続いて `cov2` の交互作用項の順に並ぶ係数名です。"
   },
   "CrrOptions.tf#summary": {
     "hash": "9d4876f2a222",
     "en": "Transform the unique failure times to a matrix with one row per time. Required with cov2.",
-    "ja": ""
+    "ja": "相異なるイベント時刻を、時刻ごとに 1 行を持つ行列に変換する関数です。`cov2` を指定する場合は必須です。"
   },
   "CrrOptions.variance#summary": {
     "hash": "04f7a0eac0ee",
     "en": "Whether to compute the sandwich variance and residuals. Default true.",
-    "ja": ""
+    "ja": "サンドイッチ分散と残差を計算するかどうかです。既定は `true` です。"
   },
   "CrrResult#summary": {
     "hash": "4a48a34a7b72",
     "en": "Fine-Gray regression fit.",
-    "ja": ""
+    "ja": "Fine-Gray 回帰の当てはめ結果です。"
   },
   "CrrResult.covariateDimensions#summary": {
     "hash": "d1a84c002f2b",
     "en": "Number of baseline and time-varying covariates.",
-    "ja": ""
+    "ja": "ベースライン共変量と時間依存性共変量の数です。"
   },
   "CrrTimeFunction#summary": {
     "hash": "ec50d46693d2",
     "en": "Time-dependent covariate transformation for {@link crr}.",
-    "ja": ""
+    "ja": "`{@link crr}` の時間依存性共変量を変換する関数です。"
   },
   "CumincCurve#summary": {
     "hash": "35b4c8933548",
     "en": "A cumulative-incidence curve, represented by its step-function corners.",
-    "ja": ""
+    "ja": "階段関数の折れ点で表した累積発生率曲線です。"
   },
   "CumincOptions#summary": {
     "hash": "74cdfb3a492a",
     "en": "Options for {@link cuminc}.",
-    "ja": ""
+    "ja": "`{@link cuminc}` のオプションです。"
   },
   "CumincOptions.cencode#summary": {
     "hash": "849018b4ad5a",
     "en": "Censoring code. Default 0.",
-    "ja": ""
+    "ja": "打ち切りコードです。既定は 0 です。"
   },
   "CumincOptions.group#summary": {
     "hash": "10e31e93244d",
     "en": "Group labels, one per observation. Omitted: one group.",
-    "ja": ""
+    "ja": "観測値ごとの群ラベルです。省略した場合は 1 群として扱います。"
   },
   "CumincOptions.rho#summary": {
     "hash": "a173c16c17bf",
     "en": "Power of the Gray test's weight, G(t-)^rho. Default 0.",
-    "ja": ""
+    "ja": "Gray 検定の重み `G(t-)^rho` のべき指数です。既定は 0 です。"
   },
   "CumincOptions.strata#summary": {
     "hash": "f44b8da0c01d",
     "en": "Stratification labels for Gray's test; curves remain group-specific.",
-    "ja": ""
+    "ja": "Gray 検定の層別化ラベルです。曲線は群ごとに推定します。"
   },
   "CumincResult#summary": {
     "hash": "a545531043f0",
     "en": "Result of {@link cuminc}.",
-    "ja": ""
+    "ja": "`{@link cuminc}` の結果です。"
   },
   "CumincTest#summary": {
     "hash": "af0eab370221",
     "en": "One cause's Gray test across the groups.",
-    "ja": ""
+    "ja": "原因ごとに、群間で比較した Gray 検定の結果です。"
   },
   "Rmst2Options#summary": {
     "hash": "cb0470476362",
     "en": "Options for {@link rmst2}.",
-    "ja": ""
+    "ja": "`{@link rmst2}` のオプションです。"
   },
   "Rmst2Options.confLevel#summary": {
     "hash": "f18f020efba3",
     "en": "Confidence level. Default 0.95.",
-    "ja": ""
+    "ja": "信頼水準です。既定は 0.95 です。"
   },
   "Rmst2Options.covariateNames#summary": {
     "hash": "49416b002549",
     "en": "Optional names of matrix columns; a vector is named \"covariates\", an unnamed matrix has empty names.",
-    "ja": ""
+    "ja": "行列の列名を指定できます。ベクトルの場合の名前は `\"covariates\"`、名前のない行列の場合は空の名前になります。"
   },
   "Rmst2Options.covariates#summary": {
     "hash": "a554c5bfaad2",
     "en": "Numeric covariates, one row per observation. A vector is treated as one column; rows with missing values are omitted.",
-    "ja": ""
+    "ja": "観測値ごとに 1 行を持つ数値共変量です。ベクトルは 1 列として扱います。欠測値を含む行は除外します。"
   },
   "Rmst2Options.tau#summary": {
     "hash": "a8e0e6621753",
     "en": "Restriction time. Defaults to the largest follow-up time allowed by both arms.",
-    "ja": ""
+    "ja": "制限時間です。既定では、両群で許される追跡時間の最大値になります。"
   },
   "Rmst2Result#summary": {
     "hash": "2b90145f00dd",
     "en": "Result of {@link rmst2}.",
-    "ja": ""
+    "ja": "`{@link rmst2}` の結果です。"
   },
   "Rmst2Result.adjusted#summary": {
     "hash": "ef20fa4924ff",
     "en": "Covariate-adjusted between-arm contrasts, present when covariates are supplied.",
-    "ja": ""
+    "ja": "共変量を指定した場合に得られる、共変量調整済みの群間比較です。"
   },
   "Rmst2Result.arm1#summary": {
     "hash": "f172909de532",
     "en": "Unadjusted per-arm estimates; omitted when covariate adjustment is requested.",
-    "ja": ""
+    "ja": "群ごとの非調整推定値です。共変量調整を指定した場合は省略されます。"
   },
   "Rmst2Result.coefficients#summary": {
     "hash": "d5fb3edba4f5",
     "en": "Coefficient estimates, robust standard errors and Wald tests for the three adjusted models.",
-    "ja": ""
+    "ja": "3 つの調整モデルの係数推定値、ロバスト標準誤差、Wald 検定です。"
   },
   "Rmst2Result.confLevel#summary": {
     "hash": "de28d52a4081",
     "en": "Confidence level.",
-    "ja": ""
+    "ja": "信頼水準です。"
   },
   "Rmst2Result.difference#summary": {
     "hash": "5d18e2e2430b",
     "en": "Unadjusted between-arm contrasts.",
-    "ja": ""
+    "ja": "非調整の群間比較です。"
   },
   "Rmst2Result.tau#summary": {
     "hash": "0f62c809e62d",
     "en": "Restriction time used in the analysis.",
-    "ja": ""
+    "ja": "解析に使用した制限時間です。"
   },
   "Rmst2Result.tauDefault#summary": {
     "hash": "45ac30acfaae",
     "en": "Whether tau was selected from the follow-up times.",
-    "ja": ""
+    "ja": "`tau` を追跡時間から選択したかどうかです。"
   },
   "Rmst2Result.warnings#summary": {
     "hash": "15692e1a5029",
     "en": "Warnings, each distinct message once.",
-    "ja": ""
+    "ja": "重複を除いた警告です。"
   },
   "RmstCoefficientTable#summary": {
     "hash": "c1f60b51786a",
     "en": "Coefficient estimates and robust Wald inference for an adjusted RMST model.",
-    "ja": ""
+    "ja": "調整済み RMST モデルの係数推定値とロバストな Wald 推論の結果です。"
   },
   "RmstCoefficientTable.confInt#summary": {
     "hash": "ddda23206ff7",
     "en": "Confidence limits: coefficient scale for the difference model, exponentiated scale for ratio models.",
-    "ja": ""
+    "ja": "信頼限界です。差のモデルでは係数尺度、比のモデルでは指数変換した尺度で表します。"
   },
   "RmstCoefficientTable.estimate#summary": {
     "hash": "f1c2b307276e",
     "en": "Model coefficients (log-scale coefficients for ratio models).",
-    "ja": ""
+    "ja": "モデルの係数です (比のモデルでは対数尺度の係数)。"
   },
   "RmstCoefficientTable.names#summary": {
     "hash": "995c925bf65d",
     "en": "Intercept, treatment indicator and covariate names.",
-    "ja": ""
+    "ja": "切片、治療群の指標、共変量の名前です。"
   },
   "RmstContrast#summary": {
     "hash": "321dcff73114",
     "en": "A between-arm contrast with its confidence interval and p-value.",
-    "ja": ""
+    "ja": "信頼区間と p 値を伴う群間比較です。"
   },
   "RmstContrast.confInt#summary": {
     "hash": "108d197bd6d1",
     "en": "Two-sided confidence interval.",
-    "ja": ""
+    "ja": "両側信頼区間です。"
   },
   "RmstContrast.estimate#summary": {
     "hash": "2cc7b5f2dcf0",
     "en": "Difference (arm 1 minus arm 0) or ratio (arm 1 divided by arm 0).",
-    "ja": ""
+    "ja": "差 (群 1 から群 0 を引いた値) または比 (群 1 を群 0 で割った値) です。"
   },
   "RmstContrast.pValue#summary": {
     "hash": "67d88c9e1499",
     "en": "Two-sided normal-tail p-value.",
-    "ja": ""
+    "ja": "正規分布の両側確率に基づく p 値です。"
   },
   "RmstEstimate#summary": {
     "hash": "5ad1ca759dba",
     "en": "An RMST or RMTL estimate with its standard error and confidence interval.",
-    "ja": ""
+    "ja": "標準誤差と信頼区間を伴う RMST または RMTL の推定値です。"
   },
   "RmstEstimate.confInt#summary": {
     "hash": "108d197bd6d1",
     "en": "Two-sided confidence interval.",
-    "ja": ""
+    "ja": "両側信頼区間です。"
   },
   "RmstEstimate.estimate#summary": {
     "hash": "3e71183075a6",
     "en": "Restricted mean or restricted mean time lost.",
-    "ja": ""
+    "ja": "制限平均生存時間または制限平均損失時間です。"
   },
   "RmstEstimate.se#summary": {
     "hash": "13b2390e8928",
     "en": "Greenwood or sandwich standard error.",
-    "ja": ""
+    "ja": "Greenwood 型またはサンドイッチ型の標準誤差です。"
   },
   "SurvdiffOptions#summary": {
     "hash": "c7e02f5eeeb1",
@@ -680,8 +677,7 @@
   "SurvfitConfType#summary": {
     "hash": "d989535b4f45",
     "en": "Confidence interval type of {@link survfit}. The unambiguous prefixes \"p\", \"a\", \"n\", \"log-\", and \"logi\" are accepted.",
-    "ja": "{@link survfit} の信頼区間の種類。",
-    "stale": true
+    "ja": "`{@link survfit}` の信頼区間の種類です。曖昧さのない接頭辞 `\"p\"`、`\"a\"`、`\"n\"`、`\"log-\"`、`\"logi\"` も指定できます。"
   },
   "SurvfitOptions#summary": {
     "hash": "4df02fb61d3c",
@@ -696,13 +692,12 @@
   "SurvfitOptions.confType#summary": {
     "hash": "92f40869cb2f",
     "en": "Transformation of the pointwise confidence intervals. Default \"log\".",
-    "ja": "各時点の信頼区間の変換。既定は `\"log\"`。",
-    "stale": true
+    "ja": "各時点の信頼区間の変換です。既定は `\"log\"` です。"
   },
   "SurvfitOptions.ctype#summary": {
     "hash": "5bd80fcdde97",
     "en": "Cumulative hazard estimator: 1 Nelson-Aalen, 2 Fleming-Harrington. Default 1.",
-    "ja": ""
+    "ja": "累積ハザードの推定方法です。1 は Nelson-Aalen、2 は Fleming-Harrington です。既定は 1 です。"
   },
   "SurvfitOptions.group#summary": {
     "hash": "cbd449982c37",
@@ -712,32 +707,32 @@
   "SurvfitOptions.id#summary": {
     "hash": "eee6ea32f5ad",
     "en": "Subject identifiers for counting-process data; requires `start`; adjacent split rows are not censorings.",
-    "ja": ""
+    "ja": "計数過程データの被験者識別子です。`start` が必要です。同じ被験者の隣接する分割行は打ち切りとして扱いません。"
   },
   "SurvfitOptions.rmean#summary": {
     "hash": "a783869bd2ef",
     "en": "Restricted-mean upper limit: \"common\" (default), \"individual\", \"none\", or a finite number.",
-    "ja": ""
+    "ja": "制限平均の上限です。`\"common\"` (既定)、`\"individual\"`、`\"none\"`、または有限の数値を指定できます。"
   },
   "SurvfitOptions.robust#summary": {
     "hash": "aa5ed6d1274f",
     "en": "Use the infinitesimal-jackknife variance. Default false; non-integer weights are rejected.",
-    "ja": ""
+    "ja": "infinitesimal jackknife 法による分散を使うかどうかです。既定は `false` です。整数でない重みは受け付けません。"
   },
   "SurvfitOptions.start#summary": {
     "hash": "cea8307ee925",
     "en": "Start times for counting-process data; `time` contains the stop times.",
-    "ja": ""
+    "ja": "計数過程データの開始時刻です。`time` には終了時刻を指定します。"
   },
   "SurvfitOptions.stype#summary": {
     "hash": "efc0c4f34131",
     "en": "Survival estimator: 1 Kaplan-Meier, 2 exponential of cumulative hazard. Default 1.",
-    "ja": ""
+    "ja": "生存率の推定方法です。1 は Kaplan-Meier、2 は累積ハザードの指数変換です。既定は 1 です。"
   },
   "SurvfitOptions.weights#summary": {
     "hash": "0ea266fc8d1e",
     "en": "Case weights. Non-negative safe-integer counts are required.",
-    "ja": ""
+    "ja": "ケース重みです。0 以上の安全な整数の度数で指定する必要があります。"
   },
   "SurvfitResult#summary": {
     "hash": "a355fa79fdfd",
@@ -747,167 +742,157 @@
   "SurvfitResult.counts#summary": {
     "hash": "77e90cfdd4a5",
     "en": "Unweighted risk/event/censor counts, present when case weights were supplied.",
-    "ja": ""
+    "ja": "ケース重みを指定した場合に得られる、重み付け前のリスク集合・イベント・打ち切りの数です。"
   },
   "SurvfitResult.cumhaz#summary": {
     "hash": "308db345e473",
     "en": "Cumulative hazard and its standard error.",
-    "ja": ""
+    "ja": "累積ハザードとその標準誤差です。"
   },
   "SurvfitResult.logse#summary": {
     "hash": "ab5f00cd7879",
     "en": "Whether the standard error is on the log-survival scale.",
-    "ja": ""
+    "ja": "標準誤差が生存率の対数尺度で表されているかどうかです。"
   },
   "SurvfitResult.lower#summary": {
     "hash": "24592c41a662",
     "en": "Lower and upper pointwise confidence limits.",
-    "ja": "S(t) の各時点の信頼区間の下限 (S(t) = 1 のときは、どの `confType` でも 1。`\"log-log\"` の場合は\nsurvival 3.8-12 と同じく、その前は NA)",
-    "stale": true
+    "ja": "各時点の信頼区間の下限と上限です。"
   },
   "SurvfitResult.median#summary": {
     "hash": "dbc11c8c8b7a",
     "en": "Per stratum: median, lower median limit, upper median limit.",
-    "ja": "層ごとの [中央値, 下限, 上限] (R の NA に対応する NaN)",
-    "stale": true
+    "ja": "層ごとの [中央値、中央値の下限、中央値の上限] です。"
   },
   "SurvfitResult.n#summary": {
     "hash": "e97188d37e1c",
     "en": "Number of retained records per stratum.",
-    "ja": ""
+    "ja": "層ごとの、保持された記録の数です。"
   },
   "SurvfitResult.nCensor#summary": {
     "hash": "cc9487aecc07",
     "en": "Weighted number censored at each time.",
-    "ja": "その時刻における打ち切り数 (R の `n.censor`)",
-    "stale": true
+    "ja": "各時点での重み付き打ち切り数です。"
   },
   "SurvfitResult.nEvent#summary": {
     "hash": "cee0f66e80e6",
     "en": "Weighted number of events at each time.",
-    "ja": "その時刻におけるイベント数 (R の `n.event`)",
-    "stale": true
+    "ja": "各時点での重み付きイベント数です。"
   },
   "SurvfitResult.nRisk#summary": {
     "hash": "6dfe62908656",
     "en": "Weighted number at risk just before each time.",
-    "ja": "その時刻の直前のリスク集合の人数 (R の `n.risk`)",
-    "stale": true
+    "ja": "各時点の直前における重み付きリスク集合の人数です。"
   },
   "SurvfitResult.records#summary": {
     "hash": "9d9ba541d6b1",
     "en": "Summary-table record count, maximum risk set, starting risk set and weighted event total.",
-    "ja": ""
+    "ja": "要約表の記録数、最大リスク集合の人数、開始時点のリスク集合の人数、重み付きイベント総数です。"
   },
   "SurvfitResult.rmean#summary": {
     "hash": "f2313155855e",
     "en": "Restricted mean survival time and its standard error per stratum (NaN when rmean is \"none\").",
-    "ja": ""
+    "ja": "層ごとの制限平均生存時間とその標準誤差です (`rmean` が `\"none\"` の場合は NaN)。"
   },
   "SurvfitResult.stdErr#summary": {
     "hash": "0e5da684cd2a",
     "en": "Standard error of the survival estimate (the summary standard error).",
-    "ja": "S(t) の標準誤差 (S に log S の標準誤差を掛けたもの)",
-    "stale": true
+    "ja": "生存率推定値の標準誤差です (要約で用いる標準誤差)。"
   },
   "SurvfitResult.stdError#summary": {
     "hash": "9db5e7487ede",
     "en": "Alias of `stdErr`.",
-    "ja": "`stdErr` の別名です。同じ配列です。",
-    "stale": true
+    "ja": "`stdErr` の別名です。"
   },
   "SurvfitResult.strata#summary": {
     "hash": "825aca7222b5",
     "en": "Stratum label for every time row.",
-    "ja": "各行の層 (`\"group=<label>\"`。曲線が 1 本の場合は `\"all\"`)",
-    "stale": true
+    "ja": "各時刻の行に対応する層ラベルです。"
   },
   "SurvfitResult.surv#summary": {
     "hash": "2c03bfd93aaa",
     "en": "Survival estimate: Kaplan-Meier (`stype: 1`) or exp(-cumhaz) (`stype: 2`).",
-    "ja": "Kaplan-Meier 推定値 S(t)",
-    "stale": true
+    "ja": "生存率の推定値です。Kaplan-Meier 推定値 (`stype: 1`) または累積ハザードの指数変換 (`stype: 2`) です。"
   },
   "SurvfitResult.table#summary": {
     "hash": "0e58e0a85f9d",
     "en": "R-style summary table, with column and row names.",
-    "ja": ""
+    "ja": "列名と行名を持つ、R 形式の要約表です。"
   },
   "SurvfitResult.time#summary": {
     "hash": "0ddc3b355df4",
     "en": "Distinct observed times, including censoring times.",
-    "ja": "各行の時刻 (その層の相異なる時刻。打ち切りの時刻を含む)",
-    "stale": true
+    "ja": "打ち切り時刻を含む、観測された相異なる時刻です。"
   },
   "SurvfitResult.warnings#summary": {
     "hash": "137237a195bb",
     "en": "Warnings produced by the fit.",
-    "ja": ""
+    "ja": "当てはめで発生した警告です。"
   },
   "SurvregControl#summary": {
     "hash": "97d1278405d7",
     "en": "Iteration controls for {@link survreg}.",
-    "ja": ""
+    "ja": "`{@link survreg}` の反復計算の制御オプションです。"
   },
   "SurvregDistribution#summary": {
     "hash": "fcacba176a33",
     "en": "Built-in parametric distributions supported by {@link survreg}.",
-    "ja": ""
+    "ja": "`{@link survreg}` がサポートする組み込みのパラメトリック分布です。"
   },
   "SurvregOptions#summary": {
     "hash": "857b7161f9e3",
     "en": "Options for {@link survreg}.",
-    "ja": ""
+    "ja": "`{@link survreg}` のオプションです。"
   },
   "SurvregPredictOptions#summary": {
     "hash": "d7082a052308",
     "en": "Prediction options for {@link survregPredict}.",
-    "ja": ""
+    "ja": "`{@link survregPredict}` の予測オプションです。"
   },
   "SurvregPredictionResult#summary": {
     "hash": "95469183ba09",
     "en": "Predictions and their standard errors.",
-    "ja": ""
+    "ja": "予測値とその標準誤差です。"
   },
   "SurvregResidualsOptions#summary": {
     "hash": "961c067f8ace",
     "en": "Residual options for {@link survregResiduals}.",
-    "ja": ""
+    "ja": "`{@link survregResiduals}` の残差のオプションです。"
   },
   "SurvregResult#summary": {
     "hash": "d6ee152c557e",
     "en": "Result of {@link survreg}, including the fitted model data needed by diagnostics.",
-    "ja": ""
+    "ja": "診断に必要な当てはめ済みモデルのデータを含む、`{@link survreg}` の結果です。"
   },
   "SurvregType#summary": {
     "hash": "c788656777ad",
     "en": "Censoring representation accepted by {@link survreg}.",
-    "ja": ""
+    "ja": "`{@link survreg}` が受け付ける打ち切りデータの表現形式です。"
   },
   "TimepointsResult#summary": {
     "hash": "7fb95860db1f",
     "en": "Result of {@link timepoints}.",
-    "ja": ""
+    "ja": "`{@link timepoints}` の結果です。"
   },
   "coxZph#@param fit": {
     "hash": "84e59f1f2192",
     "en": "A result returned by `coxph`.",
-    "ja": ""
+    "ja": "`coxph` が返した結果です。"
   },
   "coxZph#@param options": {
     "hash": "2b9f705567e8",
     "en": "See {@link CoxZphOptions}.",
-    "ja": ""
+    "ja": "`{@link CoxZphOptions}` を参照してください。"
   },
   "coxZph#@throws": {
     "hash": "b2a4bef033af",
     "en": "Error for no events, fewer than two distinct event times, a constant transform, or singular information.",
-    "ja": ""
+    "ja": "イベントがない場合、相異なるイベント時刻が 2 つ未満の場合、変換が定数になる場合、または情報行列が特異な場合はエラーになります。"
   },
   "coxZph#summary": {
     "hash": "12b207d5d944",
     "en": "Tests the proportional-hazards assumption using the score test of Grambsch and Therneau (1994).\nEquivalent to R's `survival::cox.zph()`. The fit retains its processed rows privately, so no refit is performed; robust and clustered\nvariances of the fit are not used.",
-    "ja": ""
+    "ja": "Grambsch と Therneau (1994) のスコア検定を使って、比例ハザード性の仮定を検定します。\nR の `survival::cox.zph()` と同等です。当てはめ結果には処理済みの行が内部に保持されるため、再度の当てはめは行いません。当てはめのロバスト分散とクラスター化分散は使用しません。"
   },
   "coxph#@example": {
     "hash": "f2167be5edf2",
@@ -922,14 +907,12 @@
   "coxph#@param status": {
     "hash": "9edbbb7a7aff",
     "en": "1 for an event, 0 for a censored time (other counting-process values are dropped with a warning).",
-    "ja": "イベントなら 1、打ち切りなら 0。",
-    "stale": true
+    "ja": "イベントなら 1、打ち切りなら 0 です (計数過程データでこれ以外の値を指定した行は、警告を伴って除外します)。"
   },
   "coxph#@param time": {
     "hash": "3ccfb26c22c0",
     "en": "Follow-up/stop times; with `start`, these are the stop times.",
-    "ja": "追跡時間。",
-    "stale": true
+    "ja": "追跡時間または終了時刻です。`start` を指定した場合は終了時刻になります。"
   },
   "coxph#@param x": {
     "hash": "13061a0d73ca",
@@ -939,144 +922,142 @@
   "coxph#@throws": {
     "hash": "31b734263b02",
     "en": "TypeError if `robust` or `control.timefix` is not a boolean. RangeError for invalid arguments, among them\nan infinite weight, an interval with `start >= stop`, and a robust variance with fewer than two clusters.",
-    "ja": "`robust` が真偽値でない場合は TypeError です。不正な引数に対しては RangeError です (無限大の重み、\n2 つ未満のクラスターでのロバスト分散を含みます)。",
-    "stale": true
+    "ja": "`robust` または `control.timefix` が真偽値でない場合は TypeError です。不正な引数 (無限大の重み、`start >= stop` の区間、2 つ未満のクラスターによるロバスト分散など) に対しては RangeError です。"
   },
   "coxph#summary": {
     "hash": "7969ca96f7ba",
     "en": "Cox proportional hazards regression. Equivalent to R's `survival::coxph()`. As\n`coxph(Surv(time, status) ~ x ...)` for right-censored data and `coxph(Surv(start, stop, status) ~ x ...)` for\ncounting-process data (with the option `start`), with the values of `summary(fit)`.\nWith `robust` (by default when `cluster` is given, a counting-process `id` has repeated event rows, or a case\nweight is not an integer) the variance is the robust (Lin-Wei sandwich) one, summed over the clusters (each\nobservation its own cluster without `cluster` or `id`), as R:\n`var` is the robust variance and `naiveVar` the model-based one; `se` (and `stdError`) stay the model-based standard\nerrors (R's `se(coef)`), while `z`, `p`, the intervals `lower`/`upper`, `wald` and `waldtest` use the robust ones\n(`robustSe`); `robscore` is the robust score test at `init`. The likelihood ratio and score tests and the R^2 ignore\nthe clustering.\n\nRows with a missing time, status, covariate, weight, stratum, cluster or id are dropped. With `start`, the time is\nthe stop time and the risk set is `start < t <= stop`; start and stop times are merged together unless\n`control.timefix` is false. Counting-process means are unweighted; right-censored means are weighted. With `id`,\n`nId` reports distinct subjects; `rsq` still uses the number of rows. R's warnings are returned in `warnings`.",
-    "ja": "Cox 比例ハザード回帰です。R の `survival::coxph()` と同等です。右側打ち切りのデータについて、\n`coxph(Surv(time, status) ~ x [+ strata(strata)], weights, ties, init, robust, cluster, control)` の形で呼び出した場合と同じく、\n`summary(fit)` の値を得ます。\n\n`robust` を指定したとき (既定では、`cluster` を指定したとき、または観測値の重みに整数でないものがあるとき) は、分散は\nロバストな (Lin-Wei のサンドイッチ) 分散になります。これは、クラスターごとに合計したものです (`cluster` がなければ、\n観測値ごとに独自のクラスター)。R と同じく、`var` はロバスト分散、`naiveVar` はモデルに基づく分散です。`se` (と `stdError`) は\nモデルに基づく標準誤差のままです (R の `se(coef)`)。一方、`z`、`p`、区間 `lower`/`upper`、`wald`、`waldtest` は\nロバストなもの (`robustSe`) を使います。`robscore` は `init` におけるロバストスコア検定です。尤度比検定、スコア検定、R^2 は、\nクラスター化を無視します。\n\n時刻、status、共変量、重み、層のいずれかが欠測している行は除外されます。互いの差が sqrt(eps) 以内の時刻は、\n同順位として扱われます。`nocenter` に値がすべて含まれる共変量は中心化されません。そのほかの共変量は、重み付き平均で\n中心化されます。これは線形予測子をずらすだけです。R の警告 (非収束、係数が無限大になる可能性) は、\n`warnings` で返されます。",
-    "stale": true
+    "ja": "Cox 比例ハザード回帰です。R の `survival::coxph()` と同等です。右側打ち切りデータの `coxph(Surv(time, status) ~ x ...)` と、計数過程データの `coxph(Surv(start, stop, status) ~ x ...)` (`start` オプションを使用) に対応し、`summary(fit)` の値を返します。\n`robust` を指定した場合 (既定では、`cluster` を指定した場合、計数過程データで `id` が同じイベント行が複数ある場合、またはケース重みが整数でない場合)、分散はクラスターごとに合計したロバスト (Lin-Wei のサンドイッチ) 分散になります (R と同じく、`cluster` も `id` もない場合は各観測値を独立したクラスターとして扱います)。\n`var` はロバスト分散、`naiveVar` はモデルに基づく分散です。`se` (および `stdError`) はモデルに基づく標準誤差のままです (R の `se(coef)`)。一方、`z`、`p`、信頼区間 `lower`/`upper`、`wald`、`waldtest` にはロバストな値 (`robustSe`) を使います。`robscore` は `init` におけるロバストスコア検定です。尤度比検定、スコア検定、R^2 はクラスター化を無視します。\n時刻、status、共変量、重み、層、クラスター、または `id` が欠測している行は除外します。`start` を指定した場合、`time` は終了時刻であり、時刻 t のリスク集合は `start < t <= time` です。`control.timefix` が `false` でない限り、開始時刻と終了時刻を統合します。計数過程データの平均は重み付けせず、右側打ち切りデータの平均は重み付けします。`id` を指定した場合、`nId` は異なる被験者の数を返します。`rsq` は引き続き行数を使います。R の警告は `warnings` で返します。"
   },
   "crr#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "crr#@param cov1": {
     "hash": "50a6cfd353f3",
     "en": "Baseline covariate matrix (rows are observations); pass undefined when using only cov2.",
-    "ja": ""
+    "ja": "ベースライン共変量の行列です (観測値ごとに 1 行)。`cov2` だけを使う場合は `undefined` を渡します。"
   },
   "crr#@param options": {
     "hash": "938dbefff29e",
     "en": "See {@link CrrOptions}.",
-    "ja": ""
+    "ja": "`{@link CrrOptions}` を参照してください。"
   },
   "crr#@param status": {
     "hash": "eee5237b7c78",
     "en": "Event codes.",
-    "ja": ""
+    "ja": "イベントコードです。"
   },
   "crr#@param time": {
     "hash": "0c1ad801a2d3",
     "en": "Follow-up times (finite; negative values are allowed).",
-    "ja": ""
+    "ja": "追跡時間です (有限値。負の値も指定できます)。"
   },
   "crr#@returns": {
     "hash": "213ada38c538",
     "en": "Coefficients, information, sandwich variance, baseline subdistribution hazard and diagnostics.",
-    "ja": ""
+    "ja": "係数、情報行列、サンドイッチ分散、ベースライン部分分布ハザード、診断情報を返します。"
   },
   "crr#summary": {
     "hash": "24362f74fdd8",
     "en": "Fine-Gray proportional subdistribution hazards regression. Equivalent to `cmprsk::crr()` in R.\nThe censoring distribution is estimated by the verified {@link survfit}; Newton-Raphson\nsolves the weighted estimating equations and the variance is the subject-level sandwich.",
-    "ja": ""
+    "ja": "Fine-Gray 比例部分分布ハザード回帰です。R の `cmprsk::crr()` と同等です。\n打ち切り分布は、検証済みの `{@link survfit}` で推定します。Newton-Raphson 法で重み付き推定方程式を解き、被験者単位のサンドイッチ分散を計算します。"
   },
   "cuminc#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "cuminc#@param options": {
     "hash": "76235bd1cd52",
     "en": "See {@link CumincOptions}.",
-    "ja": ""
+    "ja": "`{@link CumincOptions}` を参照してください。"
   },
   "cuminc#@param status": {
     "hash": "a2392d56ed9e",
     "en": "Event codes; every code other than `cencode` is a competing event cause.",
-    "ja": ""
+    "ja": "イベントコードです。`cencode` 以外のコードはすべて、競合イベントの原因を表します。"
   },
   "cuminc#@param time": {
     "hash": "d79d5fefed6c",
     "en": "Follow-up times (finite and non-negative).",
-    "ja": ""
+    "ja": "追跡時間です (有限かつ 0 以上)。"
   },
   "cuminc#@returns": {
     "hash": "e1e4f49def1e",
     "en": "One step-function curve for each group and cause, optional Gray tests, and warnings.",
-    "ja": ""
+    "ja": "群と原因の組み合わせごとの階段関数の曲線、必要に応じて Gray 検定の結果、および警告を返します。"
   },
   "cuminc#summary": {
     "hash": "49ce7aaa7be5",
     "en": "Cumulative incidence functions and Gray's tests for competing risks. Equivalent to `cmprsk::cuminc()` in R.\nUses the Aalen-Johansen cumulative-incidence estimator and Gray's weighted test; tied-time\nvariance uses the documented hypergeometric correction.",
-    "ja": ""
+    "ja": "競合リスクの累積発生率関数と Gray の検定です。R の `cmprsk::cuminc()` と同等です。\nAalen-Johansen の累積発生率推定量と Gray の重み付き検定を使います。同時刻にイベントがある場合の分散には、文書化された超幾何補正を使います。"
   },
   "predictCrr#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "predictCrr#@param cov1": {
     "hash": "284449aa558a",
     "en": "New baseline covariate matrix.",
-    "ja": ""
+    "ja": "新しいベースライン共変量の行列です。"
   },
   "predictCrr#@param cov2": {
     "hash": "ea7660ac60ff",
     "en": "New time-varying covariate matrix, when the fit used cov2.",
-    "ja": ""
+    "ja": "当てはめで `cov2` を使った場合の、新しい時間依存性共変量の行列です。"
   },
   "predictCrr#@param fit": {
     "hash": "2abf00d29a74",
     "en": "Result of {@link crr}.",
-    "ja": ""
+    "ja": "`{@link crr}` の結果です。"
   },
   "predictCrr#@returns": {
     "hash": "2a29b6e17c2f",
     "en": "A matrix whose first column is failure time and remaining columns are predicted incidences.",
-    "ja": ""
+    "ja": "第 1 列がイベント時刻、残りの列が予測累積発生率である行列を返します。"
   },
   "predictCrr#summary": {
     "hash": "014f4946a306",
     "en": "Predict cumulative incidence from a Fine-Gray fit. Equivalent to `cmprsk::predict.crr()` in R.",
-    "ja": ""
+    "ja": "Fine-Gray 回帰の当てはめ結果から累積発生率を予測します。R の `cmprsk::predict.crr()` と同等です。"
   },
   "rmst2#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "rmst2#@param arm": {
     "hash": "86aa8e8de071",
     "en": "Treatment indicator (0 or 1; booleans are also accepted).",
-    "ja": ""
+    "ja": "治療群の指標です (0 または 1。真偽値も受け付けます)。"
   },
   "rmst2#@param options": {
     "hash": "ef55ffdbb866",
     "en": "Restriction time, covariates, optional matrix column names and confidence level.",
-    "ja": ""
+    "ja": "制限時間、共変量、任意の行列列名、信頼水準を指定します。"
   },
   "rmst2#@param status": {
     "hash": "d3b08c4a9e7e",
     "en": "Event indicator (1 event, 0 censored; 1/2 coding is also accepted). Invalid values are omitted with a warning.",
-    "ja": ""
+    "ja": "イベント指標です (イベントは 1、打ち切りは 0。1/2 の符号化も受け付けます)。無効な値は警告を伴って除外します。"
   },
   "rmst2#@param time": {
     "hash": "5c2950cfd3c6",
     "en": "Follow-up times.",
-    "ja": ""
+    "ja": "追跡時間です。"
   },
   "rmst2#@returns": {
     "hash": "58119466f532",
     "en": "Per-arm RMST/RMTL estimates and between-arm contrasts; adjusted contrasts and coefficient tables are added\nwhen covariates are supplied.\n\nRows with missing time, status, arm, or covariates are omitted. Negative follow-up times, non-positive tau, tau below\nthe first retained observation, and tau above its default upper bound are errors.",
-    "ja": ""
+    "ja": "群ごとの RMST/RMTL 推定値と群間比較を返します。共変量を指定した場合は、調整済みの群間比較と係数表も追加します。\n時刻、status、群、または共変量が欠測している行は除外します。負の追跡時間、0 以下の `tau`、最初に保持された観測値より小さい `tau`、既定の上限を超える `tau` はエラーになります。"
   },
   "rmst2#summary": {
     "hash": "b16f4855b525",
     "en": "Restricted mean survival time (RMST), restricted mean time lost (RMTL), and their between-arm contrasts.\nImplements the unadjusted Kaplan-Meier estimators and Tian, Zhao & Wei's adjusted estimating equations.\nEquivalent to `survRM2::rmst2()` in R.",
-    "ja": ""
+    "ja": "制限平均生存時間 (RMST)、制限平均損失時間 (RMTL)、およびそれらの群間比較です。\n非調整の Kaplan-Meier 推定量と、Tian、Zhao、Wei の調整済み推定方程式を実装しています。\nR の `survRM2::rmst2()` と同等です。"
   },
   "survdiff#@example": {
     "hash": "f2167be5edf2",
@@ -1101,8 +1082,7 @@
   "survdiff#@param time": {
     "hash": "3dd925b91994",
     "en": "Follow-up times, or stop times when `options.start` is supplied.",
-    "ja": "追跡時間。",
-    "stale": true
+    "ja": "追跡時間です。`options.start` を指定した場合は終了時刻です。"
   },
   "survdiff#summary": {
     "hash": "9e64215bc011",
@@ -1127,128 +1107,126 @@
   "survfit#@param time": {
     "hash": "3dd925b91994",
     "en": "Follow-up times, or stop times when `options.start` is supplied.",
-    "ja": "追跡時間。",
-    "stale": true
+    "ja": "追跡時間です。`options.start` を指定した場合は終了時刻です。"
   },
   "survfit#@returns": {
     "hash": "e539f75655a8",
     "en": "Time-row estimates, pointwise limits, per-stratum medians and restricted-mean summaries.",
-    "ja": ""
+    "ja": "時刻ごとの推定値と信頼限界、層ごとの中央値、制限平均の要約を返します。"
   },
   "survfit#summary": {
     "hash": "bc8e105d61ab",
     "en": "Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means.\nEquivalent to R's `survival::survfit()`. Supports right-censored and counting-process data, Nelson-Aalen and Fleming-Harrington cumulative hazards,\ninteger case weights, infinitesimal-jackknife standard errors and all six confidence transformations.\n\nRows with a missing time, status, group, id or weight are dropped. With `start`, the risk set at t is\n`start < t <= time`; without `id`, each split row ending without an event is a censoring. With `id`, a row\nfollowed by another row for the same subject at the same boundary is not a censoring.",
-    "ja": "Greenwood の標準誤差と各時点の信頼区間を持つ、生存関数の Kaplan-Meier 推定値。\nR の `survival::survfit()` と同等です。`summary(survfit(Surv(time, status) ~ group, conf.type, conf.int),\ncensored = TRUE)` の形で、`summary(fit)$table` の中央値とその信頼限界を含みます。\n\ntime、status、group のいずれかが欠測している行は除外されます。",
-    "stale": true
+    "ja": "Kaplan-Meier 推定値または累積ハザードの指数変換による推定値で、各時点の信頼区間、中央値、制限平均を返します。\nR の `survival::survfit()` と同等です。右側打ち切りデータと計数過程データ、Nelson-Aalen および Fleming-Harrington の累積ハザード、整数のケース重み、infinitesimal jackknife 法による標準誤差、6 種類すべての信頼区間変換に対応します。\n時刻、status、群、`id`、または重みが欠測している行は除外します。`start` を指定した場合、時刻 t のリスク集合は `start < t <= time` です。`id` がない場合、イベントを伴わずに終了する各分割行は打ち切りとして扱います。`id` がある場合、同じ被験者の次の行が同じ境界で続くとき、その行は打ち切りとして扱いません。"
   },
   "survreg#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "survreg#@param event": {
     "hash": "c08dc8dd62fc",
     "en": "Event/status indicator; for interval data use 0=right, 1=exact, 2=left, 3=interval.",
-    "ja": ""
+    "ja": "イベント/status 指標です。区間データでは、0=右側打ち切り、1=正確な時刻、2=左側打ち切り、3=区間打ち切りを指定します。"
   },
   "survreg#@param options": {
     "hash": "db15d9a79da6",
     "en": "Distribution, censoring, weights, strata, scale, starting values and iteration controls.",
-    "ja": ""
+    "ja": "分布、打ち切り形式、重み、層、尺度、初期値、反復計算の制御を指定します。"
   },
   "survreg#@param time": {
     "hash": "2209b973ade3",
     "en": "Observed time or lower interval endpoint.",
-    "ja": ""
+    "ja": "観測時刻、または区間データの下限です。"
   },
   "survreg#@param x": {
     "hash": "1ee74ece266a",
     "en": "Predictor matrix (one row per observation); the intercept is added by default.",
-    "ja": ""
+    "ja": "観測値ごとに 1 行を持つ説明変数行列です。既定では切片を追加します。"
   },
   "survreg#@returns": {
     "hash": "b697b5a6a4a7",
     "en": "The fitted coefficients, covariance, likelihoods, score, summary table and data needed for predictions/residuals.",
-    "ja": ""
+    "ja": "推定された係数、共分散行列、尤度、スコア、要約表、および予測・残差計算に必要なデータを返します。"
   },
   "survreg#summary": {
     "hash": "dcbbc73f5791",
     "en": "Fit a parametric survival regression model. Equivalent to R's `survival::survreg()`.\n\nSupports right, left and interval censoring, separate log-scales by stratum, case weights, offsets and the\nextreme-value, logistic, Gaussian and t families (including their log-time forms).",
-    "ja": ""
+    "ja": "パラメトリック生存時間回帰モデルを当てはめます。R の `survival::survreg()` と同等です。\n右側・左側・区間打ち切り、層ごとに異なる対数尺度、ケース重み、オフセット、極値・ロジスティック・正規・t 分布に対応します (対数時間を使う各分布も含みます)。"
   },
   "survregPredict#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "survregPredict#@param fit": {
     "hash": "c739f420ae6b",
     "en": "A fit returned by {@link survreg}.",
-    "ja": ""
+    "ja": "`{@link survreg}` が返した当てはめ結果です。"
   },
   "survregPredict#@param options": {
     "hash": "74d175c0dbc6",
     "en": "Prediction type, quantile probabilities and optional new covariates.",
-    "ja": ""
+    "ja": "予測の種類、分位点の確率、新しい共変量を任意で指定します。"
   },
   "survregPredict#@returns": {
     "hash": "7a2ee43cb6a0",
     "en": "Predictions; a matrix is returned for multiple quantiles.",
-    "ja": ""
+    "ja": "予測値を返します。複数の分位点を指定した場合は行列を返します。"
   },
   "survregPredict#summary": {
     "hash": "a0faeba7e505",
     "en": "Predictions from a parametric survival regression fit. Equivalent to R's `predict.survreg()`.",
-    "ja": ""
+    "ja": "パラメトリック生存時間回帰の当てはめ結果から予測します。R の `predict.survreg()` と同等です。"
   },
   "survregResiduals#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "survregResiduals#@param fit": {
     "hash": "c739f420ae6b",
     "en": "A fit returned by {@link survreg}.",
-    "ja": ""
+    "ja": "`{@link survreg}` が返した当てはめ結果です。"
   },
   "survregResiduals#@param options": {
     "hash": "40b32bf0cc00",
     "en": "Residual type and whether to multiply by case weights.",
-    "ja": ""
+    "ja": "残差の種類と、ケース重みを乗じるかどうかを指定します。"
   },
   "survregResiduals#@returns": {
     "hash": "2983f6a05468",
     "en": "A vector or matrix of residual diagnostics.",
-    "ja": ""
+    "ja": "残差診断のベクトルまたは行列を返します。"
   },
   "survregResiduals#summary": {
     "hash": "ae60f40a2ae4",
     "en": "Residuals from a parametric survival regression fit. Equivalent to R's `residuals.survreg()`.",
-    "ja": ""
+    "ja": "パラメトリック生存時間回帰の当てはめ結果から残差を計算します。R の `residuals.survreg()` と同等です。"
   },
   "timepoints#@example": {
     "hash": "f2167be5edf2",
     "en": "⟦code1⟧",
-    "ja": ""
+    "ja": "⟦code1⟧"
   },
   "timepoints#@param fit": {
     "hash": "a545531043f0",
     "en": "Result of {@link cuminc}.",
-    "ja": ""
+    "ja": "`{@link cuminc}` の結果です。"
   },
   "timepoints#@param times": {
     "hash": "3cd760b485b5",
     "en": "Evaluation times.",
-    "ja": ""
+    "ja": "評価する時刻です。"
   },
   "timepoints#@returns": {
     "hash": "0b18b40ac7c4",
     "en": "Matrices with one row per curve and one column per sorted unique requested time.",
-    "ja": ""
+    "ja": "曲線ごとに 1 行、指定した相異なる時刻を昇順に並べたものごとに 1 列を持つ行列を返します。"
   },
   "timepoints#summary": {
     "hash": "8272312693ca",
     "en": "Evaluate cumulative-incidence curves at requested times. Equivalent to `cmprsk::timepoints()` in R.\nAt a requested time the last corner at or before it is used; values before zero or after a\ngroup's final follow-up are NaN.",
-    "ja": ""
+    "ja": "指定した時刻における累積発生率曲線の値を求めます。R の `cmprsk::timepoints()` と同等です。\n指定時刻では、その時刻以前の最後の折れ点の値を使います。0 より前、または群の最終追跡時刻より後の値は NaN です。"
   }
 }
