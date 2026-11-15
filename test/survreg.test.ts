@@ -127,6 +127,26 @@ describe("survreg", () => {
     expect(prediction.seFit[0]).toBeCloseTo(2.233994766161711e303, 10);
   });
 
+  it("keeps extreme-value interval residuals finite when the endpoint difference overflows", () => {
+    const fit = survreg([1, 2, 3, 4], [1, 1, 1, 1], [], { dist: "extreme", scale: 1 });
+    const extreme = {
+      ...fit,
+      lower: Array(fit.n).fill(-1e308),
+      upper: Array(fit.n).fill(1e308),
+      y: Array(fit.n).fill(0),
+      status: Array(fit.n).fill(3),
+      linearPredictors: Array(fit.n).fill(0),
+      scale: [1e308],
+    };
+    const residuals = survregResiduals(extreme, { type: "deviance" }) as number[];
+
+    // Although upper-lower overflows, (upper-lower)/scale is exactly 2.
+    // For the standard extreme-value CDF F(z)=1-exp(-exp(z)), the interval
+    // likelihood at eta=0 is log(F(1)-F(-1)); its maximum occurs at
+    // zLower=log(2/expm1(2)). 80-digit mpmath gives deviance 0.1386839485691086477...
+    expect(residuals[0]).toBeCloseTo(0.13868394856910865, 11);
+  });
+
   it("computes log-time response residuals without subtracting nearly equal exponentials", () => {
     const fit = survreg([1, 2, 3, 4], [1, 1, 1, 1], [], { dist: "lognormal", scale: 1 });
     const delta = 2 ** -43;
