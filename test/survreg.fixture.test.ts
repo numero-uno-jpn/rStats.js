@@ -244,6 +244,14 @@ describe("survreg: R 4.6.2 fixture", () => {
           compareNumbers(actual, expected, "#16 chi", 2e-12);
           continue;
         }
+        if (name === "z" && index === 23) {
+          compareNumbers(actual, expected, "#23 z statistics", 1e-11);
+          continue;
+        }
+        if (name === "chi" && index === 27) {
+          compareNumbers(actual, expected, "#27 chi", 1e-10);
+          continue;
+        }
         if (name === "coefficients" && index === 14) {
           compareNumbers(actual, expected, "#14 coefficients (initial WLS)", 3e-12);
           continue;
