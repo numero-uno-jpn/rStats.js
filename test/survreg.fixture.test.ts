@@ -146,7 +146,7 @@ describe("survreg: R 4.6.2 fixture", () => {
         compareNumbers(fit.linearPredictors, lp, "#" + index + " linear predictor from returned coefficients");
       }
       const fields: [string, unknown, unknown][] = [
-        ["coefficients", fit.coefficients, e.coefficients], ["scale", fit.scale, e.scale],
+        ["coefficients", fit.coefficients, e.coefficients], ["scale", fit.scale, e.scale], ["iter", fit.iter, e.iter],
         ["icoef", fit.icoef, e.icoef], ["var", fit.var, e.var], ["loglik", fit.loglik, e.loglik],
         ["linear.predictors", fit.linearPredictors, e["linear.predictors"]], ["means", fit.means, e.means],
         ["value", fit.value, e.value], ["se", fit.se, e.se], ["z", fit.z, e.z], ["p", fit.p, e.p],
