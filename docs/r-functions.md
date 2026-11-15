@@ -250,6 +250,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `power.prop.test()` | `powerPropTest` | Power of the test of two proportions, or the sample size, a probability or the significance level for a given power. |
 | `power.t.test()` | `powerTTest` | Power of a one- or two-sample t test, or the sample size, difference, standard deviation or significance level for a given power. |
 | `cmprsk::predict.crr()` | `predictCrr` | Predict cumulative incidence from a Fine-Gray fit. |
+| `predict.survreg()` | `survregPredict` | Predictions from a parametric survival regression fit. |
 | `predict()` | `glmPredict` | Predictions of a generalized linear model with their standard errors, for a `glm` fit. |
 | `predict()` | `predict` | Predictions of a linear model at new values of the predictors, with standard errors and optionally intervals, for an `lm` fit. |
 | `prop.test()` | `propTest` | Test of equal or given proportions. |
@@ -265,6 +266,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pwr::pwr.t.test()` | `pwrTTest` | Power of a t test of means, or the sample size, effect size or significance level for a given power. |
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | Power of a two-sample t test with unequal sample sizes, or a sample size, the effect size or the significance level for a given power. |
 | `quade.test()` | `quadeTest` | Quade test for an unreplicated complete block design. |
+| `residuals.survreg()` | `survregResiduals` | Residuals from a parametric survival regression fit. |
 | `residuals()` | `glmResiduals` | Residuals of a generalized linear model, one per row, for a `glm` fit. |
 | `survRM2::rmst2()` | `rmst2` | Restricted mean survival time, restricted mean time lost, and their between-arm contrasts. |
 | `pROC::roc.test()` | `rocTest` | Tests the difference of the areas under two ROC curves, by DeLong's method or the bootstrap. |
@@ -277,6 +279,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |
 | `survival::survdiff()` | `survdiff` | Test of the difference between survival curves: the G-rho family of Harrington and Fleming, the log-rank test for `rho = 0`. |
 | `survival::survfit()` | `survfit` | Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means. |
+| `survival::survreg()` | `survreg` | Fit a parametric survival regression model. |
 | `TOSTER::t_TOST()` | `tTOST` | Two one-sided t tests of equivalence, or minimal-effect tests, for one sample, two samples or paired samples, with the standardised mean difference and its interval. |
 | `t.test()` | `tTest` | Student's t-test. |
 | `cmprsk::timepoints()` | `timepoints` | Evaluate cumulative-incidence curves at requested times. |

@@ -250,6 +250,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `power.prop.test()` | `powerPropTest` | 2 つの比率の検定の検出力、または与えた検出力に対する標本サイズ、確率の一方、有意水準のいずれか |
 | `power.t.test()` | `powerTTest` | 1 標本または 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズ、差、標準偏差、有意水準のいずれか |
 | `cmprsk::predict.crr()` | `predictCrr` | Fine-Gray の当てはめからの累積発生関数の予測 |
+| `predict.survreg()` | `survregPredict` | パラメトリック生存時間回帰モデルの予測値と標準誤差 |
 | `predict()` | `glmPredict` | `glm` で当てはめた一般化線形モデルの予測値とその標準誤差 |
 | `predict()` | `predict` | `lm` で当てはめた線形モデルの、説明変数の新しい値での予測値 (標準誤差と、必要に応じて区間つき) |
 | `prop.test()` | `propTest` | 比率が等しいこと、または与えた値であることの検定 |
@@ -265,6 +266,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pwr::pwr.t.test()` | `pwrTTest` | 平均の t 検定の検出力、または与えた検出力に対する標本サイズ、効果量、有意水準のいずれか |
 | `pwr::pwr.t2n.test()` | `pwrT2nTest` | 標本サイズが異なる 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズの一方、効果量、有意水準のいずれか |
 | `quade.test()` | `quadeTest` | 反復のない完全ブロック計画に対する Quade 検定 |
+| `residuals.survreg()` | `survregResiduals` | パラメトリック生存時間回帰モデルの残差 (応答、deviance、working、dfbeta、影響度など) |
 | `residuals()` | `glmResiduals` | `glm` で当てはめた一般化線形モデルの残差 (1 行に 1 つ) |
 | `survRM2::rmst2()` | `rmst2` | 制限平均生存時間 (RMST) と制限平均損失時間 (RMTL)、その群間の差と比 |
 | `pROC::roc.test()` | `rocTest` | 2 つの ROC 曲線の下の面積の差の検定 (DeLong の方法またはブートストラップ) |
@@ -277,6 +279,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `summary()` | `glmSummary` | `glm` で当てはめた一般化線形モデルの要約: 分散パラメータ、係数の表、推定値の共分散 |
 | `survival::survdiff()` | `survdiff` | 生存曲線の差の検定: Harrington と Fleming の G-rho 族 (`rho = 0` でログランク検定) |
 | `survival::survfit()` | `survfit` | 生存関数の Kaplan-Meier 推定、または累積ハザードの指数による推定 (各点での信頼区間、中央値、制限平均つき) |
+| `survival::survreg()` | `survreg` | パラメトリック生存時間回帰モデルを当てはめる |
 | `TOSTER::t_TOST()` | `tTOST` | 1 標本・2 標本・対応のある標本の平均についての同等性検定 (TOST) と最小効果検定、標準化平均差とその区間つき |
 | `t.test()` | `tTest` | Student の t 検定 |
 | `cmprsk::timepoints()` | `timepoints` | 累積発生関数の曲線を指定した時点で求める |

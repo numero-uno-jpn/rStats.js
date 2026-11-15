@@ -11,6 +11,8 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ### Added
 
+- **WIP:** Added the initial parametric accelerated-failure-time regression API: `survreg`, `survregPredict` and `survregResiduals`, with the four censoring representations and built-in extreme-value, logistic, Gaussian and t families.
+
 - **B1:** Extended `coxph` with counting-process `start`/`id` data (`Surv(start, stop, event)`), delayed-entry risk sets, pooled start/stop time fixing (`control.timefix`, default `true`), and counting-process robust variance and subject counts. Supplying `start` selects this path even when every start is zero.
 - **B2:** Extended `survfit` with counting-process `start`/`id` data (`Surv(start, stop, event)`), delayed-entry risk sets, and subject-aware split-point censoring.
 - **B3 (WIP):** Added `coxZph(fit, options)` for score tests of proportional hazards, scaled Schoenfeld residuals, transforms, and matrix-interface term grouping.

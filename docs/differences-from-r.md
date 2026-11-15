@@ -1628,3 +1628,15 @@ By default rStats.js returns what R returns;
 - With `variance: false`, `crr` returns `null` residuals and NaN matrices for `var`, `inf` and `invinf`; residuals are part of the variance calculation contract and are not returned in this mode.
 - Coefficient names can be supplied with `names`; JavaScript cannot reproduce R's deparsed argument expressions. The default names are generated from the covariate columns.
 - The public API does not include `subset` or `na.action = "fail"`. Filter observations before calling; missing rows are omitted and their count is reported in `warnings` as `<k> cases omitted due to missing values`, following the selected rStats.js API even though R prints this text to standard output.
+
+
+## Parametric survival regression
+
+- **`survreg` underflow handling:** unlike `survival::survreg`, rStats.js evaluates the base-family likelihood in the log domain and does not replace underflowed likelihood contributions with -200 or use the corresponding ad hoc derivatives. This follows the high-precision design decision in `oracle/survreg-behaviour.md`; tests must compare affected cases with the reference values rather than R's substituted values.
+- **`survreg` null model:** the intercept-only model is iterated to the requested convergence tolerance rather than being silently capped at 20 iterations. The null likelihood can therefore differ from R on the `nullIter` reference case.
+- **`survregResiduals` interval rows:** interval-censored derivatives and the extreme-value interval centre use the mathematical derivatives and the required factor of sigma, rather than R's documented incorrect values.
+
+- **`survreg` control and degenerate fits:** a negative `control.maxiter` is rejected, and data with no exact or finite-interval event or with an unestimable scale fail with an initialization error. R may proceed to an unhelpful initial fit for these inputs; rStats.js follows the selected API decision to reject them.
+- **`survreg` score coordinates:** rStats.js reports the analytic likelihood gradient in the original design-matrix coordinates `(β, log(scale))`, as defined in `oracle/survreg-behaviour.md` §3. The `score` field in R fixtures does not match that coordinate gradient for some non-converged fits; rStats.js validates its score against finite differences of its own log-likelihood instead of copying those R values.
+- **`survregPredict` newdata offsets:** rStats.js applies `newOffset` to the new linear predictor as specified by `η = Xβ + offset`. This differs from the R fixture's newdata predictions for the offset model; tests verify the additive effect on `lp`/`uquantile` and the corresponding `exp(newOffset)` multiplier on log-time response/quantiles.
+- **Separated one-event `survreg` fits:** in the one-event fixtures, continued iterations can drive the information matrix toward rank deficiency and make individual coefficients iteration-path dependent. Tests therefore validate the likelihood and analytic score rather than requiring unstable coefficient-by-coefficient equality with R.

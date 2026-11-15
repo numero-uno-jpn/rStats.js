@@ -360,3 +360,5 @@ export {
   type CrrOptions,
   type CrrResult,
 } from "../models/competingRisks.js";
+
+export { survreg, survregPredict, survregResiduals, type SurvregDistribution, type SurvregType, type SurvregControl, type SurvregOptions, type SurvregResult, type SurvregPredictOptions, type SurvregPredictionResult, type SurvregResidualsOptions } from "../models/survreg.js";
