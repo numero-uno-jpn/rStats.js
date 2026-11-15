@@ -77,7 +77,6 @@ function verifyScoreByFiniteDifferences(a: Raw, fit: SurvregResult, label: strin
     minus[j] = value - h;
     const numerical = (loglik(plus) - loglik(minus)) / (2 * h);
     const tolerance = Math.max(1e-4, 2e-5 * Math.abs(numerical));
-    if (label === "#16") console.log("SURVREG SCORE FD", j, JSON.stringify({ score: fit.score[j], numerical, tolerance, theta }));
     expect(Math.abs(fit.score[j]! - numerical), label + " score[" + j + "] finite difference")
       .toBeLessThanOrEqual(tolerance);
   });
@@ -245,7 +244,11 @@ describe("survreg: R 4.6.2 fixture", () => {
           continue;
         }
         if (name === "z" && index === 23) {
-          compareNumbers(actual, expected, "#23 z statistics", 1e-11);
+          // z = coefficient / SE. The SE comparison above allows 4e-12 absolute
+          // error; at |beta| ~= 0.0137 and SE ~= 0.00699 this propagates to
+          // about 1.2e-9 in z. Use the propagated bound rather than a tighter,
+          // mathematically inconsistent tolerance.
+          compareNumbers(actual, expected, "#23 z statistics (SE error propagation)", 1.2e-9);
           continue;
         }
         if (name === "chi" && index === 27) {
