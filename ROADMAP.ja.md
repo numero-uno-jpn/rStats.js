@@ -62,11 +62,11 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 
 1. **試験デザインのサンプルサイズと検出力:** 平均と比率の同等性・非劣性・優越性、McNemar 検定、生存時間
    (Schoenfeld、Freedman)、Simon の 2 段階デザイン [clinfun `ph2simon`]。照合先は項目に着手するときに決める。
-3. **メタアナリシス:** 固定効果とランダム効果 (DerSimonian-Laird、REML)、Q と I²、Egger の検定 [metafor]。
-4. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。
+2. **メタアナリシス:** 固定効果とランダム効果 (DerSimonian-Laird、REML)、Q と I²、Egger の検定 [metafor]。
+3. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。
    `mixed` の分野はパッケージのルートと全部入りの `dist/rstats.js` には含めない (2026-11-05 に決定)。後で含めても
    互換性は崩れない。
-5. **その後 (順不同):** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰と
+4. **その後 (順不同):** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰と
    分位点回帰 [MASS `rlm`、quantreg]、GEE [geepack]。MANOVA [`manova`]、判別分析 [MASS `lda`]、正準相関
    [`cancor`]。クラスタ分析 [`hclust`、`kmeans`]。多次元尺度法と対応分析 [`cmdscale`、MASS `isoMDS`、ca]。
    Tamhane の T2 と Page の検定 [PMCMRplus]、Grubbs の検定 [outliers]。正則化回帰 [glmnet]。時系列 [`acf`、`arima`]。
