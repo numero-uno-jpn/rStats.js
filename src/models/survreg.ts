@@ -278,24 +278,25 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const control=options.control??{},maxiter=control.maxiter??30,tol=control.relTolerance??1e-9;
   if(!Number.isInteger(maxiter)||maxiter<0||!Number.isFinite(tol)||tol<0)throw new RangeError("invalid control");
   if(control.tolerChol!==undefined&&(!Number.isFinite(control.tolerChol)||control.tolerChol<0))throw new RangeError("invalid control");
-  const nullX=X.map(()=>[1]);
+  const nullX=X.map(()=>[1]),isNull=X.every(r=>r.length===1&&r[0]===1);
+  if(options.init!==undefined&&options.init.length!==p&&options.init.length!==q)throw new Error("Wrong length for initial parameters");
   const nullStartDeriv=yy.map((center,i)=>deriv(lo[i]!,hi[i]!,st[i]!,center,fixed??sig0,d,nu));
   const nullDen=nullStartDeriv.reduce((s,g,i)=>s-ww[i]!*g.ee,0);
   if(!(nullDen>0))throw new Error("initial iteration failed (use starting estimates?)");
   const nullBeta=nullStartDeriv.reduce((s,g,i)=>s-ww[i]!*g.ee*(yy[i]!-g.e/g.ee-oo[i]!),0)/nullDen;
-  const nullFit=fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,[nullBeta,...(fixed===undefined?Array(k).fill(Math.log(sig0)):[])],maxiter,tol,control.tolerChol??1e-10);
+  const nullStart=[options.init!==undefined&&isNull?options.init[0]!:nullBeta,...(fixed===undefined?Array(k).fill(Math.log(sig0)):[])];
+  if(isNull&&options.init!==undefined&&options.init.length===q)for(let s=0;s<k;s++)nullStart[1+s]=options.init[1+s]!;
+  const nullFit=fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,nullStart,maxiter,tol,control.tolerChol??1e-10);
   let start=base.slice();
   if(fixed===undefined)for(let s=0;s<k;s++)start[p+s]=nullFit.b[1+s]!;
-  if(options.init!==undefined){if(options.init.length!==p&&options.init.length!==q)throw new Error("Wrong length for initial parameters");start=base.slice();for(let j=0;j<p;j++)start[j]=options.init[j]!;if(options.init.length===q)for(let j=p;j<q;j++)start[j]=options.init[j]!;}
-  else if(p>0){ // weighted least-squares start from the null scales
+  if(!isNull&&options.init!==undefined){for(let j=0;j<p;j++)start[j]=options.init[j]!;if(options.init.length===q)for(let j=p;j<q;j++)start[j]=options.init[j]!;}
+  else if(!isNull&&p>0){ // weighted least-squares start from the null scales
     const z=xx.map((r,i)=>{const sig=fixed??Math.exp(nullFit.b[1+sid[i]!]!);const gg=deriv(lo[i]!,hi[i]!,st[i]!,yy[i]!,sig,d,nu);return {w:-ww[i]!*gg.ee,r:yy[i]!-gg.e/gg.ee-oo[i]!};});
     const A=Array.from({length:p},(_,a)=>Array.from({length:p},(_,b)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*row[b]!,0)));
     const rhs=Array.from({length:p},(_,a)=>X.reduce((s,row,i)=>s+z[i]!.w*row[a]!*z[i]!.r,0));
-    try{const factor=A.map(r=>r.slice()),rank=cholFactor(factor,control.tolerChol??1e-10);const b=rank>=0?cholSolve(factor,rhs):matVec(solve(A),rhs);start.splice(0,p,...b);}catch{}
-    if(fixed===undefined)for(let s=0;s<k;s++)start[p+s]=nullFit.b[1+s]!;
+    try{const factor=A.map(r=>r.slice()),rank=cholFactor(factor,control.tolerChol??1e-10);const beta=rank>=0?cholSolve(factor,rhs):matVec(solve(A),rhs);start.splice(0,p,...beta);}catch{}
   }
-  const isNull=X.every(r=>r.length===1&&r[0]===1);
-  const model=isNull?(options.init===undefined?nullFit:fitCore(nullX,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol,control.tolerChol??1e-10)):fitCore(X,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol,control.tolerChol??1e-10);
+  const model=isNull?nullFit:fitCore(X,yy,lo,hi,st,ww,oo,sid,k,d,nu,fixed,start,maxiter,tol,control.tolerChol??1e-10);
   const jac=logTime?rows.reduce((s,orig,j)=>s+(st[j]===1?ww[j]!*Math.log(time[orig]!):0),0)*-1:0;
   const varmat=model.V.map(r=>r.slice());const coefs=model.b.slice(0,p).map((v,j)=>(varmat[j]?.[j]??0)===0?NaN:v);const ses=coefs.map((_,j)=>(varmat[j]?.[j]??0)===0?NaN:Math.sqrt(Math.max(0,varmat[j]?.[j]??0)));
   const zstat=coefs.map((v,j)=>v/ses[j]!);const pv=zstat.map(v=>2*pnorm(-Math.abs(v)));
