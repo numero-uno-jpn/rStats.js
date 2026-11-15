@@ -187,6 +187,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `cooks.distance()` | `glmCooksDistance` | Cook's distances, for the rows of non-zero prior weight, for a `glm` fit. |
 | `pROC::coords()` | `coords` | Coordinates of a ROC curve: sensitivity, specificity, the counts, predictive values, likelihood ratios and the criteria of the best threshold, at every point of the curve, at the best threshold(s) or at given thresholds. |
 | `cor.test()` | `corTest` | Test for correlation between paired samples. |
+| `survival::cox.zph()` | `coxZph` | Tests the proportional-hazards assumption using the score test of Grambsch and Therneau (1994). |
 | `survival::coxph()` | `coxph` | Cox proportional hazards regression. |
 | `cmprsk::crr()` | `crr` | Fine-Gray proportional subdistribution hazards regression. |
 | `cmprsk::cuminc()` | `cuminc` | Cumulative incidence functions and Gray's tests for competing risks. |

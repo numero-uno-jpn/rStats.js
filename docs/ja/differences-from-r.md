@@ -350,7 +350,7 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | `chisq.test(c(1e308, 1e308))` など、度数の合計がオーバーフローする適合度検定 | NaN (期待度数が Inf) | 統計量 0、期待度数 1e308 (度数を 2^s (2^s はセルの数以上、s は偶数) を単位にして計算し、期待度数と統計量は 2^s 倍、残差は 2^(s/2) 倍で戻す) |
 | `chisq.test(c(1, 1), p = c(1e308, 1e308), rescale.p = TRUE)` (有限の重みの合計が溢れる) | 統計量 Inf、p 値 0 (Inf で割った重みがすべて 0) | 統計量 0、p 値 1 (重みを 2^e (2^e はセルの数以上) を単位にしてから割る。Issue #303) |
 | 応答の単位を変えた (1e-4 倍、1e±100 程度) afex の `aov_ez` と `mauchly.test` | 球面性の補正と Mauchly 検定が消える (car の固有値の絶対しきい値)、または W が NaN | 尺度によらず同じ ε と W (ランクは最大固有値とデータの平方和に対する相対値で判定。W は det(U / (trace(U)/p)) で計算) |
-| 単位が大きく違う共変量の `coxph(Surv(time, status) ~ x1 + x2)` (x1 を 1e7 倍や 1e-6 倍、x2 はそのまま) | Wald 検定で共変量が 1 つ落ちる (3.36 が 0.31 や 3.08 になる。元の単位の分散のコレスキー分解で、ピボットが相対許容幅を下回る。それでも自由度は k と表示され、警告も出ない。係数の分散が別の係数の分散の約 1e-12 倍になると起きる。2 値の共変量と、生の大きな単位の共変量を一緒に入れたときがそうで、`lung` で `sex` と `age * 1e5` (SD 9e5。円で表した年収や /µL の血小板数がこの大きさ) を入れると 13.47 が 9.39 (`sex` だけの値) になる。計数過程のデータ `Surv(start, stop, event)` でも同じ。`robust = TRUE` の robust の Wald 検定 (13.59 が 10.27 になる) と robust のスコア検定 `robscore` (13.24 が 3.82 になる) も同じ。尤度比検定は影響を受けない。therneau/survival#353 で報告済み)。x1 を 1e200 倍すると標準誤差がアンダーフローして 0 (z は Inf、p は 0)、1e-160 倍すると "infinite argument in coxph.wtest" | 尺度によらず同じ z、p、Wald 検定 (分散・z・Wald 検定・無限の係数の判定を、各共変量の尺度の 2 の冪を単位として計算する。係数・分散・標準誤差は出力の直前に元の単位に戻す) |
+| 単位が大きく違う共変量の `coxph(Surv(time, status) ~ x1 + x2)` (x1 を 1e7 倍や 1e-6 倍、x2 はそのまま) | Wald 検定で共変量が 1 つ落ちる (3.36 が 0.31 や 3.08 になる。計数過程の fixture の case 55 (x1 を 2^30 倍) では 12.8120 が 4.0108 になる。元の単位の分散のコレスキー分解で、ピボットが相対許容幅を下回る。それでも自由度は k と表示され、警告も出ない。係数の分散が別の係数の分散の約 1e-12 倍になると起きる。2 値の共変量と、生の大きな単位の共変量を一緒に入れたときがそうで、`lung` で `sex` と `age * 1e5` (SD 9e5。円で表した年収や /µL の血小板数がこの大きさ) を入れると 13.47 が 9.39 (`sex` だけの値) になる。計数過程のデータ `Surv(start, stop, event)` でも同じ。`robust = TRUE` の robust の Wald 検定 (13.59 が 10.27 になる) と robust のスコア検定 `robscore` (13.24 が 3.82 になる) も同じ。尤度比検定は影響を受けない。therneau/survival#353 で報告済み)。x1 を 1e200 倍すると標準誤差がアンダーフローして 0 (z は Inf、p は 0)、1e-160 倍すると "infinite argument in coxph.wtest" | 尺度によらず同じ z、p、Wald 検定 (分散・z・Wald 検定・無限の係数の判定を、各共変量の尺度の 2 の冪を単位として計算する。係数・分散・標準誤差は出力の直前に元の単位に戻す) |
 | 1e±200 程度のデータでの `zTest` (BSDA の `z.test`)、effectsize の `cohens_d`/`hedges_g`、irr の `icc`、psych の `alpha`、nortest の `ad.test`/`cvm.test`/`lillie.test`/`sf.test`/`pearson.test`、`aov`、`TukeyHSD`、car の `leveneTest`、`lm`、`anova`、`aov(... + Error())`、afex の `ges`、TOSTER の `t_TOST` と `tsum_TOST` | NaN、0、±Inf、または異なる検定結果 (データの二乗がオーバーフロー・アンダーフロー) | 尺度によらず同じ結果 (平均を引く前にデータを 2 の冪で正規化。平方和、MSE、標準誤差、区間は出力時に単位を戻す) |
 | `cov(c(MAX, MAX, -MAX), c(-1e-308, -1e-308, 1e-308))` (`MAX` は double の最大値)、double の最大値に近い符号の異なる値の対応のある `t.test` | -Inf か NaN (正規化の前に偏差や差がオーバーフロー) | 約 -2.3969、相関は -1。対応のある検定は他の尺度と同じ結果 |
 | `t.test(x, mu = 1e100)`、`t.test(1:4, mu = 1e6)` (mu が区間より桁違いに大きい) | 区間が [0, 0]。[0.44573974329978228, 4.5542602567002177] で 1.4e-10 ずれる (mu + (t ± q) stdErr の形で計算。mu が無限大なら NaN) | 推定値を中心とする区間 (mu に依存しない): [0.44573974323947896, 4.5542602567605215]。mu か t stdErr が abs(推定値) + q stdErr の 16 倍を超えるとき、または R の形の端が有限でないときだけ。それ以外は R の形で R と同じビット |
@@ -423,6 +423,9 @@ R 側の参照は extraDistr (invgamma・kumar・pareto・triang・laplace)、R 
 | 共変量 x が 1e-200 や 1e200 程度の `aov(y ~ x + W + Error(id))`、共変量 z が 1e-200 程度の `Error(z)` | x はすべての層から消える (2 乗がアンダーフローする)。z は正しい | 単位を変えた同じデータと同じ表。処置と誤差モデルの各列を、列ごとの 2 の冪で割る (層は列が張る空間だけで決まる) |
 | 残差自由度が次元より少ない `mauchly.test` (`mauchly.test(lm(cbind(c(1, 3), c(2, 7)) ~ 1))`) | NaN、または W = 0 で p = 1、または W 2e-17 で p 9e-4 (共分散はデータによらず特異) | エラー。検定には残差自由度が足りない |
 | 検定する次元が 1 の `mauchly.test` (`X = ~1` で測定が 2 回、または `M` が `X` より 1 次元だけ大きい) | データによらず W = 1、p = 1 (1 次元は常に球面性を満たす。χ² の自由度 p (p + 1) / 2 - 1 が 0) | エラー。検定する次元が 1 で、検定の自由度がない (Issue #342) |
+| `stop <= start` の `coxph(Surv(start, stop, event) ~ x)` | `Surv` は警告して該当行を除外する。全行が除外されると R は "No (non-missing) observations" でエラー | 選択した rStats.js の API 決定に従い `RangeError: stop time must be > start time` |
+| `stop <= start` の `survfit(Surv(start, stop, event) ~ 1)` | `Surv` は警告して該当行を除外する。全行が除外されると R は "No (non-missing) observations" でエラー | 設計規則に従い、無効な区間境界は `RangeError: stop time must be > start time` |
+| 単調尤度に近い `iter.max = 4` の counting-process `coxph` fixture case 31 のスコア残差 | R の先頭 2 行の残差は、返された係数で計算した高精度のイベント時点別リスク集合の式と約 2.7e-10、4.7e-11 異なる | 安定化したリスク集合の和を使ってイベント時点別の式を計算する。重み付き残差の和は最終スコアベクトルと一致する |
 | 打ち切り時刻が `Inf` の `coxph(Surv(time, status) ~ x)` | "NA/NaN/Inf in foreign function call" | 当てはめを返す (その個体はすべてのイベント時点でリスク集合に入る。最後のイベントより後の打ち切りと同じ) |
 | 共変量が 1e308 規模かサブノーマルの `coxph(Surv(time, status) ~ x)` (x の 2^1020 倍、2^1022 倍、2^-1060 倍) | 2^1020 倍で se 0、2^1022 倍と 2^-1060 倍で "Loglik converged before variable 1; coefficient may be infinite" (中心化・尺度化の和が溢れる) | x の当てはめと同じ検定と対数尤度、係数と se は 2^-k 倍 (2^-1060 倍では double の範囲外で -Inf と Inf) |
 | 線形予測子が exp の範囲を超える初期値の `coxph(Surv(time, status) ~ x)` (x = 0, 1 や 0, 2 で `init = 1000`、`iter.max = 0`) | 対数尤度 -Inf (x = 0, 1) か "initial values lead to overflow or underflow of the exp function" | 有限の対数尤度 (-1000、-2000)。リスク集合の和を e^-m 倍で持ち、m は有限の exp(eta) が溢れるときだけ動かす。そのような飽和した値から反復すると、係数は NaN のまま (survival は NA) |
@@ -1474,6 +1477,11 @@ rStats.js の `dpois` と `dbinom` は 1e-7 のしきい値を使うため、整
 
 
 ### 生存時間解析
+
+- **`coxZph` のイベント時点の非有限変換値:** R はイベント行の変換値が非有限 (`log(0)`、負の時刻の `log`、カスタム変換のオーバーフローなど) の場合、統計量に NaN を返します。選択された rStats.js の API 方針では `RangeError` を投げます。
+- **時刻を (2^{600}) 倍した `coxZph` の identity 変換:** R は (g^2) の計算でオーバーフローし、統計量が NaN になります。rStats.js は情報行列を作る前に変換値を 2 の冪でスケーリングし、元の時刻での参照値と一致させます。
+- **共変量を (2^{40}) 倍した `coxZph`:** R の `dgesv` は計算上特異な行列としてエラーにしますが、rStats.js は共変量列を内部スケーリングし、尺度不変な参照値を返します。
+- **`coxZph` の退化入力:** イベントなし、異なるイベント時刻が2つ未満、イベント時刻で変換値が一定の場合、R の LAPACK / subscript エラーではなく rStats.js 独自のメッセージでエラーにします。
 
 
 - **極端な有限 RMST 端点:** `survfit` は積分区間全体の端点減算がオーバーフローする場合に限り、端点をスケーリングして制限平均の面積と Greenwood の面積項を計算します。これにより `Number.MAX_VALUE - (-Number.MAX_VALUE)` のような減算の中間オーバーフローを避け、直接減算では Infinity になる有限の数学的結果を返します。

@@ -251,6 +251,7 @@ export {
   type CoxphResult,
   type CoxphTest,
 } from "../models/coxph.js";
+export { coxZph, type CoxZphOptions, type CoxZphResult, type CoxZphTransform, type CoxZphTerms } from "../models/coxZph.js";
 export { leveneTest, type LeveneTestOptions, type LeveneTestResult } from "../htest/leveneTest.js";
 export {
   propTrendTest,

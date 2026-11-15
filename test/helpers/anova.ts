@@ -110,6 +110,12 @@ export class Comparison {
     reference?: unknown,
     names?: readonly string[],
     zeroScale?: number,
+    /** Common magnitude for difference-like arrays whose individual cells may be close to zero. */
+    comparisonScale?: number,
+    /** Compare differences relative to |actual| + |expected| rather than |expected| alone. */
+    symmetric = false,
+    /** Per-cell scales for matrices, e.g. one maximum per y column or sqrt(V_ii V_jj) for var. */
+    cellScales?: readonly number[],
   ): void {
     const flat = (v: unknown): unknown[] => ([] as unknown[]).concat(v).flat(2);
     const e = flat(expected).map((v) => num(v as string));
@@ -117,22 +123,43 @@ export class Comparison {
     const ref = reference === undefined ? undefined : flat(reference).map((v) => num(v as string));
     if (e.length !== a.length) return this.fail(index, what, expected, actual);
     const refOk = ref !== undefined && ref.length === e.length;
+    const error = (actual: number, expected: number): number => {
+      if (!symmetric) return relativeError(actual, expected);
+      if (Number.isNaN(actual) || Number.isNaN(expected))
+        return Number.isNaN(actual) && Number.isNaN(expected) ? 0 : Infinity;
+      if (actual === expected) return 0;
+      if (!Number.isFinite(actual) || !Number.isFinite(expected)) return Infinity;
+      const scale = Math.abs(actual) + Math.abs(expected);
+      return scale === 0 ? 0 : Math.abs(actual - expected) / scale;
+    };
     e.forEach((ev, k) => {
-      const err = relativeError(a[k]!, ev);
+      const err = error(a[k]!, ev);
+      const rawErr = relativeError(a[k]!, ev);
+      const cellScale =
+        cellScales !== undefined && cellScales.length > 0 ? (cellScales[k % cellScales.length] ?? comparisonScale) : comparisonScale;
+      const scaledErr =
+        cellScale !== undefined && cellScale > 0
+          ? Math.abs(a[k]! - ev) / cellScale
+          : Infinity;
       this.cells++;
-      if (Number.isFinite(err)) this.maxRelR = Math.max(this.maxRelR, err);
+      if (Number.isFinite(rawErr)) this.maxRelR = Math.max(this.maxRelR, rawErr);
       let errRef = Infinity;
       if (refOk) {
-        errRef = relativeError(a[k]!, ref[k]!);
-        if (Number.isFinite(errRef)) {
-          this.maxRelRef = Math.max(this.maxRelRef, errRef);
-          this.maxRuleRef = Math.max(this.maxRuleRef, errRef);
-        }
+        errRef = error(a[k]!, ref[k]!);
+        const rawRefErr = relativeError(a[k]!, ref[k]!);
+        const scaledRefErr =
+          cellScale !== undefined && cellScale > 0
+            ? Math.abs(a[k]! - ref[k]!) / cellScale
+            : Infinity;
+        errRef = Math.min(errRef, scaledRefErr);
+        if (Number.isFinite(rawRefErr)) this.maxRelRef = Math.max(this.maxRelRef, rawRefErr);
+        if (Number.isFinite(errRef)) this.maxRuleRef = Math.max(this.maxRuleRef, errRef);
       }
       const zeroErr = refOk && ref[k] === 0 && zeroScale !== undefined && zeroScale > 0 ? Math.abs(a[k]!) / zeroScale : Infinity;
-      if (Number.isFinite(Math.min(err, zeroErr))) this.maxRuleR = Math.max(this.maxRuleR, Math.min(err, zeroErr));
+      if (Number.isFinite(Math.min(err, scaledErr, zeroErr)))
+        this.maxRuleR = Math.max(this.maxRuleR, Math.min(err, scaledErr, zeroErr));
       if (Number.isFinite(zeroErr)) this.maxRuleRef = Math.max(this.maxRuleRef, zeroErr);
-      if (err <= TOL || zeroErr <= TOL) return;
+      if (err <= TOL || scaledErr <= TOL || zeroErr <= TOL) return;
       const row = names?.[k] ?? String(k);
       const listed = this.known.find((x) => x.case === index && x.table === what && x.row === row && x.col === "");
       if (listed !== undefined && errRef <= TOL) {

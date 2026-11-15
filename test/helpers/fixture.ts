@@ -48,8 +48,9 @@ export function writeMismatches(name: string, args: FixtureCase["args"][]): void
   writeFileSync(fixturePath(`${name}.mismatch.json`), JSON.stringify(args));
 }
 
-/** Converts a fixture number string back to a number. R's NA and NaN both become NaN. */
-export function num(s: string | boolean | undefined): number {
+/** Converts a fixture number (usually a string; newer fixtures may use JSON numbers) back to a number. */
+export function num(s: string | number | boolean | undefined): number {
+  if (typeof s === "number") return s;
   if (typeof s !== "string") throw new Error(`not a numeric string: ${String(s)}`);
   if (s === "NA" || s === "NaN") return NaN;
   if (s === "Inf") return Infinity;

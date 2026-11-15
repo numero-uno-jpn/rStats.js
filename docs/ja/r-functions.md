@@ -187,6 +187,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `cooks.distance()` | `glmCooksDistance` | `glm` の当てはめの Cook の距離 (事前重みが 0 でない行について) |
 | `pROC::coords()` | `coords` | ROC 曲線の座標: すべての点、最良の閾値、または与えた閾値での感度、特異度、計数、予測値、尤度比と最良の閾値の基準 |
 | `cor.test()` | `corTest` | 対応のある標本間の相関の検定 |
+| `survival::cox.zph()` | `coxZph` | 比例ハザード性の検定 (Grambsch と Therneau (1994) のスコア検定) |
 | `survival::coxph()` | `coxph` | Cox 比例ハザード回帰 |
 | `cmprsk::crr()` | `crr` | Fine-Gray の部分分布ハザードの比例ハザード回帰 |
 | `cmprsk::cuminc()` | `cuminc` | 競合リスクの累積発生関数と Gray の検定 |

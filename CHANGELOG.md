@@ -11,6 +11,10 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ### Added
 
+- **B1:** Extended `coxph` with counting-process `start`/`id` data (`Surv(start, stop, event)`), delayed-entry risk sets, pooled start/stop time fixing (`control.timefix`, default `true`), and counting-process robust variance and subject counts. Supplying `start` selects this path even when every start is zero.
+- **B2:** Extended `survfit` with counting-process `start`/`id` data (`Surv(start, stop, event)`), delayed-entry risk sets, and subject-aware split-point censoring.
+- **B3 (WIP):** Added `coxZph(fit, options)` for score tests of proportional hazards, scaled Schoenfeld residuals, transforms, and matrix-interface term grouping.
+
 - Extended `survfit` with weighted integer-count curves, Nelson-Aalen and Fleming-Harrington cumulative hazards,
   `stype`/ `ctype`, infinitesimal-jackknife standard errors, all six confidence transformations, and restricted-mean
   summaries (`rmean`, `seRmean`, and the per-stratum table).
