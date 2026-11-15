@@ -64,11 +64,11 @@ function or package that each item is checked against is given in brackets.
 1. **Sample size and power for trial designs:** equivalence, non-inferiority and superiority for means and
    proportions, McNemar's test, survival (Schoenfeld, Freedman) and Simon's two-stage design [clinfun
    `ph2simon`]; the reference for each is chosen when the item is taken up.
-3. **Meta-analysis:** fixed and random effects (DerSimonian-Laird, REML), Q and I², Egger's test [metafor].
-4. **Mixed models, continued:** `confint` (profile likelihood) and `simulate` of `lmer` and `glmer` fits [lme4]. The
+2. **Meta-analysis:** fixed and random effects (DerSimonian-Laird, REML), Q and I², Egger's test [metafor].
+3. **Mixed models, continued:** `confint` (profile likelihood) and `simulate` of `lmer` and `glmer` fits [lme4]. The
    `mixed` area stays out of the root export and the single-file bundle `dist/rstats.js` (decided 2026-11-05); adding
    it later would not break compatibility.
-5. **Later, in no particular order:** ordinal logistic regression [MASS `polr`], nonlinear regression [`nls` and the
+4. **Later, in no particular order:** ordinal logistic regression [MASS `polr`], nonlinear regression [`nls` and the
    self-starting models], robust and quantile regression [MASS `rlm`, quantreg], GEE [geepack]; MANOVA [`manova`],
    discriminant analysis [MASS `lda`], canonical correlation [`cancor`]; cluster analysis [`hclust`, `kmeans`];
    multidimensional scaling and correspondence analysis [`cmdscale`, MASS `isoMDS`, ca]; Tamhane's T2 and Page's
