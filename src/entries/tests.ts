@@ -344,3 +344,18 @@ export type { MatrixInput } from "../linalg/matrix.js";
 export type { QR } from "../linalg/qr.js";
 // The handler of R's warnings that the tests, models and fits return (also exported from the root and /distributions)
 export { setWarningHandler, type WarningHandler } from "../internal/warnings.js";
+
+export {
+  cuminc,
+  timepoints,
+  crr,
+  predictCrr,
+  type CumincCurve,
+  type CumincTest,
+  type CumincOptions,
+  type CumincResult,
+  type TimepointsResult,
+  type CrrTimeFunction,
+  type CrrOptions,
+  type CrrResult,
+} from "../models/competingRisks.js";

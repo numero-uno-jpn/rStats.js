@@ -188,6 +188,8 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `pROC::coords()` | `coords` | ROC 曲線の座標: すべての点、最良の閾値、または与えた閾値での感度、特異度、計数、予測値、尤度比と最良の閾値の基準 |
 | `cor.test()` | `corTest` | 対応のある標本間の相関の検定 |
 | `survival::coxph()` | `coxph` | Cox 比例ハザード回帰 |
+| `cmprsk::crr()` | `crr` | Fine-Gray の部分分布ハザードの比例ハザード回帰 |
+| `cmprsk::cuminc()` | `cuminc` | 競合リスクの累積発生関数と Gray の検定 |
 | `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises の正規性検定 |
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | 対ごとの Mann-Whitney 統計量による Dwass-Steel-Critchlow-Fligner の全対比較検定 |
 | `dunn.test::dunn.test()` | `dunnTest` | 平均順位のすべての対についての Dunn の検定 |
@@ -246,6 +248,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `power.anova.test()` | `powerAnovaTest` | 釣り合い型一元配置分散分析の F 検定の検出力、または与えた検出力に対するほかの量のいずれか |
 | `power.prop.test()` | `powerPropTest` | 2 つの比率の検定の検出力、または与えた検出力に対する標本サイズ、確率の一方、有意水準のいずれか |
 | `power.t.test()` | `powerTTest` | 1 標本または 2 標本 t 検定の検出力、または与えた検出力に対する標本サイズ、差、標準偏差、有意水準のいずれか |
+| `cmprsk::predict.crr()` | `predictCrr` | Fine-Gray の当てはめからの累積発生関数の予測 |
 | `predict()` | `glmPredict` | `glm` で当てはめた一般化線形モデルの予測値とその標準誤差 |
 | `predict()` | `predict` | `lm` で当てはめた線形モデルの、説明変数の新しい値での予測値 (標準誤差と、必要に応じて区間つき) |
 | `prop.test()` | `propTest` | 比率が等しいこと、または与えた値であることの検定 |
@@ -275,6 +278,7 @@ R の関数から、rStats.js でそれに当たる関数を引くための一�
 | `survival::survfit()` | `survfit` | 生存関数の Kaplan-Meier 推定、または累積ハザードの指数による推定 (各点での信頼区間、中央値、制限平均つき) |
 | `TOSTER::t_TOST()` | `tTOST` | 1 標本・2 標本・対応のある標本の平均についての同等性検定 (TOST) と最小効果検定、標準化平均差とその区間つき |
 | `t.test()` | `tTest` | Student の t 検定 |
+| `cmprsk::timepoints()` | `timepoints` | 累積発生関数の曲線を指定した時点で求める |
 | `equivalence::tost()` | `tost` | 2 つの平均の同等性についての 2 つの片側 t 検定 (TOST) |
 | `TOSTER::tsum_TOST()` | `tsumTOST` | 要約統計量 (平均・標準偏差・標本の大きさ) からの `tTOST` |
 | `TukeyHSD()` | `TukeyHSD` | 一元配置分散分析の群平均の間の Tukey の HSD (honest significant differences) |

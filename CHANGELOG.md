@@ -16,6 +16,7 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
   summaries (`rmean`, `seRmean`, and the per-stratum table).
 - Added `rmst2` for unadjusted RMST/RMTL estimates and contrasts, plus covariate-adjusted estimating-equation
   models with censoring weights and sandwich standard errors.
+- **Competing risks**: `cuminc(time, status, { group, strata, rho, cencode })` and `timepoints(fit, times)`, cumulative-incidence curves with their Aalen-type variance and Gray's tests; `crr(time, status, cov1, options)`, Fine-Gray regression with time-varying covariates, sandwich variance, and `predictCrr`. Kaplan-Meier censoring estimates use the verified `survfit`; tied-time Gray variance uses the selected hypergeometric correction. See `oracle/competing-behaviour.md` and the differences-from-R documents.
 
 ### Changed
 

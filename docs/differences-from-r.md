@@ -4,8 +4,7 @@ English | [日本語](ja/differences-from-r.md)
 
 rStats.js aims to return the same results as R. This page lists the cases where it does not,
 either because R itself is inaccurate or fails there, or because rStats.js deliberately behaves
-differently. In the tests these cases are marked `knownDifference` with a reason (see
-`test/helpers/suite.ts` and the individual test files). How cases are compared is described in
+differently. The test files record deliberate differences separately from the generated oracle fixtures. How cases are compared is described in
 [accuracy.md](accuracy.md).
 
 ## Where R is inaccurate and rStats.js is closer to the truth
@@ -1596,3 +1595,17 @@ By default rStats.js returns what R returns;
 - **`rmst2` p-values:** two-sided p-values are computed as `2 * pnorm(-abs(z))`, not `1 - pchisq(z^2, 1)`; the latter loses small probabilities by cancellation. The same normal-tail calculation is used for adjusted and unadjusted contrasts.
 - **`rmst2` zero-RMTL boundaries:** an unadjusted RMTL ratio is 0 or infinity when exactly one arm has zero RMTL; its confidence limits and p-value remain NaN, as in the reference.
 - **Very large `rmst2` times:** follow-up times are divided by an exact power of two before integration and rescaled in the result. Ratio estimates and Wald statistics are therefore computed on a numerically better-scaled time axis without changing their units.
+
+## Competing risks
+
+### `cuminc`, Gray's test and `crr`
+
+- `cuminc` rejects negative follow-up times. `cmprsk::cuminc` accepts them but returns curves that start at time zero and then move backwards; this violates the non-negative survival-time domain used by rStats.js.
+- Gray's test uses the hypergeometric tied-time correction `(Y. - d1)/(Y. - 1)` on the own-time score term, as selected in `oracle/competing-behaviour.md`. It agrees with cmprsk when the group-specific Kaplan-Meier estimates immediately before the tie are equal. When they differ, the correction is an explicitly documented approximation: the complete tied-time variance was not identified from the published formula and output experiments, and cmprsk's GPL source is not an allowed reference.
+- Gray's p-value is evaluated as the upper chi-squared tail directly, rather than `1 - pchisq(stat, df)`; this avoids cancellation in the upper tail. A contrast covariance with reciprocal condition number below 1e-12 is treated as singular; it gives NaN for the statistic and p-value (the degrees of freedom are retained), rather than cmprsk's sentinel statistic -1 and p-value 1.
+- `crr` does not accept `cengroup` yet. The coefficient and likelihood calculation is determined, but the sandwich variance with separate censoring groups was not determined by the documented formula and experiments. The option is rejected instead of returning an unverified variance.
+- `crr` accepts negative finite times, as cmprsk does. Unlike cmprsk, it is invariant to a change of time unit by very small powers of two; censoring weights use the verified `survfit` estimate and no absolute time tolerance is used.
+- `crr` reports unrounded two-sided normal p-values. `summary.crr` rounds them for display; that rounding is not part of the numerical result.
+- With `variance: false`, `crr` returns `null` residuals and NaN matrices for `var`, `inf` and `invinf`; residuals are part of the variance calculation contract and are not returned in this mode.
+- Coefficient names can be supplied with `names`; JavaScript cannot reproduce R's deparsed argument expressions. The default names are generated from the covariate columns.
+- The public API does not include `subset` or `na.action = "fail"`. Filter observations before calling; missing rows are omitted and their count is reported in `warnings` as `<k> cases omitted due to missing values`, following the selected rStats.js API even though R prints this text to standard output.

@@ -188,6 +188,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pROC::coords()` | `coords` | Coordinates of a ROC curve: sensitivity, specificity, the counts, predictive values, likelihood ratios and the criteria of the best threshold, at every point of the curve, at the best threshold(s) or at given thresholds. |
 | `cor.test()` | `corTest` | Test for correlation between paired samples. |
 | `survival::coxph()` | `coxph` | Cox proportional hazards regression. |
+| `cmprsk::crr()` | `crr` | Fine-Gray proportional subdistribution hazards regression. |
+| `cmprsk::cuminc()` | `cuminc` | Cumulative incidence functions and Gray's tests for competing risks. |
 | `nortest::cvm.test()` | `cvmTest` | Cramer-von Mises test for normality. |
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. |
 | `dunn.test::dunn.test()` | `dunnTest` | Dunn's test of all pairs of mean ranks. |
@@ -246,6 +248,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `power.anova.test()` | `powerAnovaTest` | Power of the F test of a balanced one-way analysis of variance, or one of the other quantities for a given power. |
 | `power.prop.test()` | `powerPropTest` | Power of the test of two proportions, or the sample size, a probability or the significance level for a given power. |
 | `power.t.test()` | `powerTTest` | Power of a one- or two-sample t test, or the sample size, difference, standard deviation or significance level for a given power. |
+| `cmprsk::predict.crr()` | `predictCrr` | Predict cumulative incidence from a Fine-Gray fit. |
 | `predict()` | `glmPredict` | Predictions of a generalized linear model with their standard errors, for a `glm` fit. |
 | `predict()` | `predict` | Predictions of a linear model at new values of the predictors, with standard errors and optionally intervals, for an `lm` fit. |
 | `prop.test()` | `propTest` | Test of equal or given proportions. |
@@ -275,6 +278,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `survival::survfit()` | `survfit` | Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means. |
 | `TOSTER::t_TOST()` | `tTOST` | Two one-sided t tests of equivalence, or minimal-effect tests, for one sample, two samples or paired samples, with the standardised mean difference and its interval. |
 | `t.test()` | `tTest` | Student's t-test. |
+| `cmprsk::timepoints()` | `timepoints` | Evaluate cumulative-incidence curves at requested times. |
 | `equivalence::tost()` | `tost` | Two one-sided t tests of equivalence of two means. |
 | `TOSTER::tsum_TOST()` | `tsumTOST` | `tTOST` from summary statistics: means, standard deviations, sample sizes and, for paired samples, the correlation of the pairs. |
 | `TukeyHSD()` | `TukeyHSD` | Tukey's honest significant differences between the group means of a one-way ANOVA. |
