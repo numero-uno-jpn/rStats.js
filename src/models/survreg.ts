@@ -220,7 +220,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   if((type==="interval"||type==="interval2")&&options.time2===undefined)throw new TypeError("time2 is required for interval data");
   if(options.time2!==undefined&&options.time2.length!==n0)throw new RangeError("variable lengths differ (found for 'time2')");
   if(options.scale!==undefined&&(!Number.isFinite(options.scale)||options.scale<0))throw new RangeError("Invalid scale value");
-  if(d==="t"&&nu<3)throw new RangeError("Degrees of freedom must be >=3");
+  if(d==="t"&&(!(nu>=3)||!Number.isFinite(nu)))throw new RangeError("Degrees of freedom must be >=3");
   if(d!=="t"&&options.parms!==undefined)throw new RangeError("Extreme value distribution has no optional parameters");
   const logTime=["weibull","loggaussian","lognormal","loglogistic"].includes(d);
   const fixed0=options.scale!==undefined&&options.scale>0?options.scale:undefined;
@@ -228,7 +228,8 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const time2=options.time2, weights=options.weights??Array(n0).fill(1),offset=options.offset??Array(n0).fill(0),strataIn=options.strata??Array(n0).fill("1");
   for(const [a,name] of [[weights,"weights"],[offset,"offset"],[strataIn,"strata"]] as const)if(a.length!==n0)throw new RangeError(`variable lengths differ (found for '${name}')`);
   
-  const rows:number[]=[],yy:number[]=[],lo:number[]=[],hi:number[]=[],st:number[]=[],ww:number[]=[],oo:number[]=[],xx:number[][]=[];
+  const rows:number[]=[],yy:number[]=[],lo:number[]=[],hi:number[]=[],st:number[]=[],ww:number[]=[],oo:number[]=[],xx:number[][]=[],dataWarnings:string[]=[];
+  const addWarning=(s:string)=>{if(!dataWarnings.includes(s))dataWarnings.push(s);};
   const lev=[...new Set(strataIn.map(String))].sort(),sid=strataIn.map(v=>lev.indexOf(String(v)));
   if(fixed!==undefined&&lev.length>1)throw new Error("The scale argument is not valid with multiple strata");
   for(let i=0;i<n0;i++){
@@ -236,14 +237,17 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
     if(!(weights[i]!>0))throw new RangeError("Invalid weights, must be >0");
     if(xi.some(v=>!Number.isFinite(v)))throw new Error("data contains an infinite predictor");
     let l=time[i]!,u=time[i]!,s=Number(events[i]);
-    if(type==="right"){if(s!==0&&s!==1)continue;if(s===0)u=Infinity;s=s===1?1:0;}
-    else if(type==="left"){if(s!==0&&s!==1)continue;if(s===0)l=-Infinity;s=s===1?1:2;}
-    else if(type==="interval"){u=time2![i]!;if(s===0){l=time[i]!;u=Infinity;}else if(s===1){u=l;}else if(s===2){u=l;l=-Infinity;}else if(s!==3){continue;}if(s===3&&l>u)continue;}
-    else if(type==="interval2"){const lower=time[i]!,upper=time2![i]!;if(Number.isNaN(lower)&&Number.isNaN(upper))continue;if(lower>upper)continue;if(lower===upper){l=lower;u=upper;s=1;}else if(!Number.isFinite(lower)||lower===0){l=-Infinity;u=upper;s=2;}else if(!Number.isFinite(upper)){l=lower;u=Infinity;s=0;}else{l=lower;u=upper;s=3;}}
-    if(logTime){if(l===Infinity||u===-Infinity||(Number.isFinite(l)&&l<=0)||(Number.isFinite(u)&&u<=0))throw new Error("Invalid survival times for this distribution");if(Number.isFinite(l))l=Math.log(l);if(Number.isFinite(u))u=Math.log(u);}
+    if(type==="right"){if(s!==0&&s!==1){addWarning("Invalid status value, converted to NA");continue;}if(s===0)u=Infinity;s=s===1?1:0;}
+    else if(type==="left"){if(s!==0&&s!==1){addWarning("Invalid status value, converted to NA");continue;}if(s===0)l=-Infinity;s=s===1?1:2;}
+    else if(type==="interval"){u=time2![i]!;if(s===0){l=time[i]!;u=Infinity;}else if(s===1){u=l;}else if(s===2){u=l;l=-Infinity;}else if(s!==3){addWarning("Invalid status value, converted to NA");continue;}if(s===3&&l>u){addWarning("Invalid interval: start > stop, NA created");continue;}if(s===3&&l===u)throw new Error("initial iteration failed (use starting estimates?)");}
+    else if(type==="interval2"){const lower=time[i]!,upper=time2![i]!;if(Number.isNaN(lower)&&Number.isNaN(upper))continue;if(lower>upper){addWarning("Invalid interval: start > stop, NA created");continue;}if(lower===upper){l=lower;u=upper;s=1;}else if(!Number.isFinite(lower)||lower===0){l=-Infinity;u=upper;s=2;}else if(!Number.isFinite(upper)){l=lower;u=Infinity;s=0;}else{l=lower;u=upper;s=3;}}
+    if(logTime){if((Number.isFinite(l)&&l<0)||(Number.isFinite(u)&&u<0))addWarning("NaNs produced");if(l===Infinity||u===-Infinity||(Number.isFinite(l)&&l<=0)||(Number.isFinite(u)&&u<=0))throw new Error("Invalid survival times for this distribution");if(Number.isFinite(l))l=Math.log(l);if(Number.isFinite(u))u=Math.log(u);}
     rows.push(i);yy.push(s===1?u:Number.isFinite(l)&&Number.isFinite(u)?(l+u)/2:Number.isFinite(l)?l:u);lo.push(l);hi.push(u);st.push(s);ww.push(weights[i]!);oo.push(offset[i]!);xx.push(xi);
   }
   if(rows.length===0)throw new Error("No observations");
+  if(!st.some(s=>s===1||s===3))throw new Error("no events");
+  if(yy.some(v=>!Number.isFinite(v)))throw new Error("initial iteration failed (use starting estimates?)");
+  if(xx.some(r=>r.length!==xx[0]!.length))throw new TypeError("all rows of the matrix must have the same length");
   const p0=xx[0]!.length,p=p0+(intercept?1:0),X=xx.map(r=>intercept?[1,...r]:r),k=lev.length;
   const centers=yy.map((v,i)=>v-oo[i]!);const sw=ww.reduce((a,b)=>a+b,0),mean=centers.reduce((a,b,i)=>a+b*ww[i]!,0)/sw;
   const variance=centers.reduce((a,b,i)=>a+ww[i]!*(b-mean)**2,0)/sw;
@@ -280,7 +284,7 @@ export function survreg(time: readonly number[], event?: readonly (number | bool
   const chi=2*((model.ll+jac)-(nullFit.ll+jac)),chiDf=p+(fixed===undefined?k:0)-(1+(fixed===undefined?k:0));
   const tableNames=[...coefs.map((_,j)=>j===0&&intercept?"(Intercept)":`x${j+(intercept?0:1)}`),...(fixed===undefined?(k===1?["Log(scale)"]:lev.map(s=>`strata=${s}`)):[])];
   const values=[...coefs,...(fixed===undefined?model.b.slice(p):[])],seAll=values.map((_,j)=>Math.sqrt(Math.max(0,varmat[j]?.[j]??0))),zAll=values.map((v,j)=>v/seAll[j]!),pAll=zAll.map(v=>2*pnorm(-Math.abs(v)));
-  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),icoef:nullFit.b, var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score,tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...(model.warn?["Ran out of iterations and did not converge"]:[]),...((d==="exponential"||d==="rayleigh")&&options.scale!==undefined&&options.scale>0?[d==="exponential"?"Exponential has a fixed scale, user specified value ignored":"Rayleigh has a fixed scale, user specified value ignored"]:[])]};
+  const result:SurvregResult={coefficients:coefs,coefNames:tableNames.slice(0,p),scale:scales,table:{value:values,se:seAll,z:zAll,p:pAll},strataLevels:lev.map(s=>strataIn.find(v=>String(v)===s)!),icoef:fixed===undefined?nullFit.b:[nullFit.b[0]!,Math.log(fixed)], var:varmat,loglik:[nullFit.ll+jac,model.ll+jac],iter:model.iter,df:p+(fixed===undefined?k:0),idf:1+(fixed===undefined?k:0),dfResidual:rows.length-(p+(fixed===undefined?k:0)),n:rows.length,linearPredictors:lp,means,score:model.score,tableRowNames:tableNames,value:values,se:seAll,z:zAll,p:pAll,chi,chiDf,chiP:pchisq(chi,chiDf,{lowerTail:false}),dist:d,parms:nu,intercept,x:X,offset:oo,rows,weights:ww,strata:sid,y:yy,lower:lo,upper:hi,status:st,type,warnings:[...dataWarnings,...(model.warn?["Ran out of iterations and did not converge"]:[]),...((d==="exponential"||d==="rayleigh")&&options.scale!==undefined&&options.scale>0?[d==="exponential"?"Exponential has a fixed scale, user specified value ignored":"Rayleigh has a fixed scale, user specified value ignored"]:[])]};
   return reported("survreg",result);
 }
 
