@@ -1628,3 +1628,10 @@ By default rStats.js returns what R returns;
 - With `variance: false`, `crr` returns `null` residuals and NaN matrices for `var`, `inf` and `invinf`; residuals are part of the variance calculation contract and are not returned in this mode.
 - Coefficient names can be supplied with `names`; JavaScript cannot reproduce R's deparsed argument expressions. The default names are generated from the covariate columns.
 - The public API does not include `subset` or `na.action = "fail"`. Filter observations before calling; missing rows are omitted and their count is reported in `warnings` as `<k> cases omitted due to missing values`, following the selected rStats.js API even though R prints this text to standard output.
+
+
+## Parametric survival regression
+
+- **`survreg` underflow handling:** unlike `survival::survreg`, rStats.js evaluates the base-family likelihood in the log domain and does not replace underflowed likelihood contributions with -200 or use the corresponding ad hoc derivatives. This follows the high-precision design decision in `oracle/survreg-behaviour.md`; tests must compare affected cases with the reference values rather than R's substituted values.
+- **`survreg` null model:** the intercept-only model is iterated to the requested convergence tolerance rather than being silently capped at 20 iterations. The null likelihood can therefore differ from R on the `nullIter` reference case.
+- **`survregResiduals` interval rows:** interval-censored derivatives and the extreme-value interval centre use the mathematical derivatives and the required factor of sigma, rather than R's documented incorrect values.
