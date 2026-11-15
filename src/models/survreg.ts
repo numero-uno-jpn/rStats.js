@@ -106,23 +106,32 @@ function hValues(z:number,d:SurvregDistribution,nu:number):[number,number] {
   if (d === "gaussian" || d === "loggaussian" || d === "lognormal") return [-z,z*z-1];
   const den=nu+z*z; return [-(nu+1)*z/den,(nu+1)*((nu+2)*z*z-nu)/(den*den)];
 }
+function hPrime(z:number,d:SurvregDistribution,nu:number):number {
+  if(d==="extreme"||d==="weibull"||d==="exponential"||d==="rayleigh")return -Math.exp(z);
+  if(d==="logistic"||d==="loglogistic"){const e=Math.exp(-Math.abs(z));return -2*e/((1+e)*(1+e));}
+  if(d==="gaussian"||d==="loggaussian"||d==="lognormal")return -1;
+  return -(nu+1)*(nu-z*z)/((nu+z*z)*(nu+z*z));
+}
 function deriv(lo:number,hi:number,kind:number,eta:number,sigma:number,d:SurvregDistribution,nu:number):Deriv {
   const zl=lo===-Infinity?-Infinity:(lo-eta)/sigma, zu=hi===Infinity?Infinity:(hi-eta)/sigma;
   if(kind===1) { // exact
-    const [h1,h2]=hValues(zu,d,nu), f=logDensity(zu,d,nu);
-    const a=h2-h1*h1;
-    return {g:f-Math.log(sigma),e:-h1/sigma,ee:a/(sigma*sigma),t:-zu*h1-1,tt:zu*h1+zu*zu*a,et:(h1+zu*a)/sigma};
+    const [h1]=hValues(zu,d,nu), f=logDensity(zu,d,nu), hp=hPrime(zu,d,nu);
+    return {g:f-Math.log(sigma),e:-h1/sigma,ee:hp/(sigma*sigma),t:-zu*h1-1,tt:zu*h1+zu*zu*hp,et:(h1+zu*hp)/sigma};
   }
   const lf=logF(zu,d,nu), ll=logF(zl,d,nu), ls=logS(zl,d,nu), lu=logS(zu,d,nu);
   const lp=kind===0?ls:kind===2?lf:logDiff(zl>0?ls:lf,zl>0?lu:ll);
-  const rl=zl===-Infinity?0:Math.exp(logDensity(zl,d,nu)-lp), ru=zu===Infinity?0:Math.exp(logDensity(zu,d,nu)-lp);
+  const extreme=d==="extreme"||d==="weibull"||d==="exponential"||d==="rayleigh";
+  const rl=zl===-Infinity?0:kind===0&&extreme?Math.exp(zl):Math.exp(logDensity(zl,d,nu)-lp);
+  const ru=zu===Infinity?0:Math.exp(logDensity(zu,d,nu)-lp);
   const [hl1]=hValues(zl,d,nu), [hu1]=hValues(zu,d,nu);
-  const fpl=zl===-Infinity?0:rl*hl1, fpu=zu===Infinity?0:ru*hu1;
+  const fpl=rl===0||zl===-Infinity?0:rl*hl1, fpu=ru===0||zu===Infinity?0:ru*hu1;
+  const zlR=zl===-Infinity||rl===0?0:zl*rl, zuR=zu===Infinity||ru===0?0:zu*ru;
+  const zl2F=zl===-Infinity||fpl===0?0:zl*zl*fpl, zu2F=zu===Infinity||fpu===0?0:zu*zu*fpu;
   const dg=-(ru-rl)/sigma;
   const dgg=(fpu-fpl)/(sigma*sigma)-dg*dg;
-  const dt=-((zu===Infinity?0:zu*ru)-(zl===-Infinity?0:zl*rl));
-  const dtt=((zu===Infinity?0:zu*zu*fpu)-(zl===-Infinity?0:zl*zl*fpl))-dt*(1+dt);
-  const det=((zu===Infinity?0:zu*fpu)-(zl===-Infinity?0:zl*fpl))/sigma-dg*(1+dt);
+  const dt=-(zuR-zlR);
+  const dtt=(zu2F-zl2F)-dt*(1+dt);
+  const det=((zu===Infinity||fpu===0?0:zu*fpu)-(zl===-Infinity||fpl===0?0:zl*fpl))/sigma-dg*(1+dt);
   return {g:lp,e:dg,ee:dgg,t:dt,tt:dtt,et:det};
 }
 function positiveDefinite(a:number[][],tol:number):boolean {
