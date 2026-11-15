@@ -212,7 +212,7 @@ function cholInverse(m:number[][]):number[][]{
 }
 function matVec(a:number[][],v:number[]):number[]{return a.map(r=>dot(r,v));}
 function dot(a:number[],b:number[]):number{const s=a.reduce((sum,x,i)=>sum+x*b[i]!,0);return checkedDot(a,b,s);}
-/** Use the verified power-of-two scaler only for columns outside the ordinary range. */
+/** Use the verified scaler when squared column units could cross the 1e-10 Cholesky pivot tolerance. */
 function scaleDesign(X:number[][]):{values:number[][];exponent:number[]} {
   const columns=Array.from({length:X[0]!.length},(_,j)=>{
     const values=X.map(row=>row[j]!);
