@@ -66,7 +66,7 @@ function verifyScoreByFiniteDifferences(a: Raw, fit: SurvregResult, label: strin
     return total;
   };
   theta.forEach((value, j) => {
-    const h = 1e-5 * Math.max(1, Math.abs(value));
+    const h = 1e-4 * Math.max(1, Math.abs(value));
     const plus = theta.slice(), minus = theta.slice();
     plus[j] = value + h;
     minus[j] = value - h;
