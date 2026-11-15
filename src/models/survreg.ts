@@ -341,7 +341,7 @@ export function survregPredict(fit:SurvregResult,options:SurvregPredictOptions={
   const fitValue=(type==="quantile"||type==="uquantile")?(ps.length===1?pred.map(v=>(v as number[])[0]!):pred as number[][]):pred as number[];
   if(!options.seFit)return fitValue;
   const se=X.map((r,i)=>{if(r.some(Number.isNaN))return type==="quantile"||type==="uquantile"?ps.map(()=>NaN):NaN;
-    const eta=dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
+    const eta=options.newX===undefined?fit.linearPredictors[i]!:dot(r,fit.coefficients)+off[i]!,sig=fit.scale.length===1?fit.scale[0]!:fit.scale[ss[i]!]!;
     const one=(z:number)=>{const v=Array(fit.var.length).fill(0);for(let j=0;j<r.length;j++)v[j]=r[j]!;if(fit.var.length>r.length)v[r.length+ss[i]!]=z*sig;return Math.sqrt(Math.max(0,dot(v,matVec(fit.var,v))));};
     if(type==="lp"||type==="linear"||type==="link")return one(0);
     if(type==="response")return one(0)*(logTime?Math.exp(eta):1);
