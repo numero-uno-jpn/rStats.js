@@ -117,7 +117,7 @@ function deriv(lo:number,hi:number,kind:number,eta:number,sigma:number,d:Survreg
   const lp=kind===0?ls:kind===2?lf:logDiff(zl>0?ls:lf,zl>0?lu:ll);
   const rl=zl===-Infinity?0:Math.exp(logDensity(zl,d,nu)-lp), ru=zu===Infinity?0:Math.exp(logDensity(zu,d,nu)-lp);
   const [hl1]=hValues(zl,d,nu), [hu1]=hValues(zu,d,nu);
-  const fpl=rl*hl1, fpu=ru*hu1;
+  const fpl=zl===-Infinity?0:rl*hl1, fpu=zu===Infinity?0:ru*hu1;
   const dg=-(ru-rl)/sigma;
   const dgg=(fpu-fpl)/(sigma*sigma)-dg*dg;
   const dt=-((zu===Infinity?0:zu*ru)-(zl===-Infinity?0:zl*rl));
