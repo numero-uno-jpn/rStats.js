@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { survreg, survregPredict, survregResiduals } from "../src/index.js";
+import { midpoint } from "../src/internal/extremes.js";
 
 describe("survreg", () => {
   const time = [2, 3, 4, 5, 6, 7, 8, 9];
@@ -24,6 +25,40 @@ describe("survreg", () => {
     });
     expect(fit.scale).toEqual([1]);
     expect(fit.n).toBe(time.length);
+  });
+
+
+  it("keeps Gaussian AFT coefficients and Wald z invariant under extreme predictor units", () => {
+    const y = [1, 2, 3, 4];
+    const event = [1, 1, 1, 1];
+    const unitX = [[-1], [-1], [1], [1]];
+    const factor = 2 ** 500;
+    const weight = 2 ** 500;
+    const weights = Array(4).fill(weight);
+    const options = { dist: "gaussian" as const, scale: 1, weights };
+    const ordinary = survreg(y, event, unitX, options);
+    const scaled = survreg(y, event, unitX.map(([v]) => [v! * factor]), options);
+
+    // The exact Gaussian MLE with fixed scale is weighted least squares:
+    // X'X = diag(4, 4), X'y = (10, 4), so beta = (2.5, 1).
+    // Scaling x by 2^500 changes beta[1] by 2^-500 and var[1,1] by 2^-1000;
+    // multiplying every case weight by 2^500 divides the whole covariance by 2^500.
+    // The common weight multiplier cancels from beta and the z statistics.
+    expect(ordinary.coefficients[0]).toBeCloseTo(2.5, 11);
+    expect(ordinary.coefficients[1]).toBeCloseTo(1, 11);
+    expect(scaled.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(scaled.coefficients[1]! * factor).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(scaled.var[0]![0]).toBeCloseTo(ordinary.var[0]![0]!, 11);
+    expect(scaled.var[1]![1]! * factor * factor).toBeCloseTo(ordinary.var[1]![1]!, 11);
+    expect(scaled.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
+    expect(scaled.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+  });
+
+  it("computes a finite midpoint when the endpoint sum overflows", () => {
+    // The exact midpoint is (9e307 + 9.5e307)/2 = 9.25e307, within Number.MAX_VALUE.
+    // The direct binary64 sum overflows, so the helper must halve the endpoints first.
+    expect(9e307 + 9.5e307).toBe(Infinity);
+    expect(midpoint(9e307, 9.5e307)).toBe(9.25e307);
   });
 
   it("rejects invalid weights", () => {
