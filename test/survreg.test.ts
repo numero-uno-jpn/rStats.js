@@ -53,12 +53,41 @@ describe("survreg", () => {
     expect(scaled.var[1]![1]! * factor * factor).toBeCloseTo(ordinary.var[1]![1]!, 11);
     expect(scaled.z[0]).toBeCloseTo(ordinary.z[0]!, 10);
     expect(scaled.z[1]).toBeCloseTo(ordinary.z[1]!, 10);
+
+    // Predictions and diagnostics are returned in the original covariate units too.
+    const pred0 = survregPredict(ordinary, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
+    const pred1 = survregPredict(scaled, { type: "lp", seFit: true }) as { fit: number[]; seFit: number[] };
+    pred1.fit.forEach((v, i) => expect(v).toBeCloseTo(pred0.fit[i]!, 10));
+    pred1.seFit.forEach((v, i) => expect(v).toBeCloseTo(pred0.seFit[i]!, 10));
+    const work0 = survregResiduals(ordinary, { type: "working" }) as number[];
+    const work1 = survregResiduals(scaled, { type: "working" }) as number[];
+    work1.forEach((v, i) => expect(v).toBeCloseTo(work0[i]!, 10));
+    const dfb0 = survregResiduals(ordinary, { type: "dfbeta" }) as number[][];
+    const dfb1 = survregResiduals(scaled, { type: "dfbeta" }) as number[][];
+    dfb1.forEach((row, i) => {
+      expect(row[0]).toBeCloseTo(dfb0[i]![0]!, 10);
+      expect(row[1]! * factor).toBeCloseTo(dfb0[i]![1]!, 10);
+    });
+    const ld0 = survregResiduals(ordinary, { type: "ldcase" }) as number[];
+    const ld1 = survregResiduals(scaled, { type: "ldcase" }) as number[];
+    ld1.forEach((v, i) => expect(v).toBeCloseTo(ld0[i]!, 10));
+
     expect(weighted.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
     expect(weighted.coefficients[1]).toBeCloseTo(ordinary.coefficients[1]!, 11);
     expect(weighted.var[0]![0]! * weight).toBeCloseTo(ordinary.var[0]![0]!, 11);
     expect(weighted.var[1]![1]! * weight).toBeCloseTo(ordinary.var[1]![1]!, 11);
     expect(weighted.z[0]! / ordinary.z[0]!).toBeCloseTo(Math.sqrt(weight), 10);
     expect(weighted.z[1]! / ordinary.z[1]!).toBeCloseTo(Math.sqrt(weight), 10);
+    const smallWeight = 2 ** -500;
+    const downWeighted = survreg(y, event, unitX, {
+      dist: "gaussian", scale: 1, weights: Array(4).fill(smallWeight),
+    });
+    expect(downWeighted.coefficients[0]).toBeCloseTo(ordinary.coefficients[0]!, 11);
+    expect(downWeighted.coefficients[1]).toBeCloseTo(ordinary.coefficients[1]!, 11);
+    expect(downWeighted.var[0]![0]! * smallWeight).toBeCloseTo(ordinary.var[0]![0]!, 11);
+    expect(downWeighted.var[1]![1]! * smallWeight).toBeCloseTo(ordinary.var[1]![1]!, 11);
+    expect(downWeighted.z[0]! / ordinary.z[0]!).toBeCloseTo(Math.sqrt(smallWeight), 10);
+    expect(downWeighted.z[1]! / ordinary.z[1]!).toBeCloseTo(Math.sqrt(smallWeight), 10);
   });
 
   it("computes a finite midpoint when the endpoint sum overflows", () => {
