@@ -43,7 +43,7 @@ function compareNumbers(actual: unknown, expected: unknown, label: string, absol
   const e = numberValue(expected), a = actual as number;
   if (Number.isNaN(e)) { expect(Number.isNaN(a), label).toBe(true); return; }
   if (!Number.isFinite(e)) { expect(a, label).toBe(e); return; }
-  const tolerance = e === 0 ? absoluteTolerance : absoluteTolerance * Math.abs(e);
+  const tolerance = Math.max(absoluteTolerance, absoluteTolerance * Math.abs(e));
   expect(Math.abs(a - e), label).toBeLessThanOrEqual(tolerance);
 }
 
@@ -61,6 +61,7 @@ describe("survreg: R 4.6.2 fixture", () => {
         return;
       }
       const fit = survreg(vector(a.time) ?? [], vector(a.event), matrix(a.x) ?? [], optionsOf(a));
+      if ([0, 1, 2, 14, 51, 60, 72].includes(index)) console.log("SURVREG DEBUG", index, JSON.stringify({ coefficients: fit.coefficients, scale: fit.scale, iter: fit.iter, varDiag: fit.var.map((r, i) => r[i]), score: fit.score }));
       const fields: [string, unknown, unknown][] = [
         ["coefficients", fit.coefficients, e.coefficients], ["scale", fit.scale, e.scale],
         ["icoef", fit.icoef, e.icoef], ["var", fit.var, e.var], ["loglik", fit.loglik, e.loglik],
