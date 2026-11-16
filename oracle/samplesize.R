@@ -115,9 +115,9 @@ write_samplesize_fixture("samplesizeEpi", epi_cases)
 mcnemar_cases <- list(
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40), function() powerPaired2x2(pb=.50, pc=.30, npairs=40)),
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, strict=TRUE), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, strict=TRUE)),
-  make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, tsmethod="central"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, tsmethod="central")),
-  make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, tsmethod="minlike"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, tsmethod="minlike")),
-  make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, tsmethod="blaker"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, tsmethod="blaker")),
+  make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, strict=TRUE, tsmethod="central"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, tsmethod="central")),
+  make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, strict=TRUE, tsmethod="minlike"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, tsmethod="minlike")),
+  make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, strict=TRUE, tsmethod="blaker"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, tsmethod="blaker")),
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, alternative="one.sided"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, alternative="one.sided")),
   make_case("powerPaired2x2", list(pb=.30, pc=.50, npairs=40, alternative="one.sided"), function() powerPaired2x2(pb=.30, pc=.50, npairs=40, alternative="one.sided")),
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, errbound=0), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, errbound=0)),
