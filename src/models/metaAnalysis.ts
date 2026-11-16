@@ -156,7 +156,7 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
   const he=Math.max(0,(raw-v.reduce((s,z,i)=>s+unweighted.P[i]![i]!*z,0))/Math.max(1,df));
   if(method==="HE") return he;
   if(method==="SJ") {
-    const initial=he;
+    const initial=raw/k;
     const fit=weightedFit(y,v,X,initial);
     const a=v.map(z=>initial/(z+initial));
     return Math.max(0,a.reduce((s,z,i)=>s+z*fit.residuals[i]!*fit.residuals[i]!,0)/Math.max(1,df));
