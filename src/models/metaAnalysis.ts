@@ -107,7 +107,7 @@ const root = (f:(x:number)=>number, lo:number, hi:number, tol=2e-12):number => {
 };
 const upperRoot = (f:(x:number)=>number, start:number):number => {
   let hi=Math.max(start,1e-8), value=f(hi);
-  for(let i=0;i<80 && Number.isFinite(value) && value>0;i++){hi*=2;value=f(hi);}
+  for(let i=0;i<80 && value>0;i++){hi*=2;value=f(hi);}
   return value<=0?root(f,0,hi):NaN;
 };
 
@@ -140,7 +140,7 @@ function determinantSmall(a:number[][]):number {
 function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,control:RmaControl) {
   const k=y.length,p=X[0]!.length,df=k-p;
   const base=weightedFit(y,v,X,0), q0=base.qe;
-  const c=base.w.reduce((s,z)=>s+z,0)-base.w.reduce((s,z)=>s+z*z,0)/base.w.reduce((s,z)=>s+z,0);
+  const wMax=Math.max(...base.w), wn=base.w.map(z=>z/wMax), wSum=wn.reduce((s,z)=>s+z,0);\n  const c=wMax*(wSum-wn.reduce((s,z)=>s+z*z,0)/wSum);
   const invv=v.map(z=>1/z), sumInv=invv.reduce((s,z)=>s+z,0);
   if(method==="EE"||method==="FE") return 0;
   if(method==="DL") return Math.max(0,(q0-df)/c);
@@ -169,7 +169,7 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
     if(method==="REML") return fit.score;
     return 0.5*(fit.residuals.reduce((s,z,i)=>s+z*z/((v[i]!+t)**2),0)-fit.w.reduce((s,z)=>s+z,0));
   };
-  const init=Math.max(0,control.tau2Init??Math.max(0,(q0-df)/c));
+  const guess=(q0-df)/c;\n  const init=Math.max(0,control.tau2Init??(Number.isFinite(guess)?guess:1e-8));
   const at0=score(0);
   if(!(at0>0)) return 0;
   const hi=upperRoot(score,Math.max(init,1e-8));
@@ -301,7 +301,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   if(!(level>0&&level<1)) throw new RangeError("level must be between 0 and 1");
   if(!["EE","FE","DL","HE","HS","HSk","SJ","ML","REML","EB","PM"].includes(method)) throw new RangeError(`unknown method '${method}'`);
   if(!["z","t","knha"].includes(test)) throw new RangeError(`unknown test '${test}'`);
-  const tau2=tauEstimate(y,v,X,method,opts.control??{});
+  if(method==="DL"&& !Number.isFinite(weightedFit(y,v,X,0).qe)) throw new Error("NA/NaN/Inf in foreign function call (arg 1)");\n  const tau2=tauEstimate(y,v,X,method,opts.control??{});
   const fit=weightedFit(y,v,X,tau2);
   const tau2Null=opts.mods===undefined?tau2:tauEstimate(y,v,Array.from({length:k},()=>[1]),method,opts.control??{});
   const kh=test==="knha"&&df>0?Math.max(0,fit.qe/df):1;
