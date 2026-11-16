@@ -35,3 +35,7 @@ X2 <- rep(c(0, 0, 1, 1), 25)
 failureFlag <- rep(c(0, 1, 0, 0, 1), 20)
 probe("freedman-pilot-power", function() powerCT(formula=survival::Surv(times,status) ~ group,dat=Oph,nE=200,nC=200,RR=.7,alpha=.05))
 probe("freedman-pilot-size", function() ssizeCT(formula=survival::Surv(times,status) ~ group,dat=Oph,power=.8,k=1,RR=.7,alpha=.05))
+
+probe("latouche-pilot-size", function() ssizeEpi(X1=X1,X2=X2,failureFlag=failureFlag,power=.8,theta=2,alpha=.05))
+probe("latouche-pilot-power", function() powerEpi(X1=X1,X2=X2,failureFlag=failureFlag,n=139,theta=2,alpha=.05))
+probe("latouche-pilot-deaths", function() numDEpi(X1=X1,X2=X2,power=.8,theta=2,alpha=.05))
