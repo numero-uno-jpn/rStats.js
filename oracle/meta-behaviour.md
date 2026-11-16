@@ -251,6 +251,14 @@ For a fitted univariate model, the documented public result includes coefficient
 
 ## 8. References
 
+Public reference documentation (consulted as help pages, not source code):
+- [`escalc` reference](https://wviechtb.github.io/metafor/reference/escalc.html)
+- [`rma.uni` reference](https://wviechtb.github.io/metafor/reference/rma.uni.html)
+- [`confint.rma` reference](https://wviechtb.github.io/metafor/reference/confint.rma.html)
+- [`predict.rma` reference](https://wviechtb.github.io/metafor/reference/predict.rma.html)
+- [`regtest` reference](https://wviechtb.github.io/metafor/reference/regtest.html)
+- [`dat.colditz1994` reference](https://wviechtb.github.io/metadat/reference/dat.colditz1994.html)
+
 - Borenstein, M., Hedges, L. V., Higgins, J. P. T., & Rothstein, H. (2009). *Introduction to Meta-Analysis*. Wiley.
 - Cochran, W. G. (1954). The combination of estimates from different experiments. *Biometrics*, 10(1), 101–129.
 - DerSimonian, R., & Laird, N. (1986). Meta-analysis in clinical trials. *Controlled Clinical Trials*, 7(3), 177–188. https://doi.org/10.1016/0197-2456(86)90046-2
