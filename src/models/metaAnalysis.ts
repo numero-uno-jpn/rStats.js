@@ -307,7 +307,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   const tau2=tauEstimate(y,v,X,method,opts.control??{});
   const fit=weightedFit(y,v,X,tau2);
   const tau2Null=opts.mods===undefined?tau2:tauEstimate(y,v,Array.from({length:k},()=>[1]),method,opts.control??{});
-  const kh=test==="knha"&&df>0?Math.max(0,fit.qe/df):1;
+  const kh=test==="knha"&&df>0?Math.max(1,fit.qe/df):1;
   const covariance=fit.cov.map(row=>row.map(z=>z*kh));
   const se=fit.cov.map((row,i)=>Math.sqrt(Math.max(0,row[i]!)*kh));
   const stat=fit.beta.map((b,i)=>b/se[i]!);
@@ -329,7 +329,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   const R2=opts.mods===undefined?null:(tau2Null>0?100*Math.max(0,(tau2Null-tau2)/tau2Null):0);
   const info=fit.traceP2>0?Math.sqrt(2/fit.traceP2):NaN;
   return reported("rma",{beta:fit.beta.map(z=>[z]),se:scalar(se),zval:scalar(stat),pval:scalar(pv),
-    "ci.lb":scalar(lower),"ci.ub":scalar(upper),tau2,"se.tau2":info,QE:fit.qe,QEp:pchisq(fit.qe,df,{lowerTail:false}),
+    "ci.lb":scalar(lower),"ci.ub":scalar(upper),tau2,"se.tau2":info,QE:baseFit.qe,QEp:pchisq(baseFit.qe,df,{lowerTail:false}),
     QM:qm,QMp:qmp,R2,p,m,I2,H2,k,yi:y,vi:v,mods:X,intercept,method,test,level,warnings:[],covariance,tau2Null});
 }
 
