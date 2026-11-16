@@ -47,9 +47,9 @@ one_case <- function(label,dat,rho) {
     }
     # Current two-group score influence is one-dimensional; group 2 component is negative.
     u<-aa; v<-bb
-    if(x$d1>1&&Ytot>1) corrA<-corrA+x$d1*(x$d1-1)/(Ytot-1)*kern(u,u)
-    if(x$d2>1&&Ytot>1) corrB<-corrB+x$d2*(x$d2-1)/(Ytot-1)*kern(v,v)
-    if(x$d1>0&&x$d2>0&&Ytot>1) cross<-cross+2*x$d1*x$d2/(Ytot-1)*kern(u,v)
+    if(x$d1>1&&Ytot>1) corrA<-corrA+x$L^2*x$d1*(x$d1-1)/(Ytot-1)*kern(u,u)
+    if(x$d2>1&&Ytot>1) corrB<-corrB+x$L^2*x$d2*(x$d2-1)/(Ytot-1)*kern(v,v)
+    if(x$d1>0&&x$d2>0&&Ytot>1) cross<-cross+2*x$L^2*x$d1*x$d2/(Ytot-1)*kern(u,v)
     future<-future+x$D*x$dGamma
   }
   actual<-unname(fit$Tests["1","stat"]); Vactual<-z*z/actual
