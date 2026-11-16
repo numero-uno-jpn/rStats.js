@@ -61,18 +61,21 @@ and effect measures with their confidence intervals, not only p-values. The list
 a statistics web application for medical and psychological research (2026-11-06). In order of priority; the R
 function or package that each item is checked against is given in brackets.
 
-1. **Sample size and power for trial designs:** equivalence, non-inferiority and superiority for means and
-   proportions, McNemar's test, survival (Schoenfeld, Freedman) and Simon's two-stage design [clinfun
-   `ph2simon`]; the reference for each is chosen when the item is taken up.
-2. **Meta-analysis:** fixed and random effects (DerSimonian-Laird, REML), Q and I², Egger's test [metafor].
-3. **Mixed models, continued:** `confint` (profile likelihood) and `simulate` of `lmer` and `glmer` fits [lme4]. The
+1. **Meta-analysis:** fixed and random effects (DerSimonian-Laird, REML), Q and I², Egger's test [metafor].
+2. **Mixed models, continued:** `confint` (profile likelihood) and `simulate` of `lmer` and `glmer` fits [lme4]. The
    `mixed` area stays out of the root export and the single-file bundle `dist/rstats.js` (decided 2026-11-05); adding
    it later would not break compatibility.
-4. **Later, in no particular order:** ordinal logistic regression [MASS `polr`], nonlinear regression [`nls` and the
+3. **Later, in no particular order:** ordinal logistic regression [MASS `polr`], nonlinear regression [`nls` and the
    self-starting models], robust and quantile regression [MASS `rlm`, quantreg], GEE [geepack]; MANOVA [`manova`],
    discriminant analysis [MASS `lda`], canonical correlation [`cancor`]; cluster analysis [`hclust`, `kmeans`];
    multidimensional scaling and correspondence analysis [`cmdscale`, MASS `isoMDS`, ca]; Tamhane's T2 and Page's
    test [PMCMRplus], Grubbs' test [outliers]; regularised regression [glmnet]; time series [`acf`, `arima`].
+
+Sample size and power for trial designs (the former item 1) were done for 1.5.0: epiR's parallel-trial designs,
+exact2x2's `powerPaired2x2`, powerSurvEpi's summary-parameter methods and clinfun's `ph2simon`. Left out, as decided in
+the "rStats.js's choices" of [oracle/samplesize-behaviour.md](oracle/samplesize-behaviour.md): epiR's other
+sample-size families, a sample-size search for McNemar's test, powerSurvEpi's pilot-data, interaction and stratified
+forms, `ph2single`, group-sequential designs and inference after a two-stage design.
 
 Survival analysis (the former item 1) was completed in 1.4.0. Not included for now, as decided in the "rStats.js's
 choices" of the behaviour documents: `survfit`'s `scale` option and `crr`'s `cengroup`.

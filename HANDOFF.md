@@ -4,20 +4,19 @@
 
 ## まず読むこと (セッション 16 から)
 
-## 進行中: ROADMAP の 1 番 (2026-11-16、セッション 22、Mac mini)
+## ROADMAP の 1 番: PR #528 (2026-11-17、セッション 22、Mac mini)
 
-- **照合先 (ユーザーが決定):** 平均・比率の同等性・非劣性・優越性は epiR 3.0.0 (`epi.ssequb/c`・`epi.ssninfb/c`・
-  `epi.sssupb/c`)、McNemar は exact2x2 1.7.0 (`powerPaired2x2`)、生存時間は powerSurvEpi 0.1.5 (Freedman の
-  `ssizeCT.default`・`powerCT.default`、Schoenfeld の `ssizeEpi.default` など)、Simon は clinfun 1.1.6 (`ph2simon`)。
-  どれも GPL。私 (Mac) はこれらのソースを見ていない
-- **トークン節約のため、外注できることはなるべく ChatGPT に外注する** (ユーザーの指示)。今回は仕様書と oracle の
-  スクリプトから外注する。指示書は `briefs/samplesize.ja.md` (4 節に、私が R の出力で確かめた epiR の式と癖)
-- 準備したもの: `oracle/Dockerfile.r46` に powerSurvEpi の層 (arm64・amd64 のイメージを作り直し)、
-  `oracle/Dockerfile.experiments` に 4 パッケージの層、`scripts/r-experiment-check.mjs` に 4 パッケージと公開関数名
-  (パッケージ名と同じ関数 `exact2x2` のため、`library()`・`pkg::` のパッケージ名は関数の参照と見なさないように直した)
-- 次: main に push (ワークフローは main の検査と Dockerfile を使う) → ChatGPT に依頼 (基準のコミット、ブランチ
-  `work/samplesize`) → 段階 1 の報告で oracle スクリプトが来たら `npm run oracle -- <name>` で fixture を作って
-  ブランチに push → Decisions for the user をユーザーに聞き、仕様書の「rStats.js's choices」を書く
+- **状態:** ChatGPT が段階 1 (仕様書 `oracle/samplesize-behaviour.md`・`oracle/samplesize.R`) と段階 2 (実装
+  `src/htest/sampleSize.ts`、テスト `test/sampleSize.test.ts`) を済ませた。PR #528 (`work/samplesize-pr`、実験の
+  スクリプトを除いたもの。実験は `work/samplesize` に残る)。fixture 4 本は私が作った。CI 通過。私が R との違い
+  (en・ja)、CHANGELOG の Added、ROADMAP (en・ja) を書いた。choices はユーザーの答えで私が書いた
+- **私が独立に確かめたこと:** McNemar の正確な検出力を有理数で計算し、rStats.js の `errbound = 0` の値と一致
+  (exact2x2 の `errbound = 0` の値のほうが 6.4e-7 ずれている)。`sig.level = 1` は境界を含める規則で 0.9115873521
+- **クリーンルームの注意:** ChatGPT は段階 2 の続きで、ウェブ検索の結果一覧にソースの短い抜粋が出てしまったと
+  報告した (開いていない、使っていないとのこと)。McNemar の `sig.level = 1` の件。式は私の有理数の計算と一致する
+- 残り: PR #528 の取り込み (ユーザーの確認)、Issue #527 を閉じる、`work/samplesize`・`work/samplesize-pr` の
+  削除 (ユーザーの確認)、1.5.0 (1.4.1 の Unreleased と一緒に出すかはユーザーの判断)、デモに入れるか
+  (`NOT_IN_DEMO_YET`)
 
 ## 次のセッションで最初にやること (2026-11-16 に作成、セッション 21、Mac mini)
 

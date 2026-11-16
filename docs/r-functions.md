@@ -195,6 +195,12 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `PMCMRplus::dscfAllPairsTest()` | `dscfAllPairsTest` | Dwass-Steel-Critchlow-Fligner all-pairs test of pairwise Mann-Whitney statistics. |
 | `dunn.test::dunn.test()` | `dunnTest` | Dunn's test of all pairs of mean ranks. |
 | `PMCMRplus::dunnettTest()` | `dunnettTest` | Dunnett's many-to-one test of means against the control, with the pooled variance. |
+| `epiR::epi.ssequb()` | `epiSsequb` | Equivalence/equality sample size or power for two proportions. |
+| `epiR::epi.ssequc()` | `epiSsequc` | Equivalence/equality sample size or power for two means. |
+| `epiR::epi.ssninfb()` | `epiSsninfb` | Non-inferiority sample size or power for two proportions. |
+| `epiR::epi.ssninfc()` | `epiSsninfc` | Non-inferiority sample size or power for two means. |
+| `epiR::epi.sssupb()` | `epiSssupb` | Superiority sample size or power for two proportions. |
+| `epiR::epi.sssupc()` | `epiSssupc` | Superiority sample size or power for two means. |
 | `epiR::epi.tests()` | `diagnosticTests` | Sensitivity, specificity, predictive values, likelihood ratios, accuracy, the diagnostic odds ratio and the true and apparent prevalence of a binary test, each with a confidence interval, from its 2 × 2 table. |
 | `effectsize::epsilon_squared()` | `epsilonSquared` | Epsilon squared of the terms of an analysis-of-variance table, also of repeated-measures designs. |
 | `pwr::ES.h()` | `esH` | Effect size h of two proportions. |
@@ -233,6 +239,7 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `mcr::mcreg()` | `mcreg` | Method comparison regression of y on x. |
 | `model.matrix()` | `modelMatrix` | The model matrix of a formula on a data frame, with the attributes of R's `terms()`. |
 | `mood.test()` | `moodTest` | Mood's two-sample test of scale. |
+| `powerSurvEpi::numDEpi.default()` | `numDEpi` | Schoenfeld/Latouche required event count. |
 | `epitools::oddsratio()` | `oddsRatio` | Odds ratio of a 2 x 2 table with its confidence interval and three p-values of independence. |
 | `effectsize::omega_squared()` | `omegaSquared` | Omega squared of the terms of an analysis-of-variance table, also of repeated-measures designs. |
 | `psych::omega()` | `omega` | McDonald's omega from a Schmid-Leiman transformation of an oblique minres factor solution. |
@@ -243,12 +250,16 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `pairwise.wilcox.test()` | `pairwiseWilcoxTest` | Pairwise Wilcoxon rank sum tests between groups, with adjusted p-values. |
 | `psych::partial.r()` | `partialR` | Partial correlation of columns `i` and `j` of `x` given all its other columns. |
 | `nortest::pearson.test()` | `pearsonTest` | Pearson chi-square test for normality, with classes of equal probability under the fitted normal distribution. |
+| `clinfun::ph2simon()` | `ph2simon` | Enumerates Simon's two-stage Phase II designs. |
 | `poisson.test()` | `poissonTest` | Exact test of a Poisson rate, or comparison of two Poisson rates. |
 | `polycor::polychor()` | `polychor` | Polychoric correlation of two ordinal variables. |
 | `polycor::polyserial()` | `polyserial` | Polyserial correlation of a numeric variable and an ordinal one. |
 | `power.anova.test()` | `powerAnovaTest` | Power of the F test of a balanced one-way analysis of variance, or one of the other quantities for a given power. |
 | `power.prop.test()` | `powerPropTest` | Power of the test of two proportions, or the sample size, a probability or the significance level for a given power. |
 | `power.t.test()` | `powerTTest` | Power of a one- or two-sample t test, or the sample size, difference, standard deviation or significance level for a given power. |
+| `powerSurvEpi::powerCT.default()` | `powerCT` | Freedman clinical-trial power. |
+| `powerSurvEpi::powerEpi.default()` | `powerEpi` | Schoenfeld/Latouche Cox-model power. |
+| `exact2x2::powerPaired2x2()` | `powerPaired2x2` | Exact power of McNemar's test for paired binary outcomes. |
 | `cmprsk::predict.crr()` | `predictCrr` | Predict cumulative incidence from a Fine-Gray fit. |
 | `predict.survreg()` | `survregPredict` | Predictions from a parametric survival regression fit. |
 | `predict()` | `glmPredict` | Predictions of a generalized linear model with their standard errors, for a `glm` fit. |
@@ -274,6 +285,8 @@ each function in detail: [the API reference](https://numero-uno-jpn.github.io/rS
 | `rstandard()` | `glmRstandard` | Standardized Pearson or deviance residuals, for the rows of non-zero prior weight, for a `glm` fit. |
 | `nortest::sf.test()` | `sfTest` | Shapiro-Francia test for normality. |
 | `shapiro.test()` | `shapiroTest` | Shapiro-Wilk test of normality. |
+| `powerSurvEpi::ssizeCT.default()` | `ssizeCT` | Freedman clinical-trial sample size. |
+| `powerSurvEpi::ssizeEpi.default()` | `ssizeEpi` | Schoenfeld/Latouche total sample size. |
 | `DescTools::StuartMaxwellTest()` | `stuartMaxwellTest` | Stuart-Maxwell test of marginal homogeneity of a square table. |
 | `summary()` | `aovSummary` | The table of an analysis of variance fitted by `aov`. |
 | `summary()` | `glmSummary` | Summary of a generalized linear model: the dispersion, the coefficient table and the covariance of the estimates, for a `glm` fit. |

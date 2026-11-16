@@ -9,6 +9,16 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ## Unreleased
 
+### Added
+
+- **Sample size and power for trial designs** (roadmap item 1): equivalence, equality, non-inferiority and
+  superiority for two proportions or two means (`epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`,
+  `epiSssupc`, after epiR), the exact power of McNemar's test (`powerPaired2x2`, after exact2x2), survival with
+  Freedman's method (`ssizeCT`, `powerCT`) and Schoenfeld's and Latouche's (`ssizeEpi`, `powerEpi`, `numDEpi`, after
+  powerSurvEpi's `.default` methods), and Simon's two-stage Phase II designs (`ph2simon`, after clinfun). Where epiR
+  or exact2x2 is wrong (negative equivalence power, an allocation ratio left out, internal errors, inexact exact
+  power), rStats.js uses the correct value: see docs/differences-from-r.md.
+
 ### Fixed
 
 - **Gray's test at tied failure times** (`cuminc`): the variance now matches cmprsk where failures are tied. Two

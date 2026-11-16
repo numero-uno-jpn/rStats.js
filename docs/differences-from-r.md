@@ -1641,3 +1641,30 @@ By default rStats.js returns what R returns;
 - **`survreg` score coordinates:** rStats.js reports the analytic likelihood gradient in the original design-matrix coordinates `(β, log(scale))`, as defined in `oracle/survreg-behaviour.md` §3. The `score` field in R fixtures does not match that coordinate gradient for some non-converged fits; rStats.js validates its score against finite differences of its own log-likelihood instead of copying those R values.
 - **`survregPredict` newdata offsets:** rStats.js applies `newOffset` to the new linear predictor as specified by `η = Xβ + offset`. This differs from the R fixture's newdata predictions for the offset model; tests verify the additive effect on `lp`/`uquantile` and the corresponding `exp(newOffset)` multiplier on log-time response/quantiles.
 - **Separated one-event `survreg` fits:** in the one-event fixtures, continued iterations can drive the information matrix toward rank deficiency and make individual coefficients iteration-path dependent. Tests therefore validate the likelihood and analytic score rather than requiring unstable coefficient-by-coefficient equality with R.
+
+## Sample size and power for trial designs
+
+The references are epiR 3.0.0, exact2x2 1.7.0, powerSurvEpi 0.1.5 and clinfun 1.1.6; the details are in
+[oracle/samplesize-behaviour.md](../oracle/samplesize-behaviour.md) ("rStats.js's choices").
+
+- **Equivalence power (`epiSsequb`, `epiSsequc`):** epiR's power can be negative (`epi.ssequc(0.3, 0.3, sigma = 0.25,
+  delta = 0.05, n = 40)` gives -0.666, and many small samples) and, for proportions, does not follow the formula of its means version.
+  rStats.js returns the probability that both one-sided tests reject, in the normal approximation, floored at 0. The
+  sample size keeps epiR's formula (with $z_{1-(1-power)/2}$, which matches R), so the two are not exact inverses.
+- **Equality sample size for proportions with unequal allocation (`epiSsequb`, `type: "equality"`):** epiR leaves the
+  treatment group's size at the equal-allocation value and divides the control group's by `r`; rStats.js puts the
+  allocation ratio into the variance as in the other designs.
+- **Equality power for means (`epiSsequc`, `type: "equality"`):** epiR stops with an internal error
+  (`object 'n.treat' not found`); rStats.js returns the two-sided power.
+- **Superiority power for proportions with unequal allocation (`epiSssupb`):** epiR's value follows no formula found
+  from its outputs; rStats.js uses the normal formula with the two groups' binomial variances (the same as epiR's for
+  means, and as epiR's for proportions when `r = 1`).
+- **epiR's internal errors at `power` 0 or 1** (`object 'rval' not found`) are a `RangeError` with a message of
+  rStats.js's.
+- **`powerPaired2x2` with `errbound = 0`:** exact2x2's value is not the exact power (for `pb = 0.5`, `pc = 0.3`,
+  `npairs = 40` it is 0.2266969, 6.4e-7 below the exact 0.2266975378, which a rational computation confirms).
+  rStats.js computes it exactly. A positive `errbound` leaves out the tails of the number of discordant pairs, as in
+  exact2x2, and rStats.js's value is within `errbound` of R's.
+- **`powerPaired2x2` with `sigLevel = 1`:** where the conditional tail probability is exactly 1/2, exact2x2's value
+  matches neither the inclusive nor the exclusive rejection rule; rStats.js rejects when the tail is at most
+  `sigLevel / 2` (0.9115873521 for the example above, where R gives 0.8826434).
