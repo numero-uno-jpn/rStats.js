@@ -399,7 +399,7 @@ export interface SurvivalOptions { alpha?: number; }
  * @category Effect sizes and power
  */
 export interface SSizeCTResult { nE: number; nC: number; }
-/** Freedman clinical-trial power. Equivalent to `powerSurvEpi::powerCT()` in R.
+/** Freedman clinical-trial power. Equivalent to `powerSurvEpi::powerCT.default()` in R.
  * @param nE Experimental-group sample size.
  * @param nC Control-group sample size.
  * @param pE Experimental-group event probability.
@@ -423,7 +423,7 @@ export function powerCT(nE: number, nC: number, pE: number, pC: number, RR: numb
   const m = nE * pE + nC * pC;
   return phi(Math.sqrt(k * m) * Math.abs(RR - 1) / (k * RR + 1) - z(1 - alpha / 2));
 }
-/** Freedman clinical-trial sample size. Equivalent to `powerSurvEpi::ssizeCT()` in R.
+/** Freedman clinical-trial sample size. Equivalent to `powerSurvEpi::ssizeCT.default()` in R.
  * @param power Target power.
  * @param k Experimental/control allocation ratio.
  * @param pE Experimental-group event probability.
@@ -449,7 +449,7 @@ export function ssizeCT(power: number, k: number, pE: number, pC: number, RR: nu
   const den = k*pE+pC;
   return { nE: Math.ceil(m*k/den), nC: Math.ceil(m/den) };
 }
-/** Schoenfeld/Latouche Cox-model power. Equivalent to `powerSurvEpi::powerEpi()` in R.
+/** Schoenfeld/Latouche Cox-model power. Equivalent to `powerSurvEpi::powerEpi.default()` in R.
  * @param n Total sample size.
  * @param theta Hazard ratio.
  * @param p Prevalence of the binary covariate.
@@ -472,7 +472,7 @@ export function powerEpi(n: number, theta: number, p: number, psi: number, rho2:
   const info = n * Math.log(theta)**2 * p*(1-p)*psi*(1-rho2);
   return phi(Math.sqrt(info)-z(1-alpha/2));
 }
-/** Schoenfeld/Latouche total sample size. Equivalent to `powerSurvEpi::ssizeEpi()` in R.
+/** Schoenfeld/Latouche total sample size. Equivalent to `powerSurvEpi::ssizeEpi.default()` in R.
  * @param power Target power.
  * @param theta Hazard ratio.
  * @param p Prevalence of the binary covariate.
@@ -496,7 +496,7 @@ export function ssizeEpi(power: number, theta: number, p: number, psi: number, r
   const den = Math.log(theta)**2*p*(1-p)*psi*(1-rho2);
   return Math.ceil((z(1-alpha/2)+z(power))**2/den);
 }
-/** Schoenfeld/Latouche required event count. Equivalent to `powerSurvEpi::numDEpi()` in R.
+/** Schoenfeld/Latouche required event count. Equivalent to `powerSurvEpi::numDEpi.default()` in R.
  * @param power Target power.
  * @param theta Hazard ratio.
  * @param p Prevalence of the binary covariate.
