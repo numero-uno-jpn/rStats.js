@@ -169,11 +169,11 @@ export function cuminc(
   const cencodeValue = statusValues[statusValues.length - 1]!;
   const causes = cs.labels.filter((x) => x !== cencodeValue);
   if (causes.length === 0) throw new Error("there are no events of any cause");
-  const rows: CompetingRow[] = keep.map((i) => ({
+  const rows: CompetingRow[] = keep.map((i, j) => ({
     time: time[i]!,
-    status: statusValues[keep.indexOf(i)]!,
-    group: group === undefined ? 0 : gs.index.get(groupValues[keep.indexOf(i)]!)!,
-    strata: strata === undefined ? 0 : ss.index.get(strataValues[keep.indexOf(i)]!)!,
+    status: statusValues[j]!,
+    group: group === undefined ? 0 : gs.index.get(groupValues[j]!)!,
+    strata: strata === undefined ? 0 : ss.index.get(strataValues[j]!)!,
     source: i,
   })).sort((a, b) => a.time - b.time);
   const curves: CumincCurve[] = [];
