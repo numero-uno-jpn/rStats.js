@@ -362,3 +362,27 @@ export {
 } from "../models/competingRisks.js";
 
 export { survreg, survregPredict, survregResiduals, type SurvregDistribution, type SurvregType, type SurvregControl, type SurvregOptions, type SurvregResult, type SurvregPredictOptions, type SurvregPredictionResult, type SurvregResidualsOptions } from "../models/survreg.js";
+
+export {
+  epiSsequb,
+  epiSsequc,
+  epiSsninfb,
+  epiSsninfc,
+  epiSssupb,
+  epiSssupc,
+  powerPaired2x2,
+  ssizeCT,
+  powerCT,
+  ssizeEpi,
+  powerEpi,
+  numDEpi,
+  ph2simon,
+  type EpiOptions,
+  type EpiResult,
+  type PowerPaired2x2Options,
+  type PowerPaired2x2Result,
+  type SurvivalOptions,
+  type SSizeCTResult,
+  type SimonRow,
+  type SimonDesignResult,
+} from "../htest/sampleSize.js";
