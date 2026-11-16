@@ -109,11 +109,11 @@ describe("meta-analysis intervals and prediction",()=>{
           const got=confintRma(fit,{type:c.args.type});
           close(got.random,c.expected.value!.random,`case ${i} intervals`,mismatches);
           for(const key of ["digits","ci.null","lb.sign","ub.sign","tau2.min"])close(got[key as keyof typeof got],c.expected.value![key],`case ${i} ${key}`,mismatches);
-          if(JSON.stringify(got.warnings??[])!==JSON.stringify(c.expected.warnings??[]))mismatches.push(`case ${i} warnings differ`);
         }else{
           const got=predictRma(fit,{...(c.args.newmods===undefined?{}:{newmods:c.args.newmods.map(n)}),...(c.args.predtype===undefined?{}:{predtype:c.args.predtype})});
           for(const key of ["pred","se","ci.lb","ci.ub","pi.lb","pi.ub"])close(got[key as keyof typeof got],n(c.expected.value![key]),`case ${i} ${key}`,mismatches);
         }
+        if(JSON.stringify(got.warnings??[])!==JSON.stringify(c.expected.warnings??[]))mismatches.push(`case ${i} warnings differ`);
       }catch(e){mismatches.push(`case ${i}: ${e instanceof Error?e.message:String(e)}`);}
     });
     expect(mismatches).toEqual([]);
