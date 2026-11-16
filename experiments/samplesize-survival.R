@@ -1,0 +1,34 @@
+# issue: 527
+# Public powerSurvEpi 0.1.5 calls and documented data only; no package source inspection.
+suppressPackageStartupMessages(library(powerSurvEpi))
+suppressPackageStartupMessages(library(survival))
+suppressPackageStartupMessages(library(jsonlite))
+probe <- function(id, f) {
+  w <- character()
+  value <- tryCatch(withCallingHandlers(f(), warning=function(x) {
+    w <<- c(w, conditionMessage(x)); invokeRestart("muffleWarning")
+  }), error=function(x) list(error=conditionMessage(x)))
+  cat(jsonlite::toJSON(list(id=id, value=value, warnings=unique(w)),
+    auto_unbox=TRUE, digits=NA, null="null", na="string", force=TRUE), "\n", sep="")
+}
+cat("powerSurvEpi=", as.character(packageVersion("powerSurvEpi")), "\n", sep="")
+probe("freedman-power", function() powerCT.default(nE=200,nC=200,pE=.3707,pC=.4890,RR=.7,alpha=.05))
+probe("freedman-power-unequal", function() powerCT.default(nE=240,nC=120,pE=.3707,pC=.4890,RR=.7,alpha=.05))
+probe("freedman-power-null", function() powerCT.default(nE=200,nC=200,pE=.3707,pC=.4890,RR=1,alpha=.05))
+probe("freedman-power-small-alpha", function() powerCT.default(nE=200,nC=200,pE=.3707,pC=.4890,RR=.7,alpha=1e-6))
+probe("freedman-size", function() ssizeCT.default(power=.8,k=1,pE=.3707,pC=.4890,RR=.7,alpha=.05))
+probe("freedman-size-unequal", function() ssizeCT.default(power=.8,k=2,pE=.3707,pC=.4890,RR=.7,alpha=.05))
+probe("freedman-size-near-null", function() ssizeCT.default(power=.8,k=1,pE=.5,pC=.5,RR=1.000001,alpha=.05))
+probe("freedman-size-power-near-one", function() ssizeCT.default(power=.999999,k=1,pE=.3707,pC=.4890,RR=.7,alpha=.05))
+probe("schoenfeld-latouche-power", function() powerEpi.default(n=139,theta=2,p=.39,psi=.505,rho2=.132^2,alpha=.05))
+probe("schoenfeld-latouche-size", function() ssizeEpi.default(power=.8,theta=2,p=.39,psi=.505,rho2=.132^2,alpha=.05))
+probe("schoenfeld-latouche-deaths", function() numDEpi.default(power=.8,theta=2,p=.39,rho2=.132^2,alpha=.05))
+probe("schoenfeld-randomized", function() ssizeEpi.default(power=.8,theta=2,p=.5,psi=.7,rho2=0,alpha=.05))
+probe("schoenfeld-null-hr", function() ssizeEpi.default(power=.8,theta=1,p=.39,psi=.505,rho2=.132^2,alpha=.05))
+probe("schoenfeld-p-boundary", function() ssizeEpi.default(power=.8,theta=2,p=0,psi=.505,rho2=0,alpha=.05))
+probe("schoenfeld-rho-boundary", function() ssizeEpi.default(power=.8,theta=2,p=.39,psi=.505,rho2=1,alpha=.05))
+probe("schoenfeld-power-zero", function() ssizeEpi.default(power=0,theta=2,p=.39,psi=.505,rho2=.132^2,alpha=.05))
+probe("schoenfeld-power-one", function() ssizeEpi.default(power=1,theta=2,p=.39,psi=.505,rho2=.132^2,alpha=.05))
+data(Oph, package="powerSurvEpi")
+probe("freedman-pilot-power", function() powerCT(formula=survival::Surv(times,status) ~ group,dat=Oph,nE=200,nC=200,RR=.7,alpha=.05))
+probe("freedman-pilot-size", function() ssizeCT(formula=survival::Surv(times,status) ~ group,dat=Oph,power=.8,k=1,RR=.7,alpha=.05))
