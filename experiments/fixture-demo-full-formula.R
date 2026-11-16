@@ -70,3 +70,5 @@ run_case("case32",c(0.5,0.6,1,2,3,4,5,6,7,8,9,10),c(0,0,1,2,1,0,1,2,1,1,0,1),c("
 run_case("demo",c(1,2,3,4,5,6,2,3,4,5,6.5,7),
  c(1,0,2,1,0,1,0,1,2,0,1,0),
  rep(c("A","B"),each=6),0,c(1,2),c(0.7292720972825765,0.012310108268851854))
+
+# Re-run after correcting the tied covariance derivation and scale.
