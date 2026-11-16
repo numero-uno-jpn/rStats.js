@@ -221,5 +221,5 @@ describe("sample size and power",()=>{
         expect(typeII<=n(a.ep2)+1e-12,`Simon type-II constraint at n=${row.n}`).toBe(true);
       }
     }
-  });;
+  });
 });
