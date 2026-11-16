@@ -407,7 +407,7 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
     const l=target(1-alpha/2),u=root(ncp=>pchisq(base.qe,df,{ncp})-alpha/2,0,Math.max(1,base.qe*8),1e-10);
     lo=Math.max(0,l/C);hi=u/C;
   } else {
-    const cutoff=qchisq(level,1);
+    const cutoff=qchisq(level/100,1);
     const ll=(t:number)=>weightedFit(object.yi,object.vi,object.mods,t).logLik;
     const target=(t:number)=>2*(fit.logLik-ll(t))-cutoff;
     hi=upperRoot(t=>-target(t),Math.max(object.tau2*2,1e-8));
