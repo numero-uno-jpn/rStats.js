@@ -22,7 +22,7 @@ variance_stat <- function(ftime,fstatus,group,cause,rho) {
     D<-matrix(0,K-1,K)
     for(k in 1:(K-1)) D[k,]<-L*h[k]*((1:K==k)-p)
     saved[[j]]<-list(h=h,Y=Y,D=D,dF0=dF0,dF2=dF2,q=q,dGamma=dGamma,
-                     L=L,p=p,H=H,d1=d1)
+                     L=L,p=p,H=H,d1=d1,N2=N2)
     Fk<-Fk+ifelse(Y>0,Sminus*N1/Y,0); S<-Safter; G0<-Gafter
   }
   m<-length(saved); future<-matrix(0,K-1,K); Sigma<-matrix(0,K-1,K-1)
@@ -42,6 +42,9 @@ variance_stat <- function(ftime,fstatus,group,cause,rho) {
       Aown<-W%*%diag(cur$p)%*%t(W)
       Bown<-(sum(cur$Y)-1)/cur$H*(W%*%diag(Bweights)%*%t(W))
       Sigma<-Sigma-cur$L^2*cur$d1*(cur$d1-1)/(sum(cur$Y)-1)*Bown
+    for(r in 1:K) if(cur$N2[r]>1 && cur$Y[r]>1 && cur$h[r]>0) {
+      Sigma<-Sigma-tcrossprod(bb[,r])*cur$dF2[r]/cur$h[r]*(cur$N2[r]-1)/(cur$Y[r]-1)
+    }
     }
     future<-future+cur$D*cur$dGamma
   }
