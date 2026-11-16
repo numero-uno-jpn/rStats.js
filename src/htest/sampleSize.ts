@@ -124,18 +124,24 @@ function epi(
   const zPower = equality || kind !== "equivalence" ? z(power ?? 0.8) : z(1 - (1 - (power ?? 0.8)) / 2);
   let nTreat: number;
   let nControl: number;
+  let nTreatUnrounded: number;
+  let nControlUnrounded: number;
   let actualPower: number;
   if (n === null || n === undefined) {
     if (E === 0) {
-      nTreat = Infinity;
-      nControl = Infinity;
+      nTreatUnrounded = Infinity;
+      nControlUnrounded = Infinity;
     } else {
-      nControl = ((critical + zPower) ** 2 * (vt / r + vc)) / (E * E);
-      nTreat = r * nControl;
+      nControlUnrounded = ((critical + zPower) ** 2 * (vt / r + vc)) / (E * E);
+      nTreatUnrounded = r * nControlUnrounded;
     }
+    nTreat = nfractional ? nTreatUnrounded : Math.ceil(nTreatUnrounded);
+    nControl = nfractional ? nControlUnrounded : Math.ceil(nControlUnrounded);
     actualPower = power!;
   } else {
-    [nTreat, nControl] = splitN(n, r);
+    [nTreatUnrounded, nControlUnrounded] = splitN(n, r);
+    nTreat = nfractional ? nTreatUnrounded : Math.ceil(nTreatUnrounded);
+    nControl = nfractional ? nControlUnrounded : Math.ceil(nControlUnrounded);
     const se = Math.sqrt(vt / nTreat + vc / nControl);
     if (kind === "equivalence" && !equality) {
       // User-selected TOST probability: the intersection of the two one-sided rejection events.
@@ -149,19 +155,13 @@ function epi(
       actualPower = phi(e - critical) + phi(-e - critical);
     }
   }
-  const nTreatExact = nTreat;
-  const nControlExact = nControl;
-  if (!nfractional) {
-    nTreat = Math.ceil(nTreat);
-    nControl = Math.ceil(nControl);
-  }
   const result: EpiResult = {
     nTotal: nTreat + nControl,
     nTreat,
     nControl,
-    nTotalUnrounded: nTreatExact + nControlExact,
-    nTreatUnrounded: nTreatExact,
-    nControlUnrounded: nControlExact,
+    nTotalUnrounded: nTreatUnrounded + nControlUnrounded,
+    nTreatUnrounded,
+    nControlUnrounded,
     power: actualPower,
     ...(margin === undefined ? {} : { delta: margin }),
     warnings: [],
