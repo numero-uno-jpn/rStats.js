@@ -392,5 +392,6 @@ export {
   escalc, rma, confintRma, predictRma, regtest,
   type EscalcMeasure, type EscalcOptions, type EscalcResult,
   type MetaMethod, type MetaTest, type RmaControl, type RmaOptions, type RmaResult,
-  type ConfintRmaOptions, type PredictRmaOptions, type RegtestOptions,\n  type ModeratorMatrix, type NumericMatrix,
+  type ConfintRmaOptions, type PredictRmaOptions, type RegtestOptions,
+  type ModeratorMatrix, type NumericMatrix,
 } from "../models/metaAnalysis.js";
