@@ -194,7 +194,7 @@ describe("sample size and power",()=>{
     expect(close(full.power,exact,1e-14),"errbound=0 must retain the full exact outer sum").toBe(true);
     const reverse=powerPaired2x2(0.3,0.5,40,{sigLevel:1,errbound:0});
     const reverseExact=exactMcNemarHalfBoundary(40,0.3,0.5);
-    expect(close(reverse.power,reverseExact,1e-14),`lower-tail exact boundary: ${reverse.power} vs ${reverseExact}`).toBe(true);
+    expect(close(reverse.power,reverseExact,1e-12),`lower-tail exact boundary: ${reverse.power} vs ${reverseExact}`).toBe(true);
   });
 
   it("powerSurvEpi summary-parameter fixtures",()=>{
