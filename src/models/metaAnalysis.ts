@@ -275,7 +275,7 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
     const m=mods as ModeratorMatrix;
     if(m.rows!==undefined){
       const first=m.rows[0] as unknown;
-      if(first!==undefined&&typeof first==="object"&&!Array.isArray(first)){
+      if(first!==undefined&&first!==null&&typeof first==="object"&&!Array.isArray(first)){
         const keys=typeof m.colNames==="string"?[m.colNames]:m.colNames===undefined||m.colNames===null?Object.keys(first):Array.from(m.colNames);
         rows=m.rows.map(r=>keys.map(name=>Number((r as unknown as Record<string,unknown>)[name])));
         names=keys.map(n=>n==="(Intercept)"?"intrcpt":n);explicitNames=true;rawModeratorCount=keys.length;
@@ -295,7 +295,7 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
   if(rows[0]!.length>k) throw new Error("Number of parameters to be estimated is larger than the number of observations.");
   const keep=independentColumnIndices(rows),dropped=keep.length<rows[0]!.length;
   if(dropped&&!explicitNames&&rawModeratorCount>0){
-    for(let j=0;j<keep.length;j++)if(keep[j]!==0||!intercept){names[keep[j]]="";break;}
+    for(let j=0;j<keep.length;j++)if(keep[j]!==0||!intercept){names[keep[j]!]="";break;}
   }
   return {x:rows.map(r=>keep.map(j=>r[j]!)),names:keep.map(j=>names[j]??""),warnings:keep.length<rows[0]!.length?["Redundant predictors dropped from the model."]:[]};
 }
