@@ -155,3 +155,5 @@ run_one("k06_two_strata",rbind(d1,d2),TRUE)
 d3<-make_stratum(c(9,7,8),c(3,2,1),"S1")
 d4<-make_stratum(c(8,10,7),c(1,3,2),"S2")
 run_one("k07_two_strata_asymmetric",rbind(d3,d4),TRUE)
+
+# Re-run after correcting the tied covariance derivation and scale.
