@@ -248,7 +248,7 @@ function independentColumnIndices(rows:number[][]):number[] {
   }
   return keep;
 }
-function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:DataFrame):{x:number[][];names:string[]} {
+function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:DataFrame):{x:number[][];names:string[];warnings:string[]} {
   let rows:number[][],names:string[]=[],explicitNames=false,rawModeratorCount=0;
   if(typeof mods==="string"){
     if(data===undefined) throw new TypeError("data is required when mods is a formula");
@@ -258,7 +258,7 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
     if(d.frame.rows.length!==k) throw new RangeError("variable lengths differ between yi and mods");
     if(rows[0]!.length>k) throw new Error("Number of parameters to be estimated is larger than the number of observations.");
     const keep=independentColumnIndices(rows);
-    return {x:rows.map(r=>keep.map(j=>r[j]!)),names:keep.map(j=>names[j]??"")};
+    return {x:rows.map(r=>keep.map(j=>r[j]!)),names:keep.map(j=>names[j]??""),warnings:keep.length<rows[0]!.length?["Redundant predictors dropped from the model."]:[]};
   }else if(mods===undefined){rows=Array.from({length:k},()=>[]);}
   else if(Array.isArray(mods)){
     if(mods.length===0) rows=Array.from({length:k},()=>[]);
@@ -291,7 +291,7 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
   if(dropped&&!explicitNames&&rawModeratorCount>0){
     for(let j=0;j<keep.length;j++)if(keep[j]!==0||!intercept){names[keep[j]]="";break;}
   }
-  return {x:rows.map(r=>keep.map(j=>r[j]!)),names:keep.map(j=>names[j]??"")};
+  return {x:rows.map(r=>keep.map(j=>r[j]!)),names:keep.map(j=>names[j]??""),warnings:keep.length<rows[0]!.length?["Redundant predictors dropped from the model."]:[]};
 }
 
 /**
@@ -415,7 +415,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   const info=tau2StandardError(y,v,X,method,tau2,fit,baseFit);
   return reported("rma",{beta:{dim:[p,1],rowNames:p===1?(built.names[0]??"intrcpt"):built.names,colNames:null,rows:fit.beta.map(z=>[z])},se:scalar(se),zval:scalar(stat),pval:scalar(pv),
     "ci.lb":scalar(lower),"ci.ub":scalar(upper),tau2,"se.tau2":info,QE:baseFit.qe,QEp:df===0?1:pchisq(baseFit.qe,df,{lowerTail:false}),
-    QM:qm,QMp:qmp,R2,p,m,I2,H2,k,yi:y,vi:v,mods:X,intercept:hasIntercept,method,test,level,warnings:[],covariance,tau2Null});
+    QM:qm,QMp:qmp,R2,p,m,I2,H2,k,yi:y,vi:v,mods:X,intercept:hasIntercept,method,test,level,warnings:built.warnings,covariance,tau2Null});
 }
 
 /** Compute heterogeneity confidence intervals. Equivalent to R's `metafor::confint.rma()`.
