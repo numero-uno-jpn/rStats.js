@@ -36,6 +36,8 @@ export interface EpiOptions {
   n?: number | null;
   /** Target power; null/omitted when solving for power. */
   power?: number | null;
+  /** Equivalence or non-inferiority margin. */
+  delta?: number;
   /** Treatment/control allocation ratio. Default 1. */
   r?: number;
   /** Equivalence or equality. Default "equivalence". */
@@ -72,6 +74,7 @@ function epi(
 ): EpiResult {
   checkOptions(options, EPI_KEYS, `epi${kind}${measure}`);
   const { n, power } = options;
+  delta = delta ?? options.delta;
   const r = options.r ?? 1;
   const alpha = options.alpha ?? DEFAULT_ALPHA;
   const nfractional = options.nfractional ?? false;
@@ -130,7 +133,7 @@ function epi(
     } else if (kind === "noninferiority") {
       actualPower = normalPower(D + delta!, se, z(1 - alpha));
     } else {
-      const e = (D - delta!) / se;
+      const e = Math.abs(D - delta!) / se;
       actualPower = sides === 1 ? phi(e - critical) : phi(e - critical) + phi(-e - critical);
     }
   }
@@ -154,30 +157,28 @@ function epi(
   return result;
 }
 
-/** Equivalence/equality sample size or power for two proportions. Equivalent to `epiR::epi.ssequb()`. */
+/** Equivalence/equality sample size or power for two proportions. Equivalent to `epiR::epi.ssequb()` in R. */
 export function epiSsequb(treat: number, control: number, options: EpiOptions = {}): EpiResult {
-  return reported("epiSsequb", epi("equivalence", "binary", treat, control, undefined, options.type === "equality" ? undefined : 0, options));
+  return reported("epiSsequb", epi("equivalence", "binary", treat, control, undefined, options.type === "equality" ? undefined : options.delta, options));
 }
-/** Equivalence/equality sample size or power for two means. Equivalent to `epiR::epi.ssequc()`. */
-export function epiSsequc(treat: number, control: number, sigma: number, options: EpiOptions & { delta?: number } = {}): EpiResult {
-  const { delta, ...rest } = options;
-  const opts = { ...rest, delta };
-  const out = epi("equivalence", "continuous", treat, control, sigma, delta, opts as EpiOptions);
+/** Equivalence/equality sample size or power for two means. Equivalent to `epiR::epi.ssequc()` in R. */
+export function epiSsequc(treat: number, control: number, sigma: number, options: EpiOptions = {}): EpiResult {
+  const out = epi("equivalence", "continuous", treat, control, sigma, options.delta, options);
   return reported("epiSsequc", out);
 }
-/** Non-inferiority sample size or power for two proportions. Equivalent to `epiR::epi.ssninfb()`. */
+/** Non-inferiority sample size or power for two proportions. Equivalent to `epiR::epi.ssninfb()` in R. */
 export function epiSsninfb(treat: number, control: number, delta: number, options: EpiOptions = {}): EpiResult {
   return reported("epiSsninfb", epi("noninferiority", "binary", treat, control, undefined, delta, options));
 }
-/** Non-inferiority sample size or power for two means. Equivalent to `epiR::epi.ssninfc()`. */
+/** Non-inferiority sample size or power for two means. Equivalent to `epiR::epi.ssninfc()` in R. */
 export function epiSsninfc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {}): EpiResult {
   return reported("epiSsninfc", epi("noninferiority", "continuous", treat, control, sigma, delta, options));
 }
-/** Superiority sample size or power for two proportions. Equivalent to `epiR::epi.sssupb()`. */
+/** Superiority sample size or power for two proportions. Equivalent to `epiR::epi.sssupb()` in R. */
 export function epiSssupb(treat: number, control: number, delta: number, options: EpiOptions = {}): EpiResult {
   return reported("epiSssupb", epi("superiority", "binary", treat, control, undefined, delta, options));
 }
-/** Superiority sample size or power for two means. Equivalent to `epiR::epi.sssupc()`. */
+/** Superiority sample size or power for two means. Equivalent to `epiR::epi.sssupc()` in R. */
 export function epiSssupc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {}): EpiResult {
   return reported("epiSssupc", epi("superiority", "continuous", treat, control, sigma, delta, options));
 }
@@ -267,9 +268,9 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
 }
 
 export interface SurvivalOptions { alpha?: number; }
-/** Freedman clinical-trial sample size with equal or unequal allocation. Equivalent to `powerSurvEpi::ssizeCT()`. */
+/** Freedman clinical-trial sample size with equal or unequal allocation. Equivalent to `powerSurvEpi::ssizeCT()` in R. */
 export interface SSizeCTResult { nE: number; nC: number; }
-/** Freedman clinical-trial power. Equivalent to `powerSurvEpi::powerCT()`. */
+/** Freedman clinical-trial power. Equivalent to `powerSurvEpi::powerCT()` in R. */
 export function powerCT(nE: number, nC: number, pE: number, pC: number, RR: number, options: SurvivalOptions = {}): number {
   checkOptions(options, SURVIVAL_KEYS, "powerCT");
   const alpha = options.alpha ?? DEFAULT_ALPHA; checkAlpha(alpha);
@@ -293,7 +294,7 @@ export function ssizeCT(power: number, k: number, pE: number, pC: number, RR: nu
   const den = k*pE+pC;
   return { nE: Math.ceil(m*k/den), nC: Math.ceil(m/den) };
 }
-/** Schoenfeld/Latouche Cox-model power. Equivalent to `powerSurvEpi::powerEpi()`. */
+/** Schoenfeld/Latouche Cox-model power. Equivalent to `powerSurvEpi::powerEpi()` in R. */
 export function powerEpi(n: number, theta: number, p: number, psi: number, rho2: number, options: SurvivalOptions = {}): number {
   checkOptions(options, SURVIVAL_KEYS, "powerEpi");
   const alpha=options.alpha??DEFAULT_ALPHA; checkAlpha(alpha);
@@ -303,7 +304,7 @@ export function powerEpi(n: number, theta: number, p: number, psi: number, rho2:
   const info = n * Math.log(theta)**2 * p*(1-p)*psi*(1-rho2);
   return phi(Math.sqrt(info)-z(1-alpha/2));
 }
-/** Schoenfeld/Latouche total sample size. Equivalent to `powerSurvEpi::ssizeEpi()`. */
+/** Schoenfeld/Latouche total sample size. Equivalent to `powerSurvEpi::ssizeEpi()` in R. */
 export function ssizeEpi(power: number, theta: number, p: number, psi: number, rho2: number, options: SurvivalOptions = {}): number {
   checkOptions(options, SURVIVAL_KEYS, "ssizeEpi");
   const alpha=options.alpha??DEFAULT_ALPHA; checkAlpha(alpha);
@@ -314,7 +315,7 @@ export function ssizeEpi(power: number, theta: number, p: number, psi: number, r
   const den = Math.log(theta)**2*p*(1-p)*psi*(1-rho2);
   return Math.ceil((z(1-alpha/2)+z(power))**2/den);
 }
-/** Schoenfeld/Latouche required event count. Equivalent to `powerSurvEpi::numDEpi()`. */
+/** Schoenfeld/Latouche required event count. Equivalent to `powerSurvEpi::numDEpi()` in R. */
 export function numDEpi(power: number, theta: number, p: number, rho2: number, options: SurvivalOptions = {}): number {
   checkOptions(options, SURVIVAL_KEYS, "numDEpi");
   const alpha=options.alpha??DEFAULT_ALPHA; checkAlpha(alpha);
@@ -338,7 +339,7 @@ function designProb(n1:number,n2:number,r1:number,r:number,p:number):[number,num
   }
   return [alpha,beta];
 }
-/** Enumerates Simon's two-stage Phase II designs. Equivalent to `clinfun::ph2simon()`. */
+/** Enumerates Simon's two-stage Phase II designs. Equivalent to `clinfun::ph2simon()` in R. */
 export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nmax?:number} = {}):SimonDesignResult {
   checkOptions(options,SIMON_KEYS,"ph2simon");
   const nmax=options.nmax??100;
