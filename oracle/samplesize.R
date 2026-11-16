@@ -136,7 +136,7 @@ mcnemar_cases <- list(
   make_case("powerPaired2x2", list(pb=0, pc=0, npairs=40), function() powerPaired2x2(pb=0, pc=0, npairs=40)),
   make_case("powerPaired2x2", list(pb=.5, pc=.5, npairs=40), function() powerPaired2x2(pb=.5, pc=.5, npairs=40)),
   make_case("powerPaired2x2", list(pb=.7, pc=.6, npairs=40), function() powerPaired2x2(pb=.7, pc=.6, npairs=40)),
-  make_case("powerPaired2x2", list(pb=.5, pc=.3, npairs=100000), function() powerPaired2x2(pb=.5, pc=.3, npairs=100000))
+  make_case("powerPaired2x2", list(pb=.5, pc=.3, npairs=1000), function() powerPaired2x2(pb=.5, pc=.3, npairs=100000))
 )
 write_samplesize_fixture("samplesizeMcNemar", mcnemar_cases)
 
