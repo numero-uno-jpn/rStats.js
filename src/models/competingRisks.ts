@@ -123,7 +123,7 @@ function validateVectorLengths(time: readonly number[], status: readonly GroupLa
 /**
  * Cumulative incidence functions and Gray's tests for competing risks. Equivalent to `cmprsk::cuminc()` in R.
  * Uses the Aalen-Johansen cumulative-incidence estimator and Gray's weighted test; tied-time
- * variance uses the documented hypergeometric correction.
+ * variance applies the target-cause and competing-cause finite-sample corrections.
  *
  * @param time Follow-up times (finite and non-negative).
  * @param status Event codes; every code other than `cencode` is a competing event cause.
@@ -169,11 +169,11 @@ export function cuminc(
   const cencodeValue = statusValues[statusValues.length - 1]!;
   const causes = cs.labels.filter((x) => x !== cencodeValue);
   if (causes.length === 0) throw new Error("there are no events of any cause");
-  const rows: CompetingRow[] = keep.map((i) => ({
+  const rows: CompetingRow[] = keep.map((i, j) => ({
     time: time[i]!,
-    status: statusValues[keep.indexOf(i)]!,
-    group: group === undefined ? 0 : gs.index.get(groupValues[keep.indexOf(i)]!)!,
-    strata: strata === undefined ? 0 : ss.index.get(strataValues[keep.indexOf(i)]!)!,
+    status: statusValues[j]!,
+    group: group === undefined ? 0 : gs.index.get(groupValues[j]!)!,
+    strata: strata === undefined ? 0 : ss.index.get(strataValues[j]!)!,
     source: i,
   })).sort((a, b) => a.time - b.time);
   const curves: CumincCurve[] = [];
@@ -242,7 +242,7 @@ export function cuminc(
   return reported("cuminc", { curves, ...(tests === undefined ? {} : { tests }), warnings: warnings.list });
 }
 
-/** Gray's score and covariance, summed over strata; the tied-time own-score term gets the chosen hypergeometric factor. */
+/** Gray's score and covariance, summed over strata, with finite-sample corrections for tied event times. */
 function grayTests(rows: readonly CompetingRow[], groups: readonly GroupLabel[], causes: readonly GroupLabel[],
   nStrata: number, rho: number, cencode: GroupLabel): CumincTest[] {
   const out: CumincTest[] = [];
@@ -302,33 +302,51 @@ function grayTests(rows: readonly CompetingRow[], groups: readonly GroupLabel[],
             restK += d1 * dGamma;
             restP += d2 * dGamma;
           }
-          const qv = e.Safter[g] === 0 ? 0 : e.Gafter / e.Safter[g]!;
-          const ak = dkg + (1 - qv) * restK;
-          const ap = dpg + (1 - qv) * restP;
-          const bk = -qv * restK;
-          const bp = -qv * restP;
+          // qAfter is G(t)/S_r(t), used in a_kr and b_kr (post-event values).
+          const qAfter = e.Safter[g] === 0 ? 0 : e.Gafter / e.Safter[g]!;
+          const ak = dkg + (1 - qAfter) * restK;
+          const ap = dpg + (1 - qAfter) * restP;
+          const bk = -qAfter * restK;
+          const bp = -qAfter * restP;
           const dF2 = e.Y[g] === 0 ? 0 : e.Sbefore[g]! * e.d2[g]! / e.Y[g]!;
-          let aa = ak * ap;
+          const base = (ak * ap * e.dF0 + bk * bp * dF2) / e.h[g]!;
+
           const d1tot = e.d1.reduce((a, b) => a + b, 0);
-          const Ytot = e.Y.reduce((a, b) => a + b, 0);
-          if (d1tot > 1 && Ytot > 1) aa += ((Ytot - d1tot) / (Ytot - 1) - 1) * dkg * dpg;
-          covariance += (aa * e.dF0 + bk * bp * dF2) / e.h[g]!;
+          let targetCauseTieCorrection = 0;
+          if (d1tot > 1 && e.Y[g]! > 0 && e.Sbefore[g]! > 0) {
+            // Empirically determined from public cmprsk::cuminc() output (Issue #525; oracle/competing-behaviour.md §1.6).
+            // This finite-sample tie correction supplements the covariance contribution in Gray (1988), Eq. (2.10).
+            // qTieBefore is 1/S_r(t-), used only by Delta^(1); it is not qAfter above.
+            const qTieBefore = 1 / e.Sbefore[g]!;
+            if (htot > qTieBefore) {
+              targetCauseTieCorrection = (d1tot * (d1tot - 1) / htot) *
+                (e.Y[g]! * qTieBefore * qTieBefore / (htot - qTieBefore)) *
+                (ak * ap / (e.h[g]! * e.h[g]!));
+            }
+          }
+
+          let competingCauseTieCorrection = 0;
+          if (e.d2[g]! > 1 && e.Y[g]! > 1) {
+            // Empirically determined from public cmprsk::cuminc() output (Issue #525; oracle/competing-behaviour.md §1.6).
+            // This within-group finite-sample correction supplements the covariance contribution in Gray (1988), Eq. (2.10).
+            competingCauseTieCorrection = ((e.d2[g]! - 1) / (e.Y[g]! - 1)) *
+              (dF2 / e.h[g]!) * bk * bp;
+          }
+          covariance += base - targetCauseTieCorrection - competingCauseTieCorrection;
         }
         V[k]![kp]! += covariance;
       }
     }
     const df = K - 1;
     let statistic = NaN, pValue = NaN;
-    if (z.every((x) => x === 0)) { statistic = 0; pValue = 1; }
-    else {
-      const sub = V.slice(0, df).map((row) => row.slice(0, df));
-      try {
-        const b = solve(sub, z.slice(0, df), { tol: 1e-12 });
-        statistic = z.slice(0, df).reduce((s, x, i) => s + x * b[i]!, 0);
-        pValue = pchisq(statistic, df, { lowerTail: false });
-      } catch {
-        statistic = NaN; pValue = NaN;
-      }
+    const sub = V.slice(0, df).map((row) => row.slice(0, df));
+    try {
+      // Check covariance invertibility even when the score is zero; a singular quadratic form is undefined.
+      const b = solve(sub, z.slice(0, df), { tol: 1e-12 });
+      statistic = z.slice(0, df).reduce((s, x, i) => s + x * b[i]!, 0);
+      pValue = pchisq(statistic, df, { lowerTail: false });
+    } catch {
+      statistic = NaN; pValue = NaN;
     }
     out.push({ cause: levelText(cause), stat: statistic, df, pValue });
   }
