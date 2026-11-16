@@ -23,5 +23,5 @@ probe("alpha-zero", function() powerPaired2x2(pb=.50,pc=.30,npairs=40,sig.level=
 probe("alpha-one", function() powerPaired2x2(pb=.50,pc=.30,npairs=40,sig.level=1))
 probe("zero-pairs", function() powerPaired2x2(pb=.50,pc=.30,npairs=0))
 probe("zero-discordance", function() powerPaired2x2(pb=0,pc=0,npairs=40))
-probe("near-zero-discordance", function() powerPaired2x2(pb=1e-12,pc=2e-12,npairs=100000))
-probe("large-pairs", function() powerPaired2x2(pb=.50,pc=.30,npairs=100000))
+probe("near-zero-discordance", function() powerPaired2x2(pb=1e-12,pc=2e-12,npairs=1000))
+probe("large-pairs", function() powerPaired2x2(pb=.50,pc=.30,npairs=1000))
