@@ -304,7 +304,7 @@ Public reference documentation (consulted as help pages, not source code):
 
 ## 9. Expanded estimators and meta-regression
 
-The approved scope contains the following eleven values of `method`: `EE`, `FE`, `DL`, `HE`, `HS`, `HSk`, `SJ`, `ML`, `REML`, `EB`, and `PM`. The aliases `CO` and `VC` for HE are not additional approved values. `EE` is equal-effects synthesis; `FE` is fixed-effects synthesis. Both use inverse-sampling-variance weights by default and have `tau2=0). The remaining methods estimate a non-negative between-study (or residual) variance.
+The approved scope contains the following eleven values of `method`: `EE`, `FE`, `DL`, `HE`, `HS`, `HSk`, `SJ`, `ML`, `REML`, `EB`, and `PM`. The aliases `CO` and `VC` for HE are not additional approved values. `EE` is equal-effects synthesis; `FE` is fixed-effects synthesis. Both use inverse-sampling-variance weights by default and have `tau2=0`. The remaining methods estimate a non-negative between-study (or residual) variance.
 
 For any candidate (	au^2), define (w_i(	au^2)=1/(v_i+	au^2)). The pooled estimate for an intercept-only model is
 [
