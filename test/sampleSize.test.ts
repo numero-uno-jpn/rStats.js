@@ -92,7 +92,7 @@ describe("sample size and power",()=>{
         const nt=n(a.n)*n(a.r)/(1+n(a.r)), nc=n(a.n)/(1+n(a.r));
         const se=Math.sqrt(n(a.treat)*(1-n(a.treat))/nt+n(a.control)*(1-n(a.control))/nc);
         const e=Math.abs(n(a.treat)-n(a.control)-n(a.delta))/se, alpha=n(a.alpha), side=n(a["sided.test"]);
-        const expected=side===1?Phi(e-z(1-alpha)):Phi(e-z(1-alpha/side))+Phi(-e-z(1-alpha/side));
+        const expected=Phi(e-z(1-alpha/side))+Phi(-e-z(1-alpha/side));
         expect(close(Number(result.power),expected),reason.supBinary).toBe(true); known.push(i);
       } else {
         for(const [k,v] of Object.entries(val)) {
