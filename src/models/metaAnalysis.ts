@@ -219,7 +219,7 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
   if(method==="PM") {
     let hi=control.tau2Max??Math.max(100,10*raw/k);
     while(qFunction(hi)>0&&hi<Number.MAX_VALUE/4) hi*=2;
-    const tol=control.tol??Math.pow(Number.EPSILON,0.25);
+    const tol=control.tol??1e-12;
     return Math.max(0,root(qFunction,0,hi,tol));
   }
   let tau2=Math.max(0,control.tau2Init??he);
