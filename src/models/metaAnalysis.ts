@@ -145,22 +145,21 @@ function determinantSmall(a:number[][]):number {
 function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,control:RmaControl) {
   const k=y.length,p=X[0]!.length,df=k-p;
   const base=weightedFit(y,v,X,0),q0=base.qe;
-  const wMax=Math.max(...base.w),wn=base.w.map(z=>z/wMax),wSum=wn.reduce((s,z)=>s+z,0);
-  const c=wMax*(wSum-wn.reduce((s,z)=>s+z*z,0)/wSum);
+  const c=base.traceP2;
   const sumInv=v.reduce((s,z)=>s+1/z,0);
   if(method==="EE"||method==="FE") return 0;
   if(method==="DL") return Math.max(0,(q0-df)/c);
   if(method==="HS") return Math.max(0,(q0-k)/sumInv);
   if(method==="HSk") return Math.max(0,((k/(k-1))*q0-k)/sumInv);
-  const mean=y.reduce((s,z)=>s+z,0)/k;
-  const raw=y.reduce((s,z)=>s+(z-mean)**2,0);
-  const he=Math.max(0,(raw-v.reduce((s,z)=>s+z,0)*(df/k))/Math.max(1,df));
+  const unweighted=weightedFit(y,Array(k).fill(1),X,0);
+  const raw=unweighted.residuals.reduce((s,z)=>s+z*z,0);
+  const he=Math.max(0,(raw-v.reduce((s,z,i)=>s+unweighted.P[i]![i]!*z,0))/Math.max(1,df));
   if(method==="HE") return he;
   if(method==="SJ") {
-    const initial=y.reduce((s,z)=>s+(z-mean)**2,0)/k;
+    const initial=he;
+    const fit=weightedFit(y,v,X,initial);
     const a=v.map(z=>initial/(z+initial));
-    const mu=y.reduce((s,z,i)=>s+a[i]!*z,0)/a.reduce((s,z)=>s+z,0);
-    return Math.max(0,a.reduce((s,z,i)=>s+z*(y[i]!-mu)**2,0)/Math.max(1,df));
+    return Math.max(0,a.reduce((s,z,i)=>s+z*fit.residuals[i]!*fit.residuals[i]!,0)/Math.max(1,df));
   }
   const qFunction=(t:number)=>weightedFit(y,v,X,t).qe-df;
   if(method==="EB") {
