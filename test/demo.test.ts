@@ -69,8 +69,7 @@ describe("demo examples", () => {
     // modules of src/entries/ except mixed.ts
     const source = readdirSync(path("src/entries"))
       .map((f) => readFileSync(path(`src/entries/${f}`), "utf8"))
-      .join("
-");
+      .join("\n");
     const exported = [...source.matchAll(/^export \{([^}]*)\}/gm)]
       .flatMap((m) => m[1]!.split(","))
       .map((s) => s.trim())
