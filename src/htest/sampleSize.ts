@@ -355,6 +355,7 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
   const useOne = alternative === "one.sided";
   const massM = binomialMasses(npairs, q);
   let firstM = 0, lastM = npairs;
+  // Treat errbound as a total omitted-probability budget for the two tails of M.
   if (errbound > 0) {
     let tail = 0;
     while (firstM <= npairs && (tail += massM[firstM]!) <= errbound / 2) firstM++;
