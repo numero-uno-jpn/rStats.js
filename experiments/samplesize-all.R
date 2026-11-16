@@ -1,7 +1,7 @@
 # issue: 527
 # Combined public-function probes for the four pinned reference packages; no source inspection.
 suppressPackageStartupMessages(library(epiR))
-suppressPackageStartupMessages(library(exact2x2))
+library(exact2x2)
 suppressPackageStartupMessages(library(clinfun))
 suppressPackageStartupMessages(library(powerSurvEpi))
 suppressPackageStartupMessages(library(survival))
