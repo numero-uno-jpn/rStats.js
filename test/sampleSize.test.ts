@@ -13,6 +13,19 @@ type Fixture = { cases:Case[] };
 const read = (name:string):Fixture => JSON.parse(readFileSync(fileURLToPath(new URL(`./fixtures/${name}.json`,import.meta.url)),"utf8")) as Fixture;
 const n = (v:unknown):number => v==="Inf"?Infinity:v==="-Inf"?-Infinity:v==="NA"||v==="NaN"?NaN:Number(v);
 const close = (a:number,b:number,tol=1e-12):boolean => a===b || (Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=tol*Math.max(Math.abs(b),1e-300));
+function binomialMass(n:number,p:number):number[] {
+  const out=new Array<number>(n+1).fill(0);
+  out[0]=(1-p)**n;
+  for(let k=0;k<n;k++) out[k+1]=out[k]!*((n-k)/(k+1))*(p/(1-p));
+  if(p===0){out.fill(0);out[0]=1;}
+  if(p===1){out.fill(0);out[n]=1;}
+  return out;
+}
+function binomialCdf(mass:readonly number[],k:number):number {
+  let sum=0;
+  for(let i=0;i<=Math.min(k,mass.length-1);i++) sum+=mass[i]!;
+  return sum;
+}
 const z=(p:number):number=>qnorm(p) as number;
 const Phi=(x:number):number=>pnorm(x) as number;
 const reason = {
@@ -178,6 +191,20 @@ describe("sample size and power",()=>{
       expect(r.minimax.n).toBe(r.out[0]!.n);
       expect(r.optimal).toBeDefined();
       expect(r.admissible.length).toBeGreaterThan(0);
+      // Every returned candidate must satisfy both requested error constraints.
+      for(const row of r.out){
+        const n2=row.n-row.n1;
+        const p0First=binomialMass(row.n1,n(a.pu)), p1First=binomialMass(row.n1,n(a.pa));
+        const p0Second=binomialMass(n2,n(a.pu)), p1Second=binomialMass(n2,n(a.pa));
+        let typeI=0, typeII=binomialCdf(p1First,row.r1);
+        for(let x=row.r1+1;x<=row.n1;x++){
+          const remaining=row.r-x;
+          typeI+=p0First[x]!*(1-binomialCdf(p0Second,remaining));
+          typeII+=p1First[x]!*binomialCdf(p1Second,remaining);
+        }
+        expect(typeI<=n(a.ep1)+1e-12, `Simon type-I constraint at n=${row.n}`).toBe(true);
+        expect(typeII<=n(a.ep2)+1e-12, `Simon type-II constraint at n=${row.n}`).toBe(true);
+      }
     }
   });
 });
