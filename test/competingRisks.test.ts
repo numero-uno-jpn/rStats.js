@@ -87,7 +87,6 @@ const cumincFixture = fixture("cuminc");
 const crrFixture = fixture("crr");
 const CUMINC_KNOWN_DIFFERENCES = new Map<number, readonly string[]>([
   [14, ["subset-not-supported"]],
-  ...[17, 18, 19, 20, 21, 22, 32].map((i) => [i, ["gray-tied-time-variance"]] as const),
   [31, ["gray-singular-covariance"]],
   [37, ["naFail-not-supported"]],
   [38, ["negative-time-rejected-by-design"]],
@@ -113,7 +112,6 @@ const CRR_TOLERANCE = new Map<number, number>([
 describe("competing risks", () => {
   it(`cuminc and timepoints match R's fixture (${cumincFixture.r_version})`, () => {
     const mismatches: string[] = [];
-    let knownTiedGray = 0;
     cumincFixture.cases.forEach((c, index) => {
       const a = c.args, e = c.expected;
       const known = CUMINC_KNOWN_DIFFERENCES.get(index) ?? [];
@@ -170,7 +168,6 @@ describe("competing risks", () => {
             }
             return;
           }
-          if (known.includes("gray-tied-time-variance")) { knownTiedGray++; return; }
           compare(mismatches, index, `tests[${j}].statistic`, got.stat, expected.stat);
           // Compare against the accurately evaluated upper tail from the fixture statistic, not R's
           // cancellation-prone pv = 1 - pchisq(stat, df). Keep a separate absolute check against R's pv.
@@ -188,8 +185,46 @@ describe("competing risks", () => {
         compare(mismatches, index, "timepoints.var", got.var, e.timepoints.var);
       }
     });
-    console.log(`cuminc: ${cumincFixture.cases.length} fixture cases; ${knownTiedGray} tied Gray statistics intentionally use the documented approximation`);
+    console.log(`cuminc: ${cumincFixture.cases.length} fixture cases`);
     expect(mismatches).toEqual([]);
+  });
+
+  it("Gray's tied-time variance matches R for the original demo and stratified three-group data", () => {
+    // Original Stage 0 demo: group B has an event at time 6, tied with group A.
+    const demoTime = [1, 2, 3, 4, 5, 6, 2, 3, 4, 5, 6, 7];
+    const demoStatus = [1, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 0];
+    const demoGroup = ["A", "A", "A", "A", "A", "A", "B", "B", "B", "B", "B", "B"];
+    const demo = cuminc(demoTime, demoStatus, { group: demoGroup });
+    expect(demo.tests?.find((x) => x.cause === "1")?.stat).toBeCloseTo(0.7292720972825765, 12);
+    expect(demo.tests?.find((x) => x.cause === "2")?.stat).toBeCloseTo(0.012310108268851854, 12);
+    const rhoReferences = [
+      [0.5, 0.70344737350172382],
+      [1, 0.67587841160933393],
+      [2, 0.62040089915750718],
+    ] as const;
+    for (const [rho, statistic] of rhoReferences) {
+      const weighted = cuminc(demoTime, demoStatus, { group: demoGroup, rho });
+      expect(weighted.tests?.find((x) => x.cause === "1")?.stat).toBeCloseTo(statistic, 12);
+    }
+
+    // R 4.6.2 / cmprsk 2.2.12 reference: three groups, three causes, two strata, rho = 0.7.
+    const fit = cuminc(
+      [1, 2, 2, 3, 4, 5, 1, 2, 3, 3, 4, 5, 1, 2, 3, 4, 4, 5],
+      [2, 1, 2, 0, 3, 0, 0, 1, 3, 2, 0, 1, 1, 2, 0, 3, 1, 0],
+      {
+        group: ["A", "A", "A", "A", "A", "A", "B", "B", "B", "B", "B", "B", "C", "C", "C", "C", "C", "C"],
+        strata: ["s1", "s1", "s1", "s2", "s2", "s2", "s1", "s1", "s1", "s2", "s2", "s2", "s1", "s1", "s1", "s2", "s2", "s2"],
+        rho: 0.7,
+      },
+    );
+    const expected = [
+      ["1", 0.65680026526631585],
+      ["2", 0.74863411423063431],
+      ["3", 0.78506394191122908],
+    ] as const;
+    for (const [cause, statistic] of expected) {
+      expect(fit.tests?.find((x) => x.cause === cause)?.stat).toBeCloseTo(statistic, 12);
+    }
   });
 
   it(`crr matches R's fixture (${crrFixture.r_version})`, () => {
