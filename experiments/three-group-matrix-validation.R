@@ -32,7 +32,7 @@ components <- function(dat,rho) {
     p<-if(H>0)h/H else rep(0,K)
     D<-matrix(0,K-1,K)
     for(k in 1:(K-1)) D[k,]<-L*h[k]*((1:K==k)-p)
-    saved[[j]]<-list(h=h,Y=Y,D=D,dF0=dF0,dF2=dF2,q=q,dGamma=dGamma,L=L,N2=N2)
+    saved[[j]]<-list(h=h,Y=Y,D=D,dF0=dF0,dF2=dF2,q=q,dGamma=dGamma,L=L,N2=N2,d1=d1)
     F1<-F1+ifelse(Y>0,Sminus*N1/Y,0); S<-Safter; G0<-Gafter
   }
   m<-length(saved); future<-matrix(0,K-1,K); Sigma<-matrix(0,K-1,K-1)
@@ -45,7 +45,7 @@ components <- function(dat,rho) {
       Sigma<-Sigma+tcrossprod(aa[,r])*cur$dF0/cur$h[r]+
         tcrossprod(bb[,r])*cur$dF2[r]/cur$h[r]
     }
-    Ytot<-sum(cur$Y); d<-sum(cur$N2)*0+sum(dat$status==1 & dat$time==times[j])
+    Ytot<-sum(cur$Y); d<-cur$d1
     if(d>1 && Ytot>1 && cur$H>0) {
       W<-matrix(0,K-1,K)
       for(r in 1:K) if(cur$L*cur$h[r]>0) W[,r]<-aa[,r]/(cur$L*cur$h[r])
