@@ -95,3 +95,11 @@ RUN install2.r --error --skipinstalled survRM2 cmprsk \
     && Rscript -e 'pk <- c("survRM2", "cmprsk", "survival"); \
                    for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
                    cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'
+
+# Sample size and power for trial designs (roadmap item 1), in a layer of its own: powerSurvEpi (survival: Freedman's
+# and Schoenfeld's methods). epiR (equivalence, non-inferiority, superiority), exact2x2 (McNemar) and clinfun
+# (Simon's two-stage design) are in earlier layers.
+RUN install2.r --error --skipinstalled powerSurvEpi \
+    && Rscript -e 'pk <- c("powerSurvEpi", "epiR", "exact2x2", "clinfun"); \
+                   for (p in pk) suppressPackageStartupMessages(library(p, character.only = TRUE)); \
+                   cat(sprintf("%s %s\n", pk, sapply(pk, function(p) as.character(packageVersion(p)))), sep = "")'

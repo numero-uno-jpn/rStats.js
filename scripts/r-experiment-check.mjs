@@ -17,12 +17,44 @@
 
 import { readFileSync } from "node:fs";
 
-const ALLOWED_PACKAGES = new Set(["cmprsk", "survival", "jsonlite", "stats", "utils", "base"]);
+const ALLOWED_PACKAGES = new Set([
+  "cmprsk", "survival", "epiR", "exact2x2", "clinfun", "powerSurvEpi", "jsonlite", "stats", "utils", "base",
+]);
 
 /** Functions of the reference packages: they may only be called. */
 const REFERENCE_FUNCTIONS = [
   "cuminc", "timepoints", "crr", "predict.crr", "summary.crr", "print.crr", "print.summary.crr", "print.cuminc",
   "plot.cuminc", "plot.predict.crr", "crstm", "cinc", "crrfsv", "crrf", "crrvv", "crrsr", "crrfit",
+  // epiR, exact2x2, clinfun and powerSurvEpi (sample size and power, roadmap item 1): their exported functions
+  "aucVardiTest", "bdrycross.prob", "binomMeld.test", "blaker.exact", "borrControl", "borrOrdering", "borrPreCalc",
+  "borrPvals", "borrTest", "boschloo", "calcTall", "calogrank", "constrMLE.difference", "constrMLE.oddsratio",
+  "constrMLE.ratio", "coxphCPE", "coxphERR", "coxphQuantile", "CPS.ssize", "createR", "deltaAUC", "epi.2by2",
+  "epi.about", "epi.asc", "epi.betabuster", "epi.blcm.paras", "epi.bohning", "epi.ccc", "epi.conf", "epi.convgrid",
+  "epi.cp", "epi.cpresids", "epi.descriptives", "epi.dgamma", "epi.directadj", "epi.dms", "epi.dsl", "epi.edr",
+  "epi.empbayes", "epi.evalue", "epi.fpos", "epi.herdtest", "epi.indirectadj", "epi.insthaz", "epi.interaction",
+  "epi.iref", "epi.iv", "epi.kappa", "epi.ltd", "epi.mbf", "epi.mh", "epi.nomogram", "epi.occc", "epi.offset",
+  "epi.pooled", "epi.popsize", "epi.prcc", "epi.prev", "epi.psi", "epi.realrisk", "epi.RtoBUGS", "epi.smd", "epi.smr",
+  "epi.sscc", "epi.ssclus1estb", "epi.ssclus1estc", "epi.ssclus2estb", "epi.ssclus2estc", "epi.sscohortc",
+  "epi.sscohortt", "epi.sscompb", "epi.sscompc", "epi.sscomps", "epi.ssdetect", "epi.ssdxsesp", "epi.ssdxtest",
+  "epi.ssequb", "epi.ssequc", "epi.ssninfb", "epi.ssninfc", "epi.sssimpleestb", "epi.sssimpleestc",
+  "epi.ssstrataestb", "epi.ssstrataestc", "epi.sssupb", "epi.sssupc", "epi.ssxsectn", "epi.tests", "exact2x2",
+  "exact2x2CI", "exact2x2Plot", "exact2x2Pvals", "fe.mdor", "fe.power", "fe.ssize", "fillsquare", "fisher.exact",
+  "fisherCalcMidp", "futilbdry", "getColor", "getDeltaGrid", "getPDQD", "getPI", "getPrange", "gsdesign.binomial",
+  "gsdesign.normal", "gsdesign.survival", "jonckheere.test", "mcnemar.exact", "mcnemar.exact.calc", "mcnemarExactDP",
+  "mdrr", "numDEpi", "numDEpi.default", "oc.twostage.bdry", "or2pcase", "orderMat", "permlogrank", "ph2simon",
+  "ph2single", "pickTstat", "plotRankMat", "plotT", "power.ladesign", "power.stratify", "power2grid",
+  "power2gridDifference", "power2gridRatio", "power2x2", "Power2x2", "powerBorr", "powerConLogistic.bin",
+  "powerConLogistic.con", "powerCT", "powerCT.default", "powerCT.default0", "powerEpi", "powerEpi.default",
+  "powerEpiCont", "powerEpiCont.default", "powerEpiInt", "powerEpiInt.default0", "powerEpiInt.default1",
+  "powerEpiInt2", "powerPaired2x2", "powerWelchT", "pselect", "roc.area.test", "roc.curve", "roc.perm.test",
+  "rsu.adjrisk", "rsu.dxtest", "rsu.epinf", "rsu.pfree.equ", "rsu.pfree.rs", "rsu.pstar", "rsu.sep", "rsu.sep.cens",
+  "rsu.sep.pass", "rsu.sep.rb", "rsu.sep.rb1rf", "rsu.sep.rb2rf", "rsu.sep.rb2st", "rsu.sep.rbvarse", "rsu.sep.rs",
+  "rsu.sep.rs2st", "rsu.sep.rsfreecalc", "rsu.sep.rsmult", "rsu.sep.rspool", "rsu.sep.rsvarse", "rsu.spp.rs",
+  "rsu.sspfree.rs", "rsu.sssep.rb2st1rf", "rsu.sssep.rb2st2rf", "rsu.sssep.rbmrg", "rsu.sssep.rbsrg", "rsu.sssep.rs",
+  "rsu.sssep.rs2st", "rsu.sssep.rsfreecalc", "rsu.sssep.rspool", "ss2x2", "SS2x2", "ssize.stratify", "ssizeCT",
+  "ssizeCT.default", "ssizeEpi", "ssizeEpi.default", "ssizeEpiCont", "ssizeEpiCont.default", "ssizeEpiInt",
+  "ssizeEpiInt.default0", "ssizeEpiInt.default1", "ssizeEpiInt2", "ssizeWelchT", "toxbdry", "twostage.admissible",
+  "twostage.inference", "ucControl", "uncondExact2x2", "uncondExact2x2Pvals", "uncondPower2x2", "unirootGrid",
 ];
 
 /** Names that reach code, namespaces, compiled routines, other programs or files: not allowed at all. */
@@ -74,10 +106,17 @@ function check(file) {
     for (const m of code.matchAll(/([A-Za-z][A-Za-z0-9.]*)\s*::(?!:)/g)) {
       if (!ALLOWED_PACKAGES.has(m[1])) problems.push(`${at}: package '${m[1]}' is not allowed`);
     }
+    const attached = new Set();
     for (const m of line.matchAll(/\b(library|require)\s*\(\s*([^),\s]*)/g)) {
       const pkg = m[2].replace(/^["'`]|["'`]$/g, "");
       if (!ALLOWED_PACKAGES.has(pkg)) problems.push(`${at}: ${m[1]}(${m[2]}) is not allowed`);
+      else attached.add(pkg);
     }
+    // A package named like one of its functions (exact2x2): its name in library(), require() and pkg:: is not a
+    // reference to the function
+    const refCode = code
+      .replace(/\b(library|require)\s*\(\s*[A-Za-z][A-Za-z0-9.]*\s*\)/g, (m) => m.replace(/\(.*\)/, "()"))
+      .replace(/([A-Za-z][A-Za-z0-9.]*)\s*::(?!:)/g, (m, pkg) => (ALLOWED_PACKAGES.has(pkg) ? "" : m));
     if (COMPILED.test(code)) problems.push(`${at}: calling compiled code directly is not allowed`);
     for (const name of FORBIDDEN_NAMES) {
       if (word(name).test(code)) problems.push(`${at}: '${name}' is not allowed`);
@@ -85,10 +124,11 @@ function check(file) {
     for (const name of REFERENCE_FUNCTIONS) {
       // fit$cuminc-style element names are fine; a reference package's function that is not called is not
       const re = new RegExp(`(?<![A-Za-z0-9._$@])(?:[A-Za-z][A-Za-z0-9.]*::)?${escape(name)}(?![A-Za-z0-9._])(?!\\s*\\()`);
-      if (re.test(code)) problems.push(`${at}: '${name}' must be called, not referred to (that would print its source)`);
+      if (re.test(refCode)) problems.push(`${at}: '${name}' must be called, not referred to (that would print its source)`);
     }
     for (const s of strings) {
       const t = s.trim();
+      if (attached.has(t)) continue;
       if (REFERENCE_FUNCTIONS.includes(t) || FORBIDDEN_NAMES.includes(t) || t.includes("::")) {
         problems.push(`${at}: the string "${t}" names a function; call functions directly`);
       }

@@ -23,3 +23,15 @@ RUN install2.r --error --skipinstalled jsonlite cmprsk \
                    got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
                    cat(sprintf("%s %s\n", names(got), got), sep = ""); \
                    if (!identical(unname(got), unname(want))) quit(status = 1)'
+
+# Sample size and power for trial designs (roadmap item 1): epiR, exact2x2, clinfun and powerSurvEpi, in a layer of
+# their own, at the versions of the fixtures. epiR imports sf and flextable, whose binary packages link to GDAL, GEOS,
+# PROJ, udunits and libwebpmux.
+RUN apt-get update && apt-get install -y --no-install-recommends libgdal38 libgeos-c1t64 libproj25 libudunits2-0 \
+        libwebpmux3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && install2.r --error --skipinstalled epiR exact2x2 clinfun powerSurvEpi \
+    && Rscript -e 'want <- c(epiR = "3.0.0", exact2x2 = "1.7.0", clinfun = "1.1.6", powerSurvEpi = "0.1.5"); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

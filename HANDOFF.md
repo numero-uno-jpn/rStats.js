@@ -4,6 +4,21 @@
 
 ## まず読むこと (セッション 16 から)
 
+## 進行中: ROADMAP の 1 番 (2026-11-16、セッション 22、Mac mini)
+
+- **照合先 (ユーザーが決定):** 平均・比率の同等性・非劣性・優越性は epiR 3.0.0 (`epi.ssequb/c`・`epi.ssninfb/c`・
+  `epi.sssupb/c`)、McNemar は exact2x2 1.7.0 (`powerPaired2x2`)、生存時間は powerSurvEpi 0.1.5 (Freedman の
+  `ssizeCT.default`・`powerCT.default`、Schoenfeld の `ssizeEpi.default` など)、Simon は clinfun 1.1.6 (`ph2simon`)。
+  どれも GPL。私 (Mac) はこれらのソースを見ていない
+- **トークン節約のため、外注できることはなるべく ChatGPT に外注する** (ユーザーの指示)。今回は仕様書と oracle の
+  スクリプトから外注する。指示書は `briefs/samplesize.ja.md` (4 節に、私が R の出力で確かめた epiR の式と癖)
+- 準備したもの: `oracle/Dockerfile.r46` に powerSurvEpi の層 (arm64・amd64 のイメージを作り直し)、
+  `oracle/Dockerfile.experiments` に 4 パッケージの層、`scripts/r-experiment-check.mjs` に 4 パッケージと公開関数名
+  (パッケージ名と同じ関数 `exact2x2` のため、`library()`・`pkg::` のパッケージ名は関数の参照と見なさないように直した)
+- 次: main に push (ワークフローは main の検査と Dockerfile を使う) → ChatGPT に依頼 (基準のコミット、ブランチ
+  `work/samplesize`) → 段階 1 の報告で oracle スクリプトが来たら `npm run oracle -- <name>` で fixture を作って
+  ブランチに push → Decisions for the user をユーザーに聞き、仕様書の「rStats.js's choices」を書く
+
 ## 次のセッションで最初にやること (2026-11-16 に作成、セッション 21、Mac mini)
 
 以後は **Mac mini だけで作業する** (ユーザーの指示)。
