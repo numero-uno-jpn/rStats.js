@@ -128,6 +128,7 @@ fit_cases <- list(
   make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="ML"), fit_fields),
   make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="EB"), fit_fields),
   make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="PM"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML", test="z"), fit_fields),
   make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML", test="t"), fit_fields),
   make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML", test="knha"), fit_fields),
   make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat"))), fit_fields),
@@ -151,6 +152,7 @@ run_cases("metaRma", fit_cases)
 fit <- rma(yi, vi, data=rr, method="REML")
 run_cases("metaIntervals", list(
   make_case("interval", list(object=fit), interval_fields),
+  make_case("interval", list(object=fit, type="QP"), interval_fields),
   make_case("interval", list(object=fit, type="PL"), interval_fields),
   make_case("interval", list(object=rma(yi, vi, data=rr, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat")))), interval_fields),
   make_case("interval", list(object=rma(yi, vi, data=rr, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat"))), type="PL"), interval_fields),
