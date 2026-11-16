@@ -376,9 +376,22 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
       const lo = lowerTail[x]!;
       const hi = upperTail[x]!;
       let reject: boolean;
-      if (useOne) reject = direction > 0 ? hi <= sigLevel : lo <= sigLevel;
-      else if (useBoth) reject = (lo <= sigLevel / 2 || hi <= sigLevel / 2);
-      else reject = direction > 0 ? hi <= sigLevel / 2 : lo <= sigLevel / 2;
+      // At the exact half-tail boundary, avoid a floating-point CDF deciding whether a rational
+      // probability of 1/2 is just above or below the cutoff. A p-value equal to alpha is not rejected.
+      const exactHalfBoundary = pNull === 0.5 && sigLevel === 1;
+      if (useOne) {
+        reject = direction > 0
+          ? (exactHalfBoundary ? x > 0 : hi < sigLevel)
+          : (exactHalfBoundary ? x < m : lo < sigLevel);
+      } else if (useBoth) {
+        reject = exactHalfBoundary
+          ? x !== Math.ceil(m / 2)
+          : (lo < sigLevel / 2 || hi < sigLevel / 2);
+      } else {
+        reject = direction > 0
+          ? (exactHalfBoundary ? x > Math.ceil(m / 2) : hi < sigLevel / 2)
+          : (exactHalfBoundary ? x < Math.floor(m / 2) : lo < sigLevel / 2);
+      }
       if (reject) power += wm * alt[x]!;
     }
   }
