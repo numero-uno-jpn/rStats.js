@@ -25,8 +25,8 @@ show_case <- function(label, expression) {
   if (length(warns)) cat("WARNINGS: ", paste(unique(warns), collapse=" | "), "\n", sep="")
 }
 
-methods <- c("EE","FE","DL","HE","HS","HSk","SJ","ML","REML","EB","PM")
-for (m in methods) {
+estimators <- c("EE","FE","DL","HE","HS","HSk","SJ","ML","REML","EB","PM")
+for (m in estimators) {
   show_case(paste("method", m), {
     fit <- rma(yi, vi, data=rr, method=m)
     fit[c("beta","se","zval","pval","ci.lb","ci.ub","tau2","se.tau2","QE","QEp","I2","H2","k")]
@@ -43,16 +43,13 @@ for (test_name in c("z","t","knha")) {
 for (test_name in c("z","t","knha")) {
   show_case(paste("meta regression", test_name), {
     fit <- rma(yi, vi, data=rr, mods=~ablat, test=test_name)
-    list(beta=fit$beta, se=fit$se, zval=fit$zval, pval=fit$pval,
-         ci.lb=fit$ci.lb, ci.ub=fit$ci.ub, QE=fit$QE, QEp=fit$QEp,
-         QM=fit$QM, QMp=fit$QMp, R2=fit$R2, k=fit$k, p=fit$p)
+    fit
   })
 }
 
 show_case("meta regression numeric matrix", {
   fit <- rma(yi, vi, data=rr, mods=cbind(ablat, as.numeric(alloc == "random")))
-  list(beta=fit$beta, se=fit$se, QM=fit$QM, QMp=fit$QMp,
-       QE=fit$QE, QEp=fit$QEp, R2=fit$R2, k=fit$k, p=fit$p)
+  fit
 })
 
 show_case("meta regression prediction newmods", {
