@@ -36,8 +36,6 @@ function normalPower(effect: number, se: number, critical: number): number {
   n?: number | null;
   /** Target power; null/omitted when solving for power. */
   power?: number | null;
-  /** Equivalence or non-inferiority margin. */
-  delta?: number;
   /** Treatment/control allocation ratio. Default 1. */
   r?: number;
   /** Equivalence or equality. Default "equivalence". */
@@ -160,12 +158,12 @@ function epi(
 }
 
 /** Equivalence/equality sample size or power for two proportions. Equivalent to `epiR::epi.ssequb()` in R. */
-export function epiSsequb(treat: number, control: number, options: EpiOptions = {}): EpiResult {
-  return reported("epiSsequb", epi("equivalence", "binary", treat, control, undefined, options.type === "equality" ? undefined : options.delta, options));
+export function epiSsequb(treat: number, control: number, delta: number | null, options: EpiOptions = {}): EpiResult {
+  return reported("epiSsequb", epi("equivalence", "binary", treat, control, undefined, delta ?? undefined, options));
 }
 /** Equivalence/equality sample size or power for two means. Equivalent to `epiR::epi.ssequc()` in R. */
-export function epiSsequc(treat: number, control: number, sigma: number, options: EpiOptions = {}): EpiResult {
-  const out = epi("equivalence", "continuous", treat, control, sigma, options.delta, options);
+export function epiSsequc(treat: number, control: number, sigma: number, delta: number | null, options: EpiOptions = {}): EpiResult {
+  const out = epi("equivalence", "continuous", treat, control, sigma, delta ?? undefined, options);
   return reported("epiSsequc", out);
 }
 /** Non-inferiority sample size or power for two proportions. Equivalent to `epiR::epi.ssninfb()` in R. */
