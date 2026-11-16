@@ -92,9 +92,6 @@ const scalar = (x: number[]): number | number[] => x.length === 1 ? x[0]! : x;
 const dot = (a: readonly number[], b: readonly number[]): number => a.reduce((s, x, i) => s + x * b[i]!, 0);
 const matVec = (a: number[][], x: readonly number[]): number[] => a.map(r => dot(r, x));
 const identity = (n: number): number[][] => Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));
-const finiteVector = (x: readonly number[], name: string): void => {
-  if (x.some(v => !Number.isFinite(v))) throw new RangeError(`'${name}' must contain only finite values`);
-};
 const root = (f:(x:number)=>number, lo:number, hi:number, tol=2e-12):number => {
   let fl=f(lo), fh=f(hi);
   if (fl===0) return lo;
@@ -208,7 +205,7 @@ function independentColumns(rows:number[][]):number[][] {
     const v=rows.map(r=>r[j]!);const original=Math.sqrt(dot(v,v));let residual=v.slice();
     for(const q of basis){const a=dot(residual,q);residual=residual.map((z,i)=>z-a*q[i]!);}
     const norm=Math.sqrt(dot(residual,residual));
-    if(norm>1e-10*Math.max(original,1)){keep.push(j);basis.push(residual.map(z=>z/norm));}
+    if(original>0&&norm>1e-10*original){keep.push(j);basis.push(residual.map(z=>z/norm));}
   }
   return rows.map(r=>keep.map(j=>r[j]!));
 }
@@ -413,12 +410,12 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
     est=fit.beta[0]!;se=Math.sqrt(fit.cov[0]![0]! * fit.sigma2);stat=est/se;df=y.length-2;
     pv=2*pt(-Math.abs(stat),df);
   } else {
-    const fit=isFit?x as RmaResult:rma(y,v,{method:"REML",mods:z,intercept:true,test:"z"});
+    const fit=rma(y,v,{method:"REML",mods:z,intercept:true,test:"z"});
     est=fit.beta[0]![0];se=Array.isArray(fit.se)?fit.se[0]!:fit.se;stat=est/se;df=NaN;pv=2*pnorm(-Math.abs(stat));
   }
   const crit=model==="lm"?qt(1-(1-level)/2,df):qnorm(1-(1-level)/2);
   const out={model,predictor,zval:stat,pval:pv,dfs:df,est,"ci.lb":est-crit*se,"ci.ub":est+crit*se};
-  return reported("regtest",options.retFit?{...out,fit:isFit?x as RmaResult:rma(y,v,{method:"REML",mods:z})}:out);
+  return reported("regtest",options.retFit?{...out,fit}:out);
 }
 function linearRegression(X:number[][],y:number[]) {
   const xtx=Array.from({length:2},(_,a)=>Array.from({length:2},(_,b)=>X.reduce((s,r,i)=>s+r[a]!*r[b]!,0)));
