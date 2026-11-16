@@ -42,7 +42,7 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 | 分割表と比率 | `binomCI`、`binomDiffCI`、`binomRatioCI` (DescTools の `BinomCI`、`BinomDiffCI`、`BinomRatioCI`)、`oddsRatio` (epitools と epiR のスコア区間)、`fisherTest(x, { midp: true })` (exact2x2)、`boschlooTest` (Exact)、`gTest`、`stuartMaxwellTest`、`goodmanKruskalGamma` (DescTools)、`lblTest` (coin)、`chisqTest(x, { nMinus1: true })` (Campbell の N − 1 検定) と Freeman-Tukey 残差、`tost` (equivalence)、`binomDiffEquivalenceTest` (2 つの比率のスコア法の TOST) |
 | 多重比較 | PMCMRplus の `dscfAllPairsTest` (Steel-Dwass)、`kwAllPairsDunnTest`、`kwManyOneDunnTest`、`manyOneUTest` (Steel の多対一の順位検定)、`dunnettTest`、`gamesHowellTest`、`tukeyTest`、`dunnTest` (dunn.test)、`glhtDunnett` (multcomp)。Dunnett 型の確率は厳密に計算する (R は乱数を使う) |
 | 混合モデル | lme4 の `lmer` を `lmer` として (REML と ML。相関のある変量効果と相関のない変量効果 `(x \| g)`・`(x \|\| g)`、交差と入れ子の群 `a/b`・`a:b`)。`fixef`、`vcov`、`coef(summary())` (p 値を除く)、`VarCorr`、`ranef`、`fitted`、`residuals`、`logLik`、`AIC`、`BIC`、`deviance`、`REMLcrit`、`isSingular` に当たる値。lmerTest の Satterthwaite の t 検定と F 検定 (`summary`、`contest`、Type I/II/III の `anova`) と、lme4 の複数の当てはめの `anova`。lme4 の `glmer` を `glmer` として (glm のすべての族、ラプラス近似と適応的 Gauss-Hermite 求積)、その `summary`・`anova`・`predict` (`glmerSummary`・`glmerAnova`・`glmerPredict`) と `lmer` の `predict` (`lmerPredict`)。Bates ら (2015) の論文から、疎なコレスキー分解で実装。推定値は基準の厳密な最適点 (lme4 はその手前で止まる)。独立した分野 `@numero-uno-jpn/rstats/mixed` (`dist/mixed.js`) にあり、全部入りのファイルには含めない |
-| 生存時間解析 | `survival` パッケージの `survdiff` (log-rank と G-rho 族) と `survfit` (Kaplan-Meier。log・plain・log-log の信頼区間と中央値)、`coxph` (Cox 回帰。Efron と Breslow のタイ、重み、層、summary の検定、ロバスト分散と `cluster`) |
+| 生存時間解析 | `survival` の `survdiff` (log-rank と G-rho 族)、`survfit` (Kaplan-Meier、Nelson-Aalen・Fleming-Harrington の累積ハザード、整数の重み、ロバスト標準誤差、6 種類の信頼区間変換、中央値、制限平均、計数過程データ)、`rmst2` (非調整・共変量調整の RMST/RMTL、`survRM2`)、`coxph` (Efron と Breslow のタイ、ケース重み、層、summary の検定、ロバスト分散と `cluster`、計数過程データ) と `coxZph` (比例ハザード性のスコア検定)、`cuminc`・`timepoints`・`crr`・`predictCrr` (累積発生率、Gray の検定、Fine-Gray 回帰、`cmprsk`)、`survreg`・`survregPredict`・`survregResiduals` (パラメトリックな加速故障時間回帰) |
 | 診断の精度と測定法の比較 | pROC の `roc`、`auc` (部分 AUC も)、`ci.auc`、`roc.test`、`coords` (DeLong の区間と検定、R の乱数列によるブートストラップ)。epiR の `epi.tests` (`diagnosticTests`)。BlandAltmanLeh の `bland.altman.stats` (`blandAltman`。一致限界の厳密な区間も)。mcr の `mcreg` (Deming 回帰、重み付き Deming 回帰、Passing-Bablok 回帰。解析的、ジャックナイフ、ブートストラップの区間) |
 | 一致度と信頼性 | `kappa2`、`kappamFleiss`、`icc` (irr)、`ICC` (psych。Shrout と Fleiss の 6 つの形式)、`cronbachAlpha`、`partialR` (psych)、`polychor`、`polyserial` (polycor の 2 段階推定と最尤推定)、`pbvnorm`、`omega` (McDonald の ω。psych)。反復測定の計画の効果量 (`Error()` の層と `aovEz`) |
 | 最適化 | `factanal` (最尤法、varimax と promax)、`optim` の 6 つの手法すべて (Nelder-Mead、BFGS、CG、L-BFGS-B、SANN、Brent。R と同じ反復。ただし CG は、R が中点を試すところで放物線の最小点を試すので、経路が R と違う) と `optimHess` |
@@ -60,19 +60,19 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
 指標とその信頼区間を出せることを重視します。この一覧は、医学・心理学の研究向けの統計ウェブアプリの手法と
 照らし合わせて作りました (2026-11-06)。優先度の高い順です。括弧内は、各項目の照合先の R の関数またはパッケージです。
 
-1. **生存時間解析の続き:** Nelson-Aalen 推定量 [`survfit` の累積ハザード]。制限平均生存時間 [survRM2]。比例
-   ハザード性の検定 [`cox.zph`]。(start, stop] 形式の時間依存性変数 [`coxph`]。競合リスク: 累積発生率、Gray の
-   検定、Fine-Gray 回帰 [cmprsk]。加速故障時間モデルと Tobit モデル [`survreg`]。
-2. **試験デザインのサンプルサイズと検出力:** 平均と比率の同等性・非劣性・優越性、McNemar 検定、生存時間
+1. **試験デザインのサンプルサイズと検出力:** 平均と比率の同等性・非劣性・優越性、McNemar 検定、生存時間
    (Schoenfeld、Freedman)、Simon の 2 段階デザイン [clinfun `ph2simon`]。照合先は項目に着手するときに決める。
-3. **メタアナリシス:** 固定効果とランダム効果 (DerSimonian-Laird、REML)、Q と I²、Egger の検定 [metafor]。
-4. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。
+2. **メタアナリシス:** 固定効果とランダム効果 (DerSimonian-Laird、REML)、Q と I²、Egger の検定 [metafor]。
+3. **混合モデルの続き:** `lmer` と `glmer` の当てはめの `confint` (プロファイル尤度) と `simulate` [lme4]。
    `mixed` の分野はパッケージのルートと全部入りの `dist/rstats.js` には含めない (2026-11-05 に決定)。後で含めても
    互換性は崩れない。
-5. **その後 (順不同):** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰と
+4. **その後 (順不同):** 順序ロジスティック回帰 [MASS `polr`]、非線形回帰 [`nls` と自己開始モデル]、ロバスト回帰と
    分位点回帰 [MASS `rlm`、quantreg]、GEE [geepack]。MANOVA [`manova`]、判別分析 [MASS `lda`]、正準相関
    [`cancor`]。クラスタ分析 [`hclust`、`kmeans`]。多次元尺度法と対応分析 [`cmdscale`、MASS `isoMDS`、ca]。
    Tamhane の T2 と Page の検定 [PMCMRplus]、Grubbs の検定 [outliers]。正則化回帰 [glmnet]。時系列 [`acf`、`arima`]。
+
+生存時間解析 (以前の項目 1) は 1.4.0 で完了しました。動作の文書の「rStats.js's choices」で決めたとおり、当面は
+`survfit` の `scale` オプションと `crr` の `cengroup` を含めていません。
 
 以前の項目 1 (頑健な標準誤差) と 2 (診断の正確度と測定の一致) は 1.3.0 で完了しました。それぞれの動作の文書
 ([oracle/robust-behaviour.md](oracle/robust-behaviour.md)、[oracle/roc-behaviour.md](oracle/roc-behaviour.md)、

@@ -897,3 +897,10 @@
 | leave-one-cluster-out jackknife | 1 クラスターを除いたジャックナイフ | 新規 |
 | inclusion-exclusion | 包除原理 | 新規。多元のクラスター |
 | typed array | 型付き配列 | JavaScript の用語 |
+| subdistribution hazard | 部分分布ハザード | 新規 (1.4.0)。Fine-Gray 回帰 |
+| restricted mean time lost (RMTL) | 制限平均損失時間 | 新規 (1.4.0)。RMST と対になる指標 |
+| baseline covariate | ベースライン共変量 | 新規 (1.4.0)。時間依存性共変量との対比 |
+| time-dependent covariate | 時間依存性共変量 | 新規 (1.4.0) |
+| Schoenfeld residual | Schoenfeld 残差 | 新規 (1.4.0)。人名は英字 |
+| subject-level sandwich variance | 被験者単位のサンドイッチ分散 | 新規 (1.4.0) |
+| infinitesimal jackknife | 無限小ジャックナイフ | 新規 (1.4.0)。既存の「ジャックナイフ」に合わせた |

@@ -128,6 +128,14 @@ a CDN without a bundler, see the README section "Using it in the browser".
   c(t1, t2), names_to = "time", values_to = "score")` → `pivotLonger(d, { cols: ["t1", "t2"], namesTo: "time",
   valuesTo: "score" })`, `pivot_wider(d, names_from = time, values_from = score)` → `pivotWider(d, { namesFrom:
   "time", valuesFrom: "score" })`.
+- Survival analysis: `survfit(time, status, { group, stype, ctype, weights, robust, rmean, confType, start, id })`
+  supports Kaplan-Meier and cumulative-hazard estimates, integer case weights, robust standard errors, restricted
+  means and counting-process data; `rmst2(time, status, arm, options)` gives unadjusted and covariate-adjusted
+  RMST/RMTL contrasts. `coxph(time, status, x, { start, id })` accepts counting-process data and
+  `coxZph(fit, options)` tests proportional hazards. `cuminc(time, status, options)` and
+  `timepoints(fit, times)` give cumulative-incidence curves and Gray tests; `crr(time, status, cov1, options)`
+  and `predictCrr` fit and predict Fine-Gray regression. `survreg`, `survregPredict` and
+  `survregResiduals` fit and inspect parametric accelerated-failure-time models.
 - Random numbers: after `setSeed(42)`, `rnorm`, `runif`, `sample` and the other `r*` functions
   give the same numbers as R after `set.seed(42)`. `RNGkind` supports Mersenne-Twister (R's
   default) and L'Ecuyer-CMRG.
