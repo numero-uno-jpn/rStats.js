@@ -5,7 +5,7 @@ run_one <- function(label,nA,nB,c2A,c2B,censA,censB,tieA,tieB) {
   time <- c(rep(1,c2A),rep(1,censA),rep(2,tieA),rep(3,nA-c2A-censA-tieA),
             rep(1,c2B),rep(1,censB),rep(2,tieB),rep(3,nB-c2B-censB-tieB))
   status <- c(rep(2,c2A),rep(0,censA),rep(1,tieA),rep(0,nA-c2A-censA-tieA),
-              rep(2,c2B),rep(0,censB),rep(2,tieB),rep(0,nB-c2B-censB-tieB))
+              rep(2,c2B),rep(0,censB),rep(1,tieB),rep(0,nB-c2B-censB-tieB))
   group <- c(rep("A",nA),rep("B",nB))
   Y <- c(nA-c2A-censA,nB-c2B-censB)
   S <- c((nA-c2A)/nA,(nB-c2B)/nB)
