@@ -32,8 +32,18 @@ json_value <- function(x) {
   as.character(x)
 }
 
-make_case <- function(fn, arguments, extract) {
-  list(fn=fn, arguments=arguments, extract=extract)
+make_case <- function(kind, arguments, extract) {
+  list(kind=kind, arguments=arguments, extract=extract)
+}
+
+run_case <- function(case) {
+  switch(case$kind,
+    effectSize=do.call(escalc, case$arguments),
+    metaFit=do.call(rma, case$arguments),
+    interval=do.call(confint, case$arguments),
+    prediction=do.call(predict, case$arguments),
+    egger=do.call(regtest, case$arguments)
+  )
 }
 
 run_cases <- function(name, cases) {
@@ -41,7 +51,7 @@ run_cases <- function(name, cases) {
     warnings <- character()
     value <- tryCatch(
       withCallingHandlers(
-        do.call(case$fn, case$arguments),
+        run_case(case),
         warning=function(cond) {
           warnings <<- c(warnings, conditionMessage(cond))
           invokeRestart("muffleWarning")
@@ -54,7 +64,7 @@ run_cases <- function(name, cases) {
     } else {
       list(value=json_value(case$extract(value)), warnings=I(unique(warnings)))
     }
-    list(fn=case$fn, args=json_value(case$arguments), expected=expected)
+    list(fn=case$kind, args=json_value(case$arguments), expected=expected)
   })
   packages <- list(metafor=as.character(packageVersion("metafor")),
                    metadat=as.character(packageVersion("metadat")))
@@ -90,7 +100,7 @@ interval_fields <- function(value) value
 
 dat <- dat.colditz1994
 escalc_cases <- list(
-  make_case("escalc", escalc, list(measure="RR", ai=dat$tpos, bi=dat$tneg, ci=dat$cpos, di=dat$cneg), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", escalc, list(measure="RR", ai=dat$tpos, bi=dat$tneg, ci=dat$cpos, di=dat$cneg), function(x) x[, c("yi","vi")]),
   make_case("escalc", escalc, list(measure="OR", ai=dat$tpos, bi=dat$tneg, ci=dat$cpos, di=dat$cneg), function(x) x[, c("yi","vi")]),
   make_case("escalc", escalc, list(measure="RR", ai=c(0,5), bi=c(20,15), ci=c(2,4), di=c(18,16)), function(x) x[, c("yi","vi")]),
   make_case("escalc", escalc, list(measure="MD", m1i=c(5.1,4.8,6.0), sd1i=c(1.2,1.0,1.4), n1i=c(30,28,32), m2i=c(4.7,4.4,5.2), sd2i=c(1.1,1.3,1.2), n2i=c(29,30,31)), function(x) x[, c("yi","vi")]),
@@ -100,7 +110,7 @@ run_cases("metaEscalc", escalc_cases)
 
 rr <- escalc(measure="RR", ai=dat$tpos, bi=dat$tneg, ci=dat$cpos, di=dat$cneg)
 fit_cases <- list(
-  make_case("rma", rma, list(yi=rr$yi, vi=rr$vi, method="EE"), fit_fields),
+  make_case("metaFit", rma, list(yi=rr$yi, vi=rr$vi, method="EE"), fit_fields),
   make_case("rma", rma, list(yi=rr$yi, vi=rr$vi, method="FE"), fit_fields),
   make_case("rma", rma, list(yi=rr$yi, vi=rr$vi, method="DL"), fit_fields),
   make_case("rma", rma, list(yi=rr$yi, vi=rr$vi, method="REML"), fit_fields),
@@ -119,13 +129,13 @@ run_cases("metaRma", fit_cases)
 
 fit <- rma(yi, vi, data=rr, method="REML")
 run_cases("metaIntervals", list(
-  make_case("confint", confint, list(object=fit), interval_fields),
+  make_case("interval", confint, list(object=fit), interval_fields),
   make_case("confint", confint, list(object=fit, type="PL"), interval_fields),
-  make_case("predict", predict, list(object=fit), pred_fields),
+  make_case("prediction", predict, list(object=fit), pred_fields),
   make_case("predict", predict, list(object=fit, predtype="riley"), pred_fields)
 ))
 run_cases("metaEgger", list(
-  make_case("regtest", regtest, list(x=rr$yi, vi=rr$vi, model="lm", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")]),
+  make_case("egger", regtest, list(x=rr$yi, vi=rr$vi, model="lm", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")]),
   make_case("regtest", regtest, list(x=fit, model="rma", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")]),
   make_case("regtest", regtest, list(x=c(0.1,0.2), vi=c(0.04,0.05), model="lm", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")])
 ))
