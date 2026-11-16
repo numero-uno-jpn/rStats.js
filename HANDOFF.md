@@ -21,7 +21,7 @@
   8. **未解決 (Mac だけ):** この Mac (Node v24.19.0) で `test/issue179.test.ts` と `test/issue513.test.ts` が最後の 1 ビットの違いで落ちる (0.915656532053725 と …257、0.5000000000000001 と 0.5)。変更のない main でも同じで、CI (Ubuntu) では通る。Node の更新で数学関数の結果が変わった疑い (未確認)
   9. **済み (2026-11-16): 同時刻の Gray の検定の分散 (1.4.1 に入る、未公開)。** ChatGPT がクリーンルームで、cmprsk の公開の出力だけから式を突き止めた (Issue #525、PR #526 を `a11683d7` で取り込み)。指示書は `briefs/gray-ties.ja.md`。式は `oracle/competing-behaviour.md` 1.6 節、CHANGELOG の Unreleased に記載。fixture の case 17〜22 は 1e-12 で比較に戻った。私 (Mac のセッション) はこの件の cmprsk のソースを見ているので、仕様にも実装にも関わらず、数値の確認とテストだけをした。ChatGPT の式は、私が前に書いて取り消した修正と同じ形だった
   10. **R の実験の仕組み:** `.github/workflows/r-experiments.yml`。`work/**` のブランチに `experiments/<名前>.R` を push すると、main の `scripts/r-experiment-check.mjs` (クリーンルームの検査) を通したうえで、`oracle/Dockerfile.experiments` (R 4.6.2・cmprsk 2.2.12・survival 3.8.12、ネットワークなし) で実行し、先頭の `# issue: N` の Issue に出力をコメントする。1 本ごとにコメントが付くので、Issue の通知のメールが大量に来る (ユーザーは #525 の購読をブラウザで外した)。外注で R を使うときはこれを使う
-  11. **1.4.1 を公開するとき:** デモの competing-incidence-gray を元のデータ (群 B の時刻 6) に戻して `npm run demo:r` (公開のデモは jsDelivr の公開版を読むので、公開と同時に)。作業ブランチ `work/gray-ties` は、消してよいかユーザーに確認する
+  11. **1.4.1 を公開するとき:** デモの competing-incidence-gray を元のデータ (群 B の時刻 6) に戻して `npm run demo:r` (公開のデモは jsDelivr の公開版を読むので、公開と同時に)。作業ブランチ `work/gray-ties` はユーザーの許可を得て消した (2026-11-16)。1.4.1 はほかの変更を待ってから出す (ユーザーの判断)
 
 - **1.4.0 の中身 (main に取り込み済み):** ROADMAP の Remaining の 1 (生存時間解析の続き)。
   - 作業 A `cfab03f4`: survfit の拡張 (weights・ctype・stype・robust・rmean・confType の logit・arcsin・none、cumhaz・stdChaz) と `rmst2`
