@@ -1,8 +1,8 @@
 # issue: 525
-# Stage 3: small pre-event survival with an asymmetric tied target-cause event.
+# Stage 3: small pre-event survival after large competing-cause ties, plus a zero denominator.
 n <- 2000L
-time <- c(seq_len(n - 3L), n, n, n + 1L,
-          seq_len(n - 2L), n, n + 1L)
+time <- c(rep(1, n - 3L), 2, 2, 3,
+          rep(1, n - 2L), 2, 3)
 status <- c(rep(2, n - 3L), 1, 1, 0,
             rep(2, n - 2L), 1, 0)
 group <- c(rep("A", n), rep("B", n))
