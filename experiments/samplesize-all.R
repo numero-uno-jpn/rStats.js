@@ -16,7 +16,6 @@ probe <- function(id, f) {
     auto_unbox=TRUE,digits=NA,null="null",na="string",force=TRUE),"\n",sep="")
 }
 cat("versions: epiR=",as.character(packageVersion("epiR")),
-    "; exact2x2=",as.character(packageVersion("exact2x2")),
     "; clinfun=",as.character(packageVersion("clinfun")),
     "; powerSurvEpi=",as.character(packageVersion("powerSurvEpi")),"\n",sep="")
 
