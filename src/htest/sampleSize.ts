@@ -572,7 +572,7 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
       for(let r1=0;r1<n1;r1++){
         const pet=p0Stage1Cdf[r1]!;
         const en=n1+n2*(1-pet);
-        // Choose the largest final cutoff satisfying both error constraints.
+        // Match clinfun: choose the largest final cutoff r satisfying both error constraints.
         let low=r1,high=n-1,rFound=-1;
         while(low<=high){
           const mid=Math.floor((low+high)/2);
