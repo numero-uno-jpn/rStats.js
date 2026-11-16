@@ -14,6 +14,8 @@ const argsRma = (a:any) => ({
   ...(a.test===undefined?{}:{test:a.test as MetaTest}),
   ...(a.mods===undefined?{}:{mods:a.mods}),
   ...(a.intercept===undefined?{}:{intercept:a.intercept}),
+  ...(a.level===undefined?{}:{level:a.level}),
+  ...(a.data===undefined?{}:{data:a.data}),
   ...(a.control===undefined?{}:{control:a.control}),
 });
 function close(actual:any, expected:any, path:string, mismatches:string[], tol=1e-12): void {
