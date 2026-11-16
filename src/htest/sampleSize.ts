@@ -511,6 +511,8 @@ function cumulative(mass:readonly number[]):number[] {
 }
 function designProb(r1:number,r:number,p0Stage1:readonly number[],p1Stage1:readonly number[],p0Stage2Cdf:readonly number[],p1Stage2Cdf:readonly number[]):[number,number] {
   let alpha=0,beta=0;
+  // A trial that stops for futility after stage 1 is a type-II error under pa.
+  beta = p1Stage1.slice(0, r1 + 1).reduce((sum, value) => sum + value, 0);
   for(let x=r1+1;x<p0Stage1.length;x++){
     const j=r-x;
     const c0=j<0?0:p0Stage2Cdf[Math.min(j,p0Stage2Cdf.length-1)]!;
