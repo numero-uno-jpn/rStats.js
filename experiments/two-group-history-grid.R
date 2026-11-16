@@ -24,7 +24,7 @@ score_stat <- function(dat, rho) {
   }
   fit <- cmprsk::cuminc(dat$time, dat$status, dat$group, strata = dat$strata, rho = rho)
   stat <- unname(fit$Tests["1", "stat"])
-  c(z = z[1], stat = stat, V = z[1]^2 / stat)
+  c(z = unname(z[1]), stat = stat, V = unname(z[1])^2 / stat)
 }
 make_case <- function(name, nA, nB, p1A, p2A, p1B, p2B, tie1A, tie1B, tie2A = 0, tie2B = 0) {
   time <- c(rep(1, p1A + p2A), rep(2, tie1A + tie2A), rep(4, nA - p1A - p2A - tie1A - tie2A),
