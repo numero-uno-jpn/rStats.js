@@ -122,6 +122,26 @@ describe("sample size and power",()=>{
     expect(known).toEqual([2,4,6,9,12,13,23]);
   });
 
+  it("epiR nfractional=FALSE integer allocation for all six public functions",()=>{
+    const options={n:null,power:0.8,r:1.5,nfractional:false,alpha:0.05};
+    const values=[
+      epiSsequb(0.50,0.45,0.10,options),
+      epiSsequc(20,21,10,5,options),
+      epiSsninfb(0.85,0.65,0.10,options),
+      epiSsninfc(0.22,0.20,0.10,0.05,options),
+      epiSssupb(0.85,0.65,0.05,{...options,sidedTest:2}),
+      epiSssupc(20,20,10,5,{...options,sidedTest:2}),
+    ];
+    expect(values.map(v=>[v.nTreat,v.nControl,v.nTotal])).toEqual([
+      [2129,1419,3548],
+      [135,90,225],
+      [33,22,55],
+      [32,22,54],
+      [165,110,275],
+      [80,53,133],
+    ]);
+  });
+
   it("McNemar fixtures; positive errbound is compared with the exact baseline and labelled",()=>{
     const f=read("samplesizeMcNemar");
     f.cases.forEach((c,i)=>{
