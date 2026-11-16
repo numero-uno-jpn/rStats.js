@@ -19,11 +19,13 @@ const argsRma = (a:any) => ({
 function close(actual:any, expected:any, path:string, mismatches:string[], tol=1e-12): void {
   if (expected === null) { if(actual!==null)mismatches.push(`${path}: expected null, got ${String(actual)}`); return; }
   if (typeof expected === "string") {
-    const e=n(expected);
-    if (typeof e === "number") return close(actual,e,path,mismatches,tol);
-    if(actual!==expected)mismatches.push(`${path}: expected ${expected}, got ${String(actual)}`);
+    if(actual===expected)return;
+    if(["NA","NaN","Inf","-Inf"].includes(expected)) return close(actual,n(expected),path,mismatches,tol);
+    if(typeof actual==="number"&&Number.isFinite(Number(expected))) return close(actual,Number(expected),path,mismatches,tol);
+    mismatches.push(`${path}: expected ${expected}, got ${String(actual)}`);
     return;
   }
+  if(typeof expected==="boolean"){if(actual!==expected)mismatches.push(`${path}: expected ${expected}, got ${String(actual)}`);return;}
   if (typeof expected === "number") {
     if (Number.isNaN(expected)) { if(!Number.isNaN(actual))mismatches.push(`${path}: expected NaN, got ${String(actual)}`); return; }
     if (!Number.isFinite(expected)) { if(actual!==expected)mismatches.push(`${path}: expected ${expected}, got ${String(actual)}`); return; }
