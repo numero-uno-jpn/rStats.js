@@ -137,7 +137,7 @@ describe("sample size and power",()=>{
       const actual=powerPaired2x2(n(a.pb),n(a.pc),n(a.npairs),opts);
       const bound=a.errbound===undefined?1e-6:n(a.errbound);
       const exact=powerPaired2x2(n(a.pb),n(a.pc),n(a.npairs),{...opts,errbound:0});
-      if(n(a.pb)===0.5 && n(a.pc)===0.3 && n(a.npairs)===40){
+      if(n(a.pb)===0.5 && n(a.pc)===0.3 && n(a.npairs)===40 && opts.strict!==true && (opts.alternative===undefined||opts.alternative==="two.sided") && (opts.tsmethod===undefined||opts.tsmethod==="central") && (opts.nullOddsRatio===undefined||opts.nullOddsRatio===1)){
         const rationalPower=0.226697537841312;
         expect(close(actual.power,rationalPower,1e-14),reason.mcnemarBound).toBe(true);
         expect(Math.abs(n((c.expected.value as Record<string,unknown>).power)-rationalPower)>1e-9,
