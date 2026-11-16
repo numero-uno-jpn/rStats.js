@@ -23,7 +23,7 @@ one<-function(label,dat,rho) {
     rec[[length(rec)+1]]<-list(Y=Y,S=S,h=h,H=H,D=D,dF0=dF0,dF2=dF2,q=q,dGamma=dGamma,L=L,d1=d1,d2=d2,N2=N2)
     F1<-F1+ifelse(Y>0,S*N1/Y,0); S<-Safter; G0<-Gafter
   }
-  future<-c(0,0); V0<-0; corrHyper<-0; corrPPS<-0
+  future<-c(0,0); V0<-0; corrHyper<-0; corrPPS<-0; corrGroup<-0
   for(j in length(rec):1) {
     x<-rec[[j]]; aa<-x$D+(1-x$q)*future; bb<--x$q*future; ok<-x$h>0
     V0<-V0+sum((aa^2*x$dF0+bb^2*x$dF2)[ok]/x$h[ok])
@@ -34,6 +34,9 @@ one<-function(label,dat,rho) {
       vhyper<-x$d2*(Ytot-x$d2)/(Ytot-1)*(sum(p*per^2)-sum(p*per)^2)
       vbase<-sum(bb^2*x$dF2/x$h)
       corrHyper<-corrHyper+vbase-vhyper
+      for(r in 1:2) if(x$N2[r]>1 && x$Y[r]>1) {
+        corrGroup<-corrGroup+bb[r]^2*x$dF2[r]/x$h[r]*(x$N2[r]-1)/(x$Y[r]-1)
+      }
       # Alternative weighted-PPS candidate from the target-cause derivation.
       qsub<-ifelse(x$Y>0,x$h/x$Y,0); w<-ifelse(x$h>0,bb/(x$L*x$h),0)
       B<-(Ytot-1)/x$H*sum(x$Y*qsub^2*w^2/(x$H-qsub))
@@ -43,8 +46,8 @@ one<-function(label,dat,rho) {
   }
   stat<-unname(fit$Tests["1","stat"]); Vr<-z*z/stat
   cat(label," rho=",rho," V_R=",sprintf("%.17g",Vr)," V0=",sprintf("%.17g",V0),
-      " corrHyper=",sprintf("%.17g",corrHyper)," corrPPS=",sprintf("%.17g",corrPPS),
-      " predHyper=",sprintf("%.17g",V0-corrHyper)," predPPS=",sprintf("%.17g",V0-corrPPS),"\n",sep="")
+      " corrHyper=",sprintf("%.17g",corrHyper)," corrPPS=",sprintf("%.17g",corrPPS)," corrGroup=",sprintf("%.17g",corrGroup),
+      " predHyper=",sprintf("%.17g",V0-corrHyper)," predPPS=",sprintf("%.17g",V0-corrPPS)," predGroup=",sprintf("%.17g",V0-corrGroup),"\n",sep="")
 }
 cases<-list(
  list("d2_2",make_data(7,7,1,0,1,1,0,1)),
