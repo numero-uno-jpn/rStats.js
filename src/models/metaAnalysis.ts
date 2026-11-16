@@ -171,6 +171,7 @@ function tracePVPV(P:number[][],V:number[]):number {
 }
 function tau2StandardError(y:number[],v:number[],X:number[][],method:MetaMethod,tau2:number,fit:ReturnType<typeof weightedFit>,base:ReturnType<typeof weightedFit>):number {
   const k=y.length,df=k-X[0]!.length,V=v.map(z=>z+tau2);
+  if(method==="EE"||method==="FE") return NaN;
   if(method==="REML") return fit.traceP2>0?Math.sqrt(2/fit.traceP2):NaN;
   if(method==="ML"){const s=fit.w.reduce((a,z)=>a+z*z,0);return s>0?Math.sqrt(2/s):NaN;}
   if(method==="DL"||method==="HS"||method==="HSk"){
