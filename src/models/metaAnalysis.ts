@@ -251,7 +251,7 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
     else throw new TypeError("mods matrix must have rows or columns");
     if(rows.length!==k) throw new RangeError("variable lengths differ (found for 'mods')");
     if(m.colNames!==undefined&&m.colNames!==null){
-      names=typeof m.colNames==="string"?[m.colNames]:Array.from(m.colNames);
+      names=(typeof m.colNames==="string"?[m.colNames]:Array.from(m.colNames)).map(n=>n==="(Intercept)"?"intrcpt":n);
       explicitNames=true;
     }
   }
