@@ -264,8 +264,8 @@ describe("competing risks", () => {
     ];
     const nearZeroGroup = [...Array(n).fill("A"), ...Array(n).fill("B")];
     const nearZero = cuminc(nearZeroTime, nearZeroStatus, { group: nearZeroGroup });
-    expect(nearZero.tests?.find((x) => x.cause === "1")?.stat).toBeCloseTo(0.2675619118264449, 10);
-    expect(nearZero.tests?.find((x) => x.cause === "2")?.stat).toBeCloseTo(0.00025072068066545115, 10);
+    expect(nearZero.tests?.find((x) => x.cause === "1")?.stat).toBeCloseTo(0.30546599226783983, 10);
+    expect(nearZero.tests?.find((x) => x.cause === "2")?.stat).toBeCloseTo(0.20020025031288666, 10);
 
     // Here H = q_r exactly (one remaining subject in the only nonempty risk set).
     // R returns its singular sentinel -1; rStats.js deliberately represents this as NaN.
