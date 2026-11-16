@@ -8,7 +8,7 @@ for (test_mode in test_modes) {
     for (bound in bounds) {
       ans <- exact2x2::powerPaired2x2(
         pb = 0.5, pc = 0.3, npairs = 40,
-        sig.level = alpha, errbound = bound, tstest_mode = test_mode
+        sig.level = alpha, errbound = bound, tsmethod = test_mode
       )
       cat(sprintf("test_mode=%s alpha=%.17g errbound=%.17g power=%.17g note=%s\n",
                   test_mode, alpha, bound, ans$power, ans$note))
