@@ -41,7 +41,7 @@ variance_stat <- function(ftime,fstatus,group,cause,rho) {
       Bweights<-ifelse(cur$H>qsub,cur$Y*qsub^2/(cur$H-qsub),0)
       Aown<-W%*%diag(cur$p)%*%t(W)
       Bown<-(sum(cur$Y)-1)/cur$H*(W%*%diag(Bweights)%*%t(W))
-      Sigma<-Sigma-cur$d1*(cur$d1-1)/(sum(cur$Y)-1)*Bown
+      Sigma<-Sigma-cur$L^2*cur$d1*(cur$d1-1)/(sum(cur$Y)-1)*Bown
     }
     future<-future+cur$D*cur$dGamma
   }
