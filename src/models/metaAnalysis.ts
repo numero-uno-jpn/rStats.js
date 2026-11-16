@@ -172,6 +172,7 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
   };
   const guess=(q0-df)/c;
   const init=Math.max(0,control.tau2Init??(Number.isFinite(guess)?guess:1e-8));
+  if(Number(control.maxiter??1000)<=1) return init;
   const at0=score(0);
   if(!(at0>0)) return 0;
   const hi=upperRoot(score,Math.max(init,1e-8));
@@ -304,6 +305,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   if(!["EE","FE","DL","HE","HS","HSk","SJ","ML","REML","EB","PM"].includes(method)) throw new RangeError(`unknown method '${method}'`);
   if(!["z","t","knha"].includes(test)) throw new RangeError(`unknown test '${test}'`);
   if(method==="DL"&& !Number.isFinite(weightedFit(y,v,X,0).qe)) throw new Error("NA/NaN/Inf in foreign function call (arg 1)");
+  const baseFit=weightedFit(y,v,X,0);
   const tau2=tauEstimate(y,v,X,method,opts.control??{});
   const fit=weightedFit(y,v,X,tau2);
   const tau2Null=opts.mods===undefined?tau2:tauEstimate(y,v,Array.from({length:k},()=>[1]),method,opts.control??{});
