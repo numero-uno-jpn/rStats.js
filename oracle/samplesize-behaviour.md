@@ -149,7 +149,9 @@ For (p_b=0.5), (p_c=0.3), (n=40), (alpha=0.05):
 | `errbound=0.01` | 0.225074949686046 |
 | `nullOddsRatio=2` | 0.00420514402365869 |
 
-Additional boundaries: `sig.level=0` and `npairs=0` returned power 0; `pb=pc=0` also returned 0. With `sig.level=1`, the default non-strict two-sided calculation returned 0.8826434, not 1, consistent with its internal half-alpha one-sided calculation.
+Additional boundaries: `sig.level=0` and `npairs=0` returned power 0; `pb=pc=0` also returned 0. With `sig.level=1`, the default non-strict two-sided calculation returned 0.8826434, not 1, consistent with its internal half-alpha one-sided calculation. A probability sum `pb + pc > 1` errors (“probabilities must be finite, non-negative and not all 0”). At (pb=pc=0.5), the calculation is accepted (no non-informative pairs). At (n=1000), (pb=.5,pc=.3), power was 0.999998690656616.
+
+For `strict=FALSE`, passing `tsmethod="central"`, `"minlike"`, or `"blaker"` produced the same power as the default (0.226697528108813); the method name was reflected in the returned `method` string. The strict-TRUE comparison of these methods is kept as a separate probe.
 
 **Unresolved numerical issue:** the `errbound=1e-8` result is about (6.37\times10^{-7}) *above* the `errbound=0` result. The default `1e-6` result is also above it by about (6.27\times10^{-7}). This does not match the documented direction (“may underestimate”) and the smaller bound does not bound this observed difference. The `errbound=0.01` result is below the exact result. The reason has not been established; do not promise the documented one-sided error guarantee without further experiments. The 100,000-pair probe reached its output only at the 120-second experiment limit, so large exact calculations are also a performance concern.
 
@@ -188,6 +190,13 @@ Power=\Phi\left(
 
 The formula assumes large samples / a central-limit approximation.
 
+Observed default-method values:
+- `powerCT.default(nE=200,nC=200,pE=.3707,pC=.4890,RR=.7)` = 0.638338942525040.
+- The same calculation with (n_E=240,n_C=120) = 0.574584549396927.
+- At (RR=1), the returned power is 0.025 (not 0.05).
+- `ssizeCT.default(power=.8,k=1,pE=.3707,pC=.4890,RR=.7)` returns `c(294,294)`; with (k=2), it returns `c(409,205)`.
+- With (RR=1.000001), the returned sample sizes are about (3.14\times10^{13}) per group; this is finite but not practically usable.
+
 ### Schoenfeld / Latouche epidemiological Cox model
 
 Public functions:
@@ -209,6 +218,13 @@ D=\frac{(z_{1-\alpha/2}+z_{1-\beta})^2}
 {[\log(\theta)]^2p(1-p)(1-\rho^2)}.
 ]
 
+Observed default-method values:
+- `powerEpi.default(n=139,theta=2,p=.39,psi=.505,rho2=.132^2)` = 0.801722164331304.
+- `ssizeEpi.default(power=.8,theta=2,p=.39,psi=.505,rho2=.132^2)` = 139.
+- `numDEpi.default(power=.8,theta=2,p=.39,rho2=.132^2)` = 70.
+- With `rho2=0`, the same size calculation returns 94.
+- `theta=1`, (p=0), `rho2=1`, and power 0 or 1 each produced `Inf` in the tested size calculation.
+
 Important interpretation: the package documentation notes that when `rho2=0` the expression has the same form as Schoenfeld's formula, but the hazard ratio in Latouche et al. refers to a **subdistribution hazard** for a particular competing-risk event, whereas Schoenfeld's formula concerns a cause-specific hazard. These are not interchangeable merely because `rho2=0`.
 
 ### Pilot-data wrappers
@@ -218,6 +234,8 @@ The package also provides:
 - `ssizeEpi` / `powerEpi` / `numDEpi`, which estimate (p,\rho^2,\psi) (or (p,\rho^2) for `numDEpi`) from pilot covariates and event indicators.
 
 These are materially different interfaces from the `.default` functions and introduce data-frame, factor-level, censoring, and pilot-estimation semantics.
+
+The documented `Oph` pilot-data example was also run. `ssizeCT` returned `ssize=c(294,294)`, with estimated `pC=0.4890109890` and `pE=0.3707227963`. `powerCT` returned power 0.6383559798, slightly different from `powerCT.default` because it uses the estimated pilot probabilities. The wrappers also return `mat.lambda` and `mat.event` intermediate matrices.
 
 **Recommendation:** the first implementation should cover the six summary-parameter default functions above. Defer all pilot-data wrappers (including the specifically queried `ssizeCT`) to a separate decision, unless the user explicitly wants a formula/data-frame API now. Also defer the package's non-binary covariate, interaction, and stratified extensions.
 
