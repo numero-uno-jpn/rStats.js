@@ -8,7 +8,7 @@
 
 このセッションは Windows の PC で行い、ここで終了した。以後は **Mac mini だけで作業する** (2 台で同時に作業すると混乱するため、ユーザーの指示)。Windows の側のメモリ (`~/.claude/projects/.../memory/`) は Mac にないので、必要な内容はこの節に書いた。
 
-- **状態:** origin/main = `5361ca0` 以降 (2026-11-16 に Mac で更新) (1.4.0 の実装と数値の点検はすべて main に入っている。未公開。npm latest は 1.3.0 のまま)。リリースの準備 (PR #524) は取り込み済み。
+- **状態:** 1.4.0 を公開済み (2026-11-16、npm latest = 1.4.0)。HANDOFF の 1〜7 はすべて済み。
 
 - **すぐにやること (順に):**
   1. **済み (Mac、2026-11-16):** PR #524 の `demo/r-results.json` を R 4.6.2 で作り直した (エラー 0)。competing-incidence-gray は Gray の検定の統計量が R と合わなかった (原因 1 のイベントが 2 群で同時刻 = 文書にある同順位の近似の場面) ので、群 B の時刻 6 を 6.5 にずらした。**このとき私 (Mac のセッション) はクリーンルームを破り、cmprsk の R 関数と crstm.f を読んで修正を書いた。修正は取り消し、ソースも消した。同順位の Gray の分散を直すなら、私以外のソースを見ていない者が論文と R の結果だけから行うこと**
@@ -16,8 +16,9 @@
   3. **済み:** PR #524 を点検して main に squash で取り込んだ (`5361ca0`)。Issue #523 と PR #524 は閉じた。直したもの: 訳 4 件の段落の空行、ROADMAP (ja の段落、en の折り返し)、infinitesimal jackknife を「無限小ジャックナイフ」に、API リファレンスで `predictCrr` をモデル名の接頭辞の例外と明記、用語集に 7 語
   4. **済み:** 区切りの時刻の空の行は survival 3.8.3 のバグで、3.8-12 で直った (NEWS に記載)。R 4.6.2 (survival 3.8.12) は survfit にも summary にもその行を出さず、仕様書と rStats.js はそれに合っている。`oracle/coxph2-behaviour.md` の Part C と differences-from-r (en・ja) に版の違いを書いた
   5. **済み:** survreg の極端な尺度。R は `ovarian` の `age * 2^k` で 2^508 まで同じ値、2^509 から列を黙って落とし、2^-541 から収束せずエラー。rStats.js は 2^-1000〜2^1010 で同じ値、非正規化数 (2^-1050) で NaN と警告。differences-from-r (en・ja) に記載
-  6. **リリース:** `npm run size` でサイズを測って `docs/performance.md` (en・ja) と README のサイズを直す。版の番号 1.4.0 (package.json・package-lock.json・demo/app.js・README の Status と CDN URL・api-reference の CDN URL)、CHANGELOG の Unreleased を `1.4.0 - <日付>` に。公開の手順は 1.3.0 と同じ (タグはユーザーが push、npm の staged はユーザーが approve)。リリースの前に `node scripts/api-ja-extract.mjs` で stale がないことを確かめる
-  7. **後片付け:** `work/release-1.4-docs`・`work/survival-1.4-b`・`-c`・`-d`・`-audit-ac`・`-audit-bd` はユーザーの許可を得て消した (2026-11-16)。`work/survival-1.4-a-65df102e` はまだ残っている (消すかユーザーに確認)
+  6. **済み (2026-11-16):** 1.4.0 を公開。main = `d6f077b` (版上げ、CHANGELOG を書き直し、サイズ: すべて gzip 312.6 KB、dist/rstats.js 312 KB、tests の分野 278 KB)、tag `v1.4.0` = `f30466d` (release が dist 入りに移した)。stage id `0cc14512-...` を、自動審査が終わるのを待って (初回は 409) ユーザーが承認。npm latest = 1.4.0、jsDelivr の dist/rstats.js・mixed.js・tests.js、デモ v1.4.0、/api/ と /ja/api/ の新しい関数のページを確認
+  7. **済み:** 生存時間解析とリリース準備の作業ブランチは、ユーザーの許可を得てすべて消した (2026-11-16)
+  8. **未解決 (Mac だけ):** この Mac (Node v24.19.0) で `test/issue179.test.ts` と `test/issue513.test.ts` が最後の 1 ビットの違いで落ちる (0.915656532053725 と …257、0.5000000000000001 と 0.5)。変更のない main でも同じで、CI (Ubuntu) では通る。Node の更新で数学関数の結果が変わった疑い (未確認)
 
 - **1.4.0 の中身 (main に取り込み済み):** ROADMAP の Remaining の 1 (生存時間解析の続き)。
   - 作業 A `cfab03f4`: survfit の拡張 (weights・ctype・stype・robust・rmean・confType の logit・arcsin・none、cumhaz・stdChaz) と `rmst2`
