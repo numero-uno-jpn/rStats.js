@@ -312,20 +312,23 @@ function grayTests(rows: readonly CompetingRow[], groups: readonly GroupLabel[],
           const base = (ak * ap * e.dF0 + bk * bp * dF2) / e.h[g]!;
 
           const d1tot = e.d1.reduce((a, b) => a + b, 0);
-          const htotBefore = e.h.reduce((a, b) => a + b, 0);
           let targetCauseTieCorrection = 0;
           if (d1tot > 1 && e.Y[g]! > 0 && e.Sbefore[g]! > 0) {
+            // Empirically determined from public cmprsk::cuminc() output (Issue #525; oracle/competing-behaviour.md §1.6).
+            // This finite-sample tie correction supplements the covariance contribution in Gray (1988), Eq. (2.10).
             // qTieBefore is 1/S_r(t-), used only by Delta^(1); it is not qAfter above.
             const qTieBefore = 1 / e.Sbefore[g]!;
-            if (htotBefore > qTieBefore) {
-              targetCauseTieCorrection = (d1tot * (d1tot - 1) / htotBefore) *
-                (e.Y[g]! * qTieBefore * qTieBefore / (htotBefore - qTieBefore)) *
+            if (htot > qTieBefore) {
+              targetCauseTieCorrection = (d1tot * (d1tot - 1) / htot) *
+                (e.Y[g]! * qTieBefore * qTieBefore / (htot - qTieBefore)) *
                 (ak * ap / (e.h[g]! * e.h[g]!));
             }
           }
 
           let competingCauseTieCorrection = 0;
           if (e.d2[g]! > 1 && e.Y[g]! > 1) {
+            // Empirically determined from public cmprsk::cuminc() output (Issue #525; oracle/competing-behaviour.md §1.6).
+            // This within-group finite-sample correction supplements the covariance contribution in Gray (1988), Eq. (2.10).
             competingCauseTieCorrection = ((e.d2[g]! - 1) / (e.Y[g]! - 1)) *
               (dF2 / e.h[g]!) * bk * bp;
           }
