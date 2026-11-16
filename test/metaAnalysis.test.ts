@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { modelMatrix } from "../src/models/modelMatrix.js";
 import { escalc, rma, confintRma, predictRma, regtest, type EscalcMeasure, type MetaMethod, type MetaTest } from "../src/index.js";
 
 interface Case { fn: string; args: Record<string, any>; expected: { value?: Record<string, any>; error?: string; warnings?: string[] }; }
@@ -129,7 +130,6 @@ describe("meta-regression formula design",()=>{
     const y=[0.2,0.4,0.1,0.5,0.3,0.7,0.2,0.6];
     const vi=[0.04,0.05,0.03,0.06,0.05,0.04,0.07,0.06];
     const data={x:[1,2,3,4,5,6,7,8],group:["a","b","a","b","a","b","a","b"]};
-    const {modelMatrix}=requireModelMatrix();
     const matrixDesign=modelMatrix("~ x * group",data);
     const formulaFit=rma(y,vi,{mods:"~ x * group",data});
     const matrixFit=rma(y,vi,{mods:matrixDesign.x,intercept:false});
