@@ -107,7 +107,9 @@ function epi(
   const vt = measure === "binary" ? treat * (1 - treat) : sigma! * sigma!;
   const vc = measure === "binary" ? control * (1 - control) : sigma! * sigma!;
   const equality = kind === "equivalence" && type === "equality";
-  const E = kind === "noninferiority" ? D + delta! : kind === "superiority" ? D - delta! : equality ? D : delta! - Math.abs(D);
+  const margin = equality ? undefined : delta;
+  const E = kind === "noninferiority" ? D + margin! : kind === "superiority" ? D - margin! : equality ? D : margin! - Math.abs(D);
+  if (kind === "noninferiority" && E <= 0) throw new RangeError("Target power is not reachable under the specified hypotheses");
   const critical = kind === "superiority" ? z(1 - alpha / sides) : equality ? z(1 - alpha / 2) : z(1 - alpha);
   const zPower = equality || kind !== "equivalence" ? z(power ?? 0.8) : z(1 - (1 - (power ?? 0.8)) / 2);
   let nTreat: number;
@@ -151,7 +153,7 @@ function epi(
     nTreatExact,
     nControlExact,
     power: actualPower,
-    ...(delta === undefined ? {} : { delta }),
+    ...(margin === undefined ? {} : { delta: margin }),
     warnings: [],
   };
   return result;
@@ -308,7 +310,7 @@ export function powerEpi(n: number, theta: number, p: number, psi: number, rho2:
 export function ssizeEpi(power: number, theta: number, p: number, psi: number, rho2: number, options: SurvivalOptions = {}): number {
   checkOptions(options, SURVIVAL_KEYS, "ssizeEpi");
   const alpha=options.alpha??DEFAULT_ALPHA; checkAlpha(alpha);
-  checkNumber(power,"power",(v)=>prob(v)&&v>0&&v<1,"'power' must be strictly between 0 and 1");
+  checkNumber(power,"power",prob,"'power' must be in [0, 1]");
   checkNumber(theta,"theta",positive,"'theta' must be positive and finite");
   checkNumber(p,"p",prob,"'p' must be in [0, 1]"); checkNumber(psi,"psi",prob,"'psi' must be in [0, 1]");
   checkNumber(rho2,"rho2",prob,"'rho2' must be in [0, 1]");
@@ -344,8 +346,7 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
   checkOptions(options,SIMON_KEYS,"ph2simon");
   const nmax=options.nmax??100;
   for(const [v,name] of [[pu,"pu"],[pa,"pa"],[ep1,"ep1"],[ep2,"ep2"]] as const) checkNumber(v,name,prob,`'${name}' must be in [0, 1]`);
-  checkNumber(nmax,"nmax",(v)=>Number.isInteger(v)&&v>=2&&v<=1000,"nmax cannot exceed 1000");
-  if(pa<=pu) throw new Error("No feasible solution found");
+  checkNumber(nmax,"nmax",(v)=>Number.isInteger(v)&&v>=1&&v<=1000,"nmax cannot exceed 1000");
   const out:SimonRow[]=[];
   for(let n=2;n<=nmax;n++){
     let best:SimonRow|undefined;
@@ -369,7 +370,7 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
     }
     if(best) out.push(best);
   }
-  if(out.length===0) throw new Error(`No feasible solution found. Increase maximum sample size. Current nmax value = ${nmax}.`);
+  if(out.length===0) throw new Error(`  No feasible solution found. \n\tIncrease maximum sample size.  Current nmax value = ${nmax}.`);
   const minimax=out[0]!;
   const optimal=out.reduce((a,b)=>b.expectedN<a.expectedN?b:a);
   const admissible=out.filter((r,i)=>!out.some((s,j)=>j!==i&&s.n<=r.n&&s.expectedN<=r.expectedN&&(s.n<r.n||s.expectedN<r.expectedN)));
