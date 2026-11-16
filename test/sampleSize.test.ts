@@ -163,7 +163,7 @@ describe("sample size and power",()=>{
       for(let j=0;j<2;j++){
         const x=rows[j]!, y=refs[j]!;
         expect([x.r1,x.n1,x.r,x.n]).toEqual([n(y.r1),n(y.n1),n(y.r),n(y.n)]);
-        expect(close(x.expectedN,n(y["EN(p0)"]))&&close(x.pet,n(y["PET(p0)"]))).toBe(true);
+        expect(close(x.enP0,n(y["EN(p0)"]))&&close(x.petP0,n(y["PET(p0)"]))).toBe(true);
       }
       expect(r.minimax.n).toBe(r.out[0]!.n);
       expect(r.optimal).toBeDefined();
