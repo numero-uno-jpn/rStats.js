@@ -8,7 +8,7 @@ suppressPackageStartupMessages(library(jsonlite))
 json_value <- function(x) {
   if (is.null(x)) return(NULL)
   # A fitted model given as an argument (confint, predict, regtest): recorded by its inputs, not its internals
-  if (inherits(x, "rma.uni")) return(list(rma=list(yi=json_value(as.numeric(x$yi)), vi=json_value(as.numeric(x$vi)), method=x$method)))
+  if (inherits(x, "rma.uni")) return(list(rma=list(yi=json_value(as.numeric(x$yi)), vi=json_value(as.numeric(x$vi)), method=x$method, mods=if (isTRUE(x$int.only)) NULL else json_value(as.matrix(x$X)), intercept=if (isTRUE(x$int.only)) TRUE else FALSE, test=x$test)))
   if (is.factor(x)) return(as.character(x))
   if (is.matrix(x)) {
     rows <- lapply(seq_len(nrow(x)), function(i) I(as.list(json_value(x[i, ]))))
@@ -90,7 +90,7 @@ run_cases <- function(name, cases) {
 fit_fields <- function(fit) {
   list(beta=fit$beta, se=fit$se, zval=fit$zval, pval=fit$pval,
        ci.lb=fit$ci.lb, ci.ub=fit$ci.ub, tau2=fit$tau2, se.tau2=fit$se.tau2,
-       QE=fit$QE, QEp=fit$QEp, I2=fit$I2, H2=fit$H2, k=fit$k)
+       QE=fit$QE, QEp=fit$QEp, QM=fit$QM, QMp=fit$QMp, R2=fit$R2, p=fit$p, m=fit$m, I2=fit$I2, H2=fit$H2, k=fit$k)
 }
 
 pred_fields <- function(value) {
@@ -106,7 +106,12 @@ escalc_cases <- list(
   make_case("effectSize", list(measure="OR", ai=dat$tpos, bi=dat$tneg, ci=dat$cpos, di=dat$cneg), function(x) x[, c("yi","vi")]),
   make_case("effectSize", list(measure="RR", ai=c(0,5), bi=c(20,15), ci=c(2,4), di=c(18,16)), function(x) x[, c("yi","vi")]),
   make_case("effectSize", list(measure="MD", m1i=c(5.1,4.8,6.0), sd1i=c(1.2,1.0,1.4), n1i=c(30,28,32), m2i=c(4.7,4.4,5.2), sd2i=c(1.1,1.3,1.2), n2i=c(29,30,31)), function(x) x[, c("yi","vi")]),
-  make_case("effectSize", list(measure="SMD", m1i=c(5.1,4.8,6.0), sd1i=c(1.2,1.0,1.4), n1i=c(30,28,32), m2i=c(4.7,4.4,5.2), sd2i=c(1.1,1.3,1.2), n2i=c(29,30,31)), function(x) x[, c("yi","vi")])
+  make_case("effectSize", list(measure="SMD", m1i=c(5.1,4.8,6.0), sd1i=c(1.2,1.0,1.4), n1i=c(30,28,32), m2i=c(4.7,4.4,5.2), sd2i=c(1.1,1.3,1.2), n2i=c(29,30,31)), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="RD", ai=c(0,5,0,0), bi=c(20,15,20,0), ci=c(2,4,0,0), di=c(18,16,0,0)), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="RD", ai=c(0,5,0,0), bi=c(20,15,20,0), ci=c(2,4,0,0), di=c(18,16,0,0), add=0.5, to="all"), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="RD", ai=c(0,5,0,0), bi=c(20,15,20,0), ci=c(2,4,0,0), di=c(18,16,0,0), drop00=TRUE), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="ZCOR", ri=c(0.2,-0.4,0.7), ni=c(30,40,25)), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="ZCOR", ri=c(1,-1,1.2), ni=c(30,40,25)), function(x) x[, c("yi","vi")])
 )
 run_cases("metaEscalc", escalc_cases)
 
@@ -116,6 +121,19 @@ fit_cases <- list(
   make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="FE"), fit_fields),
   make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="DL"), fit_fields),
   make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="HE"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="HS"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="HSk"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="SJ"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="ML"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="EB"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="PM"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML", test="t"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML", test="knha"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat"))), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML", mods=cbind(dat$ablat, as.numeric(dat$alloc=="random"))), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat")), test="t"), fit_fields),
+  make_case("metaFit", list(yi=rr$yi, vi=rr$vi, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat")), test="knha"), fit_fields),
   make_case("metaFit", list(yi=c(0.1,0.2,0.0,-0.1), vi=c(0.04,0.05,0.03,0.06), method="DL"), fit_fields),
   make_case("metaFit", list(yi=c(0.1,0.2,0.0,-0.1), vi=c(0.04,0.05,0.03,0.06), method="REML"), fit_fields),
   make_case("metaFit", list(yi=c(0.1,0.1,0.1,0.1), vi=c(0.04,0.05,0.03,0.06), method="DL"), fit_fields),
@@ -134,8 +152,13 @@ fit <- rma(yi, vi, data=rr, method="REML")
 run_cases("metaIntervals", list(
   make_case("interval", list(object=fit), interval_fields),
   make_case("interval", list(object=fit, type="PL"), interval_fields),
+  make_case("interval", list(object=rma(yi, vi, data=rr, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat")))), interval_fields),
+  make_case("interval", list(object=rma(yi, vi, data=rr, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat"))), type="PL"), interval_fields),
   make_case("prediction", list(object=fit), pred_fields),
-  make_case("prediction", list(object=fit, predtype="riley"), pred_fields)
+  make_case("prediction", list(object=fit, predtype="riley"), pred_fields),
+  make_case("prediction", list(object=rma(yi, vi, data=rr, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat")))), pred_fields),
+  make_case("prediction", list(object=rma(yi, vi, data=rr, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat"))), newmods=c(10,30,50)), pred_fields),
+  make_case("prediction", list(object=rma(yi, vi, data=rr, method="REML", mods=matrix(dat$ablat, ncol=1, dimnames=list(NULL,"ablat"))), newmods=c(10,30,50), predtype="riley"), pred_fields)
 ))
 run_cases("metaEgger", list(
   make_case("egger", list(x=rr$yi, vi=rr$vi, model="lm", predictor="sei"), function(x) x[c("model","predictor","zval","pval","dfs","est","ci.lb","ci.ub")]),
