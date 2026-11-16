@@ -7,6 +7,8 @@ suppressPackageStartupMessages(library(jsonlite))
 
 json_value <- function(x) {
   if (is.null(x)) return(NULL)
+  # A fitted model given as an argument (confint, predict, regtest): recorded by its inputs, not its internals
+  if (inherits(x, "rma.uni")) return(list(rma=list(yi=json_value(as.numeric(x$yi)), vi=json_value(as.numeric(x$vi)), method=x$method)))
   if (is.factor(x)) return(as.character(x))
   if (is.matrix(x)) {
     rows <- lapply(seq_len(nrow(x)), function(i) I(as.list(json_value(x[i, ]))))
@@ -122,7 +124,8 @@ fit_cases <- list(
   make_case("metaFit", list(yi=c(0.1,0.2,0.3), vi=c(0,-0.1,0.2), method="DL"), fit_fields),
   make_case("metaFit", list(yi=c(1e150,-1e150,1e150), vi=c(1e-300,1e-300,1e-300), method="DL"), fit_fields),
   make_case("metaFit", list(yi=c(0.1,0.2,0.3), vi=c(1e-300,1e-300,1e-300), method="REML"), fit_fields),
-  make_case("metaFit", list(yi=c(0.1,0.2,0.3), vi=c(1e300,1e300,1e300), method="REML"), fit_fields),
+  # Not a case: rma(yi = c(0.1, 0.2, 0.3), vi = c(1e300, 1e300, 1e300), method = "REML") exhausts any memory limit
+  # (killed at 1 GB and 2 GB on 2026-11-17), so R gives no reference there
   make_case("metaFit", list(yi=c(0.1,0.2,0.3), vi=c(0.04,0.05,0.06), method="REML", control=list(maxiter=1, threshold=1e-15)), fit_fields)
 )
 run_cases("metaRma", fit_cases)

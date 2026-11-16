@@ -303,3 +303,25 @@ Public reference documentation (consulted as help pages, not source code):
 
 ## rStats.js's choices
 
+
+Decided by the user on 2026-11-17 (the Decisions above; binding for the rest of the work).
+
+1. **Scope.** `escalc`, `rma` (= `rma.uni`) with moderators (meta-regression), its methods `confint` and `predict`, and
+   `regtest`. Estimators: all of `rma.uni`'s `method` values except `"PMM"`, `"GENQ"` and `"GENQM"`, that is `"EE"`,
+   `"FE"`, `"DL"`, `"HE"`, `"HS"`, `"HSk"`, `"SJ"`, `"ML"`, `"REML"`, `"EB"` and `"PM"`. Inference: R's `test` values
+   `"z"`, `"t"` and `"knha"` (Knapp-Hartung). Deferred: `ranktest`, `trimfill`, `rma.mh`, `rma.peto`, `rma.glmm`,
+   `rma.mv`, plotting, and the estimators and options not listed.
+2. **Effect sizes.** `escalc` with six measures: `"RR"`, `"OR"`, `"RD"` (two-by-two tables), `"MD"`, `"SMD"` (two
+   means; `"SMD"` with Hedges' correction, as R) and `"ZCOR"` (Fisher's z of a correlation), with R's zero-cell options
+   (`add`, `to`, `drop00`). The other measures are deferred.
+3. **Names and data.** R's names: `escalc`, `rma`, `regtest`; the methods take the model's name as a suffix like
+   `predictCrr`: `confintRma`, `predictRma`. R's argument names in camelCase. `rma` accepts the `yi` and `vi` arrays
+   and the result of `escalc` (used directly, without renaming fields). Moderators: a numeric matrix (or array of
+   columns) as R's `mods`, and the formula form if the existing formula machinery (`src/models/formula.ts`) covers it;
+   say in stage 2 which is done. `method` accepts every value in 1, including both `"EE"` and `"FE"`.
+4. **Intervals and tests.** `confintRma` with R's `type` (Q-profile and profile likelihood at least, as in the
+   fixtures). `predictRma` with R's default and `predtype = "riley"`. `regtest` with R's default `model = "rma"` and
+   `model = "lm"`, and R's `predictor` values for these.
+5. **Entry point.** Exported from `src/entries/tests.ts`, as the survival functions of 1.4.0.
+6. **Where metafor is wrong** (found in the experiments, confirmed by an independent computation): use the correct
+   value and record the difference, as for the sample sizes (`docs/differences-from-r.md`).
