@@ -8,11 +8,10 @@ interface Case { fn: string; args: Record<string, any>; expected: { value?: Reco
 interface Fixture { r_version: string; cases: Case[]; }
 const fixture = (name: string): Fixture => JSON.parse(readFileSync(fileURLToPath(new URL(`./fixtures/${name}.json`, import.meta.url)), "utf8")) as Fixture;
 const n = (v: any): any => typeof v === "string" ? ({NA:NaN, NaN, Inf:Infinity, "-Inf":-Infinity} as Record<string,number>)[v] ?? Number(v) : Array.isArray(v) ? v.map(n) : v;
-const matrix = (v: any): number[][] | undefined => v == null ? undefined : Array.isArray(v) ? v.map((r:any)=>Array.isArray(r)?r.map(Number):[Number(r)]) : v.rows.map((r:any[])=>r.map(Number));
 const argsRma = (a:any) => ({
   ...(a.method===undefined?{}:{method:a.method as MetaMethod}),
   ...(a.test===undefined?{}:{test:a.test as MetaTest}),
-  ...(a.mods===undefined?{}:{mods:matrix(a.mods)}),
+  ...(a.mods===undefined?{}:{mods:a.mods}),
   ...(a.intercept===undefined?{}:{intercept:a.intercept}),
   ...(a.control===undefined?{}:{control:a.control}),
 });
@@ -48,7 +47,7 @@ function compareRma(result:any, expected:any, index:number,mismatches:string[]):
   const tol=result.method==="PM"?1e-5:result.method==="EB"?1e-6:1e-12;
   const fields=["se","zval","pval","ci.lb","ci.ub","tau2","se.tau2","QE","QEp","QM","QMp","R2","p","m","I2","H2","k"];
   for(const field of fields) if(Object.hasOwn(expected,field)) close(result[field],n(expected[field]),`case ${index} ${field}`,mismatches,tol);
-  if(expected.beta) close(result.beta,expected.beta.rows.map((r:any[])=>r.map(n)),`case ${index} beta`,mismatches,tol);
+  if(expected.beta) close(result.beta,expected.beta,`case ${index} beta`,mismatches,tol);
   if(JSON.stringify(result.warnings)!==JSON.stringify(expected.warnings??[]))mismatches.push(`case ${index} warnings differ`);
 }
 function fitFromObject(o:any) {
