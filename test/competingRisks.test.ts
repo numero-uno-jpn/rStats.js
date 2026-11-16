@@ -227,6 +227,53 @@ describe("competing risks", () => {
     }
   });
 
+  it("keeps Gray's tied-time test invariant at 2^+/-1000 time scales", () => {
+    const time = [1, 2, 3, 4, 5, 6, 2, 3, 4, 5, 6, 7];
+    const status = [1, 0, 2, 1, 0, 1, 0, 1, 2, 0, 1, 0];
+    const group = ["A", "A", "A", "A", "A", "A", "B", "B", "B", "B", "B", "B"];
+    for (const power of [-1000, 0, 1000]) {
+      const scale = 2 ** power;
+      const fit = cuminc(time.map((t) => t * scale), status, { group });
+      expect(fit.tests?.find((x) => x.cause === "1")?.stat).toBeCloseTo(0.72927209728257647, 12);
+      expect(fit.tests?.find((x) => x.cause === "2")?.stat).toBeCloseTo(0.012310108268851854, 12);
+    }
+  });
+
+  it("handles thousands of tied events, small pre-event survival, and zero-denominator boundaries", () => {
+    // R 4.6.2 / cmprsk 2.2.12: 6,000 rows, 3,000 events at one time.
+    const group = [...Array(3000).fill("A"), ...Array(3000).fill("B")];
+    const status = [
+      ...Array(1200).fill(1), ...Array(400).fill(2), ...Array(1400).fill(0),
+      ...Array(800).fill(1), ...Array(600).fill(2), ...Array(1600).fill(0),
+    ];
+    const time = status.map((x) => x === 0 ? 2 : 1);
+    const large = cuminc(time, status, { group });
+    expect(large.tests?.find((x) => x.cause === "1")?.stat).toBeCloseTo(119.98000000000002, 10);
+    expect(large.tests?.find((x) => x.cause === "2")?.stat).toBeCloseTo(47.992000000000004, 10);
+
+    // R reference: S_A(t-) = 3/2000, S_B(t-) = 2/2000; target-cause tie count is 3.
+    // The compact two-time construction avoids an O(m^3) curve-variance workload from thousands of distinct times.
+    const n = 2000;
+    const nearZeroTime = [
+      ...Array(n - 3).fill(1), 2, 2, 3,
+      ...Array(n - 2).fill(1), 2, 3,
+    ];
+    const nearZeroStatus = [
+      ...Array(n - 3).fill(2), 1, 1, 0,
+      ...Array(n - 2).fill(2), 1, 0,
+    ];
+    const nearZeroGroup = [...Array(n).fill("A"), ...Array(n).fill("B")];
+    const nearZero = cuminc(nearZeroTime, nearZeroStatus, { group: nearZeroGroup });
+    expect(nearZero.tests?.find((x) => x.cause === "1")?.stat).toBeCloseTo(0.2675619118264449, 10);
+    expect(nearZero.tests?.find((x) => x.cause === "2")?.stat).toBeCloseTo(0.00025072068066545115, 10);
+
+    // Here H = q_r exactly (one remaining subject in the only nonempty risk set).
+    // R returns its singular sentinel -1; rStats.js deliberately represents this as NaN.
+    const singular = cuminc([10, 1, 2, 3], [1, 2, 2, 2], { group: ["A", "B", "B", "B"] });
+    expect(singular.tests?.find((x) => x.cause === "1")?.stat).toBeNaN();
+    expect(singular.tests?.find((x) => x.cause === "1")?.pValue).toBeNaN();
+  });
+
   it(`crr matches R's fixture (${crrFixture.r_version})`, () => {
     const mismatches: string[] = [];
     crrFixture.cases.forEach((c, index) => {
