@@ -903,3 +903,4 @@
 | time-dependent covariate | 時間依存性共変量 | 新規 (1.4.0) |
 | Schoenfeld residual | Schoenfeld 残差 | 新規 (1.4.0)。人名は英字 |
 | subject-level sandwich variance | 被験者単位のサンドイッチ分散 | 新規 (1.4.0) |
+| infinitesimal jackknife | 無限小ジャックナイフ | 新規 (1.4.0)。既存の「ジャックナイフ」に合わせた |

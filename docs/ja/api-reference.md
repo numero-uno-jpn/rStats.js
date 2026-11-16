@@ -46,7 +46,7 @@ R の名前が JavaScript の予約語である場合や、一般的すぎてそ
 | `blandAltman` | BlandAltmanLeh の `bland.altman.stats` |
 | `diagnosticTests` | epiR の `epi.tests` |
 
-`lm` 以外のモデルのメソッド (R で当てはめに対して使う `summary`、`predict`、`anova` など) は、名前の前にモデルの名前が付きます: `glmSummary`、`glmPredict`、`lmerSummary`、`lmerAnova`、`glmerSummary`、`glmerPredict`、`coxZph`、`predictCrr`、`survregPredict`、`survregResiduals`。モデルの名前が付かないメソッド (`predict`、`confint`、`anova`) は `lm` のものです。
+`lm` 以外のモデルのメソッド (R で当てはめに対して使う `summary`、`predict`、`anova` など) は、名前の前にモデルの名前が付きます: `glmSummary`、`glmPredict`、`lmerSummary`、`lmerAnova`、`glmerSummary`、`glmerPredict`、`coxZph`、`survregPredict`、`survregResiduals`。例外は `predictCrr` (R の `predict.crr`) です。モデルの名前が付かないメソッド (`predict`、`confint`、`anova`) は `lm` のものです。
 
 ### 引数
 

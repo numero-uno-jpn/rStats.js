@@ -717,7 +717,7 @@
   "SurvfitOptions.robust#summary": {
     "hash": "aa5ed6d1274f",
     "en": "Use the infinitesimal-jackknife variance. Default false; non-integer weights are rejected.",
-    "ja": "infinitesimal jackknife 法による分散を使うかどうかです。既定は false です。整数でない重みは受け付けません。"
+    "ja": "無限小ジャックナイフによる分散を使うかどうかです。既定は false です。整数でない重みは受け付けません。"
   },
   "SurvfitOptions.start#summary": {
     "hash": "cea8307ee925",
@@ -1117,7 +1117,7 @@
   "survfit#summary": {
     "hash": "bc8e105d61ab",
     "en": "Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means.\nEquivalent to R's `survival::survfit()`. Supports right-censored and counting-process data, Nelson-Aalen and Fleming-Harrington cumulative hazards,\ninteger case weights, infinitesimal-jackknife standard errors and all six confidence transformations.\n\nRows with a missing time, status, group, id or weight are dropped. With `start`, the risk set at t is\n`start < t <= time`; without `id`, each split row ending without an event is a censoring. With `id`, a row\nfollowed by another row for the same subject at the same boundary is not a censoring.",
-    "ja": "Kaplan-Meier 推定値または累積ハザードの指数変換による推定値で、各時点の信頼区間、中央値、制限平均を返します。\nR の `survival::survfit()` と同等です。右側打ち切りデータと計数過程データ、Nelson-Aalen および Fleming-Harrington の累積ハザード、整数のケース重み、infinitesimal jackknife 法による標準誤差、6 種類すべての信頼区間変換に対応します。\n\n時刻、status、群、id、または重みが欠測している行は除外します。`start` を指定した場合、時刻 t のリスク集合は `start < t <= time` です。`id` がない場合、イベントを伴わずに終了する各分割行は打ち切りとして扱います。`id` がある場合、同じ被験者の次の行が同じ境界で続くとき、その行は打ち切りとして扱いません。"
+    "ja": "Kaplan-Meier 推定値または累積ハザードの指数変換による推定値で、各時点の信頼区間、中央値、制限平均を返します。\nR の `survival::survfit()` と同等です。右側打ち切りデータと計数過程データ、Nelson-Aalen および Fleming-Harrington の累積ハザード、整数のケース重み、無限小ジャックナイフによる標準誤差、6 種類すべての信頼区間変換に対応します。\n\n時刻、status、群、id、または重みが欠測している行は除外します。`start` を指定した場合、時刻 t のリスク集合は `start < t <= time` です。`id` がない場合、イベントを伴わずに終了する各分割行は打ち切りとして扱います。`id` がある場合、同じ被験者の次の行が同じ境界で続くとき、その行は打ち切りとして扱いません。"
   },
   "survreg#@example": {
     "hash": "f2167be5edf2",
