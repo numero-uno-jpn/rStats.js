@@ -74,7 +74,7 @@ describe("sample size and power",()=>{
           (n(a.control)*(1-n(a.control)))/(n(a.n)/(1+n(a.r))));
         const D=n(a.treat)-n(a.control), d=n(a.delta), alpha=n(a.alpha);
         const expected=Math.max(0,Phi((d-D)/se-z(1-alpha))+Phi((d+D)/se-z(1-alpha))-1);
-        expect(close(Number(result.power),expected),reason.eqPower).toBe(true); known.push(i);
+        expect(close(Number(result.power),expected),reason.eqPower).toBe(true); known.push(i); console.info(reason.eqPower, `case ${i}`);
       } else if(c.fn==="epi.ssequc" && a.type==="equivalence" && a.n!=="NA"){
         const se=Math.sqrt(n(a.sigma)**2/(n(a.n)*n(a.r)/(1+n(a.r)))+n(a.sigma)**2/(n(a.n)/(1+n(a.r))));
         const D=n(a.treat)-n(a.control), d=n(a.delta), alpha=n(a.alpha);
@@ -83,18 +83,18 @@ describe("sample size and power",()=>{
       } else if(c.fn==="epi.ssequb" && a.type==="equality" && a.n==="NA" && n(a.r)!==1){
         const E=n(a.treat)-n(a.control), vt=n(a.treat)*(1-n(a.treat)), vc=n(a.control)*(1-n(a.control));
         const nc=(z(1-n(a.alpha)/2)+z(n(a.power)))**2*(vt/n(a.r)+vc)/(E*E);
-        expect(close(Number(result.nControlUnrounded),nc),reason.eqSize).toBe(true); known.push(i);
+        expect(close(Number(result.nControlUnrounded),nc),reason.eqSize).toBe(true); known.push(i); console.info(reason.eqSize, `case ${i}`);
       } else if(c.fn==="epi.ssequc" && a.type==="equality" && a.n!=="NA"){
         const se=Math.sqrt(n(a.sigma)**2/Number(result.nTreatUnrounded)+n(a.sigma)**2/Number(result.nControlUnrounded));
         const D=Math.abs(n(a.treat)-n(a.control)), alpha=n(a.alpha);
         const expected=Phi(D/se-z(1-alpha/2))+Phi(-D/se-z(1-alpha/2));
-        expect(close(Number(result.power),expected),reason.eqContinuousEquality).toBe(true); known.push(i);
+        expect(close(Number(result.power),expected),reason.eqContinuousEquality).toBe(true); known.push(i); console.info(reason.eqContinuousEquality, `case ${i}`);
       } else if(c.fn==="epi.sssupb" && a.n!=="NA" && n(a.r)!==1){
         const nt=n(a.n)*n(a.r)/(1+n(a.r)), nc=n(a.n)/(1+n(a.r));
         const se=Math.sqrt(n(a.treat)*(1-n(a.treat))/nt+n(a.control)*(1-n(a.control))/nc);
         const e=Math.abs(n(a.treat)-n(a.control)-n(a.delta))/se, alpha=n(a.alpha), side=n(a["sided.test"]);
         const expected=Phi(e-z(1-alpha/side))+Phi(-e-z(1-alpha/side));
-        expect(close(Number(result.power),expected),reason.supBinary).toBe(true); known.push(i);
+        expect(close(Number(result.power),expected),reason.supBinary).toBe(true); known.push(i); console.info(reason.supBinary, `case ${i}`);
       } else {
         for(const [k,v] of Object.entries(val)) {
           if(k==="n.total") compareNumeric(result.nTotal,v,`case ${i} ${k}`);
@@ -123,7 +123,7 @@ describe("sample size and power",()=>{
       const actual=powerPaired2x2(n(a.pb),n(a.pc),n(a.npairs),opts);
       if(a.errbound!==undefined && n(a.errbound)>0){
         const exact=powerPaired2x2(n(a.pb),n(a.pc),n(a.npairs),{...opts,errbound:0});
-        expect(close(actual.power,exact.power),reason.mcnemarBound).toBe(true);
+        expect(close(actual.power,exact.power),reason.mcnemarBound).toBe(true); console.info(reason.mcnemarBound, `case ${i}`);
       } else {
         expect(close(actual.power,n((c.expected.value as Record<string,unknown>).power)),`case ${i} power`).toBe(true);
       }
