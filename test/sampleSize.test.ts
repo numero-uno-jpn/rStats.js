@@ -82,9 +82,9 @@ describe("sample size and power",()=>{
       } else if(c.fn==="epi.ssequb" && a.type==="equality" && a.n==="NA" && n(a.r)!==1){
         const E=n(a.treat)-n(a.control), vt=n(a.treat)*(1-n(a.treat)), vc=n(a.control)*(1-n(a.control));
         const nc=(z(1-n(a.alpha)/2)+z(n(a.power)))**2*(vt/n(a.r)+vc)/(E*E);
-        expect(close(Number(result.nControlExact),nc),reason.eqSize).toBe(true); known.push(i);
+        expect(close(Number(result.nControlUnrounded),nc),reason.eqSize).toBe(true); known.push(i);
       } else if(c.fn==="epi.ssequc" && a.type==="equality" && a.n!=="NA"){
-        const se=Math.sqrt(n(a.sigma)**2/Number(result.nTreatExact)+n(a.sigma)**2/Number(result.nControlExact));
+        const se=Math.sqrt(n(a.sigma)**2/Number(result.nTreatUnrounded)+n(a.sigma)**2/Number(result.nControlUnrounded));
         const D=Math.abs(n(a.treat)-n(a.control)), alpha=n(a.alpha);
         const expected=Phi(D/se-z(1-alpha/2))+Phi(-D/se-z(1-alpha/2));
         expect(close(Number(result.power),expected),reason.eqContinuousEquality).toBe(true); known.push(i);
