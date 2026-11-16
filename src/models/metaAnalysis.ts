@@ -63,15 +63,39 @@ export interface RmaControl {
 /** Options for {@link rma}.
  * @category Meta-analysis
  */
+export interface ModeratorMatrix extends Record<string, unknown> {
+  rows?: readonly (readonly number[])[];
+  columns?: readonly (readonly number[])[];
+  dim?: readonly number[];
+  rowNames?: readonly string[] | string | null;
+  colNames?: readonly string[] | string | null;
+}
+/** Options for {@link rma}.
+ * @category Meta-analysis
+ */
 export interface RmaOptions {
-  method?: MetaMethod; mods?: MatrixInput | readonly number[] | string; data?: DataFrame; intercept?: boolean;
-  test?: MetaTest; level?: number; control?: RmaControl;
+  method?: MetaMethod;
+  mods?: MatrixInput | readonly number[] | string | ModeratorMatrix;
+  data?: DataFrame;
+  intercept?: boolean;
+  test?: MetaTest;
+  level?: number;
+  control?: RmaControl;
+}
+/** Fitted meta-analysis model returned by {@link rma}.
+ * @category Meta-analysis
+ */
+export interface NumericMatrix extends Record<string, unknown> {
+  dim: number[];
+  rowNames: string | string[] | null;
+  colNames: string | string[] | null;
+  rows: number[][];
 }
 /** Fitted meta-analysis model returned by {@link rma}.
  * @category Meta-analysis
  */
 export interface RmaResult {
-  beta: number[][]; se: number | number[]; zval: number | number[]; pval: number | number[];
+  beta: NumericMatrix; se: number | number[]; zval: number | number[]; pval: number | number[];
   "ci.lb": number | number[]; "ci.ub": number | number[];
   tau2: number; "se.tau2": number; QE: number; QEp: number; QM: number; QMp: number;
   R2: number | null; p: number; m: number; I2: number; H2: number; k: number;
@@ -186,31 +210,8 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
   }
   return tau2;
 }
-function buildX(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:DataFrame):number[][] {
-  let rows:number[][];
-  if(typeof mods==="string"){
-    if(data===undefined) throw new TypeError("data is required when mods is a formula");
-    const f=mods.includes("~")?mods:`~ ${mods}`;
-    const d=design(parseFormula(f),data,{intercept});
-    rows=d.x;
-    if(d.frame.rows.length!==k) throw new RangeError("variable lengths differ between yi and mods");
-    return independentColumns(rows);
-  } else if(mods===undefined) rows=Array.from({length:k},()=>[]);
-  else if(mods.length===0) rows=Array.from({length:k},()=>[]);
-  else if(typeof mods[0]==="number") {
-    const v=Array.from(mods as readonly number[]);
-    if(v.length!==k) throw new RangeError("variable lengths differ (found for 'mods')");
-    rows=v.map(z=>[z]);
-  } else {
-    rows=Array.from(mods as MatrixInput,r=>Array.from(r));
-    if(rows.length!==k) throw new RangeError("variable lengths differ (found for 'mods')");
-    if(rows.some(r=>r.length!==rows[0]!.length)) throw new TypeError("all rows of the moderator matrix must have the same length");
-  }
-  if(intercept) rows=rows.map(r=>[1,...r]);
-  return independentColumns(rows);
-}
-function independentColumns(rows:number[][]):number[][] {
-  if(rows.length===0||rows[0]!.length===0) return rows;
+function independentColumnIndices(rows:number[][]):number[] {
+  if(rows.length===0||rows[0]!.length===0) return [];
   const keep:number[]=[],basis:number[][]=[];
   for(let j=0;j<rows[0]!.length;j++){
     const v=rows.map(r=>r[j]!);const original=Math.sqrt(dot(v,v));let residual=v.slice();
@@ -218,7 +219,50 @@ function independentColumns(rows:number[][]):number[][] {
     const norm=Math.sqrt(dot(residual,residual));
     if(original>0&&norm>1e-10*original){keep.push(j);basis.push(residual.map(z=>z/norm));}
   }
-  return rows.map(r=>keep.map(j=>r[j]!));
+  return keep;
+}
+function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:DataFrame):{x:number[][];names:string[]} {
+  let rows:number[][],names:string[]=[],explicitNames=false,rawModeratorCount=0;
+  if(typeof mods==="string"){
+    if(data===undefined) throw new TypeError("data is required when mods is a formula");
+    const f=mods.includes("~")?mods:`~ ${mods}`;
+    const d=design(parseFormula(f),data,{intercept});
+    rows=d.x;names=d.colNames.map(n=>n==="(Intercept)"?"intrcpt":n);
+    if(d.frame.rows.length!==k) throw new RangeError("variable lengths differ between yi and mods");
+    const keep=independentColumnIndices(rows);
+    return {x:rows.map(r=>keep.map(j=>r[j]!)),names:keep.map(j=>names[j]??"")};
+  }else if(mods===undefined){rows=Array.from({length:k},()=>[]);}
+  else if(Array.isArray(mods)){
+    if(mods.length===0) rows=Array.from({length:k},()=>[]);
+    else if(typeof mods[0]==="number"){
+      const v=Array.from(mods as readonly number[]);
+      if(v.length!==k) throw new RangeError("variable lengths differ (found for 'mods')");
+      rows=v.map(z=>[z]);rawModeratorCount=1;
+    }else{
+      const matrix=mods as MatrixInput;
+      if(matrix.length===k){rows=Array.from(matrix,r=>Array.from(r));rawModeratorCount=rows[0]?.length??0;}
+      else if(matrix.every(col=>col.length===k)){rawModeratorCount=matrix.length;rows=Array.from({length:k},(_,i)=>matrix.map(col=>col[i]!));}
+      else throw new RangeError("variable lengths differ (found for 'mods')");
+    }
+  }else{
+    const m=mods as ModeratorMatrix;
+    if(m.rows!==undefined){rows=m.rows.map(r=>Array.from(r));rawModeratorCount=rows[0]?.length??0;}
+    else if(m.columns!==undefined){rawModeratorCount=m.columns.length;rows=Array.from({length:k},(_,i)=>m.columns!.map(col=>col[i]!));}
+    else throw new TypeError("mods matrix must have rows or columns");
+    if(rows.length!==k) throw new RangeError("variable lengths differ (found for 'mods')");
+    if(m.colNames!==undefined&&m.colNames!==null){
+      names=typeof m.colNames==="string"?[m.colNames]:Array.from(m.colNames);
+      explicitNames=true;
+    }
+  }
+  if(rows.some(r=>r.length!==rows[0]!.length)) throw new TypeError("all rows of the moderator matrix must have the same length");
+  if(!explicitNames) names=Array.from({length:rawModeratorCount},(_,j)=>rawModeratorCount>1?`.${j+1}`:"");
+  if(intercept){rows=rows.map(r=>[1,...r]);names=["intrcpt",...names];}
+  const keep=independentColumnIndices(rows),dropped=keep.length<rows[0]!.length;
+  if(dropped&&!explicitNames&&rawModeratorCount>0){
+    for(let j=0;j<keep.length;j++)if(keep[j]!==0||!intercept){names[keep[j]]="";break;}
+  }
+  return {x:rows.map(r=>keep.map(j=>r[j]!)),names:keep.map(j=>names[j]??"")};
 }
 
 /**
@@ -307,7 +351,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
     throw new RangeError("random-effects estimators require positive sampling variances");
   }
   const method=opts.method??"REML", test=opts.test??"z", level=opts.level??0.95, intercept=opts.intercept??true;
-  const X=buildX(y.length,opts.mods,intercept,opts.data);
+  const built=buildDesign(y.length,opts.mods,intercept,opts.data),X=built.x;
   const p=X[0]!.length,k=y.length,df=k-p;
   if(p===0) throw new RangeError("the model must contain at least one coefficient");
   if(k<p) throw new Error("Number of parameters to be estimated is larger than the number of observations.");
@@ -340,7 +384,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   const I2=100*tau2/(tau2+vtilde),H2=(tau2+vtilde)/vtilde;
   const R2=opts.mods===undefined?null:(tau2Null>0?100*Math.max(0,(tau2Null-tau2)/tau2Null):0);
   const info=fit.traceP2>0?Math.sqrt(2/fit.traceP2):NaN;
-  return reported("rma",{beta:fit.beta.map(z=>[z]),se:scalar(se),zval:scalar(stat),pval:scalar(pv),
+  return reported("rma",{beta:{dim:[p,1],rowNames:p===1?(built.names[0]??"intrcpt"):built.names,colNames:null,rows:fit.beta.map(z=>[z])},se:scalar(se),zval:scalar(stat),pval:scalar(pv),
     "ci.lb":scalar(lower),"ci.ub":scalar(upper),tau2,"se.tau2":info,QE:baseFit.qe,QEp:pchisq(baseFit.qe,df,{lowerTail:false}),
     QM:qm,QMp:qmp,R2,p,m,I2,H2,k,yi:y,vi:v,mods:X,intercept,method,test,level,warnings:[],covariance,tau2Null});
 }
@@ -395,7 +439,7 @@ export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:
     if(rows.some(r=>r.length===p-(object.intercept?1:0))) rows=rows.map(r=>object.intercept?[1,...r]:r);
     if(rows.some(r=>r.length!==p)) throw new RangeError("newmods has the wrong number of columns");
   }
-  const beta=object.beta.map(r=>r[0]!);
+  const beta=object.beta.rows.map(r=>r[0]!);
   const pred=rows.map(r=>dot(r,beta));
   const se=rows.map(r=>Math.sqrt(Math.max(0,dot(r,matVec(object.covariance,r)))));
   const crit=object.test==="z"?qnorm(1-alpha/2):qt(1-alpha/2,object.k-p);
@@ -428,7 +472,7 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
     pv=2*pt(-Math.abs(stat),df);
   } else {
     const fit=rma(y,v,{method:"REML",mods:z,intercept:true,test:"z"});
-    est=fit.beta[0]![0];se=Array.isArray(fit.se)?fit.se[0]!:fit.se;stat=est/se;df=NaN;pv=2*pnorm(-Math.abs(stat));
+    est=fit.beta.rows[0]![0];se=Array.isArray(fit.se)?fit.se[0]!:fit.se;stat=est/se;df=NaN;pv=2*pnorm(-Math.abs(stat));
   }
   const crit=model==="lm"?qt(1-(1-level)/2,df):qnorm(1-(1-level)/2);
   const out={model,predictor,zval:stat,pval:pv,dfs:df,est,"ci.lb":est-crit*se,"ci.ub":est+crit*se};
