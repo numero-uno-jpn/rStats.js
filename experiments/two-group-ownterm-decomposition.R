@@ -38,7 +38,8 @@ run_one <- function(label,nA,nB,priorA,tieA,tieB) {
       q <- ifelse(Safter>0,Gafter/Safter,0)
       dF2 <- ifelse(Y>0,Sminus*N2/Y,0)
       dGamma <- if (G0>0) dF0/G0 else 0
-      dvec <- L*h[1]*(c(1,0)-ifelse(H>0,h/H,0))
+      p <- if (H>0) h/H else c(0,0)
+      dvec <- L*h[1]*(c(1,0)-p)
       saved[[j]] <- list(h=h,dvec=dvec,dF0=dF0,dF2=dF2,q=q,dGamma=dGamma,
                          Y=Y,L=L,Gbefore=G0)
       F1 <- F1+ifelse(Y>0,Sminus*N1/Y,0)
