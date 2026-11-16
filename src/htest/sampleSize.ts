@@ -171,28 +171,97 @@ function epi(
   return result;
 }
 
-/** Equivalence/equality sample size or power for two proportions. Equivalent to `epiR::epi.ssequb()` in R. */
+/** Equivalence/equality sample size or power for two proportions. Equivalent to `epiR::epi.ssequb()` in R.
+ * @param treat Expected treatment-group proportion.
+ * @param control Expected control-group proportion.
+ * @param delta Equivalence margin; pass null for equality.
+ * @param options Sample-size, power and allocation options.
+ * @returns The fractional and requested group sizes, and power.
+ * @example
+ * ```ts
+ * epiSsequb(0.5, 0.45, 0.1, { n: 120 }).power;
+ * ```
+ * @category Effect sizes and power
+ */
 export function epiSsequb(treat: number, control: number, delta: number | null, options: EpiOptions = {}): EpiResult {
   return reported("epiSsequb", epi("equivalence", "binary", treat, control, undefined, delta ?? undefined, options));
 }
-/** Equivalence/equality sample size or power for two means. Equivalent to `epiR::epi.ssequc()` in R. */
+/** Equivalence/equality sample size or power for two means. Equivalent to `epiR::epi.ssequc()` in R.
+ * @param treat Expected treatment-group mean.
+ * @param control Expected control-group mean.
+ * @param sigma Common standard deviation.
+ * @param delta Equivalence margin; pass null for equality.
+ * @param options Sample-size, power and allocation options.
+ * @returns The fractional and requested group sizes, and power.
+ * @example
+ * ```ts
+ * epiSsequc(20, 21, 10, 5, { n: 120 }).power;
+ * ```
+ * @category Effect sizes and power
+ */
 export function epiSsequc(treat: number, control: number, sigma: number, delta: number | null, options: EpiOptions = {}): EpiResult {
   const out = epi("equivalence", "continuous", treat, control, sigma, delta ?? undefined, options);
   return reported("epiSsequc", out);
 }
-/** Non-inferiority sample size or power for two proportions. Equivalent to `epiR::epi.ssninfb()` in R. */
+/** Non-inferiority sample size or power for two proportions. Equivalent to `epiR::epi.ssninfb()` in R.
+ * @param treat Expected treatment-group proportion.
+ * @param control Expected control-group proportion.
+ * @param delta Non-inferiority margin.
+ * @param options Sample-size, power and allocation options.
+ * @returns The fractional and requested group sizes, and power.
+ * @example
+ * ```ts
+ * epiSsninfb(0.85, 0.65, 0.1, { n: 120 }).power;
+ * ```
+ * @category Effect sizes and power
+ */
 export function epiSsninfb(treat: number, control: number, delta: number, options: EpiOptions = {}): EpiResult {
   return reported("epiSsninfb", epi("noninferiority", "binary", treat, control, undefined, delta, options));
 }
-/** Non-inferiority sample size or power for two means. Equivalent to `epiR::epi.ssninfc()` in R. */
+/** Non-inferiority sample size or power for two means. Equivalent to `epiR::epi.ssninfc()` in R.
+ * @param treat Expected treatment-group mean.
+ * @param control Expected control-group mean.
+ * @param sigma Common standard deviation.
+ * @param delta Non-inferiority margin.
+ * @param options Sample-size, power and allocation options.
+ * @returns The fractional and requested group sizes, and power.
+ * @example
+ * ```ts
+ * epiSsninfc(0.22, 0.2, 0.1, 0.05, { n: 120 }).power;
+ * ```
+ * @category Effect sizes and power
+ */
 export function epiSsninfc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {}): EpiResult {
   return reported("epiSsninfc", epi("noninferiority", "continuous", treat, control, sigma, delta, options));
 }
-/** Superiority sample size or power for two proportions. Equivalent to `epiR::epi.sssupb()` in R. */
+/** Superiority sample size or power for two proportions. Equivalent to `epiR::epi.sssupb()` in R.
+ * @param treat Expected treatment-group proportion.
+ * @param control Expected control-group proportion.
+ * @param delta Superiority margin.
+ * @param options Sample-size, power and allocation options.
+ * @returns The fractional and requested group sizes, and power.
+ * @example
+ * ```ts
+ * epiSssupb(0.5, 0.3, 0.05, { n: 101, r: 0.5, sidedTest: 1 }).power;
+ * ```
+ * @category Effect sizes and power
+ */
 export function epiSssupb(treat: number, control: number, delta: number, options: EpiOptions = {}): EpiResult {
   return reported("epiSssupb", epi("superiority", "binary", treat, control, undefined, delta, options));
 }
-/** Superiority sample size or power for two means. Equivalent to `epiR::epi.sssupc()` in R. */
+/** Superiority sample size or power for two means. Equivalent to `epiR::epi.sssupc()` in R.
+ * @param treat Expected treatment-group mean.
+ * @param control Expected control-group mean.
+ * @param sigma Common standard deviation.
+ * @param delta Superiority margin.
+ * @param options Sample-size, power and allocation options.
+ * @returns The fractional and requested group sizes, and power.
+ * @example
+ * ```ts
+ * epiSssupc(20, 20, 10, 5, { n: 120, r: 1.5, sidedTest: 1 }).power;
+ * ```
+ * @category Effect sizes and power
+ */
 export function epiSssupc(treat: number, control: number, sigma: number, delta: number, options: EpiOptions = {}): EpiResult {
   return reported("epiSssupc", epi("superiority", "continuous", treat, control, sigma, delta, options));
 }
@@ -232,7 +301,18 @@ function binomialMasses(n: number, p: number): number[] {
   for (let k = mode; k < n; k++) out[k + 1] = out[k]! * ((n - k) / (k + 1)) * (p / (1 - p));
   return out;
 }
-/** Exact conditional-binomial enumeration of the paired 2x2 rejection probability. */
+/** Exact power of McNemar's test for paired binary outcomes. Equivalent to `exact2x2::powerPaired2x2()` in R.
+ * @param pb Probability of a discordant pair with control 0 and treatment 1.
+ * @param pc Probability of a discordant pair with control 1 and treatment 0.
+ * @param npairs Number of pairs.
+ * @param options Test options, including the two-sided method and truncation bound.
+ * @returns The power and test settings.
+ * @example
+ * ```ts
+ * powerPaired2x2(0.5, 0.3, 40).power;
+ * ```
+ * @category Effect sizes and power
+ */
 export function powerPaired2x2(pb: number, pc: number, npairs: number, options: PowerPaired2x2Options = {}): PowerPaired2x2Result {
   checkOptions(options, POWER_PAIRED2X2_KEYS, "powerPaired2x2"); // generated: option-keys.mjs
   const sigLevel = options.sigLevel ?? DEFAULT_ALPHA;
@@ -290,7 +370,20 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
  */\nexport interface SurvivalOptions { alpha?: number; }
 /** Freedman clinical-trial sample size with equal or unequal allocation. Equivalent to `powerSurvEpi::ssizeCT()` in R. */
 export interface SSizeCTResult { nE: number; nC: number; }
-/** Freedman clinical-trial power. Equivalent to `powerSurvEpi::powerCT()` in R. */
+/** Freedman clinical-trial power. Equivalent to `powerSurvEpi::powerCT()` in R.
+ * @param nE Experimental-group sample size.
+ * @param nC Control-group sample size.
+ * @param pE Experimental-group event probability.
+ * @param pC Control-group event probability.
+ * @param RR Experimental/control hazard ratio.
+ * @param options Significance level.
+ * @returns The normal-approximation power.
+ * @example
+ * ```ts
+ * powerCT(200, 200, 0.3707, 0.489, 0.7);
+ * ```
+ * @category Effect sizes and power
+ */
 export function powerCT(nE: number, nC: number, pE: number, pC: number, RR: number, options: SurvivalOptions = {}): number {
   checkOptions(options, POWER_CT_KEYS, "powerCT"); // generated: option-keys.mjs
   const alpha = options.alpha ?? DEFAULT_ALPHA; checkAlpha(alpha);
@@ -301,7 +394,20 @@ export function powerCT(nE: number, nC: number, pE: number, pC: number, RR: numb
   const m = nE * pE + nC * pC;
   return phi(Math.sqrt(k * m) * Math.abs(RR - 1) / (k * RR + 1) - z(1 - alpha / 2));
 }
-/** Freedman clinical-trial sample size. Equivalent to `powerSurvEpi::ssizeCT()`. */
+/** Freedman clinical-trial sample size. Equivalent to `powerSurvEpi::ssizeCT()` in R.
+ * @param power Target power.
+ * @param k Experimental/control allocation ratio.
+ * @param pE Experimental-group event probability.
+ * @param pC Control-group event probability.
+ * @param RR Experimental/control hazard ratio.
+ * @param options Significance level.
+ * @returns The integer sample sizes in the two groups.
+ * @example
+ * ```ts
+ * ssizeCT(0.8, 1, 0.3707, 0.489, 0.7);
+ * ```
+ * @category Effect sizes and power
+ */
 export function ssizeCT(power: number, k: number, pE: number, pC: number, RR: number, options: SurvivalOptions = {}): SSizeCTResult {
   checkOptions(options, SSIZE_CT_KEYS, "ssizeCT"); // generated: option-keys.mjs
   const alpha = options.alpha ?? DEFAULT_ALPHA; checkAlpha(alpha);
@@ -314,7 +420,20 @@ export function ssizeCT(power: number, k: number, pE: number, pC: number, RR: nu
   const den = k*pE+pC;
   return { nE: Math.ceil(m*k/den), nC: Math.ceil(m/den) };
 }
-/** Schoenfeld/Latouche Cox-model power. Equivalent to `powerSurvEpi::powerEpi()` in R. */
+/** Schoenfeld/Latouche Cox-model power. Equivalent to `powerSurvEpi::powerEpi()` in R.
+ * @param n Total sample size.
+ * @param theta Hazard ratio.
+ * @param p Prevalence of the binary covariate.
+ * @param psi Event proportion.
+ * @param rho2 Squared correlation with another covariate.
+ * @param options Significance level.
+ * @returns The normal-approximation power.
+ * @example
+ * ```ts
+ * powerEpi(139, 2, 0.39, 0.505, 0.132 ** 2);
+ * ```
+ * @category Effect sizes and power
+ */
 export function powerEpi(n: number, theta: number, p: number, psi: number, rho2: number, options: SurvivalOptions = {}): number {
   checkOptions(options, POWER_EPI_KEYS, "powerEpi"); // generated: option-keys.mjs
   const alpha=options.alpha??DEFAULT_ALPHA; checkAlpha(alpha);
@@ -324,7 +443,20 @@ export function powerEpi(n: number, theta: number, p: number, psi: number, rho2:
   const info = n * Math.log(theta)**2 * p*(1-p)*psi*(1-rho2);
   return phi(Math.sqrt(info)-z(1-alpha/2));
 }
-/** Schoenfeld/Latouche total sample size. Equivalent to `powerSurvEpi::ssizeEpi()` in R. */
+/** Schoenfeld/Latouche total sample size. Equivalent to `powerSurvEpi::ssizeEpi()` in R.
+ * @param power Target power.
+ * @param theta Hazard ratio.
+ * @param p Prevalence of the binary covariate.
+ * @param psi Event proportion.
+ * @param rho2 Squared correlation with another covariate.
+ * @param options Significance level.
+ * @returns The integer total sample size.
+ * @example
+ * ```ts
+ * ssizeEpi(0.8, 2, 0.39, 0.505, 0.132 ** 2);
+ * ```
+ * @category Effect sizes and power
+ */
 export function ssizeEpi(power: number, theta: number, p: number, psi: number, rho2: number, options: SurvivalOptions = {}): number {
   checkOptions(options, SSIZE_EPI_KEYS, "ssizeEpi"); // generated: option-keys.mjs
   const alpha=options.alpha??DEFAULT_ALPHA; checkAlpha(alpha);
@@ -335,7 +467,19 @@ export function ssizeEpi(power: number, theta: number, p: number, psi: number, r
   const den = Math.log(theta)**2*p*(1-p)*psi*(1-rho2);
   return Math.ceil((z(1-alpha/2)+z(power))**2/den);
 }
-/** Schoenfeld/Latouche required event count. Equivalent to `powerSurvEpi::numDEpi()` in R. */
+/** Schoenfeld/Latouche required event count. Equivalent to `powerSurvEpi::numDEpi()` in R.
+ * @param power Target power.
+ * @param theta Hazard ratio.
+ * @param p Prevalence of the binary covariate.
+ * @param rho2 Squared correlation with another covariate.
+ * @param options Significance level.
+ * @returns The integer number of events required.
+ * @example
+ * ```ts
+ * numDEpi(0.8, 2, 0.39, 0.132 ** 2);
+ * ```
+ * @category Effect sizes and power
+ */
 export function numDEpi(power: number, theta: number, p: number, rho2: number, options: SurvivalOptions = {}): number {
   checkOptions(options, NUM_D_EPI_KEYS, "numDEpi"); // generated: option-keys.mjs
   const alpha=options.alpha??DEFAULT_ALPHA; checkAlpha(alpha);
@@ -374,7 +518,19 @@ function designProb(r1:number,r:number,p0Stage1:readonly number[],p1Stage1:reado
   }
   return [alpha,beta];
 }
-/** Enumerates Simon's two-stage Phase II designs. Equivalent to `clinfun::ph2simon()` in R. */
+/** Enumerates Simon's two-stage Phase II designs. Equivalent to `clinfun::ph2simon()` in R.
+ * @param pu Unacceptable response rate.
+ * @param pa Desirable response rate.
+ * @param ep1 Maximum type-I error at pu.
+ * @param ep2 Maximum type-II error at pa.
+ * @param options Maximum total sample size, at most 1000.
+ * @returns Candidate rows and structured minimax, optimal and admissible designs.
+ * @example
+ * ```ts
+ * ph2simon(0.2, 0.4, 0.05, 0.1).minimax.n;
+ * ```
+ * @category Effect sizes and power
+ */
 export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nmax?:number} = {}):SimonDesignResult {
   checkOptions(options,PH2SIMON_KEYS,"ph2simon"); // generated: option-keys.mjs
   const nmax=options.nmax??100;
