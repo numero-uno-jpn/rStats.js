@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { escalc, rma, confintRma, predictRma, regtest, type EscalcMeasure, type MetaMethod, type MetaTest } from "../src/index.js";
 
-type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 interface Case { fn: string; args: Record<string, any>; expected: { value?: Record<string, any>; error?: string; warnings?: string[] }; }
 interface Fixture { r_version: string; cases: Case[]; }
 const fixture = (name: string): Fixture => JSON.parse(readFileSync(fileURLToPath(new URL(`./fixtures/${name}.json`, import.meta.url)), "utf8")) as Fixture;
@@ -61,7 +60,7 @@ describe("meta-analysis effect sizes",()=>{
       const got=escalc(a.measure as EscalcMeasure,options);
       close(got.yi,n(c.expected.value!.yi),`case ${i} yi`);
       close(got.vi,n(c.expected.value!.vi),`case ${i} vi`);
-      close(got.warnings,c.expected.warnings??[],`case ${i} warnings`);
+      expect(got.warnings).toEqual(c.expected.warnings??[]);
     });
   });
 });
@@ -102,7 +101,9 @@ describe("Egger regression test",()=>{
       let got;
       if(a.x?.rma) got=regtest(fitFromObject(a.x),{model:a.model,predictor:a.predictor});
       else got=regtest(a.x.map(n),a.vi.map(n),{model:a.model,predictor:a.predictor});
-      for(const key of ["model","predictor","zval","pval","dfs","est","ci.lb","ci.ub"]) close(got[key as keyof typeof got],n(c.expected.value![key]),`case ${i} ${key}`);
+      expect(got.model).toBe(c.expected.value!.model);
+      expect(got.predictor).toBe(c.expected.value!.predictor);
+      for(const key of ["zval","pval","dfs","est","ci.lb","ci.ub"]) close(got[key as keyof typeof got],n(c.expected.value![key]),`case ${i} ${key}`);
     });
   });
 });
