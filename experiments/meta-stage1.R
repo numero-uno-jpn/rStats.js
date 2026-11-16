@@ -36,7 +36,7 @@ for (m in estimators) {
 for (test_name in c("z","t","knha")) {
   show_case(paste("test", test_name), {
     fit <- rma(yi, vi, data=rr, method="REML", test=test_name)
-    fit[c("beta","se","zval","pval","ci.lb","ci.ub","tau2","se.tau2","QE","QEp","I2","H2","k")]
+    fit
   })
 }
 
