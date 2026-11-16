@@ -76,7 +76,24 @@ The `nfractional=FALSE` probe on R 4.6.2 / epiR 3.0.0 (x86_64) returned these in
 | `epi.sssupb` | 165 | 110 | 275 |
 | `epi.sssupc` | 80 | 53 | 133 |
 
-These are observed package outputs, not a single universal rounding rule. In particular, `epi.ssequc`, `epi.sssupb` and `epi.sssupc` do not equal the componentwise ceilings of the fractional arm sizes in this probe; `epi.ssninfc` does. A separate arm64 fixture for the continuous-equivalence integer case records values just below 135, 90 and 225 rather than the x86_64 integers, so the near-integer boundary is platform-sensitive. Do not round a floating-point value that is already within machine error of an integer without a deliberate tolerance rule.
+A second public-call-only grid with `nfractional=FALSE` produced the following results (same parameters as above, with only `r` changed):
+
+| Function | r | n.treat | n.control | n.total |
+|---|---:|---:|---:|---:|
+| epi.ssequb | 0.7 | 1450 | 2072 | 3522 |
+| epi.ssequc | 0.7 | 91.8 | 131.142857142857 | 222.942857142857 |
+| epi.ssninfb | 0.7 | 20.3 | 29 | 49.3 |
+| epi.ssninfc | 0.7 | 22 | 31 | 53 |
+| epi.sssupb | 0.7 | 101 | 143 | 244 |
+| epi.sssupc | 0.7 | 54 | 77 | 131 |
+| epi.ssequb | 2.2 | 2722 | 1238 | 3960 |
+| epi.ssequc | 2.2 | 172.8 | 78.5454545454545 | 251.345454545455 |
+| epi.ssninfb | 2.2 | 44 | 20 | 64 |
+| epi.ssninfc | 2.2 | 41 | 19 | 60 |
+| epi.sssupb | 2.2 | 221 | 100 | 321 |
+| epi.sssupc | 2.2 | 102 | 46 | 148 |
+
+These are observed package outputs, not a single universal rounding rule. The r=0.7 and r=2.2 grid shows that `nfractional=FALSE` still returns fractional sizes for `epi.ssequc` at both ratios and `epi.ssninfb` at r=0.7, while the other observations are integral. In the r=1.5 probe, `epi.ssequc`, `epi.sssupb` and `epi.sssupc` do not equal the componentwise ceilings of the fractional arm sizes; `epi.ssninfc` does. A separate arm64 fixture for the continuous-equivalence integer case records values just below 135, 90 and 225 rather than the x86_64 integers, so the near-integer boundary is platform-sensitive. These observations do not identify one general rounding algorithm; preserve the per-function evidence rather than infer a rule from a single case.
 
 The sample-size expressions documented in the supplied brief can be written as
 
