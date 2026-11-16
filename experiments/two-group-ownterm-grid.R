@@ -11,6 +11,8 @@ make_case <- function(nA,nB,c2A,c2B,censA,censB,tieA,tieB) {
   data.frame(time=time,status=status,group=group)
 }
 one <- function(label,nA,nB,c2A,c2B,censA,censB,tieA,tieB) {
+  nA <- as.integer(nA); nB <- as.integer(nB); c2A <- as.integer(c2A); c2B <- as.integer(c2B)
+  censA <- as.integer(censA); censB <- as.integer(censB); tieA <- as.integer(tieA); tieB <- as.integer(tieB)
   dat <- make_case(nA,nB,c2A,c2B,censA,censB,tieA,tieB)
   Y <- c(nA-c2A-censA,nB-c2B-censB)
   S <- c((nA-c2A)/nA,(nB-c2B)/nB)
