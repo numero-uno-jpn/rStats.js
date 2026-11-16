@@ -149,9 +149,9 @@ For (p_b=0.5), (p_c=0.3), (n=40), (alpha=0.05):
 | `errbound=0.01` | 0.225074949686046 |
 | `nullOddsRatio=2` | 0.00420514402365869 |
 
-Additional boundaries: `sig.level=0` and `npairs=0` returned power 0; `pb=pc=0` also returned 0. With `sig.level=1`, the default non-strict two-sided calculation returned 0.8826434, not 1, consistent with its internal half-alpha one-sided calculation. A probability sum `pb + pc > 1` errors (“probabilities must be finite, non-negative and not all 0”). At (pb=pc=0.5), the calculation is accepted (no non-informative pairs). At (n=1000), (pb=.5,pc=.3), power was 0.999998690656616.
+Additional boundaries: `sig.level=0` and `npairs=0` returned power 0; `pb=pc=0` also returned 0. With `sig.level=1`, the default non-strict two-sided calculation returned 0.8826434, not 1, consistent with its internal half-alpha one-sided calculation. A probability sum `pb + pc > 1` errors (“probabilities must be finite, non-negative and not all 0”). At (pb=pc=0.5), the calculation is accepted with note “no non-informative pairs” and power 0.0192386444095977. At (n=1000), (pb=.5,pc=.3), power was 0.999998690656616.
 
-For `strict=FALSE`, passing `tsmethod="central"`, `"minlike"`, or `"blaker"` produced the same power as the default (0.226697528108813); the method name was reflected in the returned `method` string. The strict-TRUE comparison of these methods is kept as a separate probe.
+For this parameter set, `tsmethod="central"`, `"minlike"`, and `"blaker"` all produced the same power (0.226862069302937) with `strict=TRUE`; the method name was reflected in the returned `method` string. The same three methods also produced the default power (0.226697528108813) with `strict=FALSE`.
 
 **Unresolved numerical issue:** the `errbound=1e-8` result is about (6.37\times10^{-7}) *above* the `errbound=0` result. The default `1e-6` result is also above it by about (6.27\times10^{-7}). This does not match the documented direction (“may underestimate”) and the smaller bound does not bound this observed difference. The `errbound=0.01` result is below the exact result. The reason has not been established; do not promise the documented one-sided error guarantee without further experiments. The 100,000-pair probe reached its output only at the 120-second experiment limit, so large exact calculations are also a performance concern.
 
