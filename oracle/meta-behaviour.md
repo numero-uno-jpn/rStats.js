@@ -73,6 +73,23 @@ A standardized mean difference requires a choice of pooled or heteroscedastic st
 
 `dat.colditz1994` has 13 studies and the columns `tpos`, `tneg`, `cpos`, `cneg`, `ablat`, and `alloc`, among others. The package help example computes log risk ratios with `escalc(measure="RR", ai=tpos, bi=tneg, ci=cpos, di=cneg)`. This is the principal end-to-end data set in the oracle.
 
+## Observed BCG reference snapshot
+
+The public experiment ran under R 4.6.2, metafor 5.2.1, and metadat 1.6.0. For the 13-study `dat.colditz1994` log-risk-ratio data:
+
+| Method | Pooled estimate | SE | tau2 | I2 (%) | H2 |
+|---|---:|---:|---:|---:|---:|
+| EE | -0.430285163654091 | 0.040498751710864 | 0 | 92.117346854562 | 12.686084006864 |
+| FE | -0.430285163654091 | 0.040498751710864 | 0 | 92.117346854562 | 12.686084006864 |
+| DL | -0.714117222073227 | 0.178742089535403 | 0.308760262862376 | 92.117346854562 | 12.686084006864 |
+| REML | -0.714532348365101 | 0.179781531780361 | 0.313243325980895 | 92.221386074966 | 12.855760803112 |
+
+All four fits report (Q=152.23300808237326), (df=12), (Q_p=1.9967645908460005\times10^{-26}). EE and FE are numerically identical for this dataset, although the printed model labels differ. This single probe does not establish that they are interchangeable for every input.
+
+For REML, the Q-profile 95% interval for tau2 is [0.119695312816638, 1.11148626221544], while the profile-likelihood interval is [0.115239399672938, 0.964666425362115]. The default prediction interval is [-1.86669234660707, 0.437627649876867]; the explicit Riley interval is [-2.00837605069052, 0.579311353960316]. The classical Egger `model="lm", predictor="sei"` test returns t=-1.40128200228933, df=11, p=0.188706995081979.
+
+These are reference outputs for fixture validation, not universal targets for other datasets or methods.
+
 ## 2. Equal/fixed-effect model
 
 Let (w_i=1/v_i). The inverse-variance pooled estimate is
