@@ -44,12 +44,12 @@ function close(actual:any, expected:any, path:string, mismatches:string[], tol=1
     for (const [key,value] of Object.entries(expected)) close(actual?.[key],value,`${path}.${key}`,mismatches,tol);
   }
 }
-function compareRma(result:any, expected:any, index:number,mismatches:string[]):void {
+function compareRma(result:any, expected:any, warnings:string[], index:number,mismatches:string[]):void {
   const tol=result.method==="PM"?1e-5:result.method==="EB"?1e-6:1e-12;
   const fields=["se","zval","pval","ci.lb","ci.ub","tau2","se.tau2","QE","QEp","QM","QMp","R2","p","m","I2","H2","k"];
   for(const field of fields) if(Object.hasOwn(expected,field)) close(result[field],n(expected[field]),`case ${index} ${field}`,mismatches,field==="se.tau2"&&(result.method==="EB"||result.method==="PM")?0.02:tol);
   if(expected.beta) close(result.beta,expected.beta,`case ${index} beta`,mismatches,tol);
-  if(JSON.stringify(result.warnings)!==JSON.stringify(expected.warnings??[]))mismatches.push(`case ${index} warnings differ`);
+  if(JSON.stringify(result.warnings)!==JSON.stringify(warnings))mismatches.push(`case ${index} warnings differ`);
 }
 function fitFromObject(o:any) {
   const a=o.rma;
@@ -86,7 +86,7 @@ describe("meta-analysis models",()=>{
     f.cases.forEach((c,i)=>{
       const a=c.args,call=()=>rma(a.yi.map(n),a.vi.map(n),argsRma(a));
       if(c.expected.error){expectError(call,c.expected.error,`case ${i}`,mismatches);return;}
-      try{compareRma(call(),c.expected.value!,i,mismatches);}
+      try{compareRma(call(),c.expected.value!,c.expected.warnings??[],i,mismatches);}
       catch(e){mismatches.push(`case ${i}: ${e instanceof Error?e.message:String(e)}`);}
     });
     expect(mismatches).toEqual([]);
@@ -104,6 +104,7 @@ describe("meta-analysis intervals and prediction",()=>{
           const got=confintRma(fit,{type:c.args.type});
           close(got.random,c.expected.value!.random,`case ${i} intervals`,mismatches);
           for(const key of ["digits","ci.null","lb.sign","ub.sign","tau2.min"])close(got[key as keyof typeof got],c.expected.value![key],`case ${i} ${key}`,mismatches);
+          if(JSON.stringify(got.warnings??[])!==JSON.stringify(c.expected.warnings??[]))mismatches.push(`case ${i} warnings differ`);
         }else{
           const got=predictRma(fit,{...(c.args.newmods===undefined?{}:{newmods:c.args.newmods.map(n)}),...(c.args.predtype===undefined?{}:{predtype:c.args.predtype})});
           for(const key of ["pred","se","ci.lb","ci.ub","pi.lb","pi.ub"])close(got[key as keyof typeof got],n(c.expected.value![key]),`case ${i} ${key}`,mismatches);
@@ -124,6 +125,7 @@ describe("Egger regression test",()=>{
         const got=a.x?.rma?regtest(fitFromObject(a.x),{model:a.model,predictor:a.predictor}):regtest(a.x.map(n),a.vi.map(n),{model:a.model,predictor:a.predictor});
         for(const key of ["model","predictor"])if(got[key as keyof typeof got]!==c.expected.value![key])mismatches.push(`case ${i} ${key}: ${String(got[key as keyof typeof got])} vs ${String(c.expected.value![key])}`);
         for(const key of ["zval","pval","dfs","est","ci.lb","ci.ub"])close(got[key as keyof typeof got],n(c.expected.value![key]),`case ${i} ${key}`,mismatches);
+        if(JSON.stringify(got.warnings??[])!==JSON.stringify(c.expected.warnings??[]))mismatches.push(`case ${i} warnings differ`);
       }catch(e){mismatches.push(`case ${i}: ${e instanceof Error?e.message:String(e)}`);}
     });
     expect(mismatches).toEqual([]);
@@ -141,5 +143,14 @@ describe("meta-regression formula design",()=>{
     expect(formulaFit.beta).toEqual(matrixFit.beta);
     expect(formulaFit.tau2).toBeCloseTo(matrixFit.tau2,12);
     expect(formulaFit.QM).toBeCloseTo(matrixFit.QM,12);
+  });
+});
+
+describe("effect-size result handoff",()=>{
+  it("can be passed directly to rma without renaming fields",()=>{
+    const effect=escalc("RR",{ai:[2,3,4],bi:[18,17,16],ci:[1,2,3],di:[19,18,17]});
+    const fit=rma(effect,{method:"REML"});
+    expect(fit.beta.dim).toEqual([1,1]);
+    expect(fit.k).toBe(3);
   });
 });
