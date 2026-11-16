@@ -15,6 +15,30 @@ This document is based only on:
 
 No source code from epiR, exact2x2, clinfun, or powerSurvEpi was read or used. The numerical examples below are observations, not a claim that every observed package result is mathematically correct. In particular, anomalous results are recorded as compatibility questions, not recommended behaviour.
 
+## Easy to get wrong
+
+- In the epiR parallel-trial functions, `n` is total (n_t+n_c), and `r) is (n_t/n_c); it is not the per-arm size.
+- `nfractional=FALSE` ceilings each arm separately, then adds the two integer sizes.
+- `powerPaired2x2` is an exact McNemar **power** calculation, not a sample-size solver. `strict=FALSE` excludes rejection in the wrong direction; `errbound` changes the numerical result.
+- `powerSurvEpi` contains two distinct model families: Freedman's clinical-trial approximation and the Schoenfeld/Latouche epidemiological Cox model. In the latter, `rho2=0` does not make the competing-risk subdistribution hazard interpretation identical to Schoenfeld's cause-specific hazard.
+- `ph2simon` returns a matrix of candidate designs. Minimax, optimal, and admissible designs are selected/displayed by the public print method; the printed table is not the full returned matrix.
+- R's observed negative power and internal errors are defects to document, not acceptable probability/API semantics.
+## API
+
+The existing rStats.js power API uses an options object and a single unknown quantity. A consistent JS API should use `null` for the unknown quantity rather than R's `NA`, and should return named structured values. Suggested names if retaining R-derived naming:
+
+| Reference function | Candidate JS name |
+|---|---|
+| `epi.ssequb` / `epi.ssequc` | `epiSsequb` / `epiSsequc` |
+| `epi.ssninfb` / `epi.ssninfc` | `epiSsninfb` / `epiSsninfc` |
+| `epi.sssupb` / `epi.sssupc` | `epiSssupb` / `epiSssupc` |
+| `powerPaired2x2` | `powerPaired2x2` |
+| `powerCT.default` / `ssizeCT.default` | `powerCT` / `ssizeCT` |
+| `powerEpi.default` / `ssizeEpi.default` / `numDEpi.default` | `powerEpi` / `ssizeEpi` / `numDEpi` |
+| `ph2simon` | `ph2Simon` |
+
+The pilot-data wrappers should not silently overload the summary-parameter methods; if later accepted, use explicitly named pilot/data variants or a clearly discriminated input type.
+
 ## 1. epiR: parallel equivalence/equality, non-inferiority, and superiority
 
 ### Public functions and shared interface
@@ -279,23 +303,22 @@ Other observed behaviour:
 
 **Recommendation:** expose this as a design-enumeration result, not as a scalar power/sample-size function. Return the candidate matrix and selected minimax/optimal/admissible designs as structured data; do not make the formatted console output the API contract. Keep `ph2single`, group-sequential designs, and post-design inference out of this initial scope.
 
-## 5. Cross-cutting API questions
+## Where the packages are wrong or inaccurate
 
-The existing rStats.js power API uses an options object and a single unknown quantity. A consistent JS API should use `null` for the unknown quantity rather than R's `NA`, and should return named structured values. Suggested names if retaining R-derived naming:
+- **epiR:** the observed negative equivalence powers are not probabilities; binary equality sample size ignores the allocation ratio in the observed unequal-allocation case; continuous equality power errors; binary superiority power with unequal allocation does not match the supplied normal approximation. These need independent statistical definitions rather than literal emulation.
+- **exact2x2:** for the tested McNemar case, positive `errbound` values returned a power slightly above the `errbound=0` result. In particular, `errbound=1e-8` differed by about (6.37\times10^{-7}), exceeding the requested bound and in the opposite direction to the documented “underestimate” description. The reason is unknown.
+- **powerSurvEpi:** the documented one-tail normal approximation in `powerCT.default` returns 0.025 at (RR=1) with `alpha=0.05), rather than the nominal two-sided 0.05. This is an observed boundary consequence of the approximation and should be stated explicitly if compatibility is desired.
+## References
 
-| Reference function | Candidate JS name |
-|---|---|
-| `epi.ssequb` / `epi.ssequc` | `epiSsequb` / `epiSsequc` |
-| `epi.ssninfb` / `epi.ssninfc` | `epiSsninfb` / `epiSsninfc` |
-| `epi.sssupb` / `epi.sssupc` | `epiSssupb` / `epiSssupc` |
-| `powerPaired2x2` | `powerPaired2x2` |
-| `powerCT.default` / `ssizeCT.default` | `powerCT` / `ssizeCT` |
-| `powerEpi.default` / `ssizeEpi.default` / `numDEpi.default` | `powerEpi` / `ssizeEpi` / `numDEpi` |
-| `ph2simon` | `ph2Simon` |
-
-The pilot-data wrappers should not silently overload the summary-parameter methods; if later accepted, use explicitly named pilot/data variants or a clearly discriminated input type.
-
-## 6. Decisions required before Stage 2
+- epiR 3.0.0 reference manual: help for `epi.ssequb`, `epi.ssequc`, `epi.ssninfb`, `epi.ssninfc`, `epi.sssupb`, and `epi.sssupc`. The help cites Chow, Shao & Wang (2008), Julious (2004), Machin et al. (2009, 2018), Pocock (1983), and Wang et al. (2017).
+- exact2x2 1.7.0 reference manual: “Power for exact McNemar's test” and the `exact2x2` help for two-sided methods.
+- Freedman LS (1982). Tables of the number of patients required in clinical trials using the log-rank test. *Statistics in Medicine* 1:121–129.
+- Schoenfeld DA (1983). Sample-size formula for the proportional-hazards regression model. *Biometrics* 39:499–503.
+- Latouche A, Porcher R, Chevret S (2004). Sample size formula for proportional hazards modelling of competing risks. *Statistics in Medicine* 23:3263–3274.
+- Simon R (1989). Optimal Two-Stage Designs for Phase II Clinical Trials. *Controlled Clinical Trials* 10:1–10.
+- Jung SH, Carey M, Kim KM (2001). Graphical Search for Two-Stage Designs for Phase II Clinical Trials. *Controlled Clinical Trials* 22:367–372.
+- Jung SH, Lee T, Kim K, George SL (2004). Admissible two-stage designs for phase II cancer clinical trials. *Statistics in Medicine* 23(4):561–569.
+## Decisions for the user
 
 Recommended defaults are in **bold**.
 
@@ -308,13 +331,4 @@ Recommended defaults are in **bold**.
 7. **Simon designs:** include `ph2simon` enumeration with structured minimax/optimal/admissible results; defer `ph2single`, group-sequential designs, and inference after the design.
 8. **Names:** accept the candidate JS names above, or prefer domain-oriented names (e.g. `sampleSizeEquivalenceBinary`)?
 
-## 7. References
-
-- epiR 3.0.0 reference manual: help for `epi.ssequb`, `epi.ssequc`, `epi.ssninfb`, `epi.ssninfc`, `epi.sssupb`, and `epi.sssupc`. The help cites Chow, Shao & Wang (2008), Julious (2004), Machin et al. (2009, 2018), Pocock (1983), and Wang et al. (2017).
-- exact2x2 1.7.0 reference manual: “Power for exact McNemar's test” and the `exact2x2` help for two-sided methods.
-- Freedman LS (1982). Tables of the number of patients required in clinical trials using the log-rank test. *Statistics in Medicine* 1:121–129.
-- Schoenfeld DA (1983). Sample-size formula for the proportional-hazards regression model. *Biometrics* 39:499–503.
-- Latouche A, Porcher R, Chevret S (2004). Sample size formula for proportional hazards modelling of competing risks. *Statistics in Medicine* 23:3263–3274.
-- Simon R (1989). Optimal Two-Stage Designs for Phase II Clinical Trials. *Controlled Clinical Trials* 10:1–10.
-- Jung SH, Carey M, Kim KM (2001). Graphical Search for Two-Stage Designs for Phase II Clinical Trials. *Controlled Clinical Trials* 22:367–372.
-- Jung SH, Lee T, Kim K, George SL (2004). Admissible two-stage designs for phase II cancer clinical trials. *Statistics in Medicine* 23(4):561–569.
+## rStats.js's choices
