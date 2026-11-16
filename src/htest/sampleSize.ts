@@ -583,7 +583,7 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
           const [a]=designProb(r1,rFound,p0Stage1,p1Stage1,p0Stage2Cdf,p1Stage2Cdf);
           if(a>ep1) rFound=-1;
         }
-        if(rFound>=0 && (best===undefined || en<best.enP0-1e-12)){
+        if(rFound>=0 && (best===undefined || en<best.enP0)){
           best={r1,n1,r:rFound,n,enP0:en,petP0:pet};
         }
       }
