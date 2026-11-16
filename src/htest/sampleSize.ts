@@ -31,7 +31,7 @@ function normalPower(effect: number, se: number, critical: number): number {
   return phi(effect / se - critical);
 }
 
-export interface EpiOptions {
+/** Options shared by the epiR parallel-trial sample-size and power functions.\n * @category Effect sizes and power\n */\nexport interface EpiOptions {
   /** Total sample size; null/omitted when solving for sample size. */
   n?: number | null;
   /** Target power; null/omitted when solving for power. */
@@ -49,7 +49,7 @@ export interface EpiOptions {
   /** Number of tails for superiority: 1 or 2. Default 1. */
   sidedTest?: 1 | 2;
 }
-export interface EpiResult {
+/** Sample-size and power result for an epiR parallel-trial design.\n * @category Effect sizes and power\n */\nexport interface EpiResult {
   nTotal: number;
   nTreat: number;
   nControl: number;
@@ -185,7 +185,7 @@ export function epiSssupc(treat: number, control: number, sigma: number, delta: 
   return reported("epiSssupc", epi("superiority", "continuous", treat, control, sigma, delta, options));
 }
 
-export interface PowerPaired2x2Options {
+/** Options for the exact paired McNemar power calculation.\n * @category Effect sizes and power\n */\nexport interface PowerPaired2x2Options {
   sigLevel?: number;
   alternative?: "two.sided" | "one.sided" | (string & {});
   strict?: boolean;
@@ -193,7 +193,7 @@ export interface PowerPaired2x2Options {
   errbound?: number;
   tsmethod?: "central" | "minlike" | "blaker" | (string & {});
 }
-export interface PowerPaired2x2Result {
+/** Result of the exact paired McNemar power calculation.\n * @category Effect sizes and power\n */\nexport interface PowerPaired2x2Result {
   power: number;
   npairs: number;
   pb: number;
@@ -269,7 +269,7 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
   return reported("powerPaired2x2", { power, npairs, pb, pc, sigLevel, alternative, nullOddsRatio, note, method, warnings: [] });
 }
 
-export interface SurvivalOptions { alpha?: number; }
+/** Significance-level options for survival sample-size calculations.\n * @category Effect sizes and power\n */\nexport interface SurvivalOptions { alpha?: number; }
 /** Freedman clinical-trial sample size with equal or unequal allocation. Equivalent to `powerSurvEpi::ssizeCT()` in R. */
 export interface SSizeCTResult { nE: number; nC: number; }
 /** Freedman clinical-trial power. Equivalent to `powerSurvEpi::powerCT()` in R. */
@@ -328,8 +328,8 @@ export function numDEpi(power: number, theta: number, p: number, rho2: number, o
   return Math.ceil((z(1-alpha/2)+z(power))**2/den);
 }
 
-export interface SimonRow { r1:number; n1:number; r:number; n:number; expectedN:number; pet:number; qLo:number; qHi:number; }
-export interface SimonDesignResult { out: SimonRow[]; minimax: SimonRow; optimal: SimonRow; admissible: SimonRow[]; pu:number; pa:number; alpha:number; beta:number; nmax:number; warnings:string[]; }
+/** A feasible two-stage Simon design.\n * @category Effect sizes and power\n */\nexport interface SimonRow { r1:number; n1:number; r:number; n:number; expectedN:number; pet:number; qLo:number; qHi:number; }
+/** Candidate designs and selected minimax, optimal and admissible Simon designs.\n * @category Effect sizes and power\n */\nexport interface SimonDesignResult { out: SimonRow[]; minimax: SimonRow; optimal: SimonRow; admissible: SimonRow[]; pu:number; pa:number; alpha:number; beta:number; nmax:number; warnings:string[]; }
 function cdfBinom(k:number,n:number,p:number):number { return pbinom1(k,n,p,true,false); }
 function pmfBinom(k:number,n:number,p:number):number { return dbinom1(k,n,p,false); }
 function designProb(n1:number,n2:number,r1:number,r:number,p:number):[number,number] {
