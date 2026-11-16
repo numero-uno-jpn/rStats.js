@@ -87,7 +87,7 @@ describe("meta-analysis models",()=>{
   it(`matches metafor ${f.r_version}`,()=>{
     const mismatches:string[]=[];
     f.cases.forEach((c,i)=>{
-      const a=c.args,call=()=>rma(a.yi.map(n),a.vi.map(n),argsRma(a));
+      const a=c.args,call=()=>rma(vec(a.yi),vec(a.vi),argsRma(a));
       if(c.expected.error){expectError(call,c.expected.error,`case ${i}`,mismatches);return;}
       try{compareRma(call(),c.expected.value!,c.expected.warnings??[],i,mismatches);}
       catch(e){mismatches.push(`case ${i}: ${e instanceof Error?e.message:String(e)}`);}
