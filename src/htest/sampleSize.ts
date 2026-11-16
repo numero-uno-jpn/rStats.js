@@ -144,7 +144,7 @@ function epi(
       actualPower = normalPower(D + delta!, se, z(1 - alpha));
     } else {
       const e = Math.abs(D - delta!) / se;
-      actualPower = sides === 1 ? phi(e - critical) : phi(e - critical) + phi(-e - critical);
+      actualPower = phi(e - critical) + phi(-e - critical);
     }
   }
   const nTreatExact = nTreat;
