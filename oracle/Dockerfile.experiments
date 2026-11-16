@@ -1,0 +1,25 @@
+# The R of .github/workflows/r-experiments.yml: R 4.6.2 from the same dated snapshot as oracle/Dockerfile.r46 (the R
+# of the fixtures), with only the packages an outside contributor's experiment scripts may use (see
+# scripts/r-experiment-check.mjs). survival is one of R's recommended packages and already present.
+#
+#   docker build -f oracle/Dockerfile.experiments -t rstats-experiments:4.6.2 oracle
+
+ARG R_VERSION=4.6.2
+FROM rocker/r-ver:${R_VERSION}
+
+ARG CRAN_SNAPSHOT=2026-10-23
+RUN set -e; \
+    PROFILE=/usr/local/lib/R/etc/Rprofile.site; \
+    sed -i "s|/cran/__linux__/resolute/[a-z0-9-]*|/cran/__linux__/resolute/${CRAN_SNAPSHOT}|g" "$PROFILE"; \
+    ACTUAL=$(Rscript -e 'cat(getOption("repos")[["CRAN"]])'); \
+    case "$ACTUAL" in \
+      *"${CRAN_SNAPSHOT}") echo "CRAN repository: $ACTUAL" ;; \
+      *) echo "failed to set the snapshot (expected ${CRAN_SNAPSHOT}, got $ACTUAL)"; exit 1 ;; \
+    esac
+
+# The versions are those of the fixtures (rstats-oracle:4.6.2); the build fails if the snapshot gives others
+RUN install2.r --error --skipinstalled jsonlite cmprsk \
+    && Rscript -e 'want <- c(cmprsk = "2.2.12", survival = "3.8.12"); \
+                   got <- sapply(names(want), function(p) as.character(packageVersion(p))); \
+                   cat(sprintf("%s %s\n", names(got), got), sep = ""); \
+                   if (!identical(unname(got), unname(want))) quit(status = 1)'

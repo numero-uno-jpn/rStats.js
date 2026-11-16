@@ -1,0 +1,140 @@
+name: R experiments
+
+# Runs an outside contributor's R experiment scripts with the R of the fixtures (R 4.6.2, the same dated CRAN
+# snapshot), so that the contributor can see R's results without a person in between. A script is
+# experiments/<name>.R on a work/** branch; its first lines name the Issue for the output ("# issue: 525").
+# Before anything runs, scripts/r-experiment-check.mjs (taken from main, not from the branch) rejects the scripts
+# that could show the reference packages' source (clean room: cmprsk is GPL). The container has no network, 2 GB of
+# memory and 120 seconds per script. The output goes to the Issue as a comment and to the job summary.
+on:
+  push:
+    branches: ["work/**"]
+    paths: ["experiments/*.R"]
+  workflow_dispatch:
+    inputs:
+      files:
+        description: "Scripts to run (experiments/<name>.R, separated by spaces)"
+        required: true
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: r-experiments-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      IMAGE: rstats-experiments:4.6.2
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Scripts to run
+        env:
+          BEFORE: ${{ github.event.before }}
+          INPUT_FILES: ${{ inputs.files }}
+        run: |
+          if [ -n "$INPUT_FILES" ]; then
+            files="$INPUT_FILES"
+          elif [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            files=$(git ls-files 'experiments/*.R')
+          else
+            files=$(git diff --name-only --diff-filter=AM "$BEFORE" "$GITHUB_SHA" -- 'experiments/*.R')
+          fi
+          : > files.txt
+          for f in $files; do
+            if ! printf '%s' "$f" | grep -Eq '^experiments/[A-Za-z0-9._-]+\.R$'; then
+              echo "::error::$f: a script is experiments/<name>.R with letters, digits, '.', '_' or '-' in the name"
+              exit 1
+            fi
+            if [ -f "$f" ]; then echo "$f" >> files.txt; fi
+          done
+          echo "Scripts:"; cat files.txt
+
+      - name: Clean-room check (the check of main)
+        id: check
+        run: |
+          if [ ! -s files.txt ]; then exit 0; fi
+          git fetch --quiet origin main
+          git show origin/main:scripts/r-experiment-check.mjs > "$RUNNER_TEMP/check.mjs"
+          set +e
+          node "$RUNNER_TEMP/check.mjs" $(cat files.txt) > check.txt
+          status=$?
+          set -e
+          cat check.txt
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Report a failed check
+        if: steps.check.outputs.status != '' && steps.check.outputs.status != '0'
+        run: |
+          for f in $(cat files.txt); do
+            issue=$(head -n 5 "$f" | sed -nE 's/^#[[:space:]]*issue:[[:space:]]*([0-9]+).*/\1/p' | head -n 1)
+            {
+              echo "## R experiment not run: \`$f\`"
+              echo
+              echo "Commit \`$GITHUB_SHA\` on \`$GITHUB_REF_NAME\`. The clean-room check (scripts/r-experiment-check.mjs) rejected the scripts of this push, so none was run. Rewrite the lines below and push again:"
+              echo
+              echo '```'
+              cat check.txt
+              echo '```'
+            } > comment.md
+            cat comment.md >> "$GITHUB_STEP_SUMMARY"
+            if [ -n "$issue" ]; then gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file comment.md; fi
+          done
+          exit 1
+
+      - name: Build the R image (the Dockerfile of main)
+        if: steps.check.outputs.status == '0'
+        run: |
+          mkdir -p "$RUNNER_TEMP/oracle"
+          git show origin/main:oracle/Dockerfile.experiments > "$RUNNER_TEMP/oracle/Dockerfile.experiments"
+          docker build --quiet -f "$RUNNER_TEMP/oracle/Dockerfile.experiments" -t "$IMAGE" "$RUNNER_TEMP/oracle"
+          docker run --rm --network none --entrypoint Rscript "$IMAGE" -e \
+            'cat(R.version.string, "; cmprsk ", as.character(packageVersion("cmprsk")), "; survival ", as.character(packageVersion("survival")), "; ", R.version$platform, "\n", sep = "")' \
+            > versions.txt
+          cat versions.txt
+
+      - name: Run the scripts and post the output
+        if: steps.check.outputs.status == '0'
+        run: |
+          failed=0
+          for f in $(cat files.txt); do
+            name=$(basename "$f")
+            set +e
+            timeout 120 docker run --rm --network none --memory 2g --memory-swap 2g --cpus 2 \
+              -v "$PWD/experiments:/w:ro" --entrypoint Rscript "$IMAGE" --vanilla "/w/$name" > out.txt 2>&1
+            status=$?
+            set -e
+            if [ "$status" -ne 0 ]; then failed=1; fi
+            if [ "$status" -eq 124 ]; then echo "(stopped after 120 seconds)" >> out.txt; fi
+            size=$(wc -c < out.txt)
+            issue=$(head -n 5 "$f" | sed -nE 's/^#[[:space:]]*issue:[[:space:]]*([0-9]+).*/\1/p' | head -n 1)
+            {
+              echo "## R experiment: \`$f\`"
+              echo
+              echo "Commit \`$GITHUB_SHA\` on \`$GITHUB_REF_NAME\`. $(cat versions.txt). Rscript --vanilla, no network. Exit status $status. The output (stdout and stderr) as it is:"
+              echo
+              echo '```'
+              head -c 60000 out.txt
+              echo
+              echo '```'
+              if [ "$size" -gt 60000 ]; then echo "The output was cut at 60000 of its $size bytes."; fi
+            } > comment.md
+            cat comment.md >> "$GITHUB_STEP_SUMMARY"
+            if [ -n "$issue" ]; then
+              gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file comment.md
+            else
+              echo "::warning::$f names no Issue (# issue: <number>); the output is only in the job summary"
+            fi
+          done
+          exit $failed

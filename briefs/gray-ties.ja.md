@@ -3,8 +3,8 @@
 作成 2026-11-16。基準のコミットとブランチ名は、依頼の文で指定します (この文書の版ではなく、依頼の指定に従う)。
 
 あなた (ChatGPT) には、rStats.js の `cuminc` が返す Gray の検定 (cmprsk の `cuminc()$Tests`) を、同時刻の失敗 (tie)
-があるデータでも R と同じ値にする作業を頼みます。あなたはブランチに push でき、PR の CI の結果を読めますが、テストと
-R は実行できません。R の実行はこちらで行います (3 節)。
+があるデータでも R と同じ値にする作業を頼みます。あなたはブランチに push でき、PR の CI の結果を読めますが、テストは
+実行できません。R は、ブランチに push したスクリプトを GitHub Actions が実行し、出力を Issue に書きます (3 節)。
 
 ## 0. 背景
 
@@ -40,8 +40,7 @@ cmprsk は GPL、rStats.js は MIT です。
   Gray (1988) "A class of K-sample tests for comparing the cumulative incidence of a competing risk", Annals of
   Statistics 16, 1141-1154 などの論文と教科書、R のヘルプ、fixture の値、こちらが返す R の実行結果
 - **こちらの作業者 (Mac のセッション) は cmprsk のソースを見てしまっています。** そのため、式についての質問には
-  答えず、手がかりも出しません。こちらがするのは、あなたが書いた R のスクリプトをそのまま実行して出力を返すことと、
-  テストの実行だけです
+  答えず、手がかりも出しません。こちらがするのは、R の実行の仕組み (3 節) の面倒を見ることと、テストの実行だけです
 - 報告の最後に、クリーンルームの確認 (ソースを使っていないこと、参照した論文と、実行を頼んだ R のスクリプトの一覧) を
   書く
 
@@ -59,12 +58,19 @@ cmprsk は GPL、rStats.js は MIT です。
 
 - 2 群なら `stat = z² / V` なので、z を仕様書の式で計算すれば、R の `stat` から分散 V が求まります。3 群以上では
   二次形式から求めます (1.5 節の方法)。時刻を 1 つずつ足した小さなデータを作れば、各時刻の寄与を切り分けられます
-- 調べたい R のスクリプトを Issue のコメントに書いてください。形式:
-  - 1 つのコードブロックに 1 つのスクリプト。先頭のコメントに `# run: <短い名前>`
+- **R の実行は自分でできます (GitHub Actions の `R experiments`):** `work/gray-ties` に `experiments/<名前>.R` を
+  push すると、push で追加・変更されたスクリプトが実行され、出力が Issue にコメントされます (ジョブの要約にも残る)。
+  - スクリプトの先頭 5 行以内に `# issue: 525` と書く (出力を書く Issue)。名前は英数字と `.`・`_`・`-` だけ
+  - 環境: R 4.6.2・cmprsk 2.2.12・survival 3.8.12 (x86_64、fixture と同じ CRAN の日付)、`Rscript --vanilla`、
+    ネットワークなし、メモリ 2 GB、1 本 120 秒まで。使えるパッケージは cmprsk・survival・jsonlite (と stats・utils・base)
   - 出力は `cat()` や `jsonlite::toJSON(..., digits = NA)` で、**17 桁** (`format(x, digits = 17)` か `sprintf("%.17g")`)
-  - 1 本 1 分以内。使えるパッケージは cmprsk・survival・jsonlite
-- こちらは R 4.6.2・cmprsk 2.2.12 (x86_64、Docker、ネットワークなし) でそのまま実行し、出力を手を加えずにコメントで
-  返します。こちらから実験の提案はしません
+  - **実行の前にクリーンルームの検査** (`scripts/r-experiment-check.mjs`) が通ります。1 節に反する書き方 (cmprsk の関数を
+    呼ばずに名前だけ書く、`deparse`・`body`・`:::`・`get`・`eval`・`parse`・`.Fortran` など、文字列で関数名を渡す、
+    許可外のパッケージ) を含むと、どのスクリプトも実行されず、理由が Issue に書かれます。書き直して push し直してください。
+    検査は機械的なので、無害な書き方でも止まることがあります (例: 変数名に `file`・`get`・`methods` を使う)
+  - 同じスクリプトをもう一度実行したいときは、内容を変える (コメントを足すなど) か、別の名前で push する
+  - 検査で止まらなくても、1 節の規則はそのまま守ってください。人が後でスクリプトを読みます
+- こちらから実験の提案はしません。ワークフローが動かないなど、仕組みの問題は Issue に書いてください
 - 当てはめや仮説の検証は、あなたの側で Python などを使って行ってください
 - **段階 1 の報告:** 見つけた式 (数式で)、それが合うことを確かめたデータの一覧と誤差。ここで止まり、こちらの「進めて
   よい」を待つ。見つからないときも、試した仮説と結果を書いて止まる (無理に近似を足さない)
@@ -89,7 +95,8 @@ cmprsk は GPL、rStats.js は MIT です。
 
 - 変えてよい: `src/models/competingRisks.ts` (`grayTests` とその周りのコメント)、`test/competingRisks.test.ts`
   (と、新しいテストのファイル)
-- 触らない: `test/fixtures/`、`oracle/`、`test/helpers/`、`docs/`、`CHANGELOG.md`、ほかの関数。文書は、報告に案を
+- 実験のスクリプト: `experiments/*.R` (作業ブランチにだけ置く。main には取り込みません)
+- 触らない: `test/fixtures/`、`oracle/`、`test/helpers/`、`docs/`、`CHANGELOG.md`、`.github/`、`scripts/`、ほかの関数。文書は、報告に案を
   書いてもらえれば、こちらで直します: `oracle/competing-behaviour.md` 1.6 節の書き換え (英語)、
   `docs/differences-from-r.md` から消す・直す項目、CHANGELOG の Fixed の 1 項目 (英語)
 
