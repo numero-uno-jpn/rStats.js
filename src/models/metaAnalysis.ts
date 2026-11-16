@@ -218,7 +218,7 @@ function tauEstimate(y:number[],v:number[],X:number[][],method:MetaMethod,contro
   if(method==="PM") {
     let hi=control.tau2Max??Math.max(100,10*raw/k);
     while(qFunction(hi)>0&&hi<Number.MAX_VALUE/4) hi*=2;
-    const tol=control.tol??1e-12;
+    const tol=control.tol??Math.pow(Number.EPSILON,0.25);
     return Math.max(0,root(qFunction,0,hi,tol));
   }
   let tau2=Math.max(0,control.tau2Init??he);
@@ -337,7 +337,7 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
     if(measure==="ZCOR"){
       const r=data[0]![i]!, size=data[1]![i]!;
       if(Math.abs(r)>1) throw new RangeError("One or more correlations are > 1 or < -1.");
-      if(!(size>3)){y=Math.atanh(r);v=NaN;}
+      if(!(size>3)){warnings.push("Cannot estimate the sampling variance when ni <= 3.");y=Math.atanh(r);v=NaN;}
       else {y=Math.atanh(r);v=1/(size-3);}
     } else if(measure==="MD"||measure==="SMD"){
       const m1=data[0]![i]!,sd1=data[1]![i]!,n1=data[2]![i]!,m2=data[3]![i]!,sd2=data[4]![i]!,n2=data[5]![i]!;
@@ -452,15 +452,16 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
   let lo=0,hi=NaN;
   if(type==="QP"){
     const base=weightedFit(object.yi,object.vi,object.mods,0);
-    const C=base.traceP;
-    const target=(prob:number)=>root(ncp=>pchisq(base.qe,df,{ncp})-prob,0,Math.max(1,base.qe),1e-10);
-    const l=target(1-alpha/2),u=root(ncp=>pchisq(base.qe,df,{ncp})-alpha/2,0,Math.max(1,base.qe*8),1e-10);
-    lo=Math.max(0,l/C);hi=u/C;
+    const qUpper=qchisq(1-alpha/2,df),qLower=qchisq(alpha/2,df);
+    const qAtZero=base.qe;
+    const qAt=(t:number)=>weightedFit(object.yi,object.vi,object.mods,t).qe;
+    lo=qAtZero<=qUpper?0:upperRoot(t=>qAt(t)-qUpper,Math.max(object.tau2,1e-8));
+    hi=qAtZero<=qLower?NaN:upperRoot(t=>qAt(t)-qLower,Math.max(object.tau2,1e-8));
   } else {
     const cutoff=qchisq(level/100,1);
     const ll=(t:number)=>weightedFit(object.yi,object.vi,object.mods,t).logLik;
     const target=(t:number)=>2*(fit.logLik-ll(t))-cutoff;
-    hi=upperRoot(t=>-target(t),Math.max(object.tau2*2,1e-8));
+    hi=upperRoot(t=>-target(t),Math.max(object.tau2,1e-8));
     if(object.tau2>0) lo=root(target,0,object.tau2);
   }
   const base=weightedFit(object.yi,object.vi,object.mods,0);
@@ -485,8 +486,7 @@ export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:
   const level=options.level??object.level,alpha=1-level/100,p=object.mods[0]!.length;
   let rows:number[][];
   if(options.newmods===undefined) {
-    const moderators=p-(object.intercept?1:0);
-    rows=moderators===0?[object.intercept?[1]:[]]:object.mods.map(r=>object.intercept?r.slice(1):r.slice());
+    rows=object.mods.map(r=>r.slice());
   }
   else {
     const n=options.newmods;
@@ -531,7 +531,10 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
     pv=2*pt(-Math.abs(stat),df);
   } else {
     fitted=rma(y,v,{method:"REML",mods:z,intercept:true,test:"z"});
-    est=fitted.beta.rows[0]![0]!;se=Array.isArray(fitted.se)?fitted.se[0]!:fitted.se;stat=est/se;df=NaN;pv=2*pnorm(-Math.abs(stat));
+    est=fitted.beta.rows[0]![0]!;se=Array.isArray(fitted.se)?fitted.se[0]!:fitted.se;
+    const moderatorZ=Array.isArray(fitted.zval)?fitted.zval[1]!:NaN;
+    const moderatorP=Array.isArray(fitted.pval)?fitted.pval[1]!:NaN;
+    stat=moderatorZ;df=NaN;pv=moderatorP;
   }
   const crit=model==="lm"?qt(1-(1-level/100)/2,df):qnorm(1-(1-level/100)/2);
   const warnings:string[]=[];
@@ -542,6 +545,6 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
 function linearRegression(X:number[][],y:number[]) {
   const xtx=Array.from({length:2},(_,a)=>Array.from({length:2},(_,b)=>X.reduce((s,r,i)=>s+r[a]!*r[b]!,0)));
   const inv=solve(xtx,identity(2)),beta=matVec(inv,Array.from({length:2},(_,a)=>X.reduce((s,r,i)=>s+r[a]!*y[i]!,0)));
-  const res=y.map((v,i)=>v-dot(X[i]!,beta)),sigma2=res.reduce((s,z)=>s+z*z,0)/(y.length-2);
+  const res=y.map((v,i)=>v-dot(X[i]!,beta)),sigma2=y.length>2?res.reduce((s,z)=>s+z*z,0)/(y.length-2):NaN;
   return {beta,cov:inv,sigma2};
 }

@@ -71,7 +71,7 @@ describe("meta-analysis effect sizes",()=>{
     const mismatches:string[]=[];
     f.cases.forEach((c,i)=>{
       const a=c.args;
-      const options=Object.fromEntries(Object.entries(a).filter(([k])=>k!=="measure").map(([k,v])=>[k,Array.isArray(v)?v.map(n):typeof v==="string"?n(v):v])) as any;
+      const options=Object.fromEntries(Object.entries(a).filter(([k])=>k!=="measure").map(([k,v])=>[k,k==="to"?v:Array.isArray(v)?v.map(n):typeof v==="string"?n(v):v])) as any;
       if(c.expected.error){expectError(()=>escalc(a.measure as EscalcMeasure,options),c.expected.error,`case ${i}`,mismatches);return;}
       try{
         const got=escalc(a.measure as EscalcMeasure,options);
