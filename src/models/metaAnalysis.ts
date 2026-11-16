@@ -63,7 +63,7 @@ export interface RmaControl {
 /** Options for {@link rma}.
  * @category Meta-analysis
  */
-export interface ModeratorMatrix extends Record<string, unknown> {
+/** A moderator matrix with optional column and row names.\n * @category Meta-analysis\n */\nexport interface ModeratorMatrix extends Record<string, unknown> {
   rows?: readonly (readonly number[])[];
   columns?: readonly (readonly number[])[];
   dim?: readonly number[];
@@ -85,7 +85,7 @@ export interface RmaOptions {
 /** Fitted meta-analysis model returned by {@link rma}.
  * @category Meta-analysis
  */
-export interface NumericMatrix extends Record<string, unknown> {
+/** A numeric matrix with its dimensions and dimnames.\n * @category Meta-analysis\n */\nexport interface NumericMatrix extends Record<string, unknown> {
   dim: number[];
   rowNames: string | string[] | null;
   colNames: string | string[] | null;
