@@ -58,6 +58,10 @@ write_samplesize_fixture <- function(name, cases) {
   out <- list(
     `function` = name,
     r_version = R.version.string,
+    packages = list(epiR=as.character(packageVersion("epiR")),
+                    exact2x2=as.character(packageVersion("exact2x2")),
+                    clinfun=as.character(packageVersion("clinfun")),
+                    powerSurvEpi=as.character(packageVersion("powerSurvEpi"))),
     generated = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
     cases = rows
   )
@@ -66,6 +70,7 @@ write_samplesize_fixture <- function(name, cases) {
     "{",
     sprintf('  "function": %s,', tj(name)),
     sprintf('  "r_version": %s,', tj(R.version.string)),
+    sprintf('  "packages": %s,', tj(out$packages)),
     sprintf('  "generated": %s,', tj(out$generated)),
     '  "cases": [',
     paste0("    ", vapply(rows, tj, character(1)), c(rep(",", length(rows) - 1), "")),
