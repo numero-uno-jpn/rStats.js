@@ -74,7 +74,8 @@ function or package that each item is checked against is given in brackets.
    multidimensional scaling and correspondence analysis [`cmdscale`, MASS `isoMDS`, ca]; Tamhane's T2 and Page's
    test [PMCMRplus], Grubbs' test [outliers]; regularised regression [glmnet]; time series [`acf`, `arima`].
 
-Survival analysis (the former item 1) was completed in 1.4.0. Not included for now, as decided in the "rStats.js's choices" of the behaviour documents: `survfit`'s `scale` option and `crr`'s `cengroup`.
+Survival analysis (the former item 1) was completed in 1.4.0. Not included for now, as decided in the "rStats.js's
+choices" of the behaviour documents: `survfit`'s `scale` option and `crr`'s `cengroup`.
 
 The former items 1 (robust standard errors) and 2 (diagnostic accuracy and agreement of measurements) were done in
 1.3.0. Left out of them, as recorded in the "rStats.js's choices" of their behaviour documents

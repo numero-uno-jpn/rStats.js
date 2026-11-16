@@ -927,7 +927,7 @@
   "coxph#summary": {
     "hash": "7969ca96f7ba",
     "en": "Cox proportional hazards regression. Equivalent to R's `survival::coxph()`. As\n`coxph(Surv(time, status) ~ x ...)` for right-censored data and `coxph(Surv(start, stop, status) ~ x ...)` for\ncounting-process data (with the option `start`), with the values of `summary(fit)`.\nWith `robust` (by default when `cluster` is given, a counting-process `id` has repeated event rows, or a case\nweight is not an integer) the variance is the robust (Lin-Wei sandwich) one, summed over the clusters (each\nobservation its own cluster without `cluster` or `id`), as R:\n`var` is the robust variance and `naiveVar` the model-based one; `se` (and `stdError`) stay the model-based standard\nerrors (R's `se(coef)`), while `z`, `p`, the intervals `lower`/`upper`, `wald` and `waldtest` use the robust ones\n(`robustSe`); `robscore` is the robust score test at `init`. The likelihood ratio and score tests and the R^2 ignore\nthe clustering.\n\nRows with a missing time, status, covariate, weight, stratum, cluster or id are dropped. With `start`, the time is\nthe stop time and the risk set is `start < t <= stop`; start and stop times are merged together unless\n`control.timefix` is false. Counting-process means are unweighted; right-censored means are weighted. With `id`,\n`nId` reports distinct subjects; `rsq` still uses the number of rows. R's warnings are returned in `warnings`.",
-    "ja": "Cox 比例ハザード回帰です。R の `survival::coxph()` と同等です。右側打ち切りデータの `coxph(Surv(time, status) ~ x ...)` と、計数過程データの `coxph(Surv(start, stop, status) ~ x ...)` (`start` オプションを使用) に対応し、`summary(fit)` の値を返します。\n`robust` を指定した場合 (既定では、`cluster` を指定した場合、計数過程データで `id` が同じイベント行が複数ある場合、またはケース重みが整数でない場合)、分散はクラスターごとに合計したロバスト (Lin-Wei のサンドイッチ) 分散になります (R と同じく、`cluster` も `id` もない場合は各観測値を独立したクラスターとして扱います)。\n`var` はロバスト分散、`naiveVar` はモデルに基づく分散です。`se` (および `stdError`) はモデルに基づく標準誤差のままです (R の `se(coef)`)。一方、`z`、`p`、信頼区間 `lower`/`upper`、`wald`、`waldtest` にはロバストな値 (`robustSe`) を使います。`robscore` は `init` におけるロバストスコア検定です。尤度比検定、スコア検定、R^2 はクラスター化を無視します。\n時刻、status、共変量、重み、層、クラスター、または id が欠測している行は除外します。`start` を指定した場合、time は終了時刻であり、時刻 t のリスク集合は `start < t <= stop` です。`control.timefix` が false でない限り、開始時刻と終了時刻を統合します。計数過程データの平均は重み付けせず、右側打ち切りデータの平均は重み付けします。`id` を指定した場合、`nId` は異なる被験者の数を返します。`rsq` は引き続き行数を使います。R の警告は `warnings` で返します。"
+    "ja": "Cox 比例ハザード回帰です。R の `survival::coxph()` と同等です。右側打ち切りデータの `coxph(Surv(time, status) ~ x ...)` と、計数過程データの `coxph(Surv(start, stop, status) ~ x ...)` (`start` オプションを使用) に対応し、`summary(fit)` の値を返します。\n`robust` を指定した場合 (既定では、`cluster` を指定した場合、計数過程データで `id` が同じイベント行が複数ある場合、またはケース重みが整数でない場合)、分散はクラスターごとに合計したロバスト (Lin-Wei のサンドイッチ) 分散になります (R と同じく、`cluster` も `id` もない場合は各観測値を独立したクラスターとして扱います)。\n`var` はロバスト分散、`naiveVar` はモデルに基づく分散です。`se` (および `stdError`) はモデルに基づく標準誤差のままです (R の `se(coef)`)。一方、`z`、`p`、信頼区間 `lower`/`upper`、`wald`、`waldtest` にはロバストな値 (`robustSe`) を使います。`robscore` は `init` におけるロバストスコア検定です。尤度比検定、スコア検定、R^2 はクラスター化を無視します。\n\n時刻、status、共変量、重み、層、クラスター、または id が欠測している行は除外します。`start` を指定した場合、time は終了時刻であり、時刻 t のリスク集合は `start < t <= stop` です。`control.timefix` が false でない限り、開始時刻と終了時刻を統合します。計数過程データの平均は重み付けせず、右側打ち切りデータの平均は重み付けします。`id` を指定した場合、`nId` は異なる被験者の数を返します。`rsq` は引き続き行数を使います。R の警告は `warnings` で返します。"
   },
   "crr#@example": {
     "hash": "f2167be5edf2",
@@ -1052,7 +1052,7 @@
   "rmst2#@returns": {
     "hash": "58119466f532",
     "en": "Per-arm RMST/RMTL estimates and between-arm contrasts; adjusted contrasts and coefficient tables are added\nwhen covariates are supplied.\n\nRows with missing time, status, arm, or covariates are omitted. Negative follow-up times, non-positive tau, tau below\nthe first retained observation, and tau above its default upper bound are errors.",
-    "ja": "群ごとの RMST/RMTL 推定値と群間比較を返します。共変量を指定した場合は、調整済みの群間比較と係数表も追加します。\n時刻、status、群、または共変量が欠測している行は除外します。負の追跡時間、0 以下の tau、最初に保持された観測値より小さい tau、既定の上限を超える tau はエラーになります。"
+    "ja": "群ごとの RMST/RMTL 推定値と群間比較を返します。共変量を指定した場合は、調整済みの群間比較と係数表も追加します。\n\n時刻、status、群、または共変量が欠測している行は除外します。負の追跡時間、0 以下の tau、最初に保持された観測値より小さい tau、既定の上限を超える tau はエラーになります。"
   },
   "rmst2#summary": {
     "hash": "b16f4855b525",
@@ -1117,7 +1117,7 @@
   "survfit#summary": {
     "hash": "bc8e105d61ab",
     "en": "Kaplan-Meier or exponential cumulative-hazard estimate with pointwise confidence intervals, medians and restricted means.\nEquivalent to R's `survival::survfit()`. Supports right-censored and counting-process data, Nelson-Aalen and Fleming-Harrington cumulative hazards,\ninteger case weights, infinitesimal-jackknife standard errors and all six confidence transformations.\n\nRows with a missing time, status, group, id or weight are dropped. With `start`, the risk set at t is\n`start < t <= time`; without `id`, each split row ending without an event is a censoring. With `id`, a row\nfollowed by another row for the same subject at the same boundary is not a censoring.",
-    "ja": "Kaplan-Meier 推定値または累積ハザードの指数変換による推定値で、各時点の信頼区間、中央値、制限平均を返します。\nR の `survival::survfit()` と同等です。右側打ち切りデータと計数過程データ、Nelson-Aalen および Fleming-Harrington の累積ハザード、整数のケース重み、infinitesimal jackknife 法による標準誤差、6 種類すべての信頼区間変換に対応します。\n時刻、status、群、id、または重みが欠測している行は除外します。`start` を指定した場合、時刻 t のリスク集合は `start < t <= time` です。`id` がない場合、イベントを伴わずに終了する各分割行は打ち切りとして扱います。`id` がある場合、同じ被験者の次の行が同じ境界で続くとき、その行は打ち切りとして扱いません。"
+    "ja": "Kaplan-Meier 推定値または累積ハザードの指数変換による推定値で、各時点の信頼区間、中央値、制限平均を返します。\nR の `survival::survfit()` と同等です。右側打ち切りデータと計数過程データ、Nelson-Aalen および Fleming-Harrington の累積ハザード、整数のケース重み、infinitesimal jackknife 法による標準誤差、6 種類すべての信頼区間変換に対応します。\n\n時刻、status、群、id、または重みが欠測している行は除外します。`start` を指定した場合、時刻 t のリスク集合は `start < t <= time` です。`id` がない場合、イベントを伴わずに終了する各分割行は打ち切りとして扱います。`id` がある場合、同じ被験者の次の行が同じ境界で続くとき、その行は打ち切りとして扱いません。"
   },
   "survreg#@example": {
     "hash": "f2167be5edf2",
@@ -1152,7 +1152,7 @@
   "survreg#summary": {
     "hash": "dcbbc73f5791",
     "en": "Fit a parametric survival regression model. Equivalent to R's `survival::survreg()`.\n\nSupports right, left and interval censoring, separate log-scales by stratum, case weights, offsets and the\nextreme-value, logistic, Gaussian and t families (including their log-time forms).",
-    "ja": "パラメトリック生存時間回帰モデルを当てはめます。R の `survival::survreg()` と同等です。\n右側・左側・区間打ち切り、層ごとに異なる対数尺度、ケース重み、オフセット、極値・ロジスティック・正規・t 分布に対応します (対数時間を使う各分布も含みます)。"
+    "ja": "パラメトリック生存時間回帰モデルを当てはめます。R の `survival::survreg()` と同等です。\n\n右側・左側・区間打ち切り、層ごとに異なる対数尺度、ケース重み、オフセット、極値・ロジスティック・正規・t 分布に対応します (対数時間を使う各分布も含みます)。"
   },
   "survregPredict#@example": {
     "hash": "f2167be5edf2",

@@ -71,10 +71,13 @@ SciPy (`scipy.stats`、`scipy.special`、`scipy.linalg`) は移植元のコー�
    [`cancor`]。クラスタ分析 [`hclust`、`kmeans`]。多次元尺度法と対応分析 [`cmdscale`、MASS `isoMDS`、ca]。
    Tamhane の T2 と Page の検定 [PMCMRplus]、Grubbs の検定 [outliers]。正則化回帰 [glmnet]。時系列 [`acf`、`arima`]。
 
+生存時間解析 (以前の項目 1) は 1.4.0 で完了しました。動作の文書の「rStats.js's choices」で決めたとおり、当面は
+`survfit` の `scale` オプションと `crr` の `cengroup` を含めていません。
+
 以前の項目 1 (頑健な標準誤差) と 2 (診断の正確度と測定の一致) は 1.3.0 で完了しました。それぞれの動作の文書
 ([oracle/robust-behaviour.md](oracle/robust-behaviour.md)、[oracle/roc-behaviour.md](oracle/roc-behaviour.md)、
 [oracle/methodcomparison-behaviour.md](oracle/methodcomparison-behaviour.md)) の「rStats.js's choices」に記録した
-とおり、次のものは含めていません: `survfit` の `scale` オプションと `crr` の `cengroup` (1.4.0 では対応しないと決定)。`coxph` のスコア残差と dfbeta 残差 (ロバスト分散のために計算するが、公開しない)。
+とおり、次のものは含めていません: `coxph` のスコア残差と dfbeta 残差 (ロバスト分散のために計算するが、公開しない)。
 pROC の Venkatraman の検定、部分 AUC の区間、平滑化した曲線、`percent`、座標・閾値・感度・特異度の区間 (`ci.coords`、
 `ci.thresholds`、`ci.se`、`ci.sp`)、`power.roc.test`、多クラスの曲線。Youden 指数と NND (number needed to diagnose)
 の区間。Bland-Altman の回帰に基づく一致限界と反復測定の一致限界 [照合先は SimplyAgree になる見込み]、片側の一致限界。
