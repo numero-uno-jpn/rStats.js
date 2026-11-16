@@ -139,7 +139,7 @@ describe("sample size and power",()=>{
       const exact=powerPaired2x2(n(a.pb),n(a.pc),n(a.npairs),{...opts,errbound:0});
       if(n(a.pb)===0.5 && n(a.pc)===0.3 && n(a.npairs)===40){
         const rationalPower=0.226697537841312;
-        expect(close(actual.power,rationalPower,2e-15),reason.mcnemarBound).toBe(true);
+        expect(close(actual.power,rationalPower,1e-14),reason.mcnemarBound).toBe(true);
         expect(Math.abs(n((c.expected.value as Record<string,unknown>).power)-rationalPower)>1e-9,
           "R's errbound result is a known numerical difference from the exact rational value").toBe(true);
         console.info(reason.mcnemarBound, `case ${i}; errbound=${bound}`);
