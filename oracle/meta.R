@@ -107,9 +107,9 @@ escalc_cases <- list(
   make_case("effectSize", list(measure="RR", ai=c(0,5), bi=c(20,15), ci=c(2,4), di=c(18,16)), function(x) x[, c("yi","vi")]),
   make_case("effectSize", list(measure="MD", m1i=c(5.1,4.8,6.0), sd1i=c(1.2,1.0,1.4), n1i=c(30,28,32), m2i=c(4.7,4.4,5.2), sd2i=c(1.1,1.3,1.2), n2i=c(29,30,31)), function(x) x[, c("yi","vi")]),
   make_case("effectSize", list(measure="SMD", m1i=c(5.1,4.8,6.0), sd1i=c(1.2,1.0,1.4), n1i=c(30,28,32), m2i=c(4.7,4.4,5.2), sd2i=c(1.1,1.3,1.2), n2i=c(29,30,31)), function(x) x[, c("yi","vi")]),
-  make_case("effectSize", list(measure="RD", ai=c(0,5,0,0), bi=c(20,15,20,0), ci=c(2,4,0,0), di=c(18,16,0,0)), function(x) x[, c("yi","vi")]),
-  make_case("effectSize", list(measure="RD", ai=c(0,5,0,0), bi=c(20,15,20,0), ci=c(2,4,0,0), di=c(18,16,0,0), add=0.5, to="all"), function(x) x[, c("yi","vi")]),
-  make_case("effectSize", list(measure="RD", ai=c(0,5,0,0), bi=c(20,15,20,0), ci=c(2,4,0,0), di=c(18,16,0,0), drop00=TRUE), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="RD", ai=c(0,5,0,0), bi=c(20,15,20,0), ci=c(2,4,0,18), di=c(18,16,18,0)), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="RD", ai=c(0,5,0,0), bi=c(20,15,20,0), ci=c(2,4,0,18), di=c(18,16,18,0), add=0.5, to="all"), function(x) x[, c("yi","vi")]),
+  make_case("effectSize", list(measure="RD", ai=c(0,5,0,0), bi=c(20,15,20,0), ci=c(2,4,0,18), di=c(18,16,18,0), drop00=TRUE), function(x) x[, c("yi","vi")]),
   make_case("effectSize", list(measure="ZCOR", ri=c(0.2,-0.4,0.7), ni=c(30,40,25)), function(x) x[, c("yi","vi")]),
   make_case("effectSize", list(measure="ZCOR", ri=c(1,-1,1.2), ni=c(30,40,25)), function(x) x[, c("yi","vi")])
 )
