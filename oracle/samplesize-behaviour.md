@@ -68,31 +68,33 @@ $$
 The sample-size expressions documented in the supplied brief can be written as
 
 $$
-n_c = \frac{$z_A+z_B$^2$V_t/r+V_c$}{E^2}, \qquad
-n_t = r n_c, \qquad n_{total}=n_t+n_c.
+n_c = \frac{(z_A+z_B)^2(V_t/r+V_c)}{E^2}, \qquad
+n_t = r n_c, \qquad n_{\mathrm{total}}=n_t+n_c.
 $$
 
 | Design | $E$ | $z_A$ | $z_B$ |
 |---|---:|---:|---:|
-| Non-inferiority | $D+\delta$ | $z_{1-\alpha}$ | $z_{power}$ |
-| Superiority | $D-\delta$ | $z_{1-\alpha/s}$, $s=1$ or 2 | (z_{power}) |
-| Equivalence | $\delta-|D|$ | $z_{1-\alpha}$ | $z_{1-(1-power)/2}$ |
-| Equality | $D$ | $z_{1-\alpha/2}$ | (z_{power}) |
+| Non-inferiority | $D+\delta$ | $z_{1-\alpha}$ | $z_{\mathrm{power}}$ |
+| Superiority | $D-\delta$ | $z_{1-\alpha/s}$, $s=1$ or 2 | $z_{\mathrm{power}}$ |
+| Equivalence | $\delta-|D|$ | $z_{1-\alpha}$ | $z_{1-(1-\mathrm{power})/2}$ |
+| Equality | $D$ | $z_{1-\alpha/2}$ | $z_{\mathrm{power}}$ |
 
-For a fixed total (n), the allocation is (n_t=nr/(1+r)) and (n_c=n/(1+r)).
+For a fixed total $n$, the allocation is $n_t=nr/(1+r)$ and $n_c=n/(1+r)$.
 
 The normal-approximation power expressions supplied for the margin-based tests include:
 
 $$
-Power_{NI}=\Phi\left$\frac{D+\delta}{SE}-z_{1-\alpha}\right$
+\mathrm{Power}_{NI}=\Phi\left(\frac{D+\delta}{SE}-z_{1-\alpha}\right)
 $$
 
 and, for the continuous superiority case,
 
 $$
-Power_{Sup}=\Phi\left$\frac{D-\delta}{SE}-z_{1-\alpha/s}\right$
-+\Phi\left$-\frac{D-\delta}{SE}-z_{1-\alpha/s}\right$.
+\mathrm{Power}_{Sup}=\Phi\left(\frac{D-\delta}{SE}-z_{1-\alpha/s}\right)
++\Phi\left(-\frac{D-\delta}{SE}-z_{1-\alpha/s}\right).
 $$
+
+
 
 The equivalence power expression in the brief is not safe to adopt without correction: it can return a negative value. The probability of rejecting both one-sided null hypotheses must be non-negative; this needs a mathematically reviewed specification rather than literal reproduction of the observed expression.
 
@@ -160,7 +162,7 @@ The power is the probability, under the specified discordant-pair probabilities,
 
 ### Observed values
 
-For $p_b=0.5$, $p_c=0.3$, $n=40$, $alpha=0.05$:
+For $p_b=0.5$, $p_c=0.3$, $n=40$, $\alpha=0.05$:
 
 | Setting | Power |
 |---|---:|
@@ -188,16 +190,16 @@ This package exposes two different model families in the requested scope. They s
 ### Freedman clinical-trial approximation
 
 Public functions:
-- `ssizeCT.default(power, k, pE, pC, RR, alpha=0.05)`
-- `powerCT.default(nE, nC, pE, pC, RR, alpha=0.05)`
+- \`ssizeCT.default(power, k, pE, pC, RR, alpha=0.05)\`
+- \`powerCT.default(nE, nC, pE, pC, RR, alpha=0.05)\`
 
-Here $k=n_E/n_C$, $p_E,p_C$ are the probabilities of failure over the maximum follow-up period, and (RR) is the postulated experimental/control hazard ratio. The test is two-sided.
+Here $k=n_E/n_C$, $p_E,p_C$ are the probabilities of failure over the maximum follow-up period, and $RR$ is the postulated experimental/control hazard ratio. The test is two-sided.
 
 The sample-size calculation uses
 
 $$
-m=\frac{1}{k}\left$\frac{kRR+1}{RR-1}\right$^2
-  $z_{1-\alpha/2}+z_{1-\beta}$^2,
+m=\frac{1}{k}\left(\frac{kRR+1}{RR-1}\right)^2
+  (z_{1-\alpha/2}+z_{1-\beta})^2,
 \qquad
 n_E=\frac{mk}{kp_E+p_C},
 \qquad
@@ -224,22 +226,22 @@ Observed default-method values:
 ### Schoenfeld / Latouche epidemiological Cox model
 
 Public functions:
-- `ssizeEpi.default(power, theta, p, psi, rho2, alpha=0.05)`
-- `powerEpi.default(n, theta, p, psi, rho2, alpha=0.05)`
-- `numDEpi.default(power, theta, p, rho2, alpha=0.05)`
+- \`ssizeEpi.default(power, theta, p, psi, rho2, alpha=0.05)\`
+- \`powerEpi.default(n, theta, p, psi, rho2, alpha=0.05)\`
+- \`numDEpi.default(power, theta, p, rho2, alpha=0.05)\`
 
 Here `theta` is the hazard ratio, `p` is the prevalence of the binary covariate of interest, `psi` is the proportion of subjects experiencing the event of interest, and `rho2` is the **squared** correlation between the covariate of interest and another covariate.
 
 $$
-n=\frac{$z_{1-\alpha/2}+z_{1-\beta}$^2}
-{[\log$\theta$]^2p(1-p)\psi$1-\rho^2$}.
+n=\frac{(z_{1-\alpha/2}+z_{1-\beta})^2}
+{[\log(\theta)]^2p(1-p)\psi(1-\rho^2)}.
 $$
 
 `ssizeEpi.default` returns the total number of subjects and rounds it up. `powerEpi.default` inverts the same expression for a supplied total (n). `numDEpi.default` returns the required number of events/deaths; its formula omits `psi`:
 
 $$
-D=\frac{$z_{1-\alpha/2}+z_{1-\beta}$^2}
-{[\log$\theta$]^2p(1-p)$1-\rho^2$}.
+D=\frac{(z_{1-\alpha/2}+z_{1-\beta})^2}
+{[\log(\theta)]^2p(1-p)(1-\rho^2)}.
 $$
 
 Observed default-method values:
@@ -265,7 +267,7 @@ The documented `Oph` pilot-data example was also run. `ssizeCT` returned `ssize=
 
 ## 4. clinfun: Simon's two-stage Phase II design
 
-Public function: `ph2simon$pu, pa, ep1, ep2, nmax=100$`.
+Public function: `ph2simon(pu, pa, ep1, ep2, nmax=100)`.
 
 - `pu`: unacceptable response rate.
 - `pa`: desirable response rate; documentation says it should exceed `pu`.
