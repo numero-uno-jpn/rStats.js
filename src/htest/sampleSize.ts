@@ -316,7 +316,7 @@ function binomialMasses(n: number, p: number): number[] {
  * @param pb Probability of a discordant pair with control 0 and treatment 1.
  * @param pc Probability of a discordant pair with control 1 and treatment 0.
  * @param npairs Number of pairs.
- * @param options Test options, including the two-sided method and truncation bound.
+ * @param options Test options; `errbound` is retained for API compatibility, but the exact sum is always evaluated.
  * @returns The power and test settings.
  * @example
  * ```ts
@@ -330,7 +330,7 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
   const alternative = matchChoice(options.alternative, ["two.sided", "one.sided"] as const);
   const strict = options.strict ?? false;
   const nullOddsRatio = options.nullOddsRatio ?? 1;
-  const errbound = options.errbound ?? 1e-6;
+  const errbound = options.errbound ?? 1e-6; // Metadata only: exact enumeration is used because R's observed truncation is inaccurate.
   const tsmethod = matchChoice(options.tsmethod, ["central", "minlike", "blaker"] as const);
   checkNumber(pb, "pb", prob, "'pb' must be in [0, 1]");
   checkNumber(pc, "pc", prob, "'pc' must be in [0, 1]");
