@@ -153,7 +153,7 @@ describe("sample size and power",()=>{
 
   it("Simon's structured candidate table and selected designs",()=>{
     const f=read("samplesizeSimon");
-    for(const i of [0,1,5,8,9]){
+    for(const i of [0,1,3,5,8,9]){
       const c=f.cases[i]!, a=c.args;
       const r=ph2simon(n(a.pu),n(a.pa),n(a.ep1),n(a.ep2),{nmax:n(a.nmax)});
       const v=c.expected.value as Record<string,unknown>;
