@@ -418,7 +418,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   const pv=stat.map(z=>2*(test==="z"?pnorm(-Math.abs(z)):pt(-Math.abs(z),df)));
   const lower=fit.beta.map((b,i)=>b-crit*se[i]!);
   const upper=fit.beta.map((b,i)=>b+crit*se[i]!);
-  const start=intercept?1:0,m=p===1?1:Math.max(1,p-start);
+  const start=hasIntercept?1:0,m=p===1?1:Math.max(1,p-start);
   let qm=0,qmp=1;
   if(p===1){qm=stat[0]!*stat[0]!;qmp=test==="z"?pchisq(qm,1,{lowerTail:false}):pf(qm,1,df,{lowerTail:false});}
   else {
@@ -452,7 +452,7 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
   let lo=0,hi=NaN;
   if(type==="QP"){
     const base=weightedFit(object.yi,object.vi,object.mods,0);
-    const C=base.traceP2;
+    const C=base.traceP;
     const target=(prob:number)=>root(ncp=>pchisq(base.qe,df,{ncp})-prob,0,Math.max(1,base.qe),1e-10);
     const l=target(1-alpha/2),u=root(ncp=>pchisq(base.qe,df,{ncp})-alpha/2,0,Math.max(1,base.qe*8),1e-10);
     lo=Math.max(0,l/C);hi=u/C;
@@ -509,7 +509,7 @@ export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:
 /** Test for funnel-plot asymmetry using a regression model. Equivalent to R's `metafor::regtest()`.
  * @category Effect sizes and power
  */
-export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly number[]|RegtestOptions,maybeOptions:RegtestOptions={}):{model:string;predictor:string;zval:number;pval:number;dfs:number;est:number;"ci.lb":number;"ci.ub":number;fit?:RmaResult} {
+export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly number[]|RegtestOptions,maybeOptions:RegtestOptions={}):{model:string;predictor:string;zval:number;pval:number;dfs:number;est:number;"ci.lb":number;"ci.ub":number;warnings:string[];fit?:RmaResult} {
   if (isOptionsObject(viOrOptions)) checkOptions(viOrOptions, REGTEST_KEYS, "regtest"); // generated: option-keys.mjs
   checkOptions(maybeOptions, REGTEST_KEYS, "regtest"); // generated: option-keys.mjs
   const isFit=typeof x==="object"&&"beta" in x;
