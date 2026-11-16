@@ -40,7 +40,8 @@ function splitN(n: number, r: number): [number, number] {
 
 /** Options shared by the epiR parallel-trial sample-size and power functions.
  * @category Effect sizes and power
- */\nexport interface EpiOptions {
+ */
+export interface EpiOptions {
   /** Total sample size; null/omitted when solving for sample size. */
   n?: number | null;
   /** Target power; null/omitted when solving for power. */
@@ -58,7 +59,8 @@ function splitN(n: number, r: number): [number, number] {
 }
 /** Sample-size and power result for an epiR parallel-trial design.
  * @category Effect sizes and power
- */\nexport interface EpiResult {
+ */
+export interface EpiResult {
   nTotal: number;
   nTreat: number;
   nControl: number;
@@ -264,7 +266,8 @@ export function epiSssupc(treat: number, control: number, sigma: number, delta: 
 
 /** Options for the exact paired McNemar power calculation.
  * @category Effect sizes and power
- */\nexport interface PowerPaired2x2Options {
+ */
+export interface PowerPaired2x2Options {
   sigLevel?: number;
   alternative?: "two.sided" | "one.sided" | (string & {});
   strict?: boolean;
@@ -274,7 +277,8 @@ export function epiSssupc(treat: number, control: number, sigma: number, delta: 
 }
 /** Result of the exact paired McNemar power calculation.
  * @category Effect sizes and power
- */\nexport interface PowerPaired2x2Result {
+ */
+export interface PowerPaired2x2Result {
   power: number;
   npairs: number;
   pb: number;
@@ -352,7 +356,7 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
       if (reject) power += wm * alt[x]!;
     }
   }
-  const note = `errbound= ${errbound}${pb + pc === 1 ? "  no non-informative pairs: pa+pd=0" : ""}`;
+  const note = `errbound= ${errbound === 0 ? "0" : errbound >= 0.001 ? String(errbound) : `${errbound.toExponential(0).replace(/e([+-]?)(\\d+)$/, (_m, sign, exp) => `e${sign || "+"}${exp.padStart(2, "0")}`)}`}${pb + pc === 1 ? "  no non-informative pairs: pa+pd=0" : ""}`;
   const method = "Power for McNemar's Exact Test" +
     (useBoth ? ", including power to reject in the wrong direction" : "") +
     (tsmethod === "central" && options.tsmethod !== undefined ? `, using (tsmethod=${tsmethod})` :
@@ -363,7 +367,8 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
 
 /** Significance-level options for survival sample-size calculations.
  * @category Effect sizes and power
- */\nexport interface SurvivalOptions { alpha?: number; }
+ */
+export interface SurvivalOptions { alpha?: number; }
 /** Result of a Freedman clinical-trial sample-size calculation.
  * @category Effect sizes and power
  */
