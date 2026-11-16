@@ -1,5 +1,5 @@
 # issue: 525
-# Validate the generalized tied-time own covariance B_{kk'} for three groups.
+# Validate tied covariance correction on future-adjusted influence columns for three groups.
 # The earlier-time covariance uses equation (2.10); the final tied-time own matrix uses
 # the sequential-without-replacement B formula. Compare the resulting quadratic-form stat
 # with public cmprsk::cuminc(), both unstratified and with two strata.
@@ -50,7 +50,7 @@ components <- function(dat,rho) {
     future<-future+cur$D*cur$dGamma
   }
   last<-saved[[m]]; H<-sum(last$h); p<-last$h/H
-  W<-sweep(last$D,2,last$L*last$h,"/")
+  W<-sweep(aa,2,last$L*last$h,"/")
   Aown<-W%*%diag(p)%*%t(W)
   qsub<-last$h/last$Y; Ytot<-sum(last$Y)
   d<-sum(dat$status==1 & dat$time==times[m])
