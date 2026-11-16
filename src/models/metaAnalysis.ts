@@ -18,8 +18,7 @@ import type { DataFrame } from "./modelFrame.js";
 import { checkOptions, nestedOptions } from "../internal/checkOptions.js";
 import { isOptionsObject } from "../internal/optionalArgs.js";
 const ESCALC_KEYS = /* @__PURE__ */ new Set([
-  "ai", "bi", "ci", "di", "m1i", "sd1i", "n1i", "m2i", "sd2i",
-  "n2i", "ri", "ni", "add", "to", "drop00",
+  "ai", "bi", "ci", "di", "m1i", "sd1i", "n1i", "m2i", "sd2i", "n2i", "ri", "ni", "add", "to", "drop00",
 ]);
 const RMA_KEYS = ["method", "mods", "data", "intercept", "test", "level", "control"] as const;
 const RMA_CONTROL_KEYS = ["tau2Init", "threshold", "maxiter", "stepadj", "tol", "tau2Max"] as const;
