@@ -289,6 +289,7 @@ export interface PowerPaired2x2Options {
   alternative?: "two.sided" | "one.sided" | (string & {});
   strict?: boolean;
   nullOddsRatio?: number;
+  /** Probability budget omitted from the extreme tails of the discordant-pair count. Default 1e-6; zero uses all counts. */
   errbound?: number;
   tsmethod?: "central" | "minlike" | "blaker" | (string & {});
 }
@@ -322,7 +323,7 @@ function binomialMasses(n: number, p: number): number[] {
  * @param pb Probability of a discordant pair with control 0 and treatment 1.
  * @param pc Probability of a discordant pair with control 1 and treatment 0.
  * @param npairs Number of pairs.
- * @param options Test options; `errbound` is retained for API compatibility, but the exact sum is always evaluated.
+ * @param options Test options. `errbound=0` evaluates the full sum; a positive value may omit extreme discordant-pair-count tails with total omitted probability no greater than `errbound`.
  * @returns The power and test settings.
  * @example
  * ```ts
