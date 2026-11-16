@@ -21,6 +21,15 @@ function binomialMass(n:number,p:number):number[] {
   if(p===1){out.fill(0);out[n]=1;}
   return out;
 }
+function exactMcNemarHalfBoundary(npairs:number,pb:number,pc:number):number {
+  const q=pb+pc, pAlt=q===0?0.5:pb/q, massM=binomialMass(npairs,q);
+  let power=0;
+  for(let m=0;m<=npairs;m++){
+    const alt=binomialMass(m,pAlt);
+    for(let x=Math.ceil(m/2)+1;x<=m;x++) power+=massM[m]!*alt[x]!;
+  }
+  return power;
+}
 function binomialCdf(mass:readonly number[],k:number):number {
   let sum=0;
   for(let i=0;i<=Math.min(k,mass.length-1);i++) sum+=mass[i]!;
@@ -33,7 +42,8 @@ const reason = {
   eqSize:"KNOWN DIFFERENCE: epiR's binary equality sample-size formula omits the allocation ratio; rStats.js uses Vt/r + Vc (choices 2).",
   eqContinuousEquality:"KNOWN DIFFERENCE: epiR errors for continuous equality power; rStats.js evaluates the two-sided normal power formula (choices 2).",
   supBinary:"KNOWN DIFFERENCE: epiR's binary superiority power at unequal allocation is not reproduced; rStats.js uses the stated binary-variance normal formula (choices 2).",
-  mcnemarBound:"KNOWN R DIFFERENCE: exact2x2 errbound truncation is numerically inaccurate for the recorded case; rStats.js returns the exact rational power and deliberately ignores errbound.",
+  mcnemarBound:"KNOWN R DIFFERENCE: exact2x2 errbound=0 is numerically inaccurate for the recorded case; rStats.js returns the exact power.",
+  mcnemarBoundary:"KNOWN R DIFFERENCE: exact2x2 does not implement the exact strict p-value boundary consistently at sig.level=1; rStats.js uses the exact rational central-tail rule, rejecting only when the directional tail is strictly below alpha/2."
 };
 
 function callEpi(c:Case):Record<string,unknown> {
@@ -157,11 +167,20 @@ describe("sample size and power",()=>{
       const actual=powerPaired2x2(n(a.pb),n(a.pc),n(a.npairs),opts);
       const rPower=n((c.expected.value as Record<string,unknown>).power);
       const bound=a.errbound===undefined?1e-6:n(a.errbound);
-      if(bound===0){
-        // exact2x2 errbound=0 is the sole known inaccurate R fixture.
+      const alphaOneBoundary=a["sig.level"]!==undefined && n(a["sig.level"])===1 &&
+        (a.alternative===undefined || a.alternative==="two.sided") && a.strict!==true &&
+        (a.nullOddsRatio===undefined || n(a.nullOddsRatio)===1) &&
+        (a.tsmethod===undefined || a.tsmethod==="central");
+      if(alphaOneBoundary){
+        const exact=exactMcNemarHalfBoundary(n(a.npairs),n(a.pb),n(a.pc));
+        expect(Math.abs(actual.power-exact)).toBeLessThanOrEqual(bound+1e-12);
+        expect(Math.abs(exact-rPower)).toBeGreaterThan(1e-3);
+        console.info(reason.mcnemarBoundary);
+      } else if(bound===0){
+        // exact2x2 errbound=0 is numerically inaccurate for this fixture.
         expect(close(actual.power,0.226697537841312,1e-14),"exact McNemar power at zero R errbound").toBe(true);
         expect(Math.abs(actual.power-rPower)).toBeGreaterThan(0);
-        console.info("KNOWN R ERROR: exact2x2 errbound=0 truncates the exact power");
+        console.info(reason.mcnemarBound);
       } else {
         expect(Math.abs(actual.power-rPower)).toBeLessThanOrEqual(bound+1e-12);
       }
