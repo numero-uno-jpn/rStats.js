@@ -318,7 +318,11 @@ The generalized Hunter-Schmidt estimator is
 \[
 \widehat\tau^2_{HS}=\max\left(0,\frac{Q-k}{\sum_i 1/v_i}\right),
 \]
-where \(Q\) is Cochran's inverse-variance weighted statistic. HSk is the Hunter-Schmidt estimator with the small-sample-size correction of Brannick et al. (2019); it is a distinct estimator and must not be silently replaced by HS. Its exact correction must be checked against the paper before implementation, rather than guessed from the label.
+where \(Q\) is Cochran's inverse-variance weighted statistic and \(w_i=1/v_i\). The HSk correction multiplies the observed-variance term by \(k/(k-1)\), while leaving the sampling-error subtraction term unchanged:
+\[
+\widehat\tau^2_{HSk}=\max\left(0,\frac{\frac{k}{k-1}Q-k}{\sum_i 1/v_i}\right).
+\]
+This is the small-sample-size correction described by Brannick et al. (2019); it is not the same as multiplying the whole HS estimate by \(k/(k-1)\).
 
 For Sidik-Jonkman, start with
 \[
