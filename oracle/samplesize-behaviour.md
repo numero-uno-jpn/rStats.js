@@ -17,7 +17,7 @@ No source code from epiR, exact2x2, clinfun, or powerSurvEpi was read or used. T
 
 ## Easy to get wrong
 
-- In the epiR parallel-trial functions, `n` is total $n_t+n_c$, and `r) is $n_t/n_c$; it is not the per-arm size.
+- In the epiR parallel-trial functions, `n` is total $n_t+n_c$, and `r` is $n_t/n_c$; it is not the per-arm size.
 - `nfractional=FALSE` ceilings each arm separately, then adds the two integer sizes.
 - `powerPaired2x2` is an exact McNemar **power** calculation, not a sample-size solver. `strict=FALSE` excludes rejection in the wrong direction; `errbound` changes the numerical result.
 - `powerSurvEpi` contains two distinct model families: Freedman's clinical-trial approximation and the Schoenfeld/Latouche epidemiological Cox model. In the latter, `rho2=0` does not make the competing-risk subdistribution hazard interpretation identical to Schoenfeld's cause-specific hazard.
@@ -59,7 +59,7 @@ For all six functions:
 - `epi.ssequb/c` use `type = "equivalence"` by default. `type = "equality"` ignores `delta`.
 - `epi.sssupb/c` require `sided.test` (1 or 2). Non-inferiority is one-sided.
 
-Let $D = mu_t - mu_c$, with (mu) denoting a proportion for binary outcomes or a mean for continuous outcomes. For binary outcomes, (V_t = p_t$1-p_t$) and (V_c = p_c$1-p_c$); for continuous outcomes, $V_t = V_c = \sigma^2$. With $r=n_t/n_c$,
+Let $D = \mu_t - \mu_c$, with $\mu$ denoting a proportion for binary outcomes or a mean for continuous outcomes. For binary outcomes, $V_t = p_t(1-p_t)$ and $V_c = p_c(1-p_c)$; for continuous outcomes, $V_t = V_c = \sigma^2$. With $r=n_t/n_c$,
 
 $$
 SE = \sqrt{V_t/n_t + V_c/n_c}.
@@ -72,12 +72,12 @@ n_c = \frac{$z_A+z_B$^2$V_t/r+V_c$}{E^2}, \qquad
 n_t = r n_c, \qquad n_{total}=n_t+n_c.
 $$
 
-| Design | (E) | $z_A$ | $z_B$ |
+| Design | $E$ | $z_A$ | $z_B$ |
 |---|---:|---:|---:|
-| Non-inferiority | $D+\delta$ | $z_{1-\alpha}$ | (z_{power}) |
+| Non-inferiority | $D+\delta$ | $z_{1-\alpha}$ | $z_{power}$ |
 | Superiority | $D-\delta$ | $z_{1-\alpha/s}$, $s=1$ or 2 | (z_{power}) |
-| Equivalence | $\delta-|D|$ | $z_{1-\alpha}$ | (z_{1-(1-power)/2}) |
-| Equality | (D) | $z_{1-\alpha/2}$ | (z_{power}) |
+| Equivalence | $\delta-|D|$ | $z_{1-\alpha}$ | $z_{1-(1-power)/2}$ |
+| Equality | $D$ | $z_{1-\alpha/2}$ | (z_{power}) |
 
 For a fixed total (n), the allocation is (n_t=nr/(1+r)) and (n_c=n/(1+r)).
 
@@ -188,8 +188,8 @@ This package exposes two different model families in the requested scope. They s
 ### Freedman clinical-trial approximation
 
 Public functions:
-- `ssizeCT.default$power, k, pE, pC, RR, alpha=0.05$`
-- `powerCT.default$nE, nC, pE, pC, RR, alpha=0.05$`
+- `ssizeCT.default(power, k, pE, pC, RR, alpha=0.05)`
+- `powerCT.default(nE, nC, pE, pC, RR, alpha=0.05)`
 
 Here $k=n_E/n_C$, $p_E,p_C$ are the probabilities of failure over the maximum follow-up period, and (RR) is the postulated experimental/control hazard ratio. The test is two-sided.
 
@@ -215,18 +215,18 @@ $$
 The formula assumes large samples / a central-limit approximation.
 
 Observed default-method values:
-- `powerCT.default$nE=200,nC=200,pE=.3707,pC=.4890,RR=.7$` = 0.638338942525040.
+- `powerCT.default(nE=200,nC=200,pE=.3707,pC=.4890,RR=.7)` = 0.638338942525040.
 - The same calculation with $n_E=240,n_C=120$ = 0.574584549396927.
 - At $RR=1$, the returned power is 0.025 (not 0.05).
-- `ssizeCT.default$power=.8,k=1,pE=.3707,pC=.4890,RR=.7$` returns `c(294,294)`; with $k=2$, it returns `c(409,205)`.
+- `ssizeCT.default(power=.8,k=1,pE=.3707,pC=.4890,RR=.7)` returns `c(294,294)`; with $k=2$, it returns `c(409,205)`.
 - With $RR=1.000001$, the returned sample sizes are about $3.14\times10^{13}$ per group; this is finite but not practically usable.
 
 ### Schoenfeld / Latouche epidemiological Cox model
 
 Public functions:
-- `ssizeEpi.default$power, theta, p, psi, rho2, alpha=0.05$`
-- `powerEpi.default$n, theta, p, psi, rho2, alpha=0.05$`
-- `numDEpi.default$power, theta, p, rho2, alpha=0.05$`
+- `ssizeEpi.default(power, theta, p, psi, rho2, alpha=0.05)`
+- `powerEpi.default(n, theta, p, psi, rho2, alpha=0.05)`
+- `numDEpi.default(power, theta, p, rho2, alpha=0.05)`
 
 Here `theta` is the hazard ratio, `p` is the prevalence of the binary covariate of interest, `psi` is the proportion of subjects experiencing the event of interest, and `rho2` is the **squared** correlation between the covariate of interest and another covariate.
 
@@ -243,9 +243,9 @@ D=\frac{$z_{1-\alpha/2}+z_{1-\beta}$^2}
 $$
 
 Observed default-method values:
-- `powerEpi.default$n=139,theta=2,p=.39,psi=.505,rho2=.132^2$` = 0.801722164331304.
-- `ssizeEpi.default$power=.8,theta=2,p=.39,psi=.505,rho2=.132^2$` = 139.
-- `numDEpi.default$power=.8,theta=2,p=.39,rho2=.132^2$` = 70.
+- `powerEpi.default(n=139,theta=2,p=.39,psi=.505,rho2=.132^2)` = 0.801722164331304.
+- `ssizeEpi.default(power=.8,theta=2,p=.39,psi=.505,rho2=.132^2)` = 139.
+- `numDEpi.default(power=.8,theta=2,p=.39,rho2=.132^2)` = 70.
 - With `rho2=0`, the same size calculation returns 94.
 - `theta=1`, $p=0$, `rho2=1`, and power 0 or 1 each produced `Inf` in the tested size calculation.
 
@@ -307,7 +307,7 @@ Other observed behaviour:
 
 - **epiR:** the observed negative equivalence powers are not probabilities; binary equality sample size ignores the allocation ratio in the observed unequal-allocation case; continuous equality power errors; binary superiority power with unequal allocation does not match the supplied normal approximation. These need independent statistical definitions rather than literal emulation.
 - **exact2x2:** for the tested McNemar case, positive `errbound` values returned a power slightly above the `errbound=0` result. In particular, `errbound=1e-8` differed by about $6.37\times10^{-7}$, exceeding the requested bound and in the opposite direction to the documented “underestimate” description. The reason is unknown.
-- **powerSurvEpi:** the documented one-tail normal approximation in `powerCT.default` returns 0.025 at $RR=1$ with `alpha=0.05), rather than the nominal two-sided 0.05. This is an observed boundary consequence of the approximation and should be stated explicitly if compatibility is desired.
+- **powerSurvEpi:** the documented one-tail normal approximation in `powerCT.default` returns 0.025 at $RR=1$ with $\alpha=0.05$, rather than the nominal two-sided 0.05. This is an observed boundary consequence of the approximation and should be stated explicitly if compatibility is desired.
 ## References
 
 - epiR 3.0.0 reference manual: help for `epi.ssequb`, `epi.ssequc`, `epi.ssninfb`, `epi.ssninfc`, `epi.sssupb`, and `epi.sssupc`. The help cites Chow, Shao & Wang (2008), Julious (2004), Machin et al. (2009, 2018), Pocock (1983), and Wang et al. (2017).
