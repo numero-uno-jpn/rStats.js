@@ -30,5 +30,8 @@ probe("schoenfeld-rho-boundary", function() ssizeEpi.default(power=.8,theta=2,p=
 probe("schoenfeld-power-zero", function() ssizeEpi.default(power=0,theta=2,p=.39,psi=.505,rho2=.132^2,alpha=.05))
 probe("schoenfeld-power-one", function() ssizeEpi.default(power=1,theta=2,p=.39,psi=.505,rho2=.132^2,alpha=.05))
 data(Oph, package="powerSurvEpi")
+X1 <- rep(c(0, 1), 50)
+X2 <- rep(c(0, 0, 1, 1), 25)
+failureFlag <- rep(c(0, 1, 0, 0, 1), 20)
 probe("freedman-pilot-power", function() powerCT(formula=survival::Surv(times,status) ~ group,dat=Oph,nE=200,nC=200,RR=.7,alpha=.05))
 probe("freedman-pilot-size", function() ssizeCT(formula=survival::Surv(times,status) ~ group,dat=Oph,power=.8,k=1,RR=.7,alpha=.05))
