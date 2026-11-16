@@ -1,4 +1,5 @@
 # issue: 529
+# Expanded public-API probes for the approved meta-analysis scope.
 suppressPackageStartupMessages(library(metafor))
 suppressPackageStartupMessages(library(metadat))
 
