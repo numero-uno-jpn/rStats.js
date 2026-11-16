@@ -1,10 +1,24 @@
 # 引継ぎ: rStats.js (外部レビュー対応 2026-10-30〜11-04、1.0.0 への準備 11-04〜)
 
-最終更新: 2026-11-16 (セッション 20、Windows の PC: 1.4.0 の実装を ChatGPT に外注して main に取り込み、リリースの準備の途中。以後は Mac mini で)
+最終更新: 2026-11-16 (セッション 21、Mac mini: 1.4.0 を公開、同時刻の Gray の検定を ChatGPT がクリーンルームで修正 (1.4.1 に入る、未公開)、外注用の R の実験の仕組みを作った。次は ROADMAP の 1 番)
 
 ## まず読むこと (セッション 16 から)
 
-## 次のセッションで最初にやること (2026-11-16 に作成、セッション 20、Windows の PC)
+## 次のセッションで最初にやること (2026-11-16 に作成、セッション 21、Mac mini)
+
+以後は **Mac mini だけで作業する** (ユーザーの指示)。
+
+- **状態:** npm latest = 1.4.0 (2026-11-16 公開)。main = `44dc5409` 以降、CI 通過。作業ブランチは残っていない (ユーザーの許可を得て全部消した)。未追跡の `oracle/extreme-parameters-behaviour.md` は以前からあるもので、触っていない
+- **未公開の変更 (1.4.1 に入る):** CHANGELOG の Unreleased。同時刻の Gray の検定の分散 (Issue #525、PR #526) と、それに伴う 2 つの Changed。**1.4.1 はほかの変更がたまってから出す** (ユーザーの判断)。出すときは下の節の 11 番 (デモのデータを戻す) を忘れない
+- **次にやること: ROADMAP の Remaining の 1 番「試験デザインのサンプルサイズと検出力」** (ユーザーの指示)
+  - 中身 (ROADMAP.md): 平均と比率の同等性・非劣性・優越性、McNemar 検定、生存時間 (Schoenfeld、Freedman)、Simon の 2 段階デザイン (clinfun の `ph2simon`)。**照合先の R のパッケージは着手するときに決める**ので、最初にユーザーと決める
+  - 既にあるもの: `powerTTest`・`powerPropTest`・`powerAnovaTest` (R の `power.*.test`)、pwr の `pwr*` 関数。新しい関数は、これらの名前・引数・結果の形 (解く量を 1 つ未指定にする方式など) に合わせる
+  - 進め方の前例は 1.4.0: 先に仕様書 (`oracle/<分野>-behaviour.md`。論文・ヘルプ・R の実行結果から書く。末尾に「Decisions for the user」と「rStats.js's choices」)、fixture (`oracle/<name>.R` → `test/fixtures/<name>.json`、`npm run oracle -- <name>`)、指示書 (`briefs/*.ja.md`) を作り、実装を外注するか自分でするかを決める。照合先のパッケージを `oracle/Dockerfile.r46` に足すときは、新しい層にする (前の層のキャッシュを保つ)。足したら arm64 と amd64 の両方のイメージを作り直す
+- **外注するときの道具 (このセッションで作った):** 下の節の 10 番の R の実験の仕組み。ChatGPT が `experiments/*.R` を push すれば自分で R の出力を読める。照合先のパッケージを使うなら、`oracle/Dockerfile.experiments` と `scripts/r-experiment-check.mjs` の `ALLOWED_PACKAGES`・`REFERENCE_FUNCTIONS` に足す (main に入れてから使わせる。ワークフローは main の版の検査と Dockerfile を使う)。指示書の書き方は `briefs/gray-ties.ja.md` が最新の例
+- **クリーンルーム:** 私 (このセッション) は cmprsk のソースを見てしまった (2026-11-16、Gray の検定の件。修正は取り消し、ChatGPT が出力だけから同じ式に到達した)。それ以外のパッケージのソースは見ていない。**R・GPL のパッケージのソースは読まない** (2026-11-09 からの規則。古いメモ「読んでよい」は置き換え済み)。照合先の候補 (clinfun など) が GPL なら同じ扱い
+- **残っている小さな点:** 下の節の 8 番 (この Mac だけで issue179・issue513 のテストが最後の 1 ビットで落ちる。Node v24.19.0 の疑い、未調査)
+
+## 前回 (セッション 20) の「次のセッションで最初にやること」 (2026-11-16 に作成、Windows の PC。1〜7 と 9〜11 は Mac のセッション 21 で処理)
 
 このセッションは Windows の PC で行い、ここで終了した。以後は **Mac mini だけで作業する** (2 台で同時に作業すると混乱するため、ユーザーの指示)。Windows の側のメモリ (`~/.claude/projects/.../memory/`) は Mac にないので、必要な内容はこの節に書いた。
 
