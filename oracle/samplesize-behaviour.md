@@ -362,7 +362,7 @@ Other observed behaviour:
 
 ## Where the packages are wrong or inaccurate
 
-- **epiR:** the observed negative equivalence powers are not probabilities; binary equality sample size ignores the allocation ratio in the observed unequal-allocation case; continuous equality power errors; binary superiority power with unequal allocation does not match the supplied normal approximation. These need independent statistical definitions rather than literal emulation. The follow-up grid did not identify the unequal-allocation superiority formula or the binary equivalence power formula; see the experiment notes above.
+- **epiR:** the observed negative equivalence powers are not probabilities; binary equality sample size ignores the allocation ratio in the observed unequal-allocation case; continuous equality power errors; binary superiority power with unequal allocation does not match the supplied normal approximation. The `nfractional=FALSE` outputs are also inconsistent across functions and allocation ratios: some return fractional sizes, and the arm64 fixture exposes values immediately below integers. rStats.js uses a deterministic integer allocation policy (choice 3) and records these package differences rather than reproducing fractional or platform-dependent counts.
 - **exact2x2:** for the tested McNemar case, positive `errbound` values returned a power slightly above the `errbound=0` result. In particular, `errbound=1e-8` differed by about $6.37\times10^{-7}$, exceeding the requested bound and in the opposite direction to the documented “underestimate” description. The reason is unknown.
 - **powerSurvEpi:** the documented one-tail normal approximation in `powerCT.default` returns 0.025 at $RR=1$ with $\alpha=0.05$, rather than the nominal two-sided 0.05. This is an observed boundary consequence of the approximation and should be stated explicitly if compatibility is desired.
 ## References
@@ -412,8 +412,7 @@ Decided by the user on 2026-11-16 (the Decisions above; binding for stage 2).
    - R's internal errors at `power = 0` or `1` (`object 'rval' not found`): a `RangeError` with a message of our own.
    Cases where R is right are compared with the fixtures; the others are checked against the formulas above
    computed independently in the test, and listed as known differences (labelled, not silently skipped).
-3. **Integers.** `nfractional` as in R (default `false`: each group rounded up separately, the total their sum). The
-   result also has the unrounded sizes in extra fields, whatever `nfractional` is.
+3. **Integers.** The R experiments show that `nfractional=FALSE` is not a consistent integerization rule across the six functions: some calls still return fractional group sizes (notably `epi.ssequc` at r=0.7 and 2.2 and `epi.ssninfb` at r=0.7), and the arm64 continuous-equivalence fixture is within floating-point error of integer boundaries. rStats.js returns integer group sizes deterministically: `epi.ssequc` and both superiority methods round the control size up first and then round `r * nControl) up; the other three methods round each unrounded arm size up independently. This reproduces the r=1.5 observations for all six functions and the superiority ratio grid, while avoiding fractional group sizes when `nfractional=false`. The result also has the unrounded sizes in extra fields, whatever `nfractional` is.
 4. **API.** R's names in camelCase: `epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`, `epiSssupc`,
    `powerPaired2x2`, `ssizeCT`, `powerCT`, `ssizeEpi`, `powerEpi`, `numDEpi` (the `.default` methods under the generic's
    name; a pilot-data form, if added later, is a separate overload discriminated by its data argument) and `ph2simon`.
