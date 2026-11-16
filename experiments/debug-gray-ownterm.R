@@ -21,7 +21,7 @@ for (j in seq_along(times)) {
  dGamma <- if(G0>0)dF0/G0 else 0
  p <- if (H>0) h/H else c(0,0)
  dvec <- L*h[1]*(c(1,0)-p)
- saved[[j]] <- list(h=h,H=H,frac=h/H,base=pmax(0,0)+if (H>0) c(1,0)-h/H else c(1,0),dvec=dvec,dF0=dF0,dF2=dF2,q=q,dGamma=dGamma,Y=Y,Sminus=Sminus,Safter=Safter,N1=N1,N2=N2,Gbefore=G0,Gafter=Gafter)
+ saved[[j]] <- list(h=h,H=H,frac=h/H,base=c(1,0)-p,dvec=dvec,dF0=dF0,dF2=dF2,q=q,dGamma=dGamma,Y=Y,Sminus=Sminus,Safter=Safter,N1=N1,N2=N2,Gbefore=G0,Gafter=Gafter)
  F1 <- F1+ifelse(Y>0,Sminus*N1/Y,0); S <- Safter; G0 <- Gafter
 }
 for(j in seq_along(saved)) cat("TIME ",times[j]," ",paste(capture.output(str(saved[[j]])),collapse=" "), "\n")
