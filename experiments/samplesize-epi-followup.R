@@ -53,7 +53,7 @@ for (i in seq_along(cases)) {
   tost.swap <- pnorm((x$delta-d)/se.swap-z)-pnorm((-x$delta-d)/se.swap+z)
   observed <- epi.ssequb(treat=x$t,control=x$c,delta=x$delta,n=x$n,
     power=NA,r=x$r,type="equivalence",nfractional=TRUE,alpha=.05)
-  emit(paste0("ssequb-case-",i), list(args=x, observed=observed$power,
+  emit(paste0("ssequb-case-",i), list(parameters=x, observed=observed$power,
     se=se,se_swapped=se.swap,tost_intersection=tost,
     brief_symmetric=brief,tost_swapped=tost.swap))
 }
