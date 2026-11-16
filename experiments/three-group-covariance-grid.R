@@ -18,7 +18,7 @@ score_stat <- function(dat, rho) {
     }
   }
   fit <- cmprsk::cuminc(dat$time,dat$status,dat$group,strata=dat$strata,rho=rho)
-  c(z1=z[1],z2=z[2],stat=unname(fit$Tests["1","stat"]))
+  c(z1=unname(z[1]),z2=unname(z[2]),stat=unname(fit$Tests["1","stat"]))
 }
 make_case <- function(name,n,p1,p2,t1,t2,o1=0,o2=0,o3=0) {
   time <- status <- group <- character(0)
