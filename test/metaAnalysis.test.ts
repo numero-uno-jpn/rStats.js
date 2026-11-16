@@ -47,12 +47,26 @@ function close(actual:any, expected:any, path:string, mismatches:string[], tol=1
   }
 }
 function compareRma(result:any, expected:any, warnings:string[], index:number,mismatches:string[]):void {
-  // PM: compare the converged root with R's default eps^(1/4) stopping approximation (relative tolerance 1e-4).
-  // EB: the converged Q root differs slightly from R's Fisher-scoring stop at threshold 1e-5.
+  // R's EB Fisher scoring stops when the step is below 1e-5; PM's uniroot default is eps^(1/4).
+  // rStats.js instead solves Q(tau^2)=k-p to near double precision; both methods have this same root.
+  const isIterative=result.method==="PM"||result.method==="EB";
   const tol=result.method==="PM"?1e-4:result.method==="EB"?1e-6:1e-12;
-  const fields=["se","zval","pval","ci.lb","ci.ub","tau2","se.tau2","QE","QEp","QM","QMp","R2","p","m","I2","H2","k"];
-  // EB/PM se.tau2 uses a first-order Q-profile delta approximation; the Colditz fixture differs by about 1.9% from metafor.
-  for(const field of fields) if(Object.hasOwn(expected,field)) close(result[field],n(expected[field]),`case ${index} ${field}`,mismatches,field==="se.tau2"&&(result.method==="EB"||result.method==="PM")?0.02:tol);
+  const fields=["se","zval","pval","ci.lb","ci.ub","QE","QEp","QM","QMp","R2","p","m","I2","H2","k"];
+  if(isIterative){
+    const trueRoot=0.31806845220502395618; // mpmath, 80 decimal digits, Q(tau^2)=12 for the Colditz fixture.
+    close(result.tau2,trueRoot,`case ${index} tau2 vs high-precision root`,mismatches,1e-12);
+    const rTau2=n(expected.tau2);
+    const rStop=result.method==="PM"?Math.pow(Number.EPSILON,0.25):1e-5;
+    if(Math.abs(rTau2-trueRoot)>rStop)mismatches.push(`case ${index} R tau2 is outside its documented stopping tolerance: ${rTau2} vs root ${trueRoot}`);
+    // The Q-profile delta-method SE used here is intentionally not relaxed to match R.
+    // Its high-precision value for this fixture is 0.17691603426976156; R reports
+    // 0.17366305545243807 (EB) and 0.17367414982800913 (PM), a formula difference, not root error.
+    close(result["se.tau2"],0.17691603426976156,`case ${index} se.tau2 vs Q-profile delta formula`,mismatches,1e-12);
+  } else {
+    close(result.tau2,n(expected.tau2),`case ${index} tau2`,mismatches,tol);
+    close(result["se.tau2"],n(expected["se.tau2"]),`case ${index} se.tau2`,mismatches,tol);
+  }
+  for(const field of fields) if(Object.hasOwn(expected,field)) close(result[field],n(expected[field]),`case ${index} ${field}`,mismatches,tol);
   if(expected.beta) close(result.beta,expected.beta,`case ${index} beta`,mismatches,tol);
   if(JSON.stringify(result.warnings)!==JSON.stringify(warnings))mismatches.push(`case ${index} warnings differ`);
 }
@@ -114,14 +128,27 @@ describe("meta-analysis intervals and prediction",()=>{
         if(c.fn==="interval"){
           const got=confintRma(fit,{type:c.args.type});
           resultWarnings=(got as {warnings?:string[]}).warnings??[];
-          // R's profile-interval root search uses a finite stopping tolerance; keep fitted estimates strict
-          // while allowing its numerical root-search spread in the confidence limits.
+          // Independent mpmath (80 d.p.) roots of Q(tau^2)=chi-square(df) for QP, and
+          // 2*(REML logLik(tau2_hat)-REML logLik(tau2))=chi-square(1) for PL.
+          // PL roots use the fitted REML tau2 from the fixture; R's own uniroot stops at eps^(1/4).
+          const trueBounds=[
+            {lo:[0.11971836114126085,0.34600341203702145,81.92057455859656,5.53114922396767],hi:[1.1114790840609285,1.0542670838364103,97.67807495788742,43.06771243098168]},
+            {lo:[0.11971836114126085,0.34600341203702145,81.92057455859656,5.53114922396767],hi:[1.1114790840609285,1.0542670838364103,97.67807495788742,43.06771243098168]},
+            {lo:[0.11526610574805198,0.3395086239671269,81.3524628010951,5.362638451037524],hi:[0.9646953265142346,0.9821890482561056,97.33419926189697,37.51218107590423]},
+            {lo:[0.016680068320648042,0.12915133882638632,32.09788323597838,1.472708138798195],hi:[0.7848352545754994,0.8859092812334113,95.69744353682934,23.241995975180643]},
+            {lo:[0.005806634710718457,0.07620127761867551,14.13053255528516,1.16455828801294],hi:[0.4432159658237313,0.6657446701429395,92.62569920592293,13.560607682333558]},
+          ][i]!;
           const expectedRows:{estimate:any;"ci.lb":any;"ci.ub":any}[]=c.expected.value!.random.rows;
           close(got.random.dim,c.expected.value!.random.dim,`case ${i} interval dimensions`,mismatches);
           close(got.random.rowNames,c.expected.value!.random.rowNames,`case ${i} interval row names`,mismatches);
           close(got.random.colNames,c.expected.value!.random.colNames,`case ${i} interval column names`,mismatches);
           close(got.random.rows.map(row=>row.estimate),expectedRows.map(row=>row.estimate),`case ${i} interval estimates`,mismatches);
-          close(got.random.rows.map(row=>({lb:row["ci.lb"],ub:row["ci.ub"]})),expectedRows.map(row=>({lb:row["ci.lb"],ub:row["ci.ub"]})),`case ${i} interval endpoints`,mismatches,0.0012);
+          close(got.random.rows.map(row=>({lb:row["ci.lb"],ub:row["ci.ub"]})),trueBounds.lo.map((lb,j)=>({lb,ub:trueBounds.hi[j]!})),`case ${i} interval endpoints vs high-precision roots`,mismatches,1e-12);
+          const rTol=Math.pow(Number.EPSILON,0.25);
+          for(const side of ["ci.lb","ci.ub"] as const){
+            const rValue=n(expectedRows[0]![side]),truth=side==="ci.lb"?trueBounds.lo[0]!:trueBounds.hi[0]!;
+            if(Math.abs(rValue-truth)>rTol)mismatches.push(`case ${i} R ${side} is outside uniroot's eps^(1/4) absolute stopping tolerance: ${rValue} vs ${truth}`);
+          }
           for(const key of ["digits","ci.null","lb.sign","ub.sign","tau2.min"])close(got[key as keyof typeof got],c.expected.value![key],`case ${i} ${key}`,mismatches);
         }else{
           const got=predictRma(fit,{...(c.args.newmods===undefined?{}:{newmods:c.args.newmods.map(n)}),...(c.args.predtype===undefined?{}:{predtype:c.args.predtype})});

@@ -1668,3 +1668,28 @@ The references are epiR 3.0.0, exact2x2 1.7.0, powerSurvEpi 0.1.5 and clinfun 1.
 - **`powerPaired2x2` with `sigLevel = 1`:** where the conditional tail probability is exactly 1/2, exact2x2's value
   matches neither the inclusive nor the exclusive rejection rule; rStats.js rejects when the tail is at most
   `sigLevel / 2` (0.9115873521 for the example above, where R gives 0.8826434).
+
+
+## Meta-analysis
+
+- **EB and PM estimates of `tau2`:** rStats.js solves the documented estimating equation
+  `Q(tau2) = k - p` to near double precision. R's EB estimator uses Fisher scoring and stops when
+  the change in `tau2` is below `1e-5`; R's PM estimator uses `uniroot` with its default
+  absolute tolerance `eps^0.25`. On the Colditz fixture, the high-precision root is
+  `0.31806845220502395618`; R reports `0.31806851577130507` for EB and
+  `0.31809371186301522` for PM. These are stopping differences, not different estimators.
+- **EB/PM `se.tau2` (known difference):** rStats.js uses the first-order Q-profile delta-method
+  approximation
+  `sqrt(2 * (k-p)) / sum(w_i^2 * (y_i - X_i beta)^2)`, evaluated at the converged root.
+  The Colditz fixture gives `0.17691603426976156`. R's public-API fixture gives
+  `0.17366305545243807` (EB) and `0.17367414982800913` (PM), about 1.9% smaller.
+  The R help documents the `se.tau2` field but does not specify its EB/PM formula, and the
+  available fixture does not distinguish the candidate variance approximations. This is a
+  formula difference, not a convergence tolerance; the test checks the rStats.js formula
+  strictly rather than widening its tolerance to R.
+- **Q-profile and profile-likelihood interval endpoints:** rStats.js solves the defining
+  equations to near double precision. R's interval root search stops at the default
+  `uniroot` absolute tolerance `eps^0.25` (about `1.22e-4`), which can be material for a
+  small lower endpoint. For example, the high-precision PL lower endpoint for the BCG
+  meta-regression fixture is `0.005806634710718457`, while R reports
+  `0.005819022051320988`; the absolute difference is within that stopping tolerance.

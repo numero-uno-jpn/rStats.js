@@ -11,6 +11,12 @@ they are listed under **Breaking** for each release. From 1.0.0 the project foll
 
 ### Added
 
+- **Meta-analysis**: `escalc` (study-level effect sizes), `rma` (equal-, fixed- and random-effects
+  models and meta-regression), `confintRma` (Q-profile and profile-likelihood heterogeneity intervals),
+  `predictRma` and `regtest` (Egger/funnel-asymmetry regression), with the exported types grouped
+  under the `Meta-analysis` API category. EB/PM estimates and heterogeneity interval endpoints are
+  solved to near double precision rather than inheriting R's default root/iteration stopping error.
+  The EB/PM `se.tau2` formula difference is documented in docs/differences-from-r.md.
 - **Sample size and power for trial designs** (roadmap item 1): equivalence, equality, non-inferiority and
   superiority for two proportions or two means (`epiSsequb`, `epiSsequc`, `epiSsninfb`, `epiSsninfc`, `epiSssupb`,
   `epiSssupc`, after epiR), the exact power of McNemar's test (`powerPaired2x2`, after exact2x2), survival with
