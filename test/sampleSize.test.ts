@@ -38,7 +38,7 @@ function callEpi(c:Case):Record<string,unknown> {
   };
   const args:unknown[]=[n(a.treat),n(a.control)];
   if(c.fn==="epi.ssequc"||c.fn==="epi.ssninfc"||c.fn==="epi.sssupc") args.push(n(a.sigma));
-  if(c.fn==="epi.ssninfb"||c.fn==="epi.ssninfc"||c.fn==="epi.sssupb"||c.fn==="epi.sssupc") args.push(n(a.delta));
+  if(c.fn==="epi.ssequb"||c.fn==="epi.ssequc"||c.fn==="epi.ssninfb"||c.fn==="epi.ssninfc"||c.fn==="epi.sssupb"||c.fn==="epi.sssupc") args.push(a.delta==="NA"?null:n(a.delta));
   args.push(opt);
   return fn[c.fn]!(...args as never[]) as Record<string,unknown>;
 }
