@@ -328,6 +328,7 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
     MD:["m1i","sd1i","n1i","m2i","sd2i","n2i"],SMD:["m1i","sd1i","n1i","m2i","sd2i","n2i"],ZCOR:["ri","ni"]
   };
   const data=keys[measure].map(k=>get(k));
+  const anyZero=data.slice(0,4).some(x=>x!.some(z=>z===0));
   if(data.some(x=>x===undefined)) throw new TypeError(`missing required arguments for measure ${measure}`);
   const n=data[0]!.length;
   if(data.some(x=>x!.length!==n)) throw new RangeError("variable lengths differ");
@@ -354,7 +355,7 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
       let a=a0,b=b0,c=c0,d=d0;
       const correction=options.add??0.5,to=options.to??"only0";
       const zero=[a,b,c,d].some(z=>z===0);
-      const apply=to==="all"||(to==="only0"&&zero)||(to==="if0all"&&zero);
+      const apply=to==="all"||(to==="only0"&&zero)||(to==="if0all"&&anyZero);
       if(measure!=="RD"&&apply){a+=correction;b+=correction;c+=correction;d+=correction;}
       if(measure==="RD"&&apply){a+=correction;b+=correction;c+=correction;d+=correction;}
       if(options.drop00&&(a0===0&&c0===0||b0===0&&d0===0)){yi.push(NaN);vi.push(NaN);continue;}
@@ -494,7 +495,8 @@ export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:
   const level=options.level??object.level,alpha=1-level/100,p=object.mods[0]!.length;
   let rows:number[][];
   if(options.newmods===undefined) {
-    rows=object.mods.map(r=>r.slice());
+    const moderators=p-(object.intercept?1:0);
+    rows=moderators===0?[object.intercept?[1]:[]]:object.mods.map(r=>r.slice());
   }
   else {
     const n=options.newmods;
