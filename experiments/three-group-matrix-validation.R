@@ -52,7 +52,7 @@ components <- function(dat,rho) {
   last<-saved[[m]]; H<-sum(last$h); p<-last$h/H
   W<-sweep(last$D,2,last$L*last$h,"/")
   Aown<-W%*%diag(p)%*%t(W)
-  qsub<-last$Y/last$h; Ytot<-sum(last$Y); d<-sum(last$Y)-sum(last$Y-last$Y)
+  qsub<-last$h/last$Y; Ytot<-sum(last$Y)
   d<-sum(dat$status==1 & dat$time==times[m])
   Bweights<-last$Y*qsub^2/(H-qsub)
   Bown<-(Ytot-1)/H*(W%*%diag(Bweights)%*%t(W))
