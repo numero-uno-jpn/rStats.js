@@ -65,7 +65,8 @@ describe("sample size and power",()=>{
     f.cases.forEach((c,i)=>{
       if(c.expected.error && c.fn==="epi.ssninfc" && i!==12){
         expect(()=>callEpi(c)).toThrow(RangeError);
-        known.push(i); return;
+        console.info("RANGE ERROR by design: epiR's rval error at an unreachable boundary is a RangeError in rStats.js");
+        return;
       }
       const a=c.args, result=callEpi(c);
       const val=c.expected.value as Record<string,unknown>;
@@ -79,7 +80,7 @@ describe("sample size and power",()=>{
         const se=Math.sqrt(n(a.sigma)**2/(n(a.n)*n(a.r)/(1+n(a.r)))+n(a.sigma)**2/(n(a.n)/(1+n(a.r))));
         const D=n(a.treat)-n(a.control), d=n(a.delta), alpha=n(a.alpha);
         const expected=Math.max(0,Phi((d-D)/se-z(1-alpha))+Phi((d+D)/se-z(1-alpha))-1);
-        expect(close(Number(result.power),expected),reason.eqPower).toBe(true); known.push(i);
+        expect(close(Number(result.power),expected),reason.eqPower).toBe(true); known.push(i); console.info(reason.eqPower, "continuous case");
       } else if(c.fn==="epi.ssequb" && a.type==="equality" && a.n==="NA" && n(a.r)!==1){
         const E=n(a.treat)-n(a.control), vt=n(a.treat)*(1-n(a.treat)), vc=n(a.control)*(1-n(a.control));
         const nc=(z(1-n(a.alpha)/2)+z(n(a.power)))**2*(vt/n(a.r)+vc)/(E*E);
@@ -123,7 +124,7 @@ describe("sample size and power",()=>{
       const actual=powerPaired2x2(n(a.pb),n(a.pc),n(a.npairs),opts);
       if(a.errbound!==undefined && n(a.errbound)>0){
         const exact=powerPaired2x2(n(a.pb),n(a.pc),n(a.npairs),{...opts,errbound:0});
-        expect(close(actual.power,exact.power),reason.mcnemarBound).toBe(true); console.info(reason.mcnemarBound, `case ${i}`);
+        expect(close(actual.power,exact.power),reason.mcnemarBound).toBe(true); console.info(reason.mcnemarBound, "R difference checked against exact errbound=0 baseline");
       } else {
         expect(close(actual.power,n((c.expected.value as Record<string,unknown>).power)),`case ${i} power`).toBe(true);
       }
