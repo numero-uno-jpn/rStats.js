@@ -10,7 +10,6 @@ probe <- function(id, f) {
   cat(jsonlite::toJSON(list(id=id, value=value, warnings=unique(w)),
     auto_unbox=TRUE, digits=NA, null="null", na="string", force=TRUE), "\n", sep="")
 }
-cat("exact2x2=", as.character(packageVersion("exact2x2")), "\n", sep="")
 probe("default", function() powerPaired2x2(pb=.50,pc=.30,npairs=40))
 probe("strict", function() powerPaired2x2(pb=.50,pc=.30,npairs=40,strict=TRUE))
 probe("one-sided", function() powerPaired2x2(pb=.50,pc=.30,npairs=40,alternative="one.sided"))
