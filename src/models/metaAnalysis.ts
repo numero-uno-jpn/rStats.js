@@ -340,7 +340,7 @@ export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResul
       if(!(size>3)){y=Math.atanh(r);v=NaN;}
       else {y=Math.atanh(r);v=1/(size-3);}
     } else if(measure==="MD"||measure==="SMD"){
-      const [m1,sd1,n1,m2,sd2,n2]=data.map(x=>x![i]!);
+      const m1=data[0]![i]!,sd1=data[1]![i]!,n1=data[2]![i]!,m2=data[3]![i]!,sd2=data[4]![i]!,n2=data[5]![i]!;
       if(!(n1>1&&n2>1&&sd1>=0&&sd2>=0)) throw new RangeError("invalid means, standard deviations, or sample sizes");
       if(measure==="MD"){y=m1-m2;v=sd1*sd1/n1+sd2*sd2/n2;}
       else {
@@ -521,6 +521,7 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
   const sei=v.map(z=>Math.sqrt(z));
   const z= predictor==="sei"?sei:predictor==="vi"?v:v.map((_,i)=>1/(i+1));
   let est:number,se:number,stat:number,df:number,pv:number;
+  let fitted:RmaResult|undefined;
   if(model==="lm"){
     const xx=z.map((a,i)=>[1,1/a]),yy=y.map((a,i)=>a/sei[i]!);
     const fit=linearRegression(xx,yy);
@@ -529,14 +530,14 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
     stat=fit.beta[0]!/seTest;se=seLimit;df=y.length-2;
     pv=2*pt(-Math.abs(stat),df);
   } else {
-    const fit=rma(y,v,{method:"REML",mods:z,intercept:true,test:"z"});
-    est=fit.beta.rows[0]![0];se=Array.isArray(fit.se)?fit.se[0]!:fit.se;stat=est/se;df=NaN;pv=2*pnorm(-Math.abs(stat));
+    fitted=rma(y,v,{method:"REML",mods:z,intercept:true,test:"z"});
+    est=fitted.beta.rows[0]![0]!;se=Array.isArray(fitted.se)?fitted.se[0]!:fitted.se;stat=est/se;df=NaN;pv=2*pnorm(-Math.abs(stat));
   }
   const crit=model==="lm"?qt(1-(1-level/100)/2,df):qnorm(1-(1-level/100)/2);
   const warnings:string[]=[];
   if(model==="lm"&&(!Number.isFinite(stat)||!Number.isFinite(pv)||!Number.isFinite(se)))warnings.push("NaNs produced");
   const out={model,predictor,zval:stat,pval:pv,dfs:df,est,"ci.lb":est-crit*se,"ci.ub":est+crit*se,warnings};
-  return reported("regtest",options.retFit?{...out,fit}:out);
+  return reported("regtest",options.retFit&&fitted!==undefined?{...out,fit:fitted}:out);
 }
 function linearRegression(X:number[][],y:number[]) {
   const xtx=Array.from({length:2},(_,a)=>Array.from({length:2},(_,b)=>X.reduce((s,r,i)=>s+r[a]!*r[b]!,0)));
