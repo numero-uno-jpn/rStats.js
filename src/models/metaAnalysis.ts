@@ -300,14 +300,6 @@ function buildDesign(k:number,mods:RmaOptions["mods"],intercept:boolean,data?:Da
   return {x:rows.map(r=>keep.map(j=>r[j]!)),names:keep.map(j=>names[j]??""),warnings:keep.length<rows[0]!.length?["Redundant predictors dropped from the model."]:[]};
 }
 
-/**
- * Compute study-level effect sizes and sampling variances. Equivalent to `metafor::escalc()` in R.
- *
- * @param measure One of RR, OR, RD, MD, SMD or ZCOR.
- * @param options Study-level counts, means, standard deviations, sample sizes or correlations.
- * @returns The estimates yi and sampling variances vi.
- * @category Effect sizes and power
- */
 /** Natural logarithm of the gamma function (Lanczos approximation). */
 function logGamma(x:number):number {
   const coefficients=[676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
@@ -319,6 +311,14 @@ function logGamma(x:number):number {
   return 0.9189385332046727+(z+0.5)*Math.log(t)-t+Math.log(a);
 }
 
+/**
+ * Compute study-level effect sizes and sampling variances. Equivalent to `metafor::escalc()` in R.
+ *
+ * @param measure One of RR, OR, RD, MD, SMD or ZCOR.
+ * @param options Study-level counts, means, standard deviations, sample sizes or correlations.
+ * @returns The estimates yi and sampling variances vi.
+ * @category Effect sizes and power
+ */
 export function escalc(measure:EscalcMeasure, options:EscalcOptions):EscalcResult {
   checkOptions(options, ESCALC_KEYS, "escalc"); // generated: option-keys.mjs
   const warnings:string[]=[];
