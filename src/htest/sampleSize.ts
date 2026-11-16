@@ -139,10 +139,12 @@ function epi(
       nControl = nControlUnrounded;
     } else {
       nControl = Math.ceil(nControlUnrounded);
-      // The continuous equivalence and superiority sample-size methods allocate
-      // the rounded control count first, then round the treatment count at ratio r.
-      // This reproduces the public epiR integer outputs; the other four methods
-      // round the two unrounded arm counts independently.
+      // Public epiR outputs show method-specific integer allocation. For
+      // continuous equivalence and superiority, round the control arm first
+      // and then round r * nControl; the other four methods round each
+      // unrounded arm independently. epiR is inconsistent for some ratios
+      // (including fractional outputs with nfractional=FALSE); rStats keeps
+      // the requested integer-size contract instead of returning fractions.
       const ratioFromRoundedControl = (kind === "equivalence" && measure === "continuous") || kind === "superiority";
       nTreat = ratioFromRoundedControl ? Math.ceil(r * nControl) : Math.ceil(nTreatUnrounded);
     }
