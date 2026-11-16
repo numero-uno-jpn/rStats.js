@@ -41,7 +41,9 @@ function normalPower(effect: number, se: number, critical: number): number {
   return phi(effect / se - critical);
 }
 
-/** Options shared by the epiR parallel-trial sample-size and power functions.\n * @category Effect sizes and power\n */\nexport interface EpiOptions {
+/** Options shared by the epiR parallel-trial sample-size and power functions.
+ * @category Effect sizes and power
+ */\nexport interface EpiOptions {
   /** Total sample size; null/omitted when solving for sample size. */
   n?: number | null;
   /** Target power; null/omitted when solving for power. */
@@ -57,7 +59,9 @@ function normalPower(effect: number, se: number, critical: number): number {
   /** Number of tails for superiority: 1 or 2. Default 1. */
   sidedTest?: 1 | 2;
 }
-/** Sample-size and power result for an epiR parallel-trial design.\n * @category Effect sizes and power\n */\nexport interface EpiResult {
+/** Sample-size and power result for an epiR parallel-trial design.
+ * @category Effect sizes and power
+ */\nexport interface EpiResult {
   nTotal: number;
   nTreat: number;
   nControl: number;
@@ -193,7 +197,9 @@ export function epiSssupc(treat: number, control: number, sigma: number, delta: 
   return reported("epiSssupc", epi("superiority", "continuous", treat, control, sigma, delta, options));
 }
 
-/** Options for the exact paired McNemar power calculation.\n * @category Effect sizes and power\n */\nexport interface PowerPaired2x2Options {
+/** Options for the exact paired McNemar power calculation.
+ * @category Effect sizes and power
+ */\nexport interface PowerPaired2x2Options {
   sigLevel?: number;
   alternative?: "two.sided" | "one.sided" | (string & {});
   strict?: boolean;
@@ -201,7 +207,9 @@ export function epiSssupc(treat: number, control: number, sigma: number, delta: 
   errbound?: number;
   tsmethod?: "central" | "minlike" | "blaker" | (string & {});
 }
-/** Result of the exact paired McNemar power calculation.\n * @category Effect sizes and power\n */\nexport interface PowerPaired2x2Result {
+/** Result of the exact paired McNemar power calculation.
+ * @category Effect sizes and power
+ */\nexport interface PowerPaired2x2Result {
   power: number;
   npairs: number;
   pb: number;
@@ -277,7 +285,9 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
   return reported("powerPaired2x2", { power, npairs, pb, pc, sigLevel, alternative, nullOddsRatio, note, method, warnings: [] });
 }
 
-/** Significance-level options for survival sample-size calculations.\n * @category Effect sizes and power\n */\nexport interface SurvivalOptions { alpha?: number; }
+/** Significance-level options for survival sample-size calculations.
+ * @category Effect sizes and power
+ */\nexport interface SurvivalOptions { alpha?: number; }
 /** Freedman clinical-trial sample size with equal or unequal allocation. Equivalent to `powerSurvEpi::ssizeCT()` in R. */
 export interface SSizeCTResult { nE: number; nC: number; }
 /** Freedman clinical-trial power. Equivalent to `powerSurvEpi::powerCT()` in R. */
@@ -336,11 +346,17 @@ export function numDEpi(power: number, theta: number, p: number, rho2: number, o
   return Math.ceil((z(1-alpha/2)+z(power))**2/den);
 }
 
-/** A feasible two-stage Simon candidate.\n * @category Effect sizes and power\n */
+/** A feasible two-stage Simon candidate.
+ * @category Effect sizes and power
+ */
 export interface SimonRow { r1:number; n1:number; r:number; n:number; enP0:number; petP0:number; }
-/** A selected Simon design and its interval of q values.\n * @category Effect sizes and power\n */
+/** A selected Simon design and its interval of q values.
+ * @category Effect sizes and power
+ */
 export interface SimonDesign extends SimonRow { qLo:number; qHi:number; }
-/** Candidate designs and selected minimax, optimal and admissible Simon designs.\n * @category Effect sizes and power\n */
+/** Candidate designs and selected minimax, optimal and admissible Simon designs.
+ * @category Effect sizes and power
+ */
 export interface SimonDesignResult { out: SimonRow[]; minimax: SimonDesign; optimal: SimonDesign; admissible: SimonDesign[]; pu:number; pa:number; alpha:number; beta:number; nmax:number; warnings:string[]; }
 function cumulative(mass:readonly number[]):number[] {
   const out=new Array<number>(mass.length); let sum=0;
