@@ -20,12 +20,12 @@ json_value <- function(x) {
   if (is.numeric(x)) {
     v <- num2str(x)
     if (length(v) == 1) return(unname(v))
-    if (!is.null(names(x))) return(as.list(stats::setNames(v, names(x))))
+    if (!is.null(names(x))) { names(v) <- names(x); return(as.list(v)) }
     return(I(v))
   }
   if (is.logical(x) || is.character(x)) {
     if (length(x) == 1) return(unname(x))
-    if (!is.null(names(x))) return(as.list(stats::setNames(x, names(x))))
+    if (!is.null(names(x))) { names(x) <- names(x); return(as.list(x)) }
     return(I(x))
   }
   if (is.list(x)) {
@@ -105,6 +105,7 @@ epi_cases <- list(
   make_case("epi.sssupb", list(treat=.50, control=.30, delta=.05, n=101, power=NA, r=.5, sided.test=1, nfractional=TRUE, alpha=.05), function() epi.sssupb(treat=.50, control=.30, delta=.05, n=101, power=NA, r=.5, sided.test=1, nfractional=TRUE, alpha=.05)),
   make_case("epi.sssupc", list(treat=20, control=20, sigma=10, delta=5, n=NA, power=.80, r=1, sided.test=1, nfractional=TRUE, alpha=.05), function() epi.sssupc(treat=20, control=20, sigma=10, delta=5, n=NA, power=.80, r=1, sided.test=1, nfractional=TRUE, alpha=.05)),
   make_case("epi.sssupc", list(treat=20, control=20, sigma=10, delta=5, n=NA, power=.80, r=1, sided.test=2, nfractional=TRUE, alpha=.05), function() epi.sssupc(treat=20, control=20, sigma=10, delta=5, n=NA, power=.80, r=1, sided.test=2, nfractional=TRUE, alpha=.05)),
+  make_case("epi.sssupc", list(treat=20, control=20, sigma=10, delta=5, n=120, power=NA, r=1.5, sided.test=1, nfractional=TRUE, alpha=.05), function() epi.sssupc(treat=20, control=20, sigma=10, delta=5, n=120, power=NA, r=1.5, sided.test=1, nfractional=TRUE, alpha=.05)),
   make_case("epi.sssupc", list(treat=20, control=20, sigma=10, delta=5, n=120, power=NA, r=1.5, sided.test=2, nfractional=TRUE, alpha=.05), function() epi.sssupc(treat=20, control=20, sigma=10, delta=5, n=120, power=NA, r=1.5, sided.test=2, nfractional=TRUE, alpha=.05)),
   make_case("epi.sssupc", list(treat=20, control=20, sigma=10, delta=0, n=NA, power=.80, r=1, sided.test=1, nfractional=TRUE, alpha=.05), function() epi.sssupc(treat=20, control=20, sigma=10, delta=0, n=NA, power=.80, r=1, sided.test=1, nfractional=TRUE, alpha=.05))
 )
@@ -114,6 +115,9 @@ write_samplesize_fixture("samplesizeEpi", epi_cases)
 mcnemar_cases <- list(
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40), function() powerPaired2x2(pb=.50, pc=.30, npairs=40)),
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, strict=TRUE), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, strict=TRUE)),
+  make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, tsmethod="central"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, tsmethod="central")),
+  make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, tsmethod="minlike"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, tsmethod="minlike")),
+  make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, tsmethod="blaker"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, tsmethod="blaker")),
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, alternative="one.sided"), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, alternative="one.sided")),
   make_case("powerPaired2x2", list(pb=.30, pc=.50, npairs=40, alternative="one.sided"), function() powerPaired2x2(pb=.30, pc=.50, npairs=40, alternative="one.sided")),
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, errbound=0), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, errbound=0)),
@@ -123,6 +127,7 @@ mcnemar_cases <- list(
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, sig.level=1e-6), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, sig.level=1e-6)),
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, sig.level=0), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, sig.level=0)),
   make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=40, sig.level=1), function() powerPaired2x2(pb=.50, pc=.30, npairs=40, sig.level=1)),
+  make_case("powerPaired2x2", list(pb=.50, pc=.30, npairs=0), function() powerPaired2x2(pb=.50, pc=.30, npairs=0)),
   make_case("powerPaired2x2", list(pb=0, pc=0, npairs=40), function() powerPaired2x2(pb=0, pc=0, npairs=40)),
   make_case("powerPaired2x2", list(pb=.5, pc=.5, npairs=40), function() powerPaired2x2(pb=.5, pc=.5, npairs=40)),
   make_case("powerPaired2x2", list(pb=.7, pc=.6, npairs=40), function() powerPaired2x2(pb=.7, pc=.6, npairs=40)),
