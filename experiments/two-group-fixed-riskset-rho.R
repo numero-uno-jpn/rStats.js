@@ -49,7 +49,7 @@ run_one<-function(label,tieA,tieB) {
   cat(label," tie=",tieA,",",tieB," d=",tieA+tieB,
       " B/A=",sprintf("%.17g",mean(M["BoverA",])),
       " B/A_range=",sprintf("%.17g",diff(range(M["BoverA",]))),
-      " own_range=",sprintf("%.17g",diff(range(M["own",]))),"\n",sep="")
+      " own_range=",sprintf("%.17g",diff(range(M["own",],na.rm=TRUE))),"\n",sep="")
 }
 run_one("fixed_d2",1,1)
 run_one("fixed_d3_A2",2,1)
