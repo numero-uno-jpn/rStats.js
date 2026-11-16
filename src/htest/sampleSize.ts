@@ -336,8 +336,12 @@ export function numDEpi(power: number, theta: number, p: number, rho2: number, o
   return Math.ceil((z(1-alpha/2)+z(power))**2/den);
 }
 
-/** A feasible two-stage Simon design.\n * @category Effect sizes and power\n */\nexport interface SimonRow { r1:number; n1:number; r:number; n:number; expectedN:number; pet:number; qLo:number; qHi:number; }
-/** Candidate designs and selected minimax, optimal and admissible Simon designs.\n * @category Effect sizes and power\n */\nexport interface SimonDesignResult { out: SimonRow[]; minimax: SimonRow; optimal: SimonRow; admissible: SimonRow[]; pu:number; pa:number; alpha:number; beta:number; nmax:number; warnings:string[]; }
+/** A feasible two-stage Simon candidate.\n * @category Effect sizes and power\n */
+export interface SimonRow { r1:number; n1:number; r:number; n:number; enP0:number; petP0:number; }
+/** A selected Simon design and its interval of q values.\n * @category Effect sizes and power\n */
+export interface SimonDesign extends SimonRow { qLo:number; qHi:number; }
+/** Candidate designs and selected minimax, optimal and admissible Simon designs.\n * @category Effect sizes and power\n */
+export interface SimonDesignResult { out: SimonRow[]; minimax: SimonDesign; optimal: SimonDesign; admissible: SimonDesign[]; pu:number; pa:number; alpha:number; beta:number; nmax:number; warnings:string[]; }
 function cdfBinom(k:number,n:number,p:number):number { return pbinom1(k,n,p,true,false); }
 function pmfBinom(k:number,n:number,p:number):number { return dbinom1(k,n,p,false); }
 function designProb(n1:number,n2:number,r1:number,r:number,p:number):[number,number] {
@@ -371,7 +375,7 @@ export function ph2simon(pu:number,pa:number,ep1:number,ep2:number,options: {nma
             if(bAlt<=ep2){rFound=r;break;}
           }
         }
-        if(rFound>=0 && (best===undefined || en<best.expectedN-1e-12)){
+        if(rFound>=0 && (best===undefined || en<best.enP0-1e-12)){
           best={r1,n1,r:rFound,n,enP0:en,petP0:pet};
         }
       }
