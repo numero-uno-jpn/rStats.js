@@ -175,7 +175,7 @@ function tau2StandardError(y:number[],v:number[],X:number[][],method:MetaMethod,
   if(method==="ML"){const s=fit.w.reduce((a,z)=>a+z*z,0);return s>0?Math.sqrt(2/s):NaN;}
   if(method==="DL"||method==="HS"||method==="HSk"){
     const numerator=Math.sqrt(2*tracePVPV(base.P,V));
-    const denominator=method==="DL"?base.traceP:method==="HS"?v.reduce((s,z)=>s+1/z,0):((k/(k-1))*0+v.reduce((s,z)=>s+1/z,0)*(k-1)/k);
+    const denominator=method==="DL"?base.traceP:method==="HS"?v.reduce((s,z)=>s+1/z,0):(v.reduce((s,z)=>s+1/z,0)*(k-1)/k);
     return denominator>0?numerator/denominator:NaN;
   }
   if(method==="HE"){
