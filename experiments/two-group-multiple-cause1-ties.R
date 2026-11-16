@@ -46,3 +46,5 @@ for(rho in c(-2,-1,0,1,2,3)) {
  run_one("m02",7,6,3,1,2,2,rho)
  run_one("m03",8,7,2,2,3,1,rho)
 }
+
+# Re-run after correcting the tied covariance derivation and scale.
