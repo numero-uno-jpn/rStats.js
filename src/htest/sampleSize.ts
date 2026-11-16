@@ -390,7 +390,7 @@ export function powerPaired2x2(pb: number, pc: number, npairs: number, options: 
       } else {
         reject = direction > 0
           ? (exactHalfBoundary ? x > Math.ceil(m / 2) : hi < sigLevel / 2)
-          : (exactHalfBoundary ? x < Math.floor(m / 2) : lo < sigLevel / 2);
+          : (exactHalfBoundary ? x < Math.ceil(m / 2) : lo < sigLevel / 2);
       }
       if (reject) power += wm * alt[x]!;
     }
