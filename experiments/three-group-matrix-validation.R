@@ -35,30 +35,31 @@ components <- function(dat,rho) {
     saved[[j]]<-list(h=h,Y=Y,D=D,dF0=dF0,dF2=dF2,q=q,dGamma=dGamma,L=L,N2=N2)
     F1<-F1+ifelse(Y>0,Sminus*N1/Y,0); S<-Safter; G0<-Gafter
   }
-  m<-length(saved); future<-matrix(0,K-1,K); SigmaPrior<-matrix(0,K-1,K-1)
-  if(m>1) for(j in m:1) {
+  m<-length(saved); future<-matrix(0,K-1,K); Sigma<-matrix(0,K-1,K-1)
+  if(m>0) for(j in m:1) {
     cur<-saved[[j]]
-    if(j<m) {
-      rest<-future
-      aa<-cur$D+sweep(rest,2,1-cur$q,"*")
-      bb<--sweep(rest,2,cur$q,"*")
-      for(r in 1:K) if(cur$h[r]>0) {
-        SigmaPrior<-SigmaPrior+tcrossprod(aa[,r])*cur$dF0/cur$h[r]+
-          tcrossprod(bb[,r])*cur$dF2[r]/cur$h[r]
-      }
+    rest<-future
+    aa<-cur$D+sweep(rest,2,1-cur$q,"*")
+    bb<--sweep(rest,2,cur$q,"*")
+    for(r in 1:K) if(cur$h[r]>0) {
+      Sigma<-Sigma+tcrossprod(aa[,r])*cur$dF0/cur$h[r]+
+        tcrossprod(bb[,r])*cur$dF2[r]/cur$h[r]
+    }
+    Ytot<-sum(cur$Y); d<-sum(cur$N2)*0+sum(dat$status==1 & dat$time==times[j])
+    if(d>1 && Ytot>1 && cur$H>0) {
+      W<-matrix(0,K-1,K)
+      for(r in 1:K) if(cur$L*cur$h[r]>0) W[,r]<-aa[,r]/(cur$L*cur$h[r])
+      qsub<-ifelse(cur$Y>0,cur$h/cur$Y,0)
+      Bweights<-ifelse(cur$H>qsub,cur$Y*qsub^2/(cur$H-qsub),0)
+      Bown<-(Ytot-1)/cur$H*(W%*%diag(Bweights)%*%t(W))
+      Sigma<-Sigma-cur$L^2*d*(d-1)/(Ytot-1)*Bown
+    }
+    for(r in 1:K) if(cur$N2[r]>1 && cur$Y[r]>1 && cur$h[r]>0) {
+      Sigma<-Sigma-tcrossprod(bb[,r])*cur$dF2[r]/cur$h[r]*(cur$N2[r]-1)/(cur$Y[r]-1)
     }
     future<-future+cur$D*cur$dGamma
   }
-  last<-saved[[m]]; H<-sum(last$h); p<-last$h/H
-  W<-sweep(aa,2,last$L*last$h,"/")
-  Aown<-W%*%diag(p)%*%t(W)
-  qsub<-last$h/last$Y; Ytot<-sum(last$Y)
-  d<-sum(dat$status==1 & dat$time==times[m])
-  Bweights<-last$Y*qsub^2/(H-qsub)
-  Bown<-(Ytot-1)/H*(W%*%diag(Bweights)%*%t(W))
-  own<-d*(Aown-(d-1)/(Ytot-1)*Bown)
-  Sigma<-SigmaPrior+last$L^2*own
-  list(z=z,Sigma=Sigma,own=own,L=last$L,
+  list(z=z,Sigma=Sigma,
        stat_pred=as.numeric(t(z)%*%solve(Sigma,z)),det=det(Sigma))
 }
 run_one <- function(label,dat,stratified=FALSE) {
