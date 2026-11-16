@@ -7,39 +7,52 @@ While the version is 0.x, a minor release (0.y.0) may contain breaking changes;
 they are listed under **Breaking** for each release. From 1.0.0 the project follows
 [Semantic Versioning](https://semver.org/).
 
-## Unreleased
+## 1.4.0 - 2026-11-16
+
+Survival analysis continued (item 1 of the roadmap): Nelson-Aalen and Fleming-Harrington cumulative hazards, case
+weights, robust standard errors and restricted means in `survfit`, counting-process data in `survfit` and `coxph`, the
+proportional-hazards test, restricted mean survival time, competing risks with Fine-Gray regression, and parametric
+accelerated-failure-time regression, checked against survival 3.8-12, survRM2 1.0.4 and cmprsk 2.2.12 (R 4.6.2).
+
+As for 1.3.0, each new function was checked for overflow, underflow and cancellation after it matched its fixtures:
+`survreg` scales the design-matrix columns, so its estimates and Wald tests do not depend on a predictor's units
+(R drops the column of a predictor in very large units); `survfit`'s restricted means and their variance and `rmst2`'s
+integrals scale the times by a power of two; `crr`'s information matrix uses centred covariates and `predictCrr`
+computes `1 - exp(-x)` without cancellation. Where R differs, docs/differences-from-r.md says so; R's `coxph` Wald
+tests silently drop a covariate in large units (reported as therneau/survival#353).
 
 ### Added
 
-- **WIP:** Added the initial parametric accelerated-failure-time regression API: `survreg`, `survregPredict` and `survregResiduals`, with the four censoring representations and built-in extreme-value, logistic, Gaussian and t families.
-
-- **B1:** Extended `coxph` with counting-process `start`/`id` data (`Surv(start, stop, event)`), delayed-entry risk sets, pooled start/stop time fixing (`control.timefix`, default `true`), and counting-process robust variance and subject counts. Supplying `start` selects this path even when every start is zero.
-- **B2:** Extended `survfit` with counting-process `start`/`id` data (`Surv(start, stop, event)`), delayed-entry risk sets, and subject-aware split-point censoring.
-- **B3 (WIP):** Added `coxZph(fit, options)` for score tests of proportional hazards, scaled Schoenfeld residuals, transforms, and matrix-interface term grouping.
-
-- Extended `survfit` with weighted integer-count curves, Nelson-Aalen and Fleming-Harrington cumulative hazards,
-  `stype`/ `ctype`, infinitesimal-jackknife standard errors, all six confidence transformations, and restricted-mean
-  summaries (`rmean`, `seRmean`, and the per-stratum table).
-- Added `rmst2` for unadjusted RMST/RMTL estimates and contrasts, plus covariate-adjusted estimating-equation
-  models with censoring weights and sandwich standard errors.
-- **Competing risks**: `cuminc(time, status, { group, strata, rho, cencode })` and `timepoints(fit, times)`, cumulative-incidence curves with their Aalen-type variance and Gray's tests; `crr(time, status, cov1, options)`, Fine-Gray regression with time-varying covariates, sandwich variance, and `predictCrr`. Kaplan-Meier censoring estimates use the verified `survfit`; tied-time Gray variance uses the selected hypergeometric correction. See `oracle/competing-behaviour.md` and the differences-from-R documents.
+- **`survfit` continued** (survival's `survfit()`): options `weights` (non-negative integer case weights), `ctype`
+  (1: Nelson-Aalen, 2: Fleming-Harrington), `stype` (1: Kaplan-Meier, 2: exp of the cumulative hazard), `robust`
+  (infinitesimal-jackknife standard errors), `rmean` (restricted means with their standard errors, `"common"`,
+  `"individual"` or a time) and the confidence transformations `logit`, `arcsin` and `none` besides `log`, `plain`
+  and `log-log`; the per-row `cumhaz` and `stdChaz` and the per-stratum table (R's `summary(fit)$table`).
+- **Counting-process data** (`Surv(start, stop, event)`): options `start` and `id` of `survfit` and `coxph`, with the
+  risk sets `start < t <= stop`, R's merging of nearly equal start and stop times (`control.timefix`, default
+  `true`), and for `coxph` the robust variance over subjects (`id`) and `nId`. With `id`, a row that ends where the
+  same subject's next row starts is not a censoring.
+- **`coxZph(fit, options)`**, survival's `cox.zph()`: the score tests of proportional hazards of Grambsch and Therneau
+  with the `km` (default), `rank`, `identity` and `log` transforms or a function, per term and global, and the scaled
+  Schoenfeld residuals; computed from the data kept in the `coxph` result, without refitting.
+- **`rmst2(time, status, arm, { tau, covariates, covariateNames, confLevel })`**, survRM2's `rmst2()`: the restricted
+  mean survival time and restricted mean time lost of each arm with their differences and ratios, and with covariates
+  the adjusted contrasts of Tian, Zhao and Wei; p-values as `2 * pnorm(-|z|)`.
+- **Competing risks** (cmprsk): `cuminc(time, status, { group, strata, rho, cencode })` and `timepoints(fit, times)`,
+  the cumulative-incidence curves with their variance and Gray's tests; `crr(time, status, cov1, { cov2, tf, failcode,
+  cencode, ... })`, Fine-Gray regression with time-varying covariates and the sandwich variance, and `predictCrr`.
+  Gray's variance at times with tied failures of the same cause in several groups is an approximation (see
+  docs/differences-from-r.md).
+- **`survreg(time, event, x, options)`**, survival's `survreg()`: the weibull, exponential, gaussian, logistic,
+  lognormal, loglogistic, rayleigh, t and extreme distributions, right, left and interval censoring, strata, weights,
+  offset, `init` and a fixed `scale`; `survregPredict` (`lp`, `link`, `response`, `quantile` and `uquantile`, with
+  standard errors) and `survregResiduals` (`response`, `deviance`, `dfbeta`, `dfbetas`, `working`, `ldcase`,
+  `ldresp`, `ldshape` and `matrix`).
+- Demo examples for the new functions; the API reference in Japanese for them.
 
 ### Changed
 
-- `survfit` requires non-negative safe-integer case weights and rejects group totals that exceed the safe-integer range, preventing rounded or infinite risk sets.
-
-### Fixed
-
-- `survreg` scales extreme design-matrix columns with `scaleToUnit` before the initial weighted least-squares fit and Newton/BHHH calculations, then restores coefficient, covariance and score units. Prediction standard errors use log-domain exponential products; interval midpoint, width and log-time response residual calculations avoid overflow and cancellation.
-
-- The robust `stype: 2` confidence limits use the standard error of the cumulative hazard on the log-survival scale.
-- Restricted-mean calculations scale interval widths before accumulation and integrate RMTL directly, avoiding both large-time intermediate overflow and cancellation in `tau - RMST`.
-- `rmst2` two-sided p-values use the accurate normal upper tail rather than subtracting a chi-squared CDF from one.
-- `rmst2` determines 1/2 status coding within each arm, so mixed arm encodings no longer silently discard a valid arm's events.
-- `survfit` uses the Kaplan-Meier influence variance for robust `stype: 1` curves regardless of `ctype`; the cumulative-hazard influence remains specific to `stdChaz`.
-- `rmst2` applies its default-`tau` rule to the original 0/1 status convention, errors on missing time/status/arm values, and ignores extra arm levels only beyond the restriction time.
-- `rmst2` returns the defined boundary RMTL ratios (zero or infinity when exactly one arm has zero RMTL) and normalizes very large follow-up times by a power of two before integration to preserve scale-invariant contrasts.
-- Robust `survfit` with `ctype: 2` uses the selected influence scale for confidence limits; the public per-row `stdErr` is converted back to the survival scale when the fit uses log-scale standard errors.
+- `SurvfitConfType` has the values `logit`, `arcsin` and `none` besides `log`, `plain` and `log-log`.
 
 ## 1.3.0 - 2026-11-09
 

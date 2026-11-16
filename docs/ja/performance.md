@@ -110,13 +110,13 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 | `tTest` | 70.9 KB | 31.0 KB |
 | `qbeta` | 98.4 KB | 43.9 KB |
 | `pt`、`qt` | 89.7 KB | 40.4 KB |
-| `glm`、`glmSummary` / `glm` とすべてのメソッド | 85.2 / 122.3 KB | 35.0 / 51.4 KB |
-| すべて (`/mixed` を除く) | 767.6 KB | 289.5 KB |
-| `@numero-uno-jpn/rstats/distributions` (全体) | 241.7 KB | 95.6 KB |
-| `@numero-uno-jpn/rstats/tests` (全体) | 591.7 KB | 229.0 KB |
+| `glm`、`glmSummary` / `glm` とすべてのメソッド | 85.2 / 122.3 KB | 35.1 / 51.4 KB |
+| すべて (`/mixed` を除く) | 834.3 KB | 312.6 KB |
+| `@numero-uno-jpn/rstats/distributions` (全体) | 241.8 KB | 95.6 KB |
+| `@numero-uno-jpn/rstats/tests` (全体) | 661.3 KB | 252.5 KB |
 | `@numero-uno-jpn/rstats/linalg` (全体) | 65.6 KB | 24.1 KB |
 | `@numero-uno-jpn/rstats/descriptive` (全体) | 58.8 KB | 21.7 KB |
-| `@numero-uno-jpn/rstats/numerics` (全体) | 64.6 KB | 26.3 KB |
+| `@numero-uno-jpn/rstats/numerics` (全体) | 64.7 KB | 26.3 KB |
 | `@numero-uno-jpn/rstats/special` (全体) | 67.6 KB | 30.4 KB |
 | `@numero-uno-jpn/rstats/mixed`: `lmer` だけ / lmerTest の検定も | 50.1 / 164.6 KB | 19.4 / 70.0 KB |
 | `@numero-uno-jpn/rstats/mixed`: `glmer` だけ / `glmerSummary`・`glmerAnova`・`glmerPredict` も | 116.9 / 160.4 KB | 47.2 / 66.1 KB |
@@ -124,7 +124,7 @@ rStats.js は精度を最優先にしています。分布関数は遠い裾で�
 
 サブパスの行は、その分野だけをバンドルした大きさです。CDN 向けの分野ごとのファイル (`dist/<area>.js`) は分野の間でコードを
 `dist/chunks/` で共有するため、そこから 1 分野を読み込むと転送量はこれより多くなります。chunk を含めて gzip で 39 KB
-(`special`) から 250 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
+(`special`) から 278 KB (`tests`) です。`pt` が大きいのは、非心 t と double-double の部品が一緒に入るためです。formula 版の
 ある検定には、formula とモデルフレームのコードが入ります。
 
 ## 上限
@@ -166,7 +166,7 @@ Apple M1 (Mac mini)、Node.js 24、`tsc` によるビルド、2026-10-26 (版 0.
 (`scripts/bench.mjs`) で、1 回ずつ呼び出し、5 回の実行の最小値です。入力はライブラリ自身の `setSeed`/`runif` で生成するので、
 どのビルドにも同じ入力が渡ります。線形代数は、20 回 (n = 300 では 3 回) の呼び出しの平均の、5 回の実行の最小値です。R 4.5.2
 (arm64) は同じマシンのコンテナで、同じ種類の入力を R 自身の乱数で作って測りました。バンドルサイズは
-2026-11-05 に 1.0.0 のコードで測りました (Node.js 24。サイズはマシンによりません)。混合モデルは 2026-10-27 (0.12.0 のコード。`lmer` と `lmerSummary` の当てはめは 0.15.0 のコードで測り直しました) に測りました。混合モデルの lme4 2.0.6 も同じコンテナです。
+2026-11-16 に 1.4.0 のコードで測りました (Node.js 24。サイズはマシンによりません)。混合モデルは 2026-10-27 (0.12.0 のコード。`lmer` と `lmerSummary` の当てはめは 0.15.0 のコードで測り直しました) に測りました。混合モデルの lme4 2.0.6 も同じコンテナです。
 
 ## 参考情報
 

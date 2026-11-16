@@ -114,20 +114,20 @@ it. Tree-shaking keeps only the imported functions and their dependencies.
 | `tTest` | 70.9 KB | 31.0 KB |
 | `qbeta` | 98.4 KB | 43.9 KB |
 | `pt`, `qt` | 89.7 KB | 40.4 KB |
-| `glm`, `glmSummary` / `glm` with all its methods | 85.2 / 122.3 KB | 35.0 / 51.4 KB |
-| everything (except `/mixed`) | 767.6 KB | 289.5 KB |
-| `@numero-uno-jpn/rstats/distributions` (all of it) | 241.7 KB | 95.6 KB |
-| `@numero-uno-jpn/rstats/tests` (all of it) | 591.7 KB | 229.0 KB |
+| `glm`, `glmSummary` / `glm` with all its methods | 85.2 / 122.3 KB | 35.1 / 51.4 KB |
+| everything (except `/mixed`) | 834.3 KB | 312.6 KB |
+| `@numero-uno-jpn/rstats/distributions` (all of it) | 241.8 KB | 95.6 KB |
+| `@numero-uno-jpn/rstats/tests` (all of it) | 661.3 KB | 252.5 KB |
 | `@numero-uno-jpn/rstats/linalg` (all of it) | 65.6 KB | 24.1 KB |
 | `@numero-uno-jpn/rstats/descriptive` (all of it) | 58.8 KB | 21.7 KB |
-| `@numero-uno-jpn/rstats/numerics` (all of it) | 64.6 KB | 26.3 KB |
+| `@numero-uno-jpn/rstats/numerics` (all of it) | 64.7 KB | 26.3 KB |
 | `@numero-uno-jpn/rstats/special` (all of it) | 67.6 KB | 30.4 KB |
 | `@numero-uno-jpn/rstats/mixed`: `lmer` alone / with lmerTest's tests | 50.1 / 164.6 KB | 19.4 / 70.0 KB |
 | `@numero-uno-jpn/rstats/mixed`: `glmer` alone / with `glmerSummary`, `glmerAnova`, `glmerPredict` | 116.9 / 160.4 KB | 47.2 / 66.1 KB |
 | `@numero-uno-jpn/rstats/mixed` (all of it) | 225.5 KB | 91.8 KB |
 
 The subpath rows are an area bundled on its own. The per-area CDN files (`dist/<area>.js`) share code between areas
-through `dist/chunks/`, so one area loaded from them transfers more: 39 KB (`special`) to 250 KB (`tests`) gzipped,
+through `dist/chunks/`, so one area loaded from them transfers more: 39 KB (`special`) to 278 KB (`tests`) gzipped,
 chunks included. `pt` is large because the non-central t and the double-double building blocks come with it; the
 tests with a formula form bring the formula and model-frame code.
 
@@ -172,7 +172,7 @@ Apple M1 (Mac mini), Node.js 24, the `tsc` build, 2026-10-26 (version 0.11.0). D
 bench` (`scripts/bench.mjs`), one call at a time, the minimum of 5 runs; its inputs come from the library's own
 `setSeed`/`runif`, so every build sees the same ones. Linear algebra: the minimum of 5 runs of the mean of 20 calls
 (3 for n = 300). R 4.5.2 (arm64) in the same machine's container, the same kind of inputs from R's own random
-numbers. The bundle sizes were measured on 2026-11-05 with the code of 1.0.0 (Node.js 24; the sizes do not
+numbers. The bundle sizes were measured on 2026-11-16 with the code of 1.4.0 (Node.js 24; the sizes do not
 depend on the machine). The mixed models were measured on 2026-10-27 (the code of 0.12.0; the fits of `lmer` and
 `lmerSummary` again with the code of 0.15.0), with lme4 2.0.6 in the same container.
 
