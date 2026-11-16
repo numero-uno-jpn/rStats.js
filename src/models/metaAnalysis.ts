@@ -60,9 +60,6 @@ export interface EscalcResult { yi: number[]; vi: number[]; measure: EscalcMeasu
 export interface RmaControl {
   tau2Init?: number; threshold?: number; maxiter?: number; stepadj?: number; tol?: number; tau2Max?: number;
 }
-/** Options for {@link rma}.
- * @category Meta-analysis
- */
 /** A moderator matrix with optional column and row names.
  * @category Meta-analysis
  */
@@ -85,9 +82,6 @@ export interface RmaOptions {
   level?: number;
   control?: RmaControl;
 }
-/** Fitted meta-analysis model returned by {@link rma}.
- * @category Meta-analysis
- */
 /** A numeric matrix with its dimensions and dimnames.
  * @category Meta-analysis
  */
