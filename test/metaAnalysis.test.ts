@@ -112,10 +112,14 @@ describe("meta-analysis intervals and prediction",()=>{
         if(c.fn==="interval"){
           const got=confintRma(fit,{type:c.args.type});
           resultWarnings=(got as {warnings?:string[]}).warnings??[];
-          // R's profile-interval root search uses a finite stopping tolerance; retain a tighter check
-          // for the fitted estimate while allowing the documented numerical root-search spread in endpoints.
-          const intervalRows={...c.expected.value!.random,rows:c.expected.value!.random.rows.map(row=>({...row}))};
-          close(got.random,intervalRows,`case ${i} intervals`,mismatches,0.0012);
+          // R's profile-interval root search uses a finite stopping tolerance; keep fitted estimates strict
+          // while allowing its numerical root-search spread in the confidence limits.
+          const expectedRows=c.expected.value!.random.rows;
+          close(got.random.dim,c.expected.value!.random.dim,`case ${i} interval dimensions`,mismatches);
+          close(got.random.rowNames,c.expected.value!.random.rowNames,`case ${i} interval row names`,mismatches);
+          close(got.random.colNames,c.expected.value!.random.colNames,`case ${i} interval column names`,mismatches);
+          close(got.random.rows.map(row=>row.estimate),expectedRows.map(row=>row.estimate),`case ${i} interval estimates`,mismatches);
+          close(got.random.rows.map(row=>({lb:row["ci.lb"],ub:row["ci.ub"]})),expectedRows.map(row=>({lb:row["ci.lb"],ub:row["ci.ub"]})),`case ${i} interval endpoints`,mismatches,0.0012);
           for(const key of ["digits","ci.null","lb.sign","ub.sign","tau2.min"])close(got[key as keyof typeof got],c.expected.value![key],`case ${i} ${key}`,mismatches);
         }else{
           const got=predictRma(fit,{...(c.args.newmods===undefined?{}:{newmods:c.args.newmods.map(n)}),...(c.args.predtype===undefined?{}:{predtype:c.args.predtype})});
