@@ -30,8 +30,8 @@ run_one<-function(label,nA,nB,a1,b1,a2,b2,rho) {
       (Ytot-1)/x$H*sum(x$Y*qsub^2*w^2/(x$H-qsub))
     }
     if(x$d>1) {
-      corrD<-corrD+x$d*(x$d-1)/(Ytot-1)*kernel(x$D)
-      corrA<-corrA+x$d*(x$d-1)/(Ytot-1)*kernel(aa)
+      corrD<-corrD+x$L^2*x$d*(x$d-1)/(Ytot-1)*kernel(x$D)
+      corrA<-corrA+x$L^2*x$d*(x$d-1)/(Ytot-1)*kernel(aa)
     }
     future<-future+x$D*x$dGamma
   }
