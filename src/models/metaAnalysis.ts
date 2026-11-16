@@ -352,12 +352,12 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
     if((opts.method??"REML")==="DL") throw new Error("DL estimator cannot be used when there are non-positive sampling variances in the data.");
     throw new RangeError("random-effects estimators require positive sampling variances");
   }
-  const method=opts.method??"REML", test=opts.test??"z", level=opts.level??0.95, intercept=opts.intercept??true;
+  const method=opts.method??"REML", test=opts.test??"z", level=opts.level??95, intercept=opts.intercept??true;
   const built=buildDesign(y.length,opts.mods,intercept,opts.data),X=built.x;
   const p=X[0]!.length,k=y.length,df=k-p;
   if(p===0) throw new RangeError("the model must contain at least one coefficient");
   if(k<p) throw new Error("Number of parameters to be estimated is larger than the number of observations.");
-  if(!(level>0&&level<1)) throw new RangeError("level must be between 0 and 1");
+  if(!(level>0&&level<100)) throw new RangeError("level must be between 0 and 100");
   if(!["EE","FE","DL","HE","HS","HSk","SJ","ML","REML","EB","PM"].includes(method)) throw new RangeError(`unknown method '${method}'`);
   if(!["z","t","knha"].includes(test)) throw new RangeError(`unknown test '${test}'`);
   if(method==="DL"&& !Number.isFinite(weightedFit(y,v,X,0).qe)) throw new Error("NA/NaN/Inf in foreign function call (arg 1)");
@@ -369,7 +369,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
   const covariance=fit.cov.map(row=>row.map(z=>z*kh));
   const se=fit.cov.map((row,i)=>Math.sqrt(Math.max(0,row[i]!)*kh));
   const stat=fit.beta.map((b,i)=>b/se[i]!);
-  const crit=test==="z"?qnorm(1-(1-level)/2):qt(1-(1-level)/2,df);
+  const crit=test==="z"?qnorm(1-(1-level/100)/2):qt(1-(1-level)/2,df);
   const pv=stat.map(z=>2*(test==="z"?pnorm(-Math.abs(z)):pt(-Math.abs(z),df)));
   const lower=fit.beta.map((b,i)=>b-crit*se[i]!);
   const upper=fit.beta.map((b,i)=>b+crit*se[i]!);
@@ -396,7 +396,7 @@ export function rma(yi:readonly number[]|EscalcResult,viOrOptions?:readonly numb
  */
 export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{random:{dim:number[];rowNames:string[];colNames:string[];rows:{estimate:number;ci.lb:number;ci.ub:number}[]};digits:Record<string,string>; "ci.null":boolean;"lb.sign":string;"ub.sign":string;"tau2.min":string} {
   checkOptions(options, CONFINT_RMA_KEYS, "confintRma"); // generated: option-keys.mjs
-  const type=options.type??"QP",level=options.level??object.level,alpha=1-level;
+  const type=options.type??"QP",level=options.level??object.level,alpha=1-level/100;
   if(type!=="QP"&&type!=="PL") throw new RangeError("type must be 'QP' or 'PL'");
   const fit=weightedFit(object.yi,object.vi,object.mods,object.tau2),df=object.k-object.mods[0]!.length;
   let lo=0,hi=NaN;
@@ -431,7 +431,7 @@ export function confintRma(object:RmaResult,options:ConfintRmaOptions={}):{rando
  */
 export function predictRma(object:RmaResult,options:PredictRmaOptions={}):{pred:number|number[];se:number|number[];"ci.lb":number|number[];"ci.ub":number|number[];"pi.lb":number|number[];"pi.ub":number|number[]} {
   checkOptions(options, PREDICT_RMA_KEYS, "predictRma"); // generated: option-keys.mjs
-  const level=options.level??object.level,alpha=1-level,p=object.mods[0]!.length;
+  const level=options.level??object.level,alpha=1-level/100,p=object.mods[0]!.length;
   let rows:number[][];
   if(options.newmods===undefined) rows=[object.intercept?[1]:[]];
   else {
@@ -460,7 +460,7 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
   checkOptions(maybeOptions, REGTEST_KEYS, "regtest"); // generated: option-keys.mjs
   const isFit=typeof x==="object"&&"beta" in x;
   const options=(isFit?viOrOptions:maybeOptions) as RegtestOptions|undefined ?? {};
-  const model=options.model??"rma",predictor=options.predictor??"sei",level=options.level??0.95;
+  const model=options.model??"rma",predictor=options.predictor??"sei",level=options.level??95;
   const y=Array.from(isFit?(x as RmaResult).yi:x as readonly number[]);
   const v=Array.from(isFit?(x as RmaResult).vi:viOrOptions as readonly number[]|undefined ?? []);
   if(y.length!==v.length||y.length<2) throw new RangeError("yi and vi must have equal lengths and at least two studies");
@@ -476,7 +476,7 @@ export function regtest(x:readonly number[]|RmaResult,viOrOptions?:readonly numb
     const fit=rma(y,v,{method:"REML",mods:z,intercept:true,test:"z"});
     est=fit.beta.rows[0]![0];se=Array.isArray(fit.se)?fit.se[0]!:fit.se;stat=est/se;df=NaN;pv=2*pnorm(-Math.abs(stat));
   }
-  const crit=model==="lm"?qt(1-(1-level)/2,df):qnorm(1-(1-level)/2);
+  const crit=model==="lm"?qt(1-(1-level)/2,df):qnorm(1-(1-level/100)/2);
   const out={model,predictor,zval:stat,pval:pv,dfs:df,est,"ci.lb":est-crit*se,"ci.ub":est+crit*se};
   return reported("regtest",options.retFit?{...out,fit}:out);
 }
