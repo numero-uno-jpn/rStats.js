@@ -289,6 +289,9 @@ exp(2 loglik[1]/n)`), also with `id` (Easy to get wrong 13). The print shows `n=
 - **Without `id`**, each split point is a censoring (`n.censor` 31 at a cut time in the fixture; the summary gets a row
   there); **with `id`**, a row that ends where the same id's next row starts is not a censoring and not a row (the
   rows and n.censor equal the unsplit data's; surv, std.err identical to 1e-16 either way).
+  This is survival 3.8-12 (R 4.6.2); survival 3.8.3 (R 4.5.2) still kept the first split point of each stratum as a row
+  with n.event 0 and n.censor 0 (e.g. the data of the demo example coxph-counting-zph: times 2 and 3), a bug fixed in
+  3.8-12 (NEWS: "10 should not appear in the time component ... The curve was always correct").
 - The median and its interval: as `oracle/survival.R` (negative times fine).
 
 ---

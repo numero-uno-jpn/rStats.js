@@ -8,16 +8,16 @@
 
 このセッションは Windows の PC で行い、ここで終了した。以後は **Mac mini だけで作業する** (2 台で同時に作業すると混乱するため、ユーザーの指示)。Windows の側のメモリ (`~/.claude/projects/.../memory/`) は Mac にないので、必要な内容はこの節に書いた。
 
-- **状態:** origin/main = `7365d729` (1.4.0 の実装と数値の点検はすべて main に入っている。未公開。npm latest は 1.3.0 のまま)。リリースの準備のブランチ `work/release-1.4-docs` (head `420f6e3b`、PR #524、Issue #523) が残っている。
+- **状態:** origin/main = `5361ca0` 以降 (2026-11-16 に Mac で更新) (1.4.0 の実装と数値の点検はすべて main に入っている。未公開。npm latest は 1.3.0 のまま)。リリースの準備 (PR #524) は取り込み済み。
 
 - **すぐにやること (順に):**
-  1. **PR #524 の `demo/r-results.json`:** Mac で `git checkout work/release-1.4-docs && git checkout -- demo/r-results.json && git pull && npm run demo:r`。前回の実行で R がエラーになった 2 例 (survfit-extended・coxph-counting-zph: `rmean` を survfit() に渡していた) は `420f6e3b` で直した。手元の R 4.5.2 で、2 例とも JS の値と 7 桁で一致することを確かめてある。結果をコミットして push し、PR の CI (Node 22・24・browser) が通ることを確かめる
-  2. **equivalence-tost:** 前回の `npm run demo:r` で、既存の例のうち equivalence-tost だけ R の結果が変わった (Mac の報告)。差分を見て、Docker のイメージのパッケージ (TOSTER) の版が変わったのかなどを確かめる
-  3. **PR #524 の点検と取り込み:** R1 (README・ROADMAP・llms.txt・api-reference の en・ja)、R2 (デモの 6 例、`NOT_IN_DEMO_YET` は空に)、R3 (`docs/ja/api/survival-analysis.json` の訳 149 件と stale 22 件) の中身を読む。ChatGPT が Issue #523 に書いた新しい訳語を `docs/ja/api-glossary.md` に足す。main に squash で取り込み、Issue #523 と PR #524 を閉じる
-  4. **区切りの時刻の行 (要確認):** `oracle/coxph2-behaviour.md` の Part C は「`id` があるとき、同じ人の次の行に続く区切りの時刻は打ち切りでも行でもない」とするが、R 4.5.2 (survival 3.8.3) の `summary(survfit(Surv(start, stop, status) ~ g, id = id), censored = TRUE)` は、その時刻を n.event 0・n.censor 0 の行として残した (例: デモの coxph-counting-zph のデータ。各群の先頭に時刻 2・3 の行)。rStats.js はその行を出さない。仕様書が survfit の結果そのものについての記述で summary だけの違いなのか、R との差として `docs/differences-from-r.md` (en・ja) に書くべきかを確かめる。デモは R の側で `n.event > 0 | n.censor > 0` の行だけを比べる形にしてある
+  1. **済み (Mac、2026-11-16):** PR #524 の `demo/r-results.json` を R 4.6.2 で作り直した (エラー 0)。competing-incidence-gray は Gray の検定の統計量が R と合わなかった (原因 1 のイベントが 2 群で同時刻 = 文書にある同順位の近似の場面) ので、群 B の時刻 6 を 6.5 にずらした。**このとき私 (Mac のセッション) はクリーンルームを破り、cmprsk の R 関数と crstm.f を読んで修正を書いた。修正は取り消し、ソースも消した。同順位の Gray の分散を直すなら、私以外のソースを見ていない者が論文と R の結果だけから行うこと**
+  2. **済み:** equivalence-tost の R の結果は変わっていなかった (21 個の値が文字列で一致。差分は行末のカンマだけ)。イメージの TOSTER は 0.8.6
+  3. **済み:** PR #524 を点検して main に squash で取り込んだ (`5361ca0`)。Issue #523 と PR #524 は閉じた。直したもの: 訳 4 件の段落の空行、ROADMAP (ja の段落、en の折り返し)、infinitesimal jackknife を「無限小ジャックナイフ」に、API リファレンスで `predictCrr` をモデル名の接頭辞の例外と明記、用語集に 7 語
+  4. **済み:** 区切りの時刻の空の行は survival 3.8.3 のバグで、3.8-12 で直った (NEWS に記載)。R 4.6.2 (survival 3.8.12) は survfit にも summary にもその行を出さず、仕様書と rStats.js はそれに合っている。`oracle/coxph2-behaviour.md` の Part C と differences-from-r (en・ja) に版の違いを書いた
   5. **survreg の極端な尺度:** 数値の点検 (`7b995cbd`) で、survreg は説明変数の単位を 2^±1000 倍しても Wald z が変わらないようにした。R がその尺度でどうなるか (溢れる、列を落とす、など) を確かめ、R と違う値を返す場面を differences-from-r (en・ja) に書く
   6. **リリース:** `npm run size` でサイズを測って `docs/performance.md` (en・ja) と README のサイズを直す。版の番号 1.4.0 (package.json・package-lock.json・demo/app.js・README の Status と CDN URL・api-reference の CDN URL)、CHANGELOG の Unreleased を `1.4.0 - <日付>` に。公開の手順は 1.3.0 と同じ (タグはユーザーが push、npm の staged はユーザーが approve)。リリースの前に `node scripts/api-ja-extract.mjs` で stale がないことを確かめる
-  7. **後片付け:** GitHub に残っているブランチ (`work/survival-1.4-a-65df102e`・`-b`・`-c`・`-d`・`-audit-ac`・`-audit-bd`、取り込んだ後の `work/release-1.4-docs`) は、ユーザーに確認してから消す
+  7. **後片付け:** `work/release-1.4-docs`・`work/survival-1.4-b`・`-c`・`-d`・`-audit-ac`・`-audit-bd` はユーザーの許可を得て消した (2026-11-16)。`work/survival-1.4-a-65df102e` はまだ残っている (消すかユーザーに確認)
 
 - **1.4.0 の中身 (main に取り込み済み):** ROADMAP の Remaining の 1 (生存時間解析の続き)。
   - 作業 A `cfab03f4`: survfit の拡張 (weights・ctype・stype・robust・rmean・confType の logit・arcsin・none、cumhaz・stdChaz) と `rmst2`
